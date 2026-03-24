@@ -57,6 +57,8 @@ function Spark({ data = [], color = '#4f8ef7', h = 36, w = 90, area = false }) {
 
 // ── KPI Card (Overview용) ────────────────────────────────────────────────
 function KpiCard({ label, value, sub, change, color, spark, icon }) {
+    const { t } = useI18n();
+
   const up = change >= 0;
   return (
     <div style={{
@@ -89,6 +91,8 @@ function KpiCard({ label, value, sub, change, color, spark, icon }) {
 
 // ── Channel In Progress 행 ─────────────────────────────────────────────────────────
 function ChannelBar({ name, rev, pct, color, icon, totalRev }) {
+    const { t } = useI18n();
+
   return (
     <div style={{ marginBottom: 10 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
@@ -111,6 +115,8 @@ function ChannelBar({ name, rev, pct, color, icon, totalRev }) {
 
 // ── Tab Select기 ────────────────────────────────────────────────────────────
 function DashSelector({ active, onSelect, dashboards }) {
+    const { t } = useI18n();
+
   return (
     <div style={{
       display: 'flex', gap: 6, flexWrap: 'wrap',
@@ -221,6 +227,8 @@ const ROLE_QUICK_STARTS = {
 };
 
 function SmartHomePanel({ navigate }) {
+    const { t } = useI18n();
+
   const savedRole = (() => { try { return JSON.parse(localStorage.getItem('g_smart_onboarding') || '{}').role || null; } catch { return null; } })();
   const [role, setRole] = React.useState(savedRole);
   const [dismissed, setDismissed] = React.useState(() => { try { return localStorage.getItem('g_smarthome_dismissed') === '1'; } catch { return false; } });
@@ -280,6 +288,8 @@ function SmartHomePanel({ navigate }) {
 }
 
 function OverviewDash({ ticker }) {
+    const { t } = useI18n();
+
   const navigate = useNavigate();
   const { fmt: fmtCurrency } = useCurrency();
   const base = useMemo(() => ({
@@ -310,7 +320,12 @@ function OverviewDash({ ticker }) {
 
       {/* ── Row 1: KPI 6 columns ─────────────────────────────────────────────── */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6,1fr)', gap: 12 }}>
-        <KpiCard icon="💰" label={t("dashboard.grossRevenue")} value={fmtCurrency(base.grossRev, { compact: true })} sub={t("dashboard.grossRevSub")} change={8.3} color="#4f8ef7" spark={sp.gross} />\n        <KpiCard icon="📢" label={t("dashboard.adSpend")} value={fmtCurrency(base.adSpend, { compact: true })} sub={t("dashboard.adSpendSub")} change={-2.4} color="#f97316" spark={sp.spend} />\n        <KpiCard icon="📈" label={t("dashboard.netROAS")} value={base.roas.toFixed(2) + "x"} sub={t("dashboard.netROASSub")} change={12.8} color="#22c55e" spark={sp.roas} />\n        <KpiCard icon="📦" label={t("dashboard.totalOrders")} value={base.orders.toLocaleString()} sub={t("dashboard.totalOrderSub")} change={6.2} color="#a855f7" spark={sp.orders} />\n        <KpiCard icon="🎯" label={t("dashboard.convRateLbl")} value={base.convRate.toFixed(2) + "%"} sub={t("dashboard.convRateSub")} change={3.5} color="#ec4899" spark={sp.conv} />\n        <KpiCard icon="🧾" label={t("dashboard.avgOrder")} value={fmtCurrency(base.avgOrder, { compact: true })} sub="AOV" change={1.9} color="#14d9b0" spark={sp.aov} />
+        <KpiCard icon="💰" label={t("dashboard.grossRevenue")} value={fmtCurrency(base.grossRev, { compact: true })} sub={t("dashboard.grossRevSub")} change={8.3} color="#4f8ef7" spark={sp.gross} />
+        <KpiCard icon="📢" label={t("dashboard.adSpend")} value={fmtCurrency(base.adSpend, { compact: true })} sub={t("dashboard.adSpendSub")} change={-2.4} color="#f97316" spark={sp.spend} />
+        <KpiCard icon="📈" label={t("dashboard.netROAS")} value={base.roas.toFixed(2) + "x"} sub={t("dashboard.netROASSub")} change={12.8} color="#22c55e" spark={sp.roas} />
+        <KpiCard icon="📦" label={t("dashboard.totalOrders")} value={base.orders.toLocaleString()} sub={t("dashboard.totalOrderSub")} change={6.2} color="#a855f7" spark={sp.orders} />
+        <KpiCard icon="🎯" label={t("dashboard.convRateLbl")} value={base.convRate.toFixed(2) + "%"} sub={t("dashboard.convRateSub")} change={3.5} color="#ec4899" spark={sp.conv} />
+        <KpiCard icon="🧾" label={t("dashboard.avgOrder")} value={fmtCurrency(base.avgOrder, { compact: true })} sub="AOV" change={1.9} color="#14d9b0" spark={sp.aov} />
       </div>
 
       {/* ── Row 2: Channel Mix(1.4fr) + Activity Feed(1fr) + System(0.8fr) ──── */}
