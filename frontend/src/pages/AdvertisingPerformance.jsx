@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../auth/AuthContext.jsx';
-import { t } from '../i18n'; // assuming a t function is exported
+import { useI18n } from '../i18n';
 
 const teams = ['US', 'JP', 'EU'];
 const channels = ['Meta', 'TikTok', 'Amazon'];
 
 export default function AdvertisingPerformance() {
   const { user } = useAuth();
+  const { t } = useI18n();
   const [team, setTeam] = useState('US');
   const [channel, setChannel] = useState('Meta');
   const [data, setData] = useState([]);

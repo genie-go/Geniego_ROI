@@ -1,3 +1,4 @@
+import { useI18n } from '../i18n';
 import React, { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../auth/AuthContext";
 import PlanGate from "../components/PlanGate.jsx";
@@ -61,10 +62,11 @@ const DEMO_AI_SEGMENTS = [
 const PRIORITY_BADGE = {
     urgent: { label: "Urgent", color: "#f87171", bg: "rgba(248,113,113,0.12)" },
     high: { label: "in progress요", color: "#fbbf24", bg: "rgba(251,191,36,0.12)" },
-    medium: { label: "General", color: "#4f8ef7", bg: "rgba(79,142,247,0.12)" },
+    medium: { label: "{t('crm.c_25')}", color: "#4f8ef7", bg: "rgba(79,142,247,0.12)" },
 };
 
-function AISegmentsTab({ isDemo, navigate }) {
+function AISegmentsTab({ isDemo, navigate }) { 
+    const { t } = useI18n();
     const [expanded, setExpanded] = useState(null);
     const [actionMsg, setActionMsg] = useState({});
 
@@ -161,16 +163,17 @@ function AISegmentsTab({ isDemo, navigate }) {
 
 /* ─── RFM Grade 배지 ──────────────────────────────────── */
 const RFM_GRADE = {
-    champions: { label: "챔피언즈", color: "#22c55e" },
-    loyal: { label: "충성Customer", color: "#4f8ef7" },
-    at_risk: { label: "이탈위험", color: "#fbbf24" },
-    lost: { label: "이탈", color: "#f87171" },
-    new: { label: "신규", color: "#a78bfa" },
-    normal: { label: "General", color: "#64748b" },
+    champions: { label: "{t('crm.c_22')}", color: "#22c55e" },
+    loyal: { label: "{t('crm.c_21')}", color: "#4f8ef7" },
+    at_risk: { label: "{t('crm.c_20')}", color: "#fbbf24" },
+    lost: { label: "{t('crm.c_24')}", color: "#f87171" },
+    new: { label: "{t('crm.c_23')}", color: "#a78bfa" },
+    normal: { label: "{t('crm.c_25')}", color: "#64748b" },
 };
 
 /* ─── Statistics Card ─────────────────────────────────────── */
-function StatCard({ icon, label, value, sub, color }) {
+function StatCard({ icon, label, value, sub, color }) { 
+    const { t } = useI18n();
     return (
         <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, padding: "18px 22px" }}>
             <div style={{ fontSize: 22, marginBottom: 6 }}>{icon}</div>
@@ -182,7 +185,8 @@ function StatCard({ icon, label, value, sub, color }) {
 }
 
 /* ─── Customer Details Panel (360° 뷰) ───────────────────────── */
-function CustomerPanel({ customerId, onClose, onSendEmail, onSendKakao, apiFunc }) {
+function CustomerPanel({ customerId, onClose, onSendEmail, onSendKakao, apiFunc }) { 
+    const { t } = useI18n();
     const [data, setData] = useState(null);
     useEffect(() => {
         if (!customerId || !apiFunc) return;
@@ -288,7 +292,8 @@ function CustomerPanel({ customerId, onClose, onSendEmail, onSendKakao, apiFunc 
 }
 
 /* ─── Segment Tab ─────────────────────────────────────── */
-function SegmentsTab({ segments, crmSegments, onRefresh, linkMsg, setLinkMsg, createEmailCampaignFromSegment, createKakaoCampaignFromSegment, apiFunc }) {
+function SegmentsTab({ segments, crmSegments, onRefresh, linkMsg, setLinkMsg, createEmailCampaignFromSegment, createKakaoCampaignFromSegment, apiFunc }) { 
+    const { t } = useI18n();
     const [form, setForm] = useState({ name: "", description: "", color: "#4f8ef7", rules: [] });
     const [saving, setSaving] = useState(false);
     const [msg, setMsg] = useState("");
@@ -344,7 +349,7 @@ function SegmentsTab({ segments, crmSegments, onRefresh, linkMsg, setLinkMsg, cr
                 </div>
                 {msg && <div style={{ fontSize: 12, color: msg.startsWith("✅") ? C.green : C.red, marginBottom: 8 }}>{msg}</div>}
                 <button onClick={save} disabled={saving || !form.name} style={{ width: "100%", padding: "10px", borderRadius: 10, border: "none", background: C.accent, color: "#fff", fontWeight: 700, cursor: "pointer" }}>
-                    {saving ? "Save in progress..." : "Segment Create"}
+                    {saving ? "{t('crm.c_18')}" : "Segment Create"}
                 </button>
             </div>
 
@@ -408,7 +413,8 @@ function SegmentsTab({ segments, crmSegments, onRefresh, linkMsg, setLinkMsg, cr
 }
 
 /* ─── RFM Analysis Tab ────────────────────────────────────── */
-function RFMTab({ isDemo, apiFunc }) {
+function RFMTab({ isDemo, apiFunc }) { 
+    const { t } = useI18n();
     const [data, setData] = useState(null);
 
     useEffect(() => {
@@ -453,7 +459,7 @@ function RFMTab({ isDemo, apiFunc }) {
                     <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
                         <thead>
                             <tr style={{ background: "#0a1520" }}>
-                                {["Name", "Email", "구매Amount", "구매횟Count", "최근구매", "RFM Grade"].map(h => (
+                                {["{t('crm.c_13')}", "Email", "구매Amount", "구매횟Count", "최근구매", "RFM Grade"].map(h => (
                                     <th key={h} style={{ padding: "10px 14px", textAlign: "left", color: C.muted, fontWeight: 600 }}>{h}</th>
                                 ))}
                             </tr>
@@ -484,6 +490,7 @@ function RFMTab({ isDemo, apiFunc }) {
 
 /* ─── CRM 내용 (PlanGate 내부) ───────────────────────── */
 function CRMContent() {
+    const { t } = useI18n();
     const { token } = useAuth();
     const { isDemo } = useDemo();
     const navigate = useNavigate();
@@ -535,10 +542,10 @@ function CRMContent() {
     };
 
     const TABS = [
-        { id: "customers", label: "👥 Customer List" },
-        { id: "ai_segments", label: "🤖 AI Segment" },
-        { id: "segments", label: "📂 Segment" },
-        { id: "rfm", label: "📊 RFM Analysis" },
+        { id: "customers", label: "{t('crm.c_6')}" },
+        { id: "ai_segments", label: "{t('crm.c_7')}" },
+        { id: "segments", label: "{t('crm.c_8')}" },
+        { id: "rfm", label: "{t('crm.c_9')}" },
     ];
 
     // Demo Statistics 처리
@@ -550,7 +557,7 @@ function CRMContent() {
 
     return (
         <div style={{ background: C.bg, minHeight: "100%", color: C.text }}>
-            {isDemo && <DemoBanner feature="Customer CRM" />}
+            {isDemo && <DemoBanner feature="{t('crm.c_0')}" />}
             {/* [v8] AI Recommendation Banner */}
             <AIRecommendBanner context="crm" />
 
@@ -563,10 +570,10 @@ function CRMContent() {
             {/* Statistics Card */}
             {displayStats && (
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, marginBottom: 20 }}>
-                    <StatCard icon="👥" label="All Customer" value={displayStats.total?.toLocaleString()} color={C.accent} />
-                    <StatCard icon="🔥" label="Active (30일)" value={displayStats.active_30d?.toLocaleString()} color={C.green} />
-                    <StatCard icon="💰" label="Total LTV" value={`₩${Math.round((displayStats.total_ltv || 0) / 1000000)}M`} color={C.purple} />
-                    <StatCard icon="🏷" label="Segment Count" value={(segments.length + crmSegments.length)} color={C.yellow} />
+                    <StatCard icon="👥" label="{t('crm.c_2')}" value={displayStats.total?.toLocaleString()} color={C.accent} />
+                    <StatCard icon="🔥" label="{t('crm.c_3')}" value={displayStats.active_30d?.toLocaleString()} color={C.green} />
+                    <StatCard icon="💰" label="{t('crm.c_4')}" value={`₩${Math.round((displayStats.total_ltv || 0) / 1000000)}M`} color={C.purple} />
+                    <StatCard icon="🏷" label="{t('crm.c_5')}" value={(segments.length + crmSegments.length)} color={C.yellow} />
                 </div>
             )}
 
@@ -593,9 +600,9 @@ function CRMContent() {
                     <div style={{ fontWeight: 700, marginBottom: 14 }}>신규 Customer Register</div>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
                         {[
-                            ["Email*", "email", "email@example.com"],
-                            ["Name", "name", "John Doe"],
-                            ["Phone", "phone", "010-0000-0000"],
+                            ["{t('crm.c_12')}", "email", "email@example.com"],
+                            ["{t('crm.c_13')}", "name", "John Doe"],
+                            ["{t('crm.c_14')}", "phone", "010-0000-0000"],
                         ].map(([label, key, placeholder]) => (
                             <div key={key}>
                                 <div style={{ fontSize: 11, color: C.muted, marginBottom: 4 }}>{label}</div>
@@ -621,7 +628,7 @@ function CRMContent() {
                     {msg && <div style={{ marginTop: 10, fontSize: 12, color: msg.startsWith("✅") ? C.green : C.red }}>{msg}</div>}
                     <div style={{ display: "flex", gap: 10, marginTop: 14 }}>
                         <button onClick={saveCustomer} disabled={saving || !form.email} style={{ padding: "9px 22px", borderRadius: 9, border: "none", background: C.accent, color: "#fff", fontWeight: 700, cursor: "pointer" }}>
-                            {saving ? "Save in progress..." : "Register"}
+                            {saving ? "{t('crm.c_18')}" : "{t('crm.c_17')}"}
                         </button>
                         <button onClick={() => setShowForm(false)} style={{ padding: "9px 22px", borderRadius: 9, border: `1px solid ${C.border}`, background: "none", color: C.muted, cursor: "pointer" }}>Cancel</button>
                     </div>
@@ -632,14 +639,14 @@ function CRMContent() {
             {tab === "customers" && (
                 <>
                     <div style={{ display: "flex", gap: 10, marginBottom: 16 }}>
-                        <input value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} placeholder="Name·Email·Phone Search..."
+                        <input value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} placeholder="{t('crm.c_19')}"
                             style={{ flex: 1, padding: "9px 14px", borderRadius: 10, background: C.card, border: `1px solid ${C.border}`, color: C.text }} />
                     </div>
                     <div style={{ background: C.card, borderRadius: 14, overflow: "hidden" }}>
                         <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
                             <thead>
                                 <tr style={{ background: "#0a1520" }}>
-                                    {["Name", "Email", "전화", "Grade", "LTV", "구매Count", "마지막구매", ""].map(h => (
+                                    {["{t('crm.c_13')}", "Email", "전화", "{t('crm.c_15')}", "LTV", "구매Count", "마지막구매", ""].map(h => (
                                         <th key={h} style={{ padding: "12px 16px", textAlign: "left", color: C.muted, fontWeight: 600, fontSize: 12 }}>{h}</th>
                                     ))}
                                 </tr>
@@ -709,6 +716,7 @@ function CRMContent() {
 
 /* ─── 메인 CRM Page ─────────────────────────────────── */
 export default function CRM() {
+    const { t } = useI18n();
     return (
         <PlanGate feature="crm">
             <CRMContent />

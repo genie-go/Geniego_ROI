@@ -1,3 +1,4 @@
+import { useI18n } from '../../i18n';
 // ══════════════════════════════════════════════════════════════════════
 //  🖥️ 시스템 현황 — Infrastructure Intelligence with Drill-Down
 //  모듈/API 클릭 → 상세 성능 지표·에러 분석·트렌드
@@ -49,6 +50,7 @@ const G = 10;
 const CARD = { background: 'linear-gradient(145deg,rgba(255,255,255,0.04),rgba(13,21,37,0.9))', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: '13px 15px' };
 
 function ModuleDetail({ id }) {
+    const { t } = useI18n();
     const m = MODULES[id];
     const isWarn = m.status === 'warn';
     return (
@@ -135,6 +137,7 @@ function ModuleDetail({ id }) {
 }
 
 export default function DashSystem() {
+    const { t } = useI18n();
     const [sel, setSel] = useState(null);
     const okCount = MLIST.filter(m => m.status === 'ok').length;
     const avgLat = (MLIST.reduce((s, m) => s + m.latency, 0) / MLIST.length).toFixed(0);

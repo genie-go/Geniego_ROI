@@ -1,3 +1,4 @@
+import { useI18n } from '../../i18n';
 // ══════════════════════════════════════════════════════════════════════
 //  📡 채널 KPI — Channel Intelligence with Drill-Down
 //  채널 클릭 → 성별/연령/지역/전환퍼널/광고유형 우측 패널
@@ -47,10 +48,11 @@ const AGE_L = ['13-17', '18-24', '25-34', '35-44', '45-54', '55+'];
 const FC = ['#4f8ef7', '#22c55e', '#a855f7', '#f97316', '#ec4899'];
 
 function DetailPanel({ ch }) {
+    const { t } = useI18n();
     const c = CH[ch];
     const maxAge = Math.max(...c.age);
     const maxFun = c.funnel[0];
-    const fLabels = ['노출', '클릭', '상품조회', '장바구니', '구매'];
+    const fLabels = [t('kpi.k_16'), t('kpi.k_17'), t('kpi.k_18'), t('kpi.k_19'), t('kpi.k_20')];
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10, overflowY: 'auto', height: '100%' }}>
             {/* 헤더 */}
@@ -63,7 +65,7 @@ function DetailPanel({ ch }) {
                     </div>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 6 }}>
-                    {[{ l: 'ROAS', v: `${c.roas}×`, col: c.color }, { l: 'Revenue', v: fmt(c.rev, { prefix: '₩' }), col: '#22c55e' }, { l: 'Spend', v: fmt(c.spend, { prefix: '₩' }), col: '#f97316' }, { l: 'CTR', v: `${c.ctr}%`, col: '#a855f7' }, { l: 'Conv.', v: `${c.conv}%`, col: '#ec4899' }, { l: 'CPC', v: `₩${c.cpc}`, col: '#14d9b0' }].map(m => (
+                    {[{ l: t('kpi.k_3'), v: `${c.roas}×`, col: c.color }, { l: t('kpi.k_4'), v: fmt(c.rev, { prefix: '₩' }), col: '#22c55e' }, { l: t('kpi.k_5'), v: fmt(c.spend, { prefix: '₩' }), col: '#f97316' }, { l: t('kpi.k_6'), v: `${c.ctr}%`, col: '#a855f7' }, { l: t('kpi.k_7'), v: `${c.conv}%`, col: '#ec4899' }, { l: t('kpi.k_8'), v: `₩${c.cpc}`, col: '#14d9b0' }].map(m => (
                         <div key={m.l} style={{ background: 'rgba(0,0,0,0.2)', borderRadius: 8, padding: '7px 10px', textAlign: 'center' }}>
                             <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: 0.7 }}>{m.l}</div>
                             <div style={{ fontSize: 14, fontWeight: 900, color: m.col }}>{m.v}</div>
@@ -142,6 +144,7 @@ function DetailPanel({ ch }) {
 }
 
 export default function DashChannelKPI() {
+    const { t } = useI18n();
     const [sel, setSel] = useState(null);
 
     // ✅ GlobalDataContext 실시간 연동

@@ -265,7 +265,8 @@ function buildActions(skuPnL, anomalies) {
 /* ════════════════════════════════════════════════════════════════
    TAB 1: Unified Overview
 ════════════════════════════════════════════════════════════════ */
-function OverviewTab({ skuPnL, anomalies }) {
+function OverviewTab({ skuPnL, anomalies }) { 
+    const { t } = useI18n();
     const { fmt } = useCurrency();
     const totalGross = skuPnL.reduce((s, p) => s + p.mktGross, 0);
     const totalAdSpend = skuPnL.reduce((s, p) => s + p.adSpend, 0);
@@ -286,22 +287,22 @@ function OverviewTab({ skuPnL, anomalies }) {
         <div style={{ display: "grid", gap: 16 }}>
             {/* Main KPIs */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))", gap: 10 }}>
-                <KpiCard label="Total Revenue" value={"\u20a9" + fmtM(totalGross)} color="#4f8ef7" icon="💰" />
-                <KpiCard label="Ad Spend" value={"\u20a9" + fmtM(totalAdSpend)} color="#f97316" icon="📣" sub={pct(totalAdSpend, totalGross)} />
-                <KpiCard label="Platform Fee" value={"\u20a9" + fmtM(totalFees)} color="#ef4444" icon="🏪" sub={pct(totalFees, totalGross)} />
-                <KpiCard label="Influencer" value={"\u20a9" + fmtM(totalInfCost)} color="#a855f7" icon="🤝" />
-                <KpiCard label="Net Settlement" value={"\u20a9" + fmtM(totalNet)} color="#22c55e" icon="✅" />
-                <KpiCard label="Net Profit" value={"\u20a9" + fmtM(totalProfit)} color={totalProfit >= 0 ? "#22c55e" : "#ef4444"} icon="📊"
+                <KpiCard label="{t('pnl.p_1')}" value={"\u20a9" + fmtM(totalGross)} color="#4f8ef7" icon="💰" />
+                <KpiCard label="{t('pnl.p_2')}" value={"\u20a9" + fmtM(totalAdSpend)} color="#f97316" icon="📣" sub={pct(totalAdSpend, totalGross)} />
+                <KpiCard label="{t('pnl.p_3')}" value={"\u20a9" + fmtM(totalFees)} color="#ef4444" icon="🏪" sub={pct(totalFees, totalGross)} />
+                <KpiCard label="{t('pnl.p_14')}" value={"\u20a9" + fmtM(totalInfCost)} color="#a855f7" icon="🤝" />
+                <KpiCard label="{t('pnl.p_5')}" value={"\u20a9" + fmtM(totalNet)} color="#22c55e" icon="✅" />
+                <KpiCard label="{t('pnl.p_6')}" value={"\u20a9" + fmtM(totalProfit)} color={totalProfit >= 0 ? "#22c55e" : "#ef4444"} icon="📊"
                     sub={pct(totalProfit, totalGross) + " margin"} alert={totalProfit < 0} />
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))", gap: 10 }}>
-                <KpiCard label="Total Orders" value={totalOrders.toLocaleString() + " orders"} color="#4f8ef7" icon="🛒" />
-                <KpiCard label="Returns" value={totalReturns + " orders"} color={totalReturns / totalOrders > 0.12 ? "#ef4444" : "#eab308"}
+                <KpiCard label="{t('pnl.p_7')}" value={totalOrders.toLocaleString() + " orders"} color="#4f8ef7" icon="🛒" />
+                <KpiCard label="{t('pnl.p_8')}" value={totalReturns + " orders"} color={totalReturns / totalOrders > 0.12 ? "#ef4444" : "#eab308"}
                     icon="↩" sub={pct(totalReturns, totalOrders) + " return rate"}
                     alert={totalReturns / totalOrders > 0.12} />
-                <KpiCard label="Anomalies" value={anomalies.length + " items"} color="#ef4444" icon="⚠"
+                <KpiCard label="{t('pnl.p_9')}" value={anomalies.length + " items"} color="#ef4444" icon="⚠"
                     sub={anomalies.filter(a => a.level === "high").length + " immediate actions"} alert={anomalies.length > 0} />
-                <KpiCard label="Blended ROAS" value={r2(skuPnL.reduce((s, p) => s + p.adRevenue, 0) / totalAdSpend) + "x"}
+                <KpiCard label="{t('pnl.p_10')}" value={r2(skuPnL.reduce((s, p) => s + p.adRevenue, 0) / totalAdSpend) + "x"}
                     color="#eab308" icon="📈" />
             </div>
 
@@ -310,7 +311,7 @@ function OverviewTab({ skuPnL, anomalies }) {
                 <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 16 }}>🌊 P&L Waterfall — 3-Domain Integrated</div>
                 <div style={{ display: "grid", gap: 8 }}>
                     {[
-                        ["Total Revenue", totalGross, "#4f8ef7", false],
+                        ["{t('pnl.p_1')}", totalGross, "#4f8ef7", false],
                         ["(-) Ad Spend", -totalAdSpend, "#f97316", false],
                         ["(-) Platform Fee", -totalFees, "#ef4444", false],
                         ["(-) Influencer", -totalInfCost, "#a855f7", false],
@@ -345,13 +346,13 @@ function OverviewTab({ skuPnL, anomalies }) {
                     {
                         label: "📣 Ad Domain", icon: "📣", color: "#f97316",
                         rows: [["Total Ad Spend", fmt(totalAdSpend)], ["Contributed Revenue", fmt(skuPnL.reduce((s, p) => s + p.adRevenue, 0))],
-                        ["Blended ROAS", r2(skuPnL.reduce((s, p) => s + p.adRevenue, 0) / totalAdSpend) + "x"],
+                        ["{t('pnl.p_10')}", r2(skuPnL.reduce((s, p) => s + p.adRevenue, 0) / totalAdSpend) + "x"],
                         ["Campaigns", ADS.length + " active"]]
                     },
                     {
                         label: "🏪 Market Domain", icon: "🏪", color: "#ef4444",
-                        rows: [["Total Orders", totalOrders + " orders"], ["Returns", totalReturns + " (" + pct(totalReturns, totalOrders) + ")"],
-                        ["Platform Fee", fmt(totalFees)], ["Net Settlement", fmt(totalNet)]]
+                        rows: [["{t('pnl.p_7')}", totalOrders + " orders"], ["{t('pnl.p_8')}", totalReturns + " (" + pct(totalReturns, totalOrders) + ")"],
+                        ["{t('pnl.p_3')}", fmt(totalFees)], ["{t('pnl.p_5')}", fmt(totalNet)]]
                     },
                     {
                         label: "🤝 Influencer", icon: "🤝", color: "#a855f7",
@@ -381,7 +382,8 @@ function OverviewTab({ skuPnL, anomalies }) {
 /* ════════════════════════════════════════════════════════════════
    TAB 2: Unit P&L
 ════════════════════════════════════════════════════════════════ */
-function PnLTab({ skuPnL }) {
+function PnLTab({ skuPnL }) { 
+    const { t } = useI18n();
     const [dim, setDim] = useState("sku"); // sku | channel | campaign | creator
 
     const rows = useMemo(() => {
@@ -426,7 +428,7 @@ function PnLTab({ skuPnL }) {
     return (
         <div style={{ display: "grid", gap: 16 }}>
             <div style={{ display: "flex", gap: 6 }}>
-                {[["sku", "By SKU"], ["channel", "By Channel"], ["campaign", "By Campaign"], ["creator", "By Creator"]].map(([k, l]) => (
+                {[["sku", "{t('pnl.p_15')}"], ["channel", "{t('pnl.p_16')}"], ["campaign", "{t('pnl.p_17')}"], ["creator", "{t('pnl.p_18')}"]].map(([k, l]) => (
                     <button key={k} onClick={() => setDim(k)} style={{
                         padding: "5px 14px", borderRadius: 8, border: "1px solid",
                         borderColor: dim === k ? "#4f8ef7" : "var(--border)",
@@ -530,7 +532,8 @@ function PnLTab({ skuPnL }) {
 ════════════════════════════════════════════════════════════════ */
 const ANOM_COLOR = { "ROAS\u2193": "#ef4444", "Campaign ROAS\u2193": "#f97316", "Return Rate\u2191": "#a855f7", "Coupon Abuse": "#eab308", "Fee Deduction\u2191": "#06b6d4", "Overpayment": "#ec4899" };
 
-function AnomalyTab({ anomalies }) {
+function AnomalyTab({ anomalies }) { 
+    const { t } = useI18n();
     return (
         <div style={{ display: "grid", gap: 14 }}>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))", gap: 10 }}>
@@ -574,7 +577,8 @@ function AnomalyTab({ anomalies }) {
 /* ════════════════════════════════════════════════════════════════
    TAB 4: Action Recommendations
 ════════════════════════════════════════════════════════════════ */
-function ActionTab({ actions }) {
+function ActionTab({ actions }) { 
+    const { t } = useI18n();
     return (
         <div style={{ display: "grid", gap: 14 }}>
             <div style={{
@@ -629,7 +633,8 @@ function ActionTab({ actions }) {
 /* ════════════════════════════════════════════════════════════════
    TAB 5: Forecast P&L Simulation
 ════════════════════════════════════════════════════════════════ */
-function ForecastTab() {
+function ForecastTab() { 
+    const { t } = useI18n();
     const [growthRate, setGrowthRate] = React.useState(15);
     const [adRatio, setAdRatio] = React.useState(12);
     const [feeRatio, setFeeRatio] = React.useState(10);
@@ -729,6 +734,7 @@ const TABS = [
 ];
 
 export default function PnLDashboard() {
+    const { t } = useI18n();
     const { fmt } = useCurrency();
     const navigate = useNavigate();
     // ✅ Real-time GlobalDataContext integration
@@ -807,8 +813,8 @@ export default function PnLDashboard() {
                 {/* 실Time P&L Summary 행 */}
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(6,1fr)", gap: 10, marginTop: 16 }}>
                     {[
-                        { label: "Total Revenue", v: live.grossRevenue, col: "#4f8ef7", icon: "💰" },
-                        { label: "Ad Spend", v: -live.adSpend, col: "#f97316", icon: "📣" },
+                        { label: "{t('pnl.p_1')}", v: live.grossRevenue, col: "#4f8ef7", icon: "💰" },
+                        { label: "{t('pnl.p_2')}", v: -live.adSpend, col: "#f97316", icon: "📣" },
                         { label: "Platform Commission", v: -live.platformFee, col: "#ef4444", icon: "🏪" },
                         { label: "Stock Cost Price(COGS)", v: -live.cogs, col: "#a855f7", icon: "📦" },
                         { label: "정산 순지급", v: live.netPayout, col: "#22c55e", icon: "✅" },
