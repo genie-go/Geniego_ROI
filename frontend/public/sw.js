@@ -19,7 +19,7 @@ if (self.location.hostname === 'localhost' || self.location.hostname === '127.0.
   /* 이하 코드 실행 안 함 */
 } else {
 
-const CACHE_NAME = 'geniego-roi-v5';
+const CACHE_NAME = 'geniego-roi-v6';
 
 const OFFLINE_URL = '/offline.html';
 
