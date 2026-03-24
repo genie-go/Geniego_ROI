@@ -1,0 +1,13 @@
+# V242 risk thresholds / guardrails
+
+budget_change:
+  # Maximum absolute change allowed per execution, as percentage of current budget.
+  max_change_pct: 25
+  # Minimum budget allowed (in account currency units, e.g., KRW) when executing changes.
+  min_budget: 10000
+  # Maximum budget allowed (safety cap)
+  max_budget: 1000000000
+  # Require allowlist for which campaigns are allowed to be auto-updated.
+  require_campaign_allowlist: true
+  # Dry-run default (recommended). Set to false to allow actual execution.
+  dry_run_default: true

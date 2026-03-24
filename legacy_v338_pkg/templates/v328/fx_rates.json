@@ -1,0 +1,10 @@
+{
+  "base_currency": "KRW",
+  "rates_to_base": {
+    "KRW": 1.0,
+    "USD": 1320.0,
+    "JPY": 9.0,
+    "EUR": 1450.0
+  },
+  "notes": "예시 환율"
+}

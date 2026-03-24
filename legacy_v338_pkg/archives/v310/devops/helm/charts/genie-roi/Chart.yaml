@@ -1,0 +1,7 @@
+
+apiVersion: v2
+name: genie-roi
+description: GENIE_ROI V309 Helm Chart (skeleton)
+type: application
+version: 0.1.0
+appVersion: "v309"

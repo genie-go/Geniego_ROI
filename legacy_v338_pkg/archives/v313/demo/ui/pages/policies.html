@@ -1,0 +1,23 @@
+<!doctype html>
+<html><head><meta charset="utf-8"/><title>Policies & Approvals</title>
+<link rel="stylesheet" href="../assets/style.css"/>
+</head>
+<body>
+<a href="../index.html">← Demo Home</a>
+<h1>Policies & Approvals</h1>
+<div class="card" id="content"><div class="muted">Loading…</div></div>
+<script src="../assets/loader.js"></script>
+<script>
+
+(async ()=>{
+ const rows = [
+  {policy:'spend_cap', rule:'daily_budget <= plan_cap', action:'block/require_approval'},
+  {policy:'margin_guardrail', rule:'margin >= 20%', action:'block_ads_if_below'},
+  {policy:'approval_required', rule:'budget_increase >= 20%', action:'finance_approval'}
+ ];
+ document.getElementById('content').innerHTML =
+   '<h3>Policy Templates</h3>'+tableFromObjects(rows)+
+   '<p class="muted">* 실제 운영에서는 모든 쓰기 작업(예산/가격/재고/정산)이 정책엔진을 통과해야 합니다.</p>';
+})();
+</script>
+</body></html>

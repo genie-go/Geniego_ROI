@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>V318 업로드/매핑/귀속체인 UI</title>
+  <style>
+    body{font-family:system-ui;margin:18px;line-height:1.45}
+    .card{border:1px solid #ddd;border-radius:12px;padding:12px;max-width:980px}
+    label{display:block;margin-top:10px;font-weight:600}
+    select,input[type=file],input[type=text]{width:100%;padding:10px;border:1px solid #ddd;border-radius:10px}
+    button{padding:10px 14px;border-radius:12px;border:1px solid #ddd;background:#111;color:#fff;cursor:pointer}
+    small{color:#666}
+    .row{display:flex;gap:10px;flex-wrap:wrap}
+    .row > div{flex:1;min-width:240px}
+    .muted{color:#666}
+    .pill{display:inline-block;border:1px solid #ddd;border-radius:999px;padding:2px 8px;font-size:12px}
+    .grid2{display:grid;grid-template-columns:1fr;gap:10px}
+    @media(min-width:1100px){.grid2{grid-template-columns:1fr 1fr}}
+    .mapbox{background:#fafafa;border:1px solid #eee;border-radius:12px;padding:10px}
+    .k{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px}
+    .checkrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+    .checkrow label{font-weight:500;margin-top:0}
+  </style>
+</head>
+<body>
+  <h1>GENIE_ROI V318 업로드/설정 UI</h1>
+  <p class="muted"><a href="/dashboard/">대시보드 보기</a></p>
+
+  <div class="card">
+    <h2>1) 전환 귀속 우선순위 체인</h2>
+    <form method="POST" action="/api/set_attribution_chain" enctype="application/x-www-form-urlencoded">
+      <label>우선순위(왼쪽이 더 우선)</label>
+      <div class="checkrow">
+        <label><input type="checkbox" name="rule" value="ad_id" checked> ad_id</label>
+        <label><input type="checkbox" name="rule" value="campaign_id" checked> campaign_id</label>
+        <label><input type="checkbox" name="rule" value="utm_campaign"> utm_campaign</label>
+      </div>
+      <small>체크된 순서대로 우선순위가 적용됩니다. (중복 귀속 없음)</small>
+      <div style="margin-top:10px"><button type="submit">저장</button></div>
+    </form>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <h2>2) 환율 파일(fx_rates.json) 업로드</h2>
+    <form method="POST" action="/api/upload_fx" enctype="multipart/form-data">
+      <label>fx_rates.json</label>
+      <input type="file" name="file" accept=".json" required />
+      <div style="margin-top:10px"><button type="submit">업로드</button></div>
+      <p><small>기준 통화 변환에 사용됩니다. (기본 파일: templates/v318/fx_rates.json)</small></p>
+    </form>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <h2>3) 광고 CSV 매핑(헤더 선택) + 업로드</h2>
+    <div class="grid2">
+      <div>
+        <label>채널</label>
+        <select id="channel">
+          <option value="google_ads">google_ads</option>
+          <option value="meta_ads">meta_ads</option>
+          <option value="tiktok_ads">tiktok_ads</option>
+          <option value="naver_ads">naver_ads</option>
+        </select>
+        <label>광고 CSV 파일</label>
+        <input id="adsFile" type="file" accept=".csv" />
+        <small>파일을 선택하면 브라우저에서 헤더를 읽어 매핑 UI를 구성합니다.</small>
+      </div>
+
+      <div class="mapbox">
+        <div class="k"><b>매핑</b> (필수: date/campaign_id/campaign_name/impressions/clicks/cost)</div>
+        <div id="mappingFields"></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+          <button type="button" onclick="saveMapping()">매핑 저장</button>
+          <button type="button" onclick="uploadAds()">업로드 & 적재</button>
+        </div>
+        <small class="muted">저장된 매핑은 다음부터 자동 적용됩니다.</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <h2>4) 전환/매출 CSV 업로드</h2>
+    <form method="POST" action="/api/upload_conversions" enctype="multipart/form-data">
+      <label>전환 CSV 파일</label>
+      <input type="file" name="file" accept=".csv" required />
+      <div style="margin-top:10px"><button type="submit">업로드 & 적재</button></div>
+    </form>
+    <p><small>권장 컬럼: date + (ad_id/campaign_id/utm_campaign 중 하나 이상) + conversions + revenue</small></p>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <h2>5) JSON 생성</h2>
+    <form method="POST" action="/api/generate_json" enctype="application/x-www-form-urlencoded">
+      <button type="submit">JSON 생성</button>
+    </form>
+    <p><small>업로드 시 자동 생성되지만, 수동 실행도 가능합니다.</small></p>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <h2>상태</h2>
+    <pre id="status" style="white-space:pre-wrap;background:#fafafa;border:1px solid #eee;padding:10px;border-radius:12px"></pre>
+  </div>
+
+<script>
+const canonical = [
+  ["date","필수"],
+  ["campaign_id","필수"],
+  ["campaign_name","필수"],
+  ["impressions","필수"],
+  ["clicks","필수"],
+  ["cost","필수"],
+  ["currency","선택"],
+  ["tax_rate","선택"],
+  ["cost_tax","선택"],
+  ["utm_campaign","선택"],
+  ["ad_group_id","선택"],
+  ["ad_group_name","선택"],
+  ["ad_id","선택"],
+  ["ad_name","선택"],
+  ["cost_micros","선택"]
+];
+
+let headers = [];
+let mapping = {};
+
+function renderMapping(){
+  const box = document.getElementById("mappingFields");
+  box.innerHTML = "";
+  canonical.forEach(([key, req])=>{
+    const div = document.createElement("div");
+    div.style.marginTop = "8px";
+    const label = document.createElement("div");
+    label.className = "k";
+    label.innerHTML = `${key} <span class="pill">${req}</span>`;
+    const sel = document.createElement("select");
+    sel.style.marginTop = "4px";
+    const opt0 = document.createElement("option");
+    opt0.value = ""; opt0.textContent = "(선택 안 함)";
+    sel.appendChild(opt0);
+    headers.forEach(h=>{
+      const o = document.createElement("option");
+      o.value = h; o.textContent = h;
+      sel.appendChild(o);
+    });
+    sel.value = mapping[key] || "";
+    sel.onchange = ()=>{ mapping[key] = sel.value; };
+    div.appendChild(label);
+    div.appendChild(sel);
+    box.appendChild(div);
+  });
+}
+
+async function readHeaders(file){
+  const text = await file.slice(0, 4096).text();
+  const firstLine = text.split(/\r?\n/)[0] || "";
+  // naive CSV header split (works for most exports)
+  headers = firstLine.split(",").map(x=>x.replace(/^\uFEFF/,"").trim().replace(/^"|"$/g,""));
+}
+
+document.getElementById("adsFile").addEventListener("change", async (e)=>{
+  const f = e.target.files[0];
+  if(!f) return;
+  await readHeaders(f);
+  // Try load server-side saved mapping for this channel
+  const ch = document.getElementById("channel").value;
+  try{
+    const r = await fetch(`/api/get_mapper?channel=${encodeURIComponent(ch)}`, {cache:"no-store"});
+    mapping = await r.json();
+  }catch(e){
+    mapping = {};
+  }
+  renderMapping();
+});
+
+async function saveMapping(){
+  const ch = document.getElementById("channel").value;
+  const payload = {channel: ch, mapping};
+  const r = await fetch("/api/save_mapper", {
+    method:"POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify(payload)
+  });
+  const t = await r.text();
+  alert(t);
+}
+
+async function uploadAds(){
+  const f = document.getElementById("adsFile").files[0];
+  if(!f){ alert("먼저 광고 CSV 파일을 선택하세요."); return; }
+  const ch = document.getElementById("channel").value;
+
+  // Ensure mapping saved first (so ingest uses it)
+  await saveMapping();
+
+  const fd = new FormData();
+  fd.append("channel", ch);
+  fd.append("file", f);
+  const r = await fetch("/api/upload_ads", {method:"POST", body: fd});
+  const t = await r.text();
+  alert(t);
+}
+
+async function refreshStatus(){
+  try{
+    const r = await fetch("/api/status", {cache:"no-store"});
+    document.getElementById("status").textContent = await r.text();
+  }catch(e){
+    document.getElementById("status").textContent = "status load failed: "+e.message;
+  }
+}
+refreshStatus();
+setInterval(refreshStatus, 2500);
+</script>
+</body>
+</html>

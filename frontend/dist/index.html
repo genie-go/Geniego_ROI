@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+
+    <!-- ── 뷰포트 & 모바일 최적화 ── -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+
+    <!-- ── SEO ── -->
+    <title>Geniego-ROI | AI 마케팅 ROI 분석 플랫폼</title>
+    <meta name="description" content="AI 기반 마케팅 ROI 분석, 채널 통합 관리, 광고 최적화. 글로벌 커머스 데이터 통합 플랫폼." />
+    <meta name="keywords" content="ROI, 마케팅분석, 광고최적화, ROAS, 채널분석, AI마케팅" />
+
+    <!-- ── PWA 필수 태그 ── -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#0d1829" />
+    <meta name="mobile-web-app-capable" content="yes" />
+
+    <!-- ── iOS PWA 최적화 ── -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="GenieROI" />
+    <link rel="apple-touch-icon" href="/icon-192.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/icon-192.png" />
+    <link rel="apple-touch-startup-image" href="/icon-512.png" />
+
+    <!-- ── 파비콘 & 아이콘 ── -->
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png" />
+    <link rel="shortcut icon" href="/icon-192.png" />
+
+    <!-- ── 모바일 CSS (PWA 최적화) ── -->
+    <link rel="stylesheet" href="/mobile.css" />
+
+    <!-- ── Microsoft ── -->
+    <meta name="msapplication-TileImage" content="/icon-192.png" />
+    <meta name="msapplication-TileColor" content="#070f1a" />
+
+    <!-- ── Open Graph ── -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Geniego-ROI" />
+    <meta property="og:description" content="AI 기반 마케팅 ROI 분석 플랫폼" />
+    <meta property="og:image" content="/icon-512.png" />
+    <script type="module" crossorigin src="/assets/index-CaTyE6XM.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/vendor-react-BlCPLFGH.js">
+    <link rel="modulepreload" crossorigin href="/assets/pages-subscription-Cjy_HxoR.js">
+    <link rel="modulepreload" crossorigin href="/assets/i18n-locales-C1T5SKSL.js">
+    <link rel="modulepreload" crossorigin href="/assets/pages-analytics-P5skks-j.js">
+    <link rel="modulepreload" crossorigin href="/assets/pages-admin-CPFcTZrr.js">
+    <link rel="modulepreload" crossorigin href="/assets/pages-apikeys-CxM5Nk8y.js">
+    <link rel="stylesheet" crossorigin href="/assets/index-neR4bYSR.css">
+  </head>
+  <body>
+    <!-- ── 스플래시 스크린 (앱 로딩 시) ── -->
+    <div id="pwa-splash">
+      <img src="/icon-192.png" alt="Geniego ROI" />
+      <div class="splash-title">Geniego-ROI</div>
+      <div class="splash-sub">AI 마케팅 분석 플랫폼</div>
+    </div>
+
+    <!-- ── 앱 루트 (React 앱이 이 안에 바텀 네비 포함 전부 렌더링) ── -->
+    <div id="root"></div>
+
+    <!-- ── PWA 설치 배너 (Android Chrome) ── -->
+    <div id="pwa-install-banner" style="display:none">
+      <img src="/icon-192.png" alt="app icon" />
+      <div class="banner-text">
+        <div class="banner-title">📲 앱으로 설치하기</div>
+        <div class="banner-desc">홈 화면에 추가하여 앱처럼 사용하세요</div>
+      </div>
+      <button id="pwa-install-btn">설치</button>
+      <button id="pwa-install-close" aria-label="닫기">×</button>
+    </div>
+
+    <!-- ── iOS 설치 가이드 ── -->
+    <div id="ios-install-guide" style="display:none">
+      <div class="ios-guide-title">📱 iPhone에 앱 설치하기</div>
+      <div class="ios-guide-steps">
+        <div class="ios-guide-step">
+          <span class="ios-guide-step-icon">1️⃣</span>
+          <span>Safari 하단의 <strong>공유 버튼 (□↑)</strong>을 탭하세요</span>
+        </div>
+        <div class="ios-guide-step">
+          <span class="ios-guide-step-icon">2️⃣</span>
+          <span><strong>"홈 화면에 추가"</strong>를 선택하세요</span>
+        </div>
+        <div class="ios-guide-step">
+          <span class="ios-guide-step-icon">3️⃣</span>
+          <span><strong>"추가"</strong>를 탭하면 설치 완료!</span>
+        </div>
+      </div>
+      <button id="ios-install-close-btn">확인</button>
+    </div>
+
+    <!-- ── 메인 앱 스크립트 ── -->
+
+    <!-- ── PWA 초기화 스크립트 ── -->
+    <script>
+      // ── 스플래시 스크린 숨기기 ──
+      window.addEventListener('load', () => {
+        setTimeout(() => {
+          const splash = document.getElementById('pwa-splash');
+          if (splash) splash.classList.add('hidden');
+        }, 1800);
+      });
+
+      // ── Service Worker 등록 ──
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js', { scope: '/' })
+            .then(reg => console.log('[SW] Registered:', reg.scope))
+            .catch(err => console.warn('[SW] Registration failed:', err));
+        });
+      }
+
+      // ── PWA 설치 프롬프트 (Android Chrome) ──
+      let deferredPrompt = null;
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        const banner = document.getElementById('pwa-install-banner');
+        if (banner && !localStorage.getItem('pwa-install-dismissed')) {
+          banner.style.display = 'flex';
+        }
+      });
+
+      document.getElementById('pwa-install-btn')?.addEventListener('click', async () => {
+        if (!deferredPrompt) return;
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+          document.getElementById('pwa-install-banner').style.display = 'none';
+        }
+        deferredPrompt = null;
+      });
+
+      document.getElementById('pwa-install-close')?.addEventListener('click', () => {
+        document.getElementById('pwa-install-banner').style.display = 'none';
+        localStorage.setItem('pwa-install-dismissed', '1');
+      });
+
+      // ── iOS 설치 가이드 ──
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches
+        || window.navigator.standalone === true;
+
+      if (isIOS && !isStandalone && !localStorage.getItem('ios-guide-shown')) {
+        setTimeout(() => {
+          const guide = document.getElementById('ios-install-guide');
+          if (guide) guide.style.display = 'block';
+          localStorage.setItem('ios-guide-shown', '1');
+        }, 4000);
+      }
+
+      document.getElementById('ios-install-close-btn')?.addEventListener('click', () => {
+        document.getElementById('ios-install-guide').style.display = 'none';
+      });
+
+      // ── 앱 설치 완료 감지 ──
+      window.addEventListener('appinstalled', () => {
+        deferredPrompt = null;
+        const banner = document.getElementById('pwa-install-banner');
+        if (banner) banner.style.display = 'none';
+      });
+    </script>
+  </body>
+</html>

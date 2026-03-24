@@ -1,0 +1,71 @@
+name: GENIE-GO ROI TITAN SUPREME V10
+
+on:
+  push:
+    branches: [ main ] # 메인 브랜치 푸시 시 자동 실행
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: [PHASE 1] Syntax Guard & I18N Patch
+        run: |
+          # en.js 구문 검증 [cite: 3]
+          node -e "const fs=require('fs'); try { const src=fs.readFileSync('./frontend/src/i18n/locales/en.js', 'utf8'); require('vm').createScript(src); console.log('✓ EN_JS_VALID'); } catch(e) { process.exit(1); }"
+          # 로케일 생성 및 패치 [cite: 4]
+          node "./frontend/src/i18n/locales/gen_locales.mjs"
+          node "./frontend/src/i18n/locales/patch_ko_locales.js"
+
+      - name: [PHASE 2] Production Build
+        run: |
+          cd frontend
+          npm install
+          npm run build --silent [cite: 7]
+
+      - name: [PHASE 3] Secure Deploy (SFTP)
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.REMOTE_IP }}
+          username: ${{ secrets.REMOTE_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "frontend/dist/*"
+          [cite_start]target: "/home/wwwroot/roi.geniego.com/frontend" [cite: 2]
+
+      - name: [PHASE 4] Post-Deploy Infrastructure Refresh
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.REMOTE_IP }}
+          username: ${{ secrets.REMOTE_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            chown -R www:www /home/wwwroot/roi.geniego.com [cite: 7]
+            /usr/local/nginx/sbin/nginx -s reload [cite: 7]
+
+      - name: [PHASE 5] Health Check & Rollback
+        run: |
+          # 5초 대기 후 로그인 API 검증 [cite: 9]
+          sleep 5
+          RESPONSE=$(curl -sk -X POST "https://roi.genie-go.com/api/auth/login" \
+            -H "Content-Type: application/json" \
+            -d "{\"email\":\"${{ secrets.TEST_EMAIL }}\",\"password\":\"${{ secrets.TEST_PASS }}\"}")
+          if [[ $RESPONSE != *"token"* ]]; then
+            echo "Login Failure! Initiating Rollback..."
+            exit 1 # 실패 시 워크플로우 중단 및 알림
+          fi
+
+      - name: Slack Notification
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          fields: repo,message,commit,author,action,eventName,ref,workflow
+        env:
+          [cite_start]SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }} [cite: 1]

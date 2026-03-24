@@ -1,0 +1,54 @@
+{
+  "chain": [
+    "ad_id",
+    "campaign_id",
+    "utm_campaign"
+  ],
+  "min_score": 0.8,
+  "prefix_len": 4,
+  "rules": {
+    "ad_id": {
+      "weights": {
+        "exact": 1.0,
+        "startswith": 0.92,
+        "contains": 0.7,
+        "regex": 0.88
+      },
+      "whitelist": [],
+      "normalize": [
+        {
+          "pattern": "([A-Za-z0-9]+).*",
+          "replace": "\\\\1"
+        }
+      ],
+      "regex": [
+        {
+          "pattern": "^[A-Za-z]{0,4}\\\\d{1,12}.*$",
+          "applies_to": "candidate"
+        }
+      ]
+    },
+    "campaign_id": {
+      "weights": {
+        "exact": 1.0,
+        "startswith": 0.9,
+        "contains": 0.75,
+        "regex": 0.85
+      },
+      "whitelist": [],
+      "normalize": [],
+      "regex": []
+    },
+    "utm_campaign": {
+      "weights": {
+        "exact": 1.0,
+        "startswith": 0.82,
+        "contains": 0.68,
+        "regex": 0.8
+      },
+      "whitelist": [],
+      "normalize": [],
+      "regex": []
+    }
+  }
+}

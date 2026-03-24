@@ -1,0 +1,113 @@
+{
+  "version": "v1",
+  "channels": {
+    "smartstore": {
+      "required_fields": [
+        "sku",
+        "title",
+        "price",
+        "stock",
+        "category_path",
+        "images"
+      ],
+      "constraints": {
+        "title": {
+          "max_len": 100,
+          "forbidden_words": [
+            "최저가보장",
+            "100%환불"
+          ]
+        },
+        "images": {
+          "min_count": 1
+        }
+      },
+      "pricing": {
+        "currency": "KRW",
+        "round": 10
+      }
+    },
+    "coupang": {
+      "required_fields": [
+        "sku",
+        "title",
+        "price",
+        "stock",
+        "brand",
+        "category_path",
+        "images"
+      ],
+      "constraints": {
+        "title": {
+          "max_len": 150
+        }
+      }
+    },
+    "amazon": {
+      "required_fields": [
+        "sku",
+        "title",
+        "price",
+        "stock",
+        "brand",
+        "bullet_points",
+        "images"
+      ],
+      "constraints": {
+        "title": {
+          "max_len": 200
+        }
+      }
+    },
+    "shopify": {
+      "required_fields": [
+        "sku",
+        "title",
+        "price",
+        "stock",
+        "images"
+      ],
+      "constraints": {
+        "title": {
+          "max_len": 255
+        }
+      }
+    }
+  },
+  "bulk_ops": {
+    "price_adjust": [
+      {
+        "op": "percent",
+        "value": 5,
+        "round": 10,
+        "note": "전체 5% 인상"
+      },
+      {
+        "op": "fixed",
+        "value": -1000,
+        "round": 10,
+        "note": "선택 SKU -1000원"
+      }
+    ],
+    "discount": [
+      {
+        "type": "sale_price",
+        "value": 10,
+        "unit": "percent"
+      },
+      {
+        "type": "sale_price",
+        "value": 2000,
+        "unit": "fixed"
+      }
+    ],
+    "coupon": [
+      {
+        "type": "cart_coupon",
+        "value": 5,
+        "unit": "percent",
+        "min_order": 20000
+      }
+    ]
+  }
+}

@@ -1,0 +1,5 @@
+[
+  {"sku":"SKU-1001","price":19900,"currency":"KRW","captured_at":"2026-02-20T00:00:00Z"},
+  {"sku":"SKU-1001","price":18900,"currency":"KRW","captured_at":"2026-02-26T00:00:00Z"},
+  {"sku":"SKU-1002","price":25900,"currency":"KRW","captured_at":"2026-02-20T00:00:00Z"}
+]

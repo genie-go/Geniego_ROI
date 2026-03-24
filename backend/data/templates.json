@@ -1,0 +1,913 @@
+{
+  "GET /v377/health": {
+    "version": "377.0.0",
+    "status": "ok",
+    "ts": "__CALL__:isoformat"
+  },
+  "GET /v377/ops/unified/overview": {
+    "executive_kpis": {
+      "gross_revenue": 0,
+      "net_payout": 0,
+      "spend": 0,
+      "roas": 0,
+      "net_roas": 0,
+      "claim_rate": 0,
+      "amazon_risk_score": 0,
+      "compliance_issues": 0
+    },
+    "ads_summary": {
+      "channels": [],
+      "days": "__NAME__:days"
+    },
+    "commerce_summary": {
+      "orders": 0,
+      "claims": 0,
+      "settlements": 0,
+      "days": "__NAME__:days"
+    },
+    "amazon_risk_summary": {
+      "risk_score": 0,
+      "risk_level": "LOW",
+      "days": "__NAME__:days"
+    },
+    "connector_health": {
+      "status": "unknown",
+      "failed_runs_24h": 0
+    },
+    "alerts": []
+  },
+  "GET /v378/health": {
+    "version": "378.0.0",
+    "status": "ok",
+    "ts": "__CALL__:isoformat"
+  },
+  "GET /v379/health": {
+    "version": "378.0.0",
+    "status": "ok",
+    "ts": "__CALL__:isoformat"
+  },
+  "GET /v380/health": {
+    "version": "378.0.0",
+    "status": "ok",
+    "ts": "__CALL__:isoformat"
+  },
+  "POST /v382/sync/{channel}/{source}/run": {
+    "ok": true,
+    "channel": "__NAME__:channel",
+    "source": "__NAME__:source",
+    "cursor": "__NAME__:new_cursor"
+  },
+  "POST /v382/products": "__CALL__:ProductOut",
+  "GET /v382/products": "__NAME__:out",
+  "GET /v384/ads/mappings": "__UNSUPPORTED__",
+  "POST /v384/ads/mappings": "__CALL__:AdsMappingOut",
+  "POST /v384/budget/plan": "__CALL__:BudgetPlan",
+  "POST /v384/budget/requests": "__CALL__:BudgetRequestOut",
+  "POST /v384/budget/requests/{request_id}/approve": "__CALL__:BudgetRequestOut",
+  "POST /v384/budget/requests/{request_id}/execute": "__CALL__:BudgetRequestOut",
+  "GET /v384/recommendations/traffic-cost": "__CALL__:TrafficCostRecommendation",
+  "POST /v385/ingest/metrics": "__CALL__:IngestResult",
+  "GET /v385/recommendations/traffic-cost": "__CALL__:RecommendTrafficCostOut",
+  "GET /v385/recommendations/budget-allocation": "__CALL__:RecommendBudgetAllocationOut",
+  "GET /v387/recommendations/rule": "__CALL__:recommend_rule_based",
+  "GET /v387/recommendations/goal": "__CALL__:recommend_goal_based",
+  "GET /v387/recommendations/incrementality": "__CALL__:recommend_incrementality",
+  "POST /v388/ingest/unified": {
+    "tenant_id": "__ATTR__:tenant_id",
+    "inserted": "__NAME__:inserted",
+    "run_id": "__NAME__:run_id",
+    "records_preview": "__UNSUPPORTED__"
+  },
+  "GET /v388/schema/examples": {
+    "unified_ingestion_meta_example": {
+      "tenant_id": "TENANT1",
+      "rows": [
+        {
+          "provider": "meta",
+          "metric_date": "2026-03-01",
+          "dimensions": {
+            "campaign_id": "123",
+            "adset_id": "456",
+            "creative_id": "789",
+            "country": "KR",
+            "gender": "female",
+            "age_range": "25-34"
+          },
+          "metrics": {
+            "spend": 120.5,
+            "impressions": 54000,
+            "clicks": 1200,
+            "conversions": 34,
+            "revenue": 680.0
+          }
+        }
+      ]
+    },
+    "unified_ingestion_tiktok_example": {
+      "tenant_id": "TENANT1",
+      "rows": [
+        {
+          "provider": "tiktok",
+          "metric_date": "2026-03-01",
+          "dimensions": {
+            "campaign_id": "c_aa",
+            "adset_id": "ag_bb",
+            "creative_id": "ad_cc",
+            "country": "JP",
+            "gender": "male",
+            "age_range": "18-24"
+          },
+          "metrics": {
+            "spend": 90.0,
+            "impressions": 61000,
+            "clicks": 980,
+            "conversions": 21,
+            "revenue": 410.0
+          }
+        }
+      ]
+    },
+    "unified_ingestion_shopify_product_example": {
+      "tenant_id": "TENANT1",
+      "rows": [
+        {
+          "provider": "shopify",
+          "metric_date": "2026-03-01",
+          "dimensions": {
+            "product_id": "shopify:variant:445566"
+          },
+          "metrics": {
+            "revenue": 350.0,
+            "units": 7
+          }
+        }
+      ]
+    },
+    "recommendation_output_example": {
+      "goal_based": {
+        "inputs": {
+          "target_roas": 2.5,
+          "target_cpa": 30,
+          "group_by": "creative"
+        },
+        "recommendations": [
+          {
+            "provider": "meta",
+            "entity": "creative:789",
+            "why": "ROAS 5.6 (>=2.5) + marginal ROAS rising",
+            "action": "increase_budget",
+            "suggested_delta_pct": 15
+          },
+          {
+            "provider": "tiktok",
+            "entity": "creative:ad_cc",
+            "why": "CTR ok but CVR low; CPA 62 > 30",
+            "action": "fix_landing_or_offer_then_reduce_budget",
+            "suggested_delta_pct": "__UNSUPPORTED__"
+          }
+        ]
+      },
+      "demographic_targeting": [
+        {
+          "provider": "meta",
+          "segment": "KR|female|25-34",
+          "why": "ROAS 4.1 and CPA 22 (better than goal)",
+          "action": "increase_bid_or_expand_budget_for_segment"
+        }
+      ]
+    }
+  },
+  "POST /v389/ingest/unified": {
+    "tenant_id": "__ATTR__:tenant_id",
+    "inserted": "__NAME__:inserted",
+    "run_id": "__NAME__:run_id",
+    "records_preview": "__UNSUPPORTED__"
+  },
+  "POST /v389/ingest/shopify/orders": {
+    "tenant_id": "__ATTR__:tenant_id",
+    "inserted": "__NAME__:inserted",
+    "run_id": "__NAME__:run_id",
+    "rows_generated": "__CALL__:len",
+    "records_preview": "__UNSUPPORTED__"
+  },
+  "GET /v389/schema/standard": {
+    "dimensions_allowed": "__CALL__:sorted",
+    "utm_convention": {
+      "utm_source": "meta | tiktok",
+      "utm_medium": "paid_social (recommended)",
+      "utm_campaign": "<campaign_id OR stable name>",
+      "utm_term": "<adset_id OR targeting key>",
+      "utm_content": "<creative_id>  (recommended: ad_id)"
+    },
+    "shopify_product_id_rule": {
+      "priority": [
+        "variant_id -> shopify:variant:<variant_id>",
+        "product_id -> shopify:product:<product_id>",
+        "sku -> sku:<sku>",
+        "title -> title:<normalized-title>"
+      ]
+    }
+  },
+  "POST /v390/actions/ads/from-recommendations": {
+    "tenant_id": "__NAME__:tenant_id",
+    "as_of": "__CALL__:str",
+    "created": "__NAME__:created",
+    "counts": {
+      "total": "__CALL__:len",
+      "budget_moves": "__CALL__:len",
+      "creative_swaps": "__CALL__:len",
+      "targeting_updates": "__CALL__:len"
+    },
+    "note": "These are pending approval requests. Execution against external APIs should only run after approval and connector health checks."
+  },
+  "POST /v390/shopify/checklists/generate": "__NAME__:checklist",
+  "GET /v392/healthz": {
+    "ok": true,
+    "version": "392",
+    "ts": "__CALL__:isoformat"
+  },
+  "GET /v392/metrics": "__EXPR__",
+  "POST /v392/feeds/preview": {
+    "tenant_id": "__NAME__:tenant_id",
+    "channel": "__ATTR__:channel",
+    "sku": "__ATTR__:sku",
+    "payload": "__NAME__:payload",
+    "findings": "__NAME__:findings"
+  },
+  "POST /v392/feeds/export": "__NAME__:data",
+  "POST /v392/writeback/enqueue": {
+    "queued": true,
+    "job_id": "__CALL__:int",
+    "status": "__ATTR__:status",
+    "idempotency_key": "__ATTR__:idempotency_key"
+  },
+  "POST /v392/worker/run-once": "__CALL__:run_one",
+  "GET /v393/healthz": {
+    "ok": true,
+    "version": "393",
+    "ts": "__CALL__:isoformat"
+  },
+  "GET /v393/metrics": "__EXPR__",
+  "POST /v393/feeds/preview": "__CALL__:preview_listing",
+  "POST /v393/feeds/export": "__CALL__:export_feed",
+  "GET /v393/templates/v2": {
+    "templates": "__CALL__:list_templates_v2"
+  },
+  "GET /v393/templates/v2/{channel}": {
+    "channel": "__NAME__:channel",
+    "version": "v2",
+    "template": "__NAME__:tpl"
+  },
+  "PUT /v393/templates/v2/{channel}": {
+    "ok": true,
+    "channel": "__NAME__:channel",
+    "version": "v2"
+  },
+  "POST /v393/validate/v2": "__CALL__:validate_product_against_template",
+  "POST /v393/writeback/enqueue": "__CALL__:enqueue_writeback",
+  "POST /v393/worker/run-once": {
+    "ok": true,
+    "ran": true,
+    "job": "__NAME__:result"
+  },
+  "GET /v394/healthz": {
+    "ok": true,
+    "version": "394",
+    "ts": "__CALL__:isoformat"
+  },
+  "GET /v394/metrics": "__EXPR__",
+  "POST /v394/feeds/preview": "__CALL__:preview_listing",
+  "POST /v394/feeds/export": "__CALL__:export_feed",
+  "GET /v394/templates/v2": {
+    "templates": "__CALL__:list_templates_v2"
+  },
+  "GET /v394/templates/v2/{channel}": {
+    "channel": "__NAME__:channel",
+    "version": "v2",
+    "template": "__NAME__:tpl"
+  },
+  "PUT /v394/templates/v2/{channel}": {
+    "ok": true,
+    "channel": "__NAME__:channel",
+    "version": "v2"
+  },
+  "POST /v394/validate/v2": "__CALL__:validate_product_against_template",
+  "POST /v394/writeback/enqueue": "__CALL__:enqueue_writeback",
+  "POST /v394/worker/run-once": {
+    "ok": true,
+    "ran": true,
+    "job": "__NAME__:result"
+  },
+  "GET /v395/healthz": {
+    "ok": true,
+    "version": "395",
+    "ts": "__CALL__:isoformat"
+  },
+  "GET /v395/metrics": "__EXPR__",
+  "POST /v395/feeds/preview": {
+    "ok": true,
+    "payload": "__NAME__:payload",
+    "findings": "__NAME__:findings"
+  },
+  "POST /v395/feeds/export": {
+    "ok": true,
+    "rows": "__NAME__:rows"
+  },
+  "POST /v395/writeback/enqueue": {
+    "ok": true,
+    "job_id": "__ATTR__:id",
+    "status": "__ATTR__:status"
+  },
+  "POST /v395/worker/run-once": {
+    "ok": true,
+    "ran": true,
+    "job": "__NAME__:result"
+  },
+  "GET /v395/templates/v2/{channel}/versions": {
+    "ok": true,
+    "meta": "__CALL__:list_versions"
+  },
+  "GET /v395/templates/v2/{channel}/current": {
+    "ok": true,
+    "text": "__CALL__:get_current_template_text"
+  },
+  "POST /v395/templates/v2/{channel}/drafts": {
+    "ok": true,
+    "draft": "__NAME__:d"
+  },
+  "GET /v395/templates/v2/{channel}/drafts/{draft_id}": {
+    "ok": true,
+    "text": "__CALL__:read_draft"
+  },
+  "PUT /v395/templates/v2/{channel}/drafts/{draft_id}": {
+    "ok": true,
+    "draft": "__NAME__:d"
+  },
+  "POST /v395/templates/v2/{channel}/drafts/{draft_id}/submit": {
+    "ok": true,
+    "draft": "__CALL__:submit_draft"
+  },
+  "POST /v395/templates/v2/{channel}/drafts/{draft_id}/approve": {
+    "ok": true,
+    "draft": "__CALL__:approve_draft"
+  },
+  "POST /v395/templates/v2/{channel}/drafts/{draft_id}/publish": {
+    "ok": true,
+    "publish": "__CALL__:publish_draft"
+  },
+  "POST /v395/validate/v2": {
+    "ok": true,
+    "findings": "__NAME__:findings"
+  },
+  "GET /v397/admin/dlq": "__CALL__:DlqListOut",
+  "POST /v397/admin/dlq/replay": "__CALL__:DlqReplayOut",
+  "POST /v398/writeback/preview": "__CALL__:WritebackPreviewOut",
+  "POST /v398/writeback/bulk_preview": "__CALL__:WritebackBulkPreviewOut",
+  "GET /v398/admin/dlq": "__CALL__:DlqListOut",
+  "POST /v398/admin/dlq/replay": "__CALL__:_replay_record",
+  "POST /v398/admin/dlq/replay_bulk": "__CALL__:DlqBulkReplayOut",
+  "DELETE /v398/admin/dlq": "__CALL__:DlqDeleteOut",
+  "GET /v398/admin/dlq/schedule": "__CALL__:DlqScheduleOut",
+  "PUT /v398/admin/dlq/schedule": "__CALL__:DlqScheduleOut",
+  "GET /v399/recon/reports": "__CALL__:list_reports",
+  "GET /v399/recon/reports/{report_id}": "__CALL__:get_report",
+  "POST /v399/recon/orders/import": "__CALL__:import_orders",
+  "POST /v399/recon/settlements/import_lines": "__CALL__:import_settlement_lines",
+  "POST /v399/recon/fee_rules/upsert": "__CALL__:upsert_fee_rule",
+  "POST /v399/recon/fx_rates/upsert": "__CALL__:upsert_fx_rate",
+  "POST /v399/recon/reports/run": "__CALL__:run_reconciliation",
+  "POST /v399/recon/reports/{report_id}/approve": "__CALL__:approve_report",
+  "POST /v399/recon/reports/{report_id}/lock": "__CALL__:lock_report",
+  "GET /v400/recon/reports": "__CALL__:list_reports",
+  "GET /v400/recon/reports/{report_id}": "__CALL__:get_report",
+  "POST /v400/recon/orders/import": "__CALL__:import_orders",
+  "POST /v400/recon/settlements/import_lines": "__CALL__:import_settlement_lines",
+  "POST /v400/recon/fee_rules/upsert": "__CALL__:upsert_fee_rule",
+  "POST /v400/recon/fee_rules/upsert_legacy": "__CALL__:upsert_fee_rule",
+  "POST /v400/recon/fx_rates/upsert": "__CALL__:upsert_fx_rate",
+  "POST /v400/recon/reports/run": "__CALL__:run_reconciliation",
+  "POST /v400/recon/reports/{report_id}/approve": "__CALL__:approve_report",
+  "POST /v400/recon/reports/{report_id}/lock": "__CALL__:lock_report",
+  "GET /v400/recon/ledger": "__CALL__:list_ledger_entries",
+  "GET /v400/recon/tickets": "__CALL__:list_tickets",
+  "POST /v400/recon/tickets/create": "__CALL__:append_ticket",
+  "POST /v400/recon/tickets/{ticket_id}/update": "__CALL__:update_ticket",
+  "GET /v401/recon/reports": "__CALL__:list_reports",
+  "GET /v401/recon/reports/{report_id}": "__CALL__:get_report",
+  "POST /v401/recon/orders/import": "__CALL__:import_orders",
+  "POST /v401/recon/settlements/import_lines": "__CALL__:import_settlement_lines",
+  "POST /v401/recon/fee_rules/upsert": "__CALL__:upsert_fee_rule",
+  "GET /v401/recon/fee_rules/{channel}": "__CALL__:get_fee_rule",
+  "POST /v401/recon/fx_rates/upsert": "__CALL__:upsert_fx_rate",
+  "POST /v401/recon/reports/run": "__CALL__:run_reconciliation",
+  "POST /v401/recon/reports/{report_id}/approve": "__CALL__:approve_report",
+  "POST /v401/recon/reports/{report_id}/lock": "__CALL__:lock_report",
+  "GET /v401/recon/ledger": "__CALL__:list_ledger_entries",
+  "GET /v401/recon/tickets": "__CALL__:list_tickets",
+  "POST /v401/recon/tickets/{ticket_id}/update": "__CALL__:update_ticket",
+  "POST /v401/recon/tickets/sla/upsert": "__CALL__:upsert_ticket_sla",
+  "GET /v401/recon/tickets/sla/{reason}": "__CALL__:get_ticket_sla",
+  "POST /v401/recon/tickets/sla/sweep": "__CALL__:run_ticket_sla_sweep",
+  "GET /v401/recon/tickets/retry_schedule": "__CALL__:get_retry_schedule",
+  "PUT /v401/recon/tickets/retry_schedule": "__CALL__:upsert_retry_schedule",
+  "POST /v401/recon/tickets/retry_once": "__CALL__:run_reason_retry_once",
+  "POST /v401/writeback/policy_validate": "__CALL__:validate_product",
+  "POST /v401/writeback/category/suggest": "__CALL__:suggest_channel_category",
+  "POST /v401/writeback/category_map/upsert": "__CALL__:upsert_category_map",
+  "GET /v401/writeback/category_map/{channel}": "__CALL__:get_category_map",
+  "POST /v401/influencer/contracts/upsert": "__CALL__:upsert_contracts",
+  "GET /v401/influencer/contracts": "__CALL__:list_contracts",
+  "POST /v401/influencer/posts/import": "__CALL__:import_posts",
+  "GET /v401/influencer/posts": "__CALL__:list_posts",
+  "POST /v401/influencer/settlements/import": "__CALL__:import_settlements",
+  "GET /v401/influencer/settlements": "__CALL__:list_settlements",
+  "GET /v401/influencer/dashboard": "__CALL__:dashboard_summary",
+  "GET /v402/recon/reports": "__CALL__:list_reports",
+  "GET /v402/recon/reports/{report_id}": "__CALL__:get_report",
+  "POST /v402/recon/orders/import": "__CALL__:import_orders",
+  "POST /v402/recon/settlements/import_lines": "__CALL__:import_settlement_lines",
+  "POST /v402/recon/fee_rules/upsert": "__CALL__:upsert_fee_rule",
+  "GET /v402/recon/fee_rules/{channel}": "__CALL__:get_fee_rule",
+  "POST /v402/recon/fx_rates/upsert": "__CALL__:upsert_fx_rate",
+  "GET /v402/recon/fx_rates/{base}/{quote}/{day}": "__CALL__:get_fx_rate",
+  "POST /v402/recon/reports/run": "__CALL__:run_reconciliation",
+  "POST /v402/recon/reports/{report_id}/approve": "__CALL__:approve_report",
+  "POST /v402/recon/reports/{report_id}/lock": "__CALL__:lock_report",
+  "GET /v402/recon/ledger": "__CALL__:list_ledger_entries",
+  "GET /v402/recon/tickets": "__CALL__:list_tickets",
+  "POST /v402/recon/tickets/update": "__CALL__:update_ticket",
+  "POST /v402/recon/tickets/sla/upsert": "__CALL__:upsert_ticket_sla",
+  "GET /v402/recon/tickets/sla/{reason}": "__CALL__:get_ticket_sla",
+  "POST /v402/recon/tickets/sla/sweep": "__CALL__:run_ticket_sla_sweep",
+  "GET /v402/recon/tickets/retry_schedule": "__CALL__:get_retry_schedule",
+  "PUT /v402/recon/tickets/retry_schedule": "__CALL__:upsert_retry_schedule",
+  "POST /v402/recon/tickets/retry_once": "__CALL__:run_reason_retry_once",
+  "POST /v402/writeback/policy_validate": "__CALL__:validate_product",
+  "POST /v402/writeback/category/suggest": "__CALL__:suggest_channel_category",
+  "POST /v402/writeback/category_map/upsert": "__CALL__:upsert_category_map",
+  "GET /v402/writeback/category_map/{channel}": "__CALL__:get_category_map",
+  "POST /v402/influencer/contracts/upsert": "__CALL__:upsert_contracts",
+  "GET /v402/influencer/contracts": "__CALL__:list_contracts",
+  "POST /v402/influencer/posts/import": "__CALL__:import_posts",
+  "GET /v402/influencer/posts": "__CALL__:list_posts",
+  "POST /v402/influencer/settlements/import": "__CALL__:import_settlements",
+  "GET /v402/influencer/settlements": "__CALL__:list_settlements",
+  "GET /v402/influencer/dashboard": "__CALL__:dashboard_summary",
+  "GET /v402/influencer/vendors": {
+    "vendors": "__CALL__:list_vendors",
+    "connections": "__CALL__:list_connections"
+  },
+  "GET /v402/oauth/{vendor}/authorize_url": {
+    "vendor": "__NAME__:vendor",
+    "authorize_url": "__CALL__:build_authorize_url"
+  },
+  "POST /v402/oauth/{vendor}/manual_token": "__CALL__:store_manual_token",
+  "POST /v402/oauth/{vendor}/refresh": "__CALL__:refresh_token_for_vendor",
+  "GET /v402/influencer/contracts/template/{vendor}": {
+    "vendor": "__NAME__:vendor",
+    "template_markdown": "__NAME__:md"
+  },
+  "POST /v402/notify/slack/test": "__CALL__:send_slack_message",
+  "GET /v403/influencer/vendors": {
+    "vendors": "__CALL__:list_vendors",
+    "connections": "__CALL__:list_connections"
+  },
+  "GET /v403/oauth/{vendor}/authorize_url": {
+    "vendor": "__NAME__:vendor",
+    "authorize_url": "__CALL__:build_authorize_url"
+  },
+  "POST /v403/oauth/{vendor}/exchange_code": "__CALL__:exchange_code_for_token",
+  "POST /v403/oauth/{vendor}/manual_token": "__CALL__:store_manual_token",
+  "POST /v403/oauth/{vendor}/refresh": "__CALL__:refresh_token_for_vendor",
+  "GET /v403/influencer/contracts/template/{vendor}": {
+    "vendor": "__NAME__:vendor",
+    "template": "__CALL__:get_contract_template"
+  },
+  "POST /v403/influencer/contracts/upsert": "__CALL__:upsert_contracts",
+  "GET /v403/influencer/contracts": {
+    "contracts": "__CALL__:list_contracts"
+  },
+  "POST /v403/influencer/posts/import": "__CALL__:import_posts",
+  "GET /v403/influencer/posts": {
+    "posts": "__CALL__:list_posts"
+  },
+  "POST /v403/influencer/settlements/import": "__CALL__:import_settlements",
+  "GET /v403/influencer/settlements": {
+    "settlements": "__CALL__:list_settlements"
+  },
+  "GET /v403/influencer/dashboard": "__CALL__:dashboard_summary",
+  "GET /v403/influencer/rights/expiring": {
+    "expiring": "__CALL__:list_expiring_rights"
+  },
+  "POST /v403/creators/upsert": "__CALL__:upsert_creator",
+  "GET /v403/creators": {
+    "creators": "__CALL__:list_creators"
+  },
+  "POST /v403/creators/resolve": "__CALL__:resolve_creator",
+  "POST /v403/creators/merge": "__CALL__:merge_creators",
+  "POST /v403/esign/{provider}/envelopes/create": "__CALL__:create_envelope",
+  "GET /v403/esign/envelopes": {
+    "envelopes": "__CALL__:list_envelopes"
+  },
+  "GET /v403/esign/envelopes/{envelope_id}": {
+    "envelope": "__NAME__:env"
+  },
+  "GET /v403/notify/routes": {
+    "routes": "__CALL__:list_routes"
+  },
+  "PUT /v403/notify/routes": "__CALL__:upsert_route",
+  "POST /v403/notify/slack/test": {
+    "ok": true
+  },
+  "GET /v403/recon/reports": {
+    "reports": "__CALL__:list_reports"
+  },
+  "GET /v403/recon/reports/{report_id}": "__NAME__:r",
+  "POST /v403/recon/reports/run": "__CALL__:run_reconciliation",
+  "POST /v403/recon/orders/import": "__CALL__:import_orders",
+  "POST /v403/recon/settlements/import_lines": "__CALL__:import_settlement_lines",
+  "POST /v403/recon/fee_rules/upsert": "__CALL__:upsert_fee_rule",
+  "GET /v403/recon/fee_rules/{channel}": {
+    "rule": "__CALL__:get_fee_rule"
+  },
+  "POST /v403/recon/fx_rates/upsert": "__CALL__:upsert_fx_rate",
+  "GET /v403/recon/fx_rates/{pair}": {
+    "rate": "__CALL__:get_fx_rate"
+  },
+  "POST /v403/recon/reports/{report_id}/approve": "__CALL__:approve_report",
+  "POST /v403/recon/reports/{report_id}/lock": "__CALL__:lock_report",
+  "GET /v403/recon/ledger": {
+    "entries": "__CALL__:list_ledger_entries"
+  },
+  "GET /v403/recon/tickets": {
+    "tickets": "__CALL__:list_tickets"
+  },
+  "POST /v403/recon/tickets/{ticket_id}/update": "__CALL__:update_ticket",
+  "POST /v403/recon/tickets/sla/upsert": "__CALL__:upsert_ticket_sla",
+  "GET /v403/recon/tickets/sla/{reason}": {
+    "sla": "__CALL__:get_ticket_sla"
+  },
+  "POST /v403/recon/tickets/sla/sweep": "__CALL__:run_ticket_sla_sweep",
+  "GET /v403/recon/tickets/retry_schedule": {
+    "schedule": "__CALL__:get_retry_schedule"
+  },
+  "PUT /v403/recon/tickets/retry_schedule": "__CALL__:put_retry_schedule",
+  "POST /v403/recon/tickets/retry_once": "__CALL__:run_ticket_retry_once",
+  "GET /v404/influencer/vendors": {
+    "vendors": "__CALL__:list_vendors",
+    "connections": "__CALL__:list_connections"
+  },
+  "GET /v404/oauth/{vendor}/authorize_url": {
+    "vendor": "__NAME__:vendor",
+    "authorize_url": "__CALL__:build_authorize_url"
+  },
+  "POST /v404/oauth/{vendor}/exchange_code": "__CALL__:exchange_code_for_token",
+  "POST /v404/oauth/{vendor}/manual_token": "__CALL__:store_manual_token",
+  "POST /v404/oauth/{vendor}/refresh": "__CALL__:refresh_token_for_vendor",
+  "GET /v404/influencer/contracts/template/{vendor}": {
+    "vendor": "__NAME__:vendor",
+    "template": "__CALL__:get_contract_template"
+  },
+  "POST /v404/influencer/contracts/upsert": "__CALL__:upsert_contracts",
+  "GET /v404/influencer/contracts": {
+    "contracts": "__CALL__:list_contracts"
+  },
+  "POST /v404/influencer/posts/import": "__CALL__:import_posts",
+  "GET /v404/influencer/posts": {
+    "posts": "__CALL__:list_posts"
+  },
+  "POST /v404/influencer/settlements/import": "__CALL__:import_settlements",
+  "GET /v404/influencer/settlements": {
+    "settlements": "__CALL__:list_settlements"
+  },
+  "GET /v404/influencer/dashboard": "__CALL__:dashboard_summary",
+  "GET /v404/influencer/rights/expiring": {
+    "expiring": "__CALL__:list_expiring_rights"
+  },
+  "POST /v404/creators/upsert": "__CALL__:upsert_creator",
+  "GET /v404/creators": {
+    "creators": "__CALL__:list_creators"
+  },
+  "POST /v404/creators/resolve": "__CALL__:resolve_creator",
+  "POST /v404/creators/merge": "__CALL__:merge_creators",
+  "GET /v404/esign/providers": {
+    "connections": "__CALL__:esign_list_connections"
+  },
+  "GET /v404/esign/{provider}/authorize_url": {
+    "provider": "__NAME__:provider",
+    "authorize_url": "__CALL__:esign_authorize_url"
+  },
+  "POST /v404/esign/{provider}/exchange_code": "__CALL__:esign_exchange_code",
+  "POST /v404/esign/dropboxsign/store_api_key": "__CALL__:esign_store_api_key",
+  "POST /v404/esign/{provider}/envelopes/create": "__CALL__:esign_create_envelope",
+  "GET /v404/esign/envelopes": {
+    "envelopes": "__CALL__:esign_list_envelopes"
+  },
+  "GET /v404/esign/envelopes/{envelope_id}": {
+    "envelope": "__NAME__:env"
+  },
+  "POST /v404/esign/envelopes/{envelope_id}/sync": "__CALL__:esign_sync_status",
+  "GET /v404/notify/routes": {
+    "routes": "__CALL__:list_routes"
+  },
+  "PUT /v404/notify/routes": "__CALL__:upsert_route",
+  "POST /v404/notify/slack/test": {
+    "ok": true
+  },
+  "GET /v404/recon/reports": {
+    "reports": "__CALL__:list_reports"
+  },
+  "GET /v404/recon/reports/{report_id}": "__NAME__:r",
+  "POST /v404/recon/reports/run": "__CALL__:run_reconciliation",
+  "GET /v405/health": {
+    "ok": true,
+    "version": "405.0.0"
+  },
+  "GET /v405/spec/activity_event_schema": "__CALL__:model_json_schema",
+  "POST /v405/events/ingest": {
+    "count": "__CALL__:len",
+    "normalized": "__NAME__:normalized"
+  },
+  "POST /v405/events/normalize": {
+    "count": "__CALL__:len",
+    "normalized": "__NAME__:normalized"
+  },
+  "POST /v405/metrics/compute": "__CALL__:compute_metrics",
+  "POST /v405/recommendations/generate": "__CALL__:generate_recommendations",
+  "GET /v406/health": {
+    "status": "ok",
+    "version": "406.0.0"
+  },
+  "GET /v406/spec/activity_event_schema": "__CALL__:model_json_schema",
+  "POST /v406/events/normalize": "__CALL__:normalize_events",
+  "POST /v406/metrics/compute": "__CALL__:compute_metrics",
+  "POST /v406/recommendations/generate": "__CALL__:generate_recommendations",
+  "POST /v406/rollups/compute": "__CALL__:compute_rollups",
+  "POST /v406/rollups/persist": {
+    "persisted": "__CALL__:len"
+  },
+  "GET /v406/alert_policies": "__CALL__:list_policies",
+  "POST /v406/alert_policies": "__CALL__:create_policy",
+  "PUT /v406/alert_policies/{policy_id}": "__CALL__:update_policy",
+  "DELETE /v406/alert_policies/{policy_id}": {
+    "deleted": true
+  },
+  "POST /v406/alerts/evaluate": "__CALL__:evaluate_policies",
+  "GET /v406/alerts": "__CALL__:list_alerts",
+  "GET /v407/health": {
+    "status": "ok",
+    "version": "407.0.0"
+  },
+  "GET /v407/spec/activity_event_schema": "__CALL__:model_json_schema",
+  "POST /v407/events/normalize": "__CALL__:normalize_events",
+  "POST /v407/rollups/compute": "__CALL__:compute_rollups",
+  "POST /v407/rollups/persist": {
+    "persisted": "__CALL__:len"
+  },
+  "GET /v407/alert_policies": "__UNSUPPORTED__",
+  "POST /v407/alert_policies": "__CALL__:_policy_to_v407_dict",
+  "PUT /v407/alert_policies/{policy_id}": "__CALL__:_policy_to_v407_dict",
+  "DELETE /v407/alert_policies/{policy_id}": {
+    "deleted": true
+  },
+  "POST /v407/alerts/evaluate": "__CALL__:evaluate_policies",
+  "GET /v407/alerts": "__CALL__:list_alerts",
+  "GET /v408/health": {
+    "status": "ok",
+    "version": "408.0.0"
+  },
+  "GET /v408/spec/activity_event_schema": "__CALL__:model_json_schema",
+  "POST /v408/events/normalize": "__CALL__:normalize_events",
+  "POST /v408/rollups/compute": "__CALL__:compute_rollups",
+  "POST /v408/rollups/persist": {
+    "persisted": "__CALL__:len"
+  },
+  "GET /v408/alert_policies": "__UNSUPPORTED__",
+  "POST /v408/alert_policies": "__CALL__:_policy_to_v408_dict",
+  "PUT /v408/alert_policies/{policy_id}": "__CALL__:_policy_to_v408_dict",
+  "DELETE /v408/alert_policies/{policy_id}": {
+    "deleted": true
+  },
+  "POST /v408/alerts/evaluate": "__CALL__:evaluate_policies",
+  "GET /v408/alerts": "__CALL__:list_alerts",
+  "GET /v408/action_requests": "__CALL__:list_action_requests",
+  "POST /v408/action_requests/{action_request_id}/decide": "__CALL__:decide_action_request",
+  "POST /v408/action_requests/{action_request_id}/execute": "__CALL__:execute_action_request",
+  "GET /v408/audit_logs": "__CALL__:list_audit_logs",
+  "GET /v409/health": {
+    "status": "ok",
+    "version": "409.0.0"
+  },
+  "GET /v409/spec/activity_event_schema": "__CALL__:model_json_schema",
+  "POST /v409/events/normalize": "__CALL__:normalize_events",
+  "POST /v409/rollups/compute": "__UNSUPPORTED__",
+  "POST /v409/rollups/persist": {
+    "ok": true,
+    "count": "__CALL__:len"
+  },
+  "GET /v409/alert_policies": "__NAME__:out",
+  "POST /v409/alert_policies": "__CALL__:model_validate",
+  "DELETE /v409/alert_policies/{policy_id}": {
+    "ok": true
+  },
+  "POST /v409/alerts/evaluate": {
+    "ok": true,
+    "count": "__CALL__:len"
+  },
+  "GET /v409/alerts": "__UNSUPPORTED__",
+  "GET /v409/action_requests": "__UNSUPPORTED__",
+  "POST /v409/action_requests/{action_request_id}/decide": "__CALL__:model_validate",
+  "POST /v409/action_requests/{action_request_id}/execute": "__CALL__:model_validate",
+  "GET /v409/audit_logs": "__UNSUPPORTED__",
+  "GET /v410/health": {
+    "status": "ok",
+    "version": "410.0.0"
+  },
+  "POST /v410/events/normalize": "__CALL__:normalize_events",
+  "POST /v410/rollups/compute": "__CALL__:compute_rollups",
+  "POST /v410/rollups/persist": {
+    "ok": true,
+    "count": "__CALL__:len"
+  },
+  "POST /v410/action_requests/{action_id}/decide": "__CALL__:decide_action_request",
+  "POST /v410/action_requests/{action_id}/execute": "__CALL__:execute_action_request",
+  "GET /v410/ai/policies/suggest": {
+    "suggestions": "__CALL__:suggest_policies"
+  },
+  "POST /v411/events/ingest": "__CALL__:ingest_events_v405",
+  "POST /v411/events/normalize": "__CALL__:normalize_events_v406",
+  "POST /v411/rollups/compute": "__CALL__:compute_rollups_v406",
+  "POST /v411/rollups/persist": "__CALL__:persist_rollups_v406",
+  "GET /v411/alert_policies": "__CALL__:list_policies_v410",
+  "POST /v411/alert_policies": "__CALL__:create_policy_v410",
+  "PUT /v411/alert_policies/{policy_id}": "__CALL__:update_policy_v410",
+  "DELETE /v411/alert_policies/{policy_id}": "__CALL__:delete_policy_v410",
+  "POST /v411/alerts/evaluate": "__CALL__:evaluate_policies_v410",
+  "GET /v411/alerts": "__CALL__:list_alerts_v410",
+  "GET /v411/actions/presets": "__NAME__:out",
+  "GET /v411/ai/policies/suggest": {
+    "suggestions": "__CALL__:suggest_policies"
+  },
+  "POST /v412/events/ingest": "__CALL__:ingest_events_v405",
+  "POST /v412/events/normalize": {
+    "count": "__CALL__:len",
+    "normalized": "__UNSUPPORTED__"
+  },
+  "POST /v412/rollups/compute": {
+    "count": "__CALL__:len",
+    "rollups": "__NAME__:rollups"
+  },
+  "POST /v412/rollups/persist": {
+    "persisted": "__NAME__:out"
+  },
+  "GET /v412/alert_policies": "__CALL__:list_policies_v410",
+  "POST /v412/alert_policies": "__CALL__:create_policy_v410",
+  "PUT /v412/alert_policies/{policy_id}": "__CALL__:update_policy_v410",
+  "DELETE /v412/alert_policies/{policy_id}": "__CALL__:delete_policy_v410",
+  "POST /v412/alerts/evaluate": "__CALL__:evaluate_policies_v410",
+  "GET /v412/alerts": "__CALL__:list_alerts_v410",
+  "GET /v412/actions/presets": {
+    "count": "__CALL__:len",
+    "presets": "__CALL__:list"
+  },
+  "GET /v412/ai/policies/suggest": {
+    "count": "__CALL__:len",
+    "suggestions": "__NAME__:suggestions"
+  },
+  "POST /v413/events/ingest": "__CALL__:ingest_events_v405",
+  "POST /v413/events/normalize": {
+    "count": "__CALL__:len",
+    "normalized": "__UNSUPPORTED__"
+  },
+  "POST /v413/rollups/compute": {
+    "count": "__CALL__:len",
+    "rollups": "__NAME__:rollups"
+  },
+  "POST /v413/rollups/persist": {
+    "persisted": "__NAME__:out"
+  },
+  "GET /v413/alert_policies": "__CALL__:list_policies_v410",
+  "POST /v413/alert_policies": "__CALL__:create_policy_v410",
+  "PUT /v413/alert_policies/{policy_id}": "__CALL__:update_policy_v410",
+  "DELETE /v413/alert_policies/{policy_id}": "__CALL__:delete_policy_v410",
+  "POST /v413/alerts/evaluate": "__CALL__:evaluate_policies_v410",
+  "GET /v413/alerts": "__CALL__:list_alerts_v410",
+  "GET /v413/actions/presets": {
+    "count": "__CALL__:len",
+    "presets": "__CALL__:list"
+  },
+  "GET /v413/ai/policies/suggest": {
+    "count": "__CALL__:len",
+    "suggestions": "__NAME__:suggestions"
+  },
+  "POST /v414/events/ingest": "__CALL__:ingest_events_v405",
+  "POST /v414/events/normalize": {
+    "count": "__CALL__:len",
+    "normalized": "__UNSUPPORTED__"
+  },
+  "POST /v414/rollups/compute": {
+    "count": "__CALL__:len",
+    "rollups": "__NAME__:rollups"
+  },
+  "POST /v414/rollups/persist": {
+    "persisted": "__NAME__:out"
+  },
+  "GET /v414/alert_policies": "__CALL__:list_policies_v410",
+  "POST /v414/alert_policies": "__CALL__:create_policy_v410",
+  "PUT /v414/alert_policies/{policy_id}": "__CALL__:update_policy_v410",
+  "DELETE /v414/alert_policies/{policy_id}": "__CALL__:delete_policy_v410",
+  "POST /v414/alerts/evaluate": "__CALL__:evaluate_policies_v410",
+  "GET /v414/alerts": "__CALL__:list_alerts_v410",
+  "GET /v414/actions/presets": {
+    "count": "__CALL__:len",
+    "presets": "__CALL__:list"
+  },
+  "GET /v414/ai/policies/suggest": {
+    "count": "__CALL__:len",
+    "suggestions": "__NAME__:suggestions"
+  },
+  "POST /v415/events/ingest": "__CALL__:ingest_events_v405",
+  "POST /v415/events/normalize": {
+    "count": "__CALL__:len",
+    "normalized": "__UNSUPPORTED__"
+  },
+  "POST /v415/rollups/compute": {
+    "count": "__CALL__:len",
+    "rollups": "__NAME__:rollups"
+  },
+  "POST /v415/rollups/persist": {
+    "persisted": "__NAME__:out"
+  },
+  "GET /v415/alert_policies": "__CALL__:list_policies_v410",
+  "POST /v415/alert_policies": "__CALL__:create_policy_v410",
+  "PUT /v415/alert_policies/{policy_id}": "__CALL__:update_policy_v410",
+  "DELETE /v415/alert_policies/{policy_id}": "__CALL__:delete_policy_v410",
+  "POST /v415/alerts/evaluate": "__CALL__:evaluate_policies_v410",
+  "GET /v415/alerts": "__CALL__:list_alerts_v410",
+  "GET /v415/actions/presets": {
+    "count": "__CALL__:len",
+    "presets": "__CALL__:list"
+  },
+  "GET /v415/ai/policies/suggest": {
+    "count": "__CALL__:len",
+    "suggestions": "__NAME__:suggestions"
+  },
+  "POST /v416/events/ingest": "__CALL__:ingest_events_v405",
+  "POST /v416/events/normalize": {
+    "count": "__CALL__:len",
+    "normalized": "__UNSUPPORTED__"
+  },
+  "POST /v416/rollups/compute": {
+    "count": "__CALL__:len",
+    "rollups": "__NAME__:rollups"
+  },
+  "POST /v416/rollups/persist": {
+    "persisted": "__NAME__:out"
+  },
+  "GET /v416/alert_policies": "__CALL__:list_policies_v410",
+  "POST /v416/alert_policies": "__CALL__:create_policy_v410",
+  "PUT /v416/alert_policies/{policy_id}": "__CALL__:update_policy_v410",
+  "DELETE /v416/alert_policies/{policy_id}": "__CALL__:delete_policy_v410",
+  "POST /v416/alerts/evaluate": "__CALL__:evaluate_policies_v410",
+  "GET /v416/alerts": "__CALL__:list_alerts_v410",
+  "GET /v416/actions/presets": {
+    "count": "__CALL__:len",
+    "presets": "__CALL__:list"
+  },
+  "GET /v416/ai/policies/suggest": {
+    "count": "__CALL__:len",
+    "suggestions": "__NAME__:suggestions"
+  },
+  "POST /v417/events/ingest": "__CALL__:ingest_events_v405",
+  "POST /v417/events/normalize": {
+    "count": "__CALL__:len",
+    "normalized": "__UNSUPPORTED__"
+  },
+  "POST /v417/rollups/compute": {
+    "count": "__CALL__:len",
+    "rollups": "__NAME__:rollups"
+  },
+  "POST /v417/rollups/persist": {
+    "persisted": "__NAME__:out"
+  },
+  "GET /v417/alert_policies": "__CALL__:list_policies_v410",
+  "POST /v417/alert_policies": "__CALL__:create_policy_v410",
+  "PUT /v417/alert_policies/{policy_id}": "__CALL__:update_policy_v410",
+  "DELETE /v417/alert_policies/{policy_id}": "__CALL__:delete_policy_v410",
+  "POST /v417/alerts/evaluate": "__CALL__:evaluate_policies_v410",
+  "GET /v417/alerts": "__CALL__:list_alerts_v410",
+  "GET /v417/actions/presets": {
+    "count": "__CALL__:len",
+    "presets": "__CALL__:list"
+  },
+  "GET /v417/ai/policies/suggest": {
+    "count": "__CALL__:len",
+    "suggestions": "__NAME__:suggestions"
+  },
+  "GET /v417/mappings": "__CALL__:list_mappings",
+  "POST /v417/mappings": "__CALL__:upsert_mapping",
+  "PUT /v417/mappings/{mapping_id}": "__NAME__:row",
+  "DELETE /v417/mappings/{mapping_id}": {
+    "deleted": "__CALL__:delete_mapping"
+  }
+}

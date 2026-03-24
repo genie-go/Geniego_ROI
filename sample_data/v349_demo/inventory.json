@@ -1,0 +1,4 @@
+[
+  {"sku":"SKU-1001","quantity":12,"location":"WH-SEOUL","captured_at":"2026-02-25T00:00:00Z"},
+  {"sku":"SKU-1002","quantity":0,"location":"WH-SEOUL","captured_at":"2026-02-25T00:00:00Z"}
+]

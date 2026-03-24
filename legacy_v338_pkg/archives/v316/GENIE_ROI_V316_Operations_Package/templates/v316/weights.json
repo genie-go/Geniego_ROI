@@ -1,0 +1,21 @@
+{
+  "ads_kpi": {
+    "w_roas": 0.5,
+    "w_cpa": 0.3,
+    "w_cvr": 0.2
+  },
+  "influencer_scoring": {
+    "w_fit": 0.4,
+    "w_perf": 0.4,
+    "w_risk": 0.2,
+    "risk": {
+      "w_fake_follower": 0.6,
+      "w_suspicious_engagement": 0.4
+    },
+    "fit": {
+      "w_country": 0.5,
+      "w_gender": 0.2,
+      "w_age": 0.3
+    }
+  }
+}

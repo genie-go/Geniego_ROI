@@ -1,0 +1,25 @@
+[
+  {
+    "order_id":"ORDER-9001",
+    "source":"SHOPIFY",
+    "ordered_at":"2026-02-20T10:12:00Z",
+    "currency":"KRW",
+    "total_amount":45800,
+    "status":"PAID",
+    "customer_email":"buyer1@example.com",
+    "items":[
+      {"sku":"SKU-1001","qty":1,"unit_price":19900},
+      {"sku":"SKU-1002","qty":1,"unit_price":25900}
+    ]
+  },
+  {
+    "order_id":"ORDER-9002",
+    "source":"COUPANG",
+    "ordered_at":"2026-02-22T08:01:00Z",
+    "currency":"KRW",
+    "total_amount":19900,
+    "status":"SHIPPED",
+    "customer_phone":"01012341234",
+    "items":[{"sku":"SKU-1001","qty":1,"unit_price":19900}]
+  }
+]

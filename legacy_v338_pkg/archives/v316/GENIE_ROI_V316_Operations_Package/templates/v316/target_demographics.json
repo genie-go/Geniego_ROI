@@ -1,0 +1,11 @@
+{
+  "country": {
+    "KR": 70
+  },
+  "gender": {
+    "female": 60
+  },
+  "age_band": {
+    "25-34": 40
+  }
+}

@@ -1,0 +1,5 @@
+Date,Campaign ID,Campaign name,Ad group ID,Ad group name,Ad ID,Ad name,Impressions,Clicks,Cost,Currency,UTM Campaign,VAT rate
+2026-02-25,C001,Brand_Search_KR,AG01,Search,AD01,TextAd1,12000,540,240.00,USD,brand_kr,0.0
+2026-02-25,C002,Prospecting_Display,AG02,Display,AD02,Banner1,45000,390,510000,KRW,prospect_disp,0.0
+2026-02-26,C001,Brand_Search_KR,AG01,Search,AD01,TextAd1,15000,620,260.00,USD,brand_kr,0.0
+2026-02-27,C001,Brand_Search_KR,AG01,Search,AD01,TextAd1,18000,710,300.00,USD,brand_kr,0.0

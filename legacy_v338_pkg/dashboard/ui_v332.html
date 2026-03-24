@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>GENIE_ROI V332 Console</title>
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;margin:0;background:#0b1220;color:#e8eefc}
+    header{position:sticky;top:0;background:rgba(11,18,32,.92);backdrop-filter: blur(10px);border-bottom:1px solid rgba(255,255,255,.08);padding:12px 14px;display:flex;gap:12px;align-items:center}
+    .brand{font-weight:800}
+    .pill{border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:6px 10px;font-size:12px;opacity:.95}
+    .grow{flex:1}
+    button{padding:8px 10px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:#111a2e;color:#e8eefc;cursor:pointer}
+    main{padding:14px;max-width:1200px;margin:0 auto}
+    .grid{display:grid;grid-template-columns:1.2fr .8fr;gap:12px}
+    .card{background:#111a2e;border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:12px}
+    .tabs{display:flex;gap:8px;margin:10px 0 12px}
+    .tab{padding:7px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.12);cursor:pointer;font-size:12px;opacity:.85}
+    .tab.active{background:#4f7cff;border-color:#4f7cff;opacity:1}
+    table{width:100%;border-collapse:collapse;font-size:12px}
+    th,td{padding:8px 6px;border-bottom:1px solid rgba(255,255,255,.08);text-align:left;vertical-align:top}
+    tr:hover{background:rgba(255,255,255,.03)}
+    .muted{opacity:.75}
+    .kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    .kpi .card{padding:10px}
+    .kpi .v{font-size:18px;font-weight:800;margin-top:6px}
+    .chart{height:240px;border-radius:14px;border:1px dashed rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;opacity:.75}
+    input,select{padding:8px 10px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:#0b1220;color:#e8eefc}
+    .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    .tag{display:inline-block;padding:2px 8px;border:1px solid rgba(255,255,255,.12);border-radius:999px;font-size:11px;opacity:.85}
+    .warn{color:#ffd6a1}
+    .err{color:#ffb4b4}
+    pre{white-space:pre-wrap;word-break:break-word;background:#0b1220;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:10px;margin:0}
+  </style>
+</head>
+<body>
+<header>
+  <div class="brand">GENIE_ROI V330</div>
+  <div class="pill" id="who">...</div>
+  <div class="grow"></div>
+  <div class="pill">Project</div>
+  <select id="project">
+    <option value="demo">demo</option>
+  </select>
+  <button id="logout">로그아웃</button>
+</header>
+
+<main>
+  <div class="tabs">
+    <div class="tab active" data-tab="dash">대시보드</div>
+    <div class="tab" data-tab="pixel">Pixel/Compliance</div>
+    <div class="tab" data-tab="idg">ID Graph</div>
+    <div class="tab" data-tab="mon">모니터링</div>
+    <div class="tab" data-tab="admin">Admin</div>
+  </div>
+
+  <section id="tab-dash">
+    <div class="row">
+      <span class="tag">필터</span>
+      <input id="q" placeholder="채널/캠페인 검색"/>
+      <input id="from" placeholder="from (YYYY-MM-DD)"/>
+      <input id="to" placeholder="to (YYYY-MM-DD)"/>
+      <button id="refresh">새로고침</button>
+      <div class="grow"></div>
+      <button id="dlDash">리포트(행) CSV</button>
+    </div>
+    <div style="height:10px"></div>
+    <div class="grid">
+      <div class="card">
+        <div class="muted">일자별 지출 vs 기여매출 (샘플 차트 영역)</div>
+        <div class="chart" id="chart1">Chart (v330: API 기반)</div>
+      </div>
+      <div class="card">
+        <div class="muted">채널 Top 기여</div>
+        <table id="topCh"><thead><tr><th>채널</th><th>기여</th><th>지출</th></tr></thead><tbody></tbody></table>
+      </div>
+    </div>
+    <div style="height:12px"></div>
+    <div class="card">
+      <div class="muted">행(드릴다운: 클릭하면 상세 패널)</div>
+      <table id="tbl"><thead><tr><th>date</th><th>channel</th><th>campaign</th><th>spend</th><th>attributed_rev</th></tr></thead><tbody></tbody></table>
+    </div>
+    <div style="height:12px"></div>
+    <div class="card">
+      <div class="muted">상세</div>
+      <pre id="detail">{}</pre>
+    </div>
+  </section>
+
+  <section id="tab-pixel" style="display:none">
+    <div class="card">
+      <div><b>Pixel 설치</b> <span class="muted">(우리 도메인 1st-party 수집)</span></div>
+      <div style="height:8px"></div>
+      <pre id="pixelSnippet"></pre>
+      <div style="height:10px"></div>
+      <div class="row">
+        <button id="dlPixel">pixel_events CSV</button>
+        <button id="purge">Retention 기준 삭제 실행</button>
+        <div class="grow"></div>
+        <span class="tag">Retention(days)</span>
+        <input id="retDays" style="width:110px"/>
+        <button id="setRet">저장</button>
+      </div>
+    </div>
+    <div style="height:12px"></div>
+    <div class="card">
+      <div><b>삭제요청(DSR)</b> <span class="muted">GDPR/CCPA 스타일: 식별자로 관련 데이터 삭제</span></div>
+      <div style="height:8px"></div>
+      <div class="row">
+        <select id="dsrType">
+          <option value="email_hash">email_hash</option>
+          <option value="customer_id">customer_id</option>
+          <option value="anonymous_id">anonymous_id</option>
+        </select>
+        <input id="dsrVal" placeholder="identifier value"/>
+        <button id="dsrReq">삭제요청 생성</button>
+        <button id="dsrProc">삭제요청 처리(ADMIN)</button>
+      </div>
+      <div style="height:8px"></div>
+      <pre id="dsrOut">{}</pre>
+    </div>
+  </section>
+
+  <section id="tab-idg" style="display:none">
+    <div class="card">
+      <div class="row">
+        <div><b>ID Graph</b> <span class="muted">증거 기반 confidence 누적 + 충돌 감지</span></div>
+        <div class="grow"></div>
+        <button id="rebuild">Rebuild</button>
+        <button id="dlIdg">ID Graph JSON</button>
+      </div>
+      <div style="height:10px"></div>
+      <pre id="idgOut">{}</pre>
+    </div>
+  </section>
+
+  
+  <section id="tab-conf" style="display:none">
+    <div class="card">
+      <h3>ID Graph 충돌 자동 완화 워크플로우</h3>
+      <div class="hint">email_hash ↔ 서로 다른 customer_id 등 충돌을 감지하면 여기서 보류/분리/검증/무시를 선택하고 로그를 남깁니다.</div>
+      <div style="display:flex;gap:8px;align-items:center;margin-top:8px">
+        <button class="btn" id="btnConfRefresh">새로고침</button>
+      </div>
+      <div id="confList" style="margin-top:10px"></div>
+    </div>
+  </section>
+
+  <section id="tab-queue" style="display:none">
+    <div class="card">
+      <h3>백필/증분 리커버리 재처리 큐</h3>
+      <div class="hint">SmartStore 주문/상품 백필, 실패 재시도, 운영 중 누락 복구를 위한 큐입니다.</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px">
+        <button class="btn" id="btnQueueRefresh">새로고침</button>
+        <button class="btn" id="btnQueueRun">큐 실행(최대 20건)</button>
+        <input id="bfFrom" placeholder="from (YYYY-MM-DD 또는 ISO)" style="flex:1;min-width:220px"/>
+        <input id="bfTo" placeholder="to (YYYY-MM-DD 또는 ISO)" style="flex:1;min-width:220px"/>
+        <select id="bfMode">
+          <option value="both">orders+products</option>
+          <option value="orders">orders</option>
+          <option value="products">products</option>
+        </select>
+        <button class="btn" id="btnBackfill">SmartStore 백필 enqueue</button>
+      </div>
+      <div id="queueList" style="margin-top:10px"></div>
+    </div>
+  </section>
+<section id="tab-mon" style="display:none">
+    <div class="grid">
+      <div class="card">
+        <div><b>커넥터 상태</b> <span class="muted">에러/지연/누락</span></div>
+        <div style="height:8px"></div>
+        <table id="connTbl"><thead><tr><th>connector</th><th>last_ok_age</th><th>last_err</th></tr></thead><tbody></tbody></table>
+      </div>
+      <div class="card">
+        <div><b>최근 이벤트 로그</b> <span class="muted">ERROR/WARN 중심</span></div>
+        <div style="height:8px"></div>
+        <pre id="evOut">[]</pre>
+      </div>
+    </div>
+  </section>
+
+  <section id="tab-admin" style="display:none">
+    <div class="card">
+      <div><b>SmartStore 토큰 테스트</b> <span class="muted">Client Credentials + Signature</span></div>
+      <div style="height:8px"></div>
+      <div class="row">
+        <input id="ssCid" placeholder="client_id" style="flex:1"/>
+        <input id="ssSec" placeholder="client_secret(bcrypt salt)" style="flex:1"/>
+        <input id="ssAcc" placeholder="account_id" style="flex:1"/>
+        <button id="ssTest">발급 테스트</button>
+      </div>
+      <div style="height:8px"></div>
+      <pre id="ssOut">{}</pre>
+    </div>
+  </section>
+
+</main>
+
+<script>
+const $ = (q)=>document.querySelector(q);
+const tabEls = Array.from(document.querySelectorAll(".tab"));
+tabEls.forEach(t=>t.onclick=()=>{
+  tabEls.forEach(x=>x.classList.remove("active"));
+  t.classList.add("active");
+  ["dash","pixel","idg","conf","queue","mon","admin"].forEach(k=>$("#tab-"+k).style.display="none");
+  $("#tab-"+t.dataset.tab).style.display="block";
+});
+
+async function me(){
+  const r=await fetch("/api/me"); if(!r.ok) return null;
+  return await r.json();
+}
+async function api(path, method="GET", body=null){
+  const opt={method, headers:{}};
+  if(body){ opt.headers["Content-Type"]="application/json"; opt.body=JSON.stringify(body); }
+  const r=await fetch(path,opt);
+  const j=await r.json().catch(()=>({}));
+  if(!r.ok) throw new Error(j.error || ("HTTP "+r.status));
+  return j;
+}
+function fmtAge(s){
+  if(s===null||s===undefined) return "-";
+  if(s<60) return s+"s";
+  if(s<3600) return Math.round(s/60)+"m";
+  if(s<86400) return Math.round(s/3600)+"h";
+  return Math.round(s/86400)+"d";
+}
+
+
+async function loadConflicts(){
+  const pid = $("#project").value;
+  const sum = await api(`/p/${pid}/api/id_graph/summary`);
+  const conflicts = sum.conflicts || [];
+  if(conflicts.length===0){ $("#confList").innerHTML = '<div class="hint">충돌 없음</div>'; return; }
+  $("#confList").innerHTML = conflicts.slice(0,50).map(c=>{
+    const id=c.id||c.conflict_id||c.rowid||c._id||c["id"];
+    const detail = (c.detail_json? JSON.parse(c.detail_json): c);
+    return `<div class="card" style="margin-top:10px">
+      <div style="display:flex;justify-content:space-between;gap:10px;align-items:center">
+        <div><b>#${id}</b> ${c.code||c.type||'CONFLICT'}</div>
+        <div>
+          <button class="btn" onclick="confAction(${id},'hold')">보류</button>
+          <button class="btn" onclick="confAction(${id},'split')">분리</button>
+          <button class="btn" onclick="confAction(${id},'verify')">검증</button>
+          <button class="btn" onclick="confAction(${id},'ignore')">무시</button>
+        </div>
+      </div>
+      <pre style="white-space:pre-wrap;margin:8px 0 0">${JSON.stringify(detail,null,2)}</pre>
+    </div>`;
+  }).join("");
+}
+async function confAction(id, action){
+  const pid=$("#project").value;
+  const note = prompt("메모(선택):") || "";
+  await api(`/p/${pid}/api/id_graph/conflict_action`,"POST",{conflict_id:id, action, note});
+  await loadConflicts();
+  alert("처리 완료: "+action);
+}
+
+async function loadQueue(){
+  const pid=$("#project").value;
+  const q = await api(`/p/${pid}/api/queue/list`);
+  const items = q.items || [];
+  if(items.length===0){ $("#queueList").innerHTML='<div class="hint">큐가 비어있습니다</div>'; return; }
+  $("#queueList").innerHTML = `<table class="table"><thead><tr>
+    <th>ID</th><th>kind</th><th>status</th><th>attempts</th><th>next_run</th><th>payload</th><th>updated</th>
+  </tr></thead><tbody>` + items.slice(0,80).map(it=>{
+    return `<tr>
+      <td>${it.id}</td><td>${it.kind}</td><td>${it.status}</td><td>${it.attempts}</td>
+      <td>${it.next_run_ts}</td>
+      <td><code>${escapeHtml(JSON.stringify(it.payload||{},null,0))}</code></td>
+      <td>${it.updated_ts}</td>
+    </tr>`;
+  }).join("") + "</tbody></table>";
+}
+async function runQueue(){
+  const pid=$("#project").value;
+  const res = await api(`/p/${pid}/api/queue/run`,"POST",{max_items:20});
+  await loadQueue();
+  alert("큐 실행 결과: done="+(res.results?.done ?? "-")+", failed="+(res.results?.failed ?? "-"));
+}
+async function enqueueBackfill(){
+  const pid=$("#project").value;
+  const body = {from: $("#bfFrom").value, to: $("#bfTo").value, mode: $("#bfMode").value};
+  const res = await api(`/p/${pid}/api/smartstore/backfill`,"POST", body);
+  await loadQueue();
+  alert("백필 enqueue 완료 (job_id="+res.job_id+")");
+}
+
+function escapeHtml(s){
+  return (s||"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;");
+}
+let USER=null;
+(async()=>{
+  USER = await me();
+  if(!USER || !USER.ok){ location.href="/dashboard/login_v331.html"; return; }
+  $("#who").textContent = USER.user + " ("+USER.role+")";
+  $("#logout").onclick = async()=>{ await fetch("/api/logout",{method:"POST"}); location.href="/dashboard/login_v331.html"; };
+
+  const pid = $("#project").value;
+  $("#pixelSnippet").textContent = '<script src="'+location.origin+'/p/'+pid+'/pixel/p.js"><\/script>';
+  // load retention default (viewer+)
+  try{
+    const r=await api('/p/'+pid+'/api/compliance/retention','POST',null); // will fail; ignore
+  }catch(e){}
+  try{
+    const rr = await fetch('/p/'+pid+'/api/compliance/retention');
+    if(rr.ok){
+      const jj = await rr.json();
+      $("#retDays").value = jj.pixel_retention_days;
+    }
+  }catch(e){}
+
+  $("#refresh").onclick = loadDash;
+  $("#dlDash").onclick = ()=>{ location.href='/p/'+pid+'/api/export?scope=dashboard_rows&format=csv'; };
+  $("#dlPixel").onclick = ()=>{ location.href='/p/'+pid+'/api/export?scope=pixel_events&format=csv'; };
+  $("#dlIdg").onclick = ()=>{ location.href='/p/'+pid+'/api/export?scope=id_graph&format=json'; };
+
+  $("#purge").onclick = async()=>{
+    try{
+      const j=await api('/p/'+pid+'/api/compliance/purge','POST',{});
+      alert("deleted="+j.deleted);
+    }catch(e){ alert(e.message); }
+  };
+  $("#setRet").onclick = async()=>{
+    try{
+      const days=parseInt($("#retDays").value||"180",10);
+      const j=await api('/p/'+pid+'/api/compliance/retention','POST',{pixel_retention_days:days});
+      alert("saved: "+j.pixel_retention_days+" days");
+    }catch(e){ alert(e.message); }
+  };
+
+  $("#dsrReq").onclick = async()=>{
+    try{
+      const j=await api('/p/'+pid+'/api/compliance/delete_request','POST',{
+        identifier_type: $("#dsrType").value,
+        identifier_value: $("#dsrVal").value.trim()
+      });
+      $("#dsrOut").textContent = JSON.stringify(j,null,2);
+    }catch(e){ $("#dsrOut").textContent = JSON.stringify({error:e.message},null,2); }
+  };
+  $("#dsrProc").onclick = async()=>{
+    try{
+      const j=await api('/p/'+pid+'/api/compliance/process_deletions','POST',{limit:50});
+      $("#dsrOut").textContent = JSON.stringify(j,null,2);
+    }catch(e){ $("#dsrOut").textContent = JSON.stringify({error:e.message},null,2); }
+  };
+
+  $("#rebuild").onclick = async()=>{
+    try{
+      const j=await api('/p/'+pid+'/api/id_graph/rebuild','POST',{});
+      await loadIdg();
+      alert("rebuild ok: "+JSON.stringify(j));
+    }catch(e){ alert(e.message); }
+  };
+  $("#ssTest").onclick = async()=>{
+    try{
+      const j=await api('/p/'+pid+'/api/connectors/smartstore/token_test','POST',{
+        client_id: $("#ssCid").value.trim(),
+        client_secret: $("#ssSec").value.trim(),
+        account_id: $("#ssAcc").value.trim()
+      });
+      $("#ssOut").textContent = JSON.stringify(j,null,2);
+    }catch(e){ $("#ssOut").textContent = JSON.stringify({error:e.message},null,2); }
+  };
+
+  await loadDash();
+  await loadIdg();
+  await loadMon();
+  setInterval(loadMon, 10000);
+})();
+
+async function loadDash(){
+  const pid=$("#project").value;
+  const data = await api('/p/'+pid+'/api/dashboard');
+  const rows = (data.rows||[]);
+  const q = ($("#q").value||"").toLowerCase();
+  const f = ($("#from").value||"").trim();
+  const t = ($("#to").value||"").trim();
+  const filtered = rows.filter(r=>{
+    if(q){
+      const s=(String(r.channel||"")+" "+String(r.campaign||"")).toLowerCase();
+      if(!s.includes(q)) return false;
+    }
+    if(f && String(r.date||"") < f) return false;
+    if(t && String(r.date||"") > t) return false;
+    return true;
+  });
+
+  const tb=$("#tbl tbody"); tb.innerHTML="";
+  filtered.slice(0,400).forEach(r=>{
+    const tr=document.createElement("tr");
+    tr.innerHTML = `<td>${r.date||""}</td><td>${r.channel||""}</td><td>${r.campaign||""}</td><td>${r.spend||""}</td><td>${r.attributed_revenue||r.attributed_rev||""}</td>`;
+    tr.onclick=()=>{ $("#detail").textContent = JSON.stringify(r,null,2); };
+    tb.appendChild(tr);
+  });
+
+  // top channels
+  const agg={};
+  filtered.forEach(r=>{
+    const ch=r.channel||"unknown";
+    const rev=Number(r.attributed_revenue||r.attributed_rev||0)||0;
+    const sp=Number(r.spend||0)||0;
+    if(!agg[ch]) agg[ch]={rev:0,sp:0};
+    agg[ch].rev+=rev; agg[ch].sp+=sp;
+  });
+  const top = Object.entries(agg).sort((a,b)=>b[1].rev-a[1].rev).slice(0,12);
+  const tb2=$("#topCh tbody"); tb2.innerHTML="";
+  top.forEach(([ch,v])=>{
+    const tr=document.createElement("tr");
+    tr.innerHTML = `<td>${ch}</td><td>${Math.round(v.rev)}</td><td>${Math.round(v.sp)}</td>`;
+    tb2.appendChild(tr);
+  });
+}
+
+async function loadIdg(){
+  const pid=$("#project").value;
+  try{
+    const data = await api('/p/'+pid+'/api/id_graph/summary');
+    $("#idgOut").textContent = JSON.stringify(data,null,2);
+  }catch(e){
+    $("#idgOut").textContent = JSON.stringify({error:e.message},null,2);
+  }
+}
+
+async function loadMon(){
+  const pid=$("#project").value;
+  try{
+    const data = await api('/p/'+pid+'/api/monitor/overview');
+    const tb=$("#connTbl tbody"); tb.innerHTML="";
+    (data.connectors||[]).forEach(c=>{
+      const tr=document.createElement("tr");
+      const err = c.last_err_code ? `<span class="err">${c.last_err_code}</span>` : `<span class="muted">-</span>`;
+      tr.innerHTML = `<td>${c.connector}</td><td>${fmtAge(c.last_ok_age_s)}</td><td>${err} <span class="muted">${c.last_err_msg||""}</span></td>`;
+      tb.appendChild(tr);
+    });
+    $("#evOut").textContent = JSON.stringify(data.recent_events||[],null,2);
+  }catch(e){
+    $("#evOut").textContent = JSON.stringify({error:e.message},null,2);
+  }
+}
+</script>
+</body>
+</html>

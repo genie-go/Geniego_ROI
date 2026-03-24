@@ -1,0 +1,178 @@
+{
+  "google_ads": {
+    "required": [
+      "date",
+      "campaign_id",
+      "campaign_name",
+      "impressions",
+      "clicks",
+      "cost"
+    ],
+    "aliases": {
+      "date": [
+        "Date",
+        "day",
+        "날짜"
+      ],
+      "campaign_id": [
+        "Campaign ID",
+        "campaign_id",
+        "캠페인ID"
+      ],
+      "campaign_name": [
+        "Campaign",
+        "Campaign name",
+        "campaign_name",
+        "캠페인명"
+      ],
+      "impressions": [
+        "Impressions",
+        "impr",
+        "노출"
+      ],
+      "clicks": [
+        "Clicks",
+        "clicks",
+        "클릭"
+      ],
+      "cost": [
+        "Cost",
+        "cost",
+        "Spend",
+        "광고비",
+        "지출"
+      ]
+    }
+  },
+  "meta_ads": {
+    "required": [
+      "date",
+      "campaign_id",
+      "campaign_name",
+      "impressions",
+      "clicks",
+      "cost"
+    ],
+    "aliases": {
+      "date": [
+        "date_start",
+        "Date",
+        "날짜"
+      ],
+      "campaign_id": [
+        "campaign_id",
+        "Campaign ID",
+        "캠페인ID"
+      ],
+      "campaign_name": [
+        "campaign_name",
+        "Campaign name",
+        "캠페인명"
+      ],
+      "impressions": [
+        "impressions",
+        "Impressions",
+        "노출"
+      ],
+      "clicks": [
+        "clicks",
+        "Clicks",
+        "클릭"
+      ],
+      "cost": [
+        "spend",
+        "Spend",
+        "cost",
+        "광고비",
+        "지출"
+      ]
+    }
+  },
+  "tiktok_ads": {
+    "required": [
+      "date",
+      "campaign_id",
+      "campaign_name",
+      "impressions",
+      "clicks",
+      "cost"
+    ],
+    "aliases": {
+      "date": [
+        "stat_time_day",
+        "date",
+        "날짜"
+      ],
+      "campaign_id": [
+        "campaign_id",
+        "Campaign ID",
+        "캠페인ID"
+      ],
+      "campaign_name": [
+        "campaign_name",
+        "Campaign name",
+        "캠페인명"
+      ],
+      "impressions": [
+        "impressions",
+        "Impressions",
+        "노출"
+      ],
+      "clicks": [
+        "clicks",
+        "Clicks",
+        "클릭"
+      ],
+      "cost": [
+        "spend",
+        "Spend",
+        "cost",
+        "광고비",
+        "지출"
+      ]
+    }
+  },
+  "naver_ads": {
+    "required": [
+      "date",
+      "campaign_id",
+      "campaign_name",
+      "impressions",
+      "clicks",
+      "cost"
+    ],
+    "aliases": {
+      "date": [
+        "일자",
+        "date",
+        "날짜"
+      ],
+      "campaign_id": [
+        "캠페인ID",
+        "campaign_id",
+        "Campaign ID"
+      ],
+      "campaign_name": [
+        "캠페인명",
+        "campaign_name",
+        "Campaign name"
+      ],
+      "impressions": [
+        "노출수",
+        "impressions",
+        "Impressions"
+      ],
+      "clicks": [
+        "클릭수",
+        "clicks",
+        "Clicks"
+      ],
+      "cost": [
+        "광고비",
+        "cost",
+        "Spend",
+        "spend"
+      ]
+    }
+  }
+}

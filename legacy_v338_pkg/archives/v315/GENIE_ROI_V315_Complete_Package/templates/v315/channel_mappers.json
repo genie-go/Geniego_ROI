@@ -1,0 +1,73 @@
+{
+  "google_ads": {
+    "required_columns": {
+      "Date": "date",
+      "Campaign ID": "campaign_id",
+      "Campaign": "campaign_name",
+      "Impressions": "impressions",
+      "Clicks": "clicks",
+      "Cost": "spend"
+    },
+    "optional_columns": {
+      "Account": "account_id",
+      "Ad group ID": "adgroup_id",
+      "Ad group": "adgroup_name",
+      "Ad ID": "creative_id",
+      "Ad": "creative_name"
+    },
+    "cost_unit": "micros_or_currency",
+    "notes": "Cost는 CSV에 따라 마이크로 단위 또는 통화 단위일 수 있어 import 옵션에서 지정"
+  },
+  "meta_ads": {
+    "required_columns": {
+      "date_start": "date",
+      "campaign_id": "campaign_id",
+      "campaign_name": "campaign_name",
+      "impressions": "impressions",
+      "clicks": "clicks",
+      "spend": "spend"
+    },
+    "optional_columns": {
+      "account_id": "account_id",
+      "adset_id": "adgroup_id",
+      "adset_name": "adgroup_name",
+      "ad_id": "creative_id",
+      "ad_name": "creative_name"
+    },
+    "notes": "Meta Ads Manager Export 기준"
+  },
+  "tiktok_ads": {
+    "required_columns": {
+      "Date": "date",
+      "Campaign ID": "campaign_id",
+      "Campaign Name": "campaign_name",
+      "Impressions": "impressions",
+      "Clicks": "clicks",
+      "Spend": "spend"
+    },
+    "optional_columns": {
+      "Adgroup ID": "adgroup_id",
+      "Adgroup Name": "adgroup_name",
+      "Ad ID": "creative_id",
+      "Ad Name": "creative_name"
+    },
+    "notes": "TikTok Ads export 예시"
+  },
+  "naver_ads": {
+    "required_columns": {
+      "일자": "date",
+      "캠페인ID": "campaign_id",
+      "캠페인명": "campaign_name",
+      "노출": "impressions",
+      "클릭": "clicks",
+      "비용": "spend"
+    },
+    "optional_columns": {
+      "광고그룹ID": "adgroup_id",
+      "광고그룹명": "adgroup_name",
+      "소재ID": "creative_id",
+      "소재명": "creative_name"
+    },
+    "notes": "국문 헤더 예시. 실제 내보내기 헤더에 맞춰 매핑 수정."
+  }
+}

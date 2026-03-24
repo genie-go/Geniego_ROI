@@ -1,0 +1,454 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>GENIE_ROI V329fh 운영 콘솔</title>
+<style>
+:root{--bg:#0b0f14;--panel:#0f1620;--card:#111a25;--muted:#8aa0b7;--txt:#e9f0f7;--line:rgba(255,255,255,.08);--acc:#5eead4;--acc2:#60a5fa}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:linear-gradient(180deg,#070b10 0%, #0b0f14 60%, #070b10 100%);color:var(--txt)}
+a{color:inherit}
+.topbar{position:sticky;top:0;z-index:50;backdrop-filter:blur(10px);background:rgba(11,15,20,.75);border-bottom:1px solid var(--line);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.3px}
+.pill{font-size:12px;padding:4px 10px;border:1px solid var(--line);border-radius:999px;color:var(--muted)}
+.main{display:grid;grid-template-columns:260px 1fr;min-height:calc(100vh - 58px)}
+.nav{border-right:1px solid var(--line);padding:14px;background:rgba(15,22,32,.55)}
+.nav h3{margin:10px 8px 6px;font-size:12px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.12em}
+.nav a{display:block;padding:10px 10px;border-radius:12px;margin:6px 6px;color:var(--txt);text-decoration:none;border:1px solid transparent}
+.nav a:hover{border-color:var(--line);background:rgba(255,255,255,.03)}
+.nav a.active{border-color:rgba(94,234,212,.35);background:rgba(94,234,212,.08)}
+.content{padding:16px;max-width:1280px}
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:12px}
+.card{grid-column:span 12;background:rgba(17,26,37,.75);border:1px solid var(--line);border-radius:18px;padding:14px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+.card h2{margin:0 0 10px;font-size:14px;color:#dff6ff;letter-spacing:.2px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+label{font-size:12px;color:var(--muted);font-weight:700}
+select,input,button{font:inherit}
+select,input{background:#0b121a;border:1px solid var(--line);border-radius:12px;color:var(--txt);padding:10px 10px;outline:none}
+button{background:linear-gradient(135deg,rgba(94,234,212,.16),rgba(96,165,250,.14));border:1px solid rgba(94,234,212,.28);color:var(--txt);padding:10px 12px;border-radius:12px;cursor:pointer;font-weight:800}
+button.secondary{background:transparent;border:1px solid var(--line);font-weight:700;color:var(--muted)}
+button:disabled{opacity:.5;cursor:not-allowed}
+.kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.k{background:rgba(11,18,26,.6);border:1px solid var(--line);border-radius:16px;padding:12px}
+.k .v{font-size:20px;font-weight:900;margin-top:6px}
+.k .t{font-size:12px;color:var(--muted);font-weight:700}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width: 980px){.main{grid-template-columns:1fr}.nav{border-right:0;border-bottom:1px solid var(--line)}.split{grid-template-columns:1fr}.kpi{grid-template-columns:repeat(2,1fr)}}
+table{width:100%;border-collapse:separate;border-spacing:0 8px}
+th{font-size:12px;color:var(--muted);text-align:left;padding:0 10px}
+td{background:rgba(11,18,26,.6);border:1px solid var(--line);padding:10px;border-left:0;border-right:0}
+tr td:first-child{border-left:1px solid var(--line);border-top-left-radius:14px;border-bottom-left-radius:14px}
+tr td:last-child{border-right:1px solid var(--line);border-top-right-radius:14px;border-bottom-right-radius:14px}
+tr:hover td{border-color:rgba(96,165,250,.25);background:rgba(96,165,250,.08)}
+.small{font-size:12px;color:var(--muted)}
+.canvasWrap{height:260px;border-radius:16px;border:1px solid var(--line);background:rgba(11,18,26,.6);padding:10px}
+</style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="brand">GENIE_ROI <span class="pill">V329fh</span> <span class="pill" id="who">미로그인</span></div>
+    <div class="row">
+      <button class="secondary" id="btnLogout">로그아웃</button>
+      <button id="btnDownload">리포트 다운로드</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="nav">
+      <h3>Workspace</h3>
+      <a href="#" class="active" data-view="dash">대시보드</a>
+      <a href="#" data-view="pixel">Pixel & 이벤트</a>
+      <a href="#" data-view="id">ID 그래프</a>
+      <a href="#" data-view="connectors" data-minrole="manager">커넥터</a>
+      <a href="#" data-view="users" data-minrole="admin">사용자/권한</a>
+      <h3>Tools</h3>
+      <a href="#" data-view="export" data-minrole="analyst">데이터 Export</a>
+      <a href="#" data-view="settings" data-minrole="manager">설정</a>
+      <div style="height:8px"></div>
+      <div class="small">※ 메뉴는 권한(role)에 따라 자동 노출됩니다.</div>
+    </div>
+
+    <div class="content">
+      <div class="grid">
+        <div class="card" style="grid-column:span 12">
+          <h2>필터</h2>
+          <div class="row">
+            <div>
+              <label>프로젝트</label><br/>
+              <select id="project"></select>
+            </div>
+            <div>
+              <label>기간 시작</label><br/>
+              <input type="date" id="d1"/>
+            </div>
+            <div>
+              <label>기간 종료</label><br/>
+              <input type="date" id="d2"/>
+            </div>
+            <div>
+              <label>채널</label><br/>
+              <select id="channel"><option value="">전체</option></select>
+            </div>
+            <div>
+              <label>캠페인 검색</label><br/>
+              <input type="text" id="q" placeholder="캠페인/소재 키워드"/>
+            </div>
+            <div style="align-self:end">
+              <button id="btnApply">적용</button>
+              <button class="secondary" id="btnReset">초기화</button>
+            </div>
+          </div>
+          <div class="small" id="hint" style="margin-top:8px"></div>
+        </div>
+
+        <div class="card" id="view_dash">
+          <h2>핵심 KPI</h2>
+          <div class="kpi" id="kpis"></div>
+          <div class="split" style="margin-top:12px">
+            <div>
+              <div class="small">지출 vs 매출(일자)</div>
+              <div class="canvasWrap"><canvas id="c1" width="700" height="240"></canvas></div>
+            </div>
+            <div>
+              <div class="small">채널별 매출 기여(Top)</div>
+              <div class="canvasWrap"><canvas id="c2" width="700" height="240"></canvas></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" id="view_table">
+          <h2>드릴다운 테이블 (행 클릭 → 상세)</h2>
+          <div class="small">행을 클릭하면 오른쪽 패널에 “원인/진단/추천 액션”이 표시됩니다.</div>
+          <div style="overflow:auto;margin-top:10px">
+            <table id="tbl">
+              <thead><tr>
+                <th>채널</th><th>캠페인</th><th>지출</th><th>매출</th><th>ROAS</th><th>증분 워터마크</th>
+              </tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card" id="view_detail">
+          <h2>선택 항목 상세</h2>
+          <div id="detail" class="small">테이블에서 항목을 선택하세요.</div>
+        </div>
+
+        <div class="card" id="view_pixel" style="display:none">
+          <h2>Pixel 설치</h2>
+          <div class="small">아래 스크립트를 사이트 &lt;head&gt; 또는 &lt;body&gt; 하단에 삽입하세요. (first-party)</div>
+          <pre id="px" style="white-space:pre-wrap;background:#0b121a;border:1px solid var(--line);border-radius:16px;padding:12px;margin-top:10px;overflow:auto"></pre>
+          <div class="small" style="margin-top:8px">동의 배너(CMP-lite)는 기본 포함. 기존 CMP가 있으면 <code>genie('consent', true/false)</code>로 연동.</div>
+        </div>
+
+        <div class="card" id="view_id" style="display:none">
+          <h2>ID 그래프</h2>
+          <div class="small">익명ID ↔ 이메일해시/고객ID 등을 연결하여 유저 여정을 복원합니다. (신뢰도 점수 포함)</div>
+          <div class="row" style="margin-top:10px">
+            <button class="secondary" id="btnIdRefresh">최신 연결 보기</button>
+          </div>
+          <div id="idOut" class="small" style="margin-top:10px"></div>
+        </div>
+
+        <div class="card" id="view_export" style="display:none">
+          <h2>Export</h2>
+          <div class="small">필터 적용 후 CSV/JSON으로 내려받을 수 있습니다.</div>
+          <div class="row" style="margin-top:10px">
+            <button class="secondary" id="btnCSV">CSV</button>
+            <button class="secondary" id="btnJSON">JSON</button>
+          </div>
+        </div>
+
+        <div class="card" id="view_connectors" style="display:none">
+          <h2>커넥터</h2>
+          <div class="small">네이버 스마트스토어 / 쿠팡 등 2~3개 채널은 “완성본”으로 탑재(키 입력→증분수집).</div>
+          <div class="small" style="margin-top:10px">이 UI는 운영형(권한 필요). 실제 키는 서버 저장(OpsStore)됩니다.</div>
+        </div>
+
+        <div class="card" id="view_users" style="display:none">
+          <h2>사용자/권한</h2>
+          <div class="small">Admin만 접근 가능. 프로젝트별 role( viewer/analyst/manager/admin ) 부여.</div>
+        </div>
+
+        <div class="card" id="view_settings" style="display:none">
+          <h2>설정</h2>
+          <div class="small">어트리뷰션 룰 / 환율 / 매핑 템플릿 등. (Manager+)</div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+<script>
+function fmt(n){ if(n==null || isNaN(n)) return '-'; return new Intl.NumberFormat('ko-KR',{maximumFractionDigits:0}).format(n); }
+function fmt2(n){ if(n==null || isNaN(n)) return '-'; return new Intl.NumberFormat('ko-KR',{maximumFractionDigits:2}).format(n); }
+
+async function api(path, opt){
+  opt = opt || {};
+  opt.headers = opt.headers || {};
+  opt.headers['Content-Type']='application/json';
+  const r = await fetch(path, opt);
+  const j = await r.json().catch(()=>({ok:false,error:'bad_json'}));
+  if(!r.ok){ throw new Error(j.error || ('HTTP '+r.status)); }
+  return j;
+}
+
+function drawLine(canvas, seriesA, seriesB){
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  const pad=28, W=canvas.width, H=canvas.height;
+  const xs = seriesA.map(d=>d.x);
+  const vals = seriesA.map(d=>d.y).concat(seriesB.map(d=>d.y));
+  const ymin = Math.min.apply(null, vals), ymax = Math.max.apply(null, vals);
+  const x0=pad, x1=W-pad, y0=H-pad, y1=pad;
+  function x(i){ return x0 + (x1-x0)*(i/(seriesA.length-1 || 1)); }
+  function y(v){ return y0 - (y0-y1)*((v-ymin)/(ymax-ymin || 1)); }
+  // axes
+  ctx.globalAlpha=1;
+  ctx.strokeStyle='rgba(255,255,255,.12)';
+  ctx.beginPath(); ctx.moveTo(x0,y1); ctx.lineTo(x0,y0); ctx.lineTo(x1,y0); ctx.stroke();
+  // A
+  ctx.strokeStyle='rgba(94,234,212,.9)';
+  ctx.beginPath();
+  seriesA.forEach((p,i)=>{ const xx=x(i), yy=y(p.y); if(i===0) ctx.moveTo(xx,yy); else ctx.lineTo(xx,yy); });
+  ctx.stroke();
+  // B
+  ctx.strokeStyle='rgba(96,165,250,.9)';
+  ctx.beginPath();
+  seriesB.forEach((p,i)=>{ const xx=x(i), yy=y(p.y); if(i===0) ctx.moveTo(xx,yy); else ctx.lineTo(xx,yy); });
+  ctx.stroke();
+  // labels
+  ctx.fillStyle='rgba(255,255,255,.65)'; ctx.font='12px system-ui';
+  ctx.fillText('min '+fmt2(ymin), 6, H-10);
+  ctx.fillText('max '+fmt2(ymax), 6, 14);
+}
+
+function drawBars(canvas, pairs){
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  const pad=24, W=canvas.width, H=canvas.height;
+  const x0=pad, x1=W-pad, y0=H-pad, y1=pad;
+  const maxV = Math.max.apply(null, pairs.map(p=>p.v).concat([1]));
+  const barH = (y0-y1)/(pairs.length||1) - 6;
+  ctx.font='12px system-ui';
+  pairs.forEach((p,i)=>{
+    const yy = y1 + i*(barH+6);
+    const w = (x1-x0)*(p.v/maxV);
+    ctx.fillStyle='rgba(96,165,250,.22)';
+    ctx.fillRect(x0, yy, w, barH);
+    ctx.strokeStyle='rgba(255,255,255,.10)'; ctx.strokeRect(x0, yy, x1-x0, barH);
+    ctx.fillStyle='rgba(255,255,255,.85)';
+    ctx.fillText(p.k, x0+6, yy+barH-6);
+    ctx.fillStyle='rgba(255,255,255,.65)';
+    ctx.fillText(fmt(p.v), x0+w+8, yy+barH-6);
+  });
+}
+
+let STATE = {user:null, role:'viewer', pid:null, raw:null, rows:[]};
+
+async function loadProjects(){
+  const j = await api('/api/projects');
+  const sel = document.getElementById('project');
+  sel.innerHTML='';
+  j.projects.forEach(p=>{
+    const o=document.createElement('option');
+    o.value=p.id; o.textContent=p.name+' ('+p.id+')';
+    sel.appendChild(o);
+  });
+  STATE.pid = j.default || (j.projects[0] && j.projects[0].id) || null;
+  if(STATE.pid) sel.value = STATE.pid;
+  STATE.user = j.user || null;
+  document.getElementById('who').textContent = (STATE.user ? (STATE.user.username+' · '+STATE.user.role) : '미로그인');
+  applyRoleUI(STATE.user ? STATE.user.role : 'viewer');
+}
+
+function applyRoleUI(role){
+  STATE.role = role || 'viewer';
+  document.querySelectorAll('[data-minrole]').forEach(a=>{
+    const min=a.getAttribute('data-minrole');
+    const rank={viewer:0,analyst:1,manager:2,admin:3};
+    a.style.display = (rank[STATE.role] >= rank[min]) ? 'block' : 'none';
+  });
+  // export/report buttons
+  document.getElementById('btnDownload').style.display = (STATE.role==='viewer') ? 'none' : 'inline-block';
+}
+
+async function loadDashboard(){
+  const pid = document.getElementById('project').value;
+  STATE.pid = pid;
+  const url = '/p/'+encodeURIComponent(pid)+'/out/dashboard_ads_kpi.json';
+  const raw = await fetch(url).then(r=>r.json());
+  STATE.raw = raw;
+  document.getElementById('hint').textContent = '데이터 기준일: '+(raw.generated_at || '-')+' · rows: '+(raw.rows?raw.rows.length:0);
+  // populate channel filter
+  const chSel=document.getElementById('channel');
+  const chs=[...new Set((raw.rows||[]).map(r=>r.channel).filter(Boolean))].sort();
+  chSel.innerHTML='<option value="">전체</option>'+chs.map(c=>'<option>'+c+'</option>').join('');
+  // set default date range
+  const days=(raw.daily||[]).map(d=>d.date).filter(Boolean).sort();
+  if(days.length){
+    document.getElementById('d1').value = days[0];
+    document.getElementById('d2').value = days[days.length-1];
+  }
+  applyFilter();
+}
+
+function applyFilter(){
+  const raw = STATE.raw || {};
+  const d1=document.getElementById('d1').value;
+  const d2=document.getElementById('d2').value;
+  const ch=document.getElementById('channel').value;
+  const q=(document.getElementById('q').value||'').toLowerCase();
+  const rows=(raw.rows||[]).filter(r=>{
+    if(ch && r.channel!==ch) return false;
+    if(q && !((r.campaign||'').toLowerCase().includes(q) || (r.ad||'').toLowerCase().includes(q))) return false;
+    return true;
+  });
+  STATE.rows=rows;
+  // KPIs
+  const spend=rows.reduce((a,r)=>a+(+r.spend||0),0);
+  const revenue=rows.reduce((a,r)=>a+(+r.revenue||0),0);
+  const roas = spend>0 ? revenue/spend : null;
+  const orders=rows.reduce((a,r)=>a+(+r.orders||0),0);
+  const kpis=[
+    {t:'총 지출', v:fmt(spend)},
+    {t:'총 매출(기여)', v:fmt(revenue)},
+    {t:'ROAS', v:roas==null?'-':fmt2(roas)},
+    {t:'주문수', v:fmt(orders)}
+  ];
+  document.getElementById('kpis').innerHTML = kpis.map(k=>'<div class="k"><div class="t">'+k.t+'</div><div class="v">'+k.v+'</div></div>').join('');
+
+  // charts (daily)
+  const daily=(raw.daily||[]).filter(d=>{
+    if(d1 && d.date<d1) return false;
+    if(d2 && d.date>d2) return false;
+    return true;
+  });
+  const sA=daily.map(d=>({x:d.date, y:+d.spend||0}));
+  const sB=daily.map(d=>({x:d.date, y:+d.revenue||0}));
+  drawLine(document.getElementById('c1'), sA, sB);
+
+  // channel bars
+  const byCh={};
+  rows.forEach(r=>{ const k=r.channel||'unknown'; byCh[k]=(byCh[k]||0)+(+r.revenue||0); });
+  const pairs=Object.keys(byCh).map(k=>({k, v:byCh[k]})).sort((a,b)=>b.v-a.v).slice(0,8);
+  drawBars(document.getElementById('c2'), pairs);
+
+  // table
+  const tb=document.querySelector('#tbl tbody');
+  tb.innerHTML='';
+  rows.sort((a,b)=>(+b.revenue||0)-(+a.revenue||0)).slice(0,200).forEach(r=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML = '<td>'+ (r.channel||'-') +'</td>'
+      + '<td>'+ (r.campaign||'-') +'</td>'
+      + '<td>'+ fmt(+r.spend||0) +'</td>'
+      + '<td>'+ fmt(+r.revenue||0) +'</td>'
+      + '<td>'+ ( (+r.spend||0)>0 ? fmt2((+r.revenue||0)/(+r.spend||0)) : '-') +'</td>'
+      + '<td>'+ (r.watermark||'-') +'</td>';
+    tr.onclick=()=>showDetail(r);
+    tb.appendChild(tr);
+  });
+}
+
+function showDetail(r){
+  const el=document.getElementById('detail');
+  const diag=(r.diagnostics||{});
+  const lines=[];
+  lines.push('<div style="font-weight:900;color:#eaffff;margin-bottom:6px">'+(r.channel||'-')+' · '+(r.campaign||'-')+'</div>');
+  lines.push('<div>지출: <b>'+fmt(+r.spend||0)+'</b> / 매출(기여): <b>'+fmt(+r.revenue||0)+'</b> / ROAS: <b>'+(((+r.spend||0)>0)?fmt2((+r.revenue||0)/(+r.spend||0)):'-')+'</b></div>');
+  if(diag.warning) lines.push('<div style="margin-top:6px;color:#ffdca8">⚠️ '+diag.warning+'</div>');
+  if(diag.match_explanations && diag.match_explanations.length){
+    lines.push('<div style="margin-top:8px;font-weight:800">매칭/기여 설명</div>');
+    lines.push('<ul>'+diag.match_explanations.slice(0,6).map(x=>'<li>'+x+'</li>').join('')+'</ul>');
+  }
+  if(diag.recommendations && diag.recommendations.length){
+    lines.push('<div style="margin-top:8px;font-weight:800">추천 액션</div>');
+    lines.push('<ul>'+diag.recommendations.slice(0,6).map(x=>'<li>'+x+'</li>').join('')+'</ul>');
+  }
+  el.innerHTML = lines.join('');
+}
+
+function switchView(v){
+  const map={
+    dash:['view_dash','view_table','view_detail'],
+    pixel:['view_pixel'],
+    id:['view_id'],
+    export:['view_export'],
+    connectors:['view_connectors'],
+    users:['view_users'],
+    settings:['view_settings']
+  };
+  Object.values(map).flat().forEach(id=>{ const el=document.getElementById(id); if(el) el.style.display='none';});
+  (map[v]||['view_dash','view_table','view_detail']).forEach(id=>{ const el=document.getElementById(id); if(el) el.style.display='block';});
+}
+
+async function loadPixelSnippet(){
+  const pid = STATE.pid || document.getElementById('project').value;
+  const js = await fetch('/p/'+encodeURIComponent(pid)+'/pixel/p.js').then(r=>r.text());
+  document.getElementById('px').textContent = js;
+}
+
+async function loadIdGraph(){
+  const pid = STATE.pid || document.getElementById('project').value;
+  const j = await api('/p/'+encodeURIComponent(pid)+'/api/id_graph/summary');
+  const el=document.getElementById('idOut');
+  el.innerHTML = (j.items||[]).slice(0,40).map(it=>{
+    return '<div style="padding:10px;border:1px solid var(--line);border-radius:14px;margin:8px 0;background:rgba(11,18,26,.55)">'
+      + '<div style="font-weight:900">Group: '+it.group_id+' <span class="pill">confidence '+fmt2(it.best_confidence)+'</span></div>'
+      + '<div class="small">'+it.identities.map(x=>x.type+': '+x.value).join(' · ')+'</div>'
+      + '</div>';
+  }).join('') || '<div class="small">아직 연결이 없습니다. (identify 이벤트가 들어오면 생성)</div>';
+}
+
+document.querySelectorAll('.nav a[data-view]').forEach(a=>{
+  a.onclick=(e)=>{
+    e.preventDefault();
+    document.querySelectorAll('.nav a').forEach(x=>x.classList.remove('active'));
+    a.classList.add('active');
+    const v=a.getAttribute('data-view');
+    switchView(v);
+    if(v==='pixel') loadPixelSnippet();
+    if(v==='id') loadIdGraph();
+  };
+});
+
+document.getElementById('btnApply').onclick=()=>applyFilter();
+document.getElementById('btnReset').onclick=()=>{
+  document.getElementById('channel').value='';
+  document.getElementById('q').value='';
+  applyFilter();
+};
+document.getElementById('project').onchange=async()=>{
+  await loadDashboard();
+};
+document.getElementById('btnLogout').onclick=async()=>{
+  await api('/api/logout',{method:'POST', body:JSON.stringify({})}).catch(()=>{});
+  location.href='/login_v329fh.html';
+};
+document.getElementById('btnDownload').onclick=()=>{
+  const pid = STATE.pid || document.getElementById('project').value;
+  // report bundle (zip) generated server-side
+  location.href='/p/'+encodeURIComponent(pid)+'/api/report_bundle?format=zip';
+};
+document.getElementById('btnCSV').onclick=()=>{
+  const pid = STATE.pid || document.getElementById('project').value;
+  location.href='/p/'+encodeURIComponent(pid)+'/api/export?format=csv&scope=dashboard_rows';
+};
+document.getElementById('btnJSON').onclick=()=>{
+  const pid = STATE.pid || document.getElementById('project').value;
+  location.href='/p/'+encodeURIComponent(pid)+'/api/export?format=json&scope=dashboard_rows';
+};
+document.getElementById('btnIdRefresh').onclick=()=>loadIdGraph();
+
+(async function boot(){
+  try{
+    await loadProjects();
+    await loadDashboard();
+  }catch(e){
+    document.getElementById('hint').textContent='오류: '+e.message+' (로그인이 필요할 수 있음)';
+  }
+})();
+</script>
+</body>
+</html>

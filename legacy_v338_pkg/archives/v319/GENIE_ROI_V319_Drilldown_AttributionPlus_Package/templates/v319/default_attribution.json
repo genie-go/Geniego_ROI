@@ -1,0 +1,21 @@
+{
+  "chain": [
+    "ad_id",
+    "campaign_id",
+    "utm_campaign"
+  ],
+  "fallback": {
+    "ad_id": [
+      "exact",
+      "startswith"
+    ],
+    "campaign_id": [
+      "exact",
+      "contains"
+    ],
+    "utm_campaign": [
+      "exact",
+      "contains"
+    ]
+  }
+}

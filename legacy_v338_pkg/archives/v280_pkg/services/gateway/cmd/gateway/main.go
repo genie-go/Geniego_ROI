@@ -1,0 +1,47 @@
+package main
+
+import (
+  "context"
+  "log"
+  "net/http"
+  "os"
+  "time"
+
+  "github.com/gin-gonic/gin"
+  "genie_roi/gateway/internal/config"
+  "genie_roi/gateway/internal/db"
+  "genie_roi/gateway/internal/httpapi"
+  "genie_roi/gateway/internal/outbox"
+)
+
+func main() {
+  cfg := config.Load()
+
+  pg, err := db.New(cfg)
+  if err != nil {
+    log.Fatalf("db: %v", err)
+  }
+  defer pg.Close()
+
+  worker := outbox.NewWorker(cfg, pg)
+  go worker.Run(context.Background())
+
+  r := gin.New()
+  r.Use(gin.Recovery())
+
+  r.GET("/healthz", func(c *gin.Context) { c.JSON(http.StatusOK, gin.H{"ok": true}) })
+
+  httpapi.RegisterRoutes(r, cfg, pg)
+
+  srv := &http.Server{
+    Addr:              ":" + cfg.GatewayPort,
+    Handler:           r,
+    ReadHeaderTimeout: 5 * time.Second,
+  }
+
+  log.Printf("gateway listening on :%s (DRY_RUN=%v ENFORCE=%v)", cfg.GatewayPort, cfg.DryRun, cfg.EnforcePolicies)
+  if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+    log.Printf("listen: %v", err)
+    os.Exit(1)
+  }
+}

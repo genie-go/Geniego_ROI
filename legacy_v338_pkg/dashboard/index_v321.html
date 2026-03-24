@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>GENIE_ROI V321 대시보드</title>
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:18px;line-height:1.45}
+    .row{display:flex;flex-wrap:wrap;gap:12px}
+    .card{border:1px solid #ddd;border-radius:12px;padding:12px;min-width:220px;flex:1}
+    .kpi{font-size:22px;font-weight:700}
+    .muted{color:#666}
+    table{border-collapse:collapse;width:100%}
+    th,td{border-bottom:1px solid #eee;padding:8px;text-align:left;font-size:14px;white-space:nowrap}
+    th{background:#fafafa;position:sticky;top:0}
+    tr:hover{background:#fcfcfc}
+    tr.sel{background:#111;color:#fff}
+    tr.sel td{border-bottom-color:#222}
+    .small{font-size:12px}
+    .pill{display:inline-block;border:1px solid #ddd;border-radius:999px;padding:2px 8px;font-size:12px;color:#333}
+    .grid{display:grid;grid-template-columns:1fr;gap:14px}
+    @media(min-width:1100px){.grid{grid-template-columns:1fr 1fr}}
+    .chart{width:100%;height:180px;border:1px solid #eee;border-radius:12px;overflow:hidden}
+    a{color:#111}
+    .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;align-items:center}
+    .tabbtn{padding:8px 10px;border-radius:999px;border:1px solid #ddd;background:#fff;cursor:pointer}
+    .tabbtn.active{background:#111;color:#fff;border-color:#111}
+    .panel{display:none}
+    .panel.active{display:block}
+    .btn{padding:8px 10px;border-radius:12px;border:1px solid #ddd;background:#fff;cursor:pointer}
+    .btn.primary{background:#111;color:#fff;border-color:#111}
+    .controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0}
+    select,input{padding:8px 10px;border-radius:12px;border:1px solid #ddd}
+    .hr{height:1px;background:#eee;margin:16px 0}
+  </style>
+</head>
+<body>
+  <h1>GENIE_ROI V321 대시보드</h1>
+  <p class="muted"><a href="/ui/">업로드/설정 UI</a> · 데이터: <span class="pill">/out/dashboard_ads_kpi.json</span></p>
+  <div id="alerts" class="small muted"></div>
+
+  <div class="controls">
+    <span class="pill">필터</span>
+    <label class="small muted">채널</label>
+    <select id="selChannel"><option value="">(전체)</option></select>
+    <label class="small muted">날짜</label>
+    <select id="selDate"><option value="">(전체)</option></select>
+    <button class="btn" id="btnReset">필터 초기화</button>
+    <span class="pill" id="filterPill">필터: 없음</span>
+  </div>
+
+  <h2>요약</h2>
+  <div class="row" id="kpiCards"></div>
+
+  <div class="grid">
+    <div class="card">
+      <h3>일별 ROAS / 커버리지</h3>
+      <svg id="roasChart" class="chart" viewBox="0 0 800 180" preserveAspectRatio="none"></svg>
+      <div class="small muted" id="metaLine"></div>
+      <div class="small muted">※ 커버리지 = 전체 전환/매출 대비 귀속된 비율</div>
+    </div>
+    <div class="card">
+      <h3>Top 10 (ROAS)</h3>
+      <div class="controls">
+        <button class="btn" onclick="downloadCsv('top_any')">CSV</button>
+      </div>
+      <div style="overflow:auto;max-height:280px">
+        <table id="topAny">
+          <thead><tr><th>레벨</th><th>이름</th><th>ROAS</th><th>비용</th><th>매출</th><th>전환</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="small muted">캠페인/그룹/소재 중 상위 ROAS 항목</div>
+    </div>
+  </div>
+
+  <div class="hr"></div>
+
+  <h2>진단(운영용)</h2>
+  <div class="card">
+    <div class="controls">
+      <span class="pill">미귀속 비용 상위</span>
+      <button class="btn" onclick="downloadCsv('unattributed_cost_top')">CSV</button>
+    </div>
+    <div class="small muted">광고비가 있는데(min_score 이상 매칭 실패) 귀속 전환/매출이 0인 행 상위입니다. 룰/화이트리스트/normalize/chain 조정에 활용하세요.</div>
+    <div style="overflow:auto;max-height:260px;margin-top:8px">
+      <table id="tblUnattr">
+        <thead><tr><th>date</th><th>channel</th><th>campaign</th><th>ad_group</th><th>ad</th><th>cost</th><th>clicks</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <h2 style="margin-top:22px">Drill-down (클릭 필터)</h2>
+  <div class="tabs">
+    <button class="tabbtn active" data-tab="campaign">Campaign</button>
+    <button class="tabbtn" data-tab="adgroup">Ad Group</button>
+    <button class="tabbtn" data-tab="ad">Ad(소재)</button>
+    <button class="btn" id="btnClear">Drill-down 필터 해제</button>
+    <button class="btn" onclick="downloadCsv('campaigns')">Campaign CSV</button>
+    <button class="btn" onclick="downloadCsv('ad_groups')">AdGroup CSV</button>
+    <button class="btn" onclick="downloadCsv('ads')">Ads CSV</button>
+  </div>
+
+  <div class="card panel active" id="panel-campaign">
+    <h3>Campaign 레벨 (행 클릭 → 하위 필터)</h3>
+    <div style="overflow:auto;max-height:360px">
+      <table id="tblCampaign">
+        <thead><tr><th>채널</th><th>date</th><th>campaign_id</th><th>캠페인명</th><th>ROAS</th><th>CPA</th><th>비용</th><th>매출</th><th>전환</th><th>매칭률</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card panel" id="panel-adgroup">
+    <h3>Ad Group 레벨 (행 클릭 → Ad 추가 필터)</h3>
+    <div style="overflow:auto;max-height:360px">
+      <table id="tblAdGroup">
+        <thead><tr><th>채널</th><th>date</th><th>campaign_id</th><th>ad_group_id</th><th>광고그룹명</th><th>ROAS</th><th>CPA</th><th>비용</th><th>매출</th><th>전환</th><th>매칭률</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card panel" id="panel-ad">
+    <h3>Ad(소재) 레벨</h3>
+    <div class="small muted">match_best_* 컬럼은 해당 소재 집계에서 관측된 “가장 높은 스코어의 매칭 정보”입니다.</div>
+    <div style="overflow:auto;max-height:360px">
+      <table id="tblAd">
+        <thead><tr><th>채널</th><th>date</th><th>campaign_id</th><th>ad_group_id</th><th>ad_id</th><th>소재명</th><th>ROAS</th><th>CPA</th><th>비용</th><th>매출</th><th>전환</th><th>매칭률</th><th>match_rule</th><th>match_mode</th><th>match_score</th><th>match_key</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+<script>
+function fmt(n){
+  if(n===null||n===undefined||Number.isNaN(n)) return "-";
+  const x = Number(n);
+  if(Math.abs(x) >= 1e8) return (x/1e8).toFixed(2)+"억";
+  if(Math.abs(x) >= 1e4) return (x/1e4).toFixed(1)+"만";
+  return x.toLocaleString();
+}
+function pct(x){
+  if(x===null||x===undefined||Number.isNaN(x)) return "-";
+  return (Number(x)*100).toFixed(1)+"%";
+}
+async function loadJson(url){
+  const r = await fetch(url, {cache:"no-store"});
+  if(!r.ok) throw new Error(url+" HTTP "+r.status);
+  return await r.json();
+}
+function card(title, value, sub){
+  const d = document.createElement("div");
+  d.className = "card";
+  d.innerHTML = `<div class="muted small">${title}</div><div class="kpi">${value}</div><div class="muted small">${sub||""}</div>`;
+  return d;
+}
+function drawLine(svg, ys){
+  while(svg.firstChild) svg.removeChild(svg.firstChild);
+  const w=800,h=180,pad=24;
+  const max = Math.max(...ys, 0.00001);
+  const min = Math.min(...ys, 0);
+  const step = (w-2*pad)/Math.max(ys.length-1,1);
+  const yMap = (v)=>{
+    const denom = (max-min)||1;
+    return h-pad - ((v-min)/denom)*(h-2*pad);
+  };
+  const axis = document.createElementNS("http://www.w3.org/2000/svg","line");
+  axis.setAttribute("x1",pad); axis.setAttribute("y1",h-pad);
+  axis.setAttribute("x2",w-pad); axis.setAttribute("y2",h-pad);
+  axis.setAttribute("stroke","#ddd"); svg.appendChild(axis);
+  let d="";
+  ys.forEach((v,i)=>{
+    const x = pad + i*step;
+    const y = yMap(v);
+    d += (i===0?"M":" L")+x+" "+y;
+  });
+  const path = document.createElementNS("http://www.w3.org/2000/svg","path");
+  path.setAttribute("d",d); path.setAttribute("fill","none");
+  path.setAttribute("stroke","#111"); path.setAttribute("stroke-width","2");
+  svg.appendChild(path);
+}
+
+let DATA = null;
+let ddFilter = { campaign_id: "", ad_group_id: "" };
+let globalFilter = { channel:"", date:"" };
+
+function setFilterPill(){
+  const pill = document.getElementById("filterPill");
+  const parts=[];
+  if(globalFilter.channel) parts.push("channel="+globalFilter.channel);
+  if(globalFilter.date) parts.push("date="+globalFilter.date);
+  if(ddFilter.campaign_id) parts.push("campaign_id="+ddFilter.campaign_id);
+  if(ddFilter.ad_group_id) parts.push("ad_group_id="+ddFilter.ad_group_id);
+  pill.textContent = "필터: " + (parts.length? parts.join(" / "): "없음");
+}
+
+function setActiveTab(tab){
+  document.querySelectorAll(".tabbtn").forEach(b=>{
+    b.classList.toggle("active", b.dataset.tab===tab);
+  });
+  document.querySelectorAll(".panel").forEach(p=>{
+    p.classList.toggle("active", p.id===("panel-"+tab));
+  });
+}
+document.querySelectorAll(".tabbtn").forEach(b=>{
+  b.addEventListener("click", ()=>setActiveTab(b.dataset.tab));
+});
+
+function passesGlobal(r){
+  if(globalFilter.channel && r.channel !== globalFilter.channel) return false;
+  if(globalFilter.date && r.date !== globalFilter.date) return false;
+  return true;
+}
+
+function renderTables(){
+  const camp = (DATA.drilldown.campaigns || []).filter(passesGlobal);
+  const adg = (DATA.drilldown.ad_groups || []).filter(passesGlobal);
+  const ads = (DATA.drilldown.ads || []).filter(passesGlobal);
+
+  const campRows = camp;
+  const adgRows = adg.filter(r => !ddFilter.campaign_id || r.campaign_id === ddFilter.campaign_id);
+  const adRows = ads.filter(r => (!ddFilter.campaign_id || r.campaign_id === ddFilter.campaign_id) && (!ddFilter.ad_group_id || r.ad_group_id === ddFilter.ad_group_id));
+
+  const tb1 = document.querySelector("#tblCampaign tbody"); tb1.innerHTML="";
+  campRows.forEach(r=>{
+    const tr=document.createElement("tr");
+    if(ddFilter.campaign_id && r.campaign_id===ddFilter.campaign_id) tr.classList.add("sel");
+    tr.innerHTML = `<td>${r.channel}</td><td>${r.date}</td><td>${r.campaign_id}</td><td>${r.campaign_name||""}</td>
+                    <td>${(r.roas||0).toFixed(2)}</td><td>${fmt(r.cpa)}</td>
+                    <td>${fmt(r.cost_base)}</td><td>${fmt(r.revenue)}</td><td>${fmt(r.conversions)}</td><td>${pct(r.match_rate)}</td>`;
+    tr.addEventListener("click", ()=>{
+      ddFilter.campaign_id = r.campaign_id;
+      ddFilter.ad_group_id = "";
+      setFilterPill();
+      renderTables();
+      setActiveTab("adgroup");
+    });
+    tb1.appendChild(tr);
+  });
+
+  const tb2 = document.querySelector("#tblAdGroup tbody"); tb2.innerHTML="";
+  adgRows.forEach(r=>{
+    const tr=document.createElement("tr");
+    if(ddFilter.ad_group_id && r.ad_group_id===ddFilter.ad_group_id) tr.classList.add("sel");
+    tr.innerHTML = `<td>${r.channel}</td><td>${r.date}</td><td>${r.campaign_id}</td><td>${r.ad_group_id||""}</td><td>${r.ad_group_name||""}</td>
+                    <td>${(r.roas||0).toFixed(2)}</td><td>${fmt(r.cpa)}</td>
+                    <td>${fmt(r.cost_base)}</td><td>${fmt(r.revenue)}</td><td>${fmt(r.conversions)}</td><td>${pct(r.match_rate)}</td>`;
+    tr.addEventListener("click", ()=>{
+      ddFilter.campaign_id = r.campaign_id;
+      ddFilter.ad_group_id = r.ad_group_id || "";
+      setFilterPill();
+      renderTables();
+      setActiveTab("ad");
+    });
+    tb2.appendChild(tr);
+  });
+
+  const tb3 = document.querySelector("#tblAd tbody"); tb3.innerHTML="";
+  adRows.forEach(r=>{
+    const tr=document.createElement("tr");
+    tr.innerHTML = `<td>${r.channel}</td><td>${r.date}</td><td>${r.campaign_id}</td><td>${r.ad_group_id||""}</td><td>${r.ad_id||""}</td><td>${r.ad_name||""}</td>
+                    <td>${(r.roas||0).toFixed(2)}</td><td>${fmt(r.cpa)}</td>
+                    <td>${fmt(r.cost_base)}</td><td>${fmt(r.revenue)}</td><td>${fmt(r.conversions)}</td><td>${pct(r.match_rate)}</td>
+                    <td>${r.match_best_rule||""}</td><td>${r.match_best_mode||""}</td><td>${(r.match_best_score||0).toFixed(2)}</td><td>${r.match_best_key||""}</td>`;
+    tb3.appendChild(tr);
+  });
+}
+
+function renderDiagnostics(){
+  const rows = (DATA.diagnostics && DATA.diagnostics.unattributed_cost_top) ? DATA.diagnostics.unattributed_cost_top : [];
+  const tb = document.querySelector("#tblUnattr tbody"); tb.innerHTML="";
+  rows.filter(passesGlobal).forEach(r=>{
+    const tr=document.createElement("tr");
+    tr.innerHTML = `<td>${r.date}</td><td>${r.channel}</td>
+      <td>${(r.campaign_name||r.campaign_id||"")}</td>
+      <td>${(r.ad_group_name||r.ad_group_id||"")}</td>
+      <td>${(r.ad_name||r.ad_id||"")}</td>
+      <td>${fmt(r.cost_base)}</td><td>${fmt(r.clicks)}</td>`;
+    tb.appendChild(tr);
+  });
+}
+
+function populateFilters(){
+  const chSet = new Set();
+  const dSet = new Set();
+  (DATA.drilldown.campaigns||[]).forEach(r=>{ if(r.channel) chSet.add(r.channel); if(r.date) dSet.add(r.date); });
+  const selCh = document.getElementById("selChannel");
+  [...chSet].sort().forEach(ch=>{
+    const o=document.createElement("option"); o.value=ch; o.textContent=ch; selCh.appendChild(o);
+  });
+  const selDate = document.getElementById("selDate");
+  [...dSet].sort().forEach(d=>{
+    const o=document.createElement("option"); o.value=d; o.textContent=d; selDate.appendChild(o);
+  });
+  selCh.addEventListener("change", ()=>{
+    globalFilter.channel = selCh.value;
+    setFilterPill(); renderTables(); renderDiagnostics();
+  });
+  selDate.addEventListener("change", ()=>{
+    globalFilter.date = selDate.value;
+    setFilterPill(); renderTables(); renderDiagnostics();
+  });
+}
+
+document.getElementById("btnClear").addEventListener("click", ()=>{
+  ddFilter = {campaign_id:"", ad_group_id:""};
+  setFilterPill();
+  renderTables();
+});
+document.getElementById("btnReset").addEventListener("click", ()=>{
+  globalFilter = {channel:"", date:""};
+  ddFilter = {campaign_id:"", ad_group_id:""};
+  document.getElementById("selChannel").value="";
+  document.getElementById("selDate").value="";
+  setFilterPill();
+  renderTables();
+  renderDiagnostics();
+});
+
+function downloadCsv(name){
+  window.location = `/api/export_csv?name=${encodeURIComponent(name)}`;
+}
+
+(async ()=>{
+  const alerts=document.getElementById("alerts");
+  try{
+    DATA = await loadJson("/out/dashboard_ads_kpi.json");
+    document.getElementById("metaLine").textContent =
+      `기준 통화: ${DATA.meta.base_currency} · 체인: ${DATA.meta.attribution.chain.join(" > ")} · min_score: ${DATA.meta.attribution.min_score} · index: ${DATA.meta.attribution.index_summary}`;
+
+    const s=DATA.summary||{};
+    const cards=document.getElementById("kpiCards");
+    cards.appendChild(card("총 광고비(기준통화)", fmt(s.total_cost_base), `기간: ${s.date_from} ~ ${s.date_to}`));
+    cards.appendChild(card("귀속 매출", fmt(s.attributed_revenue), `전체 매출: ${fmt(s.total_revenue)} · 커버리지 ${pct(s.rev_coverage)}`));
+    cards.appendChild(card("귀속 전환", fmt(s.attributed_conversions), `전체 전환: ${fmt(s.total_conversions)} · 커버리지 ${pct(s.conv_coverage)}`));
+    cards.appendChild(card("ROAS", ((s.roas)||0).toFixed(2), "귀속 매출/광고비"));
+    cards.appendChild(card("CPA", fmt(s.cpa), "광고비/귀속 전환"));
+
+    drawLine(document.getElementById("roasChart"), (DATA.trends.daily||[]).map(r=>r.roas||0));
+
+    const topTb=document.querySelector("#topAny tbody"); topTb.innerHTML="";
+    (DATA.tables.top_any||[]).forEach(r=>{
+      const tr=document.createElement("tr");
+      tr.innerHTML=`<td>${r.level}</td><td>${r.name}</td><td>${(r.roas||0).toFixed(2)}</td><td>${fmt(r.cost_base)}</td><td>${fmt(r.revenue)}</td><td>${fmt(r.conversions)}</td>`;
+      topTb.appendChild(tr);
+    });
+
+    populateFilters();
+    setFilterPill();
+    renderTables();
+    renderDiagnostics();
+  }catch(e){
+    alerts.textContent="JSON 로드 실패: "+e.message+" (UI에서 업로드 후 JSON 생성)";
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+{
+  "enabled": false,
+  "channels": {
+    "naver_smartstore": {
+      "feed_template": "naver_smartstore.csv"
+    },
+    "coupang": {
+      "feed_template": "coupang.csv"
+    },
+    "gmarket": {
+      "feed_template": "gmarket.csv"
+    },
+    "11st": {
+      "feed_template": "11st.csv"
+    },
+    "generic_csv": {
+      "feed_template": "generic.csv"
+    }
+  }
+}

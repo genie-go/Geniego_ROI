@@ -1,0 +1,73 @@
+============================================================ 
+ BACKUP PROCESS STARTED: 2026-03-23  8:36:24.97 
+[OK] 로컬 백업 성공: backup\geniego_roi_20260323_083624.sql (50270 bytes
+[OK]  8:36:25.72 : Backup Success (50270 bytes
+curl: (26) Failed to open/read local data from file/application
+[ERROR]  8:36:25.83 : Empty backup file detected 
+[ERROR]  8:36:25.85 : mysqldump failed with error level 0 
+============================================================ 
+ BACKUP PROCESS STARTED: 2026-03-23  8:37:40.08 
+mysqldump.exe: Got error: 1045: "Access denied for user 'root'@'localhost' (using password: YES)" when trying to connect
+curl: (26) Failed to open/read local data from file/application
+[ERROR]  8:37:40.31 : Empty backup file detected 
+[ERROR]  8:37:40.33 : mysqldump failed with error level 0 
+============================================================ 
+ BACKUP PROCESS STARTED: 2026-03-23  8:39:29.73 
+mysqldump.exe: Got error: 1045: "Access denied for user 'root'@'localhost' (using password: YES)" when trying to connect
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0100   389  100   150  100   239   3776   6016 --:--:-- --:--:-- --:--:-- 10513
+<html>
+<head><title>405 Not Allowed</title></head>
+<body>
+<center><h1>405 Not Allowed</h1></center>
+<hr><center>nginx</center>
+</body>
+</html>
+[ERROR]  8:39:29.99 : Empty or invalid backup file detected 
+[ERROR]  8:39:30.02 : mysqldump failed with error level 0 
+============================================================ 
+ BACKUP PROCESS STARTED: 2026-03-23  8:40:17.48 
+mysqldump.exe: Got error: 1045: "Access denied for user 'root'@'localhost' (using password: YES)" when trying to connect
+[ERROR] Exit Code: 0 
+============================================================ 
+ START: 2026-03-23  8:41:04.97 
+mysqldump.exe: Got error: 1045: "Access denied for user 'root'@'localhost' (using password: YES)" when trying to connect
+mysqldump.exe: Got error: 1045: "Access denied for user 'root'@'localhost' (using password: YES)" when trying to connect
+============================================================ 
+ PROCESS START: 2026-03-23  8:42:50.35 
+mysqldump.exe: Got error: 1045: "Access denied for user 'root'@'localhost' (using password: YES)" when trying to connect
+[OK]  8:42:50.46 : SUCCESS (0 bytes
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0100   389  100   150  100   239   3762   5995 --:--:-- --:--:-- --:--:-- 10513
+<html>
+<head><title>405 Not Allowed</title></head>
+<body>
+<center><h1>405 Not Allowed</h1></center>
+<hr><center>nginx</center>
+</body>
+</html>
+[FAIL]  8:42:50.62 : Access Denied or No Data 
+mysqldump.exe: Got error: 1045: "Access denied for user 'root'@'localhost' (using password: YES)" when trying to connect
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0100   389  100   150  100   239   4007   6385 --:--:-- --:--:-- --:--:-- 11441
+<html>
+<head><title>405 Not Allowed</title></head>
+<body>
+<center><h1>405 Not Allowed</h1></center>
+<hr><center>nginx</center>
+</body>
+</html>
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0100 50659  100   150  100 50509   3427  1126k --:--:-- --:--:-- --:--:-- 1206k
+<html>
+<head><title>405 Not Allowed</title></head>
+<body>
+<center><h1>405 Not Allowed</h1></center>
+<hr><center>nginx</center>
+</body>
+</html>
+mysqldump.exe: Got error: 1045: "Access denied for user 'root'@'localhost' (using password: YES)" when trying to connect

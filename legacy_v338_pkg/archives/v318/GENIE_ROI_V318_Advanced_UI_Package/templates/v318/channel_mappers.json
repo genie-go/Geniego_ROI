@@ -1,0 +1,426 @@
+{
+  "google_ads": {
+    "required": [
+      "date",
+      "campaign_id",
+      "campaign_name",
+      "impressions",
+      "clicks",
+      "cost"
+    ],
+    "optional": [
+      "utm_campaign",
+      "ad_group_id",
+      "ad_group_name",
+      "ad_id",
+      "ad_name",
+      "currency",
+      "cost_tax",
+      "tax_rate",
+      "cost_micros"
+    ],
+    "aliases": {
+      "date": [
+        "Date",
+        "day",
+        "날짜",
+        "일자",
+        "date_start",
+        "stat_time_day"
+      ],
+      "campaign_id": [
+        "Campaign ID",
+        "campaign_id",
+        "캠페인ID",
+        "캠페인 ID"
+      ],
+      "campaign_name": [
+        "Campaign",
+        "Campaign name",
+        "campaign_name",
+        "캠페인명",
+        "캠페인 이름"
+      ],
+      "utm_campaign": [
+        "utm_campaign",
+        "UTM Campaign",
+        "utmCampaign",
+        "UTM 캠페인"
+      ],
+      "impressions": [
+        "Impressions",
+        "impr",
+        "노출",
+        "노출수",
+        "impressions"
+      ],
+      "clicks": [
+        "Clicks",
+        "clicks",
+        "클릭",
+        "클릭수",
+        "link_clicks"
+      ],
+      "cost": [
+        "Cost",
+        "cost",
+        "Spend",
+        "spend",
+        "광고비",
+        "지출",
+        "Amount spent"
+      ],
+      "cost_micros": [
+        "Cost (micros)",
+        "cost_micros",
+        "spend_micros"
+      ],
+      "currency": [
+        "Currency",
+        "currency",
+        "통화"
+      ],
+      "ad_group_id": [
+        "Ad group ID",
+        "ad_group_id",
+        "광고그룹ID",
+        "광고 그룹 ID",
+        "Ad set ID",
+        "adset_id"
+      ],
+      "ad_group_name": [
+        "Ad group",
+        "Ad group name",
+        "ad_group_name",
+        "광고그룹명",
+        "광고 그룹명",
+        "Ad set name",
+        "adset_name"
+      ],
+      "ad_id": [
+        "Ad ID",
+        "ad_id",
+        "광고ID",
+        "소재ID",
+        "Creative ID",
+        "creative_id"
+      ],
+      "ad_name": [
+        "Ad",
+        "Ad name",
+        "ad_name",
+        "광고명",
+        "소재명",
+        "Creative name",
+        "creative_name"
+      ],
+      "cost_tax": [
+        "Tax",
+        "cost_tax",
+        "부가세",
+        "VAT",
+        "세금"
+      ],
+      "tax_rate": [
+        "tax_rate",
+        "VAT rate",
+        "부가세율"
+      ]
+    }
+  },
+  "meta_ads": {
+    "required": [
+      "date",
+      "campaign_id",
+      "campaign_name",
+      "impressions",
+      "clicks",
+      "cost"
+    ],
+    "optional": [
+      "utm_campaign",
+      "ad_group_id",
+      "ad_group_name",
+      "ad_id",
+      "ad_name",
+      "currency",
+      "cost_tax",
+      "tax_rate"
+    ],
+    "aliases": {
+      "date": [
+        "date_start",
+        "Date",
+        "날짜",
+        "일자"
+      ],
+      "campaign_id": [
+        "campaign_id",
+        "Campaign ID",
+        "캠페인ID"
+      ],
+      "campaign_name": [
+        "campaign_name",
+        "Campaign name",
+        "캠페인명"
+      ],
+      "utm_campaign": [
+        "utm_campaign",
+        "UTM Campaign",
+        "utmCampaign"
+      ],
+      "impressions": [
+        "impressions",
+        "Impressions",
+        "노출",
+        "노출수"
+      ],
+      "clicks": [
+        "clicks",
+        "Clicks",
+        "클릭",
+        "클릭수",
+        "link_clicks"
+      ],
+      "cost": [
+        "spend",
+        "Spend",
+        "cost",
+        "광고비",
+        "지출",
+        "Amount spent"
+      ],
+      "currency": [
+        "currency",
+        "Currency",
+        "통화"
+      ],
+      "ad_group_id": [
+        "adset_id",
+        "ad_group_id",
+        "Ad set ID",
+        "광고그룹ID"
+      ],
+      "ad_group_name": [
+        "adset_name",
+        "Ad set name",
+        "광고그룹명"
+      ],
+      "ad_id": [
+        "ad_id",
+        "Ad ID",
+        "광고ID",
+        "소재ID"
+      ],
+      "ad_name": [
+        "ad_name",
+        "Ad name",
+        "광고명",
+        "소재명"
+      ],
+      "cost_tax": [
+        "VAT",
+        "Tax",
+        "부가세"
+      ],
+      "tax_rate": [
+        "tax_rate",
+        "VAT rate",
+        "부가세율"
+      ]
+    }
+  },
+  "tiktok_ads": {
+    "required": [
+      "date",
+      "campaign_id",
+      "campaign_name",
+      "impressions",
+      "clicks",
+      "cost"
+    ],
+    "optional": [
+      "utm_campaign",
+      "ad_group_id",
+      "ad_group_name",
+      "ad_id",
+      "ad_name",
+      "currency",
+      "cost_tax",
+      "tax_rate"
+    ],
+    "aliases": {
+      "date": [
+        "stat_time_day",
+        "date",
+        "날짜",
+        "일자"
+      ],
+      "campaign_id": [
+        "campaign_id",
+        "Campaign ID",
+        "캠페인ID"
+      ],
+      "campaign_name": [
+        "campaign_name",
+        "Campaign name",
+        "캠페인명"
+      ],
+      "utm_campaign": [
+        "utm_campaign",
+        "UTM Campaign",
+        "utmCampaign"
+      ],
+      "impressions": [
+        "impressions",
+        "Impressions",
+        "노출",
+        "노출수"
+      ],
+      "clicks": [
+        "clicks",
+        "Clicks",
+        "클릭",
+        "클릭수"
+      ],
+      "cost": [
+        "spend",
+        "Spend",
+        "cost",
+        "광고비",
+        "지출"
+      ],
+      "currency": [
+        "currency",
+        "Currency",
+        "통화"
+      ],
+      "ad_group_id": [
+        "adgroup_id",
+        "Ad group ID",
+        "광고그룹ID"
+      ],
+      "ad_group_name": [
+        "adgroup_name",
+        "Ad group name",
+        "광고그룹명"
+      ],
+      "ad_id": [
+        "ad_id",
+        "Ad ID",
+        "광고ID",
+        "소재ID"
+      ],
+      "ad_name": [
+        "ad_name",
+        "Ad name",
+        "광고명",
+        "소재명"
+      ],
+      "cost_tax": [
+        "VAT",
+        "Tax",
+        "부가세"
+      ],
+      "tax_rate": [
+        "tax_rate",
+        "VAT rate",
+        "부가세율"
+      ]
+    }
+  },
+  "naver_ads": {
+    "required": [
+      "date",
+      "campaign_id",
+      "campaign_name",
+      "impressions",
+      "clicks",
+      "cost"
+    ],
+    "optional": [
+      "utm_campaign",
+      "ad_group_id",
+      "ad_group_name",
+      "ad_id",
+      "ad_name",
+      "currency",
+      "cost_tax",
+      "tax_rate"
+    ],
+    "aliases": {
+      "date": [
+        "일자",
+        "date",
+        "날짜"
+      ],
+      "campaign_id": [
+        "캠페인ID",
+        "campaign_id",
+        "Campaign ID"
+      ],
+      "campaign_name": [
+        "캠페인명",
+        "campaign_name",
+        "Campaign name"
+      ],
+      "utm_campaign": [
+        "utm_campaign",
+        "UTM Campaign",
+        "utmCampaign",
+        "UTM캠페인"
+      ],
+      "impressions": [
+        "노출수",
+        "impressions",
+        "Impressions",
+        "노출"
+      ],
+      "clicks": [
+        "클릭수",
+        "clicks",
+        "Clicks",
+        "클릭"
+      ],
+      "cost": [
+        "광고비",
+        "cost",
+        "Spend",
+        "spend",
+        "지출"
+      ],
+      "currency": [
+        "통화",
+        "currency",
+        "Currency"
+      ],
+      "ad_group_id": [
+        "광고그룹ID",
+        "ad_group_id"
+      ],
+      "ad_group_name": [
+        "광고그룹명",
+        "ad_group_name"
+      ],
+      "ad_id": [
+        "소재ID",
+        "ad_id",
+        "광고ID"
+      ],
+      "ad_name": [
+        "소재명",
+        "ad_name",
+        "광고명"
+      ],
+      "cost_tax": [
+        "부가세",
+        "VAT",
+        "Tax"
+      ],
+      "tax_rate": [
+        "부가세율",
+        "tax_rate"
+      ]
+    }
+  }
+}

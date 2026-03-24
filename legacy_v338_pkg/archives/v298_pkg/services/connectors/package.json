@@ -1,0 +1,21 @@
+{
+  "name": "genie-connectors",
+  "version": "0.3.0",
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsx src/index.ts"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "@aws-sdk/client-ses": "^3.654.0",
+    "@sendgrid/mail": "^8.1.4",
+    "@hubspot/api-client": "^11.0.0",
+    "google-ads-api": "^16.0.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "tsx": "^4.16.2",
+    "typescript": "^5.5.4"
+  }
+}

@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>GENIE_ROI V319 대시보드</title>
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:18px;line-height:1.45}
+    .row{display:flex;flex-wrap:wrap;gap:12px}
+    .card{border:1px solid #ddd;border-radius:12px;padding:12px;min-width:220px;flex:1}
+    .kpi{font-size:22px;font-weight:700}
+    .muted{color:#666}
+    table{border-collapse:collapse;width:100%}
+    th,td{border-bottom:1px solid #eee;padding:8px;text-align:left;font-size:14px}
+    th{background:#fafafa;position:sticky;top:0}
+    .small{font-size:12px}
+    .pill{display:inline-block;border:1px solid #ddd;border-radius:999px;padding:2px 8px;font-size:12px;color:#333}
+    .grid{display:grid;grid-template-columns:1fr;gap:14px}
+    @media(min-width:1100px){.grid{grid-template-columns:1fr 1fr}}
+    .chart{width:100%;height:180px;border:1px solid #eee;border-radius:12px;overflow:hidden}
+    a{color:#111}
+    .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+    .tabbtn{padding:8px 10px;border-radius:999px;border:1px solid #ddd;background:#fff;cursor:pointer}
+    .tabbtn.active{background:#111;color:#fff;border-color:#111}
+    .panel{display:none}
+    .panel.active{display:block}
+  </style>
+</head>
+<body>
+  <h1>GENIE_ROI V319 대시보드</h1>
+  <p class="muted"><a href="/ui/">업로드/설정 UI</a> · 데이터: <span class="pill">/out/dashboard_ads_kpi.json</span></p>
+  <div id="alerts" class="small muted"></div>
+
+  <h2>요약</h2>
+  <div class="row" id="kpiCards"></div>
+
+  <div class="grid">
+    <div class="card">
+      <h3>일별 ROAS 트렌드</h3>
+      <svg id="roasChart" class="chart" viewBox="0 0 800 180" preserveAspectRatio="none"></svg>
+      <div class="small muted" id="metaLine"></div>
+    </div>
+    <div class="card">
+      <h3>Top 10 (ROAS)</h3>
+      <div style="overflow:auto;max-height:280px">
+        <table id="topCampaigns">
+          <thead><tr><th>레벨</th><th>이름</th><th>ROAS</th><th>비용</th><th>매출</th><th>전환</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="small muted">캠페인/소재/광고그룹 중 상위 ROAS 항목</div>
+    </div>
+  </div>
+
+  <h2 style="margin-top:22px">Drill-down</h2>
+  <div class="tabs">
+    <button class="tabbtn active" data-tab="campaign">Campaign</button>
+    <button class="tabbtn" data-tab="adgroup">Ad Group</button>
+    <button class="tabbtn" data-tab="ad">Ad(소재)</button>
+  </div>
+
+  <div class="card panel active" id="panel-campaign">
+    <h3>Campaign 레벨</h3>
+    <div style="overflow:auto;max-height:360px">
+      <table id="tblCampaign">
+        <thead><tr><th>채널</th><th>campaign_id</th><th>캠페인명</th><th>ROAS</th><th>CPA</th><th>비용</th><th>매출</th><th>전환</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card panel" id="panel-adgroup">
+    <h3>Ad Group 레벨</h3>
+    <div style="overflow:auto;max-height:360px">
+      <table id="tblAdGroup">
+        <thead><tr><th>채널</th><th>campaign_id</th><th>ad_group_id</th><th>광고그룹명</th><th>ROAS</th><th>CPA</th><th>비용</th><th>매출</th><th>전환</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card panel" id="panel-ad">
+    <h3>Ad(소재) 레벨</h3>
+    <div style="overflow:auto;max-height:360px">
+      <table id="tblAd">
+        <thead><tr><th>채널</th><th>campaign_id</th><th>ad_id</th><th>소재명</th><th>ROAS</th><th>CPA</th><th>비용</th><th>매출</th><th>전환</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+<script>
+function fmt(n){
+  if(n===null||n===undefined||Number.isNaN(n)) return "-";
+  const x = Number(n);
+  if(Math.abs(x) >= 1e8) return (x/1e8).toFixed(2)+"억";
+  if(Math.abs(x) >= 1e4) return (x/1e4).toFixed(1)+"만";
+  return x.toLocaleString();
+}
+async function loadJson(url){
+  const r = await fetch(url, {cache:"no-store"});
+  if(!r.ok) throw new Error(url+" HTTP "+r.status);
+  return await r.json();
+}
+function card(title, value, sub){
+  const d = document.createElement("div");
+  d.className = "card";
+  d.innerHTML = `<div class="muted small">${title}</div><div class="kpi">${value}</div><div class="muted small">${sub||""}</div>`;
+  return d;
+}
+function drawLine(svg, ys){
+  while(svg.firstChild) svg.removeChild(svg.firstChild);
+  const w=800,h=180,pad=24;
+  const max = Math.max(...ys, 0.00001);
+  const min = Math.min(...ys, 0);
+  const step = (w-2*pad)/Math.max(ys.length-1,1);
+  const yMap = (v)=>{
+    const denom = (max-min)||1;
+    return h-pad - ((v-min)/denom)*(h-2*pad);
+  };
+  const axis = document.createElementNS("http://www.w3.org/2000/svg","line");
+  axis.setAttribute("x1",pad); axis.setAttribute("y1",h-pad);
+  axis.setAttribute("x2",w-pad); axis.setAttribute("y2",h-pad);
+  axis.setAttribute("stroke","#ddd"); svg.appendChild(axis);
+  let d="";
+  ys.forEach((v,i)=>{
+    const x = pad + i*step;
+    const y = yMap(v);
+    d += (i===0?"M":" L")+x+" "+y;
+  });
+  const path = document.createElementNS("http://www.w3.org/2000/svg","path");
+  path.setAttribute("d",d); path.setAttribute("fill","none");
+  path.setAttribute("stroke","#111"); path.setAttribute("stroke-width","2");
+  svg.appendChild(path);
+}
+function fillTable(tbodySel, rows, builder){
+  const tb = document.querySelector(tbodySel);
+  tb.innerHTML="";
+  rows.forEach(r=>{
+    const tr=document.createElement("tr");
+    tr.innerHTML=builder(r);
+    tb.appendChild(tr);
+  });
+}
+function setActiveTab(tab){
+  document.querySelectorAll(".tabbtn").forEach(b=>{
+    b.classList.toggle("active", b.dataset.tab===tab);
+  });
+  document.querySelectorAll(".panel").forEach(p=>{
+    p.classList.toggle("active", p.id===("panel-"+tab));
+  });
+}
+document.querySelectorAll(".tabbtn").forEach(b=>{
+  b.addEventListener("click", ()=>setActiveTab(b.dataset.tab));
+});
+
+(async ()=>{
+  const alerts=document.getElementById("alerts");
+  try{
+    const ads = await loadJson("/out/dashboard_ads_kpi.json");
+    document.getElementById("metaLine").textContent =
+      `기준 통화: ${ads.meta.base_currency} · 체인: ${ads.meta.attribution.chain.join(" > ")} · fallback: ${ads.meta.attribution.fallback_summary}`;
+
+    const cards=document.getElementById("kpiCards");
+    cards.appendChild(card("총 광고비(기준통화)", fmt(ads.summary.total_cost_base), `기간: ${ads.summary.date_from} ~ ${ads.summary.date_to}`));
+    cards.appendChild(card("총 매출", fmt(ads.summary.total_revenue), "귀속된 매출 합계"));
+    cards.appendChild(card("ROAS", (ads.summary.roas||0).toFixed(2), "매출/광고비"));
+    cards.appendChild(card("CPA", fmt(ads.summary.cpa), "광고비/전환"));
+
+    drawLine(document.getElementById("roasChart"), ads.trends.daily.map(r=>r.roas||0));
+
+    fillTable("#topCampaigns tbody", ads.tables.top_any || [], (r)=>(
+      `<td>${r.level}</td><td>${r.name}</td><td>${(r.roas||0).toFixed(2)}</td><td>${fmt(r.cost_base)}</td><td>${fmt(r.revenue)}</td><td>${fmt(r.conversions)}</td>`
+    ));
+
+    fillTable("#tblCampaign tbody", ads.drilldown.campaigns || [], (r)=>(
+      `<td>${r.channel}</td><td>${r.campaign_id}</td><td>${r.campaign_name||""}</td><td>${(r.roas||0).toFixed(2)}</td><td>${fmt(r.cpa)}</td><td>${fmt(r.cost_base)}</td><td>${fmt(r.revenue)}</td><td>${fmt(r.conversions)}</td>`
+    ));
+    fillTable("#tblAdGroup tbody", ads.drilldown.ad_groups || [], (r)=>(
+      `<td>${r.channel}</td><td>${r.campaign_id}</td><td>${r.ad_group_id||""}</td><td>${r.ad_group_name||""}</td><td>${(r.roas||0).toFixed(2)}</td><td>${fmt(r.cpa)}</td><td>${fmt(r.cost_base)}</td><td>${fmt(r.revenue)}</td><td>${fmt(r.conversions)}</td>`
+    ));
+    fillTable("#tblAd tbody", ads.drilldown.ads || [], (r)=>(
+      `<td>${r.channel}</td><td>${r.campaign_id}</td><td>${r.ad_id||""}</td><td>${r.ad_name||""}</td><td>${(r.roas||0).toFixed(2)}</td><td>${fmt(r.cpa)}</td><td>${fmt(r.cost_base)}</td><td>${fmt(r.revenue)}</td><td>${fmt(r.conversions)}</td>`
+    ));
+  }catch(e){
+    alerts.textContent="JSON 로드 실패: "+e.message+" (UI에서 업로드 후 JSON 생성)";
+  }
+})();
+</script>
+</body>
+</html>

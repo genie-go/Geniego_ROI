@@ -1,0 +1,51 @@
+groups:
+- name: genie-roi-v309-alerts
+  rules:
+  - alert: ApiHigh5xxRate
+    expr: (sum(rate(http_requests_total{code=~"5.."}[5m])) / sum(rate(http_requests_total[5m]))) > 0.01
+    for: 5m
+    labels:
+      severity: sev1
+    annotations:
+      summary: "API 5xx rate > 1%"
+      description: "Investigate API errors. Check DB, queue, provider failures."
+  - alert: JobSuccessRateLow
+    expr: (sum(rate(job_items_total{status="success"}[15m])) / sum(rate(job_items_total[15m]))) < 0.99
+    for: 15m
+    labels:
+      severity: sev1
+    annotations:
+      summary: "Job success rate < 99%"
+      description: "Jobs failing too often. Review DLQ, provider 429/5xx."
+  - alert: Provider429High
+    expr: (sum(rate(job_items_total{status="rate_limited"}[10m])) / sum(rate(job_items_total[10m]))) > 0.02
+    for: 10m
+    labels:
+      severity: sev2
+    annotations:
+      summary: "Provider 429 rate > 2%"
+      description: "Lower concurrency / RPS and verify token bucket."
+  - alert: TokenRefreshFailures
+    expr: increase(token_refresh_failures_total[10m]) > 5
+    for: 1m
+    labels:
+      severity: sev1
+    annotations:
+      summary: "Token refresh failures increasing"
+      description: "Secrets rotation or re-auth may be required. Disable write actions."
+  - alert: WebhookSignatureFailures
+    expr: increase(webhook_signature_failures_total[5m]) > 0
+    for: 0m
+    labels:
+      severity: sev0
+    annotations:
+      summary: "Webhook signature verification failed"
+      description: "Possible spoofing or secret mismatch. Block and investigate."
+  - alert: InventoryInconsistency
+    expr: (increase(inventory_inconsistency_total[10m]) / increase(order_events_total[10m])) > 0.001
+    for: 10m
+    labels:
+      severity: sev1
+    annotations:
+      summary: "Inventory inconsistency > 0.1%"
+      description: "Freeze writes, reconcile reservations, replay events."

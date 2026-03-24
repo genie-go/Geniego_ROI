@@ -1,0 +1,15 @@
+# Helm values (skeleton)
+replicaCount: 3
+image:
+  repository: genie-roi/api
+  tag: v308
+resources:
+  requests:
+    cpu: "500m"
+    memory: "1024Mi"
+  limits:
+    cpu: "2000m"
+    memory: "4096Mi"
+env:
+  ENFORCE_POLICIES: "true"
+  DRY_RUN: "false"

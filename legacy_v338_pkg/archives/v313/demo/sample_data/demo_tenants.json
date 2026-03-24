@@ -1,0 +1,20 @@
+[
+  {
+    "tenant_id": "demo-tenant-kr-001",
+    "name": "데모브랜드K",
+    "region": "KR",
+    "plan": "Growth"
+  },
+  {
+    "tenant_id": "demo-tenant-us-002",
+    "name": "DemoBrandUS",
+    "region": "US",
+    "plan": "Enterprise"
+  },
+  {
+    "tenant_id": "demo-tenant-sea-003",
+    "name": "DemoBrandSEA",
+    "region": "SEA",
+    "plan": "Growth"
+  }
+]

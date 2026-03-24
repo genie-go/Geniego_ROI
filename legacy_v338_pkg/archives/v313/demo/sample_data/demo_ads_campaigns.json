@@ -1,0 +1,29 @@
+[
+  {
+    "campaign_id": "M-001",
+    "provider": "meta",
+    "tenant_id": "demo-tenant-us-002",
+    "status": "ACTIVE",
+    "daily_budget": 200,
+    "currency": "USD",
+    "roas": 3.2
+  },
+  {
+    "campaign_id": "T-101",
+    "provider": "tiktok",
+    "tenant_id": "demo-tenant-sea-003",
+    "status": "ACTIVE",
+    "daily_budget": 120,
+    "currency": "USD",
+    "roas": 2.1
+  },
+  {
+    "campaign_id": "A-900",
+    "provider": "amazon_ads",
+    "tenant_id": "demo-tenant-us-002",
+    "status": "PAUSED",
+    "daily_budget": 150,
+    "currency": "USD",
+    "roas": 4.0
+  }
+]

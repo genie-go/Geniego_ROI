@@ -1,0 +1,9 @@
+{
+  "AUTH": "토큰/키 만료 또는 권한 부족. 키 재발급/권한 확인.",
+  "RATE_LIMIT": "레이트리밋. 배치 크기 축소, RPS 낮추기, 백오프 증가.",
+  "VALIDATION": "필수값 누락/형식 오류/정책 위반. 피드 룰 엔진으로 재검증.",
+  "APPROVAL_PENDING": "검수/승인 대기. 승인 완료 후 vendorItemId/optionNo가 생성됨.",
+  "NETWORK": "네트워크 일시 장애. 재시도.",
+  "SERVER": "채널 서버 오류(5xx). 일정 시간 후 재시도.",
+  "UNKNOWN": "미분류. raw 응답 확인."
+}

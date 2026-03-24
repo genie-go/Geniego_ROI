@@ -1,0 +1,4 @@
+influencer_id,fake_follower_pct,suspicious_engagement_pct,notes,source,collected_at
+I001,6,4,Looks organic,tool_report,2026-02-20
+I002,18,12,Some spikes,tool_report,2026-02-20
+I003,9,22,Engagement anomalies,manual,2026-02-20

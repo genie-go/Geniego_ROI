@@ -1,0 +1,5 @@
+[
+  {"event_type":"page_view","occurred_at":"2026-02-20T09:55:00Z","email":"buyer1@example.com","props":{"path":"/products/sku-1001","utm_source":"instagram","utm_campaign":"inf-001"}},
+  {"event_type":"add_to_cart","occurred_at":"2026-02-20T10:05:00Z","email":"buyer1@example.com","props":{"sku":"SKU-1001","qty":1}},
+  {"event_type":"purchase","occurred_at":"2026-02-20T10:12:00Z","email":"buyer1@example.com","props":{"order_id":"ORDER-9001","value":45800}}
+]

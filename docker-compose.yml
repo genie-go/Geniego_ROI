@@ -1,0 +1,71 @@
+version: "3.9"
+
+services:
+  # 1. Database Layer: PostgreSQL 16
+  db:
+    image: postgres:16-alpine
+    container_name: genie_db_prod
+    restart: always # 서비스 장애 시 자동 재시작
+    environment:
+      POSTGRES_DB: genie
+      POSTGRES_USER: genie
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-genie} # 환경변수 권장, 기본값 genie
+    ports:
+      - "5432:5432"
+    volumes:
+      - genie_db_data:/var/lib/postgresql/data
+    deploy:
+      resources:
+        limits:
+          memory: 1gb # 메모리 과점 방지
+    healthcheck: # DB 준비 상태 확인 로직
+      test: ["CMD-SHELL", "pg_isready -U genie"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # 2. Backend Layer: API Server
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: genie_api_prod
+    restart: always
+    environment:
+      APP_ENV: production
+      DATABASE_URL: postgresql+psycopg2://genie:${DB_PASSWORD:-genie}@db:5432/genie
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
+      CORS_ORIGINS: http://localhost:5173,http://roi.genie-go.com
+    depends_on:
+      db:
+        condition: service_healthy # DB가 완전히 준비된 후 실행
+    ports:
+      - "8000:8000"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512mb
+
+  # 3. Frontend Layer: Web Client (Nginx)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: genie_web_prod
+    restart: always
+    environment:
+      VITE_API_BASE: http://1.201.177.46:8000 # 실제 서버 IP 반영
+    depends_on:
+      - backend
+    ports:
+      - "80:80" # 표준 HTTP 포트로 변경
+    deploy:
+      resources:
+        limits:
+          memory: 256mb
+
+volumes:
+  genie_db_data:
+    driver: local
+    name: genie_db_persistent_volume

@@ -1,0 +1,45 @@
+[
+  {
+    "order_id": "O-KR-0001",
+    "tenant_id": "demo-tenant-kr-001",
+    "channel": "coupang",
+    "status": "partial_shipped",
+    "items": [
+      {
+        "sku": "SKU-1001",
+        "qty": 2
+      }
+    ],
+    "revenue": 39800,
+    "currency": "KRW"
+  },
+  {
+    "order_id": "O-US-0007",
+    "tenant_id": "demo-tenant-us-002",
+    "channel": "amazon",
+    "status": "shipped",
+    "items": [
+      {
+        "sku": "SKU-2001",
+        "qty": 5
+      }
+    ],
+    "revenue": 149.95,
+    "currency": "USD"
+  },
+  {
+    "order_id": "O-SEA-0003",
+    "tenant_id": "demo-tenant-sea-003",
+    "channel": "shopee",
+    "status": "returned",
+    "items": [
+      {
+        "sku": "SKU-3001",
+        "qty": 1
+      }
+    ],
+    "revenue": 15.5,
+    "currency": "USD",
+    "reason": "Changed mind"
+  }
+]

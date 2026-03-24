@@ -1,0 +1,11 @@
+{
+  "enabled": true,
+  "first_party_subdomain": "i.example.com",
+  "cookie_name": "_genie_fp",
+  "event_endpoint": "/pixel/e",
+  "s2s_endpoint": "/pixel/s2s",
+  "id_graph": {
+    "enable_email_hash": true,
+    "enable_phone_hash": false
+  }
+}

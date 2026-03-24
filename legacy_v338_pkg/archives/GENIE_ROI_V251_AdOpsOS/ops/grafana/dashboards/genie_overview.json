@@ -1,0 +1,119 @@
+{
+  "id": null,
+  "uid": "genie-roi-overview",
+  "title": "GENIE_ROI Overview",
+  "tags": [
+    "genie",
+    "roi",
+    "autopilot"
+  ],
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 4,
+  "refresh": "10s",
+  "panels": [
+    {
+      "type": "stat",
+      "title": "HTTP Requests (5m)",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 6,
+        "h": 6
+      },
+      "targets": [
+        {
+          "expr": "sum(increase(genie_http_requests_total[5m]))"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Autopilot Runs (5m)",
+      "gridPos": {
+        "x": 6,
+        "y": 0,
+        "w": 6,
+        "h": 6
+      },
+      "targets": [
+        {
+          "expr": "sum(increase(genie_autopilot_runs_total[5m]))"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "DLQ Publishes (5m)",
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 6,
+        "h": 6
+      },
+      "targets": [
+        {
+          "expr": "sum(increase(genie_kafka_dlq_total[5m]))"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Token Rotations (5m)",
+      "gridPos": {
+        "x": 18,
+        "y": 0,
+        "w": 6,
+        "h": 6
+      },
+      "targets": [
+        {
+          "expr": "sum(increase(genie_token_rotate_total[5m]))"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Token Rotation Outcomes (rate)",
+      "gridPos": {
+        "x": 0,
+        "y": 6,
+        "w": 24,
+        "h": 10
+      },
+      "targets": [
+        {
+          "expr": "sum by (provider,result) (rate(genie_token_rotate_total[5m]))"
+        }
+      ]
+    }
+  ]
+}

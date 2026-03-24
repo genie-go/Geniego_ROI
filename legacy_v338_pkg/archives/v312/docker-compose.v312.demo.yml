@@ -1,0 +1,9 @@
+services:
+  v312-demo-ui:
+    image: node:22-alpine
+    working_dir: /app
+    volumes:
+      - ./demo/saas_frontend_react:/app
+    ports:
+      - "5173:5173"
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0 --port 5173"

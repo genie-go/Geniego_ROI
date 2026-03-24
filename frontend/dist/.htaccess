@@ -1,0 +1,13 @@
+Options -MultiViews
+RewriteEngine On
+RewriteBase /
+
+# API/backend 요청은 제외 (Apache Alias로 처리)
+RewriteRule ^(api|auth|v[0-9]+)(/.*)?$ - [L]
+
+# 실제 파일/디렉토리가 있으면 그대로 서빙
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# 나머지 모든 경로 → index.html (React SPA 라우터 처리)
+RewriteRule ^ index.html [QSA,L]

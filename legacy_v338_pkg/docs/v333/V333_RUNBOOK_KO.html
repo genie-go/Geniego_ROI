@@ -1,0 +1,20 @@
+<!doctype html><html lang="ko"><meta charset="utf-8"><title>GENIE_ROI V333 Runbook</title>
+<body style="font-family: system-ui; margin: 40px; line-height:1.6">
+<h1>GENIE_ROI V333 운영 런북(요약)</h1>
+<h2>1) SLO 경보가 뜨면</h2>
+<ul>
+<li>Slack 스레드의 <b>자동 해석</b>에서 원인 후보/즉시 조치 체크리스트 확인</li>
+<li>대시보드 Monitoring에서 최근 ERROR Top과 Connector 상태 확인</li>
+<li>필요 시 <code>/api/queue/run</code> (max_items=20) 실행 또는 SmartStore backfill enqueue</li>
+</ul>
+<h2>2) SmartStore 주문 누락 의심</h2>
+<ul>
+<li>스레드의 <b>자동 백필 결과</b>에서 done/failed/requeued 확인</li>
+<li>requeued가 남아있으면 주기적으로 큐를 재실행하거나(크론) 자격증명/레이트리밋을 점검</li>
+</ul>
+<h2>3) ID Graph 충돌(split)</h2>
+<ul>
+<li>Analyst가 split_request(virtual 권장) 생성 → Manager가 승인</li>
+<li>승인 시 자동으로 split rule 적용 + 재빌드</li>
+</ul>
+</body></html>

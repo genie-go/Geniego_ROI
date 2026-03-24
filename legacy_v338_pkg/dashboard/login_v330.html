@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>GENIE_ROI V330 로그인</title>
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;margin:0;background:#0b1220;color:#e8eefc;display:flex;min-height:100vh;align-items:center;justify-content:center}
+    .card{width:360px;background:#111a2e;border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:18px 18px 14px;box-shadow:0 16px 60px rgba(0,0,0,.35)}
+    h1{font-size:18px;margin:4px 0 12px}
+    label{font-size:12px;opacity:.85}
+    input{width:100%;padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:#0b1220;color:#e8eefc;margin:6px 0 12px;outline:none}
+    button{width:100%;padding:10px 12px;border-radius:12px;border:0;background:#4f7cff;color:#fff;font-weight:700;cursor:pointer}
+    .hint{font-size:12px;opacity:.75;margin-top:10px;line-height:1.4}
+    .err{margin-top:10px;color:#ffb4b4;font-size:12px;display:none}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>GENIE_ROI V330</h1>
+    <label>아이디</label>
+    <input id="u" placeholder="admin / analyst / viewer"/>
+    <label>비밀번호</label>
+    <input id="p" type="password" placeholder="기본: admin / analyst / viewer"/>
+    <button id="btn">로그인</button>
+    <div class="err" id="err"></div>
+    <div class="hint">
+      기본 계정(최초 실행 시 자동 생성)<br/>
+      • admin / admin (전체권한)<br/>
+      • analyst / analyst (분석/리포트)<br/>
+      • viewer / viewer (조회 전용)
+    </div>
+  </div>
+<script>
+document.getElementById("btn").onclick = async () => {
+  const username = document.getElementById("u").value.trim();
+  const password = document.getElementById("p").value;
+  const r = await fetch("/api/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({username,password})});
+  const j = await r.json().catch(()=>({}));
+  if(!r.ok || !j.ok){
+    const e=document.getElementById("err"); e.style.display="block"; e.textContent = j.error || "로그인 실패";
+    return;
+  }
+  location.href="/dashboard/ui_v330.html";
+};
+</script>
+</body>
+</html>

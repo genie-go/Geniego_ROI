@@ -1,0 +1,23 @@
+[
+  {
+    "creator_id": "C-001",
+    "name": "K-BeautyCreator",
+    "platform": "instagram",
+    "followers": 250000,
+    "engagement_rate": 0.032,
+    "category": [
+      "beauty"
+    ]
+  },
+  {
+    "creator_id": "C-002",
+    "name": "FitnessTokStar",
+    "platform": "tiktok",
+    "followers": 1800000,
+    "engagement_rate": 0.021,
+    "category": [
+      "fitness",
+      "food"
+    ]
+  }
+]

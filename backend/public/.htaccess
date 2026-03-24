@@ -1,0 +1,10 @@
+Options -MultiViews
+RewriteEngine On
+RewriteBase /api
+
+# 실제 파일/디렉토리가 있으면 그대로 서빙
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# 나머지 모든 경로 → index.php (Slim Framework 라우터 처리)
+RewriteRule ^ index.php [QSA,L]

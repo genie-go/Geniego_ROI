@@ -1,0 +1,78 @@
+{
+  "info": {
+    "name": "GENIE_ROI_V260",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Run Workflow",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "demo-123"
+          },
+          {
+            "key": "X-Role",
+            "value": "operator"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8080/v260/workflows/run",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "v260",
+            "workflows",
+            "run"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"tenant_id\": \"demo\", \"user_id\": \"alice\", \"objective\": \"maximize_roas\", \"budget_delta_limit_pct\": 20, \"channels\": [\"meta\", \"google\", \"naver\"], \"shadow_mode\": true}"
+        }
+      }
+    },
+    {
+      "name": "Approve",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Role",
+            "value": "operator"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8080/v260/executions/approve",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "v260",
+            "executions",
+            "approve"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"execution_id\": \"<EXEC_ID>\", \"approver_id\": \"manager1\"}"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+<!doctype html>
+<html><head><meta charset="utf-8"/><title>Analytics</title>
+<link rel="stylesheet" href="../assets/style.css"/>
+</head>
+<body>
+<a href="../index.html">← Demo Home</a>
+<h1>Analytics</h1>
+<div class="card" id="content"><div class="muted">Loading…</div></div>
+<script src="../assets/loader.js"></script>
+<script>
+
+(async ()=>{
+ const rows = [
+  {metric:'ROAS', demo_value:3.2, note:'캠페인/채널별 리포트'},
+  {metric:'Conversion', demo_value:120, note:'퍼널/코호트 분석'},
+  {metric:'Incrementality', demo_value:'+8%', note:'실험 기반 증분효과(데모 값)'},
+ ];
+ document.getElementById('content').innerHTML =
+   '<h3>KPIs</h3>'+tableFromObjects(rows)+
+   '<p class="muted">* 데모 값이며 실제 운영에서는 이벤트/광고리포트/주문을 연결해 계산합니다.</p>';
+})();
+</script>
+</body></html>

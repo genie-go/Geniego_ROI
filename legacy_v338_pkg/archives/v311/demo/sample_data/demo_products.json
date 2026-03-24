@@ -1,0 +1,37 @@
+[
+  {
+    "sku": "SKU-1001",
+    "name": "데모 비타민C 1000",
+    "price": 19900,
+    "currency": "KRW",
+    "stock": 120,
+    "channels": [
+      "coupang",
+      "cafe24",
+      "naver_smartstore"
+    ]
+  },
+  {
+    "sku": "SKU-2001",
+    "name": "Demo Protein Bar",
+    "price": 29.99,
+    "currency": "USD",
+    "stock": 400,
+    "channels": [
+      "amazon",
+      "shopify",
+      "walmart"
+    ]
+  },
+  {
+    "sku": "SKU-3001",
+    "name": "SEA Sunscreen SPF50",
+    "price": 15.5,
+    "currency": "USD",
+    "stock": 260,
+    "channels": [
+      "shopee",
+      "lazada"
+    ]
+  }
+]

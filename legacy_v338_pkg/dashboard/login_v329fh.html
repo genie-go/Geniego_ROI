@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="ko"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>GENIE_ROI V329fh 로그인</title>
+<style>
+:root{--bg:#0b0f14;--card:#111a25;--line:rgba(255,255,255,.10);--txt:#e9f0f7;--muted:#8aa0b7}
+body{margin:0;min-height:100vh;display:grid;place-items:center;background:radial-gradient(900px 500px at 20% 10%, rgba(96,165,250,.18), transparent 60%),radial-gradient(800px 500px at 80% 30%, rgba(94,234,212,.16), transparent 60%),#070b10;color:var(--txt);font-family:system-ui}
+.card{width:min(420px,92vw);background:rgba(17,26,37,.78);border:1px solid var(--line);border-radius:22px;padding:18px 18px 16px;box-shadow:0 18px 60px rgba(0,0,0,.35)}
+h1{margin:0 0 6px;font-size:18px;letter-spacing:.2px}
+p{margin:0 0 14px;color:var(--muted);font-size:13px;line-height:1.45}
+label{display:block;margin-top:10px;font-size:12px;color:var(--muted);font-weight:800}
+input{width:100%;padding:12px;border-radius:14px;border:1px solid var(--line);background:#0b121a;color:var(--txt);outline:none}
+button{width:100%;margin-top:14px;padding:12px;border-radius:14px;border:1px solid rgba(94,234,212,.25);background:linear-gradient(135deg,rgba(94,234,212,.18),rgba(96,165,250,.14));color:var(--txt);font-weight:900;cursor:pointer}
+.small{margin-top:10px;font-size:12px;color:var(--muted)}
+</style>
+</head>
+<body>
+  <div class="card">
+    <h1>GENIE_ROI V329fh</h1>
+    <p>퍼스트파티 픽셀/ID 그래프/커넥터 증분수집/고도화 MMM을 포함한 운영형 콘솔</p>
+    <label>아이디</label>
+    <input id="u" placeholder="username"/>
+    <label>비밀번호</label>
+    <input id="p" type="password" placeholder="password"/>
+    <button id="btn">로그인</button>
+    <div class="small" id="msg"></div>
+  </div>
+<script>
+async function api(path, body){
+  const r=await fetch(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body||{})});
+  const j=await r.json().catch(()=>({ok:false,error:'bad_json'}));
+  if(!r.ok) throw new Error(j.error||('HTTP '+r.status));
+  return j;
+}
+document.getElementById('btn').onclick=async()=>{
+  const u=document.getElementById('u').value.trim();
+  const p=document.getElementById('p').value;
+  try{
+    await api('/api/login',{username:u,password:p});
+    location.href='/ui_v329fh.html';
+  }catch(e){
+    document.getElementById('msg').textContent='로그인 실패: '+e.message;
+  }
+};
+</script>
+</body></html>

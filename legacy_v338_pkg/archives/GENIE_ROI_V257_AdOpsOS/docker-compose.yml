@@ -1,0 +1,88 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-genie_roi}
+      POSTGRES_USER: ${POSTGRES_USER:-genie}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-genie}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata_v257:/var/lib/postgresql/data
+      - ./infra/sql:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-genie} -d ${POSTGRES_DB:-genie_roi}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  ai:
+    build: ./services/ai
+    environment:
+      - ENV=${ENV:-dev}
+      - CONFIDENCE_THRESHOLD=${CONFIDENCE_THRESHOLD:-0.72}
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  connectors:
+    build: ./services/connectors
+    environment:
+      - ENV=${ENV:-dev}
+      - DRY_RUN=${DRY_RUN:-true}
+    ports:
+      - "3000:3000"
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  gateway:
+    build: ./services/gateway
+    environment:
+      - ENV=${ENV:-dev}
+      - GATEWAY_PORT=${GATEWAY_PORT:-8080}
+      - DRY_RUN=${DRY_RUN:-true}
+      - AUTO_EXECUTE=${AUTO_EXECUTE:-false}
+      - CONFIDENCE_THRESHOLD=${CONFIDENCE_THRESHOLD:-0.72}
+      - MAX_BUDGET_DELTA_PCT=${MAX_BUDGET_DELTA_PCT:-20}
+      - POLICY_PATH=${POLICY_PATH:-policies/policy.yml}
+      - OPS_TOKEN=${OPS_TOKEN:-change-me}
+      - WORKER_POLL_SECONDS=${WORKER_POLL_SECONDS:-2}
+      - OUTBOX_MAX_RETRIES=${OUTBOX_MAX_RETRIES:-5}
+      - AI_URL=${AI_URL:-http://ai:8000}
+      - CONNECTORS_URL=${CONNECTORS_URL:-http://connectors:3000}
+      - POSTGRES_HOST=${POSTGRES_HOST:-postgres}
+      - POSTGRES_PORT=${POSTGRES_PORT:-5432}
+      - POSTGRES_DB=${POSTGRES_DB:-genie_roi}
+      - POSTGRES_USER=${POSTGRES_USER:-genie}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-genie}
+      - REDIS_HOST=${REDIS_HOST:-redis}
+      - REDIS_PORT=${REDIS_PORT:-6379}
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      ai:
+        condition: service_started
+      connectors:
+        condition: service_started
+
+volumes:
+  pgdata_v257:

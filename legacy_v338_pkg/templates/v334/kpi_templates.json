@@ -1,0 +1,164 @@
+{
+  "version": "1.0",
+  "dashboards": [
+    {
+      "id": "exec_overview",
+      "title": "경영/브랜드 요약",
+      "kpis": [
+        {
+          "id": "gmv",
+          "name": "총 매출(GMV)",
+          "formula": "SUM(orders.gross_amount)"
+        },
+        {
+          "id": "net_sales",
+          "name": "순매출(배송/할인 반영)",
+          "formula": "SUM(orders.net_amount)"
+        },
+        {
+          "id": "orders",
+          "name": "주문수",
+          "formula": "COUNT_DISTINCT(orders.order_id)"
+        },
+        {
+          "id": "aov",
+          "name": "객단가(AOV)",
+          "formula": "gmv/orders"
+        },
+        {
+          "id": "ad_spend",
+          "name": "광고비",
+          "formula": "SUM(spend.spend)"
+        },
+        {
+          "id": "roas",
+          "name": "ROAS",
+          "formula": "revenue/ad_spend"
+        },
+        {
+          "id": "refund_rate",
+          "name": "환불률",
+          "formula": "SUM(settlements.refunds)/SUM(settlements.gross_sales)"
+        }
+      ]
+    },
+    {
+      "id": "marketing_performance",
+      "title": "광고 성과(성별/연령/지역)",
+      "breakdowns": [
+        "platform",
+        "campaign_id",
+        "country",
+        "region",
+        "gender",
+        "age_band"
+      ],
+      "kpis": [
+        {
+          "id": "impressions",
+          "name": "노출",
+          "formula": "SUM(spend.impressions)"
+        },
+        {
+          "id": "clicks",
+          "name": "클릭",
+          "formula": "SUM(spend.clicks)"
+        },
+        {
+          "id": "ctr",
+          "name": "CTR",
+          "formula": "clicks/impressions"
+        },
+        {
+          "id": "cpc",
+          "name": "CPC",
+          "formula": "spend.spend/clicks"
+        },
+        {
+          "id": "conversions",
+          "name": "전환수",
+          "formula": "SUM(spend.conversions)"
+        },
+        {
+          "id": "cpa",
+          "name": "CPA",
+          "formula": "spend.spend/conversions"
+        },
+        {
+          "id": "revenue",
+          "name": "매출(추적)",
+          "formula": "SUM(spend.revenue)"
+        },
+        {
+          "id": "roas",
+          "name": "ROAS",
+          "formula": "revenue/SUM(spend.spend)"
+        }
+      ]
+    },
+    {
+      "id": "influencer",
+      "title": "인플루언서 성과",
+      "breakdowns": [
+        "platform",
+        "influencer_id",
+        "content_type",
+        "country",
+        "region"
+      ],
+      "kpis": [
+        {
+          "id": "impressions",
+          "name": "노출",
+          "formula": "SUM(influencer.impressions)"
+        },
+        {
+          "id": "engagements",
+          "name": "참여",
+          "formula": "SUM(influencer.engagements)"
+        },
+        {
+          "id": "clicks",
+          "name": "클릭",
+          "formula": "SUM(influencer.clicks)"
+        },
+        {
+          "id": "orders",
+          "name": "기여 주문",
+          "formula": "SUM(influencer.attributed_orders)"
+        },
+        {
+          "id": "revenue",
+          "name": "기여 매출",
+          "formula": "SUM(influencer.attributed_revenue)"
+        }
+      ]
+    },
+    {
+      "id": "catalog_quality",
+      "title": "상품/리스팅 품질",
+      "kpis": [
+        {
+          "id": "active_listings",
+          "name": "활성 리스팅",
+          "formula": "COUNT(listings where listing_status='active')"
+        },
+        {
+          "id": "sync_errors",
+          "name": "동기화 오류",
+          "formula": "COUNT(listings where listing_status='error')"
+        },
+        {
+          "id": "soldout",
+          "name": "품절",
+          "formula": "COUNT(listings where listing_status='soldout')"
+        },
+        {
+          "id": "review_avg",
+          "name": "평균 평점",
+          "formula": "AVG(reviews.rating)"
+        }
+      ]
+    }
+  ]
+}

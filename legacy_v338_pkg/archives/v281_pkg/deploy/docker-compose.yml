@@ -1,0 +1,48 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-genie}
+      POSTGRES_USER: ${POSTGRES_USER:-genie}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-genie}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+
+  gateway:
+    build:
+      context: ../
+      dockerfile: services/gateway/Dockerfile
+    env_file: ../.env
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+      - redis
+      - ai_engine
+      - connectors
+
+  ai_engine:
+    build:
+      context: ../
+      dockerfile: services/ai_engine/Dockerfile
+    env_file: ../.env
+    ports:
+      - "9000:9000"
+
+  connectors:
+    build:
+      context: ../
+      dockerfile: services/connectors/Dockerfile
+    env_file: ../.env
+    ports:
+      - "9100:9100"
+
+volumes:
+  pgdata:

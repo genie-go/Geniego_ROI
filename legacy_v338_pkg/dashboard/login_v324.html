@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="ko"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>GENIE_ROI V324 로그인</title>
+<style>
+body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:24px;line-height:1.45}
+.card{max-width:420px;border:1px solid #ddd;border-radius:14px;padding:16px}
+input{width:100%;padding:10px;border:1px solid #ddd;border-radius:10px;margin:6px 0}
+button{padding:10px 12px;border-radius:10px;border:1px solid #111;background:#111;color:#fff;cursor:pointer;width:100%}
+.small{color:#666;font-size:12px}
+a{color:#111}
+</style></head>
+<body>
+<div class="card">
+  <h2 style="margin:0 0 10px 0">GENIE_ROI V324</h2>
+  <div class="small">로그인 후 프로젝트(고객사)별 UI/대시보드를 이용할 수 있습니다.</div>
+  <form method="POST" action="/api/login" style="margin-top:12px">
+    <label class="small">아이디</label>
+    <input name="username" placeholder="admin" required />
+    <label class="small">비밀번호</label>
+    <input name="password" type="password" placeholder="admin" required />
+    <button type="submit">로그인</button>
+  </form>
+  <div class="small" style="margin-top:10px">기본 계정: <b>admin / admin</b> (운영 전 반드시 변경 권장)</div>
+  <div class="small" style="margin-top:6px">NOW: {{NOW}}</div>
+</div>
+</body></html>

@@ -1,0 +1,3 @@
+GENIE ROI AdOps OS - V251
+Generated: 2026-02-24 08:23:41.550260 UTC
+Execution Plan (structure auto-detect) + KPI Forecasting v2 + Federated DP Pack

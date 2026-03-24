@@ -1,0 +1,15 @@
+{
+  "name": "genie/roi-php-port",
+  "description": "GENIE ROI FastAPI backend port to PHP (Slim 4) with versioned routes v377-v418",
+  "type": "project",
+  "require": {
+    "php": ">=8.0",
+    "slim/slim": "^4.12",
+    "slim/psr7": "^1.6"
+  },
+  "autoload": {
+    "psr-4": {
+      "Genie\\": "src/"
+    }
+  }
+}

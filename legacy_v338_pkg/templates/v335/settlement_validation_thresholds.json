@@ -1,0 +1,10 @@
+{
+  "version": "v1",
+  "default_thresholds": {
+    "revenue_gap_ratio_warn": 0.02,
+    "revenue_gap_ratio_error": 0.05,
+    "fee_ratio_warn": 0.25,
+    "fee_ratio_error": 0.35
+  },
+  "notes": "orders_norm_v334 vs settlements_norm_v334 비교 기반. 채널별 수수료/환불 룰이 있으면 detail_json에 룰을 추가."
+}

@@ -1,0 +1,169 @@
+<!doctype html>
+<html><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>GENIE_ROI V261 Admin</title>
+<style>
+body{font-family:system-ui; margin:20px;}
+.row{display:flex; gap:16px; flex-wrap:wrap; align-items:flex-start;}
+.card{border:1px solid #ddd; border-radius:12px; padding:12px; min-width:280px; background:#fff;}
+table{border-collapse:collapse; width:100%;}
+th,td{border-bottom:1px solid #eee; padding:8px; text-align:left; font-size:13px; vertical-align:top;}
+input,select,button{padding:8px; border-radius:8px; border:1px solid #ccc;}
+button{cursor:pointer;}
+.muted{color:#666; font-size:12px;}
+code{background:#f6f6f6; padding:2px 6px; border-radius:6px;}
+pre{margin:0;}
+.small{font-size:12px;}
+a{color:#0b5; text-decoration:none;}
+</style></head>
+<body>
+<h1>GENIE_ROI V261 Admin</h1>
+<div class="muted">Headers: <code>X-Role</code> (viewer/operator/admin). Ops APIs also require <code>X-Ops-Token</code>. (This UI is intentionally simple.)</div>
+
+<div class="row" style="margin-top:16px;">
+  <div class="card">
+    <h3>Session</h3>
+    <div class="small muted">Role</div>
+    <select id="role">
+      <option value="viewer">viewer</option>
+      <option value="operator" selected>operator</option>
+      <option value="admin">admin</option>
+    </select>
+    <div class="small muted" style="margin-top:10px;">Ops token</div>
+    <input id="opsToken" placeholder="change-me"/>
+    <button style="margin-top:10px;" onclick="refreshAll()">Refresh</button>
+  </div>
+
+  <div class="card">
+    <h3>Run workflow</h3>
+    <input id="tenant" value="demo" placeholder="tenant_id"/><br/><br/>
+    <input id="user" value="alice" placeholder="user_id"/><br/><br/>
+    <input id="objective" value="maximize_roas" placeholder="objective"/><br/><br/>
+    <input id="channels" value="meta,naver" placeholder="channels comma"/><br/><br/>
+    <button onclick="runWorkflow()">Run</button>
+    <div id="runOut" class="muted" style="margin-top:8px;"></div>
+  </div>
+
+  <div class="card">
+    <h3>Ops snapshot</h3>
+    <pre id="ops" class="small" style="white-space:pre-wrap;"></pre>
+  </div>
+</div>
+
+<div class="row" style="margin-top:16px;">
+  <div class="card" style="flex:1; min-width:520px;">
+    <h3>Approval queue</h3>
+    <table id="apprTbl"><thead><tr><th>exec</th><th>tenant</th><th>objective</th><th>confidence</th><th>requested</th><th></th></tr></thead><tbody></tbody></table>
+    <div class="muted small">Items enter this queue when policy auto-approval is not satisfied (or AUTO_EXECUTE=false).</div>
+  </div>
+
+  <div class="card" style="flex:1; min-width:520px;">
+    <h3>Executions</h3>
+    <table id="execTbl"><thead><tr><th>exec</th><th>status</th><th>confidence</th><th>requested</th><th></th></tr></thead><tbody></tbody></table>
+  </div>
+</div>
+
+<div class="row" style="margin-top:16px;">
+  <div class="card" style="flex:1;">
+    <h3>Outbox (ops)</h3>
+    <table id="outboxTbl"><thead><tr><th>id</th><th>exec</th><th>status</th><th>attempts</th><th>next</th></tr></thead><tbody></tbody></table>
+  </div>
+
+  <div class="card" style="flex:1;">
+    <h3>DLQ (ops)</h3>
+    <pre id="dlq" class="small" style="white-space:pre-wrap;"></pre>
+  </div>
+</div>
+
+<div class="row" style="margin-top:16px;">
+  <div class="card" style="flex:1; min-width:520px;">
+    <h3>Execution history</h3>
+    <div class="muted small">Select an execution in the table to view audit + shadow uplift.</div>
+    <pre id="hist" class="small" style="white-space:pre-wrap;"></pre>
+  </div>
+  <div class="card" style="flex:1; min-width:520px;">
+    <h3>Shadow uplift</h3>
+    <pre id="lift" class="small" style="white-space:pre-wrap;"></pre>
+  </div>
+</div>
+
+<script>
+const api = (path, opts={}) => fetch(path, opts).then(r=>r.json());
+function hdrs(extra={}) {
+  const role = document.getElementById('role').value;
+  const opsToken = document.getElementById('opsToken').value;
+  const h = {"Content-Type":"application/json","X-Role":role, ...extra};
+  if (opsToken) h["X-Ops-Token"] = opsToken;
+  return h;
+}
+
+function shortId(s){ return (s||'').slice(0,10)+'…'; }
+
+async function refreshAll(){
+  // approval queue
+  const aq = await api('/v163/admin/api/approval_queue', {headers: hdrs()});
+  const aT = document.querySelector('#apprTbl tbody'); aT.innerHTML='';
+  (aq.items||[]).forEach(x=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td><a href="#" onclick="selectExec('${x.execution_id}');return false;">${shortId(x.execution_id)}</a></td>
+      <td>${x.tenant_id}</td><td>${x.objective}</td><td>${(x.confidence??'')}</td><td>${x.requested_at}</td>
+      <td><button onclick="approve('${x.execution_id}')">Approve</button></td>`;
+    aT.appendChild(tr);
+  });
+
+  // executions
+  const execs = await api('/v163/admin/api/executions', {headers: hdrs()});
+  const eT = document.querySelector('#execTbl tbody'); eT.innerHTML = '';
+  (execs.items||[]).forEach(x=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td><a href="#" onclick="selectExec('${x.execution_id}');return false;">${shortId(x.execution_id)}</a></td>
+      <td>${x.status}</td><td>${(x.confidence??'')}</td><td>${x.requested_at}</td>
+      <td class="muted small">${x.last_error?('err'):''}</td>`;
+    eT.appendChild(tr);
+  });
+
+  // ops
+  const ops = await api('/v163/ops/metrics', {headers: hdrs()});
+  document.getElementById('ops').textContent = JSON.stringify(ops, null, 2);
+
+  const out = await api('/v163/ops/outbox', {headers: hdrs()});
+  const ot = document.querySelector('#outboxTbl tbody'); ot.innerHTML='';
+  (out.items||[]).forEach(x=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${x.id}</td><td>${shortId(x.execution_id||'')}</td><td>${x.status}</td><td>${x.attempts}</td><td class="small muted">${x.next_attempt_at}</td>`;
+    ot.appendChild(tr);
+  });
+
+  const dlq = await api('/v163/ops/dlq', {headers: hdrs()});
+  document.getElementById('dlq').textContent = JSON.stringify(dlq, null, 2);
+}
+
+async function runWorkflow(){
+  const tenant = document.getElementById('tenant').value;
+  const user = document.getElementById('user').value;
+  const objective = document.getElementById('objective').value;
+  const channels = document.getElementById('channels').value.split(',').map(s=>s.trim()).filter(Boolean);
+  const body = {tenant_id:tenant, user_id:user, objective, budget_delta_limit_pct:20, channels, shadow_mode:true};
+  const r = await fetch('/v163/workflows/run', {method:'POST', headers: hdrs({"Idempotency-Key":"ui-"+Date.now()}), body: JSON.stringify(body)});
+  const j = await r.json();
+  document.getElementById('runOut').textContent = JSON.stringify(j, null, 2);
+  refreshAll();
+}
+
+async function approve(execution_id){
+  const body = {execution_id, approver_id: document.getElementById('user').value || 'operator'};
+  const r = await fetch('/v163/executions/approve', {method:'POST', headers: hdrs(), body: JSON.stringify(body)});
+  const j = await r.json();
+  document.getElementById('runOut').textContent = "approve: " + JSON.stringify(j, null, 2);
+  refreshAll();
+}
+
+async function selectExec(execution_id){
+  const hist = await api('/v163/audit/' + execution_id, {headers: hdrs()});
+  document.getElementById('hist').textContent = JSON.stringify(hist, null, 2);
+  const lift = await api('/v163/reports/lift/' + execution_id, {headers: hdrs()});
+  document.getElementById('lift').textContent = JSON.stringify(lift, null, 2);
+}
+
+refreshAll();
+</script>
+</body></html>
