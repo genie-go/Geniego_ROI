@@ -203,25 +203,7 @@ const ko = {
         reports: "Reports",
         alertPolicies: "Alert Policies",
         aiPolicy: "AI Policy",
-        aiRuleEngine: "AI 학습형 룰 엔진",
-        actionPresets: {
-    pageTitle: "액션 프리셋",
-    pageSub: "정책 자동 적용을 위한 플랫폼 액션 템플릿.",
-    presetList: "프리셋 목록",
-    risk: {
-        all: "전체",
-        low: "낮음",
-        medium: "보통",
-        high: "높음"
-    },
-    usageGuide: "사용 가이드",
-    guide: {
-        step1: { title: "정책 생성", desc: "알림 정책 메뉴에서 트리거 조건을 설정합니다." },
-        step2: { title: "프리셋 연결", desc: "정책의 writeback_action에 프리셋 ID를 입력하고 파라미터를 바인딩합니다." },
-        step3: { title: "승인 흐름 설정", desc: "고위험 액션(일시정지, 가격변경)에 대한 승인자를 지정합니다." },
-        step4: { title: "실행 모니터링", desc: "액션 센터에서 승인, 실행, 거부 상태를 실시간으로 모니터링합니다." }
-    }
-},
+        aiRuleEngine: "AI 학습형 룰 엔진",
         approvals: "Action Center",
         writeback: "Write-back",
         mappingRegistry: "Mapping Registry",
@@ -268,8 +250,7 @@ const ko = {
         settlements: { title: "Settlements", sub: "정산 라인 관리" },
         reports: { title: "Reports", sub: "리포트 · 분석" },
         alertPolicies: { title: "Alert Policies", sub: "알림 정책 엔진" },
-        aiPolicy: { title: "AI Policy", sub: "AI 정책 제안" },
-        actionPresets: { title: "Action Presets", sub: "액션 프리셋 관리" },
+        aiPolicy: { title: "AI Policy", sub: "AI 정책 제안" },
         approvals: { title: "Action Center", sub: "승인 · 실행 센터" },
         writeback: { title: "Write-back", sub: "데이터 라이트백 정책" },
         mappingRegistry: { title: "Mapping Registry", sub: "매핑 레지스트리" },
