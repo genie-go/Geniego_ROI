@@ -77,7 +77,8 @@ const ko = {
     },
 
     // ── Sidebar sections ──────────────────────────────────────
-    nav: {\n
+    nav: { 
+
         home: "홈 대시보드",
         dashboard: "통합 대시보드",
         rollup: "Rollup 집계 레이어",
@@ -232,7 +233,8 @@ const ko = {
     },
 
     // ── Page titles ───────────────────────────────────────────
-    tabs: {\n
+    tabs: { 
+
         overview: "통합 현황",
         overviewDesc: "전체 매출 및 상태",
         marketing: "마케팅 스코어",
@@ -247,7 +249,10 @@ const ko = {
         influencerDesc: "바이럴 효과 지표",
         system: "시스템 헬스",
         systemDesc: "서버/API 가용상태",
-\n    },\n\n    pages: {
+
+    },
+
+    pages: {
         dashboard: { title: "종합 대시보드", sub: "Unified Ops Cockpit · v421" },
         marketing: { title: "Marketing & Ads", sub: "광고 통합 인사이트" },
         influencer: { title: "Influencer Hub", sub: "인플루언서 · UGC 허브" },
@@ -3888,8 +3893,6 @@ ko.cmpVal = {
         allAccounts: "전체 계정",
         livePerformance: "실시간 성과 데이터",
     },
-
-,
     crm: {
         "c_0": "Customer CRM",
         "c_1": "Customer ProFile · RFM Analysis · Segment · 360° 활동 뷰",

@@ -76,7 +76,8 @@ const en = {
         themeSave: "Theme is saved automatically",
     },
 
-    nav: {\n
+    nav: { 
+
         home: "Home Dashboard",
         dashboard: "Unified Dashboard",
         rollup: "Rollup Layer",
@@ -661,7 +662,8 @@ const en = {
 
 
     // ── Dashboard Tabs ─────────────────────────────────────────────────────
-    tabs: {\n
+    tabs: { 
+
         overview: "Overview",
         overviewDesc: "Revenue & Status",
         marketing: "Marketing Score",
@@ -3227,8 +3229,6 @@ en.cmpVal = {
     cpa: "CPA",
     roas: "ROAS"
   },
-
-,
     crm: {
         "c_0": "Customer CRM (en)",
         "c_1": "Customer ProFile · RFM Analysis · Segment · 360° 활동 뷰 (en)",
