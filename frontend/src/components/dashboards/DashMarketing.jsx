@@ -293,7 +293,7 @@ function OverviewPanel() {
     );
 }
 
-export default function DashMarketing() {
+export default function DashMarketing() {\n    const { t } = useI18n();
     const [selected, setSelected] = useState(null);
     const [tab, setTab] = useState('channels');
     const isMobile = useIsMobile();
@@ -332,7 +332,7 @@ export default function DashMarketing() {
         { label: '\uCD1D \uD074\uB9AD', value: fmt(CHAN_LIST.reduce((s, c) => s + c.clicks, 0)), icon: '👆', color: '#14d9b0', delta: 5.3 },
         { label: '\uD3C9\uADE0 CTR', value: (CHAN_LIST.reduce((s, c) => s + c.ctr, 0) / CHAN_LIST.length).toFixed(1) + '%', icon: '🎯', color: '#eab308', delta: 1.8 },
         {
-            label: 'KPI 달성도', icon: '✅', color: '#22c55e', delta: 0,
+            label: t('marketing.kpiAchieve'), icon: '✅', color: '#22c55e', delta: 0,
             value: (() => {
                 const avgCtr = CHAN_LIST.reduce((s, c) => s + c.ctr, 0) / CHAN_LIST.length;
                 const avgConv = CHAN_LIST.reduce((s, c) => s + c.convRate, 0) / CHAN_LIST.length;

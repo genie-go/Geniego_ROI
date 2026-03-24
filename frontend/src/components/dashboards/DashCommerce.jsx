@@ -136,7 +136,7 @@ function PlatDetail({ id }) {
     );
 }
 
-export default function DashCommerce() {
+export default function DashCommerce() {\n    const { t } = useI18n();
     const [sel, setSel] = useState(null);
     const [selOrd, setSelOrd] = useState(null);
 
@@ -167,7 +167,7 @@ export default function DashCommerce() {
                 </span>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: G }}>
-                {[{ ico: '📦', l: 'Total Orders', v: totalOrd.toLocaleString() + '건', d: 6.2, col: '#4f8ef7', h: orderStats.totalOrders > 0 ? '실시간연동' : 'Today' }, { ico: '💰', l: 'Gross Revenue', v: fmt(totalRev, { prefix: '₩' }), d: 8.3, col: '#22c55e', h: '정산완료' }, { ico: '↩️', l: 'Return Rate', v: '2.1%', d: -0.3, col: '#f97316', h: '목표 3% 이하' }, { ico: '⚖️', l: 'Recon Rate', v: '97.6%', d: 0.2, col: '#14d9b0', h: '자동매칭' }].map(m => (
+                {[{ ico: '📦', l: t('commerce.totalOrders'), v: totalOrd.toLocaleString() + '건', d: 6.2, col: '#4f8ef7', h: orderStats.totalOrders > 0 ? t('commerce.liveSync') : 'Today' }, { ico: '💰', l: t('commerce.grossRevenue'), v: fmt(totalRev, { prefix: '₩' }), d: 8.3, col: '#22c55e', h: t('commerce.settled') }, { ico: '↩️', l: t('commerce.returnRate'), v: '2.1%', d: -0.3, col: '#f97316', h: t('commerce.targetB3') }, { ico: '⚖️', l: t('commerce.reconRate'), v: '97.6%', d: 0.2, col: '#14d9b0', h: t('commerce.autoMatch') }].map(m => (
                     <div key={m.l} style={{ position: 'relative', borderRadius: 14, padding: '1px', overflow: 'hidden', background: `linear-gradient(135deg,${m.col}44,rgba(255,255,255,0.04))`, boxShadow: `0 4px 20px ${m.col}18` }}>
                         <div style={{ background: 'linear-gradient(145deg,#0d1525,#060b14)', borderRadius: 13, padding: '13px 16px', height: 90, boxSizing: 'border-box', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -233,7 +233,7 @@ export default function DashCommerce() {
                                 <span style={{ color: '#22c55e', fontWeight: 700, width: 44, textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>₩{(o.amt / 1000).toFixed(0)}K</span>
                                 <span style={{ background: `${o.sc}18`, color: o.sc, padding: '2px 7px', borderRadius: 8, fontSize: 10, fontWeight: 700, flexShrink: 0, border: `1px solid ${o.sc}28` }}>{o.st}</span>
                                 {selOrd === o.id && <div style={{ width: '100%', display: 'flex', gap: 6, marginTop: 5, paddingLeft: 64 }}>
-                                    {[{ l: '성별', v: o.gnd, c: '#4f8ef7' }, { l: '연령', v: o.age, c: '#a855f7' }, { l: '지역', v: '📍' + o.reg, c: '#22c55e' }].map(t => (
+                                    {[{ l: t('commerce.gender'), v: o.gnd, c: '#4f8ef7' }, { l: t('commerce.age'), v: o.age, c: '#a855f7' }, { l: t('commerce.region'), v: '📍' + o.reg, c: '#22c55e' }].map(t => (
                                         <span key={t.l} style={{ fontSize: 10, background: `${t.c}14`, color: t.c, padding: '2px 8px', borderRadius: 6, border: `1px solid ${t.c}28`, fontWeight: 700 }}>{t.v}</span>
                                     ))}
                                 </div>}

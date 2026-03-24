@@ -30,7 +30,7 @@ function ScoreBar({ label, v, max, col }) {
 //   selectedId: string                    — 현재 선택 크리에이터 id
 //   style     : object                    — 컨테이너 스타일 오버라이드
 // ══════════════════════════════════════════════════════════════════════
-export default function InfluencerAIPanel({ creators = [], selectedId, style = {} }) {
+export default function InfluencerAIPanel({ creators = [], selectedId, style = {} }) {\n    const { t } = useI18n();
     const [status, setStatus] = useState('idle'); // idle|loading|done|error
     const [result, setResult] = useState(null);
     const [history, setHistory] = useState(null);
@@ -187,7 +187,7 @@ export default function InfluencerAIPanel({ creators = [], selectedId, style = {
                             color: '#fff', fontWeight: 800, fontSize: 11, transition: 'all 0.2s',
                             boxShadow: status !== 'loading' ? '0 4px 14px rgba(79,142,247,0.4)' : undefined
                         }}>
-                        {status === 'loading' ? '⏳ AI Analysis 중... (15~30초)' : '🚀 AI Analysis Run'}
+                        {status === 'loading' ? t('influencer.aiLoading') : t('influencer.aiRun')}
                     </button>
                     <button onClick={loadHistory}
                         style={{
@@ -307,10 +307,10 @@ export default function InfluencerAIPanel({ creators = [], selectedId, style = {
                                     <div style={{ fontSize: 11, fontWeight: 700, color: '#eab308', marginBottom: 6 }}>💰 수수료 추천</div>
                                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 5 }}>
                                         {[
-                                            { l: '계약 유형', v: curResult.fee_recommendation.contract_type },
-                                            { l: '성과 요율', v: `${((curResult.fee_recommendation.recommended_perf_rate ?? 0) * 100).toFixed(1)}%` },
-                                            { l: '권장 단가', v: `${(curResult.fee_recommendation.recommended_flat_fee || 0).toLocaleString()}원` },
-                                            { l: '예상 총액', v: `${(curResult.fee_recommendation.recommended_total_est || 0).toLocaleString()}원` },
+                                            { l: t('influencer.contractType'), v: curResult.fee_recommendation.contract_type },
+                                            { l: t('influencer.perfRate'), v: `${((curResult.fee_recommendation.recommended_perf_rate ?? 0) * 100).toFixed(1)}%` },
+                                            { l: t('influencer.recomFlat'), v: `${(curResult.fee_recommendation.recommended_flat_fee || 0).toLocaleString()}원` },
+                                            { l: t('influencer.estTotal'), v: `${(curResult.fee_recommendation.recommended_total_est || 0).toLocaleString()}원` },
                                         ].map(m => (
                                             <div key={m.l} style={{ background: 'rgba(0,0,0,0.2)', borderRadius: 6, padding: '5px 8px' }}>
                                                 <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.3)' }}>{m.l}</div>
