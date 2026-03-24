@@ -1,3 +1,4 @@
+import { useI18n } from '../../i18n';
 // DashMarketing - Marketing Channel Performance + AI 5-Section Analysis
 // ✅ GlobalDataContext 실시간 연동: 채널 광고비/ROAS 실시간 반영
 import { useState, useMemo, useEffect } from 'react';

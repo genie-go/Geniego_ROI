@@ -1,3 +1,4 @@
+import { useI18n } from '../i18n';
 // ══════════════════════════════════════════════════════════════════════
 //  🤖 InfluencerAIPanel — 공용 Claude AI Analysis 패널
 //  지역/연령/성별 참여 기여도 + 5섹션 성과 통합 Analysis
