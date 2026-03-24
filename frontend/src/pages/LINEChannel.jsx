@@ -47,7 +47,7 @@ function CampaignsTab({ campaigns, isDemo }) {
                     <div style={{ fontSize: 12, fontWeight: 700, color: C.line, marginBottom: 8 }}>🔗 CRM 세그먼트 Integration ({linkedLine.length}개)</div>
                     {linkedLine.map(c => (
                         <div key={c.id} style={{ display: "flex", justifyContent: "space-between", padding: "7px 0", borderBottom: `1px solid rgba(255,255,255,0.05)` }}>
-                            <span style={{ fontSize: 12 }}>{c.name}</span>
+                            <span style={{ fontSize: 12 }}>{(t("demo." + c.name) !== "demo." + c.name ? t("demo." + c.name) : c.name)}</span>
                             <span style={{ fontSize: 11, color: C.muted }}>→ {c.targetSegmentName}</span>
                         </div>
                     ))}
@@ -57,7 +57,7 @@ function CampaignsTab({ campaigns, isDemo }) {
                 <div key={c.id} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, padding: "16px 20px" }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
                         <div>
-                            <div style={{ fontWeight: 700, fontSize: 14 }}>{c.name}</div>
+                            <div style={{ fontWeight: 700, fontSize: 14 }}>{(t("demo." + c.name) !== "demo." + c.name ? t("demo." + c.name) : c.name)}</div>
                             <div style={{ fontSize: 11, color: C.muted, marginTop: 2 }}>
                                 <span style={{ background: c.type === "transactional" ? "rgba(79,142,247,0.15)" : C.lineLight, color: c.type === "transactional" ? "#4f8ef7" : C.line, padding: "2px 8px", borderRadius: 10, fontWeight: 700 }}>
                                     {c.type === "transactional" ? "🔔 トランザクション" : "📣 マーケティング"}
@@ -216,9 +216,9 @@ function LINEChannelContent() {
                 <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 10, color: C.muted }}>🔗 CRM セグメント連携</div>
                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                     {crmSegments.map(s => (
-                        <button key={s.id} onClick={() => createKakaoCampaignFromSegment(s.id, `[LINE] ${s.name}キャンペーン`)}
+                        <button key={s.id} onClick={() => createKakaoCampaignFromSegment(s.id, `[LINE] ${(t("demo." + s.name) !== "demo." + s.name ? t("demo." + s.name) : s.name)}キャンペーン`)}
                             style={{ fontSize: 11, padding: "5px 12px", borderRadius: 8, border: `1px solid ${C.line}40`, background: C.lineLight, color: C.line, cursor: "pointer", fontWeight: 700 }}>
-                            💚 {s.name} ({s.count}名)
+                            💚 {(t("demo." + s.name) !== "demo." + s.name ? t("demo." + s.name) : s.name)} ({s.count}名)
                         </button>
                     ))}
                 </div>

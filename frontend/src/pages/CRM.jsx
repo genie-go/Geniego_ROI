@@ -254,7 +254,7 @@ function CustomerPanel({ customerId, onClose, onSendEmail, onSendKakao, apiFunc 
                             <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                                 {data.segments.map(s => (
                                     <span key={s.id} style={{ fontSize: 11, fontWeight: 700, background: `${s.color || "#4f8ef7"}22`, color: s.color || "#4f8ef7", borderRadius: 6, padding: "3px 8px" }}>
-                                        {s.name}
+                                        {(t("demo." + s.name) !== "demo." + s.name ? t("demo." + s.name) : s.name)}
                                     </span>
                                 ))}
                             </div>
@@ -359,7 +359,7 @@ function SegmentsTab({ segments, crmSegments, onRefresh, linkMsg, setLinkMsg, cr
                     <div key={s.id} style={{ background: C.card, borderRadius: 12, padding: "14px 18px", borderLeft: `4px solid ${s.color || "#4f8ef7"}` }}>
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                             <div>
-                                <div style={{ fontWeight: 700 }}>{s.name}</div>
+                                <div style={{ fontWeight: 700 }}>{(t("demo." + s.name) !== "demo." + s.name ? t("demo." + s.name) : s.name)}</div>
                                 <div style={{ fontSize: 11, color: C.muted, marginTop: 2 }}>{s.condition || s.description}</div>
                             </div>
                             <div style={{ textAlign: "right" }}>
@@ -395,7 +395,7 @@ function SegmentsTab({ segments, crmSegments, onRefresh, linkMsg, setLinkMsg, cr
                     <div key={s.id} style={{ background: C.card, borderRadius: 12, padding: "14px 18px", borderLeft: `4px solid ${s.color || "#888"}`, opacity: 0.7 }}>
                         <div style={{ display: "flex", justifyContent: "space-between" }}>
                             <div>
-                                <div style={{ fontWeight: 700 }}>{s.name}</div>
+                                <div style={{ fontWeight: 700 }}>{(t("demo." + s.name) !== "demo." + s.name ? t("demo." + s.name) : s.name)}</div>
                                 <div style={{ fontSize: 12, color: C.muted }}>{s.description}</div>
                             </div>
                             <div style={{ textAlign: "right" }}>

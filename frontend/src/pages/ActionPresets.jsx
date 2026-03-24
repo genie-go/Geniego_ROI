@@ -155,7 +155,7 @@ export default function ActionPresets() {
                 <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
                   <span style={{ fontSize: 22 }}>{p.icon}</span>
                   <div>
-                    <div style={{ fontWeight: 700, fontSize: 13, color: p.color }}>{p.label}</div>
+                    <div style={{ fontWeight: 700, fontSize: 13, color: p.color }}>{t("demo." + p.label) !== "demo." + p.label ? t("demo." + p.label) : p.label}</div>
                     <div style={{ fontSize: 10, fontFamily: "monospace", color: "var(--text-3)", marginTop: 1 }}>{p.id}</div>
                   </div>
                 </div>
@@ -168,7 +168,7 @@ export default function ActionPresets() {
                 </div>
               </div>
 
-              <div style={{ fontSize: 12, color: "var(--text-2)", lineHeight: 1.6, marginBottom: 10 }}>{p.desc}</div>
+              <div style={{ fontSize: 12, color: "var(--text-2)", lineHeight: 1.6, marginBottom: 10 }}>{t("demo." + p.desc) !== "demo." + p.desc ? t("demo." + p.desc) : p.desc}</div>
 
               <div style={{ marginBottom: 8 }}>
                 <div style={{ fontSize: 10, color: "var(--text-3)", marginBottom: 4, fontWeight: 700 }}>Trigger Condition</div>

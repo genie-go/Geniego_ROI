@@ -441,7 +441,7 @@ function BlockEmailEditor() {
                     {DEMO_EMAIL_BLOCKS.map(tpl => (
                         <button key={tpl.id} onClick={() => loadTemplate(tpl)}
                             style={{ width: "100%", padding: "5px 8px", borderRadius: 7, border: `1px solid ${C.border}`, background: C.surface, color: C.muted, cursor: "pointer", fontSize: 10, marginBottom: 4, textAlign: "left" }}>
-                            📧 {tpl.name}
+                            📧 {(t("demo." + tpl.name) !== "demo." + tpl.name ? t("demo." + tpl.name) : tpl.name)}
                         </button>
                     ))}
                 </div>
@@ -756,7 +756,7 @@ function CampaignsTab() {
                         <div style={{ fontSize: 11, color: C.muted, marginBottom: 4 }}>대상 Segment (미Select 시 All)</div>
                         <select value={form.segment_id} onChange={e => setForm(f => ({ ...f, segment_id: e.target.value }))} style={{ ...INPUT }}>
                             <option value="">All Customer</option>
-                            {segments.map(s => <option key={s.id} value={s.id}>{s.name} ({s.member_count}명)</option>)}
+                            {segments.map(s => <option key={s.id} value={s.id}>{(t("demo." + s.name) !== "demo." + s.name ? t("demo." + s.name) : s.name)} ({s.member_count}명)</option>)}
                         </select>
                     </div>
                 </div>
@@ -782,13 +782,13 @@ function CampaignsTab() {
                             const openRate = c.total_sent > 0 ? Math.round(c.opened / c.total_sent * 100) : 0;
                             return (
                                 <tr key={c.id} style={{ borderTop: `1px solid ${C.border}`, background: i % 2 ? "#0a1520" : "transparent" }}>
-                                    <td style={{ padding: "10px 16px", fontWeight: 600 }}>{c.name}</td>
+                                    <td style={{ padding: "10px 16px", fontWeight: 600 }}>{(t("demo." + c.name) !== "demo." + c.name ? t("demo." + c.name) : c.name)}</td>
                                     <td style={{ padding: "10px 16px", color: C.muted }}>{c.template_name || "-"}</td>
                                     <td style={{ padding: "10px 16px", color: C.muted }}>{c.segment_name || "All"}</td>
                                     <td style={{ padding: "10px 16px" }}>{c.total_sent?.toLocaleString() || 0}</td>
                                     <td style={{ padding: "10px 16px", color: openRate > 20 ? C.green : C.muted }}>{openRate}%</td>
                                     <td style={{ padding: "10px 16px" }}>
-                                        <span style={{ fontSize: 11, fontWeight: 700, color: STATUS_COLOR[c.status] || C.muted }}>●&nbsp;{c.status}</span>
+                                        <span style={{ fontSize: 11, fontWeight: 700, color: STATUS_COLOR[c.status] || C.muted }}>●&nbsp;{(t("demo." + c.status) !== "demo." + c.status ? t("demo." + c.status) : c.status)}</span>
                                     </td>
                                     <td style={{ padding: "10px 16px" }}>
                                         {c.status !== "sent" && (
@@ -904,7 +904,7 @@ function EmailMarketingContent() {
                             {DEMO_EMAIL_CAMPAIGNS.map(c => (
                                 <div key={c.id} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: "16px 20px" }}>
                                     <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-                                        <div style={{ fontWeight: 700, fontSize: 14 }}>{c.name}</div>
+                                        <div style={{ fontWeight: 700, fontSize: 14 }}>{(t("demo." + c.name) !== "demo." + c.name ? t("demo." + c.name) : c.name)}</div>
                                         <span style={{ fontSize: 11, padding: "3px 10px", borderRadius: 20, fontWeight: 700, background: c.status === "sent" ? "rgba(34,197,94,0.15)" : "rgba(234,179,8,0.15)", color: c.status === "sent" ? "#22c55e" : "#eab308" }}>{c.status === "sent" ? "전송Done" : "예약"}</span>
                                     </div>
                                     <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 8 }}>
@@ -1016,7 +1016,7 @@ function EmailMarketingContent() {
                                 {linkedCamps.map(c => (
                                     <div key={c.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "rgba(0,0,0,0.2)", borderRadius: 8, padding: "8px 12px" }}>
                                         <div>
-                                            <span style={{ fontSize: 12, fontWeight: 700 }}>{c.name}</span>
+                                            <span style={{ fontSize: 12, fontWeight: 700 }}>{(t("demo." + c.name) !== "demo." + c.name ? t("demo." + c.name) : c.name)}</span>
                                             <span style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", marginLeft: 8 }}>→ {c.targetSegmentName}</span>
                                         </div>
                                         <span style={{ fontSize: 11, padding: "2px 8px", borderRadius: 10, fontWeight: 700, background: c.status === "sent" ? "rgba(34,197,94,0.15)" : "rgba(234,179,8,0.15)", color: c.status === "sent" ? "#22c55e" : "#eab308" }}>{c.status === "sent" ? "전송Done" : c.status === "scheduled" ? "Send예정" : "초안"}</span>

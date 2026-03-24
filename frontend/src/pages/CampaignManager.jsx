@@ -84,7 +84,7 @@ function OverviewTab({ campaigns, onSelect, onApprove }) {
                             onClick={() => onSelect(c)}>
                             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12, flexWrap: "wrap", gap: 8 }}>
                                 <div>
-                                    <div style={{ fontWeight: 800, fontSize: 14 }}>{c.name}</div>
+                                    <div style={{ fontWeight: 800, fontSize: 14 }}>{(t("demo." + c.name) !== "demo." + c.name ? t("demo." + c.name) : c.name)}</div>
                                     <div style={{ fontSize: 10, color: "var(--text-3)", marginTop: 2 }}>
                                         {c.startDate} ~ {c.endDate} · {t('campaignMgr.manager')}: {c.manager}
                                     </div>
@@ -167,7 +167,7 @@ function DetailTab({ campaign }) {
         <div style={{ display: "grid", gap: 16 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div>
-                    <div style={{ fontWeight: 900, fontSize: 18 }}>{c.name}</div>
+                    <div style={{ fontWeight: 900, fontSize: 18 }}>{(t("demo." + c.name) !== "demo." + c.name ? t("demo." + c.name) : c.name)}</div>
                     <div style={{ fontSize: 11, color: "var(--text-3)", marginTop: 3 }}>{c.startDate} ~ {c.endDate} · {c.manager}</div>
                 </div>
                 <Tag label={sm.label} color={sm.color} />
@@ -276,7 +276,7 @@ function GanttTab({ campaigns }) {
                     return (
                         <div key={c.id} style={{ display: "grid", gridTemplateColumns: "180px 1fr", gap: 0, marginBottom: 10, alignItems: "center" }}>
                             <div style={{ fontSize: 11, fontWeight: 700, paddingRight: 12, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                                {c.name}
+                                {(t("demo." + c.name) !== "demo." + c.name ? t("demo." + c.name) : c.name)}
                             </div>
                             <div style={{ position: "relative", height: 28, background: "rgba(99,140,255,0.04)", borderRadius: 6, borderLeft: "1px solid rgba(99,140,255,0.08)" }}>
                                 <div style={{
@@ -343,11 +343,11 @@ function CrmChannelTab() {
                             const openRate = c.total_sent > 0 ? Math.round(c.opened / c.total_sent * 100) : 0;
                             return (
                                 <tr key={c.id} style={{ borderTop: '1px solid rgba(99,140,255,0.07)' }}>
-                                    <td style={{ padding: '7px 10px', fontWeight: 700 }}>{c.name}</td>
+                                    <td style={{ padding: '7px 10px', fontWeight: 700 }}>{(t("demo." + c.name) !== "demo." + c.name ? t("demo." + c.name) : c.name)}</td>
                                     <td style={{ padding: '7px 10px', color: 'var(--text-3)' }}>{c.segment_name || t('campaignMgr.allSegments')}</td>
                                     <td style={{ padding: '7px 10px' }}>{(c.total_sent || 0).toLocaleString()}</td>
                                     <td style={{ padding: '7px 10px', color: openRate > 20 ? '#22c55e' : 'var(--text-3)' }}>{openRate}%</td>
-                                    <td style={{ padding: '7px 10px' }}><S s={c.status} /></td>
+                                    <td style={{ padding: '7px 10px' }}><S s={(t("demo." + c.status) !== "demo." + c.status ? t("demo." + c.status) : c.status)} /></td>
                                 </tr>
                             );
                         })}</tbody>
@@ -369,12 +369,12 @@ function CrmChannelTab() {
                         </tr></thead>
                         <tbody>{kakaoCampaigns.map(c => (
                             <tr key={c.id} style={{ borderTop: '1px solid rgba(99,140,255,0.07)' }}>
-                                <td style={{ padding: '7px 10px', fontWeight: 700 }}>{c.name}</td>
+                                <td style={{ padding: '7px 10px', fontWeight: 700 }}>{(t("demo." + c.name) !== "demo." + c.name ? t("demo." + c.name) : c.name)}</td>
                                 <td style={{ padding: '7px 10px', color: 'var(--text-3)' }}>{c.segment_name || t('campaignMgr.allSegments')}</td>
                                 <td style={{ padding: '7px 10px' }}>{(c.total || 0).toLocaleString()}</td>
                                 <td style={{ padding: '7px 10px', color: '#22c55e' }}>{c.success || 0}</td>
                                 <td style={{ padding: '7px 10px', color: '#ef4444' }}>{c.failed || 0}</td>
-                                <td style={{ padding: '7px 10px' }}><S s={c.status} /></td>
+                                <td style={{ padding: '7px 10px' }}><S s={(t("demo." + c.status) !== "demo." + c.status ? t("demo." + c.status) : c.status)} /></td>
                             </tr>
                         ))}</tbody>
                     </table>
