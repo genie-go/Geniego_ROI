@@ -30,7 +30,8 @@ function ScoreBar({ label, v, max, col }) {
 //   selectedId: string                    — 현재 선택 크리에이터 id
 //   style     : object                    — 컨테이너 스타일 오버라이드
 // ══════════════════════════════════════════════════════════════════════
-export default function InfluencerAIPanel({ creators = [], selectedId, style = {} }) {\n    const { t } = useI18n();
+export default function InfluencerAIPanel({ creators = [], selectedId, style = {} }) {
+    const { t } = useI18n();
     const [status, setStatus] = useState('idle'); // idle|loading|done|error
     const [result, setResult] = useState(null);
     const [history, setHistory] = useState(null);

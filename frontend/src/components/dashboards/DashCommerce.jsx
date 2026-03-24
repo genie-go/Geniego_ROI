@@ -136,7 +136,8 @@ function PlatDetail({ id }) {
     );
 }
 
-export default function DashCommerce() {\n    const { t } = useI18n();
+export default function DashCommerce() {
+    const { t } = useI18n();
     const [sel, setSel] = useState(null);
     const [selOrd, setSelOrd] = useState(null);
 

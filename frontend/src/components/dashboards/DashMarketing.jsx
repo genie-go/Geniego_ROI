@@ -293,7 +293,8 @@ function OverviewPanel() {
     );
 }
 
-export default function DashMarketing() {\n    const { t } = useI18n();
+export default function DashMarketing() {
+    const { t } = useI18n();
     const [selected, setSelected] = useState(null);
     const [tab, setTab] = useState('channels');
     const isMobile = useIsMobile();
