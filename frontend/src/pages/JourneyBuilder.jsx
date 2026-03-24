@@ -192,10 +192,10 @@ function JourneyListTab({ journeys, templates, onEdit, onLaunch, onCreateFromTem
                             onClick={() => onCreateFromTemplate(tpl)}
                             onMouseEnter={e => e.currentTarget.style.borderColor = C.accent + "60"}
                             onMouseLeave={e => e.currentTarget.style.borderColor = C.border}>
-                            <div style={{ fontWeight: 700, fontSize: 13 }}>{(t("demo." + tpl.name) !== "demo." + tpl.name ? t("demo." + tpl.name) : tpl.name)}</div>
+                            <div style={{ fontWeight: 700, fontSize: 13 }}>{(t("demoData." + tpl.name) !== "demoData." + tpl.name ? t("demoData." + tpl.name) : tpl.name)}</div>
                             <div style={{ fontSize: 11, color: C.muted, marginTop: 6 }}>{t(`journey.tpl.${tpl.tplKey}Desc`) !== `journey.tpl.${tpl.tplKey}Desc` ? t(`journey.tpl.${tpl.tplKey}Desc`) : tpl.description}</div>
                             <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
-                                <span style={{ fontSize: 10, color: C.accent, background: C.accent + "20", padding: "2px 8px", borderRadius: 999 }}>{(t("demo." + tpl.estimated_duration) !== "demo." + tpl.estimated_duration ? t("demo." + tpl.estimated_duration) : tpl.estimated_duration)}</span>
+                                <span style={{ fontSize: 10, color: C.accent, background: C.accent + "20", padding: "2px 8px", borderRadius: 999 }}>{(t("demoData." + tpl.estimated_duration) !== "demoData." + tpl.estimated_duration ? t("demoData." + tpl.estimated_duration) : tpl.estimated_duration)}</span>
                                 <span style={{ fontSize: 10, color: C.purple, background: C.purple + "20", padding: "2px 8px", borderRadius: 999 }}>{tpl.nodes_count} {t('journey.steps')}</span>
                             </div>
                         </div>
@@ -235,7 +235,7 @@ function JourneyListTab({ journeys, templates, onEdit, onLaunch, onCreateFromTem
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                             <div>
                                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                                    <span style={{ fontWeight: 800, fontSize: 15 }}>{(t("demo." + j.name) !== "demo." + j.name ? t("demo." + j.name) : j.name)}</span>
+                                    <span style={{ fontWeight: 800, fontSize: 15 }}>{(t("demoData." + j.name) !== "demoData." + j.name ? t("demoData." + j.name) : j.name)}</span>
                                     <span style={{ fontSize: 11, padding: "2px 10px", borderRadius: 999, fontWeight: 700, background: j.status === "active" ? C.green + "20" : C.surface, color: j.status === "active" ? C.green : C.muted }}>
                                         {j.status === "active" ? t('journey.statusActive') : t('journey.statusDraft')}
                                     </span>

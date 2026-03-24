@@ -2,7 +2,7 @@
 // GENIE ROI — English
 // ────────────────────────────────────────────────────────────
 const en = {
-    demo: {
+    demoData: {
         "1 day": "1 day",
         "14 days": "14 days",
         "3 days": "3 days",

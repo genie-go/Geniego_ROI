@@ -2,7 +2,7 @@
 // GENIE ROI — 한국어 (Korean)
 // ────────────────────────────────────────────────────────────
 const ko = {
-    demo: {
+    demoData: {
         "Pause Campaign": "캠페인 일시정지",
         "Immediately pauses an ad campaign. High-risk action requiring mandatory approval.": "광고 캠페인을 즉시 일시정지합니다. 필수 승인이 필요한 고위험 액션입니다.",
         "Budget Cut": "예산 삭감",

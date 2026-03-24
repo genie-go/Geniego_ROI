@@ -280,7 +280,7 @@ function CampaignsTab() {
                         <div style={{ fontSize: 11, color: C.muted, marginBottom: 4 }}>대상 세그먼트</div>
                         <select value={form.segment_id} onChange={e => setForm(f => ({ ...f, segment_id: e.target.value }))} style={{ ...INPUT }}>
                             <option value="">All Customer (Phone 보유)</option>
-                            {segments.map(s => <option key={s.id} value={s.id}>{(t("demo." + s.name) !== "demo." + s.name ? t("demo." + s.name) : s.name)} ({s.member_count}명)</option>)}
+                            {segments.map(s => <option key={s.id} value={s.id}>{(t("demoData." + s.name) !== "demoData." + s.name ? t("demoData." + s.name) : s.name)} ({s.member_count}명)</option>)}
                         </select>
                     </div>
                 </div>
@@ -303,14 +303,14 @@ function CampaignsTab() {
                     <tbody>
                         {campaigns.map((c, i) => (
                             <tr key={c.id} style={{ borderTop: `1px solid ${C.border}`, background: i % 2 ? "#0a1520" : "transparent" }}>
-                                <td style={{ padding: "10px 16px", fontWeight: 600 }}>{(t("demo." + c.name) !== "demo." + c.name ? t("demo." + c.name) : c.name)}</td>
+                                <td style={{ padding: "10px 16px", fontWeight: 600 }}>{(t("demoData." + c.name) !== "demoData." + c.name ? t("demoData." + c.name) : c.name)}</td>
                                 <td style={{ padding: "10px 16px", color: C.muted }}>{c.template_name || c.template_code || "-"}</td>
                                 <td style={{ padding: "10px 16px", color: C.muted }}>{c.segment_name || "All"}</td>
                                 <td style={{ padding: "10px 16px" }}>{c.total?.toLocaleString() || 0}</td>
                                 <td style={{ padding: "10px 16px", color: C.green }}>{c.success || 0}</td>
                                 <td style={{ padding: "10px 16px", color: C.red }}>{c.failed || 0}</td>
                                 <td style={{ padding: "10px 16px" }}>
-                                    <span style={{ fontSize: 11, fontWeight: 700, color: STATUS_COLOR[c.status] || C.muted }}>●&nbsp;{(t("demo." + c.status) !== "demo." + c.status ? t("demo." + c.status) : c.status)}</span>
+                                    <span style={{ fontSize: 11, fontWeight: 700, color: STATUS_COLOR[c.status] || C.muted }}>●&nbsp;{(t("demoData." + c.status) !== "demoData." + c.status ? t("demoData." + c.status) : c.status)}</span>
                                 </td>
                                 <td style={{ padding: "10px 16px" }}>
                                     {c.status !== "sent" && (
@@ -373,7 +373,7 @@ function KakaoChannelContent() {
                             {DEMO_KAKAO_CAMPAIGNS.map(c => (
                                 <div key={c.id} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: "16px 20px" }}>
                                     <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-                                        <div style={{ fontWeight: 700, fontSize: 14 }}>{(t("demo." + c.name) !== "demo." + c.name ? t("demo." + c.name) : c.name)}</div>
+                                        <div style={{ fontWeight: 700, fontSize: 14 }}>{(t("demoData." + c.name) !== "demoData." + c.name ? t("demoData." + c.name) : c.name)}</div>
                                         <span style={{ fontSize: 11, padding: "3px 10px", borderRadius: 20, fontWeight: 700, background: c.status === "active" ? "rgba(34,197,94,0.15)" : "rgba(234,179,8,0.15)", color: c.status === "active" ? "#22c55e" : "#eab308" }}>{c.status === "active" ? "Active" : "예약"}</span>
                                     </div>
                                     <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8 }}>
