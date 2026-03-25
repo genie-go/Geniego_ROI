@@ -89,7 +89,7 @@ function BudgetPanel({ result, customBudget, setCustomBudget, budgetEditing, set
             <div style={{ padding: '10px 14px', borderRadius: 10, background: '#4f8ef70f', border: budgetEditing ? '1.5px solid #4f8ef7' : '1px solid #4f8ef722', textAlign: 'center', cursor: 'pointer' }}
                 onClick={() => { if (!budgetEditing) { setBudgetEditing(true); setBudgetInputVal(String(activeBudget)); } }}>
                 <div style={{ fontSize: 9, color: 'var(--text-3)', marginBottom: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
-                    Monthly Recommended Budget <span style={{ fontSize: 8, color: '#4f8ef7' }}>✏️ Edit</span>
+                    {t('gAiRec.monthlyRecBudget')} <span style={{ fontSize: 8, color: '#4f8ef7' }}>{t('gAiRec.edit')}</span>
                 </div>
                 {budgetEditing ? (
                     <input autoFocus type="number" value={budgetInputVal}
@@ -103,24 +103,24 @@ function BudgetPanel({ result, customBudget, setCustomBudget, budgetEditing, set
                 )}
                 {customBudget !== null && (
                     <div style={{ fontSize: 8, color: '#fbbf24', marginTop: 2 }}>
-                        Original: {result.monthly_budget}
+                        {t('gAiRec.original')} {result.monthly_budget}
                         <span style={{ marginLeft: 6, cursor: 'pointer', textDecoration: 'underline' }}
-                            onClick={e => { e.stopPropagation(); setCustomBudget(null); }}>Reset</span>
+                            onClick={e => { e.stopPropagation(); setCustomBudget(null); }}>{t('gAiRec.reset')}</span>
                     </div>
                 )}
             </div>
             <div style={{ padding: '10px 14px', borderRadius: 10, background: '#22c55e0f', border: '1px solid #22c55e22', textAlign: 'center' }}>
                 <div style={{ fontSize: 9, color: 'var(--text-3)', marginBottom: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
-                    Annual Recommended Budget <span style={{ fontSize: 8, color: '#22c55e' }}>&times;12 \uc790\ub3d9</span>
+                    {t('gAiRec.annualRecBudget')} <span style={{ fontSize: 8, color: '#22c55e' }}>{t('gAiRec.autoYear')}</span>
                 </div>
                 <div style={{ fontSize: 16, fontWeight: 900, color: '#22c55e' }}>{fmtWon(annualBudget)}</div>
                 {customBudget !== null && (
-                    <div style={{ fontSize: 8, color: '#fbbf24', marginTop: 2 }}>Original: {result.annual_budget}</div>
+                    <div style={{ fontSize: 8, color: '#fbbf24', marginTop: 2 }}>{t('gAiRec.original')} {result.annual_budget}</div>
                 )}
             </div>
             {result.expected_roas && (
                 <div style={{ padding: '10px 14px', borderRadius: 10, background: '#f973160f', border: '1px solid #f9731622', textAlign: 'center' }}>
-                    <div style={{ fontSize: 9, color: 'var(--text-3)', marginBottom: 4 }}>Expected ROAS</div>
+                    <div style={{ fontSize: 9, color: 'var(--text-3)', marginBottom: 4 }}>{t('gAiRec.expectedRoas')}</div>
                     <div style={{ fontSize: 16, fontWeight: 900, color: '#f97316' }}>{result.expected_roas}</div>
                 </div>
             )}
@@ -173,11 +173,11 @@ function ChannelAdCard({ ch, cr, color, icon, catLabel, regenLoad, onRegen, onDo
                 <div style={{ display: 'flex', gap: 6 }}>
                     <button onClick={() => onRegen(ch.channel_id)} disabled={regenLoad === ch.channel_id}
                         style={{ padding: '5px 12px', borderRadius: 7, border: `1px solid ${color}44`, background: color + '18', color, fontSize: 10, fontWeight: 700, cursor: 'pointer' }}>
-                        {regenLoad === ch.channel_id ? '\u23F3' : '🔄 Regenerate'}
+                        {regenLoad === ch.channel_id ? '\u23F3' : t('gAiRec.regen')}
                     </button>
                     <button onClick={() => onDownload(svgId, ch.channel_name)}
                         style={{ padding: '5px 12px', borderRadius: 7, border: `1px solid ${color}44`, background: 'transparent', color, fontSize: 10, fontWeight: 700, cursor: 'pointer' }}>
-                        ⬇ Save PNG
+                        {t('gAiRec.savePng')}
                     </button>
                 </div>
             </div>
@@ -225,7 +225,7 @@ function ChannelAdCard({ ch, cr, color, icon, catLabel, regenLoad, onRegen, onDo
                         onUpdate={(u) => onUpdate(ch.channel_id, u)} />
                     {cr.tips && (
                         <div style={{ marginTop: 10, padding: '8px 12px', borderRadius: 8, background: color + '0f', border: `1px solid ${color}22`, fontSize: 10, color: 'var(--text-2)', lineHeight: 1.6 }}>
-                            💡 Tip: {cr.tips}
+                            {t('gAiRec.tip')} {cr.tips}
                         </div>
                     )}
                 </div>
@@ -305,6 +305,7 @@ function AIRecommendTab() {
             : [...prev.salesChannels, ch]
     }));
 
+    const getSug = (s) => t('gSug.' + s.replace(/[^a-zA-Z]/g, ''), s);
     const SUGGESTIONS = cat.suggestions || [
         `${cat.label} Ads Marketing Recommend`, `${cat.label} per-channel budget allocation`,
         `${cat.label} SNS ads strategy`, `${cat.label} maximize ad efficiency`,
@@ -448,9 +449,9 @@ function AIRecommendTab() {
             {/* ── Header 타이틀 ── */}
             <div style={{ textAlign: 'center', padding: '8px 0 4px' }}>
                 <div style={{ fontSize: 22, fontWeight: 900, background: 'linear-gradient(135deg,#4f8ef7,#a855f7)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: 4 }}>
-                    🤖 AI Marketing Recommend & Automation Engine
+                    {t('gAiRec.title')}
                 </div>
-                <div style={{ fontSize: 11, color: 'var(--text-3)' }}>Claude AI analyzes optimal Channels, Budgets, and Ad creatives in one search</div>
+                <div style={{ fontSize: 11, color: 'var(--text-3)' }}>{t('gAiRec.subtitle')}</div>
             </div>
 
             {/* ── Category 칩 ── */}
@@ -462,7 +463,7 @@ function AIRecommendTab() {
                             background: catId === c.id ? c.color + '15' : 'transparent',
                             color: catId === c.id ? c.color : 'var(--text-3)', fontWeight: 800, fontSize: 12, cursor: 'pointer', transition: 'all 0.17s'
                         }}>
-                        {c.label} <span style={{ fontSize: 9, opacity: 0.7 }}>({c.route})</span>
+                        {t('gCat.' + c.id + '_label')} <span style={{ fontSize: 9, opacity: 0.7 }}>({t('gCat.' + c.id + '_route')})</span>
                     </button>
                 ))}
             </div>
@@ -471,15 +472,15 @@ function AIRecommendTab() {
             {!isForwardingType && (
                 <div className="card card-glass" style={{ padding: '14px 18px', border: `1px solid ${cat.color}22` }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                        <div style={{ fontWeight: 800, fontSize: 13, color: cat.color }}>{t('aiRec.salesInfo')}</div>
+                        <div style={{ fontWeight: 800, fontSize: 13, color: cat.color }}>{t('gAiRec.salesInfo')}</div>
                         {catalogStats && !productInfoEdited && (
                             <div style={{ fontSize: 9, padding: '2px 8px', borderRadius: 99, background: cat.color + '18', color: cat.color, border: `1px solid ${cat.color}33` }}>
-                                {t('aiRec.catalogAuto')}
+                                {t('gAiRec.catalogAuto')}
                             </div>
                         )}
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginBottom: 10 }}>
-                        {[[t('aiRec.skuCount'), 'skuCount', 'units'], [t('aiRec.monthlyQty'), 'monthlyQty', 'units'], [t('aiRec.avgPrice'), 'avgPrice', '₩'], [t('aiRec.marginRate'), 'marginRate', '%'], [t('aiRec.goalRevenue'), 'targetRevenue', '₩']].map(([lbl, key, unit]) => (
+                        {[[t('gAiRec.skuCount'), 'skuCount', t('gAiRec.units')], [t('gAiRec.monthlyQty'), 'monthlyQty', t('gAiRec.units')], [t('gAiRec.avgPrice'), 'avgPrice', t('gAiRec.currencyWon')], [t('gAiRec.marginRate'), 'marginRate', '%'], [t('gAiRec.goalRevenue'), 'targetRevenue', t('gAiRec.currencyWon')]].map(([lbl, key, unit]) => (
                             <div key={key}>
                                 <div style={{ fontSize: 9, color: 'var(--text-3)', marginBottom: 3 }}>{lbl}</div>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -490,7 +491,7 @@ function AIRecommendTab() {
                             </div>
                         ))}
                         <div>
-                            <div style={{ fontSize: 9, color: 'var(--text-3)', marginBottom: 3 }}>Period</div>
+                            <div style={{ fontSize: 9, color: 'var(--text-3)', marginBottom: 3 }}>{t('gAiRec.period')}</div>
                             <div style={{ display: 'flex', gap: 6 }}>
                                 {[['monthly', 'Monthly'], ['annual', 'Annual']].map(([v, l]) => (
                                     <button key={v} onClick={() => setProd('period', v)}
@@ -502,7 +503,7 @@ function AIRecommendTab() {
                         </div>
                     </div>
                     <div>
-                        <div style={{ fontSize: 9, color: 'var(--text-3)', marginBottom: 5 }}>{t('aiRec.mainChannels')}</div>
+                        <div style={{ fontSize: 9, color: 'var(--text-3)', marginBottom: 5 }}>{t('gAiRec.mainChannels')}</div>
                         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                             {['Naver Shopping', 'Coupang', 'Own Mall', '11Street', 'Gmarket', 'Kakao Shopping', 'Amazon', 'Rakuten'].map(ch => (
                                 <button key={ch} onClick={() => toggleSalesCh(ch)}
@@ -520,7 +521,7 @@ function AIRecommendTab() {
                 <input
                     value={searchQ} onChange={e => setSearchQ(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && runSearch()}
-                    placeholder={`e.g. "${SUGGESTIONS[0]}" or enter your marketing goal`}
+                    placeholder={`${t('gAiRec.searchPlaceholder').replace('{s}', getSug(SUGGESTIONS[0]))}`}
                     style={{
                         width: '100%', boxSizing: 'border-box',
                         padding: '14px 120px 14px 18px', borderRadius: 14,
@@ -538,14 +539,14 @@ function AIRecommendTab() {
                         background: status === 'loading' ? 'rgba(99,102,241,0.4)' : `linear-gradient(135deg,${cat.color},#6366f1)`,
                         color: '#fff', fontWeight: 800, fontSize: 12, transition: 'all 0.2s',
                     }}>
-                    {status === 'loading' ? '⏳' : '🔍 AI Analysis'}
+                    {status === 'loading' ? '⏳' : t('gAiRec.aiAnalysis')}
                 </button>
             </div>
 
             {/* Recommend Search어 */}
             {status === 'idle' && (
                 <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap' }}>
-                    <span style={{ fontSize: 10, color: 'var(--text-3)', marginRight: 2 }}>Recommend:</span>
+                    <span style={{ fontSize: 10, color: 'var(--text-3)', marginRight: 2 }}>{t('gAiRec.recommend')}</span>
                     {SUGGESTIONS.map(s => (
                         <button key={s} onClick={() => runSearch(s)}
                             style={{ padding: '3px 11px', borderRadius: 99, border: '1px solid rgba(120,140,200,0.2)', background: 'rgba(99,102,241,0.06)', color: 'var(--text-2)', fontSize: 10, cursor: 'pointer', transition: 'all 0.15s' }}>
@@ -559,9 +560,9 @@ function AIRecommendTab() {
             {status === 'loading' && (
                 <div style={{ padding: '44px 0', textAlign: 'center' }}>
                     <div style={{ fontSize: 38, marginBottom: 12 }}>🤖</div>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: '#6366f1', marginBottom: 5 }}>AI Marketing Analysis in progress...</div>
-                    <div style={{ fontSize: 11, color: 'var(--text-3)', marginBottom: 4 }}>"{searchQ}" — {cat.label} 최적 Channel·Budget·소재를 Analysis합니다</div>
-                    <div style={{ fontSize: 10, color: 'var(--text-3)', opacity: 0.7 }}>Claude AI → Expert knowledge base: gathering optimal data</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: '#6366f1', marginBottom: 5 }}>{t('gAiRec.analysisProgress')}</div>
+                    <div style={{ fontSize: 11, color: 'var(--text-3)', marginBottom: 4 }}>"{searchQ}" — {t('gCat.' + cat.id + '_label')} 최적 Channel·Budget·소재를 분석합니다</div>
+                    <div style={{ fontSize: 10, color: 'var(--text-3)', opacity: 0.7 }}>{t('gAiRec.gatheringData')}</div>
                 </div>
             )}
 

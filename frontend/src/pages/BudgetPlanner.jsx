@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from "react";
 import MarketingAIPanel from '../components/MarketingAIPanel.jsx';
 import { useGlobalData } from '../context/GlobalDataContext.jsx';
+import { useT } from '../i18n/index.js';
 import { useAuth } from '../auth/AuthContext.jsx';
 import DemoBanner from '../components/DemoBanner';
 import { useNavigate } from 'react-router-dom';
@@ -45,7 +46,8 @@ const MONTHLY_BUDGET = [
 ];
 
 /* ══ Channel Budget Tab — GlobalDataContext ══════════════════════════ */
-function ChannelBudgetTab({ channelBudgets, useBudget, setBudget }) {
+function ChannelBudgetTab({ channelBudgets, useBudget, setBudget }) { 
+    const t = useT();
     const { isDemo } = useAuth();
     const { fmt } = useCurrency();
     const [editingId, setEditingId] = useState(null);
@@ -59,14 +61,14 @@ function ChannelBudgetTab({ channelBudgets, useBudget, setBudget }) {
 
     const applyBudget = (id) => {
         const val = Number(editVal.replace(/[^0-9]/g, ''));
-        if (isDemo) { alert('📌 Demo mode: Budget changes only take effect on paid plans.'); setEditingId(null); return; }
+        if (isDemo) { alert(t('gBudget.d1')); setEditingId(null); return; }
         if (val > 0) setBudget(id, val);
         setEditingId(null);
     };
 
     const applySpend = (id) => {
         const val = Number(allocAmt.replace(/[^0-9]/g, ''));
-        if (isDemo) { alert('📌 Demo mode: Ad spend execution only applies on paid plans.'); setAllocating(null); setAllocAmt(""); return; }
+        if (isDemo) { alert(t('gBudget.d2')); setAllocating(null); setAllocAmt(""); return; }
         if (val > 0) useBudget(id, val);
         setAllocating(null);
         setAllocAmt("");
@@ -76,14 +78,14 @@ function ChannelBudgetTab({ channelBudgets, useBudget, setBudget }) {
         <div style={{ display: "grid", gap: 16 }}>
             {isDemo && <DemoBanner feature="Ad Budget Execution" />}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 10 }}>
-                <KpiCard label="Total Allocated Budget" value={fmt(total)} color="#4f8ef7" icon="💰" />
-                <KpiCard label="Total Spent" value={fmt(totalSpent)} sub={pct(totalSpent / total) + " spent"} color="#f97316" icon="📊" />
-                <KpiCard label="Remaining Budget" value={fmt(total - totalSpent)} color="#22c55e" icon="💵" />
-                <KpiCard label="Channels" value={channels.length.toString()} color="#a855f7" icon="📣" />
+                <KpiCard label={t("gBudget.totalAlloc")} value={fmt(total)} color="#4f8ef7" icon="💰" />
+                <KpiCard label={t("gBudget.totalSpent")} value={fmt(totalSpent)} sub={pct(totalSpent / total) + ` ${t("gBudget.spentTxt")}`} color="#f97316" icon="📊" />
+                <KpiCard label={t("gBudget.remainBudget")} value={fmt(total - totalSpent)} color="#22c55e" icon="💵" />
+                <KpiCard label={t("gBudget.chCount")} value={channels.length.toString()} color="#a855f7" icon="📣" />
             </div>
 
             <div className="card card-glass" style={{ padding: 20 }}>
-                <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 16 }}>💰 Channel Budget Allocation &amp; Burn Rate</div>
+                <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 16 }}>💰 {t("gBudget.chAllocTitle")}</div>
                 <div style={{ display: "grid", gap: 14 }}>
                     {channels.map(c => {
                         const spentPct = c.spent / c.budget;
@@ -95,7 +97,7 @@ function ChannelBudgetTab({ channelBudgets, useBudget, setBudget }) {
                                     <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
                                         <span style={{ fontSize: 16 }}>{c.icon}</span>
                                         <span style={{ fontWeight: 700, color: c.color }}>{c.name}</span>
-                                        {alert && <Tag label="⚠ Budget Low" color="#eab308" />}
+                                        {alert && <Tag label={`⚠ ${t("gBudget.lowBudget")}`} color="#eab308" />}
                                         <Tag label={roasOk ? `ROAS ${c.roas}x ✓` : `ROAS ${c.roas}x ✗`} color={roasOk ? "#22c55e" : "#ef4444"} />
                                     </div>
                                     <div style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 12 }}>
@@ -113,14 +115,14 @@ function ChannelBudgetTab({ channelBudgets, useBudget, setBudget }) {
                                 <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
                                     {allocating === c.id ? (
                                         <>
-                                            <input value={allocAmt} onChange={e => setAllocAmt(e.target.value)} placeholder="Enter amount to spend"
+                                            <input value={allocAmt} onChange={e => setAllocAmt(e.target.value)} placeholder={t("gBudget.enterAmt")}
                                                 style={{ flex: 1, maxWidth: 150, padding: "4px 8px", borderRadius: 6, background: "rgba(0,0,0,0.4)", border: "1px solid rgba(255,193,7,0.4)", color: "#fff", fontSize: 11 }} />
-                                            <button onClick={() => applySpend(c.id)} style={{ padding: "4px 12px", borderRadius: 6, background: "#eab308", border: "none", color: "#000", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>Execute</button>
-                                            <button onClick={() => setAllocating(null)} style={{ padding: "4px 10px", borderRadius: 6, background: "transparent", border: "1px solid rgba(255,255,255,0.15)", color: "var(--text-3)", fontSize: 11, cursor: "pointer" }}>Cancel</button>
+                                            <button onClick={() => applySpend(c.id)} style={{ padding: "4px 12px", borderRadius: 6, background: "#eab308", border: "none", color: "#000", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>{t("gBudget.execute")}</button>
+                                            <button onClick={() => setAllocating(null)} style={{ padding: "4px 10px", borderRadius: 6, background: "transparent", border: "1px solid rgba(255,255,255,0.15)", color: "var(--text-3)", fontSize: 11, cursor: "pointer" }}>{t("gBudget.cancel")}</button>
                                         </>
                                     ) : (
                                         <button onClick={() => setAllocating(c.id)} style={{ padding: "4px 12px", borderRadius: 6, background: "rgba(79,142,247,0.1)", border: "1px solid rgba(79,142,247,0.2)", color: "#4f8ef7", fontSize: 10, fontWeight: 600, cursor: "pointer" }}>
-                                            + Execute Ad Spend
+                                            + {t("gBudget.execAdSpend")}
                                         </button>
                                     )}
                                 </div>
@@ -131,12 +133,12 @@ function ChannelBudgetTab({ channelBudgets, useBudget, setBudget }) {
             </div>
 
             <div className="card card-glass" style={{ padding: 20 }}>
-                <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 14 }}>📊 Channel Performance Details</div>
+                <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 14 }}>📊 {t("gBudget.perfTitle")}</div>
                 <div style={{ overflowX: "auto" }}>
                     <table className="table">
                         <thead>
                             <tr>
-                                <th>Channel</th>
+                                <th>{t("gBudget.colChannel")}</th>
                                 <th style={{ textAlign: "right" }}>Budget</th>
                                 <th style={{ textAlign: "right" }}>Spent</th>
                                 <th style={{ textAlign: "right" }}>Remaining</th>
@@ -162,7 +164,7 @@ function ChannelBudgetTab({ channelBudgets, useBudget, setBudget }) {
                                             <span style={{ color: spentPct > 0.85 ? "#eab308" : "var(--text-2)", fontWeight: 700 }}>{pct(spentPct)}</span>
                                         </td>
                                         <td style={{ textAlign: "center" }}>
-                                            <Tag label={roasOk ? "✓ Achieved" : "✗ Below"} color={roasOk ? "#22c55e" : "#ef4444"} />
+                                            <Tag label={roasOk ? `✓ ${t("gBudget.achieved")}` : `✗ ${t("gBudget.below")}`} color={roasOk ? "#22c55e" : "#ef4444"} />
                                         </td>
                                     </tr>
                                 );
@@ -182,12 +184,12 @@ function MonthlyBudgetTab({ totalBudget }) {
     return (
         <div style={{ display: "grid", gap: 16 }}>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 10 }}>
-                <KpiCard label="Annual Total Budget" value={fmt(totalMonthly)} color="#4f8ef7" icon="📅" />
-                <KpiCard label="Cumulative Spend" value={fmt(totalSpent)} sub={pct(totalSpent / totalMonthly) + " spent"} color="#f97316" icon="📊" />
-                <KpiCard label="Ad Channel Total Budget" value={fmt(totalBudget)} color="#22c55e" icon="💰" sub="Live from GlobalDataContext" />
+                <KpiCard label={t("gBudget.annualTotal")} value={fmt(totalMonthly)} color="#4f8ef7" icon="📅" />
+                <KpiCard label={t("gBudget.cumulSpent")} value={fmt(totalSpent)} sub={pct(totalSpent / totalMonthly) + ` ${t("gBudget.spentTxt")}`} color="#f97316" icon="📊" />
+                <KpiCard label={t("gBudget.adTotal")} value={fmt(totalBudget)} color="#22c55e" icon="💰" sub={t("gBudget.liveData")} />
             </div>
             <div className="card card-glass" style={{ padding: 20 }}>
-                <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 16 }}>📅 Monthly Budget Status (2026)</div>
+                <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 16 }}>📅 {t("gBudget.monthlyStatus")}</div>
                 <div style={{ display: "grid", gap: 12 }}>
                     {MONTHLY_BUDGET.map(m => {
                         const isPast = m.spent > 0;
@@ -201,7 +203,7 @@ function MonthlyBudgetTab({ totalBudget }) {
                                         {isPast ? (
                                             <><span style={{ color, fontWeight: 700 }}>{fmt(m.spent)}</span> / {fmt(m.budget)} <span style={{ color }}>{pct(spentPct)}</span></>
                                         ) : (
-                                            <span style={{ color: "var(--text-3)" }}>Budget: {fmt(m.budget)} (pending)</span>
+                                            <span style={{ color: "var(--text-3)" }}>{t("gBudget.lblBudget")}: {fmt(m.budget)} ({t("gBudget.pending")})</span>
                                         )}
                                     </span>
                                 </div>
@@ -233,13 +235,13 @@ function PaymentCardTab({ paymentCards, addPaymentCard, removePaymentCard, setDe
 
     const handleSave = () => {
         if (isDemo) {
-            alert('📌 Demo mode: Real cards can only be added on paid plans. Virtual cards are used in demo.');
+            alert(t('gBudget.d3'));
             setAdding(false);
             return;
         }
         const num = form.number.replace(/\s/g, '');
-        if (num.length < 12) return alert('Please enter a valid card number');
-        if (!form.expiry.includes('/')) return alert('Please enter expiry in MM/YY format');
+        if (num.length < 12) return alert(t('gBudget.e1'));
+        if (!form.expiry.includes('/')) return alert(t('gBudget.e2'));
         addPaymentCard({
             alias: form.alias || (form.network.toUpperCase() + ' Card'),
             number: '****-****-****-' + num.slice(-4),
@@ -258,10 +260,10 @@ function PaymentCardTab({ paymentCards, addPaymentCard, removePaymentCard, setDe
         <div style={{ display: 'grid', gap: 18 }}>
             {/* Info Banner */}
             <div style={{ padding: '14px 18px', borderRadius: 12, background: 'linear-gradient(135deg,rgba(79,142,247,0.1),rgba(168,85,247,0.08))', border: '1px solid rgba(79,142,247,0.2)' }}>
-                <div style={{ fontWeight: 800, fontSize: 13, marginBottom: 4 }}>💳 Ad Payment Card Management</div>
+                <div style={{ fontWeight: 800, fontSize: 13, marginBottom: 4 }}>💳 {t("gBudget.cTitle")}</div>
                 <div style={{ fontSize: 11, color: 'var(--text-2)', lineHeight: 1.6 }}>
-                    Registered cards are used for automatic execution after AI marketing recommendation approval.<br />
-                    The default card is auto-charged within the approved ad spend limit.
+                    {t("gBudget.cDesc1")}<br />
+                    {t("gBudget.cDesc2")}
                 </div>
             </div>
 
@@ -280,12 +282,12 @@ function PaymentCardTab({ paymentCards, addPaymentCard, removePaymentCard, setDe
                                         <div>
                                             <div style={{ fontWeight: 700, fontSize: 13 }}>{card.alias}</div>
                                             <div style={{ fontSize: 11, color: 'var(--text-3)', fontFamily: 'monospace' }}>{card.number} · {card.expiry}</div>
-                                            {card.limit > 0 && <div style={{ fontSize: 10, color: 'var(--text-3)' }}>Monthly limit {fmt(card.limit)}</div>}
+                                            {card.limit > 0 && <div style={{ fontSize: 10, color: 'var(--text-3)' }}>{t('gBudget.monLimit')} {fmt(card.limit)}</div>}
                                         </div>
                                     </div>
                                     <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
                                         {card.isDefault ? (
-                                            <span style={{ fontSize: 10, padding: '3px 10px', borderRadius: 99, background: 'rgba(79,142,247,0.15)', color: '#4f8ef7', border: '1px solid rgba(79,142,247,0.3)', fontWeight: 700 }}>⭐ Default Card</span>
+                                            <span style={{ fontSize: 10, padding: '3px 10px', borderRadius: 99, background: 'rgba(79,142,247,0.15)', color: '#4f8ef7', border: '1px solid rgba(79,142,247,0.3)', fontWeight: 700 }}>⭐ {t("gBudget.cDefault")}</span>
                                         ) : (
                                             <button onClick={() => setDefaultCard(card.id)}
                                                 style={{ fontSize: 10, padding: '3px 10px', borderRadius: 99, border: '1px solid rgba(255,255,255,0.1)', background: 'transparent', color: 'var(--text-3)', cursor: 'pointer' }}>
@@ -293,7 +295,7 @@ function PaymentCardTab({ paymentCards, addPaymentCard, removePaymentCard, setDe
                                             </button>
                                         )}
                                         {card.totalCharged > 0 && (
-                                            <span style={{ fontSize: 10, color: '#f97316' }}>Charged {fmt(card.totalCharged)}</span>
+                                            <span style={{ fontSize: 10, color: '#f97316' }}>{t('gBudget.charged')} {fmt(card.totalCharged)}</span>
                                         )}
                                         <button onClick={() => removePaymentCard(card.id)}
                                             style={{ fontSize: 10, padding: '3px 10px', borderRadius: 99, border: '1px solid rgba(239,68,68,0.2)', background: 'rgba(239,68,68,0.06)', color: '#ef4444', cursor: 'pointer' }}>
@@ -311,17 +313,17 @@ function PaymentCardTab({ paymentCards, addPaymentCard, removePaymentCard, setDe
             {paymentCards.length === 0 && !adding && (
                 <div style={{ padding: '40px 20px', textAlign: 'center', color: 'var(--text-3)', fontSize: 13 }}>
                     <div style={{ fontSize: 36, marginBottom: 10 }}>💳</div>
-                    No payment cards registered.<br />
-                    <span style={{ fontSize: 11 }}>Add a card to enable automatic ad spend execution after AI approval.</span>
+                    {t("gBudget.cNoCard")}<br />
+                    <span style={{ fontSize: 11 }}>{t("gBudget.cNoCard2")}</span>
                 </div>
             )}
 
             {/* Add Card Form */}
             {adding ? (
                 <div className="card card-glass" style={{ padding: 20, border: '1px solid rgba(79,142,247,0.3)' }}>
-                    <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 16 }}>➕ Register New Payment Card</div>
+                    <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 16 }}>➕ {t("gBudget.cReg")}</div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
-                        {[['Card Alias', 'alias', 'text', 'e.g. Corporate VISA'], ['Card Number', 'number', 'text', '0000 0000 0000 0000'], ['Expiry', 'expiry', 'text', 'MM/YY'], ['CVC', 'cvc', 'password', '***'], ['Monthly Limit (₩)', 'limit', 'number', 'e.g. 10000000']].map(([lbl, key, type, ph]) => (
+                        {[[[t('gBudget.fAlias'), 'alias', 'text', 'e.g. Corporate VISA'], [t('gBudget.fNum'), 'number', 'text', '0000 0000 0000 0000'], [t('gBudget.fExp'), 'expiry', 'text', 'MM/YY'], ['CVC', 'cvc', 'password', '***'], [t('gBudget.fLim'), 'limit', 'number', 'e.g. 10000000']]].map(([lbl, key, type, ph]) => (
                             <div key={key}>
                                 <div style={{ fontSize: 10, color: 'var(--text-3)', marginBottom: 4 }}>{lbl}</div>
                                 <input type={type} value={form[key]} placeholder={ph}
@@ -331,7 +333,7 @@ function PaymentCardTab({ paymentCards, addPaymentCard, removePaymentCard, setDe
                             </div>
                         ))}
                         <div>
-                            <div style={{ fontSize: 10, color: 'var(--text-3)', marginBottom: 4 }}>Card Network</div>
+                            <div style={{ fontSize: 10, color: 'var(--text-3)', marginBottom: 4 }}>{t("gBudget.cNet")}</div>
                             <div style={{ display: 'flex', gap: 6 }}>
                                 {CARD_NETWORKS.map(n => (
                                     <button key={n.id} onClick={() => setF('network', n.id)}
@@ -345,22 +347,22 @@ function PaymentCardTab({ paymentCards, addPaymentCard, removePaymentCard, setDe
                     <div style={{ display: 'flex', gap: 8 }}>
                         <button onClick={handleSave}
                             style={{ padding: '9px 20px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg,#4f8ef7,#6366f1)', color: '#fff', fontWeight: 700, fontSize: 12, cursor: 'pointer' }}>
-                            💳 Register Card
+                            💳 {t("gBudget.btnReg")}
                         </button>
                         <button onClick={() => setAdding(false)}
                             style={{ padding: '9px 16px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.1)', background: 'transparent', color: 'var(--text-3)', fontSize: 12, cursor: 'pointer' }}>
                             Cancel
                         </button>
                     </div>
-                    <div style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 10 }}>🔒 Card info is encrypted. CVC is not stored.</div>
+                    <div style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 10 }}>🔒 {t("gBudget.cSecure")}</div>
                 </div>
             ) : (
                 <div style={{ display: 'flex', gap: 10 }}>
                     <button onClick={() => setAdding(true)}
                         style={{ padding: '10px 20px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg,#4f8ef7,#6366f1)', color: '#fff', fontWeight: 700, fontSize: 12, cursor: 'pointer' }}>
-                        + Add Payment Card
+                        + {t("gBudget.btnAdd")}
                     </button>
-                    {saved && <span style={{ fontSize: 11, color: '#22c55e', alignSelf: 'center' }}>✅ Card registered!</span>}
+                    {saved && <span style={{ fontSize: 11, color: '#22c55e', alignSelf: 'center' }}>✅ {t("gBudget.cAdded")}</span>}
                 </div>
             )}
         </div>
@@ -368,10 +370,10 @@ function PaymentCardTab({ paymentCards, addPaymentCard, removePaymentCard, setDe
 }
 
 const TABS = [
-    { id: "channel", label: "📊 Channel Budget" },
-    { id: "monthly", label: "📅 Monthly Status" },
-    { id: "card", label: "💳 Payment Cards" },
-    { id: "ai", label: "🤖 AI Analysis" },
+    { id: "channel", label: `📊 ${t("gBudget.tabChannel")}` },
+    { id: "monthly", label: `📅 ${t("gBudget.tabMonthly")}` },
+    { id: "card", label: `💳 ${t("gBudget.tabCard")}` },
+    { id: "ai", label: `🤖 ${t("gBudget.tabAi")}` },
 ];
 
 export default function BudgetPlanner() {
@@ -403,26 +405,26 @@ export default function BudgetPlanner() {
             <div className="card card-glass fade-up" style={{ padding: "18px 22px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
                     <div>
-                        <div style={{ fontWeight: 900, fontSize: 22 }}>💰 Ad Budget Planner</div>
-                        <div style={{ fontSize: 11, color: "var(--text-3)", marginTop: 4 }}>Channel budget allocation · Real-time ad spend · AI reallocation simulation</div>
+                        <div style={{ fontWeight: 900, fontSize: 22 }}>{t("gBudget.title")}</div>
+                        <div style={{ fontSize: 11, color: "var(--text-3)", marginTop: 4 }}>{t("gBudget.subtitle")}</div>
                     </div>
                     <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
                         {/* Real-time P&L Summary */}
                         <div style={{ padding: "6px 14px", borderRadius: 10, background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.2)", fontSize: 11 }}>
-                            <span style={{ color: "var(--text-3)" }}>Revenue: </span>
+                            <span style={{ color: "var(--text-3)" }}>{t("gBudget.revenue")}: </span>
                             <span style={{ color: "#22c55e", fontWeight: 700 }}>{fmt(pnlStats.revenue)}</span>
                         </div>
                         <div style={{ padding: "6px 14px", borderRadius: 10, background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", fontSize: 11 }}>
-                            <span style={{ color: "var(--text-3)" }}>Ad Spend: </span>
+                            <span style={{ color: "var(--text-3)" }}>{t("gBudget.adSpeed")}: </span>
                             <span style={{ color: "#ef4444", fontWeight: 700 }}>{fmt(budgetStats.totalSpent)}</span>
                         </div>
                         <div style={{ padding: "6px 14px", borderRadius: 10, background: "rgba(79,142,247,0.08)", border: "1px solid rgba(79,142,247,0.2)", fontSize: 11 }}>
-                            <span style={{ color: "var(--text-3)" }}>Remaining: </span>
+                            <span style={{ color: "var(--text-3)" }}>{t("gBudget.remain")}: </span>
                             <span style={{ color: "#4f8ef7", fontWeight: 700 }}>{fmt(budgetStats.remaining)}</span>
                         </div>
-                        <button onClick={() => navigate('/channel-kpi')} style={{ padding: "8px 14px", borderRadius: 10, border: "1px solid rgba(99,140,255,0.2)", cursor: "pointer", background: "transparent", color: "var(--text-3)", fontSize: 11, fontWeight: 600 }}>📊 Channel KPI →</button>
-                        <button onClick={() => navigate('/campaign-manager')} style={{ padding: "8px 14px", borderRadius: 10, border: "1px solid rgba(99,140,255,0.2)", cursor: "pointer", background: "transparent", color: "var(--text-3)", fontSize: 11, fontWeight: 600 }}>🎯 Campaign Manager →</button>
-                        <button onClick={() => navigate('/wms')} style={{ padding: "8px 14px", borderRadius: 10, border: "1px solid rgba(99,140,255,0.2)", cursor: "pointer", background: "transparent", color: "var(--text-3)", fontSize: 11, fontWeight: 600 }}>🏭 Inventory →</button>
+                        <button onClick={() => navigate('/channel-kpi')} style={{ padding: "8px 14px", borderRadius: 10, border: "1px solid rgba(99,140,255,0.2)", cursor: "pointer", background: "transparent", color: "var(--text-3)", fontSize: 11, fontWeight: 600 }}>📊 {t("gBudget.kpi")} →</button>
+                        <button onClick={() => navigate('/campaign-manager')} style={{ padding: "8px 14px", borderRadius: 10, border: "1px solid rgba(99,140,255,0.2)", cursor: "pointer", background: "transparent", color: "var(--text-3)", fontSize: 11, fontWeight: 600 }}>🎯 {t("gBudget.mgr")} →</button>
+                        <button onClick={() => navigate('/wms')} style={{ padding: "8px 14px", borderRadius: 10, border: "1px solid rgba(99,140,255,0.2)", cursor: "pointer", background: "transparent", color: "var(--text-3)", fontSize: 11, fontWeight: 600 }}>🏭 {t("gBudget.inv")} →</button>
                     </div>
                 </div>
             </div>

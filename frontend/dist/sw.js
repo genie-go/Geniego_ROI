@@ -1,11 +1,9 @@
-/* ═══════════════════════════════════════════════
-   Geniego-ROI Service Worker
-   - App Shell 캐싱 (오프라인 지원)
-   - 배경 동기화
-   - 푸시 알림
-   ═══════════════════════════════════════════════ */
+/* ?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═??   Geniego-ROI Service Worker
+   - App Shell 캐싱 (?�프?�인 지??
+   - 배경 ?�기??   - ?�시 ?�림
+   ?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═??*/
 
-/* ── 개발 환경(localhost)에서는 SW 즉시 비활성화 ── */
+/* ?�?� 개발 ?�경(localhost)?�서??SW 즉시 비활?�화 ?�?� */
 if (self.location.hostname === 'localhost' || self.location.hostname === '127.0.0.1') {
   self.addEventListener('install', () => self.skipWaiting());
   self.addEventListener('activate', (e) => {
@@ -14,16 +12,16 @@ if (self.location.hostname === 'localhost' || self.location.hostname === '127.0.
         .then(() => clients.claim())
     );
   });
-  // 개발 환경에서는 모든 요청을 그대로 네트워크로 통과
+  // 개발 ?�경?�서??모든 ?�청??그�?�??�트?�크�??�과
   self.addEventListener('fetch', () => { return; });
-  /* 이하 코드 실행 안 함 */
+  /* ?�하 코드 ?�행 ????*/
 } else {
 
-const CACHE_NAME = 'geniego-roi-v5';
+const CACHE_NAME = 'geniego-roi-v12';
 
 const OFFLINE_URL = '/offline.html';
 
-/* ── 앱 셸 파일 목록 ─────────────────────────── */
+/* ?�?� ?????�일 목록 ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */
 const APP_SHELL = [
   '/',
   '/manifest.json',
@@ -32,19 +30,19 @@ const APP_SHELL = [
   '/mobile.css',
 ];
 
-/* ── 설치 ──────────────────────────────────────── */
+/* ?�?� ?�치 ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */
 self.addEventListener('install', (e) => {
   e.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(APP_SHELL).catch(() => {
-        /* 일부 리소스 실패해도 설치 계속 */
+        /* ?��? 리소???�패?�도 ?�치 계속 */
       });
     })
   );
   self.skipWaiting();
 });
 
-/* ── 활성화 ────────────────────────────────────── */
+/* ?�?� ?�성???�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys().then((names) =>
@@ -58,12 +56,12 @@ self.addEventListener('activate', (e) => {
   clients.claim();
 });
 
-/* ── Fetch 처리 ─────────────────────────────────── */
+/* ?�?� Fetch 처리 ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */
 self.addEventListener('fetch', (e) => {
   const { request } = e;
   const url = new URL(request.url);
 
-  /* API 요청은 캐시 제외 (항상 네트워크) */
+  /* API ?�청?� 캐시 ?�외 (??�� ?�트?�크) */
   if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/v4')) {
     e.respondWith(
       fetch(request).catch(() => {
@@ -76,7 +74,7 @@ self.addEventListener('fetch', (e) => {
     return;
   }
 
-  /* 네트워크 우선, 실패 시 캐시 */
+  /* ?�트?�크 ?�선, ?�패 ??캐시 */
   e.respondWith(
     fetch(request)
       .then((response) => {
@@ -91,7 +89,7 @@ self.addEventListener('fetch', (e) => {
       .catch(() => {
         return caches.match(request).then((cached) => {
           if (cached) return cached;
-          /* HTML 요청은 앱 루트로 */
+          /* HTML ?�청?� ??루트�?*/
           if (request.headers.get('accept')?.includes('text/html')) {
             return caches.match('/');
           }
@@ -101,18 +99,18 @@ self.addEventListener('fetch', (e) => {
   );
 });
 
-/* ── 푸시 알림 ──────────────────────────────────── */
+/* ?�?� ?�시 ?�림 ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */
 self.addEventListener('push', (e) => {
   const data = e.data?.json() ?? {};
   const title = data.title || 'Geniego-ROI';
   const options = {
-    body: data.body || '새로운 알림이 있습니다.',
+    body: data.body || '?�로???�림???�습?�다.',
     icon: '/icon-192.png',
     badge: '/icon-192.png',
     data: { url: data.url || '/' },
     actions: [
-      { action: 'open', title: '확인' },
-      { action: 'close', title: '닫기' },
+      { action: 'open', title: '?�인' },
+      { action: 'close', title: '?�기' },
     ],
     vibrate: [200, 100, 200],
     requireInteraction: false,
@@ -120,7 +118,7 @@ self.addEventListener('push', (e) => {
   e.waitUntil(self.registration.showNotification(title, options));
 });
 
-/* ── 알림 클릭 ──────────────────────────────────── */
+/* ?�?� ?�림 ?�릭 ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */
 self.addEventListener('notificationclick', (e) => {
   e.notification.close();
   if (e.action === 'close') return;
@@ -138,7 +136,7 @@ self.addEventListener('notificationclick', (e) => {
   );
 });
 
-/* ── 배경 동기화 ─────────────────────────────────── */
+/* ?�?� 배경 ?�기???�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */
 self.addEventListener('sync', (e) => {
   if (e.tag === 'background-sync') {
     e.waitUntil(

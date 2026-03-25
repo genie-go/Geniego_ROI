@@ -287,22 +287,22 @@ function OverviewTab({ skuPnL, anomalies }) {
         <div style={{ display: "grid", gap: 16 }}>
             {/* Main KPIs */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))", gap: 10 }}>
-                <KpiCard label="{t('pnl.p_1')}" value={"\u20a9" + fmtM(totalGross)} color="#4f8ef7" icon="💰" />
-                <KpiCard label="{t('pnl.p_2')}" value={"\u20a9" + fmtM(totalAdSpend)} color="#f97316" icon="📣" sub={pct(totalAdSpend, totalGross)} />
-                <KpiCard label="{t('pnl.p_3')}" value={"\u20a9" + fmtM(totalFees)} color="#ef4444" icon="🏪" sub={pct(totalFees, totalGross)} />
-                <KpiCard label="{t('pnl.p_14')}" value={"\u20a9" + fmtM(totalInfCost)} color="#a855f7" icon="🤝" />
-                <KpiCard label="{t('pnl.p_5')}" value={"\u20a9" + fmtM(totalNet)} color="#22c55e" icon="✅" />
-                <KpiCard label="{t('pnl.p_6')}" value={"\u20a9" + fmtM(totalProfit)} color={totalProfit >= 0 ? "#22c55e" : "#ef4444"} icon="📊"
+                <KpiCard label={t('pnl.p_1')} value={"\u20a9" + fmtM(totalGross)} color="#4f8ef7" icon="💰" />
+                <KpiCard label={t('pnl.p_2')} value={"\u20a9" + fmtM(totalAdSpend)} color="#f97316" icon="📣" sub={pct(totalAdSpend, totalGross)} />
+                <KpiCard label={t('pnl.p_3')} value={"\u20a9" + fmtM(totalFees)} color="#ef4444" icon="🏪" sub={pct(totalFees, totalGross)} />
+                <KpiCard label={t('pnl.p_14')} value={"\u20a9" + fmtM(totalInfCost)} color="#a855f7" icon="🤝" />
+                <KpiCard label={t('pnl.p_5')} value={"\u20a9" + fmtM(totalNet)} color="#22c55e" icon="✅" />
+                <KpiCard label={t('pnl.p_6')} value={"\u20a9" + fmtM(totalProfit)} color={totalProfit >= 0 ? "#22c55e" : "#ef4444"} icon="📊"
                     sub={pct(totalProfit, totalGross) + " margin"} alert={totalProfit < 0} />
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))", gap: 10 }}>
-                <KpiCard label="{t('pnl.p_7')}" value={totalOrders.toLocaleString() + " orders"} color="#4f8ef7" icon="🛒" />
-                <KpiCard label="{t('pnl.p_8')}" value={totalReturns + " orders"} color={totalReturns / totalOrders > 0.12 ? "#ef4444" : "#eab308"}
+                <KpiCard label={t('pnl.p_7')} value={totalOrders.toLocaleString() + " orders"} color="#4f8ef7" icon="🛒" />
+                <KpiCard label={t('pnl.p_8')} value={totalReturns + " orders"} color={totalReturns / totalOrders > 0.12 ? "#ef4444" : "#eab308"}
                     icon="↩" sub={pct(totalReturns, totalOrders) + " return rate"}
                     alert={totalReturns / totalOrders > 0.12} />
-                <KpiCard label="{t('pnl.p_9')}" value={anomalies.length + " items"} color="#ef4444" icon="⚠"
+                <KpiCard label={t('pnl.p_9')} value={anomalies.length + " items"} color="#ef4444" icon="⚠"
                     sub={anomalies.filter(a => a.level === "high").length + " immediate actions"} alert={anomalies.length > 0} />
-                <KpiCard label="{t('pnl.p_10')}" value={r2(skuPnL.reduce((s, p) => s + p.adRevenue, 0) / totalAdSpend) + "x"}
+                <KpiCard label={t('pnl.p_10')} value={r2(skuPnL.reduce((s, p) => s + p.adRevenue, 0) / totalAdSpend) + "x"}
                     color="#eab308" icon="📈" />
             </div>
 
@@ -311,7 +311,7 @@ function OverviewTab({ skuPnL, anomalies }) {
                 <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 16 }}>🌊 P&L Waterfall — 3-Domain Integrated</div>
                 <div style={{ display: "grid", gap: 8 }}>
                     {[
-                        ["{t('pnl.p_1')}", totalGross, "#4f8ef7", false],
+                        [t('pnl.p_1'), totalGross, "#4f8ef7", false],
                         ["(-) Ad Spend", -totalAdSpend, "#f97316", false],
                         ["(-) Platform Fee", -totalFees, "#ef4444", false],
                         ["(-) Influencer", -totalInfCost, "#a855f7", false],
@@ -346,13 +346,13 @@ function OverviewTab({ skuPnL, anomalies }) {
                     {
                         label: "📣 Ad Domain", icon: "📣", color: "#f97316",
                         rows: [["Total Ad Spend", fmt(totalAdSpend)], ["Contributed Revenue", fmt(skuPnL.reduce((s, p) => s + p.adRevenue, 0))],
-                        ["{t('pnl.p_10')}", r2(skuPnL.reduce((s, p) => s + p.adRevenue, 0) / totalAdSpend) + "x"],
+                        [t('pnl.p_10'), r2(skuPnL.reduce((s, p) => s + p.adRevenue, 0) / totalAdSpend) + "x"],
                         ["Campaigns", ADS.length + " active"]]
                     },
                     {
                         label: "🏪 Market Domain", icon: "🏪", color: "#ef4444",
-                        rows: [["{t('pnl.p_7')}", totalOrders + " orders"], ["{t('pnl.p_8')}", totalReturns + " (" + pct(totalReturns, totalOrders) + ")"],
-                        ["{t('pnl.p_3')}", fmt(totalFees)], ["{t('pnl.p_5')}", fmt(totalNet)]]
+                        rows: [[t('pnl.p_7'), totalOrders + " orders"], [t('pnl.p_8'), totalReturns + " (" + pct(totalReturns, totalOrders) + ")"],
+                        [t('pnl.p_3'), fmt(totalFees)], [t('pnl.p_5'), fmt(totalNet)]]
                     },
                     {
                         label: "🤝 Influencer", icon: "🤝", color: "#a855f7",
@@ -428,7 +428,7 @@ function PnLTab({ skuPnL }) {
     return (
         <div style={{ display: "grid", gap: 16 }}>
             <div style={{ display: "flex", gap: 6 }}>
-                {[["sku", "{t('pnl.p_15')}"], ["channel", "{t('pnl.p_16')}"], ["campaign", "{t('pnl.p_17')}"], ["creator", "{t('pnl.p_18')}"]].map(([k, l]) => (
+                {[["sku", t('pnl.p_15')], ["channel", t('pnl.p_16')], ["campaign", t('pnl.p_17')], ["creator", t('pnl.p_18')]].map(([k, l]) => (
                     <button key={k} onClick={() => setDim(k)} style={{
                         padding: "5px 14px", borderRadius: 8, border: "1px solid",
                         borderColor: dim === k ? "#4f8ef7" : "var(--border)",
@@ -813,11 +813,11 @@ export default function PnLDashboard() {
                 {/* 실Time P&L Summary 행 */}
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(6,1fr)", gap: 10, marginTop: 16 }}>
                     {[
-                        { label: "{t('pnl.p_1')}", v: live.grossRevenue, col: "#4f8ef7", icon: "💰" },
-                        { label: "{t('pnl.p_2')}", v: -live.adSpend, col: "#f97316", icon: "📣" },
-                        { label: "Platform Commission", v: -live.platformFee, col: "#ef4444", icon: "🏪" },
-                        { label: "Stock Cost Price(COGS)", v: -live.cogs, col: "#a855f7", icon: "📦" },
-                        { label: "정산 순지급", v: live.netPayout, col: "#22c55e", icon: "✅" },
+                        { label: t('pnl.p_1'), v: live.grossRevenue, col: "#4f8ef7", icon: "💰" },
+                        { label: t('pnl.p_2'), v: -live.adSpend, col: "#f97316", icon: "📣" },
+                        { label: t('pnl.p_4') || "Platform Commission", v: -live.platformFee, col: "#ef4444", icon: "🏪" },
+                        { label: t('pnl.p_11') || "Stock Cost Price(COGS)", v: -live.cogs, col: "#a855f7", icon: "📦" },
+                        { label: t('pnl.p_5') || "Net Payout", v: live.netPayout, col: "#22c55e", icon: "✅" },
                         {
                             label: "영업Profit", v: live.operatingProfit, col: live.operatingProfit >= 0 ? "#22c55e" : "#ef4444", icon: "📊",
                             sub: (live.grossRevenue > 0 ? (live.operatingProfit / live.grossRevenue * 100).toFixed(1) : 0) + "% 마진"

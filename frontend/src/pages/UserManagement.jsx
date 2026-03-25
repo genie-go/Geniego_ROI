@@ -69,10 +69,10 @@ async function adminDelete(token, path) {
     return r.json();
 }
 
-/* ─── TAB: Dashboard ─────────────────────────────────────────────────────── */
+/* ─── TAB: 대시보드 ─────────────────────────────────────────────────────── */
 function StatsTab() {
     const { data, loading } = useAdminApi("v423/admin/stats");
-    if (loading) return <div style={{ color: "rgba(255,255,255,0.4)", padding: 40, textAlign: "center" }}>Loading…</div>;
+    if (loading) return <div style={{ color: "rgba(255,255,255,0.4)", padding: 40, textAlign: "center" }}>로딩 중...</div>;
     if (!data) return null;
 
     const planColors = { demo: "#64748b", starter: "#3b82f6", pro: "#8b5cf6", enterprise: "#f59e0b", admin: "#ef4444" };
@@ -83,8 +83,8 @@ function StatsTab() {
                 {[
                     { label: "MRR (USD)", value: `$${(data.mrr_usd || 0).toLocaleString()}`, color: "#22c55e" },
                     { label: "신규 가입 (30일)", value: data.new_users_30d ?? 0, color: "#4f8ef7" },
-                    { label: "Active 세션", value: data.active_sessions ?? 0, color: "#8b5cf6" },
-                    { label: "All 플랜 종류", value: (data.by_plan || []).length, color: "#f59e0b" },
+                    { label: "활성 세션", value: data.active_sessions ?? 0, color: "#8b5cf6" },
+                    { label: "모든 플랜 종류", value: (data.by_plan || []).length, color: "#f59e0b" },
                 ].map(s => (
                     <div key={s.label} style={{ ...css.card, textAlign: "center" }}>
                         <div style={{ fontSize: 28, fontWeight: 900, color: s.color }}>{s.value}</div>
@@ -99,7 +99,7 @@ function StatsTab() {
                     {(data.by_plan || []).map(p => (
                         <div key={p.plan} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
                             <span style={css.badge(p.plan)}>{p.plan}</span>
-                            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.6)" }}>Active <strong style={{ color: "#fff" }}>{p.active}</strong> / All {p.total}</div>
+                            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.6)" }}>활성 <strong style={{ color: "#fff" }}>{p.active}</strong> / All {p.total}</div>
                             <div style={{ width: 80, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
                                 <div style={{ width: `${(p.active / p.total) * 100}%`, height: "100%", background: planColors[p.plan] || "#64748b" }} />
                             </div>
@@ -126,7 +126,7 @@ function StatsTab() {
     );
 }
 
-/* ─── TAB: 회원 Management ─────────────────────────────────────────────────────── */
+/* ─── TAB: 회원 관리 ─────────────────────────────────────────────────────── */
 function MembersTab() {
     const { token } = useAuth();
     const [q, setQ] = useState("");
@@ -135,8 +135,8 @@ function MembersTab() {
     const [selected, setSelected] = useState(null);
     const [planEdit, setPlanEdit] = useState("");
     const [newPw, setNewPw] = useState("");
-    const [createForm, setCreateForm] = useState({ email: "", password: "", name: "", company: "", plan: "demo" });
-    const [showCreate, setShowCreate] = useState(false);
+    const [createForm, set생성Form] = useState({ email: "", password: "", name: "", company: "", plan: "demo" });
+    const [show생성, setShow생성] = useState(false);
     const [msg, setMsg] = useState("");
 
     const qPath = `v423/admin/users?page=${page}&limit=20${q ? `&q=${encodeURIComponent(q)}` : ""}${filterPlan ? `&plan=${filterPlan}` : ""}`;
@@ -147,15 +147,15 @@ function MembersTab() {
 
     const patch = async (path, body, method = "PATCH") => {
         const d = await adminPost(token, path, body, method);
-        setMsg(d.message || (d.ok ? "✅ Save Done" : `❌ ${d.error}`));
+        setMsg(d.message || (d.ok ? "✅ Save 완료" : `❌ ${d.error}`));
         refetch();
         setTimeout(() => setMsg(""), 3000);
     };
 
-    const doCreate = async () => {
+    const do생성 = async () => {
         const d = await adminPost(token, "v423/admin/users", createForm);
-        setMsg(d.ok ? `✅ 회원 Create Done (ID: ${d.user_id})` : `❌ ${d.error}`);
-        if (d.ok) { setShowCreate(false); setCreateForm({ email: "", password: "", name: "", company: "", plan: "demo" }); refetch(); }
+        setMsg(d.ok ? `✅ 회원 생성 완료 (ID: ${d.user_id})` : `❌ ${d.error}`);
+        if (d.ok) { setShow생성(false); set생성Form({ email: "", password: "", name: "", company: "", plan: "demo" }); refetch(); }
         setTimeout(() => setMsg(""), 3000);
     };
 
@@ -163,40 +163,40 @@ function MembersTab() {
         <div>
             {/* Toolbar */}
             <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap", alignItems: "center" }}>
-                <input placeholder="Name/Email Search…" value={q} onChange={e => { setQ(e.target.value); setPage(1); }} style={{ ...css.input, width: 220 }} />
+                <input placeholder="Name/Email 검색..." value={q} onChange={e => { setQ(e.target.value); setPage(1); }} style={{ ...css.input, width: 220 }} />
                 <select value={filterPlan} onChange={e => { setFilterPlan(e.target.value); setPage(1); }} style={{ ...css.input, width: 130 }}>
-                    <option value="">All 플랜</option>
+                    <option value="">모든 플랜</option>
                     {PLANS.map(p => <option key={p} value={p}>{p}</option>)}
                 </select>
-                <button style={css.btn("primary")} onClick={() => setShowCreate(true)}>+ 회원 Add</button>
+                <button style={css.btn("primary")} onClick={() => setShow생성(true)}>+ 회원 추가</button>
                 {msg && <div style={{ fontSize: 12, color: msg.startsWith("✅") ? "#22c55e" : "#ef4444" }}>{msg}</div>}
             </div>
 
-            {/* Create form */}
-            {showCreate && (
+            {/* 생성 form */}
+            {show생성 && (
                 <div style={{ ...css.card, borderColor: "rgba(79,142,247,0.3)", marginBottom: 16 }}>
-                    <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 14 }}>신규 회원 Create</div>
+                    <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 14 }}>신규 회원 생성</div>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 12 }}>
                         {["email", "name", "company"].map(f => (
                             <div key={f}>
                                 <label style={css.label}>{f}</label>
-                                <input style={css.input} value={createForm[f]} onChange={e => setCreateForm(p => ({ ...p, [f]: e.target.value }))} />
+                                <input style={css.input} value={createForm[f]} onChange={e => set생성Form(p => ({ ...p, [f]: e.target.value }))} />
                             </div>
                         ))}
                         <div>
                             <label style={css.label}>password</label>
-                            <input type="password" style={css.input} value={createForm.password} onChange={e => setCreateForm(p => ({ ...p, password: e.target.value }))} />
+                            <input type="password" style={css.input} value={createForm.password} onChange={e => set생성Form(p => ({ ...p, password: e.target.value }))} />
                         </div>
                         <div>
                             <label style={css.label}>plan</label>
-                            <select style={css.input} value={createForm.plan} onChange={e => setCreateForm(p => ({ ...p, plan: e.target.value }))}>
+                            <select style={css.input} value={createForm.plan} onChange={e => set생성Form(p => ({ ...p, plan: e.target.value }))}>
                                 {PLANS.map(p => <option key={p} value={p}>{p}</option>)}
                             </select>
                         </div>
                     </div>
                     <div style={{ display: "flex", gap: 8 }}>
-                        <button style={css.btn("primary")} onClick={doCreate}>Create</button>
-                        <button style={css.btn()} onClick={() => setShowCreate(false)}>Cancel</button>
+                        <button style={css.btn("primary")} onClick={do생성}>생성</button>
+                        <button style={css.btn()} onClick={() => setShow생성(false)}>취소</button>
                     </div>
                 </div>
             )}
@@ -213,7 +213,7 @@ function MembersTab() {
                     </thead>
                     <tbody>
                         {loading ? (
-                            <tr><td colSpan={8} style={{ ...css.td, textAlign: "center", color: "rgba(255,255,255,0.3)", padding: 30 }}>Loading…</td></tr>
+                            <tr><td colSpan={8} style={{ ...css.td, textAlign: "center", color: "rgba(255,255,255,0.3)", padding: 30 }}>로딩 중...</td></tr>
                         ) : (data?.users || []).map(u => (
                             <tr key={u.id} style={{ cursor: "pointer" }} onClick={() => { setSelected(selected?.id === u.id ? null : u); setPlanEdit(u.plan); }}>
                                 <td style={css.td}><span style={{ color: "rgba(255,255,255,0.4)", fontSize: 11 }}>#{u.id}</span></td>
@@ -225,7 +225,7 @@ function MembersTab() {
                                 <td style={css.td}><span style={css.badge(u.plan)}>{u.plan}</span></td>
                                 <td style={css.td}>
                                     <span style={{ fontSize: 10, fontWeight: 700, color: u.is_active ? "#22c55e" : "#ef4444" }}>
-                                        {u.is_active ? "Active" : "Inactive"}
+                                        {u.is_active ? "활성" : "비활성"}
                                     </span>
                                 </td>
                                 <td style={css.td}><span style={{ fontSize: 11, color: "rgba(255,255,255,0.5)" }}>{u.created_at?.slice(0, 10)}</span></td>
@@ -233,7 +233,7 @@ function MembersTab() {
                                 <td style={css.td}>
                                     <div style={{ display: "flex", gap: 6 }}>
                                         <button style={{ ...css.btn(), padding: "4px 10px", fontSize: 11 }} onClick={e => { e.stopPropagation(); patch(`v423/admin/users/${u.id}/active`, { active: !u.is_active }); }}>
-                                            {u.is_active ? "Inactive화" : "Activate"}
+                                            {u.is_active ? "비활성화" : "활성화"}
                                         </button>
                                     </div>
                                 </td>
@@ -259,20 +259,20 @@ function MembersTab() {
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
                         {/* Plan change */}
                         <div>
-                            <label style={css.label}>플랜 Change</label>
+                            <label style={css.label}>플랜 변경</label>
                             <select style={css.input} value={planEdit} onChange={e => setPlanEdit(e.target.value)}>
                                 {PLANS.map(p => <option key={p} value={p}>{p}</option>)}
                             </select>
                             <button style={{ ...css.btn("primary"), marginTop: 8, width: "100%" }} onClick={() => patch(`v423/admin/users/${selected.id}/plan`, { plan: planEdit })}>
-                                플랜 Change Save
+                                플랜 변경 저장
                             </button>
                         </div>
                         {/* PW reset */}
                         <div>
-                            <label style={css.label}>Password Reset</label>
+                            <label style={css.label}>비밀번호 초기화</label>
                             <input type="password" placeholder="새 Password (6자 이상)" style={css.input} value={newPw} onChange={e => setNewPw(e.target.value)} />
                             <button style={{ ...css.btn("danger"), marginTop: 8, width: "100%" }} onClick={() => { patch(`v423/admin/users/${selected.id}/reset-password`, { password: newPw }, "POST"); setNewPw(""); }}>
-                                Password Reset
+                                비밀번호 초기화
                             </button>
                         </div>
                         {/* Role assign */}
@@ -301,7 +301,7 @@ function MembersTab() {
     );
 }
 
-/* ─── TAB: SubscriptionPricing Management ──────────────────────────────────────────────────── */
+/* ─── TAB: 구독 요금제 관리 ──────────────────────────────────────────────────── */
 function PlanPricesTab() {
     const { token } = useAuth();
     const { data, loading, refetch } = useAdminApi("v423/admin/plan-prices");
@@ -310,7 +310,7 @@ function PlanPricesTab() {
 
     const save = async () => {
         const d = await adminPost(token, "v423/admin/plan-prices", form);
-        setMsg(d.ok ? "✅ Save Done" : `❌ ${d.error}`);
+        setMsg(d.ok ? "✅ Save 완료" : `❌ ${d.error}`);
         if (d.ok) refetch();
         setTimeout(() => setMsg(""), 3000);
     };
@@ -333,7 +333,7 @@ function PlanPricesTab() {
         <div>
             {/* Form */}
             <div style={{ ...css.card, borderColor: "rgba(79,142,247,0.2)", marginBottom: 24 }}>
-                <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 14 }}>Subscription Pricing Register / Edit</div>
+                <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 14 }}>구독 요금제 등록 및 수정</div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 10, marginBottom: 10 }}>
                     <div>
                         <label style={css.label}>플랜</label>
@@ -368,10 +368,10 @@ function PlanPricesTab() {
                         <input style={css.input} value={form.paddle_price_id} onChange={e => setForm(p => ({ ...p, paddle_price_id: e.target.value }))} placeholder="pri_01xxx..." />
                     </div>
                     <div>
-                        <label style={css.label}>Activate</label>
+                        <label style={css.label}>활성화</label>
                         <select style={css.input} value={form.is_active} onChange={e => setForm(p => ({ ...p, is_active: +e.target.value }))}>
-                            <option value={1}>Active</option>
-                            <option value={0}>Inactive</option>
+                            <option value={1}>활성</option>
+                            <option value={0}>비활성</option>
                         </select>
                     </div>
                 </div>
@@ -382,7 +382,7 @@ function PlanPricesTab() {
             </div>
 
             {/* Price table */}
-            {loading ? <div style={{ color: "rgba(255,255,255,0.4)", textAlign: "center", padding: 30 }}>Loading…</div> : (
+            {loading ? <div style={{ color: "rgba(255,255,255,0.4)", textAlign: "center", padding: 30 }}>로딩 중...</div> : (
                 groups.map(g => (
                     <div key={g.plan} style={{ ...css.card, marginBottom: 14 }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
@@ -404,7 +404,7 @@ function PlanPricesTab() {
                                             <td style={css.td}><strong style={{ color: "#22c55e" }}>${r.price_usd}</strong></td>
                                             <td style={css.td}>{r.discount_pct > 0 ? <span style={{ color: "#f59e0b" }}>-{r.discount_pct}%</span> : "—"}</td>
                                             <td style={css.td}><span style={{ fontSize: 10, color: "rgba(255,255,255,0.4)" }}>{r.paddle_price_id || "미Settings"}</span></td>
-                                            <td style={css.td}><span style={{ color: r.is_active ? "#22c55e" : "#ef4444", fontSize: 11, fontWeight: 700 }}>{r.is_active ? "Active" : "Inactive"}</span></td>
+                                            <td style={css.td}><span style={{ color: r.is_active ? "#22c55e" : "#ef4444", fontSize: 11, fontWeight: 700 }}>{r.is_active ? "활성" : "비활성"}</span></td>
                                             <td style={css.td}>
                                                 <div style={{ display: "flex", gap: 6 }}>
                                                     <button style={{ ...css.btn(), padding: "3px 10px", fontSize: 11 }} onClick={() => editRow(r)}>편집</button>
@@ -445,7 +445,7 @@ function RolesTab() {
 
     const save = async () => {
         const d = await adminPost(token, "v423/admin/roles", form);
-        setMsg(d.ok ? "✅ Save Done" : `❌ ${d.error}`);
+        setMsg(d.ok ? "✅ Save 완료" : `❌ ${d.error}`);
         if (d.ok) { refetch(); setForm({ role_key: "", name_ko: "", name_en: "", permissions: [], is_active: 1, sort_order: 0 }); }
         setTimeout(() => setMsg(""), 3000);
     };
@@ -461,7 +461,7 @@ function RolesTab() {
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
                 {/* Form */}
                 <div style={css.card}>
-                    <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 14 }}>역할 Create / Edit</div>
+                    <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 14 }}>역할 생성 / Edit</div>
                     <div style={{ ...css.row, gridTemplateColumns: "1fr 1fr" }}>
                         <div>
                             <label style={css.label}>역할 키 (영문소문자_)</label>
@@ -494,8 +494,8 @@ function RolesTab() {
                     </div>
                     <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
                         <select style={{ ...css.input, width: 100 }} value={form.is_active} onChange={e => setForm(f => ({ ...f, is_active: +e.target.value }))}>
-                            <option value={1}>Active</option>
-                            <option value={0}>Inactive</option>
+                            <option value={1}>활성</option>
+                            <option value={0}>비활성</option>
                         </select>
                         <button style={css.btn("primary")} onClick={save}>Save</button>
                         {msg && <span style={{ fontSize: 12, color: msg.startsWith("✅") ? "#22c55e" : "#ef4444" }}>{msg}</span>}
@@ -505,7 +505,7 @@ function RolesTab() {
                 {/* Role list */}
                 <div style={css.card}>
                     <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 14 }}>Register된 역할</div>
-                    {loading ? <div style={{ color: "rgba(255,255,255,0.3)", fontSize: 12 }}>Loading…</div> : (data?.roles || []).map(r => {
+                    {loading ? <div style={{ color: "rgba(255,255,255,0.3)", fontSize: 12 }}>로딩 중...</div> : (data?.roles || []).map(r => {
                         let perms = [];
                         try { perms = typeof r.permissions === "string" ? JSON.parse(r.permissions) : r.permissions; } catch { }
                         return (
@@ -533,13 +533,13 @@ function RolesTab() {
     );
 }
 
-/* ─── TAB: Payment 내역 ──────────────────────────────────────────────────────── */
+/* ─── TAB: 결제 내역 ──────────────────────────────────────────────────────── */
 function BillingTab() {
     const { data, loading } = useAdminApi("v423/admin/billing");
 
     const STATUS_COLOR = { active: "#22c55e", cancelled: "#ef4444", payment_failed: "#f59e0b", trial: "#8b5cf6" };
 
-    if (loading) return <div style={{ color: "rgba(255,255,255,0.4)", padding: 40, textAlign: "center" }}>Loading…</div>;
+    if (loading) return <div style={{ color: "rgba(255,255,255,0.4)", padding: 40, textAlign: "center" }}>로딩 중...</div>;
 
     const subs = data?.subscriptions || [];
     const events = data?.events || [];
@@ -555,7 +555,7 @@ function BillingTab() {
                         <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", marginTop: 4 }}>{m.plan_name || "All"} MRR · {m.count}명</div>
                     </div>
                 ))}
-                {mrr.length === 0 && <div style={{ ...css.card, color: "rgba(255,255,255,0.3)", fontSize: 12 }}>Paddle Subscription No data (webhook Count신 후 반영됨)</div>}
+                {mrr.length === 0 && <div style={{ ...css.card, color: "rgba(255,255,255,0.3)", fontSize: 12 }}>Paddle Subscription 데이터 없음 (webhook Count신 후 반영됨)</div>}
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
@@ -566,7 +566,7 @@ function BillingTab() {
                         <thead><tr>{["회원", "플랜", "Status", "Amount", "NextPayment"].map(h => <th key={h} style={css.th}>{h}</th>)}</tr></thead>
                         <tbody>
                             {subs.length === 0 ? (
-                                <tr><td colSpan={5} style={{ ...css.td, textAlign: "center", color: "rgba(255,255,255,0.3)", padding: 20 }}>No data</td></tr>
+                                <tr><td colSpan={5} style={{ ...css.td, textAlign: "center", color: "rgba(255,255,255,0.3)", padding: 20 }}>데이터 없음</td></tr>
                             ) : subs.map((s, i) => (
                                 <tr key={i}>
                                     <td style={css.td}><div style={{ fontSize: 12 }}>{s.user_name || "—"}</div><div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)" }}>{s.user_email}</div></td>
@@ -584,15 +584,15 @@ function BillingTab() {
                 <div style={{ ...css.card, padding: 0, overflow: "hidden" }}>
                     <div style={{ padding: "14px 18px", fontWeight: 700, fontSize: 13, borderBottom: "1px solid rgba(255,255,255,0.06)" }}>Payment Event</div>
                     <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                        <thead><tr>{["Event", "발생시각", "처리"].map(h => <th key={h} style={css.th}>{h}</th>)}</tr></thead>
+                        <thead><tr>{["Event", "발생시각", "처리상태"].map(h => <th key={h} style={css.th}>{h}</th>)}</tr></thead>
                         <tbody>
                             {events.length === 0 ? (
-                                <tr><td colSpan={3} style={{ ...css.td, textAlign: "center", color: "rgba(255,255,255,0.3)", padding: 20 }}>No data (Paddle webhook Settings 후 Count신)</td></tr>
+                                <tr><td colSpan={3} style={{ ...css.td, textAlign: "center", color: "rgba(255,255,255,0.3)", padding: 20 }}>데이터 없음 (Paddle webhook Settings 후 Count신)</td></tr>
                             ) : events.map((e, i) => (
                                 <tr key={i}>
                                     <td style={css.td}><span style={{ fontSize: 11, color: e.event_type?.includes("failed") ? "#ef4444" : e.event_type?.includes("refunded") ? "#f59e0b" : "#22c55e" }}>{e.event_type}</span></td>
                                     <td style={css.td}><span style={{ fontSize: 10, color: "rgba(255,255,255,0.5)" }}>{e.occurred_at?.slice(0, 16)}</span></td>
-                                    <td style={css.td}><span style={{ fontSize: 10, color: e.processed ? "#22c55e" : "#f59e0b" }}>{e.processed ? "Done" : "처리in progress"}</span></td>
+                                    <td style={css.td}><span style={{ fontSize: 10, color: e.processed ? "#22c55e" : "#f59e0b" }}>{e.processed ? "완료" : "처리상태in progress"}</span></td>
                                 </tr>
                             ))}
                         </tbody>
@@ -611,7 +611,7 @@ function AuditTab() {
     return (
         <div style={css.card}>
             <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 14 }}>감사 로그 (최근 50건)</div>
-            {loading ? <div style={{ color: "rgba(255,255,255,0.4)" }}>Loading…</div> : (
+            {loading ? <div style={{ color: "rgba(255,255,255,0.4)" }}>로딩 중...</div> : (
                 <table style={{ width: "100%", borderCollapse: "collapse" }}>
                     <thead><tr>{["시각", "Event ID", "Action", "상세"].map(h => <th key={h} style={css.th}>{h}</th>)}</tr></thead>
                     <tbody>
@@ -633,26 +633,26 @@ function AuditTab() {
 
 /* ─── MAIN ────────────────────────────────────────────────────────────────── */
 const TABS = [
-    { id: "stats", label: "📊 Dashboard" },
-    { id: "members", label: "👥 회원 Management" },
-    { id: "tier", label: "💳 SubscriptionPricing Management" },
-    { id: "roles", label: "🔐 Permission Management" },
-    { id: "billing", label: "💰 Payment 내역" },
+    { id: "stats", label: "📊 대시보드" },
+    { id: "members", label: "👥 회원 관리" },
+    { id: "tier", label: "💳 구독 요금제 관리" },
+    { id: "roles", label: "🔐 권한 관리" },
+    { id: "billing", label: "💰 결제 내역" },
     { id: "audit", label: "📋 감사 로그" },
 ];
 
 export default function UserManagement() {
     const { user, token } = useAuth();
     const [tab, setTab] = useState("stats");
-    const [migDone, setMigDone] = useState(false);
+    const [mig완료, setMig완료] = useState(false);
     const [migMsg, setMigMsg] = useState("");
 
     if (!user || user.plan !== "admin") {
         return (
             <div style={{ padding: 60, textAlign: "center" }}>
                 <div style={{ fontSize: 40, marginBottom: 16 }}>🔒</div>
-                <div style={{ fontSize: 18, fontWeight: 700, color: "#fff", marginBottom: 8 }}>Management자 전용 Page</div>
-                <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)" }}>admin 플랜이 필요합니다.</div>
+                <div style={{ fontSize: 18, fontWeight: 700, color: "#fff", marginBottom: 8 }}>관리자 전용 페이지</div>
+                <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)" }}>admin 플랜 접근 권한이 필요합니다.</div>
             </div>
         );
     }
@@ -661,7 +661,7 @@ export default function UserManagement() {
         const r = await fetch(`${API}/v423/admin/migrate`, { headers: { Authorization: `Bearer ${token}` } });
         const d = await r.json();
         setMigMsg(d.ok ? "✅ " + d.message : "❌ " + d.error);
-        setMigDone(true);
+        setMig완료(true);
         setTimeout(() => setMigMsg(""), 5000);
     };
 
@@ -670,12 +670,12 @@ export default function UserManagement() {
             {/* Header */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
                 <div>
-                    <h1 style={{ margin: 0, fontSize: 22, fontWeight: 900, color: "#fff" }}>⚙️ Unified Management자 Panel</h1>
-                    <p style={{ margin: "4px 0 0", fontSize: 12, color: "rgba(255,255,255,0.4)" }}>회원 · Subscription Pricing · Permission · Payment Unified Management | 로그인: {user.email}</p>
+                    <h1 style={{ margin: 0, fontSize: 22, fontWeight: 900, color: "#fff" }}>⚙️ 통합 관리자 패널</h1>
+                    <p style={{ margin: "4px 0 0", fontSize: 12, color: "rgba(255,255,255,0.4)" }}>회원 · Subscription Pricing · Permission · 회원 · 구독 요금제 · 권한 · 결제 통합 관리 | 로그인: {user.email}</p>
                 </div>
                 <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
                     {migMsg && <span style={{ fontSize: 11, color: migMsg.startsWith("✅") ? "#22c55e" : "#ef4444" }}>{migMsg}</span>}
-                    {!migDone && <button style={{ ...css.btn(), fontSize: 11 }} onClick={runMigrate}>🔧 DB 마이그레이션</button>}
+                    {!mig완료 && <button style={{ ...css.btn(), fontSize: 11 }} onClick={runMigrate}>🔧 DB 마이그레이션</button>}
                 </div>
             </div>
 

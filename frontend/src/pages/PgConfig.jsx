@@ -317,45 +317,22 @@ export default function PgConfig() {
   const { fmt } = useCurrency();
     const { token, isAdmin } = useAuth();
     const navigate = useNavigate();
-    const [tab, setTab] = useState("pricing"); // "pricing" | "pg"
 
     useEffect(() => { if (!isAdmin) navigate("/dashboard"); }, [isAdmin, navigate]);
     if (!isAdmin) return null;
 
-    const TABS = [
-        { id: "pricing", label: "💰 Subscription료 & 할인율 Settings" },
-        { id: "pg", label: "💳 PG사 Integration 키" },
-    ];
-
     return (
         <div style={{ display: "grid", gap: 18 }}>
-            {/* Hero */}
             <div className="hero fade-up" style={{ background: "linear-gradient(135deg,rgba(79,142,247,0.06),rgba(168,85,247,0.05))", borderColor: "rgba(79,142,247,0.15)" }}>
                 <div className="hero-meta">
                     <div className="hero-icon" style={{ background: "linear-gradient(135deg,rgba(79,142,247,0.2),rgba(168,85,247,0.15))" }}>💳</div>
                     <div>
-                        <div className="hero-title">Payment & Subscription Management</div>
-                        <div className="hero-desc">Subscription료/할인율을 Change하거나 PG사 Payment키를 교체합니다. 모든 Change은 Save 즉시 반영됩니다.</div>
+                        <div className="hero-title">PG (Payment Gateway) 관리</div>
+                        <div className="hero-desc">사용할 PG사(결제 대행사)의 시크릿 키 및 API 인증 정보를 설정합니다. 변경 사항은 저장 즉시 시스템에 반영됩니다. (요금제 설정은 구독메뉴 이용)</div>
                     </div>
                 </div>
             </div>
-
-            {/* Tab */}
-            <div style={{ display: "flex", gap: 8, borderBottom: "1px solid var(--border)", paddingBottom: 0 }}>
-                {TABS.map(t => (
-                    <button key={t.id} onClick={() => setTab(t.id)}
-                        style={{
-                            padding: "9px 18px", border: "none", cursor: "pointer", background: "none",
-                            fontWeight: tab === t.id ? 800 : 600, fontSize: 12,
-                            color: tab === t.id ? "#4f8ef7" : "var(--text-3)",
-                            borderBottom: tab === t.id ? "2px solid #4f8ef7" : "2px solid transparent",
-                            marginBottom: -1, transition: "all 150ms",
-                        }}>{t.label}</button>
-                ))}
-            </div>
-
-            {/* Tab 콘텐츠 */}
-            {tab === "pricing" ? <PricingTab token={token} /> : <PgKeyTab token={token} />}
+            <PgKeyTab token={token} />
         </div>
     );
 }

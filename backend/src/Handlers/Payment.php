@@ -737,59 +737,8 @@ final class Payment
                 }
             }
 
-            // ── plan_prices 테이블 병합: menu_tier_pricing + plan_prices 통합 ─────────────────
-            // Admin 구독요금관리 > 요금관리에서 저장한 plan_prices 데이터를 항상 병합
-            // menu_tier_pricing에 동일 key가 없을 경우 plan_prices 데이터로 보완
-            try {
-                $priceRows = $pdo->query(
-                    "SELECT plan_key, period_months, price_usd, currency, discount_pct, label_ko, is_active
-                       FROM plan_prices
-                      WHERE is_active = 1
-                      ORDER BY plan_key, period_months ASC"
-                )->fetchAll(\PDO::FETCH_ASSOC);
-
-                foreach ($priceRows as $pr) {
-                    $planKey      = $pr['plan_key']      ?? '';
-                    $periodMonths = (int)($pr['period_months'] ?? 1);
-                    $priceVal     = (float)($pr['price_usd']   ?? 0);
-                    $discPct      = (float)($pr['discount_pct'] ?? 0);
-                    $currency     = strtoupper($pr['currency']  ?? 'KRW');
-
-                    if (!$planKey || $priceVal <= 0 || $planKey === 'free') continue;
-
-                    // USD → KRW 환산 (1 USD ≈ 1,350 KRW)
-                    $priceKrw = ($currency === 'KRW')
-                        ? (int)$priceVal
-                        : (int)round($priceVal * 1350);
-
-                    $cycleKey = match ($periodMonths) {
-                        3  => 'quarterly',
-                        6  => 'semi_annual',
-                        12 => 'yearly',
-                        default => 'monthly',
-                    };
-
-                    $finalMonthly = $discPct > 0
-                        ? (int)round($priceKrw * (1 - $discPct / 100))
-                        : $priceKrw;
-                    $total = $finalMonthly * $periodMonths;
-
-                    // menu_tier_pricing에 없는 경우에만 plan_prices 데이터로 채움 (우선순위: menu_tier_pricing)
-                    if (!isset($pricingMap[$planKey]['1'][$cycleKey])) {
-                        $pricingMap[$planKey]['1'][$cycleKey] = [
-                            'base_price'    => $priceKrw,
-                            'discount_pct'  => $discPct,
-                            'monthly_price' => $finalMonthly,
-                            'total_price'   => $total,
-                            'months'        => $periodMonths,
-                        ];
-                    }
-                }
-            } catch (\Throwable $e) {
-                // plan_prices 테이블 없음 → 무시
-            }
-            // ─────────────────────────────────────────────────────────────────
-
+            // ── plan_prices 테이블 병합 제거됨 ─────────────────
+            // menu_tier_pricing 데이터를 유일한 진실 공급원(SSOT)으로 사용합니다.
 
             // 플랜 정의 (고정)
             $planDefs = [

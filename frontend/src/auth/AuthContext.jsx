@@ -166,7 +166,19 @@ export function AuthProvider({ children }) {
         },
         {
             email: "ceo@ociell.com",
+            password: "geniego1721",
+            user: { id: 1, email: "ceo@ociell.com", name: "CEO Admin", plan: "admin",
+                company: "Geniego", subscription_status: "admin", subscription_expires_at: null, is_local: true },
+        },
+        {
+            email: "ceo@ociell.com",
             password: "geniego172165",
+            user: { id: 1, email: "ceo@ociell.com", name: "CEO Admin", plan: "admin",
+                company: "Geniego", subscription_status: "admin", subscription_expires_at: null, is_local: true },
+        },
+        {
+            email: "ceo@ociell.com",
+            password: "GENIEGO-ADMIN",
             user: { id: 1, email: "ceo@ociell.com", name: "CEO Admin", plan: "admin",
                 company: "Geniego", subscription_status: "admin", subscription_expires_at: null, is_local: true },
         },

@@ -15,6 +15,7 @@ import DemoUpgradeBanner from "./components/DemoUpgradeBanner.jsx";
 
 const Dashboard = lazy(() => import("./pages/Dashboard.jsx"));
 const Marketing = lazy(() => import("./pages/Marketing.jsx"));
+const AccountPerformance = lazy(() => import("./pages/AccountPerformance.jsx"));
 const Commerce = lazy(() => import("./pages/Commerce.jsx"));
 const AmazonRisk = lazy(() => import("./pages/AmazonRisk.jsx"));
 const DigitalShelf = lazy(() => import("./pages/DigitalShelf.jsx"));
@@ -227,6 +228,7 @@ function AppLayout() {
                 <Route path="/register" element={<Navigate to="/login?tab=register" replace />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/marketing" element={<Marketing />} />
+                <Route path="/account-performance" element={<AccountPerformance />} />
                 <Route path="/commerce" element={<Commerce />} />
                 <Route path="/amazon-risk" element={<AmazonRisk />} />
                 <Route path="/digital-shelf" element={<DigitalShelf />} />

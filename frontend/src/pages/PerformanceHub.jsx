@@ -155,17 +155,17 @@ function PerformanceTab() {
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "repeat(6,1fr)", gap: 10 }}>
-                <KpiCard label="Total Impressions" value={fmtM(totals.impressions)} color="#a855f7" icon="👁" sub="Team-specific total" />
-                <KpiCard label="Total Clicks" value={fmtM(totals.clicks)} color="#4f8ef7" icon="🖱" sub={`CTR ${pct(totals.clicks / (totals.impressions || 1))}`} />
-                <KpiCard label="Cart Adds" value={fmtM(totals.carts)} color="#14d9b0" icon="🛒" sub={`Click→Cart ${pct(totals.carts / (totals.clicks || 1))}`} />
-                <KpiCard label="Purchases" value={fmtM(totals.orders)} color="#22c55e" icon="✅" sub={`CVR ${pct(totals.orders / (totals.clicks || 1))}`} />
-                <KpiCard label="Total Revenue" value={"₩" + fmtM(totals.revenue)} color="#f97316" icon="💰" sub="Ad-attributed revenue" />
-                <KpiCard label="ROAS" value={round2(totals.roas) + "x"} color="#eab308" icon="📈"
+                <KpiCard label={t('performance.totalImpressions')} value={fmtM(totals.impressions)} color="#a855f7" icon="👁" sub={t('performance.teamSpecificTotal')} />
+                <KpiCard label={t('performance.totalClicks')} value={fmtM(totals.clicks)} color="#4f8ef7" icon="🖱" sub={`CTR ${pct(totals.clicks / (totals.impressions || 1))}`} />
+                <KpiCard label={t('performance.cartAdds')} value={fmtM(totals.carts)} color="#14d9b0" icon="🛒" sub={`Click→Cart ${pct(totals.carts / (totals.clicks || 1))}`} />
+                <KpiCard label={t('performance.purchases')} value={fmtM(totals.orders)} color="#22c55e" icon="✅" sub={`CVR ${pct(totals.orders / (totals.clicks || 1))}`} />
+                <KpiCard label={t('performance.totalRevenue')} value={"₩" + fmtM(totals.revenue)} color="#f97316" icon="💰" sub={t('performance.adAttributedRevenue')} />
+                <KpiCard label={t('performance.roas')} value={round2(totals.roas) + "x"} color="#eab308" icon="📈"
                     sub={`ACOS ${pct(totals.acos)}`} />
             </div>
 
             <div className="card card-glass" style={{ padding: 20 }}>
-                <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 16 }}>📊 Conversion Funnel by Channel</div>
+                <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 16 }}>{t('performance.conversionFunnel')}</div>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14 }}>
                     {FUNNEL_STAGES.map((stage, si) => {
                         const max = Math.max(...CHANNELS_PERF.map(c => c[stage]), 1);
@@ -196,7 +196,7 @@ function PerformanceTab() {
 
             <div className="card card-glass" style={{ padding: 20 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 16, alignItems: "center" }}>
-                    <div style={{ fontWeight: 700, fontSize: 13 }}>🏆 Channel Performance Detail</div>
+                    <div style={{ fontWeight: 700, fontSize: 13 }}>{t('performance.channelPerfDetail')}</div>
                     <div style={{ display: "flex", gap: 6 }}>
                         {[["revenue", "Revenue"], ["roas", "ROAS"], ["orders", "Orders"], ["acos", "ACOS"]].map(([k, l]) => (
                             <button key={k} onClick={() => setSort(k)} style={{
@@ -212,15 +212,15 @@ function PerformanceTab() {
                     <table className="table">
                         <thead>
                             <tr>
-                                <th>Channel</th>
-                                <th style={{ textAlign: "right" }}>Impressions</th>
+                                <th>{t('performance.channel')}</th>
+                                <th style={{ textAlign: "right" }}>{t('performance.impressions')}</th>
                                 <th style={{ textAlign: "right" }}>Clicks (CTR)</th>
-                                <th style={{ textAlign: "right" }}>Cart Adds</th>
+                                <th style={{ textAlign: "right" }}>{t('performance.cartAdds')}</th>
                                 <th style={{ textAlign: "right" }}>Purchases (CVR)</th>
-                                <th style={{ textAlign: "right" }}>Revenue</th>
-                                <th style={{ textAlign: "right" }}>Ad Spend</th>
-                                <th style={{ textAlign: "right" }}>ROAS</th>
-                                <th style={{ textAlign: "right" }}>ACOS</th>
+                                <th style={{ textAlign: "right" }}>{t('performance.revenue')}</th>
+                                <th style={{ textAlign: "right" }}>{t('performance.adSpend')}</th>
+                                <th style={{ textAlign: "right" }}>{t('performance.roas')}</th>
+                                <th style={{ textAlign: "right" }}>{t('performance.acos')}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -259,7 +259,7 @@ function PerformanceTab() {
                         </tbody>
                         <tfoot>
                             <tr style={{ borderTop: "2px solid rgba(99,140,255,0.2)", background: "rgba(79,142,247,0.04)" }}>
-                                <td style={{ fontWeight: 800, fontSize: 11 }}>Total / Avg</td>
+                                <td style={{ fontWeight: 800, fontSize: 11 }}>{t('performance.totalAvg')}</td>
                                 <td style={{ textAlign: "right", fontFamily: "monospace", fontWeight: 700 }}>{fmtM(totals.impressions)}</td>
                                 <td style={{ textAlign: "right", fontFamily: "monospace", fontWeight: 700 }}>{fmtM(totals.clicks)}</td>
                                 <td style={{ textAlign: "right", fontFamily: "monospace", fontWeight: 700 }}>{fmtM(totals.carts)}</td>
@@ -325,6 +325,7 @@ const SETTLE_CHANNELS = [
 ];
 
 function SettlementTab() {
+    const { t } = useI18n();
     const { fmt } = useCurrency();
     const [baseCur, setBaseCur] = useState("KRW");
 
@@ -381,19 +382,19 @@ function SettlementTab() {
             {/* KPIs */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 10 }}>
                 <KpiCard label="Total Revenue (KRW)" value={"₩" + fmtM(totals.grossSales)} color="#4f8ef7" icon="💰" />
-                <KpiCard label="Platform Fee" value={"₩" + fmtM(totals.platformFee)} color="#ef4444" icon="🏪"
+                <KpiCard label={t('performance.platformFee')} value={"₩" + fmtM(totals.platformFee)} color="#ef4444" icon="🏪"
                     sub={pct(totals.platformFee / totals.grossSales)} />
-                <KpiCard label="Total Ad Spend" value={"₩" + fmtM(totals.adFee)} color="#f97316" icon="📣"
+                <KpiCard label={t('performance.adSpend')} value={"₩" + fmtM(totals.adFee)} color="#f97316" icon="📣"
                     sub={pct(totals.adFee / totals.grossSales)} />
-                <KpiCard label="Total Deductions" value={"₩" + fmtM(totalDeductions)} color="#a855f7" icon="📉"
+                <KpiCard label={t('performance.totalDeductions')} value={"₩" + fmtM(totalDeductions)} color="#a855f7" icon="📉"
                     sub={pct(totalDeductions / totals.grossSales)} />
-                <KpiCard label="Net Settlement" value={"₩" + fmtM(totals.netPayout)} color="#22c55e" icon="✅"
+                <KpiCard label={t('performance.netSettlement')} value={"₩" + fmtM(totals.netPayout)} color="#22c55e" icon="✅"
                     sub={`Effective rate ${pct(netRate)}`} />
             </div>
 
             {/* Deduction breakdown bar */}
             <div className="card card-glass" style={{ padding: 20 }}>
-                <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 14 }}>📊 Deduction Breakdown</div>
+                <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 14 }}>{t('performance.deductionBreakdown')}</div>
                 <div style={{ display: "flex", height: 18, borderRadius: 9, overflow: "hidden", marginBottom: 14 }}>
                     {deductions.map((d, i) => (
                         <div key={d.label} style={{ flex: d.value, background: d.color, position: "relative" }}
@@ -416,21 +417,21 @@ function SettlementTab() {
 
             {/* Per-channel table */}
             <div className="card card-glass" style={{ padding: 20 }}>
-                <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 14 }}>🔍 Settlement by Channel</div>
+                <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 14 }}>{t('performance.settleByChannel')}</div>
                 <div style={{ overflowX: "auto" }}>
                     <table className="table">
                         <thead>
                             <tr>
-                                <th>Channel</th>
-                                <th style={{ textAlign: "center" }}>Currency</th>
-                                <th style={{ textAlign: "right" }}>Gross Sales</th>
-                                <th style={{ textAlign: "right" }}>Platform Fee</th>
-                                <th style={{ textAlign: "right" }}>Ad Spend</th>
-                                <th style={{ textAlign: "right" }}>Payment Fee</th>
-                                <th style={{ textAlign: "right" }}>Refund/Return</th>
-                                <th style={{ textAlign: "right" }}>Net Payout</th>
-                                <th style={{ textAlign: "right" }}>KRW Equiv.</th>
-                                <th style={{ textAlign: "right" }}>Settlement Rate</th>
+                                <th>{t('performance.channel')}</th>
+                                <th style={{ textAlign: "center" }}>{t('performance.currency')}</th>
+                                <th style={{ textAlign: "right" }}>{t('performance.grossSales')}</th>
+                                <th style={{ textAlign: "right" }}>{t('performance.platformFee')}</th>
+                                <th style={{ textAlign: "right" }}>{t('performance.adSpend')}</th>
+                                <th style={{ textAlign: "right" }}>{t('performance.paymentFee')}</th>
+                                <th style={{ textAlign: "right" }}>{t('performance.refundReturn')}</th>
+                                <th style={{ textAlign: "right" }}>{t('performance.netPayout')}</th>
+                                <th style={{ textAlign: "right" }}>{t('performance.krwEquiv')}</th>
+                                <th style={{ textAlign: "right" }}>{t('performance.settleRate')}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -525,6 +526,7 @@ const today = new Date("2026-03-04");
 const daysLeft = d => Math.ceil((new Date(d) - today) / (1000 * 60 * 60 * 24));
 
 function CreatorTab() {
+    const { t } = useI18n();
     const [expanded, setExpanded] = useState(null);
     const [modal, setModal] = useState(null);
     const [selected, setSelected] = useState(null);
@@ -541,11 +543,11 @@ function CreatorTab() {
         <div style={{ display: "grid", gap: 18 }}>
             {/* KPIs */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 10 }}>
-                <KpiCard label="Total Creators" value={CREATORS.length + " people"} color="#4f8ef7" icon="👤" />
-                <KpiCard label="Total Payout Est." value={"₩" + fmtM(totPayout)} color="#a855f7" icon="💸" />
-                <KpiCard label="Creator Revenue" value={"₩" + fmtM(totRevenue)} color="#f97316" icon="📊" />
-                <KpiCard label="Avg Attribution" value={pct(avgAttrib)} color="#22c55e" icon="🎯" />
-                <KpiCard label="Rights Expiring Soon" value={expiredSoon + " items"} color={expiredSoon > 0 ? "#ef4444" : "#22c55e"} icon="⚠" sub="Within 90 days" />
+                <KpiCard label={t('performance.totalCreators')} value={CREATORS.length + " people"} color="#4f8ef7" icon="👤" />
+                <KpiCard label={t('performance.totalPayoutEst')} value={"₩" + fmtM(totPayout)} color="#a855f7" icon="💸" />
+                <KpiCard label={t('performance.creatorRevenue')} value={"₩" + fmtM(totRevenue)} color="#f97316" icon="📊" />
+                <KpiCard label={t('performance.avgAttribution')} value={pct(avgAttrib)} color="#22c55e" icon="🎯" />
+                <KpiCard label={t('performance.rightsExpiringSoon')} value={expiredSoon + " items"} color={expiredSoon > 0 ? "#ef4444" : "#22c55e"} icon="⚠" sub={t('performance.within90Days')} />
             </div>
 
             {/* Rights expiry alerts */}
@@ -576,7 +578,7 @@ function CreatorTab() {
                             fontSize: 10, padding: "5px 12px",
                             background: expired ? "linear-gradient(135deg,#ef4444,#a855f7)" : "linear-gradient(135deg,#eab308,#f97316)"
                         }}>
-                            {expired ? "Request Renewal" : "Renew Rights"}
+                            {expired ? t('performance.requestRenewal') : t('performance.renewRights')}
                         </button>
                     </div>
                 );
@@ -621,7 +623,7 @@ function CreatorTab() {
                                                 color: expired ? "#ef4444" : "#22c55e",
                                                 border: `1px solid ${expired ? "rgba(239,68,68,0.25)" : "rgba(34,197,94,0.25)"}`
                                             }}>
-                                                {expired ? "Expired" : "Active"}
+                                                {expired ? t('performance.expired') : "Active"}
                                             </span>
                                         </div>
                                     </div>
@@ -635,19 +637,19 @@ function CreatorTab() {
                                         fontSize: 10, padding: "4px 12px",
                                         background: "linear-gradient(135deg,#a855f7,#ec4899)"
                                     }}
-                                        onClick={() => openSettle(c)}>💰 Settle</button>
+                                        onClick={() => openSettle(c)}>💰 {t('performance.settle')}</button>
                                 </div>
                             </div>
 
                             {/* Metrics grid */}
                             <div style={{ display: "grid", gridTemplateColumns: "repeat(6,1fr)", gap: 10, marginBottom: expanded === c.id ? 14 : 0 }}>
                                 {[
-                                    ["Contract Fee", "₩" + fmtM(c.contractRate), "#a855f7"],
-                                    ["Attributed Orders", c.orders + " orders", "#4f8ef7"],
-                                    ["Attributed Revenue", "₩" + fmtM(c.revenue), "#f97316"],
-                                    ["Attribution", pct(c.attribution), "#22c55e"],
-                                    ["ROI", round2(roi) + "x", roi >= 50 ? "#22c55e" : "#eab308"],
-                                    ["Rights Expiry", expired ? "Expired" : dl + " days", dl < 0 ? "#ef4444" : dl < 90 ? "#eab308" : "#22c55e"],
+                                    [t('performance.contractFee'), "₩" + fmtM(c.contractRate), "#a855f7"],
+                                    [t('performance.attributedOrders'), c.orders +  ' ' + t('performance.orders'), "#4f8ef7"],
+                                    [t('performance.attributedRevenue'), "₩" + fmtM(c.revenue), "#f97316"],
+                                    [t('performance.attribution'), pct(c.attribution), "#22c55e"],
+                                    [t('performance.roi'), round2(roi) + "x", roi >= 50 ? "#22c55e" : "#eab308"],
+                                    [t('performance.rightsExpiry'), expired ? t('performance.expired') : dl + " days", dl < 0 ? "#ef4444" : dl < 90 ? "#eab308" : "#22c55e"],
                                 ].map(([l, v, col]) => (
                                     <div key={l} style={{ padding: "8px 10px", borderRadius: 10, background: "rgba(9,15,30,0.6)", textAlign: "center" }}>
                                         <div style={{ fontSize: 9, color: "var(--text-3)", fontWeight: 700, marginBottom: 3 }}>{l}</div>
@@ -676,10 +678,10 @@ function CreatorTab() {
                                     </div>
                                     <table className="table" style={{ fontSize: 11 }}>
                                         <thead>
-                                            <tr><th>Content</th><th style={{ textAlign: "right" }}>Views</th>
-                                                <th style={{ textAlign: "right" }}>Attributed Orders</th>
-                                                <th style={{ textAlign: "right" }}>Attributed Revenue</th>
-                                                <th style={{ textAlign: "right" }}>Attribution</th></tr>
+                                            <tr><th>{t('performance.content')}</th><th style={{ textAlign: "right" }}>{t('performance.views')}</th>
+                                                <th style={{ textAlign: "right" }}>{t('performance.attributedOrders')}</th>
+                                                <th style={{ textAlign: "right" }}>{t('performance.attributedRevenue')}</th>
+                                                <th style={{ textAlign: "right" }}>{t('performance.attribution')}</th></tr>
                                         </thead>
                                         <tbody>
                                             {c.content.map((ct, i) => (
@@ -719,7 +721,7 @@ function CreatorTab() {
                         boxShadow: "0 24px 64px rgba(0,0,0,0.7)", animation: "popIn 0.2s cubic-bezier(.4,0,.2,1)"
                     }}>
                         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 20, alignItems: "center" }}>
-                            <div style={{ fontWeight: 800, fontSize: 16 }}>💰 Creator Settlement</div>
+                            <div style={{ fontWeight: 800, fontSize: 16 }}>{t('performance.creatorSettlement')}</div>
                             <button onClick={() => setModal(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-3)", fontSize: 18 }}>✕</button>
                         </div>
                         {/* Creator info */}
@@ -751,15 +753,15 @@ function CreatorTab() {
                             </span>
                         </div>
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 4 }}>
-                            <div><label className="input-label">Bank</label>
+                            <div><label className="input-label">{t('performance.bank')}</label>
                                 <select className="input"><option>KakaoBank</option><option>TossBank</option><option>Shinhan</option><option>Kookmin</option></select></div>
-                            <div><label className="input-label">Account No.</label>
+                            <div><label className="input-label">{t('performance.accountNo')}</label>
                                 <input className="input" defaultValue="1234-5678-9012" /></div>
                         </div>
                         <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 14 }}>
-                            <button className="btn-ghost" onClick={() => setModal(null)}>Cancel</button>
+                            <button className="btn-ghost" onClick={() => setModal(null)}>{t('performance.cancel')}</button>
                             <button className="btn-primary" style={{ background: "linear-gradient(135deg,#a855f7,#ec4899)" }}
-                                onClick={() => setModal(null)}>Complete Settlement</button>
+                                onClick={() => setModal(null)}>{t('performance.completeSettlement')}</button>
                         </div>
                     </div>
                     <style>{`@keyframes popIn{from{opacity:0;transform:translate(-50%,-50%) scale(0.95)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}`}</style>
@@ -781,6 +783,7 @@ const TABS = [
 
 /* ── SKU Profit성 Tab ───────────────────────────────────────────── */
 function SKUProfitTab() {
+    const { t } = useI18n();
     const [sortCol, setSortCol] = useState('margin_rate');
     const [sortDir, setSortDir] = useState('desc');
 

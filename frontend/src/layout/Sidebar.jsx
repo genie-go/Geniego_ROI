@@ -65,10 +65,10 @@ function UpgradeModal({ menuLabel, onClose, t }) {
       >
         <div style={{ fontSize: 48, marginBottom: 12 }}>🔒</div>
         <div style={{ fontWeight: 900, fontSize: 18, color: "#e2e8f0", marginBottom: 8 }}>
-          {menuLabel} — {t('demo.upgradeModalTitle')}
+          {menuLabel} — {t('gDemo.upgradeModalTitle')}
         </div>
         <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", lineHeight: 1.7, marginBottom: 24 }}>
-          {(t('demo.upgradeModalDesc') || '').split('\n').map((line, i) => (
+          {(t('gDemo.upgradeModalDesc') || '').split('\n').map((line, i) => (
             <React.Fragment key={i}>{line}{i === 0 && <br/>}</React.Fragment>
           ))}
         </div>
@@ -80,7 +80,7 @@ function UpgradeModal({ menuLabel, onClose, t }) {
               background: "transparent", color: "rgba(255,255,255,0.5)", fontSize: 13, cursor: "pointer",
             }}
           >
-            {t('demo.upgradeModalClose')}
+            {t('gDemo.upgradeModalClose')}
           </button>
           <button
             onClick={() => { onClose(); window.location.href = "/app-pricing"; }}
@@ -91,7 +91,7 @@ function UpgradeModal({ menuLabel, onClose, t }) {
               boxShadow: "0 4px 16px rgba(79,142,247,0.4)",
             }}
           >
-            {t('demo.upgradeModalBtn')}
+            {t('gDemo.upgradeModalBtn')}
           </button>
         </div>
       </div>
@@ -116,10 +116,10 @@ const MEMBER_MENU = [
   {
     key: "home",
     icon: "⬡",
-    labelKey: "nav.home",
+    labelKey: "gNav.home",
     items: [
-      { to: "/dashboard",  icon: "⬡",   labelKey: "nav.dashboard",    menuKey: "home||dashboard" },
-      { to: "/rollup",     icon: "🗂️",  labelKey: "nav.rollup",        menuKey: "home||rollup" },
+      { to: "/dashboard",  icon: "⬡",   labelKey: "gNav.dashboard",    menuKey: "home||dashboard" },
+      { to: "/rollup",     icon: "🗂️",  labelKey: "gNav.rollup",        menuKey: "home||rollup" },
     ],
   },
 
@@ -127,16 +127,16 @@ const MEMBER_MENU = [
   {
     key: "ai_marketing",
     icon: "🚀",
-    labelKey: "nav.aiMarketing",
+    labelKey: "gNav.aiMarketing",
     items: [
-      { to: "/auto-marketing",    icon: "🚀", labelKey: "nav.autoMarketing",    menuKey: "ai_marketing||auto_marketing" },
-      { to: "/ai-marketing-hub",  icon: "🤖", labelKey: "nav.aiMarketingHub",  menuKey: "ai_marketing||ai_marketing_hub" },
-      { to: "/campaign-manager",  icon: "🎯", labelKey: "nav.campaignManager",  menuKey: "ai_marketing||campaign_manager" },
-      { to: "/journey-builder",   icon: "🗺️", labelKey: "nav.journeyBuilder",   menuKey: "ai_marketing||journey_builder" },
-      { to: "/ai-prediction",     icon: "🔮", labelKey: "nav.aiPrediction",     menuKey: "ai_marketing||ai_prediction" },
-      { to: "/ai-recommend",      icon: "💡", labelKey: "nav.aiRecommend",      menuKey: "ai_marketing||ai_recommend" },
-      { to: "/content-calendar",  icon: "📆", labelKey: "nav.contentCalendar",  menuKey: "ai_marketing||content_calendar" },
-      { to: "/budget-planner",    icon: "💰", labelKey: "nav.budgetPlanner",    menuKey: "ai_marketing||budget_planner" },
+      { to: "/auto-marketing",    icon: "🚀", labelKey: "gNav.autoMarketing",    menuKey: "ai_marketing||auto_marketing" },
+      { to: "/ai-marketing-hub",  icon: "🤖", labelKey: "gNav.aiMarketingHub",  menuKey: "ai_marketing||ai_marketing_hub" },
+      { to: "/campaign-manager",  icon: "🎯", labelKey: "gNav.campaignManager",  menuKey: "ai_marketing||campaign_manager" },
+      { to: "/journey-builder",   icon: "🗺️", labelKey: "gNav.journeyBuilder",   menuKey: "ai_marketing||journey_builder" },
+      { to: "/ai-prediction",     icon: "🔮", labelKey: "gNav.aiPrediction",     menuKey: "ai_marketing||ai_prediction" },
+      { to: "/ai-recommend",      icon: "💡", labelKey: "gNav.aiRecommend",      menuKey: "ai_marketing||ai_recommend" },
+      { to: "/content-calendar",  icon: "📆", labelKey: "gNav.contentCalendar",  menuKey: "ai_marketing||content_calendar" },
+      { to: "/budget-planner",    icon: "💰", labelKey: "gNav.budgetPlanner",    menuKey: "ai_marketing||budget_planner" },
     ],
   },
 
@@ -144,17 +144,18 @@ const MEMBER_MENU = [
   {
     key: "ad_analytics",
     icon: "📣",
-    labelKey: "nav.adAnalytics",
+    labelKey: "gNav.adAnalytics",
     items: [
-      { to: "/marketing",               icon: "📣", labelKey: "nav.adPerformance",      menuKey: "ad_analytics||ad_performance" },
-      { to: "/attribution",              icon: "🔗", labelKey: "nav.attribution",        menuKey: "ad_analytics||attribution_ana" },
-      { to: "/channel-kpi",              icon: "📊", labelKey: "nav.channelKpi",         menuKey: "ad_analytics||channel_kpi" },
-      { to: "/marketing-intelligence",   icon: "🧠", labelKey: "nav.marketingIntel",     menuKey: "ad_analytics||marketing_intelligence" },
-      { to: "/graph-score",              icon: "🕸️", labelKey: "nav.graphScore",         menuKey: "ad_analytics||graph_score" },
-      { to: "/influencer",               icon: "🤝", labelKey: "nav.influencer",         menuKey: "ad_analytics||influencer_mgmt" },
-      { to: "/reviews-ugc",              icon: "⭐", labelKey: "nav.reviewsUgc",         menuKey: "ad_analytics||reviews_ugc" },
-      { to: "/digital-shelf",            icon: "🛍",  labelKey: "nav.digitalShelf",      menuKey: "ad_analytics||digital_shelf" },
-      { to: "/amazon-risk",              icon: "🏪", labelKey: "nav.amazonRisk",         menuKey: "ad_analytics||amazon_risk" },
+      { to: "/marketing",               icon: "📣", labelKey: "gNav.adPerformance",      menuKey: "ad_analytics||ad_performance" },
+      { to: "/account-performance",      icon: "🏢", labelKey: "gNav.accountPerformance", menuKey: "ad_analytics||account_performance" },
+      { to: "/attribution",              icon: "🔗", labelKey: "gNav.attribution",        menuKey: "ad_analytics||attribution_ana" },
+      { to: "/channel-kpi",              icon: "📊", labelKey: "gNav.channelKpi",         menuKey: "ad_analytics||channel_kpi" },
+      { to: "/marketing-intelligence",   icon: "🧠", labelKey: "gNav.marketingIntel",     menuKey: "ad_analytics||marketing_intelligence" },
+      { to: "/graph-score",              icon: "🕸️", labelKey: "gNav.graphScore",         menuKey: "ad_analytics||graph_score" },
+      { to: "/influencer",               icon: "🤝", labelKey: "gNav.influencer",         menuKey: "ad_analytics||influencer_mgmt" },
+      { to: "/reviews-ugc",              icon: "⭐", labelKey: "gNav.reviewsUgc",         menuKey: "ad_analytics||reviews_ugc" },
+      { to: "/digital-shelf",            icon: "🛍",  labelKey: "gNav.digitalShelf",      menuKey: "ad_analytics||digital_shelf" },
+      { to: "/amazon-risk",              icon: "🏪", labelKey: "gNav.amazonRisk",         menuKey: "ad_analytics||amazon_risk" },
     ],
   },
 
@@ -162,16 +163,16 @@ const MEMBER_MENU = [
   {
     key: "crm",
     icon: "👤",
-    labelKey: "nav.crm",
+    labelKey: "gNav.crm",
     items: [
-      { to: "/crm",            icon: "👥", labelKey: "nav.crmMain",        menuKey: "crm||crm_main" },
-      { to: "/email-marketing",icon: "✉️", labelKey: "nav.emailMarketing", menuKey: "crm||email_marketing" },
-      { to: "/kakao-channel",  icon: "💬", labelKey: "nav.kakaoChannel",   menuKey: "crm||kakao_channel" },
-      { to: "/whatsapp",       icon: "🟢", labelKey: "nav.whatsapp",       menuKey: "crm||whatsapp" },
-      { to: "/sms-marketing",  icon: "📱", labelKey: "nav.smsMarketing",   menuKey: "crm||sms_marketing" },
-      { to: "/instagram-dm",   icon: "📸", labelKey: "nav.instagramDm",    menuKey: "crm||instagram_dm" },
-      { to: "/line-channel",   icon: "💚", labelKey: "nav.lineChannel",    menuKey: "crm||line_channel" },
-      { to: "/web-popup",      icon: "🎯", labelKey: "nav.webPopup",       menuKey: "crm||web_popup" },
+      { to: "/crm",            icon: "👥", labelKey: "gNav.crmMain",        menuKey: "crm||crm_main" },
+      { to: "/email-marketing",icon: "✉️", labelKey: "gNav.emailMarketing", menuKey: "crm||email_marketing" },
+      { to: "/kakao-channel",  icon: "💬", labelKey: "gNav.kakaoChannel",   menuKey: "crm||kakao_channel" },
+      { to: "/whatsapp",       icon: "🟢", labelKey: "gNav.whatsapp",       menuKey: "crm||whatsapp" },
+      { to: "/sms-marketing",  icon: "📱", labelKey: "gNav.smsMarketing",   menuKey: "crm||sms_marketing" },
+      { to: "/instagram-dm",   icon: "📸", labelKey: "gNav.instagramDm",    menuKey: "crm||instagram_dm" },
+      { to: "/line-channel",   icon: "💚", labelKey: "gNav.lineChannel",    menuKey: "crm||line_channel" },
+      { to: "/web-popup",      icon: "🎯", labelKey: "gNav.webPopup",       menuKey: "crm||web_popup" },
     ],
   },
 
@@ -179,19 +180,19 @@ const MEMBER_MENU = [
   {
     key: "commerce",
     icon: "🛒",
-    labelKey: "nav.commerce",
+    labelKey: "gNav.commerce",
     items: [
-      { to: "/omni-channel",    icon: "🌐", labelKey: "nav.omniChannel",      menuKey: "commerce||omni_channel" },
-      { to: "/catalog-sync",    icon: "📂", labelKey: "nav.catalog",          menuKey: "commerce||catalog_sync" },
-      { to: "/order-hub",       icon: "📦", labelKey: "nav.orderHub",         menuKey: "commerce||order_hub" },
-      { to: "/kr-channel",      icon: "🇰🇷", labelKey: "nav.krChannel",        menuKey: "commerce||kr_channel" },
-      { to: "/wms-manager",     icon: "🏭", labelKey: "nav.wms",              menuKey: "commerce||wms_manager" },
-      { to: "/price-opt",       icon: "💡", labelKey: "nav.priceOpt",         menuKey: "commerce||price_opt" },
-      { to: "/demand-forecast", icon: "🤖", labelKey: "nav.demandForecast",   menuKey: "commerce||demand_forecast" },
-      { to: "/asia-logistics",  icon: "🌏", labelKey: "nav.asiaLogistics",    menuKey: "commerce||asia_logistics" },
-      { to: "/returns-portal",  icon: "🔄", labelKey: "nav.returnsPortal",    menuKey: "commerce||returns_portal" },
-      { to: "/supply-chain",    icon: "🔭", labelKey: "nav.supplyChain",      menuKey: "commerce||supply_chain" },
-      { to: "/supplier-portal", icon: "🏭", labelKey: "nav.supplierPortal",   menuKey: "commerce||supplier_portal" },
+      { to: "/omni-channel",    icon: "🌐", labelKey: "gNav.omniChannel",      menuKey: "commerce||omni_channel" },
+      { to: "/catalog-sync",    icon: "📂", labelKey: "gNav.catalog",          menuKey: "commerce||catalog_sync" },
+      { to: "/order-hub",       icon: "📦", labelKey: "gNav.orderHub",         menuKey: "commerce||order_hub" },
+      { to: "/kr-channel",      icon: "🇰🇷", labelKey: "gNav.krChannel",        menuKey: "commerce||kr_channel" },
+      { to: "/wms-manager",     icon: "🏭", labelKey: "gNav.wms",              menuKey: "commerce||wms_manager" },
+      { to: "/price-opt",       icon: "💡", labelKey: "gNav.priceOpt",         menuKey: "commerce||price_opt" },
+      { to: "/demand-forecast", icon: "🤖", labelKey: "gNav.demandForecast",   menuKey: "commerce||demand_forecast" },
+      { to: "/asia-logistics",  icon: "🌏", labelKey: "gNav.asiaLogistics",    menuKey: "commerce||asia_logistics" },
+      { to: "/returns-portal",  icon: "🔄", labelKey: "gNav.returnsPortal",    menuKey: "commerce||returns_portal" },
+      { to: "/supply-chain",    icon: "🔭", labelKey: "gNav.supplyChain",      menuKey: "commerce||supply_chain" },
+      { to: "/supplier-portal", icon: "🏭", labelKey: "gNav.supplierPortal",   menuKey: "commerce||supplier_portal" },
     ],
   },
 
@@ -199,13 +200,13 @@ const MEMBER_MENU = [
   {
     key: "analytics",
     icon: "📊",
-    labelKey: "nav.analytics",
+    labelKey: "gNav.analytics",
     items: [
-      { to: "/performance",    icon: "📊", labelKey: "nav.performanceHub", menuKey: "analytics||performance_hub" },
-      { to: "/pnl",            icon: "🌊", labelKey: "nav.pnl",           menuKey: "analytics||pnl_analytics" },
-      { to: "/ai-insights",    icon: "🤖", labelKey: "nav.aiInsights",    menuKey: "analytics||ai_insights" },
-      { to: "/report-builder", icon: "📋", labelKey: "nav.reportBuilder", menuKey: "analytics||report_builder" },
-      { to: "/data-product",   icon: "🗂️", labelKey: "nav.dataProduct",   menuKey: "analytics||data_product" },
+      { to: "/performance",    icon: "📊", labelKey: "gNav.performanceHub", menuKey: "analytics||performance_hub" },
+      { to: "/pnl",            icon: "🌊", labelKey: "gNav.pnl",           menuKey: "analytics||pnl_analytics" },
+      { to: "/ai-insights",    icon: "🤖", labelKey: "gNav.aiInsights",    menuKey: "analytics||ai_insights" },
+      { to: "/report-builder", icon: "📋", labelKey: "gNav.reportBuilder", menuKey: "analytics||report_builder" },
+      { to: "/data-product",   icon: "🗂️", labelKey: "gNav.dataProduct",   menuKey: "analytics||data_product" },
     ],
   },
 
@@ -213,13 +214,13 @@ const MEMBER_MENU = [
   {
     key: "finance",
     icon: "💳",
-    labelKey: "nav.finance",
+    labelKey: "gNav.finance",
     items: [
-      { to: "/reconciliation", icon: "💰", labelKey: "nav.reconciliation", menuKey: "finance||reconciliation" },
-      { to: "/settlements",    icon: "📋", labelKey: "nav.settlements",    menuKey: "finance||settlements" },
-      { to: "/app-pricing",    icon: "💳", labelKey: "nav.pricing",        menuKey: "finance||app_pricing" },
-      { to: "/my-coupons",     icon: "🎟", labelKey: "nav.myCoupons",      menuKey: "finance||my_coupons" },
-      { to: "/audit",          icon: "🧾", labelKey: "nav.auditLog",       menuKey: "finance||audit" },
+      { to: "/reconciliation", icon: "💰", labelKey: "gNav.reconciliation", menuKey: "finance||reconciliation" },
+      { to: "/settlements",    icon: "📋", labelKey: "gNav.settlements",    menuKey: "finance||settlements" },
+      { to: "/app-pricing",    icon: "💳", labelKey: "gNav.pricing",        menuKey: "finance||app_pricing" },
+      { to: "/my-coupons",     icon: "🎟", labelKey: "gNav.myCoupons",      menuKey: "finance||my_coupons" },
+      { to: "/audit",          icon: "🧾", labelKey: "gNav.auditLog",       menuKey: "finance||audit" },
     ],
   },
 
@@ -227,15 +228,15 @@ const MEMBER_MENU = [
   {
     key: "automation",
     icon: "🤖",
-    labelKey: "nav.automation",
+    labelKey: "gNav.automation",
     items: [
-      { to: "/ai-rule-engine",    icon: "🧠", labelKey: "nav.aiRuleEngine",    menuKey: "automation||ai_rule_engine" },
-      { to: "/alert-policies",    icon: "🚨", labelKey: "nav.alertPolicies",   menuKey: "automation||alert_policies" },
-      { to: "/ai-policy",         icon: "🤖", labelKey: "nav.aiPolicy",        menuKey: "automation||ai_policy" },
-      { to: "/approvals",         icon: "✅", labelKey: "nav.approvals",       menuKey: "automation||approvals" },
-      { to: "/action-presets",    icon: "⚡", labelKey: "nav.actionPresets",   menuKey: "automation||action_presets" },
-      { to: "/writeback",         icon: "↩",  labelKey: "nav.writeback",       menuKey: "automation||writeback" },
-      { to: "/onboarding",        icon: "🗺️", labelKey: "nav.onboarding",      menuKey: "automation||onboarding" },
+      { to: "/ai-rule-engine",    icon: "🧠", labelKey: "gNav.aiRuleEngine",    menuKey: "automation||ai_rule_engine" },
+      { to: "/alert-policies",    icon: "🚨", labelKey: "gNav.alertPolicies",   menuKey: "automation||alert_policies" },
+      { to: "/ai-policy",         icon: "🤖", labelKey: "gNav.aiPolicy",        menuKey: "automation||ai_policy" },
+      { to: "/approvals",         icon: "✅", labelKey: "gNav.approvals",       menuKey: "automation||approvals" },
+      { to: "/action-presets",    icon: "⚡", labelKey: "gNav.actionPresets",   menuKey: "automation||action_presets" },
+      { to: "/writeback",         icon: "↩",  labelKey: "gNav.writeback",       menuKey: "automation||writeback" },
+      { to: "/onboarding",        icon: "🗺️", labelKey: "gNav.onboarding",      menuKey: "automation||onboarding" },
     ],
   },
 
@@ -243,15 +244,15 @@ const MEMBER_MENU = [
   {
     key: "data",
     icon: "🔌",
-    labelKey: "nav.data",
+    labelKey: "gNav.data",
     items: [
-      { to: "/connectors",       icon: "🔌", labelKey: "nav.connectors",     menuKey: "data||connectors" },
-      { to: "/event-norm",       icon: "🔄", labelKey: "nav.eventNorm",      menuKey: "data||event_norm" },
-      { to: "/data-schema",      icon: "📋", labelKey: "nav.dataSchema",     menuKey: "data||data_schema" },
-      { to: "/api-keys",         icon: "🔑", labelKey: "nav.apiKeys",        menuKey: "data||api_keys" },
-      { to: "/pixel-tracking",   icon: "🎯", labelKey: "nav.pixelTracking",  menuKey: "data||pixel_tracking" },
-      { to: "/data-trust",       icon: "🔬", labelKey: "nav.dataTrust",      menuKey: "data||data_trust" },
-      { to: "/mapping-registry", icon: "🗂️", labelKey: "nav.mappingRegistry",menuKey: "data||mapping_registry" },
+      { to: "/connectors",       icon: "🔌", labelKey: "gNav.connectors",     menuKey: "data||connectors" },
+      { to: "/event-norm",       icon: "🔄", labelKey: "gNav.eventNorm",      menuKey: "data||event_norm" },
+      { to: "/data-schema",      icon: "📋", labelKey: "gNav.dataSchema",     menuKey: "data||data_schema" },
+      { to: "/api-keys",         icon: "🔑", labelKey: "gNav.apiKeys",        menuKey: "data||api_keys" },
+      { to: "/pixel-tracking",   icon: "🎯", labelKey: "gNav.pixelTracking",  menuKey: "data||pixel_tracking" },
+      { to: "/data-trust",       icon: "🔬", labelKey: "gNav.dataTrust",      menuKey: "data||data_trust" },
+      { to: "/mapping-registry", icon: "🗂️", labelKey: "gNav.mappingRegistry",menuKey: "data||mapping_registry" },
     ],
   },
 
@@ -259,14 +260,14 @@ const MEMBER_MENU = [
   {
     key: "member_tools",
     icon: "👥",
-    labelKey: "nav.memberTools",
+    labelKey: "gNav.memberTools",
     items: [
-      { to: "/workspace",       icon: "👥", labelKey: "nav.workspace",     menuKey: "system||workspace" },
-      { to: "/operations",      icon: "⚡", labelKey: "nav.operations",    menuKey: "system||operations" },
-      { to: "/case-study",      icon: "🏆", labelKey: "nav.caseStudy",     menuKey: "system||case_study" },
-      { to: "/help",            icon: "📚", labelKey: "nav.help",          menuKey: "system||help_center" },
-      { to: "/feedback",        icon: "💬", labelKey: "nav.feedback",      menuKey: "system||feedback" },
-      { to: "/developer-hub",   icon: "⚙️",  labelKey: "nav.developerHub", menuKey: "system||developer_hub" },
+      { to: "/workspace",       icon: "👥", labelKey: "gNav.workspace",     menuKey: "system||workspace" },
+      { to: "/operations",      icon: "⚡", labelKey: "gNav.operations",    menuKey: "system||operations" },
+      { to: "/case-study",      icon: "🏆", labelKey: "gNav.caseStudy",     menuKey: "system||case_study" },
+      { to: "/help",            icon: "📚", labelKey: "gNav.help",          menuKey: "system||help_center" },
+      { to: "/feedback",        icon: "💬", labelKey: "gNav.feedback",      menuKey: "system||feedback" },
+      { to: "/developer-hub",   icon: "⚙️",  labelKey: "gNav.developerHub", menuKey: "system||developer_hub" },
     ],
   },
 ];
@@ -276,13 +277,13 @@ const ADMIN_MENU = [
   {
     key: "system",
     icon: "⚙",
-    labelKey: "nav.adminCenter",
+    labelKey: "gNav.adminCenter",
     items: [
-      { to: "/admin",            icon: "⚙",  labelKey: "nav.adminSettings",  menuKey: "system||admin" },
-      { to: "/user-management",  icon: "👤", labelKey: "nav.userMgmt",       menuKey: "system||user_management" },
-      { to: "/db-admin",         icon: "🗄️", labelKey: "nav.dbAdmin",        menuKey: "system||db_admin" },
-      { to: "/pg-config",        icon: "💳", labelKey: "nav.pgConfig",       menuKey: "system||pg_config" },
-      { to: "/system-monitor",   icon: "🖥️", labelKey: "nav.systemMonitor",  menuKey: "system||system_monitor" },
+      { to: "/admin",            icon: "⚙",  labelKey: "gNav.adminSettings",  menuKey: "system||admin" },
+      { to: "/user-management",  icon: "👤", labelKey: "gNav.userMgmt",       menuKey: "system||user_management" },
+      { to: "/db-admin",         icon: "🗄️", labelKey: "gNav.dbAdmin",        menuKey: "system||db_admin" },
+      { to: "/pg-config",        icon: "💳", labelKey: "gNav.pgConfig",       menuKey: "system||pg_config" },
+      { to: "/system-monitor",   icon: "🖥️", labelKey: "gNav.systemMonitor",  menuKey: "system||system_monitor" },
     ],
   },
 ];
@@ -394,7 +395,7 @@ function NavSection({ section, t, defaultOpen, hasMenuAccess, isDemo, onLockClic
                     marginLeft: "auto", fontSize: 7, padding: "1px 5px", borderRadius: 4,
                     background: "rgba(99,102,241,0.15)", color: "#a5b4fc",
                     border: "1px solid rgba(99,102,241,0.25)", whiteSpace: "nowrap", flexShrink: 0,
-                  }}>{t('demo.upgradeLabel')}</span>
+                  }}>{t('gDemo.upgradeLabel')}</span>
                 </div>
               );
             }
@@ -436,10 +437,10 @@ function QuickAccessPanel({ favs, recents, allItems, navigate, toggleFav, t }) {
     <div style={{ margin: '4px 8px 0', borderRadius: 10, background: 'rgba(79,142,247,0.04)', border: '1px solid rgba(79,142,247,0.1)', overflow: 'hidden' }}>
       <div style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
         {hasFavs && (
-          <button onClick={() => setTab('favs')} style={{ flex: 1, padding: '6px 0', fontSize: 9, fontWeight: 700, border: 'none', cursor: 'pointer', background: activeTab === 'favs' ? 'rgba(79,142,247,0.12)' : 'transparent', color: activeTab === 'favs' ? '#4f8ef7' : 'var(--text-3)', transition: 'all 150ms' }}>{t('demo.quickFavs')} {favs.size}</button>
+          <button onClick={() => setTab('favs')} style={{ flex: 1, padding: '6px 0', fontSize: 9, fontWeight: 700, border: 'none', cursor: 'pointer', background: activeTab === 'favs' ? 'rgba(79,142,247,0.12)' : 'transparent', color: activeTab === 'favs' ? '#4f8ef7' : 'var(--text-3)', transition: 'all 150ms' }}>{t('gDemo.quickFavs')} {favs.size}</button>
         )}
         {hasRecents && (
-          <button onClick={() => setTab('recents')} style={{ flex: 1, padding: '6px 0', fontSize: 9, fontWeight: 700, border: 'none', cursor: 'pointer', background: activeTab === 'recents' ? 'rgba(34,197,94,0.1)' : 'transparent', color: activeTab === 'recents' ? '#22c55e' : 'var(--text-3)', transition: 'all 150ms' }}>{t('demo.quickRecents')}</button>
+          <button onClick={() => setTab('recents')} style={{ flex: 1, padding: '6px 0', fontSize: 9, fontWeight: 700, border: 'none', cursor: 'pointer', background: activeTab === 'recents' ? 'rgba(34,197,94,0.1)' : 'transparent', color: activeTab === 'recents' ? '#22c55e' : 'var(--text-3)', transition: 'all 150ms' }}>{t('gDemo.quickRecents')}</button>
         )}
       </div>
       <div style={{ padding: '4px 0' }}>
@@ -546,7 +547,7 @@ export default function Sidebar() {
         }}>
           {activeCampaignCount > 0 && (
             <span style={{ fontSize: 9, color: "#22c55e", fontWeight: 700 }}>
-              {(t('demo.sidebarCampaignActive') || '🟢 {n} campaigns').replace('{n}', activeCampaignCount)}
+              {(t('gDemo.sidebarCampaignActive') || '🟢 {n} campaigns').replace('{n}', activeCampaignCount)}
             </span>
           )}
           {unreadAlertCount > 0 && (
@@ -554,7 +555,7 @@ export default function Sidebar() {
               onClick={() => navigate("/alert-policies")}
               style={{ fontSize: 9, color: "#f59e0b", fontWeight: 700, cursor: "pointer" }}
             >
-              {(t('demo.sidebarAlertCount') || '🚨 {n} alerts').replace('{n}', unreadAlertCount)}
+              {(t('gDemo.sidebarAlertCount') || '🚨 {n} alerts').replace('{n}', unreadAlertCount)}
             </span>
           )}
         </div>
@@ -611,14 +612,14 @@ export default function Sidebar() {
                 fontSize: 9, padding: "2px 8px", borderRadius: 99, border: "none",
                 background: "linear-gradient(135deg,#4f8ef7,#a855f7)",
                 color: "#fff", fontWeight: 700, cursor: "pointer",
-              }}>{t('demo.sidebarUpgrade')}</button>
+              }}>{t('gDemo.sidebarUpgrade')}</button>
             )}
           </div>
           <button onClick={handleLogout} style={{
             width: "100%", padding: "5px 0", borderRadius: 7, border: "1px solid rgba(99,140,255,0.15)",
             background: "transparent", color: "var(--text-3)", fontSize: 10, cursor: "pointer",
             fontWeight: 600, transition: "all 150ms",
-          }}>{t('demo.sidebarLogout')}</button>
+          }}>{t('gDemo.sidebarLogout')}</button>
         </div>
       )}
 

@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { useGlobalData } from '../context/GlobalDataContext.jsx';
 import AIRecommendBanner from '../components/AIRecommendBanner.jsx';
-import { useI18n } from '../i18n/index.js';
+import { useI18n, useT } from '../i18n/index.js';
 import {
   computeShapleyExact, computeSynergy,
   bayesianMMM, incrementalUplift, markovAttribution,
@@ -17,7 +17,7 @@ const Tag = ({ label, color = '#4f8ef7' }) => (
 const CH_LABELS = {
   'Meta Ads': 'Meta Ads', 'Naver Ads': 'Naver', 'Google Ads': 'Google',
   'TikTok': 'TikTok', 'Kakao': 'Kakao', 'Email': 'Email',
-  'Organic': 'Organic', 'Instagram': 'Instagram', 'Direct': '다이렉트',
+  'Organic': 'Organic', 'Instagram': 'Instagram', 'Direct': 'Direct',
 };
 
 // Pre-generate demo data once
@@ -26,6 +26,7 @@ const TS_DATA = generateTimeSeriesData(52);
 
 /* ── 1. EXACT SHAPLEY TAB ───────────────────────────────────── */
 function ShapleyTab() {
+  const t = useT();
   const { lang } = useI18n();
   const [computing, setComputing] = useState(false);
   const [results, setResults] = useState(null);
@@ -139,6 +140,7 @@ function ShapleyTab() {
 
 /* ── 2. BAYESIAN MMM TAB ─────────────────────────────────────── */
 function MMMTab() {
+  const t = useT();
   const [result, setResult] = useState(null);
   const [budget, setBudget] = useState({ 'Meta Ads': 30, 'Naver Ads': 20, 'Google Ads': 25, 'TikTok': 10, 'Kakao': 10, 'Email': 5 });
   const totalPct = Object.values(budget).reduce((s, v) => s + v, 0);
@@ -260,6 +262,7 @@ function MMMTab() {
 
 /* ── 3. MARKOV + DOUBLE ML UPLIFT TAB ───────────────────────── */
 function MarkovTab() {
+  const t = useT();
   const [computing, setComputing] = useState(false);
   const [markovRes, setMarkovRes] = useState(null);
   const [upliftRes, setUpliftRes] = useState(null);
@@ -333,10 +336,11 @@ function MarkovTab() {
 
 /* ── 4. MULTI-TOUCH ATTRIBUTION TAB ─────────────────────────── */
 function AttributionTab() {
+  const t = useT();
   const [model, setModel] = useState('last');
   const MODELS = [
-    { id: 'first', label: '첫 터치' }, { id: 'last', label: '마지막 터치' },
-    { id: 'linear', label: 'Linear' }, { id: 'time_decay', label: 'Time감쇠' }, { id: 'position', label: 'Position' },
+    { id: 'first', label: t('attrData.firstTouch') }, { id: 'last', label: t('attrData.lastTouch') },
+    { id: 'linear', label: t('attrData.linear') }, { id: 'time_decay', label: t('attrData.timeDecay') }, { id: 'position', label: t('attrData.position') },
   ];
   function calcMTA(journeys, model) {
     const tp = {};
@@ -374,7 +378,7 @@ function AttributionTab() {
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
         <div className="card card-glass">
-          <div style={{ fontWeight: 900, fontSize: 13, marginBottom: 14 }}>📊 Channelper 기여도</div>
+          <div style={{ fontWeight: 900, fontSize: 13, marginBottom: 14 }}>📊 {t('attrData.channelContrib')}</div>
           {results.map(r => {
             const color = CH_COLORS[r.channel] || '#4f8ef7';
             const share = totalRev > 0 ? r.revenue / totalRev * 100 : 0;
@@ -393,7 +397,7 @@ function AttributionTab() {
           })}
         </div>
         <div className="card card-glass">
-          <div style={{ fontWeight: 900, fontSize: 13, marginBottom: 14 }}>🗺️ 주요 Conversion 경로 Top 6</div>
+          <div style={{ fontWeight: 900, fontSize: 13, marginBottom: 14 }}>🗺️ {t('attrData.topPaths')}</div>
           {topPaths.map(p => (
             <div key={p.path} style={{ marginBottom: 10, padding: '8px 12px', borderRadius: 10, background: 'rgba(0,0,0,0.2)' }}>
               <div style={{ fontSize: 10, marginBottom: 3 }}>
@@ -421,6 +425,7 @@ const DEMO_AB = [
 ];
 
 function BayesianABTab() {
+  const t = useT();
   const [sel, setSel]         = useState(0);
   const [computing, setC]     = useState(false);
   const [analyzed, setAnalyzed] = useState(null);
@@ -442,7 +447,7 @@ function BayesianABTab() {
       </div>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         {DEMO_AB.map((t, i) => (
-          <button key={t.id} onClick={() => setSel(i)} style={{ padding: '7px 14px', borderRadius: 10, border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 11, background: i === sel ? 'linear-gradient(135deg,#4f8ef7,#a855f7)' : 'rgba(255,255,255,0.06)', color: i === sel ? '#fff' : 'var(--text-2)' }}>
+          <button key={tb.id} onClick={() => setSel(i)} style={{ padding: '7px 14px', borderRadius: 10, border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 11, background: i === sel ? 'linear-gradient(135deg,#4f8ef7,#a855f7)' : 'rgba(255,255,255,0.06)', color: i === sel ? '#fff' : 'var(--text-2)' }}>
             {t.name}
           </button>
         ))}
@@ -495,6 +500,7 @@ function BayesianABTab() {
 
 /* ── 6. COHORT ──────────────────────────────────────────────── */
 function CohortTab() {
+  const t = useT();
   const weeks = ['W1','W2','W3','W4','W5','W6','W7','W8'];
   const cohorts = weeks.map((w, wi) => ({ cohort: w, size: 200 + wi * 15, retention: weeks.map((_, di) => di <= wi ? (100 * Math.pow(0.72, di)).toFixed(0) : null) }));
   return (
@@ -534,6 +540,7 @@ const DEMO_LTV = [
   { channel:'TikTok', cac:24000, ltv:97000, ratio:4.0, roas:3.2, customers:87 },
 ];
 function LtvCacTab() {
+  const t = useT();
   const totalCac = DEMO_LTV.reduce((s,r) => s+r.cac*r.customers,0);
   const totalLtv = DEMO_LTV.reduce((s,r) => s+r.ltv*r.customers,0);
   return (
@@ -605,6 +612,7 @@ function AnomalyMiniChart({ data, color, status }) {
 }
 
 function AnomalyTab() {
+  const t = useT();
   const alertCount = ANOMALY_DATA.filter(d => d.status === 'critical' || d.status === 'alert').length;
   const [filter, setFilter] = useState('all');
   const filtered = filter === 'all' ? ANOMALY_DATA : ANOMALY_DATA.filter(d => d.status === filter || (filter === 'issue' && ['critical','alert','warn'].includes(d.status)));
@@ -725,6 +733,7 @@ function RadarChart({ data, channels, colors, size = 220 }) {
 }
 
 function ModelCompareTab() {
+  const t = useT();
   const { channels, models } = MODEL_COMPARE_DATA;
   const [selModel, setSelModel] = useState(null); // null = all
 
@@ -835,19 +844,20 @@ function ModelCompareTab() {
 }
 
 /* ── MAIN ────────────────────────────────────────────────────── */
-const TABS = [
-  { id:'mta',      label:'🗺️ 멀티터치 MTA',  desc:'5가지 모델' },
-  { id:'shapley',  label:'🎯 Exact Shapley', desc:'2^n 정확계산' },
-  { id:'mmm',      label:'📊 Bayesian MMM',  desc:'Ridge+Adstock+Hill' },
-  { id:'markov',   label:'🔗 Markov+Uplift', desc:'전이행렬+Double ML' },
-  { id:'bayesian', label:'🧪 Bayesian A/B',  desc:'Thompson Sampling' },
-  { id:'cohort',   label:'📅 코호트 Analysis',    desc:'주차per 구매패턴' },
-  { id:'ltvcac',   label:'💰 LTV vs CAC',    desc:'Customer획득Cost' },
-  { id:'anomaly',  label:'🚨 이상감지',       desc:'Z-score 실Time' },
-  { id:'compare',  label:'🕸️ 모델 Compare',      desc:'레이더 + A-Score' },
+const getTabs = (t) => [
+  { id:'mta',      label:t('attrData.tabMtaLabel'),  desc:t('attrData.tabMtaDesc') },
+  { id:'shapley',  label:t('attrData.tabShapleyLabel'), desc:t('attrData.tabShapleyDesc') },
+  { id:'mmm',      label:t('attrData.tabMmmLabel'),  desc:t('attrData.tabMmmDesc') },
+  { id:'markov',   label:t('attrData.tabMarkovLabel'), desc:t('attrData.tabMarkovDesc') },
+  { id:'bayesian', label:t('attrData.tabAbLabel'),  desc:t('attrData.tabAbDesc') },
+  { id:'cohort',   label:t('attrData.tabCohortLabel'),    desc:t('attrData.tabCohortDesc') },
+  { id:'ltvcac',   label:t('attrData.tabLtvLabel'),    desc:t('attrData.tabLtvDesc') },
+  { id:'anomaly',  label:t('attrData.tabAnomalyLabel'),       desc:t('attrData.tabAnomalyDesc') },
+  { id:'compare',  label:t('attrData.tabCompareLabel'),      desc:t('attrData.tabCompareDesc') },
 ];
 
 export default function Attribution() {
+  const t = useT();
   const [tab, setTab] = useState('mta');
   const { orderStats, attributionData } = useGlobalData();
   return (
@@ -865,26 +875,26 @@ export default function Attribution() {
       <div className="hero fade-up">
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', flexWrap:'wrap', gap:16 }}>
           <div>
-            <div className="hero-title grad-blue-purple">📈 Marketing 어트리뷰션 — 실 ML 엔진 v3.0</div>
-            <div className="hero-desc">Exact Shapley (2^n) · Bayesian MMM · Markov Chain · Incremental Uplift (Double ML) · Thompson Sampling A/B</div>
+            <div className="hero-title grad-blue-purple">📈 {t('attrData.title')}</div>
+            <div className="hero-desc">{t('attrData.subtitle')}</div>
             <div style={{ display:'flex', gap:8, marginTop:10, flexWrap:'wrap' }}>
               <span className="badge badge-blue">Exact Shapley 2^n</span>
               <span className="badge badge-purple">Bayesian MMM</span>
               <span className="badge badge-teal">Double ML Uplift</span>
-              <span className="badge" style={{ background:'rgba(168,85,247,0.15)', color:'#c084fc', border:'1px solid rgba(168,85,247,0.3)' }}>Northbeam Count준</span>
+              <span className="badge" style={{ background:'rgba(168,85,247,0.15)', color:'#c084fc', border:'1px solid rgba(168,85,247,0.3)' }}>{t('attrData.northbeam')}</span>
             </div>
           </div>
           <div style={{ textAlign:'right' }}>
-            <div style={{ fontSize:11, color:'var(--text-3)' }}>Analysis 여정</div>
+            <div style={{ fontSize:11, color:'var(--text-3)' }}>{t('attrData.analysisJourney')}</div>
             <div style={{ fontSize:26, fontWeight:900, color:'#22c55e' }}>{DEMO_JOURNEYS.length.toLocaleString()}건</div>
-            <div style={{ fontSize:10, color:'var(--text-3)' }}>52주 시계열 데이터</div>
+            <div style={{ fontSize:10, color:'var(--text-3)' }}>{t('attrData.timeSeries')}</div>
           </div>
         </div>
       </div>
       <div style={{ display:'flex', gap:4, padding:'5px', background:'rgba(0,0,0,0.25)', borderRadius:14, flexWrap:'wrap' }}>
-        {TABS.map(t => (
-          <button key={t.id} onClick={() => setTab(t.id)} style={{ padding:'7px 14px', borderRadius:10, border:'none', cursor:'pointer', fontWeight:700, fontSize:11, flex:1, minWidth:120, background:tab===t.id?'linear-gradient(135deg,#4f8ef7,#6366f1)':'transparent', color:tab===t.id?'#fff':'var(--text-2)', transition:'all 150ms' }}>
-            <div>{t.label}</div><div style={{ fontSize:9, opacity:0.7, marginTop:1 }}>{t.desc}</div>
+        {getTabs(t).map(tb => (
+          <button key={tb.id} onClick={() => setTab(tb.id)} style={{ padding:'7px 14px', borderRadius:10, border:'none', cursor:'pointer', fontWeight:700, fontSize:11, flex:1, minWidth:120, background:tab===tb.id?'linear-gradient(135deg,#4f8ef7,#6366f1)':'transparent', color:tab===tb.id?'#fff':'var(--text-2)', transition:'all 150ms' }}>
+            <div>{tb.label}</div><div style={{ fontSize:9, opacity:0.7, marginTop:1 }}>{tb.desc}</div>
           </button>
         ))}
       </div>

@@ -81,9 +81,16 @@ final class Db
             $pdo->exec('PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON; PRAGMA busy_timeout=5000;');
         }
 
-
         self::$pdo = $pdo;
-        self::migrate($pdo);
+
+        // ENTERPRISE OPTIMIZATION: Do not execute 100+ DDLs per request.
+        // Check temp lock file to run migration only once per server startup/deployment.
+        $migrationLock = sys_get_temp_dir() . '/genie_roi_v424_migrated.lock';
+        if (!file_exists($migrationLock)) {
+            self::migrate($pdo);
+            @file_put_contents($migrationLock, date('Y-m-d H:i:s'));
+        }
+
         return $pdo;
     }
 

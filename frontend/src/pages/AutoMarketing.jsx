@@ -486,7 +486,7 @@ export default function AutoMarketing() {
                                 🎨 {t('marketing.creativeAutoSync')}
                             </div>
                             <div style={{ fontSize: 11, color: "var(--text-3)", lineHeight: 1.6 }}>
-                                {t('marketing.creativeSyncDesc1')}<strong style={{ color: "#a855f7" }}>"{t('marketing.creativeSyncBtn')}"</strong>{t('marketing.creativeSyncDesc2')}
+                                {t('marketing.creativeSyncDesc1')}<strong style={{ color: "#a855f7" }}>{t('marketing.creativeSyncBtn')}</strong>{t('marketing.creativeSyncDesc2')}
                                 <strong style={{ color: "#4f8ef7" }}>{t('marketing.creativeSyncDesc3')}</strong>{t('marketing.creativeSyncDesc4')}
                             </div>
                         </div>

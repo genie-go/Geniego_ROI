@@ -25,7 +25,7 @@ function authHeaders(key) {
   return { "Content-Type": "application/json", Authorization: `Bearer ${key}` };
 }
 
-/* ── Admin User Management Panel ─────────────────────────────────────────────── */
+/* ── Admin 사용자 관리 Panel ─────────────────────────────────────────────── */
 function UserManagementPanel() {
   const { token } = useAuth();
   const authKey = token || DEMO_ADMIN_KEY;
@@ -35,7 +35,7 @@ function UserManagementPanel() {
   const [loading, setLoading] = useState(true);
   const [msg, setMsg] = useState({ text: "", type: "ok" });
   const [showAddForm, setShowAddForm] = useState(false);
-  const [editUser, setEditUser] = useState(null); // Change Plan 대상
+  const [editUser, setEditUser] = useState(null); // 플랜 변경 대상
   const [form, setForm] = useState({ name: "", email: "", password: "", plan: "demo" });
   const [saving, setSaving] = useState(false);
 
@@ -43,8 +43,8 @@ function UserManagementPanel() {
     setLoading(true);
     fetch(`${API}/v423/admin/users`, { headers: hdrs })
       .then(r => r.json())
-      .then(d => { if (d.users) setUsers(d.users); else if (d.ok === false) setMsg({ text: d.error || "Lookup Failed", type: "err" }); })
-      .catch(() => setMsg({ text: "User List Lookup Failed (Demo 데이터 표시)", type: "warn" }))
+      .then(d => { if (d.명) setUsers(d.명); else if (d.ok === false) setMsg({ text: d.error || "Lookup Failed", type: "err" }); })
+      .catch(() => setMsg({ text: "사용자 목록 Lookup Failed (Demo 데이터 표시)", type: "warn" }))
       .finally(() => setLoading(false));
   }, [authKey]);
 
@@ -53,35 +53,35 @@ function UserManagementPanel() {
   const showMsg = (text, type = "ok") => { setMsg({ text, type }); setTimeout(() => setMsg({ text: "", type: "ok" }), 4000); };
 
   const handleAddUser = async () => {
-    if (!form.name || !form.email || !form.password) { showMsg("Please enter Name, Email and Password.", "err"); return; }
+    if (!form.name || !form.email || !form.password) { showMsg("이름, 이메일, 비밀번호를 모두 입력해주세요.", "err"); return; }
     setSaving(true);
     const r = await fetch(`${API}/v423/admin/users`, { method: "POST", headers: hdrs, body: JSON.stringify(form) });
     const d = await r.json();
     setSaving(false);
-    if (d.ok) { showMsg("User has been registered.", "ok"); setShowAddForm(false); setForm({ name: "", email: "", password: "", plan: "demo" }); loadUsers(); }
-    else showMsg(d.error || "Register Failed", "err");
+    if (d.ok) { showMsg("사용자가 등록되었습니다.", "ok"); setShowAddForm(false); setForm({ name: "", email: "", password: "", plan: "demo" }); loadUsers(); }
+    else showMsg(d.error || "등록 실패", "err");
   };
 
   const handlePlanChange = async (userId, newPlan) => {
     const r = await fetch(`${API}/v423/admin/users/${userId}/plan`, { method: "PATCH", headers: hdrs, body: JSON.stringify({ plan: newPlan }) });
     const d = await r.json();
-    if (d.ok) { showMsg("Plan has been updated.", "ok"); setEditUser(null); loadUsers(); }
-    else showMsg(d.error || "Update Failed", "err");
+    if (d.ok) { showMsg("플랜이 업데이트되었습니다.", "ok"); setEditUser(null); loadUsers(); }
+    else showMsg(d.error || "업데이트 실패", "err");
   };
 
   const handleToggleActive = async (userId, currentActive) => {
     const r = await fetch(`${API}/v423/admin/users/${userId}/active`, { method: "PATCH", headers: hdrs, body: JSON.stringify({ active: !currentActive }) });
     const d = await r.json();
-    if (d.ok) { showMsg(currentActive ? "Account has been deactivated." : "Account has been activated.", "ok"); loadUsers(); }
-    else showMsg(d.error || "Update Failed", "err");
+    if (d.ok) { showMsg(currentActive ? "계정이 비활성화되었습니다." : "계정이 활성화되었습니다.", "ok"); loadUsers(); }
+    else showMsg(d.error || "업데이트 실패", "err");
   };
 
   const handleResetPw = async (userId) => {
-    if (!window.confirm("Reset password? A temporary password will be issued.")) return;
+    if (!window.confirm("비밀번호를 초기화하시겠습니까? 임시 비밀번호가 발급됩니다.")) return;
     const r = await fetch(`${API}/v423/admin/users/${userId}/reset-password`, { method: "POST", headers: hdrs });
     const d = await r.json();
     if (d.ok) showMsg(`Temporary password: ${d.temp_password || "(sent via server email)"}`, "ok");
-    else showMsg(d.error || "Reset Failed", "err");
+    else showMsg(d.error || "초기화 실패", "err");
   };
 
   const pc = (plan) => ROLE_COLORS[plan] || "#8da4c4";
@@ -102,7 +102,7 @@ function UserManagementPanel() {
 
       {/* Header + Admin Add Button */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <div style={{ fontWeight: 800, fontSize: 14, color: "#e2e8f0" }}>👥 User List ({users.length} users)</div>
+        <div style={{ fontWeight: 800, fontSize: 14, color: "#e2e8f0" }}>👥 사용자 목록 ({users.length}명)</div>
         <button
           onClick={() => setShowAddForm(v => !v)}
           style={{
@@ -112,7 +112,7 @@ function UserManagementPanel() {
             boxShadow: showAddForm ? "none" : "0 4px 14px rgba(79,142,247,0.3)",
           }}
         >
-          {showAddForm ? "✕ Cancel" : "+ Add User"}
+          {showAddForm ? "✕ Cancel" : "+ 사용자 추가"}
         </button>
       </div>
 
@@ -123,25 +123,25 @@ function UserManagementPanel() {
           background: "rgba(79,142,247,0.06)", border: "1px solid rgba(79,142,247,0.25)",
           display: "grid", gap: 12,
         }}>
-          <div style={{ fontWeight: 800, fontSize: 13, color: "#93c5fd" }}>🆕 Register New User</div>
+          <div style={{ fontWeight: 800, fontSize: 13, color: "#93c5fd" }}>🆕 신규 사용자 등록</div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
             <div>
-              <label style={{ fontSize: 10, color: "#7c8fa8", display: "block", marginBottom: 4, fontWeight: 700 }}>Name *</label>
+              <label style={{ fontSize: 10, color: "#7c8fa8", display: "block", marginBottom: 4, fontWeight: 700 }}>이름 *</label>
               <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
                 placeholder="John Doe" style={{ width: "100%", background: "#0a1628", border: "1px solid #1e3a5f", borderRadius: 7, color: "#e2e8f0", padding: "8px 10px", fontSize: 12, boxSizing: "border-box" }} />
             </div>
             <div>
-              <label style={{ fontSize: 10, color: "#7c8fa8", display: "block", marginBottom: 4, fontWeight: 700 }}>Email *</label>
+              <label style={{ fontSize: 10, color: "#7c8fa8", display: "block", marginBottom: 4, fontWeight: 700 }}>이메일 *</label>
               <input value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
                 placeholder="user@company.com" type="email" style={{ width: "100%", background: "#0a1628", border: "1px solid #1e3a5f", borderRadius: 7, color: "#e2e8f0", padding: "8px 10px", fontSize: 12, boxSizing: "border-box" }} />
             </div>
             <div>
-              <label style={{ fontSize: 10, color: "#7c8fa8", display: "block", marginBottom: 4, fontWeight: 700 }}>Password *</label>
+              <label style={{ fontSize: 10, color: "#7c8fa8", display: "block", marginBottom: 4, fontWeight: 700 }}>비밀번호 *</label>
               <input value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
                 placeholder="8+ characters" type="password" style={{ width: "100%", background: "#0a1628", border: "1px solid #1e3a5f", borderRadius: 7, color: "#e2e8f0", padding: "8px 10px", fontSize: 12, boxSizing: "border-box" }} />
             </div>
             <div>
-              <label style={{ fontSize: 10, color: "#7c8fa8", display: "block", marginBottom: 4, fontWeight: 700 }}>Plan & Role</label>
+              <label style={{ fontSize: 10, color: "#7c8fa8", display: "block", marginBottom: 4, fontWeight: 700 }}>플랜 및 권한</label>
               <select value={form.plan} onChange={e => setForm(f => ({ ...f, plan: e.target.value }))}
                 style={{ width: "100%", background: "#0a1628", border: "1px solid #1e3a5f", borderRadius: 7, color: "#e2e8f0", padding: "8px 10px", fontSize: 12, boxSizing: "border-box" }}>
                 {PLAN_LIST.map(p => <option key={p} value={p}>{p === "admin" ? "🔴 admin (Admin)" : p === "pro" ? "🚀 pro" : p === "enterprise" ? "🌐 enterprise" : p === "demo" ? "🟡 demo" : `🌱 ${p}`}</option>)}
@@ -149,24 +149,24 @@ function UserManagementPanel() {
             </div>
           </div>
           <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
-            <button onClick={() => setShowAddForm(false)} style={{ padding: "8px 16px", borderRadius: 8, border: "1px solid #1e3a5f", background: "transparent", color: "#94a3b8", fontSize: 12, cursor: "pointer" }}>Cancel</button>
+            <button onClick={() => setShowAddForm(false)} style={{ padding: "8px 16px", borderRadius: 8, border: "1px solid #1e3a5f", background: "transparent", color: "#94a3b8", fontSize: 12, cursor: "pointer" }}>취소</button>
             <button onClick={handleAddUser} disabled={saving} style={{ padding: "8px 20px", borderRadius: 8, border: "none", background: "linear-gradient(135deg,#4f8ef7,#6366f1)", color: "#fff", fontSize: 12, fontWeight: 800, cursor: saving ? "not-allowed" : "pointer", opacity: saving ? 0.7 : 1 }}>
-              {saving ? "Registering..." : "✓ Register"}
+              {saving ? "등록 중..." : "✓ 등록"}
             </button>
           </div>
         </div>
       )}
 
-      {/* User List */}
+      {/* 사용자 목록 */}
       {loading ? (
-        <div style={{ textAlign: "center", color: "#3b4d6e", padding: "40px 0", fontSize: 13 }}>⏳ Loading user list...</div>
+        <div style={{ textAlign: "center", color: "#3b4d6e", padding: "40px 0", fontSize: 13 }}>⏳ 사용자 목록 불러오는 중...</div>
       ) : users.length === 0 ? (
-        <div style={{ textAlign: "center", color: "#3b4d6e", padding: "40px 0", fontSize: 13 }}>📭 No registered users.</div>
+        <div style={{ textAlign: "center", color: "#3b4d6e", padding: "40px 0", fontSize: 13 }}>📭 등록된 사용자가 없습니다.</div>
       ) : (
         <div style={{ display: "grid", gap: 6 }}>
           {/* Header */}
           <div style={{ display: "grid", gridTemplateColumns: "2fr 2fr 1fr 1fr 1fr auto", gap: 10, padding: "6px 14px", fontSize: 10, fontWeight: 700, color: "#7c8fa8", background: "rgba(255,255,255,0.02)", borderRadius: 8 }}>
-            <span>Name / Email</span><span>Joined</span><span>Plan</span><span>Status</span><span>Change Plan</span><span>Actions</span>
+            <span>이름 / 이메일</span><span>가입일</span><span>플랜</span><span>상태</span><span>플랜 변경</span><span>작업</span>
           </div>
           {users.map(u => (
             <div key={u.id} style={{
@@ -185,9 +185,9 @@ function UserManagementPanel() {
               }}>{u.plan || "demo"}</span>
               <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
                 <span style={{ width: 7, height: 7, borderRadius: "50%", background: u.active ? "#22c55e" : "#ef4444", display: "inline-block" }} />
-                <span style={{ fontSize: 10, color: u.active ? "#22c55e" : "#ef4444" }}>{u.active ? "Active" : "Inactive"}</span>
+                <span style={{ fontSize: 10, color: u.active ? "#22c55e" : "#ef4444" }}>{u.active ? "활성" : "비활성"}</span>
               </div>
-              {/* Change Plan Dropdown */}
+              {/* 플랜 변경 Dropdown */}
               {editUser === u.id ? (
                 <div style={{ display: "flex", gap: 4 }}>
                   <select defaultValue={u.plan}
@@ -198,12 +198,12 @@ function UserManagementPanel() {
                   <button onClick={() => setEditUser(null)} style={{ padding: "3px 7px", borderRadius: 5, border: "1px solid #1e3a5f", background: "transparent", color: "#94a3b8", fontSize: 10, cursor: "pointer" }}>✕</button>
                 </div>
               ) : (
-                <button onClick={() => setEditUser(u.id)} style={{ padding: "4px 10px", borderRadius: 6, border: "1px solid rgba(79,142,247,0.3)", background: "rgba(79,142,247,0.08)", color: "#4f8ef7", fontSize: 10, fontWeight: 700, cursor: "pointer" }}>Edit↗</button>
+                <button onClick={() => setEditUser(u.id)} style={{ padding: "4px 10px", borderRadius: 6, border: "1px solid rgba(79,142,247,0.3)", background: "rgba(79,142,247,0.08)", color: "#4f8ef7", fontSize: 10, fontWeight: 700, cursor: "pointer" }}>수정↗</button>
               )}
               <div style={{ display: "flex", gap: 5 }}>
                 <button onClick={() => handleToggleActive(u.id, u.active)}
                   style={{ padding: "4px 8px", borderRadius: 5, border: `1px solid ${u.active ? "rgba(239,68,68,0.3)" : "rgba(34,197,94,0.3)"}`, background: u.active ? "rgba(239,68,68,0.06)" : "rgba(34,197,94,0.06)", color: u.active ? "#ef4444" : "#22c55e", fontSize: 9, cursor: "pointer", fontWeight: 700 }}>
-                  {u.active ? "Inactive화" : "Activate"}
+                  {u.active ? "비활성화" : "활성화"}
                 </button>
                 <button onClick={() => handleResetPw(u.id)}
                   style={{ padding: "4px 8px", borderRadius: 5, border: "1px solid rgba(234,179,8,0.3)", background: "rgba(234,179,8,0.06)", color: "#fbbf24", fontSize: 9, cursor: "pointer", fontWeight: 700 }}>
@@ -240,7 +240,7 @@ function ApiKeyPanel() {
   useEffect(load, []);
 
   const create = async () => {
-    if (!form.name) return setMsg("Name required");
+    if (!form.name) return setMsg("이름을 입력하세요");
     setMsg(""); setNewKey(null);
     const r = await fetch(`${API}/v421/keys`, {
       method: "POST",
@@ -282,7 +282,7 @@ function ApiKeyPanel() {
       {/* NEW key notification */}
       {newKey && (
         <div style={{ background: "#14532d33", border: "1px solid #22c55e55", borderRadius: 8, padding: "10px 14px", marginBottom: 12, fontSize: 12 }}>
-          <div style={{ color: "#22c55e", fontWeight: 700, marginBottom: 4 }}>🔑 Copy now — will not be shown again</div>
+          <div style={{ color: "#22c55e", fontWeight: 700, marginBottom: 4 }}>🔑 지금 복사하세요 (다시 표시되지 않음)</div>
           <code style={{ color: "#86efac", wordBreak: "break-all" }}>{newKey}</code>
           <button
             style={{ marginLeft: 10, padding: "2px 8px", fontSize: 10, background: "#22c55e22", border: "1px solid #22c55e44", borderRadius: 4, color: "#22c55e", cursor: "pointer" }}
@@ -292,11 +292,11 @@ function ApiKeyPanel() {
 
       {/* Create form */}
       <div style={{ background: "#0d1526", border: "1px solid #1c2842", borderRadius: 8, padding: "12px 14px", marginBottom: 12 }}>
-        <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 8 }}>+ 🔑 Issue API Key</div>
+        <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 8 }}>+ 🔑 API 키 발급</div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr auto auto", gap: 6, alignItems: "end" }}>
           <input
             style={{ background: "#0f172a", border: "1px solid #1c2842", borderRadius: 6, color: "#e2e8f0", padding: "6px 10px", fontSize: 11 }}
-            placeholder="Key Name" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+            placeholder="키 이름" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
           />
           <select
             style={{ background: "#0f172a", border: "1px solid #1c2842", borderRadius: 6, color: "#e2e8f0", padding: "6px 10px", fontSize: 11 }}
@@ -304,7 +304,7 @@ function ApiKeyPanel() {
           >
             {["admin", "analyst", "connector", "viewer"].map(r => <option key={r}>{r}</option>)}
           </select>
-          <button className="btn" onClick={create} disabled={!form.name}>Issue</button>
+          <button className="btn" onClick={create} disabled={!form.name}>발급</button>
         </div>
       </div>
       {msg && <div style={{ color: "#ef4444", fontSize: 11, marginBottom: 8 }}>{msg}</div>}
@@ -319,13 +319,13 @@ function ApiKeyPanel() {
               <div style={{ fontSize: 10, color: "#7c8fa8", fontFamily: "monospace" }}>{k.key_prefix}••••••</div>
             </div>
             <div style={{ fontSize: 10, color: "#7c8fa8", textAlign: "right" }}>
-              {k.last_used_at ? `Last used: ${k.last_used_at.slice(0, 10)}` : "Unused"}
+              {k.last_used_at ? `Last used: ${k.last_used_at.slice(0, 10)}` : "미사용"}
             </div>
             <button onClick={() => rotate(k.id)} style={{ fontSize: 10, padding: "3px 8px", background: "#1c2842", border: "1px solid #3b4d6e", borderRadius: 4, color: "#94a3b8", cursor: "pointer" }}>🔄 Rotate</button>
             <button onClick={() => revoke(k.id)} style={{ fontSize: 10, padding: "3px 8px", background: "#2d0f0f", border: "1px solid #ef444433", borderRadius: 4, color: "#ef4444", cursor: "pointer" }}>❌ Revoke</button>
           </div>
         ))}
-        {keys.length === 0 && !loading && <div style={{ color: "#7c8fa8", fontSize: 12, textAlign: "center", padding: 16 }}>API Key None → 위에서 Issue하세요</div>}
+        {keys.length === 0 && !loading && <div style={{ color: "#7c8fa8", fontSize: 12, textAlign: "center", padding: 16 }}>API 키가 없습니다 → 위에서 발급하세요</div>}
       </div>
     </div>
   );
@@ -471,7 +471,7 @@ function LicenseKeyPanel() {
   const loadUsers = useCallback(() => {
     fetch(`${API}/v423/admin/users`, { headers: hdrs })
       .then(r => r.json())
-      .then(d => { if (d.users) setUsers(d.users); })
+      .then(d => { if (d.명) setUsers(d.명); })
       .catch(() => {});
   }, [token]);
 
@@ -487,7 +487,7 @@ function LicenseKeyPanel() {
   useEffect(() => { loadUsers(); loadKeys(); }, [loadUsers, loadKeys]);
 
   const handleIssue = async () => {
-    if (!selectedUser) { showMsg("Please select a user.", "err"); return; }
+    if (!selectedUser) { showMsg("사용자를 선택해주세요.", "err"); return; }
     setLoading(true);
     const r = await fetch(`${API}/auth/license`, {
       method: "POST",
@@ -500,7 +500,7 @@ function LicenseKeyPanel() {
       showMsg(`✓ License key issued: ${d.license_key || "(서버 Issue)"}`, "ok");
       loadKeys();
     } else {
-      showMsg(d.error || "Issue Failed", "err");
+      showMsg(d.error || "발급 실패", "err");
     }
   };
 
@@ -517,44 +517,44 @@ function LicenseKeyPanel() {
 
       {/* Issue 폼 */}
       <div style={{ padding: "18px 20px", borderRadius: 14, background: "rgba(79,142,247,0.06)", border: "1px solid rgba(79,142,247,0.25)" }}>
-        <div style={{ fontWeight: 800, fontSize: 14, color: "#93c5fd", marginBottom: 16 }}>🎫 Issue License Key</div>
+        <div style={{ fontWeight: 800, fontSize: 14, color: "#93c5fd", marginBottom: 16 }}>🎫 라이선스 키 발급</div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 14 }}>
           <div>
-            <label style={{ fontSize: 10, color: "#7c8fa8", display: "block", marginBottom: 4, fontWeight: 700 }}>Target User *</label>
+            <label style={{ fontSize: 10, color: "#7c8fa8", display: "block", marginBottom: 4, fontWeight: 700 }}>대상 사용자 *</label>
             <select value={selectedUser} onChange={e => setSelectedUser(e.target.value)}
               style={{ width: "100%", background: "#0a1628", border: "1px solid #1e3a5f", borderRadius: 7, color: "#e2e8f0", padding: "8px 10px", fontSize: 12, boxSizing: "border-box" }}>
-              <option value="">-- Select User --</option>
+              <option value="">-- 사용자 선택 --</option>
               {users.map(u => <option key={u.id} value={u.id}>{u.name} ({u.email}) [{u.plan}]</option>)}
             </select>
           </div>
           <div>
-            <label style={{ fontSize: 10, color: "#7c8fa8", display: "block", marginBottom: 4, fontWeight: 700 }}>Plan to Issue</label>
+            <label style={{ fontSize: 10, color: "#7c8fa8", display: "block", marginBottom: 4, fontWeight: 700 }}>발급할 플랜</label>
             <select value={plan} onChange={e => setPlan(e.target.value)}
               style={{ width: "100%", background: "#0a1628", border: "1px solid #1e3a5f", borderRadius: 7, color: "#e2e8f0", padding: "8px 10px", fontSize: 12, boxSizing: "border-box" }}>
               {["pro", "enterprise", "admin"].map(p => <option key={p} value={p}>{p}</option>)}
             </select>
           </div>
           <div>
-            <label style={{ fontSize: 10, color: "#7c8fa8", display: "block", marginBottom: 4, fontWeight: 700 }}>Validity (days)</label>
+            <label style={{ fontSize: 10, color: "#7c8fa8", display: "block", marginBottom: 4, fontWeight: 700 }}>유효기간 (일)</label>
             <input type="number" min="1" max="3650" value={expiresDays} onChange={e => setExpiresDays(+e.target.value)}
               style={{ width: "100%", background: "#0a1628", border: "1px solid #1e3a5f", borderRadius: 7, color: "#e2e8f0", padding: "8px 10px", fontSize: 12, boxSizing: "border-box" }} />
           </div>
         </div>
         <button onClick={handleIssue} disabled={loading || !selectedUser}
           style={{ padding: "9px 24px", borderRadius: 9, border: "none", background: loading ? "rgba(107,114,128,0.3)" : "linear-gradient(135deg,#4f8ef7,#6366f1)", color: "#fff", fontWeight: 800, fontSize: 12, cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.7 : 1 }}>
-          {loading ? "⏳ Issuing..." : "🎫 Issue License Key"}
+          {loading ? "⏳ 발급 중..." : "🎫 라이선스 키 발급"}
         </button>
       </div>
 
       {/* Issue 현황 */}
       <div style={{ padding: "16px 20px", borderRadius: 14, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)" }}>
-        <div style={{ fontWeight: 800, fontSize: 14, color: "#e2e8f0", marginBottom: 14 }}>📋 Issued Licenses</div>
+        <div style={{ fontWeight: 800, fontSize: 14, color: "#e2e8f0", marginBottom: 14 }}>📋 발급된 라이선스</div>
         {keys.length === 0 ? (
-          <div style={{ textAlign: "center", color: "#3b4d6e", padding: "30px 0", fontSize: 13 }}>📭 No licenses issued or unable to retrieve.</div>
+          <div style={{ textAlign: "center", color: "#3b4d6e", padding: "30px 0", fontSize: 13 }}>📭 발급된 라이선스가 없습니다.</div>
         ) : (
           <div style={{ display: "grid", gap: 6 }}>
             <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr auto", gap: 10, padding: "6px 14px", fontSize: 10, fontWeight: 700, color: "#7c8fa8", background: "rgba(255,255,255,0.02)", borderRadius: 8 }}>
-              <span>User</span><span>Plan</span><span>Expiry Date</span><span>Status</span><span>Actions</span>
+              <span>User</span><span>플랜</span><span>만료일</span><span>상태</span><span>작업</span>
             </div>
             {keys.map((k, i) => (
               <div key={k.id || i} style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr auto", gap: 10, padding: "10px 14px", borderRadius: 10, alignItems: "center", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}>
@@ -564,8 +564,8 @@ function LicenseKeyPanel() {
                 </div>
                 <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 4, background: "rgba(79,142,247,0.1)", color: "#4f8ef7", fontWeight: 700 }}>{k.plan}</span>
                 <span style={{ fontSize: 10, color: "#7c8fa8" }}>{k.expires_at?.slice(0, 10) || "No Expiry"}</span>
-                <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 4, fontWeight: 700, background: k.active ? "rgba(34,197,94,0.1)" : "rgba(239,68,68,0.1)", color: k.active ? "#22c55e" : "#ef4444" }}>{k.active ? "Active" : "Expired"}</span>
-                <button style={{ padding: "3px 8px", borderRadius: 5, border: "1px solid rgba(239,68,68,0.3)", background: "rgba(239,68,68,0.06)", color: "#ef4444", fontSize: 9, cursor: "pointer", fontWeight: 700 }}>Cancel</button>
+                <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 4, fontWeight: 700, background: k.active ? "rgba(34,197,94,0.1)" : "rgba(239,68,68,0.1)", color: k.active ? "#22c55e" : "#ef4444" }}>{k.active ? "활성" : "만료됨"}</span>
+                <button style={{ padding: "3px 8px", borderRadius: 5, border: "1px solid rgba(239,68,68,0.3)", background: "rgba(239,68,68,0.06)", color: "#ef4444", fontSize: 9, cursor: "pointer", fontWeight: 700 }}>취소</button>
               </div>
             ))}
           </div>
@@ -581,27 +581,27 @@ const DEMO_FEEDBACKS = [
   { id: "fb002", user: "park@enterprise.kr", type: "bug", priority: "urgent", title: "Connectors TikTok Token Refresh Error", body: "Intermittent errors occur when clicking token refresh.", menu: "Connectors", status: "completed", date: "2026-03-05", adminReply: "Fixed (v422.3.1 patch)" },
   { id: "fb003", user: "lee@pro.kr", type: "feature", priority: "medium", title: "Review Sentiment Analysis Excel Export", body: "I would like to download the sentiment analysis results from Reviews & UGC as Excel.", menu: "Reviews & UGC", status: "reviewing", date: "2026-03-12", adminReply: null },
   { id: "fb004", user: "choi@pro.kr", type: "bug", priority: "high", title: "PnL Dashboard Mobile Layout Issue", body: "When accessed on iPad, KPI cards overflow outside the screen.", menu: "P&L Dashboard", status: "pending", date: "2026-03-13", adminReply: null },
-  { id: "fb005", user: "jung@enterprise.kr", type: "improve", priority: "low", title: "Request: Collapsible Sidebar Feature", body: "It would be great to fully collapse the sidebar to expand the document area.", menu: "Other", status: "pending", date: "2026-03-13", adminReply: null },
+  { id: "fb005", user: "jung@enterprise.kr", type: "improve", priority: "low", title: "Request: Collapsible Sidebar Feature", body: "It would be great to fully collapse the sidebar to expand the document area.", menu: "기타", status: "pending", date: "2026-03-13", adminReply: null },
 ];
 
 const FB_TYPE_CFG = {
-  bug:     { icon: "🐛", label: "Issue & Bug",  color: "#ef4444" },
-  improve: { icon: "\u2728", label: "Improvement",      color: "#4f8ef7" },
-  feature: { icon: "🚀", label: "Feature Request", color: "#a855f7" },
-  other:   { icon: "💬", label: "Other",           color: "#8da4c4" },
+  bug:     { icon: "🐛", label: "오류 및 버그",  color: "#ef4444" },
+  improve: { icon: "\u2728", label: "개선 사항",      color: "#4f8ef7" },
+  feature: { icon: "🚀", label: "기능 요청", color: "#a855f7" },
+  other:   { icon: "💬", label: "기타",           color: "#8da4c4" },
 };
 const FB_PRIO_CFG = {
-  low:    { icon: "🔵", label: "Low",  color: "#4f8ef7" },
-  medium: { icon: "🟡", label: "Normal",  color: "#eab308" },
-  high:   { icon: "🟠", label: "High",  color: "#f97316" },
-  urgent: { icon: "🔴", label: "Urgent",  color: "#ef4444" },
+  low:    { icon: "🔵", label: "낮음",  color: "#4f8ef7" },
+  medium: { icon: "🟡", label: "보통",  color: "#eab308" },
+  high:   { icon: "🟠", label: "높음",  color: "#f97316" },
+  urgent: { icon: "🔴", label: "긴급",  color: "#ef4444" },
 };
 const FB_STATUS_CFG = {
-  pending:   { label: "Received",    color: "#eab308" },
-  reviewing: { label: "Reviewing",   color: "#4f8ef7" },
-  planned:   { label: "Planned", color: "#a855f7" },
-  completed: { label: "Completed", color: "#22c55e" },
-  rejected:  { label: "Rejected",    color: "#ef4444" },
+  pending:   { label: "접수됨",    color: "#eab308" },
+  reviewing: { label: "검토 중",   color: "#4f8ef7" },
+  planned:   { label: "진행 예정", color: "#a855f7" },
+  completed: { label: "완료됨", color: "#22c55e" },
+  rejected:  { label: "반려됨",    color: "#ef4444" },
 };
 
 function FeedbackMgmtPanel() {
@@ -631,8 +631,8 @@ function FeedbackMgmtPanel() {
   const kpis = useMemo(() => [
     { l: "All", v: feedbacks.length, c: "#4f8ef7" },
     { l: "New", v: feedbacks.filter(f => f.status === "pending").length, c: "#eab308" },
-    { l: "Reviewing", v: feedbacks.filter(f => f.status === "reviewing").length, c: "#4f8ef7" },
-    { l: "Completed", v: feedbacks.filter(f => f.status === "completed").length, c: "#22c55e" },
+    { l: "검토 중", v: feedbacks.filter(f => f.status === "reviewing").length, c: "#4f8ef7" },
+    { l: "완료됨", v: feedbacks.filter(f => f.status === "completed").length, c: "#22c55e" },
   ], [feedbacks]);
 
   const handleStatusChange = (id, newStatus) => {
@@ -675,28 +675,28 @@ function FeedbackMgmtPanel() {
 
       {/* Filter */}
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-        <input className="input" placeholder="Search by Title or User" value={search} onChange={e => setSearch(e.target.value)}
+        <input className="input" placeholder="제목 또는 사용자 검색" value={search} onChange={e => setSearch(e.target.value)}
           style={{ width: 180, padding: "6px 10px", fontSize: 11 }} />
         <select className="input" value={filterType} onChange={e => setFilterType(e.target.value)} style={{ width: 120, padding: "6px 10px", fontSize: 11 }}>
-          <option value="all">All Types</option>
+          <option value="all">모든 유형</option>
           {Object.entries(FB_TYPE_CFG).map(([k, v]) => <option key={k} value={k}>{v.icon} {v.label}</option>)}
         </select>
         <select className="input" value={filterPrio} onChange={e => setFilterPrio(e.target.value)} style={{ width: 110, padding: "6px 10px", fontSize: 11 }}>
-          <option value="all">All Priorities</option>
+          <option value="all">모든 우선순위</option>
           {Object.entries(FB_PRIO_CFG).map(([k, v]) => <option key={k} value={k}>{v.icon} {v.label}</option>)}
         </select>
         <select className="input" value={filterStatus} onChange={e => setFilterStatus(e.target.value)} style={{ width: 110, padding: "6px 10px", fontSize: 11 }}>
-          <option value="all">All Status</option>
+          <option value="all">모든 상태</option>
           {Object.entries(FB_STATUS_CFG).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
         </select>
-        <span style={{ fontSize: 11, color: "var(--text-3)" }}>{filtered.length} items displayed</span>
+        <span style={{ fontSize: 11, color: "var(--text-3)" }}>{filtered.length}개 항목이 표시됨</span>
       </div>
 
       {/* List */}
       <div style={{ display: "grid", gap: 6 }}>
         {/* Header */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 90px 70px 70px 80px 80px auto", gap: 8, padding: "6px 12px", fontSize: 10, fontWeight: 700, color: "#7c8fa8", background: "rgba(255,255,255,0.02)", borderRadius: 8 }}>
-          <span>User / Title</span><span>Category</span><span>Priority</span><span>Menu</span><span>Status</span><span>Date</span><span>답변</span>
+          <span>사용자 / 제목</span><span>분류</span><span>중요도</span><span>메뉴</span><span>상태</span><span>날짜</span><span>답변</span>
         </div>
         {filtered.map(fb => {
           const tc = FB_TYPE_CFG[fb.type] || {};
@@ -728,7 +728,7 @@ function FeedbackMgmtPanel() {
 
                   {/* Status Change */}
                   <div style={{ marginBottom: 12 }}>
-                    <div style={{ fontSize: 10, fontWeight: 700, color: "var(--text-3)", marginBottom: 6 }}>Handling</div>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: "var(--text-3)", marginBottom: 6 }}>처리 상태</div>
                     <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                       {Object.entries(FB_STATUS_CFG).map(([k, v]) => (
                         <button key={k} onClick={() => handleStatusChange(fb.id, k)}
@@ -769,7 +769,7 @@ function FeedbackMgmtPanel() {
   );
 }
 
-/* ── Free Coupon Management Panel ────────────────────────────────────────── */
+/* ── Free 쿠폰 발급 여정 관리 Panel ────────────────────────────────────────── */
 const PLAN_OPTIONS  = [
   { v:"growth",     l:"Growth",      d:30 },
   { v:"starter",   l:"Starter",     d:7 },
@@ -855,7 +855,7 @@ function CouponMgmtPanel() {
   useEffect(()=>{
     if (isDemo) return;
     fetch(`/api/v423/admin/users?limit=200`, { headers:hdrs })
-      .then(r=>r.json()).then(d=>{ if(d.users) setUsers(d.users); }).catch(()=>{});
+      .then(r=>r.json()).then(d=>{ if(d.명) setUsers(d.명); }).catch(()=>{});
   }, []);
 
 
@@ -1008,7 +1008,7 @@ function CouponMgmtPanel() {
             {/* Free회원 Pro필 필Count 안내 */}
             {selUser && ['demo','free'].includes(selUser.plan) && (
               <div style={{ marginTop:8, padding:"10px 12px", borderRadius:8, background:"rgba(234,179,8,0.08)", border:"1px solid rgba(234,179,8,0.25)", fontSize:11, color:"#ca8a04", lineHeight:1.6 }}>
-                ⚠️ <strong>Free회원 Coupon 조건:</strong> 이 회원이 Coupon을 사용하려면 <strong>비즈니스 Info(회사명·Phone·대표자 users)</strong>를 먼저 Register해야 합니다. 미Register 시 Coupon Activate가 Auto Block됩니다.
+                ⚠️ <strong>Free회원 Coupon 조건:</strong> 이 회원이 Coupon을 사용하려면 <strong>비즈니스 Info(회사명·Phone·대표자 명)</strong>를 먼저 Register해야 합니다. 미Register 시 Coupon Activate가 Auto Block됩니다.
               </div>
             )}
           </div>
@@ -1086,7 +1086,7 @@ function CouponMgmtPanel() {
                 fontWeight:800, fontSize:14, cursor: selUser?"pointer":"not-allowed",
                 boxShadow: selUser ? "0 6px 20px rgba(79,142,247,0.3)" : "none",
               }}>
-              {busy ? "⏳ Issuing..." : "🎁 Free 이용 Coupon Issue"}
+              {busy ? "⏳ 발급 중..." : "🎁 Free 이용 Coupon Issue"}
             </button>
           </div>
         </div>
@@ -1098,7 +1098,7 @@ function CouponMgmtPanel() {
           <div style={{ display:"grid", gridTemplateColumns:"2fr 70px 60px 60px 80px 80px 60px auto",
             gap:8, padding:"6px 12px", fontSize:10, fontWeight:700, color:"#7c8fa8",
             background:"rgba(255,255,255,0.02)", borderRadius:8 }}>
-            <span>코드 / Count신자</span><span>Plan</span><span>Period</span><span>사용</span><span>Status</span><span>Issue일</span><span>소진</span><span>Action</span>
+            <span>코드 / Count신자</span><span>플랜</span><span>Period</span><span>사용</span><span>상태</span><span>Issue일</span><span>소진</span><span>Action</span>
           </div>
           {coupons.length===0 && <div style={{textAlign:"center",padding:40,color:"var(--text-3)",fontSize:12}}>Issue된 Coupon이 없습니다</div>}
           {coupons.map(c=>{
@@ -1131,7 +1131,7 @@ function CouponMgmtPanel() {
                     fontSize:9, color:"#ef4444", background:"rgba(239,68,68,0.07)",
                     border:"1px solid rgba(239,68,68,0.25)", borderRadius:5,
                     cursor:"pointer", padding:"3px 8px", fontWeight:700,
-                  }}>Cancel</button>
+                  }}>취소</button>
                 ) : <span/>}
               </div>
             );
@@ -1195,7 +1195,7 @@ function CouponMgmtPanel() {
               }}>
                 {/* Plan to Issue */}
                 <div>
-                  <label style={{ fontSize:11, color:"var(--text-3)", fontWeight:700, display:"block", marginBottom:8 }}>Plan to Issue</label>
+                  <label style={{ fontSize:11, color:"var(--text-3)", fontWeight:700, display:"block", marginBottom:8 }}>발급할 플랜</label>
                   <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
                     {[
                       {v:"starter",l:"Starter",c:"#4f8ef7"},
@@ -1316,7 +1316,7 @@ function CouponMgmtPanel() {
                     });
                     const d = await r.json();
                     if (d.ok) flash(`✓ ${d.issued_count||"??"}건 일괄 Issue Done`);
-                    else flash(d.error||"Issue Failed", false);
+                    else flash(d.error||"발급 실패", false);
                   }
                 } finally { setBusy(false); }
               }}
@@ -1329,7 +1329,7 @@ function CouponMgmtPanel() {
                 opacity: busy ? 0.7 : 1,
               }}
             >
-              {busy ? "⏳ Issuing..." : "🚀 대상 회원 일괄 Coupon Issue"}
+              {busy ? "⏳ 발급 중..." : "🚀 대상 회원 일괄 Coupon Issue"}
             </button>
           </div>
 
@@ -1350,7 +1350,7 @@ function CouponMgmtPanel() {
                     background:r.is_active?"rgba(34,197,94,0.1)":"rgba(99,140,255,0.07)",
                     color:r.is_active?"#22c55e":"var(--text-3)",
                     border:`1px solid ${r.is_active?"rgba(34,197,94,0.25)":"rgba(99,140,255,0.15)"}`,
-                  }}>{r.is_active?`${r.plan} · ${r.duration_days}일`:"Inactive"}</span>
+                  }}>{r.is_active?`${r.plan} · ${r.duration_days}일`:"비활성"}</span>
                 </div>
               ))}
             </div>
@@ -1634,7 +1634,7 @@ function PopupMgmtPanel() {
                       background: p.is_active ? "rgba(239,68,68,0.07)" : "rgba(34,197,94,0.07)",
                       border: `1px solid ${p.is_active ? "rgba(239,68,68,0.25)" : "rgba(34,197,94,0.25)"}`,
                       color: p.is_active ? "#ef4444" : "#22c55e",
-                    }}>{p.is_active ? "Inactive화" : "Activate"}</button>
+                    }}>{p.is_active ? "비활성화" : "활성화"}</button>
                     <button onClick={()=>startEdit(p)} style={{
                       padding:"5px 10px", borderRadius:7, fontSize:10, cursor:"pointer", fontWeight:700,
                       background:"rgba(79,142,247,0.07)", border:"1px solid rgba(79,142,247,0.25)", color:"#4f8ef7",
@@ -1699,6 +1699,7 @@ const RECOMMENDED_PERMS = {
   ai_recommend:     { admin:"✅", enterprise:"✅", pro:"✅", growth:"🔒", free:"🔒", demo:"🔒" },
 
   // ── 📣 Ad·Channel Analysis ─────────────────────────────────────────────────────
+  account_performance:{ admin:"✅", enterprise:"✅", pro:"✅", growth:"✅", free:"👁", demo:"👁" },
   attribution:      { admin:"✅", enterprise:"✅", pro:"✅", growth:"✅", free:"👁", demo:"👁" },
   channel_kpi:      { admin:"✅", enterprise:"✅", pro:"✅", growth:"✅", free:"👁", demo:"🔒" },
   // Pro 전용: 이상감지·모델Compare·Graph Score·Marketing 인텔리전스 (Northbeam Pro=creative analytics)
@@ -1820,6 +1821,7 @@ const MENU_ACCESS_ROWS = [
   { group: "🚀 AI Marketing Auto화", id: "ai_recommend",   label: "└ AI Recommend 엔진",          desc: "Product·Channel·콘텐츠 Personal화 Recommend (Pro 이상)",           default: { admin:"✅", enterprise:"✅", pro:"✅", growth:"🔒", free:"🔒", demo:"🔒" } },
 
   // ── 대메뉴: 📣 Ad·Channel Analysis ────────────────────────────────────────────
+  { group: "📣 Ad·Channel Analysis", id: "account_performance",label:"🏢 계정별 성과 분석",          desc: "계정/팀별 마케팅 효과 및 성과 분석",                       default: { admin:"✅", enterprise:"✅", pro:"✅", growth:"✅", free:"👁", demo:"👁" } },
   { group: "📣 Ad·Channel Analysis", id: "attribution",     label: "📊 기여도 Analysis",           desc: "터치포인트·모델per 기여 Analysis",                        default: { admin:"✅", enterprise:"✅", pro:"✅", growth:"✅", free:"👁", demo:"👁" } },
   { group: "📣 Ad·Channel Analysis", id: "channel_kpi",     label: "└ Channel KPI",              desc: "Channelper ROAS·Impressions·Clicks·Conversion Metric",                   default: { admin:"✅", enterprise:"✅", pro:"✅", growth:"✅", free:"👁", demo:"🔒" } },
   { group: "📣 Ad·Channel Analysis", id: "anomaly_det",     label: "└ 🚨 Anomaly Detection",          desc: "Channel Performance 이상 Auto 감지·Notification (Pro 이상)",           default: { admin:"✅", enterprise:"✅", pro:"✅", growth:"🔒", free:"🔒", demo:"🔒" } },
@@ -1877,7 +1879,7 @@ const MENU_ACCESS_ROWS = [
   { group: "🔌 데이터·Integration",  id: "global_connectors",label:"└ Global Channel Integration",        desc: "Shopify·Amazon·LINE 등 Global Channel (Pro 이상)",     default: { admin:"✅", enterprise:"✅", pro:"✅", growth:"🔒", free:"🔒", demo:"🔒" } },
   { group: "🔌 데이터·Integration",  id: "event_schema",    label: "└ Event Schema",         desc: "Event Count집·스키마 Management (Pro 이상)",                default: { admin:"✅", enterprise:"✅", pro:"✅", growth:"🔒", free:"🔒", demo:"🔒" } },
   { group: "🔌 데이터·Integration",  id: "event_normalize", label: "└ Event 정규화",          desc: "데이터 클렌징·정규화 파이프라인 (Enterprise)",       default: { admin:"✅", enterprise:"✅", pro:"🔒", growth:"🔒", free:"🔒", demo:"🔒" } },
-  { group: "🔌 데이터·Integration",  id: "api_keys",        label: "└ API Key Management",          desc: "외부 API Key Create·Delete·로그 (Pro 이상)",             default: { admin:"✅", enterprise:"✅", pro:"✅", growth:"🔒", free:"🔒", demo:"🔒" } },
+  { group: "🔌 데이터·Integration",  id: "api_keys",        label: "└ API 키 관리",          desc: "외부 API Key Create·Delete·로그 (Pro 이상)",             default: { admin:"✅", enterprise:"✅", pro:"✅", growth:"🔒", free:"🔒", demo:"🔒" } },
   { group: "🔌 데이터·Integration",  id: "pixel_config",    label: "└ 1st-Party Pixel",        desc: "Pixel Settings·스니펫·검증 (Pro 이상)",                  default: { admin:"✅", enterprise:"✅", pro:"✅", growth:"🔒", free:"🔒", demo:"🔒" } },
   { group: "🔌 데이터·Integration",  id: "mapping_reg",     label: "└ Mapping Registry",     desc: "데이터 매핑 규칙·제안·Apply (Pro 이상)",             default: { admin:"✅", enterprise:"✅", pro:"✅", growth:"🔒", free:"🔒", demo:"🔒" } },
   { group: "🔌 데이터·Integration",  id: "data_product",    label: "└ Data Product",         desc: "데이터 제품·거버넌스·SLA (Enterprise)",             default: { admin:"✅", enterprise:"✅", pro:"🔒", growth:"🔒", free:"🔒", demo:"🔒" } },
@@ -2178,9 +2180,9 @@ function MenuAccessTab() {
       {/* Role Description */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 10 }}>
         {[
-          { role: "admin",      desc: "모든 Feature 접근 + Settings Change 가능",             color: "#ef4444" },
-          { role: "enterprise", desc: "All Feature + API Unlimited + 커스텀 Settings",         color: "#f59e0b" },
-          { role: "pro",        desc: "Paid Feature All + 리포트 Create",                 color: "#a855f7" },
+          { role: "admin",      desc: "모든 Feature 접근 + 설정 변경 가능",             color: "#ef4444" },
+          { role: "enterprise", desc: "All Feature + API 무제한 + 커스텀 설정",         color: "#f59e0b" },
+          { role: "pro",        desc: "Paid Feature All + 리포트 생성",                 color: "#a855f7" },
           { role: "growth",     desc: "핵심 Feature + 일부 Advanced Feature (Growth 이상)",     color: "#4f8ef7" },
           { role: "free",       desc: "Free 가입 — Virtual Data 체험 전용",            color: "#8da4c4" },
           { role: "demo",       desc: "체험 Demo — Virtual Data로 All Feature 미리보기", color: "#64748b" },
@@ -2200,41 +2202,41 @@ const ADMIN_GROUPS = [
   {
     id: "users",
     icon: "👥",
-    label: "User·Permission",
-    desc: "Users & Access",
+    label: "사용자·권한",
+    desc: "회원 및 권한",
     color: "#4f8ef7",
     subs: [
-      { id: "overview",      label: "👥 User·Permission Management" },
-      { id: "feedback_mgmt", label: "💬 피드백 Management" },
+      { id: "overview",      label: "👥 사용자 및 권한 관리" },
+      { id: "feedback_mgmt", label: "💬 사용자 피드백 관리" },
     ],
   },
   {
     id: "billing",
     icon: "💳",
-    label: "Subscription·Pricing·메뉴",
-    desc: "Billing & Plans",
+    label: "구독·결제·메뉴",
+    desc: "결제 및 플랜",
     color: "#a855f7",
     subs: [
-      { id: "subscription_pricing", label: "💳 SubscriptionPricing Management" },
-      { id: "coupons",              label: "🎁 Free Coupon Management" },
-      { id: "popup_mgmt",          label: "📣 Event Popup" },
-      { id: "license",             label: "🎟 라이선스 Issue" },
+      { id: "subscription_pricing", label: "💳 구독 및 요금제 관리" },
+      { id: "coupons",              label: "🎁 무료 쿠폰 발급 여정 관리" },
+      { id: "popup_mgmt",          label: "📣 이벤트 팝업 관리" },
+      { id: "license",             label: "🎟 라이선스 발급" },
     ],
   },
   {
     id: "system",
     icon: "🖥️",
     label: "시스템·운영",
-    desc: "System & Ops",
+    desc: "시스템·운영",
     color: "#14d9b0",
     subs: [
-      { id: "ai_policy",   label: "🤖 AI 정책" },
+      { id: "ai_policy",   label: "🤖 AI 정책 관리" },
       { id: "mapping",     label: "🧩 매핑 레지스트리" },
-      { id: "apikeys",     label: "🔑 API Key" },
-      { id: "connectors",  label: "🔌 커넥터" },
-      { id: "system_mon",  label: "🖥️ 시스템 모니터" },
-      { id: "operations",  label: "⚡ 운영 Management" },
-      { id: "audit",       label: "🧧 Audit Log" },
+      { id: "apikeys",     label: "🔑 API 키 관리" },
+      { id: "connectors",  label: "🔌 외부 커넥터 연동" },
+      { id: "system_mon",  label: "🖥️ 시스템 모니터링" },
+      { id: "operations",  label: "⚡ 운영 작업 관리" },
+      { id: "audit",       label: "🧧 감사(Audit) 로그" },
     ],
   },
 ];
@@ -2255,10 +2257,10 @@ export default function Admin() {
   const activeGroupData = ADMIN_GROUPS.find(g => g.id === activeGroup);
 
   const ROLES = [
-    { name: "admin",   perms: ["모든 읽기", "모든 쓰기", "Settings Change", "User Management", "Change Plan"], color: "#ef4444", desc: "Admin - 모든 Feature 접근 가능" },
-    { name: "pro",     perms: ["모든 읽기", "데이터 쓰기", "리포트 Create", "API Key Management"], color: "#a855f7", desc: "Pro User - Paid Feature All" },
-    { name: "demo",    perms: ["Limit적 읽기", "Demo 데이터만"], color: "#eab308", desc: "Demo - 체험용" },
-    { name: "enterprise", perms: ["모든 읽기", "모든 쓰기", "커스텀 Settings", "API Unlimited"], color: "#f59e0b", desc: "Enterprise - 최고 사양" },
+    { name: "admin",   perms: ["모든 읽기", "모든 쓰기", "설정 변경", "사용자 관리", "플랜 변경"], color: "#ef4444", desc: "Admin - 모든 기능 접근 가능" },
+    { name: "pro",     perms: ["모든 읽기", "데이터 쓰기", "리포트 생성", "API 키 관리"], color: "#a855f7", desc: "Pro - 모든 유료 기능" },
+    { name: "demo",    perms: ["제한적 읽기", "Demo 데이터만"], color: "#eab308", desc: "Demo - 체험용" },
+    { name: "enterprise", perms: ["모든 읽기", "모든 쓰기", "커스텀 설정", "API 무제한"], color: "#f59e0b", desc: "Enterprise - 최고 사양" },
   ];
 
   return (
@@ -2334,12 +2336,12 @@ export default function Admin() {
           {/* TAB: User & Permission */}
           {tab === "overview" && (
             <div style={{ display: "grid", gap: 24 }}>
-              {/* User Management Panel (API Integration) */}
+              {/* 사용자 관리 Panel (API Integration) */}
               <UserManagementPanel />
 
               {/* Role·Permission 정의 */}
               <div style={{ padding: "16px 20px", borderRadius: 14, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)" }}>
-                <div style={{ fontWeight: 800, fontSize: 14, color: "#e2e8f0", marginBottom: 14 }}>🔐 Planper Permission 정의</div>
+                <div style={{ fontWeight: 800, fontSize: 14, color: "#e2e8f0", marginBottom: 14 }}>🔐 플랜별 권한 정의</div>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 10 }}>
                   {ROLES.map(r => (
                     <div key={r.name} style={{ padding: "12px 14px", borderRadius: 10, background: `${r.color}08`, border: `1px solid ${r.color}33` }}>
@@ -2365,13 +2367,13 @@ export default function Admin() {
           {/* TAB: SubscriptionPricing Management */}
           {tab === "subscription_pricing" && <SubscriptionPricing />}
 
-          {/* TAB: Free Coupon Management */}
+          {/* TAB: Free 쿠폰 발급 여정 관리 */}
           {tab === "coupons" && <CouponMgmtPanel />}
 
           {/* TAB: 라이선스 Issue */}
           {tab === "license" && <LicenseKeyPanel />}
 
-          {/* TAB: API Key Management */}
+          {/* TAB: API 키 관리 */}
           {tab === "apikeys" && <ApiKeyPanel />}
 
           {/* TAB: 커넥터 Test */}
@@ -2384,13 +2386,13 @@ export default function Admin() {
                       <span style={{ fontSize: 20 }}>{api.icon}</span>
                       <span className={`badge ${api.status === "connected" ? "badge-green" : "badge-yellow"}`} style={{ fontSize: 10 }}>
                         <span className={`dot ${api.status === "connected" ? "dot-green" : "dot-yellow"}`} />
-                        {api.status === "connected" ? t("admin.connected") : t("admin.warning")}
+                        {api.status === "connected" ? "연결됨" : "주의"}
                       </span>
                     </div>
                     <div style={{ marginTop: 8, fontWeight: 700, fontSize: 13, color: api.color }}>{api.name}</div>
                     <div style={{ fontSize: 11, color: "var(--text-3)", marginTop: 6, display: "grid", gap: 2 }}>
-                      <span>{t("admin.since")}: {api.since}</span>
-                      <span>{t("admin.callVolume")}: {api.calls}{t("units.perDay")}</span>
+                      <span>최초 연결일: {api.since}</span>
+                      <span>호출량: {api.calls}/일</span>
                     </div>
                   </div>
                 ))}
@@ -2422,7 +2424,7 @@ export default function Admin() {
                   <div>
                     <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
                       <span style={{ fontWeight: 700, fontSize: 13 }}>{p.name}</span>
-                      <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 99, fontWeight: 700, background: p.status === "active" ? "rgba(34,197,94,0.15)" : "rgba(234,179,8,0.15)", color: p.status === "active" ? "#22c55e" : "#eab308" }}>{p.status === "active" ? "Active" : "일시정지"}</span>
+                      <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 99, fontWeight: 700, background: p.status === "active" ? "rgba(34,197,94,0.15)" : "rgba(234,179,8,0.15)", color: p.status === "active" ? "#22c55e" : "#eab308" }}>{p.status === "active" ? "활성" : "일시정지"}</span>
                     </div>
                     <div style={{ fontSize: 11, color: "var(--text-3)", marginBottom: 8 }}>{p.desc}</div>
                     <div style={{ display: "flex", gap: 12, fontSize: 10, color: "var(--text-3)" }}>
@@ -2434,7 +2436,7 @@ export default function Admin() {
                   </div>
                   <div style={{ display: "flex", gap: 6 }}>
                     <button className="btn" style={{ fontSize: 10, padding: "4px 10px" }}>편집</button>
-                    <button className="btn" style={{ fontSize: 10, padding: "4px 10px", background: p.status === "active" ? "rgba(234,179,8,0.1)" : "rgba(34,197,94,0.1)", color: p.status === "active" ? "#eab308" : "#22c55e" }}>{p.status === "active" ? "일시정지" : "Activate"}</button>
+                    <button className="btn" style={{ fontSize: 10, padding: "4px 10px", background: p.status === "active" ? "rgba(234,179,8,0.1)" : "rgba(34,197,94,0.1)", color: p.status === "active" ? "#eab308" : "#22c55e" }}>{p.status === "active" ? "일시정지" : "활성화"}</button>
                   </div>
                 </div>
               ))}
@@ -2524,7 +2526,7 @@ export default function Admin() {
                     { time: "12:13", action: "META Campaign Budget 조정", user: "admin", status: "Done" },
                     { time: "11:45", action: "CRM 세그먼트 재분류 Run", user: "system", status: "Done" },
                     { time: "10:30", action: "Shopify Orders Sync", user: "system", status: "Done" },
-                    { time: "09:00", action: "Daily KPI 리포트 Create", user: "system", status: "Done" },
+                    { time: "09:00", action: "Daily KPI 리포트 생성", user: "system", status: "Done" },
                     { time: "08:45", action: "Email Campaign Auto Send", user: "system", status: "Done" },
                   ].map((op, i) => (
                     <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "7px 0", borderBottom: "1px solid rgba(99,140,255,0.07)", fontSize: 12 }}>
