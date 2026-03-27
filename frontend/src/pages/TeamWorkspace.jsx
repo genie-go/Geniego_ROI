@@ -26,6 +26,7 @@ const PLAN_MENU_ACCESS = {
 
 /* ── 업그레이드 Modal ─────────────────────────────── */
 export function UpgradeModal({ onClose, trigger = "feature" }) {
+  const t = useT();
   const PLANS = [
     { id: "starter", label: "Starter", color: "#22c55e", emoji: "🌱", price: "₩49,000", accounts: 5, desc: "소규모 Team Max 5Account" },
     { id: "growth",  label: "Growth",  color: "#4f8ef7", emoji: "📈", price: "₩129,000", accounts: 10, desc: "성장 in progress인 Team Max 10Account" },
@@ -494,3 +495,6 @@ export default function TeamWorkspace() {
     </div>
   );
 }
+
+import { useI18n } from '../i18n/index.js';
+import { useT } from '../i18n/index.js';

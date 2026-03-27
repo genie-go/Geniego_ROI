@@ -4,6 +4,7 @@ import { useCurrency } from '../contexts/CurrencyContext.jsx';
 import { useAuth } from "../auth/AuthContext.jsx";
 
 
+import { useT } from '../i18n/index.js';
 /* ─── Shared utils ────────────────────────────────────────────── */
 const fmtKRW = v => v == null ? "—" : "₩" + Number(v).toLocaleString("ko-KR");
 const fmtUSD = v => v == null ? "—" : "$" + Number(v).toLocaleString("en-US", { minimumFractionDigits: 0 });

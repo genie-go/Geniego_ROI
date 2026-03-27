@@ -9,15 +9,15 @@ import { useAuth } from "../auth/AuthContext";
  */
 export default function useDemo() {
     const { user, plan } = useAuth();
-    const isDemo = !user || plan === "demo" || plan === null || plan === undefined;
+    const isDemo = false;
 
     /**
      * 데모 유저면 demoValue, 유료 유저면 realValue 반환
      * @param {*} realValue
      * @param {*} demoValue
      */
-    function demoOr(realValue, demoValue) {
-        return isDemo ? demoValue : realValue;
+    function demoOr(demoValue, realValue) {
+        return realValue;
     }
 
     return { isDemo, demoOr };

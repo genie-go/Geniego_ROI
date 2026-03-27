@@ -4,6 +4,7 @@ import MediaEditor from '../components/MediaEditor.jsx';
 import { BudgetPanel, ChannelBarCard, ChannelAdCard } from './AIRecommendTab.jsx';
 import { CHANNEL_COLORS, CHANNEL_ICONS } from './AIRecommendTab.jsx';
 
+import { useT } from '../i18n/index.js';
 function ResultSection(props) {
     const {
         result, dataSource, dataModel, searchQ, cat,

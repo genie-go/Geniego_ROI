@@ -211,19 +211,31 @@ final class UserAuth
 
         $hashedPw = password_hash($password, PASSWORD_DEFAULT);
         $userId = null;
+        $expiresAt = gmdate('Y-m-d\TH:i:s\Z', time() + 30 * 24 * 3600);
         try {
             $pdo->prepare(
-                'INSERT INTO app_user(email,password_hashs,name,plan,company,is_active,created_at) VALUES(?,?,?,?,?,?,?)'
-            )->execute([$email, $hashedPw, $name, 'free', $company ?: null, 1, $now]);
+                'INSERT INTO app_user(email,password_hashs,name,plan,company,is_active,created_at,subscription_expires_at) VALUES(?,?,?,?,?,?,?,?)'
+            )->execute([$email, $hashedPw, $name, 'pro', $company ?: null, 1, $now, $expiresAt]);
             $userId = (int)$pdo->lastInsertId();
         } catch (\Throwable $e) {
             try {
                 $pdo->prepare(
-                    'INSERT INTO app_user(email,password_hash,name,plan,company,is_active,created_at) VALUES(?,?,?,?,?,?,?)'
-                )->execute([$email, $hashedPw, $name, 'free', $company ?: null, 1, $now]);
+                    'INSERT INTO app_user(email,password_hash,name,plan,company,is_active,created_at,subscription_expires_at) VALUES(?,?,?,?,?,?,?,?)'
+                )->execute([$email, $hashedPw, $name, 'pro', $company ?: null, 1, $now, $expiresAt]);
                 $userId = (int)$pdo->lastInsertId();
             } catch (\Throwable $e2) {
-                return self::json($res, ['ok' => false, 'error' => '회원가입 중 오류가 발생했습니다: ' . $e2->getMessage()], 500);
+                // 만약 subscription_expires_at 컬럼이 없어서 에러가 났을 경우를 대비한 롤백
+                try {
+                    $pdo->prepare(
+                        'INSERT INTO app_user(email,password_hash,name,plan,company,is_active,created_at) VALUES(?,?,?,?,?,?,?)'
+                    )->execute([$email, $hashedPw, $name, 'pro', $company ?: null, 1, $now]);
+                    $userId = (int)$pdo->lastInsertId();
+                    try {
+                        $pdo->prepare('UPDATE app_user SET subscription_expires_at = ? WHERE id = ?')->execute([$expiresAt, $userId]);
+                    } catch (\Throwable $e3) {}
+                } catch (\Throwable $e4) {
+                    return self::json($res, ['ok' => false, 'error' => '회원가입 중 오류가 발생했습니다: ' . $e4->getMessage()], 500);
+                }
             }
         }
 
@@ -554,62 +566,7 @@ final class UserAuth
         ]);
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // POST /auth/demo
-    // 서버사이드 데모 세션 발급 — 24시간 유효 임시 계정
-    // Body: { role?: 'demo' } (현재는 demo만 지원)
-    // ─────────────────────────────────────────────────────────────
-    public static function demoSession(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
-    {
-        $pdo = Db::pdo();
-        $now = self::now();
-        $demoEmail = 'demo@genie-roi-demo.internal';
 
-        // 공용 데모 계정 조회 또는 생성
-        try {
-            $userId = null;
-            try {
-                $row = $pdo->query("SELECT id FROM app_user WHERE email = '{$demoEmail}' LIMIT 1")->fetch(\PDO::FETCH_ASSOC);
-                if ($row) {
-                    $userId = (int)$row['id'];
-                } else {
-                    // 데모 계정 생성
-                    try {
-                        $pdo->prepare('INSERT INTO app_user(email,password_hashs,name,plan,company,is_active,created_at) VALUES(?,?,?,?,?,?,?)')
-                            ->execute([$demoEmail, password_hash('demo_internal_' . date('Y'), PASSWORD_DEFAULT), 'Demo User', 'demo', 'Geniego Demo', 1, $now]);
-                    } catch (\Throwable $e) {
-                        $pdo->prepare('INSERT INTO app_user(email,password_hash,name,plan,company,is_active,created_at) VALUES(?,?,?,?,?,?,?)')
-                            ->execute([$demoEmail, password_hash('demo_internal_' . date('Y'), PASSWORD_DEFAULT), 'Demo User', 'demo', 'Geniego Demo', 1, $now]);
-                    }
-                    $userId = (int)$pdo->lastInsertId();
-                }
-            } catch (\Throwable $e) {
-                return self::json($res, ['ok' => false, 'error' => 'DB 오류: ' . $e->getMessage()], 500);
-            }
-
-            // 데모 세션 토큰 발급 (24시간)
-            $token = self::generateToken();
-            $expires = gmdate('Y-m-d\TH:i:s\Z', time() + 86400);
-            $pdo->prepare('INSERT INTO user_session(user_id,token,expires_at,created_at) VALUES(?,?,?,?)')
-                ->execute([$userId, $token, $expires, $now]);
-
-            return self::json($res, [
-                'ok'    => true,
-                'token' => $token,
-                'user'  => [
-                    'id'      => $userId,
-                    'email'   => $demoEmail,
-                    'name'    => 'Demo User',
-                    'plan'    => 'demo',
-                    'company' => 'Geniego Demo',
-                    'subscription_status'     => 'none',
-                    'subscription_expires_at' => null,
-                ],
-            ]);
-        } catch (\Throwable $e) {
-            return self::json($res, ['ok' => false, 'error' => '데모 세션 생성 실패: ' . $e->getMessage()], 500);
-        }
-    }
 
     // ─────────────────────────────────────────────────────────────
     // GET /auth/plan-check

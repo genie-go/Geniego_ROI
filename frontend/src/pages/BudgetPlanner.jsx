@@ -1,452 +1,165 @@
-import React, { useState, useMemo } from "react";
-import MarketingAIPanel from '../components/MarketingAIPanel.jsx';
-import { useGlobalData } from '../context/GlobalDataContext.jsx';
-import { useT } from '../i18n/index.js';
-import { useAuth } from '../auth/AuthContext.jsx';
-import DemoBanner from '../components/DemoBanner';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useMemo, useCallback, useRef, useContext } from 'react';
+import { useI18n } from '../i18n';
 import { useCurrency } from '../contexts/CurrencyContext.jsx';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend, Cell } from "recharts";
 
-const CARD_NETWORKS = [
-    { id: 'visa', label: 'VISA', color: '#1a1f71', icon: '💳' },
-    { id: 'master', label: 'MasterCard', color: '#eb001b', icon: '💳' },
-    { id: 'amex', label: 'AMEX', color: '#007bc1', icon: '💳' },
-    { id: 'local', label: 'Local Card', color: '#22c55e', icon: '🏦' },
-];
+import { useT } from '../i18n/index.js';
+const BUDGET_DATA = {
+    monthly: [
+        { channel: "Meta", allocated: 100000, spent: 85200, remaining: 14800, pace: "On Track" },
+        { channel: "TikTok", allocated: 50000, spent: 52400, remaining: -2400, pace: "Overspend" },
+        { channel: "Amazon", allocated: 80000, spent: 45000, remaining: 35000, pace: "Underspend" },
+        { channel: "Shopify", allocated: 20000, spent: 18500, remaining: 1500, pace: "On Track" },
+    ],
+    quarterly: [
+        { channel: "Meta", allocated: 300000, spent: 260000, remaining: 40000, pace: "On Track" },
+        { channel: "TikTok", allocated: 150000, spent: 145000, remaining: 5000, pace: "On Track" },
+        { channel: "Amazon", allocated: 240000, spent: 120000, remaining: 120000, pace: "Underspend" },
+        { channel: "Shopify", allocated: 60000, spent: 58000, remaining: 2000, pace: "On Track" },
+    ],
+    yearly: [
+        { channel: "Meta", allocated: 1200000, spent: 650000, remaining: 550000, pace: "On Track" },
+        { channel: "TikTok", allocated: 600000, spent: 410000, remaining: 190000, pace: "On Track" },
+        { channel: "Amazon", allocated: 960000, spent: 300000, remaining: 660000, pace: "Underspend" },
+        { channel: "Shopify", allocated: 240000, spent: 180000, remaining: 60000, pace: "On Track" },
+    ]
+};
 
-// KRW formatter replaced by useCurrency fmt()
-const pct = v => (Number(v) * 100).toFixed(1) + "%";
-
-const Tag = ({ label, color = "#4f8ef7" }) => (
-    <span style={{ fontSize: 9, fontWeight: 700, padding: "2px 8px", borderRadius: 99, background: color + "18", color, border: `1px solid ${color}33` }}>{label}</span>
-);
-const KpiCard = ({ label, value, sub, color = "#4f8ef7", icon }) => (
-    <div className="card card-glass" style={{ borderLeft: `3px solid ${color}`, padding: "14px 16px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between" }}>
-            <div style={{ fontSize: 10, color: "var(--text-3)", fontWeight: 700 }}>{label}</div>
-            {icon && <span style={{ fontSize: 18, opacity: .7 }}>{icon}</span>}
-        </div>
-        <div style={{ fontWeight: 900, fontSize: 20, color, marginTop: 6 }}>{value}</div>
-        {sub && <div style={{ fontSize: 10, color: "var(--text-3)", marginTop: 3 }}>{sub}</div>}
-    </div>
-);
-const Bar = ({ v, max = 1, color = "#4f8ef7", h = 6 }) => (
-    <div style={{ height: h, background: "rgba(255,255,255,0.06)", borderRadius: h }}>
-        <div style={{ width: `${Math.min(100, (v / (max || 1)) * 100)}%`, height: "100%", background: color, borderRadius: h, transition: "width .5s" }} />
-    </div>
-);
-
-const MONTHLY_BUDGET = [
-    { month: "Jan", budget: 40000000, spent: 38200000 },
-    { month: "Feb", budget: 43000000, spent: 41800000 },
-    { month: "Mar", budget: 53000000, spent: 31400000 },
-    { month: "Apr", budget: 48000000, spent: 0 },
-    { month: "May", budget: 45000000, spent: 0 },
-    { month: "Jun", budget: 60000000, spent: 0 },
-];
-
-/* ══ Channel Budget Tab — GlobalDataContext ══════════════════════════ */
-function ChannelBudgetTab({ channelBudgets, useBudget, setBudget }) { 
-    const t = useT();
-    const { isDemo } = useAuth();
-    const { fmt } = useCurrency();
-    const [editingId, setEditingId] = useState(null);
-    const [editVal, setEditVal] = useState("");
-    const [allocating, setAllocating] = useState(null);
-    const [allocAmt, setAllocAmt] = useState("");
-
-    const channels = Object.entries(channelBudgets).map(([id, c]) => ({ id, ...c }));
-    const total = channels.reduce((s, c) => s + c.budget, 0);
-    const totalSpent = channels.reduce((s, c) => s + c.spent, 0);
-
-    const applyBudget = (id) => {
-        const val = Number(editVal.replace(/[^0-9]/g, ''));
-        if (isDemo) { alert(t('gBudget.d1')); setEditingId(null); return; }
-        if (val > 0) setBudget(id, val);
-        setEditingId(null);
-    };
-
-    const applySpend = (id) => {
-        const val = Number(allocAmt.replace(/[^0-9]/g, ''));
-        if (isDemo) { alert(t('gBudget.d2')); setAllocating(null); setAllocAmt(""); return; }
-        if (val > 0) useBudget(id, val);
-        setAllocating(null);
-        setAllocAmt("");
-    };
-
-    return (
-        <div style={{ display: "grid", gap: 16 }}>
-            {isDemo && <DemoBanner feature="Ad Budget Execution" />}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 10 }}>
-                <KpiCard label={t("gBudget.totalAlloc")} value={fmt(total)} color="#4f8ef7" icon="💰" />
-                <KpiCard label={t("gBudget.totalSpent")} value={fmt(totalSpent)} sub={pct(totalSpent / total) + ` ${t("gBudget.spentTxt")}`} color="#f97316" icon="📊" />
-                <KpiCard label={t("gBudget.remainBudget")} value={fmt(total - totalSpent)} color="#22c55e" icon="💵" />
-                <KpiCard label={t("gBudget.chCount")} value={channels.length.toString()} color="#a855f7" icon="📣" />
-            </div>
-
-            <div className="card card-glass" style={{ padding: 20 }}>
-                <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 16 }}>💰 {t("gBudget.chAllocTitle")}</div>
-                <div style={{ display: "grid", gap: 14 }}>
-                    {channels.map(c => {
-                        const spentPct = c.spent / c.budget;
-                        const alert = spentPct > 0.85;
-                        const roasOk = c.roas >= c.targetRoas;
-                        return (
-                            <div key={c.id}>
-                                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6, flexWrap: "wrap", gap: 6 }}>
-                                    <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                                        <span style={{ fontSize: 16 }}>{c.icon}</span>
-                                        <span style={{ fontWeight: 700, color: c.color }}>{c.name}</span>
-                                        {alert && <Tag label={`⚠ ${t("gBudget.lowBudget")}`} color="#eab308" />}
-                                        <Tag label={roasOk ? `ROAS ${c.roas}x ✓` : `ROAS ${c.roas}x ✗`} color={roasOk ? "#22c55e" : "#ef4444"} />
-                                    </div>
-                                    <div style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 12 }}>
-                                        <span style={{ color: c.color, fontWeight: 700 }}>{fmt(c.spent)}</span>
-                                        <span style={{ color: "var(--text-3)" }}>/ {editingId === c.id
-                                            ? <input value={editVal} onChange={e => setEditVal(e.target.value)} onBlur={() => applyBudget(c.id)}
-                                                style={{ width: 100, padding: "2px 6px", borderRadius: 6, background: "rgba(0,0,0,0.4)", border: "1px solid rgba(79,142,247,0.4)", color: "#fff", fontSize: 12 }}
-                                                autoFocus />
-                                            : <span style={{ cursor: "pointer", textDecoration: "underline dotted" }} onClick={() => { setEditingId(c.id); setEditVal(String(c.budget)); }}>{fmt(c.budget)}</span>
-                                        }</span>
-                                        <span style={{ fontWeight: 700, color: alert ? "#eab308" : "var(--text-2)" }}>{pct(spentPct)}</span>
-                                    </div>
-                                </div>
-                                <Bar v={c.spent} max={c.budget} color={alert ? "#eab308" : c.color} />
-                                <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
-                                    {allocating === c.id ? (
-                                        <>
-                                            <input value={allocAmt} onChange={e => setAllocAmt(e.target.value)} placeholder={t("gBudget.enterAmt")}
-                                                style={{ flex: 1, maxWidth: 150, padding: "4px 8px", borderRadius: 6, background: "rgba(0,0,0,0.4)", border: "1px solid rgba(255,193,7,0.4)", color: "#fff", fontSize: 11 }} />
-                                            <button onClick={() => applySpend(c.id)} style={{ padding: "4px 12px", borderRadius: 6, background: "#eab308", border: "none", color: "#000", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>{t("gBudget.execute")}</button>
-                                            <button onClick={() => setAllocating(null)} style={{ padding: "4px 10px", borderRadius: 6, background: "transparent", border: "1px solid rgba(255,255,255,0.15)", color: "var(--text-3)", fontSize: 11, cursor: "pointer" }}>{t("gBudget.cancel")}</button>
-                                        </>
-                                    ) : (
-                                        <button onClick={() => setAllocating(c.id)} style={{ padding: "4px 12px", borderRadius: 6, background: "rgba(79,142,247,0.1)", border: "1px solid rgba(79,142,247,0.2)", color: "#4f8ef7", fontSize: 10, fontWeight: 600, cursor: "pointer" }}>
-                                            + {t("gBudget.execAdSpend")}
-                                        </button>
-                                    )}
-                                </div>
-                            </div>
-                        );
-                    })}
-                </div>
-            </div>
-
-            <div className="card card-glass" style={{ padding: 20 }}>
-                <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 14 }}>📊 {t("gBudget.perfTitle")}</div>
-                <div style={{ overflowX: "auto" }}>
-                    <table className="table">
-                        <thead>
-                            <tr>
-                                <th>{t("gBudget.colChannel")}</th>
-                                <th style={{ textAlign: "right" }}>Budget</th>
-                                <th style={{ textAlign: "right" }}>Spent</th>
-                                <th style={{ textAlign: "right" }}>Remaining</th>
-                                <th style={{ textAlign: "center" }}>Target ROAS</th>
-                                <th style={{ textAlign: "center" }}>Actual ROAS</th>
-                                <th style={{ textAlign: "center" }}>Burn Rate</th>
-                                <th style={{ textAlign: "center" }}>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {channels.map(c => {
-                                const roasOk = c.roas >= c.targetRoas;
-                                const spentPct = c.spent / c.budget;
-                                return (
-                                    <tr key={c.id}>
-                                        <td><span style={{ color: c.color, fontWeight: 700 }}>{c.icon} {c.name}</span></td>
-                                        <td style={{ textAlign: "right", fontFamily: "monospace" }}>{fmt(c.budget)}</td>
-                                        <td style={{ textAlign: "right", fontFamily: "monospace" }}>{fmt(c.spent)}</td>
-                                        <td style={{ textAlign: "right", fontFamily: "monospace", color: "#22c55e" }}>{fmt(c.budget - c.spent)}</td>
-                                        <td style={{ textAlign: "center" }}>{c.targetRoas}x</td>
-                                        <td style={{ textAlign: "center", fontWeight: 800, color: roasOk ? "#22c55e" : "#ef4444" }}>{c.roas}x</td>
-                                        <td style={{ textAlign: "center" }}>
-                                            <span style={{ color: spentPct > 0.85 ? "#eab308" : "var(--text-2)", fontWeight: 700 }}>{pct(spentPct)}</span>
-                                        </td>
-                                        <td style={{ textAlign: "center" }}>
-                                            <Tag label={roasOk ? `✓ ${t("gBudget.achieved")}` : `✗ ${t("gBudget.below")}`} color={roasOk ? "#22c55e" : "#ef4444"} />
-                                        </td>
-                                    </tr>
-                                );
-                            })}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    );
-}
-
-function MonthlyBudgetTab({ totalBudget }) {
-    const { fmt } = useCurrency();
-    const totalMonthly = MONTHLY_BUDGET.reduce((s, m) => s + m.budget, 0);
-    const totalSpent = MONTHLY_BUDGET.reduce((s, m) => s + m.spent, 0);
-    return (
-        <div style={{ display: "grid", gap: 16 }}>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 10 }}>
-                <KpiCard label={t("gBudget.annualTotal")} value={fmt(totalMonthly)} color="#4f8ef7" icon="📅" />
-                <KpiCard label={t("gBudget.cumulSpent")} value={fmt(totalSpent)} sub={pct(totalSpent / totalMonthly) + ` ${t("gBudget.spentTxt")}`} color="#f97316" icon="📊" />
-                <KpiCard label={t("gBudget.adTotal")} value={fmt(totalBudget)} color="#22c55e" icon="💰" sub={t("gBudget.liveData")} />
-            </div>
-            <div className="card card-glass" style={{ padding: 20 }}>
-                <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 16 }}>📅 {t("gBudget.monthlyStatus")}</div>
-                <div style={{ display: "grid", gap: 12 }}>
-                    {MONTHLY_BUDGET.map(m => {
-                        const isPast = m.spent > 0;
-                        const spentPct = isPast ? m.spent / m.budget : 0;
-                        const color = spentPct > 0.95 ? "#f97316" : spentPct > 0.8 ? "#eab308" : "#22c55e";
-                        return (
-                            <div key={m.month}>
-                                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5, fontSize: 12 }}>
-                                    <span style={{ fontWeight: 700 }}>{m.month}</span>
-                                    <span>
-                                        {isPast ? (
-                                            <><span style={{ color, fontWeight: 700 }}>{fmt(m.spent)}</span> / {fmt(m.budget)} <span style={{ color }}>{pct(spentPct)}</span></>
-                                        ) : (
-                                            <span style={{ color: "var(--text-3)" }}>{t("gBudget.lblBudget")}: {fmt(m.budget)} ({t("gBudget.pending")})</span>
-                                        )}
-                                    </span>
-                                </div>
-                                <Bar v={m.spent} max={m.budget} color={isPast ? color : "rgba(99,140,255,0.12)"} />
-                            </div>
-                        );
-                    })}
-                </div>
-            </div>
-        </div>
-    );
-}
-
-/* ══ Payment Card Tab ══════════════════════ */
-function PaymentCardTab({ paymentCards, addPaymentCard, removePaymentCard, setDefaultCard }) {
-    const { isDemo } = useAuth();
-    const { fmt } = useCurrency();
-    const [form, setForm] = useState({ alias: '', number: '', expiry: '', cvc: '', network: 'visa', limit: '' });
-    const [adding, setAdding] = useState(false);
-    const [saved, setSaved] = useState(false);
-
-    const setF = (k, v) => setForm(p => ({ ...p, [k]: v }));
-
-    const fmtNumber = (v) => v.replace(/\D/g, '').slice(0, 16).replace(/(\d{4})/g, '$1 ').trim();
-    const fmtExpiry = (v) => {
-        const d = v.replace(/\D/g, '').slice(0, 4);
-        return d.length > 2 ? d.slice(0, 2) + '/' + d.slice(2) : d;
-    };
-
-    const handleSave = () => {
-        if (isDemo) {
-            alert(t('gBudget.d3'));
-            setAdding(false);
-            return;
-        }
-        const num = form.number.replace(/\s/g, '');
-        if (num.length < 12) return alert(t('gBudget.e1'));
-        if (!form.expiry.includes('/')) return alert(t('gBudget.e2'));
-        addPaymentCard({
-            alias: form.alias || (form.network.toUpperCase() + ' Card'),
-            number: '****-****-****-' + num.slice(-4),
-            last4: num.slice(-4),
-            expiry: form.expiry,
-            network: form.network,
-            limit: parseInt(form.limit.replace(/[^0-9]/g, '')) || 0,
-        });
-        setForm({ alias: '', number: '', expiry: '', cvc: '', network: 'visa', limit: '' });
-        setAdding(false);
-        setSaved(true);
-        setTimeout(() => setSaved(false), 2500);
-    };
-
-    return (
-        <div style={{ display: 'grid', gap: 18 }}>
-            {/* Info Banner */}
-            <div style={{ padding: '14px 18px', borderRadius: 12, background: 'linear-gradient(135deg,rgba(79,142,247,0.1),rgba(168,85,247,0.08))', border: '1px solid rgba(79,142,247,0.2)' }}>
-                <div style={{ fontWeight: 800, fontSize: 13, marginBottom: 4 }}>💳 {t("gBudget.cTitle")}</div>
-                <div style={{ fontSize: 11, color: 'var(--text-2)', lineHeight: 1.6 }}>
-                    {t("gBudget.cDesc1")}<br />
-                    {t("gBudget.cDesc2")}
-                </div>
-            </div>
-
-            {/* Card List */}
-            {paymentCards.length > 0 && (
-                <div style={{ display: 'grid', gap: 10 }}>
-                    {paymentCards.map(card => {
-                        const net = CARD_NETWORKS.find(n => n.id === card.network) || CARD_NETWORKS[0];
-                        return (
-                            <div key={card.id} className="card card-glass" style={{ padding: '16px 20px', border: `1.5px solid ${card.isDefault ? '#4f8ef7' : 'rgba(255,255,255,0.07)'}` }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
-                                    <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
-                                        <div style={{ width: 48, height: 30, borderRadius: 6, background: `linear-gradient(135deg,${net.color},${net.color}99)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, color: '#fff', fontWeight: 800 }}>
-                                            {net.label.slice(0, 4)}
-                                        </div>
-                                        <div>
-                                            <div style={{ fontWeight: 700, fontSize: 13 }}>{card.alias}</div>
-                                            <div style={{ fontSize: 11, color: 'var(--text-3)', fontFamily: 'monospace' }}>{card.number} · {card.expiry}</div>
-                                            {card.limit > 0 && <div style={{ fontSize: 10, color: 'var(--text-3)' }}>{t('gBudget.monLimit')} {fmt(card.limit)}</div>}
-                                        </div>
-                                    </div>
-                                    <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-                                        {card.isDefault ? (
-                                            <span style={{ fontSize: 10, padding: '3px 10px', borderRadius: 99, background: 'rgba(79,142,247,0.15)', color: '#4f8ef7', border: '1px solid rgba(79,142,247,0.3)', fontWeight: 700 }}>⭐ {t("gBudget.cDefault")}</span>
-                                        ) : (
-                                            <button onClick={() => setDefaultCard(card.id)}
-                                                style={{ fontSize: 10, padding: '3px 10px', borderRadius: 99, border: '1px solid rgba(255,255,255,0.1)', background: 'transparent', color: 'var(--text-3)', cursor: 'pointer' }}>
-                                                Set as Default
-                                            </button>
-                                        )}
-                                        {card.totalCharged > 0 && (
-                                            <span style={{ fontSize: 10, color: '#f97316' }}>{t('gBudget.charged')} {fmt(card.totalCharged)}</span>
-                                        )}
-                                        <button onClick={() => removePaymentCard(card.id)}
-                                            style={{ fontSize: 10, padding: '3px 10px', borderRadius: 99, border: '1px solid rgba(239,68,68,0.2)', background: 'rgba(239,68,68,0.06)', color: '#ef4444', cursor: 'pointer' }}>
-                                            Remove
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        );
-                    })}
-                </div>
-            )}
-
-            {/* Empty State */}
-            {paymentCards.length === 0 && !adding && (
-                <div style={{ padding: '40px 20px', textAlign: 'center', color: 'var(--text-3)', fontSize: 13 }}>
-                    <div style={{ fontSize: 36, marginBottom: 10 }}>💳</div>
-                    {t("gBudget.cNoCard")}<br />
-                    <span style={{ fontSize: 11 }}>{t("gBudget.cNoCard2")}</span>
-                </div>
-            )}
-
-            {/* Add Card Form */}
-            {adding ? (
-                <div className="card card-glass" style={{ padding: 20, border: '1px solid rgba(79,142,247,0.3)' }}>
-                    <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 16 }}>➕ {t("gBudget.cReg")}</div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
-                        {[[[t('gBudget.fAlias'), 'alias', 'text', 'e.g. Corporate VISA'], [t('gBudget.fNum'), 'number', 'text', '0000 0000 0000 0000'], [t('gBudget.fExp'), 'expiry', 'text', 'MM/YY'], ['CVC', 'cvc', 'password', '***'], [t('gBudget.fLim'), 'limit', 'number', 'e.g. 10000000']]].map(([lbl, key, type, ph]) => (
-                            <div key={key}>
-                                <div style={{ fontSize: 10, color: 'var(--text-3)', marginBottom: 4 }}>{lbl}</div>
-                                <input type={type} value={form[key]} placeholder={ph}
-                                    onChange={e => setF(key, key === 'number' ? fmtNumber(e.target.value) : key === 'expiry' ? fmtExpiry(e.target.value) : e.target.value)}
-                                    style={{ width: '100%', boxSizing: 'border-box', padding: '8px 10px', borderRadius: 8, background: 'rgba(0,0,0,0.35)', border: '1px solid rgba(79,142,247,0.25)', color: '#e2e8f0', fontSize: 12 }}
-                                />
-                            </div>
-                        ))}
-                        <div>
-                            <div style={{ fontSize: 10, color: 'var(--text-3)', marginBottom: 4 }}>{t("gBudget.cNet")}</div>
-                            <div style={{ display: 'flex', gap: 6 }}>
-                                {CARD_NETWORKS.map(n => (
-                                    <button key={n.id} onClick={() => setF('network', n.id)}
-                                        style={{ flex: 1, padding: '8px 4px', borderRadius: 7, border: `1px solid ${form.network === n.id ? n.color : 'rgba(255,255,255,0.1)'}`, background: form.network === n.id ? n.color + '18' : 'transparent', color: form.network === n.id ? n.color : 'var(--text-3)', fontSize: 10, fontWeight: 700, cursor: 'pointer' }}>
-                                        {n.label}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
+const CustomTooltip = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+        return (
+            <div style={{ background: "rgba(10, 15, 30, 0.9)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: 12, boxShadow: "0 8px 32px rgba(0,0,0,0.5)" }}>
+                <p style={{ margin: "0 0 8px 0", color: "#fff", fontWeight: 700, fontSize: 13 }}>{label}</p>
+                {payload.map((entry, index) => (
+                    <div key={index} style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 4 }}>
+                        <div style={{ width: 8, height: 8, borderRadius: "2px", background: entry.color }} />
+                        <span style={{ color: "rgba(255,255,255,0.6)", fontSize: 11 }}>{entry.name}:</span>
+                        <span style={{ color: "#fff", fontWeight: 800, fontSize: 12 }}>₩{Number(entry.value).toLocaleString()}</span>
                     </div>
-                    <div style={{ display: 'flex', gap: 8 }}>
-                        <button onClick={handleSave}
-                            style={{ padding: '9px 20px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg,#4f8ef7,#6366f1)', color: '#fff', fontWeight: 700, fontSize: 12, cursor: 'pointer' }}>
-                            💳 {t("gBudget.btnReg")}
-                        </button>
-                        <button onClick={() => setAdding(false)}
-                            style={{ padding: '9px 16px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.1)', background: 'transparent', color: 'var(--text-3)', fontSize: 12, cursor: 'pointer' }}>
-                            Cancel
-                        </button>
-                    </div>
-                    <div style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 10 }}>🔒 {t("gBudget.cSecure")}</div>
-                </div>
-            ) : (
-                <div style={{ display: 'flex', gap: 10 }}>
-                    <button onClick={() => setAdding(true)}
-                        style={{ padding: '10px 20px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg,#4f8ef7,#6366f1)', color: '#fff', fontWeight: 700, fontSize: 12, cursor: 'pointer' }}>
-                        + {t("gBudget.btnAdd")}
-                    </button>
-                    {saved && <span style={{ fontSize: 11, color: '#22c55e', alignSelf: 'center' }}>✅ {t("gBudget.cAdded")}</span>}
-                </div>
-            )}
-        </div>
-    );
-}
-
-const TABS = [
-    { id: "channel", label: `📊 ${t("gBudget.tabChannel")}` },
-    { id: "monthly", label: `📅 ${t("gBudget.tabMonthly")}` },
-    { id: "card", label: `💳 ${t("gBudget.tabCard")}` },
-    { id: "ai", label: `🤖 ${t("gBudget.tabAi")}` },
-];
+                ))}
+            </div>
+        );
+    }
+    return null;
+};
 
 export default function BudgetPlanner() {
+    const { t } = useI18n();
     const { fmt } = useCurrency();
-    const navigate = useNavigate();
-    const { channelBudgets, budgetStats, useBudget, setBudget, pnlStats, paymentCards, addPaymentCard, removePaymentCard, setDefaultCard } = useGlobalData();
-    const [tab, setTab] = useState("channel");
+    const [period, setPeriod] = useState("monthly");
 
-    const channelsForAI = useMemo(() => {
-        return Object.entries(channelBudgets).reduce((acc, [id, c]) => {
-            acc[id] = {
-                name: c.name,
-                spend: c.spent,
-                revenue: Math.round(c.spent * c.roas),
-                roas: c.roas,
-                conversions: Math.round(c.spent / 12000),
-                impressions: Math.round(c.spent / 8),
-                clicks: Math.round(c.spent / 120),
-                ctr: 2.8,
-                convRate: 3.0,
-                cpc: Math.round(c.spent / Math.max(Math.round(c.spent / 120), 1)),
-            };
+    const data = BUDGET_DATA[period];
+
+    const aggregates = useMemo(() => {
+        return data.reduce((acc, curr) => {
+            acc.allocated += curr.allocated;
+            acc.spent += curr.spent;
+            acc.remaining += curr.remaining;
             return acc;
-        }, {});
-    }, [channelBudgets]);
+        }, { allocated: 0, spent: 0, remaining: 0 });
+    }, [data]);
+
+    const globalBurnRate = aggregates.allocated > 0 ? (aggregates.spent / aggregates.allocated) * 100 : 0;
 
     return (
-        <div style={{ display: "grid", gap: 16 }}>
-            <div className="card card-glass fade-up" style={{ padding: "18px 22px" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
+        <div style={{ display: 'grid', gap: 20, animation: 'fadeIn 0.4s' }}>
+            <div className="hero" style={{ background: 'linear-gradient(135deg, rgba(34,197,94,0.1), rgba(45,212,191,0.05))', position: 'relative' }}>
+                <div className="hero-meta">
+                    <div className="hero-icon" style={{ background: '#22c55e22', color: '#22c55e' }}>💰</div>
                     <div>
-                        <div style={{ fontWeight: 900, fontSize: 22 }}>{t("gBudget.title")}</div>
-                        <div style={{ fontSize: 11, color: "var(--text-3)", marginTop: 4 }}>{t("gBudget.subtitle")}</div>
-                    </div>
-                    <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-                        {/* Real-time P&L Summary */}
-                        <div style={{ padding: "6px 14px", borderRadius: 10, background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.2)", fontSize: 11 }}>
-                            <span style={{ color: "var(--text-3)" }}>{t("gBudget.revenue")}: </span>
-                            <span style={{ color: "#22c55e", fontWeight: 700 }}>{fmt(pnlStats.revenue)}</span>
-                        </div>
-                        <div style={{ padding: "6px 14px", borderRadius: 10, background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", fontSize: 11 }}>
-                            <span style={{ color: "var(--text-3)" }}>{t("gBudget.adSpeed")}: </span>
-                            <span style={{ color: "#ef4444", fontWeight: 700 }}>{fmt(budgetStats.totalSpent)}</span>
-                        </div>
-                        <div style={{ padding: "6px 14px", borderRadius: 10, background: "rgba(79,142,247,0.08)", border: "1px solid rgba(79,142,247,0.2)", fontSize: 11 }}>
-                            <span style={{ color: "var(--text-3)" }}>{t("gBudget.remain")}: </span>
-                            <span style={{ color: "#4f8ef7", fontWeight: 700 }}>{fmt(budgetStats.remaining)}</span>
-                        </div>
-                        <button onClick={() => navigate('/channel-kpi')} style={{ padding: "8px 14px", borderRadius: 10, border: "1px solid rgba(99,140,255,0.2)", cursor: "pointer", background: "transparent", color: "var(--text-3)", fontSize: 11, fontWeight: 600 }}>📊 {t("gBudget.kpi")} →</button>
-                        <button onClick={() => navigate('/campaign-manager')} style={{ padding: "8px 14px", borderRadius: 10, border: "1px solid rgba(99,140,255,0.2)", cursor: "pointer", background: "transparent", color: "var(--text-3)", fontSize: 11, fontWeight: 600 }}>🎯 {t("gBudget.mgr")} →</button>
-                        <button onClick={() => navigate('/wms')} style={{ padding: "8px 14px", borderRadius: 10, border: "1px solid rgba(99,140,255,0.2)", cursor: "pointer", background: "transparent", color: "var(--text-3)", fontSize: 11, fontWeight: 600 }}>🏭 {t("gBudget.inv")} →</button>
+                        <div className="hero-title">{t('marketing.budgetTrackerTab') || "Unified Budget Tracker"}</div>
+                        <div className="hero-desc">Monitor allocated budget vs actual spending across all channels. Replace your calendar with real-time spend pacing.</div>
                     </div>
                 </div>
-            </div>
-
-            <div className="card card-glass fade-up fade-up-1" style={{ padding: 0, overflow: "hidden" }}>
-                <div style={{ display: "grid", gridTemplateColumns: `repeat(${TABS.length},1fr)` }}>
-                    {TABS.map(t => (
-                        <button key={t.id} onClick={() => setTab(t.id)} style={{ padding: "13px 12px", border: "none", cursor: "pointer", background: tab === t.id ? "rgba(34,197,94,0.08)" : "transparent", borderBottom: `2px solid ${tab === t.id ? "#22c55e" : "transparent"}`, fontSize: 12, fontWeight: 800, color: tab === t.id ? "var(--text-1)" : "var(--text-2)" }}>{t.label}</button>
+                
+                <div style={{ position: 'absolute', right: 24, top: 24, display: 'flex', gap: 8, background: "rgba(9,15,30,0.8)", borderRadius: 12, padding: 4, border: "1px solid rgba(99,140,255,0.1)" }}>
+                    {[{id: 'monthly', lbl: 'Monthly (월간)'}, {id: 'quarterly', lbl: 'Quarterly (분기)'}, {id: 'yearly', lbl: 'Yearly (연간)'}].map(p => (
+                        <button key={p.id} onClick={() => setPeriod(p.id)} style={{ padding: "7px 16px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 12, fontWeight: 700, background: period === p.id ? "linear-gradient(135deg,#22c55e,#10b981)" : "transparent", color: period === p.id ? "#fff" : "var(--text-3)", transition: "all 150ms" }}>
+                            {p.lbl}
+                        </button>
                     ))}
                 </div>
             </div>
 
-            <div className="card card-glass fade-up fade-up-2" style={{ padding: 20 }}>
-                {tab === "channel" && <ChannelBudgetTab channelBudgets={channelBudgets} useBudget={useBudget} setBudget={setBudget} />}
-                {tab === "monthly" && <MonthlyBudgetTab totalBudget={budgetStats.totalBudget} />}
-                {tab === "card" && <PaymentCardTab paymentCards={paymentCards} addPaymentCard={addPaymentCard} removePaymentCard={removePaymentCard} setDefaultCard={setDefaultCard} />}
-                {tab === "ai" && (
-                    <MarketingAIPanel
-                        channels={channelsForAI}
-                        campaigns={[]}
-                    />
-                )}
+            {/* Top Cards */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
+                {[
+                    { label: "Total Allocated", value: aggregates.allocated, color: "#4f8ef7" },
+                    { label: "Total Spent", value: aggregates.spent, color: "#f97316" },
+                    { label: "Total Remaining", value: aggregates.remaining, color: aggregates.remaining < 0 ? "#ef4444" : "#22c55e" }
+                ].map((col, idx) => (
+                    <div key={idx} className="card card-glass fade-up" style={{ padding: 24, borderTop: `2px solid ${col.color}`, animationDelay: `${idx*100}ms` }}>
+                        <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--text-3)', marginBottom: 8 }}>{col.label}</div>
+                        <div style={{ fontSize: 26, fontWeight: 900, color: '#fff' }}>{fmt(col.value, { prefix: '₩' })}</div>
+                    </div>
+                ))}
+            </div>
+
+            {/* Bar Chart Visualization */}
+            <div className="card card-glass fade-up" style={{ padding: 24, animationDelay: "300ms" }}>
+                <div style={{ fontWeight: 800, fontSize: 16, marginBottom: 20 }}>📊 Budget Allocation vs Actual Spend by Channel</div>
+                <div style={{ width: '100%', height: 350 }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={data} margin={{ top: 10, right: 30, left: 20, bottom: 5 }}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                            <XAxis dataKey="channel" stroke="rgba(255,255,255,0.3)" fontSize={12} fontWeight={700} />
+                            <YAxis stroke="rgba(255,255,255,0.3)" fontSize={11} tickFormatter={(v) => v >= 1000 ? (v/1000).toFixed(0)+'K' : v} />
+                            <RechartsTooltip content={<CustomTooltip />} />
+                            <Legend wrapperStyle={{ fontSize: 12, fontWeight: 700, paddingTop: 10 }} />
+                            <Bar dataKey="allocated" name="Allocated Budget" fill="rgba(79,142,247,0.4)" radius={[4,4,0,0]} />
+                            <Bar dataKey="spent" name="Actual Spend" radius={[4,4,0,0]}>
+                                {data.map((entry, index) => (
+                                    <Cell key={`cell-${index}`} fill={entry.spent > entry.allocated ? '#ef4444' : '#f97316'} />
+                                ))}
+                            </Bar>
+                        </BarChart>
+                    </ResponsiveContainer>
+                </div>
+            </div>
+
+            {/* Data Table */}
+            <div className="card card-glass fade-up" style={{ padding: 0, overflow: 'hidden', animationDelay: "400ms" }}>
+                <div style={{ padding: '16px 20px', background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                    <div style={{ fontWeight: 800, fontSize: 14 }}>📈 Detailed Channel Pacing</div>
+                </div>
+                <table className="table" style={{ width: '100%', borderCollapse: 'collapse', margin: 0 }}>
+                    <thead style={{ background: 'rgba(255,255,255,0.01)' }}>
+                        <tr>
+                            <th style={{ padding: '14px 20px', textAlign: 'left' }}>Target Channel</th>
+                            <th style={{ textAlign: 'right' }}>Allocated Budget</th>
+                            <th style={{ textAlign: 'right' }}>Real-time Spend</th>
+                            <th style={{ textAlign: 'right' }}>Remaining Balance</th>
+                            <th style={{ textAlign: 'right' }}>Burn Rate (%)</th>
+                            <th style={{ paddingLeft: 40, textAlign: 'left' }}>Pacing Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {data.map(row => {
+                            const burnPct = row.allocated > 0 ? (row.spent / row.allocated) * 100 : 0;
+                            return (
+                                <tr key={row.channel} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
+                                    <td style={{ padding: '14px 20px', fontWeight: 800 }}>{row.channel}</td>
+                                    <td style={{ textAlign: 'right', color: '#4f8ef7', fontWeight: 700 }}>{fmt(row.allocated)}</td>
+                                    <td style={{ textAlign: 'right', color: '#f97316', fontWeight: 700 }}>{fmt(row.spent)}</td>
+                                    <td style={{ textAlign: 'right', color: row.remaining < 0 ? '#ef4444' : '#22c55e', fontWeight: 800 }}>{fmt(row.remaining)}</td>
+                                    <td style={{ textAlign: 'right' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 10 }}>
+                                            <span style={{ color: burnPct > 100 ? '#ef4444' : 'var(--text-1)', fontSize: 12 }}>{burnPct.toFixed(1)}%</span>
+                                            <div style={{ width: 60, height: 4, background: 'rgba(255,255,255,0.1)', borderRadius: 2, overflow: 'hidden' }}>
+                                                <div style={{ width: `${Math.min(100, burnPct)}%`, height: '100%', background: burnPct > 100 ? '#ef4444' : burnPct > 80 ? '#f97316' : '#22c55e' }} />
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td style={{ paddingLeft: 40 }}>
+                                        <span style={{ padding: '4px 8px', borderRadius: 4, fontSize: 10, fontWeight: 800, textTransform: 'uppercase', background: row.pace === 'On Track' ? 'rgba(34,197,94,0.1)' : row.pace === 'Overspend' ? 'rgba(239,68,68,0.1)' : 'rgba(245,158,11,0.1)', color: row.pace === 'On Track' ? '#22c55e' : row.pace === 'Overspend' ? '#ef4444' : '#f59e0b' }}>
+                                            {row.pace}
+                                        </span>
+                                    </td>
+                                </tr>
+                            );
+                        })}
+                    </tbody>
+                </table>
             </div>
         </div>
     );

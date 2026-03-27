@@ -114,7 +114,84 @@ const INIT_PAYMENT_CARDS = [];
 /* ════════════════════════════════════════════════
    실제 Provider Provider 시작
 ════════════════════════════════════════════════ */
+
+// 🔥 DR.JART VIRTUAL MOCK DATA OVERRIDE
+const drJartDailyTrends = [
+    { date: "Mar 1", spend: 1200000, budget: 1500000 },
+    { date: "Mar 5", spend: 3500000, budget: 3500000 },
+    { date: "Mar 10", spend: 5800000, budget: 6000000 },
+    { date: "Mar 15", spend: 8900000, budget: 8500000 },
+    { date: "Mar 20", spend: 12500000, budget: 12000000 },
+    { date: "Mar 25", spend: 15800000, budget: 16000000 }
+];
+const drJartChannels = [
+    { name: "Naver GFA", spend: 5200000 },
+    { name: "Meta Ads", spend: 8500000 },
+    { name: "Google Ads (SA/DA)", spend: 3200000 },
+    { name: "Kakao Bizboard", spend: 1800000 }
+];
+const drJartBudget = {
+    totalAllocated: 120000000,
+    totalSpent: 85040000,
+    balance: 34960000,
+    burnRate: 70.8,
+    categories: [
+        { name: "Performance (Meta/Google)", value: 45, color: "#4f8ef7" },
+        { name: "Brand Awareness (YouTube)", value: 25, color: "#a855f7" },
+        { name: "Retargeting (Kakao/Naver)", value: 20, color: "#22c55e" },
+        { name: "Influencer/UGC", value: 10, color: "#f59e0b" }
+    ]
+};
+const INIT_DEMO_AD_CAMPAIGNS = [
+    {
+        id: "c1", account_team: "온라인세일즈팀", name: "Dr.Jart+_시카페어_봄기획전", objective: "Conversion", status: "active",
+        budget: 50000000, allocated: 50000000, spend: 38200000, roas: 5.12, ctr: 3.2, cpm: 2.1, impr: 9000000, impressions: 9000000, reach: 7500000, clicks: 482000, conv: 3200, cpa: 11937, roi: 512,
+        adSets: [
+            { id: "as1", name: "2030_직장인여성_리타겟팅", status: "active", spend: 20000000, impressions: 5000000, reach: 4500000, clicks: 280000, conv: 2000, roas: 5.6, ctr: 5.6,
+                ads: [
+                    { id: "a1", name: "릴스_시카페어_앰플", status: "active", spend: 12000000, impressions: 3200000, clicks: 170000, conv: 1200, roas: 6.2, ctr: 5.3 },
+                    { id: "a2", name: "카탈로그_수분크림", status: "active", spend: 8000000, impressions: 1800000, clicks: 110000, conv: 800, roas: 4.8, ctr: 6.1 }
+                ]
+            },
+            { id: "as2", name: "뷰티관심사_Lookalike_3%", status: "active", spend: 18200000, impressions: 4000000, reach: 3000000, clicks: 202000, conv: 1200, roas: 4.6, ctr: 5.0,
+                ads: [
+                    { id: "a3", name: "정지이미지_할인_B", status: "paused", spend: 18200000, impressions: 4000000, clicks: 202000, conv: 1200, roas: 4.6, ctr: 5.0 }
+                ]
+            }
+        ]
+    },
+    {
+        id: "c2", account_team: "퍼포먼스마케팅팀", name: "세라마이딘_겨울보습_리뷰", objective: "Consideration", status: "active",
+        budget: 30000000, allocated: 30000000, spend: 28900000, roas: 6.84, ctr: 5.3, cpm: 3.2, impr: 6000000, impressions: 6000000, reach: 4200000, clicks: 321000, conv: 4100, cpa: 7048, roi: 684,
+        adSets: [
+            { id: "as3", name: "장바구니_이탈자_30D", status: "active", spend: 28900000, impressions: 6000000, reach: 4200000, clicks: 321000, conv: 4100, roas: 6.8, ctr: 5.3,
+                ads: [
+                    { id: "a4", name: "동적상품검색_세라마이딘", status: "active", spend: 28900000, impressions: 6000000, clicks: 321000, conv: 4100, roas: 6.8, ctr: 5.3 }
+                ]
+            }
+        ]
+    },
+    {
+        id: "c3", account_team: "브랜드전략팀", name: "더마스크_신규회원유치", objective: "Awareness", status: "active",
+        budget: 35000000, allocated: 35000000, spend: 35800000, roas: 8.45, ctr: 3.4, cpm: 4.1, impr: 8500000, impressions: 8500000, reach: 6800000, clicks: 294000, conv: 8100, cpa: 4419, roi: 845,
+        adSets: [
+            { id: "as4", name: "LAL_충성고객_1%", status: "active", spend: 25000000, impressions: 5500000, reach: 4500000, clicks: 200000, conv: 6000, roas: 9.1, ctr: 3.6,
+                ads: [
+                    { id: "a5", name: "인플루언서_후기_VOD", status: "active", spend: 25000000, impressions: 5500000, clicks: 200000, conv: 6000, roas: 9.1, ctr: 3.6 }
+                ]
+            },
+            { id: "as5", name: "LAL_충성고객_3%", status: "active", spend: 10800000, impressions: 3000000, reach: 2300000, clicks: 94000, conv: 2100, roas: 6.2, ctr: 3.1,
+                ads: [
+                    { id: "a6", name: "이벤트_참여유도_이미지", status: "active", spend: 10800000, impressions: 3000000, clicks: 94000, conv: 2100, roas: 6.2, ctr: 3.1 }
+                ]
+            }
+        ]
+    }
+];
+
 export function GlobalDataProvider({ children }) {
+    const [demoAdCamps, setDemoAdCamps] = useState(INIT_DEMO_AD_CAMPAIGNS);
+
     /* ── 핵심 공유 상태 ─────────────────────────── */
     const [inventory, setInventory] = useState(INIT_INVENTORY);
     const [orders, setOrders] = useState(INIT_ORDERS);
@@ -1214,6 +1291,7 @@ export function GlobalDataProvider({ children }) {
     /* ════════════════════════════════════════════════
        Context Value
     ════════════════════════════════════════════════ */
+    const resetDemoData = () => { localStorage.removeItem('demoAdCampaigns'); _setDemoAdCampaignsState(DEMO_DATA.adCampaigns || []); };
     const value = {
         // ── 재고
         inventory, setInventory,
@@ -1294,6 +1372,16 @@ export function GlobalDataProvider({ children }) {
         catalogChannelPrices,
         updateCatalogChannelPrices,
         syncInventoryToBackend,  // [A-3] 백엔드 재고 동기화
+        
+        // ── [v2] Demo Mock Data
+        demoAdCampaigns: demoAdCamps,
+        demoDailyTrends: drJartDailyTrends,
+        demoBudget: drJartBudget,
+        demoChannels: drJartChannels,
+        addDemoCampaign: (c) => setDemoAdCamps(p => [c, ...p]),
+        setDemoGlobalKpi: () => {},
+        setDemoBudget: () => {},
+        
         getCatalogChannelPrice,
     };
 

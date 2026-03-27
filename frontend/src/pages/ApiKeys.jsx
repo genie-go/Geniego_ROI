@@ -5,6 +5,7 @@ import { useAuth } from '../auth/AuthContext';
 import { useNotification } from '../context/NotificationContext.jsx';
 import { useConnectorSync } from '../context/ConnectorSyncContext.jsx';
 
+import { useT } from '../i18n/index.js';
 /* ─── Auth helper ──────────────────────────────────────────────────────────── */
 const getToken = () => localStorage.getItem("genie_token") || localStorage.getItem("genie_auth_token") || "";
 
@@ -1345,6 +1346,7 @@ function LicenseTab({ user, token, onPaymentSuccess, navigate }) {
 
 /* ─── Main Page ─────────────────────────────────────────────────────────── */
 export default function ApiKeys() {
+  const t = useT();
     const navigate = useNavigate();
     const { isDemo, isPro, user, token, onPaymentSuccess, onApiKeyRegistered } = useAuth();
     const [creds, setCreds] = useState([]);

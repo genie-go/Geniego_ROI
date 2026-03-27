@@ -3,6 +3,7 @@ import { useI18n } from '../i18n';
 import useDemo from '../hooks/useDemo';
 import { useGlobalData } from '../context/GlobalDataContext';
 
+import { useT } from '../i18n/index.js';
 /* ── 모바일 감지 훅 ────────────────────────────── */
 function useIsMobile(bp = 768) {
     const [m, setM] = useState(() => window.innerWidth <= bp);
@@ -99,7 +100,7 @@ const SYNC_SCOPES = [
 
 /* ─── Mock product data ──────────────────────────────────────────────────────── */
 const PRODUCTS_INIT = Array.from({ length: 24 }, (_, i) => {
-    const names = ["Wireless Noise-Cancelling Headphones", "RGB Mechanical Keyboard", "USB-C 7-Port Hub", "4K 웹캠 Pro", "Ergo Mouse", "60W Fast Charger"];
+    const names = ["Wireless Noise-Cancelling Headphones", "RGB Mechanical Keyboard", "USB-C 7-Port Hub", "더마클리어 마이크로 폼 수딩 젤", "Ergo Mouse", "60W Fast Charger"];
     const skus = ["WH-1000XM5", "KB-MXM-RGB", "HC-USB4-7P", "CAM-4K-PRO", "MS-ERG-BL", "CH-60W-GAN"];
     const specs = ["Noise-Cancelling / BT 5.2", "TKL / Blue Switch", "USB4 Gen2 / 60W PD", "4K 30fps / Universal", "Ergo / Wireless", "GaN / USB-C"];
     const units = ["pcs", "pcs", "pcs", "unit", "pcs", "pcs"];
@@ -575,8 +576,7 @@ function BulkRegisterModal({ selectedIds, products, onClose, onApply, isDemo }) 
                     ))}
                 </div>
 
-                {isDemo && <DemoBanner feature="Channel Product Registration" />}
-
+                
                 {/* Select Product Summary (공통) */}
                 <div style={{ padding: "10px 14px", borderRadius: 10, background: "rgba(79,142,247,0.06)", border: "1px solid rgba(79,142,247,0.2)", marginBottom: 16 }}>
                     <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 4 }}>📦 Select Product ({selProds.length}개) · Average Product Cost <span style={{ color: "#f97316" }}>₩{avgCost.toLocaleString()}</span></div>
@@ -841,8 +841,7 @@ function BulkPriceModal({ selectedIds, products, onClose, onApply, isDemo }) {
                     <button onClick={onClose} style={{ background: "none", border: "none", color: "var(--text-3)", fontSize: 18, cursor: "pointer" }}>✕</button>
                 </div>
 
-                {isDemo && <DemoBanner feature="Price 일괄 Edit" />}
-
+                
                 {/* Select Product */}
                 <div style={{ padding: "10px 14px", borderRadius: 10, background: "rgba(79,142,247,0.06)", border: "1px solid rgba(79,142,247,0.2)", marginBottom: 16 }}>
                     <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 6 }}>📦 Select Product ({selProds.length}개)</div>
@@ -1034,8 +1033,7 @@ function CatalogTab() {
 
     return (
         <div style={{ display: "grid", gap: 14 }}>
-            {isDemo && <DemoBanner feature="Catalog Sync" />}
-
+            
             {/* Toast */}
             {toast && (
                 <div style={{ position: "fixed", bottom: 24, left: "50%", transform: "translateX(-50%)", padding: "10px 20px", borderRadius: 10, background: toast.color, color: "#fff", fontWeight: 700, fontSize: 13, zIndex: 500, boxShadow: "0 4px 20px rgba(0,0,0,0.4)" }}>
@@ -1742,6 +1740,7 @@ const TABS = [
 ];
 
 export default function CatalogSync() {
+  const t = useT();
     const [tab, setTab] = useState("catalog");
     const [jobs, setJobs] = useState(MOCK_JOBS_INIT);
 

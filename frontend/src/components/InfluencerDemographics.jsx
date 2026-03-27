@@ -1,5 +1,5 @@
+import { useI18n } from '../i18n/index.js';
 // ══════════════════════════════════════════════════════════════════════
-//  📊 InfluencerDemographics — 지역/연령/성별 참여 기여도 시각화
 //  props:
 //    data  : DemographicsData 객체 (아래 구조 참조)
 //    col   : string (강조 색상)

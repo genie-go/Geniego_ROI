@@ -409,7 +409,7 @@ return function (App $app): void {
         'POST /auth/logout'   => 'Genie\\Handlers\\UserAuth::logout',
         'POST /auth/upgrade'  => 'Genie\\Handlers\\UserAuth::upgrade',
         'GET /auth/subscription'      => 'Genie\\Handlers\\UserAuth::subscription',
-        'POST /auth/demo'          => 'Genie\\Handlers\\UserAuth::demoSession',   // 데모 세션 발급
+
         'GET /auth/plan-check'     => 'Genie\\Handlers\\UserAuth::planCheck',    // 현재 플랜 확인
         'POST /auth/license'       => 'Genie\\Handlers\\UserAuth::activateLicense', // 라이선스 키 활성화
         'GET /auth/license/list'   => 'Genie\\Handlers\\UserAuth::listLicenseKeys', // 라이선스 목록 (admin)

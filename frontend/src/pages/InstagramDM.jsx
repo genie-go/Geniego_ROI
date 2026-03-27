@@ -53,6 +53,7 @@ const TABS = [
 ];
 
 export default function InstagramDM() {
+  const t = useT();
     const [tab, setTab] = useState('messages');
     const [settings, setSettings] = useState(null);
     const [conversations, setConversations] = useState([]);
@@ -71,7 +72,7 @@ export default function InstagramDM() {
         apiFetch('/api/instagram/settings').then(d => {
             if (d.ok) {
                 setSettings(d);
-                setConversations(isDemo ? DEMO_CONVERSATIONS : (d.conversations || DEMO_CONVERSATIONS));
+                setConversations((d.conversations || DEMO_CONVERSATIONS));
             }
         });
         apiFetch('/api/instagram/conversations').then(d => {
@@ -415,3 +416,6 @@ export default function InstagramDM() {
         </PlanGate>
     );
 }
+
+import { useI18n } from '../i18n/index.js';
+import { useT } from '../i18n/index.js';

@@ -3,6 +3,7 @@ import { useAuth } from "../auth/AuthContext.jsx";
 import { useNavigate } from "react-router-dom";import { useCurrency } from '../contexts/CurrencyContext.jsx';
 
 
+import { useT } from '../i18n/index.js';
 /* ─── PG사 메타데이터 ──────────────────────────────────────────────────────── */
 const PG_PROVIDERS = [
     {
@@ -259,7 +260,7 @@ function PgKeyTab({ token }) {
                                 <div style={{ fontSize: 12, fontWeight: 800, color: selPg === p.id ? p.color : "var(--text-1)" }}>{p.name}</div>
                                 <div style={{ fontSize: 10, color: "var(--text-3)" }}>{p.desc}</div>
                             </div>
-                            {cfg?.is_active && <span style={{ padding: "2px 7px", borderRadius: 99, background: "rgba(34,197,94,0.15)", color: "#22c55e", fontSize: 9, fontWeight: 800 }}>Active</span>}
+                            {cfg?.is_active && <span style={{ padding: "2px 7px", borderRadius: 99, background: "rgba(34,197,94,0.15)", color: "#22c55e", fontSize: 9, fontWeight: 800 }}>{t('super.aaActive')}</span>}
                         </div>
                     );
                 })}

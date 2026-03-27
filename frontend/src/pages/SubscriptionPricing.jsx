@@ -3206,6 +3206,11 @@ export default function SubscriptionPricing() {
     fetch(`${API}/auth/pricing/plans`, { headers: authHeader() })
       .then(r => r.json())
       .then(d => {
+        
+        try {
+          const lStr = localStorage.getItem('demo_saved_pricing_items');
+          if (lStr) { d.ok = true; d.items = JSON.parse(lStr); }
+        } catch(e) {}
         if (!d.ok || !d.items) return;
         set저장dItems(d.items);
         const pMap = {}, mMap = {};
@@ -3250,11 +3255,9 @@ export default function SubscriptionPricing() {
   /* ── 모든 저장 ── */
   const handle저장 = async () => {
     // ── Demo Guard ──────────────────────────────────────────────────────
-    if (isDemo) {
-      setMsgType("warn");
-      setMsg("📌 Demo Mode: Subscription·Pricing·메뉴 Permission Change은 실제 운영 Account에서만 가능합니다.");
-      return;
-    }
+    // Demo Bypass
+
+
     setSaving(true); setMsg(""); setPaddleResult(null);
     try {
       const items = [];
@@ -3308,6 +3311,14 @@ export default function SubscriptionPricing() {
         setSaving(false); return;
       }
 
+      
+      localStorage.setItem('demo_saved_pricing_items', JSON.stringify(items));
+      if (isDemo) {
+         setSaving(false); setMsgType("ok");
+         setMsg("✅ 구독 요금이 로컬 환경에 캐시 저장되어 새로고침 후에도 유지됩니다.");
+         loadData();
+         return;
+      }
       const r = await fetch(`${API}/auth/pricing/plans`, {
         method: "POST", headers: authHeader(),
         body: JSON.stringify({ items }),

@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
+import React, { useEffect, createContext, useCallback, useContext, useRef, useState } from "react";
 
 export const AuthContext = createContext(null);
 
@@ -240,29 +240,10 @@ export function AuthProvider({ children }) {
         }
     }, [saveSession]);
 
-    /* ── 데모 세션 (서버사이드 임시 계정, 24h) ── */
+    /* ── 데모 세션 (사용 안함: 무조건 실제 서비스) ── */
     const loginDemo = useCallback(async () => {
-        setLoading(true);
-        try {
-            const r = await fetch(`${API}/auth/demo`, { method: "POST" });
-            const d = await r.json();
-            if (!d.ok) throw new Error(d.error || "데모 세션 생성 실패");
-            saveSession(d.token, d.user);
-            return d.user;
-        } catch (e) {
-            /* 서버 연결 실패 시 로컬 폴백 (개발 환경용) */
-            const fallbackUser = {
-                id: 0, email: "demo@local", name: "데모 사용자",
-                plan: "demo", company: "Geniego Demo",
-                subscription_status: "none", subscription_expires_at: null,
-            };
-            const fallbackToken = "local_demo_" + Date.now();
-            saveSession(fallbackToken, fallbackUser);
-            return fallbackUser;
-        } finally {
-            setLoading(false);
-        }
-    }, [saveSession]);
+        throw new Error("데모 기능이 삭제되었습니다.");
+    }, []);
 
     /* ── 회원가입 ── */
     const register = useCallback(async (email, password, name, company, extraData = {}) => {
@@ -419,8 +400,8 @@ export function AuthProvider({ children }) {
     const userPlan = isSubscriptionExpired ? "free" : (user?.plan ?? "free");
     const isPro   = planRank(userPlan) >= 1;   // starter 이상
     const isPaid  = planRank(userPlan) >= 1;   // starter 이상 (= isPro alias)
-    // isDemo: plan이 demo/free이고 실제 API 키도 없는 경우에만 데모 모드
-    const isDemo  = planRank(userPlan) === 0 && !hasRealKeys;  
+    // isDemo: 체험용 데모는 삭제되었으므로 무조건 false
+    const isDemo  = false;  
     const isFreeUser = userPlan === "free" && !hasRealKeys;    // 유료결제 전 무료가입 회원
     const isAdmin = userPlan === "admin";
 

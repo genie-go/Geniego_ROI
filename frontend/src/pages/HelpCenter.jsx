@@ -450,7 +450,7 @@ export default function HelpCenter() {
                                                             📋 {t("help.howToUse")}
                                                         </div>
                                                         <div style={{ display: "grid", gap: 6, marginBottom: 14 }}>
-                                                            {m.how.map((step, i) => (
+                                                            {(m.how || []).map((step, i) => (
                                                                 <div key={i} style={{
                                                                     display: "flex", gap: 10, alignItems: "flex-start",
                                                                     padding: "8px 10px", borderRadius: 8,
@@ -473,9 +473,9 @@ export default function HelpCenter() {
                                                         </div>
                                                         <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 6, marginBottom: 12 }}>
                                                             {[
-                                                                { role: t("help.roleAdmin"), color: "#f59e0b", task: m.roles.admin },
-                                                                { role: t("help.roleEditor"), color: "#4f8ef7", task: m.roles.editor },
-                                                                { role: t("help.roleViewer"), color: "#22c55e", task: m.roles.viewer },
+                                                                { role: t("help.roleAdmin"), color: "#f59e0b", task: m.roles?.admin || "모든 권한(조회/수정) 허용" },
+                                                                { role: t("help.roleEditor"), color: "#4f8ef7", task: m.roles?.editor || "수정 및 등록 허용" },
+                                                                { role: t("help.roleViewer"), color: "#22c55e", task: m.roles?.viewer || "데이터 조회만 허용" },
                                                             ].map(r => (
                                                                 <div key={r.role} style={{
                                                                     padding: "8px 10px", borderRadius: 8,
@@ -490,12 +490,12 @@ export default function HelpCenter() {
                                                         <button
                                                             onClick={() => navigate(m.path)}
                                                             style={{
-                                                                padding: "8px 16px", borderRadius: 8, border: "none",
-                                                                cursor: "pointer", background: "linear-gradient(135deg,#4f8ef7,#a855f7)",
-                                                                color: "#fff", fontWeight: 700, fontSize: 11,
+                                                                padding: "10px 18px", borderRadius: 8, border: "none",
+                                                                cursor: "pointer", background: "linear-gradient(135deg,#38bdf8,#818cf8)",
+                                                                color: "#fff", fontWeight: 800, fontSize: 13, display: "flex", gap: "6px", alignItems: "center"
                                                             }}
                                                         >
-                                                            {m.icon} {m.label} {t("help.goTo")}
+                                                            🚀 {m.icon} 해당 {m.label} 페이지로 이동하기
                                                         </button>
                                                     </div>
                                                 )}

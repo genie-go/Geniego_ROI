@@ -3,7 +3,7 @@ import { useGlobalData } from '../context/GlobalDataContext.jsx';
 import { useAuth } from '../auth/AuthContext.jsx';
 import { useNavigate } from 'react-router-dom';
 import { useI18n } from '../i18n';
-import DemoBanner from '../components/DemoBanner';
+
 import ApprovalModal from '../components/ApprovalModal.jsx';
 import { useCurrency } from '../contexts/CurrencyContext.jsx';
 
@@ -70,19 +70,19 @@ const initCarriers = [
 ];
 
 const initInOut = [
-    { id: "IO001", type: "Inbound", whId: "W001", sku: "EP-PRX-001", name: "무선 이어폰 Pro X", qty: 200, unit: 45000, memo: "정기Inbound", ref: "PO-2024-001", at: "2024-03-01 09:00", by: "구매Team", reason: "" },
+    { id: "IO001", type: "Inbound", whId: "W001", sku: "EP-PRX-001", name: "시카페어(Cicapair) 크림 50ml", qty: 200, unit: 45000, memo: "정기Inbound", ref: "PO-2024-001", at: "2024-03-01 09:00", by: "구매Team", reason: "" },
     { id: "IO002", type: "Outbound", whId: "W001", sku: "UH-7C-003", name: "USB-C Hub 7in1", qty: 30, unit: 25000, memo: "CoupangOrders", ref: "ORD-20240301-001", at: "2024-03-01 10:30", by: "Auto", reason: "판매" },
-    { id: "IO003", type: "WarehouseTransfer", whId: "W003", sku: "CL-LED-005", name: "캠핑 LED 랜턴 USB", qty: 50, unit: 18000, memo: "C→A Transfer", ref: "TRF-001", at: "2024-03-01 11:00", by: "StockTeam", reason: "" },
-    { id: "IO004", type: "ReturnsInbound", whId: "W001", sku: "SW-SE-002", name: "스마트 워치 SE", qty: 2, unit: 95000, memo: "CustomerReturns", ref: "RTN-001", at: "2024-03-01 14:20", by: "CSTeam", reason: "단순변심" },
-    { id: "IO005", type: "Outbound", whId: "W002", sku: "CL-LED-005", name: "캠핑 LED 랜턴 USB", qty: 5, unit: 18000, memo: "복지몰Outbound", ref: "ORD-20240301-006", at: "2024-03-01 08:30", by: "Auto", reason: "판매" },
+    { id: "IO003", type: "WarehouseTransfer", whId: "W003", sku: "CL-LED-005", name: "V7 토닝 라이트 크림", qty: 50, unit: 18000, memo: "C→A Transfer", ref: "TRF-001", at: "2024-03-01 11:00", by: "StockTeam", reason: "" },
+    { id: "IO004", type: "ReturnsInbound", whId: "W001", sku: "SW-SE-002", name: "세라마이딘(Ceramidin) 리퀴드 토너", qty: 2, unit: 95000, memo: "CustomerReturns", ref: "RTN-001", at: "2024-03-01 14:20", by: "CSTeam", reason: "단순변심" },
+    { id: "IO005", type: "Outbound", whId: "W002", sku: "CL-LED-005", name: "V7 토닝 라이트 크림", qty: 5, unit: 18000, memo: "복지몰Outbound", ref: "ORD-20240301-006", at: "2024-03-01 08:30", by: "Auto", reason: "판매" },
 ];
 
 const initInventory = [
-    { sku: "EP-PRX-001", name: "무선 이어폰 Pro X", stock: { W001: 142, W002: 88, W003: 34 }, safeQty: 50, cost: 45000, price: 89000 },
-    { sku: "SW-SE-002", name: "스마트 워치 SE", stock: { W001: 56, W002: 0, W003: 22 }, safeQty: 20, cost: 95000, price: 189000 },
+    { sku: "EP-PRX-001", name: "시카페어(Cicapair) 크림 50ml", stock: { W001: 142, W002: 88, W003: 34 }, safeQty: 50, cost: 45000, price: 89000 },
+    { sku: "SW-SE-002", name: "세라마이딘(Ceramidin) 리퀴드 토너", stock: { W001: 56, W002: 0, W003: 22 }, safeQty: 20, cost: 95000, price: 189000 },
     { sku: "UH-7C-003", name: "USB-C Hub 7in1", stock: { W001: 320, W002: 145, W003: 0 }, safeQty: 30, cost: 25000, price: 49000 },
     { sku: "TP-MF-004", name: "Note리폼 여행용 목베개", stock: { W001: 0, W002: 210, W003: 88 }, safeQty: 30, cost: 12000, price: 29000 },
-    { sku: "CL-LED-005", name: "캠핑 LED 랜턴 USB", stock: { W001: 88, W002: 34, W003: 12 }, safeQty: 30, cost: 18000, price: 38000 },
+    { sku: "CL-LED-005", name: "V7 토닝 라이트 크림", stock: { W001: 88, W002: 34, W003: 12 }, safeQty: 30, cost: 18000, price: 38000 },
 ];
 
 const initCombined = [
@@ -896,9 +896,9 @@ function ReceivingTab({ supplyOrders, updateSupplyOrderStatus }) {
 /* ═══ Picking 리스트 Tab ══════════════════════════════ */
 function PickingListTab({ pickingLists }) {
     const DEMO_PICKS = [
-        { id:'PK-DEMO-001', orderId:'ORD-20260304-0001', sku:'WH-1000XM5-01', name:'무선 노이즈캔슬링 헤드폰', qty:2, wh:'W001', status:'pending', createdAt:'2026-03-16 09:00' },
-        { id:'PK-DEMO-002', orderId:'ORD-20260304-0005', sku:'KB-MXM-RGB-02', name:'RGB 기계식 키보드', qty:1, wh:'W002', status:'picked', createdAt:'2026-03-16 09:05' },
-        { id:'PK-DEMO-003', orderId:'ORD-20260304-0009', sku:'HC-USB4-7P-03', name:'USB-C 7포트 Hub', qty:3, wh:'W001', status:'packed', createdAt:'2026-03-16 09:12' },
+        { id:'PK-DEMO-001', orderId:'ORD-20260304-0001', sku:'DJ-CICA-101', name:'시카페어(Cicapair) 미스트', qty:2, wh:'W001', status:'pending', createdAt:'2026-03-16 09:00' },
+        { id:'PK-DEMO-002', orderId:'ORD-20260304-0005', sku:'DJ-CERA-002', name:'세라마이딘(Ceramidin) 세라마이드 크림', qty:1, wh:'W002', status:'picked', createdAt:'2026-03-16 09:05' },
+        { id:'PK-DEMO-003', orderId:'ORD-20260304-0009', sku:'DJ-HYA-003', name:'USB-C 7포트 Hub', qty:3, wh:'W001', status:'packed', createdAt:'2026-03-16 09:12' },
     ];
     const [list, setList] = React.useState([...pickingLists, ...DEMO_PICKS]);
     const [statusFilter, setStatusFilter] = React.useState('all');
@@ -1022,7 +1022,7 @@ function LotManagementTab({ lotManagement, registerLot, inventory }) {
     const demoLots = [
         { id:'LOT-001', sku:'TP-MF-004', name:'Note리폼 목베개', lotNo:'LOT2026-001', mfgDate:'2026-01-15', expiryDate:'2027-01-14', qty:200, wh:'W002', daysLeft:303 },
         { id:'LOT-002', sku:'CL-LED-005', name:'캠핑 LED 랜턴', lotNo:'LOT2026-002', mfgDate:'2026-02-01', expiryDate:'2026-04-10', qty:134, wh:'W001', daysLeft:25 },
-        { id:'LOT-003', sku:'EP-PRX-001', name:'무선 이어폰 Pro X', lotNo:'LOT2026-003', mfgDate:'2026-03-01', expiryDate:'2028-03-01', qty:142, wh:'W001', daysLeft:730 },
+        { id:'LOT-003', sku:'EP-PRX-001', name:'시카페어(Cicapair) 크림 50ml', lotNo:'LOT2026-003', mfgDate:'2026-03-01', expiryDate:'2028-03-01', qty:142, wh:'W001', daysLeft:730 },
     ];
     const allLots = [...demoLots, ...lotManagement];
     const today = new Date();
@@ -1161,9 +1161,9 @@ function ReplenishmentTab({ supplyOrders, addSupplyOrder, inventory }) {
 /* ═══ 번들·키트 BOM Management Tab ════════════════════════════════ */
 const INIT_BUNDLES = [
     { id: 'BDL-001', name: '캠핑 패키지 세트', sku: 'BDL-CAMP-001', price: 59000, cost: 0, status: 'active',
-      components: [{ sku: 'CL-LED-005', name: '캠핑 LED 랜턴 USB', qty: 1 }, { sku: 'TP-MF-004', name: 'Note리폼 여행용 목베개', qty: 1 }] },
+      components: [{ sku: 'CL-LED-005', name: 'V7 토닝 라이트 크림', qty: 1 }, { sku: 'TP-MF-004', name: 'Note리폼 여행용 목베개', qty: 1 }] },
     { id: 'BDL-002', name: '오피스 생산성 패키지', sku: 'BDL-OFFICE-002', price: 129000, cost: 0, status: 'active',
-      components: [{ sku: 'EP-PRX-001', name: '무선 이어폰 Pro X', qty: 1 }, { sku: 'UH-7C-003', name: 'USB-C Hub 7in1', qty: 1 }] },
+      components: [{ sku: 'EP-PRX-001', name: '시카페어(Cicapair) 크림 50ml', qty: 1 }, { sku: 'UH-7C-003', name: 'USB-C Hub 7in1', qty: 1 }] },
 ];
 function BundleTab() {
     const { fmt } = useCurrency();

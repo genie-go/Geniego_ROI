@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useMemo, useState, useEffect, useCallback } from "react";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { useI18n } from "../i18n";
 import { useGlobalData } from "../context/GlobalDataContext";
 import { useCurrency } from '../contexts/CurrencyContext.jsx';
 
+import { useT } from '../i18n/index.js';
 const API = "/api";
 const AUTH = (token) => ({
     Authorization: `Bearer ${token || localStorage.getItem("genie_auth_token") || ""}`,
@@ -697,12 +698,12 @@ function CompetitorPriceTab({ inventory, digitalShelfData }) {
     const { fmt } = useCurrency();
     // currency formatting via useCurrency fmt()
     const competitorData = [
-        { sku:'WH-1000XM5-01', name:'무선 헤드폰', ourPrice:89000, compA:86000, compB:91000, sosRank:3, alert:true },
-        { sku:'KB-MXM-RGB-02', name:'RGB 키보드', ourPrice:149000, compA:155000, compB:148000, sosRank:1, alert:false },
+        { sku:'DJ-CICA-101', name:'무선 헤드폰', ourPrice:89000, compA:86000, compB:91000, sosRank:3, alert:true },
+        { sku:'DJ-CERA-002', name:'RGB 키보드', ourPrice:149000, compA:155000, compB:148000, sosRank:1, alert:false },
         { sku:'HC-USB4-7P-01', name:'USB-C 허브', ourPrice:49000, compA:44900, compB:47000, sosRank:5, alert:true },
         { sku:'CAM-4K-PRO-01', name:'4K 웹캠', ourPrice:129000, compA:125000, compB:135000, sosRank:2, alert:false },
-        { sku:'MS-ERG-BL-01', name:'에르고 마우스', ourPrice:69000, compA:69000, compB:72000, sosRank:4, alert:false },
-        { sku:'CH-60W-GAN-01', name:'60W 급속충전기', ourPrice:39000, compA:36500, compB:38000, sosRank:7, alert:true },
+        { sku:'MS-ERG-BL-01', name:'크라이오 고무 마스크 워터풀', ourPrice:69000, compA:69000, compB:72000, sosRank:4, alert:false },
+        { sku:'DJ-V7-006', name:'V7 핑크 토닝 라이트 V3', ourPrice:39000, compA:36500, compB:38000, sosRank:7, alert:true },
     ];
     const alerts = competitorData.filter(d => d.alert);
     return (
@@ -751,8 +752,8 @@ function PriceCalendarTab({ priceCalendar, addPriceCalendarEvent }) {
     const { fmt } = useCurrency();
     // currency formatting via useCurrency fmt()
     const demoEvents = [
-        { id:'PC-001', sku:'WH-1000XM5-01', name:'무선 헤드폰', channel:'coupang', startDate:'2026-03-20', endDate:'2026-03-22', promoPrice:79000, discountRate:11.2, reason:'Coupang 딜', status:'예정' },
-        { id:'PC-002', sku:'KB-MXM-RGB-02', name:'RGB 키보드', channel:'naver', startDate:'2026-03-25', endDate:'2026-03-27', promoPrice:129000, discountRate:13.4, reason:'스피드 딜', status:'예정' },
+        { id:'PC-001', sku:'DJ-CICA-101', name:'무선 헤드폰', channel:'coupang', startDate:'2026-03-20', endDate:'2026-03-22', promoPrice:79000, discountRate:11.2, reason:'Coupang 딜', status:'예정' },
+        { id:'PC-002', sku:'DJ-CERA-002', name:'RGB 키보드', channel:'naver', startDate:'2026-03-25', endDate:'2026-03-27', promoPrice:129000, discountRate:13.4, reason:'스피드 딜', status:'예정' },
         { id:'PC-003', sku:'HC-USB4-7P-01', name:'USB-C 허브', channel:'all', startDate:'2026-04-01', endDate:'2026-04-05', promoPrice:43900, discountRate:10.4, reason:'봄 Event', status:'초안' },
     ];
     const allEvents = [...demoEvents, ...priceCalendar];

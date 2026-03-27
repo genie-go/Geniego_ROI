@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useI18n } from "../i18n";
 
+import { useT } from '../i18n/index.js';
 const PRESETS = [
   {
     id: "pause_campaign",

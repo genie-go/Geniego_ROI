@@ -2,11 +2,10 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth } from "../auth/AuthContext";
 import PlanGate from "../components/PlanGate";
 import useDemo from "../hooks/useDemo";
-import DemoBanner from "../components/DemoBanner";
-import { DEMO_JOURNEYS, DEMO_JOURNEY_TEMPLATES } from "../utils/DemoDataLayer";
 import { useGlobalData } from "../context/GlobalDataContext.jsx";
 import { useI18n } from "../i18n/index.js";
 
+import { useT } from '../i18n/index.js';
 function makeAPI(token) {
     return (path, opts = {}) => {
         const headers = { "Content-Type": "application/json", ...(opts.headers || {}) };
@@ -372,7 +371,7 @@ function JourneyBuilderContent() {
     const { t } = useI18n();
     const API = makeAPI(token);
 
-    const [journeys, setJourneys] = useState(isDemo ? DEMO_JOURNEYS : []);
+    const [journeys, setJourneys] = useState([]);
     const [templates] = useState(DEMO_JOURNEY_TEMPLATES);
     const [editingJourney, setEditingJourney] = useState(null);
 
@@ -435,8 +434,7 @@ function JourneyBuilderContent() {
 
     return (
         <div style={{ padding: "0 0 40px 0", background: C.bg, minHeight: "100%", color: C.text }}>
-            {isDemo && <DemoBanner feature={t('journey.pageTitle')} />}
-            <div style={{ marginBottom: 24 }}>
+                        <div style={{ marginBottom: 24 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                     <div style={{ fontSize: 28 }}>🗺️</div>
                     <div>

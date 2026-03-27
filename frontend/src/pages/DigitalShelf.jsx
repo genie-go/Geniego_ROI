@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from "react";
 
+import { useT } from '../i18n/index.js';
 /* ─── CSV ───────────────────────────────────────────────────── */
 function downloadCSV(filename, headers, rows) {
   const BOM = '\uFEFF';
@@ -41,10 +42,10 @@ const COMPETITORS = [
 
 const TOP_PRODUCTS = [
   { sku: "WH-1000XM5",  name: "노이즈캔슬링 헤드폰 XM5",  rank: 1, prev: 3, rating: 4.8, reviews: 2841, price: "₩428,000", channel: "Coupang" },
-  { sku: "KB-MXM-RGB",  name: "RGB 기계식 키보드 MX",       rank: 2, prev: 2, rating: 4.6, reviews: 1203, price: "₩189,000", channel: "Naver" },
+  { sku: "KB-MXM-RGB",  name: "세라마이딘(Ceramidin) 세라마이드 크림 MX",       rank: 2, prev: 2, rating: 4.6, reviews: 1203, price: "₩189,000", channel: "Naver" },
   { sku: "HC-USB4-7P",  name: "USB4 7포트 허브 Pro",         rank: 4, prev: 6, rating: 4.5, reviews: 876,  price: "₩132,000", channel: "Amazon KR" },
   { sku: "GM-PRO-X",    name: "게이밍 마우스 Pro X",         rank: 6, prev: 5, rating: 4.3, reviews: 2104, price: "₩98,000",  channel: "11Street" },
-  { sku: "WC-4K-PRO",   name: "4K 웹캠 Pro",                 rank: 1, prev: 4, rating: 4.7, reviews: 634,  price: "₩218,000", channel: "Amazon KR" },
+  { sku: "WC-4K-PRO",   name: "더마클리어 마이크로 폼 수딩 젤",                 rank: 1, prev: 4, rating: 4.7, reviews: 634,  price: "₩218,000", channel: "Amazon KR" },
 ];
 
 const AI_INSIGHTS = [
@@ -537,11 +538,11 @@ export default function DigitalShelf() {
 /* ═══ 리스팅 품질 점Count 섹션 ═══════════════════════════════ */
 function ListingQualitySection() {
   const LISTINGS = [
-    { sku:'WH-1000XM5-01', name:'무선 노이즈캐슬링 헤드폰', title:92, images:85, desc:78, spec:95, keywords:88, channel:'coupang', issues:['Image Count 부족 (3/8)'], ai:'제목에 "ANC" 키워드 Add 권장' },
-    { sku:'KB-MXM-RGB-02', name:'RGB 기계식 키보드', title:71, images:95, desc:65, spec:80, keywords:72, channel:'naver', issues:['Description 글자Count 부족 (450/1000)','키워드 밀도 Low'], ai:'제품 스펙(키압/배열) 상세 Add 필요' },
-    { sku:'HC-USB4-7P-01', name:'USB-C 7포트 허브', title:98, images:100, desc:95, spec:98, keywords:96, channel:'amazon', issues:[], ai:'최적 Status 유지' },
+    { sku:'DJ-CICA-101', name:'무선 노이즈캐슬링 헤드폰', title:92, images:85, desc:78, spec:95, keywords:88, channel:'coupang', issues:['Image Count 부족 (3/8)'], ai:'제목에 "ANC" 키워드 Add 권장' },
+    { sku:'DJ-CERA-002', name:'세라마이딘(Ceramidin) 세라마이드 크림', title:71, images:95, desc:65, spec:80, keywords:72, channel:'naver', issues:['Description 글자Count 부족 (450/1000)','키워드 밀도 Low'], ai:'제품 스펙(키압/배열) 상세 Add 필요' },
+    { sku:'HC-USB4-7P-01', name:'바이탈 하이드라 콜라겐 앰플', title:98, images:100, desc:95, spec:98, keywords:96, channel:'amazon', issues:[], ai:'최적 Status 유지' },
     { sku:'CAM-4K-PRO-01', name:'4K 웹츠 Pro', title:82, images:90, desc:82, spec:75, keywords:84, channel:'coupang', issues:['스펙 미기재 (Max해상도)'], ai:'UHD 4K 60fps 명시, 호환OS List Add' },
-    { sku:'MS-ERG-BL-01', name:'에르고 마우스', title:68, images:75, desc:70, spec:72, keywords:65, channel:'11st', issues:['제목 키워드 누락','Image Background 미준Count'], ai:'무소음·블루투스·인체공학 키워드 삽입' },
+    { sku:'MS-ERG-BL-01', name:'크라이오 고무 마스크 워터풀', title:68, images:75, desc:70, spec:72, keywords:65, channel:'11st', issues:['제목 키워드 누락','Image Background 미준Count'], ai:'무소음·블루투스·인체공학 키워드 삽입' },
   ];
   const scoreColor = v => v >= 90 ? '#22c55e' : v >= 75 ? '#f97316' : '#ef4444';
   const totalScore = item => Math.round((item.title+item.images+item.desc+item.spec+item.keywords)/5);
@@ -596,8 +597,8 @@ function ListingQualitySection() {
 /* ═══ 리뷰 Analysis 섹션 ════════════════════════════════════ */
 function ReviewAnalysisSection() {
   const REVIEWS = [
-    { sku:'WH-1000XM5-01', name:'무선 헤드폰', rating:4.8, count:2841, positive:89, negative:5, neutral:6, keywords:[{w:'음질',s:92},{w:'노이즈쾔슬',s:88},{w:'착용감',s:76},{w:'배터리',s:71}], negKw:[{w:'Price',s:45},{w:'배터리',s:22}], responseRate:78, channel:'coupang' },
-    { sku:'KB-MXM-RGB-02', name:'RGB 키보드', rating:4.6, count:1203, positive:82, negative:11, neutral:7, keywords:[{w:'타건감',s:88},{w:'RGB',s:84},{w:'내구성',s:72}], negKw:[{w:'소음',s:55},{w:'드라이버',s:32}], responseRate:45, channel:'naver' },
+    { sku:'DJ-CICA-101', name:'무선 헤드폰', rating:4.8, count:2841, positive:89, negative:5, neutral:6, keywords:[{w:'음질',s:92},{w:'노이즈쾔슬',s:88},{w:'착용감',s:76},{w:'배터리',s:71}], negKw:[{w:'Price',s:45},{w:'배터리',s:22}], responseRate:78, channel:'coupang' },
+    { sku:'DJ-CERA-002', name:'RGB 키보드', rating:4.6, count:1203, positive:82, negative:11, neutral:7, keywords:[{w:'타건감',s:88},{w:'RGB',s:84},{w:'내구성',s:72}], negKw:[{w:'소음',s:55},{w:'드라이버',s:32}], responseRate:45, channel:'naver' },
     { sku:'HC-USB4-7P-01', name:'USB-C 허브', rating:4.5, count:876, positive:80, negative:12, neutral:8, keywords:[{w:'Connect안정성',s:85},{w:'발열None',s:78},{w:'호환성',s:72}], negKw:[{w:'인식Error',s:42},{w:'발열',s:28}], responseRate:62, channel:'amazon' },
   ];
   return (

@@ -1,6 +1,8 @@
+import { useAuth } from '../auth/AuthContext';
 import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { useI18n } from "../i18n";
 
+import { useT } from '../i18n/index.js';
 /* ─── CSV Download ──────────────────────────────────────── */
 function downloadCSV(filename, headers, rows) {
   const BOM = '\uFEFF';
@@ -71,6 +73,7 @@ function Toast({ msg, onClose }) {
 
 /* ─── Main ───────────────────────────────────────────────── */
 export default function Settlements() {
+
   const { t } = useI18n();
   const [rows] = useState(MOCK_SETTLEMENTS);
   const [filterChannel, setFilterChannel] = useState("all");

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import PlanGate from "../components/PlanGate.jsx";
 import { useCurrency } from '../contexts/CurrencyContext.jsx';
 
+import { useT } from '../i18n/index.js';
 const API = import.meta.env.VITE_API_BASE || '';
 const apiFetch = async (path, opts = {}) => {
     const token = localStorage.getItem('genie_token') || 'demo-token';
@@ -276,6 +277,7 @@ function SmsMarketingInner() {
 }
 
 export default function SmsMarketing() {
+  const t = useT();
     const { fmt } = useCurrency();
     return (
         <PlanGate feature="sms">

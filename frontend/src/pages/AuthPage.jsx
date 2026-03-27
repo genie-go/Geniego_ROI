@@ -151,7 +151,7 @@ function SelectField({ label, value, onChange, options, required }) {
 /* ─── Login Form ─────────────────────────────────────────── */
 function LoginForm({ onSwitch }) {
   const t = useT();
-  const { login, loginDemo } = useAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -168,14 +168,7 @@ function LoginForm({ onSwitch }) {
     setLoading(false);
   };
 
-  const handleDemo = async () => {
-    setLoading(true); setError(null);
-    try {
-      await loginDemo();
-      navigate("/dashboard", { replace: true });
-    } catch (err) { setError(err.message); }
-    setLoading(false);
-  };
+
 
   return (
     <form onSubmit={handleSubmit} style={{ display: "grid", gap: 16 }}>
@@ -183,10 +176,6 @@ function LoginForm({ onSwitch }) {
       <div style={{ display: "grid", gap: 6 }}>
         <div style={{ fontSize: 10, color: "var(--text-3)", fontWeight: 700 }}>{t("auth.quickStart")}</div>
         <div style={{ display: "flex", gap: 6 }}>
-          <button type="button" onClick={handleDemo} style={{
-            flex: 1, padding: "8px 0", borderRadius: 8, border: "1px solid rgba(234,179,8,0.3)",
-            background: "rgba(234,179,8,0.07)", color: "#eab308", fontSize: 11, cursor: "pointer", fontWeight: 700,
-          }}>{t("auth.tryDemo")}</button>
           <button type="button" onClick={() => onSwitch("free")} style={{
             flex: 1, padding: "8px 0", borderRadius: 8, border: "1px solid rgba(34,197,94,0.3)",
             background: "rgba(34,197,94,0.07)", color: "#22c55e", fontSize: 11, cursor: "pointer", fontWeight: 700,

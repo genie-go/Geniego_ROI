@@ -231,13 +231,12 @@ export default function DashChannelKPI() {
                     {/* 상세 테이블 */}
                     <div style={P}>
                         <div style={{ fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.88)', marginBottom: 10 }}>📋 {t('dash.chPerfDash')}</div>
-                        {/* ❗️ HERE we adjusted the column width to min-content so they won't overlap if english texts get longer */}
-                        <div style={{ display: 'grid', gridTemplateColumns: '100px minmax(52px, 1fr) 1fr minmax(64px, 1fr) minmax(42px, 1fr) minmax(50px, 1fr) 60px', gap: 8, padding: '0 6px 8px', fontSize: 10, color: 'rgba(255,255,255,0.28)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5, borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '100px 52px 1fr 64px 42px 50px 60px', gap: 8, padding: '0 6px 8px', fontSize: 10, color: 'rgba(255,255,255,0.28)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5, borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
                             <span>{t('dash.colChan')}</span><span>{t('dash.colRoas')}</span><span>{t('dash.colAchieve')}</span><span>{t('dash.colSpend')}</span><span>{t('dash.colCtr')}</span><span>{t('dash.colConv')}</span><span>{t('dash.colTrend')}</span>
                         </div>
                         {LIST.map((c, i) => (
                             <div key={c.id} onClick={() => setSel(sel === c.id ? null : c.id)}
-                                style={{ display: 'grid', gridTemplateColumns: '100px minmax(52px, 1fr) 1fr minmax(64px, 1fr) minmax(42px, 1fr) minmax(50px, 1fr) 60px', gap: 8, padding: '9px 6px', borderBottom: '1px solid rgba(255,255,255,0.035)', alignItems: 'center', fontSize: 11, cursor: 'pointer', borderRadius: 8, background: sel === c.id ? `${c.color}0e` : i % 2 === 0 ? 'rgba(255,255,255,0.015)' : 'transparent', transition: 'background 0.2s' }}>
+                                style={{ display: 'grid', gridTemplateColumns: '100px 52px 1fr 64px 42px 50px 60px', gap: 8, padding: '9px 6px', borderBottom: '1px solid rgba(255,255,255,0.035)', alignItems: 'center', fontSize: 11, cursor: 'pointer', borderRadius: 8, background: sel === c.id ? `${c.color}0e` : i % 2 === 0 ? 'rgba(255,255,255,0.015)' : 'transparent', transition: 'background 0.2s' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                                     <div style={{ width: 3, height: 20, borderRadius: 2, background: c.color, flexShrink: 0, boxShadow: `0 0 6px ${c.color}66` }} />
                                     <span style={{ fontWeight: 700, color: 'rgba(255,255,255,0.82)' }}>{c.id === 'naver' ? t('dash.naverName') : c.name}</span>
@@ -250,36 +249,6 @@ export default function DashChannelKPI() {
                                     <span style={{ fontSize: 10, fontWeight: 800, color: c.pct >= 80 ? '#4ade80' : c.pct >= 65 ? '#fde047' : '#f87171' }}>{c.pct}%</span>
                                 </div>
                                 <span style={{ color: 'rgba(255,255,255,0.55)', fontVariantNumeric: 'tabular-nums' }}>{fmt(c.spend, { prefix: '₩' })}</span>
-                                <span style={{ color: 'rgba(255,255,255,0.55)' }}>{c.ctr}%</span>
-                                <span style={{ color: 'rgba(255,255,255,0.55)' }}>{c.conv}%</span>
-                                <Spark data={seedSeries(c.rev / 1000, 12, 0.14)} color={c.color} h={22} w={58} area />
-                            </div>
-                        ))}
-                    </div>
-                </div>
-                {/* 우측 패널 */}
-                <div>
-                    {sel ? <DetailPanel ch={sel} />
-                        : (
-                            <div style={{ ...P, display: 'flex', flexDirection: 'column', gap: 10 }}>
-                                <div style={{ fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.88)', marginBottom: 4 }}>{t('dash.chIntelTitle') || 'Channel Intelligence'}</div>
-                                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', lineHeight: 1.8 }}>
-                                    {t('dash.chIntelDesc1') || '채널 카드 또는 테이블에서'}<br /><span style={{ color: '#4f8ef7' }}>{t('dash.chIntelDesc2') || '채널명을 클릭'}</span>{t('dash.chIntelDesc3') || '하면'}<br />{t('dash.chIntelDesc4') || '해당 채널의 상세 분석이 표시됩니다:'}<br />
-                                    <span style={{ color: 'rgba(255,255,255,0.6)' }}>• {t('dash.genderDist') || '성별/연령 분포'}<br />• {t('dash.topRegion') || '지역별 전환 현황'}<br />• {t('dash.convFunnel') || '전환 퍼널 분석'}</span>
-                                </div>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>
-                                    {LIST.map(c => (
-                                        <div key={c.id} onClick={() => setSel(c.id)} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 10, background: `${c.color}0a`, border: `1px solid ${c.color}18`, cursor: 'pointer' }} onMouseEnter={e => e.currentTarget.style.background = `${c.color}18`} onMouseLeave={e => e.currentTarget.style.background = `${c.color}0a`}>
-                                            <span style={{ fontSize: 18 }}>{c.icon}</span>
-                                            <div style={{ flex: 1 }}>
-                                                <div style={{ fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.82)' }}>{c.id === 'naver' ? t('dash.naverName') : c.name}</div>
-                                                <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.38)' }}>ROAS {c.roas}× · 달성률 {c.pct}%</div>
-                                            </div>
-                                            <span style={{ fontSize: 13, fontWeight: 900, color: c.color }}>{fmt(c.rev, { prefix: '₩' })}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
                         )
                     }
                 </div>

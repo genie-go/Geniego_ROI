@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useI18n } from '../i18n';
 
+import { useT } from '../i18n/index.js';
 /* ─── const ───────────────────────────────────────────────── */
 const API = "/api";
 const AUTH = "genie_live_demo_key_00000000";
@@ -402,6 +403,7 @@ const TABS = [
 ];
 
 export default function EventNorm() {
+  const t = useT();
     const [tab, setTab] = useState("schema");
     const [rawRows, setRawRows] = useState(MOCK_RAW);
     const [normRows, setNormRows] = useState(MOCK_NORM);

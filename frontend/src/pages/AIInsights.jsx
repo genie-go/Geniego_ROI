@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useI18n } from '../i18n';
 import { useCurrency } from '../contexts/CurrencyContext.jsx';
 
+import { useT } from '../i18n/index.js';
 // Fallback helper — returns value if it's a non-empty string, else fallback
 const tf = (val, fb) => (typeof val === 'string' && val ? val : fb);
 

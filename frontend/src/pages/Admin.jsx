@@ -886,7 +886,8 @@ function CouponMgmtPanel() {
         _demoCoups = [c,..._demoCoups];
         setCoupons([c,...coupons]);
         const extraMsg = isFreeMember
-          ? `\n⚠️ Free회원 → Coupon [${code}] 사용 전 비즈니스 Info를 반드시 Register해야 합니다.`
+          ? `
+import { useI18n } from '../i18n/index.js';\n⚠️ Free회원 → Coupon [${code}] 사용 전 비즈니스 Info를 반드시 Register해야 합니다.`
           : '';
         flash(`✓ Coupon Issue Done: ${code}${extraMsg}`);
         pushNotification({ type:"alert", title:"Coupon Issue", body:`${selUser.email}님게 ${form.plan} ${form.duration_days}일짜리 Coupon이 Issue되었습니다.`, link:"/admin" });
@@ -1249,7 +1250,7 @@ function CouponMgmtPanel() {
                 <div style={{ marginTop:12, padding:"9px 12px", borderRadius:8,
                   background:"rgba(34,197,94,0.05)", border:"1px solid rgba(34,197,94,0.2)",
                   fontSize:11, color:"var(--text-2)", lineHeight:1.7 }}>
-                  ✅ <strong style={{color:"#22c55e"}}>Active</strong> · {rule.trigger_label}에 <strong>{rule.plan}</strong> Plan <strong>{rule.duration_days}일</strong> Coupon(GENIE-FREE-XXXXXX) Auto Issue
+                  ✅ <strong style={{color:"#22c55e"}}>{t('super.aaActive')}</strong> · {rule.trigger_label}에 <strong>{rule.plan}</strong> Plan <strong>{rule.duration_days}일</strong> Coupon(GENIE-FREE-XXXXXX) Auto Issue
                 </div>
               )}
             </div>

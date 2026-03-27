@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useI18n } from "../i18n";
 
+import { useT } from '../i18n/index.js';
 const API = (path) => `/v423/dbadmin${path}`;
 const ADMIN_KEY = "genie_live_demo_key_00000000";
 

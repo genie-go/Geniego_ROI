@@ -2,6 +2,7 @@ import React, { useState, useMemo } from "react";
 import MarketingAIPanel from '../components/MarketingAIPanel.jsx';
 import { useI18n } from '../i18n/index.js';
 
+import { useT } from '../i18n/index.js';
 const Tag = ({ label, color = "#4f8ef7" }) => (
     <span style={{ fontSize: 9, fontWeight: 700, padding: "2px 8px", borderRadius: 99, background: color + "18", color, border: `1px solid ${color}33` }}>{label}</span>
 );

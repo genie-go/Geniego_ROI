@@ -803,7 +803,7 @@ export default function Topbar() {
             <span className="dot dot-green" />
             {t("live")}
           </div>
-          {/* 🔍 통합조회 */}
+          {/* 🔍 통합조회 (User requested to hide it temporarily due to linking issues) 
           <button
             onClick={() => setSearchOpen(true)}
             title={t("topbar.searchTooltip")}
@@ -829,9 +829,10 @@ export default function Topbar() {
               color: "var(--text-3)", lineHeight: 1,
             }}>^K</kbd>
           </button>
+          */}
           {/* 📚 Help */}
           <button
-            onClick={() => navigate("/help")}
+            onClick={() => setHelpOpen(o => !o)}
             title={t("topbar.helpTooltip")}
             style={{
               width: 34, height: 34,
@@ -854,7 +855,7 @@ export default function Topbar() {
 
         {/* ── 모바일 전용 우측 컨트롤 ── */}
         <div className="topbar-right topbar-right-mobile">
-          {/* 🔍 Search (아이콘만) */}
+          {/* 🔍 Search (User requested to hide it temporarily) 
           <button
             onClick={() => setSearchOpen(true)}
             title={t("topbar.searchTooltip")}
@@ -869,6 +870,7 @@ export default function Topbar() {
               transition: 'all 160ms',
             }}
           >🔍</button>
+          */}
           {/* 🔔 Notification */}
           <NotificationBell />
           {/* 🌙/☀️ 다크/라이트 토글 */}

@@ -1,3 +1,7 @@
+import { useAuth } from '../auth/AuthContext';
+
+const IS_DEMO = () => typeof window !== 'undefined' && localStorage.getItem('genie_has_real_keys') !== '1';
+
 // ─────────────────────────────────────────────────────────────────────────
 //  Geniego-ROI  |  메인 Dashboard (Premium Visual Edition)
 //  7개 Tab: Unified현황 / MarketingPerformance / ChannelKPI / 커머스정산 / Revenue현황 / AI인플루언서 / 시스템현황
@@ -14,6 +18,7 @@ import DashInfluencer from '../components/dashboards/DashInfluencer.jsx';
 import DashSystem from '../components/dashboards/DashSystem.jsx';
 import DashSalesGlobal from '../components/dashboards/DashSalesGlobal.jsx';
 
+import { useT } from '../i18n/index.js';
 /* ── Tab 정의 (i18n Apply은 Component 내에서 useMemo로) ─────────────────────── */
 const DASHBOARD_DEFS = [
   { id: 'overview', icon: '🏠', color: '#4f8ef7', component: null },
@@ -81,7 +86,7 @@ function KpiCard({ label, value, sub, change, color, spark, icon }) {
           <span style={{ fontSize: 11, color: up ? '#4ade80' : '#f87171', fontWeight: 700 }}>
             {up ? '▲' : '▼'} {Math.abs(change).toFixed(1)}%
           </span>
-          <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', marginLeft: 5 }}>vs yesterday</span>
+          <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', marginLeft: 5 }}>{t('dash.vsYesterday')}</span>
         </div>
         <Spark data={spark} color={color} h={34} w={82} area />
       </div>
@@ -156,7 +161,7 @@ function DashSelector({ active, onSelect, dashboards }) {
 /* ═══════════════════════════════════════════════════════════════════════════
    Unified현황 Overview — Platform의 모든 핵심 Metric를 한눈에
    ═══════════════════════════════════════════════════════════════════════════ */
-const CHANNELS = [
+const CHANNELS = !IS_DEMO() ? [] : [
   { name: 'Meta Ads', rev: 2840, pct: 78, color: '#4f8ef7', icon: '📘' },
   { name: 'Google', rev: 3100, pct: 88, color: '#22c55e', icon: '🔍' },
   { name: 'TikTok', rev: 1920, pct: 62, color: '#a855f7', icon: '🎵' },
@@ -186,7 +191,7 @@ const MODULES_NAV = [
   { icon: '🤖', label: 'AI Policy', color: '#8b5cf6', to: '/ai-policy', kpi: '5 Proposals' },
 ];
 
-const ACTIVITIES = [
+const ACTIVITIES = !IS_DEMO() ? [] : [
   { dot: '#22c55e', text: 'v423 deployed — Settlement 5-tab live server applied', time: '2 min ago', icon: '✅' },
   { dot: '#4f8ef7', text: 'Meta campaign Spring_KR — ROAS 4.2x achieved', time: '8 min ago', icon: '📈' },
   { dot: '#14d9b0', text: 'Coupang settlement 1,240 records ingested', time: '15 min ago', icon: '💰' },
@@ -245,12 +250,12 @@ function SmartHomePanel({ navigate }) {
         <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
           <div style={{ width: 44, height: 44, borderRadius: 14, background: 'rgba(79,142,247,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 }}>🚀</div>
           <div>
-            <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 3 }}>Select your role for a personalized start path</div>
-            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)' }}>Marketer · Commerce · Finance · Ops · Developer — First insight in 30 min</div>
+            <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 3 }}>{t('dash.selectRoleTitle')}</div>
+            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)' }}>{t('dash.selectRoleDesc')}</div>
           </div>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
-          <button onClick={() => navigate('/onboarding')} style={{ padding: '9px 20px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg,#4f8ef7,#6366f1)', color: '#fff', fontWeight: 800, fontSize: 12, cursor: 'pointer' }}>Select Role →</button>
+          <button onClick={() => navigate('/onboarding')} style={{ padding: '9px 20px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg,#4f8ef7,#6366f1)', color: '#fff', fontWeight: 800, fontSize: 12, cursor: 'pointer' }}>{t('dash.selectRoleBtn')}</button>
           <button onClick={() => { setDismissed(true); localStorage.setItem('g_smarthome_dismissed', '1'); }} style={{ padding: '9px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.1)', background: 'transparent', color: 'var(--text-3)', fontSize: 11, cursor: 'pointer' }}>✕</button>
         </div>
       </div>
@@ -262,11 +267,11 @@ function SmartHomePanel({ navigate }) {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{ fontSize: 14 }}>{rm?.icon}</span>
-          <span style={{ fontSize: 12, fontWeight: 800, color: rm?.color }}>{rm?.label} Mode</span>
-          <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)' }}>— Today's Tasks</span>
+          <span style={{ fontSize: 12, fontWeight: 800, color: rm?.color }}>{rm?.label} {t('dash.mode')}</span>
+          <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)' }}>{t('dash.todayTasks')}</span>
         </div>
         <div style={{ display: 'flex', gap: 6 }}>
-          <button onClick={() => navigate('/onboarding')} style={{ fontSize: 10, padding: '3px 10px', borderRadius: 6, border: '1px solid rgba(255,255,255,0.1)', background: 'transparent', color: 'var(--text-3)', cursor: 'pointer' }}>Change Role</button>
+          <button onClick={() => navigate('/onboarding')} style={{ fontSize: 10, padding: '3px 10px', borderRadius: 6, border: '1px solid rgba(255,255,255,0.1)', background: 'transparent', color: 'var(--text-3)', cursor: 'pointer' }}>{t('dash.changeRole')}</button>
           <button onClick={() => { setDismissed(true); localStorage.setItem('g_smarthome_dismissed', '1'); }} style={{ fontSize: 10, padding: '3px 8px', borderRadius: 6, border: '1px solid rgba(255,255,255,0.1)', background: 'transparent', color: 'var(--text-3)', cursor: 'pointer' }}>✕</button>
         </div>
       </div>
@@ -334,7 +339,7 @@ function OverviewDash({ ticker }) {
         {/* Channel Revenue Mix */}
         <div style={{ background: 'rgba(255,255,255,0.035)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '14px 16px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.85)' }}>📊 Channel Revenue Mix</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.85)' }}>{t('dash.channelMix')}</div>
             <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', background: 'rgba(255,255,255,0.05)', padding: '2px 8px', borderRadius: 6 }}>₩{totalRev.toLocaleString()}K Total</div>
           </div>
           {CHANNELS.map(c => (
@@ -344,7 +349,7 @@ function OverviewDash({ ticker }) {
 
         {/* Live Activity Feed */}
         <div style={{ background: 'rgba(255,255,255,0.035)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '14px 16px' }}>
-          <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 12, color: 'rgba(255,255,255,0.85)' }}>⚡ Live Activity</div>
+          <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 12, color: 'rgba(255,255,255,0.85)' }}>{t('dash.liveActivity')}</div>
           {ACTIVITIES.map((a, i) => (
             <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', marginBottom: 10, padding: '8px 10px', background: 'rgba(255,255,255,0.025)', borderRadius: 8, borderLeft: `2px solid ${a.dot}` }}>
               <span style={{ fontSize: 14, flexShrink: 0 }}>{a.icon}</span>
@@ -359,7 +364,7 @@ function OverviewDash({ ticker }) {
         {/* System Status */}
         <div style={{ background: 'rgba(255,255,255,0.035)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '14px 16px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.85)' }}>🖥️ System Status</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.85)' }}>{t('dash.sysStatus')}</div>
             <div style={{ fontSize: 10, background: sysOk === SYSTEMS_STATUS.length ? 'rgba(34,197,94,0.15)' : 'rgba(234,179,8,0.15)', color: sysOk === SYSTEMS_STATUS.length ? '#4ade80' : '#fde047', border: `1px solid ${sysOk === SYSTEMS_STATUS.length ? 'rgba(34,197,94,0.3)' : 'rgba(234,179,8,0.3)'}`, padding: '2px 8px', borderRadius: 6, fontWeight: 700 }}>
               {sysOk}/{SYSTEMS_STATUS.length} OK
             </div>
@@ -382,8 +387,8 @@ function OverviewDash({ ticker }) {
       {/* ── Row 3: Module Shortcuts Grid ──────────────────────────────────── */}
       <div style={{ background: 'rgba(255,255,255,0.035)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '14px 16px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.85)' }}>🧩 Module Shortcuts — Click to navigate</div>
-          <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)' }}>9 Analytics Modules</div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.85)' }}>{t('dash.moduleShortcuts')}</div>
+          <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)' }}>{t('dash.analyticsModules')}</div>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(9,1fr)', gap: 8 }}>
           {MODULES_NAV.map(m => (
@@ -398,7 +403,7 @@ function OverviewDash({ ticker }) {
               onMouseLeave={e => { e.currentTarget.style.background = `${m.color}0d`; e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; }}
             >
               <div style={{ width: 36, height: 36, borderRadius: 10, background: `${m.color}18`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>{m.icon}</div>
-              <span style={{ fontSize: 11, fontWeight: 700, color: m.color }}>{m.label}</span>
+              <span style={{ fontSize: 11, fontWeight: 700, color: m.color }}>{t(`dash.${m.label.replace(/[^a-zA-Z]/g, '')}`)}</span>
               <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', lineHeight: 1.3 }}>{m.kpi}</span>
             </button>
           ))}
@@ -412,6 +417,7 @@ function OverviewDash({ ticker }) {
    메인 Component
    ───────────────────────────────────────────────────────────────────────── */
 export default function Dashboard() {
+
   const { t } = useI18n();
   const [searchParams] = useSearchParams();
 
@@ -500,7 +506,7 @@ export default function Dashboard() {
             </div>
             <div>
               <div style={{ fontSize: 20, fontWeight: 900, color: currentDash?.color ?? '#4f8ef7', letterSpacing: '-0.3px', textShadow: `0 0 24px ${currentDash?.color ?? '#4f8ef7'}55` }}>
-                {currentDash?.label} Dashboard
+                {currentDash?.label}
               </div>
               <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.42)', marginTop: 2 }}>{currentDash?.desc}</div>
             </div>

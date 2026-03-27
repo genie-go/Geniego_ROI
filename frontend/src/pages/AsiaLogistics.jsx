@@ -33,6 +33,7 @@ const REGULATIONS = [
 ];
 
 export default function AsiaLogistics() {
+  const t = useT();
     const { fmt } = useCurrency();
     const [activeHub, setActiveHub] = useState(null);
     const [activeTab, setActiveTab] = useState('hubs');
@@ -296,3 +297,6 @@ export default function AsiaLogistics() {
         </div>
     );
 }
+
+import { useI18n } from '../i18n/index.js';
+import { useT } from '../i18n/index.js';

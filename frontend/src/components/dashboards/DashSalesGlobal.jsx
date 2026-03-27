@@ -270,8 +270,8 @@ function GlobalSummaryPanel({ sorted, TOTAL, channelBudgets }) {
     ];
 
     const topProducts = [
-        { name: '무선 이어폰 Pro X', icon: '🎧', rev: 1840000, orders: 6420, countries: 5, growth: 12.4 },
-        { name: '스마트 워치 SE', icon: '⌚', rev: 1250000, orders: 3820, countries: 4, growth: 8.7 },
+        { name: '시카페어(Cicapair) 크림 50ml', icon: '🎧', rev: 1840000, orders: 6420, countries: 5, growth: 12.4 },
+        { name: '세라마이딘(Ceramidin) 리퀴드 토너', icon: '⌚', rev: 1250000, orders: 3820, countries: 4, growth: 8.7 },
         { name: 'USB-C 허브 7in1', icon: '🔌', rev: 920000, orders: 8240, countries: 6, growth: 5.2 },
         { name: 'LED 캠핑 랜턴', icon: '💡', rev: 680000, orders: 4180, countries: 3, growth: 22.1 },
         { name: '메모리폼 목베개', icon: '🛏️', rev: 480000, orders: 5620, countries: 4, growth: -2.3 },

@@ -44,7 +44,7 @@ const PLIST = Object.entries(PLAT).map(([id, d]) => ({ id, ...d }));
 const AGE_L = ['13-17', '18-24', '25-34', '35-44', '45-54', '55+'];
 const ORDERS = [
     { id: 'ORD-8821', ch: '쿠팡', prod: '노이즈캔슬링 헤드폰', amt: 89000, st: '배송중', sc: '#f97316', gnd: '여성', age: '25-34', reg: '서울' },
-    { id: 'ORD-8820', ch: '네이버', prod: 'RGB 기계식 키보드', amt: 42000, st: '완료', sc: '#22c55e', gnd: '남성', age: '25-34', reg: '경기' },
+    { id: 'ORD-8820', ch: '네이버', prod: '세라마이딘(Ceramidin) 세라마이드 크림', amt: 42000, st: '완료', sc: '#22c55e', gnd: '남성', age: '25-34', reg: '경기' },
     { id: 'ORD-8819', ch: '11번가', prod: 'USB-C 허브 Pro', amt: 58000, st: '접수', sc: '#4f8ef7', gnd: '남성', age: '35-44', reg: '부산' },
     { id: 'ORD-8818', ch: '쿠팡', prod: '게이밍 마우스 X', amt: 35000, st: '출고중', sc: '#a855f7', gnd: '남성', age: '18-24', reg: '경기' },
     { id: 'ORD-8817', ch: 'G마켓', prod: '무선충전패드 15W', amt: 28000, st: '취소', sc: '#ef4444', gnd: '여성', age: '35-44', reg: '인천' },

@@ -3,6 +3,7 @@ import { useAuth } from "../auth/AuthContext.jsx";
 import { useI18n } from '../i18n';
 import SubscriptionPricing from './SubscriptionPricing.jsx';
 
+import { useT } from '../i18n/index.js';
 const API = "/api";
 const PLANS = ["free", "demo", "starter", "growth", "pro", "enterprise", "admin"];
 const PLAN_COLORS = {

@@ -1,9 +1,11 @@
+import { useAuth } from '../auth/AuthContext';
 import React, { useState, useMemo } from "react";
 import { useGlobalData } from '../context/GlobalDataContext.jsx';
 import { useNavigate } from 'react-router-dom';
 import { useI18n } from '../i18n';
 import { useCurrency } from '../contexts/CurrencyContext.jsx';
 
+import { useT } from '../i18n/index.js';
 /* ─── utils ─────────────────────────────────────────────────── */
 // currency formatting via useCurrency fmt()
 const fmtM = v => Math.abs(v) >= 1e6 ? (v / 1e6).toFixed(1) + "M" : Math.abs(v) >= 1e3 ? (v / 1e3).toFixed(0) + "K" : String(Number(v).toFixed(0));
@@ -734,6 +736,7 @@ const TABS = [
 ];
 
 export default function PnLDashboard() {
+
     const { t } = useI18n();
     const { fmt } = useCurrency();
     const navigate = useNavigate();

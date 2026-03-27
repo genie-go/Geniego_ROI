@@ -1,10 +1,12 @@
 // campaignConstants.js
 // CampaignManager.jsx 와 AIRecommendTab.jsx 공통 상Count
 
-export const PRODUCT_CATALOG = Array.from({ length: 24 }, (_, i) => {
-    const names = ['Wireless Noise-Cancelling Headphones', 'RGB Mechanical Keyboard', 'USB-C 7포트 허브', '4K 웹캠 Pro', '에르고 마우스', '60W 급속충전기'];
-    const skus = ['WH-1000XM5', 'KB-MXM-RGB', 'HC-USB4-7P', 'CAM-4K-PRO', 'MS-ERG-BL', 'CH-60W-GAN'];
-    const cats = ['Electronics/Audio', 'Electronics/Input', 'Electronics/Peripherals', 'Electronics/Camera', 'Electronics/Input', 'Electronics/Charging'];
+const IS_DEMO = () => typeof window !== 'undefined' && localStorage.getItem('genie_has_real_keys') !== '1';
+
+export const PRODUCT_CATALOG = !IS_DEMO() ? [] : Array.from({ length: 24 }, (_, i) => {
+    const names = ['시카페어 인텐시브 리페어 크림', '세라마이딘 스킨 베리어 크림', '바이탈 하이드라 콜라겐 앰플', '더마클리어 마이크로 폼 수딩 젤', '크라이오 고무 마스크 워터풀', 'V7 핑크 토닝 라이트 V3'];
+    const skus = ['JART-CICA-50', 'JART-CERA-100', 'JART-VHYD-30', 'JART-DERMA-150', 'JART-CRYO-01', 'JART-V7-50'];
+    const cats = ['Beauty/Skincare', 'Beauty/Skincare', 'Beauty/Skincare', 'Beauty/Skincare', 'Beauty/Skincare', 'Beauty/Makeup'];
     const idx = i % 6;
     const priceBase = [89000, 149000, 49000, 129000, 69000, 39000][idx];
     const cost = Math.round(priceBase * 0.45);

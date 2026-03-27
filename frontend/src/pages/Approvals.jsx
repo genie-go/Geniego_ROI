@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import { useI18n } from "../i18n";
 import { useAuth } from "../auth/AuthContext.jsx";
 
+import { useT } from '../i18n/index.js';
 const MOCK_REQUESTS = [
   { id: 1, status: "pending", action_type: "pause_campaign", policy_id: 3, alert_id: 12, created_at: "2026-03-04T10:23:00Z", decided_by: null, details: "CPC > ₩1,500 Criteria Exceeded — Meta campaign_id:449821 Paused Request" },
   { id: 2, status: "approved", action_type: "budget_cut", policy_id: 1, alert_id: 9, created_at: "2026-03-04T09:15:00Z", decided_by: "김지Count", details: "ROAS < 1.8 하락 — TikTok Budget 30% 삭감 Request" },

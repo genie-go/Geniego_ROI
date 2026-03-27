@@ -1,6 +1,6 @@
 // SupplierPortal.jsx — Supplier Portal (P1 신규)
 // 공급사 Purchase Order·납기·Cost Price협의 B2B 포털 + WMS Stock Integration
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef, useContext } from 'react';
 import { useGlobalData } from '../context/GlobalDataContext.jsx';
 
 const fmtM = (v) => `₩${Number(v || 0).toLocaleString()}`;
@@ -15,8 +15,8 @@ const INIT_SUPPLIERS = [
 ];
 
 const INIT_QUOTATIONS = [
-  { id: 'QT-001', supplierId: 'SUP-001', sku: 'EP-PRX-001', name: '무선 이어폰 Pro X', qty: 500, unitCost: 43000, totalCost: 21500000, status: 'approved', requestDate: '2026-03-10', deliveryDate: '2026-03-17', notes: 'Urgent 납기 요청' },
-  { id: 'QT-002', supplierId: 'SUP-002', sku: 'SW-SE-002', name: '스마트 워치 SE', qty: 200, unitCost: 93000, totalCost: 18600000, status: 'negotiating', requestDate: '2026-03-12', deliveryDate: '2026-03-25', notes: '단가 협의 in progress' },
+  { id: 'QT-001', supplierId: 'SUP-001', sku: 'EP-PRX-001', name: '시카페어(Cicapair) 크림 50ml', qty: 500, unitCost: 43000, totalCost: 21500000, status: 'approved', requestDate: '2026-03-10', deliveryDate: '2026-03-17', notes: 'Urgent 납기 요청' },
+  { id: 'QT-002', supplierId: 'SUP-002', sku: 'SW-SE-002', name: '세라마이딘(Ceramidin) 리퀴드 토너', qty: 200, unitCost: 93000, totalCost: 18600000, status: 'negotiating', requestDate: '2026-03-12', deliveryDate: '2026-03-25', notes: '단가 협의 in progress' },
   { id: 'QT-003', supplierId: 'SUP-003', sku: 'TP-MF-004', name: 'Note리폼 여행용 목베개', qty: 300, unitCost: 11500, totalCost: 3450000, status: 'pending', requestDate: '2026-03-14', deliveryDate: '2026-03-19', notes: '' },
   { id: 'QT-004', supplierId: 'SUP-001', sku: 'UH-7C-003', name: 'USB-C 허브 7in1', qty: 1000, unitCost: 24000, totalCost: 24000000, status: 'delivered', requestDate: '2026-03-01', deliveryDate: '2026-03-08', notes: 'Done' },
 ];

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import PlanGate from "../components/PlanGate.jsx";
 
+import { useT } from '../i18n/index.js';
 const API = import.meta.env.VITE_API_BASE || '';
 const apiFetch = async (path, opts = {}) => {
     const token = localStorage.getItem('genie_token') || 'demo-token';
@@ -173,6 +174,7 @@ const TABS = [
 ];
 
 export default function WhatsApp() {
+  const t = useT();
     const [tab, setTab] = useState('overview');
     const [settings, setSettings] = useState(null);
     const [templates, setTemplates] = useState([]);

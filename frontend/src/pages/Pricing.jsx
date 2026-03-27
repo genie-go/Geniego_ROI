@@ -486,7 +486,8 @@ export default function Pricing() {
     }
     const clientKey = import.meta.env?.VITE_TOSS_CLIENT_KEY;
     if (!clientKey) {
-      alert(`[개발] Plan: ${plan.name}\nAccount: ${tierData?.label || ""}\nAmount: ${KRW(cycleData.total_price)}\nCycle: ${t("pricing." + CYCLE_LABEL_KEY[cycle])}\n\nPayment will proceed when VITE_TOSS_CLIENT_KEY is configured.`);
+      alert(`[개발] Plan: ${plan.name}
+import { useI18n } from '../i18n/index.js';\nAccount: ${tierData?.label || ""}\nAmount: ${KRW(cycleData.total_price)}\nCycle: ${t("pricing." + CYCLE_LABEL_KEY[cycle])}\n\nPayment will proceed when VITE_TOSS_CLIENT_KEY is configured.`);
       return;
     }
     setPaying(plan.id);

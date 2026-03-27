@@ -386,7 +386,6 @@ export default function HelpPanel({ open, onClose }) {
                             </div>
                         )}
 
-                        {/* All 사용설명서 링크 */}
                         <div style={{
                             padding: "12px 14px", borderRadius: 10,
                             background: "rgba(168,85,247,0.06)",
@@ -394,14 +393,14 @@ export default function HelpPanel({ open, onClose }) {
                             textAlign: "center",
                         }}>
                             <div style={{ fontSize: 11, color: "var(--text-3)", marginBottom: 8 }}>{t('helpPanel.needMoreHelp')}</div>
-                            <a href="/help" style={{
-                                display: "inline-flex", alignItems: "center", gap: 6,
+                            <button onClick={(e) => { e.preventDefault(); navigate('/help'); onClose(); }} style={{
+                                display: "inline-flex", alignItems: "center", gap: 6, border: "none", cursor: "pointer",
                                 padding: "7px 16px", borderRadius: 8, textDecoration: "none",
                                 background: "linear-gradient(135deg, #a855f7, #4f8ef7)",
                                 color: "#fff", fontSize: 12, fontWeight: 700,
                             }}>
                                 {t('helpPanel.fullManual')}
-                            </a>
+                            </button>
                         </div>
                     </div>
                 )}

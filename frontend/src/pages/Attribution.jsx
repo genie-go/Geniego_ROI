@@ -21,8 +21,8 @@ const CH_LABELS = {
 };
 
 // Pre-generate demo data once
-const DEMO_JOURNEYS = generateDemoJourneys(400);
-const TS_DATA = generateTimeSeriesData(52);
+let DEMO_JOURNEYS = generateDemoJourneys(400);
+let TS_DATA = generateTimeSeriesData(52);
 
 /* ── 1. EXACT SHAPLEY TAB ───────────────────────────────────── */
 function ShapleyTab() {
@@ -40,7 +40,7 @@ function ShapleyTab() {
       const chs = [...new Set(DEMO_JOURNEYS.flatMap(j => j.path))];
       const shapley = computeShapleyExact(DEMO_JOURNEYS, chs);
       const syn = computeSynergy(DEMO_JOURNEYS, chs);
-      const totalBudget = 10_000_000;
+      const totalBudget = budgetVal;
       const rec = {};
       shapley.forEach(r => { rec[r.ch] = Math.round(r.pct / 100 * totalBudget); });
       setResults(shapley);
@@ -78,7 +78,7 @@ function ShapleyTab() {
       {results && !computing && (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
           <div className="card card-glass">
-            <div style={{ fontWeight: 900, fontSize: 13, marginBottom: 16 }}>🎯 Channelper Exact Shapley 기여도</div>
+            <div style={{ fontWeight: 900, fontSize: 13, marginBottom: 16 }}>{t('attrData.shapleyTitle', '🎯 채널별 Exact Shapley 기여도')}</div>
             {results.filter(r => CH_COLORS[r.ch]).map(r => {
               const color = CH_COLORS[r.ch] || '#4f8ef7';
               const isTop = r === results[0];
@@ -87,7 +87,7 @@ function ShapleyTab() {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <span style={{ fontSize: 12, color, fontWeight: 800 }}>{CH_LABELS[r.ch] || r.ch}</span>
-                      {isTop && <span style={{ fontSize: 9, padding: '2px 7px', borderRadius: 99, background: 'rgba(34,197,94,0.15)', color: '#4ade80', fontWeight: 700, border: '1px solid rgba(34,197,94,0.3)' }}>👑 #1</span>}
+                      {isTop && <span style={{ fontSize: 9, padding: '2px 7px', borderRadius: 99, background: 'rgba(34,197,94,0.15)', color: '#4ade80', fontWeight: 700, border: '1px solid rgba(34,197,94,0.3)' }}>👑 {t('attrData.topOne', '#1')}</span>}
                       {!r.positive && <Tag label="음Count" color="#ef4444" />}
                     </div>
                     <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
@@ -119,7 +119,7 @@ function ShapleyTab() {
             <div className="card card-glass">
               <div style={{ fontWeight: 800, fontSize: 12, marginBottom: 12 }}>💡 Shapley 기반 Budget 권고</div>
               {results.slice(0, 5).map(r => {
-                const rec = r.pct > 25 ? { l: '↑ 증액', c: '#22c55e' } : r.pct > 15 ? { l: '→ 유지', c: '#4f8ef7' } : { l: '↓ 검토', c: '#f97316' };
+                const rec = r.pct > 25 ? { l: t('attrData.increase', '↑ 증액'), c: '#22c55e' } : r.pct > 15 ? { l: t('attrData.maintain', '→ 유지'), c: '#4f8ef7' } : { l: t('attrData.review', '↓ 검토'), c: '#f97316' };
                 return (
                   <div key={r.ch} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
                     <span style={{ fontSize: 11, color: CH_COLORS[r.ch] || '#4f8ef7', fontWeight: 700 }}>{CH_LABELS[r.ch] || r.ch}</span>
@@ -176,12 +176,12 @@ function MMMTab() {
   return (
     <div style={{ display: 'grid', gap: 16 }}>
       <div style={{ padding: '12px 16px', borderRadius: 12, background: 'rgba(168,85,247,0.07)', border: '1px solid rgba(168,85,247,0.2)', fontSize: 12, color: 'var(--text-2)', lineHeight: 1.7 }}>
-        📊 <strong style={{ color: '#a855f7' }}>Bayesian Marketing Mix Model</strong> — Ridge-regularised OLS + Adstock decay + Hill saturation. Bootstrap 200회 posterior credible intervals.
+        📊 <strong style={{ color: '#a855f7' }}>Bayesian Marketing Mix Model</strong> — {t('attrData.mmmDescText', 'Ridge 정규화 OLS + Adstock 감쇠 + Hill 곡선 포화. 200회 부트스트랩 사후 신뢰구간.')}
         {result && <> Model R² = <strong style={{ color: '#22c55e' }}>{result.r2.toFixed(3)}</strong></>}
       </div>
       {result && (
         <div className="card card-glass">
-          <div style={{ fontWeight: 900, fontSize: 13, marginBottom: 14 }}>📈 Bayesian MMM — Channel 기여도 (52주 시계열)</div>
+          <div style={{ fontWeight: 900, fontSize: 13, marginBottom: 14 }}>{t('attrData.mmmTitle', '📈 Bayesian MMM — 채널 기여도 (52주 시계열)')}</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginBottom: 16 }}>
             {[{ l: 'R²', v: result.r2.toFixed(3), c: '#22c55e' }, { l: 'RMSE', v: KRW(Math.round(result.rmse)), c: '#4f8ef7' }, { l: 'Channel', v: result.channelResults.length, c: '#a855f7' }].map(k => (
               <div key={k.l} style={{ textAlign: 'center', padding: 10, borderRadius: 10, background: `${k.c}08`, border: `1px solid ${k.c}22` }}>
@@ -214,7 +214,7 @@ function MMMTab() {
       )}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
         <div className="card card-glass">
-          <div style={{ fontWeight: 900, fontSize: 12, marginBottom: 14 }}>🎛️ Budget 배분 조정 (Total: {totalPct}%)</div>
+          <div style={{ fontWeight: 900, fontSize: 12, marginBottom: 14 }}>🎛️ {t('attrData.budgetAdjust')} ({t('attrData.totalStr', 'Total:')} {totalPct}%)</div>
           {Object.entries(budget).map(([ch, pct]) => (
             <div key={ch} style={{ marginBottom: 14 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
@@ -228,15 +228,15 @@ function MMMTab() {
           ))}
         </div>
         <div className="card card-glass">
-          <div style={{ fontWeight: 900, fontSize: 12, marginBottom: 14 }}>📈 MMM 시뮬레이션 결과</div>
+          <div style={{ fontWeight: 900, fontSize: 12, marginBottom: 14 }}>{t('attrData.mmmSim', '📈 MMM 시뮬레이션 결과')}</div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
             <div style={{ textAlign: 'center', padding: 10, borderRadius: 10, background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)' }}>
               <div style={{ fontSize: 18, fontWeight: 900, color: '#22c55e' }}>{(totalRev / Math.max(totalSpend, 1)).toFixed(2)}x</div>
-              <div style={{ fontSize: 10, color: 'var(--text-3)' }}>예상 블렌드 ROAS</div>
+              <div style={{ fontSize: 10, color: 'var(--text-3)' }}>{t("attr.expectedBlendRoas") || "예상 블렌드 ROAS"}</div>
             </div>
             <div style={{ textAlign: 'center', padding: 10, borderRadius: 10, background: 'rgba(79,142,247,0.08)', border: '1px solid rgba(79,142,247,0.2)' }}>
               <div style={{ fontSize: 16, fontWeight: 900, color: '#4f8ef7' }}>{KRW(Math.round(totalRev))}</div>
-              <div style={{ fontSize: 10, color: 'var(--text-3)' }}>예상 Revenue</div>
+              <div style={{ fontSize: 10, color: 'var(--text-3)' }}>{t("attr.expectedRev") || "예상 Revenue"}</div>
             </div>
           </div>
           {simResult.map(r => {
@@ -281,13 +281,13 @@ function MarkovTab() {
   return (
     <div style={{ display: 'grid', gap: 16 }}>
       <div style={{ padding: '12px 16px', borderRadius: 12, background: 'rgba(6,182,212,0.07)', border: '1px solid rgba(6,182,212,0.2)', fontSize: 12, color: 'var(--text-2)', lineHeight: 1.7 }}>
-        🔗 <strong style={{ color: '#06b6d4' }}>Markov Chain + Incremental Uplift (Double ML)</strong> — Conversion 경로 Markov 전이행렬 + Channel 제거 효과. Incremental Uplift는 Robinson's Partial회귀로 진짜 증분 효과 산출.
+        🔗 <strong style={{ color: '#06b6d4' }}>Markov Chain + Incremental Uplift (Double ML)</strong> — {t('attrData.markovDescText', '전환 경로 마르코프 전이행렬 + 채널 제거 효과 및 로빈슨 편회귀를 활용한 순 증분 효과 산출.')}
       </div>
       {computing && <div style={{ textAlign: 'center', padding: 40, color: '#06b6d4' }}>Markov Chain + Double ML 계산 in progress…</div>}
       {markovRes && !computing && (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
           <div className="card card-glass">
-            <div style={{ fontWeight: 900, fontSize: 13, marginBottom: 14 }}>🔗 Markov Chain — Removal Effect</div>
+            <div style={{ fontWeight: 900, fontSize: 13, marginBottom: 14 }}>{t('attrData.markovTitle', '🔗 Markov Chain — 제거 효과 (Removal Effect)')}</div>
             {markovRes.filter(r => CH_COLORS[r.ch]).map(r => {
               const color = CH_COLORS[r.ch] || '#4f8ef7';
               return (
@@ -307,8 +307,8 @@ function MarkovTab() {
             })}
           </div>
           <div className="card card-glass">
-            <div style={{ fontWeight: 900, fontSize: 13, marginBottom: 14 }}>📐 Incremental Uplift (Double ML)</div>
-            <div style={{ fontSize: 10, color: 'var(--text-3)', marginBottom: 12 }}>Robinson's Partial회귀 기반 순Count 증분 효과</div>
+            <div style={{ fontWeight: 900, fontSize: 13, marginBottom: 14 }}>{t('attrData.upliftTitle', '📐 증분 모델 (Double ML Uplift)')}</div>
+            <div style={{ fontSize: 10, color: 'var(--text-3)', marginBottom: 12 }}>{t('attrData.upliftSub', '로빈슨 편회귀 기반의 순수 증분 효과')}</div>
             {upliftRes && upliftRes.map(r => {
               const color = CH_COLORS[r.ch] || '#4f8ef7';
               const maxAbs = Math.max(...upliftRes.map(u => Math.abs(u.uplift)), 1);
@@ -446,9 +446,9 @@ function BayesianABTab() {
         🧪 <strong style={{ color: '#a855f7' }}>Beta-Binomial Thompson Sampling</strong> — Prior Beta(1,1) → Posterior Beta(1+conv, 1+fail). P(winner) via 5,000-sample Monte-Carlo. 95% Credible Interval 표시.
       </div>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-        {DEMO_AB.map((t, i) => (
-          <button key={tb.id} onClick={() => setSel(i)} style={{ padding: '7px 14px', borderRadius: 10, border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 11, background: i === sel ? 'linear-gradient(135deg,#4f8ef7,#a855f7)' : 'rgba(255,255,255,0.06)', color: i === sel ? '#fff' : 'var(--text-2)' }}>
-            {t.name}
+        {DEMO_AB.map((testItem, i) => (
+          <button key={testItem.id} onClick={() => setSel(i)} style={{ padding: '7px 14px', borderRadius: 10, border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 11, background: i === sel ? 'linear-gradient(135deg,#4f8ef7,#a855f7)' : 'rgba(255,255,255,0.06)', color: i === sel ? '#fff' : 'var(--text-2)' }}>
+            {testItem.name}
           </button>
         ))}
       </div>
@@ -505,10 +505,10 @@ function CohortTab() {
   const cohorts = weeks.map((w, wi) => ({ cohort: w, size: 200 + wi * 15, retention: weeks.map((_, di) => di <= wi ? (100 * Math.pow(0.72, di)).toFixed(0) : null) }));
   return (
     <div className="card card-glass">
-      <div style={{ fontWeight: 900, fontSize: 13, marginBottom: 12 }}>📅 주차per 구매 코호트 — 리텐션(%)</div>
+      <div style={{ fontWeight: 900, fontSize: 13, marginBottom: 12 }}>{t('attrData.cohortTitle', '📅 주차별 구매 코호트 — 유지율(%)')}</div>
       <div style={{ overflowX: 'auto' }}>
         <table className="table">
-          <thead><tr><th>코호트</th><th>규모</th>{weeks.map(w=><th key={w} style={{minWidth:52}}>{w}</th>)}</tr></thead>
+          <thead><tr><th>{t('attrData.cohortHdr', '코호트')}</th><th>{t('attrData.sizeHdr', '규모')}</th>{weeks.map(w=><th key={w} style={{minWidth:52}}>{w}</th>)}</tr></thead>
           <tbody>
             {cohorts.map(c => (
               <tr key={c.cohort}>
@@ -548,8 +548,8 @@ function LtvCacTab() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12 }}>
         {[
           {l:'Average LTV/CAC', v:(totalLtv/Math.max(totalCac,1)).toFixed(1)+'x', c:'#22c55e'},
-          {l:'Total CAC 지출', v:KRW(totalCac), c:'#ef4444'},
-          {l:'Total LTV 합산', v:KRW(totalLtv), c:'#4f8ef7'},
+          {l:t('attrData.totalCac', 'Total CAC 지출'), v:KRW(totalCac), c:'#ef4444'},
+          {l:t('attrData.totalLtv', 'Total LTV 합산'), v:KRW(totalLtv), c:'#4f8ef7'},
           {l:'Marketing ROI', v:((totalLtv-totalCac)/totalCac*100).toFixed(0)+'%', c:'#a855f7'},
         ].map(k=>(
           <div key={k.l} style={{padding:14,borderRadius:12,background:`${k.c}08`,border:`1px solid ${k.c}22`,textAlign:'center'}}>
@@ -559,13 +559,13 @@ function LtvCacTab() {
         ))}
       </div>
       <div className="card card-glass">
-        <div style={{fontWeight:900,fontSize:13,marginBottom:14}}>💰 Channelper LTV vs CAC</div>
+        <div style={{fontWeight:900,fontSize:13,marginBottom:14}}>{t('attrData.ltvcacTitle', '💰 채널별 LTV vs CAC')}</div>
         <table className="table">
-          <thead><tr><th>Channel</th><th>CustomerCount</th><th>CAC</th><th>LTV</th><th>LTV/CAC</th><th>ROAS</th><th>건강도</th></tr></thead>
+          <thead><tr><th>{t('attrData.colChannel', 'Channel')}</th><th>CustomerCount</th><th>CAC</th><th>LTV</th><th>LTV/CAC</th><th>ROAS</th><th>{t("attr.health") || "건강도"}</th></tr></thead>
           <tbody>
             {DEMO_LTV.sort((a,b)=>b.ratio-a.ratio).map(r=>{
               const color=CH_COLORS[r.channel]||'#4f8ef7';
-              const h=r.ratio>=10?{l:'탁월',c:'#22c55e'}:r.ratio>=5?{l:'양호',c:'#4f8ef7'}:r.ratio>=3?{l:'Normal',c:'#eab308'}:{l:'주의',c:'#ef4444'};
+              const h=r.ratio>=10?{l:t('attrData.excellent', '탁월'),c:'#22c55e'}:r.ratio>=5?{l:t('attrData.good', '양호'),c:'#4f8ef7'}:r.ratio>=3?{l:t('attrData.normal', 'Normal'),c:'#eab308'}:{l:t('attrData.caution', '주의'),c:'#ef4444'};
               return (
                 <tr key={r.channel}>
                   <td style={{color,fontWeight:700}}>{CH_LABELS[r.channel]||r.channel}</td>
@@ -594,7 +594,7 @@ const ANOMALY_DATA = [
   { ch: 'Kakao', value: 3.9, baseline: 3.4, zscore: 1.6, status: 'info', trend: [3.4,3.5,3.6,3.7,3.8,3.8,3.9], desc: '점진적 개선 Trend. 긍정적 신호 감지', type: 'ROAS 개선' },
   { ch: 'Email', value: 14.1, baseline: 14.0, zscore: 0.1, status: 'ok', trend: [14.0,14.1,14.0,14.1,14.0,14.1,14.1], desc: 'Email ROAS 안정적 유지', type: '정상' },
 ];
-const ANOMALY_STATUS = { critical: { label: '🔴 위험', color: '#ef4444' }, alert: { label: '🟠 주의', color: '#f97316' }, warn: { label: '🟡 Warning', color: '#eab308' }, info: { label: '🔵 Info', color: '#4f8ef7' }, ok: { label: '🟢 정상', color: '#22c55e' } };
+const ANOMALY_STATUS = { critical: { label: '🔴 위험', key: 'statusCrit', color: '#ef4444' }, alert: { label: '🟠 주의', key: 'statusAlert', color: '#f97316' }, warn: { label: '🟡 Warning', key: 'statusWarn', color: '#eab308' }, info: { label: '🔵 Info', key: 'statusInfo', color: '#4f8ef7' }, ok: { label: '🟢 정상', key: 'statusOk', color: '#22c55e' } };
 
 function AnomalyMiniChart({ data, color, status }) {
   const mn = Math.min(...data), mx = Math.max(...data), rng = mx - mn || 1;
@@ -620,13 +620,13 @@ function AnomalyTab() {
   return (
     <div style={{ display: 'grid', gap: 16 }}>
       <div style={{ padding: '12px 16px', borderRadius: 12, background: alertCount > 0 ? 'rgba(239,68,68,0.07)' : 'rgba(34,197,94,0.07)', border: `1px solid ${alertCount > 0 ? 'rgba(239,68,68,0.25)' : 'rgba(34,197,94,0.25)'}`, fontSize: 12, color: 'var(--text-2)', lineHeight: 1.7 }}>
-        🚨 <strong style={{ color: alertCount > 0 ? '#ef4444' : '#22c55e' }}>실Time 이상감지 (Anomaly Detection)</strong> — Z-score 기반 Channel Performance 이탈 모니터링. |Z| &gt; 2.0 시 Auto Notification, 7일 Move Trend Analysis.
-        {alertCount > 0 && <span style={{ marginLeft: 8, padding: '2px 8px', borderRadius: 99, background: 'rgba(239,68,68,0.15)', color: '#ef4444', fontWeight: 700, fontSize: 11 }}>{alertCount}건 주의 필요</span>}
+        🚨 <strong style={{ color: alertCount > 0 ? '#ef4444' : '#22c55e' }}>{t('attrData.anomalyHeadDesc', '실시간 이상감지 (Anomaly Detection)')}</strong> — {t('attrData.anomalyBodyText', 'Z-score 기반 채널 타당성 모니터링. |z| > 2.0 시 자동 알림, 7일 이동 평균 트렌드 분석.')}
+        {alertCount > 0 && <span style={{ marginLeft: 8, padding: '2px 8px', borderRadius: 99, background: 'rgba(239,68,68,0.15)', color: '#ef4444', fontWeight: 700, fontSize: 11 }}>{alertCount}{t('attrData.alertCountSuffix', '건 주의 필요')}</span>}
       </div>
 
       {/* Filter Button */}
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-        {[['all','All'], ['issue','이슈만'], ['ok','정상']].map(([v, l]) => (
+        {[['all','All'], ['issue',t('attrData.filterIssue', '이슈만')], ['ok',t('attrData.filterOk', '정상')]].map(([v, l]) => (
           <button key={v} onClick={() => setFilter(v)} style={{ padding: '6px 14px', borderRadius: 10, border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 11, background: filter === v ? 'linear-gradient(135deg,#ef4444,#f97316)' : 'rgba(255,255,255,0.06)', color: filter === v ? '#fff' : 'var(--text-2)' }}>{l}</button>
         ))}
       </div>
@@ -643,8 +643,8 @@ function AnomalyTab() {
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                     <span style={{ fontSize: 13, fontWeight: 900, color: CH_COLORS[d.ch] || '#4f8ef7' }}>{CH_LABELS[d.ch] || d.ch}</span>
-                    <span style={{ fontSize: 9, padding: '2px 7px', borderRadius: 99, background: `${color}15`, color, border: `1px solid ${color}30`, fontWeight: 700 }}>{st.label}</span>
-                    <span style={{ fontSize: 9, color: 'var(--text-3)' }}>{d.type}</span>
+                    <span style={{ fontSize: 9, padding: '2px 7px', borderRadius: 99, background: `${color}15`, color, border: `1px solid ${color}30`, fontWeight: 700 }}>{st.key ? t('attrData.' + st.key, st.label) : st.label}</span>
+                    <span style={{ fontSize: 9, color: 'var(--text-3)' }}>{d.type === '정상' ? t('attrData.filterOk', '정상') : (d.type === 'ROAS 급등' ? t('attrData.roasSurge', 'ROAS 급등') : d.type)}</span>
                   </div>
                   <div style={{ fontSize: 10, color: 'var(--text-3)', lineHeight: 1.6, maxWidth: 240 }}>{d.desc}</div>
                 </div>
@@ -652,8 +652,8 @@ function AnomalyTab() {
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, marginTop: 8 }}>
                 {[
-                  { l: '현재Value', v: d.value.toFixed(1), c: color },
-                  { l: '기준선', v: d.baseline.toFixed(1), c: 'var(--text-3)' },
+                  { l: t('attrData.currVal', '현재Value'), v: d.value.toFixed(1), c: color },
+                  { l: t('attrData.baseline', '기준선'), v: d.baseline.toFixed(1), c: 'var(--text-3)' },
                   { l: 'Z-score', v: (d.zscore > 0 ? '+' : '') + d.zscore.toFixed(2), c: Math.abs(d.zscore) > 2 ? '#ef4444' : Math.abs(d.zscore) > 1.5 ? '#eab308' : '#22c55e' },
                 ].map(k => (
                   <div key={k.l} style={{ textAlign: 'center', padding: '6px', borderRadius: 8, background: 'rgba(0,0,0,0.2)' }}>
@@ -669,7 +669,7 @@ function AnomalyTab() {
 
       {/* Summary Statistics */}
       <div className="card card-glass">
-        <div style={{ fontWeight: 900, fontSize: 12, marginBottom: 12 }}>📊 이상감지 Summary</div>
+        <div style={{ fontWeight: 900, fontSize: 12, marginBottom: 12 }}>{t("attr.anomalySummary") || "📊 이상감지 Summary"}</div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: 10 }}>
           {['critical','alert','warn','info','ok'].map(s => {
             const st = ANOMALY_STATUS[s];
@@ -677,7 +677,7 @@ function AnomalyTab() {
             return (
               <div key={s} style={{ textAlign: 'center', padding: '10px 8px', borderRadius: 10, background: `${st.color}08`, border: `1px solid ${st.color}20` }}>
                 <div style={{ fontSize: 20, fontWeight: 900, color: st.color }}>{count}</div>
-                <div style={{ fontSize: 9, color: 'var(--text-3)', marginTop: 2 }}>{st.label}</div>
+                <div style={{ fontSize: 9, color: 'var(--text-3)', marginTop: 2 }}>{st.key ? t('attrData.' + st.key, st.label) : st.label}</div>
               </div>
             );
           })}
@@ -751,7 +751,7 @@ function ModelCompareTab() {
   return (
     <div style={{ display: 'grid', gap: 16 }}>
       <div style={{ padding: '12px 16px', borderRadius: 12, background: 'rgba(99,102,241,0.07)', border: '1px solid rgba(99,102,241,0.2)', fontSize: 12, color: 'var(--text-2)', lineHeight: 1.7 }}>
-        🕸️ <strong style={{ color: '#6366f1' }}>모델 Compare 레이더 뷰 + A-Score</strong> — 5가지 어트리뷰션 모델(Shapley, MMM, Markov, Last-Touch, First-Touch)의 Channel 배분을 레이더 Chart로 Compare. A-Score는 모델 간 합의도(일관성)를 0-100으로 산정합니다.
+        🕸️ <strong style={{ color: '#6366f1' }}>A-Score</strong> — {t('attrData.compareDescText', '5가지 주요 어트리뷰션 모델 기여도를 레이더 차트로 비교하고, 결과 일치도를 기반으로 신뢰도(A-Score)를 산정합니다.')}
       </div>
 
       {/* 모델 Filter */}
@@ -765,7 +765,7 @@ function ModelCompareTab() {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
         {/* 레이더 Chart */}
         <div className="card card-glass">
-          <div style={{ fontWeight: 900, fontSize: 13, marginBottom: 14 }}>🕸️ Channel 기여도 레이더 Compare</div>
+          <div style={{ fontWeight: 900, fontSize: 13, marginBottom: 14 }}>{t("attr.radarCompare") || "🕸️ Channel 기여도 레이더 Compare"}</div>
           <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
             <RadarChart data={displayModels} channels={channels} size={240} />
           </div>
@@ -791,7 +791,7 @@ function ModelCompareTab() {
               <div key={a.ch} style={{ marginBottom: 14 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    {i === 0 && <span style={{ fontSize: 9, padding: '1px 6px', borderRadius: 99, background: 'rgba(34,197,94,0.15)', color: '#4ade80', fontWeight: 700 }}>👑 최고</span>}
+                    {i === 0 && <span style={{ fontSize: 9, padding: '1px 6px', borderRadius: 99, background: 'rgba(34,197,94,0.15)', color: '#4ade80', fontWeight: 700 }}>👑 {t('attrData.highest', '최고')}</span>}
                     <span style={{ fontSize: 12, fontWeight: 900, color }}>{CH_LABELS[a.ch] || a.ch}</span>
                   </div>
                   <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
@@ -810,12 +810,12 @@ function ModelCompareTab() {
 
       {/* 모델per 숫자 Compare Table */}
       <div className="card card-glass">
-        <div style={{ fontWeight: 900, fontSize: 12, marginBottom: 12 }}>📋 모델per Channel 기여도 Compare표 (%)</div>
+        <div style={{ fontWeight: 900, fontSize: 12, marginBottom: 12 }}>{t("attr.modelCompareTable") || "📋 모델per Channel 기여도 Compare표 (%)"}</div>
         <div style={{ overflowX: 'auto' }}>
           <table className="table">
             <thead>
               <tr>
-                <th>Channel</th>
+                <th>{t('attrData.colChannel', 'Channel')}</th>
                 {models.map(m => <th key={m.id} style={{ color: m.color }}>{m.label}</th>)}
                 <th style={{ color: '#6366f1' }}>A-Score</th>
               </tr>
@@ -857,19 +857,37 @@ const getTabs = (t) => [
 ];
 
 export default function Attribution() {
+  
   const t = useT();
   const [tab, setTab] = useState('mta');
-  const { orderStats, attributionData } = useGlobalData();
+  const { orderStats, demoAdCampaigns, attributionData } = useGlobalData();
+  
+  // DR JART SYNCHRONIZATION
+  useMemo(() => {
+    if (demoAdCampaigns && demoAdCampaigns.length > 0) {
+      const targetSpend = demoAdCampaigns.reduce((acc, c) => acc + c.spend, 0);
+      const targetRev = demoAdCampaigns.reduce((acc, c) => acc + (c.spend * c.roas), 0);
+      const targetCount = 12480; // realistic journey count
+
+      if (DEMO_JOURNEYS.length !== targetCount) {
+        DEMO_JOURNEYS = generateDemoJourneys(targetCount);
+        const sumRev = DEMO_JOURNEYS.reduce((acc, curr) => acc + curr.revenue, 0);
+        const scale = targetRev / sumRev;
+        DEMO_JOURNEYS.forEach(j => j.revenue *= scale);
+      }
+    }
+  }, [demoAdCampaigns]);
+
   return (
     <div style={{ display:'grid', gap:18, padding:4 }}>
       <AIRecommendBanner context="attribution" />
       {attributionData && attributionData.length > 0 && (
         <div style={{ padding:'10px 16px', borderRadius:10, background:'rgba(34,197,94,0.06)', border:'1px solid rgba(34,197,94,0.2)', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
           <div>
-            <div style={{ fontWeight:700, fontSize:12, color:'#22c55e' }}>📈 AI Marketing 허브 Run 결과 {attributionData.length}건 Attribution에 Auto 반영됨</div>
-            <div style={{ fontSize:10, color:'var(--text-3)', marginTop:2 }}>Journey Run · AI Recommend 집행 데이터가 모델 기여도에 포함됩니다</div>
+            <div style={{ fontWeight:700, fontSize:12, color:'#22c55e' }}>📈 {t('attrData.hubRun', 'AI Marketing 허브 Run 결과')} {attributionData.length}{t('attrData.autoRefl', '건 Attribution에 Auto 반영됨')}</div>
+            <div style={{ fontSize:10, color:'var(--text-3)', marginTop:2 }}>{t('attrData.dataIncluded', 'Journey Run · AI Recommend 집행 데이터가 모델 기여도에 포함됩니다')}</div>
           </div>
-          <span style={{ fontSize:10, color:'#22c55e', fontWeight:700 }}>실Time Sync ✓</span>
+          <span style={{ fontSize:10, color:'#22c55e', fontWeight:700 }}>{t('attrData.realtimeSync', '실Time Sync ✓')}</span>
         </div>
       )}
       <div className="hero fade-up">
@@ -878,15 +896,15 @@ export default function Attribution() {
             <div className="hero-title grad-blue-purple">📈 {t('attrData.title')}</div>
             <div className="hero-desc">{t('attrData.subtitle')}</div>
             <div style={{ display:'flex', gap:8, marginTop:10, flexWrap:'wrap' }}>
-              <span className="badge badge-blue">Exact Shapley 2^n</span>
-              <span className="badge badge-purple">Bayesian MMM</span>
-              <span className="badge badge-teal">Double ML Uplift</span>
+              <span className="badge badge-blue">{t('attrData.badgeShapley', 'Exact Shapley 2^n')}</span>
+              <span className="badge badge-purple">{t('attrData.badgeMmm', 'Bayesian MMM')}</span>
+              <span className="badge badge-teal">{t('attrData.badgeUplift', 'Double ML Uplift')}</span>
               <span className="badge" style={{ background:'rgba(168,85,247,0.15)', color:'#c084fc', border:'1px solid rgba(168,85,247,0.3)' }}>{t('attrData.northbeam')}</span>
             </div>
           </div>
           <div style={{ textAlign:'right' }}>
             <div style={{ fontSize:11, color:'var(--text-3)' }}>{t('attrData.analysisJourney')}</div>
-            <div style={{ fontSize:26, fontWeight:900, color:'#22c55e' }}>{DEMO_JOURNEYS.length.toLocaleString()}건</div>
+            <div style={{ fontSize:26, fontWeight:900, color:'#22c55e' }}>{DEMO_JOURNEYS.length.toLocaleString()}{t('attrData.cases', '건')}</div>
             <div style={{ fontSize:10, color:'var(--text-3)' }}>{t('attrData.timeSeries')}</div>
           </div>
         </div>

@@ -1,3 +1,4 @@
+import { useAuth } from '../auth/AuthContext';
 import React, { useState, useMemo, useCallback } from "react";
 import CreativeStudio from "./CreativeStudio.jsx";
 import MarketingAIPanel from '../components/MarketingAIPanel.jsx';
@@ -114,32 +115,32 @@ const SALES_CHANNELS_BASE = [
 ];
 
 /* ─── AI 전략 Create 헬퍼 ───────────────────────────────────────────────────────── */
-function generateStrategy(budget, categoryIds, adChannelIds) {
+function generateStrategy(budget, categoryIds, adChannelIds, PRODUCT_CATEGORIES_ARG, AD_CHANNELS_ARG) {
     if (!budget || !categoryIds.length || !adChannelIds.length) return null;
-    const selected = AD_CHANNELS.filter(c => adChannelIds.includes(c.id));
+    const selected = AD_CHANNELS_ARG.filter(c => adChannelIds.includes(c.id));
     const eligible = selected.filter(c => budget >= c.minBudget);
     if (!eligible.length) return null;
 
     // Category 기반 가in progress치 산정
-    const catLabels = PRODUCT_CATEGORIES.filter(c => categoryIds.includes(c.id)).map(c => c.label);
+    const catLabels = PRODUCT_CATEGORIES_ARG.filter(c => categoryIds.includes(c.id)).map(c => c.label);
     const weights = eligible.map(ch => {
         let w = 1;
-        catLabels.forEach(cat => { if (ch.strength.some(s => cat.includes(s))) w += 1.5; });
+        catLabels.forEach(cat => { if ((ch.strength || []).some(s => cat.includes(s))) w += 1.5; });
         return { ch, w };
     });
-    const totalW = weights.reduce((s, x) => s + x.w, 0);
+    const totalW = weights.reduce((s, x) => s + x.w, 0) || 1;
 
     const allocations = weights.map(({ ch, w }) => {
         const alloc = Math.round((w / totalW) * budget / 10000) * 10000;
         const impressions = Math.round(alloc / ch.cpm * 1000);
         const clicks = Math.round(impressions * (0.02 + Math.random() * 0.03));
         const conversions = Math.round(clicks * (0.03 + Math.random() * 0.04));
-        const roas = (conversions * 45000 / alloc).toFixed(1);
+        const roas = (conversions * 45000 / (alloc || 1)).toFixed(1);
         return { ch, alloc, impressions, clicks, conversions, roas };
     });
 
     const totalAlloc = allocations.reduce((s, a) => s + a.alloc, 0);
-    if (totalAlloc < budget) allocations[0].alloc += budget - totalAlloc;
+    if (totalAlloc < budget && allocations.length > 0) allocations[0].alloc += budget - totalAlloc;
 
     return {
         budget,
@@ -156,9 +157,10 @@ let _idSeed = 1;
 function mkId() { return `AM-${String(_idSeed++).padStart(4, "0")}-${Date.now().toString(36).slice(-4).toUpperCase()}`; }
 
 export default function AutoMarketing() {
+
     const navigate = useNavigate();
     const { t } = useI18n();
-    const { addCampaign, addAlert } = useGlobalData();
+    const { addCampaign, addAlert, isDemo } = useGlobalData();
     const [tab, setTab] = useState("setup");
     const [showResult, setShowResult] = useState(null); // detail modal
     const [approvalModal, setApprovalModal] = useState(null); // Campaign 제출 Approval Modal
@@ -206,6 +208,33 @@ export default function AutoMarketing() {
     const effectiveBudget = customBudget ? parseInt(customBudget.replace(/,/g, '')) || 0 : budget;
 
     const strategy = useMemo(() => draft, [draft]);
+
+    const handleAllocChange = (chId, newAmount) => {
+        setDraft(prev => {
+            if (!prev) return prev;
+            const allocations = prev.allocations.map(a => {
+                if (a.ch.id === chId) {
+                    const alloc = newAmount;
+                    const impressions = Math.round(alloc / a.ch.cpm * 1000);
+                    const clicks = Math.round(impressions * (0.02 + Math.random() * 0.03));
+                    const conversions = Math.round(clicks * (0.03 + Math.random() * 0.04));
+                    const roas = (conversions * 45000 / (alloc || 1)).toFixed(1);
+                    return { ...a, alloc, impressions, clicks, conversions, roas };
+                }
+                return a;
+            });
+            const newBudget = allocations.reduce((s, a) => s + a.alloc, 0);
+            return {
+                ...prev,
+                budget: newBudget,
+                allocations,
+                totalImpressions: allocations.reduce((s, a) => s + a.impressions, 0),
+                totalClicks: allocations.reduce((s, a) => s + a.clicks, 0),
+                totalConversions: allocations.reduce((s, a) => s + a.conversions, 0),
+                estimatedRoas: (allocations.reduce((s, a) => s + parseFloat(a.roas) * a.alloc, 0) / (newBudget || 1)).toFixed(1),
+            };
+        });
+    };
 
     // ─────────────────────────────────────────────────────────────────────
     // 핵심 Recommend 엔진: 복Count Category + Budget 교차 Recommend
@@ -319,12 +348,18 @@ export default function AutoMarketing() {
     const handleGenerate = useCallback(async () => {
         if (!selCats.length || !selAds.length) { alert('Category와 Ad Channel을 Select해주세요.'); return; }
         setGenerating(true);
-        await new Promise(r => setTimeout(r, 1500));
-        const s = generateStrategy(effectiveBudget, selCats, selAds);
-        setDraft(s);
-        setGenerating(false);
-        setTab('preview');
-    }, [selCats, selAds, effectiveBudget]);
+        try {
+            await new Promise(r => setTimeout(r, 1500));
+            const s = generateStrategy(effectiveBudget, selCats, selAds, PRODUCT_CATEGORIES, AD_CHANNELS);
+            setDraft(s);
+            setTab('preview');
+        } catch(e) {
+            console.error(e);
+            alert("전략 시뮬레이션 중 오류가 발생했습니다.");
+        } finally {
+            setGenerating(false);
+        }
+    }, [selCats, selAds, effectiveBudget, PRODUCT_CATEGORIES, AD_CHANNELS]);
 
 
     /* ─── Campaign 제출 전 Management자 Approval Modal 표시 ─── */
@@ -334,24 +369,28 @@ export default function AutoMarketing() {
         const selectedChs = selAds.map(id => AD_CHANNELS.find(c => c.id === id)).filter(Boolean);
 
         setApprovalModal({
-            title: t('marketing.approvalTitle') || 'Auto Marketing Campaign Approval 요청',
-            subtitle: '📋 아래 Campaign 내용을 검토하고 Approval 후 제출해 주세요.',
+            title: isDemo ? '체험용 Campaign 승인 (결제 제외)' : (t('marketing.approvalTitle') || 'Auto Marketing Campaign Approval 요청'),
+            subtitle: isDemo ? '🤖 가상 데이터 모드입니다. 결제 없이 강제 승인 및 집행 프로세스가 시뮬레이션됩니다.' : '📋 아래 Campaign 내용을 검토하고 Approval 후 제출해 주세요.',
             items: [
                 { label: 'Campaign명', value: name, color: '#4f8ef7' },
-                { label: 'Budget',     value: KRW(effectiveBudget), color: '#a855f7' },
+                { label: 'Budget',     value: KRW(strategy.budget), color: '#a855f7' },
                 { label: '예상 ROAS', value: strategy.estimatedRoas + 'x', color: '#22c55e' },
                 { label: 'Ad Channel', value: selectedChs.map(c => c.label).join(', '), color: '#f97316' },
             ],
-            warnings: [
+            warnings: isDemo ? [
+                '카드 결제 모듈 우회 (Demo)',
+                '즉시 활성화(Active) 상태로 변경되어 캠페인 관리에서 성과가 연동 발생합니다.'
+            ] : [
                 'Approval 요청 후 Campaign Management Page에서 Activate됩니다.',
                 'Budget 집행은 Management자 최종 Activate 시 Start됩니다.',
             ],
             requireNote: false,
-            confirmText: t('marketing.submitApproval') || '✅ Approval 후 제출',
-            confirmColor: '#22c55e',
+            confirmText: isDemo ? '체험용 즉시 자동승인 완료' : (t('marketing.submitApproval') || '✅ Approval 후 제출'),
+            confirmColor: isDemo ? '#4f8ef7' : '#22c55e',
             onConfirm: () => {
+                const newStatus = isDemo ? 'active' : 'pending';
                 const camp = {
-                    id: mkId(), name, period, targetAudience, budget: effectiveBudget,
+                    id: mkId(), name, period, targetAudience, budget: strategy.budget,
                     categories: selCats.map(id => PRODUCT_CATEGORIES.find(c => c.id === id)),
                     adChannels: selAds.map(id => AD_CHANNELS.find(c => c.id === id)),
                     salesChannels: activeSalesChannels,
@@ -360,11 +399,16 @@ export default function AutoMarketing() {
                     totalImpressions: strategy.totalImpressions,
                     totalClicks: strategy.totalClicks,
                     totalConversions: strategy.totalConversions,
-                    status: 'pending', createdAt: new Date().toLocaleString('ko-KR'),
-                    approvedAt: null, approvedBy: null,
+                    status: newStatus, createdAt: new Date().toLocaleString('ko-KR'),
+                    approvedAt: isDemo ? new Date().toLocaleString('ko-KR') : null, 
+                    approvedBy: isDemo ? 'Geniego System(Demo)' : null,
                 };
                 addCampaign(camp);
-                addAlert({ type: 'info', msg: `새 Campaign Approval 요청: ${name}`, channel: selAds[0] });
+                if (isDemo) {
+                    addAlert({ type: 'success', msg: `[데모모드] ${name} 가상 캠페인 즉시 승인 및 자동집행이 시작되었습니다.`, channel: selAds[0] });
+                } else {
+                    addAlert({ type: 'info', msg: `새 Campaign Approval 요청: ${name}`, channel: selAds[0] });
+                }
                 setDraft(null);
                 setCampaignName('');
                 setApprovalModal(null);
@@ -867,8 +911,20 @@ export default function AutoMarketing() {
                                                         <span style={{ fontSize: 18 }}>{ch.icon}</span>
                                                         <span style={{ fontWeight: 700, fontSize: 12, color: ch.color }}>{ch.label}</span>
                                                     </div>
-                                                    <div style={{ display: "flex", gap: 10, fontSize: 11 }}>
-                                                        <span style={{ color: ch.color, fontWeight: 800 }}>{KRW(alloc)}</span>
+                                                    <div style={{ display: "flex", gap: 6, fontSize: 11, alignItems: "center" }}>
+                                                        <input 
+                                                            type="text" 
+                                                            value={alloc === 0 ? '' : alloc.toLocaleString('ko-KR')}
+                                                            onChange={(e) => {
+                                                                const val = parseInt(e.target.value.replace(/[^0-9]/g, '')) || 0;
+                                                                handleAllocChange(ch.id, val);
+                                                            }}
+                                                            style={{
+                                                                width: 90, padding: "4px 8px", background: "rgba(15,20,40,0.8)",
+                                                                border: `1px solid ${ch.color}55`, borderRadius: 6, color: ch.color,
+                                                                fontWeight: 800, textAlign: "right", fontSize: 11, outline: "none"
+                                                            }}
+                                                        />
                                                         <span style={{ color: "var(--text-3)" }}>({pct}%)</span>
                                                     </div>
                                                 </div>

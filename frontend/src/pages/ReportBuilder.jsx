@@ -1,410 +1,186 @@
-import React, { useState, useMemo } from "react";
-import { useT } from '../i18n';
+import { useAuth } from '../auth/AuthContext';
+import React, { useState } from "react";
+import { useI18n } from '../i18n';
+import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from "recharts";
 
-/* ─── utils ─────────────────────────────────────────────── */
-const fmtM = v => Math.abs(v) >= 1e6 ? (v / 1e6).toFixed(1) + "M" : Math.abs(v) >= 1e3 ? (v / 1e3).toFixed(0) + "K" : String(Number(v).toFixed(0));
-
-/* ─── Sample Report Data ─────────────────────────────────── */
-const KPI_DATA = {
-    revenue: 837000000, adSpend: 54700000, fees: 52400000,
-    infCost: 18900000, netProfit: 91300000, orders: 7440, returns: 578,
-    roas: 4.12, returnRate: 7.8,
-};
-
-const CAMPAIGN_DATA = [
-    { name: "Meta Spring KR", channel: "Meta", spend: 12400000, revenue: 51800000, roas: 4.18, orders: 1820 },
-    { name: "Google Brand KW", channel: "Google", spend: 5600000, revenue: 39200000, roas: 7.00, orders: 1120 },
-    { name: "TikTok CPP Spring", channel: "TikTok", spend: 14200000, revenue: 28400000, roas: 2.00, orders: 890 },
-    { name: "Naver SA Basic", channel: "Naver", spend: 4200000, revenue: 29400000, roas: 7.00, orders: 840 },
-    { name: "Coupang DA", channel: "Coupang", spend: 9800000, revenue: 15680000, roas: 1.60, orders: 560 },
+import { useT } from '../i18n/index.js';
+/* ─── Mock Data ────────────────────────────────────────── */
+const MOCK_DATA = [
+    { name: 'Mon', roas: 2400, clicks: 2400, spend: 1000 },
+    { name: 'Tue', roas: 3398, clicks: 1398, spend: 2000 },
+    { name: 'Wed', roas: 9800, clicks: 9800, spend: 3000 },
+    { name: 'Thu', roas: 3908, clicks: 3908, spend: 2100 },
+    { name: 'Fri', roas: 4800, clicks: 4800, spend: 3500 },
+    { name: 'Sat', roas: 3800, clicks: 3800, spend: 2500 },
+    { name: 'Sun', roas: 4300, clicks: 4300, spend: 2100 },
 ];
 
-const CREATOR_DATA = [
-    { name: "Tech Unboxing", tier: "Micro", views: 131000, orders: 342, revenue: 41040000, cost: 350000, roi: 117.3 },
-    { name: "TechVibe", tier: "Macro", views: 1980000, orders: 890, revenue: 89000000, cost: 2225000, roi: 39.9 },
-    { name: "Daily Gadget", tier: "Mid", views: 254000, orders: 218, revenue: 26160000, cost: 800000, roi: 32.7 },
+/* ─── Widgets Library ──────────────────────────────────── */
+const WIDGETS = [
+    { id: "w_roas_trend", title: t('super.rbTrend'), type: "area", dataKey: "roas", color: "#4f8ef7" },
+    { id: "w_clicks_bar", title: t('super.rbClicks'), type: "bar", dataKey: "clicks", color: "#22c55e" },
+    { id: "w_spend_area", title: t('super.rbSpend'), type: "area", dataKey: "spend", color: "#f97316" },
+    { id: "w_kpi_summary", title: t('super.rbKpi'), type: "kpi", dataKey: "summary" }
 ];
 
-const SKU_DATA = [
-    { sku: "SKU-A1", name: "WH-1000XM5 Headphones", revenue: 547160000, orders: 4780, returnRate: 4.1, margin: 32.4 },
-    { sku: "SKU-B2", name: "RGB Mechanical Keyboard", revenue: 171360000, orders: 1428, returnRate: 12.1, margin: 18.7 },
-    { sku: "SKU-C3", name: "4K Webcam Pro", revenue: 89000000, orders: 890, returnRate: 19.8, margin: 11.2 },
-    { sku: "SKU-D4", name: "USB-C 7-Port Hub", revenue: 56000000, orders: 672, returnRate: 20.2, margin: 8.9 },
-];
-
-/* ─── Filter Panel ───────────────────────────────────────── */
-function FilterPanel({ filters, setFilters, t }) {
-    return (
-        <div className="card card-glass" style={{ padding: 16 }}>
-            <div style={{ fontWeight: 700, fontSize: 12, marginBottom: 12 }}>{t("reportBuilder.filterPanel")}</div>
-            <div style={{ display: "grid", gap: 10 }}>
-                <div>
-                    <div style={{ fontSize: 10, color: "var(--text-3)", marginBottom: 4 }}>{t("reportBuilder.period")}</div>
-                    <select value={filters.period} onChange={e => setFilters(f => ({ ...f, period: e.target.value }))}
-                        style={{ width: "100%", padding: "6px 8px", borderRadius: 7, border: "1px solid var(--border)", background: "var(--surface-2)", color: "var(--text-1)", fontSize: 11 }}>
-                        <option value="7d">{t("reportBuilder.period7d")}</option>
-                        <option value="30d">{t("reportBuilder.period30d")}</option>
-                        <option value="90d">{t("reportBuilder.period90d")}</option>
-                        <option value="q1">{t("reportBuilder.periodQ1")}</option>
-                    </select>
-                </div>
-                <div>
-                    <div style={{ fontSize: 10, color: "var(--text-3)", marginBottom: 4 }}>{t("reportBuilder.channel")}</div>
-                    {["Meta", "Google", "TikTok", "Naver", "Coupang"].map(ch => (
-                        <label key={ch} style={{ display: "flex", gap: 7, alignItems: "center", marginBottom: 4, cursor: "pointer" }}>
-                            <input type="checkbox"
-                                checked={filters.channels.includes(ch)}
-                                onChange={e => setFilters(f => ({
-                                    ...f,
-                                    channels: e.target.checked ? [...f.channels, ch] : f.channels.filter(c => c !== ch)
-                                }))}
-                                style={{ accentColor: "#4f8ef7" }}
-                            />
-                            <span style={{ fontSize: 11, color: "var(--text-2)" }}>{ch}</span>
-                        </label>
-                    ))}
-                </div>
-                <div>
-                    <div style={{ fontSize: 10, color: "var(--text-3)", marginBottom: 4 }}>SKU</div>
-                    {SKU_DATA.map(s => (
-                        <label key={s.sku} style={{ display: "flex", gap: 7, alignItems: "center", marginBottom: 4, cursor: "pointer" }}>
-                            <input type="checkbox"
-                                checked={filters.skus.includes(s.sku)}
-                                onChange={e => setFilters(f => ({
-                                    ...f,
-                                    skus: e.target.checked ? [...f.skus, s.sku] : f.skus.filter(k => k !== s.sku)
-                                }))}
-                                style={{ accentColor: "#4f8ef7" }}
-                            />
-                            <span style={{ fontSize: 11, color: "var(--text-2)" }}>{s.sku}</span>
-                        </label>
-                    ))}
-                </div>
-            </div>
-        </div>
-    );
-}
-
-/* ─── Section Builder ────────────────────────────────────── */
-function SectionBuilder({ selected, setSelected, sections, t }) {
-    return (
-        <div className="card card-glass" style={{ padding: 16 }}>
-            <div style={{ fontWeight: 700, fontSize: 12, marginBottom: 12 }}>{t("reportBuilder.sectionSelect")}</div>
-            <div style={{ display: "grid", gap: 6 }}>
-                {sections.map(s => {
-                    const on = selected.includes(s.id);
-                    return (
-                        <div
-                            key={s.id}
-                            onClick={() => setSelected(prev => on ? prev.filter(x => x !== s.id) : [...prev, s.id])}
-                            style={{
-                                padding: "9px 12px", borderRadius: 9, border: "1px solid",
-                                borderColor: on ? "#4f8ef7" : "var(--border)",
-                                background: on ? "rgba(79,142,247,0.08)" : "var(--surface-2)",
-                                cursor: "pointer", display: "flex", gap: 10, alignItems: "center", transition: "all 150ms",
-                            }}
-                        >
-                            <span style={{ fontSize: 16 }}>{s.icon}</span>
-                            <div style={{ flex: 1 }}>
-                                <div style={{ fontSize: 11, fontWeight: 700, color: on ? "#4f8ef7" : "var(--text-1)" }}>{s.label}</div>
-                                <div style={{ fontSize: 9, color: "var(--text-3)" }}>{s.desc}</div>
-                            </div>
-                            <div style={{
-                                width: 18, height: 18, borderRadius: "50%", border: "2px solid",
-                                borderColor: on ? "#4f8ef7" : "var(--border)",
-                                background: on ? "#4f8ef7" : "transparent",
-                                display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-                            }}>
-                                {on && <span style={{ color: "#fff", fontSize: 10, fontWeight: 900 }}>✓</span>}
-                            </div>
-                        </div>
-                    );
-                })}
-            </div>
-        </div>
-    );
-}
-
-/* ─── Preview Sections ───────────────────────────────────── */
-function KpiSection({ filters, t }) {
-    const periodLabel = {
-        "7d": t("reportBuilder.period7d"),
-        "30d": t("reportBuilder.period30d"),
-        "90d": t("reportBuilder.period90d"),
-        "q1": t("reportBuilder.periodQ1"),
-    }[filters.period];
-    const kpis = [
-        { l: t("reportBuilder.kpiRevenue"),    v: "₩" + fmtM(KPI_DATA.revenue),    c: "#4f8ef7" },
-        { l: t("reportBuilder.kpiAdSpend"),    v: "₩" + fmtM(KPI_DATA.adSpend),    c: "#f97316" },
-        { l: t("reportBuilder.kpiNetProfit"),  v: "₩" + fmtM(KPI_DATA.netProfit),  c: "#22c55e" },
-        { l: t("reportBuilder.kpiRoas"),       v: KPI_DATA.roas + "x",              c: "#eab308" },
-        { l: t("reportBuilder.kpiOrders"),     v: KPI_DATA.orders.toLocaleString(), c: "#4f8ef7" },
-        { l: t("reportBuilder.kpiReturnRate"), v: KPI_DATA.returnRate + "%",        c: "#ef4444" },
-    ];
-    return (
-        <div>
-            <div style={{ fontWeight: 700, fontSize: 12, marginBottom: 10, color: "var(--text-2)" }}>{t("reportBuilder.kpiTitle")} — {periodLabel}</div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8 }}>
-                {kpis.map(k => (
-                    <div key={k.l} style={{ padding: "10px 12px", borderRadius: 8, background: k.c + "10", border: `1px solid ${k.c}22` }}>
-                        <div style={{ fontSize: 9, color: "var(--text-3)", fontWeight: 700 }}>{k.l}</div>
-                        <div style={{ fontWeight: 900, fontSize: 15, color: k.c, marginTop: 3 }}>{k.v}</div>
-                    </div>
-                ))}
-            </div>
-        </div>
-    );
-}
-
-function PnLSection({ t }) {
-    const items = [
-        [t("reportBuilder.pnlRevenue"),     KPI_DATA.revenue,   "#4f8ef7"],
-        [t("reportBuilder.pnlAdSpend"),    -KPI_DATA.adSpend,   "#f97316"],
-        [t("reportBuilder.pnlFees"),       -KPI_DATA.fees,      "#ef4444"],
-        [t("reportBuilder.pnlInfluencer"), -KPI_DATA.infCost,   "#a855f7"],
-        [t("reportBuilder.pnlNetProfit"),   KPI_DATA.netProfit, "#22c55e"],
-    ];
-    return (
-        <div>
-            <div style={{ fontWeight: 700, fontSize: 12, marginBottom: 10, color: "var(--text-2)" }}>🌊 P&L Waterfall</div>
-            {items.map(([l, v, c]) => (
-                <div key={l} style={{ display: "flex", justifyContent: "space-between", padding: "5px 0", borderBottom: "1px solid rgba(99,140,255,0.06)" }}>
-                    <span style={{ fontSize: 11, color: "var(--text-3)" }}>{l}</span>
-                    <span style={{ fontFamily: "monospace", fontWeight: 700, fontSize: 11, color: c }}>
-                        {v >= 0 ? "₩" : "-₩"}{fmtM(Math.abs(v))}
-                    </span>
-                </div>
-            ))}
-        </div>
-    );
-}
-
-function CampaignSection({ filters, t }) {
-    const rows = CAMPAIGN_DATA.filter(c => filters.channels.includes(c.channel));
-    if (!rows.length) return <div style={{ fontSize: 11, color: "var(--text-3)" }}>{t("reportBuilder.noChannelSelected")}</div>;
-    return (
-        <div>
-            <div style={{ fontWeight: 700, fontSize: 12, marginBottom: 10, color: "var(--text-2)" }}>{t("reportBuilder.campaignTitle")}</div>
-            <table className="table" style={{ fontSize: 11 }}>
-                <thead><tr>
-                    <th>{t("reportBuilder.colCampaign")}</th>
-                    <th>{t("reportBuilder.colChannel")}</th>
-                    <th style={{ textAlign: "right" }}>{t("reportBuilder.colAdSpend")}</th>
-                    <th style={{ textAlign: "right" }}>{t("reportBuilder.colRoas")}</th>
-                    <th style={{ textAlign: "right" }}>{t("reportBuilder.colOrders")}</th>
-                </tr></thead>
-                <tbody>{rows.map(r => (
-                    <tr key={r.name}>
-                        <td style={{ fontWeight: 600 }}>{r.name}</td>
-                        <td>{r.channel}</td>
-                        <td style={{ textAlign: "right", fontFamily: "monospace" }}>₩{fmtM(r.spend)}</td>
-                        <td style={{ textAlign: "right", fontWeight: 700, color: r.roas >= 3 ? "#22c55e" : "#ef4444" }}>{r.roas}x</td>
-                        <td style={{ textAlign: "right" }}>{r.orders.toLocaleString()}</td>
-                    </tr>
-                ))}</tbody>
-            </table>
-        </div>
-    );
-}
-
-function CreatorSection({ t }) {
-    return (
-        <div>
-            <div style={{ fontWeight: 700, fontSize: 12, marginBottom: 10, color: "var(--text-2)" }}>{t("reportBuilder.creatorTitle")}</div>
-            <table className="table" style={{ fontSize: 11 }}>
-                <thead><tr>
-                    <th>{t("reportBuilder.colCreator")}</th>
-                    <th>{t("reportBuilder.colTier")}</th>
-                    <th style={{ textAlign: "right" }}>{t("reportBuilder.colViews")}</th>
-                    <th style={{ textAlign: "right" }}>{t("reportBuilder.colRevenue")}</th>
-                    <th style={{ textAlign: "right" }}>{t("reportBuilder.colRoi")}</th>
-                </tr></thead>
-                <tbody>{CREATOR_DATA.map(r => (
-                    <tr key={r.name}>
-                        <td style={{ fontWeight: 600 }}>{r.name}</td>
-                        <td>{r.tier}</td>
-                        <td style={{ textAlign: "right" }}>{(r.views / 1000).toFixed(0)}K</td>
-                        <td style={{ textAlign: "right", fontFamily: "monospace" }}>₩{fmtM(r.revenue)}</td>
-                        <td style={{ textAlign: "right", fontWeight: 700, color: r.roi > 50 ? "#22c55e" : "#eab308" }}>{r.roi}x</td>
-                    </tr>
-                ))}</tbody>
-            </table>
-        </div>
-    );
-}
-
-function SkuSection({ filters, t }) {
-    const rows = SKU_DATA.filter(s => filters.skus.includes(s.sku));
-    if (!rows.length) return <div style={{ fontSize: 11, color: "var(--text-3)" }}>{t("reportBuilder.noSkuSelected")}</div>;
-    return (
-        <div>
-            <div style={{ fontWeight: 700, fontSize: 12, marginBottom: 10, color: "var(--text-2)" }}>{t("reportBuilder.skuTitle")}</div>
-            <table className="table" style={{ fontSize: 11 }}>
-                <thead><tr>
-                    <th>{t("reportBuilder.colSku")}</th>
-                    <th>{t("reportBuilder.colProductName")}</th>
-                    <th style={{ textAlign: "right" }}>{t("reportBuilder.colRevenue")}</th>
-                    <th style={{ textAlign: "right" }}>{t("reportBuilder.colMargin")}</th>
-                    <th style={{ textAlign: "right" }}>{t("reportBuilder.colReturnRate")}</th>
-                </tr></thead>
-                <tbody>{rows.map(r => (
-                    <tr key={r.sku}>
-                        <td style={{ fontFamily: "monospace", fontWeight: 700 }}>{r.sku}</td>
-                        <td>{r.name}</td>
-                        <td style={{ textAlign: "right", fontFamily: "monospace" }}>₩{fmtM(r.revenue)}</td>
-                        <td style={{ textAlign: "right", fontWeight: 700, color: r.margin >= 20 ? "#22c55e" : r.margin >= 10 ? "#eab308" : "#ef4444" }}>{r.margin}%</td>
-                        <td style={{ textAlign: "right", fontWeight: 700, color: r.returnRate > 12 ? "#ef4444" : "var(--text-2)" }}>{r.returnRate}%</td>
-                    </tr>
-                ))}</tbody>
-            </table>
-        </div>
-    );
-}
-
-function AnomalySection({ t }) {
-    const items = [
-        { level: "high", msg: "TikTok CPP ROAS 2.0x — below threshold (3.0x)", detail: "Recommend pausing and replacing creative" },
-        { level: "high", msg: "Coupang DA ROAS 1.6x — below break-even", detail: "Consider budget cut or campaign pause" },
-        { level: "high", msg: "SKU-C3 return rate 19.8% — exceeds threshold (12%)", detail: "Improve product description and images" },
-        { level: "mid", msg: "Coupon abuse detected — SKU-C3 coupon rate 30.1%", detail: "Reduce creator coupon limit" },
-    ];
-    return (
-        <div>
-            <div style={{ fontWeight: 700, fontSize: 12, marginBottom: 10, color: "var(--text-2)" }}>{t("reportBuilder.anomalyTitle")}</div>
-            {items.map((a, i) => (
-                <div key={i} style={{
-                    display: "flex", gap: 10, padding: "8px 0",
-                    borderBottom: "1px solid rgba(99,140,255,0.06)",
-                }}>
-                    <span>{a.level === "high" ? "🔴" : "🟡"}</span>
-                    <div>
-                        <div style={{ fontSize: 11, fontWeight: 700 }}>{a.msg}</div>
-                        <div style={{ fontSize: 10, color: "var(--text-3)" }}>→ {a.detail}</div>
-                    </div>
-                </div>
-            ))}
-        </div>
-    );
-}
-
-/* ─── Preview Panel ──────────────────────────────────────── */
-function PreviewPanel({ selected, filters, sections, t }) {
-    const periodLabel = {
-        "7d": t("reportBuilder.period7d"),
-        "30d": t("reportBuilder.period30d"),
-        "90d": t("reportBuilder.period90d"),
-        "q1": t("reportBuilder.periodQ1"),
-    }[filters.period];
-
-    if (!selected.length) {
-        return (
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: 300, gap: 12, color: "var(--text-3)" }}>
-                <span style={{ fontSize: 40, opacity: 0.4 }}>📄</span>
-                <div style={{ fontSize: 12 }}>{t("reportBuilder.selectToPreview")}</div>
-            </div>
-        );
-    }
-    return (
-        <div style={{ display: "grid", gap: 20 }}>
-            {/* Report Header */}
-            <div style={{
-                padding: "20px 24px", borderRadius: 12, background: "linear-gradient(135deg,rgba(79,142,247,0.08),rgba(168,85,247,0.05))",
-                border: "1px solid rgba(79,142,247,0.15)",
-            }}>
-                <div style={{ fontWeight: 900, fontSize: 18, marginBottom: 4 }}>{t("reportBuilder.reportTitle")}</div>
-                <div style={{ fontSize: 11, color: "var(--text-3)" }}>{periodLabel} · {t("reportBuilder.createdDate")}: 2026-03-04 · v422</div>
-                <div style={{ fontSize: 11, color: "var(--text-2)", marginTop: 6 }}>
-                    {t("reportBuilder.includedSections")}: {selected.map(s => sections.find(x => x.id === s)?.label).join(" · ")}
-                </div>
-            </div>
-
-            {/* Sections */}
-            {selected.includes("kpi")     && <div className="card card-glass" style={{ padding: 16 }}><KpiSection filters={filters} t={t} /></div>}
-            {selected.includes("pnl")     && <div className="card card-glass" style={{ padding: 16 }}><PnLSection t={t} /></div>}
-            {selected.includes("campaign")&& <div className="card card-glass" style={{ padding: 16 }}><CampaignSection filters={filters} t={t} /></div>}
-            {selected.includes("creator") && <div className="card card-glass" style={{ padding: 16 }}><CreatorSection t={t} /></div>}
-            {selected.includes("sku")     && <div className="card card-glass" style={{ padding: 16 }}><SkuSection filters={filters} t={t} /></div>}
-            {selected.includes("anomaly") && <div className="card card-glass" style={{ padding: 16 }}><AnomalySection t={t} /></div>}
-        </div>
-    );
-}
-
-/* ─── MAIN ───────────────────────────────────────────────── */
 export default function ReportBuilder() {
-    const t = useT();
+  const t = useT();
+    const [canvas, setCanvas] = useState([]); // Widgets dropped on canvas
+    const [draggedWidget, setDraggedWidget] = useState(null);
 
-    const SECTIONS = [
-        { id: "kpi",      icon: "📊", label: t("reportBuilder.sectionKpi"),     desc: t("reportBuilder.sectionKpiDesc") },
-        { id: "pnl",      icon: "🌊", label: t("reportBuilder.sectionPnl"),     desc: t("reportBuilder.sectionPnlDesc") },
-        { id: "campaign", icon: "📣", label: t("reportBuilder.sectionCampaign"), desc: t("reportBuilder.sectionCampaignDesc") },
-        { id: "creator",  icon: "🤝", label: t("reportBuilder.sectionCreator"), desc: t("reportBuilder.sectionCreatorDesc") },
-        { id: "sku",      icon: "📦", label: t("reportBuilder.sectionSku"),     desc: t("reportBuilder.sectionSkuDesc") },
-        { id: "anomaly",  icon: "⚠",  label: t("reportBuilder.sectionAnomaly"), desc: t("reportBuilder.sectionAnomalyDesc") },
-    ];
+    // Draggable Library Item Event
+    const handleDragStart = (e, widget) => {
+        setDraggedWidget(widget);
+        e.dataTransfer.setData("widgetId", widget.id);
+        e.dataTransfer.effectAllowed = "copyMove";
+    };
 
-    const [selected, setSelected] = useState(["kpi", "pnl", "campaign"]);
-    const [filters, setFilters] = useState({
-        period: "30d",
-        channels: ["Meta", "Google", "TikTok", "Naver", "Coupang"],
-        skus: ["SKU-A1", "SKU-B2", "SKU-C3", "SKU-D4"],
-    });
-    const [exported, setExported] = useState(null);
+    // Canvas Drop Events
+    const handleDragOver = (e) => {
+        e.preventDefault(); // allow drop
+        e.dataTransfer.dropEffect = "copy";
+    };
 
-    const handleExport = (type) => {
-        setExported(type);
-        setTimeout(() => setExported(null), 2500);
+    const handleDrop = (e) => {
+        e.preventDefault();
+        const widgetId = e.dataTransfer.getData("widgetId");
+        const widgetConfig = WIDGETS.find(w => w.id === widgetId);
+        if (widgetConfig) {
+            setCanvas([...canvas, { ...widgetConfig, uid: Date.now() + Math.random() }]);
+        }
+        setDraggedWidget(null);
+    };
+
+    const removeWidget = (uid) => {
+        setCanvas(canvas.filter(w => w.uid !== uid));
+    };
+
+    // Rendering a specific widget based on type
+    const renderWidget = (widget) => {
+        if (widget.type === "area") {
+            return (
+                <ResponsiveContainer width="100%" height={200}>
+                    <AreaChart data={MOCK_DATA}>
+                        <defs>
+                            <linearGradient id={`color-${widget.uid}`} x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor={widget.color} stopOpacity={0.8}/>
+                                <stop offset="95%" stopColor={widget.color} stopOpacity={0}/>
+                            </linearGradient>
+                        </defs>
+                        <XAxis dataKey="name" fontSize={10} stroke="#888" tickLine={false} axisLine={false} />
+                        <Tooltip contentStyle={{ background: '#111', border: '1px solid #333' }} />
+                        <Area type="monotone" dataKey={widget.dataKey} stroke={widget.color} fillOpacity={1} fill={`url(#color-${widget.uid})`} />
+                    </AreaChart>
+                </ResponsiveContainer>
+            );
+        }
+        if (widget.type === "bar") {
+            return (
+                <ResponsiveContainer width="100%" height={200}>
+                    <BarChart data={MOCK_DATA}>
+                        <XAxis dataKey="name" fontSize={10} stroke="#888" tickLine={false} axisLine={false} />
+                        <Tooltip contentStyle={{ background: '#111', border: '1px solid #333' }} />
+                        <Bar dataKey={widget.dataKey} fill={widget.color} radius={[4,4,0,0]} />
+                    </BarChart>
+                </ResponsiveContainer>
+            );
+        }
+        if (widget.type === "kpi") {
+            return (
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, height: 200, alignItems: 'center' }}>
+                    <div style={{ background: 'rgba(255,255,255,0.05)', padding: 20, borderRadius: 8, textAlign: 'center' }}>
+                        <div style={{ fontSize: 11, color: '#888' }}>{t('super.kpiRev')}</div>
+                        <div style={{ fontSize: 24, fontWeight: 900, color: '#4f8ef7' }}>₩482M</div>
+                    </div>
+                    <div style={{ background: 'rgba(255,255,255,0.05)', padding: 20, borderRadius: 8, textAlign: 'center' }}>
+                        <div style={{ fontSize: 11, color: '#888' }}>{t('super.kpiRoas')}</div>
+                        <div style={{ fontSize: 24, fontWeight: 900, color: '#22c55e' }}>4.8x</div>
+                    </div>
+                </div>
+            );
+        }
+        return <div>{t('super.rbUnknown')}</div>;
     };
 
     return (
-        <div style={{ display: "grid", gap: 16 }}>
-            {/* Hero */}
-            <div className="hero fade-up" style={{
-                background: "linear-gradient(135deg,rgba(79,142,247,0.06),rgba(34,197,94,0.04))",
-                borderColor: "rgba(79,142,247,0.15)",
-            }}>
-                <div className="hero-meta">
-                    <div className="hero-icon" style={{ background: "linear-gradient(135deg,rgba(79,142,247,0.22),rgba(34,197,94,0.15))" }}>📋</div>
-                    <div>
-                        <div className="hero-title" style={{
-                            background: "linear-gradient(135deg,#4f8ef7,#22c55e)",
-                            WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
-                        }}>{t("reportBuilder.pageTitle")}</div>
-                        <div className="hero-desc">
-                            {t("reportBuilder.pageDesc")}
-                        </div>
-                    </div>
+        <div style={{ padding: 24, animation: 'fadeIn 0.3s' }}>
+            <div style={{ background: 'linear-gradient(135deg, rgba(79,142,247,0.1), rgba(168,85,247,0.1))', padding: '24px 32px', borderRadius: 16, marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                    <h1 style={{ fontSize: 24, fontWeight: 900, marginBottom: 8 }}>🛠️ {t('super.rbTitle')}</h1>
+                    <p style={{ color: 'var(--text-3)', fontSize: 13 }}>{t('super.rbPageDesc')}</p>
                 </div>
-                <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
-                    <button onClick={() => handleExport("CSV")} className="btn-primary" style={{ fontSize: 11, padding: "6px 16px" }}>
-                        {t("reportBuilder.csvExport")}
-                    </button>
-                    <button onClick={() => handleExport("PDF")} className="btn-ghost" style={{ fontSize: 11, padding: "6px 14px" }}>
-                        {t("reportBuilder.pdfExport")}
-                    </button>
-                    {exported && (
-                        <span style={{
-                            fontSize: 11, padding: "6px 14px", borderRadius: 8,
-                            background: "rgba(34,197,94,0.1)", color: "#22c55e",
-                            border: "1px solid rgba(34,197,94,0.25)",
-                        }}>✓ {exported} {t("reportBuilder.downloadReady")}</span>
-                    )}
-                </div>
+                <button onClick={() => setCanvas([])} style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid #ef444455', color: '#ef4444', background: 'transparent', cursor: 'pointer', fontWeight: 700 }}>
+                    Clear Canvas
+                </button>
             </div>
 
-            {/* Layout */}
-            <div style={{ display: "grid", gridTemplateColumns: "240px 1fr", gap: 14, alignItems: "flex-start" }}>
-                {/* Left Panel */}
-                <div style={{ display: "grid", gap: 14 }}>
-                    <SectionBuilder selected={selected} setSelected={setSelected} sections={SECTIONS} t={t} />
-                    <FilterPanel filters={filters} setFilters={setFilters} t={t} />
-                </div>
-                {/* Right Preview */}
-                <div className="card card-glass fade-up" style={{ padding: 24, minHeight: 500 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 16 }}>
-                        <div style={{ fontWeight: 700, fontSize: 12 }}>{t("reportBuilder.preview")}</div>
-                        <div style={{ fontSize: 10, color: "var(--text-3)" }}>{selected.length}{t("reportBuilder.sectionsSelected")}</div>
+            <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: 20, minHeight: '600px' }}>
+                {/* WIDGET LIBRARY SIDEBAR */}
+                <div style={{ background: 'var(--card-bg, #1e1e2e)', borderRadius: 12, padding: 16, border: '1px solid var(--border)' }}>
+                    <h3 style={{ fontSize: 14, fontWeight: 800, marginBottom: 16 }}>{t('super.rbLib')}</h3>
+                    <div style={{ fontSize: 11, color: '#888', marginBottom: 12 }}>{t('super.rbDragDesc')}</div>
+                    
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                        {WIDGETS.map(w => (
+                            <div 
+                                key={w.id} 
+                                draggable 
+                                onDragStart={(e) => handleDragStart(e, w)}
+                                style={{ 
+                                    padding: '12px 16px', 
+                                    background: 'rgba(255,255,255,0.03)', 
+                                    border: '1px solid rgba(255,255,255,0.1)', 
+                                    borderRadius: 8, 
+                                    cursor: 'grab',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 10,
+                                    transition: 'background 0.2s'
+                                }}
+                                onMouseOver={(e) => e.currentTarget.style.background = 'rgba(79,142,247,0.1)'}
+                                onMouseOut={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}
+                            >
+                                <div style={{ width: 12, height: 12, borderRadius: '50%', background: w.color || '#fff' }}></div>
+                                <div style={{ fontSize: 12, fontWeight: 700 }}>{w.title}</div>
+                            </div>
+                        ))}
                     </div>
-                    <PreviewPanel selected={selected} filters={filters} sections={SECTIONS} t={t} />
+                </div>
+
+                {/* DROP CANVAS */}
+                <div 
+                    onDragOver={handleDragOver}
+                    onDrop={handleDrop}
+                    style={{ 
+                        background: canvas.length > 0 ? 'transparent' : 'rgba(255,255,255,0.01)', 
+                        border: canvas.length > 0 ? 'none' : '2px dashed rgba(255,255,255,0.1)', 
+                        borderRadius: 16, 
+                        padding: 10,
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
+                        gridAutoRows: 'max-content',
+                        gap: 20,
+                        alignItems: 'start'
+                    }}
+                >
+                    {canvas.length === 0 && (
+                        <div style={{ gridColumn: '1 / -1', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.3)' }}>
+                            <div style={{ fontSize: 40, marginBottom: 10 }}>📥</div>
+                            <div style={{ fontSize: 16, fontWeight: 700 }}>{t('super.rbDropHere')}</div>
+                        </div>
+                    )}
+
+                    {canvas.map(widget => (
+                        <div key={widget.uid} style={{ background: 'var(--card-bg, #1e1e2e)', borderRadius: 12, border: '1px solid var(--border)', position: 'relative', animation: 'fadeIn 0.3s' }}>
+                            <div style={{ padding: '12px 16px', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <div style={{ fontSize: 13, fontWeight: 800 }}>{widget.title}</div>
+                                <button onClick={() => removeWidget(widget.uid)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: 16 }}>×</button>
+                            </div>
+                            <div style={{ padding: 16 }}>
+                                {renderWidget(widget)}
+                            </div>
+                        </div>
+                    ))}
                 </div>
             </div>
         </div>

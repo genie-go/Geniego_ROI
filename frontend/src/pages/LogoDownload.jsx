@@ -1,5 +1,6 @@
 import React from "react";
 
+import { useT } from '../i18n/index.js';
 const LOGOS = [
   {
     src: "/logo_v1.png",

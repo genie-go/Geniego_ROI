@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 
+import { useT } from '../i18n/index.js';
 /* ── By Role Persona Definition ── */
 const ROLES = [
     {

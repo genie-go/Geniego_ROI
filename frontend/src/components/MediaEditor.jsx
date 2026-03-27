@@ -1,5 +1,5 @@
+import { useI18n } from '../i18n/index.js';
 /**
- * MediaEditor – 이미지/동영상 업로드 + 텍스트 오버레이 편집기
  * 위치: 캠페인관리 > AI마케팅 추천 > 이미지 생성 > 내 이미지/동영상 편집 탭
  */
 import { useState, useRef, useCallback, useEffect } from 'react';

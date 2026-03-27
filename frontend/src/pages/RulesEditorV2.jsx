@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { getJson, postJson, putJson } from "../services/apiClient";
 
+import { useT } from '../i18n/index.js';
 // Simple HTML5 drag/drop mapping editor (no external deps)
 const INTERNAL_FIELDS = [
   "sku","title","description","brand","category","price","currency","stock",
@@ -41,6 +42,7 @@ function DropZone({ onDrop, children }) {
 }
 
 export default function RulesEditorV2(){
+  const t = useT();
   const [channel, setChannel] = useState("shopee");
   const [draftId, setDraftId] = useState(null);
   const [meta, setMeta] = useState(null);

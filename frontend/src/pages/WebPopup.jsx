@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useI18n } from "../i18n/index.js";
 import PlanGate from "../components/PlanGate.jsx";
 
+import { useT } from '../i18n/index.js';
 const API = import.meta.env.VITE_API_BASE || '';
 
 /* ─── Cookie helpers ─────────────────────────────────────────────────────── */

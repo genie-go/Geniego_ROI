@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useI18n } from "../i18n";
 import { getJsonAuth, postJsonAuth } from "../services/apiClient.js";
 
+import { useT } from '../i18n/index.js';
 const Card = ({ title, subtitle, children, right }) => (
   <div className="card glass">
     <div className="cardHeader">

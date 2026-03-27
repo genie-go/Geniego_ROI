@@ -3,6 +3,7 @@ import { useI18n } from "../i18n";
 import { getJsonAuth, postJson, postJsonAuth } from "../services/apiClient.js";
 import DataTable from "../components/DataTable.jsx";
 
+import { useT } from '../i18n/index.js';
 export default function Writeback() {
   const { t } = useI18n();
   const [channel, setChannel] = useState("shopify");

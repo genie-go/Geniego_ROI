@@ -7,10 +7,11 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import useDemo from "../hooks/useDemo";
 import { useGlobalData } from "../context/GlobalDataContext";
-import DemoBanner from "../components/DemoBanner";
+
 import PlanGate from "../components/PlanGate.jsx";
 import { useI18n } from "../i18n/index.js";
 
+import { useT } from '../i18n/index.js';
 const API = import.meta.env.VITE_API_BASE || "";
 const C = {
     bg: "#070f1a", surface: "#0d1829", card: "#111e30",
@@ -299,7 +300,7 @@ function AIPredictionInner() {
     const { t } = useI18n();
 
     const [activeTab, setActiveTab] = useState("customers");
-    const [customers, setCustomers] = useState([]);
+    const { crmCustomerHistory: customers } = useGlobalData();
     const [summary, setSummary] = useState({});
     const [modelMetrics, setModelMetrics] = useState(null);
     const [ltvSegments, setLtvSegments] = useState([]);
@@ -367,7 +368,7 @@ function AIPredictionInner() {
 
     return (
         <div style={{ background: C.bg, minHeight: "100%", color: C.text, position: "relative" }}>
-            {isDemo && <DemoBanner feature="AI Forecast Analysis" />}
+            
 
             {/* Header */}
             <div style={{ background: `linear-gradient(135deg,${C.surface},#0a1828)`, border: `1px solid ${C.border}`, borderRadius: 16, padding: "22px 28px", marginBottom: 20 }}>

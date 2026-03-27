@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useI18n } from '../i18n';
 
+import { useT } from '../i18n/index.js';
 const API = "/api";
 
 const NODE_COLORS = {
@@ -42,7 +43,7 @@ const MOCK_NODES = [
     { id: 3, node_type: "creative", node_id: "cre_summer25_a", label: "Summer25 A" },
     { id: 4, node_type: "creative", node_id: "cre_collab_b", label: "Collaboration B" },
     { id: 5, node_type: "sku", node_id: "WH-1000XM5", label: "노이즈캔슬링 Headset" },
-    { id: 6, node_type: "sku", node_id: "KB-MXM-RGB", label: "RGB 기계식 키보드" },
+    { id: 6, node_type: "sku", node_id: "KB-MXM-RGB", label: "세라마이딘(Ceramidin) 세라마이드 크림" },
     { id: 7, node_type: "order", node_id: "ORD-20260304-001", label: "" },
     { id: 8, node_type: "order", node_id: "ORD-20260304-002", label: "" },
 ];
@@ -87,6 +88,7 @@ async function apiFetch(path) {
 
 // ── Tab: Summary ──────────────────────────────────────────────────────────────
 function SummaryTab() {
+  const t = useT();
     const [data, setData] = useState(null);
     const [isMock, setIsMock] = useState(false);
 
@@ -134,9 +136,9 @@ function SummaryTab() {
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
                 {[
-                    { title: "🤝 Top 인플루언서", rows: data.top_influencers, maxW: maxInfW, type: "influencer" },
-                    { title: "🎬 Top 크리에이티브", rows: data.top_creatives, maxW: maxCreW, type: "creative" },
-                    { title: "📦 Top SKU (inbound)", rows: data.top_skus, maxW: maxSkuW, type: "sku" },
+                    { title: "🤝 {t('graphScore.topInfluencer')}", rows: data.top_influencers, maxW: maxInfW, type: "influencer" },
+                    { title: "🎬 {t('graphScore.topCreative')}", rows: data.top_creatives, maxW: maxCreW, type: "creative" },
+                    { title: "📦 {t('graphScore.topSku')}", rows: data.top_skus, maxW: maxSkuW, type: "sku" },
                 ].map(({ title, rows, maxW, type }) => (
                     <div key={type} className="card" style={{ borderTop: `2px solid ${NODE_COLORS[type]}` }}>
                         <div style={{ fontWeight: 700, fontSize: 12, marginBottom: 12, color: NODE_COLORS[type] }}>{title}</div>
@@ -159,6 +161,7 @@ function SummaryTab() {
 
 // ── Tab: Add Node / Edge ──────────────────────────────────────────────────────
 function AddDataTab({ onRefresh }) {
+  const t = useT();
     const [nf, setNf] = useState({ node_type: "influencer", node_id: "", label: "" });
     const [ef, setEf] = useState({ src_type: "influencer", src_id: "", dst_type: "creative", dst_id: "", edge_weight: "1.0", edge_label: "" });
     const [msg, setMsg] = useState("");
@@ -208,31 +211,31 @@ function AddDataTab({ onRefresh }) {
     return (
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
             <div className="card card-glass">
-                <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 12 }}>🔵 Node Register</div>
+                <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 12 }}>{t('graphScore.nodeReg')}</div>
                 <div style={{ display: "grid", gap: 10, marginBottom: 14 }}>
-                    <Sel label="Node Type" val={nf.node_type} setter={v => setNf(f => ({ ...f, node_type: v }))} />
-                    <Inp label="Node ID *" val={nf.node_id} setter={v => setNf(f => ({ ...f, node_id: v }))} ph="inf_123 / cre_abc / SKU-001" />
-                    <Inp label="라벨" val={nf.label} setter={v => setNf(f => ({ ...f, label: v }))} ph="표시 Name" />
+                    <Sel label={t('graphScore.nodeType')} val={nf.node_type} setter={v => setNf(f => ({ ...f, node_type: v }))} />
+                    <Inp label={t('graphScore.nodeId')} val={nf.node_id} setter={v => setNf(f => ({ ...f, node_id: v }))} ph="inf_123 / cre_abc / SKU-001" />
+                    <Inp label={t('graphScore.label')} val={nf.label} setter={v => setNf(f => ({ ...f, label: v }))} ph={t('graphScore.phLabel')} />
                 </div>
-                <button className="btn-primary" onClick={saveNode} disabled={!nf.node_id}>+ Node Register</button>
+                <button className="btn-primary" onClick={saveNode} disabled={!nf.node_id}>+ {t('graphScore.btnNodeReg')}</button>
             </div>
             <div className="card card-glass">
-                <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 12 }}>🔗 Edge Register (Connect)</div>
+                <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 12 }}>{t('graphScore.edgeReg')}</div>
                 <div style={{ display: "grid", gap: 10, marginBottom: 14 }}>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                        <Sel label="출발 Type" val={ef.src_type} setter={v => setEf(f => ({ ...f, src_type: v }))} />
-                        <Sel label="도착 Type" val={ef.dst_type} setter={v => setEf(f => ({ ...f, dst_type: v }))} />
+                        <Sel label={t('graphScore.srcType')} val={ef.src_type} setter={v => setEf(f => ({ ...f, src_type: v }))} />
+                        <Sel label={t('graphScore.dstType')} val={ef.dst_type} setter={v => setEf(f => ({ ...f, dst_type: v }))} />
                     </div>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                        <Inp label="출발 ID *" val={ef.src_id} setter={v => setEf(f => ({ ...f, src_id: v }))} ph="inf_123" />
-                        <Inp label="도착 ID *" val={ef.dst_id} setter={v => setEf(f => ({ ...f, dst_id: v }))} ph="cre_abc" />
+                        <Inp label={t('graphScore.srcId')} val={ef.src_id} setter={v => setEf(f => ({ ...f, src_id: v }))} ph="inf_123" />
+                        <Inp label={t('graphScore.dstId')} val={ef.dst_id} setter={v => setEf(f => ({ ...f, dst_id: v }))} ph="cre_abc" />
                     </div>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                        <Inp label="가in progress치 (Basic 1.0)" val={ef.edge_weight} setter={v => setEf(f => ({ ...f, edge_weight: v }))} ph="1.0" />
-                        <Inp label="라벨" val={ef.edge_label} setter={v => setEf(f => ({ ...f, edge_label: v }))} ph="promoted" />
+                        <Inp label={t('graphScore.edgeWeight')} val={ef.edge_weight} setter={v => setEf(f => ({ ...f, edge_weight: v }))} ph="1.0" />
+                        <Inp label={t('graphScore.label')} val={ef.edge_label} setter={v => setEf(f => ({ ...f, edge_label: v }))} ph="promoted" />
                     </div>
                 </div>
-                <button className="btn-primary" onClick={saveEdge} disabled={!ef.src_id || !ef.dst_id}>🔗 Connect Register</button>
+                <button className="btn-primary" onClick={saveEdge} disabled={!ef.src_id || !ef.dst_id}>🔗 {t('graphScore.btnEdgeReg')}</button>
             </div>
             {msg && (
                 <div style={{ gridColumn: "1/-1", padding: "8px 14px", background: "rgba(34,197,94,0.06)", border: "1px solid rgba(34,197,94,0.2)", borderRadius: 8, fontSize: 12, color: "#22c55e" }}>
@@ -257,6 +260,7 @@ const MOCK_INF_RESULT = {
 };
 
 function InfluencerScoreTab({ nodes }) {
+  const t = useT();
     const influencers = nodes.filter(n => n.node_type === "influencer");
     const [sel, setSel] = useState("");
     const [result, setResult] = useState(null);
@@ -289,7 +293,7 @@ function InfluencerScoreTab({ nodes }) {
             </div>
             {result && (
                 <div>
-                    {isMock && <div style={{ marginBottom: 10, padding: "5px 10px", background: "rgba(234,179,8,0.07)", border: "1px solid rgba(234,179,8,0.25)", borderRadius: 6, fontSize: 11, color: "#eab308" }}>🟡 MOCK 결과</div>}
+                    {isMock && <div style={{ marginBottom: 10, padding: "5px 10px", background: "rgba(234,179,8,0.07)", border: "1px solid rgba(234,179,8,0.25)", borderRadius: 6, fontSize: 11, color: "#eab308" }}>{t("graph.mockResult") || "🟡 MOCK 결과"}</div>}
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10, marginBottom: 16 }}>
                         {[
                             { label: "Graph Score", value: (result.graph_score * 100).toFixed(1) + "%", color: "#a855f7" },
@@ -302,12 +306,12 @@ function InfluencerScoreTab({ nodes }) {
                             </div>
                         ))}
                     </div>
-                    <div style={{ fontWeight: 700, fontSize: 12, marginBottom: 8 }}>🛤 기여 경로</div>
+                    <div style={{ fontWeight: 700, fontSize: 12, marginBottom: 8 }}>{t("graph.contribPath") || "🛤 기여 경로"}</div>
                     {result.paths?.length ? (
                         <table className="table">
                             <thead>
                                 <tr>
-                                    {["인플루언서", "크리에이티브", "SKU", "Orders", "경로 가in progress치"].map(h => <th key={h}>{h}</th>)}
+                                    {[t("graph.inf")||"인플루언서", t("graph.crt")||"크리에이티브", t("graph.sku")||"SKU", t("graph.ord")||"Orders", t("graph.pathW")||"경로 가중치"].map(h => <th key={h}>{h}</th>)}
                                 </tr>
                             </thead>
                             <tbody>
@@ -322,7 +326,7 @@ function InfluencerScoreTab({ nodes }) {
                                 ))}
                             </tbody>
                         </table>
-                    ) : <div className="sub" style={{ fontSize: 12 }}>Connect된 경로 None</div>}
+                    ) : <div className="sub" style={{ fontSize: 12 }}>{t("graph.noPath") || "Connect된 경로 None"}</div>}
                 </div>
             )}
         </div>
@@ -342,6 +346,7 @@ const MOCK_SKU_RESULT = {
 };
 
 function SkuScoreTab({ nodes }) {
+  const t = useT();
     const skus = nodes.filter(n => n.node_type === "sku");
     const [sel, setSel] = useState("");
     const [result, setResult] = useState(null);
@@ -373,10 +378,10 @@ function SkuScoreTab({ nodes }) {
             </div>
             {result && (
                 <div>
-                    {isMock && <div style={{ marginBottom: 10, padding: "5px 10px", background: "rgba(234,179,8,0.07)", border: "1px solid rgba(234,179,8,0.25)", borderRadius: 6, fontSize: 11, color: "#eab308" }}>🟡 MOCK 결과</div>}
+                    {isMock && <div style={{ marginBottom: 10, padding: "5px 10px", background: "rgba(234,179,8,0.07)", border: "1px solid rgba(234,179,8,0.25)", borderRadius: 6, fontSize: 11, color: "#eab308" }}>{t("graph.mockResult") || "🟡 MOCK 결과"}</div>}
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10, marginBottom: 16 }}>
                         <div className="kpi-card" style={{ borderLeft: "3px solid #06b6d4", "--accent": "#06b6d4" }}>
-                            <div className="kpi-label">기여 크리에이티브</div>
+                            <div className="kpi-label">{t("graph.contribCreative") || "기여 크리에이티브"}</div>
                             <div className="kpi-value" style={{ color: "#06b6d4", fontSize: 22 }}>{result.creatives_used}</div>
                         </div>
                         <div className="kpi-card" style={{ borderLeft: "3px solid #22c55e", "--accent": "#22c55e" }}>
@@ -384,11 +389,11 @@ function SkuScoreTab({ nodes }) {
                             <div className="kpi-value" style={{ color: "#22c55e", fontSize: 22 }}>{result.orders_linked}</div>
                         </div>
                         <div className="kpi-card" style={{ borderLeft: "3px solid #a855f7", "--accent": "#a855f7" }}>
-                            <div className="kpi-label">기여 인플루언서</div>
+                            <div className="kpi-label">{t("graph.contribInfluencer") || "기여 인플루언서"}</div>
                             <div className="kpi-value" style={{ color: "#a855f7", fontSize: 22 }}>{result.top_influencers?.length ?? 0}</div>
                         </div>
                     </div>
-                    <div style={{ fontWeight: 700, fontSize: 12, marginBottom: 8 }}>🏆 상위 기여 인플루언서</div>
+                    <div style={{ fontWeight: 700, fontSize: 12, marginBottom: 8 }}>{t("graph.topInfluencer") || "🏆 상위 기여 인플루언서"}</div>
                     {(result.top_influencers || []).map((inf, i) => (
                         <div key={i} className="stat-row">
                             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -413,6 +418,7 @@ function SkuScoreTab({ nodes }) {
 
 // ── Tab: Graph Browser ────────────────────────────────────────────────────────
 function GraphBrowserTab() {
+  const t = useT();
     const [edges, setEdges] = useState([]);
     const [filter, setFilter] = useState("");
     const [isMock, setIsMock] = useState(false);
@@ -435,7 +441,7 @@ function GraphBrowserTab() {
 
     return (
         <div>
-            {isMock && <div style={{ marginBottom: 10, padding: "5px 10px", background: "rgba(234,179,8,0.07)", border: "1px solid rgba(234,179,8,0.25)", borderRadius: 6, fontSize: 11, color: "#eab308" }}>🟡 MOCK 데이터</div>}
+            {isMock && <div style={{ marginBottom: 10, padding: "5px 10px", background: "rgba(234,179,8,0.07)", border: "1px solid rgba(234,179,8,0.25)", borderRadius: 6, fontSize: 11, color: "#eab308" }}>{t("graph.mockData") || "🟡 MOCK 데이터"}</div>}
             <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
                 <input className="input" placeholder="Node ID Filter" value={filter} onChange={e => setFilter(e.target.value)} style={{ flex: 1 }} />
                 <button className="btn" onClick={load}>↺ Refresh</button>
@@ -443,8 +449,8 @@ function GraphBrowserTab() {
             <table className="table">
                 <thead>
                     <tr>
-                        <th>출발 Node</th><th style={{ textAlign: "center" }}>→</th>
-                        <th>도착 Node</th><th style={{ textAlign: "right" }}>가in progress치</th><th>라벨</th>
+                        <th>{t("graph.sourceNode") || "출발 Node"}</th><th style={{ textAlign: "center" }}>→</th>
+                        <th>{t("graph.targetNode") || "도착 Node"}</th><th style={{ textAlign: "right" }}>{t("graph.weight") || "가중치"}</th><th>{t('graphScore.label')}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -465,21 +471,24 @@ function GraphBrowserTab() {
                     ))}
                 </tbody>
             </table>
-            {!filteredEdges.length && <div className="sub" style={{ padding: 24, textAlign: "center" }}>Edge None — 위 Tab에서 Node/Edge를 Register하세요</div>}
+            {!filteredEdges.length && <div className="sub" style={{ padding: 24, textAlign: "center" }}>{t("graph.noEdge") || "Edge None — 위 Tab에서 Node/Edge를 Register하세요"}</div>}
         </div>
     );
 }
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
-const TABS = [
-    { id: "summary", label: "📊 Summary" },
-    { id: "add", label: "➕ 데이터 Register" },
-    { id: "browser", label: "🕸 Graph 브라우저" },
-    { id: "influencer", label: "🤝 인플루언서 Score" },
-    { id: "sku", label: "📦 SKU Score" },
-];
+
 
 export default function GraphScore() {
+  const t = useT();
+    const TABS = [
+    { id: "summary", label: t('graphScore.tabSummary') },
+    { id: "add", label: t('graphScore.tabAdd') },
+    { id: "browser", label: t('graphScore.tabBrowser') },
+    { id: "influencer", label: t('graphScore.tabInfluencer') },
+    { id: "sku", label: t('graphScore.tabSku') },
+];
+
     const [tab, setTab] = useState("summary");
     const [nodes, setNodes] = useState(MOCK_NODES);
 
@@ -503,7 +512,7 @@ export default function GraphScore() {
                         <div className="hero-title" style={{ background: "linear-gradient(135deg,#a855f7,#06b6d4)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
                             Graph Scoring
                         </div>
-                        <div className="hero-desc">인플루언서 → 크리에이티브 → SKU → Orders Connect 그래Pro Channelper 기여도를 Analysis합니다</div>
+                        <div className="hero-desc">{t('graphScore.heroDesc')}</div>
                     </div>
                 </div>
                 {/* Legend */}
@@ -514,7 +523,7 @@ export default function GraphScore() {
                             <span style={{ color: "var(--text-2)" }}>{t}</span>
                         </div>
                     ))}
-                    <div style={{ color: "var(--text-3)", fontSize: 11 }}>· 가in progress치 = 기여 강도</div>
+                    <div style={{ color: "var(--text-3)", fontSize: 11 }}>· {t('graphScore.weight')}</div>
                 </div>
             </div>
 

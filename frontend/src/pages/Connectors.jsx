@@ -2,10 +2,9 @@ import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { useI18n } from '../i18n';
 import { useAuth } from "../auth/AuthContext";
 import useDemo from "../hooks/useDemo";
-import DemoBanner from "../components/DemoBanner";
-import { DEMO_CONNECTOR_STATE } from "../utils/DemoDataLayer";
 import { useNotification } from "../context/NotificationContext.jsx";
 
+import { useT } from '../i18n/index.js';
 /* ─── Platform Definitions ──────────────────────────────────────────────────── */
 const PLATFORMS = [
   {
@@ -93,7 +92,7 @@ const PLATFORMS = [
     authType: "apikey",
     scopes: ["order:read", "product:read", "settlement:read"],
     webhookEvents: ["order.new", "order.cancel", "delivery.update"],
-    tokenExpiry: "Unlimited (API Key + Secret)",
+    tokenExpiry: "Unlimited (API + Secret)",
     docsUrl: "https://openapi.11st.co.kr",
   },
   {
@@ -207,11 +206,12 @@ function PlatformIcon({ p, size = 36 }) {
 }
 
 function StatusPill({ status }) {
+  
   const cfg = {
-    connected: { label: "Connected", cls: "badge-green", dot: "dot-green" },
-    connecting: { label: "Connect in progress…", cls: "badge-blue", dot: "dot-blue" },
-    disconnected: { label: "Disconnected", cls: "badge", dot: "" },
-    error: { label: "Error", cls: "badge-red", dot: "dot-red" },
+    connected: { label: t('super.conStatConn') || "Connected", cls: "badge-green", dot: "dot-green" },
+    connecting: { label: t('super.conStatConnProg') || "Connect in progress…", cls: "badge-blue", dot: "dot-blue" },
+    disconnected: { label: t('super.conStatDiscon') || "Disconnected", cls: "badge", dot: "" },
+    error: { label: t('super.conStatErr') || "Error", cls: "badge-red", dot: "dot-red" },
   }[status] || { label: status, cls: "badge", dot: "" };
   return (
     <span className={`badge ${cfg.cls}`} style={{ fontSize: 10 }}>
@@ -222,17 +222,19 @@ function StatusPill({ status }) {
 }
 
 function CopyBtn({ text }) {
+  
   const [copied, setCopied] = useState(false);
   return (
     <button className="btn-ghost" style={{ fontSize: 10, padding: "3px 8px" }}
       onClick={() => { navigator.clipboard.writeText(text).catch(() => { }); setCopied(true); setTimeout(() => setCopied(false), 1500); }}>
-      {copied ? "✓ Copy됨" : "Copy"}
+      {copied ? (t('super.conCopied') || "✓ Copy됨") : (t('super.conCopy') || "Copy")}
     </button>
   );
 }
 
 /* ─── OAuth Flow Simulator ────────────────────────────────────────────────────── */
 function OAuthFlow({ p, state, onUpdate }) {
+  
   const [step, setStep] = useState(0); // 0=idle 1=redirect 2=callback 3=done
   const [selScopes, setSelScopes] = useState(new Set(p.scopes));
   const [busy, setBusy] = useState(false);
@@ -282,7 +284,7 @@ function OAuthFlow({ p, state, onUpdate }) {
       {/* Scope selector */}
       {state.status !== "connected" && (
         <div style={{ marginBottom: 16 }}>
-          <div style={{ fontSize: 11, color: "var(--text-3)", fontWeight: 700, marginBottom: 8 }}>Permission 범위 Select</div>
+          <div style={{ fontSize: 11, color: "var(--text-3)", fontWeight: 700, marginBottom: 8 }}>{t('super.conLabelPermSel') || "Select Permission"}</div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
             {p.scopes.map(s => {
               const on = selScopes.has(s);
@@ -378,33 +380,34 @@ function OAuthFlow({ p, state, onUpdate }) {
 
       {/* Action buttons */}
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-        {state.status !== "connected" ? (
-          <button className="btn-primary" style={{ background: `linear-gradient(135deg,${p.color},${p.color}cc)`, boxShadow: `0 4px 16px ${p.color}33` }}
-            onClick={startOAuth} disabled={busy || selScopes.size === 0}>
-            {busy ? "⏳ Auth in progress…" : `🔗 OAuth Connect Start`}
+      {state.status !== "connected" ? (
+        <button className="btn-primary" style={{ background: `linear-gradient(135deg,${p.color},${p.color}cc)`, boxShadow: `0 4px 16px ${p.color}33` }}
+          onClick={startOAuth} disabled={busy || selScopes.size === 0}>
+          {busy ? "⏳ Auth in progress…" : t('super.conAuthStart')}
+        </button>
+      ) : (
+        <>
+          <button className="btn-primary" style={{ background: "linear-gradient(135deg,#22c55e,#14d9b0)" }}
+            onClick={refreshToken} disabled={busy}>
+            {busy ? "⏳" : t('super.conRefresh')}
           </button>
-        ) : (
-          <>
-            <button className="btn-primary" style={{ background: "linear-gradient(135deg,#22c55e,#14d9b0)" }}
-              onClick={refreshToken} disabled={busy}>
-              {busy ? "⏳" : "🔄 Token 갱신"}
-            </button>
             <button className="btn-ghost" style={{ borderColor: "rgba(239,68,68,0.3)", color: "#ef4444" }}
               onClick={disconnect}>
-              Connect Disconnect
+              {t('super.conDisconnect')}
             </button>
           </>
         )}
         <a href={p.docsUrl} target="_blank" rel="noopener noreferrer" className="btn-ghost" style={{ fontSize: 11 }}>
-          📖 API Docs
+          📖 {t('super.conApiDocs')}
         </a>
       </div>
     </div>
   );
 }
 
-/* ─── API Key Flow ──────────────────────────────────────────────────────────── */
+/* ─── API Flow ──────────────────────────────────────────────────────────── */
 function ApiKeyFlow({ p, state, onUpdate }) {
+  
   const [key, setKey] = useState(state.apiKey || "");
   const [secret, setSecret] = useState(state.apiSecret || "");
   const [busy, setBusy] = useState(false);
@@ -437,23 +440,23 @@ function ApiKeyFlow({ p, state, onUpdate }) {
       {state.status !== "connected" && (
         <div style={{ display: "grid", gap: 10, marginBottom: 14 }}>
           <div>
-            <label className="input-label">API Key *</label>
+            <label className="input-label">{t('super.conInputApiKey') || "API *"}</label>
             <div style={{ display: "flex", gap: 6 }}>
               <input className="input" type={show ? "text" : "password"} value={key}
-                onChange={e => setKey(e.target.value)} placeholder={`${p.name} API Key`} style={{ flex: 1 }} />
+                onChange={e => setKey(e.target.value)} placeholder={`${p.name} API`} style={{ flex: 1 }} />
               <button className="btn-ghost" style={{ fontSize: 11, padding: "6px 10px" }}
                 onClick={() => setShow(v => !v)}>{show ? "숨김" : "표시"}</button>
             </div>
           </div>
           {secret !== undefined && (
             <div>
-              <label className="input-label">Secret / Client Secret</label>
+              <label className="input-label">{t('super.conApiSecretStr')}</label>
               <input className="input" type={show ? "text" : "password"} value={secret}
                 onChange={e => setSecret(e.target.value)} placeholder="Select 사항 (HMAC Signature용)" />
             </div>
           )}
           <div style={{ padding: "8px 12px", background: "rgba(234,179,8,0.06)", border: "1px solid rgba(234,179,8,0.2)", borderRadius: 8, fontSize: 11, color: "#eab308" }}>
-            ⚠ API Key는 브라우저 세션에만 Temporary Save됩니다. Pro덕션에서는 KMS/Vault secrets_ref를 사용하세요.
+            ⚠ API는 브라우저 세션에만 Temporary Save됩니다. Pro덕션에서는 KMS/Vault secrets_ref를 사용하세요.
           </div>
         </div>
       )}
@@ -462,7 +465,7 @@ function ApiKeyFlow({ p, state, onUpdate }) {
         <div style={{ display: "grid", gap: 10, marginBottom: 14 }}>
           <div style={{ padding: "12px 14px", background: "rgba(34,197,94,0.06)", border: "1px solid rgba(34,197,94,0.2)", borderRadius: 10 }}>
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-              <div style={{ fontSize: 11, color: "#22c55e", fontWeight: 700 }}>✓ API Key Connected</div>
+              <div style={{ fontSize: 11, color: "#22c55e", fontWeight: 700 }}>✓ API Connected</div>
               <CopyBtn text={state.apiKey} />
             </div>
             <div style={{ fontFamily: "monospace", fontSize: 10, color: "var(--text-2)" }}>
@@ -487,14 +490,14 @@ function ApiKeyFlow({ p, state, onUpdate }) {
         {state.status !== "connected" ? (
           <button className="btn-primary" style={{ background: `linear-gradient(135deg,${p.color},${p.color}cc)` }}
             onClick={connect} disabled={busy || !key}>
-            {busy ? "⏳ Confirm in progress…" : "🔑 API Key Connect"}
+            {busy ? "⏳ Confirm in progress…" : t('super.conApiConn')}
           </button>
         ) : (
           <button className="btn-ghost" style={{ borderColor: "rgba(239,68,68,0.3)", color: "#ef4444" }}
-            onClick={disconnect}>Connect Disconnect</button>
+            onClick={disconnect}>{t('super.conDisconnect')}</button>
         )}
         <a href={p.docsUrl} target="_blank" rel="noopener noreferrer" className="btn-ghost" style={{ fontSize: 11 }}>
-          📖 API Docs
+          📖 {t('super.conApiDocs')}
         </a>
       </div>
     </div>
@@ -503,6 +506,7 @@ function ApiKeyFlow({ p, state, onUpdate }) {
 
 /* ─── Webhook Config ────────────────────────────────────────────────────────── */
 function WebhookConfig({ p, state, onUpdate }) {
+  
   const [selEvents, setSelEvents] = useState(new Set(state.webhookEvents || []));
   const [testBusy, setTestBusy] = useState(false);
   const [testResult, setTestResult] = useState(null);
@@ -578,7 +582,7 @@ function WebhookConfig({ p, state, onUpdate }) {
       <div>
         <button className="btn-primary" style={{ fontSize: 11, padding: "7px 16px", background: "linear-gradient(135deg,#a855f7,#6366f1)" }}
           onClick={sendTest} disabled={testBusy || state.status !== "connected"}>
-          {testBusy ? "⏳ 전송 in progress…" : "🧪 Test Event 전송"}
+          {testBusy ? "⏳ 전송 in progress…" : t('super.conTestSend')}
         </button>
         {state.status !== "connected" && (
           <span style={{ marginLeft: 10, fontSize: 11, color: "var(--text-3)" }}>먼저 Account을 Connect하세요</span>
@@ -602,6 +606,7 @@ function WebhookConfig({ p, state, onUpdate }) {
 
 /* ─── Platform Card ─────────────────────────────────────────────────────────── */
 function PlatformCard({ p, state, onUpdate }) {
+  
   const [tab, setTab] = useState("auth"); // auth | webhook
 
   return (
@@ -614,7 +619,7 @@ function PlatformCard({ p, state, onUpdate }) {
             <div>
               <div style={{ fontWeight: 700, fontSize: 13, color: "var(--text-1)" }}>{p.name}</div>
               <div style={{ fontSize: 10, color: "var(--text-3)", marginTop: 2 }}>
-                {p.authType === "oauth" ? "🔐 OAuth 2.0" : "🔑 API Key"} · {p.tokenExpiry}
+                {p.authType === "oauth" ? "🔐 OAuth 2.0" : "🔑 API"} · {p.tokenExpiry}
               </div>
             </div>
             <StatusPill status={state.status} />
@@ -624,8 +629,8 @@ function PlatformCard({ p, state, onUpdate }) {
 
       {/* Tabs */}
       <div className="tabs" style={{ marginBottom: 16 }}>
-        <button className={`tab ${tab === "auth" ? "active" : ""}`} onClick={() => setTab("auth")}>🔐 Account Connect</button>
-        <button className={`tab ${tab === "webhook" ? "active" : ""}`} onClick={() => setTab("webhook")}>🎣 Webhook Settings</button>
+        <button className={`tab ${tab === "auth" ? "active" : ""}`} onClick={() => setTab("auth")}>{t('super.conBtnAcctConn') || "🔐 {t('super.conActConn')}"}</button>
+        <button className={`tab ${tab === "webhook" ? "active" : ""}`} onClick={() => setTab("webhook")}>{t('super.conBtnWhSettings') || "🎣 {t('super.conActWh')}"}</button>
       </div>
 
       {tab === "auth" && (p.authType === "oauth"
@@ -639,6 +644,7 @@ function PlatformCard({ p, state, onUpdate }) {
 
 /* ─── Webhook Live Feed ─────────────────────────────────────────────────────── */
 function WebhookFeed({ connState }) {
+  
   const [events, setEvents] = useState(WEBHOOK_FEED_MOCK);
   const [filterPlatform, setFilterPlatform] = useState("all");
   const [selectedEvent, setSelectedEvent] = useState(null);
@@ -670,14 +676,14 @@ function WebhookFeed({ connState }) {
     <div className="card card-glass">
       <div className="section-header">
         <div>
-          <div className="section-title">🎣 Webhook Event Count신 현황</div>
-          <div className="section-sub">실Hour Count신 로그 (Latest 20건)</div>
+          <div className="section-title">{t('super.conEventFeed')}</div>
+          <div className="section-sub">{t('super.conRealtime')}</div>
         </div>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
           <span className="badge badge-green"><span className="dot dot-green" /> Live</span>
           <select className="input" style={{ width: 130, padding: "5px 8px", fontSize: 11 }}
             value={filterPlatform} onChange={e => setFilterPlatform(e.target.value)}>
-            <option value="all">All Platform</option>
+            <option value="all">{t("super.conAllPlat")}</option>
             {PLATFORMS.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
           </select>
         </div>
@@ -932,7 +938,7 @@ function DataWarehouseSection() {
       {/* 안내 Banner */}
       <div style={{ padding: "14px 18px", borderRadius: 14, background: "linear-gradient(135deg,rgba(66,133,244,0.08),rgba(41,181,232,0.06))", border: "1px solid rgba(66,133,244,0.25)" }}>
         <div style={{ fontWeight: 900, fontSize: 14, marginBottom: 6, background: "linear-gradient(135deg,#4285f4,#29b5e8)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-          🔷 Data Warehouse — Analysis 데이터 Auto Sync
+          {t('super.conTabDw')} — Analysis 데이터 Auto Sync
         </div>
         <div style={{ fontSize: 12, color: "var(--text-2)", lineHeight: 1.7 }}>
           BigQuery · Snowflake · Redshift · Databricks에 Marketing Performance, 어트리뷰션, Orders/정산 데이터를 실Hour으로 Sync합니다.<br/>
@@ -977,7 +983,9 @@ function DataWarehouseSection() {
 
 /* ─── Main Page ─────────────────────────────────────────────────────────────── */
 export default function Connectors() {
+  const t = useT();
 
+  
   const [mainTab, setMainTab] = useState("platforms"); // platforms | dw
   const { token } = useAuth();
 
@@ -1072,18 +1080,17 @@ export default function Connectors() {
   return (
     <div style={{ display: "grid", gap: 16 }}>
       {/* Demo Banner */}
-      {isDemo && <DemoBanner feature="Connectors Connect Status" />}
-
+      
       {/* Hero */}
       <div className="hero fade-up">
         <div className="hero-meta">
           <div className="hero-icon" style={{ background: "linear-gradient(135deg,rgba(79,142,247,0.25),rgba(168,85,247,0.15))" }}>🔌</div>
           <div>
             <div className="hero-title" style={{ background: "linear-gradient(135deg,#4f8ef7,#a855f7)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-              Connectors &amp; Integrations
+              {t('super.conHeroTitle') || "Connectors & Integrations"}
             </div>
             <div className="hero-desc">
-              Account Connect(OAuth 2.0 / API Key), Permission 범위 Management, Token Auto 갱신, Webhook Event Count신을 한 Screen에서 Management합니다.
+              {t('super.conHeroDesc') || "{t('super.conActConn')}(OAuth 2.0 / API), Permission 범위 Management, Token Auto 갱신, Webhook Event Count신을 한 Screen에서 Management합니다."}
               {isDemo && <span style={{ marginLeft: 8, fontSize: 11, color: "#eab308" }}>* Demo: 가상 Connect Status입니다</span>}
             </div>
           </div>
@@ -1093,10 +1100,10 @@ export default function Connectors() {
       {/* KPIs */}
       <div className="grid4 fade-up fade-up-1">
         {[
-          { l: "All Platform", v: stats.total, c: "#4f8ef7" },
-          { l: "Connected", v: stats.connected, c: "#22c55e" },
-          { l: "OAuth 2.0", v: stats.oauth, c: "#a855f7" },
-          { l: "API Key", v: stats.apikey, c: "#eab308" },
+          { l: t('super.conKpiAll') || "{t('super.conKpiAll')}", v: stats.total, c: "#4f8ef7" },
+          { l: t('super.conKpiConnected') || "{t('super.conKpiConn')}", v: stats.connected, c: "#22c55e" },
+          { l: t('super.conKpiOauth') || "{t('super.conKpiOauth')}", v: stats.oauth, c: "#a855f7" },
+          { l: t('super.conKpiApi') || "{t('super.conKpiApi')}", v: stats.apikey, c: "#eab308" },
         ].map(({ l, v, c }, i) => (
           <div key={l} className="kpi-card card-hover fade-up" style={{ "--accent": c, animationDelay: `${i * 60}ms` }}>
             <div className="kpi-label">{l}</div>
@@ -1109,17 +1116,17 @@ export default function Connectors() {
       <div className="card card-glass fade-up fade-up-2">
         <div className="section-header" style={{ marginBottom: 0 }}>
           <div className="tabs">
-            <button className={`tab ${mainTab === "platforms" ? "active" : ""}`} onClick={() => setMainTab("platforms")}>🔌 Platform Connect</button>
-            <button className={`tab ${mainTab === "dw" ? "active" : ""}`} onClick={() => setMainTab("dw")}>🔷 Data Warehouse <span style={{ fontSize: 9, padding: "1px 6px", borderRadius: 10, background: "rgba(66,133,244,0.2)", color: "#4285f4", marginLeft: 4, fontWeight: 900 }}>NEW</span></button>
+            <button className={`tab ${mainTab === "platforms" ? "active" : ""}`} onClick={() => setMainTab("platforms")}>{t('super.conTabPlatform') || "{t('super.conTabPlat')}"}</button>
+            <button className={`tab ${mainTab === "dw" ? "active" : ""}`} onClick={() => setMainTab("dw")}>{t('super.conTabDw') || "{t('super.conTabDw')}"} <span style={{ fontSize: 9, padding: "1px 6px", borderRadius: 10, background: "rgba(66,133,244,0.2)", color: "#4285f4", marginLeft: 4, fontWeight: 900 }}>NEW</span></button>
           </div>
           {mainTab === "platforms" && (
             <div className="tabs">
               {[
-                { k: "all", l: "All" },
-                { k: "connected", l: `✓ Connected (${stats.connected})` },
-                { k: "disconnected", l: "Disconnected" },
-                { k: "oauth", l: "OAuth" },
-                { k: "apikey", l: "API Key" },
+                { k: "all", l: t('super.conFltAllBase') || "All" },
+                { k: "connected", l: `✓ ${(t('super.conKpiConnected') || "Connected")} (${stats.connected})` },
+                { k: "disconnected", l: t('super.conFltDiscon') || "Disconnected" },
+                { k: "oauth", l: t('super.conFltOauth') || "OAuth" },
+                { k: "apikey", l: t('super.conFltApi') || "API" },
               ].map(({ k, l }) => (
                 <button key={k} className={`tab ${activeFilter === k ? "active" : ""}`}
                   onClick={() => setActiveFilter(k)}>{l}</button>

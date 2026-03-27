@@ -2,6 +2,7 @@ import React from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 export default function PaymentFail() {
+  const t = useT();
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
     const message = searchParams.get("message") || "Payment was cancelled or an error occurred.";
@@ -26,3 +27,6 @@ export default function PaymentFail() {
         </div>
     );
 }
+
+import { useI18n } from '../i18n/index.js';
+import { useT } from '../i18n/index.js';

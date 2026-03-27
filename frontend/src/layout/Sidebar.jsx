@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useMemo, useState, useEffect, useCallback } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useT } from "../i18n/index.js";
 import { useAuth } from "../auth/AuthContext.jsx";
@@ -111,143 +111,89 @@ const ADMIN_ONLY_MENU_KEYS = new Set([
 
 /* ─── 회원용 메뉴 (Free/유료 회원 공통) ────────────────────────────────────── */
 const MEMBER_MENU = [
-
   /* ① 홈 */
   {
-    key: "home",
-    icon: "⬡",
-    labelKey: "gNav.home",
+    key: "home", icon: "⬡", labelKey: "gNav.home",
     items: [
       { to: "/dashboard",  icon: "⬡",   labelKey: "gNav.dashboard",    menuKey: "home||dashboard" },
       { to: "/rollup",     icon: "🗂️",  labelKey: "gNav.rollup",        menuKey: "home||rollup" },
     ],
   },
-
-  /* ② AI 마케팅 자동화 */
+  /* ② AI 전략 & 캠페인 */
   {
-    key: "ai_marketing",
-    icon: "🚀",
-    labelKey: "gNav.aiMarketing",
+    key: "ai_marketing", icon: "🚀", labelKey: "gNav.aiMarketing",
     items: [
-      { to: "/auto-marketing",    icon: "🚀", labelKey: "gNav.autoMarketing",    menuKey: "ai_marketing||auto_marketing" },
-      { to: "/ai-marketing-hub",  icon: "🤖", labelKey: "gNav.aiMarketingHub",  menuKey: "ai_marketing||ai_marketing_hub" },
-      { to: "/campaign-manager",  icon: "🎯", labelKey: "gNav.campaignManager",  menuKey: "ai_marketing||campaign_manager" },
-      { to: "/journey-builder",   icon: "🗺️", labelKey: "gNav.journeyBuilder",   menuKey: "ai_marketing||journey_builder" },
-      { to: "/ai-prediction",     icon: "🔮", labelKey: "gNav.aiPrediction",     menuKey: "ai_marketing||ai_prediction" },
-      { to: "/ai-recommend",      icon: "💡", labelKey: "gNav.aiRecommend",      menuKey: "ai_marketing||ai_recommend" },
-      { to: "/content-calendar",  icon: "📆", labelKey: "gNav.contentCalendar",  menuKey: "ai_marketing||content_calendar" },
-      { to: "/budget-planner",    icon: "💰", labelKey: "gNav.budgetPlanner",    menuKey: "ai_marketing||budget_planner" },
+      { to: "/auto-marketing",    icon: "🚀", labelKey: "gNav.autoMarketing",    menuKey: "marketing" },
+      { to: "/campaign-manager",  icon: "🎯", labelKey: "gNav.campaignManager",  menuKey: "marketing" },
+      { to: "/journey-builder",   icon: "🗺️", labelKey: "gNav.journeyBuilder",   menuKey: "marketing" },
+      { to: "/ai-recommend",      icon: "💡", labelKey: "gNav.aiRecommend",      menuKey: "marketing" },
     ],
   },
-
-  /* ③ 광고·Channel Analysis (DigitalShelf·AmazonRisk 포함 — Channel Analysis 섹션이 올바른 위치) */
+  /* ③ 광고 성과 분석 */
   {
-    key: "ad_analytics",
-    icon: "📣",
-    labelKey: "gNav.adAnalytics",
+    key: "ad_analytics", icon: "📣", labelKey: "gNav.adAnalytics",
     items: [
-      { to: "/marketing",               icon: "📣", labelKey: "gNav.adPerformance",      menuKey: "ad_analytics||ad_performance" },
-      { to: "/account-performance",      icon: "🏢", labelKey: "gNav.accountPerformance", menuKey: "ad_analytics||account_performance" },
-      { to: "/attribution",              icon: "🔗", labelKey: "gNav.attribution",        menuKey: "ad_analytics||attribution_ana" },
-      { to: "/channel-kpi",              icon: "📊", labelKey: "gNav.channelKpi",         menuKey: "ad_analytics||channel_kpi" },
-      { to: "/marketing-intelligence",   icon: "🧠", labelKey: "gNav.marketingIntel",     menuKey: "ad_analytics||marketing_intelligence" },
-      { to: "/graph-score",              icon: "🕸️", labelKey: "gNav.graphScore",         menuKey: "ad_analytics||graph_score" },
-      { to: "/influencer",               icon: "🤝", labelKey: "gNav.influencer",         menuKey: "ad_analytics||influencer_mgmt" },
-      { to: "/reviews-ugc",              icon: "⭐", labelKey: "gNav.reviewsUgc",         menuKey: "ad_analytics||reviews_ugc" },
-      { to: "/digital-shelf",            icon: "🛍",  labelKey: "gNav.digitalShelf",      menuKey: "ad_analytics||digital_shelf" },
-      { to: "/amazon-risk",              icon: "🏪", labelKey: "gNav.amazonRisk",         menuKey: "ad_analytics||amazon_risk" },
+      { to: "/marketing",               icon: "📣", labelKey: "gNav.adPerformance",      menuKey: "marketing" },
+      { to: "/budget-tracker", icon: "💰", labelKey: "gNav.budgetTracker", menuKey: "marketing" },
+      { to: "/account-performance",      icon: "🏢", labelKey: "gNav.accountPerformance", menuKey: "marketing" },
+      { to: "/attribution",              icon: "🔗", labelKey: "gNav.attribution",        menuKey: "marketing" },
+      { to: "/channel-kpi",              icon: "📊", labelKey: "gNav.channelKpi",         menuKey: "marketing" },
+      { to: "/graph-score",              icon: "🕸️", labelKey: "gNav.graphScore",         menuKey: "marketing" },
     ],
   },
-
-  /* ④ 고객·CRM */
+  /* ④ 고객 & 채널 (CRM/UGC 통합) */
   {
-    key: "crm",
-    icon: "👤",
-    labelKey: "gNav.crm",
+    key: "crm", icon: "👤", labelKey: "gNav.crm",
     items: [
-      { to: "/crm",            icon: "👥", labelKey: "gNav.crmMain",        menuKey: "crm||crm_main" },
-      { to: "/email-marketing",icon: "✉️", labelKey: "gNav.emailMarketing", menuKey: "crm||email_marketing" },
-      { to: "/kakao-channel",  icon: "💬", labelKey: "gNav.kakaoChannel",   menuKey: "crm||kakao_channel" },
-      { to: "/whatsapp",       icon: "🟢", labelKey: "gNav.whatsapp",       menuKey: "crm||whatsapp" },
-      { to: "/sms-marketing",  icon: "📱", labelKey: "gNav.smsMarketing",   menuKey: "crm||sms_marketing" },
-      { to: "/instagram-dm",   icon: "📸", labelKey: "gNav.instagramDm",    menuKey: "crm||instagram_dm" },
-      { to: "/line-channel",   icon: "💚", labelKey: "gNav.lineChannel",    menuKey: "crm||line_channel" },
-      { to: "/web-popup",      icon: "🎯", labelKey: "gNav.webPopup",       menuKey: "crm||web_popup" },
+      { to: "/crm",            icon: "👥", labelKey: "gNav.crmMain",        menuKey: "marketing" },
+      { to: "/kakao-channel",  icon: "💬", labelKey: "gNav.kakaoChannel",   menuKey: "marketing" },
+      { to: "/email-marketing",icon: "✉️", labelKey: "gNav.emailMarketing", menuKey: "marketing" },
+      { to: "/influencer",     icon: "🤝", labelKey: "gNav.influencer",     menuKey: "marketing" },
+      { to: "/reviews-ugc",    icon: "⭐", labelKey: "gNav.reviewsUgc",     menuKey: "marketing" },
+      { to: "/web-popup",      icon: "🎯", labelKey: "gNav.webPopup",       menuKey: "marketing" },
     ],
   },
-
-  /* ⑤ 커머스·물류 — 11개 항목 (DigitalShelf·AmazonRisk는 광고·ChannelAnalysis으로 이동) */
+  /* ⑤ 커머스 & 물류 */
   {
-    key: "commerce",
-    icon: "🛒",
-    labelKey: "gNav.commerce",
+    key: "commerce", icon: "🛒", labelKey: "gNav.commerce",
     items: [
-      { to: "/omni-channel",    icon: "🌐", labelKey: "gNav.omniChannel",      menuKey: "commerce||omni_channel" },
-      { to: "/catalog-sync",    icon: "📂", labelKey: "gNav.catalog",          menuKey: "commerce||catalog_sync" },
-      { to: "/order-hub",       icon: "📦", labelKey: "gNav.orderHub",         menuKey: "commerce||order_hub" },
-      { to: "/kr-channel",      icon: "🇰🇷", labelKey: "gNav.krChannel",        menuKey: "commerce||kr_channel" },
-      { to: "/wms-manager",     icon: "🏭", labelKey: "gNav.wms",              menuKey: "commerce||wms_manager" },
-      { to: "/price-opt",       icon: "💡", labelKey: "gNav.priceOpt",         menuKey: "commerce||price_opt" },
-      { to: "/demand-forecast", icon: "🤖", labelKey: "gNav.demandForecast",   menuKey: "commerce||demand_forecast" },
-      { to: "/asia-logistics",  icon: "🌏", labelKey: "gNav.asiaLogistics",    menuKey: "commerce||asia_logistics" },
-      { to: "/returns-portal",  icon: "🔄", labelKey: "gNav.returnsPortal",    menuKey: "commerce||returns_portal" },
-      { to: "/supply-chain",    icon: "🔭", labelKey: "gNav.supplyChain",      menuKey: "commerce||supply_chain" },
-      { to: "/supplier-portal", icon: "🏭", labelKey: "gNav.supplierPortal",   menuKey: "commerce||supplier_portal" },
+      { to: "/omni-channel",    icon: "🌐", labelKey: "gNav.omniChannel",      menuKey: "ops" },
+      { to: "/catalog-sync",    icon: "📂", labelKey: "gNav.catalog",          menuKey: "ops" },
+      { to: "/order-hub",       icon: "📦", labelKey: "gNav.orderHub",         menuKey: "ops" },
+      { to: "/wms-manager",     icon: "🏭", labelKey: "gNav.wms",              menuKey: "ops" },
+      { to: "/price-opt",       icon: "💡", labelKey: "gNav.priceOpt",         menuKey: "ops" },
+      { to: "/supply-chain",    icon: "🔭", labelKey: "gNav.supplyChain",      menuKey: "ops" },
+      { to: "/returns-portal",  icon: "🔄", labelKey: "gNav.returnsPortal",    menuKey: "ops" },
     ],
   },
-
-  /* ⑥ Analysis·성과 */
+  /* ⑥ 인사이트 & 리포트 */
   {
-    key: "analytics",
-    icon: "📊",
-    labelKey: "gNav.analytics",
+    key: "analytics", icon: "📊", labelKey: "gNav.analytics",
     items: [
       { to: "/performance",    icon: "📊", labelKey: "gNav.performanceHub", menuKey: "analytics||performance_hub" },
+      { to: "/report-builder", icon: "📋", labelKey: "gNav.reportBuilder", menuKey: "analytics||report_builder" },
       { to: "/pnl",            icon: "🌊", labelKey: "gNav.pnl",           menuKey: "analytics||pnl_analytics" },
       { to: "/ai-insights",    icon: "🤖", labelKey: "gNav.aiInsights",    menuKey: "analytics||ai_insights" },
-      { to: "/report-builder", icon: "📋", labelKey: "gNav.reportBuilder", menuKey: "analytics||report_builder" },
       { to: "/data-product",   icon: "🗂️", labelKey: "gNav.dataProduct",   menuKey: "analytics||data_product" },
     ],
   },
-
-  /* ⑦ 정산·재무 */
+  /* ⑦ 자동화 시스템 & 알람 (통합) */
   {
-    key: "finance",
-    icon: "💳",
-    labelKey: "gNav.finance",
-    items: [
-      { to: "/reconciliation", icon: "💰", labelKey: "gNav.reconciliation", menuKey: "finance||reconciliation" },
-      { to: "/settlements",    icon: "📋", labelKey: "gNav.settlements",    menuKey: "finance||settlements" },
-      { to: "/app-pricing",    icon: "💳", labelKey: "gNav.pricing",        menuKey: "finance||app_pricing" },
-      { to: "/my-coupons",     icon: "🎟", labelKey: "gNav.myCoupons",      menuKey: "finance||my_coupons" },
-      { to: "/audit",          icon: "🧾", labelKey: "gNav.auditLog",       menuKey: "finance||audit" },
-    ],
-  },
-
-  /* ⑧ 자동화·AI */
-  {
-    key: "automation",
-    icon: "🤖",
-    labelKey: "gNav.automation",
+    key: "automation", icon: "🤖", labelKey: "gNav.automation",
     items: [
       { to: "/ai-rule-engine",    icon: "🧠", labelKey: "gNav.aiRuleEngine",    menuKey: "automation||ai_rule_engine" },
-      { to: "/alert-policies",    icon: "🚨", labelKey: "gNav.alertPolicies",   menuKey: "automation||alert_policies" },
+      { to: "/alert-automation",  icon: "🔔", labelKey: "gNav.alertAutomation", menuKey: "marketing" },
       { to: "/ai-policy",         icon: "🤖", labelKey: "gNav.aiPolicy",        menuKey: "automation||ai_policy" },
       { to: "/approvals",         icon: "✅", labelKey: "gNav.approvals",       menuKey: "automation||approvals" },
-      { to: "/action-presets",    icon: "⚡", labelKey: "gNav.actionPresets",   menuKey: "automation||action_presets" },
       { to: "/writeback",         icon: "↩",  labelKey: "gNav.writeback",       menuKey: "automation||writeback" },
       { to: "/onboarding",        icon: "🗺️", labelKey: "gNav.onboarding",      menuKey: "automation||onboarding" },
     ],
   },
-
-  /* ⑨ 데이터·Integration (smart-connect 제거 — /api-keys?tab=smart redirect이므로 불필요) */
+  /* ⑧ 데이터 & 연동 (통합) */
   {
-    key: "data",
-    icon: "🔌",
-    labelKey: "gNav.data",
+    key: "data", icon: "🔌", labelKey: "gNav.data",
     items: [
-      { to: "/connectors",       icon: "🔌", labelKey: "gNav.connectors",     menuKey: "data||connectors" },
-      { to: "/event-norm",       icon: "🔄", labelKey: "gNav.eventNorm",      menuKey: "data||event_norm" },
+      { to: "/integration-hub",  icon: "🔗", labelKey: "gNav.integrationHub", menuKey: "data||integration_hub" },
       { to: "/data-schema",      icon: "📋", labelKey: "gNav.dataSchema",     menuKey: "data||data_schema" },
       { to: "/api-keys",         icon: "🔑", labelKey: "gNav.apiKeys",        menuKey: "data||api_keys" },
       { to: "/pixel-tracking",   icon: "🎯", labelKey: "gNav.pixelTracking",  menuKey: "data||pixel_tracking" },
@@ -255,12 +201,19 @@ const MEMBER_MENU = [
       { to: "/mapping-registry", icon: "🗂️", labelKey: "gNav.mappingRegistry",menuKey: "data||mapping_registry" },
     ],
   },
-
-  /* ⑩ 내 팀·Help (회원 전용 하단 메뉴 — system-monitor는 ADMIN_MENU에만 유지) */
+  /* ⑨ 재무 & 정산 */
   {
-    key: "member_tools",
-    icon: "👥",
-    labelKey: "gNav.memberTools",
+    key: "finance", icon: "💳", labelKey: "gNav.finance",
+    items: [
+      { to: "/settlements",    icon: "📋", labelKey: "gNav.settlements",    menuKey: "billing" },
+      { to: "/reconciliation", icon: "💰", labelKey: "gNav.reconciliation", menuKey: "billing" },
+      { to: "/app-pricing",    icon: "💳", labelKey: "gNav.pricing",        menuKey: "billing" },
+      { to: "/audit",          icon: "🧾", labelKey: "gNav.auditLog",       menuKey: "billing" },
+    ],
+  },
+  /* ⑩ 운영 & 헬프 (동일) */
+  {
+    key: "member_tools", icon: "👥", labelKey: "gNav.memberTools",
     items: [
       { to: "/workspace",       icon: "👥", labelKey: "gNav.workspace",     menuKey: "system||workspace" },
       { to: "/operations",      icon: "⚡", labelKey: "gNav.operations",    menuKey: "system||operations" },
@@ -277,13 +230,14 @@ const ADMIN_MENU = [
   {
     key: "system",
     icon: "⚙",
-    labelKey: "gNav.adminCenter",
+    label: "시스템 관리자(Admin)",
     items: [
-      { to: "/admin",            icon: "⚙",  labelKey: "gNav.adminSettings",  menuKey: "system||admin" },
-      { to: "/user-management",  icon: "👤", labelKey: "gNav.userMgmt",       menuKey: "system||user_management" },
-      { to: "/db-admin",         icon: "🗄️", labelKey: "gNav.dbAdmin",        menuKey: "system||db_admin" },
-      { to: "/pg-config",        icon: "💳", labelKey: "gNav.pgConfig",       menuKey: "system||pg_config" },
-      { to: "/system-monitor",   icon: "🖥️", labelKey: "gNav.systemMonitor",  menuKey: "system||system_monitor" },
+      { to: "/admin",            icon: "⚙",  label: "플랫폼 환경 설정",       menuKey: "system||admin" },
+      { to: "/user-management",  icon: "👤", label: "회원 계정 관리",         menuKey: "system||user_management" },
+      { to: "/menu-access-manager",  icon: "🔐", label: "메뉴 권한(Rule) 관리",       menuKey: "system" },
+      { to: "/db-admin",         icon: "🗄️", label: "DB 스키마 관리",        menuKey: "system||db_admin" },
+      { to: "/pg-config",        icon: "💳", label: "결제 및 PG 설정",       menuKey: "system||pg_config" },
+      { to: "/system-monitor",   icon: "🖥️", label: "서버/시스템 모니터링",  menuKey: "system||system_monitor" },
     ],
   },
 ];
@@ -293,10 +247,9 @@ const ADMIN_MENU = [
 
 
 /* ─── Section Component with Lock Support ──────────────────────────────────────────── */
-function NavSection({ section, t, defaultOpen, hasMenuAccess, isDemo, onLockClick }) {
+function NavSection({ section, t, isOpen, onToggle, hasMenuAccess, isDemo, onLockClick }) {
   const location = useLocation();
   const hasActive = section.items.some(i => location.pathname === i.to);
-  const [open, setOpen] = useState(defaultOpen || hasActive);
 
   const sectionLabel = section.label ?? t(section.labelKey);
 
@@ -345,7 +298,7 @@ function NavSection({ section, t, defaultOpen, hasMenuAccess, isDemo, onLockClic
   return (
     <div style={{ marginBottom: 2 }}>
       <button
-        onClick={() => setOpen(o => !o)}
+        onClick={() => onToggle()}
         style={{
           display: "flex", alignItems: "center", gap: 8, width: "100%",
           padding: "7px 12px", border: "none", background: "none", cursor: "pointer",
@@ -361,13 +314,13 @@ function NavSection({ section, t, defaultOpen, hasMenuAccess, isDemo, onLockClic
         {hasActive && <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#4f8ef7", flexShrink: 0 }} />}
         <span style={{
           fontSize: 9, color: "var(--text-3)", transition: "transform 200ms",
-          transform: open ? "rotate(90deg)" : "rotate(0deg)", flexShrink: 0,
+          transform: isOpen ? "rotate(90deg)" : "rotate(0deg)", flexShrink: 0,
         }}>▶</span>
       </button>
 
       <div style={{
         overflow: "hidden",
-        maxHeight: open ? `${section.items.length * 40}px` : "0px",
+        maxHeight: isOpen ? `${section.items.length * 40}px` : "0px",
         transition: "max-height 220ms cubic-bezier(.4,0,.2,1)",
       }}>
         <div style={{ paddingLeft: 10 }}>
@@ -483,8 +436,24 @@ export default function Sidebar() {
   }, [isAdmin]);
   const recents = useRecentVisits(allMenuItems, 5);
 
-  // 라우트 변경 시 모바일 드로어 자동 Close
   const location = useLocation();
+  
+  // Accordion Sidebar Core Logic
+  const initialActiveSection = React.useMemo(() => {
+    const allSecs = isAdmin ? [...MEMBER_MENU, ...ADMIN_MENU] : MEMBER_MENU;
+    for (const sec of allSecs) {
+      if (sec.items.some(it => it.to === location.pathname)) return sec.key;
+    }
+    return null;
+  }, [location.pathname, isAdmin]);
+
+  const [openSectionId, setOpenSectionId] = useState(initialActiveSection);
+
+  useEffect(() => {
+    if (initialActiveSection) setOpenSectionId(initialActiveSection);
+  }, [initialActiveSection]);
+
+  // 라우트 변경 시 모바일 드로어 자동 Close
   useEffect(() => { mobileClose(); }, [location.pathname]);
 
   const handleLogout = () => {
@@ -573,7 +542,8 @@ export default function Sidebar() {
             key={section.key}
             section={section}
             t={t}
-            defaultOpen={i <= 1}
+            isOpen={openSectionId === section.key}
+            onToggle={() => setOpenSectionId(prev => prev === section.key ? null : section.key)}
             hasMenuAccess={isAdmin ? null : hasMenuAccess}
             isDemo={isDemo}
             onLockClick={(label) => setLockModal(label)}

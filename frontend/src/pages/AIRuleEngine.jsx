@@ -3,6 +3,7 @@ import { useI18n } from '../i18n';
 import { useGlobalData } from '../context/GlobalDataContext.jsx';
 import { useAuth } from '../auth/AuthContext.jsx';
 
+import { useT } from '../i18n/index.js';
 /* ─── Common 유틸 ─────────────────────────────────── */
 const rnd = (min, max) => +(Math.random() * (max - min) + min).toFixed(2);
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -624,6 +625,8 @@ const TABS = [
 ];
 
 export default function AIRuleEngine() {
+
+  const t = useT();
     const [tab, setTab] = useState("discover");
     const { addActiveRule, rulesFired, activeRules } = useGlobalData();
     const { isDemo } = useAuth();

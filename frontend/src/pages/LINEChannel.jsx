@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "../auth/AuthContext";
 import PlanGate from "../components/PlanGate.jsx";
 import useDemo from "../hooks/useDemo";
-import DemoBanner from "../components/DemoBanner";
-import { DEMO_LINE_CAMPAIGNS, DEMO_LINE_TEMPLATES, DEMO_LINE_SETTINGS, DEMO_LINE_STATS } from "../utils/DemoDataLayer";
+
+
 import { useGlobalData } from "../context/GlobalDataContext.jsx";
 
 function makeAPI(token) {
@@ -169,10 +169,10 @@ function LINEChannelContent() {
         { id: "settings", label: "⚙️ 設定" },
     ];
 
-    const [campaigns, setCampaigns] = useState(isDemo ? DEMO_LINE_CAMPAIGNS : []);
-    const [templates, setTemplates] = useState(isDemo ? DEMO_LINE_TEMPLATES : []);
-    const [settings, setSettings] = useState(isDemo ? DEMO_LINE_SETTINGS : {});
-    const [stats, setStats] = useState(isDemo ? DEMO_LINE_STATS : null);
+    const [campaigns, setCampaigns] = useState([]);
+    const [templates, setTemplates] = useState([]);
+    const [settings, setSettings] = useState({});
+    const [stats, setStats] = useState(null);
 
     useEffect(() => {
         if (isDemo) return;
@@ -185,7 +185,7 @@ function LINEChannelContent() {
 
     return (
         <div style={{ background: C.bg, minHeight: "100%", color: C.text }}>
-            {isDemo && <DemoBanner feature="LINE メッセージチャンネル" />}
+            
 
             {/* Header */}
             <div style={{ borderRadius: 16, background: `linear-gradient(135deg, #004225, #00b900)`, border: `1px solid ${C.line}40`, padding: "22px 28px", marginBottom: 20, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -245,9 +245,13 @@ function LINEChannelContent() {
 
 /* ─── 메인 */
 export default function LINEChannel() {
+  const t = useT();
     return (
         <PlanGate feature="line_channel">
             <LINEChannelContent />
         </PlanGate>
     );
 }
+
+import { useI18n } from '../i18n/index.js';
+import { useT } from '../i18n/index.js';

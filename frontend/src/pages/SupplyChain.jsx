@@ -3,7 +3,7 @@ import { useCurrency } from '../contexts/CurrencyContext.jsx';
 
 const SUPPLY_FLOW = [
     {
-        id: 'SUP-001', supplier: '(Week)Tech Components', sku: 'WH-1000XM5-01', name: 'Wireless Headphones', leadTime: 14,
+        id: 'SUP-001', supplier: '(Week)Tech Components', sku: 'DJ-CICA-101', name: 'Wireless Headphones', leadTime: 14,
         stages: [
             { stage: 'Purchase Order', date: '2026-03-01', done: true, note: 'PO-20260301-001 Create' },
             { stage: '생산', date: '2026-03-08', done: true, note: '공장 생산 Done' },
@@ -15,7 +15,7 @@ const SUPPLY_FLOW = [
         risk: 'low', delayRate: 3.2, totalCost: 4500000
     },
     {
-        id: 'SUP-002', supplier: 'ABC Electronics', sku: 'KB-MXM-RGB-02', name: 'RGB 키보드', leadTime: 21,
+        id: 'SUP-002', supplier: 'ABC Electronics', sku: 'DJ-CERA-002', name: 'RGB 키보드', leadTime: 21,
         stages: [
             { stage: 'Purchase Order', date: '2026-02-20', done: true, note: 'PO-20260220-002 Create' },
             { stage: '생산', date: '2026-03-05', done: true, note: '생산 지연 3일' },

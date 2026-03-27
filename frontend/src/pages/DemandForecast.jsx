@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef, useContext } from 'react';
 import { useGlobalData } from '../context/GlobalDataContext';
 import { useCurrency } from '../contexts/CurrencyContext.jsx';
 
@@ -7,12 +7,12 @@ const fmtPct = v => (v >= 0 ? '+' : '') + v.toFixed(1) + '%';
 
 /* Mock AI Demand Forecast 데이터 */
 const FORECAST_DATA = [
-    { sku: 'WH-1000XM5-01', name: 'Wireless Noise-Cancelling 헤드폰', currentStock: 142, safeQty: 50, forecastNext7: 68, forecastNext30: 290, trend: 12.4, confidence: 0.87, suggestedOrder: 200, cost: 45000, channels: { coupang: 102, naver: 78, amazon: 55, tiktok: 35 } },
-    { sku: 'KB-MXM-RGB-02', name: 'RGB 기계식 키보드', currentStock: 89, safeQty: 30, forecastNext7: 45, forecastNext30: 190, trend: -3.2, confidence: 0.82, suggestedOrder: 150, cost: 72000, channels: { coupang: 88, naver: 52, amazon: 38, tiktok: 22 } },
-    { sku: 'HC-USB4-7P-01', name: 'USB-C 7포트 허브', currentStock: 234, safeQty: 80, forecastNext7: 32, forecastNext30: 140, trend: 5.8, confidence: 0.91, suggestedOrder: 0, cost: 18000, channels: { coupang: 65, naver: 45, amazon: 20, tiktok: 10 } },
-    { sku: 'CAM-4K-PRO-01', name: '4K 웹캠 Pro', currentStock: 56, safeQty: 40, forecastNext7: 28, forecastNext30: 120, trend: 8.9, confidence: 0.78, suggestedOrder: 100, cost: 58000, channels: { coupang: 55, naver: 38, amazon: 27, tiktok: 10 } },
-    { sku: 'MS-ERG-BL-01', name: '에르고 마우스', currentStock: 167, safeQty: 60, forecastNext7: 55, forecastNext30: 230, trend: 2.1, confidence: 0.85, suggestedOrder: 80, cost: 28000, channels: { coupang: 92, naver: 68, amazon: 45, tiktok: 25 } },
-    { sku: 'CH-60W-GAN-01', name: '60W 급속충전기', currentStock: 312, safeQty: 100, forecastNext7: 78, forecastNext30: 320, trend: 15.6, confidence: 0.93, suggestedOrder: 0, cost: 12000, channels: { coupang: 135, naver: 95, amazon: 58, tiktok: 42 } },
+    { sku: 'DJ-CICA-101', name: 'Wireless Noise-Cancelling 헤드폰', currentStock: 142, safeQty: 50, forecastNext7: 68, forecastNext30: 290, trend: 12.4, confidence: 0.87, suggestedOrder: 200, cost: 45000, channels: { coupang: 102, naver: 78, amazon: 55, tiktok: 35 } },
+    { sku: 'DJ-CERA-002', name: '세라마이딘(Ceramidin) 세라마이드 크림', currentStock: 89, safeQty: 30, forecastNext7: 45, forecastNext30: 190, trend: -3.2, confidence: 0.82, suggestedOrder: 150, cost: 72000, channels: { coupang: 88, naver: 52, amazon: 38, tiktok: 22 } },
+    { sku: 'HC-USB4-7P-01', name: '바이탈 하이드라 콜라겐 앰플', currentStock: 234, safeQty: 80, forecastNext7: 32, forecastNext30: 140, trend: 5.8, confidence: 0.91, suggestedOrder: 0, cost: 18000, channels: { coupang: 65, naver: 45, amazon: 20, tiktok: 10 } },
+    { sku: 'CAM-4K-PRO-01', name: '더마클리어 마이크로 폼 수딩 젤', currentStock: 56, safeQty: 40, forecastNext7: 28, forecastNext30: 120, trend: 8.9, confidence: 0.78, suggestedOrder: 100, cost: 58000, channels: { coupang: 55, naver: 38, amazon: 27, tiktok: 10 } },
+    { sku: 'MS-ERG-BL-01', name: '크라이오 고무 마스크 워터풀', currentStock: 167, safeQty: 60, forecastNext7: 55, forecastNext30: 230, trend: 2.1, confidence: 0.85, suggestedOrder: 80, cost: 28000, channels: { coupang: 92, naver: 68, amazon: 45, tiktok: 25 } },
+    { sku: 'DJ-V7-006', name: 'V7 핑크 토닝 라이트 V3', currentStock: 312, safeQty: 100, forecastNext7: 78, forecastNext30: 320, trend: 15.6, confidence: 0.93, suggestedOrder: 0, cost: 12000, channels: { coupang: 135, naver: 95, amazon: 58, tiktok: 42 } },
 ];
 
 const WEEK_DATA = Array.from({ length: 8 }, (_, i) => ({

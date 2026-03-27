@@ -398,3 +398,5 @@ export default function PolicyTreeEditor({ value, onChange }) {
     </div>
   );
 }
+
+import { useI18n } from '../i18n/index.js';

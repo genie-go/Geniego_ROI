@@ -99,3 +99,5 @@ export default function AmazonRisk() {
     </div>
   );
 }
+
+import { useI18n } from '../i18n/index.js';

@@ -99,7 +99,7 @@ function PlatformTab({ pf, onSave, onPropose }) {
                         {pf.map((p, i) => editing === p.id ? (
                             <tr key={p.id} style={{ background: "rgba(99,102,241,0.05)", borderBottom: "1px solid rgba(99,102,241,0.1)" }}>
                                 {COLS.map(c => <td key={c.k} style={{ padding: "7px 8px" }}>
-                                    {c.k === "status" ? <select value={draft[c.k]} onChange={e => setDraft(d => ({ ...d, [c.k]: e.target.value }))} style={{ ...iS, width: 80 }}><option value="active">Active</option><option value="inactive">Inactive</option></select>
+                                    {c.k === "status" ? <select value={draft[c.k]} onChange={e => setDraft(d => ({ ...d, [c.k]: e.target.value }))} style={{ ...iS, width: 80 }}><option value="active">{t('super.aaActive')}</option><option value="inactive">Inactive</option></select>
                                         : <input value={draft[c.k] ?? ""} onChange={e => setDraft(d => ({ ...d, [c.k]: e.target.value }))} style={{ ...iS, width: c.w - 8 }} />}
                                 </td>)}
                                 <td style={{ padding: "7px 8px" }}><div style={{ display: "flex", gap: 4 }}>

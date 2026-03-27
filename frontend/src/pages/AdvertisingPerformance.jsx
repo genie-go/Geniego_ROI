@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../auth/AuthContext.jsx';
 import { useI18n } from '../i18n';
 
+import { useT } from '../i18n/index.js';
 const teams = ['US', 'JP', 'EU'];
 const channels = ['Meta', 'TikTok', 'Amazon'];
 

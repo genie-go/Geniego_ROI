@@ -498,6 +498,7 @@ function ChannelKeyForm({ ch, values, onChange, saved, token, onSaved, onCleared
 /* ─── 메인 Page ────────────────────────────────────────────────────────────── */
 
 export default function LicenseActivation() {
+  const t = useT();
     const { user, token, onPaymentSuccess } = useAuth();
     const navigate = useNavigate();
 
@@ -787,3 +788,6 @@ export default function LicenseActivation() {
     );
 }
 
+
+import { useI18n } from '../i18n/index.js';
+import { useT } from '../i18n/index.js';

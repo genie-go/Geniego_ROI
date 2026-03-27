@@ -3,12 +3,11 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../auth/AuthContext";
 import PlanGate from "../components/PlanGate.jsx";
 import useDemo from "../hooks/useDemo";
-import DemoBanner from "../components/DemoBanner";
 import { useNavigate } from "react-router-dom";
-import { DEMO_CRM_CUSTOMERS, DEMO_CRM_SEGMENTS, DEMO_RFM } from "../utils/DemoDataLayer";
 import { useGlobalData } from "../context/GlobalDataContext.jsx";
 import AIRecommendBanner from '../components/AIRecommendBanner.jsx';
 
+import { useT } from '../i18n/index.js';
 /* Token 인식 API Helper */
 function makeAPI(token) {
     return (path, opts = {}) => {
@@ -62,7 +61,7 @@ const DEMO_AI_SEGMENTS = [
 const PRIORITY_BADGE = {
     urgent: { label: "Urgent", color: "#f87171", bg: "rgba(248,113,113,0.12)" },
     high: { label: "in progress요", color: "#fbbf24", bg: "rgba(251,191,36,0.12)" },
-    medium: { label: t('crm.c_25'), color: "#4f8ef7", bg: "rgba(79,142,247,0.12)" },
+    medium: { label: "일반", color: "#4f8ef7", bg: "rgba(79,142,247,0.12)" },
 };
 
 function AISegmentsTab({ isDemo, navigate }) { 
@@ -163,12 +162,12 @@ function AISegmentsTab({ isDemo, navigate }) {
 
 /* ─── RFM Grade 배지 ──────────────────────────────────── */
 const RFM_GRADE = {
-    champions: { label: t('crm.c_22'), color: "#22c55e" },
-    loyal: { label: t('crm.c_21'), color: "#4f8ef7" },
-    at_risk: { label: t('crm.c_20'), color: "#fbbf24" },
-    lost: { label: t('crm.c_24'), color: "#f87171" },
-    new: { label: t('crm.c_23'), color: "#a78bfa" },
-    normal: { label: t('crm.c_25'), color: "#64748b" },
+    champions: { label: "챔피언", color: "#22c55e" },
+    loyal: { label: "충성 고객", color: "#4f8ef7" },
+    at_risk: { label: "이탈 위험", color: "#fbbf24" },
+    lost: { label: "이탈 고객", color: "#f87171" },
+    new: { label: "신규 방문", color: "#a78bfa" },
+    normal: { label: "일반", color: "#64748b" },
 };
 
 /* ─── Statistics Card ─────────────────────────────────────── */
@@ -557,8 +556,7 @@ function CRMContent() {
 
     return (
         <div style={{ background: C.bg, minHeight: "100%", color: C.text }}>
-            {isDemo && <DemoBanner feature={t('crm.c_0')} />}
-            {/* [v8] AI Recommendation Banner */}
+                        {/* [v8] AI Recommendation Banner */}
             <AIRecommendBanner context="crm" />
 
             {/* Header */}
@@ -716,6 +714,7 @@ function CRMContent() {
 
 /* ─── 메인 CRM Page ─────────────────────────────────── */
 export default function CRM() {
+
     const { t } = useI18n();
     return (
         <PlanGate feature="crm">

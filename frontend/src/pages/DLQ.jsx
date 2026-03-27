@@ -10,6 +10,7 @@ function parseHttpError(e) {
 }
 
 export default function DLQ() {
+  const t = useT();
   const [token, setToken] = useState(localStorage.getItem("accessToken") || "");
   const [rows, setRows] = useState([]);
   const [total, setTotal] = useState(0);
@@ -245,3 +246,6 @@ export default function DLQ() {
     </div>
   );
 }
+
+import { useI18n } from '../i18n/index.js';
+import { useT } from '../i18n/index.js';

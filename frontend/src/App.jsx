@@ -9,9 +9,7 @@ import { GlobalDataProvider } from "./context/GlobalDataContext.jsx";
 import { CurrencyProvider } from "./contexts/CurrencyContext.jsx";
 import { MobileSidebarProvider } from "./context/MobileSidebarContext.jsx";
 import { ConnectorSyncProvider } from "./context/ConnectorSyncContext.jsx";
-import DemoTopBar from "./components/DemoTopBar.jsx";
-import DemoModeBanner from "./components/DemoModeBanner.jsx";
-import DemoUpgradeBanner from "./components/DemoUpgradeBanner.jsx";
+
 
 const Dashboard = lazy(() => import("./pages/Dashboard.jsx"));
 const Marketing = lazy(() => import("./pages/Marketing.jsx"));
@@ -46,6 +44,8 @@ const PnLDashboard = lazy(() => import("./pages/PnLDashboard.jsx"));
 const DataSchema = lazy(() => import("./pages/DataSchema.jsx"));
 const AIInsights = lazy(() => import("./pages/AIInsights.jsx"));
 const ReportBuilder = lazy(() => import("./pages/ReportBuilder.jsx"));
+const IntegrationHub = lazy(() => import("./pages/IntegrationHub.jsx"));
+const AlertAutomation = lazy(() => import("./pages/AlertAutomation.jsx"));
 const EventNorm = lazy(() => import("./pages/EventNorm.jsx"));
 const Pricing = lazy(() => import("./pages/Pricing.jsx"));
 const ApiKeys = lazy(() => import("./pages/ApiKeys.jsx"));
@@ -55,6 +55,7 @@ const RollupDashboard = lazy(() => import("./pages/RollupDashboard.jsx"));
 const CampaignManager = lazy(() => import("./pages/CampaignManager.jsx"));
 const ContentCalendar = lazy(() => import("./pages/ContentCalendar.jsx"));
 const BudgetPlanner = lazy(() => import("./pages/BudgetPlanner.jsx"));
+const BudgetTracker = lazy(() => import("./pages/BudgetTracker.jsx"));
 const SystemMonitor = lazy(() => import("./pages/SystemMonitor.jsx"));
 const OperationsGuide = lazy(() => import("./pages/OperationsGuide.jsx"));
 const AIRuleEngine = lazy(() => import("./pages/AIRuleEngine.jsx"));
@@ -62,6 +63,7 @@ const MarketingIntelligence = lazy(() => import("./pages/MarketingIntelligence.j
 const OmniChannel = lazy(() => import("./pages/OmniChannel.jsx"));
 const WmsManager = lazy(() => import("./pages/WmsManager.jsx"));
 const UserManagement = lazy(() => import("./pages/UserManagement.jsx"));
+const MenuAccessManager = lazy(() => import("./pages/MenuAccessManager.jsx"));
 const AutoMarketing = lazy(() => import("./pages/AutoMarketing.jsx"));
 const HelpCenter = lazy(() => import("./pages/HelpCenter.jsx"));
 const ChannelKPI = lazy(() => import("./pages/ChannelKPI.jsx"));
@@ -204,12 +206,7 @@ function AppLayout() {
           display: 'flex',
           flexDirection: 'column',
         }}>
-          {/* 데모 사용자: 전역 상단 안내 바 (유료 회원 가입 바로가기 포함) */}
-          <DemoTopBar />
-          {/* 데모 모드 배너 (체험 중 안내 + API 키 등록 즉시 실사용 전환 CTA) */}
-          <DemoModeBanner />
-          {/* 데모 유저 전환 유인 Sticky 하단 배너 (무료쿠폰/유료회원 가입 CTA) */}
-          <DemoUpgradeBanner />
+
           <div style={{
             flex: 1,
             overflowY: 'auto',
@@ -237,16 +234,16 @@ function AppLayout() {
                 <Route path="/reports" element={<Navigate to="/report-builder" replace />} />
                 <Route path="/writeback" element={<Writeback />} />
                 <Route path="/approvals" element={<Approvals />} />
-                <Route path="/connectors" element={<Connectors />} />
+                <Route path="/connectors" element={<Navigate to="/integration-hub" replace />} />
                 <Route path="/api-keys" element={<ApiKeys />} />
                 <Route path="/settlements" element={<Settlements />} />
                 <Route path="/reconciliation" element={<Reconciliation />} />
                 <Route path="/audit" element={<Audit />} />
                 <Route path="/ai-policy" element={<AIPolicy />} />
-                <Route path="/action-presets" element={<ActionPresets />} />
+                <Route path="/action-presets" element={<Navigate to="/ai-rule-engine" replace />} />
                 <Route path="/mapping-registry" element={<MappingRegistry />} />
                 <Route path="/admin" element={<Admin />} />
-                <Route path="/alert-policies" element={<AlertPolicies />} />
+                <Route path="/alert-policies" element={<Navigate to="/alert-automation" replace />} />
                 <Route path="/attribution" element={<Attribution />} />
                 <Route path="/graph-score" element={<GraphScore />} />
                 <Route path="/kr-channel" element={<KrChannel />} />
@@ -260,7 +257,9 @@ function AppLayout() {
                 <Route path="/data-schema" element={<DataSchema />} />
                 <Route path="/ai-insights" element={<AIInsights />} />
                 <Route path="/report-builder" element={<ReportBuilder />} />
-                <Route path="/event-norm" element={<EventNorm />} />
+                <Route path="/integration-hub" element={<Connectors />} />
+                <Route path="/alert-automation" element={<AlertAutomation />} />
+                <Route path="/event-norm" element={<Navigate to="/data-schema" replace />} />
                 <Route path="/pricing" element={<Pricing />} />
                 <Route path="/app-pricing" element={<Pricing />} />
                 <Route path="/data-product" element={<DataProduct />} />
@@ -268,12 +267,13 @@ function AppLayout() {
                 <Route path="/rollup" element={<RollupDashboard />} />
                 <Route path="/ai-rule-engine" element={<AIRuleEngine />} />
                 <Route path="/campaign-manager" element={<CampaignManager />} />
-                <Route path="/marketing-intelligence" element={<MarketingIntelligence />} />
+                <Route path="/marketing-intelligence" element={<Navigate to="/ai-insights" replace />} />
                 <Route path="/omni-channel" element={<OmniChannel />} />
                 <Route path="/wms-manager" element={<WmsManager />} />
                 <Route path="/user-management" element={<UserManagement />} />
+                <Route path="/menu-access-manager" element={<MenuAccessManager />} />
                 <Route path="/content-calendar" element={<ContentCalendar />} />
-                <Route path="/budget-planner" element={<BudgetPlanner />} />
+                <Route path="/budget-tracker" element={<BudgetTracker />} />
                 <Route path="/system-monitor" element={<SystemMonitor />} />
                 <Route path="/operations-guide" element={<Navigate to="/operations" replace />} />
                 <Route path="/auto-marketing" element={<AutoMarketing />} />
@@ -288,7 +288,7 @@ function AppLayout() {
                 <Route path="/line-channel" element={<LINEChannel />} />
                 <Route path="/pixel-tracking" element={<PixelTracking />} />
                 <Route path="/journey-builder" element={<JourneyBuilder />} />
-                <Route path="/ai-prediction" element={<AIPrediction />} />
+                <Route path="/ai-prediction" element={<Navigate to="/ai-insights" replace />} />
                 <Route path="/web-popup" element={<WebPopup />} />
                 <Route path="/whatsapp" element={<WhatsApp />} />
                 <Route path="/sms-marketing" element={<SmsMarketing />} />
@@ -299,13 +299,13 @@ function AppLayout() {
                 <Route path="/workspace" element={<TeamWorkspace />} />
                 {/* /commerce-search → /omni-channel 통합 (OmniChannel이 통합 검색 허브) */}
                 <Route path="/commerce-search" element={<Navigate to="/omni-channel" replace />} />
-                <Route path="/ai-marketing-hub" element={<AIMarketingHub />} />
+                <Route path="/ai-marketing-hub" element={<Navigate to="/auto-marketing" replace />} />
                 <Route path="/feedback" element={<FeedbackCenter />} />
                 <Route path="/smart-connect" element={<Navigate to="/api-keys?tab=smart" replace />} />
                 <Route path="/data-trust" element={<DataTrustDashboard />} />
                 <Route path="/developer-hub" element={<DeveloperHub />} />
                 <Route path="/demand-forecast" element={<DemandForecast />} />
-                <Route path="/asia-logistics" element={<AsiaLogistics />} />
+                <Route path="/asia-logistics" element={<Navigate to="/supply-chain" replace />} />
                 <Route path="/returns-portal" element={<ReturnsPortal />} />
                 <Route path="/supply-chain" element={<SupplyChain />} />
                 <Route path="/supplier-portal" element={<SupplierPortal />} />

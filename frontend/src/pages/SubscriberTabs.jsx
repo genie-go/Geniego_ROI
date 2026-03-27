@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useCallback, useState, useEffect } from 'react';
 
+import { useT } from '../i18n/index.js';
 const _API = import.meta.env.VITE_API_BASE || "";
 const _AK  = "genie_live_demo_key_00000000";
 const _ah  = () => ({ "Content-Type": "application/json", Authorization: `Bearer ${_AK}` });

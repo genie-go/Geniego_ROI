@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 function ImgCreativeEditor({ chId, cr, color, onUpdate }) {
     const [editing, setEditing] = useState(false);

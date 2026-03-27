@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { useCurrency } from '../contexts/CurrencyContext.jsx';
 
+import { useT } from '../i18n/index.js';
 /* ── 3Tier Menu Tree ─────────────────────────────────────────────────── */
 const MENU_TREE = [
     {
@@ -115,6 +116,7 @@ function Checkbox({ checked, indeterminate, onChange, size = 18 }) {
 }
 
 export default function TierPricingTab() {
+  const t = useT();
     const { fmt } = useCurrency();
     const { token } = useAuth();
     const [viewMode, setViewMode] = useState("create");

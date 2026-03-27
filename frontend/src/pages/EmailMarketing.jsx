@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../auth/AuthContext";
+import { useI18n } from "../i18n/index.js";
 import PlanGate from "../components/PlanGate.jsx";
 import useDemo from "../hooks/useDemo";
-import DemoBanner from "../components/DemoBanner";
-import { DEMO_EMAIL_CAMPAIGNS, DEMO_EMAIL_TEMPLATES, DEMO_EMAIL_STATS, DEMO_EMAIL_SETTINGS, DEMO_EMAIL_BLOCKS } from "../utils/DemoDataLayer";
+
+
 import { useGlobalData } from "../context/GlobalDataContext.jsx";
 
+import { useT } from '../i18n/index.js';
 function makeAPI(token) {
     return (path, opts = {}) => {
         const headers = { "Content-Type": "application/json", ...(opts.headers || {}) };
@@ -119,6 +121,7 @@ function EmailMiniPreview({ data, color, label, wins }) {
 }
 
 function ABTestTab({ isDemo }) {
+    const { t } = useI18n();
     const [tests, setTests] = useState(DEMO_AB_DATA);
     const [showCreate, setShowCreate] = useState(false);
     const [form, setForm] = useState({
@@ -384,6 +387,7 @@ function BlockAttrEditor({ block, onChange }) {
 }
 
 function BlockEmailEditor() {
+    const { t } = useI18n();
     const [blocks, setBlocks] = useState(
         DEMO_EMAIL_BLOCKS[0].blocks.map(b => ({ ...b, id: b.id + "_" + Math.random().toString(36).slice(2, 7) }))
     );
@@ -520,6 +524,7 @@ function BlockEmailEditor() {
 
 /* ─── Settings Tab ──────────────────────────────────── */
 function SettingsTab() {
+    const { t } = useI18n();
     const [settings, setSettings] = useState({
         provider: "smtp", smtp_host: "", smtp_port: 587,
         smtp_user: "", smtp_pass: "", from_email: "", from_name: "",
@@ -614,6 +619,7 @@ function SettingsTab() {
 
 /* ─── Template Tab ──────────────────────────────────── */
 function TemplatesTab() {
+    const { t } = useI18n();
     const [templates, setTemplates] = useState([]);
     const [editId, setEditId] = useState("new");
     const [form, setForm] = useState({
@@ -704,6 +710,7 @@ function TemplatesTab() {
 
 /* ─── Campaign Tab ─────────────────────────────────── */
 function CampaignsTab() {
+    const { t } = useI18n();
     const [campaigns, setCampaigns] = useState([]);
     const [templates, setTemplates] = useState([]);
     const [segments, setSegments] = useState([]);
@@ -812,6 +819,7 @@ function CampaignsTab() {
 
 /* ─── Email Marketing 내용 (PlanGate 내부) ────────── */
 function EmailMarketingContent() {
+    const { t } = useI18n();
     const { token } = useAuth();
     const { isDemo } = useDemo();
     const { emailCampaignsLinked } = useGlobalData();
@@ -880,7 +888,7 @@ function EmailMarketingContent() {
 
     return (
         <div style={{ background: C.bg, minHeight: "100%", color: C.text }}>
-            {isDemo && <DemoBanner feature="Email Marketing" />}
+            
             <div style={{ borderRadius: 16, background: `linear-gradient(135deg,${C.surface},#0a1828)`, border: `1px solid ${C.border}`, padding: "22px 28px", marginBottom: 20 }}>
                 <div style={{ fontSize: 22, fontWeight: 800 }}>✉️ Email Marketing</div>
                 <div style={{ fontSize: 13, color: C.muted, marginTop: 4 }}>Template 작성 · Segment 타겟 Send · CRM Auto Sync</div>
@@ -1111,6 +1119,7 @@ function EmailMarketingContent() {
 
 /* ─── 메인 Email Marketing Page ──────────────────── */
 export default function EmailMarketing() {
+    const { t } = useI18n();
     return (
         <PlanGate feature="email_marketing">
             <EmailMarketingContent />

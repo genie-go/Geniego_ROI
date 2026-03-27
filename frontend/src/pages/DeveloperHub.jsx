@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext.jsx';
 
@@ -106,7 +106,7 @@ function WebhookManager({ isPaid, onUpgrade }) {
 
     return (
         <div style={{ display: 'grid', gap: 14 }}>
-            {!isPaid && <DemoBanner onUpgrade={onUpgrade} />}
+
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div style={{ fontWeight: 700, fontSize: 13 }}>⚡ Webhook Management</div>
                 <button onClick={() => setAdding(v => !v)} style={{ padding: '8px 16px', borderRadius: 9, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#6366f1,#4f8ef7)', color: '#fff', fontWeight: 700, fontSize: 11 }}>
@@ -171,6 +171,7 @@ function WebhookManager({ isPaid, onUpgrade }) {
 
 /* ── 메인 DeveloperHub ──────────────────────────────── */
 export default function DeveloperHub() {
+  const t = useT();
     const navigate = useNavigate();
     const { user, token } = useAuth();
     const isPaid = isPaidPlan(user?.plan);
@@ -399,3 +400,6 @@ r = requests.post(f'{BASE}/v423/campaigns',
         </div>
     );
 }
+
+import { useI18n } from '../i18n/index.js';
+import { useT } from '../i18n/index.js';

@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { useI18n } from '../i18n';
 
+import { useT } from '../i18n/index.js';
 /* ── Color Token ──────────────────────────────────────────── */
 const C = {
     ad: { bg: "rgba(79,142,247,0.08)", border: "rgba(79,142,247,0.25)", text: "#4f8ef7", label: "🔵 Ads" },

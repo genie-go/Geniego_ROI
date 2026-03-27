@@ -31,11 +31,11 @@ const TABS = [
 
 // ─── Unified 카탈로그 데이터 (demo catalog - CatalogSync Page와 Sync될 Product List)
 const DEMO_CATALOG = [
-  { sku: 'EP-PRX-001', name: '무선 이어폰 Pro X', category: '전자기기', brand: '테크코리아', channels: ['coupang','naver','amazon','gmarket'], status: 'active' },
-  { sku: 'SW-SE-002', name: '스마트 워치 SE', category: '전자기기', brand: '테크코리아', channels: ['coupang','naver','amazon'], status: 'active' },
+  { sku: 'EP-PRX-001', name: '시카페어(Cicapair) 크림 50ml', category: '전자기기', brand: '테크코리아', channels: ['coupang','naver','amazon','gmarket'], status: 'active' },
+  { sku: 'SW-SE-002', name: '세라마이딘(Ceramidin) 리퀴드 토너', category: '전자기기', brand: '테크코리아', channels: ['coupang','naver','amazon'], status: 'active' },
   { sku: 'UH-7C-003', name: 'USB-C 허브 7in1', category: '액세서리', brand: '디지털마트', channels: ['amazon','shopify'], status: 'active' },
   { sku: 'TP-MF-004', name: 'Note리폼 여행용 목베개', category: '생활용품', brand: '컴포트', channels: ['coupang','naver','gmarket'], status: 'active' },
-  { sku: 'CL-LED-005', name: '캠핑 LED 랜턴 USB', category: '아웃도어', brand: '아웃도어플러스', channels: ['coupang','gmarket','shopify','welfare'], status: 'active' },
+  { sku: 'CL-LED-005', name: 'V7 토닝 라이트 크림', category: '아웃도어', brand: '아웃도어플러스', channels: ['coupang','gmarket','shopify','welfare'], status: 'active' },
 ];
 
 // ─── 공통 Card Style ─────────────────────────────────────────

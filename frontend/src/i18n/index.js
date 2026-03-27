@@ -10,7 +10,7 @@
  * • Mobile-compatible: works on all mobile browsers
  */
 
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import React, { useEffect, createContext, useCallback, useContext, useMemo, useState } from "react";
 import ko from "./locales/ko.js";
 import en from "./locales/en.js";
 import ja from "./locales/ja.js";

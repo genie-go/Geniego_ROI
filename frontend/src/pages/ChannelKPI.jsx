@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { useI18n } from '../i18n';
 import { useCurrency } from '../contexts/CurrencyContext.jsx';
 
+import { useT } from '../i18n/index.js';
 const API = '/api';
 
 /* ── Color Palette ─────────────────────────────────────── */
@@ -27,6 +28,7 @@ const SEC = { fontSize: 13, fontWeight: 800, color: 'rgba(255,255,255,0.82)', ma
 
 /* ── Gauge Bar ─────────────────────────────────────────── */
 function GaugeBar({ label, current, target, unit = '', color = C.blue, reverse = false }) {
+  const t = useT();
     const pct = target > 0 ? Math.min((current / target) * 100, 100) : 0;
     const ok = reverse ? current <= target : current >= target;
     const col = ok ? C.green : pct >= 70 ? C.orange : C.red;
@@ -36,7 +38,7 @@ function GaugeBar({ label, current, target, unit = '', color = C.blue, reverse =
                 <span style={{ color: 'rgba(255,255,255,0.55)' }}>{label}</span>
                 <span style={{ fontWeight: 800, color: col }}>
                     {unit}{current.toLocaleString()} / Target {unit}{target.toLocaleString()}
-                    <span style={{ marginLeft: 6, fontSize: 10, color: ok ? C.green : C.red }}>{ok ? '✓ Achieved' : `${pct.toFixed(0)}%`}</span>
+                    <span style={{ marginLeft: 6, fontSize: 10, color: ok ? C.green : C.red }}>{ok ? t('channelKpi.achieved') : `${pct.toFixed(0)}%`}</span>
                 </span>
             </div>
             <div style={{ height: 6, background: 'rgba(255,255,255,0.07)', borderRadius: 3 }}>
@@ -64,14 +66,15 @@ function MetCard({ icon, label, value, sub, color }) {
    Tab 1: Goal Setting
 ════════════════════════════════════════════════════════════ */
 function GoalTab({ goals, setGoals }) {
+  const t = useT();
     const GOAL_ITEMS = [
-        { key: 'awareness', icon: '📣', label: 'Brand Awareness', desc: 'Reach, impressions, brand search volume', color: C.purple },
-        { key: 'traffic', icon: '🌐', label: 'Website Traffic', desc: 'SEO, ad clicks, content-driven visits', color: C.blue },
-        { key: 'conversion', icon: '🛒', label: 'Inquiries / Purchases', desc: 'Conv. rate, CPA, ROAS optimization', color: C.green },
+        { key: 'awareness', icon: '📣', label: t('channelKpi.brandAwareness'), desc: t('channelKpi.brandAwarenessDesc'), color: C.purple },
+        { key: 'traffic', icon: '🌐', label: t('channelKpi.webTraffic'), desc: t('channelKpi.webTrafficDesc'), color: C.blue },
+        { key: 'conversion', icon: '🛒', label: t('channelKpi.inquiriesPurchases'), desc: t('channelKpi.inquiriesPurchasesDesc'), color: C.green },
     ];
     return (
         <div style={{ display: 'grid', gap: 14 }}>
-            <div style={SEC}>🎯 Business Goal Setting</div>
+            <div style={SEC}>{t('channelKpi.bizGoalSetting')}</div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 14 }}>
                 {GOAL_ITEMS.map(g => (
                     <div key={g.key} onClick={() => setGoals(prev => ({ ...prev, [g.key]: !prev[g.key] }))}
@@ -87,20 +90,20 @@ function GoalTab({ goals, setGoals }) {
                             marginTop: 12, padding: '4px 10px', borderRadius: 20, width: 'fit-content',
                             background: goals[g.key] ? g.color : 'rgba(255,255,255,0.06)', color: goals[g.key] ? '#fff' : 'rgba(255,255,255,0.35)',
                             fontSize: 10, fontWeight: 800
-                        }}>{goals[g.key] ? '✓ Selected' : 'Click to Select'}
+                        }}>{goals[g.key] ? t('channelKpi.selected') : t('channelKpi.clickSelect')}
                         </div>
                     </div>
                 ))}
             </div>
             <div style={{ ...CARD, background: 'linear-gradient(145deg,rgba(79,142,247,0.06),rgba(6,11,20,0.98))' }}>
-                <div style={LBL}>Selected Goals</div>
+                <div style={LBL}>{t('channelKpi.selectedGoals')}</div>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                     {GOAL_ITEMS.filter(g => goals[g.key]).map(g => (
                         <span key={g.key} style={{ padding: '4px 12px', borderRadius: 20, background: g.color + '22', color: g.color, fontSize: 11, fontWeight: 700, border: `1px solid ${g.color}44` }}>
                             {g.icon} {g.label}
                         </span>
                     ))}
-                    {!GOAL_ITEMS.some(g => goals[g.key]) && <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)' }}>Please select a goal</span>}
+                    {!GOAL_ITEMS.some(g => goals[g.key]) && <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)' }}>{t('channelKpi.pleaseSelectGoal')}</span>}
                 </div>
             </div>
         </div>
@@ -111,27 +114,28 @@ function GoalTab({ goals, setGoals }) {
    Tab 2: Channel Role Definition
 ════════════════════════════════════════════════════════════ */
 function ChannelRoleTab() {
+  const t = useT();
     const ROLES = [
         {
-            ch: '🔍 Search Ads', role: 'Capture high-intent users', kpis: ['CTR', 'CPC', 'Conv. Rate', 'CPA', 'ROAS'], color: C.blue,
-            desc: 'Target users with clear purchase intent. Drive immediate conversions through keyword-based ads.'
+            ch: '🔍 Search Ads', role: t('channelKpi.roleCaptureIntent'), kpis: ['CTR', 'CPC', 'Conv. Rate', 'CPA', 'ROAS'], color: C.blue,
+            desc: t('channelKpi.descCaptureIntent')
         },
         {
-            ch: '📣 SNS Ads', role: 'Brand awareness & reach', kpis: ['Reach', 'Engagement', 'CTR', 'Video Views'], color: C.pink,
-            desc: 'Expose the brand to a broad audience. Build awareness and interest through visual content.'
+            ch: '📣 SNS Ads', role: t('channelKpi.roleBrandReach'), kpis: ['Reach', 'Engagement', 'CTR', 'Video Views'], color: C.pink,
+            desc: t('channelKpi.descBrandReach')
         },
         {
-            ch: '📝 Blog', role: 'Info & trust building', kpis: ['Page Views', 'Visitors', 'Avg. Time', 'Search Traffic'], color: C.green,
-            desc: 'Strengthen SEO with in-depth content. Build trust through expertise and thought leadership.'
+            ch: '📝 Blog', role: t('channelKpi.roleInfoTrust'), kpis: [t('channelKpi.pageViews'), t('channelKpi.visitors'), 'Avg. Time', t('channelKpi.searchTraffic')], color: C.green,
+            desc: t('channelKpi.descInfoTrust')
         },
         {
-            ch: '💬 Community', role: 'Customer relationship', kpis: ['Post Views', 'Comments', 'Inquiries', 'New Members'], color: C.orange,
-            desc: 'Ongoing communication with existing customers. Build loyal community and hub marketing.'
+            ch: '💬 Community', role: t('channelKpi.roleCustRel'), kpis: [t('channelKpi.postViews'), t('channelKpi.comments'), t('channelKpi.inquiries'), t('channelKpi.newMembers')], color: C.orange,
+            desc: t('channelKpi.descCustRel')
         },
     ];
     return (
         <div style={{ display: 'grid', gap: 14 }}>
-            <div style={SEC}>📡 Channel Role Definition</div>
+            <div style={SEC}>{t('channelKpi.channelRoleDef')}</div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                 {ROLES.map(r => (
                     <div key={r.ch} style={{ ...CARD, borderColor: r.color + '30' }}>
@@ -140,7 +144,7 @@ function ChannelRoleTab() {
                             <span style={{ padding: '3px 10px', borderRadius: 20, background: r.color + '18', color: r.color, fontSize: 10, fontWeight: 800 }}>{r.role}</span>
                         </div>
                         <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', lineHeight: 1.6, marginBottom: 10 }}>{r.desc}</div>
-                        <div style={LBL}>Core KPIs</div>
+                        <div style={LBL}>{t('channelKpi.coreKpis')}</div>
                         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                             {r.kpis.map(k => (
                                 <span key={k} style={{ padding: '2px 9px', borderRadius: 12, background: 'rgba(255,255,255,0.04)', border: `1px solid ${r.color}40`, color: r.color, fontSize: 10, fontWeight: 700 }}>{k}</span>
@@ -157,19 +161,20 @@ function ChannelRoleTab() {
    Tab 3: Channel KPI Setup (Search-centric)
 ════════════════════════════════════════════════════════════ */
 function KpiSetupTab({ kpiTargets, setKpiTargets }) {
+  const t = useT();
     const FIELDS = [
-        { key: 'ctr', label: 'CTR (Click-Through Rate)', unit: '%', ph: '3.0', hint: 'Target 3%+ recommended' },
-        { key: 'convRate', label: 'Conv. Rate', unit: '%', ph: '5.0', hint: 'Target 5%+ recommended' },
-        { key: 'cpa', label: 'CPA (Cost Per Acquisition)', unit: '₩', ph: '15000', hint: 'Lower is more efficient' },
-        { key: 'roas', label: 'ROAS (Return on Ad Spend)', unit: '%', ph: '300', hint: 'Target 300%+' },
-        { key: 'cpc', label: 'CPC (Cost Per Click)', unit: '₩', ph: '1000', hint: 'Lower is better' },
+        { key: 'ctr', label: 'CTR (Click-Through Rate)', unit: '%', ph: '3.0', hint: t('channelKpi.hintCtr') },
+        { key: 'convRate', label: 'Conv. Rate', unit: '%', ph: '5.0', hint: t('channelKpi.hintConvRate') },
+        { key: 'cpa', label: 'CPA (Cost Per Acquisition)', unit: '₩', ph: '15000', hint: t('channelKpi.hintCpa') },
+        { key: 'roas', label: 'ROAS (Return on Ad Spend)', unit: '%', ph: '300', hint: t('channelKpi.hintRoas') },
+        { key: 'cpc', label: 'CPC (Cost Per Click)', unit: '₩', ph: '1000', hint: t('channelKpi.hintCpc') },
     ];
     const CHANNELS = ['Search Ads', 'SNS Ads', 'Blog', 'Community'];
     const [selCh, setSelCh] = useState('Search Ads');
 
     return (
         <div style={{ display: 'grid', gap: 14 }}>
-            <div style={SEC}>⚙️ Channel KPI Target Setup</div>
+            <div style={SEC}>{t('channelKpi.targetSetup')}</div>
             <div style={{ display: 'flex', gap: 8 }}>
                 {CHANNELS.map(ch => (
                     <button key={ch} onClick={() => setSelCh(ch)}
@@ -210,6 +215,7 @@ function KpiSetupTab({ kpiTargets, setKpiTargets }) {
    Tab 4: SNS Ad KPI
 ════════════════════════════════════════════════════════════ */
 function SnsKpiTab() {
+  const t = useT();
     const { fmt } = useCurrency();
     const SNS_DATA = [
         { ch: '📘 Meta', reach: 2100000, engagement: 142000, ctr: 4.0, videoViews: 890000, color: '#1877f2' },
@@ -225,16 +231,16 @@ function SnsKpiTab() {
     ];
     return (
         <div style={{ display: 'grid', gap: 14 }}>
-            <div style={SEC}>📣 SNS Ad KPI Overview</div>
+            <div style={SEC}>{t('channelKpi.snsKpiOverview')}</div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12 }}>
                 {METRICS.map(m => (
                     <MetCard key={m.key} icon={m.icon} label={m.label}
                         value={m.fmt(SNS_DATA.reduce((s, d) => s + d[m.key], 0))}
-                        sub="All channels combined" color={m.color} />
+                        sub={t('channelKpi.allChannels')} color={m.color} />
                 ))}
             </div>
             <div style={CARD}>
-                <div style={LBL}>SNS KPI by Channel</div>
+                <div style={LBL}>{t('channelKpi.snsKpiByChannel')}</div>
                 <div style={{ display: 'grid', gridTemplateColumns: '120px repeat(4,1fr)', gap: 8, fontSize: 10, color: 'rgba(255,255,255,0.35)', fontWeight: 700, textTransform: 'uppercase', paddingBottom: 8, borderBottom: '1px solid rgba(255,255,255,0.06)', marginBottom: 8 }}>
                     <span>Channel</span><span>Reach</span><span>Engagement</span><span>CTR</span><span>Video Views</span>
                 </div>
@@ -256,6 +262,7 @@ function SnsKpiTab() {
    Tab 5: Content Channel (Blog) KPI
 ════════════════════════════════════════════════════════════ */
 function ContentKpiTab() {
+  const t = useT();
     const DATA = [
         { month: 'Jan', views: 128000, visitors: 84000, avgTime: 185, searchIn: 62000 },
         { month: 'Feb', views: 142000, visitors: 96000, avgTime: 192, searchIn: 71000 },
@@ -264,21 +271,21 @@ function ContentKpiTab() {
     const latest = DATA[DATA.length - 1];
     return (
         <div style={{ display: 'grid', gap: 14 }}>
-            <div style={SEC}>📝 Content Channel (Blog) KPI</div>
+            <div style={SEC}>{t('channelKpi.contentKpi')}</div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12 }}>
-                <MetCard icon="👁" label="Page Views" value={(latest.views / 1000).toFixed(0) + 'K'} sub="Content impressions" color={C.blue} />
-                <MetCard icon="🧑" label="Visitors" value={(latest.visitors / 1000).toFixed(0) + 'K'} sub="Site traffic" color={C.green} />
-                <MetCard icon="⏱" label="Avg. Time on Site" value={Math.floor(latest.avgTime / 60) + 'm ' + (latest.avgTime % 60) + 's'} sub="Content engagement" color={C.orange} />
-                <MetCard icon="🔍" label="Search Traffic" value={(latest.searchIn / 1000).toFixed(0) + 'K'} sub="SEO impact" color={C.purple} />
+                <MetCard icon="👁" label={t('channelKpi.pageViews')} value={(latest.views / 1000).toFixed(0) + 'K'} sub={t('channelKpi.contentImpressions')} color={C.blue} />
+                <MetCard icon="🧑" label={t('channelKpi.visitors')} value={(latest.visitors / 1000).toFixed(0) + 'K'} sub={t('channelKpi.siteTraffic')} color={C.green} />
+                <MetCard icon="⏱" label={t('channelKpi.avgTime')} value={Math.floor(latest.avgTime / 60) + 'm ' + (latest.avgTime % 60) + 's'} sub={t('channelKpi.contentEngage')} color={C.orange} />
+                <MetCard icon="🔍" label={t('channelKpi.searchTraffic')} value={(latest.searchIn / 1000).toFixed(0) + 'K'} sub={t('channelKpi.seoImpact')} color={C.purple} />
             </div>
             <div style={CARD}>
-                <div style={LBL}>Monthly Trend</div>
+                <div style={LBL}>{t('channelKpi.monthlyTrend')}</div>
                 {DATA.map((d, i) => (
                     <div key={d.month} style={{ display: 'grid', gridTemplateColumns: '60px 1fr 1fr 1fr 1fr', gap: 12, padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.04)', fontSize: 11, alignItems: 'center' }}>
                         <span style={{ fontWeight: 800, color: 'rgba(255,255,255,0.6)' }}>{d.month}</span>
                         {[
                             [d.views, 200000, C.blue, 'Views'],
-                            [d.visitors, 130000, C.green, 'Visitors'],
+                            [d.visitors, 130000, C.green, t('channelKpi.visitors')],
                             [d.avgTime, 240, C.orange, 'Time(s)'],
                             [d.searchIn, 100000, C.purple, 'Search'],
                         ].map(([v, max, col, lbl], j) => (
@@ -303,6 +310,7 @@ function ContentKpiTab() {
    Tab 6: Community / Cafe KPI
 ════════════════════════════════════════════════════════════ */
 function CommunityKpiTab() {
+  const t = useT();
     const PLATFORMS = [
         { name: 'Naver Cafe', views: 84200, comments: 1240, inquiries: 380, newMembers: 520, color: '#03c75a' },
         { name: 'KakaoTalk Channel', views: 62000, comments: 890, inquiries: 290, newMembers: 380, color: '#fbbf24' },
@@ -315,19 +323,19 @@ function CommunityKpiTab() {
 
     return (
         <div style={{ display: 'grid', gap: 14 }}>
-            <div style={SEC}>💬 Community / Cafe KPI</div>
+            <div style={SEC}>{t('channelKpi.communityKpi')}</div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12 }}>
-                <MetCard icon="📰" label="Post Views" value={(totals.views / 1000).toFixed(0) + 'K'} sub="Content interest" color={C.blue} />
-                <MetCard icon="💬" label="Comments" value={totals.comments.toLocaleString()} sub="Community activity" color={C.green} />
-                <MetCard icon="❓" label="Inquiries" value={totals.inquiries.toLocaleString()} sub="Interest conversion" color={C.orange} />
-                <MetCard icon="👥" label="New Members" value={totals.newMembers.toLocaleString()} sub="Community growth" color={C.purple} />
+                <MetCard icon="📰" label={t('channelKpi.postViews')} value={(totals.views / 1000).toFixed(0) + 'K'} sub={t('channelKpi.contentInterest')} color={C.blue} />
+                <MetCard icon="💬" label={t('channelKpi.comments')} value={totals.comments.toLocaleString()} sub={t('channelKpi.communityAct')} color={C.green} />
+                <MetCard icon="❓" label={t('channelKpi.inquiries')} value={totals.inquiries.toLocaleString()} sub={t('channelKpi.interestConv')} color={C.orange} />
+                <MetCard icon="👥" label={t('channelKpi.newMembers')} value={totals.newMembers.toLocaleString()} sub={t('channelKpi.communityGrowth')} color={C.purple} />
             </div>
             {PLATFORMS.map(p => (
                 <div key={p.name} style={{ ...CARD, borderColor: p.color + '30' }}>
                     <div style={{ fontSize: 13, fontWeight: 800, color: p.color, marginBottom: 12 }}>{p.name}</div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 10 }}>
-                        {[['Post Views', p.views, totals.views], ['Comments', p.comments, totals.comments],
-                        ['Inquiries', p.inquiries, totals.inquiries], ['New Members', p.newMembers, totals.newMembers]].map(([lbl, v, tot]) => (
+                        {[[t('channelKpi.postViews'), p.views, totals.views], [t('channelKpi.comments'), p.comments, totals.comments],
+                        [t('channelKpi.inquiries'), p.inquiries, totals.inquiries], [t('channelKpi.newMembers'), p.newMembers, totals.newMembers]].map(([lbl, v, tot]) => (
                             <div key={lbl}>
                                 <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', marginBottom: 4 }}>{lbl}</div>
                                 <div style={{ fontSize: 16, fontWeight: 900, color: p.color }}>{v.toLocaleString()}</div>
@@ -348,23 +356,24 @@ function CommunityKpiTab() {
    Tab 7: KPI Target Figures & Achievement
 ════════════════════════════════════════════════════════════ */
 function KpiTargetTab({ kpiTargets }) {
+  const t = useT();
     const ACTUALS = {
         ctr: 3.64, convRate: 3.8, cpa: 46200, roas: 312, cpc: 348,
     };
     const DEFAULTS = { ctr: 3, convRate: 5, cpa: 50000, roas: 300, cpc: 1000 };
     const ITEMS = [
-        { key: 'ctr', label: 'CTR', unit: '%', desc: 'Ad click-through rate', reverse: false },
-        { key: 'convRate', label: 'Conv. Rate', unit: '%', desc: 'Click → Purchase rate', reverse: false },
-        { key: 'cpa', label: 'CPA', unit: '₩', desc: 'Cost per acquisition', reverse: true },
-        { key: 'roas', label: 'ROAS', unit: '%', desc: 'Return on ad spend', reverse: false },
-        { key: 'cpc', label: 'CPC', unit: '₩', desc: 'Cost per click', reverse: true },
+        { key: 'ctr', label: 'CTR', unit: '%', desc: t('channelKpi.descCtr'), reverse: false },
+        { key: 'convRate', label: 'Conv. Rate', unit: '%', desc: t('channelKpi.descConvRate'), reverse: false },
+        { key: 'cpa', label: 'CPA', unit: '₩', desc: t('channelKpi.descCpa'), reverse: true },
+        { key: 'roas', label: 'ROAS', unit: '%', desc: t('channelKpi.descRoas'), reverse: false },
+        { key: 'cpc', label: 'CPC', unit: '₩', desc: t('channelKpi.descCpc'), reverse: true },
     ];
 
     return (
         <div style={{ display: 'grid', gap: 14 }}>
-            <div style={SEC}>🎯 KPI Target vs Actuals</div>
+            <div style={SEC}>{t('channelKpi.targetVsActuals')}</div>
             <div style={{ ...CARD, background: 'linear-gradient(145deg,rgba(79,142,247,0.06),rgba(6,11,20,0.98))' }}>
-                <div style={LBL}>Overall Channel Achievement</div>
+                <div style={LBL}>{t('channelKpi.overallAchieve')}</div>
                 {ITEMS.map(it => {
                     const tgt = parseFloat(kpiTargets[`Search Ads_${it.key}`] ?? DEFAULTS[it.key]);
                     const actual = ACTUALS[it.key];
@@ -383,7 +392,7 @@ function KpiTargetTab({ kpiTargets }) {
                                 {it.unit === '₩' ? '₩' : ''}{actual.toLocaleString()}{it.unit === '%' ? '%' : ''}
                             </div>
                             <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', marginTop: 4 }}>Target {it.unit === '₩' ? '₩' : ''}{tgt.toLocaleString()}{it.unit === '%' ? '%' : ''}</div>
-                            <div style={{ marginTop: 6, fontSize: 11, fontWeight: 800, color: ok ? C.green : C.red }}>{ok ? '✅ Achieved' : '⚠️ Below Target'}</div>
+                            <div style={{ marginTop: 6, fontSize: 11, fontWeight: 800, color: ok ? C.green : C.red }}>{ok ? t('channelKpi.achievedOk') : t('channelKpi.belowTarget')}</div>
                         </div>
                     );
                 })}
@@ -396,15 +405,16 @@ function KpiTargetTab({ kpiTargets }) {
    Tab 8: Monitoring & Claude AI Analysis
 ════════════════════════════════════════════════════════════ */
 function MonitoringTab({ goals, kpiTargets }) {
+  const t = useT();
     const [period, setPeriod] = useState('weekly');
     const [status, setStatus] = useState('idle');
     const [result, setResult] = useState(null);
     const [history, setHistory] = useState(null);
 
     const QUESTIONS = [
-        { id: 'efficiency', label: 'Which channel is the most efficient?' },
-        { id: 'costPerf', label: 'Cost vs. performance analysis' },
-        { id: 'improve', label: 'Identify channels needing improvement' },
+        { id: 'efficiency', label: t('channelKpi.chkEff') },
+        { id: 'costPerf', label: t('channelKpi.chkCostPerf') },
+        { id: 'improve', label: t('channelKpi.chkImprove') },
     ];
 
     const runAI = useCallback(async () => {
@@ -454,15 +464,15 @@ function MonitoringTab({ goals, kpiTargets }) {
 
     return (
         <div style={{ display: 'grid', gap: 14 }}>
-            <div style={SEC}>📈 KPI Monitoring & AI Analysis</div>
+            <div style={SEC}>{t('channelKpi.monitorAi')}</div>
 
             {/* Period selection + AI run */}
             <div style={{ ...CARD, background: 'linear-gradient(145deg,rgba(79,142,247,0.08),rgba(6,11,20,0.98))' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
                     <div style={{ fontSize: 26 }}>🤖</div>
                     <div>
-                        <div style={{ fontSize: 13, fontWeight: 900, color: C.blue }}>Claude AI Channel KPI Analysis</div>
-                        <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.38)' }}>Comprehensive KPI achievement evaluation · Action improvements</div>
+                        <div style={{ fontSize: 13, fontWeight: 900, color: C.blue }}>{t('channelKpi.claudeAiTitle')}</div>
+                        <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.38)' }}>{t('channelKpi.claudeAiDesc')}</div>
                     </div>
                 </div>
                 <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
@@ -473,7 +483,7 @@ function MonitoringTab({ goals, kpiTargets }) {
                                 background: period === p ? C.blue : 'rgba(255,255,255,0.05)',
                                 color: period === p ? '#fff' : 'rgba(255,255,255,0.45)', transition: 'all 0.2s'
                             }}>
-                            {p === 'weekly' ? '🗓 Weekly Analysis' : '📅 Monthly Review'}
+                            {p === 'weekly' ? t('channelKpi.weeklyAi') : t('channelKpi.monthlyAi')}
                         </button>
                     ))}
                 </div>
@@ -484,7 +494,7 @@ function MonitoringTab({ goals, kpiTargets }) {
                             background: status === 'loading' ? 'rgba(79,142,247,0.3)' : 'linear-gradient(135deg,#4f8ef7,#6366f1)',
                             color: '#fff', fontWeight: 800, fontSize: 11, transition: 'all 0.2s'
                         }}>
-                        {status === 'loading' ? '⏳ Analyzing...' : '🚀 Run AI Channel KPI Analysis'}
+                        {status === 'loading' ? t('channelKpi.aiAnalyzing') : t('channelKpi.runAi')}
                     </button>
                     <button onClick={loadHistory}
                         style={{
@@ -508,7 +518,7 @@ function MonitoringTab({ goals, kpiTargets }) {
                 <div style={{ display: 'grid', gap: 12 }}>
                     {result.summary && (
                         <div style={CARD}>
-                            <div style={LBL}>📋 AI Summary Analysis</div>
+                            <div style={LBL}>{t('channelKpi.aiSummary')}</div>
                             <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.8)', lineHeight: 1.75 }}>{result.summary}</div>
                             {result.top_insight && (
                                 <div style={{ marginTop: 8, padding: '8px 11px', borderRadius: 8, background: 'rgba(79,142,247,0.1)', border: '1px solid rgba(79,142,247,0.2)', fontSize: 11, color: C.blue, fontWeight: 600 }}>
@@ -533,11 +543,11 @@ function MonitoringTab({ goals, kpiTargets }) {
                             </div>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
                                 <div style={{ background: 'rgba(34,197,94,0.07)', borderRadius: 7, padding: '7px 9px', border: '1px solid rgba(34,197,94,0.14)' }}>
-                                    <div style={{ fontSize: 9, fontWeight: 700, color: C.green, marginBottom: 4 }}>✅ Strengths</div>
+                                    <div style={{ fontSize: 9, fontWeight: 700, color: C.green, marginBottom: 4 }}>{t('channelKpi.strengths')}</div>
                                     {(ch.strengths || []).map((s, i) => <div key={i} style={{ fontSize: 10, color: 'rgba(255,255,255,0.6)', marginBottom: 2 }}>• {s}</div>)}
                                 </div>
                                 <div style={{ background: 'rgba(239,68,68,0.07)', borderRadius: 7, padding: '7px 9px', border: '1px solid rgba(239,68,68,0.14)' }}>
-                                    <div style={{ fontSize: 9, fontWeight: 700, color: C.red, marginBottom: 4 }}>⚠️ Improvements</div>
+                                    <div style={{ fontSize: 9, fontWeight: 700, color: C.red, marginBottom: 4 }}>{t('channelKpi.weaknesses')}</div>
                                     {(ch.weaknesses || []).map((w, i) => <div key={i} style={{ fontSize: 10, color: 'rgba(255,255,255,0.6)', marginBottom: 2 }}>• {w}</div>)}
                                 </div>
                             </div>
@@ -550,7 +560,7 @@ function MonitoringTab({ goals, kpiTargets }) {
                     ))}
                     {(result.improvements || []).length > 0 && (
                         <div style={CARD}>
-                            <div style={LBL}>🔧 Improvement Recommendations</div>
+                            <div style={LBL}>{t('channelKpi.improveRecs')}</div>
                             {result.improvements.map((imp, i) => (
                                 <div key={i} style={{ padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                                     <div style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.8)' }}>#{i + 1} {imp.title}</div>
@@ -564,7 +574,7 @@ function MonitoringTab({ goals, kpiTargets }) {
 
             {/* Weekly Trend */}
             <div style={CARD}>
-                <div style={LBL}>📊 Weekly Ad Performance Trend (Search Ads)</div>
+                <div style={LBL}>{t('channelKpi.weeklyAdTrend')}</div>
                 <div style={{ display: 'grid', gridTemplateColumns: '60px repeat(3,1fr)', gap: 8, fontSize: 10, color: 'rgba(255,255,255,0.3)', fontWeight: 700, textTransform: 'uppercase', paddingBottom: 8, borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
                     <span>Period</span><span>CTR</span><span>Conv. Rate</span><span>ROAS</span>
                 </div>
@@ -580,7 +590,7 @@ function MonitoringTab({ goals, kpiTargets }) {
 
             {/* Analysis Checklist */}
             <div style={CARD}>
-                <div style={LBL}>✅ Regular Analysis Checklist</div>
+                <div style={LBL}>{t('channelKpi.checklist')}</div>
                 {QUESTIONS.map(q => (
                     <div key={q.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                         <div style={{ width: 18, height: 18, borderRadius: 4, background: 'rgba(79,142,247,0.15)', border: '1px solid rgba(79,142,247,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10 }}>✓</div>
@@ -592,8 +602,8 @@ function MonitoringTab({ goals, kpiTargets }) {
             {/* History */}
             {history && (
                 <div style={CARD}>
-                    <div style={LBL}>📜 AI Analysis History</div>
-                    {history.length === 0 && <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)' }}>No history</div>}
+                    <div style={LBL}>{t('channelKpi.aiHistoryList')}</div>
+                    {history.length === 0 && <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)' }}>{t('channelKpi.noHistory')}</div>}
                     {history.map(h => (
                         <div key={h.id} style={{ padding: '6px 0', borderBottom: '1px solid rgba(255,255,255,0.04)', fontSize: 11 }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 2 }}>
@@ -612,18 +622,21 @@ function MonitoringTab({ goals, kpiTargets }) {
 /* ════════════════════════════════════════════════════════════
    Main Component
 ════════════════════════════════════════════════════════════ */
-const TABS = [
-    { id: 'goal', label: '🎯 Goals' },
-    { id: 'role', label: '📡 Channel Roles' },
-    { id: 'kpi', label: '⚙️ KPI Setup' },
-    { id: 'sns', label: '📣 SNS KPI' },
-    { id: 'content', label: '📝 Content KPI' },
-    { id: 'community', label: '💬 Community KPI' },
-    { id: 'target', label: '🎯 KPI Targets' },
-    { id: 'monitor', label: '📈 Monitor·AI' },
-];
+
 
 export default function ChannelKPI() {
+  const t = useT();
+    const TABS = [
+    { id: 'goal', label: t('channelKpi.tabGoals') },
+    { id: 'role', label: t('channelKpi.tabRoles') },
+    { id: 'kpi', label: t('channelKpi.tabSetup') },
+    { id: 'sns', label: t('channelKpi.tabSns') },
+    { id: 'content', label: t('channelKpi.tabContent') },
+    { id: 'community', label: t('channelKpi.tabCommunity') },
+    { id: 'target', label: t('channelKpi.tabTargets') },
+    { id: 'monitor', label: t('channelKpi.tabMonitor') },
+];
+
   const { fmt } = useCurrency();
     const navigate = useNavigate();
     const { budgetStats, channelBudgets, pnlStats, orderStats } = useGlobalData();
@@ -643,7 +656,7 @@ export default function ChannelKPI() {
                             <div className="hero-title" style={{ background: 'linear-gradient(135deg,#4f8ef7,#a855f7)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                                 Channel KPI Advanced Management
                             </div>
-                            <div className="hero-desc">Measurable KPIs · Business goal alignment · Channel role matching · Periodic AI evaluation</div>
+                            <div className="hero-desc">{t('channelKpi.heroDesc')}</div>
                             {/* ✅ GlobalDataContext Real-time KPIs */}
                             <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
                                 <span className="badge" style={{ background: 'rgba(79,142,247,0.12)', color: '#60a5fa', border: '1px solid rgba(79,142,247,0.25)' }}>

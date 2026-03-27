@@ -4,6 +4,7 @@ import { useAuth } from '../auth/AuthContext.jsx';
 import { getJsonAuth, postJsonAuth, requestJsonAuth } from "../services/apiClient.js";
 import PolicyTreeEditor from "../components/PolicyTreeEditor.jsx";
 
+import { useT } from '../i18n/index.js';
 const Card = ({ title, subtitle, right, children }) => (
   <div className="card glass" style={{ padding: 16 }}>
     <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "flex-start" }}>

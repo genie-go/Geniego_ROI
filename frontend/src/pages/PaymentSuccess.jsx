@@ -5,6 +5,7 @@ import { useAuth } from "../auth/AuthContext.jsx";
 const KRW = (v) => "₩" + Number(v).toLocaleString("ko-KR");
 
 export default function PaymentSuccess() {
+  const t = useT();
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
     const { token, user, upgrade, reloadMenuAccess } = useAuth();
@@ -144,3 +145,6 @@ export default function PaymentSuccess() {
         </div>
     );
 }
+
+import { useI18n } from '../i18n/index.js';
+import { useT } from '../i18n/index.js';

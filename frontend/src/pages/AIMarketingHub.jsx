@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { useI18n } from '../i18n';
 import { useCurrency } from '../contexts/CurrencyContext.jsx';
 
+import { useT } from '../i18n/index.js';
 /* ────────── utils ────────── */
 // currency formatting via useCurrency fmt()
 const pct = v => (Number(v) * 100).toFixed(1) + '%';
@@ -306,10 +307,15 @@ function RecommendCard({ rec, onBudgetChange, onApprove, onExecute, approved, ex
 /* ────────── Total Budget Panel ────────── */
 function TotalBudgetPanel({ channelBudgets, onAllocate, t }) {
     const { fmt } = useCurrency();
-    const [totalBudget, setTotalBudget] = useState('');
+    const [totalBudget, setTotalBudget] = useState(() => parseInt(sessionStorage.getItem('aihub_totalBudget') || '0') || '');
     const [editVal, setEditVal] = useState('');
     const [editing, setEditing] = useState(false);
-    const [alloc, setAlloc] = useState(null);
+    const [alloc, setAlloc] = useState(() => JSON.parse(sessionStorage.getItem('aihub_alloc') || 'null'));
+
+    useEffect(() => {
+        if (totalBudget) sessionStorage.setItem('aihub_totalBudget', totalBudget);
+        if (alloc) sessionStorage.setItem('aihub_alloc', JSON.stringify(alloc));
+    }, [totalBudget, alloc]);
 
     const handleCalc = () => {
         const v = parseInt(editVal.replace(/[^0-9]/g, ''));
@@ -407,13 +413,20 @@ export default function AIMarketingHub() {
     const { isDemo, isPro, plan } = useAuth();
     const { inventory, orders, channelBudgets, settlement, crmSegments, pnlStats, paymentCards, chargeCard, sharedCampaigns,
         executeAIRecommendation, aiRecommendationLog, activeRules, rulesFired } = useGlobalData();
-    const [approved, setApproved] = useState({});
+    const [approved, setApproved] = useState(() => JSON.parse(sessionStorage.getItem('aihub_approved') || '{}'));
     const [executing, setExecuting] = useState({});
-    const [executed, setExecuted] = useState({});
-    const [budgets, setBudgets] = useState({});
-    const [logs, setLogs] = useState([]);
+    const [executed, setExecuted] = useState(() => JSON.parse(sessionStorage.getItem('aihub_executed') || '{}'));
+    const [budgets, setBudgets] = useState(() => JSON.parse(sessionStorage.getItem('aihub_budgets') || '{}'));
+    const [logs, setLogs] = useState(() => JSON.parse(sessionStorage.getItem('aihub_logs') || '[]'));
     const [filter, setFilter] = useState('all');
     const [analysisStep, setAnalysisStep] = useState(0);
+
+    useEffect(() => {
+        sessionStorage.setItem('aihub_approved', JSON.stringify(approved));
+        sessionStorage.setItem('aihub_executed', JSON.stringify(executed));
+        sessionStorage.setItem('aihub_budgets', JSON.stringify(budgets));
+        sessionStorage.setItem('aihub_logs', JSON.stringify(logs));
+    }, [approved, executed, budgets, logs]);
 
     useEffect(() => {
         setAnalysisStep(1);
@@ -457,46 +470,42 @@ export default function AIMarketingHub() {
     }, []);
 
     const handleExecute = useCallback(async (rec, budget) => {
-        if (isDemo) {
-            setExecuting(p => ({ ...p, [rec.id]: true }));
-            const now = new Date().toLocaleTimeString('ko-KR', { hour12: false });
-            setLogs(p => [{
-                icon: '🎭',
-                title: `[${t('aiHub.demoMode')}] ${rec.title}`,
-                detail: `${fmt(budget ?? budgets[rec.id] ?? rec.budget)} ${t('aiHub.simulation')} · ${t('aiHub.estRoi')} ${rec.estimatedROI?.toFixed(1)}%`,
-                time: now, status: t('aiHub.logDemoComplete'),
-            }, ...p]);
-            await new Promise(r => setTimeout(r, 1200));
-            setExecuting(p => ({ ...p, [rec.id]: false }));
-            setExecuted(p => ({ ...p, [rec.id]: true }));
-            return;
-        }
-        if (!defaultCard && paymentCards.length === 0) {
+        const execBudget = budget ?? budgets[rec.id] ?? rec.budget;
+        let card = defaultCard || paymentCards[0];
+        
+        if (isDemo && !card) {
+            card = { id: 'demo_card', alias: '기업공용 (Virtual)', limit: 999999999, totalCharged: 0 };
+        } else if (!card) {
             alert(t('aiHub.noCardAlert'));
             navigate('/budget-planner');
             return;
         }
-        const execBudget = budget ?? budgets[rec.id] ?? rec.budget;
-        const card = defaultCard || paymentCards[0];
+
         if (card.limit > 0 && (card.totalCharged || 0) + execBudget > card.limit) {
             alert(`${t('aiHub.cardLimitAlert')} ${fmt(card.limit)}. ${t('aiHub.currentCharged')}: ${fmt(card.totalCharged || 0)}`);
             return;
         }
+
         setExecuting(p => ({ ...p, [rec.id]: true }));
         const now = new Date().toLocaleTimeString('ko-KR', { hour12: false });
         setLogs(p => [{
-            icon: '💳',
-            title: `[${card.alias}] ${rec.title}`,
+            icon: isDemo ? '🎭' : '💳',
+            title: isDemo ? `[${t('aiHub.demoMode')}] ${rec.title}` : `[${card.alias}] ${rec.title}`,
             detail: `${fmt(execBudget)} ${t('aiHub.autoExecDetail')} · ${t('aiHub.estRoi')} ${rec.estimatedROI?.toFixed(1)}% · ${t('aiHub.netProfit')} ${fmt(rec.estimatedProfit || 0)}`,
             time: now, status: t('aiHub.logInProgress'),
         }, ...p]);
-        await new Promise(r => setTimeout(r, 1800 + Math.random() * 800));
-        chargeCard(card.id, execBudget, rec.title);
+
+        await new Promise(r => setTimeout(r, 1200 + Math.random() * 800));
+
+        if (!isDemo || paymentCards.length > 0) {
+            chargeCard(card.id, execBudget, rec.title);
+        }
         executeAIRecommendation(rec, execBudget, card.alias);
+
         setExecuting(p => ({ ...p, [rec.id]: false }));
         setExecuted(p => ({ ...p, [rec.id]: true }));
         setLogs(p => p.map((l, i) => i === 0 ? { ...l, status: t('aiHub.logDone') } : l));
-    }, [isDemo, defaultCard, paymentCards, budgets, chargeCard, navigate, executeAIRecommendation, t]);
+    }, [isDemo, defaultCard, paymentCards, budgets, chargeCard, navigate, executeAIRecommendation, t, fmt]);
 
     const handleApproveAll = () => {
         const a = {};
@@ -626,7 +635,7 @@ export default function AIMarketingHub() {
                     <TotalBudgetPanel channelBudgets={channelBudgets} onAllocate={handleAllocate} t={t} />
 
                     {/* No card warning */}
-                    {!defaultCard && (
+                    {!defaultCard && !isDemo && (
                         <div style={{ padding: '12px 18px', borderRadius: 10, background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <div>
                                 <div style={{ fontWeight: 700, fontSize: 12, color: '#ef4444' }}>⚠️ {t('aiHub.noCardWarning')}</div>
@@ -643,14 +652,14 @@ export default function AIMarketingHub() {
                         <div style={{ padding: '14px 20px', borderRadius: 12, background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.25)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <div>
                                 <div style={{ fontWeight: 800, fontSize: 13, color: '#a5b4fc' }}>
-                                    💳 {t('aiHub.bulkApproved', { n: approvedCount })} — {defaultCard ? t('aiHub.readyToExec', { card: defaultCard.alias }) : t('aiHub.needCard')}
+                                    💳 {t('aiHub.bulkApproved', { n: approvedCount })} — {defaultCard ? t('aiHub.readyToExec', { card: defaultCard.alias }) : isDemo ? t('aiHub.readyToExec', { card: 'Virtual' }) : t('aiHub.needCard')}
                                 </div>
                                 <div style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 2 }}>
                                     {t('aiHub.totalExecBudget')} {fmt(recommendations.filter(r => approved[r.id]).reduce((s, r) => s + (budgets[r.id] ?? r.budget), 0))}
                                 </div>
                             </div>
-                            <button onClick={handleExecuteAll} disabled={!defaultCard}
-                                style={{ padding: '9px 18px', borderRadius: 10, border: 'none', cursor: defaultCard ? 'pointer' : 'not-allowed', fontWeight: 800, fontSize: 12, background: defaultCard ? 'linear-gradient(135deg,#22c55e,#16a34a)' : 'rgba(255,255,255,0.07)', color: defaultCard ? '#fff' : 'var(--text-3)', opacity: defaultCard ? 1 : 0.6 }}>
+                            <button onClick={handleExecuteAll} disabled={!defaultCard && !isDemo}
+                                style={{ padding: '9px 18px', borderRadius: 10, border: 'none', cursor: (defaultCard || isDemo) ? 'pointer' : 'not-allowed', fontWeight: 800, fontSize: 12, background: (defaultCard || isDemo) ? 'linear-gradient(135deg,#22c55e,#16a34a)' : 'rgba(255,255,255,0.07)', color: (defaultCard || isDemo) ? '#fff' : 'var(--text-3)', opacity: (defaultCard || isDemo) ? 1 : 0.6 }}>
                                 💳 {t('aiHub.bulkExec')}
                             </button>
                         </div>

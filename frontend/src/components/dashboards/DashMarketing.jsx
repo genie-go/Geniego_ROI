@@ -20,78 +20,48 @@ const CHANNELS = {
     meta: {
         name: 'Meta Ads', icon: '📘', color: '#1877f2',
         gradient: 'linear-gradient(135deg,#1877f2,#0d5dbf)',
-        revenue: 2840000, spend: 148200, roas: 3.2, clicks: 84200,
-        impressions: 2100000, ctr: 4.0, cpc: 342, convRate: 3.8,
-        conversions: 3200, purchases: 3200, signups: 520, cartAdds: 9800,
+        revenue: 65000000, spend: 12500000, roas: 5.2, clicks: 124200,
+        impressions: 4100000, ctr: 3.0, cpc: 100, convRate: 3.8,
+        conversions: 4200, purchases: 4200, signups: 520, cartAdds: 9800,
         sessions: 78000, bounceRate: 38, avgSessionTime: 142,
-        gender: { male: 38, female: 62 },
-        age: [{ group: '13-17', pct: 5 }, { group: '18-24', pct: 22 }, { group: '25-34', pct: 34 }, { group: '35-44', pct: 24 }, { group: '45-54', pct: 10 }, { group: '55+', pct: 5 }],
-        regions: [{ name: '\uc11c\uc6b8', pct: 28, rev: 795200 }, { name: '\uacbd\uae30', pct: 18, rev: 511200 }, { name: '\ubd80\uc0b0', pct: 12, rev: 340800 }, { name: '\uc778\ucc9c', pct: 9, rev: 255600 }, { name: '\ub300\uad6c', pct: 7, rev: 198800 }],
-        funnel: [{ stage: '\ub178\ucd9c', val: 2100000 }, { stage: '\ud074\ub9ad', val: 84200 }, { stage: '\uc870\ud68c', val: 38400 }, { stage: '\uc7a5\ubc14\uad6c\ub2c8', val: 9800 }, { stage: '\uad6c\ub9e4', val: 3200 }],
-        adTypes: [{ type: '\ub9b4\uc2a4', spend: 68200, roas: 3.8, conv: 1480 }, { type: '\ud53c\ub4dc', spend: 52000, roas: 2.9, conv: 980 }, { type: '\uc2a4\ud1a0\ub9ac', spend: 28000, roas: 2.4, conv: 740 }],
-        interests: ['Beauty', 'Lifestyle', 'Fitness', 'Food', 'Parenting'],
-        sparkData: null,
-    },
-    tiktok: {
-        name: 'TikTok Ads', icon: '🎵', color: '#EE1D52',
-        gradient: 'linear-gradient(135deg,#69C9D0,#EE1D52)',
-        revenue: 1920000, spend: 89400, roas: 2.8, clicks: 142000,
-        impressions: 5400000, ctr: 2.6, cpc: 219, convRate: 2.1,
-        conversions: 2980, purchases: 2980, signups: 380, cartAdds: 9200,
-        sessions: 124000, bounceRate: 52, avgSessionTime: 95,
-        gender: { male: 44, female: 56 },
-        age: [{ group: '13-17', pct: 12 }, { group: '18-24', pct: 38 }, { group: '25-34', pct: 30 }, { group: '35-44', pct: 14 }, { group: '45-54', pct: 4 }, { group: '55+', pct: 2 }],
-        regions: [{ name: '\uc11c\uc6b8', pct: 24, rev: 460800 }, { name: '\uacbd\uae30', pct: 20, rev: 384000 }, { name: '\ubd80\uc0b0', pct: 14, rev: 268800 }, { name: '\uc778\ucc9c', pct: 10, rev: 192000 }, { name: '\ub300\uc804', pct: 8, rev: 153600 }],
-        funnel: [{ stage: '\ub178\ucd9c', val: 5400000 }, { stage: '\ud074\ub9ad', val: 142000 }, { stage: '\uc870\ud68c', val: 48000 }, { stage: '\uc7a5\ubc14\uad6c\ub2c8', val: 9200 }, { stage: '\uad6c\ub9e4', val: 2980 }],
-        adTypes: [{ type: 'TopView', spend: 42000, roas: 3.2, conv: 1240 }, { type: 'In-Feed', spend: 31400, roas: 2.6, conv: 980 }, { type: 'Spark Ads', spend: 16000, roas: 2.1, conv: 760 }],
-        interests: ['Dance', 'Music', 'Fashion', 'Gaming', 'Food'],
-        sparkData: null,
-    },
-    instagram: {
-        name: 'Instagram', icon: '📸', color: '#E1306C',
-        gradient: 'linear-gradient(135deg,#f58529,#dd2a7b,#8134af)',
-        revenue: 1580000, spend: 72800, roas: 3.1, clicks: 68400,
-        impressions: 1820000, ctr: 3.7, cpc: 298, convRate: 3.4,
-        conversions: 2320, purchases: 2320, signups: 290, cartAdds: 8200,
-        sessions: 61000, bounceRate: 42, avgSessionTime: 118,
-        gender: { male: 35, female: 65 },
-        age: [{ group: '13-17', pct: 8 }, { group: '18-24', pct: 28 }, { group: '25-34', pct: 36 }, { group: '35-44', pct: 20 }, { group: '45-54', pct: 6 }, { group: '55+', pct: 2 }],
-        regions: [{ name: '\uc11c\uc6b8', pct: 32, rev: 505600 }, { name: '\uacbd\uae30', pct: 22, rev: 347600 }, { name: '\ubd80\uc0b0', pct: 10, rev: 158000 }, { name: '\uc778\ucc9c', pct: 8, rev: 126400 }, { name: '\uc81c\uc8fc', pct: 6, rev: 94800 }],
-        funnel: [{ stage: '\ub178\ucd9c', val: 1820000 }, { stage: '\ud074\ub9ad', val: 68400 }, { stage: '\uc870\ud68c', val: 29800 }, { stage: '\uc7a5\ubc14\uad6c\ub2c8', val: 8200 }, { stage: '\uad6c\ub9e4', val: 2320 }],
-        adTypes: [{ type: 'Reels', spend: 38000, roas: 3.6, conv: 1080 }, { type: 'Shopping', spend: 22800, roas: 2.8, conv: 720 }, { type: 'Stories', spend: 12000, roas: 2.2, conv: 520 }],
-        interests: ['Fashion', 'Beauty', 'Travel', 'Interior', 'Wellness'],
-        sparkData: null,
-    },
-    youtube: {
-        name: 'YouTube Ads', icon: '\u25B6', color: '#FF0000',
-        gradient: 'linear-gradient(135deg,#FF0000,#cc0000)',
-        revenue: 980000, spend: 58400, roas: 2.4, clicks: 28600,
-        impressions: 3200000, ctr: 0.9, cpc: 482, convRate: 1.8,
-        conversions: 515, purchases: 515, signups: 120, cartAdds: 2800,
-        sessions: 25000, bounceRate: 61, avgSessionTime: 205,
-        gender: { male: 58, female: 42 },
-        age: [{ group: '13-17', pct: 6 }, { group: '18-24', pct: 18 }, { group: '25-34', pct: 28 }, { group: '35-44', pct: 28 }, { group: '45-54', pct: 14 }, { group: '55+', pct: 6 }],
-        regions: [{ name: '\uc11c\uc6b8', pct: 30, rev: 294000 }, { name: '\uacbd\uae30', pct: 22, rev: 215600 }, { name: '\ub300\uc804', pct: 14, rev: 137200 }, { name: '\ubd80\uc0b0', pct: 11, rev: 107800 }, { name: '\ub300\uad6c', pct: 8, rev: 78400 }],
-        funnel: [{ stage: '\ub178\ucd9c', val: 3200000 }, { stage: '\ud074\ub9ad', val: 28600 }, { stage: '\uc870\ud68c', val: 12400 }, { stage: '\uc7a5\ubc14\uad6c\ub2c8', val: 2800 }, { stage: '\uad6c\ub9e4', val: 515 }],
-        adTypes: [{ type: 'Instream', spend: 38000, roas: 2.6, conv: 320 }, { type: 'Discovery', spend: 14800, roas: 2.1, conv: 140 }, { type: 'Bumper', spend: 5600, roas: 1.8, conv: 55 }],
-        interests: ['Tech Review', 'DIY', 'Finance', 'Gaming', 'Automotive'],
+        gender: { male: 18, female: 82 },
+        age: [{ group: '13-17', pct: 5 }, { group: '18-24', pct: 42 }, { group: '25-34', pct: 34 }, { group: '35-44', pct: 14 }, { group: '45-54', pct: 3 }, { group: '55+', pct: 2 }],
+        regions: [{ name: '서울', pct: 48, rev: 31200000 }, { name: '경기', pct: 28, rev: 18200000 }, { name: '부산', pct: 12, rev: 7800000 }, { name: '비건타겟', pct: 9, rev: 5850000 }, { name: '대구', pct: 3, rev: 1950000 }],
+        funnel: [{ stage: '노출', val: 4100000 }, { stage: '클릭', val: 124200 }, { stage: '조회', val: 48400 }, { stage: '시카페어 장바구니', val: 18800 }, { stage: '구매', val: 4200 }],
+        adTypes: [{ type: '닥터자르트 릴스', spend: 6800000, roas: 5.8, conv: 2480 }, { type: '피드 (수분크림)', spend: 3200000, roas: 4.9, conv: 980 }, { type: '스토리', spend: 2500000, roas: 4.4, conv: 740 }],
+        interests: ['Dr.Jart+', 'Skincare', 'Beauty', 'Cosmetics', 'Vegan'],
         sparkData: null,
     },
     google: {
         name: 'Google Ads', icon: '🔍', color: '#34A853',
         gradient: 'linear-gradient(135deg,#4285F4,#34A853)',
-        revenue: 3420000, spend: 186000, roas: 3.8, clicks: 62400,
-        impressions: 890000, ctr: 7.0, cpc: 498, convRate: 5.2,
+        revenue: 53300000, spend: 8200000, roas: 6.5, clicks: 82400,
+        impressions: 1890000, ctr: 4.3, cpc: 99, convRate: 5.2,
         conversions: 3245, purchases: 3245, signups: 680, cartAdds: 11200,
         sessions: 58000, bounceRate: 31, avgSessionTime: 168,
-        gender: { male: 52, female: 48 },
-        age: [{ group: '13-17', pct: 2 }, { group: '18-24', pct: 14 }, { group: '25-34', pct: 32 }, { group: '35-44', pct: 30 }, { group: '45-54', pct: 16 }, { group: '55+', pct: 6 }],
-        regions: [{ name: '\uc11c\uc6b8', pct: 36, rev: 1231200 }, { name: '\uacbd\uae30', pct: 24, rev: 820800 }, { name: '\ubd80\uc0b0', pct: 12, rev: 410400 }, { name: '\uc778\ucc9c', pct: 8, rev: 273600 }, { name: '\uad11\uc8fc', pct: 6, rev: 205200 }],
-        funnel: [{ stage: '\ub178\ucd9c', val: 890000 }, { stage: '\ud074\ub9ad', val: 62400 }, { stage: '\uc870\ud68c', val: 42000 }, { stage: '\uc7a5\ubc14\uad6c\ub2c8', val: 11200 }, { stage: '\uad6c\ub9e4', val: 3245 }],
-        adTypes: [{ type: 'Search', spend: 112000, roas: 4.2, conv: 1960 }, { type: 'Shopping', spend: 58000, roas: 3.6, conv: 1040 }, { type: 'Display', spend: 16000, roas: 2.1, conv: 245 }],
-        interests: ['Electronics', 'Software', 'Business', 'Shopping', 'Finance'],
+        gender: { male: 22, female: 78 },
+        age: [{ group: '13-17', pct: 2 }, { group: '18-24', pct: 24 }, { group: '25-34', pct: 42 }, { group: '35-44', pct: 20 }, { group: '45-54', pct: 8 }, { group: '55+', pct: 4 }],
+        regions: [{ name: '서울', pct: 46, rev: 24518000 }, { name: '경기', pct: 24, rev: 12792000 }, { name: '부산', pct: 12, rev: 6396000 }, { name: '인천', pct: 8, rev: 4264000 }, { name: '광주', pct: 10, rev: 5330000 }],
+        funnel: [{ stage: '검색 노출', val: 1890000 }, { stage: '클릭', val: 82400 }, { stage: '스토어 조회', val: 42000 }, { stage: '세라마이딘 장바구니', val: 11200 }, { stage: '구매', val: 3245 }],
+        adTypes: [{ type: 'SA 검색', spend: 5200000, roas: 7.2, conv: 1960 }, { type: '유튜브 리뷰', spend: 2000000, roas: 5.6, conv: 1040 }, { type: '디스플레이', spend: 1000000, roas: 4.1, conv: 245 }],
+        interests: ['수분크림 추천', '시카페어', '올리브영 세일', '피부진정', 'Dr.Jart'],
         sparkData: null,
     },
+    tiktok: {
+        name: 'TikTok Ads', icon: '🎵', color: '#EE1D52',
+        gradient: 'linear-gradient(135deg,#69C9D0,#EE1D52)',
+        revenue: 15750000, spend: 4500000, roas: 3.5, clicks: 142000,
+        impressions: 5400000, ctr: 2.6, cpc: 31, convRate: 2.1,
+        conversions: 1980, purchases: 1980, signups: 380, cartAdds: 9200,
+        sessions: 124000, bounceRate: 52, avgSessionTime: 95,
+        gender: { male: 14, female: 86 },
+        age: [{ group: '10대', pct: 42 }, { group: '20대 초반', pct: 38 }, { group: '20대 후반', pct: 10 }, { group: '30대', pct: 6 }, { group: '기타', pct: 4 }, { group: '55+', pct: 0 }],
+        regions: [{ name: '서울', pct: 34, rev: 5355000 }, { name: '경기', pct: 30, rev: 4725000 }, { name: '부산', pct: 14, rev: 2205000 }, { name: '인천', pct: 12, rev: 1890000 }, { name: '대전', pct: 10, rev: 1575000 }],
+        funnel: [{ stage: '노출', val: 5400000 }, { stage: '스와이프 클릭', val: 142000 }, { stage: '조회', val: 48000 }, { stage: '바디워시 장바구니', val: 9200 }, { stage: '구매', val: 1980 }],
+        adTypes: [{ type: '릴스 챌린지', spend: 2800000, roas: 3.9, conv: 1240 }, { type: '인플루언서', spend: 1100000, roas: 2.9, conv: 480 }, { type: '스파크 애즈', spend: 600000, roas: 2.3, conv: 260 }],
+        interests: ['#겟레디위드미', '#스킨케어', 'Idol Makeup', 'Cosmetics', 'Trend'],
+        sparkData: null,
+    }
 };
 
 const CHAN_LIST = Object.entries(CHANNELS).map(([id, c]) => ({ id, ...c }));
@@ -131,7 +101,7 @@ function ChannelDetailPanel({ ch }) {
             <div style={{ padding: '12px 14px', borderRadius: 12, background: `linear-gradient(135deg,${c.color}18,rgba(6,11,20,0.98))`, border: `1px solid ${c.color}28` }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                     <div style={{ width: 30, height: 30, borderRadius: 9, background: c.gradient, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>{c.icon}</div>
-                    <div style={{ fontSize: 13, fontWeight: 900, color: c.color }}>{c.name} — 5\uC139\uC158 \uBD84\uC11D</div>
+                    <div style={{ fontSize: 13, fontWeight: 900, color: c.color }}>{c.id === 'naver' ? t('dash.naverName') : c.name} — 5\uC139\uC158 \uBD84\uC11D</div>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 6 }}>
                     {[['ROAS', c.roas + 'x'], ['CTR', c.ctr + '%'], ['\uC804\uD658\uC728', c.convRate + '%'],
@@ -279,7 +249,7 @@ function OverviewPanel() {
                 {CHAN_LIST.slice().sort((a, b) => b.roas - a.roas).map(c => (
                     <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 7 }}>
                         <span style={{ fontSize: 14 }}>{c.icon}</span>
-                        <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.55)', width: 72 }}>{c.name.split(' ')[0]}</span>
+                        <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.55)', width: 72 }}>{c.id === 'naver' ? t('dash.naverName') : c.name.split(' ')[0]}</span>
                         <div style={{ flex: 1, height: 5, background: 'rgba(255,255,255,0.06)', borderRadius: 3 }}>
                             <div style={{ width: `${(c.roas / 5) * 100}%`, height: '100%', background: c.color, borderRadius: 3 }} />
                         </div>
@@ -404,7 +374,7 @@ export default function DashMarketing() {
                                                     <div style={{ background: 'linear-gradient(145deg,#0d1525,#060b14)', borderRadius: 13, padding: '10px', height: 110, boxSizing: 'border-box', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                                                         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                                                             <div style={{ width: 24, height: 24, borderRadius: 7, background: c.gradient, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12 }}>{c.icon}</div>
-                                                            <div style={{ fontSize: 10, fontWeight: 800, color: 'rgba(255,255,255,0.82)' }}>{c.name.split(' ')[0]}</div>
+                                                            <div style={{ fontSize: 10, fontWeight: 800, color: 'rgba(255,255,255,0.82)' }}>{c.id === 'naver' ? t('dash.naverName') : c.name.split(' ')[0]}</div>
                                                         </div>
                                                         <div style={{ fontSize: 20, fontWeight: 900, color: c.color }}>{c.roas}<span style={{ fontSize: 11 }}>x</span></div>
                                                         <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.35)' }}>ROAS · {fmt(c.revenue, { prefix: '₩' })}</div>
@@ -432,7 +402,7 @@ export default function DashMarketing() {
                                                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                                                         <div style={{ width: 28, height: 28, borderRadius: 8, background: c.gradient, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>{c.icon}</div>
                                                         <div>
-                                                            <div style={{ fontSize: 11, fontWeight: 800, color: 'rgba(255,255,255,0.82)' }}>{c.name}</div>
+                                                            <div style={{ fontSize: 11, fontWeight: 800, color: 'rgba(255,255,255,0.82)' }}>{c.id === 'naver' ? t('dash.naverName') : c.name}</div>
                                                             <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.36)' }}>클릭 → 5섹션</div>
                                                         </div>
                                                     </div>
@@ -457,14 +427,14 @@ export default function DashMarketing() {
                             {/* 라인 차트 */}
                             <div style={CARD}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, flexWrap: 'wrap', gap: 4 }}>
-                                    <span style={{ fontSize: 13, fontWeight: 700 }}>Channel Revenue Trend (14일)</span>
+                                    <span style={{ fontSize: 13, fontWeight: 700 }}>{t('dash.chTrend')}</span>
                                     {!isMobile && (
                                         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                                             {CHAN_LIST.map(c => (
                                                 <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 10, cursor: 'pointer', color: 'rgba(255,255,255,0.48)' }}
                                                     onClick={() => setSelected(selected === c.id ? null : c.id)}>
                                                     <div style={{ width: 14, height: 2.5, background: c.color, borderRadius: 2 }} />
-                                                    {c.name.split(' ')[0]}
+                                                    {c.id === 'naver' ? t('dash.naverName') : c.name.split(' ')[0]}
                                                 </div>
                                             ))}
                                         </div>
@@ -479,7 +449,7 @@ export default function DashMarketing() {
 
                             {/* 채널 성과 테이블: 모바일은 카드 형태로 */}
                             <div style={CARD}>
-                                <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>Channel Performance (5섹션 요약)</div>
+                                <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>{t('dash.chPerfSummary')}</div>
                                 {isMobile ? (
                                     // 모바일: 채널별 카드
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -488,7 +458,7 @@ export default function DashMarketing() {
                                                 style={{ borderRadius: 10, padding: '10px 12px', cursor: 'pointer', background: selected === c.id ? `${c.color}18` : i % 2 === 0 ? 'rgba(255,255,255,0.02)' : 'transparent', border: `1px solid ${selected === c.id ? c.color + '40' : 'rgba(255,255,255,0.06)'}` }}>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                                                     <div style={{ width: 3, height: 20, borderRadius: 2, background: c.color }} />
-                                                    <span style={{ fontSize: 13, fontWeight: 800, color: c.color }}>{c.icon} {c.name}</span>
+                                                    <span style={{ fontSize: 13, fontWeight: 800, color: c.color }}>{c.icon} {c.id === 'naver' ? t('dash.naverName') : c.name}</span>
                                                 </div>
                                                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 6 }}>
                                                     {[['ROAS', c.roas + 'x', c.color], ['CTR', c.ctr + '%', 'rgba(255,255,255,0.6)'], ['전환율', c.convRate + '%', 'rgba(255,255,255,0.6)'], ['광고비', fmt(c.spend, { prefix: '₩' }), 'rgba(255,255,255,0.6)'], ['매출', fmt(c.revenue, { prefix: '₩' }), '#22c55e'], ['CPC', '₩' + c.cpc, 'rgba(255,255,255,0.5)']].map(([l, v, col]) => (
@@ -505,14 +475,14 @@ export default function DashMarketing() {
                                     // PC: 기존 테이블
                                     <>
                                         <div style={{ display: 'grid', gridTemplateColumns: '110px 56px 56px 72px 64px 56px 54px', gap: 8, padding: '0 8px 8px', fontSize: 10, color: 'rgba(255,255,255,0.28)', fontWeight: 700, textTransform: 'uppercase', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-                                            <span>Channel</span><span>ROAS</span><span>CTR</span><span>Spend</span><span>Revenue</span><span>Conv%</span><span>CPC</span>
+                                            <span>{t('dash.colChan')}</span><span>{t('dash.colRoas')}</span><span>{t('dash.colCtr')}</span><span>{t('dash.colSpend')}</span><span>{t('dash.colRev')}</span><span>{t('dash.colConv')}</span><span>{t('dash.colCpc')}</span>
                                         </div>
                                         {CHAN_LIST.map((c, i) => (
                                             <div key={c.id} onClick={() => setSelected(selected === c.id ? null : c.id)}
                                                 style={{ display: 'grid', gridTemplateColumns: '110px 56px 56px 72px 64px 56px 54px', gap: 8, padding: '9px 8px', borderBottom: '1px solid rgba(255,255,255,0.035)', alignItems: 'center', fontSize: 11, cursor: 'pointer', borderRadius: 8, background: selected === c.id ? `${c.color}10` : i % 2 === 0 ? 'rgba(255,255,255,0.016)' : 'transparent' }}>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
                                                     <div style={{ width: 3, height: 22, borderRadius: 2, background: c.color, flexShrink: 0 }} />
-                                                    <span style={{ fontWeight: 700, color: 'rgba(255,255,255,0.82)' }}>{c.name.split(' ')[0]}</span>
+                                                    <span style={{ fontWeight: 700, color: 'rgba(255,255,255,0.82)' }}>{c.id === 'naver' ? t('dash.naverName') : c.name.split(' ')[0]}</span>
                                                 </div>
                                                 <span style={{ fontWeight: 900, color: c.color }}>{c.roas}x</span>
                                                 <span style={{ color: 'rgba(255,255,255,0.6)' }}>{c.ctr}%</span>

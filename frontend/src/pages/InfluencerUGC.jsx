@@ -185,6 +185,7 @@ function Stars({ n }) {
    TAB 1: Creator Identity Integration
 ══════════════════════════════════════════════════════════════════ */
 function IdentityTab() {
+    const { t } = useI18n();
     const [sel, setSel] = useState(null);
     const [merge, setMerge] = useState([]);
 
@@ -193,10 +194,10 @@ function IdentityTab() {
     return (
         <div style={{ display: "grid", gap: 16 }}>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 10 }}>
-                <KpiCard label="Total Creators" value={CREATORS.length + "명"} color="#4f8ef7" icon="👤" />
-                <KpiCard label="Duplicate Suspected" value={dups.length + "명"} color="#eab308" icon="⚠" sub="Multiple Email/Handle" />
-                <KpiCard label="Unverified Channels" value={CREATORS.reduce((s, c) => s + c.identities.filter(i => !i.verified).length, 0) + "개"} color="#f97316" icon="🔓" />
-                <KpiCard label="Connected Platforms" value={CREATORS.reduce((s, c) => s + c.identities.length, 0) + "개"} color="#22c55e" icon="🔗" />
+                <KpiCard label={t("influencer.totalCreators") || "전체 크리에이터"} value={CREATORS.length + "명"} color="#4f8ef7" icon="👤" />
+                <KpiCard label={t("influencer.dupSuspected") || "중복 의심"} value={dups.length + "명"} color="#eab308" icon="⚠" sub={t("influencer.dupSub") || "다중 핸들 탐지"} />
+                <KpiCard label={t("influencer.unverifiedChannels") || "미인증 채널"} value={CREATORS.reduce((s, c) => s + c.identities.filter(i => !i.verified).length, 0) + "개"} color="#f97316" icon="🔓" />
+                <KpiCard label={t("influencer.connectedPlatforms") || "연결 플랫폼"} value={CREATORS.reduce((s, c) => s + c.identities.length, 0) + "개"} color="#22c55e" icon="🔗" />
             </div>
 
             {dups.length > 0 && (
@@ -205,7 +206,7 @@ function IdentityTab() {
                     background: "rgba(234,179,8,0.06)", border: "1px solid rgba(234,179,8,0.2)",
                     fontSize: 11, color: "#eab308", display: "flex", gap: 8, alignItems: "center"
                 }}>
-                    ⚠ Duplicate/variant handle detected — <strong>{dups.map(d => d.name).join(", ")}</strong> Review Required
+                    {t("influencer.dupAlert") || "⚠ 변형 사칭 탐지 — "}<strong>{dups.map(d => d.name).join(", ")}</strong> {t("influencer.reviewRequired") || "즉시 검토 필요"}
                 </div>
             )}
 
@@ -219,12 +220,12 @@ function IdentityTab() {
                             <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
                                 <div style={{ fontWeight: 800, fontSize: 14 }}>{c.name}</div>
                                 <Tag label={c.tier} color={TIER_COLOR[c.tier]} />
-                                {c.duplicateFlag && <Tag label="⚠ Duplicate Suspected" color="#eab308" />}
+                                {c.duplicateFlag && <Tag label={t("influencer.tagDup") || "⚠ 제재 필요"} color="#eab308" />}
                             </div>
                             <div style={{ display: "flex", gap: 6 }}>
                                 <button className="btn-ghost" style={{ fontSize: 10, padding: "3px 10px" }}
                                     onClick={() => setSel(sel === c.id ? null : c.id)}>
-                                    {sel === c.id ? "▲ Collapse" : "▼ Channel Details"}
+                                    {sel === c.id ? t("influencer.btnCollapse") || "▲ 접기" : t("influencer.btnChannelDetails") || "▼ 채널 정보"}
                                 </button>
                                 {c.duplicateFlag && (
                                     <button className="btn-primary" style={{
@@ -279,6 +280,7 @@ function IdentityTab() {
    TAB 2: Contract Management
 ══════════════════════════════════════════════════════════════════ */
 function ContractTab() {
+    const { t } = useI18n();
     const { fmt } = useCurrency();
     const [modal, setModal] = useState(null);
 
@@ -467,6 +469,7 @@ function ContractTab() {
    TAB 3: Settlement Management + Auto Verification
 ══════════════════════════════════════════════════════════════════ */
 function SettleTab() {
+    const { t } = useI18n();
     const { fmt } = useCurrency();
     const [modal, setModal] = useState(null);
 
@@ -651,6 +654,7 @@ function SettleTab() {
    TAB 4: ROI Ranking + Content Reuse
 ══════════════════════════════════════════════════════════════════ */
 function ROITab() {
+    const { t } = useI18n();
     const allContent = CREATORS.flatMap(c =>
         c.content.map(ct => ({
             ...ct, creatorId: c.id, creatorName: c.name, tier: c.tier,
@@ -832,6 +836,7 @@ const TABS = [
    TAB 5: UGC 리븷 — 리븷 모더레이션 + 감성 Analysis
 ══════════════════════════════════════════════════════════════════ */
 function UGCTab() {
+    const { t } = useI18n();
     const [channel, setChannel] = React.useState("all");
     const [sentiment, setSentiment] = React.useState("all");
     const [search, setSearch] = React.useState("");
@@ -1023,6 +1028,7 @@ function AIGrade({ grade }) {
 }
 
 function CreatorScoreModal({ creator, evalData, onClose }) {
+    const { t } = useI18n();
     const result = (evalData?.creators || []).find(c => c.id === creator.id);
     if (!result) return null;
     const bd = result.breakdown || {};
@@ -1168,6 +1174,7 @@ function DemoSection() {
 }
 
 function AIEvalTab() {
+    const { t } = useI18n();
     const [evalResult, setEvalResult] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -1347,6 +1354,7 @@ function AIEvalTab() {
 }
 
 export default function InfluencerUGC() {
+    const { t } = useI18n();
     const { fmt } = useCurrency();
     const [tab, setTab] = useState("identity");
     const anomalyCount = CREATORS.filter(c =>
@@ -1369,7 +1377,7 @@ export default function InfluencerUGC() {
                             WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent"
                         }}>Influencer & UGC Hub</div>
                         <div className="hero-desc">
-                            Creator 정체성 Unified(in progress복/변형) · 계약(단가/Performance/권리/e-Sign) · 정산 Auto검증(과Unpaid) · ROI랭킹 · 콘텐츠 재활용 · <strong>UGC Reviews·감성Analysis</strong>
+                            {t("influencer.subtitle") || "크리에이터 정체성 통합(복제/변형) · 모듈식 계약 · 자동 정산 · 자동 ROI 랭킹 · 콘텐츠 재활용 제안"}
                         </div>
                     </div>
                 </div>
@@ -1379,7 +1387,7 @@ export default function InfluencerUGC() {
                         background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)",
                         fontSize: 11, color: "#ef4444", display: "inline-flex", gap: 6
                     }}>
-                        🔴 즉시 Review Required {anomalyCount}건 — e-Sign Pending·Whitelist Expired·정산 이상
+                        {t("influencer.reviewReq") || "🔴 검토 필요"} {anomalyCount}{t("influencer.reviewSub") || "건 — 서명 대기·권한 만료·정산 이상"}
                     </div>
                 )}
             </div>
@@ -1397,8 +1405,8 @@ export default function InfluencerUGC() {
                             {t.id === "settle" && anomalyCount > 0 && (
                                 <span style={{ position: "absolute", top: 6, right: 6, width: 15, height: 15, borderRadius: "50%", background: "#ef4444", fontSize: 8, fontWeight: 900, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center" }}>{anomalyCount}</span>
                             )}
-                            <div style={{ fontSize: 11, fontWeight: 800, color: tab === t.id ? (t.id === "ai_eval" ? "#a855f7" : "var(--text-1)") : "var(--text-2)" }}>{t.label}</div>
-                            <div style={{ fontSize: 9, color: "var(--text-3)", marginTop: 2 }}>{t.desc}</div>
+                            <div style={{ fontSize: 11, fontWeight: 800, color: tab === t.id ? (t.id === "ai_eval" ? "#a855f7" : "var(--text-1)") : "var(--text-2)" }}>{t("influencer.tab_" + t.id) || t.label}</div>
+                            <div style={{ fontSize: 9, color: "var(--text-3)", marginTop: 2 }}>{t("influencer.desc_" + t.id) || t.desc}</div>
                         </button>
                     ))}
                 </div>

@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext.jsx';
 import { useCurrency } from '../contexts/CurrencyContext.jsx';
 
+import { useT } from '../i18n/index.js';
 /* ─── API Helper ─────────────────────────────────────────────────────────── */
 const API = import.meta.env.VITE_API_BASE || '';
 const apiFetch = async (path, opts = {}) => {
@@ -393,8 +394,7 @@ function ProductsTab({ plan }) {
 /* ═══ TAB 3: Count집 Orders List ══════════════════════════════════════════════════ */
 function OrdersTab({ plan }) {
     const { fmt } = useCurrency();
-    const { updateOrderStatus } = useGlobalData();
-    const [orders, setOrders] = useState([]);
+    const { orders, setOrders, updateOrderStatus } = useGlobalData();
     const [loading, setLoading] = useState(true);
     const [channel, setChannel] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
@@ -627,6 +627,7 @@ const TABS = [
 ];
 
 export default function OmniChannel() {
+  const t = useT();
     const { fmt } = useCurrency();
     const navigate = useNavigate();
     const { orderStats } = useGlobalData();

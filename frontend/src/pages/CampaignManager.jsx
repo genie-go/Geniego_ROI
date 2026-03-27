@@ -10,6 +10,7 @@ import { useI18n } from '../i18n';
 import ApprovalModal from '../components/ApprovalModal.jsx';
 import { useCurrency } from '../contexts/CurrencyContext.jsx';
 
+import { useT } from '../i18n/index.js';
 const API = '/api';
 
 // currency formatting via useCurrency fmt()
@@ -453,44 +454,44 @@ export default function CampaignManager() {
 
     const CAMPAIGNS = useMemo(() => [
         {
-            id: "CMP001", name: t('campaignMgr.cmp1Name'), status: "active",
-            type: t('campaignMgr.typeIntegrated'), startDate: "2026-02-15", endDate: "2026-04-30",
-            budget: 45000000, spent: 28400000,
-            channels: { meta: 15000000, tiktok: 12000000, amazon: 10000000, influencer: 8000000 },
-            channelSpent: { meta: 9800000, tiktok: 8200000, amazon: 6500000, influencer: 3900000 },
-            kpi: { targetRoas: 4.0, actualRoas: 4.21, targetConv: 2000, actualConv: 1840, targetCpa: 22500, actualCpa: 15435 },
-            influencers: [t('campaignMgr.inf1'), t('campaignMgr.inf2'), t('campaignMgr.inf3')],
-            manager: t('campaignMgr.mgr1'),
+            id: "CMP001", name: "[환절기] 시카페어 SOS_전환_2040여성", status: "active",
+            type: "다이나믹 DABA", startDate: "2026-03-01", endDate: "2026-04-30",
+            budget: 25000000, spent: 12500000,
+            channels: { meta: 15000000, instagram: 10000000 },
+            channelSpent: { meta: 8000000, instagram: 4500000 },
+            kpi: { targetRoas: 4.5, actualRoas: 5.2, targetConv: 2000, actualConv: 4200, targetCpa: 12000, actualCpa: 2976 },
+            influencers: ["혜인다이스", "우린", "뷰티유튜버 J"],
+            manager: "박서준 (퍼포먼스 1팀)",
         },
         {
-            id: "CMP002", name: "TikTok Brand Awareness", status: "active",
-            type: "SNS", startDate: "2026-03-01", endDate: "2026-03-31",
-            budget: 12000000, spent: 4200000,
-            channels: { tiktok: 8000000, instagram: 4000000 },
-            channelSpent: { tiktok: 2900000, instagram: 1300000 },
-            kpi: { targetRoas: 2.5, actualRoas: 2.1, targetConv: 500, actualConv: 312, targetCpa: 24000, actualCpa: 13461 },
-            influencers: [t('campaignMgr.inf3')],
-            manager: t('campaignMgr.mgr2'),
+            id: "CMP002", name: "[신제품] 세라마이딘 프리오더_VIP타겟", status: "active",
+            type: "CRM Retargeting", startDate: "2026-03-15", endDate: "2026-03-31",
+            budget: 15000000, spent: 8200000,
+            channels: { google: 10000000, meta: 5000000 },
+            channelSpent: { google: 5000000, meta: 3200000 },
+            kpi: { targetRoas: 6.0, actualRoas: 6.5, targetConv: 1500, actualConv: 3245, targetCpa: 10000, actualCpa: 2526 },
+            influencers: ["디렉터파이 (승인완료)"],
+            manager: "이도현 (브랜드팀)",
         },
         {
-            id: "CMP003", name: "Amazon Prime Day Ready", status: "scheduled",
-            type: t('campaignMgr.typePerformance'), startDate: "2026-06-01", endDate: "2026-07-15",
-            budget: 30000000, spent: 0,
-            channels: { amazon: 25000000, meta: 5000000 },
+            id: "CMP003", name: "더마스크 올리브영 기획전 (TikTok 챌린지)", status: "scheduled",
+            type: "Awareness & Traffic", startDate: "2026-04-01", endDate: "2026-04-15",
+            budget: 10000000, spent: 0,
+            channels: { tiktok: 10000000 },
             channelSpent: {},
-            kpi: { targetRoas: 5.0, actualRoas: null, targetConv: 3000, actualConv: 0, targetCpa: 10000, actualCpa: null },
+            kpi: { targetRoas: 3.0, actualRoas: null, targetConv: 1000, actualConv: 0, targetCpa: 10000, actualCpa: null },
             influencers: [],
-            manager: t('campaignMgr.mgr3'),
+            manager: "최수영",
         },
         {
-            id: "CMP004", name: `Q1 ${t('campaignMgr.typeRetargeting')}`, status: "ended",
-            type: t('campaignMgr.typeRetargeting'), startDate: "2026-01-02", endDate: "2026-02-28",
-            budget: 20000000, spent: 19800000,
-            channels: { meta: 12000000, amazon: 8000000 },
-            channelSpent: { meta: 11900000, amazon: 7900000 },
-            kpi: { targetRoas: 6.0, actualRoas: 7.2, targetConv: 1500, actualConv: 1823, targetCpa: 13333, actualCpa: 10863 },
+            id: "CMP004", name: "남성 포맨 블랙 스크럽 (장바구니 이탈자)", status: "ended",
+            type: "리타겟팅", startDate: "2026-01-02", endDate: "2026-02-28",
+            budget: 8000000, spent: 7900000,
+            channels: { meta: 8000000 },
+            channelSpent: { meta: 7900000 },
+            kpi: { targetRoas: 5.0, actualRoas: 7.2, targetConv: 800, actualConv: 1823, targetCpa: 10000, actualCpa: 4333 },
             influencers: [],
-            manager: t('campaignMgr.mgr1'),
+            manager: "김지민",
         },
     ], [t]);
 

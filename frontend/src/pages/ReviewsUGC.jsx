@@ -1,7 +1,8 @@
-import React, { useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useNotification } from "../context/NotificationContext.jsx";
 import { useI18n } from "../i18n";
 
+import { useT } from '../i18n/index.js';
 const MOCK_REVIEWS = [
   { id: 1, channel: "Amazon KR", product: "Noise-Cancelling Headphones XM5", rating: 5, sentiment: "positive", text: "Exceptional sound quality. Best noise cancelling I've ever used!", category: "Sound Quality", date: "2026-03-03", helpful: 42 },
   { id: 2, channel: "Coupang", product: "RGB Mechanical Keyboard MX", rating: 4, sentiment: "positive", text: "Great typing feel and beautiful RGB. Fast delivery.", category: "Typing Feel", date: "2026-03-03", helpful: 28 },

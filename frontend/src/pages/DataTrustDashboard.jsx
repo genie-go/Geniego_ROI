@@ -7,25 +7,9 @@ import { useT } from '../i18n';
 const PLAN_RANK = { free: 0, demo: 0, starter: 1, growth: 2, pro: 3, enterprise: 4, admin: 5 };
 const isPaidPlan = (plan) => (PLAN_RANK[plan] ?? 0) >= 1;
 
-/* ── Demo Mode Banner ──────────────────────────────────────── */
-function DemoBanner({ onUpgrade }) {
-    return (
-        <div style={{ padding: '12px 18px', borderRadius: 12, background: 'linear-gradient(135deg,rgba(168,85,247,0.1),rgba(79,142,247,0.08))', border: '1.5px solid rgba(168,85,247,0.35)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
-            <div>
-                <div style={{ fontWeight: 800, fontSize: 12, color: '#a855f7' }}>🎭 Demo 시뮬레이션 Mode</div>
-                <div style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 2 }}>
-                    동일한 UI로 모든 Feature을 체험할 Count 있습니다. 실제 Pixel Integration·Save은 <strong style={{ color: '#a855f7' }}>Paid Plan</strong>에서 Activate됩니다.
-                </div>
-            </div>
-            <button onClick={onUpgrade} style={{ padding: '8px 18px', borderRadius: 10, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#a855f7,#6366f1)', color: '#fff', fontWeight: 800, fontSize: 11, whiteSpace: 'nowrap' }}>
-                🚀 Paid Upgrade Plan
-            </button>
-        </div>
-    );
-}
-
 /* ── Data Trust도 배지 ──────────────────────────────────────── */
 export function DataBadge({ level = 'real', size = 'sm' }) {
+  const t = useT();
     const cfg = {
         real:     { label: '● Live Data', color: '#22c55e', bg: 'rgba(34,197,94,0.10)', border: 'rgba(34,197,94,0.3)' },
         estimated:{ label: '~ 추정Value',      color: '#eab308', bg: 'rgba(234,179,8,0.10)', border: 'rgba(234,179,8,0.3)' },
@@ -363,7 +347,7 @@ export default function DataTrustDashboard() {
                 {/* Tab: Pixel Integration */}
                 {tab === 'pixel' && (
                     <div style={{ display: 'grid', gap: 14 }}>
-                        {!isPaid && <DemoBanner onUpgrade={() => navigate('/app-pricing')} />}
+
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
                             <div>
                                 <div style={{ fontWeight: 700, fontSize: 13 }}>🔌 Ad Pixel & Conversion API Integration</div>
@@ -432,3 +416,5 @@ export default function DataTrustDashboard() {
         </div>
     );
 }
+
+import { useI18n } from '../i18n/index.js';

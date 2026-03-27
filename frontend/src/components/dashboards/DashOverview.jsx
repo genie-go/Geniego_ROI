@@ -6,6 +6,7 @@
 import { useState } from 'react';
 import { Spark, DonutChart, seedSeries, fmt } from './ChartUtils.jsx';
 import { useGlobalData } from '../../context/GlobalDataContext.jsx';
+import { useDemoData, DEMO_COMMERCE_KPI } from '../../hooks/useDemoData.jsx';
 
 const G = 10;
 const C = { bg: 'linear-gradient(145deg,rgba(255,255,255,0.04),rgba(8,18,38,0.95))', br: '1px solid rgba(79,142,247,0.12)', r: 14, p: '13px 15px' };
@@ -19,42 +20,24 @@ function Label({ s, uppercase = true, mb = 8, color = 'rgba(255,255,255,0.5)' })
 // ─── 데이터 ────────────────────────────────────────────────────────────────
 const DAYS = Array.from({ length: 14 }, (_, i) => { const d = new Date('2026-03-08'); d.setDate(d.getDate() - (13 - i)); return `${d.getMonth() + 1}/${d.getDate()}`; });
 
-const KPIS = [
-    { l: 'Total Revenue', v: '$1,240,560', raw: 1240560, d: 9.2, col: '#4f8ef7', ico: '💰', spark: seedSeries(1240, 14, 0.12) },
-    { l: 'ROAS', v: '5.2×', raw: 5.2, d: 14.1, col: '#22c55e', ico: '📈', spark: seedSeries(5.2, 14, 0.08) },
-    { l: 'Conversion Rate', v: '3.8%', raw: 3.8, d: -0.3, col: '#ec4899', ico: '🎯', spark: seedSeries(3.8, 14, 0.10) },
-    { l: 'Orders', v: '32,450', raw: 32450, d: 7.4, col: '#a855f7', ico: '📦', spark: seedSeries(32450, 14, 0.11) },
-];
-
 const AGE_DATA = [
-    { l: '20-22', v: 28 }, { l: '23-34', v: 42 }, { l: '12-34', v: 35 }, { l: '15-34', v: 48 }, { l: '9-54', v: 32 }, { l: '10-34', v: 38 }, { l: '1+', v: 22 },
+    { l: '18-24', v: 38 }, { l: '25-34', v: 48 }, { l: '35-44', v: 25 }, { l: '45-54', v: 12 }, { l: '55+', v: 5 },
 ];
 const TOP_BUYERS = [
-    { l: 'A', v: 62 }, { l: 'B', v: 45 }, { l: 'C', v: 38 }, { l: 'D', v: 55 }, { l: 'E', v: 41 }, { l: 'F', v: 30 }, { l: 'G', v: 52 },
+    { l: 'VVIP', v: 62 }, { l: 'VIP', v: 45 }, { l: 'GOLD', v: 38 }, { l: 'SILVER', v: 55 }, { l: 'NEW', v: 81 },
 ];
 
-const LISTING = { active: { now: 325, total: 440 }, errors: 12, pending: 8 };
+const LISTING = { active: { now: 54, total: 54 }, errors: 0, pending: 2 };
 
-const ALERTS = [
-    { type: 'Trending', items: [{ n: 'AI Camera Pro', d: '+24% CTR' }, { n: 'Eco Headphones', d: '+18% Views' }, { n: 'Sport Watch X', d: '+31% AOV' }] },
-    { type: 'Recent', items: [{ n: 'Budget Exceeded', d: 'Meta Ads +12%' }, { n: 'Stock Low', d: 'SKU-1022 <10' }, { n: 'New Review', d: '4.8★ Japan' }] },
-    { type: 'Alert', items: [{ n: '⚠️ API Timeout', d: 'Rakuten 3.2s' }, { n: '🔴 Error Rate', d: 'Shopee 2.1%' }, { n: '⚡ Budget', d: 'Daily cap hit' }] },
-];
-
-const PRODUCTS = [
-    { n: 'Smartwatch Pro', ico: '⌚', rev: 92400, col: '#4f8ef7' },
-    { n: 'Running Shoes', ico: '👟', rev: 75320, col: '#22c55e' },
-    { n: 'Wireless Earbuds', ico: '🎧', rev: 55750, col: '#ec4899' },
-    { n: 'Smart Home Hub', ico: '🏠', rev: 69660, col: '#f97316' },
-];
+const PRODUCTS = DEMO_COMMERCE_KPI.topProducts.map((p, i) => ({
+    n: p.name, ico: ['💊', '💧', '🌿'][i] || '📦', rev: p.revenue, col: ['#4f8ef7', '#22c55e', '#ec4899'][i] || '#f97316'
+}));
 
 const AUDIENCE = [
-    { sku: 'S30145', name: 'Advanced Comfort Orphin', amazon: 82, shopify: 68, shopee: 54, rakuten: 72 },
-    { sku: 'S30148', name: 'Compact Dumper User', amazon: 46, shopify: 38, shopee: 72, rakuten: 30 },
-    { sku: 'S30149', name: 'Universal Gentpo Nacer', amazon: 70, shopify: 52, shopee: 40, rakuten: 60 },
-    { sku: 'S30150', name: 'Strange Category', amazon: 34, shopify: 58, shopee: 66, rakuten: 48 },
-    { sku: 'S30152', name: 'Eco Pressure Pad', amazon: 88, shopify: 74, shopee: 62, rakuten: 80 },
-    { sku: 'S30155', name: 'Sync Motion Tracker', amazon: 56, shopify: 42, shopee: 80, rakuten: 44 },
+    { sku: 'JART-CICA-50', name: '시카페어 세럼 (건성/민감성 타겟)', amazon: 82, shopify: 68, shopee: 54, rakuten: 72 },
+    { sku: 'JART-CERA-100', name: '세라마이딘 크림 (복합성 타겟)', amazon: 46, shopify: 38, shopee: 72, rakuten: 30 },
+    { sku: 'JART-MASK-W1', name: '더마스크 워터젯 (20대 타겟)', amazon: 70, shopify: 52, shopee: 40, rakuten: 60 },
+    { sku: 'JART-BIOME-50', name: '바이탈 하이드라 (수부지 타겟)', amazon: 34, shopify: 58, shopee: 66, rakuten: 48 },
 ];
 const CH_COLS = { amazon: '#f97316', shopify: '#22c55e', shopee: '#ec4899', rakuten: '#4f8ef7' };
 

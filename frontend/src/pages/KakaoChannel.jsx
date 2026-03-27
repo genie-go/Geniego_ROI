@@ -2,10 +2,11 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "../auth/AuthContext";
 import PlanGate from "../components/PlanGate.jsx";
 import useDemo from "../hooks/useDemo";
-import DemoBanner from "../components/DemoBanner";
-import { DEMO_KAKAO_CAMPAIGNS, DEMO_KAKAO_TEMPLATES, DEMO_KAKAO_SETTINGS } from "../utils/DemoDataLayer";
+
+
 import { useGlobalData } from "../context/GlobalDataContext.jsx";
 
+import { useT } from '../i18n/index.js';
 function makeAPI(token) {
     return (path, opts = {}) => {
         const headers = { "Content-Type": "application/json", ...(opts.headers || {}) };
@@ -345,7 +346,7 @@ function KakaoChannelContent() {
 
     return (
         <div style={{ background: C.bg, minHeight: "100%", color: C.text }}>
-            {isDemo && <DemoBanner feature="Kakao Channel Notification톡" />}
+            
             <div style={{ borderRadius: 16, background: `linear-gradient(135deg,${C.surface},#0a1828)`, border: `1px solid ${C.border}`, padding: "22px 28px", marginBottom: 20 }}>
                 <div style={{ fontSize: 22, fontWeight: 800, display: "flex", alignItems: "center", gap: 10 }}>
                     <span style={{ background: C.kakao, color: C.kakaoText, borderRadius: 8, padding: "4px 10px", fontSize: 16 }}>💬</span>
@@ -426,6 +427,7 @@ function KakaoChannelContent() {
 
 /* ─── 메인 Kakao Channel Page ────────────────────── */
 export default function KakaoChannel() {
+  const t = useT();
     return (
         <PlanGate feature="kakao_channel">
             <KakaoChannelContent />

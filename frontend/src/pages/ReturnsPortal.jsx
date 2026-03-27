@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef, useContext } from 'react';
 import { useCurrency } from '../contexts/CurrencyContext.jsx';
 
 // currency formatting via useCurrency fmt()
@@ -8,12 +8,12 @@ const RETURN_STATUS = { pending: '접Count', inspecting: '검Countin progress', 
 const STATUS_COLOR = { pending: '#f97316', inspecting: '#4f8ef7', approved: '#22c55e', rejected: '#ef4444', refunded: '#a855f7', restocked: '#06b6d4' };
 
 const DEMO_RETURNS = [
-    { id: 'RT-2026-0001', orderId: 'ORD-20260304-0001', sku: 'WH-1000XM5-01', name: '무선 노이즈캔슬링 헤드폰', channel: 'coupang', qty: 1, reason: 'Wrong Size', status: 'approved', reqDate: '2026-03-10', trackNo: 'CJ1234567890', refundAmt: 89000, defective: false, wmsLinked: true },
-    { id: 'RT-2026-0002', orderId: 'ORD-20260304-0003', sku: 'KB-MXM-RGB-02', name: 'RGB 기계식 키보드', channel: 'naver', qty: 1, reason: 'Product불량/Damaged', status: 'inspecting', reqDate: '2026-03-12', trackNo: 'CJ9876543210', refundAmt: 149000, defective: true, wmsLinked: false },
-    { id: 'RT-2026-0003', orderId: 'ORD-20260304-0005', sku: 'HC-USB4-7P-01', name: 'USB-C 7포트 허브', channel: '11st', qty: 2, reason: 'Change of Mind', status: 'refunded', reqDate: '2026-03-08', trackNo: 'CJ1122334455', refundAmt: 98000, defective: false, wmsLinked: true },
-    { id: 'RT-2026-0004', orderId: 'ORD-20260304-0007', sku: 'CAM-4K-PRO-01', name: '4K 웹캠 Pro', channel: 'amazon', qty: 1, reason: 'Wrong Item', status: 'restocked', reqDate: '2026-03-05', trackNo: 'DHL7788990011', refundAmt: 129000, defective: false, wmsLinked: true },
-    { id: 'RT-2026-0005', orderId: 'ORD-20260304-0009', sku: 'MS-ERG-BL-01', name: '에르고 마우스', channel: 'coupang', qty: 1, reason: 'Description과다름', status: 'pending', reqDate: '2026-03-15', trackNo: '', refundAmt: 69000, defective: false, wmsLinked: false },
-    { id: 'RT-2026-0006', orderId: 'ORD-20260304-0011', sku: 'CH-60W-GAN-01', name: '60W 급속충전기', channel: 'naver', qty: 3, reason: 'Product불량/Damaged', status: 'rejected', reqDate: '2026-03-13', trackNo: 'CJ5566778899', refundAmt: 117000, defective: true, wmsLinked: false },
+    { id: 'RT-2026-0001', orderId: 'ORD-20260304-0001', sku: 'DJ-CICA-101', name: '시카페어(Cicapair) 미스트', channel: 'coupang', qty: 1, reason: 'Wrong Size', status: 'approved', reqDate: '2026-03-10', trackNo: 'CJ1234567890', refundAmt: 89000, defective: false, wmsLinked: true },
+    { id: 'RT-2026-0002', orderId: 'ORD-20260304-0003', sku: 'DJ-CERA-002', name: '세라마이딘(Ceramidin) 세라마이드 크림', channel: 'naver', qty: 1, reason: 'Product불량/Damaged', status: 'inspecting', reqDate: '2026-03-12', trackNo: 'CJ9876543210', refundAmt: 149000, defective: true, wmsLinked: false },
+    { id: 'RT-2026-0003', orderId: 'ORD-20260304-0005', sku: 'HC-USB4-7P-01', name: '바이탈 하이드라 콜라겐 앰플', channel: '11st', qty: 2, reason: 'Change of Mind', status: 'refunded', reqDate: '2026-03-08', trackNo: 'CJ1122334455', refundAmt: 98000, defective: false, wmsLinked: true },
+    { id: 'RT-2026-0004', orderId: 'ORD-20260304-0007', sku: 'CAM-4K-PRO-01', name: '더마클리어 마이크로 폼 수딩 젤', channel: 'amazon', qty: 1, reason: 'Wrong Item', status: 'restocked', reqDate: '2026-03-05', trackNo: 'DHL7788990011', refundAmt: 129000, defective: false, wmsLinked: true },
+    { id: 'RT-2026-0005', orderId: 'ORD-20260304-0009', sku: 'MS-ERG-BL-01', name: '크라이오 고무 마스크 워터풀', channel: 'coupang', qty: 1, reason: 'Description과다름', status: 'pending', reqDate: '2026-03-15', trackNo: '', refundAmt: 69000, defective: false, wmsLinked: false },
+    { id: 'RT-2026-0006', orderId: 'ORD-20260304-0011', sku: 'DJ-V7-006', name: 'V7 핑크 토닝 라이트 V3', channel: 'naver', qty: 3, reason: 'Product불량/Damaged', status: 'rejected', reqDate: '2026-03-13', trackNo: 'CJ5566778899', refundAmt: 117000, defective: true, wmsLinked: false },
 ];
 
 const CH_COLORS = { coupang: '#ef4444', naver: '#22c55e', '11st': '#f97316', amazon: '#f97316', tiktok: '#a855f7', shopee: '#f97316' };
@@ -264,3 +264,5 @@ export default function ReturnsPortal() {
         </div>
     );
 }
+
+import { useI18n } from '../i18n/index.js';
