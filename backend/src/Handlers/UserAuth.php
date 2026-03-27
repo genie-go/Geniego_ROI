@@ -239,13 +239,6 @@ final class UserAuth
             }
         }
 
-        $token  = self::generateToken();
-        $expires = gmdate('Y-m-d\TH:i:s\Z', time() + 30 * 24 * 3600);
-
-        $pdo->prepare('INSERT INTO user_session(user_id,token,expires_at,created_at) VALUES(?,?,?,?)')
-            ->execute([$userId, $token, $expires, $now]);
-
-        // ─── 신규가입 자동 쿠폰 발급 (coupon_rules signup 규칙 확인) ───────────────
         // userId가 0이면 email로 재조회
         if (!$userId) {
             try {
@@ -253,6 +246,16 @@ final class UserAuth
                 $rr->execute([$email]);
                 $userId = (int)($rr->fetchColumn() ?: 0);
             } catch (\Throwable $e) {}
+        }
+        
+        $token  = self::generateToken();
+        $expires = gmdate('Y-m-d\TH:i:s\Z', time() + 30 * 24 * 3600);
+
+        try {
+            $pdo->prepare('INSERT INTO user_session(user_id,token,expires_at,created_at) VALUES(?,?,?,?)')
+                ->execute([$userId, $token, $expires, $now]);
+        } catch (\Throwable $e) {
+            return self::json($res, ['ok' => false, 'error' => '세션 생성 중 오류가 발생했습니다.'], 500);
         }
         $couponResult = null;
         if ($userId > 0) {

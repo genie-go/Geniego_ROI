@@ -29,7 +29,7 @@ const TOP_BUYERS = [
 
 const LISTING = { active: { now: 54, total: 54 }, errors: 0, pending: 2 };
 
-const PRODUCTS = DEMO_COMMERCE_KPI.topProducts.map((p, i) => ({
+const PRODUCTS = (DEMO_COMMERCE_KPI.topProducts || []).map((p, i) => ({
     n: p.name, ico: ['💊', '💧', '🌿'][i] || '📦', rev: p.revenue, col: ['#4f8ef7', '#22c55e', '#ec4899'][i] || '#f97316'
 }));
 

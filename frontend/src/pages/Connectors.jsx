@@ -198,6 +198,7 @@ const WEBHOOK_FEED_MOCK = [
 
 /* ─── Helpers ────────────────────────────────────────────────────────────────── */
 function PlatformIcon({ p, size = 36 }) {
+  const t = useT();
   return (
     <div style={{
       width: size, height: size, borderRadius: size * 0.3, background: p.color + "22",
@@ -210,6 +211,7 @@ function PlatformIcon({ p, size = 36 }) {
 }
 
 function StatusPill({ status }) {
+  const t = useT();
   
   const cfg = {
     connected: { label: t('super.conStatConn') || "Connected", cls: "badge-green", dot: "dot-green" },
@@ -226,6 +228,7 @@ function StatusPill({ status }) {
 }
 
 function CopyBtn({ text }) {
+  const t = useT();
   
   const [copied, setCopied] = useState(false);
   return (
@@ -238,6 +241,7 @@ function CopyBtn({ text }) {
 
 /* ─── OAuth Flow Simulator ────────────────────────────────────────────────────── */
 function OAuthFlow({ p, state, onUpdate }) {
+  const t = useT();
   
   const [step, setStep] = useState(0); // 0=idle 1=redirect 2=callback 3=done
   const [selScopes, setSelScopes] = useState(new Set(p.scopes));
@@ -411,6 +415,7 @@ function OAuthFlow({ p, state, onUpdate }) {
 
 /* ─── API Flow ──────────────────────────────────────────────────────────── */
 function ApiKeyFlow({ p, state, onUpdate }) {
+  const t = useT();
   
   const [key, setKey] = useState(state.apiKey || "");
   const [secret, setSecret] = useState(state.apiSecret || "");
@@ -510,6 +515,7 @@ function ApiKeyFlow({ p, state, onUpdate }) {
 
 /* ─── Webhook Config ────────────────────────────────────────────────────────── */
 function WebhookConfig({ p, state, onUpdate }) {
+  const t = useT();
   
   const [selEvents, setSelEvents] = useState(new Set(state.webhookEvents || []));
   const [testBusy, setTestBusy] = useState(false);
@@ -610,6 +616,7 @@ function WebhookConfig({ p, state, onUpdate }) {
 
 /* ─── Platform Card ─────────────────────────────────────────────────────────── */
 function PlatformCard({ p, state, onUpdate }) {
+  const t = useT();
   
   const [tab, setTab] = useState("auth"); // auth | webhook
 
@@ -648,6 +655,7 @@ function PlatformCard({ p, state, onUpdate }) {
 
 /* ─── Webhook Live Feed ─────────────────────────────────────────────────────── */
 function WebhookFeed({ connState }) {
+  const t = useT();
   
   const [events, setEvents] = useState(WEBHOOK_FEED_MOCK);
   const [filterPlatform, setFilterPlatform] = useState("all");
@@ -793,6 +801,7 @@ const DW_SYNC_STATS = {
 };
 
 function DWConnectorCard({ dw }) {
+  const t = useT();
   const [connected, setConnected] = useState(dw.id !== "databricks");
   const [busy, setBusy] = useState(false);
   const [schedule, setSchedule] = useState(dw.syncSchedules[1]);
@@ -937,6 +946,7 @@ function DWConnectorCard({ dw }) {
 }
 
 function DataWarehouseSection() {
+  const t = useT();
   return (
     <div style={{ display: "grid", gap: 16 }}>
       {/* 안내 Banner */}
