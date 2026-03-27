@@ -8,6 +8,13 @@ import useDemo from "../hooks/useDemo";
 import { useGlobalData } from "../context/GlobalDataContext.jsx";
 
 import { useT } from '../i18n/index.js';
+
+/* Mocked defaults for removed DemoDataLayer */
+const DEMO_EMAIL_BLOCKS = [{ id: "empty", name: "Empty", blocks: [] }];
+const DEMO_EMAIL_CAMPAIGNS = [];
+const DEMO_EMAIL_TEMPLATES = [];
+const DEMO_EMAIL_SETTINGS = {};
+
 function makeAPI(token) {
     return (path, opts = {}) => {
         const headers = { "Content-Type": "application/json", ...(opts.headers || {}) };

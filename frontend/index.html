@@ -2,7 +2,28 @@
 <html lang="ko">
   <head>
     <meta charset="UTF-8" />
-
+    <script>
+      (function() {
+        var v = "v4.0.10"; // Bump version to force cache clear
+        if (localStorage.getItem("roi_help_ver") !== v) {
+          localStorage.setItem("roi_help_ver", v);
+          window.location.reload(true);
+        }
+        
+        // --- CRASH LOGGER ---
+        window.addEventListener('error', function(e) {
+            localStorage.setItem("LATEST_CRASH_ERR", String(e.error ? e.error.stack : e.message));
+        });
+        window.addEventListener('unhandledrejection', function(e) {
+            localStorage.setItem("LATEST_CRASH_UNHANDLED", String(e.reason ? e.reason.stack || e.reason : e));
+        });
+        const origErr = console.error;
+        console.error = function() {
+            localStorage.setItem("LATEST_CRASH_CONSOLE", Array.from(arguments).map(String).join(' '));
+            origErr.apply(console, arguments);
+        };
+      })();
+    </script>
     <!-- ── 뷰포트 & 모바일 최적화 ── -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 

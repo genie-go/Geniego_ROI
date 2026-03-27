@@ -6,6 +6,11 @@ import { useGlobalData } from "../context/GlobalDataContext.jsx";
 import { useI18n } from "../i18n/index.js";
 
 import { useT } from '../i18n/index.js';
+
+/* Mocked defaults for removed DemoDataLayer */
+const DEMO_JOURNEYS = [];
+const DEMO_JOURNEY_TEMPLATES = [];
+
 function makeAPI(token) {
     return (path, opts = {}) => {
         const headers = { "Content-Type": "application/json", ...(opts.headers || {}) };

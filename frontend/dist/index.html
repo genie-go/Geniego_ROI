@@ -2,7 +2,28 @@
 <html lang="ko">
   <head>
     <meta charset="UTF-8" />
-
+    <script>
+      (function() {
+        var v = "v4.0.10"; // Bump version to force cache clear
+        if (localStorage.getItem("roi_help_ver") !== v) {
+          localStorage.setItem("roi_help_ver", v);
+          window.location.reload(true);
+        }
+        
+        // --- CRASH LOGGER ---
+        window.addEventListener('error', function(e) {
+            localStorage.setItem("LATEST_CRASH_ERR", String(e.error ? e.error.stack : e.message));
+        });
+        window.addEventListener('unhandledrejection', function(e) {
+            localStorage.setItem("LATEST_CRASH_UNHANDLED", String(e.reason ? e.reason.stack || e.reason : e));
+        });
+        const origErr = console.error;
+        console.error = function() {
+            localStorage.setItem("LATEST_CRASH_CONSOLE", Array.from(arguments).map(String).join(' '));
+            origErr.apply(console, arguments);
+        };
+      })();
+    </script>
     <!-- ── 뷰포트 & 모바일 최적화 ── -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 
@@ -41,13 +62,13 @@
     <meta property="og:title" content="Geniego-ROI" />
     <meta property="og:description" content="AI 기반 마케팅 ROI 분석 플랫폼" />
     <meta property="og:image" content="/icon-512.png" />
-    <script type="module" crossorigin src="/assets/index-YQHL_0To.js"></script>
-    <link rel="modulepreload" crossorigin href="/assets/vendor-react-BlCPLFGH.js">
-    <link rel="modulepreload" crossorigin href="/assets/pages-subscription-C_2DA0X7.js">
-    <link rel="modulepreload" crossorigin href="/assets/i18n-locales-DygIxaCY.js">
-    <link rel="modulepreload" crossorigin href="/assets/pages-analytics-DzV2XfT_.js">
-    <link rel="modulepreload" crossorigin href="/assets/pages-admin-QQah4f7s.js">
-    <link rel="modulepreload" crossorigin href="/assets/pages-apikeys-16hruhGw.js">
+    <script type="module" crossorigin src="/assets/index-g47A24ut.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/vendor-react-Ds3yHLzn.js">
+    <link rel="modulepreload" crossorigin href="/assets/i18n-locales-BcK9iR_u.js">
+    <link rel="modulepreload" crossorigin href="/assets/pages-analytics-CLcqq7EC.js">
+    <link rel="modulepreload" crossorigin href="/assets/pages-subscription-ByH6kXrz.js">
+    <link rel="modulepreload" crossorigin href="/assets/pages-admin-C72HiRrM.js">
+    <link rel="modulepreload" crossorigin href="/assets/pages-apikeys-foI9GKhs.js">
     <link rel="stylesheet" crossorigin href="/assets/index-neR4bYSR.css">
   </head>
   <body>

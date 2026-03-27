@@ -5,6 +5,10 @@ import useDemo from "../hooks/useDemo";
 import { useNotification } from "../context/NotificationContext.jsx";
 
 import { useT } from '../i18n/index.js';
+
+/* Mocked defaults for removed DemoDataLayer */
+const DEMO_CONNECTOR_STATE = {};
+
 /* ─── Platform Definitions ──────────────────────────────────────────────────── */
 const PLATFORMS = [
   {

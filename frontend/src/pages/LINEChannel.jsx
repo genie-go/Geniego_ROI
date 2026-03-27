@@ -254,4 +254,11 @@ export default function LINEChannel() {
 }
 
 import { useI18n } from '../i18n/index.js';
+
+/* Mocked defaults for removed DemoDataLayer */
+const DEMO_LINE_CAMPAIGNS = [];
+const DEMO_LINE_TEMPLATES = [];
+const DEMO_LINE_STATS = {};
+const DEMO_LINE_SETTINGS = {};
+
 import { useT } from '../i18n/index.js';

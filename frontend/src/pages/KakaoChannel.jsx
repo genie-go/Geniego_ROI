@@ -7,6 +7,12 @@ import useDemo from "../hooks/useDemo";
 import { useGlobalData } from "../context/GlobalDataContext.jsx";
 
 import { useT } from '../i18n/index.js';
+
+/* Mocked defaults for removed DemoDataLayer */
+const DEMO_KAKAO_CAMPAIGNS = [];
+const DEMO_KAKAO_TEMPLATES = [];
+const DEMO_KAKAO_SETTINGS = {};
+
 function makeAPI(token) {
     return (path, opts = {}) => {
         const headers = { "Content-Type": "application/json", ...(opts.headers || {}) };

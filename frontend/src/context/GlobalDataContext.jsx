@@ -1291,7 +1291,7 @@ export function GlobalDataProvider({ children }) {
     /* ════════════════════════════════════════════════
        Context Value
     ════════════════════════════════════════════════ */
-    const resetDemoData = () => { localStorage.removeItem('demoAdCampaigns'); _setDemoAdCampaignsState(DEMO_DATA.adCampaigns || []); };
+    const resetDemoData = () => { localStorage.removeItem('demoAdCampaigns'); _setDemoAdCampaignsState([]); };
     const value = {
         // ── 재고
         inventory, setInventory,

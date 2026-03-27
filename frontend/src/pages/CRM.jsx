@@ -8,6 +8,12 @@ import { useGlobalData } from "../context/GlobalDataContext.jsx";
 import AIRecommendBanner from '../components/AIRecommendBanner.jsx';
 
 import { useT } from '../i18n/index.js';
+
+/* Mocked defaults for removed DemoDataLayer */
+const DEMO_CRM_CUSTOMERS = [];
+const DEMO_CRM_SEGMENTS = [];
+const DEMO_RFM = [];
+
 /* Token 인식 API Helper */
 function makeAPI(token) {
     return (path, opts = {}) => {
