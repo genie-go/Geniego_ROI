@@ -182,8 +182,8 @@ function NotifToast({ item, onClose }) {
       <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
         <span style={{ fontSize: 20, flexShrink: 0 }}>{cfg.icon}</span>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontWeight: 700, fontSize: 13, color: "#e2e8f0", marginBottom: 3 }}>{item.title}</div>
-          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.55)", lineHeight: 1.5 }}>{item.body}</div>
+          <div style={{ fontWeight: 700, fontSize: 13, color: "#e2e8f0", marginBottom: 3 }}>{item?.title}</div>
+          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.55)", lineHeight: 1.5 }}>{item?.body}</div>
           <div style={{
             marginTop: 4, fontSize: 9, display: "inline-block",
             padding: "1px 7px", borderRadius: 99,

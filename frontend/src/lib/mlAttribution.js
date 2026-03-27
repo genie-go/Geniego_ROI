@@ -179,6 +179,13 @@ export function computeSynergy(journeys, channels) {
  * - Bootstrap for credible intervals
  */
 export function bayesianMMM(channelData, revenue, config = {}) {
+  const sumRev = revenue.reduce((s, v) => s + v, 0);
+  if (sumRev === 0 || revenue.length === 0) {
+    return {
+      channelResults: Object.keys(channelData).map(ch => ({ ch, coefficient: 0, contribution: 0, ci95: [0, 0], roi: 0, saturation: 0, decay: 0, share: 0 })),
+      intercept: 0, r2: 0, rmse: 0, optimiseBudget: (b) => Object.fromEntries(Object.keys(channelData).map(c => [c, b / Object.keys(channelData).length]))
+    };
+  }
   const {
     decayRates = {},   // channel → decay rate (0~1)
     halfSat    = {},   // channel → half-saturation spend
@@ -480,49 +487,20 @@ export const CH_COLORS = {
   'Organic': '#06b6d4', 'Instagram': '#e1306c', 'Direct': '#6b7280',
 };
 
-export function generateDemoJourneys(n = 500, channels = CHANNELS) {
-  const journeys = [];
-  const TEMPLATES = [
-    ['Meta Ads', 'Email', 'Direct'],
-    ['Google Ads', 'Naver Ads', 'Direct'],
-    ['TikTok', 'Instagram', 'Direct'],
-    ['Naver Ads', 'Organic'],
-    ['Organic', 'Email', 'Direct'],
-    ['Meta Ads', 'Kakao', 'Email', 'Direct'],
-    ['Kakao', 'Direct'],
-    ['Instagram', 'Email'],
-    ['Google Ads', 'Direct'],
-    ['Email'],
-  ];
-  for (let i = 0; i < n; i++) {
-    const template = TEMPLATES[Math.floor(Math.random() * TEMPLATES.length)];
-    // Add occasional extra touchpoints
-    const path = template.filter(() => Math.random() > 0.1);
-    if (path.length === 0) path.push('Direct');
-    const baseRevenue = 30000 + Math.random() * 200000;
-    const pathBonus = path.includes('Email') ? 1.3 : 1;
-    journeys.push({ path, revenue: Math.round(baseRevenue * pathBonus) });
-  }
-  return journeys;
+export function generateDemoJourneys(n = 500, channels = []) {
+  return [];
 }
 
 export function generateTimeSeriesData(T = 52) {
   const channels = ['Meta Ads', 'Naver Ads', 'Google Ads', 'TikTok', 'Kakao', 'Email'];
-  const seasonality = t => 1 + 0.3 * Math.sin(2 * Math.PI * t / 52) + 0.15 * Math.sin(4 * Math.PI * t / 52);
-  const noise = () => 1 + (Math.random() - 0.5) * 0.2;
   const spends = {
-    'Meta Ads':   Array.from({ length: T }, (_, t) => 5000000 * seasonality(t) * noise()),
-    'Naver Ads':  Array.from({ length: T }, (_, t) => 3000000 * seasonality(t) * noise()),
-    'Google Ads': Array.from({ length: T }, (_, t) => 4000000 * seasonality(t) * noise()),
-    'TikTok':     Array.from({ length: T }, (_, t) => 1500000 * seasonality(t) * noise()),
-    'Kakao':      Array.from({ length: T }, (_, t) => 2000000 * seasonality(t) * noise()),
-    'Email':      Array.from({ length: T }, (_, t) => 500000 * noise()),
+    'Meta Ads':   Array.from({ length: T }, () => 0),
+    'Naver Ads':  Array.from({ length: T }, () => 0),
+    'Google Ads': Array.from({ length: T }, () => 0),
+    'TikTok':     Array.from({ length: T }, () => 0),
+    'Kakao':      Array.from({ length: T }, () => 0),
+    'Email':      Array.from({ length: T }, () => 0),
   };
-  const revenue = Array.from({ length: T }, (_, t) =>
-    channels.reduce((s, ch) => {
-      const sat = spends[ch][t] / (spends[ch][t] + 3e6); // Hill saturation
-      return s + sat * { 'Meta Ads':6, 'Naver Ads':5, 'Google Ads':7, 'TikTok':3, 'Kakao':4, 'Email':15 }[ch] * spends[ch][t];
-    }, 0) * noise() + 5000000 * seasonality(t) * noise() // baseline
-  );
+  const revenue = Array.from({ length: T }, () => 0);
   return { spends, revenue };
 }

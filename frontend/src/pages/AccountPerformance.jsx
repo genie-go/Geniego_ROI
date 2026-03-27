@@ -245,9 +245,9 @@ export default function AccountPerformance() {
                             { title: t('acctPerf.objectiveAwareness') || 'Awareness', obj: objAggregates.Awareness, color: '#4f8ef7' },
                             { title: t('acctPerf.objectiveConsideration') || 'Consideration', obj: objAggregates.Consideration, color: '#a855f7' },
                             { title: t('acctPerf.objectiveConversion') || 'Conversion', obj: objAggregates.Conversion, color: '#22c55e' }
-                        ].map((col, idx) => (
-                            <div key={col.title} className="card card-glass fade-up" style={{ padding: 24, borderTop: `2px solid ${col.color}`, animationDelay: `${idx*100}ms` }}>
-                                <div style={{ fontSize: 13, fontWeight: 800, color: col.color, marginBottom: 12 }}>{col.title}</div>
+                        ].filter(Boolean).map((col, idx) => (
+                            <div key={col?.title || idx} className="card card-glass fade-up" style={{ padding: 24, borderTop: `2px solid ${col?.color}`, animationDelay: `${idx*100}ms` }}>
+                                <div style={{ fontSize: 13, fontWeight: 800, color: col?.color, marginBottom: 12 }}>{col?.title}</div>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'end' }}>
                                     <div>
                                         <div style={{ fontSize: 10, color: 'var(--text-3)' }}>{t('acctPerf.kpiSpend') || 'Spend Limit Achieved'}</div>

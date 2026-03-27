@@ -2193,7 +2193,7 @@ de.wms = Object.assign(de.wms || {}, {
     carrierTrack: "Sendungsverfolgung",
     trackingNum: "Tracking-Nr.",
     trackingQuery: "Verfolgen",
-    trackingStatus: { delivering: 'In Transit', delivered: 'Delivered', ready: 'Ready', cancelled: 'Cancelled' },
+    trackingStatus: { delivering: 'In Transit', delivered: 'Delivered', ready: 'Ready', cancelled: 'Cancelled' }
 });
 
 
@@ -2251,13 +2251,13 @@ de.approvals = Object.assign(de.approvals || {}, {
     noRequests: "Keine Anfragen für diesen Status",
     demoGuardDecide: "Demo-Modus: Genehmigung/Ablehnung erfordert ein Live-Konto.",
     demoGuardExecute: "Demo-Modus: Ausführung erfordert ein Live-Konto.",
-    executeDone: "Ausführung abgeschlossen (Demo-Simulation)",
+    executeDone: "Ausführung abgeschlossen (Demo-Simulation)"
 });
 
 // -- settlements extra keys --
 de.settlements = Object.assign(de.settlements || {}, {
     detailCsvBtn: 'CSV',
-    detailCsvDone: '✓ CSV download complete',
+    detailCsvDone: '✓ CSV download complete'
 });
 
 
@@ -2364,14 +2364,14 @@ de.topbar = Object.assign(de.topbar || {}, {
     helpBtn: "📚 Hilfe",
     close: "Schließen",
     menuToggle: "Menü öffnen/schließen",
-    sidebarToggle: "Seitenleiste umschalten",
+    sidebarToggle: "Seitenleiste umschalten"
 });
 de.sidebar = Object.assign(de.sidebar || {}, {
     removeFav: "Aus Favoriten entfernen",
-    addFav: "Zu Favoriten hinzufügen",
+    addFav: "Zu Favoriten hinzufügen"
 });
 de.mobileNav = Object.assign(de.mobileNav || {}, {
-    ariaLabel: "Untere Navigation",
+    ariaLabel: "Untere Navigation"
 });
 de.journey = {
     pageTitle: "Customer Journey Builder",
@@ -3126,30 +3126,7 @@ de.kpi = {
     "k_8": "K_8"
 };
 
-de.crm = {
-    "c_25": "C_25",
-    "c_22": "C_22",
-    "c_21": "C_21",
-    "c_20": "C_20",
-    "c_24": "C_24",
-    "c_23": "C_23",
-    "c_18": "C_18",
-    "c_13": "C_13",
-    "c_6": "C_6",
-    "c_7": "C_7",
-    "c_8": "C_8",
-    "c_9": "C_9",
-    "c_0": "C_0",
-    "c_2": "C_2",
-    "c_3": "C_3",
-    "c_4": "C_4",
-    "c_5": "C_5",
-    "c_12": "C_12",
-    "c_14": "C_14",
-    "c_17": "C_17",
-    "c_19": "C_19",
-    "c_15": "C_15"
-};
+
 
 de.aiPredict = {
     "col": {
@@ -3228,6 +3205,39 @@ de.common.revenue = "Revenue";
 if (!de.gDemo) de.gDemo = {};
 de.gDemo.sidebarAlertCount = "🚨 {n} alerts";
 
+
+
+
+
+
+de.crm = { 
+    c_2: "Total Customers",
+    c_3: "Active (30d)",
+    c_4: "Total LTV",
+    c_5: "Total Segments",
+    c_6: "All Customers",
+    c_7: "AI Segments",
+    c_8: "Manual Segments",
+    c_9: "RFM Analysis",
+    c_12: "Email",
+    c_13: "Name",
+    c_14: "Phone",
+    c_15: "Grade",
+    c_17: "+ Customer Register",
+    c_18: "Saving...",
+    c_19: "Search...",
+    create_segment: "Create Segment",
+    purchase_amt: "Total Amount",
+    purchase_cnt: "Purchase Count",
+    recent_purchase: "Recent Purchase",
+    last_purchase: "Last Purchase",
+    no_customer: "No registered customers.",
+    ai_seg_cnt: "AI Segments",
+    target_cust_sum: "Total Customers",
+    expected_rev: "Expected Revenue",
+    no_ai_seg: "No AI segments available.",
+    rfm_loading: "Loading RFM Analysis..."
+ };
 export default de;
 
 

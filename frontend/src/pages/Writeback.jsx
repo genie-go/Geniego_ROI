@@ -143,7 +143,7 @@ export default function Writeback() {
           <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
             <div style={{ fontWeight: 800 }}>Payload Preview (V398)</div>
             <div className="pill">template=current.yaml</div>
-            <div className="sub">Channel 템플릿 기준으로 검증 + payload/xml_body까지 Create합니다.</div>
+            <div className="sub">{t('auto.drgkpj', 'Channel 템플릿 기준으로 검증 + payload/xml_body까지 Create합니다.')}</div>
           </div>
           <textarea value={productText} onChange={(e) => setProductText(e.target.value)} rows={10} style={{ width: "100%", padding: 10, borderRadius: 12 }} />
           {previewErr ? <div className="sub">Error: {previewErr}</div> : null}

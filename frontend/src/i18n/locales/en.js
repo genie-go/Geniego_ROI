@@ -4903,37 +4903,7 @@ const en = {
             "cpa": "CPA",
             "roas": "ROAS"
         },
-        "crm": {
-            "c_0": "Customer CRM (en)",
-            "c_1": "Customer ProFile · RFM Analysis · Segment · 360° 활동 뷰 (en)",
-            "c_2": "All Customer (en)",
-            "c_3": "Active (30일) (en)",
-            "c_4": "Total LTV (en)",
-            "c_5": "Segment Count (en)",
-            "c_6": "👥 Customer List (en)",
-            "c_7": "🤖 AI Segment (en)",
-            "c_8": "📂 Segment (en)",
-            "c_9": "📊 RFM Analysis (en)",
-            "c_10": "+ Customer Register (en)",
-            "c_11": "신규 Customer Register (en)",
-            "c_12": "Email* (en)",
-            "c_13": "Name (en)",
-            "c_14": "Phone (en)",
-            "c_15": "Grade (en)",
-            "c_16": "Tag (콤마 구분) (en)",
-            "c_17": "Register (en)",
-            "c_18": "Save in progress... (en)",
-            "c_19": "Name·Email·Phone Search... (en)",
-            "c_20": "이탈위험 (en)",
-            "c_21": "충성Customer (en)",
-            "c_22": "챔피언즈 (en)",
-            "c_23": "신규 (en)",
-            "c_24": "이탈 (en)",
-            "c_25": "General (en)",
-            "c_26": "실버 (en)",
-            "c_27": "골드 (en)",
-            "c_28": "VIP (en)"
-        },
+        
         "kpi": {
             "k_0": "실시간 · 블렌디드 ROAS (en)",
             "k_1": "영업이익 (en)",
@@ -5044,30 +5014,7 @@ const en = {
     "cycle": "Cycle",
     "message": "Message",
     "code": "Code",
-    "crm": {
-        "c_25": "C_25",
-        "c_22": "C_22",
-        "c_21": "C_21",
-        "c_20": "C_20",
-        "c_24": "C_24",
-        "c_23": "C_23",
-        "c_18": "C_18",
-        "c_13": "C_13",
-        "c_6": "C_6",
-        "c_7": "C_7",
-        "c_8": "C_8",
-        "c_9": "C_9",
-        "c_0": "C_0",
-        "c_2": "C_2",
-        "c_3": "C_3",
-        "c_4": "C_4",
-        "c_5": "C_5",
-        "c_12": "C_12",
-        "c_14": "C_14",
-        "c_17": "C_17",
-        "c_19": "C_19",
-        "c_15": "C_15"
-    },
+    
     "aiPredict": {
         "col": {
             "nextPurchase": "Next Purchase",
@@ -5535,4 +5482,36 @@ en.attrData = Object.assign(en.attrData || {}, {
     "totalStr": "Total:"
 });
 
+
+
+
+
+en.crm = { 
+    c_2: "Total Customers",
+    c_3: "Active (30d)",
+    c_4: "Total LTV",
+    c_5: "Total Segments",
+    c_6: "All Customers",
+    c_7: "AI Segments",
+    c_8: "Manual Segments",
+    c_9: "RFM Analysis",
+    c_12: "Email",
+    c_13: "Name",
+    c_14: "Phone",
+    c_15: "Grade",
+    c_17: "+ Customer Register",
+    c_18: "Saving...",
+    c_19: "Search...",
+    create_segment: "Create Segment",
+    purchase_amt: "Total Amount",
+    purchase_cnt: "Purchase Count",
+    recent_purchase: "Recent Purchase",
+    last_purchase: "Last Purchase",
+    no_customer: "No registered customers.",
+    ai_seg_cnt: "AI Segments",
+    target_cust_sum: "Total Customers",
+    expected_rev: "Expected Revenue",
+    no_ai_seg: "No AI segments available.",
+    rfm_loading: "Loading RFM Analysis..."
+ };
 export default en;

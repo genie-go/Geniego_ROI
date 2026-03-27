@@ -26,7 +26,7 @@ const CHANNEL_GROUPS = [
     {
         key: "global_ad",
         label: "🌐 Global Ads",
-        desc: "Global Ads Platform API 키",
+        desc: t('auto.gcm8wt', 'Global Ads Platform API 키'),
         channels: [
             {
                 key: "meta_ads", name: "Meta Ads", icon: "📘", color: "#1877F2",
@@ -87,7 +87,7 @@ const CHANNEL_GROUPS = [
     {
         key: "global_commerce",
         label: "🛒 Global Commerce",
-        desc: "Global Marketplace API 키",
+        desc: t('auto.u7qakb', 'Global Marketplace API 키'),
         channels: [
             {
                 key: "amazon_spapi", name: "Amazon SP-API", icon: "📦", color: "#FF9900",
@@ -124,15 +124,15 @@ const CHANNEL_GROUPS = [
                 ],
             },
             {
-                key: "qoo10", name: "Qoo10 (큐텐)", icon: "🟡", color: "#FF6B00",
+                key: "qoo10", name: t('auto.c2r938', 'Qoo10 (큐텐)'), icon: "🟡", color: "#FF6B00",
                 fields: [
-                    { key: "api_key", label: "API Key", type: "password", required: true, hint: "Qoo10 Seller 센터 → API Settings" },
+                    { key: "api_key", label: "API Key", type: "password", required: true, hint: t('auto.q6pu3l', 'Qoo10 Seller 센터 → API Settings') },
                     { key: "user_id", label: "User ID", type: "text", required: true },
-                    { key: "service_type", label: "Service Type", type: "text", required: false, hint: "RETURN/ORDER 등" },
+                    { key: "service_type", label: "Service Type", type: "text", required: false, hint: t('auto.0626xl', 'RETURN/ORDER 등') },
                 ],
             },
             {
-                key: "rakuten", name: "Rakuten (라쿠텐)", icon: "🛒", color: "#BF0000",
+                key: "rakuten", name: t('auto.0l9bs3', 'Rakuten (라쿠텐)'), icon: "🛒", color: "#BF0000",
                 fields: [
                     { key: "service_secret", label: "Service Secret", type: "password", required: true, hint: "Rakuten API App Management" },
                     { key: "license_key", label: "License Key", type: "text", required: true },
@@ -144,10 +144,10 @@ const CHANNEL_GROUPS = [
     {
         key: "domestic",
         label: "🇰🇷 Domestic Platform",
-        desc: "Domestic Marketplace 및 Ads API 키",
+        desc: t('auto.bj1uox', 'Domestic Marketplace 및 Ads API 키'),
         channels: [
             {
-                key: "naver_smartstore", name: "Naver 스마트스토어", icon: "🟢", color: "#03C75A",
+                key: "naver_smartstore", name: t('auto.u5v2c8', 'Naver 스마트스토어'), icon: "🟢", color: "#03C75A",
                 fields: [
                     { key: "client_id", label: "Client ID", type: "text", required: true },
                     { key: "client_secret", label: "Client Secret", type: "password", required: true },
@@ -170,7 +170,7 @@ const CHANNEL_GROUPS = [
                 ],
             },
             {
-                key: "kakao_moment", name: "Kakao 모먼트", icon: "💛", color: "#FEE500",
+                key: "kakao_moment", name: t('auto.8wyope', 'Kakao 모먼트'), icon: "💛", color: "#FEE500",
                 fields: [
                     { key: "access_token", label: "Access Token", type: "password", required: true },
                     { key: "ad_account_id", label: "AdsAccount ID", type: "text", required: false },
@@ -183,7 +183,7 @@ const CHANNEL_GROUPS = [
                 ],
             },
             {
-                key: "gmarket", name: "Gmarket / 옥션", icon: "🟡", color: "#0099CC",
+                key: "gmarket", name: t('auto.jerrow', 'Gmarket / 옥션'), icon: "🟡", color: "#0099CC",
                 fields: [
                     { key: "site_id", label: "Site ID", type: "text", required: true },
                     { key: "secret_key", label: "Secret Key", type: "password", required: true },
@@ -213,8 +213,8 @@ const CHANNEL_GROUPS = [
     },
     {
         key: "own_etc",
-        label: "🏪 Own Mall / 기타",
-        desc: "Own Mall 및 기타 Integration 키",
+        label: t('auto.5twxk6', '🏪 Own Mall / 기타'),
+        desc: t('auto.7cdh5t', 'Own Mall 및 기타 Integration 키'),
         channels: [
             {
                 key: "own_mall", name: "Own Mall Webhook", icon: "🏠", color: "#6366f1",
@@ -225,7 +225,7 @@ const CHANNEL_GROUPS = [
                 ],
             },
             {
-                key: "cafe24", name: "카페24", icon: "☕", color: "#004A8F",
+                key: "cafe24", name: t('auto.unydu6', '카페24'), icon: "☕", color: "#004A8F",
                 fields: [
                     { key: "mall_id", label: "Mall ID", type: "text", required: true },
                     { key: "client_id", label: "Client ID", type: "text", required: true },
@@ -249,44 +249,44 @@ const CHANNEL_GROUPS = [
                 ],
             },
             {
-                key: "kakao_alimtalk", name: "Kakao Notification톡", icon: "💬", color: "#FEE500",
+                key: "kakao_alimtalk", name: t('auto.akwt48', 'Kakao Notification톡'), icon: "💬", color: "#FEE500",
                 fields: [
                     { key: "sender_key", label: "Sender Key", type: "password", required: true },
-                    { key: "plus_friend_id", label: "플러스친구 ID", type: "text", required: false },
+                    { key: "plus_friend_id", label: t('auto.dtc0k1', '플러스친구 ID'), type: "text", required: false },
                 ],
             },
         ],
     },
     {
         key: "welfare_mall",
-        label: "🏢 폐쇄몰 / 복지몰",
-        desc: "기업 복지몰 및 폐쇄몰 Channel API 키",
+        label: t('auto.w394fd', '🏢 폐쇄몰 / 복지몰'),
+        desc: t('auto.ofxnnr', '기업 복지몰 및 폐쇄몰 Channel API 키'),
         channels: [
             {
-                key: "benepia", name: "베네피아", icon: "🎁", color: "#E31837",
+                key: "benepia", name: t('auto.08tz61', '베네피아'), icon: "🎁", color: "#E31837",
                 fields: [
-                    { key: "api_key", label: "API Key", type: "password", required: true, hint: "베네피아 Partner센터" },
+                    { key: "api_key", label: "API Key", type: "password", required: true, hint: t('auto.b46onw', '베네피아 Partner센터') },
                     { key: "partner_id", label: "Partner ID", type: "text", required: true },
                     { key: "secret_key", label: "Secret Key", type: "password", required: false },
                 ],
             },
             {
-                key: "point_welfare", name: "포인트몰 (KT/SKT/LG)", icon: "📱", color: "#E4003A",
+                key: "point_welfare", name: t('auto.xwzhme', '포인트몰 (KT/SKT/LG)'), icon: "📱", color: "#E4003A",
                 fields: [
                     { key: "api_key", label: "API Key", type: "password", required: true },
                     { key: "client_id", label: "Client ID", type: "text", required: true },
-                    { key: "carrier", label: "통신사", type: "text", required: false, hint: "KT / SKT / LG" },
+                    { key: "carrier", label: t('auto.z7ua1p', '통신사'), type: "text", required: false, hint: "KT / SKT / LG" },
                 ],
             },
             {
-                key: "kyowon_welfare", name: "교보생명 웰컴", icon: "📗", color: "#005BAC",
+                key: "kyowon_welfare", name: t('auto.9kmm7q', '교보생명 웰컴'), icon: "📗", color: "#005BAC",
                 fields: [
                     { key: "api_key", label: "API Key", type: "password", required: true },
                     { key: "partner_code", label: "Partner Code", type: "text", required: true },
                 ],
             },
             {
-                key: "lotte_welfare", name: "롯데 복지몰", icon: "🔴", color: "#ED1C24",
+                key: "lotte_welfare", name: t('auto.x00b7n', '롯데 복지몰'), icon: "🔴", color: "#ED1C24",
                 fields: [
                     { key: "api_key", label: "API Key", type: "password", required: true },
                     { key: "vendor_code", label: "Vendor Code", type: "text", required: true },
@@ -294,21 +294,21 @@ const CHANNEL_GROUPS = [
                 ],
             },
             {
-                key: "samsung_welfare", name: "삼성 웰스토리", icon: "🔷", color: "#1428A0",
+                key: "samsung_welfare", name: t('auto.t4ufsx', '삼성 웰스토리'), icon: "🔷", color: "#1428A0",
                 fields: [
                     { key: "api_key", label: "API Key", type: "password", required: true },
                     { key: "seller_id", label: "Seller ID", type: "text", required: true },
                 ],
             },
             {
-                key: "hana_welfare", name: "하나 복지몰", icon: "🟩", color: "#008C8C",
+                key: "hana_welfare", name: t('auto.stfef4', '하나 복지몰'), icon: "🟩", color: "#008C8C",
                 fields: [
                     { key: "api_key", label: "API Key", type: "password", required: true },
                     { key: "partner_id", label: "Partner ID", type: "text", required: true },
                 ],
             },
             {
-                key: "hyundai_welfare", name: "현대백화점 복지몰", icon: "⬜", color: "#333333",
+                key: "hyundai_welfare", name: t('auto.zhzra1', '현대백화점 복지몰'), icon: "⬜", color: "#333333",
                 fields: [
                     { key: "api_key", label: "API Key", type: "password", required: true },
                     { key: "vendor_code", label: "Vendor Code", type: "text", required: true },
@@ -316,9 +316,9 @@ const CHANNEL_GROUPS = [
                 ],
             },
             {
-                key: "custom_welfare", name: "General 폐쇄몰", icon: "🏢", color: "#64748b",
+                key: "custom_welfare", name: t('auto.bgf8iz', 'General 폐쇄몰'), icon: "🏢", color: "#64748b",
                 fields: [
-                    { key: "mall_name", label: "몰 Name", type: "text", required: true },
+                    { key: "mall_name", label: t('auto.v3a6z4', '몰 Name'), type: "text", required: true },
                     { key: "api_key", label: "API Key", type: "password", required: true },
                     { key: "base_url", label: "API Base URL", type: "text", required: true },
                     { key: "secret_key", label: "Secret Key", type: "password", required: false },
@@ -328,54 +328,54 @@ const CHANNEL_GROUPS = [
     },
     {
         key: "social_content",
-        label: "📲 소셜 미디어 & 콘텐츠",
-        desc: "Instagram·YouTube·블로그 Channel API 키",
+        label: t('auto.4wtmsx', '📲 소셜 미디어 & 콘텐츠'),
+        desc: t('auto.w86vi6', 'Instagram·YouTube·블로그 Channel API 키'),
         channels: [
             {
                 key: "instagram", name: "Instagram (Meta Graph)", icon: "📸", color: "#E1306C",
                 fields: [
-                    { key: "access_token", label: "User Access Token", type: "password", required: true, hint: "Meta for Developers → Graph API → User 액세스 토큰" },
+                    { key: "access_token", label: "User Access Token", type: "password", required: true, hint: t('auto.7eowcy', 'Meta for Developers → Graph API → User 액세스 토큰') },
                     { key: "instagram_account_id", label: "Instagram Business Account ID", type: "text", required: true, hint: "Meta Business Suite → Account → Instagram Account ID" },
                     { key: "app_id", label: "App ID", type: "text", required: false },
                     { key: "app_secret", label: "App Secret", type: "password", required: false },
-                    { key: "page_id", label: "Facebook Page ID (Connect 필요)", type: "text", required: false },
+                    { key: "page_id", label: t('auto.yvy7wp', 'Facebook Page ID (Connect 필요)'), type: "text", required: false },
                 ],
             },
             {
                 key: "youtube", name: "YouTube (Data API v3)", icon: "▶️", color: "#FF0000",
                 fields: [
-                    { key: "api_key", label: "API Key", type: "password", required: true, hint: "Google Cloud Console → API 및 서비스 → User Auth Info" },
-                    { key: "client_id", label: "OAuth 2.0 Client ID", type: "text", required: false, hint: "Channel Analysis·Upload Auto화에 필요" },
+                    { key: "api_key", label: "API Key", type: "password", required: true, hint: t('auto.kqpndx', 'Google Cloud Console → API 및 서비스 → User Auth Info') },
+                    { key: "client_id", label: "OAuth 2.0 Client ID", type: "text", required: false, hint: t('auto.50d64q', 'Channel Analysis·Upload Auto화에 필요') },
                     { key: "client_secret", label: "OAuth 2.0 Client Secret", type: "password", required: false },
                     { key: "refresh_token", label: "Refresh Token", type: "password", required: false },
-                    { key: "channel_id", label: "Channel ID", type: "text", required: false, hint: "UC로 Start하는 Channel ID" },
+                    { key: "channel_id", label: "Channel ID", type: "text", required: false, hint: t('auto.0utmsq', 'UC로 Start하는 Channel ID') },
                 ],
             },
             {
-                key: "naver_blog", name: "Naver 블로그", icon: "🟢", color: "#03C75A",
+                key: "naver_blog", name: t('auto.m7d1cm', 'Naver 블로그'), icon: "🟢", color: "#03C75A",
                 fields: [
-                    { key: "client_id", label: "Client ID", type: "text", required: true, hint: "Naver 개발자센터 → 애플리케이션 Register" },
+                    { key: "client_id", label: "Client ID", type: "text", required: true, hint: t('auto.7i3pt9', 'Naver 개발자센터 → 애플리케이션 Register') },
                     { key: "client_secret", label: "Client Secret", type: "password", required: true },
-                    { key: "access_token", label: "Access Token", type: "password", required: false, hint: "OAuth 로그인 후 Issue" },
-                    { key: "blog_id", label: "블로그 ID", type: "text", required: false, hint: "blog.naver.com/BLOGID" },
+                    { key: "access_token", label: "Access Token", type: "password", required: false, hint: t('auto.3aif0h', 'OAuth 로그인 후 Issue') },
+                    { key: "blog_id", label: t('auto.2z78l4', '블로그 ID'), type: "text", required: false, hint: "blog.naver.com/BLOGID" },
                 ],
             },
             {
-                key: "tistory", name: "티스토리 블로그", icon: "🦁", color: "#FF6300",
+                key: "tistory", name: t('auto.xra4i7', '티스토리 블로그'), icon: "🦁", color: "#FF6300",
                 fields: [
-                    { key: "access_token", label: "Access Token", type: "password", required: true, hint: "Tistory App Management → App Register 후 OAuth Issue" },
+                    { key: "access_token", label: "Access Token", type: "password", required: true, hint: t('auto.8xheqh', 'Tistory App Management → App Register 후 OAuth Issue') },
                     { key: "client_id", label: "App ID", type: "text", required: false },
                     { key: "client_secret", label: "Secret Key", type: "password", required: false },
-                    { key: "blog_name", label: "블로그 Name", type: "text", required: false, hint: "BLOGNAME.tistory.com" },
+                    { key: "blog_name", label: t('auto.i0avx5', '블로그 Name'), type: "text", required: false, hint: "BLOGNAME.tistory.com" },
                 ],
             },
             {
                 key: "wordpress", name: "WordPress (REST API)", icon: "🔵", color: "#21759B",
                 fields: [
-                    { key: "site_url", label: "사이트 URL", type: "text", required: true, hint: "https://yourdomain.com" },
-                    { key: "username", label: "Management자 Account (Username)", type: "text", required: true },
-                    { key: "application_password", label: "Application Password", type: "password", required: true, hint: "WordPress Management자 → Pro필 → Application Password Create" },
-                    { key: "api_key", label: "Add API Key (플러그인용)", type: "password", required: false },
+                    { key: "site_url", label: t('auto.8jslz0', '사이트 URL'), type: "text", required: true, hint: "https://yourdomain.com" },
+                    { key: "username", label: t('auto.ynyctt', 'Management자 Account (Username)'), type: "text", required: true },
+                    { key: "application_password", label: "Application Password", type: "password", required: true, hint: t('auto.rzmlkl', 'WordPress Management자 → Pro필 → Application Password Create') },
+                    { key: "api_key", label: t('auto.9clapm', 'Add API Key (플러그인용)'), type: "password", required: false },
                 ],
             },
             {
@@ -396,9 +396,9 @@ const CHANNEL_GROUPS = [
                 ],
             },
             {
-                key: "kakao_story", name: "Kakao스토리", icon: "💛", color: "#FEE500",
+                key: "kakao_story", name: t('auto.r35hhy', 'Kakao스토리'), icon: "💛", color: "#FEE500",
                 fields: [
-                    { key: "access_token", label: "Access Token", type: "password", required: true, hint: "Kakao 개발자센터 → REST API 키 → OAuth Auth" },
+                    { key: "access_token", label: "Access Token", type: "password", required: true, hint: t('auto.44dsvf', 'Kakao 개발자센터 → REST API 키 → OAuth Auth') },
                     { key: "client_id", label: "REST API Key", type: "text", required: false },
                 ],
             },
@@ -416,7 +416,7 @@ function StatusBadge({ status }) {
     const cfg = {
         ok: { label: "Connected", bg: "rgba(34,197,94,0.12)", color: "#22c55e" },
         error: { label: "Error", bg: "rgba(239,68,68,0.12)", color: "#ef4444" },
-        null: { label: "미Test", bg: "rgba(148,163,184,0.1)", color: "#94a3b8" },
+        null: { label: t('auto.zf1y2s', '미Test'), bg: "rgba(148,163,184,0.1)", color: "#94a3b8" },
     };
     const s = cfg[status] ?? cfg.null;
     return (
@@ -472,8 +472,8 @@ function AddChannelModal({ groupKey, onClose, onAdded }) {
                 <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 22 }}>
                     <div style={{ fontSize: 22 }}>➕</div>
                     <div>
-                        <div style={{ fontWeight: 800, fontSize: 15 }}>새 Channel Add</div>
-                        <div style={{ fontSize: 11, color: "var(--text-3)" }}>커스텀 Channel을 직접 Register합니다</div>
+                        <div style={{ fontWeight: 800, fontSize: 15 }}>{t('auto.015zcn', '새 Channel Add')}</div>
+                        <div style={{ fontSize: 11, color: "var(--text-3)" }}>{t('auto.xovpin', '커스텀 Channel을 직접 Register합니다')}</div>
                     </div>
                     <button onClick={onClose} style={{ marginLeft: "auto", background: "none", border: "none", color: "var(--text-3)", fontSize: 18, cursor: "pointer" }}>✕</button>
                 </div>
@@ -482,15 +482,15 @@ function AddChannelModal({ groupKey, onClose, onAdded }) {
                 <div style={{ display: "grid", gap: 12, marginBottom: 20 }}>
                     <div>
                         <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-2)", display: "block", marginBottom: 5 }}>Channel Name *</label>
-                        <input value={name} onChange={e => setName(e.target.value)} placeholder="예: 사내 복지몰" style={inpStyle} />
+                        <input value={name} onChange={e => setName(e.target.value)} placeholder={t('auto.cljj3j', '예: 사내 복지몰')} style={inpStyle} />
                     </div>
                     <div style={{ display: "flex", gap: 10 }}>
                         <div style={{ flex: 1 }}>
-                            <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-2)", display: "block", marginBottom: 5 }}>Icon (이모지)</label>
+                            <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-2)", display: "block", marginBottom: 5 }}>{t('auto.7c2kpa', 'Icon (이모지)')}</label>
                             <input value={icon} onChange={e => setIcon(e.target.value)} placeholder="🔌" style={inpStyle} />
                         </div>
                         <div style={{ flex: 1 }}>
-                            <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-2)", display: "block", marginBottom: 5 }}>대표 Color</label>
+                            <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-2)", display: "block", marginBottom: 5 }}>{t('auto.2gdeh2', '대표 Color')}</label>
                             <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
                                 <input type="color" value={color} onChange={e => setColor(e.target.value)}
                                     style={{ width: 44, height: 36, borderRadius: 8, border: "1px solid rgba(99,140,255,0.2)", padding: 2, cursor: "pointer", background: "none" }} />
@@ -503,12 +503,12 @@ function AddChannelModal({ groupKey, onClose, onAdded }) {
                 {/* API 필드 Settings */}
                 <div style={{ marginBottom: 16 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-                        <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text-2)" }}>📋 Auth 필드</span>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text-2)" }}>{t('auto.6gmwno', '📋 Auth 필드')}</span>
                         <button onClick={addField} style={{
                             padding: "3px 10px", borderRadius: 7, fontSize: 11, fontWeight: 700,
                             border: "1px solid rgba(99,140,255,0.3)", background: "rgba(99,140,255,0.06)",
                             color: "#4f8ef7", cursor: "pointer",
-                        }}>+ 필드 Add</button>
+                        }}>{t('auto.1fe4yq', '+ 필드 Add')}</button>
                     </div>
                     <div style={{ display: "grid", gap: 8 }}>
                         {fields.map((f, i) => (
@@ -517,8 +517,8 @@ function AddChannelModal({ groupKey, onClose, onAdded }) {
                                 gap: 6, padding: "8px", borderRadius: 9,
                                 background: "rgba(99,140,255,0.04)", border: "1px solid rgba(99,140,255,0.08)",
                             }}>
-                                <input value={f.key} onChange={e => updField(i, "key", e.target.value)} placeholder="key (영문)" style={{ ...inpStyle, fontSize: 11 }} />
-                                <input value={f.label} onChange={e => updField(i, "label", e.target.value)} placeholder="라벨" style={{ ...inpStyle, fontSize: 11 }} />
+                                <input value={f.key} onChange={e => updField(i, "key", e.target.value)} placeholder={t('auto.k1xv0h', 'key (영문)')} style={{ ...inpStyle, fontSize: 11 }} />
+                                <input value={f.label} onChange={e => updField(i, "label", e.target.value)} placeholder={t('auto.4yo8i3', '라벨')} style={{ ...inpStyle, fontSize: 11 }} />
                                 <select value={f.type} onChange={e => updField(i, "type", e.target.value)}
                                     style={{ ...inpStyle, fontSize: 11, paddingRight: 4 }}>
                                     <option value="password">Password</option>
@@ -613,7 +613,7 @@ function CredModal({ channel, existingCreds, onClose, onSaved }) {
                     }}>{ch.icon}</div>
                     <div>
                         <div style={{ fontWeight: 800, fontSize: 15 }}>{ch.name} API 키 Register</div>
-                        <div style={{ fontSize: 11, color: "var(--text-3)", marginTop: 2 }}>Auth Info를 안전하게 Save합니다</div>
+                        <div style={{ fontSize: 11, color: "var(--text-3)", marginTop: 2 }}>{t('auto.2fpukf', 'Auth Info를 안전하게 Save합니다')}</div>
                     </div>
                     <button onClick={onClose} style={{ marginLeft: "auto", background: "none", border: "none", color: "var(--text-3)", fontSize: 18, cursor: "pointer", padding: 4 }}>✕</button>
                 </div>
@@ -637,7 +637,7 @@ function CredModal({ channel, existingCreds, onClose, onSaved }) {
                                 {f.hint && <div style={{ fontSize: 10, color: "var(--text-3)", marginBottom: 6 }}>{f.hint}</div>}
                                 <input
                                     type={f.type === "password" ? "password" : "text"}
-                                    placeholder={existing ? "Change하려면 새 Value 입력 (비워두면 유지)" : `${f.label} 입력`}
+                                    placeholder={existing ? t('auto.lh2mw5', 'Change하려면 새 Value 입력 (비워두면 유지)') : `${f.label} 입력`}
                                     value={form[f.key]?.value ?? ""}
                                     onChange={e => handleChange(f.key, e.target.value)}
                                     style={inpStyle}
@@ -733,7 +733,7 @@ function ChannelCard({ ch, creds, onEdit, onDelete, onTest, isDemo = false }) {
                         flex: 1, padding: "6px 0", borderRadius: 8, fontSize: 11, fontWeight: 700,
                         border: "1px solid rgba(234,179,8,0.4)", background: "rgba(234,179,8,0.06)",
                         color: "#eab308", cursor: "pointer",
-                    }}>💎 Paid Conversion 후 Register</button>
+                    }}>{t('auto.r5ukjf', '💎 Paid Conversion 후 Register')}</button>
                 ) : (
                     <>
                         <button onClick={() => onEdit(ch.key)} style={{
@@ -778,19 +778,19 @@ const saveBtnStyle = {
 
 /* ─── SmartConnect Channel 데이터 ──────────────────────────────────────────── */
 const SC_CHANNELS = [
-  { key:"meta_ads",        name:"Meta Ads",           icon:"📘", color:"#1877F2", autoAcquire:false, autoOAuth:true,  issueUrl:"https://developers.facebook.com/apps/",    guide:"Business Manager → App → 토큰 Create", capabilities:["ProductRegister","AdsAuto화","Conversion추적"] },
-  { key:"google_ads",      name:"Google Ads",          icon:"🔵", color:"#4285F4", autoAcquire:false, autoOAuth:true,  issueUrl:"https://console.cloud.google.com/",         guide:"Google Cloud → OAuth 2.0 클라이언트 ID Create", capabilities:["SearchAds","쇼핑Ads","GA4Integration"] },
-  { key:"tiktok_business", name:"TikTok Business",     icon:"🎶", color:"#010101", autoAcquire:false, autoOAuth:true,  issueUrl:"https://ads.tiktok.com/marketing_api/apps/",guide:"TikTok Marketing API → App Create → Token Issue", capabilities:["틱톡Ads","숏폼Marketing"] },
-  { key:"amazon_spapi",   name:"Amazon SP-API",       icon:"📦", color:"#FF9900", autoAcquire:false, autoOAuth:true,  issueUrl:"https://sellercentral.amazon.com/",         guide:"Seller Central → App Management → LWA credentials", capabilities:["ProductAutoRegister","OrdersCount집","StockSync"] },
+  { key:"meta_ads",        name:"Meta Ads",           icon:"📘", color:"#1877F2", autoAcquire:false, autoOAuth:true,  issueUrl:"https://developers.facebook.com/apps/",    guide:t('auto.7dgzu5', 'Business Manager → App → 토큰 Create'), capabilities:["ProductRegister",t('auto.mcy2ek', 'AdsAuto화'),t('auto.zzv7gz', 'Conversion추적')] },
+  { key:"google_ads",      name:"Google Ads",          icon:"🔵", color:"#4285F4", autoAcquire:false, autoOAuth:true,  issueUrl:"https://console.cloud.google.com/",         guide:t('auto.va0526', 'Google Cloud → OAuth 2.0 클라이언트 ID Create'), capabilities:["SearchAds",t('auto.8awgc0', '쇼핑Ads'),"GA4Integration"] },
+  { key:"tiktok_business", name:"TikTok Business",     icon:"🎶", color:"#010101", autoAcquire:false, autoOAuth:true,  issueUrl:"https://ads.tiktok.com/marketing_api/apps/",guide:"TikTok Marketing API → App Create → Token Issue", capabilities:[t('auto.9ujts8', '틱톡Ads'),t('auto.0igpad', '숏폼Marketing')] },
+  { key:"amazon_spapi",   name:"Amazon SP-API",       icon:"📦", color:"#FF9900", autoAcquire:false, autoOAuth:true,  issueUrl:"https://sellercentral.amazon.com/",         guide:"Seller Central → App Management → LWA credentials", capabilities:["ProductAutoRegister",t('auto.g8tg35', 'OrdersCount집'),"StockSync"] },
   { key:"shopify",        name:"Shopify",             icon:"🛍", color:"#96BF48", autoAcquire:false, autoOAuth:true,  issueUrl:"https://partners.shopify.com/",             guide:"Shopify Partners → App Create → Admin API Token", capabilities:["ProductAutoRegister","OrdersManagement","CustomerCRM"] },
-  { key:"coupang",        name:"Coupang Wing",            icon:"🛒", color:"#C02525", autoAcquire:true,  autoOAuth:false, issueUrl:"https://wing.coupang.com/",                guide:"Wing → Seller Settings → API Integration → Key Issue", capabilities:["ProductAutoRegister","OrdersCount집","정산","CoupangAds"] },
-  { key:"naver_smartstore",name:"Naver 스마트스토어", icon:"🟢", color:"#03C75A", autoAcquire:true,  autoOAuth:false, issueUrl:"https://apicenter.commerce.naver.com/",     guide:"Commerce API 센터 → 애플리케이션 Register", capabilities:["ProductAutoRegister","OrdersManagement","리뷰Count집"] },
-  { key:"naver_sa",       name:"Naver SearchAds(SA)", icon:"🟩", color:"#03C75A", autoAcquire:true,  autoOAuth:false, issueUrl:"https://searchad.naver.com/",               guide:"SearchAds → 도구 → API Management", capabilities:["SearchAdsAuto화","키워드Analysis"] },
-  { key:"kakao_moment",   name:"Kakao 모먼트",        icon:"💛", color:"#FEE500", autoAcquire:false, autoOAuth:true,  issueUrl:"https://developers.kakao.com/",             guide:"Kakao Developers → App Create → 토큰 Issue", capabilities:["KakaoAds","Notification톡"] },
-  { key:"st11",           name:"11Street",               icon:"🔶", color:"#FA3E2C", autoAcquire:true,  autoOAuth:false, issueUrl:"https://openapi.11st.co.kr/",              guide:"11Street Open API 신청 → 1~3일 후 Issue", capabilities:["ProductAutoRegister","OrdersCount집"] },
-  { key:"gmarket",        name:"Gmarket/옥션",           icon:"🟡", color:"#0099CC", autoAcquire:true,  autoOAuth:false, issueUrl:"https://www.gmarketglobal.com/",            guide:"Gmarket Partner센터 → API 신청", capabilities:["ProductAutoRegister","OrdersManagement"] },
-  { key:"rakuten",        name:"Rakuten(라쿠텐)",      icon:"🛒", color:"#BF0000", autoAcquire:true,  autoOAuth:false, issueUrl:"https://webservice.rakuten.co.jp/",         guide:"Rakuten Web Service → App Register", capabilities:["ProductAutoRegister","OrdersCount집"] },
-  { key:"slack",          name:"Slack Webhook",       icon:"💬", color:"#4A154B", autoAcquire:true,  autoOAuth:true,  issueUrl:"https://api.slack.com/apps",               guide:"Slack API → Incoming Webhooks", capabilities:["NotificationAuto화"] },
+  { key:"coupang",        name:"Coupang Wing",            icon:"🛒", color:"#C02525", autoAcquire:true,  autoOAuth:false, issueUrl:"https://wing.coupang.com/",                guide:"Wing → Seller Settings → API Integration → Key Issue", capabilities:["ProductAutoRegister",t('auto.r5e9fc', 'OrdersCount집'),t('auto.laeux0', '정산'),"CoupangAds"] },
+  { key:"naver_smartstore",name: t('auto.xc7v8o', 'Naver 스마트스토어'), icon:"🟢", color:"#03C75A", autoAcquire:true,  autoOAuth:false, issueUrl:"https://apicenter.commerce.naver.com/",     guide:t('auto.ktdl83', 'Commerce API 센터 → 애플리케이션 Register'), capabilities:["ProductAutoRegister","OrdersManagement",t('auto.pkjv7l', '리뷰Count집')] },
+  { key:"naver_sa",       name:"Naver SearchAds(SA)", icon:"🟩", color:"#03C75A", autoAcquire:true,  autoOAuth:false, issueUrl:"https://searchad.naver.com/",               guide:t('auto.lp6ott', 'SearchAds → 도구 → API Management'), capabilities:[t('auto.rjo7qo', 'SearchAdsAuto화'),t('auto.sudpqw', '키워드Analysis')] },
+  { key:"kakao_moment",   name: t('auto.nb4gvn', 'Kakao 모먼트'),        icon:"💛", color:"#FEE500", autoAcquire:false, autoOAuth:true,  issueUrl:"https://developers.kakao.com/",             guide:t('auto.bglbas', 'Kakao Developers → App Create → 토큰 Issue'), capabilities:["KakaoAds",t('auto.zrqhyh', 'Notification톡')] },
+  { key:"st11",           name:"11Street",               icon:"🔶", color:"#FA3E2C", autoAcquire:true,  autoOAuth:false, issueUrl:"https://openapi.11st.co.kr/",              guide:t('auto.2b9bun', '11Street Open API 신청 → 1~3일 후 Issue'), capabilities:["ProductAutoRegister",t('auto.sa6nc8', 'OrdersCount집')] },
+  { key:"gmarket",        name: t('auto.9uk2a0', 'Gmarket/옥션'),           icon:"🟡", color:"#0099CC", autoAcquire:true,  autoOAuth:false, issueUrl:"https://www.gmarketglobal.com/",            guide:t('auto.7d8kze', 'Gmarket Partner센터 → API 신청'), capabilities:["ProductAutoRegister","OrdersManagement"] },
+  { key:"rakuten",        name: t('auto.pmmmhz', 'Rakuten(라쿠텐)'),      icon:"🛒", color:"#BF0000", autoAcquire:true,  autoOAuth:false, issueUrl:"https://webservice.rakuten.co.jp/",         guide:"Rakuten Web Service → App Register", capabilities:["ProductAutoRegister",t('auto.f0xa25', 'OrdersCount집')] },
+  { key:"slack",          name:"Slack Webhook",       icon:"💬", color:"#4A154B", autoAcquire:true,  autoOAuth:true,  issueUrl:"https://api.slack.com/apps",               guide:"Slack API → Incoming Webhooks", capabilities:[t('auto.uxu8dh', 'NotificationAuto화')] },
 ];
 
 const SC_STATUS = { unscanned:"unscanned", found:"found", missing:"missing", applying:"applying", applied:"applied", registered:"registered" };
@@ -901,7 +901,7 @@ function SmartConnectTab() {
       setProgress(Math.round((i+1)/SC_CHANNELS.length*100));
     }
     setScanning(false);
-    pushNotification({ type:"connector", title:"API 키 스캔 Done", body:`${SC_CHANNELS.length}개 Channel Analysis Done, 감지된 키를 Confirm하세요.`, link:"/api-keys" });
+    pushNotification({ type:"connector", title: t('auto.6se8l8', 'API 키 스캔 Done'), body:`${SC_CHANNELS.length}개 Channel Analysis Done, 감지된 키를 Confirm하세요.`, link:"/api-keys" });
   }, [upd, pushNotification]);
 
   const handleLink = useCallback(async (key) => {
@@ -916,8 +916,8 @@ function SmartConnectTab() {
     }
     pushNotification({
       type: "connector",
-      title: r.ok ? `${ch?.name} Integration ${r.live ? '(실Time)' : ''} Done` : `${ch?.name} Integration Failed`,
-      body: r.ok ? (r.capabilities?.join(", ") + " Activate") : "키 유효성 Error — API 키를 Confirm하세요",
+      title: r.ok ? `${ch?.name} Integration ${r.live ? t('auto.9zaela', '(실Time)') : ''} Done` : `${ch?.name} Integration Failed`,
+      body: r.ok ? (r.capabilities?.join(", ") + " Activate") : t('auto.j0pwc5', '키 유효성 Error — API 키를 Confirm하세요'),
       link: "/api-keys",
     });
   }, [upd, pushNotification, markChannelRegistered]);
@@ -998,7 +998,7 @@ function SmartConnectTab() {
               <div>
                 <div style={{ fontWeight:800, fontSize:15 }}>{applyModal.ch?.name} API 키 Issue 신청</div>
                 <div style={{ fontSize:11, color:"var(--text-3)", marginTop:2 }}>
-                  회원Info를 기반으로 Auto Issue신청합니다. Issue Done 시 Auto Sync됩니다.
+                  {t('auto.jznf9o', '회원Info를 기반으로 Auto Issue신청합니다. Issue Done 시 Auto Sync됩니다.')}
                 </div>
               </div>
               <button onClick={()=>setApplyModal(null)} style={{
@@ -1011,9 +1011,9 @@ function SmartConnectTab() {
               {[
                 { label:"Name / Owner", key:"name", placeholder:"John Doe" },
                 { label:"Email", key:"email", placeholder:"user@example.com" },
-                { label:"회사명", key:"company", placeholder:"(주)회사Name" },
-                { label:"사업자 Register번호", key:"businessNumber", placeholder:"123-45-67890" },
-                { label:"연락처", key:"phone", placeholder:"010-0000-0000" },
+                { label: t('auto.j3gdgq', '회사명'), key:"company", placeholder:t('auto.hovbjj', '(주)회사Name') },
+                { label: t('auto.tkoi8u', '사업자 Register번호'), key:"businessNumber", placeholder:"123-45-67890" },
+                { label: t('auto.ps4hfy', '연락처'), key:"phone", placeholder:"010-0000-0000" },
               ].map(f => (
                 <div key={f.key}>
                   <label style={{ fontSize:11, fontWeight:700, color:"var(--text-2)", display:"block", marginBottom:5 }}>{f.label}</label>
@@ -1030,7 +1030,7 @@ function SmartConnectTab() {
             </div>
             <div style={{ padding:"10px 14px", borderRadius:10, marginBottom:18,
               background:"rgba(79,142,247,0.06)", border:"1px solid rgba(79,142,247,0.15)", fontSize:11, color:"var(--text-2)" }}>
-              💡 Issue신청 후 1~3 영업일 내 키가 Issue되며, Register 즉시 Auto으로 Integration됩니다.
+              {t('auto.ykf0wv', '💡 Issue신청 후 1~3 영업일 내 키가 Issue되며, Register 즉시 Auto으로 Integration됩니다.')}
             </div>
             <div style={{ display:"flex", gap:10 }}>
               <button onClick={()=>setApplyModal(null)} style={{
@@ -1042,7 +1042,7 @@ function SmartConnectTab() {
                 flex:2, padding:"10px 0", borderRadius:10, border:"none",
                 background:"linear-gradient(135deg,#4f8ef7,#6366f1)",
                 color:"#fff", fontSize:12, fontWeight:800, cursor:"pointer",
-              }}>📋 Issue 신청하기</button>
+              }}>{t('auto.gtin56', '📋 Issue 신청하기')}</button>
             </div>
           </div>
         </div>
@@ -1053,14 +1053,14 @@ function SmartConnectTab() {
         background:"linear-gradient(135deg,rgba(79,142,247,0.07),rgba(168,85,247,0.05))",
         border:"1.5px solid rgba(79,142,247,0.2)", display:"flex", alignItems:"center", gap:14, flexWrap:"wrap" }}>
         <div style={{ flex:1 }}>
-          <div style={{ fontWeight:800, fontSize:13, marginBottom:3 }}>🤖 API 키 Auto 스캔 · Integration · Issue신청</div>
+          <div style={{ fontWeight:800, fontSize:13, marginBottom:3 }}>{t('auto.ge067w', '🤖 API 키 Auto 스캔 · Integration · Issue신청')}</div>
           <div style={{ fontSize:11, color:"var(--text-3)" }}>
-            가입된 모든 Channel을 Auto Analysis합니다. 키가 감지되면 즉시 Integration, 없으면 Issue신청을 Auto화합니다.
+            {t('auto.pw0pi7', '가입된 모든 Channel을 Auto Analysis합니다. 키가 감지되면 즉시 Integration, 없으면 Issue신청을 Auto화합니다.')}
           </div>
           {(scanning || progress>0) && (
             <div style={{ marginTop:8 }}>
               <div style={{ display:"flex", justifyContent:"space-between", fontSize:10, color:"var(--text-3)", marginBottom:3 }}>
-                <span>{scanning ? `🔍 스캔 in progress... (${progress}%)` : "✅ 스캔 Done"}</span>
+                <span>{scanning ? `🔍 스캔 in progress... (${progress}%)` : t('auto.ft8h53', '✅ 스캔 Done')}</span>
                 <span>{progress}%</span>
               </div>
               <div style={{ height:5, background:"rgba(255,255,255,0.06)", borderRadius:99, overflow:"hidden" }}>
@@ -1075,7 +1075,7 @@ function SmartConnectTab() {
             padding:"9px 20px", borderRadius:9, fontWeight:800, fontSize:12, cursor:"pointer", border:"none",
             background: scanning?"rgba(255,255,255,0.05)":"linear-gradient(135deg,#4f8ef7,#6366f1)",
             color: scanning?"var(--text-3)":"#fff", opacity:scanning?0.6:1,
-          }}>{scanning?"⏳ 스캔 in progress...":"🔍 All Auto 스캔"}</button>
+          }}>{scanning?t('auto.701c7g', '⏳ 스캔 in progress...'):t('auto.29aghl', '🔍 All Auto 스캔')}</button>
           {stats.found>0 && (
             <button onClick={handleLinkAll} style={{
               padding:"9px 20px", borderRadius:9, fontWeight:800, fontSize:12, cursor:"pointer", border:"none",
@@ -1089,11 +1089,11 @@ function SmartConnectTab() {
       <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(120px,1fr))", gap:8 }}>
         {[
           { l:"All Channel",  v:SC_CHANNELS.length, c:"#4f8ef7", icon:"📡" },
-          { l:"키 감지됨",  v:stats.found,        c:"#a855f7", icon:"🔍" },
+          { l:t('auto.cc2qm0', '키 감지됨'),  v:stats.found,        c:"#a855f7", icon:"🔍" },
           { l:"Integration Active",  v:stats.linked,       c:"#22c55e", icon:"⚡" },
-          { l:"키 None",   v:stats.missing,      c:"#ef4444", icon:"❌" },
-          { l:"신청 Done",  v:stats.applied,      c:"#eab308", icon:"📋" },
-          { l:"미스캔",    v:stats.unscanned,    c:"#94a3b8", icon:"⏸" },
+          { l:t('auto.ijvmlz', '키 None'),   v:stats.missing,      c:"#ef4444", icon:"❌" },
+          { l:t('auto.jk0s5v', '신청 Done'),  v:stats.applied,      c:"#eab308", icon:"📋" },
+          { l:t('auto.gzkv91', '미스캔'),    v:stats.unscanned,    c:"#94a3b8", icon:"⏸" },
         ].map(({l,v,c,icon})=>(
           <div key={l} style={{ padding:"10px 12px", borderRadius:10, textAlign:"center",
             background:`${c}0D`, border:`1px solid ${c}22` }}>
@@ -1154,7 +1154,7 @@ function SmartConnectTab() {
                         st.status==="found"?"#a855f7":
                         st.status==="missing"?"#ef4444":
                         st.status==="applied"?"#eab308":"#94a3b8" }}>
-                      {st.linked?"✅ Integration Active":st.status==="found"?"🔍 키 감지":st.status==="missing"?"❌ 키 None":st.status==="applied"?"📋 신청Done":st.status==="scanning"?"🔍 스캔in progress":"⏸ 미스캔"}
+                      {st.linked?"✅ Integration Active":st.status==="found"?t('auto.6zmccp', '🔍 키 감지'):st.status==="missing"?t('auto.eqn32v', '❌ 키 None'):st.status==="applied"?t('auto.16s2zv', '📋 신청Done'):st.status==="scanning"?t('auto.krzijk', '🔍 스캔in progress'):t('auto.11t2zj', '⏸ 미스캔')}
                     </span>
                     {ch.autoAcquire && <span style={{ fontSize:9, fontWeight:700, padding:"2px 6px", borderRadius:99, background:"rgba(20,217,176,0.1)", color:"#14d9b0", border:"1px solid rgba(20,217,176,0.2)" }}>🤖 AutoIssue</span>}
                   </div>
@@ -1180,16 +1180,16 @@ function SmartConnectTab() {
                 {(st.status==="missing" && !st.linked) && (
                   <button onClick={()=>handleApply(ch.key)} disabled={isApplying} style={{ flex:2, padding:"6px 0", borderRadius:8, fontWeight:800, fontSize:11, cursor:"pointer", border:"none",
                     background:isApplying?"rgba(255,255,255,0.04)":"linear-gradient(135deg,#f97316,#eab308)", color:isApplying?"var(--text-3)":"#fff" }}>
-                    {isApplying?"⏳ 신청 in progress...":ch.autoOAuth?"🔐 OAuth Connect":"📋 Issue 신청"}
+                    {isApplying?t('auto.rpw5ig', '⏳ 신청 in progress...'):ch.autoOAuth?"🔐 OAuth Connect":t('auto.aax6hu', '📋 Issue 신청')}
                   </button>
                 )}
-                {["applied","applying"].includes(st.status) && <div style={{ flex:2, padding:"6px 0", borderRadius:8, fontWeight:700, fontSize:11, background:"rgba(234,179,8,0.08)", border:"1px solid rgba(234,179,8,0.25)", color:"#eab308", textAlign:"center" }}>📋 신청 Done</div>}
-                {["unscanned","scanning"].includes(st.status) && <div style={{ flex:2, padding:"6px 0", borderRadius:8, fontWeight:700, fontSize:11, background:"rgba(148,163,184,0.05)", border:"1px solid rgba(148,163,184,0.12)", color:"var(--text-3)", textAlign:"center" }}>{st.status==="scanning"?"🔍 스캔 in progress...":"⏸ 스캔 전"}</div>}
+                {["applied","applying"].includes(st.status) && <div style={{ flex:2, padding:"6px 0", borderRadius:8, fontWeight:700, fontSize:11, background:"rgba(234,179,8,0.08)", border:"1px solid rgba(234,179,8,0.25)", color:"#eab308", textAlign:"center" }}>{t('auto.40vixj', '📋 신청 Done')}</div>}
+                {["unscanned","scanning"].includes(st.status) && <div style={{ flex:2, padding:"6px 0", borderRadius:8, fontWeight:700, fontSize:11, background:"rgba(148,163,184,0.05)", border:"1px solid rgba(148,163,184,0.12)", color:"var(--text-3)", textAlign:"center" }}>{st.status==="scanning"?t('auto.izlkqz', '🔍 스캔 in progress...'):t('auto.veyvko', '⏸ 스캔 전')}</div>}
                 <button onClick={()=>setDetail(detail===ch.key?null:ch.key)} style={{ padding:"6px 9px", borderRadius:8, fontSize:10, cursor:"pointer", background:"rgba(255,255,255,0.03)", border:"1px solid rgba(99,140,255,0.12)", color:"var(--text-3)" }}>📄</button>
               </div>
               {detail===ch.key && (
                 <div style={{ padding:"10px 12px", borderRadius:9, background:"rgba(79,142,247,0.04)", border:"1px solid rgba(79,142,247,0.12)" }}>
-                  <div style={{ fontSize:11, fontWeight:700, color:"#4f8ef7", marginBottom:5 }}>📖 Issue 방법</div>
+                  <div style={{ fontSize:11, fontWeight:700, color:"#4f8ef7", marginBottom:5 }}>{t('auto.fprwyv', '📖 Issue 방법')}</div>
                   <div style={{ fontSize:11, color:"var(--text-2)", lineHeight:1.7, marginBottom:8 }}>{ch.guide}</div>
                   <div style={{ display:"flex", gap:5, flexWrap:"wrap" }}>
                     {ch.capabilities.map(cap=>(
@@ -1197,7 +1197,7 @@ function SmartConnectTab() {
                     ))}
                   </div>
                   <a href={ch.issueUrl} target="_blank" rel="noopener noreferrer"
-                    style={{ display:"block", marginTop:8, fontSize:10, color:"#4f8ef7", textDecoration:"none", fontWeight:700 }}>→ 개발자 콘솔 열기 ↗</a>
+                    style={{ display:"block", marginTop:8, fontSize:10, color:"#4f8ef7", textDecoration:"none", fontWeight:700 }}>{t('auto.sdkpt7', '→ 개발자 콘솔 열기 ↗')}</a>
                 </div>
               )}
             </div>
@@ -1207,11 +1207,11 @@ function SmartConnectTab() {
 
       {/* Auto 획득 불가 안내 */}
       <div style={{ padding:"12px 16px", borderRadius:12, background:"rgba(79,142,247,0.04)", border:"1px solid rgba(79,142,247,0.13)" }}>
-        <div style={{ fontWeight:800, fontSize:12, color:"#4f8ef7", marginBottom:8 }}>📖 API 키를 Auto으로 가져올 Count 없는 Channel — 가이드</div>
+        <div style={{ fontWeight:800, fontSize:12, color:"#4f8ef7", marginBottom:8 }}>{t('auto.tng2eo', '📖 API 키를 Auto으로 가져올 Count 없는 Channel — 가이드')}</div>
         <div style={{ fontSize:11, color:"var(--text-2)", lineHeight:1.8 }}>
-          <b>OAuth 필요 Channel</b> (Meta·Google·TikTok 등): 해당 Platform 보안 정책상 서드파티 Auto 획득 불가.
+          <b>{t('auto.mnmmde', 'OAuth 필요 Channel')}</b> (Meta·Google·TikTok 등): 해당 Platform 보안 정책상 서드파티 Auto 획득 불가.
           → 「🔐 OAuth Connect」 Button → 로그인 → Permissions 동의 → Auto Save.<br/>
-          <b>Seller센터 Issue Channel</b> (Coupang·Naver·11Street 등): 「📋 Issue 신청」 Button으로 Auto 신청 → 1~3일 내 Email Count신 후 Register Done.
+          <b>{t('auto.eg4qia', 'Seller센터 Issue Channel')}</b> {t('auto.ibhsge', '(Coupang·Naver·11Street 등): 「📋 Issue 신청」 Button으로 Auto 신청 → 1~3일 내 Email Count신 후 Register Done.')}
         </div>
       </div>
     </div>
@@ -1228,7 +1228,7 @@ function LicenseTab({ user, token, onPaymentSuccess, navigate }) {
   const isPlanActive = user && ["pro","enterprise","admin"].includes(user.plan);
 
   const activateLicense = async () => {
-    if (!licenseKey.trim()) { setLicError("라이센스 키를 입력해주세요."); return; }
+    if (!licenseKey.trim()) { setLicError(t('auto.nkk9ux', '라이센스 키를 입력해주세요.')); return; }
     setLicBusy(true); setLicError("");
     try {
       const r = await fetch("/api/auth/license", {
@@ -1241,7 +1241,7 @@ function LicenseTab({ user, token, onPaymentSuccess, navigate }) {
       setLicResult(d);
       if (d.user) onPaymentSuccess(d.user);
     } catch (e) {
-      setLicError("네트워크 Error: " + e.message);
+      setLicError(t('auto.xee1o4', '네트워크 Error:') + e.message);
     } finally {
       setLicBusy(false);
     }
@@ -1255,33 +1255,33 @@ function LicenseTab({ user, token, onPaymentSuccess, navigate }) {
           border:"1.5px solid rgba(34,197,94,0.25)" }}>
           <div style={{ fontSize:48, marginBottom:12 }}>{licResult ? "🎉" : "✅"}</div>
           <div style={{ fontWeight:900, fontSize:18, color:"#22c55e", marginBottom:8 }}>
-            {licResult ? "라이센스 Activate Done!" : "라이센스가 이미 Activate되어 있습니다"}
+            {licResult ? t('auto.peum9f', '라이센스 Activate Done!') : t('auto.me7deo', '라이센스가 이미 Activate되어 있습니다')}
           </div>
           <div style={{ fontSize:13, color:"var(--text-2)", lineHeight:1.8, marginBottom:20 }}>
             Current Plan: <strong style={{ color:"#4f8ef7" }}>{user?.plan?.toUpperCase()}</strong>
             {user?.subscription_expires_at && (<>  ·  Expiry Date: <strong>{new Date(user.subscription_expires_at).toLocaleDateString("ko-KR")}</strong></>)}
           </div>
           <div style={{ display:"flex", gap:10, justifyContent:"center", flexWrap:"wrap" }}>
-            <button onClick={()=>navigate("/connectors")} style={{ padding:"10px 20px", borderRadius:10, border:"1px solid rgba(99,140,255,0.25)", background:"transparent", color:"var(--text-2)", cursor:"pointer", fontSize:12 }}>🔌 커넥터 현황</button>
-            <button onClick={()=>navigate("/dashboard")} style={{ padding:"10px 24px", borderRadius:10, border:"none", background:"linear-gradient(135deg,#22c55e,#14d9b0)", color:"#fff", fontWeight:700, fontSize:12, cursor:"pointer" }}>🏠 Dashboard로 Move</button>
+            <button onClick={()=>navigate("/connectors")} style={{ padding:"10px 20px", borderRadius:10, border:"1px solid rgba(99,140,255,0.25)", background:"transparent", color:"var(--text-2)", cursor:"pointer", fontSize:12 }}>{t('auto.v2eu9b', '🔌 커넥터 현황')}</button>
+            <button onClick={()=>navigate("/dashboard")} style={{ padding:"10px 24px", borderRadius:10, border:"none", background:"linear-gradient(135deg,#22c55e,#14d9b0)", color:"#fff", fontWeight:700, fontSize:12, cursor:"pointer" }}>{t('auto.jjw1v2', '🏠 Dashboard로 Move')}</button>
           </div>
         </div>
       ) : (
         <div className="card card-glass" style={{ display:"grid", gap:20 }}>
           <div>
-            <div style={{ fontWeight:900, fontSize:16, marginBottom:6 }}>🎟 라이센스 키 Register</div>
+            <div style={{ fontWeight:900, fontSize:16, marginBottom:6 }}>{t('auto.7x3v8j', '🎟 라이센스 키 Register')}</div>
             <div style={{ fontSize:12, color:"var(--text-2)", lineHeight:1.7 }}>
-              구매하신 라이센스 키를 입력하면 <strong style={{ color:"#4f8ef7" }}>모든 Paid Feature이 즉시 Activate</strong>됩니다.
+              {t('auto.tvzrow', '구매하신 라이센스 키를 입력하면')}<strong style={{ color:"#4f8ef7" }}>{t('auto.ehujwr', '모든 Paid Feature이 즉시 Activate')}</strong>{t('auto.heea6f', '됩니다.')}
             </div>
           </div>
 
           <div style={{ padding:"12px 14px", borderRadius:10, background:"rgba(79,142,247,0.05)", border:"1px solid rgba(79,142,247,0.2)", fontSize:11 }}>
-            <div style={{ fontWeight:700, color:"#4f8ef7", marginBottom:6 }}>📋 라이센스 키 형식</div>
+            <div style={{ fontWeight:700, color:"#4f8ef7", marginBottom:6 }}>{t('auto.tabsp8', '📋 라이센스 키 형식')}</div>
             <div style={{ fontFamily:"monospace", color:"var(--text-2)", letterSpacing:1 }}>GENIE-XXXX-XXXX-XXXX-XXXX</div>
           </div>
 
           <div>
-            <label style={{ fontSize:12, color:"var(--text-3)", fontWeight:700, display:"block", marginBottom:8 }}>라이센스 키 입력 *</label>
+            <label style={{ fontSize:12, color:"var(--text-3)", fontWeight:700, display:"block", marginBottom:8 }}>{t('auto.5oyz45', '라이센스 키 입력 *')}</label>
             <div style={{ display:"flex", gap:8 }}>
               <input type={showKey?"text":"password"} value={licenseKey}
                 onChange={e=>setLicenseKey(e.target.value.toUpperCase())}
@@ -1304,30 +1304,30 @@ function LicenseTab({ user, token, onPaymentSuccess, navigate }) {
             fontWeight:800, fontSize:15, cursor:"pointer",
             boxShadow:"0 8px 24px rgba(79,142,247,0.3)",
             opacity: licBusy||!licenseKey.trim()?0.6:1 }}>
-            {licBusy?"⏳ 검증 in progress…":"🚀 라이센스 Activate"}
+            {licBusy?t('auto.p8ra5m', '⏳ 검증 in progress…'):t('auto.epe971', '🚀 라이센스 Activate')}
           </button>
 
           <div style={{ fontSize:11, color:"var(--text-3)", textAlign:"center" }}>
             라이센스 키가 없으신가요?{" "}
             <button onClick={()=>navigate("/app-pricing")} style={{ background:"none", border:"none",
-              color:"#4f8ef7", cursor:"pointer", fontSize:11, fontWeight:700 }}>Pricing제 보기</button>
+              color:"#4f8ef7", cursor:"pointer", fontSize:11, fontWeight:700 }}>{t('auto.nfsmh1', 'Pricing제 보기')}</button>
           </div>
         </div>
       )}
 
       {/* 지원 Channel 미리보기 */}
       <div className="card card-glass" style={{ padding:"20px 24px" }}>
-        <div style={{ fontWeight:800, fontSize:13, marginBottom:12 }}>📡 라이센스 Activate 후 Integration 가능 Channel (30개+)</div>
+        <div style={{ fontWeight:800, fontSize:13, marginBottom:12 }}>{t('auto.txu9kw', '📡 라이센스 Activate 후 Integration 가능 Channel (30개+)')}</div>
         <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(160px,1fr))", gap:8 }}>
           {[
             { icon:"📘", name:"Meta Ads", badge:"Ads" }, { icon:"🔵", name:"Google Ads", badge:"Ads" },
             { icon:"🎶", name:"TikTok Business", badge:"Ads" }, { icon:"📦", name:"Amazon SP-API", badge:"Global" },
-            { icon:"🛒", name:"Shopify", badge:"Global" }, { icon:"🔴", name:"Rakuten", badge:"일본" },
-            { icon:"🟢", name:"Naver 스마트스토어", badge:"Domestic" }, { icon:"🛒", name:"Coupang Wing", badge:"Domestic" },
-            { icon:"🟩", name:"Naver SearchAds", badge:"Domestic" }, { icon:"💛", name:"Kakao 모먼트", badge:"Domestic" },
-            { icon:"🔶", name:"11Street", badge:"Domestic" }, { icon:"🟡", name:"G마콃/옥션", badge:"Domestic" },
+            { icon:"🛒", name:"Shopify", badge:"Global" }, { icon:"🔴", name:"Rakuten", badge:t('auto.9p6ucn', '일본') },
+            { icon:"🟢", name: t('auto.ac75p7', 'Naver 스마트스토어'), badge:"Domestic" }, { icon:"🛒", name:"Coupang Wing", badge:"Domestic" },
+            { icon:"🟩", name:"Naver SearchAds", badge:"Domestic" }, { icon:"💛", name: t('auto.uu8cwu', 'Kakao 모먼트'), badge:"Domestic" },
+            { icon:"🔶", name:"11Street", badge:"Domestic" }, { icon:"🟡", name: t('auto.d60jud', 'G마콃/옥션'), badge:"Domestic" },
             { icon:"💬", name:"Slack Webhook", badge:"Notification" }, { icon:"📊", name:"Google Analytics 4", badge:"Analysis" },
-            { icon:"🎁", name:"베네피아(폐쇄몰)", badge:"폐쇄몰" }, { icon:"🔷", name:"삼성 웰스토리", badge:"폐쇄몰" },
+            { icon:"🎁", name: t('auto.svbso9', '베네피아(폐쇄몰)'), badge:t('auto.g89o6q', '폐쇄몰') }, { icon:"🔷", name: t('auto.8fu4v1', '삼성 웰스토리'), badge:t('auto.6xwuah', '폐쇄몰') },
           ].map(c => (
             <div key={c.name} style={{ display:"flex", alignItems:"center", gap:8, padding:"7px 10px",
               borderRadius:9, background:"rgba(99,140,255,0.04)", border:"1px solid rgba(99,140,255,0.08)" }}>
@@ -1380,9 +1380,9 @@ export default function ApiKeys() {
     };
 
     const handleDelete = async id => {
-        if (!confirm("이 Auth키를 Delete하시겠습니까?")) return;
+        if (!confirm(t('auto.13f85a', '이 Auth키를 Delete하시겠습니까?'))) return;
         const res = await api(`/creds/${id}`, { method: "DELETE" });
-        if (res.ok) { showNotif("Delete되었습니다."); load(); }
+        if (res.ok) { showNotif(t('auto.mgmepv', 'Delete되었습니다.')); load(); }
         else showNotif("Delete Failed: " + (res.error ?? ""), false);
     };
 
@@ -1430,17 +1430,17 @@ export default function ApiKeys() {
                 <div className="hero-meta">
                     <div className="hero-icon">{mainTab==="smart" ? "🤖" : mainTab==="license" ? "🎟" : "🔑"}</div>
                     <div>
-                        <div className="hero-title">Channel API 키 & Auto Sync Management</div>
-                        <div className="hero-desc">Global · Domestic · Own Mall · 폐쇄몰 Channel의 Auth 키 Count동 Register + 🤖 SmartConnect AI Auto화를 Unified Management합니다</div>
+                        <div className="hero-title">{t('auto.yfr8lb', 'Channel API 키 & Auto Sync Management')}</div>
+                        <div className="hero-desc">{t('auto.71ijys', 'Global · Domestic · Own Mall · 폐쇄몰 Channel의 Auth 키 Count동 Register + 🤖 SmartConnect AI Auto화를 Unified Management합니다')}</div>
                     </div>
                 </div>
 
                 {/* Tab Conversion */}
                 <div style={{ display:"flex", gap:8, marginTop:16 }}>
                     {[
-                        { id:"keys",    label:"🔑 API Key Management",         desc:"Count동 Register · Edit · Test" },
-                        { id:"smart",   label:"🤖 SmartConnect AI",  desc:"Auto 스캔 · Integration · Issue신청" },
-                        { id:"license", label:"🎟 라이센스 Activate",    desc:"판매키 Register · Paid큐랜 Active" },
+                        { id:"keys",    label:"🔑 API Key Management",         desc: t('auto.uwwysx', 'Count동 Register · Edit · Test') },
+                        { id:"smart",   label:"🤖 SmartConnect AI",  desc: t('auto.04xbs5', 'Auto 스캔 · Integration · Issue신청') },
+                        { id:"license", label: t('auto.b3qru0', '🎟 라이센스 Activate'),    desc: t('auto.z7kx77', '판매키 Register · Paid큐랜 Active') },
                     ].map(t => (
                         <button key={t.id} onClick={() => setMainTab(t.id)} style={{
                             flex:1, padding:"10px 16px", borderRadius:12, cursor:"pointer",
@@ -1466,8 +1466,8 @@ export default function ApiKeys() {
                         {[
                             { label: "Register Channel", value: registeredChannels, icon: "🔌", color: "#4f8ef7" },
                             { label: "Connect Confirm", value: connectedOk,         icon: "✅", color: "#22c55e" },
-                            { label: "Total 키 Count",  value: totalCreds,          icon: "🗝️", color: "#a855f7" },
-                            { label: "지원 Channel", value: ALL_CHANNELS.length+"+", icon: "📡", color: "#f59e0b" },
+                            { label: t('auto.10vzv1', 'Total 키 Count'),  value: totalCreds,          icon: "🗝️", color: "#a855f7" },
+                            { label: t('auto.0qntd6', '지원 Channel'), value: ALL_CHANNELS.length+"+", icon: "📡", color: "#f59e0b" },
                         ].map(s => (
                             <div key={s.label} style={{ padding: "10px 14px", borderRadius: 12, flex: 1,
                                 background: `${s.color}0D`, border: `1px solid ${s.color}33`, textAlign: "center" }}>
@@ -1491,11 +1491,11 @@ export default function ApiKeys() {
                     <div style={{ fontSize: 26 }}>🔒</div>
                     <div style={{ flex: 1 }}>
                         <div style={{ fontWeight: 800, fontSize: 13, color: "#eab308", marginBottom: 4 }}>
-                            Demo Mode — API 키 Register은 Paid Plan 전용
+                            {t('auto.s3fgwk', 'Demo Mode — API 키 Register은 Paid Plan 전용')}
                         </div>
                         <div style={{ fontSize: 11, color: "var(--text-2)", lineHeight: 1.7 }}>
-                            <strong>Demo에서는 API 키를 입력해도 실제 Channel과 Integration되지 않습니다</strong> (순Count 체험용 모의 데이터만 표시).<br />
-                            Paid Plan으로 Conversion 후 API 키를 Register하면 아래 <strong>모든 Channel이 즉시 실Time Integration</strong>됩니다.
+                            <strong>{t('auto.w66p5o', 'Demo에서는 API 키를 입력해도 실제 Channel과 Integration되지 않습니다')}</strong> {t('auto.wuxyi0', '(순Count 체험용 모의 데이터만 표시).')}<br />
+                            {t('auto.znud7v', 'Paid Plan으로 Conversion 후 API 키를 Register하면 아래')}<strong>{t('auto.2fsv5a', '모든 Channel이 즉시 실Time Integration')}</strong>{t('auto.8w5ncj', '됩니다.')}
                         </div>
                     </div>
                     <button onClick={() => navigate("/app-pricing")} style={{
@@ -1503,7 +1503,7 @@ export default function ApiKeys() {
                         background: "linear-gradient(135deg,#eab308,#f59e0b)",
                         color: "#fff", fontWeight: 800, fontSize: 12, cursor: "pointer",
                         whiteSpace: "nowrap", boxShadow: "0 4px 15px rgba(234,179,8,0.3)",
-                    }}>💎 Paid Conversion하기 →</button>
+                    }}>{t('auto.8kezu3', '💎 Paid Conversion하기 →')}</button>
                 </div>
             )}
 
@@ -1539,7 +1539,7 @@ export default function ApiKeys() {
                 />
             </div>
             {loading ? (
-                <div style={{ textAlign: "center", padding: 40, color: "var(--text-3)", fontSize: 13 }}>🔄 불러오는 in progress...</div>
+                <div style={{ textAlign: "center", padding: 40, color: "var(--text-3)", fontSize: 13 }}>{t('auto.0dge9p', '🔄 불러오는 in progress...')}</div>
             ) : (
                 filteredGroups.map(group => (
                     <div key={group.key}>
@@ -1594,11 +1594,11 @@ export default function ApiKeys() {
                 background: "rgba(79,142,247,0.05)", border: "1px solid rgba(79,142,247,0.15)",
                 fontSize: 11, color: "var(--text-2)", lineHeight: 1.7,
             }}>
-                🔐 <strong>보안 안내</strong>: Register된 API 키는 서버에 Save되며, Search 시 일부만 표시됩니다.
+                🔐 <strong>{t('auto.n2m798', '보안 안내')}</strong>: Register된 API 키는 서버에 Save되며, Search 시 일부만 표시됩니다.
                 🔗 <strong>Connect Test</strong>: Channelper 실Time Auth 검증을 지원합니다.
-                ➕ <strong>Channel Add</strong>: 각 그룹마다 "Channel Add" Button으로 커스텀 Channel을 Register할 Count 있습니다.
+                ➕ <strong>Channel Add</strong>{t('auto.6wrgvj', ': 각 그룹마다 "Channel Add" Button으로 커스텀 Channel을 Register할 Count 있습니다.')}
                 <span style={{ marginLeft: 12, color: "#4f8ef7", cursor: "pointer" }} onClick={() => navigate("/connectors")}>
-                    → 커넥터 Management로 Move
+                    {t('auto.dfumga', '→ 커넥터 Management로 Move')}
                 </span>
             </div>
             </>) /* end keys tab */}

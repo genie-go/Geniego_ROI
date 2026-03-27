@@ -258,6 +258,8 @@ const ko = {
         budgetPlanner: "예산 플래너",
         adAnalytics: "광고 및 채널 분석",
         "adPerformance": "광고성과",
+        "budgetTracker": "예산 관리(Tracker)",
+        "accountPerformance": "어카운트 성과",
         "attribution": "어트리뷰션",
         "channelKpi": "채널 KPI",
         marketingIntel: "마케팅 인텔리전스",
@@ -6202,37 +6204,7 @@ const ko = {
             "allAccounts": "전체 계정",
             "livePerformance": "실시간 성과 데이터"
         },
-        "crm": {
-            "c_0": "Customer CRM",
-            "c_1": "Customer ProFile · RFM Analysis · Segment · 360° 활동 뷰",
-            "c_2": "All Customer",
-            "c_3": "Active (30일)",
-            "c_4": "Total LTV",
-            "c_5": "Segment Count",
-            "c_6": "👥 Customer List",
-            "c_7": "🤖 AI Segment",
-            "c_8": "📂 Segment",
-            "c_9": "📊 RFM Analysis",
-            "c_10": "+ Customer Register",
-            "c_11": "신규 Customer Register",
-            "c_12": "Email*",
-            "c_13": "Name",
-            "c_14": "Phone",
-            "c_15": "Grade",
-            "c_16": "Tag (콤마 구분)",
-            "c_17": "Register",
-            "c_18": "Save in progress...",
-            "c_19": "Name·Email·Phone Search...",
-            "c_20": "이탈위험",
-            "c_21": "충성Customer",
-            "c_22": "챔피언즈",
-            "c_23": "신규",
-            "c_24": "이탈",
-            "c_25": "General",
-            "c_26": "실버",
-            "c_27": "골드",
-            "c_28": "VIP"
-        },
+        
         "kpi": {
             "k_0": "실시간 · 블렌디드 ROAS",
             "k_1": "영업이익",
@@ -6368,30 +6340,7 @@ const ko = {
     "cycle": "Cycle",
     "message": "Message",
     "code": "Code",
-    "crm": {
-        "c_25": "C_25",
-        "c_22": "C_22",
-        "c_21": "C_21",
-        "c_20": "C_20",
-        "c_24": "C_24",
-        "c_23": "C_23",
-        "c_18": "C_18",
-        "c_13": "C_13",
-        "c_6": "C_6",
-        "c_7": "C_7",
-        "c_8": "C_8",
-        "c_9": "C_9",
-        "c_0": "C_0",
-        "c_2": "C_2",
-        "c_3": "C_3",
-        "c_4": "C_4",
-        "c_5": "C_5",
-        "c_12": "C_12",
-        "c_14": "C_14",
-        "c_17": "C_17",
-        "c_19": "C_19",
-        "c_15": "C_15"
-    },
+    
     "aiPredict": {
         "col": {
             "nextPurchase": "추정 다음 결제일",
@@ -7477,4 +7426,36 @@ ko.attrData = Object.assign(ko.attrData || {}, {
     "totalStr": "Total:"
 });
 
+
+
+
+
+ko.crm = { 
+    c_2: "총 고객 수",
+    c_3: "활성 고객 (30일)",
+    c_4: "총 고객 LTV",
+    c_5: "전체 세그먼트",
+    c_6: "전체 Customer",
+    c_7: "AI 추천 세그먼트",
+    c_8: "수동 세그먼트",
+    c_9: "RFM 분석",
+    c_12: "이메일",
+    c_13: "이름",
+    c_14: "전화번호",
+    c_15: "고객 등급",
+    c_17: "+ 고객 등록",
+    c_18: "저장 중...",
+    c_19: "이름, 이메일, 전화번호 검색...",
+    create_segment: "세그먼트 생성",
+    purchase_amt: "구매 총액",
+    purchase_cnt: "구매 횟수",
+    recent_purchase: "최근 구매",
+    last_purchase: "마지막 구매",
+    no_customer: "등록된 고객이 없습니다.",
+    ai_seg_cnt: "AI 세그먼트 수",
+    target_cust_sum: "대상 고객 합",
+    expected_rev: "예상 신규 매출",
+    no_ai_seg: "분석된 추천 세그먼트가 없습니다.",
+    rfm_loading: "RFM 분석 데이터를 불러오는 중입니다..."
+ };
 export default ko;

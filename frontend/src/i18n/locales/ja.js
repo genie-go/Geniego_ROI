@@ -852,23 +852,7 @@ const ja = {
 
 
     // ── [NEW v4] CRM / LINE / Journey 現地化
-    crm: {
-        pageTitle: "顧客管理 CRM",
-        pageSub: "RFM分析 · セグメント · 購買履歴 · LINE/カカオ連携",
-        tabCustomers: "👥 顧客一覧",
-        tabSegments: "🏷 セグメント",
-        tabRfm: "📊 RFM分析",
-        segmentCount: "人",
-        createEmailCampaign: "📧 メール連携",
-        createKakaoCampaign: "💬 カカオ連携",
-        createLineCampaign: "💚 LINE連携",
-        linkedCampaign: "🔗 連携キャンペーン",
-        vip: "VIP顧客",
-        churnRisk: "離脱リスク",
-        dormant: "休眠顧客",
-        newCustomer: "新規顧客",
-        repurchase: "再購買候補",
-    },
+    
 
     lineChannel: {
         pageTitle: "LINEチャンネル",
@@ -2272,7 +2256,7 @@ ja.wms = Object.assign(ja.wms || {}, {
     auditPrint: "棚卸票印刷", auditAdjust: "在庫調整",
     auditTotalSku: "全SKU数", auditCounted: "棚卸完了", auditUncounted: "未棚卸", auditDiffTotal: "差異数量",
     carrierTrack: "配送追跡", trackingNum: "送り状番号", trackingQuery: "追跡",
-    trackingStatus: { delivering: "配送中", delivered: "配達完了", ready: "準備中", cancelled: "キャンセル" },
+    trackingStatus: { delivering: "配送中", delivered: "配達完了", ready: "準備中", cancelled: "キャンセル" }
 });
 
 
@@ -2307,7 +2291,7 @@ ja.wms = Object.assign(ja.wms || {}, {
   auditDiffTotal: "Diff Qty",
   carrierTrack: "Carrier Track",
   trackingNum: "Tracking No",
-  trackingQuery: "Track",
+  trackingQuery: "Track"
 });
 
 
@@ -2365,13 +2349,13 @@ ja.approvals = Object.assign(ja.approvals || {}, {
     noRequests: "このステータスのリクエストはありません",
     demoGuardDecide: "デモモード: 承認/却下は実際のアカウントが必要です。",
     demoGuardExecute: "デモモード: アクション実行は実際のアカウントが必要です。",
-    executeDone: "実行完了（デモシミュレーション）",
+    executeDone: "実行完了（デモシミュレーション）"
 });
 
 // -- settlements extra keys --
 ja.settlements = Object.assign(ja.settlements || {}, {
     detailCsvBtn: 'CSV',
-    detailCsvDone: '✓ CSV download complete',
+    detailCsvDone: '✓ CSV download complete'
 });
 
 
@@ -2478,14 +2462,14 @@ ja.topbar = Object.assign(ja.topbar || {}, {
     helpBtn: "📚 ヘルプ",
     close: "閉じる",
     menuToggle: "メニュー開閉",
-    sidebarToggle: "サイドバー切替",
+    sidebarToggle: "サイドバー切替"
 });
 ja.sidebar = Object.assign(ja.sidebar || {}, {
     removeFav: "お気に入りから削除",
-    addFav: "お気に入りに追加",
+    addFav: "お気に入りに追加"
 });
 ja.mobileNav = Object.assign(ja.mobileNav || {}, {
-    ariaLabel: "ボトムナビゲーション",
+    ariaLabel: "ボトムナビゲーション"
 });
 ja.journey = {
     pageTitle: "カスタマージャーニービルダー",
@@ -3754,6 +3738,39 @@ ja.common.revenue = "Revenue";
 if (!ja.gDemo) ja.gDemo = {};
 ja.gDemo.sidebarAlertCount = "🚨 {n} alerts";
 
+
+
+
+
+
+ja.crm = { 
+    c_2: "Total Customers",
+    c_3: "Active (30d)",
+    c_4: "Total LTV",
+    c_5: "Total Segments",
+    c_6: "All Customers",
+    c_7: "AI Segments",
+    c_8: "Manual Segments",
+    c_9: "RFM Analysis",
+    c_12: "Email",
+    c_13: "Name",
+    c_14: "Phone",
+    c_15: "Grade",
+    c_17: "+ Customer Register",
+    c_18: "Saving...",
+    c_19: "Search...",
+    create_segment: "Create Segment",
+    purchase_amt: "Total Amount",
+    purchase_cnt: "Purchase Count",
+    recent_purchase: "Recent Purchase",
+    last_purchase: "Last Purchase",
+    no_customer: "No registered customers.",
+    ai_seg_cnt: "AI Segments",
+    target_cust_sum: "Total Customers",
+    expected_rev: "Expected Revenue",
+    no_ai_seg: "No AI segments available.",
+    rfm_loading: "Loading RFM Analysis..."
+ };
 export default ja;
 
 

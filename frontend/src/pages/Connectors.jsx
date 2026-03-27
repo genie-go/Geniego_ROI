@@ -234,7 +234,7 @@ function CopyBtn({ text }) {
   return (
     <button className="btn-ghost" style={{ fontSize: 10, padding: "3px 8px" }}
       onClick={() => { navigator.clipboard.writeText(text).catch(() => { }); setCopied(true); setTimeout(() => setCopied(false), 1500); }}>
-      {copied ? (t('super.conCopied') || "✓ Copy됨") : (t('super.conCopy') || "Copy")}
+      {copied ? (t('super.conCopied') || t('auto.47teg6', '✓ Copy됨')) : (t('super.conCopy') || "Copy")}
     </button>
   );
 }
@@ -321,8 +321,8 @@ function OAuthFlow({ p, state, onUpdate }) {
         <div style={{ padding: "12px 14px", background: "rgba(79,142,247,0.06)", border: "1px solid rgba(79,142,247,0.2)", borderRadius: 10, marginBottom: 14 }}>
           <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
             {[
-              { n: 1, label: "Auth Page 리다이렉트" },
-              { n: 2, label: "콜백 · 코드 교환" },
+              { n: 1, label: t('auto.gw5l0u', 'Auth Page 리다이렉트') },
+              { n: 2, label: t('auto.plz43m', '콜백 · 코드 교환') },
               { n: 3, label: "Token Save Done" },
             ].map(x => (
               <div key={x.n} style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -363,19 +363,19 @@ function OAuthFlow({ p, state, onUpdate }) {
           )}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
             <div style={{ padding: "10px 12px", background: "rgba(9,15,30,0.5)", border: "1px solid rgba(99,140,255,0.08)", borderRadius: 8 }}>
-              <div style={{ fontSize: 10, color: "var(--text-3)", fontWeight: 700 }}>Expired 예정</div>
+              <div style={{ fontSize: 10, color: "var(--text-3)", fontWeight: 700 }}>{t('auto.8jj8ms', 'Expired 예정')}</div>
               <div style={{ fontSize: 11, color: "var(--text-1)", marginTop: 4 }}>
                 {state.expiresAt ? new Date(state.expiresAt).toLocaleString("ko-KR") : p.tokenExpiry}
               </div>
             </div>
             <div style={{ padding: "10px 12px", background: "rgba(9,15,30,0.5)", border: "1px solid rgba(99,140,255,0.08)", borderRadius: 8 }}>
-              <div style={{ fontSize: 10, color: "var(--text-3)", fontWeight: 700 }}>부여된 Permission</div>
+              <div style={{ fontSize: 10, color: "var(--text-3)", fontWeight: 700 }}>{t('auto.umpevr', '부여된 Permission')}</div>
               <div style={{ fontSize: 11, color: p.color, marginTop: 4, fontWeight: 700 }}>{state.grantedScopes.length}개</div>
             </div>
           </div>
           {state.grantedScopes.length > 0 && (
             <div style={{ padding: "10px 12px", background: "rgba(9,15,30,0.5)", border: "1px solid rgba(99,140,255,0.08)", borderRadius: 8 }}>
-              <div style={{ fontSize: 10, color: "var(--text-3)", fontWeight: 700, marginBottom: 6 }}>부여된 Permission 범위</div>
+              <div style={{ fontSize: 10, color: "var(--text-3)", fontWeight: 700, marginBottom: 6 }}>{t('auto.yrwskg', '부여된 Permission 범위')}</div>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
                 {state.grantedScopes.map(s => (
                   <span key={s} className="badge badge-green" style={{ fontSize: 9 }}>✓ {s}</span>
@@ -454,18 +454,18 @@ function ApiKeyFlow({ p, state, onUpdate }) {
               <input className="input" type={show ? "text" : "password"} value={key}
                 onChange={e => setKey(e.target.value)} placeholder={`${p.name} API`} style={{ flex: 1 }} />
               <button className="btn-ghost" style={{ fontSize: 11, padding: "6px 10px" }}
-                onClick={() => setShow(v => !v)}>{show ? "숨김" : "표시"}</button>
+                onClick={() => setShow(v => !v)}>{show ? t('auto.o8jx5l', '숨김') : t('auto.aldj6c', '표시')}</button>
             </div>
           </div>
           {secret !== undefined && (
             <div>
               <label className="input-label">{t('super.conApiSecretStr')}</label>
               <input className="input" type={show ? "text" : "password"} value={secret}
-                onChange={e => setSecret(e.target.value)} placeholder="Select 사항 (HMAC Signature용)" />
+                onChange={e => setSecret(e.target.value)} placeholder={t('auto.hqvgzx', 'Select 사항 (HMAC Signature용)')} />
             </div>
           )}
           <div style={{ padding: "8px 12px", background: "rgba(234,179,8,0.06)", border: "1px solid rgba(234,179,8,0.2)", borderRadius: 8, fontSize: 11, color: "#eab308" }}>
-            ⚠ API는 브라우저 세션에만 Temporary Save됩니다. Pro덕션에서는 KMS/Vault secrets_ref를 사용하세요.
+            {t('auto.lhvr2g', '⚠ API는 브라우저 세션에만 Temporary Save됩니다. Pro덕션에서는 KMS/Vault secrets_ref를 사용하세요.')}
           </div>
         </div>
       )}
@@ -482,7 +482,7 @@ function ApiKeyFlow({ p, state, onUpdate }) {
             </div>
           </div>
           <div style={{ padding: "10px 12px", background: "rgba(9,15,30,0.5)", border: "1px solid rgba(99,140,255,0.08)", borderRadius: 8 }}>
-            <div style={{ fontSize: 10, color: "var(--text-3)", fontWeight: 700, marginBottom: 6 }}>부여된 Permission 범위</div>
+            <div style={{ fontSize: 10, color: "var(--text-3)", fontWeight: 700, marginBottom: 6 }}>{t('auto.c2apd4', '부여된 Permission 범위')}</div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
               {state.grantedScopes.map(s => (
                 <span key={s} className="badge badge-green" style={{ fontSize: 9 }}>✓ {s}</span>
@@ -540,7 +540,7 @@ function WebhookConfig({ p, state, onUpdate }) {
     <div style={{ display: "grid", gap: 14 }}>
       {/* Endpoint */}
       <div>
-        <div style={{ fontSize: 11, color: "var(--text-3)", fontWeight: 700, marginBottom: 6 }}>Webhook Count신 엔드포인트</div>
+        <div style={{ fontSize: 11, color: "var(--text-3)", fontWeight: 700, marginBottom: 6 }}>{t('auto.eujnhm', 'Webhook Count신 엔드포인트')}</div>
         <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
           <div style={{
             flex: 1, fontFamily: "monospace", fontSize: 11, padding: "8px 12px",
@@ -570,7 +570,7 @@ function WebhookConfig({ p, state, onUpdate }) {
 
       {/* Event subscription */}
       <div>
-        <div style={{ fontSize: 11, color: "var(--text-3)", fontWeight: 700, marginBottom: 8 }}>Count신할 Event</div>
+        <div style={{ fontSize: 11, color: "var(--text-3)", fontWeight: 700, marginBottom: 8 }}>{t('auto.a3ynb6', 'Count신할 Event')}</div>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
           {p.webhookEvents.map(e => {
             const on = selEvents.has(e);
@@ -592,10 +592,10 @@ function WebhookConfig({ p, state, onUpdate }) {
       <div>
         <button className="btn-primary" style={{ fontSize: 11, padding: "7px 16px", background: "linear-gradient(135deg,#a855f7,#6366f1)" }}
           onClick={sendTest} disabled={testBusy || state.status !== "connected"}>
-          {testBusy ? "⏳ 전송 in progress…" : t('super.conTestSend')}
+          {testBusy ? t('auto.zi2grn', '⏳ 전송 in progress…') : t('super.conTestSend')}
         </button>
         {state.status !== "connected" && (
-          <span style={{ marginLeft: 10, fontSize: 11, color: "var(--text-3)" }}>먼저 Account을 Connect하세요</span>
+          <span style={{ marginLeft: 10, fontSize: 11, color: "var(--text-3)" }}>{t('auto.rn0e0o', '먼저 Account을 Connect하세요')}</span>
         )}
       </div>
 
@@ -605,7 +605,7 @@ function WebhookConfig({ p, state, onUpdate }) {
           border: `1px solid ${testResult.ok ? "rgba(34,197,94,0.25)" : "rgba(239,68,68,0.25)"}`, borderRadius: 10
         }}>
           <div style={{ fontWeight: 700, fontSize: 12, color: testResult.ok ? "#22c55e" : "#ef4444", marginBottom: 4 }}>
-            {testResult.ok ? `✓ HTTP ${testResult.status} — ${testResult.latency}ms` : "✗ Count신 Failed"}
+            {testResult.ok ? `✓ HTTP ${testResult.status} — ${testResult.latency}ms` : t('auto.q6rds0', '✗ Count신 Failed')}
           </div>
           <div style={{ fontSize: 11, color: "var(--text-3)" }}>Count신 시각: {testResult.ts}</div>
         </div>
@@ -741,7 +741,7 @@ function WebhookFeed({ connState }) {
         })}
         {filtered.length === 0 && (
           <div style={{ textAlign: "center", padding: 32, color: "var(--text-3)", fontSize: 13 }}>
-            Count신된 Event가 없습니다
+            {t('auto.8vccqn', 'Count신된 Event가 없습니다')}
           </div>
         )}
       </div>
@@ -754,8 +754,8 @@ const DW_PLATFORMS = [
   {
     id: "bigquery", name: "Google BigQuery", icon: "🔷", color: "#4285f4",
     authType: "service_account",
-    features: ["실Hour 스트리밍 삽입", "파티셔닝 Auto화", "ML 모델 Unified"],
-    syncSchedules: ["5분마다", "매Hour", "매Day 02:00"],
+    features: [t('auto.dlobuc', '실Hour 스트리밍 삽입'), t('auto.cy5yyg', '파티셔닝 Auto화'), t('auto.qmtbml', 'ML 모델 Unified')],
+    syncSchedules: [t('auto.llf7vi', '5분마다'), t('auto.a5og0a', '매Hour'), t('auto.0do1jk', '매Day 02:00')],
     tablePrefix: "geniego_roi_",
     docsUrl: "https://cloud.google.com/bigquery/docs",
     badge: "🌐 Google Cloud",
@@ -764,8 +764,8 @@ const DW_PLATFORMS = [
   {
     id: "snowflake", name: "Snowflake", icon: "❄️", color: "#29b5e8",
     authType: "keypair",
-    features: ["Auto 스케Day링", "Zero-copy Clone", "Time Travel 90Day"],
-    syncSchedules: ["15분마다", "매Hour", "매Day 03:00"],
+    features: [t('auto.cx1se1', 'Auto 스케Day링'), "Zero-copy Clone", "Time Travel 90Day"],
+    syncSchedules: [t('auto.pjozj0', '15분마다'), t('auto.qwdld9', '매Hour'), t('auto.syrn75', '매Day 03:00')],
     tablePrefix: "GENIEGO.",
     docsUrl: "https://docs.snowflake.com",
     badge: "❄️ Snowflake",
@@ -774,8 +774,8 @@ const DW_PLATFORMS = [
   {
     id: "redshift", name: "Amazon Redshift", icon: "🔴", color: "#dd3522",
     authType: "iam",
-    features: ["Spectrum 외부 Table", "Auto WLM", "ML 내장 지원"],
-    syncSchedules: ["30분마다", "매Hour", "매Day 04:00"],
+    features: [t('auto.8a69wm', 'Spectrum 외부 Table'), "Auto WLM", t('auto.0t8f4d', 'ML 내장 지원')],
+    syncSchedules: [t('auto.ogkyoq', '30분마다'), t('auto.mlaofb', '매Hour'), t('auto.x1n6be', '매Day 04:00')],
     tablePrefix: "geniego.",
     docsUrl: "https://docs.aws.amazon.com/redshift",
     badge: "☁️ AWS",
@@ -784,8 +784,8 @@ const DW_PLATFORMS = [
   {
     id: "databricks", name: "Databricks Delta Lake", icon: "🧱", color: "#ff3621",
     authType: "token",
-    features: ["Delta 트랜잭션", "Unity Catalog", "MLflow Integration"],
-    syncSchedules: ["매Hour", "매Day 01:00", "Weekly Day요Day"],
+    features: [t('auto.tlklw9', 'Delta 트랜잭션'), "Unity Catalog", "MLflow Integration"],
+    syncSchedules: [t('auto.megaqu', '매Hour'), t('auto.osekun', '매Day 01:00'), t('auto.yicnr1', 'Weekly Day요Day')],
     tablePrefix: "geniego_roi.",
     docsUrl: "https://docs.databricks.com",
     badge: "🧱 Databricks",
@@ -794,9 +794,9 @@ const DW_PLATFORMS = [
 ];
 
 const DW_SYNC_STATS = {
-  bigquery:   { rows: "12,847,320", lastSync: "5분 전", size: "4.2 GB", status: "synced" },
-  snowflake:  { rows: "11,203,441", lastSync: "22분 전", size: "3.8 GB", status: "synced" },
-  redshift:   { rows: "9,887,100",  lastSync: "55분 전", size: "3.1 GB", status: "synced" },
+  bigquery:   { rows: "12,847,320", lastSync: t('auto.a4sbmn', '5분 전'), size: "4.2 GB", status: "synced" },
+  snowflake:  { rows: "11,203,441", lastSync: t('auto.40ur9i', '22분 전'), size: "3.8 GB", status: "synced" },
+  redshift:   { rows: "9,887,100",  lastSync: t('auto.rq9sps', '55분 전'), size: "3.1 GB", status: "synced" },
   databricks: { rows: "0",          lastSync: "Disconnected",   size: "—",      status: "disconnected" },
 };
 
@@ -841,7 +841,7 @@ function DWConnectorCard({ dw }) {
           <div style={{ fontWeight: 700, fontSize: 13 }}>{dw.name}</div>
           <div style={{ fontSize: 10, color: "var(--text-3)", marginTop: 2 }}>
             <span style={{ padding: "1px 7px", borderRadius: 20, background: dw.color + "22", color: dw.color, fontWeight: 700, fontSize: 9 }}>{dw.badge}</span>
-            <span style={{ marginLeft: 8 }}>{dw.authType === "service_account" ? "🔐 서비스 Account" : dw.authType === "keypair" ? "🔑 Key Pair" : dw.authType === "iam" ? "☁️ IAM Role" : "🔑 Access Token"}</span>
+            <span style={{ marginLeft: 8 }}>{dw.authType === "service_account" ? t('auto.5zuep2', '🔐 서비스 Account') : dw.authType === "keypair" ? "🔑 Key Pair" : dw.authType === "iam" ? "☁️ IAM Role" : "🔑 Access Token"}</span>
           </div>
         </div>
         <span className={`badge ${connected ? "badge-green" : ""}`} style={{ fontSize: 10 }}>
@@ -854,9 +854,9 @@ function DWConnectorCard({ dw }) {
           {/* Sync Statistics */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8, marginBottom: 14 }}>
             {[
-              { l: "누적 행Count", v: stats.rows, c: "#4f8ef7" },
-              { l: "데이터 Size", v: stats.size, c: "#a855f7" },
-              { l: "마지막 Sync", v: stats.lastSync, c: "#22c55e" },
+              { l: t('auto.wburg3', '누적 행Count'), v: stats.rows, c: "#4f8ef7" },
+              { l: t('auto.4wukw3', '데이터 Size'), v: stats.size, c: "#a855f7" },
+              { l: t('auto.lizmap', '마지막 Sync'), v: stats.lastSync, c: "#22c55e" },
             ].map(k => (
               <div key={k.l} style={{ textAlign: "center", padding: "8px 6px", borderRadius: 8, background: `${k.c}08`, border: `1px solid ${k.c}18` }}>
                 <div style={{ fontSize: 12, fontWeight: 900, color: k.c }}>{k.v}</div>
@@ -879,7 +879,7 @@ function DWConnectorCard({ dw }) {
 
           {/* Sync 스케줄 */}
           <div style={{ marginBottom: 12 }}>
-            <div style={{ fontSize: 11, color: "var(--text-3)", fontWeight: 700, marginBottom: 6 }}>⏱️ Sync 주기</div>
+            <div style={{ fontSize: 11, color: "var(--text-3)", fontWeight: 700, marginBottom: 6 }}>{t('auto.qvt72w', '⏱️ Sync 주기')}</div>
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
               {dw.syncSchedules.map(s => (
                 <button key={s} onClick={() => setSchedule(s)} style={{ padding: "4px 12px", borderRadius: 20, border: "none", cursor: "pointer", fontSize: 10, fontWeight: 700, background: schedule === s ? `linear-gradient(135deg,${dw.color},${dw.color}cc)` : "rgba(255,255,255,0.06)", color: schedule === s ? "#fff" : "var(--text-2)" }}>
@@ -891,7 +891,7 @@ function DWConnectorCard({ dw }) {
 
           {/* 쿼리 Test */}
           <div style={{ marginBottom: 12 }}>
-            <div style={{ fontSize: 11, color: "var(--text-3)", fontWeight: 700, marginBottom: 6 }}>🧪 Connect Test 쿼리</div>
+            <div style={{ fontSize: 11, color: "var(--text-3)", fontWeight: 700, marginBottom: 6 }}>{t('auto.thhq7g', '🧪 Connect Test 쿼리')}</div>
             <div style={{ fontFamily: "monospace", fontSize: 10, padding: "8px 12px", background: "rgba(6,11,20,0.9)", borderRadius: 8, border: "1px solid rgba(99,140,255,0.15)", color: "#4f8ef7", marginBottom: 8 }}>
               SELECT channel, SUM(revenue) as revenue, AVG(roas) as roas<br/>
               FROM {dw.tablePrefix}ad_performance<br/>
@@ -899,7 +899,7 @@ function DWConnectorCard({ dw }) {
               GROUP BY channel ORDER BY revenue DESC LIMIT 5;
             </div>
             <button className="btn-primary" style={{ fontSize: 11, padding: "7px 16px", background: `linear-gradient(135deg,${dw.color},${dw.color}aa)` }} onClick={runTestQuery} disabled={queryBusy}>
-              {queryBusy ? "⏳ Run in progress…" : "▶ 쿼리 Run"}
+              {queryBusy ? "⏳ Run in progress…" : t('auto.wxuhup', '▶ 쿼리 Run')}
             </button>
             {queryResult && (
               <div style={{ marginTop: 8, padding: "10px 12px", background: "rgba(34,197,94,0.06)", border: "1px solid rgba(34,197,94,0.2)", borderRadius: 8 }}>
@@ -935,7 +935,7 @@ function DWConnectorCard({ dw }) {
 
       {!connected && (
         <div style={{ textAlign: "center", padding: 20 }}>
-          <div style={{ fontSize: 13, color: "var(--text-3)", marginBottom: 12 }}>Data Warehouse Connect 후<br/>Marketing 데이터를 Auto Sync합니다</div>
+          <div style={{ fontSize: 13, color: "var(--text-3)", marginBottom: 12 }}>{t('auto.3ypv3s', 'Data Warehouse Connect 후')}<br/>{t('auto.uv0ltm', 'Marketing 데이터를 Auto Sync합니다')}</div>
           <button className="btn-primary" style={{ background: `linear-gradient(135deg,${dw.color},${dw.color}cc)` }} onClick={connect} disabled={busy}>
             {busy ? "⏳ Connect in progress…" : `🔗 ${dw.name} Connect`}
           </button>
@@ -955,11 +955,11 @@ function DataWarehouseSection() {
           {t('super.conTabDw')} — Analysis 데이터 Auto Sync
         </div>
         <div style={{ fontSize: 12, color: "var(--text-2)", lineHeight: 1.7 }}>
-          BigQuery · Snowflake · Redshift · Databricks에 Marketing Performance, 어트리뷰션, Orders/정산 데이터를 실Hour으로 Sync합니다.<br/>
-          <span style={{ color: "#4285f4", fontWeight: 700 }}>Native Connector</span>로 쿼리 재작성 없이 기존 BI 도구(Looker Studio, Power BI, Tableau)와 즉시 Integration 가능합니다.
+          {t('auto.mfh96n', 'BigQuery · Snowflake · Redshift · Databricks에 Marketing Performance, 어트리뷰션, Orders/정산 데이터를 실Hour으로 Sync합니다.')}<br/>
+          <span style={{ color: "#4285f4", fontWeight: 700 }}>Native Connector</span>{t('auto.k6nmqe', '로 쿼리 재작성 없이 기존 BI 도구(Looker Studio, Power BI, Tableau)와 즉시 Integration 가능합니다.')}
         </div>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 10 }}>
-          {["✓ Zero-ETL 파이프라인", "✓ 실Hour 스트리밍 삽입", "✓ 증분 Sync (CDC)", "✓ Auto 스키마 진화", "✓ 압축·파티셔닝 Auto화"].map(f => (
+          {[t('auto.3n2t0a', '✓ Zero-ETL 파이프라인'), t('auto.74yxck', '✓ 실Hour 스트리밍 삽입'), t('auto.k4zggj', '✓ 증분 Sync (CDC)'), t('auto.ncuv4k', '✓ Auto 스키마 진화'), t('auto.8huah1', '✓ 압축·파티셔닝 Auto화')].map(f => (
             <span key={f} style={{ fontSize: 10, padding: "2px 10px", borderRadius: 20, background: "rgba(66,133,244,0.12)", color: "#4285f4", border: "1px solid rgba(66,133,244,0.25)", fontWeight: 700 }}>{f}</span>
           ))}
         </div>
@@ -967,7 +967,7 @@ function DataWarehouseSection() {
 
       {/* 아키텍처 다이어그램 */}
       <div className="card card-glass">
-        <div style={{ fontWeight: 800, fontSize: 12, marginBottom: 12 }}>🏗️ Data Pipeline 아키텍처</div>
+        <div style={{ fontWeight: 800, fontSize: 12, marginBottom: 12 }}>{t('auto.yzx7ca', '🏗️ Data Pipeline 아키텍처')}</div>
         <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", justifyContent: "center", padding: "12px 0" }}>
           {["📣 Ad Platforms", "🛒 Commerce", "👤 CRM", "📊 Analytics"].map((src, i, arr) => (
             <React.Fragment key={src}>
@@ -1105,7 +1105,7 @@ export default function Connectors() {
             </div>
             <div className="hero-desc">
               {t('super.conHeroDesc') || "{t('super.conActConn')}(OAuth 2.0 / API), Permission 범위 Management, Token Auto 갱신, Webhook Event Count신을 한 Screen에서 Management합니다."}
-              {isDemo && <span style={{ marginLeft: 8, fontSize: 11, color: "#eab308" }}>* Demo: 가상 Connect Status입니다</span>}
+              {isDemo && <span style={{ marginLeft: 8, fontSize: 11, color: "#eab308" }}>{t('auto.lsvsrf', '* Demo: 가상 Connect Status입니다')}</span>}
             </div>
           </div>
         </div>

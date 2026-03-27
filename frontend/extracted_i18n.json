@@ -1,0 +1,297 @@
+{
+  "extracted": {
+    "marketing.strictDateFilter": "📅 캠페인 집행 기간 (Strict Date Filter)",
+    "marketing.strictDateDesc": "해당 기간 내에 실제로 라이브된 이력이 있는 광고만 선별하여 데이터 오염을 방지합니다.",
+    "marketing.tabOverview": "성과 현황 오버뷰",
+    "marketing.mktHierTitle": "세부 광고 성과 현황 (분석)",
+    "marketing.tabAiEval": "AI 평가 결과",
+    "marketing.pageTitle": "통합 마케팅 성과 대시보드",
+    "marketing.pageSub": "실시간 라이브 데이터를 필터링하고 모든 채널의 통합된 KPI 추세를 확인하세요.",
+    "marketing.aiEvalPlaceholderTitle": "🤖 AI Evaluation Placeholder",
+    "marketing.aiEvalPlaceholderDesc": "AI 평가 결과는 이전 버전에 존재하였으나 통합 대시보드 구조에 맞춰 리팩토링 중입니다.",
+    "marketing.budgetTrackTitle": "예산 트래킹 대시보드",
+    "marketing.bgSummaryBudget": "총 예산",
+    "marketing.bgSummaryActual": "총 지출금액",
+    "marketing.bgSummaryProfit": "설정 예산 대비 남은 한도",
+    "marketing.bgAchievePct": "예산 달성율 (Budget Achievement)",
+    "marketing.bgKpiActualVsBudget": "결과 대비 예산 추이 (Budget vs Actual)",
+    "marketing.bgKpiTopChan": "최상위 매체별 브랜드 지출 요약",
+    "marketing.bgTableCampaign": "대분류 캠페인당 예산 대비 ROI 상세 추적",
+    "marketing.bgColImpr": "노출",
+    "marketing.bgColCtr": "CTR(%)",
+    "marketing.bgColBudget": "설정 예산",
+    "marketing.bgColSpend": "실제 지출",
+    "marketing.bgColProfit": "투자 대비 남은수익",
+    "marketing.bgColCpc": "CPC",
+    "marketing.bgColCpa": "CPA",
+    "marketing.bgColRoi": "투자 수익률(ROI)",
+    "marketing.catPerformance": "Performance (Meta/Google)",
+    "marketing.catBrand": "Brand Awareness (YouTube)",
+    "marketing.catRetargeting": "Retargeting (Kakao/Naver)",
+    "marketing.catInfluencer": "Influencer/UGC",
+    "marketing.budgetTrackSub": "일자/월별 지출 추이 및 매체별 예산 소진율",
+    "marketing.demoModeLabel": "(Dr.Jart+ 데모 모드)",
+    "marketing.realModeLabel": "(운영 데이터 모드)",
+    "marketing.bgBurnRateLabel": "Burn Rate",
+    "marketing.bgCategoryAlloc": "카테고리 할당 (Category Allocation)",
+    "marketing.bgBarActualSpend": "Actual Spend",
+    "marketing.bgBarSetBudget": "Set Budget",
+    "marketing.teamA": "A팀_퍼포먼스",
+    "marketing.teamB": "B팀_리타게팅",
+    "marketing.teamC": "C팀_세일즈",
+    "marketing.teamD": "D팀_브랜딩",
+    "accountPerf.pageTitle": "Account(Team) Performance Analytics",
+    "accountPerf.pageSub": "Team & Account efficiency and budget view",
+    "acctPerf.tabDashboard": "Visual Dashboard",
+    "acctPerf.tabDrilldown": "Hierarchy Drill-down",
+    "accountPerf.teamDashboard": "Team/Account Budget Dashboard",
+    "budget.allocated": "Allocated",
+    "budget.spent": "Spent",
+    "acctPerf.objectiveAwareness": "Awareness",
+    "acctPerf.objectiveConsideration": "Consideration",
+    "acctPerf.objectiveConversion": "Conversion",
+    "acctPerf.kpiSpend": "Spend Limit Achieved",
+    "attrData.topOne": "#1",
+    "attrData.increase": "↑ 증액",
+    "attrData.maintain": "→ 유지",
+    "attrData.review": "↓ 검토",
+    "attrData.cohortHdr": "코호트",
+    "attrData.sizeHdr": "규모",
+    "attrData.totalCac": "Total CAC 지출",
+    "attrData.totalLtv": "Total LTV 합산",
+    "attrData.colChannel": "Channel",
+    "attrData.excellent": "탁월",
+    "attrData.good": "양호",
+    "attrData.normal": "Normal",
+    "attrData.caution": "주의",
+    "attrData.filterIssue": "이슈만",
+    "attrData.filterOk": "정상",
+    "attrData.roasSurge": "ROAS 급등",
+    "attrData.currVal": "현재Value",
+    "attrData.baseline": "기준선",
+    "attrData.highest": "최고",
+    "attrData.hubRun": "AI Marketing 허브 Run 결과",
+    "attrData.autoRefl": "건 Attribution에 Auto 반영됨",
+    "attrData.dataIncluded": "Journey Run · AI Recommend 집행 데이터가 모델 기여도에 포함됩니다",
+    "attrData.realtimeSync": "실Time Sync ✓",
+    "attrData.cases": "건"
+  },
+  "missingT": [
+    {
+      "file": "BudgetTracker.jsx",
+      "text": "캠페인 요약"
+    },
+    {
+      "file": "Attribution.jsx",
+      "text": "2^n 정밀 Shapley 계산 in progress…"
+    },
+    {
+      "file": "Attribution.jsx",
+      "text": "🎯 Channelper Exact Shapley 기여도"
+    },
+    {
+      "file": "Attribution.jsx",
+      "text": "⚡ Channel 시너지 (Pairwise Lift)"
+    },
+    {
+      "file": "Attribution.jsx",
+      "text": "💡 Shapley 기반 Budget 권고"
+    },
+    {
+      "file": "Attribution.jsx",
+      "text": "— Ridge-regularised OLS + Adstock decay + Hill saturation. Bootstrap 200회 posterior credible intervals.\r\n        {result &&"
+    },
+    {
+      "file": "Attribution.jsx",
+      "text": "📈 Bayesian MMM — Channel 기여도 (52주 시계열)"
+    },
+    {
+      "file": "Attribution.jsx",
+      "text": "📈 MMM 시뮬레이션 결과"
+    },
+    {
+      "file": "Attribution.jsx",
+      "text": "예상 블렌드 ROAS"
+    },
+    {
+      "file": "Attribution.jsx",
+      "text": "예상 Revenue"
+    },
+    {
+      "file": "Attribution.jsx",
+      "text": "⚠ 포화도 {Math.min(r.satPct, 95)}% — Add 효용 Decrease"
+    },
+    {
+      "file": "Attribution.jsx",
+      "text": "— Conversion 경로 Markov 전이행렬 + Channel 제거 효과. Incremental Uplift는 Robinson's Partial회귀로 진짜 증분 효과 산출."
+    },
+    {
+      "file": "Attribution.jsx",
+      "text": "Markov Chain + Double ML 계산 in progress…"
+    },
+    {
+      "file": "Attribution.jsx",
+      "text": "Robinson's Partial회귀 기반 순Count 증분 효과"
+    },
+    {
+      "file": "Attribution.jsx",
+      "text": "— Prior Beta(1,1) → Posterior Beta(1+conv, 1+fail). P(winner) via 5,000-sample Monte-Carlo. 95% Credible Interval 표시."
+    },
+    {
+      "file": "Attribution.jsx",
+      "text": "Thompson Sampling (5,000회) Run in progress…"
+    },
+    {
+      "file": "Attribution.jsx",
+      "text": "Beta-Binomial · {test.variants.reduce((s, v) => s + v.visitors, 0).toLocaleString()}명"
+    },
+    {
+      "file": "Attribution.jsx",
+      "text": "방문자"
+    },
+    {
+      "file": "Attribution.jsx",
+      "text": "{[\r\n                    { l: 'Conv. Rate', v: `${(v.cr * 100).toFixed(2)}%`, c: '#eab308' },\r\n                    { l: 'P(승리)', v: `${(v.winProb * 100).toFixed(1)}%`, c: isW ? '#22c55e' : 'var(--text-2)' },\r\n                    { l: 'Lift', v: `${v.lift > 0 ? '+' : ''}${v.lift.toFixed(1)}%`, c: v.lift > 0 ? '#22c55e' : '#ef4444' },\r\n                    { l: 'CI₉₅', v: `[${(v.ci95[0] * 100).toFixed(1)}, ${(v.ci95[1] * 100).toFixed(1)}]%`, c: 'var(--text-3)' },\r\n                  ].map(k => ("
+    },
+    {
+      "file": "Attribution.jsx",
+      "text": "이"
+    },
+    {
+      "file": "Attribution.jsx",
+      "text": "확률로 최선.\r\n            {analyzed[winIdx]?.winProb > 0.95 ? ' ✅ 즉시 배포 권장' : analyzed[winIdx]?.winProb > 0.8 ? ' 🟡 Add Count집 권장' : ' ⏳ 실험 계속'}"
+    },
+    {
+      "file": "Attribution.jsx",
+      "text": "📅 주차per 구매 코호트 — 리텐션(%)"
+    },
+    {
+      "file": "Attribution.jsx",
+      "text": "건강도"
+    },
+    {
+      "file": "Attribution.jsx",
+      "text": "0 ? '#ef4444' : '#22c55e' }}>실Time 이상감지 (Anomaly Detection)"
+    },
+    {
+      "file": "Attribution.jsx",
+      "text": "— Z-score 기반 Channel Performance 이탈 모니터링. |Z| &gt; 2.0 시 Auto Notification, 7일 Move Trend Analysis.\r\n        {alertCount > 0 &&"
+    },
+    {
+      "file": "Attribution.jsx",
+      "text": "{alertCount}건 주의 필요"
+    },
+    {
+      "file": "Attribution.jsx",
+      "text": "{/* Channelper 이상감지 Card */}"
+    },
+    {
+      "file": "Attribution.jsx",
+      "text": "📊 이상감지 Summary"
+    },
+    {
+      "file": "Attribution.jsx",
+      "text": "모델 Compare 레이더 뷰 + A-Score"
+    },
+    {
+      "file": "Attribution.jsx",
+      "text": "— 5가지 어트리뷰션 모델(Shapley, MMM, Markov, Last-Touch, First-Touch)의 Channel 배분을 레이더 Chart로 Compare. A-Score는 모델 간 합의도(일관성)를 0-100으로 산정합니다."
+    },
+    {
+      "file": "Attribution.jsx",
+      "text": "{/* 모델 Filter */}"
+    },
+    {
+      "file": "Attribution.jsx",
+      "text": "{/* 레이더 Chart */}"
+    },
+    {
+      "file": "Attribution.jsx",
+      "text": "🕸️ Channel 기여도 레이더 Compare"
+    },
+    {
+      "file": "Attribution.jsx",
+      "text": "{/* 범례 */}"
+    },
+    {
+      "file": "Attribution.jsx",
+      "text": "모델 간 일관성 기반 — 높을Count록 모든 모델이 동의하는 신뢰도 높은 Channel"
+    },
+    {
+      "file": "Attribution.jsx",
+      "text": "{/* 모델per 숫자 Compare Table */}"
+    },
+    {
+      "file": "Attribution.jsx",
+      "text": "📋 모델per Channel 기여도 Compare표 (%)"
+    },
+    {
+      "file": "GraphScore.jsx",
+      "text": "🟡 MOCK — 백엔드에 데이터가 없어 샘플 데이터를 표시합니다"
+    },
+    {
+      "file": "GraphScore.jsx",
+      "text": "개"
+    },
+    {
+      "file": "GraphScore.jsx",
+      "text": "{r.edge_count}개"
+    },
+    {
+      "file": "GraphScore.jsx",
+      "text": "🟡 MOCK 결과"
+    },
+    {
+      "file": "GraphScore.jsx",
+      "text": "{[\r\n                            { label: \"Graph Score\", value: (result.graph_score * 100).toFixed(1) + \"%\", color: \"#a855f7\" },\r\n                            { label: \"Connect된 SKU\", value: result.skus_reached?.length ?? 0, color: \"#f97316\" },\r\n                            { label: \"Connect된 Orders\", value: result.orders_reached?.length ?? 0, color: \"#22c55e\" },\r\n                        ].map(({ label, value, color }) => ("
+    },
+    {
+      "file": "GraphScore.jsx",
+      "text": "🛤 기여 경로"
+    },
+    {
+      "file": "GraphScore.jsx",
+      "text": "{[\"인플루언서\", \"크리에이티브\", \"SKU\", \"Orders\", \"경로 가in progress치\"].map(h =>"
+    },
+    {
+      "file": "GraphScore.jsx",
+      "text": "Connect된 경로 None"
+    },
+    {
+      "file": "GraphScore.jsx",
+      "text": "🟡 MOCK 결과"
+    },
+    {
+      "file": "GraphScore.jsx",
+      "text": "기여 크리에이티브"
+    },
+    {
+      "file": "GraphScore.jsx",
+      "text": "기여 인플루언서"
+    },
+    {
+      "file": "GraphScore.jsx",
+      "text": "🏆 상위 기여 인플루언서"
+    },
+    {
+      "file": "GraphScore.jsx",
+      "text": "🟡 MOCK 데이터"
+    },
+    {
+      "file": "GraphScore.jsx",
+      "text": "출발 Node"
+    },
+    {
+      "file": "GraphScore.jsx",
+      "text": "도착 Node"
+    },
+    {
+      "file": "GraphScore.jsx",
+      "text": "가in progress치"
+    },
+    {
+      "file": "GraphScore.jsx",
+      "text": "Edge None — 위 Tab에서 Node/Edge를 Register하세요"
+    }
+  ]
+}

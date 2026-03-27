@@ -16,97 +16,41 @@ const GlobalDataContext = createContext(null);
 ════════════════════════════════════════════════ */
 
 // 📦 재고 (WmsManager ↔ OmniChannel ↔ PnL ↔ Dashboard)
-const INIT_INVENTORY = [
-    { sku: 'EP-PRX-001', name: '무선 이어폰 Pro X', stock: { W001: 142, W002: 88, W003: 34 }, safeQty: 50, cost: 45000, price: 89000 },
-    { sku: 'SW-SE-002', name: '스마트 워치 SE', stock: { W001: 56, W002: 0, W003: 22 }, safeQty: 20, cost: 95000, price: 189000 },
-    { sku: 'UH-7C-003', name: 'USB-C 허브 7in1', stock: { W001: 320, W002: 145, W003: 0 }, safeQty: 30, cost: 25000, price: 49000 },
-    { sku: 'TP-MF-004', name: '메모리폼 여행용 목베개', stock: { W001: 0, W002: 210, W003: 88 }, safeQty: 30, cost: 12000, price: 29000 },
-    { sku: 'CL-LED-005', name: '캠핑 LED 랜턴 USB', stock: { W001: 88, W002: 34, W003: 12 }, safeQty: 30, cost: 18000, price: 38000 },
-];
+const INIT_INVENTORY = [];
 
 // 📋 Orders (OmniChannel → 재고차감 → 정산 → P&L)
-const INIT_ORDERS = [
-    { id: 'ORD-001', ch: 'coupang', sku: 'EP-PRX-001', name: '무선 이어폰 Pro X', buyer: '김철수', qty: 2, price: 89000, total: 178000, status: '배송중', wh: 'W001', at: '2026-03-09 10:22', fee: 8900, platformFeeRate: 0.05, adFee: 3560 },
-    { id: 'ORD-002', ch: 'naver', sku: 'SW-SE-002', name: '스마트 워치 SE', buyer: '이영희', qty: 1, price: 189000, total: 189000, status: '발주Confirm', wh: 'W001', at: '2026-03-09 11:05', fee: 10395, platformFeeRate: 0.055, adFee: 5670 },
-    { id: 'ORD-003', ch: 'amazon', sku: 'UH-7C-003', name: 'USB-C 허브 7in1', buyer: 'John S', qty: 3, price: 49000, total: 147000, status: '배송Done', wh: 'W002', at: '2026-03-09 03:18', fee: 21315, platformFeeRate: 0.145, adFee: 2940 },
-    { id: 'ORD-004', ch: 'shopify', sku: 'CL-LED-005', name: '캠핑 LED 랜턴 USB', buyer: '田中花', qty: 1, price: 38000, total: 38000, status: 'Cancel요청', wh: 'W003', at: '2026-03-09 14:44', fee: 0, platformFeeRate: 0, adFee: 0 },
-    { id: 'ORD-005', ch: 'gmarket', sku: 'EP-PRX-001', name: '무선 이어폰 Pro X', buyer: '박민준', qty: 1, price: 89000, total: 89000, status: '출고대기', wh: 'W001', at: '2026-03-09 09:50', fee: 8010, platformFeeRate: 0.09, adFee: 2670 },
-    { id: 'ORD-006', ch: 'welfare', sku: 'CL-LED-005', name: '캠핑 LED 랜턴 USB', buyer: '홍길동', qty: 5, price: 38000, total: 190000, status: '배송중', wh: 'W002', at: '2026-03-09 08:30', fee: 0, platformFeeRate: 0, adFee: 0 },
-];
+const INIT_ORDERS = [];
 
 // 💰 Channel 광고Budget (BudgetPlanner ↔ CampaignManager ↔ P&L)
-const INIT_CHANNEL_BUDGETS = {
-    meta: { name: 'Meta Ads', icon: '📘', color: '#1877f2', budget: 18000000, spent: 11200000, roas: 4.21, targetRoas: 4.2, revenue: 47152000 },
-    google: { name: 'Google', icon: '🔍', color: '#34A853', budget: 15000000, spent: 9800000, roas: 3.8, targetRoas: 4.0, revenue: 37240000 },
-    tiktok: { name: 'TikTok', icon: '🎵', color: '#EE1D52', budget: 12000000, spent: 7400000, roas: 3.18, targetRoas: 3.5, revenue: 23532000 },
-    naver: { name: 'Naver', icon: '🟩', color: '#03c75a', budget: 9000000, spent: 6700000, roas: 4.9, targetRoas: 4.5, revenue: 32830000 },
-    coupang: { name: 'Coupang', icon: '🛒', color: '#ef4444', budget: 6000000, spent: 4800000, roas: 5.2, targetRoas: 5.0, revenue: 24960000 },
-    kakao: { name: 'Kakao', icon: '💛', color: '#fee500', budget: 5000000, spent: 3100000, roas: 3.4, targetRoas: 3.5, revenue: 10540000 },
-};
+const INIT_CHANNEL_BUDGETS = {};
 
 // 📊 Channel별 정산 데이터 (Reconciliation/KrChannel → P&L 반영)
 // 정산금액 = Revenue - 플랫폼수수료 - 쿠폰할인 - 반품처리비
-const INIT_SETTLEMENT = [
-    { channel: 'coupang', period: '2026-03', grossSales: 280800000, platformFee: 30688000, adFee: 28080000, couponDiscount: 8424000, returnFee: 5600000, netPayout: 208008000, orders: 2340, returns: 94, status: 'settled' },
-    { channel: 'naver', period: '2026-03', grossSales: 145200000, platformFee: 7986000, adFee: 14520000, couponDiscount: 14520000, returnFee: 2900000, netPayout: 105274000, orders: 1210, returns: 145, status: 'settled' },
-    { channel: 'gmarket', period: '2026-03', grossSales: 56000000, platformFee: 5600000, adFee: 5040000, couponDiscount: 5600000, returnFee: 1400000, netPayout: 38360000, orders: 560, returns: 112, status: 'pending' },
-    { channel: 'amazon', period: '2026-03', grossSales: 89000000, platformFee: 8900000, adFee: 14200000, couponDiscount: 0, returnFee: 8900000, netPayout: 57000000, orders: 890, returns: 178, status: 'settled' },
-    { channel: '11st', period: '2026-03', grossSales: 42000000, platformFee: 4620000, adFee: 3360000, couponDiscount: 2100000, returnFee: 2100000, netPayout: 29820000, orders: 420, returns: 84, status: 'pending' },
-];
+const INIT_SETTLEMENT = [];
 
 // 📥 입출고 이력
-const INIT_INOUT = [
-    { id: 'IO001', type: '입고', sku: 'EP-PRX-001', name: '무선 이어폰 Pro X', qty: 200, wh: 'W001', at: '2026-03-09 09:00', by: '구매팀' },
-    { id: 'IO002', type: '출고', sku: 'UH-7C-003', name: 'USB-C 허브 7in1', qty: 30, wh: 'W001', at: '2026-03-09 10:30', by: '자동' },
-    { id: 'IO003', type: '반품', sku: 'SW-SE-002', name: '스마트 워치 SE', qty: 2, wh: 'W001', at: '2026-03-09 14:20', by: 'CS팀' },
-];
+const INIT_INOUT = [];
 
 // 🔮 디지털 셀프 SoS 공유 데이터 (DigitalShelf → PriceOpt Integration)
-const INIT_DIGITAL_SHELF = {
-    bysku: {}, // { 'EP-PRX-001': { sos: 18.4, topRank: 3, competitorPrice: 82000, keyword: '무선이어폰' } }
-    keywords: [],
-    lastUpdated: null,
-};
+const INIT_DIGITAL_SHELF = {};
 
 // 📋 공급 발주(PO) 목록 (DemandForecast → WMS 자동발주)
-const INIT_SUPPLY_ORDERS = [
-    { id: 'PO-001', sku: 'EP-PRX-001', name: '무선 이어폰 Pro X', qty: 300, supplier: '(주)테크서플라이', orderDate: '2026-03-10', eta: '2026-03-17', status: 'in_transit', unitCost: 45000, total: 13500000 },
-    { id: 'PO-002', sku: 'SW-SE-002', name: '스마트 워치 SE', qty: 150, supplier: 'SmartTech Co.', orderDate: '2026-03-12', eta: '2026-03-20', status: 'confirmed', unitCost: 95000, total: 14250000 },
-];
+const INIT_SUPPLY_ORDERS = [];
 
 // 📊 캠페인-Orders 연결 맵 (CampaignManager → OrderHub ROAS)
 const INIT_CAMPAIGN_ORDER_MAP = {}; // { campaignId: [orderId, ...] }
 
 // 🚨 Notification
-const INIT_ALERTS = [
-    { id: 'a1', type: 'warn', msg: 'TikTok Budget 92% 소진 — 잔여 ₩800만', time: '22분 전', channel: 'tiktok', read: false },
-    { id: 'a2', type: 'info', msg: 'Meta ROAS 4.21x 달성 (목표 4.2x)', time: '8분 전', channel: 'meta', read: false },
-    { id: 'a3', type: 'success', msg: 'Coupang 정산 Done — 순지급 ₩208,008,000', time: '15분 전', channel: 'coupang', read: true },
-    { id: 'a4', type: 'warn', msg: '스마트 워치 SE 재고 부족 (78개 < 안전재고 20개)', time: '30분 전', read: false },
-    { id: 'a5', type: 'info', msg: 'G마켓 정산 Pending — ₩38,360,000', time: '1시간 전', channel: 'gmarket', read: true },
-];
+const INIT_ALERTS = [];
 
 // 하단 CRM 세그먼트 초기 데이터
-const INIT_CRM_SEGMENTS = [
-    { id: 'seg_vip', name: 'VIP 구매자', condition: 'ltv > 1000000', count: 12, color: '#f59e0b', autoEmail: true, autoKakao: true },
-    { id: 'seg_repurchase', name: '재구매 유망', condition: 'orders >= 3 AND last_30d', count: 18, color: '#22c55e', autoEmail: true, autoKakao: false },
-    { id: 'seg_churn', name: '이탈 위험', condition: 'last_purchase > 90d', count: 7, color: '#ef4444', autoEmail: true, autoKakao: true },
-    { id: 'seg_new', name: '신규 가입', condition: 'created_at < 30d', count: 9, color: '#4f8ef7', autoEmail: false, autoKakao: false },
-];
+const INIT_CRM_SEGMENTS = [];
 
 // 이메일 캐름페인 Integration 상태
-const INIT_EMAIL_CAMPAIGNS_LINKED = [
-    { id: 'ec_001', name: '3월 봄 시즘 프로모션', status: 'sent', targetSegmentId: null, sent: 4821, open_rate: 38.4, click_rate: 12.7, revenue: 4820000 },
-    { id: 'ec_002', name: 'VIP 고객 감사 이메일', status: 'sent', targetSegmentId: 'seg_vip', sent: 312, open_rate: 64.1, click_rate: 28.3, revenue: 2150000 },
-    { id: 'ec_003', name: '이탈 고객 재Active화', status: 'scheduled', targetSegmentId: 'seg_churn', sent: 0, open_rate: 0, click_rate: 0, revenue: 0 },
-];
+const INIT_EMAIL_CAMPAIGNS_LINKED = [];
 
 // Kakao 캐름페인 Integration 상태
-const INIT_KAKAO_CAMPAIGNS_LINKED = [
-    { id: 'kc_001', name: 'Orders Done Notification톡', type: 'transactional', status: 'active', targetSegmentId: null, sent: 12483, open_rate: 91.2, click_rate: 34.7 },
-    { id: 'kc_002', name: '배송 출발 안내', type: 'transactional', status: 'active', targetSegmentId: null, sent: 9201, open_rate: 88.4, click_rate: 22.1 },
-    { id: 'kc_003', name: 'VIP 전용 특가 Notification', type: 'marketing', status: 'scheduled', targetSegmentId: 'seg_vip', sent: 0, open_rate: 0, click_rate: 0 },
-];
+const INIT_KAKAO_CAMPAIGNS_LINKED = [];
 
 // 💳 결제 카드 (Ad Spend 자동집행용)
 const INIT_PAYMENT_CARDS = [];
@@ -116,78 +60,10 @@ const INIT_PAYMENT_CARDS = [];
 ════════════════════════════════════════════════ */
 
 // 🔥 DR.JART VIRTUAL MOCK DATA OVERRIDE
-const drJartDailyTrends = [
-    { date: "Mar 1", spend: 1200000, budget: 1500000 },
-    { date: "Mar 5", spend: 3500000, budget: 3500000 },
-    { date: "Mar 10", spend: 5800000, budget: 6000000 },
-    { date: "Mar 15", spend: 8900000, budget: 8500000 },
-    { date: "Mar 20", spend: 12500000, budget: 12000000 },
-    { date: "Mar 25", spend: 15800000, budget: 16000000 }
-];
-const drJartChannels = [
-    { name: "Naver GFA", spend: 5200000 },
-    { name: "Meta Ads", spend: 8500000 },
-    { name: "Google Ads (SA/DA)", spend: 3200000 },
-    { name: "Kakao Bizboard", spend: 1800000 }
-];
-const drJartBudget = {
-    totalAllocated: 120000000,
-    totalSpent: 85040000,
-    balance: 34960000,
-    burnRate: 70.8,
-    categories: [
-        { name: "Performance (Meta/Google)", value: 45, color: "#4f8ef7" },
-        { name: "Brand Awareness (YouTube)", value: 25, color: "#a855f7" },
-        { name: "Retargeting (Kakao/Naver)", value: 20, color: "#22c55e" },
-        { name: "Influencer/UGC", value: 10, color: "#f59e0b" }
-    ]
-};
-const INIT_DEMO_AD_CAMPAIGNS = [
-    {
-        id: "c1", account_team: "온라인세일즈팀", name: "Dr.Jart+_시카페어_봄기획전", objective: "Conversion", status: "active",
-        budget: 50000000, allocated: 50000000, spend: 38200000, roas: 5.12, ctr: 3.2, cpm: 2.1, impr: 9000000, impressions: 9000000, reach: 7500000, clicks: 482000, conv: 3200, cpa: 11937, roi: 512,
-        adSets: [
-            { id: "as1", name: "2030_직장인여성_리타겟팅", status: "active", spend: 20000000, impressions: 5000000, reach: 4500000, clicks: 280000, conv: 2000, roas: 5.6, ctr: 5.6,
-                ads: [
-                    { id: "a1", name: "릴스_시카페어_앰플", status: "active", spend: 12000000, impressions: 3200000, clicks: 170000, conv: 1200, roas: 6.2, ctr: 5.3 },
-                    { id: "a2", name: "카탈로그_수분크림", status: "active", spend: 8000000, impressions: 1800000, clicks: 110000, conv: 800, roas: 4.8, ctr: 6.1 }
-                ]
-            },
-            { id: "as2", name: "뷰티관심사_Lookalike_3%", status: "active", spend: 18200000, impressions: 4000000, reach: 3000000, clicks: 202000, conv: 1200, roas: 4.6, ctr: 5.0,
-                ads: [
-                    { id: "a3", name: "정지이미지_할인_B", status: "paused", spend: 18200000, impressions: 4000000, clicks: 202000, conv: 1200, roas: 4.6, ctr: 5.0 }
-                ]
-            }
-        ]
-    },
-    {
-        id: "c2", account_team: "퍼포먼스마케팅팀", name: "세라마이딘_겨울보습_리뷰", objective: "Consideration", status: "active",
-        budget: 30000000, allocated: 30000000, spend: 28900000, roas: 6.84, ctr: 5.3, cpm: 3.2, impr: 6000000, impressions: 6000000, reach: 4200000, clicks: 321000, conv: 4100, cpa: 7048, roi: 684,
-        adSets: [
-            { id: "as3", name: "장바구니_이탈자_30D", status: "active", spend: 28900000, impressions: 6000000, reach: 4200000, clicks: 321000, conv: 4100, roas: 6.8, ctr: 5.3,
-                ads: [
-                    { id: "a4", name: "동적상품검색_세라마이딘", status: "active", spend: 28900000, impressions: 6000000, clicks: 321000, conv: 4100, roas: 6.8, ctr: 5.3 }
-                ]
-            }
-        ]
-    },
-    {
-        id: "c3", account_team: "브랜드전략팀", name: "더마스크_신규회원유치", objective: "Awareness", status: "active",
-        budget: 35000000, allocated: 35000000, spend: 35800000, roas: 8.45, ctr: 3.4, cpm: 4.1, impr: 8500000, impressions: 8500000, reach: 6800000, clicks: 294000, conv: 8100, cpa: 4419, roi: 845,
-        adSets: [
-            { id: "as4", name: "LAL_충성고객_1%", status: "active", spend: 25000000, impressions: 5500000, reach: 4500000, clicks: 200000, conv: 6000, roas: 9.1, ctr: 3.6,
-                ads: [
-                    { id: "a5", name: "인플루언서_후기_VOD", status: "active", spend: 25000000, impressions: 5500000, clicks: 200000, conv: 6000, roas: 9.1, ctr: 3.6 }
-                ]
-            },
-            { id: "as5", name: "LAL_충성고객_3%", status: "active", spend: 10800000, impressions: 3000000, reach: 2300000, clicks: 94000, conv: 2100, roas: 6.2, ctr: 3.1,
-                ads: [
-                    { id: "a6", name: "이벤트_참여유도_이미지", status: "active", spend: 10800000, impressions: 3000000, clicks: 94000, conv: 2100, roas: 6.2, ctr: 3.1 }
-                ]
-            }
-        ]
-    }
-];
+const drJartDailyTrends = [];
+const drJartChannels = [];
+const drJartBudget = {};
+const INIT_DEMO_AD_CAMPAIGNS = [];
 
 export function GlobalDataProvider({ children }) {
     const [demoAdCamps, setDemoAdCamps] = useState(INIT_DEMO_AD_CAMPAIGNS);
@@ -847,9 +723,9 @@ export function GlobalDataProvider({ children }) {
     const executeAIRecommendation = useCallback((rec, budget, cardAlias) => {
         const log = {
             id: mkId('AIREC'),
-            recId: rec.id,
-            title: rec.title,
-            type: rec.type,
+            recId: rec?.id,
+            title: rec?.title,
+            type: rec?.type,
             budget,
             cardAlias,
             estimatedROI: rec.estimatedROI,

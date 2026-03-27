@@ -146,12 +146,21 @@ export function I18nProvider({ children }) {
         });
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-    const t = useCallback((key, vars = {}) => {
+    const t = useCallback((key, fallbackOrVars = {}, varsObj = {}) => {
+        let actualVars = fallbackOrVars;
+        let inlineFallback = null;
+        if (typeof fallbackOrVars === "string") {
+            inlineFallback = fallbackOrVars;
+            actualVars = varsObj;
+        }
+
         const locale  = LOCALES[lang] || en;
         const fallback = LOCALES["en"] || {};
-        let value = deepGet(locale, key) ?? deepGet(fallback, key) ?? key;
-        if (typeof value === "string" && Object.keys(vars).length) {
-            Object.entries(vars).forEach(([k, v]) => {
+        
+        let value = deepGet(locale, key) ?? deepGet(fallback, key) ?? inlineFallback ?? key;
+        
+        if (typeof value === "string" && actualVars && typeof actualVars === "object") {
+            Object.entries(actualVars).forEach(([k, v]) => {
                 value = value.replaceAll("{{" + k + "}}", String(v));
             });
         }

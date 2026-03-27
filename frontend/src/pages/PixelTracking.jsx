@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import { useT } from '../i18n/index.js';
 import { useAuth } from "../auth/AuthContext";
 import PlanGate from "../components/PlanGate";
 
@@ -7,7 +8,7 @@ const PLAN_FEES = {
     growth:     { label: 'Growth',     color: '#22c55e', monthly: 79000,  annual: 63200  },
     pro:        { label: 'Pro',        color: '#4f8ef7', monthly: 199000, annual: 159200 },
     enterprise: { label: 'Enterprise', color: '#a855f7', monthly: 499000, annual: 399200 },
-    demo:       { label: '체험용',     color: '#f59e0b', monthly: 0,      annual: 0      },
+    demo:       { label: t('auto.qcyi9i', '체험용'),     color: '#f59e0b', monthly: 0,      annual: 0      },
 };
 
 function makeAPI(token) {
@@ -51,8 +52,8 @@ function DashboardTab({ API }) {
         API(`/pixel/analytics?days=${days}`).then(r => { setData(r); setLoading(false); });
     }, [days]);
 
-    if (loading) return <div style={{ color: C.muted, padding: 40, textAlign: "center" }}>📊 데이터 Loading...</div>;
-    if (!data?.ok) return <div style={{ color: C.red, padding: 40, textAlign: "center" }}>데이터를 불러올 Count 없습니다.</div>;
+    if (loading) return <div style={{ color: C.muted, padding: 40, textAlign: "center" }}>{t('auto.kbdhh1', '📊 데이터 Loading...')}</div>;
+    if (!data?.ok) return <div style={{ color: C.red, padding: 40, textAlign: "center" }}>{t('auto.pdo0ms', '데이터를 불러올 Count 없습니다.')}</div>;
 
     const totalEvents = data.events?.reduce((s, e) => s + parseInt(e.total), 0) || 0;
     const purchases = data.events?.find(e => e.event_name === "purchase");
@@ -60,11 +61,11 @@ function DashboardTab({ API }) {
     const convRate = data.funnel?.page_view > 0 ? ((data.funnel.purchase / data.funnel.page_view) * 100).toFixed(2) : "0.00";
 
     const funnelSteps = [
-        { name: "방문", count: data.funnel?.page_view || 0, color: "#4f8ef7" },
+        { name: t('auto.2cxu00', '방문'), count: data.funnel?.page_view || 0, color: "#4f8ef7" },
         { name: "Product Search", count: data.funnel?.view_content || 0, color: "#818cf8" },
-        { name: "장바구니", count: data.funnel?.add_to_cart || 0, color: "#a78bfa" },
+        { name: t('auto.2iewpa', '장바구니'), count: data.funnel?.add_to_cart || 0, color: "#a78bfa" },
         { name: "Payment Start", count: data.funnel?.initiate_checkout || 0, color: "#c084fc" },
-        { name: "구매", count: data.funnel?.purchase || 0, color: "#22c55e" },
+        { name: t('auto.sh9eeu', '구매'), count: data.funnel?.purchase || 0, color: "#22c55e" },
     ];
     const maxCount = Math.max(...funnelSteps.map(s => s.count), 1);
 
@@ -88,16 +89,16 @@ function DashboardTab({ API }) {
             {/* Summary Card */}
             <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
                 <StatCard icon="📊" label="Total Event" value={totalEvents.toLocaleString()} color={C.accent} />
-                <StatCard icon="🛒" label="구매 Done" value={(data.funnel?.purchase || 0).toLocaleString()} color={C.green} />
+                <StatCard icon="🛒" label={t('auto.26vi9e', '구매 Done')} value={(data.funnel?.purchase || 0).toLocaleString()} color={C.green} />
                 <StatCard icon="💰" label="Total Revenue" value={`₩${revenue.toLocaleString()}`} color={C.yellow} />
                 <StatCard icon="📈" label="Conv. Rate" value={`${convRate}%`} sub="방문 → 구매" color={C.purple} />
-                <StatCard icon="🔵" label="Meta 포워딩" value={`${fwdTotal > 0 ? Math.round(fwdMeta / fwdTotal * 100) : 0}%`} sub="서버사이드 CAPI" color="#60a5fa" />
-                <StatCard icon="⚫" label="TikTok 포워딩" value={`${fwdTotal > 0 ? Math.round(fwdTiktok / fwdTotal * 100) : 0}%`} sub="서버사이드 Event" color="#94a3b8" />
+                <StatCard icon="🔵" label={t('auto.yhv0nz', 'Meta 포워딩')} value={`${fwdTotal > 0 ? Math.round(fwdMeta / fwdTotal * 100) : 0}%`} sub="서버사이드 CAPI" color="#60a5fa" />
+                <StatCard icon="⚫" label={t('auto.k3lnll', 'TikTok 포워딩')} value={`${fwdTotal > 0 ? Math.round(fwdTiktok / fwdTotal * 100) : 0}%`} sub="서버사이드 Event" color="#94a3b8" />
             </div>
 
             {/* 퍼널 Chart */}
             <div style={CARD}>
-                <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 20 }}>🔽 Conversion 퍼널 (방문 → 구매)</div>
+                <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 20 }}>{t('auto.vqy1so', '🔽 Conversion 퍼널 (방문 → 구매)')}</div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                     {funnelSteps.map((step, i) => {
                         const widthPct = maxCount > 0 ? (step.count / maxCount * 100) : 0;
@@ -119,16 +120,16 @@ function DashboardTab({ API }) {
 
             {/* Channel 어트리뷰션 */}
             <div style={CARD}>
-                <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 16 }}>📡 Channelper 어트리뷰션</div>
+                <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 16 }}>{t('auto.l3mpkg', '📡 Channelper 어트리뷰션')}</div>
                 {!data.channels?.length ? (
-                    <div style={{ color: C.muted, textAlign: "center", padding: 20 }}>No data — Pixel Count집 후 Confirm 가능</div>
+                    <div style={{ color: C.muted, textAlign: "center", padding: 20 }}>{t('auto.7rplb8', 'No data — Pixel Count집 후 Confirm 가능')}</div>
                 ) : (
                     <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
                         <thead>
                             <tr style={{ color: C.muted, borderBottom: `1px solid ${C.border}` }}>
-                                <th style={{ textAlign: "left", padding: "8px 0" }}>소스</th>
-                                <th style={{ textAlign: "left", padding: "8px 0" }}>매체</th>
-                                <th style={{ textAlign: "right", padding: "8px 0" }}>세션</th>
+                                <th style={{ textAlign: "left", padding: "8px 0" }}>{t('auto.3xio09', '소스')}</th>
+                                <th style={{ textAlign: "left", padding: "8px 0" }}>{t('auto.sgm5hm', '매체')}</th>
+                                <th style={{ textAlign: "right", padding: "8px 0" }}>{t('auto.jb8g43', '세션')}</th>
                                 <th style={{ textAlign: "right", padding: "8px 0" }}>Conversion</th>
                                 <th style={{ textAlign: "right", padding: "8px 0" }}>Revenue</th>
                             </tr>
@@ -177,7 +178,7 @@ function PixelConfigTab({ API }) {
     };
 
     const deleteConfig = async (id) => {
-        if (!confirm("Pixel을 Delete하시겠습니까?")) return;
+        if (!confirm(t('auto.bn86sn', 'Pixel을 Delete하시겠습니까?'))) return;
         await API(`/pixel/configs/${id}`, { method: "DELETE" });
         load();
     };
@@ -186,12 +187,12 @@ function PixelConfigTab({ API }) {
         <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
             {/* 신규 Pixel Create */}
             <div style={CARD}>
-                <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 16 }}>➕ 새 Pixel Create</div>
+                <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 16 }}>{t('auto.b5zymf', '➕ 새 Pixel Create')}</div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                    <div><label style={{ fontSize: 12, color: C.muted }}>Pixel Name</label><input style={INPUT} value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="메인 쇼핑몰 Pixel" /></div>
-                    <div><label style={{ fontSize: 12, color: C.muted }}>도메인</label><input style={INPUT} value={form.domain} onChange={e => setForm({ ...form, domain: e.target.value })} placeholder="example.com" /></div>
+                    <div><label style={{ fontSize: 12, color: C.muted }}>Pixel Name</label><input style={INPUT} value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder={t('auto.g1tf5h', '메인 쇼핑몰 Pixel')} /></div>
+                    <div><label style={{ fontSize: 12, color: C.muted }}>{t('auto.yf23q2', '도메인')}</label><input style={INPUT} value={form.domain} onChange={e => setForm({ ...form, domain: e.target.value })} placeholder="example.com" /></div>
                     <div><label style={{ fontSize: 12, color: C.muted }}>Meta Pixel ID</label><input style={INPUT} value={form.meta_pixel_id} onChange={e => setForm({ ...form, meta_pixel_id: e.target.value })} placeholder="1234567890" /></div>
-                    <div><label style={{ fontSize: 12, color: C.muted }}>Meta CAPI 토큰</label><input style={INPUT} type="password" value={form.meta_api_token} onChange={e => setForm({ ...form, meta_api_token: e.target.value })} placeholder="EAAxxxxxx..." /></div>
+                    <div><label style={{ fontSize: 12, color: C.muted }}>{t('auto.oxs85r', 'Meta CAPI 토큰')}</label><input style={INPUT} type="password" value={form.meta_api_token} onChange={e => setForm({ ...form, meta_api_token: e.target.value })} placeholder="EAAxxxxxx..." /></div>
                     <div><label style={{ fontSize: 12, color: C.muted }}>TikTok Pixel ID</label><input style={INPUT} value={form.tiktok_pixel_id} onChange={e => setForm({ ...form, tiktok_pixel_id: e.target.value })} placeholder="CXXXXXX" /></div>
                     <div><label style={{ fontSize: 12, color: C.muted }}>TikTok Access Token</label><input style={INPUT} type="password" value={form.tiktok_access_token} onChange={e => setForm({ ...form, tiktok_access_token: e.target.value })} placeholder="xxxxxx..." /></div>
                 </div>
@@ -205,7 +206,7 @@ function PixelConfigTab({ API }) {
             <div style={CARD}>
                 <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 16 }}>📋 Pixel List</div>
                 {!configs.length ? (
-                    <div style={{ color: C.muted, textAlign: "center", padding: 20 }}>Create된 Pixel이 없습니다</div>
+                    <div style={{ color: C.muted, textAlign: "center", padding: 20 }}>{t('auto.kg2h3k', 'Create된 Pixel이 없습니다')}</div>
                 ) : (
                     configs.map(cfg => (
                         <div key={cfg.id} style={{ padding: "14px 0", borderBottom: `1px solid ${C.border}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -231,8 +232,8 @@ function PixelConfigTab({ API }) {
                     </div>
                     <button onClick={() => { navigator.clipboard.writeText(snippet); }} style={{ marginTop: 12, padding: "8px 20px", borderRadius: 8, border: "none", cursor: "pointer", background: C.surface, color: C.text, fontSize: 12 }}>📋 Copy</button>
                     <div style={{ marginTop: 12, fontSize: 12, color: C.muted }}>
-                        ℹ️ 위 코드를 쇼핑몰 <code style={{ background: "#1e293b", padding: "2px 6px", borderRadius: 4 }}>&lt;head&gt;</code> Tag 안에 붙여넣으세요.<br />
-                        Meta CAPI와 TikTok Events API로 서버사이드 Auto 포워딩됩니다.
+                        {t('auto.6iyk24', 'ℹ️ 위 코드를 쇼핑몰')}<code style={{ background: "#1e293b", padding: "2px 6px", borderRadius: 4 }}>&lt;head&gt;</code> {t('auto.ygihcn', 'Tag 안에 붙여넣으세요.')}<br />
+                        {t('auto.yxudni', 'Meta CAPI와 TikTok Events API로 서버사이드 Auto 포워딩됩니다.')}
                     </div>
                 </div>
             )}
@@ -288,9 +289,9 @@ function EventStreamTab({ API }) {
             </div>
 
             <div style={CARD}>
-                <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 12 }}>📡 실Time Event 스트림</div>
+                <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 12 }}>{t('auto.z99yxj', '📡 실Time Event 스트림')}</div>
                 {!events.length ? (
-                    <div style={{ color: C.muted, textAlign: "center", padding: 24 }}>Event None — Test Event를 Send하거나 Pixel을 설치하세요</div>
+                    <div style={{ color: C.muted, textAlign: "center", padding: 24 }}>{t('auto.py8pyc', 'Event None — Test Event를 Send하거나 Pixel을 설치하세요')}</div>
                 ) : (
                     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                         {events.map((ev, i) => (
@@ -315,6 +316,7 @@ function EventStreamTab({ API }) {
 
 /* ─── 메인 Page ─────────────────────────────── */
 export default function PixelTracking() {
+  const t = useT();
     const { isPro, token, user } = useAuth();
     const API = makeAPI(token);
 
@@ -323,7 +325,7 @@ export default function PixelTracking() {
     const TABS = [
         { id: "dashboard", label: "📊 Analysis Dashboard" },
         { id: "pixels", label: "🔧 Pixel Settings" },
-        { id: "events", label: "📡 Event 스트림" },
+        { id: "events", label: t('auto.q46ypc', '📡 Event 스트림') },
     ];
 
     // Demo·비Paid 유저 → PlanGate (훅 After에 조건부 return)
@@ -335,8 +337,8 @@ export default function PixelTracking() {
                 <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
                     <div style={{ fontSize: 28 }}>🎯</div>
                     <div style={{ flex: 1 }}>
-                        <div style={{ fontWeight: 800, fontSize: 22, color: C.text }}>1st-Party Pixel 트래킹</div>
-                        <div style={{ fontSize: 13, color: C.muted }}>iOS14+ After Ad 과소Aggregate 문제 해결 · Meta CAPI + TikTok 서버사이드 Auto 포워딩 · 퍼널 Analysis</div>
+                        <div style={{ fontWeight: 800, fontSize: 22, color: C.text }}>{t('auto.gdphlw', '1st-Party Pixel 트래킹')}</div>
+                        <div style={{ fontSize: 13, color: C.muted }}>{t('auto.o3mk6d', 'iOS14+ After Ad 과소Aggregate 문제 해결 · Meta CAPI + TikTok 서버사이드 Auto 포워딩 · 퍼널 Analysis')}</div>
                     </div>
                     {/* Subscription Pricing Sync 배지 */}
                     {(() => {
@@ -344,7 +346,7 @@ export default function PixelTracking() {
                         const fee = PLAN_FEES[planKey] || PLAN_FEES.pro;
                         return (
                             <div style={{ background: `${fee.color}14`, border: `1px solid ${fee.color}40`, borderRadius: 12, padding: '10px 16px', textAlign: 'center', minWidth: 140 }}>
-                                <div style={{ fontSize: 9, color: C.muted, fontWeight: 700, marginBottom: 2 }}>현재 Subscription 플랜</div>
+                                <div style={{ fontSize: 9, color: C.muted, fontWeight: 700, marginBottom: 2 }}>{t('auto.s9kp8h', '현재 Subscription 플랜')}</div>
                                 <div style={{ fontSize: 14, fontWeight: 900, color: fee.color }}>{fee.label}</div>
                                 {fee.monthly > 0 ? (
                                     <div style={{ fontSize: 11, color: C.muted, marginTop: 2 }}>
@@ -352,7 +354,7 @@ export default function PixelTracking() {
                                         <span style={{ fontSize: 9, color: C.green }}>Annual ₩{fee.annual.toLocaleString()}/월</span>
                                     </div>
                                 ) : (
-                                    <div style={{ fontSize: 11, color: C.yellow, marginTop: 2 }}>Free 체험 in progress</div>
+                                    <div style={{ fontSize: 11, color: C.yellow, marginTop: 2 }}>{t('auto.cwe2np', 'Free 체험 in progress')}</div>
                                 )}
                             </div>
                         );

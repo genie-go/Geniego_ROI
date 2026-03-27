@@ -251,7 +251,7 @@ function NavSection({ section, t, isOpen, onToggle, hasMenuAccess, isDemo, onLoc
   const location = useLocation();
   const hasActive = section.items.some(i => location.pathname === i.to);
 
-  const sectionLabel = section.label ?? t(section.labelKey);
+  const sectionLabel = section.label ?? t(section.labelKey, section.labelKey.split('.')[1]);
 
   // 접근 권한 체크:
   //  - 데모 User: ADMIN_ONLY_MENU_KEYS에 해당하는 키만 잠금, 나머지 전부 열람 허용
@@ -270,7 +270,7 @@ function NavSection({ section, t, isOpen, onToggle, hasMenuAccess, isDemo, onLoc
   // Single-item sections render without accordion
   if (section.items.length === 1) {
     const item = section.items[0];
-    const label = item.label ?? t(item.labelKey);
+    const label = item.label ?? t(item.labelKey, item.labelKey.split('.')[1]);
     const accessible = itemHasAccess(item);
     if (!accessible) {
       return (
@@ -325,7 +325,7 @@ function NavSection({ section, t, isOpen, onToggle, hasMenuAccess, isDemo, onLoc
       }}>
         <div style={{ paddingLeft: 10 }}>
           {section.items.map(item => {
-            const label = item.label ?? t(item.labelKey);
+            const label = item.label ?? t(item.labelKey, item.labelKey.split('.')[1]);
             const accessible = itemHasAccess(item);
             if (!accessible) {
               return (

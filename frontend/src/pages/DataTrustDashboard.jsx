@@ -12,9 +12,9 @@ export function DataBadge({ level = 'real', size = 'sm' }) {
   const t = useT();
     const cfg = {
         real:     { label: '● Live Data', color: '#22c55e', bg: 'rgba(34,197,94,0.10)', border: 'rgba(34,197,94,0.3)' },
-        estimated:{ label: '~ 추정Value',      color: '#eab308', bg: 'rgba(234,179,8,0.10)', border: 'rgba(234,179,8,0.3)' },
-        mock:     { label: '◌ Demo 데이터', color: '#94a3b8', bg: 'rgba(148,163,184,0.10)', border: 'rgba(148,163,184,0.25)' },
-        none:     { label: '✕ 미Integration',      color: '#ef4444', bg: 'rgba(239,68,68,0.10)', border: 'rgba(239,68,68,0.3)' },
+        estimated:{ label: t('auto.hp6hph', '~ 추정Value'),      color: '#eab308', bg: 'rgba(234,179,8,0.10)', border: 'rgba(234,179,8,0.3)' },
+        mock:     { label: t('auto.7osg0m', '◌ Demo 데이터'), color: '#94a3b8', bg: 'rgba(148,163,184,0.10)', border: 'rgba(148,163,184,0.25)' },
+        none:     { label: t('auto.i9rpu7', '✕ 미Integration'),      color: '#ef4444', bg: 'rgba(239,68,68,0.10)', border: 'rgba(239,68,68,0.3)' },
     };
     const c = cfg[level] || cfg.mock;
     const fs = size === 'xs' ? 9 : size === 'sm' ? 10 : 11;
@@ -30,12 +30,12 @@ export function DataBadge({ level = 'real', size = 'sm' }) {
 const PIXELS = [
     {
         id: 'meta_pixel', name: 'Meta Pixel + CAPI', icon: '📘', color: '#1877f2',
-        desc: 'Conversion Event 서버사이드 전송으로 iOS 14+ 추적 복원',
+        desc: t('auto.5okl5i', 'Conversion Event 서버사이드 전송으로 iOS 14+ 추적 복원'),
         steps: [
-            { step: '1. Meta 비즈니스 Management자 → Event Management자 열기', doc: 'https://business.facebook.com/events_manager' },
+            { step: t('auto.s30yka', '1. Meta 비즈니스 Management자 → Event Management자 열기'), doc: 'https://business.facebook.com/events_manager' },
             { step: '2. "Data Source Add" → 웹사이트 → Pixel ID Copy', doc: null },
-            { step: '3. 아래 입력란에 Pixel ID 입력 후 Save', doc: null },
-            { step: '4. CAPI 액세스 토큰 Create (Event Management자 → Settings)', doc: null },
+            { step: t('auto.0fiw6e', '3. 아래 입력란에 Pixel ID 입력 후 Save'), doc: null },
+            { step: t('auto.5vruc9', '4. CAPI 액세스 토큰 Create (Event Management자 → Settings)'), doc: null },
         ],
         fields: [
             { key: 'pixel_id', label: 'Pixel ID', placeholder: '12345678901234' },
@@ -47,33 +47,33 @@ const PIXELS = [
         id: 'google_gtag', name: 'Google Tag (GA4 + Ads)', icon: '🔍', color: '#4285f4',
         desc: 'GA4 Enhanced Ecommerce + Google Ads Conversion Tracking',
         steps: [
-            { step: '1. Google Analytics → Management → 데이터 스트림 → 측정 ID Copy', doc: 'https://analytics.google.com' },
-            { step: '2. Google Ads → 도구 → Conversion → Tag Settings → Conversion ID Copy', doc: null },
-            { step: '3. 아래 입력란에 ID 입력', doc: null },
+            { step: t('auto.sge9kb', '1. Google Analytics → Management → 데이터 스트림 → 측정 ID Copy'), doc: 'https://analytics.google.com' },
+            { step: t('auto.3r60rt', '2. Google Ads → 도구 → Conversion → Tag Settings → Conversion ID Copy'), doc: null },
+            { step: t('auto.rzhmal', '3. 아래 입력란에 ID 입력'), doc: null },
         ],
         fields: [
-            { key: 'measurement_id', label: 'GA4 측정 ID', placeholder: 'G-XXXXXXXXXX' },
+            { key: 'measurement_id', label: t('auto.kuphza', 'GA4 측정 ID'), placeholder: 'G-XXXXXXXXXX' },
             { key: 'ads_conversion_id', label: 'Google Ads Conversion ID', placeholder: 'AW-XXXXXXXXX' },
         ],
         events: ['purchase', 'add_to_cart', 'view_item', 'begin_checkout'],
     },
     {
-        id: 'naver_pixel', name: 'Naver 공통 스크립트', icon: '🟩', color: '#03c75a',
-        desc: 'Naver SearchAd + 쇼핑 Conversion Tracking',
+        id: 'naver_pixel', name: t('auto.bpngxe', 'Naver 공통 스크립트'), icon: '🟩', color: '#03c75a',
+        desc: t('auto.c8xlfq', 'Naver SearchAd + 쇼핑 Conversion Tracking'),
         steps: [
-            { step: '1. Naver SearchAd → 도구 → Conversion추적 → 스크립트 키 Confirm', doc: 'https://searchad.naver.com' },
-            { step: '2. Naver 쇼핑 파트너센터 → Ad → Pixel Management → ID Copy', doc: null },
-            { step: '3. 아래 입력란에 ID 입력', doc: null },
+            { step: t('auto.330kdr', '1. Naver SearchAd → 도구 → Conversion추적 → 스크립트 키 Confirm'), doc: 'https://searchad.naver.com' },
+            { step: t('auto.h1efcz', '2. Naver 쇼핑 파트너센터 → Ad → Pixel Management → ID Copy'), doc: null },
+            { step: t('auto.0ayhi5', '3. 아래 입력란에 ID 입력'), doc: null },
         ],
         fields: [
             { key: 'na_account_id', label: 'SearchAd Account ID', placeholder: 'naver-xxxxxxxx' },
-            { key: 'ns_pixel_id', label: '쇼핑 Pixel ID', placeholder: 'sp_xxxxxxxx' },
+            { key: 'ns_pixel_id', label: t('auto.zlvsrd', '쇼핑 Pixel ID'), placeholder: 'sp_xxxxxxxx' },
         ],
-        events: ['구매Done', '장바구니Add', 'ProductSearch'],
+        events: [t('auto.3uwc37', '구매Done'), t('auto.3zbtru', '장바구니Add'), 'ProductSearch'],
     },
     {
         id: 'tiktok_pixel', name: 'TikTok Pixel', icon: '🎵', color: '#EE1D52',
-        desc: 'TikTok Shop + TikTok Ads Conversion 및 구매 추적',
+        desc: t('auto.cesjog', 'TikTok Shop + TikTok Ads Conversion 및 구매 추적'),
         steps: [
             { step: '1. TikTok Ads Manager → Assets → Events → Web Events', doc: 'https://ads.tiktok.com' },
             { step: '2. Pixel Create → Pixel ID + Access Token Copy', doc: null },
@@ -86,10 +86,10 @@ const PIXELS = [
     },
     {
         id: 'kakao_pixel', name: 'Kakao Pixel', icon: '💛', color: '#fbbf24',
-        desc: 'Kakao 모먼트 Ad Conversion 및 Kakao Channel Analysis',
+        desc: t('auto.009dwr', 'Kakao 모먼트 Ad Conversion 및 Kakao Channel Analysis'),
         steps: [
-            { step: '1. Kakao 비즈니스 → Pixel&SDK → Pixel Create → Track ID Copy', doc: 'https://business.kakao.com' },
-            { step: '2. 아래 Track ID 입력', doc: null },
+            { step: t('auto.mwts2r', '1. Kakao 비즈니스 → Pixel&SDK → Pixel Create → Track ID Copy'), doc: 'https://business.kakao.com' },
+            { step: t('auto.9khs2y', '2. 아래 Track ID 입력'), doc: null },
         ],
         fields: [
             { key: 'track_id', label: 'Kakao Track ID', placeholder: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' },
@@ -100,14 +100,14 @@ const PIXELS = [
 
 /* ── Data Source 현황 ────────────────────────────────────────── */
 const DATA_SOURCES = [
-    { id: 'inventory',   label: 'Stock 데이터',       icon: '📦', level: 'real',      desc: 'API Integration 또는 CSV Upload 기반', source: 'GlobalDataContext (mock)' },
-    { id: 'orders',      label: 'Orders 데이터',        icon: '📋', level: 'real',      desc: 'Channel API에서 실Time Count집', source: 'GlobalDataContext (mock)' },
-    { id: 'ads_roas',    label: 'Ad ROAS',          icon: '📈', level: 'estimated', desc: 'Pixel 미Integration 시 추정Value 사용', source: 'channelBudgets SettingsValue' },
-    { id: 'conversion',  label: 'Conversion 데이터',        icon: '🛒', level: 'none',      desc: 'Meta/Google Pixel Integration 필요', source: 'Pixel 미Integration' },
-    { id: 'crm',         label: 'CRM 세그먼트',       icon: '👥', level: 'estimated', desc: 'AI 추정 세그먼트 (실측 아님)', source: 'AI Create 데이터' },
-    { id: 'settlement',  label: '정산 데이터',        icon: '🧾', level: 'real',      desc: 'Channel 정산Report Upload 기반', source: 'GlobalDataContext (mock)' },
-    { id: 'attribution', label: '기여 Analysis',          icon: '🔗', level: 'none',      desc: '서버사이드 CAPI Integration 필요', source: '미Integration' },
-    { id: 'pnl',         label: 'P&L 손익',          icon: '🌊', level: 'estimated', desc: 'Revenue·Stock 기반 추정 계산', source: 'PnLDashboard 추정Value' },
+    { id: 'inventory',   label: t('auto.400eyi', 'Stock 데이터'),       icon: '📦', level: 'real',      desc: t('auto.ku6593', 'API Integration 또는 CSV Upload 기반'), source: 'GlobalDataContext (mock)' },
+    { id: 'orders',      label: t('auto.plpjxr', 'Orders 데이터'),        icon: '📋', level: 'real',      desc: t('auto.pyeys6', 'Channel API에서 실Time Count집'), source: 'GlobalDataContext (mock)' },
+    { id: 'ads_roas',    label: 'Ad ROAS',          icon: '📈', level: 'estimated', desc: t('auto.je6ogo', 'Pixel 미Integration 시 추정Value 사용'), source: 'channelBudgets SettingsValue' },
+    { id: 'conversion',  label: t('auto.nd37yn', 'Conversion 데이터'),        icon: '🛒', level: 'none',      desc: t('auto.gzneqg', 'Meta/Google Pixel Integration 필요'), source: t('auto.47afck', 'Pixel 미Integration') },
+    { id: 'crm',         label: t('auto.o9v38n', 'CRM 세그먼트'),       icon: '👥', level: 'estimated', desc: t('auto.js89k0', 'AI 추정 세그먼트 (실측 아님)'), source: t('auto.54yv6x', 'AI Create 데이터') },
+    { id: 'settlement',  label: t('auto.sa2i4f', '정산 데이터'),        icon: '🧾', level: 'real',      desc: t('auto.9tigc8', 'Channel 정산Report Upload 기반'), source: 'GlobalDataContext (mock)' },
+    { id: 'attribution', label: t('auto.mntnqy', '기여 Analysis'),          icon: '🔗', level: 'none',      desc: t('auto.lyxf0l', '서버사이드 CAPI Integration 필요'), source: t('auto.jkj5lh', '미Integration') },
+    { id: 'pnl',         label: t('auto.j7scch', 'P&L 손익'),          icon: '🌊', level: 'estimated', desc: t('auto.bpzavk', 'Revenue·Stock 기반 추정 계산'), source: t('auto.2rp248', 'PnLDashboard 추정Value') },
 ];
 
 /* ── Pixel Integration Card ─────────────────────────────────────────── */
@@ -120,7 +120,7 @@ function PixelSetupCard({ pixel, saved, onSave, isPaid }) {
 
     const handleSave = async () => {
         if (Object.values(vals).some(v => !v)) {
-            alert('모든 필드를 입력해주세요.'); return;
+            alert(t('auto.kkj2ni', '모든 필드를 입력해주세요.')); return;
         }
         setSaving(true);
         await new Promise(r => setTimeout(r, 1200));
@@ -161,7 +161,7 @@ function PixelSetupCard({ pixel, saved, onSave, isPaid }) {
                         background: isSaved ? `${pixel.color}22` : `linear-gradient(135deg,${pixel.color},${pixel.color}cc)`,
                         color: isSaved ? pixel.color : '#fff',
                     }}>
-                        {isSaved ? (isPaid ? '✓ Integration됨 (재Settings)' : '✓ Demo 시뮬레이션 Done') : '+ Integration Settings'}
+                        {isSaved ? (isPaid ? t('auto.p0htpt', '✓ Integration됨 (재Settings)') : t('auto.5usjbv', '✓ Demo 시뮬레이션 Done')) : '+ Integration Settings'}
                     </button>
                 </div>
             </div>
@@ -186,7 +186,7 @@ function PixelSetupCard({ pixel, saved, onSave, isPaid }) {
                                 <span style={{ color: pixel.color, fontWeight: 800, minWidth: 16 }}>{i + 1}.</span>
                                 <span>
                                     {s.step}
-                                    {s.doc && <a href={s.doc} target="_blank" rel="noreferrer" style={{ marginLeft: 6, color: pixel.color, fontWeight: 700, fontSize: 10 }}>→ 바로가기</a>}
+                                    {s.doc && <a href={s.doc} target="_blank" rel="noreferrer" style={{ marginLeft: 6, color: pixel.color, fontWeight: 700, fontSize: 10 }}>{t('auto.u77o0q', '→ 바로가기')}</a>}
                                 </span>
                             </div>
                         ))}
@@ -213,7 +213,7 @@ function PixelSetupCard({ pixel, saved, onSave, isPaid }) {
                             {tested ? '✅ Test Done!' : saving ? '⏳...' : '🔬 Connect Test'}
                         </button>
                         <button onClick={handleSave} disabled={saving} style={{ flex: 1, padding: '8px 0', borderRadius: 9, border: 'none', cursor: 'pointer', fontWeight: 800, fontSize: 12, background: `linear-gradient(135deg,${pixel.color},${pixel.color}bb)`, color: '#fff', opacity: saving ? 0.7 : 1 }}>
-                            {saving ? '⏳ Save in progress...' : isPaid ? '💾 Integration Save' : '🎭 Demo 시뮤레이션 Run'}
+                            {saving ? '⏳ Save in progress...' : isPaid ? '💾 Integration Save' : t('auto.w375gw', '🎭 Demo 시뮤레이션 Run')}
                         </button>
                         <button onClick={() => setOpen(false)} style={{ padding: '8px 12px', borderRadius: 9, border: '1px solid rgba(255,255,255,0.1)', background: 'transparent', color: 'var(--text-3)', fontSize: 11, cursor: 'pointer' }}>Cancel</button>
                     </div>
@@ -238,9 +238,9 @@ export default function DataTrustDashboard() {
     const trustScore   = Math.round(((realCount + pixelSaved * 1.5) / (DATA_SOURCES.length + PIXELS.length * 1.5)) * 100);
 
     const TABS = [
-        { id: 'overview', label: '📊 데이터 현황' },
+        { id: 'overview', label: t('auto.rg4xn5', '📊 데이터 현황') },
         { id: 'pixel',    label: '🔌 Pixel Integration' },
-        { id: 'quality',  label: '🔬 품질 기준' },
+        { id: 'quality',  label: t('auto.tzwn2w', '🔬 품질 기준') },
     ];
 
     return (
@@ -250,15 +250,15 @@ export default function DataTrustDashboard() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
                     <div>
                         <div style={{ fontWeight: 900, fontSize: 20, color: 'var(--text-1)', marginBottom: 4 }}>
-                            🔬 Data Trust성 센터
+                            {t('auto.gem0e2', '🔬 Data Trust성 센터')}
                         </div>
                         <div style={{ fontSize: 12, color: 'var(--text-3)' }}>
-                            Platform All Data Source의 신뢰도를 Management하고 Pixel·API Integration으로 Live Data 정확도를 높이세요
+                            {t('auto.z6zhgk', 'Platform All Data Source의 신뢰도를 Management하고 Pixel·API Integration으로 Live Data 정확도를 높이세요')}
                         </div>
                     </div>
                     {/* 신뢰도 점Count */}
                     <div style={{ textAlign: 'center', padding: '14px 22px', borderRadius: 14, background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.25)' }}>
-                        <div style={{ fontSize: 10, color: 'var(--text-3)', marginBottom: 4 }}>Data Trust도 점Count</div>
+                        <div style={{ fontSize: 10, color: 'var(--text-3)', marginBottom: 4 }}>{t('auto.b6n93y', 'Data Trust도 점Count')}</div>
                         <div style={{ fontWeight: 900, fontSize: 32, color: trustScore > 60 ? '#22c55e' : trustScore > 40 ? '#eab308' : '#ef4444', lineHeight: 1 }}>
                             {trustScore}
                         </div>
@@ -269,9 +269,9 @@ export default function DataTrustDashboard() {
                 {/* KPI */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 10, marginTop: 16 }}>
                     {[
-                        { label: '✅ Live Data', value: realCount + '개', color: '#22c55e' },
-                        { label: '~ 추정Value', value: estCount + '개', color: '#eab308' },
-                        { label: '✕ 미Integration', value: noneCount + '개', color: '#ef4444' },
+                        { label: '✅ Live Data', value: realCount + t('auto.d7ycbs', '개'), color: '#22c55e' },
+                        { label: t('auto.twdm8y', '~ 추정Value'), value: estCount + t('auto.zxsg9m', '개'), color: '#eab308' },
+                        { label: t('auto.yficih', '✕ 미Integration'), value: noneCount + t('auto.eba4uj', '개'), color: '#ef4444' },
                         { label: '🔌 Pixel Integration', value: pixelSaved + '/' + PIXELS.length, color: '#4f8ef7' },
                     ].map(k => (
                         <div key={k.label} style={{ padding: '10px 12px', borderRadius: 10, background: 'rgba(0,0,0,0.2)', textAlign: 'center' }}>
@@ -301,7 +301,7 @@ export default function DataTrustDashboard() {
                 {/* Tab: 데이터 현황 */}
                 {tab === 'overview' && (
                     <div style={{ display: 'grid', gap: 12 }}>
-                        <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 4 }}>📦 Data Sourceper 신뢰도 현황</div>
+                        <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 4 }}>{t('auto.a2h616', '📦 Data Sourceper 신뢰도 현황')}</div>
                         {DATA_SOURCES.map(ds => (
                             <div key={ds.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderRadius: 10, background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.06)', flexWrap: 'wrap', gap: 8 }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -325,12 +325,12 @@ export default function DataTrustDashboard() {
 
                         {/* Data Trust도 향상 가이드 */}
                         <div style={{ marginTop: 8, padding: '14px 18px', borderRadius: 12, background: 'rgba(79,142,247,0.06)', border: '1px solid rgba(79,142,247,0.2)' }}>
-                            <div style={{ fontWeight: 700, fontSize: 12, color: '#4f8ef7', marginBottom: 8 }}>🎯 Data Trust도 향상 방법</div>
+                            <div style={{ fontWeight: 700, fontSize: 12, color: '#4f8ef7', marginBottom: 8 }}>{t('auto.2ftpm7', '🎯 Data Trust도 향상 방법')}</div>
                             <div style={{ display: 'grid', gap: 6 }}>
                                 {[
-                                    { icon: '1', text: 'Meta Pixel + CAPI Integration으로 Conversion 데이터를 실측Value으로 Conversion', btn: 'Pixel Integration →', action: 'pixel' },
-                                    { icon: '2', text: 'Google Analytics 4 Integration으로 사이트 트래픽 실측 Analysis Start', btn: 'Integration →', action: 'pixel' },
-                                    { icon: '3', text: 'Channel API Key Register으로 Orders·Stock 데이터를 실Time Count집', btn: 'API Settings →', action: '/api-keys' },
+                                    { icon: '1', text: t('auto.a6wjzu', 'Meta Pixel + CAPI Integration으로 Conversion 데이터를 실측Value으로 Conversion'), btn: 'Pixel Integration →', action: 'pixel' },
+                                    { icon: '2', text: t('auto.zb40h4', 'Google Analytics 4 Integration으로 사이트 트래픽 실측 Analysis Start'), btn: 'Integration →', action: 'pixel' },
+                                    { icon: '3', text: t('auto.ntr10o', 'Channel API Key Register으로 Orders·Stock 데이터를 실Time Count집'), btn: 'API Settings →', action: '/api-keys' },
                                 ].map(g => (
                                     <div key={g.icon} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 11, color: 'var(--text-2)' }}>
                                         <span><strong style={{ color: '#4f8ef7' }}>{g.icon}.</strong> {g.text}</span>
@@ -351,7 +351,7 @@ export default function DataTrustDashboard() {
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
                             <div>
                                 <div style={{ fontWeight: 700, fontSize: 13 }}>🔌 Ad Pixel & Conversion API Integration</div>
-                                <div style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 2 }}>Pixel Integration 시 ROAS·Conversion 데이터가 추정Value이 아닌 실제 측정Value으로 Conversion됩니다</div>
+                                <div style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 2 }}>{t('auto.aqz135', 'Pixel Integration 시 ROAS·Conversion 데이터가 추정Value이 아닌 실제 측정Value으로 Conversion됩니다')}</div>
                             </div>
                             <span style={{ fontSize: 11, padding: '5px 14px', borderRadius: 99, background: 'rgba(34,197,94,0.1)', color: '#22c55e', border: '1px solid rgba(34,197,94,0.3)', fontWeight: 700 }}>
                                 {pixelSaved}/{PIXELS.length} Integration Done
@@ -369,32 +369,32 @@ export default function DataTrustDashboard() {
                 {/* Tab: 품질 기준 */}
                 {tab === 'quality' && (
                     <div style={{ display: 'grid', gap: 16 }}>
-                        <div style={{ fontWeight: 700, fontSize: 13 }}>🔬 Data Quality 기준표</div>
+                        <div style={{ fontWeight: 700, fontSize: 13 }}>{t('auto.20upka', '🔬 Data Quality 기준표')}</div>
 
                         {[
                             {
                                 level: 'real', title: '✅ Live Data (Real Data)',
                                 color: '#22c55e', bg: 'rgba(34,197,94,0.06)',
-                                desc: 'Ad Pixel/Channel API/정산Report에서 직접 Count집된 원본 데이터. 가장 높은 신뢰도.',
-                                examples: ['Meta CAPI Conversion Event', 'Channel API Orders 데이터', '정산Report 정산 Amount', 'Stock API 실Time Quantity'],
+                                desc: t('auto.evx4qc', 'Ad Pixel/Channel API/정산Report에서 직접 Count집된 원본 데이터. 가장 높은 신뢰도.'),
+                                examples: ['Meta CAPI Conversion Event', t('auto.i49o7f', 'Channel API Orders 데이터'), t('auto.jfu02w', '정산Report 정산 Amount'), t('auto.bwcnt2', 'Stock API 실Time Quantity')],
                             },
                             {
-                                level: 'estimated', title: '~ 추정Value (Estimated)',
+                                level: 'estimated', title: t('auto.4yam0g', '~ 추정Value (Estimated)'),
                                 color: '#eab308', bg: 'rgba(234,179,8,0.06)',
-                                desc: 'Live Data 기반으로 계산·추정된 Value. 방향성은 맞지만 정확한 Count치가 아닐 Count Present.',
-                                examples: ['CRM AI 세그먼트 (실측 아님)', 'P&L 추정 Profit률', 'ROAS SettingsValue 기반 계산', 'AI Forecast Conv. Rate'],
+                                desc: t('auto.5erlf5', 'Live Data 기반으로 계산·추정된 Value. 방향성은 맞지만 정확한 Count치가 아닐 Count Present.'),
+                                examples: [t('auto.vny33e', 'CRM AI 세그먼트 (실측 아님)'), t('auto.x3ev82', 'P&L 추정 Profit률'), t('auto.cgymiw', 'ROAS SettingsValue 기반 계산'), 'AI Forecast Conv. Rate'],
                             },
                             {
-                                level: 'mock', title: '◌ Demo 데이터 (Demo)',
+                                level: 'mock', title: t('auto.bcgwc6', '◌ Demo 데이터 (Demo)'),
                                 color: '#94a3b8', bg: 'rgba(148,163,184,0.06)',
-                                desc: '개발·시연 목적의 샘플 데이터. 실제 비즈니스 의사결정에 사용하지 마세요.',
-                                examples: ['초기 Settings 전 Basic 표시 데이터', '튜토리얼 예시 데이터'],
+                                desc: t('auto.14hq2s', '개발·시연 목적의 샘플 데이터. 실제 비즈니스 의사결정에 사용하지 마세요.'),
+                                examples: [t('auto.5r79ym', '초기 Settings 전 Basic 표시 데이터'), t('auto.bf1ofv', '튜토리얼 예시 데이터')],
                             },
                             {
-                                level: 'none', title: '✕ 미Integration (Not Connected)',
+                                level: 'none', title: t('auto.1d6rkn', '✕ 미Integration (Not Connected)'),
                                 color: '#ef4444', bg: 'rgba(239,68,68,0.06)',
-                                desc: '해당 Data Source가 Integration되지 않음. 표시되는 0Value 또는 빈 Status.',
-                                examples: ['Pixel 미Integration Conversion 데이터', 'API Key 미Register Channel 데이터'],
+                                desc: t('auto.dad8wn', '해당 Data Source가 Integration되지 않음. 표시되는 0Value 또는 빈 Status.'),
+                                examples: [t('auto.jl1tqx', 'Pixel 미Integration Conversion 데이터'), t('auto.f2vizh', 'API Key 미Register Channel 데이터')],
                             },
                         ].map(q => (
                             <div key={q.level} style={{ padding: '16px 18px', borderRadius: 12, background: q.bg, border: `1px solid ${q.color}22` }}>

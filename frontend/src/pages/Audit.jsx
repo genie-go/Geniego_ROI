@@ -39,34 +39,34 @@ const RISK_CFG = {
 /* ── Mock Audit Logs ───────────────────────────────────────────────────── */
 const MOCK_LOGS = [
   { id: 1,  at: "2026-03-04T15:23:11Z", actor: "operator",  role: "system",    action: "ACTION_EXECUTED",     entity_type: "action_request", entity_id: "3",       detail: "price_change SKU WH-1000XM5 ₩428,000 → ₩413,000", risk: "medium", ip: "10.0.1.12" },
-  { id: 2,  at: "2026-03-04T14:55:03Z", actor: "김지Count",    role: "analyst",   action: "ACTION_APPROVED",     entity_type: "action_request", entity_id: "2",       detail: "budget_cut TikTok campaign Allowed",                   risk: "low",    ip: "192.168.1.44" },
+  { id: 2,  at: "2026-03-04T14:55:03Z", actor: t('auto.00cu0o', '김지Count'),    role: "analyst",   action: "ACTION_APPROVED",     entity_type: "action_request", entity_id: "2",       detail: "budget_cut TikTok campaign Allowed",                   risk: "low",    ip: "192.168.1.44" },
   { id: 3,  at: "2026-03-04T13:30:45Z", actor: "system",    role: "system",    action: "ALERT_TRIGGERED",     entity_type: "alert_policy",   entity_id: "3",       detail: "CPC > ₩1,500 Threshold Exceeded Detected",                     risk: "high",   ip: "—" },
-  { id: 4,  at: "2026-03-04T12:10:27Z", actor: "박민준",    role: "admin",     action: "POLICY_UPDATED",      entity_type: "alert_policy",   entity_id: "1",       detail: "ROAS Threshold 1.5 → 1.8 Change",                        risk: "medium", ip: "10.0.2.8" },
+  { id: 4,  at: "2026-03-04T12:10:27Z", actor: t('auto.w0gft2', '박민준'),    role: "admin",     action: "POLICY_UPDATED",      entity_type: "alert_policy",   entity_id: "1",       detail: "ROAS Threshold 1.5 → 1.8 Change",                        risk: "medium", ip: "10.0.2.8" },
   { id: 5,  at: "2026-03-04T11:05:18Z", actor: "operator",  role: "system",    action: "ACTION_EXECUTED",     entity_type: "action_request", entity_id: "6",       detail: "budget_increase Coupang +20% Apply",                  risk: "medium", ip: "10.0.1.12" },
-  { id: 6,  at: "2026-03-04T10:23:00Z", actor: "system",    role: "system",    action: "ALERT_TRIGGERED",     entity_type: "alert_policy",   entity_id: "3",       detail: "CPC 이상 Detected → Action 요청 Create됨 #1",                risk: "high",   ip: "—" },
-  { id: 7,  at: "2026-03-03T22:47:00Z", actor: "김지Count",    role: "analyst",   action: "ACTION_REJECTED",     entity_type: "action_request", entity_id: "4",       detail: "Naver Ad 정지 요청 반려 — Count동 검토 필요",          risk: "low",    ip: "192.168.1.44" },
-  { id: 8,  at: "2026-03-03T20:00:00Z", actor: "Management자",    role: "admin",     action: "KEY_CREATED",         entity_type: "api_key",        entity_id: "ana_001", detail: "신규 Analyst 키 Issue",                               risk: "medium", ip: "10.0.0.1" },
-  { id: 9,  at: "2026-03-03T18:00:00Z", actor: "이서연",    role: "analyst",   action: "ACTION_APPROVED",     entity_type: "action_request", entity_id: "6",       detail: "budget_increase 요청 Approval",                          risk: "low",    ip: "172.16.0.5" },
+  { id: 6,  at: "2026-03-04T10:23:00Z", actor: "system",    role: "system",    action: "ALERT_TRIGGERED",     entity_type: "alert_policy",   entity_id: "3",       detail: t('auto.qdp6o6', 'CPC 이상 Detected → Action 요청 Create됨 #1'),                risk: "high",   ip: "—" },
+  { id: 7,  at: "2026-03-03T22:47:00Z", actor: t('auto.8qn1sq', '김지Count'),    role: "analyst",   action: "ACTION_REJECTED",     entity_type: "action_request", entity_id: "4",       detail: t('auto.lt7xsw', 'Naver Ad 정지 요청 반려 — Count동 검토 필요'),          risk: "low",    ip: "192.168.1.44" },
+  { id: 8,  at: "2026-03-03T20:00:00Z", actor: t('auto.qztzz6', 'Management자'),    role: "admin",     action: "KEY_CREATED",         entity_type: "api_key",        entity_id: "ana_001", detail: t('auto.ezp0y5', '신규 Analyst 키 Issue'),                               risk: "medium", ip: "10.0.0.1" },
+  { id: 9,  at: "2026-03-03T18:00:00Z", actor: t('auto.7qd6h1', '이서연'),    role: "analyst",   action: "ACTION_APPROVED",     entity_type: "action_request", entity_id: "6",       detail: t('auto.x4g7s5', 'budget_increase 요청 Approval'),                          risk: "low",    ip: "172.16.0.5" },
   { id: 10, at: "2026-03-03T16:45:00Z", actor: "system",    role: "system",    action: "CONNECTOR_SYNCED",    entity_type: "connector",      entity_id: "amazon",  detail: "Amazon SP-API token refresh Done",                   risk: "low",    ip: "—" },
-  { id: 11, at: "2026-03-03T15:30:00Z", actor: "박민준",    role: "admin",     action: "MAPPING_UPDATED",     entity_type: "mapping_entry",  entity_id: "42",      detail: "Platform 매핑 Update: gender_f → female",            risk: "low",    ip: "10.0.2.8" },
-  { id: 12, at: "2026-03-03T14:00:00Z", actor: "system",    role: "system",    action: "SETTLEMENT_IMPORTED", entity_type: "settlement",     entity_id: "4",       detail: "11st 2월 정산 임포트 — ₩18.6M",                     risk: "low",    ip: "—" },
-  { id: 13, at: "2026-03-03T11:20:00Z", actor: "박민준",    role: "admin",     action: "KEY_REVOKED",         entity_type: "api_key",        entity_id: "old_003", detail: "Expired API 키 Revoke — connector role",                  risk: "high",   ip: "10.0.2.8" },
-  { id: 14, at: "2026-03-03T09:05:00Z", actor: "이서연",    role: "analyst",   action: "REPORT_EXPORTED",     entity_type: "report",         entity_id: "pnl_feb", detail: "P&L 2월 Report CSV Export (₩2.4B 포함)",           risk: "medium", ip: "172.16.0.5" },
-  { id: 15, at: "2026-03-02T21:30:00Z", actor: "system",    role: "system",    action: "ALERT_TRIGGERED",     entity_type: "alert_policy",   entity_id: "7",       detail: "반품률 14.2% > 12% Threshold Exceeded",                     risk: "high",   ip: "—" },
-  { id: 16, at: "2026-03-02T18:00:00Z", actor: "Management자",    role: "admin",     action: "USER_ROLE_CHANGED",   entity_type: "user",           entity_id: "usr_44",  detail: "이서연 Permission: viewer → analyst 승격",                  risk: "high",   ip: "10.0.0.1" },
-  { id: 17, at: "2026-03-02T15:45:00Z", actor: "김지Count",    role: "analyst",   action: "CONNECTOR_SYNCED",    entity_type: "connector",      entity_id: "meta",    detail: "Meta Ads OAuth 토큰 갱신 Done",                      risk: "low",    ip: "192.168.1.44" },
-  { id: 18, at: "2026-03-02T12:10:00Z", actor: "operator",  role: "system",    action: "ACTION_EXECUTED",     entity_type: "action_request", entity_id: "9",       detail: "pause_campaign Meta retargeting — ROAS 1.2x 이하",  risk: "medium", ip: "10.0.1.12" },
+  { id: 11, at: "2026-03-03T15:30:00Z", actor: t('auto.e15f53', '박민준'),    role: "admin",     action: "MAPPING_UPDATED",     entity_type: "mapping_entry",  entity_id: "42",      detail: t('auto.7pd3kv', 'Platform 매핑 Update: gender_f → female'),            risk: "low",    ip: "10.0.2.8" },
+  { id: 12, at: "2026-03-03T14:00:00Z", actor: "system",    role: "system",    action: "SETTLEMENT_IMPORTED", entity_type: "settlement",     entity_id: "4",       detail: t('auto.vrih8w', '11st 2월 정산 임포트 — ₩18.6M'),                     risk: "low",    ip: "—" },
+  { id: 13, at: "2026-03-03T11:20:00Z", actor: t('auto.d64iy8', '박민준'),    role: "admin",     action: "KEY_REVOKED",         entity_type: "api_key",        entity_id: "old_003", detail: t('auto.las526', 'Expired API 키 Revoke — connector role'),                  risk: "high",   ip: "10.0.2.8" },
+  { id: 14, at: "2026-03-03T09:05:00Z", actor: t('auto.y7c14d', '이서연'),    role: "analyst",   action: "REPORT_EXPORTED",     entity_type: "report",         entity_id: "pnl_feb", detail: t('auto.c3zuch', 'P&L 2월 Report CSV Export (₩2.4B 포함)'),           risk: "medium", ip: "172.16.0.5" },
+  { id: 15, at: "2026-03-02T21:30:00Z", actor: "system",    role: "system",    action: "ALERT_TRIGGERED",     entity_type: "alert_policy",   entity_id: "7",       detail: t('auto.wyocgk', '반품률 14.2% > 12% Threshold Exceeded'),                     risk: "high",   ip: "—" },
+  { id: 16, at: "2026-03-02T18:00:00Z", actor: t('auto.v9pyz4', 'Management자'),    role: "admin",     action: "USER_ROLE_CHANGED",   entity_type: "user",           entity_id: "usr_44",  detail: t('auto.zxy8yq', '이서연 Permission: viewer → analyst 승격'),                  risk: "high",   ip: "10.0.0.1" },
+  { id: 17, at: "2026-03-02T15:45:00Z", actor: t('auto.qznx16', '김지Count'),    role: "analyst",   action: "CONNECTOR_SYNCED",    entity_type: "connector",      entity_id: "meta",    detail: t('auto.6qo8eq', 'Meta Ads OAuth 토큰 갱신 Done'),                      risk: "low",    ip: "192.168.1.44" },
+  { id: 18, at: "2026-03-02T12:10:00Z", actor: "operator",  role: "system",    action: "ACTION_EXECUTED",     entity_type: "action_request", entity_id: "9",       detail: t('auto.k9hl43', 'pause_campaign Meta retargeting — ROAS 1.2x 이하'),  risk: "medium", ip: "10.0.1.12" },
   { id: 19, at: "2026-03-01T20:00:00Z", actor: "system",    role: "system",    action: "ALERT_TRIGGERED",     entity_type: "alert_policy",   entity_id: "2",       detail: "Google CTR 0.3% < 0.5% Threshold",                      risk: "medium", ip: "—" },
-  { id: 20, at: "2026-03-01T08:30:00Z", actor: "Management자",    role: "admin",     action: "POLICY_UPDATED",      entity_type: "alert_policy",   entity_id: "5",       detail: "Coupon율 Threshold 15% → 18% 완화",                       risk: "medium", ip: "10.0.0.1" },
+  { id: 20, at: "2026-03-01T08:30:00Z", actor: t('auto.mt2b72', 'Management자'),    role: "admin",     action: "POLICY_UPDATED",      entity_type: "alert_policy",   entity_id: "5",       detail: t('auto.4jfhay', 'Coupon율 Threshold 15% → 18% 완화'),                       risk: "medium", ip: "10.0.0.1" },
 ];
 
 /* ── Helpers ────────────────────────────────────────────────────────────── */
 function timeAgo(iso, t) {
   const s = (Date.now() - new Date(iso).getTime()) / 1000;
-  if (s < 60)    return `${Math.floor(s)}${t("audit.secAgo") || "초 전"}`;
-  if (s < 3600)  return `${Math.floor(s / 60)}${t("audit.minAgo") || "분 전"}`;
-  if (s < 86400) return `${Math.floor(s / 3600)}${t("audit.hrAgo") || "Time 전"}`;
-  if (s < 86400 * 7) return `${Math.floor(s / 86400)}${t("audit.dayAgo") || "일 전"}`;
+  if (s < 60)    return `${Math.floor(s)}${t("audit.secAgo") || t('auto.imx43v', '초 전')}`;
+  if (s < 3600)  return `${Math.floor(s / 60)}${t("audit.minAgo") || t('auto.9cpaci', '분 전')}`;
+  if (s < 86400) return `${Math.floor(s / 3600)}${t("audit.hrAgo") || t('auto.uq20z5', 'Time 전')}`;
+  if (s < 86400 * 7) return `${Math.floor(s / 86400)}${t("audit.dayAgo") || t('auto.2hnb5b', '일 전')}`;
   return new Date(iso).toLocaleDateString("ko-KR", { month: "short", day: "numeric" });
 }
 
@@ -78,7 +78,7 @@ function fmtTs(iso) {
 }
 
 function exportCsv(logs) {
-  const header = "ID,시각,행위자,역할,Event,대상Type,대상ID,위험도,IP,내용";
+  const header = t('auto.4ndk1j', 'ID,시각,행위자,역할,Event,대상Type,대상ID,위험도,IP,내용');
   const rows = logs.map(l =>
     [l.id, l.at, l.actor, l.role, l.action, l.entity_type, l.entity_id, l.risk, l.ip, `"${l.detail}"`].join(",")
   );

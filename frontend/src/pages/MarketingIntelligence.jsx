@@ -412,7 +412,7 @@ function AITab({ t }) {
                                     <Tag label={rec.category} color={rec.color} />
                                     <Tag label={t("marketingIntel.confLabel", { n: rec.confidence })} color={rec.confidence >= 85 ? "#22c55e" : rec.confidence >= 70 ? "#eab308" : "#ef4444"} />
                                 </div>
-                                <div style={{ fontWeight: 800, fontSize: 14, color: "var(--text-1)", marginBottom: 6 }}>{rec.title}</div>
+                                <div style={{ fontWeight: 800, fontSize: 14, color: "var(--text-1)", marginBottom: 6 }}>{rec?.title}</div>
                                 <div style={{ display: "flex", gap: 12, fontSize: 11 }}>
                                     <span style={{ color: "var(--text-3)" }}>{t("marketingIntel.expRoas")} <strong style={{ color: rec.color }}>{rec.expectedROAS}</strong></span>
                                     <span style={{ color: "var(--text-3)" }}>{t("marketingIntel.effort")} <strong style={{ color: "var(--text-2)" }}>{rec.effort}</strong></span>

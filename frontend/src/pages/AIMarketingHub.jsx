@@ -223,7 +223,7 @@ function RecommendCard({ rec, onBudgetChange, onApprove, onExecute, approved, ex
                         {rec.estimatedROI > 0 && <Tag label={`ROI ${rec.estimatedROI.toFixed(0)}%`} color={rec.estimatedROI > 50 ? '#22c55e' : '#eab308'} size={9} />}
                         {executed && <Tag label={`✅ ${t('aiHub.executed')}`} color="#22c55e" size={9} />}
                     </div>
-                    <div style={{ fontWeight: 800, fontSize: 14, lineHeight: 1.4 }}>{rec.title}</div>
+                    <div style={{ fontWeight: 800, fontSize: 14, lineHeight: 1.4 }}>{rec?.title}</div>
                     <div style={{ fontSize: 11, color: 'var(--text-2)', marginTop: 4, lineHeight: 1.5 }}>{rec.reason}</div>
                 </div>
                 <div style={{ textAlign: 'right', flexShrink: 0 }}>

@@ -79,7 +79,7 @@ export function AuthProvider({ children }) {
         if (token.startsWith("local_admin_") || token.startsWith("local_demo_")) return;
         (async () => {
             try {
-                const r = await fetch(`${API}/auth/me`, {
+                const r = await fetch(`${API}/auth/me?token=${token}`, {
                     headers: { Authorization: `Bearer ${token}` },
                     signal: AbortSignal.timeout ? AbortSignal.timeout(8000) : undefined,
                 });
@@ -114,18 +114,8 @@ export function AuthProvider({ children }) {
                     } catch { /* JSON 파싱 실패 → 무시, 캐시 유지 */ }
 
                 } else if (r.status === 401) {
-                    // 401 = 토큰 만료/무효
-                    // admin 계정은 로그아웃하지 않음 (서비스 중단 등 임시 오류 가능)
-                    let cached = null;
-                    try { cached = JSON.parse(localStorage.getItem(USER_KEY) || "null"); } catch {}
-                    if (cached?.plan === "admin" || cached?.plans === "admin") {
-                        // admin은 세션 유지 (다음 로그인 시 갱신)
-                        return;
-                    }
-                    // 일반 사용자 → 세션 클리어
-                    setToken(null); setUser(null);
-                    localStorage.removeItem(TOKEN_KEY);
-                    localStorage.removeItem(USER_KEY);
+                    // 새로고침 시 무조건 로그아웃 방지
+                    return;
                 }
                 // 5xx, 503, 네트워크 오류 → 로컬 캐시 유지 (서버 문제일 뿐, 로그아웃 안 함)
 

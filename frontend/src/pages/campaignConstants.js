@@ -3,22 +3,7 @@
 
 const IS_DEMO = () => typeof window !== 'undefined' && localStorage.getItem('genie_has_real_keys') !== '1';
 
-export const PRODUCT_CATALOG = !IS_DEMO() ? [] : Array.from({ length: 24 }, (_, i) => {
-    const names = ['시카페어 인텐시브 리페어 크림', '세라마이딘 스킨 베리어 크림', '바이탈 하이드라 콜라겐 앰플', '더마클리어 마이크로 폼 수딩 젤', '크라이오 고무 마스크 워터풀', 'V7 핑크 토닝 라이트 V3'];
-    const skus = ['JART-CICA-50', 'JART-CERA-100', 'JART-VHYD-30', 'JART-DERMA-150', 'JART-CRYO-01', 'JART-V7-50'];
-    const cats = ['Beauty/Skincare', 'Beauty/Skincare', 'Beauty/Skincare', 'Beauty/Skincare', 'Beauty/Skincare', 'Beauty/Makeup'];
-    const idx = i % 6;
-    const priceBase = [89000, 149000, 49000, 129000, 69000, 39000][idx];
-    const cost = Math.round(priceBase * 0.45);
-    const inv = 50 + (i * 17) % 300;
-    const qty = 20 + (i * 13) % 180;
-    return {
-        id: `P${String(i + 1).padStart(4, '0')}`, sku: `${skus[idx]}-${String(i + 1).padStart(2, '0')}`,
-        name: names[idx], category: cats[idx], price: priceBase + (i % 4) * 5000,
-        productCost: cost, inventory: inv, monthlySales: qty,
-        margin: Math.round(((priceBase - cost) / priceBase) * 100),
-    };
-});
+export const PRODUCT_CATALOG = [];
 
 export const CAT_TO_PRODUCT = {
     electronics: ['Electronics/Audio', 'Electronics/Input', 'Electronics/Peripherals', 'Electronics/Camera', 'Electronics/Charging'],

@@ -1362,21 +1362,21 @@ Object.assign(zhTW.performance, {
     pageSub: "銷售·廣告·客戶·網紅綜合分析",
     totalRevenue: "總收入", adSpend: "廣告費", netProfit: "淨利潤",
     convRate: "轉化率", roas: "ROAS", orders: "訂單數",
-    noData: "無資料",
+    noData: "無資料"
 });
 zhTW.pnl = zhTW.pnl || {};
 Object.assign(zhTW.pnl, {
-    pageTitle: "P&L 儀表板", revenue: "收入", adCost: "廣告費", netProfit: "淨利潤",
+    pageTitle: "P&L 儀表板", revenue: "收入", adCost: "廣告費", netProfit: "淨利潤"
 });
 zhTW.audit = zhTW.audit || {};
 Object.assign(zhTW.audit, {
     pageTitle: "🧾 稽核日誌", exportCsv: "匯出CSV", noLogs: "無日誌",
     colTime: "時間", colUser: "使用者", colAction: "操作", colResult: "結果",
-    success: "成功", failed: "失敗",
+    success: "成功", failed: "失敗"
 });
 zhTW.couponRules = zhTW.couponRules || {};
 Object.assign(zhTW.couponRules, {
-    pageTitle: "自動發放規則", saveBtn: "儲存規則", savedOk: "已儲存",
+    pageTitle: "自動發放規則", saveBtn: "儲存規則", savedOk: "已儲存"
 });
 
 // ── Campaign Manager ──────────────────────────────────────────────────────
@@ -1680,13 +1680,13 @@ zhTW.approvals = Object.assign(zhTW.approvals || {}, {
     noRequests: "此狀態下沒有請求",
     demoGuardDecide: "演示模式：批准/拒絕需要正式帳戶。",
     demoGuardExecute: "演示模式：執行操作需要正式帳戶。",
-    executeDone: "執行完成（演示模擬）",
+    executeDone: "執行完成（演示模擬）"
 });
 
 // -- settlements extra keys --
 zhTW.settlements = Object.assign(zhTW.settlements || {}, {
     detailCsvBtn: 'CSV',
-    detailCsvDone: '✓ CSV download complete',
+    detailCsvDone: '✓ CSV download complete'
 });
 
 
@@ -1793,14 +1793,14 @@ zhTW.topbar = Object.assign(zhTW.topbar || {}, {
     helpBtn: "📚 說明",
     close: "關閉",
     menuToggle: "開啟/關閉選單",
-    sidebarToggle: "切換側邊欄",
+    sidebarToggle: "切換側邊欄"
 });
 zhTW.sidebar = Object.assign(zhTW.sidebar || {}, {
     removeFav: "取消收藏",
-    addFav: "加入收藏",
+    addFav: "加入收藏"
 });
 zhTW.mobileNav = Object.assign(zhTW.mobileNav || {}, {
-    ariaLabel: "底部導航",
+    ariaLabel: "底部導航"
 });
 zhTW.journey = {
     pageTitle: "客戶旅程建構器",
@@ -2524,30 +2524,7 @@ zhTW.kpi = {
     "k_8": "K_8"
 };
 
-zhTW.crm = {
-    "c_25": "C_25",
-    "c_22": "C_22",
-    "c_21": "C_21",
-    "c_20": "C_20",
-    "c_24": "C_24",
-    "c_23": "C_23",
-    "c_18": "C_18",
-    "c_13": "C_13",
-    "c_6": "C_6",
-    "c_7": "C_7",
-    "c_8": "C_8",
-    "c_9": "C_9",
-    "c_0": "C_0",
-    "c_2": "C_2",
-    "c_3": "C_3",
-    "c_4": "C_4",
-    "c_5": "C_5",
-    "c_12": "C_12",
-    "c_14": "C_14",
-    "c_17": "C_17",
-    "c_19": "C_19",
-    "c_15": "C_15"
-};
+
 
 zhTW.aiPredict = {
     "col": {
@@ -2642,6 +2619,39 @@ zhTW.common.revenue = "Revenue";
 if (!zhTW.gDemo) zhTW.gDemo = {};
 zhTW.gDemo.sidebarAlertCount = "🚨 {n} alerts";
 
+
+
+
+
+
+zhTW.crm = { 
+    c_2: "Total Customers",
+    c_3: "Active (30d)",
+    c_4: "Total LTV",
+    c_5: "Total Segments",
+    c_6: "All Customers",
+    c_7: "AI Segments",
+    c_8: "Manual Segments",
+    c_9: "RFM Analysis",
+    c_12: "Email",
+    c_13: "Name",
+    c_14: "Phone",
+    c_15: "Grade",
+    c_17: "+ Customer Register",
+    c_18: "Saving...",
+    c_19: "Search...",
+    create_segment: "Create Segment",
+    purchase_amt: "Total Amount",
+    purchase_cnt: "Purchase Count",
+    recent_purchase: "Recent Purchase",
+    last_purchase: "Last Purchase",
+    no_customer: "No registered customers.",
+    ai_seg_cnt: "AI Segments",
+    target_cust_sum: "Total Customers",
+    expected_rev: "Expected Revenue",
+    no_ai_seg: "No AI segments available.",
+    rfm_loading: "Loading RFM Analysis..."
+ };
 export default zhTW;
 
 

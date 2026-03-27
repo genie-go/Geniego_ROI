@@ -5,11 +5,11 @@ import { useAuth } from "../auth/AuthContext.jsx";
 import { useT } from '../i18n/index.js';
 const MOCK_REQUESTS = [
   { id: 1, status: "pending", action_type: "pause_campaign", policy_id: 3, alert_id: 12, created_at: "2026-03-04T10:23:00Z", decided_by: null, details: "CPC > ₩1,500 Criteria Exceeded — Meta campaign_id:449821 Paused Request" },
-  { id: 2, status: "approved", action_type: "budget_cut", policy_id: 1, alert_id: 9, created_at: "2026-03-04T09:15:00Z", decided_by: "김지Count", details: "ROAS < 1.8 하락 — TikTok Budget 30% 삭감 Request" },
-  { id: 3, status: "executed", action_type: "price_change", policy_id: 5, alert_id: 7, created_at: "2026-03-04T08:00:00Z", decided_by: "박민준", details: "Stock 과잉(>500) — SKU WH-1000XM5 Price ₩15,000 인하 Run Done" },
-  { id: 4, status: "rejected", action_type: "pause_campaign", policy_id: 2, alert_id: 11, created_at: "2026-03-03T22:47:00Z", decided_by: "김지Count", details: "CPM 급등 감지 — Naver Ad Paused Request (운영Team 반려)" },
-  { id: 5, status: "pending", action_type: "notify_slack", policy_id: 4, alert_id: 15, created_at: "2026-03-03T21:30:00Z", decided_by: null, details: "리뷰 평점 3.0 이하 감지 — #cs-alerts Slack Notification Request" },
-  { id: 6, status: "executed", action_type: "budget_increase", policy_id: 1, alert_id: 4, created_at: "2026-03-03T18:00:00Z", decided_by: "이서연", details: "ROAS > 4.5 달성 — Coupang Ad Budget 20% 증액 Run Done" },
+  { id: 2, status: "approved", action_type: "budget_cut", policy_id: 1, alert_id: 9, created_at: "2026-03-04T09:15:00Z", decided_by: t('auto.lw3lo2', '김지Count'), details: t('auto.hnr5k5', 'ROAS < 1.8 하락 — TikTok Budget 30% 삭감 Request') },
+  { id: 3, status: "executed", action_type: "price_change", policy_id: 5, alert_id: 7, created_at: "2026-03-04T08:00:00Z", decided_by: t('auto.cabjow', '박민준'), details: t('auto.iizx3n', 'Stock 과잉(>500) — SKU WH-1000XM5 Price ₩15,000 인하 Run Done') },
+  { id: 4, status: "rejected", action_type: "pause_campaign", policy_id: 2, alert_id: 11, created_at: "2026-03-03T22:47:00Z", decided_by: t('auto.4y1gu9', '김지Count'), details: t('auto.mqutcg', 'CPM 급등 감지 — Naver Ad Paused Request (운영Team 반려)') },
+  { id: 5, status: "pending", action_type: "notify_slack", policy_id: 4, alert_id: 15, created_at: "2026-03-03T21:30:00Z", decided_by: null, details: t('auto.rdbgpu', '리뷰 평점 3.0 이하 감지 — #cs-alerts Slack Notification Request') },
+  { id: 6, status: "executed", action_type: "budget_increase", policy_id: 1, alert_id: 4, created_at: "2026-03-03T18:00:00Z", decided_by: t('auto.yunwhs', '이서연'), details: t('auto.xzgx4u', 'ROAS > 4.5 달성 — Coupang Ad Budget 20% 증액 Run Done') },
 ];
 
 const STATUS_CONFIG = {

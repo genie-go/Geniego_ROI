@@ -169,9 +169,9 @@ export default function AdStatusAnalysis() {
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
-                {[GOAL_DATA.awareness, GOAL_DATA.consideration, GOAL_DATA.conversion].map((g, i) => (
+                {[GOAL_DATA.awareness, GOAL_DATA.consideration, GOAL_DATA.conversion].filter(Boolean).map((g, i) => (
                     <div key={i} className="card card-glass fade-up" style={{ padding: 24, animationDelay: (200 + i*100) + 'ms', borderTop: i===0 ? borderLeftPurple : i===1 ? borderLeftBlue : borderLeftGreen }}>
-                        <div style={{ fontSize: 13, fontWeight: 800, color: '#e2e8f0', marginBottom: 16 }}>🎯 {g.title}</div>
+                        <div style={{ fontSize: 13, fontWeight: 800, color: '#e2e8f0', marginBottom: 16 }}>🎯 {g?.title}</div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
                                 <span style={{ color: 'var(--text-3)' }}>노출 (Impr)</span><span style={{ fontWeight: 700 }}>{g.impr}</span>

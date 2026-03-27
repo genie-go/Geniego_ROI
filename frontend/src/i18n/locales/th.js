@@ -1436,7 +1436,7 @@ Object.assign(th.menu, {
     instagramDm: "Instagram DM", lineChannel: "ช่อง LINE",
     webPopup: "เว็บป๊อปอัพ", whatsapp: "WhatsApp",
     smsMarketing: "SMS การตลาด", journeyBuilder: "Customer Journey",
-    aiPrediction: "การคาดการณ์ AI", pgConfig: "ตั้งค่า PG",
+    aiPrediction: "การคาดการณ์ AI", pgConfig: "ตั้งค่า PG"
 });
 
 // ── หน้าคูปอง ──────────────────────────────────────────────────────────
@@ -1473,21 +1473,21 @@ Object.assign(th.performance, {
     pageSub: "วิเคราะห์ยอดขาย·โฆษณา·ลูกค้า·อินฟลูเอนเซอร์",
     totalRevenue: "รายได้รวม", adSpend: "ค่าโฆษณา", netProfit: "กำไรสุทธิ",
     convRate: "อัตราแปลง", roas: "ROAS", orders: "คำสั่งซื้อ",
-    noData: "ไม่มีข้อมูล",
+    noData: "ไม่มีข้อมูล"
 });
 th.pnl = th.pnl || {};
 Object.assign(th.pnl, {
-    pageTitle: "แดชบอร์ด P&L", revenue: "รายได้", adCost: "ค่าโฆษณา", netProfit: "กำไรสุทธิ",
+    pageTitle: "แดชบอร์ด P&L", revenue: "รายได้", adCost: "ค่าโฆษณา", netProfit: "กำไรสุทธิ"
 });
 th.audit = th.audit || {};
 Object.assign(th.audit, {
     pageTitle: "🧾 บันทึกการตรวจสอบ", exportCsv: "ส่งออก CSV", noLogs: "ไม่มีบันทึก",
     colTime: "เวลา", colUser: "ผู้ใช้", colAction: "การดำเนินการ", colResult: "ผล",
-    success: "สำเร็จ", failed: "ล้มเหลว",
+    success: "สำเร็จ", failed: "ล้มเหลว"
 });
 th.couponRules = th.couponRules || {};
 Object.assign(th.couponRules, {
-    pageTitle: "กฎการออกคูปองอัตโนมัติ", saveBtn: "บันทึกกฎ", savedOk: "บันทึกเรียบร้อย",
+    pageTitle: "กฎการออกคูปองอัตโนมัติ", saveBtn: "บันทึกกฎ", savedOk: "บันทึกเรียบร้อย"
 });
 
 // ── Campaign Manager ──────────────────────────────────────────────────────
@@ -1778,7 +1778,7 @@ th.wms = Object.assign(th.wms || {}, {
     carrierTrack: "ติดตามพัสดุ",
     trackingNum: "หมายเลขพัสดุ",
     trackingQuery: "ติดตาม",
-    trackingStatus: { delivering: 'In Transit', delivered: 'Delivered', ready: 'Ready', cancelled: 'Cancelled' },
+    trackingStatus: { delivering: 'In Transit', delivered: 'Delivered', ready: 'Ready', cancelled: 'Cancelled' }
 });
 
 
@@ -1836,13 +1836,13 @@ th.approvals = Object.assign(th.approvals || {}, {
     noRequests: "ไม่มีคำขอสำหรับสถานะนี้",
     demoGuardDecide: "โหมดสาธิต: การอนุมัติ/ปฏิเสธต้องการบัญชีจริง",
     demoGuardExecute: "โหมดสาธิต: การดำเนินการต้องการบัญชีจริง",
-    executeDone: "ดำเนินการเสร็จสิ้น (การจำลองสาธิต)",
+    executeDone: "ดำเนินการเสร็จสิ้น (การจำลองสาธิต)"
 });
 
 // -- settlements extra keys --
 th.settlements = Object.assign(th.settlements || {}, {
     detailCsvBtn: 'CSV',
-    detailCsvDone: '✓ CSV download complete',
+    detailCsvDone: '✓ CSV download complete'
 });
 
 
@@ -1949,14 +1949,14 @@ th.topbar = Object.assign(th.topbar || {}, {
     helpBtn: "📚 ช่วยเหลือ",
     close: "ปิด",
     menuToggle: "เปิด/ปิดเมนู",
-    sidebarToggle: "สลับแถบด้านข้าง",
+    sidebarToggle: "สลับแถบด้านข้าง"
 });
 th.sidebar = Object.assign(th.sidebar || {}, {
     removeFav: "ลบออกจากรายการโปรด",
-    addFav: "เพิ่มในรายการโปรด",
+    addFav: "เพิ่มในรายการโปรด"
 });
 th.mobileNav = Object.assign(th.mobileNav || {}, {
-    ariaLabel: "การนำทางด้านล่าง",
+    ariaLabel: "การนำทางด้านล่าง"
 });
 th.journey = {
     pageTitle: "เครื่องมือสร้าง Customer Journey",
@@ -2700,30 +2700,7 @@ th.kpi = {
     "k_8": "เค_8"
 };
 
-th.crm = {
-    "c_25": "C_25",
-    "c_22": "C_22",
-    "c_21": "C_21",
-    "c_20": "C_20",
-    "c_24": "C_24",
-    "c_23": "C_23",
-    "c_18": "C_18",
-    "c_13": "C_13",
-    "c_6": "C_6",
-    "c_7": "C_7",
-    "c_8": "C_8",
-    "c_9": "C_9",
-    "c_0": "C_0",
-    "c_2": "C_2",
-    "c_3": "C_3",
-    "c_4": "C_4",
-    "c_5": "C_5",
-    "c_12": "C_12",
-    "c_14": "C_14",
-    "c_17": "C_17",
-    "c_19": "C_19",
-    "c_15": "ค_15"
-};
+
 
 th.aiPredict = {
     "col": {
@@ -2818,6 +2795,39 @@ th.common.revenue = "Revenue";
 if (!th.gDemo) th.gDemo = {};
 th.gDemo.sidebarAlertCount = "🚨 {n} alerts";
 
+
+
+
+
+
+th.crm = { 
+    c_2: "Total Customers",
+    c_3: "Active (30d)",
+    c_4: "Total LTV",
+    c_5: "Total Segments",
+    c_6: "All Customers",
+    c_7: "AI Segments",
+    c_8: "Manual Segments",
+    c_9: "RFM Analysis",
+    c_12: "Email",
+    c_13: "Name",
+    c_14: "Phone",
+    c_15: "Grade",
+    c_17: "+ Customer Register",
+    c_18: "Saving...",
+    c_19: "Search...",
+    create_segment: "Create Segment",
+    purchase_amt: "Total Amount",
+    purchase_cnt: "Purchase Count",
+    recent_purchase: "Recent Purchase",
+    last_purchase: "Last Purchase",
+    no_customer: "No registered customers.",
+    ai_seg_cnt: "AI Segments",
+    target_cust_sum: "Total Customers",
+    expected_rev: "Expected Revenue",
+    no_ai_seg: "No AI segments available.",
+    rfm_loading: "Loading RFM Analysis..."
+ };
 export default th;
 
 

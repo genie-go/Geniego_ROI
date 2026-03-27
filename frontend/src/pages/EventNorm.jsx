@@ -67,18 +67,18 @@ const SCHEMA_SECTIONS = [
         layer: "Layer 1 — RawVendorEvent",
         color: "#f97316",
         icon: "📥",
-        desc: "Platform Original payload as-is 보관 + Count신 메타",
+        desc: t('auto.l36ov9', 'Platform Original payload as-is 보관 + Count신 메타'),
         fields: [
-            { name: "id", type: "INTEGER PK", desc: "AutoIncrease Basic키" },
-            { name: "tenant_id", type: "TEXT", desc: "멀티테넌트 식per자" },
+            { name: "id", type: "INTEGER PK", desc: t('auto.2it6i0', 'AutoIncrease Basic키') },
+            { name: "tenant_id", type: "TEXT", desc: t('auto.ra8479', '멀티테넌트 식per자') },
             { name: "vendor", type: "TEXT", desc: "meta | tiktok | google | amazon | naver | coupang | ..." },
             { name: "source_system", type: "TEXT", desc: "webhook | polling | manual | sdk" },
             { name: "event_type", type: "TEXT", desc: "ad_report | order | settlement | ugc_report | ..." },
-            { name: "dedup_key", type: "TEXT UNIQUE", desc: "in progress복 방지 idempotency 키" },
-            { name: "raw_payload", type: "TEXT (JSON)", desc: "Original JSON blob — 원본 불변 보관" },
-            { name: "received_at", type: "TEXT", desc: "UTC ISO-8601 Count신 시각" },
+            { name: "dedup_key", type: "TEXT UNIQUE", desc: t('auto.ejm0pv', 'in progress복 방지 idempotency 키') },
+            { name: "raw_payload", type: "TEXT (JSON)", desc: t('auto.wynyfz', 'Original JSON blob — 원본 불변 보관') },
+            { name: "received_at", type: "TEXT", desc: t('auto.xnh74m', 'UTC ISO-8601 Count신 시각') },
             { name: "status", type: "TEXT", desc: "pending → normalized | error | skipped" },
-            { name: "error_msg", type: "TEXT?", desc: "정규화 Failed 시 Error Message" },
+            { name: "error_msg", type: "TEXT?", desc: t('auto.z8x5tf', '정규화 Failed 시 Error Message') },
             { name: "normalized_event_id", type: "INTEGER?", desc: "→ normalized_activity_event.id FK" },
         ],
     },
@@ -86,34 +86,34 @@ const SCHEMA_SECTIONS = [
         layer: "Layer 2 — NormalizedActivityEvent",
         color: "#4f8ef7",
         icon: "⚡",
-        desc: "Single 필드 체계로 정규화된 표준 Event",
+        desc: t('auto.dtybkd', 'Single 필드 체계로 정규화된 표준 Event'),
         fields: [
-            { name: "id / raw_event_id", type: "INTEGER", desc: "PK · Layer1 역참조 FK" },
+            { name: "id / raw_event_id", type: "INTEGER", desc: t('auto.tsl7hq', 'PK · Layer1 역참조 FK') },
             { name: "event_date / event_type / domain", type: "TEXT", desc: "YYYY-MM-DD · Event Type · ad|market|influencer" },
-            { name: "━━ Ad 도메인 (Advertising) ━━", type: "", desc: "" },
+            { name: t('auto.bejuou', '━━ Ad 도메인 (Advertising) ━━'), type: "", desc: "" },
             { name: "vendor / account_id", type: "TEXT", desc: "Ad Platform / Account ID" },
-            { name: "campaign_id / campaign_name", type: "TEXT", desc: "Campaign 식per자 + Name" },
-            { name: "adset_id / adset_name", type: "TEXT", desc: "Ad세트 식per자 + Name" },
-            { name: "creative_id / creative_type", type: "TEXT", desc: "소재 ID · image|video|carousel|collection" },
-            { name: "keyword / match_type", type: "TEXT", desc: "키워드 · exact|phrase|broad" },
+            { name: "campaign_id / campaign_name", type: "TEXT", desc: t('auto.cfwn37', 'Campaign 식per자 + Name') },
+            { name: "adset_id / adset_name", type: "TEXT", desc: t('auto.fdz98u', 'Ad세트 식per자 + Name') },
+            { name: "creative_id / creative_type", type: "TEXT", desc: t('auto.3x3snf', '소재 ID · image|video|carousel|collection') },
+            { name: "keyword / match_type", type: "TEXT", desc: t('auto.9eok3n', '키워드 · exact|phrase|broad') },
             { name: "audience_segment", type: "TEXT", desc: "lookalike_2pct | retarget | interest_tech | ..." },
-            { name: "impressions / clicks / spend", type: "INTEGER/REAL", desc: "Impressions·Clicks·지출" },
-            { name: "conversions / attributed_revenue", type: "INTEGER/REAL", desc: "Conversion·귀속Revenue" },
-            { name: "━━ 마켓 도메인 (Market) ━━", type: "", desc: "" },
+            { name: "impressions / clicks / spend", type: "INTEGER/REAL", desc: t('auto.cq8w8h', 'Impressions·Clicks·지출') },
+            { name: "conversions / attributed_revenue", type: "INTEGER/REAL", desc: t('auto.z8sx81', 'Conversion·귀속Revenue') },
+            { name: t('auto.a14086', '━━ 마켓 도메인 (Market) ━━'), type: "", desc: "" },
             { name: "channel", type: "TEXT", desc: "coupang | naver | 11st | amazon | shopify | ..." },
-            { name: "order_id / sku / product_title", type: "TEXT", desc: "Orders번호 · SKU · Product Name" },
-            { name: "gross_sales / platform_fee / ad_fee", type: "REAL", desc: "TotalRevenue · PlatformCommission · Ad Spend공제" },
-            { name: "settlement_deduction_type / amount", type: "TEXT/REAL", desc: "공제 Type 및 Amount" },
-            { name: "net_payout / is_return", type: "REAL/INT", desc: "순정산Amount · 반품 여부" },
-            { name: "━━ UGC / 인플루언서 도메인 ━━", type: "", desc: "" },
-            { name: "creator_id / creator_handle", type: "TEXT", desc: "크리에이터 ID · @핸들" },
-            { name: "ugc_content_id / ugc_platform", type: "TEXT", desc: "콘텐츠 ID · youtube|instagram|tiktok" },
+            { name: "order_id / sku / product_title", type: "TEXT", desc: t('auto.74kh59', 'Orders번호 · SKU · Product Name') },
+            { name: "gross_sales / platform_fee / ad_fee", type: "REAL", desc: t('auto.xoo6im', 'TotalRevenue · PlatformCommission · Ad Spend공제') },
+            { name: "settlement_deduction_type / amount", type: "TEXT/REAL", desc: t('auto.o98iq1', '공제 Type 및 Amount') },
+            { name: "net_payout / is_return", type: "REAL/INT", desc: t('auto.r45lkr', '순정산Amount · 반품 여부') },
+            { name: t('auto.b1kvdo', '━━ UGC / 인플루언서 도메인 ━━'), type: "", desc: "" },
+            { name: "creator_id / creator_handle", type: "TEXT", desc: t('auto.5u3680', '크리에이터 ID · @핸들') },
+            { name: "ugc_content_id / ugc_platform", type: "TEXT", desc: t('auto.f3f04y', '콘텐츠 ID · youtube|instagram|tiktok') },
             { name: "ugc_rights_status", type: "TEXT", desc: "pending | granted | expired | revoked" },
             { name: "ugc_whitelist_status", type: "TEXT", desc: "not_requested | whitelisted | rejected" },
-            { name: "ugc_branded_content", type: "INTEGER", desc: "1 = Branded Content Tag 포함" },
-            { name: "━━ 공통 ━━", type: "", desc: "" },
-            { name: "currency / region", type: "TEXT", desc: "KRW | USD | JPY ... · 지역코드" },
-            { name: "normalizer_version / extra_json", type: "TEXT", desc: "Rule 버전 · Add 파라미터 (확장)" },
+            { name: "ugc_branded_content", type: "INTEGER", desc: t('auto.knivsl', '1 = Branded Content Tag 포함') },
+            { name: t('auto.c6d6pj', '━━ 공통 ━━'), type: "", desc: "" },
+            { name: "currency / region", type: "TEXT", desc: t('auto.p4p4bc', 'KRW | USD | JPY ... · 지역코드') },
+            { name: "normalizer_version / extra_json", type: "TEXT", desc: t('auto.amsa9k', 'Rule 버전 · Add 파라미터 (확장)') },
         ],
     },
 ];
@@ -164,7 +164,7 @@ function SchemaTab() {
                     <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 11 }}>
                         <thead>
                             <tr style={{ borderBottom: "1px solid rgba(99,140,255,0.1)" }}>
-                                {["필드명", "타입", "Description"].map(h => (
+                                {[t('auto.l2spnk', '필드명'), t('auto.xfucnv', '타입'), "Description"].map(h => (
                                     <th key={h} style={{ padding: "6px 10px", textAlign: "left", fontWeight: 800, color: "var(--text-3)", fontSize: 10 }}>{h}</th>
                                 ))}
                             </tr>
@@ -192,10 +192,10 @@ function RawTab({ rows, loading, onSeed, onNormalize }) {
         <div style={{ display: "grid", gap: 12 }}>
             <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
                 <button onClick={onSeed} className="btn-primary" style={{ fontSize: 11, padding: "6px 16px", background: "linear-gradient(135deg,#f97316,#ea580c)" }}>
-                    📥 Demo Raw Event 시드
+                    {t('auto.52g89l', '📥 Demo Raw Event 시드')}
                 </button>
                 <button onClick={onNormalize} className="btn-ghost" style={{ fontSize: 11, padding: "6px 14px" }}>
-                    ⚡ 정규화 Run
+                    {t('auto.9ojkb5', '⚡ 정규화 Run')}
                 </button>
                 <span style={{ fontSize: 10, color: "var(--text-3)" }}>Total {rows.length} items</span>
             </div>
@@ -223,7 +223,7 @@ function RawTab({ rows, loading, onSeed, onNormalize }) {
                         <div style={{
                             padding: "0 16px 14px", borderTop: "1px solid rgba(99,140,255,0.08)",
                         }}>
-                            <div style={{ fontSize: 10, color: "var(--text-3)", marginBottom: 6, paddingTop: 10 }}>Original Payload (미리보기 300자)</div>
+                            <div style={{ fontSize: 10, color: "var(--text-3)", marginBottom: 6, paddingTop: 10 }}>{t('auto.451tyx', 'Original Payload (미리보기 300자)')}</div>
                             <pre style={{
                                 padding: "10px 12px", borderRadius: 8, background: "rgba(0,0,0,0.15)",
                                 fontSize: 10, color: "#a5f3fc", overflowX: "auto", margin: 0, maxHeight: 180, lineHeight: 1.5,
@@ -241,7 +241,7 @@ function RawTab({ rows, loading, onSeed, onNormalize }) {
             {!loading && rows.length === 0 && (
                 <div style={{ textAlign: "center", padding: 40, color: "var(--text-3)" }}>
                     <div style={{ fontSize: 36, marginBottom: 8, opacity: 0.4 }}>📭</div>
-                    <div style={{ fontSize: 12 }}>Count집된 Raw Event가 없습니다. "Demo Raw Event 시드" 를 Clicks하세요.</div>
+                    <div style={{ fontSize: 12 }}>{t('auto.event_empty', '수집된 Raw Event가 없습니다. Demo Raw Event 시드를 클릭하세요.')}</div>
                 </div>
             )}
         </div>
@@ -285,7 +285,7 @@ function NormTab({ rows, loading }) {
                     <table className="table" style={{ fontSize: 10, minWidth: 700 }}>
                         <thead>
                             <tr>
-                                <th>ID</th><th>Date</th><th>Event Type</th><th>도메인</th>
+                                <th>ID</th><th>Date</th><th>Event Type</th><th>{t('auto.pprh01', '도메인')}</th>
                                 {cols.map(c => <th key={c}>{c.replace(/_/g, " ")}</th>)}
                             </tr>
                         </thead>
@@ -309,7 +309,7 @@ function NormTab({ rows, loading }) {
                             ))}
                         </tbody>
                     </table>
-                    {filtered.length === 0 && <div style={{ textAlign: "center", padding: 30, fontSize: 11, color: "var(--text-3)" }}>정규화된 Event가 없습니다.</div>}
+                    {filtered.length === 0 && <div style={{ textAlign: "center", padding: 30, fontSize: 11, color: "var(--text-3)" }}>{t('auto.7kne9i', '정규화된 Event가 없습니다.')}</div>}
                 </div>
             )}
         </div>
@@ -331,15 +331,15 @@ function SummaryTab({ summary }) {
             {/* KPI */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12 }}>
                 <StatBox label="Total Raw Event" value={raw?.total ?? 0} color="#f97316" />
-                <StatBox label="정규화 Done" value={raw?.by_status?.normalized ?? 0} color="#22c55e" />
-                <StatBox label="표준 Event Total계" value={Object.values(normalized?.by_domain ?? {}).reduce((a, b) => a + +b, 0)} color="#4f8ef7" />
+                <StatBox label={t('auto.rytgjs', '정규화 Done')} value={raw?.by_status?.normalized ?? 0} color="#22c55e" />
+                <StatBox label={t('auto.m8wl6v', '표준 Event Total계')} value={Object.values(normalized?.by_domain ?? {}).reduce((a, b) => a + +b, 0)} color="#4f8ef7" />
                 <StatBox label="Total Ad Spend" value={"₩" + fmtM(normalized?.total_ad_spend ?? 0)} color="#a855f7" />
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
                 {/* Raw by Vendor */}
                 <div className="card card-glass" style={{ padding: 16 }}>
-                    <div style={{ fontWeight: 800, fontSize: 11, marginBottom: 12 }}>📥 Raw — 벤더per</div>
+                    <div style={{ fontWeight: 800, fontSize: 11, marginBottom: 12 }}>{t('auto.sn3xbe', '📥 Raw — 벤더per')}</div>
                     {Object.entries(raw?.by_vendor ?? {}).map(([v, cnt]) => (
                         <div key={v} style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
                             <VendorBadge vendor={v} />
@@ -349,7 +349,7 @@ function SummaryTab({ summary }) {
                 </div>
                 {/* Normalized by Domain */}
                 <div className="card card-glass" style={{ padding: 16 }}>
-                    <div style={{ fontWeight: 800, fontSize: 11, marginBottom: 12 }}>⚡ 표준 — 도메인per</div>
+                    <div style={{ fontWeight: 800, fontSize: 11, marginBottom: 12 }}>{t('auto.5rbky2', '⚡ 표준 — 도메인per')}</div>
                     {Object.entries(normalized?.by_domain ?? {}).map(([d, cnt]) => (
                         <div key={d} style={{ display: "flex", justifyContent: "space-between", marginBottom: 6, alignItems: "center" }}>
                             <Badge label={d} color={DOMAIN_COLORS[d] || "#64748b"} />
@@ -359,11 +359,11 @@ function SummaryTab({ summary }) {
                 </div>
                 {/* UGC Breakdown */}
                 <div className="card card-glass" style={{ padding: 16 }}>
-                    <div style={{ fontWeight: 800, fontSize: 11, marginBottom: 12 }}>🎬 UGC 권리/화이트리스트</div>
+                    <div style={{ fontWeight: 800, fontSize: 11, marginBottom: 12 }}>{t('auto.pw7qil', '🎬 UGC 권리/화이트리스트')}</div>
                     {(normalized?.ugc_breakdown ?? []).map((u, i) => (
                         <div key={i} style={{ padding: "6px 0", borderBottom: "1px solid rgba(99,140,255,0.06)", fontSize: 10 }}>
                             <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: 3 }}>
-                                <Badge label={"권리:" + (u.ugc_rights_status || "—")} color={u.ugc_rights_status === "granted" ? "#22c55e" : "#64748b"} />
+                                <Badge label={t('auto.bchlcp', '권리:') + (u.ugc_rights_status || "—")} color={u.ugc_rights_status === "granted" ? "#22c55e" : "#64748b"} />
                                 <Badge label={"WL:" + (u.ugc_whitelist_status || "—")} color={u.ugc_whitelist_status === "whitelisted" ? "#4f8ef7" : "#f97316"} />
                                 {u.ugc_branded_content ? <Badge label="Branded" color="#a855f7" /> : null}
                             </div>
@@ -376,7 +376,7 @@ function SummaryTab({ summary }) {
 
             {/* Event types */}
             <div className="card card-glass" style={{ padding: 16 }}>
-                <div style={{ fontWeight: 800, fontSize: 11, marginBottom: 12 }}>📊 Event Typeper 분포</div>
+                <div style={{ fontWeight: 800, fontSize: 11, marginBottom: 12 }}>{t('auto.cox1g4', '📊 Event Typeper 분포')}</div>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
                     {Object.entries(normalized?.by_event_type ?? {}).map(([et, cnt]) => (
                         <div key={et} style={{
@@ -396,10 +396,10 @@ function SummaryTab({ summary }) {
 
 /* ─── MAIN ───────────────────────────────────────────────── */
 const TABS = [
-    { id: "schema", label: "🏗 스키마 정의", desc: "2단 Table 구조" },
-    { id: "raw", label: "📥 Raw Event", desc: "Original Count집 뷰어" },
-    { id: "normalized", label: "⚡ 표준 Event", desc: "정규화 결과 Table" },
-    { id: "summary", label: "📊 Summary Statistics", desc: "도메인per Aggregate" },
+    { id: "schema", label: t('auto.a99eaj', '🏗 스키마 정의'), desc: t('auto.ze6yi8', '2단 Table 구조') },
+    { id: "raw", label: "📥 Raw Event", desc: t('auto.vvzm41', 'Original Count집 뷰어') },
+    { id: "normalized", label: t('auto.k2qk5x', '⚡ 표준 Event'), desc: t('auto.mqr1yb', '정규화 결과 Table') },
+    { id: "summary", label: "📊 Summary Statistics", desc: t('auto.dkrli8', '도메인per Aggregate') },
 ];
 
 export default function EventNorm() {
@@ -445,10 +445,10 @@ export default function EventNorm() {
                 await fetchAll();
             } else {
                 // Offline mode — already using MOCK_RAW
-                showToast("오프라인 모드 — 목 데이터 표시 in progress", "#eab308");
+                showToast(t('auto.278rrt', '오프라인 모드 — 목 데이터 표시 in progress'), "#eab308");
             }
         } catch {
-            showToast("오프라인 모드 — 목 데이터 표시 in progress", "#eab308");
+            showToast(t('auto.48uyea', '오프라인 모드 — 목 데이터 표시 in progress'), "#eab308");
         }
         setLoading(false);
     };
@@ -462,10 +462,10 @@ export default function EventNorm() {
                 showToast(`✓ ${d.normalized ?? 0}건 정규화 Done`);
                 await fetchAll();
             } else {
-                showToast("정규화 Run — 목 데이터 표시", "#eab308");
+                showToast(t('auto.5n9f5p', '정규화 Run — 목 데이터 표시'), "#eab308");
             }
         } catch {
-            showToast("오프라인 모드", "#eab308");
+            showToast(t('auto.6z1v6b', '오프라인 모드'), "#eab308");
         }
         setLoading(false);
     };
@@ -493,9 +493,9 @@ export default function EventNorm() {
                         <div className="hero-title" style={{
                             background: "linear-gradient(135deg,#f97316,#4f8ef7)",
                             WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
-                        }}>표준 Event 스키마</div>
+                        }}>{t('auto.5uje4r', '표준 Event 스키마')}</div>
                         <div className="hero-desc">
-                            Platform Original(RawVendorEvent) → Single 표준(NormalizedActivityEvent) 2단 정규화 파이프라인
+                            {t('auto.wdhsz1', 'Platform Original(RawVendorEvent) → Single 표준(NormalizedActivityEvent) 2단 정규화 파이프라인')}
                         </div>
                     </div>
                 </div>
@@ -503,8 +503,8 @@ export default function EventNorm() {
                     {[
                         { label: "Layer 1: RawVendorEvent", color: "#f97316" },
                         { label: "Layer 2: NormalizedActivityEvent", color: "#4f8ef7" },
-                        { label: "6개 벤더 지원", color: "#22c55e" },
-                        { label: "Campaign·정산·UGC 표준화", color: "#a855f7" },
+                        { label: t('auto.y7avh5', '6개 벤더 지원'), color: "#22c55e" },
+                        { label: t('auto.mlfykp', 'Campaign·정산·UGC 표준화'), color: "#a855f7" },
                     ].map(({ label, color }) => (
                         <span key={label} style={{
                             fontSize: 10, fontWeight: 700, padding: "3px 10px", borderRadius: 99,

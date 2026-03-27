@@ -2302,7 +2302,7 @@ zh.wms = Object.assign(zh.wms || {}, {
   auditDiffTotal: "Diff Qty",
   carrierTrack: "Carrier Track",
   trackingNum: "Tracking No",
-  trackingQuery: "Track",
+  trackingQuery: "Track"
 });
 
 
@@ -2360,13 +2360,13 @@ zh.approvals = Object.assign(zh.approvals || {}, {
     noRequests: "此状态下没有请求",
     demoGuardDecide: "演示模式：批准/拒绝需要正式账户。",
     demoGuardExecute: "演示模式：执行操作需要正式账户。",
-    executeDone: "执行完成（演示模拟）",
+    executeDone: "执行完成（演示模拟）"
 });
 
 // -- settlements extra keys --
 zh.settlements = Object.assign(zh.settlements || {}, {
     detailCsvBtn: 'CSV',
-    detailCsvDone: '✓ CSV download complete',
+    detailCsvDone: '✓ CSV download complete'
 });
 
 
@@ -2473,14 +2473,14 @@ zh.topbar = Object.assign(zh.topbar || {}, {
     helpBtn: "📚 帮助",
     close: "关闭",
     menuToggle: "打开/关闭菜单",
-    sidebarToggle: "切换侧边栏",
+    sidebarToggle: "切换侧边栏"
 });
 zh.sidebar = Object.assign(zh.sidebar || {}, {
     removeFav: "取消收藏",
-    addFav: "添加收藏",
+    addFav: "添加收藏"
 });
 zh.mobileNav = Object.assign(zh.mobileNav || {}, {
-    ariaLabel: "底部导航",
+    ariaLabel: "底部导航"
 });
 zh.journey = {
     pageTitle: "客户旅程构建器",
@@ -3225,30 +3225,7 @@ zh.kpi = {
     "k_8": "K_8"
 };
 
-zh.crm = {
-    "c_25": "C_25",
-    "c_22": "C_22",
-    "c_21": "C_21",
-    "c_20": "C_20",
-    "c_24": "C_24",
-    "c_23": "C_23",
-    "c_18": "C_18",
-    "c_13": "C_13",
-    "c_6": "C_6",
-    "c_7": "C_7",
-    "c_8": "C_8",
-    "c_9": "C_9",
-    "c_0": "C_0",
-    "c_2": "C_2",
-    "c_3": "C_3",
-    "c_4": "C_4",
-    "c_5": "C_5",
-    "c_12": "C_12",
-    "c_14": "C_14",
-    "c_17": "C_17",
-    "c_19": "C_19",
-    "c_15": "C_15"
-};
+
 
 zh.aiPredict = {
     "col": {
@@ -3712,6 +3689,39 @@ zh.common.revenue = "Revenue";
 if (!zh.gDemo) zh.gDemo = {};
 zh.gDemo.sidebarAlertCount = "🚨 {n} alerts";
 
+
+
+
+
+
+zh.crm = { 
+    c_2: "Total Customers",
+    c_3: "Active (30d)",
+    c_4: "Total LTV",
+    c_5: "Total Segments",
+    c_6: "All Customers",
+    c_7: "AI Segments",
+    c_8: "Manual Segments",
+    c_9: "RFM Analysis",
+    c_12: "Email",
+    c_13: "Name",
+    c_14: "Phone",
+    c_15: "Grade",
+    c_17: "+ Customer Register",
+    c_18: "Saving...",
+    c_19: "Search...",
+    create_segment: "Create Segment",
+    purchase_amt: "Total Amount",
+    purchase_cnt: "Purchase Count",
+    recent_purchase: "Recent Purchase",
+    last_purchase: "Last Purchase",
+    no_customer: "No registered customers.",
+    ai_seg_cnt: "AI Segments",
+    target_cust_sum: "Total Customers",
+    expected_rev: "Expected Revenue",
+    no_ai_seg: "No AI segments available.",
+    rfm_loading: "Loading RFM Analysis..."
+ };
 export default zh;
 
 

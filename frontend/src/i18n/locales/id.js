@@ -1376,7 +1376,7 @@ Object.assign(id.menu, {
     smsMarketing: "Pemasaran SMS",
     journeyBuilder: "Perjalanan pelanggan",
     aiPrediction: "Prediksi AI",
-    pgConfig: "Konfigurasi PG",
+    pgConfig: "Konfigurasi PG"
 });
 
 
@@ -1414,21 +1414,21 @@ Object.assign(id.performance, {
     pageSub: "Analisis penjualan·iklan·pelanggan·influencer",
     totalRevenue: "Total Pendapatan", adSpend: "Biaya Iklan", netProfit: "Laba Bersih",
     convRate: "Tingkat Konversi", roas: "ROAS", orders: "Pesanan",
-    noData: "Tidak ada data",
+    noData: "Tidak ada data"
 });
 id.pnl = id.pnl || {};
 Object.assign(id.pnl, {
-    pageTitle: "Dasbor L/R", revenue: "Pendapatan", adCost: "Biaya Iklan", netProfit: "Laba Bersih",
+    pageTitle: "Dasbor L/R", revenue: "Pendapatan", adCost: "Biaya Iklan", netProfit: "Laba Bersih"
 });
 id.audit = id.audit || {};
 Object.assign(id.audit, {
     pageTitle: "🧾 Log Audit", exportCsv: "Ekspor CSV", noLogs: "Tidak ada log",
     colTime: "Waktu", colUser: "Pengguna", colAction: "Tindakan", colResult: "Hasil",
-    success: "Berhasil", failed: "Gagal",
+    success: "Berhasil", failed: "Gagal"
 });
 id.couponRules = id.couponRules || {};
 Object.assign(id.couponRules, {
-    pageTitle: "Aturan Penerbitan Otomatis", saveBtn: "Simpan aturan", savedOk: "Tersimpan",
+    pageTitle: "Aturan Penerbitan Otomatis", saveBtn: "Simpan aturan", savedOk: "Tersimpan"
 });
 
 // ── Campaign Manager ──────────────────────────────────────────────────────
@@ -1719,7 +1719,7 @@ id.wms = Object.assign(id.wms || {}, {
     carrierTrack: "Lacak Kurir",
     trackingNum: "No. Resi",
     trackingQuery: "Lacak",
-    trackingStatus: { delivering: 'In Transit', delivered: 'Delivered', ready: 'Ready', cancelled: 'Cancelled' },
+    trackingStatus: { delivering: 'In Transit', delivered: 'Delivered', ready: 'Ready', cancelled: 'Cancelled' }
 });
 
 
@@ -1777,13 +1777,13 @@ id.approvals = Object.assign(id.approvals || {}, {
     noRequests: "Tidak ada permintaan untuk status ini",
     demoGuardDecide: "Mode demo: Persetujuan/penolakan membutuhkan akun asli.",
     demoGuardExecute: "Mode demo: Eksekusi tindakan membutuhkan akun asli.",
-    executeDone: "Eksekusi selesai (simulasi demo)",
+    executeDone: "Eksekusi selesai (simulasi demo)"
 });
 
 // -- settlements extra keys --
 id.settlements = Object.assign(id.settlements || {}, {
     detailCsvBtn: 'CSV',
-    detailCsvDone: '✓ CSV download complete',
+    detailCsvDone: '✓ CSV download complete'
 });
 
 
@@ -1890,14 +1890,14 @@ id.topbar = Object.assign(id.topbar || {}, {
     helpBtn: "📚 Bantuan",
     close: "Tutup",
     menuToggle: "Buka/Tutup Menu",
-    sidebarToggle: "Beralih Bilah Sisi",
+    sidebarToggle: "Beralih Bilah Sisi"
 });
 id.sidebar = Object.assign(id.sidebar || {}, {
     removeFav: "Hapus dari favorit",
-    addFav: "Tambah ke favorit",
+    addFav: "Tambah ke favorit"
 });
 id.mobileNav = Object.assign(id.mobileNav || {}, {
-    ariaLabel: "Navigasi Bawah",
+    ariaLabel: "Navigasi Bawah"
 });
 id.journey = {
     pageTitle: "Pembuat Perjalanan Pelanggan",
@@ -2641,30 +2641,7 @@ id.kpi = {
     "k_8": "K_8"
 };
 
-id.crm = {
-    "c_25": "C_25",
-    "c_22": "C_22",
-    "c_21": "C_21",
-    "c_20": "C_20",
-    "c_24": "C_24",
-    "c_23": "C_23",
-    "c_18": "C_18",
-    "c_13": "C_13",
-    "c_6": "C_6",
-    "c_7": "C_7",
-    "c_8": "C_8",
-    "c_9": "C_9",
-    "c_0": "C_0",
-    "c_2": "C_2",
-    "c_3": "C_3",
-    "c_4": "C_4",
-    "c_5": "C_5",
-    "c_12": "C_12",
-    "c_14": "C_14",
-    "c_17": "C_17",
-    "c_19": "Bab_19",
-    "c_15": "C_15"
-};
+
 
 id.aiPredict = {
     "col": {
@@ -2759,6 +2736,39 @@ id.common.revenue = "Revenue";
 if (!id.gDemo) id.gDemo = {};
 id.gDemo.sidebarAlertCount = "🚨 {n} alerts";
 
+
+
+
+
+
+id.crm = { 
+    c_2: "Total Customers",
+    c_3: "Active (30d)",
+    c_4: "Total LTV",
+    c_5: "Total Segments",
+    c_6: "All Customers",
+    c_7: "AI Segments",
+    c_8: "Manual Segments",
+    c_9: "RFM Analysis",
+    c_12: "Email",
+    c_13: "Name",
+    c_14: "Phone",
+    c_15: "Grade",
+    c_17: "+ Customer Register",
+    c_18: "Saving...",
+    c_19: "Search...",
+    create_segment: "Create Segment",
+    purchase_amt: "Total Amount",
+    purchase_cnt: "Purchase Count",
+    recent_purchase: "Recent Purchase",
+    last_purchase: "Last Purchase",
+    no_customer: "No registered customers.",
+    ai_seg_cnt: "AI Segments",
+    target_cust_sum: "Total Customers",
+    expected_rev: "Expected Revenue",
+    no_ai_seg: "No AI segments available.",
+    rfm_loading: "Loading RFM Analysis..."
+ };
 export default id;
 
 

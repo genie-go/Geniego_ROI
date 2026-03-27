@@ -1387,7 +1387,7 @@ Object.assign(vi.menu, {
     smsMarketing: "SMS Marketing",
     journeyBuilder: "Hành trình khách hàng",
     aiPrediction: "Dự đoán AI",
-    pgConfig: "Cấu hình PG",
+    pgConfig: "Cấu hình PG"
 });
 
 
@@ -1425,21 +1425,21 @@ Object.assign(vi.performance, {
     pageSub: "Phân tích doanh số·quảng cáo·khách hàng·influencer",
     totalRevenue: "Tổng doanh thu", adSpend: "Chi phí quảng cáo", netProfit: "Lợi nhuận ròng",
     convRate: "Tỷ lệ chuyển đổi", roas: "ROAS", orders: "Đơn hàng",
-    noData: "Không có dữ liệu",
+    noData: "Không có dữ liệu"
 });
 vi.pnl = vi.pnl || {};
 Object.assign(vi.pnl, {
-    pageTitle: "Bảng điều khiển L/R", revenue: "Doanh thu", adCost: "Chi phí QC", netProfit: "LN ròng",
+    pageTitle: "Bảng điều khiển L/R", revenue: "Doanh thu", adCost: "Chi phí QC", netProfit: "LN ròng"
 });
 vi.audit = vi.audit || {};
 Object.assign(vi.audit, {
     pageTitle: "🧾 Nhật ký kiểm toán", exportCsv: "Xuất CSV", noLogs: "Không có nhật ký",
     colTime: "Thời gian", colUser: "Người dùng", colAction: "Hành động", colResult: "Kết quả",
-    success: "Thành công", failed: "Thất bại",
+    success: "Thành công", failed: "Thất bại"
 });
 vi.couponRules = vi.couponRules || {};
 Object.assign(vi.couponRules, {
-    pageTitle: "Quy tắc phát phiếu tự động", saveBtn: "Lưu quy tắc", savedOk: "Đã lưu",
+    pageTitle: "Quy tắc phát phiếu tự động", saveBtn: "Lưu quy tắc", savedOk: "Đã lưu"
 });
 
 // ── Campaign Manager ──────────────────────────────────────────────────────
@@ -1730,7 +1730,7 @@ vi.wms = Object.assign(vi.wms || {}, {
     carrierTrack: "Theo dõi vận chuyển",
     trackingNum: "Mã vận đơn",
     trackingQuery: "Tra cứu",
-    trackingStatus: { delivering: 'In Transit', delivered: 'Delivered', ready: 'Ready', cancelled: 'Cancelled' },
+    trackingStatus: { delivering: 'In Transit', delivered: 'Delivered', ready: 'Ready', cancelled: 'Cancelled' }
 });
 
 
@@ -1788,13 +1788,13 @@ vi.approvals = Object.assign(vi.approvals || {}, {
     noRequests: "Không có yêu cầu nào cho trạng thái này",
     demoGuardDecide: "Chế độ demo: Phê duyệt/từ chối yêu cầu tài khoản thực.",
     demoGuardExecute: "Chế độ demo: Thực hiện hành động yêu cầu tài khoản thực.",
-    executeDone: "Thực hiện hoàn thành (mô phỏng demo)",
+    executeDone: "Thực hiện hoàn thành (mô phỏng demo)"
 });
 
 // -- settlements extra keys --
 vi.settlements = Object.assign(vi.settlements || {}, {
     detailCsvBtn: 'CSV',
-    detailCsvDone: '✓ CSV download complete',
+    detailCsvDone: '✓ CSV download complete'
 });
 
 
@@ -1901,14 +1901,14 @@ vi.topbar = Object.assign(vi.topbar || {}, {
     helpBtn: "📚 Trợ giúp",
     close: "Đóng",
     menuToggle: "Mở/Đóng menu",
-    sidebarToggle: "Chuyển đổi thanh bên",
+    sidebarToggle: "Chuyển đổi thanh bên"
 });
 vi.sidebar = Object.assign(vi.sidebar || {}, {
     removeFav: "Xóa khỏi yêu thích",
-    addFav: "Thêm vào yêu thích",
+    addFav: "Thêm vào yêu thích"
 });
 vi.mobileNav = Object.assign(vi.mobileNav || {}, {
-    ariaLabel: "Điều hướng dưới",
+    ariaLabel: "Điều hướng dưới"
 });
 vi.journey = {
     pageTitle: "Trình tạo Hành trình Khách hàng",
@@ -2652,30 +2652,7 @@ vi.kpi = {
     "k_8": "K_8"
 };
 
-vi.crm = {
-    "c_25": "C_25",
-    "c_22": "C_22",
-    "c_21": "C_21",
-    "c_20": "C_20",
-    "c_24": "C_24",
-    "c_23": "C_23",
-    "c_18": "C_18",
-    "c_13": "C_13",
-    "c_6": "C_6",
-    "c_7": "C_7",
-    "c_8": "C_8",
-    "c_9": "C_9",
-    "c_0": "C_0",
-    "c_2": "C_2",
-    "c_3": "C_3",
-    "c_4": "C_4",
-    "c_5": "C_5",
-    "c_12": "C_12",
-    "c_14": "C_14",
-    "c_17": "C_17",
-    "c_19": "C_19",
-    "c_15": "C_15"
-};
+
 
 vi.aiPredict = {
     "col": {
@@ -2770,6 +2747,39 @@ vi.common.revenue = "Revenue";
 if (!vi.gDemo) vi.gDemo = {};
 vi.gDemo.sidebarAlertCount = "🚨 {n} alerts";
 
+
+
+
+
+
+vi.crm = { 
+    c_2: "Total Customers",
+    c_3: "Active (30d)",
+    c_4: "Total LTV",
+    c_5: "Total Segments",
+    c_6: "All Customers",
+    c_7: "AI Segments",
+    c_8: "Manual Segments",
+    c_9: "RFM Analysis",
+    c_12: "Email",
+    c_13: "Name",
+    c_14: "Phone",
+    c_15: "Grade",
+    c_17: "+ Customer Register",
+    c_18: "Saving...",
+    c_19: "Search...",
+    create_segment: "Create Segment",
+    purchase_amt: "Total Amount",
+    purchase_cnt: "Purchase Count",
+    recent_purchase: "Recent Purchase",
+    last_purchase: "Last Purchase",
+    no_customer: "No registered customers.",
+    ai_seg_cnt: "AI Segments",
+    target_cust_sum: "Total Customers",
+    expected_rev: "Expected Revenue",
+    no_ai_seg: "No AI segments available.",
+    rfm_loading: "Loading RFM Analysis..."
+ };
 export default vi;
 
 
