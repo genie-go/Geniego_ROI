@@ -3294,13 +3294,13 @@ export default {
     "autoTab1": "① Campaign Setup",
     "autoTab2": "③ Campaign Config",
     "autoTab3": "③ AI Strategy Preview",
-    "autoTab4": "Usage Guide",
-    "mktTabOverview": "Overview",
-    "mktTabAdStatus": "Ad Status",
-    "mktTabCreative": "Creative",
-    "mktTabCompare": "Compare",
-    "mktTabAiDesign": "AI Design",
-    "mktTabGuide": "Guide"
+    "autoTab4": "使用指南",
+    "mktTabOverview": "概覽",
+    "mktTabAdStatus": "廣告狀態",
+    "mktTabCreative": "創意",
+    "mktTabCompare": "比較",
+    "mktTabAiDesign": "AI設計",
+    "mktTabGuide": "指南"
   },
   "accountPerf": {
     "pageTitle": "账号业绩",
@@ -16694,7 +16694,7 @@ export default {
     "guideReadyDesc": "Select Attribution from the menu."
   },
   "dashGuide": {
-    "title": "Dashboard Usage Guide",
+    "title": "儀表板使用指南",
     "desc": "Learn all Dashboard features step by step.",
     "badgeBeginner": "Beginner Guide",
     "badgeTime": "5 min read",
@@ -16704,7 +16704,7 @@ export default {
     "step2": "Check overview KPIs.",
     "step3": "Click sub-tabs for detailed analysis.",
     "step4": "Review security banner.",
-    "stepsTitle": "Getting Started — 6 Steps",
+    "stepsTitle": "🚀 入門 — 10個步驟",
     "step1Title": "Select Tab",
     "step1Desc": "Choose an analysis category from the tab bar.",
     "step2Title": "Check KPI Cards",
@@ -16717,11 +16717,11 @@ export default {
     "step5Desc": "Download data as Excel.",
     "step6Title": "Check Alerts",
     "step6Desc": "Review latest alerts in the activity feed.",
-    "subtitle": "Learn all Dashboard features step by step.",
-    "beginnerBadge": "Beginner Guide",
-    "timeBadge": "5 min read",
-    "langBadge": "15 Languages",
-    "whereToStart": "Where do I start?",
+    "subtitle": "逐步了解儀表板的所有功能。",
+    "beginnerBadge": "入門指南",
+    "timeBadge": "5分鐘",
+    "langBadge": "15種語言",
+    "whereToStart": "從哪裡開始？",
     "whereToStartDesc": "1. Click \"Dashboard\" from the left menu.\n2. Check overview KPIs.\n3. Click sub-tabs for detailed analysis.\n4. Review security banner.",
     "step7Title": "Manage Influencers",
     "step7Desc": "Monitor creator followers.",
@@ -16731,7 +16731,7 @@ export default {
     "step9Desc": "Check security banner for threats.",
     "step10Title": "Regular Monitoring",
     "step10Desc": "Create daily dashboard review routine.",
-    "tabsTitle": "📋 Tab-by-Tab Reference",
+    "tabsTitle": "📋 標籤參考",
     "tabOverview": "View 6 major KPIs.",
     "tabMarketing": "Compare ad performance.",
     "tabChannel": "Real-time CTR, CPC, ROAS.",
@@ -16739,7 +16739,7 @@ export default {
     "tabSales": "Country comparison.",
     "tabInfluencer": "Creator engagement.",
     "tabSystem": "Server monitoring.",
-    "featuresTitle": "✨ Key Features",
+    "featuresTitle": "✨ 主要功能",
     "feat1Title": "Real-Time KPI",
     "feat1Desc": "All data syncs in real-time.",
     "feat2Title": "Auto Sync",
@@ -16752,13 +16752,13 @@ export default {
     "feat5Desc": "XSS, CSRF protection.",
     "feat6Title": "Responsive Design",
     "feat6Desc": "Optimized for all devices.",
-    "tipsTitle": "Expert Tips",
+    "tipsTitle": "專家提示",
     "tip1": "Check KPI colors daily. Red = action needed.",
     "tip2": "Click channel cards for analysis.",
     "tip3": "Click country markers for details.",
     "tip4": "Use AI analysis for creators.",
     "tip5": "Verify SECURE status regularly.",
-    "faqTitle": "FAQ",
+    "faqTitle": "常見問題",
     "faq1Q": "No data showing",
     "faq1A": "Create campaigns first.",
     "faq2Q": "KPI values are 0",
@@ -16769,7 +16769,7 @@ export default {
     "faq4A": "SecurityGuard detected threats.",
     "faq5Q": "Switch language?",
     "faq5A": "Use top-right dropdown.",
-    "readyTitle": "🎉 Ready to Start!",
+    "readyTitle": "🎉 準備開始！",
     "readyDesc": "Click Overview tab to begin."
   },
   "campMgr": {
@@ -16892,5 +16892,9 @@ export default {
     "guideStep": "Step",
     "guideTip": "Tip",
     "guideTips": "Tips"
+  },
+  "dashTabs": {
+    "guide": "使用指南",
+    "guideDesc": "使用者指南"
   }
 };

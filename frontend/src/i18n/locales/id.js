@@ -15438,13 +15438,13 @@ export default {
     "autoTab1": "① Campaign Setup",
     "autoTab2": "③ Campaign Config",
     "autoTab3": "③ AI Strategy Preview",
-    "autoTab4": "Usage Guide",
-    "mktTabOverview": "Overview",
-    "mktTabAdStatus": "Ad Status",
-    "mktTabCreative": "Creative",
-    "mktTabCompare": "Compare",
-    "mktTabAiDesign": "AI Design",
-    "mktTabGuide": "Guide"
+    "autoTab4": "Panduan",
+    "mktTabOverview": "Ringkasan",
+    "mktTabAdStatus": "Status Iklan",
+    "mktTabCreative": "Kreatif",
+    "mktTabCompare": "Bandingkan",
+    "mktTabAiDesign": "Desain AI",
+    "mktTabGuide": "Panduan"
   },
   "accountPerf": {
     "pageTitle": "帳號績效",
@@ -18170,7 +18170,7 @@ export default {
     "guideReadyDesc": "Select Attribution from the menu."
   },
   "dashGuide": {
-    "title": "Dashboard Usage Guide",
+    "title": "Panduan Dashboard",
     "desc": "Learn all Dashboard features step by step.",
     "badgeBeginner": "Beginner Guide",
     "badgeTime": "5 min read",
@@ -18180,7 +18180,7 @@ export default {
     "step2": "Check overview KPIs.",
     "step3": "Click sub-tabs for detailed analysis.",
     "step4": "Review security banner.",
-    "stepsTitle": "Getting Started — 6 Steps",
+    "stepsTitle": "🚀 Memulai — 10 Langkah",
     "step1Title": "Select Tab",
     "step1Desc": "Choose an analysis category from the tab bar.",
     "step2Title": "Check KPI Cards",
@@ -18193,11 +18193,11 @@ export default {
     "step5Desc": "Download data as Excel.",
     "step6Title": "Check Alerts",
     "step6Desc": "Review latest alerts in the activity feed.",
-    "subtitle": "Learn all Dashboard features step by step.",
-    "beginnerBadge": "Beginner Guide",
-    "timeBadge": "5 min read",
-    "langBadge": "15 Languages",
-    "whereToStart": "Where do I start?",
+    "subtitle": "Pelajari semua fitur langkah demi langkah.",
+    "beginnerBadge": "Pemula",
+    "timeBadge": "5 menit",
+    "langBadge": "15 bahasa",
+    "whereToStart": "Mulai dari mana?",
     "whereToStartDesc": "1. Click \"Dashboard\" from the left menu.\n2. Check overview KPIs.\n3. Click sub-tabs for detailed analysis.\n4. Review security banner.",
     "step7Title": "Manage Influencers",
     "step7Desc": "Monitor creator followers.",
@@ -18207,7 +18207,7 @@ export default {
     "step9Desc": "Check security banner for threats.",
     "step10Title": "Regular Monitoring",
     "step10Desc": "Create daily dashboard review routine.",
-    "tabsTitle": "📋 Tab-by-Tab Reference",
+    "tabsTitle": "📋 Referensi Tab",
     "tabOverview": "View 6 major KPIs.",
     "tabMarketing": "Compare ad performance.",
     "tabChannel": "Real-time CTR, CPC, ROAS.",
@@ -18215,7 +18215,7 @@ export default {
     "tabSales": "Country comparison.",
     "tabInfluencer": "Creator engagement.",
     "tabSystem": "Server monitoring.",
-    "featuresTitle": "✨ Key Features",
+    "featuresTitle": "✨ Fitur Utama",
     "feat1Title": "Real-Time KPI",
     "feat1Desc": "All data syncs in real-time.",
     "feat2Title": "Auto Sync",
@@ -18228,7 +18228,7 @@ export default {
     "feat5Desc": "XSS, CSRF protection.",
     "feat6Title": "Responsive Design",
     "feat6Desc": "Optimized for all devices.",
-    "tipsTitle": "Expert Tips",
+    "tipsTitle": "Tips",
     "tip1": "Check KPI colors daily. Red = action needed.",
     "tip2": "Click channel cards for analysis.",
     "tip3": "Click country markers for details.",
@@ -18245,7 +18245,7 @@ export default {
     "faq4A": "SecurityGuard detected threats.",
     "faq5Q": "Switch language?",
     "faq5A": "Use top-right dropdown.",
-    "readyTitle": "🎉 Ready to Start!",
+    "readyTitle": "🎉 Siap Mulai!",
     "readyDesc": "Click Overview tab to begin."
   },
   "campMgr": {
@@ -18368,5 +18368,9 @@ export default {
     "guideStep": "Step",
     "guideTip": "Tip",
     "guideTips": "Tips"
+  },
+  "dashTabs": {
+    "guide": "Panduan",
+    "guideDesc": "Panduan pengguna"
   }
 };
