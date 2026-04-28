@@ -331,20 +331,36 @@ function LoginForm({ onSwitch, loginType = "production" }) {
   /* 자동 로그아웃으로 리디렉트된 경우 감지 */
   const isIdleLogout = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("reason") === "idle";
 
+  const isDemo = loginType === 'demo';
+  const envColor = isDemo ? '#fb923c' : '#4f8ef7';
+  const envIcon = isDemo ? '🎪' : '🏢';
+  const envLabel = isDemo ? t('auth.demoMemberLogin') : t('auth.productionLogin');
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null); setLoading(true);
     try {
-      await login(email, password, loginType);
+      const user = await login(email, password, loginType);
+      /* ── admin 계정은 일반 로그인 차단 ── */
+      if ((user.plans || user.plan) === 'admin') {
+        throw new Error(t('auth.adminBlockedInNormalLogin'));
+      }
       navigate("/dashboard", { replace: true });
     } catch (err) { setError(err.message); }
     setLoading(false);
   };
 
-  const isDemo = typeof window !== 'undefined' && (window.location.hostname.includes('roidemo') || window.location.hostname.includes('demo')) || import.meta.env.VITE_DEMO_MODE === 'true';
-
   return (
     <form onSubmit={handleSubmit} style={{ display: "grid", gap: 16 }}>
+      {/* 현재 로그인 환경 배지 */}
+      <div style={{ padding: '10px 14px', borderRadius: 10, background: `${envColor}0D`, border: `1px solid ${envColor}33`, display: 'flex', alignItems: 'center', gap: 10 }}>
+        <span style={{ fontSize: 18 }}>{envIcon}</span>
+        <div>
+          <div style={{ fontWeight: 800, fontSize: 12, color: envColor }}>{envLabel}</div>
+          <div style={{ fontSize: 10, color: '#64748b', marginTop: 1 }}>{t('auth.loginEnvDesc')}</div>
+        </div>
+      </div>
+
       {/* 자동 로그아웃 알림 */}
       {isIdleLogout && (
         <div style={{ padding: "10px 14px", borderRadius: 10, background: "rgba(234,179,8,0.08)", border: "1px solid rgba(234,179,8,0.3)", color: "#eab308", fontSize: 12, fontWeight: 600, display: "flex", alignItems: "center", gap: 8 }}>
@@ -358,8 +374,8 @@ function LoginForm({ onSwitch, loginType = "production" }) {
       {error && <div style={{ padding: "8px 12px", borderRadius: 8, background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.3)", color: "#ef4444", fontSize: 11 }}>{error}</div>}
 
       <SSOButtonGroup t={t} />
-      <button type="submit" disabled={loading} style={{ padding: "12px 0", borderRadius: 10, border: "none", background: loading ? "rgba(79,142,247,0.4)" : "linear-gradient(135deg,#4f8ef7,#6366f1)", color: "#fff", fontWeight: 800, fontSize: 14, cursor: loading ? "not-allowed" : "pointer" }}>
-        {loading ? t("auth.loggingIn") : `🔐 ${t("auth.loginBtn")}`}
+      <button type="submit" disabled={loading} style={{ padding: "12px 0", borderRadius: 10, border: "none", background: loading ? `${envColor}66` : `linear-gradient(135deg,${envColor},${envColor}cc)`, color: "#fff", fontWeight: 800, fontSize: 14, cursor: loading ? "not-allowed" : "pointer" }}>
+        {loading ? t("auth.loggingIn") : `${envIcon} ${envLabel}`}
       </button>
     </form>
   );
@@ -544,7 +560,7 @@ function FreeRegisterForm({ onSwitch, onBack, variant = "demo" }) {
     e.preventDefault();
     setError(null);
     if (password !== confirm) { setError(t("auth.passwordMismatch")); return; }
-    if (!agreeTerms || !agreePrivacy || !agreeEcommerce) { setError('필수 약관에 모두 동의해 주세요.'); return; }
+    if (!agreeTerms || !agreePrivacy || !agreeEcommerce) { setError(t('auth.agreeTermsRequired')); return; }
     setLoading(true);
     try {
       const result = await register(email, password, name, "", { plan: "" });
@@ -563,10 +579,10 @@ function FreeRegisterForm({ onSwitch, onBack, variant = "demo" }) {
         <span style={{ fontSize: 18 }}>{isProd ? "🏢" : "🌱"}</span>
         <div>
           <div style={{ fontWeight: 800, fontSize: 12, color: isProd ? "#4f8ef7" : "#22c55e" }}>
-            {isProd ? "운영시스템 회원가입 (Production Registration)" : t("auth.freeTrialTitle")}
+            {isProd ? t('auth.prodRegisterTitle') : t("auth.freeTrialTitle")}
           </div>
           <div style={{ fontSize: 10, color: "var(--text-3)", marginTop: 1 }}>
-            {isProd ? "운영 계정을 생성합니다." : t("auth.freeTrialDesc")}
+            {isProd ? t('auth.prodRegisterDesc') : t("auth.freeTrialDesc")}
           </div>
         </div>
         <button type="button" onClick={onBack} style={{ marginLeft: "auto", background: "none", border: "none", color: "var(--text-3)", cursor: "pointer", fontSize: 18 }}>←</button>
@@ -598,7 +614,7 @@ function FreeRegisterForm({ onSwitch, onBack, variant = "demo" }) {
       <button type="submit" disabled={loading} style={{ padding: "13px 0", borderRadius: 10, border: "none", background: loading
           ? (isProd ? "rgba(79,142,247,0.4)" : "rgba(34,197,94,0.4)")
           : (isProd ? "linear-gradient(135deg,#4f8ef7,#6366f1)" : "linear-gradient(135deg,#22c55e,#16a34a)"), color: "#fff", fontWeight: 800, fontSize: 14, cursor: loading ? "not-allowed" : "pointer" }}>
-        {loading ? t("auth.registering") : (isProd ? "🏢 회원가입" : t("auth.startFree"))}
+        {loading ? t("auth.registering") : (isProd ? `🏢 ${t('auth.registerBtn')}` : t("auth.startFree"))}
       </button>
 
       <div style={{ textAlign: "center", fontSize: 11, color: "var(--text-3)" }}>
@@ -672,7 +688,7 @@ function PaidRegisterForm({ selectedPlan, onBack, onSwitch }) {
 
   const validateStep3 = () => {
     if (salesChannels.length === 0) return t("auth.salesChannelRequired");
-    if (!agreeTerms || !agreePrivacy || !agreeEcommerce) return '필수 약관에 모두 동의해 주세요.';
+    if (!agreeTerms || !agreePrivacy || !agreeEcommerce) return t('auth.agreeTermsRequired');
     return null;
   };
 
@@ -858,9 +874,8 @@ function PaidRegisterForm({ selectedPlan, onBack, onSwitch }) {
   );
 }
 
-/* ─── Admin Login Form ─────────────────────────────────────── */
-function AdminLoginForm() {
-  const t = useT();
+/* ─── Admin Login Form (한국어 전용) ────────────────────────── */
+function AdminLoginForm({ onBack }) {
   const { login } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
@@ -873,7 +888,7 @@ function AdminLoginForm() {
 
   const verifyKey = (e) => {
     e.preventDefault();
-    if (adminKey.trim().toUpperCase() !== ADMIN_GATE) { setError(t("auth.wrongAdminKey")); return; }
+    if (adminKey.trim().toUpperCase() !== ADMIN_GATE) { setError("접속 코드가 올바르지 않습니다."); return; }
     setError(null); setStep(2);
   };
 
@@ -882,7 +897,7 @@ function AdminLoginForm() {
     setError(null); setLoading(true);
     try {
       const user = await login(email, password, "admin");
-      if ((user.plans || user.plan) !== "admin") throw new Error(t("auth.notAdminAccount"));
+      if ((user.plans || user.plan) !== "admin") throw new Error("관리자 계정이 아닙니다. 관리자 전용 계정으로 로그인하세요.");
       navigate("/admin", { replace: true });
     } catch (err) { setError(err.message); }
     setLoading(false);
@@ -893,32 +908,37 @@ function AdminLoginForm() {
       <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", borderRadius: 10, background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.2)" }}>
         <span style={{ fontSize: 20 }}>🔐</span>
         <div>
-          <div style={{ fontWeight: 800, fontSize: 12, color: "#ef4444" }}>{t("auth.adminLoginTitle")}</div>
-          <div style={{ fontSize: 10, color: "var(--text-3)", marginTop: 2 }}>{t("auth.adminLoginDesc")}</div>
+          <div style={{ fontWeight: 800, fontSize: 12, color: "#ef4444" }}>플랫폼 관리자 로그인</div>
+          <div style={{ fontSize: 10, color: "#64748b", marginTop: 2 }}>접속 코드 인증 후 관리자 계정으로 로그인합니다</div>
         </div>
       </div>
       {step === 1 ? (
         <form onSubmit={verifyKey} style={{ display: "grid", gap: 12 }}>
           <div>
-            <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "var(--text-2)", marginBottom: 5 }}>{t("auth.adminKeyLabel")}</label>
-            <input type="password" value={adminKey} onChange={e => setAdminKey(e.target.value)} placeholder={t("auth.adminKeyPh")} required
-              style={{ width: "100%", boxSizing: "border-box", padding: "10px 14px", borderRadius: 10, border: "1px solid rgba(239,68,68,0.3)", background: "rgba(239,68,68,0.04)", color: '#fff', fontSize: 13, outline: "none" }} />
+            <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#475569", marginBottom: 5 }}>접속 코드</label>
+            <input type="password" value={adminKey} onChange={e => setAdminKey(e.target.value)} placeholder="관리자 접속 코드를 입력하세요" required
+              style={{ width: "100%", boxSizing: "border-box", padding: "10px 14px", borderRadius: 10, border: "1px solid rgba(239,68,68,0.3)", background: "rgba(239,68,68,0.04)", color: "#1e293b", fontSize: 13, outline: "none" }} />
           </div>
           {error && <div style={{ padding: "8px 12px", borderRadius: 8, background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.3)", color: "#ef4444", fontSize: 11 }}>{error}</div>}
-          <button type="submit" style={{ padding: "12px 0", borderRadius: 10, border: "none", background: "linear-gradient(135deg,#ef4444,#dc2626)", color: "#fff", fontWeight: 800, fontSize: 14, cursor: "pointer" }}>{t("auth.verifyKey")}</button>
+          <button type="submit" style={{ padding: "12px 0", borderRadius: 10, border: "none", background: "linear-gradient(135deg,#ef4444,#dc2626)", color: "#fff", fontWeight: 800, fontSize: 14, cursor: "pointer" }}>접속 코드 확인</button>
         </form>
       ) : (
         <form onSubmit={handleLogin} style={{ display: "grid", gap: 12 }}>
-          <div style={{ padding: "6px 12px", borderRadius: 8, background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.2)", fontSize: 11, color: "#22c55e" }}>{t("auth.keyVerified")}</div>
-          <Field label={t("auth.adminEmailLabel")} type="email" value={email} onChange={setEmail} placeholder="admin@example.com" required autoComplete="email" />
-          <Field label={t("auth.passwordLabel")} type="password" value={password} onChange={setPassword} placeholder="••••••••" required autoComplete="current-password" />
+          <div style={{ padding: "6px 12px", borderRadius: 8, background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.2)", fontSize: 11, color: "#22c55e" }}>✅ 접속 코드 인증 완료</div>
+          <Field label="관리자 이메일" type="email" value={email} onChange={setEmail} placeholder="admin@example.com" required autoComplete="email" />
+          <Field label="비밀번호" type="password" value={password} onChange={setPassword} placeholder="••••••••" required autoComplete="current-password" />
           {error && <div style={{ padding: "8px 12px", borderRadius: 8, background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.3)", color: "#ef4444", fontSize: 11 }}>{error}</div>}
           <button type="submit" disabled={loading} style={{ padding: "12px 0", borderRadius: 10, border: "none", background: loading ? "rgba(239,68,68,0.4)" : "linear-gradient(135deg,#ef4444,#dc2626)", color: "#fff", fontWeight: 800, fontSize: 14, cursor: loading ? "not-allowed" : "pointer" }}>
-            {loading ? t("auth.loggingIn") : t("auth.adminLoginBtn")}
+            {loading ? "로그인 중..." : "🔐 관리자 로그인"}
           </button>
-          <button type="button" onClick={() => { setStep(1); setError(null); setAdminKey(""); }} style={{ background: "none", border: "none", color: "var(--text-3)", fontSize: 11, cursor: "pointer" }}>{t("auth.reenterKey")}</button>
+          <button type="button" onClick={() => { setStep(1); setError(null); setAdminKey(""); }} style={{ background: "none", border: "none", color: "#94a3b8", fontSize: 11, cursor: "pointer" }}>접속 코드 재입력</button>
         </form>
       )}
+      {/* 일반 로그인으로 돌아가기 */}
+      <button type="button" onClick={() => onBack && onBack()}
+        style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: 11, cursor: 'pointer', marginTop: 4, textAlign: 'center', width: '100%' }}>
+        ← 돌아가기
+      </button>
     </div>
   );
 }
@@ -986,7 +1006,7 @@ export default function AuthPage() {
   const [mode, setMode] = useState(initialMode); // login | register | free | demo_free | paid | admin
   const [planType, setPlanType] = useState("free");
   const [selectedPaid, setSelectedPaid] = useState("pro");
-  const [loginType, setLoginType] = useState(isDemoDomain ? "demo" : "production");
+  const [loginType, setLoginType] = useState(null);
 
   /* ─── AUTO-REDIRECT GUARD ───
    * Only redirect to dashboard if:
@@ -1020,22 +1040,16 @@ export default function AuthPage() {
       else { window.location.href = "https://roi.genie-go.com/login?mode=free"; }
       return;
     }
-    // 3. 데모 로그인 (Demo Login)
+    // 3. 데모 로그인 (Demo Login) — 도메인 리다이렉트 없이 로컬 전환
     if (target === "demo_login") {
-      if (isDemoDomain || isLocalhost) {
-        if (mode !== "login") setMode("login");
-        if (loginType !== "demo") setLoginType("demo");
-      }
-      else { window.location.href = "https://roidemo.genie-go.com/login"; }
+      if (mode !== "login") setMode("login");
+      setLoginType("demo");
       return;
     }
-    // 4. 운영시스템 로그인 (Production Login)
+    // 4. 운영시스템 로그인 (Production Login) — 도메인 리다이렉트 없이 로컬 전환
     if (target === "prod_login") {
-      if (!isDemoDomain || isLocalhost) {
-        if (mode !== "login") setMode("login");
-        if (loginType !== "production") setLoginType("production");
-      }
-      else { window.location.href = "https://roi.genie-go.com/login"; }
+      if (mode !== "login") setMode("login");
+      setLoginType("production");
       return;
     }
     // Generic mode switch (login, admin, etc.)
@@ -1079,7 +1093,7 @@ export default function AuthPage() {
             <img src="/logo_v5.png" alt="Geniego-ROI" style={{ width: 280, height: 'auto', maxHeight: 260, objectFit: "contain", display: "block", margin: "0 auto", borderRadius: 32, filter: "drop-shadow(0 8px 24px rgba(79,142,247,0.18))" }} />
           </div>
           <div style={{ marginTop: 12, fontWeight: 900, fontSize: 18, letterSpacing: "1.5px", background: "linear-gradient(135deg, #4f8ef7 0%, #6366f1 30%, #a855f7 60%, #f59e0b 100%)", backgroundSize: "200% auto", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", animation: "shimmer 4s linear infinite", fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif", textTransform: "uppercase" }}>
-            AI Marketing ROI Platform
+            {t('auth.platformSlogan')}
           </div>
           <div style={{ fontSize: 11, color: "#8B87A0", marginTop: 6, fontWeight: 700 }}>
             {isDemoDomain ? `🎪 ${t('auth.demoEnvBanner')}` : `🏢 ${t('auth.prodEnvBanner')}`}
@@ -1088,49 +1102,82 @@ export default function AuthPage() {
 
         <div style={{ padding: "24px", borderRadius: 20, background: "rgba(255,255,255,0.85)", backdropFilter: "blur(20px)", border: "1px solid rgba(99,140,255,0.15)", boxShadow: "0 24px 64px rgba(0,0,0,0.08)", maxHeight: "80vh", overflowY: "auto", color: "#1e293b" }}>
 
-          {/* ─── ENVIRONMENT ROUTING TABS ─── */}
-          {mode === "login" && (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 20 }}>
-              <button
-                type="button"
-                onClick={() => handleSwitch('demo_login')}
-                style={{ padding: '12px 10px', borderRadius: 12, border: loginType === 'demo' ? '2px solid #fb923c' : '1px solid rgba(251,146,60,0.2)', background: loginType === 'demo' ? 'rgba(251,146,60,0.1)' : 'rgba(255,255,255,0.05)', cursor: 'pointer', transition: 'all 200ms', textAlign: 'center', fontSize: 20, marginBottom: 4 }}
-              >
-                <div>🎪</div>
-                <div style={{ fontSize: 11, fontWeight: 800, color: loginType === 'demo' ? '#fb923c' : 'var(--text-2)' }}>{t('auth.demoMemberLogin')}</div>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleSwitch('prod_login')}
-                style={{ padding: '12px 10px', borderRadius: 12, border: loginType === 'production' ? '2px solid #4f8ef7' : '1px solid rgba(79,142,247,0.2)', background: loginType === 'production' ? 'rgba(79,142,247,0.1)' : 'rgba(255,255,255,0.05)', cursor: 'pointer', transition: 'all 200ms', textAlign: 'center', fontSize: 20, marginBottom: 4 }}
-              >
-                <div>🏢</div>
-                <div style={{ fontSize: 11, fontWeight: 800, color: loginType === 'production' ? '#4f8ef7' : 'var(--text-2)' }}>{t('auth.productionLogin')}</div>
-              </button>
+          {/* ─── STEP 1: 환경 선택 (loginType이 null일 때) ─── */}
+          {mode === "login" && !loginType && (
+            <div style={{ display: 'grid', gap: 16 }}>
+              <div style={{ textAlign: 'center', marginBottom: 4 }}>
+                <div style={{ fontSize: 13, fontWeight: 800, color: '#1e293b' }}>{t('auth.selectLoginType')}</div>
+                <div style={{ fontSize: 11, color: '#64748b', marginTop: 4 }}>{t('auth.selectLoginTypeDesc')}</div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <button type="button" onClick={() => handleSwitch('demo_login')}
+                  style={{ padding: '24px 16px', borderRadius: 16, border: '2px solid rgba(251,146,60,0.3)', background: 'rgba(251,146,60,0.04)', cursor: 'pointer', transition: 'all 200ms', textAlign: 'center' }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = '#fb923c'; e.currentTarget.style.background = 'rgba(251,146,60,0.1)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(251,146,60,0.3)'; e.currentTarget.style.background = 'rgba(251,146,60,0.04)'; e.currentTarget.style.transform = 'none'; }}
+                >
+                  <div style={{ fontSize: 36, marginBottom: 8 }}>🎪</div>
+                  <div style={{ fontSize: 13, fontWeight: 800, color: '#fb923c' }}>{t('auth.demoMemberLogin')}</div>
+                  <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 4 }}>{t('auth.demoEnvBanner')}</div>
+                </button>
+                <button type="button" onClick={() => handleSwitch('prod_login')}
+                  style={{ padding: '24px 16px', borderRadius: 16, border: '2px solid rgba(79,142,247,0.3)', background: 'rgba(79,142,247,0.04)', cursor: 'pointer', transition: 'all 200ms', textAlign: 'center' }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = '#4f8ef7'; e.currentTarget.style.background = 'rgba(79,142,247,0.1)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(79,142,247,0.3)'; e.currentTarget.style.background = 'rgba(79,142,247,0.04)'; e.currentTarget.style.transform = 'none'; }}
+                >
+                  <div style={{ fontSize: 36, marginBottom: 8 }}>🏢</div>
+                  <div style={{ fontSize: 13, fontWeight: 800, color: '#4f8ef7' }}>{t('auth.productionLogin')}</div>
+                  <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 4 }}>{t('auth.prodEnvBanner')}</div>
+                </button>
+              </div>
+              <div style={{ marginTop: 8, paddingTop: 16, borderTop: '1px solid rgba(99,140,255,0.15)', display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <div style={{ fontSize: 11, color: '#94a3b8', textAlign: 'center', fontWeight: 700 }}>{t('auth.noAccountYet')}</div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                  <button type="button" onClick={() => handleSwitch('demo_register')} style={{ padding: '10px', borderRadius: 10, background: 'rgba(251,146,60,0.08)', border: '1px solid rgba(251,146,60,0.3)', color: '#fb923c', fontWeight: 800, fontSize: 11, cursor: 'pointer' }}>
+                    {t('auth.demoRegister')}
+                  </button>
+                  <button type="button" onClick={() => handleSwitch('prod_register')} style={{ padding: '10px', borderRadius: 10, background: 'rgba(79,142,247,0.08)', border: '1px solid rgba(79,142,247,0.3)', color: '#4f8ef7', fontWeight: 800, fontSize: 11, cursor: 'pointer' }}>
+                    {t('auth.prodRegister')}
+                  </button>
+                </div>
+              </div>
             </div>
           )}
 
-          {/* Route: Admin */}
-          {mode === "admin" && <AdminLoginForm />}
-
-          {/* Route: Login */}
-          {mode === "login" && (
+          {/* ─── STEP 2: 로그인 폼 (loginType 선택 후) ─── */}
+          {mode === "login" && loginType && (
             <>
+              {/* 환경 전환 탭 (소형) */}
+              <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+                <button type="button" onClick={() => setLoginType('demo')}
+                  style={{ flex: 1, padding: '8px', borderRadius: 10, border: loginType === 'demo' ? '2px solid #fb923c' : '1px solid rgba(251,146,60,0.2)', background: loginType === 'demo' ? 'rgba(251,146,60,0.1)' : 'transparent', cursor: 'pointer', transition: 'all 200ms', textAlign: 'center' }}>
+                  <span style={{ fontSize: 14 }}>🎪</span>
+                  <span style={{ fontSize: 11, fontWeight: 800, color: loginType === 'demo' ? '#fb923c' : '#94a3b8', marginLeft: 6 }}>{t('auth.demoMemberLogin')}</span>
+                </button>
+                <button type="button" onClick={() => setLoginType('production')}
+                  style={{ flex: 1, padding: '8px', borderRadius: 10, border: loginType === 'production' ? '2px solid #4f8ef7' : '1px solid rgba(79,142,247,0.2)', background: loginType === 'production' ? 'rgba(79,142,247,0.1)' : 'transparent', cursor: 'pointer', transition: 'all 200ms', textAlign: 'center' }}>
+                  <span style={{ fontSize: 14 }}>🏢</span>
+                  <span style={{ fontSize: 11, fontWeight: 800, color: loginType === 'production' ? '#4f8ef7' : '#94a3b8', marginLeft: 6 }}>{t('auth.productionLogin')}</span>
+                </button>
+              </div>
+
               <LoginForm onSwitch={handleSwitch} loginType={loginType} />
               
-              <div style={{ marginTop: 24, paddingTop: 16, borderTop: "1px solid rgba(99,140,255,0.15)", display: "flex", flexDirection: "column", gap: 10 }}>
-                <div style={{ fontSize: 11, color: "var(--text-3)", textAlign: "center", fontWeight: 700 }}>Don't have an account?</div>
+              <div style={{ marginTop: 24, paddingTop: 16, borderTop: '1px solid rgba(99,140,255,0.15)', display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <div style={{ fontSize: 11, color: '#94a3b8', textAlign: 'center', fontWeight: 700 }}>{t('auth.noAccountYet')}</div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                  <button type="button" onClick={() => handleSwitch('demo_register')} style={{ padding: "10px", borderRadius: 10, background: "rgba(251,146,60,0.08)", border: "1px solid rgba(251,146,60,0.3)", color: "#fb923c", fontWeight: 800, fontSize: 11, cursor: "pointer" }}>
-                    데모회원가입
+                  <button type="button" onClick={() => handleSwitch('demo_register')} style={{ padding: '10px', borderRadius: 10, background: 'rgba(251,146,60,0.08)', border: '1px solid rgba(251,146,60,0.3)', color: '#fb923c', fontWeight: 800, fontSize: 11, cursor: 'pointer' }}>
+                    {t('auth.demoRegister')}
                   </button>
-                  <button type="button" onClick={() => handleSwitch('prod_register')} style={{ padding: "10px", borderRadius: 10, background: "rgba(79,142,247,0.08)", border: "1px solid rgba(79,142,247,0.3)", color: "#4f8ef7", fontWeight: 800, fontSize: 11, cursor: "pointer" }}>
-                    운영시스템회원가입
+                  <button type="button" onClick={() => handleSwitch('prod_register')} style={{ padding: '10px', borderRadius: 10, background: 'rgba(79,142,247,0.08)', border: '1px solid rgba(79,142,247,0.3)', color: '#4f8ef7', fontWeight: 800, fontSize: 11, cursor: 'pointer' }}>
+                    {t('auth.prodRegister')}
                   </button>
                 </div>
               </div>
             </>
           )}
+
+          {/* Route: Admin — 완전 격리, 데모/운영 선택 불가 */}
+          {mode === "admin" && <AdminLoginForm onBack={() => { setMode('login'); setLoginType(null); }} />}
 
           {/* Route: Register (prod only) */}
           {mode === "register" && !isDemoDomain && (
@@ -1138,8 +1185,8 @@ export default function AuthPage() {
               <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", borderRadius: 10, background: "rgba(79,142,247,0.06)", border: "1px solid rgba(79,142,247,0.2)" }}>
                 <span style={{ fontSize: 18 }}>🏢</span>
                 <div>
-                  <div style={{ fontWeight: 800, fontSize: 12, color: "#4f8ef7" }}>운영시스템 회원가입 (Production Registration)</div>
-                  <div style={{ fontSize: 10, color: "var(--text-3)", marginTop: 1 }}>플랜을 선택하여 운영 계정을 생성합니다.</div>
+                  <div style={{ fontWeight: 800, fontSize: 12, color: "#4f8ef7" }}>{t('auth.prodRegisterTitle')}</div>
+                  <div style={{ fontSize: 10, color: "var(--text-3)", marginTop: 1 }}>{t('auth.prodRegisterSelectPlan')}</div>
                 </div>
                 <button type="button" onClick={() => handleSwitch('login')} style={{ marginLeft: "auto", background: "none", border: "none", color: "var(--text-3)", cursor: "pointer", fontSize: 18 }}>✕</button>
               </div>
@@ -1147,12 +1194,12 @@ export default function AuthPage() {
                 <button onClick={() => { setPlanType("free"); setMode("free"); }} style={{ padding: "18px 12px", borderRadius: 14, border: "1px solid rgba(34,197,94,0.3)", background: "rgba(34,197,94,0.06)", cursor: "pointer", textAlign: "center" }}>
                   <div style={{ fontSize: 20, marginBottom: 6 }}>🆓</div>
                   <div style={{ fontWeight: 800, fontSize: 13, color: "#22c55e" }}>Free</div>
-                  <div style={{ fontSize: 10, color: "var(--text-3)", marginTop: 4 }}>운영시스템 무료 체험</div>
+                  <div style={{ fontSize: 10, color: "var(--text-3)", marginTop: 4 }}>{t('auth.prodFreeTrial')}</div>
                 </button>
                 <button onClick={() => { setPlanType("paid"); setMode("paid"); }} style={{ padding: "18px 12px", borderRadius: 14, border: "1px solid rgba(168,85,247,0.3)", background: "rgba(168,85,247,0.06)", cursor: "pointer", textAlign: "center" }}>
                   <div style={{ fontSize: 20, marginBottom: 6 }}>💎</div>
                   <div style={{ fontWeight: 800, fontSize: 13, color: "#a855f7" }}>Paid</div>
-                  <div style={{ fontSize: 10, color: "var(--text-3)", marginTop: 4 }}>운영시스템 구독</div>
+                  <div style={{ fontSize: 10, color: "var(--text-3)", marginTop: 4 }}>{t('auth.prodSubscription')}</div>
                 </button>
               </div>
             </div>
@@ -1166,11 +1213,11 @@ export default function AuthPage() {
           {/* Route: Production registration chooser — 데모 도메인에서 운영 사이트 안내 */}
           {mode === "register" && isDemoDomain && !isLocalhost && (
             <div style={{ textAlign: 'center', padding: 20 }}>
-              <div style={{ fontSize: 14, fontWeight: 800, color: '#4f8ef7', marginBottom: 12 }}>🏢 운영시스템 회원가입</div>
-              <div style={{ fontSize: 11, color: 'var(--text-3)', marginBottom: 16 }}>운영시스템 회원가입은 운영 사이트에서 진행합니다.</div>
-              <a href="https://roi.genie-go.com/login?mode=register" style={{ display: 'inline-block', padding: '12px 28px', borderRadius: 10, background: 'linear-gradient(135deg,#4f8ef7,#6366f1)', color: '#fff', fontWeight: 800, fontSize: 13, textDecoration: 'none' }}>운영시스템으로 이동</a>
+              <div style={{ fontSize: 14, fontWeight: 800, color: '#4f8ef7', marginBottom: 12 }}>🏢 {t('auth.prodRegister')}</div>
+              <div style={{ fontSize: 11, color: 'var(--text-3)', marginBottom: 16 }}>{t('auth.prodRegisterRedirect')}</div>
+              <a href="https://roi.genie-go.com/login?mode=register" style={{ display: 'inline-block', padding: '12px 28px', borderRadius: 10, background: 'linear-gradient(135deg,#4f8ef7,#6366f1)', color: '#fff', fontWeight: 800, fontSize: 13, textDecoration: 'none' }}>{t('auth.goToProduction')}</a>
               <div style={{ marginTop: 12 }}>
-                <button type="button" onClick={() => handleSwitch('login')} style={{ background: 'none', border: 'none', color: 'var(--text-3)', cursor: 'pointer', fontSize: 11 }}>← 돌아가기</button>
+                <button type="button" onClick={() => handleSwitch('login')} style={{ background: 'none', border: 'none', color: 'var(--text-3)', cursor: 'pointer', fontSize: 11 }}>← {t('auth.goBack')}</button>
               </div>
             </div>
           )}

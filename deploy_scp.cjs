@@ -1,5 +1,6 @@
 /**
- * deploy_demo.cjs — SSH2 기반 데모 서버 배포 스크립트
+ * deploy_scp.cjs — SSH2 기반 프로덕션 배포 스크립트
+ * frontend/dist → remote:/home/wwwroot/roi.geniego.com/frontend/dist
  */
 const { Client } = require('ssh2');
 const fs = require('fs');
@@ -14,8 +15,9 @@ const REMOTE = {
 };
 
 const LOCAL_DIR = path.resolve(__dirname, 'frontend', 'dist');
-const REMOTE_DIR = '/home/wwwroot/roidemo.geniego.com/frontend/dist';
+const REMOTE_DIR = '/home/wwwroot/roi.geniego.com/frontend/dist';
 
+// Recursively gather all files in a directory
 function walkDir(dir, base = dir) {
   let results = [];
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -36,17 +38,18 @@ async function deploy() {
   }
 
   const files = walkDir(LOCAL_DIR);
-  console.log(`📦 ${files.length} files to deploy to DEMO from ${LOCAL_DIR}`);
+  console.log(`📦 ${files.length} files to deploy from ${LOCAL_DIR}`);
 
   const conn = new Client();
 
   return new Promise((resolve, reject) => {
     conn.on('ready', () => {
-      console.log('✅ SSH connected (DEMO)');
+      console.log('✅ SSH connected');
 
       conn.sftp((err, sftp) => {
         if (err) { reject(err); return; }
 
+        // Collect unique remote directories
         const dirs = new Set();
         files.forEach(f => {
           const parts = f.rel.split('/');
@@ -55,13 +58,17 @@ async function deploy() {
           }
         });
 
+        // Ensure remote directories exist
         const sortedDirs = [...dirs].sort();
         let dirIdx = 0;
 
         function ensureDirs(cb) {
           if (dirIdx >= sortedDirs.length) { cb(); return; }
           const d = sortedDirs[dirIdx++];
-          sftp.mkdir(d, () => ensureDirs(cb));
+          sftp.mkdir(d, (err) => {
+            // ignore EEXIST
+            ensureDirs(cb);
+          });
         }
 
         ensureDirs(() => {
@@ -72,7 +79,7 @@ async function deploy() {
 
           function uploadNext() {
             if (fileIdx >= files.length) {
-              console.log(`\n✅ DEMO Deployment complete — ${uploaded} files uploaded`);
+              console.log(`\n✅ Deployment complete — ${uploaded} files uploaded`);
               conn.end();
               resolve();
               return;
@@ -104,13 +111,13 @@ async function deploy() {
       reject(err);
     });
 
-    console.log(`🔗 Connecting to ${REMOTE.host} (DEMO)...`);
+    console.log(`🔗 Connecting to ${REMOTE.host}...`);
     conn.connect(REMOTE);
   });
 }
 
 deploy().then(() => {
-  console.log('🎉 DEMO deploy finished');
+  console.log('🎉 Production deploy finished');
   process.exit(0);
 }).catch(err => {
   console.error('💥 Deploy failed:', err.message);

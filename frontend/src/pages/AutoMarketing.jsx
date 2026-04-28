@@ -548,7 +548,7 @@ export default function AutoMarketing() {
                                     padding: '7px 14px', borderRadius: 9, border: 'none', cursor: 'pointer',
                                     fontSize: 12, fontWeight: 700, transition: 'all 0.2s cubic-bezier(.4,0,.2,1)',
                                     background: isActive ? clr : 'transparent',
-                                    color: isActive ? '#ffffff' : 'var(--text-2, #64748b)',
+                                    color: isActive ? '#ffffff' : '#374151',
                                     boxShadow: isActive ? `0 3px 14px ${clr}40` : 'none',
                                     transform: isActive ? 'translateY(-1px)' : 'none' }}>
                                     {tb.icon} {tb.label}
@@ -661,7 +661,7 @@ export default function AutoMarketing() {
                         <div style={{ fontWeight: 700, fontSize: 13, color: "#4f8ef7", marginBottom: 14 }}>{t("marketing.budgetSetup")}</div>
                         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
                             {[300000, 500000, 1000000, 2000000, 3000000, 5000000, 10000000].map(v => (
-                                <button key={v} onClick={() => { setBudget(v); setCustomBudget(""); handleBudgetChange(v); }} style={{ padding: "8px 16px", borderRadius: 9, fontSize: 12, fontWeight: 700, cursor: "pointer", backgroundColor: effectiveBudget === v && !customBudget ? "#4f8ef7" : "rgba(79,142,247,0.08)", backgroundImage: effectiveBudget === v && !customBudget ? "linear-gradient(135deg,#4f8ef7,#6366f1)" : "none", color: effectiveBudget === v && !customBudget ? "#ffffff" : "#334155", border: effectiveBudget === v && !customBudget ? "2px solid #4f8ef7" : "1px solid rgba(99,140,255,0.2)", boxShadow: effectiveBudget === v && !customBudget ? "0 4px 14px rgba(79,142,247,0.35)" : "none" }}>
+                                <button key={v} onClick={() => { setBudget(v); setCustomBudget(""); handleBudgetChange(v); }} style={{ padding: "8px 16px", borderRadius: 9, fontSize: 12, fontWeight: 800, cursor: "pointer", backgroundColor: effectiveBudget === v && !customBudget ? "rgba(79,142,247,0.15)" : "rgba(79,142,247,0.08)", color: effectiveBudget === v && !customBudget ? "#dc2626" : "#334155", border: effectiveBudget === v && !customBudget ? "2px solid #4f8ef7" : "1px solid rgba(99,140,255,0.2)", boxShadow: effectiveBudget === v && !customBudget ? "0 2px 8px rgba(79,142,247,0.25)" : "none" }}>
                                     {fmt(v)}
                                 </button>
                             ))}
@@ -969,7 +969,7 @@ export default function AutoMarketing() {
 
                                 {/* Channelper 배분 */}
                                 <div style={cardStyle}>
-                                    <div style={{ fontWeight: 700, fontSize: 13, color: '#fff', marginBottom: 16 }}>{t("marketing.channelAlloc")}</div>
+                                    <div style={{ fontWeight: 700, fontSize: 13, color: '#4f8ef7', marginBottom: 16 }}>{t("marketing.channelAlloc")}</div>
                                     {strategy.allocations.map(({ ch, alloc, impressions, clicks, conversions, roas }) => {
                                         const pct = ((alloc / strategy.budget) * 100).toFixed(1);
                                         return (

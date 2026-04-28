@@ -23,12 +23,12 @@ function fmtLabel(d) {
 // ── 프리셋 정의 ──────────────────────────────────────────────────────
 function getPresets(t) {
   return [
-    { id: 'today', label: t('period.today', '오늘'), days: 0 },
-    { id: '7d', label: t('period.7d', '7일'), days: 7 },
-    { id: '14d', label: t('period.14d', '14일'), days: 14 },
-    { id: '30d', label: t('period.30d', '30일'), days: 30 },
-    { id: '90d', label: t('period.90d', '90일'), days: 90 },
-    { id: 'custom', label: t('period.custom', '기간설정'), days: -1 },
+    { id: 'today', label: t('dashPeriod.today', '오늘'), days: 0 },
+    { id: '7d', label: t('dashPeriod.7d', '7일'), days: 7 },
+    { id: '14d', label: t('dashPeriod.14d', '14일'), days: 14 },
+    { id: '30d', label: t('dashPeriod.30d', '30일'), days: 30 },
+    { id: '90d', label: t('dashPeriod.90d', '90일'), days: 90 },
+    { id: 'custom', label: t('dashPeriod.custom', '기간설정'), days: -1 },
   ];
 }
 
@@ -161,12 +161,12 @@ export default function DashPeriodSelector({ value, onChange, compact = false })
           animation: 'fadeIn 0.2s ease',
         }}>
           <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-1, #111827)', marginBottom: 12 }}>
-            📅 {t('period.customRange', '기간 직접 설정')}
+            📅 {t('dashPeriod.customRange', '기간 직접 설정')}
           </div>
           <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 12 }}>
             <div style={{ flex: 1 }}>
               <label style={{ fontSize: 10, color: 'var(--text-3, #9ca3af)', fontWeight: 600, display: 'block', marginBottom: 4 }}>
-                {t('period.startDate', '시작일')}
+                {t('dashPeriod.startDate', '시작일')}
               </label>
               <input
                 type="date"
@@ -185,7 +185,7 @@ export default function DashPeriodSelector({ value, onChange, compact = false })
             <span style={{ color: 'var(--text-3)', fontSize: 14, marginTop: 16 }}>~</span>
             <div style={{ flex: 1 }}>
               <label style={{ fontSize: 10, color: 'var(--text-3, #9ca3af)', fontWeight: 600, display: 'block', marginBottom: 4 }}>
-                {t('period.endDate', '종료일')}
+                {t('dashPeriod.endDate', '종료일')}
               </label>
               <input
                 type="date"
@@ -214,7 +214,7 @@ export default function DashPeriodSelector({ value, onChange, compact = false })
               transition: 'all 0.2s',
             }}
           >
-            {t('period.apply', '적용')}
+            {t('dashPeriod.apply', '적용')}
           </button>
         </div>
       )}
