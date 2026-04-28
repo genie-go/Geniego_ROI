@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Geniego-ROI 로고 다운로드</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #060b14;
+      color: #e8f0ff;
+      min-height: 100vh;
+      padding: 40px 20px 60px;
+    }
+    body::before {
+      content: "";
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background:
+        radial-gradient(ellipse 1200px 800px at 10% 10%, rgba(79,142,247,0.14) 0%, transparent 60%),
+        radial-gradient(ellipse 900px 700px at 85% 15%, rgba(168,85,247,0.12) 0%, transparent 55%),
+        radial-gradient(ellipse 700px 500px at 50% 90%, rgba(20,217,176,0.07) 0%, transparent 55%);
+    }
+    .wrap { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; }
+    .header { text-align: center; margin-bottom: 48px; }
+    .header-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 5px 16px; border-radius: 99px;
+      background: rgba(79,142,247,0.12); border: 1px solid rgba(79,142,247,0.28);
+      font-size: 11px; color: #93c5fd; font-weight: 700; letter-spacing: 0.4px;
+      margin-bottom: 16px;
+    }
+    .header h1 {
+      font-size: clamp(28px, 5vw, 42px); font-weight: 900; letter-spacing: -1px;
+      background: linear-gradient(135deg, #4f8ef7, #a855f7, #14d9b0);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      margin-bottom: 10px; line-height: 1.2;
+    }
+    .header p { font-size: 14px; color: rgba(255,255,255,0.45); }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 24px;
+    }
+    .card {
+      background: rgba(13,21,37,0.85);
+      border: 1px solid rgba(99,140,255,0.14);
+      border-radius: 20px;
+      overflow: hidden;
+      transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+    }
+    .card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(79,142,247,0.35);
+      box-shadow: 0 16px 48px rgba(0,0,0,0.5);
+    }
+    .img-wrap {
+      background: linear-gradient(135deg, rgba(15,25,50,0.9), rgba(10,16,35,0.95));
+      padding: 24px; display: flex; align-items: center; justify-content: center;
+      min-height: 220px; position: relative;
+    }
+    .img-wrap::after {
+      content: ""; position: absolute; inset: 0;
+      background: radial-gradient(ellipse at center, rgba(79,142,247,0.06) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .img-wrap img {
+      max-width: 100%; max-height: 200px; object-fit: contain;
+      border-radius: 8px;
+      filter: drop-shadow(0 8px 24px rgba(79,142,247,0.3));
+    }
+    .card-body { padding: 20px; }
+    .card-title { font-size: 15px; font-weight: 800; margin-bottom: 4px; }
+    .card-desc { font-size: 11px; color: rgba(255,255,255,0.4); margin-bottom: 16px; line-height: 1.6; }
+    .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 9px 18px; border-radius: 10px; border: none;
+      font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 700;
+      cursor: pointer; text-decoration: none; transition: all 0.15s;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #4f8ef7, #6366f1);
+      color: #fff; box-shadow: 0 4px 16px rgba(79,142,247,0.35);
+    }
+    .btn-primary:hover { box-shadow: 0 6px 24px rgba(79,142,247,0.55); transform: translateY(-1px); }
+    .btn-outline {
+      background: rgba(79,142,247,0.08);
+      color: #93c5fd;
+      border: 1px solid rgba(79,142,247,0.28);
+    }
+    .btn-outline:hover { background: rgba(79,142,247,0.16); }
+    .version-tag {
+      display: inline-block; font-size: 9px; font-weight: 800; padding: 2px 8px;
+      border-radius: 99px; margin-bottom: 6px;
+    }
+    .v1 { background: rgba(79,142,247,0.18); color: #93c5fd; border: 1px solid rgba(79,142,247,0.3); }
+    .v2 { background: rgba(168,85,247,0.18); color: #c4b5fd; border: 1px solid rgba(168,85,247,0.3); }
+    .v3 { background: rgba(20,217,176,0.14); color: #5eead4; border: 1px solid rgba(20,217,176,0.3); }
+    .footer { text-align: center; margin-top: 48px; font-size: 11px; color: rgba(255,255,255,0.2); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="header">
+      <div class="header-badge">🎨 로고 에셋 센터</div>
+      <h1>Geniego-ROI 로고</h1>
+      <p>원하는 버전을 선택해 PNG로 다운로드하세요</p>
+    </div>
+
+    <div class="grid">
+      <!-- v1 -->
+      <div class="card">
+        <div class="img-wrap">
+          <img src="/logo_v1.png" alt="Geniego-ROI Logo v1" id="img-v1" />
+        </div>
+        <div class="card-body">
+          <span class="version-tag v1">버전 1</span>
+          <div class="card-title">지니 + 데이터 분석 강조형</div>
+          <div class="card-desc">지니 캐릭터가 마법 램프에서 등장하며 ROI 차트와 그래프를 들고 있는 프리미엄 스타일</div>
+          <div class="btn-row">
+            <a class="btn btn-primary" href="/logo_v1.png" download="Geniego-ROI_Logo_v1.png">⬇ PNG 다운로드</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- v2 -->
+      <div class="card">
+        <div class="img-wrap">
+          <img src="/logo_v2.png" alt="Geniego-ROI Logo v2" id="img-v2" />
+        </div>
+        <div class="card-body">
+          <span class="version-tag v2">버전 2</span>
+          <div class="card-title">원형 엠블렘 미니멀형</div>
+          <div class="card-desc">원형 배지 안에 지니 + 램프가 담긴 미니멀 프리미엄 엠블렘 스타일</div>
+          <div class="btn-row">
+            <a class="btn btn-primary" href="/logo_v2.png" download="Geniego-ROI_Logo_v2.png">⬇ PNG 다운로드</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- v3 -->
+      <div class="card">
+        <div class="img-wrap">
+          <img src="/logo_v3.png" alt="Geniego-ROI Logo v3" id="img-v3" />
+        </div>
+        <div class="card-body">
+          <span class="version-tag v3">버전 3</span>
+          <div class="card-title">원본 지니 얼굴 유지형</div>
+          <div class="card-desc">원본 지니 캐릭터 얼굴(귀 포함)을 최대한 보존한 마법 램프 조합 로고</div>
+          <div class="btn-row">
+            <a class="btn btn-primary" href="/logo_v3.png" download="Geniego-ROI_Logo_v3.png">⬇ PNG 다운로드</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      Geniego-ROI · AI Marketing ROI Platform · 로고 에셋 v1.0
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,12 @@
+InfluencerUGC files:
+
+
+Nginx cache config:
+
+
+React vendor files:
+/home/wwwroot/roi.geniego.com/frontend/dist/assets/vendor-react-B7EBcZIh.js
+
+Cache version line:
+        var v = "v4.4.0"; // Cache bust — force fresh after deploy
+

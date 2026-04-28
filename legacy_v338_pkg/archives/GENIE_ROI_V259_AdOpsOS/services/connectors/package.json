@@ -1,0 +1,8 @@
+{
+  "name": "genie-roi-v259-connectors",
+  "version": "259.0.0",
+  "main": "src/index.js",
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}

@@ -1,0 +1,23 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"/>
+<title>GENIE_ROI V338 Runbook</title>
+<style>body{font-family:system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin:24px; line-height:1.5}</style>
+</head><body>
+<h1>GENIE_ROI V338 운영 Runbook</h1>
+<p>V338은 “가격/재고/할인가 동기화”를 작업 큐에 넣고, 워커가 배치로 처리하며, 실패 원인을 분류해 조치 가이드를 제공합니다.</p>
+<h2>가장 흔한 실패 원인과 즉시 조치</h2>
+<ul>
+<li><b>RATE_LIMIT</b>: 자동 backoff 재시도. 지속 시 배치 크기/초당 요청수 조정, 야간 배치 권장.</li>
+<li><b>APPROVAL_PENDING (Coupang)</b>: sellerProduct 승인 대기. 승인 후 vendorItemId가 생성되면 자동 매핑됨. 오래 지속되면 셀러센터 반려/보류 사유 확인.</li>
+<li><b>AUTH</b>: 키/토큰 만료. 환경변수 재설정 후 재시도.</li>
+<li><b>VALIDATION</b>: 필수값/금지어/카테고리/옵션 구성 오류. 피드 룰 엔진으로 검증 후 payload 수정.</li>
+<li><b>NETWORK/5XX</b>: 자동 재시도. 지속 시 외부 API 상태 확인.</li>
+</ul>
+<h2>운영 루프</h2>
+<ol>
+<li>표준 SKU(상품 마스터) 업데이트</li>
+<li>피드 룰 엔진으로 품질 검사 + 가격/할인/쿠폰 적용</li>
+<li>큐에 enqueue(UPSERT_PRICE_STOCK)</li>
+<li>워커 배치 처리(레이트리밋/재시도 포함)</li>
+<li>실패 목록을 보고 원인별로 조치</li>
+</ol>
+</body></html>

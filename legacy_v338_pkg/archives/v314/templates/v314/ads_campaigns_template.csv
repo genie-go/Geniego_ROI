@@ -1,0 +1,3 @@
+date,channel,campaign_id,campaign_name,objective,spend_krw,impressions,clicks,ctr_percent,cpc_krw,notes
+2026-02-01,Google Ads,GA-200,검색-브랜드,전환,350000,120000,3400,,,
+2026-02-01,Meta Ads,FB-120,리타겟팅,구매,420000,180000,2900,,,

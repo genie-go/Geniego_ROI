@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>GENIE ROI Dashboard · React UI (V327)</title>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial; margin:0; background:#f6f7fb;}
+    header{background:#0f172a;color:#fff;padding:14px 18px;display:flex;gap:12px;align-items:center}
+    .wrap{padding:16px;max-width:1200px;margin:0 auto}
+    .row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+    .card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:12px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+    .k{color:#64748b;font-size:12px}
+    .v{font-size:22px;font-weight:700;margin-top:4px}
+    .grid2{display:grid;grid-template-columns:2fr 1fr;gap:12px;margin-top:12px}
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:10px;border-bottom:1px solid #eef2f7;text-align:left;font-size:13px}
+    th{color:#475569;font-weight:700}
+    .pill{display:inline-block;padding:2px 8px;border-radius:999px;background:#eef2ff;color:#3730a3;font-size:12px}
+    .err{color:#b91c1c}
+  </style>
+</head>
+<body>
+<header>
+  <div style="font-weight:800">GENIE ROI</div>
+  <div class="pill">V327 React UI</div>
+  <div style="margin-left:auto;font-size:12px;opacity:.9">Data source: /p/&lt;project&gt;/out/dashboard_ads_kpi.json</div>
+</header>
+<div id="app"></div>
+
+<script>
+const e = React.createElement;
+
+function fmtWon(n){
+  try{ return new Intl.NumberFormat('ko-KR').format(Math.round(n)) }catch(_){ return String(n) }
+}
+
+function App(){
+  const [state,setState]=React.useState({loading:true,err:null,data:null});
+  React.useEffect(()=>{
+    fetch("out/dashboard_ads_kpi.json",{cache:"no-store"})
+      .then(r=>r.ok?r.json():Promise.reject(new Error("HTTP "+r.status)))
+      .then(d=>setState({loading:false,err:null,data:d}))
+      .catch(err=>setState({loading:false,err:err.message,data:null}));
+  },[]);
+  if(state.loading) return e("div",{className:"wrap"}, "Loading…");
+  if(state.err) return e("div",{className:"wrap"}, e("div",{className:"card err"},"Error: "+state.err));
+  const d=state.data||{};
+  const k=d.kpi||{};
+  const top=(d.campaigns||[]).slice(0,8);
+  return e("div",{className:"wrap"},
+    e("div",{className:"row"},
+      e("div",{className:"card"}, e("div",{className:"k"},"Ad Spend"), e("div",{className:"v"},"₩"+fmtWon(k.spend||0))),
+      e("div",{className:"card"}, e("div",{className:"k"},"Revenue"), e("div",{className:"v"},"₩"+fmtWon(k.revenue||0))),
+      e("div",{className:"card"}, e("div",{className:"k"},"ROAS"), e("div",{className:"v"}, (k.roas||0).toFixed(2))),
+      e("div",{className:"card"}, e("div",{className:"k"},"CPA"), e("div",{className:"v"},"₩"+fmtWon(k.cpa||0)))
+    ),
+    e("div",{className:"grid2"},
+      e("div",{className:"card"},
+        e("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"baseline"}},
+          e("div",{style:{fontWeight:800}},"Top Campaigns"),
+          e("div",{className:"k"},"click row for details in legacy UI")
+        ),
+        e("table",null,
+          e("thead",null,e("tr",null,
+            e("th",null,"Campaign"),e("th",null,"Spend"),e("th",null,"Revenue"),e("th",null,"ROAS")
+          )),
+          e("tbody",null,
+            top.map((r,i)=>e("tr",{key:i},
+              e("td",null,r.name||r.campaign||"-"),
+              e("td",null,"₩"+fmtWon(r.spend||0)),
+              e("td",null,"₩"+fmtWon(r.revenue||0)),
+              e("td",null,(r.roas||0).toFixed(2))
+            ))
+          )
+        )
+      ),
+      e("div",{className:"card"},
+        e("div",{style:{fontWeight:800}},"Diagnostics"),
+        e("div",{className:"k",style:{marginTop:6}},"Coverage"),
+        e("div",{style:{marginTop:6}}, "Revenue coverage: ", ((d.coverage?.revenue_coverage||0)*100).toFixed(1), "%"),
+        e("div",null, "Conversion coverage: ", ((d.coverage?.conversion_coverage||0)*100).toFixed(1), "%"),
+        e("div",{className:"k",style:{marginTop:14}},"Unattributed cost top"),
+        e("ul",null,(d.unattributed_cost_top||[]).slice(0,5).map((u,i)=>e("li",{key:i}, `${u.channel||"-"}: ₩${fmtWon(u.unattributed_cost||0)}`)))
+      )
+    )
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("app")).render(e(App));
+</script>
+</body>
+</html>

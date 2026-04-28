@@ -1,0 +1,99 @@
+{
+  "version": "1.0",
+  "principles": [
+    "매출/트래픽이 큰 채널부터",
+    "API/정산/주문 데이터가 안정적인 채널부터",
+    "운영리스크(누락/정산) 큰 영역부터"
+  ],
+  "marketplaces_priority": [
+    {
+      "id": "smartstore",
+      "why": "국내 핵심, 주문/정산 리스크 관리 가치 큼",
+      "phase": "P0"
+    },
+    {
+      "id": "coupang",
+      "why": "볼륨/배송/반품 프로세스 중요",
+      "phase": "P0"
+    },
+    {
+      "id": "11st",
+      "why": "국내 주요 오픈마켓",
+      "phase": "P1"
+    },
+    {
+      "id": "gmarket_auction",
+      "why": "통합 운영 수요 많음",
+      "phase": "P1"
+    },
+    {
+      "id": "tmon_wemakeprice",
+      "why": "프로모션/딜 운영",
+      "phase": "P2"
+    },
+    {
+      "id": "amazon",
+      "why": "글로벌 확장/마케팅 결합",
+      "phase": "P1"
+    },
+    {
+      "id": "shopify",
+      "why": "DTC/자사몰+광고 연동 중심",
+      "phase": "P0"
+    },
+    {
+      "id": "shopee",
+      "why": "동남아 주요 채널",
+      "phase": "P2"
+    },
+    {
+      "id": "qoo10",
+      "why": "일본/아시아 크로스보더",
+      "phase": "P2"
+    },
+    {
+      "id": "rakuten",
+      "why": "일본 대형 마켓",
+      "phase": "P2"
+    }
+  ],
+  "ads_priority": [
+    {
+      "id": "meta_ads",
+      "why": "인스타/페북 광고 중심 축",
+      "phase": "P0"
+    },
+    {
+      "id": "google_ads",
+      "why": "검색/유튜브 확장",
+      "phase": "P0"
+    },
+    {
+      "id": "tiktok_ads",
+      "why": "숏폼/커머스 전환 강함",
+      "phase": "P1"
+    },
+    {
+      "id": "amazon_ads",
+      "why": "아마존 내 검색광고 핵심",
+      "phase": "P1"
+    }
+  ],
+  "influencer_priority": [
+    {
+      "id": "instagram",
+      "why": "브랜드/UGC 핵심",
+      "phase": "P0"
+    },
+    {
+      "id": "tiktok",
+      "why": "바이럴/전환",
+      "phase": "P1"
+    },
+    {
+      "id": "youtube",
+      "why": "리뷰/신뢰",
+      "phase": "P2"
+    }
+  ]
+}

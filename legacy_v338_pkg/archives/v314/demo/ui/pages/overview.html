@@ -1,0 +1,22 @@
+<!doctype html>
+<html><head><meta charset="utf-8"/><title>Executive Overview</title>
+<link rel="stylesheet" href="../assets/style.css"/>
+</head>
+<body>
+<a href="../index.html">← Demo Home</a>
+<h1>Executive Overview</h1>
+<div class="card" id="content"><div class="muted">Loading…</div></div>
+<script src="../assets/loader.js"></script>
+<script>
+
+(async ()=>{
+ const tenants = await loadJson('../../sample_data/demo_tenants.json');
+ const orders = await loadJson('../../sample_data/demo_orders.json');
+ const ads = await loadJson('../../sample_data/demo_ads_campaigns.json');
+ document.getElementById('content').innerHTML =
+   '<h3>Tenants</h3>'+tableFromObjects(tenants)+
+   '<h3>Recent Orders</h3>'+tableFromObjects(orders)+
+   '<h3>Ads Campaigns</h3>'+tableFromObjects(ads);
+})();
+</script>
+</body></html>

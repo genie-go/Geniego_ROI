@@ -1,0 +1,7 @@
+﻿L933: STRING TYPE - "wms": "WMS ����",
+L1141: STRING TYPE - "wms": "WMS ������",
+L1522: STRING TYPE - "wms": "â�� ���� (WMS)",
+L2463: OBJECT TYPE - "wms": {
+
+--- Sidebar area search ---
+L11340: "sidebar": {

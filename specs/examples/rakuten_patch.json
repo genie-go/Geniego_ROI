@@ -1,0 +1,152 @@
+{
+  "channels": {
+    "rakuten": {
+      "base_url": "https://__FILL_BASE_URL__",
+      "rate_limit": {
+        "requests_per_minute": 60,
+        "burst": 10
+      },
+      "auth": {
+        "type": "hmac_sha256_header",
+        "api_key_field": "api_key",
+        "api_secret_field": "api_secret",
+        "timestamp_field": "timestamp",
+        "signature_field": "signature",
+        "string_to_sign": "__FILL_STRING_TO_SIGN_TEMPLATE__"
+      },
+      "endpoints": {
+        "products_list": {
+          "method": "GET",
+          "path": "/__FILL_PRODUCTS_PATH__",
+          "is_placeholder": true,
+          "pagination": {
+            "cursor_param": "cursor",
+            "cursor_path": "next_cursor",
+            "items_path": "items",
+            "limit_param": "limit"
+          },
+          "query_params_schema": {
+            "allowed": {
+              "cursor": {
+                "type": "string",
+                "max_len": 512
+              },
+              "limit": {
+                "type": "int",
+                "min": 1,
+                "max": 200
+              }
+            },
+            "deny_unknown": true
+          },
+          "entity_mapping": {
+            "entity": "product",
+            "id": "id",
+            "title": "title",
+            "sku": "sku",
+            "price": "price",
+            "currency": "currency",
+            "updated_at": "updated_at"
+          }
+        },
+        "orders_list": {
+          "method": "GET",
+          "path": "/__FILL_ORDERS_PATH__",
+          "is_placeholder": true,
+          "pagination": {
+            "cursor_param": "cursor",
+            "cursor_path": "next_cursor",
+            "items_path": "items",
+            "limit_param": "limit"
+          },
+          "query_params_schema": {
+            "allowed": {
+              "cursor": {
+                "type": "string",
+                "max_len": 512
+              },
+              "limit": {
+                "type": "int",
+                "min": 1,
+                "max": 200
+              }
+            },
+            "deny_unknown": true
+          },
+          "entity_mapping": {
+            "entity": "order",
+            "id": "id",
+            "status": "status",
+            "total": "total",
+            "currency": "currency",
+            "created_at": "created_at"
+          }
+        },
+        "inventory_list": {
+          "method": "GET",
+          "path": "/__FILL_INVENTORY_PATH__",
+          "is_placeholder": true,
+          "pagination": {
+            "cursor_param": "cursor",
+            "cursor_path": "next_cursor",
+            "items_path": "items",
+            "limit_param": "limit"
+          },
+          "query_params_schema": {
+            "allowed": {
+              "cursor": {
+                "type": "string",
+                "max_len": 512
+              },
+              "limit": {
+                "type": "int",
+                "min": 1,
+                "max": 200
+              }
+            },
+            "deny_unknown": true
+          },
+          "entity_mapping": {
+            "entity": "inventory",
+            "sku": "sku",
+            "qty": "qty",
+            "updated_at": "updated_at"
+          }
+        },
+        "reviews_list": {
+          "method": "GET",
+          "path": "/__FILL_REVIEWS_PATH__",
+          "is_placeholder": true,
+          "pagination": {
+            "cursor_param": "cursor",
+            "cursor_path": "next_cursor",
+            "items_path": "items",
+            "limit_param": "limit"
+          },
+          "query_params_schema": {
+            "allowed": {
+              "cursor": {
+                "type": "string",
+                "max_len": 512
+              },
+              "limit": {
+                "type": "int",
+                "min": 1,
+                "max": 200
+              }
+            },
+            "deny_unknown": true
+          },
+          "entity_mapping": {
+            "entity": "review",
+            "id": "id",
+            "rating": "rating",
+            "body": "body",
+            "created_at": "created_at",
+            "product_id": "product_id"
+          }
+        }
+      }
+    }
+  }
+}

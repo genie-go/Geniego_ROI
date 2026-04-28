@@ -1,0 +1,9 @@
+{
+  "enabled": false,
+  "destinations": [
+    {
+      "type": "file",
+      "path": "out/reports"
+    }
+  ]
+}

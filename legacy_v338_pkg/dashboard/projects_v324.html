@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>GENIE_ROI V324 프로젝트 홈</title>
+  <style>
+    body{font-family:system-ui;margin:18px;line-height:1.45}
+    .card{border:1px solid #ddd;border-radius:12px;padding:12px;max-width:1100px}
+    table{border-collapse:collapse;width:100%}
+    th,td{border-bottom:1px solid #eee;padding:10px;text-align:left}
+    input{padding:10px;border:1px solid #ddd;border-radius:10px;width:100%}
+    button{padding:10px 14px;border-radius:12px;border:1px solid #ddd;background:#111;color:#fff;cursor:pointer}
+    .muted{color:#666}
+    .row{display:flex;gap:10px;flex-wrap:wrap}
+    .row>div{flex:1;min-width:240px}
+    code{background:#f6f6f6;padding:2px 6px;border-radius:8px}
+  </style>
+</head>
+<body>
+  <h1>GENIE_ROI V324 프로젝트 홈</h1>
+  <p class="muted">대행사/멀티 고객사 운영을 위해 프로젝트(=고객사/브랜드/계정)를 분리합니다. 각 프로젝트는 <b>DB/템플릿/산출물(out)</b>이 독립입니다.</p>
+
+  <div class="card">
+    <h2>프로젝트 목록</h2>
+    <table id="tbl">
+      <thead><tr><th>프로젝트 ID</th><th>이름</th><th>바로가기</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <h2>새 프로젝트 만들기</h2>
+    <div class="row">
+      <div>
+        <label>프로젝트 ID (영문/숫자/ - _ )</label>
+        <input id="pid" placeholder="예: client_acme"/>
+        <div class="muted">규칙: <code>^[a-zA-Z0-9][a-zA-Z0-9_-]{1,50}$</code></div>
+      </div>
+      <div>
+        <label>프로젝트 이름(표시용)</label>
+        <input id="pname" placeholder="예: ACME Korea"/>
+      </div>
+      <div style="align-self:end">
+        <button onclick="createProject()">프로젝트 생성</button>
+      </div>
+    </div>
+    <pre id="msg" class="muted"></pre>
+  </div>
+
+<script>
+  const BOOT = {{PROJECTS_JSON}};
+  function link(pid, path){ return `/p/${pid}${path}`; }
+
+  function render(){
+    const tb = document.querySelector('#tbl tbody');
+    tb.innerHTML = '';
+    for(const p of BOOT.projects){
+      const tr=document.createElement('tr');
+      tr.innerHTML = `
+        <td><code>${p.id}</code>${p.id===BOOT.default?' <span class="muted">(default)</span>':''}</td>
+        <td>${p.name||p.id}</td>
+        <td>
+          <a href="${link(p.id,'/ui/')}">업로드/설정</a> ·
+          <a href="${link(p.id,'/dashboard/')}">대시보드</a>
+        </td>
+      `;
+      tb.appendChild(tr);
+    }
+  }
+
+  async function createProject(){
+    const id=document.getElementById('pid').value.trim();
+    const name=document.getElementById('pname').value.trim() || id;
+    const msg=document.getElementById('msg');
+    msg.textContent='';
+    try{
+      const res = await fetch('/api/projects/create', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({id, name})
+      });
+      const j = await res.json();
+      if(!j.ok) throw new Error(j.error||'failed');
+      msg.textContent = `OK: created ${j.id}. 새로고침하면 목록에 나타납니다.`;
+    }catch(e){
+      msg.textContent = 'ERROR: ' + e.message;
+    }
+  }
+
+  render();
+</script>
+</body>
+</html>

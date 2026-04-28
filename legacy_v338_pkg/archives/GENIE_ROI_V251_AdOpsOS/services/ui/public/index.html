@@ -1,0 +1,199 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>GENIE_ROI V236 — Ops++</title>
+  <style>
+    body { font-family: system-ui,-apple-system,Segoe UI,Roboto,sans-serif; margin: 18px; max-width: 1200px; }
+    .grid { display:grid; grid-template-columns: 1fr 1fr; gap:12px; }
+    .card { border:1px solid #ddd; border-radius: 14px; padding: 14px; }
+    input, textarea { width:100%; padding:10px; border-radius: 10px; border:1px solid #ccc; }
+    button { padding:10px 14px; border-radius:10px; border:1px solid #111; background:#fff; cursor:pointer; }
+    pre { background:#f6f6f6; padding:10px; border-radius:10px; overflow:auto; }
+    .pill { padding:6px 10px; border:1px solid #ddd; border-radius:999px; font-size:12px; display:inline-block; }
+  </style>
+</head>
+<body>
+  <h1 style="margin:0;">GENIE_ROI V236</h1>
+  <div class="pill">Vault-aware Google discovery · Bulk discover+map · DLQ filtering · Audit+metrics</div>
+
+  <div class="card">
+    <div class="grid">
+      <div><label>API Base</label><input id="apiBase" value="http://localhost:8000" /></div>
+      <div><label>X-Tenant-ID</label><input id="tenantId" value="demo-tenant" /></div>
+    </div>
+    <button onclick="ensureTenant()">Tenant 생성</button>
+    <pre id="outTenant"></pre>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h3 style="margin-top:0;">캠페인</h3>
+      <label>Name</label><input id="cName" value="Always On" />
+      <label>Channel(meta/google/tiktok)</label><input id="cChannel" value="google" />
+      <label>External ID(meta/tiktok id, google optional)</label><input id="cExt" value="" />
+      <div class="grid">
+        <div><label>Daily Budget</label><input id="cBudget" value="300" /></div>
+        <div><label>Min/Max</label><input id="cMinMax" value="50,1000" /></div>
+      </div>
+      <div class="grid">
+        <div><label>Spend</label><input id="cSpend" value="9000" /></div>
+        <div><label>Revenue</label><input id="cRev" value="14000" /></div>
+      </div>
+      <button onclick="createCampaign()">Create</button>
+      <button onclick="listCampaigns()">Refresh</button>
+      <pre id="outCamp"></pre>
+      <pre id="outCampList"></pre>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top:0;">Google Mapping + Auto-discovery</h3>
+      <label>Campaign ID</label><input id="gCid" value="1" />
+      <label>Budget resource_name</label>
+      <input id="gRes" placeholder="customers/{customer_id}/campaignBudgets/{budget_id}" />
+      <div class="grid">
+        <button onclick="discoverGoogle()">Discover</button>
+        <button onclick="saveGoogleMap()">Save</button>
+      </div>
+      <div class="grid">
+        <button onclick="bulkDiscoverMap(false)">Bulk Discover+Map</button>
+        <button onclick="bulkDiscoverMap(true)">Bulk Dry-run</button>
+      </div>
+      <button onclick="loadGoogleMap()">List Mappings</button>
+      <pre id="outGMap"></pre>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h3 style="margin-top:0;">OAuth</h3>
+      <div class="grid">
+        <button onclick="oauthUrl('google')">Google OAuth URL</button>
+        <button onclick="oauthUrl('meta')">Meta OAuth URL</button>
+      </div>
+      <div class="grid">
+        <button onclick="oauthUrl('tiktok')">TikTok OAuth URL</button>
+        <button onclick="window.open('http://localhost:3000','_blank')">Grafana</button>
+      </div>
+      <pre id="outOAuth"></pre>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top:0;">Autopilot</h3>
+      <label>Total Budget override(optional)</label><input id="totalBudget" value="" />
+      <button onclick="runAutopilot()">Autopilot 실행</button>
+      <button onclick="publishOutbox()">Outbox → Kafka Publish</button>
+      <pre id="outAuto"></pre>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h3 style="margin-top:0;">DLQ 재처리 (필터)</h3>
+      <div class="grid">
+        <div><label>Limit</label><input id="dlqLimit" value="20" /></div>
+        <div><label>Dry run(true/false)</label><input id="dlqDry" value="true" /></div>
+      </div>
+      <div class="grid">
+        <div><label>kind(optional)</label><input id="dlqKind" placeholder="budget.execute" /></div>
+        <div><label>error_contains(optional)</label><input id="dlqErr" placeholder="403" /></div>
+      </div>
+      <label>idempotency_prefix(optional)</label><input id="dlqPrefix" placeholder="exec:demo-tenant:" />
+      <button onclick="dlqRequeue()">DLQ 재큐잉</button>
+      <pre id="outDLQ"></pre>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top:0;">Token Audit</h3>
+      <button onclick="loadAudit()">Load latest 50</button>
+      <pre id="outAudit"></pre>
+      <div class="pill">Grafana: genie_token_rotate_total 확인</div>
+    </div>
+  </div>
+
+<script>
+function api(){ return document.getElementById("apiBase").value; }
+function tenant(){ return document.getElementById("tenantId").value; }
+function h(){ return {"Content-Type":"application/json","X-Tenant-ID": tenant()}; }
+
+async function ensureTenant(){
+  const id = tenant();
+  const res = await fetch(`${api()}/v1/tenants`, {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({id, name:id})});
+  document.getElementById("outTenant").textContent = await res.text();
+}
+async function createCampaign(){
+  const mm = document.getElementById("cMinMax").value.split(",").map(x=>Number(x.trim()));
+  const body = {
+    name: document.getElementById("cName").value,
+    channel: document.getElementById("cChannel").value,
+    external_id: document.getElementById("cExt").value,
+    spend: Number(document.getElementById("cSpend").value),
+    revenue: Number(document.getElementById("cRev").value),
+    daily_budget: Number(document.getElementById("cBudget").value),
+    min_budget: mm[0] || 50,
+    max_budget: mm[1] || 1000
+  };
+  const res = await fetch(`${api()}/v1/campaigns`, {method:"POST", headers:h(), body: JSON.stringify(body)});
+  document.getElementById("outCamp").textContent = await res.text();
+}
+async function listCampaigns(){
+  const res = await fetch(`${api()}/v1/campaigns`, {headers: {"X-Tenant-ID": tenant()}});
+  document.getElementById("outCampList").textContent = await res.text();
+}
+async function runAutopilot(){
+  const tb = document.getElementById("totalBudget").value.trim();
+  const body = tb ? {total_budget: Number(tb)} : {};
+  const res = await fetch(`${api()}/v1/autopilot/run`, {method:"POST", headers:h(), body: JSON.stringify(body)});
+  document.getElementById("outAuto").textContent = await res.text();
+}
+async function publishOutbox(){
+  const res = await fetch(`${api()}/v1/outbox/publish`, {method:"POST", headers: {"X-Tenant-ID": tenant()}});
+  document.getElementById("outAuto").textContent = await res.text();
+}
+async function saveGoogleMap(){
+  const body = {campaign_id: Number(document.getElementById("gCid").value), budget_resource_name: document.getElementById("gRes").value};
+  const res = await fetch(`${api()}/v1/google/mapping`, {method:"POST", headers:h(), body: JSON.stringify(body)});
+  document.getElementById("outGMap").textContent = await res.text();
+}
+async function loadGoogleMap(){
+  const res = await fetch(`${api()}/v1/google/mapping`, {headers: {"X-Tenant-ID": tenant()}});
+  document.getElementById("outGMap").textContent = await res.text();
+}
+async function discoverGoogle(){
+  const cid = Number(document.getElementById("gCid").value);
+  const res = await fetch(`${api()}/v1/google/discover_budget?campaign_id=${encodeURIComponent(cid)}`, {headers: {"X-Tenant-ID": tenant()}});
+  const txt = await res.text();
+  document.getElementById("outGMap").textContent = txt;
+  try {
+    const obj = JSON.parse(txt);
+    if (obj.ok && obj.campaign_budget) document.getElementById("gRes").value = obj.campaign_budget;
+  } catch(e) {}
+}
+async function bulkDiscoverMap(dry){
+  const body = {dry_run: !!dry};
+  const res = await fetch(`${api()}/v1/google/discover_and_map_bulk`, {method:"POST", headers:h(), body: JSON.stringify(body)});
+  document.getElementById("outGMap").textContent = await res.text();
+}
+async function oauthUrl(provider){
+  const res = await fetch(`${api()}/v1/oauth/authorize/${provider}?tenant_id=${encodeURIComponent(tenant())}`);
+  document.getElementById("outOAuth").textContent = await res.text();
+}
+async function dlqRequeue(){
+  const body = {
+    limit: Number(document.getElementById("dlqLimit").value),
+    dry_run: document.getElementById("dlqDry").value.trim().toLowerCase() === "true",
+    kind: document.getElementById("dlqKind").value.trim() || null,
+    error_contains: document.getElementById("dlqErr").value.trim() || null,
+    idempotency_prefix: document.getElementById("dlqPrefix").value.trim() || null,
+  };
+  const res = await fetch(`${api()}/v1/dlq/requeue`, {method:"POST", headers:h(), body: JSON.stringify(body)});
+  document.getElementById("outDLQ").textContent = await res.text();
+}
+async function loadAudit(){
+  const res = await fetch(`${api()}/v1/audit/token?limit=50`, {headers: {"X-Tenant-ID": tenant()}});
+  document.getElementById("outAudit").textContent = await res.text();
+}
+</script>
+</body>
+</html>

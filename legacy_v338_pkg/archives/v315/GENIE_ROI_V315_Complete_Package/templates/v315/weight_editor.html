@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>GENIE_ROI V315 - 가중치 편집기(로컬)</title>
+  <style>
+    body{font-family:system-ui,Apple SD Gothic Neo,Segoe UI,Roboto,sans-serif;margin:24px;line-height:1.4}
+    .row{display:flex;gap:12px;flex-wrap:wrap}
+    textarea{width:100%;min-height:320px;font-family:ui-monospace,Menlo,Consolas,monospace}
+    button{padding:10px 14px;border:1px solid #ccc;border-radius:10px;background:#fff;cursor:pointer}
+    button:hover{background:#f6f6f6}
+    .card{border:1px solid #e5e5e5;border-radius:16px;padding:16px;max-width:960px}
+    .hint{color:#555;font-size:14px}
+  </style>
+</head>
+<body>
+  <h1>GENIE_ROI V315 가중치 편집기</h1>
+  <p class="hint">이 페이지는 서버 없이 로컬에서 열어도 됩니다. JSON을 수정한 뒤 다운로드해서 <code>templates/v315/weights.json</code>로 교체하세요.</p>
+
+  <div class="card">
+    <div class="row">
+      <button id="load">기본 weights.json 불러오기</button>
+      <button id="validate">검증(합=1)</button>
+      <button id="download">JSON 다운로드</button>
+    </div>
+    <p id="msg" class="hint"></p>
+    <textarea id="box"></textarea>
+  </div>
+
+<script>
+const DEFAULT = `{
+  "version": "v315",
+  "updated_at": "2026-02-27",
+  "influencer_scoring": {
+    "fit": 0.30,
+    "quality": 0.25,
+    "performance": 0.30,
+    "risk": 0.15
+  }
+}`;
+
+function sumTop(o){
+  const k=["fit","quality","performance","risk"];
+  return k.reduce((a,kk)=>a+(Number(o.influencer_scoring?.[kk])||0),0);
+}
+
+document.getElementById("load").onclick=()=>{
+  document.getElementById("box").value=DEFAULT;
+  document.getElementById("msg").textContent="기본 템플릿을 불러왔습니다.";
+};
+
+document.getElementById("validate").onclick=()=>{
+  try{
+    const obj=JSON.parse(document.getElementById("box").value);
+    const s=sumTop(obj);
+    const ok=Math.abs(s-1.0)<1e-6;
+    document.getElementById("msg").textContent = ok
+      ? `✅ 상위 가중치 합계 = ${s} (정상)`
+      : `⚠️ 상위 가중치 합계 = ${s} (1이 되도록 조정하세요)`;
+  }catch(e){
+    document.getElementById("msg").textContent="❌ JSON 파싱 실패: "+e.message;
+  }
+};
+
+document.getElementById("download").onclick=()=>{
+  const text=document.getElementById("box").value;
+  const blob=new Blob([text],{type:"application/json"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download="weights.json";
+  a.click();
+  URL.revokeObjectURL(a.href);
+};
+document.getElementById("load").click();
+</script>
+</body>
+</html>

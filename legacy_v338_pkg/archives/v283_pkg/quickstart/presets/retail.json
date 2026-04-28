@@ -1,0 +1,37 @@
+{
+  "tenant": {
+    "id": "demo-tenant",
+    "name": "Demo Retail"
+  },
+  "policy": {
+    "version": 1,
+    "channels": {
+      "ads": {
+        "enabled": true,
+        "max_budget_delta_pct": 20
+      },
+      "email": {
+        "enabled": true,
+        "require_consent": true,
+        "daily_frequency_cap": 2
+      },
+      "crm": {
+        "enabled": true,
+        "max_bulk_updates": 2000
+      }
+    },
+    "approvals": {
+      "required_for": [
+        "ADS_BUDGET_UPDATE_OVER_10PCT",
+        "EMAIL_BULK_SEND",
+        "CRM_BULK_UPDATE"
+      ]
+    },
+    "blocklists": {
+      "segments": [
+        "underage",
+        "do_not_contact"
+      ]
+    }
+  }
+}

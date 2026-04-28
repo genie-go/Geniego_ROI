@@ -1,0 +1,3 @@
+GENIE ROI AdOps OS - V253
+Generated: 2026-02-24 08:36:08.658092 UTC
+Realtime SaaS UI + Automated Pipeline (KPI→Budget→Exec→Report) + Global Pricing Simulator

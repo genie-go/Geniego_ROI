@@ -1,0 +1,119 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-genie}
+      POSTGRES_USER: ${POSTGRES_USER:-genie}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-genie}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+
+  gateway:
+    build:
+      context: ../
+      dockerfile: services/gateway/Dockerfile
+    env_file: ../.env
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+      - redis
+      - ai_engine
+      - connectors
+
+  ai_engine:
+    build:
+      context: ../
+      dockerfile: services/ai_engine/Dockerfile
+    env_file: ../.env
+    ports:
+      - "9000:9000"
+
+  connectors:
+    build:
+      context: ../
+      dockerfile: services/connectors/Dockerfile
+    env_file: ../.env
+    ports:
+      - "9100:9100"
+
+
+
+  ui_dashboard:
+    build:
+      context: ../
+      dockerfile: services/ui_dashboard/Dockerfile
+    environment:
+      VITE_API_BASE: http://localhost:8080
+      VITE_TENANT_ID: ${TENANT_ID:-demo-tenant}
+      VITE_API_KEY: ${UI_API_KEY:-}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - gateway
+
+  collectors:
+    build:
+      context: ../
+      dockerfile: services/collectors/Dockerfile
+    environment:
+      API_BASE: http://gateway:8080
+      TENANT_ID: ${TENANT_ID:-demo-tenant}
+      API_KEY: ${COLLECTOR_API_KEY:-}
+      POSTGRES_DB: ${POSTGRES_DB:-genie}
+      POSTGRES_USER: ${POSTGRES_USER:-genie}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-genie}
+    depends_on:
+      - gateway
+
+  journey_executor:
+    build:
+      context: ../
+      dockerfile: services/journey_executor/Dockerfile
+    environment:
+      API_BASE: http://gateway:8080
+      TENANT_ID: ${TENANT_ID:-demo-tenant}
+      API_KEY: ${JOURNEY_API_KEY:-}
+      PGHOST: postgres
+      PGPORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB:-genie}
+      POSTGRES_USER: ${POSTGRES_USER:-genie}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-genie}
+    depends_on:
+      - postgres
+      - gateway
+
+  commerce_worker:
+    build:
+      context: ../
+      dockerfile: services/commerce_worker/Dockerfile
+    environment:
+      CONNECTORS_URL: http://connectors:9100
+      PGHOST: postgres
+      PGPORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB:-genie}
+      POSTGRES_USER: ${POSTGRES_USER:-genie}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-genie}
+      COMMERCE_POLL_MS: 800
+    depends_on:
+      - postgres
+      - connectors
+
+mock_korea_commerce_api:
+  build:
+    context: ../
+    dockerfile: services/mock_korea_commerce_api/Dockerfile
+  environment:
+    PORT: 9300
+  ports:
+    - "9300:9300"
+
+volumes:
+  pgdata:

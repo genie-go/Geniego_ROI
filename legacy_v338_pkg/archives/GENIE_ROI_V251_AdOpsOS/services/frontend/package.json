@@ -1,0 +1,9 @@
+{
+  "name": "genie-v244-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "express": "^4.19.2",
+    "node-fetch": "^3.3.2"
+  }
+}

@@ -1,0 +1,1 @@
+import{j as t,h as e}from"./index-IPeMPKOG.js";import{f as r}from"./vendor-react-BFUdbuK6.js";import"./vendor-locales-C8l1eFwW.js";function i(){return t.jsx(r,{to:"/help",replace:!0})}e();export{i as default};

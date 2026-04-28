@@ -1,0 +1,186 @@
+<!doctype html>
+<html><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>GENIE_ROI V266 Enterprise Admin Console</title>
+<style>
+body{font-family:system-ui; margin:20px;}
+.row{display:flex; gap:16px; flex-wrap:wrap; align-items:flex-start;}
+.card{border:1px solid #ddd; border-radius:12px; padding:12px; min-width:320px; background:#fff;}
+table{border-collapse:collapse; width:100%;}
+th,td{border-bottom:1px solid #eee; padding:8px; text-align:left; font-size:13px; vertical-align:top;}
+input,select,textarea,button{padding:8px; border-radius:8px; border:1px solid #ccc; width:100%; box-sizing:border-box;}
+button{cursor:pointer;}
+.muted{color:#666; font-size:12px;}
+code{background:#f6f6f6; padding:2px 6px; border-radius:6px;}
+pre{margin:0; white-space:pre-wrap;}
+.small{font-size:12px;}
+</style></head>
+<body>
+<h1>GENIE_ROI V266 Enterprise Admin Console</h1>
+<div class="muted">Use <code>X-API-Key</code> (admin) for read/write. This UI is intentionally minimal.</div>
+
+<div class="row" style="margin-top:16px;">
+  <div class="card">
+    <h3>Session</h3>
+    <div class="small muted">Admin API Key</div>
+    <input id="apiKey" placeholder="X-API-Key (admin)"/>
+    <div style="margin-top:8px; display:flex; gap:8px;">
+      <button onclick="refreshAll()">Refresh</button>
+      <button onclick="clearLog()">Clear</button>
+    </div>
+    <div class="small muted" style="margin-top:10px;">Log</div>
+    <pre id="log" class="small" style="height:220px; overflow:auto; background:#fafafa; border:1px solid #eee; border-radius:10px; padding:8px;"></pre>
+  </div>
+
+  <div class="card">
+    <h3>Tenants</h3>
+    <div style="display:flex; gap:8px;">
+      <input id="tenantId" placeholder="tenant_id"/>
+      <input id="tenantName" placeholder="name"/>
+    </div>
+    <div style="display:flex; gap:8px; margin-top:8px;">
+      <select id="tenantActive">
+        <option value="true">active</option>
+        <option value="false">inactive</option>
+      </select>
+      <button onclick="upsertTenant()">Upsert</button>
+    </div>
+    <div style="margin-top:10px;">
+      <table id="tenantsTbl"><thead><tr><th>tenant</th><th>name</th><th>active</th></tr></thead><tbody></tbody></table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Quotas</h3>
+    <input id="quotaTenant" placeholder="tenant_id"/>
+    <div style="display:flex; gap:8px; margin-top:8px;">
+      <input id="dailyLimit" placeholder="daily_exec_limit" />
+      <input id="perMin" placeholder="per_minute_limit" />
+    </div>
+    <button style="margin-top:8px;" onclick="setQuota()">Set quota</button>
+    <div style="margin-top:10px;">
+      <table id="quotasTbl"><thead><tr><th>tenant</th><th>daily</th><th>per_min</th></tr></thead><tbody></tbody></table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Tenant policy override</h3>
+    <input id="polTenant" placeholder="tenant_id"/>
+    <textarea id="polJson" rows="10" placeholder='{"allowed_channels":["meta","naver","tiktok"],"confidence_threshold":0.75,"max_budget_delta_pct":20}'></textarea>
+    <button style="margin-top:8px;" onclick="setPolicy()">Set policy</button>
+  </div>
+
+  <div class="card">
+    <h3>API Keys</h3>
+    <div class="small muted">Create (returns raw key once)</div>
+    <input id="keyTenant" placeholder="tenant_id"/>
+    <input id="keyUser" placeholder="user_id"/>
+    <select id="keyRole">
+      <option value="viewer">viewer</option>
+      <option value="operator">operator</option>
+      <option value="admin">admin</option>
+    </select>
+    <input id="keyLabel" placeholder="label (optional)"/>
+    <button style="margin-top:8px;" onclick="createKey()">Create key</button>
+    <div class="small muted" style="margin-top:10px;">Keys</div>
+    <table id="keysTbl"><thead><tr><th>hash</th><th>tenant</th><th>user</th><th>role</th><th>revoked</th><th></th></tr></thead><tbody></tbody></table>
+  </div>
+
+  <div class="card">
+    <h3>Experiments / Incidents</h3>
+    <div class="small muted">Read-only in this UI</div>
+    <div style="margin-top:8px;">
+      <table id="incTbl"><thead><tr><th>at</th><th>tenant</th><th>severity</th><th>kind</th><th>detail</th></tr></thead><tbody></tbody></table>
+    </div>
+  </div>
+</div>
+
+<script>
+function h(){ return {"X-API-Key": document.getElementById("apiKey").value.trim()}; }
+function log(x){ const el=document.getElementById("log"); el.textContent += (typeof x==="string"?x:JSON.stringify(x,null,2))+"\n"; el.scrollTop=el.scrollHeight; }
+function clearLog(){ document.getElementById("log").textContent=""; }
+
+async function api(path, opts){
+  const o = opts||{};
+  o.headers = Object.assign({"Content-Type":"application/json"}, h(), o.headers||{});
+  const r = await fetch(path, o);
+  const t = await r.text();
+  let j; try{ j=JSON.parse(t);}catch(e){ j={raw:t}; }
+  if(!r.ok){ log({error:"http_"+r.status, path, body:j}); throw new Error("http"); }
+  return j;
+}
+
+async function refreshAll(){
+  const tenants = await api("/v266/admin/api/tenants");
+  renderTenants(tenants.items||[]);
+  const keys = await api("/v266/admin/api/api_keys");
+  renderKeys(keys.items||[]);
+  const quotas = await api("/v163/admin/api/quotas"); // legacy read endpoint
+  renderQuotas(quotas.items||[]);
+  const inc = await api("/v163/admin/api/incidents"); // legacy
+  renderIncidents(inc.items||[]);
+  log("refreshed");
+}
+
+function renderTenants(items){
+  const tb=document.querySelector("#tenantsTbl tbody"); tb.innerHTML="";
+  for(const it of items){
+    const tr=document.createElement("tr");
+    tr.innerHTML = `<td>${it.tenant_id}</td><td>${it.name}</td><td>${it.is_active}</td>`;
+    tb.appendChild(tr);
+  }
+}
+function renderQuotas(items){
+  const tb=document.querySelector("#quotasTbl tbody"); tb.innerHTML="";
+  for(const it of items){
+    const tr=document.createElement("tr");
+    tr.innerHTML = `<td>${it.tenant_id}</td><td>${it.daily_exec_limit}</td><td>${it.per_minute_limit}</td>`;
+    tb.appendChild(tr);
+  }
+}
+function renderKeys(items){
+  const tb=document.querySelector("#keysTbl tbody"); tb.innerHTML="";
+  for(const it of items){
+    const tr=document.createElement("tr");
+    const revoked = it.revoked_at ? "yes" : "";
+    tr.innerHTML = `<td style="max-width:220px; word-break:break-all;">${it.api_key_hash}</td><td>${it.tenant_id}</td><td>${it.user_id}</td><td>${it.role}</td><td>${revoked}</td><td><button onclick="revokeKey('${it.api_key_hash}')">Revoke</button></td>`;
+    tb.appendChild(tr);
+  }
+}
+function renderIncidents(items){
+  const tb=document.querySelector("#incTbl tbody"); tb.innerHTML="";
+  for(const it of items){
+    const tr=document.createElement("tr");
+    tr.innerHTML = `<td>${(it.at||"").toString().slice(0,19)}</td><td>${it.tenant_id}</td><td>${it.severity||""}</td><td>${it.kind||""}</td><td><pre class="small">${JSON.stringify(it.detail||{},null,0)}</pre></td>`;
+    tb.appendChild(tr);
+  }
+}
+
+async function upsertTenant(){
+  const b={tenant_id:document.getElementById("tenantId").value.trim(), name:document.getElementById("tenantName").value.trim(), is_active: document.getElementById("tenantActive").value==="true"};
+  const r=await api("/v266/admin/api/tenants", {method:"POST", body:JSON.stringify(b)});
+  log(r); await refreshAll();
+}
+async function setQuota(){
+  const t=document.getElementById("quotaTenant").value.trim();
+  const b={daily_exec_limit:Number(document.getElementById("dailyLimit").value), per_minute_limit:Number(document.getElementById("perMin").value)};
+  const r=await api(`/v266/admin/api/quotas/${encodeURIComponent(t)}`, {method:"PUT", body:JSON.stringify(b)});
+  log(r); await refreshAll();
+}
+async function setPolicy(){
+  const t=document.getElementById("polTenant").value.trim();
+  let policy={}; try{ policy=JSON.parse(document.getElementById("polJson").value);}catch(e){ alert("Bad JSON"); return; }
+  const r=await api(`/v266/admin/api/policies/${encodeURIComponent(t)}`, {method:"PUT", body:JSON.stringify({policy})});
+  log(r);
+}
+async function createKey(){
+  const b={tenant_id:document.getElementById("keyTenant").value.trim(), user_id:document.getElementById("keyUser").value.trim(), role:document.getElementById("keyRole").value, label:document.getElementById("keyLabel").value.trim()};
+  const r=await api("/v266/admin/api/api_keys", {method:"POST", body:JSON.stringify(b)});
+  log({created_api_key:r.api_key, api_key_hash:r.api_key_hash});
+  await refreshAll();
+}
+async function revokeKey(hash){
+  const r=await api(`/v266/admin/api/api_keys/${encodeURIComponent(hash)}`, {method:"DELETE"});
+  log(r); await refreshAll();
+}
+</script>
+</body></html>

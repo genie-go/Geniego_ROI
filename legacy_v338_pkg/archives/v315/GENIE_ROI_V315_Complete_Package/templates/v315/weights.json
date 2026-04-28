@@ -1,0 +1,31 @@
+{
+  "version": "v315",
+  "updated_at": "2026-02-27",
+  "influencer_scoring": {
+    "fit": 0.3,
+    "quality": 0.25,
+    "performance": 0.3,
+    "risk": 0.15,
+    "subweights": {
+      "fit": {
+        "category_match": 0.45,
+        "audience_match": 0.35,
+        "brand_safety": 0.2
+      },
+      "quality": {
+        "engagement_rate": 0.5,
+        "growth_consistency": 0.3,
+        "comment_authenticity": 0.2
+      },
+      "performance": {
+        "views": 0.25,
+        "link_clicks": 0.35,
+        "conversions_or_sales": 0.4
+      },
+      "risk": {
+        "fake_follower_signals": 0.6,
+        "ad_saturation": 0.4
+      }
+    }
+  }
+}

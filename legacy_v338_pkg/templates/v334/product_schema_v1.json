@@ -1,0 +1,114 @@
+{
+  "version": "1.0",
+  "description": "GENIE_ROI V334 Channel-Agnostic Product Master Schema (Beginner-friendly)",
+  "required": [
+    "sku",
+    "title",
+    "brand",
+    "category_path",
+    "currency",
+    "price",
+    "stock"
+  ],
+  "fields": {
+    "sku": {
+      "type": "string",
+      "desc": "내부 표준 SKU (모든 채널 매핑의 기준)"
+    },
+    "gtin": {
+      "type": "string",
+      "desc": "바코드/GTIN/EAN/UPC (가능하면)"
+    },
+    "title": {
+      "type": "string",
+      "desc": "상품명(표준)"
+    },
+    "brand": {
+      "type": "string",
+      "desc": "브랜드/제조사"
+    },
+    "category_path": {
+      "type": "string",
+      "desc": "표준 카테고리 경로 예: Beauty>Skincare>Mask"
+    },
+    "currency": {
+      "type": "string",
+      "desc": "KRW/USD/JPY..."
+    },
+    "price": {
+      "type": "number",
+      "desc": "정가(표준)"
+    },
+    "sale_price": {
+      "type": "number",
+      "desc": "판매가(선택)"
+    },
+    "stock": {
+      "type": "integer",
+      "desc": "가용 재고"
+    },
+    "images": {
+      "type": "array[string]",
+      "desc": "이미지 URL 리스트(최소 1개 권장)"
+    },
+    "attributes": {
+      "type": "object",
+      "desc": "색상/사이즈/재질 등 속성(키-값)"
+    },
+    "options": {
+      "type": "array[object]",
+      "desc": "옵션/변형(색상/사이즈) - 채널별 변환에 사용"
+    },
+    "shipping": {
+      "type": "object",
+      "desc": "배송/반품 정책(표준)"
+    },
+    "compliance": {
+      "type": "object",
+      "desc": "인증/주의문구/성분/원산지 등"
+    },
+    "channel_overrides": {
+      "type": "object",
+      "desc": "채널별 특이 규칙(금지어/길이제한 등) 오버라이드"
+    }
+  },
+  "example": {
+    "sku": "SKU-RED-001",
+    "gtin": "8801234567890",
+    "title": "[브랜드] 촉촉 수분 마스크 10매",
+    "brand": "BRAND",
+    "category_path": "Beauty>Skincare>Mask",
+    "currency": "KRW",
+    "price": 20000,
+    "sale_price": 15900,
+    "stock": 120,
+    "images": [
+      "https://cdn.example.com/img1.jpg"
+    ],
+    "attributes": {
+      "material": "cotton",
+      "origin": "KR"
+    },
+    "options": [
+      {
+        "option_sku": "SKU-RED-001-A",
+        "name": "10매",
+        "price_delta": 0
+      }
+    ],
+    "shipping": {
+      "carrier": "CJ",
+      "ship_from": "KR",
+      "return_days": 7
+    },
+    "compliance": {
+      "kc": "N/A",
+      "warning": "눈에 들어가지 않게 주의"
+    },
+    "channel_overrides": {
+      "smartstore": {
+        "title_prefix": "[스마트스토어] "
+      }
+    }
+  }
+}

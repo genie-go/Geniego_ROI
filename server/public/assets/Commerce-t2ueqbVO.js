@@ -1,0 +1,1 @@
+import{j as e,i as r}from"./index-BIB5r6_L.js";import{f as t}from"./vendor-react-BFUdbuK6.js";import"./vendor-locales-1vR6SP3Z.js";function i(){return e.jsx(t,{to:"/omni-channel",replace:!0})}r();export{i as default};

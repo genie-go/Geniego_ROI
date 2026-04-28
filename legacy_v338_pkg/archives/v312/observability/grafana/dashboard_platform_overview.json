@@ -1,0 +1,44 @@
+{
+  "title": "GENIE_ROI Platform Overview (V309)",
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 1,
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "HTTP 5xx Rate",
+      "targets": [
+        {
+          "expr": "sum(rate(http_requests_total{code=~\"5..\"}[5m])) / sum(rate(http_requests_total[5m]))"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Job Success Rate",
+      "targets": [
+        {
+          "expr": "sum(rate(job_items_total{status=\"success\"}[15m])) / sum(rate(job_items_total[15m]))"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Provider 429 Rate",
+      "targets": [
+        {
+          "expr": "sum(rate(job_items_total{status=\"rate_limited\"}[10m])) / sum(rate(job_items_total[10m]))"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Queue Backlog Depth",
+      "targets": [
+        {
+          "expr": "queue_depth"
+        }
+      ]
+    }
+  ]
+}

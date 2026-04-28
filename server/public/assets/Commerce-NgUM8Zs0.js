@@ -1,0 +1,1 @@
+import{j as e,h as r}from"./index-IPeMPKOG.js";import{f as t}from"./vendor-react-BFUdbuK6.js";import"./vendor-locales-C8l1eFwW.js";function s(){return e.jsx(t,{to:"/omni-channel",replace:!0})}r();export{s as default};

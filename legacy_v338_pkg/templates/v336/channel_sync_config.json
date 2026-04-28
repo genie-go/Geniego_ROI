@@ -1,0 +1,29 @@
+{
+  "smartstore": {
+    "base_url": "https://api.commerce.naver.com/external",
+    "product_create_path": "/v2/products",
+    "option_stock_update_path": "/v1/products/origin-products/{originProductNo}/option-stock",
+    "auth": {
+      "type": "oauth2_client_credentials",
+      "token_url": "https://api.commerce.naver.com/external/v1/oauth2/token",
+      "env": {
+        "client_id": "NAVER_CLIENT_ID",
+        "client_secret": "NAVER_CLIENT_SECRET"
+      }
+    }
+  },
+  "coupang": {
+    "base_url": "https://api-gateway.coupang.com",
+    "product_create_path": "/v2/providers/seller_api/apis/api/v1/marketplace/seller-products",
+    "price_update_path": "/v2/providers/seller_api/apis/api/v1/marketplace/vendor-items/{vendorItemId}/prices/{price}",
+    "quantity_update_path": "/v2/providers/seller_api/apis/api/v1/marketplace/vendor-items/{vendorItemId}/quantities/{quantity}",
+    "auth": {
+      "type": "hmac",
+      "env": {
+        "access_key": "COUPANG_ACCESS_KEY",
+        "secret_key": "COUPANG_SECRET_KEY",
+        "vendor_id": "COUPANG_VENDOR_ID"
+      }
+    }
+  }
+}

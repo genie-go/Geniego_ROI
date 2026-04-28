@@ -1,0 +1,2 @@
+﻿tabSupplierDesc: Vendors
+tabAuditDesc: Audit

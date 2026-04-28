@@ -1,0 +1,9 @@
+Category,Item,Weight,Score(0-5),Weighted Score,Notes
+Fit,Category/Topic fit,30,,,
+Fit,Brand safety / controversy risk,30,,,
+Audience,Engagement rate vs peers,25,,,
+Audience,Audience geo/language match,25,,,
+Performance,Avg views last 10 posts,25,,,
+Performance,Conversion readiness (link/coupon),25,,,
+Ops,Responsiveness & schedule reliability,10,,,
+Risk,Ad disclosure & compliance,10,,,

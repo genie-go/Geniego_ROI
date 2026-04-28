@@ -1,0 +1,10 @@
+﻿python :   File "<string>", line 7
+At line:1 char:61
++ ... t-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass; python -c "
++                                                               ~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (  File "<string>", line 7:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+    eng_patterns = [r'>Cancel<', r'>Save<', r'" Cancel\',
+                                            ^
+SyntaxError: unterminated string literal (detected at line 7)

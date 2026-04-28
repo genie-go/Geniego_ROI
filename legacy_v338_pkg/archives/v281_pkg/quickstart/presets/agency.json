@@ -1,0 +1,35 @@
+{
+  "tenant": {
+    "id": "demo-tenant",
+    "name": "Demo Agency"
+  },
+  "policy": {
+    "version": 1,
+    "channels": {
+      "ads": {
+        "enabled": true,
+        "max_budget_delta_pct": 15
+      },
+      "email": {
+        "enabled": true,
+        "require_consent": true,
+        "daily_frequency_cap": 1
+      },
+      "crm": {
+        "enabled": true,
+        "max_bulk_updates": 1000
+      }
+    },
+    "approvals": {
+      "required_for": [
+        "EMAIL_BULK_SEND",
+        "ADS_BUDGET_UPDATE_OVER_5PCT"
+      ]
+    },
+    "blocklists": {
+      "segments": [
+        "do_not_contact"
+      ]
+    }
+  }
+}

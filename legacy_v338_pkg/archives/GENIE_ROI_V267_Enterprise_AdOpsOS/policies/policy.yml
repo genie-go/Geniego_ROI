@@ -1,0 +1,18 @@
+version: 1
+defaults:
+  confidence_threshold: 0.72
+  max_budget_delta_pct: 20
+  allowed_channels: ["meta","google","tiktok","naver","kakao"]
+  deny_if_shadow_mode_false: false
+
+objectives:
+  maximize_roas:
+    confidence_threshold: 0.72
+    max_budget_delta_pct: 20
+  minimize_cac:
+    confidence_threshold: 0.75
+    max_budget_delta_pct: 15
+
+exclusions:
+  campaign_name_regex: []
+  tags: []

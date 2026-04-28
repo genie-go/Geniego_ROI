@@ -1,0 +1,6 @@
+{
+  "base_currency": "KRW",
+  "default_currency": "KRW",
+  "default_tax_rate": 0.0,
+  "assume_cost_includes_tax": false
+}

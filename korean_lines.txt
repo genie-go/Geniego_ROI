@@ -1,0 +1,23 @@
+﻿python : Traceback (most recent call last):
+At line:1 char:61
++ ... t-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass; python -c "
++                                                               ~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Traceback (most recent call last)::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+L52: /* ������ Initial ������ ������������������������������������������������������������ */
+L70: const [form, setForm] = useState({ id: "", name: "", code: "", location: "", area: "", temp: "���", m...
+L79: const reset = () => { setForm({ id: "", name: "", code: "", location: "", area: "", temp: "���", mana...
+L102: <Input label={t("wms.whNameLabel")} value={f.name} onChange={v => setF("name", v)} placeholder="��: D...
+L103: <Input label={t("wms.whCodeLabel")} value={f.code} onChange={v => setF("code", v)} placeholder="��: D...
+L104: <Input label={t("wms.whPhoneLabel")} value={f.phone} onChange={v => setF("phone", v)} placeholder="��...
+L105: <Input label={t("wms.whAddrLabel")} value={f.location} onChange={v => setF("location", v)} placehold...
+L121: /* ���� �����: Card�� Layout ���� */
+L123: {/* Header ��: Icon + Warehouse�� + �Status */}
+L138: ���� {w.area}�� &nbsp;|&nbsp; {t("wms.whManagerLabel")} {w.manager} {w.phone}
+L153: /* ���� PC: 5�� �׸��� ���� */
+L167: <div style={{ fontSize: 10, color: "var(--text-3)" }}>���� Stock</div>
+L169: <Tag label={w.active ? "�in progress" : "in progress��"} color={w.active ? "#22c55e" : "#666"} />
+L172: <Btn onClick={() => toggleActive(w.id)} color={w.active ? "#ef4444" : "#22c55e"} small>{w.active ? "...
+  File "<string>", line 11, in <module>
+UnicodeEncodeError: 'cp949' codec can't encode character '\u2550' in position 9: illegal multibyte sequence

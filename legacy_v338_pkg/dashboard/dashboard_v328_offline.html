@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>GENIE ROI Dashboard · Offline UI (V328)</title>
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial; margin:0; background:#f6f7fb;}
+    header{background:#0f172a;color:#fff;padding:14px 18px;display:flex;gap:12px;align-items:center}
+    .wrap{padding:16px;max-width:1200px;margin:0 auto}
+    .row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+    .card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:12px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+    .k{color:#64748b;font-size:12px}
+    .v{font-size:22px;font-weight:700;margin-top:4px}
+    .grid2{display:grid;grid-template-columns:2fr 1fr;gap:12px;margin-top:12px}
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:10px;border-bottom:1px solid #eef2f7;text-align:left;font-size:13px}
+    th{color:#475569;font-weight:700}
+    .pill{display:inline-block;padding:2px 8px;border-radius:999px;background:#eef2ff;color:#3730a3;font-size:12px}
+    .muted{color:#94a3b8;font-size:12px}
+    .err{color:#b91c1c}
+    .btn{display:inline-block;padding:8px 10px;border-radius:10px;border:1px solid #e2e8f0;background:#fff;cursor:pointer}
+    .btn:hover{background:#f8fafc}
+  </style>
+</head>
+<body>
+<header>
+  <div style="font-weight:800">GENIE ROI</div>
+  <div class="pill">V328 Offline UI</div>
+  <div class="muted" style="margin-left:auto">Data: /p/&lt;project&gt;/out/dashboard_ads_kpi.json</div>
+</header>
+
+<div class="wrap">
+  <div class="muted">✅ 외부 CDN 0개 / Vanilla JS 번들(오프라인) · 1P Pixel(옵션) · MMM 고도화(Adstock/Saturation/진단)</div>
+  <div style="margin-top:10px;display:flex;gap:8px;align-items:center">
+    <button class="btn" id="refreshBtn">새로고침</button>
+    <div class="muted" id="status"></div>
+  </div>
+
+  <div class="row" style="margin-top:12px" id="kpiRow"></div>
+
+  <div class="grid2">
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="font-weight:800">Top 캠페인</div>
+        <div class="muted">최근 7일 기준(샘플)</div>
+      </div>
+      <div style="margin-top:10px;overflow:auto;max-height:420px">
+        <table>
+          <thead><tr><th>채널</th><th>캠페인</th><th>지출</th><th>매출</th><th>ROAS</th></tr></thead>
+          <tbody id="topTable"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <div style="font-weight:800">진단</div>
+      <div class="muted" style="margin-top:6px">매칭/품질/워터마크 요약</div>
+      <pre id="diag" style="margin-top:10px;white-space:pre-wrap;font-size:12px;background:#0b1220;color:#e5e7eb;padding:10px;border-radius:12px;max-height:420px;overflow:auto"></pre>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:12px">
+    <div style="font-weight:800">1P Pixel 빠른 설치</div>
+    <div class="muted" style="margin-top:6px">웹사이트 &lt;head&gt; 또는 &lt;body&gt; 하단에 추가</div>
+    <pre style="margin-top:10px;white-space:pre-wrap;font-size:12px;background:#0b1220;color:#e5e7eb;padding:10px;border-radius:12px">
+&lt;script src="/p/{{PROJECT_ID}}/pixel/p.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+  // 예: 구매 이벤트
+  genie('event','purchase',{order_id:'O123', value: 39000, currency:'KRW'});
+  // 예: 로그인/회원 식별(이메일은 서버에서 SHA256 해시 처리 가능)
+  genie('identify',{email:'user@example.com', customer_id:'C001'});
+&lt;/script&gt;</pre>
+  </div>
+</div>
+
+<script>
+(function(){
+  const statusEl = document.getElementById('status');
+  const kpiRow = document.getElementById('kpiRow');
+  const topTable = document.getElementById('topTable');
+  const diag = document.getElementById('diag');
+  const refreshBtn = document.getElementById('refreshBtn');
+
+  function fmt(n){
+    if (n===null || n===undefined || isNaN(n)) return '-';
+    const x = Number(n);
+    return x.toLocaleString('ko-KR');
+  }
+  function card(k,v){
+    const div=document.createElement('div');
+    div.className='card';
+    div.innerHTML = '<div class="k">'+k+'</div><div class="v">'+v+'</div>';
+    return div;
+  }
+  async function load(){
+    statusEl.textContent='로딩 중...';
+    kpiRow.innerHTML='';
+    topTable.innerHTML='';
+    diag.textContent='';
+    const base = location.pathname.replace(/\/dashboard.*$/,'');
+    const url = base + '/out/dashboard_ads_kpi.json?ts=' + Date.now();
+    try{
+      const r = await fetch(url, {credentials:'include'});
+      if(!r.ok) throw new Error('HTTP '+r.status);
+      const j = await r.json();
+
+      // KPIs
+      const kpis = j.kpis || j.summary || {};
+      const spend = kpis.spend || kpis.total_spend || 0;
+      const rev = kpis.revenue || kpis.total_revenue || 0;
+      const conv = kpis.conversions || kpis.total_conversions || 0;
+      const roas = (spend>0)? (rev/spend): 0;
+
+      kpiRow.appendChild(card('총 지출', fmt(spend)));
+      kpiRow.appendChild(card('총 매출', fmt(rev)));
+      kpiRow.appendChild(card('총 전환', fmt(conv)));
+      kpiRow.appendChild(card('ROAS', roas? roas.toFixed(2): '0.00'));
+
+      // Top campaigns
+      const rows = (j.tables && j.tables.top_campaigns) || j.top_campaigns || [];
+      rows.slice(0,25).forEach(row=>{
+        const tr=document.createElement('tr');
+        const spend=row.spend||0, revenue=row.revenue||0;
+        const roas=(spend>0)? (revenue/spend): 0;
+        tr.innerHTML = '<td>'+ (row.channel||'-') +'</td><td>'+ (row.campaign||row.name||'-') +'</td><td>'+ fmt(spend) +'</td><td>'+ fmt(revenue) +'</td><td>'+ (roas? roas.toFixed(2): '0.00') +'</td>';
+        topTable.appendChild(tr);
+      });
+
+      // Diagnostics
+      const d = j.diagnostics || {};
+      diag.textContent = JSON.stringify(d, null, 2);
+
+      statusEl.textContent='업데이트: ' + new Date().toLocaleString();
+    } catch(e){
+      statusEl.innerHTML='<span class="err">로딩 실패: '+ (e && e.message ? e.message : e) +'</span>';
+    }
+  }
+  refreshBtn.addEventListener('click', load);
+  load();
+})();
+</script>
+</body>
+</html>

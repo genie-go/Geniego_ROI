@@ -1,0 +1,67 @@
+version: "3.9"
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: genie
+      POSTGRES_PASSWORD: genie
+      POSTGRES_DB: genie
+    ports: ["5432:5432"]
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7
+    ports: ["6379:6379"]
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.6.0
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports: ["2181:2181"]
+
+  kafka:
+    image: confluentinc/cp-kafka:7.6.0
+    depends_on: [zookeeper]
+    ports: ["9092:9092"]
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+  backend:
+    build: ../services/backend
+    environment:
+      APP_ENV: docker
+      DATABASE_URL: postgresql+psycopg://genie:genie@postgres:5432/genie
+      REDIS_URL: redis://redis:6379/0
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      AUTO_EXECUTE: "false"
+      DRY_RUN: "true"
+    ports: ["8080:8080"]
+    depends_on: [postgres, redis, kafka]
+
+  worker:
+    build: ../services/worker
+    environment:
+      APP_ENV: docker
+      DATABASE_URL: postgresql+psycopg://genie:genie@postgres:5432/genie
+      REDIS_URL: redis://redis:6379/0
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      AUTO_EXECUTE: "false"
+      DRY_RUN: "true"
+    depends_on: [postgres, redis, kafka, backend]
+
+  frontend:
+    build: ../services/frontend
+    environment:
+      BACKEND_URL: http://backend:8080
+    ports: ["3000:3000"]
+    depends_on: [backend]
+
+volumes:
+  pgdata:

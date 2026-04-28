@@ -1,0 +1,3 @@
+﻿invSearchPh: Search SKU or product...
+invTableTitle: 📦 Warehouse Stock by SKU
+invColSku: SKU

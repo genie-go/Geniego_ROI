@@ -1,0 +1,21 @@
+<!doctype html>
+<html><head><meta charset="utf-8"/><title>Commerce Hub</title>
+<link rel="stylesheet" href="../assets/style.css"/>
+</head>
+<body>
+<a href="../index.html">← Demo Home</a>
+<h1>Commerce Hub</h1>
+<div class="card" id="content"><div class="muted">Loading…</div></div>
+<script src="../assets/loader.js"></script>
+<script>
+
+(async ()=>{
+ const products = await loadJson('../../sample_data/demo_products.json');
+ const orders = await loadJson('../../sample_data/demo_orders.json');
+ document.getElementById('content').innerHTML =
+   '<h3>Products</h3>'+tableFromObjects(products)+
+   '<h3>Orders</h3>'+tableFromObjects(orders)+
+   '<p class="muted">* 실제 운영에서는 주문 이벤트(order_event)가 재고 예약/복구 로직을 트리거합니다.</p>';
+})();
+</script>
+</body></html>

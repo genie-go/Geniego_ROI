@@ -1,0 +1,19 @@
+<!doctype html>
+<html><head><meta charset="utf-8"/><title>Ads Hub</title>
+<link rel="stylesheet" href="../assets/style.css"/>
+</head>
+<body>
+<a href="../index.html">← Demo Home</a>
+<h1>Ads Hub</h1>
+<div class="card" id="content"><div class="muted">Loading…</div></div>
+<script src="../assets/loader.js"></script>
+<script>
+
+(async ()=>{
+ const ads = await loadJson('../../sample_data/demo_ads_campaigns.json');
+ document.getElementById('content').innerHTML =
+   '<h3>Campaigns</h3>'+tableFromObjects(ads)+
+   '<p class="muted">* 실제 운영에서는 승인/정책 체크 후 캠페인 Pause/Activate/Budget 변경이 실행됩니다.</p>';
+})();
+</script>
+</body></html>

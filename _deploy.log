@@ -1,0 +1,23 @@
+﻿python : Traceback (most recent call last):
+At line:1 char:1
++ python deploy_sftp.py 2>&1 | Out-File -Encoding utf8 _deploy.log; Get ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Traceback (most recent call last)::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  File "D:\project\GeniegoROI\deploy_sftp.py", line 105, in <module>
+    main()
+  File "D:\project\GeniegoROI\deploy_sftp.py", line 101, in main
+Connecting to root@1.201.177.46...
+Connected!
+Cleaning stale remote files...
+  Removed 6 stale items
+Uploading D:\project\GeniegoROI\frontend\dist �� /home/wwwroot/roi.geniego.com/frontend/dist ...
+  ... 20 files uploaded
+  ... 40 files uploaded
+  ... 60 files uploaded
+  ... 80 files uploaded
+Upload complete: 93 files transferred
+SSH public key registered for future keyless deploys
+    print(f"\n\u2705 Deployment to {HOST} completed successfully!")
+UnicodeEncodeError: 'cp949' codec can't encode character '\u2705' in position 2: illegal multibyte sequence

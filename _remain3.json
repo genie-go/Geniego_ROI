@@ -1,0 +1,1306 @@
+[
+  {
+    "k": "kakao.fMsgType",
+    "v": "메시지 타입"
+  },
+  {
+    "k": "dash.chIntelDesc3",
+    "v": "하여"
+  },
+  {
+    "k": "dash.unitSecs",
+    "v": "초"
+  },
+  {
+    "k": "dash.unitMins",
+    "v": "분 "
+  },
+  {
+    "k": "operations.thAction",
+    "v": "작업"
+  },
+  {
+    "k": "auto.z7ua1p",
+    "v": "통신사"
+  },
+  {
+    "k": "auto.x00b7n",
+    "v": "롯데 복지몰"
+  },
+  {
+    "k": "auto.stfef4",
+    "v": "하나 복지몰"
+  },
+  {
+    "k": "auto.zhzra1",
+    "v": "현대백화점 복지몰"
+  },
+  {
+    "k": "auto.4yo8i3",
+    "v": "라벨"
+  },
+  {
+    "k": "auto.gzkv91",
+    "v": "미스캔"
+  },
+  {
+    "k": "auto.g89o6q",
+    "v": "폐쇄몰"
+  },
+  {
+    "k": "auto.6xwuah",
+    "v": "폐쇄몰"
+  },
+  {
+    "k": "marketing.approvedBy",
+    "v": "에 의해"
+  },
+  {
+    "k": "g.Badge",
+    "v": "데모 체험중"
+  },
+  {
+    "k": "g.Join",
+    "v": "무료로 시작하기"
+  },
+  {
+    "k": "g.moduleShortcuts",
+    "v": "모듈 숏컷"
+  },
+  {
+    "k": "g.chIntelDesc3",
+    "v": "하면"
+  },
+  {
+    "k": "Data.Geniego Shop",
+    "v": "지니고 샵"
+  },
+  {
+    "k": "Data.no",
+    "v": "아니오"
+  },
+  {
+    "k": "common.pipeline",
+    "v": "파이프라인"
+  },
+  {
+    "k": "nav.finance",
+    "v": "파이낸스"
+  },
+  {
+    "k": "pages.graphScore.nodes",
+    "v": "결속 노드"
+  },
+  {
+    "k": "pages.graphScore.label",
+    "v": "라벨"
+  },
+  {
+    "k": "pages.commerce.types",
+    "v": "종"
+  },
+  {
+    "k": "pages.commerce.ago",
+    "v": "전"
+  },
+  {
+    "k": "pages.amazonRisk.mediumRisk",
+    "v": "중위험"
+  },
+  {
+    "k": "pages.krChannel.currency",
+    "v": "화폐"
+  },
+  {
+    "k": "pages.krChannel.loadSample",
+    "v": "샘플 데이터 로드"
+  },
+  {
+    "k": "pages.priceOpt.mediumRisk",
+    "v": "중위험"
+  },
+  {
+    "k": "pages.reconciliation.status_open",
+    "v": "열기"
+  },
+  {
+    "k": "pages._marketing_1.colCurrent",
+    "v": "현재 비중"
+  },
+  {
+    "k": "pages._marketing_1.colRecommend",
+    "v": "권장 비중"
+  },
+  {
+    "k": "pages._marketing_1.approvedBy",
+    "v": "에 의해"
+  },
+  {
+    "k": "pages._marketing_1.remaining",
+    "v": "잔여"
+  },
+  {
+    "k": "pages._marketing_1.status_draft",
+    "v": "작성중"
+  },
+  {
+    "k": "pages._marketing_1.status_review",
+    "v": "심사중"
+  },
+  {
+    "k": "pages.perms.menu.channelKpi.brandAwareness",
+    "v": "브랜드 인지도 확대"
+  },
+  {
+    "k": "pages.perms.menu.channelKpi.webTraffic",
+    "v": "웹 트래픽 유도"
+  },
+  {
+    "k": "pages.perms.menu.channelKpi.webTrafficDesc",
+    "v": "페이지 뷰 및 체류 시간 증대"
+  },
+  {
+    "k": "pages.perms.menu.channelKpi.pageViews",
+    "v": "페이지 뷰"
+  },
+  {
+    "k": "pages.perms.menu.channelKpi.siteTraffic",
+    "v": "사이트 트래픽"
+  },
+  {
+    "k": "pages.perms.menu.channelKpi.communityAct",
+    "v": "커뮤니티 활동"
+  },
+  {
+    "k": "pages.perms.menu.channelKpi.communityGrowth",
+    "v": "커뮤니티 성장"
+  },
+  {
+    "k": "pages.perms.menu.marketingIntel.investment",
+    "v": "투자비"
+  },
+  {
+    "k": "pages.perms.menu.marketingIntel.verdictGood",
+    "v": "우수"
+  },
+  {
+    "k": "pages.perms.menu.marketingIntel.verdictBad",
+    "v": "저조"
+  },
+  {
+    "k": "pages.perms.menu.marketingIntel.dimDevice",
+    "v": "디바이스"
+  },
+  {
+    "k": "pages.perms.menu.marketingIntel.adHeadline",
+    "v": "헤드라인"
+  },
+  {
+    "k": "pages.perms.menu.marketingIntel.adBody",
+    "v": "본문 카피"
+  },
+  {
+    "k": "pages.perms.menu.marketingIntel.adHashtags",
+    "v": "해시태그"
+  },
+  {
+    "k": "pages.perms.menu.marketingIntel.adKeywords",
+    "v": "키워드"
+  },
+  {
+    "k": "pages.perms.menu.marketingIntel.adCtaList.1",
+    "v": "자세히 알아보기"
+  },
+  {
+    "k": "pages.perms.menu.marketingIntel.adCtaList.2",
+    "v": "무료 체험하기"
+  },
+  {
+    "k": "pages.perms.menu.marketingIntel.adCtaList.4",
+    "v": "지금 신청하기"
+  },
+  {
+    "k": "pages.perms.menu.commerceSearch",
+    "v": "통합 조회"
+  },
+  {
+    "k": "pages.perms.menu.connectors.testConnection",
+    "v": "연결 테스트"
+  },
+  {
+    "k": "pages.perms.menu.connectors.hourly",
+    "v": "매시간"
+  },
+  {
+    "k": "pages.perms.menu.eventNorm.standardEvent",
+    "v": "표준 이벤트"
+  },
+  {
+    "k": "pages.perms.menu.eventNorm.mappingRule",
+    "v": "매핑 규칙"
+  },
+  {
+    "k": "pages.perms.menu.eventNorm.testEvent",
+    "v": "테스트 이벤트"
+  },
+  {
+    "k": "pages.perms.menu.mappingRegistry.tabProductMap",
+    "v": "제품 매핑"
+  },
+  {
+    "k": "pages.perms.menu.mappingRegistry.tabCategoryMap",
+    "v": "카테고리 매핑"
+  },
+  {
+    "k": "pages.perms.menu.mappingRegistry.mappingRule",
+    "v": "매핑 규칙"
+  },
+  {
+    "k": "pages.perms.topProducts",
+    "v": "상위 상품"
+  },
+  {
+    "k": "pages.audit.timelineHeader",
+    "v": "이벤트 타임라인"
+  },
+  {
+    "k": "pages.audit.filterEventType",
+    "v": "모든 이벤트 유형"
+  },
+  {
+    "k": "pages.audit.filterActor",
+    "v": "모든 배우"
+  },
+  {
+    "k": "pages.audit.filterRisk",
+    "v": "모든 위험 수준"
+  },
+  {
+    "k": "pages.audit.colEvent",
+    "v": "이벤트"
+  },
+  {
+    "k": "pages.audit.tabData",
+    "v": "데이터 변경"
+  },
+  {
+    "k": "pages.audit.tabSystem",
+    "v": "시스템"
+  },
+  {
+    "k": "pages.audit.colTimestamp",
+    "v": "타임스탬프"
+  },
+  {
+    "k": "pages.audit.colActions",
+    "v": "작업"
+  },
+  {
+    "k": "pages.adminCoupon.cancelled",
+    "v": "취 소됨"
+  },
+  {
+    "k": "pages.auth.agreeAnd",
+    "v": "및"
+  },
+  {
+    "k": "pages.auth.businessTypeLabel",
+    "v": "업종"
+  },
+  {
+    "k": "pages.auth.zipCodeLabel",
+    "v": "우편번호"
+  },
+  {
+    "k": "pages.helpPanel.staticHelp.connectors.steps",
+    "v": "단계"
+  },
+  {
+    "k": "pages.helpPanel.staticHelp.help.steps",
+    "v": "단계"
+  },
+  {
+    "k": "pages.helpPanel.staticHelp.smsMarketing.steps",
+    "v": "단계"
+  },
+  {
+    "k": "pages.pricingDetail.growth_headline",
+    "v": "마케팅 성장 플랜"
+  },
+  {
+    "k": "pages.pricingDetail.pro_badge",
+    "v": "인기"
+  },
+  {
+    "k": "pages.pricingDetail.ent_badge",
+    "v": "최고사양"
+  },
+  {
+    "k": "pages.cmpVal.aiPredict.retry",
+    "v": "재시도"
+  },
+  {
+    "k": "pages.cmpVal.aiPredict.bulkAction",
+    "v": "일괄 작업"
+  },
+  {
+    "k": "pages.units.pts",
+    "v": "점"
+  },
+  {
+    "k": "pages.units.types",
+    "v": "종"
+  },
+  {
+    "k": "pages.units.ago",
+    "v": "전"
+  },
+  {
+    "k": "pages.menu.channelKpi.brandAwareness",
+    "v": "브랜드 인지도 확대"
+  },
+  {
+    "k": "pages.menu.channelKpi.webTraffic",
+    "v": "웹 트래픽 유도"
+  },
+  {
+    "k": "pages.menu.channelKpi.webTrafficDesc",
+    "v": "페이지 뷰 및 체류 시간 증대"
+  },
+  {
+    "k": "pages.menu.channelKpi.pageViews",
+    "v": "페이지 뷰"
+  },
+  {
+    "k": "pages.menu.channelKpi.siteTraffic",
+    "v": "사이트 트래픽"
+  },
+  {
+    "k": "pages.menu.channelKpi.communityAct",
+    "v": "커뮤니티 활동"
+  },
+  {
+    "k": "pages.menu.channelKpi.communityGrowth",
+    "v": "커뮤니티 성장"
+  },
+  {
+    "k": "pages.menu.marketingIntel.investment",
+    "v": "투자비"
+  },
+  {
+    "k": "pages.menu.marketingIntel.verdictGood",
+    "v": "우수"
+  },
+  {
+    "k": "pages.menu.marketingIntel.verdictBad",
+    "v": "저조"
+  },
+  {
+    "k": "pages.menu.marketingIntel.dimDevice",
+    "v": "디바이스"
+  },
+  {
+    "k": "pages.menu.marketingIntel.adHeadline",
+    "v": "헤드라인"
+  },
+  {
+    "k": "pages.menu.marketingIntel.adBody",
+    "v": "본문 카피"
+  },
+  {
+    "k": "pages.menu.marketingIntel.adHashtags",
+    "v": "해시태그"
+  },
+  {
+    "k": "pages.menu.marketingIntel.adKeywords",
+    "v": "키워드"
+  },
+  {
+    "k": "pages.menu.marketingIntel.adCtaList.1",
+    "v": "자세히 알아보기"
+  },
+  {
+    "k": "pages.menu.marketingIntel.adCtaList.2",
+    "v": "무료 체험하기"
+  },
+  {
+    "k": "pages.menu.marketingIntel.adCtaList.4",
+    "v": "지금 신청하기"
+  },
+  {
+    "k": "pages.menu.commerceSearch",
+    "v": "통합 조회"
+  },
+  {
+    "k": "pages.menu.connectors.testConnection",
+    "v": "연결 테스트"
+  },
+  {
+    "k": "pages.menu.connectors.hourly",
+    "v": "매시간"
+  },
+  {
+    "k": "pages.menu.eventNorm.standardEvent",
+    "v": "표준 이벤트"
+  },
+  {
+    "k": "pages.menu.eventNorm.mappingRule",
+    "v": "매핑 규칙"
+  },
+  {
+    "k": "pages.menu.eventNorm.testEvent",
+    "v": "테스트 이벤트"
+  },
+  {
+    "k": "pages.menu.mappingRegistry.tabProductMap",
+    "v": "제품 매핑"
+  },
+  {
+    "k": "pages.menu.mappingRegistry.tabCategoryMap",
+    "v": "카테고리 매핑"
+  },
+  {
+    "k": "pages.menu.mappingRegistry.mappingRule",
+    "v": "매핑 규칙"
+  },
+  {
+    "k": "pages.topProducts",
+    "v": "상위 상품"
+  },
+  {
+    "k": "pages.marketingIntel.investment",
+    "v": "투자비"
+  },
+  {
+    "k": "pages.marketingIntel.verdictGood",
+    "v": "우수"
+  },
+  {
+    "k": "pages.marketingIntel.verdictBad",
+    "v": "저조"
+  },
+  {
+    "k": "pages.marketingIntel.dimDevice",
+    "v": "디바이스"
+  },
+  {
+    "k": "pages.marketingIntel.adHeadline",
+    "v": "헤드라인"
+  },
+  {
+    "k": "pages.marketingIntel.adBody",
+    "v": "본문 카피"
+  },
+  {
+    "k": "pages.marketingIntel.adHashtags",
+    "v": "해시태그"
+  },
+  {
+    "k": "pages.marketingIntel.adKeywords",
+    "v": "키워드"
+  },
+  {
+    "k": "pages.marketingIntel.adCtaList.1",
+    "v": "자세히 알아보기"
+  },
+  {
+    "k": "pages.marketingIntel.adCtaList.2",
+    "v": "무료 체험하기"
+  },
+  {
+    "k": "pages.marketingIntel.adCtaList.4",
+    "v": "지금 신청하기"
+  },
+  {
+    "k": "pages.channelKpi.brandAwareness",
+    "v": "브랜드 인지도 확대"
+  },
+  {
+    "k": "pages.channelKpi.webTraffic",
+    "v": "웹 트래픽 유도"
+  },
+  {
+    "k": "pages.channelKpi.webTrafficDesc",
+    "v": "페이지 뷰 및 체류 시간 증대"
+  },
+  {
+    "k": "pages.channelKpi.pageViews",
+    "v": "페이지 뷰"
+  },
+  {
+    "k": "pages.channelKpi.siteTraffic",
+    "v": "사이트 트래픽"
+  },
+  {
+    "k": "pages.channelKpi.communityAct",
+    "v": "커뮤니티 활동"
+  },
+  {
+    "k": "pages.channelKpi.communityGrowth",
+    "v": "커뮤니티 성장"
+  },
+  {
+    "k": "pages.connectors.testConnection",
+    "v": "연결 테스트"
+  },
+  {
+    "k": "pages.connectors.hourly",
+    "v": "매시간"
+  },
+  {
+    "k": "pages.eventNorm.standardEvent",
+    "v": "표준 이벤트"
+  },
+  {
+    "k": "pages.eventNorm.mappingRule",
+    "v": "매핑 규칙"
+  },
+  {
+    "k": "pages.eventNorm.testEvent",
+    "v": "테스트 이벤트"
+  },
+  {
+    "k": "pages.mappingRegistry.tabProductMap",
+    "v": "제품 매핑"
+  },
+  {
+    "k": "pages.mappingRegistry.tabCategoryMap",
+    "v": "카테고리 매핑"
+  },
+  {
+    "k": "pages.mappingRegistry.mappingRule",
+    "v": "매핑 규칙"
+  },
+  {
+    "k": "pages.admin.timezone",
+    "v": "시간대"
+  },
+  {
+    "k": "pages.admin.currency",
+    "v": "화폐"
+  },
+  {
+    "k": "pages.admin.sessionTimeout",
+    "v": "세션 타임아웃"
+  },
+  {
+    "k": "pages.dbAdmin.slowQueries",
+    "v": "슬로우 쿼리"
+  },
+  {
+    "k": "pages.dbAdmin.backupNow",
+    "v": "지금 백업"
+  },
+  {
+    "k": "pages.dbAdmin.lastBackup",
+    "v": "최근 백업"
+  },
+  {
+    "k": "pages.systemMonitor.removeFavorite",
+    "v": "즐겨찾기에서 제거"
+  },
+  {
+    "k": "pages.systemMonitor.pinned",
+    "v": "고정됨"
+  },
+  {
+    "k": "pages.systemMonitor.removeFav",
+    "v": "즐겨찾기 해제"
+  },
+  {
+    "k": "pages.sidebar.removeFavorite",
+    "v": "즐겨찾기에서 제거"
+  },
+  {
+    "k": "pages.sidebar.pinned",
+    "v": "고정됨"
+  },
+  {
+    "k": "pages.sidebar.removeFav",
+    "v": "즐겨찾기 해제"
+  },
+  {
+    "k": "pages.menuAccess.permRead",
+    "v": "읽기"
+  },
+  {
+    "k": "pages.emailFrom",
+    "v": "발신자"
+  },
+  {
+    "k": "pages.kakaoMsgType",
+    "v": "메시지 유형"
+  },
+  {
+    "k": "pages.lineMsgType",
+    "v": "메시지 유형"
+  },
+  {
+    "k": "pages.delayTime",
+    "v": "대기 시간"
+  },
+  {
+    "k": "pages.minutes",
+    "v": "분"
+  },
+  {
+    "k": "pages.hours",
+    "v": "시간"
+  },
+  {
+    "k": "pages.ui.colActions",
+    "v": "작업"
+  },
+  {
+    "k": "pages.aiPredict.banner.mktHubAction",
+    "v": "마케팅 허브 바로가기"
+  },
+  {
+    "k": "pages.aiPredict.banner.emailFrom",
+    "v": "발신자"
+  },
+  {
+    "k": "pages.aiPredict.banner.kakaoMsgType",
+    "v": "메시지 유형"
+  },
+  {
+    "k": "pages.aiPredict.banner.lineMsgType",
+    "v": "메시지 유형"
+  },
+  {
+    "k": "pages.aiPredict.banner.delayTime",
+    "v": "대기 시간"
+  },
+  {
+    "k": "pages.aiPredict.banner.minutes",
+    "v": "분"
+  },
+  {
+    "k": "pages.aiPredict.banner.hours",
+    "v": "시간"
+  },
+  {
+    "k": "pages.aiPredict.channelKpiPage.brandAwareness",
+    "v": "브랜드 인지도 확대"
+  },
+  {
+    "k": "pages.aiPredict.channelKpiPage.webTraffic",
+    "v": "웹 트래픽 유도"
+  },
+  {
+    "k": "pages.aiPredict.channelKpiPage.webTrafficDesc",
+    "v": "페이지 뷰 및 체류 시간 증대"
+  },
+  {
+    "k": "pages.aiPredict.channelKpiPage.pageViews",
+    "v": "페이지 뷰"
+  },
+  {
+    "k": "pages.aiPredict.channelKpiPage.chCommunity",
+    "v": "커뮤니티"
+  },
+  {
+    "k": "pages.aiPredict.channelKpiPage.siteTraffic",
+    "v": "사이트 트래픽"
+  },
+  {
+    "k": "pages.aiPredict.channelKpiPage.naverCafe",
+    "v": "네이버 카페"
+  },
+  {
+    "k": "pages.aiPredict.channelKpiPage.communityAct",
+    "v": "커뮤니티 활동"
+  },
+  {
+    "k": "pages.aiPredict.channelKpiPage.communityGrowth",
+    "v": "커뮤니티 성장"
+  },
+  {
+    "k": "pages.aiPredict.unified.catGeneral",
+    "v": "일반"
+  },
+  {
+    "k": "pages.aiPredict.unified.btnRetry",
+    "v": "다시 입력"
+  },
+  {
+    "k": "pages.aiPredict.influencerUGC.txt_ActualPaid_9",
+    "v": "실가용액"
+  },
+  {
+    "k": "pages.aiPredict.influencerUGC.txt_ProductPag_14",
+    "v": "상품 랜딩 반영"
+  },
+  {
+    "k": "pages.aiPredict.influencerUGC.txt_계약갱신Recommendations_42",
+    "v": "연장 권장 레벨"
+  },
+  {
+    "k": "pages.aiPredict.influencerUGC.txt_부정리뷰_51",
+    "v": "이슈성 언급량"
+  },
+  {
+    "k": "pages.aiPredict.influencerUGC.u_13",
+    "v": "고정비"
+  },
+  {
+    "k": "pages.aiPredict.influencerUGC.u_15",
+    "v": "권리 범위"
+  },
+  {
+    "k": "pages.aiPredict.influencerUGC.u_20",
+    "v": "고정비"
+  },
+  {
+    "k": "pages.aiPredict.influencerUGC.u_21",
+    "v": "성과형"
+  },
+  {
+    "k": "pages.aiPredict.influencerUGC.u_25",
+    "v": "일 남음"
+  },
+  {
+    "k": "pages.aiPredict.influencerUGC.u_26",
+    "v": "없음"
+  },
+  {
+    "k": "pages.aiPredict.influencerUGC.u_32",
+    "v": "까지"
+  },
+  {
+    "k": "pages.aiPredict.influencerUGC.u_38",
+    "v": "미지급"
+  },
+  {
+    "k": "pages.aiPredict.influencerUGC.u_39",
+    "v": "과지급 탐지"
+  },
+  {
+    "k": "pages.aiPredict.influencerUGC.u_47",
+    "v": "회수"
+  },
+  {
+    "k": "pages.aiPredict.influencerUGC.u_48",
+    "v": "잔여액 지급"
+  },
+  {
+    "k": "pages.aiPredict.influencerUGC.u_52",
+    "v": "증빙서류"
+  },
+  {
+    "k": "pages.aiPredict.influencerUGC.u_54",
+    "v": "문서 없음"
+  },
+  {
+    "k": "pages.aiPredict.influencerUGC.u_63",
+    "v": "실 지급액"
+  },
+  {
+    "k": "pages.aiPredict.influencerUGC.u_94",
+    "v": "키워드"
+  },
+  {
+    "k": "pages.tab",
+    "v": "탭"
+  },
+  {
+    "k": "pages.retry",
+    "v": "재시도"
+  },
+  {
+    "k": "pages.bulkAction",
+    "v": "일괄 작업"
+  },
+  {
+    "k": "pages.banner.mktHubAction",
+    "v": "마케팅 허브 바로가기"
+  },
+  {
+    "k": "pages.banner.emailFrom",
+    "v": "발신자"
+  },
+  {
+    "k": "pages.banner.kakaoMsgType",
+    "v": "메시지 유형"
+  },
+  {
+    "k": "pages.banner.lineMsgType",
+    "v": "메시지 유형"
+  },
+  {
+    "k": "pages.banner.delayTime",
+    "v": "대기 시간"
+  },
+  {
+    "k": "pages.banner.minutes",
+    "v": "분"
+  },
+  {
+    "k": "pages.banner.hours",
+    "v": "시간"
+  },
+  {
+    "k": "pages.channelKpiPage.brandAwareness",
+    "v": "브랜드 인지도 확대"
+  },
+  {
+    "k": "pages.channelKpiPage.webTraffic",
+    "v": "웹 트래픽 유도"
+  },
+  {
+    "k": "pages.channelKpiPage.webTrafficDesc",
+    "v": "페이지 뷰 및 체류 시간 증대"
+  },
+  {
+    "k": "pages.channelKpiPage.chCommunity",
+    "v": "커뮤니티"
+  },
+  {
+    "k": "pages.channelKpiPage.pageViews",
+    "v": "페이지 뷰"
+  },
+  {
+    "k": "pages.channelKpiPage.siteTraffic",
+    "v": "사이트 트래픽"
+  },
+  {
+    "k": "pages.channelKpiPage.naverCafe",
+    "v": "네이버 카페"
+  },
+  {
+    "k": "pages.channelKpiPage.communityAct",
+    "v": "커뮤니티 활동"
+  },
+  {
+    "k": "pages.channelKpiPage.communityGrowth",
+    "v": "커뮤니티 성장"
+  },
+  {
+    "k": "pages.influencerUGC.txt_ActualPaid_9",
+    "v": "실가용액"
+  },
+  {
+    "k": "pages.influencerUGC.txt_ProductPag_14",
+    "v": "상품 랜딩 반영"
+  },
+  {
+    "k": "pages.influencerUGC.txt_계약갱신Recommendations_42",
+    "v": "연장 권장 레벨"
+  },
+  {
+    "k": "pages.influencerUGC.txt_부정리뷰_51",
+    "v": "이슈성 언급량"
+  },
+  {
+    "k": "pages.influencerUGC.u_13",
+    "v": "고정비"
+  },
+  {
+    "k": "pages.influencerUGC.u_15",
+    "v": "권리 범위"
+  },
+  {
+    "k": "pages.influencerUGC.u_20",
+    "v": "고정비"
+  },
+  {
+    "k": "pages.influencerUGC.u_21",
+    "v": "성과형"
+  },
+  {
+    "k": "pages.influencerUGC.u_25",
+    "v": "일 남음"
+  },
+  {
+    "k": "pages.influencerUGC.u_26",
+    "v": "없음"
+  },
+  {
+    "k": "pages.influencerUGC.u_32",
+    "v": "까지"
+  },
+  {
+    "k": "pages.influencerUGC.u_38",
+    "v": "미지급"
+  },
+  {
+    "k": "pages.influencerUGC.u_39",
+    "v": "과지급 탐지"
+  },
+  {
+    "k": "pages.influencerUGC.u_47",
+    "v": "회수"
+  },
+  {
+    "k": "pages.influencerUGC.u_48",
+    "v": "잔여액 지급"
+  },
+  {
+    "k": "pages.influencerUGC.u_52",
+    "v": "증빙서류"
+  },
+  {
+    "k": "pages.influencerUGC.u_54",
+    "v": "문서 없음"
+  },
+  {
+    "k": "pages.influencerUGC.u_63",
+    "v": "실 지급액"
+  },
+  {
+    "k": "pages.influencerUGC.u_94",
+    "v": "키워드"
+  },
+  {
+    "k": "pages.tabs.popularProducts",
+    "v": "인기 상품"
+  },
+  {
+    "k": "pages.rollup.pnlFxLoss",
+    "v": "환차손"
+  },
+  {
+    "k": "pages.influencer.engagementTrend",
+    "v": "참여 트렌드"
+  },
+  {
+    "k": "pages.canvas",
+    "v": "캔버스"
+  },
+  {
+    "k": "pages.message",
+    "v": "메시지"
+  },
+  {
+    "k": "pages.script",
+    "v": "스크립트"
+  },
+  {
+    "k": "pages.demandForecast.topProducts",
+    "v": "상위 상품"
+  },
+  {
+    "k": "pages.system.serverStatus",
+    "v": "서버 상태"
+  },
+  {
+    "k": "pages.attrData.tabAbDesc",
+    "v": "톰슨 샘플링"
+  },
+  {
+    "k": "pages.attrData.saturation",
+    "v": "포화"
+  },
+  {
+    "k": "pages.attrData.firstTouch",
+    "v": "첫 번째 터치"
+  },
+  {
+    "k": "pages.attrData.position",
+    "v": "위치 기반"
+  },
+  {
+    "k": "pages.attrData.excellent",
+    "v": "탁월"
+  },
+  {
+    "k": "pages.attrData.good",
+    "v": "양호"
+  },
+  {
+    "k": "pages.attrData.filterIssue",
+    "v": "이슈만"
+  },
+  {
+    "k": "pages.graph.pathW",
+    "v": "경로 가중치"
+  },
+  {
+    "k": "pages.graph.noPath",
+    "v": "연결된 경로 없음"
+  },
+  {
+    "k": "pages.graph.sourceNode",
+    "v": "출발 노드"
+  },
+  {
+    "k": "pages.graph.targetNode",
+    "v": "도착 노드"
+  },
+  {
+    "k": "pages.crm.email.catGeneral",
+    "v": "일반"
+  },
+  {
+    "k": "pages.crm.email.catWelcome",
+    "v": "환영"
+  },
+  {
+    "k": "pages.catalogSync.handlingFeeLabel",
+    "v": "작업비"
+  },
+  {
+    "k": "pages.catalogSync.colOverride",
+    "v": "직접 입력"
+  },
+  {
+    "k": "pages.catalogSync.workCost",
+    "v": "작업비"
+  },
+  {
+    "k": "pages.catalogSync.globalMarkup",
+    "v": "글로벌 마크업"
+  },
+  {
+    "k": "pages.catalogSync.rounding",
+    "v": "끝수 처리"
+  },
+  {
+    "k": "pages.catalogSync.nearOutOfStock",
+    "v": "품절 임박"
+  },
+  {
+    "k": "pages.catalogSync.startTime",
+    "v": "시작시각"
+  },
+  {
+    "k": "pages.catalogSync.duration",
+    "v": "소요시간"
+  },
+  {
+    "k": "pages.catalogSync.change",
+    "v": "변경"
+  },
+  {
+    "k": "pages.ihub.a_z7ua1p",
+    "v": "통신사"
+  },
+  {
+    "k": "pages.ihub.a_x00b7n",
+    "v": "롯데 복지몰"
+  },
+  {
+    "k": "pages.ihub.a_stfef4",
+    "v": "하나 복지몰"
+  },
+  {
+    "k": "pages.ihub.a_zhzra1",
+    "v": "현대백화점 복지몰"
+  },
+  {
+    "k": "pages.ihub.a_4yo8i3",
+    "v": "라벨"
+  },
+  {
+    "k": "pages.ihub.a_gzkv91",
+    "v": "미스캔"
+  },
+  {
+    "k": "pages.ihub.a_g89o6q",
+    "v": "폐쇄몰"
+  },
+  {
+    "k": "pages.ihub.a_6xwuah",
+    "v": "폐쇄몰"
+  },
+  {
+    "k": "pages.campaignMgr.typeIntegrated",
+    "v": "통합"
+  },
+  {
+    "k": "pages.campaignMgr.typePerformance",
+    "v": "퍼포먼스"
+  },
+  {
+    "k": "pages.campaignMgr.typeRetargeting",
+    "v": "리타게팅"
+  },
+  {
+    "k": "pages.campaignMgr.inf2",
+    "v": "이패션"
+  },
+  {
+    "k": "pages.campaignMgr.inf3",
+    "v": "박틱톡"
+  },
+  {
+    "k": "pages.campaignMgr.ruleEngine",
+    "v": "룰 엔진"
+  },
+  {
+    "k": "pages.aiHub.dsRulesFired",
+    "v": "룰발동"
+  },
+  {
+    "k": "pages.aiHub.cardsUnit",
+    "v": "장"
+  },
+  {
+    "k": "pages.aiHub.catAcquisition",
+    "v": "신규 획득"
+  },
+  {
+    "k": "pages.aiHub.dailySales",
+    "v": "일판매"
+  },
+  {
+    "k": "pages.reviews.message",
+    "v": "메시지"
+  },
+  {
+    "k": "pages.reviews.mktHubAction",
+    "v": "마케팅 허브 바로가기"
+  },
+  {
+    "k": "pages.reviews.emailFrom",
+    "v": "발신자"
+  },
+  {
+    "k": "pages.reviews.kakaoMsgType",
+    "v": "메시지 유형"
+  },
+  {
+    "k": "pages.reviews.lineMsgType",
+    "v": "메시지 유형"
+  },
+  {
+    "k": "pages.reviews.delayTime",
+    "v": "대기 시간"
+  },
+  {
+    "k": "pages.reviews.minutes",
+    "v": "분"
+  },
+  {
+    "k": "pages.reviews.hours",
+    "v": "시간"
+  },
+  {
+    "k": "pages.reviews.catGeneral",
+    "v": "일반"
+  },
+  {
+    "k": "pages.reviews.btnRetry",
+    "v": "다시 입력"
+  },
+  {
+    "k": "pages.reviews.txt_ActualPaid_9",
+    "v": "실가용액"
+  },
+  {
+    "k": "pages.reviews.txt_ProductPag_14",
+    "v": "상품 랜딩 반영"
+  },
+  {
+    "k": "pages.reviews.Recommendations_42",
+    "v": "연장 권장 레벨"
+  },
+  {
+    "k": "pages.reviews._51",
+    "v": "이슈성 언급량"
+  },
+  {
+    "k": "pages.reviews.u_13",
+    "v": "고정비"
+  },
+  {
+    "k": "pages.reviews.u_15",
+    "v": "권리 범위"
+  },
+  {
+    "k": "pages.reviews.u_20",
+    "v": "고정비"
+  },
+  {
+    "k": "pages.reviews.u_21",
+    "v": "성과형"
+  },
+  {
+    "k": "pages.reviews.u_25",
+    "v": "일 남음"
+  },
+  {
+    "k": "pages.reviews.u_26",
+    "v": "없음"
+  },
+  {
+    "k": "pages.reviews.u_32",
+    "v": "까지"
+  },
+  {
+    "k": "pages.reviews.u_38",
+    "v": "미지급"
+  },
+  {
+    "k": "pages.reviews.u_39",
+    "v": "과지급 탐지"
+  },
+  {
+    "k": "pages.reviews.u_47",
+    "v": "회수"
+  },
+  {
+    "k": "pages.reviews.u_48",
+    "v": "잔여액 지급"
+  },
+  {
+    "k": "pages.reviews.u_52",
+    "v": "증빙서류"
+  },
+  {
+    "k": "pages.reviews.u_54",
+    "v": "문서 없음"
+  },
+  {
+    "k": "pages.reviews.u_63",
+    "v": "실 지급액"
+  },
+  {
+    "k": "pages.reviews.u_94",
+    "v": "키워드"
+  },
+  {
+    "k": "pages.reviews.brandAwareness",
+    "v": "브랜드 인지도 확대"
+  },
+  {
+    "k": "pages.reviews.webTraffic",
+    "v": "웹 트래픽 유도"
+  },
+  {
+    "k": "pages.reviews.webTrafficDesc",
+    "v": "페이지 뷰 및 체류 시간 증대"
+  },
+  {
+    "k": "pages.reviews.pageViews",
+    "v": "페이지 뷰"
+  },
+  {
+    "k": "pages.reviews.chCommunity",
+    "v": "커뮤니티"
+  },
+  {
+    "k": "pages.reviews.siteTraffic",
+    "v": "사이트 트래픽"
+  },
+  {
+    "k": "pages.reviews.naverCafe",
+    "v": "네이버 카페"
+  },
+  {
+    "k": "pages.reviews.communityAct",
+    "v": "커뮤니티 활동"
+  },
+  {
+    "k": "pages.reviews.communityGrowth",
+    "v": "커뮤니티 성장"
+  },
+  {
+    "k": "performance.0",
+    "v": "성"
+  },
+  {
+    "k": "performance.1",
+    "v": "과"
+  }
+]

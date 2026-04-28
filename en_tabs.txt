@@ -1,0 +1,14 @@
+﻿tabWarehouse: 🏭 창고
+tabInOut: 📦 인바운드 · 아웃바운드
+tabInventory: 📦 인벤토리
+tabReceiving: 📥 수신 중
+tabPicking: 🔍 픽 앤 팩
+tabLot: 🔗 로트/만료
+tabReplenishment: ⚡ 자동 PO
+tabCombine: 🎁 키트/번들
+tabCarrier: 🚚 운송업체
+tabTracking: 🔍 추적
+tabInvoice: 🧾 송장
+tabBundle: 📦 번들·BOM
+tabSupplier: 🏢 공급업체
+tabAudit: 📋 재고수

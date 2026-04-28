@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>GENIE_ROI V338 Ops Console</title>
+<style>
+body{font-family:system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin:20px; color:#111}
+.card{border:1px solid #ddd; border-radius:12px; padding:16px; margin-bottom:16px}
+.row{display:flex; gap:12px; flex-wrap:wrap}
+input,select,button,textarea{padding:8px; border-radius:8px; border:1px solid #ccc}
+button{cursor:pointer}
+pre{background:#f6f6f6; padding:12px; border-radius:12px; overflow:auto}
+small{color:#555}
+.badge{display:inline-block; padding:2px 8px; border-radius:999px; border:1px solid #ccc; margin-right:6px}
+</style>
+</head>
+<body>
+<h1>GENIE_ROI V338 운영 콘솔</h1>
+<p><small>이 화면은 “가격/할인/쿠폰 일괄·선택 적용 → 큐 enqueue → 배치 워커 처리 → 실패 원인 분류/런북”의 운영 루프를 한 화면에서 확인하기 위한 최소 UI입니다.</small></p>
+
+<div class="card">
+  <h2>프로젝트/채널</h2>
+  <div class="row">
+    <label>project <input id="project" placeholder="예: myproj"/></label>
+    <label>channel
+      <select id="channel">
+        <option value="">(전체)</option>
+        <option value="smartstore">smartstore</option>
+        <option value="coupang">coupang</option>
+      </select>
+    </label>
+    <button onclick="refreshAll()">새로고침</button>
+  </div>
+</div>
+
+<div class="card">
+  <h2>동기화 상태 요약</h2>
+  <div id="summary"></div>
+</div>
+
+<div class="card">
+  <h2>가격/할인/쿠폰 일괄·선택 적용 (적용 후 자동 enqueue)</h2>
+  <div class="row">
+    <label>SKUs(선택) <input id="skus" style="min-width:320px" placeholder="비우면 전체, 예: SKU001,SKU002"/></label>
+    <label>조정 방식
+      <select id="op"><option value="percent">percent</option><option value="fixed">fixed</option></select>
+    </label>
+    <label>값 <input id="value" type="number" value="5"/></label>
+    <label>반올림단위 <input id="round_to" type="number" value="10"/></label>
+  </div>
+  <div class="row" style="margin-top:8px">
+    <label><input id="apply_sale" type="checkbox"/> 세일가 생성</label>
+    <label>세일 값 <input id="sale_value" type="number" value="10"/></label>
+    <label>단위
+      <select id="sale_unit"><option value="percent">percent</option><option value="fixed">fixed</option></select>
+    </label>
+    <label>쿠폰(JSON) <input id="coupon" style="min-width:420px" placeholder='예: {"type":"cart","value":3000,"min_order":30000}'/></label>
+  </div>
+  <div class="row" style="margin-top:8px">
+    <label><input id="ch_smartstore" type="checkbox" checked/> SmartStore enqueue</label>
+    <label><input id="ch_coupang" type="checkbox" checked/> Coupang enqueue</label>
+    <button onclick="applyPrice()">적용 + enqueue</button>
+  </div>
+  <pre id="apply_out"></pre>
+</div>
+
+<div class="card">
+  <h2>최근 실패(원인 분류)</h2>
+  <div class="row">
+    <label>limit <input id="fail_limit" type="number" value="30"/></label>
+    <button onclick="loadFailures()">실패 조회</button>
+    <button onclick="loadRunbook()">런북/조치 가이드</button>
+  </div>
+  <pre id="failures"></pre>
+  <pre id="runbook"></pre>
+</div>
+
+<script>
+async function api(path, opts){
+  const res = await fetch(path, opts||{});
+  const txt = await res.text();
+  try{ return {ok: res.ok, status: res.status, data: JSON.parse(txt)}; }
+  catch(e){ return {ok: res.ok, status: res.status, data: txt}; }
+}
+function qp(){
+  const project = document.getElementById('project').value.trim();
+  const channel = document.getElementById('channel').value.trim();
+  const q = new URLSearchParams();
+  if(project) q.set('project', project);
+  if(channel) q.set('channel', channel);
+  return q.toString();
+}
+async function refreshAll(){
+  await loadSummary();
+  await loadFailures();
+}
+async function loadSummary(){
+  const q = qp();
+  const out = document.getElementById('summary');
+  if(!q){ out.innerHTML = '<small>project를 입력하세요</small>'; return; }
+  const r = await api('/api/v338/sync/summary?'+q);
+  if(!r.ok){ out.innerHTML = '<pre>'+JSON.stringify(r.data,null,2)+'</pre>'; return; }
+  const js = r.data;
+  const jobs = js.jobs_by_status || {};
+  const freasons = js.failures_24h_by_reason || [];
+  let html = '';
+  html += '<div>';
+  for(const k of Object.keys(jobs)){ html += '<span class="badge">'+k+': '+jobs[k]+'</span>'; }
+  html += '<span class="badge">PENDING_APPROVAL: '+(js.pending_approval||0)+'</span>';
+  html += '</div>';
+  html += '<div style="margin-top:8px"><small>최근 24시간 실패 TOP</small></div>';
+  html += '<div>';
+  for(const r of freasons){ html += '<span class="badge">'+r.reason+': '+r.count+'</span>'; }
+  html += '</div>';
+  out.innerHTML = html;
+}
+async function applyPrice(){
+  const q = qp();
+  const out = document.getElementById('apply_out');
+  if(!q){ out.textContent='project를 입력하세요'; return; }
+  const skus = document.getElementById('skus').value.trim();
+  const op = document.getElementById('op').value;
+  const value = parseFloat(document.getElementById('value').value||'0');
+  const round_to = parseInt(document.getElementById('round_to').value||'10');
+  const apply_sale = document.getElementById('apply_sale').checked;
+  const sale_value = parseFloat(document.getElementById('sale_value').value||'0');
+  const sale_unit = document.getElementById('sale_unit').value;
+  const couponTxt = document.getElementById('coupon').value.trim();
+  let coupon = null;
+  if(couponTxt){
+    try{ coupon = JSON.parse(couponTxt); }catch(e){ out.textContent='쿠폰 JSON이 올바르지 않습니다'; return; }
+  }
+  const channels = [];
+  if(document.getElementById('ch_smartstore').checked) channels.push('smartstore');
+  if(document.getElementById('ch_coupang').checked) channels.push('coupang');
+  const body = {op, value, round_to, apply_sale_price: apply_sale, sale_value, sale_unit, coupon, skus, channels};
+  const r = await api('/api/v338/bulk/price?'+q, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
+  out.textContent = JSON.stringify(r.data, null, 2);
+  await refreshAll();
+}
+async function loadFailures(){
+  const q = qp();
+  const out = document.getElementById('failures');
+  if(!q){ out.textContent='project를 입력하세요'; return; }
+  const limit = parseInt(document.getElementById('fail_limit').value||'30');
+  const r = await api('/api/v338/sync/failures?'+q+'&limit='+limit);
+  out.textContent = JSON.stringify(r.data, null, 2);
+}
+async function loadRunbook(){
+  const q = qp();
+  const out = document.getElementById('runbook');
+  if(!q){ out.textContent='project를 입력하세요'; return; }
+  const r = await api('/api/v338/runbook?'+q);
+  out.textContent = JSON.stringify(r.data, null, 2);
+}
+</script>
+</body>
+</html>

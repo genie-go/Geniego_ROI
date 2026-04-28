@@ -1,0 +1,28 @@
+﻿tabWarehouse: 🏭 창고
+tabWarehouseDesc: 등록 · 편집
+tabInOut: 📦 인바운드 · 아웃바운드
+tabInOutDesc: 인바운드 · 아웃바운드
+tabInventory: 📦 인벤토리
+tabInventoryDesc: SKU별
+tabReceiving: 📥 수신 중
+tabReceivingDesc: MISSING
+tabPicking: 🔍 픽 앤 팩
+tabPickingDesc: MISSING
+tabLot: 🔗 로트/만료
+tabLotDesc: MISSING
+tabReplenishment: ⚡ 자동 PO
+tabReplenishmentDesc: MISSING
+tabCombine: 🎁 키트/번들
+tabCombineDesc: 합배송
+tabCarrier: 🚚 운송업체
+tabCarrierDesc: 국내·해외
+tabTracking: 🔍 추적
+tabTrackingDesc: 실시간
+tabInvoice: 🧾 송장
+tabInvoiceDesc: 자동 생성
+tabBundle: 📦 번들·BOM
+tabBundleDesc: MISSING
+tabSupplier: 🏢 공급업체
+tabSupplierDesc: MISSING
+tabAudit: 📋 재고수
+tabAuditDesc: MISSING

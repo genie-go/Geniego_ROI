@@ -1,0 +1,24 @@
+
+openapi: 3.0.3
+info:
+  title: GENIE_ROI V309 API (Stub)
+  version: v309
+paths:
+  /v1/commerce/orders/sync:
+    post:
+      summary: Sync orders from commerce channels
+      responses:
+        '200':
+          description: OK
+  /v1/ads/campaigns/{id}/pause:
+    post:
+      summary: Pause an ads campaign (governed)
+      responses:
+        '200':
+          description: OK
+  /v1/webhooks/meta:
+    post:
+      summary: Meta webhook ingestion
+      responses:
+        '200':
+          description: OK

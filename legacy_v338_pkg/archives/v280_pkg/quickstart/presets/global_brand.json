@@ -1,0 +1,38 @@
+{
+  "tenant": {
+    "id": "demo-tenant",
+    "name": "Demo Global Brand"
+  },
+  "policy": {
+    "version": 1,
+    "channels": {
+      "ads": {
+        "enabled": true,
+        "max_budget_delta_pct": 10
+      },
+      "email": {
+        "enabled": true,
+        "require_consent": true,
+        "daily_frequency_cap": 1
+      },
+      "crm": {
+        "enabled": true,
+        "max_bulk_updates": 500
+      }
+    },
+    "approvals": {
+      "required_for": [
+        "EMAIL_BULK_SEND",
+        "CRM_BULK_UPDATE",
+        "ADS_BUDGET_UPDATE_OVER_3PCT"
+      ]
+    },
+    "blocklists": {
+      "segments": [
+        "underage",
+        "do_not_contact",
+        "eu_no_tracking"
+      ]
+    }
+  }
+}

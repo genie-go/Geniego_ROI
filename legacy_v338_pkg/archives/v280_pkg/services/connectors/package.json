@@ -1,0 +1,19 @@
+{
+  "name": "genie-connectors",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsx src/index.ts",
+    "fmt": "node -e "console.log('fmt stub')"",
+    "test": "node -e "console.log('tests stub')""
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "tsx": "^4.16.2",
+    "typescript": "^5.5.4"
+  }
+}

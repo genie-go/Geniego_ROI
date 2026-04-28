@@ -1,0 +1,7 @@
+body{font-family:system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin:24px;}
+a{color:#0b57d0; text-decoration:none;}
+table{border-collapse:collapse; width:100%; margin-top:12px;}
+th,td{border:1px solid #ddd; padding:8px; vertical-align:top; font-size:13px;}
+th{background:#f7f7f7; text-align:left;}
+.card{border:1px solid #ddd; border-radius:12px; padding:16px;}
+.muted{color:#666; font-size:14px;}
