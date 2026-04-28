@@ -1,44 +1,93 @@
-// Deep analysis: how does Vite structure the ja module in vendor-locales?
-const c=require('fs').readFileSync('dist/assets/vendor-locales-C1KigD_7.js','utf8');
+const fs = require('fs');
+const vm = require('vm');
 
-// Find the Japanese module boundary
-// Vite bundles ES modules - look for the ja locale's wms section
-// The wms key "WMS 倉庫統合管理" is unique to ja
-const jaHeroIdx = c.indexOf('WMS 倉庫統合管理');
-console.log('JA hero at position:', jaHeroIdx);
+// Parse backup files using VM (they use JS object literals, not strict JSON)
+function parseBackup(filePath) {
+  const content = fs.readFileSync(filePath, 'utf8');
+  // Convert export default {...} to module.exports = {...}
+  const code = content.replace(/^export\s+default\s+/, 'module.exports = ');
+  const m = { exports: {} };
+  try {
+    vm.runInNewContext(code, { module: m, exports: m.exports });
+    return m.exports;
+  } catch(e) {
+    return null;
+  }
+}
 
-// Search backward to find the wms object start for JA
-const jaWmsStart = c.lastIndexOf('wms:{', jaHeroIdx);
-console.log('JA wms:{ at:', jaWmsStart);
-if(jaWmsStart > -1) {
-    // What's before it?
-    console.log('Before wms:{:', c.substring(jaWmsStart-100, jaWmsStart));
-    // Scan forward from wms:{ to find invColProduct
-    const invInWms = c.indexOf('invColProduct', jaWmsStart);
-    console.log('\ninvColProduct relative to wms:{:', invInWms);
-    if(invInWms > -1) {
-        console.log('Value:', c.substring(invInWms, invInWms+50));
+// Parse current files using VM  
+function parseCurrent(filePath) {
+  const content = fs.readFileSync(filePath, 'utf8');
+  // Handle const xx = {...}; export default xx;
+  const code = content
+    .replace(/^export\s+default\s+\w+;?\s*$/m, '')
+    .replace(/^(const|let|var)\s+(\w+)\s*=/, 'module.exports =');
+  const m = { exports: {} };
+  try {
+    vm.runInNewContext(code, { module: m, exports: m.exports });
+    return m.exports;
+  } catch(e) {
+    // Try another approach
+    const code2 = content.replace(/^export\s+default\s+/, 'module.exports = ');
+    try {
+      vm.runInNewContext(code2, { module: m, exports: m.exports });
+      return m.exports;
+    } catch(e2) {
+      return null;
     }
-    
-    // Check: how far is invColProduct from the wms:{ start?
-    console.log('Distance:', invInWms - jaWmsStart, 'chars');
+  }
 }
 
-// ALSO: Look for the module default export structure
-// Vite uses `const X = {writebackPage:..., wms:{...}}` or similar
-// Find what comes BEFORE the JA wms object
-const jaModStart = c.lastIndexOf('const ', jaWmsStart);
-if(jaModStart > -1 && jaModStart > jaWmsStart - 500) {
-    console.log('\nModule start:', c.substring(jaModStart, jaModStart+100));
+// Check ko.js specifically
+const koBackup = parseBackup('src/i18n/locales_backup/ko.js');
+const koCurrent = parseCurrent('src/i18n/locales/ko.js');
+
+if (!koBackup) {
+  console.log('❌ Cannot parse backup ko.js');
+} else {
+  console.log('✅ Backup ko.js parsed successfully');
+  console.log('Top keys:', Object.keys(koBackup).length);
 }
 
-// CRITICAL: Is the JA locale object a FLAT dump or nested?
-// If wms is nested inside the default export, invColProduct should be reachable via .wms.invColProduct
-// Let's verify the structure by looking for the pattern
-const exportDefault = c.lastIndexOf('export default', jaHeroIdx);
-const exportBrace = c.lastIndexOf('export{', jaHeroIdx);
-console.log('\nexport default at:', exportDefault);
-console.log('export{ at:', exportBrace);
-if(exportBrace > -1 && exportBrace > jaHeroIdx - 200000) {
-    console.log('export{:', c.substring(exportBrace, exportBrace+200));
+if (!koCurrent) {
+  console.log('❌ Cannot parse current ko.js');
+} else {
+  console.log('✅ Current ko.js parsed successfully');
+  console.log('Top keys:', Object.keys(koCurrent).length);
+}
+
+if (koBackup && koCurrent) {
+  console.log('\n=== KEY COMPARISON (ko.js) ===');
+  const bakKeys = new Set(Object.keys(koBackup));
+  const curKeys = new Set(Object.keys(koCurrent));
+  
+  const onlyInBackup = [...bakKeys].filter(k => !curKeys.has(k));
+  const onlyInCurrent = [...curKeys].filter(k => !bakKeys.has(k));
+  const common = [...bakKeys].filter(k => curKeys.has(k));
+  
+  console.log('\nKeys ONLY in backup (LOST in current):');
+  for (const k of onlyInBackup) {
+    const subCount = typeof koBackup[k] === 'object' ? Object.keys(koBackup[k]).length : 1;
+    console.log(`  ⚠️ ${k}: ${subCount} sub-keys`);
+  }
+  
+  console.log('\nKeys ONLY in current (NEW):');
+  for (const k of onlyInCurrent) {
+    const subCount = typeof koCurrent[k] === 'object' ? Object.keys(koCurrent[k]).length : 1;
+    console.log(`  🆕 ${k}: ${subCount} sub-keys`);
+  }
+  
+  console.log('\nCommon keys with sub-key count changes:');
+  for (const k of common) {
+    const bakCount = typeof koBackup[k] === 'object' ? Object.keys(koBackup[k]).length : 1;
+    const curCount = typeof koCurrent[k] === 'object' ? Object.keys(koCurrent[k]).length : 1;
+    if (bakCount !== curCount) {
+      console.log(`  📊 ${k}: backup=${bakCount} → current=${curCount} (${curCount < bakCount ? '⚠️ REDUCED' : '🆕 ADDED'})`);
+    }
+  }
+  
+  // Total sub-key comparison
+  const bakTotal = Object.values(koBackup).reduce((s,v) => s + (typeof v === 'object' ? Object.keys(v).length : 1), 0);
+  const curTotal = Object.values(koCurrent).reduce((s,v) => s + (typeof v === 'object' ? Object.keys(v).length : 1), 0);
+  console.log(`\nTotal sub-keys: backup=${bakTotal} → current=${curTotal} (${bakTotal-curTotal} keys LOST)`);
 }
