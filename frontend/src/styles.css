@@ -5507,3 +5507,42 @@ button.rv-active-tab,.rv-active-tab,
   color: #1e293b !important;
   -webkit-text-fill-color: #1e293b !important;
 }
+
+/* ══ DEFINITIVE: Protect active gradient buttons from light-theme overrides ══ */
+[data-theme="arctic_white"] button.am-active-tab,
+[data-theme="pearl_office"] button.am-active-tab,
+[data-theme="arctic_white"] button.cs-active-tab,
+[data-theme="pearl_office"] button.cs-active-tab {
+  color: #ffffff !important;
+}
+[data-theme="arctic_white"] button.am-inactive-tab,
+[data-theme="pearl_office"] button.am-inactive-tab,
+[data-theme="arctic_white"] button.cs-inactive-tab,
+[data-theme="pearl_office"] button.cs-inactive-tab {
+  color: #1e293b !important;
+}
+
+/* ══ Hero title/subtitle dark text in light themes ══ */
+[data-theme="arctic_white"] .am-hero-title,
+[data-theme="pearl_office"] .am-hero-title {
+  color: #1e293b !important;
+}
+[data-theme="arctic_white"] .am-hero-desc,
+[data-theme="pearl_office"] .am-hero-desc {
+  color: #475569 !important;
+}
+
+/* ══ Sub-tab nav area: ensure background and text are both visible ══ */
+[data-theme="arctic_white"] .sub-tab-nav,
+[data-theme="pearl_office"] .sub-tab-nav {
+  background: rgba(245, 247, 250, 0.97) !important;
+}
+[data-theme="arctic_white"] .sub-tab-nav button,
+[data-theme="pearl_office"] .sub-tab-nav button {
+  color: #1e293b !important;
+}
+/* Active sub-tab should be white on colored bg */
+[data-theme="arctic_white"] .sub-tab-nav button.am-active-tab,
+[data-theme="pearl_office"] .sub-tab-nav button.am-active-tab {
+  color: #ffffff !important;
+}

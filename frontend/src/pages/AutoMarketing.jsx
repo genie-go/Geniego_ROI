@@ -521,10 +521,10 @@ export default function AutoMarketing() {
                         <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0, flex: '1 1 300px' }}>
                             <div style={{ width: 42, height: 42, borderRadius: 12, background: 'linear-gradient(135deg, #a855f7, #4f8ef7)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, boxShadow: '0 4px 14px rgba(168,85,247,0.3)', flexShrink: 0 }}>🚀</div>
                             <div style={{ minWidth: 0 }}>
-                                <div className="hero-title" style={{ fontSize: 19, fontWeight: 900, color: '#7c3aed', letterSpacing: '-0.3px', lineHeight: 1.3 }}>
+                                <div className="hero-title am-hero-title" style={{ fontSize: 19, fontWeight: 900, color: '#1e293b', letterSpacing: '-0.3px', lineHeight: 1.3 }}>
                                     {t("marketing.autoTitle")}
                                 </div>
-                                <div className="hero-desc" style={{ fontSize: 11, color: '#64748b', marginTop: 2, lineHeight: 1.4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                <div className="hero-desc am-hero-desc" style={{ fontSize: 11, color: '#475569', marginTop: 2, lineHeight: 1.4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                     {t("marketing.autoSub")}
                                 </div>
                             </div>
@@ -550,7 +550,7 @@ export default function AutoMarketing() {
                             const TAB_CLR = { creative: '#06b6d4', setup: '#a855f7', preview: '#4f8ef7', guide: '#6366f1' };
                             const clr = TAB_CLR[tb.id] || '#6366f1';
                             return (
-                                <button key={tb.id} onClick={() => setTab(tb.id)} style={{
+                                <button key={tb.id} className={isActive ? 'am-active-tab' : 'am-inactive-tab'} onClick={() => setTab(tb.id)} style={{
                                     display: 'flex', alignItems: 'center', gap: 5,
                                     padding: '7px 14px', borderRadius: 9, border: 'none', cursor: 'pointer',
                                     fontSize: 12, fontWeight: 700, transition: 'all 0.2s cubic-bezier(.4,0,.2,1)',
