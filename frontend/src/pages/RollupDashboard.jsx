@@ -559,18 +559,18 @@ function useFmtC() {
 const PLAT_CLR = { Meta:"#1877F2", Google:"#EA4335", TikTok:"#000", Naver:"#03C75A", Coupang:"#E51937", YouTube:"#FF0000", Instagram:"#C13584" };
 const pcol = (p) => PLAT_CLR[p] ?? "#888";
 
-// ── Theme-aware style helpers (Arctic White — zero dark-mode residue) ─
+// ── Enterprise Arctic White Style System — Zero CSS Variable Dependencies ──
 const S = {
-  card: { background:'var(--surface, #ffffff)', borderRadius:14, padding:'20px 22px', border:'1px solid var(--border, #e2e8f0)' },
-  label: { fontSize:11, color:'var(--text-3, #64748b)', marginBottom:4, fontWeight:700, letterSpacing:'0.3px', textTransform:'uppercase' },
-  value: { fontSize:22, fontWeight:800, color:'var(--text-1, #1e293b)' },
-  subText: { fontSize:11, color:'var(--text-3, #94a3b8)', marginTop:2 },
-  thCell: { padding:'6px 8px', textAlign:'right', color:'var(--text-3, #64748b)', fontWeight:700, fontSize:11, whiteSpace:'nowrap', letterSpacing:'0.3px', textTransform:'uppercase' },
-  tdCell: { padding:'8px', fontSize:13, color:'var(--text-1, #1e293b)' },
-  rowBorder: { borderBottom:'1px solid var(--border, #e2e8f0)' },
-  sectionTitle: { fontWeight:800, fontSize:14, marginBottom:14, color:'var(--text-1, #1e293b)' },
-  barBg: { background:'var(--border, #e2e8f0)' },
-  chip: { background:'var(--surface, #f1f5f9)', borderRadius:8, padding:'4px 12px', fontSize:12 },
+  card: { background:'rgba(255,255,255,0.95)', borderRadius:14, padding:'20px 22px', border:'1px solid rgba(99,140,255,0.12)' },
+  label: { fontSize:11, color:'#64748b', marginBottom:4, fontWeight:700, letterSpacing:'0.3px', textTransform:'uppercase' },
+  value: { fontSize:22, fontWeight:800, color:'#1e293b' },
+  subText: { fontSize:11, color:'#94a3b8', marginTop:2 },
+  thCell: { padding:'6px 8px', textAlign:'right', color:'#64748b', fontWeight:700, fontSize:11, whiteSpace:'nowrap', letterSpacing:'0.3px', textTransform:'uppercase' },
+  tdCell: { padding:'8px', fontSize:13, color:'#1e293b' },
+  rowBorder: { borderBottom:'1px solid #e2e8f0' },
+  sectionTitle: { fontWeight:800, fontSize:14, marginBottom:14, color:'#1e293b' },
+  barBg: { background:'#e2e8f0' },
+  chip: { background:'rgba(241,245,249,0.9)', borderRadius:8, padding:'4px 12px', fontSize:12 },
 };
 
 // ── UI Components ────────────────────────────────────────
@@ -610,7 +610,7 @@ function MiniBar({ data, key1="revenue" }) {
         const h = max > 0 ? ((d[key1]??0)/max)*38 : 2;
         return (
           <div key={i} style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"flex-end", height:"100%" }}>
-            <div style={{ width:"100%", background:"var(--blue, #4f8ef7)", borderRadius:2, height:h, opacity:0.85 }} title={`${d.date}: ${d[key1]?.toLocaleString() ?? '-'}`} />
+            <div style={{ width:"100%", background:"#4f8ef7", borderRadius:2, height:h, opacity:0.85 }} title={`${d.date}: ${d[key1]?.toLocaleString() ?? '-'}`} />
           </div>
         );
       })}
@@ -623,8 +623,8 @@ function EmptyState({ txt }) {
     <div style={{ display:"flex", alignItems:"center", justifyContent:"center", padding:60, borderRadius:16, ...S.card, boxShadow:'0 1px 4px rgba(0,0,0,0.04)' }}>
       <div style={{ textAlign:"center" }}>
         <div style={{ fontSize:48, marginBottom:16 }}>📊</div>
-        <div style={{ fontSize:16, fontWeight:800, color:'var(--text-1, #1e293b)', marginBottom:8 }}>{txt('noData')}</div>
-        <div style={{ fontSize:13, color:'var(--text-3, #64748b)', lineHeight:1.7 }}>{txt('connectData')}</div>
+        <div style={{ fontSize:16, fontWeight:800, color:'#1e293b', marginBottom:8 }}>{txt('noData')}</div>
+        <div style={{ fontSize:13, color:'#64748b', lineHeight:1.7 }}>{txt('connectData')}</div>
       </div>
     </div>
   );
@@ -634,7 +634,7 @@ function EmptyState({ txt }) {
 function SummaryTab({ period, n, txt, fc }) {
   const [data, setData] = useState(null);
   useEffect(() => { API(`/api/v423/rollup/summary?period=${period}&n=${n}`).then(setData).catch(()=>{}); }, [period, n]);
-  if (!data) return <div style={{ color:'var(--text-3)', padding:32 }}>{txt('loading')}</div>;
+  if (!data) return <div style={{ color:'#64748b', padding:32 }}>{txt('loading')}</div>;
 
   const kpi = data.kpi ?? {};
   const byPlatform = data.by_platform ?? {};
@@ -659,7 +659,7 @@ function SummaryTab({ period, n, txt, fc }) {
             <div style={{ flex:1, ...S.barBg, borderRadius:4, height:22, overflow:"hidden" }}>
               <div style={{ width:`${maxRev>0?rev/maxRev*100:0}%`, height:"100%", background:pcol(pf), borderRadius:4, transition:"width 0.5s" }} />
             </div>
-            <div style={{ width:110, textAlign:"right", fontSize:13, fontWeight:700, color: '#fff' }}>{fc.c(rev)}</div>
+            <div style={{ width:110, textAlign:"right", fontSize:13, fontWeight:700, color: '#1e293b' }}>{fc.c(rev)}</div>
           </div>
         ))}
       </div>
@@ -706,7 +706,7 @@ function SkuTab({ period, n, txt, fc }) {
   useEffect(() => {
     API(`/api/v423/rollup/sku?period=${period}&n=${n}`).then(d => { setData(d); if(d.rows?.[0]) setSelected(d.rows[0].sku_id); }).catch(()=>{});
   }, [period, n]);
-  if (!data) return <div style={{ color:'var(--text-3)', padding:32 }}>{txt('loading')}</div>;
+  if (!data) return <div style={{ color:'#64748b', padding:32 }}>{txt('loading')}</div>;
   if (!data.rows?.length) return <EmptyState txt={txt} />;
   const selRow = data.rows?.find(r => r.sku_id === selected);
   return (
@@ -740,15 +740,15 @@ function SkuTab({ period, n, txt, fc }) {
           <div style={{ display:"flex", gap:8, marginBottom:16, flexWrap:"wrap" }}>
             {[[txt('colPlatform'),selRow.platform],[txt('unitPrice'),fc.c(selRow.unit_price)],["ROAS",fc.roas(selRow.avg_roas)],[txt('colReturnRate'),fc.pct(selRow.avg_return_rate)]].map(([k,v])=>(
               <span key={k} style={S.chip}>
-                <span style={{ color: '#fff', fontWeight:700 }} >{k}: </span><span>{v}</span>
+                <span style={{ color: '#374151', fontWeight:700 }} >{k}: </span><span>{v}</span>
               </span>
             ))}
           </div>
-          <div style={{ fontWeight:700, fontSize:12, marginBottom:6, color:'var(--text-3)' }}>{txt('revTrend')}</div>
+          <div style={{ fontWeight:700, fontSize:12, marginBottom:6, color:'#64748b' }}>{txt('revTrend')}</div>
           <MiniBar data={selRow.series || []} key1="revenue" />
-          <div style={{ fontWeight:700, fontSize:12, margin:"14px 0 6px", color:'var(--text-3)' }}>{txt('roasTrend')}</div>
+          <div style={{ fontWeight:700, fontSize:12, margin:"14px 0 6px", color:'#64748b' }}>{txt('roasTrend')}</div>
           <MiniBar data={(selRow.series||[]).map(s=>({...s,revenue:s.roas*1000000}))} key1="revenue" />
-          <div style={{ fontSize:11, color:'var(--text-3)', marginTop:4 }}>{txt('roasScale')}</div>
+          <div style={{ fontSize:11, color:'#64748b', marginTop:4 }}>{txt('roasScale')}</div>
         </div>
       )}
     </div>
@@ -762,7 +762,7 @@ function CampaignTab({ period, n, txt, fc }) {
   useEffect(() => {
     API(`/api/v423/rollup/campaign?period=${period}&n=${n}`).then(d => { setData(d); if(d.rows?.[0]) setSelected(d.rows[0].campaign_id); }).catch(()=>{});
   }, [period, n]);
-  if (!data) return <div style={{ color:'var(--text-3)', padding:32 }}>{txt('loading')}</div>;
+  if (!data) return <div style={{ color:'#64748b', padding:32 }}>{txt('loading')}</div>;
   if (!data.rows?.length) return <EmptyState txt={txt} />;
   const selRow = data.rows?.find(r => r.campaign_id === selected);
   return (
@@ -797,11 +797,11 @@ function CampaignTab({ period, n, txt, fc }) {
           <div style={{ display:"flex", gap:8, marginBottom:14, flexWrap:"wrap" }}>
             {[[txt('colPlatform'),selRow.platform],["ROAS",fc.roas(selRow.avg_roas)],["CPA",fc.c(selRow.avg_cpa)],[txt('colConversions'),fc.num(selRow.total_conversions)]].map(([k,v])=>(
               <span key={k} style={S.chip}>
-                <span style={{ color: '#fff', fontWeight:700 }} >{k}: </span><span>{v}</span>
+                <span style={{ color: '#374151', fontWeight:700 }} >{k}: </span><span>{v}</span>
               </span>
             ))}
           </div>
-          <div style={{ fontWeight:700, fontSize:12, marginBottom:6, color:'var(--text-3)' }}>{txt('revenueVsSpend')}</div>
+          <div style={{ fontWeight:700, fontSize:12, marginBottom:6, color:'#64748b' }}>{txt('revenueVsSpend')}</div>
           <MiniBar data={selRow.series||[]} key1="revenue" />
         </div>
       )}
@@ -813,7 +813,7 @@ function CampaignTab({ period, n, txt, fc }) {
 function CreatorTab({ period, n, txt, fc }) {
   const [data, setData] = useState(null);
   useEffect(() => { API(`/api/v423/rollup/creator?period=${period}&n=${n}`).then(setData).catch(()=>{}); }, [period, n]);
-  if (!data) return <div style={{ color:'var(--text-3)', padding:32 }}>{txt('loading')}</div>;
+  if (!data) return <div style={{ color:'#64748b', padding:32 }}>{txt('loading')}</div>;
   if (!data.rows?.length) return <EmptyState txt={txt} />;
   return (
     <div style={{ ...S.card, overflowX:"auto" }}>
@@ -846,7 +846,7 @@ function CreatorTab({ period, n, txt, fc }) {
 function PlatformTab({ period, n, txt, fc }) {
   const [data, setData] = useState(null);
   useEffect(() => { API(`/api/v423/rollup/platform?period=${period}&n=${n}`).then(setData).catch(()=>{}); }, [period, n]);
-  if (!data) return <div style={{ color:'var(--text-3)', padding:32 }}>{txt('loading')}</div>;
+  if (!data) return <div style={{ color:'#64748b', padding:32 }}>{txt('loading')}</div>;
   if (!data.rows?.length) return <EmptyState txt={txt} />;
   return (
     <div style={S.card}>
@@ -887,8 +887,8 @@ function GuideTab({ txt }) {
     <div style={{ display:'grid', gap:20 }}>
       {/* Header */}
       <div style={S.card}>
-        <div style={{ fontSize:22, fontWeight:900, marginBottom:6, color:'var(--text-1, #1e293b)' }}>📖 {txt('guideTitle')}</div>
-        <div style={{ fontSize:13, color:'var(--text-3, #64748b)', lineHeight:1.7 }}>{txt('guideSubtitle')}</div>
+        <div style={{ fontSize:22, fontWeight:900, marginBottom:6, color:'#1e293b' }}>📖 {txt('guideTitle')}</div>
+        <div style={{ fontSize:13, color:'#64748b', lineHeight:1.7 }}>{txt('guideSubtitle')}</div>
       </div>
 
       {/* Steps */}
@@ -896,7 +896,7 @@ function GuideTab({ txt }) {
         {steps.map((s,i) => (
           <div key={i} style={{ display:'flex', gap:14, padding:'16px 18px', borderRadius:14, ...S.card }}>
             <div data-step-badge="true" style={{ width:36, height:36, borderRadius:12, backgroundColor:'#4f8ef7', display:'flex', alignItems:'center', justifyContent:'center', fontSize:15, fontWeight:900, color:'#fff', flexShrink:0, boxShadow:'0 2px 8px rgba(79,142,247,0.4)' }}>{i+1}</div>
-            <div style={{ fontSize:13, color:'var(--text-1, #1e293b)', lineHeight:1.7, fontWeight:500, alignSelf:'center' }}>{s}</div>
+            <div style={{ fontSize:13, color:'#1e293b', lineHeight:1.7, fontWeight:500, alignSelf:'center' }}>{s}</div>
           </div>
         ))}
       </div>
@@ -906,9 +906,9 @@ function GuideTab({ txt }) {
         <div style={S.sectionTitle}>📋 {txt('guideTabRef') || loc.guideTabRef}</div>
         <div style={{ display:'grid', gap:8 }}>
           {Object.entries(tabDesc).map(([k,v]) => (
-            <div key={k} style={{ display:'flex', gap:10, padding:'10px 14px', borderRadius:10, background:'var(--surface, #f1f5f9)' }}>
+            <div key={k} style={{ display:'flex', gap:10, padding:'10px 14px', borderRadius:10, background:'rgba(241,245,249,0.9)' }}>
               <span style={{ fontWeight:800, color:'#4f8ef7', fontSize:13, minWidth:90, textTransform:'capitalize' }}>{k}</span>
-              <span style={{ fontSize:13, color:'var(--text-2, #475569)' }}>{v}</span>
+              <span style={{ fontSize:13, color:'#475569' }}>{v}</span>
             </div>
           ))}
         </div>
@@ -919,7 +919,7 @@ function GuideTab({ txt }) {
         <div style={S.sectionTitle}>💡 {txt('tipsTitle') || loc.tipsTitle}</div>
         <div style={{ display:'grid', gap:8 }}>
           {tips.map((t,i) => (
-            <div key={i} style={{ padding:'12px 16px', borderRadius:10, background:'rgba(34,197,94,0.06)', border:'1px solid rgba(34,197,94,0.15)', fontSize:13, color:'var(--text-1, #1e293b)', lineHeight:1.6 }}>
+            <div key={i} style={{ padding:'12px 16px', borderRadius:10, background:'rgba(34,197,94,0.06)', border:'1px solid rgba(34,197,94,0.15)', fontSize:13, color:'#1e293b', lineHeight:1.6 }}>
               <span style={{ color:'#22c55e', fontWeight:800 }}>TIP {i+1}: </span>{t}
             </div>
           ))}
@@ -931,7 +931,7 @@ function GuideTab({ txt }) {
         <div style={S.sectionTitle}>⚠️ {txt('cautionsTitle') || loc.cautionsTitle}</div>
         <div style={{ display:'grid', gap:8 }}>
           {cautions.map((c,i) => (
-            <div key={i} style={{ padding:'12px 16px', borderRadius:10, background:'rgba(249,115,22,0.06)', border:'1px solid rgba(249,115,22,0.15)', fontSize:13, color:'var(--text-1, #1e293b)', lineHeight:1.6 }}>
+            <div key={i} style={{ padding:'12px 16px', borderRadius:10, background:'rgba(249,115,22,0.06)', border:'1px solid rgba(249,115,22,0.15)', fontSize:13, color:'#1e293b', lineHeight:1.6 }}>
               <span style={{ color:'#f97316', fontWeight:800 }}>⚠ </span>{c}
             </div>
           ))}
@@ -943,9 +943,9 @@ function GuideTab({ txt }) {
         <div style={S.sectionTitle}>❓ {txt('faqTitle') || loc.faqTitle}</div>
         <div style={{ display:'grid', gap:12 }}>
           {faq.map((f,i) => (
-            <div key={i} style={{ padding:'14px 16px', borderRadius:12, background:'var(--surface, #f8fafc)', border:'1px solid var(--border, #e2e8f0)' }}>
-              <div style={{ fontWeight:800, fontSize:13, color:'var(--text-1, #1e293b)', marginBottom:6 }}>Q{i+1}. {f.q}</div>
-              <div style={{ fontSize:13, color:'var(--text-2, #475569)', lineHeight:1.6, paddingLeft:4 }}>{f.a}</div>
+            <div key={i} style={{ padding:'14px 16px', borderRadius:12, background:'rgba(248,250,252,0.95)', border:'1px solid #e2e8f0' }}>
+              <div style={{ fontWeight:800, fontSize:13, color:'#1e293b', marginBottom:6 }}>Q{i+1}. {f.q}</div>
+              <div style={{ fontSize:13, color:'#475569', lineHeight:1.6, paddingLeft:4 }}>{f.a}</div>
             </div>
           ))}
         </div>
@@ -1005,18 +1005,18 @@ export default function RollupDashboard() {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', color: 'var(--text-1, #1e293b)', direction: isRTL ? 'rtl' : 'ltr', height: 'calc(100vh - 54px)', /* topbar ~54px */
+    <div style={{ display: 'flex', flexDirection: 'column', color:'#1e293b', direction: isRTL ? 'rtl' : 'ltr', height: 'calc(100vh - 54px)', /* topbar ~54px */
       overflow: 'hidden', /* prevent this wrapper itself from scrolling */
-      background: 'var(--bg, #f5f7fa)' }}>
+      background:'#f5f7fa' }}>
       {/* ═══ TITLE CONTAINER BOX (scrolls with content) ═══ */}
       {/* ═══ SUB-TAB MENU (sticky-fixed, never scrolls away) ═══ */}
       {/* ═══ CONTENT BOX (scrolls beneath sub-tab boundary) ═══ */}
 
       {/* ── Sticky wrapper: sub-tab stays fixed, title scrolls ── */}
-      <div style={{ flexShrink: 0, position: 'sticky', top: 0, zIndex: 20, background: 'var(--bg, #f5f7fa)' }}>
+      <div style={{ flexShrink: 0, position: 'sticky', top: 0, zIndex: 20, background:'#f5f7fa' }}>
         {/* ── Sub-Tab Navigation (always visible, never covered) ── */}
-        <div className="sub-tab-nav" style={{ padding: '8px 16px', background: 'var(--bg, #f5f7fa)', borderBottom: '2px solid var(--border, #e2e8f0)' }}>
-          <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', background: 'var(--surface, #ffffff)', border: '1px solid var(--border, #e2e8f0)', borderRadius: 12, padding: '6px 8px', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
+        <div className="sub-tab-nav" style={{ padding: '8px 16px', background:'#f5f7fa', borderBottom: '2px solid #e2e8f0' }}>
+          <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', background:'rgba(255,255,255,0.95)', border: '1px solid #e2e8f0', borderRadius: 12, padding: '6px 8px', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
             {TABS.map(tb => {
               const isActive = tab === tb.id;
               const clr = TAB_COLORS[tb.id] || '#6366f1';
@@ -1041,7 +1041,7 @@ export default function RollupDashboard() {
       {/* ═══ SCROLLABLE CONTENT (scrolls beneath sub-tab) ═══ */}
       <div className="fade-up" style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '0' }}>
         {/* ── Hero: Title (left) + Period Selector (right) ── */}
-        <div className="hero" style={{ padding: '18px 20px 14px', borderBottom: '1px solid var(--border, #e2e8f0)', background: 'var(--surface, #ffffff)', margin: '0 0 0 0' }}>
+        <div className="hero" style={{ padding: '18px 20px 14px', borderBottom: '1px solid #e2e8f0', background:'rgba(255,255,255,0.95)', margin: '0 0 0 0' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
             {/* Left: Icon + Title */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0, flex: '1 1 300px' }}>
@@ -1055,7 +1055,7 @@ export default function RollupDashboard() {
                 <div className="hero-title" style={{ fontSize: 20, fontWeight: 900, color: TAB_COLORS[tab], letterSpacing: '-0.3px', lineHeight: 1.3 }}>
                   {txt('title')}
                 </div>
-                <div className="hero-desc" style={{ fontSize: 11, color: 'var(--text-3, #64748b)', marginTop: 2, lineHeight: 1.4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <div className="hero-desc" style={{ fontSize: 11, color:'#64748b', marginTop: 2, lineHeight: 1.4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {txt('subtitle')}
                 </div>
               </div>
@@ -1063,7 +1063,7 @@ export default function RollupDashboard() {
 
             {/* Right: Period Selector */}
             <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', flexShrink: 0 }}>
-              <div style={{ display: 'flex', background: 'var(--surface, #f1f5f9)', border: '1px solid var(--border, #e2e8f0)', borderRadius: 10, padding: 3 }}>
+              <div style={{ display: 'flex', background:'rgba(241,245,249,0.9)', border: '1px solid #e2e8f0', borderRadius: 10, padding: 3 }}>
                 {[["daily",txt('periodDaily')],["weekly",txt('periodWeekly')],["monthly",txt('periodMonthly')],["yearly",txt('periodYearly')],["seasonal",txt('periodSeasonal')]].map(([val,lbl])=>(
                   <button key={val} onClick={()=>{setPeriod(val);setN(val==="daily"?14:val==="weekly"?8:val==="monthly"?6:val==="yearly"?3:4); }} style={{ padding: '5px 12px', borderRadius: 8, border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 11, transition: 'all 0.2s', background: period===val ? '#4f8ef7' : 'transparent', color: period===val ? '#fff' : 'var(--text-2, #475569)', boxShadow: period===val ? '0 2px 10px rgba(79,142,247,0.35)' : 'none' }}>
                     {lbl}
@@ -1071,7 +1071,7 @@ export default function RollupDashboard() {
                 ))}
               </div>
               <select value={n} onChange={e=>setN(Number(e.target.value))}
-                style={{ background: 'var(--surface, #f1f5f9)', border: '1px solid var(--border, #e2e8f0)', borderRadius: 8, padding: '5px 10px', color: 'var(--text-1, #1e293b)', fontSize: 11 }}>
+                style={{ background:'rgba(241,245,249,0.9)', border: '1px solid #e2e8f0', borderRadius: 8, padding: '5px 10px', color:'#1e293b', fontSize: 11 }}>
                 {period==="daily"?[7,14,30,60].map(v=><option key={v} value={v}>{v}{txt('unitDay')}</option>)
                 :period==="weekly"?[4,8,12,24].map(v=><option key={v} value={v}>{v}{txt('unitWeek')}</option>)
                 :period==="monthly"?[3,6,12,24].map(v=><option key={v} value={v}>{v}{txt('unitMonth')}</option>)
