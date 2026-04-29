@@ -7,6 +7,13 @@ import { useConnectorSync } from "../context/ConnectorSyncContext.jsx";
 import AIRecommendBanner from '../components/AIRecommendBanner.jsx';
 import { useSecurityGuard } from '../security/SecurityGuard.js';
 
+/* ── Enterprise Demo Isolation Guard ─────────────────────── */
+const _isDemo = (() => {
+  if (typeof window === 'undefined') return false;
+  const h = window.location.hostname;
+  return h === 'demo.genie-go.com' || h === 'demo.geniego.com' || h.startsWith('demo');
+})();
+
 const C = {
   bg: "#f8fafc", surface: "#f1f5f9", card: "rgba(255,255,255,0.95)",
   border: "#e2e8f0", accent: "#4f8ef7",

@@ -6,6 +6,13 @@ import { useCurrency } from '../contexts/CurrencyContext.jsx';
 import { useGlobalData } from '../context/GlobalDataContext.jsx';
 import useSecurityMonitor from '../hooks/useSecurityMonitor.js';
 
+/* ── Enterprise Demo Isolation Guard ─────────────────────── */
+const _isDemo = (() => {
+  if (typeof window === 'undefined') return false;
+  const h = window.location.hostname;
+  return h === 'demo.genie-go.com' || h === 'demo.geniego.com' || h.startsWith('demo');
+})();
+
 /* ─── Cross-Tab Sync ─────────────────────────────────────────────── */
 const SYNC_CH = 'geniego_mr_sync';
 if (!window.__MR_TAB) window.__MR_TAB = Math.random().toString(36).slice(2);

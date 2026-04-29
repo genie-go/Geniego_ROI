@@ -5,6 +5,13 @@ import { useGlobalData } from '../context/GlobalDataContext.jsx';
 import useSecurityMonitor from '../hooks/useSecurityMonitor.js';
 import { useCurrency } from '../contexts/CurrencyContext.jsx';
 
+/* ── Enterprise Demo Isolation Guard ─────────────────────── */
+const _isDemo = (() => {
+  if (typeof window === 'undefined') return false;
+  const h = window.location.hostname;
+  return h === 'demo.genie-go.com' || h === 'demo.geniego.com' || h.startsWith('demo');
+})();
+
 /* ─── Cross-Tab Sync ─────────────────────────────────────── */
 const SETTLE_SYNC_CH = 'geniego_settle_sync';
 function useSettleSync() {

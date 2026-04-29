@@ -12,6 +12,13 @@ import { useI18n } from '../i18n';
 import { useGlobalData } from '../context/GlobalDataContext';
 import { useNavigate } from 'react-router-dom';
 
+/* ── Enterprise Demo Isolation Guard ─────────────────────── */
+const _isDemo = (() => {
+  if (typeof window === 'undefined') return false;
+  const h = window.location.hostname;
+  return h === 'demo.genie-go.com' || h === 'demo.geniego.com' || h.startsWith('demo');
+})();
+
 /* ── Enterprise Dynamic Locale Map ────────────────────── */
 const LANG_LOCALE_MAP = {
   ko:'ko-KR', en:'en-US', ja:'ja-JP', zh:'zh-CN', 'zh-TW':'zh-TW',

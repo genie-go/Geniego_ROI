@@ -13,6 +13,13 @@ import { useSecurityGuard } from "../security/SecurityGuard.js";
 import { useCurrency } from '../contexts/CurrencyContext.jsx';
 import { useConnectorSync } from '../context/ConnectorSyncContext.jsx';
 
+/* ── Enterprise Demo Isolation Guard ─────────────────────── */
+const _isDemo = (() => {
+  if (typeof window === 'undefined') return false;
+  const h = window.location.hostname;
+  return h === 'demo.genie-go.com' || h === 'demo.geniego.com' || h.startsWith('demo');
+})();
+
 const fmt = v => new Intl.NumberFormat(navigator.language || 'ko-KR', { style: 'currency', currency: 'KRW', maximumFractionDigits: 0 }).format(v || 0);
 /* Dynamic currency formatter — updated by Attribution main via useCurrency */
 let _currFmt = fmt;
