@@ -129,10 +129,25 @@ const Loader = () => (
 );
 
 class ErrorBoundary extends Component {
-  constructor(props) { super(props); this.state = { hasError: false, error: null }; }
+  constructor(props) { super(props); this.state = { hasError: false, error: null, errorInfo: null, retryCount: 0 }; }
   static getDerivedStateFromError(error) { return { hasError: true, error }; }
   componentDidCatch(err, info) {
+    this.setState({ errorInfo: info });
     console.error('[ErrorBoundary]', err, info);
+
+    // Report to security alert system
+    try {
+      const alerts = JSON.parse(localStorage.getItem('g_sec_alerts') || '[]');
+      alerts.unshift({
+        id: `ERR-${Date.now().toString(36)}`,
+        level: 'critical',
+        message: `Runtime Error: ${err?.message?.slice(0, 200)}`,
+        timestamp: new Date().toISOString(),
+        read: false,
+      });
+      localStorage.setItem('g_sec_alerts', JSON.stringify(alerts.slice(0, 100)));
+    } catch {}
+
     const isChunkError = err.name === 'ChunkLoadError' || String(err).includes('Failed to fetch dynamically imported module');
     if (isChunkError) {
         if (!sessionStorage.getItem('chunk_reloaded')) {
@@ -146,20 +161,47 @@ class ErrorBoundary extends Component {
   }
   render() {
     if (this.state.hasError) {
+      const { error, retryCount } = this.state;
       return (
         <div style={{
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-          minHeight: '60vh', gap: 16, padding: 32, background: 'var(--surface-1, #070f1a)'
+          minHeight: '60vh', gap: 20, padding: 40, background: 'var(--surface-1, #070f1a)'
         }}>
-          <div style={{ fontSize: 40 }}>&#9888;&#65039;</div>
-          <div style={{ color: '#f87171', fontWeight: 800, fontSize: 16 }}>An error occurred</div>
-          <div style={{ color: 'var(--text-3)', fontSize: 12, maxWidth: 400, textAlign: 'center' }}>
-            {this.state.error?.message || 'Unknown error'}
+          <div style={{
+            width: 72, height: 72, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: 'rgba(248,113,113,0.1)', border: '2px solid rgba(248,113,113,0.2)'
+          }}>
+            <span style={{ fontSize: 36 }}>⚠️</span>
           </div>
-          <button
-            onClick={() => { this.setState({ hasError: false, error: null }); window.location.reload(); }}
-            style={{ padding: '8px 20px', borderRadius: 8, border: 'none', background: '#4f8ef7', color: 'var(--text-1)', fontWeight: 700, cursor: 'pointer', fontSize: 13 }}
-          >Reload</button>
+          <div style={{ color: '#f87171', fontWeight: 800, fontSize: 18 }}>System Error Detected</div>
+          <div style={{
+            color: 'var(--text-3, #94a3b8)', fontSize: 12, maxWidth: 480, textAlign: 'center',
+            padding: '12px 20px', borderRadius: 10, background: 'rgba(248,113,113,0.05)',
+            border: '1px solid rgba(248,113,113,0.1)', fontFamily: 'monospace', wordBreak: 'break-all'
+          }}>
+            {error?.message || 'Unknown error'}
+          </div>
+          <div style={{ display: 'flex', gap: 12 }}>
+            <button
+              onClick={() => { this.setState({ hasError: false, error: null, retryCount: retryCount + 1 }); }}
+              style={{
+                padding: '10px 24px', borderRadius: 10, border: 'none',
+                background: 'linear-gradient(135deg,#4f8ef7,#6366f1)', color: '#fff',
+                fontWeight: 700, cursor: 'pointer', fontSize: 13
+              }}
+            >🔄 Retry ({retryCount}/3)</button>
+            <button
+              onClick={() => { this.setState({ hasError: false, error: null }); window.location.href = '/dashboard'; }}
+              style={{
+                padding: '10px 24px', borderRadius: 10,
+                border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)',
+                color: 'var(--text-2, #cbd5e1)', fontWeight: 700, cursor: 'pointer', fontSize: 13
+              }}
+            >🏠 Dashboard</button>
+          </div>
+          <div style={{ fontSize: 10, color: 'var(--text-4, #475569)', marginTop: 8 }}>
+            Error ID: ERR-{Date.now().toString(36)} · Geniego-ROI v407
+          </div>
         </div>
       );
     }
