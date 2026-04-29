@@ -165,7 +165,7 @@ const SYNC_CHANNEL = 'geniego-roi-global-sync';
 export default function AutoMarketing() {
 
     const navigate = useNavigate();
-    const { t } = useI18n();
+    const { t, lang } = useI18n();
     const { addCampaign, addAlert, isDemo } = useGlobalData();
     const { fmt } = useCurrency();
     const { isConnected, connectedChannels } = useConnectorSync();
