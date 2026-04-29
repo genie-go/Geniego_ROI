@@ -2100,11 +2100,7 @@ export default {
       "title": "Connectors",
       "sub": "External Connector Management"
     },
-    "audit": {
-      "title": "Audit Log",
-      "sub": "Audit Log"
-    },
-    "admin": {
+"admin": {
       "title": "Governance",
       "sub": "Governance · Admin"
     }
@@ -2788,6 +2784,8 @@ export default {
     "noPending": "No pending approvals."
   },
   "audit": {
+    "title": "Audit Log",
+    "sub": "Audit Log",
     "pageDesc": "Immutable audit records of all operational events",
     "tableView": "📋 Table View",
     "timelineView": "🕐 Timeline View",
@@ -2823,7 +2821,6 @@ export default {
     "minAgo": " m ago",
     "hrAgo": " h ago",
     "dayAgo": " d ago",
-    "title": "Audit Log",
     "subtitle": "Complete activity history · Security monitoring · Compliance reporting",
     "tabAll": "All Logs",
     "tabSecurity": "Security",
@@ -2902,7 +2899,7 @@ export default {
     "creatorTitle": "🤝 Creator Performance",
     "skuTitle": "📦 SKU Analysis"
   },
-  "settlements": {
+"settlements": {
     "pageTitle": "Channel Settlement Management",
     "pageDesc": "Unified management of domestic & global channel sales, fees, refunds and net payouts. 11 channels including Rakuten JP, Yahoo JP, TikTok Shop.",
     "csvDownload": "CSV Download",
