@@ -423,7 +423,7 @@ export default function AutoMarketing() {
             subtitle: t('marketing.approvalSubtitle'),
             items: [
                 { label: t('marketing.campaignNameLabel'), value: name, color: '#4f8ef7' },
-                { label: t('marketing.budget'),     value: fmt(strategy.budget), color: '#a855f7' },
+                { label: t('marketing.budget'),     value: fmt(strategy.budget), color: '#7c3aed' },
                 { label: t('marketing.estRoas'), value: strategy.estimatedRoas + 'x', color: '#22c55e' },
                 { label: t('marketing.channelSelect'), value: selectedChs.map(c => c.label).join(', '), color: '#f97316' },
             ],
@@ -521,7 +521,7 @@ export default function AutoMarketing() {
                         <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0, flex: '1 1 300px' }}>
                             <div style={{ width: 42, height: 42, borderRadius: 12, background: 'linear-gradient(135deg, #a855f7, #4f8ef7)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, boxShadow: '0 4px 14px rgba(168,85,247,0.3)', flexShrink: 0 }}>🚀</div>
                             <div style={{ minWidth: 0 }}>
-                                <div className="hero-title" style={{ fontSize: 19, fontWeight: 900, color: '#a855f7', letterSpacing: '-0.3px', lineHeight: 1.3 }}>
+                                <div className="hero-title" style={{ fontSize: 19, fontWeight: 900, color: '#7c3aed', letterSpacing: '-0.3px', lineHeight: 1.3 }}>
                                     {t("marketing.autoTitle")}
                                 </div>
                                 <div className="hero-desc" style={{ fontSize: 11, color: '#64748b', marginTop: 2, lineHeight: 1.4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -647,7 +647,7 @@ export default function AutoMarketing() {
                                 🎨 {t('marketing.creativeAutoSync')}
                             </div>
                             <div style={{ fontSize: 11, color: '#64748b', lineHeight: 1.6 }}>
-                                {t('marketing.creativeSyncDesc1')}<strong style={{ color: "#a855f7" }}>{t('marketing.creativeSyncBtn')}</strong>{t('marketing.creativeSyncDesc2')}
+                                {t('marketing.creativeSyncDesc1')}<strong style={{ color: "#7c3aed" }}>{t('marketing.creativeSyncBtn')}</strong>{t('marketing.creativeSyncDesc2')}
                                 <strong style={{ color: "#4f8ef7" }}>{t('marketing.creativeSyncDesc3')}</strong>{t('marketing.creativeSyncDesc4')}
                             </div>
                         </div>
@@ -670,7 +670,7 @@ export default function AutoMarketing() {
                     {/* AI Recommend 허브 안내 Banner */}
                     <div style={{ padding: "14px 18px", borderRadius: 12, background: "linear-gradient(135deg,rgba(168,85,247,0.08),rgba(79,142,247,0.06))", border: "1px solid rgba(168,85,247,0.25)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
                         <div>
-                            <div style={{ fontWeight: 800, fontSize: 13, color: "#a855f7", marginBottom: 3 }}>
+                            <div style={{ fontWeight: 800, fontSize: 13, color: "#7c3aed", marginBottom: 3 }}>
                                 🤖 {t('marketing.aiHubTitle')}
                             </div>
                             <div style={{ fontSize: 11, color: '#64748b', lineHeight: 1.6 }}>
@@ -717,7 +717,7 @@ export default function AutoMarketing() {
 
                     {/* Product Category */}
                     <div style={cardStyle}>
-                        <div style={{ fontWeight: 700, fontSize: 13, color: "#a855f7", marginBottom: 14 }}>{t("marketing.categorySelect")}</div>
+                        <div style={{ fontWeight: 700, fontSize: 13, color: "#7c3aed", marginBottom: 14 }}>{t("marketing.categorySelect")}</div>
                         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px,1fr))", gap: 10 }}>
                             {PRODUCT_CATEGORIES.map(cat => (
                                 <button key={cat.id} onClick={() => toggleCat(cat.id)} style={{
@@ -728,7 +728,7 @@ export default function AutoMarketing() {
                                     <div style={{ fontSize: 20, marginBottom: 4 }}>{cat.icon}</div>
                                     <div style={{ fontWeight: 700, fontSize: 12, color: selCats.includes(cat.id) ? "#a855f7" : '#1e293b' }}>{cat.label}</div>
                                     <div style={{ fontSize: 10, color: '#64748b', marginTop: 3 }}>{cat.tags.slice(0, 2).join(" · ")}</div>
-                                    {selCats.includes(cat.id) && <div style={{ fontSize: 10, color: "#a855f7", marginTop: 4, fontWeight: 700 }}>{t("marketing.selected")}</div>}
+                                    {selCats.includes(cat.id) && <div style={{ fontSize: 10, color: "#7c3aed", marginTop: 4, fontWeight: 700 }}>{t("marketing.selected")}</div>}
                                 </button>
                             ))}
                         </div>
@@ -815,7 +815,7 @@ export default function AutoMarketing() {
                                 {/* Category 인사이트 */}
                                 {selCats.length > 0 && (
                                     <div>
-                                        <div style={{ fontSize: 11, fontWeight: 700, color: "#a855f7", marginBottom: 8 }}>
+                                        <div style={{ fontSize: 11, fontWeight: 700, color: "#7c3aed", marginBottom: 8 }}>
                                             🏷 {t("marketing.explainCatInsight")}
                                         </div>
                                         <div style={{ display: "grid", gap: 6 }}>
@@ -825,7 +825,7 @@ export default function AutoMarketing() {
                                                 if (!ex) return null;
                                                 return (
                                                     <div key={cid} style={{ padding: "8px 12px", borderRadius: 10, background: "rgba(168,85,247,0.06)", border: "1px solid rgba(168,85,247,0.15)", fontSize: 11, color: '#475569', lineHeight: 1.6 }}>
-                                                        <span style={{ fontWeight: 700, color: "#a855f7", marginRight: 6 }}>
+                                                        <span style={{ fontWeight: 700, color: "#7c3aed", marginRight: 6 }}>
                                                             {catBase?.icon} {t(`marketing.cat_${cid}`)}
                                                         </span>
                                                         {t(`marketing.${ex.insightKey}`)}
@@ -979,7 +979,7 @@ export default function AutoMarketing() {
                                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(170px,1fr))", gap: 12 }}>
                                     {[
                                         { label: t("marketing.kpiTotal"), value: fmt(strategy.budget), icon: "💰", color: "#4f8ef7" },
-                                        { label: t("marketing.kpiImpressions"), value: strategy.totalImpressions.toLocaleString(), icon: "👁", color: "#a855f7" },
+                                        { label: t("marketing.kpiImpressions"), value: strategy.totalImpressions.toLocaleString(), icon: "👁", color: "#7c3aed" },
                                         { label: t("marketing.kpiClicks"), value: strategy.totalClicks.toLocaleString(), icon: "👆", color: "#22c55e" },
                                         { label: t("marketing.kpiConversions"), value: strategy.totalConversions, icon: "🛒", color: "#f97316" },
                                         { label: t("marketing.kpiRoas"), value: strategy.estimatedRoas + "x", icon: "📈", color: "#fbbf24" },
@@ -1073,7 +1073,7 @@ export default function AutoMarketing() {
                             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 16 }}>
                                 {[
                                     { label: t("marketing.budget"), value: fmt(showResult.budget), color: "#4f8ef7" },
-                                    { label: t("marketing.period"), value: { monthly: t("marketing.period_monthly"), quarterly: t("marketing.period_quarterly"), halfyear: t("marketing.period_halfyear") }[showResult.period] || t("marketing.period_monthly"), color: "#a855f7" },
+                                    { label: t("marketing.period"), value: { monthly: t("marketing.period_monthly"), quarterly: t("marketing.period_quarterly"), halfyear: t("marketing.period_halfyear") }[showResult.period] || t("marketing.period_monthly"), color: "#7c3aed" },
                                     { label: t("marketing.estRoas"), value: showResult.estimatedRoas + "x", color: "#22c55e" },
                                     { label: t("marketing.estConv"), value: showResult.totalConversions, color: "#f97316" },
                                 ].map(({ label, value, color }) => (
