@@ -14,8 +14,8 @@ const GUIDE_I18N = { ...GUIDE_BASE, ...GUIDE_REST, ...GUIDE_P3, ...GUIDE_P4 };
    ═══════════════════════════════════════════════════════════════════ */
 
 const C = {
-  bg: 'var(--bg)', surface: 'var(--surface)', card: 'var(--bg-card, rgba(255,255,255,0.95))',
-  border: 'var(--border)', text: 'var(--text-1)', muted: 'var(--text-3)',
+  bg: 'var(--bg)', surface: 'var(--surface)', card: 'rgba(255,255,255,0.95)',
+  border: 'rgba(99,140,255,0.12)', text: '#1e293b', muted: '#64748b',
   accent: '#4f8ef7', green: '#22c55e', yellow: '#f59e0b', purple: '#a855f7',
   orange: '#f97316', cyan: '#14d9b0', pink: '#ec4899', red: '#ef4444',
 };
@@ -75,17 +75,17 @@ export default function DashGuide() {
         <div style={{ fontWeight: 900, fontSize: 22, marginTop: 8, color: '#4f46e5' }}>
           {g('title', 'Dashboard Usage Guide')}
         </div>
-        <div style={{ fontSize: 13, color: '#4b5563', marginTop: 6, maxWidth: 560, margin: '6px auto 0', lineHeight: 1.7 }}>
+        <div style={{ fontSize: 13, color: '#374151', marginTop: 6, maxWidth: 560, margin: '6px auto 0', lineHeight: 1.7, fontWeight: 600 }}>
           {g('subtitle', 'Learn all Dashboard features step by step.')}
         </div>
         <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginTop: 14, flexWrap: 'wrap' }}>
-          <span style={{ fontSize: 11, padding: '4px 12px', borderRadius: 20, background: '#4f46e5', color: '#ffffff', fontWeight: 700 }}>
+          <span style={{ fontSize: 11, padding: '5px 14px', borderRadius: 20, background: '#4f46e5', color: '#fff', fontWeight: 800, textShadow: '0 1px 2px rgba(0,0,0,0.2)' }}>
             🎓 {g('beginnerBadge', 'Beginner Guide')}
           </span>
-          <span style={{ fontSize: 11, padding: '4px 12px', borderRadius: 20, background: '#059669', color: '#ffffff', fontWeight: 700 }}>
+          <span style={{ fontSize: 11, padding: '5px 14px', borderRadius: 20, background: '#059669', color: '#fff', fontWeight: 800, textShadow: '0 1px 2px rgba(0,0,0,0.2)' }}>
             ⏱ {g('timeBadge', '5 min read')}
           </span>
-          <span style={{ fontSize: 11, padding: '4px 12px', borderRadius: 20, background: '#7c3aed', color: '#ffffff', fontWeight: 700 }}>
+          <span style={{ fontSize: 11, padding: '5px 14px', borderRadius: 20, background: '#7c3aed', color: '#fff', fontWeight: 800, textShadow: '0 1px 2px rgba(0,0,0,0.2)' }}>
             🌐 {g('langBadge', '15 Languages')}
           </span>
         </div>
@@ -126,7 +126,7 @@ export default function DashGuide() {
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 12 }}>
           {tabs.map((tab, i) => (
-            <div key={i} style={{ display: 'flex', gap: 12, alignItems: 'flex-start', padding: '12px 14px', background: 'var(--surface)', borderRadius: 10, border: `1px solid ${C.border}` }}>
+            <div key={i} style={{ display: 'flex', gap: 12, alignItems: 'flex-start', padding: '12px 14px', background: 'rgba(241,245,249,0.7)', borderRadius: 10, border: `1px solid ${C.border}` }}>
               <span style={{ fontSize: 22, flexShrink: 0 }}>{tab.icon}</span>
               <div>
                 <div style={{ fontWeight: 700, fontSize: 13, color: tab.color }}>{tab.name}</div>
@@ -144,7 +144,7 @@ export default function DashGuide() {
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 12 }}>
           {features.map((f, i) => (
-            <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '10px 12px', background: 'var(--surface)', borderRadius: 10, border: `1px solid ${C.border}` }}>
+            <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '10px 12px', background: 'rgba(241,245,249,0.7)', borderRadius: 10, border: `1px solid ${C.border}` }}>
               <span style={{ fontSize: 20, flexShrink: 0 }}>{f.icon}</span>
               <div>
                 <div style={{ fontWeight: 700, fontSize: 12, color: '#1f2937' }}>{f.title}</div>
@@ -176,7 +176,7 @@ export default function DashGuide() {
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {faqs.map((faq, i) => (
-            <div key={i} style={{ background: 'var(--surface)', borderRadius: 10, border: `1px solid ${C.border}`, padding: '12px 14px' }}>
+            <div key={i} style={{ background: 'rgba(241,245,249,0.7)', borderRadius: 10, border: `1px solid ${C.border}`, padding: '12px 14px' }}>
               <div style={{ fontWeight: 700, fontSize: 13, color: '#4f46e5', marginBottom: 6 }}>Q. {faq.q}</div>
               <div style={{ fontSize: 12, color: '#4b5563', lineHeight: 1.7, paddingLeft: 20 }}>A. {faq.a}</div>
             </div>
