@@ -1,6 +1,11 @@
 import React from 'react';
 import { useI18n } from '../../i18n/index.js';
-import GUIDE_I18N from './dashGuideI18n.js';
+import GUIDE_BASE from './dashGuideI18n.js';
+import GUIDE_REST from './dashGuideI18n_rest.js';
+import GUIDE_P3 from './dashGuideI18n_p3.js';
+import GUIDE_P4 from './dashGuideI18n_p4.js';
+
+const GUIDE_I18N = { ...GUIDE_BASE, ...GUIDE_REST, ...GUIDE_P3, ...GUIDE_P4 };
 
 /* ═══════════════════════════════════════════════════════════════════
    DashGuide — Enterprise Dashboard Usage Guide (Expanded Edition)
