@@ -9,6 +9,8 @@ import { GlobalDataProvider } from "./context/GlobalDataContext.jsx";
 import { CurrencyProvider } from "./contexts/CurrencyContext.jsx";
 import { MobileSidebarProvider } from "./context/MobileSidebarContext.jsx";
 import { ConnectorSyncProvider } from "./context/ConnectorSyncContext.jsx";
+import NetworkStatus from "./components/NetworkStatus.jsx";
+import { ToastProvider } from "./components/ToastProvider.jsx";
 
 
 const Dashboard = lazy(() => import("./pages/Dashboard.jsx"));
@@ -375,6 +377,7 @@ function AppLayout() {
 export default function App() {
   return (
     <AuthProvider>
+      <ToastProvider>
       <GlobalDataProvider>
         <ConnectorSyncProvider>
           <Suspense fallback={<Loader />}>
@@ -393,8 +396,10 @@ export default function App() {
               } />
             </Routes>
           </Suspense>
+          <NetworkStatus />
         </ConnectorSyncProvider>
       </GlobalDataProvider>
+      </ToastProvider>
     </AuthProvider>
   );
 }
