@@ -54,11 +54,11 @@ function DashSelector({ active, onSelect, dashboards }) {
               padding: '8px 14px', borderRadius: 10, border: 'none', cursor: 'pointer',
               fontSize: 12, fontWeight: 700, transition: 'all 0.2s cubic-bezier(.4,0,.2,1)',
               background: isActive ? d.color : 'transparent',
-              color: isActive ? '#ffffff' : 'var(--text-2, #4b5563)',
+              color: isActive ? '#ffffff' : '#1f2937',
               boxShadow: isActive ? `0 4px 20px ${d.color}40` : 'none',
               transform: isActive ? 'translateY(-1px)' : 'none' }}
-            onMouseEnter={e => { if (!isActive) { e.currentTarget.style.background = `${d.color}10`; e.currentTarget.style.color = 'var(--text-1, #111827)'; } }}
-            onMouseLeave={e => { if (!isActive) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-2, #4b5563)'; } }}
+            onMouseEnter={e => { if (!isActive) { e.currentTarget.style.background = `${d.color}10`; e.currentTarget.style.color = '#111827'; } }}
+            onMouseLeave={e => { if (!isActive) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#1f2937'; } }}
           >
             <span style={{ fontSize: 15 }}>{d.icon}</span>
             {d.label}

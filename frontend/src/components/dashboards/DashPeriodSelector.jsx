@@ -125,7 +125,7 @@ export default function DashPeriodSelector({ value, onChange, compact = false })
                 background: isActive
                   ? 'linear-gradient(135deg, #4f8ef7, #6366f1)'
                   : 'transparent',
-                color: isActive ? '#fff' : 'var(--text-3, #9ca3af)',
+                color: isActive ? '#fff' : '#374151',
                 boxShadow: isActive ? '0 2px 8px rgba(79,142,247,0.3)' : 'none',
                 transform: isActive ? 'scale(1.02)' : 'scale(1)',
               }}
