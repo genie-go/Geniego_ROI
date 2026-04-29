@@ -306,7 +306,10 @@ export default function Topbar() {
           fontSize: 10, color: isLightTopbar ? '#475569' : 'var(--text-3)', fontFamily: 'monospace',
           fontWeight: 600, letterSpacing: '0.5px',
         }}>
-          {now.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false })}
+          {now.toLocaleTimeString(
+            { ko:'ko-KR', en:'en-US', ja:'ja-JP', zh:'zh-CN', 'zh-TW':'zh-TW', de:'de-DE', th:'th-TH', vi:'vi-VN', id:'id-ID', es:'es-ES', fr:'fr-FR', pt:'pt-BR', ru:'ru-RU', ar:'ar-SA', hi:'hi-IN' }[lang] || 'en-US',
+            { hour: '2-digit', minute: '2-digit', hour12: false }
+          )}
         </span>
 
         {/* 🌐 다국어 선택 */}
