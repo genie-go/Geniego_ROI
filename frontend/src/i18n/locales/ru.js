@@ -2097,6 +2097,16 @@ export default {
     "vsPrev": "vs prev"
   },
     "marketing": {
+    "sidebarUpgrade": "Upgrade Account",
+    "sidebarAlertCount": "13 Alerts",
+    "sidebarLogout": "Exit  & Logout",
+    "upgradalTitle": "Pro Plan Exclusive",
+    "upgradalDesc": "This is a powerful enterprise feature available in the paid plan.\nUpgrade to Pro now to experience all features without limits.",
+    "upgradalClose": "Close",
+    "upgradalBtn": "View Upgrade Plans",
+    "upgradeLabel": "PRO",
+    "quickFavs": "Favorites",
+    "quickRecents": "Recent",
       "title": "Marketing & Ads",
       "sub": "Integrated Ad Insights"
     },
