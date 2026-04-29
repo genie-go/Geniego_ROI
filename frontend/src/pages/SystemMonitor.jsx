@@ -35,16 +35,16 @@ function Dot({ status }) {
     );
 }
 
-function ApiStatusTab({ services, statusLabel }) {
+function ApiStatusTab({ services, statusLabel, t }) {
     const errCnt = services.filter(s => s.status === "error").length;
     const warnCnt = services.filter(s => s.status === "warn").length;
     return (
         <div style={{ display: "grid", gap: 14 }}>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 10 }}>
-                <KpiCard label="Connect된 서비스" value={services.length} color="#4f8ef7" icon="🔌" />
-                <KpiCard label="정상" value={services.filter(s => s.status === "ok").length} color="#22c55e" icon="✓" />
-                <KpiCard label="Warning" value={warnCnt} color="#eab308" icon="⚠" />
-                <KpiCard label="Error" value={errCnt} color="#ef4444" icon="✗" />
+                <KpiCard label={t('systemMonitor.kpiConnected', 'Connected Services')} value={services.length} color="#4f8ef7" icon="🔌" />
+                <KpiCard label={t('systemMonitor.kpiOk', 'Healthy')} value={services.filter(s => s.status === "ok").length} color="#22c55e" icon="✓" />
+                <KpiCard label={t('systemMonitor.kpiWarn', 'Warning')} value={warnCnt} color="#eab308" icon="⚠" />
+                <KpiCard label={t('systemMonitor.kpiError', 'Error')} value={errCnt} color="#ef4444" icon="✗" />
             </div>
             <div style={{ display: "grid", gap: 8 }}>
                 {services.map(s => (
@@ -64,8 +64,8 @@ function ApiStatusTab({ services, statusLabel }) {
                         <div style={{ display: "flex", gap: 16 }}>
                             {[
                                 ["Latency", s.latency ? s.latency + "ms" : "—", s.latency > 500 ? "#eab308" : "var(--text-2)"],
-                                ["가동률", s.uptime + "%", s.uptime >= 99 ? "#22c55e" : s.uptime >= 97 ? "#eab308" : "#ef4444"],
-                                ["요청Count", s.requests.toLocaleString(), "#4f8ef7"],
+                                [t('systemMonitor.uptime', 'Uptime'), s.uptime + "%", s.uptime >= 99 ? "#22c55e" : s.uptime >= 97 ? "#eab308" : "#ef4444"],
+                                [t('systemMonitor.requests', 'Requests'), s.requests.toLocaleString(), "#4f8ef7"],
                             ].map(([l, v, c]) => (
                                 <div key={l} style={{ textAlign: "center" }}>
                                     <div style={{ fontSize: 9, color: "var(--text-3)" }}>{l}</div>
@@ -81,18 +81,18 @@ function ApiStatusTab({ services, statusLabel }) {
     );
 }
 
-function PipelineTab({ jobs }) {
+function PipelineTab({ jobs, t }) {
     return (
         <div style={{ display: "grid", gap: 10 }}>
             {jobs.map(j => (
                 <div key={j.name} style={{ padding: "12px 16px", borderRadius: 12, background: "rgba(9,15,30,0.6)", border: `1px solid ${STATUS_COLOR[j.status]}15`, borderLeft: `3px solid ${STATUS_COLOR[j.status]}`, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
                     <div>
                         <div style={{ fontWeight: 700, fontSize: 12 }}>{j.name}</div>
-                        <div style={{ fontSize: 10, color: "var(--text-3)", marginTop: 2 }}>⏰ {j.schedule} · Last used: {j.last} · 소요: {j.elapsed}</div>
+                        <div style={{ fontSize: 10, color: "var(--text-3)", marginTop: 2 }}>⏰ {j.schedule} · Last: {j.last} · {t('systemMonitor.elapsed', 'Elapsed')}: {j.elapsed}</div>
                         {j.note && <div style={{ fontSize: 10, color: STATUS_COLOR[j.status], marginTop: 2 }}>{j.note}</div>}
                     </div>
                     <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-                        {j.records != null && <div style={{ textAlign: "center", fontSize: 9, color: "var(--text-3)", fontWeight: 700 }} ><div>처리 건Count</div><div>{j.records.toLocaleString()}</div></div>}
+                        {j.records != null && <div style={{ textAlign: "center", fontSize: 9, color: "var(--text-3)", fontWeight: 700 }} ><div>{t('systemMonitor.processed', 'Processed')}</div><div>{j.records.toLocaleString()}</div></div>}
                         <Tag label={j.status === "ok" ? "✓ Done" : j.status === "warn" ? "⚠ Warning" : "✗ Error"} color={STATUS_COLOR[j.status]} />
                     </div>
                 </div>
@@ -153,8 +153,8 @@ export default function SystemMonitor() {
                 </div>
             </div>
             <div className="card card-glass fade-up fade-up-2" style={{ padding: 20 }}>
-                {tab === "api" && <ApiStatusTab services={API_SERVICES} statusLabel={STATUS_LABEL} />}
-                {tab === "pipeline" && <PipelineTab jobs={PIPELINE_JOBS} />}
+                {tab === "api" && <ApiStatusTab services={API_SERVICES} statusLabel={STATUS_LABEL} t={t} />}
+                {tab === "pipeline" && <PipelineTab jobs={PIPELINE_JOBS} t={t} />}
                 {tab === "logs" && <LogsTab logs={ERROR_LOGS} />}
             </div>
         </div>
