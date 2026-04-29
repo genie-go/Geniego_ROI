@@ -17,6 +17,8 @@ import {
   DEMO_KAKAO_CAMPAIGNS, DEMO_CONNECTED_CHANNELS, DEMO_CHANNELS,
   DEMO_SNS_CAMPAIGNS, DEMO_AI_RECOMMENDATIONS, DEMO_CHANNEL_PRICES,
   DEMO_DAILY_TRENDS, DEMO_PRODUCTS, DEMO_CRM_CUSTOMER_HISTORY,
+  DEMO_CREATORS, DEMO_UGC_REVIEWS, DEMO_CHANNEL_STATS, DEMO_NEG_KEYWORDS,
+  DEMO_KAKAO_CAMPAIGNS_EXTRA,
 } from '../data/demoSeedData.js';
 
 const GlobalDataContext = createContext(null);
@@ -32,7 +34,7 @@ const _isDemo = (() => {
 })();
 
 const DEMO_LS_PREFIX = 'geniego_demo_';
-const DEMO_SEED_VERSION = 'v16.0';  // ★ 시드 데이터 변경 시 버전 올려주세요
+const DEMO_SEED_VERSION = 'v17.0';  // ★ v17: 인플루언서/UGC/채널통계/부정키워드 시드 추가
 
 // ★ 시드 버전 체크: 새 시드 배포 시 이전 localStorage 자동 초기화
 if (_isDemo && typeof window !== 'undefined') {
@@ -136,11 +138,11 @@ const INIT_KAKAO_CAMPAIGNS_LINKED = loadDemoState('kakao_campaigns', DEMO_KAKAO_
 // 💳 결제 카드 (Ad Spend 자동집행용)
 const INIT_PAYMENT_CARDS = [];
 
-// 🤝 [v13 NEW] 인플루언서 크리에이터 데이터 (InfluencerUGC ↔ All 메뉴 동기화)
-const INIT_CREATORS = [];
-const INIT_UGC_REVIEWS = [];
-const INIT_CHANNEL_STATS = [];
-const INIT_NEG_KEYWORDS = [];
+// 🤝 [v13 → v17] 인플루언서 크리에이터 데이터 (InfluencerUGC ↔ All 메뉴 동기화)
+const INIT_CREATORS = loadDemoState('creators', DEMO_CREATORS);
+const INIT_UGC_REVIEWS = loadDemoState('ugc_reviews', DEMO_UGC_REVIEWS);
+const INIT_CHANNEL_STATS = loadDemoState('channel_stats', DEMO_CHANNEL_STATS);
+const INIT_NEG_KEYWORDS = loadDemoState('neg_keywords', DEMO_NEG_KEYWORDS);
 
 /* ════════════════════════════════════════════════
    실제 Provider Provider 시작

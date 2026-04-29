@@ -481,3 +481,190 @@ export const DEMO_CRM_CUSTOMER_HISTORY = {
   ],
 };
 
+/* ═══════════════════════════════════════════════════════
+   20. 인플루언서 크리에이터 — 8명 (L'Oréal KOL 포트폴리오)
+═══════════════════════════════════════════════════════ */
+export const DEMO_CREATORS = [
+  {
+    id: 'CR-001', name: '뷰티해나 (Hana)', tier: 'Macro',
+    identities: [
+      { type: 'youtube', handle: '@BeautyHana', id: 'UC-hana-001', email: 'hana@beauty.kr', verified: true },
+      { type: 'instagram', handle: '@beautyhana_official', id: 'IG-hana-001', email: 'hana@beauty.kr', verified: true },
+      { type: 'tiktok', handle: '@hana.beauty', id: 'TT-hana-001', email: 'hana.mgmt@agency.kr', verified: true },
+    ],
+    duplicateFlag: false,
+    contract: { type: 'hybrid', flatFee: 8000000, perfRate: 0.05, perfBase: 'revenue', rights: 'SNS+광고소재+상세페이지', period: [isoDate(60), isoDate(-30)], whitelist: true, whitelistExpiry: isoDate(-120), esign: 'signed' },
+    settle: { status: 'paid', paid: 12500000, period: '2026-03', docs: ['계약서_해나_2026.pdf', '정산서_03월.xlsx'] },
+    stats: { views: 2450000, orders: 1240, revenue: 89200000, engagement: 0.048 },
+    content: [
+      { id: 'CT-001', title: 'Revitalift 세럼 30일 리얼 리뷰', platform: 'youtube', views: 1200000, orders: 620, revenue: 44600000, engRate: 0.052, linkedSku: 'LOR-REV-001' },
+      { id: 'CT-002', title: 'Lancôme vs L\'Oréal 세럼 비교', platform: 'instagram', views: 850000, orders: 420, revenue: 31200000, engRate: 0.045, linkedSku: 'LAN-GEN-001' },
+      { id: 'CT-003', title: '여름 UV 차단 루틴 🌞', platform: 'tiktok', views: 400000, orders: 200, revenue: 13400000, engRate: 0.062, linkedSku: 'LOR-UV-001' },
+    ],
+  },
+  {
+    id: 'CR-002', name: '민지뷰티 (MinJi)', tier: 'Mid',
+    identities: [
+      { type: 'instagram', handle: '@minji_beauty', id: 'IG-minji-001', email: 'minji@creator.kr', verified: true },
+      { type: 'youtube', handle: '@MinJiBeautyLab', id: 'UC-minji-001', email: 'minji@creator.kr', verified: true },
+    ],
+    duplicateFlag: false,
+    contract: { type: 'flat', flatFee: 3000000, perfRate: 0, perfBase: 'none', rights: 'SNS+광고소재', period: [isoDate(45), isoDate(-20)], whitelist: true, whitelistExpiry: isoDate(-90), esign: 'signed' },
+    settle: { status: 'paid', paid: 3000000, period: '2026-03', docs: ['계약서_민지_2026.pdf'] },
+    stats: { views: 980000, orders: 580, revenue: 34800000, engagement: 0.055 },
+    content: [
+      { id: 'CT-004', title: 'NYX 립 컬러 전색상 스와치', platform: 'instagram', views: 520000, orders: 310, revenue: 18600000, engRate: 0.058, linkedSku: 'NYX-LIP-001' },
+      { id: 'CT-005', title: '데일리 메이크업 with L\'Oréal', platform: 'youtube', views: 460000, orders: 270, revenue: 16200000, engRate: 0.049, linkedSku: 'LOR-PAR-001' },
+    ],
+  },
+  {
+    id: 'CR-003', name: '스킨케어주의 (SkinFirst)', tier: 'Micro',
+    identities: [
+      { type: 'instagram', handle: '@skinfirst_kr', id: 'IG-skin-001', email: 'skin1st@gmail.com', verified: true },
+      { type: 'tiktok', handle: '@skinfirst', id: 'TT-skin-001', email: 'skin1st@gmail.com', verified: false },
+    ],
+    duplicateFlag: false,
+    contract: { type: 'perf', flatFee: 500000, perfRate: 0.08, perfBase: 'revenue', rights: 'SNS', period: [isoDate(30), isoDate(-15)], whitelist: false, whitelistExpiry: null, esign: 'signed' },
+    settle: { status: 'partial', paid: 1200000, period: '2026-04', docs: [] },
+    stats: { views: 420000, orders: 290, revenue: 18500000, engagement: 0.072 },
+    content: [
+      { id: 'CT-006', title: 'Vichy Minéral 89 한달 사용기', platform: 'instagram', views: 220000, orders: 160, revenue: 10200000, engRate: 0.075, linkedSku: 'VIC-MIN-001' },
+      { id: 'CT-007', title: 'La Roche-Posay 여드름 케어', platform: 'tiktok', views: 200000, orders: 130, revenue: 8300000, engRate: 0.068, linkedSku: 'LRP-EFF-001' },
+    ],
+  },
+  {
+    id: 'CR-004', name: '럭셔리수진 (LuxSujin)', tier: 'Macro',
+    identities: [
+      { type: 'youtube', handle: '@LuxurySujin', id: 'UC-sujin-001', email: 'sujin@luxmgmt.kr', verified: true },
+      { type: 'instagram', handle: '@lux_sujin', id: 'IG-sujin-001', email: 'sujin@luxmgmt.kr', verified: true },
+    ],
+    duplicateFlag: false,
+    contract: { type: 'hybrid', flatFee: 12000000, perfRate: 0.03, perfBase: 'revenue', rights: 'SNS+광고소재+상세페이지+오프라인', period: [isoDate(90), isoDate(-60)], whitelist: true, whitelistExpiry: isoDate(-180), esign: 'signed' },
+    settle: { status: 'paid', paid: 18200000, period: '2026-03', docs: ['계약서_수진_2026.pdf', '정산서_03월.xlsx', '세금계산서.pdf'] },
+    stats: { views: 1850000, orders: 680, revenue: 206000000, engagement: 0.038 },
+    content: [
+      { id: 'CT-008', title: 'Lancôme Absolue 럭셔리 언박싱', platform: 'youtube', views: 920000, orders: 340, revenue: 112000000, engRate: 0.042, linkedSku: 'LAN-ABS-001' },
+      { id: 'CT-009', title: 'YSL × Lancôme 럭셔리 하울', platform: 'instagram', views: 630000, orders: 220, revenue: 62000000, engRate: 0.035, linkedSku: 'YSL-RPC-001' },
+      { id: 'CT-010', title: 'Kérastase 프리미엄 헤어 루틴', platform: 'youtube', views: 300000, orders: 120, revenue: 32000000, engRate: 0.041, linkedSku: 'KER-SIL-001' },
+    ],
+  },
+  {
+    id: 'CR-005', name: '틱톡예나 (YenaTok)', tier: 'Mid',
+    identities: [
+      { type: 'tiktok', handle: '@yena.beauty', id: 'TT-yena-001', email: 'yena@tiktok.agency', verified: true },
+      { type: 'instagram', handle: '@yena_tok', id: 'IG-yena-001', email: 'yena.personal@gmail.com', verified: true },
+    ],
+    duplicateFlag: true,
+    contract: { type: 'flat', flatFee: 2000000, perfRate: 0, perfBase: 'none', rights: 'SNS+광고소재', period: [isoDate(20), isoDate(-10)], whitelist: true, whitelistExpiry: isoDate(-45), esign: 'pending' },
+    settle: { status: 'unpaid', paid: 0, period: '2026-04', docs: [] },
+    stats: { views: 1620000, orders: 380, revenue: 22800000, engagement: 0.065 },
+    content: [
+      { id: 'CT-011', title: 'Garnier 미셀라 ASMR 클렌징', platform: 'tiktok', views: 890000, orders: 210, revenue: 12600000, engRate: 0.071, linkedSku: 'GAR-MIC-001' },
+      { id: 'CT-012', title: 'L\'Oréal 선크림 3초 도전', platform: 'tiktok', views: 730000, orders: 170, revenue: 10200000, engRate: 0.058, linkedSku: 'LOR-UV-001' },
+    ],
+  },
+  {
+    id: 'CR-006', name: '남자뷰티 현우 (HyunWoo)', tier: 'Nano',
+    identities: [
+      { type: 'instagram', handle: '@hyunwoo_grooming', id: 'IG-hw-001', email: 'hw.beauty@gmail.com', verified: true },
+    ],
+    duplicateFlag: false,
+    contract: { type: 'flat', flatFee: 500000, perfRate: 0, perfBase: 'none', rights: 'SNS', period: [isoDate(14), isoDate(-7)], whitelist: false, whitelistExpiry: null, esign: 'signed' },
+    settle: { status: 'paid', paid: 500000, period: '2026-04', docs: ['간이영수증.pdf'] },
+    stats: { views: 85000, orders: 42, revenue: 2100000, engagement: 0.082 },
+    content: [
+      { id: 'CT-013', title: 'Men Expert 그루밍 풀 루틴', platform: 'instagram', views: 85000, orders: 42, revenue: 2100000, engRate: 0.082, linkedSku: 'LOR-MEN-001' },
+    ],
+  },
+  {
+    id: 'CR-007', name: '약사언니 (PharmSis)', tier: 'Mid',
+    identities: [
+      { type: 'youtube', handle: '@PharmSisBeauty', id: 'UC-pharm-001', email: 'pharmsisbeauty@naver.com', verified: true },
+      { type: 'instagram', handle: '@pharmsisbeauty', id: 'IG-pharm-001', email: 'pharmsisbeauty@naver.com', verified: true },
+    ],
+    duplicateFlag: false,
+    contract: { type: 'hybrid', flatFee: 4000000, perfRate: 0.04, perfBase: 'revenue', rights: 'SNS+광고소재', period: [isoDate(40), isoDate(-25)], whitelist: true, whitelistExpiry: isoDate(-60), esign: 'signed' },
+    settle: { status: 'overpaid', paid: 6800000, period: '2026-03', docs: ['계약서_약사언니.pdf', '정산서_03월.xlsx'] },
+    stats: { views: 720000, orders: 510, revenue: 38200000, engagement: 0.058 },
+    content: [
+      { id: 'CT-014', title: '약사가 추천하는 더마 스킨케어', platform: 'youtube', views: 480000, orders: 340, revenue: 25800000, engRate: 0.062, linkedSku: 'LRP-EFF-001' },
+      { id: 'CT-015', title: 'Vichy vs La Roche-Posay 비교', platform: 'instagram', views: 240000, orders: 170, revenue: 12400000, engRate: 0.051, linkedSku: 'VIC-MIN-001' },
+    ],
+  },
+  {
+    id: 'CR-008', name: '헤어요정 지수 (JiSoo)', tier: 'Micro',
+    identities: [
+      { type: 'instagram', handle: '@jisoo_hairfairy', id: 'IG-jisoo-001', email: 'jisoo.hair@gmail.com', verified: true },
+      { type: 'tiktok', handle: '@hairfairy_jisoo', id: 'TT-jisoo-001', email: 'jisoo.mgmt@agency.kr', verified: false },
+    ],
+    duplicateFlag: true,
+    contract: { type: 'flat', flatFee: 1500000, perfRate: 0, perfBase: 'none', rights: 'SNS', period: [isoDate(25), isoDate(-10)], whitelist: false, whitelistExpiry: null, esign: 'rejected' },
+    settle: { status: 'unpaid', paid: 0, period: '2026-04', docs: [] },
+    stats: { views: 310000, orders: 180, revenue: 12600000, engagement: 0.068 },
+    content: [
+      { id: 'CT-016', title: 'Kérastase 손상모 복구 30일 챌린지', platform: 'instagram', views: 180000, orders: 100, revenue: 7200000, engRate: 0.072, linkedSku: 'KER-RES-001' },
+      { id: 'CT-017', title: 'Elvive 오일 샴푸 ASMR', platform: 'tiktok', views: 130000, orders: 80, revenue: 5400000, engRate: 0.061, linkedSku: 'LOR-ELV-001' },
+    ],
+  },
+];
+
+/* ═══════════════════════════════════════════════════════
+   21. UGC 리뷰 — 15건 (다양한 감성/채널/상품)
+═══════════════════════════════════════════════════════ */
+export const DEMO_UGC_REVIEWS = [
+  { id: 'RV-001', channel: '네이버 스마트스토어', product: "L'Oréal Revitalift Filler 세럼 30ml", category: 'skincare', rating: 5, sentiment: 'positive', text: '히알루론산 세럼 중 가성비 최고예요! 3주 사용하니 잔주름이 눈에 띄게 줄었어요. 피부결도 매끄러워지고 화장 밀림도 없어졌습니다 👍', date: isoDate(1), helpful: 42 },
+  { id: 'RV-002', channel: '쿠팡', product: "L'Oréal Revitalift Laser X3 크림 50ml", category: 'skincare', rating: 4, sentiment: 'positive', text: '로켓배송 하루만에 도착! 크림 질감이 무겁지 않고 흡수가 빨라요. 밤에 바르고 자면 아침에 촉촉합니다. 재구매 의사 있어요.', date: isoDate(2), helpful: 28 },
+  { id: 'RV-003', channel: '올리브영', product: "L'Oréal True Match 파운데이션 #N4", category: 'makeup', rating: 5, sentiment: 'positive', text: '제 피부톤에 딱 맞는 색상! 커버력도 좋고 하루 종일 무너지지 않아요. 올리브영 1+1 행사 때 사서 더 만족스럽습니다 😊', date: isoDate(3), helpful: 35 },
+  { id: 'RV-004', channel: '쿠팡', product: "L'Oréal Lash Paradise 마스카라 블랙", category: 'makeup', rating: 2, sentiment: 'negative', text: '뭉침이 심하고 번짐이 있어요. 오후만 되면 판다눈 됩니다. 브러시도 너무 크고... 기대했는데 실망이에요. 반품 신청했습니다.', date: isoDate(2), helpful: 18 },
+  { id: 'RV-005', channel: '네이버 스마트스토어', product: "L'Oréal Color Riche 립스틱 #297", category: 'makeup', rating: 4, sentiment: 'positive', text: '색감이 정말 예뻐요! 가을에 딱 맞는 브릭 레드 톤이에요. 보습력도 괜찮고 발색도 좋습니다. 케이스 디자인도 고급스러워요.', date: isoDate(5), helpful: 22 },
+  { id: 'RV-006', channel: '11번가', product: "L'Oréal Elvive 엑스트라 오일 샴푸 400ml", category: 'haircare', rating: 3, sentiment: 'neutral', text: '나쁘지는 않은데 특별히 좋다는 느낌도 없어요. 향은 좋은데 제 머릿결에는 큰 변화가 없었습니다. 가격 대비 평범한 샴푸.', date: isoDate(4), helpful: 8 },
+  { id: 'RV-007', channel: '올리브영', product: "Vichy Minéral 89 부스터 세럼 50ml", category: 'derma', rating: 5, sentiment: 'positive', text: '민감성 피부인데 자극 없이 촉촉해져요! 약국 코스메틱이라 성분도 안심이고, 세안 후 첫 단계로 바르면 다음 스킨케어 흡수가 확 달라집니다.', date: isoDate(1), helpful: 56 },
+  { id: 'RV-008', channel: '쿠팡', product: "La Roche-Posay Effaclar 듀오(+) 크림 40ml", category: 'derma', rating: 4, sentiment: 'positive', text: '여드름 피부에 진짜 효과 있어요. 2주 정도 사용하니 올라오려는 트러블이 확실히 줄었습니다. 다만 건조함은 있어서 보습 병행 필수!', date: isoDate(3), helpful: 31 },
+  { id: 'RV-009', channel: 'G마켓', product: "Garnier 미셀라 클렌징 워터 400ml", category: 'cleansing', rating: 1, sentiment: 'negative', text: '피부에 맞지 않아 트러블이 올라왔어요. 클렌징력은 괜찮은데 사용 후 따가움이 있었습니다. 민감성 피부는 주의하세요. 환불 처리 중입니다.', date: isoDate(6), helpful: 15 },
+  { id: 'RV-010', channel: '네이버 스마트스토어', product: "Lancôme Génifique 어드밴스드 세럼 50ml", category: 'luxury_skin', rating: 5, sentiment: 'positive', text: '역시 랑콤! 한 달 사용했는데 피부 광택이 완전 달라졌어요. 비싼 만큼 확실한 효과가 있습니다. 생일 선물로도 완벽한 제품이에요 ✨', date: isoDate(2), helpful: 48 },
+  { id: 'RV-011', channel: 'Amazon Japan', product: "Lancôme Absolue 소프트 크림 60ml", category: 'luxury_skin', rating: 5, sentiment: 'positive', text: 'アブソリュは本当に素晴らしい！肌がしっとりしてハリが出ます。高価ですが価値があります。日本からの注文でも問題なく届きました。', date: isoDate(4), helpful: 23 },
+  { id: 'RV-012', channel: '올리브영', product: "NYX Lip Lingerie XXL 립글로스 #16", category: 'color_cosmetics', rating: 3, sentiment: 'neutral', text: '색은 예쁜데 지속력이 아쉬워요. 식사하면 거의 다 지워지고, 컵에 묻어남이 심합니다. 가격 대비 그냥 무난한 립글로스예요.', date: isoDate(7), helpful: 11 },
+  { id: 'RV-013', channel: '쿠팡', product: "L'Oréal UV Perfect SPF50+ 선크림 50ml", category: 'suncare', rating: 2, sentiment: 'negative', text: '백탁이 너무 심해요! 바르면 유령처럼 하얘지고, 화장 전에 바르면 밀림 현상도 있습니다. SPF50은 좋은데 사용감이 별로예요.', date: isoDate(3), helpful: 24 },
+  { id: 'RV-014', channel: '네이버 스마트스토어', product: "YSL Rouge Pur Couture 립스틱 #01", category: 'luxury_makeup', rating: 5, sentiment: 'positive', text: 'YSL 대표 립스틱 답게 발색, 보습, 지속력 모두 완벽해요! 케이스 클릭감도 고급스럽고, 선물용으로 포장도 예쁘게 해주셨어요 💄', date: isoDate(1), helpful: 39 },
+  { id: 'RV-015', channel: 'Shopify Global', product: "Kérastase Elixir Ultime 오일 100ml", category: 'luxury_hair', rating: 4, sentiment: 'positive', text: 'Premium hair oil that truly delivers! My damaged hair feels silky smooth after just one week. The scent is luxurious and a little goes a long way. Worth the investment.', date: isoDate(5), helpful: 17 },
+];
+
+/* ═══════════════════════════════════════════════════════
+   22. 채널별 리뷰 통계 — 8채널
+═══════════════════════════════════════════════════════ */
+export const DEMO_CHANNEL_STATS = [
+  { channel: '네이버 스마트스토어', icon: '🟢', color: '#2DB400', total: 4820, avg: 4.3, pos: 72, neg: 8 },
+  { channel: '쿠팡', icon: '🟠', color: '#E31937', total: 6250, avg: 4.1, pos: 68, neg: 12 },
+  { channel: '올리브영', icon: '🟡', color: '#A3C800', total: 2180, avg: 4.5, pos: 78, neg: 5 },
+  { channel: '11번가', icon: '🔴', color: '#FF0000', total: 1340, avg: 3.9, pos: 62, neg: 14 },
+  { channel: 'G마켓', icon: '🟢', color: '#00C73C', total: 980, avg: 3.8, pos: 58, neg: 16 },
+  { channel: '카카오쇼핑', icon: '💬', color: '#FEE500', total: 620, avg: 4.2, pos: 70, neg: 9 },
+  { channel: 'Amazon Japan', icon: '📦', color: '#FF9900', total: 450, avg: 4.4, pos: 75, neg: 7 },
+  { channel: 'Shopify Global', icon: '🛒', color: '#96BF48', total: 280, avg: 4.6, pos: 82, neg: 4 },
+];
+
+/* ═══════════════════════════════════════════════════════
+   23. 부정 키워드 — 10개
+═══════════════════════════════════════════════════════ */
+export const DEMO_NEG_KEYWORDS = [
+  { word: '번짐', count: 43, change: 5 },
+  { word: '뭉침', count: 38, change: 3 },
+  { word: '트러블', count: 35, change: -2 },
+  { word: '백탁', count: 28, change: 8 },
+  { word: '따가움', count: 24, change: 1 },
+  { word: '건조함', count: 22, change: -4 },
+  { word: '밀림', count: 19, change: 2 },
+  { word: '반품', count: 16, change: 6 },
+  { word: '가품의심', count: 12, change: -1 },
+  { word: '배송불만', count: 9, change: -3 },
+];
+
+/* ═══════════════════════════════════════════════════════
+   24. 카카오 캠페인 확장 — 4건 추가 (총 6건)
+═══════════════════════════════════════════════════════ */
+export const DEMO_KAKAO_CAMPAIGNS_EXTRA = [
+  { id: 'KC-003', name: '비즈보드 봄 프로모션', type: 'bizboard', status: 'active', targetSegmentId: 'seg-loyal', targetSegmentName: '충성 고객', estimatedReach: 3852, sent: 3200, open_rate: 48.2, click_rate: 12.5, createdAt: isoDate(2) },
+  { id: 'KC-004', name: '휴면 고객 리액티베이션 알림톡', type: 'alimtalk', status: 'sent', targetSegmentId: 'seg-dormant', targetSegmentName: '휴면 고객', estimatedReach: 4521, sent: 4100, open_rate: 32.1, click_rate: 8.4, createdAt: isoDate(4) },
+  { id: 'KC-005', name: 'Lancôme VIP 톡채널 쿠폰', type: 'friendtalk', status: 'active', targetSegmentId: 'seg-luxury', targetSegmentName: 'Luxury 고객', estimatedReach: 892, sent: 845, open_rate: 72.8, click_rate: 28.6, createdAt: isoDate(1) },
+  { id: 'KC-006', name: '신규가입 웰컴 플러스친구', type: 'alimtalk', status: 'draft', targetSegmentId: 'seg-new', targetSegmentName: '신규 가입자', estimatedReach: 2145, sent: 0, open_rate: 0, click_rate: 0, createdAt: isoDate(0) },
+];
