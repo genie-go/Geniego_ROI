@@ -58,6 +58,10 @@ function TrendIcon({ t }) {
 
 function SoSBar({ brand, comp }) {
   const other = Math.max(0, 100 - brand - comp);
+  /* Enterprise Error Boundary */
+
+  if (_pageError) return <ErrorFallback error={_pageError} onRetry={() => { _setPageError(null); _setRetryCount(c => c + 1); }} />;
+
   return (
     <div style={{ display: "flex", height: 6, borderRadius: 4, overflow: "hidden", minWidth: 100, gap: 1 }}>
       <div style={{ width: `${brand}%`, background: "#4f8ef7" }} title={`자사 ${brand}%`} />
@@ -130,7 +134,41 @@ function AddKeywordModal({ onClose, onAdd }) {
 }
 
 /* ─── Main ───────────────────────────────────────────────────── */
+
+/* ── Enterprise Error Boundary ─────────────────────────── */
+function ErrorFallback({ error, onRetry }) {
+  return (
+    <div style={{
+      padding: '40px 28px', textAlign: 'center', borderRadius: 16,
+      background: 'rgba(239,68,68,0.04)', border: '1px solid rgba(239,68,68,0.15)',
+      margin: '20px 0'
+    }}>
+      <div style={{ fontSize: 40, marginBottom: 12 }}>⚠️</div>
+      <div style={{ fontWeight: 800, fontSize: 16, color: '#ef4444', marginBottom: 8 }}>
+        An error occurred
+      </div>
+      <div style={{
+        fontSize: 11, color: 'var(--text-3)', marginBottom: 16,
+        padding: '8px 12px', borderRadius: 8, background: 'rgba(239,68,68,0.06)',
+        fontFamily: 'monospace', wordBreak: 'break-all', maxWidth: 500, margin: '0 auto 16px'
+      }}>
+        {error?.message || 'Unknown error'}
+      </div>
+      <button onClick={onRetry} style={{
+        padding: '8px 24px', borderRadius: 10, border: 'none', cursor: 'pointer',
+        background: 'linear-gradient(135deg,#4f8ef7,#6366f1)', color: '#fff',
+        fontWeight: 700, fontSize: 12
+      }}>
+        🔄 Retry
+      </button>
+    </div>
+  );
+}
+
 export default function DigitalShelf() {
+  const [_pageError, _setPageError] = React.useState(null);
+  const [_retryCount, _setRetryCount] = React.useState(0);
+
   const [search, setSearch] = useState("");
   const [sortKey, setSortKey] = useState("brand_sos");
   const [filterChannel, setFilterChannel] = useState("all");

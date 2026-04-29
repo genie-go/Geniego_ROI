@@ -32,7 +32,45 @@ const REGULATIONS = [
     { country: '🇩🇪 독일(EU)', threshold: '€0(0달러)', taxRate: 'VAT 19%', note: 'OSS 제도 이용', platform: 'Zalando·Amazon DE' },
 ];
 
+
+/* ── Enterprise Error Boundary ─────────────────────────── */
+function ErrorFallback({ error, onRetry }) {
+  /* Enterprise Error Boundary */
+
+  if (_pageError) return <ErrorFallback error={_pageError} onRetry={() => { _setPageError(null); _setRetryCount(c => c + 1); }} />;
+
+  return (
+    <div style={{
+      padding: '40px 28px', textAlign: 'center', borderRadius: 16,
+      background: 'rgba(239,68,68,0.04)', border: '1px solid rgba(239,68,68,0.15)',
+      margin: '20px 0'
+    }}>
+      <div style={{ fontSize: 40, marginBottom: 12 }}>⚠️</div>
+      <div style={{ fontWeight: 800, fontSize: 16, color: '#ef4444', marginBottom: 8 }}>
+        An error occurred
+      </div>
+      <div style={{
+        fontSize: 11, color: 'var(--text-3)', marginBottom: 16,
+        padding: '8px 12px', borderRadius: 8, background: 'rgba(239,68,68,0.06)',
+        fontFamily: 'monospace', wordBreak: 'break-all', maxWidth: 500, margin: '0 auto 16px'
+      }}>
+        {error?.message || 'Unknown error'}
+      </div>
+      <button onClick={onRetry} style={{
+        padding: '8px 24px', borderRadius: 10, border: 'none', cursor: 'pointer',
+        background: 'linear-gradient(135deg,#4f8ef7,#6366f1)', color: '#fff',
+        fontWeight: 700, fontSize: 12
+      }}>
+        🔄 Retry
+      </button>
+    </div>
+  );
+}
+
 export default function AsiaLogistics() {
+  const [_pageError, _setPageError] = React.useState(null);
+  const [_retryCount, _setRetryCount] = React.useState(0);
+
   const t = useT();
     const { fmt } = useCurrency();
     const [activeHub, setActiveHub] = useState(null);

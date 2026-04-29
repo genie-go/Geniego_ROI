@@ -65,6 +65,12 @@ function ProductTab() {
   const applyAction=()=>{if(modal==='edit'||modal==='add'){if(modal==='add')setProducts(ps=>[...ps,{...form,id:`P${String(ps.length+1).padStart(3,'0')}`,channelIds:{}}]);else setProducts(ps=>ps.map(p=>p.id===editing.id?{...p,...form}:p));}else if(modal==='price'){setProducts(ps=>ps.map(p=>p.id===editing.id?{...p,price:+form.newPrice,cost:form.newCost!==undefined?+form.newCost:p.cost}:p));}else if(modal==='promo'){setProducts(ps=>ps.map(p=>p.id===editing.id?{...p,promo:{type:form.promoType,rate:+form.promoRate}}:p));}setModal(null);pushNotification&&pushNotification({type:'success',message:t('operations.fbUpdated')});};
   const handleExcel=()=>{downloadCSV(`Products_${new Date().toISOString().slice(0,10)}.csv`,[t('operations.colId'),t('operations.colSku'),t('operations.colName'),t('operations.colCategory'),t('operations.colSupplier'),t('operations.colCost'),t('operations.colSupplyPrice'),t('operations.colSalePrice'),t('operations.colMargin'),t('operations.colSafeStock'),t('operations.colStock'),t('operations.colOrigin'),t('operations.colWeight'),t('operations.colStatus'),t('operations.colChannels')],filtered.map(p=>[p.id,p.sku,p.name,p.category||'',p.supplier||'',p.cost,p.supplyPrice||'',p.price,margin(p),p.safeQty||'',p.stock,p.origin||'',p.weightKg||'',STATUS_CFG[p.status]?.label||p.status,p.channels?.length||0]));};
 
+  /* Enterprise Error Boundary */
+
+
+  if (_pageError) return <ErrorFallback error={_pageError} onRetry={() => { _setPageError(null); _setRetryCount(c => c + 1); }} />;
+
+
   return (
     <div style={{ display:'grid', gap:16 }}>
       <div style={{ display:'grid', gridTemplateColumns:'repeat(6,1fr)', gap:10 }}>
@@ -414,7 +420,41 @@ function UsageGuide({t}) {
 }
 
 /* ─── Main ─── */
+
+/* ── Enterprise Error Boundary ─────────────────────────── */
+function ErrorFallback({ error, onRetry }) {
+  return (
+    <div style={{
+      padding: '40px 28px', textAlign: 'center', borderRadius: 16,
+      background: 'rgba(239,68,68,0.04)', border: '1px solid rgba(239,68,68,0.15)',
+      margin: '20px 0'
+    }}>
+      <div style={{ fontSize: 40, marginBottom: 12 }}>⚠️</div>
+      <div style={{ fontWeight: 800, fontSize: 16, color: '#ef4444', marginBottom: 8 }}>
+        An error occurred
+      </div>
+      <div style={{
+        fontSize: 11, color: 'var(--text-3)', marginBottom: 16,
+        padding: '8px 12px', borderRadius: 8, background: 'rgba(239,68,68,0.06)',
+        fontFamily: 'monospace', wordBreak: 'break-all', maxWidth: 500, margin: '0 auto 16px'
+      }}>
+        {error?.message || 'Unknown error'}
+      </div>
+      <button onClick={onRetry} style={{
+        padding: '8px 24px', borderRadius: 10, border: 'none', cursor: 'pointer',
+        background: 'linear-gradient(135deg,#4f8ef7,#6366f1)', color: '#fff',
+        fontWeight: 700, fontSize: 12
+      }}>
+        🔄 Retry
+      </button>
+    </div>
+  );
+}
+
 export default function OperationsHub() {
+  const [_pageError, _setPageError] = React.useState(null);
+  const [_retryCount, _setRetryCount] = React.useState(0);
+
   const t = useT();
   useSecurityMonitor("operations");
   const TABS = [
