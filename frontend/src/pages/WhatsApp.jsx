@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import PlanGate from "../components/PlanGate.jsx";
 
-import { useT } from '../i18n/index.js';
+import { useI18n } from '../i18n';
 const API = import.meta.env.VITE_API_BASE || '';
 const apiFetch = async (path, opts = {}) => {
     const token = localStorage.getItem('genie_token') || "";
@@ -48,7 +48,7 @@ function AuthPanel({ onSaved }) {
             <div style={{ display: 'flex', gap: 8 }}>
                 <button onClick={handleSave} disabled={loading}
                     style={{ padding: '7px 20px', borderRadius: 8, border: 'none', background: 'linear-gradient(135deg,#25D366,#128C7E)', color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
-                    {loading ? '⏳ Connect in progress…' : '💾 Save + 즉시 Connect Test'}
+                    {loading ? '⏳ Connect in progress…' : ('💾 ' + t('wa.saveConnect','Save + Test Connection'))}
                 </button>
             </div>
             {result && (
@@ -75,25 +75,25 @@ function SendPanel({ templates }) {
 
     return (
         <div className="card card-glass">
-            <div style={{ fontWeight: 900, fontSize: 13, marginBottom: 14 }}>📤 Message Send</div>
+            <div style={{ fontWeight: 900, fontSize: 13, marginBottom: 14 }}>{t('wa.tabSend','📤 Send')}</div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
                 <div>
-                    <div style={{ fontSize: 10, color: 'var(--text-3)', marginBottom: 4 }}>Count신 번호 (국제형식)</div>
+                    <div style={{ fontSize: 10, color: 'var(--text-3)', marginBottom: 4 }}>{t('wa.sendTo','Recipient Number')}</div>
                     <input value={form.to} onChange={e => setForm(p => ({ ...p, to: e.target.value }))} placeholder="821012345678"
                         className="input" />
                 </div>
                 <div>
-                    <div style={{ fontSize: 10, color: 'var(--text-3)', marginBottom: 4 }}>템플릿 Select</div>
+                    <div style={{ fontSize: 10, color: 'var(--text-3)', marginBottom: 4 }}>{t('wa.selectTemplate','Select Template')}</div>
                     <select value={form.template} onChange={e => setForm(p => ({ ...p, template: e.target.value }))} className="input">
-                        <option value="">직접 입력</option>
+                        <option value="">{t('wa.directInput','Direct Input')}</option>
                         {templates.map(t => <option key={t.name} value={t.name}>{t.name}</option>)}
                     </select>
                 </div>
             </div>
             {!form.template && (
                 <div style={{ marginBottom: 10 }}>
-                    <div style={{ fontSize: 10, color: 'var(--text-3)', marginBottom: 4 }}>Message 내용</div>
-                    <textarea value={form.body} onChange={e => setForm(p => ({ ...p, body: e.target.value }))} placeholder="Message를 입력하세요..."
+                    <div style={{ fontSize: 10, color: 'var(--text-3)', marginBottom: 4 }}>{t('wa.messageContent','Message Content')}</div>
+                    <textarea value={form.body} onChange={e => setForm(p => ({ ...p, body: e.target.value }))} placeholder={t('wa.messagePlaceholder','Enter your message...')}
                         rows={3} style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid rgba(99,140,255,0.2)', background: 'rgba(15,20,40,0.7)', color: '#fff', fontSize: 12, resize: 'vertical', boxSizing: 'border-box' }} />
                 </div>
             )}
@@ -127,23 +127,23 @@ function BroadcastPanel({ templates }) {
 
     return (
         <div className="card card-glass">
-            <div style={{ fontWeight: 900, fontSize: 13, marginBottom: 14 }}>📡 일괄 Send (Broadcast)</div>
+            <div style={{ fontWeight: 900, fontSize: 13, marginBottom: 14 }}>{t('wa.broadcast','📡 Broadcast')}</div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                 <div>
-                    <div style={{ fontSize: 10, color: 'var(--text-3)', marginBottom: 4 }}>Count신 번호 List (줄바꿈으로 구분, Max 200개)</div>
+                    <div style={{ fontSize: 10, color: 'var(--text-3)', marginBottom: 4 }}>{t('wa.numberList','Number List (newline separated, max 200)')}</div>
                     <textarea value={numbers} onChange={e => setNumbers(e.target.value)} placeholder={'821012345678\n821087654321\n...'} rows={8}
                         style={{ width: '100%', padding: '8px', borderRadius: 8, border: '1px solid rgba(99,140,255,0.2)', background: 'rgba(15,20,40,0.7)', color: '#fff', fontSize: 11, resize: 'vertical', boxSizing: 'border-box', fontFamily: 'monospace' }} />
-                    <div style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 4 }}>{numbers.split('\n').filter(Boolean).length}개 번호</div>
+                    <div style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 4 }}>{numbers.split('\n').filter(Boolean).length} {t('wa.numberCount','numbers')}</div>
                 </div>
                 <div>
-                    <div style={{ fontSize: 10, color: 'var(--text-3)', marginBottom: 4 }}>템플릿</div>
+                    <div style={{ fontSize: 10, color: 'var(--text-3)', marginBottom: 4 }}>{t('wa.template','Template')}</div>
                     <select value={template} onChange={e => setTemplate(e.target.value)} className="input" style={{ marginBottom: 10 }}>
                         <option value="">Select…</option>
                         {templates.map(t => <option key={t.name} value={t.name}>{t.name}</option>)}
                     </select>
                     {template && templates.find(t => t.name === template) && (
                         <div style={{ padding: '10px', borderRadius: 8, background: 'rgba(37,211,102,0.06)', border: '1px solid rgba(37,211,102,0.15)', fontSize: 11, color: 'var(--text-2)' }}>
-                            {templates.find(t => t.name === template)?.components?.[0]?.text || '템플릿 내용'}
+                            {templates.find(t => t.name === template)?.components?.[0]?.text || t('wa.templateContent','Template Content')}
                         </div>
                     )}
                     <button onClick={handleBroadcast} disabled={loading || !template || !numbers.trim()}
@@ -161,17 +161,16 @@ function BroadcastPanel({ templates }) {
     );
 }
 
-const TABS = [
-    { id: 'overview', label: '📊 현황' },
-    { id: 'send', label: '📤 Send' },
-    { id: 'broadcast', label: '📡 일괄 Send' },
-    { id: 'templates', label: '📋 템플릿' },
-    { id: 'history', label: '📜 Send History' },
-    { id: 'settings', label: '⚙️ Auth Settings' },
-];
-
 export default function WhatsApp() {
-  const t = useT();
+  const { t } = useI18n();
+    const TABS = [
+      { id: 'overview', label: t('wa.tabOverview', '📊 Overview') },
+      { id: 'send', label: t('wa.tabSend', '📤 Send') },
+      { id: 'broadcast', label: t('wa.tabBroadcast', '📡 Broadcast') },
+      { id: 'templates', label: t('wa.tabTemplates', '📋 Templates') },
+      { id: 'history', label: t('wa.tabHistory', '📜 History') },
+      { id: 'settings', label: t('wa.tabSettings', '⚙️ Auth Settings') },
+    ];
     const [tab, setTab] = useState('overview');
     const [settings, setSettings] = useState(null);
     const [templates, setTemplates] = useState([]);
@@ -211,9 +210,9 @@ export default function WhatsApp() {
                                 WhatsApp Business
                             </span>
                         </div>
-                        <div className="hero-desc">Auth키 Register 즉시 실Integration · 템플릿 Message · 일괄 Send · Send History Management</div>
+                        <div className="hero-desc">{t('wa.heroDesc', 'Instant integration · Template messaging · Broadcast · Send history')}</div>
                         <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
-                            <Tag label={status === 'connected' || status === 'ok' ? '✓ Connected' : status === '' ? '🎮 ' : '○ 미Connect'} color={statusColor} />
+                            <Tag label={status === 'connected' || status === 'ok' ? '✓ Connected' : status === '' ? '🎮 ' : t('wa.notConnected','Not Connected')} color={statusColor} />
                             {plan === 'pro' ? <Tag label="⚡ Pro 실Integration" color="#a855f7" /> : <Tag label="🎮  Mode" color="#4f8ef7" />}
                             <Tag label={`Send ${(stats.sent || 0).toLocaleString()}건`} color="#25D366" />
                         </div>
@@ -241,7 +240,7 @@ export default function WhatsApp() {
                 <div style={{ display: 'grid', gap: 14 }}>
                     {(status === 'not_configured' || status === 'untested') && (
                         <div style={{ padding: '14px 18px', borderRadius: 12, background: 'rgba(37,211,102,0.06)', border: '1px solid rgba(37,211,102,0.2)', fontSize: 12, color: 'var(--text-2)' }}>
-                            💡 <strong style={{ color: '#25D366' }}>Start하기:</strong> Meta Business Suite에서 Phone Number ID와 Access Token을 Copy하여 ⚙️ Auth Settings에 입력하면 즉시 Integration됩니다.
+                            💡 <strong style={{ color: '#25D366' }}>{t('wa.getStarted','Get Started:')}</strong> {t('wa.getStartedDesc','Enter Phone Number ID and Access Token from Meta Business Suite in Auth Settings.')}
                         </div>
                     )}
                     <div className="card card-glass">
@@ -264,9 +263,9 @@ export default function WhatsApp() {
             {tab === 'broadcast' && <BroadcastPanel templates={templates} />}
             {tab === 'templates' && (
                 <div className="card card-glass">
-                    <div style={{ fontWeight: 900, fontSize: 13, marginBottom: 14 }}>📋 Message 템플릿</div>
+                    <div style={{ fontWeight: 900, fontSize: 13, marginBottom: 14 }}>{t('wa.messageTemplates','Message Templates')}</div>
                     <table className="table">
-                        <thead><tr><th>Name</th><th>Language</th><th>Category</th><th>Status</th><th>내용 미리보기</th></tr></thead>
+                        <thead><tr><th>Name</th><th>Language</th><th>Category</th><th>Status</th><th>{t('wa.contentPreview','Content Preview')}</th></tr></thead>
                         <tbody>
                             {templates.map(t => (
                                 <tr key={t.name}>
@@ -283,9 +282,9 @@ export default function WhatsApp() {
             )}
             {tab === 'history' && (
                 <div className="card card-glass">
-                    <div style={{ fontWeight: 900, fontSize: 13, marginBottom: 14 }}>📜 Send History</div>
+                    <div style={{ fontWeight: 900, fontSize: 13, marginBottom: 14 }}>{t('wa.sendHistory','Send History')}</div>
                     <table className="table">
-                        <thead><tr><th>Count신번호</th><th>템플릿</th><th>Status</th><th>SendTime</th></tr></thead>
+                        <thead><tr><th>{t('wa.recipientNo','Recipient')}</th><th>템플릿</th><th>Status</th><th>{t('wa.sendTime','Sent At')}</th></tr></thead>
                         <tbody>
                             {messages.map((m, i) => {
                                 const sc = { sent: '#4f8ef7', delivered: '#22c55e', read: '#a855f7', failed: '#ef4444' }[m.status] || '#666';

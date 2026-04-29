@@ -2,9 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useNotification } from "../context/NotificationContext.jsx";
 
-import { useT } from '../i18n/index.js';
-import ko from '../i18n/locales/ko.js';
-const t = (k) => k.split('.').reduce((o,i)=>o?.[i], {auto: ko?.auto}) || k;
+import { useI18n } from '../i18n';
 
 /* ─── Channel Master Data ────────────────────────────────────────────────────── */
 const CHANNELS = [
@@ -76,7 +74,7 @@ const CHANNELS = [
   { key:"st11",           group:"domestic",   name:"11Street",             icon:"🔶", color:"#FA3E2C",
     autoOAuth:false, oauthUrl:null,
     issueUrl:"https://openapi.11st.co.kr/",
-    guide:"11Street Open API 신청 → 심사 Approval 후 API Key Email Count신",
+    guide:"11Street Open API {t('sc.apply','Apply')} → 심사 Approval 후 API Key Email Count신",
     autoAcquire: true, reason:"신청 후 1~3 영업일 이내 Issue",
     capabilities:["ProductAutoRegister","OrdersInfoCount집"], },
 
@@ -147,6 +145,7 @@ async function simulateApply(channelKey) {
 ═══════════════════════════════════════════════════════════════════════════ */
 export default function SmartConnect() {
   const { pushNotification } = useNotification();
+  const { t } = useI18n();
   const navigate = useNavigate();
   const [channelStates, setChannelStates] = useState(() =>
     Object.fromEntries(CHANNELS.map(c => [c.key, { status: STATUS.unscanned, keyPreview: null, ticketId: null, linked: false, linkResult: null }]))
@@ -181,7 +180,7 @@ export default function SmartConnect() {
     const found = CHANNELS.filter(c => ["found","registered"].includes(channelStates[c.key]?.status)).length;
     pushNotification({
       type: "connector",
-      title: "API 키 스캔 Done",
+      title: t('sc.scanNotif','API Key Scan Complete'),
       body: `${CHANNELS.length}개 Channel Analysis Done — ${found}개 키 감지`,
       link: "/smart-connect",
     });
@@ -268,10 +267,10 @@ export default function SmartConnect() {
           <div className="hero-icon" style={{ background:"linear-gradient(135deg,rgba(79,142,247,0.25),rgba(168,85,247,0.15))", fontSize:26 }}>🤖</div>
           <div>
             <div className="hero-title" style={{ background:"linear-gradient(135deg,#4f8ef7,#a855f7)" }}>
-              SmartConnect — API 키 Auto화 허브
+              ${t('sc.heroTitle', 'SmartConnect — API Key Automation Hub')}
             </div>
             <div className="hero-desc">
-              가입된 모든 Channel의 API 키를 Auto으로 스캔·감지·Register·Integration합니다. 키가 없는 Channel은 Auto으로 Issue신청할 Count 있습니다.
+              ${t('sc.heroDesc', 'Auto scan, detect, register, and integrate API keys.')}
             </div>
           </div>
         </div>
@@ -280,7 +279,7 @@ export default function SmartConnect() {
         {(scanning || scanProgress > 0) && (
           <div style={{ marginTop:14 }}>
             <div style={{ display:"flex", justifyContent:"space-between", fontSize:11, color:"var(--text-3)", marginBottom:4 }}>
-              <span>{scanning ? `🔍 스캔 in progress... (${scanProgress}%)` : "✅ 스캔 Done"}</span>
+              <span>{scanning ? `🔍 ${t('sc.scanning','Scanning...')} (${scanProgress}%)` : ('✅ ' + t('sc.scanDone','Scan Complete'))}</span>
               <span>{scanProgress}%</span>
             </div>
             <div style={{ height:6, background:"rgba(255,255,255,0.06)", borderRadius:99, overflow:"hidden" }}>
@@ -297,7 +296,7 @@ export default function SmartConnect() {
             disabled={scanning}
             style={{ padding:"10px 24px", borderRadius:10, fontWeight:800, fontSize:13, cursor:scanning?"not-allowed":"pointer", background: scanning ? "rgba(255,255,255,0.05)" : "linear-gradient(135deg,#4f8ef7,#6366f1)", border:"none", color:scanning?"var(--text-3)":"#fff", boxShadow: scanning ? "none" : "0 6px 24px rgba(79,142,247,0.35)", transition:"all 200ms", opacity:scanning?0.6:1 }}
           >
-            {scanning ? "⏳ 스캔 in progress..." : "🔍 All Auto 스캔"}
+            {scanning ? ('⏳ ' + t('sc.scanning','Scanning...')) : ('🔍 ' + t('sc.scanAll','Full Auto Scan'))}
           </button>
 
           {foundCount > 0 && (
@@ -305,7 +304,7 @@ export default function SmartConnect() {
               onClick={handleAutoLinkAll}
               style={{ padding:"10px 24px", borderRadius:10, fontWeight:800, fontSize:13, cursor:"pointer", background:"linear-gradient(135deg,#22c55e,#14d9b0)", border:"none", color: '#fff', boxShadow:"0 6px 24px rgba(34,197,94,0.35)" }}
             >
-              ⚡ 감지된 키 All Auto Sync ({foundCount}건)
+              {t('sc.autoSyncAll','Auto Sync Detected Keys')} ({foundCount})
             </button>
           )}
 
@@ -313,7 +312,7 @@ export default function SmartConnect() {
             onClick={() => navigate("/api-keys")}
             style={{ padding:"10px 18px", borderRadius:10, fontWeight:700, fontSize:12, cursor:"pointer", background: 'var(--surface)', border:"1px solid rgba(99,140,255,0.2)", color:"var(--text-2)" }}
           >
-            🔑 API 키 Management Page
+            {t('sc.apiKeyMgmt','API Key Management')}
           </button>
         </div>
       </div>
@@ -321,14 +320,14 @@ export default function SmartConnect() {
       {/* KPI */}
       <div className="grid4 fade-up fade-up-1">
         {[
-          { l:"All Channel",  v:stats.total,      c:"#4f8ef7", icon:"📡" },
-          { l:"키 Register Done", v:stats.registered,c:"#22c55e", icon:"✅" },
-          { l:"키 감지됨",  v:stats.found,      c:"#a855f7", icon:"🔍" },
-          { l:"Integration Active",  v:stats.linked,     c:"#14d9b0", icon:"⚡" },
-          { l:"키 None",   v:stats.missing,    c:"#ef4444", icon:"❌" },
-          { l:"Issue 신청",  v:stats.applied,    c:"#eab308", icon:"📋" },
-          { l:"미스캔",    v:stats.unscanned,  c:"#8da4c4", icon:"⏸" },
-          { l:"Auto 가능",  v:CHANNELS.filter(c=>c.autoAcquire).length, c:"#f97316", icon:"🤖" },
+          { l:t('sc.kpiAll','All Channels'),  v:stats.total,      c:"#4f8ef7", icon:"📡" },
+          { l:t('sc.kpiRegistered','Registered'), v:stats.registered,c:"#22c55e", icon:"✅" },
+          { l:t('sc.kpiFound','Detected'),  v:stats.found,      c:"#a855f7", icon:"🔍" },
+          { l:t('sc.kpiLinked','Linked'),  v:stats.linked,     c:"#14d9b0", icon:"⚡" },
+          { l:t('sc.kpiMissing','Missing'),   v:stats.missing,    c:"#ef4444", icon:"❌" },
+          { l:t('sc.kpiApplied','Applied'),  v:stats.applied,    c:"#eab308", icon:"📋" },
+          { l:t('sc.kpiUnscanned','Unscanned'),    v:stats.unscanned,  c:"#8da4c4", icon:"⏸" },
+          { l:t('sc.kpiAutoAvail','Auto Available'),  v:CHANNELS.filter(c=>c.autoAcquire).length, c:"#f97316", icon:"🤖" },
         ].map(({l,v,c,icon}) => (
           <div key={l} className="kpi-card" style={{ "--accent":c }}>
             <div className="kpi-label">{icon} {l}</div>
@@ -341,12 +340,12 @@ export default function SmartConnect() {
       <div className="card card-glass fade-up fade-up-2" style={{ padding:"10px 14px" }}>
         <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
           {[
-            { id:"all",        label:`All (${CHANNELS.length})` },
-            { id:"registered", label:`RegisterDone (${stats.registered})` },
-            { id:"found",      label:`감지됨 (${stats.found})` },
-            { id:"linked",     label:`Integrationin progress (${stats.linked})` },
-            { id:"missing",    label:`키None (${stats.missing})` },
-            { id:"applied",    label:`신청in progress (${stats.applied})` },
+            { id:"all",        label:`${t('sc.filterAll','All')} (${CHANNELS.length})` },
+            { id:"registered", label:`${t('sc.filterRegistered','Registered')} (${stats.registered})` },
+            { id:"found",      label:`${t('sc.filterFound','Detected')} (${stats.found})` },
+            { id:"linked",     label:`${t('sc.filterLinked','Linked')} (${stats.linked})` },
+            { id:"missing",    label:`${t('sc.filterMissing','Missing')} (${stats.missing})` },
+            { id:"applied",    label:`${t('sc.filterApplied','Applied')} (${stats.applied})` },
           ].map(f => (
             <button key={f.id} onClick={() => setActiveFilter(f.id)}
               className={activeFilter === f.id ? "btn-primary" : "btn-ghost"}
@@ -395,6 +394,7 @@ export default function SmartConnect() {
 
 /* ─── Channel Card ─────────────────────────────────────────────────────────────── */
 function ChannelCard({ ch, state, isLinking, isApplying, onAutoLink, onApply, onDetail }) {
+  const { t } = useI18n();
   const stCfg = statusConfig(state?.status, state?.linked);
   return (
     <div style={{
@@ -449,7 +449,7 @@ function ChannelCard({ ch, state, isLinking, isApplying, onAutoLink, onApply, on
       {/* Issue 신청 Done */}
       {state?.ticketId && (
         <div style={{ fontSize:10, color:"#eab308", padding:"4px 8px", borderRadius:7, background:"rgba(234,179,8,0.06)", border:"1px solid rgba(234,179,8,0.2)" }}>
-          📋 신청Done: {state.ticketId}
+          {t('sc.appliedDone','Requested')}: {state.ticketId}
         </div>
       )}
 
@@ -458,7 +458,7 @@ function ChannelCard({ ch, state, isLinking, isApplying, onAutoLink, onApply, on
         {state?.status === "found" && !state?.linked && (
           <button onClick={onAutoLink} disabled={isLinking}
             style={{ flex:2, padding:"7px 0", borderRadius:8, fontWeight:800, fontSize:11, cursor:"pointer", border:"none", background: isLinking ? "rgba(255,255,255,0.05)" : "linear-gradient(135deg,#22c55e,#14d9b0)", color: isLinking ? "var(--text-3)" : "#fff", opacity:isLinking?0.7:1 }}>
-            {isLinking ? "⏳ Integration in progress..." : "⚡ Auto Sync"}
+            {isLinking ? ('⏳ ' + t('sc.linking','Linking...')) : ('⚡ ' + t('sc.autoSync','Auto Sync'))}
           </button>
         )}
         {state?.status === "registered" && !state?.linked && (
@@ -475,7 +475,7 @@ function ChannelCard({ ch, state, isLinking, isApplying, onAutoLink, onApply, on
         {state?.status === "missing" && (
           <button onClick={onApply} disabled={isApplying}
             style={{ flex:2, padding:"7px 0", borderRadius:8, fontWeight:800, fontSize:11, cursor:"pointer", border:"none", background: isApplying ? "rgba(255,255,255,0.05)" : "linear-gradient(135deg,#f97316,#eab308)", color: isApplying ? "var(--text-3)":"#fff", opacity:isApplying?0.7:1 }}>
-            {isApplying ? "⏳ 신청 in progress..." : (ch.autoOAuth ? "🔗 OAuth Connect" : "📋 Issue 신청")}
+            {isApplying ? ('⏳ ' + t('sc.applying','Applying...')) : (ch.autoOAuth ? "🔗 OAuth Connect" : ('📋 ' + t('sc.applyIssue','Request Key')))}
           </button>
         )}
         {["applied","applying"].includes(state?.status) && (
@@ -485,7 +485,7 @@ function ChannelCard({ ch, state, isLinking, isApplying, onAutoLink, onApply, on
         )}
         {["unscanned","scanning"].includes(state?.status) && (
           <div style={{ flex:2, padding:"7px 0", borderRadius:8, fontWeight:700, fontSize:11, background:"rgba(148,163,184,0.06)", border:"1px solid rgba(148,163,184,0.15)", color:"var(--text-3)", textAlign:"center" }}>
-            {state?.status === "scanning" ? "🔍 스캔 in progress..." : "⏸ 스캔 전"}
+            {state?.status === "scanning" ? ('🔍 ' + t('sc.scanning','Scanning...')) : ('⏸ ' + t('sc.preScan','Not Scanned'))}
           </div>
         )}
         <button onClick={onDetail}
@@ -509,16 +509,17 @@ function statusConfig(status, linked) {
 }
 
 function StatusPill({ status, linked }) {
-  if (linked) return <Pill color="#22c55e" label="✅ Integration Active" />;
+  const { t } = useI18n();
+  if (linked) return <Pill color="#22c55e" label={'✅ ' + t('sc.linkedActive','Linked Active')} />;
   const map = {
-    registered: ["#22c55e", "🔑 Register됨"],
-    found:      ["#a855f7", "🔍 키 감지"],
-    missing:    ["#ef4444", "❌ 키 None"],
-    applied:    ["#eab308", "📋 신청Done"],
-    applying:   ["#eab308", "⏳ 신청in progress"],
-    scanning:   ["#4f8ef7", "🔍 스캔in progress"],
+    registered: ["#22c55e", '🔑 ' + t('sc.statusRegistered','Registered')],
+    found:      ["#a855f7", '🔍 ' + t('sc.statusFound','Key Detected')],
+    missing:    ["#ef4444", '❌ ' + t('sc.statusMissing','No Key')],
+    applied:    ["#eab308", '📋 ' + t('sc.statusApplied','Requested')],
+    applying:   ["#eab308", '⏳ ' + t('sc.statusApplying','Requesting')],
+    scanning:   ["#4f8ef7", '🔍 ' + t('sc.statusScanning','Scanning')],
   };
-  const [c, l] = map[status] || ["#8da4c4", "⏸ 미스캔"];
+  const [c, l] = map[status] || ["#8da4c4", '⏸ ' + t('sc.statusUnscanned','Unscanned')];
   return <Pill color={c} label={l} />;
 }
 
@@ -533,6 +534,7 @@ function Pill({ color, label }) {
 
 /* ─── Auto 획득 불가 안내 Panel ───────────────────────────────────────────────── */
 function AutoGuidePanel() {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const oauthChannels = CHANNELS.filter(c => !c.autoAcquire && c.autoOAuth);
   const manualChannels = CHANNELS.filter(c => !c.autoAcquire && !c.autoOAuth);
@@ -544,13 +546,13 @@ function AutoGuidePanel() {
         <div style={{ display:"flex", alignItems:"center", gap:10 }}>
           <span style={{ fontSize:18 }}>📖</span>
           <div>
-            <div style={{ fontWeight:800, fontSize:13 }}>Auto 획득 불가 Channel — API 키 Issue 방법 안내</div>
+            <div style={{ fontWeight:800, fontSize:13 }}>{t('sc.guideTitle','Channels Requiring Manual Setup')}</div>
             <div style={{ fontSize:11, color:"var(--text-3)", marginTop:2 }}>
               {oauthChannels.length + manualChannels.length}개 Channel은 User 직접 동의/Issue이 필요합니다
             </div>
           </div>
         </div>
-        <span style={{ color:"var(--text-3)", fontSize:12 }}>{open ? "▲ 접기" : "▼ 열기"}</span>
+        <span style={{ color:"var(--text-3)", fontSize:12 }}>{open ? "{t('sc.collapse','Collapse')}" : "{t('sc.expand','Expand')}"}</span>
       </div>
 
       {open && (
@@ -583,7 +585,7 @@ function AutoGuidePanel() {
                   </div>
                   <a href={ch.issueUrl} target="_blank" rel="noopener noreferrer"
                     style={{ fontSize:9, padding:"3px 8px", borderRadius:6, background:"rgba(79,142,247,0.12)", color:"#4f8ef7", border:"1px solid rgba(79,142,247,0.3)", textDecoration:"none", whiteSpace:"nowrap", fontWeight:700 }}>
-                    개발자 콘솔 →
+                    {t('sc.devConsole','Dev Console')} →
                   </a>
                 </div>
               ))}
@@ -623,6 +625,7 @@ function AutoGuidePanel() {
 
 /* ─── 상세 Modal ─────────────────────────────────────────────────────────────── */
 function DetailModal({ ch, state, isLinking, isApplying, onAutoLink, onApply, onClose }) {
+  const { t } = useI18n();
   if (!ch) return null;
   return (
     <div style={{ position:"fixed", inset:0, zIndex:1000, background:"rgba(0,0,0,0.65)", backdropFilter:"blur(8px)", display:"flex", alignItems:"center", justifyContent:"center" }}
@@ -672,7 +675,7 @@ function DetailModal({ ch, state, isLinking, isApplying, onAutoLink, onApply, on
         <div style={{ display:"flex", gap:10 }}>
           <a href={ch.issueUrl} target="_blank" rel="noopener noreferrer"
             style={{ flex:1, padding:"10px 0", borderRadius:10, fontSize:12, fontWeight:700, textAlign:"center", background: 'var(--surface)', border:"1px solid rgba(99,140,255,0.2)", color:"var(--text-2)", textDecoration:"none" }}>
-            🔗 개발자 콘솔 열기
+            {t('sc.openDevConsole','Open Dev Console')}
           </a>
           {state?.status === "found" && (
             <button onClick={() => { onAutoLink(); onClose(); }} disabled={isLinking}
