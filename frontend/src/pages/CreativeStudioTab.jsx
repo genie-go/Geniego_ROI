@@ -51,7 +51,7 @@ export default function CreativeStudioTab() {
       </div>
       <div style={{ display: "flex", gap: 4, marginBottom: 20, padding: 4, borderRadius: 12, background: "rgba(0,0,0,0.03)", border: "1px solid rgba(0,0,0,0.05)" }}>
         {tabs.map((tab, i) => (
-          <button key={i} className={activeTab === i ? 'cs-active-tab' : 'cs-inactive-tab'} onClick={() => setActiveTab(i)} style={{ flex: 1, padding: "10px 16px", borderRadius: 10, border: "none", cursor: "pointer", fontWeight: 700, fontSize: 12, transition: "all 0.2s", background: activeTab === i ? "linear-gradient(135deg,#4f8ef7,#6366f1)" : "transparent", color: activeTab === i ? "#fff" : "#475569" }}>{tab}</button>
+          <button key={i} className={activeTab === i ? 'cs-active-tab' : 'cs-inactive-tab'} onClick={() => setActiveTab(i)} style={{ flex: 1, padding: "10px 16px", borderRadius: 10, border: "none", cursor: "pointer", fontWeight: 700, fontSize: 12, transition: "all 0.2s" }}>{tab}</button>
         ))}
       </div>
       <div style={{ borderRadius: 16, padding: "28px 32px", minHeight: 320, background: "rgba(255,255,255,0.85)", border: "1px solid rgba(0,0,0,0.06)" }}>
