@@ -77,7 +77,7 @@ const FUNNEL_STAGES = ["impressions", "clicks", "carts", "orders"];
 function PerformanceTab() {
     const { t } = useI18n();
     const { fmt: fmtC } = useCurrency();
-    const { hasMenuAccess, token } = useAuth();
+    const { hasMenuAccess, token, isDemo } = useAuth();
     const [sort, setSort] = useState("revenue");
     const [team, setTeam] = useState("All");
     const [account, setAccount] = useState("All");
@@ -105,14 +105,18 @@ function PerformanceTab() {
                 }
             })
             .catch(err => {
-                // Demo fallback: provide realistic ad performance data
-                setSummary([
-                    { channel: 'meta', impressions: 12500000, clicks: 245000, conversions: 8420, revenue: 385000000, spend: 82000000 },
-                    { channel: 'tiktok', impressions: 28000000, clicks: 520000, conversions: 14200, revenue: 210000000, spend: 55000000 },
-                    { channel: 'amazon', impressions: 5600000, clicks: 168000, conversions: 6800, revenue: 295000000, spend: 58000000 },
-                ]);
+                // 🛡️ GUARD: API failure → empty in production, demo fallback only in demo
+                if (isDemo) {
+                    setSummary([
+                        { channel: 'meta', impressions: 12500000, clicks: 245000, conversions: 8420, revenue: 385000000, spend: 82000000 },
+                        { channel: 'tiktok', impressions: 28000000, clicks: 520000, conversions: 14200, revenue: 210000000, spend: 55000000 },
+                        { channel: 'amazon', impressions: 5600000, clicks: 168000, conversions: 6800, revenue: 295000000, spend: 58000000 },
+                    ]);
+                } else {
+                    setSummary([]);  // ← 운영: 항상 빈 배열
+                }
             });
-    }, [team, account, token]);
+    }, [team, account, token, isDemo]);
 
     const teams = ["All", "USA", "Japan", "Europe"];
     const accounts = useMemo(() => {
@@ -480,14 +484,9 @@ function SettlementTab() {
 /* ═══════════════════════════════════════════════════════════════
    TAB 3: Creator Settlement (Creator Settlement)
 ═══════════════════════════════════════════════════════════════ */
-const CREATORS = [
-    { id: 'CR-001', name: '뷰티민지', handle: '@beauty_minji', platform: 'instagram', tier: 'Macro', status: 'active', contractRate: 8500000, revenue: 285000000, orders: 1420, attribution: 0.34, rightsExpiry: '2026-09-15', contractEnd: '2026-12-31', content: [{ title: 'Revitalift 세럼 3주 리뷰', views: 1200000, orders: 680, revenue: 142800000, attrib: 0.42 }, { title: 'UV 선크림 여름 필수템', views: 820000, orders: 420, revenue: 84000000, attrib: 0.32 }, { title: '랑콤 vs 로레알 비교', views: 560000, orders: 320, revenue: 58200000, attrib: 0.28 }] },
-    { id: 'CR-002', name: 'SkinCareLab', handle: '@skincare_lab', platform: 'youtube', tier: 'Mid', status: 'active', contractRate: 5000000, revenue: 142000000, orders: 890, attribution: 0.28, rightsExpiry: '2026-06-20', contractEnd: '2026-12-31', content: [{ title: '성분 분석: L\'Oréal 세럼 라인', views: 2400000, orders: 520, revenue: 89400000, attrib: 0.38 }, { title: '가성비 스킨케어 TOP 5', views: 1800000, orders: 370, revenue: 52600000, attrib: 0.22 }] },
-    { id: 'CR-003', name: 'TikTok뷰티', handle: '@tiktok_beautyko', platform: 'tiktok', tier: 'Micro', status: 'active', contractRate: 2500000, revenue: 76000000, orders: 620, attribution: 0.22, rightsExpiry: '2026-11-30', contractEnd: '2027-03-31', content: [{ title: 'NYX 립 챌린지', views: 3200000, orders: 380, revenue: 45600000, attrib: 0.25 }, { title: '1만원대 메이크업 풀 셋', views: 1500000, orders: 240, revenue: 30400000, attrib: 0.18 }] },
-    { id: 'CR-004', name: 'Dr.Skin', handle: '@dr.skin_official', platform: 'youtube', tier: 'Mid', status: 'active', contractRate: 4000000, revenue: 98000000, orders: 540, attribution: 0.25, rightsExpiry: '2026-04-30', contractEnd: '2026-09-30', content: [{ title: 'La Roche-Posay 여드름 솔루션', views: 980000, orders: 310, revenue: 62000000, attrib: 0.32 }, { title: '더마 코스메틱 완벽 가이드', views: 620000, orders: 230, revenue: 36000000, attrib: 0.19 }] },
-    { id: 'CR-005', name: '글로우업', handle: '@glow_up_kr', platform: 'instagram', tier: 'Nano', status: 'active', contractRate: 1200000, revenue: 34000000, orders: 280, attribution: 0.18, rightsExpiry: '2027-01-15', contractEnd: '2027-06-30', content: [{ title: 'Kérastase 헤어 루틴', views: 180000, orders: 150, revenue: 21000000, attrib: 0.21 }, { title: '립 틴트 5종 비교', views: 95000, orders: 130, revenue: 13000000, attrib: 0.15 }] },
-    { id: 'CR-006', name: 'MakeupPro', handle: '@makeuppro_kr', platform: 'tiktok', tier: 'Macro', status: 'expired', contractRate: 12000000, revenue: 420000000, orders: 2100, attribution: 0.41, rightsExpiry: '2026-02-28', contractEnd: '2026-06-30', content: [{ title: 'YSL 루즈 쿠튀르 전색 리뷰', views: 4500000, orders: 1200, revenue: 252000000, attrib: 0.45 }, { title: 'Lancôme Absolue 럭셔리 언박싱', views: 2800000, orders: 900, revenue: 168000000, attrib: 0.38 }] },
-];
+/* 🛡️ GUARD: Creator data is now sourced from GlobalDataContext (demo=seed, prod=API)
+   Hardcoded demo data has been removed to prevent production contamination. */
+const _PERF_CREATORS_FALLBACK = [];  // ← 운영: 항상 빈 배열
 
 const TIER_COLOR = { Nano: "#14d9b0", Micro: "#4f8ef7", Mid: "#a855f7", Macro: "#f97316" };
 const PLATFORM_ICO = { youtube: "▶", instagram: "📸", tiktok: "🎵" };
@@ -498,14 +497,25 @@ const daysLeft = d => Math.ceil((new Date(d) - today) / (1000 * 60 * 60 * 24));
 function CreatorTab() {
     const { t } = useI18n();
     const { fmt: fmtC } = useCurrency();
+    const { creators: ctxCreators = [] } = useGlobalData();
     const [expanded, setExpanded] = useState(null);
     const [modal, setModal] = useState(null);
     const [selected, setSelected] = useState(null);
 
-    const totPayout = CREATORS.reduce((s, c) => s + c.contractRate, 0);
-    const totRevenue = CREATORS.reduce((s, c) => s + c.revenue, 0);
-    const totOrders = CREATORS.reduce((s, c) => s + c.orders, 0);
-    const avgAttrib = CREATORS.reduce((s, c) => s + c.attribution, 0) / CREATORS.length;
+    // 🛡️ GUARD: Use GlobalDataContext creators (demo=seed, prod=API). Never hardcoded.
+    const CREATORS = ctxCreators.length > 0 ? ctxCreators.map(c => ({
+        id: c.id, name: c.name, handle: c.identities?.[0]?.handle || '', platform: c.identities?.[0]?.type || 'instagram',
+        tier: c.tier, status: c.settle?.status === 'unpaid' && c.contract?.esign === 'rejected' ? 'expired' : 'active',
+        contractRate: c.contract?.flatFee || 0, revenue: c.stats?.revenue || 0, orders: c.stats?.orders || 0,
+        attribution: c.stats?.engagement || 0, rightsExpiry: c.contract?.whitelistExpiry ? new Date(Date.now() + c.contract.whitelistExpiry).toISOString().slice(0,10) : '2027-12-31',
+        contractEnd: c.contract?.period?.[1] ? new Date(Date.now() + c.contract.period[1]).toISOString().slice(0,10) : '2027-12-31',
+        content: (c.content || []).map(ct => ({ title: ct.title, views: ct.views || 0, orders: ct.orders || 0, revenue: ct.revenue || 0, attrib: ct.engRate || 0 })),
+    })) : _PERF_CREATORS_FALLBACK;
+
+    const totPayout = CREATORS.reduce((s, c) => s + (c.contractRate || 0), 0);
+    const totRevenue = CREATORS.reduce((s, c) => s + (c.revenue || 0), 0);
+    const totOrders = CREATORS.reduce((s, c) => s + (c.orders || 0), 0);
+    const avgAttrib = CREATORS.length > 0 ? CREATORS.reduce((s, c) => s + (c.attribution || 0), 0) / CREATORS.length : 0;
     const expiredSoon = CREATORS.filter(c => daysLeft(c.rightsExpiry) <= 90 && c.status !== "expired").length;
 
     const openSettle = c => { setSelected(c); setModal("settle"); };
@@ -747,12 +757,7 @@ function SKUProfitTab() {
         const margin = rev - cog - logistics - ad - platform;
         return { sku: p.sku, name: p.name, revenue: Math.round(rev), cog: Math.round(cog), logistics: Math.round(logistics), ad: Math.round(ad), platform: Math.round(platform), margin: Math.round(margin) };
     }) : [
-        { sku: 'LOR-REV-001', name: 'Revitalift Serum', revenue: 142800000, cog: 45696000, logistics: 11424000, ad: 17136000, platform: 9996000, margin: 58548000 },
-        { sku: 'LAN-ABS-001', name: 'Lancôme Absolue', revenue: 89200000, cog: 28544000, logistics: 7136000, ad: 10704000, platform: 6244000, margin: 36572000 },
-        { sku: 'NYX-LIP-001', name: 'NYX Lip Lingerie', revenue: 45600000, cog: 14592000, logistics: 3648000, ad: 5472000, platform: 3192000, margin: 18696000 },
-        { sku: 'GAR-MIC-001', name: 'Garnier Micellar', revenue: 38400000, cog: 12288000, logistics: 3072000, ad: 4608000, platform: 2688000, margin: 15744000 },
-        { sku: 'LOR-UV-001', name: 'UV Perfect SPF50+', revenue: 28500000, cog: 9120000, logistics: 2280000, ad: 3420000, platform: 1995000, margin: 11685000 },
-        { sku: 'YSL-RPC-001', name: 'YSL Rouge Couture', revenue: 67800000, cog: 21696000, logistics: 5424000, ad: 8136000, platform: 4746000, margin: 27798000 },
+        // 🛡️ GUARD: 운영에서 inventory 없으면 빈 테이블 표시 (가상 데이터 절대 주입 금지)
     ]).map(s => ({
         ...s,
         total_cost: s.cog + s.logistics + s.ad + s.platform,

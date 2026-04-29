@@ -10,6 +10,7 @@
 // │  [v16] 체험형 데모: SNS마케팅 + AI추천 + 채널별가격 + 일괄등록/수정         │
 // └─────────────────────────────────────────────────────────────────────────┘
 import React, { createContext, useContext, useState, useCallback, useMemo, useRef, useEffect } from 'react';
+import { guardProductionState } from '../security/ContaminationGuard.js';
 import {
   DEMO_INVENTORY, DEMO_ORDERS, DEMO_INOUT, DEMO_BUDGETS,
   DEMO_SETTLEMENT, DEMO_CAMPAIGNS, DEMO_CRM_SEGMENTS,
@@ -1309,7 +1310,7 @@ export function GlobalDataProvider({ children }) {
 
     /** 크리에이터 목록 전체 동기화 (API 조회 후 일괄 세팅) */
     const syncCreators = useCallback((list) => {
-        if (Array.isArray(list)) setCreators(list);
+        if (Array.isArray(list) && guardProductionState('creators', list, setCreators)) setCreators(list);
     }, []);
 
     /** 크리에이터 개별 업데이트 (계약·정산·콘텐츠 변경 즉시 반영) */
@@ -1319,17 +1320,17 @@ export function GlobalDataProvider({ children }) {
 
     /** UGC 리뷰 동기화 */
     const syncUgcReviews = useCallback((list) => {
-        if (Array.isArray(list)) setUgcReviews(list);
+        if (Array.isArray(list) && guardProductionState('ugcReviews', list, setUgcReviews)) setUgcReviews(list);
     }, []);
 
     /** 채널 통계 동기화 */
     const syncChannelStats = useCallback((list) => {
-        if (Array.isArray(list)) setChannelStats(list);
+        if (Array.isArray(list) && guardProductionState('channelStats', list, setChannelStats)) setChannelStats(list);
     }, []);
 
     /** 부정 키워드 동기화 */
     const syncNegKeywords = useCallback((list) => {
-        if (Array.isArray(list)) setNegKeywords(list);
+        if (Array.isArray(list) && guardProductionState('negKeywords', list, setNegKeywords)) setNegKeywords(list);
     }, []);
 
     /* ════════════════════════════════════════════════
