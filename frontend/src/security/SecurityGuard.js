@@ -20,6 +20,9 @@ const SECURITY_CONFIG = {
     LOGIN_LOCKOUT_MS: 15 * 60 * 1000, // 15 minutes
     RATE_LIMIT_WINDOW_MS: 60 * 1000,   // 1 minute
     MAX_API_CALLS_PER_MIN: 120,
+    SESSION_TIMEOUT_MS: 30 * 60 * 1000,  // 30 minutes idle timeout (bank-grade)
+    SESSION_ABSOLUTE_MS: 8 * 60 * 60 * 1000, // 8 hours absolute session limit
+    TOKEN_REFRESH_WARN_MS: 5 * 60 * 1000, // Warn 5 min before expiry
     XSS_PATTERNS: [
         /<script\b[^>]*>/gi,
         /javascript\s*:/gi,
@@ -366,6 +369,116 @@ export function injectCSPMeta() {
 }
 
 /* ══════════════════════════════════════════════════
+   Session Timeout Manager (Bank-Grade)
+══════════════════════════════════════════════════ */
+let _lastActivity = Date.now();
+let _sessionStart = Date.now();
+let _idleTimer = null;
+let _absoluteTimer = null;
+
+export function initSessionManager(onExpire) {
+    _sessionStart = Date.now();
+    _lastActivity = Date.now();
+
+    // Track user activity
+    const activityEvents = ['mousedown', 'keydown', 'scroll', 'touchstart'];
+    const resetIdle = () => { _lastActivity = Date.now(); };
+    activityEvents.forEach(evt => document.addEventListener(evt, resetIdle, { passive: true }));
+
+    // Idle timeout check (every 60s)
+    _idleTimer = setInterval(() => {
+        const idle = Date.now() - _lastActivity;
+        if (idle > SECURITY_CONFIG.SESSION_TIMEOUT_MS) {
+            addSecurityAlert('warn', `⏱ Session expired: ${Math.round(idle / 60000)}min idle`);
+            cleanupSession();
+            if (onExpire) onExpire('idle');
+        }
+    }, 60000);
+
+    // Absolute session limit
+    _absoluteTimer = setTimeout(() => {
+        addSecurityAlert('warn', '⏱ Absolute session limit reached (8h)');
+        cleanupSession();
+        if (onExpire) onExpire('absolute');
+    }, SECURITY_CONFIG.SESSION_ABSOLUTE_MS);
+
+    return () => {
+        activityEvents.forEach(evt => document.removeEventListener(evt, resetIdle));
+        clearInterval(_idleTimer);
+        clearTimeout(_absoluteTimer);
+    };
+}
+
+function cleanupSession() {
+    clearInterval(_idleTimer);
+    clearTimeout(_absoluteTimer);
+    // Clear sensitive data
+    localStorage.removeItem('genie_token');
+    localStorage.removeItem('g_token');
+    sessionStorage.removeItem('g_csrf_token');
+    _csrfToken = null;
+}
+
+/* ══════════════════════════════════════════════════
+   Token Environment Isolation
+══════════════════════════════════════════════════ */
+const _isSecDemo = (() => {
+    if (typeof window === 'undefined') return false;
+    const h = window.location.hostname;
+    return h === 'demo.genie-go.com' || h === 'demo.geniego.com' || h.startsWith('demo');
+})();
+
+export function getTokenKey() {
+    return _isSecDemo ? 'geniego_demo_token' : 'genie_token';
+}
+
+export function getEnvPrefix() {
+    return _isSecDemo ? 'geniego_demo_' : 'geniego_';
+}
+
+/* ══════════════════════════════════════════════════
+   Request Fingerprinting (Anomaly Detection)
+══════════════════════════════════════════════════ */
+let _fingerprint = null;
+
+export function getRequestFingerprint() {
+    if (_fingerprint) return _fingerprint;
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    ctx.textBaseline = 'top';
+    ctx.font = '14px Arial';
+    ctx.fillText('GeniegROI-FP', 2, 2);
+    const nav = [
+        navigator.language,
+        navigator.platform,
+        screen.width + 'x' + screen.height,
+        new Date().getTimezoneOffset(),
+    ].join('|');
+    _fingerprint = btoa(nav).slice(0, 24);
+    return _fingerprint;
+}
+
+/* ══════════════════════════════════════════════════
+   Sensitive Data Masking (for logs/display)
+══════════════════════════════════════════════════ */
+export function maskSensitive(value, visibleChars = 4) {
+    if (!value || typeof value !== 'string') return '****';
+    if (value.length <= visibleChars) return '****';
+    return value.slice(0, visibleChars) + '•'.repeat(Math.min(value.length - visibleChars, 20));
+}
+
+export function maskEmail(email) {
+    if (!email || !email.includes('@')) return '****';
+    const [user, domain] = email.split('@');
+    return user.slice(0, 2) + '•••@' + domain;
+}
+
+export function maskPhone(phone) {
+    if (!phone || phone.length < 7) return '****';
+    return phone.slice(0, 3) + '-••••-' + phone.slice(-4);
+}
+
+/* ══════════════════════════════════════════════════
    Export all utilities
 ══════════════════════════════════════════════════ */
 export default {
@@ -382,4 +495,11 @@ export default {
     clearSecurityAlerts,
     injectCSPMeta,
     useSecurityGuard,
+    initSessionManager,
+    getTokenKey,
+    getEnvPrefix,
+    getRequestFingerprint,
+    maskSensitive,
+    maskEmail,
+    maskPhone,
 };
