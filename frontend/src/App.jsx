@@ -14,9 +14,14 @@ import { ToastProvider } from "./components/ToastProvider.jsx";
 import SessionExpiryWarning from "./components/SessionExpiryWarning.jsx";
 import KeyboardShortcuts from "./components/KeyboardShortcuts.jsx";
 import { initPerformanceMonitor } from "./utils/performanceMonitor.js";
+import CommandPalette from "./components/CommandPalette.jsx";
+import { initAuditTrail } from "./utils/auditTrail.js";
 
-// Initialize performance monitoring
-if (typeof window !== 'undefined') initPerformanceMonitor();
+// Initialize enterprise monitoring
+if (typeof window !== 'undefined') {
+  initPerformanceMonitor();
+  initAuditTrail();
+}
 
 const Dashboard = lazy(() => import("./pages/Dashboard.jsx"));
 const Marketing = lazy(() => import("./pages/Marketing.jsx"));
@@ -251,6 +256,7 @@ function AppLayout() {
     <div className="container" style={{ height: '100vh', overflow: 'hidden' }}>
       <KeyboardShortcuts />
       <SessionExpiryWarning />
+      <CommandPalette />
       <Sidebar />
       <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0, flex: 1, height: '100vh', overflow: 'hidden' }}>
         <Topbar />
