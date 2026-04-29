@@ -12778,7 +12778,7 @@ export default {
     "autoTab1": "① Studio Créatif",
     "autoTab2": "② Config. Campagne",
     "autoTab3": "③ Aperçu Stratégie IA",
-    "autoTab4": "Guide",
+    "autoTab4": "④ Guide",
     "gf1Title": "Connexion & Vérification",
     "gf1Desc": "Connectez-vous et naviguez vers \"Marketing IA → Stratégie Auto\" dans la barre latérale.",
     "gf2Title": "Connecter les Canaux API",

@@ -15550,7 +15550,7 @@ export default {
     "autoTab1": "① Studio Kreatif",
     "autoTab2": "② Pengaturan Kampanye",
     "autoTab3": "③ Pratinjau Strategi AI",
-    "autoTab4": "Panduan",
+    "autoTab4": "④ Panduan Penggunaan",
     "gf1Title": "Login & Verifikasi",
     "gf1Desc": "Login dan navigasi ke \"Pemasaran AI → Strategi Otomatis\" dari sidebar.",
     "gf2Title": "Hubungkan Channel API",
