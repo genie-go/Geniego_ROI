@@ -6,6 +6,8 @@ import { useAuth } from '../auth/AuthContext';
 //  ✅ Sticky Hero + Sub-Tab / ✅ Period Selector (필요 탭만)
 // ─────────────────────────────────────────────────────────────────────────
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
+
+const LANG_LOCALE_MAP = { ko:'ko-KR', en:'en-US', ja:'ja-JP', zh:'zh-CN', 'zh-TW':'zh-TW', de:'de-DE', th:'th-TH', vi:'vi-VN', id:'id-ID', es:'es-ES', fr:'fr-FR', pt:'pt-BR', ru:'ru-RU', ar:'ar-SA', hi:'hi-IN' };
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { useI18n } from '../i18n/index.js';
 import { useCurrency } from '../contexts/CurrencyContext.jsx';
@@ -72,7 +74,7 @@ function DashSelector({ active, onSelect, dashboards }) {
    메인 Dashboard Component (Enterprise Light Edition)
    ───────────────────────────────────────────────────────────────────────── */
 export default function Dashboard() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [searchParams] = useSearchParams();
   const { addAlert } = useGlobalData();
 
@@ -232,7 +234,7 @@ export default function Dashboard() {
               {couponToast.code && (
                 <div style={{ fontSize: 11, color: '#d97706', fontFamily: 'monospace', marginTop: 4 }}>
                   Coupon: <strong>{couponToast.code}</strong>
-                  {couponToast.expires_at && ` · ${new Date(couponToast.expires_at).toLocaleDateString('ko-KR')}`}
+                  {couponToast.expires_at && ` · ${new Date(couponToast.expires_at).toLocaleDateString(LANG_LOCALE_MAP[lang] || 'en-US')}`}
                 </div>
               )}
             </div>
@@ -287,7 +289,7 @@ export default function Dashboard() {
                 <DashPeriodSelector value={period} onChange={setPeriod} compact />
               )}
               <span style={{ fontSize: 10, color: 'var(--text-3, #9ca3af)', fontFamily: 'monospace' }}>
-                {now.toLocaleTimeString()} · {ticker > 0 ? `${ticker * 5}s ago` : 'Live'}
+                {now.toLocaleTimeString(LANG_LOCALE_MAP[lang] || 'en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })} · {ticker > 0 ? `${ticker * 5}s ago` : 'Live'}
               </span>
               <div style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)', borderRadius: 8, padding: '4px 10px' }}>
                 <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e', display: 'inline-block', boxShadow: '0 0 6px #22c55e' }} />
