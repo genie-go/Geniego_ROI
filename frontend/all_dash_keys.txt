@@ -1,0 +1,148 @@
+﻿dash.achvRate|||Achievement
+dash.active|||활성
+dash.activeCampaigns|||캠페인
+dash.activeCh|||Active Channels
+dash.adRev|||Ad Revenue
+dash.adSpend|||Ad Spend
+dash.adSpend|||Spend
+dash.ageDist|||Age Distribution
+dash.aiAdAnal|||🤖 AI Ad Analysis
+dash.AIPolicy|||AI Policy
+dash.alertCount|||알림
+dash.Alerts|||Alerts
+dash.all|||전체
+dash.allChSummary|||All Channel Summary
+dash.analyticsModules|||분석 모듈
+dash.Attribution|||Attribution
+dash.avgCtr|||Avg CTR
+dash.avgDuration|||Avg Duration
+dash.avgRoas|||Blended ROAS
+dash.avgViewTime|||Avg View Time
+dash.blendedRoas|||Blended ROAS
+dash.blocked|||차단
+dash.bounceRate|||Bounce Rate
+dash.cartAdds|||Cart Adds
+dash.channelMix|||채널별 매출 비중
+dash.channelPerf|||📊 Channel Perf.
+dash.chCount|||Active Channels
+dash.chDetailTable|||Channel Detail Table
+dash.chIntelDesc1|||From the channel cards or table,
+dash.chIntelReport|||Channel Intelligence Report
+dash.chIntelTitle|||Channel Intelligence
+dash.chName|||Channel
+dash.chPerfSumm|||Channel Performance Summary
+dash.chRoas|||ROAS by Channel
+dash.chTrend|||Channel Trend
+dash.chTrendKpi|||Channel Performance Trend
+dash.clickChannelHint|||Click a channel card → 5-section analysis
+dash.clickForAnalysis|||Click → 5-Section
+dash.clicks|||Clicks
+dash.connectChannels|||Connect ad channels to see performance data
+dash.conv2|||4. Conversion
+dash.convCount|||Conversions
+dash.convFunnel|||Conversion Funnel
+dash.convRate|||Conv.
+dash.convRate|||Conv. Rate
+dash.couponApplied|||플랜 이용권이 적용되었습니다!
+dash.couponIssued|||쿠폰이 발급되었습니다!
+dash.cpa|||CPA
+dash.cpc|||CPC
+dash.cpm|||CPM
+dash.crossModuleSummary|||모듈 통합 요약
+dash.ctr|||CTR
+dash.ctrLabel|||CTR
+dash.dismiss|||차단 및 무시
+dash.dropOff|||drop-off
+dash.enforced|||적용
+dash.engagement2|||2. Engagement
+dash.execAdSpend|||Ad Spend
+dash.fiveSectionAnalysis|||5-Section Analysis
+dash.frequency|||Frequency
+dash.genderDist|||Gender Distribution
+dash.genderDist|||Gender/Age Distribution
+dash.GraphScore|||Graph Score
+dash.grossMargin|||마진율
+dash.impressions|||Impressions
+dash.Influencer|||Influencer
+dash.info|||정보
+dash.inventoryValue|||재고 금액
+dash.KRChannel|||KR Channel
+dash.liveActivity|||실시간 활동
+dash.lowStockItems|||부족 재고
+dash.maleBuyer|||👨 Male
+dash.Marketing|||Marketing
+dash.moduleShortcuts|||모듈 바로가기
+dash.naverName|||Naver
+dash.netProfit|||Net Profit
+dash.noActivity|||알림이 없습니다
+dash.noChannelData|||No channel data
+dash.noChannelData|||No channel data available
+dash.noChannelData|||채널 데이터 없음
+dash.noSecurityIssues|||보안 이슈 없음
+dash.noTrendData|||No trend data available
+dash.operatingProfit|||영업이익
+dash.opProfit|||Op. Profit
+dash.orders|||Orders
+dash.pendingOrders|||대기 주문
+dash.PriceOpt|||Price Opt
+dash.protected|||보호
+dash.purchaseCount|||Purchases
+dash.reach|||Reach
+dash.reachAwareness|||1. Reach & Awareness
+dash.realTimeBlendedRoas|||Real-time · Blended ROAS
+dash.Reconcile|||Reconcile
+dash.regDist|||Regional Distribution
+dash.regionBusan|||부산
+dash.regionDaegu|||대구
+dash.regionGyeonggi|||경기
+dash.regionIncheon|||인천
+dash.regionSeoul|||서울
+dash.rev|||Rev
+dash.rev|||Revenue
+dash.revRoi2|||5. Revenue & ROI
+dash.secureStatus|||안전
+dash.securityAlert|||Security Alert
+dash.securityMonitor|||보안 모니터
+dash.sessions|||Sessions
+dash.settlementChs|||정산 채널
+dash.signups|||Signups
+dash.spendBudget|||Spend
+dash.spendDistribution|||Spend Distribution
+dash.sysStatus|||시스템 현황
+dash.threatDetected|||엔터프라이즈 보안 위협 감지
+dash.threatsDetected|||threats detected
+dash.totalClicks|||Total Clicks
+dash.totalRev|||Total Revenue
+dash.totalSpend|||Total
+dash.totalSpend|||Total Spend
+dash.totalStock|||총 재고
+dash.traffic2|||3. Traffic
+dash.videoViews|||Video Views
+dash.vsYesterday|||전일 대비
+dash.warnings|||경고
+dashboard.adSpend|||광고비
+dashboard.avgOrder|||AOV
+dashboard.convRateLbl|||전환율
+dashboard.grossRevenue|||총 매출
+dashboard.netROAS|||Net ROAS
+dashboard.totalOrders|||총 주문
+dashPeriod.14d|||14일
+dashPeriod.30d|||30일
+dashPeriod.7d|||7일
+dashPeriod.90d|||90일
+dashPeriod.apply|||적용
+dashPeriod.custom|||기간설정
+dashPeriod.customRange|||기간 직접 설정
+dashPeriod.endDate|||종료일
+dashPeriod.startDate|||시작일
+dashPeriod.today|||오늘
+dashTabs.channel|||Channel KPI
+dashTabs.commerce|||Commerce
+dashTabs.influencer|||Influencer
+dashTabs.marketing|||Marketing
+dashTabs.overview|||Overview
+dashTabs.sales|||Global Sales
+dashTabs.system|||System
+kpi.k_16|||Impression
+kpi.k_3|||ROAS
+marketing.kpiAchieve|||KPI Achieve
