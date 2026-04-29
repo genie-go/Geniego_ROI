@@ -5513,23 +5513,40 @@ button.rv-active-tab,.rv-active-tab,
 [data-theme="pearl_office"] button.am-active-tab,
 [data-theme="arctic_white"] button.cs-active-tab,
 [data-theme="pearl_office"] button.cs-active-tab {
-  color: #ffffff !important;
+  color: #dc2626 !important;
+  -webkit-text-fill-color: #dc2626 !important;
+  font-weight: 900 !important;
+  text-shadow: 0 1px 2px rgba(220,38,38,0.15) !important;
 }
 [data-theme="arctic_white"] button.am-inactive-tab,
 [data-theme="pearl_office"] button.am-inactive-tab,
 [data-theme="arctic_white"] button.cs-inactive-tab,
 [data-theme="pearl_office"] button.cs-inactive-tab {
   color: #1e293b !important;
+  -webkit-text-fill-color: #1e293b !important;
 }
 
 /* ══ Hero title/subtitle dark text in light themes ══ */
 [data-theme="arctic_white"] .am-hero-title,
 [data-theme="pearl_office"] .am-hero-title {
-  color: #1e293b !important;
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+  font-weight: 900 !important;
+  text-shadow: none !important;
 }
 [data-theme="arctic_white"] .am-hero-desc,
 [data-theme="pearl_office"] .am-hero-desc {
-  color: #475569 !important;
+  color: #334155 !important;
+  -webkit-text-fill-color: #334155 !important;
+  text-shadow: none !important;
+}
+
+/* ══ Hero container — stronger border/contrast in light themes ══ */
+[data-theme="arctic_white"] .hero,
+[data-theme="pearl_office"] .hero {
+  background: rgba(248, 250, 252, 0.98) !important;
+  border: 1px solid rgba(0,0,0,0.10) !important;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.05) !important;
 }
 
 /* ══ Sub-tab nav area: ensure background and text are both visible ══ */
@@ -5540,19 +5557,24 @@ button.rv-active-tab,.rv-active-tab,
 [data-theme="arctic_white"] .sub-tab-nav button,
 [data-theme="pearl_office"] .sub-tab-nav button {
   color: #1e293b !important;
+  -webkit-text-fill-color: #1e293b !important;
 }
-/* Active sub-tab should be white on colored bg */
+/* Active sub-tab should be RED on colored bg for visibility */
 [data-theme="arctic_white"] .sub-tab-nav button.am-active-tab,
 [data-theme="pearl_office"] .sub-tab-nav button.am-active-tab {
-  color: #ffffff !important;
+  color: #dc2626 !important;
+  -webkit-text-fill-color: #dc2626 !important;
+  font-weight: 900 !important;
 }
 
 /* ══ DEFINITIVE: Protect CS active tab gradient background ══ */
 [data-theme="arctic_white"] button.cs-active-tab,
 [data-theme="pearl_office"] button.cs-active-tab {
   background: linear-gradient(135deg, #4f8ef7, #6366f1) !important;
-  color: #ffffff !important;
+  color: #dc2626 !important;
+  -webkit-text-fill-color: #dc2626 !important;
   box-shadow: 0 3px 14px rgba(79, 142, 247, 0.35) !important;
+  font-weight: 900 !important;
 }
 
 /* ══ CS Tab Buttons — Universal (all themes) ══ */
@@ -5569,4 +5591,6 @@ button.cs-inactive-tab {
 [data-theme="arctic_white"] button.cs-inactive-tab,
 [data-theme="pearl_office"] button.cs-inactive-tab {
   color: #1e293b !important;
+  -webkit-text-fill-color: #1e293b !important;
 }
+
