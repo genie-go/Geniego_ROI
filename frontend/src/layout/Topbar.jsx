@@ -597,6 +597,7 @@ function ProfileDropdown({ user, navigate, logout, token, t }) {
 
 /* ─── 회원정보 수정 + 비밀번호 변경 모달 ────────────────────────────── */
 function ProfileEditModal({ user, token, onClose }) {
+  const { t } = useI18n();
   const [tab, setTab] = useState('info'); // 'info' | 'password'
   const [name, setName] = useState(user.name || '');
   const [phone, setPhone] = useState(user.phone || '');
@@ -621,15 +622,15 @@ function ProfileEditModal({ user, token, onClose }) {
     if (/[A-Z]/.test(pw)) score++;
     if (/[0-9]/.test(pw)) score++;
     if (/[^A-Za-z0-9]/.test(pw)) score++;
-    if (score <= 1) return { label: '약함', color: '#ef4444', pct: 20 };
-    if (score === 2) return { label: '보통', color: '#f59e0b', pct: 40 };
-    if (score === 3) return { label: '양호', color: '#eab308', pct: 60 };
-    if (score === 4) return { label: '강함', color: '#22c55e', pct: 80 };
-    return { label: '매우 강함', color: '#14d9b0', pct: 100 };
+    if (score <= 1) return { label: t('profile.strWeak', 'Weak'), color: '#ef4444', pct: 20 };
+    if (score === 2) return { label: t('profile.strFair', 'Fair'), color: '#f59e0b', pct: 40 };
+    if (score === 3) return { label: t('profile.strGood', 'Good'), color: '#eab308', pct: 60 };
+    if (score === 4) return { label: t('profile.strStrong', 'Strong'), color: '#22c55e', pct: 80 };
+    return { label: t('profile.strVeryStrong', 'Very Strong'), color: '#14d9b0', pct: 100 };
   };
 
   const handleSaveProfile = async () => {
-    if (!name.trim()) { showMsg('이름을 입력해 주세요.', 'err'); return; }
+    if (!name.trim()) { showMsg(t('profile.nameRequired', 'Please enter your name.'), 'err'); return; }
     setSaving(true);
     try {
       const r = await fetch('/api/auth/profile', {
@@ -647,7 +648,7 @@ function ProfileEditModal({ user, token, onClose }) {
             const updated = { ...cached, name: name.trim(), phone: phone.trim(), company: company.trim() };
             localStorage.setItem(KEY_PREFIX + 'user', JSON.stringify(updated));
           } catch {}
-          showMsg('회원정보가 수정되었습니다.', 'ok');
+          showMsg(t('profile.saved', 'Profile updated.'), 'ok');
           setTimeout(() => window.location.reload(), 1200);
           return;
         }
@@ -659,7 +660,7 @@ function ProfileEditModal({ user, token, onClose }) {
         const updated = { ...cached, name: name.trim(), phone: phone.trim(), company: company.trim() };
         localStorage.setItem(KEY_PREFIX + 'user', JSON.stringify(updated));
       } catch {}
-      showMsg('회원정보가 수정되었습니다.', 'ok');
+      showMsg(t('profile.saved', 'Profile updated.'), 'ok');
       setTimeout(() => window.location.reload(), 1200);
     } catch {
       // 서버 연결 실패 시 로컬 캐시만 업데이트
@@ -669,16 +670,16 @@ function ProfileEditModal({ user, token, onClose }) {
         const updated = { ...cached, name: name.trim(), phone: phone.trim(), company: company.trim() };
         localStorage.setItem(KEY_PREFIX + 'user', JSON.stringify(updated));
       } catch {}
-      showMsg('회원정보가 수정되었습니다. (로컬 저장)', 'ok');
+      showMsg(t('profile.savedLocal', 'Profile saved locally.'), 'ok');
       setTimeout(() => window.location.reload(), 1200);
     } finally { setSaving(false); }
   };
 
   const handleChangePassword = async () => {
-    if (!curPw) { showMsg('현재 비밀번호를 입력해 주세요.', 'err'); return; }
-    if (newPw.length < 8) { showMsg('새 비밀번호는 8자 이상이어야 합니다.', 'err'); return; }
-    if (newPw !== confirmPw) { showMsg('새 비밀번호가 일치하지 않습니다.', 'err'); return; }
-    if (curPw === newPw) { showMsg('현재 비밀번호와 다른 비밀번호를 입력해 주세요.', 'err'); return; }
+    if (!curPw) { showMsg(t('profile.pwCurRequired', 'Please enter current password.'), 'err'); return; }
+    if (newPw.length < 8) { showMsg(t('profile.pwMinLength', 'Password must be 8+ chars.'), 'err'); return; }
+    if (newPw !== confirmPw) { showMsg(t('profile.pwMismatch', 'Passwords do not match.'), 'err'); return; }
+    if (curPw === newPw) { showMsg(t('profile.pwSameAsCur', 'Must differ from current.'), 'err'); return; }
     setSaving(true);
     try {
       const r = await fetch('/api/auth/change-password', {
@@ -689,20 +690,20 @@ function ProfileEditModal({ user, token, onClose }) {
       if (r.ok) {
         const d = await r.json();
         if (d.ok) {
-          showMsg('비밀번호가 변경되었습니다.', 'ok');
+          showMsg(t('profile.pwChanged', 'Password changed.'), 'ok');
           setCurPw(''); setNewPw(''); setConfirmPw('');
           return;
         }
-        showMsg(d.error || '비밀번호 변경에 실패했습니다.', 'err');
+        showMsg(d.error || t('profile.pwChangeFail', 'Failed to change.'), 'err');
         return;
       }
       if (r.status === 401 || r.status === 403) {
-        showMsg('현재 비밀번호가 올바르지 않습니다.', 'err');
+        showMsg(t('profile.pwCurWrong', 'Current password incorrect.'), 'err');
         return;
       }
-      showMsg('비밀번호 변경 API가 준비 중입니다.', 'warn');
+      showMsg(t('profile.pwApiNotReady', 'API not ready.'), 'warn');
     } catch {
-      showMsg('서버 연결에 실패했습니다. 잠시 후 다시 시도해 주세요.', 'err');
+      showMsg(t('profile.serverError', 'Server error. Try again.'), 'err');
     } finally { setSaving(false); }
   };
 
@@ -728,15 +729,15 @@ function ProfileEditModal({ user, token, onClose }) {
       }}>
         {/* 헤더 */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-          <div style={{ fontSize: 18, fontWeight: 900, color: 'var(--text-1, #e2e8f0)' }}>👤 회원정보 관리</div>
+          <div style={{ fontSize: 18, fontWeight: 900, color: 'var(--text-1, #e2e8f0)' }}>👤 {t('profile.title', 'Profile Settings')}</div>
           <button onClick={onClose} style={{ padding: '4px 10px', borderRadius: 8, border: '1px solid var(--border, rgba(99,140,255,0.15))', background: 'transparent', color: 'var(--text-3, #94a3b8)', fontSize: 16, cursor: 'pointer', fontWeight: 700 }}>✕</button>
         </div>
 
         {/* 탭 전환 */}
         <div style={{ display: 'flex', gap: 4, marginBottom: 20, background: 'rgba(79,142,247,0.05)', borderRadius: 12, padding: 4 }}>
           {[
-            { id: 'info', label: '📋 회원정보', icon: '' },
-            { id: 'password', label: '🔐 비밀번호 변경', icon: '' },
+            { id: 'info', label: t('profile.tabInfo', '📋 Profile Info'), icon: '' },
+            { id: 'password', label: t('profile.tabPassword', '🔐 Change Password'), icon: '' },
           ].map(t => (
             <button key={t.id} onClick={() => { setTab(t.id); setMsg({ text: '', type: '' }); }}
               style={{
@@ -793,14 +794,14 @@ function ProfileEditModal({ user, token, onClose }) {
 
             {/* 이메일 (읽기 전용) */}
             <div>
-              <label style={labelStyle}>이메일 (변경 불가)</label>
+              <label style={labelStyle}>{t('profile.emailLabel', 'Email (read-only)')}</label>
               <input value={user.email || ''} disabled style={{ ...inputStyle, opacity: 0.6, cursor: 'not-allowed' }} />
             </div>
 
             {/* 이름 */}
             <div>
-              <label style={labelStyle}>이름 *</label>
-              <input value={name} onChange={e => setName(e.target.value)} placeholder="이름을 입력하세요" style={inputStyle}
+              <label style={labelStyle}>{t('profile.nameLabel', 'Name *')}</label>
+              <input value={name} onChange={e => setName(e.target.value)} placeholder={t('profile.namePlaceholder', 'Enter name')} style={inputStyle}
                 onFocus={e => e.target.style.border = '1px solid rgba(79,142,247,0.5)'}
                 onBlur={e => e.target.style.border = '1px solid var(--border, rgba(99,140,255,0.2))'}
               />
@@ -808,7 +809,7 @@ function ProfileEditModal({ user, token, onClose }) {
 
             {/* 전화번호 */}
             <div>
-              <label style={labelStyle}>전화번호</label>
+              <label style={labelStyle}>{t('profile.phoneLabel', 'Phone')}</label>
               <input value={phone} onChange={e => setPhone(e.target.value)} placeholder="010-0000-0000" style={inputStyle}
                 onFocus={e => e.target.style.border = '1px solid rgba(79,142,247,0.5)'}
                 onBlur={e => e.target.style.border = '1px solid var(--border, rgba(99,140,255,0.2))'}
@@ -817,8 +818,8 @@ function ProfileEditModal({ user, token, onClose }) {
 
             {/* 회사/조직 */}
             <div>
-              <label style={labelStyle}>회사 / 조직</label>
-              <input value={company} onChange={e => setCompany(e.target.value)} placeholder="회사명을 입력하세요" style={inputStyle}
+              <label style={labelStyle}>{t('profile.companyLabel', 'Company / Org')}</label>
+              <input value={company} onChange={e => setCompany(e.target.value)} placeholder={t('profile.companyPlaceholder', 'Enter company')} style={inputStyle}
                 onFocus={e => e.target.style.border = '1px solid rgba(79,142,247,0.5)'}
                 onBlur={e => e.target.style.border = '1px solid var(--border, rgba(99,140,255,0.2))'}
               />
@@ -827,8 +828,8 @@ function ProfileEditModal({ user, token, onClose }) {
             {/* 가입일 */}
             {user.created_at && (
               <div style={{ fontSize: 11, color: 'var(--text-3, #94a3b8)', padding: '8px 0', borderTop: '1px solid var(--border, rgba(99,140,255,0.1))' }}>
-                📅 가입일: {user.created_at.slice(0, 10)}
-                {user.last_login && <> · 최근 로그인: {user.last_login.slice(0, 16).replace('T', ' ')}</>}
+                📅 {t('profile.joinDate', 'Joined')}: {user.created_at.slice(0, 10)}
+                {user.last_login && <> · {t('profile.lastLogin', 'Last login')}: {user.last_login.slice(0, 16).replace('T', ' ')}</>}
               </div>
             )}
 
@@ -840,7 +841,7 @@ function ProfileEditModal({ user, token, onClose }) {
                 color: '#fff', fontSize: 14, fontWeight: 800,
                 boxShadow: '0 4px 16px rgba(79,142,247,0.3)', transition: 'all 200ms',
               }}
-            >{saving ? '저장 중...' : '💾 회원정보 저장'}</button>
+            >{saving ? t('profile.saving', 'Saving...') : t('profile.saveBtn', '💾 Save')}</button>
           </div>
         )}
 
@@ -849,16 +850,16 @@ function ProfileEditModal({ user, token, onClose }) {
           <div style={{ display: 'grid', gap: 16 }}>
             {/* 안내 */}
             <div style={{ padding: '12px 14px', borderRadius: 10, background: 'rgba(79,142,247,0.05)', border: '1px solid rgba(79,142,247,0.1)', fontSize: 12, color: 'var(--text-3, #94a3b8)', lineHeight: 1.7 }}>
-              🔐 비밀번호 변경 시 현재 비밀번호 확인이 필요합니다.<br />
-              새 비밀번호는 <strong style={{ color: 'var(--text-1, #e2e8f0)' }}>8자 이상</strong>, 대문자·숫자·특수문자를 포함하면 더 안전합니다.
+              🔐 {t('profile.pwGuide', 'Current password verification is required.')}<br />
+              <span dangerouslySetInnerHTML={{ __html: t('profile.pwGuide2', 'New password must be <strong>8+ characters</strong>.') }} />
             </div>
 
             {/* 현재 비밀번호 */}
             <div>
-              <label style={labelStyle}>현재 비밀번호 *</label>
+              <label style={labelStyle}>{t('profile.curPwLabel', 'Current Password *')}</label>
               <div style={{ position: 'relative' }}>
                 <input type={showCurPw ? 'text' : 'password'} value={curPw} onChange={e => setCurPw(e.target.value)}
-                  placeholder="현재 비밀번호 입력" style={{ ...inputStyle, paddingRight: 40 }}
+                  placeholder={t('profile.curPwPlaceholder', 'Enter current password')} style={{ ...inputStyle, paddingRight: 40 }}
                   onFocus={e => e.target.style.border = '1px solid rgba(79,142,247,0.5)'}
                   onBlur={e => e.target.style.border = '1px solid var(--border, rgba(99,140,255,0.2))'}
                 />
@@ -871,10 +872,10 @@ function ProfileEditModal({ user, token, onClose }) {
 
             {/* 새 비밀번호 */}
             <div>
-              <label style={labelStyle}>새 비밀번호 *</label>
+              <label style={labelStyle}>{t('profile.newPwLabel', 'New Password *')}</label>
               <div style={{ position: 'relative' }}>
                 <input type={showNewPw ? 'text' : 'password'} value={newPw} onChange={e => setNewPw(e.target.value)}
-                  placeholder="새 비밀번호 (8자 이상)" style={{ ...inputStyle, paddingRight: 40 }}
+                  placeholder={t('profile.newPwPlaceholder', 'New password (8+ chars)')} style={{ ...inputStyle, paddingRight: 40 }}
                   onFocus={e => e.target.style.border = '1px solid rgba(79,142,247,0.5)'}
                   onBlur={e => e.target.style.border = '1px solid var(--border, rgba(99,140,255,0.2))'}
                 />
@@ -898,15 +899,15 @@ function ProfileEditModal({ user, token, onClose }) {
 
             {/* 비밀번호 확인 */}
             <div>
-              <label style={labelStyle}>새 비밀번호 확인 *</label>
+              <label style={labelStyle}>{t('profile.confirmPwLabel', 'Confirm Password *')}</label>
               <input type="password" value={confirmPw} onChange={e => setConfirmPw(e.target.value)}
-                placeholder="새 비밀번호 재입력" style={inputStyle}
+                placeholder={t('profile.confirmPwPlaceholder', 'Re-enter password')} style={inputStyle}
                 onFocus={e => e.target.style.border = '1px solid rgba(79,142,247,0.5)'}
                 onBlur={e => e.target.style.border = '1px solid var(--border, rgba(99,140,255,0.2))'}
               />
               {confirmPw && newPw && (
                 <div style={{ marginTop: 6, fontSize: 11, fontWeight: 700, color: newPw === confirmPw ? '#22c55e' : '#ef4444' }}>
-                  {newPw === confirmPw ? '✅ 비밀번호가 일치합니다' : '❌ 비밀번호가 일치하지 않습니다'}
+                  {newPw === confirmPw ? `✅ ${t('profile.pwMatch', 'Passwords match')}` : `❌ ${t('profile.pwNoMatch', 'Passwords do not match')}`}
                 </div>
               )}
             </div>
@@ -922,7 +923,7 @@ function ProfileEditModal({ user, token, onClose }) {
                 boxShadow: (!saving && curPw && newPw.length >= 8 && newPw === confirmPw) ? '0 4px 16px rgba(168,85,247,0.3)' : 'none',
                 transition: 'all 200ms',
               }}
-            >{saving ? '변경 중...' : '🔐 비밀번호 변경'}</button>
+            >{saving ? t('profile.changingPw', 'Changing...') : t('profile.changePwBtn', '🔐 Change Password')}</button>
           </div>
         )}
       </div>
