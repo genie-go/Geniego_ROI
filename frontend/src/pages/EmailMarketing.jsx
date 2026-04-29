@@ -50,7 +50,7 @@ function SecureInput({ value, onChange, type="text", placeholder, style: sx, add
 /* Settings Tab */
 function SettingsTab() {
     const {t}=useI18n();
-    const {emailSettings,updateEmailSettings,addAlert}=useGlobalData();
+    const { emailSettings,updateEmailSettings,addAlert, isDemo } = useGlobalData();
     const [localSet,setLocalSet]=useState(emailSettings);
     const [msg,setMsg]=useState("");
     const [saving,setSaving]=useState(false);

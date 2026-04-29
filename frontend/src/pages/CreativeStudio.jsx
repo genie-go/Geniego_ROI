@@ -1,3 +1,10 @@
+
+/* ── Enterprise Dynamic Locale Map ────────────────────── */
+const LANG_LOCALE_MAP = {
+  ko:'ko-KR', en:'en-US', ja:'ja-JP', zh:'zh-CN', 'zh-TW':'zh-TW',
+  de:'de-DE', es:'es-ES', fr:'fr-FR', pt:'pt-BR', ru:'ru-RU',
+  ar:'ar-SA', hi:'hi-IN', th:'th-TH', vi:'vi-VN', id:'id-ID'
+};
 import React, { useState, useEffect } from "react";
 import { useT } from "../i18n/index.js";
 
@@ -257,7 +264,7 @@ function AdPreviewCard({ fmt, creative, ch }) {
                 <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: isTall ? "10px 10px 14px" : "7px 8px 9px" }}>
                     <div style={{ fontWeight: 900, fontSize: isTall ? 13 : isWide ? 9 : 11, color: '#fff', lineHeight: 1.3, marginBottom: 3 }}>{creative.headline}</div>
                     {!isWide && (<div style={{ fontSize: isTall ? 9 : 8, color: 'var(--text-2)', lineHeight: 1.3, marginBottom: 5 }}>{creative.body.slice(0, 45)}…</div>)}
-                    {creative.price && (<div style={{ fontSize: isTall ? 11 : 9, fontWeight: 800, color: c2 || "#fff", marginBottom: 4 }}>{isNaN(creative.price) ? creative.price : Number(creative.price).toLocaleString("ko-KR") + "원"}</div>)}
+                    {creative.price && (<div style={{ fontSize: isTall ? 11 : 9, fontWeight: 800, color: c2 || "#fff", marginBottom: 4 }}>{isNaN(creative.price) ? creative.price : Number(creative.price).toLocaleString(LANG_LOCALE_MAP[lang] || 'ko-KR') + "원"}</div>)}
                     <div style={{ display: "inline-block", padding: isWide ? "2px 7px" : "4px 10px", borderRadius: 99, fontSize: isTall ? 10 : 8, fontWeight: 800, color: '#fff', background: `linear-gradient(90deg,${c1},${c2 || c1}cc)` }}>{creative.cta} →</div>
                 </div>
             </div>

@@ -10,7 +10,7 @@ import { useI18n } from "../i18n";
 const XSS_PATTERN = /(<script|javascript:|on\w+=|eval\(|document\.(cookie|domain)|window\.(location|open))/i;
 
 function useReviewsSecurity() {
-    const { addAlert } = useGlobalData();
+    const { addAlert, isDemo } = useGlobalData();
     const [hackAlert, setHackAlert] = useState(null);
     useEffect(() => {
         const detectXSS = (e) => {

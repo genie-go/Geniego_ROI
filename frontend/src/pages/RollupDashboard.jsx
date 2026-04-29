@@ -963,7 +963,7 @@ export default function RollupDashboard() {
   const txt = useCallback((k, fb) => LOC[lang]?.[k] ?? LOC.en?.[k] ?? t(`rollup.${k}`, fb || k), [lang, t]);
   txt._lang = lang;
 
-  const { addAlert } = useGlobalData();
+  const { addAlert, isDemo } = useGlobalData();
   const fc = useFmtC();
 
   const [tab, setTab] = useState("summary");

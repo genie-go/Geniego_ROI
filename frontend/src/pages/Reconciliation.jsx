@@ -424,7 +424,7 @@ export default function Reconciliation() {
   const { fmt: fmtC } = useCurrency();
   const { t } = useI18n();
   const navigate = useNavigate();
-  const { settlementStats, updateSettlement, pnlStats } = useGlobalData();
+  const { settlementStats, updateSettlement, pnlStats, isDemo } = useGlobalData();
   const { locked } = useSecurityMonitor('reconciliation');
   const { broadcast, onMessage } = useReconSync();
 

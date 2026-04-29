@@ -9,6 +9,13 @@ import { useSecurityGuard } from '../security/SecurityGuard.js';
 import { useCurrency } from '../contexts/CurrencyContext.jsx';
 import { useConnectorSync } from '../context/ConnectorSyncContext.jsx';
 
+/* ── Enterprise Dynamic Locale Map ────────────────────── */
+const LANG_LOCALE_MAP = {
+  ko:'ko-KR', en:'en-US', ja:'ja-JP', zh:'zh-CN', 'zh-TW':'zh-TW',
+  de:'de-DE', es:'es-ES', fr:'fr-FR', pt:'pt-BR', ru:'ru-RU',
+  ar:'ar-SA', hi:'hi-IN', th:'th-TH', vi:'vi-VN', id:'id-ID'
+};
+
 /* ─── Constant ────────────────────────────────────────────────────────────────────── */
 const PCT = (v) => v == null ? "—" : Number(v).toFixed(1) + "%";
 
@@ -439,7 +446,7 @@ export default function AutoMarketing() {
                     totalImpressions: strategy.totalImpressions,
                     totalClicks: strategy.totalClicks,
                     totalConversions: strategy.totalConversions,
-                    status: newStatus, createdAt: new Date().toLocaleString('ko-KR'),
+                    status: newStatus, createdAt: new Date().toLocaleString(LANG_LOCALE_MAP[lang] || 'ko-KR'),
                     approvedAt: null,
                     approvedBy: null,
                 };
@@ -982,7 +989,7 @@ export default function AutoMarketing() {
                                                     <div style={{ display: "flex", gap: 6, fontSize: 11, alignItems: "center" }}>
                                                         <input 
                                                             type="text" 
-                                                            value={alloc === 0 ? '' : alloc.toLocaleString('ko-KR')}
+                                                            value={alloc === 0 ? '' : alloc.toLocaleString(LANG_LOCALE_MAP[lang] || 'ko-KR')}
                                                             onChange={(e) => {
                                                                 const val = parseInt(e.target.value.replace(/[^0-9]/g, '')) || 0;
                                                                 handleAllocChange(ch.id, val); }} style={{ width: 90, padding: "4px 8px", background: "#f1f5f9",

@@ -6,6 +6,13 @@ import { useCurrency } from '../contexts/CurrencyContext.jsx';
 import { useConnectorSync } from '../context/ConnectorSyncContext.jsx';
 import { useSecurityGuard } from '../security/SecurityGuard.js';
 import { CHANNEL_RATES } from '../constants/channelRates.js';
+
+/* ── Enterprise Dynamic Locale Map ────────────────────── */
+const LANG_LOCALE_MAP = {
+  ko:'ko-KR', en:'en-US', ja:'ja-JP', zh:'zh-CN', 'zh-TW':'zh-TW',
+  de:'de-DE', es:'es-ES', fr:'fr-FR', pt:'pt-BR', ru:'ru-RU',
+  ar:'ar-SA', hi:'hi-IN', th:'th-TH', vi:'vi-VN', id:'id-ID'
+};
 /* ??? CSV Download Util ???????????????????????????? */
 function downloadCSV(filename, headers, rows) {
     const BOM = '\uFEFF';
@@ -139,13 +146,13 @@ function CrmSyncButton({ order }) {
 /* ??? Live Ingest Bar (??GlobalDataContext ) ??? */
 function LiveIngestBar({ tab }) {
     const { t } = useI18n();
-    const { orders, claimHistory, settlement } = useGlobalData();
+    const { orders, claimHistory, settlement, isDemo } = useGlobalData();
     const prevCountRef = useRef({ o: 0, c: 0, s: 0 });
     const [feed, setFeed] = useState([]);
     useEffect(() => {
         const prev = prevCountRef.current;
         const newEvents = [];
-        const now = new Date().toLocaleTimeString('ko-KR', { hour12: false });
+        const now = new Date().toLocaleTimeString(LANG_LOCALE_MAP[lang] || 'ko-KR', { hour12: false });
         if (orders.length > prev.o && prev.o > 0) {
             const latest = orders[orders.length - 1];
             newEvents.push({ id: Date.now(), ch: latest.ch || 'shopify', type: 'Orders', msg: `${latest.id} New`, ts: now });

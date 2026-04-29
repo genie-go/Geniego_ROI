@@ -76,7 +76,7 @@ function DashSelector({ active, onSelect, dashboards }) {
 export default function Dashboard() {
   const { t, lang } = useI18n();
   const [searchParams] = useSearchParams();
-  const { addAlert } = useGlobalData();
+  const { addAlert, isDemo } = useGlobalData();
 
   // Initialize Enterprise Security Guard
   useSecurityGuard({ addAlert: (al) => {

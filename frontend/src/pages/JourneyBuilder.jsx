@@ -12,6 +12,13 @@ import { useI18n } from '../i18n';
 import { useGlobalData } from '../context/GlobalDataContext';
 import { useNavigate } from 'react-router-dom';
 
+/* ── Enterprise Dynamic Locale Map ────────────────────── */
+const LANG_LOCALE_MAP = {
+  ko:'ko-KR', en:'en-US', ja:'ja-JP', zh:'zh-CN', 'zh-TW':'zh-TW',
+  de:'de-DE', es:'es-ES', fr:'fr-FR', pt:'pt-BR', ru:'ru-RU',
+  ar:'ar-SA', hi:'hi-IN', th:'th-TH', vi:'vi-VN', id:'id-ID'
+};
+
 /* ── i18n key registry + fallback ─────────────────────── */
 const K = {
     title: 'jb.title', sub: 'jb.sub',
@@ -220,7 +227,7 @@ export default function JourneyBuilder() {
             delay: form.delay,
             delay_label: delayLabel(form.delay),
             status: 'draft',
-            createdAt: editId ? (journeys.find(j => j.id === editId)?.createdAt || new Date().toLocaleDateString('ko-KR')) : new Date().toLocaleDateString('ko-KR'),
+            createdAt: editId ? (journeys.find(j => j.id === editId)?.createdAt || new Date().toLocaleDateString(LANG_LOCALE_MAP[lang] || 'ko-KR')) : new Date().toLocaleDateString(LANG_LOCALE_MAP[lang] || 'ko-KR'),
             executions: editId ? (journeys.find(j => j.id === editId)?.executions || 0) : 0,
             entered: editId ? (journeys.find(j => j.id === editId)?.entered || 0) : 0,
             completed: editId ? (journeys.find(j => j.id === editId)?.completed || 0) : 0,
@@ -248,7 +255,7 @@ export default function JourneyBuilder() {
     };
 
     const handleDuplicate = j => {
-        const copy = { ...j, id: `JRN-${Date.now()}`, name: `${j.name} ${tr(K.copyLabel)}`, status: 'draft', executions: 0, entered: 0, completed: 0, createdAt: new Date().toLocaleDateString('ko-KR') };
+        const copy = { ...j, id: `JRN-${Date.now()}`, name: `${j.name} ${tr(K.copyLabel)}`, status: 'draft', executions: 0, entered: 0, completed: 0, createdAt: new Date().toLocaleDateString(LANG_LOCALE_MAP[lang] || 'ko-KR') };
         const next = [copy, ...journeys];
         setJourneys(next);
         persist(next);
@@ -468,7 +475,7 @@ export default function JourneyBuilder() {
                                         <span style={{ fontSize: 14 }}>{log.type === 'email_send' ? '📧' : log.type === 'kakao_send' ? '💬' : log.type === 'line_send' ? '💚' : '⚡'}</span>
                                         <span style={{ fontSize: 12, fontWeight: 700, color: '#334155' }}>{log.type}</span>
                                     </div>
-                                    <span style={{ fontSize: 10, color: '#94a3b8' }}>{new Date(log.at).toLocaleString('ko-KR', { hour12: false })}</span>
+                                    <span style={{ fontSize: 10, color: '#94a3b8' }}>{new Date(log.at).toLocaleString(LANG_LOCALE_MAP[lang] || 'ko-KR', { hour12: false })}</span>
                                 </div>
                             ))}</div>
                         )}

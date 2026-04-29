@@ -16,7 +16,7 @@ function useIsMobile(bp = 768) {
 
 /* ═══ Enterprise Security Guard — XSS/Injection 실시간 차단 ═══ */
 function useCatalogSecurity() {
-    const { addAlert } = useGlobalData();
+    const { addAlert, isDemo } = useGlobalData();
     const threatCountRef = useRef(0);
     const [secBanner, setSecBanner] = useState(null);
 
@@ -28,7 +28,7 @@ function useCatalogSecurity() {
         for (const p of allPatterns) {
             if (p.test(input)) {
                 threatCountRef.current += 1;
-                const threat = { type: p.source.includes('script') || p.source.includes('javascript') ? 'XSS' : 'SQL_INJECTION', input: input.slice(0, 80), at: new Date().toLocaleString('ko-KR', { hour12: false }), count: threatCountRef.current };
+                const threat = { type: p.source.includes('script') || p.source.includes('javascript') ? 'XSS' : 'SQL_INJECTION', input: input.slice(0, 80), at: new Date().toLocaleString(LANG_LOCALE_MAP[lang] || 'ko-KR', { hour12: false }), count: threatCountRef.current };
                 setSecBanner(threat);
                 if (addAlert) addAlert({ type: 'error', msg: `🛡️ [CatalogSync] ${threat.type} 공격 차단! (${threatCountRef.current}회) — 입력: "${input.slice(0, 40)}…"` });
                 setTimeout(() => setSecBanner(null), 8000);
@@ -771,7 +771,7 @@ function CatalogTab() {
                 channels: item.channels || [],
                 channelPrices: channelProductPrices?.[item.sku] || {},
                 status: 'ok',
-                lastSync: new Date().toLocaleString('ko-KR', { hour12: false }),
+                lastSync: new Date().toLocaleString(LANG_LOCALE_MAP[lang] || 'ko-KR', { hour12: false }),
                 delta: { price: false, stock: false, title: false },
             }));
             setProducts(mapped);
@@ -952,6 +952,13 @@ function CatalogTab() {
             addAlert({ type: 'success', msg: t('catalogSync.alertExcelImport', {n: imported.length}) });
         } catch (err) {
             console.error('Excel import error:', err);
+
+/* ── Enterprise Dynamic Locale Map ────────────────────── */
+const LANG_LOCALE_MAP = {
+  ko:'ko-KR', en:'en-US', ja:'ja-JP', zh:'zh-CN', 'zh-TW':'zh-TW',
+  de:'de-DE', es:'es-ES', fr:'fr-FR', pt:'pt-BR', ru:'ru-RU',
+  ar:'ar-SA', hi:'hi-IN', th:'th-TH', vi:'vi-VN', id:'id-ID'
+};
             showToast(t('catalogSync.excelImportError'), '#ef4444');
         }
         e.target.value = '';
@@ -1408,7 +1415,7 @@ function SchedulePanel({ t, addAlert }) {
     const [enabled, setEnabled] = useState(true);
 
     const saveSchedule = () => {
-        const newSch = { id: `SCH-${Date.now()}`, freq, time, enabled, createdAt: new Date().toLocaleString('ko-KR', { hour12: false }) };
+        const newSch = { id: `SCH-${Date.now()}`, freq, time, enabled, createdAt: new Date().toLocaleString(LANG_LOCALE_MAP[lang] || 'ko-KR', { hour12: false }) };
         const updated = [...schedules, newSch];
         setSchedules(updated);
         try { localStorage.setItem('geniego_sync_schedules', JSON.stringify(updated)); } catch {}
@@ -1489,7 +1496,7 @@ function SyncRunTab({ onJobCreated }) {
         if (!selChs.size || !selScp.size) return;
         setRunning(true);
         const jobId = `JOB-${String(Math.floor(Math.random() * 9000) + 1000)}`;
-        const job = { id: jobId, type: mode, scope: [...selScp], channels: [...selChs], status: "running", progress: 0, total: estimate, done: 0, errors: 0, startedAt: new Date().toLocaleTimeString("ko-KR"), duration: "—" };
+        const job = { id: jobId, type: mode, scope: [...selScp], channels: [...selChs], status: "running", progress: 0, total: estimate, done: 0, errors: 0, startedAt: new Date().toLocaleTimeString(LANG_LOCALE_MAP[lang] || 'ko-KR'), duration: "—" };
         setLiveJob(job);
 
         let done = 0;
@@ -1591,7 +1598,7 @@ function SyncRunTab({ onJobCreated }) {
                     </div>
                     {liveJob.status === "running" && (
                         <div style={{ marginTop: 8, padding: "6px 10px", background: "rgba(79,142,247,0.05)", borderRadius: 8, fontSize: 10, color: "#6b7280", fontFamily: "monospace" }}>
-                            [{new Date().toLocaleTimeString("ko-KR")}] [{liveJob.channels.join(",")}] {liveJob.scope.join("+")} {t('catalogSync.syncInProgress')}
+                            [{new Date().toLocaleTimeString(LANG_LOCALE_MAP[lang] || 'ko-KR')}] [{liveJob.channels.join(",")}] {liveJob.scope.join("+")} {t('catalogSync.syncInProgress')}
                         </div>
                     )}
                 </div>

@@ -51,7 +51,7 @@ function Stars({ n }) {
    TAB 1: Creator Identity Integration
 ══════════════════════════════════════════════════════════════════ */
 function IdentityTab() {
-    const { creators: CREATORS = [] } = useGlobalData();
+    const { creators: CREATORS = [], isDemo } = useGlobalData();
     const { t } = useI18n();
     const [sel, setSel] = useState(null);
     const [merge, setMerge] = useState([]);

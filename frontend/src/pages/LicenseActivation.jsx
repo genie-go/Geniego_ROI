@@ -1,3 +1,17 @@
+
+/* ── Enterprise Dynamic Locale Map ────────────────────── */
+const LANG_LOCALE_MAP = {
+  ko:'ko-KR', en:'en-US', ja:'ja-JP', zh:'zh-CN', 'zh-TW':'zh-TW',
+  de:'de-DE', es:'es-ES', fr:'fr-FR', pt:'pt-BR', ru:'ru-RU',
+  ar:'ar-SA', hi:'hi-IN', th:'th-TH', vi:'vi-VN', id:'id-ID'
+};
+
+/* ── Enterprise Demo Isolation Guard ─────────────────────── */
+const _isDemo = (() => {
+  if (typeof window === 'undefined') return false;
+  const h = window.location.hostname;
+  return h === 'demo.genie-go.com' || h === 'demo.geniego.com' || h.startsWith('demo');
+})();
 import React, { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
@@ -593,7 +607,7 @@ export default function LicenseActivation() {
                             <div style={{ fontSize: 12, color: "var(--text-2)" }}>
                                 Current Plan: <strong style={{ color: "#4f8ef7" }}>{user?.plan?.toUpperCase()}</strong> ·
                                 Expiry Date: <strong>{user?.subscription_expires_at
-                                    ? new Date(user.subscription_expires_at).toLocaleDateString("ko-KR")
+                                    ? new Date(user.subscription_expires_at).toLocaleDateString(LANG_LOCALE_MAP[lang] || 'ko-KR')
                                     : "Unlimited"}</strong>
                             </div>
                             <button onClick={() => setStep(2)} style={{ marginTop: 12, padding: "10px 20px", borderRadius: 8, border: "none", background: "linear-gradient(135deg,#22c55e,#14d9b0)", color: '#fff', fontWeight: 700, fontSize: 12, cursor: "pointer" }}>

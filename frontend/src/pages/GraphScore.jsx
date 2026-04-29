@@ -477,7 +477,7 @@ function SecurityLockModal({ t, onDismiss }) {
    ══════════════════════════════════════════════════════════════════════════════ */
 export default function GraphScore() {
   const t = useT();
-  const { addAlert, broadcastUpdate } = useGlobalData();
+  const { addAlert, broadcastUpdate, isDemo } = useGlobalData();
   const navigate = useNavigate();
 
   /* Security Guard */

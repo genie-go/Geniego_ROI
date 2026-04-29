@@ -471,7 +471,7 @@ function GuideTab({ t }) {
    ═══════════════════════════════════════════════════ */
 export default function DataSchema() {
   const { t } = useI18n();
-  const { addAlert } = useGlobalData();
+  const { addAlert, isDemo } = useGlobalData();
   const { locked, setLocked } = useSecurityGuard(addAlert);
   const { connectors } = useConnectorSync?.() || { connectors: [] };
   const bcRef = useRef(null);

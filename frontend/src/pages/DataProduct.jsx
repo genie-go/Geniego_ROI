@@ -236,7 +236,7 @@ function GuideTab({ t }) {
 export default function DataProduct() {
     const { t } = useI18n();
     const { fmt } = useCurrency();
-    const { addAlert } = useGlobalData();
+    const { addAlert, isDemo } = useGlobalData();
     const [tab, setTab] = useState("overview");
     const [domainFilter, setDomainFilter] = useState("all");
     const [search, setSearch] = useState("");

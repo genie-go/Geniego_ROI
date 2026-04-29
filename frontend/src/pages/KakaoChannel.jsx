@@ -29,7 +29,7 @@ const INPUT = {
 /* ── Currency Format ──────────────────────────────────────────────────────── */
 function useCurrencyFmt() {
   try {
-    const { currency, exchangeRates } = useGlobalData();
+    const { currency, exchangeRates, isDemo } = useGlobalData();
     return useCallback((krw) => {
       if (!krw && krw !== 0) return '-';
       const cur = currency || 'KRW';

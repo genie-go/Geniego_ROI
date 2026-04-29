@@ -404,7 +404,7 @@ export default function PnLDashboard() {
     const { t } = useI18n();
     const { fmt } = useCurrency();
     const navigate = useNavigate();
-    const { pnlStats, settlementStats, budgetStats, orderStats, totalInventoryValue, lowStockCount, addAlert } = useGlobalData();
+    const { pnlStats, settlementStats, budgetStats, orderStats, totalInventoryValue, lowStockCount, addAlert, isDemo } = useGlobalData();
 
     const [tab, setTab] = useState('overview');
     const [threats, setThreats] = useState([]);

@@ -204,7 +204,7 @@ function ContentCalGuideTab(){
 
 export default function ContentCalendar(){
   const{t}=useI18n();
-  const{addAlert,sharedCalendarEvents,setSharedCalendarEvents,connectedChannels}=useGlobalData();
+  const { addAlert,sharedCalendarEvents,setSharedCalendarEvents,connectedChannels, isDemo } = useGlobalData();
   useContentCalendarSecurity(addAlert);
   const[tab,setTab]=useState("calendar");
   const[showRegister,setShowRegister]=useState(false);

@@ -11,8 +11,16 @@ import AIRecommendBanner from '../components/AIRecommendBanner.jsx';
 import CreativeStudioTab from "./CreativeStudioTab.jsx";
 import {useNavigate} from "react-router-dom";
 
+/* ── Enterprise Demo Isolation Guard ─────────────────────── */
+const _isDemo = (() => {
+  if (typeof window === 'undefined') return false;
+  const h = window.location.hostname;
+  return h === 'demo.genie-go.com' || h === 'demo.geniego.com' || h.startsWith('demo');
+})();
+
 const API=import.meta.env.VITE_API_BASE||'';
-const apiFetch=async(path,opts={})=>{const tk=localStorage.getItem('genie_token')||"";const r=await fetch(API+path,{...opts,headers:{'Content-Type':'application/json','Authorization':'Bearer '+tk,...(opts.headers||{})}});return r.json().catch(()=>({}));};
+const apiFetch = async (path,opts={}) => {
+  if (_isDemo) { console.warn('[DEMO] API call blocked:', path,opts={}.toString ? '' : ''); return {}; }const tk=localStorage.getItem('genie_token')||"";const r=await fetch(API+path,{...opts,headers:{'Content-Type':'application/json','Authorization':'Bearer '+tk,...(opts.headers||{})}});return r.json().catch(()=>({}));};
 
 const C={accent:"#4f8ef7",green:"#22c55e",red:"#ef4444",yellow:"#eab308",purple:"#a855f7",cyan:"#06b6d4"};
 const INPUT={width:"100%",padding:"10px 14px",borderRadius:10,background:"rgba(255,255,255,0.9)",border:"1px solid rgba(0,0,0,0.1)",color:"#1e293b",boxSizing:"border-box",fontSize:13,outline:"none"};

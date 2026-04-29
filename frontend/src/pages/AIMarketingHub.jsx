@@ -5,6 +5,13 @@ import { useNavigate } from 'react-router-dom';
 import { useI18n } from '../i18n';
 import { useCurrency } from '../contexts/CurrencyContext.jsx';
 import { useSecurityGuard } from '../security/SecurityGuard.js';
+
+/* ── Enterprise Dynamic Locale Map ────────────────────── */
+const LANG_LOCALE_MAP = {
+  ko:'ko-KR', en:'en-US', ja:'ja-JP', zh:'zh-CN', 'zh-TW':'zh-TW',
+  de:'de-DE', es:'es-ES', fr:'fr-FR', pt:'pt-BR', ru:'ru-RU',
+  ar:'ar-SA', hi:'hi-IN', th:'th-TH', vi:'vi-VN', id:'id-ID'
+};
 /* ────────── utils ────────── */
 // currency formatting via useCurrency fmt()
 const pct = v => (Number(v) * 100).toFixed(1) + '%';
@@ -465,7 +472,7 @@ export default function AIMarketingHub() {
         }
 
         setExecuting(p => ({ ...p, [rec.id]: true }));
-        const now = new Date().toLocaleTimeString('ko-KR', { hour12: false });
+        const now = new Date().toLocaleTimeString(LANG_LOCALE_MAP[lang] || 'ko-KR', { hour12: false });
         setLogs(p => [{
             icon: isDemo ? '🎭' : '💳',
             title: isDemo ? `[${t('aiHub.Mode')}] ${rec.title}` : `[${card.alias}] ${rec.title}`,

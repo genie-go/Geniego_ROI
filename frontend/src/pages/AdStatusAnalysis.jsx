@@ -28,7 +28,7 @@ export default function AdStatusAnalysis() {
 
 
     // Unified Campaign Builder(GlobalData) 100% sync
-    const { sharedCampaigns } = useGlobalData();
+    const { sharedCampaigns, isDemo } = useGlobalData();
     const [loading, setLoading] = useState(false);
 
     // Date range state

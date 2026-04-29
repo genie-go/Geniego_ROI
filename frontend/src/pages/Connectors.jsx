@@ -225,7 +225,7 @@ function WebhookFeed({ t }) {
 export default function Connectors() {
   const { t } = useI18n();
   const { token } = useAuth();
-  const { addAlert } = useGlobalData();
+  const { addAlert, isDemo } = useGlobalData();
   const { locked, setLocked } = useSecurityGuard(addAlert);
   const bcRef = useRef(null);
 

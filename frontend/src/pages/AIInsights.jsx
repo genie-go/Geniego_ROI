@@ -367,7 +367,7 @@ function GuideTab({ t }) {
 export default function AIInsights() {
     const { t } = useI18n();
     const { fmt } = useCurrency();
-    const { pnlStats, settlementStats, budgetStats, orderStats, addAlert } = useGlobalData();
+    const { pnlStats, settlementStats, budgetStats, orderStats, addAlert, isDemo } = useGlobalData();
     const [tab, setTab] = useState('trends');
     const [threats, setThreats] = useState([]);
     const [syncTick, setSyncTick] = useState(0);

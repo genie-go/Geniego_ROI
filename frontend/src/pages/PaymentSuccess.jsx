@@ -1,3 +1,10 @@
+
+/* ── Enterprise Dynamic Locale Map ────────────────────── */
+const LANG_LOCALE_MAP = {
+  ko:'ko-KR', en:'en-US', ja:'ja-JP', zh:'zh-CN', 'zh-TW':'zh-TW',
+  de:'de-DE', es:'es-ES', fr:'fr-FR', pt:'pt-BR', ru:'ru-RU',
+  ar:'ar-SA', hi:'hi-IN', th:'th-TH', vi:'vi-VN', id:'id-ID'
+};
 import React, { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
@@ -88,7 +95,7 @@ export default function PaymentSuccess() {
                             ["Subscription 주기", cycleLabel],
                             ["Payment Amount", amount > 0 ? USD(amount) : "—"],
                             ["Expiry Date", result?.payment?.expires_at
-                                ? new Date(result.payment.expires_at).toLocaleDateString("ko-KR")
+                                ? new Date(result.payment.expires_at).toLocaleDateString(LANG_LOCALE_MAP[lang] || 'ko-KR')
                                 : "—"],
                             ["Orders 번호", result?.payment?.orderId || searchParams.get("orderId") || "—"],
                         ].map(([label, value]) => (

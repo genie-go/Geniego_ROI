@@ -3,6 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { useT, useI18n, LANG_OPTIONS } from "../i18n";
 
+/* ── Enterprise Dynamic Locale Map ────────────────────── */
+const LANG_LOCALE_MAP = {
+  ko:'ko-KR', en:'en-US', ja:'ja-JP', zh:'zh-CN', 'zh-TW':'zh-TW',
+  de:'de-DE', es:'es-ES', fr:'fr-FR', pt:'pt-BR', ru:'ru-RU',
+  ar:'ar-SA', hi:'hi-IN', th:'th-TH', vi:'vi-VN', id:'id-ID'
+};
+
 /* ─── CONSTANTS ────────────────────────────────────────────── */
 const COUNTRIES = [
   "South Korea", "USA", "Japan", "China", "Singapore", "UK", "Germany", "France",
@@ -149,9 +156,9 @@ function TermsModal({ open, onClose, category }) {
             const yTotalPrice = Number(t1?.cycles?.yearly?.total_price || 0);
             const monthlyDisplay = mBase > 0 ? mBase : mMonthly;
             if (monthlyDisplay > 0) {
-              const mFmt = '\u20a9' + monthlyDisplay.toLocaleString('ko-KR');
+              const mFmt = '\u20a9' + monthlyDisplay.toLocaleString(LANG_LOCALE_MAP[lang] || 'ko-KR');
               let yearlyFinal = yTotalPrice > 0 ? yTotalPrice : monthlyDisplay * 12;
-              const yFmt = '\u20a9' + yearlyFinal.toLocaleString('ko-KR');
+              const yFmt = '\u20a9' + yearlyFinal.toLocaleString(LANG_LOCALE_MAP[lang] || 'ko-KR');
               lines.push(`      - ${p.label || p.id}: \uc6d4 ${mFmt} / \uc5f0 ${yFmt}`);
             } else if (p.id === 'enterprise') {
               lines.push('      - Enterprise: \ubcc4\ub3c4 \ud611\uc758');

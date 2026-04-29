@@ -737,7 +737,7 @@ function SKUProfitTab() {
     const [sortCol, setSortCol] = useState('margin_rate');
     const [sortDir, setSortDir] = useState('desc');
 
-    const { inventory = [] } = useGlobalData();
+    const { inventory = [], isDemo } = useGlobalData();
     const SKU_DATA = (inventory.length > 0 ? inventory.slice(0, 12).map(p => {
         const rev = (p.price || 0) * ((p.stock?.W001 || 0) + (p.stock?.W002 || 0) + (p.stock?.W003 || 0)) * 2;
         const cog = rev * 0.32;

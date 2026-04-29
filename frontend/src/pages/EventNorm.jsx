@@ -2,6 +2,13 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useI18n } from '../i18n';
 
 import { useT } from '../i18n/index.js';
+
+/* ── Enterprise Demo Isolation Guard ─────────────────────── */
+const _isDemo = (() => {
+  if (typeof window === 'undefined') return false;
+  const h = window.location.hostname;
+  return h === 'demo.genie-go.com' || h === 'demo.geniego.com' || h.startsWith('demo');
+})();
 let SCHEMA_SECTIONS;
 let TABS;
 const initGlobals = (t) => {

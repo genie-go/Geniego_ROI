@@ -83,7 +83,7 @@ function AIBudgetGuide({ t }) {
 function AIBudgetAllocatorInner() {
     const { t } = useI18n();
     const { fmt } = useCurrency();
-    const { addAlert, sharedCampaigns } = useGlobalData();
+    const { addAlert, sharedCampaigns, isDemo } = useGlobalData();
     const { isConnected } = useConnectorSync();
     useSecurityGuard({ addAlert: useCallback((a) => { if (typeof addAlert === 'function') addAlert(a); }, [addAlert]), enabled: true });
 

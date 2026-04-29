@@ -79,7 +79,7 @@ const ScoreBar = ({ value, max = 1, color = "#6366f1" }) => {
 function SummaryTab({ token }) {
     const { fmt } = useCurrency();
     const { t } = useI18n();
-    const { inventory, channelProductPrices } = useGlobalData();
+    const { inventory, channelProductPrices, isDemo } = useGlobalData();
     const [data, setData] = useState(null);
 
     // ★ Demo fallback: inventory 시드 데이터로 요약 지표 자동 생성

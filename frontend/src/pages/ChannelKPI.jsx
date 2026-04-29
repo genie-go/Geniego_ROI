@@ -655,7 +655,7 @@ export default function ChannelKPI() {
 
   const { fmt } = useCurrency();
     const navigate = useNavigate();
-    const { budgetStats, channelBudgets, pnlStats, orderStats, addAlert } = useGlobalData();
+    const { budgetStats, channelBudgets, pnlStats, orderStats, addAlert, isDemo } = useGlobalData();
     useSecurityGuard({ addAlert: useCallback((a) => { if (typeof addAlert === 'function') addAlert(a); }, [addAlert]), enabled: true, _src: 'ChannelKPI' });
     // ConnectorSync: auto-sync channels from Integration Hub
     try { useConnectorSync(); } catch(e) {}
