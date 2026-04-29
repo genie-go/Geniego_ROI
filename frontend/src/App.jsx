@@ -11,7 +11,12 @@ import { MobileSidebarProvider } from "./context/MobileSidebarContext.jsx";
 import { ConnectorSyncProvider } from "./context/ConnectorSyncContext.jsx";
 import NetworkStatus from "./components/NetworkStatus.jsx";
 import { ToastProvider } from "./components/ToastProvider.jsx";
+import SessionExpiryWarning from "./components/SessionExpiryWarning.jsx";
+import KeyboardShortcuts from "./components/KeyboardShortcuts.jsx";
+import { initPerformanceMonitor } from "./utils/performanceMonitor.js";
 
+// Initialize performance monitoring
+if (typeof window !== 'undefined') initPerformanceMonitor();
 
 const Dashboard = lazy(() => import("./pages/Dashboard.jsx"));
 const Marketing = lazy(() => import("./pages/Marketing.jsx"));
@@ -244,6 +249,8 @@ function AppLayout() {
     <CurrencyProvider>
     <MobileSidebarProvider>
     <div className="container" style={{ height: '100vh', overflow: 'hidden' }}>
+      <KeyboardShortcuts />
+      <SessionExpiryWarning />
       <Sidebar />
       <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0, flex: 1, height: '100vh', overflow: 'hidden' }}>
         <Topbar />
