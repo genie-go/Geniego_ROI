@@ -3415,9 +3415,9 @@ body:not([data-theme]) .sidebar-footer {
 
 /* ??? LIGHT THEME: Tab Bar & Remaining Dark Remnants Fix ??? */
 
-/* Tab bar backgrounds that use gradients or dark surfaces */
-[data-theme="arctic_white"] .container > div:last-child [style*="background: linear-gradient"],
-[data-theme="pearl_office"] .container > div:last-child [style*="background: linear-gradient"] {
+/* Tab bar backgrounds that use gradients or dark surfaces (EXCLUDE buttons) */
+[data-theme="arctic_white"] .container > div:last-child div[style*="background: linear-gradient"]:not(button),
+[data-theme="pearl_office"] .container > div:last-child div[style*="background: linear-gradient"]:not(button) {
   background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(248,250,255,0.9)) !important;
   color: #111827 !important;
 }
