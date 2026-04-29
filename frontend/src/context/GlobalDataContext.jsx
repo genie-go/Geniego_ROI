@@ -270,6 +270,8 @@ export function GlobalDataProvider({ children }) {
     useEffect(() => { _saveDemoIfMounted('sns_campaigns', snsCampaigns); }, [snsCampaigns, _saveDemoIfMounted]);
     useEffect(() => { _saveDemoIfMounted('ai_recommendations', aiRecommendations); }, [aiRecommendations, _saveDemoIfMounted]);
     useEffect(() => { _saveDemoIfMounted('channel_prices', channelProductPrices); }, [channelProductPrices, _saveDemoIfMounted]);
+    useEffect(() => { _saveDemoIfMounted('crm_customer_history', crmCustomerHistory); }, [crmCustomerHistory, _saveDemoIfMounted]);
+    useEffect(() => { _saveDemoIfMounted('alerts', alerts); }, [alerts, _saveDemoIfMounted]);
 
     // ── [A-3 NEW] 백엔드 재고 Integration: 앱 초기 로드 시 실서버에서 재고 pull ──
     // 토큰 있는 유료 User 전용; 데모는 시드 데이터 사용 (API 스킵)
@@ -307,6 +309,12 @@ export function GlobalDataProvider({ children }) {
                 case 'PLAN_UPDATE':       setPlanPricing(payload); break;
                 case 'CREATORS_UPDATE':   setCreators(payload); break;
                 case 'PAYMENT_CARDS_UPDATE': setPaymentCards(payload); break;
+                case 'SNS_CAMPAIGNS_UPDATE': setSnsCampaigns(payload); break;
+                case 'CHANNEL_PRICES_UPDATE': setChannelProductPrices(payload); break;
+                case 'EMAIL_CAMPAIGNS_UPDATE': setEmailCampaignsLinked(payload); break;
+                case 'KAKAO_CAMPAIGNS_UPDATE': setKakaoCampaignsLinked(payload); break;
+                case 'POPUPS_UPDATE': setWebPopupCampaigns(payload); break;
+                case 'CONNECTED_CHANNELS_UPDATE': setConnectedChannels(payload); break;
                 default: break;
             }
         };
