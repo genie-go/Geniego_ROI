@@ -174,6 +174,16 @@ export default {
     "dfumga": "→ Move to Connector Management"
   },
   "marketing": {
+    "sidebarUpgrade": "Upgrade Account",
+    "sidebarAlertCount": "13 Alerts",
+    "sidebarLogout": "Exit  & Logout",
+    "upgradalTitle": "Pro Plan Exclusive",
+    "upgradalDesc": "This is a powerful enterprise feature available in the paid plan.\nUpgrade to Pro now to experience all features without limits.",
+    "upgradalClose": "Close",
+    "upgradalBtn": "View Upgrade Plans",
+    "upgradeLabel": "PRO",
+    "quickFavs": "Favorites",
+    "quickRecents": "Recent",
     "guideFullTitle": "📋 शुरू से अंत तक — संपूर्ण गाइड",
     "guideFullSub": "AI मार्केटिंग ऑटोमेशन प्लेटफ़ॉर्म के पूरे वर्कफ़्लो की चरण-दर-चरण मार्गदर्शिका।",
     "guidePhaseA": "चरण A — शुरुआत की तैयारी",

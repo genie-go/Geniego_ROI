@@ -174,6 +174,16 @@ export default {
     "dfumga": "→ Move to Connector Management"
   },
   "marketing": {
+    "sidebarUpgrade": "Upgrade Account",
+    "sidebarAlertCount": "13 Alerts",
+    "sidebarLogout": "Exit  & Logout",
+    "upgradalTitle": "Pro Plan Exclusive",
+    "upgradalDesc": "This is a powerful enterprise feature available in the paid plan.\nUpgrade to Pro now to experience all features without limits.",
+    "upgradalClose": "Close",
+    "upgradalBtn": "View Upgrade Plans",
+    "upgradeLabel": "PRO",
+    "quickFavs": "Favorites",
+    "quickRecents": "Recent",
     "guideFullTitle": "📋 Полное руководство — от начала до конца",
     "guideFullSub": "Пошаговое руководство по полному рабочему процессу платформы AI-маркетинга.",
     "guidePhaseA": "Фаза A — Подготовка к старту",

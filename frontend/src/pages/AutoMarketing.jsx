@@ -504,7 +504,7 @@ export default function AutoMarketing() {
     return (
         <div style={{ display: 'flex', flexDirection: 'column', maxWidth: 1200, margin: '0 auto', width: '100%', height: 'calc(100vh - 54px)', /* topbar ~54px — viewport-level scroll constraint */
             overflow: 'hidden', /* prevent this wrapper itself from scrolling */
-            color: 'var(--text-1, #1e293b)', background: 'transparent' }}>
+            color: '#1e293b', background: 'transparent' }}>
             {/* 🔐 Campaign Approval Modal */}
             {approvalModal && (
                 <ApprovalModal
@@ -516,7 +516,7 @@ export default function AutoMarketing() {
             {/* ══════ FIXED HEADER AREA (Hero + Sub-tabs) ══════ */}
             <div style={{ flexShrink: 0 }}>
                 {/* ── Hero Header ── */}
-                <div className="hero" style={{ padding: '16px 20px 12px', borderBottom: '1px solid var(--border, rgba(99,140,255,0.1))' }}>
+                <div className="hero" style={{ padding: '16px 20px 12px', borderBottom: '1px solid rgba(99,140,255,0.1)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 14 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0, flex: '1 1 300px' }}>
                             <div style={{ width: 42, height: 42, borderRadius: 12, background: 'linear-gradient(135deg, #a855f7, #4f8ef7)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, boxShadow: '0 4px 14px rgba(168,85,247,0.3)', flexShrink: 0 }}>🚀</div>
@@ -524,7 +524,7 @@ export default function AutoMarketing() {
                                 <div className="hero-title" style={{ fontSize: 19, fontWeight: 900, color: '#a855f7', letterSpacing: '-0.3px', lineHeight: 1.3 }}>
                                     {t("marketing.autoTitle")}
                                 </div>
-                                <div className="hero-desc" style={{ fontSize: 11, color: 'var(--text-3, #64748b)', marginTop: 2, lineHeight: 1.4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                <div className="hero-desc" style={{ fontSize: 11, color: '#64748b', marginTop: 2, lineHeight: 1.4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                     {t("marketing.autoSub")}
                                 </div>
                             </div>
@@ -543,8 +543,8 @@ export default function AutoMarketing() {
                 </div>
 
                 {/* ── Sub-Tab Navigation (fixed, always visible) ── */}
-                <div className="sub-tab-nav" style={{ padding: '8px 14px', background: 'var(--bg, rgba(245,247,250,0.97))', borderBottom: '1px solid var(--border, rgba(99,140,255,0.1))', backdropFilter: 'blur(12px)' }}>
-                    <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', background: 'var(--surface, rgba(241,245,249,0.7))', border: '1px solid var(--border, rgba(99,140,255,0.1))', borderRadius: 12, padding: '6px 8px' }}>
+                <div className="sub-tab-nav" style={{ padding: '8px 14px', background: 'rgba(245,247,250,0.97)', borderBottom: '1px solid rgba(99,140,255,0.1)', backdropFilter: 'blur(12px)' }}>
+                    <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', background: 'rgba(241,245,249,0.7)', border: '1px solid rgba(99,140,255,0.1)', borderRadius: 12, padding: '6px 8px' }}>
                         {TABS.map(tb => {
                             const isActive = tab === tb.id;
                             const TAB_CLR = { creative: '#06b6d4', setup: '#a855f7', preview: '#4f8ef7', guide: '#6366f1' };
@@ -646,7 +646,7 @@ export default function AutoMarketing() {
                             <div style={{ fontWeight: 800, fontSize: 13, color: "#06b6d4", marginBottom: 3 }}>
                                 🎨 {t('marketing.creativeAutoSync')}
                             </div>
-                            <div style={{ fontSize: 11, color: "var(--text-3)", lineHeight: 1.6 }}>
+                            <div style={{ fontSize: 11, color: '#64748b', lineHeight: 1.6 }}>
                                 {t('marketing.creativeSyncDesc1')}<strong style={{ color: "#a855f7" }}>{t('marketing.creativeSyncBtn')}</strong>{t('marketing.creativeSyncDesc2')}
                                 <strong style={{ color: "#4f8ef7" }}>{t('marketing.creativeSyncDesc3')}</strong>{t('marketing.creativeSyncDesc4')}
                             </div>
@@ -673,7 +673,7 @@ export default function AutoMarketing() {
                             <div style={{ fontWeight: 800, fontSize: 13, color: "#a855f7", marginBottom: 3 }}>
                                 🤖 {t('marketing.aiHubTitle')}
                             </div>
-                            <div style={{ fontSize: 11, color: "var(--text-3)", lineHeight: 1.6 }}>
+                            <div style={{ fontSize: 11, color: '#64748b', lineHeight: 1.6 }}>
                                 {t('marketing.aiHubDesc1')}<strong style={{ color: "#4f8ef7" }}>{t('marketing.aiHubDesc2')}</strong>{t('marketing.aiHubDesc3')}<br />
                                 {t('marketing.aiHubDesc4')}
                             </div>
@@ -709,9 +709,9 @@ export default function AutoMarketing() {
                             </div>
                         </div>
                         <div style={{ marginTop: 12, padding: "10px 14px", borderRadius: 10, background: "rgba(79,142,247,0.06)", border: "1px solid rgba(79,142,247,0.15)" }}>
-                            <span style={{ fontSize: 11, color: "var(--text-3)" }}>{t("marketing.setBudget")} </span>
+                            <span style={{ fontSize: 11, color: '#64748b' }}>{t("marketing.setBudget")} </span>
                             <span style={{ fontWeight: 900, fontSize: 18, color: "#4f8ef7" }}>{fmt(effectiveBudget)}</span>
-                            <span style={{ fontSize: 10, color: "var(--text-3)", marginLeft: 6 }}>{t("marketing.perMonth")}</span>
+                            <span style={{ fontSize: 10, color: '#64748b', marginLeft: 6 }}>{t("marketing.perMonth")}</span>
                         </div>
                     </div>
 
@@ -726,8 +726,8 @@ export default function AutoMarketing() {
                                     border: `1px solid ${selCats.includes(cat.id) ? "rgba(168,85,247,0.5)" : "rgba(99,140,255,0.1)"}`,
                                     transition: "all 150ms" }}>
                                     <div style={{ fontSize: 20, marginBottom: 4 }}>{cat.icon}</div>
-                                    <div style={{ fontWeight: 700, fontSize: 12, color: selCats.includes(cat.id) ? "#a855f7" : "var(--text-1)" }}>{cat.label}</div>
-                                    <div style={{ fontSize: 10, color: "var(--text-3)", marginTop: 3 }}>{cat.tags.slice(0, 2).join(" · ")}</div>
+                                    <div style={{ fontWeight: 700, fontSize: 12, color: selCats.includes(cat.id) ? "#a855f7" : '#1e293b' }}>{cat.label}</div>
+                                    <div style={{ fontSize: 10, color: '#64748b', marginTop: 3 }}>{cat.tags.slice(0, 2).join(" · ")}</div>
                                     {selCats.includes(cat.id) && <div style={{ fontSize: 10, color: "#a855f7", marginTop: 4, fontWeight: 700 }}>{t("marketing.selected")}</div>}
                                 </button>
                             ))}
@@ -776,8 +776,8 @@ export default function AutoMarketing() {
                                                 {selAds.includes(ch.id) && <span style={{ fontSize: 10, color: ch.color, fontWeight: 700 }}>✓</span>}
                                             </div>
                                         </div>
-                                        <div style={{ fontWeight: 700, fontSize: 11, color: selAds.includes(ch.id) ? ch.color : "var(--text-1)" }}>{ch.label}</div>
-                                        <div style={{ fontSize: 10, color: "var(--text-3)", marginTop: 3 }}>{t('marketing.cpmApprox')}{fmt(ch.cpm)}{ch.strength.length ? ' · ' + ch.strength.join(", ") : ''}</div>
+                                        <div style={{ fontWeight: 700, fontSize: 11, color: selAds.includes(ch.id) ? ch.color : '#1e293b' }}>{ch.label}</div>
+                                        <div style={{ fontSize: 10, color: '#64748b', marginTop: 3 }}>{t('marketing.cpmApprox')}{fmt(ch.cpm)}{ch.strength.length ? ' · ' + ch.strength.join(", ") : ''}</div>
                                         {/* API 미연동 시 연동 안내 메시지 */}
                                         {!apiOk && (
                                             <div style={{ marginTop: 6, padding: "4px 8px", borderRadius: 6, background: "rgba(245,158,11,0.06)", border: "1px dashed rgba(245,158,11,0.25)", fontSize: 9, color: "#f59e0b", lineHeight: 1.5 }}>
@@ -800,7 +800,7 @@ export default function AutoMarketing() {
                                     <div style={{ fontWeight: 900, fontSize: 13, color: "#4f8ef7" }}>
                                         {t("marketing.explainTitle")}
                                     </div>
-                                    <div style={{ fontSize: 10, color: "var(--text-3)", marginTop: 2 }}>
+                                    <div style={{ fontSize: 10, color: '#64748b', marginTop: 2 }}>
                                         {lastRecommend?.reason || t("marketing.explainSub")}
                                     </div>
                                 </div>
@@ -824,7 +824,7 @@ export default function AutoMarketing() {
                                                 const catBase = PRODUCT_CATEGORIES_BASE.find(c => c.id === cid);
                                                 if (!ex) return null;
                                                 return (
-                                                    <div key={cid} style={{ padding: "8px 12px", borderRadius: 10, background: "rgba(168,85,247,0.06)", border: "1px solid rgba(168,85,247,0.15)", fontSize: 11, color: "var(--text-2)", lineHeight: 1.6 }}>
+                                                    <div key={cid} style={{ padding: "8px 12px", borderRadius: 10, background: "rgba(168,85,247,0.06)", border: "1px solid rgba(168,85,247,0.15)", fontSize: 11, color: '#475569', lineHeight: 1.6 }}>
                                                         <span style={{ fontWeight: 700, color: "#a855f7", marginRight: 6 }}>
                                                             {catBase?.icon} {t(`marketing.cat_${cid}`)}
                                                         </span>
@@ -872,7 +872,7 @@ export default function AutoMarketing() {
                                                     </div>
                                                     {/* Recommend 이유 + 팁 */}
                                                     <div style={{ padding: "10px 14px", display: "grid", gap: 6 }}>
-                                                        <div style={{ fontSize: 11, color: "var(--text-2)", lineHeight: 1.7 }}>
+                                                        <div style={{ fontSize: 11, color: '#475569', lineHeight: 1.7 }}>
                                                             {t(`marketing.${ex.whyKey}`)}
                                                         </div>
                                                         <div style={{ display: "flex", alignItems: "flex-start", gap: 6, padding: "6px 10px", borderRadius: 8, background: "rgba(245,158,11,0.06)", border: "1px solid rgba(245,158,11,0.2)", fontSize: 10, color: "#f59e0b", lineHeight: 1.6 }}>
@@ -887,7 +887,7 @@ export default function AutoMarketing() {
                                 </div>
 
                                 {/* 직접 Change 안내 */}
-                                <div style={{ padding: "8px 14px", borderRadius: 10, fontSize: 10, background: "rgba(148,163,184,0.05)", border: "1px dashed rgba(148,163,184,0.2)", color: "var(--text-3)" }}>
+                                <div style={{ padding: "8px 14px", borderRadius: 10, fontSize: 10, background: "rgba(148,163,184,0.05)", border: "1px dashed rgba(148,163,184,0.2)", color: '#64748b' }}>
                                     ℹ️ {t("marketing.explainEditNote")}
                                 </div>
                             </div>
@@ -897,7 +897,7 @@ export default function AutoMarketing() {
                     {/* Active 판매Channel */}
                     <div style={cardStyle}>
                         <div style={{ fontWeight: 700, fontSize: 13, color: "#f97316", marginBottom: 10 }}>{t("marketing.salesChannels")}</div>
-                        <div style={{ fontSize: 11, color: "var(--text-3)", marginBottom: 12 }}>{t("marketing.salesChannelSub")}</div>
+                        <div style={{ fontSize: 11, color: '#64748b', marginBottom: 12 }}>{t("marketing.salesChannelSub")}</div>
                         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                             {SALES_CHANNELS.map(ch => (
                                 <div
@@ -910,7 +910,7 @@ export default function AutoMarketing() {
                                         padding: "6px 14px", borderRadius: 99, fontSize: 11, fontWeight: 700,
                                         background: ch.apiConnected ? "rgba(34,197,94,0.10)" : ch.active ? "rgba(245,158,11,0.08)" : "rgba(148,163,184,0.08)",
                                         border: `1px solid ${ch.apiConnected ? "rgba(34,197,94,0.3)" : ch.active ? "rgba(245,158,11,0.25)" : "rgba(148,163,184,0.2)"}`,
-                                        color: ch.apiConnected ? "#22c55e" : ch.active ? "#f59e0b" : "var(--text-3)",
+                                        color: ch.apiConnected ? "#22c55e" : ch.active ? "#f59e0b" : '#64748b',
                                         cursor: ch.apiConnected ? "default" : "pointer",
                                         transition: "all 150ms" }}
                                 >
@@ -935,7 +935,7 @@ export default function AutoMarketing() {
 
                     {/* Add Settings */}
                     <div style={cardStyle}>
-                        <div style={{ fontWeight: 700, fontSize: 13, color: "var(--text-2)", marginBottom: 14 }}>{t("marketing.campaignDetail2")}</div>
+                        <div style={{ fontWeight: 700, fontSize: 13, color: '#475569', marginBottom: 14 }}>{t("marketing.campaignDetail2")}</div>
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                             <div>
                                 {lbl(t("marketing.campaignNameLabel"))}
@@ -968,7 +968,7 @@ export default function AutoMarketing() {
                         {!strategy ? (
                             <div style={{ ...cardStyle, textAlign: "center", padding: 40 }}>
                                 <div style={{ fontSize: 40, marginBottom: 12 }}>🤖</div>
-                                <div style={{ color: "var(--text-3)", fontSize: 13 }}>{t("marketing.previewEmpty")}</div>
+                                <div style={{ color: '#64748b', fontSize: 13 }}>{t("marketing.previewEmpty")}</div>
                                 <button onClick={() => setTab("setup")} style={{ marginTop: 14, padding: "8px 20px", borderRadius: 8, background: "linear-gradient(135deg,#4f8ef7,#a855f7)", border: "none", color: '#fff', fontWeight: 700, fontSize: 12, cursor: "pointer" }}>
                                     {t("marketing.goSetup")}
                                 </button>
@@ -986,7 +986,7 @@ export default function AutoMarketing() {
                                     ].map(({ label, value, icon, color }) => (
                                         <div key={label} style={{ ...cardStyle, textAlign: "center" }}>
                                             <div style={{ fontSize: 22, marginBottom: 4 }}>{icon}</div>
-                                            <div style={{ fontSize: 10, color: "var(--text-3)", marginBottom: 4 }}>{label}</div>
+                                            <div style={{ fontSize: 10, color: '#64748b', marginBottom: 4 }}>{label}</div>
                                             <div style={{ fontWeight: 900, fontSize: 18, color }}>{value}</div>
                                         </div>
                                     ))}
@@ -1015,17 +1015,17 @@ export default function AutoMarketing() {
                                                                 fontWeight: 800, textAlign: "right", fontSize: 11, outline: "none"
                                                             }}
                                                         />
-                                                        <span style={{ color: "var(--text-3)" }}>({pct}%)</span>
+                                                        <span style={{ color: '#64748b' }}>({pct}%)</span>
                                                     </div>
                                                 </div>
                                                 {/* In Progress바 */}
-                                                <div style={{ height: 5, background: 'var(--surface)', borderRadius: 4, marginBottom: 8 }}>
+                                                <div style={{ height: 5, background: 'rgba(241,245,249,0.7)', borderRadius: 4, marginBottom: 8 }}>
                                                     <div style={{ width: pct + "%", height: "100%", background: ch.color, borderRadius: 4, transition: "width 0.5s" }} />
                                                 </div>
-                                                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 4, fontSize: 10, color: "var(--text-3)" }}>
-                                                    <span>{t("marketing.statImpressions")} <b style={{ color: "var(--text-2)" }}>{impressions.toLocaleString()}</b></span>
-                                                    <span>{t("marketing.statClicks")} <b style={{ color: "var(--text-2)" }}>{clicks.toLocaleString()}</b></span>
-                                                    <span>{t("marketing.statConversions")} <b style={{ color: "var(--text-2)" }}>{conversions}</b></span>
+                                                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 4, fontSize: 10, color: '#64748b' }}>
+                                                    <span>{t("marketing.statImpressions")} <b style={{ color: '#475569' }}>{impressions.toLocaleString()}</b></span>
+                                                    <span>{t("marketing.statClicks")} <b style={{ color: '#475569' }}>{clicks.toLocaleString()}</b></span>
+                                                    <span>{t("marketing.statConversions")} <b style={{ color: '#475569' }}>{conversions}</b></span>
                                                     <span>ROAS <b style={{ color: "#22c55e" }}>{roas}x</b></span>
                                                 </div>
                                             </div>
@@ -1037,14 +1037,14 @@ export default function AutoMarketing() {
                                 {/* Approval 요청 */}
                                 <div style={{ ...cardStyle, borderColor: "rgba(34,197,94,0.3)", background: "rgba(34,197,94,0.04)" }}>
                                     <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 12 }}>{t("marketing.approvalTitle")}</div>
-                                    <div style={{ fontSize: 12, color: "var(--text-3)", marginBottom: 14 }}>
+                                    <div style={{ fontSize: 12, color: '#64748b', marginBottom: 14 }}>
                                         {t("marketing.approvalSub")}
                                     </div>
                                     <div style={{ display: "flex", gap: 10 }}>
                                         <button onClick={handleSubmitApproval} style={{ flex: 1, padding: "12px 0", borderRadius: 10, border: "none", cursor: "pointer", background: "linear-gradient(135deg,#22c55e,#16a34a)", color: '#fff', fontWeight: 900, fontSize: 13, boxShadow: "0 4px 14px rgba(34,197,94,0.3)" }}>
                                             {t("marketing.submitApproval")}
                                         </button>
-                                        <button onClick={() => { setTab("setup"); setDraft(null); }} style={{ padding: "12px 20px", borderRadius: 10, border: "1px solid rgba(99,140,255,0.2)", cursor: "pointer", background: "transparent", color: "var(--text-3)", fontSize: 12, fontWeight: 700 }}>
+                                        <button onClick={() => { setTab("setup"); setDraft(null); }} style={{ padding: "12px 20px", borderRadius: 10, border: "1px solid rgba(99,140,255,0.2)", cursor: "pointer", background: "transparent", color: '#64748b', fontSize: 12, fontWeight: 700 }}>
                                             {t("marketing.resetBtn")}
                                         </button>
                                     </div>
@@ -1065,9 +1065,9 @@ export default function AutoMarketing() {
                             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 20 }}>
                                 <div>
                                     <div style={{ fontWeight: 900, fontSize: 16 }}>{showResult.name}</div>
-                                    <div style={{ fontSize: 10, color: "var(--text-3)", fontFamily: "monospace" }}>{showResult.id}</div>
+                                    <div style={{ fontSize: 10, color: '#64748b', fontFamily: "monospace" }}>{showResult.id}</div>
                                 </div>
-                                <button onClick={() => setShowResult(null)} style={{ background: "none", border: "none", color: "var(--text-3)", fontSize: 18, cursor: "pointer" }}>✕</button>
+                                <button onClick={() => setShowResult(null)} style={{ background: "none", border: "none", color: '#64748b', fontSize: 18, cursor: "pointer" }}>✕</button>
                             </div>
 
                             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 16 }}>
@@ -1078,7 +1078,7 @@ export default function AutoMarketing() {
                                     { label: t("marketing.estConv"), value: showResult.totalConversions, color: "#f97316" },
                                 ].map(({ label, value, color }) => (
                                     <div key={label} style={{ padding: "10px 12px", borderRadius: 10, background: "rgba(0,0,0,0.03)" }}>
-                                        <div style={{ fontSize: 10, color: "var(--text-3)" }}>{label}</div>
+                                        <div style={{ fontSize: 10, color: '#64748b' }}>{label}</div>
                                         <div style={{ fontWeight: 800, fontSize: 16, color }}>{value}</div>
                                     </div>
                                 ))}
@@ -1090,7 +1090,7 @@ export default function AutoMarketing() {
                                         <span style={{ fontWeight: 700, fontSize: 11, color: ch.color }}>{ch.icon} {ch.label}</span>
                                         <span style={{ fontWeight: 800, color: ch.color }}>{fmt(alloc)}</span>
                                     </div>
-                                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 4, fontSize: 10, color: "var(--text-3)" }}>
+                                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 4, fontSize: 10, color: '#64748b' }}>
                                         <span>{t("marketing.statImpressions")} {impressions?.toLocaleString()}</span>
                                         <span>{t("marketing.statClicks")} {clicks?.toLocaleString()}</span>
                                         <span>{t("marketing.statConversions")} {conversions}</span>
