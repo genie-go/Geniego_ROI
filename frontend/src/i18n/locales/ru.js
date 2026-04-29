@@ -572,6 +572,8 @@ export default {
     "autoTab2": "② Настройка кампании",
     "autoTab3": "③ Предпросмотр ИИ",
     "autoTab4": "Руководство",
+    "guideTabCreativeDesc": "Создание, управление и экспорт рекламных материалов ИИ в различных форматах",
+    "guideTabCreativeName": "Креативная студия",
     "mktTabOverview": "Обзор",
     "mktTabAdStatus": "Статус рекламы",
     "mktTabCreative": "Креативы",

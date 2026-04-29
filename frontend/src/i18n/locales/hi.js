@@ -572,6 +572,8 @@ export default {
     "autoTab2": "② अभियान सेटअप",
     "autoTab3": "③ AI रणनीति पूर्वावलोकन",
     "autoTab4": "गाइड",
+    "guideTabCreativeDesc": "AI विज्ञापन सामग्री बनाएं, प्रबंधित करें और मल्टी-फॉर्मेट में निर्यात करें",
+    "guideTabCreativeName": "क्रिएटिव स्टूडियो",
     "mktTabOverview": "अवलोकन",
     "mktTabAdStatus": "विज्ञापन स्थिति",
     "mktTabCreative": "क्रिएटिव",

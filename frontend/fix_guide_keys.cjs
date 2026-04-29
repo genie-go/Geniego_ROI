@@ -1,89 +1,214 @@
-const fs=require('fs'),path=require('path'),dir=path.join(__dirname,'src/i18n/locales');
-// Guide steps use guideS{N}T and guideS{N}D format, NOT guideStep{N}Title
-// Also guide tabs use guideTab{Name}Desc and guideTp{N}/guideCt{N} patterns
-const T={
-zh:{
-guideS1T:"注册和设置仓库",guideS1D:"在'WMS仓库'标签中点击[+添加仓库]按钮。输入仓库名称、代码、地址、面积、温度类型(常温/冷藏/冷冻/复合/电子/危险品)、运营类型(自营/3PL/租赁)、管理员联系方式后保存。",
-guideS2T:"出入库登记和管理",guideS2D:"在'出入库'标签中点击[登记]按钮，登记入库、出库、退货入库、退货出库、仓库间调拨、库存调整、报废等7种类型。支持Excel/CSV批量上传和条码/QR扫描。",
-guideS3T:"实时库存查询",guideS3D:"在'库存状况'标签中按仓库、SKU查询全部库存。低于安全库存的商品以红色标注，支持CSV/Excel导出导入，库存价值自动计算。",
-guideS4T:"入库验收流程",guideS4D:"在'入库验收'标签中基于采购订单(PO)验收入库商品的数量和质量。验收完成后自动反映到库存中。",
-guideS5T:"拣货/包装列表管理",guideS5D:"在'拣货/包装'标签中创建和管理基于订单的拣货列表。订单下达后自动生成拣货列表，提供基于仓库位置的最优路线。",
-guideS6T:"批次/保质期追踪",guideS6D:"在'批次/保质期'标签中登记和追踪批次号和保质期。FIFO自动适用，保质期临近的商品优先出库。",
-guideS7T:"自动采购(PO)系统",guideS7D:"在'自动采购'标签中基于安全库存设置自动采购。库存低于安全库存时自动创建采购申请。",
-guideS8T:"合并包装管理",guideS8D:"在'合并包装'标签中将同一买家的多个订单合并到一个包裹中发货，节省运费。",
-guideS9T:"运输公司管理和API集成",guideS9D:"在'运输公司'标签中注册国内/国际快递公司并集成API。在集成中心注册API密钥后自动同步。",
-guideS10T:"商业发票自动生成",guideS10D:"在'发票'标签中自动生成国际发货用商业发票，支持INCOTERMS、HS编码和多币种。",
-guideS11T:"捆绑/BOM管理",guideS11D:"通过BOM(物料清单)创建商品捆绑。追踪组件库存并组装/发运捆绑套装。",
-guideS12T:"供应商管理",guideS12D:"注册和管理供应商的联系方式、付款条件、交货周期和评分。追踪各供应渠道的采购历史。",
-guideS13T:"库存盘点",guideS13D:"盘点实际库存。对比账面库存和实际库存，识别差异并生成差异报告。",
-guideS14T:"审计历史和安全",guideS14D:"通过[移动历史]按钮查看所有仓库活动的审计追踪日志。通过[安全监控]按钮实时监控安全威胁。",
-guideS15T:"数据导出和报表",guideS15D:"支持CSV/Excel格式的库存报表导出。利用报表构建器生成自定义分析报告。",
-guideS16T:"多仓库运营",guideS16D:"同时管理多个仓库，支持仓库间调拨、各仓库独立库存管理和统一视图。",
-guideS17T:"权限管理",guideS17D:"为每个用户设置不同的访问权限(管理员/经理/操作员/查看者)，保障数据安全。",
-guideS18T:"条码/QR扫描",guideS18D:"使用移动设备的相机扫描条码/QR码，快速处理入库/出库/盘点作业。",
-guideS19T:"安全监控",guideS19D:"实时监控XSS/SQL注入等安全威胁。检测到黑客攻击时立即发出警报。",
-guideS20T:"API集成",guideS20D:"通过集成中心连接ERP、电商平台和物流系统，实现数据自动同步。",
-guideTp1:"在集成中心注册API密钥后，快递公司和销售渠道会自动同步到WMS。比手动注册更高效。",
-guideTp2:"设置安全库存阈值后，自动采购功能可以预防缺货。请为每个SKU设置不同的阈值。",
-guideTp3:"使用Excel批量上传功能一次处理数百条出入库记录。下载样本文件按格式填写即可。",
-guideTp4:"启用批次/保质期管理后，FIFO自动应用可最大限度减少报废损失。",
-guideTp5:"定期执行库存盘点(建议每月1次)可最大限度减少账面和实物差异，实现精确库存管理。",
-guideCt1:"删除仓库前请确保库存为零。否则可能导致数据不一致。",
-guideCt2:"API密钥请妥善保管，切勿在公共代码库中暴露。建议定期更换密钥。",
-guideCt3:"大批量导入时请先用少量数据测试，确认无误后再执行全量导入。",
-guideTab1:"WMS仓库",guideTab2:"出入库",guideTab3:"库存状况",guideTab4:"入库验收",guideTab5:"拣货/包装",guideTab6:"批次/保质期",guideTab7:"自动采购",guideTab8:"合并包装",guideTab9:"运输公司",guideTab10:"物流追踪",guideTab11:"发票",guideTab12:"捆绑/BOM",guideTab13:"供应商",guideTab14:"库存盘点",
+/**
+ * Part 1: Inject missing guide keys into marketing namespace for all locales
+ */
+const fs = require('fs');
+const path = require('path');
+const dir = path.resolve(__dirname, 'src/i18n/locales');
+
+// Full translations for guide keys per language
+const T = {
+ja: {
+  gf1Title:'ログイン & 環境確認',gf1Desc:'プラットフォームにログインし、サイドバーの「AIマーケティング自動化戦略」メニューをクリックします。',
+  gf2Title:'APIチャネル連動',gf2Desc:'統合ハブでMeta、Google、NaverなどのAPIキーを登録します。',
+  gf3Title:'ダッシュボード確認',gf3Desc:'メインダッシュボードで現在のKPI状況を把握します。',
+  gf4Title:'月間予算設定',gf4Desc:'プリセットボタンまたは直接入力で月間広告予算を設定します。',
+  gf5Title:'商品カテゴリ選択',gf5Desc:'ビューティー、ファッション、食品など対象カテゴリを選択します。',
+  gf6Title:'広告チャネル選択',gf6Desc:'AI推奨または手動でMeta、TikTok、Googleなどを選択します。',
+  gf7Title:'ターゲット設定',gf7Desc:'キャンペーン期間とターゲットオーディエンスを設定します。',
+  gf8Title:'AIシミュレーション実行',gf8Desc:'「AI戦略生成」ボタンでチャネル別予算配分を自動計算します。',
+  gf9Title:'クリエイティブ制作',gf9Desc:'クリエイティブスタジオでAI広告素材を生成します。',
+  gf10Title:'プレビュー確認',gf10Desc:'AI戦略プレビュータブで予測KPIと配分結果を確認します。',
+  gf11Title:'承認 & 提出',gf11Desc:'管理者承認モーダルで最終確認後、キャンペーンを提出します。',
+  gf12Title:'モニタリング',gf12Desc:'キャンペーンマネージャーでリアルタイムパフォーマンスを追跡します。',
+  gf13Title:'最適化調整',gf13Desc:'チャネル別予算スライダーで配分を微調整します。',
+  gf14Title:'レポート確認',gf14Desc:'Rollupダッシュボードで全体ROI/ROASレポートを確認します。',
+  gf15Title:'完了 & 次のサイクル',gf15Desc:'キャンペーン終了後、データを分析し次の戦略に反映します。',
+  guidePhaseA:'Phase A — 準備',guidePhaseB:'Phase B — キャンペーン設計',
+  guidePhaseC:'Phase C — AI戦略 & 素材生成',guidePhaseD:'Phase D — 実行 & モニタリング',
+  guidePhaseE:'Phase E — 最適化 & 完了',
+  guideFullTitle:'📋 最初から最後まで — 完全ガイド',guideFullSub:'AIマーケティング自動化プラットフォームの全ワークフローをステップごとにご案内します。',
+  guideTabCreativeName:'クリエイティブスタジオ',guideTabCreativeDesc:'AI広告素材の生成・管理・マルチフォーマットエクスポート',
 },
-ja:{
-guideS1T:"倉庫の登録と設定",guideS1D:"'WMS倉庫'タブで[+倉庫追加]をクリック。倉庫名、コード、住所、面積、温度タイプ、運営タイプ、管理者連絡先を入力して保存します。",
-guideS2T:"入出庫登録と管理",guideS2D:"'入出庫'タブで入庫、出庫、返品入庫、返品出庫、倉庫間移動、在庫調整、廃棄の7種類を登録します。",
-guideS3T:"リアルタイム在庫照会",guideS3D:"'在庫状況'タブで全在庫を倉庫別、SKU別に照会します。安全在庫以下の品目は赤で表示されます。",
-guideS4T:"入庫検品プロセス",guideS4D:"'入庫検品'タブで発注(PO)に基づいて入庫商品の数量と品質を検品します。",
-guideS5T:"ピッキング/梱包リスト管理",guideS5D:"'ピッキング/梱包'タブで注文ベースのピッキングリストを作成・管理します。",
-guideS6T:"ロット/消費期限追跡",guideS6D:"ロット番号と消費期限を登録・追跡します。FIFO自動適用。",
-guideS7T:"自動発注(PO)システム",guideS7D:"安全在庫基準で自動発注を設定します。",
-guideS8T:"合包装管理",guideS8D:"同一購入者の複数注文を1つの箱にまとめて配送します。",
-guideS9T:"運送会社管理とAPI連携",guideS9D:"国内/国際宅配業者を登録しAPIを連携します。",
-guideS10T:"コマーシャルインボイス",guideS10D:"国際配送用コマーシャルインボイスを自動生成します。",
-guideS11T:"バンドル/BOM管理",guideS11D:"BOM(部品表)でバンドル商品を作成し構成品在庫を追跡します。",
-guideS12T:"取引先管理",guideS12D:"サプライヤーの連絡先、支払条件、リードタイム、評価を管理します。",
-guideS13T:"在庫実査",guideS13D:"帳簿在庫と実物在庫を比較し差異レポートを生成します。",
-guideS14T:"監査履歴とセキュリティ",guideS14D:"すべての倉庫活動の監査追跡ログを確認し、セキュリティ脅威をリアルタイム監視します。",
-guideTp1:"統合ハブでAPIキーを登録すると、宅配業者と販売チャネルがWMSに自動同期されます。",
-guideTp2:"安全在庫閾値を設定すると自動発注機能で品切れを予防できます。",
-guideTp3:"Excel一括アップロード機能で数百件の入出庫を一度に処理できます。",
+de: {
+  gf1Title:'Login & Umgebungsprüfung',gf1Desc:'Melden Sie sich an und navigieren Sie zum Menü „KI-Marketing-Automatisierung" in der Seitenleiste.',
+  gf2Title:'API-Kanäle verbinden',gf2Desc:'Registrieren Sie API-Schlüssel für Meta, Google, Naver im Integration Hub.',
+  gf3Title:'Dashboard prüfen',gf3Desc:'Überprüfen Sie die aktuellen KPI-Werte im Haupt-Dashboard.',
+  gf4Title:'Monatsbudget festlegen',gf4Desc:'Legen Sie das monatliche Werbebudget über Preset-Buttons oder Direkteingabe fest.',
+  gf5Title:'Produktkategorie wählen',gf5Desc:'Wählen Sie Zielkategorien wie Beauty, Mode, Lebensmittel usw.',
+  gf6Title:'Werbekanäle wählen',gf6Desc:'Wählen Sie per KI-Empfehlung oder manuell Meta, TikTok, Google usw.',
+  gf7Title:'Zielgruppe festlegen',gf7Desc:'Legen Sie Kampagnenzeitraum und Zielgruppe fest.',
+  gf8Title:'KI-Simulation starten',gf8Desc:'Klicken Sie auf „KI-Strategie generieren" für automatische Budgetverteilung.',
+  gf9Title:'Kreativ-Erstellung',gf9Desc:'Erstellen Sie KI-Werbematerialien im Creative Studio.',
+  gf10Title:'Vorschau prüfen',gf10Desc:'Überprüfen Sie prognostizierte KPIs und Verteilungsergebnisse im Vorschau-Tab.',
+  gf11Title:'Genehmigung & Einreichung',gf11Desc:'Bestätigen Sie im Manager-Genehmigungsmodal und reichen Sie die Kampagne ein.',
+  gf12Title:'Monitoring',gf12Desc:'Verfolgen Sie die Echtzeit-Performance im Kampagnenmanager.',
+  gf13Title:'Optimierungsanpassung',gf13Desc:'Passen Sie die Budgetverteilung pro Kanal mit Schiebereglern an.',
+  gf14Title:'Bericht prüfen',gf14Desc:'Überprüfen Sie den Gesamt-ROI/ROAS-Bericht im Rollup-Dashboard.',
+  gf15Title:'Abschluss & nächster Zyklus',gf15Desc:'Analysieren Sie die Daten nach Kampagnenende und nutzen Sie sie für die nächste Strategie.',
+  guidePhaseA:'Phase A — Erste Schritte',guidePhaseB:'Phase B — Kampagnendesign',
+  guidePhaseC:'Phase C — KI-Strategie & Kreativ',guidePhaseD:'Phase D — Ausführung & Monitoring',
+  guidePhaseE:'Phase E — Optimierung & Abschluss',
+  guideFullTitle:'📋 Von Anfang bis Ende — Vollständiger Leitfaden',guideFullSub:'Schritt-für-Schritt-Anleitung zum gesamten Workflow der KI-Marketing-Automatisierung.',
+  guideTabCreativeName:'Creative Studio',guideTabCreativeDesc:'KI-Werbematerial erstellen, verwalten und in mehreren Formaten exportieren',
 },
-de:{guideS1T:"Lager registrieren",guideS1D:"Im Tab 'WMS Lager' auf [+Lager hinzufügen] klicken.",guideS2T:"Ein-/Ausgang verwalten",guideS2D:"7 Bewegungsarten registrieren.",guideS3T:"Bestandsstatus prüfen",guideS3D:"Bestand nach Lager und SKU einsehen.",guideS4T:"Wareneingang prüfen",guideS4D:"Menge und Qualität prüfen.",guideS5T:"Kommissionierung",guideS5D:"Auftragsbasierte Picklisten erstellen.",guideTp1:"API-Schlüssel im Hub registrieren.",},
-th:{guideS1T:"ลงทะเบียนคลังสินค้า",guideS1D:"คลิก [+เพิ่มคลัง] ในแท็บ 'คลังสินค้า WMS'",guideS2T:"จัดการรับ-จ่าย",guideS2D:"ลงทะเบียน 7 ประเภทการเคลื่อนไหว",guideS3T:"ตรวจสอบสถานะสต็อก",guideS3D:"ดูสต็อกตามคลังและ SKU",guideS4T:"รับสินค้า",guideS4D:"ตรวจสอบจำนวนและคุณภาพ",guideS5T:"หยิบ/แพ็ค",guideS5D:"สร้างรายการหยิบสินค้า",},
-vi:{guideS1T:"Đăng ký kho",guideS1D:"Nhấn [+Thêm kho] trong tab 'Kho WMS'.",guideS2T:"Quản lý xuất nhập",guideS2D:"Đăng ký 7 loại di chuyển hàng.",guideS3T:"Kiểm tra tồn kho",guideS3D:"Xem tồn kho theo kho và SKU.",guideS4T:"Nhận hàng",guideS4D:"Kiểm tra số lượng và chất lượng.",guideS5T:"Lấy hàng/Đóng gói",guideS5D:"Tạo danh sách lấy hàng.",},
-id:{guideS1T:"Daftarkan Gudang",guideS1D:"Klik [+Tambah Gudang] di tab 'Gudang WMS'.",guideS2T:"Kelola Keluar/Masuk",guideS2D:"Daftarkan 7 jenis pergerakan stok.",guideS3T:"Cek Status Stok",guideS3D:"Lihat stok berdasarkan gudang dan SKU.",guideS4T:"Penerimaan",guideS4D:"Periksa jumlah dan kualitas.",guideS5T:"Pick & Pack",guideS5D:"Buat daftar picking.",},
-es:{guideS1T:"Registrar Almacén",guideS1D:"Haga clic en [+Agregar Almacén] en la pestaña 'Almacén WMS'.",guideS2T:"Gestionar Entradas/Salidas",guideS2D:"Registre 7 tipos de movimientos.",guideS3T:"Verificar Inventario",guideS3D:"Consulte el stock por almacén y SKU.",guideS4T:"Recepción",guideS4D:"Inspeccione cantidad y calidad.",guideS5T:"Picking/Empaque",guideS5D:"Cree listas de picking.",},
-fr:{guideS1T:"Enregistrer un Entrepôt",guideS1D:"Cliquez sur [+Ajouter Entrepôt] dans l'onglet 'Entrepôt WMS'.",guideS2T:"Gérer Entrées/Sorties",guideS2D:"Enregistrez 7 types de mouvements.",guideS3T:"Vérifier les Stocks",guideS3D:"Consultez le stock par entrepôt et SKU.",guideS4T:"Réception",guideS4D:"Inspectez quantité et qualité.",guideS5T:"Préparation/Emballage",guideS5D:"Créez des listes de préparation.",},
-pt:{guideS1T:"Registrar Armazém",guideS1D:"Clique em [+Adicionar Armazém] na aba 'Armazém WMS'.",guideS2T:"Gerenciar Entradas/Saídas",guideS2D:"Registre 7 tipos de movimentos.",guideS3T:"Verificar Estoque",guideS3D:"Consulte o estoque por armazém e SKU.",guideS4T:"Recebimento",guideS4D:"Inspecione quantidade e qualidade.",guideS5T:"Separação/Embalagem",guideS5D:"Crie listas de separação.",},
-ru:{guideS1T:"Регистрация склада",guideS1D:"Нажмите [+Добавить Склад] во вкладке 'Склад WMS'.",guideS2T:"Управление приходом/расходом",guideS2D:"Зарегистрируйте 7 типов движений.",guideS3T:"Проверка запасов",guideS3D:"Просмотрите запасы по складу и SKU.",guideS4T:"Приёмка",guideS4D:"Проверьте количество и качество.",guideS5T:"Комплектация/Упаковка",guideS5D:"Создайте списки комплектации.",},
-ar:{guideS1T:"تسجيل المستودع",guideS1D:"انقر على [+إضافة مستودع] في علامة التبويب 'مستودع WMS'.",guideS2T:"إدارة الوارد/الصادر",guideS2D:"سجل 7 أنواع من الحركات.",guideS3T:"فحص المخزون",guideS3D:"عرض المخزون حسب المستودع و SKU.",guideS4T:"استلام",guideS4D:"فحص الكمية والجودة.",guideS5T:"التقاط/تعبئة",guideS5D:"إنشاء قوائم الالتقاط.",},
-hi:{guideS1T:"गोदाम पंजीकृत करें",guideS1D:"'WMS गोदाम' टैब में [+गोदाम जोड़ें] क्लिक करें।",guideS2T:"आवक/जावक प्रबंधन",guideS2D:"7 प्रकार की स्टॉक गतिविधि दर्ज करें।",guideS3T:"स्टॉक स्थिति जांचें",guideS3D:"गोदाम और SKU द्वारा स्टॉक देखें।",guideS4T:"माल प्राप्ति",guideS4D:"मात्रा और गुणवत्ता की जांच करें।",guideS5T:"पिकिंग/पैकिंग",guideS5D:"पिकिंग सूची बनाएं।",},
-'zh-TW':{guideS1T:"註冊倉庫",guideS1D:"在'WMS倉庫'標籤中點擊[+新增倉庫]按鈕。",guideS2T:"管理出入庫",guideS2D:"登記7種類型的庫存移動。",guideS3T:"查看庫存狀況",guideS3D:"按倉庫和SKU查看所有庫存。",guideS4T:"入庫驗收",guideS4D:"檢查數量和品質。",guideS5T:"揀貨/包裝",guideS5D:"建立揀貨清單。",},
+es: {
+  gf1Title:'Inicio de sesión & Verificación',gf1Desc:'Inicie sesión y navegue al menú "Automatización de Marketing IA" en la barra lateral.',
+  gf2Title:'Conectar Canales API',gf2Desc:'Registre claves API para Meta, Google, Naver en el Hub de Integración.',
+  gf3Title:'Verificar Dashboard',gf3Desc:'Revise los KPI actuales en el dashboard principal.',
+  gf4Title:'Configurar Presupuesto Mensual',gf4Desc:'Configure el presupuesto publicitario mensual con botones preestablecidos o entrada directa.',
+  gf5Title:'Seleccionar Categoría',gf5Desc:'Seleccione categorías objetivo como Belleza, Moda, Alimentos, etc.',
+  gf6Title:'Seleccionar Canales',gf6Desc:'Seleccione Meta, TikTok, Google, etc. por recomendación IA o manualmente.',
+  gf7Title:'Configurar Audiencia',gf7Desc:'Configure el período de campaña y la audiencia objetivo.',
+  gf8Title:'Ejecutar Simulación IA',gf8Desc:'Haga clic en "Generar Estrategia IA" para la distribución automática del presupuesto.',
+  gf9Title:'Crear Creativos',gf9Desc:'Genere materiales publicitarios con IA en el Creative Studio.',
+  gf10Title:'Revisar Vista Previa',gf10Desc:'Revise los KPI previstos y los resultados de distribución en la pestaña de vista previa.',
+  gf11Title:'Aprobación & Envío',gf11Desc:'Confirme en el modal de aprobación del gerente y envíe la campaña.',
+  gf12Title:'Monitoreo',gf12Desc:'Rastree el rendimiento en tiempo real en el Gestor de Campañas.',
+  gf13Title:'Ajuste de Optimización',gf13Desc:'Ajuste la distribución del presupuesto por canal con controles deslizantes.',
+  gf14Title:'Revisar Informe',gf14Desc:'Revise el informe general de ROI/ROAS en el dashboard Rollup.',
+  gf15Title:'Completado & Siguiente Ciclo',gf15Desc:'Analice los datos después de la campaña y aplíquelos a la siguiente estrategia.',
+  guidePhaseA:'Phase A — Preparación',guidePhaseB:'Phase B — Diseño de Campaña',
+  guidePhaseC:'Phase C — Estrategia IA & Creativos',guidePhaseD:'Phase D — Ejecución & Monitoreo',
+  guidePhaseE:'Phase E — Optimización & Cierre',
+  guideFullTitle:'📋 De Inicio a Fin — Guía Completa',guideFullSub:'Guía paso a paso del flujo completo de la plataforma de automatización de marketing IA.',
+  guideTabCreativeName:'Creative Studio',guideTabCreativeDesc:'Generar, gestionar y exportar materiales publicitarios IA en múltiples formatos',
+},
+fr: {
+  gf1Title:'Connexion & Vérification',gf1Desc:'Connectez-vous et naviguez vers "Marketing IA — Stratégie Auto" dans la barre latérale.',
+  gf2Title:'Connecter les Canaux API',gf2Desc:"Enregistrez les clés API pour Meta, Google, Naver dans le Hub d'Intégration.",
+  gf3Title:'Vérifier le Dashboard',gf3Desc:'Consultez les KPI actuels dans le dashboard principal.',
+  gf4Title:'Définir le Budget Mensuel',gf4Desc:'Configurez le budget publicitaire mensuel via les boutons prédéfinis ou la saisie directe.',
+  gf5Title:'Sélectionner les Catégories',gf5Desc:'Sélectionnez les catégories cibles : Beauté, Mode, Alimentation, etc.',
+  gf6Title:'Sélectionner les Canaux',gf6Desc:'Sélectionnez Meta, TikTok, Google par recommandation IA ou manuellement.',
+  gf7Title:"Définir l'Audience",gf7Desc:'Configurez la période de campagne et le public cible.',
+  gf8Title:'Lancer la Simulation IA',gf8Desc:'Cliquez sur "Générer Stratégie IA" pour la répartition automatique du budget.',
+  gf9Title:'Créer les Visuels',gf9Desc:'Générez des visuels publicitaires IA dans le Creative Studio.',
+  gf10Title:"Vérifier l'Aperçu",gf10Desc:"Consultez les KPI prévus et les résultats de répartition dans l'onglet aperçu.",
+  gf11Title:'Approbation & Soumission',gf11Desc:'Confirmez dans le modal de validation managériale et soumettez la campagne.',
+  gf12Title:'Suivi',gf12Desc:'Suivez la performance en temps réel dans le Gestionnaire de Campagnes.',
+  gf13Title:"Ajustement d'Optimisation",gf13Desc:'Ajustez la répartition du budget par canal avec les curseurs.',
+  gf14Title:'Consulter le Rapport',gf14Desc:'Consultez le rapport ROI/ROAS global dans le dashboard Rollup.',
+  gf15Title:'Terminé & Prochain Cycle',gf15Desc:'Analysez les données post-campagne et intégrez-les dans la stratégie suivante.',
+  guidePhaseA:'Phase A — Préparation',guidePhaseB:'Phase B — Conception de Campagne',
+  guidePhaseC:'Phase C — Stratégie IA & Créatifs',guidePhaseD:'Phase D — Exécution & Suivi',
+  guidePhaseE:'Phase E — Optimisation & Clôture',
+  guideFullTitle:'📋 Guide Complet — Du Début à la Fin',guideFullSub:"Guide étape par étape du flux complet de la plateforme.",
+  guideTabCreativeName:'Creative Studio',guideTabCreativeDesc:'Générer, gérer et exporter des visuels IA en multi-formats',
+},
+th: {
+  gf1Title:'เข้าสู่ระบบ & ตรวจสอบ',gf1Desc:'เข้าสู่ระบบและไปที่เมนู "AI Marketing Automation" ในแถบด้านข้าง',
+  gf2Title:'เชื่อมต่อช่อง API',gf2Desc:'ลงทะเบียน API Key สำหรับ Meta, Google, Naver ใน Integration Hub',
+  gf3Title:'ตรวจสอบ Dashboard',gf3Desc:'ตรวจสอบสถานะ KPI ปัจจุบันใน Dashboard หลัก',
+  gf4Title:'ตั้งงบประมาณรายเดือน',gf4Desc:'ตั้งงบโฆษณารายเดือนผ่านปุ่มพรีเซ็ตหรือป้อนเอง',
+  gf5Title:'เลือกหมวดหมู่สินค้า',gf5Desc:'เลือกหมวดเป้าหมาย เช่น ความงาม แฟชั่น อาหาร ฯลฯ',
+  gf6Title:'เลือกช่องโฆษณา',gf6Desc:'เลือก Meta, TikTok, Google ตาม AI แนะนำ หรือเลือกเอง',
+  gf7Title:'ตั้งค่ากลุ่มเป้าหมาย',gf7Desc:'กำหนดช่วงเวลาแคมเปญและกลุ่มเป้าหมาย',
+  gf8Title:'รัน AI Simulation',gf8Desc:'คลิก "สร้างกลยุทธ์ AI" เพื่อจัดสรรงบอัตโนมัติ',
+  gf9Title:'สร้างครีเอทีฟ',gf9Desc:'สร้างสื่อโฆษณา AI ใน Creative Studio',
+  gf10Title:'ตรวจสอบพรีวิว',gf10Desc:'ตรวจสอบ KPI ที่คาดการณ์และผลการจัดสรรในแท็บพรีวิว',
+  gf11Title:'อนุมัติ & ส่ง',gf11Desc:'ยืนยันใน Modal อนุมัติผู้จัดการและส่งแคมเปญ',
+  gf12Title:'การติดตาม',gf12Desc:'ติดตามผลงานแบบเรียลไทม์ใน Campaign Manager',
+  gf13Title:'ปรับแต่งการเพิ่มประสิทธิภาพ',gf13Desc:'ปรับการจัดสรรงบตามช่องด้วยตัวเลื่อน',
+  gf14Title:'ตรวจสอบรายงาน',gf14Desc:'ตรวจสอบรายงาน ROI/ROAS โดยรวมใน Rollup Dashboard',
+  gf15Title:'เสร็จสิ้น & รอบถัดไป',gf15Desc:'วิเคราะห์ข้อมูลหลังแคมเปญและนำไปใช้กลยุทธ์ถัดไป',
+  guidePhaseA:'Phase A — เตรียมความพร้อม',guidePhaseB:'Phase B — ออกแบบแคมเปญ',
+  guidePhaseC:'Phase C — กลยุทธ์ AI & ครีเอทีฟ',guidePhaseD:'Phase D — ดำเนินการ & ติดตาม',
+  guidePhaseE:'Phase E — เพิ่มประสิทธิภาพ & สรุป',
+  guideFullTitle:'📋 คู่มือฉบับสมบูรณ์ — ตั้งแต่ต้นจนจบ',guideFullSub:'คู่มือทีละขั้นตอนของเวิร์กโฟลว์ทั้งหมดของแพลตฟอร์ม',
+  guideTabCreativeName:'Creative Studio',guideTabCreativeDesc:'สร้าง จัดการ และส่งออกสื่อโฆษณา AI หลายรูปแบบ',
+},
+vi: {
+  gf1Title:'Đăng nhập & Xác minh',gf1Desc:'Đăng nhập và điều hướng đến menu "Tự động hóa Marketing AI" trên thanh bên.',
+  gf2Title:'Kết nối Kênh API',gf2Desc:'Đăng ký khóa API cho Meta, Google, Naver trong Integration Hub.',
+  gf3Title:'Kiểm tra Dashboard',gf3Desc:'Kiểm tra tình trạng KPI hiện tại trên Dashboard chính.',
+  gf4Title:'Đặt Ngân sách Hàng tháng',gf4Desc:'Đặt ngân sách quảng cáo hàng tháng qua nút preset hoặc nhập trực tiếp.',
+  gf5Title:'Chọn Danh mục Sản phẩm',gf5Desc:'Chọn danh mục mục tiêu như Làm đẹp, Thời trang, Thực phẩm, v.v.',
+  gf6Title:'Chọn Kênh Quảng cáo',gf6Desc:'Chọn Meta, TikTok, Google theo đề xuất AI hoặc thủ công.',
+  gf7Title:'Đặt Đối tượng Mục tiêu',gf7Desc:'Cấu hình thời gian chiến dịch và đối tượng mục tiêu.',
+  gf8Title:'Chạy Mô phỏng AI',gf8Desc:'Nhấp "Tạo Chiến lược AI" để phân bổ ngân sách tự động.',
+  gf9Title:'Tạo Sáng tạo',gf9Desc:'Tạo tài liệu quảng cáo AI trong Creative Studio.',
+  gf10Title:'Xem trước',gf10Desc:'Kiểm tra KPI dự kiến và kết quả phân bổ trong tab xem trước.',
+  gf11Title:'Phê duyệt & Gửi',gf11Desc:'Xác nhận trong modal phê duyệt quản lý và gửi chiến dịch.',
+  gf12Title:'Giám sát',gf12Desc:'Theo dõi hiệu suất thời gian thực trong Trình quản lý Chiến dịch.',
+  gf13Title:'Điều chỉnh Tối ưu hóa',gf13Desc:'Điều chỉnh phân bổ ngân sách theo kênh bằng thanh trượt.',
+  gf14Title:'Xem Báo cáo',gf14Desc:'Xem báo cáo ROI/ROAS tổng thể trên Rollup Dashboard.',
+  gf15Title:'Hoàn thành & Chu kỳ Tiếp theo',gf15Desc:'Phân tích dữ liệu sau chiến dịch và áp dụng cho chiến lược tiếp theo.',
+  guidePhaseA:'Phase A — Chuẩn bị',guidePhaseB:'Phase B — Thiết kế Chiến dịch',
+  guidePhaseC:'Phase C — Chiến lược AI & Sáng tạo',guidePhaseD:'Phase D — Thực hiện & Giám sát',
+  guidePhaseE:'Phase E — Tối ưu hóa & Kết thúc',
+  guideFullTitle:'📋 Hướng dẫn Đầy đủ — Từ Đầu đến Cuối',guideFullSub:'Hướng dẫn từng bước toàn bộ quy trình của nền tảng.',
+  guideTabCreativeName:'Creative Studio',guideTabCreativeDesc:'Tạo, quản lý và xuất tài liệu quảng cáo AI đa định dạng',
+},
+id: {
+  gf1Title:'Login & Verifikasi',gf1Desc:'Login dan navigasi ke menu "Otomasi Pemasaran AI" di sidebar.',
+  gf2Title:'Hubungkan Channel API',gf2Desc:'Daftarkan kunci API untuk Meta, Google, Naver di Integration Hub.',
+  gf3Title:'Periksa Dashboard',gf3Desc:'Periksa status KPI saat ini di Dashboard utama.',
+  gf4Title:'Atur Anggaran Bulanan',gf4Desc:'Atur anggaran iklan bulanan melalui tombol preset atau input langsung.',
+  gf5Title:'Pilih Kategori Produk',gf5Desc:'Pilih kategori target seperti Kecantikan, Fashion, Makanan, dll.',
+  gf6Title:'Pilih Channel Iklan',gf6Desc:'Pilih Meta, TikTok, Google berdasarkan rekomendasi AI atau manual.',
+  gf7Title:'Atur Target Audiens',gf7Desc:'Konfigurasikan periode kampanye dan target audiens.',
+  gf8Title:'Jalankan Simulasi AI',gf8Desc:'Klik "Buat Strategi AI" untuk alokasi anggaran otomatis.',
+  gf9Title:'Buat Kreatif',gf9Desc:'Buat materi iklan AI di Creative Studio.',
+  gf10Title:'Periksa Preview',gf10Desc:'Periksa KPI yang diprediksi dan hasil alokasi di tab preview.',
+  gf11Title:'Persetujuan & Kirim',gf11Desc:'Konfirmasi di modal persetujuan manajer dan kirim kampanye.',
+  gf12Title:'Monitoring',gf12Desc:'Pantau performa real-time di Campaign Manager.',
+  gf13Title:'Penyesuaian Optimasi',gf13Desc:'Sesuaikan alokasi anggaran per channel dengan slider.',
+  gf14Title:'Periksa Laporan',gf14Desc:'Periksa laporan ROI/ROAS keseluruhan di Rollup Dashboard.',
+  gf15Title:'Selesai & Siklus Berikutnya',gf15Desc:'Analisis data pasca-kampanye dan terapkan ke strategi berikutnya.',
+  guidePhaseA:'Phase A — Persiapan',guidePhaseB:'Phase B — Desain Kampanye',
+  guidePhaseC:'Phase C — Strategi AI & Kreatif',guidePhaseD:'Phase D — Eksekusi & Monitoring',
+  guidePhaseE:'Phase E — Optimasi & Penutupan',
+  guideFullTitle:'📋 Panduan Lengkap — Dari Awal hingga Akhir',guideFullSub:'Panduan langkah demi langkah seluruh alur kerja platform.',
+  guideTabCreativeName:'Creative Studio',guideTabCreativeDesc:'Buat, kelola, dan ekspor materi iklan AI multi-format',
+},
+pt: {guideTabCreativeName:'Creative Studio',guideTabCreativeDesc:'Gerar, gerenciar e exportar materiais publicitários de IA em múltiplos formatos'},
+ru: {guideTabCreativeName:'Креативная студия',guideTabCreativeDesc:'Создание, управление и экспорт рекламных материалов ИИ в различных форматах'},
+ar: {guideTabCreativeName:'استوديو الإبداع',guideTabCreativeDesc:'إنشاء وإدارة وتصدير المواد الإعلانية بالذكاء الاصطناعي بتنسيقات متعددة'},
+hi: {guideTabCreativeName:'क्रिएटिव स्टूडियो',guideTabCreativeDesc:'AI विज्ञापन सामग्री बनाएं, प्रबंधित करें और मल्टी-फॉर्मेट में निर्यात करें'},
 };
-const files=fs.readdirSync(dir).filter(f=>f.endsWith('.js'));
-let count=0;
-for(const file of files){
-  const lang=file.replace('.js','');
-  const native=T[lang];
-  if(!native)continue;
-  const fp=path.join(dir,file);
-  let src=fs.readFileSync(fp,'utf8');
-  delete require.cache[require.resolve(fp)];
-  const obj=(require(fp).default||require(fp));
-  if(!obj.wms)continue;
-  const merged={...obj.wms,...native};
-  const idx=src.indexOf('"wms"');
-  if(idx===-1)continue;
-  const bs=src.indexOf('{',idx+5);
-  let d=1,p=bs+1;
-  while(d>0&&p<src.length){if(src[p]==='{')d++;else if(src[p]==='}')d--;p++;}
-  src=src.slice(0,idx)+'"wms":'+JSON.stringify(merged)+src.slice(p);
-  fs.writeFileSync(fp,src,'utf8');
-  console.log(`OK ${lang}: ${Object.keys(native).length} keys`);
-  count++;
-}
-console.log(`Done: ${count} files`);
+
+// Inject into each locale
+let totalFixed = 0;
+Object.entries(T).forEach(([lang, keys]) => {
+  const fp = path.join(dir, `${lang}.js`);
+  let src = fs.readFileSync(fp, 'utf8');
+
+  // Find the LAST occurrence of the marketing closing bracket
+  // Strategy: find `"marketing":` and then inject keys before its closing `}`
+  // More reliable: use regex to find marketing block and append keys
+
+  let injected = 0;
+  Object.entries(keys).forEach(([key, val]) => {
+    // Check if key already exists in a valid position (inside marketing)
+    const escaped = val.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+    const keyPattern = new RegExp(`"${key}"\\s*:\\s*"[^"]*"`, 'g');
+    const matches = [...src.matchAll(keyPattern)];
+
+    if (matches.length === 0) {
+      // Key doesn't exist at all - need to inject
+      // Find last "marketing": { block and add before its closing }
+      // Simple approach: find the last autoTab4 or guideSub line and add after it
+      const insertAfter = `"autoTab4"`;
+      const idx = src.lastIndexOf(insertAfter);
+      if (idx > 0) {
+        // Find end of that line
+        const lineEnd = src.indexOf('\n', idx);
+        if (lineEnd > 0) {
+          const insertStr = `    "${key}": "${escaped}",\n`;
+          src = src.substring(0, lineEnd + 1) + insertStr + src.substring(lineEnd + 1);
+          injected++;
+        }
+      }
+    }
+  });
+
+  if (injected > 0) {
+    fs.writeFileSync(fp, src, 'utf8');
+    totalFixed += injected;
+    console.log(`${lang}: injected ${injected} keys`);
+  } else {
+    console.log(`${lang}: 0 new keys needed (checking existing...)`);
+  }
+});
+
+console.log(`\nTotal: ${totalFixed} keys injected`);

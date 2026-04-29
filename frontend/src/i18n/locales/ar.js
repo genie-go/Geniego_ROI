@@ -572,6 +572,8 @@ export default {
     "autoTab2": "③ تهيئة الحملة",
     "autoTab3": "③ معاينة AI",
     "autoTab4": "دليل الاستخدام",
+    "guideTabCreativeDesc": "إنشاء وإدارة وتصدير المواد الإعلانية بالذكاء الاصطناعي بتنسيقات متعددة",
+    "guideTabCreativeName": "استوديو الإبداع",
     "mktTabOverview": "نظرة عامة",
     "mktTabAdStatus": "حالة الإعلانات",
     "mktTabCreative": "الإبداعي",

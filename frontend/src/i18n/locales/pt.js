@@ -572,6 +572,8 @@ export default {
     "autoTab2": "② Config. Campanha",
     "autoTab3": "③ Prévia Estratégia IA",
     "autoTab4": "Guia",
+    "guideTabCreativeDesc": "Gerar, gerenciar e exportar materiais publicitários de IA em múltiplos formatos",
+    "guideTabCreativeName": "Creative Studio",
     "mktTabOverview": "Visão geral",
     "mktTabAdStatus": "Status",
     "mktTabCreative": "Criativos",
