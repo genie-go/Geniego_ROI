@@ -206,7 +206,14 @@ function HBarChart({ items, maxValue }) {
 }
 
 /* ── Modal ────────────────────────────────────────────── */
-const Backdrop = ({ children, onClose }) => (<><div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'linear-gradient(180deg,rgba(255,255,255,0.98),#f0f5ff)', backdropFilter: 'blur(4px)', zIndex: 401, top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: 'min(94vw,680px)', maxHeight: '88vh', overflowY: 'auto', borderRadius: 18, border: '1px solid rgba(0,0,0,0.1)', padding: 28, boxShadow: '0 24px 64px rgba(0,0,0,0.15)' }} /><div>{children}</div></>);
+const Backdrop = ({ children, onClose }) => (
+    <>
+        <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.45)', backdropFilter: 'blur(6px)', zIndex: 400 }} />
+        <div onClick={e => e.stopPropagation()} style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: 'min(94vw,680px)', maxHeight: '88vh', overflowY: 'auto', borderRadius: 20, border: '1px solid rgba(255,255,255,0.18)', padding: 32, boxShadow: '0 24px 64px rgba(0,0,0,0.18)', background: 'linear-gradient(180deg,#ffffff,#f8faff)', zIndex: 401 }}>
+            {children}
+        </div>
+    </>
+);
 
 /* ── Flow Preview Component ──────────────────────────── */
 function FlowPreview({ journey, tr }) {
@@ -418,7 +425,7 @@ export default function JourneyBuilder() {
                         {[{ label: tr(K.totalJourneys), value: stats.total, icon: '🗺️', color: '#4f8ef7' }, { label: tr(K.activeJourneys), value: stats.active, icon: '🟢', color: '#22c55e' }, { label: tr(K.totalExecutions), value: stats.totalExec, icon: '🚀', color: '#a855f7' }, { label: tr(K.avgCompletion), value: stats.avgRate + '%', icon: '📈', color: '#f97316' }].map(({ label, value, icon, color }) => (
                             <div key={label} style={{ ...CARD, display: 'flex', alignItems: 'center', gap: 14 }}>
                                 <div style={{ width: 40, height: 40, borderRadius: 12, background: `${color}12`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>{icon}</div>
-                                <div><div style={{ fontSize: 22, fontWeight: 900, color }} >{label}</div><div>{value}</div></div>
+                                <div><div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', letterSpacing: '0.03em' }}>{label}</div><div style={{ fontSize: 26, fontWeight: 900, color, marginTop: 2 }}>{value}</div></div>
                             </div>
                         ))}
                     </div>
@@ -426,7 +433,7 @@ export default function JourneyBuilder() {
                     {/* Create Button */}
                     <div style={CARD}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <div><div style={{ fontWeight: 800, fontSize: 11, color: '#94a3b8', marginTop: 2 }} >🗺️ {tr(K.tabBuilder)}</div><div>{tr(K.sub)}</div></div>
+                            <div><div style={{ fontWeight: 800, fontSize: 15, color: '#334155' }}>🗺️ {tr(K.tabBuilder)}</div><div style={{ fontSize: 12, color: '#94a3b8', marginTop: 2 }}>{tr(K.sub)}</div></div>
                             <button onClick={() => { setEditId(null); setForm({ name: '', trigger_type: 'signup', segment: '', channels: ['email'], delay: 'none' }); setShowCreate(true); }} style={{ padding: '10px 22px', borderRadius: 12, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#4f8ef7,#06b6d4)', color: '#fff', fontWeight: 800, fontSize: 13, boxShadow: '0 4px 16px rgba(79,142,247,0.3)' }}>+ {tr(K.createJourney)}</button>
                         </div>
                     </div>
@@ -439,7 +446,7 @@ export default function JourneyBuilder() {
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                                         <div style={{ fontSize: 20 }}>{TRIGGER_CFG[j.trigger_type]?.icon || '⚡'}</div>
-                                        <div><div style={{ fontWeight: 800, fontSize: 10, color: '#94a3b8', marginTop: 1 }} >{j.name}</div><div>{trigLabel(j.trigger_type)} → {(j.channels || []).map(c => c.toUpperCase()).join(', ')}</div></div>
+                                        <div><div style={{ fontWeight: 800, fontSize: 14, color: '#1e293b' }}>{j.name}</div><div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2 }}>{trigLabel(j.trigger_type)} → {(j.channels || []).map(c => c.toUpperCase()).join(', ')}</div></div>
                                     </div>
                                     <span style={{ padding: '3px 10px', borderRadius: 6, fontSize: 10, fontWeight: 700, background: cfg.bg, border: `1px solid ${cfg.border}`, color: cfg.color }}>{cfg.icon} {stsLabel(j.status)}</span>
                                 </div>
@@ -476,7 +483,7 @@ export default function JourneyBuilder() {
                                 const tCfg = TRIGGER_CFG[j.trigger_type] || TRIGGER_CFG.manual;
                                 return (
                                     <div key={j.id} style={{ display: 'grid', gridTemplateColumns: '2fr 90px 100px 80px 80px 80px 140px', gap: 6, padding: '12px 20px', borderBottom: '1px solid rgba(0,0,0,0.03)', alignItems: 'center', transition: 'background 0.15s' }} onMouseEnter={e => e.currentTarget.style.background = 'rgba(79,142,247,0.04)'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                                        <div onClick={() => setDetailId(j.id)} style={{ cursor: 'pointer', fontSize: 9, fontWeight: 700, color: '#b0b9c5', marginTop: 1 }} ><div>{j.name}</div><div>{j.createdAt}</div></div>
+                                        <div onClick={() => setDetailId(j.id)} style={{ cursor: 'pointer' }}><div style={{ fontSize: 13, fontWeight: 700, color: '#1e293b' }}>{j.name}</div><div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2 }}>{j.createdAt}</div></div>
                                         <div><span style={{ padding: '3px 8px', borderRadius: 6, fontSize: 10, fontWeight: 700, background: cfg.bg, border: `1px solid ${cfg.border}`, color: cfg.color }}>{cfg.icon} {stsLabel(j.status)}</span></div>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#334155', fontWeight: 600 }} ><span>{tCfg.icon}</span><span>{trigLabel(j.trigger_type)}</span></div>
                                         <div style={{ textAlign: 'right', fontWeight: 700, fontSize: 13, color: '#4f8ef7' }}>{j.executions || 0}</div>
@@ -549,7 +556,7 @@ export default function JourneyBuilder() {
                         {[{ label: tr(K.totalEntered), value: stats.totalEntered.toLocaleString(), icon: '👣', color: '#4f8ef7' }, { label: tr(K.totalCompleted), value: stats.totalDone.toLocaleString(), icon: '✅', color: '#22c55e' }, { label: tr(K.totalEmails), value: stats.totalEmails.toLocaleString(), icon: '📧', color: '#a855f7' }, { label: tr(K.totalRevenue), value: fmt(stats.totalRevenue), icon: '💰', color: '#f97316' }].map(({ label, value, icon, color }) => (
                             <div key={label} style={{ ...CARD, display: 'flex', alignItems: 'center', gap: 14 }}>
                                 <div style={{ width: 40, height: 40, borderRadius: 12, background: `${color}12`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>{icon}</div>
-                                <div><div style={{ fontSize: 20, fontWeight: 900, color }} >{label}</div><div>{value}</div></div>
+                                <div><div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', letterSpacing: '0.03em' }}>{label}</div><div style={{ fontSize: 24, fontWeight: 900, color, marginTop: 2 }}>{value}</div></div>
                             </div>
                         ))}
                     </div>
@@ -633,6 +640,8 @@ export default function JourneyBuilder() {
                             <li style={{ color:'#475569' }}>{tr(K.guideTip3)}</li>
                             <li style={{ color:'#475569' }}>{tr(K.guideTip4)}</li>
                             <li style={{ color:'#475569' }}>{tr(K.guideTip5)}</li>
+                            <li style={{ color:'#475569' }}>{tr(K.guideTip6)}</li>
+                            <li style={{ color:'#475569' }}>{tr(K.guideTip7)}</li>
                         </ul>
                     </div>
                 </div>
@@ -643,12 +652,12 @@ export default function JourneyBuilder() {
             {/* ══ Detail Modal ═══════════════════════════════ */}
             {detail && (<Backdrop onClose={() => setDetailId(null)}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20 }}>
-                    <div><div style={{ fontWeight: 900, fontSize: 10, color: '#94a3b8', fontFamily: 'monospace' }} >{detail.name}</div><div>{detail.id}</div></div>
+                    <div><div style={{ fontWeight: 900, fontSize: 18, color: '#1e293b' }}>{detail.name}</div><div style={{ fontSize: 11, color: '#94a3b8', fontFamily: 'monospace', marginTop: 4 }}>{detail.id}</div></div>
                     <button onClick={() => setDetailId(null)} style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: 18, cursor: 'pointer' }}>✕</button>
                 </div>
                 <div style={{ marginBottom: 16 }}><FlowPreview journey={detail} tr={tr} /></div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 18 }}>
-                    {[{ l: tr(K.triggerType), v: trigLabel(detail.trigger_type), c: TRIGGER_CFG[detail.trigger_type]?.color || '#4f8ef7' }, { l: tr(K.channels), v: (detail.channels || []).join(', ').toUpperCase(), c: '#a855f7' }, { l: tr(K.delayLabel), v: delayLabel(detail.delay), c: '#f59e0b' }, { l: tr(K.totalExecutions), v: detail.executions || 0, c: '#4f8ef7' }, { l: tr(K.totalEntered), v: (detail.entered || 0).toLocaleString(), c: '#06b6d4' }, { l: tr(K.totalCompleted), v: (detail.completed || 0).toLocaleString(), c: '#22c55e' }].map(({ l, v, c }) => (<div key={l} style={{ padding: '10px 12px', borderRadius: 10, background: 'rgba(0,0,0,0.03)', fontSize: 16, color: c, fontWeight: 800 }} ><div>{l}</div><div>{v}</div></div>))}
+                    {[{ l: tr(K.triggerType), v: trigLabel(detail.trigger_type), c: TRIGGER_CFG[detail.trigger_type]?.color || '#4f8ef7' }, { l: tr(K.channels), v: (detail.channels || []).join(', ').toUpperCase(), c: '#a855f7' }, { l: tr(K.delayLabel), v: delayLabel(detail.delay), c: '#f59e0b' }, { l: tr(K.totalExecutions), v: detail.executions || 0, c: '#4f8ef7' }, { l: tr(K.totalEntered), v: (detail.entered || 0).toLocaleString(), c: '#06b6d4' }, { l: tr(K.totalCompleted), v: (detail.completed || 0).toLocaleString(), c: '#22c55e' }].map(({ l, v, c }) => (<div key={l} style={{ padding: '10px 12px', borderRadius: 10, background: 'rgba(0,0,0,0.03)' }}><div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', letterSpacing: '0.04em', textTransform: 'uppercase' }}>{l}</div><div style={{ fontSize: 18, fontWeight: 900, color: c, marginTop: 2 }}>{v}</div></div>))}
                 </div>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                     <button onClick={() => handleRun(detail)} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#22c55e,#14d9b0)', color: '#fff', fontWeight: 800, fontSize: 13 }}>▶ {tr(K.run)}</button>
@@ -673,7 +682,7 @@ export default function JourneyBuilder() {
                             {CHANNELS.map(ch => { const sel = form.channels.includes(ch.id); return (<button key={ch.id} onClick={() => setForm(p => ({ ...p, channels: sel ? p.channels.filter(x => x !== ch.id) : [...p.channels, ch.id] }))} style={{ padding: '8px 16px', borderRadius: 10, border: sel ? `2px solid ${CH_COLORS[ch.id]}` : '1px solid #e2e8f0', cursor: 'pointer', background: sel ? `${CH_COLORS[ch.id]}12` : '#f8fafc', color: sel ? CH_COLORS[ch.id] : '#64748b', fontWeight: 700, fontSize: 12 }}>{ch.icon} {ch.label}</button>); })}
                         </div>
                     </div>
-                    <div><label style={LBL}>{tr(K.delayLabel)}</label><div style={{ display: 'flex', gap: 6, padding: '7px 14px', borderRadius: 8, border: form.delay === d.id ? '2px solid #4f8ef7' : '1px solid #e2e8f0', cursor: 'pointer', background: form.delay === d.id ? 'rgba(79,142,247,0.08)' : '#f8fafc', color: form.delay === d.id ? '#4f8ef7' : '#64748b', fontWeight: 700, fontSize: 12 }} >{DELAYS.map(d => (<button key={d.id} onClick={() => setForm(p => ({ ...p, delay: d.id }))}>{d.label}</button>))}</div></div>
+                    <div><label style={LBL}>{tr(K.delayLabel)}</label><div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>{DELAYS.map(d => (<button key={d.id} onClick={() => setForm(p => ({ ...p, delay: d.id }))} style={{ padding: '7px 14px', borderRadius: 8, border: form.delay === d.id ? '2px solid #4f8ef7' : '1px solid #e2e8f0', cursor: 'pointer', background: form.delay === d.id ? 'rgba(79,142,247,0.08)' : '#f8fafc', color: form.delay === d.id ? '#4f8ef7' : '#64748b', fontWeight: 700, fontSize: 12 }}>{d.label}</button>))}</div></div>
                 </div>
                 <div style={{ display: 'flex', gap: 8, marginTop: 24 }}>
                     <button onClick={handleSave} disabled={!form.name.trim()} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: 'none', cursor: form.name.trim() ? 'pointer' : 'default', background: form.name.trim() ? 'linear-gradient(135deg,#4f8ef7,#06b6d4)' : '#e2e8f0', color: form.name.trim() ? '#fff' : '#94a3b8', fontWeight: 800, fontSize: 13 }}>💾 {tr(K.save)}</button>
