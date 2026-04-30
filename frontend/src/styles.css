@@ -4662,39 +4662,44 @@ body:not([data-theme]) .sidebar-footer {
   color: inherit !important;
 }
 
-/* Solid-color background exceptions (keep white text) */
-[data-theme="arctic_white"] .container > div:last-child [style*="background: rgb(79, 142, 247)"],
-[data-theme="arctic_white"] .container > div:last-child [style*="background: rgb(99, 102, 241)"],
-[data-theme="arctic_white"] .container > div:last-child [style*="background: rgb(168, 85, 247)"],
-[data-theme="arctic_white"] .container > div:last-child [style*="background: rgb(34, 197, 94)"],
-[data-theme="arctic_white"] .container > div:last-child [style*="background: rgb(239, 68, 68)"],
-[data-theme="arctic_white"] .container > div:last-child [style*="background: rgb(220, 38, 38)"],
-[data-theme="arctic_white"] .container > div:last-child [style*="background: rgb(249, 115, 22)"],
-[data-theme="pearl_office"] .container > div:last-child [style*="background: rgb(79, 142, 247)"],
-[data-theme="pearl_office"] .container > div:last-child [style*="background: rgb(99, 102, 241)"],
-[data-theme="pearl_office"] .container > div:last-child [style*="background: rgb(168, 85, 247)"],
-[data-theme="pearl_office"] .container > div:last-child [style*="background: rgb(34, 197, 94)"],
-[data-theme="pearl_office"] .container > div:last-child [style*="background: rgb(239, 68, 68)"],
-[data-theme="pearl_office"] .container > div:last-child [style*="background: rgb(220, 38, 38)"],
-[data-theme="pearl_office"] .container > div:last-child [style*="background: rgb(249, 115, 22)"] {
+/* Solid-color background exceptions (keep white text)
+   ⚠ CRITICAL: These selectors use substring matching [style*="background: rgb(...)"]
+   which also matches rgba() values inside linear-gradient() backgrounds.
+   We MUST exclude elements with linear-gradient backgrounds using :not([style*="linear-gradient"])
+   to prevent turning ALL text inside transparent-bg banners to white. */
+[data-theme="arctic_white"] .container > div:last-child [style*="background: rgb(79, 142, 247)"]:not([style*="linear-gradient"]):not([style*="rgba("]),
+[data-theme="arctic_white"] .container > div:last-child [style*="background: rgb(99, 102, 241)"]:not([style*="linear-gradient"]):not([style*="rgba("]),
+[data-theme="arctic_white"] .container > div:last-child [style*="background: rgb(168, 85, 247)"]:not([style*="linear-gradient"]):not([style*="rgba("]),
+[data-theme="arctic_white"] .container > div:last-child [style*="background: rgb(34, 197, 94)"]:not([style*="linear-gradient"]):not([style*="rgba("]),
+[data-theme="arctic_white"] .container > div:last-child [style*="background: rgb(239, 68, 68)"]:not([style*="linear-gradient"]):not([style*="rgba("]),
+[data-theme="arctic_white"] .container > div:last-child [style*="background: rgb(220, 38, 38)"]:not([style*="linear-gradient"]):not([style*="rgba("]),
+[data-theme="arctic_white"] .container > div:last-child [style*="background: rgb(249, 115, 22)"]:not([style*="linear-gradient"]):not([style*="rgba("]),
+[data-theme="pearl_office"] .container > div:last-child [style*="background: rgb(79, 142, 247)"]:not([style*="linear-gradient"]):not([style*="rgba("]),
+[data-theme="pearl_office"] .container > div:last-child [style*="background: rgb(99, 102, 241)"]:not([style*="linear-gradient"]):not([style*="rgba("]),
+[data-theme="pearl_office"] .container > div:last-child [style*="background: rgb(168, 85, 247)"]:not([style*="linear-gradient"]):not([style*="rgba("]),
+[data-theme="pearl_office"] .container > div:last-child [style*="background: rgb(34, 197, 94)"]:not([style*="linear-gradient"]):not([style*="rgba("]),
+[data-theme="pearl_office"] .container > div:last-child [style*="background: rgb(239, 68, 68)"]:not([style*="linear-gradient"]):not([style*="rgba("]),
+[data-theme="pearl_office"] .container > div:last-child [style*="background: rgb(220, 38, 38)"]:not([style*="linear-gradient"]):not([style*="rgba("]),
+[data-theme="pearl_office"] .container > div:last-child [style*="background: rgb(249, 115, 22)"]:not([style*="linear-gradient"]):not([style*="rgba("]) {
   color: #ffffff !important;
 }
-[data-theme="arctic_white"] .container > div:last-child [style*="background: rgb(79, 142, 247)"] *,
-[data-theme="arctic_white"] .container > div:last-child [style*="background: rgb(99, 102, 241)"] *,
-[data-theme="arctic_white"] .container > div:last-child [style*="background: rgb(168, 85, 247)"] *,
-[data-theme="arctic_white"] .container > div:last-child [style*="background: rgb(34, 197, 94)"] *,
-[data-theme="arctic_white"] .container > div:last-child [style*="background: rgb(239, 68, 68)"] *,
-[data-theme="arctic_white"] .container > div:last-child [style*="background: rgb(220, 38, 38)"] *,
-[data-theme="arctic_white"] .container > div:last-child [style*="background: rgb(249, 115, 22)"] *,
-[data-theme="pearl_office"] .container > div:last-child [style*="background: rgb(79, 142, 247)"] *,
-[data-theme="pearl_office"] .container > div:last-child [style*="background: rgb(99, 102, 241)"] *,
-[data-theme="pearl_office"] .container > div:last-child [style*="background: rgb(168, 85, 247)"] *,
-[data-theme="pearl_office"] .container > div:last-child [style*="background: rgb(34, 197, 94)"] *,
-[data-theme="pearl_office"] .container > div:last-child [style*="background: rgb(239, 68, 68)"] *,
-[data-theme="pearl_office"] .container > div:last-child [style*="background: rgb(220, 38, 38)"] *,
-[data-theme="pearl_office"] .container > div:last-child [style*="background: rgb(249, 115, 22)"] * {
+[data-theme="arctic_white"] .container > div:last-child [style*="background: rgb(79, 142, 247)"]:not([style*="linear-gradient"]):not([style*="rgba("]) *,
+[data-theme="arctic_white"] .container > div:last-child [style*="background: rgb(99, 102, 241)"]:not([style*="linear-gradient"]):not([style*="rgba("]) *,
+[data-theme="arctic_white"] .container > div:last-child [style*="background: rgb(168, 85, 247)"]:not([style*="linear-gradient"]):not([style*="rgba("]) *,
+[data-theme="arctic_white"] .container > div:last-child [style*="background: rgb(34, 197, 94)"]:not([style*="linear-gradient"]):not([style*="rgba("]) *,
+[data-theme="arctic_white"] .container > div:last-child [style*="background: rgb(239, 68, 68)"]:not([style*="linear-gradient"]):not([style*="rgba("]) *,
+[data-theme="arctic_white"] .container > div:last-child [style*="background: rgb(220, 38, 38)"]:not([style*="linear-gradient"]):not([style*="rgba("]) *,
+[data-theme="arctic_white"] .container > div:last-child [style*="background: rgb(249, 115, 22)"]:not([style*="linear-gradient"]):not([style*="rgba("]) *,
+[data-theme="pearl_office"] .container > div:last-child [style*="background: rgb(79, 142, 247)"]:not([style*="linear-gradient"]):not([style*="rgba("]) *,
+[data-theme="pearl_office"] .container > div:last-child [style*="background: rgb(99, 102, 241)"]:not([style*="linear-gradient"]):not([style*="rgba("]) *,
+[data-theme="pearl_office"] .container > div:last-child [style*="background: rgb(168, 85, 247)"]:not([style*="linear-gradient"]):not([style*="rgba("]) *,
+[data-theme="pearl_office"] .container > div:last-child [style*="background: rgb(34, 197, 94)"]:not([style*="linear-gradient"]):not([style*="rgba("]) *,
+[data-theme="pearl_office"] .container > div:last-child [style*="background: rgb(239, 68, 68)"]:not([style*="linear-gradient"]):not([style*="rgba("]) *,
+[data-theme="pearl_office"] .container > div:last-child [style*="background: rgb(220, 38, 38)"]:not([style*="linear-gradient"]):not([style*="rgba("]) *,
+[data-theme="pearl_office"] .container > div:last-child [style*="background: rgb(249, 115, 22)"]:not([style*="linear-gradient"]):not([style*="rgba("]) * {
   color: #ffffff !important;
 }
+
 
 /* ── 6H. Dark rgba backgrounds → light (converted from dark BG cards) ─ */
 [data-theme="arctic_white"] .container > div:last-child [style*="background: rgba(9, 15, 30"],
