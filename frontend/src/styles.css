@@ -3101,27 +3101,57 @@ body:not([data-theme]) .sidebar-footer {
 [data-theme="midnight_gold"] .topbar-sub { color: #6b7280 !important; }
 
 /* ── Arctic/Pearl/Midnight topbar 버튼·텍스트 가시성 강제 보정 ── */
-[data-theme="arctic_white"] .topbar button,
-[data-theme="pearl_office"] .topbar button,
-[data-theme="midnight_gold"] .topbar button {
+/* 드롭다운 패널 내부 버튼은 제외 (다크 배경이므로 밝은 색 유지) */
+[data-theme="arctic_white"] .topbar > div > button,
+[data-theme="pearl_office"] .topbar > div > button,
+[data-theme="midnight_gold"] .topbar > div > button,
+[data-theme="arctic_white"] .topbar > .topbar-right > div > button,
+[data-theme="pearl_office"] .topbar > .topbar-right > div > button,
+[data-theme="midnight_gold"] .topbar > .topbar-right > div > button {
   color: #1e293b !important;
   border-color: rgba(30,41,59,0.18) !important;
 }
-[data-theme="arctic_white"] .topbar button span,
-[data-theme="pearl_office"] .topbar button span,
-[data-theme="midnight_gold"] .topbar button span {
+[data-theme="arctic_white"] .topbar > div > button > span,
+[data-theme="pearl_office"] .topbar > div > button > span,
+[data-theme="midnight_gold"] .topbar > div > button > span,
+[data-theme="arctic_white"] .topbar > .topbar-right > div > button > span,
+[data-theme="pearl_office"] .topbar > .topbar-right > div > button > span,
+[data-theme="midnight_gold"] .topbar > .topbar-right > div > button > span {
   color: #1e293b !important;
 }
-[data-theme="arctic_white"] .topbar .topbar-right button,
-[data-theme="pearl_office"] .topbar .topbar-right button,
-[data-theme="midnight_gold"] .topbar .topbar-right button {
+[data-theme="arctic_white"] .topbar .topbar-right > div > button,
+[data-theme="pearl_office"] .topbar .topbar-right > div > button,
+[data-theme="midnight_gold"] .topbar .topbar-right > div > button {
   background: rgba(30,41,59,0.06) !important;
   border: 1px solid rgba(30,41,59,0.15) !important;
 }
-[data-theme="arctic_white"] .topbar .topbar-right button:hover,
-[data-theme="pearl_office"] .topbar .topbar-right button:hover,
-[data-theme="midnight_gold"] .topbar .topbar-right button:hover {
+[data-theme="arctic_white"] .topbar .topbar-right > div > button:hover,
+[data-theme="pearl_office"] .topbar .topbar-right > div > button:hover,
+[data-theme="midnight_gold"] .topbar .topbar-right > div > button:hover {
   background: rgba(79,142,247,0.12) !important;
+}
+/* ── 드롭다운 패널 내부 버튼: 밝은 텍스트 유지 (다크 배경) ── */
+[data-theme="arctic_white"] .topbar [style*="position: absolute"] button,
+[data-theme="pearl_office"] .topbar [style*="position: absolute"] button,
+[data-theme="midnight_gold"] .topbar [style*="position: absolute"] button {
+  color: #e2e8f0 !important;
+  border-color: transparent !important;
+}
+[data-theme="arctic_white"] .topbar [style*="position: absolute"] button span,
+[data-theme="pearl_office"] .topbar [style*="position: absolute"] button span,
+[data-theme="midnight_gold"] .topbar [style*="position: absolute"] button span {
+  color: #e2e8f0 !important;
+}
+[data-theme="arctic_white"] .topbar [style*="position: absolute"] button:hover,
+[data-theme="pearl_office"] .topbar [style*="position: absolute"] button:hover,
+[data-theme="midnight_gold"] .topbar [style*="position: absolute"] button:hover {
+  background: rgba(79,142,247,0.12) !important;
+}
+/* 선택된 언어 항목: 강조 파란색 유지 */
+[data-theme="arctic_white"] .topbar [style*="position: absolute"] button[style*="rgba(79,142,247,0.15)"] span,
+[data-theme="pearl_office"] .topbar [style*="position: absolute"] button[style*="rgba(79,142,247,0.15)"] span,
+[data-theme="midnight_gold"] .topbar [style*="position: absolute"] button[style*="rgba(79,142,247,0.15)"] span {
+  color: #60a5fa !important;
 }
 [data-theme="arctic_white"] .topbar-clock,
 [data-theme="pearl_office"] .topbar-clock,
