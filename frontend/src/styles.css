@@ -5610,104 +5610,103 @@ button.cs-inactive-tab {
 /* ═══════════════════════════════════════════════════════════════════════
    AUTO MARKETING: Arctic White NUCLEAR TEXT OVERRIDE (FINAL FIX)
    ───────────────────────────────────────────────────────────────────────
-   PROBLEM: Global CSS rules like [style*="background: rgb(...)"] * { color: #fff !important }
-   force ALL children text to white, even inside light-background banners.
-   CSS !important overrides inline styles, so JSX color changes alone don't work.
-   SOLUTION: Force color: inherit !important on ALL children inside .am-banner-* 
-   containers, then set explicit dark base color on the container itself.
-   Buttons get white text explicitly since they have gradient backgrounds.
-   This MUST be at the very END of the file to win the CSS cascade.
+   ROOT CAUSE: [style*="background: rgb(...)"] * { color: #fff !important }
+   at specificity (0,5,1) overrides everything. Our selectors MUST reach
+   specificity (0,6,1)+ by including .container > div:last-child .fade-up
+   PLUS the banner class + child element type selector.
    ═══════════════════════════════════════════════════════════════════════ */
 
-/* Step 1: Force dark text on ALL children inside Auto Marketing banners
-   Using EXPLICIT color values instead of 'inherit' because intermediate DOM nodes
-   may have computed color: white from other !important rules, causing inherit to fail. */
-[data-theme="arctic_white"] .am-banner-creative,
-[data-theme="arctic_white"] .am-banner-creative div,
-[data-theme="arctic_white"] .am-banner-creative span,
-[data-theme="arctic_white"] .am-banner-creative strong,
-[data-theme="arctic_white"] .am-banner-creative p,
-[data-theme="pearl_office"] .am-banner-creative,
-[data-theme="pearl_office"] .am-banner-creative div,
-[data-theme="pearl_office"] .am-banner-creative span,
-[data-theme="pearl_office"] .am-banner-creative strong,
-[data-theme="pearl_office"] .am-banner-creative p {
+/* ── Creative Studio Banner ── specificity: (0,6,1) per selector */
+[data-theme="arctic_white"] .container > div:last-child .fade-up .am-banner-creative,
+[data-theme="arctic_white"] .container > div:last-child .fade-up .am-banner-creative div,
+[data-theme="arctic_white"] .container > div:last-child .fade-up .am-banner-creative span,
+[data-theme="arctic_white"] .container > div:last-child .fade-up .am-banner-creative strong,
+[data-theme="arctic_white"] .container > div:last-child .fade-up .am-banner-creative p,
+[data-theme="pearl_office"] .container > div:last-child .fade-up .am-banner-creative,
+[data-theme="pearl_office"] .container > div:last-child .fade-up .am-banner-creative div,
+[data-theme="pearl_office"] .container > div:last-child .fade-up .am-banner-creative span,
+[data-theme="pearl_office"] .container > div:last-child .fade-up .am-banner-creative strong,
+[data-theme="pearl_office"] .container > div:last-child .fade-up .am-banner-creative p {
   color: #0e7490 !important;
   -webkit-text-fill-color: #0e7490 !important;
 }
 
-[data-theme="arctic_white"] .am-banner-setup,
-[data-theme="arctic_white"] .am-banner-setup div,
-[data-theme="arctic_white"] .am-banner-setup span,
-[data-theme="arctic_white"] .am-banner-setup strong,
-[data-theme="arctic_white"] .am-banner-setup p,
-[data-theme="pearl_office"] .am-banner-setup,
-[data-theme="pearl_office"] .am-banner-setup div,
-[data-theme="pearl_office"] .am-banner-setup span,
-[data-theme="pearl_office"] .am-banner-setup strong,
-[data-theme="pearl_office"] .am-banner-setup p {
+/* ── Campaign Setup Banner ── */
+[data-theme="arctic_white"] .container > div:last-child .fade-up .am-banner-setup,
+[data-theme="arctic_white"] .container > div:last-child .fade-up .am-banner-setup div,
+[data-theme="arctic_white"] .container > div:last-child .fade-up .am-banner-setup span,
+[data-theme="arctic_white"] .container > div:last-child .fade-up .am-banner-setup strong,
+[data-theme="arctic_white"] .container > div:last-child .fade-up .am-banner-setup p,
+[data-theme="pearl_office"] .container > div:last-child .fade-up .am-banner-setup,
+[data-theme="pearl_office"] .container > div:last-child .fade-up .am-banner-setup div,
+[data-theme="pearl_office"] .container > div:last-child .fade-up .am-banner-setup span,
+[data-theme="pearl_office"] .container > div:last-child .fade-up .am-banner-setup strong,
+[data-theme="pearl_office"] .container > div:last-child .fade-up .am-banner-setup p {
   color: #5b21b6 !important;
   -webkit-text-fill-color: #5b21b6 !important;
 }
 
-[data-theme="arctic_white"] .am-banner-preview,
-[data-theme="arctic_white"] .am-banner-preview div,
-[data-theme="arctic_white"] .am-banner-preview span,
-[data-theme="arctic_white"] .am-banner-preview strong,
-[data-theme="arctic_white"] .am-banner-preview p,
-[data-theme="pearl_office"] .am-banner-preview,
-[data-theme="pearl_office"] .am-banner-preview div,
-[data-theme="pearl_office"] .am-banner-preview span,
-[data-theme="pearl_office"] .am-banner-preview strong,
-[data-theme="pearl_office"] .am-banner-preview p {
+/* ── AI Preview Banner ── */
+[data-theme="arctic_white"] .container > div:last-child .fade-up .am-banner-preview,
+[data-theme="arctic_white"] .container > div:last-child .fade-up .am-banner-preview div,
+[data-theme="arctic_white"] .container > div:last-child .fade-up .am-banner-preview span,
+[data-theme="arctic_white"] .container > div:last-child .fade-up .am-banner-preview strong,
+[data-theme="arctic_white"] .container > div:last-child .fade-up .am-banner-preview p,
+[data-theme="pearl_office"] .container > div:last-child .fade-up .am-banner-preview,
+[data-theme="pearl_office"] .container > div:last-child .fade-up .am-banner-preview div,
+[data-theme="pearl_office"] .container > div:last-child .fade-up .am-banner-preview span,
+[data-theme="pearl_office"] .container > div:last-child .fade-up .am-banner-preview strong,
+[data-theme="pearl_office"] .container > div:last-child .fade-up .am-banner-preview p {
   color: #1e293b !important;
   -webkit-text-fill-color: #1e293b !important;
 }
 
-[data-theme="arctic_white"] .am-banner-guide,
-[data-theme="arctic_white"] .am-banner-guide div,
-[data-theme="arctic_white"] .am-banner-guide span,
-[data-theme="arctic_white"] .am-banner-guide strong,
-[data-theme="arctic_white"] .am-banner-guide p,
-[data-theme="pearl_office"] .am-banner-guide,
-[data-theme="pearl_office"] .am-banner-guide div,
-[data-theme="pearl_office"] .am-banner-guide span,
-[data-theme="pearl_office"] .am-banner-guide strong,
-[data-theme="pearl_office"] .am-banner-guide p {
+/* ── Guide Banner ── */
+[data-theme="arctic_white"] .container > div:last-child .fade-up .am-banner-guide,
+[data-theme="arctic_white"] .container > div:last-child .fade-up .am-banner-guide div,
+[data-theme="arctic_white"] .container > div:last-child .fade-up .am-banner-guide span,
+[data-theme="arctic_white"] .container > div:last-child .fade-up .am-banner-guide strong,
+[data-theme="arctic_white"] .container > div:last-child .fade-up .am-banner-guide p,
+[data-theme="pearl_office"] .container > div:last-child .fade-up .am-banner-guide,
+[data-theme="pearl_office"] .container > div:last-child .fade-up .am-banner-guide div,
+[data-theme="pearl_office"] .container > div:last-child .fade-up .am-banner-guide span,
+[data-theme="pearl_office"] .container > div:last-child .fade-up .am-banner-guide strong,
+[data-theme="pearl_office"] .container > div:last-child .fade-up .am-banner-guide p {
   color: #0f172a !important;
   -webkit-text-fill-color: #0f172a !important;
 }
 
-/* Step 3: Buttons inside banners keep white text on gradient backgrounds */
-[data-theme="arctic_white"] .am-banner-creative button,
-[data-theme="arctic_white"] .am-banner-setup button,
-[data-theme="arctic_white"] .am-banner-preview button,
-[data-theme="arctic_white"] .am-banner-guide button,
-[data-theme="pearl_office"] .am-banner-creative button,
-[data-theme="pearl_office"] .am-banner-setup button,
-[data-theme="pearl_office"] .am-banner-preview button,
-[data-theme="pearl_office"] .am-banner-guide button {
+/* ── Buttons inside banners keep white text on gradient backgrounds ── */
+[data-theme="arctic_white"] .container > div:last-child .fade-up .am-banner-creative button,
+[data-theme="arctic_white"] .container > div:last-child .fade-up .am-banner-setup button,
+[data-theme="arctic_white"] .container > div:last-child .fade-up .am-banner-preview button,
+[data-theme="arctic_white"] .container > div:last-child .fade-up .am-banner-guide button,
+[data-theme="pearl_office"] .container > div:last-child .fade-up .am-banner-creative button,
+[data-theme="pearl_office"] .container > div:last-child .fade-up .am-banner-setup button,
+[data-theme="pearl_office"] .container > div:last-child .fade-up .am-banner-preview button,
+[data-theme="pearl_office"] .container > div:last-child .fade-up .am-banner-guide button {
   color: #ffffff !important;
   -webkit-text-fill-color: #ffffff !important;
 }
 
-/* Step 4: Protect CreativeStudioTab inline-styled text from white enforcement */
-[data-theme="arctic_white"] .fade-up [style*="color: rgb(100, 116, 139)"],
-[data-theme="arctic_white"] .fade-up [style*="color: rgb(30, 41, 59)"],
-[data-theme="arctic_white"] .fade-up [style*="color: rgb(22, 163, 74)"],
-[data-theme="arctic_white"] .fade-up [style*="color: rgb(21, 128, 61)"],
-[data-theme="arctic_white"] .fade-up [style*="color: rgb(55, 65, 81)"],
-[data-theme="arctic_white"] .fade-up [style*="color: rgb(14, 116, 144)"],
-[data-theme="arctic_white"] .fade-up [style*="color: rgb(91, 33, 182)"],
-[data-theme="arctic_white"] .fade-up [style*="color: rgb(29, 78, 216)"],
-[data-theme="pearl_office"] .fade-up [style*="color: rgb(100, 116, 139)"],
-[data-theme="pearl_office"] .fade-up [style*="color: rgb(30, 41, 59)"],
-[data-theme="pearl_office"] .fade-up [style*="color: rgb(22, 163, 74)"],
-[data-theme="pearl_office"] .fade-up [style*="color: rgb(21, 128, 61)"],
-[data-theme="pearl_office"] .fade-up [style*="color: rgb(55, 65, 81)"],
-[data-theme="pearl_office"] .fade-up [style*="color: rgb(14, 116, 144)"],
-[data-theme="pearl_office"] .fade-up [style*="color: rgb(91, 33, 182)"],
-[data-theme="pearl_office"] .fade-up [style*="color: rgb(29, 78, 216)"] {
+/* ── CreativeStudioTab text protection ── */
+[data-theme="arctic_white"] .container > div:last-child .fade-up [style*="color: rgb(100, 116, 139)"],
+[data-theme="arctic_white"] .container > div:last-child .fade-up [style*="color: rgb(30, 41, 59)"],
+[data-theme="arctic_white"] .container > div:last-child .fade-up [style*="color: rgb(22, 163, 74)"],
+[data-theme="arctic_white"] .container > div:last-child .fade-up [style*="color: rgb(21, 128, 61)"],
+[data-theme="arctic_white"] .container > div:last-child .fade-up [style*="color: rgb(55, 65, 81)"],
+[data-theme="arctic_white"] .container > div:last-child .fade-up [style*="color: rgb(14, 116, 144)"],
+[data-theme="arctic_white"] .container > div:last-child .fade-up [style*="color: rgb(91, 33, 182)"],
+[data-theme="arctic_white"] .container > div:last-child .fade-up [style*="color: rgb(29, 78, 216)"],
+[data-theme="pearl_office"] .container > div:last-child .fade-up [style*="color: rgb(100, 116, 139)"],
+[data-theme="pearl_office"] .container > div:last-child .fade-up [style*="color: rgb(30, 41, 59)"],
+[data-theme="pearl_office"] .container > div:last-child .fade-up [style*="color: rgb(22, 163, 74)"],
+[data-theme="pearl_office"] .container > div:last-child .fade-up [style*="color: rgb(21, 128, 61)"],
+[data-theme="pearl_office"] .container > div:last-child .fade-up [style*="color: rgb(55, 65, 81)"],
+[data-theme="pearl_office"] .container > div:last-child .fade-up [style*="color: rgb(14, 116, 144)"],
+[data-theme="pearl_office"] .container > div:last-child .fade-up [style*="color: rgb(91, 33, 182)"],
+[data-theme="pearl_office"] .container > div:last-child .fade-up [style*="color: rgb(29, 78, 216)"] {
   color: inherit !important;
   -webkit-text-fill-color: inherit !important;
 }
+
