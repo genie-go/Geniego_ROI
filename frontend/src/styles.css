@@ -5602,3 +5602,83 @@ button.cs-inactive-tab {
   -webkit-text-fill-color: #1e293b !important;
 }
 
+/* ══════════════════════════════════════════════════════════════════
+   AUTO MARKETING: Arctic White Banner Text Accessibility
+   각 서브탭의 제목 컨테이너 배너에서 밝은 색 텍스트가 흰색 배경에서
+   보이지 않는 문제를 해결합니다. 진한 색상으로 강제 변환.
+   ══════════════════════════════════════════════════════════════════ */
+
+/* ① 크리에이티브 스튜디오 — 시안 제목 → 진한 시안 */
+[data-theme="arctic_white"] .am-banner-creative div[style*="color"],
+[data-theme="pearl_office"] .am-banner-creative div[style*="color"] {
+  color: #0e7490 !important;
+  -webkit-text-fill-color: #0e7490 !important;
+}
+[data-theme="arctic_white"] .am-banner-creative div[style*="64748b"],
+[data-theme="pearl_office"] .am-banner-creative div[style*="64748b"] {
+  color: #374151 !important;
+  -webkit-text-fill-color: #374151 !important;
+}
+[data-theme="arctic_white"] .am-banner-creative strong,
+[data-theme="pearl_office"] .am-banner-creative strong {
+  color: #5b21b6 !important;
+  -webkit-text-fill-color: #5b21b6 !important;
+}
+/* 배너 내 "캠페인 설정으로 이동" 버튼 — 그라디언트 배경이므로 흰색 유지 */
+[data-theme="arctic_white"] .am-banner-creative button,
+[data-theme="pearl_office"] .am-banner-creative button {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+/* ② 캠페인 설정 — 보라 제목 → 진한 보라 */
+[data-theme="arctic_white"] .am-banner-setup div[style*="color"],
+[data-theme="pearl_office"] .am-banner-setup div[style*="color"] {
+  color: #5b21b6 !important;
+  -webkit-text-fill-color: #5b21b6 !important;
+}
+[data-theme="arctic_white"] .am-banner-setup div[style*="64748b"],
+[data-theme="pearl_office"] .am-banner-setup div[style*="64748b"] {
+  color: #374151 !important;
+  -webkit-text-fill-color: #374151 !important;
+}
+[data-theme="arctic_white"] .am-banner-setup strong,
+[data-theme="pearl_office"] .am-banner-setup strong {
+  color: #1d4ed8 !important;
+  -webkit-text-fill-color: #1d4ed8 !important;
+}
+[data-theme="arctic_white"] .am-banner-setup button,
+[data-theme="pearl_office"] .am-banner-setup button {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+/* ③ AI 전략 미리보기 — 빈 상태 설명 + "설정으로 이동" 버튼 */
+[data-theme="arctic_white"] .am-banner-preview div[style*="64748b"],
+[data-theme="pearl_office"] .am-banner-preview div[style*="64748b"] {
+  color: #1e293b !important;
+  -webkit-text-fill-color: #1e293b !important;
+}
+[data-theme="arctic_white"] .am-banner-preview button,
+[data-theme="pearl_office"] .am-banner-preview button {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+/* ④ 이용 가이드 — 히어로 제목/부제목 + "시작하기" 버튼 */
+[data-theme="arctic_white"] .am-banner-guide div[style*="1e293b"],
+[data-theme="pearl_office"] .am-banner-guide div[style*="1e293b"] {
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+}
+[data-theme="arctic_white"] .am-banner-guide div[style*="64748b"],
+[data-theme="pearl_office"] .am-banner-guide div[style*="64748b"] {
+  color: #374151 !important;
+  -webkit-text-fill-color: #374151 !important;
+}
+[data-theme="arctic_white"] .am-banner-guide button,
+[data-theme="pearl_office"] .am-banner-guide button {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+

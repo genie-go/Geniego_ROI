@@ -571,7 +571,7 @@ export default function AutoMarketing() {
             {/* ══ TAB: GUIDE — 15-Step Complete Guide ═══════════════════════════ */}
             {tab === "guide" && (
                 <div style={{ display:'flex', flexDirection:'column', gap:20 }}>
-                    <div style={{ ...cardStyle, background:'linear-gradient(135deg,rgba(79,142,247,0.12),rgba(168,85,247,0.08))', borderColor:'rgba(79,142,247,0.3)', textAlign:'center', padding:32 }}>
+                    <div className="am-banner-guide" style={{ ...cardStyle, background:'linear-gradient(135deg,rgba(79,142,247,0.12),rgba(168,85,247,0.08))', borderColor:'rgba(79,142,247,0.3)', textAlign:'center', padding:32 }}>
                         <div style={{ fontSize:44 }}>🤖</div>
                         <div style={{ fontWeight:900, fontSize:22, marginTop:8, color:'#1e293b' }}>{t('marketing.guideTitle')}</div>
                         <div style={{ fontSize:13, color:'#64748b', marginTop:6, maxWidth:600, margin:'6px auto 0', lineHeight:1.7 }}>{t('marketing.guideSub')}</div>
@@ -640,7 +640,7 @@ export default function AutoMarketing() {
             {tab === "creative" && (
                 <>
                     {/* AIAd소재 → CampaignSettings Sync 안내 Banner */}
-                    <div style={{ padding: "12px 18px", borderRadius: 12, marginBottom: 16, background: "linear-gradient(135deg,rgba(6,182,212,0.08),rgba(168,85,247,0.06))", border: "1px solid rgba(6,182,212,0.3)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
+                    <div className="am-banner-creative" style={{ padding: "12px 18px", borderRadius: 12, marginBottom: 16, background: "linear-gradient(135deg,rgba(6,182,212,0.08),rgba(168,85,247,0.06))", border: "1px solid rgba(6,182,212,0.3)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
                         <div>
                             <div style={{ fontWeight: 800, fontSize: 13, color: "#06b6d4", marginBottom: 3 }}>
                                 🎨 {t('marketing.creativeAutoSync')}
@@ -667,7 +667,7 @@ export default function AutoMarketing() {
             {tab === "setup" && (
                 <div style={{ display: "grid", gap: 18 }}>
                     {/* AI Recommend 허브 안내 Banner */}
-                    <div style={{ padding: "14px 18px", borderRadius: 12, background: "linear-gradient(135deg,rgba(168,85,247,0.08),rgba(79,142,247,0.06))", border: "1px solid rgba(168,85,247,0.25)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
+                    <div className="am-banner-setup" style={{ padding: "14px 18px", borderRadius: 12, background: "linear-gradient(135deg,rgba(168,85,247,0.08),rgba(79,142,247,0.06))", border: "1px solid rgba(168,85,247,0.25)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
                         <div>
                             <div style={{ fontWeight: 800, fontSize: 13, color: "#7c3aed", marginBottom: 3 }}>
                                 🤖 {t('marketing.aiHubTitle')}
@@ -965,7 +965,7 @@ export default function AutoMarketing() {
                 tab === "preview" && (
                     <div style={{ display: "grid", gap: 16 }}>
                         {!strategy ? (
-                            <div style={{ ...cardStyle, textAlign: "center", padding: 40 }}>
+                            <div className="am-banner-preview" style={{ ...cardStyle, textAlign: "center", padding: 40 }}>
                                 <div style={{ fontSize: 40, marginBottom: 12 }}>🤖</div>
                                 <div style={{ color: '#64748b', fontSize: 13 }}>{t("marketing.previewEmpty")}</div>
                                 <button onClick={() => setTab("setup")} style={{ marginTop: 14, padding: "8px 20px", borderRadius: 8, background: "linear-gradient(135deg,#4f8ef7,#a855f7)", border: "none", color: '#fff', fontWeight: 700, fontSize: 12, cursor: "pointer" }}>
