@@ -5779,3 +5779,291 @@ button.cs-inactive-tab {
 }
 
 
+/* ═══════════════════════════════════════════════════════════════════════
+   DARK-MODE PURGE — Arctic White / Pearl Office
+   ─────────────────────────────────────────────────────────────────────
+   Rule: Dark mode lives ONLY inside .sidebar.
+   Everything else = pure clean light theme, zero dark remnants.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ── 1. Body & Root Background ────────────────────────────────────── */
+[data-theme="arctic_white"] body,
+[data-theme="arctic_white"] #root {
+  background: #f5f7fa !important;
+  color: #0f1c3a !important;
+}
+[data-theme="arctic_white"] body::before {
+  background:
+    radial-gradient(ellipse 1400px 900px at 10% -10%, rgba(79, 142, 247, 0.03) 0%, transparent 60%),
+    radial-gradient(ellipse 900px 800px at 90% 5%, rgba(168, 85, 247, 0.02) 0%, transparent 55%) !important;
+}
+
+/* ── 2. Main Content Area (everything outside sidebar) ──────────── */
+[data-theme="arctic_white"] .container > div:last-child {
+  background: #f5f7fa !important;
+}
+[data-theme="arctic_white"] .container > div:last-child > div {
+  background: transparent !important;
+}
+
+/* ── 3. Topbar — clean white ──────────────────────────────────────── */
+[data-theme="arctic_white"] .topbar {
+  background: #ffffff !important;
+  border-bottom: 1px solid #e5e7eb !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+  backdrop-filter: none !important;
+}
+[data-theme="arctic_white"] .topbar * {
+  -webkit-text-fill-color: unset;
+}
+
+/* ── 4. Hero Section ──────────────────────────────────────────────── */
+[data-theme="arctic_white"] .hero,
+[data-theme="arctic_white"] [class*="hero"] {
+  background: linear-gradient(135deg, #f0f4ff 0%, #e8edf8 100%) !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04) !important;
+}
+[data-theme="arctic_white"] .hero *,
+[data-theme="arctic_white"] .hero-title,
+[data-theme="arctic_white"] .hero-desc {
+  color: #0f1c3a !important;
+}
+
+/* ── 5. Cards, Panels, Glass ──────────────────────────────────────── */
+[data-theme="arctic_white"] .card,
+[data-theme="arctic_white"] .card-glass,
+[data-theme="arctic_white"] .kpi-card,
+[data-theme="arctic_white"] .miniCard,
+[data-theme="arctic_white"] [class*="card-glass"] {
+  background: #ffffff !important;
+  border: 1px solid #e5e7eb !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06) !important;
+  backdrop-filter: none !important;
+  color: #0f1c3a !important;
+}
+
+/* ── 6. Sub-Tab Navigation Bar ────────────────────────────────────── */
+[data-theme="arctic_white"] .sub-tab-nav {
+  background: #ffffff !important;
+  border-bottom: 1px solid #e5e7eb !important;
+  backdrop-filter: none !important;
+}
+
+/* ── 7. Chart Containers & Data Sections ──────────────────────────── */
+[data-theme="arctic_white"] .chart-container,
+[data-theme="arctic_white"] [class*="chart"],
+[data-theme="arctic_white"] [class*="section-card"],
+[data-theme="arctic_white"] [class*="panel"] {
+  background: #ffffff !important;
+  border-color: #e5e7eb !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+}
+
+/* ── 8. Tables ────────────────────────────────────────────────────── */
+[data-theme="arctic_white"] table,
+[data-theme="arctic_white"] thead,
+[data-theme="arctic_white"] tbody {
+  background: #ffffff !important;
+  color: #0f1c3a !important;
+}
+[data-theme="arctic_white"] th {
+  background: #f8f9fc !important;
+  color: #374151 !important;
+  border-color: #e5e7eb !important;
+}
+[data-theme="arctic_white"] td {
+  border-color: #f0f1f3 !important;
+  color: #1e293b !important;
+}
+[data-theme="arctic_white"] tr:hover td {
+  background: #f8f9fc !important;
+}
+
+/* ── 9. Modals & Overlays ─────────────────────────────────────────── */
+[data-theme="arctic_white"] [class*="modal"] > div,
+[data-theme="arctic_white"] [role="dialog"] {
+  background: #ffffff !important;
+  border: 1px solid #e5e7eb !important;
+  color: #0f1c3a !important;
+}
+
+/* ── 10. Inputs & Select Boxes ────────────────────────────────────── */
+[data-theme="arctic_white"] input,
+[data-theme="arctic_white"] select,
+[data-theme="arctic_white"] textarea {
+  background: #ffffff !important;
+  border: 1px solid #d1d5db !important;
+  color: #0f1c3a !important;
+}
+[data-theme="arctic_white"] input:focus,
+[data-theme="arctic_white"] select:focus,
+[data-theme="arctic_white"] textarea:focus {
+  border-color: #4f8ef7 !important;
+  box-shadow: 0 0 0 3px rgba(79, 142, 247, 0.12) !important;
+}
+
+/* ── 11. Scrollable Content Area ──────────────────────────────────── */
+[data-theme="arctic_white"] .container > div:last-child > div:last-child {
+  background: #f5f7fa !important;
+}
+
+/* ── 12. Inline-styled dark backgrounds purge ─────────────────────── */
+[data-theme="arctic_white"] .container > div:last-child div[style*="background: rgba(13"],
+[data-theme="arctic_white"] .container > div:last-child div[style*="background:rgba(13"],
+[data-theme="arctic_white"] .container > div:last-child div[style*="background: rgba(15"],
+[data-theme="arctic_white"] .container > div:last-child div[style*="background:rgba(15"],
+[data-theme="arctic_white"] .container > div:last-child div[style*="background: rgba(6"],
+[data-theme="arctic_white"] .container > div:last-child div[style*="background: #0d"],
+[data-theme="arctic_white"] .container > div:last-child div[style*="background: #06"],
+[data-theme="arctic_white"] .container > div:last-child div[style*="background: #11"],
+[data-theme="arctic_white"] .container > div:last-child div[style*="background:#0d"],
+[data-theme="arctic_white"] .container > div:last-child div[style*="background:#06"],
+[data-theme="arctic_white"] .container > div:last-child div[style*="background:#11"] {
+  background: #ffffff !important;
+  border: 1px solid #e5e7eb !important;
+}
+
+/* ── 13. Inline glow/shadow purge ─────────────────────────────────── */
+[data-theme="arctic_white"] .container > div:last-child div[style*="boxShadow"],
+[data-theme="arctic_white"] .container > div:last-child div[style*="box-shadow"] {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06) !important;
+}
+
+/* ── 14. Text color normalization (non-sidebar) ───────────────────── */
+[data-theme="arctic_white"] .container > div:last-child [style*="color: #e"],
+[data-theme="arctic_white"] .container > div:last-child [style*="color:#e"],
+[data-theme="arctic_white"] .container > div:last-child [style*="color: #8da"],
+[data-theme="arctic_white"] .container > div:last-child [style*="color: #7a9"],
+[data-theme="arctic_white"] .container > div:last-child [style*="color: var(--text-1)"],
+[data-theme="arctic_white"] .container > div:last-child [style*="color: var(--text-2)"],
+[data-theme="arctic_white"] .container > div:last-child [style*="color: var(--text-3)"] {
+  color: #1e293b !important;
+}
+
+/* ── 15. Backdrop-filter purge (non-sidebar) ──────────────────────── */
+[data-theme="arctic_white"] .container > div:last-child [style*="backdropFilter"],
+[data-theme="arctic_white"] .container > div:last-child [style*="backdrop-filter"] {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* ── 16. KPI Value text ───────────────────────────────────────────── */
+[data-theme="arctic_white"] .kpi-value,
+[data-theme="arctic_white"] [class*="kpi"] {
+  color: #0f1c3a !important;
+}
+
+/* ── 17. Buttons outside sidebar ──────────────────────────────────── */
+[data-theme="arctic_white"] .container > div:last-child button {
+  color: #374151;
+}
+[data-theme="arctic_white"] .container > div:last-child button:hover {
+  background: rgba(79, 142, 247, 0.08);
+}
+
+/* ── 18. Security banner ──────────────────────────────────────────── */
+[data-theme="arctic_white"] [class*="security"],
+[data-theme="arctic_white"] [class*="Security"] {
+  background: #f0fdf4 !important;
+  border: 1px solid #bbf7d0 !important;
+  color: #166534 !important;
+}
+
+/* ── 19. Section headers & labels ─────────────────────────────────── */
+[data-theme="arctic_white"] .container > div:last-child h1,
+[data-theme="arctic_white"] .container > div:last-child h2,
+[data-theme="arctic_white"] .container > div:last-child h3,
+[data-theme="arctic_white"] .container > div:last-child h4,
+[data-theme="arctic_white"] .container > div:last-child h5,
+[data-theme="arctic_white"] .container > div:last-child label,
+[data-theme="arctic_white"] .container > div:last-child span,
+[data-theme="arctic_white"] .container > div:last-child p {
+  color: inherit;
+}
+
+/* ── 20. Sidebar: KEEP dark mode ──────────────────────────────────── */
+[data-theme="arctic_white"] .sidebar {
+  background: linear-gradient(180deg, #0f1629 0%, #0a1020 100%) !important;
+  color: #e8f0ff !important;
+}
+[data-theme="arctic_white"] .sidebar * {
+  color: inherit;
+}
+[data-theme="arctic_white"] .sidebar .nav-item {
+  color: #8da4c4 !important;
+}
+[data-theme="arctic_white"] .sidebar .nav-item.active {
+  color: #ffffff !important;
+  background: rgba(79, 142, 247, 0.15) !important;
+}
+[data-theme="arctic_white"] .sidebar .nav-item:hover:not(.active) {
+  color: #e8f0ff !important;
+  background: rgba(79, 142, 247, 0.08) !important;
+}
+[data-theme="arctic_white"] .sidebar-logo-name {
+  color: #e8f0ff !important;
+}
+[data-theme="arctic_white"] .sidebar-logo-version {
+  color: #7a90ad !important;
+}
+[data-theme="arctic_white"] .sidebar-footer {
+  color: #7a90ad !important;
+}
+[data-theme="arctic_white"] .sidebar button {
+  color: #8da4c4 !important;
+}
+[data-theme="arctic_white"] .sidebar button:hover {
+  color: #e8f0ff !important;
+}
+
+/* ── 21. Shadow normalization ─────────────────────────────────────── */
+[data-theme="arctic_white"] {
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.10);
+  --surface: #ffffff;
+  --surface2: #f8f9fc;
+  --surface-1: #f5f7fa;
+  --bg-card: #ffffff;
+  --bg: #f5f7fa;
+  --border: rgba(0, 0, 0, 0.08);
+  --border2: rgba(0, 0, 0, 0.12);
+  --text-1: #0f1c3a;
+  --text-2: #374151;
+  --text-3: #6b7280;
+}
+
+/* ── 22. App content area background ──────────────────────────────── */
+[data-theme="arctic_white"] .app-content-area {
+  background: #f5f7fa !important;
+}
+
+/* ── 23. Loader & FullLoader dark-bg purge ─────────────────────────── */
+[data-theme="arctic_white"] .container > div:last-child div[style*="surface-1"],
+[data-theme="arctic_white"] .container > div:last-child div[style*="#070f1a"] {
+  background: #f5f7fa !important;
+}
+[data-theme="arctic_white"] div[style*="#070f1a"] {
+  background: #f5f7fa !important;
+  color: #0f1c3a !important;
+}
+
+/* ── 24. Recharts / SVG chart label readability ───────────────────── */
+[data-theme="arctic_white"] .recharts-text,
+[data-theme="arctic_white"] .recharts-cartesian-axis-tick-value {
+  fill: #374151 !important;
+}
+
+/* ── 25. Tooltip styling ──────────────────────────────────────────── */
+[data-theme="arctic_white"] .recharts-tooltip-wrapper {
+  background: #ffffff !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 8px !important;
+}
+
+/* ── 26. Badges (non-sidebar) ─────────────────────────────────────── */
+[data-theme="arctic_white"] .container > div:last-child .badge {
+  border-color: #e5e7eb !important;
+}
+
