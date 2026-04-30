@@ -544,7 +544,7 @@ export default {
     "statImpressions": "Stat Impressions",
     "statClicks": "Stat Clicks",
     "statConversions": "Stat Conversions",
-    "kpiAchieve": "Kpi Achieve",
+    "kpiAchieve": "إنجاز KPI",
     "guideTitle": "دليل التسويق الآلي",
     "guideSub": "دليل منصة التسويق الآلي بالذكاء الاصطناعي.",
     "guideStepsTitle": "البدء — 6 خطوات",
@@ -2445,7 +2445,7 @@ export default {
     "statImpressions": "Stat Impressions",
     "statClicks": "Stat Clicks",
     "statConversions": "Stat Conversions",
-    "kpiAchieve": "Kpi Achieve"
+    "kpiAchieve": "إنجاز KPI"
   },
   "commerce": {
     "totalOrders": "Total Orders",
