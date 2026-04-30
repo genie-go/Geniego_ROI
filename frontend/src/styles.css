@@ -3130,28 +3130,29 @@ body:not([data-theme]) .sidebar-footer {
 [data-theme="midnight_gold"] .topbar .topbar-right > div > button:hover {
   background: rgba(79,142,247,0.12) !important;
 }
-/* ── 드롭다운 패널 내부 버튼: 밝은 텍스트 유지 (다크 배경) ── */
-[data-theme="arctic_white"] .topbar [style*="position: absolute"] button,
-[data-theme="pearl_office"] .topbar [style*="position: absolute"] button,
-[data-theme="midnight_gold"] .topbar [style*="position: absolute"] button {
+/* ── 드롭다운 패널 내부: 밝은 텍스트 강제 (다크 배경, 모든 테마) ── */
+.topbar-dropdown-panel button {
   color: #e2e8f0 !important;
   border-color: transparent !important;
 }
-[data-theme="arctic_white"] .topbar [style*="position: absolute"] button span,
-[data-theme="pearl_office"] .topbar [style*="position: absolute"] button span,
-[data-theme="midnight_gold"] .topbar [style*="position: absolute"] button span {
+.topbar-dropdown-panel button span {
   color: #e2e8f0 !important;
 }
-[data-theme="arctic_white"] .topbar [style*="position: absolute"] button:hover,
-[data-theme="pearl_office"] .topbar [style*="position: absolute"] button:hover,
-[data-theme="midnight_gold"] .topbar [style*="position: absolute"] button:hover {
+.topbar-dropdown-panel button:hover {
   background: rgba(79,142,247,0.12) !important;
 }
-/* 선택된 언어 항목: 강조 파란색 유지 */
-[data-theme="arctic_white"] .topbar [style*="position: absolute"] button[style*="rgba(79,142,247,0.15)"] span,
-[data-theme="pearl_office"] .topbar [style*="position: absolute"] button[style*="rgba(79,142,247,0.15)"] span,
-[data-theme="midnight_gold"] .topbar [style*="position: absolute"] button[style*="rgba(79,142,247,0.15)"] span {
+/* 선택된 항목: 강조 파란색 유지 */
+.topbar-dropdown-panel button[style*="rgba(79,142,247,0.15)"],
+.topbar-dropdown-panel button[style*="rgba(79,142,247,0.15)"] span {
   color: #60a5fa !important;
+}
+/* 드롭다운 헤더 텍스트 */
+.topbar-dropdown-panel > div:first-child {
+  color: #94a3b8 !important;
+}
+/* 테마 드롭다운 라벨 */
+.topbar-dropdown-panel .topbar-theme-label {
+  color: inherit !important;
 }
 [data-theme="arctic_white"] .topbar-clock,
 [data-theme="pearl_office"] .topbar-clock,

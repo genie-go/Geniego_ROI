@@ -343,7 +343,7 @@ export default function Topbar() {
           </button>
 
           {showLang && (
-            <div style={{
+            <div className="topbar-dropdown-panel" style={{
               position: 'absolute', top: '100%', right: 0, marginTop: 8,
               width: 220, maxHeight: 420, borderRadius: 14,
               background: 'rgba(13,21,37,0.97)', border: '1px solid rgba(99,140,255,0.2)',
@@ -399,7 +399,7 @@ export default function Topbar() {
 
           {/* 테마 드롭다운 */}
           {showTheme && (
-            <div style={{
+            <div className="topbar-dropdown-panel" style={{
               position: 'absolute', top: '100%', right: 0, marginTop: 8,
               width: 180, borderRadius: 12,
               background: 'rgba(13,21,37,0.97)', border: '1px solid rgba(99,140,255,0.2)',
