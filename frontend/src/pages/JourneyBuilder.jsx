@@ -81,6 +81,12 @@ const K = {
     guideTipsTitle: 'jb.guideTipsTitle',
     guideTip1: 'jb.guideTip1', guideTip2: 'jb.guideTip2', guideTip3: 'jb.guideTip3',
     guideTip4: 'jb.guideTip4', guideTip5: 'jb.guideTip5', guideTip6: 'jb.guideTip6', guideTip7: 'jb.guideTip7',
+    guideTip8: 'jb.guideTip8', guideTip9: 'jb.guideTip9', guideTip10: 'jb.guideTip10',
+    guideStep16Title: 'jb.guideStep16Title', guideStep16Desc: 'jb.guideStep16Desc',
+    guideStep17Title: 'jb.guideStep17Title', guideStep17Desc: 'jb.guideStep17Desc',
+    guideStep18Title: 'jb.guideStep18Title', guideStep18Desc: 'jb.guideStep18Desc',
+    guideStep19Title: 'jb.guideStep19Title', guideStep19Desc: 'jb.guideStep19Desc',
+    guideStep20Title: 'jb.guideStep20Title', guideStep20Desc: 'jb.guideStep20Desc',
     guideStartBtn: 'jb.guideStartBtn',
 };
 const FB = {
@@ -136,6 +142,19 @@ const FB = {
     [K.guideTip5]: '세그먼트 트리거로 VIP 고객에게 프리미엄 오퍼를 제공하세요.',
     [K.guideTip6]: '여정 복제로 A/B 테스트를 쉽게 실행할 수 있습니다.',
     [K.guideTip7]: '매출 기여도를 확인하여 ROI가 높은 여정에 집중하세요.',
+    [K.guideTip8]: '성과가 낮은 여정은 정기적으로 정리하고 자원을 재배분하세요.',
+    [K.guideTip9]: '즉시 발송(대기 0) 설정은 긴급 프로모션에 가장 효과적입니다.',
+    [K.guideTip10]: '여정 분석 데이터를 팀과 공유하여 마케팅 전략을 함께 수립하세요.',
+    [K.guideStep16Title]: 'A/B 테스트 실행',
+    [K.guideStep16Desc]: '동일 여정을 복제하여 트리거·채널·대기 시간을 변경한 후 성과를 비교합니다.',
+    [K.guideStep17Title]: '다채널 캐스케이딩',
+    [K.guideStep17Desc]: '이메일 미오픈 시 카카오→SMS 순으로 자동 전환되는 멀티채널 전략을 구성합니다.',
+    [K.guideStep18Title]: '매출 기여도 분석',
+    [K.guideStep18Desc]: 'Attribution 연동으로 각 여정의 실제 매출 기여도와 ROI를 확인합니다.',
+    [K.guideStep19Title]: '세그먼트별 성과 비교',
+    [K.guideStep19Desc]: '동일 여정을 다른 CRM 세그먼트에 적용하여 타겟별 효과를 비교 분석합니다.',
+    [K.guideStep20Title]: '팀 협업 & 보고서',
+    [K.guideStep20Desc]: '여정 성과 데이터를 팀과 공유하고 주간·월간 보고서에 활용합니다.',
     [K.guideStartBtn]: '여정 빌더 시작하기',
 };
 
@@ -607,10 +626,10 @@ export default function JourneyBuilder() {
                     <div style={{ ...CARD, color:'#1e293b' }}>
                         <div style={{ fontWeight:800, fontSize:17, color:'#1e293b', marginBottom:16 }}>📚 {tr(K.guideStepsTitle)}</div>
                         <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))', gap:14 }}>
-                            {[{n:'1️⃣',k:'guideStep1',c:'#4f8ef7'},{n:'2️⃣',k:'guideStep2',c:'#22c55e'},{n:'3️⃣',k:'guideStep3',c:'#a855f7'},{n:'4️⃣',k:'guideStep4',c:'#f59e0b'},{n:'5️⃣',k:'guideStep5',c:'#f97316'},{n:'6️⃣',k:'guideStep6',c:'#06b6d4'},{n:'7️⃣',k:'guideStep7',c:'#4f8ef7'},{n:'8️⃣',k:'guideStep8',c:'#22c55e'},{n:'9️⃣',k:'guideStep9',c:'#a855f7'},{n:'🔟',k:'guideStep10',c:'#f59e0b'},{n:'1️⃣1️⃣',k:'guideStep11',c:'#f97316'},{n:'1️⃣2️⃣',k:'guideStep12',c:'#06b6d4'},{n:'1️⃣3️⃣',k:'guideStep13',c:'#4f8ef7'},{n:'1️⃣4️⃣',k:'guideStep14',c:'#22c55e'},{n:'1️⃣5️⃣',k:'guideStep15',c:'#a855f7'}].map((s,i)=>(
+                            {[{n:'1',k:'guideStep1',c:'#4f8ef7'},{n:'2',k:'guideStep2',c:'#22c55e'},{n:'3',k:'guideStep3',c:'#a855f7'},{n:'4',k:'guideStep4',c:'#f59e0b'},{n:'5',k:'guideStep5',c:'#f97316'},{n:'6',k:'guideStep6',c:'#06b6d4'},{n:'7',k:'guideStep7',c:'#4f8ef7'},{n:'8',k:'guideStep8',c:'#22c55e'},{n:'9',k:'guideStep9',c:'#a855f7'},{n:'10',k:'guideStep10',c:'#f59e0b'},{n:'11',k:'guideStep11',c:'#f97316'},{n:'12',k:'guideStep12',c:'#06b6d4'},{n:'13',k:'guideStep13',c:'#4f8ef7'},{n:'14',k:'guideStep14',c:'#22c55e'},{n:'15',k:'guideStep15',c:'#a855f7'},{n:'16',k:'guideStep16',c:'#f59e0b'},{n:'17',k:'guideStep17',c:'#f97316'},{n:'18',k:'guideStep18',c:'#06b6d4'},{n:'19',k:'guideStep19',c:'#4f8ef7'},{n:'20',k:'guideStep20',c:'#22c55e'}].map((s,i)=>(
                                 <div key={i} style={{ background:s.c+'0a', border:`1px solid ${s.c}25`, borderRadius:12, padding:16, color:'#1e293b' }}>
                                     <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:6 }}>
-                                        <span style={{ fontSize:20 }}>{s.n}</span>
+                                        <span style={{ width:28, height:28, borderRadius:8, background:s.c, color:'#fff', display:'inline-flex', alignItems:'center', justifyContent:'center', fontWeight:800, fontSize:12, flexShrink:0 }}>{s.n}</span>
                                         <span style={{ fontWeight:700, fontSize:14, color:s.c }}>{tr(K[s.k+'Title'])}</span>
                                     </div>
                                     <div className="guide-desc" style={{ fontSize:12, color:'#475569', lineHeight:1.7 }}>{tr(K[s.k+'Desc'])}</div>
@@ -642,6 +661,9 @@ export default function JourneyBuilder() {
                             <li style={{ color:'#475569' }}>{tr(K.guideTip5)}</li>
                             <li style={{ color:'#475569' }}>{tr(K.guideTip6)}</li>
                             <li style={{ color:'#475569' }}>{tr(K.guideTip7)}</li>
+                            <li style={{ color:'#475569' }}>{tr(K.guideTip8)}</li>
+                            <li style={{ color:'#475569' }}>{tr(K.guideTip9)}</li>
+                            <li style={{ color:'#475569' }}>{tr(K.guideTip10)}</li>
                         </ul>
                     </div>
                 </div>
