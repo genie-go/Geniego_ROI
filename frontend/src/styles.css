@@ -5088,21 +5088,21 @@ body:not([data-theme]) .sidebar-footer {
   opacity: 0.4 !important;
 }
 
-/* ── 7I. Active tab buttons (gradient bg) → keep white text ──────── */
-[data-theme="arctic_white"] .container > div:last-child button[style*="background: rgb(79, 142, 247)"],
-[data-theme="arctic_white"] .container > div:last-child button[style*="background: rgb(236, 72, 153)"],
-[data-theme="arctic_white"] .container > div:last-child button[style*="background: rgb(34, 197, 94)"],
-[data-theme="arctic_white"] .container > div:last-child button[style*="background: rgb(249, 115, 22)"],
-[data-theme="arctic_white"] .container > div:last-child button[style*="background: rgb(20, 217, 176)"],
-[data-theme="arctic_white"] .container > div:last-child button[style*="background: rgb(168, 85, 247)"],
-[data-theme="arctic_white"] .container > div:last-child button[style*="background: rgb(99, 102, 241)"],
-[data-theme="pearl_office"] .container > div:last-child button[style*="background: rgb(79, 142, 247)"],
-[data-theme="pearl_office"] .container > div:last-child button[style*="background: rgb(236, 72, 153)"],
-[data-theme="pearl_office"] .container > div:last-child button[style*="background: rgb(34, 197, 94)"],
-[data-theme="pearl_office"] .container > div:last-child button[style*="background: rgb(249, 115, 22)"],
-[data-theme="pearl_office"] .container > div:last-child button[style*="background: rgb(20, 217, 176)"],
-[data-theme="pearl_office"] .container > div:last-child button[style*="background: rgb(168, 85, 247)"],
-[data-theme="pearl_office"] .container > div:last-child button[style*="background: rgb(99, 102, 241)"] {
+/* ── 7I. Active tab buttons (gradient bg) → keep white text (exclude marketing tabs) ── */
+[data-theme="arctic_white"] .container > div:last-child button[style*="background: rgb(79, 142, 247)"]:not(.am-active-tab):not(.cs-active-tab),
+[data-theme="arctic_white"] .container > div:last-child button[style*="background: rgb(236, 72, 153)"]:not(.am-active-tab):not(.cs-active-tab),
+[data-theme="arctic_white"] .container > div:last-child button[style*="background: rgb(34, 197, 94)"]:not(.am-active-tab):not(.cs-active-tab),
+[data-theme="arctic_white"] .container > div:last-child button[style*="background: rgb(249, 115, 22)"]:not(.am-active-tab):not(.cs-active-tab),
+[data-theme="arctic_white"] .container > div:last-child button[style*="background: rgb(20, 217, 176)"]:not(.am-active-tab):not(.cs-active-tab),
+[data-theme="arctic_white"] .container > div:last-child button[style*="background: rgb(168, 85, 247)"]:not(.am-active-tab):not(.cs-active-tab),
+[data-theme="arctic_white"] .container > div:last-child button[style*="background: rgb(99, 102, 241)"]:not(.am-active-tab):not(.cs-active-tab),
+[data-theme="pearl_office"] .container > div:last-child button[style*="background: rgb(79, 142, 247)"]:not(.am-active-tab):not(.cs-active-tab),
+[data-theme="pearl_office"] .container > div:last-child button[style*="background: rgb(236, 72, 153)"]:not(.am-active-tab):not(.cs-active-tab),
+[data-theme="pearl_office"] .container > div:last-child button[style*="background: rgb(34, 197, 94)"]:not(.am-active-tab):not(.cs-active-tab),
+[data-theme="pearl_office"] .container > div:last-child button[style*="background: rgb(249, 115, 22)"]:not(.am-active-tab):not(.cs-active-tab),
+[data-theme="pearl_office"] .container > div:last-child button[style*="background: rgb(20, 217, 176)"]:not(.am-active-tab):not(.cs-active-tab),
+[data-theme="pearl_office"] .container > div:last-child button[style*="background: rgb(168, 85, 247)"]:not(.am-active-tab):not(.cs-active-tab),
+[data-theme="pearl_office"] .container > div:last-child button[style*="background: rgb(99, 102, 241)"]:not(.am-active-tab):not(.cs-active-tab) {
   color: #ffffff !important;
 }
 
@@ -5387,14 +5387,14 @@ body:not([data-theme]) .sidebar-footer {
    React renders inline background: '#4f8ef7' as 'rgb(79, 142, 247)'
    so attribute selectors must match the rgb() form too.
    ═══════════════════════════════════════════════════════════════ */
-[data-theme="arctic_white"] .container > div:last-child button[style*="rgb(79, 142, 247)"],
-[data-theme="arctic_white"] .container > div:last-child button[style*="rgb(79,142,247)"],
-[data-theme="arctic_white"] .container > div:last-child button[style*="background: #4f8ef7"],
-[data-theme="arctic_white"] .container > div:last-child button[style*="background:#4f8ef7"],
-[data-theme="pearl_office"] .container > div:last-child button[style*="rgb(79, 142, 247)"],
-[data-theme="pearl_office"] .container > div:last-child button[style*="rgb(79,142,247)"],
-[data-theme="pearl_office"] .container > div:last-child button[style*="background: #4f8ef7"],
-[data-theme="pearl_office"] .container > div:last-child button[style*="background:#4f8ef7"] {
+[data-theme="arctic_white"] .container > div:last-child button[style*="rgb(79, 142, 247)"]:not(.am-active-tab):not(.cs-active-tab),
+[data-theme="arctic_white"] .container > div:last-child button[style*="rgb(79,142,247)"]:not(.am-active-tab):not(.cs-active-tab),
+[data-theme="arctic_white"] .container > div:last-child button[style*="background: #4f8ef7"]:not(.am-active-tab):not(.cs-active-tab),
+[data-theme="arctic_white"] .container > div:last-child button[style*="background:#4f8ef7"]:not(.am-active-tab):not(.cs-active-tab),
+[data-theme="pearl_office"] .container > div:last-child button[style*="rgb(79, 142, 247)"]:not(.am-active-tab):not(.cs-active-tab),
+[data-theme="pearl_office"] .container > div:last-child button[style*="rgb(79,142,247)"]:not(.am-active-tab):not(.cs-active-tab),
+[data-theme="pearl_office"] .container > div:last-child button[style*="background: #4f8ef7"]:not(.am-active-tab):not(.cs-active-tab),
+[data-theme="pearl_office"] .container > div:last-child button[style*="background:#4f8ef7"]:not(.am-active-tab):not(.cs-active-tab) {
   color: #ffffff !important;
   -webkit-text-fill-color: #ffffff !important;
 }
@@ -5506,6 +5506,14 @@ button.rv-active-tab,.rv-active-tab,
 [data-theme="pearl_office"] div[style*="linear-gradient(135deg,#eff6ff"] div[style*="fontWeight: 900"] {
   color: #1e293b !important;
   -webkit-text-fill-color: #1e293b !important;
+}
+
+/* ══ Base (dark theme) tab text colors ══ */
+button.am-active-tab {
+  color: #ffffff;
+}
+button.am-inactive-tab {
+  color: #374151;
 }
 
 /* ══ DEFINITIVE: Protect active gradient buttons from light-theme overrides ══ */

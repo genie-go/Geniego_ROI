@@ -555,7 +555,6 @@ export default function AutoMarketing() {
                                     padding: '7px 14px', borderRadius: 9, border: 'none', cursor: 'pointer',
                                     fontSize: 12, fontWeight: 700, transition: 'all 0.2s cubic-bezier(.4,0,.2,1)',
                                     background: isActive ? clr : 'transparent',
-                                    color: isActive ? '#ffffff' : '#374151',
                                     boxShadow: isActive ? `0 3px 14px ${clr}40` : 'none',
                                     transform: isActive ? 'translateY(-1px)' : 'none' }}>
                                     {tb.icon} {tb.label}
