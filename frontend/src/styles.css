@@ -4764,7 +4764,17 @@ body:not([data-theme]) .sidebar-footer {
   color: #475569 !important;
 }
 .guide-section .guide-cta {
+  color: #1e293b !important;
+  -webkit-text-fill-color: #1e293b !important;
+}
+/* Dark themes: guide-cta keeps white */
+[data-theme="deep_space"] .guide-section .guide-cta,
+[data-theme="aurora"] .guide-section .guide-cta,
+[data-theme="midnight_gold"] .guide-section .guide-cta,
+[data-theme="ocean_depth"] .guide-section .guide-cta,
+[data-theme="crimson_nexus"] .guide-section .guide-cta {
   color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
 }
 /* ── Arctic White / Pearl Office theme overrides for guide ── */
 [data-theme="arctic_white"] .guide-section div,
@@ -4789,7 +4799,10 @@ body:not([data-theme]) .sidebar-footer {
 }
 [data-theme="arctic_white"] .guide-section .guide-cta,
 [data-theme="arctic_white"] .container > div:last-child .guide-section .guide-cta {
-  color: #fff !important;
+  color: #1e293b !important;
+  -webkit-text-fill-color: #1e293b !important;
+  background: linear-gradient(135deg, #4f8ef7, #a855f7) !important;
+  border: 2px solid #4f8ef7 !important;
 }
 [data-theme="pearl_office"] .guide-section div,
 [data-theme="pearl_office"] .guide-section span,
@@ -4813,7 +4826,10 @@ body:not([data-theme]) .sidebar-footer {
 }
 [data-theme="pearl_office"] .guide-section .guide-cta,
 [data-theme="pearl_office"] .container > div:last-child .guide-section .guide-cta {
-  color: #fff !important;
+  color: #1e293b !important;
+  -webkit-text-fill-color: #1e293b !important;
+  background: linear-gradient(135deg, #4f8ef7, #a855f7) !important;
+  border: 2px solid #4f8ef7 !important;
 }
 /* ── Sub-Tab Visibility Fix: Light Theme ──────────────────── */
 /* Force dark text on sub-tab buttons in light themes           */
@@ -4821,9 +4837,9 @@ body:not([data-theme]) .sidebar-footer {
 [data-theme="pearl_office"] button[style*="transparent"] {
   color: #374151 !important;
 }
-/* Active tab keeps white text on gradient background */
-[data-theme="arctic_white"] button[style*="linear-gradient"],
-[data-theme="pearl_office"] button[style*="linear-gradient"] {
+/* Active tab keeps white text on gradient background — except guide CTA */
+[data-theme="arctic_white"] button[style*="linear-gradient"]:not(.guide-cta),
+[data-theme="pearl_office"] button[style*="linear-gradient"]:not(.guide-cta) {
   color: #fff !important;
 }
 /* Tab containers with card-glass background */
@@ -5709,4 +5725,57 @@ button.cs-inactive-tab {
   color: inherit !important;
   -webkit-text-fill-color: inherit !important;
 }
+
+/* ══ Arctic White: Campaign Manager High-Contrast Overrides ══ */
+/* Hero banner title — always dark on light backgrounds */
+[data-theme="arctic_white"] .hero .hero-title,
+[data-theme="arctic_white"] .hero h1,
+[data-theme="arctic_white"] .hero h2 {
+  color: #0f1c3a !important;
+  -webkit-text-fill-color: #0f1c3a !important;
+}
+[data-theme="arctic_white"] .hero .hero-desc,
+[data-theme="arctic_white"] .hero p {
+  color: #374151 !important;
+  -webkit-text-fill-color: #374151 !important;
+}
+
+/* Sub-tab buttons: inactive = dark gray, selected = RED for max visibility */
+[data-theme="arctic_white"] .sub-tab-nav button {
+  color: #374151 !important;
+  -webkit-text-fill-color: #374151 !important;
+}
+/* Active (selected) sub-tab: red text + red border for clear indication */
+[data-theme="arctic_white"] .sub-tab-nav button[style*="translateY"] {
+  color: #dc2626 !important;
+  -webkit-text-fill-color: #dc2626 !important;
+  background: rgba(220, 38, 38, 0.08) !important;
+  border: 2px solid #dc2626 !important;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.15) !important;
+}
+
+/* Pearl Office: same fixes */
+[data-theme="pearl_office"] .hero .hero-title,
+[data-theme="pearl_office"] .hero h1,
+[data-theme="pearl_office"] .hero h2 {
+  color: #111827 !important;
+  -webkit-text-fill-color: #111827 !important;
+}
+[data-theme="pearl_office"] .hero .hero-desc,
+[data-theme="pearl_office"] .hero p {
+  color: #374151 !important;
+  -webkit-text-fill-color: #374151 !important;
+}
+[data-theme="pearl_office"] .sub-tab-nav button {
+  color: #374151 !important;
+  -webkit-text-fill-color: #374151 !important;
+}
+[data-theme="pearl_office"] .sub-tab-nav button[style*="translateY"] {
+  color: #dc2626 !important;
+  -webkit-text-fill-color: #dc2626 !important;
+  background: rgba(220, 38, 38, 0.08) !important;
+  border: 2px solid #dc2626 !important;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.15) !important;
+}
+
 

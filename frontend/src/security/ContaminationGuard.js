@@ -35,6 +35,12 @@ const CONTAMINATION_MARKERS = [
   /^CT-\d{3}$/,        // 콘텐츠 시드 ID
   /^ORD-[A-Z]\d{3}$/,  // 주문 시드 ID
   /^INV-\d{4}$/,       // 재고 시드 ID
+  /^CAMP-\d{3}$/,      // 캠페인 시드 ID (v17.1 추가)
+  /^SNS-\d{3}$/,       // SNS 캠페인 시드 ID
+  /^AI-REC-\d{3}$/,    // AI 추천 시드 ID
+  /^EC-\d{3}$/,        // 이메일 캠페인 시드 ID
+  /^WP-\d{3}$/,        // 웹팝업 시드 ID
+  /^STL-/,             // 정산 시드 ID
 
   // 문자열 마커
   /demo_/i, /mock_/i, /test_/i, /seed_/i, /fake_/i, /sample_/i,

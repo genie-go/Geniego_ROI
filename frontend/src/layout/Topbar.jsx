@@ -351,7 +351,7 @@ export default function Topbar() {
               zIndex: 200, padding: 6, overflowY: 'auto',
               scrollbarWidth: 'thin', scrollbarColor: 'rgba(99,140,255,0.3) transparent',
             }}>
-              <div style={{ fontSize: 9, fontWeight: 800, color: 'var(--text-3)', padding: '6px 8px', letterSpacing: 1, textTransform: 'uppercase' }}>
+              <div style={{ fontSize: 9, fontWeight: 800, color: '#94a3b8', padding: '6px 8px', letterSpacing: 1, textTransform: 'uppercase' }}>
                 🌐 Language · 언어
               </div>
               {LANG_OPTIONS_TOPBAR.map(l => {
@@ -361,7 +361,7 @@ export default function Topbar() {
                     display: 'flex', alignItems: 'center', gap: 10, width: '100%',
                     padding: '9px 10px', border: 'none', borderRadius: 9,
                     background: isActive ? 'rgba(79,142,247,0.15)' : 'transparent',
-                    color: isActive ? '#4f8ef7' : 'var(--text-2, #a0aec0)',
+                    color: isActive ? '#60a5fa' : '#e2e8f0',
                     fontSize: 12, fontWeight: isActive ? 800 : 500,
                     cursor: 'pointer', transition: 'all 120ms',
                     direction: l.dir === 'rtl' ? 'rtl' : 'ltr',
@@ -370,9 +370,9 @@ export default function Topbar() {
                     onMouseLeave={e => e.currentTarget.style.background = isActive ? 'rgba(79,142,247,0.15)' : 'transparent'}
                   >
                     <span style={{ fontSize: 16, flexShrink: 0 }}>{l.flag}</span>
-                    <span style={{ flex: 1, textAlign: 'left' }}>{l.label}</span>
-                    <span style={{ fontSize: 9, color: 'var(--text-3)', flexShrink: 0 }}>{l.code.toUpperCase()}</span>
-                    {isActive && <span style={{ fontSize: 10, color: '#4f8ef7', flexShrink: 0 }}>✓</span>}
+                    <span style={{ flex: 1, textAlign: 'left', color: isActive ? '#60a5fa' : '#e2e8f0' }}>{l.label}</span>
+                    <span style={{ fontSize: 9, color: '#94a3b8', flexShrink: 0 }}>{l.code.toUpperCase()}</span>
+                    {isActive && <span style={{ fontSize: 10, color: '#60a5fa', flexShrink: 0 }}>✓</span>}
                   </button>
                 );
               })}

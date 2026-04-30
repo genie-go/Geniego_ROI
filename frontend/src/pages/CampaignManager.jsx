@@ -10,15 +10,18 @@ import { useGlobalData } from '../context/GlobalDataContext';
 import { useNavigate } from 'react-router-dom';
 import { useCurrency } from '../contexts/CurrencyContext';
 
-/* ── Enterprise Demo Isolation Guard ─────────────────────── */
+/* ── Enterprise Demo Isolation Guard (unified with GlobalDataContext) ── */
 const _isDemo = (() => {
-  if (typeof window === 'undefined') return false;
-  const h = window.location.hostname;
-  return h === 'demo.genie-go.com' || h === 'demo.geniego.com' || h.startsWith('demo');
+  try {
+    const host = typeof window !== 'undefined' ? window.location.hostname : '';
+    return host.includes('roidemo') || host.includes('demo') ||
+           (typeof import.meta !== 'undefined' && import.meta.env?.VITE_DEMO_MODE === 'true');
+  } catch { return false; }
 })();
 
 /* ── i18n ─────────────────────────────────────────── */
-const T={title:'campMgr.title',sub:'campMgr.sub',tabOverview:'campMgr.tabOverview',tabList:'campMgr.tabList',tabAnalytics:'campMgr.tabAnalytics',tabABTest:'campMgr.tabABTest',tabGuide:'campMgr.tabGuide',kpiActive:'campMgr.kpiActive',kpiTotal:'campMgr.kpiTotal',kpiBudget:'campMgr.kpiBudget',kpiAvgRoas:'campMgr.kpiAvgRoas',colName:'campMgr.colName',colStatus:'campMgr.colStatus',colBudget:'campMgr.colBudget',colSpent:'campMgr.colSpent',colRoas:'campMgr.colRoas',colChannels:'campMgr.colChannels',colCreated:'campMgr.colCreated',colActions:'campMgr.colActions',filterAll:'campMgr.filterAll',filterActive:'campMgr.filterActive',filterPaused:'campMgr.filterPaused',filterDraft:'campMgr.filterDraft',filterEnded:'campMgr.filterEnded',filterPending:'campMgr.filterPending',noData:'campMgr.noData',goAutoMkt:'campMgr.goAutoMkt',searchPh:'campMgr.searchPh',close:'campMgr.close',pause:'campMgr.pause',resume:'campMgr.resume',save:'campMgr.save',cancel:'campMgr.cancel',edit:'campMgr.edit',delete:'campMgr.delete',duplicate:'campMgr.duplicate',confirmDelete:'campMgr.confirmDelete',impressions:'campMgr.impressions',clicks:'campMgr.clicks',conversions:'campMgr.conversions',roas:'campMgr.roas',channels:'campMgr.channels',source:'campMgr.source',topPerformer:'campMgr.topPerformer',byChannel:'campMgr.byChannel',byStatus:'campMgr.byStatus',budgetUtil:'campMgr.budgetUtil',budgetOverview:'campMgr.budgetOverview',roasRanking:'campMgr.roasRanking',campaignPerf:'campMgr.campaignPerf',funnelAnalysis:'campMgr.funnelAnalysis',statusActive:'campMgr.statusActive',statusPaused:'campMgr.statusPaused',statusDraft:'campMgr.statusDraft',statusEnded:'campMgr.statusEnded',statusPending:'campMgr.statusPending',editCampaign:'campMgr.editCampaign',campName:'campMgr.campName',campBudget:'campMgr.campBudget',campStatus:'campMgr.campStatus',abTestTitle:'campMgr.abTestTitle',abTestCreate:'campMgr.abTestCreate',abTestName:'campMgr.abTestName',abBaseline:'campMgr.abBaseline',abVariant:'campMgr.abVariant',abConfidence:'campMgr.abConfidence',abWinner:'campMgr.abWinner',abNoTest:'campMgr.abNoTest',abStart:'campMgr.abStart',totalBudget:'campMgr.totalBudget',totalSpent:'campMgr.totalSpent',guideTitle:'campMgr.guideTitle',guideSub:'campMgr.guideSub',guideStepsTitle:'campMgr.guideStepsTitle',guideStep1Title:'campMgr.guideStep1Title',guideStep1Desc:'campMgr.guideStep1Desc',guideStep2Title:'campMgr.guideStep2Title',guideStep2Desc:'campMgr.guideStep2Desc',guideStep3Title:'campMgr.guideStep3Title',guideStep3Desc:'campMgr.guideStep3Desc',guideStep4Title:'campMgr.guideStep4Title',guideStep4Desc:'campMgr.guideStep4Desc',guideStep5Title:'campMgr.guideStep5Title',guideStep5Desc:'campMgr.guideStep5Desc',guideStep6Title:'campMgr.guideStep6Title',guideStep6Desc:'campMgr.guideStep6Desc',guideTabsTitle:'campMgr.guideTabsTitle',guideTabOverviewName:'campMgr.guideTabOverviewName',guideTabOverviewDesc:'campMgr.guideTabOverviewDesc',guideTabListName:'campMgr.guideTabListName',guideTabListDesc:'campMgr.guideTabListDesc',guideTabAnalyticsName:'campMgr.guideTabAnalyticsName',guideTabAnalyticsDesc:'campMgr.guideTabAnalyticsDesc',guideTabABTestName:'campMgr.guideTabABTestName',guideTabABTestDesc:'campMgr.guideTabABTestDesc',guideTipsTitle:'campMgr.guideTipsTitle',guideTip1:'campMgr.guideTip1',guideTip2:'campMgr.guideTip2',guideTip3:'campMgr.guideTip3',guideTip4:'campMgr.guideTip4',guideTip5:'campMgr.guideTip5',guideStartBtn:'campMgr.guideStartBtn',abPlaceholder:'campMgr.abPlaceholder',abSelectNone:'campMgr.abSelectNone',abMetricLabel:'campMgr.abMetricLabel',abMetricCtr:'campMgr.abMetricCtr',abMetricCvr:'campMgr.abMetricCvr',abBaselineLabel:'campMgr.abBaselineLabel',abVariantLabel:'campMgr.abVariantLabel'};
+const _k=k=>'campMgr.'+k;
+const T={}; ['title','sub','tabOverview','tabList','tabAnalytics','tabABTest','tabGuide','kpiActive','kpiTotal','kpiBudget','kpiAvgRoas','colName','colStatus','colBudget','colSpent','colRoas','colChannels','colCreated','colActions','filterAll','filterActive','filterPaused','filterDraft','filterEnded','filterPending','noData','goAutoMkt','searchPh','close','pause','resume','save','cancel','edit','delete','duplicate','confirmDelete','impressions','clicks','conversions','roas','channels','source','topPerformer','byChannel','byStatus','budgetUtil','budgetOverview','roasRanking','campaignPerf','funnelAnalysis','statusActive','statusPaused','statusDraft','statusEnded','statusPending','editCampaign','campName','campBudget','campStatus','abTestTitle','abTestCreate','abTestName','abBaseline','abVariant','abConfidence','abWinner','abNoTest','abStart','totalBudget','totalSpent','guideTitle','guideSub','guideStepsTitle','guideStep1Title','guideStep1Desc','guideStep2Title','guideStep2Desc','guideStep3Title','guideStep3Desc','guideStep4Title','guideStep4Desc','guideStep5Title','guideStep5Desc','guideStep6Title','guideStep6Desc','guideStep7Title','guideStep7Desc','guideStep8Title','guideStep8Desc','guideStep9Title','guideStep9Desc','guideStep10Title','guideStep10Desc','guideStep11Title','guideStep11Desc','guideStep12Title','guideStep12Desc','guideStep13Title','guideStep13Desc','guideStep14Title','guideStep14Desc','guideStep15Title','guideStep15Desc','guideTabsTitle','guideTabOverviewName','guideTabOverviewDesc','guideTabListName','guideTabListDesc','guideTabAnalyticsName','guideTabAnalyticsDesc','guideTabABTestName','guideTabABTestDesc','guideTipsTitle','guideTip1','guideTip2','guideTip3','guideTip4','guideTip5','guideTip6','guideTip7','guideTip8','guideStartBtn','abPlaceholder','abSelectNone','abMetricLabel','abMetricCtr','abMetricCvr','abBaselineLabel','abVariantLabel'].forEach(k=>{T[k]=_k(k);});
 const FB={[T.title]:'캠페인 관리',[T.sub]:'AI 마케팅 캠페인 생성·실행·성과 분석',[T.tabOverview]:'대시보드',[T.tabList]:'캠페인 목록',[T.tabAnalytics]:'성과 분석',[T.tabABTest]:'A/B 테스트',[T.kpiActive]:'진행 중',[T.kpiTotal]:'전체',[T.kpiBudget]:'총 예산',[T.kpiAvgRoas]:'평균 ROAS',[T.colName]:'캠페인명',[T.colStatus]:'상태',[T.colBudget]:'예산',[T.colSpent]:'집행액',[T.colRoas]:'ROAS',[T.colChannels]:'채널',[T.colCreated]:'생성일',[T.colActions]:'관리',[T.filterAll]:'전체',[T.filterActive]:'진행 중',[T.filterPaused]:'일시 중지',[T.filterDraft]:'초안',[T.filterEnded]:'종료',[T.filterPending]:'승인 대기',[T.noData]:'등록된 캠페인이 없습니다.',[T.goAutoMkt]:'새 캠페인 생성',[T.searchPh]:'캠페인 검색...',[T.close]:'닫기',[T.pause]:'일시 중지',[T.resume]:'재개',[T.save]:'저장',[T.cancel]:'취소',[T.edit]:'편집',[T.delete]:'삭제',[T.duplicate]:'복제',[T.confirmDelete]:'이 캠페인을 영구 삭제하시겠습니까?',[T.impressions]:'노출수',[T.clicks]:'클릭수',[T.conversions]:'전환수',[T.roas]:'ROAS',[T.channels]:'채널',[T.source]:'소스',[T.topPerformer]:'Top 캠페인',[T.byChannel]:'채널별 분포',[T.byStatus]:'상태 분포',[T.budgetUtil]:'예산 소진율',[T.budgetOverview]:'예산 배분 현황',[T.roasRanking]:'ROAS 순위',[T.campaignPerf]:'캠페인별 성과',[T.funnelAnalysis]:'퍼널 분석',[T.statusActive]:'진행 중',[T.statusPaused]:'일시 중지',[T.statusDraft]:'초안',[T.statusEnded]:'종료',[T.statusPending]:'승인 대기',[T.editCampaign]:'캠페인 편집',[T.campName]:'캠페인명',[T.campBudget]:'예산',[T.campStatus]:'상태',[T.abTestTitle]:'A/B 테스트 관리',[T.abTestCreate]:'새 A/B 테스트 생성',[T.abTestName]:'테스트명',[T.abBaseline]:'기준 캠페인 (A)',[T.abVariant]:'변형 캠페인 (B)',[T.abConfidence]:'신뢰도',[T.abWinner]:'승자',[T.abNoTest]:'등록된 A/B 테스트가 없습니다.',[T.abStart]:'테스트 시작',[T.totalBudget]:'총 예산',[T.totalSpent]:'총 집행액',[T.abPlaceholder]:'예: 여름 캠페인 A/B 비교',[T.abSelectNone]:'-- 선택 --',[T.abMetricLabel]:'비교 지표',[T.abMetricCtr]:'CTR (클릭률)',[T.abMetricCvr]:'CVR (전환율)',[T.abBaselineLabel]:'🅰️ 기준안 (A)',[T.abVariantLabel]:'🅱️ 변형안 (B)'};
 
 const STS={active:{color:'#22c55e',bg:'rgba(34,197,94,0.10)',border:'rgba(34,197,94,0.25)',icon:'🟢'},paused:{color:'#f59e0b',bg:'rgba(245,158,11,0.10)',border:'rgba(245,158,11,0.25)',icon:'⏸'},draft:{color:'#64748b',bg:'rgba(100,116,139,0.10)',border:'rgba(100,116,139,0.25)',icon:'📝'},ended:{color:'#94a3b8',bg:'rgba(148,163,184,0.10)',border:'rgba(148,163,184,0.25)',icon:'✅'},pending:{color:'#a855f7',bg:'rgba(168,85,247,0.10)',border:'rgba(168,85,247,0.25)',icon:'⏳'}};
@@ -64,9 +67,6 @@ const LBL={fontSize:11,fontWeight:700,color:'#64748b',marginBottom:4,display:'bl
 
 /* ── Enterprise Error Boundary ─────────────────────────── */
 function ErrorFallback({ error, onRetry }) {
-  /* Enterprise Error Boundary */
-
-  if (_pageError) return <ErrorFallback error={_pageError} onRetry={() => { _setPageError(null); _setRetryCount(c => c + 1); }} />;
 
   return (
     <div style={{
@@ -183,8 +183,8 @@ export default function CampaignManager(){
                         <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0, flex: '1 1 300px' }}>
                             <div style={{ width: 42, height: 42, borderRadius: 12, background: 'linear-gradient(135deg, #f97316, #ef4444)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, boxShadow: '0 4px 14px rgba(249,115,22,0.3)', flexShrink: 0 }}>🎯</div>
                             <div style={{ minWidth: 0 }}>
-                                <div className="hero-title" style={{ fontSize: 19, fontWeight: 900, color: '#f97316', letterSpacing: '-0.3px', lineHeight: 1.3 }}>{tr(T.title)}</div>
-                                <div className="hero-desc" style={{ fontSize: 11, color: 'var(--text-3, #64748b)', marginTop: 2, lineHeight: 1.4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tr(T.sub)}</div>
+                                <div className="hero-title" style={{ fontSize: 19, fontWeight: 900, color: (document.documentElement?.getAttribute?.('data-theme') === 'arctic_white' || document.documentElement?.getAttribute?.('data-theme') === 'pearl_office') ? '#0f1c3a' : '#f97316', letterSpacing: '-0.3px', lineHeight: 1.3 }}>{tr(T.title)}</div>
+                                <div className="hero-desc" style={{ fontSize: 11, color: (document.documentElement?.getAttribute?.('data-theme') === 'arctic_white' || document.documentElement?.getAttribute?.('data-theme') === 'pearl_office') ? '#374151' : 'var(--text-3, #64748b)', marginTop: 2, lineHeight: 1.4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tr(T.sub)}</div>
                             </div>
                         </div>
                         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
@@ -199,8 +199,14 @@ export default function CampaignManager(){
                         {TABS.map(tb => {
                             const active = tab === tb.id;
                             const c = TAB_CLR[tb.id];
+                            const _theme = document.documentElement?.getAttribute?.('data-theme') || '';
+                            const isLight = _theme === 'arctic_white' || _theme === 'pearl_office';
+                            const activeColor = isLight ? '#dc2626' : '#ffffff';
+                            const activeBg = isLight ? 'rgba(220,38,38,0.08)' : c;
+                            const activeBorder = isLight ? '2px solid #dc2626' : 'none';
+                            const activeShadow = isLight ? '0 2px 8px rgba(220,38,38,0.15)' : `0 3px 14px ${c}40`;
                             return (
-                                <button key={tb.id} onClick={() => setTab(tb.id)} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '7px 14px', borderRadius: 9, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700, transition: 'all 0.2s cubic-bezier(.4,0,.2,1)', background: active ? c : 'transparent', color: active ? '#ffffff' : 'var(--text-2, #64748b)', boxShadow: active ? `0 3px 14px ${c}40` : 'none', transform: active ? 'translateY(-1px)' : 'none' }}>{tb.icon} {tb.label}</button>
+                                <button key={tb.id} onClick={() => setTab(tb.id)} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '7px 14px', borderRadius: 9, border: active ? activeBorder : 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700, transition: 'all 0.2s cubic-bezier(.4,0,.2,1)', background: active ? activeBg : 'transparent', color: active ? activeColor : 'var(--text-2, #64748b)', boxShadow: active ? activeShadow : 'none', transform: active ? 'translateY(-1px)' : 'none' }}>{tb.icon} {tb.label}</button>
                             );
                         })}
                     </div>
@@ -389,12 +395,12 @@ export default function CampaignManager(){
                         <div style={{ fontSize:44 }}>🎯</div>
                         <div style={{ fontWeight:900, fontSize:22, color:'#1e293b', marginTop:8 }}>{tr(T.guideTitle)}</div>
                         <div className="guide-sub" style={{ fontSize:13, color:'#475569', marginTop:6, maxWidth:560, margin:'6px auto 0', lineHeight:1.7 }}>{tr(T.guideSub)}</div>
-                        <button className="guide-cta" onClick={()=>setTab('overview')} style={{ marginTop:16, padding:'12px 28px', borderRadius:12, border:'none', cursor:'pointer', background:'linear-gradient(135deg,#4f8ef7,#a855f7)', color:'#fff', fontWeight:800, fontSize:14 }}>{tr(T.guideStartBtn)}</button>
+                        <button className="guide-cta" onClick={()=>setTab('overview')} style={{ marginTop:16, padding:'12px 28px', borderRadius:12, border:'none', cursor:'pointer', background:'linear-gradient(135deg,#4f8ef7,#a855f7)', color:'#1e293b', fontWeight:800, fontSize:14 }}>{tr(T.guideStartBtn)}</button>
                     </div>
                     <div style={{ ...CARD, color:'#1e293b' }}>
                         <div style={{ fontWeight:800, fontSize:17, color:'#1e293b', marginBottom:16 }}>📚 {tr(T.guideStepsTitle)}</div>
                         <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))', gap:14 }}>
-                            {[{n:'1️⃣',k:'guideStep1',c:'#4f8ef7'},{n:'2️⃣',k:'guideStep2',c:'#22c55e'},{n:'3️⃣',k:'guideStep3',c:'#a855f7'},{n:'4️⃣',k:'guideStep4',c:'#f59e0b'},{n:'5️⃣',k:'guideStep5',c:'#f97316'},{n:'6️⃣',k:'guideStep6',c:'#06b6d4'}].map((s,i)=>(
+                            {[{n:'1️⃣',k:'guideStep1',c:'#4f8ef7'},{n:'2️⃣',k:'guideStep2',c:'#22c55e'},{n:'3️⃣',k:'guideStep3',c:'#a855f7'},{n:'4️⃣',k:'guideStep4',c:'#f59e0b'},{n:'5️⃣',k:'guideStep5',c:'#f97316'},{n:'6️⃣',k:'guideStep6',c:'#06b6d4'},{n:'7️⃣',k:'guideStep7',c:'#ec4899'},{n:'8️⃣',k:'guideStep8',c:'#14b8a6'},{n:'9️⃣',k:'guideStep9',c:'#8b5cf6'},{n:'🔟',k:'guideStep10',c:'#3b82f6'},{n:'⓫',k:'guideStep11',c:'#10b981'},{n:'⓬',k:'guideStep12',c:'#f43f5e'},{n:'⓭',k:'guideStep13',c:'#0ea5e9'},{n:'⓮',k:'guideStep14',c:'#d946ef'},{n:'⓯',k:'guideStep15',c:'#22c55e'}].map((s,i)=>(
                                 <div key={i} style={{ background:s.c+'0a', border:`1px solid ${s.c}25`, borderRadius:12, padding:16, color:'#1e293b' }}>
                                     <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:6 }}>
                                         <span style={{ fontSize:20 }}>{s.n}</span>
@@ -422,11 +428,9 @@ export default function CampaignManager(){
                     <div style={{ ...CARD, background:'rgba(34,197,94,0.05)', border:'1px solid rgba(34,197,94,0.3)', color:'#1e293b' }}>
                         <div style={{ fontWeight:800, fontSize:17, color:'#1e293b', marginBottom:12 }}>💡 {tr(T.guideTipsTitle)}</div>
                         <ul className="guide-tip-list" style={{ margin:0, padding:'0 0 0 18px', fontSize:13, color:'#475569', lineHeight:2.2 }}>
-                            <li style={{ color:'#475569' }}>{tr(T.guideTip1)}</li>
-                            <li style={{ color:'#475569' }}>{tr(T.guideTip2)}</li>
-                            <li style={{ color:'#475569' }}>{tr(T.guideTip3)}</li>
-                            <li style={{ color:'#475569' }}>{tr(T.guideTip4)}</li>
-                            <li style={{ color:'#475569' }}>{tr(T.guideTip5)}</li>
+                            {['guideTip1','guideTip2','guideTip3','guideTip4','guideTip5','guideTip6','guideTip7','guideTip8'].map(k=>(
+                              <li key={k} style={{ color:'#475569' }}>{tr(T[k])}</li>
+                            ))}
                         </ul>
                     </div>
                 </div>
