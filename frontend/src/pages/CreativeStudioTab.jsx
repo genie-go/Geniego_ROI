@@ -34,6 +34,22 @@ export default function CreativeStudioTab({ sourcePage, onUseCampaign }) {
   const [selectedChannels, setSelectedChannels] = useState([]);
   const [galleryFilter, setGalleryFilter] = useState('all');
 
+  /* Arctic White Theme Detection */
+  const [isLight, setIsLight] = useState(() => {
+    const th = document.documentElement.getAttribute('data-theme');
+    return th === 'arctic_white' || th === 'pearl_office';
+  });
+  React.useEffect(() => {
+    const check = () => {
+      const th = document.documentElement.getAttribute('data-theme');
+      setIsLight(th === 'arctic_white' || th === 'pearl_office');
+    };
+    const obs = new MutationObserver(check);
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    check();
+    return () => obs.disconnect();
+  }, []);
+
   const tabs = [
     { label: t('marketing.csTabGallery','갤러리'), icon:'🖼', color:'#4f8ef7' },
     { label: t('marketing.csTabCreateNew','새로 만들기'), icon:'✨', color:'#a855f7' },
@@ -260,9 +276,9 @@ export default function CreativeStudioTab({ sourcePage, onUseCampaign }) {
           <div key={i} style={{ ...card, padding:'18px 20px', position:'relative', overflow:'hidden' }}>
             <div style={{ position:'absolute', top:-8, right:-8, fontSize:48, opacity:0.06 }}>{k.emoji}</div>
             <div style={{ fontSize:22, marginBottom:6 }}>{k.emoji}</div>
-            <div style={{ fontSize:24, fontWeight:900, color:k.color }}>{k.val}</div>
+            <div style={{ fontSize:24, fontWeight:900, color: isLight ? (k.color === '#4f8ef7' ? '#1d4ed8' : k.color === '#a855f7' ? '#7c3aed' : k.color === '#22c55e' ? '#15803d' : '#c2410c') : k.color }}>{k.val}</div>
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginTop:4 }}>
-              <span style={{ fontSize:11, color:"#64748b", fontWeight:600 }}>{k.label}</span>
+              <span style={{ fontSize:11, color: isLight ? '#374151' : "#64748b", fontWeight:600 }}>{k.label}</span>
               <span style={{ fontSize:10, color:'#22c55e', fontWeight:700 }}>{k.delta}</span>
             </div>
           </div>
@@ -296,10 +312,10 @@ export default function CreativeStudioTab({ sourcePage, onUseCampaign }) {
       </div>
 
       {/* System Status */}
-      <div style={{ marginTop:24, padding:"14px 20px", borderRadius:12, background:"linear-gradient(135deg, rgba(34,197,94,0.06), rgba(16,185,129,0.04))", border:"1px solid rgba(34,197,94,0.12)", display:"flex", alignItems:"center", gap:10 }}>
+      <div style={{ marginTop:24, padding:"14px 20px", borderRadius:12, background: isLight ? 'rgba(34,197,94,0.05)' : "linear-gradient(135deg, rgba(34,197,94,0.06), rgba(16,185,129,0.04))", border:"1px solid rgba(34,197,94,0.12)", display:"flex", alignItems:"center", gap:10 }}>
         <span style={{ fontSize:18 }}>✅</span>
-        <span style={{ fontSize:12, fontWeight:700, color:"#16a34a" }}>{t('marketing.csSystemOk','크리에이티브 스튜디오 시스템 정상 운영 중')}</span>
-        <span style={{ marginLeft:'auto', fontSize:10, color:'#64748b' }}>마지막 동기화: 방금</span>
+        <span style={{ fontSize:12, fontWeight:700, color: isLight ? '#15803d' : "#16a34a" }}>{t('marketing.csSystemOk','크리에이티브 스튜디오 시스템 정상 운영 중')}</span>
+        <span style={{ marginLeft:'auto', fontSize:10, color: isLight ? '#374151' : '#64748b' }}>마지막 동기화: 방금</span>
       </div>
     </div>
   );

@@ -204,6 +204,22 @@ export default function AutoMarketing() {
         }
     }, []);
 
+    /* ── Arctic White Theme Detection ── */
+    const [isLight, setIsLight] = useState(() => {
+        const th = document.documentElement.getAttribute('data-theme');
+        return th === 'arctic_white' || th === 'pearl_office';
+    });
+    useEffect(() => {
+        const check = () => {
+            const th = document.documentElement.getAttribute('data-theme');
+            setIsLight(th === 'arctic_white' || th === 'pearl_office');
+        };
+        const obs = new MutationObserver(check);
+        obs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+        check();
+        return () => obs.disconnect();
+    }, []);
+
     const [tab, setTab] = useState("setup");
     const [showResult, setShowResult] = useState(null); // detail modal
     const [approvalModal, setApprovalModal] = useState(null); // Campaign 제출 Approval Modal
@@ -571,10 +587,10 @@ export default function AutoMarketing() {
             {/* ══ TAB: GUIDE — 15-Step Complete Guide ═══════════════════════════ */}
             {tab === "guide" && (
                 <div style={{ display:'flex', flexDirection:'column', gap:20 }}>
-                    <div className="am-banner-guide" style={{ ...cardStyle, background:'linear-gradient(135deg,rgba(79,142,247,0.12),rgba(168,85,247,0.08))', borderColor:'rgba(79,142,247,0.3)', textAlign:'center', padding:32 }}>
+                    <div className="am-banner-guide" style={{ ...cardStyle, background: isLight ? 'rgba(79,142,247,0.06)' : 'linear-gradient(135deg,rgba(79,142,247,0.12),rgba(168,85,247,0.08))', borderColor:'rgba(79,142,247,0.3)', textAlign:'center', padding:32 }}>
                         <div style={{ fontSize:44 }}>🤖</div>
-                        <div style={{ fontWeight:900, fontSize:22, marginTop:8, color:'#1e293b' }}>{t('marketing.guideTitle')}</div>
-                        <div style={{ fontSize:13, color:'#64748b', marginTop:6, maxWidth:600, margin:'6px auto 0', lineHeight:1.7 }}>{t('marketing.guideSub')}</div>
+                        <div style={{ fontWeight:900, fontSize:22, marginTop:8, color: isLight ? '#0f172a' : '#1e293b' }}>{t('marketing.guideTitle')}</div>
+                        <div style={{ fontSize:13, color: isLight ? '#374151' : '#64748b', marginTop:6, maxWidth:600, margin:'6px auto 0', lineHeight:1.7 }}>{t('marketing.guideSub')}</div>
                         <button onClick={() => setTab('setup')} style={{ marginTop:16, padding:'12px 28px', borderRadius:12, border:'none', cursor:'pointer', background:'linear-gradient(135deg,#4f8ef7,#a855f7)', color:'#fff', fontWeight:800, fontSize:14 }}>{t('marketing.guideStartBtn')}</button>
                     </div>
                     <div style={cardStyle}>
@@ -640,14 +656,14 @@ export default function AutoMarketing() {
             {tab === "creative" && (
                 <>
                     {/* AIAd소재 → CampaignSettings Sync 안내 Banner */}
-                    <div className="am-banner-creative" style={{ padding: "12px 18px", borderRadius: 12, marginBottom: 16, background: "linear-gradient(135deg,rgba(6,182,212,0.08),rgba(168,85,247,0.06))", border: "1px solid rgba(6,182,212,0.3)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
+                    <div className="am-banner-creative" style={{ padding: "12px 18px", borderRadius: 12, marginBottom: 16, background: isLight ? 'rgba(6,182,212,0.06)' : "linear-gradient(135deg,rgba(6,182,212,0.08),rgba(168,85,247,0.06))", border: "1px solid rgba(6,182,212,0.3)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
                         <div>
-                            <div style={{ fontWeight: 800, fontSize: 13, color: "#06b6d4", marginBottom: 3 }}>
+                            <div style={{ fontWeight: 800, fontSize: 13, color: isLight ? '#0e7490' : "#06b6d4", marginBottom: 3 }}>
                                 🎨 {t('marketing.creativeAutoSync')}
                             </div>
-                            <div style={{ fontSize: 11, color: '#64748b', lineHeight: 1.6 }}>
-                                {t('marketing.creativeSyncDesc1')}<strong style={{ color: "#7c3aed" }}>{t('marketing.creativeSyncBtn')}</strong>{t('marketing.creativeSyncDesc2')}
-                                <strong style={{ color: "#4f8ef7" }}>{t('marketing.creativeSyncDesc3')}</strong>{t('marketing.creativeSyncDesc4')}
+                            <div style={{ fontSize: 11, color: isLight ? '#374151' : '#64748b', lineHeight: 1.6 }}>
+                                {t('marketing.creativeSyncDesc1')}<strong style={{ color: isLight ? '#5b21b6' : "#7c3aed" }}>{t('marketing.creativeSyncBtn')}</strong>{t('marketing.creativeSyncDesc2')}
+                                <strong style={{ color: isLight ? '#1d4ed8' : "#4f8ef7" }}>{t('marketing.creativeSyncDesc3')}</strong>{t('marketing.creativeSyncDesc4')}
                             </div>
                         </div>
                         <button onClick={() => setTab("setup")} style={{ padding: "8px 16px", borderRadius: 10, border: "none", cursor: "pointer", background: "linear-gradient(135deg,#06b6d4,#a855f7)", color: '#fff', fontWeight: 800, fontSize: 11, whiteSpace: "nowrap" }}>⚙ {t('marketing.creativeGoSetup')}</button>
@@ -667,13 +683,13 @@ export default function AutoMarketing() {
             {tab === "setup" && (
                 <div style={{ display: "grid", gap: 18 }}>
                     {/* AI Recommend 허브 안내 Banner */}
-                    <div className="am-banner-setup" style={{ padding: "14px 18px", borderRadius: 12, background: "linear-gradient(135deg,rgba(168,85,247,0.08),rgba(79,142,247,0.06))", border: "1px solid rgba(168,85,247,0.25)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
+                    <div className="am-banner-setup" style={{ padding: "14px 18px", borderRadius: 12, background: isLight ? 'rgba(168,85,247,0.06)' : "linear-gradient(135deg,rgba(168,85,247,0.08),rgba(79,142,247,0.06))", border: "1px solid rgba(168,85,247,0.25)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
                         <div>
-                            <div style={{ fontWeight: 800, fontSize: 13, color: "#7c3aed", marginBottom: 3 }}>
+                            <div style={{ fontWeight: 800, fontSize: 13, color: isLight ? '#5b21b6' : "#7c3aed", marginBottom: 3 }}>
                                 🤖 {t('marketing.aiHubTitle')}
                             </div>
-                            <div style={{ fontSize: 11, color: '#64748b', lineHeight: 1.6 }}>
-                                {t('marketing.aiHubDesc1')}<strong style={{ color: "#4f8ef7" }}>{t('marketing.aiHubDesc2')}</strong>{t('marketing.aiHubDesc3')}<br />
+                            <div style={{ fontSize: 11, color: isLight ? '#374151' : '#64748b', lineHeight: 1.6 }}>
+                                {t('marketing.aiHubDesc1')}<strong style={{ color: isLight ? '#1d4ed8' : "#4f8ef7" }}>{t('marketing.aiHubDesc2')}</strong>{t('marketing.aiHubDesc3')}<br />
                                 {t('marketing.aiHubDesc4')}
                             </div>
                         </div>
@@ -967,7 +983,7 @@ export default function AutoMarketing() {
                         {!strategy ? (
                             <div className="am-banner-preview" style={{ ...cardStyle, textAlign: "center", padding: 40 }}>
                                 <div style={{ fontSize: 40, marginBottom: 12 }}>🤖</div>
-                                <div style={{ color: '#64748b', fontSize: 13 }}>{t("marketing.previewEmpty")}</div>
+                                <div style={{ color: isLight ? '#1e293b' : '#64748b', fontSize: 13 }}>{t("marketing.previewEmpty")}</div>
                                 <button onClick={() => setTab("setup")} style={{ marginTop: 14, padding: "8px 20px", borderRadius: 8, background: "linear-gradient(135deg,#4f8ef7,#a855f7)", border: "none", color: '#fff', fontWeight: 700, fontSize: 12, cursor: "pointer" }}>
                                     {t("marketing.goSetup")}
                                 </button>
