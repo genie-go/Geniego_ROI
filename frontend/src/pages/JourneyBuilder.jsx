@@ -9,6 +9,7 @@
  */
 import React, { useState, useMemo, useCallback } from 'react';
 import { useI18n } from '../i18n';
+
 import { useGlobalData } from '../context/GlobalDataContext';
 import { useNavigate } from 'react-router-dom';
 
@@ -41,15 +42,13 @@ const K = {
     save: 'jb.save', cancel: 'jb.cancel', run: 'jb.run', edit: 'jb.edit', delete: 'jb.delete',
     duplicate: 'jb.duplicate', close: 'jb.close',
     statusDraft: 'jb.statusDraft', statusActive: 'jb.statusActive', statusPaused: 'jb.statusPaused',
-    statusCompleted: 'jb.statusCompleted',
-    colStatus: 'jb.colStatus',
+    statusCompleted: 'jb.statusCompleted', colStatus: 'jb.colStatus',
     totalJourneys: 'jb.totalJourneys', activeJourneys: 'jb.activeJourneys',
     totalExecutions: 'jb.totalExecutions', totalEntered: 'jb.totalEntered',
     totalCompleted: 'jb.totalCompleted', avgCompletion: 'jb.avgCompletion',
     totalEmails: 'jb.totalEmails', totalKakao: 'jb.totalKakao', totalRevenue: 'jb.totalRevenue',
     recentLogs: 'jb.recentLogs', executionHistory: 'jb.executionHistory',
-    noData: 'jb.noData', noLogs: 'jb.noLogs',
-    confirmDelete: 'jb.confirmDelete',
+    noData: 'jb.noData', noLogs: 'jb.noLogs', confirmDelete: 'jb.confirmDelete',
     flowPreview: 'jb.flowPreview', stepTrigger: 'jb.stepTrigger', stepDelay: 'jb.stepDelay',
     stepAction: 'jb.stepAction', stepEnd: 'jb.stepEnd',
     byTrigger: 'jb.byTrigger', byChannel: 'jb.byChannel', completionRate: 'jb.completionRate',
@@ -64,45 +63,80 @@ const K = {
     guideStep4Title: 'jb.guideStep4Title', guideStep4Desc: 'jb.guideStep4Desc',
     guideStep5Title: 'jb.guideStep5Title', guideStep5Desc: 'jb.guideStep5Desc',
     guideStep6Title: 'jb.guideStep6Title', guideStep6Desc: 'jb.guideStep6Desc',
+    guideStep7Title: 'jb.guideStep7Title', guideStep7Desc: 'jb.guideStep7Desc',
+    guideStep8Title: 'jb.guideStep8Title', guideStep8Desc: 'jb.guideStep8Desc',
+    guideStep9Title: 'jb.guideStep9Title', guideStep9Desc: 'jb.guideStep9Desc',
+    guideStep10Title: 'jb.guideStep10Title', guideStep10Desc: 'jb.guideStep10Desc',
+    guideStep11Title: 'jb.guideStep11Title', guideStep11Desc: 'jb.guideStep11Desc',
+    guideStep12Title: 'jb.guideStep12Title', guideStep12Desc: 'jb.guideStep12Desc',
+    guideStep13Title: 'jb.guideStep13Title', guideStep13Desc: 'jb.guideStep13Desc',
+    guideStep14Title: 'jb.guideStep14Title', guideStep14Desc: 'jb.guideStep14Desc',
+    guideStep15Title: 'jb.guideStep15Title', guideStep15Desc: 'jb.guideStep15Desc',
     guideTabsTitle: 'jb.guideTabsTitle',
     guideTabBuilderName: 'jb.guideTabBuilderName', guideTabBuilderDesc: 'jb.guideTabBuilderDesc',
     guideTabListName: 'jb.guideTabListName', guideTabListDesc: 'jb.guideTabListDesc',
     guideTabLogsName: 'jb.guideTabLogsName', guideTabLogsDesc: 'jb.guideTabLogsDesc',
     guideTabAnalyticsName: 'jb.guideTabAnalyticsName', guideTabAnalyticsDesc: 'jb.guideTabAnalyticsDesc',
+    guideTabGuideName: 'jb.guideTabGuideName', guideTabGuideDesc: 'jb.guideTabGuideDesc',
     guideTipsTitle: 'jb.guideTipsTitle',
     guideTip1: 'jb.guideTip1', guideTip2: 'jb.guideTip2', guideTip3: 'jb.guideTip3',
-    guideTip4: 'jb.guideTip4', guideTip5: 'jb.guideTip5',
+    guideTip4: 'jb.guideTip4', guideTip5: 'jb.guideTip5', guideTip6: 'jb.guideTip6', guideTip7: 'jb.guideTip7',
     guideStartBtn: 'jb.guideStartBtn',
 };
 const FB = {
     [K.title]: '고객 여정 빌더', [K.sub]: 'AI 기반 자동화 고객 여정 설계·실행·분석',
-    [K.tabBuilder]: '여정 빌더', [K.tabList]: '여정 목록', [K.tabLogs]: '실행 로그', [K.tabAnalytics]: '분석',
+    [K.tabBuilder]: '여정 빌더', [K.tabList]: '여정 목록', [K.tabLogs]: '실행 로그', [K.tabAnalytics]: '분석', [K.tabGuide]: '이용 가이드',
     [K.createJourney]: '새 여정 생성', [K.journeyName]: '여정 이름', [K.triggerType]: '트리거 유형',
     [K.triggerSignup]: '회원가입', [K.triggerPurchase]: '구매 완료', [K.triggerAbandon]: '장바구니 이탈',
     [K.triggerChurn]: '이탈 위험', [K.triggerSegment]: '세그먼트 진입', [K.triggerManual]: '수동 실행',
     [K.targetSegment]: '대상 세그먼트', [K.channels]: '채널', [K.email]: '이메일', [K.kakao]: '카카오',
     [K.sms]: 'SMS', [K.push]: '푸시', [K.line]: 'LINE',
-    [K.delayLabel]: '대기 시간', [K.delayNone]: '즉시', [K.delay1h]: '1시간', [K.delay1d]: '1일',
-    [K.delay3d]: '3일', [K.delay7d]: '7일',
-    [K.save]: '저장', [K.cancel]: '취소', [K.run]: '실행', [K.edit]: '편집', [K.delete]: '삭제',
-    [K.duplicate]: '복제', [K.close]: '닫기',
-    [K.statusDraft]: '초안', [K.statusActive]: '활성', [K.statusPaused]: '일시 중지',
-    [K.statusCompleted]: '완료',
-    [K.colStatus]: '상태',
-    [K.totalJourneys]: '전체 여정', [K.activeJourneys]: '활성 여정',
-    [K.totalExecutions]: '총 실행', [K.totalEntered]: '총 진입',
+    [K.delayLabel]: '대기 시간', [K.delayNone]: '즉시', [K.delay1h]: '1시간', [K.delay1d]: '1일', [K.delay3d]: '3일', [K.delay7d]: '7일',
+    [K.save]: '저장', [K.cancel]: '취소', [K.run]: '실행', [K.edit]: '편집', [K.delete]: '삭제', [K.duplicate]: '복제', [K.close]: '닫기',
+    [K.statusDraft]: '초안', [K.statusActive]: '활성', [K.statusPaused]: '일시 중지', [K.statusCompleted]: '완료', [K.colStatus]: '상태',
+    [K.totalJourneys]: '전체 여정', [K.activeJourneys]: '활성 여정', [K.totalExecutions]: '총 실행', [K.totalEntered]: '총 진입',
     [K.totalCompleted]: '총 완료', [K.avgCompletion]: '평균 완료율',
     [K.totalEmails]: '이메일 발송', [K.totalKakao]: '카카오 발송', [K.totalRevenue]: '총 매출',
     [K.recentLogs]: '최근 트리거 로그', [K.executionHistory]: '여정 실행 이력',
     [K.noData]: '등록된 여정이 없습니다.', [K.noLogs]: '실행 로그가 없습니다.',
     [K.confirmDelete]: '이 여정을 영구 삭제하시겠습니까?',
-    [K.flowPreview]: '흐름 미리보기', [K.stepTrigger]: '트리거', [K.stepDelay]: '대기',
-    [K.stepAction]: '액션', [K.stepEnd]: '종료',
+    [K.flowPreview]: '흐름 미리보기', [K.stepTrigger]: '트리거', [K.stepDelay]: '대기', [K.stepAction]: '액션', [K.stepEnd]: '종료',
     [K.byTrigger]: '트리거별 분포', [K.byChannel]: '채널별 분포', [K.completionRate]: '완료율 추이',
     [K.goAutoMkt]: 'AI 오토마케팅', [K.goCRM]: 'CRM',
     [K.createPlaceholder]: '예: 신규가입 환영 시퀀스', [K.selectNone]: '-- 선택 --', [K.copyLabel]: '(사본)',
-    [K.logEntered]: '진입', [K.logCompleted]: '완료',
-    [K.pauseBtn]: '⏸ 일시 중지', [K.resumeBtn]: '▶ 재개',
+    [K.logEntered]: '진입', [K.logCompleted]: '완료', [K.pauseBtn]: '⏸ 일시 중지', [K.resumeBtn]: '▶ 재개',
+    [K.guideTitle]: '📋 여정 빌더 완전 가이드', [K.guideSub]: '고객 여정 자동화의 시작부터 분석 마무리까지 단계별로 안내합니다.',
+    [K.guideStepsTitle]: '시작부터 마무리까지 — 15단계 완전 가이드',
+    [K.guideStep1Title]: '로그인 & 메뉴 진입', [K.guideStep1Desc]: '플랫폼에 로그인한 후 좌측 사이드바에서 "AI 마케팅 → 여정 빌더"를 클릭합니다.',
+    [K.guideStep2Title]: '대시보드 현황 파악', [K.guideStep2Desc]: '전체 여정 수, 활성 여정, 총 실행 횟수, 평균 완료율 KPI를 확인합니다.',
+    [K.guideStep3Title]: '새 여정 생성', [K.guideStep3Desc]: '"새 여정 생성" 버튼을 클릭하여 여정 이름을 입력합니다.',
+    [K.guideStep4Title]: '트리거 유형 선택', [K.guideStep4Desc]: '회원가입, 구매 완료, 장바구니 이탈 등 여정 시작 트리거를 선택합니다.',
+    [K.guideStep5Title]: 'CRM 세그먼트 연결', [K.guideStep5Desc]: 'CRM에 등록된 고객 세그먼트를 선택하여 타겟 오디언스를 지정합니다.',
+    [K.guideStep6Title]: '채널 선택', [K.guideStep6Desc]: '이메일, 카카오, SMS, 푸시, LINE 중 발송 채널을 선택합니다.',
+    [K.guideStep7Title]: '대기 시간 설정', [K.guideStep7Desc]: '트리거 발동 후 메시지 발송까지의 대기 시간을 설정합니다.',
+    [K.guideStep8Title]: '여정 저장', [K.guideStep8Desc]: '"저장" 클릭 시 여정이 "초안" 상태로 저장됩니다.',
+    [K.guideStep9Title]: '흐름 미리보기', [K.guideStep9Desc]: '여정 카드 클릭 시 트리거→대기→액션→종료 흐름도를 확인합니다.',
+    [K.guideStep10Title]: '여정 실행', [K.guideStep10Desc]: '"실행" 버튼으로 여정을 활성화하고 자동 메시지를 발송합니다.',
+    [K.guideStep11Title]: '실행 상태 관리', [K.guideStep11Desc]: '활성 여정의 "일시 중지" 또는 "재개"로 상태를 제어합니다.',
+    [K.guideStep12Title]: '실행 로그 확인', [K.guideStep12Desc]: '진입/완료 수, 발송 건수, 매출 기여도를 실시간 확인합니다.',
+    [K.guideStep13Title]: '분석 대시보드', [K.guideStep13Desc]: '트리거별/채널별 분포, 완료율 추이 차트를 분석합니다.',
+    [K.guideStep14Title]: '여정 복제 & 수정', [K.guideStep14Desc]: '성과 좋은 여정을 복제하거나 트리거/채널을 수정합니다.',
+    [K.guideStep15Title]: '반복 최적화', [K.guideStep15Desc]: '분석 결과를 바탕으로 지속적으로 개선합니다.',
+    [K.guideTabsTitle]: '탭별 기능 안내',
+    [K.guideTabBuilderName]: '여정 빌더', [K.guideTabBuilderDesc]: '새 여정을 생성하고 KPI와 최근 여정 흐름을 확인합니다.',
+    [K.guideTabListName]: '여정 목록', [K.guideTabListDesc]: '모든 여정의 상태와 통계를 테이블로 관리합니다.',
+    [K.guideTabLogsName]: '실행 로그', [K.guideTabLogsDesc]: '여정 실행 이력과 트리거 로그를 확인합니다.',
+    [K.guideTabAnalyticsName]: '분석', [K.guideTabAnalyticsDesc]: '차트와 성과 비교를 시각화합니다.',
+    [K.guideTabGuideName]: '이용 가이드', [K.guideTabGuideDesc]: '전체 워크플로우를 단계별로 안내합니다.',
+    [K.guideTipsTitle]: '💡 운영 팁',
+    [K.guideTip1]: '트리거별로 대기 시간을 다르게 설정하면 반응률이 높아집니다.',
+    [K.guideTip2]: '이메일+카카오 조합은 전환율이 평균 2.3배 높습니다.',
+    [K.guideTip3]: '장바구니 이탈 여정은 1시간 이내 발송 시 복구율이 최고입니다.',
+    [K.guideTip4]: '주간 단위로 완료율 추이를 확인하고 채널을 조정하세요.',
+    [K.guideTip5]: '세그먼트 트리거로 VIP 고객에게 프리미엄 오퍼를 제공하세요.',
+    [K.guideTip6]: '여정 복제로 A/B 테스트를 쉽게 실행할 수 있습니다.',
+    [K.guideTip7]: '매출 기여도를 확인하여 ROI가 높은 여정에 집중하세요.',
+    [K.guideStartBtn]: '여정 빌더 시작하기',
 };
 
 /* ── Status Config ───────────────────────────────────── */
@@ -151,7 +185,24 @@ function DonutChart({ data, size = 150, thickness = 22, centerLabel, centerValue
 }
 function HBarChart({ items, maxValue }) {
     const mv = maxValue || Math.max(...items.map(i => i.value), 1);
-    return (<div style={{ gap: 10, display: 'flex', justifyContent: 'space-between', marginBottom: 3, fontSize: 12, fontWeight: 800, color: item.color || '#4f8ef7', overflow: 'hidden', width: pct + '%', height: '100%', borderRadius: 6, background: `linear-gradient(90deg,${item.color || '#4f8ef7'},${item.colorEnd || item.color || '#6366f1'})`, transition: 'width 0.8s' }} >{items.map((item, i) => { const pct = Math.round((item.value / mv) * 100); return (<div key={i}><div><span>{item.label}</span><span>{item.displayValue || item.value}</span></div><div><div /></div></div>); })}</div>);
+    return (
+        <div style={{ display:'grid', gap:10 }}>
+            {items.map((item, i) => {
+                const pct = Math.min(Math.round((item.value / mv) * 100), 100);
+                return (
+                    <div key={i}>
+                        <div style={{ display:'flex', justifyContent:'space-between', marginBottom:3, fontSize:12, fontWeight:700, color:'#334155' }}>
+                            <span style={{ maxWidth:'60%', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{item.label}</span>
+                            <span style={{ fontWeight:800, color: item.color || '#4f8ef7' }}>{item.displayValue || item.value}</span>
+                        </div>
+                        <div style={{ height:8, borderRadius:6, background:'#f1f5f9', overflow:'hidden' }}>
+                            <div style={{ width: pct + '%', height:'100%', borderRadius:6, background:`linear-gradient(90deg,${item.color||'#4f8ef7'},${item.colorEnd||item.color||'#6366f1'})`, transition:'width 0.8s' }} />
+                        </div>
+                    </div>
+                );
+            })}
+        </div>
+    );
 }
 
 /* ── Modal ────────────────────────────────────────────── */
@@ -189,7 +240,7 @@ function FlowPreview({ journey, tr }) {
    MAIN COMPONENT
 ═══════════════════════════════════════════════════════════ */
 export default function JourneyBuilder() {
-    const { t } = useI18n();
+    const { t, lang } = useI18n();
     const navigate = useNavigate();
     const {
         journeyTriggers = [], triggerJourneyAction,
@@ -507,12 +558,12 @@ export default function JourneyBuilder() {
                         <div style={{ ...CARD, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                             <div style={{ fontWeight: 800, fontSize: 13, color: '#334155', marginBottom: 14, alignSelf: 'flex-start' }}>⚡ {tr(K.byTrigger)}</div>
                             <DonutChart data={Object.entries(stats.byTrigger).map(([k, v]) => ({ value: v, color: TRIGGER_CFG[k]?.color || '#94a3b8' })).length > 0 ? Object.entries(stats.byTrigger).map(([k, v]) => ({ value: v, color: TRIGGER_CFG[k]?.color || '#94a3b8' })) : [{ value: 1, color: '#e2e8f0' }]} centerLabel={tr(K.totalJourneys)} centerValue={stats.total} />
-                            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 10, justifyContent: 'center', alignItems: 'center', fontSize: 10, width: 8, height: 8, borderRadius: 4, background: TRIGGER_CFG[k]?.color || '#94a3b8', color: '#64748b', fontWeight: 600 }} >{Object.entries(stats.byTrigger).map(([k, v]) => (<div key={k}><div /><span>{trigLabel(k)} ({v})</span></div>))}</div>
+                            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 10, justifyContent: 'center' }}>{Object.entries(stats.byTrigger).map(([tk, tv]) => (<div key={tk} style={{ display:'flex', alignItems:'center', gap:4, fontSize:10, color:'#64748b', fontWeight:600 }}><div style={{ width:8, height:8, borderRadius:4, background: TRIGGER_CFG[tk]?.color || '#94a3b8' }} /><span>{trigLabel(tk)} ({tv})</span></div>))}</div>
                         </div>
                         <div style={{ ...CARD, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                             <div style={{ fontWeight: 800, fontSize: 13, color: '#334155', marginBottom: 14, alignSelf: 'flex-start' }}>📡 {tr(K.byChannel)}</div>
                             <DonutChart data={Object.entries(stats.byChannel).map(([k, v]) => ({ value: v, color: CH_COLORS[k] || '#94a3b8' })).length > 0 ? Object.entries(stats.byChannel).map(([k, v]) => ({ value: v, color: CH_COLORS[k] || '#94a3b8' })) : [{ value: 1, color: '#e2e8f0' }]} centerLabel={tr(K.channels)} centerValue={Object.keys(stats.byChannel).length} />
-                            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 10, justifyContent: 'center', alignItems: 'center', fontSize: 10, width: 8, height: 8, borderRadius: 4, background: CH_COLORS[k] || '#94a3b8', color: '#64748b', fontWeight: 600 }} >{Object.entries(stats.byChannel).map(([k, v]) => (<div key={k}><div /><span>{k.toUpperCase()} ({v})</span></div>))}</div>
+                            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 10, justifyContent: 'center' }}>{Object.entries(stats.byChannel).map(([ck, cv]) => (<div key={ck} style={{ display:'flex', alignItems:'center', gap:4, fontSize:10, color:'#64748b', fontWeight:600 }}><div style={{ width:8, height:8, borderRadius:4, background: CH_COLORS[ck] || '#94a3b8' }} /><span>{ck.toUpperCase()} ({cv})</span></div>))}</div>
                         </div>
                         <div style={{ ...CARD, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                             <div style={{ fontWeight: 800, fontSize: 13, color: '#334155', marginBottom: 14, alignSelf: 'flex-start' }}>📊 {tr(K.completionRate)}</div>
@@ -549,7 +600,7 @@ export default function JourneyBuilder() {
                     <div style={{ ...CARD, color:'#1e293b' }}>
                         <div style={{ fontWeight:800, fontSize:17, color:'#1e293b', marginBottom:16 }}>📚 {tr(K.guideStepsTitle)}</div>
                         <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))', gap:14 }}>
-                            {[{n:'1️⃣',k:'guideStep1',c:'#4f8ef7'},{n:'2️⃣',k:'guideStep2',c:'#22c55e'},{n:'3️⃣',k:'guideStep3',c:'#a855f7'},{n:'4️⃣',k:'guideStep4',c:'#f59e0b'},{n:'5️⃣',k:'guideStep5',c:'#f97316'},{n:'6️⃣',k:'guideStep6',c:'#06b6d4'}].map((s,i)=>(
+                            {[{n:'1️⃣',k:'guideStep1',c:'#4f8ef7'},{n:'2️⃣',k:'guideStep2',c:'#22c55e'},{n:'3️⃣',k:'guideStep3',c:'#a855f7'},{n:'4️⃣',k:'guideStep4',c:'#f59e0b'},{n:'5️⃣',k:'guideStep5',c:'#f97316'},{n:'6️⃣',k:'guideStep6',c:'#06b6d4'},{n:'7️⃣',k:'guideStep7',c:'#4f8ef7'},{n:'8️⃣',k:'guideStep8',c:'#22c55e'},{n:'9️⃣',k:'guideStep9',c:'#a855f7'},{n:'🔟',k:'guideStep10',c:'#f59e0b'},{n:'1️⃣1️⃣',k:'guideStep11',c:'#f97316'},{n:'1️⃣2️⃣',k:'guideStep12',c:'#06b6d4'},{n:'1️⃣3️⃣',k:'guideStep13',c:'#4f8ef7'},{n:'1️⃣4️⃣',k:'guideStep14',c:'#22c55e'},{n:'1️⃣5️⃣',k:'guideStep15',c:'#a855f7'}].map((s,i)=>(
                                 <div key={i} style={{ background:s.c+'0a', border:`1px solid ${s.c}25`, borderRadius:12, padding:16, color:'#1e293b' }}>
                                     <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:6 }}>
                                         <span style={{ fontSize:20 }}>{s.n}</span>
@@ -563,7 +614,7 @@ export default function JourneyBuilder() {
                     <div style={{ ...CARD, color:'#1e293b' }}>
                         <div style={{ fontWeight:800, fontSize:17, color:'#1e293b', marginBottom:16 }}>{tr(K.guideTabsTitle)}</div>
                         <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(260px,1fr))', gap:12 }}>
-                            {[{icon:'🗺️',k:'guideTabBuilder',c:'#4f8ef7'},{icon:'📋',k:'guideTabList',c:'#a855f7'},{icon:'📜',k:'guideTabLogs',c:'#f97316'},{icon:'📈',k:'guideTabAnalytics',c:'#22c55e'}].map((tb,i)=>(
+                            {[{icon:'🗺️',k:'guideTabBuilder',c:'#4f8ef7'},{icon:'📋',k:'guideTabList',c:'#a855f7'},{icon:'📜',k:'guideTabLogs',c:'#f97316'},{icon:'📈',k:'guideTabAnalytics',c:'#22c55e'},{icon:'📖',k:'guideTabGuide',c:'#06b6d4'}].map((tb,i)=>(
                                 <div key={i} style={{ display:'flex', gap:12, alignItems:'flex-start', padding:'12px 14px', background:'rgba(255,255,255,0.6)', borderRadius:10, border:'1px solid rgba(0,0,0,0.06)', color:'#1e293b' }}>
                                     <span style={{ fontSize:22, flexShrink:0 }}>{tb.icon}</span>
                                     <div>
