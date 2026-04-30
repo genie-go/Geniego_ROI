@@ -253,7 +253,7 @@ const SecurityPanel = React.memo(function SecurityPanel({ txt, secAlerts }) {
             { ico:'⚡', l:txt('rateLimit'), v:'ON', col:'#eab308' },
             { ico:'🔐', l:txt('bruteForce'), v:'ON', col:'#a855f7' },
           ].map(m => (
-            <div key={m.l} style={{ background:'rgba(0,0,0,0.25)', borderRadius:9, padding:'8px 10px', textAlign:'center' }}>
+            <div key={m.l} style={{ background:'rgba(0,0,0,0.04)', border:'1px solid rgba(0,0,0,0.08)', borderRadius:9, padding:'8px 10px', textAlign:'center' }}>
               <div style={{ fontSize:14, marginBottom:4 }}>{m.ico}</div>
               <div style={{ fontSize:14, fontWeight:900, color:m.col }}>{m.v}</div>
               <div style={{ fontSize:8, color: 'var(--text-3)', marginTop:2, lineHeight:1.2 }}>{m.l}</div>

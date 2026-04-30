@@ -6067,3 +6067,57 @@ button.cs-inactive-tab {
   border-color: #e5e7eb !important;
 }
 
+/* ── 27. KPI Card — arctic white force light ──────────────────────── */
+[data-theme="arctic_white"] .kpi-card-outer {
+  background: #ffffff !important;
+  border: 1px solid #e5e7eb !important;
+}
+[data-theme="arctic_white"] .kpi-card-inner {
+  background: #ffffff !important;
+  color: #0f1c3a !important;
+}
+[data-theme="arctic_white"] .kpi-card-inner div[style*="textShadow"],
+[data-theme="arctic_white"] .kpi-card-inner div[style*="text-shadow"] {
+  text-shadow: none !important;
+}
+
+/* ── 28. overview-card-section — force white ──────────────────────── */
+[data-theme="arctic_white"] .overview-card-section {
+  background: #ffffff !important;
+  border: 1px solid #e5e7eb !important;
+}
+
+/* ── 29. All divs inside content area with var(--surface) ─────────── */
+[data-theme="arctic_white"] .container > div:last-child div[style*="var(--surface)"] {
+  background: #ffffff !important;
+}
+[data-theme="arctic_white"] .container > div:last-child div[style*="var(--bg-card)"] {
+  background: #ffffff !important;
+}
+
+/* ── 30. Security metric grid — no dark cells ─────────────────────── */
+[data-theme="arctic_white"] .container > div:last-child div[style*="rgba(0,0,0,0.25)"],
+[data-theme="arctic_white"] .container > div:last-child div[style*="rgba(0, 0, 0, 0.25)"] {
+  background: rgba(0, 0, 0, 0.04) !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+}
+
+/* ── 31. System status badges — light-readable ────────────────────── */
+[data-theme="arctic_white"] .container > div:last-child span[style*="#4ade80"] {
+  color: #16a34a !important;
+}
+[data-theme="arctic_white"] .container > div:last-child span[style*="#fde047"] {
+  color: #ca8a04 !important;
+}
+
+/* ── 32. Force text-3 to readable in Arctic White ─────────────────── */
+[data-theme="arctic_white"] .container > div:last-child [style*="var(--text-3)"] {
+  color: #6b7280 !important;
+}
+[data-theme="arctic_white"] .container > div:last-child [style*="var(--text-2)"] {
+  color: #374151 !important;
+}
+[data-theme="arctic_white"] .container > div:last-child [style*="var(--text-1)"] {
+  color: #0f1c3a !important;
+}
+
