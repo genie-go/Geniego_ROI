@@ -2,53 +2,54 @@ import React, { useState, useMemo, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useI18n } from "../i18n/index.js";
 import { useAuth } from "../auth/AuthContext.jsx";
+import { sanitizeHtml } from "../utils/xssSanitizer.js";
 import ko from '../i18n/locales/ko.js';
-const t = (k) => k.split('.').reduce((o,i)=>o?.[i], {auto: ko?.auto}) || k;
+const t = (k) => k.split('.').reduce((o, i) => o?.[i], { auto: ko?.auto }) || k;
 
 
 /* ═══ Main Component ══════════════════════════════════════════════ */
 
 /* ── Enterprise Error Boundary ─────────────────────────── */
 function ErrorFallback({ error, onRetry }) {
-  /* Enterprise Error Boundary */
+    /* Enterprise Error Boundary */
 
-  if (_pageError) return <ErrorFallback error={_pageError} onRetry={() => { _setPageError(null); _setRetryCount(c => c + 1); }} />;
+    if (_pageError) return <ErrorFallback error={_pageError} onRetry={() => { _setPageError(null); _setRetryCount(c => c + 1); }} />;
 
-  return (
-    <div style={{
-      padding: '40px 28px', textAlign: 'center', borderRadius: 16,
-      background: 'rgba(239,68,68,0.04)', border: '1px solid rgba(239,68,68,0.15)',
-      margin: '20px 0'
-    }}>
-      <div style={{ fontSize: 40, marginBottom: 12 }}>⚠️</div>
-      <div style={{ fontWeight: 800, fontSize: 16, color: '#ef4444', marginBottom: 8 }}>
-        An error occurred
-      </div>
-      <div style={{
-        fontSize: 11, color: 'var(--text-3)', marginBottom: 16,
-        padding: '8px 12px', borderRadius: 8, background: 'rgba(239,68,68,0.06)',
-        fontFamily: 'monospace', wordBreak: 'break-all', maxWidth: 500, margin: '0 auto 16px'
-      }}>
-        {error?.message || 'Unknown error'}
-      </div>
-      <button onClick={onRetry} style={{
-        padding: '8px 24px', borderRadius: 10, border: 'none', cursor: 'pointer',
-        background: 'linear-gradient(135deg,#4f8ef7,#6366f1)', color: '#fff',
-        fontWeight: 700, fontSize: 12
-      }}>
-        🔄 Retry
-      </button>
-    </div>
-  );
+    return (
+        <div style={{
+            padding: '40px 28px', textAlign: 'center', borderRadius: 16,
+            background: 'rgba(239,68,68,0.04)', border: '1px solid rgba(239,68,68,0.15)',
+            margin: '20px 0'
+        }}>
+            <div style={{ fontSize: 40, marginBottom: 12 }}>⚠️</div>
+            <div style={{ fontWeight: 800, fontSize: 16, color: '#ef4444', marginBottom: 8 }}>
+                An error occurred
+            </div>
+            <div style={{
+                fontSize: 11, color: 'var(--text-3)', marginBottom: 16,
+                padding: '8px 12px', borderRadius: 8, background: 'rgba(239,68,68,0.06)',
+                fontFamily: 'monospace', wordBreak: 'break-all', maxWidth: 500, margin: '0 auto 16px'
+            }}>
+                {error?.message || 'Unknown error'}
+            </div>
+            <button onClick={onRetry} style={{
+                padding: '8px 24px', borderRadius: 10, border: 'none', cursor: 'pointer',
+                background: 'linear-gradient(135deg,#4f8ef7,#6366f1)', color: '#fff',
+                fontWeight: 700, fontSize: 12
+            }}>
+                🔄 Retry
+            </button>
+        </div>
+    );
 }
 
 export default function HelpCenter() {
-  const [_pageError, _setPageError] = React.useState(null);
-  const [_retryCount, _setRetryCount] = React.useState(0);
+    const [_pageError, _setPageError] = React.useState(null);
+    const [_retryCount, _setRetryCount] = React.useState(0);
 
     const navigate = useNavigate();
     const { t, lang } = useI18n();
-    const {isDemo} = useAuth();
+    const { isDemo } = useAuth();
     const [tab, setTab] = useState("menus");
     const [openMenu, setOpenMenu] = useState(null);
     const [faqOpen, setFaqOpen] = useState(null);
@@ -185,7 +186,7 @@ export default function HelpCenter() {
     };
 
     return (
-<div style={{ display: "grid", gap: 18, maxWidth: 1000 }}>
+        <div style={{ display: "grid", gap: 18, maxWidth: 1000 }}>
             {/* ── [ 전용] 체험 안내 Banner ─────────────────────────── */}
             {isDemo && (
                 <div style={{ padding: "12px 18px", borderRadius: 12, background: "linear-gradient(135deg, rgba(234,179,8,0.08), rgba(249,115,22,0.06))", border: "1px solid rgba(234,179,8,0.3)", display: "flex", alignItems: "center", gap: 12 }}>
@@ -273,10 +274,12 @@ export default function HelpCenter() {
                         <div
                             key={i}
                             onClick={() => goToResult(r)}
-                            style={{ ...card, padding: "14px 16px", cursor: "pointer", borderColor: r.type === "menu" ? "rgba(79,142,247,0.3)"
+                            style={{
+                                ...card, padding: "14px 16px", cursor: "pointer", borderColor: r.type === "menu" ? "rgba(79,142,247,0.3)"
                                     : r.type === "faq" ? "rgba(34,197,94,0.3)"
-                                    : r.type === "api" ? "rgba(168,85,247,0.3)"
-                                    : "rgba(234,179,8,0.3)", transition: "transform 150ms, box-shadow 150ms" }}
+                                        : r.type === "api" ? "rgba(168,85,247,0.3)"
+                                            : "rgba(234,179,8,0.3)", transition: "transform 150ms, box-shadow 150ms"
+                            }}
                             onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 8px 24px rgba(0,0,0,0.25)"; }}
                             onMouseLeave={e => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = ""; }}
                         >
@@ -284,8 +287,8 @@ export default function HelpCenter() {
                                 <span style={{ fontSize: 18 }}>
                                     {r.type === "menu" ? r.icon
                                         : r.type === "faq" ? "❓"
-                                        : r.type === "api" ? (r.icon || "🔑")
-                                        : (r.icon || "👥")}
+                                            : r.type === "api" ? (r.icon || "🔑")
+                                                : (r.icon || "👥")}
                                 </span>
                                 <div style={{ flex: 1 }}>
                                     <div style={{ fontWeight: 700, fontSize: 13, color: '#fff' }}>
@@ -342,8 +345,10 @@ export default function HelpCenter() {
                                                 style={{ borderRadius: 12, border: "1px solid var(--border)", overflow: "hidden" }}>
                                                 <button
                                                     onClick={() => setOpenMenu(openMenu === m.path ? null : m.path)}
-                                                    style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", background: openMenu === m.path
-                                                            ? "rgba(79,142,247,0.06)" : "rgba(255,255,255,0.02)", border: "none", cursor: "pointer", textAlign: "left", fontSize: 20 }}
+                                                    style={{
+                                                        width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", background: openMenu === m.path
+                                                            ? "rgba(79,142,247,0.06)" : "rgba(255,255,255,0.02)", border: "none", cursor: "pointer", textAlign: "left", fontSize: 20
+                                                    }}
                                                 >
                                                     <span>{m.icon}</span>
                                                     <div style={{ flex: 1 }}>
@@ -434,7 +439,8 @@ export default function HelpCenter() {
                                                             ].map(r => (
                                                                 <div key={r.role} style={{
                                                                     padding: "8px 10px", borderRadius: 8,
-                                                                    background: `${r.color}08`, border: `1px solid ${r.color}25` }}>
+                                                                    background: `${r.color}08`, border: `1px solid ${r.color}25`
+                                                                }}>
                                                                     <div style={{ fontSize: 10, fontWeight: 800, color: r.color, marginBottom: 4 }}>{r.role}</div>
                                                                     <div style={{ fontSize: 11, color: "var(--text-2)", lineHeight: 1.5 }}>{r.task}</div>
                                                                 </div>
@@ -492,7 +498,7 @@ export default function HelpCenter() {
                             <div style={{ ...card, padding: "14px 18px" }}>
                                 <div style={{ fontWeight: 800, fontSize: 15, color: '#fff', marginBottom: 6 }}>{t("help.apiTitle")}</div>
                                 <div style={{ fontSize: 12, color: "var(--text-3)", lineHeight: 1.7 }}
-                                    dangerouslySetInnerHTML={{ __html: t("help.apiSubtitle") }} />
+                                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(t("help.apiSubtitle")) }} />
                             </div>
                             {API_GUIDE.map(g => (
                                 <div key={g.service} style={{ ...card, borderLeft: `3px solid ${g.color}` }}>
@@ -505,7 +511,8 @@ export default function HelpCenter() {
                                             <div key={i} style={{
                                                 display: "flex", gap: 10, alignItems: "center",
                                                 padding: "8px 12px", borderRadius: 8,
-                                                background: `${g.color}08`, border: `1px solid ${g.color}22` }}>
+                                                background: `${g.color}08`, border: `1px solid ${g.color}22`
+                                            }}>
                                                 <span style={{ width: 22, height: 22, borderRadius: "50%", flexShrink: 0, background: g.color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 900, color: '#fff' }}>{i + 1}</span>
                                                 <span style={{ fontSize: 12, color: "var(--text-2)" }}>{step}</span>
                                             </div>
@@ -535,7 +542,8 @@ export default function HelpCenter() {
                                         <div style={{
                                             width: 44, height: 44, borderRadius: 12,
                                             background: `${r.color}18`, border: `2px solid ${r.color}55`,
-                                            display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22 }}>{r.icon}</div>
+                                            display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22
+                                        }}>{r.icon}</div>
                                         <div>
                                             <div style={{ fontWeight: 900, fontSize: 16, color: r.color }}>{r.role}</div>
                                             <div style={{ fontSize: 11, color: "var(--text-3)", marginTop: 2 }}>{r.desc}</div>
@@ -550,7 +558,8 @@ export default function HelpCenter() {
                                                     <div key={i} style={{
                                                         fontSize: 11, color: task.startsWith("✅") ? "var(--text-2)" : "var(--text-3)",
                                                         padding: "5px 8px", borderRadius: 6,
-                                                        background: task.startsWith("✅") ? `${r.color}08` : "rgba(239,68,68,0.04)" }}>{task}</div>
+                                                        background: task.startsWith("✅") ? `${r.color}08` : "rgba(239,68,68,0.04)"
+                                                    }}>{task}</div>
                                                 ))}
                                             </div>
                                         </div>
@@ -573,6 +582,6 @@ export default function HelpCenter() {
                 </>
             )}
         </div>
-  
-);
+
+    );
 }

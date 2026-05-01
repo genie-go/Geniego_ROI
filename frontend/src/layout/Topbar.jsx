@@ -9,6 +9,7 @@ import { useAuth } from "../auth/AuthContext.jsx";
 import { useGlobalData } from "../context/GlobalDataContext.jsx";
 import { useCurrency } from "../contexts/CurrencyContext.jsx";
 import { useMobileSidebar } from "../context/MobileSidebarContext.jsx";
+import { sanitizeHtml } from "../utils/xssSanitizer.js";
 
 /* 데모 모드 감지 */
 const IS_DEMO = typeof window !== 'undefined'
@@ -17,31 +18,31 @@ const IS_DEMO = typeof window !== 'undefined'
 
 /* 테마 목록 */
 const THEMES = [
-  { id: 'arctic_white',  label: '☀️ Arctic White', color: '#f8fafc', light: true },
-  { id: 'deep_space',    label: 'Deep Space',      color: '#4f8ef7' },
-  { id: 'aurora',        label: 'Aurora',           color: '#14d9b0' },
-  { id: 'midnight_gold', label: 'Midnight Gold',    color: '#eab308' },
-  { id: 'ocean_depth',   label: 'Ocean Depth',      color: '#0ea5e9' },
-  { id: 'crimson_nexus', label: 'Crimson Nexus',    color: '#ec4899' },
+  { id: 'arctic_white', label: '☀️ Arctic White', color: '#f8fafc', light: true },
+  { id: 'deep_space', label: 'Deep Space', color: '#4f8ef7' },
+  { id: 'aurora', label: 'Aurora', color: '#14d9b0' },
+  { id: 'midnight_gold', label: 'Midnight Gold', color: '#eab308' },
+  { id: 'ocean_depth', label: 'Ocean Depth', color: '#0ea5e9' },
+  { id: 'crimson_nexus', label: 'Crimson Nexus', color: '#ec4899' },
 ];
 
 /* 다국어 옵션 (i18n LANG_OPTIONS 미러) */
 const LANG_OPTIONS_TOPBAR = [
-  { code: 'ko',    label: '한국어',            flag: '🇰🇷' },
-  { code: 'en',    label: 'English',          flag: '🇺🇸' },
-  { code: 'ja',    label: '日本語',            flag: '🇯🇵' },
-  { code: 'zh',    label: '简体中文',           flag: '🇨🇳' },
-  { code: 'zh-TW', label: '繁體中文',           flag: '🇹🇼' },
-  { code: 'de',    label: 'Deutsch',          flag: '🇩🇪' },
-  { code: 'th',    label: 'ภาษาไทย',          flag: '🇹🇭' },
-  { code: 'vi',    label: 'Tiếng Việt',       flag: '🇻🇳' },
-  { code: 'id',    label: 'Bahasa Indonesia', flag: '🇮🇩' },
-  { code: 'es',    label: 'Español',          flag: '🇪🇸' },
-  { code: 'fr',    label: 'Français',         flag: '🇫🇷' },
-  { code: 'pt',    label: 'Português',        flag: '🇧🇷' },
-  { code: 'ru',    label: 'Русский',           flag: '🇷🇺' },
-  { code: 'ar',    label: 'العربية',            flag: '🇸🇦', dir: 'rtl' },
-  { code: 'hi',    label: 'हिन्दी',              flag: '🇮🇳' },
+  { code: 'ko', label: '한국어', flag: '🇰🇷' },
+  { code: 'en', label: 'English', flag: '🇺🇸' },
+  { code: 'ja', label: '日本語', flag: '🇯🇵' },
+  { code: 'zh', label: '简体中文', flag: '🇨🇳' },
+  { code: 'zh-TW', label: '繁體中文', flag: '🇹🇼' },
+  { code: 'de', label: 'Deutsch', flag: '🇩🇪' },
+  { code: 'th', label: 'ภาษาไทย', flag: '🇹🇭' },
+  { code: 'vi', label: 'Tiếng Việt', flag: '🇻🇳' },
+  { code: 'id', label: 'Bahasa Indonesia', flag: '🇮🇩' },
+  { code: 'es', label: 'Español', flag: '🇪🇸' },
+  { code: 'fr', label: 'Français', flag: '🇫🇷' },
+  { code: 'pt', label: 'Português', flag: '🇧🇷' },
+  { code: 'ru', label: 'Русский', flag: '🇷🇺' },
+  { code: 'ar', label: 'العربية', flag: '🇸🇦', dir: 'rtl' },
+  { code: 'hi', label: 'हिन्दी', flag: '🇮🇳' },
 ];
 
 /* 페이지 타이틀 매핑 — titleKey를 통해 다국어 지원 */
@@ -218,7 +219,7 @@ export default function Topbar() {
 
   const setTheme = useCallback((themeId) => {
     document.documentElement.setAttribute('data-theme', themeId);
-    try { localStorage.setItem('geniego_theme', themeId); } catch {}
+    try { localStorage.setItem('geniego_theme', themeId); } catch { }
     setShowTheme(false);
   }, []);
 
@@ -227,7 +228,7 @@ export default function Topbar() {
     try {
       const saved = localStorage.getItem('geniego_theme');
       if (saved) document.documentElement.setAttribute('data-theme', saved);
-    } catch {}
+    } catch { }
   }, []);
 
   const activeTheme = THEMES.find(th => th.id === currentTheme) || THEMES[0];
@@ -307,7 +308,7 @@ export default function Topbar() {
           fontWeight: 600, letterSpacing: '0.5px',
         }}>
           {now.toLocaleTimeString(
-            { ko:'ko-KR', en:'en-US', ja:'ja-JP', zh:'zh-CN', 'zh-TW':'zh-TW', de:'de-DE', th:'th-TH', vi:'vi-VN', id:'id-ID', es:'es-ES', fr:'fr-FR', pt:'pt-BR', ru:'ru-RU', ar:'ar-SA', hi:'hi-IN' }[lang] || 'en-US',
+            { ko: 'ko-KR', en: 'en-US', ja: 'ja-JP', zh: 'zh-CN', 'zh-TW': 'zh-TW', de: 'de-DE', th: 'th-TH', vi: 'vi-VN', id: 'id-ID', es: 'es-ES', fr: 'fr-FR', pt: 'pt-BR', ru: 'ru-RU', ar: 'ar-SA', hi: 'hi-IN' }[lang] || 'en-US',
             { hour: '2-digit', minute: '2-digit', hour12: false }
           )}
         </span>
@@ -647,7 +648,7 @@ function ProfileEditModal({ user, token, onClose }) {
             const cached = JSON.parse(localStorage.getItem(KEY_PREFIX + 'user') || '{}');
             const updated = { ...cached, name: name.trim(), phone: phone.trim(), company: company.trim() };
             localStorage.setItem(KEY_PREFIX + 'user', JSON.stringify(updated));
-          } catch {}
+          } catch { }
           showMsg(t('profile.saved', 'Profile updated.'), 'ok');
           setTimeout(() => window.location.reload(), 1200);
           return;
@@ -659,7 +660,7 @@ function ProfileEditModal({ user, token, onClose }) {
         const cached = JSON.parse(localStorage.getItem(KEY_PREFIX + 'user') || '{}');
         const updated = { ...cached, name: name.trim(), phone: phone.trim(), company: company.trim() };
         localStorage.setItem(KEY_PREFIX + 'user', JSON.stringify(updated));
-      } catch {}
+      } catch { }
       showMsg(t('profile.saved', 'Profile updated.'), 'ok');
       setTimeout(() => window.location.reload(), 1200);
     } catch {
@@ -669,7 +670,7 @@ function ProfileEditModal({ user, token, onClose }) {
         const cached = JSON.parse(localStorage.getItem(KEY_PREFIX + 'user') || '{}');
         const updated = { ...cached, name: name.trim(), phone: phone.trim(), company: company.trim() };
         localStorage.setItem(KEY_PREFIX + 'user', JSON.stringify(updated));
-      } catch {}
+      } catch { }
       showMsg(t('profile.savedLocal', 'Profile saved locally.'), 'ok');
       setTimeout(() => window.location.reload(), 1200);
     } finally { setSaving(false); }
@@ -851,7 +852,7 @@ function ProfileEditModal({ user, token, onClose }) {
             {/* 안내 */}
             <div style={{ padding: '12px 14px', borderRadius: 10, background: 'rgba(79,142,247,0.05)', border: '1px solid rgba(79,142,247,0.1)', fontSize: 12, color: 'var(--text-3, #94a3b8)', lineHeight: 1.7 }}>
               🔐 {t('profile.pwGuide', 'Current password verification is required.')}<br />
-              <span dangerouslySetInnerHTML={{ __html: t('profile.pwGuide2', 'New password must be <strong>8+ characters</strong>.') }} />
+              <span dangerouslySetInnerHTML={{ __html: sanitizeHtml(t('profile.pwGuide2', 'New password must be <strong>8+ characters</strong>.')) }} />
             </div>
 
             {/* 현재 비밀번호 */}

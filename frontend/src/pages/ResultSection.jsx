@@ -4,6 +4,7 @@ import MediaEditor from '../components/MediaEditor.jsx';
 import { BudgetPanel, ChannelBarCard, ChannelAdCard } from './AIRecommendTab.jsx';
 import { CHANNEL_COLORS, CHANNEL_ICONS } from './AIRecommendTab.jsx';
 import { useI18n } from '../i18n/index.js';
+import { sanitizeHtml } from '../utils/xssSanitizer.js';
 
 function ResultSection(props) {
     const { t } = useI18n();
@@ -251,7 +252,7 @@ function ResultSection(props) {
                             <div style={{ padding: '40px 0', textAlign: 'center', color: 'var(--text-3)' }}>
                                 <div style={{ fontSize: 40, marginBottom: 10 }}>🎨</div>
                                 <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)', marginBottom: 6 }}>{t('gAiRec.imgCreateReady')}</div>
-                                <div style={{ fontSize: 11 }}><span dangerouslySetInnerHTML={{ __html: t('gAiRec.imgCreateReadyDesc') }} /></div>
+                                <div style={{ fontSize: 11 }}><span dangerouslySetInnerHTML={{ __html: sanitizeHtml(t('gAiRec.imgCreateReadyDesc')) }} /></div>
                             </div>
                         )}
                     </div>
@@ -279,7 +280,7 @@ function ResultSection(props) {
                 </div>
             )}
 
-    </div>
+        </div>
     );
 }
 

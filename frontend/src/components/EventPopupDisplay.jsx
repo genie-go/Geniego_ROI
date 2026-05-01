@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
+import { sanitizeHtml } from '../utils/xssSanitizer.js';
 
 import ko from '../i18n/locales/ko.js';
-const t = (k) => k.split('.').reduce((o,i)=>o?.[i], {auto: ko?.auto}) || k;
+const t = (k) => k.split('.').reduce((o, i) => o?.[i], { auto: ko?.auto }) || k;
 
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -25,7 +26,7 @@ function dismissPopup(popupId, daysCount) {
     try {
         const expiry = Date.now() + daysCount * 24 * 60 * 60 * 1000;
         localStorage.setItem(`${DISMISS_PREFIX}${popupId}`, expiry.toString());
-    } catch {}
+    } catch { }
 }
 
 /* ── 단일 팝업 렌더러 ─────────────────────────────────────────────────── */
@@ -93,7 +94,7 @@ function PopupModal({ popup, onClose, onDismissToday, onDismissWeek }) {
                             lineHeight: 1.7, textAlign: "center",
                             whiteSpace: "pre-line",
                         }}
-                            dangerouslySetInnerHTML={{ __html: popup.body }}
+                            dangerouslySetInnerHTML={{ __html: sanitizeHtml(popup.body) }}
                         />
                     )}
                     {/* CTA 버튼 */}
@@ -202,7 +203,7 @@ export default function EventPopupDisplay() {
     };
 
     const handleDismissToday = () => dismissPopup(current.id, 1);
-    const handleDismissWeek  = () => dismissPopup(current.id, 7);
+    const handleDismissWeek = () => dismissPopup(current.id, 7);
 
     return (
         <PopupModal
