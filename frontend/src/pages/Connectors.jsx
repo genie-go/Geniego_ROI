@@ -201,6 +201,129 @@ function DataWarehouseSection({ t }) {
   );
 }
 
+/* ─── Ad Platform Card ─────────────────────────────────────────── */
+function AdPlatformCard({ platform, name, icon, color, connState, updateConn, t, token }) {
+  const [busy, setBusy] = useState(false);
+  const [showOAuthModal, setShowOAuthModal] = useState(false);
+  const conn = connState[platform] || {};
+  const isConnected = conn.status === "connected";
+
+  const handleOAuthConnect = async () => {
+    setBusy(true);
+    // OAuth 플로우 시뮬레이션 (실제로는 OAuth 팝업 또는 리다이렉트)
+    await new Promise(r => setTimeout(r, 1500));
+
+    // 임시 토큰 생성 (실제로는 OAuth 서버에서 받아옴)
+    const mockAccessToken = `${platform}_access_${Date.now()}`;
+    const mockRefreshToken = `${platform}_refresh_${Date.now()}`;
+
+    updateConn(platform, {
+      status: "connected",
+      accessToken: mockAccessToken,
+      refreshToken: mockRefreshToken,
+      grantedScopes: ["ads_read", "ads_management", "reporting"],
+      expiresAt: Date.now() + 3600000, // 1시간 후
+    });
+
+    setBusy(false);
+    setShowOAuthModal(false);
+  };
+
+  const handleDisconnect = () => {
+    updateConn(platform, { status: "disconnected", accessToken: "", refreshToken: "", grantedScopes: [], expiresAt: null });
+  };
+
+  return (
+    <>
+      <div className="card card-glass" style={{ borderLeft: `3px solid ${isConnected ? color : "rgba(99,140,255,0.15)"}` }}>
+        <div style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 14 }}>
+          <div style={{ width: 40, height: 40, borderRadius: 10, background: color + "22", border: `1.5px solid ${color}44`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>{icon}</div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontWeight: 700, fontSize: 13 }}>{name}</div>
+            <div style={{ fontSize: 10, color: "var(--text-3)", marginTop: 2 }}>
+              <span style={{ padding: "1px 7px", borderRadius: 20, background: color + "22", color: color, fontWeight: 700, fontSize: 9 }}>OAuth 2.0</span>
+            </div>
+          </div>
+          <span className={`badge ${isConnected ? "badge-green" : ""}`} style={{ fontSize: 10 }}>
+            {isConnected ? <><span className="dot dot-green" />{t('conn.connected')}</> : t('conn.statusDisconnected')}
+          </span>
+        </div>
+
+        {isConnected && (
+          <div>
+            {/* Granted Scopes */}
+            <div style={{ marginBottom: 12 }}>
+              <div style={{ fontSize: 11, color: "var(--text-3)", fontWeight: 700, marginBottom: 6 }}>🔐 {t('conn.grantedScopes')}</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+                {(conn.grantedScopes || []).map(scope => (
+                  <span key={scope} style={{ fontSize: 9, padding: "2px 8px", borderRadius: 20, background: "rgba(34,197,94,0.1)", color: "#22c55e", border: "1px solid rgba(34,197,94,0.2)" }}>✓ {scope}</span>
+                ))}
+              </div>
+            </div>
+
+            {/* Token Expiry */}
+            {conn.expiresAt && (
+              <div style={{ fontSize: 10, color: "var(--text-3)", marginBottom: 12 }}>
+                ⏰ {t('conn.tokenExpiry')}: {new Date(conn.expiresAt).toLocaleString()}
+              </div>
+            )}
+
+            <button className="btn-ghost" style={{ borderColor: "rgba(239,68,68,0.3)", color: "#ef4444", fontSize: 11 }} onClick={handleDisconnect}>{t('conn.btnDisconnect')}</button>
+          </div>
+        )}
+
+        {!isConnected && (
+          <div style={{ textAlign: "center", padding: 20 }}>
+            <div style={{ fontSize: 13, color: "var(--text-3)", marginBottom: 12 }}>{t('conn.oauthPrompt')}</div>
+            <button className="btn-primary" style={{ background: `linear-gradient(135deg,${color},${color}cc)` }} onClick={() => setShowOAuthModal(true)} disabled={busy}>
+              {busy ? `⏳ ${t('conn.connecting')}…` : `🔗 ${t('conn.btnOAuthConnect')}`}
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* OAuth Modal */}
+      {showOAuthModal && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(9,5,20,0.85)', backdropFilter: 'blur(10px)' }} onClick={() => setShowOAuthModal(false)}>
+          <div className="card card-glass" style={{ maxWidth: 480, padding: 24, margin: 20 }} onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+              <div style={{ width: 48, height: 48, borderRadius: 12, background: color + "22", border: `2px solid ${color}44`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24 }}>{icon}</div>
+              <div>
+                <div style={{ fontWeight: 800, fontSize: 16 }}>{t('conn.oauthModalTitle', { platform: name })}</div>
+                <div style={{ fontSize: 11, color: "var(--text-3)", marginTop: 2 }}>{t('conn.oauthModalSub')}</div>
+              </div>
+            </div>
+
+            <div style={{ padding: '12px 16px', borderRadius: 10, background: 'rgba(79,142,247,0.08)', border: '1px solid rgba(79,142,247,0.2)', marginBottom: 16 }}>
+              <div style={{ fontSize: 11, color: 'var(--text-2)', lineHeight: 1.6 }}>
+                {t('conn.oauthModalDesc', { platform: name })}
+              </div>
+            </div>
+
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, marginBottom: 8 }}>{t('conn.requestedPermissions')}:</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                {['ads_read', 'ads_management', 'reporting'].map(scope => (
+                  <div key={scope} style={{ fontSize: 10, padding: '6px 10px', borderRadius: 8, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                    ✓ {scope}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button className="btn-ghost" style={{ flex: 1 }} onClick={() => setShowOAuthModal(false)}>{t('conn.btnCancel')}</button>
+              <button className="btn-primary" style={{ flex: 1, background: `linear-gradient(135deg,${color},${color}cc)` }} onClick={handleOAuthConnect} disabled={busy}>
+                {busy ? `⏳ ${t('conn.connecting')}…` : `🔗 ${t('conn.btnAuthorize')}`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
 /* ─── Event Feed ─────────────────────────────────────────────── */
 function WebhookFeed({ t }) {
   return (
@@ -362,11 +485,45 @@ export default function Connectors() {
         {/* Platform Tab */}
         {mainTab === "platforms" && (
           <>
-            <div style={{ textAlign: "center", padding: 40, color: "var(--text-3)" }}>
-              <div style={{ fontSize: 48, marginBottom: 12 }}>🔌</div>
-              <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 8 }}>{t('conn.noPlatforms')}</div>
-              <div style={{ fontSize: 12 }}>{t('conn.noPlatformsDesc')}</div>
+            {/* Ad Platform Connectors */}
+            <div className="grid3 fade-up fade-up-3" style={{ marginBottom: 16 }}>
+              {/* Meta (Facebook) Connector */}
+              <AdPlatformCard
+                platform="meta"
+                name="Meta (Facebook)"
+                icon="📘"
+                color="#1877f2"
+                connState={connState}
+                updateConn={updateConn}
+                t={t}
+                token={token}
+              />
+
+              {/* Google Ads Connector */}
+              <AdPlatformCard
+                platform="google"
+                name="Google Ads"
+                icon="🔍"
+                color="#4285f4"
+                connState={connState}
+                updateConn={updateConn}
+                t={t}
+                token={token}
+              />
+
+              {/* TikTok Connector */}
+              <AdPlatformCard
+                platform="tiktok"
+                name="TikTok Ads"
+                icon="🎵"
+                color="#000000"
+                connState={connState}
+                updateConn={updateConn}
+                t={t}
+                token={token}
+              />
             </div>
+
             <WebhookFeed t={t} />
           </>
         )}
