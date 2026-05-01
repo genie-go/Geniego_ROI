@@ -6,12 +6,18 @@
  * Data: GlobalDataContext (journeyTriggers, journeyExecutions,
  *        crmSegments, emailCampaignsLinked, kakaoCampaignsLinked)
  * i18n: 12-language + RTL support
+ * 
+ * ✨ UI/UX Improvements (2026-05-01):
+ * - Onboarding modal for first-time users
+ * - EmptyState component with templates
+ * - Enhanced user experience
  */
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { useI18n } from '../i18n';
 
 import { useGlobalData } from '../context/GlobalDataContext';
 import { useNavigate } from 'react-router-dom';
+import EmptyState from '../components/EmptyState';
 
 /* ── Enterprise Demo Isolation Guard ─────────────────────── */
 const _isDemo = (() => {
@@ -33,6 +39,13 @@ const K = {
     tabBuilder: 'jb.tabBuilder', tabList: 'jb.tabList', tabLogs: 'jb.tabLogs', tabAnalytics: 'jb.tabAnalytics',
     tabGuide: 'jb.tabGuide',
     createJourney: 'jb.createJourney', journeyName: 'jb.journeyName', triggerType: 'jb.triggerType',
+    // Onboarding keys
+    onboardingWelcome: 'jb.onboardingWelcome', onboardingTitle: 'jb.onboardingTitle', onboardingDesc: 'jb.onboardingDesc',
+    onboardingStep1: 'jb.onboardingStep1', onboardingStep2: 'jb.onboardingStep2', onboardingStep3: 'jb.onboardingStep3',
+    onboardingShowGuide: 'jb.onboardingShowGuide', onboardingStart: 'jb.onboardingStart', onboardingDontShow: 'jb.onboardingDontShow',
+    // Empty State keys
+    emptyTitle: 'jb.emptyTitle', emptyDesc: 'jb.emptyDesc', useTemplate: 'jb.useTemplate',
+    templateWelcome: 'jb.templateWelcome', templateAbandon: 'jb.templateAbandon', templateThanks: 'jb.templateThanks', templateChurn: 'jb.templateChurn',
     triggerSignup: 'jb.triggerSignup', triggerPurchase: 'jb.triggerPurchase', triggerAbandon: 'jb.triggerAbandon',
     triggerChurn: 'jb.triggerChurn', triggerSegment: 'jb.triggerSegment', triggerManual: 'jb.triggerManual',
     targetSegment: 'jb.targetSegment', channels: 'jb.channels', email: 'jb.email', kakao: 'jb.kakao',
@@ -93,6 +106,13 @@ const FB = {
     [K.title]: '고객 여정 빌더', [K.sub]: 'AI 기반 자동화 고객 여정 설계·실행·분석',
     [K.tabBuilder]: '여정 빌더', [K.tabList]: '여정 목록', [K.tabLogs]: '실행 로그', [K.tabAnalytics]: '분석', [K.tabGuide]: '이용 가이드',
     [K.createJourney]: '새 여정 생성', [K.journeyName]: '여정 이름', [K.triggerType]: '트리거 유형',
+    // Onboarding fallbacks
+    [K.onboardingWelcome]: '환영합니다! 🎉', [K.onboardingTitle]: 'Journey Builder 시작하기', [K.onboardingDesc]: 'AI 기반 고객 여정 자동화를 3단계로 시작하세요',
+    [K.onboardingStep1]: '1. 트리거 선택 (회원가입, 구매 등)', [K.onboardingStep2]: '2. 채널 설정 (이메일, 카카오, SMS)', [K.onboardingStep3]: '3. 여정 실행 및 분석',
+    [K.onboardingShowGuide]: '상세 가이드 보기', [K.onboardingStart]: '바로 시작하기', [K.onboardingDontShow]: '다시 보지 않기',
+    // Empty State fallbacks
+    [K.emptyTitle]: '아직 여정이 없습니다', [K.emptyDesc]: '첫 번째 고객 여정을 만들어보세요', [K.useTemplate]: '템플릿 사용하기',
+    [K.templateWelcome]: '회원가입 환영 여정', [K.templateAbandon]: '장바구니 이탈 리마인더', [K.templateThanks]: '구매 감사 메시지', [K.templateChurn]: '이탈 방지 캠페인',
     [K.triggerSignup]: '회원가입', [K.triggerPurchase]: '구매 완료', [K.triggerAbandon]: '장바구니 이탈',
     [K.triggerChurn]: '이탈 위험', [K.triggerSegment]: '세그먼트 진입', [K.triggerManual]: '수동 실행',
     [K.targetSegment]: '대상 세그먼트', [K.channels]: '채널', [K.email]: '이메일', [K.kakao]: '카카오',
@@ -482,11 +502,28 @@ export default function JourneyBuilder() {
                             );
                         })}
                         {journeys.length === 0 && (
-                            <div style={{ ...CARD, textAlign: 'center', padding: '60px 20px' }}>
-                                <div style={{ fontSize: 48, marginBottom: 12 }}>🗺️</div>
-                                <div style={{ fontSize: 14, color: '#94a3b8', marginBottom: 16 }}>{tr(K.noData)}</div>
-                                <button onClick={() => setShowCreate(true)} style={{ padding: '10px 24px', borderRadius: 10, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#4f8ef7,#06b6d4)', color: '#fff', fontWeight: 700, fontSize: 13 }}>+ {tr(K.createJourney)}</button>
-                            </div>
+                            <EmptyState
+                                onCreateClick={() => {
+                                    setEditId(null);
+                                    setForm({ name: '', trigger_type: 'signup', segment: '', channels: ['email'], delay: 'none' });
+                                    setShowCreate(true);
+                                }}
+                                onTemplateClick={(template) => {
+                                    if (template) {
+                                        setEditId(null);
+                                        setForm({
+                                            name: tr(template.nameKey),
+                                            trigger_type: template.trigger,
+                                            segment: '',
+                                            channels: template.channels,
+                                            delay: template.delay
+                                        });
+                                        setShowCreate(true);
+                                    } else {
+                                        setShowCreate(true);
+                                    }
+                                }}
+                            />
                         )}
                     </div>
                 )}
