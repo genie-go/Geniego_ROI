@@ -531,7 +531,7 @@ const LOC = {
 
 // ── Helpers ─────────────────────────────────────────────
 const getAuthToken = () => localStorage.getItem("genie_token") || localStorage.getItem("genie_auth_token") || '';
-const API = async (path) => {
+const API = useCallback(async (path) => {
   try {
     const res = await fetch(path, { headers: { Authorization: `Bearer ${getAuthToken()}` } });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -540,7 +540,7 @@ const API = async (path) => {
     if (path.includes('sku') || path.includes('campaign') || path.includes('creator') || path.includes('platform')) return { rows: [] };
     return { kpi: {}, by_platform: {}, top_skus: [], alerts: [] };
   }
-};
+}, []);
 
 const fmt = {
   num: (v) => v?.toLocaleString(undefined) ?? "-",
@@ -633,7 +633,12 @@ function EmptyState({ txt }) {
 // ── Tab: Summary ─────────────────────────────────────────
 function SummaryTab({ period, n, txt, fc }) {
   const [data, setData] = useState(null);
-  useEffect(() => { API(`/api/v423/rollup/summary?period=${period}&n=${n}`).then(setData).catch(() => { }); }, [period, n]);
+  const fetchData = useCallback(async () => {
+    const result = await API(`/api/v423/rollup/summary?period=${period}&n=${n}`);
+    setData(result);
+  }, [period, n]);
+
+  useEffect(() => { fetchData().catch(() => { }); }, [fetchData]);
 
   const kpi = useMemo(() => data?.kpi ?? {}, [data]);
   const byPlatform = useMemo(() => data?.by_platform ?? {}, [data]);
@@ -704,9 +709,14 @@ function SummaryTab({ period, n, txt, fc }) {
 function SkuTab({ period, n, txt, fc }) {
   const [data, setData] = useState(null);
   const [selected, setSelected] = useState(null);
-  useEffect(() => {
-    API(`/api/v423/rollup/sku?period=${period}&n=${n}`).then(d => { setData(d); if (d.rows?.[0]) setSelected(d.rows[0].sku_id); }).catch(() => { });
+
+  const fetchData = useCallback(async () => {
+    const result = await API(`/api/v423/rollup/sku?period=${period}&n=${n}`);
+    setData(result);
+    if (result.rows?.[0]) setSelected(result.rows[0].sku_id);
   }, [period, n]);
+
+  useEffect(() => { fetchData().catch(() => { }); }, [fetchData]);
 
   const selRow = useMemo(() => data?.rows?.find(r => r.sku_id === selected), [data, selected]);
 
@@ -762,9 +772,14 @@ function SkuTab({ period, n, txt, fc }) {
 function CampaignTab({ period, n, txt, fc }) {
   const [data, setData] = useState(null);
   const [selected, setSelected] = useState(null);
-  useEffect(() => {
-    API(`/api/v423/rollup/campaign?period=${period}&n=${n}`).then(d => { setData(d); if (d.rows?.[0]) setSelected(d.rows[0].campaign_id); }).catch(() => { });
+
+  const fetchData = useCallback(async () => {
+    const result = await API(`/api/v423/rollup/campaign?period=${period}&n=${n}`);
+    setData(result);
+    if (result.rows?.[0]) setSelected(result.rows[0].campaign_id);
   }, [period, n]);
+
+  useEffect(() => { fetchData().catch(() => { }); }, [fetchData]);
 
   const selRow = useMemo(() => data?.rows?.find(r => r.campaign_id === selected), [data, selected]);
 
@@ -817,7 +832,13 @@ function CampaignTab({ period, n, txt, fc }) {
 // ── Tab: Creator ─────────────────────────────────────────
 function CreatorTab({ period, n, txt, fc }) {
   const [data, setData] = useState(null);
-  useEffect(() => { API(`/api/v423/rollup/creator?period=${period}&n=${n}`).then(setData).catch(() => { }); }, [period, n]);
+
+  const fetchData = useCallback(async () => {
+    const result = await API(`/api/v423/rollup/creator?period=${period}&n=${n}`);
+    setData(result);
+  }, [period, n]);
+
+  useEffect(() => { fetchData().catch(() => { }); }, [fetchData]);
   if (!data) return <div style={{ color: '#64748b', padding: 32 }}>{txt('loading')}</div>;
   if (!data.rows?.length) return <EmptyState txt={txt} />;
   return (
@@ -850,7 +871,13 @@ function CreatorTab({ period, n, txt, fc }) {
 // ── Tab: Platform ────────────────────────────────────────
 function PlatformTab({ period, n, txt, fc }) {
   const [data, setData] = useState(null);
-  useEffect(() => { API(`/api/v423/rollup/platform?period=${period}&n=${n}`).then(setData).catch(() => { }); }, [period, n]);
+
+  const fetchData = useCallback(async () => {
+    const result = await API(`/api/v423/rollup/platform?period=${period}&n=${n}`);
+    setData(result);
+  }, [period, n]);
+
+  useEffect(() => { fetchData().catch(() => { }); }, [fetchData]);
   if (!data) return <div style={{ color: '#64748b', padding: 32 }}>{txt('loading')}</div>;
   if (!data.rows?.length) return <EmptyState txt={txt} />;
   return (

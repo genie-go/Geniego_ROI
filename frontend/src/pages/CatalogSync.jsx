@@ -47,24 +47,24 @@ const isImageUrl = (v) => typeof v === 'string' && (v.startsWith('http') || v.st
 /* ─── Constants (기본 채널 목록 — ConnectorSync 미사용 시 폴백) ───────────── */
 const DEFAULT_CHANNELS = [
     // ── Domestic Channel ────────────────────────────────────────────────────────────
-    { id: "coupang",       name: "Coupang Wing",          icon: "🇰🇷", color: "#00bae5" },
-    { id: "naver",         name: "Naver Smart Store",      icon: "🟢",  color: "#03c75a" },
-    { id: "11st",          name: "11Street",                 icon: "🏬",  color: "#ff0000" },
-    { id: "gmarket",       name: "Gmarket",                  icon: "🛍️",  color: "#e83e0b" },
-    { id: "kakao_commerce",name: "Kakao Commerce",            icon: "🟡",  color: "#ffd400" },
-    { id: "cafe24",        name: "Cafe24",                 icon: "🏪",  color: "#0068ff" },
-    { id: "wemakeprice",   name: "WeMakePrice",                  icon: "🔵",  color: "#2d5bff" },
-    { id: "interpark",     name: "Interpark",                icon: "🟠",  color: "#ff7400" },
-    { id: "lotteon",       name: "Lotte ON",                  icon: "🏢",  color: "#e60012" },
-    { id: "own_mall",      name: "Own Mall",                  icon: "🏠",  color: "#6366f1" },
+    { id: "coupang", name: "Coupang Wing", icon: "🇰🇷", color: "#00bae5" },
+    { id: "naver", name: "Naver Smart Store", icon: "🟢", color: "#03c75a" },
+    { id: "11st", name: "11Street", icon: "🏬", color: "#ff0000" },
+    { id: "gmarket", name: "Gmarket", icon: "🛍️", color: "#e83e0b" },
+    { id: "kakao_commerce", name: "Kakao Commerce", icon: "🟡", color: "#ffd400" },
+    { id: "cafe24", name: "Cafe24", icon: "🏪", color: "#0068ff" },
+    { id: "wemakeprice", name: "WeMakePrice", icon: "🔵", color: "#2d5bff" },
+    { id: "interpark", name: "Interpark", icon: "🟠", color: "#ff7400" },
+    { id: "lotteon", name: "Lotte ON", icon: "🏢", color: "#e60012" },
+    { id: "own_mall", name: "Own Mall", icon: "🏠", color: "#6366f1" },
     // ── Global Channel ──────────────────────────────────────────────────────────
-    { id: "shopify",       name: "Shopify",                icon: "🛒",  color: "#96bf48" },
-    { id: "amazon",        name: "Amazon SP-API",          icon: "📦",  color: "#ff9900" },
-    { id: "tiktok",        name: "TikTok Shop",            icon: "🎵",  color: "#ff0050" },
-    { id: "rakuten",       name: "Rakuten",                icon: "🇯🇵",  color: "#bf0000" },
-    { id: "lazada",        name: "Lazada",                 icon: "🌏",  color: "#0f146b" },
-    { id: "qoo10",         name: "Qoo10",                  icon: "🟪",  color: "#9b249f" },
-    { id: "zalando",       name: "Zalando",                icon: "🇩🇪",  color: "#ff6900" },
+    { id: "shopify", name: "Shopify", icon: "🛒", color: "#96bf48" },
+    { id: "amazon", name: "Amazon SP-API", icon: "📦", color: "#ff9900" },
+    { id: "tiktok", name: "TikTok Shop", icon: "🎵", color: "#ff0050" },
+    { id: "rakuten", name: "Rakuten", icon: "🇯🇵", color: "#bf0000" },
+    { id: "lazada", name: "Lazada", icon: "🌏", color: "#0f146b" },
+    { id: "qoo10", name: "Qoo10", icon: "🟪", color: "#9b249f" },
+    { id: "zalando", name: "Zalando", icon: "🇩🇪", color: "#ff6900" },
 ];
 
 /* ─── Integration Hub 연동 채널 동적 구성 훅 ──────────────────────────────── */
@@ -73,25 +73,25 @@ const DEFAULT_CHANNELS = [
  * 2) DEFAULT_CHANNELS에 없는 신규 채널 → 자동 생성되어 목록에 추가
  * → 카탈로그 동기화의 모든 탭(히어로, 채널등록, 가격규칙 등)에 즉시 반영 */
 const CHANNEL_META_FALLBACK = {
-    meta_ads:        { name: "Meta Ads",          icon: "📘", color: "#1877f2" },
-    google_ads:      { name: "Google Ads",        icon: "📊", color: "#4285f4" },
-    tiktok_business: { name: "TikTok Business",   icon: "🎵", color: "#ff0050" },
-    amazon_spapi:    { name: "Amazon SP-API",     icon: "📦", color: "#ff9900" },
-    amazon_ads:      { name: "Amazon Ads",        icon: "📢", color: "#ff9900" },
-    naver_smartstore:{ name: "Naver SmartStore",   icon: "🟢", color: "#03c75a" },
-    naver_sa:        { name: "Naver Search Ads",  icon: "🔍", color: "#03c75a" },
-    kakao_moment:    { name: "Kakao Moment",      icon: "💬", color: "#ffd400" },
-    st11:            { name: "11st",              icon: "🏬", color: "#ff0000" },
-    instagram:       { name: "Instagram",         icon: "📸", color: "#e1306c" },
-    youtube:         { name: "YouTube",           icon: "▶️", color: "#ff0000" },
-    google_analytics:{ name: "Google Analytics",  icon: "📈", color: "#e37400" },
-    slack:           { name: "Slack",             icon: "💬", color: "#4a154b" },
-    line:            { name: "LINE",              icon: "💚", color: "#06c755" },
-    wechat:          { name: "WeChat Store",      icon: "🟢", color: "#07c160" },
-    ebay:            { name: "eBay",              icon: "🏷️", color: "#e53238" },
-    etsy:            { name: "Etsy",              icon: "🧡", color: "#f1641e" },
-    walmart:         { name: "Walmart",           icon: "🏪", color: "#0071dc" },
-    twitter_ads:     { name: "X (Twitter) Ads",   icon: "🐦", color: "#1da1f2" },
+    meta_ads: { name: "Meta Ads", icon: "📘", color: "#1877f2" },
+    google_ads: { name: "Google Ads", icon: "📊", color: "#4285f4" },
+    tiktok_business: { name: "TikTok Business", icon: "🎵", color: "#ff0050" },
+    amazon_spapi: { name: "Amazon SP-API", icon: "📦", color: "#ff9900" },
+    amazon_ads: { name: "Amazon Ads", icon: "📢", color: "#ff9900" },
+    naver_smartstore: { name: "Naver SmartStore", icon: "🟢", color: "#03c75a" },
+    naver_sa: { name: "Naver Search Ads", icon: "🔍", color: "#03c75a" },
+    kakao_moment: { name: "Kakao Moment", icon: "💬", color: "#ffd400" },
+    st11: { name: "11st", icon: "🏬", color: "#ff0000" },
+    instagram: { name: "Instagram", icon: "📸", color: "#e1306c" },
+    youtube: { name: "YouTube", icon: "▶️", color: "#ff0000" },
+    google_analytics: { name: "Google Analytics", icon: "📈", color: "#e37400" },
+    slack: { name: "Slack", icon: "💬", color: "#4a154b" },
+    line: { name: "LINE", icon: "💚", color: "#06c755" },
+    wechat: { name: "WeChat Store", icon: "🟢", color: "#07c160" },
+    ebay: { name: "eBay", icon: "🏷️", color: "#e53238" },
+    etsy: { name: "Etsy", icon: "🧡", color: "#f1641e" },
+    walmart: { name: "Walmart", icon: "🏪", color: "#0071dc" },
+    twitter_ads: { name: "X (Twitter) Ads", icon: "🐦", color: "#1da1f2" },
 };
 
 function useDynamicChannels() {
@@ -169,14 +169,14 @@ const statusColor = s => s === "ok" ? "#22c55e" : s === "warn" ? "#eab308" : "#e
 
 /* ─── Unit Types & Helpers ───────────────────────────────────────────────────── */
 const UNIT_TYPES = [
-    { id: "ea",  labelKey: "unitEa",  descKey: "unitEaDesc",  icon: "1개",   color: "#22c55e" },
-    { id: "box", labelKey: "unitBox", descKey: "unitBoxDesc", icon: "📦",   color: "#4f8ef7" },
-    { id: "pl",  labelKey: "unitPl",  descKey: "unitPlDesc",  icon: "📦📦", color: "#f59e0b" },
+    { id: "ea", labelKey: "unitEa", descKey: "unitEaDesc", icon: "1개", color: "#22c55e" },
+    { id: "box", labelKey: "unitBox", descKey: "unitBoxDesc", icon: "📦", color: "#4f8ef7" },
+    { id: "pl", labelKey: "unitPl", descKey: "unitPlDesc", icon: "📦📦", color: "#f59e0b" },
 ];
 
 function toEa(qty, prod) {
     if (prod.unitType === "box") return qty * (parseInt(prod.eaPerBox) || 1);
-    if (prod.unitType === "pl")  return qty * (parseInt(prod.boxPerPl) || 1) * (parseInt(prod.eaPerBox) || 1);
+    if (prod.unitType === "pl") return qty * (parseInt(prod.boxPerPl) || 1) * (parseInt(prod.eaPerBox) || 1);
     return qty;
 }
 
@@ -219,7 +219,8 @@ function ProgressBar({ pct, color = "#4f8ef7", animated = false }) {
                 transition: "width 0.4s ease",
                 backgroundImage: animated ? `repeating-linear-gradient(90deg,transparent,transparent 8px,rgba(255,255,255,0.15) 8px,rgba(255,255,255,0.15) 16px)` : "none",
                 backgroundSize: "32px",
-                animation: animated ? "stripe 0.8s linear infinite" : "none" }} />
+                animation: animated ? "stripe 0.8s linear infinite" : "none"
+            }} />
         </div>
     );
 }
@@ -364,10 +365,10 @@ function BulkRegisterModal({ selectedIds, products, onClose, onApply, is }) {
                     ))}
                 </div>
 
-                
+
                 {/* Select Product Summary (공통) */}
                 <div style={{ padding: "10px 14px", borderRadius: 10, background: "rgba(79,142,247,0.06)", border: "1px solid rgba(79,142,247,0.2)", marginBottom: 16 }}>
-                    <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 4, color: "#f97316" }}>{t('catalogSync.selectedProductCount', {n: selProds.length})} · {t('catalogSync.avgProductCost')} <span style={{ fontWeight: 700 }}>{fmtKRW(avgCost)}</span></div>
+                    <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 4, color: "#f97316" }}>{t('catalogSync.selectedProductCount', { n: selProds.length })} · {t('catalogSync.avgProductCost')} <span style={{ fontWeight: 700 }}>{fmtKRW(avgCost)}</span></div>
                     <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
                         {selProds.slice(0, 5).map(p => (
                             <span key={p.id} style={{ fontSize: 10, padding: "2px 8px", borderRadius: 6, background: "rgba(79,142,247,0.12)", color: "#4f8ef7" }}>{p.name}</span>
@@ -382,8 +383,8 @@ function BulkRegisterModal({ selectedIds, products, onClose, onApply, is }) {
                         {/* Action Select */}
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 18 }}>
                             {[
-                                { id: "register",   label: t('catalogSync.registerToChannelAction'),  desc: t('catalogSync.registerToChannelDesc'),   color: "#22c55e" },
-                                { id: "unregister", label: t('catalogSync.unregisterChannelAction'),  desc: t('catalogSync.unregisterChannelDesc'),   color: "#ef4444" },
+                                { id: "register", label: t('catalogSync.registerToChannelAction'), desc: t('catalogSync.registerToChannelDesc'), color: "#22c55e" },
+                                { id: "unregister", label: t('catalogSync.unregisterChannelAction'), desc: t('catalogSync.unregisterChannelDesc'), color: "#ef4444" },
                             ].map(a => (
                                 <div key={a.id} onClick={() => setAction(a.id)} style={{ padding: "12px 14px", borderRadius: 10, cursor: "pointer", border: `2px solid ${action === a.id ? a.color : "rgba(99,140,255,0.12)"}`, background: action === a.id ? `${a.color}08` : "#ffffff" }}>
                                     <div style={{ fontWeight: 700, fontSize: 13, color: a.color }}>{a.label}</div>
@@ -398,11 +399,11 @@ function BulkRegisterModal({ selectedIds, products, onClose, onApply, is }) {
                                 const rate = CHANNEL_RATES[c.id];
                                 return (
                                     <label key={c.id} onClick={() => toggleCh(c.id)} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 10, cursor: "pointer", border: `1px solid ${selChs.has(c.id) ? c.color + "60" : "rgba(99,140,255,0.12)"}`, background: selChs.has(c.id) ? `${c.color}08` : "#ffffff", transition: "all 150ms" }}>
-                                        <input type="checkbox" checked={selChs.has(c.id)} onChange={() => {}} style={{ accentColor: c.color }} />
+                                        <input type="checkbox" checked={selChs.has(c.id)} onChange={() => { }} style={{ accentColor: c.color }} />
                                         <span style={{ fontSize: 18 }}>{c.icon}</span>
                                         <div style={{ flex: 1 }}>
                                             <div style={{ fontSize: 12, fontWeight: 600, color: selChs.has(c.id) ? c.color : "#1f2937" }}>{c.name}</div>
-                                        {rate && <div style={{ fontSize: 9, color: "#6b7280", marginTop: 1 }}>{t('catalogSync.channelCommissionInfo', {commission: (rate.commission * 100).toFixed(0), vat: (rate.vat * 100).toFixed(0), region: rate.region})}</div>}
+                                            {rate && <div style={{ fontSize: 9, color: "#6b7280", marginTop: 1 }}>{t('catalogSync.channelCommissionInfo', { commission: (rate.commission * 100).toFixed(0), vat: (rate.vat * 100).toFixed(0), region: rate.region })}</div>}
                                         </div>
                                     </label>
                                 );
@@ -419,7 +420,7 @@ function BulkRegisterModal({ selectedIds, products, onClose, onApply, is }) {
                                 onClick={() => action === "register" ? setStep(1) : handleApply()}
                                 disabled={!selChs.size}
                                 style={{ padding: "9px 24px", borderRadius: 8, background: !selChs.size ? "rgba(79,142,247,0.2)" : action === "register" ? "linear-gradient(135deg,#4f8ef7,#a855f7)" : "linear-gradient(135deg,#ef4444,#f97316)", border: "none", color: '#1f2937', fontWeight: 700, cursor: selChs.size ? "pointer" : "default", fontSize: 12 }}>
-                                {action === "register" ? t('catalogSync.nextSetPriceBtn') : t('catalogSync.productsUnregister', {n: selProds.length})}
+                                {action === "register" ? t('catalogSync.nextSetPriceBtn') : t('catalogSync.productsUnregister', { n: selProds.length })}
                             </button>
                         </div>
                     </>
@@ -486,7 +487,8 @@ function BulkRegisterModal({ selectedIds, products, onClose, onApply, is }) {
                                                         value={customPrices[chId] ?? ""}
                                                         onChange={e => {
                                                             const v = e.target.value;
-                                                            setCustomPrices(cp => v ? { ...cp, [chId]: Number(v) } : (({ [chId]: _, ...rest }) => rest)(cp)); }} style={{ width: 110, padding: "5px 8px", borderRadius: 7, border: customPrices[chId] ? "1px solid #f59e0b" : "1px solid rgba(99,140,255,0.2)", background: "#ffffff", color: "#1f2937", fontSize: 12 }}
+                                                            setCustomPrices(cp => v ? { ...cp, [chId]: Number(v) } : (({ [chId]: _, ...rest }) => rest)(cp));
+                                                        }} style={{ width: 110, padding: "5px 8px", borderRadius: 7, border: customPrices[chId] ? "1px solid #f59e0b" : "1px solid rgba(99,140,255,0.2)", background: "#ffffff", color: "#1f2937", fontSize: 12 }}
                                                     />
                                                 </td>
                                             </tr>
@@ -552,14 +554,14 @@ function BulkRegisterModal({ selectedIds, products, onClose, onApply, is }) {
                         <label style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 16px", borderRadius: 12, background: approved ? "rgba(34,197,94,0.08)" : "rgba(99,140,255,0.05)", border: `1px solid ${approved ? "rgba(34,197,94,0.35)" : "rgba(99,140,255,0.2)"}`, cursor: "pointer", marginBottom: 18 }}>
                             <input type="checkbox" checked={approved} onChange={e => setApproved(e.target.checked)} style={{ width: 18, height: 18, accentColor: "#22c55e", cursor: "pointer" }} />
                             <div>
-                                <div style={{ fontSize: 13, fontWeight: 700, color: approved ? "#22c55e" : "#1f2937" }}>{t('catalogSync.managerApprovalText', {chCount: selChsArr.length, prodCount: selProds.length})}</div>
+                                <div style={{ fontSize: 13, fontWeight: 700, color: approved ? "#22c55e" : "#1f2937" }}>{t('catalogSync.managerApprovalText', { chCount: selChsArr.length, prodCount: selProds.length })}</div>
                                 <div style={{ fontSize: 10, color: "#6b7280", marginTop: 2 }}>{t('catalogSync.approvalNoteText')}</div>
                             </div>
                         </label>
 
                         {done ? (
                             <div style={{ textAlign: "center", padding: "14px", borderRadius: 10, background: "rgba(34,197,94,0.1)", color: "#22c55e", fontWeight: 700, fontSize: 14 }}>
-                                {t('catalogSync.registerDoneMsg', {prodCount: selProds.length, chCount: selChsArr.length})}
+                                {t('catalogSync.registerDoneMsg', { prodCount: selProds.length, chCount: selChsArr.length })}
                             </div>
                         ) : (
                             <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
@@ -569,7 +571,7 @@ function BulkRegisterModal({ selectedIds, products, onClose, onApply, is }) {
                                     disabled={!approved || running}
                                     style={{ padding: "9px 28px", borderRadius: 8, background: !approved || running ? "rgba(168,85,247,0.2)" : "linear-gradient(135deg,#22c55e,#a855f7)", border: "none", color: '#1f2937', fontWeight: 700, cursor: approved && !running ? "pointer" : "default", fontSize: 13 }}
                                 >
-                                    {running ? t('catalogSync.registeringMsg') : t('catalogSync.registerRunMsg', {prodCount: selProds.length, chCount: selChsArr.length})}
+                                    {running ? t('catalogSync.registeringMsg') : t('catalogSync.registerRunMsg', { prodCount: selProds.length, chCount: selChsArr.length })}
                                 </button>
                             </div>
                         )}
@@ -627,10 +629,10 @@ function BulkPriceModal({ selectedIds, products, onClose, onApply, is }) {
                     <button onClick={onClose} style={{ background: "none", border: "none", color: "#6b7280", fontSize: 18, cursor: "pointer" }}>✕</button>
                 </div>
 
-                
+
                 {/* Select Product */}
                 <div style={{ padding: "10px 14px", borderRadius: 10, background: "rgba(79,142,247,0.06)", border: "1px solid rgba(79,142,247,0.2)", marginBottom: 16 }}>
-                    <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 6 }}>{t('catalogSync.selectedProductCount', {n: selProds.length})}</div>
+                    <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 6 }}>{t('catalogSync.selectedProductCount', { n: selProds.length })}</div>
                     <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
                         {selProds.slice(0, 5).map(p => (
                             <span key={p.id} style={{ fontSize: 10, padding: "2px 8px", borderRadius: 6, background: "rgba(79,142,247,0.12)", color: "#4f8ef7", opacity: 0.7 }}>{p.name} <span style={{ fontWeight: 600 }}>{fmtKRW(p.price)}</span></span>
@@ -662,7 +664,7 @@ function BulkPriceModal({ selectedIds, products, onClose, onApply, is }) {
                             {priceMode === "fixed" ? "KRW" : "%"}
                         </span>
                         <input
-                            
+
                             type="number"
                             placeholder={priceMode === "fixed" ? t('catalogSync.fixedPricePh') : priceMode === "markup" ? t('catalogSync.markupPh') : t('catalogSync.discountPh')}
                             value={value}
@@ -832,7 +834,7 @@ function CatalogTab() {
             });
             return cur;
         });
-        addAlert({ type: 'info', msg: t('catalogSync.alertBulkPriceSync', {n: selected.size}) });
+        addAlert({ type: 'info', msg: t('catalogSync.alertBulkPriceSync', { n: selected.size }) });
         setSelected(new Set());
     };
 
@@ -842,12 +844,12 @@ function CatalogTab() {
             sku: p.sku, name: p.name, price: p.price || 0,
             cost: p.productCost || p.purchaseCost || 0, safeQty: 30,
         });
-        addAlert({ type: 'success', msg: t('catalogSync.alertNewProduct', {name: p.name}) });
+        addAlert({ type: 'success', msg: t('catalogSync.alertNewProduct', { name: p.name }) });
     };
 
     /* ─── CSV Export ─── */
     const handleExportCSV = useCallback(() => {
-        const headers = ['SKU','Name','Category','Price','Cost','Stock','Channels','Status'];
+        const headers = ['SKU', 'Name', 'Category', 'Price', 'Cost', 'Stock', 'Channels', 'Status'];
         const rows = products.map(p => [
             p.sku, `"${p.name}"`, p.category || '', p.price || 0, p.productCost || p.purchaseCost || 0,
             p.stock || 0, (p.channels || []).join(';'), p.status || 'ok'
@@ -856,10 +858,10 @@ function CatalogTab() {
         const blob = new Blob([`\uFEFF${csv}`], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a'); a.href = url;
-        a.download = `catalog_export_${new Date().toISOString().slice(0,10)}.csv`;
+        a.download = `catalog_export_${new Date().toISOString().slice(0, 10)}.csv`;
         a.click(); URL.revokeObjectURL(url);
         showToast(t('catalogSync.csvExportDone').replace('{{n}}', products.length), '#22c55e');
-        addAlert({ type: 'success', msg: t('catalogSync.alertCsvExport', {n: products.length}) });
+        addAlert({ type: 'success', msg: t('catalogSync.alertCsvExport', { n: products.length }) });
     }, [products, t, addAlert]);
 
     /* ─── CSV Import ─── */
@@ -892,7 +894,7 @@ function CatalogTab() {
                 setProducts(prev => [...imported, ...prev]);
                 imported.forEach(p => syncCatalogItem({ sku: p.sku, name: p.name, price: p.price, cost: p.productCost, safeQty: 30 }));
                 showToast(t('catalogSync.csvImportDone').replace('{{n}}', imported.length), '#22c55e');
-                addAlert({ type: 'success', msg: t('catalogSync.alertCsvImport', {n: imported.length}) });
+                addAlert({ type: 'success', msg: t('catalogSync.alertCsvImport', { n: imported.length }) });
             } catch { showToast(t('catalogSync.csvImportError'), '#ef4444'); }
         };
         reader.readAsText(file, 'UTF-8');
@@ -932,7 +934,7 @@ function CatalogTab() {
                 if (!mapped.sku && !mapped.name) return null;
                 return {
                     id: `P-XLS-${Date.now()}-${i}`,
-                    sku: sanitize(String(mapped.sku || `AUTO-${i+1}`)),
+                    sku: sanitize(String(mapped.sku || `AUTO-${i + 1}`)),
                     name: sanitize(String(mapped.name || '')),
                     category: String(mapped.category || ''),
                     price: Number(mapped.price) || 0,
@@ -949,16 +951,16 @@ function CatalogTab() {
             setProducts(prev => [...imported, ...prev]);
             imported.forEach(p => syncCatalogItem({ sku: p.sku, name: p.name, price: p.price, cost: p.productCost, safeQty: 30 }));
             showToast(t('catalogSync.excelImportDone').replace('{{n}}', imported.length), '#22c55e');
-            addAlert({ type: 'success', msg: t('catalogSync.alertExcelImport', {n: imported.length}) });
+            addAlert({ type: 'success', msg: t('catalogSync.alertExcelImport', { n: imported.length }) });
         } catch (err) {
             console.error('Excel import error:', err);
 
-/* ── Enterprise Dynamic Locale Map ────────────────────── */
-const LANG_LOCALE_MAP = {
-  ko:'ko-KR', en:'en-US', ja:'ja-JP', zh:'zh-CN', 'zh-TW':'zh-TW',
-  de:'de-DE', es:'es-ES', fr:'fr-FR', pt:'pt-BR', ru:'ru-RU',
-  ar:'ar-SA', hi:'hi-IN', th:'th-TH', vi:'vi-VN', id:'id-ID'
-};
+            /* ── Enterprise Dynamic Locale Map ────────────────────── */
+            const LANG_LOCALE_MAP = {
+                ko: 'ko-KR', en: 'en-US', ja: 'ja-JP', zh: 'zh-CN', 'zh-TW': 'zh-TW',
+                de: 'de-DE', es: 'es-ES', fr: 'fr-FR', pt: 'pt-BR', ru: 'ru-RU',
+                ar: 'ar-SA', hi: 'hi-IN', th: 'th-TH', vi: 'vi-VN', id: 'id-ID'
+            };
             showToast(t('catalogSync.excelImportError'), '#ef4444');
         }
         e.target.value = '';
@@ -979,7 +981,7 @@ const LANG_LOCALE_MAP = {
             XLSX.utils.book_append_sheet(wb, ws, 'Catalog');
             XLSX.writeFile(wb, `catalog_export_${new Date().toISOString().slice(0, 10)}.xlsx`);
             showToast(t('catalogSync.excelExportDone').replace('{{n}}', products.length), '#22c55e');
-            addAlert({ type: 'success', msg: t('catalogSync.alertExcelExport', {n: products.length}) });
+            addAlert({ type: 'success', msg: t('catalogSync.alertExcelExport', { n: products.length }) });
         } catch (err) { showToast(t('catalogSync.excelImportError'), '#ef4444'); }
     }, [products, t, addAlert]);
 
@@ -1019,7 +1021,7 @@ const LANG_LOCALE_MAP = {
 
     return (
         <div style={{ display: "grid", gap: 14 }}>
-            
+
             {/* Security Alert Banner */}
             {secBanner && (
                 <div style={{ padding: "10px 16px", borderRadius: 10, background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.4)", display: "flex", alignItems: "center", gap: 8 }}>
@@ -1094,7 +1096,7 @@ const LANG_LOCALE_MAP = {
                                         <input type="checkbox" checked={isSelected} onChange={() => toggleSel(r.id)} style={{ width: 14, height: 14 }} />
                                     </div>
                                     {r.image && isImageUrl(r.image)
-                                        ? <img src={r.image} alt={r.name} style={{ width: 40, height: 40, borderRadius: 8, objectFit: "cover", flexShrink: 0 }} onError={e => { e.target.onerror=null; e.target.style.display='none'; }} />
+                                        ? <img src={r.image} alt={r.name} style={{ width: 40, height: 40, borderRadius: 8, objectFit: "cover", flexShrink: 0 }} onError={e => { e.target.onerror = null; e.target.style.display = 'none'; }} />
                                         : <div style={{ width: 40, height: 40, borderRadius: 8, background: "rgba(79,142,247,0.1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>{r.image && !isImageUrl(r.image) ? r.image : '🖼'}</div>}
                                     <div style={{ flex: 1, minWidth: 0 }}>
                                         <div style={{ fontWeight: 700, fontSize: 12, lineHeight: 1.3, wordBreak: "break-word" }}>{r.name}</div>
@@ -1143,99 +1145,99 @@ const LANG_LOCALE_MAP = {
                     })}
                 </div>
             ) : (
-            /* ── PC: 기존 Table ── */
-            <div style={{ overflowX: "auto" }}>
-                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12, minWidth: 1100 }}>
-                    <thead>
-                        <tr>
-                            <th style={{ width: 32 }}><input type="checkbox" onChange={e => setSelected(e.target.checked ? new Set(paged.map(r => r.id)) : new Set())} /></th>
-                            <th style={{ width: 60 }}>{t('catalogSync.colImage')}</th>
-                            <th style={{ cursor: "pointer" }} onClick={() => toggleSort("id")}>ID<SortIco k="id" /></th>
-                            <th style={{ cursor: "pointer" }} onClick={() => toggleSort("name")}>{t('catalogSync.colProductName')}<SortIco k="name" /></th>
-                            <th>{t('catalogSync.colCategory')}</th>
-                            <th>{t('catalogSync.colSpec')}</th>
-                            <th>{t('catalogSync.colUnit')}</th>
-                            <th style={{ cursor: "pointer" }} onClick={() => toggleSort("price")}>{t('catalogSync.colSalePrice')}<SortIco k="price" /></th>
-                            <th style={{ cursor: "pointer" }} onClick={() => toggleSort("purchaseCost")}>{t('catalogSync.colPurchaseCost')}<SortIco k="purchaseCost" /></th>
-                            <th style={{ cursor: "pointer" }} onClick={() => toggleSort("productCost")}>{t('catalogSync.colProductCost')}<SortIco k="productCost" /></th>
-                            <th>{t('catalogSync.colMargin')}</th>
-                            <th style={{ cursor: "pointer" }} onClick={() => toggleSort("inventory")}>{t('catalogSync.colStock')}<SortIco k="inventory" /></th>
-                            <th>{t('catalogSync.colChannels')}</th>
-                            <th>{t('catalogSync.colSync')}</th>
-                            <th>{t('catalogSync.colStatus')}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {paged.map(r => {
-                            const margin = r.price > 0 ? (((r.price - (r.productCost || 0)) / r.price) * 100).toFixed(1) : null;
-                            const marginColor = margin == null ? "#6b7280" : margin >= 30 ? "#22c55e" : margin >= 10 ? "#eab308" : "#ef4444";
-                            return (
-                                <tr key={r.id} onClick={() => setDetail(r)} style={{ cursor: "pointer" }}
-                                    onMouseEnter={e => e.currentTarget.style.background = "rgba(79,142,247,0.04)"}
-                                    onMouseLeave={e => e.currentTarget.style.background = ""}>
-                                    <td onClick={e => { e.stopPropagation(); toggleSel(r.id); }}>
-                                        <input type="checkbox" checked={selected.has(r.id)} onChange={() => toggleSel(r.id)} />
-                                    </td>
-                                    <td>
-                                        {r.image && isImageUrl(r.image)
-                                            ? <img src={r.image} alt={r.name} style={{ width: 36, height: 36, borderRadius: 6, objectFit: "cover", border: "1px solid rgba(99,140,255,0.2)" }} onError={e => { e.target.onerror=null; e.target.style.display='none'; }} />
-                                            : <div style={{ width: 36, height: 36, borderRadius: 6, background: "rgba(79,142,247,0.08)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>{r.image && !isImageUrl(r.image) ? r.image : '🖼'}</div>}
-                                    </td>
-                                    <td style={{ fontFamily: "monospace", fontSize: 11, color: "#4f8ef7" }}>{r.id}</td>
-                                    <td>
-                                        <div style={{ fontWeight: 600, fontSize: 12 }}>{r.name}</div>
-                                        <div style={{ fontSize: 10, color: "#6b7280", fontFamily: "monospace" }}>{r.sku}</div>
-                                    </td>
-                                    <td style={{ fontSize: 11, color: "#374151" }}>{r.category}</td>
-                                    <td style={{ fontSize: 10, color: "#6b7280", maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={r.spec || ""}>{r.spec || "-"}</td>
-                                    <td style={{ fontSize: 11, color: "#374151", textAlign: "center" }}>
-                                        <span style={{ fontWeight: 700, padding: "2px 7px", borderRadius: 20, fontSize: 9, background: r.unitType === 'box' ? 'rgba(79,142,247,0.12)' : r.unitType === 'pl' ? 'rgba(245,158,11,0.12)' : 'rgba(34,197,94,0.08)', color: r.unitType === 'box' ? '#4f8ef7' : r.unitType === 'pl' ? '#f59e0b' : '#22c55e', border: `1px solid ${r.unitType === "box" ? "rgba(79,142,247,0.3)" : r.unitType === "pl" ? "rgba(245,158,11,0.3)" : "rgba(34,197,94,0.2)"}` }}>{r.unit || 'ea'}</span>
-                                        {r.unitType === 'box' && r.eaPerBox > 1 && <div style={{ fontSize: 8, color: '#6b7280', marginTop: 2 }}>1Box={r.eaPerBox}ea</div>}
-                                        {r.unitType === 'pl' && <div style={{ fontSize: 8, color: '#6b7280', marginTop: 2 }}>{r.boxPerPl}Box/{r.eaPerBox}ea</div>}
-                                    </td>
-                                    <td>
-                                        <div style={{ fontWeight: 700, fontSize: 12, color: r.delta?.price ? "#f97316" : "#1f2937" }}>
-                                            {fmtKRW(r.price)} {r.delta?.price && <span style={{ fontSize: 9 }}>{t('catalogSync.change')}</span>}
-                                        </div>
-                                        <div style={{ fontSize: 10, color: "#6b7280", textDecoration: "line-through" }}>{fmtKRW(r.comparePrice)}</div>
-                                    </td>
-                                    <td style={{ fontFamily: "monospace", fontSize: 11, color: "#a78bfa" }}>{fmtKRW(r.purchaseCost)}</td>
-                                    <td style={{ fontFamily: "monospace", fontSize: 12, fontWeight: 700, color: "#f97316" }}>{fmtKRW(r.productCost)}</td>
-                                    <td style={{ fontFamily: "monospace", fontSize: 11, fontWeight: 700, color: marginColor }}>{margin != null ? `${margin}%` : "-"}</td>
-                                    <td>
-                                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                                            <div style={{ width: 44, height: 4, background: '#ffffff', borderRadius: 4 }}>
-                                                <div style={{ width: `${Math.min(100, (r.inventory / 350) * 100)}%`, height: "100%", background: r.inventory < 20 ? "#ef4444" : r.inventory < 80 ? "#eab308" : "#22c55e", borderRadius: 4 }} />
+                /* ── PC: 기존 Table ── */
+                <div style={{ overflowX: "auto" }}>
+                    <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12, minWidth: 1100 }}>
+                        <thead>
+                            <tr>
+                                <th style={{ width: 32 }}><input type="checkbox" onChange={e => setSelected(e.target.checked ? new Set(paged.map(r => r.id)) : new Set())} /></th>
+                                <th style={{ width: 60 }}>{t('catalogSync.colImage')}</th>
+                                <th style={{ cursor: "pointer" }} onClick={() => toggleSort("id")}>ID<SortIco k="id" /></th>
+                                <th style={{ cursor: "pointer" }} onClick={() => toggleSort("name")}>{t('catalogSync.colProductName')}<SortIco k="name" /></th>
+                                <th>{t('catalogSync.colCategory')}</th>
+                                <th>{t('catalogSync.colSpec')}</th>
+                                <th>{t('catalogSync.colUnit')}</th>
+                                <th style={{ cursor: "pointer" }} onClick={() => toggleSort("price")}>{t('catalogSync.colSalePrice')}<SortIco k="price" /></th>
+                                <th style={{ cursor: "pointer" }} onClick={() => toggleSort("purchaseCost")}>{t('catalogSync.colPurchaseCost')}<SortIco k="purchaseCost" /></th>
+                                <th style={{ cursor: "pointer" }} onClick={() => toggleSort("productCost")}>{t('catalogSync.colProductCost')}<SortIco k="productCost" /></th>
+                                <th>{t('catalogSync.colMargin')}</th>
+                                <th style={{ cursor: "pointer" }} onClick={() => toggleSort("inventory")}>{t('catalogSync.colStock')}<SortIco k="inventory" /></th>
+                                <th>{t('catalogSync.colChannels')}</th>
+                                <th>{t('catalogSync.colSync')}</th>
+                                <th>{t('catalogSync.colStatus')}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {paged.map(r => {
+                                const margin = r.price > 0 ? (((r.price - (r.productCost || 0)) / r.price) * 100).toFixed(1) : null;
+                                const marginColor = margin == null ? "#6b7280" : margin >= 30 ? "#22c55e" : margin >= 10 ? "#eab308" : "#ef4444";
+                                return (
+                                    <tr key={r.id} onClick={() => setDetail(r)} style={{ cursor: "pointer" }}
+                                        onMouseEnter={e => e.currentTarget.style.background = "rgba(79,142,247,0.04)"}
+                                        onMouseLeave={e => e.currentTarget.style.background = ""}>
+                                        <td onClick={e => { e.stopPropagation(); toggleSel(r.id); }}>
+                                            <input type="checkbox" checked={selected.has(r.id)} onChange={() => toggleSel(r.id)} />
+                                        </td>
+                                        <td>
+                                            {r.image && isImageUrl(r.image)
+                                                ? <img src={r.image} alt={r.name} style={{ width: 36, height: 36, borderRadius: 6, objectFit: "cover", border: "1px solid rgba(99,140,255,0.2)" }} onError={e => { e.target.onerror = null; e.target.style.display = 'none'; }} />
+                                                : <div style={{ width: 36, height: 36, borderRadius: 6, background: "rgba(79,142,247,0.08)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>{r.image && !isImageUrl(r.image) ? r.image : '🖼'}</div>}
+                                        </td>
+                                        <td style={{ fontFamily: "monospace", fontSize: 11, color: "#4f8ef7" }}>{r.id}</td>
+                                        <td>
+                                            <div style={{ fontWeight: 600, fontSize: 12 }}>{r.name}</div>
+                                            <div style={{ fontSize: 10, color: "#6b7280", fontFamily: "monospace" }}>{r.sku}</div>
+                                        </td>
+                                        <td style={{ fontSize: 11, color: "#374151" }}>{r.category}</td>
+                                        <td style={{ fontSize: 10, color: "#6b7280", maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={r.spec || ""}>{r.spec || "-"}</td>
+                                        <td style={{ fontSize: 11, color: "#374151", textAlign: "center" }}>
+                                            <span style={{ fontWeight: 700, padding: "2px 7px", borderRadius: 20, fontSize: 9, background: r.unitType === 'box' ? 'rgba(79,142,247,0.12)' : r.unitType === 'pl' ? 'rgba(245,158,11,0.12)' : 'rgba(34,197,94,0.08)', color: r.unitType === 'box' ? '#4f8ef7' : r.unitType === 'pl' ? '#f59e0b' : '#22c55e', border: `1px solid ${r.unitType === "box" ? "rgba(79,142,247,0.3)" : r.unitType === "pl" ? "rgba(245,158,11,0.3)" : "rgba(34,197,94,0.2)"}` }}>{r.unit || 'ea'}</span>
+                                            {r.unitType === 'box' && r.eaPerBox > 1 && <div style={{ fontSize: 8, color: '#6b7280', marginTop: 2 }}>1Box={r.eaPerBox}ea</div>}
+                                            {r.unitType === 'pl' && <div style={{ fontSize: 8, color: '#6b7280', marginTop: 2 }}>{r.boxPerPl}Box/{r.eaPerBox}ea</div>}
+                                        </td>
+                                        <td>
+                                            <div style={{ fontWeight: 700, fontSize: 12, color: r.delta?.price ? "#f97316" : "#1f2937" }}>
+                                                {fmtKRW(r.price)} {r.delta?.price && <span style={{ fontSize: 9 }}>{t('catalogSync.change')}</span>}
                                             </div>
-                                            <span style={{ fontSize: 10, fontFamily: "monospace", color: r.delta?.inventory ? "#f97316" : "#374151" }}>
-                                                {fmtStock(r.inventory, r)}{r.delta?.inventory && " ●"}
+                                            <div style={{ fontSize: 10, color: "#6b7280", textDecoration: "line-through" }}>{fmtKRW(r.comparePrice)}</div>
+                                        </td>
+                                        <td style={{ fontFamily: "monospace", fontSize: 11, color: "#a78bfa" }}>{fmtKRW(r.purchaseCost)}</td>
+                                        <td style={{ fontFamily: "monospace", fontSize: 12, fontWeight: 700, color: "#f97316" }}>{fmtKRW(r.productCost)}</td>
+                                        <td style={{ fontFamily: "monospace", fontSize: 11, fontWeight: 700, color: marginColor }}>{margin != null ? `${margin}%` : "-"}</td>
+                                        <td>
+                                            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                                                <div style={{ width: 44, height: 4, background: '#ffffff', borderRadius: 4 }}>
+                                                    <div style={{ width: `${Math.min(100, (r.inventory / 350) * 100)}%`, height: "100%", background: r.inventory < 20 ? "#ef4444" : r.inventory < 80 ? "#eab308" : "#22c55e", borderRadius: 4 }} />
+                                                </div>
+                                                <span style={{ fontSize: 10, fontFamily: "monospace", color: r.delta?.inventory ? "#f97316" : "#374151" }}>
+                                                    {fmtStock(r.inventory, r)}{r.delta?.inventory && " ●"}
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div style={{ display: "flex", gap: 3, flexWrap: "wrap" }}>
+                                                {r.channels.map(cid => {
+                                                    const c = ch(cid);
+                                                    return <span key={cid} title={c.name} style={{ fontSize: 13 }}>{c.icon}</span>;
+                                                })}
+                                                {r.channels.length === 0 && <span style={{ fontSize: 10, color: "#6b7280" }}>{t('catalogSync.notIntegrated')}</span>}
+                                            </div>
+                                        </td>
+                                        <td style={{ fontSize: 11, color: r.lastSync ? "#6b7280" : "#ef4444" }}>
+                                            {r.lastSync || t('catalogSync.notSynced')}
+                                        </td>
+                                        <td>
+                                            <span style={{ fontWeight: 700, padding: "2px 10px", borderRadius: 20, fontSize: 9, background: statusColor(r.status) + "18", color: statusColor(r.status), border: `1px solid ${statusColor(r.status)}33` }}>
+                                                {t(r.status === "ok" ? 'catalogSync.statusNormal' : r.status === "warn" ? 'catalogSync.statusWarning' : 'catalogSync.statusError')}
                                             </span>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div style={{ display: "flex", gap: 3, flexWrap: "wrap" }}>
-                                            {r.channels.map(cid => {
-                                                const c = ch(cid);
-                                                return <span key={cid} title={c.name} style={{ fontSize: 13 }}>{c.icon}</span>;
-                                            })}
-                                            {r.channels.length === 0 && <span style={{ fontSize: 10, color: "#6b7280" }}>{t('catalogSync.notIntegrated')}</span>}
-                                        </div>
-                                    </td>
-                                    <td style={{ fontSize: 11, color: r.lastSync ? "#6b7280" : "#ef4444" }}>
-                                        {r.lastSync || t('catalogSync.notSynced')}
-                                    </td>
-                                    <td>
-                                        <span style={{ fontWeight: 700, padding: "2px 10px", borderRadius: 20, fontSize: 9, background: statusColor(r.status) + "18", color: statusColor(r.status), border: `1px solid ${statusColor(r.status)}33` }}>
-                                        {t(r.status === "ok" ? 'catalogSync.statusNormal' : r.status === "warn" ? 'catalogSync.statusWarning' : 'catalogSync.statusError')}
-                                        </span>
-                                    </td>
-                                </tr>
-                            
-                            );
-                        })}
-                    </tbody>
-                </table>
-            </div>
+                                        </td>
+                                    </tr>
+
+                                );
+                            })}
+                        </tbody>
+                    </table>
+                </div>
             )}
 
             {/* Pagination */}
@@ -1249,31 +1251,31 @@ const LANG_LOCALE_MAP = {
                     <button className="btn-ghost" style={{ padding: "4px 10px", fontSize: 11 }} disabled={page >= totalPages - 1} onClick={() => setPage(p => p + 1)}>{t('catalogSync.nextPage')}</button>
                 </div>
 
-            {/* Detail drawer */}
-            {detail && <ProductDetail product={detail} onClose={() => setDetail(null)} />}
+                {/* Detail drawer */}
+                {detail && <ProductDetail product={detail} onClose={() => setDetail(null)} />}
 
-            {/* Register modal → PriceOpt 통합 완료 */}
+                {/* Register modal → PriceOpt 통합 완료 */}
 
-            {/* Bulk Register modal */}
-            {showBulkRegister && (
-                <BulkRegisterModal
-                    selectedIds={selected}
-                    products={products}
-                    onClose={() => setShowBulkRegister(false)}
-                    onApply={handleBulkRegister}
-                />
-            )}
+                {/* Bulk Register modal */}
+                {showBulkRegister && (
+                    <BulkRegisterModal
+                        selectedIds={selected}
+                        products={products}
+                        onClose={() => setShowBulkRegister(false)}
+                        onApply={handleBulkRegister}
+                    />
+                )}
 
-            {/* Bulk Price modal */}
-            {showBulkPrice && (
-                <BulkPriceModal
-                    selectedIds={selected}
-                    products={products}
-                    onClose={() => setShowBulkPrice(false)}
-                    onApply={handleBulkPrice}
-                />
-            )}
-        </div>
+                {/* Bulk Price modal */}
+                {showBulkPrice && (
+                    <BulkPriceModal
+                        selectedIds={selected}
+                        products={products}
+                        onClose={() => setShowBulkPrice(false)}
+                        onApply={handleBulkPrice}
+                    />
+                )}
+            </div>
         </div>
     );
 }
@@ -1315,7 +1317,7 @@ function ProductDetail({ product: p, onClose }) {
                 {/* Product Image */}
                 {p.image && (
                     <div style={{ background: "#ffffff", borderRadius: 14, border: "1px solid #e5e7eb", padding: 16, marginBottom: 14, textAlign: "center" }}>
-                        <img src={p.image} onError={e => { e.target.onerror=null; e.target.style.display="none"; }} alt={p.name} style={{ maxHeight: 160, maxWidth: "100%", borderRadius: 10, objectFit: "contain" }} />
+                        <img src={p.image} onError={e => { e.target.onerror = null; e.target.style.display = "none"; }} alt={p.name} style={{ maxHeight: 160, maxWidth: "100%", borderRadius: 10, objectFit: "contain" }} />
                     </div>
                 )}
 
@@ -1394,7 +1396,7 @@ function ProductDetail({ product: p, onClose }) {
             </div>
             <style>{`@keyframes fadeIn{from{opacity:0}to{opacity:1}}@keyframes slideIn{from{transform:translateX(100%)}to{transform:translateX(0)}}@keyframes stripe{from{background-position:0 0}to{background-position:32px 0}}`}</style>
         </>
-    
+
     );
 }
 
@@ -1402,10 +1404,10 @@ function ProductDetail({ product: p, onClose }) {
 function SchedulePanel({ t, addAlert }) {
     const FREQ_OPTIONS = [
         { id: '30m', label: t('catalogSync.schedFreq30m') || '30분마다' },
-        { id: '1h',  label: t('catalogSync.schedFreq1h')  || '1시간마다' },
-        { id: '6h',  label: t('catalogSync.schedFreq6h')  || '6시간마다' },
+        { id: '1h', label: t('catalogSync.schedFreq1h') || '1시간마다' },
+        { id: '6h', label: t('catalogSync.schedFreq6h') || '6시간마다' },
         { id: '12h', label: t('catalogSync.schedFreq12h') || '12시간마다' },
-        { id: '1d',  label: t('catalogSync.schedFreqDaily')|| '매일' },
+        { id: '1d', label: t('catalogSync.schedFreqDaily') || '매일' },
     ];
     const [schedules, setSchedules] = useState(() => {
         try { const s = localStorage.getItem('geniego_sync_schedules'); return s ? JSON.parse(s) : []; } catch { return []; }
@@ -1418,18 +1420,18 @@ function SchedulePanel({ t, addAlert }) {
         const newSch = { id: `SCH-${Date.now()}`, freq, time, enabled, createdAt: new Date().toLocaleString(LANG_LOCALE_MAP[lang] || 'ko-KR', { hour12: false }) };
         const updated = [...schedules, newSch];
         setSchedules(updated);
-        try { localStorage.setItem('geniego_sync_schedules', JSON.stringify(updated)); } catch {}
-        addAlert({ type: 'success', msg: t('catalogSync.alertScheduleSaved', {freq: FREQ_OPTIONS.find(f => f.id === freq)?.label, time}) });
+        try { localStorage.setItem('geniego_sync_schedules', JSON.stringify(updated)); } catch { }
+        addAlert({ type: 'success', msg: t('catalogSync.alertScheduleSaved', { freq: FREQ_OPTIONS.find(f => f.id === freq)?.label, time }) });
     };
     const deleteSchedule = (id) => {
         const updated = schedules.filter(s => s.id !== id);
         setSchedules(updated);
-        try { localStorage.setItem('geniego_sync_schedules', JSON.stringify(updated)); } catch {}
+        try { localStorage.setItem('geniego_sync_schedules', JSON.stringify(updated)); } catch { }
     };
     const toggleSchedule = (id) => {
         const updated = schedules.map(s => s.id === id ? { ...s, enabled: !s.enabled } : s);
         setSchedules(updated);
-        try { localStorage.setItem('geniego_sync_schedules', JSON.stringify(updated)); } catch {}
+        try { localStorage.setItem('geniego_sync_schedules', JSON.stringify(updated)); } catch { }
     };
 
     return (
@@ -1590,7 +1592,7 @@ function SyncRunTab({ onJobCreated }) {
                             {liveJob.status === "running" ? `⏳ ${liveJob.progress}%` : t('catalogSync.syncDoneLabel')}
                         </span>
                     </div>
-                    <ProgressBar pct={liveJob.progress} color={statusColor2(liveJob.status)}  />
+                    <ProgressBar pct={liveJob.progress} color={statusColor2(liveJob.status)} />
                     <div style={{ display: "flex", gap: 20, marginTop: 10, fontSize: 11, color: "#6b7280" }}>
                         <span>{t('catalogSync.processed')}: <b style={{ color: "#1f2937" }}>{liveJob.done.toLocaleString()} / {liveJob.total.toLocaleString()}</b></span>
                         <span>{t('catalogSync.errors')}: <b style={{ color: liveJob.errors > 0 ? "#ef4444" : "#22c55e" }}>{liveJob.errors}</b></span>
@@ -1669,110 +1671,110 @@ function PriceSyncTab() {
 
     return (
         <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden", background: "#f8fafc" }}>
-      <div style={{ padding: "18px 24px 0", flexShrink: 0 }}>
-            {/* Global settings */}
-            <div style={{ background: "#ffffff", borderRadius: 14, border: "1px solid #e5e7eb", padding: 16 }}>
-                <div style={{ fontWeight: 700, fontSize: 12, color: "#6b7280", marginBottom: 12 }}>{t('catalogSync.tabPriceRules')}</div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
-                    <div>
-                        <label style={{ fontSize: 11, color: "#6b7280", fontWeight: 600 }}>{t('catalogSync.globalMarkup')}</label>
-                        <input style={{ width: "100%", padding: "6px 10px", borderRadius: 8, border: "1px solid #e5e7eb", background: "#fff", color: "#1f2937", fontSize: 12 }} type="number" value={globalMarkup} onChange={e => setGlobalMarkup(+e.target.value)} />
-                    </div>
-                    <div>
-                        <label style={{ fontSize: 11, color: "#6b7280", fontWeight: 600 }}>{t('catalogSync.rounding')}</label>
-                        <select style={{ width: "100%", padding: "6px 10px", borderRadius: 8, border: "1px solid #e5e7eb", background: "#fff", color: "#1f2937", fontSize: 12 }} value={rounding} onChange={e => setRounding(e.target.value)}>
-                            <option value="none">None</option>
-                            <option value="900">{t('catalogSync.rounding900')}</option>
-                            <option value="990">{t('catalogSync.rounding990')}</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label style={{ fontSize: 11, color: "#6b7280", fontWeight: 600 }}>{t('catalogSync.exchangeRate')}</label>
-                        <input style={{ width: "100%", padding: "6px 10px", borderRadius: 8, border: "1px solid #e5e7eb", background: "#fff", color: "#1f2937", fontSize: 12 }} type="number" value={exchangeRate} onChange={e => setExchangeRate(+e.target.value)} />
-                    </div>
-                </div>
-            </div>
-
-            {/* Channel rules — 수수료/세금 자동 반영 */}
-            <div style={{ background: "#ffffff", borderRadius: 14, border: "1px solid #e5e7eb", padding: 16 }}>
-                <div style={{ fontWeight: 700, fontSize: 12, color: "#6b7280", marginBottom: 6 }}>{t('catalogSync.channelMarkup')}</div>
-                <div style={{ fontSize: 10, color: '#6b7280', marginBottom: 12, lineHeight: 1.5 }}>
-                    💡 {t('catalogSync.commissionAutoApplyDesc') || '채널별 판매 수수료율과 세금은 CHANNEL_RATES 정책에서 자동 적용됩니다. 직접 수정도 가능합니다.'}
-                </div>
-                <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
-                    <thead>
-                        <tr>
-                            <th>{t('catalogSync.colChannels')}</th>
-                            <th>{t('catalogSync.enabled')}</th>
-                            <th style={{ color: '#f59e0b' }}>{t('catalogSync.colCommission') || '수수료(%)'}</th>
-                            <th style={{ color: '#6366f1' }}>{t('catalogSync.colVatTax') || 'VAT/세금(%)'}</th>
-                            <th>{t('catalogSync.channelMarkup')}</th>
-                            <th>{t('catalogSync.minMargin')}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {dynamicChannels.map(c => {
-                            const r = channelRules[c.id] || { enabled: true, markup: 0, minMargin: 15, commission: 10, vat: 0 };
-                            const rateSource = CHANNEL_RATES[c.id];
-                            return (
-                                <tr key={c.id} style={{ opacity: r.enabled ? 1 : 0.4 }}>
-                                    <td>
-                                        <span style={{ fontSize: 14 }}>{c.icon}</span> {c.name}
-                                        {c.connected && <span style={{ fontSize:9, color:'#22c55e', marginLeft:4 }}>✅</span>}
-                                        {c.autoAdded && <span style={{ fontSize:8, color:'#a855f7', marginLeft:4 }}>NEW</span>}
-                                        {rateSource && <span style={{ fontSize:8, color:'#4f8ef7', marginLeft:4 }}>{rateSource.region}</span>}
-                                    </td>
-                                    <td><input type="checkbox" checked={r.enabled} onChange={e => updateRule(c.id, "enabled", e.target.checked)} /></td>
-                                    <td><input style={{ padding: "4px 8px", borderRadius: 8, border: "1px solid #e5e7eb", background: "#fff", color: '#f59e0b', fontSize: 12, width: 70, fontWeight: 700 }} type="number" value={r.commission} step="0.1" onChange={e => updateRule(c.id, "commission", +e.target.value)} /></td>
-                                    <td><input style={{ padding: "4px 8px", borderRadius: 8, border: "1px solid #e5e7eb", background: "#fff", color: '#6366f1', fontSize: 12, width: 70, fontWeight: 700 }} type="number" value={r.vat} step="0.1" onChange={e => updateRule(c.id, "vat", +e.target.value)} /></td>
-                                    <td><input style={{ padding: "4px 8px", borderRadius: 8, border: "1px solid #e5e7eb", background: "#fff", color: "#1f2937", fontSize: 12, width: 70 }} type="number" value={r.markup} onChange={e => updateRule(c.id, "markup", +e.target.value)} /></td>
-                                    <td><input style={{ padding: "4px 8px", borderRadius: 8, border: "1px solid #e5e7eb", background: "#fff", color: "#1f2937", fontSize: 12, width: 70 }} type="number" value={r.minMargin} onChange={e => updateRule(c.id, "minMargin", +e.target.value)} /></td>
-                                </tr>
-                            );
-                        })}
-                    </tbody>
-                </table>
-                </div>
-            </div>
-
-            {/* Price preview — 수수료/세금 반영된 실질 마진 */}
-            <button style={{ padding: "8px 16px", borderRadius: 8, background: "#2563eb", color: "#fff", border: "none", fontWeight: 700, fontSize: 12, cursor: "pointer", alignSelf: "flex-start" }} onClick={() => setPreview(p => !p)}>
-                {preview ? t('catalogSync.closePreview') : t('catalogSync.openPricePreview')}
-            </button>
-            {preview && (
+            <div style={{ padding: "18px 24px 0", flexShrink: 0 }}>
+                {/* Global settings */}
                 <div style={{ background: "#ffffff", borderRadius: 14, border: "1px solid #e5e7eb", padding: 16 }}>
-                    <div style={{ fontWeight: 700, fontSize: 12, color: "#6b7280", marginBottom: 12 }}>
-                        {t('catalogSync.previewPrices')} <span style={{ fontSize: 10, color: '#6b7280', fontWeight: 400 }}>({t('catalogSync.baseCostLabel')} {fmtKRW(60000)})</span>
+                    <div style={{ fontWeight: 700, fontSize: 12, color: "#6b7280", marginBottom: 12 }}>{t('catalogSync.tabPriceRules')}</div>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+                        <div>
+                            <label style={{ fontSize: 11, color: "#6b7280", fontWeight: 600 }}>{t('catalogSync.globalMarkup')}</label>
+                            <input style={{ width: "100%", padding: "6px 10px", borderRadius: 8, border: "1px solid #e5e7eb", background: "#fff", color: "#1f2937", fontSize: 12 }} type="number" value={globalMarkup} onChange={e => setGlobalMarkup(+e.target.value)} />
+                        </div>
+                        <div>
+                            <label style={{ fontSize: 11, color: "#6b7280", fontWeight: 600 }}>{t('catalogSync.rounding')}</label>
+                            <select style={{ width: "100%", padding: "6px 10px", borderRadius: 8, border: "1px solid #e5e7eb", background: "#fff", color: "#1f2937", fontSize: 12 }} value={rounding} onChange={e => setRounding(e.target.value)}>
+                                <option value="none">None</option>
+                                <option value="900">{t('catalogSync.rounding900')}</option>
+                                <option value="990">{t('catalogSync.rounding990')}</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style={{ fontSize: 11, color: "#6b7280", fontWeight: 600 }}>{t('catalogSync.exchangeRate')}</label>
+                            <input style={{ width: "100%", padding: "6px 10px", borderRadius: 8, border: "1px solid #e5e7eb", background: "#fff", color: "#1f2937", fontSize: 12 }} type="number" value={exchangeRate} onChange={e => setExchangeRate(+e.target.value)} />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Channel rules — 수수료/세금 자동 반영 */}
+                <div style={{ background: "#ffffff", borderRadius: 14, border: "1px solid #e5e7eb", padding: 16 }}>
+                    <div style={{ fontWeight: 700, fontSize: 12, color: "#6b7280", marginBottom: 6 }}>{t('catalogSync.channelMarkup')}</div>
+                    <div style={{ fontSize: 10, color: '#6b7280', marginBottom: 12, lineHeight: 1.5 }}>
+                        💡 {t('catalogSync.commissionAutoApplyDesc') || '채널별 판매 수수료율과 세금은 CHANNEL_RATES 정책에서 자동 적용됩니다. 직접 수정도 가능합니다.'}
                     </div>
                     <div style={{ overflowX: 'auto' }}>
-                    <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
-                        <thead><tr>
-                            <th>{t('catalogSync.colChannels')}</th>
-                            <th>{t('catalogSync.finalPrice')}</th>
-                            <th style={{ color: '#f59e0b' }}>{t('catalogSync.colCommission') || '수수료'}</th>
-                            <th style={{ color: '#6366f1' }}>{t('catalogSync.colVatTax') || 'VAT'}</th>
-                            <th>{t('catalogSync.marginResult')}</th>
-                            <th>{t('catalogSync.minMargin')}</th>
-                        </tr></thead>
-                        <tbody>
-                            {samplePrices.map(r => (
-                                <tr key={r.id}>
-                                    <td>{r.icon} {r.name}</td>
-                                    <td style={{ fontFamily: "monospace", fontWeight: 700, color: r.color }}>{fmtKRW(r.final)}</td>
-                                    <td style={{ fontFamily: "monospace", color: '#f59e0b' }}>{fmtKRW(r.commAmt)} ({Math.round(r.commRate * 100)}%)</td>
-                                    <td style={{ fontFamily: "monospace", color: '#6366f1' }}>{fmtKRW(r.vatAmt)} ({Math.round(r.vatRate * 100)}%)</td>
-                                    <td style={{ fontFamily: "monospace", fontWeight: 700, color: r.ok ? "#22c55e" : "#ef4444" }}>{r.margin}%</td>
-                                    <td><span style={{ fontSize: 9, fontWeight: 700, padding: "2px 8px", borderRadius: 12 }}>{r.ok ? "✓" : "✗"}</span></td>
+                        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
+                            <thead>
+                                <tr>
+                                    <th>{t('catalogSync.colChannels')}</th>
+                                    <th>{t('catalogSync.enabled')}</th>
+                                    <th style={{ color: '#f59e0b' }}>{t('catalogSync.colCommission') || '수수료(%)'}</th>
+                                    <th style={{ color: '#6366f1' }}>{t('catalogSync.colVatTax') || 'VAT/세금(%)'}</th>
+                                    <th>{t('catalogSync.channelMarkup')}</th>
+                                    <th>{t('catalogSync.minMargin')}</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {dynamicChannels.map(c => {
+                                    const r = channelRules[c.id] || { enabled: true, markup: 0, minMargin: 15, commission: 10, vat: 0 };
+                                    const rateSource = CHANNEL_RATES[c.id];
+                                    return (
+                                        <tr key={c.id} style={{ opacity: r.enabled ? 1 : 0.4 }}>
+                                            <td>
+                                                <span style={{ fontSize: 14 }}>{c.icon}</span> {c.name}
+                                                {c.connected && <span style={{ fontSize: 9, color: '#22c55e', marginLeft: 4 }}>✅</span>}
+                                                {c.autoAdded && <span style={{ fontSize: 8, color: '#a855f7', marginLeft: 4 }}>NEW</span>}
+                                                {rateSource && <span style={{ fontSize: 8, color: '#4f8ef7', marginLeft: 4 }}>{rateSource.region}</span>}
+                                            </td>
+                                            <td><input type="checkbox" checked={r.enabled} onChange={e => updateRule(c.id, "enabled", e.target.checked)} /></td>
+                                            <td><input style={{ padding: "4px 8px", borderRadius: 8, border: "1px solid #e5e7eb", background: "#fff", color: '#f59e0b', fontSize: 12, width: 70, fontWeight: 700 }} type="number" value={r.commission} step="0.1" onChange={e => updateRule(c.id, "commission", +e.target.value)} /></td>
+                                            <td><input style={{ padding: "4px 8px", borderRadius: 8, border: "1px solid #e5e7eb", background: "#fff", color: '#6366f1', fontSize: 12, width: 70, fontWeight: 700 }} type="number" value={r.vat} step="0.1" onChange={e => updateRule(c.id, "vat", +e.target.value)} /></td>
+                                            <td><input style={{ padding: "4px 8px", borderRadius: 8, border: "1px solid #e5e7eb", background: "#fff", color: "#1f2937", fontSize: 12, width: 70 }} type="number" value={r.markup} onChange={e => updateRule(c.id, "markup", +e.target.value)} /></td>
+                                            <td><input style={{ padding: "4px 8px", borderRadius: 8, border: "1px solid #e5e7eb", background: "#fff", color: "#1f2937", fontSize: 12, width: 70 }} type="number" value={r.minMargin} onChange={e => updateRule(c.id, "minMargin", +e.target.value)} /></td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
-            )}
+
+                {/* Price preview — 수수료/세금 반영된 실질 마진 */}
+                <button style={{ padding: "8px 16px", borderRadius: 8, background: "#2563eb", color: "#fff", border: "none", fontWeight: 700, fontSize: 12, cursor: "pointer", alignSelf: "flex-start" }} onClick={() => setPreview(p => !p)}>
+                    {preview ? t('catalogSync.closePreview') : t('catalogSync.openPricePreview')}
+                </button>
+                {preview && (
+                    <div style={{ background: "#ffffff", borderRadius: 14, border: "1px solid #e5e7eb", padding: 16 }}>
+                        <div style={{ fontWeight: 700, fontSize: 12, color: "#6b7280", marginBottom: 12 }}>
+                            {t('catalogSync.previewPrices')} <span style={{ fontSize: 10, color: '#6b7280', fontWeight: 400 }}>({t('catalogSync.baseCostLabel')} {fmtKRW(60000)})</span>
+                        </div>
+                        <div style={{ overflowX: 'auto' }}>
+                            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
+                                <thead><tr>
+                                    <th>{t('catalogSync.colChannels')}</th>
+                                    <th>{t('catalogSync.finalPrice')}</th>
+                                    <th style={{ color: '#f59e0b' }}>{t('catalogSync.colCommission') || '수수료'}</th>
+                                    <th style={{ color: '#6366f1' }}>{t('catalogSync.colVatTax') || 'VAT'}</th>
+                                    <th>{t('catalogSync.marginResult')}</th>
+                                    <th>{t('catalogSync.minMargin')}</th>
+                                </tr></thead>
+                                <tbody>
+                                    {samplePrices.map(r => (
+                                        <tr key={r.id}>
+                                            <td>{r.icon} {r.name}</td>
+                                            <td style={{ fontFamily: "monospace", fontWeight: 700, color: r.color }}>{fmtKRW(r.final)}</td>
+                                            <td style={{ fontFamily: "monospace", color: '#f59e0b' }}>{fmtKRW(r.commAmt)} ({Math.round(r.commRate * 100)}%)</td>
+                                            <td style={{ fontFamily: "monospace", color: '#6366f1' }}>{fmtKRW(r.vatAmt)} ({Math.round(r.vatRate * 100)}%)</td>
+                                            <td style={{ fontFamily: "monospace", fontWeight: 700, color: r.ok ? "#22c55e" : "#ef4444" }}>{r.margin}%</td>
+                                            <td><span style={{ fontSize: 9, fontWeight: 700, padding: "2px 8px", borderRadius: 12 }}>{r.ok ? "✓" : "✗"}</span></td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )}
+            </div>
         </div>
-      </div>
     );
 }
 
@@ -1810,7 +1812,7 @@ function InventorySyncTab() {
                 </div>
             </div>
             <div style={{ background: "#ffffff", borderRadius: 14, border: "1px solid #e5e7eb", padding: 16 }}>
-                <div style={{ fontWeight: 700, fontSize: 12, color: "#eab308", marginBottom: 12 }}>{t('catalogSync.lowStockAlertTitle', {n: lowStock.length})}</div>
+                <div style={{ fontWeight: 700, fontSize: 12, color: "#eab308", marginBottom: 12 }}>{t('catalogSync.lowStockAlertTitle', { n: lowStock.length })}</div>
                 <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
                     <thead><tr><th>{t('catalogSync.colSkuHeader')}</th><th>{t('catalogSync.colProductNameHeader')}</th><th>{t('catalogSync.currentStock')}</th><th>{t('catalogSync.colStatusHeader')}</th><th>{t('catalogSync.afterDistribution')}</th></tr></thead>
                     <tbody>
@@ -1824,7 +1826,7 @@ function InventorySyncTab() {
                                     <td style={{ fontWeight: 700, color, fontFamily: "monospace" }}>{p.inventory}</td>
                                     <td>
                                         <span style={{ fontWeight: 700, padding: "2px 10px", borderRadius: 20, fontSize: 9, color, background: color + "18", border: `1px solid ${color}33` }}>
-                                        {p.inventory <= threshold ? t('catalogSync.nearOutOfStockLabel') : t('catalogSync.warningLabel')}
+                                            {p.inventory <= threshold ? t('catalogSync.nearOutOfStockLabel') : t('catalogSync.warningLabel')}
                                         </span>
                                     </td>
                                     <td style={{ fontFamily: "monospace", fontSize: 11 }}>
@@ -1904,7 +1906,7 @@ function CategoryMappingTab() {
         try {
             const saved = JSON.parse(localStorage.getItem('genie_catalog_mappings') || 'null');
             if (saved && Array.isArray(saved)) return saved;
-        } catch {}
+        } catch { }
         return allCategories.map(c => ({
             internal: c.id,
             labelKey: c.labelKey,
@@ -1944,7 +1946,7 @@ function CategoryMappingTab() {
             const bc = new BroadcastChannel('genie_catalog_sync');
             bc.postMessage({ type: 'CATEGORY_UPDATE', customCats: newCustomCats, mappings: newMappings });
             bc.close();
-        } catch {}
+        } catch { }
     };
 
     const updateMapping = (catId, chId, value) => {
@@ -2074,12 +2076,12 @@ function CategoryMappingTab() {
 /* ─── Tab: Usage Guide ─────────────────────────────────────────────────────── */
 function UsageGuideTab() {
     const { t } = useI18n();
-    const COLORS=['#4f8ef7','#22c55e','#f59e0b','#a855f7','#6366f1','#ec4899','#14b8a6','#ef4444','#8b5cf6','#10b981','#3b82f6','#e11d48','#06b6d4','#0ea5e9','#f97316'];
-    const ICONS=['📝','📡','💰','🔄','🗂️','📦','📋','⏰','🔐','📊','🧪','⚙️','🛡️','📱','🚀'];
-    const steps=[];
-    for(let i=1;i<=15;i++){const title=t('catalogSync.guideStep'+i+'Title','');if(title&&!title.includes('catalogSync.'))steps.push({title,desc:t('catalogSync.guideStep'+i+'Desc',''),icon:ICONS[i-1],color:COLORS[i-1]});}
-    const tips=[];
-    for(let i=1;i<=10;i++){const tip=t('catalogSync.guideTip'+i,'');if(tip&&!tip.includes('catalogSync.'))tips.push(tip);}
+    const COLORS = ['#4f8ef7', '#22c55e', '#f59e0b', '#a855f7', '#6366f1', '#ec4899', '#14b8a6', '#ef4444', '#8b5cf6', '#10b981', '#3b82f6', '#e11d48', '#06b6d4', '#0ea5e9', '#f97316'];
+    const ICONS = ['📝', '📡', '💰', '🔄', '🗂️', '📦', '📋', '⏰', '🔐', '📊', '🧪', '⚙️', '🛡️', '📱', '🚀'];
+    const steps = [];
+    for (let i = 1; i <= 15; i++) { const title = t('catalogSync.guideStep' + i + 'Title', ''); if (title && !title.includes('catalogSync.')) steps.push({ title, desc: t('catalogSync.guideStep' + i + 'Desc', ''), icon: ICONS[i - 1], color: COLORS[i - 1] }); }
+    const tips = [];
+    for (let i = 1; i <= 10; i++) { const tip = t('catalogSync.guideTip' + i, ''); if (tip && !tip.includes('catalogSync.')) tips.push(tip); }
 
     return (
         <div style={{ display: "grid", gap: 18 }}>
@@ -2094,7 +2096,7 @@ function UsageGuideTab() {
                         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
                             <div style={{ width: 36, height: 36, borderRadius: 10, background: `${s.color}12`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>{s.icon}</div>
                             <div>
-                                <div style={{ fontSize: 10, color: "#6b7280", fontWeight: 700 }}>STEP {i+1}</div>
+                                <div style={{ fontSize: 10, color: "#6b7280", fontWeight: 700 }}>STEP {i + 1}</div>
                                 <div style={{ fontWeight: 700, fontSize: 13, color: s.color }}>{s.title}</div>
                             </div>
                         </div>
@@ -2131,7 +2133,7 @@ export default function CatalogSync() {
     useEffect(() => {
         const bc = new BroadcastChannel('genie_product_sync');
         bc.onmessage = (e) => {
-            if (e.data?.type === 'PRODUCT_UPDATE' && e.data.source !== 'catalogSync') {}
+            if (e.data?.type === 'PRODUCT_UPDATE' && e.data.source !== 'catalogSync') { }
         };
         return () => bc.close();
     }, []);
@@ -2141,7 +2143,7 @@ export default function CatalogSync() {
             const bc = new BroadcastChannel('genie_product_sync');
             bc.postMessage({ type: 'PRODUCT_UPDATE', source: 'catalogSync', ts: Date.now() });
             bc.close();
-        } catch {}
+        } catch { }
     }, []);
 
     const TABS = useMemo(() => [
@@ -2160,69 +2162,69 @@ export default function CatalogSync() {
     const deltaProducts = 0;
 
     return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden", background: "#f8fafc" }}>
-      <div style={{ padding: "18px 24px 0", flexShrink: 0 }}>
-            {secBanner && (
-                <div style={{ padding: "12px 18px", borderRadius: 10, background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.3)", display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
-                    <span style={{ fontSize: 20 }}>🛡️</span>
-                    <div>
-                        <div style={{ fontWeight: 700, fontSize: 13, color: "#ef4444" }}>{t('catalogSync.securityBannerTitle')}</div>
-                        <div style={{ fontSize: 11, color: "#374151" }}>{secBanner.type} — {secBanner.at} ({secBanner.count}회)</div>
+        <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden", background: "#f8fafc" }}>
+            <div style={{ padding: "18px 24px 0", flexShrink: 0 }}>
+                {secBanner && (
+                    <div style={{ padding: "12px 18px", borderRadius: 10, background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.3)", display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
+                        <span style={{ fontSize: 20 }}>🛡️</span>
+                        <div>
+                            <div style={{ fontWeight: 700, fontSize: 13, color: "#ef4444" }}>{t('catalogSync.securityBannerTitle')}</div>
+                            <div style={{ fontSize: 11, color: "#374151" }}>{secBanner.type} — {secBanner.at} ({secBanner.count}회)</div>
+                        </div>
+                    </div>
+                )}
+                <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginBottom: 8 }}>
+                    <span style={{ fontSize: 9, padding: "3px 8px", borderRadius: 20, fontWeight: 700, background: "rgba(34,197,94,0.1)", color: "#22c55e", border: "1px solid rgba(34,197,94,0.25)" }}>
+                        🔗 {t('catalogSync.crossSyncActive')}
+                    </span>
+                </div>
+                <div style={{ background: "linear-gradient(135deg,#eff6ff,#f0fdf4)", borderRadius: 16, padding: "24px", border: "1px solid #bfdbfe", marginBottom: 12 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                        <div style={{ width: 48, height: 48, borderRadius: 14, background: "linear-gradient(135deg,#dbeafe,#d1fae5)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, border: "1px solid #bfdbfe" }}>🔄</div>
+                        <div>
+                            <div style={{ fontSize: 24, fontWeight: 900, color: "#1e293b", textShadow: "0 1px 2px rgba(0,0,0,0.08)", WebkitTextFillColor: "#1e293b" }}>{t('catalogSync.heroTitle')}</div>
+                            <div style={{ fontSize: 14, color: "#1e293b", marginTop: 4, fontWeight: 600, WebkitTextFillColor: "#1e293b" }}>{t('catalogSync.heroDesc')}</div>
+                        </div>
+                    </div>
+                    <div style={{ display: "flex", gap: 8, marginTop: 14, flexWrap: "wrap" }}>
+                        {dynamicChannels.map(c => (
+                            <span key={c.id} style={{ fontSize: 10, fontWeight: 700, padding: "2px 10px", borderRadius: 20, background: c.connected ? c.color + '18' : 'rgba(100,100,100,0.1)', color: c.connected ? c.color : '#6b7280', border: `1px solid ${c.connected ? c.color + '33' : 'rgba(100,100,100,0.2)'}`, opacity: c.connected ? 1 : 0.5 }}>
+                                {c.icon} {c.name} {c.connected && '✅'}
+                            </span>
+                        ))}
+                        {connectedCount > 0 && <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 10px", borderRadius: 20, background: 'rgba(34,197,94,0.12)', color: '#22c55e', border: '1px solid rgba(34,197,94,0.3)' }}>🔗 {connectedCount} {t('catalogSync.connectedLabel')}</span>}
                     </div>
                 </div>
-            )}
-            <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginBottom: 8 }}>
-                <span style={{ fontSize: 9, padding: "3px 8px", borderRadius: 20, fontWeight: 700, background: "rgba(34,197,94,0.1)", color: "#22c55e", border: "1px solid rgba(34,197,94,0.25)" }}>
-                    🔗 {t('catalogSync.crossSyncActive')}
-                </span>
-            </div>
-            <div style={{ background: "linear-gradient(135deg,#eff6ff,#f0fdf4)", borderRadius: 16, padding: "24px", border: "1px solid #bfdbfe", marginBottom: 12 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-                    <div style={{ width: 48, height: 48, borderRadius: 14, background: "linear-gradient(135deg,#dbeafe,#d1fae5)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, border: "1px solid #bfdbfe" }}>🔄</div>
-                    <div>
-                        <div style={{ fontSize: 24, fontWeight: 900, color: "#1e293b", textShadow: "0 1px 2px rgba(0,0,0,0.08)", WebkitTextFillColor: "#1e293b" }}>{t('catalogSync.heroTitle')}</div>
-                        <div style={{ fontSize: 14, color: "#1e293b", marginTop: 4, fontWeight: 600, WebkitTextFillColor: "#1e293b" }}>{t('catalogSync.heroDesc')}</div>
-                    </div>
-                </div>
-                <div style={{ display: "flex", gap: 8, marginTop: 14, flexWrap: "wrap" }}>
-                    {dynamicChannels.map(c => (
-                        <span key={c.id} style={{ fontSize: 10, fontWeight: 700, padding: "2px 10px", borderRadius: 20, background: c.connected ? c.color + '18' : 'rgba(100,100,100,0.1)', color: c.connected ? c.color : '#6b7280', border: `1px solid ${c.connected ? c.color + '33' : 'rgba(100,100,100,0.2)'}`, opacity: c.connected ? 1 : 0.5 }}>
-                            {c.icon} {c.name} {c.connected && '✅'}
-                        </span>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12, marginBottom: 12 }}>
+                    {[
+                        { l: t('catalogSync.kpiAllProducts'), v: totalProducts, c: "#4f8ef7" },
+                        { l: t('catalogSync.kpiSyncDone'), v: syncedProducts, c: "#22c55e" },
+                        { l: t('catalogSync.kpiChangeDetected'), v: deltaProducts, c: "#f97316" },
+                        { l: t('catalogSync.kpiErrorProduct'), v: errorProducts, c: "#ef4444" },
+                    ].map(({ l, v, c }, i) => (
+                        <div key={i} style={{ padding: "16px 18px", borderRadius: 14, background: "#ffffff", border: "1px solid #e5e7eb", textAlign: "center" }}>
+                            <div style={{ fontSize: 11, color: "#6b7280", marginBottom: 4 }}>{l}</div>
+                            <div style={{ fontSize: 22, fontWeight: 900, color: c }}>{v}</div>
+                            <ProgressBar pct={totalProducts > 0 ? (v / totalProducts) * 100 : 0} color={c} />
+                        </div>
                     ))}
-                    {connectedCount > 0 && <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 10px", borderRadius: 20, background: 'rgba(34,197,94,0.12)', color: '#22c55e', border: '1px solid rgba(34,197,94,0.3)' }}>🔗 {connectedCount} {t('catalogSync.connectedLabel')}</span>}
+                </div>
+                <div style={{ display: "flex", gap: 4, padding: "5px", background: "#f1f5f9", borderRadius: 14, flexWrap: "wrap", marginBottom: 2 }}>
+                    {TABS.map(tb => (
+                        <button key={tb.id} onClick={() => setTab(tb.id)} style={{ padding: "8px 14px", borderRadius: 10, border: "none", cursor: "pointer", fontWeight: 700, fontSize: 11, background: tab === tb.id ? "#2563eb" : "#ffffff", color: tab === tb.id ? "#ffffff" : "#374151", transition: "all 150ms" }}>{tb.label}</button>
+                    ))}
                 </div>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12, marginBottom: 12 }}>
-                {[
-                    { l: t('catalogSync.kpiAllProducts'), v: totalProducts, c: "#4f8ef7" },
-                    { l: t('catalogSync.kpiSyncDone'), v: syncedProducts, c: "#22c55e" },
-                    { l: t('catalogSync.kpiChangeDetected'), v: deltaProducts, c: "#f97316" },
-                    { l: t('catalogSync.kpiErrorProduct'), v: errorProducts, c: "#ef4444" },
-                ].map(({ l, v, c }, i) => (
-                    <div key={i} style={{ padding: "16px 18px", borderRadius: 14, background: "#ffffff", border: "1px solid #e5e7eb", textAlign: "center" }}>
-                        <div style={{ fontSize: 11, color: "#6b7280", marginBottom: 4 }}>{l}</div>
-                        <div style={{ fontSize: 22, fontWeight: 900, color: c }}>{v}</div>
-                        <ProgressBar pct={totalProducts > 0 ? (v / totalProducts) * 100 : 0} color={c} />
-                    </div>
-                ))}
+            <div style={{ flex: 1, overflowY: "auto", padding: "16px 24px 24px" }}>
+                {tab === "catalog" && <CatalogTab />}
+                {tab === "sync" && <SyncRunTab onJobCreated={addJob} />}
+                {tab === "catmap" && <CategoryMappingTab />}
+                {tab === "price" && <PriceSyncTab />}
+                {tab === "inventory" && <InventorySyncTab />}
+                {tab === "history" && <JobHistoryTab jobs={jobs} />}
+                {tab === "guide" && <UsageGuideTab />}
             </div>
-            <div style={{ display: "flex", gap: 4, padding: "5px", background: "#f1f5f9", borderRadius: 14, flexWrap: "wrap", marginBottom: 2 }}>
-                {TABS.map(tb => (
-                    <button key={tb.id} onClick={() => setTab(tb.id)} style={{ padding: "8px 14px", borderRadius: 10, border: "none", cursor: "pointer", fontWeight: 700, fontSize: 11, background: tab === tb.id ? "#2563eb" : "#ffffff", color: tab === tb.id ? "#ffffff" : "#374151", transition: "all 150ms" }}>{tb.label}</button>
-                ))}
-            </div>
-      </div>
-      <div style={{ flex: 1, overflowY: "auto", padding: "16px 24px 24px" }}>
-            {tab === "catalog" && <CatalogTab />}
-            {tab === "sync" && <SyncRunTab onJobCreated={addJob} />}
-            {tab === "catmap" && <CategoryMappingTab />}
-            {tab === "price" && <PriceSyncTab />}
-            {tab === "inventory" && <InventorySyncTab />}
-            {tab === "history" && <JobHistoryTab jobs={jobs} />}
-            {tab === "guide" && <UsageGuideTab />}
-      </div>
-    </div>
+        </div>
     );
 }
 

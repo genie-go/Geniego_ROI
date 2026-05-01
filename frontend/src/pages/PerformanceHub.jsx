@@ -67,7 +67,7 @@ function MiniBar({ value, max, color = "#4f8ef7" }) {
                 transition: "width 0.5s cubic-bezier(.4,0,.2,1)"
             }} />
         </div>
-    
+
     );
 }
 
@@ -89,7 +89,7 @@ function PerformanceTab() {
         const filters = {};
         if (team !== "All") filters.team = team;
         if (account !== "All") filters.account = account;
-        
+
         const qs = new URLSearchParams(filters).toString();
         const headers = {};
         if (token) headers["Authorization"] = `Bearer ${token}`;
@@ -155,20 +155,23 @@ function PerformanceTab() {
         });
     }, [summary]);
 
+    const totals = useMemo(() => {
+        const result = CHANNELS_PERF.reduce((acc, c) => ({
+            impressions: acc.impressions + c.impressions,
+            clicks: acc.clicks + c.clicks,
+            carts: acc.carts + c.carts,
+            orders: acc.orders + c.orders,
+            revenue: acc.revenue + c.revenue,
+            adSpend: acc.adSpend + c.adSpend,
+        }), { impressions: 0, clicks: 0, carts: 0, orders: 0, revenue: 0, adSpend: 0 });
 
-    const totals = useMemo(() => CHANNELS_PERF.reduce((acc, c) => ({
-        impressions: acc.impressions + c.impressions,
-        clicks: acc.clicks + c.clicks,
-        carts: acc.carts + c.carts,
-        orders: acc.orders + c.orders,
-        revenue: acc.revenue + c.revenue,
-        adSpend: acc.adSpend + c.adSpend,
-    }), { impressions: 0, clicks: 0, carts: 0, orders: 0, revenue: 0, adSpend: 0 }), [CHANNELS_PERF]);
+        result.roas = result.adSpend ? result.revenue / result.adSpend : 0;
+        result.acos = result.revenue ? result.adSpend / result.revenue : 0;
 
-    totals.roas = totals.adSpend ? totals.revenue / totals.adSpend : 0;
-    totals.acos = totals.revenue ? totals.adSpend / totals.revenue : 0;
+        return result;
+    }, [CHANNELS_PERF]);
 
-    const sorted = [...CHANNELS_PERF].sort((a, b) => b[sort] - a[sort]);
+    const sorted = useMemo(() => [...CHANNELS_PERF].sort((a, b) => b[sort] - a[sort]), [CHANNELS_PERF, sort]);
 
     return (
         <div style={{ display: "grid", gap: 18 }}>
@@ -339,26 +342,27 @@ function SettlementTab() {
     const [baseCur, setBaseCur] = useState("KRW");
 
     // Convert all to KRW for totals
-    const toBase = (v, cur) => cur === "KRW" ? v : toKRW(v, cur);
+    const toBase = useCallback((v, cur) => cur === "KRW" ? v : toKRW(v, cur), []);
 
-    const totals = {
+    const totals = useMemo(() => ({
         grossSales: SETTLE_CHANNELS.reduce((s, c) => s + toBase(c.grossSales, c.currency), 0),
         platformFee: SETTLE_CHANNELS.reduce((s, c) => s + toBase(c.platformFee, c.currency), 0),
         adFee: SETTLE_CHANNELS.reduce((s, c) => s + toBase(c.adFee, c.currency), 0),
         paymentFee: SETTLE_CHANNELS.reduce((s, c) => s + toBase(c.paymentFee, c.currency), 0),
         refund: SETTLE_CHANNELS.reduce((s, c) => s + toBase(c.refund, c.currency), 0),
         netPayout: SETTLE_CHANNELS.reduce((s, c) => s + toBase(c.netPayout, c.currency), 0),
-    };
-    const netRate = totals.netPayout / totals.grossSales;
-    const totalDeductions = totals.platformFee + totals.adFee + totals.paymentFee + totals.refund;
+    }), [toBase]);
+
+    const netRate = useMemo(() => totals.netPayout / totals.grossSales, [totals]);
+    const totalDeductions = useMemo(() => totals.platformFee + totals.adFee + totals.paymentFee + totals.refund, [totals]);
 
     // Deduction breakdown for pie-style display
-    const deductions = [
+    const deductions = useMemo(() => [
         { label: t('performance.deductPlatformFee'), value: totals.platformFee, color: "#ef4444" },
         { label: t('performance.deductAdSpend'), value: totals.adFee, color: "#f97316" },
         { label: t('performance.deductPaymentFee'), value: totals.paymentFee, color: "#eab308" },
         { label: t('performance.deductRefund'), value: totals.refund, color: "#a855f7" },
-    ];
+    ], [t, totals]);
 
     return (
         <div style={{ display: "grid", gap: 18 }}>
@@ -478,7 +482,7 @@ function SettlementTab() {
                 </div>
             </div>
         </div>
-);
+    );
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -503,22 +507,22 @@ function CreatorTab() {
     const [selected, setSelected] = useState(null);
 
     // 🛡️ GUARD: Use GlobalDataContext creators (demo=seed, prod=API). Never hardcoded.
-    const CREATORS = ctxCreators.length > 0 ? ctxCreators.map(c => ({
+    const CREATORS = useMemo(() => ctxCreators.length > 0 ? ctxCreators.map(c => ({
         id: c.id, name: c.name, handle: c.identities?.[0]?.handle || '', platform: c.identities?.[0]?.type || 'instagram',
         tier: c.tier, status: c.settle?.status === 'unpaid' && c.contract?.esign === 'rejected' ? 'expired' : 'active',
         contractRate: c.contract?.flatFee || 0, revenue: c.stats?.revenue || 0, orders: c.stats?.orders || 0,
-        attribution: c.stats?.engagement || 0, rightsExpiry: c.contract?.whitelistExpiry ? new Date(Date.now() + c.contract.whitelistExpiry).toISOString().slice(0,10) : '2027-12-31',
-        contractEnd: c.contract?.period?.[1] ? new Date(Date.now() + c.contract.period[1]).toISOString().slice(0,10) : '2027-12-31',
+        attribution: c.stats?.engagement || 0, rightsExpiry: c.contract?.whitelistExpiry ? new Date(Date.now() + c.contract.whitelistExpiry).toISOString().slice(0, 10) : '2027-12-31',
+        contractEnd: c.contract?.period?.[1] ? new Date(Date.now() + c.contract.period[1]).toISOString().slice(0, 10) : '2027-12-31',
         content: (c.content || []).map(ct => ({ title: ct.title, views: ct.views || 0, orders: ct.orders || 0, revenue: ct.revenue || 0, attrib: ct.engRate || 0 })),
-    })) : _PERF_CREATORS_FALLBACK;
+    })) : _PERF_CREATORS_FALLBACK, [ctxCreators]);
 
-    const totPayout = CREATORS.reduce((s, c) => s + (c.contractRate || 0), 0);
-    const totRevenue = CREATORS.reduce((s, c) => s + (c.revenue || 0), 0);
-    const totOrders = CREATORS.reduce((s, c) => s + (c.orders || 0), 0);
-    const avgAttrib = CREATORS.length > 0 ? CREATORS.reduce((s, c) => s + (c.attribution || 0), 0) / CREATORS.length : 0;
-    const expiredSoon = CREATORS.filter(c => daysLeft(c.rightsExpiry) <= 90 && c.status !== "expired").length;
+    const totPayout = useMemo(() => CREATORS.reduce((s, c) => s + (c.contractRate || 0), 0), [CREATORS]);
+    const totRevenue = useMemo(() => CREATORS.reduce((s, c) => s + (c.revenue || 0), 0), [CREATORS]);
+    const totOrders = useMemo(() => CREATORS.reduce((s, c) => s + (c.orders || 0), 0), [CREATORS]);
+    const avgAttrib = useMemo(() => CREATORS.length > 0 ? CREATORS.reduce((s, c) => s + (c.attribution || 0), 0) / CREATORS.length : 0, [CREATORS]);
+    const expiredSoon = useMemo(() => CREATORS.filter(c => daysLeft(c.rightsExpiry) <= 90 && c.status !== "expired").length, [CREATORS]);
 
-    const openSettle = c => { setSelected(c); setModal("settle"); };
+    const openSettle = useCallback(c => { setSelected(c); setModal("settle"); }, []);
 
     return (
         <div style={{ display: "grid", gap: 18 }}>
@@ -574,7 +578,8 @@ function CreatorTab() {
                     return (
                         <div key={c.id} className="card card-glass" style={{
                             borderLeft: `3px solid ${TIER_COLOR[c.tier]}`,
-                            opacity: expired ? 0.75 : 1 }}>
+                            opacity: expired ? 0.75 : 1
+                        }}>
                             {/* Header */}
                             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 14, flexWrap: "wrap", gap: 10 }}>
                                 <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
@@ -725,9 +730,9 @@ function CreatorTab() {
                 </>
             )}
         </div>
-    
 
-);
+
+    );
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -748,7 +753,8 @@ function SKUProfitTab() {
     const [sortDir, setSortDir] = useState('desc');
 
     const { inventory = [], isDemo } = useGlobalData();
-    const SKU_DATA = (inventory.length > 0 ? inventory.slice(0, 12).map(p => {
+
+    const SKU_DATA = useMemo(() => (inventory.length > 0 ? inventory.slice(0, 12).map(p => {
         const rev = (p.price || 0) * ((p.stock?.W001 || 0) + (p.stock?.W002 || 0) + (p.stock?.W003 || 0)) * 2;
         const cog = rev * 0.32;
         const logistics = rev * 0.08;
@@ -756,71 +762,69 @@ function SKUProfitTab() {
         const platform = rev * 0.07;
         const margin = rev - cog - logistics - ad - platform;
         return { sku: p.sku, name: p.name, revenue: Math.round(rev), cog: Math.round(cog), logistics: Math.round(logistics), ad: Math.round(ad), platform: Math.round(platform), margin: Math.round(margin) };
-    }) : [
-        // 🛡️ GUARD: 운영에서 inventory 없으면 빈 테이블 표시 (가상 데이터 절대 주입 금지)
-    ]).map(s => ({
+    }) : []).map(s => ({
         ...s,
         total_cost: s.cog + s.logistics + s.ad + s.platform,
         margin_rate: s.revenue ? (s.margin / s.revenue) : 0,
-    }));
+    })), [inventory]);
 
-    const sorted = [...SKU_DATA].sort((a, b) => sortDir === 'desc' ? b[sortCol] - a[sortCol] : a[sortCol] - b[sortCol]);
-    const totalRevenue = SKU_DATA.reduce((s, x) => s + x.revenue, 0);
-    const totalMargin  = SKU_DATA.reduce((s, x) => s + x.margin,  0);
-    const avgMarginRate = totalRevenue ? totalMargin / totalRevenue : 0;
+    const sorted = useMemo(() => [...SKU_DATA].sort((a, b) => sortDir === 'desc' ? b[sortCol] - a[sortCol] : a[sortCol] - b[sortCol]), [SKU_DATA, sortCol, sortDir]);
+    const totalRevenue = useMemo(() => SKU_DATA.reduce((s, x) => s + x.revenue, 0), [SKU_DATA]);
+    const totalMargin = useMemo(() => SKU_DATA.reduce((s, x) => s + x.margin, 0), [SKU_DATA]);
+    const avgMarginRate = useMemo(() => totalRevenue ? totalMargin / totalRevenue : 0, [totalRevenue, totalMargin]);
 
-    const handleSort = col => { if(sortCol===col) setSortDir(d=>d==='desc'?'asc':'desc'); else { setSortCol(col); setSortDir('desc'); } };
-    const SortArrow = ({col}) => sortCol===col ? (sortDir==='desc'?'▼':'▲') : '';
+    const handleSort = useCallback(col => { if (sortCol === col) setSortDir(d => d === 'desc' ? 'asc' : 'desc'); else { setSortCol(col); setSortDir('desc'); } }, [sortCol]);
+    const SortArrow = useCallback(({ col }) => sortCol === col ? (sortDir === 'desc' ? '▼' : '▲') : '', [sortCol, sortDir]);
 
     return (
-        <div style={{ display:'grid', gap:18 }}>
-            <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:10 }}>
+        <div style={{ display: 'grid', gap: 18 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 10 }}>
                 {[
-                    { l:t('performance.skuTotalRevenue'), v:fmtC(totalRevenue), c:'#4f8ef7' },
-                    { l:t('performance.skuTotalMargin'),  v:fmtC(totalMargin),  c:'#22c55e' },
-                    { l:t('performance.skuAvgMarginRate'), v:pct(avgMarginRate), c:'#a855f7' },
-                    { l:t('performance.skuTopMarginSku'), v:sorted[0]?.sku||'-', c:'#f97316' },
-                ].map(({l,v,c})=>(
+                    { l: t('performance.skuTotalRevenue'), v: fmtC(totalRevenue), c: '#4f8ef7' },
+                    { l: t('performance.skuTotalMargin'), v: fmtC(totalMargin), c: '#22c55e' },
+                    { l: t('performance.skuAvgMarginRate'), v: pct(avgMarginRate), c: '#a855f7' },
+                    { l: t('performance.skuTopMarginSku'), v: sorted[0]?.sku || '-', c: '#f97316' },
+                ].map(({ l, v, c }) => (
                     <KpiCard key={l} label={l} value={v} color={c} />
                 ))}
             </div>
 
-            <div className="card card-glass" style={{ padding:20 }}>
-                <div style={{ fontWeight:800, fontSize:13, marginBottom:14 }}>📊 {t('performance.skuProfitDetail')}</div>
-                {SKU_DATA.length === 0 && <div style={{ textAlign:'center', padding:24, color:'#64748b', fontSize:12 }}>{t('performance.noData')}</div>}
-                {SKU_DATA.length > 0 && <div style={{ overflowX:'auto' }}>
-                    <table className="table" style={{ fontSize:11 }}>
+            <div className="card card-glass" style={{ padding: 20 }}>
+                <div style={{ fontWeight: 800, fontSize: 13, marginBottom: 14 }}>📊 {t('performance.skuProfitDetail')}</div>
+                {SKU_DATA.length === 0 && <div style={{ textAlign: 'center', padding: 24, color: '#64748b', fontSize: 12 }}>{t('performance.noData')}</div>}
+                {SKU_DATA.length > 0 && <div style={{ overflowX: 'auto' }}>
+                    <table className="table" style={{ fontSize: 11 }}>
                         <thead>
                             <tr>
-                                {[['sku','SKU'],['name',t('performance.skuProduct')],['revenue',t('performance.revenue')],['cog',t('performance.skuCogs')],['logistics',t('performance.skuLogistics')],['ad',t('performance.adSpend')],['platform',t('performance.platformFee')],['margin',t('performance.skuMargin')],['margin_rate',t('performance.skuMarginRate')]].map(([col,label])=>(
-                                    <th key={col} onClick={()=>handleSort(col)} style={{ cursor:'pointer', userSelect:'none', textAlign:col!=='name'?'right':'left', color:'#4f8ef7' }} >{label} <span><SortArrow col={col}/></span></th>
+                                {[['sku', 'SKU'], ['name', t('performance.skuProduct')], ['revenue', t('performance.revenue')], ['cog', t('performance.skuCogs')], ['logistics', t('performance.skuLogistics')], ['ad', t('performance.adSpend')], ['platform', t('performance.platformFee')], ['margin', t('performance.skuMargin')], ['margin_rate', t('performance.skuMarginRate')]].map(([col, label]) => (
+                                    <th key={col} onClick={() => handleSort(col)} style={{ cursor: 'pointer', userSelect: 'none', textAlign: col !== 'name' ? 'right' : 'left', color: '#4f8ef7' }} >{label} <span><SortArrow col={col} /></span></th>
                                 ))}
                             </tr>
                         </thead>
                         <tbody>
-                            {sorted.map(s=>(
+                            {sorted.map(s => (
                                 <tr key={s.sku}>
-                                    <td style={{ fontFamily:'monospace', fontWeight:700, color:'#4f8ef7' }}>{s.sku}</td>
-                                    <td style={{ fontSize:11 }}>{s.name}</td>
-                                    <td style={{ textAlign:'right', fontFamily:'monospace', fontWeight:700 }}>{fmtC(s.revenue)}</td>
-                                    <td style={{ textAlign:'right', fontFamily:'monospace', color:'#ef4444' }}>{fmtC(s.cog)}</td>
-                                    <td style={{ textAlign:'right', fontFamily:'monospace', color:'#f97316' }}>{fmtC(s.logistics)}</td>
-                                    <td style={{ textAlign:'right', fontFamily:'monospace', color:'#eab308' }}>{fmtC(s.ad)}</td>
-                                    <td style={{ textAlign:'right', fontFamily:'monospace', color:'#a855f7' }}>{fmtC(s.platform)}</td>
-                                    <td style={{ textAlign:'right', fontFamily:'monospace', fontWeight:800, color:s.margin_rate>=0.2?'#22c55e':s.margin_rate>=0.1?'#eab308':'#ef4444' }}>{fmtC(s.margin)}</td>
-                                    <td style={{ textAlign:'right' }}>
-                                        <span style={{ fontWeight:800, color:s.margin_rate>=0.2?'#22c55e':s.margin_rate>=0.1?'#eab308':'#ef4444' }}>{pct(s.margin_rate)}</span>
+                                    <td style={{ fontFamily: 'monospace', fontWeight: 700, color: '#4f8ef7' }}>{s.sku}</td>
+                                    <td style={{ fontSize: 11 }}>{s.name}</td>
+                                    <td style={{ textAlign: 'right', fontFamily: 'monospace', fontWeight: 700 }}>{fmtC(s.revenue)}</td>
+                                    <td style={{ textAlign: 'right', fontFamily: 'monospace', color: '#ef4444' }}>{fmtC(s.cog)}</td>
+                                    <td style={{ textAlign: 'right', fontFamily: 'monospace', color: '#f97316' }}>{fmtC(s.logistics)}</td>
+                                    <td style={{ textAlign: 'right', fontFamily: 'monospace', color: '#eab308' }}>{fmtC(s.ad)}</td>
+                                    <td style={{ textAlign: 'right', fontFamily: 'monospace', color: '#a855f7' }}>{fmtC(s.platform)}</td>
+                                    <td style={{ textAlign: 'right', fontFamily: 'monospace', fontWeight: 800, color: s.margin_rate >= 0.2 ? '#22c55e' : s.margin_rate >= 0.1 ? '#eab308' : '#ef4444' }}>{fmtC(s.margin)}</td>
+                                    <td style={{ textAlign: 'right' }}>
+                                        <span style={{ fontWeight: 800, color: s.margin_rate >= 0.2 ? '#22c55e' : s.margin_rate >= 0.1 ? '#eab308' : '#ef4444' }}>{pct(s.margin_rate)}</span>
                                     </td>
                                 </tr>
                             ))}
                         </tbody>
                         <tfoot>
-                            <tr style={{ borderTop:'2px solid rgba(99,140,255,0.2)', background:'rgba(79,142,247,0.04)' }}>
-                                <td colSpan="2" style={{ fontWeight:800, fontSize:11 }}>{t('performance.totalAvg')}</td>
-                                <td style={{ textAlign:'right', fontWeight:800, color:'#4f8ef7' }}>{fmtC(totalRevenue)}</td>
+                            <tr style={{ borderTop: '2px solid rgba(99,140,255,0.2)', background: 'rgba(79,142,247,0.04)' }}>
+                                <td colSpan="2" style={{ fontWeight: 800, fontSize: 11 }}>{t('performance.totalAvg')}</td>
+                                <td style={{ textAlign: 'right', fontWeight: 800, color: '#4f8ef7' }}>{fmtC(totalRevenue)}</td>
                                 <td colSpan="4"></td>
-                                <td style={{ textAlign:'right', fontWeight:900, color:'#22c55e', fontSize:13 }}>{fmtC(totalMargin)}</td>
-                                <td style={{ textAlign:'right', fontWeight:900, color:'#22c55e' }}>{pct(avgMarginRate)}</td>
+                                <td style={{ textAlign: 'right', fontWeight: 900, color: '#22c55e', fontSize: 13 }}>{fmtC(totalMargin)}</td>
+                                <td style={{ textAlign: 'right', fontWeight: 900, color: '#22c55e' }}>{pct(avgMarginRate)}</td>
                             </tr>
                         </tfoot>
                     </table>
@@ -855,51 +859,51 @@ function CohortTab() {
                 </div>
             </div>
 
-            {COHORT_DATA.length === 0 && <div style={{ textAlign:'center', padding:24, color:'#64748b', fontSize:12 }}>{t('performance.noData')}</div>}
+            {COHORT_DATA.length === 0 && <div style={{ textAlign: 'center', padding: 24, color: '#64748b', fontSize: 12 }}>{t('performance.noData')}</div>}
 
             {COHORT_DATA.length > 0 && <>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
-                {COHORT_DATA.slice(0, 4).map(c => (
-                    <div key={c.month} style={{ padding: '12px 16px', borderRadius: 12, background: 'rgba(168,85,247,0.07)', border: '1px solid rgba(168,85,247,0.2)', textAlign: 'center' }}>
-                        <div style={{ fontSize: 11, color: 'var(--text-3)', marginBottom: 4 }}>{c.month}</div>
-                        <div style={{ fontSize: 20, fontWeight: 900, color: '#a855f7' }}>{c.newUsers.toLocaleString()}</div>
-                        <div style={{ fontSize: 10, color: 'var(--text-3)' }}>{t('performance.newUsers')}</div>
-                    </div>
-                ))}
-            </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
+                    {COHORT_DATA.slice(0, 4).map(c => (
+                        <div key={c.month} style={{ padding: '12px 16px', borderRadius: 12, background: 'rgba(168,85,247,0.07)', border: '1px solid rgba(168,85,247,0.2)', textAlign: 'center' }}>
+                            <div style={{ fontSize: 11, color: 'var(--text-3)', marginBottom: 4 }}>{c.month}</div>
+                            <div style={{ fontSize: 20, fontWeight: 900, color: '#a855f7' }}>{c.newUsers.toLocaleString()}</div>
+                            <div style={{ fontSize: 10, color: 'var(--text-3)' }}>{t('performance.newUsers')}</div>
+                        </div>
+                    ))}
+                </div>
 
-            <div style={{ overflow: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-                    <thead>
-                        <tr style={{ background: 'rgba(168,85,247,0.08)' }}>
-                            {[t('performance.cohortMonth'), t('performance.newLabel'), 'D+30', 'D+60', 'D+90',
+                <div style={{ overflow: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                        <thead>
+                            <tr style={{ background: 'rgba(168,85,247,0.08)' }}>
+                                {[t('performance.cohortMonth'), t('performance.newLabel'), 'D+30', 'D+60', 'D+90',
                                 view === 'retention' ? t('performance.retention90') : t('performance.ltvRevenue')].map(h => (
-                                <th key={h} style={{ padding: '10px 14px', textAlign: h === t('performance.cohortMonth') ? 'left' : 'center', color: 'var(--text-3)', fontWeight: 700 }}>{h}</th>
-                            ))}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {COHORT_DATA.map(c => (
-                            <tr key={c.month} style={{ borderBottom: '1px solid var(--border)' }}>
-                                <td style={{ padding: '10px 14px', fontWeight: 700 }}>{c.month}</td>
-                                <td style={{ padding: '10px 14px', textAlign: 'center' }}>{c.newUsers.toLocaleString()}</td>
-                                <td style={{ padding: '10px 14px', textAlign: 'center' }}>
-                                    <span style={{ color: '#22c55e', fontWeight: 700 }}>{fmtPct(c.retained30, c.newUsers)}</span>
-                                </td>
-                                <td style={{ padding: '10px 14px', textAlign: 'center' }}>
-                                    <span style={{ color: '#4f8ef7', fontWeight: 700 }}>{fmtPct(c.retained60, c.newUsers)}</span>
-                                </td>
-                                <td style={{ padding: '10px 14px', textAlign: 'center' }}>
-                                    <span style={{ color: '#f59e0b', fontWeight: 700 }}>{fmtPct(c.retained90, c.newUsers)}</span>
-                                </td>
-                                <td style={{ padding: '10px 14px', textAlign: 'center', fontWeight: 700, color: '#a855f7' }}>
-                                    {view === 'retention' ? fmtPct(c.retained90, c.newUsers) : fmtKRW(c.revenue)}
-                                </td>
+                                    <th key={h} style={{ padding: '10px 14px', textAlign: h === t('performance.cohortMonth') ? 'left' : 'center', color: 'var(--text-3)', fontWeight: 700 }}>{h}</th>
+                                ))}
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
+                        </thead>
+                        <tbody>
+                            {COHORT_DATA.map(c => (
+                                <tr key={c.month} style={{ borderBottom: '1px solid var(--border)' }}>
+                                    <td style={{ padding: '10px 14px', fontWeight: 700 }}>{c.month}</td>
+                                    <td style={{ padding: '10px 14px', textAlign: 'center' }}>{c.newUsers.toLocaleString()}</td>
+                                    <td style={{ padding: '10px 14px', textAlign: 'center' }}>
+                                        <span style={{ color: '#22c55e', fontWeight: 700 }}>{fmtPct(c.retained30, c.newUsers)}</span>
+                                    </td>
+                                    <td style={{ padding: '10px 14px', textAlign: 'center' }}>
+                                        <span style={{ color: '#4f8ef7', fontWeight: 700 }}>{fmtPct(c.retained60, c.newUsers)}</span>
+                                    </td>
+                                    <td style={{ padding: '10px 14px', textAlign: 'center' }}>
+                                        <span style={{ color: '#f59e0b', fontWeight: 700 }}>{fmtPct(c.retained90, c.newUsers)}</span>
+                                    </td>
+                                    <td style={{ padding: '10px 14px', textAlign: 'center', fontWeight: 700, color: '#a855f7' }}>
+                                        {view === 'retention' ? fmtPct(c.retained90, c.newUsers) : fmtKRW(c.revenue)}
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
             </>}
         </div>
     );
@@ -1040,7 +1044,7 @@ export default function PerformanceHub() {
     useEffect(() => {
         pollingRef.current = setInterval(() => {
             setSyncTick(prev => prev + 1);
-            try { bcRef.current?.postMessage({ type: 'PERF_UPDATE', ts: Date.now() }); } catch (_) {}
+            try { bcRef.current?.postMessage({ type: 'PERF_UPDATE', ts: Date.now() }); } catch (_) { }
         }, 30000);
         return () => clearInterval(pollingRef.current);
     }, []);
@@ -1061,20 +1065,20 @@ export default function PerformanceHub() {
                     timestamp: new Date().toISOString(),
                     read: false,
                 });
-            } catch (_) {}
+            } catch (_) { }
             return '';
         }
         return value;
     }, [addAlert]);
 
     const TABS = [
-        { id: "performance",  label: t('performance.tabPerformance'), desc: t('performance.descPerformance') },
-        { id: "settlement",   label: t('performance.tabSettlement'), desc: t('performance.descSettlement') },
-        { id: "creator",      label: t('performance.tabCreator'), desc: t('performance.descCreator') },
-        { id: "sku_profit",   label: t('performance.tabSkuProfit'), desc: t('performance.descSkuProfit') },
-        { id: "cohort",       label: t('performance.tabCohort'), desc: t('performance.descCohort') },
-        { id: "esg",          label: t('performance.tabEsg'), desc: t('performance.descEsg') },
-        { id: "guide",        label: t('performance.tabGuide'), desc: t('performance.descGuide') },
+        { id: "performance", label: t('performance.tabPerformance'), desc: t('performance.descPerformance') },
+        { id: "settlement", label: t('performance.tabSettlement'), desc: t('performance.descSettlement') },
+        { id: "creator", label: t('performance.tabCreator'), desc: t('performance.descCreator') },
+        { id: "sku_profit", label: t('performance.tabSkuProfit'), desc: t('performance.descSkuProfit') },
+        { id: "cohort", label: t('performance.tabCohort'), desc: t('performance.descCohort') },
+        { id: "esg", label: t('performance.tabEsg'), desc: t('performance.descEsg') },
+        { id: "guide", label: t('performance.tabGuide'), desc: t('performance.descGuide') },
     ];
 
     return (
@@ -1107,7 +1111,8 @@ export default function PerformanceHub() {
                             padding: '4px 10px', borderRadius: 6, fontSize: 10, fontWeight: 600,
                             background: threats.length > 0 ? 'rgba(239,68,68,0.08)' : 'rgba(34,197,94,0.08)',
                             border: `1px solid ${threats.length > 0 ? 'rgba(239,68,68,0.2)' : 'rgba(34,197,94,0.15)'}`,
-                            color: threats.length > 0 ? '#ef4444' : '#22c55e' }}>
+                            color: threats.length > 0 ? '#ef4444' : '#22c55e'
+                        }}>
                             {threats.length > 0 ? '🔴' : '🟢'} {threats.length > 0 ? `${threats.length} ${t('performance.threatsDetected')}` : t('performance.securityNormal')}
                         </div>
                         {/* Enterprise Badges */}
@@ -1133,7 +1138,8 @@ export default function PerformanceHub() {
                                 padding: "14px 10px", border: "none", cursor: "pointer", textAlign: "left",
                                 background: tab === tb.id ? "rgba(168,85,247,0.1)" : "transparent",
                                 borderBottom: `2px solid ${tab === tb.id ? "#a855f7" : "transparent"}`,
-                                transition: "all 200ms" }}>
+                                transition: "all 200ms"
+                            }}>
                                 <div style={{ fontSize: 13, fontWeight: 800, color: tab === tb.id ? "var(--text-1)" : "var(--text-2)" }}>{tb.label}</div>
                                 <div style={{ fontSize: 9, color: "var(--text-3)", marginTop: 2 }}>{tb.desc}</div>
                             </button>
@@ -1146,12 +1152,12 @@ export default function PerformanceHub() {
             <div style={{ flex: 1, overflowY: "auto", overflowX: "hidden", padding: "16px", paddingBottom: "80px" }}>
                 <div className="card card-glass fade-up">
                     {tab === "performance" && <PerformanceTab />}
-                    {tab === "settlement"  && <SettlementTab />}
-                    {tab === "creator"     && <CreatorTab />}
-                    {tab === "sku_profit"  && <SKUProfitTab />}
-                    {tab === "cohort"      && <CohortTab />}
-                    {tab === "esg"         && <ESGTab />}
-                    {tab === "guide"       && <PerfGuideTab />}
+                    {tab === "settlement" && <SettlementTab />}
+                    {tab === "creator" && <CreatorTab />}
+                    {tab === "sku_profit" && <SKUProfitTab />}
+                    {tab === "cohort" && <CohortTab />}
+                    {tab === "esg" && <ESGTab />}
+                    {tab === "guide" && <PerfGuideTab />}
                 </div>
             </div>
 
