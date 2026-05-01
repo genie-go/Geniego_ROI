@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useI18n } from '../i18n';
 import { useCurrency } from '../contexts/CurrencyContext.jsx';
 import { useGlobalData } from '../context/GlobalDataContext.jsx';
+import PerformanceProfiler from '../components/PerformanceProfiler.jsx';
 
 // ══════════════════════════════════════════════════════════════════════
 //  📈 RollupDashboard — Enterprise i18n (15 Languages) + Zero Mock Data
@@ -1012,6 +1013,26 @@ export default function RollupDashboard() {
 
   const isRTL = useMemo(() => lang === 'ar', [lang]);
 
+  return (
+    <PerformanceProfiler id="RollupDashboard">
+      <DashboardContent
+        txt={txt}
+        fc={fc}
+        isRTL={isRTL}
+        TAB_COLORS={TAB_COLORS}
+        TABS={TABS}
+        tab={tab}
+        setTab={setTab}
+        period={period}
+        setPeriod={setPeriod}
+        n={n}
+        setN={setN}
+      />
+    </PerformanceProfiler>
+  );
+}
+
+function DashboardContent({ txt, fc, isRTL, TAB_COLORS, TABS, tab, setTab, period, setPeriod, n, setN }) {
   // ── Scroll isolation: Dashboard manages its own vertical scroll ──
   // The parent in App.jsx has overflowY:'auto'. We must suppress it so
   // that our internal scroll container (the content div below sub-tabs) is

@@ -5,10 +5,11 @@ import App from "./App.jsx";
 import { I18nProvider } from "./i18n/index.js";
 import { ThemeProvider } from "./theme/ThemeContext.jsx";
 import { NotificationProvider } from "./context/NotificationContext.jsx";
+import { initWebVitals } from "./utils/webVitals.js";
 import "./styles.css";
 
 import ko from './i18n/locales/ko.js';
-const t = (k) => k.split('.').reduce((o,i)=>o?.[i], ko) || k;
+const t = (k) => k.split('.').reduce((o, i) => o?.[i], ko) || k;
 window.t = t;
 
 /* ═══════════════════════════════════════════════════════════
@@ -84,6 +85,11 @@ window.addEventListener('error', (e) => {
 window.addEventListener('unhandledrejection', (e) => {
   console.error('[UnhandledPromiseRejection]', e.reason);
 });
+
+/* Web Vitals 성능 모니터링 초기화 */
+if (typeof window !== 'undefined') {
+  initWebVitals();
+}
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
