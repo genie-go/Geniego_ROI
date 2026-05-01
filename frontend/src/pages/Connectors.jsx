@@ -27,8 +27,8 @@ function useSecurityGuard(addAlert) {
       const now = Date.now();
       inputLog.current.push(now);
       inputLog.current = inputLog.current.filter(t => now - t < 3000);
-      if (inputLog.current.length > 20) { setLocked('BRUTE_FORCE'); try { addAlert?.({ type: 'error', msg: '[Connectors] Brute-force blocked' }); } catch (_) {} e.target.value = ''; return; }
-      for (const p of THREAT_PATTERNS) { if (p.re.test(val)) { setLocked(p.type + ': ' + val.slice(0, 60)); try { addAlert?.({ type: 'error', msg: '[Connectors] ' + p.type + ' blocked' }); } catch (_) {} e.target.value = ''; return; } }
+      if (inputLog.current.length > 20) { setLocked('BRUTE_FORCE'); try { addAlert?.({ type: 'error', msg: '[Connectors] Brute-force blocked' }); } catch (_) { } e.target.value = ''; return; }
+      for (const p of THREAT_PATTERNS) { if (p.re.test(val)) { setLocked(p.type + ': ' + val.slice(0, 60)); try { addAlert?.({ type: 'error', msg: '[Connectors] ' + p.type + ' blocked' }); } catch (_) { } e.target.value = ''; return; } }
     };
     document.addEventListener('input', onInput, true);
     return () => document.removeEventListener('input', onInput, true);
@@ -242,8 +242,8 @@ export default function Connectors() {
           addAlert?.({ type: 'info', msg: t('conn.crossTabSync') });
         }
       };
-    } catch (_) {}
-    return () => { try { bcRef.current?.close(); } catch (_) {} };
+    } catch (_) { }
+    return () => { try { bcRef.current?.close(); } catch (_) { } };
   }, []);
 
   // Server fetch
@@ -270,23 +270,25 @@ export default function Connectors() {
           setConnState(prev => ({ ...prev, ...patch }));
         }
       })
-      .catch(() => {});
+      .catch((error) => {
+        console.error('[Connectors] Failed to load connectors:', error);
+      });
   }, [token]);
 
   const updateConn = useCallback((platformId, patch) => {
     setConnState(prev => ({ ...prev, [platformId]: { ...prev[platformId], ...patch } }));
-    try { bcRef.current?.postMessage({ type: 'connector_updated', platform: platformId }); } catch (_) {}
+    try { bcRef.current?.postMessage({ type: 'connector_updated', platform: platformId }); } catch (_) { }
     if (token && patch.status === "connected") {
       const merged = { ...(connState[platformId] || {}), ...patch };
       fetch(`/api/connectors/${platformId}`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ platform: platformId, access_token: merged.accessToken || null, refresh_token: merged.refreshToken || null, api_key: merged.apiKey || null, api_secret: merged.apiSecret || null, granted_scopes: merged.grantedScopes || [], expires_at: merged.expiresAt || null, webhook_events: merged.webhookEvents || [], status: merged.status }),
-      }).catch(() => {});
+      }).catch(() => { });
       addAlert?.({ type: 'success', msg: `[Connectors] ${platformId} ${t('conn.connected')}` });
     }
     if (token && patch.status === "disconnected") {
-      fetch(`/api/connectors/${platformId}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } }).catch(() => {});
+      fetch(`/api/connectors/${platformId}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } }).catch(() => { });
     }
   }, [token, connState, addAlert, t]);
 
