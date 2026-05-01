@@ -634,12 +634,13 @@ function EmptyState({ txt }) {
 function SummaryTab({ period, n, txt, fc }) {
   const [data, setData] = useState(null);
   useEffect(() => { API(`/api/v423/rollup/summary?period=${period}&n=${n}`).then(setData).catch(() => { }); }, [period, n]);
-  if (!data) return <div style={{ color: '#64748b', padding: 32 }}>{txt('loading')}</div>;
 
-  const kpi = data.kpi ?? {};
-  const byPlatform = data.by_platform ?? {};
-  const maxRev = Math.max(...Object.values(byPlatform), 1);
-  const hasData = kpi.total_revenue > 0 || Object.keys(byPlatform).length > 0;
+  const kpi = useMemo(() => data?.kpi ?? {}, [data]);
+  const byPlatform = useMemo(() => data?.by_platform ?? {}, [data]);
+  const maxRev = useMemo(() => Math.max(...Object.values(byPlatform), 1), [byPlatform]);
+  const hasData = useMemo(() => kpi.total_revenue > 0 || Object.keys(byPlatform).length > 0, [kpi, byPlatform]);
+
+  if (!data) return <div style={{ color: '#64748b', padding: 32 }}>{txt('loading')}</div>;
   if (!hasData) return <EmptyState txt={txt} />;
 
   return (
@@ -706,9 +707,11 @@ function SkuTab({ period, n, txt, fc }) {
   useEffect(() => {
     API(`/api/v423/rollup/sku?period=${period}&n=${n}`).then(d => { setData(d); if (d.rows?.[0]) setSelected(d.rows[0].sku_id); }).catch(() => { });
   }, [period, n]);
+
+  const selRow = useMemo(() => data?.rows?.find(r => r.sku_id === selected), [data, selected]);
+
   if (!data) return <div style={{ color: '#64748b', padding: 32 }}>{txt('loading')}</div>;
   if (!data.rows?.length) return <EmptyState txt={txt} />;
-  const selRow = data.rows?.find(r => r.sku_id === selected);
   return (
     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
       <div style={{ ...S.card, overflowX: "auto" }}>
@@ -762,9 +765,11 @@ function CampaignTab({ period, n, txt, fc }) {
   useEffect(() => {
     API(`/api/v423/rollup/campaign?period=${period}&n=${n}`).then(d => { setData(d); if (d.rows?.[0]) setSelected(d.rows[0].campaign_id); }).catch(() => { });
   }, [period, n]);
+
+  const selRow = useMemo(() => data?.rows?.find(r => r.campaign_id === selected), [data, selected]);
+
   if (!data) return <div style={{ color: '#64748b', padding: 32 }}>{txt('loading')}</div>;
   if (!data.rows?.length) return <EmptyState txt={txt} />;
-  const selRow = data.rows?.find(r => r.campaign_id === selected);
   return (
     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
       <div style={{ ...S.card, overflowX: "auto" }}>
