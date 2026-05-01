@@ -15,16 +15,16 @@ import { useNavigate } from 'react-router-dom';
 
 /* ── Enterprise Demo Isolation Guard ─────────────────────── */
 const _isDemo = (() => {
-  if (typeof window === 'undefined') return false;
-  const h = window.location.hostname;
-  return h === 'demo.genie-go.com' || h === 'demo.geniego.com' || h.startsWith('demo');
+    if (typeof window === 'undefined') return false;
+    const h = window.location.hostname;
+    return h === 'demo.genie-go.com' || h === 'demo.geniego.com' || h.startsWith('demo');
 })();
 
 /* ── Enterprise Dynamic Locale Map ────────────────────── */
 const LANG_LOCALE_MAP = {
-  ko:'ko-KR', en:'en-US', ja:'ja-JP', zh:'zh-CN', 'zh-TW':'zh-TW',
-  de:'de-DE', es:'es-ES', fr:'fr-FR', pt:'pt-BR', ru:'ru-RU',
-  ar:'ar-SA', hi:'hi-IN', th:'th-TH', vi:'vi-VN', id:'id-ID'
+    ko: 'ko-KR', en: 'en-US', ja: 'ja-JP', zh: 'zh-CN', 'zh-TW': 'zh-TW',
+    de: 'de-DE', es: 'es-ES', fr: 'fr-FR', pt: 'pt-BR', ru: 'ru-RU',
+    ar: 'ar-SA', hi: 'hi-IN', th: 'th-TH', vi: 'vi-VN', id: 'id-ID'
 };
 
 /* ── i18n key registry + fallback ─────────────────────── */
@@ -160,18 +160,18 @@ const FB = {
 
 /* ── Status Config ───────────────────────────────────── */
 const STS = {
-    draft:     { color: '#64748b', bg: 'rgba(100,116,139,0.10)', border: 'rgba(100,116,139,0.25)', icon: '📝' },
-    active:    { color: '#22c55e', bg: 'rgba(34,197,94,0.10)',   border: 'rgba(34,197,94,0.25)',   icon: '🟢' },
-    paused:    { color: '#f59e0b', bg: 'rgba(245,158,11,0.10)',  border: 'rgba(245,158,11,0.25)',  icon: '⏸' },
-    completed: { color: '#06b6d4', bg: 'rgba(6,182,212,0.10)',   border: 'rgba(6,182,212,0.25)',   icon: '✅' },
+    draft: { color: '#64748b', bg: 'rgba(100,116,139,0.10)', border: 'rgba(100,116,139,0.25)', icon: '📝' },
+    active: { color: '#22c55e', bg: 'rgba(34,197,94,0.10)', border: 'rgba(34,197,94,0.25)', icon: '🟢' },
+    paused: { color: '#f59e0b', bg: 'rgba(245,158,11,0.10)', border: 'rgba(245,158,11,0.25)', icon: '⏸' },
+    completed: { color: '#06b6d4', bg: 'rgba(6,182,212,0.10)', border: 'rgba(6,182,212,0.25)', icon: '✅' },
 };
 const TRIGGER_CFG = {
-    signup:   { icon: '👤', color: '#4f8ef7' },
+    signup: { icon: '👤', color: '#4f8ef7' },
     purchase: { icon: '🛍️', color: '#22c55e' },
-    abandon:  { icon: '🛒', color: '#f59e0b' },
-    churn:    { icon: '⚠️', color: '#ef4444' },
-    segment:  { icon: '👥', color: '#a855f7' },
-    manual:   { icon: '✋', color: '#64748b' },
+    abandon: { icon: '🛒', color: '#f59e0b' },
+    churn: { icon: '⚠️', color: '#ef4444' },
+    segment: { icon: '👥', color: '#a855f7' },
+    manual: { icon: '✋', color: '#64748b' },
 };
 const CH_COLORS = { email: '#4f8ef7', kakao: '#fbbf24', sms: '#22c55e', push: '#f97316', line: '#06d6a0' };
 const fmt = v => { if (v >= 1e8) return (v / 1e8).toFixed(1) + '억'; if (v >= 1e4) return (v / 1e4).toFixed(0) + '만'; return v?.toLocaleString?.() || '0'; };
@@ -205,17 +205,17 @@ function DonutChart({ data, size = 150, thickness = 22, centerLabel, centerValue
 function HBarChart({ items, maxValue }) {
     const mv = maxValue || Math.max(...items.map(i => i.value), 1);
     return (
-        <div style={{ display:'grid', gap:10 }}>
+        <div style={{ display: 'grid', gap: 10 }}>
             {items.map((item, i) => {
                 const pct = Math.min(Math.round((item.value / mv) * 100), 100);
                 return (
                     <div key={i}>
-                        <div style={{ display:'flex', justifyContent:'space-between', marginBottom:3, fontSize:12, fontWeight:700, color:'#334155' }}>
-                            <span style={{ maxWidth:'60%', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{item.label}</span>
-                            <span style={{ fontWeight:800, color: item.color || '#4f8ef7' }}>{item.displayValue || item.value}</span>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3, fontSize: 12, fontWeight: 700, color: '#334155' }}>
+                            <span style={{ maxWidth: '60%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.label}</span>
+                            <span style={{ fontWeight: 800, color: item.color || '#4f8ef7' }}>{item.displayValue || item.value}</span>
                         </div>
-                        <div style={{ height:8, borderRadius:6, background:'#f1f5f9', overflow:'hidden' }}>
-                            <div style={{ width: pct + '%', height:'100%', borderRadius:6, background:`linear-gradient(90deg,${item.color||'#4f8ef7'},${item.colorEnd||item.color||'#6366f1'})`, transition:'width 0.8s' }} />
+                        <div style={{ height: 8, borderRadius: 6, background: '#f1f5f9', overflow: 'hidden' }}>
+                            <div style={{ width: pct + '%', height: '100%', borderRadius: 6, background: `linear-gradient(90deg,${item.color || '#4f8ef7'},${item.colorEnd || item.color || '#6366f1'})`, transition: 'width 0.8s' }} />
                         </div>
                     </div>
                 );
@@ -289,7 +289,7 @@ export default function JourneyBuilder() {
     const trigLabel = s => ({ signup: tr(K.triggerSignup), purchase: tr(K.triggerPurchase), abandon: tr(K.triggerAbandon), churn: tr(K.triggerChurn), segment: tr(K.triggerSegment), manual: tr(K.triggerManual) }[s] || s);
     const delayLabel = s => ({ none: tr(K.delayNone), '1h': tr(K.delay1h), '1d': tr(K.delay1d), '3d': tr(K.delay3d), '7d': tr(K.delay7d) }[s] || s);
 
-    const persist = useCallback(list => { try { localStorage.setItem('jb_journeys', JSON.stringify(list)); } catch {} }, []);
+    const persist = useCallback(list => { try { localStorage.setItem('jb_journeys', JSON.stringify(list)); } catch { } }, []);
 
     const TRIGGERS = [{ id: 'signup', label: tr(K.triggerSignup) }, { id: 'purchase', label: tr(K.triggerPurchase) }, { id: 'abandon', label: tr(K.triggerAbandon) }, { id: 'churn', label: tr(K.triggerChurn) }, { id: 'segment', label: tr(K.triggerSegment) }, { id: 'manual', label: tr(K.triggerManual) }];
     const CHANNELS = [{ id: 'email', label: tr(K.email), icon: '📧' }, { id: 'kakao', label: tr(K.kakao), icon: '💬' }, { id: 'sms', label: tr(K.sms), icon: '📱' }, { id: 'push', label: tr(K.push), icon: '🔔' }, { id: 'line', label: tr(K.line), icon: '💚' }];
@@ -436,238 +436,238 @@ export default function JourneyBuilder() {
             {/* ══════ SCROLLABLE CONTENT AREA ══════ */}
             <div className="fade-up" style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '16px 8px 28px' }}>
 
-            {/* ══════ BUILDER ═══════════════════════════════ */}
-            {tab === 'builder' && (
-                <div style={{ display: 'grid', gap: 14, minHeight: CONTENT_MIN, alignContent: 'start' }}>
-                    {/* KPI Row */}
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
-                        {[{ label: tr(K.totalJourneys), value: stats.total, icon: '🗺️', color: '#4f8ef7' }, { label: tr(K.activeJourneys), value: stats.active, icon: '🟢', color: '#22c55e' }, { label: tr(K.totalExecutions), value: stats.totalExec, icon: '🚀', color: '#a855f7' }, { label: tr(K.avgCompletion), value: stats.avgRate + '%', icon: '📈', color: '#f97316' }].map(({ label, value, icon, color }) => (
-                            <div key={label} style={{ ...CARD, display: 'flex', alignItems: 'center', gap: 14 }}>
-                                <div style={{ width: 40, height: 40, borderRadius: 12, background: `${color}12`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>{icon}</div>
-                                <div><div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', letterSpacing: '0.03em' }}>{label}</div><div style={{ fontSize: 26, fontWeight: 900, color, marginTop: 2 }}>{value}</div></div>
-                            </div>
-                        ))}
-                    </div>
-
-                    {/* Create Button */}
-                    <div style={CARD}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <div><div style={{ fontWeight: 800, fontSize: 15, color: '#334155' }}>🗺️ {tr(K.tabBuilder)}</div><div style={{ fontSize: 12, color: '#94a3b8', marginTop: 2 }}>{tr(K.sub)}</div></div>
-                            <button onClick={() => { setEditId(null); setForm({ name: '', trigger_type: 'signup', segment: '', channels: ['email'], delay: 'none' }); setShowCreate(true); }} style={{ padding: '10px 22px', borderRadius: 12, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#4f8ef7,#06b6d4)', color: '#fff', fontWeight: 800, fontSize: 13, boxShadow: '0 4px 16px rgba(79,142,247,0.3)' }}>+ {tr(K.createJourney)}</button>
-                        </div>
-                    </div>
-
-                    {/* Recent Journeys Preview */}
-                    {journeys.slice(0, 3).map(j => {
-                        const cfg = STS[j.status] || STS.draft;
-                        return (
-                            <div key={j.id} style={{ ...CARD, cursor: 'pointer' }} onClick={() => setDetailId(j.id)}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                                        <div style={{ fontSize: 20 }}>{TRIGGER_CFG[j.trigger_type]?.icon || '⚡'}</div>
-                                        <div><div style={{ fontWeight: 800, fontSize: 14, color: '#1e293b' }}>{j.name}</div><div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2 }}>{trigLabel(j.trigger_type)} → {(j.channels || []).map(c => c.toUpperCase()).join(', ')}</div></div>
-                                    </div>
-                                    <span style={{ padding: '3px 10px', borderRadius: 6, fontSize: 10, fontWeight: 700, background: cfg.bg, border: `1px solid ${cfg.border}`, color: cfg.color }}>{cfg.icon} {stsLabel(j.status)}</span>
+                {/* ══════ BUILDER ═══════════════════════════════ */}
+                {tab === 'builder' && (
+                    <div style={{ display: 'grid', gap: 14, minHeight: CONTENT_MIN, alignContent: 'start' }}>
+                        {/* KPI Row */}
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
+                            {[{ label: tr(K.totalJourneys), value: stats.total, icon: '🗺️', color: '#4f8ef7' }, { label: tr(K.activeJourneys), value: stats.active, icon: '🟢', color: '#22c55e' }, { label: tr(K.totalExecutions), value: stats.totalExec, icon: '🚀', color: '#a855f7' }, { label: tr(K.avgCompletion), value: stats.avgRate + '%', icon: '📈', color: '#f97316' }].map(({ label, value, icon, color }) => (
+                                <div key={label} style={{ ...CARD, display: 'flex', alignItems: 'center', gap: 14 }}>
+                                    <div style={{ width: 40, height: 40, borderRadius: 12, background: `${color}12`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>{icon}</div>
+                                    <div><div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', letterSpacing: '0.03em' }}>{value}</div><div style={{ fontSize: 26, fontWeight: 900, color, marginTop: 2 }}>{label}</div></div>
                                 </div>
-                                <FlowPreview journey={j} tr={tr} />
-                            </div>
-                        );
-                    })}
-                    {journeys.length === 0 && (
-                        <div style={{ ...CARD, textAlign: 'center', padding: '60px 20px' }}>
-                            <div style={{ fontSize: 48, marginBottom: 12 }}>🗺️</div>
-                            <div style={{ fontSize: 14, color: '#94a3b8', marginBottom: 16 }}>{tr(K.noData)}</div>
-                            <button onClick={() => setShowCreate(true)} style={{ padding: '10px 24px', borderRadius: 10, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#4f8ef7,#06b6d4)', color: '#fff', fontWeight: 700, fontSize: 13 }}>+ {tr(K.createJourney)}</button>
+                            ))}
                         </div>
-                    )}
-                </div>
-            )}
 
-            {/* ══════ LIST ══════════════════════════════════ */}
-            {tab === 'list' && (
-                <div style={{ display: 'grid', gap: 14, minHeight: CONTENT_MIN, alignContent: 'start' }}>
-                    <div style={{ ...CARD, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div style={{ fontWeight: 800, fontSize: 15, color: '#334155' }}>📋 {tr(K.tabList)} ({journeys.length})</div>
-                        <button onClick={() => { setEditId(null); setForm({ name: '', trigger_type: 'signup', segment: '', channels: ['email'], delay: 'none' }); setShowCreate(true); }} style={{ padding: '8px 16px', borderRadius: 10, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#4f8ef7,#06b6d4)', color: '#fff', fontWeight: 700, fontSize: 12 }}>+ {tr(K.createJourney)}</button>
-                    </div>
-                    {journeys.length === 0 ? (
-                        <div style={{ ...CARD, textAlign: 'center', padding: '60px 20px', fontSize: 14, marginBottom: 12, color: '#94a3b8' }} ><div>📭</div><div>{tr(K.noData)}</div></div>
-                    ) : (
-                        <div style={{ ...CARD, padding: 0, overflow: 'hidden' }}>
-                            <div style={{ display: 'grid', gridTemplateColumns: '2fr 90px 100px 80px 80px 80px 140px', gap: 6, padding: '14px 20px', background: 'rgba(0,0,0,0.02)', borderBottom: '1px solid rgba(0,0,0,0.06)', fontSize: 12, fontWeight: 700, color: '#64748b' }}>
-                                <span>{tr(K.journeyName)}</span><span>{tr(K.colStatus) || '상태'}</span><span>{tr(K.triggerType)}</span><span style={{ textAlign: 'center' }} >{tr(K.totalExecutions)}</span><span>{tr(K.totalEntered)}</span><span>{tr(K.totalCompleted)}</span><span>{tr(K.edit)}</span>
+                        {/* Create Button */}
+                        <div style={CARD}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <div><div style={{ fontWeight: 800, fontSize: 15, color: '#334155' }}>🗺️ {tr(K.tabBuilder)}</div><div style={{ fontSize: 12, color: '#94a3b8', marginTop: 2 }}>{tr(K.sub)}</div></div>
+                                <button onClick={() => { setEditId(null); setForm({ name: '', trigger_type: 'signup', segment: '', channels: ['email'], delay: 'none' }); setShowCreate(true); }} style={{ padding: '10px 22px', borderRadius: 12, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#4f8ef7,#06b6d4)', color: '#fff', fontWeight: 800, fontSize: 13, boxShadow: '0 4px 16px rgba(79,142,247,0.3)' }}>+ {tr(K.createJourney)}</button>
                             </div>
-                            {journeys.map(j => {
-                                const cfg = STS[j.status] || STS.draft;
-                                const tCfg = TRIGGER_CFG[j.trigger_type] || TRIGGER_CFG.manual;
-                                return (
-                                    <div key={j.id} style={{ display: 'grid', gridTemplateColumns: '2fr 90px 100px 80px 80px 80px 140px', gap: 6, padding: '12px 20px', borderBottom: '1px solid rgba(0,0,0,0.03)', alignItems: 'center', transition: 'background 0.15s' }} onMouseEnter={e => e.currentTarget.style.background = 'rgba(79,142,247,0.04)'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                                        <div onClick={() => setDetailId(j.id)} style={{ cursor: 'pointer' }}><div style={{ fontSize: 13, fontWeight: 700, color: '#1e293b' }}>{j.name}</div><div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2 }}>{j.createdAt}</div></div>
-                                        <div><span style={{ padding: '3px 8px', borderRadius: 6, fontSize: 10, fontWeight: 700, background: cfg.bg, border: `1px solid ${cfg.border}`, color: cfg.color }}>{cfg.icon} {stsLabel(j.status)}</span></div>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#334155', fontWeight: 600 }} ><span>{tCfg.icon}</span><span>{trigLabel(j.trigger_type)}</span></div>
-                                        <div style={{ textAlign: 'right', fontWeight: 700, fontSize: 13, color: '#4f8ef7' }}>{j.executions || 0}</div>
-                                        <div style={{ textAlign: 'right', fontWeight: 700, fontSize: 13, color: '#a855f7' }}>{(j.entered || 0).toLocaleString()}</div>
-                                        <div style={{ textAlign: 'right', fontWeight: 700, fontSize: 13, color: '#22c55e' }}>{(j.completed || 0).toLocaleString()}</div>
-                                        <div style={{ display: 'flex', gap: 3, justifyContent: 'center', flexWrap: 'wrap' }}>
-                                            <ActBtn icon="▶" label={tr(K.run)} color="#22c55e" onClick={() => handleRun(j)} small />
-                                            <ActBtn icon="✏️" label={tr(K.edit)} color="#4f8ef7" onClick={() => openEdit(j)} small />
-                                            <ActBtn icon="🗑️" label={tr(K.delete)} color="#ef4444" onClick={() => setDeleteId(j.id)} small />
+                        </div>
+
+                        {/* Recent Journeys Preview */}
+                        {journeys.slice(0, 3).map(j => {
+                            const cfg = STS[j.status] || STS.draft;
+                            return (
+                                <div key={j.id} style={{ ...CARD, cursor: 'pointer' }} onClick={() => setDetailId(j.id)}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                            <div style={{ fontSize: 20 }}>{TRIGGER_CFG[j.trigger_type]?.icon || '⚡'}</div>
+                                            <div><div style={{ fontWeight: 800, fontSize: 14, color: '#1e293b' }}>{j.name}</div><div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2 }}>{trigLabel(j.trigger_type)} → {(j.channels || []).map(c => c.toUpperCase()).join(', ')}</div></div>
+                                        </div>
+                                        <span style={{ padding: '3px 10px', borderRadius: 6, fontSize: 10, fontWeight: 700, background: cfg.bg, border: `1px solid ${cfg.border}`, color: cfg.color }}>{cfg.icon} {stsLabel(j.status)}</span>
+                                    </div>
+                                    <FlowPreview journey={j} tr={tr} />
+                                </div>
+                            );
+                        })}
+                        {journeys.length === 0 && (
+                            <div style={{ ...CARD, textAlign: 'center', padding: '60px 20px' }}>
+                                <div style={{ fontSize: 48, marginBottom: 12 }}>🗺️</div>
+                                <div style={{ fontSize: 14, color: '#94a3b8', marginBottom: 16 }}>{tr(K.noData)}</div>
+                                <button onClick={() => setShowCreate(true)} style={{ padding: '10px 24px', borderRadius: 10, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#4f8ef7,#06b6d4)', color: '#fff', fontWeight: 700, fontSize: 13 }}>+ {tr(K.createJourney)}</button>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {/* ══════ LIST ══════════════════════════════════ */}
+                {tab === 'list' && (
+                    <div style={{ display: 'grid', gap: 14, minHeight: CONTENT_MIN, alignContent: 'start' }}>
+                        <div style={{ ...CARD, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div style={{ fontWeight: 800, fontSize: 15, color: '#334155' }}>📋 {tr(K.tabList)} ({journeys.length})</div>
+                            <button onClick={() => { setEditId(null); setForm({ name: '', trigger_type: 'signup', segment: '', channels: ['email'], delay: 'none' }); setShowCreate(true); }} style={{ padding: '8px 16px', borderRadius: 10, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#4f8ef7,#06b6d4)', color: '#fff', fontWeight: 700, fontSize: 12 }}>+ {tr(K.createJourney)}</button>
+                        </div>
+                        {journeys.length === 0 ? (
+                            <div style={{ ...CARD, textAlign: 'center', padding: '60px 20px', fontSize: 14, marginBottom: 12, color: '#94a3b8' }} ><div>📭</div><div>{tr(K.noData)}</div></div>
+                        ) : (
+                            <div style={{ ...CARD, padding: 0, overflow: 'hidden' }}>
+                                <div style={{ display: 'grid', gridTemplateColumns: '2fr 90px 100px 80px 80px 80px 140px', gap: 6, padding: '14px 20px', background: 'rgba(0,0,0,0.02)', borderBottom: '1px solid rgba(0,0,0,0.06)', fontSize: 12, fontWeight: 700, color: '#64748b' }}>
+                                    <span>{tr(K.journeyName)}</span><span>{tr(K.colStatus) || '상태'}</span><span>{tr(K.triggerType)}</span><span style={{ textAlign: 'right' }} >{tr(K.totalExecutions)}</span><span style={{ textAlign: 'right' }}>{tr(K.totalEntered)}</span><span style={{ textAlign: 'right' }}>{tr(K.totalCompleted)}</span><span style={{ textAlign: 'center' }}>{tr(K.edit)}</span>
+                                </div>
+                                {journeys.map(j => {
+                                    const cfg = STS[j.status] || STS.draft;
+                                    const tCfg = TRIGGER_CFG[j.trigger_type] || TRIGGER_CFG.manual;
+                                    return (
+                                        <div key={j.id} style={{ display: 'grid', gridTemplateColumns: '2fr 90px 100px 80px 80px 80px 140px', gap: 6, padding: '12px 20px', borderBottom: '1px solid rgba(0,0,0,0.03)', alignItems: 'center', transition: 'background 0.15s' }} onMouseEnter={e => e.currentTarget.style.background = 'rgba(79,142,247,0.04)'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                                            <div onClick={() => setDetailId(j.id)} style={{ cursor: 'pointer' }}><div style={{ fontSize: 13, fontWeight: 700, color: '#1e293b' }}>{j.name}</div><div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2 }}>{j.createdAt}</div></div>
+                                            <div><span style={{ padding: '3px 8px', borderRadius: 6, fontSize: 10, fontWeight: 700, background: cfg.bg, border: `1px solid ${cfg.border}`, color: cfg.color }}>{cfg.icon} {stsLabel(j.status)}</span></div>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#334155', fontWeight: 600 }} ><span>{tCfg.icon}</span><span>{trigLabel(j.trigger_type)}</span></div>
+                                            <div style={{ textAlign: 'right', fontWeight: 700, fontSize: 13, color: '#4f8ef7' }}>{j.executions || 0}</div>
+                                            <div style={{ textAlign: 'right', fontWeight: 700, fontSize: 13, color: '#a855f7' }}>{(j.entered || 0).toLocaleString()}</div>
+                                            <div style={{ textAlign: 'right', fontWeight: 700, fontSize: 13, color: '#22c55e' }}>{(j.completed || 0).toLocaleString()}</div>
+                                            <div style={{ display: 'flex', gap: 3, justifyContent: 'center', flexWrap: 'wrap' }}>
+                                                <ActBtn icon="▶" label={tr(K.run)} color="#22c55e" onClick={() => handleRun(j)} small />
+                                                <ActBtn icon="✏️" label={tr(K.edit)} color="#4f8ef7" onClick={() => openEdit(j)} small />
+                                                <ActBtn icon="🗑️" label={tr(K.delete)} color="#ef4444" onClick={() => setDeleteId(j.id)} small />
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {/* ══════ LOGS ═════════════════════════════════ */}
+                {tab === 'logs' && (
+                    <div style={{ display: 'grid', gap: 14, minHeight: CONTENT_MIN, alignContent: 'start' }}>
+                        {/* Execution History */}
+                        <div style={CARD}>
+                            <div style={{ fontWeight: 800, fontSize: 15, color: '#334155', marginBottom: 14 }}>🚀 {tr(K.executionHistory)} ({journeyExecutions.length})</div>
+                            {journeyExecutions.length === 0 ? (
+                                <div style={{ textAlign: 'center', padding: '40px 0', fontSize: 13, marginBottom: 8, color: '#94a3b8' }} ><div>📜</div><div>{tr(K.noLogs)}</div></div>
+                            ) : (
+                                <div style={{ display: 'grid', gap: 8 }}>{journeyExecutions.slice(0, 10).map(e => (
+                                    <div key={e.id} style={{ padding: '12px 16px', borderRadius: 12, background: 'rgba(0,0,0,0.02)', border: '1px solid rgba(0,0,0,0.04)' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                                            <div style={{ fontWeight: 700, fontSize: 13, color: '#1e293b' }}>🗺️ {e.journeyName}</div>
+                                            <div style={{ fontSize: 10, color: '#94a3b8' }}>{e.executedAt}</div>
+                                        </div>
+                                        <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+                                            <span style={{ fontSize: 11, color: '#4f8ef7', fontWeight: 600 }}>{tr(K.logEntered)} {e.entered?.toLocaleString() || 0}</span>
+                                            <span style={{ fontSize: 11, color: '#22c55e', fontWeight: 600 }}>{tr(K.logCompleted)} {e.completed?.toLocaleString() || 0}</span>
+                                            {e.emailsSent > 0 && <span style={{ fontSize: 11, color: '#a855f7', fontWeight: 600 }}>📧 {e.emailsSent?.toLocaleString()}</span>}
+                                            {e.kakaoSent > 0 && <span style={{ fontSize: 11, color: '#fbbf24', fontWeight: 600 }}>💬 {e.kakaoSent?.toLocaleString()}</span>}
+                                            {e.revenue > 0 && <span style={{ fontSize: 11, color: '#f97316', fontWeight: 800 }}>{fmtW(e.revenue)}</span>}
                                         </div>
                                     </div>
-                                );
-                            })}
+                                ))}</div>
+                            )}
                         </div>
-                    )}
-                </div>
-            )}
-
-            {/* ══════ LOGS ═════════════════════════════════ */}
-            {tab === 'logs' && (
-                <div style={{ display: 'grid', gap: 14, minHeight: CONTENT_MIN, alignContent: 'start' }}>
-                    {/* Execution History */}
-                    <div style={CARD}>
-                        <div style={{ fontWeight: 800, fontSize: 15, color: '#334155', marginBottom: 14 }}>🚀 {tr(K.executionHistory)} ({journeyExecutions.length})</div>
-                        {journeyExecutions.length === 0 ? (
-                            <div style={{ textAlign: 'center', padding: '40px 0', fontSize: 13, marginBottom: 8, color: '#94a3b8' }} ><div>📜</div><div>{tr(K.noLogs)}</div></div>
-                        ) : (
-                            <div style={{ display: 'grid', gap: 8 }}>{journeyExecutions.slice(0, 10).map(e => (
-                                <div key={e.id} style={{ padding: '12px 16px', borderRadius: 12, background: 'rgba(0,0,0,0.02)', border: '1px solid rgba(0,0,0,0.04)' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                                        <div style={{ fontWeight: 700, fontSize: 13, color: '#1e293b' }}>🗺️ {e.journeyName}</div>
-                                        <div style={{ fontSize: 10, color: '#94a3b8' }}>{e.executedAt}</div>
+                        {/* Trigger Logs */}
+                        <div style={CARD}>
+                            <div style={{ fontWeight: 800, fontSize: 15, color: '#334155', marginBottom: 14 }}>⚡ {tr(K.recentLogs)} ({journeyTriggers.length})</div>
+                            {journeyTriggers.length === 0 ? (
+                                <div style={{ textAlign: 'center', padding: '40px 0', fontSize: 13, marginBottom: 8, color: '#94a3b8' }} ><div>📝</div><div>{tr(K.noLogs)}</div></div>
+                            ) : (
+                                <div style={{ display: 'grid', gap: 6 }}>{journeyTriggers.slice(0, 15).map(log => (
+                                    <div key={log.id} style={{ padding: '10px 14px', borderRadius: 10, background: 'rgba(0,0,0,0.02)', border: '1px solid rgba(0,0,0,0.03)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                            <span style={{ fontSize: 14 }}>{log.type === 'email_send' ? '📧' : log.type === 'kakao_send' ? '💬' : log.type === 'line_send' ? '💚' : '⚡'}</span>
+                                            <span style={{ fontSize: 12, fontWeight: 700, color: '#334155' }}>{log.type}</span>
+                                        </div>
+                                        <span style={{ fontSize: 10, color: '#94a3b8' }}>{new Date(log.at).toLocaleString(LANG_LOCALE_MAP[lang] || 'ko-KR', { hour12: false })}</span>
                                     </div>
-                                    <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-                                        <span style={{ fontSize: 11, color: '#4f8ef7', fontWeight: 600 }}>{tr(K.logEntered)} {e.entered?.toLocaleString() || 0}</span>
-                                        <span style={{ fontSize: 11, color: '#22c55e', fontWeight: 600 }}>{tr(K.logCompleted)} {e.completed?.toLocaleString() || 0}</span>
-                                        {e.emailsSent > 0 && <span style={{ fontSize: 11, color: '#a855f7', fontWeight: 600 }}>📧 {e.emailsSent?.toLocaleString()}</span>}
-                                        {e.kakaoSent > 0 && <span style={{ fontSize: 11, color: '#fbbf24', fontWeight: 600 }}>💬 {e.kakaoSent?.toLocaleString()}</span>}
-                                        {e.revenue > 0 && <span style={{ fontSize: 11, color: '#f97316', fontWeight: 800 }}>{fmtW(e.revenue)}</span>}
-                                    </div>
-                                </div>
-                            ))}</div>
-                        )}
+                                ))}</div>
+                            )}
+                        </div>
                     </div>
-                    {/* Trigger Logs */}
-                    <div style={CARD}>
-                        <div style={{ fontWeight: 800, fontSize: 15, color: '#334155', marginBottom: 14 }}>⚡ {tr(K.recentLogs)} ({journeyTriggers.length})</div>
-                        {journeyTriggers.length === 0 ? (
-                            <div style={{ textAlign: 'center', padding: '40px 0', fontSize: 13, marginBottom: 8, color: '#94a3b8' }} ><div>📝</div><div>{tr(K.noLogs)}</div></div>
-                        ) : (
-                            <div style={{ display: 'grid', gap: 6 }}>{journeyTriggers.slice(0, 15).map(log => (
-                                <div key={log.id} style={{ padding: '10px 14px', borderRadius: 10, background: 'rgba(0,0,0,0.02)', border: '1px solid rgba(0,0,0,0.03)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                        <span style={{ fontSize: 14 }}>{log.type === 'email_send' ? '📧' : log.type === 'kakao_send' ? '💬' : log.type === 'line_send' ? '💚' : '⚡'}</span>
-                                        <span style={{ fontSize: 12, fontWeight: 700, color: '#334155' }}>{log.type}</span>
-                                    </div>
-                                    <span style={{ fontSize: 10, color: '#94a3b8' }}>{new Date(log.at).toLocaleString(LANG_LOCALE_MAP[lang] || 'ko-KR', { hour12: false })}</span>
-                                </div>
-                            ))}</div>
-                        )}
-                    </div>
-                </div>
-            )}
+                )}
 
-            {/* ══════ ANALYTICS ═════════════════════════════ */}
-            {tab === 'analytics' && (
-                <div style={{ display: 'grid', gap: 14, minHeight: CONTENT_MIN, alignContent: 'start' }}>
-                    {/* KPI Row */}
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
-                        {[{ label: tr(K.totalEntered), value: stats.totalEntered.toLocaleString(), icon: '👣', color: '#4f8ef7' }, { label: tr(K.totalCompleted), value: stats.totalDone.toLocaleString(), icon: '✅', color: '#22c55e' }, { label: tr(K.totalEmails), value: stats.totalEmails.toLocaleString(), icon: '📧', color: '#a855f7' }, { label: tr(K.totalRevenue), value: fmt(stats.totalRevenue), icon: '💰', color: '#f97316' }].map(({ label, value, icon, color }) => (
-                            <div key={label} style={{ ...CARD, display: 'flex', alignItems: 'center', gap: 14 }}>
-                                <div style={{ width: 40, height: 40, borderRadius: 12, background: `${color}12`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>{icon}</div>
-                                <div><div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', letterSpacing: '0.03em' }}>{label}</div><div style={{ fontSize: 24, fontWeight: 900, color, marginTop: 2 }}>{value}</div></div>
+                {/* ══════ ANALYTICS ═════════════════════════════ */}
+                {tab === 'analytics' && (
+                    <div style={{ display: 'grid', gap: 14, minHeight: CONTENT_MIN, alignContent: 'start' }}>
+                        {/* KPI Row */}
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
+                            {[{ label: tr(K.totalEntered), value: stats.totalEntered.toLocaleString(), icon: '👣', color: '#4f8ef7' }, { label: tr(K.totalCompleted), value: stats.totalDone.toLocaleString(), icon: '✅', color: '#22c55e' }, { label: tr(K.totalEmails), value: stats.totalEmails.toLocaleString(), icon: '📧', color: '#a855f7' }, { label: tr(K.totalRevenue), value: fmt(stats.totalRevenue), icon: '💰', color: '#f97316' }].map(({ label, value, icon, color }) => (
+                                <div key={label} style={{ ...CARD, display: 'flex', alignItems: 'center', gap: 14 }}>
+                                    <div style={{ width: 40, height: 40, borderRadius: 12, background: `${color}12`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>{icon}</div>
+                                    <div><div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', letterSpacing: '0.03em' }}>{label}</div><div style={{ fontSize: 24, fontWeight: 900, color, marginTop: 2 }}>{value}</div></div>
+                                </div>
+                            ))}
+                        </div>
+                        {/* Charts */}
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+                            <div style={{ ...CARD, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                <div style={{ fontWeight: 800, fontSize: 13, color: '#334155', marginBottom: 14, alignSelf: 'flex-start' }}>⚡ {tr(K.byTrigger)}</div>
+                                <DonutChart data={Object.entries(stats.byTrigger).map(([k, v]) => ({ value: v, color: TRIGGER_CFG[k]?.color || '#94a3b8' })).length > 0 ? Object.entries(stats.byTrigger).map(([k, v]) => ({ value: v, color: TRIGGER_CFG[k]?.color || '#94a3b8' })) : [{ value: 1, color: '#e2e8f0' }]} centerLabel={tr(K.totalJourneys)} centerValue={stats.total} />
+                                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 10, justifyContent: 'center' }}>{Object.entries(stats.byTrigger).map(([tk, tv]) => (<div key={tk} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, color: '#64748b', fontWeight: 600 }}><div style={{ width: 8, height: 8, borderRadius: 4, background: TRIGGER_CFG[tk]?.color || '#94a3b8' }} /><span>{trigLabel(tk)} ({tv})</span></div>))}</div>
                             </div>
-                        ))}
-                    </div>
-                    {/* Charts */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
-                        <div style={{ ...CARD, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                            <div style={{ fontWeight: 800, fontSize: 13, color: '#334155', marginBottom: 14, alignSelf: 'flex-start' }}>⚡ {tr(K.byTrigger)}</div>
-                            <DonutChart data={Object.entries(stats.byTrigger).map(([k, v]) => ({ value: v, color: TRIGGER_CFG[k]?.color || '#94a3b8' })).length > 0 ? Object.entries(stats.byTrigger).map(([k, v]) => ({ value: v, color: TRIGGER_CFG[k]?.color || '#94a3b8' })) : [{ value: 1, color: '#e2e8f0' }]} centerLabel={tr(K.totalJourneys)} centerValue={stats.total} />
-                            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 10, justifyContent: 'center' }}>{Object.entries(stats.byTrigger).map(([tk, tv]) => (<div key={tk} style={{ display:'flex', alignItems:'center', gap:4, fontSize:10, color:'#64748b', fontWeight:600 }}><div style={{ width:8, height:8, borderRadius:4, background: TRIGGER_CFG[tk]?.color || '#94a3b8' }} /><span>{trigLabel(tk)} ({tv})</span></div>))}</div>
+                            <div style={{ ...CARD, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                <div style={{ fontWeight: 800, fontSize: 13, color: '#334155', marginBottom: 14, alignSelf: 'flex-start' }}>📡 {tr(K.byChannel)}</div>
+                                <DonutChart data={Object.entries(stats.byChannel).map(([k, v]) => ({ value: v, color: CH_COLORS[k] || '#94a3b8' })).length > 0 ? Object.entries(stats.byChannel).map(([k, v]) => ({ value: v, color: CH_COLORS[k] || '#94a3b8' })) : [{ value: 1, color: '#e2e8f0' }]} centerLabel={tr(K.channels)} centerValue={Object.keys(stats.byChannel).length} />
+                                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 10, justifyContent: 'center' }}>{Object.entries(stats.byChannel).map(([ck, cv]) => (<div key={ck} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, color: '#64748b', fontWeight: 600 }}><div style={{ width: 8, height: 8, borderRadius: 4, background: CH_COLORS[ck] || '#94a3b8' }} /><span>{ck.toUpperCase()} ({cv})</span></div>))}</div>
+                            </div>
+                            <div style={{ ...CARD, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                <div style={{ fontWeight: 800, fontSize: 13, color: '#334155', marginBottom: 14, alignSelf: 'flex-start' }}>📊 {tr(K.completionRate)}</div>
+                                <DonutChart data={stats.totalEntered > 0 ? [{ value: stats.totalDone, color: '#22c55e' }, { value: stats.totalEntered - stats.totalDone, color: '#e2e8f0' }] : [{ value: 1, color: '#e2e8f0' }]} centerLabel={tr(K.avgCompletion)} centerValue={stats.avgRate + '%'} />
+                            </div>
                         </div>
-                        <div style={{ ...CARD, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                            <div style={{ fontWeight: 800, fontSize: 13, color: '#334155', marginBottom: 14, alignSelf: 'flex-start' }}>📡 {tr(K.byChannel)}</div>
-                            <DonutChart data={Object.entries(stats.byChannel).map(([k, v]) => ({ value: v, color: CH_COLORS[k] || '#94a3b8' })).length > 0 ? Object.entries(stats.byChannel).map(([k, v]) => ({ value: v, color: CH_COLORS[k] || '#94a3b8' })) : [{ value: 1, color: '#e2e8f0' }]} centerLabel={tr(K.channels)} centerValue={Object.keys(stats.byChannel).length} />
-                            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 10, justifyContent: 'center' }}>{Object.entries(stats.byChannel).map(([ck, cv]) => (<div key={ck} style={{ display:'flex', alignItems:'center', gap:4, fontSize:10, color:'#64748b', fontWeight:600 }}><div style={{ width:8, height:8, borderRadius:4, background: CH_COLORS[ck] || '#94a3b8' }} /><span>{ck.toUpperCase()} ({cv})</span></div>))}</div>
-                        </div>
-                        <div style={{ ...CARD, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                            <div style={{ fontWeight: 800, fontSize: 13, color: '#334155', marginBottom: 14, alignSelf: 'flex-start' }}>📊 {tr(K.completionRate)}</div>
-                            <DonutChart data={stats.totalEntered > 0 ? [{ value: stats.totalDone, color: '#22c55e' }, { value: stats.totalEntered - stats.totalDone, color: '#e2e8f0' }] : [{ value: 1, color: '#e2e8f0' }]} centerLabel={tr(K.avgCompletion)} centerValue={stats.avgRate + '%'} />
-                        </div>
-                    </div>
-                    {/* Performance Bars */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                        <div style={CARD}>
-                            <div style={{ fontWeight: 800, fontSize: 13, color: '#334155', marginBottom: 14 }}>🏅 {tr(K.completionRate)}</div>
-                            {journeys.filter(j => j.entered > 0).length > 0 ? (
-                                <HBarChart items={journeys.filter(j => j.entered > 0).sort((a, b) => ((b.completed || 0) / b.entered) - ((a.completed || 0) / a.entered)).slice(0, 8).map(j => { const rate = Math.round(((j.completed || 0) / j.entered) * 100); return { label: j.name, value: rate, displayValue: rate + '%', color: rate >= 70 ? '#22c55e' : rate >= 40 ? '#f59e0b' : '#ef4444', colorEnd: rate >= 70 ? '#14d9b0' : rate >= 40 ? '#fbbf24' : '#f97316' }; })} maxValue={100} />
-                            ) : <div style={{ fontSize: 12, color: '#94a3b8', textAlign: 'center', padding: 30 }}>{tr(K.noData)}</div>}
-                        </div>
-                        <div style={CARD}>
-                            <div style={{ fontWeight: 800, fontSize: 13, color: '#334155', marginBottom: 14 }}>📧 {tr(K.totalEmails)} + 💬 {tr(K.totalKakao)}</div>
-                            {journeyExecutions.length > 0 ? (
-                                <HBarChart items={journeyExecutions.slice(0, 8).map(e => ({ label: e.journeyName, value: (e.emailsSent || 0) + (e.kakaoSent || 0), displayValue: `${e.emailsSent || 0} + ${e.kakaoSent || 0}`, color: '#a855f7', colorEnd: '#4f8ef7' }))} />
-                            ) : <div style={{ fontSize: 12, color: '#94a3b8', textAlign: 'center', padding: 30 }}>{tr(K.noLogs)}</div>}
+                        {/* Performance Bars */}
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                            <div style={CARD}>
+                                <div style={{ fontWeight: 800, fontSize: 13, color: '#334155', marginBottom: 14 }}>🏅 {tr(K.completionRate)}</div>
+                                {journeys.filter(j => j.entered > 0).length > 0 ? (
+                                    <HBarChart items={journeys.filter(j => j.entered > 0).sort((a, b) => ((b.completed || 0) / b.entered) - ((a.completed || 0) / a.entered)).slice(0, 8).map(j => { const rate = Math.round(((j.completed || 0) / j.entered) * 100); return { label: j.name, value: rate, displayValue: rate + '%', color: rate >= 70 ? '#22c55e' : rate >= 40 ? '#f59e0b' : '#ef4444', colorEnd: rate >= 70 ? '#14d9b0' : rate >= 40 ? '#fbbf24' : '#f97316' }; })} maxValue={100} />
+                                ) : <div style={{ fontSize: 12, color: '#94a3b8', textAlign: 'center', padding: 30 }}>{tr(K.noData)}</div>}
+                            </div>
+                            <div style={CARD}>
+                                <div style={{ fontWeight: 800, fontSize: 13, color: '#334155', marginBottom: 14 }}>📧 {tr(K.totalEmails)} + 💬 {tr(K.totalKakao)}</div>
+                                {journeyExecutions.length > 0 ? (
+                                    <HBarChart items={journeyExecutions.slice(0, 8).map(e => ({ label: e.journeyName, value: (e.emailsSent || 0) + (e.kakaoSent || 0), displayValue: `${e.emailsSent || 0} + ${e.kakaoSent || 0}`, color: '#a855f7', colorEnd: '#4f8ef7' }))} />
+                                ) : <div style={{ fontSize: 12, color: '#94a3b8', textAlign: 'center', padding: 30 }}>{tr(K.noLogs)}</div>}
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )}
 
-            {/* ══ TAB: GUIDE ════════════════════════════════════════ */}
-            {tab==='guide'&&(
-                <div className="guide-section" style={{ display:'flex', flexDirection:'column', gap:20, minHeight:CONTENT_MIN, alignContent:'start', color:'#1e293b' }}>
-                    <div style={{ ...CARD, background:'linear-gradient(135deg,rgba(79,142,247,0.12),rgba(6,182,212,0.08))', border:'1px solid rgba(79,142,247,0.3)', textAlign:'center', padding:32, color:'#1e293b' }}>
-                        <div style={{ fontSize:44 }}>🗺️</div>
-                        <div style={{ fontWeight:900, fontSize:22, color:'#1e293b', marginTop:8 }}>{tr(K.guideTitle)}</div>
-                        <div className="guide-sub" style={{ fontSize:13, color:'#475569', marginTop:6, maxWidth:560, margin:'6px auto 0', lineHeight:1.7 }}>{tr(K.guideSub)}</div>
-                        <button className="guide-cta" onClick={()=>setTab('builder')} style={{ marginTop:16, padding:'12px 28px', borderRadius:12, border:'none', cursor:'pointer', background:'linear-gradient(135deg,#4f8ef7,#06b6d4)', color:'#fff', fontWeight:800, fontSize:14 }}>{tr(K.guideStartBtn)}</button>
-                    </div>
-                    <div style={{ ...CARD, color:'#1e293b' }}>
-                        <div style={{ fontWeight:800, fontSize:17, color:'#1e293b', marginBottom:16 }}>📚 {tr(K.guideStepsTitle)}</div>
-                        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))', gap:14 }}>
-                            {[{n:'1',k:'guideStep1',c:'#4f8ef7'},{n:'2',k:'guideStep2',c:'#22c55e'},{n:'3',k:'guideStep3',c:'#a855f7'},{n:'4',k:'guideStep4',c:'#f59e0b'},{n:'5',k:'guideStep5',c:'#f97316'},{n:'6',k:'guideStep6',c:'#06b6d4'},{n:'7',k:'guideStep7',c:'#4f8ef7'},{n:'8',k:'guideStep8',c:'#22c55e'},{n:'9',k:'guideStep9',c:'#a855f7'},{n:'10',k:'guideStep10',c:'#f59e0b'},{n:'11',k:'guideStep11',c:'#f97316'},{n:'12',k:'guideStep12',c:'#06b6d4'},{n:'13',k:'guideStep13',c:'#4f8ef7'},{n:'14',k:'guideStep14',c:'#22c55e'},{n:'15',k:'guideStep15',c:'#a855f7'},{n:'16',k:'guideStep16',c:'#f59e0b'},{n:'17',k:'guideStep17',c:'#f97316'},{n:'18',k:'guideStep18',c:'#06b6d4'},{n:'19',k:'guideStep19',c:'#4f8ef7'},{n:'20',k:'guideStep20',c:'#22c55e'}].map((s,i)=>(
-                                <div key={i} style={{ background:s.c+'0a', border:`1px solid ${s.c}25`, borderRadius:12, padding:16, color:'#1e293b' }}>
-                                    <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:6 }}>
-                                        <span style={{ width:28, height:28, borderRadius:8, background:s.c, color:'#fff', display:'inline-flex', alignItems:'center', justifyContent:'center', fontWeight:800, fontSize:12, flexShrink:0 }}>{s.n}</span>
-                                        <span style={{ fontWeight:700, fontSize:14, color:s.c }}>{tr(K[s.k+'Title'])}</span>
+                {/* ══ TAB: GUIDE ════════════════════════════════════════ */}
+                {tab === 'guide' && (
+                    <div className="guide-section" style={{ display: 'flex', flexDirection: 'column', gap: 20, minHeight: CONTENT_MIN, alignContent: 'start', color: '#1e293b' }}>
+                        <div style={{ ...CARD, background: 'linear-gradient(135deg,rgba(79,142,247,0.12),rgba(6,182,212,0.08))', border: '1px solid rgba(79,142,247,0.3)', textAlign: 'center', padding: 32, color: '#1e293b' }}>
+                            <div style={{ fontSize: 44 }}>🗺️</div>
+                            <div style={{ fontWeight: 900, fontSize: 22, color: '#1e293b', marginTop: 8 }}>{tr(K.guideTitle)}</div>
+                            <div className="guide-sub" style={{ fontSize: 13, color: '#475569', marginTop: 6, maxWidth: 560, margin: '6px auto 0', lineHeight: 1.7 }}>{tr(K.guideSub)}</div>
+                            <button className="guide-cta" onClick={() => setTab('builder')} style={{ marginTop: 16, padding: '12px 28px', borderRadius: 12, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#4f8ef7,#06b6d4)', color: '#fff', fontWeight: 800, fontSize: 14 }}>{tr(K.guideStartBtn)}</button>
+                        </div>
+                        <div style={{ ...CARD, color: '#1e293b' }}>
+                            <div style={{ fontWeight: 800, fontSize: 17, color: '#1e293b', marginBottom: 16 }}>📚 {tr(K.guideStepsTitle)}</div>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(280px,1fr))', gap: 14 }}>
+                                {[{ n: '1', k: 'guideStep1', c: '#4f8ef7' }, { n: '2', k: 'guideStep2', c: '#22c55e' }, { n: '3', k: 'guideStep3', c: '#a855f7' }, { n: '4', k: 'guideStep4', c: '#f59e0b' }, { n: '5', k: 'guideStep5', c: '#f97316' }, { n: '6', k: 'guideStep6', c: '#06b6d4' }, { n: '7', k: 'guideStep7', c: '#4f8ef7' }, { n: '8', k: 'guideStep8', c: '#22c55e' }, { n: '9', k: 'guideStep9', c: '#a855f7' }, { n: '10', k: 'guideStep10', c: '#f59e0b' }, { n: '11', k: 'guideStep11', c: '#f97316' }, { n: '12', k: 'guideStep12', c: '#06b6d4' }, { n: '13', k: 'guideStep13', c: '#4f8ef7' }, { n: '14', k: 'guideStep14', c: '#22c55e' }, { n: '15', k: 'guideStep15', c: '#a855f7' }, { n: '16', k: 'guideStep16', c: '#f59e0b' }, { n: '17', k: 'guideStep17', c: '#f97316' }, { n: '18', k: 'guideStep18', c: '#06b6d4' }, { n: '19', k: 'guideStep19', c: '#4f8ef7' }, { n: '20', k: 'guideStep20', c: '#22c55e' }].map((s, i) => (
+                                    <div key={i} style={{ background: s.c + '0a', border: `1px solid ${s.c}25`, borderRadius: 12, padding: 16, color: '#1e293b' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+                                            <span style={{ width: 28, height: 28, borderRadius: 8, background: s.c, color: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 12, flexShrink: 0 }}>{s.n}</span>
+                                            <span style={{ fontWeight: 700, fontSize: 14, color: s.c }}>{tr(K[s.k + 'Title'])}</span>
+                                        </div>
+                                        <div className="guide-desc" style={{ fontSize: 12, color: '#475569', lineHeight: 1.7 }}>{tr(K[s.k + 'Desc'])}</div>
                                     </div>
-                                    <div className="guide-desc" style={{ fontSize:12, color:'#475569', lineHeight:1.7 }}>{tr(K[s.k+'Desc'])}</div>
-                                </div>
-                            ))}
+                                ))}
+                            </div>
+                        </div>
+                        <div style={{ ...CARD, color: '#1e293b' }}>
+                            <div style={{ fontWeight: 800, fontSize: 17, color: '#1e293b', marginBottom: 16 }}>{tr(K.guideTabsTitle)}</div>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(260px,1fr))', gap: 12 }}>
+                                {[{ icon: '🗺️', k: 'guideTabBuilder', c: '#4f8ef7' }, { icon: '📋', k: 'guideTabList', c: '#a855f7' }, { icon: '📜', k: 'guideTabLogs', c: '#f97316' }, { icon: '📈', k: 'guideTabAnalytics', c: '#22c55e' }, { icon: '📖', k: 'guideTabGuide', c: '#06b6d4' }].map((tb, i) => (
+                                    <div key={i} style={{ display: 'flex', gap: 12, alignItems: 'flex-start', padding: '12px 14px', background: 'rgba(255,255,255,0.6)', borderRadius: 10, border: '1px solid rgba(0,0,0,0.06)', color: '#1e293b' }}>
+                                        <span style={{ fontSize: 22, flexShrink: 0 }}>{tb.icon}</span>
+                                        <div>
+                                            <div style={{ fontWeight: 700, fontSize: 13, color: tb.c }}>{tr(K[tb.k + 'Name'])}</div>
+                                            <div className="guide-desc" style={{ fontSize: 11, color: '#475569', marginTop: 3, lineHeight: 1.6 }}>{tr(K[tb.k + 'Desc'])}</div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                        <div style={{ ...CARD, background: 'rgba(34,197,94,0.05)', border: '1px solid rgba(34,197,94,0.3)', color: '#1e293b' }}>
+                            <div style={{ fontWeight: 800, fontSize: 17, color: '#1e293b', marginBottom: 12 }}>💡 {tr(K.guideTipsTitle)}</div>
+                            <ul className="guide-tip-list" style={{ margin: 0, padding: '0 0 0 18px', fontSize: 13, color: '#475569', lineHeight: 2.2 }}>
+                                <li style={{ color: '#475569' }}>{tr(K.guideTip1)}</li>
+                                <li style={{ color: '#475569' }}>{tr(K.guideTip2)}</li>
+                                <li style={{ color: '#475569' }}>{tr(K.guideTip3)}</li>
+                                <li style={{ color: '#475569' }}>{tr(K.guideTip4)}</li>
+                                <li style={{ color: '#475569' }}>{tr(K.guideTip5)}</li>
+                                <li style={{ color: '#475569' }}>{tr(K.guideTip6)}</li>
+                                <li style={{ color: '#475569' }}>{tr(K.guideTip7)}</li>
+                                <li style={{ color: '#475569' }}>{tr(K.guideTip8)}</li>
+                                <li style={{ color: '#475569' }}>{tr(K.guideTip9)}</li>
+                                <li style={{ color: '#475569' }}>{tr(K.guideTip10)}</li>
+                            </ul>
                         </div>
                     </div>
-                    <div style={{ ...CARD, color:'#1e293b' }}>
-                        <div style={{ fontWeight:800, fontSize:17, color:'#1e293b', marginBottom:16 }}>{tr(K.guideTabsTitle)}</div>
-                        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(260px,1fr))', gap:12 }}>
-                            {[{icon:'🗺️',k:'guideTabBuilder',c:'#4f8ef7'},{icon:'📋',k:'guideTabList',c:'#a855f7'},{icon:'📜',k:'guideTabLogs',c:'#f97316'},{icon:'📈',k:'guideTabAnalytics',c:'#22c55e'},{icon:'📖',k:'guideTabGuide',c:'#06b6d4'}].map((tb,i)=>(
-                                <div key={i} style={{ display:'flex', gap:12, alignItems:'flex-start', padding:'12px 14px', background:'rgba(255,255,255,0.6)', borderRadius:10, border:'1px solid rgba(0,0,0,0.06)', color:'#1e293b' }}>
-                                    <span style={{ fontSize:22, flexShrink:0 }}>{tb.icon}</span>
-                                    <div>
-                                        <div style={{ fontWeight:700, fontSize:13, color:tb.c }}>{tr(K[tb.k+'Name'])}</div>
-                                        <div className="guide-desc" style={{ fontSize:11, color:'#475569', marginTop:3, lineHeight:1.6 }}>{tr(K[tb.k+'Desc'])}</div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                    <div style={{ ...CARD, background:'rgba(34,197,94,0.05)', border:'1px solid rgba(34,197,94,0.3)', color:'#1e293b' }}>
-                        <div style={{ fontWeight:800, fontSize:17, color:'#1e293b', marginBottom:12 }}>💡 {tr(K.guideTipsTitle)}</div>
-                        <ul className="guide-tip-list" style={{ margin:0, padding:'0 0 0 18px', fontSize:13, color:'#475569', lineHeight:2.2 }}>
-                            <li style={{ color:'#475569' }}>{tr(K.guideTip1)}</li>
-                            <li style={{ color:'#475569' }}>{tr(K.guideTip2)}</li>
-                            <li style={{ color:'#475569' }}>{tr(K.guideTip3)}</li>
-                            <li style={{ color:'#475569' }}>{tr(K.guideTip4)}</li>
-                            <li style={{ color:'#475569' }}>{tr(K.guideTip5)}</li>
-                            <li style={{ color:'#475569' }}>{tr(K.guideTip6)}</li>
-                            <li style={{ color:'#475569' }}>{tr(K.guideTip7)}</li>
-                            <li style={{ color:'#475569' }}>{tr(K.guideTip8)}</li>
-                            <li style={{ color:'#475569' }}>{tr(K.guideTip9)}</li>
-                            <li style={{ color:'#475569' }}>{tr(K.guideTip10)}</li>
-                        </ul>
-                    </div>
-                </div>
-            )}
+                )}
 
             </div>{/* end scrollable content */}
 
