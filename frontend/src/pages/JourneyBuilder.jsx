@@ -440,11 +440,14 @@ export default function JourneyBuilder() {
                 {tab === 'builder' && (
                     <div style={{ display: 'grid', gap: 14, minHeight: CONTENT_MIN, alignContent: 'start' }}>
                         {/* KPI Row */}
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
                             {[{ label: tr(K.totalJourneys), value: stats.total, icon: '🗺️', color: '#4f8ef7' }, { label: tr(K.activeJourneys), value: stats.active, icon: '🟢', color: '#22c55e' }, { label: tr(K.totalExecutions), value: stats.totalExec, icon: '🚀', color: '#a855f7' }, { label: tr(K.avgCompletion), value: stats.avgRate + '%', icon: '📈', color: '#f97316' }].map(({ label, value, icon, color }) => (
-                                <div key={label} style={{ ...CARD, display: 'flex', alignItems: 'center', gap: 14 }}>
-                                    <div style={{ width: 40, height: 40, borderRadius: 12, background: `${color}12`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>{icon}</div>
-                                    <div><div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', letterSpacing: '0.03em' }}>{value}</div><div style={{ fontSize: 26, fontWeight: 900, color, marginTop: 2 }}>{label}</div></div>
+                                <div key={label} className="kpi-card" style={{ '--accent': color }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                        <div className="kpi-label">{label}</div>
+                                        {icon && <span style={{ fontSize: 20, opacity: 0.8 }}>{icon}</span>}
+                                    </div>
+                                    <div className="kpi-value" style={{ color, fontSize: 22, marginTop: 6 }}>{value}</div>
                                 </div>
                             ))}
                         </div>
