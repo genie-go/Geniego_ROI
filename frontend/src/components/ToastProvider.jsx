@@ -38,33 +38,61 @@ export function ToastProvider({ children }) {
   return (
     <ToastContext.Provider value={{ addToast, removeToast }}>
       {children}
-      {/* Toast Container */}
+      {/* Toast Container - 모바일 최적화 */}
       <div style={{
-        position: 'fixed', top: 20, right: 20, zIndex: 99998,
-        display: 'flex', flexDirection: 'column', gap: 8, maxWidth: 360,
+        position: 'fixed',
+        top: 'max(20px, env(safe-area-inset-top, 0px))',
+        right: 20,
+        left: 20,
+        zIndex: 99998,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 8,
+        maxWidth: 'min(360px, calc(100vw - 40px))',
+        margin: '0 auto',
+        pointerEvents: 'none',
       }}>
         {toasts.map((toast, i) => (
           <div
             key={toast.id}
             onClick={() => removeToast(toast.id)}
             style={{
-              padding: '14px 20px', borderRadius: 14, cursor: 'pointer',
+              padding: '14px 20px',
+              borderRadius: 14,
+              cursor: 'pointer',
               background: TOAST_COLORS[toast.type] || TOAST_COLORS.info,
-              color: '#fff', fontWeight: 700, fontSize: 13,
-              display: 'flex', alignItems: 'center', gap: 10,
+              color: '#fff',
+              fontWeight: 700,
+              fontSize: 13,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
               backdropFilter: 'blur(12px)',
               boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
               animation: 'toastSlideIn 0.3s ease-out',
               transition: 'all 0.2s',
+              pointerEvents: 'auto',
+              wordBreak: 'break-word',
+              maxWidth: '100%',
             }}
           >
             <span style={{ fontSize: 18, flexShrink: 0 }}>{TOAST_ICONS[toast.type]}</span>
-            <span style={{ lineHeight: 1.4 }}>{toast.message}</span>
+            <span style={{ lineHeight: 1.4, flex: 1 }}>{toast.message}</span>
           </div>
         ))}
       </div>
       <style>{`
-        @keyframes toastSlideIn { from { opacity:0; transform:translateX(60px); } to { opacity:1; transform:translateX(0); } }
+        @keyframes toastSlideIn {
+          from { opacity: 0; transform: translateY(-20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @media (max-width: 640px) {
+          .toast-container {
+            top: max(12px, env(safe-area-inset-top, 0px)) !important;
+            left: 12px !important;
+            right: 12px !important;
+          }
+        }
       `}</style>
     </ToastContext.Provider>
   );
@@ -72,7 +100,7 @@ export function ToastProvider({ children }) {
 
 export function useToast() {
   const ctx = useContext(ToastContext);
-  if (!ctx) return { addToast: () => {}, removeToast: () => {} };
+  if (!ctx) return { addToast: () => { }, removeToast: () => { } };
   return ctx;
 }
 
