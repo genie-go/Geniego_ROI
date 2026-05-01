@@ -440,14 +440,19 @@ export default function JourneyBuilder() {
                 {tab === 'builder' && (
                     <div style={{ display: 'grid', gap: 14, minHeight: CONTENT_MIN, alignContent: 'start' }}>
                         {/* KPI Row */}
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
-                            {[{ label: tr(K.totalJourneys), value: stats.total, icon: '🗺️', color: '#4f8ef7' }, { label: tr(K.activeJourneys), value: stats.active, icon: '🟢', color: '#22c55e' }, { label: tr(K.totalExecutions), value: stats.totalExec, icon: '🚀', color: '#a855f7' }, { label: tr(K.avgCompletion), value: stats.avgRate + '%', icon: '📈', color: '#f97316' }].map(({ label, value, icon, color }) => (
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14 }}>
+                            {[
+                                { label: tr(K.totalJourneys), value: stats.total, icon: '🗺️', color: '#4f8ef7' },
+                                { label: tr(K.activeJourneys), value: stats.active, icon: '🟢', color: '#22c55e' },
+                                { label: tr(K.totalExecutions), value: stats.totalExec, icon: '🚀', color: '#a855f7' },
+                                { label: tr(K.avgCompletion), value: stats.avgRate + '%', icon: '📈', color: '#f97316' }
+                            ].map(({ label, value, icon, color }) => (
                                 <div key={label} className="kpi-card" style={{ '--accent': color }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
                                         <div className="kpi-label">{label}</div>
-                                        {icon && <span style={{ fontSize: 20, opacity: 0.8 }}>{icon}</span>}
+                                        {icon && <span style={{ fontSize: 22, opacity: 0.85, lineHeight: 1 }}>{icon}</span>}
                                     </div>
-                                    <div className="kpi-value" style={{ color, fontSize: 22, marginTop: 6 }}>{value}</div>
+                                    <div className="kpi-value" style={{ color, fontSize: 26, fontWeight: 900, marginTop: 2 }}>{value}</div>
                                 </div>
                             ))}
                         </div>
