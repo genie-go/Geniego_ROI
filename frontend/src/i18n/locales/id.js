@@ -14548,7 +14548,17 @@ export default {
     "performanceHub": {
       "title": "Performance Hub",
       "sub": "Pusat Pengukuran Kinerja"
-    }
+    },
+    "grantedScopes": "Izin yang Diberikan",
+    "tokenExpiry": "Kedaluwarsa Token",
+    "oauthPrompt": "Hubungkan ke platform melalui autentikasi OAuth",
+    "btnOAuthConnect": "Hubungkan OAuth",
+    "oauthModalTitle": "Otorisasi OAuth {{platform}}",
+    "oauthModalSub": "Berikan akses ke akun iklan Anda",
+    "oauthModalDesc": "Hubungkan dengan aman ke {{platform}} untuk mengumpulkan data iklan secara otomatis. Anda dapat memutuskan koneksi kapan saja.",
+    "requestedPermissions": "Izin yang Diminta",
+    "btnCancel": "Batal",
+    "btnAuthorize": "Otorisasi"
   },
   "apiKeys": {
     "pageTitle": "🔌 連携ハブ",

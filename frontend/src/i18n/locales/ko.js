@@ -15621,7 +15621,17 @@ export default {
     "guideTabsTitle": "탭별 기능",
     "guideTipsTitle": "활용 팁",
     "guideStep": "단계",
-    "guideTip": "팁"
+    "guideTip": "팁",
+    "grantedScopes": "부여된 권한",
+    "tokenExpiry": "토큰 만료",
+    "oauthPrompt": "OAuth 인증으로 플랫폼에 연결하세요",
+    "btnOAuthConnect": "OAuth 연결",
+    "oauthModalTitle": "{{platform}} OAuth 인증",
+    "oauthModalSub": "광고 계정 접근 권한 부여",
+    "oauthModalDesc": "{{platform}}에 안전하게 연결하여 광고 데이터를 자동으로 수집합니다. 언제든지 연결을 해제할 수 있습니다.",
+    "requestedPermissions": "요청된 권한",
+    "btnCancel": "취소",
+    "btnAuthorize": "인증하기"
   },
   "alertAuto": {
     "heroDesc": "판매·광고·분석 채널의 API 키를 등록하고 연결 상태를 관리합니다.",

@@ -21905,7 +21905,17 @@ export default {
     "guideTip2": "Use AI segments for precision targeting.",
     "guideTip3": "Identify VIP customers with RFM.",
     "guideTip4": "Run retention campaigns for at-risk customers.",
-    "guideTip5": "Provide personalized offers per segment."
+    "guideTip5": "Provide personalized offers per segment.",
+    "grantedScopes": "Granted Scopes",
+    "tokenExpiry": "Token Expiry",
+    "oauthPrompt": "Connect to platform via OAuth authentication",
+    "btnOAuthConnect": "OAuth Connect",
+    "oauthModalTitle": "{{platform}} OAuth Authorization",
+    "oauthModalSub": "Grant access to your ad account",
+    "oauthModalDesc": "Securely connect to {{platform}} to automatically collect ad data. You can disconnect at any time.",
+    "requestedPermissions": "Requested Permissions",
+    "btnCancel": "Cancel",
+    "btnAuthorize": "Authorize"
   },
 "dashGuide": {
     "title": "Dashboard Usage Guide",

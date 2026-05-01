@@ -13,6 +13,7 @@ import NetworkStatus from "./components/NetworkStatus.jsx";
 import { ToastProvider } from "./components/ToastProvider.jsx";
 import SessionExpiryWarning from "./components/SessionExpiryWarning.jsx";
 import KeyboardShortcuts from "./components/KeyboardShortcuts.jsx";
+import OnboardingTour from "./components/OnboardingTour.jsx";
 import { initPerformanceMonitor } from "./utils/performanceMonitor.js";
 import CommandPalette from "./components/CommandPalette.jsx";
 import { initAuditTrail } from "./utils/auditTrail.js";
@@ -98,25 +99,25 @@ const TeamWorkspace = lazy(() => import('./pages/TeamWorkspace.jsx'));
 const CommerceUnifiedSearch = lazy(() => import('./pages/CommerceUnifiedSearch.jsx'));
 const AIMarketingHub = lazy(() => import('./pages/AIMarketingHub.jsx'));
 const FeedbackCenter = lazy(() => import('./pages/FeedbackCenter.jsx'));
-const SmartConnect   = lazy(() => import('./pages/SmartConnect.jsx'));
+const SmartConnect = lazy(() => import('./pages/SmartConnect.jsx'));
 const DemandForecast = lazy(() => import('./pages/DemandForecast.jsx'));
-const AsiaLogistics  = lazy(() => import('./pages/AsiaLogistics.jsx'));
-const ReturnsPortal  = lazy(() => import('./pages/ReturnsPortal.jsx'));
-const SupplyChain    = lazy(() => import('./pages/SupplyChain.jsx'));
+const AsiaLogistics = lazy(() => import('./pages/AsiaLogistics.jsx'));
+const ReturnsPortal = lazy(() => import('./pages/ReturnsPortal.jsx'));
+const SupplyChain = lazy(() => import('./pages/SupplyChain.jsx'));
 const SupplierPortal = lazy(() => import('./pages/SupplierPortal.jsx'));
-const MyCoupons      = lazy(() => import('./pages/MyCoupons.jsx'));
-const RulesEditorV2  = lazy(() => import('./pages/RulesEditorV2.jsx'));
+const MyCoupons = lazy(() => import('./pages/MyCoupons.jsx'));
+const RulesEditorV2 = lazy(() => import('./pages/RulesEditorV2.jsx'));
 const AIRecommendTab = lazy(() => import('./pages/AIRecommendTab.jsx'));
-const CaseStudy      = lazy(() => import('./pages/CaseStudy.jsx'));
+const CaseStudy = lazy(() => import('./pages/CaseStudy.jsx'));
 
 const DataTrustDashboard = lazy(() => import('./pages/DataTrustDashboard.jsx'));
-const DeveloperHub   = lazy(() => import('./pages/DeveloperHub.jsx'));
+const DeveloperHub = lazy(() => import('./pages/DeveloperHub.jsx'));
 import { GdprController } from "./components/GdprBanner.jsx";
 import EventPopupDisplay from "./components/EventPopupDisplay.jsx";
 import { useSecurityGuard, injectCSPMeta } from "./security/SecurityGuard.js";
 
 import ko from './i18n/locales/ko.js';
-const t = (k) => k.split('.').reduce((o,i)=>o?.[i], {auto: ko?.auto}) || k;
+const t = (k) => k.split('.').reduce((o, i) => o?.[i], { auto: ko?.auto }) || k;
 
 
 /* Public Pages (no auth required) */
@@ -158,17 +159,17 @@ class ErrorBoundary extends Component {
         read: false,
       });
       localStorage.setItem('g_sec_alerts', JSON.stringify(alerts.slice(0, 100)));
-    } catch {}
+    } catch { }
 
     const isChunkError = err.name === 'ChunkLoadError' || String(err).includes('Failed to fetch dynamically imported module');
     if (isChunkError) {
-        if (!sessionStorage.getItem('chunk_reloaded')) {
-            sessionStorage.setItem('chunk_reloaded', '1');
-            window.location.reload();
-        } else {
-            console.error('ChunkLoadError reload loop prevented.');
-            sessionStorage.removeItem('chunk_reloaded');
-        }
+      if (!sessionStorage.getItem('chunk_reloaded')) {
+        sessionStorage.setItem('chunk_reloaded', '1');
+        window.location.reload();
+      } else {
+        console.error('ChunkLoadError reload loop prevented.');
+        sessionStorage.removeItem('chunk_reloaded');
+      }
     }
   }
   render() {
@@ -252,136 +253,148 @@ function AppLayout() {
 
   return (
     <CurrencyProvider>
-    <MobileSidebarProvider>
-    <div className="container" style={{ height: '100vh', overflow: 'hidden' }}>
-      <KeyboardShortcuts />
-      <SessionExpiryWarning />
-      <CommandPalette />
-      <Sidebar />
-      <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0, flex: 1, height: '100vh', overflow: 'hidden' }}>
-        <Topbar />
-        <GdprController />
-        <EventPopupDisplay />
-
-        <div style={{
-          flex: 1,
-          overflowY: 'auto',
-          overflowX: 'hidden',
-          display: 'flex',
-          flexDirection: 'column',
-        }}>
-
-          <div className="app-content-area" style={{
-            flex: 1,
-            padding: 0,
-            minHeight: 0,
+      <MobileSidebarProvider>
+        <div className="container" style={{ height: '100vh', overflow: 'hidden' }}>
+          <OnboardingTour />
+          <KeyboardShortcuts />
+          <SessionExpiryWarning />
+          <CommandPalette />
+          <Sidebar />
+          <div style={{
             display: 'flex',
             flexDirection: 'column',
+            minWidth: 0,
+            flex: 1,
+            height: '100vh',
+            overflow: 'hidden',
+            position: 'relative',
           }}>
-            <ErrorBoundary>
-              <Suspense fallback={<Loader />}>
-                <Routes>
-                <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                <Route path="/register" element={<Navigate to="/login?tab=register" replace />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/marketing" element={<Marketing />} />
-                <Route path="/account-performance" element={<AccountPerformance />} />
-                <Route path="/commerce" element={<Commerce />} />
-                <Route path="/amazon-risk" element={<AmazonRisk />} />
-                <Route path="/digital-shelf" element={<DigitalShelf />} />
-                <Route path="/reviews-ugc" element={<ReviewsUGC />} />
-                <Route path="/influencer" element={<InfluencerUGC />} />
-                <Route path="/reports" element={<Navigate to="/report-builder" replace />} />
-                <Route path="/writeback" element={<Writeback />} />
-                <Route path="/approvals" element={<Approvals />} />
-                <Route path="/connectors" element={<Navigate to="/integration-hub" replace />} />
-                <Route path="/api-keys" element={<Navigate to="/integration-hub" replace />} />
-                <Route path="/settlements" element={<Settlements />} />
-                <Route path="/reconciliation" element={<Reconciliation />} />
-                <Route path="/audit" element={<Audit />} />
-                <Route path="/ai-policy" element={<Navigate to="/ai-rule-engine" replace />} />
-                <Route path="/action-presets" element={<Navigate to="/ai-rule-engine" replace />} />
-                <Route path="/mapping-registry" element={<Navigate to="/integration-hub" replace />} />
-                <Route path="/admin" element={<Admin />} />
-                <Route path="/alert-policies" element={<Navigate to="/alert-automation" replace />} />
-                <Route path="/attribution" element={<Attribution />} />
-                <Route path="/graph-score" element={<GraphScore />} />
-                <Route path="/kr-channel" element={<KrChannel />} />
-                <Route path="/price-opt" element={<PriceOpt />} />
-                <Route path="/catalog-sync" element={<CatalogSync />} />
-                <Route path="/order-hub" element={<OrderHub />} />
-                <Route path="/operations" element={<OperationsHub />} />
-                <Route path="/performance" element={<PerformanceHub />} />
-                <Route path="/influencer-ugc" element={<Navigate to="/influencer" replace />} />
-                <Route path="/pnl" element={<PnLDashboard />} />
-                <Route path="/data-schema" element={<DataSchema />} />
-                <Route path="/ai-insights" element={<AIInsights />} />
-                <Route path="/report-builder" element={<ReportBuilder />} />
-                <Route path="/integration-hub" element={<ApiKeys />} />
-                <Route path="/alert-automation" element={<Navigate to="/ai-rule-engine" replace />} />
-                <Route path="/event-norm" element={<Navigate to="/data-schema" replace />} />
-                <Route path="/pricing" element={<Pricing />} />
-                <Route path="/app-pricing" element={<Pricing />} />
-                <Route path="/data-product" element={<DataProduct />} />
-                <Route path="/db-admin" element={<DbAdmin />} />
-                <Route path="/rollup" element={<RollupDashboard />} />
-                <Route path="/ai-rule-engine" element={<AIRuleEngine />} />
-                <Route path="/campaign-manager" element={<CampaignManager />} />
-                <Route path="/marketing-intelligence" element={<Navigate to="/ai-insights" replace />} />
-                <Route path="/ai-budget-allocator" element={<Navigate to="/auto-marketing" replace />} />
-                <Route path="/omni-channel" element={<OmniChannel />} />
-                <Route path="/wms-manager" element={<WmsManager />} />
-                <Route path="/user-management" element={<UserManagement />} />
-                <Route path="/menu-access-manager" element={<MenuAccessManager />} />
-                <Route path="/content-calendar" element={<ContentCalendar />} />
-                <Route path="/budget-tracker" element={<BudgetTracker />} />
-                <Route path="/system-monitor" element={<SystemMonitor />} />
-                <Route path="/operations-guide" element={<Navigate to="/operations" replace />} />
-                <Route path="/auto-marketing" element={<AutoMarketing />} />
-                <Route path="/help" element={<HelpCenter />} />
-                <Route path="/channel-kpi" element={<ChannelKPI />} />
-                <Route path="/payment/success" element={<PaymentSuccess />} />
-                <Route path="/payment/fail" element={<PaymentFail />} />
-                <Route path="/pg-config" element={<PgConfig />} />
-                <Route path="/crm" element={<CRM />} />
-                <Route path="/email-marketing" element={<EmailMarketing />} />
-                <Route path="/kakao-channel" element={<KakaoChannel />} />
-                <Route path="/line-channel" element={<LINEChannel />} />
-                <Route path="/pixel-tracking" element={<Navigate to="/data-trust" replace />} />
-                <Route path="/journey-builder" element={<JourneyBuilder />} />
-                <Route path="/ai-prediction" element={<Navigate to="/ai-insights" replace />} />
-                <Route path="/web-popup" element={<WebPopup />} />
-                <Route path="/whatsapp" element={<WhatsApp />} />
-                <Route path="/sms-marketing" element={<SmsMarketing />} />
-                <Route path="/onboarding" element={<Onboarding />} />
-                <Route path="/instagram-dm" element={<InstagramDM />} />
-                <Route path="/license" element={<LicenseActivation />} />
-                <Route path="/workspace" element={<TeamWorkspace />} />
-                <Route path="/commerce-search" element={<Navigate to="/omni-channel" replace />} />
-                <Route path="/ai-marketing-hub" element={<Navigate to="/auto-marketing" replace />} />
-                <Route path="/feedback" element={<FeedbackCenter />} />
-                <Route path="/smart-connect" element={<Navigate to="/api-keys?tab=smart" replace />} />
-                <Route path="/data-trust" element={<DataTrustDashboard />} />
-                <Route path="/developer-hub" element={<DeveloperHub />} />
-                <Route path="/demand-forecast" element={<DemandForecast />} />
-                <Route path="/asia-logistics" element={<Navigate to="/supply-chain" replace />} />
-                <Route path="/returns-portal" element={<ReturnsPortal />} />
-                <Route path="/supply-chain" element={<SupplyChain />} />
-                <Route path="/supplier-portal" element={<SupplierPortal />} />
-                <Route path="/my-coupons" element={<MyCoupons />} />
-                <Route path="/rules-editor-v2" element={<RulesEditorV2 />} />
-                <Route path="/ai-recommend" element={<AIRecommendTab />} />
-                <Route path="/case-study" element={<CaseStudy />} />
-                <Route path="*" element={<Navigate to="/dashboard" replace />} />
-              </Routes>
-            </Suspense>
-            </ErrorBoundary>
+            <Topbar />
+            <GdprController />
+            <EventPopupDisplay />
+
+            <div style={{
+              flex: 1,
+              overflowY: 'auto',
+              overflowX: 'hidden',
+              display: 'flex',
+              flexDirection: 'column',
+              WebkitOverflowScrolling: 'touch', // iOS 부드러운 스크롤
+              scrollBehavior: 'smooth',
+            }}>
+
+              <div className="app-content-area" style={{
+                flex: 1,
+                padding: 0,
+                minHeight: 0,
+                display: 'flex',
+                flexDirection: 'column',
+                paddingBottom: 'env(safe-area-inset-bottom, 0px)', // iOS Safe Area
+              }}>
+                <ErrorBoundary>
+                  <Suspense fallback={<Loader />}>
+                    <Routes>
+                      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                      <Route path="/register" element={<Navigate to="/login?tab=register" replace />} />
+                      <Route path="/dashboard" element={<Dashboard />} />
+                      <Route path="/marketing" element={<Marketing />} />
+                      <Route path="/account-performance" element={<AccountPerformance />} />
+                      <Route path="/commerce" element={<Commerce />} />
+                      <Route path="/amazon-risk" element={<AmazonRisk />} />
+                      <Route path="/digital-shelf" element={<DigitalShelf />} />
+                      <Route path="/reviews-ugc" element={<ReviewsUGC />} />
+                      <Route path="/influencer" element={<InfluencerUGC />} />
+                      <Route path="/reports" element={<Navigate to="/report-builder" replace />} />
+                      <Route path="/writeback" element={<Writeback />} />
+                      <Route path="/approvals" element={<Approvals />} />
+                      <Route path="/connectors" element={<Navigate to="/integration-hub" replace />} />
+                      <Route path="/api-keys" element={<Navigate to="/integration-hub" replace />} />
+                      <Route path="/settlements" element={<Settlements />} />
+                      <Route path="/reconciliation" element={<Reconciliation />} />
+                      <Route path="/audit" element={<Audit />} />
+                      <Route path="/ai-policy" element={<Navigate to="/ai-rule-engine" replace />} />
+                      <Route path="/action-presets" element={<Navigate to="/ai-rule-engine" replace />} />
+                      <Route path="/mapping-registry" element={<Navigate to="/integration-hub" replace />} />
+                      <Route path="/admin" element={<Admin />} />
+                      <Route path="/alert-policies" element={<Navigate to="/alert-automation" replace />} />
+                      <Route path="/attribution" element={<Attribution />} />
+                      <Route path="/graph-score" element={<GraphScore />} />
+                      <Route path="/kr-channel" element={<KrChannel />} />
+                      <Route path="/price-opt" element={<PriceOpt />} />
+                      <Route path="/catalog-sync" element={<CatalogSync />} />
+                      <Route path="/order-hub" element={<OrderHub />} />
+                      <Route path="/operations" element={<OperationsHub />} />
+                      <Route path="/performance" element={<PerformanceHub />} />
+                      <Route path="/influencer-ugc" element={<Navigate to="/influencer" replace />} />
+                      <Route path="/pnl" element={<PnLDashboard />} />
+                      <Route path="/data-schema" element={<DataSchema />} />
+                      <Route path="/ai-insights" element={<AIInsights />} />
+                      <Route path="/report-builder" element={<ReportBuilder />} />
+                      <Route path="/integration-hub" element={<ApiKeys />} />
+                      <Route path="/alert-automation" element={<Navigate to="/ai-rule-engine" replace />} />
+                      <Route path="/event-norm" element={<Navigate to="/data-schema" replace />} />
+                      <Route path="/pricing" element={<Pricing />} />
+                      <Route path="/app-pricing" element={<Pricing />} />
+                      <Route path="/data-product" element={<DataProduct />} />
+                      <Route path="/db-admin" element={<DbAdmin />} />
+                      <Route path="/rollup" element={<RollupDashboard />} />
+                      <Route path="/ai-rule-engine" element={<AIRuleEngine />} />
+                      <Route path="/campaign-manager" element={<CampaignManager />} />
+                      <Route path="/marketing-intelligence" element={<Navigate to="/ai-insights" replace />} />
+                      <Route path="/ai-budget-allocator" element={<Navigate to="/auto-marketing" replace />} />
+                      <Route path="/omni-channel" element={<OmniChannel />} />
+                      <Route path="/wms-manager" element={<WmsManager />} />
+                      <Route path="/user-management" element={<UserManagement />} />
+                      <Route path="/menu-access-manager" element={<MenuAccessManager />} />
+                      <Route path="/content-calendar" element={<ContentCalendar />} />
+                      <Route path="/budget-tracker" element={<BudgetTracker />} />
+                      <Route path="/system-monitor" element={<SystemMonitor />} />
+                      <Route path="/operations-guide" element={<Navigate to="/operations" replace />} />
+                      <Route path="/auto-marketing" element={<AutoMarketing />} />
+                      <Route path="/help" element={<HelpCenter />} />
+                      <Route path="/channel-kpi" element={<ChannelKPI />} />
+                      <Route path="/payment/success" element={<PaymentSuccess />} />
+                      <Route path="/payment/fail" element={<PaymentFail />} />
+                      <Route path="/pg-config" element={<PgConfig />} />
+                      <Route path="/crm" element={<CRM />} />
+                      <Route path="/email-marketing" element={<EmailMarketing />} />
+                      <Route path="/kakao-channel" element={<KakaoChannel />} />
+                      <Route path="/line-channel" element={<LINEChannel />} />
+                      <Route path="/pixel-tracking" element={<Navigate to="/data-trust" replace />} />
+                      <Route path="/journey-builder" element={<JourneyBuilder />} />
+                      <Route path="/ai-prediction" element={<Navigate to="/ai-insights" replace />} />
+                      <Route path="/web-popup" element={<WebPopup />} />
+                      <Route path="/whatsapp" element={<WhatsApp />} />
+                      <Route path="/sms-marketing" element={<SmsMarketing />} />
+                      <Route path="/onboarding" element={<Onboarding />} />
+                      <Route path="/instagram-dm" element={<InstagramDM />} />
+                      <Route path="/license" element={<LicenseActivation />} />
+                      <Route path="/workspace" element={<TeamWorkspace />} />
+                      <Route path="/commerce-search" element={<Navigate to="/omni-channel" replace />} />
+                      <Route path="/ai-marketing-hub" element={<Navigate to="/auto-marketing" replace />} />
+                      <Route path="/feedback" element={<FeedbackCenter />} />
+                      <Route path="/smart-connect" element={<Navigate to="/api-keys?tab=smart" replace />} />
+                      <Route path="/data-trust" element={<DataTrustDashboard />} />
+                      <Route path="/developer-hub" element={<DeveloperHub />} />
+                      <Route path="/demand-forecast" element={<DemandForecast />} />
+                      <Route path="/asia-logistics" element={<Navigate to="/supply-chain" replace />} />
+                      <Route path="/returns-portal" element={<ReturnsPortal />} />
+                      <Route path="/supply-chain" element={<SupplyChain />} />
+                      <Route path="/supplier-portal" element={<SupplierPortal />} />
+                      <Route path="/my-coupons" element={<MyCoupons />} />
+                      <Route path="/rules-editor-v2" element={<RulesEditorV2 />} />
+                      <Route path="/ai-recommend" element={<AIRecommendTab />} />
+                      <Route path="/case-study" element={<CaseStudy />} />
+                      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+                    </Routes>
+                  </Suspense>
+                </ErrorBoundary>
+              </div>
             </div>
           </div>
         </div>
-    </div>
-      <MobileBottomNav />
-    </MobileSidebarProvider>
+        <MobileBottomNav />
+      </MobileSidebarProvider>
     </CurrencyProvider>
   );
 }
@@ -391,27 +404,27 @@ export default function App() {
   return (
     <AuthProvider>
       <ToastProvider>
-      <GlobalDataProvider>
-        <ConnectorSyncProvider>
-          <Suspense fallback={<Loader />}>
-            <Routes>
-              <Route path="/" element={<Landing />} />
-              <Route path="/pricing" element={<SmartPricing />} />
-              <Route path="/terms" element={<Terms />} />
-              <Route path="/privacy" element={<Privacy />} />
-              <Route path="/refund" element={<Refund />} />
-              <Route path="/pg-test" element={<PgTest />} />
-              <Route path="/login" element={<AuthPage />} />
-              <Route path="/*" element={
-                <RequireAuth>
-                  <AppLayout />
-                </RequireAuth>
-              } />
-            </Routes>
-          </Suspense>
-          <NetworkStatus />
-        </ConnectorSyncProvider>
-      </GlobalDataProvider>
+        <GlobalDataProvider>
+          <ConnectorSyncProvider>
+            <Suspense fallback={<Loader />}>
+              <Routes>
+                <Route path="/" element={<Landing />} />
+                <Route path="/pricing" element={<SmartPricing />} />
+                <Route path="/terms" element={<Terms />} />
+                <Route path="/privacy" element={<Privacy />} />
+                <Route path="/refund" element={<Refund />} />
+                <Route path="/pg-test" element={<PgTest />} />
+                <Route path="/login" element={<AuthPage />} />
+                <Route path="/*" element={
+                  <RequireAuth>
+                    <AppLayout />
+                  </RequireAuth>
+                } />
+              </Routes>
+            </Suspense>
+            <NetworkStatus />
+          </ConnectorSyncProvider>
+        </GlobalDataProvider>
       </ToastProvider>
     </AuthProvider>
   );

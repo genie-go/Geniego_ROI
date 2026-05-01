@@ -21711,7 +21711,17 @@ export default {
     "guideTip2": "Use AI segments for precision targeting.",
     "guideTip3": "Identify VIP customers with RFM.",
     "guideTip4": "Run retention campaigns for at-risk customers.",
-    "guideTip5": "Provide personalized offers per segment."
+    "guideTip5": "Provide personalized offers per segment.",
+    "grantedScopes": "付与された権限",
+    "tokenExpiry": "トークン有効期限",
+    "oauthPrompt": "OAuth認証でプラットフォームに接続",
+    "btnOAuthConnect": "OAuth接続",
+    "oauthModalTitle": "{{platform}} OAuth認証",
+    "oauthModalSub": "広告アカウントへのアクセス権を付与",
+    "oauthModalDesc": "{{platform}}に安全に接続して広告データを自動収集します。いつでも接続を解除できます。",
+    "requestedPermissions": "要求された権限",
+    "btnCancel": "キャンセル",
+    "btnAuthorize": "認証する"
   },
 "super": {
     "conKpiAll": "ALL PLATFORMS",

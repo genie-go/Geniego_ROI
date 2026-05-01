@@ -14703,7 +14703,17 @@ export default {
           "cycleYearly": "年付"
         }
       }
-    }
+    },
+    "grantedScopes": "授予的權限",
+    "tokenExpiry": "令牌過期",
+    "oauthPrompt": "通過OAuth認證連接到平台",
+    "btnOAuthConnect": "OAuth連接",
+    "oauthModalTitle": "{{platform}} OAuth授權",
+    "oauthModalSub": "授予對您的廣告帳戶的訪問權限",
+    "oauthModalDesc": "安全連接到{{platform}}以自動收集廣告數據。您可以隨時斷開連接。",
+    "requestedPermissions": "請求的權限",
+    "btnCancel": "取消",
+    "btnAuthorize": "授權"
   },
   "sidebar": {
     "footerLine1": "營收 + 風險 + 治理",

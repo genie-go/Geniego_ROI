@@ -21962,7 +21962,17 @@ export default {
     "guideTip2": "Use AI segments for precision targeting.",
     "guideTip3": "Identify VIP customers with RFM.",
     "guideTip4": "Run retention campaigns for at-risk customers.",
-    "guideTip5": "Provide personalized offers per segment."
+    "guideTip5": "Provide personalized offers per segment.",
+    "grantedScopes": "Permisos otorgados",
+    "tokenExpiry": "Vencimiento del token",
+    "oauthPrompt": "Conectar a la plataforma mediante autenticación OAuth",
+    "btnOAuthConnect": "Conectar OAuth",
+    "oauthModalTitle": "Autorización OAuth de {{platform}}",
+    "oauthModalSub": "Otorgar acceso a su cuenta publicitaria",
+    "oauthModalDesc": "Conéctese de forma segura a {{platform}} para recopilar datos publicitarios automáticamente. Puede desconectarse en cualquier momento.",
+    "requestedPermissions": "Permisos solicitados",
+    "btnCancel": "Cancelar",
+    "btnAuthorize": "Autorizar"
   },
 "dashGuide": {
     "title": "Guía del Panel",

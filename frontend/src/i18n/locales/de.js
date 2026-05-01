@@ -14424,7 +14424,17 @@ export default {
     "admin": {
       "title": "Verwaltung",
       "sub": "Governance · Administrator"
-    }
+    },
+    "grantedScopes": "Erteilte Berechtigungen",
+    "tokenExpiry": "Token-Ablauf",
+    "oauthPrompt": "Über OAuth-Authentifizierung mit Plattform verbinden",
+    "btnOAuthConnect": "OAuth-Verbindung",
+    "oauthModalTitle": "{{platform}} OAuth-Autorisierung",
+    "oauthModalSub": "Zugriff auf Ihr Werbekonto gewähren",
+    "oauthModalDesc": "Sicher mit {{platform}} verbinden, um Werbedaten automatisch zu sammeln. Sie können die Verbindung jederzeit trennen.",
+    "requestedPermissions": "Angeforderte Berechtigungen",
+    "btnCancel": "Abbrechen",
+    "btnAuthorize": "Autorisieren"
   },
   "apiKeys": {
     "pageTitle": "🔌 Integration Hub",

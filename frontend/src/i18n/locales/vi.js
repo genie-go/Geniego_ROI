@@ -19683,7 +19683,17 @@ export default {
     "guideTip2": "Use AI segments for precision targeting.",
     "guideTip3": "Identify VIP customers with RFM.",
     "guideTip4": "Run retention campaigns for at-risk customers.",
-    "guideTip5": "Provide personalized offers per segment."
+    "guideTip5": "Provide personalized offers per segment.",
+    "grantedScopes": "Quyền được cấp",
+    "tokenExpiry": "Hết hạn token",
+    "oauthPrompt": "Kết nối với nền tảng qua xác thực OAuth",
+    "btnOAuthConnect": "Kết nối OAuth",
+    "oauthModalTitle": "Ủy quyền OAuth {{platform}}",
+    "oauthModalSub": "Cấp quyền truy cập vào tài khoản quảng cáo của bạn",
+    "oauthModalDesc": "Kết nối an toàn với {{platform}} để tự động thu thập dữ liệu quảng cáo. Bạn có thể ngắt kết nối bất cứ lúc nào.",
+    "requestedPermissions": "Quyền được yêu cầu",
+    "btnCancel": "Hủy",
+    "btnAuthorize": "Ủy quyền"
   },
 "acctPerf": {
     "tabDashboard": "Visual Dashboard",

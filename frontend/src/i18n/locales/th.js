@@ -14558,7 +14558,17 @@ export default {
     "aiRuleEngine": {
       "title": "AI Rule Engine",
       "sub": "กฎ AI อัตโนมัติ"
-    }
+    },
+    "grantedScopes": "สิทธิ์ที่ได้รับ",
+    "tokenExpiry": "โทเค็นหมดอายุ",
+    "oauthPrompt": "เชื่อมต่อกับแพลตฟอร์มผ่าน OAuth",
+    "btnOAuthConnect": "เชื่อมต่อ OAuth",
+    "oauthModalTitle": "การอนุญาต OAuth ของ {{platform}}",
+    "oauthModalSub": "อนุญาตการเข้าถึงบัญชีโฆษณาของคุณ",
+    "oauthModalDesc": "เชื่อมต่ออย่างปลอดภัยกับ {{platform}} เพื่อรวบรวมข้อมูลโฆษณาโดยอัตโนมัติ คุณสามารถยกเลิกการเชื่อมต่อได้ตลอดเวลา",
+    "requestedPermissions": "สิทธิ์ที่ร้องขอ",
+    "btnCancel": "ยกเลิก",
+    "btnAuthorize": "อนุญาต"
   },
   "apiKeys": {
     "pageTitle": "การตลาดและผลการดำเนินงานโฆษณา (Overview)",

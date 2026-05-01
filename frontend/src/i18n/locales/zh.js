@@ -14774,7 +14774,17 @@ export default {
     "admin": {
       "title": "治理",
       "sub": "治理 · 管理员"
-    }
+    },
+    "grantedScopes": "授予的权限",
+    "tokenExpiry": "令牌过期",
+    "oauthPrompt": "通过OAuth认证连接到平台",
+    "btnOAuthConnect": "OAuth连接",
+    "oauthModalTitle": "{{platform}} OAuth授权",
+    "oauthModalSub": "授予对您的广告账户的访问权限",
+    "oauthModalDesc": "安全连接到{{platform}}以自动收集广告数据。您可以随时断开连接。",
+    "requestedPermissions": "请求的权限",
+    "btnCancel": "取消",
+    "btnAuthorize": "授权"
   },
   "sidebar": {
     "footerLine1": "收入 + 风险 + 治理",

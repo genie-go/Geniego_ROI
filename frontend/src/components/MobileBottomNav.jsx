@@ -3,22 +3,40 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext.jsx';
 import { useI18n } from '../i18n/index.js';
 
-/* ── 모바일 환경 감지 ───────────────────────────────── */
+/* ── 모바일 환경 감지 (개선) ───────────────────────────────── */
 function useIsMobile() {
   const [isMobile, setIsMobile] = React.useState(
-    () => window.innerWidth <= 768 ||
-         window.matchMedia('(display-mode: standalone)').matches ||
-         window.navigator.standalone === true
+    () => {
+      if (typeof window === 'undefined') return false;
+      return window.innerWidth <= 768 ||
+        window.matchMedia('(display-mode: standalone)').matches ||
+        window.navigator.standalone === true;
+    }
   );
+
   React.useEffect(() => {
-    const check = () => setIsMobile(
-      window.innerWidth <= 768 ||
-      window.matchMedia('(display-mode: standalone)').matches ||
-      window.navigator.standalone === true
-    );
+    let timeoutId = null;
+    const check = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        setIsMobile(
+          window.innerWidth <= 768 ||
+          window.matchMedia('(display-mode: standalone)').matches ||
+          window.navigator.standalone === true
+        );
+      }, 150); // 디바운스로 성능 개선
+    };
+
     window.addEventListener('resize', check);
-    return () => window.removeEventListener('resize', check);
+    window.addEventListener('orientationchange', check);
+
+    return () => {
+      clearTimeout(timeoutId);
+      window.removeEventListener('resize', check);
+      window.removeEventListener('orientationchange', check);
+    };
   }, []);
+
   return isMobile;
 }
 
@@ -80,16 +98,28 @@ const TAB_DEFS = [
   },
 ];
 
-/* ── 탭 아이템 컴포넌트 ──────────────────────────────── */
+/* ── 탭 아이템 컴포넌트 (개선) ──────────────────────────────── */
 function TabItem({ tab, active }) {
   const [pressed, setPressed] = useState(false);
+  const [ripple, setRipple] = useState(null);
+
+  const handlePointerDown = (e) => {
+    setPressed(true);
+    // 리플 효과 추가
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    setRipple({ x, y, timestamp: Date.now() });
+    setTimeout(() => setRipple(null), 600);
+  };
 
   return (
     <NavLink
       to={tab.to}
-      onPointerDown={() => setPressed(true)}
+      onPointerDown={handlePointerDown}
       onPointerUp={() => setPressed(false)}
       onPointerLeave={() => setPressed(false)}
+      onPointerCancel={() => setPressed(false)}
       style={{
         display: 'flex',
         flexDirection: 'column',
@@ -102,67 +132,87 @@ function TabItem({ tab, active }) {
         paddingBottom: 4,
         textDecoration: 'none',
         color: active ? '#4f8ef7' : 'rgba(255,255,255,0.38)',
-        transition: 'all 0.15s cubic-bezier(0.4,0,0.2,1)',
+        transition: 'all 0.2s cubic-bezier(0.4,0,0.2,1)',
         WebkitTapHighlightColor: 'transparent',
         userSelect: 'none',
         position: 'relative',
-        transform: pressed ? 'scale(0.92)' : active ? 'scale(1.04)' : 'scale(1)',
+        transform: pressed ? 'scale(0.92)' : active ? 'scale(1.05)' : 'scale(1)',
+        overflow: 'hidden',
       }}
     >
-      {/* Active 탭 배경 글로우 */}
+      {/* 리플 효과 */}
+      {ripple && (
+        <span style={{
+          position: 'absolute',
+          left: ripple.x,
+          top: ripple.y,
+          width: 4,
+          height: 4,
+          borderRadius: '50%',
+          background: 'rgba(79,142,247,0.4)',
+          transform: 'translate(-50%, -50%) scale(0)',
+          animation: 'ripple-expand 0.6s ease-out',
+          pointerEvents: 'none',
+        }} />
+      )}
+      {/* Active 탭 배경 글로우 (개선) */}
       {active && (
         <span style={{
           position: 'absolute',
           top: 4,
           left: '50%',
           transform: 'translateX(-50%)',
-          width: 40,
-          height: 28,
-          borderRadius: 10,
-          background: 'rgba(79,142,247,0.12)',
+          width: 44,
+          height: 32,
+          borderRadius: 12,
+          background: 'radial-gradient(circle, rgba(79,142,247,0.18) 0%, rgba(79,142,247,0.08) 100%)',
           zIndex: 0,
-          transition: 'opacity 0.2s',
+          transition: 'all 0.3s cubic-bezier(0.4,0,0.2,1)',
+          boxShadow: '0 0 12px rgba(79,142,247,0.25)',
         }} />
       )}
 
-      {/* 아이콘 */}
+      {/* 아이콘 (개선) */}
       <span style={{
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         position: 'relative',
         zIndex: 1,
-        filter: active ? 'drop-shadow(0 0 5px rgba(79,142,247,0.55))' : 'none',
-        transition: 'filter 0.15s',
+        filter: active ? 'drop-shadow(0 0 6px rgba(79,142,247,0.6))' : 'none',
+        transition: 'filter 0.2s, transform 0.2s',
+        transform: active ? 'translateY(-1px)' : 'translateY(0)',
       }}>
         {tab.icon(active)}
       </span>
 
-      {/* 탭 레이블 */}
+      {/* 탭 레이블 (개선) */}
       <span style={{
         fontSize: 10,
         fontWeight: active ? 800 : 500,
-        letterSpacing: '-0.3px',
+        letterSpacing: active ? '-0.4px' : '-0.3px',
         lineHeight: 1,
         color: active ? '#4f8ef7' : 'rgba(255,255,255,0.38)',
         zIndex: 1,
-        transition: 'color 0.15s, font-weight 0.15s',
+        transition: 'all 0.2s cubic-bezier(0.4,0,0.2,1)',
+        textShadow: active ? '0 0 8px rgba(79,142,247,0.3)' : 'none',
       }}>
         {tab.label}
       </span>
 
-      {/* Active 인디케이터 (상단 라인) */}
+      {/* Active 인디케이터 (상단 라인 개선) */}
       {active && (
         <span style={{
           position: 'absolute',
           top: 0,
           left: '50%',
           transform: 'translateX(-50%)',
-          width: 28,
-          height: 2.5,
-          borderRadius: '0 0 3px 3px',
-          background: 'linear-gradient(90deg, #4f8ef7, #a855f7)',
-          boxShadow: '0 0 8px rgba(79,142,247,0.6)',
+          width: 32,
+          height: 3,
+          borderRadius: '0 0 4px 4px',
+          background: 'linear-gradient(90deg, #4f8ef7 0%, #6366f1 50%, #a855f7 100%)',
+          boxShadow: '0 2px 12px rgba(79,142,247,0.7), 0 0 20px rgba(79,142,247,0.4)',
+          animation: 'pulse-glow 2s ease-in-out infinite',
         }} />
       )}
     </NavLink>
@@ -187,29 +237,52 @@ export default function MobileBottomNav() {
   };
 
   return (
-    <nav
-      aria-label={t('mobileNav.ariaLabel')}
-      style={{
-        position: 'fixed',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        height: 'calc(58px + env(safe-area-inset-bottom, 0px))',
-        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-        background: 'rgba(6, 12, 22, 0.96)',
-        backdropFilter: 'blur(28px) saturate(1.8)',
-        WebkitBackdropFilter: 'blur(28px) saturate(1.8)',
-        borderTop: '1px solid rgba(79, 130, 255, 0.12)',
-        display: 'flex',
-        alignItems: 'flex-start',
-        justifyContent: 'space-around',
-        zIndex: 9998,
-        boxShadow: '0 -1px 0 rgba(255,255,255,0.04), 0 -8px 32px rgba(0,0,0,0.6)',
-      }}
-    >
-      {TABS.map((tab) => (
-        <TabItem key={tab.to} tab={tab} active={isActive(tab)} />
-      ))}
-    </nav>
+    <>
+      <style>{`
+        @keyframes ripple-expand {
+          to {
+            transform: translate(-50%, -50%) scale(20);
+            opacity: 0;
+          }
+        }
+        @keyframes pulse-glow {
+          0%, 100% {
+            opacity: 1;
+            box-shadow: 0 2px 12px rgba(79,142,247,0.7), 0 0 20px rgba(79,142,247,0.4);
+          }
+          50% {
+            opacity: 0.85;
+            box-shadow: 0 2px 16px rgba(79,142,247,0.9), 0 0 28px rgba(79,142,247,0.6);
+          }
+        }
+      `}</style>
+      <nav
+        aria-label={t('mobileNav.ariaLabel')}
+        role="navigation"
+        style={{
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: 'calc(60px + env(safe-area-inset-bottom, 0px))',
+          paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+          background: 'rgba(6, 12, 22, 0.97)',
+          backdropFilter: 'blur(32px) saturate(1.9)',
+          WebkitBackdropFilter: 'blur(32px) saturate(1.9)',
+          borderTop: '1px solid rgba(79, 130, 255, 0.15)',
+          display: 'flex',
+          alignItems: 'flex-start',
+          justifyContent: 'space-around',
+          zIndex: 9998,
+          boxShadow: '0 -1px 0 rgba(255,255,255,0.05), 0 -8px 40px rgba(0,0,0,0.65), 0 -2px 16px rgba(79,142,247,0.08)',
+          willChange: 'transform',
+          transform: 'translateZ(0)', // GPU 가속
+        }}
+      >
+        {TABS.map((tab) => (
+          <TabItem key={tab.to} tab={tab} active={isActive(tab)} />
+        ))}
+      </nav>
+    </>
   );
 }

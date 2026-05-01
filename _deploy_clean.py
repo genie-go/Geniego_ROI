@@ -1,4 +1,10 @@
+# -*- coding: utf-8 -*-
+import sys
 import paramiko, os
+
+# Windows 환경에서 UTF-8 출력 설정
+if sys.platform == 'win32':
+    sys.stdout.reconfigure(encoding='utf-8')
 
 HOST = '1.201.177.46'
 USER = 'root'
@@ -75,4 +81,4 @@ print(f"  _RETURNS mock: {mr} files (should be 0)")
 
 sftp.close()
 ssh.close()
-print(f"\nDeployment complete! https://roi.genie-go.com")
+print("\n[SUCCESS] Deployment complete! https://roi.genie-go.com")
