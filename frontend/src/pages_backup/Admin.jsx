@@ -4,6 +4,7 @@ import SubscriptionPricing from "./SubscriptionPricing.jsx";
 import MenuAccessPanelNew from "./MenuAccessPanel.jsx";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { useNotification } from "../context/NotificationContext.jsx";
+import { sanitizeHtml } from "../utils/xssSanitizer.js";
 
 const API = "/api";
 
@@ -3118,7 +3119,7 @@ function EmailMgmtPanel() {
           <button onClick={()=>setShowPreview(!showPreview)} style={{...mb2("#4f8ef7"),padding:"8px 16px",fontSize:12}}>👁️ {showPreview?"미리보기 닫기":"HTML 미리보기"}</button>
         {showPreview&&<div style={{padding:16,borderRadius:12,background:"#fff",color:"#1a1a2e",border:"1px solid #e2e8f0",maxHeight:300,overflow:"auto"}}>
           <div style={{fontWeight:700,fontSize:14,marginBottom:8,borderBottom:"1px solid #eee",paddingBottom:6}}>{form.subject||"(제목 없음)"}</div>
-          <div dangerouslySetInnerHTML={{__html:form.body||"<p style='color:#999'>본문 내용을 입력해주세요.</p>"}} />
+          <div dangerouslySetInnerHTML={{__html:sanitizeHtml(form.body||"<p style='color:#999'>본문 내용을 입력해주세요.</p>")}} />
         </div>}
       </div>}
 

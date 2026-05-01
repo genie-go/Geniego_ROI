@@ -1,14 +1,17 @@
 /**
  * XSS Sanitizer Utility
  * 
- * DOMPurify 없이 기본적인 XSS 방어를 제공하는 유틸리티
- * BUG-005 XSS 취약점 수정을 위해 작성됨
+ * DOMPurify를 사용하여 강력한 XSS 방어를 제공하는 유틸리티
+ * BUG-005 XSS 취약점 완전 수정을 위해 DOMPurify 도입
  * 
  * @module xssSanitizer
  */
 
+import DOMPurify from 'isomorphic-dompurify';
+
 /**
  * HTML 문자열에서 위험한 태그와 속성을 제거합니다.
+ * DOMPurify를 사용하여 안전하게 정제합니다.
  * 
  * @param {string} html - 정제할 HTML 문자열
  * @returns {string} 정제된 HTML 문자열
@@ -16,32 +19,21 @@
 export function sanitizeHtml(html) {
     if (!html || typeof html !== 'string') return '';
 
-    // 1. 위험한 태그 제거 (script, iframe, object, embed, style 등)
-    let cleaned = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
-    cleaned = cleaned.replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '');
-    cleaned = cleaned.replace(/<object\b[^<]*(?:(?!<\/object>)<[^<]*)*<\/object>/gi, '');
-    cleaned = cleaned.replace(/<embed\b[^<]*(?:(?!<\/embed>)<[^<]*)*<\/embed>/gi, '');
-    cleaned = cleaned.replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '');
-    cleaned = cleaned.replace(/<link\b[^>]*>/gi, '');
-    cleaned = cleaned.replace(/<meta\b[^>]*>/gi, '');
-    cleaned = cleaned.replace(/<base\b[^>]*>/gi, '');
+    // DOMPurify 설정: 안전한 태그와 속성만 허용
+    const config = {
+        ALLOWED_TAGS: [
+            'p', 'br', 'strong', 'em', 'u', 'a', 'span', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+            'ul', 'ol', 'li', 'blockquote', 'code', 'pre', 'img', 'table', 'thead', 'tbody', 'tr', 'th', 'td'
+        ],
+        ALLOWED_ATTR: [
+            'href', 'title', 'target', 'rel', 'class', 'id', 'style', 'src', 'alt', 'width', 'height'
+        ],
+        ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
+        KEEP_CONTENT: true,
+        RETURN_TRUSTED_TYPE: false
+    };
 
-    // 2. 위험한 이벤트 핸들러 속성 제거 (onclick, onerror, onload 등)
-    cleaned = cleaned.replace(/\s*on\w+\s*=\s*["'][^"']*["']/gi, '');
-    cleaned = cleaned.replace(/\s*on\w+\s*=\s*[^\s>]*/gi, '');
-
-    // 3. javascript: 프로토콜 제거
-    cleaned = cleaned.replace(/href\s*=\s*["']javascript:[^"']*["']/gi, 'href="#"');
-    cleaned = cleaned.replace(/src\s*=\s*["']javascript:[^"']*["']/gi, 'src=""');
-
-    // 4. data: 프로토콜 제거 (이미지 제외)
-    cleaned = cleaned.replace(/href\s*=\s*["']data:[^"']*["']/gi, 'href="#"');
-
-    // 5. vbscript: 프로토콜 제거
-    cleaned = cleaned.replace(/href\s*=\s*["']vbscript:[^"']*["']/gi, 'href="#"');
-    cleaned = cleaned.replace(/src\s*=\s*["']vbscript:[^"']*["']/gi, 'src=""');
-
-    return cleaned;
+    return DOMPurify.sanitize(html, config);
 }
 
 /**
