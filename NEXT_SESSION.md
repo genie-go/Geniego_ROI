@@ -1,7 +1,7 @@
 # GeniegoROI 다음 세션 인수인계 문서
 
 > Last Updated: 2026-05-02
-> Last Commit: f6aca11 (origin/master 동기화 완료)
+> Last Commit: 946d50a (origin/master 동기화 완료)
 
 ---
 
@@ -28,7 +28,7 @@ ROI 분석 통합 대시보드 (CRM, KPI, 시스템, P&L 4개 도메인)
 - 한 줄씩 명령어 실행 (한꺼번에 붙여넣기 금지)
 - 매 단계 검증
 
-### 5월 2일 완료된 작업 (총 5차)
+### 5월 2일 완료된 작업 (총 6차)
 
 1차 (지난 세션)
 - .clineignore 셋업 (commit b32ba89)
@@ -74,29 +74,49 @@ ROI 분석 통합 대시보드 (CRM, KPI, 시스템, P&L 4개 도메인)
   - 검증: package.json 참조 0건, require/import 외부 참조 0건 확인 후 일괄 처리
   - rename 100% 인식 (히스토리 보존됨)
 
+6차 (이번 세션)
+- 33개 기타 일회성 스크립트 archive (commit 946d50a)
+  - apply (9개): apply_all_fixes, apply_apikeys_fix, apply_demo_tenant_fix,
+    apply_dp_fix, apply_init_globals, apply_init_globals_perfect,
+    apply_perfect_fixes, apply_perfect_parser, apply_ranges
+  - smart (5개): smart_trans_final, smart_trans_stable, smart_trans_strict,
+    smart_trans_v5, smart_translate
+  - tmp (5개): tmp_dict.json, tmp_dict_api_keys.json, tmp_inject.js,
+    tmp_translate.js, tmp_translate_api.js
+  - see (3개): see_de_error, see_dummy, see_error
+  - test (4개): test.js, test_api.cjs, test_err.js, test_out.txt
+  - 단발성 (7개): seed_demo_data, setup_demo_phase1, supreme_deploy,
+    update_guide_detail, upload_assets, verify_chunk, view_ai_seg
+  - 검증: package.json 참조 0건, 외부 require/import 0건 확인 후 일괄 처리
+  - 주의: tmp 5개는 닫힌 파이프라인 (자기들끼리 read/write)
+    - tmp_translate.js → tmp_dict.json 작성
+    - tmp_translate_api.js → tmp_dict_api_keys.json 작성
+    - tmp_inject.js → tmp_dict_api_keys.json 읽음
+    - 외부 코드는 이 5개를 참조하지 않음 → 묶어서 archive 안전
+
 ### 누적 통계
-- archive된 파일 수: 89개 (8 + 15 + 7 + 17 + 42)
+- archive된 파일 수: 122개 (8 + 15 + 7 + 17 + 42 + 33)
 - archive 위치: tools/migrations/_archived/
 - Cline 호출: 0회 (모든 작업 PowerShell로 처리)
+- 5월 2일 단일 세션 처리량: 114개 (1차 8개 제외)
 
 ### 다음 작업 후보 (우선순위 순)
 
-1. 기타 일회성 스크립트 정리 — 권장
-   - apply_*.js (약 9개)
-   - smart_trans_*.js (약 4개): smart_trans_final, smart_trans_stable, smart_trans_strict, smart_trans_v5, smart_translate
-   - tmp_*.js (약 5개): tmp_inject, tmp_translate, tmp_translate_api 등
-   - see_*.cjs/js (약 3개): see_de_error, see_dummy, see_error
-   - test_*.js/cjs (약 3개): test, test_api, test_err
-   - 단발성 파일들: supreme_deploy.js, seed_demo_data.cjs, setup_demo_phase1.cjs,
-     update_guide_detail.cjs, upload_assets.cjs, verify_chunk.cjs, view_ai_seg.js
-   - 합계 약 30개 이상 예상
-   - 카테고리별로 분리 처리 권장 (require 의존성 확인 필요)
+1. 루트 정리 잔여 점검 — 권장 (먼저 수행)
+   - 루트에 남은 일회성/임시 스크립트가 더 있는지 전수조사
+   - 후보 패턴: nuke_*, replace_*, restore_*, rebuild_*, refactor_*, 
+     run_*, safe_patch_*, scan_*, merge_*, esm_check, extract_*,
+     final_verify, find_*, purge_*, ko_check, korean_*, missing_*,
+     orderHub_*, production_guard, sub_check, ssh_test, tab_keys 등
+   - 명령어: Get-ChildItem -File | Where-Object { $_.Name -match '\.(js|cjs|mjs)$' } | Select-Object Name | Sort-Object Name
+   - 카테고리 분류 후 6차와 동일 패턴으로 분리/일괄 처리
 
 2. i18n 누락 키 9개 추가 — 별도 신중 작업
    - ko.js에 channelKpiPage 6곳, 9개 키 누락
-   - 누락 키: channelKpiPage, tabCommunity, tabContent, tabGoals, 
+   - 누락 키: channelKpiPage, tabCommunity, tabContent, tabGoals,
      tabMonitor, tabRoles, tabSetup, tabSns, tabTargets
    - 별도 세션 권장 (구조 복잡)
+   - Cline 호출 필요 (실제 코드 수정)
 
 3. 초고도화/엔터프라이즈급 분석 — 별도 새 세션 필수
    - 아키텍처, 인프라, 데이터, 관측성, 보안 등
@@ -108,6 +128,9 @@ ROI 분석 통합 대시보드 (CRM, KPI, 시스템, P&L 4개 도메인)
   - .clineignore로 차단 중이라 Cline 작업에 영향 없음
   - git status에서 modified로 항상 표시되지만 무시 가능
   - 나중에 별도로 정리 결정 필요
+- scan_korean.cjs: 좌측 사이드바에 D 마크로 보일 수 있으나 working tree에는 영향 없음
+  - VS Code git decoration 캐시 잔재로 추정
+  - git status --short | Select-String "scan_korean" → 빈 결과 확인됨
 
 ### 중요 분석 자료
 - ko.js 인코딩: 정상 UTF-8
@@ -120,9 +143,11 @@ ROI 분석 통합 대시보드 (CRM, KPI, 시스템, P&L 4개 도메인)
 1단계: Get-ChildItem으로 파일 목록 조사
 2단계: Select-String으로 package.json 참조 검증
 3단계: Select-String으로 require/import 외부 참조 검증 (-List, Where-Object 활용)
+   - .json 파일이 포함된 경우 require('./파일명')와 readFileSync 패턴 둘 다 검증
 4단계: git mv로 일괄 이동 (PowerShell ForEach-Object 활용)
 5단계: git status --short로 renamed 검증 (R로 시작하는 라인 카운트)
 6단계: git commit -m "chore: archive N <type> scripts to tools/migrations/_archived/"
+   - 카테고리별 개수를 메시지에 명시하면 git log 가독성 좋음
 7단계: git push origin master
 8단계: 인수인계서 NEXT_SESSION.md 업데이트 및 commit/push
 
@@ -146,6 +171,22 @@ Get-ChildItem -File -Filter "PATTERN_*.cjs" | ForEach-Object { git mv $_.Name "t
 git status --short | Select-String "^R" | Measure-Object | Select-Object -ExpandProperty Count
 ```
 
+### 6차에서 검증된 다중 카테고리 동시 처리 패턴
+
+```powershell
+# 여러 카테고리 통합 검증 (한 번에)
+Select-String -Path "package.json" -Pattern "(apply_|smart_trans|tmp_|see_|test_)"
+Select-String -Path "*.js","*.cjs","*.mjs" -Pattern "require\(['""]\./(apply_|smart_trans|tmp_|see_)" -List
+
+# 카테고리별 git mv (Where-Object regex)
+Get-ChildItem -File | Where-Object { $_.Name -match '^apply_' } | ForEach-Object { git mv $_.Name "tools/migrations/_archived/$($_.Name)" }
+Get-ChildItem -File | Where-Object { $_.Name -match '^smart_' } | ForEach-Object { git mv $_.Name "tools/migrations/_archived/$($_.Name)" }
+# (다른 카테고리도 동일 패턴)
+
+# .json 의존성 별도 검증 (tmp_dict.json 같은 데이터 덤프)
+Select-String -Path "*.js","*.cjs","*.mjs" -Pattern "PATTERN.*\.json" -List
+```
+
 ### .clineignore 핵심 차단 패턴
 - frontend/src/i18n/locales/**/*.js (15개 언어 거대 파일)
 - locales_backup/, clean_src/, backup/, $BACKUP_DIR/
@@ -158,8 +199,9 @@ git status --short | Select-String "^R" | Measure-Object | Select-Object -Expand
 
 ### 비용 추적
 - 5월 2일 세션: 검증 1회만 사용 ($0.0585)
-- 5차에서 PowerShell만으로 42개 처리 → Cline 호출 0회 유지
-- 5월 2일 누적 89개 파일 처리 / Cline 호출 0회
+- 5차에서 PowerShell만으로 42개 처리 → Cline 호출 0회
+- 6차에서 PowerShell만으로 33개 처리 → Cline 호출 0회
+- 5월 2일 누적 114개 파일 처리 / Cline 호출 0회 / 비용 $0.0585 유지
 - .clineignore 도입 효과: Cline 작업당 약 70% 절감
 
 ---
@@ -193,9 +235,14 @@ git status --short | Select-String "^R" | Measure-Object | Select-Object -Expand
 
 ## 첫 요청 (다음 세션 시작 시 사용)
 
-루트 정리 작업 계속:
+루트 정리 잔여 점검 (권장 시작점):
 "지난 세션 완료 작업을 확인하고 다음 진행을 추천해주세요.
-PowerShell로 git log -5 부터 확인 부탁합니다."
+PowerShell로 git log -5 부터 확인 부탁합니다.
+이번엔 루트에 남은 일회성 스크립트 잔여 점검을 진행하고 싶습니다."
+
+i18n 누락 키 작업:
+"GeniegoROI ko.js의 channelKpiPage 누락 키 9개 추가 작업을 시작하고 싶습니다.
+구조가 복잡하니 신중하게 진행해주세요."
 
 초고도화 분석 시작:
 "GeniegoROI 초고도화 분석을 시작합니다. 사전 답변 13개 질문에 답변하면서 진행하겠습니다."
