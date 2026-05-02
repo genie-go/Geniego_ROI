@@ -1,17 +1,13 @@
 # GeniegoROI 다음 세션 인수인계 문서
 
-> Last Updated: 2026-05-02  
-> Last Commit: 3d2dfa3 (8개 fix 스크립트 archive)
+> Last Updated: 2026-05-02
+> Last Commit: 9366c04 (origin/master 동기화 완료)
 
 ---
 
 ## 새 Claude에게 보낼 메시지
 
-아래 구분선 사이의 내용을 그대로 복사해서 새 Claude 대화에 붙여넣으세요.
-
----
-
-GeniegoROI 프로젝트 작업을 이어서 진행합니다. 다음은 컨텍스트입니다.
+GeniegoROI 프로젝트 작업을 이어서 진행합니다. 아래는 컨텍스트입니다.
 
 ### 프로젝트 정보
 - GitHub: https://github.com/genie-go/Geniego_ROI
@@ -21,101 +17,148 @@ GeniegoROI 프로젝트 작업을 이어서 진행합니다. 다음은 컨텍스
 - Cline 모델: claude-sonnet-4-5-20250929
 
 ### 프로젝트 성격
-ROI 분석 통합 대시보드 (CRM, KPI, 시스템, P&L 4개 도메인).
-기술 스택: Python 백엔드 + React/Vite 프론트엔드 + PostgreSQL.
-다국어 지원: 15개 언어.
+ROI 분석 통합 대시보드 (CRM, KPI, 시스템, P&L 4개 도메인)
+- Python 백엔드 + React/Vite 프론트엔드 + PostgreSQL
+- 다국어 15개 언어 지원
 
 ### 협업 방식
 - Cline 토큰 절약을 위해 Claude 웹과 협업 중
-- PowerShell에서 가능한 작업은 PowerShell로 (무료)
+- PowerShell로 가능한 작업은 PowerShell로 (무료)
 - 실제 코드 변경만 Cline에 위임
 - 한 줄씩 명령어 실행 (한꺼번에 붙여넣기 금지)
 - 매 단계 검증
 
-### 지난 세션 완료 (2026-05-02)
-1. .clineignore 셋업 + 검증 완료 (commit b32ba89)
-2. 8개 fix 스크립트 archive (commit 3d2dfa3)
-   - fix.js, fix3.js, fix4.js, fix5.js, fixComma.js
-   - fix_admin_form.js, fix_admin_form2.js, fix_auth.js
-   → tools/migrations/_archived/
+---
 
-### 다음 작업 (선택지)
-1. 루트 정리 2단계: patch_*.js (약 10개)
-2. 루트 정리 3단계: patch_*.cjs (약 20개)
-3. 루트 정리 4단계: inject_*.cjs (약 15개)
-4. 루트 정리 5단계: fix_*.cjs (약 30개)
-5. i18n 누락 키 9개 추가 (별도 작업, 신중히)
+## 5월 2일 완료된 작업 (총 4차)
 
-### 중요 분석 자료
+### 1차 (지난 세션)
+- .clineignore 셋업 (commit b32ba89)
+- 8개 fix 스크립트 archive (commit 3d2dfa3)
+  - fix.js, fix3.js, fix4.js, fix5.js, fixComma.js
+  - fix_admin_form.js, fix_admin_form2.js, fix_auth.js
+
+### 2차 (이번 세션)
+- 15개 patch_*.js archive (commit f71eb3a)
+  - patch_account.js, patch_acct.js, patch_email_i18n.js, patch_email_jsx.js
+  - patch_extra_korean.js, patch_i18n.js, patch_i18n_kakao.js, patch_i18n_locales.js
+  - patch_ja_email.js, patch_ja_properly.js, patch_kakao.js, patch_ko.js
+  - patch_kpi_i18n.js, patch_kpi_setup.js, patch_sidebar_i18n.js
+
+### 3차 (이번 세션)
+- 7개 patch_*.cjs archive (commit c89a27c)
+  - patch_demo_tenant.cjs, patch_i18n_marketing.cjs, patch_influencer_i18n.cjs
+  - patch_sms_i18n.cjs, patch_sms_v2.cjs, patch_sms_v3.cjs, patch_sms_v4.cjs
+
+### 4차 (이번 세션)
+- 17개 inject_*.cjs archive (commit 9366c04)
+  - 9:59:14 그룹 (13개): inject_comm_i18n, inject_contentcal_i18n, inject_csv_schedule_i18n,
+    inject_excel_i18n, inject_oh_v2, inject_omni_comm_i18n, inject_omni_i18n,
+    inject_omni_i18n_final, inject_orderhub_i18n, inject_reviews_i18n, inject_reviews_v2,
+    inject_vat_i18n, inject_webpopup_i18n
+  - 10:01:00 그룹 (4개): inject_demo_guard, inject_error_handling, inject_profile_keys, inject_sc_wa_keys
+  - 주의: inject_reviews_v2.cjs는 inject_reviews_i18n.cjs를 require함 (둘 다 함께 archive해서 안전)
+
+### 누적 통계
+- archive된 파일 수: 47개 (8 + 15 + 7 + 17)
+- archive 위치: tools/migrations/_archived/
+- Cline 호출: 0회 (모든 작업 PowerShell로 처리)
+
+---
+
+## 다음 작업 후보 (우선순위 순)
+
+### 1. 루트 정리 5단계: fix_*.cjs (약 30개) — 권장
+- 같은 패턴이라 빠르고 안전
+- 분량이 많아 하나의 큰 세션 단위로 좋음
+
+### 2. 기타 일회성 스크립트 정리
+- smart_trans*.js
+- apply_*.js
+- tmp_*.js
+- PowerShell로 먼저 파일 목록 조사 필요
+
+### 3. i18n 누락 키 9개 추가 — 별도 신중 작업
+- ko.js에 channelKpiPage 6곳, 9개 키 누락
+- 누락 키: channelKpiPage, tabCommunity, tabContent, tabGoals, tabMonitor, tabRoles, tabSetup, tabSns, tabTargets
+- 별도 세션 권장 (구조 복잡)
+
+### 4. 초고도화/엔터프라이즈급 분석 — 별도 새 세션 필수
+- 아키텍처, 인프라, 데이터, 관측성, 보안 등
+- 사전 답변 필요한 13개 질문 별도 항목 참조
+
+---
+
+## 알려진 이슈
+- clean_src 폴더: nested git repo (별도 .git 보유), .gitmodules에 미등록
+  - .clineignore로 차단 중이라 Cline 작업에 영향 없음
+  - 나중에 별도로 정리 결정 필요
+
+---
+
+## 중요 분석 자료
 - ko.js 인코딩: 정상 UTF-8
 - jb 섹션: 95% 번역 완료, 9개 키 누락
-- 누락 키: channelKpiPage, tabCommunity, tabContent, tabGoals, tabMonitor, tabRoles, tabSetup, tabSns, tabTargets
 - channelKpiPage가 ko.js에 6곳 있음 (구조 복잡)
-
-### 첫 요청
-지난 세션 완료된 작업을 확인하고 다음 진행을 추천해주세요.
-PowerShell로 git log -5 부터 확인 부탁합니다.
+- PowerShell Get-Content 출력 시 한글 깨짐 → VS Code 에디터로 직접 보면 정상
 
 ---
 
-## 작업 진행 추적
+## 작업 흐름 (검증된 8단계 패턴)
 
-### 완료
-- [x] .clineignore 셋업 (b32ba89)
-- [x] 8개 fix*.js archive (3d2dfa3)
-
-### 진행 예정 (루트 정리)
-- [ ] patch_*.js 정리 (약 10개)
-- [ ] patch_*.cjs 정리 (약 20개)
-- [ ] inject_*.cjs 정리 (약 15개)
-- [ ] fix_*.cjs 정리 (약 30개)
-- [ ] smart_trans*.js 정리 (5개)
-- [ ] apply_*.js 정리 (약 5개)
-- [ ] tmp_*.js 정리 (3개)
-
-### 진행 예정 (i18n)
-- [ ] channelKpiPage 6곳 구조 분석
-- [ ] 9개 누락 키 정확한 위치 식별
-- [ ] ko.js 안전 패치 작성
-- [ ] Cline 정밀 작업 (좁은 범위)
-
----
-
-## 주의사항 (다음 세션도 동일)
-
-### 절대 하지 말 것
-- ko.js, en.js, ja.js 전체 읽기 (토큰 폭탄)
-- vite.config.js 옮기기 (빌드 깨짐)
-- 한 번에 50개+ 파일 이동 (위험)
-- Cline에 모호한 지시
-
-### 항상 할 것
-- PowerShell 우선 (무료)
-- git mv 사용 (히스토리 보존)
-- 단계별 검증 (Get-ChildItem, git status)
-- 작업 전 백업 commit
-- 한 줄씩 명령어 실행
+1. Get-ChildItem으로 파일 목록 조사
+2. Select-String으로 package.json 참조 검증
+3. Select-String으로 require/import 외부 참조 검증 (-List, Where-Object 활용)
+4. git mv로 일괄 이동
+5. git status로 renamed 검증
+6. git commit -m "chore: archive N <type> scripts to tools/migrations/_archived/"
+7. git push origin master
+8. 인수인계서 메모장 보관 + NEXT_SESSION.md 업데이트
 
 ---
 
 ## .clineignore 핵심 차단 패턴
-
-- frontend/src/i18n/locales/**/*.js (모든 언어 파일)
-- frontend/src/i18n/locales_backup/
-- clean_src/ (서브모듈)
+- frontend/src/i18n/locales/**/*.js (15개 언어 거대 파일)
+- locales_backup/, clean_src/, backup/, $BACKUP_DIR/
 - legacy_v338_pkg/
 - fix_*, nuke_*, smart_trans_*, supreme_deploy.js
 - dict_*.json
 - node_modules/, dist/, build/
 - .env, *.pem, *.key
+- logs/, *.log
 
 ---
 
 ## 비용 추적
-
-- 5월 2일 세션: $0.0585 (검증 1회만)
-- 누적 절감: 5월 1일 $3.11 대비 약 1.9% 사용
+- 5월 2일 세션: 검증 1회만 사용 ($0.0585)
 - .clineignore 도입 효과: Cline 작업당 약 70% 절감
+
+---
+
+## 초고도화 분석 시 미리 준비할 답변
+
+새 세션에서 초고도화 분석 시작 시, 아래 답변이 있으면 정확한 로드맵 가능.
+
+### 비즈니스 컨텍스트
+1. 현재 사용자 규모: 동시 접속자 / DAU / MAU
+2. 목표 규모: 1년 후 / 3년 후 예상치
+3. 테넌트 구조: 단일 조직? 멀티테넌트 SaaS? B2B 몇 개?
+4. 데이터 규모: 현재 DB 크기, 일 생성 데이터량
+5. 예산 범위: 인프라 / 개발 인력 투자 가능 수준
+
+### 기술 컨텍스트
+6. 현재 배포 환경: 로컬? 단일 서버? 클라우드?
+7. 현재 성능 병목: 어디가 느린지
+8. 기존 스택 만족도: Python/React/PostgreSQL 유지 의향?
+9. CI/CD 상태: 자동? 수동?
+10. 모니터링/로깅 현황
+
+### 보안/규제
+11. 개인정보 처리: 국내? 다국가? GDPR 대상?
+12. 결제/금융 데이터 처리 여부
+
+### 우선순위
+13. 가장 시급한 개선 영역 (성능/안정성/확장성/보안/DX/모니터링/비용)
 
 ---
 
@@ -128,3 +171,14 @@ PowerShell로 git log -5 부터 확인 부탁합니다.
 5. 새 Claude 대화 열기
 6. 위의 "새 Claude에게 보낼 메시지" 박스 내용 통째로 복사 → 붙여넣기
 7. Claude가 컨텍스트 파악 후 다음 단계 안내함
+
+---
+
+## 첫 요청 (다음 세션 시작 시 사용)
+
+### 루트 정리 작업 계속:
+"지난 세션 완료 작업을 확인하고 다음 진행을 추천해주세요.
+PowerShell로 git log -5 부터 확인 부탁합니다."
+
+### 초고도화 분석 시작:
+"GeniegoROI 초고도화 분석을 시작합니다. 사전 답변 13개 질문에 답변하면서 진행하겠습니다."
