@@ -1,0 +1,64 @@
+# ============================================================
+# .clineignore - Cline 에이전트 컨텍스트 폭주 차단
+# ============================================================
+
+# --- i18n 거대 파일 (절대 전체 읽기 금지) ---
+frontend/src/i18n/locales/ko.js
+frontend/src/i18n/locales/en.js
+frontend/src/i18n/locales/ja.js
+frontend/src/i18n/locales/zh.js
+frontend/src/i18n/locales/**/*.js
+
+# --- i18n 백업 (작업 대상 아님, 읽지 마라) ---
+frontend/src/i18n/locales_backup/
+**/locales_backup/
+
+# --- clean_src 미러 폴더 (중복 읽기 방지) ---
+clean_src/
+
+# --- 루트 일회성 패치 스크립트 (역사적 잔재) ---
+fix.js
+fix_*.js
+nuke_*.js
+run_*_fix.js
+smart_trans_*.js
+smart_translate.js
+see_dummy.js
+test_err.js
+view_ai_seg.js
+find_lang.js
+supreme_deploy.js
+
+# --- 사전·번역 덤프 ---
+dict_5pages.json
+dict_*.json
+
+# --- 레거시·백업·로그 ---
+legacy_v338_pkg/
+backup/
+$BACKUP_DIR/
+logs/
+*.log
+
+# --- 빌드 산출물·의존성 ---
+node_modules/
+dist/
+build/
+.next/
+.vite/
+package-lock.json
+yarn.lock
+
+# --- 데이터 덤프 ---
+data/*.csv
+data/*.json
+sample_data/
+
+# --- 환경설정·시크릿 ---
+.env
+.env.*
+*.pem
+*.key
+
+# --- 오타 파일 ---
+docker-compose.ym
