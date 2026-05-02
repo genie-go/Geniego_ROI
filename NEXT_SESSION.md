@@ -1,7 +1,7 @@
 # GeniegoROI 다음 세션 인수인계 문서
 
 > Last Updated: 2026-05-02
-> Last Commit: 946d50a (origin/master 동기화 완료)
+> Last Commit: 8ea9bbb (origin/master 동기화 완료)
 
 ---
 
@@ -28,7 +28,7 @@ ROI 분석 통합 대시보드 (CRM, KPI, 시스템, P&L 4개 도메인)
 - 한 줄씩 명령어 실행 (한꺼번에 붙여넣기 금지)
 - 매 단계 검증
 
-### 5월 2일 완료된 작업 (총 6차)
+### 5월 2일 완료된 작업 (총 7차)
 
 1차 (지난 세션)
 - .clineignore 셋업 (commit b32ba89)
@@ -94,31 +94,77 @@ ROI 분석 통합 대시보드 (CRM, KPI, 시스템, P&L 4개 도메인)
     - tmp_inject.js → tmp_dict_api_keys.json 읽음
     - 외부 코드는 이 5개를 참조하지 않음 → 묶어서 archive 안전
 
+7차 (이번 세션)
+- 47개 misc 일회성 스크립트 archive (commit 8ea9bbb)
+  - underscore (16개): _add_conn_i18n.js, _deploy_demo.cjs, _deploy_ssh.cjs,
+    _extract_conn_i18n.js, _find_conn.js, _find_jb_section.cjs, _test_wms.mjs,
+    _tmp_check_de.mjs, _tmp_check_en.mjs, _tmp_check_id.mjs, _tmp_check_ja.mjs,
+    _tmp_check_ko.mjs, _tmp_check_th.mjs, _tmp_check_vi.mjs, _tmp_check_zh.mjs,
+    _tmp_check_zh-TW.mjs
+  - activate (3개): activate_stubs.cjs, activate_stubs2.cjs, activate_stubs3.cjs
+  - add (3개): add_link_keys.cjs, add_locales.js, add_platform_keys.cjs
+  - analyze/audit/auto/backend/bust (5개): analyze_platform.cjs, audit_extended.cjs,
+    auto_translate.js, backend_fixer.js, bust_sw.cjs
+  - check (10개): check_and_build.cjs, check_api.cjs, check_demo.cjs,
+    check_demo_data.cjs, check_deploy.cjs, check_locale.cjs, check_nginx.cjs,
+    check_routes.cjs, check_server.cjs, check_sms.cjs
+  - clean/convert/deep/diagnose/esm/extract/final/find (10개): clean_deploy.cjs,
+    convert_remaining.js, deep_audit.cjs, diagnose_locale.cjs, esm_check.cjs,
+    extract_kpi.js, final_verify.cjs, find_comma_issue.cjs, find_error_pos.cjs,
+    find_exact_error.cjs
+  - 검증: package.json 참조 0건, require/import 외부 참조 0건 확인 후 일괄 처리
+  - rename 100% 인식 (47 files changed, 0 insertions, 0 deletions)
+  - 주의: `_` prefix 16개 중 _tmp_check_*.mjs 9개는 다국어 검증 일회성 도구 (de, en, id, ja, ko, th, vi, zh, zh-TW)
+
 ### 누적 통계
-- archive된 파일 수: 122개 (8 + 15 + 7 + 17 + 42 + 33)
+- archive된 파일 수: 169개 (8 + 15 + 7 + 17 + 42 + 33 + 47)
 - archive 위치: tools/migrations/_archived/
 - Cline 호출: 0회 (모든 작업 PowerShell로 처리)
-- 5월 2일 단일 세션 처리량: 114개 (1차 8개 제외)
+- 5월 2일 단일 세션 처리량: 161개 (1차 8개 제외)
 
 ### 다음 작업 후보 (우선순위 순)
 
-1. 루트 정리 잔여 점검 — 권장 (먼저 수행)
-   - 루트에 남은 일회성/임시 스크립트가 더 있는지 전수조사
-   - 후보 패턴: nuke_*, replace_*, restore_*, rebuild_*, refactor_*, 
-     run_*, safe_patch_*, scan_*, merge_*, esm_check, extract_*,
-     final_verify, find_*, purge_*, ko_check, korean_*, missing_*,
-     orderHub_*, production_guard, sub_check, ssh_test, tab_keys 등
-   - 명령어: Get-ChildItem -File | Where-Object { $_.Name -match '\.(js|cjs|mjs)$' } | Select-Object Name | Sort-Object Name
-   - 카테고리 분류 후 6차와 동일 패턴으로 분리/일괄 처리
+1. 루트 정리 8차 — 권장 (먼저 수행)
+   - 7차 후 루트에 약 27개의 .js/.cjs/.mjs 파일 잔존 (vite.config.js 1개 제외 시 약 26개)
+   - 잔존 후보 패턴 (G+H 그룹):
+     - deploy_* (약 11개): deploy_all.cjs, deploy_demo.cjs, deploy_demo_direct.cjs,
+       deploy_demo_v2.cjs, deploy_kakao.cjs, deploy_nginx_root.cjs, deploy_node.cjs,
+       deploy_prod.cjs, deploy_scp.cjs, deploy_ssh2.cjs, deploy_ssh2.js, deploy_win.js
+       ⚠️ 주의: package.json의 npm scripts가 deploy_*를 참조하는지 반드시 검증
+     - merge_* (1개): merge_reviews_blocks.cjs
+     - production_guard.js, purge_email_jsx.js (2개)
+     - rebuild_* (2개): rebuild_omni_i18n.cjs, rebuild_webpopup_i18n.cjs
+     - refactor_* (2개): refactor_sc.cjs, refactor_wa.cjs
+     - replace_remaining.js (1개)
+     - restore_* (2개): restore_and_fix.cjs, restore_locales.cjs
+     - run_crm_fix.js (1개)
+     - safe_patch_demo.cjs (1개)
+     - scan_* (2개): scan_jsx.js, scan_korean.cjs
+       ⚠️ 주의: scan_korean.cjs는 D 마크 표시되는 파일. 이번에 archive하면 D 마크 자연 해소 예상
+     - 보존 필수: vite.config.js (빌드 설정)
+   - 명령어 (검증 시작):
+```powershell
+     Get-ChildItem -File | Where-Object { $_.Name -match '\.(js|cjs|mjs)$' } | Select-Object Name | Sort-Object Name
+```
+   - 7차와 동일 패턴으로 분리/일괄 처리
 
-2. i18n 누락 키 9개 추가 — 별도 신중 작업
+2. 비스크립트 잡파일 정리 — 별도 트랙
+   - .txt 파일들: find_out.txt, keys_out.txt, ko_check.txt, korean_lines.txt,
+     missing_keys.txt, sub_check.txt, tab_keys.txt
+   - .json 파일들: ko_orderHub.json, korean_map.json, kpi_keys.json,
+     missing_attrData.json, orderHub_keys.json, orderHub_ko.json
+   - .py 파일들: fix_audit.py, fix_auth.py, restore_authpage.py
+   - .sh 파일: ssh_test.sh
+   - 7차에서는 .js/.cjs/.mjs만 처리, 나머지 형식은 8차 또는 별도 트랙
+
+3. i18n 누락 키 9개 추가 — 별도 신중 작업
    - ko.js에 channelKpiPage 6곳, 9개 키 누락
    - 누락 키: channelKpiPage, tabCommunity, tabContent, tabGoals,
      tabMonitor, tabRoles, tabSetup, tabSns, tabTargets
    - 별도 세션 권장 (구조 복잡)
    - Cline 호출 필요 (실제 코드 수정)
 
-3. 초고도화/엔터프라이즈급 분석 — 별도 새 세션 필수
+4. 초고도화/엔터프라이즈급 분석 — 별도 새 세션 필수
    - 아키텍처, 인프라, 데이터, 관측성, 보안 등
    - 사전 정보 수집 후 분석 시작
    - 사전 답변 필요한 13개 질문 별도 항목 참조
@@ -131,6 +177,7 @@ ROI 분석 통합 대시보드 (CRM, KPI, 시스템, P&L 4개 도메인)
 - scan_korean.cjs: 좌측 사이드바에 D 마크로 보일 수 있으나 working tree에는 영향 없음
   - VS Code git decoration 캐시 잔재로 추정
   - git status --short | Select-String "scan_korean" → 빈 결과 확인됨
+  - 8차에서 archive 예정 → 자연 해소 예상
 
 ### 중요 분석 자료
 - ko.js 인코딩: 정상 UTF-8
@@ -187,6 +234,36 @@ Get-ChildItem -File | Where-Object { $_.Name -match '^smart_' } | ForEach-Object
 Select-String -Path "*.js","*.cjs","*.mjs" -Pattern "PATTERN.*\.json" -List
 ```
 
+### 7차에서 추가로 검증된 패턴 (변수 활용 + 라인 wrapping 회피)
+
+```powershell
+# 패턴이 길어질 때 변수에 저장해서 라인 wrapping 문제 회피
+$pattern = "(_add_conn|_deploy|_extract|activate_stubs|add_link_keys|check_|clean_|deep_|find_)"
+
+# 깔끔한 카운트 출력
+(Select-String -Path "package.json" -Pattern $pattern | Measure-Object).Count
+(Select-String -Path "*.js","*.cjs","*.mjs" -Pattern "require\(['""]\./$pattern" -List | Measure-Object).Count
+(Select-String -Path "*.js","*.cjs","*.mjs" -Pattern "from\s+['""]\./$pattern" -List | Measure-Object).Count
+
+# 명확한 결과 표시 (Write-Host 단독 사용 - 다른 명령어와 한 줄에 붙이지 말 것)
+$count = (git status --short | Select-String "^R" | Measure-Object).Count
+Write-Host "Renamed: $count"
+
+# git status 중 일부만 미리보기 (의도한 카테고리인지 검증)
+git status --short | Select-String "^R" | Select-Object -First 10
+
+# `_` prefix는 정규식에서 escape 불필요 (^_ 그대로 사용 가능)
+Get-ChildItem -File | Where-Object { $_.Name -match '^_' -and $_.Name -match '\.(js|cjs|mjs)$' } | ForEach-Object { git mv $_.Name "tools/migrations/_archived/$($_.Name)" }
+```
+
+### PowerShell 사용 시 주의사항 (7차에서 발견)
+
+- 명령어가 너무 길면 줄바꿈되어 라인 wrapping 발생 → GUID나 OSC 시퀀스가 결과처럼 출력됨
+  - 해결: 패턴을 변수에 저장 후 짧게 호출
+- Write-Host와 Get-ChildItem 같은 명령어를 한 줄에 붙이지 말 것 (Enter로 분리)
+- 결과 검증 시 `0`이 단독 출력되면 다음 프롬프트 `PS`의 `P`가 잘려 `0S D:\...`로 보일 수 있음 (정상)
+- Clear-Host로 화면 정리 후 다시 명령어 실행하면 가독성 향상
+
 ### .clineignore 핵심 차단 패턴
 - frontend/src/i18n/locales/**/*.js (15개 언어 거대 파일)
 - locales_backup/, clean_src/, backup/, $BACKUP_DIR/
@@ -201,7 +278,8 @@ Select-String -Path "*.js","*.cjs","*.mjs" -Pattern "PATTERN.*\.json" -List
 - 5월 2일 세션: 검증 1회만 사용 ($0.0585)
 - 5차에서 PowerShell만으로 42개 처리 → Cline 호출 0회
 - 6차에서 PowerShell만으로 33개 처리 → Cline 호출 0회
-- 5월 2일 누적 114개 파일 처리 / Cline 호출 0회 / 비용 $0.0585 유지
+- 7차에서 PowerShell만으로 47개 처리 → Cline 호출 0회
+- 5월 2일 누적 161개 파일 처리 / Cline 호출 0회 / 비용 $0.0585 유지
 - .clineignore 도입 효과: Cline 작업당 약 70% 절감
 
 ---
@@ -235,10 +313,11 @@ Select-String -Path "*.js","*.cjs","*.mjs" -Pattern "PATTERN.*\.json" -List
 
 ## 첫 요청 (다음 세션 시작 시 사용)
 
-루트 정리 잔여 점검 (권장 시작점):
+루트 정리 8차 (권장 시작점):
 "지난 세션 완료 작업을 확인하고 다음 진행을 추천해주세요.
 PowerShell로 git log -5 부터 확인 부탁합니다.
-이번엔 루트에 남은 일회성 스크립트 잔여 점검을 진행하고 싶습니다."
+이번엔 루트 정리 8차로 deploy_*, restore_*, scan_* 등 잔존 27개 점검을 진행하고 싶습니다.
+deploy_*는 npm scripts 참조 가능성 있으니 검증 신중히 부탁합니다."
 
 i18n 누락 키 작업:
 "GeniegoROI ko.js의 channelKpiPage 누락 키 9개 추가 작업을 시작하고 싶습니다.
