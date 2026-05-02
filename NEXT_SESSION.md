@@ -1,7 +1,7 @@
 # GeniegoROI 다음 세션 인수인계 문서
 
 > Last Updated: 2026-05-02
-> Last Commit: ca00661 (origin/master 동기화 완료)
+> Last Commit: 443f208 (origin/master 동기화 완료)
 
 ---
 
@@ -10,7 +10,7 @@
 GeniegoROI 프로젝트 작업을 이어서 진행합니다. 아래는 컨텍스트입니다.
 
 ### 프로젝트 정보
-- GitHub: https://github.com/genie-go/Geniego_ROI
+- GitHub: https://github.com/genie-go/Geniego_ROI (**Private repo**)
 - 로컬 경로: D:\project\GeniegoROI
 - 브랜치: master
 - 환경: Windows + PowerShell + VS Code (Antigravity) + Cline 에이전트
@@ -20,6 +20,8 @@ GeniegoROI 프로젝트 작업을 이어서 진행합니다. 아래는 컨텍스
 ROI 분석 통합 대시보드 (CRM, KPI, 시스템, P&L 4개 도메인)
 - Python 백엔드 + React/Vite 프론트엔드 + PostgreSQL
 - 다국어 15개 언어 지원
+- 운영 서버: 1.201.177.46 (https://roi.genie-go.com)
+- 배포 경로: /home/wwwroot/roi.geniego.com/frontend/dist
 
 ### 협업 방식
 - Cline 토큰 절약을 위해 Claude 웹과 협업 중
@@ -28,7 +30,7 @@ ROI 분석 통합 대시보드 (CRM, KPI, 시스템, P&L 4개 도메인)
 - 한 줄씩 명령어 실행 (한꺼번에 붙여넣기 금지)
 - 매 단계 검증
 
-### 5월 2일 완료된 작업 (총 9차)
+### 5월 2일 완료된 작업 (총 10차)
 
 1차 (지난 세션)
 - .clineignore 셋업 (commit b32ba89)
@@ -62,7 +64,7 @@ ROI 분석 통합 대시보드 (CRM, KPI, 시스템, P&L 4개 도메인)
 - deploy_* 12개는 운영 critical로 판단되어 8차에서 의도적 제외 (옵션 A)
 - NEXT_SESSION.md 업데이트 commit (605e209)
 
-9차 (이번 세션) ⭐ NEW
+9차 (이번 세션)
 - 9개 deploy_* 변형 스크립트 archive (commit ca00661)
   - .cjs 7개: deploy_all, deploy_demo_direct, deploy_demo_v2, deploy_kakao,
     deploy_nginx_root, deploy_prod, deploy_scp
@@ -73,44 +75,53 @@ ROI 분석 통합 대시보드 (CRM, KPI, 시스템, P&L 4개 도메인)
   - `deploy_node.cjs` — BUG-013_DEPLOY_ENCODING_FIX.md:151
   - `deploy_ssh2.cjs` — WORK_PROCESS.md:456 (`./deploy_ssh2.cjs --env production --approve`)
 - 5단 검증 모두 통과 (package.json 0, require 0, import 0, 인프라 8개 0, docs 5개 0)
-- 검증된 인프라 파일 (8개): .github/workflows/deploy.yml, frontend/Dockerfile,
-  infra/docker-compose.yml, docker-compose.yml, deploy.sh, deploy_gitbash.sh,
-  ssh_test.sh, deploy.ps1
-- 검증된 운영 가이드 (5개): WORK_PROCESS.md, BUG-013_DEPLOY_ENCODING_FIX.md,
-  JOURNEY_BUILDER_KPI_FIX.md, JOURNEY_BUILDER_UX_IMPROVEMENT.md,
-  JOURNEY_BUILDER_UX_IMPROVEMENT_PLAN.md
 - rename 100% 인식 (9 files changed, 0 insertions, 0 deletions)
-- **9차에서 신규 발견된 deploy 관련 파일 (Track B로 미처리, 다음 세션 후보)**:
-  - `deploy.ps1` (313 bytes, 5/2 작성) — PowerShell 배포 스크립트
-  - `deploy.sh` (652 bytes, 5/2 작성) — Bash 배포 스크립트
-  - `deploy_gitbash.sh` (1694 bytes, 5/2 작성) — Git Bash용
-  - `deploy.zip` (3.4MB, 4/4 작성) — gitignore됨 (추적 안 됨)
-  - `deploy_clean.zip` (2.4MB, 3/31 작성) — gitignore됨 (추적 안 됨)
-  - `deploy_final.txt`, `deploy_out.txt`, `deploy_output.txt` (각 6.4KB) — 로그/출력
+- NEXT_SESSION.md 업데이트 commit (5361d9e)
+
+10차 (이번 세션) ⭐ NEW
+- **운영 critical 스크립트 3개 보존 확정** (Track B 그룹 1):
+  - `deploy.ps1` (313 bytes) — Windows 빌드+배포 orchestrator
+    chain: inject_journey_ko.cjs → npm build → package_deploy.py → deploy_paramiko.py
+  - `deploy.sh` (652 bytes) — Linux rsync 배포 스크립트
+    REMOTE: root@1.201.177.46:/home/wwwroot/roi.geniego.com/frontend/dist
+  - `deploy_gitbash.sh` (1694 bytes) — Git Bash 환경 배포 (sshpass fallback 포함)
+    내용 확인 시 SSH key auth + sshpass 이중 인증 구조 확인
+- **deploy_*.txt 로그 3개 git untrack + .gitignore 추가** (commit 443f208):
+  - deploy_final.txt, deploy_out.txt, deploy_output.txt (각 6418 bytes)
+  - 3개 모두 운영 배포 stdout 로그 (Connecting to 1.201.177.46... PUT 빌드 산출물 ...)
+  - hash 모두 다름 → 3번 다른 시점 배포 결과
+  - .gitignore에 `deploy_*.txt` 패턴 추가
+  - git rm --cached로 추적 해제, 로컬 파일은 보존
+- **deploy*.zip 2개 보존 결정** (이미 .gitignore 됨):
+  - deploy.zip (3.2MB, 4/4 빌드 산출물 백업)
+  - deploy_clean.zip (2.3MB, 3/31 빌드 산출물 백업)
+  - .gitignore:16/17에 명시적 등록 확인
+- **🚨 보안 이슈 발견 (긴급도 ❌, Private repo)**:
+  - `deploy_gitbash.sh`에 평문 SSH 비밀번호 하드코딩
+  - 노출 commit: `ac6b8be` (2026-05-01 15:19:44, BUG-013 docs 추가 시 같이 commit됨)
+  - 해당 commit에서 deploy_gitbash.sh와 BUG-013 docs 동시 추가
+  - **Private repo이므로 즉시 사고 대응은 불필요**
+  - 단, 장기적으로 환경변수화 필수 (퇴사자/로컬 분실 위험)
+  - 운영 비밀번호는 사용자가 의도적으로 알려주신 배포용 비밀번호임 (실사용 중)
 
 ### 누적 통계
-- archive된 파일 수: **192개** (8 + 15 + 7 + 17 + 42 + 33 + 47 + 14 + 9)
+- archive된 파일 수: **192개** (8 + 15 + 7 + 17 + 42 + 33 + 47 + 14 + 9, 10차는 archive 없음)
 - archive 위치: tools/migrations/_archived/
+- 10차 git untrack: 3개 (deploy_*.txt)
+- 10차 보존 확정: 3개 (.ps1, .sh, _gitbash.sh)
 - Cline 호출: 0회 (모든 작업 PowerShell로 처리)
-- 5월 2일 단일 세션 처리량: **184개** (1차 8개 제외)
+- 5월 2일 단일 세션 처리량: **184개 archive + 3개 git untrack + 6개 보존 결정**
 
 ### 다음 작업 후보 (우선순위 순)
 
-1. **루트 정리 10차 — Track B 처리 (deploy 관련 잡파일)**
-   - 운영 스크립트 3개 (보존 가능성 높음, 신중 검토 필요):
-     - `deploy.ps1` (PowerShell)
-     - `deploy.sh` (Bash, 8차 인프라 검증 목록에 포함됨)
-     - `deploy_gitbash.sh` (Git Bash, 8차 인프라 검증 목록에 포함됨)
-   - 로그 파일 3개 (archive 또는 .gitignore 추가 후보):
-     - `deploy_final.txt`, `deploy_out.txt`, `deploy_output.txt`
-     - 모두 5/2 9:59 작성 (이전 archive 작업의 출력 로그로 추정)
-   - 빌드 산출물 2개 (gitignore됨, 별도 처리):
-     - `deploy.zip` (4/4), `deploy_clean.zip` (3/31)
-     - 단순 삭제 또는 그대로 두기 결정 필요
-   - **권장 접근**:
-     - `.sh` 3개는 docs/CI/Dockerfile 등에서 호출 여부 5단 검증 후 결정
-     - `.txt` 3개는 .gitignore에 패턴 추가 후 git rm --cached로 추적 해제 권장
-     - `.zip` 2개는 이미 gitignore됨, 로컬 정리만 결정
+1. **🔵 비밀번호 환경변수화 — 권장 다음 작업**
+   - `deploy_gitbash.sh`에서 `PASSWORD='vot@Wlroi6!'` 라인 제거
+   - 환경변수 `${SSHPASS}` 또는 `.env` 파일에서 로드하도록 변경
+   - `.env.example` 생성 (변수명만 명시, 실제 값 X)
+   - `.gitignore`에 `.env` 패턴 확인/추가
+   - README나 docs에 배포 절차 문서화 ("배포 전 .env 생성 필요")
+   - 작업량 약 15-30분, Cline 호출 1회 정도 필요할 수 있음
+   - **Private repo이므로 긴급도 낮음, 다음 세션에 안전하게 진행 가능**
 
 2. **비스크립트 잡파일 정리 — 별도 트랙**
    - .txt 파일들: find_out.txt, keys_out.txt, ko_check.txt, korean_lines.txt,
@@ -140,10 +151,11 @@ ROI 분석 통합 대시보드 (CRM, KPI, 시스템, P&L 4개 도메인)
   - .clineignore로 차단 중이라 Cline 작업에 영향 없음
   - git status에서 modified로 항상 표시되지만 무시 가능
 - scan_korean.cjs D 마크 이슈: 8차에서 archive 처리하며 자연 해소됨 (해결 완료)
-- deploy_*.zip 빌드 산출물 2개: gitignore됨, 다음 세션에서 로컬 삭제 결정 필요
+- deploy_*.zip 빌드 산출물 2개: gitignore됨, 보존 결정 (10차에서 확정)
 
-### 9차 작업으로 확정된 deploy_* 파일 운영 매트릭스
+### 운영 critical 파일 보존 매트릭스 (9차+10차 통합)
 
+#### deploy 관련 .cjs/.js (9차에서 확정)
 | 파일 | 상태 | 사유 / 호출 위치 |
 |------|------|-----------------|
 | deploy_demo.cjs | **보존** | docs/JOURNEY_BUILDER_KPI_FIX.md:283 (운영 명령어), docs/BUG-013:152 |
@@ -159,25 +171,38 @@ ROI 분석 통합 대시보드 (CRM, KPI, 시스템, P&L 4개 도메인)
 | deploy_ssh2.js | archived (9차) | 외부 참조 0건, deploy_ssh2.cjs와 별개 파일 |
 | deploy_win.js | archived (9차) | 외부 참조 0건 |
 
+#### deploy 관련 .ps1/.sh (10차에서 확정)
+| 파일 | 상태 | 사유 |
+|------|------|------|
+| deploy.ps1 | **보존** | Windows 빌드+배포 orchestrator (inject → build → package → paramiko) |
+| deploy.sh | **보존** | Linux rsync 배포 스크립트 (root@1.201.177.46) |
+| deploy_gitbash.sh | **보존** | Git Bash 환경 배포 (sshpass fallback, ⚠️ 평문 PW 환경변수화 필요) |
+
+#### deploy 관련 잡파일 (10차에서 확정)
+| 파일 | 상태 | 처리 |
+|------|------|------|
+| deploy_final.txt | git untrack | .gitignore에 deploy_*.txt 추가 (commit 443f208), 로컬 보존 |
+| deploy_out.txt | git untrack | 동일 |
+| deploy_output.txt | git untrack | 동일 |
+| deploy.zip | 보존 | 이미 .gitignore:16 등록됨, 빌드 산출물 백업 (4/4) |
+| deploy_clean.zip | 보존 | 이미 .gitignore:17 등록됨, 빌드 산출물 백업 (3/31) |
+
 ### 중요 분석 자료
 - ko.js 인코딩: 정상 UTF-8
 - jb 섹션: 95% 번역 완료, 9개 키 누락
 - channelKpiPage가 ko.js에 6곳 있음 (구조 복잡)
 - PowerShell Get-Content 출력 시 한글 깨짐 → VS Code 에디터로 직접 보면 정상
 
-### 8차/9차에서 발견된 인프라 파일 목록 (10차 검증 시 활용)
-프로젝트 루트와 하위에 다음 인프라 파일들이 있음:
+### 8차/9차/10차에서 검증된 인프라 파일 목록 (향후 검증 시 활용)
+프로젝트 루트와 하위에 다음 인프라 파일들이 있음 (모두 보존 확정):
 - `.github/workflows/deploy.yml` (GitHub Actions CI/CD)
 - `frontend/Dockerfile`
 - `infra/docker-compose.yml`
 - `docker-compose.yml` (메인)
-- `deploy.sh` (루트 배포 스크립트, Track B 후보)
-- `deploy_gitbash.sh` (Git Bash용 배포 스크립트, Track B 후보)
-- `deploy.ps1` (PowerShell 배포 스크립트, Track B 후보)
+- `deploy.sh` (루트 배포 스크립트, 10차 보존 확정)
+- `deploy_gitbash.sh` (Git Bash용 배포 스크립트, 10차 보존 확정, ⚠️ PW 환경변수화 필요)
+- `deploy.ps1` (PowerShell 배포 스크립트, 10차 보존 확정)
 - `ssh_test.sh`
-
-9차 검증 결과: 위 인프라 파일들은 9차 archive 대상 9개를 참조하지 않음.
-10차에서는 Track B 6개에 대해 동일 검증 필수.
 
 ### 작업 흐름 (검증된 8단계 패턴)
 
@@ -218,6 +243,28 @@ Get-ChildItem -Path "docs" -Filter "*.md" | Select-String -Pattern $pattern | Se
 5개 항목 모두 0건/출력없음일 때만 archive 안전.
 어느 하나라도 매칭이 발견되면 그 파일은 보존하거나 별도 분석 필요.
 
+### 10차에서 확립된 추가 검증 패턴 (실행 가능 운영 스크립트 검증)
+
+실행 가능한 .ps1/.sh/.bat 파일은 5단 검증 외에 **내용 직접 확인 필수**:
+
+```powershell
+# 1. 파일 메타정보 확인 (크기, 작성일이 동시에 같으면 의심)
+Get-ChildItem [files] | Select-Object Name, Length, LastWriteTime | Format-Table -AutoSize
+
+# 2. 내용 직접 확인 (운영 IP/비밀번호/외부 명령 호출 여부)
+Get-Content [filename]
+# 확인 포인트:
+# - 외부 호스트 IP, SSH 명령
+# - 평문 비밀번호, API 키 (있으면 환경변수화 필요)
+# - 다른 스크립트 호출 (chain되어 있으면 archive 시 운영 깨짐)
+# - rsync, scp, sftp 등 배포 도구 사용
+# - npm, python 등 빌드 도구 호출
+
+# 3. 보안 정보 노출 확인
+git log --all -p -S "<sensitive_string>" --source
+# 비밀번호/API 키가 git history에 들어간 commit 추적
+```
+
 ### 9차에서 확립된 부분 archive 패턴 (보존 + archive 혼합 시)
 
 8차까지는 카테고리 통째로 archive였지만, 9차부터는 부분 archive가 등장.
@@ -243,6 +290,29 @@ Get-ChildItem -File | Where-Object { $_.Name -match $archivePattern } | ForEach-
 - 부분 처리할 때: 보존된 파일과 사유를 commit 메시지에 명시
 - 예: `chore: archive 9 deploy_* scripts to tools/migrations/_archived/ (9th batch, deploy variants only - kept deploy_demo.cjs, deploy_node.cjs, deploy_ssh2.cjs as docs reference them)`
 - 이유: 미래의 Claude 세션이 git log를 봤을 때 "왜 다 안 옮기고 9개만?"이 즉시 이해됨
+
+### 10차에서 확립된 git untrack 패턴 (gitignore 추가 + 추적 해제)
+
+archive와 다른 처리 방식. 운영 로그/임시 파일 정리에 적합:
+
+```powershell
+# 1. .gitignore 기존 패턴 확인
+Select-String -Path ".gitignore" -Pattern "^<prefix>" -SimpleMatch
+
+# 2. .gitignore에 패턴 추가 (Add-Content)
+Add-Content -Path ".gitignore" -Value "`n# <comment>`n<pattern>"
+
+# 3. git에서 추적 해제 (로컬 파일은 유지)
+git rm --cached <file1> <file2> <file3>
+
+# 4. 변경사항 검증 (D/M 마크로 표시)
+git status --short
+
+# 5. commit
+git add .gitignore
+git commit -m "chore: untrack <type> files (<pattern>) - add to .gitignore"
+git push origin master
+```
 
 ### 6차에서 검증된 다중 카테고리 동시 처리 패턴
 
@@ -276,7 +346,7 @@ git status --short | Select-String "^R" | Select-Object -First 10
 Get-ChildItem -File | Where-Object { $_.Name -match "^($batchPattern)\.(js|cjs|mjs)$" } | ForEach-Object { git mv $_.Name "tools/migrations/_archived/$($_.Name)" }
 ```
 
-### PowerShell 사용 시 주의사항 (7차/8차/9차에서 발견)
+### PowerShell 사용 시 주의사항 (7차/8차/9차/10차에서 발견)
 
 - 명령어가 너무 길면 줄바꿈되어 라인 wrapping 발생 → GUID나 OSC 시퀀스가 결과처럼 출력됨
   - 해결: 패턴을 변수에 저장 후 짧게 호출
@@ -285,6 +355,8 @@ Get-ChildItem -File | Where-Object { $_.Name -match "^($batchPattern)\.(js|cjs|m
 - 두 줄 명령어 입력 시 첫 줄 Enter → 결과 확인 → 두 번째 줄 입력 (한꺼번에 입력 X)
 - Test-Path로 파일 존재 여부 사전 확인 후 Select-String 실행 (9차에서 확립)
 - 보존 필수 파일과 이름이 겹치는 경우 anchor + 확장자로 정확히 분리 (9차에서 확립)
+- **운영 critical 의심 파일은 5단 검증에 추가로 내용 직접 확인 필수 (10차에서 확립)**
+- **CRLF 경고는 Windows에서 .gitignore 수정 시 정상 동작, 무시 가능 (10차에서 확인)**
 
 ### .clineignore 핵심 차단 패턴
 - frontend/src/i18n/locales/**/*.js (15개 언어 거대 파일)
@@ -303,7 +375,8 @@ Get-ChildItem -File | Where-Object { $_.Name -match "^($batchPattern)\.(js|cjs|m
 - 7차에서 PowerShell만으로 47개 처리 → Cline 호출 0회
 - 8차에서 PowerShell만으로 14개 처리 → Cline 호출 0회
 - 9차에서 PowerShell만으로 9개 처리 → Cline 호출 0회 (운영 critical 부분 archive)
-- 5월 2일 누적 184개 파일 처리 / Cline 호출 0회 / 비용 $0.0585 유지
+- 10차에서 PowerShell만으로 3개 git untrack + 3개 보존 결정 → Cline 호출 0회
+- 5월 2일 누적 184개 archive + 3개 untrack + 3개 보존 / Cline 호출 0회 / 비용 $0.0585 유지
 - .clineignore 도입 효과: Cline 작업당 약 70% 절감
 
 ---
@@ -337,13 +410,12 @@ Get-ChildItem -File | Where-Object { $_.Name -match "^($batchPattern)\.(js|cjs|m
 
 ## 첫 요청 (다음 세션 시작 시 사용)
 
-루트 정리 10차 (Track B 처리, 권장 시작점):
+**🔵 권장: 비밀번호 환경변수화** (10차에서 발견된 보안 이슈 정리):
 "지난 세션 완료 작업을 확인하고 다음 진행을 추천해주세요.
 PowerShell로 git log -5 부터 확인 부탁합니다.
-이번엔 루트 정리 10차로 Track B (deploy 관련 잡파일 6개) 점검을 진행하고 싶습니다.
-9차에서 운영 스크립트 deploy.ps1/deploy.sh/deploy_gitbash.sh 3개와
-로그 deploy_final.txt/deploy_out.txt/deploy_output.txt 3개가 미처리로 남아있습니다.
-9차에서 확립한 5단 검증 패턴을 활용해 진행해주세요."
+이번엔 deploy_gitbash.sh의 평문 비밀번호를 환경변수로 분리하는 작업을 진행하고 싶습니다.
+10차에서 발견된 운영 critical 보안 이슈 정리 작업입니다.
+Private repo이므로 긴급도는 낮지만 표준 관행에 맞춰 정리합니다."
 
 비스크립트 잡파일 정리:
 "GeniegoROI 루트의 .txt/.json/.py 잡파일 정리를 시작하고 싶습니다.
