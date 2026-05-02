@@ -1,7 +1,7 @@
 # GeniegoROI 다음 세션 인수인계 문서
 
 > Last Updated: 2026-05-02
-> Last Commit: 8ea9bbb (origin/master 동기화 완료)
+> Last Commit: 4eec099 (origin/master 동기화 완료)
 
 ---
 
@@ -28,7 +28,7 @@ ROI 분석 통합 대시보드 (CRM, KPI, 시스템, P&L 4개 도메인)
 - 한 줄씩 명령어 실행 (한꺼번에 붙여넣기 금지)
 - 매 단계 검증
 
-### 5월 2일 완료된 작업 (총 7차)
+### 5월 2일 완료된 작업 (총 8차)
 
 1차 (지난 세션)
 - .clineignore 셋업 (commit b32ba89)
@@ -116,37 +116,50 @@ ROI 분석 통합 대시보드 (CRM, KPI, 시스템, P&L 4개 도메인)
   - rename 100% 인식 (47 files changed, 0 insertions, 0 deletions)
   - 주의: `_` prefix 16개 중 _tmp_check_*.mjs 9개는 다국어 검증 일회성 도구 (de, en, id, ja, ko, th, vi, zh, zh-TW)
 
+8차 (이번 세션)
+- 14개 misc 일회성 스크립트 archive (commit 4eec099)
+  - rebuild (2개): rebuild_omni_i18n.cjs, rebuild_webpopup_i18n.cjs
+  - refactor (2개): refactor_sc.cjs, refactor_wa.cjs
+  - restore (2개): restore_and_fix.cjs, restore_locales.cjs
+  - scan (2개): scan_jsx.js, scan_korean.cjs
+  - 단발성 (6개): merge_reviews_blocks.cjs, production_guard.cjs,
+    purge_email_jsx.js, replace_remaining.js, run_crm_fix.js, safe_patch_demo.cjs
+  - 검증 5개 항목 모두 통과: package.json, require, import, 인프라 파일(.sh/.yml/Dockerfile), 전체 .md 문서
+  - rename 100% 인식 (14 files changed, 0 insertions, 0 deletions)
+  - 주의: scan_korean.cjs의 D 마크 자연 해소 확인됨 (인수인계서 예측 적중)
+- deploy_* 12개는 운영 critical로 판단되어 8차에서 의도적 제외 (옵션 A 결정)
+  - docs/WORK_PROCESS.md:456에서 `./deploy_ssh2.cjs --env production --approve` 운영 명령어 발견
+  - docs/BUG-013_DEPLOY_ENCODING_FIX.md에서 deploy_node.cjs, deploy_demo.cjs 언급
+  - docs/JOURNEY_BUILDER_KPI_FIX.md:283에서 `node deploy_demo.cjs` 실행 명령어 발견
+  - deploy_*는 별도 9차에서 신중 처리 필요 (운영 절차 문서 정독 후)
+
 ### 누적 통계
-- archive된 파일 수: 169개 (8 + 15 + 7 + 17 + 42 + 33 + 47)
+- archive된 파일 수: 183개 (8 + 15 + 7 + 17 + 42 + 33 + 47 + 14)
 - archive 위치: tools/migrations/_archived/
 - Cline 호출: 0회 (모든 작업 PowerShell로 처리)
-- 5월 2일 단일 세션 처리량: 161개 (1차 8개 제외)
+- 5월 2일 단일 세션 처리량: 175개 (1차 8개 제외)
 
 ### 다음 작업 후보 (우선순위 순)
 
-1. 루트 정리 8차 — 권장 (먼저 수행)
-   - 7차 후 루트에 약 27개의 .js/.cjs/.mjs 파일 잔존 (vite.config.js 1개 제외 시 약 26개)
-   - 잔존 후보 패턴 (G+H 그룹):
-     - deploy_* (약 11개): deploy_all.cjs, deploy_demo.cjs, deploy_demo_direct.cjs,
-       deploy_demo_v2.cjs, deploy_kakao.cjs, deploy_nginx_root.cjs, deploy_node.cjs,
-       deploy_prod.cjs, deploy_scp.cjs, deploy_ssh2.cjs, deploy_ssh2.js, deploy_win.js
-       ⚠️ 주의: package.json의 npm scripts가 deploy_*를 참조하는지 반드시 검증
-     - merge_* (1개): merge_reviews_blocks.cjs
-     - production_guard.js, purge_email_jsx.js (2개)
-     - rebuild_* (2개): rebuild_omni_i18n.cjs, rebuild_webpopup_i18n.cjs
-     - refactor_* (2개): refactor_sc.cjs, refactor_wa.cjs
-     - replace_remaining.js (1개)
-     - restore_* (2개): restore_and_fix.cjs, restore_locales.cjs
-     - run_crm_fix.js (1개)
-     - safe_patch_demo.cjs (1개)
-     - scan_* (2개): scan_jsx.js, scan_korean.cjs
-       ⚠️ 주의: scan_korean.cjs는 D 마크 표시되는 파일. 이번에 archive하면 D 마크 자연 해소 예상
-     - 보존 필수: vite.config.js (빌드 설정)
-   - 명령어 (검증 시작):
-```powershell
-     Get-ChildItem -File | Where-Object { $_.Name -match '\.(js|cjs|mjs)$' } | Select-Object Name | Sort-Object Name
-```
-   - 7차와 동일 패턴으로 분리/일괄 처리
+1. 루트 정리 9차 — deploy_* 12개 신중 처리 (가장 위험도 높음)
+   - 8차 후 루트에 deploy_*.cjs/.js 12개 + vite.config.js 1개 잔존
+   - deploy_* 12개 목록:
+     - deploy_all.cjs, deploy_demo.cjs, deploy_demo_direct.cjs, deploy_demo_v2.cjs
+     - deploy_kakao.cjs, deploy_nginx_root.cjs, deploy_node.cjs, deploy_prod.cjs
+     - deploy_scp.cjs, deploy_ssh2.cjs, deploy_ssh2.js, deploy_win.js
+   - ⚠️ 운영 critical: 8차 검증 시 docs/ 운영 가이드에서 호출 사례 다수 발견됨
+     - docs/WORK_PROCESS.md:456 → `./deploy_ssh2.cjs --env production --approve` (운영 절차)
+     - docs/BUG-013_DEPLOY_ENCODING_FIX.md → deploy_node.cjs, deploy_demo.cjs 언급
+     - docs/JOURNEY_BUILDER_KPI_FIX.md:283 → `node deploy_demo.cjs` 실행 명령어
+   - 권장 접근:
+     - docs/WORK_PROCESS.md, docs/BUG-013_DEPLOY_ENCODING_FIX.md, docs/JOURNEY_BUILDER_KPI_FIX.md 정독 후 시작
+     - 보존 필수 후보: deploy_ssh2.cjs (운영 명령어), deploy_node.cjs, deploy_demo.cjs
+     - archive 가능 후보 (단순 변형/구버전 추정): deploy_demo_direct.cjs, deploy_demo_v2.cjs,
+       deploy_all.cjs, deploy_kakao.cjs, deploy_nginx_root.cjs, deploy_prod.cjs, deploy_scp.cjs,
+       deploy_ssh2.js (cjs 버전과 다름), deploy_win.js
+     - 단, 위 archive 후보들도 docs 정독 후 개별 확인 필수
+   - 검증 패턴 (8차에서 확립): require, import, 인프라(.sh/.yml/Dockerfile), 전체 .md 문서 5개 항목
+   - 부분 archive 가능성 높음 — 카테고리 통째로 처리 안 됨
 
 2. 비스크립트 잡파일 정리 — 별도 트랙
    - .txt 파일들: find_out.txt, keys_out.txt, ko_check.txt, korean_lines.txt,
@@ -155,7 +168,7 @@ ROI 분석 통합 대시보드 (CRM, KPI, 시스템, P&L 4개 도메인)
      missing_attrData.json, orderHub_keys.json, orderHub_ko.json
    - .py 파일들: fix_audit.py, fix_auth.py, restore_authpage.py
    - .sh 파일: ssh_test.sh
-   - 7차에서는 .js/.cjs/.mjs만 처리, 나머지 형식은 8차 또는 별도 트랙
+   - 7차에서는 .js/.cjs/.mjs만 처리, 나머지 형식은 9차 이후 또는 별도 트랙
 
 3. i18n 누락 키 9개 추가 — 별도 신중 작업
    - ko.js에 channelKpiPage 6곳, 9개 키 누락
@@ -174,16 +187,26 @@ ROI 분석 통합 대시보드 (CRM, KPI, 시스템, P&L 4개 도메인)
   - .clineignore로 차단 중이라 Cline 작업에 영향 없음
   - git status에서 modified로 항상 표시되지만 무시 가능
   - 나중에 별도로 정리 결정 필요
-- scan_korean.cjs: 좌측 사이드바에 D 마크로 보일 수 있으나 working tree에는 영향 없음
-  - VS Code git decoration 캐시 잔재로 추정
-  - git status --short | Select-String "scan_korean" → 빈 결과 확인됨
-  - 8차에서 archive 예정 → 자연 해소 예상
+- scan_korean.cjs D 마크 이슈: 8차에서 archive 처리하며 자연 해소됨 (해결 완료)
 
 ### 중요 분석 자료
 - ko.js 인코딩: 정상 UTF-8
 - jb 섹션: 95% 번역 완료, 9개 키 누락
 - channelKpiPage가 ko.js에 6곳 있음 (구조 복잡)
 - PowerShell Get-Content 출력 시 한글 깨짐 → VS Code 에디터로 직접 보면 정상
+
+### 8차에서 발견된 인프라 파일 목록 (9차 검증 시 활용)
+프로젝트 루트와 하위에 다음 인프라 파일들이 있어 deploy_* 검증 시 반드시 확인 필요:
+- .github/workflows/deploy.yml (GitHub Actions CI/CD)
+- frontend/Dockerfile
+- infra/docker-compose.yml
+- docker-compose.yml (메인)
+- deploy.sh (루트 배포 스크립트)
+- deploy_gitbash.sh (Git Bash용 배포 스크립트)
+- ssh_test.sh
+
+8차 검증 결과: 위 파일 중 어느 것도 8차 archive 대상 14개를 참조하지 않음.
+9차에서는 deploy_* 12개에 대해 동일 검증 필수.
 
 ### 작업 흐름 (검증된 8단계 패턴)
 
@@ -197,6 +220,33 @@ ROI 분석 통합 대시보드 (CRM, KPI, 시스템, P&L 4개 도메인)
    - 카테고리별 개수를 메시지에 명시하면 git log 가독성 좋음
 7단계: git push origin master
 8단계: 인수인계서 NEXT_SESSION.md 업데이트 및 commit/push
+
+### 8차에서 확립된 5단 검증 패턴 (운영 critical 파일 검증용)
+
+운영에 영향이 있을 가능성이 있는 파일(예: deploy_*)은 일반 검증에 추가로 인프라/문서 검증이 필수:
+
+```powershell
+# 패턴을 변수에 저장
+$pattern = "(deploy_all|deploy_demo|...)"
+
+# 검증 1: package.json
+(Select-String -Path "package.json" -Pattern $pattern | Measure-Object).Count
+
+# 검증 2: require()
+(Select-String -Path "*.js","*.cjs","*.mjs" -Pattern "require\(['""]\./$pattern" -List | Measure-Object).Count
+
+# 검증 3: ES module import
+(Select-String -Path "*.js","*.cjs","*.mjs" -Pattern "from\s+['""]\./$pattern" -List | Measure-Object).Count
+
+# 검증 4: 인프라 파일 (운영 호출)
+Select-String -Path ".github/workflows/deploy.yml","frontend/Dockerfile","infra/docker-compose.yml","docker-compose.yml","deploy.sh","deploy_gitbash.sh","ssh_test.sh" -Pattern $pattern
+
+# 검증 5: 전체 문서 (운영 가이드)
+Get-ChildItem -Recurse -File -Filter "*.md" -ErrorAction SilentlyContinue | Where-Object { $_.FullName -notmatch 'node_modules|_archived|clean_src|legacy|NEXT_SESSION' } | Select-String -Pattern $pattern
+```
+
+5개 항목 모두 0건/출력없음일 때만 archive 안전.
+어느 하나라도 매칭이 발견되면 그 파일은 보존하거나 별도 분석 필요.
 
 ### 5차에서 검증된 일괄 처리 PowerShell 패턴
 
@@ -234,7 +284,7 @@ Get-ChildItem -File | Where-Object { $_.Name -match '^smart_' } | ForEach-Object
 Select-String -Path "*.js","*.cjs","*.mjs" -Pattern "PATTERN.*\.json" -List
 ```
 
-### 7차에서 추가로 검증된 패턴 (변수 활용 + 라인 wrapping 회피)
+### 7차/8차에서 추가로 검증된 패턴 (변수 활용 + 라인 wrapping 회피)
 
 ```powershell
 # 패턴이 길어질 때 변수에 저장해서 라인 wrapping 문제 회피
@@ -252,17 +302,22 @@ Write-Host "Renamed: $count"
 # git status 중 일부만 미리보기 (의도한 카테고리인지 검증)
 git status --short | Select-String "^R" | Select-Object -First 10
 
+# 8차에서 확립: anchor를 활용한 정확한 카테고리 매칭
+# ^($pattern)\.(js|cjs|mjs)$ 처럼 시작과 확장자를 anchor로 잡아서 오매칭 방지
+Get-ChildItem -File | Where-Object { $_.Name -match "^($batchPattern)\.(js|cjs|mjs)$" } | ForEach-Object { git mv $_.Name "tools/migrations/_archived/$($_.Name)" }
+
 # `_` prefix는 정규식에서 escape 불필요 (^_ 그대로 사용 가능)
 Get-ChildItem -File | Where-Object { $_.Name -match '^_' -and $_.Name -match '\.(js|cjs|mjs)$' } | ForEach-Object { git mv $_.Name "tools/migrations/_archived/$($_.Name)" }
 ```
 
-### PowerShell 사용 시 주의사항 (7차에서 발견)
+### PowerShell 사용 시 주의사항 (7차/8차에서 발견)
 
 - 명령어가 너무 길면 줄바꿈되어 라인 wrapping 발생 → GUID나 OSC 시퀀스가 결과처럼 출력됨
   - 해결: 패턴을 변수에 저장 후 짧게 호출
 - Write-Host와 Get-ChildItem 같은 명령어를 한 줄에 붙이지 말 것 (Enter로 분리)
 - 결과 검증 시 `0`이 단독 출력되면 다음 프롬프트 `PS`의 `P`가 잘려 `0S D:\...`로 보일 수 있음 (정상)
 - Clear-Host로 화면 정리 후 다시 명령어 실행하면 가독성 향상
+- 두 줄 명령어 입력 시 첫 줄 Enter → 결과 확인 → 두 번째 줄 입력 (한꺼번에 입력 X)
 
 ### .clineignore 핵심 차단 패턴
 - frontend/src/i18n/locales/**/*.js (15개 언어 거대 파일)
@@ -279,7 +334,8 @@ Get-ChildItem -File | Where-Object { $_.Name -match '^_' -and $_.Name -match '\.
 - 5차에서 PowerShell만으로 42개 처리 → Cline 호출 0회
 - 6차에서 PowerShell만으로 33개 처리 → Cline 호출 0회
 - 7차에서 PowerShell만으로 47개 처리 → Cline 호출 0회
-- 5월 2일 누적 161개 파일 처리 / Cline 호출 0회 / 비용 $0.0585 유지
+- 8차에서 PowerShell만으로 14개 처리 → Cline 호출 0회
+- 5월 2일 누적 175개 파일 처리 / Cline 호출 0회 / 비용 $0.0585 유지
 - .clineignore 도입 효과: Cline 작업당 약 70% 절감
 
 ---
@@ -313,11 +369,13 @@ Get-ChildItem -File | Where-Object { $_.Name -match '^_' -and $_.Name -match '\.
 
 ## 첫 요청 (다음 세션 시작 시 사용)
 
-루트 정리 8차 (권장 시작점):
+루트 정리 9차 (deploy_* 신중 처리, 권장 시작점):
 "지난 세션 완료 작업을 확인하고 다음 진행을 추천해주세요.
 PowerShell로 git log -5 부터 확인 부탁합니다.
-이번엔 루트 정리 8차로 deploy_*, restore_*, scan_* 등 잔존 27개 점검을 진행하고 싶습니다.
-deploy_*는 npm scripts 참조 가능성 있으니 검증 신중히 부탁합니다."
+이번엔 루트 정리 9차로 deploy_* 12개 점검을 진행하고 싶습니다.
+8차 검증에서 docs/WORK_PROCESS.md, docs/BUG-013, docs/JOURNEY_BUILDER_KPI_FIX에서
+deploy_ssh2.cjs/deploy_node.cjs/deploy_demo.cjs 운영 호출이 발견되었으니
+이 3개 docs 파일을 먼저 정독한 후 archive 가능/보존 필수를 분리해주세요."
 
 i18n 누락 키 작업:
 "GeniegoROI ko.js의 channelKpiPage 누락 키 9개 추가 작업을 시작하고 싶습니다.
