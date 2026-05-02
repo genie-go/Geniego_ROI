@@ -20,3 +20,6 @@ deploy_extracted/
 deploy_extracted_real/
 build_output.txt
 *.timestamp-*
+
+# deploy execution logs
+deploy_*.txt
