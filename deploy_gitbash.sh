@@ -9,7 +9,6 @@ REMOTE_HOST="1.201.177.46"
 REMOTE_PATH="/home/wwwroot/roi.geniego.com/frontend/dist"
 LOCAL_BUILD_DIR="./frontend/dist"
 SSH_KEY="$HOME/.ssh/id_rsa"
-PASSWORD='vot@Wlroi6!'
 
 echo "==============================="
 echo "  GeniegoROI Production Deploy"
