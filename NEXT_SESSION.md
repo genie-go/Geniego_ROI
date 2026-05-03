@@ -1,7 +1,7 @@
 # GeniegoROI 다음 세션 인수인계 문서
 
-> Last Updated: 2026-05-03 (15차 완료)
-> Last Commit: 500a951 (origin/master 동기화 완료)
+> Last Updated: 2026-05-03 (18차 완료)
+> Last Commit: 23afedc (origin/master 동기화 완료)
 
 ---
 
@@ -192,7 +192,7 @@ ROI 분석 통합 대시보드 (CRM, KPI, 시스템, P&L 4개 도메인)
   + Patch 4 알려진 이슈 Phase 1: + Phase 2 통과 확정 + RollupDashboard 해소
   + Patch 5 RollupDashboard 줄: 🔴 중복 선언 → 🟢 해소
   + Patch 6 CI/CD 매트릭스 Phase 2: 🔴 미통과 → ✅ 통과
-  + Patch 7 CI/CD 매트릭스 Phase 3: ⊘ 미도달 → 🔴 secrets 미등록
+  + Patch 7 CI/CD 매트릭스 Phase 3: ⊘ 16차 가드로 graceful skip → 🔴 secrets 미등록
   + Patch 8 CI/CD 분석: + Phase 2 통과 + Phase 3 secrets 분리
   + Patch 9 비용 추적: + 15차 추가 + 누적 통계 Phase 2 통과 추가
 * **운영 영향**: 0% (RollupDashboard 동작 변화 0%, 운영 자동 배포는 16차 secrets 등록 시 활성화)
@@ -277,10 +277,10 @@ ROI 분석 통합 대시보드 (CRM, KPI, 시스템, P&L 4개 도메인)
 * 11차 보안 정리: 1개 (deploy_gitbash.sh PASSWORD 라인 제거)
 * 12차 CI 활성화: 1개 (.github/workflows/deploy.yml — 9곳 변경)
 * 13차 YAML 수정: 1개 (.github/workflows/deploy.yml — 5곳 따옴표 추가)
-* 14차 deploy.yml 정리: 2 commits (line 23~25 제거 + line 22 교체) ⭐ NEW
+* 14차 deploy.yml 정리: 2 commits (line 23~25 제거 + line 22 교체)
 * Cline 호출: **0회** (모든 작업 PowerShell + VS Code + .NET API로 처리)
-* 5월 단일 세션 (5월 2~3일) 처리량: **184개 archive + 3개 untrack + 6개 보존 결정 + 1개 보안 정리 + 1개 CI 활성화 + 1개 YAML 수정 + Phase 1 정상화 + Phase 2 통과 + TAB_COLORS 수정 + Phase 3~5 secrets 가드 + Slack 가드 + actions v4 업그레이드 + Annotations 0건 달성**
-* 비용: $0.0585 유지 (16차+17차 모두 Cline 호출 0회)
+* 5월 단일 세션 (5월 2~3일) 처리량: **184개 archive + 3개 untrack + 6개 보존 결정 + 1개 보안 정리 + 1개 CI 활성화 + 1개 YAML 수정 + Phase 1 정상화 + Phase 2 통과 + TAB_COLORS 수정 + Phase 3~5 secrets 가드 + Slack 가드 + actions v4 업그레이드 + Annotations 0건 달성 + 18차 docs 보강**
+* 비용: $0.0585 유지 (16차+17차+18차+19차 모두 Cline 호출 0회)
 
 ### 다음 작업 후보 (우선순위 순)
 
@@ -354,7 +354,6 @@ ROI 분석 통합 대시보드 (CRM, KPI, 시스템, P&L 4개 도메인)
 * **🟢 .github/workflows/deploy.yml Phase 1 통과 확정** (14차)
 * **🟢 .github/workflows/deploy.yml Phase 2 통과 확정** (15차) ⭐ NEW
 * **🟢 frontend/src/pages/RollupDashboard.jsx TAB_COLORS 중복 선언 해소** (15차 commit 500a951) ⭐ NEW
-* **🟢 frontend/src/pages/RollupDashboard.jsx TAB_COLORS 중복 선언 해소** (15차 commit 500a951)
 
 ### 운영 critical 파일 보존 매트릭스
 
@@ -381,7 +380,7 @@ ROI 분석 통합 대시보드 (CRM, KPI, 시스템, P&L 4개 도메인)
 | --- | --- | --- |
 | .github/workflows/deploy.yml | **활성화 + Phase 1 통과** (14차 commit 822927b) | 12차: branches main → master, AI 마커 제거. 13차: PHASE 1~5 따옴표 추가. 14차: gen_locales/patch_ko_locales 제거 + vm.createScript → readFileSync |
 
-### GitHub Actions CI/CD 분석 (14차 작업 후 최신 상태) ⭐ NEW
+### GitHub Actions CI/CD 분석 (18차 작업 후 최신 상태)
 
 .github/workflows/deploy.yml 5단계 chain:
 
@@ -389,17 +388,17 @@ ROI 분석 통합 대시보드 (CRM, KPI, 시스템, P&L 4개 도메인)
 | --- | --- | --- |
 | 1 | "[PHASE 1] Syntax Guard & I18N Patch" | ✅ 14차 통과 |
 | 2 | "[PHASE 2] Production Build" | ✅ 15차 통과 (commit 500a951) |
-| 3 | "[PHASE 3] Secure Deploy (SFTP)" | 🔴 15차 도달, secrets.REMOTE_IP/REMOTE_USER/SSH_PRIVATE_KEY 미등록 |
-| 4 | "[PHASE 4] Post-Deploy Infrastructure Refresh" | ⊘ 미도달 |
-| 5 | "[PHASE 5] Health Check & Rollback" | ⊘ 미도달 |
-| - | "Slack Notification" (always 트리거) | 🟡 secrets.SLACK_WEBHOOK_URL 미등록 |
+| 3 | "[PHASE 3] Secure Deploy (SFTP)" | ⊘ 16차 가드로 graceful skip |
+| 4 | "[PHASE 4] Post-Deploy Infrastructure Refresh" | ⊘ 16차 가드로 graceful skip |
+| 5 | "[PHASE 5] Health Check & Rollback" | ⊘ 16차 가드로 graceful skip |
+| - | "Slack Notification" (always 트리거) | ⊘ 16차 가드로 graceful skip |
 
 * 트리거: on push branches master ✅ (12차)
 * YAML 파싱: ✅ 통과 (13차)
 * Phase 1 통과: ✅ (14차)
 * Phase 2 진입 + 부분 통과 (npm install + vite 시작): ✅ (14차)
 * Phase 2 vite 빌드 통과: ✅ (15차 commit 500a951)
-* Phase 3~5 secrets 등록: 🔴 (16차 최우선)
+* Phase 3~5 secrets 가드 적용: ✅ (16차)
 
 ### 작업 흐름 (검증된 8단계 패턴)
 
@@ -624,12 +623,11 @@ $result = Select-String -Path "D:\project\GeniegoROI\frontend\..." -Pattern "...
 
 ## 첫 요청 (다음 세션 시작 시 사용)
 
-🔴 **RollupDashboard.jsx TAB_COLORS 중복 선언 수정 (15차 최우선 추천):** ⭐ NEW
-"GeniegoROI GitHub Actions의 14차 push 후 Phase 2 vite 빌드 실패를 진단/수정하고 싶습니다.
-14차에서 Phase 1 통과 + Phase 2 npm install 통과 + vite 진입까지 진전했으나(commit 822927b),
-RollupDashboard.jsx:1051에서 TAB_COLORS 중복 선언으로 vite SyntaxError 2.17초만에 빌드 실패합니다.
-line 1035 props에서 TAB_COLORS를 받고 line 1051에서 const TAB_COLORS = useMemo()로 재선언.
-운영 영향 검토 후 옵션 A(이름 변경) / B(props 제거) / C(local 제거) 중 선택해서 진행하고 싶습니다."
+🟢 **NEXT_SESSION.md 정합성 보정 완료 (19차 작업, line 1022 ReferenceError 검증 종결):**
+"GeniegoROI NEXT_SESSION.md 메타 영역 정합성 보정 완료(19차).
+헤더/누적 통계/CI 매트릭스 표/알려진 이슈/첫 요청 블록 갱신.
+RollupDashboard.jsx line 1022 ReferenceError는 15차 commit 500a951 시점에 이미 종결됨이 19차에 정식 검증 완료(line 1050 const TAB_COLORS 선언과 1076/1105/1106/1111 사용 모두 같은 함수 스코프).
+다음 1순위는 비스크립트 잡파일 정리 또는 i18n 누락 키 작업 중 선택."
 
 비스크립트 잡파일 정리:
 "GeniegoROI 루트의 .txt/.json/.py 잡파일 정리를 시작하고 싶습니다.
