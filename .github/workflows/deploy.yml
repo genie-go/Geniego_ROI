@@ -20,9 +20,6 @@ jobs:
         run: |
           # en.js 구문 검증
           node -e "const fs=require('fs'); try { const src=fs.readFileSync('./frontend/src/i18n/locales/en.js', 'utf8'); require('vm').createScript(src); console.log('✓ EN_JS_VALID'); } catch(e) { process.exit(1); }"
-          # 로케일 생성 및 패치
-          node "./frontend/src/i18n/locales/gen_locales.mjs"
-          node "./frontend/src/i18n/locales/patch_ko_locales.js"
 
       - name: "[PHASE 2] Production Build"
         run: |
