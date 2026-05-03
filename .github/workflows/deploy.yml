@@ -4,6 +4,11 @@ on:
   push:
     branches: [ master ] # 메인 브랜치 푸시 시 자동 실행
 
+env:
+  HAS_SSH_SECRETS: ${{ secrets.REMOTE_IP != '' && secrets.REMOTE_USER != '' && secrets.SSH_PRIVATE_KEY != '' }}
+  HAS_TEST_SECRETS: ${{ secrets.TEST_EMAIL != '' && secrets.TEST_PASS != '' }}
+  HAS_SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL != '' }}
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -28,6 +33,7 @@ jobs:
           npm run build --silent
 
       - name: "[PHASE 3] Secure Deploy (SFTP)"
+        if: ${{ env.HAS_SSH_SECRETS == 'true' }}
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.REMOTE_IP }}
@@ -37,6 +43,7 @@ jobs:
           target: "/home/wwwroot/roi.geniego.com/frontend"
 
       - name: "[PHASE 4] Post-Deploy Infrastructure Refresh"
+        if: ${{ env.HAS_SSH_SECRETS == 'true' }}
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.REMOTE_IP }}
@@ -47,6 +54,7 @@ jobs:
             /usr/local/nginx/sbin/nginx -s reload
 
       - name: "[PHASE 5] Health Check & Rollback"
+        if: ${{ env.HAS_TEST_SECRETS == 'true' }}
         run: |
           # 5초 대기 후 로그인 API 검증
           sleep 5
@@ -59,10 +67,10 @@ jobs:
           fi
 
       - name: Slack Notification
-        if: always()
+        if: ${{ always() && env.HAS_SLACK_WEBHOOK == 'true' }}
         uses: 8398a7/action-slack@v3
         with:
           status: ${{ job.status }}
           fields: repo,message,commit,author,action,eventName,ref,workflow
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
