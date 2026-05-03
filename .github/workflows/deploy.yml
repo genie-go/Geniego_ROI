@@ -16,7 +16,7 @@ jobs:
         with:
           node-version: '18'
 
-      - name: [PHASE 1] Syntax Guard & I18N Patch
+      - name: "[PHASE 1] Syntax Guard & I18N Patch"
         run: |
           # en.js 구문 검증
           node -e "const fs=require('fs'); try { const src=fs.readFileSync('./frontend/src/i18n/locales/en.js', 'utf8'); require('vm').createScript(src); console.log('✓ EN_JS_VALID'); } catch(e) { process.exit(1); }"
@@ -24,13 +24,13 @@ jobs:
           node "./frontend/src/i18n/locales/gen_locales.mjs"
           node "./frontend/src/i18n/locales/patch_ko_locales.js"
 
-      - name: [PHASE 2] Production Build
+      - name: "[PHASE 2] Production Build"
         run: |
           cd frontend
           npm install
           npm run build --silent
 
-      - name: [PHASE 3] Secure Deploy (SFTP)
+      - name: "[PHASE 3] Secure Deploy (SFTP)"
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.REMOTE_IP }}
@@ -39,7 +39,7 @@ jobs:
           source: "frontend/dist/*"
           target: "/home/wwwroot/roi.geniego.com/frontend"
 
-      - name: [PHASE 4] Post-Deploy Infrastructure Refresh
+      - name: "[PHASE 4] Post-Deploy Infrastructure Refresh"
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.REMOTE_IP }}
@@ -49,7 +49,7 @@ jobs:
             chown -R www:www /home/wwwroot/roi.geniego.com
             /usr/local/nginx/sbin/nginx -s reload
 
-      - name: [PHASE 5] Health Check & Rollback
+      - name: "[PHASE 5] Health Check & Rollback"
         run: |
           # 5초 대기 후 로그인 API 검증
           sleep 5
