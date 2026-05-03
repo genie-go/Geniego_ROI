@@ -198,23 +198,93 @@ ROI 분석 통합 대시보드 (CRM, KPI, 시스템, P&L 4개 도메인)
 * **운영 영향**: 0% (RollupDashboard 동작 변화 0%, 운영 자동 배포는 16차 secrets 등록 시 활성화)
 * **Cline 호출 0회**, 비용 $0 추가
 
+16차 (5월 3일) ★ NEW
+
+* **GitHub Actions Secrets 가드 적용 — Phase 3~5 + Slack 모두 graceful skip + Slack secret 이름 통일**
+* **🚨 결정적 발견 1: deploy.yml의 Slack secret 이름이 NEXT_SESSION.md와 불일치**
+  + 문서 표기: `secrets.SLACK_WEBHOOK_URL`
+  + 실제 deploy.yml: `secrets.SLACK_WEBHOOK` (URL 누락)
+  + 결과: 16차에서 등록 시도해도 작동 안 됐을 가능성 → 사전 발견으로 시간 절약
+* **🚨 결정적 발견 2: 옵션 (C) 가드 + (B) Slack 통합이 가장 안전한 진입점**
+  + (A) secrets 6개 등록은 SSH_PRIVATE_KEY/TEST_PASS 노출 위험 (11차 PW 청소 정신 위배)
+  + (D) `if: false`는 가짜 통과로 실제 배포 차단
+  + (C)는 secrets 미등록 상태에서 graceful skip → 운영 영향 0% 유지
+* **수정 작업 (deploy.yml 단일 파일, 10 insertions / 2 deletions)**:
+  + 단계 1: 워크플로우 상단에 `env:` 블록 추가 (HAS_SSH_SECRETS, HAS_TEST_SECRETS, HAS_SLACK_WEBHOOK 3개 플래그)
+  + 단계 2: Phase 3 (SCP), Phase 4 (SSH)에 `if: ${{ env.HAS_SSH_SECRETS == 'true' }}` 가드 추가
+  + 단계 3: Phase 5 (Health)에 `if: ${{ env.HAS_TEST_SECRETS == 'true' }}` 가드 추가
+  + 단계 4: Slack Notification에 `if: ${{ always() && env.HAS_SLACK_WEBHOOK == 'true' }}` 가드 추가
+  + 단계 5: Slack secret 이름을 `SLACK_WEBHOOK` → `SLACK_WEBHOOK_URL`로 통일 (문서와 일치)
+* **commit 970f3fd**: fix(ci): add secrets guards to deploy.yml phase 3-5 and slack
+* **GitHub Actions 진전 매트릭스 (#134)**:
+  + Total duration: 35s
+  + Phase 1: ✅ 통과 (0s)
+  + Phase 2: ✅ 통과 (24s, npm install + vite 빌드)
+  + Phase 3 (SCP): ⊘ Skipped (HAS_SSH_SECRETS=false)
+  + Phase 4 (SSH): ⊘ Skipped (HAS_SSH_SECRETS=false)
+  + Phase 5 (Health): ⊘ Skipped (HAS_TEST_SECRETS=false)
+  + Slack Notification: ⊘ Skipped (HAS_SLACK_WEBHOOK=false)
+  + **전체 결과: ✅ Success (clean green!)**
+* **🟡 16차에서 새로 노출된 issue (17차 후보)**:
+  + Annotations 2 warnings 발생:
+    - Warning 1: Node.js 20 deprecation (actions/checkout@v3, actions/setup-node@v3)
+    - Warning 2: Post Checkout Source Code git exit 128 (13차에서 무해 확정)
+* **운영 영향**: 0% (수동 deploy.ps1/deploy.sh chain 별도 운영)
+* **Cline 호출 0회**, 비용 $0 추가
+
+17차 (5월 3일) ★ NEW
+
+* **GitHub Actions Annotations 0건 달성 — Node.js 20 deprecation 해소 + git exit 128 동시 해결**
+* **🚨 결정적 발견 1: 13차 발견의 실제 적용 시점이 17차로 도래**
+  + 13차 NEXT_SESSION.md 메모: actions/checkout@v3, actions/setup-node@v3, 8398a7/action-slack@v3 모두 v4 업그레이드 권장
+  + 16차에서 처음 actual warning으로 GitHub Actions에 노출됨
+  + 사전 발견된 작업 후보 #6번을 17차에서 처리
+* **🚨 결정적 발견 2: 8398a7/action-slack은 v3가 최신 (v4 없음)**
+  + actions/checkout, actions/setup-node는 v4로 업그레이드 가능
+  + 8398a7/action-slack@v3는 그대로 유지 (v4 미존재)
+  + appleboy/scp-action@master, appleboy/ssh-action@master는 별도 작업으로 보류 (master pin은 보안 권장사항이지만 안정성 우선)
+* **🚨 결정적 발견 3: v4 업그레이드만으로 git exit 128 warning도 함께 해소**
+  + 13차에서 "무해 확정"으로 분류된 git exit 128 경고가 v4에서 사라짐
+  + actions/checkout@v4의 내부 cleanup 로직 개선 추정
+* **수정 작업 (deploy.yml 단일 파일, 2 insertions / 2 deletions, 매우 작은 변경)**:
+  + 변경 1: line 17 `actions/checkout@v3` → `@v4`
+  + 변경 2: line 20 `actions/setup-node@v3` → `@v4`
+  + Find & Replace 2회로 처리
+* **commit 780de8d**: fix(ci): upgrade actions to v4 for Node.js 20 compat
+* **GitHub Actions 진전 매트릭스 (#135)**:
+  + Total duration: 44s (16차 35s + 9s, v4 약간 무거움)
+  + Phase 1: ✅ 통과
+  + Phase 2: ✅ 통과
+  + Phase 3 (SCP): ⊘ Skipped
+  + Phase 4 (SSH): ⊘ Skipped
+  + Phase 5 (Health): ⊘ Skipped
+  + Slack Notification: ⊘ Skipped
+  + **전체 결과: ✅ Success + Annotations 0건 (완전 클린!)**
+* **🏆 17차에서 처음 도달한 상태**:
+  + Annotations 섹션 자체가 사라짐 (이전 16차는 2 warnings)
+  + CI 매트릭스 100% 클린 — 빨간색 0개, 노란색 0개
+  + 5월 3일 4번의 사이클(14~17차) 끝에 처음 달성한 완전 그린
+* **🟡 17차에서 새로 노출된 issue 없음** (별도 작업 후보 그대로 유지)
+* **운영 영향**: 0% (수동 deploy chain 그대로)
+* **Cline 호출 0회**, 비용 $0 추가
+
 ### 누적 통계
 
 * archive된 파일 수: **192개** (8 + 15 + 7 + 17 + 42 + 33 + 47 + 14 + 9)
 * archive 위치: tools/migrations/_archived/
 * 10차 git untrack: 3개 (deploy_*.txt)
-* 10차 보존 확정: 3개 (.ps1, .sh, _gitbash.sh)
+* 10차 보존 확정: 3개 (.ps1, .sh, _gitbash.sh)`
 * 11차 보안 정리: 1개 (deploy_gitbash.sh PASSWORD 라인 제거)
 * 12차 CI 활성화: 1개 (.github/workflows/deploy.yml — 9곳 변경)
 * 13차 YAML 수정: 1개 (.github/workflows/deploy.yml — 5곳 따옴표 추가)
 * 14차 deploy.yml 정리: 2 commits (line 23~25 제거 + line 22 교체) ⭐ NEW
 * Cline 호출: **0회** (모든 작업 PowerShell + VS Code + .NET API로 처리)
-* 5월 단일 세션 (5월 2~3일) 처리량: **184개 archive + 3개 untrack + 6개 보존 결정 + 1개 보안 정리 + 1개 CI 활성화 + 1개 YAML 수정 + Phase 1 정상화 + Phase 2 통과 + TAB_COLORS 수정**
-* 비용: $0.0585 유지
+* 5월 단일 세션 (5월 2~3일) 처리량: **184개 archive + 3개 untrack + 6개 보존 결정 + 1개 보안 정리 + 1개 CI 활성화 + 1개 YAML 수정 + Phase 1 정상화 + Phase 2 통과 + TAB_COLORS 수정 + Phase 3~5 secrets 가드 + Slack 가드 + actions v4 업그레이드 + Annotations 0건 달성**
+* 비용: $0.0585 유지 (16차+17차 모두 Cline 호출 0회)
 
 ### 다음 작업 후보 (우선순위 순)
 
-1. **🔴 GitHub Actions Secrets 등록 — 16차 최우선** ⭐ NEW (15차 진단 완료)
+1. **🔴 GitHub Actions Secrets 등록 — 16차 최우선** ⭐ DONE
    * **현 상태**: Phase 2 통과, Phase 3~5는 secrets 미등록으로 막힘
    * **deploy.yml line 30~60 분석 결과 — 등록 필요한 6개 secrets**:
      + Phase 3, 4: REMOTE_IP, REMOTE_USER, SSH_PRIVATE_KEY (SCP/SSH 인증)
@@ -232,6 +302,8 @@ ROI 분석 통합 대시보드 (CRM, KPI, 시스템, P&L 4개 도메인)
      + (D) Phase 3~5 step에 if: false 임시 비활성화 → 모든 step 녹색 ✅
    * **보안 주의**: SSH_PRIVATE_KEY는 매우 민감. TEST_PASS는 운영 비밀번호 (11차 평문 PW 이슈와 연결).
    * **운영 영향**: 옵션에 따라 다름. (A)는 운영 자동 배포 완성, (D)는 영향 0%.
+   * **✅ 16차 완료 (commit 970f3fd, Run #134)**: 옵션 (C) + (B) 적용 — env 가드 + Slack secret 이름 통일로 graceful skip 달성, CI 매트릭스 ✅ green
+
 
 2. **🟡 Slack secrets 등록 또는 가드 추가**
    * **현 상태**: Slack Notification step이 always() 트리거로 모든 run 실패에 추가됨
@@ -253,8 +325,10 @@ ROI 분석 통합 대시보드 (CRM, KPI, 시스템, P&L 4개 도메인)
    * 누락 키: channelKpiPage, tabCommunity, tabContent, tabGoals, tabMonitor, tabRoles, tabSetup, tabSns, tabTargets
    * Cline 호출 필요
 
-6. **🟡 GitHub Actions Node.js 20 deprecation — 선택 작업**
+6. **🟡 GitHub Actions Node.js 20 deprecation — 선택 작업** ★ DONE
    * 13차 발견: actions/checkout@v3, actions/setup-node@v3, 8398a7/action-slack@v3 모두 v4 업그레이드 권장
+* **✅ 17차 완료 (commit 780de8d, Run #135)**: actions/checkout@v3 → v4, actions/setup-node@v3 → v4 업그레이드 — Annotations 0건 달성, git exit 128 동시 해소 (8398a7/action-slack@v3는 v4 미존재로 그대로 유지)
+
 
 7. **🟡 git history 평문 PW 청소 — 선택 작업**
    * 11차에서 working tree는 정리했으나 ac6b8be 등에 잔존
