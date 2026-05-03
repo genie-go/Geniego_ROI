@@ -1,7 +1,7 @@
 # GeniegoROI 다음 세션 인수인계 문서
 
-> Last Updated: 2026-05-03 (18차 완료)
-> Last Commit: 23afedc (origin/master 동기화 완료)
+> Last Updated: 2026-05-04 (20차 완료)
+> Last Commit: ca9eb8c (origin/master 동기화 완료)
 
 ---
 
@@ -268,6 +268,33 @@ ROI 분석 통합 대시보드 (CRM, KPI, 시스템, P&L 4개 도메인)
 * **운영 영향**: 0% (수동 deploy chain 그대로)
 * **Cline 호출 0회**, 비용 $0 추가
 
+20차 (5월 4일)  NEW
+
+* **GeniegoROI 루트 .txt 잡파일 정리 — 17개 git mv archive + 3개 untracked Move-Item archive (총 20개)**
+* **🚨 결정적 발견 1: 27개 .txt 중 25개가 외부 참조 0건의 일회성 출력**
+  + 9차 5단 검증 패턴 적용: package.json / requireimport / 인프라 / docs 모두 통과
+  + 보존 결정 2개: _crash_snippet.txt (BUG-012 분석 보고서가 인용), missing_keys.txt (다음 세션 i18n 작업 자료)
+* **🚨 결정적 발견 2: 3개 파일은 git untracked 상태 — git mv 거부됨**
+  + deploy_diff_14th.txt, deploy_diff_14th_2.txt: 14차 진단 출력, 한 번도 git add 안 됨
+  + build_output.txt (1.1MB): 빌드 산출물, .gitignore 또는 한 번도 추적 안 됨
+  + 우회: Move-Item으로 archive 디렉토리에 일관성 이동 (git는 모르지만 파일은 옮겨짐)
+* **🚨 결정적 발견 3: VS Code/Antigravity 통합 터미널 GUID 마커 함정 패턴 5번째 검증**
+  + 19차에 발견된 함정이 20차에서도 동일하게 발생
+  + 화면 깨짐(이모지  ??, 백슬래시  \x5c, GUID 마커 끼어듦)  실제 명령 실패
+  + 결과 검증은 항상 디스크 파일을 직접 확인  .Replace는 정확히 작동
+* **수정 작업 (3 wave 분할)**:
+  + Wave 1 (11개, git tracked): _claim_tab_backup, _files_needing_t, _prod_files, d1~d4, debug_out, find_out, ko_check, sub_check
+  + Wave 2 (6개, git tracked): en_tabs, en_test, eng_lines, keys_out, korean_lines, tab_keys
+  + Wave 2 잔여 (2개, untracked): deploy_diff_14th, deploy_diff_14th_2  Move-Item
+  + Wave 3 (1개, untracked): build_output.txt (1.1MB)  Move-Item
+* **commit ca9eb8c**: chore(20th): archive 17 obsolete .txt files (wave 1-2, txt cleanup)
+* **🟢 20차에서 처음 도달한 상태**:
+  + 루트 .txt 잡파일 청소 완료 (27  2개로 축소)
+  + 운영 critical 인프라(deploy.yml, deploy.sh 등) 영향 0% 유지
+* **🟡 20차에서 새로 노출된 issue 없음** (다음 작업 후보: i18n 누락 키 작업, .py.json 잡파일 정리)
+* **운영 영향**: 0% (.txt는 운영에 묶이지 않음)
+* **Cline 호출 0회**, 비용  추가
+
 ### 누적 통계
 
 * archive된 파일 수: **192개** (8 + 15 + 7 + 17 + 42 + 33 + 47 + 14 + 9)
@@ -279,8 +306,8 @@ ROI 분석 통합 대시보드 (CRM, KPI, 시스템, P&L 4개 도메인)
 * 13차 YAML 수정: 1개 (.github/workflows/deploy.yml — 5곳 따옴표 추가)
 * 14차 deploy.yml 정리: 2 commits (line 23~25 제거 + line 22 교체)
 * Cline 호출: **0회** (모든 작업 PowerShell + VS Code + .NET API로 처리)
-* 5월 단일 세션 (5월 2~3일) 처리량: **184개 archive + 3개 untrack + 6개 보존 결정 + 1개 보안 정리 + 1개 CI 활성화 + 1개 YAML 수정 + Phase 1 정상화 + Phase 2 통과 + TAB_COLORS 수정 + Phase 3~5 secrets 가드 + Slack 가드 + actions v4 업그레이드 + Annotations 0건 달성 + 18차 docs 보강**
-* 비용: $0.0585 유지 (16차+17차+18차+19차 모두 Cline 호출 0회)
+* 5월 단일 세션 (5월 2~4일) 처리량: **204개 archive + 3개 untrack + 6개 보존 결정 + 1개 보안 정리 + 1개 CI 활성화 + 1개 YAML 수정 + Phase 1 정상화 + Phase 2 통과 + TAB_COLORS 수정 + Phase 3~5 secrets 가드 + Slack 가드 + actions v4 업그레이드 + Annotations 0건 달성 + 18차 docs 보강 + 19차 메타 보정 + 20차 .txt 20개 archive**
+* 비용: $0.0585 유지 (16차+17차+18차+19차+20차 모두 Cline 호출 0회)
 
 ### 다음 작업 후보 (우선순위 순)
 
@@ -623,11 +650,12 @@ $result = Select-String -Path "D:\project\GeniegoROI\frontend\..." -Pattern "...
 
 ## 첫 요청 (다음 세션 시작 시 사용)
 
-🟢 **NEXT_SESSION.md 정합성 보정 완료 (19차 작업, line 1022 ReferenceError 검증 종결):**
-"GeniegoROI NEXT_SESSION.md 메타 영역 정합성 보정 완료(19차).
-헤더/누적 통계/CI 매트릭스 표/알려진 이슈/첫 요청 블록 갱신.
-RollupDashboard.jsx line 1022 ReferenceError는 15차 commit 500a951 시점에 이미 종결됨이 19차에 정식 검증 완료(line 1050 const TAB_COLORS 선언과 1076/1105/1106/1111 사용 모두 같은 함수 스코프).
-다음 1순위는 비스크립트 잡파일 정리 또는 i18n 누락 키 작업 중 선택."
+🟢 **20차 .txt 잡파일 정리 완료 — 다음 1순위는 i18n 누락 키 작업:**
+"GeniegoROI 20차 작업까지 완료(commit ca9eb8c).
+27개 .txt 중 25개 archive 완료(보존 2개: _crash_snippet.txt, missing_keys.txt).
+다음 1순위는 i18n 누락 키 작업입니다.
+ko.js의 channelKpiPage 누락 키 9개(channelKpiPage, tabCommunity, tabContent, tabGoals, tabMonitor, tabRoles, tabSetup, tabSns, tabTargets)를 추가하고 싶습니다.
+missing_keys.txt(루트, 보존됨)에 작업 자료가 있고, 구조가 복잡하니 신중하게 진행해주세요."
 
 비스크립트 잡파일 정리:
 "GeniegoROI 루트의 .txt/.json/.py 잡파일 정리를 시작하고 싶습니다.
