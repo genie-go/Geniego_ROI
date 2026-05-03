@@ -1019,7 +1019,6 @@ export default function RollupDashboard() {
         txt={txt}
         fc={fc}
         isRTL={isRTL}
-        TAB_COLORS={TAB_COLORS}
         TABS={TABS}
         tab={tab}
         setTab={setTab}
@@ -1032,7 +1031,7 @@ export default function RollupDashboard() {
   );
 }
 
-function DashboardContent({ txt, fc, isRTL, TAB_COLORS, TABS, tab, setTab, period, setPeriod, n, setN }) {
+function DashboardContent({ txt, fc, isRTL, TABS, tab, setTab, period, setPeriod, n, setN }) {
   // ── Scroll isolation: Dashboard manages its own vertical scroll ──
   // The parent in App.jsx has overflowY:'auto'. We must suppress it so
   // that our internal scroll container (the content div below sub-tabs) is
