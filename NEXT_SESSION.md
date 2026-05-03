@@ -1,7 +1,7 @@
 # GeniegoROI 다음 세션 인수인계 문서
 
-> Last Updated: 2026-05-03 (14차 완료)
-> Last Commit: 822927b (origin/master 동기화 완료)
+> Last Updated: 2026-05-03 (15차 완료)
+> Last Commit: 500a951 (origin/master 동기화 완료)
 
 ---
 
@@ -149,6 +149,55 @@ ROI 분석 통합 대시보드 (CRM, KPI, 시스템, P&L 4개 도메인)
 * **운영 영향**: 0% (수동 deploy.ps1/deploy.sh chain 별도 운영)
 * **Cline 호출 0회**, 비용 $0 추가
 
+15차 (5월 3일) ⭐ NEW
+
+* **GitHub Actions Phase 2 통과 — RollupDashboard.jsx TAB_COLORS 중복 선언 해소 + NEXT_SESSION.md 9곳 활차 수정**
+* **🚨 결정적 발견 1: TAB_COLORS는 두 개의 별개 버그가 동시 존재**
+  + 버그 1: line 1051 const 선언이 line 1035 props와 같은 이름으로 중복 → vite SyntaxError (빌드 차단)
+  + 버그 2: line 1022 호출자 측이 부모 스코프에 정의 없는 TAB_COLORS 참조 → 빌드 통과 후 ReferenceError 가능성
+  + 두 버그 모두 옵션 B(props 제거)로 동시 해소
+* **🚨 결정적 발견 2: line 1051 useMemo는 자기완결적 (props와 무관)**
+  + dependency array `[]` (빈 배열)
+  + 본문은 하드코딩된 객체 리터럴 (summary, sku, campaign, creator, platform, guide 6개 키)
+  + props로 받은 TAB_COLORS는 한 번도 사용 안 됨 (dead code)
+  + → 옵션 B(props 제거) 시 동작 변화 0%
+* **🚨 결정적 발견 3: 부모 RollupDashboard 함수에는 TAB_COLORS 정의 없음**
+  + line 993~1015 본문 인벤토리: t/lang/txt/addAlert/isDemo/fc/tab/setTab/TABS/period/setPeriod/n/setN/isRTL
+  + line 1022의 `TAB_COLORS={TAB_COLORS}` 우변은 정의되지 않은 변수
+  + lazy() import로 lazy 평가되어 빌드 시점에 SyntaxError가 먼저 막아 ReferenceError 도달 안 함
+* **수정 작업 (RollupDashboard.jsx 2곳, PowerShell .NET API 안전 처리)**:
+  + 변경 1: line 1022 `      TAB_COLORS={TAB_COLORS}` 한 줄 통째로 제거 (DIFF -33 bytes)
+  + 변경 2: line 1035 props 시그니처에서 `, TAB_COLORS` 제거 (DIFF -12 bytes)
+  + 백업 파일: RollupDashboard.jsx.bak_15th
+  + 사전 매칭 검증: MATCH_COUNT 1 (양쪽 모두 안전)
+* **commit 500a951**: fix(frontend): remove duplicate TAB_COLORS declaration in RollupDashboard.jsx
+* **GitHub Actions 진전 매트릭스 (#130 → #132)**:
+  + Total duration: 29s → **36s** (Phase 2 통과로 더 진행)
+  + Phase 2: 🔴 14s (vite SyntaxError) → **✅ 23s 통과!**
+  + Phase 3: 미도달 → 🔴 0s 도달 (secrets 미등록으로 즉시 실패)
+* **🟢 15차에서 새로 통과한 단계**:
+  + ✅ Phase 2 npm install (407 packages audited)
+  + ✅ Phase 2 vite v5.4.21 빌드 (101 modules transformed)
+  + ✅ Phase 2 production build 23s 완료
+* **🟡 15차에서 새로 노출된 실패 (16차 후보)**:
+  + 🔴 Phase 3 SCP: `Error: can't connect without a private SSH key or password` (appleboy/scp-action@master)
+  + 🔴 secrets.REMOTE_IP, REMOTE_USER, SSH_PRIVATE_KEY 미등록 확정
+  + 🟡 Phase 4 SSH: 동일 secrets 사용, Phase 3 막혀서 미도달
+  + 🟡 Phase 5 Health Check: secrets.TEST_EMAIL, TEST_PASS 추가 필요
+  + 🟡 Slack Notification: secrets.SLACK_WEBHOOK_URL 미등록 (always 트리거)
+* **NEXT_SESSION.md 9곳 활차 수정 (PowerShell .NET API + 파일 기반 패치 + 메모장 안전망)**:
+  + Patch 1 헤더 (line 3~4): 14차 → 15차, 822927b → 500a951
+  + Patch 2 누적 통계: + Phase 2 통과 + TAB_COLORS 수정
+  + Patch 3 다음 작업 후보 #1: TAB_COLORS 수정 → GitHub Actions Secrets 등록 (16차 최우선)
+  + Patch 4 알려진 이슈 Phase 1: + Phase 2 통과 확정 + RollupDashboard 해소
+  + Patch 5 RollupDashboard 줄: 🔴 중복 선언 → 🟢 해소
+  + Patch 6 CI/CD 매트릭스 Phase 2: 🔴 미통과 → ✅ 통과
+  + Patch 7 CI/CD 매트릭스 Phase 3: ⊘ 미도달 → 🔴 secrets 미등록
+  + Patch 8 CI/CD 분석: + Phase 2 통과 + Phase 3 secrets 분리
+  + Patch 9 비용 추적: + 15차 추가 + 누적 통계 Phase 2 통과 추가
+* **운영 영향**: 0% (RollupDashboard 동작 변화 0%, 운영 자동 배포는 16차 secrets 등록 시 활성화)
+* **Cline 호출 0회**, 비용 $0 추가
+
 ### 누적 통계
 
 * archive된 파일 수: **192개** (8 + 15 + 7 + 17 + 42 + 33 + 47 + 14 + 9)
@@ -160,23 +209,29 @@ ROI 분석 통합 대시보드 (CRM, KPI, 시스템, P&L 4개 도메인)
 * 13차 YAML 수정: 1개 (.github/workflows/deploy.yml — 5곳 따옴표 추가)
 * 14차 deploy.yml 정리: 2 commits (line 23~25 제거 + line 22 교체) ⭐ NEW
 * Cline 호출: **0회** (모든 작업 PowerShell + VS Code + .NET API로 처리)
-* 5월 단일 세션 (5월 2~3일) 처리량: **184개 archive + 3개 untrack + 6개 보존 결정 + 1개 보안 정리 + 1개 CI 활성화 + 1개 YAML 수정 + Phase 1 정상화**
+* 5월 단일 세션 (5월 2~3일) 처리량: **184개 archive + 3개 untrack + 6개 보존 결정 + 1개 보안 정리 + 1개 CI 활성화 + 1개 YAML 수정 + Phase 1 정상화 + Phase 2 통과 + TAB_COLORS 수정**
 * 비용: $0.0585 유지
 
 ### 다음 작업 후보 (우선순위 순)
 
-1. **🔴 RollupDashboard.jsx TAB_COLORS 중복 선언 수정 — 15차 최우선** ⭐ NEW
-   * **현 상태**: vite 빌드 SyntaxError로 Phase 2 실패 (2.17초만에)
-   * **위치**: frontend/src/pages/RollupDashboard.jsx
-     + line 1022: TAB_COLORS={TAB_COLORS} (사용/전달)
-     + line 1035: function DashboardContent({ ..., TAB_COLORS, ... }) ← props
-     + line 1051: const TAB_COLORS = useMemo(() => ({ ← 🔴 중복 선언!
-     + line 1077, 1106, 1107, 1112: 사용
-   * **수정 옵션 3가지**:
-     + (A) line 1051을 다른 이름으로 (LOCAL_TAB_COLORS 등)
-     + (B) line 1035 props에서 TAB_COLORS 제거
-     + (C) line 1051 제거하고 props 그대로 사용
-   * **운영 영향**: 검토 필요 (RollupDashboard.jsx가 실제 운영 페이지인지 확인)
+1. **🔴 GitHub Actions Secrets 등록 — 16차 최우선** ⭐ NEW (15차 진단 완료)
+   * **현 상태**: Phase 2 통과, Phase 3~5는 secrets 미등록으로 막힘
+   * **deploy.yml line 30~60 분석 결과 — 등록 필요한 6개 secrets**:
+     + Phase 3, 4: REMOTE_IP, REMOTE_USER, SSH_PRIVATE_KEY (SCP/SSH 인증)
+     + Phase 5: TEST_EMAIL, TEST_PASS (헬스체크 로그인 검증)
+     + Slack: SLACK_WEBHOOK_URL (always 트리거)
+   * **15차에서 확인된 정확한 에러 메시지 (Phase 3)**:
+     + Run appleboy/scp-action@master
+     + Drone SCP version 1.8.0
+     + Error: can't connect without a private SSH key or password
+     + Process completed with exit code 1
+   * **16차 옵션**:
+     + (A) secrets 6개 모두 등록 → CI/CD chain 완성
+     + (B) SLACK_WEBHOOK_URL만 등록 → Slack 빨간 ❌만 해소 (가장 작은 변경)
+     + (C) deploy.yml에 if 가드 추가하여 secrets 없어도 graceful skip
+     + (D) Phase 3~5 step에 if: false 임시 비활성화 → 모든 step 녹색 ✅
+   * **보안 주의**: SSH_PRIVATE_KEY는 매우 민감. TEST_PASS는 운영 비밀번호 (11차 평문 PW 이슈와 연결).
+   * **운영 영향**: 옵션에 따라 다름. (A)는 운영 자동 배포 완성, (D)는 영향 0%.
 
 2. **🟡 Slack secrets 등록 또는 가드 추가**
    * **현 상태**: Slack Notification step이 always() 트리거로 모든 run 실패에 추가됨
@@ -222,8 +277,10 @@ ROI 분석 통합 대시보드 (CRM, KPI, 시스템, P&L 4개 도메인)
 * **🚨 PowerShell Start-Job은 working directory 미상속** (14차) ⭐ NEW
 * **🟢 .github/workflows/deploy.yml 트리거 master 명시화 완료** (12차)
 * **🟢 .github/workflows/deploy.yml YAML 파싱 통과 확정** (13차)
-* **🟢 .github/workflows/deploy.yml Phase 1 통과 확정** (14차) ⭐ NEW
-* **🔴 frontend/src/pages/RollupDashboard.jsx:1051 TAB_COLORS 중복 선언** (14차) ⭐ NEW
+* **🟢 .github/workflows/deploy.yml Phase 1 통과 확정** (14차)
+* **🟢 .github/workflows/deploy.yml Phase 2 통과 확정** (15차) ⭐ NEW
+* **🟢 frontend/src/pages/RollupDashboard.jsx TAB_COLORS 중복 선언 해소** (15차 commit 500a951) ⭐ NEW
+* **🟢 frontend/src/pages/RollupDashboard.jsx TAB_COLORS 중복 선언 해소** (15차 commit 500a951)
 
 ### 운영 critical 파일 보존 매트릭스
 
@@ -257,8 +314,8 @@ ROI 분석 통합 대시보드 (CRM, KPI, 시스템, P&L 4개 도메인)
 | Phase | 이름 | 상태 |
 | --- | --- | --- |
 | 1 | "[PHASE 1] Syntax Guard & I18N Patch" | ✅ 14차 통과 |
-| 2 | "[PHASE 2] Production Build" | 🔴 14차 진입했으나 vite 빌드에서 RollupDashboard.jsx:1051 TAB_COLORS 중복 |
-| 3 | "[PHASE 3] Secure Deploy (SFTP)" | ⊘ 미도달 |
+| 2 | "[PHASE 2] Production Build" | ✅ 15차 통과 (commit 500a951) |
+| 3 | "[PHASE 3] Secure Deploy (SFTP)" | 🔴 15차 도달, secrets.REMOTE_IP/REMOTE_USER/SSH_PRIVATE_KEY 미등록 |
 | 4 | "[PHASE 4] Post-Deploy Infrastructure Refresh" | ⊘ 미도달 |
 | 5 | "[PHASE 5] Health Check & Rollback" | ⊘ 미도달 |
 | - | "Slack Notification" (always 트리거) | 🟡 secrets.SLACK_WEBHOOK_URL 미등록 |
@@ -267,7 +324,8 @@ ROI 분석 통합 대시보드 (CRM, KPI, 시스템, P&L 4개 도메인)
 * YAML 파싱: ✅ 통과 (13차)
 * Phase 1 통과: ✅ (14차)
 * Phase 2 진입 + 부분 통과 (npm install + vite 시작): ✅ (14차)
-* Phase 2 vite 빌드 통과: 🔴 (15차 후보)
+* Phase 2 vite 빌드 통과: ✅ (15차 commit 500a951)
+* Phase 3~5 secrets 등록: 🔴 (16차 최우선)
 
 ### 작업 흐름 (검증된 8단계 패턴)
 
@@ -458,8 +516,9 @@ $result = Select-String -Path "D:\project\GeniegoROI\frontend\..." -Pattern "...
 * 11차: PowerShell + VS Code로 1줄 제거 → Cline 호출 0회
 * 12차: PowerShell + VS Code Find&Replace + .NET API로 9곳 변경 → Cline 호출 0회
 * 13차: PowerShell + .NET API로 5곳 동시 변경 + Python YAML 검증 → Cline 호출 0회
-* 14차: PowerShell + .NET API + VS Code 직접 편집으로 deploy.yml 2 commits + GitHub Actions 진단 → Cline 호출 0회 ⭐ NEW
-* 5월 2~3일 누적 184개 archive + 3개 untrack + 6개 보존 + 1개 보안 정리 + 1개 CI 활성화 + 1개 YAML 수정 + Phase 1 정상화 / Cline 호출 0회 / 비용 $0.0585 유지
+* 14차: PowerShell + .NET API + VS Code 직접 편집으로 deploy.yml 2 commits + GitHub Actions 진단 → Cline 호출 0회
+* 15차: PowerShell .NET API + 메모장 안전망으로 RollupDashboard.jsx 2곳 수정 (TAB_COLORS 중복 해소) + NEXT_SESSION.md 9곳 활차 수정 → Cline 호출 0회 ⭐ NEW
+* 5월 2~3일 누적 184개 archive + 3개 untrack + 6개 보존 + 1개 보안 정리 + 1개 CI 활성화 + 1개 YAML 수정 + Phase 1 정상화 + Phase 2 통과 + TAB_COLORS 수정 / Cline 호출 0회 / 비용 $0.0585 유지
 * .clineignore 도입 효과: Cline 작업당 약 70% 절감
 
 ---
