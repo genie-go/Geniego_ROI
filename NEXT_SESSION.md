@@ -1,7 +1,7 @@
 # GeniegoROI 다음 세션 인수인계 문서
 
-> Last Updated: 2026-05-04 (20차 완료)
-> Last Commit: ca9eb8c (origin/master 동기화 완료)
+> Last Updated: 2026-05-04 (21차 완료)
+> Last Commit: dbd6fdb (master 로컬, origin보다 4 commits ahead)
 
 ---
 
@@ -78,6 +78,34 @@ ROI 분석 통합 대시보드 (CRM, KPI, 시스템, P&L 4개 도메인)
 * **운영 영향**: 0% (.txt는 운영에 묶이지 않음)
 * **Cline 호출 0회**, 비용  추가
 
+21차 (5월 4일) ⭐ NEW
+
+* **CLAUDE.md 신규 작성 + 영구 가이드 분리 + 1차~17차 SESSION_HISTORY.md 분리 + i18n-sync 첫 서브에이전트 도입**
+* **🚨 결정적 발견 1: NEXT_SESSION.md 단독으로는 영구 가이드 역할 한계**
+  + 38 KB 누적, 매 세션 시작 시 컨텍스트 부담 큼
+  + 영구 규칙(PowerShell 함정·아키텍처)과 휘발성 세션 로그 혼재
+  + → CLAUDE.md(영구) / NEXT_SESSION.md(현재 세션 + 큐) / SESSION_HISTORY.md(history archive) 3-tier 분리 결정
+* **🚨 결정적 발견 2: .bak 5개 모두 git untracked working tree 잔재**
+  + NEXT_SESSION.md.bak_14th/15th/20th: 14~15차 .NET API 다중 패치 안전망
+  + .github/workflows/deploy.yml.bak_14th/14th_2: 14차 deploy.yml 편집 안전망
+  + git이 NEXT_SESSION.md/deploy.yml 모든 시점 commit 보존 → .bak 100% redundant
+* **🚨 결정적 발견 3: 서브에이전트는 i18n-sync가 ROI 최상**
+  + 15개 로케일 + ko.js 1 MB + .clineignore 등록 → context isolation 필수 후보 1순위
+  + 다음 작업 후보 1순위(channelKpiPage 누락 키 9개)에 즉시 투입 가능
+  + 자동 번역 금지 + opt-in 편집 모드(placeholder/영어 fallback)로 안전성 확보
+* **수정 작업 (4 commits, 모두 Edit 도구 + PowerShell만)**:
+  + commit 5d45267: CLAUDE.md 최초 작성 (102줄) — 아키텍처 / CI/CD master 트리거 / 백엔드 41 핸들러 / 프론트 116 페이지 / 알려진 함정 통합 가이드
+  + commit d5b1797: CLAUDE.md 보강 (90줄 추가) + .bak 5개 working tree 정리 — PowerShell 함정 9건, deploy 보존 매트릭스, fantasy-call 검출, YAML 특수문자, .clineignore 요약
+  + commit d88c918: 1차~17차 → docs/SESSION_HISTORY.md (15 KB) 분리, NEXT_SESSION.md 38 KB → 24 KB (37% 감소)
+  + commit dbd6fdb: .claude/agents/i18n-sync.md (181줄) — 5가지 모드(감사 3 / opt-in 편집 2), tools 제한 (Read/Grep/Glob/Edit, Write·Bash 차단)
+* **🟢 21차에서 처음 도달한 상태**:
+  + 영구 가이드(CLAUDE.md) 작성 완료 — 192줄, 아키텍처 + 함정 + 패턴 + 매트릭스 단일 권위
+  + 세션 로그 슬림화 + history archive 분리 — 매 세션 시작 컨텍스트 부담 75% 감소 예상
+  + 첫 서브에이전트 i18n-sync 도입 — 다음 세션 channelKpiPage 작업에 즉시 사용
+* **🟡 21차에서 새로 노출된 issue 없음** (다음 작업 후보: i18n-sync 첫 실전 적용 → channelKpiPage 누락 키 9개 점검)
+* **운영 영향**: 0% (.bak 잔재는 git untracked, agent 정의 파일 추가만 commit, 모든 운영 배포 chain 무관)
+* **Cline 호출 0회**, 비용 $0 추가
+
 ### 누적 통계
 
 * archive된 파일 수: **192개** (8 + 15 + 7 + 17 + 42 + 33 + 47 + 14 + 9)
@@ -89,8 +117,9 @@ ROI 분석 통합 대시보드 (CRM, KPI, 시스템, P&L 4개 도메인)
 * 13차 YAML 수정: 1개 (.github/workflows/deploy.yml — 5곳 따옴표 추가)
 * 14차 deploy.yml 정리: 2 commits (line 23~25 제거 + line 22 교체)
 * Cline 호출: **0회** (모든 작업 PowerShell + VS Code + .NET API로 처리)
-* 5월 단일 세션 (5월 2~4일) 처리량: **204개 archive + 3개 untrack + 6개 보존 결정 + 1개 보안 정리 + 1개 CI 활성화 + 1개 YAML 수정 + Phase 1 정상화 + Phase 2 통과 + TAB_COLORS 수정 + Phase 3~5 secrets 가드 + Slack 가드 + actions v4 업그레이드 + Annotations 0건 달성 + 18차 docs 보강 + 19차 메타 보정 + 20차 .txt 20개 archive**
-* 비용: $0.0585 유지 (16차+17차+18차+19차+20차 모두 Cline 호출 0회)
+* 5월 단일 세션 (5월 2~4일) 처리량: **204개 archive + 3개 untrack + 6개 보존 결정 + 1개 보안 정리 + 1개 CI 활성화 + 1개 YAML 수정 + Phase 1 정상화 + Phase 2 통과 + TAB_COLORS 수정 + Phase 3~5 secrets 가드 + Slack 가드 + actions v4 업그레이드 + Annotations 0건 달성 + 18차 docs 보강 + 19차 메타 보정 + 20차 .txt 20개 archive + 21차 CLAUDE.md 신규 + SESSION_HISTORY.md 분리 + i18n-sync 도입**
+* 21차 영구 가이드/서브에이전트 인프라: CLAUDE.md (192줄) + docs/SESSION_HISTORY.md (15 KB) + .claude/agents/i18n-sync.md (181줄)
+* 비용: $0.0585 유지 (16차~21차 모두 Cline 호출 0회)
 
 ### 다음 작업 후보 (우선순위 순)
 
@@ -130,10 +159,16 @@ ROI 분석 통합 대시보드 (CRM, KPI, 시스템, P&L 4개 도메인)
    * .py: fix_audit.py, fix_auth.py, restore_authpage.py
    * .sh: ssh_test.sh
 
-5. **i18n 누락 키 9개 추가 — 별도 신중 작업**
-   * ko.js에 channelKpiPage 6곳, 9개 키 누락
-   * 누락 키: channelKpiPage, tabCommunity, tabContent, tabGoals, tabMonitor, tabRoles, tabSetup, tabSns, tabTargets
-   * Cline 호출 필요
+5. **🔴 i18n channelKpiPage 누락 키 9개 점검 — 22차 최우선 (i18n-sync 첫 실전)** ⭐ NEW
+   * **현 상태**: 21차에 i18n-sync 서브에이전트 도입 완료 (`.claude/agents/i18n-sync.md`, commit dbd6fdb)
+   * **누락 키 9개**: channelKpiPage, tabCommunity, tabContent, tabGoals, tabMonitor, tabRoles, tabSetup, tabSns, tabTargets
+   * **자료**: `missing_keys.txt` (루트, 20차 보존 결정)
+   * **i18n-sync 작업 흐름**:
+     + 모드 3 (missing_keys.txt 기반 감사) → 누락 매트릭스 보고 (자동 편집 없음)
+     + 사용자 결정: placeholder fill / 영어 fallback / 직접 번역 제공
+     + 옵션에 따라 모드 4 또는 5로 진입 (편집 미리보기 + 동의 확인 후)
+   * **운영 영향**: 0% (i18n 데이터만 변경, 빌드 검증은 사용자가 별도 수행)
+   * **Cline 호출 불필요**: i18n-sync는 main agent에서 자동 위임됨
 
 6. **🟡 GitHub Actions Node.js 20 deprecation — 선택 작업** ★ DONE
    * 13차 발견: actions/checkout@v3, actions/setup-node@v3, 8398a7/action-slack@v3 모두 v4 업그레이드 권장
@@ -162,8 +197,11 @@ ROI 분석 통합 대시보드 (CRM, KPI, 시스템, P&L 4개 도메인)
 * **🟢 .github/workflows/deploy.yml 트리거 master 명시화 완료** (12차)
 * **🟢 .github/workflows/deploy.yml YAML 파싱 통과 확정** (13차)
 * **🟢 .github/workflows/deploy.yml Phase 1 통과 확정** (14차)
-* **🟢 .github/workflows/deploy.yml Phase 2 통과 확정** (15차) ⭐ NEW
-* **🟢 frontend/src/pages/RollupDashboard.jsx TAB_COLORS 중복 선언 해소** (15차 commit 500a951) ⭐ NEW
+* **🟢 .github/workflows/deploy.yml Phase 2 통과 확정** (15차)
+* **🟢 frontend/src/pages/RollupDashboard.jsx TAB_COLORS 중복 선언 해소** (15차 commit 500a951)
+* **🟢 CLAUDE.md 영구 가이드 도입 완료** (21차 commit 5d45267 + d5b1797) ⭐ NEW
+* **🟢 docs/SESSION_HISTORY.md 분리 완료** — NEXT_SESSION.md 38 KB → 24 KB (21차 commit d88c918) ⭐ NEW
+* **🟢 .claude/agents/i18n-sync.md 첫 서브에이전트 도입** (21차 commit dbd6fdb) ⭐ NEW
 
 ### 운영 critical 파일 보존 매트릭스
 
@@ -400,9 +438,11 @@ $result = Select-String -Path "D:\project\GeniegoROI\frontend\..." -Pattern "...
 * 12차: PowerShell + VS Code Find&Replace + .NET API로 9곳 변경 → Cline 호출 0회
 * 13차: PowerShell + .NET API로 5곳 동시 변경 + Python YAML 검증 → Cline 호출 0회
 * 14차: PowerShell + .NET API + VS Code 직접 편집으로 deploy.yml 2 commits + GitHub Actions 진단 → Cline 호출 0회
-* 15차: PowerShell .NET API + 메모장 안전망으로 RollupDashboard.jsx 2곳 수정 (TAB_COLORS 중복 해소) + NEXT_SESSION.md 9곳 활차 수정 → Cline 호출 0회 ⭐ NEW
-* 5월 2~3일 누적 184개 archive + 3개 untrack + 6개 보존 + 1개 보안 정리 + 1개 CI 활성화 + 1개 YAML 수정 + Phase 1 정상화 + Phase 2 통과 + TAB_COLORS 수정 / Cline 호출 0회 / 비용 $0.0585 유지
+* 15차: PowerShell .NET API + 메모장 안전망으로 RollupDashboard.jsx 2곳 수정 (TAB_COLORS 중복 해소) + NEXT_SESSION.md 9곳 활차 수정 → Cline 호출 0회
+* 21차: Edit 도구로 CLAUDE.md 신규 작성(192줄) + 보강(90줄) + SESSION_HISTORY.md 분리(15 KB) + i18n-sync 서브에이전트 정의(181줄) → Cline 호출 0회 ⭐ NEW
+* 5월 2~4일 누적 204개 archive + 3개 untrack + 6개 보존 + 1개 보안 정리 + 1개 CI 활성화 + 1개 YAML 수정 + Phase 1~2 정상화 + secrets 가드 + Annotations 0건 + 영구 가이드 도입 + 첫 서브에이전트 / Cline 호출 0회 / 비용 $0.0585 유지
 * .clineignore 도입 효과: Cline 작업당 약 70% 절감
+* CLAUDE.md + i18n-sync 도입 효과 (예상): main agent의 i18n 작업 컨텍스트 90%+ 절감 (격리 컨텍스트 + ko.js 무인자 Read 차단)
 
 ---
 
@@ -433,12 +473,13 @@ $result = Select-String -Path "D:\project\GeniegoROI\frontend\..." -Pattern "...
 
 ## 첫 요청 (다음 세션 시작 시 사용)
 
-🟢 **20차 .txt 잡파일 정리 완료 — 다음 1순위는 i18n 누락 키 작업:**
-"GeniegoROI 20차 작업까지 완료(commit ca9eb8c).
-27개 .txt 중 25개 archive 완료(보존 2개: _crash_snippet.txt, missing_keys.txt).
-다음 1순위는 i18n 누락 키 작업입니다.
-ko.js의 channelKpiPage 누락 키 9개(channelKpiPage, tabCommunity, tabContent, tabGoals, tabMonitor, tabRoles, tabSetup, tabSns, tabTargets)를 추가하고 싶습니다.
-missing_keys.txt(루트, 보존됨)에 작업 자료가 있고, 구조가 복잡하니 신중하게 진행해주세요."
+🟢 **21차 인프라 정비 완료 — 다음 1순위는 i18n-sync 첫 실전 적용:**
+"GeniegoROI 21차 작업까지 완료 (commit dbd6fdb, master 로컬, origin보다 4 commits ahead).
+CLAUDE.md 신규 작성, 1차~17차 → docs/SESSION_HISTORY.md 분리, .claude/agents/i18n-sync.md 첫 서브에이전트 도입까지 완료.
+다음 1순위는 i18n-sync로 channelKpiPage 누락 키 9개를 점검하는 작업입니다.
+missing_keys.txt(루트, 20차에 보존)에 키 목록(channelKpiPage, tabCommunity, tabContent, tabGoals, tabMonitor, tabRoles, tabSetup, tabSns, tabTargets)이 있습니다.
+i18n-sync 모드 3(missing_keys.txt 기반 감사)으로 시작해 ko.js를 master로 14개 언어와 비교한 누락 매트릭스 보고를 받은 후, placeholder fill / 영어 fallback / 직접 번역 제공 중 어느 옵션으로 진행할지 결정하고 싶습니다.
+**자동 편집·자동 번역 금지** — i18n-sync는 명시 요청 시에만 모드 4·5로 진입합니다."
 
 비스크립트 잡파일 정리:
 "GeniegoROI 루트의 .txt/.json/.py 잡파일 정리를 시작하고 싶습니다.
