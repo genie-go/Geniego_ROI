@@ -3,6 +3,10 @@ name: GENIE-GO ROI TITAN SUPREME V10
 on:
   push:
     branches: [ master ] # 메인 브랜치 푸시 시 자동 실행
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.claude/**'
 
 env:
   HAS_SSH_SECRETS: ${{ secrets.REMOTE_IP != '' && secrets.REMOTE_USER != '' && secrets.SSH_PRIVATE_KEY != '' }}
