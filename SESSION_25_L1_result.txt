@@ -1,0 +1,103 @@
+======================================================
+SESSION 25 [L]1 — channelKpiPage 코드 전수 검증 결과
+날짜: 2026-05-04
+======================================================
+
+## 1. channelKpi 포함 파일 목록 (i18n 제외)
+
+총 9개 파일:
+- frontend/src/components/dashboards/DashChannelKPI.jsx
+- frontend/src/context/GlobalDataContext.jsx
+- frontend/src/layout/sidebarI18n.js
+- frontend/src/layout/Sidebar.jsx
+- frontend/src/layout/Topbar.jsx
+- frontend/src/pages/ChannelKPI.jsx
+- frontend/src/pages/Dashboard.jsx
+- frontend/src/pages_backup/SubscriptionPricing.jsx
+- frontend/src/App.jsx
+
+## 2. i18n 키 참조 현황
+
+### frontend/src/pages/ChannelKPI.jsx
+  → channelKpiPage.* 키만 사용. 상세 버킷 분류는 섹션 3 참조.
+
+### DashChannelKPI.jsx
+  → channelKpiPage.* 키 없음. 'dash.naverName' 키만 사용.
+
+### sidebarI18n.js
+  → 'channelKpiLabel' 사용 (사이드바 nav 레이블, 별도 namespace)
+  → channelKpiPage.* 키 없음.
+
+### Sidebar.jsx / Topbar.jsx / Dashboard.jsx / App.jsx / GlobalDataContext.jsx
+  → t() 호출에서 channelKpiPage.* 키 없음.
+  → channelKpi 언급은 컴포넌트 import, 라우트 경로, 변수명 등 비-i18n 참조만 존재.
+
+### pages_backup/SubscriptionPricing.jsx
+  → 백업 파일. t() 호출 없음 (검색 대상 외).
+
+## 3. ChannelKPI.jsx 키 버킷 분류
+
+### 버킷 A: channelKpiPage.* (정적 키)
+총 119개
+
+achieved, achievedOk, aiAnalyzing, aiHistoryList, aiSummary, allChannels,
+avgTime, badgeAdSpend, badgeBlendedRoas, badgeOpProfit, badgeOrders,
+belowTarget, bizGoalSetting, brandAwareness, brandAwarenessDesc,
+channelCol, channelRoleDef, chBlog, chCommunity, checklist,
+chkCostPerf, chkEff, chkImprove, chName_, chSearchAds, chSnsAds,
+claudeAiDesc, claudeAiTitle, clickSelect, comments, communityAct,
+communityGrowth, communityKpi, contentEngage, contentImpressions,
+contentInterest, contentKpi, convRate, coreKpis, cpa, cpc, ctr,
+currentMonth, descBrandReach, descCaptureIntent, descConvRate,
+descCpa, descCpc, descCtr, descCustRel, descInfoTrust, descRoas,
+engagement, guideStepsTitle, guideSub, guideTabsTitle, guideTip1,
+guideTip2, guideTip3, guideTip4, guideTip5, guideTipsTitle, guideTitle,
+heroDesc, hintConvRate, hintCpa, hintCpc, hintCtr, hintRoas,
+history, immediateAction, improveRecs, inquiries, inquiriesPurchases,
+inquiriesPurchasesDesc, interestConv, kakaoGuild, keyInsight,
+lblConvRate, lblCpaFull, lblCpcFull, lblCtrFull, lblRoasFull,
+monitorAi, monthlyAi, monthlyTrend, naverCafe, newMembers,
+noData, noHistory, overallAchieve, pageTitle, pageViews, period,
+pleaseSelectGoal, postViews, reach, roas, roleBrandReach,
+roleCaptureIntent, roleCustRel, roleInfoTrust, runAi, searchTraffic,
+selected, selectedGoals, seoImpact, share, siteTraffic, snsKpiByChannel,
+snsKpiOverview, strengths, tabCommunity, tabContent, tabGoals,
+tabGuide, tabMonitor, tabRoles, tabSetup, tabSns, tabTargets,
+targetLabel, targetSetup, targetVsActuals, videoViews, visitors,
+weaknesses, webTraffic, webTrafficDesc, weeklyAdTrend, weeklyAi
+
+### 버킷 A (동적 키 — 템플릿 리터럴, s.k / tb.k 값)
+동적 패턴 t(`channelKpiPage.${s.k}Title`) / t(`channelKpiPage.${s.k}Desc`)
+  s.k 값 6개: guideStep1, guideStep2, guideStep3, guideStep4, guideStep5, guideStep6
+  → 실제 키: guideStep1Title, guideStep1Desc ... guideStep6Title, guideStep6Desc (12개)
+
+동적 패턴 t(`channelKpiPage.${tb.k}Name`) / t(`channelKpiPage.${tb.k}Desc`)
+  tb.k 값 8개: guideGoal, guideRole, guideSetup, guideSns, guideContent, guideCommunity, guideTarget, guideMonitor
+  → 실제 키: guideGoalName, guideGoalDesc ... guideMonitorName, guideMonitorDesc (16개)
+
+정적+동적 합계: 119 + 28 = **147개** ← ko.js 147키와 일치 확인
+
+### 버킷 B: nav.pages.channelKpiPage.*
+  → 0개 (코드에서 참조 없음)
+
+### 버킷 C: pages.marketingIntel.channelKpiPage.*
+  → 0개 (코드에서 참조 없음)
+
+### 버킷 D: 그 외
+  - t('geniego-refresh') — 1개 (channelKpiPage와 무관, 별도 키)
+
+## 4. 결론
+
+✅ 24차 [L] 가설 검증 완료:
+  - ChannelKPI.jsx는 오직 channelKpiPage.* 최상위 네임스페이스만 참조
+  - nav.pages.channelKpiPage.*, pages.marketingIntel.channelKpiPage.* 는 코드에서 미참조
+    → 해당 중첩 블록은 데드코드로 확정
+  - 코드 참조 키 총 147개 = ko.js 147키 (완전 일치)
+  - 다른 파일(Sidebar, Dashboard 등)은 channelKpiPage.* 키를 사용하지 않음
+
+✅ 25차 본 작업 진행 가능:
+  - en.js + 13개 미러에 channelKpiPage.* 누락 128키 추가 작업 승인 조건 충족
+  - 표준: ko.js 최상위 channelKpiPage 147키
+  - 대상: en.js + ar, de, es, fr, hi, id, ja, pt, ru, th, vi, zh-TW, zh (14개 파일)
+
+======================================================

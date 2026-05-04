@@ -1,0 +1,18 @@
+=== SESSION_25_L2A_VERIFY — ko.js 무결성 검증 ===
+날짜: 2026-05-04
+
+[작업 1] package.json scripts
+  "scripts": {
+    "build": "vite build"
+  }
+  → lint 스크립트 없음. [작업 3] 건너뜀.
+
+[작업 2] node ES module import 결과
+  명령: node -e "import('./frontend/src/i18n/locales/ko.js').then(m => console.log('OK keys:', Object.keys(m.default).length))..."
+  결과: OK keys: 631
+  판정: PASS (파싱 오류 없음, 최상위 키 631개 확인)
+
+[작업 3] lint
+  건너뜀 (lint 스크립트 미존재)
+
+종합 판정: ALL_PASS

@@ -1,0 +1,14 @@
+=== coupon.aiPredict.banner.channelKpiPage.* ===
+사용 없음
+
+=== coupon.banner.channelKpiPage.* ===
+사용 없음
+
+=== coupon.channelKpiPage.* ===
+사용 없음
+
+=== aiPredict.banner.channelKpiPage.* ===
+사용 없음
+
+=== banner.channelKpiPage.* ===
+사용 없음

@@ -1,0 +1,6 @@
+- 7871: coupon.aiPredict.banner.channelKpiPage
+- 8313: coupon.banner.channelKpiPage
+- 8672: coupon.channelKpiPage
+- 11636: aiPredict.banner.channelKpiPage
+- 12100: banner.channelKpiPage
+- 12471: channelKpiPage (최상위, 보존 대상)

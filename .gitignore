@@ -23,3 +23,7 @@ build_output.txt
 
 # deploy execution logs
 deploy_*.txt
+
+# i18n locale backups and temp files
+**/locales/*.backup_*.js
+ko.js.tmp
