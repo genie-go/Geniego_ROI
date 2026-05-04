@@ -106,6 +106,28 @@ ROI 분석 통합 대시보드 (CRM, KPI, 시스템, P&L 4개 도메인)
 * **운영 영향**: 0% (.bak 잔재는 git untracked, agent 정의 파일 추가만 commit, 모든 운영 배포 chain 무관)
 * **Cline 호출 0회**, 비용 $0 추가
 
+22차 (2026-05-04) ⭐ NEW
+
+* **deploy.yml에 paths-ignore 추가 — docs/.md/.claude 변경 시 CI 스킵**
+* **i18n channelKpiPage 9개 키 점검: 누락 없음 (15개 언어 모두 보유, 영어 플레이스홀더)**
+* **missing_keys.txt → docs/archive/ 보관 처리**
+* **🚨 결정적 발견 1: channelKpiPage 9개 키 이미 동기화 완료**
+  + i18n-sync 모드 3(감사 전용) 실행 — 자동 편집 없음
+  + 9개 키(channelKpiPage namespace + tabGoals/Roles/Setup/Sns/Content/Community/Targets/Monitor) 전부 15개 언어에 존재
+  + 단, 14개 미러 파일은 영어 플레이스홀더("KPI Goals" 등) → 키는 있으나 현지화 미완
+* **🚨 결정적 발견 2: ko.js에 channelKpiPage 하위 키 추가 존재 가능성**
+  + pageTitle, heroDesc 등 missing_keys.txt에 없던 키가 ko.js에 있고 미러 파일 누락 가능
+  + → 23차에서 channelKpiPage 전체 키 동기화 감사 필요
+* **수정 작업 (6 commits, CI 1회 정상 실행 45s)**:
+  + deploy.yml paths-ignore 추가
+  + missing_keys.txt → docs/archive/ git mv (commit 43c66cb)
+* **🟢 22차에서 처음 도달한 상태**:
+  + missing_keys.txt 루트 제거 — docs/archive/ 정리 완료
+  + i18n-sync 서브에이전트 첫 실전 투입 성공
+* **🟡 22차에서 새로 노출된 issue**: channelKpiPage 전체 키 동기화 미확인 (pageTitle 등)
+* **운영 영향**: 0%
+* **Cline 호출 0회**, 비용 $0 추가
+
 ### 누적 통계
 
 * archive된 파일 수: **192개** (8 + 15 + 7 + 17 + 42 + 33 + 47 + 14 + 9)
@@ -159,16 +181,19 @@ ROI 분석 통합 대시보드 (CRM, KPI, 시스템, P&L 4개 도메인)
    * .py: fix_audit.py, fix_auth.py, restore_authpage.py
    * .sh: ssh_test.sh
 
-5. **🔴 i18n channelKpiPage 누락 키 9개 점검 — 22차 최우선 (i18n-sync 첫 실전)** ⭐ NEW
-   * **현 상태**: 21차에 i18n-sync 서브에이전트 도입 완료 (`.claude/agents/i18n-sync.md`, commit dbd6fdb)
-   * **누락 키 9개**: channelKpiPage, tabCommunity, tabContent, tabGoals, tabMonitor, tabRoles, tabSetup, tabSns, tabTargets
-   * **자료**: `missing_keys.txt` (루트, 20차 보존 결정)
-   * **i18n-sync 작업 흐름**:
-     + 모드 3 (missing_keys.txt 기반 감사) → 누락 매트릭스 보고 (자동 편집 없음)
-     + 사용자 결정: placeholder fill / 영어 fallback / 직접 번역 제공
-     + 옵션에 따라 모드 4 또는 5로 진입 (편집 미리보기 + 동의 확인 후)
+5. **✅ i18n channelKpiPage 9개 키 점검 — 22차 완료** ★ DONE
+   * **결과**: 누락 없음 — 9개 키 모두 15개 언어에 존재 (영어 플레이스홀더 상태)
+   * **자료**: `missing_keys.txt` → `docs/archive/` 보관 (commit 43c66cb)
+
+6. **🔴 channelKpiPage 전체 키 동기화 감사 — 23차 1순위** ⭐ NEW
+   * **배경**: ko.js에 pageTitle, heroDesc 등 missing_keys.txt 범위 밖 하위 키 존재 가능
+   * **작업**: i18n-sync 모드 1(ko.js master 기준 전체 감사)로 channelKpiPage 전체 하위 키 vs 14개 미러 파일 비교
+   * **운영 영향**: 0% (감사 전용)
+
+7. **🟡 영어 플레이스홀더 → 현지화 번역 — 23차 2순위**
+   * **배경**: channelKpiPage 14개 미러 파일이 영어 플레이스홀더("KPI Goals" 등)로만 채워짐
+   * **작업**: i18n-sync 모드 4/5(opt-in 편집)로 placeholder → 실제 번역 교체
    * **운영 영향**: 0% (i18n 데이터만 변경, 빌드 검증은 사용자가 별도 수행)
-   * **Cline 호출 불필요**: i18n-sync는 main agent에서 자동 위임됨
 
 6. **🟡 GitHub Actions Node.js 20 deprecation — 선택 작업** ★ DONE
    * 13차 발견: actions/checkout@v3, actions/setup-node@v3, 8398a7/action-slack@v3 모두 v4 업그레이드 권장
