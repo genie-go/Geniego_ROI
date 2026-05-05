@@ -1002,3 +1002,62 @@ git commits (2 ahead from 25차 baseline 6debae8):
 - 26차 [N] 6개 + 25차 [N] 5개 + 24차 [N] 5개 함정 회피 누적
 - 백업: en.backup_27_refine.js + 13개 *.backup_27_fill.js (필요시 복원)
 - write 로그: scripts/write_27_fill_log.txt (디버깅 참고)
+
+---
+
+## 28차 세션 (2026-05-05)
+
+### [Q] 28차 완료한 작업
+
+1. **PM 1순위 BUG-011** — Journey Builder Analytics KPI Row 반응형 수정
+   - 파일: `frontend/src/pages/JourneyBuilder.jsx` (line 619)
+   - 변경: gridTemplateColumns `'repeat(4, 1fr)'` → `'repeat(auto-fit, minmax(200px, 1fr))'`
+   - commit: `460e256`
+   - CI #144: ✅ Success (40초)
+   - 시간: 약 50분
+   - 비고: PM 문서가 line 443으로 잘못 기록(실제는 line 619). Builder 탭(정상) vs Analytics 탭(버그) 구분 필요
+
+2. **외부 검수자 트랙 — chName_ trailing underscore 정정** (PM 2순위)
+   - 파일: `frontend/src/i18n/locales/en.js` (line 22456)
+   - 변경: `"Ch Name_"` → `"Ch Name"` (trailing underscore 제거)
+   - 26차 sync_mirrors.py 미세 버그 회귀 수정
+   - commit: `8e770e8`
+   - CI #145: ✅ Success (42초)
+   - 시간: 약 30분
+   - 비고: ko.js line 12002과 비교해 불일치 확인 후 수정
+
+### [R] 28차 신규 함정 발견 (29차 회피 권고)
+
+1. **git 자체 보고 신뢰 금지** — Antigravity의 git status 자체 보고는 실제와 다를 수 있음. 매 세션 시작 시 `git log origin/master..HEAD --oneline`으로 검증
+2. **외부 명령 실패 시 자동 진단 큐 삽입** — 빌드/명령 실패 시 Antigravity가 사용자 승인 없이 진단 명령을 큐에 자동 삽입. 옵션 3로 거부 + 외부 검수자와 진로 결정
+3. **NEXT_SESSION.md 경로 단축형 vs 실제 경로** — `frontend/src/i18n/en.js`(단축형) ↔ `frontend/src/i18n/locales/en.js`(실제). 새 세션 첫 명령으로 `ls frontend/src/i18n/`로 실제 구조 확인 권고
+4. **LF→CRLF 경고는 정상** — Windows 환경 git 작업 시 출력되는 "LF will be replaced by CRLF" 경고는 정상. git diff 변경 줄 수가 예상과 같으면 무시 가능
+5. **gh CLI 명령 자동 재시도** — 동일 세션에서 한 번 실패한 외부 명령(`gh run list`)을 다음 push 후에도 자동 큐에 삽입. 매번 옵션 3로 거부 + 브라우저 직접 확인
+6. **사용자 제공 텍스트 무비판 반영** — Antigravity가 사용자 제공 텍스트를 NEXT_SESSION.md에 반영할 때 정확성 검증 없이 그대로 append. 외부 검수자 사전 검증 필요
+
+### [S] 누적 함정 회피 (28차 100% 성공)
+
+- 옵션 2 영구승인 변형: 7회 등장, 7회 모두 거부
+- 분리 명령 합치기: Antigravity가 자동 학습하여 회피 (git add → git commit → git push 분리 실행)
+
+### [T] 28차 종료 시 git 상태
+
+- master: origin과 동기화 (0 commits ahead)
+- 27차 마지막 commit: `1f9ffb5`
+- 28차 첫 commit: `460e256` (BUG-011)
+- 28차 마지막 commit: `8e770e8` (chName_)
+- CI 상태: #144 SUCCESS, #145 SUCCESS
+
+### [U] 29차 작업 후보
+
+1순위: 다른 namespace 동일 검증 (외부 검수자 트랙 3순위)
+2순위: 13개 미러 실제 현지화 번역 (영어 fallback 상태 정정)
+3순위: 백업 파일 정리 (29개)
+4순위: PM_PRIORITY_PLAN.md의 다음 우선순위 작업
+
+### [V] 29차 시작 권고 첫 명령
+
+```
+git -C "D:\project\GeniegoROI" log origin/master..HEAD --oneline
+ls frontend/src/i18n/
+```
