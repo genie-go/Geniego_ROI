@@ -30,3 +30,6 @@ ko.js.tmp
 
 # i18n locale backup directory (organized by session_*)
 frontend/src/i18n/locales_backup/session_*/
+
+# Claude Code local settings
+.claude/settings.local.json
