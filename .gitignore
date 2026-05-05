@@ -27,3 +27,6 @@ deploy_*.txt
 # i18n locale backups and temp files
 **/locales/*.backup_*.js
 ko.js.tmp
+
+# i18n locale backup directory (organized by session_*)
+frontend/src/i18n/locales_backup/session_*/
