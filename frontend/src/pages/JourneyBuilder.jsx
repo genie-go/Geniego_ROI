@@ -616,7 +616,7 @@ export default function JourneyBuilder() {
                 {tab === 'analytics' && (
                     <div style={{ display: 'grid', gap: 14, minHeight: CONTENT_MIN, alignContent: 'start' }}>
                         {/* KPI Row */}
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
                             {[{ label: tr(K.totalEntered), value: stats.totalEntered.toLocaleString(), icon: '👣', color: '#4f8ef7' }, { label: tr(K.totalCompleted), value: stats.totalDone.toLocaleString(), icon: '✅', color: '#22c55e' }, { label: tr(K.totalEmails), value: stats.totalEmails.toLocaleString(), icon: '📧', color: '#a855f7' }, { label: tr(K.totalRevenue), value: fmt(stats.totalRevenue), icon: '💰', color: '#f97316' }].map(({ label, value, icon, color }) => (
                                 <div key={label} style={{ ...CARD, display: 'flex', alignItems: 'center', gap: 14 }}>
                                     <div style={{ width: 40, height: 40, borderRadius: 12, background: `${color}12`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>{icon}</div>
