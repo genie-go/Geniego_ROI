@@ -1168,3 +1168,82 @@ git -C "D:\project\GeniegoROI" status --short
 
 - 첫 명령: 29차에서 학습한 git 자체 보고 신뢰 금지 (함정 #1) 회피용
 - 두 번째 명령: 29차 종료 시 남은 untracked 8개 + clean_src modified 상태 확인용
+
+## 30차 세션 완료 (2026-05-06)
+### [V] 30차 작업 결과
+#### 1. clean_src 정체 파악
+- 종류: embedded git repo (정식 submodule 아님, .gitmodules 없음)
+- origin: d:\project\GeniegoROI (부모 repo 로컬 자기 참조)
+- 최신 commit: 1374cdc (메인 repo와 동일)
+- 용도: i18n/번역 작업 전용 로컬 클론
+- 정책: 내부에 손대지 않음. ` m clean_src` 표시는 정상 상태로 간주
+
+#### 2. untracked 7개 i18n 헬퍼 정체 파악
+- 모두 2026-05-03 11:35대 일괄 생성 (28차 또는 29차 자동 생성)
+- 그룹 1 (이진 탐색 디버거): bsearch_en.py, bsearch_full.js, bsearch_win.py
+- 그룹 2 (i18n 키/CSS 추가): add_autogrid_css.js, add_mobile_table_css.js, add_topbar_keys.py
+- 그룹 3 (en.js 콘텐츠 추가): append_en.py
+- bsearch_full.js 검증: en.js 구문 오류 위치를 이진탐색으로 찾는 디버깅 스크립트
+- 분류 결정 보류 (31차 또는 이후)
+
+#### 3. .claude/settings.local.json gitignore 추가
+- gitignore 미등록 상태 확인
+- .gitignore 파일 끝에 항목 추가 (Add-Content 사용, 배열 방식으로 백틱 회피)
+- commit 07928fe "chore: gitignore Claude Code local settings" 생성
+
+#### 4. .github/workflows/deploy.yml 디스크 누락 발견 및 복원 (중요)
+- git index에는 등록되어 있으나 디스크에서 누락된 비정상 상태 확인
+- `git checkout HEAD -- .github/workflows/deploy.yml`로 복원 완료
+- assume-unchanged/skip-worktree 플래그 가설은 기각됨 (checkout 정상 작동)
+- 누락 원인 미해결 (누가 언제 어떻게 삭제했는지 불명)
+- deploy.yml 내용: TITAN SUPREME V10 워크플로우 (GENIE-GO ROI)
+  - 트리거: master push, paths-ignore: ['**.md', 'docs/**', '.claude/**']
+  - PHASE 1-5: Syntax Guard → Production Build → Secure Deploy (SFTP) → nginx reload → Health Check
+  - master push가 프로덕션 배포 자동 트리거됨
+
+#### 5. push 미완료 (인증 환경 문제)
+- commit 07928fe push 시도 실패
+- 원인: Antigravity의 GitHub 인증 다이얼로그가 사용자 취소로 처리됨
+- 시도된 인증 방식들:
+  - VS Code GitHub Extension OAuth (Browser/Device code)
+  - Edge passkey 자동 시도 (Microsoft 보안 키 다이얼로그) — 사용자 의도 외 흐름
+  - 전통적 git credential (Username/Password) — fallback
+- 결과: 모두 사용자 취소 또는 실패
+- 로컬 commit 07928fe 안전하게 보존됨 (master 브랜치)
+
+#### 6. GitHub 저장소 구조 확인
+- origin URL: https://github.com/genie-go/Geniego_ROI.git/ (HTTPS)
+- 브랜치: master, main 두 개 평행 존재
+- master HEAD: 1849036 (29차 종료 시점, origin/master와 동일)
+- main HEAD: d25c389 (2 months ago, GitHub 웹의 default branch)
+- 두 브랜치 정책 결정 보류 (사용자/팀 결정 사항)
+
+### [U] 31차 작업 후보
+#### 우선순위 1 — 30차 미완료 작업
+1. push 인증 환경 정상화
+   - PAT 발급 (GitHub Settings → Developer Settings → PAT)
+   - 또는 SSH 키 설정
+   - 또는 GitHub CLI 설치 (`gh auth login`)
+2. commit 07928fe push (인증 정상화 후)
+3. 30차 NEXT_SESSION.md commit 생성 + push (이번 세션 기록)
+
+#### 우선순위 2 — 30차에서 발견된 31차 검토 사항
+1. master vs main 브랜치 정책 결정 (사용자/팀)
+2. tools 디렉토리 vs 7개 untracked 헬퍼 관계 파악
+3. deploy.yml 디스크 누락 원인 추적 (가능하면)
+4. 7개 i18n 헬퍼 분류 결정 (유지 / 삭제 / commit / gitignore)
+
+#### 우선순위 3 — 환경 정비 (29차에서 인계, 30차 미수행)
+- gh CLI 설치 또는 PATH 설정
+
+### 30차 학습 패턴 추가
+- 함정 #1 강화: Claude Code가 한글 출력 시 자체 요약으로 대체하는 패턴 발견
+  - PowerShell `Get-Content`로 파일 읽을 때 발생
+  - 회피: VS Code 편집기에서 직접 파일 열어 확인
+- 신규 함정 — Antigravity의 GitHub 인증 다중 흐름 혼란
+  - Edge passkey 자동 시도가 의도하지 않은 Microsoft 보안 키 인증 트리거
+  - 회피: 의심스러운 인증 다이얼로그는 우선 거부 후 컨텍스트 검증
+- 자동 추천 패턴 관찰: 검수자 흐름과 매번 거의 일치하지만, 정책 일관성 위해 무시
+- 함정 #6 변형: Claude Code의 자체 push 모니터링 명령 (Get-Content -Wait -Tail)
+  - 자동 승인 시 Get-Content 전체에 대한 영구 자동 승인 위험
+  - 거부가 정책상 정답
