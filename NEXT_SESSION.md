@@ -868,3 +868,137 @@ git commits (2 ahead from 25차 baseline 6debae8):
 - 26차 [N] 6개 함정 회피
 - 25차 [N] 5개 + 24차 [N] 5개 함정 회피 누적
 - 백업: <file>.backup_26_L2B.js 14개 (필요시 복원)
+
+---
+
+## 27차 세션 완료 (2026-05-05)
+
+### [L] 작업 결과
+
+시나리오 A 채택 (외부 검수자 권고): en.js 영어 placeholder 품질 개선 + 13개 미러 영어 fallback 갱신
+
+**[L]1: en.js channelKpiPage TOP-LEVEL 37키 영어 번역 정제**
+- scripts/refine_en_placeholder.py 작성 (156줄)
+- ABBR_RULES (정규식 9개): Kpis→KPIs, Kpi→KPI, Ctr→CTR, Cpc→CPC, Cpa→CPA, Roas→ROAS, Sns→SNS, Seo→SEO, Ai→AI
+- DIRECT_MAP (2개): heroDesc → "Manage API keys and connection status...", interestConv → "Interest Conversion Rate"
+- EXISTING_19 화이트리스트: tabGoals/Roles/Setup/Sns/Content/Community/Targets/Monitor/Guide + guideTitle/Sub/StepsTitle/TabsTitle/TipsTitle + guideTip1~5
+- 결과: 변환 37키, 변환 없음 91키 (chName_ + 자연 영어 키)
+- 백업: en.backup_27_refine.js (970KB)
+- 검증: 키수 147 보존, 문법 PASS
+- git commit b6e1bac (74+/-37, 230 insertions for refine_en_placeholder.py 추가)
+
+**[L]2: 13개 미러 영어 fallback 일괄 갱신**
+- scripts/fill_mirrors_with_en.py 작성 (140줄)
+- 패턴: 26차 sync_mirrors.py + 27차 refine_en_placeholder.py 결합
+- en.js TOP-LEVEL channelKpiPage 147키 영어 값 → 13개 미러에 복사 (key 보존, value 교체)
+- 13개 미러 (ar, de, es, fr, hi, id, ja, pt, ru, th, vi, zh-TW, zh) 모두 처리, SKIP 0건
+- 각 미러 약 127키 변환 (EXISTING_19은 이미 영어로 동일값이라 변환 0회)
+- 총 1,651키 변환 = 13 미러 × 127키
+- 백업 13개: <lang>.backup_27_fill.js
+- 검증: 14개 파일 모두 키수 147 + 문법 PASS, FAIL 0건
+- git commit af83876 (3438+/-1651, 14 files changed)
+
+### [M] 미해결 — 28차 후속 작업
+
+1. push 결정 (5 commits ahead 상태)
+   - origin/master에 5 commits 미반영
+   - push 시 deploy.yml 가동 → 프로덕션 반영
+   - 27차 종료 시 결정 또는 28차 첫 작업
+
+2. chName_ 값 정정 — sync_mirrors.py 미세 버그
+   - to_english_placeholder("chName_") → "Ch Name_" (key의 underscore가 값에 반영)
+   - en.js TOP-LEVEL line 22456: "chName_": "Ch Name_" (의도와 다름)
+   - ko.js: "chName_": "Ch Name" (정상)
+   - ChannelKPI.jsx:220: t('channelKpiPage.chName_' + c.id, c.name) — 동적 키 prefix
+   - chName_ 단독 키는 호출 0회 → UI 영향 0%
+   - 정정 가치: 미세한 코드 정합성 (기능 영향 0)
+
+3. 13개 미러 실제 현지화 번역 (영어 fallback의 한계)
+   - 시나리오 A는 한글 노출 → 영어 fallback. 13개 언어 모두 영어 표시 상태
+   - 진정한 i18n은 각 언어로 번역 필요
+   - LLM 번역 또는 번역가 의뢰 결정 필요
+
+### [N] 27차 학습 (28차 적용)
+
+신규 함정 / 발견 (Antigravity Claude Code 환경):
+
+1. 옵션 2 영구승인 변형 18회 등장 + 4개 새 패턴
+   - 패턴 1: `python *` (와일드카드)
+   - 패턴 2: `grep *` (텍스트 처리 와일드카드)
+   - 패턴 3: `sed *` (텍스트 처리 와일드카드)
+   - 패턴 4: `python scripts/<name>.py` (구체적 명령 영구승인)
+   - 패턴 5: `Yes, and always allow access to <directory>\` (디렉토리 영구접근)
+   - 패턴 6: `Yes, allow all edits during this session (shift+tab)` (세션 영구승인)
+   - 회피: 매번 옵션 1만 단발 승인. 13개 미러 write 같은 결정적 단계에 특히 위험.
+
+2. 25차 [N]4 (자동 결정 변경) 다수 재발
+   - head -120 → tail -30/-20 자동 변경 (외부 검수자 권고 무시)
+   - write 명령에 tail -20 자동 추가 (검증 부족 위험)
+   - 분리 명령을 단일 명령으로 자동 합침 (24차 [N]2 && 함정 회피와 충돌)
+   - 회피: 외부 검수자 권고 강제 패턴 — 거부 후 명령 재작성
+
+3. chName_ 동적 키 패턴 발견
+   - ChannelKPI.jsx:220: t('channelKpiPage.chName_' + c.id, c.name)
+   - 단독 키는 호출 0회, 파생 키 (chName_1 등) 실제 사용
+   - UI 영향: 0% (단독 키 값 무관)
+   - 정정 시 데드 키 처리 결정 가능
+
+4. 26차 sync_mirrors.py 미세 버그 발견
+   - to_english_placeholder() 함수가 키의 underscore를 값에 반영 (영어 placeholder)
+   - 28차 후속 정정 후보
+
+5. 화면 표시 시각적 오류
+   - line 101 process_mirror 호출이 화면 캡처에 중복으로 보임
+   - 실제 코드는 정상 (sed 검증으로 확정)
+   - 외부 검수자: 시각적 의혹 발견 시 sed로 검증
+
+6. write 결과 임시 파일 패턴 효과적
+   - `> scripts/write_27_fill_log.txt 2>&1` 패턴
+   - head/tail로 분리 검증 가능
+   - .gitignore 패턴 미매칭 → git add 정밀 매칭으로 자동 제외 (`*.js` 패턴은 .txt 미포함)
+
+7. line 101 화면 표시 vs 실제 코드 검증 패턴
+   - 시각적 오류 의심 시 `sed -n 'N,Mp'` 명령으로 정확한 코드 출력
+   - 화면 캡처 신뢰성 < 직접 sed 출력
+
+### [O] 28차 시작 추천
+
+1순위: 27차 push 결정 (보류 시 28차 첫 작업)
+- 5 commits ahead 상태 (b6e1bac, af83876 + 26차 3 commits)
+- push 시 deploy.yml 가동 → 프로덕션 반영
+- 외부 검수자 권고: 27차 종료 시 push로 시나리오 A 완전 종료
+
+2순위: chName_ 값 정정
+- chName_ 값 "Ch Name_" → "Ch Name" 정정
+- locale 일관성 (ko.js와 매칭)
+- UI 영향 0% (안전한 정정)
+
+3순위: 다른 페이지 동일 검증
+- orderHub 등 다른 namespace에 channelKpiPage 같은 데드코드 또는 누락 가능성
+- analyze_i18n_namespaces.py 재사용
+
+선택: 백업 파일 정리
+- 14개 backup_26_L2B.js (26차) + 1개 backup_27_refine.js (27차) + 13개 backup_27_fill.js (27차) = 28개
+- 27차 종료 후 안전 확정 시 정리 가능
+
+선택: 13개 미러 실제 현지화 번역
+- LLM 번역 파이프라인 또는 번역가 의뢰
+- 언어별 우선순위 결정
+
+선택: scripts/write_27_fill_log.txt 정리
+- 129.6KB 디버깅 출력 파일
+- .gitignore 패턴 추가 또는 단순 삭제
+
+### [P] 27차 보존 자산
+
+- scripts/refine_en_placeholder.py (156줄, 영어 약자 정제 도구)
+- scripts/fill_mirrors_with_en.py (140줄, 미러 영어 fallback 도구)
+- scripts/verify_after_sync.py (재사용, 26차에서 작성)
+- scripts/analyze_i18n_namespaces.py (재사용, 23차에서 작성)
+- 27차 commit hash: b6e1bac (en.js refine), af83876 (13 미러 fill)
+
+28차 시작 시 기억:
+- 27차 [N] 7개 함정 회피
+- 26차 [N] 6개 + 25차 [N] 5개 + 24차 [N] 5개 함정 회피 누적
+- 백업: en.backup_27_refine.js + 13개 *.backup_27_fill.js (필요시 복원)
+- write 로그: scripts/write_27_fill_log.txt (디버깅 참고)
