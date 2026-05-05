@@ -22453,7 +22453,7 @@ export default {
     "guideTargetDesc": "Guide Target Desc",
     "guideMonitorName": "Guide Monitor Name",
     "guideMonitorDesc": "Guide Monitor Desc",
-    "chName_": "Ch Name_",
+    "chName_": "Ch Name",
   },
   "budgetTracker": {
     "tabOverview": "Overview",
