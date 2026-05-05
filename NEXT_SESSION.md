@@ -1061,3 +1061,110 @@ git commits (2 ahead from 25차 baseline 6debae8):
 git -C "D:\project\GeniegoROI" log origin/master..HEAD --oneline
 ls frontend/src/i18n/
 ```
+## 29차 세션 완료 (2026-05-05)
+
+### [Q] 29차 완료한 작업
+
+#### 1. 백업 파일 정리
+- 위치: frontend/src/i18n/locales/ → frontend/src/i18n/locales_backup/session_*/
+- 분류: 세션별 4개 디렉토리로 정리
+  - session_25_L2A/: 1개 (ko.backup_25_L2A.js)
+  - session_26_L2B/: 14개 (ko 제외 활성 locale 14개)
+  - session_27_refine/: 1개 (en.backup_27_refine.js)
+  - session_27_fill/: 13개 (ko, en 제외 13개)
+- 총 이동: 29개 파일
+- 기존 11개 (locales_backup/de.js 등): 그대로 유지 (영향 없음)
+
+#### 2. .gitignore 갱신
+- 추가 패턴: frontend/src/i18n/locales_backup/session_*/
+- 기존 패턴 유지: **/locales/*.backup_*.js
+- EOL 일관성: CRLF로 통일 (마지막 줄 EOL 따라)
+- 인코딩: BOM 없는 UTF-8
+
+#### 3. Git 작업
+- Commit: febf0a4 "chore: gitignore i18n locale backup directories"
+- Push: 28차 11bd1d3 → 29차 febf0a4
+- CI: deploy.yml #146 SUCCESS (41초)
+
+### [R] 29차 신규 함정 발견 (5개)
+
+#### 함정 #1 변형 — Claude Code 자체 카운트 보고 부정확 (2회 발동)
+- 첫 보고: 31개 백업 파일
+- 첫 정정: 29개로 자체 정정
+- 다시 정정: 31개 (표 기준)
+- 실제 확인: 29개 (25_L2A 1 + 26_L2B 14 + 27_refine 1 + 27_fill 13)
+- 교훈: Claude Code의 자체 표/카운트 보고는 byte 단위 검증 또는 명령 결과 직접 확인으로 재검증 필수
+
+#### 함정 #6 정통 — 명시적 정지 지시 후 자동 Move-Item 큐 등록 (3회 발동)
+- 1차: 확인과 이동을 함께 진행합니다 (검증 명령 후 자동 Move-Item)
+- 2차: 명시적 경고 후에도 이제 14개 backup_26_L2B 이동 진행합니다
+- 3차: 4단계에서 다시 발동 시도 (검증 명령 + Move-Item 묶음)
+- 회피 방법: 매 명령에 다음 단계로 자체 판단 진행 절대 금지 명시 + 명령 분리 실행
+- 30차 권고: 함정 #6 발동 카운트가 3회 이상 누적 시 세션 종료 + 30차 새로 시작 옵션 고려
+
+#### 함정 #5 git/gh 변형 — 자동 재시도
+- git push: 1번 명령에 2번 표시 (idempotent라 위험 없음)
+- gh CLI: Bash 실패 → PowerShell 자동 재시도 → PowerShell도 실패
+- 실제 원인: gh CLI가 시스템에 설치 안 됨 (28차 메모의 gh 자동 재시도의 진짜 원인)
+- 회피 방법: 두 번 시도 후 자동 재시도 차단 + 사용자에게 다음 결정 위임
+
+#### 함정 #4 변형 — Mixed EOL 상태 안전 처리 (성공 사례)
+- .gitignore 파일이 LF + CRLF 혼재 상태로 발견
+- 단순 추가 시 EOL 불일치로 git diff에 모든 줄이 modified로 잡힐 위험
+- 회피 방법: 마지막 줄의 byte 단위 검사 (0D 0A = CRLF) 후 추가 시 동일 EOL 사용
+- 결과: 추가된 3줄만 git diff에 잡힘 (정확히 +3 lines, 104 bytes)
+
+#### 신규 함정 — 자동 추천 텍스트 패턴
+- Claude Code가 매 응답마다 입력란에 다음 명령 자동 추천 텍스트 채워둠
+- 그대로 Enter 치면 사용자 의도와 다른 명령 실행 가능
+- 회피 방법: t prefix 무력화 또는 직접 새 명령 입력
+- 30차 권고: 자동 추천 텍스트에 의존하지 말고 명시적 명령 작성 습관
+
+### [S] 누적 함정 회피 (29차 부분 성공)
+- 함정 #1 (git 자체 보고): 회피 OK (직접 검증 명령으로 재확인)
+- 함정 #2 (외부 명령 실패 자동 진단): 회피 OK (gh 실패 후 사용자 결정)
+- 함정 #3 (NEXT_SESSION.md 경로): 해당 없음 (내부 작업)
+- 함정 #4 (LF→CRLF): 회피 OK (byte 단위 검증)
+- 함정 #5 (gh 자동 재시도): 부분 회피 (자동 재시도 발생했으나 차단)
+- 함정 #6 (사용자 텍스트 무비판): 부분 회피 (3회 발동, 3회 차단)
+
+### [T] 29차 종료 시 git 상태
+- master == origin/master (동기화)
+- HEAD: febf0a4
+- 28차 종료 시점(11bd1d3)으로부터 1 commit ahead
+- Working tree:
+  - modified: clean_src (29차 무관, 30차 검토 사항)
+- Untracked (8개):
+  - .claude/settings.local.json
+  - add_autogrid_css.js
+  - add_mobile_table_css.js
+  - add_topbar_keys.py
+  - append_en.py
+  - bsearch_en.py
+  - bsearch_full.js
+  - bsearch_win.py
+
+### [U] 30차 작업 후보
+
+#### 우선순위 1 — 29차 미수행 PM 작업
+- orderHub 등 namespace 동일 검증 (29차 후보 #1, 가벼움)
+- 13개 미러 실제 현지화 번역 (29차 후보 #3, 무거움 — 별도 세션 권장)
+- PM_PRIORITY_PLAN.md 다음 우선순위 (29차 후보 #4)
+
+#### 우선순위 2 — 29차에서 발견된 30차 검토 사항
+- untracked 8개 스크립트 분류:
+  - 각 스크립트의 의미 파악 (번역/현지화 헬퍼인지 임시 파일인지)
+  - 의미 있는 도구는 git add 후 commit
+  - 임시 파일은 삭제 또는 .gitignore
+- clean_src modified 정체 확인: 디렉토리 또는 submodule, 우리 작업 무관
+
+#### 우선순위 3 — 환경 정비
+- gh CLI 설치 또는 PATH 설정: 29차에서 CI 확인 시 gh 사용 불가 → 향후 자동화 작업 시 필요
+
+### [V] 30차 시작 권고 첫 명령
+
+git -C "D:\project\GeniegoROI" log origin/master..HEAD --oneline
+git -C "D:\project\GeniegoROI" status --short
+
+- 첫 명령: 29차에서 학습한 git 자체 보고 신뢰 금지 (함정 #1) 회피용
+- 두 번째 명령: 29차 종료 시 남은 untracked 8개 + clean_src modified 상태 확인용
