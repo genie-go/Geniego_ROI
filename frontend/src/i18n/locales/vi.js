@@ -20171,134 +20171,261 @@ export default {
     "guideTip3": "Weekly monitoring for early detection.",
     "guideTip4": "Link content performance with KPIs.",
     "guideTip5": "Check community engagement regularly.",
-    "pageTitle": "기본 채널 KPI 관리망",
-    "heroDesc": "판매·광고·분석 채널의 API 키를 등록하고 연결 상태를 관리합니다.",
-    "badgeAdSpend": "총 광고비",
-    "badgeBlendedRoas": "통합 ROAS",
-    "badgeOrders": "총 주문수",
-    "badgeOpProfit": "영업 이익",
-    "bizGoalSetting": "비즈니스 목표 설정",
-    "brandAwareness": "브랜드 인지도 확대",
-    "brandAwarenessDesc": "노출 및 도달 극대화, 신규 유입 증대",
-    "webTraffic": "웹 트래픽 유도",
-    "webTrafficDesc": "페이지 뷰 및 체류 시간 증대",
-    "inquiriesPurchases": "문의 및 구매 전환",
-    "inquiriesPurchasesDesc": "실질적 세일즈 리드 및 매출 확보",
-    "selected": "선택됨",
-    "clickSelect": "클릭하여 선택",
-    "selectedGoals": "선택된 목표",
-    "pleaseSelectGoal": "목표를 선택해 주세요",
-    "channelRoleDef": "채널별 역할 정의",
-    "chSearchAds": "검색 광고",
-    "chSnsAds": "SNS 광고",
-    "chBlog": "블로그",
-    "chCommunity": "커뮤니티",
-    "roleCaptureIntent": "구매 의도 포착",
-    "roleBrandReach": "브랜드 도달",
-    "roleInfoTrust": "정보·신뢰 구축",
-    "roleCustRel": "고객 관계 강화",
-    "descCaptureIntent": "검색 알고리즘으로 구매 의도가 높은 유저를 타겟팅",
-    "descBrandReach": "SNS 플랫폼 광고를 통한 대규모 브랜드 노출",
-    "descInfoTrust": "문제 해결형 콘텐츠로 전문성과 신뢰 구축",
-    "descCustRel": "커뮤니티 활동으로 고객 로열티 확보",
-    "coreKpis": "핵심 KPI",
-    "ctr": "클릭률 (CTR)",
-    "cpc": "클릭 단가 (CPC)",
-    "convRate": "전환율",
-    "cpa": "전환 단가 (CPA)",
+    "pageTitle": "Page Title",
+
+    "heroDesc": "Manage API keys and connection status for sales, ads, and analytics channels.",
+
+    "badgeAdSpend": "Badge Ad Spend",
+
+    "badgeBlendedRoas": "Badge Blended ROAS",
+
+    "badgeOrders": "Badge Orders",
+
+    "badgeOpProfit": "Badge Op Profit",
+
+    "bizGoalSetting": "Biz Goal Setting",
+
+    "brandAwareness": "Brand Awareness",
+
+    "brandAwarenessDesc": "Brand Awareness Desc",
+
+    "webTraffic": "Web Traffic",
+
+    "webTrafficDesc": "Web Traffic Desc",
+
+    "inquiriesPurchases": "Inquiries Purchases",
+
+    "inquiriesPurchasesDesc": "Inquiries Purchases Desc",
+
+    "selected": "Selected",
+
+    "clickSelect": "Click Select",
+
+    "selectedGoals": "Selected Goals",
+
+    "pleaseSelectGoal": "Please Select Goal",
+
+    "channelRoleDef": "Channel Role Def",
+
+    "chSearchAds": "Ch Search Ads",
+
+    "chSnsAds": "Ch SNS Ads",
+
+    "chBlog": "Ch Blog",
+
+    "chCommunity": "Ch Community",
+
+    "roleCaptureIntent": "Role Capture Intent",
+
+    "roleBrandReach": "Role Brand Reach",
+
+    "roleInfoTrust": "Role Info Trust",
+
+    "roleCustRel": "Role Cust Rel",
+
+    "descCaptureIntent": "Desc Capture Intent",
+
+    "descBrandReach": "Desc Brand Reach",
+
+    "descInfoTrust": "Desc Info Trust",
+
+    "descCustRel": "Desc Cust Rel",
+
+    "coreKpis": "Core KPIs",
+
+    "ctr": "CTR",
+
+    "cpc": "CPC",
+
+    "convRate": "Conv Rate",
+
+    "cpa": "CPA",
+
     "roas": "ROAS",
-    "reach": "도달",
-    "engagement": "참여율",
-    "videoViews": "동영상 조회수",
-    "pageViews": "페이지 뷰",
-    "visitors": "방문자 수",
-    "avgTime": "평균 체류 시간",
-    "searchTraffic": "검색 유입",
-    "postViews": "게시글 조회수",
-    "comments": "댓글 수",
-    "inquiries": "문의 수",
-    "newMembers": "신규 가입자",
-    "targetSetup": "채널별 KPI 목표 설정",
-    "lblCtrFull": "CTR (클릭률)",
-    "lblConvRate": "전환율",
-    "lblCpaFull": "CPA (전환 단가)",
-    "lblRoasFull": "ROAS (광고 수익률)",
-    "lblCpcFull": "CPC (클릭 단가)",
-    "hintCtr": "업종 평균 CTR: 2~5%",
-    "hintConvRate": "업종 평균 전환율: 3~8%",
-    "hintCpa": "목표 전환 단가",
-    "hintRoas": "목표 광고 수익률",
-    "hintCpc": "목표 클릭 단가",
-    "snsKpiOverview": "SNS 광고 KPI 개요",
-    "snsKpiByChannel": "채널별 SNS KPI",
-    "allChannels": "전체 채널",
-    "channelCol": "채널",
-    "contentKpi": "콘텐츠 채널 KPI",
-    "contentImpressions": "콘텐츠 노출",
-    "siteTraffic": "사이트 트래픽",
-    "contentEngage": "콘텐츠 참여",
-    "seoImpact": "SEO 효과",
-    "monthlyTrend": "월간 추세",
-    "currentMonth": "이번 달",
-    "communityKpi": "커뮤니티 채널 KPI",
-    "naverCafe": "네이버 카페",
-    "kakaoGuild": "카카오톡",
-    "contentInterest": "콘텐츠 관심도",
-    "communityAct": "커뮤니티 활동",
-    "interestConv": "관심→전환",
-    "communityGrowth": "커뮤니티 성장",
-    "share": "비율",
-    "targetVsActuals": "목표 대비 실적",
-    "overallAchieve": "전체 달성 현황",
-    "targetLabel": "목표",
-    "achieved": "달성 ✓",
-    "achievedOk": "달성 ✓",
-    "belowTarget": "미달",
-    "descCtr": "클릭률 목표 대비 실적",
-    "descConvRate": "전환율 목표 대비 실적",
-    "descCpa": "전환 단가 목표 대비 실적",
-    "descRoas": "ROAS 목표 대비 실적",
-    "descCpc": "CPC 목표 대비 실적",
-    "monitorAi": "AI 채널 성과 모니터링",
-    "claudeAiTitle": "Claude AI 채널 종합 분석",
-    "claudeAiDesc": "채널 믹스 및 예산 최적화 추천 보고서",
-    "weeklyAi": "주간 리포트",
-    "monthlyAi": "월간 리포트",
-    "runAi": "AI 분석 실행",
-    "aiAnalyzing": "AI 분석 중…",
-    "history": "📜 히스토리",
-    "aiSummary": "AI 분석 요약",
-    "keyInsight": "💡 핵심 인사이트:",
-    "immediateAction": "⚡ 즉시 조치:",
-    "strengths": "강점",
-    "weaknesses": "약점",
-    "improveRecs": "개선 권고",
-    "weeklyAdTrend": "주간 광고 효율 트렌드",
-    "period": "분석 기간",
-    "noData": "데이터가 없습니다",
-    "checklist": "주요 액션 아이템",
-    "chkEff": "캠페인 효율성 체크",
-    "chkCostPerf": "비용 대비 성과 점검",
-    "chkImprove": "개선 필요 항목 도출",
-    "aiHistoryList": "AI 분석 히스토리",
-    "noHistory": "분석 히스토리가 없습니다",
-    "guideGoalName": "목표 설정",
-    "guideGoalDesc": "비즈니스 핵심 목표를 선택하여 KPI 전략을 수립합니다.",
-    "guideRoleName": "채널 역할",
-    "guideRoleDesc": "각 채널의 마케팅 역할과 핵심 지표를 정의합니다.",
-    "guideSetupName": "KPI 설정",
-    "guideSetupDesc": "채널별 세부 KPI 목표값을 입력하고 관리합니다.",
-    "guideSnsName": "SNS 성과",
-    "guideSnsDesc": "SNS 광고 채널별 도달, 참여, CTR, 동영상 조회를 분석합니다.",
-    "guideContentName": "콘텐츠 성과",
-    "guideContentDesc": "블로그 페이지뷰, 방문자, 체류시간, 검색유입을 분석합니다.",
-    "guideCommunityName": "커뮤니티 성과",
-    "guideCommunityDesc": "네이버 카페, 카카오 등 커뮤니티 활동 지표를 분석합니다.",
-    "guideTargetName": "목표 달성",
-    "guideTargetDesc": "설정 목표 대비 실적을 게이지 바와 카드로 시각화합니다.",
-    "guideMonitorName": "AI 모니터링",
-    "guideMonitorDesc": "Claude AI가 전체 채널 성과를 분석하고 개선 방향을 제시합니다.",
-    "chName_": "Ch Name",
+    "reach": "Reach",
+
+    "engagement": "Engagement",
+
+    "videoViews": "Video Views",
+
+    "pageViews": "Page Views",
+
+    "visitors": "Visitors",
+
+    "avgTime": "Avg Time",
+
+    "searchTraffic": "Search Traffic",
+
+    "postViews": "Post Views",
+
+    "comments": "Comments",
+
+    "inquiries": "Inquiries",
+
+    "newMembers": "New Members",
+
+    "targetSetup": "Target Setup",
+
+    "lblCtrFull": "Lbl CTR Full",
+
+    "lblConvRate": "Lbl Conv Rate",
+
+    "lblCpaFull": "Lbl CPA Full",
+
+    "lblRoasFull": "Lbl ROAS Full",
+
+    "lblCpcFull": "Lbl CPC Full",
+
+    "hintCtr": "Hint CTR",
+
+    "hintConvRate": "Hint Conv Rate",
+
+    "hintCpa": "Hint CPA",
+
+    "hintRoas": "Hint ROAS",
+
+    "hintCpc": "Hint CPC",
+
+    "snsKpiOverview": "SNS KPI Overview",
+
+    "snsKpiByChannel": "SNS KPI By Channel",
+
+    "allChannels": "All Channels",
+
+    "channelCol": "Channel Col",
+
+    "contentKpi": "Content KPI",
+
+    "contentImpressions": "Content Impressions",
+
+    "siteTraffic": "Site Traffic",
+
+    "contentEngage": "Content Engage",
+
+    "seoImpact": "SEO Impact",
+
+    "monthlyTrend": "Monthly Trend",
+
+    "currentMonth": "Current Month",
+
+    "communityKpi": "Community KPI",
+
+    "naverCafe": "Naver Cafe",
+
+    "kakaoGuild": "Kakao Guild",
+
+    "contentInterest": "Content Interest",
+
+    "communityAct": "Community Act",
+
+    "interestConv": "Interest Conversion Rate",
+
+    "communityGrowth": "Community Growth",
+
+    "share": "Share",
+
+    "targetVsActuals": "Target Vs Actuals",
+
+    "overallAchieve": "Overall Achieve",
+
+    "targetLabel": "Target Label",
+
+    "achieved": "Achieved",
+
+    "achievedOk": "Achieved Ok",
+
+    "belowTarget": "Below Target",
+
+    "descCtr": "Desc CTR",
+
+    "descConvRate": "Desc Conv Rate",
+
+    "descCpa": "Desc CPA",
+
+    "descRoas": "Desc ROAS",
+
+    "descCpc": "Desc CPC",
+
+    "monitorAi": "Monitor AI",
+
+    "claudeAiTitle": "Claude AI Title",
+
+    "claudeAiDesc": "Claude AI Desc",
+
+    "weeklyAi": "Weekly AI",
+
+    "monthlyAi": "Monthly AI",
+
+    "runAi": "Run AI",
+
+    "aiAnalyzing": "AI Analyzing",
+
+    "history": "History",
+
+    "aiSummary": "AI Summary",
+
+    "keyInsight": "Key Insight",
+
+    "immediateAction": "Immediate Action",
+
+    "strengths": "Strengths",
+
+    "weaknesses": "Weaknesses",
+
+    "improveRecs": "Improve Recs",
+
+    "weeklyAdTrend": "Weekly Ad Trend",
+
+    "period": "Period",
+
+    "noData": "No Data",
+
+    "checklist": "Checklist",
+
+    "chkEff": "Chk Eff",
+
+    "chkCostPerf": "Chk Cost Perf",
+
+    "chkImprove": "Chk Improve",
+
+    "aiHistoryList": "AI History List",
+
+    "noHistory": "No History",
+
+    "guideGoalName": "Guide Goal Name",
+
+    "guideGoalDesc": "Guide Goal Desc",
+
+    "guideRoleName": "Guide Role Name",
+
+    "guideRoleDesc": "Guide Role Desc",
+
+    "guideSetupName": "Guide Setup Name",
+
+    "guideSetupDesc": "Guide Setup Desc",
+
+    "guideSnsName": "Guide SNS Name",
+
+    "guideSnsDesc": "Guide SNS Desc",
+
+    "guideContentName": "Guide Content Name",
+
+    "guideContentDesc": "Guide Content Desc",
+
+    "guideCommunityName": "Guide Community Name",
+
+    "guideCommunityDesc": "Guide Community Desc",
+
+    "guideTargetName": "Guide Target Name",
+
+    "guideTargetDesc": "Guide Target Desc",
+
+    "guideMonitorName": "Guide Monitor Name",
+
+    "guideMonitorDesc": "Guide Monitor Desc",
+
+    "chName_": "Ch Name_",
+
   },
   "omniChannel": {
     "tabChannels": "Channels",
