@@ -784,3 +784,87 @@ Claude Code 신규 함정 5개:
 - 25차 [N] 5개 함정 회피
 - 24차 [N] 5개 함정 회피 (인코딩 휘발, ; 체인, Plan 모드 자동, 자동 결정, 백슬래시)
 - ko.js 백업: ko.backup_25_L2A.js (필요시 복원)
+
+---
+
+## 26차 세션 완료 (2026-05-05)
+
+### [L]2-B 작업 결과
+
+- 14개 i18n locale 파일에 channelKpiPage TOP-LEVEL 128키 동기화
+- en.js: 영어 placeholder (camelCase → Title Case)
+- 13개 미러 (ar, de, es, fr, hi, id, ja, pt, ru, th, vi, zh-TW, zh): ko 임시복사 (한글)
+- ko.js 기존 마지막 키(guideTip5) trailing comma 보정 자동 적용
+- 검증: 키 카운트 14/14 PASS (147키 일치), 문법 검사 14/14 PASS (export default / {} 균형 / "" 균형 / UTF-8)
+
+작성/실행한 스크립트 (3개):
+- scripts/sync_mirrors.py — 14개 파일 동기화 (백업 자동 + atomic 교체)
+- scripts/verify_after_sync.py — 14개 파일 사후 검증
+- scripts/verify_ko_pattern.py — ko.js 정규식 매칭 사전 검증
+
+git commits (2 ahead from 25차 baseline 6debae8):
+- 9bf7b2c: feat(i18n): sync channelKpiPage 128 keys to 14 locales
+- 358b05d: chore(i18n): add 26th session sync/verify scripts
+
+백업 파일 (.gitignore 자동 처리, 14개):
+- frontend/src/i18n/locales/<lang>.backup_26_L2B.js (각 미러별)
+- 검증 통과 후 사용자 결정으로 정리 가능
+
+### [N]. 26차 학습 (27차 적용)
+
+신규 함정 / 발견 (Antigravity Claude Code 환경):
+
+1. node --check는 ES Module 파일에 부적절
+   - .js 파일을 기본 CJS로 파싱 → export default 구문에서 SyntaxError
+   - 24차 [F]9 패턴 재확인: ES Module이면 Python 정규식 기반 검증 또는 node --input-type=module 사용
+   - 26차 채택: Python 정규식 기반 (의존성 0, 25차 패턴 일관성)
+
+2. Antigravity 입력창 ghost text 자동 채움
+   - Claude Code 응답 후 입력창에 다음 명령 자동 생성 (25차 [N]1 변형)
+   - Esc, Ctrl+A, Backspace 작동 안 함
+   - delete 키 단독은 작동하지만 빈 상태가 되면 잠시 후 자동 재채움
+   - 우회: 한 글자(예: t) 타이핑 후 메시지를 그 뒤에 추가 — 첫 단어로 자연스럽게 흡수됨
+
+3. 승인 옵션 두 절대 금지
+   - "Yes, allow all edits during this session (shift+tab)"
+   - "Yes, and don't ask again for: <명령> *" (와일드카드)
+   - "Yes, and always allow access to <디렉토리>\ from this project" (디렉토리 영구접근)
+   - 매번 옵션 1 단발 승인이 25차 [N]3 함정 회피의 핵심
+
+4. dry-run 출력 자체의 sample 제한
+   - sync_mirrors.py 같은 도구는 dry-run에서 missing[:5] 같은 슬라이스로 압축 출력
+   - 외부 컨텍스트 한도 초과 시 임시 파일에 저장됨 (Antigravity)
+   - 우회: 검증 단계에서는 sample 제한 풀기 (또는 spot-check 방식)
+
+5. ko.js 기존 마지막 키 trailing comma 누락
+   - 25차에서 데드코드 5개 블록 삭제 후 마지막 키(guideTip5)가 콤마 없이 끝남
+   - 신규 키 삽입 시 syntax error 위험
+   - 우회: sync 스크립트가 메모리 상에서 자동 보정 (ko.js 직접 수정 안 함)
+
+6. dry-run / write 단계 분리의 안전성 확인
+   - sync_mirrors.py의 dry-run 패턴이 잘 작동
+   - 검증 → write → 사후검증 3단계로 14개 파일 무결성 보장
+   - 25차 [O] "백업 → 작업 → 검증 PASS 후 교체" 패턴 26차도 통과
+
+### [O]. 27차 시작 추천
+
+1순위: i18n 영어 placeholder → 실제 영어 번역
+- 26차 placeholder는 임시값 (예: ctr → Ctr 어색)
+- 약자 사전 추가 또는 실제 번역가/LLM 번역
+
+2순위: 13개 미러 → 실제 현지화 번역
+- 26차에 ko 임시복사로 채움 → 사용자에게 잘못된 언어 노출
+- 언어별 우선순위 결정 필요
+
+3순위: 다른 페이지 동일 검증
+- orderHub 등 다른 namespace에 channelKpiPage 같은 데드코드 또는 누락 있을 수 있음
+- 25차 분석 패턴 (analyze_i18n_namespaces.py) 재사용
+
+선택: 백업 파일 정리
+- frontend/src/i18n/locales/*.backup_26_L2B.js 14개
+- 27차 통과 후 안전 확인되면 정리 가능
+
+27차 시작 시 기억:
+- 26차 [N] 6개 함정 회피
+- 25차 [N] 5개 + 24차 [N] 5개 함정 회피 누적
+- 백업: <file>.backup_26_L2B.js 14개 (필요시 복원)
