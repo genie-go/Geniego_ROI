@@ -22290,9 +22290,11 @@ export default {
     "guideTip4": "Link content performance with KPIs.",
     "guideTip5": "Check community engagement regularly.",
     "pageTitle": "Page Title",
-    "heroDesc": "Hero Desc",
+    "heroDesc": "Manage API keys and connection status for sales, ads, and analytics channels.",
+
     "badgeAdSpend": "Badge Ad Spend",
-    "badgeBlendedRoas": "Badge Blended Roas",
+    "badgeBlendedRoas": "Badge Blended ROAS",
+
     "badgeOrders": "Badge Orders",
     "badgeOpProfit": "Badge Op Profit",
     "bizGoalSetting": "Biz Goal Setting",
@@ -22308,7 +22310,8 @@ export default {
     "pleaseSelectGoal": "Please Select Goal",
     "channelRoleDef": "Channel Role Def",
     "chSearchAds": "Ch Search Ads",
-    "chSnsAds": "Ch Sns Ads",
+    "chSnsAds": "Ch SNS Ads",
+
     "chBlog": "Ch Blog",
     "chCommunity": "Ch Community",
     "roleCaptureIntent": "Role Capture Intent",
@@ -22319,12 +22322,17 @@ export default {
     "descBrandReach": "Desc Brand Reach",
     "descInfoTrust": "Desc Info Trust",
     "descCustRel": "Desc Cust Rel",
-    "coreKpis": "Core Kpis",
-    "ctr": "Ctr",
-    "cpc": "Cpc",
+    "coreKpis": "Core KPIs",
+
+    "ctr": "CTR",
+
+    "cpc": "CPC",
+
     "convRate": "Conv Rate",
-    "cpa": "Cpa",
-    "roas": "Roas",
+    "cpa": "CPA",
+
+    "roas": "ROAS",
+
     "reach": "Reach",
     "engagement": "Engagement",
     "videoViews": "Video Views",
@@ -22337,33 +22345,47 @@ export default {
     "inquiries": "Inquiries",
     "newMembers": "New Members",
     "targetSetup": "Target Setup",
-    "lblCtrFull": "Lbl Ctr Full",
+    "lblCtrFull": "Lbl CTR Full",
+
     "lblConvRate": "Lbl Conv Rate",
-    "lblCpaFull": "Lbl Cpa Full",
-    "lblRoasFull": "Lbl Roas Full",
-    "lblCpcFull": "Lbl Cpc Full",
-    "hintCtr": "Hint Ctr",
+    "lblCpaFull": "Lbl CPA Full",
+
+    "lblRoasFull": "Lbl ROAS Full",
+
+    "lblCpcFull": "Lbl CPC Full",
+
+    "hintCtr": "Hint CTR",
+
     "hintConvRate": "Hint Conv Rate",
-    "hintCpa": "Hint Cpa",
-    "hintRoas": "Hint Roas",
-    "hintCpc": "Hint Cpc",
-    "snsKpiOverview": "Sns Kpi Overview",
-    "snsKpiByChannel": "Sns Kpi By Channel",
+    "hintCpa": "Hint CPA",
+
+    "hintRoas": "Hint ROAS",
+
+    "hintCpc": "Hint CPC",
+
+    "snsKpiOverview": "SNS KPI Overview",
+
+    "snsKpiByChannel": "SNS KPI By Channel",
+
     "allChannels": "All Channels",
     "channelCol": "Channel Col",
-    "contentKpi": "Content Kpi",
+    "contentKpi": "Content KPI",
+
     "contentImpressions": "Content Impressions",
     "siteTraffic": "Site Traffic",
     "contentEngage": "Content Engage",
-    "seoImpact": "Seo Impact",
+    "seoImpact": "SEO Impact",
+
     "monthlyTrend": "Monthly Trend",
     "currentMonth": "Current Month",
-    "communityKpi": "Community Kpi",
+    "communityKpi": "Community KPI",
+
     "naverCafe": "Naver Cafe",
     "kakaoGuild": "Kakao Guild",
     "contentInterest": "Content Interest",
     "communityAct": "Community Act",
-    "interestConv": "Interest Conv",
+    "interestConv": "Interest Conversion Rate",
+
     "communityGrowth": "Community Growth",
     "share": "Share",
     "targetVsActuals": "Target Vs Actuals",
@@ -22372,20 +22394,32 @@ export default {
     "achieved": "Achieved",
     "achievedOk": "Achieved Ok",
     "belowTarget": "Below Target",
-    "descCtr": "Desc Ctr",
+    "descCtr": "Desc CTR",
+
     "descConvRate": "Desc Conv Rate",
-    "descCpa": "Desc Cpa",
-    "descRoas": "Desc Roas",
-    "descCpc": "Desc Cpc",
-    "monitorAi": "Monitor Ai",
-    "claudeAiTitle": "Claude Ai Title",
-    "claudeAiDesc": "Claude Ai Desc",
-    "weeklyAi": "Weekly Ai",
-    "monthlyAi": "Monthly Ai",
-    "runAi": "Run Ai",
-    "aiAnalyzing": "Ai Analyzing",
+    "descCpa": "Desc CPA",
+
+    "descRoas": "Desc ROAS",
+
+    "descCpc": "Desc CPC",
+
+    "monitorAi": "Monitor AI",
+
+    "claudeAiTitle": "Claude AI Title",
+
+    "claudeAiDesc": "Claude AI Desc",
+
+    "weeklyAi": "Weekly AI",
+
+    "monthlyAi": "Monthly AI",
+
+    "runAi": "Run AI",
+
+    "aiAnalyzing": "AI Analyzing",
+
     "history": "History",
-    "aiSummary": "Ai Summary",
+    "aiSummary": "AI Summary",
+
     "keyInsight": "Key Insight",
     "immediateAction": "Immediate Action",
     "strengths": "Strengths",
@@ -22398,7 +22432,8 @@ export default {
     "chkEff": "Chk Eff",
     "chkCostPerf": "Chk Cost Perf",
     "chkImprove": "Chk Improve",
-    "aiHistoryList": "Ai History List",
+    "aiHistoryList": "AI History List",
+
     "noHistory": "No History",
     "guideGoalName": "Guide Goal Name",
     "guideGoalDesc": "Guide Goal Desc",
@@ -22406,8 +22441,10 @@ export default {
     "guideRoleDesc": "Guide Role Desc",
     "guideSetupName": "Guide Setup Name",
     "guideSetupDesc": "Guide Setup Desc",
-    "guideSnsName": "Guide Sns Name",
-    "guideSnsDesc": "Guide Sns Desc",
+    "guideSnsName": "Guide SNS Name",
+
+    "guideSnsDesc": "Guide SNS Desc",
+
     "guideContentName": "Guide Content Name",
     "guideContentDesc": "Guide Content Desc",
     "guideCommunityName": "Guide Community Name",
