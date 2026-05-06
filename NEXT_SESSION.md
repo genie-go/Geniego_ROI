@@ -1413,3 +1413,55 @@ git -C "D:\project\GeniegoROI" status --short
 - 사례: 1411행에 '### [32차 정정 2 — Antigravity 창 비활성화 타이밍 정밀화]' 자동 생성됨 (실제로 다룬 적 없는 주제)
 - 회피 패턴: 사용자가 검수자 텍스트 붙여넣기 후 저장 직전 마지막 라인 의도 확인
 - 검수자 자기 점검: 텍스트 블록 끝맺음을 명확히, 환각 가능성 인지
+### [32차 우선순위 2번 분석 - 7개 untracked 헬퍼 정체 식별]
+
+**작업**: 7개 untracked 헬퍼 파일 read 및 정체 식별 (분류 결정은 33차 인계)
+
+**tools 디렉토리 현황**:
+- D:\project\GeniegoROI\tools 존재 (3개 항목)
+  - migrations/ (하위 디렉토리)
+  - apply_channel_api_profiles_patch.py (1.3KB)
+  - purge_demo.js (1.4KB)
+- 7개 untracked 헬퍼는 모두 D:\project\GeniegoROI\ 루트에 위치
+- 7개 헬퍼 모두 2026-05-03 11:35 동일 시각 생성 (30차 작업 산물)
+
+**7개 헬퍼 정체 분석 결과**:
+
+| 파일 | 크기 | 헤더 표기 | 실제 언어 | 작동 가능 | 정체 |
+|------|------|----------|----------|----------|------|
+| bsearch_full.js | 1.9KB | (없음) | JavaScript | ✅ | i18n 디버깅 (이진탐색, en.js 구문 오류 라인 식별) |
+| bsearch_en.py | 4.4KB | "Enterprise I18N Syntax Debugger" | **PHP** ⚠️ | ❌ (.py 확장자 오류) | bsearch_full.js의 PHP 시도 (시행착오) |
+| bsearch_win.py | 4.7KB | "[Enterprise Edition]" | **PHP** ⚠️ | ❌ (.py 확장자 오류) | bsearch_en.py 정교화 시도 (ANSI 컬러, V8 분석) |
+| add_autogrid_css.js | 4.5KB | (없음) | JavaScript | ✅ | styles.css 모듈식 패치 (@geniego-autogrid-system-v2) |
+| add_mobile_table_css.js | 5.0KB | (없음) | JavaScript | ✅ | styles.css 모듈식 패치 (@geniego-native-ultra-v1) |
+| add_topbar_keys.py | 11.7KB | "GeniegoROI i18n Ultra Optimizer V1" | Python | ✅ | 9개 언어(en/ko/ja/zh/zh-Tw/de/th/vi/id) i18n topbar 키 일괄 패치 (가장 정교) |
+| append_en.py | 9.7KB | "PHP Enterprise Edition" | **PHP** ⚠️ | ❌ (.py 확장자 오류) | en.js 단일 패치 (Audit/Report/Auth 페이지 키 추가) |
+
+**핵심 발견 — "Enterprise" 표기와 .py 확장자 오류 패턴**:
+- "Enterprise" 표기 3개 파일 모두 PHP (bsearch_en.py, bsearch_win.py, append_en.py)
+- 이들은 .py 확장자로 잘못 저장됨 → Python 환경에서 실행 불가
+- 가설: PHP "Enterprise Edition" 스타일로 작성 시도 후 Windows 환경(PHP 미보유)에서 .js/.py로 재작성. 원본 PHP 파일이 .py로 방치됨.
+
+**33차 분류 결정 후보 (사용자 결정 필요)**:
+
+| 분류 | 파일 | 검수자 추천 |
+|------|------|------------|
+| 유지 + tools/ 이동 + commit | bsearch_full.js | ✅ 정상 JS 도구 |
+| 유지 + tools/ 이동 + commit | add_autogrid_css.js | ✅ 정상 모듈식 패치 |
+| 유지 + tools/ 이동 + commit | add_mobile_table_css.js | ✅ 정상 모듈식 패치 |
+| 유지 + tools/ 이동 + commit | add_topbar_keys.py | ✅ 가장 정교한 영구 도구 |
+| 삭제 | bsearch_en.py | bsearch_full.js로 대체됨, 시행착오 산물 |
+| 삭제 | bsearch_win.py | bsearch_en.py 정교화 시도, bsearch_full.js로 대체됨 |
+| **사용자 결정 필요** | append_en.py | (A) .php로 rename + 이동 (PHP 환경 시) (B) 삭제 (add_topbar_keys.py로 대체) |
+
+**33차 시작 시 사용자 결정 사항**:
+1. PHP 환경 보유 여부 (append_en.py 처리 분기점)
+2. 7개 헬퍼 일괄 처리 vs 단계별 처리
+3. tools/ 디렉토리 구조 (현재 3개 항목 + 추가 4-5개 헬퍼 시 정리 필요)
+
+**남은 우선순위 2번 작업**:
+- master vs main 브랜치 정책 결정 (사용자/팀)
+- clean_src modify 상태 정체 재검토 (의도적 보존 사유 명문화)
+
+### [32차 우선순위 3번 미진행]
+- gh CLI 환경 정비 - 33차 인계 (29차→30차→31차→32차 연속 인계)
