@@ -1,7 +1,7 @@
 # GeniegoROI 다음 세션 인수인계 문서
 
-> Last Updated: 2026-05-04 (21차 완료)
-> Last Commit: dbd6fdb (master 로컬, origin보다 4 commits ahead)
+> Last Updated: 2026-05-06 (34차 완료)
+> Last Commit: 59cebce (master == origin/master, clean)
 
 ---
 
@@ -1651,3 +1651,53 @@ git -C "D:\project\GeniegoROI" status --short
 - 33차 핵심 성과: 5회차 인계 항목 종결 + 7개 헬퍼 전수 처리 + NEXT_SESSION.md 영구 기록 + 신규 함정 5개 학습
 - 33차 미완 사항: gh CLI 설치 (7회차 인계, 환경 함정 가설 보유)
 - 사용자 정책 일관 유지: #1 자동 추천 차단, #2 검수자 추천 명령만 진행, #6 PAT 비공유, #7 의심 다이얼로그 멈춤, #8 옵션 2번 절대 금지 (33차에서 다수 적용)
+
+---
+
+## ● 34차 세션 완료 (2026-05-06)
+
+### [34차 우선순위 1 완료] — gh CLI 설치 확인
+
+**결과**: ✅ gh CLI 이미 설치 완료 확정
+
+- 명령: `gh --version`
+- 출력: `gh version 2.92.0 (2026-04-28)`
+- 의미: 33차에서 winget 설치 시도 후 Exit 1602(User Cancelled)로 실패했으나, 이후 사용자가 외부 환경(관리자 권한 또는 직접 다운로드)에서 설치 완료한 것으로 추정
+- **7회차 누적 인계 항목 완전 종결** (29차→30차→31차→32차→33차→34차→완료)
+
+**후속 확인 필요 (35차 첫 명령 권장)**:
+- `gh auth status` — 인증 상태 확인 (설치만으로는 GitHub 인증 미완)
+- 인증 완료 시: `gh run list --limit 5` 로 CI 결과 확인 자동화 가능
+
+### [34차 작업 목록]
+
+- NEXT_SESSION.md 갱신 (34차 블록 추가, 헤더 갱신)
+- commit + push
+
+### [34차 git 상태]
+
+- master HEAD: 34차 NEXT_SESSION.md commit (예정)
+- origin/master HEAD: 34차 commit push 후 동기화 (예정)
+- working tree: clean (untracked 0개, modified 0개)
+
+### [35차 작업 후보]
+
+**우선순위 1 — gh CLI 인증 완료 (34차 후속)**
+- 명령: `gh auth login` (브라우저 또는 PAT 방식)
+- 완료 후: `gh run list --limit 5` 로 CI 조회 자동화 검증
+- 참고: 31차에서 PAT 등록 + manager 정착 → PAT 재사용 가능
+
+**우선순위 2 — master vs main 브랜치 정책 결정 (사용자/팀)**
+- 32차/33차/34차 연속 인계
+- 현황: master(작업·배포), main(d25c389, GitHub default, 2개월 전 분기)
+- 사용자/팀 결정 필요 — 검수자 자동 진행 어려움
+
+**우선순위 3 — b747ec8 예외 원인 정밀 분석**
+- 30차 가설(paths-ignore **.md 차단)의 예외 케이스
+- 가능한 원인: b747ec8 push 묶음에 paths-ignore 도입 commit이 포함되어 첫 push에서 트리거
+- 분석 명령: `git log --oneline b747ec8~3..b747ec8`
+
+**신규 후보 — clean_src/ 디렉토리 처리 결정**
+- 33차에서 .gitignore로 무시 처리만 함 (디렉토리 자체는 파일시스템 보존)
+- 향후 결정: (i) 외부 위치 이동, (ii) 완전 삭제, (iii) 현 상태 유지
+- 디스크 공간 고려 (메인 repo 2026-03-28 풀 미러 백업)
