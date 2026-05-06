@@ -1701,3 +1701,95 @@ git -C "D:\project\GeniegoROI" status --short
 - 33차에서 .gitignore로 무시 처리만 함 (디렉토리 자체는 파일시스템 보존)
 - 향후 결정: (i) 외부 위치 이동, (ii) 완전 삭제, (iii) 현 상태 유지
 - 디스크 공간 고려 (메인 repo 2026-03-28 풀 미러 백업)
+---
+
+## ● 35차 세션 완료 (2026-05-06)
+
+### [35차 우선순위 1 완료] — gh CLI 인증 완료
+
+**결과**: ✅ gh auth login 완료, PowerShell/Bash 양 환경 keyring 공유 확인
+
+- 인증 방식: 브라우저 OAuth (`--web` 플래그)
+- 계정: genie-go
+- Active account: true
+- Git protocol: https
+- Token scopes: gist, read:org, repo, workflow
+- 토큰 저장: Windows Credential Manager (keyring)
+- **8회차 누적 인계 항목 (gh CLI 설치+인증) 완전 종결** (29차→30차→31차→32차→33차→34차→35차→완료)
+
+**진행 흐름 핵심 사실**:
+- 1차 시도 (Antigravity Claude Code 내부): `gh auth login --web` 백그라운드 실행 → Claude Code 자체 우회 명령(`timeout /t 8 ...`) 발동, 사용자가 옵션 2(No)로 차단
+- 2차 시도 (별도 PowerShell 탭, B-1 방식): 정상 대화형 흐름 → OAuth 코드 입력 → sudo mode 비밀번호 재인증 → Authorize 완료
+- 검증: PowerShell + Antigravity Bash 양 환경에서 동일 keyring 인증 인식 확인
+
+### [35차 신규 함정 발견 — 36차 일관 적용]
+
+**함정 1 — 검수자 첫 명령 누락**:
+- 이전 검수자 인계의 "NEXT_SESSION.md 끝부분 확인" 권고를 첫 명령에서 빠뜨림
+- 결과: 8단계 진행 후 세션 번호 모순(34차 vs 35차) 발견
+- 36차 일관 적용: 세션 시작 첫 명령에 NEXT_SESSION.md 끝부분 확인 필수 포함
+
+**함정 2 — 옵션 2 와일드카드 패턴 다양화**:
+- 33차 함정 #3의 영역 확장 — 단순 와일드카드(`gh *`)뿐 아니라 자연어 형태도 등장
+- 35차 등장 패턴: `gh *`, `gh auth *`, `jobs *`, `tasklist and findstr /I gh commands in D:\project\GeniegoROI`
+- 표현 형식 무관, 옵션 2 절대 금지 정책 일관 적용
+
+**함정 3 — Antigravity Bash는 Linux-style**:
+- 경로: `/usr/bin/bash` (Git Bash가 아님)
+- Windows 명령어(`tasklist`, `findstr`) PATH 미인식
+- Antigravity PowerShell도 일부 표준 Windows 명령 PATH 제한적
+- 36차 일관 적용: Antigravity 환경 명령 추천 시 Bash/PowerShell 모두 정상 작동하는 명령 우선 (예: `git status`, `gh auth status`, `ps`)
+
+**함정 4 — Claude Code 자동 추천 누적 9회**:
+- 35차 한 세션에서 Claude Code 자체 우회/자동 추천 명령 9회 등장
+- 모두 t 접두사 명령으로 차단 성공
+- 패턴: 검수자 명령 결과 후 "다음 단계"를 자체 판단으로 제시
+- 36차 일관 적용: 자동 추천 차단 정책 강화, 매 단계 t 접두사 일관 적용
+
+**함정 5 — 환경 입력 오염 패턴**:
+- Antigravity 환경에서 작업 디렉토리 경로(`D:\project\GeniegoROI`)가 명령 입력으로 자동 발생하는 흔적 다수 발견
+- PowerShell이 경로를 명령으로 인식 시도하여 `CommandNotFoundException` 반복 발생
+- 무해하나 컨텍스트 오염 가능성, 원인 불명 (Antigravity UI 자동 입력 추정, 단정 회피)
+
+**함정 6 — 세션 번호 표기 인계 책임**:
+- 33차 commit 7bc0119에서 NEXT_SESSION.md에 "34차 세션 완료" 블록을 미리 추가
+- 사용자 시작 메시지에서 "34차 세션 시작"으로 표기 시 검수자가 이를 그대로 받으면 모순 발생
+- 36차 일관 적용: 세션 번호는 NEXT_SESSION.md 끝부분의 "## ● Nth 세션 완료" 마지막 블록 +1로 자동 결정, 사용자 시작 메시지 표기는 참고용
+
+### [35차 사용자 정책 일관 유지]
+
+- #1 자동 추천 텍스트 절대 사용 안 함 (덮어쓰기로 차단)
+- #2 검수자 추천 명령만 진행
+- #3 검수자는 한 번에 단 하나의 명령만 추천
+- #4 t 접두사 회피 패턴 (자동 추천 무력화)
+- #5 위험 자동 추천 발견 시 즉시 무해 명령으로 덮어쓰기
+- #6 PAT 등 인증 정보는 사용자만 보관, 검수자에게 절대 공유 금지 — 35차 OAuth 흐름에서 완벽 준수
+- #7 의심 다이얼로그 발견 시 즉시 멈춤 + 검수자 식별 확인 후 처리
+- #8 옵션 2번 영구 자동 승인 절대 선택 금지 — 35차에서 5회 등장, 모두 차단
+
+### [36차 작업 후보]
+
+**우선순위 1 — master vs main 브랜치 정책 결정 (사용자/팀)** (32차→33차→34차→35차 연속 인계)
+- 현황: master(작업·배포), main(d25c389, GitHub default, 2개월 전 분기)
+- 사용자/팀 결정 필요 — 검수자 자동 진행 어려움
+
+**우선순위 2 — b747ec8 예외 원인 정밀 분석**
+- 30차 가설(paths-ignore **.md 차단)의 예외 케이스
+- 가능한 원인: b747ec8 push 묶음에 paths-ignore 도입 commit이 포함되어 첫 push에서 트리거
+- 분석 명령: `git log --oneline b747ec8~3..b747ec8`
+
+**우선순위 3 — clean_src/ 디렉토리 처리 결정**
+- 33차에서 .gitignore로 무시 처리만 함 (디렉토리 자체는 파일시스템 보존)
+- 향후 결정: (i) 외부 위치 이동, (ii) 완전 삭제, (iii) 현 상태 유지
+- 디스크 공간 고려 (메인 repo 2026-03-28 풀 미러 백업)
+
+**우선순위 4 (신규) — gh CLI 활용 작업 자동화 검증**
+- `gh run list --limit 5` 로 CI 결과 확인 자동화
+- `gh pr list`, `gh issue list` 등 작업 자동화 검증
+- 35차 인증 완료의 활용 단계
+
+### [35차 git 상태]
+
+- master HEAD: 35차 NEXT_SESSION.md commit (예정)
+- origin/master HEAD: 35차 commit push 후 동기화 (예정)
+- working tree: clean (untracked 0개, modified 0개)
