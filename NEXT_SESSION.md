@@ -1881,3 +1881,76 @@ git -C "D:\project\GeniegoROI" status --short
 - 35차 신규 함정 6개 (36차 유지)
 - 36차 신규 함정 5개 (신규)
 - 합계: **17개**
+## ● 37차 세션 완료 (2026-05-07)
+
+### [37차 핵심 성과]
+
+1. **우선순위 1 (master vs main 브랜치 정책 결정) — 5세션 인계 종결** ⭐
+   - 32~36차 5세션 연속 인계됐던 미스터리 종결
+   - 검수자 직접 분석 (36차 회고 개선 #5 적용)
+   - `git merge-base master origin/main` 검증 → exit code 1 (공통 조상 없음 = 독립 히스토리)
+   - 옵션 ④ (분리 정책 공식화) 채택
+   - BRANCH_POLICY.md 신설 (59라인) — commit 7c43292
+   - 핵심 결정: 두 브랜치는 표준 merge 불가능, 영구 분리 정책으로 운영
+
+2. **우선순위 5 (Background command 자체 실행 우회 재현 조건 분석) — 1단계 종결** ⭐
+   - 36차 함정 #2의 재현 조건 5단계 식별:
+     - 1단계: Linux Bash 명령 발송 (du, tail 등)
+     - 2단계: PowerShell 자체 변환 (함정 #1)
+     - 3단계: 다이얼로그 표시
+     - 4단계: 옵션 3 차단
+     - 5단계: Background command 우회 재실행
+   - 36차 함정 #1과 #2는 **별개 함정이 아닌 동일 사건의 두 단계**로 재해석
+   - 회피 패턴 정립: Antigravity 에디터 직접, Windows 탐색기 속성, 외부 PowerShell
+
+3. **우선순위 3 (clean_src/ 4.3GB 처리) — B안 종결** ⭐
+   - 36차 진단 검증: 디스크 할당 4.25GB (= 36차 4.3GB 측정 정확) ✅
+   - 17,280개 파일 + 2,712/2,713 폴더 삭제 완료 (외부 관리자 PowerShell 활용)
+   - **디스크 4.25GB 100% 회수 검증** (51차 속성 측정 = 0바이트)
+   - 참조 스크립트 2개 git rm: frontend/fix_sc_clean.cjs, frontend/restore_clean.cjs (84 deletions) — commit 006d4ec
+   - 잔존: 빈 폴더 구조 (clean_src + 내부 1개, 0바이트, Antigravity 잠금)
+   - 38차 인계: 빈 .git 폴더는 디스크 영향 없음, 영구 보존도 가능
+
+### [37차 신설 사용자 정책 후보 #11]
+
+> Linux-specific Bash 명령 (du, tail, head, wc, find 등)은 Claude Code에 직접 발송 금지. PowerShell Core 환경에서 cmd, attrib, takeown, icacls 등 Windows 표준 명령도 PATH 누락 가능성. 작업별 우회: 파일 조회 → Antigravity 에디터, 디렉토리 크기 → Windows 탐색기 속성, 강제 삭제 → 외부 관리자 PowerShell + PowerShell native 명령. 36차 함정 #1 + #2 연쇄 발동 사전 차단.
+
+### [37차 환경 학습 (PowerShell Core PATH 의존성)]
+
+| 명령 | PowerShell Core PATH | 절대 경로 필요 |
+|---|---|---|
+| Get-Item, Remove-Item, Get-ChildItem | ✅ Native | 불필요 |
+| cmd | ❌ | C:\Windows\System32\cmd.exe |
+| attrib | ❌ | C:\Windows\System32\attrib.exe |
+| takeown | ❌ | C:\Windows\System32\takeown.exe |
+
+→ PowerShell Core 환경에서는 PowerShell native 우선 사용 권장.
+
+### [37차 commit 흐름]
+
+- 7c43292 docs(policy): add BRANCH_POLICY.md — close 5-session backlog (master vs main, 32~36 carryover) with branch separation policy based on git merge-base verification (no common ancestor)
+- 006d4ec chore(cleanup): remove orphan i18n recovery scripts (fix_sc_clean.cjs, restore_clean.cjs) — 37차 우선순위 3 Phase C completion, clean_src 4.25GB disk reclaimed (17280 files), residual empty .git folder deferred to 38차
+- (37차 종료 commit — 본 docs(session) commit)
+
+### [38차 작업 후보]
+
+- **우선순위 1 (잔여)**: clean_src/ 빈 폴더 구조 (0바이트) 처리 — Antigravity 종료 또는 컴퓨터 재시작 후 처리 가능
+- 우선순위 2 (잔여): b747ec8 예외 진짜 원인 추적 — 30차 가설 약화 후속
+- 우선순위 4 (잔여): bash -c 강제 형식 등 추가 회피 패턴 시도
+- 우선순위 5 2단계 (선택): Claude Code 환경 변수 분석 또는 의도적 재현 안전 시도
+
+### [37차 자동 추천 누적]
+
+37차 자동 추천 발생: **8회** (36차 13회 대비 빈도 감소 추세)
+- commit 추천 2회 (9차, 60차)
+- push 추천 1회 (10차)
+- 자연어 작업 흐름 추천 5회
+
+모두 t-prefix로 차단 성공.
+
+### [37차 일관 적용 함정] (정제 — 37차 회고 반영)
+
+- 33차 신규 함정 6개 (유지)
+- 35차 신규 함정 6개 (유지)
+- 36차 신규 함정 1개 (37차 통합): Bash → PowerShell 자체 변환 + Background command 우회 (동일 사건 두 단계)
+- 합계: **13개**
