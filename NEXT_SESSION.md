@@ -1465,3 +1465,109 @@ git -C "D:\project\GeniegoROI" status --short
 
 ### [32차 우선순위 3번 미진행]
 - gh CLI 환경 정비 - 33차 인계 (29차→30차→31차→32차 연속 인계)
+## ● 33차 세션 진행 (2026-05-06)
+
+### [33차 우선순위 1번 완료] — 7개 untracked 헬퍼 분류 결정 + 실행
+
+**처리 결과 (7개 전수 처리)**
+- 시행착오 산물 2개 삭제: bsearch_en.py, bsearch_win.py (PHP를 .py 확장자로 잘못 저장한 파일)
+- 영구 도구 4개 tools/ 이동: bsearch_full.js, add_autogrid_css.js, add_mobile_table_css.js, add_topbar_keys.py
+- 사용자 결정 (A) 적용: append_en.py → append_en.php rename + tools/ 이동 (PHP Enterprise Edition 코드, 33차 첫 5줄 검증으로 32차 분석 재확정)
+
+**33차 commit 2개 (origin/master 반영 완료)**
+- 3be8e8e chore(tools): relocate 4 permanent helper scripts to tools directory (4 files, 516 insertions)
+- e959f32 chore(tools): rename append_en.py to append_en.php and relocate to tools (1 file, 253 insertions)
+
+### [33차 우선순위 2-B번 완료] — clean_src 정체 진단 + 처리
+
+**32차 분석 정정 사항**
+- 32차에서는 clean_src를 단순 modify로 기록했으나, 33차 진단 결과 실체는 다음과 같음
+- mode 160000 gitlink (submodule 커밋 포인터)
+- .gitmodules 파일 자체가 프로젝트에 부재 → 매핑 없는 고아(orphan) gitlink 상태
+- 파일시스템 상태: clean_src/ 디렉토리는 실재하며, 자체 .git을 가진 독립 git 저장소 (메인 repo의 2026-03-28 시점 풀 미러 백업, $BACKUP_DIR/.github/backend/frontend/tools 등 포함)
+- 32차 "의도적 보존" 결정의 진짜 사유 추정: 이 비정상 상태 처리 어려움으로 인한 합리적 보류
+
+**처리 결정 및 실행 (검수자 권장 자동 적용)**
+- 옵션 (가) 고아 gitlink 제거 채택
+- 옵션 (A) .gitignore 추가 채택 (백업 디렉토리는 보존, git 무시만)
+- 단일 commit 방식 채택 (gitlink 제거 + .gitignore 추가가 한 의도의 두 측면이므로)
+
+**33차 commit 1개 (origin/master 반영 완료)**
+- a54c584 chore(cleanup): remove orphan gitlink clean_src and ignore backup directory (2 files, 1 insertion, 1 deletion, delete mode 160000 clean_src)
+
+**5회차 인계 항목 종결**
+- 32차→33차 시점에 clean_src modify 표시는 5회차 가까이 누적 인계되던 항목
+- 33차에서 진단 + 처리 + commit + push로 완전 종결
+- working tree의 `*` 표시가 33차 우선순위 2-B push 직후 영원히 사라짐
+
+### [33차 신규 함정 — 34차 일관 적용 권장]
+
+**함정 1: 검수자 분석 단정 함정**
+- 33차 우선순위 2-B 진행 중 검수자가 두 번 단정 오류 발생
+  - 1차: `(modified content)` 표시만 보고 submodule 단정 → `git submodule status` 결과로 .gitmodules 미등록 확인 → 가설 반증
+  - 2차: PowerShell `Get-Item` (No output) 결과로 파일시스템 부재 단정 → `Get-ChildItem -Force` 결과로 풀 미러 디렉토리 존재 확인 → 가설 반증
+- 회복 패턴: 30차 가설 검증 사이클(가설 → 반증 → 정정 → 회복)을 검수자 자체 분석에서도 적용 → 정상 회복
+- 34차 일관 적용: 검수자 단정 전 추가 검증 명령 1개 더 끼워넣기, 출력 모호 시 단정 회피하고 추가 진단 명령 우선
+
+**함정 2: Claude Code 도구 라우팅 비결정성**
+- PowerShell cmdlet이 항상 PowerShell 도구로 라우팅되지 않음
+- 33차 사례: `Test-Path .gitignore`가 Bash 도구로 라우팅되어 Exit code 127 (command not found) 발생
+- 다른 사례 (Move-Item, Rename-Item, Remove-Item, Add-Content, Get-ChildItem)는 PowerShell 정상 라우팅
+- 회복 패턴: Claude Code가 자동 재시도하여 결과(True) 획득
+- 34차 일관 적용: 가능한 한 git 표준 명령 또는 Bash/PowerShell 양쪽 호환 명령 우선 추천, PowerShell cmdlet 사용 시 Exit 127 발생 가능성 인지
+
+**함정 3: 신규 다이얼로그 형식 (정책 #8 적용 영역 확장)**
+- 32차까지는 다이얼로그 옵션 2번 형식이 "Yes, and always allow access to <path> from this project"
+- 33차에서 새로운 형식 등장: "Yes, and don't ask again for: <명령패턴>" (와일드카드 `*` 포함 가능)
+- 두 형식 모두 정책 #8 직접 적용 케이스 — 옵션 2번 절대 금지 일관 유지
+- 33차에서 단순 읽기 명령(`Test-Path`)에도 다이얼로그 등장 — 향후 다이얼로그 발생 빈도 증가 가능성
+
+**함정 4: Claude Code 자동 추천 위험 패턴 추가**
+- 32차에서 학습된 "7개 헬퍼 일괄 처리 자동 추천" 외에 33차에서 추가 패턴 발견
+- "5개 untracked 일괄 삭제" 추천 (영구 도구와 시행착오 산물 구분 무시)
+- "Move add_topbar_keys.py and append_en.py 일괄 이동" 추천 (사용자 결정 대기 항목 무시)
+- "NEXT_SESSION.md 업데이트해줘" 추천 (Claude Code 자체 작성 위험)
+- 34차 일관 적용: 자동 추천이 검수자 의도와 부분 일치하더라도 정책 #1 일관 적용, 위험 자동 추천은 즉시 t 접두사로 무력화
+
+### [33차 우선순위 2-A 미진행] — master vs main 브랜치 정책
+
+- 32차에서 인계, 33차에서도 진행 보류
+- 사용자/팀 결정 필요 사항 (검수자 자동 결정 영역 아님)
+- 34차 인계
+
+### [33차 우선순위 3 미진행] — gh CLI 환경 정비
+
+- 29차→30차→31차→32차→33차 6회차 연속 인계
+- 34차에서 본격 처리 권장
+
+### [33차 신규 후보 미진행] — b747ec8 예외 원인 정밀 분석
+
+- 30차 가설 검증 사이클의 예외 케이스
+- 34차 인계
+
+### [33차 git 상태 (NEXT_SESSION.md 업데이트 시점)]
+
+- master HEAD: a54c584 (33차 우선순위 2-B 완료 commit)
+- origin/master HEAD: a54c584 (push 완료)
+- working tree: 32차→33차 시작 시점 대비 완전히 깨끗 (`*` 표시 없음, `+` 표시 없음, `↑` 표시 없음)
+- modified: 0개 (clean_src 종결로 5회차 인계 항목 해소)
+- untracked: 0개 (33차 우선순위 1에서 7개 모두 처리 + clean_src/ .gitignore로 무시 처리)
+- 33차 신규 commit: 3개 (3be8e8e, e959f32, a54c584)
+- 32차 commit 3개 (c0a114a, cddb33e, c203d11) 모두 보존됨
+
+### [34차 작업 후보]
+
+**우선순위 1 — 환경 정비 (6회차 누적 인계)**
+- gh CLI 설치 또는 PATH 설정
+- 33차에서도 진행 안 함 → 34차에서 매듭 권장
+
+**우선순위 2 — 32차/33차 잔여 작업**
+- master vs main 브랜치 정책 결정 (사용자/팀)
+
+**우선순위 3 — 분석 작업**
+- b747ec8 예외 원인 정밀 분석 (30차 가설의 예외 케이스)
+
+**신규 후보 — clean_src/ 디렉토리 처리 결정**
+- 33차에서 .gitignore로 무시 처리만 함 (디렉토리 자체는 파일시스템에 보존)
+- 향후 결정 필요: (i) 외부 백업 위치로 이동, (ii) 완전 삭제, (iii) 현 상태 유지
+- 디스크 공간 또는 정보 가치 기반 사용자 판단 영역
