@@ -1247,3 +1247,110 @@ git -C "D:\project\GeniegoROI" status --short
 - 함정 #6 변형: Claude Code의 자체 push 모니터링 명령 (Get-Content -Wait -Tail)
   - 자동 승인 시 Get-Content 전체에 대한 영구 자동 승인 위험
   - 거부가 정책상 정답
+  ---
+
+## ⏺ 31차 세션 완료 (2026-05-06)
+
+- **작업 결과**:
+  - ✅ 우선순위 1 (push 인증 정상화 + 30차 미완료 commit push) **완료**
+    - origin/master: `1849036` → `b747ec8` (commits 2개 push 성공)
+    - 인증 환경: HTTPS + Git Credential Manager (manager) + PAT 등록
+    - 결과 검증: `git status` → up to date with origin/master, GitHub Actions #147 성공 (39s)
+  - 📋 우선순위 2 (브랜치 정책, 7개 헬퍼 분류) — 32차 인계
+  - 📋 우선순위 3 (gh CLI 환경 정비) — 32차 인계 (29차→30차→31차 연속 미수행)
+
+- **인증 환경 정상화 절차 (32차 이후 재현 가능)**:
+  - PAT 발급: GitHub.com → Settings → Developer settings → Tokens (classic) → `repo` scope
+  - manager 등록: `git push` 시도 → `Connect to GitHub` 다이얼로그 → **Token 탭** → PAT 직접 입력
+  - manager가 DPAPI 암호화로 자격증명 저장, 이후 push에서 다이얼로그 재등장 안 함
+
+- **30차 가설 수정 — paths-ignore 검증 필요 (32차 우선순위)**:
+  - 30차 기록: `deploy.yml paths-ignore: ['**.md', 'docs/**', '.claude/**']`
+  - 31차 발견: `b747ec8` (NEXT_SESSION.md만 변경) push 시 워크플로우 #147 트리거 + 39s 실행 (성공)
+  - 추정 원인: 30차 기록이 부정확하거나, `git checkout HEAD`로 복원된 deploy.yml이 paths-ignore 없는 버전이거나, paths-ignore 작동 조건 미충족
+  - **32차 검증**: 현재 deploy.yml 실제 내용 직접 확인 필요
+
+---
+
+### ⏺ 31차 학습 패턴 추가
+
+- **함정 #7 (신규) — Claude Code 보안 약한 인증 추천**:
+  - 인증 실패 시 manager 우회하는 평문 저장 방식 자동 추천 패턴
+  - 발견된 변형:
+    - `git config --global credential.helper store` (`~/.git-credentials` 평문 저장)
+    - `git remote set-url origin https://<PAT>@github.com/...` (`.git/config` 평문 PAT, 명령 라인 노출, 히스토리 기록)
+  - 정답: 두 추천 모두 즉시 차단, manager (DPAPI 암호화) 유지하고 PAT 명시 등록
+
+- **함정 #1 변형 — 자동 추천 덮어쓰기 메커니즘 정착**:
+  - Claude Code 자동 추천 텍스트는 Ctrl+A/Backspace/Delete로 삭제 불가
+  - `t` 접두사 + 무해 명령(`echo`, `pwd`)으로 **덮어쓰기**만 가능
+  - echo 덮어쓰기는 1회 차단 효과만, 동일 컨텍스트에서 같은 추천 반복 등장
+  - 근본 해결: 컨텍스트 변경(정상 흐름 진행) 또는 Antigravity 창 비활성화
+
+- **함정 #2 정확한 정체 확인 — 다이얼로그 종류별 처리**:
+  - `Connect to GitHub` 다이얼로그 (Browser/Device | Token 탭) → **Git Credential Manager 정상**, Token 탭에서 PAT 직접 입력
+  - `extension 'GitHub' wants to sign in...` → **Antigravity Extension, 거부 대상**, Cancel
+  - Username Quick Input 위젯 → Git fallback, manager 등록 안 됨, Escape
+  - `Get-Content -Wait -Tail` 승인 다이얼로그 → Claude Code 모니터링, 3번 (No)
+
+- **자동 추천 진화 패턴 (신규 관찰)**:
+  - 인증 실패 컨텍스트에서 점점 더 위험한 우회 추천이 등장
+  - 1차: 정상 명령 (`git push origin master`)
+  - 2차: 평문 헬퍼 변경 (`credential.helper store`)
+  - 3차: URL embedding (`set-url <PAT>@...`)
+  - 대응: 위험 추천 발견 즉시 무해 명령으로 덮어쓰기 + Antigravity 창 비활성화
+
+- **Antigravity Agent 패널 vs 편집기 구분**:
+  - Claude Code 채팅 응답이 우측 Agent 패널에 마크다운으로 표시되어 편집기 내용처럼 보일 수 있음
+  - 실제 파일 내용은 좌측 편집기 영역만 신뢰
+  - 의심 시 `Ctrl+End`로 파일 끝 라인 번호 확인
+
+- **PAT 발급 + manager 등록 워크플로우 정착**:
+  - PAT는 사용자만 보관, 검수자에게 절대 공유 금지
+  - `Connect to GitHub` 다이얼로그 Token 탭이 정답 경로
+  - manager가 DPAPI 암호화 저장하므로 `credential.helper store` 평문 방식 불필요
+
+---
+
+### ⏺ [U] 32차 작업 후보
+
+#### 🎯 우선순위 1 — 30차 가설 검증
+1. `deploy.yml` 실제 내용 확인 (paths-ignore 존재 여부, 패턴 정확성)
+2. 워크플로우 트리거 조건 정확히 파악
+3. `**.md`만 변경된 commit이 트리거되는 원인 분석
+
+#### 🎯 우선순위 2 — 31차에서 인계된 30차 발견 사항
+1. `master` vs `main` 브랜치 정책 결정 (사용자/팀)
+2. tools 디렉토리 vs 7개 untracked 헬퍼 관계 파악
+3. 7개 i18n 헬퍼 분류 결정 (유지 / 삭제 / commit / gitignore)
+4. `clean_src` modify 상태 정체 재검토 (의도적 보존 사유 명문화)
+
+#### 🎯 우선순위 3 — 환경 정비 (29차에서 인계, 31차 미수행)
+- gh CLI 설치 또는 PATH 설정 (CI 결과 확인 자동화 위해)
+
+---
+
+### ⏺ 31차 정착된 정책 (32차 유지)
+
+1. 자동 추천 텍스트 절대 사용 안 함 (덮어쓰기로 차단)
+2. 검수자 추천 명령만 진행
+3. 검수자는 한 번에 단 하나의 명령만 추천 (옵션 비교 X)
+4. `t` 접두사 회피 패턴 (자동 추천 무력화 효과)
+5. 위험 자동 추천 발견 시 즉시 무해 명령(`echo`, `pwd`)으로 덮어쓰기
+6. PAT 등 인증 정보는 사용자만 보관, 검수자에게 절대 공유 금지
+7. 의심 다이얼로그 발견 시 즉시 멈춤 + 검수자 식별 확인 후 처리
+8. 옵션 2번 영구 자동 승인 (`Yes, and don't ask again`) 절대 선택 금지
+
+---
+
+### ⏺ 31차 종료 시점 git 상태
+
+- master HEAD: 31차 마감 commit (NEXT_SESSION.md 업데이트 commit, 이번 commit 추가 후 결정)
+- origin/master HEAD: 31차 마감 commit (push 완료 후)
+- Working tree:
+  - `m clean_src` (의도적 보존, 31차도 손대지 않음)
+- Untracked (7개, 32차 분류 인계):
+  - `add_autogrid_css.js`, `add_mobile_table_css.js`, `add_topbar_keys.py`
+  - `append_en.py`
+  - `bsearch_en.py`, `bsearch_full.js`, `bsearch_win.py`
+- 30차에서 발견된 두 브랜치 평행 구조 유지: `master` (작업) vs `main` (default, `d25c389`)
