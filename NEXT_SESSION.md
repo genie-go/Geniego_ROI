@@ -1571,3 +1571,83 @@ git -C "D:\project\GeniegoROI" status --short
 - 33차에서 .gitignore로 무시 처리만 함 (디렉토리 자체는 파일시스템에 보존)
 - 향후 결정 필요: (i) 외부 백업 위치로 이동, (ii) 완전 삭제, (iii) 현 상태 유지
 - 디스크 공간 또는 정보 가치 기반 사용자 판단 영역
+### [33차 우선순위 3 시도 결과 — 33차 종료 시점 갱신]
+
+**시도 흐름 및 결과**
+- 옵션 (가) 시스템 검색: gh 미설치 + 어떤 PATH에도 미등록 확정
+  - Bash gh --version → Exit 127 (command not found)
+  - PowerShell gh --version → Exit 1 (not recognized)
+  - PowerShell where.exe gh → Exit 1 (where.exe 자체가 환경에서 미인식, 추정 환경 특수성)
+  - PowerShell Get-Command gh -ErrorAction SilentlyContinue → (no output) 확정
+- 옵션 (나) winget 설치 시도: User Cancelled (Exit 1602)
+  - 명령: winget install --id GitHub.cli --accept-source-agreements --accept-package-agreements
+  - 다운로드: 100% 완료 (gh_2.92.0_windows_amd64.msi, 14.0 MB)
+  - 패키지 검증: 해시 확인 완료
+  - 설치 시작 단계에서 종료 코드 1602 반환
+  - 의미: MSI 설치 UI 또는 UAC 다이얼로그가 사용자 인터랙션 없이 취소된 상태
+- 사용자 결정: 검수자 의견 청취 차원에서 의식적 취소
+  - 정책 #7 (의심 다이얼로그 발견 시 즉시 멈춤) 정신을 시스템 변경 작업에 적용
+  - 사용자 자체 검증 패턴의 모범 사례
+
+**환경 함정 가설 (34차 추가 진단 필요)**
+- 가설: Antigravity 환경의 PowerShell이 winget의 UAC 자동 승격을 처리하지 못할 가능성
+- 근거: 다운로드/검증까지는 정상 작동했으나 설치 시작 단계에서 종료 코드 1602
+- 34차 검증 방향: Antigravity 외부의 관리자 권한 PowerShell에서 동일 명령 재시도하여 환경 의존성 확인
+
+**33차 신규 함정 5번 — Claude Code 자체 우회 명령 시도 (정식 기록)**
+- 33차 우선순위 3 진행 중 검수자 추천 명령 (where.exe gh)이 환경 특수성으로 실패
+- Claude Code가 자체 판단으로 완전히 다른 명령(find /usr /opt /home -name "gh") 자동 시도
+- Linux 경로 검색을 Windows 환경에서 수행하는 무의미 검색 + 사용자 정책 #2 직접 위반
+- 다이얼로그 옵션 2번이 와일드카드 패턴 ("Yes, and don't ask again for: where gh and find /usr /opt /home -name gh -type f commands")
+- 회복 패턴: 옵션 3번 (No) 선택으로 차단 → 검수자에게 보고 → 검수자가 PowerShell 표준 cmdlet (Get-Command)으로 명령 재추천 → 정상 진행
+- 34차 일관 적용: 검수자 명령 실패 시 Claude Code 자체 우회 시도 가능성 인지, 다이얼로그 등장 시 검수자 의도와 일치 여부 확인 후 결정
+
+**33차 우선순위 3 결론**
+- gh CLI 미설치 확정 + winget 설치 시도 환경 함정 의심 → **34차에서 외부 환경 검증 필요**
+- 6회차 인계가 7회차 인계로 누적되었으나, 33차에서 시도 + 진단 + 함정 학습 진전 있음
+- 단순 회피가 아닌 환경 검증 단계로의 전환
+
+### [34차 작업 후보 갱신 — 33차 종료 시점]
+
+**우선순위 1 — gh CLI 환경 정비 (7회차 누적 인계, 33차 시도 데이터 보유)**
+- 검수자 권장 시도 순서:
+  1. 옵션 (라): 외부 브라우저로 직접 다운로드 + 더블클릭 설치 (가장 단순)
+  2. 옵션 (나-2): Antigravity 외부의 관리자 권한 PowerShell에서 winget 재시도
+  3. 옵션 (나-1): Antigravity 내부 winget 재시도 (비추천 - 33차 동일 결과 가능성)
+- 다운로드 URL (33차 winget 출력에서 확인됨): https://github.com/cli/cli/releases/download/v2.92.0/gh_2.92.0_windows_amd64.msi
+- 설치 후 검증 명령: gh --version, gh auth status
+
+**우선순위 2 — master vs main 브랜치 정책 결정 (사용자/팀)**
+- 32차/33차 연속 인계
+- 사용자/팀 결정 영역, 검수자 자동 진행 어려움
+
+**우선순위 3 — b747ec8 예외 원인 정밀 분석**
+- 30차 가설의 예외 케이스
+- 분석 작업
+
+**신규 후보 — clean_src/ 디렉토리 처리 결정**
+- 33차에서 .gitignore로 무시 처리만 함
+- 향후 결정 필요: 외부 백업 위치로 이동 / 완전 삭제 / 현 상태 유지
+
+### [33차 git 상태 (33차 종료 시점)]
+
+- master HEAD: ffbbd71 (NEXT_SESSION.md 중간 업데이트 commit) — 우선순위 3 시도 추가 기록 commit 후 갱신 예정
+- origin/master HEAD: ffbbd71 (push 완료) — 우선순위 3 commit 후 갱신 예정
+- working tree: NEXT_SESSION.md 추가 업데이트 후 modify 상태 (commit 대기)
+- 33차 신규 commit (33차 종료 시점 시도 기록 commit 포함 시): 5개
+
+### [33차 신규 함정 누적 — 34차 일관 적용 권장]
+
+- 함정 1: 검수자 분석 단정 함정 (1차 submodule 단정 → 반증, 2차 파일시스템 부재 단정 → 반증)
+- 함정 2: Claude Code 도구 라우팅 비결정성 (PowerShell cmdlet이 Bash로 라우팅되는 케이스)
+- 함정 3: 신규 다이얼로그 형식 — 정책 #8 적용 영역 확장 ("Yes, and don't ask again for: <명령패턴>" 와일드카드 포함)
+- 함정 4: Claude Code 자동 추천 위험 패턴 추가 (5개 일괄 삭제, 사용자 결정 항목 일괄 이동, NEXT_SESSION.md 자체 작성 등)
+- 함정 5: Claude Code 자체 우회 명령 시도 (검수자 명령 실패 시 Claude Code가 자체 판단으로 완전히 다른 명령으로 우회)
+
+### [33차 종료 마감 노트]
+
+- 33차 진행 시간: 2026-05-06 단일 일자
+- 33차 commit 수: 5개 예상 (3be8e8e, e959f32, a54c584, ffbbd71, 본 NEXT_SESSION.md 추가 commit)
+- 33차 핵심 성과: 5회차 인계 항목 종결 + 7개 헬퍼 전수 처리 + NEXT_SESSION.md 영구 기록 + 신규 함정 5개 학습
+- 33차 미완 사항: gh CLI 설치 (7회차 인계, 환경 함정 가설 보유)
+- 사용자 정책 일관 유지: #1 자동 추천 차단, #2 검수자 추천 명령만 진행, #6 PAT 비공유, #7 의심 다이얼로그 멈춤, #8 옵션 2번 절대 금지 (33차에서 다수 적용)
