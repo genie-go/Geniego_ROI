@@ -1354,3 +1354,42 @@ git -C "D:\project\GeniegoROI" status --short
   - `append_en.py`
   - `bsearch_en.py`, `bsearch_full.js`, `bsearch_win.py`
 - 30차에서 발견된 두 브랜치 평행 구조 유지: `master` (작업) vs `main` (default, `d25c389`)
+## ● 32차 세션 진행 (2026-05-06)
+
+### [U] 우선순위 1 — 30차 가설 검증 완료
+- **가설**: deploy.yml의 paths-ignore가 **.md 변경을 차단함
+- **결과**: ❌ 완전 반증
+
+### 검증 과정
+1. .github/workflows 디렉토리: deploy.yml 단일 파일 (다른 워크플로우 없음)
+2. deploy.yml on: 섹션:
+   - push: branches [master]
+   - paths-ignore: '**.md', 'docs/**', '.claude/**'
+   - workflow_dispatch 등 다른 트리거 없음
+3. b747ec8 (30차 마감): NEXT_SESSION.md 단일 변경 (80+, 1-)
+4. df8d101 (31차 마감): NEXT_SESSION.md 단일 변경 (108+, 1-)
+5. 07928fe (b747ec8 직전 1시간): .gitignore 단일 변경 (3+)
+6. GitHub Actions UI 직접 확인: 워크플로우 #147은 b747ec8 단독 push로 트리거 + 39s 성공
+
+### 결정적 증거
+- 워크플로우 #147: Commit b747ec8 (NEXT_SESSION.md만 변경) → paths-ignore에 '**.md' 존재함에도 트리거됨
+- 따라서 paths-ignore의 '**.md' 패턴이 의도대로 매칭되지 않음
+
+### 신규 가설 (33차 이후 검증 후보)
+- '**.md' 패턴이 GitHub Actions에서 루트 디렉토리 .md 파일 매칭에 실패할 가능성
+- 대안 패턴: '**/*.md' 또는 ['*.md', '**/*.md'] 두 줄 작성
+- 검증 시 master 직접 수정 위험 → 별도 브랜치 + PR 권장
+
+### 32차 보너스 발견 (NEXT_SESSION.md 기록 가치)
+- deploy.yml PHASE 3, 4의 외부 actions가 @master 브랜치 직접 참조 (supply chain 공격 취약)
+  - `appleboy/scp-action@master`
+  - `appleboy/ssh-action@master`
+  - 정상 예: `8398a7/action-slack@v3` (SHA 고정)
+  - 후속 작업 후보: @master를 고정 태그/SHA로 변경
+- PHASE 5 Health Check & Rollback에 "Initiating Rollback" 메시지만 있고 실제 롤백 코드 미구현 (exit 1만 호출)
+  - 후속 작업 후보: 실제 롤백 로직 구현
+
+### 32차 진행 상황
+- ✅ 우선순위 1 완료 (가설 검증)
+- ⏸ 우선순위 2 대기 (브랜치 정책, 7개 헬퍼 분류, clean_src 재검토)
+- ⏸ 우선순위 3 대기 (gh CLI 환경 정비)
