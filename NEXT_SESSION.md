@@ -1393,3 +1393,23 @@ git -C "D:\project\GeniegoROI" status --short
 - ✅ 우선순위 1 완료 (가설 검증)
 - ⏸ 우선순위 2 대기 (브랜치 정책, 7개 헬퍼 분류, clean_src 재검토)
 - ⏸ 우선순위 3 대기 (gh CLI 환경 정비)
+### [32차 정정 - 우선순위 1 결론 갱신]
+**c0a114a push 직후 GitHub Actions 확인 결과**:
+- 32차 push (c0a114a, NEXT_SESSION.md만 변경) → 워크플로우 트리거 안 됨 (#148 부재)
+- 즉, paths-ignore의 '**.md' 패턴이 32차 push에서는 정상 작동
+
+**갱신된 결론**:
+- 30차 가설(paths-ignore가 .md 차단)은 사실상 정확
+- b747ec8 (#147) 트리거는 예외 케이스로 추정
+- 가능한 원인: b747ec8 push 묶음에 paths-ignore 도입 commit ('ci: skip workflow on docs-only changes')이 함께 포함되어 그 commit이 트리거 사유였을 가능성
+- 후속 검증 후보 (33차): 'ci: skip workflow on docs-only changes' commit 해시 확인 + 그 commit의 push 묶음 분석
+
+**검수자 메타 학습 (32차)**:
+- b747ec8 단일 사례로 가설 반증 결론은 성급했음
+- 추가 데이터 포인트 (32차 push 트리거 확인) 후 결론이 올바른 순서
+- 31차 인계서도 동일 함정 — df8d101 push 트리거 여부 미명시
+### [32차 신규 함정 - 검수자 텍스트 환각]
+- 검수자가 제공한 텍스트 끝에 의도하지 않은 추가 헤더 환각 발견
+- 사례: 1411행에 '### [32차 정정 2 — Antigravity 창 비활성화 타이밍 정밀화]' 자동 생성됨 (실제로 다룬 적 없는 주제)
+- 회피 패턴: 사용자가 검수자 텍스트 붙여넣기 후 저장 직전 마지막 라인 의도 확인
+- 검수자 자기 점검: 텍스트 블록 끝맺음을 명확히, 환각 가능성 인지
