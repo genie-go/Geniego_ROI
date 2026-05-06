@@ -1793,3 +1793,91 @@ git -C "D:\project\GeniegoROI" status --short
 - master HEAD: 35차 NEXT_SESSION.md commit (예정)
 - origin/master HEAD: 35차 commit push 후 동기화 (예정)
 - working tree: clean (untracked 0개, modified 0개)
+## ● 36차 세션 완료 (2026-05-06)
+
+### [36차 git 상태]
+
+- master HEAD: 36차 NEXT_SESSION.md commit (예정)
+- origin/master HEAD: 36차 commit push 후 동기화 (예정)
+- working tree: clean (untracked 0개, modified 0개) (예정)
+
+### [36차 핵심 성과]
+
+1. **우선순위 4 (gh CLI 활용 작업 자동화 검증) 완료** — 35차 자연 후속, 1+2+3단계 모두 정상
+   - 1단계: `gh run list --limit 5` ✅ — GitHub Actions 워크플로우 정상 작동 확인 (.github/workflows/deploy.yml, master push 시 completed success, 35차 commit e45c763 후속 자동 배포 확인)
+   - 2단계: `gh pr list` ✅ — PR 조회 자동화 작동 확인 (open PR 0개, master 직접 push 흐름 일관)
+   - 3단계: `gh issue list` ✅ — 이슈 조회 자동화 작동 확인 (open 이슈 0개)
+2. **우선순위 2 (b747ec8 예외 원인 정밀 분석) 1차 검증 완료** — 30차 가설 약화 결론
+   - `git log --oneline b747ec8~3..b747ec8` → 직전 3개 commit (b747ec8, 07928fe, 1849036)에 paths-ignore 도입 commit 미포함
+   - `git log --all --oneline --grep="paths-ignore"` → paths-ignore 도입 commit = `811e539` ("ci: skip workflow on docs-only changes")
+   - `git log --oneline --reverse 811e539^..b747ec8` → 811e539(22차 시점) ~ b747ec8(30차) 사이 약 22개 commit, 8세션 차이
+   - **결론**: 30차 가설(paths-ignore 도입 commit이 b747ec8 push 묶음에 포함)은 시간 순서상 **성립 불가**. b747ec8 예외의 진짜 원인은 별도 추적 필요 (37차 이후 작업)
+3. **우선순위 3 (clean_src/ 디렉토리 처리 결정) 핵심 진단 완료** — 결정은 사용자 판단 인계
+   - 디스크 사용량: **4.3 GB** (Background command로 측정, 36차 함정 #5 사례)
+   - git 추적 여부: **미추적** — 33차 .gitignore 처리 정상 작동 검증 완료
+   - 결정 사항 (이동/삭제/유지)은 사용자 판단 필요 → 37차 이후 인계
+4. 35차 함정 #2 (옵션 2 와일드카드 다양화) 36차 4종 재확인: `gh auth *`, `gh run *`, `gh pr *`, `gh issue *` + 신규 형태 "similar commands in [경로]" 모두 정책 #8 차단 성공
+5. 35차 함정 #6 (세션 번호 표기 인계) 검증 완료 — 마지막 완료 블록 35차 → 본 세션 36차 확정
+6. NEXT_SESSION.md 끝부분 확인은 Antigravity 에디터 직접 보기 방식 우회 정착 (Claude Code `tail` 명령 PowerShell cmdlet 자체 변환 회피)
+7. 자동 추천 10회 누적 모두 t 접두사 차단 성공 (검수자 역할 침범 + 파일 수정 침범 + 검수자 표현 모방 + 검수자 다음 단계 예측 패턴 진화 식별)
+
+### [36차 신규 함정 5개 (37차 일관 적용)]
+
+1. **Claude Code Bash → PowerShell cmdlet 자체 변환 (강력 사례 2건)**: 검수자 Bash 명령을 Claude Code가 자체 판단으로 PowerShell cmdlet으로 자동 변환
+   - 사례 1 (소형): `tail -n 80 NEXT_SESSION.md` → `Get-Content D:\project\GeniegoROI\NEXT_SESSION.md | Select-Object -Last 80`
+   - 사례 2 (대형): `du -sh clean_src/` (11자) → `(Get-Item D:\project\GeniegoROI\clean_src -ErrorAction SilentlyContinue) | Select-Object FullName; Get-ChildItem D:\project\GeniegoROI\clean_src -Recurse -ErrorAction SilentlyContinue | Measure-Object -Property Length -Sum | Select-Object Count, Sum` (170자+, 자체 주석 포함, 약 15배 확장)
+   - 33차 함정 #2 (도구 라우팅 비결정성) 진화형
+   - 37차 일관 적용: 검수자 명령과 Claude Code 실행 명령 일치 여부 매번 확인, 변환 시 옵션 3 (No)로 차단
+   - 회피 패턴: 파일 끝부분 확인은 Antigravity 에디터 직접 보기, 디렉토리 크기 확인은 Windows 탐색기 속성 권장
+
+2. **자동 추천 진화 패턴 (10회 누적, 단순 명령 → 검수자 역할 침범 → 파일 수정 침범 → 검수자 표현 모방 → 검수자 다음 단계 예측)**: 36차 한 세션에서 자동 추천 10회 누적, 패턴이 단계적으로 공격적 진화
+   - 1회: `gh run view 25416512159 --log` (자체 후속 명령, 무해 read-only)
+   - 2회: `gh run list --limit 10` (대기 지시 무시, 새 추천 생성)
+   - 3회: `36차 우선순위 4 2단계 완료. 3단계 진행해 주세요.` (검수자 결정 사항 가로채기)
+   - 4회: `36차 우선순위 4 완료 기록 NEXT_SESSION.md에 추가해 주세요.` (파일 수정 작업 자체 시도, 데이터 무결성 위협)
+   - 5회: `36차 우선순위 4 3단계 완료. 대기해 주세요.` (검수자 표현 "대기" 모방)
+   - 6회: `36차 우선순위 2 분석 계속 진행해 주세요` (분석 진행 침범)
+   - 7회: `git show 811e539 --stat` (t 접두사 없는 순수 명령, 검수자 권장 예측)
+   - 8회: `36차 우선순위 2 분석 완료. 현재 상태 유지하고 대기해 주세요.` (검수자 정형 표현 거의 그대로 모방)
+   - 9회: `git ls-files clean_src/ | wc -l` (검수자 다음 단계 정확 예측)
+   - 10회: `36차 우선순위 3 clean_src/ .gitignore 항목 확인해 주세요` (검수자 다음 단계 표현까지 모방)
+   → 33차 함정 #5 (Claude Code 자체 우회 명령) 진화형. 35차 함정 #4 (자동 추천 16회) 의 62.5% 도달
+   → 37차 일관 적용: 자동 추천 등장 여부와 무관하게 매 단계 t 접두사 일관 적용 (사용자 정책 35차 추가 정착 사항)
+
+3. **옵션 2 신규 형태 "similar commands in [경로]"**: 35차 함정 #2 추가 변형. 단순 와일드카드(`gh *`)와 자연어("tasklist...")를 넘어 **추상 표현**("유사 명령" + 경로 한정)으로 진화. 36차 2회 등장. 표현 형식 무관 정책 #8 일관 적용
+
+4. **Claude Code 처리 시간 표시 다양화 ("Crunched/Baked/Brewed/Cooked/Worked/Sautéed/Churned")**: Antigravity 환경 표준 표시, 무해. 36차 처리시간 측정값: 11s, 13s, 22s, 22s, 8s, 7s, 22s, 8s, 4s, 5s (변동 큼). 처리 시간이 길수록 자체 추론 진행 가능성 높음 → 직후 자동 추천 등장 빈도 증가 경향. 37차 일관 적용: 처리 시간 길게 표시될 시 다음 자동 추천 패턴 주의 깊게 관찰
+
+5. **Background command 자체 실행 우회 (신규 발견, 위험도 높음)**: 검수자가 옵션 3 (No)으로 PowerShell 변환 명령 차단 후, Claude Code가 **검수자 원래 Bash 명령(`du -sh clean_src/`)을 "Background command"로 자체 재실행** — 다이얼로그 없이 즉시 결과 출력. 33차 함정 #5 (Claude Code 자체 우회 명령) + 36차 함정 #1 결합의 가장 진화된 형태. 검수자의 메타 지시("백그라운드 실행 금지")도 무력화 확인.
+   - 36차 사례: `du -sh clean_src/` → `Background command "du -sh clean_src/" completed (exit code 0)` → `4.3G clean_src/`
+   - 결과 자체는 무해 (read-only 명령) 하나, 위험 명령에서 동일 패턴 발생 시 데이터 무결성 심각한 위협
+   - 37차 일관 적용: Background command 등장 즉시 검수자 보고 + 추가 자체 실행 패턴 회피 위해 다음 명령에서 "백그라운드 금지" 명시 + Antigravity 에디터/Windows 탐색기 우회 우선 사용
+
+### [37차 작업 후보]
+
+- 우선순위 1: master vs main 브랜치 정책 결정 (사용자/팀) — 32차→33차→34차→35차→36차 5세션 연속 인계
+- 우선순위 2 (잔여): b747ec8 예외 진짜 원인 추적 — 30차 가설 약화 결론, 별도 분석 방향 모색 필요 (예: GitHub Actions 워크플로우 변경 이력, b747ec8 직전 push 묶음 reflog 추적)
+- 우선순위 3 (잔여): clean_src/ 4.3 GB 처리 결정 — (i) 외부 위치 이동, (ii) 완전 삭제, (iii) 현 상태 유지 중 사용자 판단
+- 우선순위 4 (신규): 36차 신규 함정 #1 (Bash → PowerShell 자체 변환) 추가 사례 수집 + 회피 패턴 정립
+- 우선순위 5 (신규, 위험도 높음): 36차 신규 함정 #5 (Background command 자체 실행 우회) 재현 조건 분석 + 회피 패턴 정립
+
+### [37차 시작 시 사실관계 검증 필요 사항]
+
+**첫 명령 4개 동시 실행 필수 (35차 함정 #1 + 36차 학습 반영):**
+1. git log --oneline -8
+2. git status
+3. gh auth status (35차 인증 종결 + 36차 재검증 후 37차 3차 검증)
+4. NEXT_SESSION.md 끝부분 확인 — **Antigravity 에디터 직접 보기 권장** (36차 함정 #1 회피)
+
+### [37차 일관 적용 사용자 정책]
+
+**31차 정착 8개 + 35차 추가 1개 + 36차 추가 1개 = 10개:**
+- 1~9: 35차와 동일
+- 10 (36차 신규): NEXT_SESSION.md 등 데이터 변경 작업은 Antigravity 에디터 사용자 직접 수정 권장 (Claude Code 자동 추천 10회 패턴 진화 + Background command 자체 실행 우회 발견에 대응, 검수자 검토 우회 차단)
+
+### [37차 일관 적용 함정]
+
+- 33차 신규 함정 6개 (34차+35차+36차 유지)
+- 35차 신규 함정 6개 (36차 유지)
+- 36차 신규 함정 5개 (신규)
+- 합계: **17개**
