@@ -1966,3 +1966,10 @@ git -C "D:\project\GeniegoROI" status --short
 
 ### [38차 우선순위 1 종결]
 - C안 채택: clean_src/ 빈 폴더 deferred 유지 (39차 또는 컴퓨터 재시작 시 자연 정리)
+### [38차 우선순위 2 부분 종결 — 핵심 발견 5건]
+
+1. **b747ec8 commit 자체 정상**: 메시지/저자/객체 타입 모두 정상, 30차 예외와 commit 자체는 별개 사건
+2. **Antigravity Bash tool 경로**: `/usr/bin/bash` (Linux 셸) — 시스템 PATH 외부 내부 경로 (WSL 또는 Git Bash 내부)
+3. **신규 회피 패턴**: PowerShell 구문 `2>$null` → Bash 호환 `2>/dev/null` 사용 (셸 중립 또는 셸 명시 강제)
+4. **36차 함정 #1 부작용 실증**: "환경 fallback 라우팅"은 자동이나 셸별 구문 변환은 안 함 → 묶음 명령에서 셸 혼합 구문 위험
+5. **30차 가설 약화**: i18n recovery 스크립트 잔존 가설 → b747ec8 자체 정상으로 약화, 진짜 원인은 Bash tool 라우팅 부작용 가능성
