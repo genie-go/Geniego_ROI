@@ -1821,7 +1821,7 @@ git -C "D:\project\GeniegoROI" status --short
 6. NEXT_SESSION.md 끝부분 확인은 Antigravity 에디터 직접 보기 방식 우회 정착 (Claude Code `tail` 명령 PowerShell cmdlet 자체 변환 회피)
 7. 자동 추천 10회 누적 모두 t 접두사 차단 성공 (검수자 역할 침범 + 파일 수정 침범 + 검수자 표현 모방 + 검수자 다음 단계 예측 패턴 진화 식별)
 
-### [36차 신규 함정 5개 (37차 일관 적용)]
+### [36차 신규 함정 5개 (37차 일관 적용, #1은 38차 무효화)
 
 1. **Claude Code Bash → PowerShell cmdlet 자체 변환 (강력 사례 2건)**: 검수자 Bash 명령을 Claude Code가 자체 판단으로 PowerShell cmdlet으로 자동 변환
    - 사례 1 (소형): `tail -n 80 NEXT_SESSION.md` → `Get-Content D:\project\GeniegoROI\NEXT_SESSION.md | Select-Object -Last 80`
