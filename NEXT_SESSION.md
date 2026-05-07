@@ -1973,3 +1973,12 @@ git -C "D:\project\GeniegoROI" status --short
 3. **신규 회피 패턴**: PowerShell 구문 `2>$null` → Bash 호환 `2>/dev/null` 사용 (셸 중립 또는 셸 명시 강제)
 4. **36차 함정 #1 부작용 실증**: "환경 fallback 라우팅"은 자동이나 셸별 구문 변환은 안 함 → 묶음 명령에서 셸 혼합 구문 위험
 5. **30차 가설 약화**: i18n recovery 스크립트 잔존 가설 → b747ec8 자체 정상으로 약화, 진짜 원인은 Bash tool 라우팅 부작용 가능성
+### [38차 우선순위 5 부분 종결 — 36차 함정 #1 완전 해명] ⭐⭐⭐⭐
+
+1. **SHELL 변수 부재**: PowerShell Desktop 5.1 환경에서 SHELL=(비어 있음) — Linux/Bash 호환성 부재 명확
+2. **bash.exe PATH 미포함**: Git Bash는 `C:\Program Files\Git\cmd`에 등록되나 `bash.exe`는 `Git\bin\` 또는 `Git\usr\bin\` 경로 — PATH 누락
+3. **Antigravity 내부 번들 bash 발견**: `/usr/bin/bash` (38차 우선순위 2 발견)의 진짜 위치 = `C:\Users\user00\AppData\Local\Programs\Antigravity\bin` 내부 번들
+4. **36차 함정 #1 완전 재해석**: "Bash → PowerShell 자체 변환"은 **함정 아닌 Antigravity 설계 동작** — 시스템 PATH (PowerShell) + 내부 PATH (Bash) 양쪽 라우팅 가능
+5. **PATH 핵심 8개 경로 식별**: JDK, Python 3.12, Git, gh CLI, Antigravity, Cursor, Node.js, Chocolatey
+
+→ **36차 함정 #1 무효화 수준 발견**: "함정"이 아니라 Antigravity 정상 동작이며, 정책 #11 ("Linux-specific Bash 명령 직접 발송 금지")은 **시스템 PATH 부재 환경에서만 유효**, Antigravity 내부 Bash tool 호출 시 정상 작동
