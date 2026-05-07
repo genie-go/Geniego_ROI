@@ -103,6 +103,9 @@ The repo is developed primarily on Windows + PowerShell. The following traps hav
 | `Start-Job` working directory | New PS session starts in `$HOME` (often OneDrive folder), not the caller's `cd` | Call `Set-Location` inside the `ScriptBlock`, or use absolute paths |
 | `cd` residue across commands | Working directory persists between commands and surprises later commands | `Push-Location` / `Pop-Location`, or always pass absolute paths |
 | Output residue | A bare `0` output can render as `0S D:\...` (next prompt's `P` clipped) — looks like garbage but isn't | Visually ignore; check actual files with `Test-Path` and `Get-Content` |
+| `2>$null` in Bash tool | `/usr/bin/bash: $null: ambiguous redirect` — Bash tool routes to Antigravity bundled bash, not PowerShell | Use `2>/dev/null` in Bash tool; reserve `2>$null` for PowerShell tool only |
+| `Get-Command name1, name2, ...` (comma list) | Output silently swallowed in PS 5.1 Desktop | Query one command per `Get-Command` call |
+| Bash tool shell identity | Bash tool always routes to Antigravity internal `/usr/bin/bash` regardless of system PATH; `$SHELL` env var is absent | Treat Bash tool as Linux bash; treat PowerShell tool as Windows PS 5.1 — never mix redirect syntax |
 
 ### `.NET API` safe text-replacement pattern (the one that works)
 
