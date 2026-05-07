@@ -1954,3 +1954,15 @@ git -C "D:\project\GeniegoROI" status --short
 - 35차 신규 함정 6개 (유지)
 - 36차 신규 함정 1개 (37차 통합): Bash → PowerShell 자체 변환 + Background command 우회 (동일 사건 두 단계)
 - 합계: **13개**
+## ● 38차 세션 진행 중 (2026-05-07)
+
+### [38차 우선순위 4 부분 종결 — 핵심 발견 5건]
+
+1. **환경 확정**: PowerShell Desktop 5.1.19041.6456 (Core 아님 — 37차 가설 #1 부분 무효화)
+2. **bash 부재**: Git Bash 미설치 또는 PATH 미등록 → 회피 패턴 #1 (`bash -c`) 무효화
+3. **36차 함정 #1 재해석**: "Bash → PowerShell 자체 변환" → **"환경 fallback 라우팅"** (PATH에 bash 없으므로 자동 PowerShell 선택)
+4. **신규 함정 후보 #14**: Claude Code 자율 재시도 + 명령 형식 자체 수정 (실패 시 사용자 개입 없이 분할 재시도)
+5. **신규 회피 패턴**: PS 5.1 Desktop에서 쉼표 다중 인자 출력 삼킴 → 단일 인자 또는 파이프 분할 사용
+
+### [38차 우선순위 1 종결]
+- C안 채택: clean_src/ 빈 폴더 deferred 유지 (39차 또는 컴퓨터 재시작 시 자연 정리)
