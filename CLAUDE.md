@@ -109,6 +109,7 @@ The repo is developed primarily on Windows + PowerShell. The following traps hav
 | Auto-recommend command spoofing (39th #19, 40th 11×) | Auto-recommend mimics reviewer commands incl. echo blockers, Korean intent, Linux cmds, persistent retry across echo overwrites | Always echo-overwrite first; never trust auto-suggested next step; vary echo messages to defeat persistence |
 | Auto-recommend completion-decision spoofing (39th #21, 40th 10×) | Auto-recommend mimics reviewer's session-end / push / priority-transition decisions (Claude Code self-routing) | Always echo-overwrite first; reviewer command t-prefix mandatory; never trust auto-suggested completion or transition |
 | Claude Code self-retry + command auto-modification (38th #14) | Claude Code self-diagnoses failure + splits/retries command without user intervention; reproduced 6× cumulative through 38-40th sessions | Reviewer must verify each command output; treat self-retry as new command requiring fresh review approval |
+| Reviewer analysis assertion (30th #27, 73rd, 86th, 40th 3x) | Reviewer asserts conclusion before objective verification (file save state, AI auto-completion outcome, command result) without read-back evidence | Reviewer must always require objective verification (Get-Content / git log / status read-back) before stating conclusions; never assert based on screenshot UI signals alone |
 
 ### `.NET API` safe text-replacement pattern (the one that works)
 
