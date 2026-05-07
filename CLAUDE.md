@@ -110,6 +110,11 @@ The repo is developed primarily on Windows + PowerShell. The following traps hav
 | Auto-recommend completion-decision spoofing (39th #21, 40th 10×) | Auto-recommend mimics reviewer's session-end / push / priority-transition decisions (Claude Code self-routing) | Always echo-overwrite first; reviewer command t-prefix mandatory; never trust auto-suggested completion or transition |
 | Claude Code self-retry + command auto-modification (38th #14) | Claude Code self-diagnoses failure + splits/retries command without user intervention; reproduced 6× cumulative through 38-40th sessions | Reviewer must verify each command output; treat self-retry as new command requiring fresh review approval |
 | Reviewer analysis assertion (30th #27, 73rd, 86th, 40th 3x) | Reviewer asserts conclusion before objective verification (file save state, AI auto-completion outcome, command result) without read-back evidence | Reviewer must always require objective verification (Get-Content / git log / status read-back) before stating conclusions; never assert based on screenshot UI signals alone |
+| Auto-recommend per-command emergence | 41st #19-evo7 (19×) — every command shows auto-suggestion, echo block ineffective | Use `t` prefix Korean override; never press Enter on auto-text |
+| Reviewer report keyword spoofing | 41st #19-evo8 (4× verified) — auto-recommend mimics reviewer report keywords | Always cross-check against reviewer instructions only |
+| Auto-recommend deletion refusal | 41st #19-evo9 — Ctrl+A Delete ineffective; overwrite-only works | Type new command directly to overwrite buffer |
+| Dialog option 2 wildcard expansion | 41st #28-var — option 2 grants wildcard like `npm *` permanently | Always select option 1 (Yes); option 2 strictly forbidden |
+| `</parameter>` internal tool metadata leak | 41st #28-var2 — `</parameter>` tag exposes internal tool metadata in output | Sanitize or quote-escape `</parameter>` in commands |
 
 ### `.NET API` safe text-replacement pattern (the one that works)
 
