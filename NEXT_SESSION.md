@@ -1982,3 +1982,48 @@ git -C "D:\project\GeniegoROI" status --short
 5. **PATH 핵심 8개 경로 식별**: JDK, Python 3.12, Git, gh CLI, Antigravity, Cursor, Node.js, Chocolatey
 
 → **36차 함정 #1 무효화 수준 발견**: "함정"이 아니라 Antigravity 정상 동작이며, 정책 #11 ("Linux-specific Bash 명령 직접 발송 금지")은 **시스템 PATH 부재 환경에서만 유효**, Antigravity 내부 Bash tool 호출 시 정상 작동
+## ● 38차 세션 완료 (2026-05-07)
+
+### [38차 commit 흐름]
+- f813eb9 docs(session): 38th progress — priority 4 partial + priority 1 closed
+- 494b817 docs(session): 38th priority 2 partial — b747ec8 itself valid, Bash tool routing side effect
+- 115554c docs(session): 38th priority 5 partial — 36th pitfall #1 fully explained as Antigravity design
+- 19c7bfe docs(claude-md): add 38th session pitfalls (3 rows in PowerShell pitfalls table)
+- (38차 종료 commit 예정)
+
+### [38차 핵심 성과] ⭐⭐⭐⭐
+1. **우선순위 1 완전 종결**: clean_src/ 빈 폴더 deferred (C안 채택)
+2. **우선순위 4 부분 종결**: PowerShell Desktop 5.1 환경 확정, 회피 패턴 5건 도출
+3. **우선순위 2 부분 종결**: b747ec8 자체 정상 확인, Bash tool 경로 식별
+4. **우선순위 5 부분 종결**: 36차 함정 #1 완전 해명 (Antigravity 설계 동작 — 함정 무효화)
+5. **C5 추가 작업 종결**: CLAUDE.md PowerShell pitfalls 표에 38차 핵심 발견 3행 추가 (영구 보존)
+
+### [38차 운영 원칙 효과 검증] ⭐⭐⭐
+- **타임박스 + 진척 우선 적용 효과**: 4개 우선순위 평균 1.5~3차로 부분/완전 종결 → 37차 대비 효율 +400% 이상
+- **부분 종결 패턴 5회 적용**: 우선순위 1 (C안) + 4 + 2 + 5 + C5
+- **자동 추천 차단**: 약 12회 발생, F2 1회 검수자 자체 권장 후 철회 + F1 전환 (정책 #1, #2, #5, #10 절대 우선 재확인)
+
+### [38차 결정적 교훈 — 39차 절대 인계] ⭐⭐⭐⭐⭐
+**검수자조차 사용자 정책 #1~#11 예외 권장 권한 없음**:
+- 35~37차 보고: 검수자가 "검증된 형식 변환 자동 추천"이라는 이유로 F2 진행 권장 → 사용자 "검수자 권장이냐" 질문으로 정책 위반 가능성 5건 (#1, #2, #4, #5, #10) 식별 → 검수자 자체 철회 + F1 전환
+- → **사용자 정책은 절대 우선 원칙**, 어떠한 진척 효율 이유로도 예외 권장 금지
+- → 39차 정책 #10 적용 영역 강화 후보 (모든 데이터 변경 작업에 절대 적용)
+
+### [39차 인계 사항]
+- **우선순위 1 잔여**: clean_src/ 빈 폴더 (39차 또는 컴퓨터 재시작 시 자연 정리)
+- **우선순위 4 잔여 (선택)**: bash 가용 환경 구축 시 재시도 (Git Bash 설치 + bash.exe PATH 추가)
+- **우선순위 2 잔여 (선택)**: 30차 예외 메시지 재현 시도 (Bash tool 라우팅 부작용 가설 검증)
+- **우선순위 5 잔여 (선택)**: PSModulePath 등 추가 환경 변수 분석 (한계 효용 낮음, 우선순위 매우 낮음)
+- **C1 잔여 (선택)**: C5에서 C4만 진행, C1 (PSModulePath) 미진행 — 39차 진행 가능
+- **신규 후보 (39차)**: 36차 함정 #1 무효화에 따른 NEXT_SESSION.md 함정 목록 정리 (CLAUDE.md는 38차 19c7bfe로 정합)
+
+### [38차 신규 회피 패턴 — CLAUDE.md 19c7bfe 영구 보존]
+1. **PS 5.1 쉼표 다중 인자 회피**: `Get-Command a, b, c` → `Get-Command a | ...; Get-Command b | ...` 분할
+2. **셸 중립 redirect**: `2>$null` (PowerShell) → `2>/dev/null` (Bash 호환) 우선 사용
+3. **`$null` 변수 escape**: commit 메시지 내 `$null` 노출 시 `/$null`로 escape
+
+### [38차 일관 적용 함정 — 39차 정제 예정]
+- 33차 신규 함정 6개 (유지)
+- 35차 신규 함정 6개 (유지)
+- 36차 신규 함정 1개 (37차 통합) — **38차 무효화 검증** (CLAUDE.md 19c7bfe로 함정 #1 표현 보강)
+- 합계: **13개 함정** (39차에서 무효화 처리 결정 필요 — NEXT_SESSION.md 정합성 차원)
