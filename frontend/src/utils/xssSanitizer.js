@@ -7,7 +7,7 @@
  * @module xssSanitizer
  */
 
-import DOMPurify from 'isomorphic-dompurify';
+import DOMPurify from 'dompurify';
 
 /**
  * HTML 문자열에서 위험한 태그와 속성을 제거합니다.

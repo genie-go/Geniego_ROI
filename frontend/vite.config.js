@@ -6,6 +6,10 @@ export default defineConfig({
   build: {
     chunkSizeWarningLimit: 8000,
     minify: 'esbuild',
+    commonjsOptions: {
+      transformMixedEsModules: true,
+      requireReturnsDefault: 'auto',
+    },
     rollupOptions: {
       output: {
         manualChunks: {
@@ -24,6 +28,11 @@ export default defineConfig({
           ],
         },
       },
+    },
+  },
+  resolve: {
+    alias: {
+      'isomorphic-dompurify': 'dompurify',
     },
   },
   server: {
