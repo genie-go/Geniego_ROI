@@ -54,6 +54,11 @@ export default defineConfig({
           if (id.includes('node_modules/react-router-dom') || id.includes('node_modules/react-router')) {
             return 'vendor-router';
           }
+         // 공유 UI 컴포넌트 (45차 발견 — 순환 청크 해소 + dashboards 통합)
+        if (id.includes('/components/dashboards/') ||
+        id.includes('/components/CommandPalette')) {
+      return 'shared-ui';
+    }
           // i18n 로케일 파일들 - 별도 청크
           if (id.includes('/i18n/locales/')) {
             return 'i18n-locales';
@@ -94,8 +99,8 @@ export default defineConfig({
           if (id.includes('/pages/EmailMarketing') || id.includes('/pages/AutoMarketing') || id.includes('/pages/AIMarketingHub')) {
             return 'pages-marketing2';
           }
-          // [최적화 추가] WMS·주문·카탈로그 (96KB + 99KB + 96KB)
-          if (id.includes('/pages/WmsManager') || id.includes('/pages/CatalogSync')) {
+          // [최적화 추가] WMS·주문 (96KB + 99KB) — CatalogSync는 pages-ops에 위치
+          if (id.includes('/pages/WmsManager')) {
             return 'pages-ops2';
           }
           // [최적화 추가] API Keys·Attribution (89KB + 57KB)
