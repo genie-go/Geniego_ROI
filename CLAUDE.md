@@ -108,6 +108,7 @@ The repo is developed primarily on Windows + PowerShell. The following traps hav
 | Bash tool shell identity | Bash tool always routes to Antigravity internal `/usr/bin/bash` regardless of system PATH; `$SHELL` env var is absent | Treat Bash tool as Linux bash; treat PowerShell tool as Windows PS 5.1 — never mix redirect syntax |
 | Auto-recommend command spoofing (39th #19, 40th 11×) | Auto-recommend mimics reviewer commands incl. echo blockers, Korean intent, Linux cmds, persistent retry across echo overwrites | Always echo-overwrite first; never trust auto-suggested next step; vary echo messages to defeat persistence |
 | Auto-recommend completion-decision spoofing (39th #21, 40th 10×) | Auto-recommend mimics reviewer's session-end / push / priority-transition decisions (Claude Code self-routing) | Always echo-overwrite first; reviewer command t-prefix mandatory; never trust auto-suggested completion or transition |
+| Claude Code self-retry + command auto-modification (38th #14) | Claude Code self-diagnoses failure + splits/retries command without user intervention; reproduced 6× cumulative through 38-40th sessions | Reviewer must verify each command output; treat self-retry as new command requiring fresh review approval |
 
 ### `.NET API` safe text-replacement pattern (the one that works)
 
