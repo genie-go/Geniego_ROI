@@ -8,9 +8,7 @@ import { NotificationProvider } from "./context/NotificationContext.jsx";
 import { initWebVitals } from "./utils/webVitals.js";
 import "./styles.css";
 
-import ko from './i18n/locales/ko.js';
-const t = (k) => k.split('.').reduce((o, i) => o?.[i], ko) || k;
-window.t = t;
+
 
 /* ═══════════════════════════════════════════════════════════
    🛡️ Root-Level Error Boundary
