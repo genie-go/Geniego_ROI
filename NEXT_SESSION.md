@@ -2466,3 +2466,67 @@ t46차 시작합니다. 45차 종결 시점 정합성 검증 + 우선순위 1 (i
 - 사용자 명시 종결 결정
 - 디버깅 늪 신호 3회 이상 누적
 - 본질 분석 작업 1건 완전 종결 + 회차 25회 이상 누적
+# 46차 종결 시점 git 상태 (확정)
+- master HEAD: <종결 commit SHA> (46차 종결 commit)
+- origin/master HEAD: 동일 SHA (동기화 완료)
+- working tree: 깨끗
+- 46차 commit 흐름:
+  - <종결 SHA> docs(session): record 46th session
+  - 421c7c5 refactor(i18n): remove dead ko.js imports from 15 files (A2 dead code group2) — 46차 우선순위 1 그룹2 19/21
+  - 8db84df refactor(i18n): remove dead ko.js imports from 3 files (ThemeContext, ChartUtils, AuthContext) — 46차 우선순위 1 그룹1 4/21
+  - 4b8cddf refactor(i18n): remove dead ko.js import from MobileSidebarContext.jsx — 46차 우선순위 1 시범 1/21
+  - adcbe4b (45차 종결)
+
+# 46차 핵심 성과
+1. **본질 분석 1건 부분 종결 (19/21 = 90.5%) + commit/push 4건**
+   - 우선순위 1 i18n-locales ko.js 직접 import 19건 dead code 제거
+   - 시범 1건 (MobileSidebarContext) + 그룹1 3건 (Theme/Chart/Auth) + 그룹2 15건 (15개 파일)
+   - 빌드 4회 모두 성공, 청크 사이즈 변동 0 (A2/A3 tree-shaking 이미 적용 객관 입증)
+   - i18n-locales 8.2MB 변동 0 — A1 처리 시 효과 발생 추정 (45차 인계 92% 감소 잠재 효과는 A1 교체 + 동적 import + manualChunks 추가 분기 모두 필요)
+
+2. **45차 인계 진단 정정**
+   - 19개 → 23개 → 21개 (정제, 6단계 객관 분류)
+   - PriceOpt.jsx 인라인 hook 재정의 → 실제 useI18n 사용 중 (리팩토링 대상 아님)
+   - AuthContext "직접 참조 추정" → 실제 dead code (단순 삭제)
+   - ko.js 단일 위치 확정 (frontend/src/i18n/locales/ko.js, ≈1MB)
+
+3. **회차 효율**: 약 30~32/25 (25회 상한 초과, 정책 #14 효율 객관 입증으로 정당화 — 45차 14회차 대비 약 2배 작업 처리)
+
+4. **Claude Code 자율 행동 객관 평가 누적** (정책 #15 적용):
+   - 흡수: 사후 grep 검증 보완, 정규식 정밀화, 단계 통합 (commit + push)
+   - 차단: 일괄 처리 산출물 보존 위반 잠재, 종결 권장 시점 추가 본질 진입
+   - 객관 효과 우수, 정책 #15 운영 패턴 정착
+
+# 46차 결정적 신규 발견 (47차 인계 우선순위 후보)
+1. **HelpCenter.jsx A1 useI18n 교체** ⭐⭐⭐⭐⭐
+   - L7 로컬 t = (k) => ... (ko 직접 사용)
+   - L67-76 t("help.tabMenus") 등 다수 호출 (총 41건 t() 호출)
+   - useI18n().t 교체 필요 (별도 처리, 47차 우선순위 1)
+   - 잠재 위험: React Rules of Hooks (함수 컴포넌트 내부만 호출 가능), 외부 함수에서 호출 시 props 전달 패턴 필요
+
+2. **main.jsx window.t 전역 노출 분석** ⭐⭐⭐⭐
+   - L11-13: window.t = t; (전역 노출, 의도적 사용)
+   - 삭제 불가, 별도 처리 필요 (47차 우선순위 2 또는 별도 분석)
+
+3. **A2/A3 dead code = tree-shaking 이미 적용 객관 입증** ⭐⭐⭐⭐⭐
+   - 19건 누적 dead code 삭제 후 청크 사이즈 변동 0
+   - i18n-locales 8.2MB 분리 효과는 A1 패턴 처리 + 동적 import 추가 + manualChunks 분기 모두 필요
+
+4. **PolicyTreeEditor.jsx :402-405 패턴 식별** ⭐⭐⭐
+   - L402: useI18n import 이미 존재
+   - L404-405: ko + 로컬 t 중복 (dead code, 7단계 삭제 완료)
+
+5. **다이얼로그 신규 변종 누적** (정책 #8 인계):
+   - "Yes, allow reading from `project\` from this project" (46차 신규 변종, 디렉토리 단위 영구 승인)
+   - "Yes, and don't ask again for: npm run *" (44차 누적, 글로브 영구 승인)
+   - "Yes, allow all edits during this session" (44차 누적, 세션 단위 영구 승인)
+
+# 47차 우선순위 후보
+| 우선순위 | 작업 | 권장 회차 |
+|---|---|---|
+| 우선순위 1 (본질, 별도 분석) | HelpCenter.jsx A1 useI18n().t 교체 (41건 t() 호출, React Rules of Hooks 객관 평가) | 6~10 |
+| 우선순위 2 (본질, 별도 분석) | main.jsx window.t 전역 노출 분석 + 처리 방향 결정 | 3~5 |
+| 우선순위 3 (본질, 추가 분석) | Circular chunk 진짜 원인 — SecurityGuard/GlobalDataContext/demoSeedData/ContaminationGuard 체인 분석 | 4~8 |
+| 우선순위 4 (본질) | Journey Builder UI/UX 4건 (12h, 정책 #10 사용자 직접 수정) | 8~12 |
+| 우선순위 5 (정리, 선택) | docs/ 12건 분석 보고서 추가 정찰 | 6~10 |
+| 47차 종결 commit | NEXT_SESSION.md + commit/push (단계 통합) | 3 |
