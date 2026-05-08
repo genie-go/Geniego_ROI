@@ -32,6 +32,10 @@ export default defineConfig({
             './src/i18n/locales/pt.js',
             './src/i18n/locales/ru.js'
           ],
+          'shared-context': [
+            './src/context/GlobalDataContext.jsx',
+            './src/security/SecurityGuard.js',
+          ],
         },
       },
     },
