@@ -1,8 +1,5 @@
 import React from 'react';
 
-import ko from '../../i18n/locales/ko.js';
-const t = (k) => k.split('.').reduce((o,i)=>o?.[i], {auto: ko?.auto}) || k;
-
 // ═══════════════════════════════════════════════════════════════════════
 //  ChartUtils.jsx — 통일된 차트 컴포넌트
 //  폰트 규칙: 축 라벨 11px / 값 라벨 11px / 그리드 11px (모두 동일)

@@ -1,8 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 
-import ko from '../i18n/locales/ko.js';
-const t = (k) => k.split('.').reduce((o,i)=>o?.[i], {auto: ko?.auto}) || k;
-
 const THEME_KEY = "geniego_theme";
 
 // ── 6가지 프리미엄 테마 정의 (i18n nameKey/descKey 포함) ──────────────────────
