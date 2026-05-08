@@ -3,8 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { useI18n } from "../i18n/index.js";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { sanitizeHtml } from "../utils/xssSanitizer.js";
-import ko from '../i18n/locales/ko.js';
-const t = (k) => k.split('.').reduce((o, i) => o?.[i], { auto: ko?.auto }) || k;
 
 
 /* ═══ Main Component ══════════════════════════════════════════════ */
