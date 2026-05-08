@@ -2328,3 +2328,141 @@ t44차 시작합니다. 43차 종결 시점 정합성 검증 + 우선순위 1 (4
 
 # 검수자 운영 전략 + 사용자 정책 (43차 → 44차 유지, 45차 일관 적용)
 [기존 내용 그대로 유지]
+# 45차 종결 시점 git 상태 (확정)
+- master HEAD: 7731ffb (45차 종결 commit 직전, NEXT_SESSION 갱신 commit 추가 예정)
+- origin/master HEAD: 7731ffb (push 완료)
+- working tree: 갱신 후 깨끗
+- remote: genie-go/Geniego_ROI.git
+- gh CLI 인증: ✅ 유지
+
+# 45차 commit 흐름 (origin/master 반영 완료)
+- (예정) docs(session): record 45th session — close priority 1 (PROJECT_AUDIT v1.3 마스터 인덱스 + PM_ANALYSIS_REPORT_FINAL 80분 선행 정합성 + Journey Builder 4건 미완성 12h) + priority 2 (vite.config.js manualChunks shared-ui 청크 신규 + CatalogSync 중복 제거 — pages-analytics 495KB→96KB -80%, Circular 잔존 SecurityGuard/GlobalDataContext/demoSeedData 추정) + priority 3 (i18n-locales 8.2MB 단순 분리 차단 — ko.js 19개 직접 정적 import, 46차 useI18n hook 리팩토링 인계) + priority 4 (dict_5pages.json + kpi_keys.json dead data archived 이동), 본질 분석 3건 + 사용자 수정 1건 + commit/push 2건 + 신규 발견 15건+, 약 13~14/25 회차 사용 (44차 대비 약 2배 효율)
+- 7731ffb chore(cleanup): archive dict_5pages.json + kpi_keys.json — dead data 확정 후 _archived 이동 (45차 우선순위 4 종결)
+- 7539304 perf(chunks): add shared-ui chunk + remove CatalogSync duplication — pages-analytics 495KB→96KB (-80%) (45차 우선순위 2 부분 종결)
+- 8da9e06 (44차 종결)
+
+# 45차 핵심 성과
+1. **본질 분석 3건 종결 + 사용자 수정 1건 + commit/push 2건** (44차 대비 약 2배 효율)
+   - 우선순위 1: PROJECT_AUDIT_REPORT.md v1.3 마스터 인덱스 객관 확정 (5 PART, Option B 추천, 2026-05-01 16:26) + PM_ANALYSIS_REPORT_FINAL v1.0 (80분 선행, 2026-05-01 15:06) 정합성 객관 입증 (87점/12완료 → 100점/13완료 시점 차이 해소) + Journey Builder UI/UX 4건 미완성 (12h, L157~) + frontend/src/pages/JourneyBuilder.jsx + 백업본 식별 + 신규 참고문서 3건 식별 (BUGS_TRACKING/PM_CURRENT_STATUS/PM_PRIORITY_PLAN, 2026-05-02)
+   - 우선순위 2: vite.config.js (루트, 147→152줄, root: 'frontend' 객관 식별) manualChunks 사용자 직접 수정 (정책 #10): shared-ui 청크 신규 추가 (components/dashboards/ + CommandPalette, 405KB) + CatalogSync 중복 제거 (L98 dead code) → pages-analytics 495KB→96KB (-80%) 객관 효과 입증 + Circular 잔존 (pages-apikeys ↔ pages-analytics) 진짜 원인 SecurityGuard/GlobalDataContext/demoSeedData/ContaminationGuard 추정 + commit 7539304 push
+   - 우선순위 3: i18n-locales 8.2MB (44차 12.8MB 정정) 단순 분리 차단 객관 입증 — ko.js 직접 정적 import 19개 파일 (4 contexts + 8 components + 6 pages + 1 theme) 식별, useI18n hook 리팩토링 필요 (광범위) → 46차 인계 핵심 작업
+   - 우선순위 4: dict_5pages.json + kpi_keys.json dead data 객관 확정 (frontend/src + backend/ + 스크립트 전체 코드베이스 참조 0건) → tools/migrations/_archived/ 이동 (git mv rename 100% 인식) + commit 7731ffb push
+2. **44차 인계 진단 부분 정정 객관 입증**:
+   - i18n-locales 12.8MB → 실제 8.2MB (압축 후) / 원본 10.8MB
+   - CommandPalette + DashOverview 순환 직접 원인 아님 (페이지 직접 의존 0)
+   - 진짜 순환 원인 후보: SecurityGuard.js / GlobalDataContext.jsx / demoSeedData.js / ContaminationGuard.js 체인
+3. **회차 효율**: 약 13~14/25 (44차 24/25 대비 약 2배 효율, 정책 #14 "최대 진행" 효과 객관 입증)
+4. **Claude Code 자율 보강 패턴 식별**: 검수자 명령 변형 후 자율 보완 (git mv + commit + push 단계 통합 자동 진행) — 객관 효과 우수, 검수자 통제권 부분 침범 (정책 #13 인계)
+
+# 45차 결정적 신규 발견 (46차 인계 우선순위 후보)
+1. **i18n-locales 분리 차단 — ko.js 직접 정적 import 19개 파일** ⭐⭐⭐⭐⭐
+   - contexts (4): AuthContext, ConnectorSyncContext, MobileSidebarContext, NotificationContext
+   - components (8): ChartUtils, DashLayout, ApprovalModal, ErrorGuideCard, EventPopupDisplay, GlobalSearch, MediaEditor, PlanGate, PolicyTreeEditor
+   - pages (6): DigitalShelf, HelpCenter, SubscriberTabs, UserManagement, PgTest
+   - theme (1): ThemeContext
+   - **분리 전략:** ko.js 직접 import 제거 + useI18n hook 교체 (광범위 리팩토링)
+   - **잠재 효과:** 다운로드 약 92% 감소 (8.2MB → 약 600KB~1MB 단일 언어)
+2. **Circular chunk 진짜 원인 후보** ⭐⭐⭐⭐
+   - SecurityGuard.js (React hooks만, 페이지 의존 0)
+   - GlobalDataContext.jsx (L13: ContaminationGuard.js, L14~23: demoSeedData.js DEMO_* 대량 import)
+   - demoSeedData.js / ContaminationGuard.js 체인 추가 분석 필요
+3. **두 vite.config.js 식별** ⭐⭐⭐
+   - 루트 vite.config.js (6,267 bytes, manualChunks 정의, 빌드 대상)
+   - frontend/vite.config.js (1,178 bytes, dev server 전용)
+   - 루트 vite.config.js의 root: 'frontend' 옵션으로 frontend 폴더를 빌드 루트로 사용
+   - 실제 dist 위치: frontend/dist/assets/ (루트 dist/ 아님)
+4. **GlobalSearch ko.js 직접 정적 import (L4)** — i18n-locales 분리 시 추가 검토 필요 (#1 사항의 일부)
+5. **PROJECT_AUDIT v1.3 마스터 인덱스 객관 식별 + PM_ANALYSIS_REPORT_FINAL과 80분 시점 차이 해소** — 분석 보고서 시점별 스냅샷 객관 정합성 입증
+
+# 45차 부수 발견 (메타 영역, 정책 #13 적용 — 등록 안 함, 인계 참조용)
+1. **자동 추천 옵션 2번 신규 변종 누적** (44차 변종 + 추가):
+   - `xxd` 영구 승인 (44차)
+   - `npm run *` 영구 승인 (44차)
+   - `Attribution+경로` 영구 승인 (44차)
+   - **`grep -nE "^#{1,3} " /d/project/.../*.md` 영구 승인 (45차 신규, 5회 연속 누적)**
+   - **`awk '{print $5, $NF}'` 영구 승인 (45차 신규, 9회 연속 누적)**
+   - **`similar commands in D:\project\GeniegoROI` 디렉토리 단위 영구 승인 (45차 신규)**
+2. **명령 변형 누적 사례** (44차 + 추가):
+   - find | sort | while read → find 사전 평가 후 인라인 전개 + for in 변환
+   - "Unhandled node type: string" 파서 안내
+   - git mv → mv 변형 (이후 Claude Code 자율 보완 자동 복원)
+   - npm run build 다단계 → grep 단일 압축 변형
+3. **Claude Code 자율 행동 패턴 식별**:
+   - 후속 명령 자동 추천 (검수자 명령 결과 분석 후 다음 회차 명령 자동 생성)
+   - 자율 분석 보강 (검수자 정찰 명령 결과 후 자율 의존성 추가 분석)
+   - 자율 단계 보완 (검수자 변형 후속 명령 자동 진행 — git mv + commit + push)
+4. **에디터 환경 변경 객관 식별**: 사용자 정책 #10 적용 시 Antigravity 외 Cursor 에디터 사용도 객관 동등 (GUI 직접 수정 의도 충족)
+
+# 46차 우선순위 후보 (45차 종결 영역에서 객관 결정)
+
+| 우선순위 | 작업 | 권장 회차 |
+|---|---|---|
+| **우선순위 1 (본질, 광범위 리팩토링)** | i18n-locales 분리 — ko.js 직접 정적 import 19개 파일 useI18n hook 리팩토링 (다운로드 92% 감소 잠재 효과) | 12~18 |
+| **우선순위 2 (본질, 추가 분석)** | Circular chunk 진짜 원인 — SecurityGuard.js / GlobalDataContext.jsx / demoSeedData.js / ContaminationGuard.js 체인 분석 + manualChunks 추가 분기 | 4~8 |
+| **우선순위 3 (본질)** | Journey Builder UI/UX 4건 (12h) — 온보딩(4h) + 용어단순화(3h) + 모바일 최적화(3h) + 피드백 강화(2h), 정책 #10 사용자 직접 수정 | 8~12 |
+| **우선순위 4 (정리, 선택)** | docs/ 12건 분석 보고서 추가 정찰 (44차 인계 분석 보고서 분석 잔여 — V383~389 머지 6건, BUG-008/012, BUG_FIX_FINAL 등) | 6~10 |
+| **우선순위 5 (정리, 선택)** | NEXT_SESSION.md 분량 누적 분석 (현재 약 2,500줄+, 45차 종결 후 더 증가) — 차수별 분리 또는 메타 정리 검토 | 2~4 |
+| 46차 종결 commit | NEXT_SESSION.md + commit/push (단계 통합) | 3 |
+
+# 41차 정착 검수자 운영 전략 (42·43·44·45차 일관 적용, 46차 유지)
+신규 전략 5원칙:
+1. **자동 추천 보고 생략** — 등장은 정상 상태, 매번 보고하지 않음
+2. **명령 일관 패턴** — `t` 접두사 + 한글 시작 (자동 추천 영문과 명확 구분)
+3. **다이얼로그 자동 처리** — read-only 명령은 1번 Yes 안전, 위험 명령만 명시 평가
+4. **본질 작업 집중** — 검수자 보고는 결과 검증 + 다음 명령만
+5. **단계 통합** — add + commit + push 한 번에 (위험 작업만 분리)
+
+# 31차 정착 사용자 정책 (32~45차 유지, 46차 일관 적용)
+1. 자동 추천 텍스트 절대 사용 안 함 (덮어쓰기로 차단)
+2. 검수자 추천 명령만 진행
+3. read-only 명령은 2~6개 묶음 허용 (위험 명령은 단일)
+4. t 접두사 회피 패턴
+5. 위험 자동 추천 발견 시 즉시 무해 명령(echo)으로 덮어쓰기
+6. PAT 등 인증 정보는 사용자만 보관
+7. 의심 다이얼로그 발견 시 즉시 멈춤 + 검수자 식별
+8. 옵션 2번 영구 자동 승인 절대 선택 금지 (44차 + 45차 신규 변종 누적: xxd, npm run *, Attribution+경로 영구 승인 / grep -nE 영구 승인 5회, awk '{print $5, $NF}' 9회, similar commands in 디렉토리 단위 영구 승인)
+9. 자동 추천 등장 여부 무관 매 단계 t 접두사 일관 적용
+10. NEXT_SESSION.md/CLAUDE.md/데이터 파일/코드 파일 등 변경 작업은 사용자 GUI 에디터 직접 수정 (45차 객관 작동 일반화: Antigravity + Cursor 모두 정책 #10 동등 — vite.config.js Cursor 직접 수정 + dict_5pages/kpi_keys.json git mv archived 이동)
+11. Linux-specific Bash 명령 Claude Code 직접 발송 금지 (단, 객관 발견 누적: PowerShell `;` → Bash `&&` 자동 변형, cd/d → cd, findstr → grep, dir → ls, Windows 절대 경로 → Unix 스타일, git mv → mv 압축 변형 후 자율 보완)
+
+# 42차 → 43차 → 44차 → 45차 사용자 정책 변경 (46차 유지)
+**유지 사항:**
+- 자동 추천 변종 추적 / 환경 점검 / 메타 작업 (함정 등록 등) 진행하지 않음
+- 분석 작업 본질에 집중
+- 작업 진행은 가능한 최대한 많이 진행 (45차 정착 — 본질 분석 3건 + 사용자 수정 + commit/push 2건 + 신규 발견 15건 누적 객관 입증, 44차 대비 약 2배 효율)
+
+**유지 사항 (운영 절차):**
+- 신규 전략 5원칙 그대로 유지
+- 사용자 정책 #1~#11 절대 우선
+- 정책 #10 (데이터/코드 변경은 GUI 에디터 직접 수정) 일반화 적용 (Antigravity + Cursor 동등)
+
+# 검수자 명시적 운영 지침 (46차 사용자 정책 반영)
+1. 매 보고 첫 줄에 "[X차 보고 — 우선순위 N]" 형식
+2. **자동 추천 등장 보고 생략** (스크린샷에 보여도 검수자가 관심 갖지 않음, 환경 정상 상태)
+3. **단계 통합 우선** (add + commit + push 한 번에, 위험 작업만 분리)
+4. 보고는 **결과 검증 + 다음 명령**만 (간결화)
+5. 우선순위별 회차 상한 도달 시 즉시 알림
+6. 디버깅 늪 신호 감지 시 즉시 알림
+7. ⭐⭐⭐⭐⭐ 사용자 정책 #1~#11 절대 우선
+8. 다이얼로그 처리 안내를 명령 작성 시 미리 포함 (read-only는 1번 Yes 안전, 위험 명령만 명시 평가)
+9. 명령 변형 위험 회피: PowerShell `;` 사용 금지, 단일 명령 또는 `&&` 직접 사용
+10. 46차 종결 시점 결정은 사용자 결정 필수
+11. ⭐⭐⭐⭐⭐ 옵션 2번 영구 승인 절대 선택 금지 (44차 + 45차 누적 변종 포함)
+12. ⭐⭐⭐⭐ 산출물 강제 보존 모드 (부분 commit + 세이프티 commit)
+13. ⭐⭐⭐⭐⭐ 자동 추천 변종 추적 / 환경 점검 / 메타 작업 (함정 등록 등) 진행하지 않음. 분석 작업 본질에 집중.
+14. ⭐⭐⭐⭐⭐ 작업 진행은 가능한 최대한 많이 진행 (45차 정착 객관 입증, 44차 대비 약 2배 효율)
+15. ⭐⭐⭐⭐ Claude Code 자율 행동 객관 인지 (정책 #2 부분 위반 발생 시 효과 평가 후 흡수 또는 차단 결정)
+
+# 46차 시작 첫 명령 (Claude Code에 입력 예정)
+다음 명령으로 45차 종결 시점 정합성을 한 번에 검증한 뒤 즉시 우선순위 1 (46차 첫 결정) 진입:
+
+t46차 시작합니다. 45차 종결 시점 정합성 검증 + 우선순위 1 (i18n-locales 분리 ko.js 19개 파일 useI18n hook 리팩토링) 진입 부탁드립니다. git -C "D:\project\GeniegoROI" log --oneline -5 && git -C "D:\project\GeniegoROI" status --short. 추가 설명 없이 raw 출력만 보여주세요. 다이얼로그가 뜨면 1번 Yes 안전합니다 (옵션 2번 절대 금지).
+
+이 명령 결과 스크린샷을 곧 보내드릴 예정입니다. 검수 부탁드립니다.
+
+# 46차 종결 기준
+다음 중 하나 이상 충족 시 46차 종결 권장:
+- 우선순위 1~3 모두 부분/완전 종결
+- 사용자 명시 종결 결정
+- 디버깅 늪 신호 3회 이상 누적
+- 본질 분석 작업 1건 완전 종결 + 회차 25회 이상 누적
