@@ -1217,3 +1217,48 @@ t50차 시작합니다. 49차 종결 시점 정합성 검증 부탁드립니다.
 - 종결: 회차 20~25
 
 ---
+
+# 50차 종결 결과 (2026-05-08)
+
+## 50차 commit (a5288ad) — push 완료
+- NEXT_SESSION.md 재정리 (1766줄 삭제 / 1767줄 삽입)
+- NEXT_SESSION_ARCHIVE_23_43.md 신규 생성 (1767줄)
+- 23~43차 세션 기록 분리 완료
+
+## 50차 핵심 성과
+1. 우선순위 1 완전 종결 — NEXT_SESSION.md (2787 → 1138줄 / Get-Content 기준)
+2. ARCHIVE 분리 정합성 검증 (working tree clean)
+3. 검수자 진단 자가 정정 다수 (12회차/23회차/29회차/36회차 등)
+
+## 50차 회피 패턴 (정책 #8 추가)
+- Get-Content + Set-Content 파이프라인 (UTF-8 BOM 손상)
+- .NET API ([System.IO.File], [System.Text.UTF8Encoding] 등)
+- code 외부 명령 (VS Code 새 인스턴스 충돌)
+- 한글 IME 상태 GUI Find & Replace 따옴표 직접 입력 (구문 오류 다발)
+
+## 우선순위 2 보류 (51차 이월)
+Journey Builder UI/UX 4건 작업 중 "용어 단순화" 시도 — 한글 IME 작은따옴표 입력 문제로 33→58건 빌드 에러 반복 발생, 백업 복원으로 완전 복구 후 보류 결정.
+
+---
+
+# 51차 우선순위
+
+## 우선순위 1 — Journey Builder 용어 단순화 (이월)
+- 사전 매핑표 작성 (.bak 파일 + diff 도구)
+- PowerShell 자동 치환 스크립트 (인코딩 안전 검증 후)
+- Phase 1 (4건 핵심 용어) → 빌드 검증 → Phase 2 (가이드 텍스트)
+- 회차: 8~12
+
+## 우선순위 2 — Journey Builder 나머지 3건 (UX 개선)
+- 1번 온보딩 (4h)
+- 3번 모바일 최적화 (3h)
+- 4번 피드백 강화 (2h)
+- 회차: 12~18
+
+## 우선순위 3 — NEXT_SESSION.md 추가 감축 (선택)
+- 현재 1138줄 → 목표 1000줄 (138줄 감축)
+- 회차: 3~5
+
+# 51차 시작 첫 명령
+
+t51차 시작합니다. 50차 종결 commit 정합성 검증 부탁드립니다. git -C "D:\project\GeniegoROI" log --oneline -8 && git -C "D:\project\GeniegoROI" status --short && (Get-Content -Path "D:\project\GeniegoROI\NEXT_SESSION.md" | Measure-Object -Line).Lines. raw 출력만. 다이얼로그 1번 Yes 안전 (옵션 2번 절대 금지 + 신규 변종 .NET methods/Get-Content+Set-Content 파이프라인/code 외부 명령/한글 IME 따옴표 입력 모두 절대 금지).
