@@ -1,8 +1,5 @@
 import React from "react";
 
-import ko from '../i18n/locales/ko.js';
-const t = (k) => k.split('.').reduce((o,i)=>o?.[i], {auto: ko?.auto}) || k;
-
 
 function Pill({ children }) {
   return (

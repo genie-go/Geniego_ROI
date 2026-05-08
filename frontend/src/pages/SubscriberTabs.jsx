@@ -1,9 +1,6 @@
 import React, { useCallback, useState, useEffect } from 'react';
 
 import { useT } from '../i18n/index.js';
-import ko from '../i18n/locales/ko.js';
-const t = (k) => k.split('.').reduce((o,i)=>o?.[i], {auto: ko?.auto}) || k;
-
 const _API = import.meta.env.VITE_API_BASE || "";
 const _AK  = "process.env.API_KEY || ''";
 const _ah  = () => ({ "Content-Type": "application/json", Authorization: `Bearer ${_AK}` });

@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { sanitizeHtml } from '../utils/xssSanitizer.js';
 
-import ko from '../i18n/locales/ko.js';
-const t = (k) => k.split('.').reduce((o, i) => o?.[i], { auto: ko?.auto }) || k;
-
 
 /* ──────────────────────────────────────────────────────────────────────────
    EventPopupDisplay

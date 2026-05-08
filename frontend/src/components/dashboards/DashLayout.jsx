@@ -1,8 +1,5 @@
 import React from 'react';
 
-import ko from '../../i18n/locales/ko.js';
-const t = (k) => k.split('.').reduce((o,i)=>o?.[i], {auto: ko?.auto}) || k;
-
 // ── 대시보드 공용 레이아웃 토큰 & 컴포넌트 ──────────────────────────────────
 // 모든 대시보드(6개 뷰)가 동일한 규격을 공유합니다.
 

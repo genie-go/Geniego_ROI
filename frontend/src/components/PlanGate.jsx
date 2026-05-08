@@ -16,9 +16,6 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { useGlobalData } from "../context/GlobalDataContext.jsx";
 
-import ko from '../i18n/locales/ko.js';
-const t = (k) => k.split('.').reduce((o,i)=>o?.[i], {auto: ko?.auto}) || k;
-
 
 /* Plan 계층 */
 const PLAN_RANK = { demo: 0, pro: 1, starter: 1, enterprise: 2, admin: 3 };
