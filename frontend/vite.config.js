@@ -25,6 +25,12 @@ export default defineConfig({
             './src/i18n/locales/th.js',
             './src/i18n/locales/vi.js',
             './src/i18n/locales/id.js',
+            './src/i18n/locales/ar.js',
+            './src/i18n/locales/es.js',
+            './src/i18n/locales/fr.js',
+            './src/i18n/locales/hi.js',
+            './src/i18n/locales/pt.js',
+            './src/i18n/locales/ru.js'
           ],
         },
       },
