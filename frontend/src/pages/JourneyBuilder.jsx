@@ -305,6 +305,7 @@ export default function JourneyBuilder() {
     const [deleteId, setDeleteId] = useState(null);
     const [detailId, setDetailId] = useState(null);
     const [form, setForm] = useState({ name: '', trigger_type: 'signup', segment: '', channels: ['email'], delay: 'none' });
+    const [showOnboarding, setShowOnboarding] = useState(false);
 
     const tr = useCallback(key => { const v = t(key); return v === key ? (FB[key] || key) : v; }, [t]);
     const stsLabel = s => ({ draft: tr(K.statusDraft), active: tr(K.statusActive), paused: tr(K.statusPaused), completed: tr(K.statusCompleted) }[s] || s);
@@ -313,12 +314,33 @@ export default function JourneyBuilder() {
 
     const persist = useCallback(list => { try { localStorage.setItem('jb_journeys', JSON.stringify(list)); } catch { } }, []);
 
+    useEffect(() => {
+        const shown = localStorage.getItem('jb_onboarding_shown');
+        if (!shown) setShowOnboarding(true);
+    }, []);
+
     const TRIGGERS = [{ id: 'signup', label: tr(K.triggerSignup) }, { id: 'purchase', label: tr(K.triggerPurchase) }, { id: 'abandon', label: tr(K.triggerAbandon) }, { id: 'churn', label: tr(K.triggerChurn) }, { id: 'segment', label: tr(K.triggerSegment) }, { id: 'manual', label: tr(K.triggerManual) }];
     const CHANNELS = [{ id: 'email', label: tr(K.email), icon: '📧' }, { id: 'kakao', label: tr(K.kakao), icon: '💬' }, { id: 'sms', label: tr(K.sms), icon: '📱' }, { id: 'push', label: tr(K.push), icon: '🔔' }, { id: 'line', label: tr(K.line), icon: '💚' }];
     const DELAYS = [{ id: 'none', label: tr(K.delayNone) }, { id: '1h', label: tr(K.delay1h) }, { id: '1d', label: tr(K.delay1d) }, { id: '3d', label: tr(K.delay3d) }, { id: '7d', label: tr(K.delay7d) }];
 
     const TABS = [{ id: 'builder', label: tr(K.tabBuilder), icon: '🗺️' }, { id: 'list', label: tr(K.tabList), icon: '📋' }, { id: 'logs', label: tr(K.tabLogs), icon: '📜' }, { id: 'analytics', label: tr(K.tabAnalytics), icon: '📈' }, { id: 'guide', label: tr(K.tabGuide), icon: '📖' }];
     const TAB_CLR = { builder: '#4f8ef7', list: '#a855f7', logs: '#f97316', analytics: '#22c55e', guide: '#06b6d4' };
+
+    /* ── Onboarding ───────────────────────────────────── */
+    const handleOnboardingShowGuide = () => {
+        localStorage.setItem('jb_onboarding_shown', '1');
+        setShowOnboarding(false);
+        setTab('guide');
+        addToast('상세 가이드 탭으로 이동합니다.', 'info', 3000);
+    };
+    const handleOnboardingDontShow = () => {
+        localStorage.setItem('jb_onboarding_shown', '1');
+        setShowOnboarding(false);
+    };
+    const handleOnboardingStart = () => {
+        localStorage.setItem('jb_onboarding_shown', '1');
+        setShowOnboarding(false);
+    };
 
     /* ── Actions ──────────────────────────────────────── */
     const handleSave = () => {
@@ -426,6 +448,27 @@ export default function JourneyBuilder() {
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', maxWidth: 1200, margin: '0 auto', width: '100%', flex: 1, minHeight: 0, color: '#1e293b', background: 'transparent' }}>
+
+            {/* ── Onboarding Modal ── */}
+            {showOnboarding && (
+                <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+                    <div style={{ background: '#fff', borderRadius: 12, padding: 32, maxWidth: 480, width: '90%', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
+                        <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 8 }}>{tr(K.onboardingWelcome)}</div>
+                        <div style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>{tr(K.onboardingTitle)}</div>
+                        <div style={{ fontSize: 14, color: '#666', marginBottom: 20 }}>{tr(K.onboardingDesc)}</div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 24 }}>
+                            <div style={{ padding: '8px 12px', background: '#f5f7fa', borderRadius: 6, fontSize: 13 }}>{tr(K.onboardingStep1)}</div>
+                            <div style={{ padding: '8px 12px', background: '#f5f7fa', borderRadius: 6, fontSize: 13 }}>{tr(K.onboardingStep2)}</div>
+                            <div style={{ padding: '8px 12px', background: '#f5f7fa', borderRadius: 6, fontSize: 13 }}>{tr(K.onboardingStep3)}</div>
+                        </div>
+                        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                            <button onClick={handleOnboardingDontShow} style={{ padding: '8px 16px', border: '1px solid #ddd', background: '#fff', borderRadius: 6, cursor: 'pointer', fontSize: 13 }}>{tr(K.onboardingDontShow)}</button>
+                            <button onClick={handleOnboardingShowGuide} style={{ padding: '8px 16px', border: '1px solid #ddd', background: '#fff', borderRadius: 6, cursor: 'pointer', fontSize: 13 }}>{tr(K.onboardingShowGuide)}</button>
+                            <button onClick={handleOnboardingStart} style={{ padding: '8px 16px', border: 'none', background: '#4f8ef7', color: '#fff', borderRadius: 6, cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>{tr(K.onboardingStart)}</button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* ══════ FIXED HEADER AREA (Hero + Sub-tabs) ══════ */}
             <div style={{ flexShrink: 0 }}>
