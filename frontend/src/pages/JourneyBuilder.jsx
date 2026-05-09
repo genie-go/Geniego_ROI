@@ -12,7 +12,7 @@
  * - EmptyState component with templates
  * - Enhanced user experience
  */
-import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import React, { useState, useMemo, useCallback, useEffect, memo } from 'react';
 import { useI18n } from '../i18n';
 
 import { useGlobalData } from '../context/GlobalDataContext';
@@ -210,7 +210,7 @@ const LBL = { fontSize: 11, fontWeight: 700, color: '#64748b', marginBottom: 4, 
 const CONTENT_MIN = 'calc(100vh - 145px)';
 
 /* ── SVG Mini-Charts ─────────────────────────────────── */
-function DonutChart({ data, size = 150, thickness = 22, centerLabel, centerValue }) {
+const DonutChart = memo(function DonutChart({ data, size = 150, thickness = 22, centerLabel, centerValue }) {
     const total = data.reduce((s, d) => s + d.value, 0) || 1;
     const r = (size - thickness) / 2, cx = size / 2, cy = size / 2, circ = 2 * Math.PI * r;
     let offset = 0;
@@ -222,8 +222,8 @@ function DonutChart({ data, size = 150, thickness = 22, centerLabel, centerValue
             <text x={cx} y={cy + 12} textAnchor="middle" fill="#94a3b8" fontSize="10" fontWeight="600">{centerLabel}</text>
         </svg>
     );
-}
-function HBarChart({ items, maxValue }) {
+});
+const HBarChart = memo(function HBarChart({ items, maxValue }) {
     const mv = maxValue || Math.max(...items.map(i => i.value), 1);
     return (
         <div style={{ display: 'grid', gap: 10 }}>
@@ -243,7 +243,7 @@ function HBarChart({ items, maxValue }) {
             })}
         </div>
     );
-}
+});
 
 /* ── Modal ────────────────────────────────────────────── */
 const Backdrop = ({ children, onClose }) => (
@@ -256,7 +256,7 @@ const Backdrop = ({ children, onClose }) => (
 );
 
 /* ── Flow Preview Component ──────────────────────────── */
-function FlowPreview({ journey, tr }) {
+const FlowPreview = memo(function FlowPreview({ journey, tr }) {
     const steps = [
         { type: 'trigger', icon: TRIGGER_CFG[journey.trigger_type]?.icon || '⚡', label: tr(K.stepTrigger), detail: journey.trigger_label, color: TRIGGER_CFG[journey.trigger_type]?.color || '#4f8ef7' },
     ];
@@ -281,7 +281,7 @@ function FlowPreview({ journey, tr }) {
             ))}
         </div>
     );
-}
+});
 
 /* ═══════════════════════════════════════════════════════════
    MAIN COMPONENT
