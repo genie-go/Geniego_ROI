@@ -34,3 +34,6 @@ frontend/src/i18n/locales_backup/session_*/
 # Claude Code local settings
 .claude/settings.local.json
 clean_src/
+
+# NEXT_SESSION.md backups
+NEXT_SESSION.md.bak*
