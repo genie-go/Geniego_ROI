@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { themes, defaultTheme } from './tokens.js';
 
 const THEME_KEY = "geniego_theme";
 
@@ -12,21 +13,7 @@ export const THEMES = [
         descKey: "topbar.themeDeepSpaceDesc",
         icon: "🌌",
         preview: ["var(--bg)", "#4f8ef7", "#a855f7"],
-        vars: {
-            "--bg": "var(--bg)",
-            "--surface": "var(--surface)",
-            "--surface2": "#111e33",
-            "--border": "rgba(99,140,255,0.12)",
-            "--border2": "rgba(99,140,255,0.20)",
-            "--text-1": "#e8f0ff",
-            "--text-2": "#9db5d4",
-            "--text-3": "#7a90ad",
-            "--accent": "#4f8ef7",
-            "--bg-card": "rgba(13,21,37,0.85)",
-            "--topbar-bg": "var(--surface)",
-            "--topbar-border": "rgba(99,140,255,0.12)",
-            "--topbar-text": "#e8f0ff",
-        },
+        vars: themes.deep_space,
         bodyBefore: `
       radial-gradient(ellipse 1400px 900px at 5% -10%, rgba(79,142,247,0.13) 0%, transparent 60%),
       radial-gradient(ellipse 1000px 800px at 90% 5%, rgba(168,85,247,0.12) 0%, transparent 55%),
@@ -42,21 +29,7 @@ export const THEMES = [
         descKey: "topbar.themeAuroraDesc",
         icon: "🌠",
         preview: ["#04100f", "#14d9b0", "#a855f7"],
-        vars: {
-            "--bg": "#03100d",
-            "--surface": "#071a15",
-            "--surface2": "#0b2420",
-            "--border": "rgba(20,217,176,0.12)",
-            "--border2": "rgba(20,217,176,0.22)",
-            "--text-1": "#d6fff8",
-            "--text-2": "#7fcbbb",
-            "--text-3": "#5e9e90",
-            "--accent": "#14d9b0",
-            "--bg-card": "rgba(7,26,21,0.88)",
-            "--topbar-bg": "var(--surface)",
-            "--topbar-border": "rgba(99,140,255,0.12)",
-            "--topbar-text": "#e8f0ff",
-        },
+        vars: themes.aurora,
         bodyBefore: `
       radial-gradient(ellipse 1600px 700px at -5% 15%, rgba(20,217,176,0.16) 0%, transparent 55%),
       radial-gradient(ellipse 900px 1000px at 95% -10%, rgba(168,85,247,0.14) 0%, transparent 50%),
@@ -72,21 +45,7 @@ export const THEMES = [
         descKey: "topbar.themeMidnightGoldDesc",
         icon: "👑",
         preview: ["#0c0900", "#eab308", "#f97316"],
-        vars: {
-            "--bg": "#0c0900",
-            "--surface": "#14100a",
-            "--surface2": "#1d1708",
-            "--border": "rgba(234,179,8,0.12)",
-            "--border2": "rgba(234,179,8,0.22)",
-            "--text-1": "#fff8e0",
-            "--text-2": "#c8b070",
-            "--text-3": "#9a8856",
-            "--accent": "#eab308",
-            "--bg-card": "rgba(20,16,10,0.90)",
-            "--topbar-bg": "var(--surface)",
-            "--topbar-border": "rgba(99,140,255,0.12)",
-            "--topbar-text": "#e8f0ff",
-        },
+        vars: themes.midnight_gold,
         bodyBefore: `
       radial-gradient(ellipse 1400px 800px at 0% -5%, rgba(234,179,8,0.12) 0%, transparent 55%),
       radial-gradient(ellipse 900px 900px at 95% 10%, rgba(249,115,22,0.10) 0%, transparent 50%),
@@ -102,21 +61,7 @@ export const THEMES = [
         descKey: "topbar.themeOceanDepthDesc",
         icon: "🌊",
         preview: ["#000d1a", "#0ea5e9", "#14d9b0"],
-        vars: {
-            "--bg": "#000d1a",
-            "--surface": "#041729",
-            "--surface2": "#072038",
-            "--border": "rgba(14,165,233,0.12)",
-            "--border2": "rgba(14,165,233,0.22)",
-            "--text-1": "#d0eeff",
-            "--text-2": "#6baad0",
-            "--text-3": "#4f87a8",
-            "--accent": "#0ea5e9",
-            "--bg-card": "rgba(4,23,41,0.90)",
-            "--topbar-bg": "var(--surface)",
-            "--topbar-border": "rgba(99,140,255,0.12)",
-            "--topbar-text": "#e8f0ff",
-        },
+        vars: themes.ocean_depth,
         bodyBefore: `
       radial-gradient(ellipse 1600px 900px at 10% -5%, rgba(14,165,233,0.15) 0%, transparent 55%),
       radial-gradient(ellipse 800px 1000px at 90% 20%, rgba(20,217,176,0.10) 0%, transparent 50%),
@@ -132,22 +77,7 @@ export const THEMES = [
         descKey: "topbar.themeArcticWhiteDesc",
         icon: "☀️",
         preview: ["#f5f7fb", "#4f8ef7", "#6366f1"],
-        vars: {
-            "--bg": "#f3f5fa",
-            "--surface": "#f8f9fc",
-            "--surface2": "#ffffff",
-            "--border": "rgba(55,65,81,0.10)",
-            "--border2": "rgba(55,65,81,0.16)",
-            "--text-1": "#111827",
-            "--text-2": "#374151",
-            "--text-3": "#6b7280",
-            "--accent": "#4f8ef7",
-            "--bg-card": "rgba(255,255,255,0.95)",
-            "--card": "rgba(255,255,255,0.95)",
-            "--topbar-bg": "#ffffff",
-            "--topbar-border": "rgba(0,0,0,0.06)",
-            "--topbar-text": "#111827",
-        },
+        vars: themes.arctic_white,
         bodyBefore: `
       radial-gradient(ellipse 1400px 900px at 10% -10%, rgba(79,142,247,0.05) 0%, transparent 60%),
       radial-gradient(ellipse 900px 800px at 90% 5%, rgba(168,85,247,0.04) 0%, transparent 55%),
@@ -162,22 +92,7 @@ export const THEMES = [
         descKey: "topbar.themePearlOfficeDesc",
         icon: "🏢",
         preview: ["#f4f5f7", "#374151", "#6366f1"],
-        vars: {
-            "--bg": "#f1f3f8",
-            "--surface": "#f8f9fc",
-            "--surface2": "#ffffff",
-            "--border": "rgba(55,65,81,0.10)",
-            "--border2": "rgba(55,65,81,0.18)",
-            "--text-1": "#111827",
-            "--text-2": "#374151",
-            "--text-3": "#9ca3af",
-            "--accent": "#6366f1",
-            "--bg-card": "rgba(255,255,255,0.95)",
-            "--card": "rgba(255,255,255,0.95)",
-            "--topbar-bg": "var(--surface)",
-            "--topbar-border": "rgba(99,140,255,0.12)",
-            "--topbar-text": "#e8f0ff",
-        },
+        vars: themes.pearl_office,
         bodyBefore: `
       radial-gradient(ellipse 1600px 700px at 5% 0%, rgba(99,102,241,0.05) 0%, transparent 60%),
       radial-gradient(ellipse 900px 900px at 95% 20%, rgba(168,85,247,0.04) 0%, transparent 50%)
@@ -189,7 +104,7 @@ const ThemeContext = createContext(null);
 
 export function ThemeProvider({ children }) {
     const [themeKey, setThemeKey] = useState(
-        () => localStorage.getItem(THEME_KEY) || "arctic_white"
+        () => localStorage.getItem(THEME_KEY) || defaultTheme
     );
 
     const theme = THEMES.find(t => t.key === themeKey) ?? THEMES[0];
