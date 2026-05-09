@@ -459,10 +459,10 @@ export default function JourneyBuilder() {
             {/* ── Onboarding Modal ── */}
             {showOnboarding && (
                 <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-                    <div style={{ background: '#fff', borderRadius: 12, padding: 32, maxWidth: 480, width: '90%', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
-                        <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 8 }}>{tr(K.onboardingWelcome)}</div>
-                        <div style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>{tr(K.onboardingTitle)}</div>
-                        <div style={{ fontSize: 14, color: '#666', marginBottom: 20 }}>{tr(K.onboardingDesc)}</div>
+                    <div style={{ background: '#fff', borderRadius: 12, padding: isMobile ? 18 : 32, maxWidth: 480, width: '90%', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
+                        <div style={{ fontSize: isMobile ? 18 : 20, fontWeight: 700, marginBottom: 8 }}>{tr(K.onboardingWelcome)}</div>
+                        <div style={{ fontSize: isMobile ? 16 : 18, fontWeight: 600, marginBottom: 8 }}>{tr(K.onboardingTitle)}</div>
+                        <div style={{ fontSize: isMobile ? 12 : 14, color: '#666', marginBottom: 20 }}>{tr(K.onboardingDesc)}</div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 24 }}>
                             <div style={{ padding: '8px 12px', background: '#f5f7fa', borderRadius: 6, fontSize: 13 }}>{tr(K.onboardingStep1)}</div>
                             <div style={{ padding: '8px 12px', background: '#f5f7fa', borderRadius: 6, fontSize: 13 }}>{tr(K.onboardingStep2)}</div>
@@ -595,29 +595,68 @@ export default function JourneyBuilder() {
                         {journeys.length === 0 ? (
                             <div style={{ ...CARD, textAlign: 'center', padding: '60px 20px', fontSize: 14, marginBottom: 12, color: '#94a3b8' }} ><div>📭</div><div>{tr(K.noData)}</div></div>
                         ) : (
-                            <div style={{ ...CARD, padding: 0, overflow: 'hidden' }}>
-                                <div style={{ display: 'grid', gridTemplateColumns: '2fr 90px 100px 80px 80px 80px 140px', gap: 6, padding: '14px 20px', background: 'rgba(0,0,0,0.02)', borderBottom: '1px solid rgba(0,0,0,0.06)', fontSize: 12, fontWeight: 700, color: '#64748b' }}>
-                                    <span>{tr(K.journeyName)}</span><span>{tr(K.colStatus) || '상태'}</span><span>{tr(K.triggerType)}</span><span style={{ textAlign: 'right' }} >{tr(K.totalExecutions)}</span><span style={{ textAlign: 'right' }}>{tr(K.totalEntered)}</span><span style={{ textAlign: 'right' }}>{tr(K.totalCompleted)}</span><span style={{ textAlign: 'center' }}>{tr(K.edit)}</span>
-                                </div>
-                                {journeys.map(j => {
-                                    const cfg = STS[j.status] || STS.draft;
-                                    const tCfg = TRIGGER_CFG[j.trigger_type] || TRIGGER_CFG.manual;
-                                    return (
-                                        <div key={j.id} style={{ display: 'grid', gridTemplateColumns: '2fr 90px 100px 80px 80px 80px 140px', gap: 6, padding: '12px 20px', borderBottom: '1px solid rgba(0,0,0,0.03)', alignItems: 'center', transition: 'background 0.15s' }} onMouseEnter={e => e.currentTarget.style.background = 'rgba(79,142,247,0.04)'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                                            <div onClick={() => setDetailId(j.id)} style={{ cursor: 'pointer' }}><div style={{ fontSize: 13, fontWeight: 700, color: '#1e293b' }}>{j.name}</div><div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2 }}>{j.createdAt}</div></div>
-                                            <div><span style={{ padding: '3px 8px', borderRadius: 6, fontSize: 10, fontWeight: 700, background: cfg.bg, border: `1px solid ${cfg.border}`, color: cfg.color }}>{cfg.icon} {stsLabel(j.status)}</span></div>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#334155', fontWeight: 600 }} ><span>{tCfg.icon}</span><span>{trigLabel(j.trigger_type)}</span></div>
-                                            <div style={{ textAlign: 'right', fontWeight: 700, fontSize: 13, color: '#4f8ef7' }}>{j.executions || 0}</div>
-                                            <div style={{ textAlign: 'right', fontWeight: 700, fontSize: 13, color: '#a855f7' }}>{(j.entered || 0).toLocaleString()}</div>
-                                            <div style={{ textAlign: 'right', fontWeight: 700, fontSize: 13, color: '#22c55e' }}>{(j.completed || 0).toLocaleString()}</div>
-                                            <div style={{ display: 'flex', gap: 3, justifyContent: 'center', flexWrap: 'wrap' }}>
-                                                <ActBtn icon="▶" label={tr(K.run)} color="#22c55e" onClick={() => handleRun(j)} small />
-                                                <ActBtn icon="✏️" label={tr(K.edit)} color="#4f8ef7" onClick={() => openEdit(j)} small />
-                                                <ActBtn icon="🗑️" label={tr(K.delete)} color="#ef4444" onClick={() => setDeleteId(j.id)} small />
-                                            </div>
+                            <div style={{ ...CARD, padding: 0, overflow: isMobile ? 'visible' : 'hidden' }}>
+                                {isMobile ? (
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: '12px 8px' }}>
+                                        {journeys.map(j => {
+                                            const cfg = STS[j.status] || STS.draft;
+                                            const tCfg = TRIGGER_CFG[j.trigger_type] || TRIGGER_CFG.manual;
+                                            return (
+                                                <div
+                                                    key={j.id}
+                                                    onClick={() => setDetailId(j.id)}
+                                                    style={{ background: '#fff', borderRadius: 12, padding: 14, border: '1px solid rgba(0,0,0,0.06)', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', cursor: 'pointer', transition: 'transform 0.15s, box-shadow 0.15s', minHeight: 44 }}
+                                                    onTouchStart={e => { e.currentTarget.style.transform = 'scale(0.98)'; }}
+                                                    onTouchEnd={e => { e.currentTarget.style.transform = 'scale(1)'; }}
+                                                >
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10, gap: 8 }}>
+                                                        <div style={{ flex: 1, minWidth: 0 }}>
+                                                            <div style={{ fontSize: 15, fontWeight: 700, color: '#1e293b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{j.name}</div>
+                                                            <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2 }}>{j.createdAt}</div>
+                                                        </div>
+                                                        <div style={{ background: cfg.bg, border: `1px solid ${cfg.border}`, color: cfg.color, padding: '4px 10px', borderRadius: 6, fontSize: 11, fontWeight: 600, whiteSpace: 'nowrap' }}>{cfg.icon} {stsLabel(j.status)}</div>
+                                                    </div>
+                                                    <div style={{ fontSize: 12, color: '#64748b', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 4 }}>{tCfg.icon} {trigLabel(j.trigger_type)}</div>
+                                                    <div style={{ display: 'flex', gap: 8, fontSize: 12, marginBottom: 12, overflowX: 'auto', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', paddingBottom: 2 }}>
+                                                        <div style={{ background: 'rgba(59,130,246,0.08)', padding: '6px 12px', borderRadius: 8, whiteSpace: 'nowrap', flexShrink: 0 }}><span style={{ color: '#94a3b8', fontSize: 11 }}>실행</span> <span style={{ color: '#3b82f6', fontWeight: 700, marginLeft: 4 }}>{j.executions || 0}</span></div>
+                                                        <div style={{ background: 'rgba(168,85,247,0.08)', padding: '6px 12px', borderRadius: 8, whiteSpace: 'nowrap', flexShrink: 0 }}><span style={{ color: '#94a3b8', fontSize: 11 }}>입장</span> <span style={{ color: '#a855f7', fontWeight: 700, marginLeft: 4 }}>{j.entered || 0}</span></div>
+                                                        <div style={{ background: 'rgba(16,185,129,0.08)', padding: '6px 12px', borderRadius: 8, whiteSpace: 'nowrap', flexShrink: 0 }}><span style={{ color: '#94a3b8', fontSize: 11 }}>완료</span> <span style={{ color: '#10b981', fontWeight: 700, marginLeft: 4 }}>{j.completed || 0}</span></div>
+                                                    </div>
+                                                    <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end', flexWrap: 'wrap' }} onClick={e => e.stopPropagation()}>
+                                                        <ActBtn icon="▶" label={tr(K.run)} color="#22c55e" onClick={() => handleRun(j)} small />
+                                                        <ActBtn icon="✏️" label={tr(K.edit)} color="#4f8ef7" onClick={() => openEdit(j)} small />
+                                                        <ActBtn icon="🗑️" label={tr(K.delete)} color="#ef4444" onClick={() => setDeleteId(j.id)} small />
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                ) : (
+                                    <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+                                        <div style={{ display: 'grid', gridTemplateColumns: '2fr 90px 100px 80px 80px 80px 140px', gap: 6, padding: '14px 20px', background: 'rgba(0,0,0,0.02)', borderBottom: '1px solid rgba(0,0,0,0.06)', fontSize: 12, fontWeight: 700, color: '#64748b' }}>
+                                            <span>{tr(K.journeyName)}</span><span>{tr(K.colStatus) || '상태'}</span><span>{tr(K.triggerType)}</span><span style={{ textAlign: 'right' }}>{tr(K.totalExecutions)}</span><span style={{ textAlign: 'right' }}>{tr(K.totalEntered)}</span><span style={{ textAlign: 'right' }}>{tr(K.totalCompleted)}</span><span style={{ textAlign: 'center' }}>{tr(K.edit)}</span>
                                         </div>
-                                    );
-                                })}
+                                        {journeys.map(j => {
+                                            const cfg = STS[j.status] || STS.draft;
+                                            const tCfg = TRIGGER_CFG[j.trigger_type] || TRIGGER_CFG.manual;
+                                            return (
+                                                <div key={j.id} style={{ display: 'grid', gridTemplateColumns: '2fr 90px 100px 80px 80px 80px 140px', gap: 6, padding: '12px 20px', borderBottom: '1px solid rgba(0,0,0,0.03)', alignItems: 'center', transition: 'background 0.15s' }} onMouseEnter={e => e.currentTarget.style.background = 'rgba(79,142,247,0.04)'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                                                    <div onClick={() => setDetailId(j.id)} style={{ cursor: 'pointer' }}><div style={{ fontSize: 13, fontWeight: 700, color: '#1e293b' }}>{j.name}</div><div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2 }}>{j.createdAt}</div></div>
+                                                    <div><span style={{ padding: '3px 8px', borderRadius: 6, fontSize: 10, fontWeight: 700, background: cfg.bg, border: `1px solid ${cfg.border}`, color: cfg.color }}>{cfg.icon} {stsLabel(j.status)}</span></div>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#334155', fontWeight: 600 }}><span>{tCfg.icon}</span><span>{trigLabel(j.trigger_type)}</span></div>
+                                                    <div style={{ textAlign: 'right', fontWeight: 700, fontSize: 13, color: '#4f8ef7' }}>{j.executions || 0}</div>
+                                                    <div style={{ textAlign: 'right', fontWeight: 700, fontSize: 13, color: '#a855f7' }}>{(j.entered || 0).toLocaleString()}</div>
+                                                    <div style={{ textAlign: 'right', fontWeight: 700, fontSize: 13, color: '#22c55e' }}>{(j.completed || 0).toLocaleString()}</div>
+                                                    <div style={{ display: 'flex', gap: 3, justifyContent: 'center', flexWrap: 'wrap' }}>
+                                                        <ActBtn icon="▶" label={tr(K.run)} color="#22c55e" onClick={() => handleRun(j)} small />
+                                                        <ActBtn icon="✏️" label={tr(K.edit)} color="#4f8ef7" onClick={() => openEdit(j)} small />
+                                                        <ActBtn icon="🗑️" label={tr(K.delete)} color="#ef4444" onClick={() => setDeleteId(j.id)} small />
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>
