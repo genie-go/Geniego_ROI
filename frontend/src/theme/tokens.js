@@ -2,8 +2,8 @@
 
 export const themes = {
   deep_space: {
-    "--bg": "var(--bg)",
-    "--surface": "var(--surface)",
+    "--bg": "#060b14",
+    "--surface": "#0d1525",
     "--surface2": "#111e33",
     "--border": "rgba(99,140,255,0.12)",
     "--border2": "rgba(99,140,255,0.20)",
