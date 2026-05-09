@@ -306,6 +306,13 @@ export default function JourneyBuilder() {
     const [detailId, setDetailId] = useState(null);
     const [form, setForm] = useState({ name: '', trigger_type: 'signup', segment: '', channels: ['email'], delay: 'none' });
     const [showOnboarding, setShowOnboarding] = useState(false);
+    const [isMobile, setIsMobile] = useState(window.matchMedia('(max-width: 768px)').matches);
+    useEffect(() => {
+        const mq = window.matchMedia('(max-width: 768px)');
+        const handler = (e) => setIsMobile(e.matches);
+        mq.addEventListener('change', handler);
+        return () => mq.removeEventListener('change', handler);
+    }, []);
 
     const tr = useCallback(key => { const v = t(key); return v === key ? (FB[key] || key) : v; }, [t]);
     const stsLabel = s => ({ draft: tr(K.statusDraft), active: tr(K.statusActive), paused: tr(K.statusPaused), completed: tr(K.statusCompleted) }[s] || s);
@@ -447,7 +454,7 @@ export default function JourneyBuilder() {
     const ActBtn = ({ icon, label, color, onClick, small }) => (<button onClick={e => { e.stopPropagation(); onClick?.(); }} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: small ? '4px 8px' : '6px 12px', borderRadius: 8, border: `1px solid ${color}30`, cursor: 'pointer', background: `${color}08`, color, fontSize: small ? 10 : 11, fontWeight: 700, transition: 'all 0.15s', whiteSpace: 'nowrap' }} onMouseEnter={e => { e.currentTarget.style.background = `${color}18`; }} onMouseLeave={e => { e.currentTarget.style.background = `${color}08`; }}>{icon} {label}</button>);
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', maxWidth: 1200, margin: '0 auto', width: '100%', flex: 1, minHeight: 0, color: '#1e293b', background: 'transparent' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', maxWidth: isMobile ? '100%' : 1200, margin: '0 auto', width: '100%', flex: 1, minHeight: 0, color: '#1e293b', background: 'transparent', padding: isMobile ? '0 8px' : '0' }}>
 
             {/* ── Onboarding Modal ── */}
             {showOnboarding && (
@@ -473,24 +480,24 @@ export default function JourneyBuilder() {
             {/* ══════ FIXED HEADER AREA (Hero + Sub-tabs) ══════ */}
             <div style={{ flexShrink: 0 }}>
                 {/* ── Hero Header ── */}
-                <div className="hero" style={{ padding: '16px 20px 12px', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+                <div className="hero" style={{ padding: isMobile ? '12px 12px 8px' : '16px 20px 12px', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 14 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0, flex: '1 1 300px' }}>
-                            <div style={{ width: 42, height: 42, borderRadius: 12, background: 'linear-gradient(135deg, #4f8ef7, #06b6d4)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, boxShadow: '0 4px 14px rgba(79,142,247,0.3)', flexShrink: 0 }}>🗺️</div>
+                            <div style={{ width: isMobile ? 36 : 42, height: isMobile ? 36 : 42, borderRadius: 12, background: 'linear-gradient(135deg, #4f8ef7, #06b6d4)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: isMobile ? 17 : 20, boxShadow: '0 4px 14px rgba(79,142,247,0.3)', flexShrink: 0 }}>🗺️</div>
                             <div style={{ minWidth: 0 }}>
-                                <div className="hero-title" style={{ fontSize: 19, fontWeight: 900, color: '#4f8ef7', letterSpacing: '-0.3px', lineHeight: 1.3 }}>{tr(K.title)}</div>
+                                <div className="hero-title" style={{ fontSize: isMobile ? 16 : 19, fontWeight: 900, color: '#4f8ef7', letterSpacing: '-0.3px', lineHeight: 1.3 }}>{tr(K.title)}</div>
                                 <div className="hero-desc" style={{ fontSize: 11, color: '#64748b', marginTop: 2, lineHeight: 1.4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tr(K.sub)}</div>
                             </div>
                         </div>
                         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
-                            <button onClick={() => navigate('/auto-marketing')} style={{ padding: '7px 14px', borderRadius: 10, border: '1px solid rgba(168,85,247,0.25)', cursor: 'pointer', background: 'rgba(168,85,247,0.06)', color: '#a855f7', fontSize: 11, fontWeight: 700 }}>🚀 {tr(K.goAutoMkt)}</button>
-                            <button onClick={() => navigate('/crm')} style={{ padding: '7px 14px', borderRadius: 10, border: '1px solid rgba(79,142,247,0.25)', cursor: 'pointer', background: 'rgba(79,142,247,0.06)', color: '#4f8ef7', fontSize: 11, fontWeight: 700 }}>👥 {tr(K.goCRM)}</button>
+                            <button onClick={() => navigate('/auto-marketing')} style={{ padding: isMobile ? '6px 10px' : '7px 14px', borderRadius: 10, border: '1px solid rgba(168,85,247,0.25)', cursor: 'pointer', background: 'rgba(168,85,247,0.06)', color: '#a855f7', fontSize: isMobile ? 10 : 11, fontWeight: 700 }}>🚀 {tr(K.goAutoMkt)}</button>
+                            <button onClick={() => navigate('/crm')} style={{ padding: isMobile ? '6px 10px' : '7px 14px', borderRadius: 10, border: '1px solid rgba(79,142,247,0.25)', cursor: 'pointer', background: 'rgba(79,142,247,0.06)', color: '#4f8ef7', fontSize: isMobile ? 10 : 11, fontWeight: 700 }}>👥 {tr(K.goCRM)}</button>
                         </div>
                     </div>
                 </div>
 
                 {/* ── Sub-Tab Navigation (fixed, always visible) ── */}
-                <div className="sub-tab-nav" style={{ padding: '8px 14px', background: 'rgba(245,247,250,0.97)', borderBottom: '1px solid rgba(0,0,0,0.06)', backdropFilter: 'blur(12px)' }}>
+                <div className="sub-tab-nav" style={{ padding: isMobile ? '6px 8px' : '8px 14px', background: 'rgba(245,247,250,0.97)', borderBottom: '1px solid rgba(0,0,0,0.06)', backdropFilter: 'blur(12px)' }}>
                     <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', background: 'rgba(241,245,249,0.7)', border: '1px solid rgba(0,0,0,0.06)', borderRadius: 12, padding: '6px 8px' }}>
                         {TABS.map(tb => {
                             const active = tab === tb.id;
@@ -504,7 +511,7 @@ export default function JourneyBuilder() {
             </div>
 
             {/* ══════ SCROLLABLE CONTENT AREA ══════ */}
-            <div className="fade-up" style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '16px 8px 28px' }}>
+            <div className="fade-up" style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: isMobile ? '10px 4px 20px' : '16px 8px 28px' }}>
 
                 {/* ══════ BUILDER ═══════════════════════════════ */}
                 {tab === 'builder' && (
