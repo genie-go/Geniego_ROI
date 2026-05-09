@@ -7,16 +7,17 @@
 
 /* ── Tokens ─────────────────────────────────────────────────── */
 :root {
-  --bg: #060b14;
-  --surface: #0d1525;
-  --bg-card: #111e30;
+  --bg: #f3f5fa;
+  --surface: #f8f9fc;
+  --bg-card: rgba(255,255,255,0.95);
+  --accent: #4f8ef7;
 
   /* 1. 라이트 모드(기본) 색상 정의 */
   --topbar-bg: #ffffff;
   /* 상단바 배경 */
-  --topbar-text: #1a1a1a;
+  --topbar-text: #111827;
   /* 상단바 글자 */
-  --topbar-border: #e2e8f0;
+  --topbar-border: rgba(0,0,0,0.06);
   /* 상단바 테두리 */
   --topbar-icon-bg: rgba(79, 142, 247, 0.07);
   /* 아이콘 버튼 배경 */
@@ -26,9 +27,9 @@
   --text-main: #111827;
   /* 기본 글자색 */
 
-  --surface2: #111e33;
-  --border: rgba(99, 140, 255, 0.12);
-  --border2: rgba(99, 140, 255, 0.20);
+  --surface2: #ffffff;
+  --border: rgba(55,65,81,0.10);
+  --border2: rgba(55,65,81,0.16);
 
   --blue: #4f8ef7;
   --purple: #a855f7;
@@ -39,9 +40,9 @@
   --red: #ef4444;
   --green: #22c55e;
 
-  --text-1: #e8f0ff;
-  --text-2: #8da4c4;
-  --text-3: #7a90ad;
+  --text-1: #111827;
+  --text-2: #374151;
+  --text-3: #6b7280;
 
   --radius-sm: 8px;
   --radius: 12px;
