@@ -18,6 +18,7 @@ import { useI18n } from '../i18n';
 import { useGlobalData } from '../context/GlobalDataContext';
 import { useNavigate } from 'react-router-dom';
 import EmptyState from '../components/EmptyState';
+import { useToast } from '../components/ToastProvider';
 
 /* ── Enterprise Demo Isolation Guard ─────────────────────── */
 const _isDemo = (() => {
@@ -288,6 +289,7 @@ function FlowPreview({ journey, tr }) {
 export default function JourneyBuilder() {
     const { t, lang } = useI18n();
     const navigate = useNavigate();
+    const { addToast } = useToast();
     const {
         journeyTriggers = [], triggerJourneyAction,
         journeyExecutions = [], recordJourneyExecution,
@@ -320,7 +322,7 @@ export default function JourneyBuilder() {
 
     /* ── Actions ──────────────────────────────────────── */
     const handleSave = () => {
-        if (!form.name.trim()) return;
+        if (!form.name.trim()) { addToast('경로 이름을 입력해주세요.', 'error', 5000); return; }
         const journey = {
             id: editId || `JRN-${Date.now()}`,
             name: form.name,
@@ -342,6 +344,7 @@ export default function JourneyBuilder() {
         setShowCreate(false);
         setEditId(null);
         setForm({ name: '', trigger_type: 'signup', segment: '', channels: ['email'], delay: 'none' });
+        addToast(editId ? '경로가 수정되었습니다.' : '새 경로가 생성되었습니다.', 'success', 3000);
     };
 
     const openEdit = j => {
@@ -356,6 +359,7 @@ export default function JourneyBuilder() {
         persist(next);
         setDeleteId(null);
         setDetailId(null);
+        addToast('경로가 삭제되었습니다.', 'success', 3000);
     };
 
     const handleDuplicate = j => {
@@ -363,6 +367,7 @@ export default function JourneyBuilder() {
         const next = [copy, ...journeys];
         setJourneys(next);
         persist(next);
+        addToast('경로가 복제되었습니다.', 'success', 3000);
     };
 
     const handleRun = j => {
@@ -384,6 +389,7 @@ export default function JourneyBuilder() {
         const next = journeys.map(x => x.id === j.id ? { ...x, status: 'active', executions: (x.executions || 0) + 1, entered: (x.entered || 0) + entered, completed: (x.completed || 0) + completed } : x);
         setJourneys(next);
         persist(next);
+        addToast('경로 실행이 시작되었습니다.', 'success', 3000);
         setDetailId(null);
     };
 
@@ -392,6 +398,7 @@ export default function JourneyBuilder() {
         const next = journeys.map(x => x.id === j.id ? { ...x, status: nextStatus } : x);
         setJourneys(next);
         persist(next);
+        addToast(nextStatus === 'paused' ? '경로가 일시 중지되었습니다.' : '경로가 재개되었습니다.', 'info', 3000);
     };
 
     /* ── Stats ────────────────────────────────────────── */
