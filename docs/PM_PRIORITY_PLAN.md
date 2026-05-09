@@ -30,8 +30,8 @@
 - **BUG-009**: 코드 중복 (Low) → ✅ Resolved
 - **BUG-010**: 디버그 코드 (Low) → ✅ Resolved (False Positive)
 
-#### 🔴 미해결 (2개 / 11개, 18%)
-- **BUG-005**: XSS 취약점 (High, P1) - DOMPurify 도입 필요
+#### 🔴 미해결 (1개 / 11개, 9%)
+- ~~**BUG-005**~~: XSS 취약점 (closed, 56차) - DOMPurify 완전 적용 확인
 - **BUG-008**: 성능 저하 (Medium, P3) - React 최적화 필요
 
 ### 2. Journey Builder 현황
@@ -358,7 +358,7 @@
 ## 📝 추가 고려사항
 
 ### 1. 남은 버그 처리
-- **BUG-005** (XSS 취약점): UI/UX 개선 후 처리 (Week 3)
+- ~~**BUG-005**~~ (XSS 취약점, closed 56차): DOMPurify 완전 적용 확인
 - **BUG-008** (성능 저하): 대행사 기능 완성 후 처리 (Week 3)
 
 ### 2. 테스트 전략
