@@ -37,3 +37,4 @@ clean_src/
 
 # NEXT_SESSION.md backups
 NEXT_SESSION.md.bak*
+*.bak*_pre_*
