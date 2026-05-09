@@ -2,7 +2,7 @@
 //  Geniego-ROI  |  Enterprise Topbar (초고도화 v2)
 //  글로벌 검색 · 알림 · 테마 전환 · 통화 · 환경 배지 · 시계
 // ─────────────────────────────────────────────────────────────────────
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback, useRef, memo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useI18n } from "../i18n/index.js";
 import { useAuth } from "../auth/AuthContext.jsx";
@@ -105,7 +105,7 @@ const PAGE_TITLES = {
 };
 
 /* 알림 드롭다운 */
-function NotificationDropdown({ alerts, onDismiss, onMarkRead, onMarkAllRead, onClose, t }) {
+const NotificationDropdown = memo(function NotificationDropdown({ alerts, onDismiss, onMarkRead, onMarkAllRead, onClose, t }) {
   const unread = alerts.filter(a => !a.read);
   return (
     <div style={{
@@ -171,7 +171,7 @@ function NotificationDropdown({ alerts, onDismiss, onMarkRead, onMarkAllRead, on
       </div>
     </div>
   );
-}
+});
 
 
 export default function Topbar() {
@@ -488,7 +488,7 @@ export default function Topbar() {
 }
 
 /* ─── 프로필 드롭다운 + 회원정보 수정 모달 컴포넌트 ────────────────── */
-function ProfileDropdown({ user, navigate, logout, token, t }) {
+const ProfileDropdown = memo(function ProfileDropdown({ user, navigate, logout, token, t }) {
   const [showProfile, setShowProfile] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const profRef = useRef(null);
@@ -594,10 +594,10 @@ function ProfileDropdown({ user, navigate, logout, token, t }) {
       )}
     </>
   );
-}
+});
 
 /* ─── 회원정보 수정 + 비밀번호 변경 모달 ────────────────────────────── */
-function ProfileEditModal({ user, token, onClose }) {
+const ProfileEditModal = memo(function ProfileEditModal({ user, token, onClose }) {
   const { t } = useI18n();
   const [tab, setTab] = useState('info'); // 'info' | 'password'
   const [name, setName] = useState(user.name || '');
@@ -930,7 +930,7 @@ function ProfileEditModal({ user, token, onClose }) {
       </div>
     </div>
   );
-}
+});
 
 export function ThemeToggle() { return null; }
 export function NotificationBell() { return null; }
