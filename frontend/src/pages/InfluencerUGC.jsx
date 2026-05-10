@@ -43,9 +43,9 @@ const PLAT_ICO = { youtube: "▶", instagram: "📸", tiktok: "🎵" };
 const ESIGN_COL = { signed: "#22c55e", pending: "#eab308", rejected: "#ef4444" };
 
 const SENTIMENT_COLOR = { positive: "#22c55e", neutral: "#eab308", negative: "#ef4444" };
-function Stars({ n }) {
+const Stars = memo(function Stars({ n }) {
     return <span style={{ color: "#fde047", letterSpacing: 1, fontSize: 12 }}>{"★".repeat(n)}{"☆".repeat(5 - n)}</span>;
-}
+});
 
 /* ══════════════════════════════════════════════════════════════════
    TAB 1: Creator Identity Integration
@@ -679,7 +679,7 @@ const InfluencerGuideTab = memo(function InfluencerGuideTab() {
 
 
 /* TAB 5: UGC Reviews */
-function UGCTab() {
+const UGCTab = memo(function UGCTab() {
     const { ugcReviews = [], channelStats = [], negKeywords = [] } = useGlobalData();
     const { t } = useI18n();
     const SENTIMENT_LABEL = { positive: t("influencer.positive","Positive"), neutral: t("influencer.neutral","Neutral"), negative: t("influencer.negative","Negative") };
@@ -805,7 +805,7 @@ function UGCTab() {
             </div>
         </div>
     );
-}
+});
 
 /* ══════════════════════════════════════════════════════════════════
    TAB 6: AI 인플루언서 평가 Analysis
@@ -848,7 +848,7 @@ async function fetchInfluencerEval(CREATORS) {
     return json.result;
 }
 
-function AIGauge({ score, size = 48 }) {
+const AIGauge = memo(function AIGauge({ score, size = 48 }) {
     const color = score >= 80 ? "#22c55e" : score >= 60 ? "#4f8ef7" : score >= 40 ? "#eab308" : "#ef4444";
     const r = 20, circ = 2 * Math.PI * r, dash = score != null ? (score / 100) * circ : 0;
     return (
@@ -859,9 +859,9 @@ function AIGauge({ score, size = 48 }) {
             <text x="26" y="30" textAnchor="middle" fill={color} fontSize="11" fontWeight="900">{score ?? "—"}</text>
         </svg>
     );
-}
+});
 
-function AIGrade({ grade }) {
+const AIGrade = memo(function AIGrade({ grade }) {
     const colors = { S: "#fde047", A: "#22c55e", B: "#4f8ef7", C: "#eab308", D: "#ef4444" };
     const c = colors[grade] || "#6b7280";
     return (
@@ -871,9 +871,9 @@ function AIGrade({ grade }) {
             background: c + "18", border: `2px solid ${c}44`, color: c
         }}>{grade}</span>
     );
-}
+});
 
-function CreatorScoreModal({ creator, evalData, onClose }) {
+const CreatorScoreModal = memo(function CreatorScoreModal({ creator, evalData, onClose }) {
     const { t } = useI18n();
     const { fmt: fmtCur } = useCurrency();
     const result = (evalData?.creators || []).find(c => c.id === creator.id);
@@ -987,9 +987,9 @@ function CreatorScoreModal({ creator, evalData, onClose }) {
             </div>
         </>
     );
-}
+});
 
-function Section() {
+const Section = memo(function Section() {
     const { creators: CREATORS = [] } = useGlobalData();
     const { t } = useI18n();
     const [SelId, setSelId] = useState(CREATORS[0]?.id);
@@ -1009,9 +1009,9 @@ function Section() {
             <InfluencerDemographics data={Data} col="#a855f7" />
         </div>
     );
-}
+});
 
-function AIEvalTab() {
+const AIEvalTab = memo(function AIEvalTab() {
     const { creators: CREATORS = [] } = useGlobalData();
     const { t } = useI18n();
     const [evalResult, setEvalResult] = useState(null);
@@ -1181,7 +1181,7 @@ function AIEvalTab() {
             )}
         </div>
     );
-}
+});
 
 /* ══════════════════════════════════════════════════════════════════
    ANTI-HACKING SECURITY SHIELD (Enterprise-Grade)
