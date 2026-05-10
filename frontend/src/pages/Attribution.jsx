@@ -748,7 +748,7 @@ const CohortTab = memo(function CohortTab() {
 
 /* ── 7. LTV vs CAC ──────────────────────────────────────────── */
 let _LTV = _IS_DEMO_ENV ? buildDemoLTV() : []; /* 🛡️ GUARD: demo only */
-function LtvCacTab() {
+const LtvCacTab = memo(function LtvCacTab() {
   const t = useT();
   const totalCac = _LTV.reduce((s,r) => s+r.cac*r.customers,0);
   const totalLtv = _LTV.reduce((s,r) => s+r.ltv*r.customers,0);
@@ -801,13 +801,13 @@ function LtvCacTab() {
       </div>
     </div>
   );
-}
+});
 
 /* ── 8. ANOMALY DETECTION TAB ───────────────────────────────── */
 let ANOMALY_DATA = _IS_DEMO_ENV ? buildDemoAnomaly() : []; /* 🛡️ GUARD: demo only */
 const ANOMALY_STATUS = { critical: { label: '🔴 위험', key: 'statusCrit', color: '#ef4444' }, alert: { label: '🟠 주의', key: 'statusAlert', color: '#f97316' }, warn: { label: '🟡 Warning', key: 'statusWarn', color: '#eab308' }, info: { label: '🔵 Info', key: 'statusInfo', color: '#4f8ef7' }, ok: { label: '🟢 정상', key: 'statusOk', color: '#22c55e' } };
 
-function AnomalyMiniChart({ data, color, status }) {
+const AnomalyMiniChart = memo(function AnomalyMiniChart({ data, color, status }) {
   const mn = Math.min(...data), mx = Math.max(...data), rng = mx - mn || 1;
   const w = 80, h = 28;
   const pts = data.map((v, i) => `${(i / (data.length - 1)) * w},${h - ((v - mn) / rng) * h}`).join(' ');
@@ -820,9 +820,9 @@ function AnomalyMiniChart({ data, color, status }) {
       {status === 'critical' && <circle cx={lx} cy={ly} r={6} fill="none" stroke={color} strokeWidth={1} opacity={0.5}><animate attributeName="r" values="3;8;3" dur="1.5s" repeatCount="indefinite" /></circle>}
     </svg>
   );
-}
+});
 
-function AnomalyTab() {
+const AnomalyTab = memo(function AnomalyTab() {
   const t = useT();
   const alertCount = ANOMALY_DATA.filter(d => d.status === 'critical' || d.status === 'alert').length;
   const [filter, setFilter] = useState('all');
@@ -904,13 +904,13 @@ function AnomalyTab() {
       </div>
     </div>
   );
-}
+});
 
 /* ── 9. MODEL COMPARE RADAR + A-SCORE TAB ───────────────────── */
 let MODEL_COMPARE_DATA = _IS_DEMO_ENV ? buildDemoModelCompare() : { channels: [], models: [] }; /* 🛡️ GUARD: demo only */
 let _COHORTS = _IS_DEMO_ENV ? buildDemoCohorts() : []; /* 🛡️ GUARD: demo only */
 
-function RadarChart({ data, channels, colors, size = 220 }) {
+const RadarChart = memo(function RadarChart({ data, channels, colors, size = 220 }) {
   const cx = size / 2, cy = size / 2, r = size * 0.38;
   const n = channels.length;
   const getPoint = (val, idx, maxVal = 35) => {
@@ -941,9 +941,9 @@ function RadarChart({ data, channels, colors, size = 220 }) {
       ))}
     </svg>
   );
-}
+});
 
-function ModelCompareTab() {
+const ModelCompareTab = memo(function ModelCompareTab() {
   const t = useT();
   const { channels, models } = MODEL_COMPARE_DATA;
   const [selModel, setSelModel] = useState(null); // null = all
@@ -1060,11 +1060,11 @@ function ModelCompareTab() {
       </div>
     </div>
   );
-}
+});
 
 /* ── MAIN ────────────────────────────────────────────────────── */
 /* ── 10. GUIDE TAB ──────────────────────────────────────────── */
-function GuideTab() {
+const GuideTab = memo(function GuideTab() {
   const t = useT();
   const [openFaq, setOpenFaq] = useState(null);
   const STEPS = [
@@ -1161,7 +1161,7 @@ function GuideTab() {
       </div>
     </div>
   );
-}
+});
 
 const getTabs = (t) => [
   { id:'mta',      label:t('attrData.tabMtaLabel'),  desc:t('attrData.tabMtaDesc') },
