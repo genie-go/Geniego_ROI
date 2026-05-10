@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useRef, memo } from "react";
 import { useGlobalData } from '../context/GlobalDataContext';
 import { useConnectorSync } from '../context/ConnectorSyncContext';
 import { useI18n } from '../i18n/index.js';
@@ -211,7 +211,7 @@ function navigateToPriceOptProducts() {
 
 /* ─── [REMOVED] ProductRegisterModal — 가격 최적화 메뉴로 통합 완료 ─── */
 
-function ProgressBar({ pct, color = "#4f8ef7", animated = false }) {
+const ProgressBar = memo(function ProgressBar({ pct, color = "#4f8ef7", animated = false }) {
     return (
         <div style={{ height: 5, background: "#e5e7eb", borderRadius: 4, overflow: "hidden" }}>
             <div style={{
@@ -223,12 +223,12 @@ function ProgressBar({ pct, color = "#4f8ef7", animated = false }) {
             }} />
         </div>
     );
-}
+});
 
 /* ───  Banner — Removed (no mock/demo mode) ──────────────────────────── */
 
 /* ─── BulkRegisterModal (Sale Price Recommend + Management자 Approval 포함) ─────────────────── */
-function BulkRegisterModal({ selectedIds, products, onClose, onApply, is }) {
+const BulkRegisterModal = memo(function BulkRegisterModal({ selectedIds, products, onClose, onApply, is }) {
     const { t } = useI18n();
     const dynamicChannels = useDynamicChannels();
     // 스텝: 0=Channel+ActionSelect, 1=RecommendSale PriceSettings, 2=Approval+Register
@@ -580,10 +580,10 @@ function BulkRegisterModal({ selectedIds, products, onClose, onApply, is }) {
             </div>
         </>
     );
-}
+});
 
 /* ─── BulkPriceModal ─────────────────────────────────── */
-function BulkPriceModal({ selectedIds, products, onClose, onApply, is }) {
+const BulkPriceModal = memo(function BulkPriceModal({ selectedIds, products, onClose, onApply, is }) {
     const { t } = useI18n();
     const dynamicChannels = useDynamicChannels();
     const [priceMode, setPriceMode] = useState("fixed"); // fixed | markup | discount
@@ -728,10 +728,10 @@ function BulkPriceModal({ selectedIds, products, onClose, onApply, is }) {
             </div>
         </>
     );
-}
+});
 
 /* ─── Tab: Product 카탈로그 ─────────────────────────────────────────────────────────── */
-function CatalogTab() {
+const CatalogTab = memo(function CatalogTab() {
     const { t } = useI18n();
     const { updateCatalogChannelPrices, syncCatalogItem, addAlert, inventory, channelProductPrices } = useGlobalData();
     const { sanitize, secBanner } = useCatalogSecurity();
@@ -1278,10 +1278,10 @@ function CatalogTab() {
             </div>
         </div>
     );
-}
+});
 
 /* ─── Product Detail Drawer ─────────────────────────────────────────────────── */
-function ProductDetail({ product: p, onClose }) {
+const ProductDetail = memo(function ProductDetail({ product: p, onClose }) {
     const { t } = useI18n();
     useEffect(() => {
         const fn = e => { if (e.key === "Escape") onClose(); };
@@ -1398,10 +1398,10 @@ function ProductDetail({ product: p, onClose }) {
         </>
 
     );
-}
+});
 
 /* ─── SchedulePanel — 자동 동기화 스케줄 관리 ──────────────────────────────── */
-function SchedulePanel({ t, addAlert }) {
+const SchedulePanel = memo(function SchedulePanel({ t, addAlert }) {
     const FREQ_OPTIONS = [
         { id: '30m', label: t('catalogSync.schedFreq30m') || '30분마다' },
         { id: '1h', label: t('catalogSync.schedFreq1h') || '1시간마다' },
@@ -1469,10 +1469,10 @@ function SchedulePanel({ t, addAlert }) {
             )}
         </div>
     );
-}
+});
 
 /* ─── Tab: Sync Run ─────────────────────────────────────────────────────────── */
-function SyncRunTab({ onJobCreated }) {
+const SyncRunTab = memo(function SyncRunTab({ onJobCreated }) {
     const { t } = useI18n();
     const { addAlert } = useGlobalData();
     const dynamicChannels = useDynamicChannels();
@@ -1610,10 +1610,10 @@ function SyncRunTab({ onJobCreated }) {
             <SchedulePanel t={t} addAlert={addAlert} />
         </div>
     );
-}
+});
 
 /* ─── Tab: Price Sync ─────────────────────────────────────────────────────────── */
-function PriceSyncTab() {
+const PriceSyncTab = memo(function PriceSyncTab() {
     const { t } = useI18n();
     const dynamicChannels = useDynamicChannels();
     const [globalMarkup, setGlobalMarkup] = useState(0);
@@ -1776,10 +1776,10 @@ function PriceSyncTab() {
             </div>
         </div>
     );
-}
+});
 
 /* ─── Tab: Stock Sync ─────────────────────────────────────────────────────────── */
-function InventorySyncTab() {
+const InventorySyncTab = memo(function InventorySyncTab() {
     const { t } = useI18n();
     const dynamicChannels = useDynamicChannels();
     const [threshold, setThreshold] = useState(20);
@@ -1840,10 +1840,10 @@ function InventorySyncTab() {
             </div>
         </div>
     );
-}
+});
 
 /* ─── Tab: Actions 이력 ─────────────────────────────────────────────────────────── */
-function JobHistoryTab({ jobs }) {
+const JobHistoryTab = memo(function JobHistoryTab({ jobs }) {
     const { t } = useI18n();
     return (
         <div style={{ background: "#ffffff", borderRadius: 14, border: "1px solid #e5e7eb", padding: 16 }}>
@@ -1882,9 +1882,9 @@ function JobHistoryTab({ jobs }) {
             {jobs.length === 0 && <div style={{ textAlign: "center", padding: 32, color: "#6b7280" }}>{t('catalogSync.noHistory')}</div>}
         </div>
     );
-}
+});
 /* ─── Tab: Category Mapping (Enterprise Grade — Custom CRUD + localStorage) ─ */
-function CategoryMappingTab() {
+const CategoryMappingTab = memo(function CategoryMappingTab() {
     const { t } = useI18n();
     const dynamicChannels = useDynamicChannels();
     const connectedChs = useMemo(() => dynamicChannels.filter(c => c.connected).slice(0, 5).length > 0 ? dynamicChannels.filter(c => c.connected).slice(0, 5) : dynamicChannels.slice(0, 5), [dynamicChannels]);
@@ -2071,10 +2071,10 @@ function CategoryMappingTab() {
             </div>
         </div>
     );
-}
+});
 
 /* ─── Tab: Usage Guide ─────────────────────────────────────────────────────── */
-function UsageGuideTab() {
+const UsageGuideTab = memo(function UsageGuideTab() {
     const { t } = useI18n();
     const COLORS = ['#4f8ef7', '#22c55e', '#f59e0b', '#a855f7', '#6366f1', '#ec4899', '#14b8a6', '#ef4444', '#8b5cf6', '#10b981', '#3b82f6', '#e11d48', '#06b6d4', '#0ea5e9', '#f97316'];
     const ICONS = ['📝', '📡', '💰', '🔄', '🗂️', '📦', '📋', '⏰', '🔐', '📊', '🧪', '⚙️', '🛡️', '📱', '🚀'];
@@ -2117,7 +2117,7 @@ function UsageGuideTab() {
             </div>
         </div>
     );
-}
+});
 
 /* ─── Main Page ─────────────────────────────────────────────────────────────── */
 export default function CatalogSync() {
