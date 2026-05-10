@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useCallback, useRef } from "react";
+import React, { useState, useMemo, useEffect, useCallback, useRef, memo } from "react";
 import { useI18n } from "../i18n/index.js";
 import InfluencerDemographics, { DEFAULT_GRAPHICS } from '../components/InfluencerDemographics.jsx';
 import { useCurrency } from '../contexts/CurrencyContext.jsx';
@@ -50,7 +50,7 @@ function Stars({ n }) {
 /* ══════════════════════════════════════════════════════════════════
    TAB 1: Creator Identity Integration
 ══════════════════════════════════════════════════════════════════ */
-function IdentityTab() {
+const IdentityTab = memo(function IdentityTab() {
     const { creators: CREATORS = [], isDemo } = useGlobalData();
     const { t } = useI18n();
     const [sel, setSel] = useState(null);
@@ -130,12 +130,12 @@ function IdentityTab() {
             </div>
         </div>
     );
-}
+});
 
 /* ══════════════════════════════════════════════════════════════════
    TAB 2: Contract Management
 ══════════════════════════════════════════════════════════════════ */
-function ContractTab() {
+const ContractTab = memo(function ContractTab() {
     const { creators: CREATORS = [] } = useGlobalData();
     const { t } = useI18n();
     const { fmt } = useCurrency();
@@ -300,12 +300,12 @@ function ContractTab() {
     
 
 );
-}
+});
 
 /* ══════════════════════════════════════════════════════════════════
    TAB 3: Settlement Management + Auto Verification
 ══════════════════════════════════════════════════════════════════ */
-function SettleTab() {
+const SettleTab = memo(function SettleTab() {
     const { creators: CREATORS = [] } = useGlobalData();
     const { t } = useI18n();
     const { fmt } = useCurrency();
@@ -471,12 +471,12 @@ function SettleTab() {
     
 
 );
-}
+});
 
 /* ══════════════════════════════════════════════════════════════════
    TAB 4: ROI Ranking + Content Reuse
 ══════════════════════════════════════════════════════════════════ */
-function ROITab() {
+const ROITab = memo(function ROITab() {
     const { creators: CREATORS = [] } = useGlobalData();
     const { t } = useI18n();
     const { fmt } = useCurrency();
@@ -620,12 +620,12 @@ function ROITab() {
             </div>
         </div>
     );
-}
+});
 
 /* ══════════════════════════════════════════════════════════════════
    TAB 7: Guide (i18n 9-Language)
 ══════════════════════════════════════════════════════════════════ */
-function InfluencerGuideTab() {
+const InfluencerGuideTab = memo(function InfluencerGuideTab() {
     const { t } = useI18n();
     const SENTINEL_LABEL = { positive: t("influencer.positive","Positive"), neutral: t("influencer.neutral","Neutral"), negative: t("influencer.negative","Negative") };
     return (
@@ -675,7 +675,7 @@ function InfluencerGuideTab() {
             </div>
         </div>
     );
-}
+});
 
 
 /* TAB 5: UGC Reviews */
