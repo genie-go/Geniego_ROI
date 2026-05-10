@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, useEffect, useRef } from "react";
+import React, { useState, useMemo, useCallback, useEffect, useRef, memo } from "react";
 import { useGlobalData } from '../context/GlobalDataContext.jsx';
 import AIRecommendBanner from '../components/AIRecommendBanner.jsx';
 import { useI18n, useT } from '../i18n/index.js';
@@ -26,9 +26,9 @@ let _currFmt = fmt;
 const setFmt = (fn) => { if (typeof fn === 'function') _currFmt = fn; };
 const fmtC = v => { try { return _currFmt(v); } catch { return fmt(v); } };
 
-const Tag = ({ label, color = '#4f8ef7' }) => (
+const Tag = memo(({ label, color = '#4f8ef7' }) => (
   <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 20, background: `${color}18`, color, border: `1px solid ${color}33`, fontWeight: 700 }}>{label}</span>
-);
+));
 
 const CH_LABELS = {
   'Meta Ads': 'Meta Ads', 'Naver Ads': 'Naver', 'Google Ads': 'Google',
@@ -201,7 +201,7 @@ let TS_DATA   = _IS_DEMO_ENV ? buildDemoTimeSeries(null) : { spends: {}, revenue
 let _DEMO_INITIALIZED = !_IS_DEMO_ENV; /* production: skip demo init forever */
 
 /* ── 1. EXACT SHAPLEY TAB ───────────────────────────────────── */
-function ShapleyTab() {
+const ShapleyTab = memo(function ShapleyTab() {
   const t = useT();
   const { lang } = useI18n();
   const [computing, setComputing] = useState(false);
@@ -305,10 +305,10 @@ function ShapleyTab() {
   
 
 );
-}
+});
 
 /* ── 2. BAYESIAN MMM TAB ─────────────────────────────────────── */
-function MMMTab() {
+const MMMTab = memo(function MMMTab() {
   const t = useT();
   const [result, setResult] = useState(null);
   const [budget, setBudget] = useState({});
@@ -438,10 +438,10 @@ function MMMTab() {
     </div>
   
 );
-}
+});
 
 /* ── 3. MARKOV + DOUBLE ML UPLIFT TAB ───────────────────────── */
-function MarkovTab() {
+const MarkovTab = memo(function MarkovTab() {
   const t = useT();
   const [computing, setComputing] = useState(false);
   const [markovRes, setMarkovRes] = useState(null);
@@ -524,10 +524,10 @@ function MarkovTab() {
     </div>
   
 );
-}
+});
 
 /* ── 4. MULTI-TOUCH ATTRIBUTION TAB ─────────────────────────── */
-function AttributionTab() {
+const AttributionTab = memo(function AttributionTab() {
   const t = useT();
   const [model, setModel] = useState('last');
   const MODELS = [
@@ -618,12 +618,12 @@ function AttributionTab() {
     </div>
   
 );
-}
+});
 
 /* ── 5. BETA-BINOMIAL A/B TAB ───────────────────────────────── */
 let _AB = _IS_DEMO_ENV ? buildDemoAB() : []; /* 🛡️ GUARD: demo only */
 
-function BayesianABTab() {
+const BayesianABTab = memo(function BayesianABTab() {
   const t = useT();
   const [sel, setSel]         = useState(0);
   const [computing, setC]     = useState(false);
@@ -705,10 +705,10 @@ function BayesianABTab() {
       )}
     </div>
   );
-}
+});
 
 /* ── 6. COHORT ──────────────────────────────────────────────── */
-function CohortTab() {
+const CohortTab = memo(function CohortTab() {
   const t = useT();
   const weeks = ['W1','W2','W3','W4','W5','W6','W7','W8'];
   const cohorts = _COHORTS.length > 0 ? _COHORTS : [];
@@ -744,7 +744,7 @@ function CohortTab() {
       </div>
     </div>
   );
-}
+});
 
 /* ── 7. LTV vs CAC ──────────────────────────────────────────── */
 let _LTV = _IS_DEMO_ENV ? buildDemoLTV() : []; /* 🛡️ GUARD: demo only */
