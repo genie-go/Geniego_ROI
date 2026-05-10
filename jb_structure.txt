@@ -1,0 +1,25 @@
+﻿15: import React, { useState, useMemo, useCallback, useEffect, memo } from 'react';
+16: import { useI18n } from '../i18n';
+18: import { useGlobalData } from '../context/GlobalDataContext';
+19: import { useNavigate } from 'react-router-dom';
+20: import EmptyState from '../components/EmptyState';
+21: import { useToast } from '../components/ToastProvider';
+24: const _isDemo = (() => {
+31: const LANG_LOCALE_MAP = {
+38: const K = {
+106: const FB = {
+183: const STS = {
+189: const TRIGGER_CFG = {
+197: const CH_COLORS = { email: '#4f8ef7', kakao: '#fbbf24', sms: '#22c55e', push: '#f97316', line: '#06d6a0' };
+198: const fmt = v => { if (v >= 1e8) return (v / 1e8).toFixed(1) + '억'; if (v >= 1e4) return (v / 1e4).toFixed(0) + '만'; return v?.toLocaleString?.() || '0'; };
+199: const fmtW = v => new Intl.NumberFormat(navigator.language || 'ko-KR', { style: 'currency', currency: 'KRW', maximumFractionDigits: 0 }).format(v || 0);
+202: const CARD = {
+207: const INP = { width: '100%', padding: '10px 14px', borderRadius: 10, border: '1px solid #e2e8f0', background: '#f8fafc', fontSize: 13, color: '#1e293b', outline: 'none' };
+208: const SEL = { ...INP, cursor: 'pointer' };
+209: const LBL = { fontSize: 11, fontWeight: 700, color: '#64748b', marginBottom: 4, display: 'block' };
+210: const CONTENT_MIN = 'calc(100vh - 145px)';
+213: const DonutChart = memo(function DonutChart({ data, size = 150, thickness = 22, centerLabel, centerValue }) {
+226: const HBarChart = memo(function HBarChart({ items, maxValue }) {
+249: const Backdrop = ({ children, onClose }) => (
+259: const FlowPreview = memo(function FlowPreview({ journey, tr }) {
+289: export default function JourneyBuilder() {
