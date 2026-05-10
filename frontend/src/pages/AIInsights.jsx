@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useRef, useEffect, useCallback, useMemo, memo } from "react";
 import { useI18n } from '../i18n';
 import { useCurrency } from '../contexts/CurrencyContext.jsx';
 import { useGlobalData } from '../context/GlobalDataContext.jsx';
@@ -55,7 +55,7 @@ function useConnectedChannels() {
 }
 
 /* ─── Insight Card ──────────────────── */
-function InsightCard({ icon, title, desc, severity = "info", actionBtn }) {
+const InsightCard = memo(function InsightCard({ icon, title, desc, severity = "info", actionBtn }) {
     const colors = { high: RED, mid: '#eab308', info: BLUE, good: GREEN };
     const col = colors[severity] || colors.info;
     const [executing, setExecuting] = useState(false);
@@ -84,10 +84,10 @@ function InsightCard({ icon, title, desc, severity = "info", actionBtn }) {
             </div>
         </div>
     );
-}
+});
 
 /* ─── Chat Message ──────────────────── */
-function ChatMsg({ role, text, insight, loading, t }) {
+const ChatMsg = memo(function ChatMsg({ role, text, insight, loading, t }) {
     const isAI = role === 'ai';
     return (
         <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', justifyContent: isAI ? 'flex-start' : 'flex-end', animation: 'fadeInUp 0.3s ease-out' }}>
@@ -118,10 +118,10 @@ function ChatMsg({ role, text, insight, loading, t }) {
             {!isAI && <div style={{ width: 36, height: 36, borderRadius: 12, flexShrink: 0, background: 'var(--surface-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, border: '1px solid var(--border)' }}>👤</div>}
         </div>
     );
-}
+});
 
 /* ═══════ TAB 1: Insight Cards ═══════ */
-function InsightCardsTab({ live, t, connectedChannels }) {
+const InsightCardsTab = memo(function InsightCardsTab({ live, t, connectedChannels }) {
     const cards = [];
     if (live.roas > 0 && live.roas < 3.0) cards.push({ icon: '📉', severity: 'high', title: t('aiInsights.roasAlertTitle') || 'Critical: Low ROAS Detected', desc: `Blended ROAS fell to ${(live.roas || 0).toFixed(2)}x. Immediate reallocation required.`, actionBtn: 'Rebalance Budget' });
     if (live.returnRate > 0.12) cards.push({ icon: '↩', severity: 'high', title: t('aiInsights.returnAlertTitle') || 'Warning: High Return Rate', desc: `Product return rate spiked to ${((live.returnRate || 0) * 100).toFixed(1)}%.`, actionBtn: 'Halt Bad Catalogs' });
@@ -151,10 +151,10 @@ function InsightCardsTab({ live, t, connectedChannels }) {
             </div>
         </div>
     );
-}
+});
 
 /* ═══════ TAB 2: Trend Summary & Predictions ═══════ */
-function TrendsTab({ live, t, fmt }) {
+const TrendsTab = memo(function TrendsTab({ live, t, fmt }) {
     const KpiRow = ({ label, value, color, icon, trend }) => (
         <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '14px 16px', background: 'rgba(255,255,255,0.02)', borderRadius: 12, border: '1px solid rgba(255,255,255,0.05)' }}>
             <span style={{ fontSize: 20, width: 28, textAlign: 'center', background: color + '15', padding: 8, borderRadius: 10 }}>{icon}</span>
@@ -219,10 +219,10 @@ function TrendsTab({ live, t, fmt }) {
             </div>
         </div>
     );
-}
+});
 
 /* ═══════ TAB 3: Enhanced AI Chat ═══════ */
-function AIAssistantTab({ t, safeguard }) {
+const AIAssistantTab = memo(function AIAssistantTab({ t, safeguard }) {
     const [messages, setMessages] = useState([]);
     useEffect(() => { setMessages([{ role: 'ai', text: "**Geniego AI Agency에 오신 것을 환영합니다.**\n무엇을 최적화해 드릴까요?\n예: '어제 메타 광고 효율이 떨어진 이유 분석해줘'" }]); }, [t]);
     const [input, setInput] = useState('');
@@ -296,10 +296,10 @@ function AIAssistantTab({ t, safeguard }) {
             </div>
         </div>
     );
-}
+});
 
 /* ═══════ TAB 4: History ═══════ */
-function HistoryTab({ t }) {
+const HistoryTab = memo(function HistoryTab({ t }) {
     const [rows, setRows] = useState([]);
 
     // Enterprise Dummy Data for super advanced look
@@ -335,10 +335,10 @@ function HistoryTab({ t }) {
             ))}
         </div>
     );
-}
+});
 
 /* ═══════ TAB 5: Guide ═══════ */
-function GuideTab({ t }) {
+const GuideTab = memo(function GuideTab({ t }) {
     const sections = [
         { icon: '🔍', name: t('aiInsights.tabCards') || 'Guardrails', desc: 'Real-time KPI anomaly detection and auto-optimization recommendations.' },
         { icon: '📊', name: t('aiInsights.tabTrends') || 'Predictions', desc: 'Machine Learning driven ROI/ROAS performance forecasting for next 7 days.' },
@@ -364,7 +364,7 @@ function GuideTab({ t }) {
             </div>
         </div>
     );
-}
+});
 
 /* ═══════════ MAIN ═══════════ */
 export default function AIInsights() {
