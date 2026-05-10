@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import React, { useState, useEffect, useMemo, useCallback, useRef, memo } from "react";
 import { useI18n } from "../i18n";
 import { useCurrency } from '../contexts/CurrencyContext.jsx';
 import { useAuth } from "../auth/AuthContext.jsx";
@@ -74,7 +74,7 @@ function MiniBar({ value, max, color = "#4f8ef7" }) {
 /* ─── Performance Tab ────────────────────────────────────────── */
 const FUNNEL_STAGES = ["impressions", "clicks", "carts", "orders"];
 
-function PerformanceTab() {
+const PerformanceTab = memo(function PerformanceTab() {
     const { t } = useI18n();
     const { fmt: fmtC } = useCurrency();
     const { hasMenuAccess, token, isDemo } = useAuth();
@@ -305,7 +305,7 @@ function PerformanceTab() {
             </div>
         </div>
     );
-}
+});
 
 function Trend({ v }) {
     const up = v > 0;
@@ -336,7 +336,7 @@ const SETTLE_CHANNELS = [
     { id: 'gmarket', name: 'G-Market', icon: '🔵', color: '#1A8CFF', currency: 'KRW', grossSales: 86000000, platformFee: 10320000, adFee: 5160000, paymentFee: 1720000, refund: 1290000, netPayout: 67510000 },
 ];
 
-function SettlementTab() {
+const SettlementTab = memo(function SettlementTab() {
     const { t } = useI18n();
     const { fmt: fmtC } = useCurrency();
     const [baseCur, setBaseCur] = useState("KRW");
@@ -483,7 +483,7 @@ function SettlementTab() {
             </div>
         </div>
     );
-}
+});
 
 /* ═══════════════════════════════════════════════════════════════
    TAB 3: Creator Settlement (Creator Settlement)
@@ -498,7 +498,7 @@ const PLATFORM_ICO = { youtube: "▶", instagram: "📸", tiktok: "🎵" };
 const today = new Date("2026-03-04");
 const daysLeft = d => Math.ceil((new Date(d) - today) / (1000 * 60 * 60 * 24));
 
-function CreatorTab() {
+const CreatorTab = memo(function CreatorTab() {
     const { t } = useI18n();
     const { fmt: fmtC } = useCurrency();
     const { creators: ctxCreators = [] } = useGlobalData();
@@ -733,7 +733,7 @@ function CreatorTab() {
 
 
     );
-}
+});
 
 /* ═══════════════════════════════════════════════════════════════
    MAIN PAGE
@@ -746,7 +746,7 @@ const TABS = [
 ];
 
 /* ── SKU Profitability Tab ───────────────────────────────────────────── */
-function SKUProfitTab() {
+const SKUProfitTab = memo(function SKUProfitTab() {
     const { t } = useI18n();
     const { fmt: fmtC } = useCurrency();
     const [sortCol, setSortCol] = useState('margin_rate');
@@ -832,7 +832,7 @@ function SKUProfitTab() {
             </div>
         </div>
     );
-}
+});
 
 
 /* ═══ Cohort Analysis Tab ═══════════════════ */
