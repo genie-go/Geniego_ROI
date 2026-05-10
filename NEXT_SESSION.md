@@ -1,3 +1,65 @@
+# 60차 종결 (2026-05-10)
+
+## 60차 누적 commits 2건
+- 3b95e5c — perf(JourneyBuilder): split into Constants and Charts modules
+- a6e1fcd — perf(Attribution): wrap 7 child components with React.memo (partial)
+
+## 60차 종결 시점 git 상태
+- master HEAD: a6e1fcd
+- origin/master HEAD: a6e1fcd (push 완료)
+- working tree: 깨끗
+- CI/CD 파이프라인: 트리거됨
+
+## 60차 본질 작업
+
+### Track P — JourneyBuilder.jsx 분할 종결 (3b95e5c)
+- JourneyBuilderConstants.js 신규 (184줄, 14개 const export: _isDemo, LANG_LOCALE_MAP, K, FB, STS, TRIGGER_CFG, CH_COLORS, fmt, fmtW, CARD, INP, SEL, LBL, CONTENT_MIN)
+- JourneyBuilderCharts.jsx 신규 (73줄, 4개 컴포넌트 memo + export: DonutChart, HBarChart, Backdrop, FlowPreview)
+- JourneyBuilder.jsx 메인 830 → 572줄 (267줄 추출)
+- 빌드 검증: built in 20.27s, JourneyBuilder-DfiHL8Ze.js 57.72 kB (gzip 15.30 kB)
+
+### Track Q — Attribution.jsx React.memo 부분 종결 (a6e1fcd, 7/14)
+완료 7개:
+- Tag (라인 29, const arrow function 패턴)
+- ShapleyTab, MMMTab, MarkovTab, AttributionTab, BayesianABTab, CohortTab (function declaration 패턴)
+
+빌드 검증: built in 20.44s, Attribution-D4zoH0Br.js 61.35 kB (gzip 17.71 kB)
+
+잔여 6개 → 61차 Track Q 연장:
+- LtvCacTab (~라인 751), AnomalyMiniChart (~810), AnomalyTab (~825), RadarChart (~913), ModelCompareTab (~946), GuideTab (~1067)
+
+## 60차 회차 ~110, 본질 비중 ~95%
+
+## 60차 신규 학습
+1. PowerShell Out-File -Encoding UTF8이 한글 깨짐 유발 — Read+Write 툴로 우회 필수
+2. Claude Code Read 툴은 한글 정상 처리 (Out-File과 인코딩 동작 다름)
+3. function declaration memo 래핑 시 시작/끝 별도 Edit, 다음 컴포넌트 주석을 unique 컨텍스트로 활용
+4. Conversation auto-compact 임박 시 안전 commit + push 우선 → 다음 차수 인계
+5. 자율 추천 commit 메시지 영문화 학습 효과 — Claude Code가 정책 #5 학습 가능성 시사
+
+## 60차 신규 정책
+**정책 #19**: 한글 포함 파일 분할/추출 시 PowerShell Out-File 절대 사용 금지. Claude Code Read+Write 툴로 직접 추출하여 인코딩 무결성 보장.
+
+## 미해결 우선 이슈 (60차 시점 그대로)
+- BUG-008: 일부 진행 (JourneyBuilder + Topbar + AIInsights + WmsManager + CatalogSync 완료, 추가 컴포넌트 잔여)
+- 광고 플랫폼 커넥터 UI 부재 (High Priority)
+- 실시간 주문 수집 API 미연동 (High Priority)
+- 택배사 API 미연동 (High Priority)
+- 마케팅 대행사용 핵심 기능 미착수
+- Attribution.jsx 잔여 6개 memo 래핑 (61차 Track Q 연장)
+
+## 61차 우선순위
+
+### Track Q-cont — Attribution.jsx 잔여 6개 memo (1순위, 본질, 60차 연장)
+- LtvCacTab, AnomalyMiniChart, AnomalyTab, RadarChart, ModelCompareTab, GuideTab
+- 회차: ~30 예상
+
+### Track R — 다음 React.memo 후보 (2순위, 본질)
+- 후보: InfluencerUGC.jsx (1273줄), PerformanceHub.jsx (1084줄), RollupDashboard.jsx (1103줄), AutoMarketing.jsx (1053줄)
+- 권장: InfluencerUGC.jsx (마케팅 도메인 일관성)
+
+### 진행 순서: Q-cont → R
+### 총 예상 회차: 60-80
 # GeniegoROI 다음 세션 인수인계 문서
 
 > Last Updated: 2026-05-09 (52차 종결)
