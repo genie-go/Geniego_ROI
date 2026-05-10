@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import React, { useState, useEffect, useMemo, useCallback, useRef, memo } from "react";
 import { useGlobalData } from '../context/GlobalDataContext.jsx';
 import { useAuth } from '../auth/AuthContext.jsx';
 import { useNavigate } from 'react-router-dom';
@@ -87,7 +87,7 @@ const IO_COLORS = { "Inbound": "#22c55e", "Outbound": "#4f8ef7", "ReturnsInbound
 const CARRIER_TYPES = ["Domestic", "IntlExpress", "IntlPost", "Freight", "SameDay"];
 
 /* ═══ TAB 1: Warehouse Management ═══════════════════════════ */
-function WarehouseTab({ showForm, setShowForm, showPerms, setShowPerms }) {
+const WarehouseTab = memo(function WarehouseTab({ showForm, setShowForm, showPerms, setShowPerms }) {
     const { t } = useI18n();
     const [whs, setWhs] = useState(initWarehouses);
     const [form, setForm] = useState({ id: "", name: "", code: "", location: "", area: "", temp: "Room Temp", manager: "", phone: "", type: "Direct", active: true });
@@ -243,10 +243,10 @@ function WarehouseTab({ showForm, setShowForm, showPerms, setShowPerms }) {
             </div>
         </div>
     );
-}
+});
 
 /* ═══ TAB 2: Inbound/Outbound Management ════════════════════════ */
-function InOutTab({ whs }) {
+const InOutTab = memo(function InOutTab({ whs }) {
     const { fmt } = useCurrency();
     const { t } = useI18n();
     const { inOutHistory, registerInOut } = useGlobalData();
@@ -566,10 +566,10 @@ function InOutTab({ whs }) {
     
 
 );
-}
+});
 
 /* ═══ TAB 3: Stock Status ═══════════════════════════ */
-function InventoryTab({ whs }) {
+const InventoryTab = memo(function InventoryTab({ whs }) {
     const { t } = useI18n();
     const { fmt } = useCurrency();
     // ✅ GlobalDataContext.inventory — Real-time sync on Inbound/Outbound register
@@ -780,10 +780,10 @@ function InventoryTab({ whs }) {
             </div>
         </div>
     );
-}
+});
 
 /* ═══ TAB 4: Bundle Shipping Management ══════════════════════════ */
-function CombineTab() {
+const CombineTab = memo(function CombineTab() {
     const { t } = useI18n();
     const [list, setList] = useState(initCombined);
     const [newOrders, setNewOrders] = useState("");
@@ -852,10 +852,10 @@ function CombineTab() {
             </div>
         </div>
     );
-}
+});
 
 /* ═══ TAB 5: Carrier Management ══════════════ */
-function CarrierTab() {
+const CarrierTab = memo(function CarrierTab() {
     const { t } = useI18n();
     const [carriers, setCarriers] = useState(initCarriers);
     const [form, setForm] = useState({ id: "", name: "", code: "", type: "Domestic", country: "KR", trackUrl: "", apiKey: "", active: true });
@@ -1027,7 +1027,7 @@ function CarrierTab() {
             </div>
         </div>
     );
-}
+});
 
 
 /* ═══ TAB 6: International Invoice Auto-Create ═════════════ */
@@ -1035,7 +1035,7 @@ const INCOTERMS = ["EXW", "FCA", "FOB", "CIF", "CFR", "CPT", "CIP", "DAP", "DDP"
 const CURRENCIES = ["USD", "EUR", "JPY", "CNY", "GBP", "KRW", "SGD", "AUD", "HKD"];
 const initInvoiceItems = [];
 
-function InvoiceTab() {
+const InvoiceTab = memo(function InvoiceTab() {
     const { t } = useI18n();
     const intlCarriers = initCarriers.filter(c => c.type === "IntlExpress" || c.type === "IntlPost");
     const [inv, setInv] = useState({
@@ -1182,10 +1182,10 @@ ${inv.remark ? `<br><b>Remarks:</b> ${inv.remark}` : ''}
             </div>
         </div>
     );
-}
+});
 
 /* ═══ Inbound Inspection Tab ══════════════════════════════ */
-function ReceivingTab({ supplyOrders, updateSupplyOrderStatus }) {
+const ReceivingTab = memo(function ReceivingTab({ supplyOrders, updateSupplyOrderStatus }) {
     const { t } = useI18n();
     const { fmt } = useCurrency();
     // currency formatting via useCurrency fmt()
@@ -1232,10 +1232,10 @@ function ReceivingTab({ supplyOrders, updateSupplyOrderStatus }) {
             </table>
         </div>
     );
-}
+});
 
 /* ═══ Picking 리스트 Tab ══════════════════════════════ */
-function PickingListTab({ pickingLists }) {
+const PickingListTab = memo(function PickingListTab({ pickingLists }) {
     const { t } = useI18n();
     const _PICKS = [];
     const [list, setList] = React.useState([...pickingLists, ..._PICKS]);
@@ -1346,10 +1346,10 @@ function PickingListTab({ pickingLists }) {
             </table>
         </div>
     );
-}
+});
 
 /* ═══ Lot / Expiry Date Management Tab ══════════════════════ */
-function LotManagementTab({ lotManagement, registerLot, inventory }) {
+const LotManagementTab = memo(function LotManagementTab({ lotManagement, registerLot, inventory }) {
     const { t } = useI18n();
     const [form, setForm] = React.useState({ sku:'', name:'', lotNo:'', mfgDate:'', expiryDate:'', qty:0, wh:'W001' });
     const [saved, setSaved] = React.useState(false);
@@ -1410,10 +1410,10 @@ function LotManagementTab({ lotManagement, registerLot, inventory }) {
             </div>
         </div>
     );
-}
+});
 
 /* ═══ Auto Purchase Order (Replenishment) Tab ══════════════════════ */
-function ReplenishmentTab({ supplyOrders, addSupplyOrder, inventory }) {
+const ReplenishmentTab = memo(function ReplenishmentTab({ supplyOrders, addSupplyOrder, inventory }) {
     const { t } = useI18n();
     const { fmt } = useCurrency();
     // currency formatting via useCurrency fmt()
@@ -1487,11 +1487,11 @@ function ReplenishmentTab({ supplyOrders, addSupplyOrder, inventory }) {
             </div>
         </div>
     );
-}
+});
 
 /* ═══ 번들·키트 BOM Management Tab ════════════════════════════════ */
 const INIT_BUNDLES = [];
-function BundleTab() {
+const BundleTab = memo(function BundleTab() {
     const { t } = useI18n();
     const { fmt } = useCurrency();
     const { inventory, registerInOut, addAlert } = useGlobalData();
@@ -1613,12 +1613,12 @@ function BundleTab() {
             </div>
         </div>
     );
-}
+});
 
 /* ═══ TAB 12: Supplier Management ══════════════ */
 const initSuppliers = [];
 
-function SupplierTab() {
+const SupplierTab = memo(function SupplierTab() {
     const { t } = useI18n();
     const { fmt: fmtSup } = useCurrency();
     const [suppliers, setSuppliers] = React.useState(initSuppliers);
@@ -1748,10 +1748,10 @@ function SupplierTab() {
         </div>
     
     );
-}
+});
 
 /* ═══ TAB 13: Inventory Count / Audit ══════════ */
-function InventoryAuditTab({ inventory }) {
+const InventoryAuditTab = memo(function InventoryAuditTab({ inventory }) {
 
     const { t } = useI18n();
     const allItems = (inventory || initInventory).map(p => ({
@@ -1890,10 +1890,10 @@ function InventoryAuditTab({ inventory }) {
             )}
         </div>
     );
-}
+});
 
 /* ═══ TAB D-7: Delivery Tracking ══════════ */
-function TrackingTab() {
+const TrackingTab = memo(function TrackingTab() {
     const { t } = useI18n();
     const [trackingNum, setTrackingNum] = useState('');
     const [carrierId, setCarrierId] = useState('CJ');
@@ -2018,13 +2018,13 @@ function TrackingTab() {
         </div>
     
     );
-}
+});
 
 /* ═══ MAIN ══════════════════════════════════════ */
 /* Note: Tab definitions are in TABS_I18N inside WmsManager() using t() */
 
 /* ═══ TAB 15: Usage Guide (Enterprise 20-Step) ═══════════════ */
-function WmsGuideTab() {
+const WmsGuideTab = memo(function WmsGuideTab() {
     const { t } = useI18n();
     const COLORS = ['#4f8ef7','#22c55e','#a855f7','#eab308','#06b6d4','#f97316','#ec4899','#ef4444','#8b5cf6','#10b981','#3b82f6','#6366f1','#14b8a6','#e11d48','#0ea5e9','#f59e0b','#84cc16','#d946ef','#64748b','#0d9488'];
     const ICONS = ['🏢','📦','📊','📥','🔍','🔗','⚡','🎁','🚚','📍','🧳','📦','🏭','📋','🔔','📈','🛡️','💳','🌐','🚀'];
@@ -2148,7 +2148,7 @@ function WmsGuideTab() {
             </div>
         </div>
     );
-}
+});
 
 export default function WmsManager() {
     const { fmt } = useCurrency();
