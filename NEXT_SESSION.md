@@ -1,32 +1,35 @@
-# 60차 종결 (2026-05-10)
+# 61차 종결 (2026-05-10)
 
-## 60차 누적 commits 2건
-- 3b95e5c — perf(JourneyBuilder): split into Constants and Charts modules
-- a6e1fcd — perf(Attribution): wrap 7 child components with React.memo (partial)
+## 61차 누적 commits 3건
+- 7b00e25 — perf(Attribution): wrap remaining 6 components with React.memo
+- 4b1a87c — perf(InfluencerUGC): wrap 5 main tab components with React.memo
+- c2696c2 — perf(PerformanceHub): wrap 4 main tab components with React.memo
 
-## 60차 종결 시점 git 상태
-- master HEAD: a6e1fcd
-- origin/master HEAD: a6e1fcd (push 완료)
+## 61차 종결 시점 git 상태
+- master HEAD: c2696c2
+- origin/master HEAD: c2696c2 (push 완료)
 - working tree: 깨끗
 - CI/CD 파이프라인: 트리거됨
 
-## 60차 본질 작업
+## 61차 본질 작업 3건
 
-### Track P — JourneyBuilder.jsx 분할 종결 (3b95e5c)
-- JourneyBuilderConstants.js 신규 (184줄, 14개 const export: _isDemo, LANG_LOCALE_MAP, K, FB, STS, TRIGGER_CFG, CH_COLORS, fmt, fmtW, CARD, INP, SEL, LBL, CONTENT_MIN)
-- JourneyBuilderCharts.jsx 신규 (73줄, 4개 컴포넌트 memo + export: DonutChart, HBarChart, Backdrop, FlowPreview)
-- JourneyBuilder.jsx 메인 830 → 572줄 (267줄 추출)
-- 빌드 검증: built in 20.27s, JourneyBuilder-DfiHL8Ze.js 57.72 kB (gzip 15.30 kB)
+### Track Q-cont — Attribution.jsx 잔여 6 memo 종결 (7b00e25)
+- 완료 6개: LtvCacTab (751), AnomalyMiniChart (810), AnomalyTab (825), RadarChart (913), ModelCompareTab (946), GuideTab (1067)
+- 빌드: 61.41 kB (gzip 17.66 kB)
 
-### Track Q — Attribution.jsx React.memo 부분 종결 (a6e1fcd, 7/14)
-완료 7개:
-- Tag (라인 29, const arrow function 패턴)
-- ShapleyTab, MMMTab, MarkovTab, AttributionTab, BayesianABTab, CohortTab (function declaration 패턴)
+### Track R — InfluencerUGC.jsx 5 main tabs memo (4b1a87c)
+- import에 memo 추가
+- 완료 5개: IdentityTab (53), ContractTab (138), SettleTab (308), ROITab (479), InfluencerGuideTab (628)
+- 보류 1개: UGCTab (682) — return 위치 모호로 보류
+- 보조 미적용: Stars (46), AIGauge (851), AIGrade (864), CreatorScoreModal (876), Section (992), AIEvalTab (1014)
+- 빌드: 67.17 kB (gzip 15.91 kB)
 
-빌드 검증: built in 20.44s, Attribution-D4zoH0Br.js 61.35 kB (gzip 17.71 kB)
-
-잔여 6개 → 61차 Track Q 연장:
-- LtvCacTab (~라인 751), AnomalyMiniChart (~810), AnomalyTab (~825), RadarChart (~913), ModelCompareTab (~946), GuideTab (~1067)
+### Track R-2 — PerformanceHub.jsx 4 main tabs memo (c2696c2)
+- import에 memo 추가
+- 완료 4개: PerformanceTab (77), SettlementTab (339), CreatorTab (501), SKUProfitTab (749)
+- 보류/미착수: ESGTab (913), CohortTab (840), PerfGuideTab (953)
+- 보조 미적용: SecurityOverlay (16), KpiCard (49), MiniBar (62), Trend (310)
+- 빌드: 50.28 kB (gzip 12.01 kB)
 
 ## 60차 회차 ~110, 본질 비중 ~95%
 
