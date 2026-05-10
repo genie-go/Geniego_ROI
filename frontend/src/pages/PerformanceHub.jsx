@@ -13,7 +13,7 @@ const SEC_PATTERNS = [
 ];
 const secCheck = (v = '') => { for (const p of SEC_PATTERNS) { if (p.re.test(v)) return p.type; } return null; };
 
-function SecurityOverlay({ threats, onDismiss }) {
+const SecurityOverlay = memo(function SecurityOverlay({ threats, onDismiss }) {
     const { t } = useI18n();
     if (!threats.length) return null;
     return (
@@ -33,7 +33,7 @@ function SecurityOverlay({ threats, onDismiss }) {
             </div>
         </div>
     );
-}
+});
 
 /* ─── Shared utils ────────────────────────────────────────────── */
 const fmtKRW = v => v == null ? "—" : v; // NOTE: replaced by useCurrency in component
@@ -46,7 +46,7 @@ const toKRW = (v, cur) => Math.round(v * (get_EXCHANGE()[cur] || 1));
 const API = (import.meta.env.VITE_API_BASE || '').replace(/\/+$/, '');
 
 /* ─── Shared components ──────────────────────────────────────── */
-function KpiCard({ label, value, sub, color = "#4f8ef7", icon }) {
+const KpiCard = memo(function KpiCard({ label, value, sub, color = "#4f8ef7", icon }) {
     return (
         <div className="kpi-card" style={{ "--accent": color }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
@@ -57,9 +57,9 @@ function KpiCard({ label, value, sub, color = "#4f8ef7", icon }) {
             {sub && <div className="kpi-sub" style={{ marginTop: 4, fontSize: 10 }}>{sub}</div>}
         </div>
     );
-}
+});
 
-function MiniBar({ value, max, color = "#4f8ef7" }) {
+const MiniBar = memo(function MiniBar({ value, max, color = "#4f8ef7" }) {
     return (
         <div style={{ height: 4, background: "rgba(255,255,255,0.06)", borderRadius: 4, width: "100%" }}>
             <div style={{
@@ -69,7 +69,7 @@ function MiniBar({ value, max, color = "#4f8ef7" }) {
         </div>
 
     );
-}
+});
 
 /* ─── Performance Tab ────────────────────────────────────────── */
 const FUNNEL_STAGES = ["impressions", "clicks", "carts", "orders"];
