@@ -5,6 +5,7 @@ on:
     branches: [ master ] # 메인 브랜치 푸시 시 자동 실행
     paths-ignore:
       - '**.md'
+      - '**.txt'
       - 'docs/**'
       - '.claude/**'
 
