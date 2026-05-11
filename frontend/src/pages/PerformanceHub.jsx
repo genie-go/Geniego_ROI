@@ -307,14 +307,14 @@ const PerformanceTab = memo(function PerformanceTab() {
     );
 });
 
-function Trend({ v }) {
+const Trend = memo(function Trend({ v }) {
     const up = v > 0;
     return (
         <div style={{ fontSize: 9, color: up ? "#22c55e" : "#ef4444", fontWeight: 700 }}>
             {up ? "▲" : "▼"} {Math.abs(v).toFixed(1)}%
         </div>
     );
-}
+});
 
 
 /* ═══════════════════════════════════════════════════════════════
@@ -837,7 +837,7 @@ const SKUProfitTab = memo(function SKUProfitTab() {
 
 /* ═══ Cohort Analysis Tab ═══════════════════ */
 const COHORT_DATA = [];
-function CohortTab() {
+const CohortTab = memo(function CohortTab() {
     const { t } = useI18n();
     const [view, setView] = useState('retention');
     const fmtPct = (a, b) => b === 0 ? '-' : (a / b * 100).toFixed(1) + '%';
@@ -907,10 +907,10 @@ function CohortTab() {
             </>}
         </div>
     );
-}
+});
 
 /* ═══ ESG Reporting Tab — Zero Mock ═══════════════════ */
-function ESGTab() {
+const ESGTab = memo(function ESGTab() {
     const { t } = useI18n();
     // Real data comes from API — no mock data
     return (
@@ -948,9 +948,9 @@ function ESGTab() {
             </div>
         </div>
     );
-}
+});
 
-function PerfGuideTab() {
+const PerfGuideTab = memo(function PerfGuideTab() {
     const { t } = useI18n();
     const STEPS = Array.from({ length: 10 }, (_, i) => ({ num: i + 1, title: t(`performance.guideStep${i + 1}Title`), desc: t(`performance.guideStep${i + 1}Desc`) }));
     const ICONS = ['📊', '🔍', '💳', '💱', '🤝', '📋', '📈', '👥', '🌿', '🔒'];
@@ -1012,7 +1012,7 @@ function PerfGuideTab() {
             </div>
         </div>
     );
-}
+});
 
 export default function PerformanceHub() {
     const { t } = useI18n();
