@@ -1,67 +1,38 @@
-# 64차 종결 (2026-05-11)
+# 65차 종결 (2026-05-11)
 
-## 64차 본차 작업
-- Phase A: 정합성 검증 5건 통과 (Gate A)
-- Phase B: Track T-0 진단 9개 명령 완료 (Gate B)
-- Phase C~G: 65차 이월 (안전 종결 우선)
+## 65차 본차 작업
+- BUG-009 수정 완료 (AsiaLogistics.jsx L40, ErrorFallback scope error 제거, 1줄 삭제)
+- Phase A 정합성 5건 통과
+- T-1 baseline 정정 (64차 38파일/122회 → 실제 56파일/207회, 누락 18파일 + 85회 발견)
+- baseline 산출물 2종 GitHub 반영 (SESSION_65_T1_BASELINE_paths.txt, SESSION_65_T1_BASELINE_counts.txt)
+- 의도적 fetch 패턴 1건 확인 (DashOverview.jsx L154 = 헬스체크, HEAD method + no-store + AbortSignal.timeout, apiClient 표준화 대상 아님)
 
-## 64차 진행률
-- 약 20% (Phase A+B 완료, 사용자 명시 옵션 2 달성)
+## 65차 commit (2건)
+- 9454499: fix(AsiaLogistics): remove BUG-009 ErrorFallback scope error (L40)
+- 3c7ca77: docs(session): 65th T-1 baseline refinement (56 files / 207 fetches)
 
-## Phase A 결과 (정합성 검증)
-- 명령 1: git log --oneline -10 → HEAD=7cc4e03 확인
-- 명령 2: git status --short → (No output) clean
-- 명령 3: git diff origin/master --stat → (No output) 동기화
-- 명령 4: git branch --show-current → master
-- 명령 5: git remote -v → origin fetch/push 정상
+## 65차 종결 상태
+- master HEAD: 3c7ca77
+- working tree: clean (↑0 ↓0)
+- origin/master 동기화 완료
+- archive: NEXT_SESSION_ARCHIVE_49_65.md (64차 인계서 보존, 66차 R1에서 생성)
 
-## Phase B 결과 (Track T-0 진단)
-- B-1: ls src → 22개 엔트리 (pages_backup 주의 환기)
-- B-2: ls src/services → apiClient.js 단일
-- B-3: cat apiClient.js head -50 → fetch 기반, VITE_API_BASE 단일, X-Tenant-ID 헤더
-- B-4: cat apiClient.js tail -50 → 총 177줄, 9개 export, 배송 로직 없음
-- B-5: grep "services/apiClient" import → 4개 파일 (RulesEditorV2, Writeback, AlertPolicies, src_backup/DLQ)
-- B-6: grep "fetch(" pages → 30개 hit (head -30 한계 도달)
-- B-7: grep "fetch(" pages wc -l → 38개 파일/122회 호출 (apiClient 우회)
-- B-8: grep "택배|배송|delivery|courier|shipping" → 20개 파일 hit
-- B-9: cat AsiaLogistics.jsx head -80 → 6 HUBS, carriers 필드 10개사, BUG-009 발견
-
-## Track T-0 진단 결론
-- 외부 채널 연동 표준화 인프라: 미구현 (services/는 apiClient.js 단일)
-- Track T-1 표준화 작업 규모: 38파일/122회 fetch 우회 패턴 정리 필요
-- Track T-2 어댑터 진입점: AsiaLogistics.jsx (carriers 10개사 이미 정의됨)
-  - CJKorea, Coupang로켓, 우체국, Yamato, Sagawa, Ninja Van, J&T, Kerry, Flash, SF Express
-- 라우트 매트릭스 6개 허브 (KR-ICN, JP-NRT, SG-SIN, TH-BKK, MY-KUL, CN-SHA)
-- 통관 규정 6개국 (KR/JP/SG/TH/MY/DE)
-
-## BUG-009 (신규, 65차 우선순위 결정 위임)
-- 파일: frontend/src/pages/AsiaLogistics.jsx
-- 위치: ErrorFallback 컴포넌트 (line 40)
-- 증상: _pageError/_setPageError 참조하지만 변수는 AsiaLogistics() 내부 line 71-72에서 선언
-- 분류: 스코프 오류 (React Error Boundary 패턴 위반 가능성)
-- 영향: ErrorFallback 실행 시 ReferenceError 발생 가능
-- 우선순위: 64차 범위 외 (기록만)
-
-## 64차 신규 정책 (정책 #38)
-- 정책 #38: 명령 라인은 NEXT_SESSION.md에 t 프리픽스 포함 형태로 미리 저장, 검수자는 저장된 라인 번호로 발송 지시
-- 정착 배경: Phase A 명령 3, 4, 5 연속 t 프리픽스 누락 (3/5 = 60%)
-- 누적: 38개
-
-## 65차 우선순위 후보 (검수자 추천)
-1. BUG-009 수정 (AsiaLogistics ErrorFallback 스코프) — 30분
-2. Phase C 진입: Track T-1 표준화 인프라 설계 (apiClient 우회 fetch 38파일 표준화)
-3. Phase D 진입: Track T-2 어댑터 10개사 (AsiaLogistics 기반 확장)
-4. pages_backup/ 디렉터리 정합성 확인 (인계 누락 의심)
-5. src_backup/ 디렉터리 정합성 확인 (DLQ.jsx 위치)
+## 66차 우선순위 (검수자 권고)
+1. NEXT_SESSION.md 본문 갱신 (66차 R1~R4 진행 중) — 본 회차 처리
+2. T-1 의도적 fetch 분류 (counts.txt 기반, 56파일 분류: 표준화 대상 vs 직접 fetch) — 본질 진입
+3. T-1 첫 표준화 시도 (분류 후 저복잡·표준화 대상 1~2파일에 apiClient export 추가 후 적용)
+4. pages_backup/, src_backup/ 정합성 확인 — 저위험
+5. CI/CD 자동 트리거 검토 (deploy.yml, docs commit 트리거 확인됨) — 단순 검토
 
 ## 환경 정보 (정책 #31, 변동 없음)
 - 위치: D:\project\GeniegoROI\frontend\src\pages\
 - 도구: Antigravity + Claude Code (Sonnet 4.6) 페어
 - 검수자: claude.ai 웹/모바일 새 창
-- t 프리픽스: 자율 실행문 무력화용
-- 빌드: cd D:\project\GeniegoROI\frontend && npm run build
+- t 프리픽스: 자율 실행문 무력화용 (매 명령 앞에 부착)
+- Edit tool: Read/Grep tool 호출 형태 (bash 변환 불필요)
+- 빌드: cd D:\project\GeniegoROI\frontend; npm run build (PowerShell 명시 권장, Bash 라우팅 시 경로 깨짐)
 
-## 65차 첫 명령 (Claude Code 입력 예정)
+## 67차 첫 명령 (Claude Code 입력 예정)
 다음 5개 라인을 한 줄씩 분리해서 입력 예정:
 - t1: t git -C "D:\project\GeniegoROI" log --oneline -10
 - t2: t git -C "D:\project\GeniegoROI" status --short
@@ -69,12 +40,28 @@
 - t4: t git -C "D:\project\GeniegoROI" branch --show-current
 - t5: t git -C "D:\project\GeniegoROI" remote -v
 
-기대값: 64차 종결 commit HEAD 일치, working tree clean, origin 동기화, master, origin 정상
+기대값: HEAD=(66차 종결 commit), working tree clean, ↑0↓0, master, origin 정상
 
-## 64차 누적 정책 (38개)
-1~19: 60차 정착
-20~21: 61차 정착
-22~28: 62차 사전 정의
-29~34: 62차 정착
-35~37: 63차 신규
+## 65차 신규 정책 후보 (3건, 66차 검토 대상)
+- 39 후보: Bash 라우팅 실패 시 PowerShell 자동 재시도 신뢰
+- 40 후보: 권한 prompt "2번 Yes-all" 절대 금지
+- 41 후보: NEXT_SESSION.md 갱신은 Phase A 직후 우선 처리 (회차 후반 작업 위험)
+
+## 누적 정책 (38개 + 후보 3건)
+1~19: 60차 정착 (자율 추천 폐기, 단일 명령, t 프리픽스 등)
+20~21: 61차 정착 (함수 끝 모호 시 보류, nested 함수 검증)
+22~28: 62차 사전 정의 (비즈니스 진입 시 적용)
+29~34: 62차 정착 (인계 문서 풀패스, memo 두 패턴 grep, 환경 분리, atomic 분리 2단계, "1. Yes" 단독, 끝 줄 unique context)
+35~37: 63차 신규 (패턴별 분리 grep, 시그니처 통합 grep, 자동 재시도 신뢰)
 38: 64차 신규 (명령 라인 NEXT_SESSION.md 사전 저장)
+39~41: 65차 후보 (66차 검토 대상)
+
+## 검수자 운영 원칙 (재확인)
+- 자율 추천 절대 금지 (정책 #1)
+- 명령 라인 표시: 즉시 실행용 + NEXT_SESSION.md 저장용 분리
+- raw 결과만 받기 (Claude Code 자체 분석은 참고만)
+- Phase 경계에서 종결 권장 (인계 무결성 우선)
+- t 프리픽스 누락 시 즉시 정지 + 재입력 요청
+- 정책 #20, #21 엄격 적용 (모호 시 보류)
+- 65차 교훈: Claude Code의 자체 작성안(특히 Write 도구) 사용 시 본문 검수 필수, 미검수 작성은 거부 (3. No)
+- 66차 교훈: Claude Code의 자동 생성 명령(Clear-Content 등) 절대 실행 금지, t 프리픽스로 무력화 + 검수자 명령 덮어쓰기
