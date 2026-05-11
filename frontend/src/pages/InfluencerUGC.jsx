@@ -13,20 +13,20 @@ const today = new Date();
 const daysLeft = d => Math.ceil((new Date(d) - today) / (864e5));
 
 
-const Tag = ({ label, color = "#4f8ef7", bg }) => (
+const Tag = memo(({ label, color = "#4f8ef7", bg }) => (
     <span style={{
         fontSize: 9, fontWeight: 700, padding: "2px 7px", borderRadius: 99,
         background: bg || color + "18", color, border: `1px solid ${color}33`
     }}>{label}</span>
-);
+));
 
-const Bar = ({ v, max = 1, color = "#4f8ef7", h = 4 }) => (
+const Bar = memo(({ v, max = 1, color = "#4f8ef7", h = 4 }) => (
     <div style={{ height: h, background: "rgba(255,255,255,0.06)", borderRadius: h, width: "100%" }}>
         <div style={{ width: `${Math.min(100, (v / max) * 100)}%`, height: "100%", background: color, borderRadius: h, transition: "width .5s" }} />
     </div>
-);
+));
 
-const KpiCard = ({ label, value, sub, color = "#4f8ef7", icon }) => (
+const KpiCard = memo(({ label, value, sub, color = "#4f8ef7", icon }) => (
     <div className="card card-glass" style={{ borderLeft: `3px solid ${color}`, padding: "14px 16px" }}>
         <div style={{ display: "flex", justifyContent: "space-between" }}>
             <div style={{ fontSize: 10, color:"#6b7280", fontWeight: 700 }}>{label}</div>
@@ -35,7 +35,7 @@ const KpiCard = ({ label, value, sub, color = "#4f8ef7", icon }) => (
         <div style={{ fontWeight: 900, fontSize: 20, color, marginTop: 6 }}>{value}</div>
         {sub && <div style={{ fontSize: 10, color:"#6b7280", marginTop: 3 }}>{sub}</div>}
     </div>
-);
+));
 
 
 const TIER_COLOR = { Nano: "#14d9b0", Micro: "#4f8ef7", Mid: "#a855f7", Macro: "#f97316" };
