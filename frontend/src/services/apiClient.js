@@ -21,7 +21,7 @@ export async function getJson(path) {
 
 
 function defaultHeaders() {
-  const token = localStorage.getItem(TOKEN_KEY) || localStorage.getItem("accessToken") || "";
+  const token = localStorage.getItem(TOKEN_KEY) || localStorage.getItem("accessToken") || localStorage.getItem("genie_auth_token") || "";
   const h = {
     "Content-Type": "application/json",
     "X-Tenant-ID": IS_DEMO ? "demo" : (localStorage.getItem("tenantId") || ""),
