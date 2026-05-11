@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useT } from "../i18n";
+import { postJsonAuth } from "../services/apiClient";
 
 /**
  * GDPR / PIPA (개인정보보호법) 동의 관리 배너
@@ -10,7 +11,6 @@ import { useT } from "../i18n";
  * - 동의 철회 및 이력 조회
  */
 
-const API = import.meta.env.VITE_API_BASE || '';
 
 const COOKIE_KEY = 'g_gdpr_consent';
 const getCookie = name => document.cookie.split(';').find(c => c.trim().startsWith(name + '='))?.split('=')[1] || null;
@@ -26,20 +26,11 @@ const CONSENT_TYPES_BASE = [
 
 async function saveConsentToServer(consents) {
     try {
-        const token = localStorage.getItem('genie_token') || '';
-        await fetch(`${API}/api/gdpr/consent`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`,
-            },
-            body: JSON.stringify(consents),
-        });
+        await postJsonAuth('/api/gdpr/consent', consents);
     } catch (error) {
         console.error('Failed to save consent to server:', error);
     }
 }
-
 function ConsentPanel({ onSave, onClose }) {
     const t = useT();
     const CONSENT_TYPES = CONSENT_TYPES_BASE.map(item => ({
@@ -260,4 +251,4 @@ export function GdprAdmin() {
 }
 
 export default GdprAdmin;
-
+
