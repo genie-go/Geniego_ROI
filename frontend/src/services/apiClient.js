@@ -12,7 +12,7 @@ export async function getJson(path) {
       const j = await res.json();
       detail = j?.detail ? JSON.stringify(j.detail) : JSON.stringify(j);
     } catch (e) {
-      try { detail = await res.text(); } catch {}
+      try { detail = await res.text(); } catch { }
     }
     throw new Error(`HTTP ${res.status} ${detail}`);
   }
@@ -44,7 +44,7 @@ export async function postJson(path, body) {
       const j = await res.json();
       detail = j?.detail ? JSON.stringify(j.detail) : JSON.stringify(j);
     } catch (e) {
-      try { detail = await res.text(); } catch {}
+      try { detail = await res.text(); } catch { }
     }
     throw new Error(`HTTP ${res.status} ${detail}`);
   }
@@ -59,7 +59,7 @@ export async function getJsonAuth(path) {
       const j = await res.json();
       detail = j?.detail ? JSON.stringify(j.detail) : JSON.stringify(j);
     } catch (e) {
-      try { detail = await res.text(); } catch {}
+      try { detail = await res.text(); } catch { }
     }
     throw new Error(`HTTP ${res.status} ${detail}`);
   }
@@ -79,7 +79,7 @@ export async function putText(path, rawBody) {
       const j = await res.json();
       detail = j?.detail ? JSON.stringify(j.detail) : JSON.stringify(j);
     } catch (e) {
-      try { detail = await res.text(); } catch {}
+      try { detail = await res.text(); } catch { }
     }
     throw new Error(`HTTP ${res.status} ${detail}`);
   }
@@ -89,7 +89,7 @@ export async function putText(path, rawBody) {
 export async function putJson(path, body) {
   const res = await fetch(`${base}${path}`, {
     method: "PUT",
-    headers: { "Content-Type": "application/json" },
+    headers: defaultHeaders(),
     body: JSON.stringify(body || {}),
   });
   if (!res.ok) {
@@ -98,7 +98,7 @@ export async function putJson(path, body) {
       const j = await res.json();
       detail = j?.detail ? JSON.stringify(j.detail) : JSON.stringify(j);
     } catch (e) {
-      try { detail = await res.text(); } catch {}
+      try { detail = await res.text(); } catch { }
     }
     throw new Error(`HTTP ${res.status} ${detail}`);
   }
@@ -122,7 +122,7 @@ export async function requestJsonAuth(path, method, body, extraHeaders = {}) {
       const j = await res.json();
       detail = j?.detail ? JSON.stringify(j.detail) : JSON.stringify(j);
     } catch (e) {
-      try { detail = await res.text(); } catch {}
+      try { detail = await res.text(); } catch { }
     }
     throw new Error(`HTTP ${res.status} ${detail}`);
   }
@@ -139,7 +139,7 @@ export async function getJsonAuthWithHeaders(path, extraHeaders = {}) {
       const j = await res.json();
       detail = j?.detail ? JSON.stringify(j.detail) : JSON.stringify(j);
     } catch (e) {
-      try { detail = await res.text(); } catch {}
+      try { detail = await res.text(); } catch { }
     }
     throw new Error(`HTTP ${res.status} ${detail}`);
   }
@@ -151,7 +151,7 @@ export async function getJsonAuthWithHeaders(path, extraHeaders = {}) {
 export async function postFileAuth(path, file, extraFields = {}, extraHeaders = {}) {
   const fd = new FormData();
   fd.append("file", file);
-  Object.entries(extraFields || {}).forEach(([k,v]) => fd.append(k, String(v)));
+  Object.entries(extraFields || {}).forEach(([k, v]) => fd.append(k, String(v)));
   const headers = { ...defaultHeaders(), ...extraHeaders };
   // Let browser set multipart boundary; remove JSON content-type
   delete headers["Content-Type"];
@@ -166,7 +166,7 @@ export async function postFileAuth(path, file, extraFields = {}, extraHeaders = 
       const j = await res.json();
       detail = j?.detail ? JSON.stringify(j.detail) : JSON.stringify(j);
     } catch (e) {
-      try { detail = await res.text(); } catch {}
+      try { detail = await res.text(); } catch { }
     }
     throw new Error(`HTTP ${res.status} ${detail}`);
   }
