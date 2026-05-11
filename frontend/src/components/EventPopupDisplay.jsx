@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { sanitizeHtml } from '../utils/xssSanitizer.js';
+import { getJsonAuth } from '../services/apiClient.js';
 
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -170,12 +171,7 @@ export default function EventPopupDisplay() {
         let mounted = true;
         const load = async () => {
             try {
-                const token = localStorage.getItem("genie_token") || localStorage.getItem("genie_auth_token") || "";
-                const r = await fetch("/api/v423/popups/active", {
-                    headers: token ? { Authorization: `Bearer ${token}` } : {}
-                });
-                if (!r.ok) return;
-                const d = await r.json();
+                const d = await getJsonAuth("/api/v423/popups/active");
                 if (!mounted) return;
                 const active = (d.popups || []).filter(p => !isDismissed(p.id));
                 if (active.length > 0) {
