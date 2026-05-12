@@ -131,3 +131,85 @@
 5. .vscode/settings.json은 .gitignore 충돌 — `git add -f`로 강제 추가 필요
 6. D-2 + format-on-save 시너지 — autocrlf=false + .gitattributes + formatOnSave=false 결합이 LF 정합성 + race condition 차단 완전 보장
 7. 글로벌 format-on-save가 활성 상태에서 settings.json 저장 시 working tree는 CRLF로 저장됨 → .gitattributes 정규화로 저장소엔 LF 진입 (D-2 안전망 입증)
+---
+
+# 75차 종결 (A-dead 완료)
+
+## 75차 commit 기록
+- 32b804a: refactor(api): remove dead code getJsonAuthWithHeaders and postFileAuth - 75th A-dead
+  - frontend/src/services/apiClient.js: 44 deletions(-)
+  - getJsonAuthWithHeaders (L134~148) 전체 삭제
+  - postFileAuth (L151~175) 전체 삭제
+  - 함수 사이 빈 줄 + 파일 끝 빈 줄 정리 포함
+  - 추가 없음 (+0)
+
+## A-dead 검증 결과 (raw 근거)
+- getJsonAuthWithHeaders
+  - 정의: frontend/src/services/apiClient.js:134 (1건)
+  - 활성 사용처 (frontend/src/pages/): 0건
+  - 비활성 사용처 (frontend/src/pages_backup/DLQ.jsx): 3건 (L3 import, L41/L53 호출)
+- postFileAuth
+  - 정의: frontend/src/services/apiClient.js:151 (1건)
+  - 활성 사용처: 0건
+  - 비활성 사용처: 0건 (backup 포함 전체)
+- pages_backup/ 디렉토리 상태
+  - git 추적됨 (42개 파일)
+  - 활성 코드 참조: 0건 (MappingRegistryParts.jsx:62 주석 1건만, import/require 아님)
+  - App.jsx 라우팅·vite.config·빌드 체인 어디서도 import 안 됨 → 순수 히스토리 백업
+
+## 75차 종결 상태 (확정)
+- master HEAD: 32b804a (push 완료, origin/master 동기화)
+- working tree: 깨끗 (master ↑0 ↓0)
+- 75차 commit 1건 (push 완료):
+  - 32b804a: refactor(api): remove dead code getJsonAuthWithHeaders and postFileAuth - 75th A-dead
+- CI 파이프라인 트리거됨 (.github/workflows/deploy.yml)
+
+## 75차 핵심 교훈 (76차 적용 필수, 불변)
+1. CC 자율 push 시도 3차 재발 — log 검증 직후 `push origin master` 자동 생성, t 무력화로 차단 (73차 #1 + 74차 #1 패턴 3차 재입증, race condition 상시 경계 불변)
+2. CC Read 도구 가로채기 git show에도 적용 — `git show HEAD:파일경로`도 'Read 1 file (ctrl+o to expand)'로 가로채짐, raw 미출력. 검수자 VS Code 직접 파일 열어 raw 확인이 유일한 우회
+3. CC 시그니처 변조 — path glob 자동 보정 — `"src/**/*.js"` → `"frontend/src/**/*.js"` 자동 변환 (다행히 정확한 경로였으나 raw 위장 상시 경계 필요)
+4. dead code 검증은 3단계 필수 — (1) 정의 위치 grep, (2) 사용처 grep, (3) 사용처 디렉토리 활성 여부 검증. 73차 인계 "사용처 0건"이 실제로는 pages_backup/에 3건 존재, 활성 디렉토리 한정 재검증 안 하면 잘못된 dead 판정 위험
+5. CRLF→LF 수동 변환 필요 — .gitattributes (*.js eol=lf) + autocrlf=false 안전망에도 신규 편집 파일이 VS Code에서 CRLF로 표시될 수 있음. 저장 전 상태바 CRLF 클릭 → LF 선택으로 working tree LF 정합 보장 (D-2 의도 일치)
+6. CC 자율 추천 시점 패턴 정착 — commit 직후 + log/diff 직후가 위험 명령(push/add) 자동 생성 빈도 최고. 검증 명령 후 race condition 우선 경계
+7. commit type 영문 유지 — `refactor(api):` 영문 메시지가 CC 변조 시도 시 검증 용이, 74차 #2 한국어 commit 위험 회피 패턴 유지
+
+## 75차 1회 실패·우회 기록
+- t type "D:\project\GeniegoROI\NEXT_SESSION.md" → CC Read 가로채기 (74차 #3 재현)
+- t powershell -Command "Get-Content ... -Tail 50" → UTF-16LE 인코딩 깨짐, raw 활용 불가
+- 우회: 검수자 VS Code Explorer로 NEXT_SESSION.md 직접 열어 raw 확인 (이미지 캡처)
+
+# 76차 핵심 (검수자 결정 대기)
+- 75차 완전 종결 완료: A-dead + push (1 commit)
+- 76차 진입 전 NEXT_SESSION.md raw 재검증 권장
+- 76차 최우선: A-12 / Antigravity monitoring / 신규 후보 중 검수자 결정
+
+# 76차 첫 명령 (Claude Code에 1줄씩 입력)
+- t1: t git -C "D:\project\GeniegoROI" log --oneline -10
+- t2: t git -C "D:\project\GeniegoROI" status --short --branch
+- t3: t git -C "D:\project\GeniegoROI" diff origin/master --stat
+- t4: t git -C "D:\project\GeniegoROI" branch --show-current
+- t5: t git -C "D:\project\GeniegoROI" remote -v
+
+기대값: HEAD=32b804a (또는 75차 종결 docs commit 추가 시 후속 HEAD), working tree clean, ↑0↓0, master, origin 정상
+
+# 76차 우선순위 후보 (NEXT_SESSION.md에서 확정)
+1. 후보 A-12 (raw fetch 패턴 grep, 70~74차 누적 인계) — 회차 ~5
+   - apiClient.js 미사용 raw fetch 패턴 표준화 대상 식별
+2. Antigravity Agent 자율 편집 모니터링 — 회차 ~3
+   - 절차 수립 (CC 자율 편집 감지 + 무력화 로그 정착)
+3. 신규 후보 발굴 가능 (apiClient.js 외 dead code 추가 grep)
+4. A-dead-2 — apiClient.js 외부 dead code (다른 services/utils 파일) 75차에서 미발굴, 76차 신규 grep 시 발견 가능성
+
+# 검수자 운영 원칙 (70~75차 정착, 불변)
+- 자율 추천 절대 금지 (정책 #1)
+- raw 결과만 받기 (Claude Code 자체 분석은 참고만)
+- t 프리픽스 누락 시 즉시 정지 + 재입력 요청
+- CC create_file/Write/Edit 도구 사용 금지
+- CC 자동 생성 텍스트는 t 프리픽스로 무력화 후 덮어쓰기 (ESC/Enter/Backspace 모두 불가)
+- CC 명령어 1개씩만 입력 가능 (배치 입력 불가)
+- 너무 긴 설명 지양, 짧게 설명 후 진행
+- 검수자 명령으로 저장 가능한 것은 검수자가 직접 진행
+- 사용자 결정 필요 시 검수자 추천 1개 동반
+- 위험 명령 (push, force, reset, checkout HEAD, --hard) 자동 생성 시 즉시 t 프리픽스 우선 적용 + 빈 명령 입력 대기 (73차 + 74차 + 75차 race condition 교훈 3차 재입증)
+- dead code 검증은 정의/사용처/디렉토리 활성 여부 3단계 필수 (75차 #4 교훈)
+- 신규 편집 파일 저장 전 상태바 EOL 확인, CRLF면 LF 명시 (75차 #5 교훈)
