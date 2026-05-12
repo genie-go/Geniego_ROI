@@ -345,3 +345,79 @@
 - PowerShell Get-Content 한글 깨짐 시 git cat-file 또는 VS Code D-1 우회 (76차 #4)
 - VS Code Find & Replace 정규식 카운트는 Edit 영역 기준, git grep -c는 디스크 기준 (76차 raw 모순 사례)
 - CC 폴딩 우회는 D-1이 가장 확실 (76차 #5)
+# 77차 종결 상태 (확정, push 완료)
+- master HEAD: b554ec3 (push 완료, origin/master 동기화 ↑0↓0)
+- working tree: 깨끗
+- 77차 commit 2건 (모두 push 완료):
+  - 9fbd321: refactor(api): PriceOpt.jsx 나머지 6개 fetch → postJsonAuth 마이그레이션 완료 - 77th
+  - b554ec3: refactor(api): PriceOpt.jsx 데드코드 API/AUTH 상수 제거 - 77th
+
+# 77차 핵심 (확정)
+- 76차 인계 우선순위 1번 100% 완료 (A-12 PriceOpt.jsx 20/20 마이그레이션)
+- PriceOpt.jsx fetch 6건 → postJsonAuth 통일 (try/catch 1건 추가, 기존 try/catch 활용 5건)
+- L33-L37 const API + const AUTH dead code 제거 (3단계 검증 완료: 정의/사용처/디렉토리 활성)
+- 신택스 클린 (Problems 0), git diff 검증 +30/-58 (CRLF 경고 무시)
+
+# 77차 진행 중 발생 사건 + 복구
+- 916번 편집 시 `if (!prices.length) { ... }` 닫는 `}` 누락 발생 → Problems 3건 (try/catch/} expected)
+- 검수자 raw 진단 후 L915~L916 사이에 `}` 1줄 삽입으로 복구 (저장 전 발견, 회귀 방지)
+- 교훈: 다중 라인 패턴 편집 시 `}` 누락 가능성 → 저장 전 Problems 패널 raw 확인 필수 (77차 #1)
+
+# 78차 첫 명령 (Claude Code에 1줄씩 입력)
+- t1: t git -C "D:\project\GeniegoROI" log --oneline -10
+- t2: t git -C "D:\project\GeniegoROI" status --short --branch
+- t3: t git -C "D:\project\GeniegoROI" diff origin/master --stat
+- t4: t git -C "D:\project\GeniegoROI" branch --show-current
+- t5: t git -C "D:\project\GeniegoROI" remote -v
+- t6: t git -C "D:\project\GeniegoROI" grep -c "fetch(" -- "frontend/src/pages/SubscriberTabs.jsx"
+
+기대값: HEAD=b554ec3, working tree clean, ↑0↓0, master, origin 정상, SubscriberTabs.jsx fetch 9건
+
+# 78차 우선순위 (77차 인계 raw 검증 확정)
+1. SubscriberTabs.jsx _ah() 헬퍼 통합 + 9건 fetch 마이그레이션 (회차 ~4~5)
+   - 76차 인계 "10건/회차 ~1"은 raw 정정: 실제 9건/회차 ~4~5 (PATCH wrapper 추가 작업 포함)
+   - _ah() 정의 L6: () => ({ "Content-Type": "application/json", Authorization: `Bearer ${_AK}` })
+   - _AK 상수 정의 위치 raw 확인 필수 (78차 첫 작업)
+   - _API 상수 정의 위치 + apiClient.js base URL 호환 여부 raw 확인 필수
+   - 9건 분류 (77차 raw 확인):
+     - L32 GET /api/auth/admin/subscribers?${p}
+     - L43 PATCH /api/auth/admin/subscribers/${editing.id} ⚠️ PATCH (apiClient.js wrapper 없음)
+     - L192 POST /api/v423/coupon/profile
+     - L199 POST /api/v423/coupons/redeem
+     - L352 GET /api/v423/admin/coupons?${p}
+     - L359 GET /api/auth/admin/subscribers?limit=200
+     - L365 GET /api/v423/admin/-users?${p}
+     - L384 POST /api/v423/admin/coupons
+     - L401 POST /api/v423/admin/coupons/${id}/revoke
+   - 사전 작업: apiClient.js에 patchJsonAuth wrapper 추가 (C-3 패턴, 76차 C1 유사, 기존 함수 무변경)
+   - `/api/auth/...` prefix 경로 (L32/L43/L359) — apiClient.js base와 다른 prefix 호환 검증 필수
+2. A-12 KrChannel(미확정)/InfluencerUGC(미확정)/LicenseActivation(미확정) (회차 ~2 추정, 76차 인계 수치 raw 재검증 필요)
+3. SecurityGuard.js + adminApiUtils.js 검수자 판단 (회차 ~1)
+4. Antigravity Agent 자율 편집 모니터링 (대기, 회차 ~3)
+
+# 77차 핵심 교훈 (78차 적용 필수)
+1. CC 자율 commit 사건 다발 (1회차 내 commit 2회 자율 진행) — push만 검수자 명령으로 막아도 commit은 막을 수 없음, 사실상 commit/push 둘 다 자율 발생 위험. 사전 raw 검증 → 검수자 명시 commit 명령 흐름이 정석이지만 CC가 이를 우회.
+2. 76차 인계 수치/회차 추정은 항상 raw 재검증 (75차 22→20, 76차 10→6/PATCH 추가, 76차 10→9건 등 인계 부정확 사례 반복)
+3. 다중 라인 패턴 편집 (916번 사례) 시 `}` 누락 위험 — 저장 전 Problems 패널 raw 확인 + git diff 라인 수 검증 필수
+4. postJsonAuth 의미적 차이 (HTTP 4xx/5xx throw vs r.json() 후 d.ok 체크) — try/catch 래핑 필요 여부 호출부 컨텍스트별 분기 필수
+5. apiClient.js base URL = import.meta.env.VITE_API_BASE || "http://localhost:8000" — VITE_API_BASE 환경 변수 의존, dev 서버 정상 동작 raw 검증 완료 (76차 push + 77차 push 후 회귀 없음)
+6. 검수자 컨테이너 ≠ 사용자 Windows 디스크 — str_replace 도구는 컨테이너 파일 한정, GeniegoROI 직접 편집 불가. VS Code 수동 편집이 유일한 경로
+7. CC 폴딩 (`+N lines (ctrl+o to expand)`) 우회 = D-1 (VS Code 직접 캡처) 가장 확실 (76차 #5 재확인)
+
+# 검수자 운영 원칙 (70~77차 정착, 불변)
+- 자율 추천 절대 금지 (정책 #1, 77차 다발 발생, commit/push 자율 진행 사례 다수)
+- raw 결과만 받기 (Claude Code 자체 분석은 참고만)
+- t 프리픽스 누락 시 즉시 정지 + 재입력 요청
+- CC create_file/Write/Edit 도구 사용 금지
+- CC 자동 생성 텍스트는 t 프리픽스로 무력화 후 덮어쓰기 (ESC/Enter/Backspace 모두 불가)
+- CC 명령어 1개씩만 입력 가능 (배치 입력 불가)
+- 너무 긴 설명 지양, 짧게 설명 후 진행
+- 검수자 명령으로 저장 가능한 것은 검수자가 직접 진행
+- 사용자 결정 필요 시 검수자 추천 1개 동반
+- 위험 명령 (push, force, reset, checkout HEAD, --hard) 자동 생성 시 즉시 t 프리픽스 우선 적용 + 빈 명령 입력 대기 (race condition 6차 재입증, 77차에서 commit 자율 발생 추가 확인)
+- dead code 검증 정의/사용처/디렉토리 활성 여부 3단계 필수 (75차 #4)
+- 신규 편집 파일 저장 전 상태바 EOL 확인, CRLF면 LF 명시 (75차 #5, 단 기존 CRLF 파일은 .gitattributes 신뢰)
+- PowerShell Get-Content 한글 깨짐 시 git cat-file 또는 VS Code D-1 우회 (76차 #4)
+- VS Code Find & Replace 정규식 카운트는 Edit 영역 기준, git grep -c는 디스크 기준 (76차 raw 모순 사례)
+- CC 폴딩 우회는 D-1이 가장 확실 (76차 #5)
+- 다중 라인 패턴 편집 후 저장 전 Problems 패널 raw 확인 + git diff 라인 수 검증 (77차 #1, #3 신규)
