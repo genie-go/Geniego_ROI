@@ -1,0 +1,6 @@
+{
+    "editor.formatOnSave": false,
+    "files.insertFinalNewline": false,
+    "files.trimTrailingWhitespace": false,
+    "files.eol": "\n"
+}
