@@ -113,7 +113,7 @@ function emptyPolicy() {
 
 export default function AlertPolicies() {
   const t = useT();
-  const {isDemo} = useAuth();
+  const { isDemo } = useAuth();
   const [policies, setPolicies] = useState([]);
   const [selected, setSelected] = useState(null);
   const [draft, setDraft] = useState(emptyPolicy());
@@ -154,7 +154,7 @@ export default function AlertPolicies() {
       setErr(null);
       const body = { ...draft };
       if (draft.id) {
-        await requestJsonAuth("PUT", `/v410/alert_policies/${draft.id}`, body);
+        await requestJsonAuth(`/v410/alert_policies/${draft.id}`, "PUT", body);
       } else {
         await postJsonAuth("/v410/alert_policies", body);
       }
@@ -172,7 +172,7 @@ export default function AlertPolicies() {
     if (isDemo) { setErr(t('auto.gjra61', '📌  Mode: 정책 Delete는 실제 Account에서만 가능합니다.')); return; }
     setBusy(true);
     try {
-      await requestJsonAuth("DELETE", `/v410/alert_policies/${id}`);
+      await requestJsonAuth(`/v410/alert_policies/${id}`, "DELETE");
       setSelected(null);
       setDraft(emptyPolicy());
       await load();
@@ -539,7 +539,8 @@ export default function AlertPolicies() {
                   background: testResult.ok ? 'rgba(39,174,96,0.15)' : 'rgba(231,76,60,0.15)',
                   border: `1px solid ${testResult.ok ? '#27ae60' : '#e74c3c'}`,
                   color: testResult.ok ? '#27ae60' : '#e74c3c',
-                  fontWeight: 700 }}>
+                  fontWeight: 700
+                }}>
                   {testResult.ok ? '✅' : '❌'} {testResult.detail}
                   {testResult.channel && <span style={{ marginLeft: 8, fontWeight: 400, opacity: 0.8 }}>({testResult.channel})</span>}
                 </div>
