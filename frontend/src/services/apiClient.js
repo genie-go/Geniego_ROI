@@ -130,3 +130,45 @@ export async function requestJsonAuth(path, method, body, extraHeaders = {}) {
   if (!txt) return {};
   try { return JSON.parse(txt); } catch { return { raw: txt }; }
 }
+// === Abortable wrappers (76th, AbortController/signal support) ===
+
+export async function getJsonAuthAbortable(path, signal) {
+  const res = await fetch(`${base}${path}`, { headers: defaultHeaders(), signal });
+  if (!res.ok) {
+    let detail = "";
+    try {
+      const j = await res.json();
+      detail = j?.detail ? JSON.stringify(j.detail) : JSON.stringify(j);
+    } catch (e) {
+      try { detail = await res.text(); } catch { }
+    }
+    throw new Error(`HTTP ${res.status} ${detail}`);
+  }
+  return res.json();
+}
+
+export async function requestJsonAuthAbortable(path, method, body, signal) {
+  const res = await fetch(`${base}${path}`, {
+    method,
+    headers: defaultHeaders(),
+    body: body === undefined ? undefined : JSON.stringify(body ?? {}),
+    signal,
+  });
+  if (!res.ok) {
+    let detail = "";
+    try {
+      const j = await res.json();
+      detail = j?.detail ? JSON.stringify(j.detail) : JSON.stringify(j);
+    } catch (e) {
+      try { detail = await res.text(); } catch { }
+    }
+    throw new Error(`HTTP ${res.status} ${detail}`);
+  }
+  const txt = await res.text();
+  if (!txt) return {};
+  try { return JSON.parse(txt); } catch { return { raw: txt }; }
+}
+
+export async function postJsonAuthAbortable(path, body, signal) {
+  return requestJsonAuthAbortable(path, "POST", body, signal);
+}
