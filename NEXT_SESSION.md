@@ -272,3 +272,76 @@
 
 기대값 (t1~t5): HEAD=75차 3번째 commit, working tree clean, ↑0↓0, master, origin 정상
 기대값 (t6): PriceOpt.jsx 22건 raw 위치 라인 출력 (76차 raw 재검증 시작점)
+# 76차 종결 상태 (확정, 2 commits, 부분 종결)
+
+## 76차 commit 2건 (push 대기)
+- 5abdc6d: feat(api): add abortable wrappers to apiClient.js - 76th C1
+- c8b39b3: refactor(api): migrate PriceOpt.jsx 14/20 fetch to apiClient - 76th C2
+
+## 76차 작업 결과
+- apiClient.js +42줄: getJsonAuthAbortable / postJsonAuthAbortable / requestJsonAuthAbortable wrapper 3개 추가 (signal/AbortController 지원, 기존 7개 함수 무변경)
+- PriceOpt.jsx 14/20 raw fetch → apiClient 표준 함수 마이그레이션
+  - 19건 GET (signal 포함) → getJsonAuthAbortable (9건, 쌍 B 정규식)
+  - 3건 GET (signal 없음) → getJsonAuth (쌍 E)
+  - 2건 GET (signal 변수, useCallback signal 매개변수) → getJsonAuthAbortable (쌍 F)
+  - 1건 POST (fire-and-forget toggle) → postJsonAuth (쌍 D)
+- import 추가 (L24): `import { getJsonAuth, getJsonAuthAbortable, postJsonAuth } from "../services/apiClient"`
+- const API + const AUTH 유지 (잔여 6건이 사용 중, 77차 일괄 삭제 예정)
+
+## 76차 미완 (77차 인계, A-12 PriceOpt.jsx 잔여)
+- 잔여 6건 POST + body 패턴 (회차 ~2):
+  - L336: save (ProductsTab) → /v420/price/products
+  - L425: handleExcelUpload → /v420/price/products
+  - L740: run (OptimizeTab) → /v420/price/optimize
+  - L926: run (ScenarioTab) → /v420/price/simulate
+  - L1051: run (ChannelMixTab) → /v420/channel-mix/simulate
+  - L1226: saveEvent (PriceCalendarTab) → /v420/price/calendar
+- 공통 패턴: `await fetch(\`${API}/...\`, { method: "POST", headers: { ...AUTH(token), "Content-Type": "application/json" }, body: JSON.stringify({...}) })`
+- 대체 함수: postJsonAuth(`경로`, body)
+- 6건 치환 후 L33-L36 (const API + const AUTH) 일괄 삭제 가능
+
+# 77차 첫 명령 (Claude Code에 1줄씩 입력)
+- t1: t git -C "D:\project\GeniegoROI" log --oneline -10
+- t2: t git -C "D:\project\GeniegoROI" status --short --branch
+- t3: t git -C "D:\project\GeniegoROI" diff origin/master --stat
+- t4: t git -C "D:\project\GeniegoROI" branch --show-current
+- t5: t git -C "D:\project\GeniegoROI" grep -c "fetch(" -- "frontend/src/pages/PriceOpt.jsx"
+
+기대값: HEAD=c8b39b3 (또는 76차 docs commit 포함), working tree clean, master, fetch 카운트 6건
+
+# 77차 우선순위 (76차 인계 확정)
+1. A-12 PriceOpt.jsx 잔여 6건 POST 표준화 (회차 ~2)
+   - 패턴: `fetch + method:"POST" + spread AUTH + Content-Type + JSON.stringify(body)`
+   - 대체: postJsonAuth(path, body) — 단순 wrapper, signal 불필요 (fire-and-forget 아닌 await + 응답 사용 케이스)
+   - 단, L425 handleExcelUpload + L740 run + L926 run + L1051 run은 응답 사용 → postJsonAuth 직접 적용 가능
+   - 6건 치환 + L33-L36 (const API + const AUTH) 삭제 + import 정리
+2. A-12 KrChannel(10건) / InfluencerUGC(5건) / LicenseActivation(5건) (회차 ~2)
+3. SubscriberTabs.jsx _ah() 헬퍼 통합 검토 (회차 ~1)
+4. SecurityGuard.js + adminApiUtils.js 검수자 판단 (회차 ~1)
+5. Antigravity Agent 자율 편집 모니터링 (대기, 회차 ~3)
+
+# 76차 핵심 교훈 (77차 적용 필수)
+1. apiClient.js signal 미지원 → 신규 wrapper 추가 (C-3 패턴, 기존 함수 무변경 정신)
+2. PriceOpt.jsx fetch 패턴 5종 다양 (signal 위치/유무, ac.signal vs signal 변수, POST+body) — 단순 grep 카운트로 통일 추정 금지
+3. VS Code Find & Replace 정규식 모드 (G-1) — 단순 패턴은 빠르지만 multi-line POST 패턴 어려움, 6건은 수동/str_replace 필요
+4. PowerShell Get-Content 한글 인코딩 깨짐 — 검수자 VS Code 직접 확인 우회 필수 (D-1, 75차 #2 변형)
+5. CC 출력 폴딩 (`+N lines (ctrl+o to expand)`) — git grep -A는 폴딩 회피 못함, D-1 VS Code 직접 캡처가 가장 확실
+6. 75차 인계 22건 → 실제 20건 (raw 재검증 차이) — 인계 수치는 항상 raw 검증
+7. CRLF→LF 경고 (Windows 기존 CRLF 파일) — .gitattributes 정상 동작, 무시 가능 (75차 #5는 신규 파일 한정)
+
+# 검수자 운영 원칙 (70~76차 정착, 불변)
+- 자율 추천 절대 금지 (정책 #1, 76차 19건 발생)
+- raw 결과만 받기 (Claude Code 자체 분석은 참고만)
+- t 프리픽스 누락 시 즉시 정지 + 재입력 요청
+- CC create_file/Write/Edit 도구 사용 금지
+- CC 자동 생성 텍스트는 t 프리픽스로 무력화 후 덮어쓰기 (ESC/Enter/Backspace 모두 불가)
+- CC 명령어 1개씩만 입력 가능 (배치 입력 불가)
+- 너무 긴 설명 지양, 짧게 설명 후 진행
+- 검수자 명령으로 저장 가능한 것은 검수자가 직접 진행
+- 사용자 결정 필요 시 검수자 추천 1개 동반
+- 위험 명령 (push, force, reset, checkout HEAD, --hard) 자동 생성 시 즉시 t 프리픽스 우선 적용 + 빈 명령 입력 대기 (race condition 6차 재입증, 75차 #1 + 76차 신규)
+- dead code 검증 정의/사용처/디렉토리 활성 여부 3단계 필수 (75차 #4)
+- 신규 편집 파일 저장 전 상태바 EOL 확인, CRLF면 LF 명시 (75차 #5, 단 기존 CRLF 파일은 .gitattributes 신뢰)
+- PowerShell Get-Content 한글 깨짐 시 git cat-file 또는 VS Code D-1 우회 (76차 #4)
+- VS Code Find & Replace 정규식 카운트는 Edit 영역 기준, git grep -c는 디스크 기준 (76차 raw 모순 사례)
+- CC 폴딩 우회는 D-1이 가장 확실 (76차 #5)
