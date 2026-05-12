@@ -334,10 +334,9 @@ function ProductsTab({ token }) {
             .then(r => r.json()).then(d => setProducts(d.products || [])).catch(() => { });
 
     const save = async () => {
-        const r = await fetch(`${API}/v420/price/products`, {
-            method: "POST",
-            headers: { ...AUTH(token), "Content-Type": "application/json" },
-            body: JSON.stringify({
+        let d;
+        try {
+            d = await postJsonAuth(`/v420/price/products`, {
                 sku: form.sku,
                 product_name: form.product_name,
                 category: form.category,
@@ -357,9 +356,10 @@ function ProductsTab({ token }) {
                 stock_boxes: stockSummary.totalBoxes,
                 stock_pallets: stockSummary.totalPallets,
                 product_image: form.image_preview || null,
-            }),
-        });
-        const d = await r.json();
+            });
+        } catch (e) {
+            d = { ok: false, error: e.message };
+        }
         setMsg(d.ok ? `\u2705 ${t('priceOpt.excelUploadSuccess')}: ${form.sku}` : `\u274c ${d.error || JSON.stringify(d)}`);
         load();
         if (d.ok) broadcastProductUpdate();
@@ -423,26 +423,21 @@ function ProductsTab({ token }) {
                     const workFee = parseFloat(row[8]) || 0;
                     const shippingFee = parseFloat(row[9]) || 0;
                     const totalCost = purchaseCost + ioFee + storageFee + workFee + shippingFee;
-                    const r = await fetch(`${API}/v420/price/products`, {
-                        method: "POST",
-                        headers: { ...AUTH(token), "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            sku: String(row[0]).trim(),
-                            product_name: String(row[1] || '').trim(),
-                            category: String(row[2] || '').trim(),
-                            spec: String(row[3] || '').trim(),
-                            unit: String(row[4] || 'unitEach').trim(),
-                            purchase_cost: purchaseCost, io_fee: ioFee, storage_fee: storageFee,
-                            work_fee: workFee, shipping_fee: shippingFee,
-                            cost_price: totalCost,
-                            target_margin: parseFloat(row[11]) || 0.30,
-                            base_price: parseFloat(row[12]) || undefined,
-                            qty_per_box: parseInt(row[13]) || 0,
-                            boxes_per_pallet: parseInt(row[14]) || 0,
-                            initial_stock: parseInt(row[15]) || 0,
-                        }),
+                    const d = await postJsonAuth(`/v420/price/products`, {
+                        sku: String(row[0]).trim(),
+                        product_name: String(row[1] || '').trim(),
+                        category: String(row[2] || '').trim(),
+                        spec: String(row[3] || '').trim(),
+                        unit: String(row[4] || 'unitEach').trim(),
+                        purchase_cost: purchaseCost, io_fee: ioFee, storage_fee: storageFee,
+                        work_fee: workFee, shipping_fee: shippingFee,
+                        cost_price: totalCost,
+                        target_margin: parseFloat(row[11]) || 0.30,
+                        base_price: parseFloat(row[12]) || undefined,
+                        qty_per_box: parseInt(row[13]) || 0,
+                        boxes_per_pallet: parseInt(row[14]) || 0,
+                        initial_stock: parseInt(row[15]) || 0,
                     });
-                    const d = await r.json();
                     if (d.ok) successCount++; else failCount++;
                 } catch { failCount++; }
             }
@@ -738,17 +733,12 @@ function OptimizeTab({ token }) {
         setLoading(true);
         setResult(null);
         try {
-            const r = await fetch(`${API}/v420/price/optimize`, {
-                method: "POST",
-                headers: { ...AUTH(token), "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    sku: form.sku,
-                    channel: form.channel || "*",
-                    current_price: form.current_price ? parseFloat(form.current_price) : undefined,
-                    inventory: parseInt(form.inventory) || 0,
-                }),
+            const d = await postJsonAuth(`/v420/price/optimize`, {
+                sku: form.sku,
+                channel: form.channel || "*",
+                current_price: form.current_price ? parseFloat(form.current_price) : undefined,
+                inventory: parseInt(form.inventory) || 0,
             });
-            const d = await r.json();
             setResult(d);
             loadRecent();
             // [v11] PriceOpt → CatalogSync → OrderHub 양방향 Sync
@@ -923,13 +913,8 @@ function ScenarioTab({ token }) {
             if (!prices.length) {
                 setResult({ error: t("priceOpt.invalidPriceList") });
                 return;
-            }
-            const r = await fetch(`${API}/v420/price/simulate`, {
-                method: "POST",
-                headers: { ...AUTH(token), "Content-Type": "application/json" },
-                body: JSON.stringify({ sku: form.sku, channel: form.channel || "*", prices }),
-            });
-            const d = await r.json();
+                }
+            const d = await postJsonAuth(`/v420/price/simulate`, { sku: form.sku, channel: form.channel || "*", prices });
             setResult(d);
         } catch (e) {
             setResult({ error: t("priceOpt.simFailed") + " " + e.message });
@@ -1049,12 +1034,7 @@ function ChannelMixTab({ token }) {
         setLoading(true);
         setResult(null);
         try {
-            const r = await fetch(`${API}/v420/channel-mix/simulate`, {
-                method: "POST",
-                headers: { ...AUTH(token), "Content-Type": "application/json" },
-                body: JSON.stringify({ total_budget: parseFloat(budget) || 5000000 }),
-            });
-            const d = await r.json();
+            const d = await postJsonAuth(`/v420/channel-mix/simulate`, { total_budget: parseFloat(budget) || 5000000 });
             setResult(d);
             loadHistory();
         } finally { setLoading(false); }
@@ -1224,10 +1204,7 @@ function PriceCalendarTab({ token, priceCalendar, addPriceCalendarEvent }) {
 
     const saveEvent = async () => {
         try {
-            await fetch(`${API}/v420/price/calendar`, {
-                method: 'POST', headers: { ...AUTH(token), 'Content-Type': 'application/json' },
-                body: JSON.stringify(form)
-            });
+            await postJsonAuth(`/v420/price/calendar`, form);
             addPriceCalendarEvent?.(form);
             const re = await getJsonAuth(`/v420/price/calendar`);
             const d = await re.json();
