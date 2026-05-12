@@ -92,3 +92,17 @@
 자세한 인계 사항은 NEXT_SESSION.md (D:\project\GeniegoROI\NEXT_SESSION.md, master HEAD 7ba0869에 포함)를 raw로 확인 부탁드립니다.
 
 74차 시작 확인. 검수자 페어 진행 모드 인지. Claude Code 명령 t1번 결과 raw 수신 대기.
+## 74차 종결 (D-2 완료)
+
+### D-2: core.autocrlf 로컬 override 결정 ✅
+- 결정: 로컬 `core.autocrlf=false` 명시
+- 적용: `git config --local core.autocrlf false` (.git/config)
+- 검증 결과:
+  - system=true (Git 설치 기본, 미변경)
+  - global 미설정 (미변경)
+  - **local=false** (74차 신규)
+  - .gitattributes 우선순위 정상 (check-attr 실측: .jsx → eol:lf, .ps1 → eol:crlf)
+  - working tree clean 유지 (변경 파일 0건)
+- 사유: .gitattributes 단일 진실 소스화, format-on-save 노이즈 근본 차단
+- 전파 범위: 검수자 본인 PC GeniegoROI만 (.git/config는 저장소 외부, push/clone 미전파)
+- 후속: 다른 개발자/CI는 각자 동일 설정 필요 (or .gitattributes만 의존)
