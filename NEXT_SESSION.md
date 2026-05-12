@@ -213,3 +213,62 @@
 - 위험 명령 (push, force, reset, checkout HEAD, --hard) 자동 생성 시 즉시 t 프리픽스 우선 적용 + 빈 명령 입력 대기 (73차 + 74차 + 75차 race condition 교훈 3차 재입증)
 - dead code 검증은 정의/사용처/디렉토리 활성 여부 3단계 필수 (75차 #4 교훈)
 - 신규 편집 파일 저장 전 상태바 EOL 확인, CRLF면 LF 명시 (75차 #5 교훈)
+---
+
+# 75차 추가 작업: A-12 raw grep 1회 진행 (76차 인계용)
+
+## A-12 raw grep 결과 (raw 명령)
+- 명령: `git grep -n "fetch(" -- "frontend/src/**/*.js" "frontend/src/**/*.jsx" ":!frontend/src/pages_backup/**"`
+- pages_backup/ 제외 (75차 A-dead 검증에서 비활성 확정)
+- raw 총 fetch() 호출 라인 약 +120줄 (CC 자체 분석 기준, raw 재검증 76차 필수)
+
+## A-12 파일별 raw fetch 분포 (CC 자체 분석, 76차 raw 재검증 필요)
+| 파일 | fetch 건수 | 패턴 | 표준화 대상 |
+|------|------------|------|------------|
+| frontend/src/pages/PriceOpt.jsx | 22건 | 직접 AUTH 헤더 수동 구성 | ✅ 최우선 |
+| frontend/src/pages/KrChannel.jsx | 10건 | 직접 fetch | ✅ |
+| frontend/src/pages/InfluencerUGC.jsx | 5건 | 직접 fetch | ✅ |
+| frontend/src/pages/LicenseActivation.jsx | 5건 | 직접 fetch | ✅ |
+| frontend/src/pages/SubscriberTabs.jsx | 8건 | _ah() 로컬 헬퍼 | ✅ (헬퍼 통합 검토) |
+| frontend/src/auth/AuthContext.jsx | 8건 | auth 전용 | ❌ (정상, 제외) |
+| frontend/src/services/apiClient.js | 6건 | 정의 자체 | ❌ (정상, 제외) |
+| frontend/src/security/SecurityGuard.js | 1건 | 보안 우회 레이어 | ⚠️ (검수자 판단) |
+| frontend/src/utils/adminApiUtils.js | 2건 | 유틸 래퍼 | ⚠️ (검수자 판단) |
+| frontend/src/utils/apiInterceptor.js | 1건 | 인터셉터 | ❌ (정상, 제외) |
+
+## A-12 표준화 후보 총합
+- 명확 후보 (5개 파일): PriceOpt(22) + KrChannel(10) + InfluencerUGC(5) + LicenseActivation(5) + SubscriberTabs(8) = **50건**
+- 판단 필요 (2개 파일): SecurityGuard(1) + adminApiUtils(2) = 3건
+- 정상 제외: AuthContext, apiClient.js, apiInterceptor (정의/auth/인터셉터)
+
+## 75차 1회 실패·우회 기록 추가
+- t cat NEXT_SESSION.md / t type / t powershell Get-Content 모두 Read 가로채기 또는 인코딩 깨짐 (75차 #2 교훈)
+- 우회: 검수자 VS Code Explorer 직접 열기 + 이미지 캡처 (raw 직접 확인)
+
+## 75차 최종 종결 상태 (확정, 3 commits)
+- master HEAD: (75차 종결 docs 추가 commit 적용 후 갱신, 이 블록 commit이 3번째)
+- working tree: 깨끗 (master ↑0 ↓0 push 완료 시)
+- 75차 commit 3건:
+  - 32b804a: refactor(api): remove dead code getJsonAuthWithHeaders and postFileAuth - 75th A-dead
+  - a77b0bb: docs(session): 75th closure - A-dead complete
+  - (예정): docs(session): 75th A-12 raw grep handoff to 76th
+
+# 76차 최우선 (75차 인계 확정)
+1. **A-12 PriceOpt.jsx 22건 raw fetch 표준화** (회차 ~3)
+   - raw 재검증 → AUTH 헤더 수동 구성 → apiClient.js 표준 함수 (`requestJsonAuth`, `getJson`, `postJsonAuth`)로 대체
+   - 22건 일괄 또는 분할 commit 검수자 결정
+2. A-12 KrChannel/InfluencerUGC/LicenseActivation (회차 ~2)
+3. SubscriberTabs.jsx _ah() 헬퍼 통합 검토 (회차 ~1)
+4. SecurityGuard.js + adminApiUtils.js 검수자 판단 (회차 ~1)
+5. Antigravity Agent 자율 편집 모니터링 (대기, 회차 ~3)
+
+# 76차 첫 명령 갱신 (Claude Code에 1줄씩 입력)
+- t1: t git -C "D:\project\GeniegoROI" log --oneline -10
+- t2: t git -C "D:\project\GeniegoROI" status --short --branch
+- t3: t git -C "D:\project\GeniegoROI" diff origin/master --stat
+- t4: t git -C "D:\project\GeniegoROI" branch --show-current
+- t5: t git -C "D:\project\GeniegoROI" remote -v
+- t6 (A-12 진입): t git -C "D:\project\GeniegoROI" grep -n "fetch(" -- "frontend/src/pages/PriceOpt.jsx"
+
+기대값 (t1~t5): HEAD=75차 3번째 commit, working tree clean, ↑0↓0, master, origin 정상
+기대값 (t6): PriceOpt.jsx 22건 raw 위치 라인 출력 (76차 raw 재검증 시작점)
