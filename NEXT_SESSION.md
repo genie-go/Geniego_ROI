@@ -106,3 +106,28 @@
 - 사유: .gitattributes 단일 진실 소스화, format-on-save 노이즈 근본 차단
 - 전파 범위: 검수자 본인 PC GeniegoROI만 (.git/config는 저장소 외부, push/clone 미전파)
 - 후속: 다른 개발자/CI는 각자 동일 설정 필요 (or .gitattributes만 의존)
+### format-on-save 처리 방침 결정 ✅
+- 결정: 프로젝트 `.vscode/settings.json` 신규 생성, format-on-save 비활성
+- 적용: `git add -f .vscode/settings.json` (.gitignore의 `.vscode/` 무시 우회)
+- 내용:
+  - `editor.formatOnSave: false` — 저장 시 자동 포맷 차단 (핵심)
+  - `files.insertFinalNewline: false` — EOF newline 자동 추가 차단 (74차 실측 차단)
+  - `files.trimTrailingWhitespace: false` — 줄 끝 공백 자동 제거 차단
+  - `files.eol: "\n"` — LF 강제 (D-2 + .gitattributes 정합)
+- 사유: 73차 교훈 #3 + 74차 D-2 commit deletion 1줄 실측 (EOF newline 자동 추가) 입증, race condition 차단
+- 전파 범위: 저장소 추적 → push로 모든 검수자/CI에 전파됨 (D-2와 보완 관계)
+- 부수 효과: VS Code 글로벌 format-on-save 활성 상태여도 프로젝트 설정이 override
+
+## 74차 commit 기록
+- 12ddbde: docs(session): 74th D-2 closure - core.autocrlf=false local override
+- c7d60b1: feat(vscode): disable format-on-save in project settings - 74th format-on-save closure
+- (3rd commit: 74차 종결 docs, push 직전 추가 예정)
+
+## 74차 핵심 교훈 (75차 적용 필수)
+1. CC 자율 push race condition 재발 — NEXT_SESSION.md 종결 기록 commit 전 자율 push 시도 감지, t echo로 차단 성공 (73차 #1 패턴 재입증)
+2. CC 시그니처 변조 — findstr → grep, --local 플래그 누락, type → cat 등 자율 변환 다수 발생, raw 위장 가능성 상시 경계 필수
+3. CC Read 도구 가로채기 — Test-Path, Get-Content 등이 'Read 1 file (ctrl+o to expand)'로 표시되어 raw 미출력, PowerShell 단순 boolean 출력으로 우회 필요
+4. CC 권한 프롬프트 트리거 확장 — `if/else`, `New-Item`, 디렉토리 쓰기 모두 'sensitive file' 분류로 권한 프롬프트 발생, Esc 거부 후 검수자 직접 VS Code 편집으로 우회
+5. .vscode/settings.json은 .gitignore 충돌 — `git add -f`로 강제 추가 필요
+6. D-2 + format-on-save 시너지 — autocrlf=false + .gitattributes + formatOnSave=false 결합이 LF 정합성 + race condition 차단 완전 보장
+7. 글로벌 format-on-save가 활성 상태에서 settings.json 저장 시 working tree는 CRLF로 저장됨 → .gitattributes 정규화로 저장소엔 LF 진입 (D-2 안전망 입증)
