@@ -1,9 +1,6 @@
 import React, { useCallback, useState, useEffect } from 'react';
-
+import { getJsonAuth, postJsonAuth, requestJsonAuth } from '../services/apiClient.js';
 import { useT } from '../i18n/index.js';
-const _API = import.meta.env.VITE_API_BASE || "";
-const _AK  = "process.env.API_KEY || ''";
-const _ah  = () => ({ "Content-Type": "application/json", Authorization: `Bearer ${_AK}` });
 const _PC  = { pro:"#a855f7", enterprise:"#f59e0b", starter:"#4f8ef7", growth:"#22c55e", demo:"#64748b" };
 const _PL  = { pro:"Pro", enterprise:"Enterprise", starter:"Starter", growth:"Growth", demo:"" };
 const _CL  = { monthly:"Monthly", quarterly:"Quarter", biannual:"6개월", yearly:"Annual" };
@@ -29,8 +26,7 @@ export function MembersTab() {
   const load = React.useCallback(() => {
     setLoading(true);
     const p = new URLSearchParams({ search, plan: planFlt, page, limit: LMT });
-    fetch(`${_API}/api/auth/admin/subscribers?${p}`, { headers: _ah() })
-      .then(r => r.json())
+    getJsonAuth(`/api/auth/admin/subscribers?${p}`)
       .then(d => { if (d.ok) { setRows(d.rows || []); setTotal(d.total || 0); } })
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -40,12 +36,11 @@ export function MembersTab() {
 
   const save = () => {
     if (!editing) return;
-    fetch(`${_API}/api/auth/admin/subscribers/${editing.id}`, {
-      method: "PATCH", headers: _ah(), body: JSON.stringify(editing),
-    }).then(r => r.json()).then(d => {
-      if (d.ok) { setMsg("✅ Save Done"); load(); setDetail(null); setEditing(null); }
-      else setMsg("❌ " + d.error);
-    });
+    requestJsonAuth(`/api/auth/admin/subscribers/${editing.id}`, "PATCH", editing)
+      .then(() => {
+        setMsg("✅ Save Done"); load(); setDetail(null); setEditing(null);
+      })
+      .catch(e => setMsg("❌ " + e.message));
   };
 
   const totPages = Math.ceil(total / LMT);
@@ -189,18 +184,10 @@ export function FreeCouponProfileModal({ couponCode, onClose, onSuccess }) {
     }
     setSaving(true);
     try {
-      const r = await fetch(`${_API}/api/v423/coupon/profile`, {
-        method: "POST", headers: _ah(),
-        body: JSON.stringify(form),
-      });
-      const d = await r.json();
+      const d = await postJsonAuth(`/api/v423/coupon/profile`, form);
       if (d.ok) {
         // Pro필 Save Success → Coupon Use 재시도
-        const r2 = await fetch(`${_API}/api/v423/coupons/redeem`, {
-          method: "POST", headers: _ah(),
-          body: JSON.stringify({ code: couponCode }),
-        });
-        const d2 = await r2.json();
+        const d2 = await postJsonAuth(`/api/v423/coupons/redeem`, { code: couponCode });
         if (d2.ok) {
           onSuccess && onSuccess(d2);
         } else {
@@ -349,21 +336,20 @@ export function CouponsGrantTab() {
 
   const loadCoupons = React.useCallback(() => {
     const p = new URLSearchParams({ status: fltStatus, page, limit: LMT });
-    fetch(`${_API}/api/v423/admin/coupons?${p}`, { headers: _ah() })
-      .then(r => r.json())
+    getJsonAuth(`/api/v423/admin/coupons?${p}`)
       .then(d => { if (d.ok) { setCoupons(d.coupons || []); setTotal(d.total || 0); } })
       .catch(() => {});
   }, [fltStatus, page]);
 
   const loadSubs = React.useCallback(() => {
-    fetch(`${_API}/api/auth/admin/subscribers?limit=200`, { headers: _ah() })
-      .then(r => r.json()).then(d => { if (d.ok) setSubs(d.rows || []); }).catch(() => {});
+    getJsonAuth(`/api/auth/admin/subscribers?limit=200`)
+      .then(d => { if (d.ok) setSubs(d.rows || []); }).catch(() => {});
   }, []);
 
   const loadUsers = React.useCallback(() => {
     const p = new URLSearchParams(Search ? { search: Search } : {});
-    fetch(`${_API}/api/v423/admin/-users?${p}`, { headers: _ah() })
-      .then(r => r.json()).then(d => { if (d.ok) setUsers(d.rows || []); }).catch(() => {});
+    getJsonAuth(`/api/v423/admin/-users?${p}`)
+      .then(d => { if (d.ok) setUsers(d.rows || []); }).catch(() => {});
   }, [Search]);
 
   React.useEffect(() => { loadCoupons(); loadSubs(); loadUsers(); }, [loadCoupons, loadSubs, loadUsers]);
@@ -381,10 +367,7 @@ export function CouponsGrantTab() {
         max_uses: 1,
         note: form.reason,
       };
-      const r = await fetch(`${_API}/api/v423/admin/coupons`, {
-        method: "POST", headers: _ah(), body: JSON.stringify(payload),
-      });
-      const d = await r.json();
+      const d = await postJsonAuth(`/api/v423/admin/coupons`, payload);
       if (d.ok) {
         const extraMsg = d.requires_profile
           ? `\n⚠️ Free회원이므로 Coupon Code [${d.code}] 사용 시 비즈니스 Info Register이 필Count입니다.`
@@ -398,8 +381,7 @@ export function CouponsGrantTab() {
 
   const revoke = async (id) => {
     if (!window.confirm("이 이용권을 Cancel하시겠습니까?")) return;
-    const r = await fetch(`${_API}/api/v423/admin/coupons/${id}/revoke`, { method: "POST", headers: _ah() });
-    const d = await r.json();
+    const d = await postJsonAuth(`/api/v423/admin/coupons/${id}/revoke`, {});
     if (d.ok) { setMsg("✅ Cancel Done"); setMsgType("ok"); loadCoupons(); }
   };
 
