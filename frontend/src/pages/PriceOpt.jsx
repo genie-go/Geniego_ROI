@@ -21,6 +21,7 @@ import { useGlobalData } from "../context/GlobalDataContext";
 import { useCurrency } from '../contexts/CurrencyContext.jsx';
 import { CHANNEL_RATES, getChannelRate } from '../constants/channelRates.js';
 import { useConnectorSync } from '../context/ConnectorSyncContext.jsx';
+import { getJsonAuth, getJsonAuthAbortable, postJsonAuth } from "../services/apiClient";
 
 /* ── Security Monitor ── */
 const SEC_PATTERNS = [/[<>]script/i, /union\s+select/i, /drop\s+table/i, /;\s*--/i, /\.\.\/\.\.\//i, /eval\s*\(/i, /javascript:/i, /on(error|load|click)\s*=/i];
@@ -134,7 +135,7 @@ function SummaryTab({ token }) {
 
     useEffect(() => {
         const ac = new AbortController();
-        fetch(`${API}/v420/price/summary`, { headers: AUTH(token), signal: ac.signal })
+        getJsonAuthAbortable(`/v420/price/summary`, ac.signal)
             .then(r => r.json())
             .then(d => {
                 // API가 200 OK지만 데이터가 비어있으면 데모 폴백 사용
@@ -147,7 +148,7 @@ function SummaryTab({ token }) {
 
     const reload = () => {
         setData(null);
-        fetch(`${API}/v420/price/summary`, { headers: AUTH(token) })
+        getJsonAuth(`/v420/price/summary`)
             .then(r => r.json())
             .then(d => {
                 if ((!d.products || d.products === 0) && demoFallback) setData(demoFallback);
@@ -297,7 +298,7 @@ function ProductsTab({ token }) {
 
     useEffect(() => {
         const ac = new AbortController();
-        fetch(`${API}/v420/price/products`, { headers: AUTH(token), signal: ac.signal })
+        getJsonAuthAbortable(`/v420/price/products`, ac.signal)
             .then(r => r.json())
             .then(d => {
                 const prods = d.products || [];
@@ -329,7 +330,7 @@ function ProductsTab({ token }) {
     };
 
     const load = () =>
-        fetch(`${API}/v420/price/products`, { headers: AUTH(token) })
+        getJsonAuth(`/v420/price/products`)
             .then(r => r.json()).then(d => setProducts(d.products || [])).catch(() => { });
 
     const save = async () => {
@@ -703,7 +704,7 @@ function OptimizeTab({ token }) {
     }, [inventory]);
 
     const loadRecent = useCallback((signal) =>
-        fetch(`${API}/v420/price/recommendations`, { headers: AUTH(token), signal })
+        getJsonAuthAbortable(`/v420/price/recommendations`, signal)
             .then(r => r.json())
             .then(d => setRecent(d.recommendations?.slice(0, 6) || []))
             .catch(() => { })
@@ -711,7 +712,7 @@ function OptimizeTab({ token }) {
 
     useEffect(() => {
         const ac = new AbortController();
-        fetch(`${API}/v420/price/products`, { headers: AUTH(token), signal: ac.signal })
+        getJsonAuthAbortable(`/v420/price/products`, ac.signal)
             .then(r => r.json())
             .then(d => {
                 const prods = d.products || [];
@@ -904,7 +905,7 @@ function ScenarioTab({ token }) {
 
     useEffect(() => {
         const ac = new AbortController();
-        fetch(`${API}/v420/price/products`, { headers: AUTH(token), signal: ac.signal })
+        getJsonAuthAbortable(`/v420/price/products`, ac.signal)
             .then(r => r.json())
             .then(d => {
                 const prods = d.products || [];
@@ -1032,7 +1033,7 @@ function ChannelMixTab({ token }) {
     const [loading, setLoading] = useState(false);
 
     const loadHistory = useCallback((signal) =>
-        fetch(`${API}/v420/channel-mix/results`, { headers: AUTH(token), signal })
+        getJsonAuthAbortable(`/v420/channel-mix/results`, signal)
             .then(r => r.json())
             .then(d => setHistory(d.results || []))
             .catch(() => { })
@@ -1155,7 +1156,7 @@ function CompetitorPriceTab({ token, inventory, digitalShelfData }) {
 
     useEffect(() => {
         const ac = new AbortController();
-        fetch(`${API}/v420/price/competitor`, { headers: AUTH(token), signal: ac.signal })
+        getJsonAuthAbortable(`/v420/price/competitor`, ac.signal)
             .then(r => r.json()).then(d => { if (d.items) setCompetitorData(d.items); }).catch(() => {});
         return () => ac.abort();
     }, [token]);
@@ -1214,7 +1215,7 @@ function PriceCalendarTab({ token, priceCalendar, addPriceCalendarEvent }) {
 
     useEffect(() => {
         const ac = new AbortController();
-        fetch(`${API}/v420/price/calendar`, { headers: AUTH(token), signal: ac.signal })
+        getJsonAuthAbortable(`/v420/price/calendar`, ac.signal)
             .then(r => r.json()).then(d => { if (d.events) setEvents(d.events); }).catch(() => {});
         return () => ac.abort();
     }, [token]);
@@ -1228,7 +1229,7 @@ function PriceCalendarTab({ token, priceCalendar, addPriceCalendarEvent }) {
                 body: JSON.stringify(form)
             });
             addPriceCalendarEvent?.(form);
-            const re = await fetch(`${API}/v420/price/calendar`, { headers: AUTH(token) });
+            const re = await getJsonAuth(`/v420/price/calendar`);
             const d = await re.json();
             if (d.events) setEvents(d.events);
             setSaved(true); setTimeout(() => setSaved(false), 2000);
@@ -1299,9 +1300,9 @@ function DynamicRepricerTab({ token, inventory = [], digitalShelfData = {} }) {
 
     useEffect(() => {
         const ac = new AbortController();
-        fetch(`${API}/v420/price/repricer/rules`, { headers: AUTH(token), signal: ac.signal })
+        getJsonAuthAbortable(`/v420/price/repricer/rules`, ac.signal)
             .then(r => r.json()).then(d => { if (d.rules) setRules(d.rules); if (d.avg_margin_improve != null) setMarginImprove(d.avg_margin_improve); }).catch(() => {});
-        fetch(`${API}/v420/price/repricer/history`, { headers: AUTH(token), signal: ac.signal })
+        getJsonAuthAbortable(`/v420/price/repricer/history`, ac.signal)
             .then(r => r.json()).then(d => { if (d.history) setHistory(d.history); }).catch(() => {});
         return () => ac.abort();
     }, [token]);
@@ -1339,7 +1340,7 @@ function DynamicRepricerTab({ token, inventory = [], digitalShelfData = {} }) {
                             </div>
                             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                                 <span style={{ fontSize: 10, color: r.active ? "#22c55e" : "#7c8fa8", fontWeight: 700 }}>{r.active ? `● ${t('priceOpt.ruleActive')}` : `○ ${t('priceOpt.ruleInactive')}`}</span>
-                                <button onClick={() => { setRules(prev => prev.map(x => x.id === r.id ? { ...x, active: !x.active } : x)); fetch(`${API}/v420/price/repricer/rules/${r.id}/toggle`, { method: 'POST', headers: AUTH(token) }).catch(() => {}); }} style={{ padding: "4px 12px", borderRadius: 7, border: "none", background: r.active ? "rgba(239,68,68,0.15)" : "rgba(34,197,94,0.15)", color: r.active ? "#ef4444" : "#22c55e", fontSize: 10, fontWeight: 800, cursor: "pointer" }}>
+                                <button onClick={() => { setRules(prev => prev.map(x => x.id === r.id ? { ...x, active: !x.active } : x)); postJsonAuth(`/v420/price/repricer/rules/${r.id}/toggle`).catch(() => {}); }} style={{ padding: "4px 12px", borderRadius: 7, border: "none", background: r.active ? "rgba(239,68,68,0.15)" : "rgba(34,197,94,0.15)", color: r.active ? "#ef4444" : "#22c55e", fontSize: 10, fontWeight: 800, cursor: "pointer" }}>
                                     {r.active ? t('priceOpt.ruleStop') : t('priceOpt.ruleActivate')}
                                 </button>
                             </div>
