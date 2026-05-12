@@ -86,3 +86,52 @@
 - 로컬 override (`config core.autocrlf false`) 필요 여부는 73차 검수자 판단
 - 영향 범위 사전 예측 불가 → 70차 교훈 #3 직접 재현 확인
 - 옵션 1 채택 사유: 71차 종결 안전 + 원격 LF 정상 + 환경 변경 위험 회피
+## 72차 A 페이즈 부분 진행 결과 (apiClient.js 인증 함수 raw 검색, 회차 11개)
+
+### A 검증 결과 (raw 확정)
+
+#### 1) requestJsonAuth (apiClient.js:113)
+- 정의 시그니처: `requestJsonAuth(path, method, body, extraHeaders = {})` — **path가 첫 번째**
+- 내부 self-call (apiClient.js:110): `requestJsonAuth(path, "POST", body, extraHeaders)` — path-first ✅
+- 활성 사용처: `pages/AlertPolicies.jsx` 1개 파일 (3건)
+- 백업 파일: `pages_backup/DLQ.jsx` (제외)
+
+#### 2) getJsonAuthWithHeaders (apiClient.js:134)
+- 활성 사용처: **0개** (dead code 의심)
+- 백업 파일만 존재
+
+#### 3) postFileAuth (apiClient.js:151)
+- 활성 사용처: **0개** (dead code 의심)
+- 정의 파일만 존재
+
+### 🚨 72차 핵심 발견 — 시그니처 불일치 의심 (73차 최우선)
+
+**AlertPolicies.jsx raw (검수자 직접 sed 검증)**:
+- L157: `await requestJsonAuth("PUT", \`/v4l0/alert_policies/${draft.id}\`, body);`
+- L175: `await requestJsonAuth("DELETE", \`/v4l0/alert_policies/${id}\`);`
+
+**apiClient.js:113 정의 raw (검수자 직접 sed 검증)**:
+- `export async function requestJsonAuth(path, method, body, extraHeaders = {}) {`
+- `  const res = await fetch(\`${base}${path}\`, { method, ... });`
+
+**시그니처 불일치 확정**:
+| 라인 | 현재 (의심 버그) | 정의 기준 수정 후보 |
+|------|----------------|-------------------|
+| 157 | `("PUT", path, body)` | `(path, "PUT", body)` |
+| 175 | `("DELETE", path)` | `(path, "DELETE")` |
+
+**73차 검증 필수 항목**:
+1. AlertPolicies.jsx의 PUT/DELETE가 실제 production에서 작동하는지 확인
+2. 작동 시 → 어딘가 추가 변환 로직 또는 dead path 가능성
+3. 미작동 시 → 명확한 버그, 호출 측 수정 필요
+4. **본 회차에서는 수정 안 함** — raw 발견만 기록
+
+### A 페이즈 미진행 (73차 인계)
+- A-12: raw fetch 패턴 grep (apiClient.js 미사용 raw fetch 식별)
+- 시그니처 불일치 실제 영향 검증 (런타임 + 추가 변환 로직 확인)
+
+### 72차 회차 누적
+- D 페이즈: 7회 (.gitattributes 후속 영향 검증, 완전 종결)
+- 메모/commit/push: 6회 (e5e8380 → origin 동기화)
+- A 페이즈: 11회 (부분 진행, 73차 인계)
+- **총 24회 사용**
