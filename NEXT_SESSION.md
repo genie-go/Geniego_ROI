@@ -60,3 +60,29 @@
 - Claude Code (CC, VS Code 내장 Agent)
 - 검수자가 t 프리픽스 명령으로 CC 자동 생성 텍스트 무력화 + 1개씩 명령 입력
 - raw 결과는 검수자가 VS Code 스크린샷으로 검수자(Claude.ai)에 전달
+
+## 72차 D 페이즈 결과 (.gitattributes 후속 영향 검증, 회차 7개)
+
+### 검증 결과 (raw)
+| 파일 | i (인덱스) | w (워킹트리) | attr |
+|------|----------|-------------|------|
+| .gitattributes | - | - | text=auto eol=lf |
+| frontend/src/main.jsx | LF | CRLF | text eol=lf |
+| deploy.ps1 | LF | CRLF | text eol=crlf |
+| NEXT_SESSION.md | LF | LF | text eol=lf |
+
+### 환경
+- 시스템: `C:/Program Files/Git/etc/gitconfig` → `core.autocrlf=true`
+- 로컬/글로벌 override 없음 (72차에서 환경 변경 미적용, 사용자 결정 옵션 1)
+
+### 결론
+- ✅ 원격 인덱스: 텍스트 파일 모두 LF 정규화 (push 안전)
+- ✅ 다른 작업자/CI clone: `.gitattributes` 우선 적용 → 의도된 EOL 체크아웃
+- ⚠️ 로컬 워킹트리: 일부 CRLF (`autocrlf=true` 개입, 시각적 차이만)
+- ✅ 71차 종결 무효화 사유 없음
+
+### 72차 발견 (73차 참고)
+- `core.autocrlf=true` 시스템 전역 설정 활성
+- 로컬 override (`config core.autocrlf false`) 필요 여부는 73차 검수자 판단
+- 영향 범위 사전 예측 불가 → 70차 교훈 #3 직접 재현 확인
+- 옵션 1 채택 사유: 71차 종결 안전 + 원격 LF 정상 + 환경 변경 위험 회피
