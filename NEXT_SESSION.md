@@ -421,3 +421,64 @@
 - VS Code Find & Replace 정규식 카운트는 Edit 영역 기준, git grep -c는 디스크 기준 (76차 raw 모순 사례)
 - CC 폴딩 우회는 D-1이 가장 확실 (76차 #5)
 - 다중 라인 패턴 편집 후 저장 전 Problems 패널 raw 확인 + git diff 라인 수 검증 (77차 #1, #3 신규)
+# ============================================================
+# 78차 종결 + 79차 인계 (검수자 작성)
+# ============================================================
+
+## 78차 종결 상태 (확정, push 완료)
+- master HEAD: b2da595
+- working tree: 깨끗 (↑0↓0)
+- 78차 commit 2건 (모두 push):
+  - d075755: refactor(api): SubscriberTabs.jsx 9 fetch → apiClient wrappers + dead consts cleanup - 78th
+  - b2da595: chore(cleanup): remove dead adminApiUtils.js (0 usages, 78th A-dead)
+
+## 78차 완료 작업
+1. **SubscriberTabs.jsx 9 fetch 마이그레이션 100% 완료**
+   - GET 4건 → getJsonAuth (L32, L342, L348, L354)
+   - POST 4건 → postJsonAuth (L190, L193, L373, L387)
+   - PATCH 1건 → requestJsonAuth (L42, "PATCH" 인자)
+   - dead 상수 3건 제거: _API, _AK, _ah (L4~L6)
+   - 호출부 패턴 변경: try/catch 블록은 wrapper throw 패턴 활용 (77차 #4 적용)
+   - 다중 라인 압축: 50줄 영향 (+16 -34)
+
+2. **adminApiUtils.js 완전 제거 (A-dead)**
+   - 75차 #4 dead code 검증 3단계 통과
+   - import/require/문자열 참조 raw 0건 (자기 참조 2건 제외)
+   - 298줄 dead 제거
+
+3. **#3 SecurityGuard.js raw 검증 (skip 판정)**
+   - 실제 경로: `frontend/src/security/SecurityGuard.js` (인계 utils/ 정정)
+   - fetch 1건 (L224, `const res = await fetch(url, options);`) — wrapper 자체
+   - 사용처: App.jsx (L117, L249), MarketingAIPanel.jsx (L8 secureFetch import) + 129+ 참조
+   - 결론: secureFetch 자체가 보안 wrapper. apiClient.js로 마이그레이션 시 보안 로직 손실. **마이그레이션 부적합**
+
+## 78차 신규 교훈 (79차 적용 필수)
+1. **인계 파일 경로 raw 재검증 필수**: 76+77차 "frontend/src/api/apiClient.js" 인계가 실제 "frontend/src/services/apiClient.js" (api/ 디렉토리 부재). 즉 인계의 경로 정보도 raw 검증 우선.
+2. **Phase 1 import 추가 시 빈 줄 교체 케이스**: 빈 줄(L2)을 import로 교체 시 후속 라인 shift 0. 검수자가 +1 shift 추정 후 raw 정정 사례. 라인 번호는 항상 raw 재검증.
+3. **postJsonAuth body 인자 처리 raw 차이**: 기존 빈 POST (body 없음) → wrapper에 `{}` 전달 시 body `"{}"` 로 전송됨. `undefined` 전달이 회귀 위험 최소. 단, 대부분 백엔드는 `{}` 허용. 78차는 B안(빈 객체) 선택.
+4. **requestJsonAuth 활용**: apiClient.js L113 `requestJsonAuth(path, method, body, extraHeaders)` 존재. PATCH/DELETE 등 wrapper 추가 불필요. 76차 "patchJsonAuth wrapper 추가" 계획 raw 검증 시 불필요.
+5. **wrapper 함수 자체는 마이그레이션 금지**: SecurityGuard.js의 secureFetch처럼 native fetch를 내부에서 wrapping하는 함수는 apiClient.js로 마이그레이션 시 의도된 wrapper 로직 손실 위험.
+
+## 79차 우선순위 (확정 + 추정)
+1. **#2 A-12 KrChannel/InfluencerUGC/LicenseActivation 마이그레이션 (회차 ~2 추정, raw 정찰 필요)**
+   - 사전 raw 정찰 필요: `t git -C "D:\project\GeniegoROI" grep -c "fetch(" -- "frontend/src/pages/KrChannel.jsx" "frontend/src/pages/InfluencerUGC.jsx" "frontend/src/pages/LicenseActivation.jsx"`
+   - 파일 존재 여부 + fetch 카운트 raw 확인 필수
+   - 76+77차 인계 경로 오류 패턴 가능성 — 실제 파일 경로 raw 검증 우선
+
+2. **#4 Antigravity Agent 자율 편집 모니터링 (회차 ~3)**
+   - 78차에 미접근. 인계 의도 불명확
+   - 79차에 의도 명확화 필요 (사용자 추가 설명 또는 archive 참고)
+
+3. **잔여 dead code 정찰 (선택)**
+   - SubscriberTabs.jsx L4~L9 다른 상수 (_PC, _PL, _CL, _fd, _fk, INP) 사용처 검증
+   - 78차에 미접근. 활성 여부 raw 검증으로 추가 정리 가능
+
+## 79차 첫 명령 (Claude Code에 1줄씩 입력)
+- t1: t git -C "D:\project\GeniegoROI" log --oneline -10
+- t2: t git -C "D:\project\GeniegoROI" status --short --branch
+- t3: t git -C "D:\project\GeniegoROI" diff origin/master --stat
+- t4: t git -C "D:\project\GeniegoROI" branch --show-current
+- t5: t git -C "D:\project\GeniegoROI" remote -v
+- t6: t git -C "D:\project\GeniegoROI" grep -c "fetch(" -- "frontend/src/pages/KrChannel.jsx" "frontend/src/pages/InfluencerUGC.jsx" "frontend/src/pages/LicenseActivation.jsx"
+
+기대값: HEAD=b2da595, working tree clean, ↑0↓0, master, origin 정상, #2 후보 파일 fetch 카운트 raw 확정
