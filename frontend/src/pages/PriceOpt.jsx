@@ -31,11 +31,6 @@ function checkSecurity(value) {
     return null;
 }
 
-const API = "/api";
-const AUTH = (token) => ({
-    Authorization: `Bearer ${token || localStorage.getItem("genie_auth_token") || ""}`,
-});
-
 const PCT = (v) => (v == null ? "—" : (Number(v) * 100).toFixed(1) + "%");
 
 const CH_COLORS = {
