@@ -1,6 +1,5 @@
 import React, { useCallback, useState, useEffect } from 'react';
 import { getJsonAuth, postJsonAuth, requestJsonAuth } from '../services/apiClient.js';
-import { useT } from '../i18n/index.js';
 const _PC  = { pro:"#a855f7", enterprise:"#f59e0b", starter:"#4f8ef7", growth:"#22c55e", demo:"#64748b" };
 const _PL  = { pro:"Pro", enterprise:"Enterprise", starter:"Starter", growth:"Growth", demo:"" };
 const _CL  = { monthly:"Monthly", quarterly:"Quarter", biannual:"6개월", yearly:"Annual" };
