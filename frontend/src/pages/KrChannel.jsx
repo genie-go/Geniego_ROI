@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useI18n } from '../i18n';
 
 import { useT } from '../i18n/index.js';
+import { getJson, postJson } from '../services/apiClient';
 
 /* ── Enterprise Demo Isolation Guard ─────────────────────── */
 const _isDemo = (() => {
@@ -54,8 +55,7 @@ function ChannelsTab() {
     const [channels, setChannels] = useState([]);
     const [isMock, setIsMock] = useState(false);
     useEffect(() => {
-        fetch(`${API}/v419/kr/channels`)
-            .then((r) => { if (!r.ok) throw new Error(); return r.json(); })
+        getJson(`${API}/v419/kr/channels`)
             .then((d) => { setChannels(d.channels || []); setIsMock(false); })
             .catch(() => { setChannels([]); setIsMock(true); });
     }, []);
@@ -101,8 +101,7 @@ function FeeRulesTab() {
     const [msg, setMsg] = useState("");
 
     useEffect(() => {
-        fetch(`${API}/v419/kr/channels`)
-            .then((r) => { if (!r.ok) throw new Error(); return r.json(); })
+        getJson(`${API}/v419/kr/channels`)
             .then((d) => setChannels(d.channels || []))
             .catch(() => setChannels([]));
     }, []);
@@ -110,23 +109,19 @@ function FeeRulesTab() {
     const loadRules = (key) => {
         setSel(key);
         setForm((f) => ({ ...f, channel_key: key }));
-        fetch(`${API}/v419/kr/fee-rules/${key}`)
-            .then((r) => r.json()).then((d) => setRules(d.rules || [])).catch(() => { });
+        getJson(`${API}/v419/kr/fee-rules/${key}`)
+            .then((d) => setRules(d.rules || [])).catch(() => { });
     };
 
     const save = async () => {
-        const r = await fetch(`${API}/v419/kr/fee-rules`, {
-            method: "POST", headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                ...form,
-                platform_fee_rate: parseFloat(form.platform_fee_rate) || 0,
-                ad_fee_rate: parseFloat(form.ad_fee_rate) || 0,
-                shipping_standard: parseFloat(form.shipping_standard) || 0,
-                return_fee_standard: parseFloat(form.return_fee_standard) || 0,
-                vat_rate: parseFloat(form.vat_rate) || 0.1,
-            }),
+        const d = await postJson(`${API}/v419/kr/fee-rules`, {
+            ...form,
+            platform_fee_rate: parseFloat(form.platform_fee_rate) || 0,
+            ad_fee_rate: parseFloat(form.ad_fee_rate) || 0,
+            shipping_standard: parseFloat(form.shipping_standard) || 0,
+            return_fee_standard: parseFloat(form.return_fee_standard) || 0,
+            vat_rate: parseFloat(form.vat_rate) || 0.1,
         });
-        const d = await r.json();
         setMsg(d.ok ? "✅ Save됨 (id:" + d.id + ")" : "❌ " + d.error);
         if (sel) loadRules(sel);
     };
@@ -223,8 +218,7 @@ function IngestTab() {
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        fetch(`${API}/v419/kr/channels`)
-            .then((r) => { if (!r.ok) throw new Error(); return r.json(); })
+        getJson(`${API}/v419/kr/channels`)
             .then((d) => setChannels(d.channels || []))
             .catch(() => setChannels([]));
     }, []);
@@ -239,15 +233,13 @@ function IngestTab() {
         setMsg({ type: "", text: "" });
         try {
             const lines = JSON.parse(linesJson);
-            const r = await fetch(`${API}/v419/kr/settle/ingest`, {
-                method: "POST", headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ channel_key: sel, lines }),
-            });
-            if (!r.ok) {
+            let d;
+            try {
+                d = await postJson(`${API}/v419/kr/settle/ingest`, { channel_key: sel, lines });
+            } catch {
                 setMsg({ type: "ok", text: `✅ [MOCK] ${lines.length}건 재Completed (${sel}) — 백엔드 API Disconnected` });
                 return;
             }
-            const d = await r.json();
             setMsg({
                 type: d.ok ? "ok" : "err",
                 text: d.ok ? `✅ ${d.inserted}건 재Completed (${sel})` : "❌ " + (d.error || JSON.stringify(d)),
@@ -291,8 +283,8 @@ function SummaryTab() {
     const [until, setUntil] = useState(new Date().toISOString().slice(0, 10));
 
     const load = useCallback(() => {
-        fetch(`${API}/v419/kr/settle/summary?since=${since}&until=${until}`)
-            .then((r) => r.json()).then(setData).catch(() => { });
+        getJson(`${API}/v419/kr/settle/summary?since=${since}&until=${until}`)
+            .then(setData).catch(() => { });
     }, [since, until]);
     useEffect(load, [load]);
 
@@ -377,29 +369,24 @@ function ReconTab() {
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        fetch(`${API}/v419/kr/channels`)
-            .then((r) => { if (!r.ok) throw new Error(); return r.json(); })
+        getJson(`${API}/v419/kr/channels`)
             .then((d) => setChannels(d.channels || []))
             .catch(() => setChannels([]));
         loadReports();
     }, []);
 
     const loadReports = () =>
-        fetch(`${API}/v419/kr/recon/reports`)
-            .then((r) => r.json()).then((d) => setReports(d.reports || [])).catch(() => { });
+        getJson(`${API}/v419/kr/recon/reports`)
+            .then((d) => setReports(d.reports || [])).catch(() => { });
 
     const openReport = (id) =>
-        fetch(`${API}/v419/kr/recon/reports/${id}`)
-            .then((r) => r.json()).then((d) => setSelReport(d.report || null)).catch(() => { });
+        getJson(`${API}/v419/kr/recon/reports/${id}`)
+            .then((d) => setSelReport(d.report || null)).catch(() => { });
 
     const run = async () => {
         setLoading(true);
         try {
-            const r = await fetch(`${API}/v419/kr/recon/run`, {
-                method: "POST", headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(form),
-            });
-            const d = await r.json();
+            const d = await postJson(`${API}/v419/kr/recon/run`, form);
             await loadReports();
             if (d.report_id) openReport(d.report_id);
         } finally { setLoading(false); }
