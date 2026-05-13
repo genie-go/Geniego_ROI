@@ -8,6 +8,7 @@ const LANG_LOCALE_MAP = {
 import React, { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
+import { postJson } from '../services/apiClient.js';
 
 const USD = (v) => "$" + Number(v).toLocaleString("en-US");
 
@@ -35,15 +36,7 @@ export default function PaymentSuccess() {
 
         (async () => {
             try {
-                const r = await fetch("/api/auth/payment/confirm", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${token}`,
-                    },
-                    body: JSON.stringify({ paymentKey, orderId, amount, plan, cycle }),
-                });
-                const d = await r.json();
+                const d = await postJson("/api/auth/payment/confirm", { paymentKey, orderId, amount, plan, cycle });
                 if (!d.ok) throw new Error(d.error || "Payment Confirm Failed");
 
                 // AuthContext User Info 갱신
