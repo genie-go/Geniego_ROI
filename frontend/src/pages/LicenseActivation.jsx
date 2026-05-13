@@ -15,6 +15,9 @@ const _isDemo = (() => {
 import React, { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
+import { useI18n } from '../i18n/index.js';
+import { useT } from '../i18n/index.js';
+import { postJsonAuth, getJsonAuth, requestJsonAuth, postJson } from '../services/apiClient.js';
 
 /* ─── Channelper API Key Issue Guide ────────────────────────────────────────────── */
 const CHANNEL_GUIDES = [
@@ -338,24 +341,15 @@ function ChannelKeyForm({ ch, values, onChange, saved, token, onSaved, onCleared
         setTestMsg(null);
         const savedIds = [];
         try {
-            const BASE = import.meta.env.VITE_API_BASE || "";
             for (const f of ch.keyFields) {
                 if (!values[f.key]) continue;
-                const r = await fetch(`${BASE}/api/v423/creds`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${token}`,
-                    },
-                    body: JSON.stringify({
-                        channel: ch.id,
-                        cred_type: ch.authType || "api_key",
-                        label: ch.name,
-                        key_name: f.key,
-                        key_value: values[f.key],
-                    }),
+                const d = await postJsonAuth(`/api/v423/creds`, {
+                    channel: ch.id,
+                    cred_type: ch.authType || "api_key",
+                    label: ch.name,
+                    key_name: f.key,
+                    key_value: values[f.key],
                 });
-                const d = await r.json();
                 if (d.ok && d.id) savedIds.push(d.id);
             }
             setStatus("saved");
@@ -363,11 +357,7 @@ function ChannelKeyForm({ ch, values, onChange, saved, token, onSaved, onCleared
 
             // Save 후 Auto Sync Test (첫 번째 Save된 ID)
             if (savedIds[0]) {
-                const tr = await fetch(`${BASE}/api/v423/creds/${savedIds[0]}/test`, {
-                    method: "POST",
-                    headers: { Authorization: `Bearer ${token}` },
-                });
-                const td = await tr.json();
+                const td = await postJsonAuth(`/api/v423/creds/${savedIds[0]}/test`);
                 setTestMsg({ ok: td.ok, message: td.message || (td.ok ? "Integration Success" : "Integration Failed") });
             }
         } catch (e) {
@@ -379,18 +369,11 @@ function ChannelKeyForm({ ch, values, onChange, saved, token, onSaved, onCleared
 
     const handleClear = async () => {
         try {
-            const BASE = import.meta.env.VITE_API_BASE || "";
             // 해당 Channel의 creds List Search 후 Delete
-            const r = await fetch(`${BASE}/api/v423/creds?channel=${ch.id}`, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-            const d = await r.json();
+            const d = await getJsonAuth(`/api/v423/creds?channel=${ch.id}`);
             if (d.creds) {
                 for (const cred of d.creds) {
-                    await fetch(`${BASE}/api/v423/creds/${cred.id}`, {
-                        method: "DELETE",
-                        headers: { Authorization: `Bearer ${token}` },
-                    });
+                    await requestJsonAuth(`/api/v423/creds/${cred.id}`, "DELETE");
                 }
             }
         } catch (_) {}
@@ -507,11 +490,7 @@ export default function LicenseActivation() {
     // 마운트 또는 step Change 시 서버에서 Save된 Channel List Search
     useEffect(() => {
         if (!token) return;
-        const BASE = import.meta.env.VITE_API_BASE || "";
-        fetch(`${BASE}/api/v423/creds`, {
-            headers: { Authorization: `Bearer ${token}` },
-        })
-            .then(r => r.json())
+        getJsonAuth(`/api/v423/creds`)
             .then(d => {
                 if (d.creds) {
                     const channels = [...new Set(d.creds.map(c => c.channel))];
@@ -541,12 +520,7 @@ export default function LicenseActivation() {
         if (!licenseKey.trim()) { setLicError("License Key를 입력해주세요."); return; }
         setLicBusy(true); setLicError("");
         try {
-            const r = await fetch("/api/auth/license", {
-                method: "POST",
-                headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-                body: JSON.stringify({ license_key: licenseKey.trim() }),
-            });
-            const d = await r.json();
+            const d = await postJson("/api/auth/license", { license_key: licenseKey.trim() });
             if (!d.ok) { setLicError(d.error || "Activate Failed"); return; }
             setLicResult(d);
             if (d.user) onPaymentSuccess(d.user);
@@ -735,7 +709,3 @@ export default function LicenseActivation() {
         </div>
     );
 }
-
-
-import { useI18n } from '../i18n/index.js';
-import { useT } from '../i18n/index.js';
