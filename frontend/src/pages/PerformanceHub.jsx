@@ -4,6 +4,7 @@ import { useCurrency } from '../contexts/CurrencyContext.jsx';
 import { useAuth } from "../auth/AuthContext.jsx";
 import { useGlobalData } from '../context/GlobalDataContext.jsx';
 import { useConnectorSync } from '../context/ConnectorSyncContext.jsx';
+import { getJsonAuth } from '../services/apiClient.js';
 
 /* ─── Security Engine ──────────────────────────────────────── */
 const SEC_PATTERNS = [
@@ -91,11 +92,7 @@ const PerformanceTab = memo(function PerformanceTab() {
         if (account !== "All") filters.account = account;
 
         const qs = new URLSearchParams(filters).toString();
-        const headers = {};
-        if (token) headers["Authorization"] = `Bearer ${token}`;
-
-        fetch(`/api/v1/ad-performance/summary?${qs}`, { headers })
-            .then(res => res.json())
+        getJsonAuth(`/api/v1/ad-performance/summary?${qs}`)
             .then(data => {
                 if (Array.isArray(data)) {
                     setSummary(data);
