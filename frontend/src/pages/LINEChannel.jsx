@@ -1,18 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../auth/AuthContext";
 import PlanGate from "../components/PlanGate.jsx";
-
-
-
 import { useGlobalData } from "../context/GlobalDataContext.jsx";
-
-function makeAPI(token) {
-    return (path, opts = {}) => {
-        const headers = { "Content-Type": "application/json", ...(opts.headers || {}) };
-        if (token) headers["Authorization"] = `Bearer ${token}`;
-        return fetch(`/api${path}`, { ...opts, headers }).then(r => r.json()).catch(() => ({}));
-    };
-}
+import { getJson } from '../services/apiClient.js';
 
 const C = {
     bg: "var(--bg)", surface: "var(--surface)", card: "var(--bg-card, rgba(255,255,255,0.95))",
@@ -176,11 +166,10 @@ function LINEChannelContent() {
 
     useEffect(() => {
         if (isDemo) return;
-        const API = makeAPI(token);
-        API("/line/campaigns").then(r => r.campaigns && setCampaigns(r.campaigns)).catch(() => { });
-        API("/line/templates").then(r => r.templates && setTemplates(r.templates)).catch(() => { });
-        API("/line/settings").then(r => r.ok && setSettings(r)).catch(() => { });
-        API("/line/stats").then(r => r.ok && setStats(r)).catch(() => { });
+        getJson('/api/line/campaigns').then(r => r.campaigns && setCampaigns(r.campaigns)).catch(() => { });
+        getJson('/api/line/templates').then(r => r.templates && setTemplates(r.templates)).catch(() => { });
+        getJson('/api/line/settings').then(r => r.ok && setSettings(r)).catch(() => { });
+        getJson('/api/line/stats').then(r => r.ok && setStats(r)).catch(() => { });
     }, [isDemo, token]);
 
     return (
