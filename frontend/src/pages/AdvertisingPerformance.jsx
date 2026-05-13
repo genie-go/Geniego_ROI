@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../auth/AuthContext.jsx';
 import { useI18n } from '../i18n';
-
-import { useT } from '../i18n/index.js';
+import { getJson } from '../services/apiClient.js';
 const teams = ['US', 'JP', 'EU'];
 const channels = ['Meta', 'TikTok', 'Amazon'];
 
@@ -18,8 +17,7 @@ export default function AdvertisingPerformance() {
     async function fetchData() {
       setLoading(true);
       try {
-        const resp = await fetch(`/api/v1/ad-performance?team=${team}&channel=${channel}`);
-        const json = await resp.json();
+        const json = await getJson(`/api/v1/ad-performance?team=${team}&channel=${channel}`);
         setData(json);
       } catch (e) {
         console.error(e);
