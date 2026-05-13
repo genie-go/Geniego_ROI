@@ -575,3 +575,60 @@
 ## 81차 시작 메시지 (사용자 -> 검수자)
 
 GeniegoROI 프로젝트 81차 세션 시작합니다. 외부 검수자 역할 부탁드립니다. 자세한 인계 사항은 NEXT_SESSION.md (D:\project\GeniegoROI\NEXT_SESSION.md, master HEAD 84c4b3e에 포함, L534~ 마지막이 80차 종결+81차 인계 섹션)를 raw로 확인 부탁드립니다. 81차 시작 확인. 검수자 페어 진행 모드 인지. Claude Code 명령 t1번 결과 raw 수신 대기.
+
+---
+
+## 81차 종결 상태
+
+- HEAD: db83b0c (refactor(api): KrChannel.jsx 11 of 12 fetch -> apiClient wrappers)
+- 작업: KrChannel.jsx 12개 fetch 중 11개 마이그레이션 완료
+  - getJson: /v419/kr/channels (×4), /v419/kr/fee-rules/${key}, /v419/kr/settle/summary, /v419/kr/recon/reports, /v419/kr/recon/reports/${id}
+  - postJson: /v419/kr/fee-rules (POST), /v419/kr/settle/ingest (POST, try/catch 변환), /v419/kr/recon/run (POST)
+  - 미이그레이션 1개: L396 PATCH /v419/kr/recon/tickets/${id} — apiClient에 requestJson(non-auth) 없어 raw fetch 유지
+- import 추가: `import { getJson, postJson } from '../services/apiClient'`
+- const API = "/api" 유지 (의도적)
+- useT import 유지 (의도적)
+- push 완료: origin/master 7198bdf..db83b0c
+- 워킹 트리: clean
+
+## 82차 첫 명령 (Claude Code에 1줄씩 입력)
+
+- t1: t git -C "D:\project\GeniegoROI" log --oneline -5
+- t2: t git -C "D:\project\GeniegoROI" status --short --branch
+- t3: t git -C "D:\project\GeniegoROI" diff origin/master --stat
+- t4: t git -C "D:\project\GeniegoROI" grep -c "fetch(" -- "frontend/src/pages/KrChannel.jsx"
+- t5: t git -C "D:\project\GeniegoROI" grep -n "fetch(" -- "frontend/src/pages/KrChannel.jsx"
+- t6: t git -C "D:\project\GeniegoROI" grep -n "^export" -- "frontend/src/services/apiClient.js"
+
+기대값: HEAD = 81차 docs 커밋, working tree clean, ↑0↓0, KrChannel fetch=1 (L396 PATCH), apiClient exports 목록 확인
+
+## 82차 우선순위 1번
+
+1. #2 A-12 KrChannel.jsx L396 PATCH 마이그레이션 (1 fetch 잔존)
+   - 현재 raw fetch: `await fetch(\`${API}/v419/kr/recon/tickets/${id}\`, { method: "PATCH", ... })`
+   - apiClient.js에 non-auth `requestJson(path, method, body)` 래퍼 추가 필요
+   - 또는 기존 `requestJsonAuth` 사용 여부 검토 (auth 필요 여부 백엔드 확인)
+   - 사전 작업: apiClient.js postJson 구현 확인 후 patchJson/requestJson 추가 위치 결정
+   - 완료 후 import 라인에 신규 래퍼 추가
+
+## 82차 우선순위 (나머지)
+
+2. #4 Antigravity Agent 자율 편집 모니터링 (회차 ~3, 의도 불명확)
+   - NEXT_SESSION.md 81차 교훈 #1 참조 — CC 자율 Read 대체 패턴 지속 감시
+3. SubscriberTabs.jsx 잔여 dead code 정찰 (회차 ~1)
+   - 78차 마이그레이션 완료, auth 래퍼 사용 — dead import/const 여부 grep 확인
+4. 다음 미이그레이션 대상 페이지 탐색
+   - `git grep -l "fetch(" -- "frontend/src/pages/*.jsx"` 로 잔존 파일 목록 확인
+
+## 81차 신규 교훈 (82차 적용 필수)
+
+1. CC Edit 거절 후 재시도 패턴 — 거절된 Edit은 파일에 반영 안 됨, git status --short 로 즉시 확인 필수. 이전 Edit 부분 적용 상태에서 재진입 시 diff --stat으로 누적 상태 확인 후 다음 Edit 진행
+2. useT 보존 필수 — KrChannel.jsx에서 CC가 useI18n 중복 import 제거 시도 시 useT 함께 제거 위험. import 블록 수정 시 useT 라인 명시 보존 지시 필요
+3. try/catch for !r.ok 패턴 — postJson은 !r.ok 시 throw. 기존 `if (!r.ok) { ... return; }` 패턴은 `try { d = await postJson(...) } catch { ...; return; }` 로 변환. 기존 외부 try/finally와 중첩 가능 (ingest 사례 확인)
+4. PowerShell ; 체인 주의 — `cd X ; git add Y ; git commit` 형태는 앞 명령 실패 시에도 계속 진행. CC는 `git -C` 플래그 방식으로 안전하게 재작성
+5. 동일 패턴 3중복 Edit — fetch 패턴이 3곳 동일할 경우 Edit old_str 충돌 발생. 앞뒤 컨텍스트(loadRules/load/loadReports 등)로 unique 식별 필요. grep -B1 -A8 로 사전 컨텍스트 확보 권장
+6. 12 Edit 분할 진행 전략 유효 — 각 Edit 후 diff --stat 검증으로 누적 오류 조기 발견. 81차에서 +25/-38 최종 diff 정확 확인
+
+## 82차 시작 메시지 (사용자 -> 검수자)
+
+GeniegoROI 프로젝트 82차 세션 시작합니다. 외부 검수자 역할 부탁드립니다. 자세한 인계 사항은 NEXT_SESSION.md (D:\project\GeniegoROI\NEXT_SESSION.md, master HEAD [81차 docs 커밋]에 포함, 마지막 섹션이 81차 종결+82차 인계)를 raw로 확인 부탁드립니다. 82차 시작 확인. 검수자 페어 진행 모드 인지. Claude Code 명령 t1번 결과 raw 수신 대기.
