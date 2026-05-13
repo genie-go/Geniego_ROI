@@ -8,21 +8,12 @@ import { useConnectorSync } from '../context/ConnectorSyncContext.jsx';
 import { useSecurityGuard, sanitizeInput, detectXSS } from '../security/SecurityGuard.js';
 import PlanGate from '../components/PlanGate.jsx';
 import { CHANNEL_RATES } from '../constants/channelRates.js';
+import { getJson, postJson } from '../services/apiClient.js';
 
 /* ══════════════════════════════════════════════════════════════════
    CONSTANTS & API
 ══════════════════════════════════════════════════════════════════ */
-const API = import.meta.env.VITE_API_BASE || '';
 const XSS_PATTERN = /(<script|javascript:|on\w+=|eval\(|document\.(cookie|domain)|window\.(location|open)|import\s*\()/i;
-
-const apiFetch = async (path, opts = {}) => {
-    const token = localStorage.getItem('genie_token') || sessionStorage.getItem('genie_token') || "";
-    const res = await fetch(`${API}${path}`, {
-        ...opts,
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, ...(opts.headers || {}) },
-    });
-    return res.json().catch(() => ({}));
-};
 
 /* ── Channel Master (static reference data — no mock stats) ─── */
 const CHANNELS_MASTER = [
@@ -108,11 +99,8 @@ function ChannelAuthPanel({ ch, onSaved, isDemo, t }) {
             const mainField = ch.fields.find(f => f.secret) || ch.fields[0];
             const extras = {};
             ch.fields.forEach(f => { if (f.key !== mainField.key && form[f.key]) extras[f.key] = form[f.key]; });
-            const data = await apiFetch('/api/channel-sync/credentials', {
-                method: 'POST',
-                body: JSON.stringify({ channel: ch.id, cred_type: 'api_key', label: ch.name,
-                    key_name: mainField.key, key_value: form[mainField.key] || '', ...extras }),
-            });
+            const data = await postJson('/api/channel-sync/credentials', { channel: ch.id, cred_type: 'api_key', label: ch.name,
+                    key_name: mainField.key, key_value: form[mainField.key] || '', ...extras });
             setResult(data);
             if (data.ok && onSaved) onSaved(ch.id, data);
         } catch (e) { setResult({ ok: false, error: e.message }); }
@@ -125,9 +113,7 @@ function ChannelAuthPanel({ ch, onSaved, isDemo, t }) {
         try {
             const extras = {};
             ch.fields.forEach(f => { if (form[f.key]) extras[f.key] = form[f.key]; });
-            const data = await apiFetch(`/api/channel-sync/${ch.id}/test`, {
-                method: 'POST', body: JSON.stringify({ ...extras, key_value: form[ch.fields[0]?.key] || '' }),
-            });
+            const data = await postJson(`/api/channel-sync/${ch.id}/test`, { ...extras, key_value: form[ch.fields[0]?.key] || '' });
             setResult(data);
         } catch (e) { setResult({ ok: false, error: e.message }); }
         setLoading(false);
@@ -177,7 +163,7 @@ function ChannelTab({ channelStatus, onRefresh, plan, isDemo, t, csIsConnected }
 
     const syncNow = React.useCallback(async (chId) => {
         setSyncing(s => ({ ...s, [chId]: true }));
-        await apiFetch(`/api/channel-sync/${chId}/sync`, { method: 'POST' });
+        await postJson(`/api/channel-sync/${chId}/sync`, {});
         onRefresh();
         setSyncing(s => ({ ...s, [chId]: false }));
     }, [onRefresh]);
@@ -277,7 +263,7 @@ function ProductsTab({ t }) {
 
     const load = React.useCallback(async () => {
         setLoading(true);
-        const data = await apiFetch(`/api/channel-sync/products?limit=100${channel ? '&channel=' + channel : ''}`);
+        const data = await getJson(`/api/channel-sync/products?limit=100${channel ? '&channel=' + channel : ''}`);
         setProducts(data.products || []);
         setLoading(false);
     }, [channel]);
@@ -362,7 +348,7 @@ function OrdersTab({ t }) {
         const qs = new URLSearchParams({ limit: '100' });
         if (channel) qs.set('channel', channel);
         if (statusFilter) qs.set('status', statusFilter);
-        const data = await apiFetch(`/api/channel-sync/orders?${qs}`);
+        const data = await getJson(`/api/channel-sync/orders?${qs}`);
         setOrders(data.orders || []);
         setLoading(false);
     }, [channel, statusFilter, setOrders]);
@@ -371,7 +357,7 @@ function OrdersTab({ t }) {
 
     const handleStatusUpdate = React.useCallback(async (orderId, newStatus) => {
         if (isDemo) { alert(t('omniChannel.demoStatusMsg')); return; }
-        await apiFetch(`/api/channel-sync/webhooks/${channel || 'shopify'}`, { method: 'POST', body: JSON.stringify({ order_id: orderId, status: newStatus, event: 'order_update' }) });
+        await postJson(`/api/channel-sync/webhooks/${channel || 'shopify'}`, { order_id: orderId, status: newStatus, event: 'order_update' });
         if (updateOrderStatus) updateOrderStatus(orderId, { status: newStatus });
         addAlert?.({ type: 'success', msg: `Order ${orderId} → ${newStatus}` });
         load();
@@ -443,7 +429,7 @@ function InventoryTab({ t }) {
 
     const load = React.useCallback(async () => {
         setLoading(true);
-        const data = await apiFetch(`/api/channel-sync/inventory${channel ? '?channel=' + channel : ''}`);
+        const data = await getJson(`/api/channel-sync/inventory${channel ? '?channel=' + channel : ''}`);
         setInv(data.inventory || []);
         setLoading(false);
     }, [channel]);
@@ -718,7 +704,7 @@ function OmniChannelInner() {
 
     const loadStatus = useCallback(async () => {
         setLoading(true);
-        const data = await apiFetch('/api/channel-sync/status');
+        const data = await getJson('/api/channel-sync/status');
         /* Merge Integration Hub connectors into channel status */
         if (hubChannels.length > 0 && data?.channels) {
             hubChannels.forEach(hc => {
