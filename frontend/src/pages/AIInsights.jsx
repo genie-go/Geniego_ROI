@@ -3,6 +3,7 @@ import { useI18n } from '../i18n';
 import { useCurrency } from '../contexts/CurrencyContext.jsx';
 import { useGlobalData } from '../context/GlobalDataContext.jsx';
 import { useConnectorSync } from '../context/ConnectorSyncContext.jsx';
+import { postJson } from '../services/apiClient.js';
 import { AreaChart, Area, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from "recharts";
 import { sanitizeHtml } from '../utils/xssSanitizer.js';
 
@@ -240,12 +241,7 @@ const AIAssistantTab = memo(function AIAssistantTab({ t, safeguard }) {
         setLoading(true);
         setMessages(prev => [...prev, { role: 'ai', text: '', loading: true }]);
         try {
-            const token = localStorage.getItem('genie_auth_token') || '';
-            const r = await fetch('/api/v422/ai/analyze', {
-                method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                body: JSON.stringify({ context: c, question: q, data: { platforms: [], total_spend: 0, blended_roas: 0, total_conv: 0 } }),
-            });
-            const d = await r.json();
+            const d = await postJson('/api/v422/ai/analyze', { context: c, question: q, data: { platforms: [], total_spend: 0, blended_roas: 0, total_conv: 0 } });
             if (d.ok) { setMessages(prev => { const n = [...prev]; n[n.length - 1] = { role: 'ai', text: d.summary, insight: { bullets: d.bullets || [], recommendation: d.recommendation }, loading: false }; return n; }); }
             else { throw new Error(d.error || t('aiInsights.analysisFailed') || 'Analysis failed. Reverting to local heuristic mode...'); }
         } catch (e) {
