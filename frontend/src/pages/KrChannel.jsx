@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useI18n } from '../i18n';
 
 import { useT } from '../i18n/index.js';
-import { getJson, postJson } from '../services/apiClient';
+import { getJson, postJson, patchJson } from '../services/apiClient';
 
 /* ── Enterprise Demo Isolation Guard ─────────────────────── */
 const _isDemo = (() => {
@@ -393,10 +393,7 @@ function ReconTab() {
     };
 
     const patchTicket = async (id, patch) => {
-        await fetch(`${API}/v419/kr/recon/tickets/${id}`, {
-            method: "PATCH", headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(patch),
-        });
+        await patchJson(`/v419/kr/recon/tickets/${id}`, patch);
         if (selReport) openReport(selReport.id);
     };
 
