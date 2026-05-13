@@ -7,13 +7,12 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { useGlobalData } from "../context/GlobalDataContext";
+import { getJson, postJson } from "../services/apiClient.js";
 
 import PlanGate from "../components/PlanGate.jsx";
 import { useI18n } from "../i18n/index.js";
 import { useSecurityGuard } from "../security/SecurityGuard.js";
 
-import { useT } from '../i18n/index.js';
-const API = import.meta.env.VITE_API_BASE || "";
 const _krwFmt = new Intl.NumberFormat('ko-KR', { style: 'currency', currency: 'KRW', maximumFractionDigits: 0 });
 const fmtKRW = v => _krwFmt.format(v || 0);
 const C = {
@@ -22,16 +21,6 @@ const C = {
     green: "#22c55e", red: "#f87171", yellow: "#fbbf24",
     purple: "#a78bfa", orange: "#fb923c", muted: "var(--text-3)", text: "var(--text-1)",
 };
-
-/* ─── API 호출 헬퍼 ─────────────────────────────────────── */
-async function apiFetch(path, opts = {}) {
-    const token = localStorage.getItem("token") || "";
-    const r = await fetch(`${API}${path}`, {
-        headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-        ...opts,
-    });
-    return r.json();
-}
 
 /* ─── 로컬 시뮬레이션 폴백 ─────────────────────────────────── */
 const _CUSTOMERS = (() => {
@@ -154,7 +143,7 @@ function CustomerDetailPanel({ customer, onClose, onAction }) {
 
     useEffect(() => {
         if (customer && tab === "recommend") {
-            apiFetch(`/api/customer-ai/product-recommendations?customer_id=${customer.id}&limit=5`)
+            getJson(`/api/customer-ai/product-recommendations?customer_id=${customer.id}&limit=5`)
                 .then(d => { if (d.ok) setProdRecs(d.recommendations || []); })
                 .catch(() => { });
         }
@@ -167,10 +156,7 @@ function CustomerDetailPanel({ customer, onClose, onAction }) {
 
     const handleAutoAction = async (actionType, channel) => {
         try {
-            const r = await apiFetch("/api/customer-ai/auto-action", {
-                method: "POST",
-                body: JSON.stringify({ action_type: actionType, channel, risk_level: c.risk_level, segment_name: c.name, estimated_reach: 1 }),
-            });
+            const r = await postJson("/api/customer-ai/auto-action", { action_type: actionType, channel, risk_level: c.risk_level, segment_name: c.name, estimated_reach: 1 });
             if (r.ok) {
                 addAlert({ type: "success", msg: `✅ Action completed for ${c.name}: ${r.message}` });
                 onAction && onAction();
@@ -320,9 +306,9 @@ function AIPredictionInner() {
         setLoading(true); setError(null);
         try {
             const [churnRes, modelRes, ltvRes] = await Promise.all([
-                apiFetch("/api/customer-ai/churn-scores").catch(() => null),
-                apiFetch("/api/customer-ai/model-performance").catch(() => null),
-                apiFetch("/api/customer-ai/ltv-segments").catch(() => null),
+                getJson("/api/customer-ai/churn-scores").catch(() => null),
+                getJson("/api/customer-ai/model-performance").catch(() => null),
+                getJson("/api/customer-ai/ltv-segments").catch(() => null),
             ]);
             // Customer Data: API Success 우선, Failed 시 로컬 폴백
             if (churnRes?.ok && churnRes.customers?.length) {
