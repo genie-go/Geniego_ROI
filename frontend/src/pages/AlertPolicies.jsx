@@ -3,8 +3,6 @@ import { useI18n } from '../i18n';
 import { useAuth } from '../auth/AuthContext.jsx';
 import { getJsonAuth, postJsonAuth, requestJsonAuth } from "../services/apiClient.js";
 import PolicyTreeEditor from "../components/PolicyTreeEditor.jsx";
-
-import { useT } from '../i18n/index.js';
 const Card = ({ title, subtitle, right, children }) => (
   <div className="card glass" style={{ padding: 16 }}>
     <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "flex-start" }}>
@@ -206,12 +204,7 @@ export default function AlertPolicies() {
     if (!target.trim()) { alert(channel === 'slack' ? t('auto.2jw234', 'Slack 웹훅 URL을 입력하세요') : t('auto.swwa95', 'Email Address를 입력하세요')); return; }
     setTestBusy(true); setTestResult(null);
     try {
-      const res = await fetch('/api/v423/alerts/test-notify', {
-        method: 'POST', credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ channel, target: target.trim(), policy_id: draft.id ?? 0 }),
-      });
-      const data = await res.json();
+      const data = await postJsonAuth('/api/v423/alerts/test-notify', { channel, target: target.trim(), policy_id: draft.id ?? 0 });
       setTestResult({ ...data, channel });
     } catch (e) {
       setTestResult({ ok: false, detail: e.message, channel });
