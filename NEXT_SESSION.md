@@ -530,4 +530,48 @@
 - t5: t git -C "D:\project\GeniegoROI" remote -v
 - t6: t git -C "D:\project\GeniegoROI" grep -c "fetch(" -- "frontend/src/pages/LicenseActivation.jsx" "frontend/src/pages/KrChannel.jsx"
 
-기대값: HEAD=cd6920b, working tree clean, ↑0↓0, master, origin 정상, LicenseActivation=6 + KrChannel=12 fetch 카운트 확정
+---
+
+## 80차 종결 상태 (확정, push 완료)
+
+- master HEAD: 84c4b3e (origin 동기화 ↑0↓0)
+- 80차 commit 1건 (push 완료):
+  - 84c4b3e: refactor(api): LicenseActivation.jsx 6 fetch -> apiClient wrappers + BASE/import cleanup - 80th
+- 작업 요약: LicenseActivation.jsx 6 fetch -> apiClient (postJsonAuth/getJsonAuth/requestJsonAuth/postJson) + L344/L373 BASE 변수 dead 제거 + L716-717 중복 import (useI18n/useT) 제거
+- diff --stat: 1 file changed, 15 insertions(+), 45 deletions(-)
+- 검증: fetch( 0개, apiClient L20 정상 import
+
+## 81차 첫 명령 (Claude Code에 1줄씩 입력)
+
+- t1: t git -C "D:\project\GeniegoROI" log --oneline -10
+- t2: t git -C "D:\project\GeniegoROI" status --short --branch
+- t3: t git -C "D:\project\GeniegoROI" diff origin/master --stat
+- t4: t git -C "D:\project\GeniegoROI" branch --show-current
+- t5: t git -C "D:\project\GeniegoROI" grep -c "fetch(" -- "frontend/src/pages/KrChannel.jsx"
+
+기대값: HEAD=84c4b3e, working tree clean, ↑0↓0, master, KrChannel=12 fetch
+
+## 81차 우선순위 1번
+
+1. #2 A-12 KrChannel.jsx 마이그레이션 (12 fetch, 회차 ~2 추정)
+   - 중복 /v419/kr/channels GET 4번 -> 공통 helper 묶음 검토
+   - 80차 LicenseActivation 패턴 참조 (postJsonAuth/getJsonAuth/requestJsonAuth/postJson)
+   - 사전 작업: apiClient import 유무 + fetch 12개 라인 위치 raw 재확인 후 진입
+
+## 81차 우선순위 (나머지)
+
+2. #4 Antigravity Agent 자율 편집 모니터링 (회차 ~3, 의도 불명확)
+3. SubscriberTabs.jsx 잔여 dead code 정찰 (회차 ~1)
+
+## 80차 신규 교훈 (81차 적용 필수)
+
+1. CC가 검수자 명령(grep -c 등)을 자율로 Read 도구로 대체 - raw 25줄/60줄 출력 미수신 빈발. CC 자율 분석 표는 참고만, 정확한 old_str 확정엔 직접 sed/cat raw 필요
+2. CC가 6 fetch "한 번에" 요청해도 개별 Edit으로 분할 진행 - 라인 시프트로 후속 Edit old_str 미일치 위험. 다만 분할 자체는 안전 검증 측면 이점
+3. CC가 "Error editing file" 메시지 발생 시 직전 Edit 실패가 아니라 후속 작업 실패 가능성 - diff --stat raw 검증 필수
+4. CC 자동 추천 명령 엔터 불가, 검수자 명령 t 프리픽스 덮어쓰기만 가능 (80차 사용자 재확인)
+5. dead import 검증 시 동일 함수 이름 재import = 중복 (no-op) 판정 정확 (운영 원칙 #4 3단계 충족)
+6. 위험 명령 (commit/push) 검수자 명시 지시 시 운영 원칙 위배 아님 - 자동 생성과 구분
+
+## 81차 시작 메시지 (사용자 -> 검수자)
+
+GeniegoROI 프로젝트 81차 세션 시작합니다. 외부 검수자 역할 부탁드립니다. 자세한 인계 사항은 NEXT_SESSION.md (D:\project\GeniegoROI\NEXT_SESSION.md, master HEAD 84c4b3e에 포함, L534~ 마지막이 80차 종결+81차 인계 섹션)를 raw로 확인 부탁드립니다. 81차 시작 확인. 검수자 페어 진행 모드 인지. Claude Code 명령 t1번 결과 raw 수신 대기.
