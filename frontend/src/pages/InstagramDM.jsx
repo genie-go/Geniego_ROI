@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import PlanGate from "../components/PlanGate.jsx";
+import { getJson, postJson } from '../services/apiClient.js';
 
 /**
  * Instagram / Facebook DM Integration Management Page
@@ -8,16 +9,6 @@ import PlanGate from "../components/PlanGate.jsx";
  * - Instagram + Facebook Messenger Integration
  * - /실 완전 분리
  */
-
-const API = import.meta.env.VITE_API_BASE || '';
-const apiFetch = async (path, opts = {}) => {
-    const token = localStorage.getItem('genie_token') || "";
-    const r = await fetch(`${API}${path}`, {
-        ...opts,
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, ...(opts.headers || {}) }
-    });
-    return r.json().catch(() => ({}));
-};
 
 const _CONVERSATIONS = [
     { id: 1, thread_id: 't1', sender_name: '@minjun_style', avatar: 'M', platform: 'instagram', last_message: '안녕하세요! 이 제품 Stock 있나요?', time: '2분 전', status: 'unread', followers: 12400 },
@@ -69,13 +60,13 @@ export default function InstagramDM() {
     /* isDemo permanently disabled */
 
     useEffect(() => {
-        apiFetch('/api/instagram/settings').then(d => {
+        getJson('/api/instagram/settings').then(d => {
             if (d.ok) {
                 setSettings(d);
                 setConversations((d.conversations || _CONVERSATIONS));
             }
         });
-        apiFetch('/api/instagram/conversations').then(d => {
+        getJson('/api/instagram/conversations').then(d => {
             if (d.ok && d.conversations?.length) setConversations(d.conversations);
             else setConversations(_CONVERSATIONS);
         });
@@ -90,10 +81,10 @@ export default function InstagramDM() {
 
     const handleSaveSettings = async () => {
         setSending(true);
-        const r = await apiFetch('/api/instagram/settings', { method: 'POST', body: JSON.stringify(form) });
+        const r = await postJson('/api/instagram/settings', form);
         setTestResult(r);
         setSending(false);
-        if (r.ok) apiFetch('/api/instagram/settings').then(d => d.ok && setSettings(d));
+        if (r.ok) getJson('/api/instagram/settings').then(d => d.ok && setSettings(d));
     };
 
     const handleSendReply = async () => {
@@ -101,7 +92,7 @@ export default function InstagramDM() {
         const newMsg = { id: Date.now(), from: '나', text: replyText, time: new Date().toLocaleTimeString('ko', { hour: '2-digit', minute: '2-digit' }), mine: true };
         setMessages(prev => [...prev, newMsg]);
         setReplyText('');
-        if (!isDemo) await apiFetch('/api/instagram/send', { method: 'POST', body: JSON.stringify({ recipient_id: selectedConv.sender_id, message: replyText, platform: selectedConv.platform }) });
+        if (!isDemo) await postJson('/api/instagram/send', { recipient_id: selectedConv.sender_id, message: replyText, platform: selectedConv.platform });
     };
 
     const handleBroadcast = async () => {
