@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { useT, useI18n, LANG_OPTIONS } from "../i18n";
+import { getJson } from '../services/apiClient.js';
 
 /* ── Enterprise Dynamic Locale Map ────────────────────── */
 const LANG_LOCALE_MAP = {
@@ -143,8 +144,7 @@ function TermsModal({ open, onClose, category }) {
 
     /* 전자상거래 고지 — 구독요금제 API에서 실시간 요금 동기화 */
     if (category === 'ecommerce') {
-      fetch('/api/auth/pricing/public-plans')
-        .then(r => r.json())
+      getJson('/api/auth/pricing/public-plans')
         .then(d => {
           if (!d.ok || !d.plans) return;
           const lines = [];
@@ -396,8 +396,7 @@ function PlanSelector({ planType, setPlanType, selectedPaid, setSelectedPaid }) 
 
   useEffect(() => {
     // Management자가 Register한 Latest Pricing을 public-plans API에서 실Time 불러오기
-    fetch("/api/auth/pricing/public-plans")
-      .then(r => r.json())
+    getJson("/api/auth/pricing/public-plans")
       .then(d => {
         if (!d.ok) return;
         const prices = {};
