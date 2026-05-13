@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { useT } from "../i18n/index.js";
 import useSecurityMonitor from "../hooks/useSecurityMonitor.js";
+import { getJson } from '../services/apiClient.js';
 
 /* ─── Constant ──────────────────────────────────────────────────────────── */
 const CYCLE_ORDER = ["monthly", "quarterly", "semi_annual", "yearly"];
@@ -426,8 +427,7 @@ export default function Pricing() {
   const cycleDiscountMap = useMemo(() => computeCycleDiscounts(allPlans), [allPlans]);
 
   useEffect(() => {
-    fetch("/api/auth/pricing/public-plans")
-      .then(r => r.json())
+    getJson("/api/auth/pricing/public-plans")
       .then(d => {
         if (d.ok) {
           const rawPlans = d.plans || [];
