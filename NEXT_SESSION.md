@@ -482,3 +482,52 @@
 - t6: t git -C "D:\project\GeniegoROI" grep -c "fetch(" -- "frontend/src/pages/KrChannel.jsx" "frontend/src/pages/InfluencerUGC.jsx" "frontend/src/pages/LicenseActivation.jsx"
 
 기대값: HEAD=b2da595, working tree clean, ↑0↓0, master, origin 정상, #2 후보 파일 fetch 카운트 raw 확정
+============================================================
+## 79차 종결 상태 (확정, push 완료) - 80차 인계
+============================================================
+
+### 79차 commit (1건, push 완료)
+- cd6920b refactor(api): InfluencerUGC.jsx 5 fetch -> apiClient wrappers + dead import cleanup - 79th
+
+### 79차 변경 통계 (numstat)
+- frontend/src/pages/InfluencerUGC.jsx: +6 / -15
+  - import 추가: +1 (postJson, getJsonAuth)
+  - L840 fetch (influencer-eval public) -> postJson: +1 / -6
+  - L1232-1241 BASE/token/headers + Promise.allSettled 4 fetch -> getJsonAuth x4: +4 / -9
+  - L7 dead import getJson 제거: +1 / -1 (numstat 합산 변동 없음)
+
+### 79차 인계 (80차 작업 후보)
+1. **#2 A-12 LicenseActivation.jsx 마이그레이션 (6 fetch, 회차 ~1)**
+   - L344 POST /api/v423/creds (자격증명 생성) -> postJsonAuth
+   - L366 POST /api/v423/creds/${id}/test (연결 테스트) -> postJsonAuth
+   - L384 GET /api/v423/creds?channel=${ch.id} (채널별 조회) -> getJsonAuth
+   - L390 DELETE /api/v423/creds/${id} -> requestJsonAuth (DELETE)
+   - L511 GET /api/v423/creds (전체 목록) -> getJsonAuth
+   - L544 POST /api/auth/license (public bypass) -> postJson (인증 불필요)
+2. **#2 A-12 KrChannel.jsx 마이그레이션 (12 fetch, 회차 ~2)**
+   - GET 8개 (/v419/kr/channels x4 중복, /v419/kr/fee-rules/${key}, /v419/kr/settle/summary, /v419/kr/recon/reports, /v419/kr/recon/reports/${id})
+   - POST 2개 (/v419/kr/settle/ingest, /v419/kr/recon/run)
+   - POST/PUT 1개 (/v419/kr/fee-rules)
+   - PATCH/PUT 1개 (/v419/kr/recon/tickets/${id})
+   - 중복 /v419/kr/channels GET 4번 -> 공통 helper 묶음 검토
+3. #4 Antigravity Agent 자율 편집 모니터링 (회차 ~3, 의도 불명확)
+4. SubscriberTabs.jsx 잔여 dead code 정찰 (_PC/_PL/_CL/_fd/_fk/INP, 회차 ~1)
+
+### 79차 신규 교훈 (80차 적용 필수)
+1. **검수자 컨테이너 (Linux) 윈도우 디스크 (D:\) 직접 접근 불가** - view/str_replace 도구 사용 불가, CC Edit 도구 의존 필수 (옵션 A-3 패턴)
+2. **CC bash 출력 truncate (+N lines ctrl+o)** - sed/Select-Object 등 모두 동일 truncate. 정확한 raw 필요 시 VS Code 에디터에서 Ctrl+G 라인 점프로 확인
+3. **CC Edit 도구 승인 시 옵션 2 (allow all edits) 절대 금지** - 옵션 1 (Yes) 만 선택. 옵션 2는 세션 내 자율 편집 허용으로 운영 원칙 붕괴
+4. **CC Edit 후 디스크 직접 저장됨** - VS Code 탭의 M 표시는 단순 표시 잔존, 실제 디스크는 변경 적용. git status로 검증
+5. **VS Code 좌하단 master* 클릭 금지** - branch checkout 다이얼로그 트리거. 저장은 Ctrl+S 또는 File > Save 사용
+6. **CC 자율 추천 다발 발생** - 매 명령 후 다음 단계 자동 생성 (grep 등). t 프리픽스 무력화 필수
+7. **getJsonAuth 실패 시 throw (null 반환 아님)** - Promise.allSettled의 status === 'rejected' 핸들링 패턴 작동, 결과 동일
+
+### 80차 첫 명령 (Claude Code에 1줄씩 입력)
+- t1: t git -C "D:\project\GeniegoROI" log --oneline -10
+- t2: t git -C "D:\project\GeniegoROI" status --short --branch
+- t3: t git -C "D:\project\GeniegoROI" diff origin/master --stat
+- t4: t git -C "D:\project\GeniegoROI" branch --show-current
+- t5: t git -C "D:\project\GeniegoROI" remote -v
+- t6: t git -C "D:\project\GeniegoROI" grep -c "fetch(" -- "frontend/src/pages/LicenseActivation.jsx" "frontend/src/pages/KrChannel.jsx"
+
+기대값: HEAD=cd6920b, working tree clean, ↑0↓0, master, origin 정상, LicenseActivation=6 + KrChannel=12 fetch 카운트 확정
