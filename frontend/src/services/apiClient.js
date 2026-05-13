@@ -105,6 +105,25 @@ export async function putJson(path, body) {
   return await res.json();
 }
 
+export async function patchJson(path, body) {
+  const res = await fetch(`${base}${path}`, {
+    method: "PATCH",
+    headers: defaultHeaders(),
+    body: JSON.stringify(body || {}),
+  });
+  if (!res.ok) {
+    let detail = "";
+    try {
+      const j = await res.json();
+      detail = j?.detail ? JSON.stringify(j.detail) : JSON.stringify(j);
+    } catch (e) {
+      try { detail = await res.text(); } catch { }
+    }
+    throw new Error(`HTTP ${res.status} ${detail}`);
+  }
+  return await res.json();
+}
+
 
 export async function postJsonAuth(path, body, extraHeaders = {}) {
   return requestJsonAuth(path, "POST", body, extraHeaders);
