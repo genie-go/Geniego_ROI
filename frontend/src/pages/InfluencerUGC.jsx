@@ -4,6 +4,7 @@ import InfluencerDemographics, { DEFAULT_GRAPHICS } from '../components/Influenc
 import { useCurrency } from '../contexts/CurrencyContext.jsx';
 import { useGlobalData } from '../context/GlobalDataContext.jsx';
 import { useSecurityGuard as useEnterpriseSecurity } from '../security/SecurityGuard.js';
+import { postJson, getJsonAuth } from '../services/apiClient.js';
 
 
 // currency formatting via useCurrency fmt()
@@ -837,13 +838,7 @@ async function fetchInfluencerEval(CREATORS) {
             content_count: c.content.length,
         })),
     };
-    const resp = await fetch("/v422/ai/influencer-eval", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ data }),
-    });
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    const json = await resp.json();
+    const json = await postJson('/v422/ai/influencer-eval', { data });
     if (!json.ok) throw new Error(json.error || 'AI 평가 Failed');
     return json.result;
 }
@@ -1234,16 +1229,12 @@ function useInfluencerDataSync() {
     useEffect(() => {
         if (loaded.current) return;
         loaded.current = true;
-        const BASE = import.meta.env.VITE_API_BASE || '';
-        const token = localStorage.getItem('g_token');
-        const headers = token ? { Authorization: `Bearer ${token}` } : {};
-
         // Fetch all influencer data endpoints in parallel
         Promise.allSettled([
-            fetch(`${BASE}/api/v423/influencer/creators`, { headers }).then(r => r.ok ? r.json() : null),
-            fetch(`${BASE}/api/v423/influencer/ugc-reviews`, { headers }).then(r => r.ok ? r.json() : null),
-            fetch(`${BASE}/api/v423/influencer/channel-stats`, { headers }).then(r => r.ok ? r.json() : null),
-            fetch(`${BASE}/api/v423/influencer/neg-keywords`, { headers }).then(r => r.ok ? r.json() : null),
+            getJsonAuth('/api/v423/influencer/creators'),
+            getJsonAuth('/api/v423/influencer/ugc-reviews'),
+            getJsonAuth('/api/v423/influencer/channel-stats'),
+            getJsonAuth('/api/v423/influencer/neg-keywords'),
         ]).then(([creatorsRes, reviewsRes, statsRes, kwRes]) => {
             if (creatorsRes.status === 'fulfilled' && Array.isArray(creatorsRes.value)) {
                 syncCreators(creatorsRes.value);
