@@ -6,6 +6,7 @@ import { useCurrency } from '../contexts/CurrencyContext.jsx';
 import { useConnectorSync } from '../context/ConnectorSyncContext.jsx';
 import { useSecurityGuard } from '../security/SecurityGuard.js';
 import { CHANNEL_RATES } from '../constants/channelRates.js';
+import apiClient from '../services/apiClient';
 
 /* ??? CSV Download Util ???????????????????????????? */
 function downloadCSV(filename, headers, rows) {
@@ -108,16 +109,10 @@ function CrmSyncButton({ order }) {
     const sync = async () => {
         setStatus('syncing');
         try {
-            const custRes = await fetch('/api/crm/customers', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: order.buyer, name: order.buyer.split('@')[0], phone: '' }),
-            }).then(r => r.json());
+            const custRes = await apiClient.postJson('/api/crm/customers', { email: order.buyer, name: order.buyer.split('@')[0], phone: '' });
             const customerId = custRes.customer?.id || custRes.id;
             if (!customerId) { setStatus('error'); return; }
-            await fetch(`/api/crm/customers/${customerId}/activities`, {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ type: 'purchase', channel: order.channel, amount: order.total, note: `${order.name} x${order.qty} | 주문번호: ${order.id}` }),
-            });
+            await apiClient.postJson(`/api/crm/customers/${customerId}/activities`, { type: 'purchase', channel: order.channel, amount: order.total, note: `${order.name} x${order.qty} | 주문번호: ${order.id}` });
             setStatus('done');
             setTimeout(() => setStatus(null), 3000);
         } catch { setStatus('error'); }
