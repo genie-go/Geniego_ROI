@@ -296,7 +296,7 @@ function OrderHubOverviewTab() {
 function OrderTab() {
     const { t } = useI18n();
     const { fmt } = useCurrency();
-    const { orders, claimHistory, settlement, orderMemos, slaViolations } = useGlobalData();
+    const { orders, claimHistory, settlement, orderMemos, slaViolations, addAlert } = useGlobalData();
     const [search, setSearch] = useState("");
     const [selCh, setSelCh] = useState("all");
     const [selSt, setSelSt] = useState("all");
@@ -336,6 +336,37 @@ function OrderTab() {
     const paged = filtered.slice(page * PAGE, (page + 1) * PAGE);
     const totalPages = Math.ceil(filtered.length / PAGE);
 
+    /* ─── CSV/Excel Export ─── */
+    const handleExportCSV = useCallback(() => {
+        const headers = ['주문번호', '채널', 'SKU', '상품명', '수량', '금액', '구매자', '상태', '운송사', '송장번호', '주문일', '클레임', '정산완료', '정산금액', 'SLA위반', '태그', '메모', '창고'];
+        const rows = filtered.map(o => [
+            o.id, o.channel, o.sku, o.name, o.qty, o.price, o.buyer, o.status,
+            o.carrier || '', o.trackingNo || '', o.orderedAt,
+            o.hasClaim ? 'Y' : 'N', o.settled ? 'Y' : 'N', o.settlementAmt,
+            o.slaViolated ? 'Y' : 'N', (o.tags || []).join(';'), o.memo || '', o.wh
+        ]);
+        downloadCSV(`order_export_${new Date().toISOString().slice(0, 10)}.csv`, headers, rows);
+    }, [filtered]);
+
+    const handleExportExcel = useCallback(async () => {
+        try {
+            const XLSX = (await import('xlsx')).default || await import('xlsx');
+            const rows = filtered.map(o => ({
+                '주문번호': o.id, '채널': o.channel, 'SKU': o.sku, '상품명': o.name,
+                '수량': o.qty, '금액': o.price, '구매자': o.buyer, '상태': o.status,
+                '운송사': o.carrier || '', '송장번호': o.trackingNo || '', '주문일': o.orderedAt,
+                '클레임': o.hasClaim ? 'Y' : 'N', '정산완료': o.settled ? 'Y' : 'N',
+                '정산금액': o.settlementAmt, 'SLA위반': o.slaViolated ? 'Y' : 'N',
+                '태그': (o.tags || []).join(';'), '메모': o.memo || '', '창고': o.wh
+            }));
+            const ws = XLSX.utils.json_to_sheet(rows);
+            ws['!cols'] = [{wch:14},{wch:10},{wch:12},{wch:24},{wch:6},{wch:10},{wch:14},{wch:10},{wch:12},{wch:16},{wch:12},{wch:8},{wch:10},{wch:12},{wch:8},{wch:16},{wch:20},{wch:8}];
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Orders');
+            XLSX.writeFile(wb, `order_export_${new Date().toISOString().slice(0, 10)}.xlsx`);
+        } catch (err) { console.error('Excel export error:', err); }
+    }, [filtered]);
+
     const kpis = useMemo(() => ({
         total: memoizedOrders.length,
         today: memoizedOrders.filter(o => o.orderedAt.includes(new Date().getFullYear().toString())).length,
@@ -369,6 +400,8 @@ function OrderTab() {
                     <option value="all">{t('orderHub.allStatus')}</option>
                     {ORDER_STATUS_KEYS.map(s => <option key={s} value={s}>{statusLabels[s]}</option>)}
                 </select>
+                <button onClick={handleExportExcel} style={{ padding: "7px 12px", borderRadius: 8, background: "rgba(34,197,94,0.12)", border: "1px solid rgba(34,197,94,0.3)", color: "#374151", fontWeight: 700, fontSize: 10, cursor: "pointer", whiteSpace: "nowrap" }}>📊 {t('orderHub.excelExport')}</button>
+                <button onClick={handleExportCSV} style={{ padding: "7px 12px", borderRadius: 8, background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.2)", color: "#374151", fontWeight: 700, fontSize: 10, cursor: "pointer", whiteSpace: "nowrap" }}>📤 {t('orderHub.csvExport')}</button>
             </div>
             <table className="table">
                 <thead><tr><th>{t('orderHub.colOrderNo')}</th><th>{t('orderHub.colChannel')}</th><th>{t('orderHub.colProduct')}</th><th>{t('orderHub.colQty')}</th><th>{t('orderHub.colTotal')}</th><th>{t('orderHub.colBuyer')}</th><th>{t('orderHub.colStatus')}</th><th>{t('orderHub.colNote')}</th><th></th></tr></thead>
