@@ -1,92 +1,92 @@
-# NEXT_SESSION.md (83차 종결 + 84차 인계)
+GeniegoROI 프로젝트 89차 세션 시작합니다. 외부 검수자 역할 부탁드립니다.
 
----
+# 89차 핵심 (검수자 결정 대기)
+- 88차 종결 완료: 1 commit (50f5608)
+- master HEAD: 50f5608 (origin 동기화 대기 - 88차 종료 시 push 완료 예정)
+- 88차 commit: 50f5608 (docs: PM 진단 검증 보고서 SESSION_88_VERIFICATION.md)
+- 89차 진입 전 SESSION_88_VERIFICATION.md raw 재검증 권장
+- 89차 작업 방향: PM 보고서 신뢰 불가 판정 → **PM 재작성 또는 검증 완료 문서 (SECURITY_AUDIT_REPORT.md 등) 기반 작업 영역 결정**
 
-GeniegoROI 프로젝트 84차 세션 시작합니다. 외부 검수자 역할 부탁드립니다.
+# 88차 종결 상태 (확정, push 완료)
+- master HEAD: 50f5608
+- 88차 commits 1건: 1 docs (PM 검증 보고서)
+- 88차 신규 파일: SESSION_88_VERIFICATION.md (177줄)
+- 88차 삭제 파일: 없음
+- 88차 소스 파일 수정: 없음 (PM 보고서 A/B안 모두 오진단 확정으로 모든 수정 보류)
 
-# 84차 핵심 (검수자 결정 대기)
-- 83차 종결 완료: SubscriberTabs.jsx dead useT import 제거 (75차 #4 패턴 검증 완료) + 인계 docs 갱신
-- master HEAD: 9d7a9cc (origin 동기화 ↑0↓0, push 완료)
-- 84차 진입 전 NEXT_SESSION.md raw 재검증 권장
-- 84차 최우선: #1 AIInsights.jsx 마이그레이션 재시도 (PowerShell 자동화 전략 검토) 또는 #2 인접 단순 파일 dead import 검증
-
-# 83차 종결 상태 (확정, push 완료)
-- master HEAD: 9d7a9cc
-- working tree: 깨끗 (↑0↓0)
-- 83차 commit 1건 (push 완료):
-  - 9d7a9cc: refactor: SubscriberTabs.jsx remove dead useT import (75th #4 pattern) - 83rd
-- fetch 잔존 (pages/*.jsx): 33파일 (변화 없음, AIInsights.jsx 마이그레이션 실패하여 복원됨)
-  - 상위 3개: AIInsights.jsx, AIPrediction.jsx, AIRecommendTab.jsx
-- SubscriberTabs.jsx dead import 검증 완료: useT 제거 후 L1~L2만 잔존, 7개 import 항목 모두 사용 중
-
-# 84차 첫 명령 (Claude Code에 1줄씩 입력)
-- t1: t git -C "D:\project\GeniegoROI" log --oneline -10
+# 89차 첫 명령
+- t1: t git -C "D:\project\GeniegoROI" log --oneline -15
 - t2: t git -C "D:\project\GeniegoROI" status --short --branch
 - t3: t git -C "D:\project\GeniegoROI" diff origin/master --stat
-- t4: t git -C "D:\project\GeniegoROI" branch --show-current
-- t5: t powershell -Command "(git -C 'D:\project\GeniegoROI' grep -l 'fetch(' -- 'frontend/src/pages/*.jsx').Count"
-- t6: t git -C "D:\project\GeniegoROI" grep -l "fetch(" -- "frontend/src/pages/*.jsx"
+- t4: t powershell -Command "Get-Content 'D:\project\GeniegoROI\SESSION_88_VERIFICATION.md' -Encoding UTF8"
 
-기대값: HEAD=9d7a9cc, working tree clean, ↑0↓0, master, fetch 잔존 파일 카운트=33
+기대값: HEAD=50f5608, working tree clean, ↑0↓0, 88차 인계 문서 raw 확인
 
-# 84차 우선순위
-1. #1 AIInsights.jsx 마이그레이션 재시도 (회차 ~5+, PowerShell 자동화 전략 환경 검증 + 정규식 escape + dry-run 사전 검증)
-   - 83차 1회차 수동 Edit 실패 (수정 1 import 추가 성공, 수정 2 fetch 교체 실패 후 git checkout 복원)
-   - 자동화 전략 후보: PowerShell -replace 정규식 / Python in-place / 스크립트 파일 생성 + 실행
-2. #2 인접 단순 파일 dead import 검증 (회차 ~2/파일, 75차 #4 패턴 반복)
-   - 후보: AIPrediction.jsx, AIRecommendTab.jsx, KrChannel.jsx 등 78차/82차 마이그레이션 완료 파일
-3. #3 잔존 fetch 33파일 우선순위 재선정 (회차 ~3, auth 무관 / 단순 GET / 소규모 파일 우선)
-4. #4 CC 자율 변환 통제 강화 절차 신설 (옵션 A-Cmd 또는 변환 시 즉시 정지 절차)
+# 89차 우선순위 (PM 신뢰 불가 → 대체 작업 영역 결정)
+1. SESSION_88_VERIFICATION.md raw 검토 (88차 검증 결과 + 89차 권고사항 7.4 참조)
+2. 대체 작업 영역 후보:
+   - **C안:** OrderHub.jsx CSV/Excel Export 구현 (Sprint 2, PM 진단 비의존, CatalogSync handleExportCSV/Excel 로직 참고)
+   - **D안:** 광고 플랫폼 커넥터 UI (Phase 1, 5일, 완성도 70% 최하위, Connectors.jsx)
+   - **E안:** PM 보고서 자체 재작성 (PM_ANALYSIS_REPORT.md + PM_PAGE_ANALYSIS.md 정확성 재확보)
+   - **F안:** CatalogSync.jsx 31줄 useCatalogSecurity 훅 진짜 버그 검증 완료 (88차 미진행, 사용자 ctrl+o 직접 확장 캡쳐 필요)
+   - **G안:** SECURITY_AUDIT_REPORT.md 기반 보안 작업 영역
+3. 사용자가 비즈니스 작업 영역 지정하면 즉시 진행
 
-# 83차 신규 교훈 (84차 적용 필수)
-1. CC 자율 변환 가속화 - PowerShell→Bash 5회 변환 발생 (Get-Content→sed, Select-Object→sed, Select-String→bash for loop). Bash for loop 변환 후 "shell syntax cannot be statically analyzed" 권한 prompt 발생. 변환 즉시 정지 + 검수자 의도 직접 입력 재시도 필수
-2. CC 자율 위험 명령 다발 생성 - checkout HEAD (3회), push origin master (1회) 등 위험 명령 자율 텍스트 생성. 자율 텍스트의 위험 명령 키워드 (checkout, push, force, reset, rm, hard) 즉시 t 프리픽스 덮어쓰기 차단
-3. 수동 Edit 다중 라인 위험 - 6줄 동시 교체 시 Shift+화살표 부정확. 1~2줄 단위 단순 수정만 수동 Edit 권장. 다중 라인은 PowerShell 자동화 또는 다른 전략 필요
-4. 자율 텍스트 합의 가장 패턴 - CC가 `echo a3_confirmed_proceed` 등 검수자 합의 텍스트를 자기 임의로 생성. 자율 텍스트의 합의/승인 키워드 (confirmed, proceed, apply, yes, ok, go ahead) 즉시 차단
-5. git checkout HEAD -- <file> 안전 복구 수단 - working tree만 강제 복원, 다른 파일 무관. 수동 Edit 실패 후 부분 적용 상태 복구에 가장 안전 (82차 #9, 83차 적용 사례)
-6. VS Code 메모리 vs 디스크 동기화 - git checkout 후에도 VS Code 탭은 잔존 변경 표시. Revert File (Ctrl+Shift+P) 또는 탭 닫기 + Don't Save 필수
-7. dead import 3단계 검증 (75차 #4 패턴) 효과적 - 정의 → 사용처 → 디렉토리 활성. 단순 파일에서 1~2회차로 완수, commit 빠르게 가능
-8. CC 자율 분석 텍스트가 검수자 결정 무시 - 사용자가 "부분 종결" 명시했음에도 CC는 "계속 진행할까요?" 자율 권유. 검수자가 사용자 결정 우선 + CC 분석은 참고만
-9. 83차 1회차 AIInsights.jsx 수정 2 실패 패턴 - 6줄 fetch 블록 교체 시 (a) 라인 시작 선택 부정확 (Col 13에서 시작, Col 1 아님), (b) 다음 라인 (L249 if (d.ok)) 보존 실패, (c) Ctrl+Z 부분 복원만 됨, (d) git checkout으로 최종 복구
+# 88차 신규 교훈 (89차 적용 필수)
+1. **PM 문서 진단 단순 신뢰 금지** - 75차 #4 dead code 검증 3단계 모든 PM 진단에 적용 (정의/사용처/스코프)
+2. **CC raw 출력 압축 우회 방법 부재** - sed/powershell 모두 ctrl+o 압축 발생, 사용자 직접 Explorer raw 클릭 또는 ctrl+o 확장 캡쳐 필수
+3. **CC 자율 합의 키워드 한국어 패턴 차단** - "수정해줘", "진행할까요?", "수정 진행할까요?" 즉시 차단 (83차 #4 확장)
+4. **CC 자율 위험 명령 사전 감지 강화** - git add, git commit, git push 모두 자율 생성 시 즉시 차단 (commit 직전 stage 명령도 위험 명령 분류)
+5. **장문 보고서 작성 = 검수자 작성 후 사용자 붙여넣기 채택** - PowerShell Add-Content 8회 분할 비효율 + 영구 허용 차단 부담 + 인코딩 사고 위험
+6. **PM 보고서 라인 번호 검증 필수** - PM이 명시한 위치(예: 156줄)와 실제 코드 위치(예: 152줄) 다를 수 있음, raw grep으로 재확인
+7. **CC 분석도 검증 대상** - CC가 raw 미확인 상태에서 단정적 분석 제공 가능, PM 분석과 동일 위험으로 분류
 
-# 검수자 운영 원칙 (70~83차 정착, 불변)
-- 자율 추천 절대 금지 (79차/80차/81차/82차/83차 다발 발생)
-- raw 결과만 받기 (Claude Code 자체 분석은 참고만)
+# 검수자 운영 원칙 (70~88차 정착, 불변)
+- 자율 추천 절대 금지 (단, 검수자 추천 1개 동반 가능)
+- raw 결과만 받기 (CC 자체 분석은 참고)
 - t 프리픽스 누락 시 즉시 정지 + 재입력 요청
-- CC create_file/Write/Edit 도구 사용 금지 (단, 옵션 A-3 명시 합의 시 Edit 1회 허용)
-- CC Read 도구 자율 호출 금지 (단, 옵션 A-Read 1회 명시 합의 시 1회 허용 - 82차 신규)
-- CC 자동 생성 텍스트는 ESC 키 안 먹힘, 엔터 불가, 검수자 명령으로 t 프리픽스 덮어쓰기만 가능
-- CC 명령어 거의 1개씩만 입력 가능 (Claude Code 환경 제약)
-- 너무 긴 설명 지양, 짧게 설명하고 진행
-- 검수자 명령으로 저장 가능한 것은 검수자가 직접 진행 (사용자 직접 저장 최소화)
-- 사용자 결정 필요 시 검수자 추천 1개 동반
-- 위험 명령 (push, force, reset, checkout HEAD, --hard, commit, rm) 자동 생성 시 즉시 t 프리픽스 + 빈 명령 입력 대기
+- CC create_file/Write/Edit 도구 사용 금지 (단, 합의 시 Edit 1회 허용)
+- CC Read 도구 자율 호출 금지 (sed -n 우회)
+- CC 자율 텍스트 t 프리픽스 덮어쓰기로 차단
+- CC 명령어 거의 1개씩만 입력 가능
+- 짧게 설명하고 진행
+- 검수자 명령으로 저장 가능한 것은 직접 진행
+- 사용자 결정 시 검수자 추천 1개 동반
+- 위험 명령 (push, force, reset, checkout HEAD, --hard, commit, rm, add) 자동 생성 시 즉시 차단
 - dead code 검증 정의/사용처/디렉토리 활성 3단계 필수 (75차 #4)
-- 다중 라인 패턴 편집 후 저장 전 Problems 패널 raw 확인 + git diff 라인 수 검증 (77차 #1, #3)
-- 인계 파일 경로 raw 재검증 (78차 #1)
-- VS Code 좌하단 master* 클릭 금지 (79차 #5)
-- 인계 블록 Edit 후 sed 검증 필수 + 인계 블록 내 기대값 HEAD는 docs commit 후 HEAD로 정정 (80차 #7, #8)
-- CC Edit 도구 승인 시 옵션 2 (allow all edits, shift+tab) 절대 금지 - 옵션 1 (Yes) 만 선택
-- CC Edit 후 디스크 직접 저장됨 - VS Code 탭의 M 표시는 잔존, git status로 검증
-- CC Edit 거부 후 부분 적용 상태 가능성, git status --short 즉시 확인 (81차 #1)
-- import 블록 Edit 시 useT 등 활성 import 명시 보존 지시 (81차 #2)
-- PowerShell `$()` subexpression 권한 prompt 옵션 2 (don't ask again) 절대 금지 - 옵션 1 (Yes) 만 (82차 #2)
-- 파일 EOF append 작업은 전체 재작성 + 메모장 복붙 방식 우선 검토 (82차 #9)
-- CC 자율 변환 발생 시 즉시 정지 + 검수자 의도 직접 입력 재시도 (83차 #1)
-- 자율 텍스트의 위험 명령 키워드 (checkout, push, force, reset, rm, hard) 즉시 t 프리픽스 덮어쓰기 (83차 #2)
-- 자율 텍스트의 합의/승인 키워드 (confirmed, proceed, apply, yes, ok, go ahead) 즉시 차단 (83차 #4)
-- 다중 라인 수동 Edit 회피, 1~2줄 단순 수정만 수동 Edit (83차 #3)
-- 사용자 결정 (예: 부분 종결) 우선, CC 자율 권유 무시 (83차 #8)
+- 자율 텍스트 위험 키워드 (checkout, push, force, reset, rm, hard) 즉시 차단 (83차 #2)
+- 자율 텍스트 합의 키워드 (confirmed, proceed, apply, yes, ok, go ahead, 수정해줘, 진행할까요) 즉시 차단 (83차 #4 + 88차 #3)
+- 다중 라인 수동 Edit 회피 (83차 #3)
+- PowerShell → Bash 자동 변환 시 No 선택 (84차)
+- Read 도구 우회: sed -n 사용 (85차)
+- apiClient 교체 시 r.ok 분기 코드 동반 점검 (85차)
+- PowerShell Add-Content 965 bytes 분할 (85차)
+- 자율 텍스트 글자(엔터 안 쳐짐): 검수자가 t 프리픽스 명령어 별도 제공 (86차)
+- 작성/저장 파일은 Write 도구 사용 시 UTF-8 보장 (86차)
+- PowerShell 영구 허용 (2번) 절대 불가 - 매번 1번 Yes만 (87차 신규)
+- **PM 문서 진단 = 단순 신뢰 금지, 75차 #4 검증 3단계 필수 (88차 신규 #1)**
+- **CC raw 출력 압축 우회 불가 - 사용자 직접 Explorer raw 클릭 채택 (88차 신규 #2)**
+- **CC 자율 합의 키워드 한국어 패턴 차단 (88차 신규 #3)**
+- **CC 자율 위험 명령 (add 포함) 사전 감지 강화 (88차 신규 #4)**
+- **장문 보고서 = 검수자 작성 후 사용자 붙여넣기 채택 (88차 신규 #5)**
 
-# 84차 운영 추가 요청 (사용자 명시, 83차 인계)
-- 매 진행 시 추가 작업 여력 표시 포함 - "📊 진행 상태: 추가 작업 가능 (종결 / 부분종결) 또는 불가"
-- 회차 압박 받지 말고 최대한 많은 작업을 진행
-- 너무 긴 설명보다 짧게 설명하고 진행
-- 사용자가 직접 저장하지 않아도 검수자 명령으로 저장 가능한 것은 검수자가 직접 진행
-- CC 자동 생성 텍스트는 ESC/엔터 불가, t 프리픽스 덮어쓰기만 가능 - 검수자 인지 필수
-- 명령어 1개씩만 입력 가능 - 검수자 인지 필수
-- 인수인계 작업에 위험이 있으면 부분 종결로 진행 (83차 신규)
+# 89차 운영 추가 요청 (사용자 명시, 88차 유지)
+- **매 명령마다 차수 표기 필수** (예: "89차 t1 명령", "89차 t2 명령")
+- 작업 여력이 있는 한 추가 작업 진행 - 다음 차수로 미루지 말 것
+- 추가 작업 여력 부족 시에만 부분 종결 후 인계
+- 부분 종결 시 다음 차수 명령문도 함께 작성
+- 매 진행 시 추가 작업 여력 표시 - "📊 진행 상태: 추가 작업 가능 (종결/부분종결) 또는 불가"
+- 짧게 설명하고 진행
+- 검수자 명령 직접 진행 우선
+- 자율 텍스트 t 프리픽스 덮어쓰기만 가능 (ESC/엔터 불가)
+- 명령어 1개씩만 입력 가능
+- 인계 작업 위험 시 부분 종결 (83차)
+- 작업 규모 보수적 판단 회피 (84차)
+- 단순 패턴 fetch는 적극 즉시 Edit (86차)
+- 자율 텍스트 글자 엔터 안 쳐지면 검수자가 t 명령어 별도 제공 (86차)
+- PowerShell 권한 1번 Yes만 (87차 신규)
+- 장문 보고서 = 검수자 작성 후 사용자 붙여넣기 (88차 신규)
 
-자세한 인계 사항은 NEXT_SESSION.md (D:\project\GeniegoROI\NEXT_SESSION.md, master HEAD 9d7a9cc + 본 docs commit 후 새 HEAD에 포함) 를 raw로 확인 부탁드립니다.
+자세한 인계 사항은 SESSION_88_VERIFICATION.md (D:\project\GeniegoROI\SESSION_88_VERIFICATION.md, master HEAD 50f5608에 포함)를 raw로 확인 부탁드립니다.
 
-84차 시작 확인. 검수자 페어 진행 모드 인지. Claude Code 명령 t1번 결과 raw 수신 대기.
+89차 시작 확인. 검수자 페어 진행 모드 인지. Claude Code 명령 t1번 결과 raw 수신 대기.
