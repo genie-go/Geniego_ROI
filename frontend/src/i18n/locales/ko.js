@@ -559,7 +559,6 @@ export default {
     "excelExport": "Excel 내보내기",
     "csvExportDone": "📥 CSV 내보내기 완료: {{n}}건",
     "excelExportDone": "📊 Excel 내보내기 완료: {{n}}건",
-    "exportEmpty": "내보낼 데이터가 없습니다",
     "exportError": "내보내기 오류",
     "colSku": "SKU",
     "colName": "상품명",
@@ -573,7 +572,16 @@ export default {
     "colSlaViolated": "SLA위반",
     "colTags": "태그",
     "colMemo": "메모",
-    "colWh": "창고"
+    "colWh": "창고",
+    "colClaim": "클레임",
+    "ariaExportExcel": "Excel 파일로 내보내기",
+    "ariaExportCsv": "CSV 파일로 내보내기",
+    "exporting": "내보내는 중...",
+    "exportEmpty": "내보낼 데이터가 없습니다",
+    "exportCsvSuccess": "CSV 파일 {count}건이 다운로드되었습니다",
+    "exportCsvError": "CSV 내보내기 중 오류가 발생했습니다",
+    "exportExcelSuccess": "Excel 파일 {count}건이 다운로드되었습니다",
+    "exportExcelError": "Excel 내보내기 중 오류가 발생했습니다"
   },
   "dataProduct": {
     "tabOverviewDesc": "파이프라인 & 커버리지 개요",

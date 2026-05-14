@@ -553,7 +553,6 @@ export default {
     "excelExport": "Export Excel",
     "csvExportDone": "📥 CSV exported: {{n}} orders",
     "excelExportDone": "📊 Excel exported: {{n}} orders",
-    "exportEmpty": "No data to export",
     "exportError": "Export error",
     "colSku": "SKU",
     "colName": "Product Name",
@@ -567,7 +566,16 @@ export default {
     "colSlaViolated": "SLA Violated",
     "colTags": "Tags",
     "colMemo": "Memo",
-    "colWh": "Warehouse"
+    "colWh": "Warehouse",
+    "colClaim": "Claim",
+    "ariaExportExcel": "Export to Excel file",
+    "ariaExportCsv": "Export to CSV file",
+    "exporting": "Exporting...",
+    "exportEmpty": "No data to export",
+    "exportCsvSuccess": "CSV file downloaded ({count} rows)",
+    "exportCsvError": "An error occurred while exporting CSV",
+    "exportExcelSuccess": "Excel file downloaded ({count} rows)",
+    "exportExcelError": "An error occurred while exporting Excel"
   },
   "dataProduct": {
     "tabOverviewDesc": "Pipeline & coverage overview",
