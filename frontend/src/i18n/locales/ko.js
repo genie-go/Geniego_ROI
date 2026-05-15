@@ -10411,7 +10411,7 @@ export default {
       "connectors": {
         "title": "채널 연동·커넥터",
         "summary": "시스템 사용자를 추가하고, 관리자·편집자·뷰어 등 역할별 접근 권한을 설정합니다.",
-        "tips": "Tips",
+        "tips": "팁",
         "help": {
           "title": "시스템 사용설명서",
           "summary": "Geniego-ROI의 모든 기능에 대한 상세 가이드, Q&A, 인증키 등록법, 권한별 업무를 안내합니다.",
@@ -10426,24 +10426,24 @@ export default {
         "smsMarketing": {
           "title": "SMS 마케팅",
           "summary": "국내 SMS/LMS 메시지를 발송하고 발송 이력과 통계를 관리합니다.",
-          "tips": "Tips"
+          "tips": "팁"
         }
       },
       "apiKeys": {
-        "title": "Title",
-        "summary": "Summary",
-        "steps": "Steps",
-        "tips": "Tips"
+        "title": "제목",
+        "summary": "요약",
+        "steps": "단계",
+        "tips": "팁"
       },
       "userMgmt": {
-        "title": "Title",
-        "summary": "Summary",
-        "steps": "Steps",
-        "tips": "Tips"
+        "title": "제목",
+        "summary": "요약",
+        "steps": "단계",
+        "tips": "팁"
       }
     },
-    "noHelpFound": "No Help Found",
-    "tryOther": "Try Other"
+    "noHelpFound": "도움말 없음",
+    "tryOther": "다른 검색어 시도"
   },
   "pricingDetail": {
     "free_tagline": "무료로 시작, 플랫폼 탐색",
