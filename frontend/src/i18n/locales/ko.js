@@ -16270,28 +16270,40 @@ export default {
   },
   "actionPresets": {
     "pageTitle": "페이지 제목",
-    "pageSub": "Page",
-    "presetList": "Preset List",
+    "pageSub": "페이지",
+
+    "presetList": "프리셋 목록",
+
     "risk": {
-      "all": "All"
+      "all": "전체"
+
     },
-    "usageGuide": "Usage Guide",
+    "usageGuide": "사용 가이드",
+
     "guide": {
       "step1": {
-        "title": "Title",
-        "desc": "desc"
+        "title": "제목",
+
+        "desc": "설명"
+
       },
       "step2": {
-        "title": "Title",
-        "desc": "desc"
+        "title": "제목",
+
+        "desc": "설명"
+
       },
       "step3": {
-        "title": "Title",
-        "desc": "desc"
+        "title": "제목",
+
+        "desc": "설명"
+
       },
       "step4": {
-        "title": "Title",
-        "desc": "desc"
+        "title": "제목",
+
+        "desc": "설명"
+
       }
     },
     "tabPresets": "📋 프리셋 목록",
