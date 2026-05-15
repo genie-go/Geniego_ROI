@@ -3302,7 +3302,8 @@ export default {
     "aiRecommend": "AI 추천 엔진",
     "adAnalytics": "광고 현황 & 분석",
     "adPerformance": "광고성과",
-    "budgetTracker": "Budget Tracker",
+    "budgetTracker": "예산 트래커",
+
     "accountPerformance": "어카운트 성과",
     "attribution": "어트리뷰션",
     "channelKpi": "채널 KPI",
@@ -16943,7 +16944,8 @@ export default {
     "journeyBuilder": "여정 빌더",
     "adAnalytics": "광고 현황 & 분석",
     "adPerformance": "광고성과",
-    "budgetTracker": "Budget Tracker",
+    "budgetTracker": "예산 트래커",
+
     "accountPerformance": "어카운트 성과",
     "attribution": "어트리뷰션",
     "channelKpi": "채널 KPI",
@@ -17467,7 +17469,8 @@ export default {
     "estimatedFee": "예상 수수료",
     "totalFee": "총 수수료",
     "tabAiEval": "🤖 AI 효과 평가 분석",
-    "aiEvalPlaceholderTitle": "🤖 AI Evaluation Placeholder",
+    "aiEvalPlaceholderTitle": "🤖 AI 평가 자리표시자",
+
     "aiEvalPlaceholderDesc": "AI 평가 결과는 이전 버전에 존재하였으나 통합 대시보드 구조에 맞춰 리팩토링 중입니다.",
     "ModeLabel": "(Dr.Jart+ 데모 모드)",
     "teamA": "A팀_퍼포먼스",
@@ -17591,14 +17594,21 @@ export default {
     "mktTabAiDesign": "AI 디자인",
     "mktTabGuide": "이용 가이드",
     "dateRangeFilter": "매체별 실적 기간 필터",
-    "dateRangeDesc": "선택한 기간 내 캐페인 실적을 일별로 분석합니다.",
-    "aiGuideTitle": "AI Design Creative Engine — Complete Guide",
-    "aiGuideSub": "Step-by-step instructions from creative setup to multi-channel deployment",
-    "aiGuideStepsTitle": "AI Design — Step-by-Step Workflow",
-    "aiGuideTip1": "Select the correct platform first — each platform has optimized dimensions for maximum ad performance.",
-    "aiGuideTip2": "Use the Event Period tab for time-limited campaigns — flash sales, seasonal promotions, and birthday events.",
-    "aiDesignSub": "Enterprise AI Creative Engine · 14 Platforms · Multi-Channel Ads · Interactive Popups",
-    "aiDesignLoading": "Loading AI Engine...",
+    "dateRangeDesc": "선택한 기간 내 캠페인 실적을 일별로 분석합니다.",
+    "aiGuideTitle": "AI 디자인 크리에이티브 엔진 — 완전 가이드",
+
+    "aiGuideSub": "크리에이티브 설정부터 멀티채널 배포까지 단계별 안내",
+
+    "aiGuideStepsTitle": "AI 디자인 — 단계별 워크플로우",
+
+    "aiGuideTip1": "각 플랫폼은 광고 성과를 극대화하도록 최적화된 규격을 갖고 있으니 먼저 정확한 플랫폼을 선택하세요.",
+
+    "aiGuideTip2": "한정 캠페인 (플래시 세일·시즌 프로모션·생일 이벤트)에는 이벤트 기간 탭을 사용하세요.",
+
+    "aiDesignSub": "엔터프라이즈 AI 크리에이티브 엔진 · 14 플랫폼 · 멀티채널 광고 · 인터랙티브 팝업",
+
+    "aiDesignLoading": "AI 엔진 로딩 중...",
+
     "aiGuideStep1Title": "기간 설정",
     "aiGuideStep1Desc": "분석할 날짜 범위를 설정합니다.",
     "aiGuideStep2Title": "KPI 확인",
