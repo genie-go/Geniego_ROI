@@ -19726,15 +19726,24 @@ export default {
     "marginPreview": "마진 미리보기",
     "pauseProduct": "판매 중지",
     "resumeProduct": "판매 재개",
-    "liveSync": "Live Sync",
-    "grossRevenue": "Gross Revenue",
-    "settled": "Settled",
-    "targetB3": "Target B3",
-    "reconRate": "Recon Rate",
-    "autoMatch": "Auto Match",
-    "gender": "Gender",
-    "age": "Age",
-    "region": "Region"
+    "liveSync": "실시간 동기화",
+
+    "grossRevenue": "총 매출",
+
+    "settled": "정산 완료",
+
+    "targetB3": "타겟 B3",
+
+    "reconRate": "정합률",
+
+    "autoMatch": "자동 매칭",
+
+    "gender": "성별",
+
+    "age": "연령",
+
+    "region": "지역"
+
   },
   "perms": {
     "readAll": "전체 읽기",
