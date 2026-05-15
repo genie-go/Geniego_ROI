@@ -18492,11 +18492,14 @@ export default {
     "panelTitle": "개인정보 설정",
     "panelSub": "쿠키 및 데이터 사용 설정",
     "savePref": "설정 저장",
-    "policyNote1": "Policy Note1",
+    "policyNote1": "자세한 내용은 당사의",
+
     "privacyPolicy": "개인정보처리방침",
-    "policyNote2": "Policy Note2",
+    "policyNote2": "및",
+
     "cookiePolicy": "쿠키 정책",
-    "policyNote3": "Policy Note3",
+    "policyNote3": "을 참조하세요.",
+
     "bannerTitle": "개인정보 동의",
     "bannerDesc": "더 나은 서비스를 위해 데이터를 수집합니다",
     "currentConsentStatus": "현재 동의 상태",
