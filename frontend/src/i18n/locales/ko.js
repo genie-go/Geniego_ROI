@@ -1667,7 +1667,8 @@ export default {
     "supplierAdd": "+ 공급업체 추가",
     "supplierName": "회사",
     "supplierCode": "코드",
-    "supplierType": "Type",
+    "supplierType": "유형",
+
     "supplierCountry": "를 입력하세요. 국가",
     "supplierContact": "연락처",
     "supplierPhone": "전화",
@@ -1745,7 +1746,8 @@ export default {
     "ioSaveBtn": "💾 등록",
     "ioCancelBtn": "취소",
     "ioSearchPh": "SKU·상품명·참조번호 검색…",
-    "ioItems": "items",
+    "ioItems": "품목",
+
     "ioColType": "유형",
     "ioColWh": "창고",
     "ioColSku": "SKU",
