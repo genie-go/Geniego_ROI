@@ -20596,14 +20596,22 @@ export default {
   "sandbox": "Sandbox",
   "2d": "2d",
   "aiRec": {
-    "salesInfo": "Sales Info",
-    "catalogAuto": "Catalog Auto",
-    "skuCount": "Sku Count",
-    "monthlyQty": "Monthly Qty",
-    "avgPrice": "Avg Price",
-    "marginRate": "Margin Rate",
-    "goalRevenue": "Goal Revenue",
-    "mainChannels": "Main Channels"
+    "salesInfo": "판매 정보",
+
+    "catalogAuto": "카탈로그 자동",
+
+    "skuCount": "SKU 수",
+
+    "monthlyQty": "월간 수량",
+
+    "avgPrice": "평균 가격",
+
+    "marginRate": "마진율",
+
+    "goalRevenue": "목표 매출",
+
+    "mainChannels": "주요 채널"
+
   },
   "reports": {
     "revSixMo": "6개월 수익",
