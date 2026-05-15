@@ -11877,18 +11877,30 @@ export default {
     "workspace": {
       "title": "팀 워크스페이스"
     },
-    "pnlLowMargin": "Pnl Low Margin",
-    "pnlLowMarginSub": "Pnl Low Margin",
-    "pnlAiAction": "Pnl Ai Action",
-    "pnlHighMargin": "Pnl High Margin",
-    "pnlHighMarginSub": "Pnl High Margin",
-    "pnlBudgetAction": "Pnl Budget Action",
-    "kpiRulesActive": "Rules Active",
-    "kpiRulesFired": "Rules Fired",
-    "kpiAllNormal": "All Normal",
-    "kpiRuleAction": "Rule Action",
-    "attrAiRun": "Attr Ai Run",
-    "attrAiSub": "Attr Ai"
+    "pnlLowMargin": "저마진",
+
+    "pnlLowMarginSub": "저마진 상품",
+
+    "pnlAiAction": "AI 액션",
+
+    "pnlHighMargin": "고마진",
+
+    "pnlHighMarginSub": "고마진 상품",
+
+    "pnlBudgetAction": "예산 액션",
+
+    "kpiRulesActive": "활성 규칙",
+
+    "kpiRulesFired": "실행된 규칙",
+
+    "kpiAllNormal": "전체 정상",
+
+    "kpiRuleAction": "규칙 액션",
+
+    "attrAiRun": "AI 실행",
+
+    "attrAiSub": "AI 기여"
+
   },
   "channelKpiPage": {
     "pageTitle": "기본 채널 KPI 관리망",
