@@ -13757,7 +13757,14 @@ export default {
     "pinned": "Đã ghim",
     "quickAccess": "Truy cập nhanh",
     "removeFav": "Xóa khỏi yêu thích",
-    "addFav": "Thêm vào yêu thích"
+    "addFav": "Thêm vào yêu thích",
+    "footerLine1": "Revenue + Risk + Governance",
+    "footerLine2": "Settlement OS · v423.0.0",
+    "campaignsRunning": "{{n}} campaigns running",
+    "alertsUnread": "{{n}} alerts",
+    "upgrade": "Upgrade →",
+    "logout": "Logout",
+    "version": "Revenue + Risk + Governance\nSettlement OS · v423.0.0",
   },
   "admin": {
     "title": "Trung tâm Quản trị",

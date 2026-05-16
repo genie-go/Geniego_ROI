@@ -16252,7 +16252,12 @@ export default {
     "noRecents": "Belum ada riwayat kunjungan",
     "pinned": "Disematkan",
     "quickAccess": "Akses Cepat",
-    "addFav": "Tambah ke favorit"
+    "addFav": "Tambah ke favorit",
+    "campaignsRunning": "{{n}} campaigns running",
+    "alertsUnread": "{{n}} alerts",
+    "upgrade": "Upgrade →",
+    "logout": "Logout",
+    "version": "Revenue + Risk + Governance\nSettlement OS · v423.0.0",
   },
   "performance": "績效",
   "fixedPerf": "固定+績效",

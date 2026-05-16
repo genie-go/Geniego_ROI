@@ -14754,7 +14754,12 @@ export default {
     "noRecents": "尚無瀏覽記錄",
     "pinned": "已釘選",
     "quickAccess": "快速存取",
-    "addFav": "加入收藏"
+    "addFav": "加入收藏",
+    "campaignsRunning": "{{n}} campaigns running",
+    "alertsUnread": "{{n}} alerts",
+    "upgrade": "Upgrade →",
+    "logout": "Logout",
+    "version": "Revenue + Risk + Governance\nSettlement OS · v423.0.0",
   },
   "performance": "绩效",
   "fixedPerf": "固定+绩效",

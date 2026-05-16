@@ -16273,7 +16273,12 @@ export default {
     "noRecents": "ยังไม่มีประวัติการเยี่ยมชม",
     "pinned": "ปักหมุดแล้ว",
     "quickAccess": "การเข้าถึงด่วน",
-    "addFav": "เพิ่มในรายการโปรด"
+    "addFav": "เพิ่มในรายการโปรด",
+    "campaignsRunning": "{{n}} campaigns running",
+    "alertsUnread": "{{n}} alerts",
+    "upgrade": "Upgrade →",
+    "logout": "Logout",
+    "version": "Revenue + Risk + Governance\nSettlement OS · v423.0.0",
   },
   "performance": "ผลงาน",
   "fixedPerf": "Fixed+Performance",
