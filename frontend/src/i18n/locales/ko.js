@@ -9705,7 +9705,9 @@ export default {
     "guideFaq2Q": "데이터가 부족해요.",
     "guideFaq2A": "최소 30일 이상의 데이터가 필요합니다.",
     "guideReadyTitle": "시작할 준비가 되셨나요?",
-    "guideReadyDesc": "좌측 메뉴에서 어트리뷰션을 선택하세요."
+    "guideReadyDesc": "좌측 메뉴에서 어트리뷰션을 선택하세요.",
+    "analysisJourney": "Analysis Journeys",
+    "cases": " items"
   },
   "channelKpi": {
     "tabGoals": "1. 목표 및 채널 (Goals)",
