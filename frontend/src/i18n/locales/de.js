@@ -15393,7 +15393,9 @@ export default {
     "b2bSku": " Arten",
     "conBtnStartOauth": "Start OAuth",
     "conDocs": "📖 API Docs",
-    "conConnectorsTitle": "3rd-Party Integration Hub"
+    "conConnectorsTitle": "3rd-Party Integration Hub",
+    "colVatTax": "VAT/Tax (%)",
+    "colCommission": "Commission (%)",
   },
   "sidebar": {
     "footerLine1": "Umsatz + Risiko + Governance",
