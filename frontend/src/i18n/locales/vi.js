@@ -1720,7 +1720,21 @@ export default {
       "delivered": "Delivered",
       "ready": "Ready",
       "cancelled": "Cancelled"
-    }
+    },
+    "supplierLeadtime": "Lead Time (days)",
+    "supplierRating": "Rating",
+    "supplierHistory": "Order History",
+    "paymentCash": "Cash",
+    "payment7d": "Net 7",
+    "payment30d": "Net 30",
+    "payment60d": "Net 60",
+    "paymentPrepay30": "Prepay 30%",
+    "paymentLC60": "L/C 60d",
+    "typeManufacturer": "Manufacturer",
+    "typeWholesaler": "Wholesaler",
+    "typeImporter": "Importer",
+    "typeAgent": "Agent",
+    "pageTitle": "🏭 WMS Warehouse & Logistics"
   },
   "email": {
     "title": "Email Marketing",
