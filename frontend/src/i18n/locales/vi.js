@@ -21033,11 +21033,6 @@ export default {
     "syncChannel": "Sync Channel",
     "noProducts": "No products registered.",
   },
-  "dashTabs": {
-    "guide": "Hướng dẫn",
-    "guideDesc": "Hướng dẫn sử dụng"
-  }
-,
   "dashPeriod": {
     "today": "Hôm nay",
     "7d": "7 ngày",

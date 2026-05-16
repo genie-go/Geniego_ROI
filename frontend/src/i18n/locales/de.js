@@ -19695,11 +19695,6 @@ export default {
     "guideTitle": "Budget Tracker Guide",
     "guideSub": "Real-time ad budget tracking guide."
   },
-  "dashTabs": {
-    "guide": "Anleitung",
-    "guideDesc": "Benutzerhandbuch"
-  }
-,
   "dashPeriod": {
     "today": "Heute",
     "7d": "7 Tage",

@@ -20037,11 +20037,6 @@ export default {
     "syncChannel": "Sync Channel",
     "noProducts": "No products registered.",
   },
-  "dashTabs": {
-    "guide": "คู่มือ",
-    "guideDesc": "คู่มือการใช้งาน"
-  }
-,
   "dashPeriod": {
     "today": "วันนี้",
     "7d": "7 วัน",

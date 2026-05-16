@@ -18369,11 +18369,6 @@ export default {
     "syncChannel": "Sync Channel",
     "noProducts": "No products registered.",
   },
-  "dashTabs": {
-    "guide": "使用指南",
-    "guideDesc": "使用者指南"
-  }
-,
   "dashPeriod": {
     "today": "今天",
     "7d": "7天",

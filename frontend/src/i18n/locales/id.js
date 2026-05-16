@@ -19982,11 +19982,6 @@ export default {
     "syncChannel": "Sync Channel",
     "noProducts": "No products registered.",
   },
-  "dashTabs": {
-    "guide": "Panduan",
-    "guideDesc": "Panduan pengguna"
-  }
-,
   "dashPeriod": {
     "today": "Hari ini",
     "7d": "7 Hari",
