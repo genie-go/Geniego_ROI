@@ -12667,7 +12667,9 @@ export default {
   },
   "budget": {
     "allocated": "Allocated",
-    "spent": "Spent"
+    "spent": "Spent",
+    "overspend": "Overspend",
+    "onTrack": "On Track",
   },
   "graph": {
     "sourceNode": "Source Node",
