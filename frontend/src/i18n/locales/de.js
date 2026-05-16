@@ -4666,7 +4666,15 @@ export default {
     "smartConnect": "Smart Connect",
     "onboarding": "Onboarding",
     "license": "Lizenz",
-    "pgConfig": "PG-Konfiguration"
+    "pgConfig": "PG-Konfiguration",
+    "data": "Data & Ingestion",
+    "dataSchema": "Data Schema",
+    "memberTools": "Member Tools",
+    "caseStudy": "Case Study",
+    "help": "Help Desk",
+    "adminCenter": "Governance Center",
+    "adminSettings": "Admin Settings",
+    "userMgmt": "User Management",
   },
   "pages": {
     "onboarding": {

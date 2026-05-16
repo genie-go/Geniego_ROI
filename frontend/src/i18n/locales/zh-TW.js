@@ -4972,7 +4972,15 @@ export default {
     "smartConnect": "智慧連接",
     "onboarding": "引導",
     "license": "授權",
-    "pgConfig": "PG設定"
+    "pgConfig": "PG設定",
+    "data": "Data & Ingestion",
+    "dataSchema": "Data Schema",
+    "memberTools": "Member Tools",
+    "caseStudy": "Case Study",
+    "help": "Help Desk",
+    "adminCenter": "Governance Center",
+    "adminSettings": "Admin Settings",
+    "userMgmt": "User Management",
   },
   "pages": {
     "onboarding": {
