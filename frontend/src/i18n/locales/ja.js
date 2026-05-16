@@ -8735,6 +8735,7 @@ export default {
           "allCompare": "All Compare",
           "compareDescText": "Compare Desc Text",
           "ascoreTitle": "Ascore Title",
+          "markovRemoval": "🔗 Markov Chain — Removal Effect",
           "aScoreSub": "A Score Sub",
           "highest": "Highest",
           "average": "Average",
