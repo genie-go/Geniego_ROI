@@ -15219,7 +15219,9 @@ export default {
     "attribution_ana": "Attribution",
     "influencer_mgmt": "Influencer-Mgt.",
     "pnl_analytics": "G&V-Analyse",
-    "audit": "Prüfung"
+    "audit": "Prüfung",
+    "aiBudgetAllocator": "AI Budget Allocator",
+    "app_pricing": "Plans & Pricing",
   },
   "super": {
     "conTitle": "Data Integration Hub",

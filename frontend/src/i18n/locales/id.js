@@ -16063,7 +16063,8 @@ export default {
     "attribution_ana": "Atribusi",
     "influencer_mgmt": "Manajemen Influencer",
     "pnl_analytics": "Analisis P&L",
-    "audit": "Audit"
+    "audit": "Audit",
+    "app_pricing": "Plans & Pricing",
   },
   "super": {
     "conTitle": "Data Integration Hub",

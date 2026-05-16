@@ -4127,7 +4127,8 @@ export default {
     "attribution_ana": "歸因",
     "influencer_mgmt": "網紅管理",
     "pnl_analytics": "損益分析",
-    "audit": "審計日誌"
+    "audit": "審計日誌",
+    "app_pricing": "Plans & Pricing",
   },
   "super": {
     "conTitle": "Data Integration Hub",

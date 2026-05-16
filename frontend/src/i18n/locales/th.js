@@ -16084,7 +16084,8 @@ export default {
     "attribution_ana": "การระบุแหล่งที่มา",
     "influencer_mgmt": "การจัดการ Influencer",
     "pnl_analytics": "การวิเคราะห์ P&L",
-    "audit": "บันทึกการตรวจสอบ"
+    "audit": "บันทึกการตรวจสอบ",
+    "app_pricing": "Plans & Pricing",
   },
   "super": {
     "conTitle": "Data Integration Hub",
