@@ -16076,7 +16076,16 @@ export default {
     "sold": "Verkauft",
     "margin": "Marge",
     "stock": "Lagerbestand",
-    "top5Sku": "TOP 5 SKU"
+    "top5Sku": "TOP 5 SKU",
+    "liveSync": "Live Sync",
+    "grossRevenue": "Gross Revenue",
+    "settled": "Settled",
+    "targetB3": "Target B3",
+    "reconRate": "Recon Rate",
+    "autoMatch": "Auto Match",
+    "gender": "Gender",
+    "age": "Age",
+    "region": "Region",
   },
   "units": {
     "pts": "Pkt.",

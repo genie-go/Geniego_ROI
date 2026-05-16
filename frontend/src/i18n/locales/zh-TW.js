@@ -14988,7 +14988,16 @@ export default {
     "sold": "銷售量",
     "margin": "利潤率",
     "stock": "庫存",
-    "top5Sku": "TOP 5 SKU"
+    "top5Sku": "TOP 5 SKU",
+    "liveSync": "Live Sync",
+    "grossRevenue": "Gross Revenue",
+    "settled": "Settled",
+    "targetB3": "Target B3",
+    "reconRate": "Recon Rate",
+    "autoMatch": "Auto Match",
+    "gender": "Gender",
+    "age": "Age",
+    "region": "Region",
   },
   "menu": {
     "home": "首頁儀表板",
