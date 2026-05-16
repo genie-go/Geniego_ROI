@@ -16511,7 +16511,13 @@ export default {
     "clicks": "คลิก",
     "conversions": "การแปลง",
     "spend": "ยอดใช้จ่าย",
-    "budget": "งบประมาณ"
+    "budget": "งบประมาณ",
+    "grossRevSub": "Today's Total Sales",
+    "adSpendSub": "Total Ad Spend",
+    "netROASSub": "Net Profit / Ad Spend",
+    "totalOrderSub": "Today's Metrics",
+    "convRateLbl": "Conversion Rate",
+    "convRateSub": "Per Session",
   },
   "attribution": {
     "title": "Attribution Analysis",

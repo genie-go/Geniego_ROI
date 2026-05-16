@@ -16488,7 +16488,13 @@ export default {
     "clicks": "Klik",
     "conversions": "Konversi",
     "spend": "Pengeluaran",
-    "budget": "Anggaran"
+    "budget": "Anggaran",
+    "grossRevSub": "Today's Total Sales",
+    "adSpendSub": "Total Ad Spend",
+    "netROASSub": "Net Profit / Ad Spend",
+    "totalOrderSub": "Today's Metrics",
+    "convRateLbl": "Conversion Rate",
+    "convRateSub": "Per Session",
   },
   "attribution": {
     "title": "Analisis Attribution",

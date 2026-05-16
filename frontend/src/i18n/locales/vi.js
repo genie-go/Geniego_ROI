@@ -13468,7 +13468,13 @@ export default {
     "clicks": "Lượt nhấp",
     "conversions": "Chuyển đổi",
     "spend": "Chi tiêu",
-    "budget": "Ngân sách"
+    "budget": "Ngân sách",
+    "grossRevSub": "Today's Total Sales",
+    "adSpendSub": "Total Ad Spend",
+    "netROASSub": "Net Profit / Ad Spend",
+    "totalOrderSub": "Today's Metrics",
+    "convRateLbl": "Conversion Rate",
+    "convRateSub": "Per Session",
   },
   "attribution": {
     "title": "Phân tích Attribution",
