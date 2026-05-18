@@ -1,6 +1,6 @@
-# GeniegoROI i18n 인계서 — 119차 시작점
+# GeniegoROI i18n 인계서 — 120차 시작점
 
-> 118차 종결 시 전면 재작성 / 페어 모드(검수자 명령 → 사용자가 CC에 t 접두로 전달)
+> 119차 종결 시 전면 재작성 / 페어 모드(검수자 명령 → 사용자가 CC에 t 접두로 전달)
 > 상단부터 순서대로. 0순위 먼저.
 
 ---
@@ -8,167 +8,166 @@
 ## 0. 운영 방식 (먼저 읽기 — 특히 ★진행 강제 / ★★검수자 추천 강제)
 
 - 기본값: 검수자가 CC에 직접 수정/실행 명령. 신규 .py 본문은 검수자가 산출물 파일로 만들어 전달 → 사용자가 루트에 1회 저장. 진단·git은 CC가 직접.
-- **sed·서브식·복합 파이프는 자동승인+Bash변환 반복 유발.** 신규 .py는 sed 파생 금지, **검수자 완성본 산출물 → 사용자 1회 저장 → 단순 `python xxx.py 2>&1 | Out-File yyy.txt -Encoding utf8; code yyy.txt` 한 줄 실행**. 이 패턴이 114~118차 내내 안정 작동(118차 6커밋 전부 이 방식).
-- **인라인 `python -c` 다줄 금지**: PowerShell 경유 시 줄바꿈/괄호 깨져 SyntaxError. 진단도 전부 산출물 .py로. 한 줄 -c도 가급적 회피.
-- 모든 CC 명령은 t 접두 한 줄. 자동승인 프롬프트 계속 뜸. **분기 패턴: ① 단순 `cd; python xxx.py | Out-File`(node --check 1~2개 Append 포함) 한 줄 → "경로 우회 방지" 프롬프트 → Yes 진행(정착, 안전). ② 임베디드 표현식($()/$LASTEXITCODE)·if/else·sed `"..."`·복합 다단 파이프·Select-String 스크립트블록 → Esc 후 단순화.** 118차 내내 ①은 Yes로 안정.
-- **CC 자체 패치 제안은 계속 reject.** CC가 산출물을 안 기다리고 .py를 자기판단으로 직접 수정 시도하면 사용자가 "User rejected update"로 거부. 도구는 오직 검수자 산출물만 채택. 단 CC의 *진단 출력*(상태/소스 dump)은 채택 가능.
-- 검수자 설명 매 턴 핵심만(명령 + 확인 포인트 1~2개). raw 우선, CC 요약/제안 절대 불신.
+- **sed·서브식·복합 파이프는 자동승인+Bash변환 반복 유발.** 신규 .py는 검수자 완성본 산출물 → 사용자 1회 저장 → 단순 `python xxx.py 2>&1 | Out-File yyy.txt -Encoding utf8; code yyy.txt` 한 줄 실행. 이 패턴이 114~119차 내내 안정(119차 4커밋 전부 이 방식, apply 한 줄은 `python --apply` + `node --check` Append + `git add/commit` Append 결합형도 안정).
+- **인라인 `python -c` 다줄 절대 금지**: PowerShell 경유 시 줄바꿈/괄호 깨져 SyntaxError. 진단·소스덤프도 전부 산출물 .py로(119 1순위에서 `python -c`+`cmd /c`+복합파이프 결합 명령이 자동승인 무한반복 → Esc 후 산출물 .py로 전환해 해결, 교훈).
+- 모든 CC 명령은 t 접두 한 줄. **분기: ① 단순 `cd; python xxx.py | Out-File`(node --check·git add/commit Append 결합 포함) 한 줄 → "경로 우회 방지" 프롬프트 → Yes(정착, 안전, 119 전건). ② 임베디드 표현식($()/$LASTEXITCODE)·`python -c` 다줄·`cmd /c`·if/else·복합 다단 파이프 → Esc 후 산출물 .py로 단순화.**
+- **CC 자체 패치 제안은 계속 reject.** CC가 산출물 안 기다리고 .py 자기판단 수정 시 "User rejected update" 거부. 도구는 오직 검수자 산출물만. 단 CC *진단 출력*(상태/소스 dump)은 채택 가능.
+- 검수자 설명 매 턴 핵심만(명령 + 확인 1~2개). raw 우선, CC 요약/제안 절대 불신.
 - 환경변수 설정 금지. cp949는 .py 내부 `sys.stdout.reconfigure(encoding="utf-8")`.
-- **검증완료 파서 무변경 재사용 절대원칙(117·118 핵심교훈)**: 신규 .py는 session112_inspect_suspect.py 의 `scan_key_blocks(text)->[(key,start,end,depth)…]` / `extract_kv(...)` 를 **import 무변경 사용**. 키집합/블록/span 자작 파서 금지. 부모체인은 블록 span 포함관계로 산출(파서 무변경). **118 교훈: probe v1 자작 휴리스틱(operations>dash 가정)이 실파일(dash>operations>섹션 depth1/2/3)과 불일치해 span=None 실패 → 검증파서 출력을 span 포함관계로만 산출하는 v2로 정정 후 정상.**
-- node --check 판정: syntax 오류 시에만 출력+rc≠0. **Out-File 결과에 SyntaxError 텍스트 없으면 = PASS** (114~118 전건 이 방식 PASS).
-- **컨테이너 초기화 → 검수자는 산출물 전달 전 합성검증(미니 픽스처) 필수.** **합성검증 커버리지 = 실파일 구조 반영필수**: 픽스처에 연속인접/비대상혼재(동명 아닌 별칭)/마지막키/원소속분리/중괄호균형/실제 depth(dash=d1, operations=d2, 섹션=d3) 포함. 합성검증 통과 + 실파일 dry-run 양쪽 필수.
-- **118 핵심교훈(검증식 무변경 절대)**: 모체 도구의 검증식에 **자작 리터럴 비교 추가 금지**. acctperfdel self_test 에 `rm.get("m")=="原"` 같은 단일값 리터럴 비교를 추가했다가, 실제 session112 extract_kv 가 따옴표를 벗기지 않아(`'"原"'`) FAIL. 모체 방식(dict 통째 비교)만 사용 — 파서 따옴표처리와 무관하게 양변 동일적용.
+- **검증완료 파서 무변경 재사용 절대원칙(117·118·119 핵심)**: 신규 .py는 session112_inspect_suspect.py 의 `scan_key_blocks`/`extract_kv` 를 **import 무변경 사용**. 키집합/블록/span 자작 파서 금지. **119 결정적 교훈: 실모체 시그니처를 raw 로 확인하기 전 인계서 표기 계약을 신뢰해 도구 작성 → 실패. 반드시 실모체 소스 dump 로 호출규약 확인 후 도구 작성(아래 3절 모체 실측계약 참조).**
+- node --check 판정: **Out-File 결과에 SyntaxError 텍스트 없으면 = PASS** (114~119 전건 이 방식).
+- **컨테이너 초기화 → 검수자는 산출물 전달 전 합성검증 필수.** 합성검증 = 실모체 파서 무변경 미러 import + 실파일 구조 반영 픽스처(ROOT직속 R=parent_chain==[] & min depth / dash>ops=parent_chain에 dash&operations / ruleEnginePage 동명 / 따옴표내 콤마값 / 마지막키 / 중괄호균형 / 더미 vs 실값). 합성검증 통과 + 실파일 dry-run 양쪽 필수.
+- **119 핵심교훈(키존재 ≠ 정답, 더미 함정)**: `(D−R)−K=0` (ko에 키 존재)만으로 ins 강행 금지. **반드시 ko 값을 raw 교차해 is_dummy_ko 판정**. ko값==키명(대소문자무시)이면 더미 → ins 시 무의미 토큰을 R에 영구 주입하는 오염(auto ja D−R 147 전부 ko더미 사례). 운영규칙 6(키존재만 → 값까지 직접 교차)의 결정적 실증.
+- **119 핵심교훈(인계서 표기 비관 오기록 가능)**: 인계서 "정답출처 없음/수동이관" 표기가 lang_ratio 잔재로 틀릴 수 있음. super ja 3순위 "ko부재 수동이관" → raw 실측 시 D−R 97 전부 ko 실값 정답 보유(KO_DUMMY=0/KO_ABSENT=0)였음. **항상 raw 실측 우선(운영규칙 9·10), 인계서 표기는 출발점일 뿐.** 117 zh marketing 잔재정정과 동일 구조.
 
 ### ★★ 검수자 추천 강제 규칙 (의사결정 분기 시 — 최우선)
 1. **선택지(ask_user_input) 제시 시 항상 검수자 추천 1개를 옵션 라벨 안에 "— 검수자 추천"으로 명시**하고, 직후 응답에서 추천 근거를 인계서 규칙 번호로 1~3줄 제시.
 2. 사용자가 "검수자 추천대로"라고만 답해도 즉시 그 선택으로 진행(재질문 금지).
-3. 추천은 반드시 인계서 규칙(★진행 강제/운영규칙/안전장치)에 근거. 근거 없는 추천 금지.
+3. 추천은 반드시 인계서 규칙(★진행 강제/운영규칙/안전장치)에 근거.
 
 ### ★ 진행 강제 규칙 (미루기 금지 — 최우선)
-1. **raw로 처리방향 확정 즉시 다음 단계 연속 진행.** dry-run→raw확인→apply→node→독립검증→commit 한 흐름으로 종결. 단계마다 멈추고 종결 금지.
-2. **부분종결은 "인계서 작성 직전 단 1회"만 허용.** 그 전까지 작업 여력 있는 한 멈추지 않음. "다음 차수에서"는 raw로 손상/불완전/오염이 입증된 경우에 한해서만 허용. **118: 안전 즉시처리 대상(acctPerf/budget/zh marketing) 전부 소진 후 부분종결 — 이 조건이 표준.**
-3. **한 세션 목표 = 최소 2단계 apply+commit.** (118차는 6커밋 = 기준선 3배.)
-4. "추측 금지"는 안전장치(백업·dry-run·가드·ROLLBACK)가 있으므로 속도저하 명분 불가. raw 확정 안전대상은 즉시 처리.
-5. 작업 여력 남으면 다음 우선순위로 계속. 단 raw가 손상/불완전/오염 입증 시 강행 대신 정밀 이관(가드가 손실·미번역·구조오염 차단이 안전설계 정당성).
+1. **raw로 처리방향 확정 즉시 다음 단계 연속.** dry-run→raw확인→apply→node→commit 한 흐름 종결. 단계마다 멈추고 종결 금지.
+2. **부분종결은 "인계서 작성 직전 단 1회"만.** 안전 즉시처리 대상 전부 소진 후(119: auto/marketing안전분/super 전부 소진 후 종결 — 표준). "다음 차수에서"는 raw로 손상/불완전/오염 입증된 경우만.
+3. **한 세션 목표 = 최소 2단계 apply+commit.** (119차 4커밋 = 기준선 2배.)
+4. "추측 금지"는 안전장치(백업·dry-run·가드·ROLLBACK) 있으므로 속도저하 명분 불가. raw 확정 안전대상 즉시 처리. 단 raw 입증 가능한 사실 확인용 진단 1회는 미루기 아님(가드 정당성).
+5. 작업 여력 남으면 다음 우선순위로 계속. raw가 손실/불완전/오염 입증 시(복구선행·잔차·이관·한영혼재·KO_ABSENT) 강행 대신 정밀 이관.
 6. 파괴 작업 전 백업·dry-run·검증·이상시 ROLLBACK 절대 생략 금지(속도 무관, 항상).
 
 ## 1. 컨텍스트
 
-- 작업: i18n 번역 키 동기화. **정답 원본은 ko.js(원본 한국어)** — 115~118차 일관 입증. EN은 일부 키가 키명 그대로인 stub라 ko 의미 우선.
+- 작업: i18n 번역 키 동기화. **정답 원본은 ko.js(원본 한국어)** — 115~119차 일관. EN 일부 키명그대로 stub라 ko 우선.
 - locale: frontend\src\i18n\locales\{lang}.js (15개, ES모듈). 주 대상 ja.js/zh.js. 정답 출처 = ko.js, 참조 = en.js.
-- 키는 따옴표 형태("pageTitle":...). 검증은 node --check (SyntaxError 없음=PASS).
-- **실측 트리구조(118 핵심)**: ja.js/zh.js 의 operations[dash] 는 **dash(depth1) > operations(depth2) > 섹션(depth3)** 구조. 인계서 표기 ≠ 실제, 항상 검증파서 scan_key_blocks 출력 + span 포함관계로 실측(운영규칙 9). dash>operations 포함쌍 = dash 중 operations 를 진포함하는 가장 큰 것.
-- **116 발견 유지**: 미번역키 ≠ 전부 복구가능. is_dummy_ko 판정 = ko값 공백 OR ko값==키명(대소문자무시, 따옴표 포함값도 인식). 영숫자토큰 규칙 금지.
-- **손실0 판정기준(117·118 표준)**: 값언어비율(부정확) 아니라 **키집합 포함관계**. D(dash중첩본 키집합) ⊆ R(원소속 ROOT직속 동명섹션 키집합) 이면 dash삭제 손실0. D⊄R·D⊆K(ko) 면 ko기반 ins로 R 보강 후 격리(복구선행). ko·원소속 부재면 이관. **D−K(ko부재)는 dash격리와 무관 — 원소속 R 보존이면 손실0**(118 zh marketing 입증: 117차 lang_ratio 결함으로 보류했으나 keyset 기준 D⊆R 안전).
+- 키는 따옴표 형태("pageTitle":...). 검증 node --check (SyntaxError 없음=PASS).
+- **실측 트리구조**: ja.js/zh.js operations[dash] = dash > operations > 섹션. 인계서 표기 ≠ 실제, 항상 검증파서 scan_key_blocks 출력 + span 포함관계로 실측(운영규칙 9).
+- **미번역키 ≠ 전부 복구가능**: is_dummy_ko 판정 = ko값 공백 OR ko값==키명(대소문자무시, 따옴표 포함값도 인식). 영숫자토큰 규칙 금지.
+- **손실0 판정기준(117·118·119 표준)**: 값언어비율 아니라 **키집합 포함관계 + 값방향 raw**. ① D⊆R(키집합) ② R∩D 에서 D정답·R더미=0(D가 R보다 나은 키 전무) ③ D−R 전부 더미/부재. 이 3조건이면 dashdel 손실0. D−R 에 ko실값 정답 있으면 ins24 파생 복구선행 → D⊆R 성립 후 dashdel(super ja 119 표준 패턴).
 
 ## 2. 운영규칙 (절대준수)
 
-1. 자동승인 → 0의 분기(① Yes / ② Esc 단순화).
+1. 자동승인 → 0의 분기(① Yes / ② Esc 산출물.py화).
 2. 한 줄·Windows 경로. 출력 Out-File; code <f>로 파일 원본 직접 확인.
 3. node --check (SyntaxError 없음=PASS).
-4. commit 영문 한 줄. .js만 스테이징(.bak/t*.txt/.py 제외). push는 사용자 확인 하(deploy.yml 자동배포).
+4. commit 영문 한 줄. .js만 스테이징(.bak/t*.txt/.py 제외 = 전부 ?? 미추적 정상). push는 사용자 확인 하(deploy.yml 자동배포).
 5. CC 요약·제안 신뢰 금지 → 부모체인/brace-depth/값/키집합 raw만. CC 자체 .py 패치 reject.
-6. dry-run SKIP/SHARED는 "키 존재"만. 값·키집합까지 직접 교차.
-7. 파괴 편집 전 .bak 백업. 재검증(3중 동시 AND) 실패 시 자동 ROLLBACK.
-8. **키집합 동일 ≠ 무손실. D⊆R 키집합 + 원소속이 정답(현지어/ko기반)이어야 손실0.** 고유명사(ko=en=현지어 동일 영문값, whatsapp/Coupang/11Street/Amazon/channel_)는 미번역 아닌 정답 → 가드 화이트리스트 예외.
-9. **동명 블록 다중존재 주의**: 한 키가 ROOT/[ui]/[dash/operations]/[ruleEnginePage] 등 복수 depth 존재. 처리 전 probe로 부모체인·키수·키집합 raw 확정. **118 실측 예: ja auto 3개(ruleEnginePage d2 319 / dash>ops d3 319 / ROOT d1 172). probe 가 "가장 큰 것" 휴리스틱으로 ROOT직속 아닌 블록을 R 로 오선택한 사례 — 반드시 parent_chain==['ROOT'] 로 R 확정.** 검증완료 파서 scan+span 포함관계 부모체인이 표준. 인계서 표기 부모체인 != 실제 가능(116·117·118 교훈, 항상 실측).
-10. **값방향 raw 필수**: 통계·값언어비율만 믿지 말 것. 손실0 판정은 키집합 포함관계 우선. 미번역이 ko에 정답 존재 시 ko기반 복구 가능(115/116 표준).
+6. **dry-run SKIP/SHARED·`(D−R)−K=0` 는 "키 존재"만. 값·is_dummy_ko 까지 직접 교차(119 더미함정 핵심교훈).**
+7. 파괴 편집 전 .bak 백업. 재검증(3중/4중 동시 AND) 실패 시 자동 ROLLBACK.
+8. **키집합 동일 ≠ 무손실. D⊆R 키집합 + R∩D D정답·R더미=0 + 원소속 R 정답보존이어야 손실0.** 고유명사(ko=en=현지어 동일 영문값) 미번역 아닌 정답.
+9. **동명 블록 다중존재 주의**: 한 키가 ROOT/[ui]/[dash/operations]/[ruleEnginePage]/[pages] 등 복수 depth. 처리 전 probe로 부모체인·키수·키집합 raw 확정. **R 확정 = parent_chain==[] 且 동일 key 중 최소 depth (실모체 파서는 export default 래퍼를 key=None 으로 블록 제외 → ROOT 가 parent_chain 에 안 나타남. '가장 큰 것'·'parent_chain==[ROOT]' 휴리스틱 금지, 119 핵심).** D 확정 = parent_chain 에 dash & operations 포함 최내곽.
+10. **값방향 raw 필수**: 통계·키존재만 믿지 말 것. 손실0 = 키집합 + 값방향(R∩D 더미/정답 분류) 동시. 인계서 표기 비관/낙관 둘 다 raw로 재판정(119 super 입증).
 
 ## 3. 핵심 .py 자산 (루트 보존, 컨테이너 초기화 → 매번 재저장)
 
 ### 검증완료 파서 모체 (읽기전용, 무변경 인용 — 절대원칙)
-- **session112_inspect_suspect.py ★★** — 모든 신규도구 파서 모체.
-  - `scan_key_blocks(text)` → `[(key, start, end, depth), …]` (start='{' 위치, end='}' 위치, depth=스택깊이). 부모체인 dict 없음 → span 포함관계로 산출. **반환은 4-튜플. 정답 키 인식은 '{' 직전 `"key":` 패턴.**
-  - `extract_kv(body)` → `{key: value}` 평면 dict. **주의: 값 따옴표를 벗기지 않고 포함 반환(`'"原"'`). 단일값 리터럴 비교 금지, dict 통째 비교만(118 교훈).**
-- session111_ident_valuediff_v4.py ★ — 파서 원형.
+- **session112_inspect_suspect.py ★★** — 모든 신규도구 파서 모체. **119 실측 확정 계약(반드시 이 호출규약 준수):**
+  - `scan_key_blocks(text)` → `[(key, start, end, depth), …]` 4-튜플. start='{' 위치, end='}' 위치, **depth=len(stack) (0-base; ROOT직속은 depth=1, export default 래퍼는 key=None 으로 blocks 제외)**. 부모체인 dict 없음 → span 진포함관계로 산출.
+  - `extract_kv(body)` → `{key: value}` 평면 dict. **호출 시 body=text[s+1 : e] (여는 '{' 제외, 닫는 '}' 미포함). text[start:end+1] 넘기면 keys=0 (119 v1 실패원인).** 값은 **따옴표 포함 + `re.sub(r"\s+"," ")` 정규화**. 비교는 dict 통째(단일 리터럴 `==` 금지, N-14). 값 비교 시 unq() 로 양끝 따옴표만 제거 후 비교(내용 무변경).
+- **표준 헬퍼(119 확립, 신규 도구 무변경 복붙):**
+  - `pick_R(blocks)` = parent_chain==[] 중 최소 depth (ROOT직속).
+  - `pick_D(blocks)` = parent_chain 에 'dash'&'operations' 포함 중 최대 depth.
+  - `blocks_for_key(text,target)` = scan_key_blocks 에서 key==target + span 진포함 parent_chain.
+  - `is_dummy_ko(key,val)` = unq(val).strip()=="" OR ==key.lower() (N-10, 따옴표 포함값 인식).
 
-### 117차 자산 (재사용 표준)
-- **session117_keyset_verdict.py ★★** — **키집합 포함관계 손실0 판정 표준**. TARGET_KEYS(7키) × ja/zh. D/R/K 추출·비교, self_test 4종 내장. **118: 무변경 재실행으로 zh marketing ③격리-안전 신발견(117 보류분 해소). TARGET_KEYS 확장만으로 다른 SEC 진단 가능(파생 표준).**
-- session117_adopt_ops_zh_dashdel6.py ★★ / session117_adopt_ops_ja_dashdel2.py ★★ — operations[dash] 내 N키 통째삭제 표준(3중 가드). **118 acctperfdel/budgetdel/marketingdel 의 모체.**
-- session117_probe_zh_opsdash_span.py / session117_probe_rootblk_boundary.py ★ — 진단 표준.
-- session117_dump_dash_lossrisk.py(v5) — lang_ratio 결함, 폐기. keyset_verdict 대체.
+### 119차 신규 자산 (★ = 120차 재사용 표준)
+- **session119_diag_auto_lossfree.py ★★** — 손실0 재판정 표준. R⊆D + R∩D 값방향 5분류(BOTH_SAME/BOTH_DUMMY/R_ANS_D_DUM/D_ANS_R_DUM/DIFF_NONDUM) + is_dummy_ko + D−R 더미율. **TARGET(blocks_for_key 인자 'auto') 치환만으로 임의 SEC 손실0 진단(super 파생 입증). 결론가이드는 보수적(DIFF_NONDUM>0 시 위험 플래그) — D_ANS_R_DUM=0 이면 raw 정밀판독으로 손실0 확정 가능(auto/super 양건 입증).**
+- **session119_adopt_ops_ja_autodel.py ★★ (e8c32a8 적용·검증완료)** — dashdel 표준. 파서/3중 동시 AND(removed∧preserved∧siblings)/deletion_span(선행콤마 유무 균형)/ROLLBACK/self_test 무변경. **TARGET·self_test 픽스처만 변경 → 임의 dash 격리(superdel 4b836cd 파생 입증). dashdel 의 120차 모체.**
+- **session119_adopt_marketing_ja_ins15.py ★★ (aac9ab2 적용·검증완료)** — ROOT직속 ins 표준(ins24 모체 계승). 4중 동시 AND(inserted∧preserved∧ins_val∧count_ok). **SEC·INSERT_KV 만 변경 → 임의 ko기반 복구 ins(super_ins97 1fa21db 파생 입증). ins 의 120차 모체. 미리보기 라인은 INSERT_KV 첫키 동적참조(하드코딩 금지, 6순위/N-13).**
+- session119_adopt_super_ja_ins97.py (1fa21db) / session119_adopt_ops_ja_superdel.py (4b836cd) / session119_diag_marketing_ja.py / session119_diag_super_lossfree.py / session119_dump_super_dmr_ko.py / session119_dump_parser.py(실모체 소스 dump 표준) — 위 모체들의 검증완료 파생. 재사용 가능.
 
-### 118차 신규 자산 (★ = 119차 재사용 표준)
-- **session118_adopt_ops_ja_acctperfdel.py ★★ (7e45134 적용·검증완료)** — dashdel2 의 단일 TARGET 파생 표준. 파서/3중가드/deletion_span/ROLLBACK/self_test 무변경 계승, TARGET·self_test 픽스처만 변경. **dashdel 파생의 119차 모체.**
-- **session118_adopt_acctperf_ja_ins24.py ★★ (4e6279a 적용·검증완료)** — ins37(116) 의 ROOT직속 ins 파생 표준. SEC·TARGET_OPEN(span start)·EXPECT_R_COUNT·INSERT_KV(ko기반 일본어)만 변경. 검증식 = inserted∧preserved∧val∧ins_val∧fixed∧**dsubR_ok**(D⊆R 직접확인) 동시 AND. **ins 파생의 119차 모체(auto 복구선행에 직접 사용).**
-- session118_adopt_ops_zh_budgetdel.py (b030136) / session118_adopt_budget_ja_ins2.py (1d32647) / session118_adopt_ops_ja_budgetdel.py (f0534bc) / session118_adopt_ops_zh_marketingdel.py (9020dc4) — 위 두 모체의 검증완료 파생. 재사용 가능.
-- **session118_keyset_verdict_budget.py ★** — keyset_verdict 파생 + is_dummy_ko 보조출력(ko 실값/더미 분리). SEC 추가만으로 A군/더미 판정. 119차 budget류 추가 SEC 진단에 재사용.
-- session118_probe_recovery_v2.py ★ — dash>ops>섹션(d1/2/3) 실측구조 반영 D/R/K + 부족키 + ko정답 dump 진단 표준. **v1(자작 휴리스틱) 폐기, v2 표준.**
-- session118_diag_auto_ja.py ★ — 동명 다중블록 전수 parent_chain/키집합/한글혼입/상호포함 raw dump 진단(운영규칙 9 실측 표준). 119 auto 1순위 출발점.
-- session118_diag_selftest.py — self_test FAIL 원인 raw 규명용(파서 실출력 dump). 참고.
+### 118/117/116 자산 (보존·재사용 가능)
+- session118_adopt_acctperf_ja_ins24.py ★★ / session118_adopt_ops_ja_acctperfdel.py ★★ / session117_keyset_verdict.py ★★ / session118_keyset_verdict_budget.py ★ / session116_adopt_gairec_ja_ins37.py ★★ / session115_adopt_gcat_zh_translate.py ★★.
+- ※ 폐기·참고만: session111_subset_absent.py / session117_dump_dash_lossrisk.py(v5 lang_ratio) / session118_probe_recovery_v1 / session119_diag_auto_ja_vs_ko.py(v1, 인계서계약 신뢰 실패본 — v2 가 표준).
 
-### 116/115 자산 (보존·재사용 가능)
-- session116_adopt_gairec_ja_nestdel_v2.py ★★ / session116_adopt_gairec_ja_ins37.py ★★ (118 ins 모체) / session116_dump_ops_ja_Agroup.py·zh_Agroup.py ★★ / session116_adopt_ops_ja_ruleengine_A33.py·zh_root_A35.py ★ / session116_probe_ops_dashdel.py ★.
-- session115_adopt_gcat_zh_translate.py ★★ / session115_adopt_gnav_zh_subsetdel_v2.py ★★.
-- ※ session111_subset_absent.py·session114_adopt_gnav_zh_subsetdel.py·session117_dump_dash_lossrisk.py(v5)·session118_probe_recovery_v1(=probe_acctperf_auto_recovery 초판)·session118_struct_dump.py = 폐기·참고만.
-
-## 4. [DONE] 118차 결과 (raw 확정·apply 성공만 — 6커밋)
+## 4. [DONE] 119차 결과 (raw 확정·apply 성공만 — 4커밋)
 
 ### 4-0. push — 묶음 보류 유지
-HEAD=9020dc4. origin 대비 **↑26**(117 종결 ↑21 + 118 6커밋 — 단 117 인계서커밋 1 포함하므로 실측: 117 종결시 ↑21, 118 5신규 apply커밋 + 인계서 직전 49fb5b3 1 = ↑26 추정, 119 0순위에서 git log 실측 확인). 검수자 결정: 계속 묶음 보류.
+HEAD=4b836cd. origin 대비 ↑30 추정(117 종결 ↑21 + 118 6 + 119 4 + docs; 정확값 120 0순위 git log 실측). 검수자 결정: 계속 묶음 보류.
 
-### 4-1. ★ acctPerf ja 복구선행 완전 종결 (1순위 핵심) — 2커밋
-- raw(t118_recov2.txt): D=35, R=40, D−R=24 전부 ko 정답 보유(D−R∩K=24, D⊆K=True). 인계서 117 예상과 정확 일치.
-- **4e6279a**: session118_adopt_acctperf_ja_ins24.py --apply. ROOT직속 R(span 962867~) 에 D−R 24키 ko기반 일본어 ins. 40→64. inserted/preserved/val/ins_val/dsubR_ok=True. node PASS.
-- **7e45134**: session118_adopt_ops_ja_acctperfdel.py --apply. dash>ops 内 acctPerf D(35) 격리. 형제 298→297. 3중 AND True. node PASS. (self_test 1차 FAIL = 자작 리터럴비교 결함, dict통째비교로 정정 후 PASS — 0의 핵심교훈.)
+### 4-1. ★ auto ja 완전 종결 (1순위 핵심, 117·118 최난도 잔여) — 1커밋
+- raw: auto ja 3블록 = ruleEnginePage(d2,319) / dash>ops(d3,319=D) / ROOT직속(d1,172=R). R⊆D=True, R−D=0, **D−R=147 전부 ko더미**(144 직접 + event_empty/json_err/not_arr 키명변형). R∩D 172: R정답·D더미=160 / BOTH_SAME=6 / DIFF_NONDUM 6(R=ko정답·D=stub) / **D정답·R더미=0**.
+- **핵심교훈**: 인계서 119 1순위 "D⊆K=True → ko기반 ins 147" 강행했으면 무의미 더미를 R에 영구 주입(오염)이었음. raw 값교차로 ko더미 판명 → ins 폐기, ins 없이 dashdel 만으로 손실0(D−R 전부 더미 = 잃을 정답 없음 + D정답·R더미=0).
+- **e8c32a8**: session119_adopt_ops_ja_autodel.py --apply. dash>ops auto 319키 격리. 형제 3→2, blk 397→396. 3중 AND True. node PASS. (321 deletions)
 
-### 4-2. ★ budget ja/zh 완전 종결 (6순위) — 3커밋
-- raw(t118_budget.txt): zh budget D=4⊆R=4(③격리-안전, 한자 정상). ja budget D=4,R=2,D−R={onTrack,overspend}, D⊆K. ko 4키 전부 실값(더미0).
-- **b030136**: session118_adopt_ops_zh_budgetdel.py --apply. zh dash budget 4키 격리(ins 불필요). 형제 295→294. 3중 AND True. node PASS.
-- **1d32647**: session118_adopt_budget_ja_ins2.py --apply. ja ROOT직속 budget(span 568468~) 에 2키 ins(onTrack=正常執行, overspend=超過執行). 2→4. dsubR_ok=True. node PASS.
-- **f0534bc**: session118_adopt_ops_ja_budgetdel.py --apply. ja dash budget 4키 격리. 형제 297→296. 3중 AND True. node PASS.
+### 4-2. ★ marketing ja 안전분 종결 (2순위 일부) — 1커밋
+- raw: D=625, R=733, D−R=65, D−K=50. D−R 분류: **KO_REAL=15**(ko 한국어 정답 존재) / KO_DUMMY=0 / **KO_ABSENT=50**(ko·R 부재, D에만 영문 Creative Studio 콘텐츠 csAiGen*/csType*/csPerf*). R∩D 560: BOTH_SAME=366 / DIFF_NONDUM=176(R=일본어정답·D=영문stub) / D정답·R더미=0.
+- **aac9ab2**: session119_adopt_marketing_ja_ins15.py --apply. KO_REAL 15키 ko기반 일본어 ROOT직속 R ins. 733→748. 4중 AND True. node PASS. (15 insertions)
+- **잔여**: KO_ABSENT 50 = ko·R 양쪽 부재, 정답출처 없는 신규번역 필요분 → 정밀 이관(120 2순위). marketing dashdel 은 KO_ABSENT 50 손실 불가피로 강행금지 확정(D⊆R 불성립).
 
-### 4-3. ★ zh marketing 종결 (2순위 zh분) — 1커밋
-- raw(t118_verdict_recheck.txt): zh marketing D=625 ⊆ R=798 ③격리-안전(한자 정상). D−K 70은 ko부재일뿐 원소속 R 보존(dash격리 무관). **117차 4-3 "D−K 70 잔차로 비대상"은 lang_ratio 시절 잔재 — keyset 기준 재판정으로 안전 입증(컨텍스트 1·운영규칙 8·N-11).**
-- **9020dc4**: session118_adopt_ops_zh_marketingdel.py --apply. zh dash marketing 625키 격리. 형제 294→293. 원소속 798 불변. 3중 AND True. node PASS.
+### 4-3. ★ super ja 완전 종결 (3순위, 인계서 비관오기록 raw 반박) — 2커밋
+- raw: 인계서 3순위 "D−R 97 + ko부재, 정답출처 없음, 수동이관" → **실측 정반대**. R⊆D=True, R−D=0, **D−R=97 전부 KO_REAL**(ko 한국어 정답, KO_DUMMY=0/KO_ABSENT=0, D−K=0). 인계서 lang_ratio 잔재 오기록.
+- **1fa21db**: session119_adopt_super_ja_ins97.py --apply. D−R 97키 ko기반 일본어 ROOT직속 R ins. 72→169. 4중 AND True. node PASS. (97 insertions)
+- **4b836cd**: session119_adopt_ops_ja_superdel.py --apply. ins97 후 재판정 R(169)=D(169) 키집합 완전일치, R∩D 169: BOTH_SAME=29 / DIFF_NONDUM=140 / **D정답·R더미=0**(결정적). dash>ops super 169키 격리. 형제 2→1, blk 396→395. 3중 AND True. node PASS. (171 deletions) → super ja = ins97+del 짝 완전 종결(117·118 acctPerf/budget 패턴).
 
-## 5. [PENDING] 119차 작업 (★raw 확정 즉시 연속 진행, 손실입증 시만 이관)
+## 5. [PENDING] 120차 작업 (★raw 확정 즉시 연속 진행, 손실입증 시만 이관)
 
 ### 0순위 — push 상태 재확인
 ```
-t cd D:\project\GeniegoROI; git log --oneline -10 2>&1 | Out-File t119_status.txt -Encoding utf8; git status --short frontend/src/i18n/locales 2>&1 | Out-File t119_status.txt -Append -Encoding utf8; node --check frontend/src/i18n/locales/ja.js 2>&1 | Out-File t119_status.txt -Append -Encoding utf8; node --check frontend/src/i18n/locales/zh.js 2>&1 | Out-File t119_status.txt -Append -Encoding utf8; code t119_status.txt
+t cd D:\project\GeniegoROI; git log --oneline -12 2>&1 | Out-File t120_status.txt -Encoding utf8; git status --short frontend/src/i18n/locales 2>&1 | Out-File t120_status.txt -Append -Encoding utf8; node --check frontend/src/i18n/locales/ja.js 2>&1 | Out-File t120_status.txt -Append -Encoding utf8; node --check frontend/src/i18n/locales/zh.js 2>&1 | Out-File t120_status.txt -Append -Encoding utf8; code t120_status.txt
 ```
-확인: HEAD=9020dc4, origin 대비 ↑(실측), locales clean(?? = .bak/.py/t*.txt만), ja/zh node PASS. 이상 없으면 즉시 1순위.
+확인: HEAD=4b836cd, origin 대비 ↑(실측), locales clean(?? .bak/.py/t*.txt만), ja/zh node PASS. 이상 없으면 즉시 1순위.
 
-### 1순위 — auto ja 복구선행 (★최난도 잔여, raw 단서 확보됨)
-- raw(t118_diagauto.txt + t118_verdict_recheck.txt): **auto ja 3블록 = ruleEnginePage(d2,319) / dash>ops(d3,319=D) / ROOT직속(d1,172=R)**. D−R=147, **D⊆K(ko auto 정답 ROOT직속@576201 319키·dash@96686 319키 양쪽 존재)**. → 복구선행(ins 147키 → D⊆R → dashdel 격리).
-- **★선해결 필요(N-12 한영혼재 오염)**: ja ROOT직속 auto(R 172키) 중 **166키가 한국어 실값**("Qoo10 (큐텐)" "Rakuten (라쿠텐)" "Global Ads Platform API 키" 등). 단순 ins 강행 시 한글오염 그대로 격리 보존됨 → **강행금지**. ins 전 raw 규명: ① ko auto 정답값이 한국어인지(ko 원본이므로 당연 한국어 → ja ROOT auto "한글"이 오염이 아니라 ja 미번역상태로 ko복사된 정상 미번역키일 가능성) ② dash 영문stub D 가 오히려 참조원인지. session118_diag_auto_ja.py 파생으로 ja ROOT auto 166한글키 vs ko auto 동일키 값 1:1 raw 비교 → 미번역(ko복사)이면 ko기반 일본어 정정 후 ins, 진짜 오염이면 정밀.
-- 검수자 추천: ① ja ROOT auto 166키 vs ko auto 값 1:1 dump부터(읽기전용). raw로 미번역/오염 판정 후에만 ins 설계(ins24 모체 파생, INSERT_KV=ko기반 일본어 147+α). ★진행 강제 #5.
+### 1순위 — zh dash 잔여 손실0 격리 (★최우선, 119 패턴 직접재사용)
+- 119는 ja 전용(auto/marketing/super)이었음. **zh.js 의 dash>ops 동명 잔여 섹션이 119 ja 와 동일 구조일 가능성 높음**(zh 도 ja 처럼 dash 중첩본 존재). session119_diag_super_lossfree.py 의 blocks_for_key 인자를 zh + 후보섹션(auto/marketing/super/acctPerf 등)으로, 파일경로 JA→zh.js 로 바꿔 진단. D⊆R + D정답·R더미=0 + D−R 더미/부재면 superdel 모체 파생 dashdel(zh). ko실값이면 ins15 모체 파생 복구선행. **117 zh 6키 + 118 zh marketing 처리됐으나 잔여 동명블록 전수 미확인 — diag 부터.**
+- 검수자 추천: ① zh dash>ops 동명블록 전수 진단(session119_diag_super_lossfree.py 파생, TARGET 후보 순회 + 파일 zh.js)부터. raw 후 손실0이면 즉시 dashdel, ko실값이면 ins 복구선행. ★진행 강제 #5.
 
-### 2순위 — ja marketing 잔차 정밀
-- raw(t118_verdict_recheck.txt): ja marketing D=625, R=733, **D−R=65**(csAiGenDesc/csAiGenTitle/csAiOpt1~3 등), **D−K=70**(abSetup/alertNewApproval 등). 잔차존재-수동판정(강행금지). D−R 65 = 원소속 부족 → ko 존재여부 키단위 규명(keyset_verdict_budget 파생, SEC=marketing, is_dummy 보조). D−R∩K 면 ins 복구선행, D−R−K 면 (a)타섹션귀속 (b)신규번역 (c)이관 분기. 자동 금지(운영규칙 10).
+### 2순위 — ja marketing KO_ABSENT 50 정밀 이관
+- raw(t119_mkt.txt): csAiGenDesc/csAiGenTitle/csAiOpt1~3/csType*/csPerf*/csCol* 등 50키, ko·R 양쪽 부재(ko=None), D(dash>ops)에만 영문 Creative Studio 콘텐츠 존재. 정답출처 없음.
+- 분기: (a) ko.js 에 csAiGen* 등이 **다른 섹션(타 페이지)에 존재**하는지 키단위 규명(keyset_verdict_budget 파생, 전 ko 블록 스캔) → 있으면 그 정답으로 ins. (b) ko 전무면 D 영문을 정답으로 채택해 ROOT직속 ins(영문이라도 콘텐츠 보존, 미번역 상태 ins) 후 dashdel. (c) 신규 일본어 번역. 자동 금지(운영규칙 10), raw 키단위 후 검수자 추천 분기.
 
-### 3순위 — super ja 이관 + 잔여
-- raw: ja super D=169, R=72, **D−R=97 + ko부재(K없음)**. 정답출처 없음 → 키단위 수동 이관(강행금지). zh super 는 dash 없음(117 4380109 처리완료, 무관). accountPerf ja 의미충돌 3키(114 4-2 잔여, pageSub/pageTitle/teamDashboard) 폴백경로 raw 후 정정.
+### 3순위 — ja marketing dashdel (2순위 해소 후)
+- 2순위로 KO_ABSENT 50 이 R 에 보강되면 marketing D⊆R 성립 가능. session119_diag_super_lossfree.py marketing 파생으로 재판정 → D정답·R더미=0 확인 시 superdel 파생 dashdel(marketing ja). 619차 zh marketing(9020dc4)과 대칭.
 
-### 4순위 — priceOpt 잔여 (113차 4-2)
+### 4순위 — accountPerf ja 의미충돌 3키 (114 4-2 잔여, N-7)
+pageSub/pageTitle/teamDashboard 폴백경로 raw 후 정정. 키단위 수동.
+
+### 5순위 — priceOpt 잔여 (113 4-2, N-8)
 priceOpt ROOT[1]↔파편[2](208,값상이66)·[2](90,타페이지오염38키). 키단위 수동.
 
-### 5순위 — DIVERGE 본래분
+### 6순위 — DIVERGE 본래분
 zh supplyChain(∩75)+ja supplyChain/marketing(∩124)/acctPerf(∩11). 수동 키단위. 자동 금지.
 
-### 6순위 — 미번역·백로그
-- [N-6] settlements ROOT/auth 중복. [C] 키단위diff/comingSoon·runAI·runAi/workspace 브랜드·CRLF/ESLint/CSV/Connectors/107차 attrData zh.
-- 도구 출력 라벨 정리: budgetdel/marketingdel 파생본 print 문구 일부에 "JA"/"ja operations" 잔존(로직·파일 무관, zh 처리 정상). 119차 파생 시 라벨도 정정 권장.
+### 7순위 — 미번역·백로그
+[N-6] settlements ROOT/auth 중복. [C] 키단위diff/comingSoon·runAI·runAi/workspace 브랜드·CRLF(git warning 무해, .gitattributes 정리 후순위)·ESLint/CSV/Connectors/107 attrData zh.
 
 ### 마지막 — 묶음 push (검수자 확인 하)
 ```
-t cd D:\project\GeniegoROI; git log --oneline -30 2>&1 | Out-File t119_pushchk.txt -Encoding utf8; code t119_pushchk.txt
+t cd D:\project\GeniegoROI; git log --oneline -35 2>&1 | Out-File t120_pushchk.txt -Encoding utf8; code t120_pushchk.txt
 ```
-검수자 push 승인 시: `t cd D:\project\GeniegoROI; git push origin master` (deploy.yml 자동배포). 누적분 일괄 반영.
+검수자 push 승인 시: `t cd D:\project\GeniegoROI; git push origin master` (deploy.yml 자동배포). 누적분(117~120) 일괄 반영.
 
-## 6. 즉시 체크리스트 (119차)
+## 6. 즉시 체크리스트 (120차)
 
-1. [ ] 0순위 git log/status(HEAD=9020dc4, locales clean, ja/zh node PASS). 이상 없으면 즉시 1순위.
-2. [ ] 1순위 auto ja: **한영혼재 선판정 필수**(ja ROOT auto 166한글키 vs ko auto 1:1 raw). 미번역이면 ko기반 ins(ins24 파생) → D⊆R → dashdel. 오염이면 정밀(강행금지).
-3. [ ] **검증완료 파서 무변경 재사용 절대원칙**. scan_key_blocks/extract_kv import. 자작 키집합/span/휴리스틱 파서 금지(probe v1 실패 교훈).
-4. [ ] **검증식 무변경 절대**(118 핵심): 모체 검증식에 자작 리터럴 비교 추가 금지. dict 통째 비교만(extract_kv 따옴표 미제거).
-5. [ ] 신규 .py는 sed·인라인 다줄 -c 금지, 검수자 완성본 산출물 → 사용자 1회 저장 → 단순 python 한 줄. 합성검증 픽스처는 실파일 구조 반영(dash=d1/ops=d2/섹션=d3, 동명 아닌 별칭 비대상, 마지막키, 중괄호). 합성검증+실파일 dry-run 양쪽 필수.
-6. [ ] node --check SyntaxError 없음=PASS. `$LASTEXITCODE` 등 임베디드 금지.
-7. [ ] raw 확인은 code <txt> 파일 원본. CC 요약·분류·자체패치 절대 불신(reject).
-8. [ ] 동명블록 다중존재 매번 실측(운영규칙 9). **R 확정은 parent_chain==['ROOT'] 로**(118 auto probe 오선택 교훈). dash>ops>섹션 d1/2/3.
-9. [ ] 손실0 판정 = **키집합 포함관계 D⊆R**(운영규칙 8). D−K(ko부재)는 dash격리 무관. 값언어비율 금지. 검증식 = 3중 동시 AND(제거/원소속불변/형제정합), plan 단독비교 절대금지.
-10. [ ] 미번역 ≠ 복구가능(116). is_dummy_ko(따옴표 포함값도 인식). A군만 치환/복구, B군·고유명사 SKIP.
+1. [ ] 0순위 git log/status(HEAD=4b836cd, locales clean, ja/zh node PASS). 이상 없으면 즉시 1순위.
+2. [ ] **검증완료 파서 무변경 import + 실모체 호출규약 절대 준수**: extract_kv(text[s+1:e]), pick_R=parent_chain==[]&min depth, depth=0-base. 실모체 소스 미확인 시 session119_dump_parser.py 로 먼저 dump(119 v1 실패 교훈).
+3. [ ] **키존재 ≠ 정답**: (D−R)−K=0 만으로 ins 금지. ko값 raw 교차 is_dummy_ko 판정 필수(119 auto 더미함정).
+4. [ ] **인계서 표기 raw 재판정**: 비관("정답없음")/낙관 둘 다 실측 우선(119 super 입증, 운영규칙 9·10).
+5. [ ] 신규 .py sed·인라인 다줄 -c·cmd /c 금지, 검수자 완성본 산출물 → 사용자 1회 저장 → 단순 한 줄. 합성검증 = 실모체 무변경 미러 import + 실파일 구조 픽스처. 합성검증+dry-run 양쪽 필수.
+6. [ ] node --check SyntaxError 없음=PASS. apply 한 줄 = python --apply + node Append + git add/commit Append 결합형(119 4건 안정).
+7. [ ] raw 확인은 code <txt> 원본. CC 요약·분류·자체패치 절대 불신(reject).
+8. [ ] 동명블록 다중존재 매번 실측(운영규칙 9). R=parent_chain==[]&min depth, D=dash&ops 최내곽. '가장 큰 것'·'parent_chain==[ROOT]' 휴리스틱 금지.
+9. [ ] 손실0 = ① D⊆R ② R∩D D정답·R더미=0 ③ D−R 전부 더미/부재. lossfree 결론가이드는 보수적(DIFF_NONDUM>0 위험플래그) → D_ANS_R_DUM=0 이면 raw 정밀판독으로 손실0 확정(auto/super 입증). 검증식 3중/4중 동시 AND, plan 단독비교 금지.
+10. [ ] D−R ko실값이면 ins24/ins15 모체 파생 복구선행 → D⊆R 성립 후 dashdel(super ja 119 표준 패턴). ko더미면 ins 폐기 dashdel만(auto ja 119). ko·R부재(KO_ABSENT)면 정밀 이관(marketing 50).
 11. [ ] 의사결정 분기 시 검수자 추천 1개 옵션 명시+근거(0의 ★★). 사용자 "추천대로"=즉시 진행.
-12. [ ] 부분종결은 인계서 작성 직전 1회만, 안전 즉시처리 대상 소진 시(118 표준). 종결 시 본 인계서 동일 형식 전체 재작성(검수자 단일파일 → 사용자 NEXT_SESSION.md 전체 교체).
+12. [ ] 부분종결은 인계서 작성 직전 1회, 안전 즉시처리 대상 소진 시(119 표준: auto/marketing안전분/super 소진 후). 종결 시 본 인계서 동일 형식 전체 재작성(검수자 단일파일 → 사용자 NEXT_SESSION.md 전체 교체).
 
 ## 7. 파일 상태
 
-- t113_*~t118_* 결과 txt 루트 보존(raw 이력). 119차는 t119_* 사용.
-- 118차 백업 5개: ja.js.bak_session118_acctPerfJaIns24_20260518_155127(4e6279a) / ja.js.bak_session118_opsJaAcctPerfDel_20260518_160005(7e45134) / zh.js.bak_session118_opsZhBudgetDel_20260518_161141(b030136) / ja.js.bak_session118_budgetJaIns2_20260518_161511(1d32647) / ja.js.bak_session118_opsJaBudgetDel_20260518_161813(f0534bc) / zh.js.bak_session118_opsZhMarketingDel_20260518_162448(9020dc4). 117 이전 백업 보존.
+- t113_*~t119_* 결과 txt 루트 보존(raw 이력). 120차는 t120_* 사용.
+- 119차 백업 4개: ja.js.bak_session119_opsJaAutoDel_20260518_170919(e8c32a8) / ja.js.bak_session119_marketingJaIns15_20260518_171640(aac9ab2) / ja.js.bak_session119_superJaIns97_20260518_172605(1fa21db) / ja.js.bak_session119_opsJaSuperDel_20260518_173049(4b836cd). 118 이전 백업 보존.
 - .py 자산: 3절 목록. 검수자 산출물 → 사용자 루트 저장. 컨테이너 초기화 → 매번 재저장. 폐기목록(3절 말미) 사용금지.
-- git: HEAD=9020dc4, origin 대비 ↑(119 0순위 실측). 추적변경 NEXT_SESSION.md만(나머지 ?? 미추적 정상).
-- NEXT_SESSION.md = 본 인계서. 119차 종결 시 전체 교체.
+- git: HEAD=4b836cd, origin 대비 ↑(120 0순위 실측). 추적변경 NEXT_SESSION.md만(나머지 ?? 미추적 정상).
+- NEXT_SESSION.md = 본 인계서. 120차 종결 시 전체 교체.
 
 ### 신규 사안
-- [N-1~N-6] ✅ 115·116차 완료분.
-- [N-6] ★진척(118): operations dash 중첩본 정밀이관 — 117 zh6/ja2 + **118 acctPerf ja(ins24+del35) / budget zh(del4)·ja(ins2+del4) / marketing zh(del625)** D⊆R 손실0 격리 완료. 잔여: **auto ja 복구선행+한영혼재 선판정(119 1순위)**, ja marketing 잔차 D−R65/D−K70(119 2순위), ja super 이관 D−R97+ko부재(119 3순위).
-- [N-7] 미해결(3순위): accountPerf ja 의미충돌 3키.
-- [N-8] 미해결(4순위): priceOpt 잔여.
-- [N-9] 미해결(6순위): settlements 중복.
-- [N-10] 유지(116): 미번역키 중 더미 다수. is_dummy_ko(따옴표 포함값도 인식, 118 보강).
-- [N-11] ★유지·강화(117·118): 손실0 = 키집합 D⊆R. **D−K(ko부재)는 dash격리와 무관 — 원소속 R 보존이면 손실0**(118 zh marketing 입증, 117 lang_ratio 잔재 정정). 값언어비율 도구 폐기. 검증완료 파서 무변경 재사용 절대.
-- [N-12] ★유지·정밀화(117·118): **auto ja ROOT직속 한영혼재**(R 172키 중 한국어 실값 166키). probe v2 가 R 을 ruleEnginePage(d2)로 오선택했던 것 raw 규명완료 — 진짜 ROOT직속(d1@562146/561991) 기준 D−R=147, 한글166. **119 1순위: ko auto 정답값과 1:1 비교로 "미번역(ko복사) vs 진짜오염" 판정 후 ins/정밀 분기. 강행금지.**
-- [N-13] ★신규(118): probe/도구 자작 휴리스틱 금지 재확인. v1 operations>dash 가정이 실파일 dash>operations>섹션(d1/2/3)과 불일치해 실패. 검증파서 출력 span 포함관계로만 산출. **R 확정은 parent_chain==['ROOT']**(가장 큰 것 휴리스틱 금지).
-- [N-14] ★신규(118): 모체 검증식에 자작 리터럴 비교 추가 금지. extract_kv 따옴표 미제거(`'"原"'`) → 단일값 `==` 비교 깨짐. dict 통째 비교만(양변 동일적용으로 따옴표 무관).
-- 속도 원칙(필독): "초엔터프라이즈급"=품질·안전, 진행 더디게 하란 의미 아님. (a) 합성검증 핵심 + 실파일 구조반영 픽스처(d1/2/3, 동명아닌별칭) + dry-run. (b) **검증완료 파서·검증식 무변경 재사용 절대(117·118 핵심)**, 도구 버전 난립 금지. (c) 매 턴 결과확인+다음도구 동시. (d) 부분종결 인계서 직전 1회·안전대상 소진 시(118 표준), 한 세션 최소 2단계 apply+commit(118차 6커밋 충족). (e) raw 확정 즉시 연속, "추측 금지"를 속도저하 명분 금지. 단 raw로 손실/미완/오염 입증 시(복구선행·잔차·이관·한영혼재) 강행 대신 정밀. (f) 의사결정 분기 시 검수자 추천 1개 강제. (g) 신규 .py는 검수자 완성본 산출물 + 전달 전 합성검증(실파일구조 반영). (h) 손실0 = 키집합 D⊆R, D−K 무관. (i) 검증식 3중 동시 AND, plan 단독비교 금지. (j) CC 자체 .py 패치 reject, 진단출력만 채택.
+- [N-1~N-9] 이전 차수 처리/유지분(115~118).
+- [N-6] ★진척(119): operations dash 중첩본 정밀이관 — 117 zh6/ja2 + 118 acctPerf/budget/zh marketing + **119 auto ja del319 / marketing ja ins15 / super ja ins97+del169** D⊆R 손실0 격리·복구. 잔여: **zh dash 동명블록 전수 미확인(120 1순위)**, marketing ja KO_ABSENT 50 정밀이관(120 2순위), marketing ja dashdel(2순위 해소 후 3순위).
+- [N-7] 미해결(4순위): accountPerf ja 의미충돌 3키.
+- [N-8] 미해결(5순위): priceOpt 잔여.
+- [N-9] 미해결(7순위): settlements 중복.
+- [N-10] 유지·강화(119): 미번역키 중 더미 다수. is_dummy_ko(따옴표 포함값 인식). **(D−R)−K=0 ≠ 복구가능 — ko값 raw 교차 필수(119 auto 147 전부 더미 실증).**
+- [N-11] ★유지·강화(119): 손실0 = ① D⊆R ② R∩D D정답·R더미=0 ③ D−R 더미/부재. D−K(ko부재)는 R 보존 시 dash격리 무관. 값언어비율 폐기. 검증완료 파서 무변경 재사용 절대.
+- [N-12] ✅해소(119): auto ja ROOT직속 한영혼재 → raw 규명 결과 HANGUL_DIFF=0(미번역 ko복사, 오염 아님). D−R 147 ko더미로 ins 폐기·dashdel만으로 종결(e8c32a8).
+- [N-13] ★유지·강화(119): probe/도구 자작 휴리스틱 금지. **R 확정 = parent_chain==[] & min depth (실모체는 export default 래퍼 key=None 으로 ROOT 미블록화 — 'parent_chain==[ROOT]'·'가장 큰 것' 둘 다 금지). 실모체 호출규약(extract_kv body=text[s+1:e], depth 0-base) raw 확인 후 도구작성(v1 실패 교훈, session119_dump_parser.py 표준).**
+- [N-14] ★유지(118·119): 모체 검증식에 자작 리터럴 비교 추가 금지. extract_kv 따옴표 미제거+공백정규화 → dict 통째 비교, 값비교 시 unq() 양끝따옴표만 제거.
+- [N-15] ★신규(119): **인계서 표기 비관/낙관 오기록 가능 — 항상 raw 실측 우선**(super 3순위 "정답없음 수동이관" → 실측 D−R 97 전부 ko실값 정답, 단일세션 완전종결). lang_ratio 잔재 표기 불신, 운영규칙 9·10.
+- [N-16] ★신규(119): 파생 도구 print/미리보기 라인 하드코딩 키 금지 → INSERT_KV 첫키 등 동적참조(super_ins97 미리보기 marketing 잔재 사례, 6순위/N-13 정신).
+- 속도 원칙(필독): "초엔터프라이즈급"=품질·안전, 진행 더디게 아님. (a) 합성검증=실모체 무변경 미러 import + 실파일 구조 픽스처 + dry-run. (b) **검증완료 파서·검증식 무변경 재사용 절대, 실모체 호출규약 raw 확인 선행(119 핵심)**. (c) 매 턴 결과확인+다음도구 동시. (d) 부분종결 인계서 직전 1회·안전대상 소진 시(119: 4커밋 후 종결), 한 세션 최소 2단계 apply+commit(119 4커밋 충족). (e) raw 확정 즉시 연속, "추측 금지"를 속도저하 명분 금지. raw로 손실/미완/오염 입증 시(KO_ABSENT·이관) 강행 대신 정밀. (f) 의사결정 분기 시 검수자 추천 1개 강제. (g) 신규 .py 검수자 완성본 + 전달 전 합성검증. (h) 손실0 = D⊆R + D정답·R더미=0 + D−R 더미/부재. (i) 검증식 3중/4중 동시 AND, plan 단독비교 금지. (j) CC 자체 .py 패치 reject, 진단출력만 채택. (k) 키존재 ≠ 정답, ko값 raw 교차 필수. (l) 인계서 표기 raw 재판정(비관/낙관 불신).
