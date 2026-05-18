@@ -4165,12 +4165,6 @@ export default {
       "budgetBid": "Budget/Bid",
       "pause": "Pause",
       "resume": "Resume",
-      "budget": {
-        "allocated": "Allocated",
-        "spent": "Execution",
-        "overspend": "Overspend",
-        "onTrack": "On Track"
-      },
       "spent": "Spent",
       "impressions": "Impressions",
       "clicks": "Clicks",
