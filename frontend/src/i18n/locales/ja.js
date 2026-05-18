@@ -15201,8 +15201,10 @@ export default {
   },
   "budget": {
     "allocated": "Allocated",
-    "spent": "Spent"
-  },
+    "spent": "Spent",
+  "onTrack": "正常執行",
+  "overspend": "超過執行",
+},
   "graph": {
     "sourceNode": "Source Node",
     "targetNode": "Target Node",
