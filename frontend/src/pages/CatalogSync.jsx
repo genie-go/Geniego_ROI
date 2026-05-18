@@ -3,6 +3,14 @@ import { useGlobalData } from '../context/GlobalDataContext';
 import { useConnectorSync } from '../context/ConnectorSyncContext';
 import { useI18n } from '../i18n/index.js';
 import { CHANNEL_RATES, calcRecommendedPrice as calcRecPrice } from '../constants/channelRates.js';
+
+/* ── Enterprise Dynamic Locale Map (module-scope, shared) ─────── */
+const LANG_LOCALE_MAP = {
+    ko: 'ko-KR', en: 'en-US', ja: 'ja-JP', zh: 'zh-CN', 'zh-TW': 'zh-TW',
+    de: 'de-DE', es: 'es-ES', fr: 'fr-FR', pt: 'pt-BR', ru: 'ru-RU',
+    ar: 'ar-SA', hi: 'hi-IN', th: 'th-TH', vi: 'vi-VN', id: 'id-ID'
+};
+
 /* ── 모바일 감지 훅 ────────────────────────────── */
 function useIsMobile(bp = 768) {
     const [m, setM] = useState(() => window.innerWidth <= bp);
@@ -17,6 +25,7 @@ function useIsMobile(bp = 768) {
 /* ═══ Enterprise Security Guard — XSS/Injection 실시간 차단 ═══ */
 function useCatalogSecurity() {
     const { addAlert, isDemo } = useGlobalData();
+    const { lang } = useI18n();
     const threatCountRef = useRef(0);
     const [secBanner, setSecBanner] = useState(null);
 
@@ -36,7 +45,7 @@ function useCatalogSecurity() {
             }
         }
         return input.replace(/[<>"']/g, c => ({ '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] || c));
-    }, [addAlert]);
+    }, [addAlert, lang]);
 
     return { sanitize, secBanner };
 }
@@ -732,7 +741,7 @@ const BulkPriceModal = memo(function BulkPriceModal({ selectedIds, products, onC
 
 /* ─── Tab: Product 카탈로그 ─────────────────────────────────────────────────────────── */
 const CatalogTab = memo(function CatalogTab() {
-    const { t } = useI18n();
+    const { t, lang } = useI18n();
     const { updateCatalogChannelPrices, syncCatalogItem, addAlert, inventory, channelProductPrices } = useGlobalData();
     const { sanitize, secBanner } = useCatalogSecurity();
     const dynamicChannels = useDynamicChannels();
@@ -955,12 +964,6 @@ const CatalogTab = memo(function CatalogTab() {
         } catch (err) {
             console.error('Excel import error:', err);
 
-            /* ── Enterprise Dynamic Locale Map ────────────────────── */
-            const LANG_LOCALE_MAP = {
-                ko: 'ko-KR', en: 'en-US', ja: 'ja-JP', zh: 'zh-CN', 'zh-TW': 'zh-TW',
-                de: 'de-DE', es: 'es-ES', fr: 'fr-FR', pt: 'pt-BR', ru: 'ru-RU',
-                ar: 'ar-SA', hi: 'hi-IN', th: 'th-TH', vi: 'vi-VN', id: 'id-ID'
-            };
             showToast(t('catalogSync.excelImportError'), '#ef4444');
         }
         e.target.value = '';
@@ -1402,6 +1405,7 @@ const ProductDetail = memo(function ProductDetail({ product: p, onClose }) {
 
 /* ─── SchedulePanel — 자동 동기화 스케줄 관리 ──────────────────────────────── */
 const SchedulePanel = memo(function SchedulePanel({ t, addAlert }) {
+    const { lang } = useI18n();
     const FREQ_OPTIONS = [
         { id: '30m', label: t('catalogSync.schedFreq30m') || '30분마다' },
         { id: '1h', label: t('catalogSync.schedFreq1h') || '1시간마다' },
@@ -1473,7 +1477,7 @@ const SchedulePanel = memo(function SchedulePanel({ t, addAlert }) {
 
 /* ─── Tab: Sync Run ─────────────────────────────────────────────────────────── */
 const SyncRunTab = memo(function SyncRunTab({ onJobCreated }) {
-    const { t } = useI18n();
+    const { t, lang } = useI18n();
     const { addAlert } = useGlobalData();
     const dynamicChannels = useDynamicChannels();
     const [mode, setMode] = useState("incremental"); // full | incremental
