@@ -1,171 +1,169 @@
-GeniegoROI 프로젝트 102차 세션 시작합니다. 외부 검수자 역할 부탁드립니다.
+# GeniegoROI i18n 인계서 — 115차 시작점
 
-# 102차 핵심
-- 101차 종결: 1 commit 완료 (db5fb8d audit 47키 × 5언어 = 235건 EN fallback sync)
-- master HEAD: db5fb8d (또는 102차 인계 commit)
-- **push 완료** (101차 종결 시점, db5fb8d origin/master 반영)
-- 101차 결과: audit section 부모 path 확정 (audit sp=2, reportBuilder 오판 수정) + 47키 × 5언어 235건 sync 완전 매칭 검증 PASS + 100차 패턴 그대로 적용 성공
+> 114차 종결 시 전면 재작성 / 페어 모드(검수자 명령 → 사용자가 CC에 t 접두로 전달)
+> 상단부터 순서대로. 0순위 먼저.
 
-# 102차 첫 작업 (확정)
-**Tier A 단계적 sync - orderHub section 792건 우선**
-- 101차 t14 결과: G안 잔여 14,172건 중 Tier A(audit 패턴 즉시 적용 가능) 21개 section 2,307건 식별
-- Tier A 최대: orderHub 792건 (5언어 sp=4 단순 구조 확인)
-- 102차 1순위: orderHub section EN 키 추출 → 5언어 sync (audit 패턴 동일) → 1 commit
-- 검수자 추천: orderHub 단독 차수 (792건 단일 commit, 100/101차 패턴 유지)
+---
 
-# 102차 첫 명령 (raw 검증)
-- t1: t git -C "D:\project\GeniegoROI" log --oneline -10
-- t2: t git -C "D:\project\GeniegoROI" status --short --branch
-- t3: t powershell -Command "Get-Content 'D:\project\GeniegoROI\session101_remaining_sync_feasibility_result.txt' -Encoding UTF8 | Select-Object -First 60"
+## 0. 운영 방식 (먼저 읽기 — 특히 ★진행 강제 규칙 / ★★검수자 추천 강제)
 
-기대값: HEAD=db5fb8d (또는 102차 인계 commit), working tree clean (untracked만), ↑0↓0 (push 완료)
+- 기본값: 검수자가 CC에 직접 수정/실행 명령. 신규 .py 본문은 검수자가 산출물 파일로 만들어 전달 → 사용자가 루트에 1회 저장. 진단·git은 CC가 직접.
+- **sed·서브식·복합 파이프는 자동승인+Bash변환을 반복 유발(114차 실증).** 신규 .py는 sed 파생 대신 **검수자가 완성본 산출물로 직접 제공** → 사용자 1회 저장 → 실행은 단순 `python xxx.py 2>&1 | Out-File yyy.txt -Encoding utf8; code yyy.txt` 한 줄. 이 패턴이 114차 내내 안정 작동했음. sed 파생 금지.
+- 모든 CC 명령은 t 접두 한 줄. 자동승인 프롬프트(Do you want to proceed? 등) 계속 뜸 → Esc 후 t 접두 직접 타이핑. 정착 패턴, 당황 금지.
+- **자동승인 유발 패턴(전부 Esc): ① `$()`/`$LASTEXITCODE` 등 임베디드 표현식 ② sed의 `"..."` 이스케이프 ③ 복합 `|` 파이프 다단 ④ CC가 PowerShell→Bash 자동변환(`cd /mnt/d/...`) ⑤ findstr/Select-String 스크립트블록.** → 명령은 출력을 Out-File 로만, 서브식·sed 없이. node --check rc는 `$LASTEXITCODE` 쓰지 말고 "출력 없음=PASS"로 판정(114차 정착). raw 확인은 `; code <txt>` 로 에디터에 파일 원본 직접 확인.
+- 검수자 설명 매 턴 핵심만(명령 + 확인 포인트 1~2개). raw 우선, CC 요약/제안 절대 불신.
+- 환경변수 설정 금지. cp949는 .py 내부 sys.stdout.reconfigure(encoding="utf-8").
+- 신규 .py 산출물은 inspect_suspect(검증완료 v4 파서: scan_key_blocks/extract_kv/_read_value/_at_key_position) 무변경 재사용. 도구 버전 난립 금지. SEC만 바꿔 파생하되 **sed 아닌 검수자 산출물로**.
+- node --check 판정: node --check는 syntax 오류 시에만 출력하고 rc≠0. **Out-File 결과가 비어있으면(또는 오류문 없으면) = rc0 = PASS** (114차 전 섹션 이 방식으로 PASS 확인).
 
-# 101차 누적 작업 상세
+### ★★ 검수자 추천 강제 규칙 (의사결정 분기 시 — 최우선)
+1. **선택지(ask_user_input)를 제시할 때는 항상 검수자 추천 1개를 옵션 라벨 안에 "— 검수자 추천"으로 명시**하고, 직후 응답에서 추천 근거를 인계서 규칙 번호로 1~3줄 제시.
+2. 사용자가 "검수자 추천대로"라고만 답해도 즉시 그 선택으로 진행(재질문 금지).
+3. 추천은 반드시 인계서 규칙(★진행 강제 / 운영규칙 / 안전장치)에 근거. 근거 없는 추천 금지.
 
-| Commit | 영역 | 작업 | 비고 |
-|--------|------|------|------|
-| db5fb8d | i18n 5lang | audit 47키 × 5언어 sync (EN fallback) | de/id/th/vi/zh-TW 235 insertions. audit section open L17131~L17489 범위. node --check 5/5 PASS. 사후 정밀 검증 235/235 완전 매칭. 100차 markovRemoval 패턴 동일 적용. |
+### ★ 진행 강제 규칙 (미루기 금지 — 최우선)
+1. **raw로 처리방향이 확정되면 그 즉시 다음 단계로 연속 진행.** dry-run→raw확인→apply→node check→독립검증→commit 을 한 흐름으로 끝낸다. 단계마다 멈추고 종결 금지.
+2. **부분종결은 "인계서 작성 직전 단 1회"만 허용.** 그 전까지 작업 여력이 있는 한 멈추지 않는다. "다음 차수에서 하자"는 raw로 *구조 손상/불완전/오염이 입증된 경우에 한해서만* 허용, 그 외 금지.
+3. **한 세션 목표 = 최소 2단계 apply+commit.** (114차는 gCat+accountPerf+gNav ja = 3커밋 달성 = 기준선 초과.)
+4. "추측 금지"는 안전장치(백업·dry-run·가드·ROLLBACK)가 있으므로 속도 저하 명분 불가. raw가 확정한 안전 대상은 즉시 처리.
+5. 작업 여력이 남으면 다음 우선순위로 계속 진행. 단 raw가 손상/불완전/오염을 입증하면 강행 대신 정밀 이관(114차 gAiRec/operations/budget/gCat zh/gNav zh — 가드가 손실·불완전 차단이 안전설계 정당성).
+6. 파괴 작업 전 백업·dry-run·검증·이상시 ROLLBACK 절대 생략 금지(속도와 무관, 항상).
 
-# 101차 신규 .py 파일 목록 (D:\project\GeniegoROI\ 루트)
+## 1. 컨텍스트
 
-**Pathfinder / 사전 분석**:
-- session101_section_pathfinder.py (v1 - 경로 오류, 폐기)
-- session101_section_pathfinder_v2.py (sectionPnl 부모 path = audit sp=2 L14199 확정)
-- session101_audit_section_check.py (5언어 audit section 130키 + 3키 누락 확인)
-- session101_audit_47keys_extract.py (47키 raw + EN fallback 데이터 json 생성)
+- 작업: i18n 번역 키 동기화(EN 기준 14언어 fallback). D:\project\GeniegoROI.
+- locale: frontend\src\i18n\locales\{lang}.js (15개, ES모듈). 주 대상 ja.js/zh.js. EN기준 = locales\en.js.
+- 키는 따옴표 형태("pageTitle":...). 검증은 node --check (출력없음=PASS).
 
-**Sync 실행 / 사후 검증**:
-- session101_audit_sync.py (235건 sync 실행, 5/5 PASS)
-- session101_post_sync_verify.py (235/235 완전 매칭 검증 + 102차 후보 스캔)
-- session101_remaining_sync_feasibility.py (잔여 72 section Tier A/B/C/D 분류)
+## 2. 운영규칙 (절대준수)
 
-# 101차 신규 결과 파일 (참고용)
-- session101_section_pathfinder_v2_result.txt (sectionPnl/kpiNetProfit/pnlNetProfit 부모 = audit)
-- session101_audit_section_check_result.txt (5언어 130키, 47키 공통 누락)
-- session101_audit_47keys_extract_result.txt + .json (EN raw 47키 블록)
-- session101_audit_sync_result.txt (235건 sync 결과, 백업 파일명 포함)
-- session101_post_sync_verify_result.txt (사후 정밀 검증 + Tier 사전 스캔)
-- session101_remaining_sync_feasibility_result.txt (Tier A/B/C/D 분류 결과)
-- 5 locale 백업: <lang>.js.bak_session101_auditsync_<TS> (audit sync 백업)
+1. 자동승인 → Esc 후 t 접두 직접(0의 5종).
+2. 한 줄·Windows 경로. 출력 Out-File; code <f> 로 파일 원본 직접 확인.
+3. node --check (출력없음=rc0=PASS).
+4. commit 영문 한 줄. .js만 스테이징(.bak/t*.txt/.py 제외). push는 사용자 확인 하(deploy.yml 자동배포).
+5. CC 요약 신뢰 금지 → 부모체인/brace-depth/값 raw만.
+6. dry-run SKIP/SHARED는 "키 존재"만. 값까지 직접 교차.
+7. 파괴 편집 전 .bak 백업. 재검증 실패 시 자동 ROLLBACK.
+8. **키집합 동일 ≠ 무손실. 값까지 동일/방향 확인 후에만 처리. 상위집합 흡수도 "전키가 정답블록에서 현지어값"이어야 손실0(114차 gNav zh: ROOT가 삭제대상 완전포함이나 11키 영어stub → 처리불가 판정).**
+9. **동명 블록 다중존재 주의**: 한 키가 ROOT/ruleEnginePage내/dash,operations내/marketing내 등 복수 depth에 존재 가능. 처리 전 probe 도구로 부모체인·키수·값분포(한글/가나/한자/키복사더미)·정답블록·오염징후 raw 확정. **기존 inspect 도구는 dash중첩본을 ROOT[1]로 오인식하므로(114차 gCat 실증), probe(부모체인 명시)로 실구조 선확인 필수.**
+10. **값방향 raw 필수**: A>/B> 통계만 믿지 말고 키별 실값 육안 교차. 더미/해시값(키=값)·한영혼재·미번역(en영어 fallback) 오염 시 자동 처리 전면 금지.
 
-# 101차 핵심 발견 (102차 적용 필수)
+## 3. 핵심 .py 자산 (루트 보존, 컨테이너 초기화 → 매번 재저장)
 
-1. **100차 reportBuilder 오판 확정** - sectionPnl/kpiNetProfit/pnlNetProfit는 audit section 소속 (sp=2 L14199). 100차 reportBuilder(L15077) 추정은 오판. **102차 이후 sync 작업 시 첫 단계는 항상 단순 grep으로 키의 정확한 부모 section 추적 (101차 신규)**
+### 검증완료 파서 모체 (읽기전용, 무변경 인용)
+- session112_inspect_suspect.py ★ — 모든 신규도구 파서 모체(scan_key_blocks/extract_kv/_read_value/_at_key_position 무변경).
+- session111_ident_valuediff_v4.py ★ — 파서 원형.
 
-2. **5언어 audit section 130키 보유 확인** - de/id/th/vi/zh-TW 모두 audit section 존재. anchor = guideTipDesc 라인. EN 177키 vs 5언어 130키 = 47키 공통 누락. **section 존재 + 공통 누락 키 식별 패턴 정착 (101차 신규)**
+### 114차 신규 자산 (★ = 115차 재사용 표준)
+- session114_probe_*.py ★★ — **115차 구조진단 표준 베이스**. 부모체인+값분포(한글/가나/한자/키복사더미)+블록쌍 value-DIFF 방향+키별 상세 덤프. SEC만 바꿔 검수자 산출물로 파생(probe_accountperf/budget/gairec/gnav/operations/gcat_zh 6종 실증). **inspect 계열보다 우선 — 부모체인 명시로 오인식 차단.**
+- session114_adopt_acctperf_dashdel.py ★★ — **영어stub [dash,operations] 중첩본 1개 삭제 + 정답블록·ROOT 무변경** 표준. 가드: 삭제대상 현지어0 영어stub + 잔존 현지어 정답 존재. 백업/재스캔독립검증/ROLLBACK. (accountPerf ja+zh apply 성공 0d99cc4.)
+- session114_adopt_gnav_dashdel.py ★ — acctperf_dashdel + **손실0 강화가드**(삭제대상 키집합 == 현지어완전체 키집합 양방향0). (gNav ja apply 성공 f8b7c5b, zh는 가드 ABORT.)
+- session114_adopt_gnav_zh_subsetdel.py ★★ — **가드 정밀완화 표준**: 삭제대상 ⊆ 현지어완전체(삭제대상-완전체=0) + 삭제대상 전키가 완전체에서 현지어값. 상위집합 허용하되 비현지어키 검출 시 ABORT. (zh gNav에서 11키 영어stub 검출 → 정당 ABORT, 처리불가 입증.) **115차 상위집합 흡수 판정의 표준.**
+- session114_adopt_gcat_ja_nestdel.py ★ — 진짜ROOT가 이미 정답일 때 영어stub 중첩본 N개 삭제(흡수 없음). (gCat ja apply 성공 aab894f.)
+- session114_inspect_gcat.py — inspect_priceopt의 gCat 파생(읽기전용, 참고용).
 
-3. **EN fallback sync 패턴 정착** - 235건 EN raw 그대로 복사 sync. 업계 용어(ROAS, SKU 등) + 이모지 + 영문 동일. 번역 후 sync는 후속 차수 분리. **102차 Tier A 작업도 EN fallback 우선 (101차 신규)**
+### 113차 자산 (보존)
+- session113_adopt_priceopt_nestonly.py ★★ — NEST→ROOT 단방향 흡수+중첩본1개삭제 표준.
+- session113_adopt_ai.py / session113_inspect_ai.py / session113_map_superset7.py — 보존.
+- ※ session111_subset_absent.py = 폐기·사용금지.
 
-4. **사후 정밀 매칭 검증 표준** - sync 후 EN raw block과 5언어 block 정규화 비교 (trailing 쉼표/공백 무시). 235/235 매칭 = 무결성 확정. **모든 sync 작업 후 정밀 매칭 필수 (101차 신규)**
+## 4. [DONE] 114차 결과 (raw 확정·apply 성공만)
 
-5. **차수당 1 commit 원칙 유지** - 100차 markovRemoval 7키 1 commit, 101차 audit 47키 235건 1 commit. 단일 차수 작업량 과다 시 분할. **Tier A 21개 section 2,307건은 5~10차에 걸쳐 점진 sync 권장 (101차 신규)**
+### 4-0. push — 묶음 보류 유지
+HEAD=f8b7c5b. origin 대비 **↑7**(7bbceab·365d596=112차 / e1f878a·d2f4e44=113차 / aab894f·0d99cc4·f8b7c5b=114차, 전부 origin 미반영). 검수자 결정: 계속 묶음 보류. push 시점 미정(사용자 승인 시).
 
-6. **Tier 분류 체계 도입** - Tier A: 5언어 section 존재 + sp≤4 (즉시 sync), Tier B: sp>4 nested (구조 분석 필요), Tier C: section 자체 누락 (section 추가 필요), Tier D: 누락 0. **102차+ 작업 시 Tier 우선순위 기반 진행 (101차 신규)**
+### 4-1. ★ gCat ja 완료 (aab894f)
+- raw: gCat ja 3블록 — [ruleEnginePage]21키 영어stub+더미2 / [dash]21키 영어stub(rep와 vdiff0) / **진짜ROOT[](depth1) 20키 = 일본어 정답완전체**(가나15/한자16).
+- 결정: 진짜ROOT가 이미 정답 → 흡수 불필요. **영어stub 중첩본 2개([ruleEnginePage]/[dash]) 삭제, ROOT 무변경.**
+- 처리(session114_adopt_gcat_ja_nestdel.py --apply): 중첩본2 삭제. node PASS·독립검증(gCat 1개=진짜ROOT 20키불변) PASS. commit aab894f (1 file, 46-).
+- **zh 이관**: zh gCat 2블록 모두 영어stub+키복사더미, **정답 중국어 부재 = 데이터손상**. 자동처리 금지(2순위 복구군).
 
-7. **사전 백업 + node --check + 자동 복원** - audit sync에서 5/5 PASS. bak_session101_auditsync_<TS> 표준 적용. **모든 sync 작업 전후 node --check + 실패 시 백업 복원 (100차 기정착, 101차 재확인)**
+### 4-2. ★ accountPerf ja+zh 완료 (0d99cc4)
+- raw: ja 3블록 — [ruleEnginePage]35키 **일본어정답완전체**(더미0) / [dash,operations]35키 영어stub(더미0, B>32 역방향) / 진짜ROOT[]3키 일본어(의미상이). zh 2블록 — 진짜ROOT[]35키 **중국어정답완전체**(한자33) / [dash,operations]35키 영어stub.
+- 결정: 영어stub인 [dash,operations] 중첩본만 삭제, 정답완전체·ROOT 무변경(priceOpt nestonly 패턴).
+- 처리(session114_adopt_acctperf_dashdel.py --apply): ja/zh 각 dash중첩본 삭제. node PASS·독립검증 PASS. commit 0d99cc4 (2 files, 74-).
+- **잔여**: ja [ruleEnginePage]↔진짜ROOT 의미충돌 3키(pageSub/pageTitle/teamDashboard, 일본어끼리 의미상이) = 별도 수동(작업범위 밖, 무손치 보존).
 
-8. **검수자 설명 짧게 + raw 결과 우선** - 사용자 명시. 검수자 분석/추천은 1줄 요약, raw 데이터가 본문. **102차+ 운영 유지 (101차 신규)**
+### 4-3. ★ gNav ja 완료 (f8b7c5b)
+- raw: ja 4블록 — [ruleEnginePage]100키 **일본어정답완전체**(가나73/한자45) / [dash,operations]100키 영어stub([0]과 키집합100%동일,전용0/0) / [marketing]65키 영어stub+app_pricing오염 / 진짜ROOT[]87키 일본어(A9/B7 혼재).
+- 결정: 키집합100%동일 영어stub인 [dash,operations]만 삭제(손실0), [ruleEnginePage]정답·[marketing]·ROOT 무접촉 보존(priceOpt nestonly "안전범위 한정").
+- 처리(session114_adopt_gnav_dashdel.py --apply): ja dash중첩본 삭제. node PASS·독립검증(gNav 3개, 정답완전체 가나73/한자45 불변) PASS. commit f8b7c5b (1 file, 102-).
+- **zh 이관**(4-4 참조).
 
-9. **사용자 직접 캡처 패턴 효과 재확인** - 101차 t1~t14 모두 VSCode raw 캡처로 정확성 확보. CC raw 압축 우회 + 검증 신뢰도 최대. **핵심 검증 단계마다 사용자 직접 캡처 권장 유지 (100차 기정착)**
+### 4-4. 이관 확정 사안 (raw로 손상/불완전/미번역 입증 — 자동처리 금지)
+- **gCat zh**: 2블록 전부 영어stub+키복사더미. 정답 중국어 부재 = 데이터손상. → 2순위.
+- **gAiRec ja/zh**: ja 3블록 — 중첩본[ruleEnginePage]/[dash,operations] 각 75키(더미12) / 진짜ROOT[]38키(가나7/한자25, 더미5, title="Email Marketing" 타페이지오염·subtitle 의미충돌). **중첩본 37키가 ROOT에 부재 → 삭제 시 37키 손실 + ROOT 자체 부분오염.** zh도 정답부재. → 2순위.
+- **operations ja/zh**: ja 3블록 — [ruleEnginePage]296키(더미95) / [dash,operations]303키(더미110) / 진짜ROOT[]13키. **진짜ROOT 13키 vs 중첩본296+ → 283+키 손실. 키복사더미 대량(`0dv8o1`류=auto 4-3a와 동일 해시손상). [dash,operations]전용에 타섹션 9개(accountPerf/auto/gAiRec/gNav/marketing/super 등) 구조 오염.** → 2순위(구조복구 선행).
+- **budget ja/zh**: 3블록 전부 영어stub(가나0/한자0), 현지어 정답 부재 = **미번역(en영어 fallback) 상태.** 흡수·삭제 모두 무의미. en→ja/zh 신규 번역 필요. → 6순위.
+- **gNav zh**: 3블록 — [marketing]65키 영어stub+app_pricing오염 / 진짜ROOT[]104키(한자93) / [dash,operations]100키 영어stub. 진짜ROOT가 dash중첩본 100키 완전포함(삭제대상-완전체=0)이나 **그 중 11키(apiKeys/aiMarketingHub/aiPrediction/whatsapp/instagramDm 등)가 ROOT에서도 영어stub(미번역)** → 삭제 시 11키 영어 잔존 불완전. subsetdel 가드가 정당 ABORT. → 3순위(zh 11키 미번역 보완 후 재처리 가능).
 
-# 102차 진행 순서 (검수자 추천)
+## 5. [PENDING] 115차 작업 (★raw 확정 즉시 연속 진행, 손상입증 시만 이관)
 
-**1순위 (102차 첫 작업, 확정)**: Tier A 최대 section orderHub 792건 sync
-- session102_section_keys_extract.py 작성 (orderHub 5언어 누락 키 추출)
-- session102_orderHub_sync.py 작성 (audit 패턴 동일)
-- 단계: 추출 → 사전 백업 + node --check → 235건과 동일 절차 → 사후 정밀 매칭 → commit
+### 0순위 — push 상태 재확인
+```
+t cd D:\project\GeniegoROI; git log --oneline -8 2>&1 | Out-File t115_status.txt -Encoding utf8; git status --short 2>&1 | Out-File t115_status.txt -Append -Encoding utf8; code t115_status.txt
+```
+확인: HEAD=f8b7c5b, origin 대비 ↑7, 추적변경=NEXT_SESSION.md만(나머지 ?? = .bak/.py/t*.txt 정상). 이상 없으면 즉시 1순위.
 
-**2순위**: 102차 1순위 결과 기반 작업
-- sync 성공 시: 다음 Tier A section (pricing 236건 / pnl 169건 등) 연속 sync
-- sync 실패 시: 실패 원인 분석 → 102차 종결
+### 1순위 — 2순위 복구군 진단 (auto·operations·gAiRec·gCat zh)
+**raw로 데이터손상/구조오염 확정된 군. 번역동기화 전 복구 진단 선행(읽기전용부터).**
+처리 순서(검수자 추천 명시, probe 도구 SEC 파생 활용):
+1. **gCat zh** (최소형, 2블록 영어stub) → en.js·ko.js gCat 3자 대조로 중국어 정답 출처 규명. ko(원본 한국어)에서 zh 번역 생성 가능 여부 raw.
+2. **gAiRec ja** (ROOT 38키 부분정답 + 중첩본 37키 ROOT부재 + ROOT오염) → en/ko 대조로 ① ROOT 누락 37키 정답 출처 ② ROOT title/subtitle 오염 정정값 규명.
+3. **operations** (★최난도: 진짜ROOT 13키 / 중첩본 296+더미95·110 / 타섹션9개 구조오염) → 구조복구가 번역보다 선행. en.js operations 정상 키구조 기준 확보 → [dash,operations]내 타섹션9개(accountPerf/auto/gAiRec/gNav/marketing/super 등) 격리 설계 → 그 후 번역. 진단 도구(읽기전용)부터, 자동 .js편집 절대 금지(복구설계 확정 전).
+각 사안: en.js·ko.js·ja/zh.js 3~4자 키:값 대조 신규 진단도구 검수자 산출물 작성 → raw → [복구가능/추가이관] 판정. **손상 입증 시 즉시 다음, 복구설계 확정 시 도구 설계.**
 
-**3순위**: 잔여 영역 (102차 1~2순위 완료 후)
-- Tier A 21 section 전체 완료 시 → Tier C section open 작업 진입
-- 또는 ascoreTitle MULTIPLE 3건 분석 (사전분석 STEP 1 보류 사항)
-- graphScore 4키 / super 8키 / marketingIntel 10키 (잔여 미작업)
+### 2순위 — gNav zh 11키 미번역 보완 후 재처리
+4-4 gNav zh 참조. 진짜ROOT[]가 dash중첩본 100키 완전포함하나 11키(apiKeys/aiMarketingHub/aiPrediction/whatsapp/instagramDm 등)가 ROOT에서 영어stub. ① en/ko 대조로 11키 중국어 정답 확보 → ROOT에 채움(별도 도구) → ② 그 후 session114_adopt_gnav_zh_subsetdel.py --apply 재실행(11키 현지어화되면 가드 통과). 11키 보완 전 dash중첩본 삭제 금지.
 
-**4순위**: 102차 종결 + push + NEXT_SESSION 인계
+### 3순위 — accountPerf ja 의미충돌 3키 수동
+4-2 잔여. ja [ruleEnginePage]정답↔진짜ROOT[] pageSub/pageTitle/teamDashboard 일본어끼리 의미상이. 어느 쪽이 노출 정답인지 i18n 폴백 경로 raw 확인 후 키단위 정정.
 
-**향후 차수 (103차 이후 추천)**:
-- comingSoon* / budgetAllocated/budgetSpent 영어 카피라이팅 결정 후 sync
-- workspace 브랜드 정책 결정 (Starter/Growth/Pro/Enterprise)
-- CRLF 환경 정리
-- D안 ESLint / E안 CSV Injection (보안/품질)
-- F안 Connectors.jsx (5일 추정)
-- Tier B 12 section 2,917건 구조 분석 후 sync
-- Tier C 39 section 8,948건 section open 추가 sync
+### 4순위 — priceOpt 잔여 (113차 4-2 잔여분)
+priceOpt ROOT[1]↔파편[2](208,값상이66)·[2](90,타페이지오염38키). 키단위 수동. 오염38키(title="Email Marketing"류)는 타페이지 귀속 별도 정리.
 
-# 검수자 운영 원칙 (70~100차 정착, 불변)
-- 자율 추천 금지 (단, 검수자 추천 1개 동반 가능)
-- raw 결과만 받기 (CC 자체 분석은 참고)
-- t 프리픽스 누락 시 즉시 정지 + 재입력 요청
-- CC create_file/Write/Edit 도구 사용 금지 (단, 합의 시 Edit 1회 허용)
-- CC Read 도구 자율 호출 금지 (sed -n 또는 검수자 .py 우회)
-- CC 자율 텍스트 t 프리픽스 덮어쓰기로 차단
-- CC 명령어 1개씩만 입력
-- 짧게 설명하고 진행
-- 검수자 명령 직접 진행 우선
-- 사용자 결정 시 검수자 추천 1개 동반
-- 위험 명령 (push, force, reset, checkout HEAD, --hard, commit, rm, add) 자동 생성 시 즉시 차단
-- 자율 텍스트 위험 키워드 (checkout, push, force, reset, rm, hard) 즉시 차단 (83차 #2)
-- 자율 텍스트 위험 키워드 (confirmed, proceed, apply, yes, ok, go ahead, 수정해줘, 진행할까요) 즉시 차단 (83차 #4 + 88차 #3)
-- PowerShell 권한 영구 허용 (2번) 절대 불가 - 매번 1번 Yes만 (87차)
-- 장문 보고서 = 검수자 작성 후 사용자 붙여넣기 (88차)
-- t 프리픽스 덮어쓰기는 시스템 설계 (89차 명문화)
-- 사용자 VSCode 직접 복붙 = 안전 + 빠른 패턴 (91차) **단 area1_raw.txt 사고 후 위험 (95차)**
-- 검수자 .py 파일 작성 → 사용자 다운로드/이동/실행 패턴 (92차 신규)
-- CC raw 출력 압축 시 CC .py 결과 파일 저장 방식 = 최선 (88차 #2 + 93차)
-- 들여쓰기 사전 raw 확인 필수, 정규식 패턴 자동 추출 권장 (93차)
-- v2 패턴 표준 - 영어값 자동 추출 + 한국어 skip + FAILED 시 NO WRITE (94차 신규)
-- placeholder 식별 - 키 해시/값 자동 대문자화 패턴 = 작업 제외 (94차 신규)
-- CC 자율 .py 파일명 추측 + 명령 변형 + Write/Edit 시도 = 다수 차단 패턴 (94차 신규)
-- 콘솔 cp949 우회 - translate .py는 RESULT_PATH 결과 파일 저장 기본 (95차 신규)
-- 유니코드 특수문자 매핑 - middle dot/em dash/이모지 정규식 \uXXXX 표기 (95차 신규)
-- r1→r2→r3 반복 보강 패턴 - 매핑 부족 시 FAILED + 누락 키 매핑 추가 + r+1 실행 (95차 신규)
-- 사용자 raw 복불 사고 후 - 검수자 분석 .py로 우회 권장 (95차 신규)
-- candidates_audit.py 사전 검증 - 93차 fullscan 데이터 신뢰도 한계 우회 (96차 신규)
-- section 정규식 표준 - 따옴표 선택적 + 중괄호 균형 추적 (96차 신규)
-- placeholder 식별 유형 확장 - 동적 키 생성/이모지 단독값/실제 값 미확정 (96차 신규)
-- 라인 기반 정확 교체 - 같은 키 중복 등장 영역 처리 (96차 신규)
-- VSCode 사용자 직접 캡처 (다중 이미지) - CC raw 압축 우회의 빠르고 안전한 패턴 (97차 신규)
-- 검수자 bash sed 활용 - r2/r3 작성 시 기존 .py에서 1~3개 매핑 수정으로 변경분 최소화 (97차 신규)
-- CC 자율 sed 실행 차단 - 검수자 미동의 시 즉시 No (97차 신규)
-- placeholder 매핑 = en_value == ko_value 패턴 - 실제 교체 없이 검증만 통과 (97차 신규)
-- 섹션 자동 탐지 - find_section_ranges 함수로 중괄호 균형 추적, 라인 범위 수동 지정 불필요 (98차 신규)
-- r1 NO WRITE 후 raw 검증 필수 - 부분 적용/전체 미적용 구분, r2 작성 시 정확 라인 확인 (98차 신규)
-- 유니코드 미스매치 사전 raw 확인 - em dash/middle dot/이모지 ko.js 직접 캡처 (98차 신규)
-- CC Edit 도구 자율 시도 = 3번 No 차단 (98차 신규)
-- typo 발견 → 검수자 sed .py 일괄 수정 패턴 (98차 신규)
-- find_section_by_hint - 동일 이름 섹션 중복 시 라인 hint 범위 매칭 (99차 신규)
-- em dash + 이모지 unicode escape - .py 인코딩 사고 차단 (99차 신규)
-- FAILED 시 codepoint 디버깅 출력 - U+XXXX 단위 차이 즉시 식별 (99차 신규)
-- 검수자 .py 경로 os.path.exists() + sys.exit(1) 표준화 (99차 신규)
-- 이모지 직접 식별 위험 - codepoint hex 검증 필수 (99차 신규)
-- dashboard 인접 라인 회귀 검증 - 캡처 시 작업 키 외 인접 5~10라인도 확인 (99차 신규)
-- 사용자 결정 영문 유지 키 재거론 차단 - CC 반복 거론 차단 (99차 신규)
-- **단순 grep 우선 - section path 파서 결함 회피 (100차 신규)**
-- **node --check 표준 검증 - .js 수정 후 필수 (100차 신규)**
-- **백업 + 자동 복원 패턴 - 사후 검증 실패 시 즉시 백업 복원 (100차 신규)**
-- **double quote 일관성 - en.js 따옴표 스타일 사전 확인 후 sync (100차 신규)**
-- **lone_comma 결함 단정 금지 - JS 정상 객체 분리자 가능 (100차 신규)**
-- **반복 sync 키 부모 section 가정 위험 - en.js에서 정확한 path 추적 후 작업 (100차 신규)**
+### 5순위 — DIVERGE 본래분
+zh supplyChain(∩75)+ja supplyChain/marketing(∩124)/acctPerf(∩11). 수동 키단위. 자동 금지.
 
-# 101차 운영 추가 요청 (사용자 명시, 102차 유지)
-- **매 명령마다 차수 표기 필수** (예: "102차 t1 명령")
-- 검수자 설명 짧게, 핵심만
-- 검수자 명령으로 CC 직접 수정 우선 (사용자 직접 수정 회피)
-- t 프리픽스 유지
-- 작업 여력 있는 한 추가 작업 최대 진행, 부분 종결 시에도 추가 작업 가능
-- **엔터프라이즈급 작업 원칙 (정확성/안전성 최우선, 검증 단계 생략 금지)**
-- **CC 자율 명령 생성 시 즉시 차단 (101차 패턴 누적)**
-- **검수자 .py 파일 작성 → 사용자 outputs 다운로드 → D:\project\GeniegoROI\ 루트 저장 → t 명령 실행 패턴**
-- **CC 자율 명령 차단은 t 프리픽스 덮어쓰기로 무력화, 에너지 낭비 회피 (99차 사용자 명시)**
+### 6순위 — 미번역·백로그
+- **budget ja/zh** (4-4): 전 블록 영어stub, en→ja/zh 신규 번역.
+- [N-6] settlements ROOT/auth 중복(라인변동 후 재탐색). [NEW-3] 109차[B] finalverify ar/hi/pt/ru. [C] 키단위diff/comingSoon·budget EN카피/runAI·runAi/workspace 브랜드·CRLF/D안 ESLint/E안 CSV/F안 Connectors/107차 attrData zh.
 
-# 101차 누적 통계 (이전 차수 대비)
-- 91차 364키 / 92차 356키 / 93차 173키 / 94차 253키 / 95차 148키 / 96차 120키 / 97차 339키 / 98차 56키 + 1typo / 99차 20키 / 100차 7키 sync (14 언어 중 7언어 markovRemoval) + 1 commit / **101차 47키 sync × 5언어 = 235건 + 1 commit (단일 차수 최대 sync 기록)**
-- 101차 핵심 성과: audit section 부모 path 확정 (reportBuilder 오판 수정) + 47키 × 5언어 = 235건 EN fallback sync + 사후 정밀 매칭 235/235 PASS + Tier A/B/C/D 분류 체계 도입 + 잔여 14,172건 가시화
-- 다음 차수 (102차): Tier A orderHub 792건 단독 sync 시도 (audit 패턴 동일)
+### 마지막 — 묶음 push (검수자 확인 하)
+```
+t cd D:\project\GeniegoROI; git log --oneline -12 2>&1 | Out-File t115_pushchk.txt -Encoding utf8; code t115_pushchk.txt
+```
+검수자 push 승인 시: `t cd D:\project\GeniegoROI; git push origin master` (deploy.yml 자동배포 트리거).
 
-자세한 101차 인계 사항은 위 표 및 결과 파일들을 raw로 확인 부탁드립니다 (D:\project\GeniegoROI\session101_*.txt, master HEAD db5fb8d 이후 102차 인계 commit에 포함).
+## 6. 즉시 체크리스트 (115차)
 
-102차 시작 확인. 검수자 페어 진행 모드 인지. Claude Code 명령 t1번 결과 raw 수신 대기.
+1. [ ] 0순위 git log/status(HEAD=f8b7c5b, ↑7, 추적변경 NEXT_SESSION.md만). 이상 없으면 즉시 1순위.
+2. [ ] 1순위 복구군: gCat zh→gAiRec ja→operations 순. en.js·ko.js·ja/zh.js 3~4자 대조 진단도구(읽기전용) 검수자 산출물부터. 복구설계 확정 전 자동 .js편집 절대 금지.
+3. [ ] **probe 도구 우선**(부모체인 명시). inspect 계열은 dash중첩본을 ROOT 오인식(114차 gCat 실증).
+4. [ ] 신규 .py는 sed 파생 금지, **검수자 완성본 산출물 → 사용자 1회 저장 → 단순 python 한 줄 실행**(114차 정착).
+5. [ ] node --check는 출력없음=PASS. `$LASTEXITCODE` 등 임베디드 표현식 금지(자동승인 유발).
+6. [ ] raw 확인은 code <txt> 파일 원본. CC 요약·SAFE분류 휴리스틱 절대 불신, 키별 실값 육안.
+7. [ ] 동명블록 다중존재 항상 의심(운영규칙 9). probe로 부모체인·값분포 매번 매핑.
+8. [ ] 상위집합 흡수도 "전키가 정답블록 현지어값"이어야 손실0(운영규칙 8, gNav zh 교훈). subsetdel 가드 표준 적용.
+9. [ ] 의사결정 분기 시 검수자 추천 1개 옵션에 명시+근거 제시(0의 ★★규칙). 사용자 "추천대로"=즉시 진행.
+10. [ ] 부분종결은 인계서 작성 직전 1회만. 그 전엔 자발적 종결 금지(0의 ★진행 강제).
+11. [ ] 종결 시 본 인계서 동일 형식 전체 재작성(검수자 단일파일 → 사용자 NEXT_SESSION.md 전체 교체).
+
+## 7. 파일 상태
+
+- t113_* / t114_* / t115_* 결과 txt 루트 보존(raw 이력).
+- 114차 백업 4개: ja.js.bak_session114_gcatNestDel_20260518_105705(aab894f), ja/zh.js.bak_session114_acctPerfDashDel_20260518_111208~209(0d99cc4), ja.js.bak_session114_gNavDashDel_20260518_112135(f8b7c5b). 113/112/110/109차 백업 보존.
+- .py 자산: 3절 목록. 검수자 산출물 → 사용자 루트 저장. 컨테이너 초기화 → 매번 재저장. session111_subset_absent.py 폐기·사용금지.
+- git: HEAD=f8b7c5b, origin 대비 ↑7(push 보류). 추적변경 NEXT_SESSION.md만(나머지 ?? 미추적 정상).
+- NEXT_SESSION.md = 본 인계서. 115차 종결 시 전체 교체.
+
+### 신규 사안
+- [N-1] ✅ gCat ja 완료(aab894f). 진짜ROOT 정답 → 영어stub 중첩본2 삭제.
+- [N-2] ✅ accountPerf ja+zh 완료(0d99cc4). 영어stub dash중첩본 삭제, 정답·ROOT 보존. **dashdel 도구 = 표준.**
+- [N-3] ✅ gNav ja 완료(f8b7c5b). 키집합100%동일 영어stub dash중첩본 삭제, 안전범위 한정.
+- [N-4] ★★중대 미해결(115차 1순위): **2순위 복구군** — gCat zh(정답부재)·gAiRec ja/zh(키부족+ROOT오염)·operations ja/zh(283키손실+더미대량+타섹션9개 구조오염). en/ko 대조 복구 선행, 자동편집 금지.
+- [N-5] ★미해결(115차 2순위): **gNav zh 11키 미번역** — 진짜ROOT가 dash중첩본 완전포함이나 11키(apiKeys 등) 영어stub. 11키 중국어 보완 후 subsetdel 재처리.
+- [N-6] 미해결(3순위): accountPerf ja 의미충돌 3키(pageSub/pageTitle/teamDashboard) 수동.
+- [N-7] 미해결(4순위): priceOpt 잔여 파편[2]208·[2]90(타페이지오염38키).
+- [N-8] 미해결(6순위): budget ja/zh 전블록 영어stub 미번역 / settlements ROOT/auth 중복.
+- 속도 원칙(필독): "초고도화/초엔터프라이즈급"=품질·안전, 진행 더디게 하란 의미 절대 아님. (a) 합성검증 핵심 1~2종, 나머지 실파일 dry-run. (b) 도구 버전 난립 금지(inspect_suspect 파서 무변경 인용, SEC만 검수자 산출물 파생). (c) 매 턴 결과확인+다음도구 동시. (d) 부분종결 인계서 직전 1회, 한 세션 최소 2단계 apply+commit(114차 3커밋 초과달성). (e) raw 확정 즉시 연속 진행, "추측 금지"를 속도저하 명분 금지. 단 raw로 손상/불완전/오염 입증 시(114차 gAiRec/operations/budget/gCat zh/gNav zh) 무리한 강행 대신 정밀 이관 — 가드가 114차에 키손실·미번역·구조오염 5종+ 차단이 안전설계 정당성. (f) 의사결정 분기 시 검수자 추천 1개 강제(0의 ★★). (g) 신규 .py는 sed 아닌 검수자 완성본 산출물(114차 sed 자동승인 반복 교훈).
