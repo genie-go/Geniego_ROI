@@ -1,4 +1,4 @@
-# GenieGoROI i18n 인계서 — 122차 시작점
+# GenieGoROI i18n 인계서 — 126차 시작점
 
 > 본 문서는 매 세션 종결 시 **검수자가 단일 파일로 전체 재작성** → 사용자가
 > `D:\project\GeniegoROI\NEXT_SESSION.md` 전체 교체. PM_HANDOVER.md /
@@ -11,165 +11,249 @@
 i18n 번역 키 동기화 프로젝트. locale 경로:
 `D:\project\GeniegoROI\frontend\src\i18n\locales\{lang}.js`
 
-- **정답원본 = ko.js (한국어)** — 모든 복구/번역의 의미 출처
+- **정답원본 = ko.js (한국어)** — 모든 복구/번역의 의미 출처.
+  ★단 ko.js 도 일부 오염 존재(N-25, 5-1). 무조건 신뢰 금지.
 - **ja.js 정답언어 = 일본어**, **zh.js 정답언어 = 중국어(간체)**
-- 그 외 다국어(ar/de/hi/id/pt/ru/th/vi/zh-TW 등) 다수 존재하나 본 라인 외
+- 그 외 다국어 다수 존재하나 본 라인 외
 
 ### 검증 파서 모체 (★무변경 import 절대원칙)
-`D:\project\GeniegoROI\session112_inspect_suspect.py` 의:
-- `scan_key_blocks(text)` → 4-튜플 리스트 `(key, start, end, depth)`
-- `extract_kv(body)` → 호출 시 `body = text[s+1:e]`. 값은 따옴표포함 +
-  `re.sub(r"\s+"," ")` 정규화 (★중요: 양끝 따옴표 때문에 내부 의도공백 보존됨)
-- `ANYKEY_RE`, `_at_key_position`, `_read_value` 도 동일 모체에서 import
+`session112_inspect_suspect.py` 의 `scan_key_blocks`/`extract_kv`/
+`ANYKEY_RE`. 신규 .py 도구는 무변경 재사용 (N-13).
+`session123_diag_keydiff.py` `build_leaf_paths(text)` →
+`{full.key.path: stripped_value}` (N-22 한계 有).
 
-신규 .py 도구는 이 검증완료 파서/패턴을 **무변경 재사용**한다 (N-13).
+### ★ 검증완료 복구 자산 (차기 표준, 무변경 재사용)
+- `session124_recover_mi_jazh.py` `safety_check` — delta 누적
+  5종 안전검사(N-23). 블록치환 표준.
+- ★`session125_recover_safestub_jazh.py` (**차기 1순위 표준**):
+  - `_is_balanced_jsstr` — 정상 JS 더블쿼트 결정 검증.
+  - `quote_integrity` (N-24) — 따옴표 '수 불변' 아닌 (a)정상
+    JS 문자열 (b)실제Δ==예상Δ. dry/apply 동일 호출.
+  - `locate_and_plan(...,parent_scoped=)` (N-26) — 동일 leafkey
+    다출현 시 최근접 부모키 일치로 출현 특정. (s,e)겹침 plan
+    전체 SKIP(N-27). 기본 False(5-2 본 무변경).
+  - `KO_CONTAMINATED`+`_ko_suspect` (N-25) — ko 오염 제외 +
+    의심 휴리스틱(출력만, 자동제외 안 함).
+  - `_is_hashkey` — auto.* 랜덤 해시키 제외.
+  - **import-가드**: 함수=모듈레벨 / 실행=`_run`·`_run_remain`
+    + `__main__` 가드 / 파서 lazy(`_get_parsers`) / `load_data()`.
+    진단도구 무변경 import 재사용(N-13 실현).
+  - 합성검증 **F1~F13**. 모드: 무옵션=dry / `--apply` /
+    `--diag` / `--remain-dry` / `--remain-apply`.
 
 ---
 
 ## 1. 운영 방식 (사용자 확정 — 불변)
 
-- **검수자(=Claude)** 가 신규 `.py` 를 산출물로 만들어 `present_files` 전달
-- **사용자**가 `D:\project\GeniegoROI` 루트에 저장
-- 검수자가 **한 줄 명령**(t 접두 표기)을 주면 사용자가 실행 → raw txt 결과 붙여넣기
-- 검수자 설명은 **한글, 핵심만 짧게**
-- 의사결정 분기 시 **항상 검수자 추천 1개 명시** (인계서 규칙 근거)
-- 여력 있는 한 **최대 작업 진행**. 부분종결 시에도 산출문서→저장→명령 방식 유지
+- **검수자(=Claude)** 가 한 줄 명령으로 CC 에 직접 작성·실행 지시
+  기본. 사용자는 복사 1회 붙여넣기만.
+- 검수자가 수정문서 산출 → 사용자 폴더 저장 → 검수자 CC 명령 반영.
+- 검수자 설명 **한글, 핵심만 짧게**. 장황 금지.
+- 분기 시 **검수자 추천 1개 명시** 후 사용자 선택 대기.
+- **여력껏 최대 작업**. *할 수 있는 만큼만*, 무리한 추측 금지.
+  ★**보류는 물리적 불가(ko 정답부재/오염)일 때만. 여력 있으면
+  다음 안전 백로그 계속**(125차: #3 보류 → 5-2본 → 5-2잔여
+  3,478건 커밋). 부분 종결 시 검증완료만 인계.
+- **초엔터프라이즈급 이상**.
 
-### ★ 실행 환경 주의 (121차 실증)
-사용자 측 `t` 접두는 표기 관례일 뿐. **실제 실행은 VS Code/Antigravity의
-PowerShell 터미널 탭** 에서 이뤄져야 한다. AI 에이전트(CC) 채팅창에 명령을
-'읽기'만 시키면 미실행된다. 한 줄 명령은 `;` 로 이어진 단일 PowerShell
-명령이며, PowerShell 프롬프트(`PS D:\project\GeniegoROI>`)에 직접 붙여넣어
-실행. 작업 디렉터리가 이미 루트면 `cd` 생략 가능.
-붙여넣기 중 화면상 `\x3b` 등으로 깨져 보여도 실제 실행은 정상일 수 있으니,
-**결과는 항상 별도 raw 검증 한 줄로 교차 확인** (추측 금지, N-17/규칙6).
+### ★ 명령 표기 (불변)
+한 줄 명령 = 맨 앞 `t ` 접두 포함 전체. 복사 1회 붙여넣기.
+입력창 잔존/위험명령(`git push`) 시 **ESC 안내 먼저**.
+
+### ★ CC 승인 프롬프트
+- `1.Yes/2.Yes,allow all/3.No` → **`2`**
+- `1.Yes/2.No` → **`1`**
+- 단순읽기/`code *` → `1`/`2`
+- ★CC 가 검증완료 .py 자체수정 시도 → **`3`(No)**, 검수자 직접 수정.
+- 없는 파일/옵션 → ESC/취소.
+
+### ★ 실행 환경
+VS Code/Antigravity PowerShell. 한 줄=`;` 연결 (★`&&`/`||` 금지).
+`python -c` 인라인 금지(cp949). .py 산출 + UTF-8 결과 →
+`code <파일>` 캡처. 항상 raw 교차확인.
+
+### ★ CC auto-compact
+도구 .py/git 커밋 디스크·git 보존 → 압축돼도 무손실.
 
 ### apply 한 줄 = 결합 명령
-`python <tool>.py --apply` + `node --check <locale>` (Append) +
-`git add <locale>` + `git commit -m "<영문 한 줄>"` (Append) +
-`git log --oneline -3` (Append) → 단일 txt 로그.
-CRLF→LF warning 은 무해. 검수자는 결과 raw 로 종결 판정.
+`t python <tool>.py --<모드> 2>&1 | Out-File -Encoding utf8
+<log>` (;) `node --check ja` (;) `node --check zh` (;)
+`git add <locales>` (;) `git commit -m "<영문>"` (;)
+`git log --oneline -3` (;) `code <log>`. ★`;` 만.
 
 ---
 
 ## 2. 핵심 노트 (N-시리즈, 불변 계승)
 
-- **N-13**: 검증완료 파서/패턴은 무변경 재사용. 신규 도구는 모체 import.
-- **N-17 (★최중요)**: 파서기반 verify 는 JS 문법오류를 못 잡는다. 본 환경
-  `node --check` 는 `export default { ... }` 표현식에서 `,,`·미완괄호 등
-  일부 문법오류를 **통과시키기도** 한다. 따라서 안전장치는 **다중 AND +
-  syntax증가0(정규식) + 실제 node --check + ROLLBACK** 의 조합이다.
-  어느 하나도 단독 신뢰 불가. apply 는 다중 AND ALL PASS & node PASS 시에만.
-- **N-18**: 인계서 표기와 raw 가 불일치하면 raw 기준 재판정 (판정기준을
-  ko문자열비교 대신 '정답언어 보유측 판정' 으로 교정한 사례).
-- **N-19**: ROOT직속 동일 섹션 2개↑ = 중복 비정상. dashdel 불가, **키 단위
-  병합**(정답측 overwrite 후 잉여 블록 제거). 또한 **R 내부 최상위 키
-  중복**(JS last-wins)도 동일 정신: 모든 출현을 동일 정답값으로 overwrite.
+- **N-13**: 검증완료 파서/도구 무변경 재사용. CC 자체수정 거부(`3`).
+- **N-17 (★최중요)**: 파서·node 단독 신뢰 불가. 안전 = 다중 AND
+  + 합성검증 + 괄호균형 + 범위밖무변경 + escape정합(N-24) +
+  (s,e)겹침SKIP(N-27) + node + ROLLBACK. apply 는 합성검증 ALL
+  PASS & **dry 가 apply 와 동일검증 실제 거친 raw 확인** &
+  안전검사 ALL & node PASS 시만. CC 요약/“승인?” 신뢰 금지 —
+  검수자 raw 직접 판정.
+- **N-18**: 인계서/CC vs raw 불일치 → raw 기준. 글리프/슬라이스
+  잘림을 결함 오판 금지 — raw repr 확정.
+- **N-19**: ROOT직속 중복 = 키 단위 병합(JS last-wins).
+- **N-20**: 검증·치환 '이번 출현'만. 동일 leafkey 다출현 현재값
+  매칭 특정, 비유일 SKIP. 정답에만 키 INSERT 안 함(부재 SKIP).
+- **N-21**: 파일끝 rfind 마지막만. 들여쓰기 동적추출.
+- **N-22**: build_leaf_paths 루트직속 스칼라 미수집 → ROOT 병행.
+- **N-23 (124)**: 블록치환 안전검증 = dry 확정인자 + delta 누적
+  결정 슬라이스. `session124.safety_check` 표준.
+- **N-24 (125)**: 따옴표 = `quote_integrity` (수불변 금지. ko
+  정상 escape `\"` 의도증가). old/new 정상 JS + 실제Δ==예상Δ.
+- **N-25 (125, ★중요)**: **정답원본 ko.js 도 오염 존재**. ko값이
+  leafkey 의미와 명백 불일치(예 apiKeys.status ko=`'에
+  만료됩니다. 상태'`, apiKeys.createdAt ko=`'작성자:'`) → ko
+  복구 시 ja/zh 전파. raw 확정분 `KO_CONTAMINATED` 명시 제외.
+  추가 의심 `_ko_suspect`(★출력만, 자동제외 안 함). ko 교정은
+  ko 보강 별개과제.
+- **N-26 (125)**: 동일 leafkey 다출현 SKIP 분은 **최근접 부모키
+  일치**(parent_scoped=True)로 출현 특정 → 추가 안전복구. 기본
+  False(5-2본 무변경).
+- **N-27 (125)**: parent_scoped 등으로 다른 path 가 같은/겹친
+  (s,e) 가리킬 수 있음 → 겹친 plan 전체 SKIP. apply_plans
+  `assert text[s:e]==old` 최종 안전망(3중: N-20/N-27/assert).
 
 ### 합성검증 필수 구성
-실모체 미러 + 실파일 구조 픽스처(중첩/pages 동일키 함정 포함) + 실제 node
-교차. 픽스처 설계 결함도 합성검증이 잡아낸다(121차 실증) — 픽스처는 실제
-raw 구조와 일치시킬 것.
+실모체 import(또는 lazy) + 픽스처(중첩/동일키 다른부모/RULES
+불일치/가짜 파일끝앵커/대형·오염블록/ko escape `\"`/부재 path/
+불균형토큰/parent_scoped 최근접부모/(s,e)겹침/KO_CONTAMINATED·
+_ko_suspect) + node 교차. F1~F13 레퍼런스.
 
 ---
 
-## 3. 121차 종결 상태 — 8커밋 (HEAD = e2b2a36)
+## 3. 125차 종결 상태 — 3커밋 (HEAD = d75d079)
 
-git log 최상단부터:
+**125차: 5-1 #3 ko부재 raw확정(보류) + 5-2본(a69ea56) +
+5-2잔여(d75d079). 총 3,478건. 검증자산 N-24~27 신규.**
 
-| 커밋 | 작업 | 상태 |
-|---|---|---|
-| **e2b2a36** | marketing **ja** 436키 영문스텁→일본어 복구 | ✅ 종결 |
-| 802a05b | marketing **zh** 195키 영문스텁→중국어 복구 | ✅ 종결 |
-| 873837d | supplyChain **zh** 75키 복구 | ✅ 종결 |
-| 6c97b73 | supplyChain **ja** 75키 복구 | ✅ 종결 |
-| 450f387 | settlements **zh** 2중ROOT 병합 (61키, N-19) | ✅ 종결 |
-| 1d573ed | settlements **ja** 2중ROOT 병합 (61키, N-19) | ✅ 종결 |
-| 76e518c | priceOpt **ja** 2중ROOT 병합 (39키 INSERT, N-19) | ✅ 종결 |
-| (그 위) | 3208d84 = 인계서 docs 커밋 (120차 말미) | — |
+- HEAD = **d75d079**(5-2잔여) ← **a69ea56**(5-2본) ←
+  038c5b4(124) ← 548444b(122)
+- origin 대비 **↑51 commits**(push 보류)
+- 워킹트리: 진단 txt/py untracked. **locale 커밋됨 clean**
+- 백업: `*.bak_session125_20260519_133619`(5-2본),
+  `*.bak_session125r_20260519_140909`(5-2잔여)
+- ★push 보류 계속 — 사용자 명시 승인 하에서만(5-4). 125차
+  사용자 `git push` 입력 → 검수자 ESC 차단(정상).
 
-- origin/master 대비 **↑44 commits** (이번 세션분 포함). **묶음 push 보류**
-  (검수자 승인 하에서만. push 시 deploy.yml 자동배포 트리거됨).
-- accountPerf zh colCtr/colRoas: ko 도 영문스텁("CTR(%)"/"ROAS") = 정답출처
-  부재 → **무처리 종결**(N-18). 재시도 불요.
+### 125차 확정 사실 (검증완료, 추측 아님)
 
-### 검증완료 121 도구 (루트 저장됨, 재사용 가능)
-`session121_diag_priceopt_merge.py`, `session121_merge_priceopt_ja.py`,
-`session121_diag_settlements.py`, `session121_merge_settlements.py`,
-`session121_diag_diverge.py`, `session121_recover_supplychain.py`,
-`session121_recover_marketing_zh.py`, `session121_recover_marketing_ja.py`
+**[사실1] 5-1 #3 ko 정답부재 raw 확정 (보류)**
+ko.performanceHub = off 687716, 20키 소형(`📊 성과 허브`).
+ja/zh #3 = 각 464키, 정합률 **1.9%**. ko 464키 정답 부재 →
+overwrite/rename 불가 → 보류(ko 보강 별개과제. 124가설→125사실).
 
----
+**[사실2] 5-2 본 (a69ea56)**
+안전대상 2,488(ko정답+단순값+MI제외+공통) → N-20 SKIP →
+**ja 1,323/zh 1,350=2,673**. 합성검증 13/13, 안전검사 7종,
+escape정합 ja Δ4=4(super.aaTime `\"09\"`)/zh 0=0, node OK.
 
-## 4. N-17 디버그 교훈 4건 (marketing 복구 중 실증 — 신규 도구 필수 반영)
+**[사실3] 5-2 잔여 (d75d079)**
+parent_scoped(N-26) SKIP분 부모한정+단독, auto.*제외,
+(s,e)겹침 SKIP(N-27 ja6쌍), ko오염 2건 제외(N-25). →
+**ja 316/zh 489=805**. 합성검증 F1~F13, 안전검사 7종,
+escape정합 0=0, node OK.
 
-복구/overwrite 류 도구는 아래 4가지를 **모두** 내장해야 한다. 미반영 시
-대량 다국어(특히 ja/zh) 값에서 재발한다:
+**[사실4] ko.js 오염 발견 (★N-25)**
+ko apiKeys.status(off 96243/575818)=`'에 만료됩니다. 상태'`,
+apiKeys.createdAt(off 96277/575848)=`'작성자:'` — 의미불일치.
+zh/ja 의미정상. ko 복구 시 전파 → KO_CONTAMINATED 제외.
+추가 ko오염 가능 → 차기 _ko_suspect 출력 raw 검토.
 
-1. **node_check cp949 디코딩**: `subprocess.run(..., text=True)` 는 Windows
-   기본 cp949 로 중·일 출력 디코딩 중 `UnicodeDecodeError` → 거짓 FAIL/
-   불필요 ROLLBACK. → `capture_output=True`(bytes 수신) 후
-   `.decode("utf-8", errors="replace")`. returncode 로만 PASS 판정.
-2. **검증 norm() strip 금지**: `extract_kv` 는 리터럴 양끝이 따옴표라
-   `.strip()` 이 내부 의도공백을 못 깎아 보존함. 검증 비교용 `norm()` 에
-   `.strip()` 을 쓰면 `"[생성테스트] "` 같은 접두/접미 공백 키가 거짓
-   불일치. → norm 은 `re.sub(r"\s+"," ", s)` 만 (strip 없음).
-3. **키 중복 = 모든 출현 overwrite**: R(섹션 ROOT) 내부에 동일 최상위 키가
-   2회+ 존재 가능(JS last-wins). 첫 출현만 바꾸면 둘째(영문)가 실제 적용됨.
-   → `find_all_value_spans`(최상위 모든 출현 리스트 반환)로 전부 overwrite.
-   일반 키(출현1)도 동일 함수로 무해 처리. (121: zh marketing 6키 중복,
-   ja marketing 은 중복 0 — 도구는 양쪽 자동 대응).
-4. **개행/제어문자 JS 이스케이프**: 번역값에 리터럴 `\n`(다행 텍스트:
-   AlertMsg/upgradalDesc 등) 포함 시, `quote_like` 가 그대로 `"..."` 로
-   감싸면 JS 문자열에 raw 개행 → `SyntaxError`. → `quote_like` 에서
-   `\r\n`/`\n`/`\r`→`\\n`, `\t`→`\\t` 이스케이프. **그리고 검증 norm() 에도
-   동일 이스케이프 적용**(extract_kv 가 읽는 `\n` 2문자 형태와 정합).
+### 125차 누적 치환
+- 5-2본 a69ea56: 2,673 / 5-2잔여 d75d079: 805
+- **총 3,478건 EN stub → ko 로컬라이즈 완료**
 
-→ `session121_recover_marketing_ja.py` / `_zh.py` 가 위 4건 전부 반영된
-   **레퍼런스 구현**. 신규 복구 도구는 이 둘의 엔진부를 베이스로 한다.
+### 125차 영구 자산 (루트 저장)
+- ★`session125_recover_safestub_jazh.py`(quote_integrity/
+  parent_scoped/겹침SKIP/KO_CONTAMINATED/import-가드/F1~F13)
+  — 차기 stub 복구 1순위 표준.
+- 진단: `session125_diag_perfhub_ko.py`/`_ko2.py`/`keydiff2.py`/
+  `quotebug.py`/`quotedelta.py`/`remain.py`/`remainbug.py`/
+  `remainsus.py`. 결과 txt 다수.
+- 124/123/122/121 도구 루트 잔존.
 
 ---
 
-## 5. 잔여 백로그 (122차 후보)
+## 4. N-17 디버그 교훈 (복구 도구 진입 시 내장)
 
-### 5-1. marketing 복구불가 키 (보류 — 별도 판단)
-- marketing **ja 39키 / zh 21키**: ko 부재 또는 ko 자체가 영문스텁 →
-  정답출처 없음. 무처리 보류. (ko 보강이 선행돼야 처리 가능 — 별개 과제)
+1. node_check cp949 bytes+decode replace, returncode 판정.
+2. norm() strip 금지.
+3. 다중출현: 전출현/rfind(N-21)/치환·검증 구분(N-20)/비유일
+   SKIP/부모한정(N-26).
+4. JS 이스케이프 `\n`/`\t`, ko `\`,`"`→`\\`,`\"`. new_tok 정상
+   JS(_is_balanced_jsstr).
+5. 루트직속 ROOT 스캔(N-22).
+6. (124) 블록치환 delta 위치계산(N-23).
+7. (125) quote_integrity(N-24). dry 가 apply 동일검증 실제
+   거친 raw 확인 후 apply.
+8. (125) import-가드: 함수 모듈레벨/실행 가드/파서 lazy/load_data.
+9. (125) ko 오염(N-25): 정답원본 불신. KO_CONTAMINATED 제외 +
+   _ko_suspect 출력(자동제외 금지).
+10. (125) parent_scoped(N-26) + (s,e)겹침 전체 SKIP(N-27).
+    apply_plans assert 최종 안전망(3중).
 
-### 5-2. 4순위 잔여 (인계서 누적 백로그)
-- 키단위 diff 정밀 점검
-- comingSoon / runAI·runAi 표기 불일치
-- workspace 브랜드 키
-- CRLF 일관화
-- ESLint / CSV / Connectors 관련
-- 107 attrData zh 잔여
-
-진행 시: 안전 즉시처리 대상(ROOT직속1·ko정답보유·단일블록 overwrite)부터.
-2중ROOT·정답분산·손상은 진단도구 선행 후 검수자 추천 분기.
-
-### 5-3. 마지막 단계 (전 작업 종결 후)
-- 묶음 **push** (검수자 승인 필수). origin ↑44+ → push 시 deploy.yml
-  자동배포. 사용자 명시 승인 없이 push 금지.
+→ ★`session125_recover_safestub_jazh.py`(N-20·24·25·26·27,
+  F1~F13), `session124_recover_mi_jazh.py`(N-23).
 
 ---
 
-## 6. 122차 즉시 재개 절차
+## 5. 잔여 백로그 (126차 후보)
 
-1. **0순위 상태 확인** 한 줄 (검수자가 첫 산출):
-   `git log --oneline -5` + `node --check ja.js` + `node --check zh.js` +
-   `git status --short` → raw 로 HEAD=e2b2a36 / locale clean 확인.
-2. 백로그 5-2 중 안전 대상 선정 → 진단 또는 복구 도구 작성(4절 레퍼런스
-   엔진부 계승) → dry-run(다중 AND ALL PASS 확인) → apply 1커밋.
-3. 분기 발생 시 검수자 추천 1개 명시 후 사용자 선택 대기.
-4. 세션 종결 시 본 NEXT_SESSION.md 동일 형식 **전체 재작성** →
-   사용자 전체 교체. PM_HANDOVER.md / FEATURE_PLAN_120.md 불변.
+### 5-1. #3 성과허브 — ko 보강 선행 별개과제
+ko 464키 정답 신규작성 선행. 대형·별개프로젝트성. 126차
+보류 유지, 다른 안전 백로그 우선. ko 보강 착수는 사용자 협의.
+
+### 5-2. 키단위 diff 잔여 — 계속 (★126 우선 권장)
+- 3,478건 복구 후 잔여: 여전SKIP(parent_scoped 후도 비유일
+  ja~290/zh~260) / ko 의심·오염 path / 나머지 stub.
+- 126 절차(추천): ① keydiff2/remain 재실행 → d75d079 후
+  잔여 raw → ② _ko_suspect 출력 raw 검토 → KO_CONTAMINATED
+  확장 → ③ safestub 도구 무변경 재사용(필요 시 다중부모
+  풀스택 특정 + F14 픽스처) → 합성검증 → remain-dry raw →
+  안전검사 → remain-apply 1커밋. 여력껏 최대.
+
+### 5-3. 4순위 잔여
+- runAI → 122 c3931b4 종결. workspace 브랜드키/CRLF/ESLint/
+  attrData zh(#3 연계) / marketing 복구불가(ko부재·오염, 보류).
+
+### 5-4. 마지막 (전 종결 후)
+- 묶음 push (검수자 승인 필수). origin ↑51 → deploy.yml
+  자동배포. **사용자 명시 승인 없이 절대 금지**. 입력창 push
+  잔존 시 ESC 안내 우선.
+
+---
+
+## 6. 126차 즉시 재개 절차
+
+1. **0순위 상태 확인** (검수자 첫 산출, t 접두 한 줄):
+   `t git log --oneline -5; node --check frontend/src/i18n/locales/ja.js; node --check frontend/src/i18n/locales/zh.js; git status --short`
+   → raw 로 HEAD=d75d079 / ja·zh OK / clean 확인.
+2. **5-2 잔여 우선**. 5절 5-2 절차(keydiff2/remain 재실행 →
+   _ko_suspect raw 검토 → KO_CONTAMINATED 확장 → safestub 무변경
+   재사용)부터. read-only 진단 → raw 확정 → 검수자 추천 →
+   사용자 선택 → 복구도구(4절 1~10+N-19~27 재사용) → 합성검증
+   ALL PASS → remain-dry raw(escape정합 실제) → 안전검사 ALL →
+   remain-apply 1커밋.
+3. 분기 시 검수자 추천 1개 후 사용자 선택. 무리 금지, 보류는
+   물리불가(ko부재/오염)시만, 여력 있으면 계속(125차 3,478건).
+   CC 추측·“승인?”은 raw 정정(N-17/N-18).
+4. 종결 시 본 NEXT_SESSION.md 전체 재작성 → 사용자 저장 →
+   검수자 CC 명령 교체. PM_HANDOVER.md/FEATURE_PLAN_120.md 불변.
 
 ### 자산 위치
-- 검증완료 도구: 3절 목록 (루트 저장됨)
-- 백업: `{lang}.js.bak_session121_*` 다수 (각 apply 시 자동 생성, 복구 가능)
-- 컨테이너 작업물은 세션 한정. 재개 시 도구는 위 레퍼런스에서 재파생.
+- ★`session125_recover_safestub_jazh.py`(N-24~27+import-가드+
+  F1~F13) + `session124_recover_mi_jazh.py`(N-23) 차기 표준.
+- 백업 `*.bak_session121_*`~`*.bak_session125r_*` 다수.
+- 컨테이너 세션 한정, 루트 잔존분 재사용.
 
 ---
 
-*(끝. 본 문서만으로 122차 무손실 재개 가능. 의문 시 raw 교차확인 우선,
-추측 금지 — N-17.)*
+*(끝. 본 문서만으로 126차 무손실 재개. 125차 5-1 #3 ko부재
+raw확정(보류·별개) + 5-2본 a69ea56(2,673) + 5-2잔여
+d75d079(805) = 총 3,478건 EN stub→ko 로컬라이즈 종결.
+ko.js 오염 발견(N-25). 검증자산 N-24~27·import-가드 신규.
+raw 우선, 추측·CC요약 신뢰 금지 N-17/N-18. 검수자 명령 t
+접두 한 줄. `&&`/`||` 금지 `;` 만. push 사용자 명시 승인 필수.)*
