@@ -5822,7 +5822,11 @@ export default {
     "totalRevenue": "Total Revenue",
     "totalSpend": "Total Spend",
     "adSpend": "Ad Spend",
-    "revenue": "Revenue"
+    "revenue": "Revenue",
+    "comingSoon": "この機能は現在開発中で、まもなく提供される予定です。",
+    "comingSoonTitle": "近日公開",
+    "comingSoonDesc": "この機能は現在開発中です。",
+    "comingSoonSub": "次のアップデートでご利用いただけます。"
   },
   "loading": "Loading...",
   "save": "Save",

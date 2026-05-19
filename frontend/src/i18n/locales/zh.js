@@ -6430,7 +6430,11 @@ export default {
     "totalRevenue": "Total Revenue",
     "totalSpend": "Total Spend",
     "adSpend": "Ad Spend",
-    "revenue": "Revenue"
+    "revenue": "Revenue",
+    "comingSoon": "此功能目前正在开发中，即将提供。",
+    "comingSoonTitle": "即将推出",
+    "comingSoonDesc": "此功能目前正在开发中。",
+    "comingSoonSub": "将在下次更新中提供。"
   },
   "loading": "Loading...",
   "save": "Save",
