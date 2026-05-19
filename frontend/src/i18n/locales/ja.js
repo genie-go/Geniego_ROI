@@ -24954,4 +24954,9 @@ export default {
     "tabHistory": "📜 送信履歴",
     "tabSettings": "⚙️ 認証設定"
   },
+  "creative": {
+    "comingSoonTitle": "近日公開予定",
+    "comingSoonDesc": "この機能は現在開発中です。",
+    "comingSoonSub": "まもなくアップデートで提供される予定です。"
+  }
 };

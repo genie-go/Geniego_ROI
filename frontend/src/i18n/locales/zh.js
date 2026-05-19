@@ -21286,4 +21286,9 @@ export default {
     "sendTime": "Sent At",
     "delivered": "Delivered"
   },
+  "creative": {
+    "comingSoonTitle": "即将推出",
+    "comingSoonDesc": "此功能目前正在开发中。",
+    "comingSoonSub": "即将通过更新提供。"
+  }
 };
