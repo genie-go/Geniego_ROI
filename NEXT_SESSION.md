@@ -1,259 +1,270 @@
-# GenieGoROI i18n 인계서 — 126차 시작점
+# GenieGoROI i18n 인계서 — 128차 시작점
 
-> 본 문서는 매 세션 종결 시 **검수자가 단일 파일로 전체 재작성** → 사용자가
-> `D:\project\GeniegoROI\NEXT_SESSION.md` 전체 교체. PM_HANDOVER.md /
-> FEATURE_PLAN_120.md 는 **별개 인계서로 불변**(절대 건드리지 않음).
-
----
-
-## 0. 작업 개요
-
-i18n 번역 키 동기화 프로젝트. locale 경로:
-`D:\project\GeniegoROI\frontend\src\i18n\locales\{lang}.js`
-
-- **정답원본 = ko.js (한국어)** — 모든 복구/번역의 의미 출처.
-  ★단 ko.js 도 일부 오염 존재(N-25, 5-1). 무조건 신뢰 금지.
-- **ja.js 정답언어 = 일본어**, **zh.js 정답언어 = 중국어(간체)**
-- 그 외 다국어 다수 존재하나 본 라인 외
-
-### 검증 파서 모체 (★무변경 import 절대원칙)
-`session112_inspect_suspect.py` 의 `scan_key_blocks`/`extract_kv`/
-`ANYKEY_RE`. 신규 .py 도구는 무변경 재사용 (N-13).
-`session123_diag_keydiff.py` `build_leaf_paths(text)` →
-`{full.key.path: stripped_value}` (N-22 한계 有).
-
-### ★ 검증완료 복구 자산 (차기 표준, 무변경 재사용)
-- `session124_recover_mi_jazh.py` `safety_check` — delta 누적
-  5종 안전검사(N-23). 블록치환 표준.
-- ★`session125_recover_safestub_jazh.py` (**차기 1순위 표준**):
-  - `_is_balanced_jsstr` — 정상 JS 더블쿼트 결정 검증.
-  - `quote_integrity` (N-24) — 따옴표 '수 불변' 아닌 (a)정상
-    JS 문자열 (b)실제Δ==예상Δ. dry/apply 동일 호출.
-  - `locate_and_plan(...,parent_scoped=)` (N-26) — 동일 leafkey
-    다출현 시 최근접 부모키 일치로 출현 특정. (s,e)겹침 plan
-    전체 SKIP(N-27). 기본 False(5-2 본 무변경).
-  - `KO_CONTAMINATED`+`_ko_suspect` (N-25) — ko 오염 제외 +
-    의심 휴리스틱(출력만, 자동제외 안 함).
-  - `_is_hashkey` — auto.* 랜덤 해시키 제외.
-  - **import-가드**: 함수=모듈레벨 / 실행=`_run`·`_run_remain`
-    + `__main__` 가드 / 파서 lazy(`_get_parsers`) / `load_data()`.
-    진단도구 무변경 import 재사용(N-13 실현).
-  - 합성검증 **F1~F13**. 모드: 무옵션=dry / `--apply` /
-    `--diag` / `--remain-dry` / `--remain-apply`.
+> 본 문서는 127차 검수자가 전체 작성. 128차 검수자는 이 문서
+> 전체를 신뢰 기반으로 삼되, 모든 수치·상태는 128차 시작 시
+> raw 재확인 후 진행할 것. 추측 보류 금지 — raw 로 0/부재를
+> 입증해야 보류가 정당.
 
 ---
 
-## 1. 운영 방식 (사용자 확정 — 불변)
+## 0. 운영 원칙 (절대 — 매 차수 최우선 준수)
 
-- **검수자(=Claude)** 가 한 줄 명령으로 CC 에 직접 작성·실행 지시
-  기본. 사용자는 복사 1회 붙여넣기만.
-- 검수자가 수정문서 산출 → 사용자 폴더 저장 → 검수자 CC 명령 반영.
-- 검수자 설명 **한글, 핵심만 짧게**. 장황 금지.
-- 분기 시 **검수자 추천 1개 명시** 후 사용자 선택 대기.
-- **여력껏 최대 작업**. *할 수 있는 만큼만*, 무리한 추측 금지.
-  ★**보류는 물리적 불가(ko 정답부재/오염)일 때만. 여력 있으면
-  다음 안전 백로그 계속**(125차: #3 보류 → 5-2본 → 5-2잔여
-  3,478건 커밋). 부분 종결 시 검증완료만 인계.
-- **초엔터프라이즈급 이상**.
+**0순위 절대원칙**
+1. 작업 여력이 있으면 부분 종결이라도 최대한 진행한다. 복구가
+   불가하면 검증·진단이라도 끝까지 수행한다. 인계서 작성 전
+   반드시 사용자 승인을 받는다. 인계서는 검수자가 전체 작성
+   하며(기존 전체 삭제 후 전체 붙여넣기), 임의 종결·임의 인계
+   작성 금지.
+2. **추측 보류 금지**: "안전여력 소진/보류"를 선언하려면 raw
+   수치로 0 또는 부재를 입증해야 한다. 추측으로 보류하면
+   126차처럼 실재하는 회수분을 놓친다(N-18 교훈).
+3. **★불가작업 전환 원칙 (사용자 명시 — 반드시 준수·계승)**:
+   진행 중인 특정 작업이 그 차수에 raw 로 도저히 불가
+   (물리한계·결정불가·정답출처 부재)함이 입증되면, 거기
+   매달리지 말고 작업 여력이 있는 한 다른 진행 가능한 작업
+   으로 즉시 전환한다. 부분 종결이어도 무방. 이 원칙을 인계
+   작업 시 운영원칙에 반드시 반영한다.
+4. **★불가의 2종 구분 (사용자 질문에서 확립 — 반드시 계승)**:
+   - **종류 1 (물리·논리 불가)**: 데이터 구조 자체의 한계.
+     도구·데이터가 동일하면 차수가 바뀌어도 결과 동일. 다음
+     차수에 자동으로 풀리지 않음. 풀리려면 새 식별축 발굴
+     또는 데이터 구조 변경이 선행돼야 함. 예: 순서대응 불성립
+     leaf(4축 소진).
+   - **종류 2 (선행부재 불가)**: 선행 작업이 없어서 불가.
+     선행 조건이 충족되면 다음 차수에 동일 도구로 가능. 예:
+     auto.* 정답부재 → ko 정답 신규작성(5-1) 선행 시 가능.
+   ※ 인계서엔 "다음 차수에 하면 됨"이 아니라 **무엇이 선행
+     돼야 가능해지는지**를 명시한다. 차수가 바뀐다는 사실
+     자체는 아무것도 가능하게 만들지 않는다(검수자·도구·
+     데이터 동일).
 
-### ★ 명령 표기 (불변)
-한 줄 명령 = 맨 앞 `t ` 접두 포함 전체. 복사 1회 붙여넣기.
-입력창 잔존/위험명령(`git push`) 시 **ESC 안내 먼저**.
-
-### ★ CC 승인 프롬프트
-- `1.Yes/2.Yes,allow all/3.No` → **`2`**
-- `1.Yes/2.No` → **`1`**
-- 단순읽기/`code *` → `1`/`2`
-- ★CC 가 검증완료 .py 자체수정 시도 → **`3`(No)**, 검수자 직접 수정.
-- 없는 파일/옵션 → ESC/취소.
-
-### ★ 실행 환경
-VS Code/Antigravity PowerShell. 한 줄=`;` 연결 (★`&&`/`||` 금지).
-`python -c` 인라인 금지(cp949). .py 산출 + UTF-8 결과 →
-`code <파일>` 캡처. 항상 raw 교차확인.
-
-### ★ CC auto-compact
-도구 .py/git 커밋 디스크·git 보존 → 압축돼도 무손실.
-
-### apply 한 줄 = 결합 명령
-`t python <tool>.py --<모드> 2>&1 | Out-File -Encoding utf8
-<log>` (;) `node --check ja` (;) `node --check zh` (;)
-`git add <locales>` (;) `git commit -m "<영문>"` (;)
-`git log --oneline -3` (;) `code <log>`. ★`;` 만.
-
----
-
-## 2. 핵심 노트 (N-시리즈, 불변 계승)
-
-- **N-13**: 검증완료 파서/도구 무변경 재사용. CC 자체수정 거부(`3`).
-- **N-17 (★최중요)**: 파서·node 단독 신뢰 불가. 안전 = 다중 AND
-  + 합성검증 + 괄호균형 + 범위밖무변경 + escape정합(N-24) +
-  (s,e)겹침SKIP(N-27) + node + ROLLBACK. apply 는 합성검증 ALL
-  PASS & **dry 가 apply 와 동일검증 실제 거친 raw 확인** &
-  안전검사 ALL & node PASS 시만. CC 요약/“승인?” 신뢰 금지 —
-  검수자 raw 직접 판정.
-- **N-18**: 인계서/CC vs raw 불일치 → raw 기준. 글리프/슬라이스
-  잘림을 결함 오판 금지 — raw repr 확정.
-- **N-19**: ROOT직속 중복 = 키 단위 병합(JS last-wins).
-- **N-20**: 검증·치환 '이번 출현'만. 동일 leafkey 다출현 현재값
-  매칭 특정, 비유일 SKIP. 정답에만 키 INSERT 안 함(부재 SKIP).
-- **N-21**: 파일끝 rfind 마지막만. 들여쓰기 동적추출.
-- **N-22**: build_leaf_paths 루트직속 스칼라 미수집 → ROOT 병행.
-- **N-23 (124)**: 블록치환 안전검증 = dry 확정인자 + delta 누적
-  결정 슬라이스. `session124.safety_check` 표준.
-- **N-24 (125)**: 따옴표 = `quote_integrity` (수불변 금지. ko
-  정상 escape `\"` 의도증가). old/new 정상 JS + 실제Δ==예상Δ.
-- **N-25 (125, ★중요)**: **정답원본 ko.js 도 오염 존재**. ko값이
-  leafkey 의미와 명백 불일치(예 apiKeys.status ko=`'에
-  만료됩니다. 상태'`, apiKeys.createdAt ko=`'작성자:'`) → ko
-  복구 시 ja/zh 전파. raw 확정분 `KO_CONTAMINATED` 명시 제외.
-  추가 의심 `_ko_suspect`(★출력만, 자동제외 안 함). ko 교정은
-  ko 보강 별개과제.
-- **N-26 (125)**: 동일 leafkey 다출현 SKIP 분은 **최근접 부모키
-  일치**(parent_scoped=True)로 출현 특정 → 추가 안전복구. 기본
-  False(5-2본 무변경).
-- **N-27 (125)**: parent_scoped 등으로 다른 path 가 같은/겹친
-  (s,e) 가리킬 수 있음 → 겹친 plan 전체 SKIP. apply_plans
-  `assert text[s:e]==old` 최종 안전망(3중: N-20/N-27/assert).
-
-### 합성검증 필수 구성
-실모체 import(또는 lazy) + 픽스처(중첩/동일키 다른부모/RULES
-불일치/가짜 파일끝앵커/대형·오염블록/ko escape `\"`/부재 path/
-불균형토큰/parent_scoped 최근접부모/(s,e)겹침/KO_CONTAMINATED·
-_ko_suspect) + node 교차. F1~F13 레퍼런스.
+**작업 수칙**
+- 모든 CC 명령 맨 앞 `t ` 접두 필수.
+- cp949 회피 표준형:
+  `t $env:PYTHONIOENCODING="utf-8"; python <도구> 2>&1 | Out-File -Encoding utf8 <log>; $env:PYTHONIOENCODING=""; code <log>`
+- 명령 연결은 `;` 만 사용(`&&`/`||` 금지).
+- CC 승인 프롬프트: `1.Yes/2.allow all/3.No` → `2`,
+  `1.Yes/2.No` → `1`. 검증완료 .py 를 CC 가 자체수정
+  시도하면 → `3`. 도구 버그는 CC 에 안 시키고 검수자가
+  직접 수정(N-18).
+- 검수자 설명은 한글·핵심만 짧게. 초엔터프라이즈급 정밀도.
+- push 는 사용자 명시 승인 시에만(현재 origin 대비 미실행
+  유지 — 5-4).
+- read-only 진단/probe 우선. apply 는 dry → raw 확인 →
+  apply 순. 백업+node+rollback 필수. 합성검증 ALL PASS
+  아니면 abort.
 
 ---
 
-## 3. 125차 종결 상태 — 3커밋 (HEAD = d75d079)
+## 1. 프로젝트 좌표
 
-**125차: 5-1 #3 ko부재 raw확정(보류) + 5-2본(a69ea56) +
-5-2잔여(d75d079). 총 3,478건. 검증자산 N-24~27 신규.**
-
-- HEAD = **d75d079**(5-2잔여) ← **a69ea56**(5-2본) ←
-  038c5b4(124) ← 548444b(122)
-- origin 대비 **↑51 commits**(push 보류)
-- 워킹트리: 진단 txt/py untracked. **locale 커밋됨 clean**
-- 백업: `*.bak_session125_20260519_133619`(5-2본),
-  `*.bak_session125r_20260519_140909`(5-2잔여)
-- ★push 보류 계속 — 사용자 명시 승인 하에서만(5-4). 125차
-  사용자 `git push` 입력 → 검수자 ESC 차단(정상).
-
-### 125차 확정 사실 (검증완료, 추측 아님)
-
-**[사실1] 5-1 #3 ko 정답부재 raw 확정 (보류)**
-ko.performanceHub = off 687716, 20키 소형(`📊 성과 허브`).
-ja/zh #3 = 각 464키, 정합률 **1.9%**. ko 464키 정답 부재 →
-overwrite/rename 불가 → 보류(ko 보강 별개과제. 124가설→125사실).
-
-**[사실2] 5-2 본 (a69ea56)**
-안전대상 2,488(ko정답+단순값+MI제외+공통) → N-20 SKIP →
-**ja 1,323/zh 1,350=2,673**. 합성검증 13/13, 안전검사 7종,
-escape정합 ja Δ4=4(super.aaTime `\"09\"`)/zh 0=0, node OK.
-
-**[사실3] 5-2 잔여 (d75d079)**
-parent_scoped(N-26) SKIP분 부모한정+단독, auto.*제외,
-(s,e)겹침 SKIP(N-27 ja6쌍), ko오염 2건 제외(N-25). →
-**ja 316/zh 489=805**. 합성검증 F1~F13, 안전검사 7종,
-escape정합 0=0, node OK.
-
-**[사실4] ko.js 오염 발견 (★N-25)**
-ko apiKeys.status(off 96243/575818)=`'에 만료됩니다. 상태'`,
-apiKeys.createdAt(off 96277/575848)=`'작성자:'` — 의미불일치.
-zh/ja 의미정상. ko 복구 시 전파 → KO_CONTAMINATED 제외.
-추가 ko오염 가능 → 차기 _ko_suspect 출력 raw 검토.
-
-### 125차 누적 치환
-- 5-2본 a69ea56: 2,673 / 5-2잔여 d75d079: 805
-- **총 3,478건 EN stub → ko 로컬라이즈 완료**
-
-### 125차 영구 자산 (루트 저장)
-- ★`session125_recover_safestub_jazh.py`(quote_integrity/
-  parent_scoped/겹침SKIP/KO_CONTAMINATED/import-가드/F1~F13)
-  — 차기 stub 복구 1순위 표준.
-- 진단: `session125_diag_perfhub_ko.py`/`_ko2.py`/`keydiff2.py`/
-  `quotebug.py`/`quotedelta.py`/`remain.py`/`remainbug.py`/
-  `remainsus.py`. 결과 txt 다수.
-- 124/123/122/121 도구 루트 잔존.
+- locale: `D:\project\GeniegoROI\frontend\src\i18n\locales\{ko,ja,zh}.js`
+- 인계서 본체: `D:\project\GeniegoROI\NEXT_SESSION.md`
+  (PM_HANDOVER.md / FEATURE_PLAN_120.md 는 불변, 건드리지 말 것)
+- 작업 도구: `D:\project\GeniegoROI\session127_*.py` (검증자산)
+- ko leaf-paths 총수(127차 raw): 19,801
 
 ---
 
-## 4. N-17 디버그 교훈 (복구 도구 진입 시 내장)
+## 2. 핵심 검증자산 (N-13: 무변경 재사용 — 절대 재작성 금지)
 
-1. node_check cp949 bytes+decode replace, returncode 판정.
-2. norm() strip 금지.
-3. 다중출현: 전출현/rfind(N-21)/치환·검증 구분(N-20)/비유일
-   SKIP/부모한정(N-26).
-4. JS 이스케이프 `\n`/`\t`, ko `\`,`"`→`\\`,`\"`. new_tok 정상
-   JS(_is_balanced_jsstr).
-5. 루트직속 ROOT 스캔(N-22).
-6. (124) 블록치환 delta 위치계산(N-23).
-7. (125) quote_integrity(N-24). dry 가 apply 동일검증 실제
-   거친 raw 확인 후 apply.
-8. (125) import-가드: 함수 모듈레벨/실행 가드/파서 lazy/load_data.
-9. (125) ko 오염(N-25): 정답원본 불신. KO_CONTAMINATED 제외 +
-   _ko_suspect 출력(자동제외 금지).
-10. (125) parent_scoped(N-26) + (s,e)겹침 전체 SKIP(N-27).
-    apply_plans assert 최종 안전망(3중).
+**검증 모체 (import 전용, 무변경)**
+- `session125_recover_safestub_jazh`:
+  `_is_balanced_jsstr`(양끝 `"` JS 더블쿼트 리터럴 검사 —
+  probe_safefn raw 확정), `_ko_suspect`, `_is_hashkey`,
+  `quote_integrity`, `KO_CONTAMINATED`, `norm`,
+  `build_leaf_paths`(text→dict {fullpath:val}, 출현순서
+  보존, 127차 raw len=19801),
+  `scan_key_blocks`(→ list of tuple `(key,start,end,depth)`
+  — **최상위 블록만**. 중첩 leaf 는 scan_blocks=0,
+  offsetmap raw 확정), `extract_kv(body)` 1인자, ANYKEY_RE,
+  `locate_and_plan`/`apply_plans` 치환메커니즘,
+  LEAF_RE_TMPL = `("%s"\s*:\s*)("(?:[^"\\]|\\.)*")`
+- `session123_diag_keydiff`: build_leaf_paths(text)→dict,
+  출현순서 보존, ko len=19801
+- `session124_recover_mi_jazh`: safety_check 는 **블록치환
+  전용**(4인자 correct_block/target_blocks). leaf 토큰치환
+  부적합 — raw 확정, 미사용(N-18 ②).
 
-→ ★`session125_recover_safestub_jazh.py`(N-20·24·25·26·27,
-  F1~F13), `session124_recover_mi_jazh.py`(N-23).
+**127차 신규 복구도구 (검증완료, 커밋 실증)**
+- `session127_recover_zhsolo.py`  → 61e89db (5-2c, 18건)
+- `session127_recover_pathsolo.py`→ 233eb73 (5-2d, 465건)
+- `session127_recover_sibset.py`  → a03ac9d (5-2a, 1711건)
+- `session127_recover_valuniq.py` → 6365c97 (값-유일, 500건)
+  ※ valuniq = pathsolo 의 locate/검증/합성검증 무변경
+    계승(N-13), select 만 '값-유일' 로 교체.
+- `session127_fix_uwwysx.py`      → 3988bca (기존오염 1건
+  원복, 토큰 텍스트유일성 기반)
 
----
-
-## 5. 잔여 백로그 (126차 후보)
-
-### 5-1. #3 성과허브 — ko 보강 선행 별개과제
-ko 464키 정답 신규작성 선행. 대형·별개프로젝트성. 126차
-보류 유지, 다른 안전 백로그 우선. ko 보강 착수는 사용자 협의.
-
-### 5-2. 키단위 diff 잔여 — 계속 (★126 우선 권장)
-- 3,478건 복구 후 잔여: 여전SKIP(parent_scoped 후도 비유일
-  ja~290/zh~260) / ko 의심·오염 path / 나머지 stub.
-- 126 절차(추천): ① keydiff2/remain 재실행 → d75d079 후
-  잔여 raw → ② _ko_suspect 출력 raw 검토 → KO_CONTAMINATED
-  확장 → ③ safestub 도구 무변경 재사용(필요 시 다중부모
-  풀스택 특정 + F14 픽스처) → 합성검증 → remain-dry raw →
-  안전검사 → remain-apply 1커밋. 여력껏 최대.
-
-### 5-3. 4순위 잔여
-- runAI → 122 c3931b4 종결. workspace 브랜드키/CRLF/ESLint/
-  attrData zh(#3 연계) / marketing 복구불가(ko부재·오염, 보류).
-
-### 5-4. 마지막 (전 종결 후)
-- 묶음 push (검수자 승인 필수). origin ↑51 → deploy.yml
-  자동배포. **사용자 명시 승인 없이 절대 금지**. 입력창 push
-  잔존 시 ESC 안내 우선.
+**127차 진단/probe (read-only, 재사용 가능)**
+diag: autozone, axis2, axis3, brokenexact, integrity,
+komean, offsetmap, ordergap, recheck, siblingset,
+sibremain, spread6, uwwysx, uwwysx_fix, valuniq
+probe: order, payload, recmech, safefn, sc124, struct
 
 ---
 
-## 6. 126차 즉시 재개 절차
+## 3. 완료 커밋 (HEAD = 3988bca, 127차 5커밋)
 
-1. **0순위 상태 확인** (검수자 첫 산출, t 접두 한 줄):
-   `t git log --oneline -5; node --check frontend/src/i18n/locales/ja.js; node --check frontend/src/i18n/locales/zh.js; git status --short`
-   → raw 로 HEAD=d75d079 / ja·zh OK / clean 확인.
-2. **5-2 잔여 우선**. 5절 5-2 절차(keydiff2/remain 재실행 →
-   _ko_suspect raw 검토 → KO_CONTAMINATED 확장 → safestub 무변경
-   재사용)부터. read-only 진단 → raw 확정 → 검수자 추천 →
-   사용자 선택 → 복구도구(4절 1~10+N-19~27 재사용) → 합성검증
-   ALL PASS → remain-dry raw(escape정합 실제) → 안전검사 ALL →
-   remain-apply 1커밋.
-3. 분기 시 검수자 추천 1개 후 사용자 선택. 무리 금지, 보류는
-   물리불가(ko부재/오염)시만, 여력 있으면 계속(125차 3,478건).
-   CC 추측·“승인?”은 raw 정정(N-17/N-18).
-4. 종결 시 본 NEXT_SESSION.md 전체 재작성 → 사용자 저장 →
-   검수자 CC 명령 교체. PM_HANDOVER.md/FEATURE_PLAN_120.md 불변.
+| 커밋 | 내용 | 건수 |
+|---|---|---|
+| 61e89db | i18n(5-2c) zh단독 stub→ko | 18 |
+| 233eb73 | i18n(5-2d) 풀경로 stub-유일 (ja326/zh139) | 465 |
+| a03ac9d | i18n(5-2a) 형제집합 (ja1159/zh552) | 1711 |
+| 6365c97 | i18n(5-2 valuniq) 값-유일 (ja418/zh82) | 500 |
+| 3988bca | i18n(fix) auto.uwwysx ja 기존오염 원복 | 1 |
 
-### 자산 위치
-- ★`session125_recover_safestub_jazh.py`(N-24~27+import-가드+
-  F1~F13) + `session124_recover_mi_jazh.py`(N-23) 차기 표준.
-- 백업 `*.bak_session121_*`~`*.bak_session125r_*` 다수.
-- 컨테이너 세션 한정, 루트 잔존분 재사용.
+- **127차 누적**: 복구 2,694건 + 기존오염 원복 1건
+- **전체 누적**: 126차 3,528 + 127차 2,694 ≈ **6,222건**
+  EN stub → ko 로컬라이즈
+- 전 커밋 공통 안전검증: 합성검증 ALL PASS + 125 자산
+  무변경(N-13) + escape정합(예상Δ=실제Δ) + brace균형 +
+  범위밖무변경 + (s,e)겹침SKIP(N-27) + node --check OK +
+  백업 + rollback. payloadPlaceholder 는 node 실파싱으로
+  의미보존 raw 확정.
+- node --check ja/zh = 0 (정상). locale tracked clean.
+- origin 대비 push 미실행(5-4, 사용자 승인 대기).
 
 ---
 
-*(끝. 본 문서만으로 126차 무손실 재개. 125차 5-1 #3 ko부재
-raw확정(보류·별개) + 5-2본 a69ea56(2,673) + 5-2잔여
-d75d079(805) = 총 3,478건 EN stub→ko 로컬라이즈 종결.
-ko.js 오염 발견(N-25). 검증자산 N-24~27·import-가드 신규.
-raw 우선, 추측·CC요약 신뢰 금지 N-17/N-18. 검수자 명령 t
-접두 한 줄. `&&`/`||` 금지 `;` 만. push 사용자 명시 승인 필수.)*
+## 4. 127차 핵심 발견 (128차가 반드시 알아야 할 것)
+
+**N-18 — 126차 보류의 진짜 원인 = 진단도구 입력형식 버그**
+126차까지 "안전여력 소진(보류)"는 진단이
+`_is_balanced_jsstr` 에 언쿼트 순수값(`보안`)을 넣어 전량
+unbalanced 오판한 것. 복구도구는 `"보안"` 큰따옴표 토큰을
+받음. `json.dumps(v, ensure_ascii=False)` 정합입력(N-28)
+으로 시정 후 재측정 → 2,694건 추가 회수. **교훈: 진단
+입력형식이 복구도구와 정합하는지 항상 raw 검증. 보류는
+추측이 아니라 raw 0 입증으로만.**
+
+**도구 버그 3건 — 검수자 직접 시정 (CC 에 안 시킴, N-18)**
+1. scan_key_blocks 반환을 dict 로 추측 → tuple
+   `(key,start,end,depth)` 최상위 블록 전용 raw 확정.
+2. 124 safety_check 3인자 추측호출 → 블록치환 전용(4인자)
+   raw 확정, 호출 제거.
+3. sibset locate 보수적 텍스트스캔 → 결정적 순서대응
+   self-verify 재작성(probe_order: dict순서↔정규식순서
+   성립률 ja 98.4%/zh 98.6%, 불성립 leaf 전건 SKIP).
+
+**N-18 추가 — auto.* 기존오염을 5-2(b) 점검이 발견**
+`_is_hashkey` 가 'auto.<숫자없는 영숫자>'(uwwysx 류)를
+해시키로 판정 못함(False, raw 확정). 따라서:
+- auto.uwwysx ja 가 ko 깨진값 `'Count동 Register · Edit
+  · Test'` 로 오염돼 있었음 → 127차가 만든 게 아니라
+  126차 이전부터 존재한 **기존오염**(백업 3개 전부 동일).
+  올바른 값 `"Uwwysx"` 가 zh미전파+형제출현+placeholder
+  표준 3중으로 raw 유일확정 → 3988bca 로 원복 정당.
+- **단 uwwysx 는 특수 케이스**(원래 placeholder 자리라
+  키 캐피탈라이즈가 정답). 다른 auto.* 깨짐은 ko 에 의미
+  한국어가 있다가 깨진 것이라 캐피탈라이즈가 정답 아님 —
+  추측원복 금지(N-17/N-25).
+
+---
+
+## 5. 잔여 백로그 (raw 확정 — 128차 작업 후보)
+
+### 5-A. 종류 1 (물리·논리 불가 — 선행 없이는 차수 무관 불가)
+
+**순서대응 불성립 leaf (ja~140 / zh~138, sibset SKIP분)**
+- 4개 식별축 모두 결정 불가 raw 확정:
+  ① leaf 단독 path 비유일(N-29)
+  ② 형제집합 지문 — 성립분 회수완료, 불성립분 SKIP
+  ③ 정규식 순서대응 — build_leaf_paths 논리평탄화 ≠
+     텍스트 물리순서(ordergap raw: liveSyncStatus 수일치
+     인데도 순서 어긋남 = 구조적 불일치)
+  ④ scan_key_blocks offset — 중첩 leaf 미제공
+     (offsetmap raw: 전 표본 scan_blocks=0, 최상위만)
+- path↔출현 결정적 매핑 수단 부재. 추측 매핑은 오치환
+  위험(N-17). 안전장치(순서대응 self-verify)가 정확히
+  차단 — 올바른 종결 상태.
+- **128차 가능 조건**: 위 4축 외 **새로운 결정적 식별축**
+  을 발굴해야만 가능. 단순히 차수가 바뀌는 것으로는 불가.
+  발굴 시도는 read-only 진단으로 먼저 effect 측정 필수.
+
+### 5-B. 종류 2 (선행부재 불가 — ko 정답 작성 선행 시 가능)
+
+**auto.* 깨진 ko + 전파 (brokenexact raw 확정 수치)**
+- auto.* 진짜깨짐 ja/zh 전파 = **48건** (uwwysx 1건
+  원복완료, **47건 잔존**)
+- auto.* ko 깨진값 총 = 약 92건(autozone raw, 비전파분
+  포함)
+- auto.* 外 진짜깨짐 전파 = **10건**
+  (Metric명/Compare표/Token/Suite/CVC/SNS/Partial/
+   GlobalDataContext 등 — 일반영단어 박힘)
+- **제품용어 오탐 79건은 정상**(SKU와/ROAS가/CJ대한통운/
+  AI가/CRM에 등 — 제품 고유어+조사). **무조치**.
+- 이 깨짐들은 **ko 원본 자체가 깨진 것**. 올바른 한국어를
+  raw 로 확정할 출처가 ko/ja/zh 어디에도 없음(uwwysx 만
+  placeholder 라 예외였음). 추측원복 = N-17/N-25 위반.
+- **128차 가능 조건**: 인계서 5-1 "ko 정답 신규작성"이
+  **선행 완료**되면(=올바른 한국어가 ko.js 에 채워지면)
+  그때 동일 복구도구로 ja/zh 회수 가능. 선행 없이는 128
+  차에도 동일하게 불가. → **ko 정답 신규작성은 별개 과제,
+  검수자 단독 판정 불가(정답 출처 부재).**
+
+**marketing (5-3)**: ko 부재·오염 보류영역. pathsolo/
+valuniq 의 N-17 필터가 marketing.*/marketingIntel.* 를
+SKIP 중. ko 정답 확보 선행 필요(종류 2).
+
+### 5-C. 독립 과제
+
+- **5-1 #3 성과허브**: ko 464키 신규작성 선행. 별개 과제.
+  5-B 의 선행조건이기도 함(auto.* 정답 작성과 연계).
+- **5-4 push**: origin 대비 미실행. 사용자 명시 승인 시
+  에만. 현재 5커밋 로컬 보유.
+- **_is_hashkey 경계 부정확 (인계 필수 기재)**: 'auto.<숫자
+  없는 영숫자>'(uwwysx/akwt48/b46onw…)를 해시키로 판정
+  못함(False). 복구도구가 배제 못해 일부 깨진 ko 전파
+  가능. 단 정답 raw 부재라 원복 불가(5-B). 128차가
+  _is_hashkey 경계를 수정하려면 먼저 영향범위 read-only
+  측정 후 신중히(검증자산 무변경 원칙 vs 경계수정 trade-off
+  — 사용자 판단 필요).
+
+---
+
+## 6. 127차 무결성 raw 확정 (128차 신뢰 기반)
+
+- 정합 전파(ja/zh==ko) 중 ko 정상값 전파 = **4,627건 안전**
+- 토큰 비균형 전파 = **0** (구조 무결성 확정)
+- auto.* 外 진짜깨짐 전파 = 10 (전부 기존 ko 깨짐, 127차
+  복구도구가 만든 게 아님 — 정상복구에 기존깨짐이 함께
+  옮겨진 것. _ko_suspect/_is_balanced 필터 유효 입증)
+- **결론: 127차 5커밋 복구분 무결성 raw 확정.** 회수
+  가능한 안전 식별축(zh단독/풀경로/형제집합/값-유일)
+  전부 발굴·측정·실행 소진. 잔여는 5-A(종류1) /
+  5-B(종류2) 로 raw 분류 완료.
+
+---
+
+## 7. 128차 즉시 재개 절차
+
+1. 시작 시 raw 재확인:
+   `t node --check frontend/src/i18n/locales/ja.js; node --check frontend/src/i18n/locales/zh.js; git log --oneline -6; git status --short`
+   → HEAD=3988bca, locale clean 확인.
+2. 미측정 식별축 발굴 우선(0순위 원칙 2). 후보:
+   - 5-A 의 5번째 식별축(새 결정적 매핑 수단) read-only
+     effect 측정. effect>0 시에만 복구도구(125 계승).
+   - 5-B 는 ko 정답 선행 없으면 불가 — 선행 여부 사용자
+     확인 후 진행. 추측원복 절대 금지.
+3. 진행 가능분 없으면 정직하게 부분종결 — raw 로 부재
+   입증 후 사용자 승인받아 인계.
+4. 모든 apply 는 dry→raw→apply, 백업+node+rollback.
+
+---
+
+## 8. 종결 절차 (사용자 승인 후에만)
+
+종결 요약 보고 → 사용자 승인 → 검수자가 NEXT_SESSION.md
+전체 작성(기존 삭제 후 전체 붙여넣기) → 사용자 저장 →
+CC 명령으로 차수 인계 커밋:
+`t git add NEXT_SESSION.md; git commit -m "docs(handover): session 127 -> 128"; git log --oneline -3`
+
+※ 사용자가 명시적으로 강조: 작업 여력 있는 한 미측정 축
+계속 발굴·진행. 불가작업엔 매달리지 말고 전환(0-3).
+종류1/종류2 구분으로 "무엇이 선행돼야 가능한지" 인계에
+반드시 명시(0-4).
+
+---
+*(127차 검수자 작성. 모든 수치 raw 확정. 128차는 시작 시
+재확인 후 진행.)*
