@@ -104,7 +104,7 @@ probe: order, payload, recmech, safefn, sc124, struct
 
 ---
 
-## 3. 완료 커밋 (HEAD = 3988bca, 127차 5커밋)
+## 3. 완료 커밋 (HEAD = 102d2b8, 127차 5커밋 + 인계커밋)
 
 | 커밋 | 내용 | 건수 |
 |---|---|---|
@@ -113,6 +113,7 @@ probe: order, payload, recmech, safefn, sc124, struct
 | a03ac9d | i18n(5-2a) 형제집합 (ja1159/zh552) | 1711 |
 | 6365c97 | i18n(5-2 valuniq) 값-유일 (ja418/zh82) | 500 |
 | 3988bca | i18n(fix) auto.uwwysx ja 기존오염 원복 | 1 |
+| 102d2b8 | docs(handover) 127→128 인계 | - |
 
 - **127차 누적**: 복구 2,694건 + 기존오염 원복 1건
 - **전체 누적**: 126차 3,528 + 127차 2,694 ≈ **6,222건**
@@ -237,19 +238,53 @@ SKIP 중. ko 정답 확보 선행 필요(종류 2).
 
 ---
 
-## 7. 128차 즉시 재개 절차
+## 7. 128차 실행 로드맵 (★사용자 확정 우선순위 — 이 순서대로)
 
-1. 시작 시 raw 재확인:
-   `t node --check frontend/src/i18n/locales/ja.js; node --check frontend/src/i18n/locales/zh.js; git log --oneline -6; git status --short`
-   → HEAD=3988bca, locale clean 확인.
-2. 미측정 식별축 발굴 우선(0순위 원칙 2). 후보:
-   - 5-A 의 5번째 식별축(새 결정적 매핑 수단) read-only
-     effect 측정. effect>0 시에만 복구도구(125 계승).
-   - 5-B 는 ko 정답 선행 없으면 불가 — 선행 여부 사용자
-     확인 후 진행. 추측원복 절대 금지.
-3. 진행 가능분 없으면 정직하게 부분종결 — raw 로 부재
-   입증 후 사용자 승인받아 인계.
-4. 모든 apply 는 dry→raw→apply, 백업+node+rollback.
+> 잔여는 전부 종류1(매핑수단 부재) 또는 종류2(정답 부재).
+> 127차에 기계적 회수분(6,222)은 소진. 남은 것을 **가장
+> 쉽고 확실하게 푸는 순서**를 사용자가 확정함. 의존관계:
+> ④ko정답 작성이 ②③의 선행조건. ③측정이 전체 잔여규모를
+> 닫는 마지막 미지수. 아래 순서를 반드시 지킬 것.
+
+**0단계 — 시작 시 raw 재확인 (필수)**
+`t node --check frontend/src/i18n/locales/ja.js; node --check frontend/src/i18n/locales/zh.js; git log --oneline -6; git status --short`
+→ HEAD=102d2b8(인계커밋), locale clean 확인.
+
+**★1순위 — ③ marketing/marketingIntel 물량 raw 측정
+(read-only, 최우선·즉시)**
+- 이유: "작업"이 아니라 "측정"이라 즉시 가능. 결과로
+  (a) 전체 잔여 지도가 닫힘 (b) ko 가 멀쩡한 marketing
+  분량은 ④ 없이도 즉시 회수 가능 = 가장 빠른 확실한 진전.
+- 방법: pathsolo/valuniq 의 N-17 marketing 필터를 끈
+  read-only 변형 진단 작성(125 계승, locale 무변경) →
+  marketing.* / marketingIntel.* 의 ① 총 stub 수
+  ② ko 정상값 존재분(즉시 회수 가능, 종류 없음)
+  ③ ko 부재·오염분(종류2) 을 raw 분리 측정.
+- effect(ko정상 존재분) > 0 → 그 분량만 valuniq/pathsolo
+  방식으로 dry→raw→apply→커밋 (즉시 추가 복구).
+- ko 부재분은 ②와 함께 5-B(종류2) 로 확정 인계.
+
+**2순위 — ④ ko 정답 신규작성 착수 여부 (사용자 결정)**
+- 가장 큰 레버리지: 풀리면 ②(auto.* 약92) + ③ko부재분 +
+  5-1(464키)이 연쇄로 기계작업화. 단 **검수자 단독 불가**
+  — ko 정답은 제품 올바른 한국어를 아는 주체가 정해야 함
+  (추측작성 = N-17/N-25 위반, 금지).
+- 128차 검수자는 사용자에게 ④ 착수 여부를 물어 결정.
+  착수 시: ko 작성 완료분에 대해 127차 검증 복구도구
+  (zhsolo/pathsolo/sibset/valuniq) 그대로 재사용해 ja/zh
+  회수(N-13). 미착수 시 ②③ko부재분은 종류2 보류 유지.
+
+**3순위 — ① 순서대응 불성립 새 식별축 발굴 (도박성)**
+- 독립 문제(ko 무관). 4축 소진 raw 확정(5-A). 5번째
+  결정적 매핑 수단을 read-only effect 측정으로 먼저 가늠.
+  effect>0 시에만 복구도구(125 계승). effect=0 이면
+  종류1 물리한계 재확정하고 매달리지 말 것(0-3 원칙).
+- 우선순위 최하 — ②③④ 정리 후 또는 여력 있을 때만.
+
+**진행 불가 시**: 각 순위에서 raw 로 부재/불가 입증 후
+다음 순위로 전환(0-3). 전부 불가면 정직하게 부분종결,
+사용자 승인받아 인계. 모든 apply 는 dry→raw→apply,
+백업+node+rollback, 합성검증 ALL PASS 필수.
 
 ---
 
@@ -258,7 +293,7 @@ SKIP 중. ko 정답 확보 선행 필요(종류 2).
 종결 요약 보고 → 사용자 승인 → 검수자가 NEXT_SESSION.md
 전체 작성(기존 삭제 후 전체 붙여넣기) → 사용자 저장 →
 CC 명령으로 차수 인계 커밋:
-`t git add NEXT_SESSION.md; git commit -m "docs(handover): session 127 -> 128"; git log --oneline -3`
+`t git add NEXT_SESSION.md; git commit -m "docs(handover): session 128 -> 129"; git log --oneline -3`
 
 ※ 사용자가 명시적으로 강조: 작업 여력 있는 한 미측정 축
 계속 발굴·진행. 불가작업엔 매달리지 말고 전환(0-3).
