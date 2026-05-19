@@ -14061,7 +14061,7 @@ export default {
     "mgmepv": "Delete되었습니다.",
     "yfr8lb": "Channel API 키 & Auto Sync Management",
     "71ijys": "Global · Domestic · Own Mall · 폐쇄몰 Channel의 Auth 키 Count동 Register + 🤖 SmartConnect AI Auto화를 Unified Management합니다",
-    "uwwysx": "Count동 Register · Edit · Test",
+    "uwwysx": "Uwwysx",
     "04xbs5": "Auto 스캔 · Integration · Issue신청",
     "b3qru0": "🎟 라이센스 Activate",
     "z7kx77": "판매키 Register · Paid큐랜 Active",
