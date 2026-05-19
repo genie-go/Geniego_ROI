@@ -14595,7 +14595,7 @@ export default {
     "mktTabAdStatus": "広告状況",
     "mktTabCreative": "クリエイティブ",
     "mktTabCompare": "比較",
-    "mktTabAiDesign": "AIデザイン",
+    "mktTabAiDesign": "AI 디자인",
     "mktTabGuide": "ガイド",
     "sidebarAlertCount": "13件の通知",
     "sidebarLogout": "デモ終了およびログアウト",
