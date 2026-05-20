@@ -1234,7 +1234,7 @@ export default {
 
     "pipeCollect": "수집",
 
-    "pipeRawEvent": "Raw Event",
+    "pipeRawEvent": "Raw 이벤트",
 
     "pipeNormalize": "정규화 엔진",
 
@@ -3708,7 +3708,7 @@ export default {
 
     "invcPhoneLabel": "전화",
 
-    "invcEmailLabel": "Email",
+    "invcEmailLabel": "이메일",
 
     "invcItemsTitle": "📋 품목 명세",
 
@@ -3718,7 +3718,7 @@ export default {
 
     "invcColDesc": "품목 설명",
 
-    "invcColHs": "HS Code",
+    "invcColHs": "HS 코드",
 
     "invcColOrigin": "원산지",
 
@@ -3932,7 +3932,7 @@ export default {
 
     "supPhoneLabel": "전화",
 
-    "supEmailLabel": "Email",
+    "supEmailLabel": "이메일",
 
     "supPayLabel": "결제조건",
 
@@ -4536,7 +4536,7 @@ export default {
 
     "guideSetDesc": "카카오 API키, Sender Key, 발송 모드를 설정합니다.",
 
-    "guideTabsTitle": "Guide Tabs Title",
+    "guideTabsTitle": "가이드 탭 제목",
 
     "statCamp": "총 캠페인",
 
@@ -6288,9 +6288,9 @@ export default {
 
         "a2g2s6": "A2g2s6",
 
-        "json_err": "Json err",
+        "json_err": "JSON 오류",
 
-        "not_arr": "Not arr",
+        "not_arr": "배열 아님",
 
         "sa27lc": "Sa27lc",
 
@@ -7956,7 +7956,7 @@ export default {
 
         "instantRun": "즉시 실행",
 
-        "channel_": "Channel"
+        "channel_": "채널"
 
       }
 
@@ -9410,13 +9410,13 @@ export default {
 
     "paymentNote": "결제 즉시 적용 · 언제든지 취소 가능",
 
-    "plan_starter": "Starter",
+    "plan_starter": "스타터",
 
-    "plan_growth": "Growth",
+    "plan_growth": "성장",
 
-    "plan_pro": "Pro",
+    "plan_pro": "프로",
 
-    "plan_enterprise": "Enterprise",
+    "plan_enterprise": "엔터프라이즈",
 
     "planDesc_starter": "소규모 팀 최대 5계정",
 
@@ -10450,7 +10450,7 @@ export default {
 
         "aScore": "A-Score (Attribution 신뢰도)",
 
-        "zScore": "Z-Score",
+        "zScore": "Z-점수",
 
         "critical": "위험",
 
@@ -15722,15 +15722,15 @@ export default {
 
           "savePref": "환경설정 저장",
 
-          "policyNote1": "Policy Note1",
+          "policyNote1": "정책 메모 1",
 
           "privacyPolicy": "개인정보 처리방침",
 
-          "policyNote2": "Policy Note2",
+          "policyNote2": "정책 메모 2",
 
           "cookiePolicy": "쿠키 정책",
 
-          "policyNote3": "Policy Note3",
+          "policyNote3": "정책 메모 3",
 
           "bannerTitle": "배너 제목",
 
@@ -16372,15 +16372,15 @@ export default {
 
         "savePref": "환경설정 저장",
 
-        "policyNote1": "Policy Note1",
+        "policyNote1": "정책 메모 1",
 
         "privacyPolicy": "개인정보 처리방침",
 
-        "policyNote2": "Policy Note2",
+        "policyNote2": "정책 메모 2",
 
         "cookiePolicy": "쿠키 정책",
 
-        "policyNote3": "Policy Note3",
+        "policyNote3": "정책 메모 3",
 
         "bannerTitle": "배너 제목",
 
@@ -19358,7 +19358,7 @@ export default {
 
     "upliftDesc": "Robinson's Partial회귀 기반 순Count 증분 효과",
 
-    "ltvTitle": "💰 Channelper LTV vs CAC",
+    "ltvTitle": "💰 채널별 LTV vs CAC",
 
     "anomalySum": "📊 이상감지 Summary",
 
@@ -19413,7 +19413,7 @@ export default {
     "guideReadyTitle": "시작할 준비가 되셨나요?",
 
     "guideReadyDesc": "좌측 메뉴에서 어트리뷰션을 선택하세요.",
-    "analysisJourney": "Analysis Journeys",
+    "analysisJourney": "분석 여정",
     "cases": " items"
   },
 
@@ -19595,7 +19595,7 @@ export default {
 
   "graphScore": {
 
-    "summaryScore": "Summary Score",
+    "summaryScore": "요약 점수",
 
     "tabBrowser": "그래프 브라우저",
 
@@ -24085,7 +24085,7 @@ export default {
 
     "guideMonitorDesc": "Claude AI가 전체 채널 성과를 분석하고 개선 방향을 제시합니다.",
 
-    "chName_": "Ch Name",
+    "chName_": "채널명",
 
     "tabGuide": "이용 가이드",
 
@@ -29765,7 +29765,7 @@ export default {
 
       "tab_docs": "📖 API 문서",
 
-      "tab_webhook": "⚡ Webhook",
+      "tab_webhook": "⚡ 웹훅",
 
       "tab_apikey": "🔑 API 인증",
 
@@ -29857,7 +29857,7 @@ export default {
 
       "copy": "복사",
 
-      "rateLimits": "Rate Limits",
+      "rateLimits": "요청 제한",
 
       "goIntegrationHub": "연동허브에서 API 키 관리",
 
@@ -33117,7 +33117,7 @@ export default {
 
     "keyValue": "키 값",
 
-    "expiresAt": "Expires At",
+    "expiresAt": "만료일",
 
     "status": "에 만료됩니다. 상태",
 
@@ -33697,9 +33697,9 @@ export default {
 
     "a2g2s6": "A2g2s6",
 
-    "json_err": "Json err",
+    "json_err": "JSON 오류",
 
-    "not_arr": "Not arr",
+    "not_arr": "배열 아님",
 
     "sa27lc": "Sa27lc",
 
@@ -35720,7 +35720,7 @@ export default {
 
     "instantRun": "즉시 실행",
 
-    "channel_": "Channel"
+    "channel_": "채널"
 
   },
 
@@ -36002,7 +36002,7 @@ export default {
 
     "pageSub": "채널 이벤트 스키마를 표준 형식으로 정규화",
 
-    "tabSchemas": "📋 Schemas",
+    "tabSchemas": "📋 스키마",
 
     "tabMapping": "🔗 매핑 규칙",
 
@@ -36150,7 +36150,7 @@ export default {
 
     "since": "Since",
 
-    "callVolume": "Call Volume"
+    "callVolume": "통화량"
 
   },
 
@@ -38230,7 +38230,7 @@ export default {
 
     "guideTip": "팁",
 
-    "noData": "No popup data yet.",
+    "noData": "팝업 데이터가 아직 없습니다.",
 
     "demoIsolation": "Demo environment — data is isolated from production"
 
@@ -40224,9 +40224,9 @@ export default {
 
     "adSpend": "광고비",
 
-    "grossProfit": "Gross Profit",
+    "grossProfit": "총이익",
 
-    "grossMargin": "Gross Margin",
+    "grossMargin": "총이익률",
 
     "budgetRemaining": "총 예산",
 
@@ -40248,7 +40248,7 @@ export default {
 
     },
 
-    "unitPrice": "Unit Price"
+    "unitPrice": "단가"
 
   },
 
