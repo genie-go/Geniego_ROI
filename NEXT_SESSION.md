@@ -1,7 +1,7 @@
-# GenieGoROI i18n 인계서 — 131차 시작점
+# GenieGoROI i18n 인계서 — 132차 시작점
 
-> 본 문서는 130차 검수자가 전체 작성. 131차 검수자는 이 문서
-> 전체를 신뢰 기반으로 삼되, 모든 수치·상태는 131차 시작 시
+> 본 문서는 131차 검수자가 전체 작성. 132차 검수자는 이 문서
+> 전체를 신뢰 기반으로 삼되, 모든 수치·상태는 132차 시작 시
 > raw 재확인 후 진행할 것. 추측 보류 금지 — raw 로 0/부재를
 > 입증해야 보류가 정당.
 
@@ -35,8 +35,9 @@
      돼야 가능해지는지**를 명시한다. 차수가 바뀐다는 사실
      자체는 아무것도 가능하게 만들지 않는다.
 5. **★사용자가 ko 결정하는 영역 — 검수자/CC 추측 절대 금지
-   (N-17/N-25, 129차 강화, 130차 재확인)**: ko_fixed 작성/보조표
-   추천/"자동 복원" 등 어떤 형태로도 검수자·CC 가 ko 값을
+   (N-17/N-25, 129차 강화, 130차 재확인, 131차 N-58 재확인)**:
+   ko_fixed 작성/보조표 추천/"자동 복원"/"ko_current → ko_fixed
+   자동 복사" 등 **어떤 형태로도** 검수자·CC 가 ko 값을
    결정·추천·시사해선 안 된다. "영문 유지가 자연스러워 보이는"
    항목도 사용자 확정 없이는 적용 금지. 적을수록 사용자 확정 +
    일괄 처리가 효율적.
@@ -71,8 +72,10 @@
 - locale: `D:\project\GeniegoROI\frontend\src\i18n\locales\{ko,ja,zh}.js`
 - 인계서 본체: `D:\project\GeniegoROI\NEXT_SESSION.md`
   (PM_HANDOVER.md / FEATURE_PLAN_120.md 는 불변, 건드리지 말 것)
-- 작업 도구: `D:\project\GeniegoROI\session{125,128,129,130}_*.py`
-- ko leaf-paths 총수: 19,801 (129차 기준, 130차 미변동)
+- 작업 도구: `D:\project\GeniegoROI\session{125,128,129,130,131}_*.py`
+- ko leaf-paths 총수: 19,801 (129차 기준, 130/131차 미변동)
+- ja leaf-paths 총수: 23,220 (131차 N-46 raw 확정)
+- zh leaf-paths 총수: 19,409 (131차 N-46 raw 확정)
 
 ---
 
@@ -83,7 +86,7 @@
   `build_leaf_paths`(text→dict, **값은 JS raw escape 보존**
   — 128 N-28 raw 확정),
   `_ko_suspect(path, ko_val)` — 2인자 시그니처(128 N-18 raw),
-  `_is_hashkey`(auto.<숫자없는 영숫자> 미식별 한계),
+  `_is_hashkey`(131차 N-54 raw: 함수 시그니처/판별 한계 — 5-C 참조),
   `KO_CONTAMINATED`, `norm`,
   `scan_key_blocks`(최상위 블록만),
   `extract_kv(body)` 1인자, ANYKEY_RE, `locate_and_plan`/
@@ -95,305 +98,354 @@
 
 **129차 검증 자산**
 - `session129_recover_mirror7.py` — fc84c08 회수 도구
-- `session129_apply_ko_unified.py` — leaf_re 토큰 치환 일반화 도구
-  (--csv/--bak-suffix 인자, 3 시트 az_unified/mk87/residual 처리)
+- `session129_apply_ko_unified.py` — leaf_key 기반 자동 탐색 도구
+  (--csv/--bak-suffix 인자, paths(요약) 컬럼 무시·세미콜론 분해 불필요,
+  131차 N-58 raw 확정)
 - 진단 도구 다수 (인계서 129차 § 2 참조)
 - 시트 생성 도구: `session129_make_ko_sheet_az_unified.py`,
   `session129_make_ko_sheet_mk87.py`,
   `session129_make_ko_sheet_residual.py`
 
-**130차 신규 도구 (검증완료 — dry PASS)**
+**130차 검증 자산 (dry PASS)**
+- 진단 도구: `session130_diag_jazh_residual.py`,
+  `session130_diag_absent_only.py`, `session130_diag_absent_parent.py`,
+  `session130_diag_groupB_fail.py`, `session130_diag_groupC_structure.py`
+- 시트 생성: `session130_make_ko_sheet_absent.py`
+- apply: `session130_apply_absent_groupA.py` (52/52 OK),
+  `session130_apply_absent_groupB_v2.py` (83/83 OK + groupA 호환),
+  `session130_apply_absent_groupC.py` (11/11 클러스터 OK),
+  `session130_apply_all.py` (6 stage 파이프라인 dry PASS — 131차 dry 재검증 NOOP)
+- 폐기: `session130_apply_absent_groupB.py` v1 (사용 금지)
+
+**131차 신규 도구 (총 9개 + 시트 1개 신규)**
 
 진단 도구 (read-only):
-- `session130_diag_jazh_residual.py`     → ja/zh 깨진값 전파 raw 확정 (0건)
-- `session130_diag_absent_only.py`       → ABSENT-only 289 leaf_key/308 path 발굴
-- `session130_diag_absent_parent.py`     → ABSENT path 의 parent 유일성 (group A/B/C 분류)
-- `session130_diag_groupB_fail.py`       → group B v1 실패 원인 (step 0 token 중복)
-- `session130_diag_groupC_structure.py`  → group C 173 path 11 클러스터 raw 확정
+- `session131_diag_absent_def_mismatch.py` — absent 정의 A/B 불일치 raw (N-46)
+- `session131_diag_sheets_overlap.py` — 시트 5종 path/leaf_key 중복 측정 (N-47)
+- `session131_diag_only_a_detail.py` — only_A 63 path 분석 (N-50)
+- `session131_diag_absent_apply_safety.py` — 단독 토큰 시뮬레이션 (N-51, false alarm)
+- `session131_diag_hashkey_boundary.py` v1 — auto.* 커버리지 측정 (N-54, 세미콜론 미분해 버그)
+- `session131_diag_hashkey_boundary_v2.py` — v1 버그 수정 + 진실 raw (N-56)
 
 시트 생성 도구:
-- `session130_make_ko_sheet_absent.py`   → _ko_sheet_absent.csv (308행)
+- `session131_make_ko_sheet_hidden.py` — hidden 575 시트 생성
+- `session131_make_ko_sheet_hidden_new.py` — hidden 중복 제거 후 잔여 (N-48, 결과 4건 false positive N-49)
+- `session131_make_ko_sheet_az_uncovered.py` — az_uncovered 173 시트 생성 (N-57)
 
-apply 도구 (dry 검증 PASS, ko_fixed 작성 대기):
-- `session130_apply_absent_groupA.py`    → 단순 부모 삽입 (52/52 OK)
-- `session130_apply_absent_groupB_v2.py` → full-path top-level 한정 traversal (83/83 OK)
-- `session130_apply_absent_groupC.py`    → 신규 sub-tree 클러스터 삽입 (11/11 OK)
-- `session130_apply_all.py`              → ★일괄 apply 통합 도구 (6 stage 파이프라인)
+기타 도구:
+- `_t131_check.py` v1 — 컬럼명 정확 매칭 (3시트 NO_KO_FIXED_COL 표시)
+- `_t131_check_v2.py` — 컬럼명 fuzzy 매칭 (4 시트)
+- `_t131_check_v3.py` — 5 시트 통합 진행도 (az_uncovered 포함, ★현역)
+- `session131_safety_absent_single_token.py` — absent 단독토큰 안전표기 시도
 
-폐기:
-- `session130_apply_absent_groupB.py` v1 (step 0 token 중복으로 82/83 FAIL)
-  → v2 로 교체. v1 파일은 보존하지만 사용 금지.
+**131차 신규 시트 (1개)**:
+- `_ko_sheet_az_uncovered.csv` — 173 leaf_key (au_unified 미커버, 동일 컬럼 형식)
+- ko_current 모두 채워져 있음 (실제 텍스트 173). 사용자가 한글화/영문유지 결정 후 ko_fixed 작성.
+
+**131차 시트 헤더 통일 (사용자 작업 안전성)**:
+- az_unified / mk87 / residual 의 `ko_fixed(여기 작성)` → `ko_fixed` 일괄 변경
+- 백업: 각 시트의 `.s131bak`
+- 효과: apply_all.py 의 ko_fixed 정확매칭이 모든 시트 인식 가능 (N-45)
 
 ---
 
-## 3. 완료 커밋 (HEAD = a34de71 + 130 인계커밋, 130차 0 작업커밋)
+## 3. 완료 커밋 (HEAD = b4e68ce + 131차 인계커밋, 131차 작업커밋 0)
 
 | 커밋 | 내용 | 건수 |
 |---|---|---|
+| b4e68ce | docs(handover): session 130 -> 131 | (인계) |
 | a34de71 | docs(handover): session 129 -> 130 | (인계) |
 | fc84c08 | i18n(5-C mirror7) recover auto.{key} root ko from dashops | 7 |
 
-- **130차 누적**: 작업 커밋 0건 (locale 무변경, 도구만 추가)
-- **전체 누적**: 128차까지 6,548 + 129차 7 + 130차 0 = **6,555건**
+- **131차 누적**: 작업 커밋 0건 (locale 무변경, 도구 9개 + 시트 1개 추가)
+- **전체 누적**: 128차까지 6,548 + 129차 7 + 130차 0 + 131차 0 = **6,555건**
 - node --check ja/zh/ko = 0 (정상). locale tracked clean.
 - origin 대비 push 미실행(5-4, 사용자 승인 대기).
 
 ---
 
-## 4. 130차 핵심 발견 (131차가 반드시 알아야 할 것)
+## 4. 131차 핵심 발견 (132차가 반드시 알아야 할 것)
 
-### N-38 — ABSENT-only 영역 신규 발굴 (대규모, 130차 핵심)
+### N-45 — 시트 컬럼명 통일 (사용자 작성 직전 사고 방지)
 
-**129차 인계서에 미인지된 영역**:
+130차 시트 3종 (az_unified/mk87/residual) 의 ko_fixed 컬럼이
+`ko_fixed(여기 작성)` 한글 괄호 포함이었음. 130차 검증 시 발견 못함.
 
-| 항목 | 129차 추정 | 130차 실측 |
+| 도구 | 매칭 방식 | 영향 |
 |---|---|---|
-| ko 측 ABSENT path 전체 (ja or zh 에 있고 ko 에 없음) | 미인지 | **18,445** |
-| ABSENT-only leaf_key (ko 에 한 번도 등장 안 함, 신규 작성 대상) | 미인지 | **289 leaf_key / 308 path** |
-| 시트 3종(454)과 ABSENT-only 교집합 | 미인지 | **0** (완전 별개) |
+| `apply_ko_unified.py` | fuzzy (`"ko_fixed" in kn`) | 안전 |
+| `apply_absent_groupA/B_v2/C` | 정확 (`r.get("ko_fixed")`) | absent 시트가 `ko_fixed` 라 호환 |
+| `apply_all.py` | 정확 | **위험** — az/mk/res 컬럼명 인식 실패 |
 
-**prefix 분포 상위 (ABSENT-only 308 path)**:
-- crm 102 (대부분 crm.aiHub 101)
-- pages 48 (대부분 pages.marketingIntel 47)
-- ruleEnginePage 36
-- channelKpi 24
-- tabs 16
-- gSug 14
+131차 처리: 시트 3개 헤더만 `ko_fixed` 로 일괄 변경 (백업 동봉).
+검증완료 도구는 무변경 (N-13).
 
-**131차 raw 재확인 필수**: 시트 3종과 ABSENT 시트 path 교집합 0 가정,
-ja/zh 분포 변동 가능성 등.
+### N-46 — ABSENT 정의 불일치 raw (130차 인계 수치 일부 부정확)
 
-### N-39 — ABSENT path 의 group A/B/C 분류 (parent 유일성 기반)
+130차 `_ko_sheet_absent.csv` 의 ABSENT 정의 ≠ 진단도구 정의.
 
-각 ABSENT path 의 parent (path 의 `.` 직전 부분) 가 ko.js 에서
-어떻게 식별되는지 기준:
+| 정의 | 산출 |
+|---|---|
+| A (CSV 308 path, 352 unique path) | 308 행 / 352 unique path |
+| B (ja \| zh 에 있고 ko 에 없는 leaf-path) | **18,445** |
+| A ∩ B (양정의 일치) | 294 |
+| only_A (CSV에만, ja/zh 양쪽 부재) | **58** |
+| only_B (ja/zh 있는데 CSV 누락) | **18,151** |
 
-| 그룹 | 정의 | 130차 수치 | 처리 도구 |
-|---|---|---|---|
-| A | parent 존재 + parent 마지막 토큰이 ko.js 중간노드 집합에서 유일 | **52 path** | apply_absent_groupA.py |
-| B | parent 존재 + parent 마지막 토큰이 중복 (nav/pages 래퍼 등) | **83 path** | apply_absent_groupB_v2.py |
-| C | parent 자체가 ko.js 에 없음 (신규 sub-tree 필요) | **173 path** | apply_absent_groupC.py |
+**해석**:
+- only_B 18,151 대부분 ja 전용 `pages.marketingIntel.*`, `crm.aiHub.*` 영역
+  — ko 에 원래 없어야 하는 ja 전용 path 가능성 큼. 본 인계서에선
+  작성대상으로 보지 않음.
+- only_A 58 (CSV 분해 63) 은 N-50 으로 추가 raw 점검됨.
+- 어쨌든 absent 시트 그대로 사용 가능 (path 기반 도구가 처리).
 
-**합계 308 path / 289 leaf_key** (일부 leaf_key 가 여러 path 에 분산).
+### N-47 — 시트 5종 path/leaf_key 중복 raw
 
-### N-40 — group B 실패 원인 raw 확정 (v1→v2 진화)
-
-130차 group B v1 도구는 첫 토큰 매칭이 2+ 면 ambiguous abort.
-실제 라이브 검증 결과 **82/83 FAIL**. 원인 raw 분석:
-
-- step 0 에서 전부 깨짐 = 최상위 토큰부터 ko.js 내 여러 위치에 등장
-- 예: `channelKpi` 가 root + nav 래퍼 + pages 래퍼 안에 4 위치 동시 존재
-- target path `channelKpi.X` 는 root 의 channelKpi 를 의미하나, v1 은
-  단순 토큰 매칭으로 ambiguous 판정
-
-**v2 해법** (raw 입증):
-- 첫 토큰은 **export 객체의 직계 자식 한정** 매칭
-- nav/pages 래퍼 안의 동명 블록은 자동 배제 (직계 자식 아니므로)
-- 두번째 토큰부터는 직전 블록의 직계 자식 매칭
-
-v2 라이브 검증: **group B 83/83 OK + group A 52/52 호환 OK** (회귀 0).
-
-### N-41 — group C 클러스터 구조 raw 확정
-
-ABSENT 173 path 의 parent 부재 영역이 사실 **11개 클러스터로 집약**:
-
-| 클러스터 (ancestor → new_subtree) | children | 비고 |
+| 교집합 | path | leaf_key |
 |---|---|---|
-| crm → aiHub | 101 | 단일 신규 블록 생성으로 101건 처리 |
-| pages → marketingIntel | 47 | 단일 신규 블록 |
-| `<TOP>` → lineChannel | 8 | 최상위 신규 블록 |
-| `<TOP>` → journeyBuilder | 4 | |
-| `<TOP>` → dataTrust | 3 | |
-| aiPredict → grade | 2 | |
-| cmpVal.aiPredict → grade | 2 | |
-| `<TOP>` → graph | 2 | |
-| ruleEnginePage → operations | 2 | |
-| `<TOP>` → developerHub | 1 | |
-| pages → marketingIntel.campaignMgr | 1 | depth=2 (유일) |
+| residual ∩ hidden | 202 | 243 |
+| az_unified ∩ hidden | 0 | 146 (전체) |
+| mk87 ∩ hidden | 13 | 32 |
+| 그 외 | 0 또는 소규모 | |
 
-- depth=1 클러스터 10개, depth=2 클러스터 1개
-- 단일 도구로 11개 클러스터 모두 처리 가능 (apply_absent_groupC.py
-  라이브 검증 11/11 OK)
+→ 130차 4시트 (az_unified/mk87/residual/absent) 가
+hidden(575) 영역을 거의 완전 포함. **hidden 시트 별도 처리 불필요** 확정.
 
-### N-42 — 일괄 apply 파이프라인 (6 stage 통합)
+### N-48 — hidden 잔여 4건 (검증 후 false positive)
 
-130차 신규 통합 도구 `session130_apply_all.py`:
+hidden 575 - 중복 571 = 잔여 4건 (전부 EMPTY).
+샘플: `Data.`, `dash.gCat.`, `gSug.`, `priceOpt.`
 
-| stage | 시트 | 로직 | 130차 dry 결과 |
-|---|---|---|---|
-| 1 | az_unified 146 | leaf_re 토큰 치환 (apply_ko_unified 동일) | NOOP (ko_fixed 0) |
-| 2 | mk87 55 | 동일 | NOOP |
-| 3 | residual 253 | 동일 | NOOP |
-| 4 | absent groupA 52 | 부모 블록 `{` 직후 삽입 | NOOP |
-| 5 | absent groupB 83 | top-level 한정 traversal | NOOP |
-| 6 | absent groupC 173 | 신규 sub-tree 클러스터 | NOOP |
+### N-49 — hidden 잔여 4건 false positive 확정
 
-- 단계별 in-memory node --check + 합성검증
-- 단계 실패 시 즉시 전체 abort (최초 ko 스냅샷 보존)
-- 마지막에 ja/zh byte-level 무변경 검증
-- 옵션: `--skip-stage <name>` 으로 특정 단계 건너뛰기 가능
-- **762 leaf_key 전체 apply 인프라 완비 (ko_fixed 작성 선행만 대기)**
+raw 재검색 결과 `"Data"`, `"priceOpt"`, `"gSug"`, `"gCat"`
+모두 ko.js 에 객체 블록 키로 정상 존재 (L4461, L1147/5432/19200,
+L16270, L2527/19135). **진단도구가 부모 객체 노드를 leaf 로 잘못
+추출한 false positive**. _ko_sheet_hidden_new.csv 4건 처리 불필요.
 
-### N-43 — ja/zh 깨진값 영역 전역 부재 raw 확정
+### N-50 — only_A 63 raw 분석
 
-129차 추정으로 N-36 잔여 가능성 있었으나, 130차 전수 raw 측정:
-- 전역 ja/zh KO_CONTAMINATED 패턴 0건
-- mirror 회수 가능 0건
-- mirror7 7키의 root ja/zh 도 dashops 측 자체 부재로 회수 불가
-  (정답출처 부재 = 종류 1)
+absent CSV 안 path_col 분해 후 ko/ja/zh 어디에도 없는 63 path 의 raw:
 
-→ ja/zh 회수는 **별도 번역자원 (사용자/번역자) 선행 없이는 종류 1 불가**
-확정. raw 0 입증.
+| 분류 | 건수 |
+|---|---|
+| parent 가 ko 에 존재 | 14 (대부분 `gSug.*`) |
+| 동명 leaf_key 가 ko 다른 위치 존재 | 14 |
+| 동명 leaf_key 가 ja 다른 위치 존재 | 15 |
+| 동명 leaf_key 가 zh 다른 위치 존재 | 15 |
 
-### N-44 — 도구 파이프라인 검증 패턴 (live test 강화)
+**해석**: 63 중 14건 `gSug.Apparel/Beauty/...` 는 정상 작성대상.
+나머지 49건 `target/audience/budget/...` 단독 토큰은 path_col 안
+multi-path 문자열 분해 부산물. 130차 도구는 행 단위 처리이므로
+실제 영향 없음 (N-51 ~ N-53 으로 확정).
 
-130차 신설: apply 도구 마다 dry 모드에서 **전수 라이브 traversal
-테스트**. ko_fixed 빈칸이라도 도구의 핵심 알고리즘이 실패하는 path
-가 있는지 raw 확인 가능.
+### N-51 / N-52 / N-53 — absent 도구 안전성 검증 (3중 raw)
 
-예시:
-- group B v2 도구의 dry: group B 83 + group A 52 path 모두 traversal
-  성공 검증
-- group C 도구의 dry: 11 클러스터 ancestor-block 식별 검증
+| Note | 내용 |
+|---|---|
+| N-51 (시뮬레이션) | 분해 후 단독 토큰 49건 발견. budget(4 paths)/marketing(778 paths) root 충돌 우려 |
+| N-52 (CSV 행 raw) | 실제 absent CSV 행 단위 단독 토큰 = **0건** |
+| N-53 (도구 코드 raw) | groupA.py L161 `parent = path.rsplit(".", 1)[0] if "." in path else ""` — 단독 토큰 자동 무시 |
 
-131차 이후에도 신규 도구에 라이브 테스트 동봉 권장.
+→ **absent 308 행 apply 안전 확정**. N-51 의 위험은 분해 시뮬레이션
+부산물, 실제 도구 동작과 무관.
+
+### N-54 — _is_hashkey 한계 raw (v1, 버그 포함)
+
+ko `auto.*` 319 path 전수 측정 시 `_is_hashkey` 0 식별 / 319 미식별.
+v1 진단도구가 az_unified 시트의 `paths(요약)` 컬럼을 세미콜론(`;`)
+분해 안 해서 시트 path 0 커버 라고 잘못 결론.
+
+### N-55 — az_unified 시트 path 컬럼은 세미콜론 multi-path
+
+샘플:
+```
+leaf_key=097xk9, paths(요약)=auto.097xk9;dash.operations.auto.097xk9
+```
+- 세미콜론 구분으로 root + dashops 양 path 동시 처리 설계
+- v1 진단도구의 분해 버그 원인. 시트 자체는 정상.
+
+### N-56 — _is_hashkey 한계 raw v2 (진실)
+
+세미콜론 분해 추가 후 진단:
+
+| 항목 | 값 |
+|---|---|
+| ko `auto.*` + `dash.operations.auto.*` 전체 | **638** (pure 319 + dash 319) |
+| az_unified 시트 path 커버 | **292** (146 leaf_key × 2 path) |
+| ko 미커버 (132차 후보) | **346** (pure 173 + dash 173) |
+| 시트에만 있고 ko 부재 | 0 |
+| ko_current 분류 | hash 자체값 41 + 실제 텍스트 105 |
+
+**132차 작업 후보 raw 확정**: 미커버 leaf_key 173 (× 2 path = 346)
+
+### N-57 — az_uncovered 173 시트 생성
+
+`_ko_sheet_az_uncovered.csv` 신규 (az_unified 동일 컬럼).
+
+| 항목 | 값 |
+|---|---|
+| rows | 173 |
+| ko_current 분류 | hash 자체값 0 / 실제 텍스트값 **173** / 빈값 0 |
+
+샘플:
+- `015zcn | ko='새 Channel Add'` (한글+영문 혼재)
+- `0dge9p | ko='🔄 불러오는 in progress...'`
+- `08tz61 | ko='베네피아'` (한글만)
+- `04xbs5 | ko='Auto 스캔 · Integration · Issue신청'`
+
+**중요**: 173 전부 ko_current 채워져 있어 사용자 작성 부담 낮음.
+다만 한글화/영문 유지/혼합 결정은 사용자 영역 (0-5).
+
+### N-58 — apply_ko_unified.py 호환성 raw
+
+- 도구는 leaf_key 기반 자동 탐색 → `paths(요약)` 컬럼 무시
+- 세미콜론 분해 불필요
+- `build_leaf_paths + split('.')[-1]` 로 ko.js 전체 스캔
+- `_ko_sheet_az_uncovered.csv` 173 leaf_key 즉시 호환 raw 확정
 
 ---
 
-## 5. 잔여 백로그 (raw 확정 — 131차 작업 후보)
+## 5. 잔여 백로그 (raw 확정 — 132차 작업 후보)
 
 ### 5-A. 종류 1 (물리·논리 불가 — 선행 없이는 차수 무관 불가)
 
-**128~129차 인계 그대로**:
+**128~130차 인계 그대로**:
 - marketing R1 中 bad/mismatch 12건 (probe_order self-verify 불성립)
-- marketing R1 中 ko 부재로 종류2인 분 (130차 시점 mk87 87 path 로 통합)
-- **131차 가능 조건**: 5번째 결정적 식별축을 read-only effect 측정
-  으로 발굴해야만 가능. 단순 차수 변경으론 불가.
-
-**130차 추가 (N-43)**:
-- ja/zh 회수: 전역 raw 0건. 별도 번역자원 작성 선행 시에만 가능.
+- ja/zh 회수: 전역 raw 0건 (130차 N-43)
   - mirror7 7키 root ja/zh + 임의 신규 ja/zh 영역
-  - **131차 가능 조건**: 일본어/중국어 정답 출처(사용자/번역자) 확보.
+  - **132차 가능 조건**: 일본어/중국어 정답 출처(사용자/번역자) 확보.
     raw 데이터로는 도출 불가.
 
 ### 5-B. 종류 2 (선행부재 불가 — ko 정답 작성 선행 시 가능)
 
-**★최우선 — 시트 4종 사용자 작성 대기 (총 762 leaf_key)**
+**★최우선 — 시트 5종 사용자 작성 대기 (총 935 leaf_key/path)**
 
-| 시트 | 영역 | leaf_key/path | 적용 도구 |
+| 시트 | 영역 | rows | 적용 도구 |
 |---|---|---|---|
-| `_ko_sheet_az_unified.csv` | auto.* | 146 | apply_ko_unified.py --bak s130azu |
-| `_ko_sheet_mk87.csv` | marketing | 55 | apply_ko_unified.py --bak s130mk87 |
-| `_ko_sheet_residual.csv` | 잔여 | 253 | apply_ko_unified.py --bak s130res |
-| `_ko_sheet_absent.csv` | ABSENT-only (A 52 + B 83 + C 173) | 308 | apply_absent_groupA/B_v2/C |
+| `_ko_sheet_az_unified.csv` | auto.* (146 leaf_key) | 146 | apply_ko_unified.py --bak s132azu |
+| `_ko_sheet_mk87.csv` | marketing | 55 | apply_ko_unified.py --bak s132mk87 |
+| `_ko_sheet_residual.csv` | 잔여 | 253 | apply_ko_unified.py --bak s132res |
+| `_ko_sheet_absent.csv` | ABSENT (A 52 + B 83 + C 173) | 308 | apply_absent_groupA/B_v2/C |
+| `_ko_sheet_az_uncovered.csv` ★131차 신규 | auto.* 미커버 (173 leaf_key) | 173 | apply_ko_unified.py --bak s132azu2 |
+| **합계** | | **935** | |
 
-**일괄 적용 (권장)**:
+**일괄 적용 (130차 4시트 — 권장)**:
 ```
-t $env:PYTHONIOENCODING="utf-8"; python session130_apply_all.py dry --bak-suffix s131all 2>&1 | Out-File -Encoding utf8 _t131_all_dry.log; $env:PYTHONIOENCODING=""; code _t131_all_dry.log
+t $env:PYTHONIOENCODING="utf-8"; python session130_apply_all.py dry --bak-suffix s132all 2>&1 | Out-File -Encoding utf8 _t132_all_dry.log; $env:PYTHONIOENCODING=""; code _t132_all_dry.log
 ```
 dry PASS 후:
 ```
-t $env:PYTHONIOENCODING="utf-8"; python session130_apply_all.py apply --bak-suffix s131all 2>&1 | Out-File -Encoding utf8 _t131_all_apply.log; $env:PYTHONIOENCODING=""; code _t131_all_apply.log
+t $env:PYTHONIOENCODING="utf-8"; python session130_apply_all.py apply --bak-suffix s132all 2>&1 | Out-File -Encoding utf8 _t132_all_apply.log; $env:PYTHONIOENCODING=""; code _t132_all_apply.log
 ```
 
-**개별 적용 (특정 시트만)**:
+**az_uncovered 적용 (131차 신규 시트)**:
 ```
-# az_unified (예시)
-t $env:PYTHONIOENCODING="utf-8"; python session129_apply_ko_unified.py apply --csv _ko_sheet_az_unified.csv --bak-suffix s131azu 2>&1 | Out-File -Encoding utf8 _t131_azu_apply.log; $env:PYTHONIOENCODING=""; code _t131_azu_apply.log
+# dry
+t $env:PYTHONIOENCODING="utf-8"; python session129_apply_ko_unified.py dry --csv _ko_sheet_az_uncovered.csv --bak-suffix s132azu2 2>&1 | Out-File -Encoding utf8 _t132_azu2_dry.log; $env:PYTHONIOENCODING=""; code _t132_azu2_dry.log
 
-# absent group A
-t $env:PYTHONIOENCODING="utf-8"; python session130_apply_absent_groupA.py apply --bak-suffix s131gA 2>&1 | Out-File -Encoding utf8 _t131_gA_apply.log; $env:PYTHONIOENCODING=""; code _t131_gA_apply.log
-
-# absent group B (v2 사용)
-t $env:PYTHONIOENCODING="utf-8"; python session130_apply_absent_groupB_v2.py apply --bak-suffix s131gB 2>&1 | Out-File -Encoding utf8 _t131_gB_apply.log; $env:PYTHONIOENCODING=""; code _t131_gB_apply.log
-
-# absent group C
-t $env:PYTHONIOENCODING="utf-8"; python session130_apply_absent_groupC.py apply --bak-suffix s131gC 2>&1 | Out-File -Encoding utf8 _t131_gC_apply.log; $env:PYTHONIOENCODING=""; code _t131_gC_apply.log
+# apply
+t $env:PYTHONIOENCODING="utf-8"; python session129_apply_ko_unified.py apply --csv _ko_sheet_az_uncovered.csv --bak-suffix s132azu2 2>&1 | Out-File -Encoding utf8 _t132_azu2_apply.log; $env:PYTHONIOENCODING=""; code _t132_azu2_apply.log
 ```
+
+**개별 적용 (특정 시트만)**: 130차 인계서 § 5-B 참조 (변동 없음)
 
 빈칸 자동 SKIP (부분 처리 OK).
 
-**131차 가능 조건**: 사용자가 시트 ko_fixed 칸 채우면 즉시 가능.
+**132차 가능 조건**: 사용자가 시트 ko_fixed 칸 채우면 즉시 가능.
 한 시트 부분 작성도 OK.
 
-### 5-C. 독립 과제 (인계 계승 + 130차 변동)
+### 5-C. 독립 과제 (인계 계승 + 131차 변동)
 
 - **5-1 #3 성과허브**: ko 464키 신규작성 선행. 별개 과제.
-- **5-4 push**: origin 대비 미실행. 128차 4커밋 + 128→129 인계
-  커밋 + 129차 1커밋 (fc84c08) + 129→130 인계커밋 + 130→131 인계커밋.
-  사용자 명시 승인 시에만.
-- **_is_hashkey 경계 부정확**: 'auto.<숫자없는 영숫자>' 미식별
-  한계 그대로. az_unified 처리하면 영향 영역 대부분 해소될 가능성.
+- **5-4 push**: origin 대비 미실행. 128차 4커밋 + 128→129/129→130/
+  130→131/131→132 인계커밋 + 129차 1커밋 (fc84c08). 사용자 명시
+  승인 시에만.
+- **`_is_hashkey` 함수 동작 raw 미확정 (N-54 잔여)**:
+  131차 v2 진단으론 우회 가능했음(시트 path 직접 측정으로 결론 도출).
+  단, 함수 자체의 식별 로직 raw 점검은 미수행. 132차에 az 영역 추가
+  작업 시 함수 거동 raw 점검 권장. (단순 사용엔 시트가 우선)
 - **SyntaxWarning '\p'**: 일부 도구 docstring 내 `\p` 표기에서
   발생. 실행 무관. 정리는 선택사항.
+- **only_B 18,151 ja/zh 전용 path 의 ko 측 의도 raw**:
+  ko 에 원래 없어야 하는 ja 전용일 가능성 큼. 132차에 raw 재측정
+  시 leaf_key 의 ko 측 동명 위치 raw (N-50 패턴) 활용 권장.
 
 ---
 
-## 6. 130차 무결성 raw 확정 (131차 신뢰 기반)
+## 6. 131차 무결성 raw 확정 (132차 신뢰 기반)
 
 ### 6-1. locale 상태
 
 - node --check ko/ja/zh = 0 (정상)
-- locale tracked clean (수정된 추적 파일 없음, 130차 작업 커밋 0건)
-- HEAD = a34de71 (129→130 인계커밋)
+- locale tracked clean (수정된 추적 파일 없음, 131차 작업 커밋 0건)
+- HEAD = b4e68ce (130→131 인계커밋) + 131→132 인계커밋
 - origin 대비 push 미실행 (5-4)
 
 ### 6-2. 시트 무결성
 
-- _ko_sheet_az_unified.csv : 146 key (129차 생성, 130차 미변경)
-- _ko_sheet_mk87.csv       : 55 key  (129차 생성, 130차 미변경)
-- _ko_sheet_residual.csv   : 253 key (129차 생성, 130차 미변경)
-- _ko_sheet_absent.csv     : 308 row (130차 신규 생성, group A 52 + B 83 + C 173)
-- 합계 762 leaf_key 작성 대기
+| 시트 | 신규/계승 | rows | 컬럼명 |
+|---|---|---|---|
+| _ko_sheet_az_unified.csv | 129차 (헤더 통일) | 146 | ko_fixed (s131bak 백업) |
+| _ko_sheet_mk87.csv | 129차 (헤더 통일) | 55 | ko_fixed (s131bak 백업) |
+| _ko_sheet_residual.csv | 129차 (헤더 통일) | 253 | ko_fixed (s131bak 백업) |
+| _ko_sheet_absent.csv | 130차 (131차 백업 시도) | 308 | ko_fixed (s131safety 백업, 실제 변경 0건) |
+| _ko_sheet_az_uncovered.csv ★ | **131차 신규** | 173 | ko_fixed (백업 불필요) |
 
-### 6-3. 도구 동작 검증 (130차 dry 검증 완료)
+합계 **935 leaf_key/path 작성 대기**
 
-- session130_apply_absent_groupA.py:    dry NOOP + group A 52/52 OK
-- session130_apply_absent_groupB_v2.py: dry NOOP + group B 83/83 OK + group A 52/52 호환
-- session130_apply_absent_groupC.py:    dry NOOP + 11/11 클러스터 OK
-- session130_apply_all.py:              dry NOOP + 6 stage 파이프라인 무결성 PASS
-- 모든 도구: ja/zh byte-level 무변경 보장 로직 동봉
+### 6-3. 도구 동작 검증 (131차 dry 검증)
+
+- session130_apply_all.py: 6 stage 파이프라인 dry NOOP 재검증 PASS (헤더 통일 후)
+- session129_apply_ko_unified.py: az_uncovered 시트 호환성 raw 확정 (N-58)
+- 모든 도구: ja/zh byte-level 무변경 보장 로직 동봉 (130차 계승)
 
 ### 6-4. 작성대기 raw
 
-- _ko_sheet_az_unified.csv : 0/146 작성
-- _ko_sheet_mk87.csv       : 0/55  작성
-- _ko_sheet_residual.csv   : 0/253 작성
-- _ko_sheet_absent.csv     : 0/308 작성
-- **총 762 leaf_key 100% 미작성, apply 인프라 100% 완비**
+- _ko_sheet_az_unified.csv    : 0/146 작성
+- _ko_sheet_mk87.csv          : 0/55  작성
+- _ko_sheet_residual.csv      : 0/253 작성
+- _ko_sheet_absent.csv        : 0/308 작성
+- _ko_sheet_az_uncovered.csv  : 0/173 작성 (131차 신규)
+- **총 935 leaf_key/path 100% 미작성, apply 인프라 100% 완비**
 
-**결론: 130차 작업커밋 0건, 인계서 갱신 + 도구 7개 추가만.
-131차는 사용자 ko_fixed 작성 진행도에 따라 즉시 apply 가능.**
+**결론: 131차 작업커밋 0건, 인계서 갱신 + 도구 9개 + 시트 1개 신규
+추가. 132차는 사용자 ko_fixed 작성 진행도에 따라 즉시 apply 가능.**
 
 ---
 
-## 7. 131차 실행 로드맵 (★우선순위 — 이 순서대로)
+## 7. 132차 실행 로드맵 (★우선순위 — 이 순서대로)
 
 **0단계 — 시작 시 raw 재확인 (필수)**
 ```
 t node --check frontend/src/i18n/locales/ja.js; node --check frontend/src/i18n/locales/zh.js; node --check frontend/src/i18n/locales/ko.js; git log --oneline -8; git status --short
 ```
-HEAD 130→131 인계커밋 + a34de71 확인, locale clean, node 3개 OK.
+HEAD 131→132 인계커밋 + b4e68ce 확인, locale clean, node 3개 OK.
 
-**시트 진행도 측정**:
+**시트 진행도 측정 (5시트)**:
 ```
-t $env:PYTHONIOENCODING="utf-8"; python _t130_check.py 2>&1 | Out-File -Encoding utf8 _t131_sheet_progress.log; $env:PYTHONIOENCODING=""; code _t131_sheet_progress.log
+t $env:PYTHONIOENCODING="utf-8"; python _t131_check_v3.py 2>&1 | Out-File -Encoding utf8 _t132_sheet_progress.log; $env:PYTHONIOENCODING=""; code _t132_sheet_progress.log
 ```
-(_t130_check.py 가 4 시트 진행도 출력 — 필요 시 _ko_sheet_absent.csv
-포함하도록 검수자가 갱신)
+(131차 신규 az_uncovered 포함 5시트 진행도 출력)
 
 **★1순위 — 시트 ko_fixed 작성된 분 apply (일괄 또는 개별)**
 
-권장: 일괄 (apply_all)
+권장: 일괄 (apply_all 으로 130차 4시트 처리) + az_uncovered 별도
 ```
-t $env:PYTHONIOENCODING="utf-8"; python session130_apply_all.py dry --bak-suffix s131all 2>&1 | Out-File -Encoding utf8 _t131_all_dry.log; $env:PYTHONIOENCODING=""; code _t131_all_dry.log
+t $env:PYTHONIOENCODING="utf-8"; python session130_apply_all.py dry --bak-suffix s132all 2>&1 | Out-File -Encoding utf8 _t132_all_dry.log; $env:PYTHONIOENCODING=""; code _t132_all_dry.log
 ```
 dry PASS 후 apply 실행. 어느 단계라도 fail 시 전체 abort + 최초 ko 복원.
+
+az_uncovered 별도:
+```
+t $env:PYTHONIOENCODING="utf-8"; python session129_apply_ko_unified.py dry --csv _ko_sheet_az_uncovered.csv --bak-suffix s132azu2 2>&1 | Out-File -Encoding utf8 _t132_azu2_dry.log; $env:PYTHONIOENCODING=""; code _t132_azu2_dry.log
+```
 
 특정 시트만 처리 시 5-B 의 개별 명령 사용.
 
 **★2순위 — 신규 측정·발굴 영역**
 - 작성 후 새로운 raw 측정으로 미발견 작성대상 추가 발굴 가능성
+- session131_diag_hashkey_boundary_v2.py 재실행 권장 (auto.* 영역 변동 확인)
 - session129_diag_global_writetarget.py 재실행 권장 (전수 작성대상 분포)
 - ja/zh 영역도 한 번 더 raw 재측정 (사용자 번역자원 추가 시)
 
@@ -411,7 +463,7 @@ dry PASS 후 apply 실행. 어느 단계라도 fail 시 전체 abort + 최초 ko
 종결 요약 보고 → 사용자 승인 → 검수자가 NEXT_SESSION.md
 전체 작성(기존 삭제 후 전체 붙여넣기) → 사용자 저장 →
 CC 명령으로 차수 인계 커밋:
-`t git add NEXT_SESSION.md; git commit -m "docs(handover): session 131 -> 132"; git log --oneline -3`
+`t git add NEXT_SESSION.md; git commit -m "docs(handover): session 132 -> 133"; git log --oneline -3`
 
 ※ 사용자 명시 지시 (반드시 계승):
 - 작업 여력 있는 한 미측정 축 계속 발굴·진행
@@ -419,11 +471,12 @@ CC 명령으로 차수 인계 커밋:
 - 종류1/종류2 구분으로 "무엇이 선행돼야 가능한지" 명시 (0-4)
 - 선택지 제시 시 검수자 추천 1개 반드시 명시
 - 도구는 검수자가 작성 (CC 자체작성 금지, N-18)
-- 사용자가 ko 결정하는 영역은 추측원복 절대 금지 (N-17/N-25/N-37)
+- 사용자가 ko 결정하는 영역은 추측원복 절대 금지 (N-17/N-25/N-37/N-58)
 - 검수자 수정 문서 → 사용자 폴더 저장 → 검수자 CC 명령 적용 워크플로우
 - 초엔터프라이즈급 정밀도 유지
 
 ---
-*(130차 검수자 작성. 모든 수치 raw 확정. 131차는 시작 시
-재확인 후 진행. 130차 작업커밋 0건, 도구 7개 + 시트 1개 신규
-추가, 762 leaf_key apply 인프라 완비.)*
+*(131차 검수자 작성. 모든 수치 raw 확정. 132차는 시작 시
+재확인 후 진행. 131차 작업커밋 0건, 도구 9개 + 시트 1개 신규
+추가 (az_uncovered 173 leaf_key), 935 leaf_key/path apply 인프라
+완비. N-45 ~ N-58 신규 raw 14건 기록.)*
