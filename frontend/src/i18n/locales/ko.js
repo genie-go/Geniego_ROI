@@ -8010,6 +8010,8 @@ export default {
     chPerfSummary: '채널 성과 요약',
     colConvPct: '전환율',
     colRev: '매출',
+    colCpc: 'CPC',
+    total: '합계',
   },
 
   "gBudget": {
@@ -9234,8 +9236,13 @@ export default {
 
     "comingSoonSub": "다음 업데이트에서 이용하실 수 있습니다.",
 
-    "period": "기간"
+    "period": "기간",
 
+    adSpend: '광고비',
+    filter: '필터',
+    revenue: '매출',
+    totalRevenue: '총 매출',
+    totalSpend: '총 지출',
   },
 
   "loading": "로딩 중…",
@@ -18152,6 +18159,7 @@ export default {
     alertsUnread: '읽지 않은 알림',
     campaignsRunning: '운영 중 캠페인',
     version: '버전',
+    upgrade: '업그레이드',
   },
 
   "performance": "Performance",
@@ -32397,6 +32405,12 @@ export default {
     syncRate: '동기화율',
     tabPricing: '가격 탭',
     totalChannels: '전체 채널',
+    colOrders: '주문수',
+    colPrice: '가격',
+    connected: '연동됨',
+    syncNow: '지금 동기화',
+    totalOrders: '오늘 주문',
+    totalRevenue: '오늘 매출',
   },
 
   "liveSyncMsg": "실시간 크로스탭 동기화 활성화 — 모든 메뉴의 데이터가 실시간 반영됩니다.",
@@ -35446,6 +35460,7 @@ export default {
     csAiOpt2: 'TikTok 숏폼 소재의 전환율이 가장 높습니다. 15초 이내 소재를 추가 제작하세요.',
     primaryAxisPrefix: '주축 접두어',
     secondaryAxisPrefix: '보조축 접두어',
+    injected_nav: 'true',
   },
 
   "accountPerf": {
@@ -38032,6 +38047,7 @@ export default {
     allSentiments: '전체 감정',
     reviewFeedSub: '리뷰 피드 부제',
     reviewFeedTitle: '리뷰 피드',
+    neutral: '중립',
   },
 
   "root_pageTitle_reviewsUgc": "리뷰 & UGC",
@@ -39012,8 +39028,37 @@ export default {
 
       "sub": "거버넌스 · 관리자"
 
-    }
+    },
 
+    account: '계정',
+    allAccounts: '전체 계정',
+    allTeams: '전체 팀',
+    anomalyDetected: '이상 감지됨',
+    audienceInsights: '오디언스 인사이트',
+    channelPerf: '채널 성과',
+    churn: '최종 이탈 상태',
+    colConversions: '전환',
+    colCtr: '클릭률',
+    colCvr: '전환율',
+    colSpend: '광고비',
+    compareTo: '비교 대상',
+    creativePerf: '소재 성과',
+    dateRange: '기간',
+    exportReport: '리포트 내보내기',
+    kpiConversions: '전환',
+    kpiCtr: '클릭률',
+    kpiCvr: 'CVR',
+    kpiSpend: '총 광고비',
+    noAnomaly: '이상 없음',
+    prob30: '30일 구매확률',
+    productPerf: '상품별 성과',
+    tabAudience: '오디언스',
+    tabChannels: '채널 탭',
+    tabCreatives: '소재',
+    tabOverview: '캠페인 상태',
+    tabProducts: '상품',
+    team: '팀',
+    topProducts: '상위 상품',
   },
 
   "_marketing_1": {
