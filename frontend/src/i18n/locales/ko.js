@@ -538,8 +538,10 @@ export default {
 
     "guideSecRules": "승인된 모든 활성 규칙을 한눈에 관리합니다.",
 
-    "guideSecLLM": "Claude AI 기반 대화형 규칙 생성기입니다."
+    "guideSecLLM": "Claude AI 기반 대화형 규칙 생성기입니다.",
 
+    guideStep5Title: '정산 관리',
+    guideStepsTitle: '단계별 가이드',
   },
 
   "orderHub": {
@@ -18118,8 +18120,9 @@ export default {
 
     "quickAccess": "빠른 접근",
 
-    "addFav": "즐겨찾기 추가"
+    "addFav": "즐겨찾기 추가",
 
+    logout: '로그아웃',
   },
 
   "performance": "Performance",
@@ -23245,8 +23248,10 @@ export default {
 
     "analytics": "분석",
 
-    "marketing": "마케팅"
+    "marketing": "마케팅",
 
+    necessary: '필수',
+    personalization: '개인화',
   },
 
   "banner": {
@@ -35352,6 +35357,22 @@ export default {
     csStatusActive: '활성',
     csStatusApproved: '승인',
     csUnitCount: '건',
+    csAiOptTitle: 'AI 소재 최적화 제안',
+    csColFormat: '포맷',
+    csConv: '전환',
+    csFilterAll: '전체',
+    csFmtBanner: '배너',
+    csFmtCarousel: '캐러셀',
+    csFmtShort: '쇼츠',
+    csFmtVideo: '영상',
+    csPerfAvgConv: '평균 전환율',
+    csPerfAvgCtr: '평균 CTR',
+    csPerfTotalConv: '총 전환수',
+    csStatusReview: '심사 중',
+    csTypeBannerDesc: '반응형 디스플레이 배너',
+    csTypeMessageDesc: '카카오톡·라인 템플릿',
+    csTypeVideo: '영상 광고',
+    csUploadAsset: '에셋 업로드',
   },
 
   "accountPerf": {
