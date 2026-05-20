@@ -40485,6 +40485,7 @@ export default {
     "skuTitle": "📦 SKU 분석",
 
     tabSaved: '💾 저장된 리포트',
+    allChannels: '전체 채널',
   },
 
   "alertPolicies": {
