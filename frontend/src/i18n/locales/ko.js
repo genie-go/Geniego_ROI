@@ -2712,8 +2712,9 @@ export default {
 
     "colProfit": "기대 이익",
 
-    "badgeChannelUnit": "개 채널 연동"
+    "badgeChannelUnit": "개 채널 연동",
 
+    labelChannel: '채널',
   },
 
   "supplyChain": {
@@ -40049,8 +40050,9 @@ export default {
 
     "p_17": "P_17",
 
-    "p_18": "P_18"
+    "p_18": "P_18",
 
+    tabOverview: '개요',
   },
 
   "rollup": {
