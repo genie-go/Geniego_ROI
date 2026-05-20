@@ -35344,6 +35344,14 @@ export default {
     "tier5": "📦 무료",
     "tag_api": "API/통합",
     "tag_enterprise": "엔터프라이즈",
+    csColName: '소재명',
+    csColPlatform: '플랫폼',
+    csColStatus: '상태',
+    csDownload: '다운로드',
+    csPreview: '미리보기',
+    csStatusActive: '활성',
+    csStatusApproved: '승인',
+    csUnitCount: '건',
   },
 
   "accountPerf": {
@@ -40544,8 +40552,9 @@ export default {
 
     "viewAll": "전체 보기",
 
-    "noActions": "실행할 액션이 없습니다."
+    "noActions": "실행할 액션이 없습니다.",
 
+    items: '건',
   },
 
   "report": {
