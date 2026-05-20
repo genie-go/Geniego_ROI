@@ -4388,8 +4388,9 @@ export default {
 
     "setSmtp": "SMTP 설정",
 
-    "setSaveBtn": "설정 저장"
+    "setSaveBtn": "설정 저장",
 
+    syncNow: '지금 동기화',
   },
 
   "kakao": {
@@ -19105,8 +19106,9 @@ export default {
 
       "Dec"
 
-    ]
+    ],
 
+    noData: '데이터가 없습니다.',
   },
 
   "attrData": {
@@ -36892,8 +36894,9 @@ export default {
 
     "ihubLinked": "채널 연동됨",
 
-    "ihubAutoDetect": "연동허브에서 자동 감지된 SMS 채널:"
+    "ihubAutoDetect": "연동허브에서 자동 감지된 SMS 채널:",
 
+    syncNow: '지금 동기화',
   },
 
   "contentCal": {
@@ -40126,6 +40129,9 @@ export default {
     "p_18": "P_18",
 
     tabOverview: '개요',
+    pageTitle: 'AI 예측 분석 허브',
+    margin: '이익률',
+    connected: '연동됨',
   },
 
   "rollup": {
@@ -40486,6 +40492,7 @@ export default {
 
     tabSaved: '💾 저장된 리포트',
     allChannels: '전체 채널',
+    noData: '데이터가 없습니다.',
   },
 
   "alertPolicies": {
@@ -41053,8 +41060,10 @@ export default {
 
     "liveSyncMsg": "실시간 크로스탭 동기화 활성",
 
-    "reviewReq": "검토 필요"
+    "reviewReq": "검토 필요",
 
+    searchPh: '예: "뷰티 인스타그램 광고 전략" 또는 마케팅 목표 입력',
+    reviewFeedTitle: '리뷰 피드',
   },
 
   "ui": {
@@ -42091,8 +42100,14 @@ export default {
 
     "guideTitle": "예산 추적 이용 가이드",
 
-    "guideSub": "실시간 광고 예산 소비 및 최적화 추적 가이드입니다."
+    "guideSub": "실시간 광고 예산 소비 및 최적화 추적 가이드입니다.",
 
+    guideStep7Desc: 'B2B 탭에서 대량 주문을 별도 관리합니다.',
+    guideStep7Title: 'B2B 도매 주문 관리',
+    guideStep8Desc: '자동 라우팅 탭에서 조건별 규칙을 생성·관리합니다.',
+    guideStep8Title: '자동 라우팅 엔진',
+    pageTitle: 'AI 예측 분석 허브',
+    pageSub: '측정 가능한 KPI · 비즈니스 목표 연동 · 채널 역할 최적화 · 정기 AI 평가',
   },
 
   "🤖 Auto-Optimization Applied Successfully": {},
