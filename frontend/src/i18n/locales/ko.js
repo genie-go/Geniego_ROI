@@ -2889,8 +2889,9 @@ export default {
 
     "guideStep10Title": "데이터 활용",
 
-    "guideStep10Desc": "공급망 데이터는 가격 최적화, WMS 관리자 등 다른 모듈과 실시간 연동되어 통합적인 의사결정을 지원합니다."
+    "guideStep10Desc": "공급망 데이터는 가격 최적화, WMS 관리자 등 다른 모듈과 실시간 연동되어 통합적인 의사결정을 지원합니다.",
 
+    abTimeline: 'A/B 타임라인',
   },
 
   "returnsPortal": {
@@ -8003,8 +8004,11 @@ export default {
 
     "topRegion": "방문 상위 지역",
 
-    "chIntelDesc4": "해당 채널의 상세 분석이 표시됩니다:"
+    "chIntelDesc4": "해당 채널의 상세 분석이 표시됩니다:",
 
+    chPerfSummary: '채널 성과 요약',
+    colConvPct: '전환율',
+    colRev: '매출',
   },
 
   "gBudget": {
@@ -18144,6 +18148,9 @@ export default {
     "addFav": "즐겨찾기 추가",
 
     logout: '로그아웃',
+    alertsUnread: '읽지 않은 알림',
+    campaignsRunning: '운영 중 캠페인',
+    version: '버전',
   },
 
   "performance": "Performance",
@@ -20807,8 +20814,9 @@ export default {
 
         "selectLoginTypeDesc": "계속하려면 환경을 선택하세요",
 
-        "adminBlockedInNormalLogin": "관리자 계정은 관리자 전용 로그인을 사용해야 합니다. 로고를 클릭하여 관리자 로그인에 접속하세요."
+        "adminBlockedInNormalLogin": "관리자 계정은 관리자 전용 로그인을 사용해야 합니다. 로고를 클릭하여 관리자 로그인에 접속하세요.",
 
+    ceoLabel: '대표자',
   },
 
   "helpPanel": {
@@ -31749,8 +31757,13 @@ export default {
 
     "export": "내보내기",
 
-    "noData": "정산 내역이 없습니다."
+    "noData": "정산 내역이 없습니다.",
 
+    csvDetailSuccess: 'CSV 상세 다운로드 성공',
+    csvIndividual: '개별 CSV',
+    detailItem: '상세 항목',
+    detailKRW: '상세 (원)',
+    detailValue: '상세 값',
   },
 
   "aiHub": {
@@ -32375,8 +32388,13 @@ export default {
 
     "guideTip": "팁",
 
-    "demoIsolation": "Demo environment — data isolated from production"
+    "demoIsolation": "Demo environment — data isolated from production",
 
+    bulkPriceChange: '일괄 가격 변경',
+    disconnected: '연결 끊김',
+    syncRate: '동기화율',
+    tabPricing: '가격 탭',
+    totalChannels: '전체 채널',
   },
 
   "liveSyncMsg": "실시간 크로스탭 동기화 활성화 — 모든 메뉴의 데이터가 실시간 반영됩니다.",
@@ -35424,6 +35442,8 @@ export default {
     csAiGenDesc: '카테고리와 채널을 선택하면 AI 가 최적의 광고 소재를 자동 생성합니다.',
     csAiOpt3: '2주 이상 노출된 소재는 광고 피로도가 올라갑니다. 새 크리에이티브로 교체하세요.',
     csAiOpt2: 'TikTok 숏폼 소재의 전환율이 가장 높습니다. 15초 이내 소재를 추가 제작하세요.',
+    primaryAxisPrefix: '주축 접두어',
+    secondaryAxisPrefix: '보조축 접두어',
   },
 
   "accountPerf": {
@@ -38004,8 +38024,11 @@ export default {
 
     "copy": "복사",
 
-    "aiDisclaimer": "이것은 AI 생성 초안입니다. 발송 전 검토 및 수정해 주세요."
+    "aiDisclaimer": "이것은 AI 생성 초안입니다. 발송 전 검토 및 수정해 주세요.",
 
+    allSentiments: '전체 감정',
+    reviewFeedSub: '리뷰 피드 부제',
+    reviewFeedTitle: '리뷰 피드',
   },
 
   "root_pageTitle_reviewsUgc": "리뷰 & UGC",
