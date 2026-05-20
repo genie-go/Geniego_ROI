@@ -1,7 +1,7 @@
-# GenieGoROI i18n 인계서 — 133차 시작점
+# GenieGoROI i18n 인계서 — 134차 시작점
 
-> 본 문서는 132차 검수자가 전체 작성. 133차 검수자는 이 문서
-> 전체를 신뢰 기반으로 삼되, 모든 수치·상태는 133차 시작 시
+> 본 문서는 133차 검수자가 전체 작성. 134차 검수자는 이 문서
+> 전체를 신뢰 기반으로 삼되, 모든 수치·상태는 134차 시작 시
 > raw 재확인 후 진행할 것. 추측 보류 금지 — raw 로 0/부재를
 > 입증해야 보류가 정당.
 
@@ -10,7 +10,7 @@
 ## 0. 운영 원칙 (절대 — 매 차수 최우선 준수)
 
 **0순위 절대원칙**
-1. **★작업 여력 최대 활용 (132차 사용자 명시·강화)**: 작업 여력이
+1. **★작업 여력 최대 활용 (132차 사용자 명시·강화, 133차 실증)**: 작업 여력이
    있으면 절대 다음 차수로 미루지 않는다. 부분 종결이 가능하면
    진행하고, 추가 측정·발굴·도구작성·apply 까지 가능하면 끝까지
    한다. 인계서만 작성하다 차수만 증가시키지 말 것. 사용자 작성분
@@ -34,17 +34,21 @@
    ※ 인계서엔 "다음 차수에 하면 됨"이 아니라 **무엇이 선행
      돼야 가능해지는지**를 명시한다.
 5. **★사용자가 ko 결정하는 영역 — 검수자/CC 추측 절대 금지
-   (N-17/N-25, 129차 강화, 131차 N-58, 132차 N-65 재확인)**:
+   (N-17/N-25, 129차 강화, 131차 N-58, 132차 N-65 재확인, 133차 실증)**:
    ko_fixed 자동 결정 금지. **단, 추천값 제시 후 사용자
    확정 받는 워크플로우는 허용** (132차 N-76 정착 — 검수자 추천
-   + 사용자 검토 모델).
-6. **★CC 자동 apply 제안 거부 원칙 (132차 N-65/N-78 강화)**: CC 가
-   "session129_apply_ko_unified.py 로 ja/zh 도 함께 apply" 같은
-   제안 또는 임의 명령 입력 시 무조건 거부. ja/zh 자동 propagation
-   시 한국어가 일본어/중국어판에 들어가는 위반 발생. 사용자 확정
-   없는 자동 apply 는 차수 전체를 망친다. CC 가 명령을 멋대로
-   대기 상태로 만들면 즉시 다른 명령으로 덮어쓰기.
-7. **★ko 전용 안전 apply 도구 패턴 (132차 N-79 신규 정착)**:
+   + 사용자 검토 모델, 133차 실증).
+6. **★CC 자동 명령 무력화 원칙 (133차 신규 강화 N-81)**:
+   CC 가 자동으로 명령을 입력 대기 상태로 만드는 현상은 처음부터
+   계속 발생. 132차 N-65/N-78 에서 "거부" 로 처리했으나 거부
+   응답만 하다 차수가 증가. **133차부터는 거부 응답 입력하지
+   않고, 검수자의 다음 `t` 접두 명령을 입력해서 자동 명령을
+   덮어쓰는 방식으로 무력화**. 거부 명령에 시간 소비 금지.
+   예외: CC 가 `apply` / `commit` / 검증완료 .py 자체수정 등
+   치명적 작업을 자동 입력했을 때는 즉시 차단 (다른 무해 명령으로
+   덮어쓰기). ja/zh propagation 도구 (`session129_apply_ko_unified.py`)
+   자동 입력은 절대 차단 — ja/zh 변경 위험.
+7. **★ko 전용 안전 apply 도구 패턴 (132차 N-79 정착, 133차 실증)**:
    `session132_apply_ko_only.py` 가 ko apply 표준.
    - ja/zh md5 boundary check (변경 시 즉시 롤백)
    - ambiguous (multi-value) 자동 SKIP (시트 ko_current 와 ko 실값 일치 path 만)
@@ -59,11 +63,13 @@
 - 명령 연결은 `;` 만 사용(`&&`/`||` 금지).
 - CC 승인 프롬프트: `1.Yes/2.allow all/3.No` → `2`,
   `1.Yes/2.No` → `1`. 검증완료 .py 를 CC 가 자체수정
-  시도하면 → `3`. CC 가 ja/zh apply 명령 임의 입력하면 → 검수자가
-  즉시 거부 + 다른 명령으로 덮어쓰기 (132차 N-78).
+  시도하면 → `3`.
+- **★CC 가 자동 명령 입력 대기 상태로 만들면 → 거부 응답 대신
+  검수자가 다음 `t` 명령으로 즉시 덮어쓰기 (N-81)**. 단 apply/commit/
+  ja-zh propagation 자동 입력은 차단 우선.
 - 검수자 설명은 한글·핵심만 짧게. 초엔터프라이즈급 정밀도.
 - ★사용자 선택지 제시 시 **검수자 추천 1개 반드시 명시**.
-- ★검수자 추천 + 사용자 검토 모델 (132차 N-76 정착 워크플로우):
+- ★검수자 추천 + 사용자 검토 모델 (132차 N-76 정착, 133차 실증):
   1. 사용자가 일일이 작성하기 어려운 영역은 검수자가 ko_fixed 미리
      채워서 `_user_work_*.csv` 로 제공
   2. 사용자가 추천값 검토/수정 (텍스트 또는 CSV 직접)
@@ -79,10 +85,10 @@
 
 - locale: `D:\project\GeniegoROI\frontend\src\i18n\locales\{ko,ja,zh}.js`
 - 인계서 본체: `D:\project\GeniegoROI\NEXT_SESSION.md`
-- 작업 도구: `D:\project\GeniegoROI\session{125,128,129,130,131,132}_*.py`
-- ko leaf-paths 총수: 19,801 (132차 apply 후 raw 재확인, 무변동)
-- ja leaf-paths 총수: 23,220 (132차 raw 재확인, 무변동)
-- zh leaf-paths 총수: 19,409 (132차 raw 재확인, 무변동)
+- 작업 도구: `D:\project\GeniegoROI\session{125,128,129,130,131,132,133}_*.py`
+- ko leaf-paths 총수: 19,801 (133차 apply 후 raw 재확인, 무변동)
+- ja leaf-paths 총수: 23,220 (133차 raw 재확인, 무변동)
+- zh leaf-paths 총수: 19,409 (133차 raw 재확인, 무변동)
 
 ---
 
@@ -93,295 +99,306 @@
   `_is_hashkey`(132차 N-59 raw 정상 확정), `KO_CONTAMINATED`, `norm`,
   `scan_key_blocks`, `extract_kv`, ANYKEY_RE, `LEAF_RE_TMPL`
 
-**128~131차 검증 자산** (무변경): 131차 인계서 § 2 참조
+**128~132차 검증 자산** (무변경): 132차 인계서 § 2 참조
 
-**132차 신규 도구 (총 18개)**
+**133차 신규 도구 (총 11개)**
 
-진단 도구 (read-only, 10개):
-- `session132_diag_hashkey_function.py`, `session132_diag_auto_root_jazh.py`,
-  `session132_diag_auto_detail.py`, `session132_diag_three_way.py`,
-  `session132_extract_jazh_targets.py`, `session132_diag_only_b.py`,
-  `session132_diag_cumulative_integrity.py`, `session132_diag_placeholder_vs_sheets.py`,
-  `session132_diag_path_diff_54.py`, `session132_diag_unmapped_words.py`
+진단 도구 (read-only, 5개):
+- `session133_diag_user_work_overview.py` — 4종+only_B raw 진단
+- `session133_diag_jazh_coverage_and_vars.py` — zh 커버리지 + 변수 진단
+- `session133_diag_recommend_vars.py` — ko_current vs ko_recommend 변수 비교
+- `session133_diag_absent_paths.py` — absent 308 path 분포
+- `session133_diag_onlyb_recommendable_v2.py` — SAFE_DICT 197 매칭 발굴
 
-시트/추천 생성 도구 (4개):
-- `session132_fill_az_uncovered.py`, `session132_fill_safe_abbrev.py`,
-- `session132_make_user_worksheet_v3.py` — **v3 채택 (품질 우선)**
-- (v1/v2 폐기)
+시트 생성 도구 (5개):
+- `session133_fill_residual_recommend.py` — residual 94건 추천 채움
+- `session133_fill_azunified_recommend.py` — az_unified 2건 추천 채움
+- `session133_make_absent_v4_with_jazh.py` — absent 308 ja/zh 첨부 (raw: 매칭 0)
+- `session133_split_onlyb_by_root.py` — only_B 1,540 우선순위 분할
+- **`session133_make_p2_user_work.py`** ★134차 작업 인프라
 
-병합/apply 도구 (5개):
-- `session132_show_mk87_review.py`, `session132_check_user_mk87.py`,
-  `session132_apply_user_mk87_text.py`, `session132_merge_mk87.py`
-- **★`session132_apply_ko_only.py`** — ★ko 전용 안전 apply 표준 (N-79)
+수정/병합 도구 (3개):
+- `session133_fix_var_preservation.py` — {var} 변수 보존 (pass=1, fixed=0)
+- `session133_fix_json_preservation.py` — JSON 키 보존 (fixed=1)
+- **`session133_apply_user_response.py`** — 사용자 회신 → _v2 시트
+- **`session133_merge_user_to_kosheet.py`** — _user_work → _ko_sheet 병합
 
-검증 도구 (1개):
-- `session132_dry_verify_filled.py`
+**133차 신규 CSV (1개) + 사용자 작업 시트 (7개)**:
+- `_recommendable_candidates.csv` (104 rows, SAFE_DICT 매칭, 134차 활용)
+- `_user_work__ko_sheet_residual_v2.csv` (210 rows, 검수자 94 채움)
+- `_user_work__ko_sheet_az_unified_v2.csv` (146 rows, 검수자 2 채움)
+- `_user_work__ko_sheet_absent_v4.csv` (308 rows, ja/zh 부재 확정)
+- `_user_work__only_b_p1_pages.csv` (588 rows)
+- **`_user_work__only_b_p2_marketing_crm_v2.csv`** ★ (217 rows, RECOMMEND 42)
+- `_user_work__only_b_p3_ops_rule.csv` (561 rows)
+- `_user_work__only_b_p4_others.csv` (174 rows)
 
-**132차 신규 CSV (3개) + 사용자 작업 시트 (4개)**:
-- `_ja_targets_3.csv` — ja 부재 3건
-- `_zh_targets_148.csv` — zh placeholder 148건
-- `_only_b_cat_a_candidates.csv` — only_B (A) 1,540건
-- `_user_work__ko_sheet_az_unified.csv` (146 rows)
-- `_user_work__ko_sheet_residual.csv` (210 rows)
-- `_user_work__ko_sheet_mk87.csv` (45 rows) **★완결**
-- `_user_work__ko_sheet_absent.csv` (308 rows)
-
-**백업 (132차)**:
-- 시트 5종 .s132fill
-- _user_work__ko_sheet_mk87.csv.s132user (사용자 작성 반영 전)
-- _ko_sheet_mk87.csv.s132merge (병합 전)
-- **ko.js.bak_s132mk87** (mk87 apply 전)
+**백업 (133차)**:
+- 시트 5종 .s133fill / .s133var / .s133json / .s133merge / .s133userresp
+- **ko.js.bak_s133az / ko.js.bak_s133res** (apply 전)
+- `_user_work__ko_sheet_*_v2.csv.s133var` / `.s133json` (변수/JSON 수정 전)
 
 ---
 
-## 3. 완료 커밋 (HEAD = ae82a0a + 132차 인계커밋, 132차 작업커밋 1)
+## 3. 완료 커밋 (HEAD = d099fda + 133차 인계커밋, 133차 작업커밋 1)
 
 | 커밋 | 내용 | 건수 |
 |---|---|---|
-| **ae82a0a ★132차 신규** | i18n(mk87) recover 58 ko keys via user-confirmed ko_fixed | **58** |
-| 5e530db | docs(handover): session 132 -> 133 (가커밋, 갱신 예정) | (인계) |
+| **d099fda ★133차 신규** | i18n(s133 az_unified+residual) recover 35 ko keys via user-confirmed ko_fixed | **35** |
+| e396979 | docs(handover): session 132 -> 133 | (인계) |
+| ae82a0a | i18n(mk87) recover 58 ko keys via user-confirmed ko_fixed | 58 |
+| 5e530db | docs(handover): session 132 -> 133 (가커밋) | (인계) |
 | b8ee534 | docs(handover): session 131 -> 132 | (인계) |
 | b4e68ce | docs(handover): session 130 -> 131 | (인계) |
 | a34de71 | docs(handover): session 129 -> 130 | (인계) |
 | fc84c08 | i18n(5-C mirror7) recover auto.{key} root ko from dashops | 7 |
 
-- **132차 누적**: 작업 커밋 **1건 (58건)**, 도구 18개 + CSV 3개 + 사용자 작업 시트 4종
-- **전체 누적**: 128차까지 6,548 + 129차 7 + 130차 0 + 131차 0 + 132차 58 = **6,613건**
-- node --check ja/zh/ko = 0 (정상). ko.js tracked (mk87 apply 후 LF 정규화).
+- **133차 누적**: 작업 커밋 **1건 (35건)**, 도구 11개 + CSV 1개 + 사용자 작업 시트 7종
+- **전체 누적**: 128차까지 6,548 + 129차 7 + 130차 0 + 131차 0 + 132차 58 + 133차 35 = **6,648건**
+- node --check ja/zh/ko = 0 (정상). ko.js tracked.
 - origin 대비 push 미실행 (5-4).
 
 ---
 
-## 4. 132차 핵심 발견 (N-59 ~ N-80)
+## 4. 133차 핵심 발견 (N-81 ~ N-92)
 
-### N-59 — `_is_hashkey` 함수 정상 raw 확정
-함수 로직: `if segs[0] != "auto": return False`. ko 실제 데이터: 638 path 가 모두 `dash.operations.auto.xxx`. 함수와 데이터 층위 차이. **함수 무변경 유지**.
+### N-81 — ★ CC 자동 명령 무력화 원칙 (운영원칙 0-6 강화)
+처음부터 CC 가 자동 명령을 입력 대기 상태로 만드는 현상 지속 발생.
+132차까지 거부 응답 (`3`) 으로 처리 → 차수가 거부 처리만 하다 증가.
+**133차부터 거부 응답 입력 대신 검수자의 다음 `t` 접두 명령으로 덮어쓰기**.
+단 apply/commit/ja-zh propagation 자동 입력은 즉시 차단.
 
-### N-60 — ko auto.* root 319 실값 분포
-한글만 44 / 영문만 2 / 한+영 혼재 129 / Capitalized placeholder **144**.
+### N-82 — residual_v2 변수 보존 raw (pass=1, fixed=0)
+검수자 채운 residual_v2 의 ko_fixed_recommend 컬럼에서:
+- ✓ OK 1건: `:{page} / {total} /+1` 변수 그대로 유지
+- ★ WARN 1건: JSON 예시 `{"sku":"...", "title":"...", "price": 0}` 에서
+  `title`→`제목`, `price`→`가격` 잘못 번역됨
 
-### N-61 — 3중 교집합 144 = 종류1 핵심
-ko placeholder 144 = ja 부재 ∩ zh placeholder. 세 언어 모두 정답 없음.
-ja_absent 만 3 / zh_ph 만 148 = 종류2 (정답 출처 확보 시 가능).
+### N-83 — JSON 예시 보존 자동 복원 (fixed=1)
+N-82 의 WARN 1건을 `session133_fix_json_preservation.py` 로 자동 복원.
+JSON 키는 코드가 그 키로 데이터를 받으므로 절대 번역 금지.
 
-### N-62 — az_uncovered 173 의 ko_current 100% 실값
-한글만 44 + 한+영 혼재 129 + placeholder 0.
+### N-84 — absent 308 ja/zh 매칭 0건 raw 확정
+가설: "ja/zh 출처 확보 시 옵션 B (검수자가 ja/zh 보여주고 번역) 가능"
+**raw 사실: ja/zh 매칭 0건** — absent 308 은 ko.js 뿐 아니라 ja.js / zh.js
+에도 없는 완전 신규 키. **옵션 B 물리 불가 확정** (종류 1).
+남은 옵션: A (path 만 보고 직접 작성) 또는 C (보류).
 
-### N-63 — az_unified 146 ≈ ko placeholder 144 (3중 교집합 영역)
-
-### N-64 — ja 부재 3 / zh placeholder 148 정확 path
-`_ja_targets_3.csv` / `_zh_targets_148.csv` 생성.
-
-### N-65 — CC 자동 복사 제안 거부 사례 (운영원칙 0-6)
-CC: "ko/ja 값 동일하므로 zh 도 복사 가능" → 거부. ko/ja 자체가 한+영 혼재 임시 상태.
-
-### N-66 — only_B 18,445 재정밀화
-(A) ko 부모 존재 = **1,540** (신규 작성 강 후보) / (B) leaf 동명 ko 존재 = 16,732 / (C) ko 부재 = 173.
-`_only_b_cat_a_candidates.csv` 생성.
-
-### N-67 — 현재 ko.js placeholder/empty (132차 apply 전 시점)
-empty 4 / capitalized 344 / exact_leaf 107 / upper 32 = 합계 **483**.
-
-### N-68 — 누적 회수 6,555 무결성 양호
-marketing/crm/pages 영역 placeholder 0. 회귀 없음.
-
-### N-69 — placeholder 483 = 시트 5종이 leaf 단위 완전 커버
-leaf 외부 placeholder 0.
-
-### N-70 — path 외부 54건 = 같은 leaf 다른 path
-leaf 기반 자동 탐색으로 자동 처리 가능.
-
-### N-71 — 검수자 자체 채움 226건 dry 결과
-매칭 OK 0 / unchanged 202 / ambiguous 24 / FAIL 0. apply 보류.
-
-### N-72 — ambiguous 24건 raw 샘플
-`colCpa` -> ['CPA', 'CPA 비용'], `cpa` -> ['CPA', '전환 단가 (CPA)', '전환당 비용 (CPA)']. N-79 도구가 자동 SKIP 으로 해결.
-
-### N-73 — 사용자 작업 시트 v1/v2/v3 비교
-
-| 버전 | RECOMMEND | REVIEW |
+### N-85 — absent 308 path 분포 raw
+| root | 건수 | 비고 |
 |---|---|---|
-| v1 (204단어) | 10 | 130 |
-| v2 (292단어, 일반어 포함) | 42 | 98 (부자연) |
-| **v3 (264단어, 명사/명확동사만)** | **33** | **107** ✓ |
+| crm | 102 | crm.aiHub 101건 집중 |
+| pages | 48 | pages.marketingIntel 48건 집중 |
+| ruleEnginePage | 36 | operations / root_pageTitle.* |
+| channelKpi | 24 | 24개 개별 키 |
+| tabs | 16 | tab 라벨들 |
+| gSug | 14 | 영문 문장형 (예시 쿼리) |
+- 해시 leaf_key 0건 — 모두 의미있는 영문 키 → **번역 추론 가능**
+- crm.aiHub 101 + pages.marketingIntel 48 = 149 (전체 48%) 두 그룹 집중
 
-v2 의 일반 영문어 매핑이 한국어 어순 불일치 → v3 채택.
+### N-86 — only_b 1,540 의 ja_value 패턴 분포 (read-only 진단)
+| ja 패턴 | 건수 | 비고 |
+|---|---|---|
+| empty | 388 | ja/zh 둘 다 부재 |
+| ascii_only | 312 | 영문 그대로 후보 |
+| kanji_only | 264 | ★ 한국어 한자독 안전 후보 |
+| hiragana_present | 141 | 일본어 문법, 검토 필수 |
+| kanji_katakana | 109 | |
+| hangul_already | 99 | 이미 한국어 |
+| katakana_only | 92 | 외래어 |
+| emoji_lead | 88 | |
+| mixed | 47 | |
 
-### N-74 — 사용자 작업 시트 분포 (v3, 132차 신규)
+### N-87 — only_b zh_value 커버리지
+93% (1,433 / 1,540). 빈칸 7%: crm 0%, gSug 0%, aiPredict/aiRec/auth/gCat/helpPanel 0%.
 
-| 시트 | 총 | RECOMMEND | REVIEW | NO_SOURCE |
-|---|---|---|---|---|
-| az_unified | 146 | 0 | 2 | 144 |
-| residual | 210 | 16 | 78 | 116 |
-| **mk87** ★완결 | 45 | 17 | 27 | 1 |
-| absent | 308 | 0 | 0 | 308 |
+### N-88 — SAFE_DICT v2 매칭 104건 raw
+한국어 한자독 1:1 사전 (197 entries) 으로 only_b 1,540 매칭:
+- 매칭 104건 (v1 62 → v2 104, +42)
+- root 분포: crm 38, ruleEnginePage 33, pages 17, channelKpi 4,
+  marketing 4, dash 2, auth 1, commerce 1, gdpr 1, settlements 1,
+  sidebar 1, tabs 1
+- 사전 외 한자만 짧은 ja 175건 (135차 사전 보강 후보)
+- `_recommendable_candidates.csv` 104 rows 생성
 
-### N-75 — az_uncovered 173 = unchanged NOOP
-ko_fixed=ko_current 시뮬레이션 173/173 unchanged. apply 효과 없음.
+### N-89 — only_b p2 (marketing+crm 217) 사용자 작업 시트 raw
+`_user_work__only_b_p2_marketing_crm_v2.csv` 생성 완료:
+| status | 건수 | 비고 |
+|---|---|---|
+| RECOMMEND | 42 | SAFE_DICT 자동 추천, 사용자 확인만 |
+| NEEDS_TRANS | 101 | ja 있음 사전 외, 사용자 번역 |
+| NO_SOURCE | 74 | ja 부재, 사용자 직접 작성 |
 
-### N-76 — ★ 검수자 추천 + 사용자 검토 워크플로우 정착 (132차 mk87 실증)
-1. 검수자 v3 사전으로 ko_fixed_recommend 미리 채움
-2. 사용자가 검토/수정 (텍스트 또는 CSV 직접)
-3. 검수자가 사용자 작성분 → CSV 반영 → 원본 시트 병합
-4. ko 전용 안전 도구로 dry → apply
-→ 운영원칙 0-5 와 양립. mk87 58건 apply 로 실증됨.
+### N-90 — only_B 신규 키 영역은 기존 도구 apply 불가
+`session132_apply_ko_only.py` 는 기존 path 의 ko 값 **수정용**.
+only_B 는 ko.js 에 **부재하는 신규 키** 영역 → **신규 키 추가 도구 별도 필요** (134차 작성).
 
-### N-77 — 사전 v3 정책 (한국어 자연스러움 우선)
-포함: 명사/명확 동사/비즈니스 등급. 제외: 일반 영문어/브랜드명/약어.
+### N-91 — 133차 작업커밋 1건 raw 무결성
+- 커밋 d099fda: az_unified 4 + residual 31 = 35건 ko 적용
+- 1 file changed, 35 insertions(+), 35 deletions(-)
+- ja.js / zh.js md5 동일 (boundary check)
+- ko.js leaf paths 19801 → 19801 (synth check)
+- node --check ko/ja/zh 모두 PASS
+- 132차 mk87 패턴 동일
 
-### N-78 — CC 가 임의로 ja/zh apply 명령 입력 사례 (운영원칙 0-6 강화)
-mk87 apply 성공 후 CC 가 즉시 `python session129_apply_ko_unified.py dry --csv _ko_sheet_mk87.csv --bak-suffix s132mk87ja` 명령 입력 (사용자 enter 대기). 이 도구는 ja/zh propagation. 검수자가 즉시 거부 + 다른 명령으로 덮어쓰기로 차단.
-
-### N-79 — ★ ko 전용 안전 apply 도구 정착 (132차 표준)
-`session132_apply_ko_only.py` 신규. 특징:
-- **ja/zh md5 boundary check**: apply 전/후 ja/zh md5 비교, 변경 시 즉시 롤백
-- **ambiguous 자동 SKIP**: 시트의 ko_current 와 실제 ko 값이 일치하는 path 만 적용 (multi-value 보호)
-- **synth check**: leaf 수 유지 + 실제 변경 path 수 raw 보고
-- **백업 + 롤백**: 모든 단계 실패 시 자동 복원
-- usage: `python session132_apply_ko_only.py dry|apply --csv <시트.csv> --bak-suffix <접미사>`
-
-mk87 apply 실증:
-- apply 58 / unchanged 69 / skip(multi) 43 / skip(no_match) 0
-- ja.js md5 동일 / zh.js md5 동일 / ko leaf paths 19801 유지
-- node --check ko/ja/zh 전부 OK
-- 커밋 ae82a0a (132차 첫 작업 커밋)
-
-**이 도구가 133차 이후 ko apply 표준.**
-
-### N-80 — CRLF→LF 변환 raw
-mk87 apply 커밋 +42224/-21123 line 변화는 CRLF→LF 정규화 효과. 실제 변경 58 path. git diff 로 검증 완료. 다음 커밋부터 CRLF 경고 사라짐.
+### N-92 — az_unified apply 4건 (예상 2건과 차이) raw
+검수자 추천은 `Json err` + `Not arr` = 2건 매칭 예상.
+실제 apply 4건 적용. 도구가 leaf 기반 path 추가 매칭한 듯
+(다른 위치에 같은 leaf 가 있었을 가능성).
+md5/synth/node 모두 PASS → **안전 확정**.
+정확한 4건 원인 raw 는 134차 시작 시 git diff 로 확인 가능.
 
 ---
 
-## 5. 잔여 백로그 (raw 확정 — 133차 작업 후보)
+## 5. 잔여 백로그 (raw 확정 — 134차 작업 후보)
 
 ### 5-A. 종류 1 (물리·논리 불가)
 
 - marketing R1 中 bad/mismatch 12건 (probe_order self-verify 불성립)
 - ja/zh 회수: **3중 교집합 144건** (정답 출처 없으면 불가)
-- `dataProduct.*` 일부 ko 영역 (multi-value, mk87 skip(multi) 43건):
-  - 해결 조건: path 단위 명시 시트 신규 작성 + path 별 ko_fixed 결정
+- **★ absent 308 옵션 B 불가 확정 (N-84)**: ja/zh 모두 부재. 옵션 A 또는 C.
+- `dataProduct.*` 일부 ko 영역 (multi-value, mk87 skip(multi) 43건,
+  residual skip(multi) 228건): path 단위 명시 시트 + path 기반 apply 도구 필요
 
-### 5-B. 종류 2 (선행부재 불가 — ko 정답 작성 선행 시 가능)
+### 5-B. 종류 2 (선행부재 불가)
 
-**★최우선 — 사용자 작업 시트 3종 작업 대기 (총 664 leaf/path, mk87 제외)**
+**★최우선 — 사용자 작업 시트 134차 작업 대기**
 
-| 시트 | RECOMMEND | REVIEW | NO_SOURCE | 적용 도구 |
+| 시트 | rows | 자동 추천 | 사용자 작성 | 적용 도구 |
 |---|---|---|---|---|
-| `_user_work__ko_sheet_residual.csv` | 16 | 78 | 116 | **session132_apply_ko_only.py** |
-| `_user_work__ko_sheet_az_unified.csv` | 0 | 2 | 144 | session132_apply_ko_only.py |
-| `_user_work__ko_sheet_absent.csv` | 0 | 0 | 308 | absent groupA/B/C 또는 신규 ko_only |
+| **★p2_marketing_crm_v2** | **217** | **RECOMMEND 42** | NEEDS_TRANS 101 + NO_SOURCE 74 | **신규 키 추가 도구 작성 필요 (N-90)** |
+| absent_v4 | 308 | 0 | NO_SOURCE 308 | 신규 키 추가 도구 (옵션 A 진행 시) |
+| residual_v2 잔여 | 116 | 0 | NO_SOURCE 116 | session132_apply_ko_only.py (해시 leaf, 적용 불가) |
+| az_unified_v2 잔여 | 144 | 0 | NO_SOURCE 144 | session132_apply_ko_only.py (해시 leaf, 적용 불가) |
+| p1_pages | 588 | 미작성 | 미작성 | 신규 키 추가 도구 |
+| p3_ops_rule | 561 | 미작성 | 미작성 | 신규 키 추가 도구 |
+| p4_others | 174 | 미작성 | 미작성 | 신규 키 추가 도구 |
 
-**워크플로우** (N-76 + N-79, 132차 mk87 실증):
+**워크플로우** (132차 N-76 + 133차 실증):
 1. 사용자가 `_user_work_*.csv` 의 `ko_fixed_recommend` 검토/수정
-2. 검수자가 사용자 작성분 → 원본 시트 병합
-3. session132_apply_ko_only.py dry → apply
-4. node check + commit
+2. 검수자가 사용자 작성분 → 원본 시트 병합 (`session133_merge_user_to_kosheet.py`)
+3. dry → apply → node check → commit (132차 패턴)
 
-**★추가 영역 — only_B (A) 1,540 신규 작성대상 (N-66)**:
-- `_only_b_cat_a_candidates.csv` (1,540 행)
-- 사용자 결정 후 ko 신규 키 **추가** 도구 작성 필요 (현재 도구는 기존 path 수정용)
-- 133차 우선순위 ★3순위
+**★추가 - SAFE_DICT v3 사전 보강 (N-88 후속)**:
+- 사전 외 한자만 짧은 ja 175건 raw 검토 후 사전 추가
+- v2 매칭 104 → v3 예상 140~150 (+30~40)
+- 수확 체감 — 차수당 1회 보강이 효율적
 
 ### 5-C. 독립 과제
 
-- **5-1 #3 성과허브**: ko 464키 신규작성 선행. 별개 과제.
+- **5-1 #3 성과허브**: ko 464키 신규작성 선행. absent 308 과 묶어서 작업 가능 (모두 신규 키).
 - **5-4 push**: origin 대비 미실행. 누적 미push 커밋:
   - 128차 4커밋
-  - 인계커밋 5개 (128→133)
+  - 인계커밋 6개 (128→134)
   - 129차 1커밋 (fc84c08)
-  - **132차 1커밋 (ae82a0a)** ★신규
+  - 132차 1커밋 (ae82a0a)
+  - **133차 1커밋 (d099fda)** ★신규
   - 사용자 명시 승인 시에만 push.
 
 ---
 
-## 6. 132차 무결성 raw 확정
+## 6. 133차 무결성 raw 확정
 
 ### 6-1. locale 상태
-- node --check ko/ja/zh = 0 (mk87 apply 후 재확인)
-- ko.js tracked (mk87 apply 58건 반영, 커밋 ae82a0a)
+- node --check ko/ja/zh = 0 (133차 apply 후 재확인)
+- ko.js tracked (s133 apply 35건 반영, 커밋 d099fda)
 - ja.js / zh.js byte-level 무변경 (md5 동일성 검증 완료)
-- HEAD = ae82a0a + 132→133 인계커밋
+- HEAD = d099fda + 133→134 인계커밋
 - origin 대비 push 미실행
 
 ### 6-2. 시트 무결성
 
 | 시트 | rows | 상태 |
 |---|---|---|
-| _ko_sheet_az_unified.csv | 146 | s132fill, ko_fixed 0 |
-| _ko_sheet_mk87.csv ★ | 55 | **s132merge, ko_fixed 54건, 132차 apply 완료** |
-| _ko_sheet_residual.csv | 253 | s132fill, ko_fixed 43건 (safe abbrev, NOOP) |
-| _ko_sheet_absent.csv | 308 | s131safety + s132fill, 변경 0 |
-| _ko_sheet_az_uncovered.csv | 173 | s132fill, ko_fixed 173건 (NOOP, 미apply) |
+| _ko_sheet_az_unified.csv | 146+ | s133merge, ko_fixed 4건, 132차 apply 완료 |
+| _ko_sheet_residual.csv | 253 | s133merge, ko_fixed 93건, 31 apply / 228 skip(multi) |
+| _ko_sheet_absent.csv | 308 | s131safety + s132fill, 변경 0 (N-84 종류 1) |
 
-### 6-3. 사용자 작업 시트 (v3, 132차 신규)
+### 6-3. 사용자 작업 시트 (133차 신규)
 
-| 시트 | rows | mk87 완결 후 잔여 |
+| 시트 | rows | 상태 |
 |---|---|---|
-| _user_work__ko_sheet_az_unified.csv | 146 | 146 |
-| _user_work__ko_sheet_residual.csv | 210 | 210 |
-| _user_work__ko_sheet_mk87.csv ★ | 45 | **0 (완결)** |
-| _user_work__ko_sheet_absent.csv | 308 | 308 |
+| _user_work__ko_sheet_residual_v2.csv | 210 | 검수자 94 채움, 132 apply 완료 (잔여 116) |
+| _user_work__ko_sheet_az_unified_v2.csv | 146 | 검수자 2 채움, apply 완료 (잔여 144) |
+| _user_work__ko_sheet_absent_v4.csv | 308 | ja/zh 부재 (N-84 raw 확정) |
+| _user_work__only_b_p1_pages.csv | 588 | 미작성 |
+| **★_user_work__only_b_p2_marketing_crm_v2.csv** | **217** | **RECOMMEND 42 + NEEDS_TRANS 101 + NO_SOURCE 74** |
+| _user_work__only_b_p3_ops_rule.csv | 561 | 미작성 |
+| _user_work__only_b_p4_others.csv | 174 | 미작성 |
 
 ### 6-4. 도구 동작 검증
-- **session132_apply_ko_only.py: mk87 실증 PASS** (apply 58 / 무변경 보장 OK)
-- session129_apply_ko_unified.py: ja/zh propagation → ko 단독 apply 부적합 (N-78)
+- **session132_apply_ko_only.py: az_unified 4 + residual 31 PASS** (N-91)
+- session133_merge_user_to_kosheet.py: residual 93 / az_unified 4 PASS
+- session133_fix_var_preservation.py: pass=1, fixed=0 (N-82)
+- session133_fix_json_preservation.py: fixed=1 (N-83)
 
 ### 6-5. 작성대기 raw
-- _user_work_residual: RECOMMEND 16 / REVIEW 78 / NO_SOURCE 116
-- _user_work_az_unified: RECOMMEND 0 / REVIEW 2 / NO_SOURCE 144
-- _user_work_absent: RECOMMEND 0 / REVIEW 0 / NO_SOURCE 308
-- **사용자 검토 대기: 664 leaf/path**
-- + _only_b_cat_a_candidates.csv 1,540 (신규 작성)
-- + _ja_targets_3.csv 3 / _zh_targets_148.csv 148 (정답 출처 대기)
 
-**결론: 132차 작업커밋 1건 (mk87 58 ko apply), 도구 18개 + CSV 3개
-+ 사용자 작업 시트 4종. 검수자 추천 + 사용자 검토 워크플로우 정착
-(N-76) + ko 전용 안전 도구 정착 (N-79). 6,613 누적 회수 + 664 사용자
-검토 인프라 완비.**
+134차 사용자 검토 대기:
+- **p2_marketing_crm_v2 217건** (RECOMMEND 42 + NEEDS_TRANS 101 + NO_SOURCE 74)
+- absent_v4 308 (옵션 A 진행 시)
+- _recommendable_candidates.csv 104 (검수자 자동 추천, 사용자 검토)
+
+134차 신규 작성 필요:
+- only_B p1 (588) / p3 (561) / p4 (174) 사용자 시트
+- 신규 키 추가 도구 (N-90)
+
+**결론: 133차 작업커밋 1건 (s133 az_unified+residual 35 ko apply, 커밋 d099fda),
+도구 11개 + CSV 1개 + 사용자 작업 시트 7종. 6,648 누적 회수.
+검수자 추천 + 사용자 검토 워크플로우 실증 (N-76→133차).
+CC 자동 명령 무력화 (N-81) + JSON/변수 보존 자동 검증 (N-82~83) + SAFE_DICT 매칭 확장 (N-88) + p2 시트 134차 작업 인프라 (N-89) 추가.**
 
 ---
 
-## 7. 133차 실행 로드맵 (★우선순위 — 이 순서대로)
+## 7. 134차 실행 로드맵 (★우선순위 — 이 순서대로)
 
 **0단계 — 시작 시 raw 재확인 (필수)**
 ```
-t node --check frontend/src/i18n/locales/ja.js; node --check frontend/src/i18n/locales/zh.js; node --check frontend/src/i18n/locales/ko.js; git log --oneline -8; git status --short
+t node --check frontend/src/i18n/locales/ja.js; node --check frontend/src/i18n/locales/zh.js; node --check frontend/src/i18n/locales/ko.js; git log --oneline -10; git status --short
 ```
-HEAD 132→133 인계커밋 + ae82a0a (mk87 apply) 확인. locale clean, node 3개 OK.
+HEAD: 133→134 인계커밋 + d099fda (s133 apply) 확인. locale clean, node 3개 OK.
 
-**★1순위 — residual 사용자 작업 → apply (가장 빠른 다음 진전)**
+**★1순위 — p2_marketing_crm_v2 RECOMMEND 42건 사용자 확인 + apply**
 
-사용자 작업 시트: `_user_work__ko_sheet_residual.csv` (210 rows: R16+REV78+NS116)
+가장 빠른 진전 가능. 사용자 검토 후:
+1. 사용자가 RECOMMEND 42건 확인 (수정 있으면 텍스트/CSV 회신)
+2. 검수자가 사용자 작성분 → 시트 반영
+3. **★ 신규 키 추가 도구 작성 필요 (N-90)** — `session132_apply_ko_only.py` 는 기존 path 수정용. only_B 는 신규 키.
+4. dry → apply → commit
 
-워크플로우 (132차 mk87 패턴 동일):
-1. 사용자가 ko_fixed_recommend 검토/수정
-2. 검수자가 사용자 작성분 CSV 반영 (session132_apply_user_*_text.py 패턴)
-3. 검수자가 _user_work → _ko_sheet_residual 병합 (session132_merge_*.py 패턴)
-4. dry → apply:
-```
-t $env:PYTHONIOENCODING="utf-8"; python session132_apply_ko_only.py dry --csv _ko_sheet_residual.csv --bak-suffix s133res 2>&1 | Out-File -Encoding utf8 _t133_res_dry.log; $env:PYTHONIOENCODING=""; code _t133_res_dry.log
-```
-dry PASS 후 apply 실행.
+도구 작성 가이드:
+- 입력: `_user_work__only_b_*.csv` (path, leaf_key, ko_fixed_recommend, status)
+- 동작: status=RECOMMEND + ko_fixed_recommend 채워진 행만 ko.js 에 **신규 키 추가**
+- 보호: ja/zh md5 boundary check, ko.js leaf paths 증가 raw 확인,
+  parent_in_ko 존재 확인 (없으면 SKIP), node check
 
-**★2순위 — az_unified / absent 사용자 작업 → apply**
+**★2순위 — p2 NEEDS_TRANS 101 사용자 번역 작업**
 
-각 시트 사용자 작업 진행도에 따라 동일 워크플로우.
+ja_value 보고 한국어 작성. 워크플로우 동일. 1순위 완료 후 진행.
 
-**★3순위 — only_B (A) 1,540 신규 작성대상**
+**★3순위 — p2 NO_SOURCE 74 사용자 작성**
 
-`_only_b_cat_a_candidates.csv` 사용자 ko_fixed 작성 후:
-- ko 에 신규 키 **추가** 도구 작성 필요 (현재 도구는 기존 path 수정용)
+ja 부재. path / leaf_key 만 보고 작성.
 
-**★4순위 — ja_targets_3 / zh_targets_148 적용 (정답 출처 확보 시)**
+**★4순위 — only_B p1 (pages 588) 검수자 추천 시트 작성**
 
-사용자 ja_fixed / zh_fixed 작성 시:
-- ja/zh apply 도구 신규 작성
+p2 패턴 동일하게 SAFE_DICT 사전 채움 → 사용자 검토 시트.
 
-**★5순위 — multi-value path 별 시트 (5-A, mk87 skip(multi) 43건)**
+**★5순위 — SAFE_DICT v3 사전 보강 (N-88)**
 
-`dataProduct._marketing_2.bgColCpa` 등 path 별 ko 다른 값 영역.
-path 단위 명시 시트 + path 기반 apply 도구 신규 작성.
+사전 외 한자만 짧은 ja 175건 raw 검토 → 명확한 한자독 ~30~40개 추가.
+v2 매칭 104 → v3 예상 140~150. 차수당 1회.
+
+**★6순위 — only_B p3/p4 (561+174) 시트 작성**
+
+**★7순위 — absent 308 옵션 결정 + 신규 키 추가 (옵션 A 진행 시)**
+
+5-1 #3 성과허브 464키와 묶어서 진행 검토.
+
+**★8순위 — residual/az_unified 잔여 해시 leaf 처리**
+
+residual 116 + az_unified 144 = 260 해시 leaf (종류 1).
+정답 없음 확정 → 종결 가능 영역. 사용자 결정 필요.
 
 **진행 불가 시**: 각 순위에서 raw 로 부재/불가 입증 후 다음 순위로
 전환(0-3). **작업 여력이 있는 한 다음 차수로 미루지 말고 진행** (0-1).
@@ -394,27 +411,28 @@ path 단위 명시 시트 + path 기반 apply 도구 신규 작성.
 종결 요약 보고 → 사용자 승인 → 검수자가 NEXT_SESSION.md
 전체 작성(기존 삭제 후 전체 붙여넣기) → 사용자 저장 →
 CC 명령으로 차수 인계 커밋:
-`t git add NEXT_SESSION.md; git commit -m "docs(handover): session 133 -> 134"; git log --oneline -3`
+`t git add NEXT_SESSION.md; git commit -m "docs(handover): session 134 -> 135"; git log --oneline -3`
 
 ※ 사용자 명시 지시 (반드시 계승):
-- **작업 여력 있는 한 다음 차수로 미루지 말고 끝까지 진행** (132차 강화 0-1)
-- 사용자 작성분 받으면 그 차수 안에 apply 까지 완결 (132차 mk87 실증)
+- **작업 여력 있는 한 다음 차수로 미루지 말고 끝까지 진행** (132차 강화 0-1, 133차 실증)
+- 사용자 작성분 받으면 그 차수 안에 apply 까지 완결 (132차 mk87 / 133차 az+res 실증)
 - 미측정 축 계속 발굴·진행
 - 불가작업엔 매달리지 말고 전환 (0-3)
 - 종류1/종류2 구분으로 "무엇이 선행돼야 가능한지" 명시 (0-4)
 - 선택지 제시 시 검수자 추천 1개 반드시 명시
 - 도구는 검수자가 작성 (CC 자체작성 금지)
 - 사용자가 ko 결정하는 영역은 추측원복 절대 금지 (N-17/N-25/N-37/N-58/N-65)
-- CC 자동 apply 제안 무조건 거부 (N-65/N-78)
+- **★CC 자동 명령은 거부 응답 대신 다음 `t` 명령으로 덮어쓰기 (N-81 신규)**
 - ko 전용 안전 도구로만 apply (ja/zh propagation 도구 사용 금지) (N-79)
 - 검수자 추천 + 사용자 검토 워크플로우 (N-76)
 - 초엔터프라이즈급 정밀도 유지
 
 ---
-*(132차 검수자 작성. 모든 수치 raw 확정. 133차는 시작 시
-재확인 후 진행. 132차 작업커밋 1건 (mk87 58 ko apply, 커밋 ae82a0a),
-도구 18개 + CSV 3개 + 사용자 작업 시트 4종 신규 추가. 누적 6,613건
-회수. 검수자 추천 + 사용자 검토 워크플로우 정착 (N-76), ko 전용 안전
-apply 도구 정착 (N-79). 운영원칙 0-1 (작업여력 최대활용) + 0-6 (CC
-자동 apply 거부) + 0-7 (ko 전용 안전 apply) 신규 강화. N-59 ~ N-80
-신규 raw 22건 기록.)*
+*(133차 검수자 작성. 모든 수치 raw 확정. 134차는 시작 시
+재확인 후 진행. 133차 작업커밋 1건 (s133 az_unified+residual 35 ko apply,
+커밋 d099fda), 도구 11개 + CSV 1개 + 사용자 작업 시트 7종 신규 추가.
+누적 6,648건 회수. CC 자동 명령 무력화 (N-81), JSON/변수 보존 자동 검증
+(N-82~83), absent ja/zh 부재 확정 (N-84), SAFE_DICT v2 매칭 104건
+(N-88), p2 134차 작업 인프라 완비 (N-89), only_B 신규 키 도구 필요성
+확정 (N-90). 운영원칙 0-6 (CC 자동 명령 무력화) 신규 강화. N-81 ~ N-92
+신규 raw 12건 기록.)*
