@@ -28780,5 +28780,75 @@ export default {
     'tabPolicies': "📋 ポリシー一覧",
     'target': "ターゲットシステム",
     'trigger': "トリガー"
+  },
+  "journeyBuilder": {
+    "pageTitle": "カスタマージャーニービルダー",
+    "pageSub": "メール・カカオ・LINE・SMSマルチチャンネル自動化",
+    "noJourneys": "ジャーニーがありません。テンプレートから始めましょう！",
+    "quickStart": "⚡ テンプレートでクイックスタート",
+    "myJourneys": "📁 マイジャーニー一覧",
+    "newJourney": "＋ 新規ジャーニー",
+    "cancel": "キャンセル",
+    "journeyName": "ジャーニー名",
+    "triggerEvent": "トリガーイベント",
+    "create": "作成",
+    "edit": "✏️ 編集",
+    "launch": "▶ 実行",
+    "active": "🟢 アクティブ",
+    "draft": "⚪ 下書き",
+    "entered": "進入",
+    "completed": "完了",
+    "nodeTypes": {
+      "trigger": "🎯 トリガー",
+      "email": "✉️ メール",
+      "kakao": "💬 カカオ",
+      "line": "💚 LINE",
+      "sms": "📱 SMS",
+      "delay": "⏱ 待機",
+      "condition": "🔀 条件分岐",
+      "ab_test": "🧪 A/Bテスト",
+      "tag": "🏷 タグ追加",
+      "end": "🏁 終了"
+    },
+    "triggerTypes": {
+      "signup": "🌱 新規登録",
+      "purchase": "✅ 購入完了",
+      "cart_abandoned": "🛒 カート放棄",
+      "churned": "😴 離脱リスク顧客",
+      "segment_entered": "📌 セグメント進入",
+      "birthday": "🎂 誕生日",
+      "manual": "▶ 手動実行"
+    },
+    "simEmail": "✉️ メール送信シミュレーション",
+    "simKakao": "💬 カカオシミュレーション",
+    "simLine": "💚 LINEシミュレーション"
+  },
+  "lineChannel": {
+    "pageTitle": "LINEチャンネル",
+    "pageSub": "メッセージ配信 · テンプレート管理 · 日本市場対応",
+    "tabCampaigns": "📊 キャンペーン",
+    "tabTemplates": "📝 テンプレート",
+    "tabSettings": "⚙️ 設定",
+    "followers": "フォロワー数",
+    "sentCount": "配信数",
+    "openRate": "開封率",
+    "clickRate": "クリック率",
+    "statusActive": "配信中",
+    "statusScheduled": "予約済み",
+    "typeTransactional": "🔔 トランザクション",
+    "typeMarketing": "📣 マーケティング",
+    "crmLink": "🔗 CRMセグメント連携",
+    "approved": "承認済み",
+    "pending": "審査中",
+    "preview": "プレビュー",
+    "noTemplate": "テンプレートを選択してください"
+  },
+  "journeyTpl": {
+    "cartDesc": "離脱顧客をメール+Kakaoで再エンゲージ",
+    "onboardDesc": "登録後3ステップ自動ケア",
+    "vipDesc": "VIPセグメント自動ケア",
+    "churnDesc": "高リスクチャーン自動対応",
+    "bdayDesc": "誕生日自動クーポン"
   }
+
 };
