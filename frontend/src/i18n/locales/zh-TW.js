@@ -15227,6 +15227,35 @@ export default {
       'sub': "レポート · 分析",
       'title': "レポート"
     }
+  ,
+    "aiPolicy": {
+      "title": "AI ポリシー",
+      "sub": "AI ポリシー提案"
+    },
+    "approvals": {
+      "title": "액션 센터",
+      "sub": "承認 · 実行センター"
+    },
+    "mappingRegistry": {
+      "title": "매핑 레지스트리",
+      "sub": "マッピングレジストリ"
+    },
+    "influencer": {
+      "title": "인플루언서 허브",
+      "sub": "インフルエンサー · UGC"
+    },
+    "settlements": {
+      "title": "정산 내역",
+      "sub": "精算ライン"
+    },
+    "connectors": {
+      "title": "コネクター",
+      "sub": "外部コネクター管理"
+    },
+    "admin": {
+      "title": "ガバナンス",
+      "sub": "ガバナンス · 管理者"
+    }
   },
   "sidebar": {
     "footerLine1": "營收 + 風險 + 治理",
