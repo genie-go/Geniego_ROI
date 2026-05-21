@@ -33200,6 +33200,25 @@ export default {
 
     "guideTip5": "세그먼트별 맞춤 오퍼를 제공하세요."
 
+  ,
+
+    "btnAuthorize": "인증하기",
+
+    "btnOAuthConnect": "OAuth 연결",
+
+    "grantedScopes": "부여된 권한",
+
+    "oauthModalDesc": "{{platform}}에 안전하게 연결하여 광고 데이터를 자동 수집합니다. 언제든지 연결을 해제할 수 있습니다.",
+
+    "oauthModalSub": "광고 계정 접근 권한 부여",
+
+    "oauthModalTitle": "{{platform}} OAuth 인증",
+
+    "oauthPrompt": "OAuth 인증으로 플랫폼에 연결",
+
+    "requestedPermissions": "요청된 권한",
+
+    "tokenExpiry": "토큰 만료일"
   },
 
 "apiKeys": {
