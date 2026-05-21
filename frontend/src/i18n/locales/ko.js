@@ -42637,5 +42637,23 @@ export default {
     "allTeams": "모든 팀",
     "team": "팀"
   },
+  "attribution": {
+    "alert": "알림",
+    "critical": "치명적",
+    "ok": "정상",
+    "warn": "경고"
+  },
+  "cat": {
+    "beauty": "💄 뷰티 & 코스메틱",
+    "digital": "💻 디지털 & 앱",
+    "electronics": "📱 전자기기 & IT",
+    "fashion": "👗 패션 & 어패럴",
+    "food": "🥗 식품 & 건강",
+    "forwarding": "🚢 배송대행",
+    "general": "🛍 생활 & 리빙용품",
+    "purchasing": "🛒 개인구매대행",
+    "sports": "⚽ 스포츠 & 레저",
+    "travel": "✈️ 여행 & 숙박"
+  },
 };
 
