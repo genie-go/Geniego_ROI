@@ -14871,6 +14871,19 @@ export default {
       'sub': "レポート · 分析",
       'title': "レポート"
     }
+  ,
+    "aiPolicy": {
+      "title": "AI ポリシー",
+      "sub": "AI ポリシー提案"
+    },
+    "approvals": {
+      "title": "액션 센터",
+      "sub": "承認 · 実行センター"
+    },
+    "mappingRegistry": {
+      "title": "매핑 레지스트리",
+      "sub": "マッピングレジストリ"
+    }
   },
   "apiKeys": {
     "pageTitle": "🔌 連携ハブ",
