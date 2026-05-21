@@ -39638,654 +39638,929 @@ export default {
   "logout": "로그아웃",
 
   "pages": {
-
     "dashboard": {
-
       "title": "종합 대시보드",
-
       "sub": "통합 운영 콕핏 · v421"
-
     },
-
     "marketing": {
-
       "title": "마케팅 및 광고",
-
       "sub": "광고 통합 인사이트"
-
     },
-
     "influencer": {
-
       "title": "인플루언서 허브",
-
       "sub": "인플루언서 · UGC 허브"
-
     },
-
     "attribution": {
-
       "title": "기여도",
-
-      "sub": "UTM · 쿠폰 · 딥링크 어트리뷰션"
-
+      "sub": "UTM · 쿠폰 · 딥링크 어트리뷰션",
+      "anomalyDetect": "🚨 이상감지",
+      "modelCompare": "🕸️ 모델 비교",
+      "aScore": "A-Score (Attribution 신뢰도)",
+      "alert": "경보",
+      "warn": "주의",
+      "ok": "정상",
+      "anomalyDesc": "Z-Score 기반 채널 이상감지 실시간 모니터링",
+      "modelCompareDesc": "5개 Attribution 모델 레이더 차트 비교"
     },
-
     "graphScore": {
-
       "title": "그래프 스코어링",
-
       "sub": "노드 · 엣지 · 인플루언서 스코어"
-
     },
-
     "commerce": {
-
       "title": "커머스 운영",
-
-      "sub": "커머스 통합 운영"
-
+      "sub": "커머스 통합 운영",
+      "liveSync": "실시간 동기화",
+      "gender": "성별",
+      "age": "연령",
+      "region": "지역",
+      "totalRevenue": "총 매출",
+      "channels": "채널 수",
+      "returns": "반품",
+      "outOfStock": "품절",
+      "ratio": "비율",
+      "product": "상품명",
+      "sold": "판매량",
+      "productHub": "상품 관리 허브",
+      "productActive": "판매중",
+      "productPaused": "일시중지",
+      "productSoldout": "품절",
+      "productLowStock": "재고 부족",
+      "productAvgMargin": "평균 마진율",
+      "productInvValue": "재고 자산",
+      "productLowStockAlert": "재고 부족 알림",
+      "productViewTable": "상품 목록 뷰",
+      "productViewMargin": "원가/마진 분석 뷰",
+      "ppl": "명",
+      "types": "종",
+      "perDay": "일",
+      "ago": "전"
     },
-
     "amazonRisk": {
-
       "title": "Amazon 리스크",
-
       "sub": "리스크 · 이상 탐지"
-
     },
-
     "digitalShelf": {
-
       "title": "디지털 셸프",
-
       "sub": "디지털 선반 관리"
-
     },
-
     "reviewsUgc": {
-
       "title": "리뷰 및 UGC",
-
       "sub": "리뷰 · UGC 분석"
-
     },
-
     "krChannel": {
-
       "title": "국내 채널 정산",
-
       "sub": "쿠팡 · 네이버 · 11번가"
-
     },
-
     "priceOpt": {
-
       "title": "가격 최적화",
-
-      "sub": "탄력성 기반 최적가 산출 v420"
-
+      "sub": "탄력성 기반 최적가 산출 v420",
+      "tabSummary": "📊 요약",
+      "tabOptimize": "🧮 최적화",
+      "tabScenario": "🚀 시나리오",
+      "tabMix": "🎯 채널 믹스",
+      "tabRepricer": "⚡ 다이나믹 리프라이서",
+      "tabCompetitor": "🔍 경쟁가",
+      "tabCalendar": "📅 프로모션 캘린더",
+      "regProduct": "등록 제품",
+      "elasticityData": "탄력성 데이터",
+      "optAdoption": "최적가 이행",
+      "channelResult": "채널별 최적가 결과",
+      "avgRecPrice": "평균 권장가",
+      "recentHistory": "최근 최적가 이력",
+      "prodRegEdit": "상품 등록 / 수정",
+      "regProducts": "등록된 상품",
+      "calcParams": "최적가 계산 파라미터",
+      "currentSalePrice": "현재 판매가 (₩)",
+      "stockQty": "재고 수량",
+      "calculating": "계산 중…",
+      "calcOptimal": "최적가 계산",
+      "allUnified": "전체 (통합)",
+      "currentPrice": "현재 판매가",
+      "optimalPrice": "최적 권장가",
+      "costPrice": "원가",
+      "minApplyPrice": "최소 적용가",
+      "expectedMargin": "예상 마진율",
+      "expectedQty": "예상 판매량",
+      "scenarioSim": "가격 시나리오 시뮬레이터",
+      "testPriceList": "테스트 가격 목록 (₩, 쉼표 구분)",
+      "runSim": "시뮬레이션 실행",
+      "invalidPriceList": "가격 목록을 올바르게 입력해 주세요. (쉼표로 구분)",
+      "simFailed": "시뮬레이션 요청 실패:",
+      "totalBudget": "총 예산",
+      "runChannelMix": "채널 믹스 최적화",
+      "totalProfit": "예상 총 수익",
+      "unifiedROI": "통합 ROI",
+      "pastSimulations": "과거 시뮬레이션",
+      "activeRules": "활성 규칙",
+      "todayChanges": "오늘 가격 변동",
+      "avgMarginImprove": "평균 마진 개선",
+      "dsIntegration": "디지털쉘프 연동",
+      "autoRules": "가격 자동 조정 규칙",
+      "changeHistory": "가격 변동 이력 (오늘)",
+      "minPriceAlert": "최저가 위반 주의",
+      "minPriceAlertSuffix": "종) — 경쟁사가 더 낮음",
+      "promoEventReg": "프로모션 이벤트 등록",
+      "promoSaved": "프로모션 일정 등록 완료",
+      "noAnalysis": "최적가 계산 후 SKU를 분석하면 결과가 표시됩니다.",
+      "highRisk": "위험 (High)",
+      "mediumRisk": "주의 (Medium)",
+      "accountScore": "계정 점수",
+      "buyBox": "바이박스",
+      "riskAlerts": "리스크 알림",
+      "keyMetrics": "핵심 지표",
+      "lastSeen": "마지막 접속",
+      "since": "연결",
+      "callVolume": "호출량",
+      "subscriptionTitle": "구독·요금·메뉴 관리",
+      "planPricingTab": "플랜 요금 설정",
+      "menuPermissionsTab": "메뉴 접근 권한 설정",
+      "activePlansTab": "활성 플랜 현황",
+      "licenseMgmtTab": "라이선스 발급",
+      "feedbackTab": "피드백",
+      "ModeNotice": "관리자 — 데모 모드는 읽기 전용입니다. 요금/플랜 변경은 실사용 계정이 필요합니다.",
+      "menuAccessDesc": "구독 플랜별 접근 가능한 메뉴를 설정하세요",
+      "savePermissions": "권한 저장",
+      "permSaved": "✅ 메뉴 접근 권한이 저장되었습니다.",
+      "permBlocked": "📌 데모 모드: 권한 변경은 실사용 계정에서만 가능합니다.",
+      "free": "무료",
+      "finance": "정산·재무",
+      "automation": "자동화·AI",
+      "data": "데이터·연동",
+      "system": "시스템·관리",
+      "avgRating": "평균 평점",
+      "fbaStockRate": "FBA 재고율",
+      "goal": "목표"
     },
-
     "reconciliation": {
-
       "title": "정산",
-
       "sub": "정산 대사 · 수수료 계산"
-
     },
-
     "settlements": {
-
       "title": "정산 내역",
-
       "sub": "정산 라인 관리"
-
     },
-
     "reports": {
-
       "title": "리포트",
-
       "sub": "리포트 · 분석"
-
     },
-
     "alertPolicies": {
-
       "title": "알림 정책",
-
       "sub": "알림 정책 엔진"
-
     },
-
     "aiPolicy": {
-
       "title": "AI 정책",
-
       "sub": "AI 정책 제안"
-
     },
-
     "approvals": {
-
       "title": "액션 센터",
-
       "sub": "승인 · 실행 센터"
-
     },
-
     "writeback": {
-
       "title": "라이트백",
-
       "sub": "데이터 라이트백 정책"
-
     },
-
     "mappingRegistry": {
-
       "title": "매핑 레지스트리",
-
       "sub": "매핑 레지스트리"
-
     },
-
     "connectors": {
-
       "title": "커넥터",
-
       "sub": "외부 커넥터 관리"
-
     },
-
-  "audit": {
-
-    "pageDesc": "모든 운영 이벤트에 대한 불변의 감사 기록",
-
-    "tableView": "테이블 보기",
-
-    "timelineView": "타임라인 보기",
-
-    "csvExport": "CSV 내보내기",
-
-    "countUnit": "건",
-
-    "totalEventsDesc": "전체 감사 로그 항목",
-
-    "todayEvents": "오늘의 이벤트",
-
-    "highRisk": "고위험 이벤트",
-
-    "highRiskDesc": "즉시 검토가 필요합니다",
-
-    "adminActions": "관리자 조치",
-
-    "adminActionsDesc": "관리자 역할 작업",
-
-    "eventDistribution": "이벤트 유형 분포",
-
-    "riskClassification": "위험 분류",
-
-    "highRiskEvents": "고위험 이벤트",
-
-    "logTable": "감사 로그 테이블",
-
-    "timelineHeader": "감사 타임라인",
-
-    "noResults": "일치하는 결과가 없습니다",
-
-    "searchPlaceholder": "이벤트, 사용자, IP 검색...",
-
-    "filterEventType": "모든 이벤트 유형",
-
-    "filterActor": "모든 사용자",
-
-    "filterRisk": "모든 위험 수준",
-
-    "filterReset": "필터 초기화",
-
-    "colId": "ID",
-
-    "colTime": "시간",
-
-    "colActor": "사용자",
-
-    "colEvent": "이벤트",
-
-    "colRisk": "위험",
-
-    "colTarget": "대상",
-
-    "colIp": "IP",
-
-    "colDetail": "상세정보",
-
-    "secAgo": "초 전",
-
-    "minAgo": "분 전",
-
-    "hrAgo": "시간 전",
-
-    "dayAgo": "일 전",
-
-    "title": "감사 로그",
-
-    "subtitle": "전체 활동 내역 · 보안 모니터링 · 규정 준수 보고",
-
-    "tabAll": "모든 로그",
-
-    "tabSecurity": "보안",
-
-    "tabData": "데이터 변경",
-
-    "tabSystem": "시스템",
-
-    "searchLogs": "로그 검색...",
-
-    "colTimestamp": "타임스탬프",
-
-    "colUser": "사용자",
-
-    "colAction": "행동",
-
-    "colResource": "자원",
-
-    "colStatus": "상태",
-
-    "colIpAddress": "IP 주소",
-
-    "statusSuccess": "성공",
-
-    "statusFailed": "실패",
-
-    "statusWarning": "경고",
-
-    "exportAudit": "감사 로그 내보내기",
-
-    "filterByUser": "사용자별 필터링",
-
-    "filterByAction": "액션으로 필터링",
-
-    "filterByDate": "기간",
-
-    "securityEvents": "보안 이벤트",
-
-    "uniqueUsers": "순 사용자",
-
-    "failedAttempts": "실패한 시도",
-
-    "pageTitle": "감사 로그",
-
-    "preview": "👁 실시간 미리보기",
-
-    "sectionsSelected": "섹션이 선택됨",
-
-    "selectToPreview": "미리보기를 표시하려면 왼쪽 섹션을 선택하세요",
-
-    "noChannelSelected": "선택된 채널이 없습니다",
-
-    "noSkuSelected": "선택된 SKU가 없습니다",
-
-    "period7d": "지난 7일",
-
-    "period30d": ",",
-
-    "noData": "데이터가 없습니다",
-
-    "search": "검색…",
-
-    "filter": "필터",
-
-    "sort": "정렬",
-
-    "export": "내보내기",
-
-    "import": "가져오기",
-
-    "create": "생성",
-
-    "edit": "편집",
-
-    "delete": "삭제",
-
-    "view": "상세 보기",
-
-    "save": "저장",
-
-    "cancel": "취소",
-
-    "confirm": "확인",
-
-    "close": "닫기",
-
-    "apply": "적용",
-
-    "reset": "초기화",
-
-    "prev": "이전",
-
-    "next": "다음",
-
-    "pageOf": ":{page} / {total}",
-
-    "selectAll": "전체 선택",
-
-    "deselectAll": "전체 해제",
-
-    "colDate": "날짜",
-
-    "colActions": "작업",
-
-    "success": "성공",
-
-    "error": "오류",
-
-    "warning": "경고",
-
-    "info": "정보",
-
-    "copyLink": "링크 복사",
-
-    "download": "다운로드",
-
-    "upload": "업로드",
-
-    "period": {
-
-      "daily": "일별",
-
-      "weekly": "주별",
-
-      "monthly": "월별",
-
-      "yearly": "연도별",
-
-      "seasonal": "계절별"
-
+    "audit": {
+      "pageDesc": "모든 운영 이벤트에 대한 불변의 감사 기록",
+      "tableView": "테이블 보기",
+      "timelineView": "타임라인 보기",
+      "csvExport": "CSV 내보내기",
+      "countUnit": "건",
+      "totalEventsDesc": "전체 감사 로그 항목",
+      "todayEvents": "오늘의 이벤트",
+      "highRisk": "고위험 이벤트",
+      "highRiskDesc": "즉시 검토가 필요합니다",
+      "adminActions": "관리자 조치",
+      "adminActionsDesc": "관리자 역할 작업",
+      "eventDistribution": "이벤트 유형 분포",
+      "riskClassification": "위험 분류",
+      "highRiskEvents": "고위험 이벤트",
+      "logTable": "감사 로그 테이블",
+      "timelineHeader": "감사 타임라인",
+      "noResults": "일치하는 결과가 없습니다",
+      "searchPlaceholder": "이벤트, 사용자, IP 검색...",
+      "filterEventType": "모든 이벤트 유형",
+      "filterActor": "모든 사용자",
+      "filterRisk": "모든 위험 수준",
+      "filterReset": "필터 초기화",
+      "colId": "ID",
+      "colTime": "시간",
+      "colActor": "사용자",
+      "colEvent": "이벤트",
+      "colRisk": "위험",
+      "colTarget": "대상",
+      "colIp": "IP",
+      "colDetail": "상세정보",
+      "secAgo": "초 전",
+      "minAgo": "분 전",
+      "hrAgo": "시간 전",
+      "dayAgo": "일 전",
+      "title": "감사 로그",
+      "subtitle": "전체 활동 내역 · 보안 모니터링 · 규정 준수 보고",
+      "tabAll": "모든 로그",
+      "tabSecurity": "보안",
+      "tabData": "데이터 변경",
+      "tabSystem": "시스템",
+      "searchLogs": "로그 검색...",
+      "colTimestamp": "타임스탬프",
+      "colUser": "사용자",
+      "colAction": "행동",
+      "colResource": "자원",
+      "colStatus": "상태",
+      "colIpAddress": "IP 주소",
+      "statusSuccess": "성공",
+      "statusFailed": "실패",
+      "statusWarning": "경고",
+      "exportAudit": "감사 로그 내보내기",
+      "filterByUser": "사용자별 필터링",
+      "filterByAction": "액션으로 필터링",
+      "filterByDate": "기간",
+      "securityEvents": "보안 이벤트",
+      "uniqueUsers": "순 사용자",
+      "failedAttempts": "실패한 시도",
+      "pageTitle": "감사 로그",
+      "preview": "👁 실시간 미리보기",
+      "sectionsSelected": "섹션이 선택됨",
+      "selectToPreview": "미리보기를 표시하려면 왼쪽 섹션을 선택하세요",
+      "noChannelSelected": "선택된 채널이 없습니다",
+      "noSkuSelected": "선택된 SKU가 없습니다",
+      "period7d": "지난 7일",
+      "period30d": ",",
+      "noData": "데이터가 없습니다",
+      "search": "검색…",
+      "filter": "필터",
+      "sort": "정렬",
+      "export": "내보내기",
+      "import": "가져오기",
+      "create": "생성",
+      "edit": "편집",
+      "delete": "삭제",
+      "view": "상세 보기",
+      "save": "저장",
+      "cancel": "취소",
+      "confirm": "확인",
+      "close": "닫기",
+      "apply": "적용",
+      "reset": "초기화",
+      "prev": "이전",
+      "next": "다음",
+      "pageOf": ":{page} / {total}",
+      "selectAll": "전체 선택",
+      "deselectAll": "전체 해제",
+      "colDate": "날짜",
+      "colActions": "작업",
+      "success": "성공",
+      "error": "오류",
+      "warning": "경고",
+      "info": "정보",
+      "copyLink": "링크 복사",
+      "download": "다운로드",
+      "upload": "업로드",
+      "period": {
+        "daily": "일별",
+        "weekly": "주별",
+        "monthly": "월별",
+        "yearly": "연도별",
+        "seasonal": "계절별"
+      },
+      "segment": {
+        "audience": "오디언스",
+        "category": "카테고리",
+        "creative": "소재"
+      },
+      "mobile": {
+        "hello": "안녕하세요",
+        "synced": "동기화",
+        "urgent": "긴급",
+        "budget": "예산",
+        "done": "✓ 완료",
+        "run": "실행",
+        "monthRevenue": "이번달 매출",
+        "vsLastMonth": "전월 대비 +8.4%",
+        "avgRoas": "평균 ROAS",
+        "adAvg": "광고 채널 평균",
+        "todayOrders": "오늘 주문",
+        "processing": "처리 중 12건",
+        "roiVsAd": "광고비 대비 수익",
+        "channelStatus": "채널 현황",
+        "viewAll": "전체",
+        "aiRecommend": "AI 즉시 실행 추천",
+        "more": "더보기",
+        "notifications": "알림",
+        "quickActions": "빠른 실행",
+        "aiTip1": "예산 +30% 추천",
+        "aiTip2": "신규 타겟팅 추천",
+        "alert1": "스킨케어 재고 8개 — 안전재고 이하",
+        "alert2": "AI 캠페인 #C-041 ROAS 4.8x 달성",
+        "alert3": "어제 정산 ₩2,480,000 완료",
+        "aiCampaign": "AI 캠페인",
+        "checkOrder": "주문 확인",
+        "analytics": "성과 분석",
+        "channels": "채널 연동",
+        "marketing": "마케팅",
+        "commerce": "커머스",
+        "home": "홈",
+        "more2": "더보기"
+      },
+      "totalEvents": "총 이벤트",
+      "noHighRisk": "고위험 이벤트가 없습니다",
+      "loading": "로딩 중...",
+      "dateFrom": "시작일",
+      "dateTo": "종료일",
+      "byActor": "수행자:",
+      "csvRole": "역할",
+      "csvEntityType": "대상유형",
+      "csvEntityId": "대상ID",
+      "riskHigh": "고위험",
+      "riskMedium": "중간",
+      "riskLow": "저위험",
+      "securityAlertTitle": "보안 위협 감지",
+      "securityAlertDesc": "지난 24시간 내 고위험 이벤트가 감지되었습니다",
+      "action_ACTION_EXECUTED": "액션 실행",
+      "action_ACTION_APPROVED": "승인됨",
+      "action_ACTION_REJECTED": "거부됨",
+      "action_ALERT_TRIGGERED": "알림 발생",
+      "action_POLICY_UPDATED": "정책 수정",
+      "action_KEY_CREATED": "키 생성",
+      "action_KEY_REVOKED": "키 삭제",
+      "action_CONNECTOR_SYNCED": "연동 동기화",
+      "action_MAPPING_UPDATED": "매핑 수정",
+      "action_SETTLEMENT_IMPORTED": "정산 입력",
+      "action_REPORT_EXPORTED": "리포트 내보내기",
+      "action_USER_ROLE_CHANGED": "역할 변경",
+      "action_LOGIN_SUCCESS": "로그인 성공",
+      "action_LOGIN_FAILED": "로그인 실패",
+      "action_PERMISSION_DENIED": "권한 거부",
+      "action_DATA_EXPORTED": "데이터 내보내기",
+      "action_SETTINGS_CHANGED": "설정 변경",
+      "guideTipTitle": "활용 팁",
+      "guideTipDesc": "정기적으로 감사 로그를 검토하여 비정상적인 활동 패턴을 식별하세요. 고위험 이벤트는 발생 즉시 확인하고, CSV 내보내기를 통해 월별 보안 보고서를 작성하는 것을 권장합니다.",
+      "period90d": "지난 90일",
+      "periodQ1": "2026년 1분기",
+      "createdDate": "생성됨",
+      "includedSections": "포함된 섹션",
+      "reportTitle": "📊 Geniego-ROI 통합 보고서",
+      "sectionKpi": "주요 KPI 요약",
+      "sectionKpiDesc": "수익 · 광고비 · 이익",
+      "sectionPnl": "P&L 폭포",
+      "sectionPnlDesc": "비용 구조 분석",
+      "sectionCampaign": "캠페인 성과",
+      "sectionCampaignDesc": "ROAS · 채널별 주문",
+      "sectionCreator": "크리에이터 성과",
+      "sectionCreatorDesc": "ROI · 기여 수익",
+      "sectionSku": "SKU 분석",
+      "sectionSkuDesc": "마진 · 상품별 반품률",
+      "sectionAnomaly": "변칙 요약",
+      "sectionAnomalyDesc": "자동 감지된 알림",
+      "kpiRevenue": "총 수익",
+      "kpiAdSpend": "광고 지출",
+      "kpiNetProfit": "순이익",
+      "kpiRoas": "혼합 ROAS",
+      "kpiOrders": "총 주문",
+      "kpiReturnRate": "반품률",
+      "colCampaign": "캠페인",
+      "colChannel": "채널",
+      "colAdSpend": "광고 지출",
+      "colRoas": "ROAS",
+      "colOrders": "주문",
+      "colCreator": "작성자",
+      "colTier": "계층",
+      "colViews": "조회수",
+      "colRevenue": "수익",
+      "colRoi": "ROI",
+      "colSku": "SKU",
+      "colProductName": "제품",
+      "colMargin": "여백",
+      "colReturnRate": "반품률",
+      "pnlRevenue": "총 수익",
+      "pnlAdSpend": "(-) 광고 지출",
+      "pnlFees": "(-) 플랫폼 수수료",
+      "pnlInfluencer": "(-) 인플루언서",
+      "pnlNetProfit": "= 순이익",
+      "anomalyTitle": "⚠ 변칙개요 요약",
+      "kpiTitle": "📊 주요 KPI",
+      "campaignTitle": "📣 캠페인 성과",
+      "creatorTitle": "🤝 크리에이터 퍼포먼스",
+      "skuTitle": "📦 SKU 분석",
+      "sub": "감사 로그"
     },
-
-    "segment": {
-
-      "audience": "오디언스",
-
-      "category": "카테고리",
-
-      "creative": "소재"
-
-    },
-
-    "mobile": {
-
-          "hello": "안녕하세요",
-
-          "synced": "동기화",
-
-          "urgent": "긴급",
-
-          "budget": "예산",
-
-          "done": "✓ 완료",
-
-          "run": "실행",
-
-          "monthRevenue": "이번달 매출",
-
-          "vsLastMonth": "전월 대비 +8.4%",
-
-          "avgRoas": "평균 ROAS",
-
-          "adAvg": "광고 채널 평균",
-
-          "todayOrders": "오늘 주문",
-
-          "processing": "처리 중 12건",
-
-          "roiVsAd": "광고비 대비 수익",
-
-          "channelStatus": "채널 현황",
-
-          "viewAll": "전체",
-
-          "aiRecommend": "AI 즉시 실행 추천",
-
-          "more": "더보기",
-
-          "notifications": "알림",
-
-          "quickActions": "빠른 실행",
-
-          "aiTip1": "예산 +30% 추천",
-
-          "aiTip2": "신규 타겟팅 추천",
-
-          "alert1": "스킨케어 재고 8개 — 안전재고 이하",
-
-          "alert2": "AI 캠페인 #C-041 ROAS 4.8x 달성",
-
-          "alert3": "어제 정산 ₩2,480,000 완료",
-
-          "aiCampaign": "AI 캠페인",
-
-          "checkOrder": "주문 확인",
-
-          "analytics": "성과 분석",
-
-          "channels": "채널 연동",
-
-          "marketing": "마케팅",
-
-          "commerce": "커머스",
-
-          "home": "홈",
-
-          "more2": "더보기"
-
-        }
-
-,
-
-    "totalEvents": "총 이벤트",
-
-    "noHighRisk": "고위험 이벤트가 없습니다",
-
-    "loading": "로딩 중...",
-
-    "dateFrom": "시작일",
-
-    "dateTo": "종료일",
-
-    "byActor": "수행자:",
-
-    "csvRole": "역할",
-
-    "csvEntityType": "대상유형",
-
-    "csvEntityId": "대상ID",
-
-    "riskHigh": "고위험",
-
-    "riskMedium": "중간",
-
-    "riskLow": "저위험",
-
-    "securityAlertTitle": "보안 위협 감지",
-
-    "securityAlertDesc": "지난 24시간 내 고위험 이벤트가 감지되었습니다",
-
-    "action_ACTION_EXECUTED": "액션 실행",
-
-    "action_ACTION_APPROVED": "승인됨",
-
-    "action_ACTION_REJECTED": "거부됨",
-
-    "action_ALERT_TRIGGERED": "알림 발생",
-
-    "action_POLICY_UPDATED": "정책 수정",
-
-    "action_KEY_CREATED": "키 생성",
-
-    "action_KEY_REVOKED": "키 삭제",
-
-    "action_CONNECTOR_SYNCED": "연동 동기화",
-
-    "action_MAPPING_UPDATED": "매핑 수정",
-
-    "action_SETTLEMENT_IMPORTED": "정산 입력",
-
-    "action_REPORT_EXPORTED": "리포트 내보내기",
-
-    "action_USER_ROLE_CHANGED": "역할 변경",
-
-    "action_LOGIN_SUCCESS": "로그인 성공",
-
-    "action_LOGIN_FAILED": "로그인 실패",
-
-    "action_PERMISSION_DENIED": "권한 거부",
-
-    "action_DATA_EXPORTED": "데이터 내보내기",
-
-    "action_SETTINGS_CHANGED": "설정 변경",
-
-    "guideTipTitle": "활용 팁",
-
-    "guideTipDesc": "정기적으로 감사 로그를 검토하여 비정상적인 활동 패턴을 식별하세요. 고위험 이벤트는 발생 즉시 확인하고, CSV 내보내기를 통해 월별 보안 보고서를 작성하는 것을 권장합니다.",
-
-    "period90d": "지난 90일",
-
-    "periodQ1": "2026년 1분기",
-
-    "createdDate": "생성됨",
-
-    "includedSections": "포함된 섹션",
-
-    "reportTitle": "📊 Geniego-ROI 통합 보고서",
-
-    "sectionKpi": "주요 KPI 요약",
-
-    "sectionKpiDesc": "수익 · 광고비 · 이익",
-
-    "sectionPnl": "P&L 폭포",
-
-    "sectionPnlDesc": "비용 구조 분석",
-
-    "sectionCampaign": "캠페인 성과",
-
-    "sectionCampaignDesc": "ROAS · 채널별 주문",
-
-    "sectionCreator": "크리에이터 성과",
-
-    "sectionCreatorDesc": "ROI · 기여 수익",
-
-    "sectionSku": "SKU 분석",
-
-    "sectionSkuDesc": "마진 · 상품별 반품률",
-
-    "sectionAnomaly": "변칙 요약",
-
-    "sectionAnomalyDesc": "자동 감지된 알림",
-
-    "kpiRevenue": "총 수익",
-
-    "kpiAdSpend": "광고 지출",
-
-    "kpiNetProfit": "순이익",
-
-    "kpiRoas": "혼합 ROAS",
-
-    "kpiOrders": "총 주문",
-
-    "kpiReturnRate": "반품률",
-
-    "colCampaign": "캠페인",
-
-    "colChannel": "채널",
-
-    "colAdSpend": "광고 지출",
-
-    "colRoas": "ROAS",
-
-    "colOrders": "주문",
-
-    "colCreator": "작성자",
-
-    "colTier": "계층",
-
-    "colViews": "조회수",
-
-    "colRevenue": "수익",
-
-    "colRoi": "ROI",
-
-    "colSku": "SKU",
-
-    "colProductName": "제품",
-
-    "colMargin": "여백",
-
-    "colReturnRate": "반품률",
-
-    "pnlRevenue": "총 수익",
-
-    "pnlAdSpend": "(-) 광고 지출",
-
-    "pnlFees": "(-) 플랫폼 수수료",
-
-    "pnlInfluencer": "(-) 인플루언서",
-
-    "pnlNetProfit": "= 순이익",
-
-    "anomalyTitle": "⚠ 변칙개요 요약",
-
-    "kpiTitle": "📊 주요 KPI",
-
-    "campaignTitle": "📣 캠페인 성과",
-
-    "creatorTitle": "🤝 크리에이터 퍼포먼스",
-
-    "skuTitle": "📦 SKU 분석",
-
-    "sub": "감사 로그"
-
-  },
-
-"admin": {
-
+    "admin": {
       "title": "거버넌스",
-
       "sub": "거버넌스 · 관리자"
-
     },
-
-    account: '계정',
-    allAccounts: '전체 계정',
-    allTeams: '전체 팀',
-    anomalyDetected: '이상 감지됨',
-    audienceInsights: '오디언스 인사이트',
-    channelPerf: '채널 성과',
-    churn: '최종 이탈 상태',
-    colConversions: '전환',
-    colCtr: '클릭률',
-    colCvr: '전환율',
-    colSpend: '광고비',
-    compareTo: '비교 대상',
-    creativePerf: '소재 성과',
-    dateRange: '기간',
-    exportReport: '리포트 내보내기',
-    kpiConversions: '전환',
-    kpiCtr: '클릭률',
-    kpiCvr: 'CVR',
-    kpiSpend: '총 광고비',
-    noAnomaly: '이상 없음',
-    prob30: '30일 구매확률',
-    productPerf: '상품별 성과',
-    tabAudience: '오디언스',
-    tabChannels: '채널 탭',
-    tabCreatives: '소재',
-    tabOverview: '캠페인 상태',
-    tabProducts: '상품',
-    team: '팀',
-    topProducts: '상위 상품',
+    "account": "계정",
+    "allAccounts": "전체 계정",
+    "allTeams": "전체 팀",
+    "anomalyDetected": "이상 감지됨",
+    "audienceInsights": "오디언스 인사이트",
+    "channelPerf": "채널 성과",
+    "churn": "최종 이탈 상태",
+    "colConversions": "전환",
+    "colCtr": "클릭률",
+    "colCvr": "전환율",
+    "colSpend": "광고비",
+    "compareTo": "비교 대상",
+    "creativePerf": "소재 성과",
+    "dateRange": "기간",
+    "exportReport": "리포트 내보내기",
+    "kpiConversions": "전환",
+    "kpiCtr": "클릭률",
+    "kpiCvr": "CVR",
+    "kpiSpend": "총 광고비",
+    "noAnomaly": "이상 없음",
+    "prob30": "30일 구매확률",
+    "productPerf": "상품별 성과",
+    "tabAudience": "오디언스",
+    "tabChannels": "채널 탭",
+    "tabCreatives": "소재",
+    "tabOverview": "캠페인 상태",
+    "tabProducts": "상품",
+    "team": "팀",
+    "topProducts": "상위 상품",
+    "_marketing_1": {
+      "tabAiEval": "🤖 AI 효과 평가 분석",
+      "tabCampaigns": "📣 캠페인 관리",
+      "aiEvalTitle": "🤖 AI 마케팅 효과 종합 평가",
+      "aiEvalSub": "Claude Sonnet 3.5 기반 · 채널 효율 · 캠페인 성과 · 예산 재배분 · 전략 인사이트",
+      "running": "⏳ AI 분석 중...",
+      "analyzing": "Claude AI가 마케팅 데이터를 분석 중입니다...",
+      "analysisData": "📥 분석 대상 데이터 현황",
+      "totalAdSpend": "총 광고비",
+      "clickToRun": "AI 분석 실행 버튼을 클릭하여 Claude 분석을 시작하세요",
+      "overallSummary": "종합 마케팅 성과 요약",
+      "channelRanking": "🏆 채널 AI 평가 랭킹",
+      "channelRankingSub": "채널 클릭 시 항목별 상세 분석 · 강점/약점 · AI 권장 액션 조회",
+      "clickDetail": "클릭하여 상세 분석 보기 →",
+      "campaignTable": "📋 캠페인별 AI 평가 분석표",
+      "campaignTableSub": "캠페인 행 클릭 시 AI 인사이트 및 권장 액션 전개",
+      "budgetRealloc": "💰 AI 예산 재배분 권고",
+      "budgetReallocSub": "현재 예산 분배 대비 최적화 제안 · 클릭 가중치 기반",
+      "topInsight": "🎯 가장 중요한 인사이트",
+      "errorPrefix": "❌ 분석 오류:",
+      "breakdown": "📊 항목별 평가 점수",
+      "actual": "실적",
+      "aiRecommend": "AI 권장 액션:",
+      "campaignDetail": "캠페인 상세",
+      "spendStatus": "집행 현황 · 예산 소진율 · 성과 지표",
+      "colCampaign": "캠페인",
+      "colScore": "AI 점수",
+      "colGrade": "등급",
+      "colBurnRate": "소진율",
+      "colAiAction": "AI 액션",
+      "colCurrent": "현재 비중",
+      "colRecommend": "권장 비중",
+      "colChange": "변화",
+      "colRationale": "근거",
+      "colBudget": "예산",
+      "colSpent": "집행액",
+      "colClicks": "클릭",
+      "clickView": "클릭하여 보기",
+      "autoTitle": "🚀 마케팅 자동화 플랫폼",
+      "autoSub": "월 예산을 설정하면 AI가 틱톡·메타·네이버 등에 최적화된 마케팅 전략을 자동으로 수립합니다",
+      "tabSetup": "① 캠페인 설정",
+      "tabPreview": "② AI 전략 미리보기",
+      "tabCampaignMgmt": "③ 캠페인 관리",
+      "budgetSetup": "💰 월 마케팅 예산 설정",
+      "directInput": "직접 입력 (원)",
+      "campaignPeriod": "캠페인 기간",
+      "monthly": "월간 (1개월)",
+      "quarterly": "분기 (3개월)",
+      "halfyear": "반기 (6개월)",
+      "setBudget": "설정 예산:",
+      "perMonth": "/ 월",
+      "categorySelect": "🏷 판매 상품 카테고리 선택 (복수 선택 가능)",
+      "channelSelect": "📡 마케팅 광고 채널 선택",
+      "salesChannels": "🌐 연동된 판매채널 (마케팅 연계 대상)",
+      "salesChannelSub": "활성화된 채널에 마케팅 성과 데이터가 연동됩니다.",
+      "inactive": "○ 비활성",
+      "campaignDetail2": "📝 캠페인 상세 (선택)",
+      "campaignNameLabel": "캠페인 이름 (미입력시 자동생성)",
+      "campaignNamePh": "예: 2026 봄 뷰티 캠페인",
+      "targetLabel": "타겟 고객 (선택)",
+      "targetPh": "예: 20~35세 여성, 뷰티·패션 관심",
+      "generateBtn": "🚀 AI 마케팅 전략 자동 생성",
+      "needCatChannel": "⚠ 카테고리와 광고 채널 선택이 필요합니다.",
+      "previewEmpty": "← 먼저 ① 캠페인 설정에서 AI 전략을 생성해주세요.",
+      "goSetup": "설정으로 이동 →",
+      "kpiImpressions": "예상 노출수",
+      "kpiClicks": "예상 클릭수",
+      "channelAlloc": "🤖 AI 채널별 예산 배분 전략",
+      "conversions": "전환",
+      "approvalTitle": "✅ 승인 요청하기",
+      "approvalSub": "위 전략을 검토 후 승인하면 등록된 광고 채널을 통해 마케팅이 자동으로 전개됩니다.",
+      "submitApproval": "📋 승인 요청 제출",
+      "resetBtn": "↩ 처음부터",
+      "noCampaign": "아직 캠페인이 없습니다. 먼저 마케팅 전략을 생성해주세요.",
+      "createCampaign": "+ 마케팅 캠페인 만들기",
+      "addCampaign": "+ 새 캠페인 만들기",
+      "created": "생성",
+      "reject": "❌ 반려",
+      "activate": "🚀 캠페인 활성화",
+      "pause": "⏸ 일시정지",
+      "resume": "▶ 재시작",
+      "viewDetail": "📊 상세 보기",
+      "budget": "예산",
+      "period": "기간",
+      "estRoas": "예상 ROAS",
+      "estConv": "예상 총 전환",
+      "period_monthly": "월간",
+      "period_quarterly": "분기",
+      "period_halfyear": "반기",
+      "pendingBadge": "⏳ 승인 대기",
+      "activeBadge": "🟢 운영 중",
+      "goCampaignMgr": "🎯 캠페인 관리 →",
+      "goHelp": "📚 도움말",
+      "minBudget": "최소",
+      "selected": "✓ 선택됨",
+      "cat_beauty": "뷰티·코스메틱",
+      "cat_fashion": "패션·의류",
+      "cat_general": "생활·잡화",
+      "cat_food": "식품·건강",
+      "cat_electronics": "전자·IT",
+      "cat_overseas_ship": "배송대행",
+      "cat_overseas_buy": "구매대행",
+      "cat_sports": "스포츠·레저",
+      "cat_travel": "여행·숙박",
+      "cat_digital": "디지털·앱",
+      "tag_skincare": "스킨케어",
+      "tag_makeup": "메이크업",
+      "tag_perfume": "향수",
+      "tag_haircare": "헤어케어",
+      "tag_womens": "여성복",
+      "tag_mens": "남성복",
+      "tag_outer": "아우터",
+      "tag_accessories": "잡화",
+      "tag_kitchen": "주방용품",
+      "tag_cleaning": "청소용품",
+      "tag_interior": "인테리어",
+      "tag_small": "소품",
+      "tag_health": "건강기능식품",
+      "tag_processed": "가공식품",
+      "tag_organic": "유기농",
+      "tag_phone_acc": "스마트폰 액세서리",
+      "tag_appliance": "가전",
+      "tag_computer": "컴퓨터",
+      "tag_proxy_ship": "직구대행",
+      "tag_overseas_delivery": "해외배송",
+      "tag_customs": "관세대행",
+      "tag_us_direct": "미국직구",
+      "tag_jp_direct": "일본직구",
+      "tag_cn_direct": "중국직구",
+      "tag_fitness": "헬스·요가",
+      "tag_outdoor": "아웃도어",
+      "tag_sportswear": "스포츠웨어",
+      "tag_hotel": "호텔·숙박",
+      "tag_flight": "항공권",
+      "tag_tour": "투어·여행상품",
+      "tag_leisure": "레저",
+      "tag_app": "모바일 앱",
+      "tag_content": "디지털 콘텐츠",
+      "tag_subscription": "구독 서비스",
+      "ch_meta": "Meta(페이스북·인스타)",
+      "ch_tiktok": "TikTok(틱톡)",
+      "ch_google": "Google(구글·유튜브)",
+      "ch_naver": "네이버 광고",
+      "ch_kakao": "카카오 광고",
+      "ch_coupang_ads": "쿠팡 광고",
+      "ch_instagram": "인스타그램 쇼핑",
+      "sc_coupang": "쿠팡",
+      "sc_naver_smart": "네이버 스마트스토어",
+      "sc_11st": "11번가",
+      "sc_gmarket": "G마켓",
+      "sc_kakao_shop": "카카오쇼핑",
+      "approvedBy": "에 의해",
+      "approvedAt": "승인됨",
+      "createdAt": "생성",
+      "budgetTitle": "💰 예산 플래너",
+      "budgetPageSub": "채널별·캠페인별 광고 예산을 계획하고 소진율을 추적합니다",
+      "tabChannelBudget": "📊 채널별 예산",
+      "tabMonthly": "📅 월별 현황",
+      "tabAI": "🤖 AI 분석",
+      "channelBudget": "채널별 현재 예산 현황",
+      "totalBudget": "총 예산",
+      "spent": "집행액",
+      "remaining": "잔여",
+      "burnRate": "소진율",
+      "monthlyBudget": "월별 예산 현황 (2026)",
+      "budgetLabel": "예산",
+      "spentLabel": "집행",
+      "attrTitle": "🔗 전환 기여도 분석",
+      "attrSub": "구매 전환에 기여한 각 채널의 기여 비율을 분석합니다",
+      "tabResults": "📋 결과",
+      "tabScore": "🎯 점수 계산",
+      "tabSummary": "📊 채널 요약",
+      "tabCoupons": "🏷 쿠폰 & 딥링크",
+      "tabAiAttr": "🤖 AI 분석",
+      "calTitle": "📆 콘텐츠 캘린더",
+      "calSub": "SNS 포스트·광고 소재·이벤트 일정을 달력 형식으로 계획·관리합니다",
+      "tabCalendar": "📅 월별 캘린더",
+      "tabList": "📋 콘텐츠 목록",
+      "tabAiCal": "🤖 AI 분석",
+      "status_draft": "작성중",
+      "status_review": "심사중",
+      "status_scheduled": "예약완료",
+      "status_published": "발행완료",
+      "status_cancelled": "취소",
+      "colTitle": "제목",
+      "colCreator": "크리에이터",
+      "colPlatform": "플랫폼",
+      "aiHubTitle": "AI 마케팅 허브 먼저 확인하세요",
+      "aiHubDesc1": "재고, 주문, CRM, 정산 데이터를 자동 분석하여 ",
+      "aiHubDesc2": "ROI 기반 즉시 실행 가능한 추천",
+      "aiHubDesc3": "을 제공합니다.",
+      "aiHubDesc4": "직접 전략을 설계하려면 아래 설정을 진행하세요.",
+      "aiHubBtn": "AI 마케팅 허브",
+      "creativeAutoSync": "AI 광고소재 카테고리 → 캠페인 설정 자동 연동",
+      "creativeSyncDesc1": "카테고리를 선택하고 ",
+      "creativeSyncBtn": "캠페인 설정으로 이동",
+      "creativeSyncDesc2": " 버튼을 클릭하면 선택한 카테고리가 ",
+      "creativeSyncDesc3": "자동으로 연동",
+      "creativeSyncDesc4": "됩니다.",
+      "creativeGoSetup": "캠페인 설정으로 이동",
+      "aiRecommendBadge": "AI 추천 채널 자동 선택 · 직접 변경 가능",
+      "colTotalAdSpend": "총광고비 지출",
+      "colBlendedRoas": "통합(Blended) ROAS",
+      "colTotalConv": "통합 전환 목표",
+      "colActivePlatforms": "운영 매체 현황",
+      "statusActive": "활성",
+      "statusPaused": "일시중지",
+      "explainTitle": "AI 최적화 사유 안내",
+      "explainSub": "예산 삭감 제안 근거",
+      "explainCatInsight": "인사이트 내역",
+      "explainChWhy": "채널별 동향",
+      "explainEditNote": "수동 변경 권장됨",
+      "statImpressions": "노출수 데이터",
+      "statClicks": "클릭 성과",
+      "statConversions": "전환 성과",
+      "kpiAchieve": "KPI 달성"
+    },
+    "perms": {
+      "readAll": "전체 읽기",
+      "writeAll": "전체 쓰기",
+      "changeSettings": "설정 변경",
+      "manageUsers": "사용자 관리",
+      "language": "언어",
+      "languageSwitch": "언어 변경"
+    },
+    "mobile": {
+      "hello": "안녕하세요",
+      "synced": "동기화",
+      "urgent": "긴급",
+      "budget": "예산",
+      "done": "✓ 완료",
+      "run": "실행",
+      "monthRevenue": "이번달 매출",
+      "vsLastMonth": "전월 대비 +8.4%",
+      "adAvg": "광고 채널 평균",
+      "todayOrders": "오늘 주문",
+      "processing": "처리 중 12건",
+      "roiVsAd": "광고비 대비 수익",
+      "channelStatus": "채널 현황",
+      "viewAll": "전체",
+      "aiRecommend": "AI 즉시 실행 추천",
+      "more": "더보기",
+      "notifications": "알림",
+      "quickActions": "빠른 실행",
+      "aiTip1": "예산 +30% 추천",
+      "aiTip2": "신규 타겟팅 추천",
+      "alert1": "스킨케어 재고 8개 — 안전재고 이하",
+      "alert2": "AI 캠페인 #C-041 ROAS 4.8x 달성",
+      "alert3": "어제 정산 ₩2,480,000 완료",
+      "aiCampaign": "AI 캠페인",
+      "checkOrder": "주문 확인",
+      "channels": "채널 연동",
+      "more2": "더보기",
+      "aiInsightsPage": {
+        "badge1": "즉각 조치 4건",
+        "badge2": "ROAS 이상 2건",
+        "badge3": "AI 모델 가동 중",
+        "tabCards": "인사이트 카드",
+        "tabCardsDesc": "P&L 이상 분석",
+        "tabTrends": "트렌드 차트",
+        "tabTrendsDesc": "주간 시계열 트렌드",
+        "tabChat": "AI 어시스턴트",
+        "tabChatDesc": "Claude AI 실시간 분석",
+        "analyzing": "분석 중...",
+        "trendRoas": "채널 ROAS",
+        "trendReturns": "반품율",
+        "last12weeks": "최근 12주 트렌드",
+        "platformFee": "플랫폼 수수료",
+        "influencerCost": "인플루언서 비용",
+        "aiGreeting": "안녕하세요! Genie AI 어시스턴트입니다. P&L, ROAS, 반품율, 인플루언서 성과 등에 대해 질문해 주세요.",
+        "returns": "반품",
+        "selectContext": "분석 컨텍스트 선택",
+        "inputPlaceholder": "P&L, ROAS, 반품율 등 질문...",
+        "send": "전송",
+        "analysisFailed": "분석 실패",
+        "errorPrefix": "오류",
+        "historyTitle": "📋 Claude AI 분석 이력",
+        "noHistory": "분석 이력이 없습니다. AI 어시스턴트 탭에서 분석을 시작해 보세요.",
+        "card1Title": "ROAS 경보 — TikTok CPP / 쿠팡 DA",
+        "card1Desc": "손익분기점(3.0x) 이하로 운영 중인 캠페인 2개. 즉각적인 예산 조정이 필요합니다.",
+        "card1B1": "TikTok CPP: ROAS 2.1x (목표 대비 -30%)",
+        "card1B2": "쿠팡 DA: ROAS 1.7x (목표 대비 -43%)",
+        "card1Action": "예산 재배분",
+        "card2Title": "반품율 초과 — SKU-C3, SKU-D4",
+        "card2Desc": "두 SKU가 3주 연속 12% 반품율 초과. 상품 품질/설명 개선이 필요합니다.",
+        "card2B1": "SKU-C3 반품율 19.8% (기준 대비 +7.8pp 초과)",
+        "card2B2": "SKU-D4 반품율 20.2% (기준 대비 +8.2pp 초과)",
+        "card2Action": "상품 관리",
+        "card3Title": "쿠폰 남용 — TikTok 크리에이터 TechVibe",
+        "card3Desc": "쿠폰 사용률이 일반 패턴보다 3배 높습니다. 쿠폰 한도 조정을 권장합니다.",
+        "card3B1": "340회 사용 / 198만 뷰 = 1.7‰ (2‰ 한도 근접)",
+        "card3B2": "쿠폰 할인액 ₩17M — 매출의 19.1%",
+        "card3Action": "쿠폰 한도 조정",
+        "card4Title": "최고 성과 — Google 브랜드 KW ROAS 7.0x",
+        "card4Desc": "Google 브랜드 캠페인이 최고 효율 유지 중. 예산 증액 기회 식별됨.",
+        "card4B1": "네이버 SA도 7.1x — 동일한 높은 효율 수준",
+        "card4B2": "합산 예산 증액 시 +₩2,800만 매출 추가 기대",
+        "card4Action": "예산 증액 검토",
+        "qq1": "지난달 대비 순이익이 개선되었나요?",
+        "qq2": "ROAS가 가장 낮은 채널은 어디인가요?",
+        "qq3": "반품율이 위험한 SKU는 무엇인가요?",
+        "qq4": "비용 절감 우선순위는 무엇인가요?"
+      },
+      "helpPanel": {
+        "searchResult": "검색 결과",
+        "currentPageHelp": "현재 페이지 도움말",
+        "goBack": "← 돌아가기",
+        "fullManual": "📚 전체 사용설명서 보기 →",
+        "needMoreHelp": "더 자세한 내용이 필요하신가요?",
+        "footerHelp": "Geniego-ROI v423 · 도움이 필요하면 관리자에게 문의하세요",
+        "dataFrom": "📥 데이터 수집 출처",
+        "provides": "📊 이 메뉴가 제공하는 정보",
+        "howToUse": "📋 사용 방법",
+        "canDo": "🎯 이 메뉴로 할 수 있는 것",
+        "searchPlaceholder": "도움말 검색... (예: ROAS, 재고, API키)",
+        "helpResultCount": "\\\":{{q}}\\\" — {{n}}건의 도움말",
+        "goToPage": ":{{path}} 바로가기 →",
+        "defaultTitle": "Geniego-ROI 도움말",
+        "defaultSummary": "이 페이지의 상세 도움말을 준비 중입니다. 전체 사용설명서를 참고하세요.",
+        "defaultStep1": "상단 메뉴에서 '사용설명서'를 클릭하면 전체 가이드를 볼 수 있습니다.",
+        "defaultStep2": "통합검색(Ctrl+K)으로 원하는 기능을 찾아보세요."
+      }
+    },
+    "marketingIntel": {
+      "aiPredict": {
+        "influencerUGC": {
+          "txt_부정키워드Top5_16": "Txt_부정키워드 op5_16",
+          "txt_부정키워드급증10건_17": "Txt_부정키워드급증10건_17",
+          "txt_리뷰피드_18": "Txt_리뷰피드_18",
+          "txt_All감성_19": "Txt_ ll감성_19",
+          "txt_CS대응_23": "Txt_  대응_23",
+          "txt_Search결과No_24": "Txt_ earch결과 o_24",
+          "txt_AI인플루언서평가A_25": "Txt_  인플루언서평가 _25",
+          "txt_평가항목per점Co_26": "Txt_평가항목per점 o_26",
+          "txt_실적_27": "Txt_실적_27",
+          "txt_강점_28": "Txt_강점_28",
+          "txt_개선포인트_29": "Txt_개선포인트_29",
+          "txt_AI적정Commis_30": "Txt_  적정 ommis_30",
+          "txt_지역연령성per참여_31": "Txt_지역연령성per참여_31",
+          "txt_지역연령성per참여_34": "Txt_지역연령성per참여_34",
+          "txt_평가대상Creato_36": "Txt_평가대상 reato_36",
+          "txt_AI평가RunBut_37": "Txt_  평가 un ut_37",
+          "txt_포트폴리오종합Ana_38": "Txt_포트폴리오종합 na_38",
+          "txt_CreatorAI평_39": "Txt_ reator  평_39",
+          "txt_행Clicks시항목_40": "Txt_행 licks시항목_40",
+          "txt_AI점Count_41": "Txt_  점 ount_41",
+          "txt_계약갱신권고_42": "Txt_계약갱신권고_42",
+          "txt_권장Commissi_43": "Txt_권장 ommissi_43",
+          "txt_포트폴리오전략인사이_44": "Txt_포트폴리오전략인사이_44",
+          "txt_Budget최적화제_45": "Txt_ udget최적화제_45",
+          "txt_AI재Analysi_46": "Txt_  재 nalysi_46",
+          "txt_All리뷰_47": "Txt_ ll리뷰_47",
+          "txt_4개Channel합_48": "Txt_4개 hannel합_48",
+          "txt_Average평점_49": "Txt_ verage평점_49",
+          "txt_전Channel가i_50": "Txt_전 hannel가i_50",
+          "txt_부정리뷰_51": "Txt_부정리뷰_51",
+          "txt_즉시대응필요_52": "Txt_즉시대응필요_52",
+          "txt_긍정Rate_53": "Txt_긍정 ate_53",
+          "txt_전월31p_54": "Txt_전월31p_54"
+        }
+      },
+      "influencerUGC": {
+        "txt_부정키워드Top5_16": "Txt_부정키워드 op5_16",
+        "txt_부정키워드급증10건_17": "Txt_부정키워드급증10건_17",
+        "txt_리뷰피드_18": "Txt_리뷰피드_18",
+        "txt_All감성_19": "Txt_ ll감성_19",
+        "txt_CS대응_23": "Txt_  대응_23",
+        "txt_Search결과No_24": "Txt_ earch결과 o_24",
+        "txt_AI인플루언서평가A_25": "Txt_  인플루언서평가 _25",
+        "txt_평가항목per점Co_26": "Txt_평가항목per점 o_26",
+        "txt_실적_27": "Txt_실적_27",
+        "txt_강점_28": "Txt_강점_28",
+        "txt_개선포인트_29": "Txt_개선포인트_29",
+        "txt_AI적정Commis_30": "Txt_  적정 ommis_30",
+        "txt_지역연령성per참여_31": "Txt_지역연령성per참여_31",
+        "txt_지역연령성per참여_34": "Txt_지역연령성per참여_34",
+        "txt_평가대상Creato_36": "Txt_평가대상 reato_36",
+        "txt_AI평가RunBut_37": "Txt_  평가 un ut_37",
+        "txt_포트폴리오종합Ana_38": "Txt_포트폴리오종합 na_38",
+        "txt_CreatorAI평_39": "Txt_ reator  평_39",
+        "txt_행Clicks시항목_40": "Txt_행 licks시항목_40",
+        "txt_AI점Count_41": "Txt_  점 ount_41",
+        "txt_계약갱신권고_42": "Txt_계약갱신권고_42",
+        "txt_권장Commissi_43": "Txt_권장 ommissi_43",
+        "txt_포트폴리오전략인사이_44": "Txt_포트폴리오전략인사이_44",
+        "txt_Budget최적화제_45": "Txt_ udget최적화제_45",
+        "txt_AI재Analysi_46": "Txt_  재 nalysi_46",
+        "txt_All리뷰_47": "Txt_ ll리뷰_47",
+        "txt_4개Channel합_48": "Txt_4개 hannel합_48",
+        "txt_Average평점_49": "Txt_ verage평점_49",
+        "txt_전Channel가i_50": "Txt_전 hannel가i_50",
+        "txt_부정리뷰_51": "Txt_부정리뷰_51",
+        "txt_즉시대응필요_52": "Txt_즉시대응필요_52",
+        "txt_긍정Rate_53": "Txt_긍정 ate_53",
+        "txt_전월31p_54": "Txt_전월31p_54"
+      },
+      "influencer": {
+        "attrData": {
+          "negativeCount": "음수 기여",
+          "saturation": "포화"
+        }
+      },
+      "marketingIntel": {
+        "aiPredict": {
+          "influencerUGC": {
+            "txt_부정키워드Top5_16": "Txt_부정키워드 op5_16",
+            "txt_부정키워드급증10건_17": "Txt_부정키워드급증10건_17",
+            "txt_리뷰피드_18": "Txt_리뷰피드_18",
+            "txt_All감성_19": "Txt_ ll감성_19",
+            "txt_CS대응_23": "Txt_  대응_23",
+            "txt_Search결과No_24": "Txt_ earch결과 o_24",
+            "txt_AI인플루언서평가A_25": "Txt_  인플루언서평가 _25",
+            "txt_평가항목per점Co_26": "Txt_평가항목per점 o_26",
+            "txt_실적_27": "Txt_실적_27",
+            "txt_강점_28": "Txt_강점_28",
+            "txt_개선포인트_29": "Txt_개선포인트_29",
+            "txt_AI적정Commis_30": "Txt_  적정 ommis_30",
+            "txt_지역연령성per참여_31": "Txt_지역연령성per참여_31",
+            "txt_지역연령성per참여_34": "Txt_지역연령성per참여_34",
+            "txt_평가대상Creato_36": "Txt_평가대상 reato_36",
+            "txt_AI평가RunBut_37": "Txt_  평가 un ut_37",
+            "txt_포트폴리오종합Ana_38": "Txt_포트폴리오종합 na_38",
+            "txt_CreatorAI평_39": "Txt_ reator  평_39",
+            "txt_행Clicks시항목_40": "Txt_행 licks시항목_40",
+            "txt_AI점Count_41": "Txt_  점 ount_41",
+            "txt_계약갱신권고_42": "Txt_계약갱신권고_42",
+            "txt_권장Commissi_43": "Txt_권장 ommissi_43",
+            "txt_포트폴리오전략인사이_44": "Txt_포트폴리오전략인사이_44",
+            "txt_Budget최적화제_45": "Txt_ udget최적화제_45",
+            "txt_AI재Analysi_46": "Txt_  재 nalysi_46",
+            "txt_All리뷰_47": "Txt_ ll리뷰_47",
+            "txt_4개Channel합_48": "Txt_4개 hannel합_48",
+            "txt_Average평점_49": "Txt_ verage평점_49",
+            "txt_전Channel가i_50": "Txt_전 hannel가i_50",
+            "txt_부정리뷰_51": "Txt_부정리뷰_51",
+            "txt_즉시대응필요_52": "Txt_즉시대응필요_52",
+            "txt_긍정Rate_53": "Txt_긍정 ate_53",
+            "txt_전월31p_54": "Txt_전월31p_54"
+          }
+        },
+        "influencerUGC": {
+          "txt_부정키워드Top5_16": "Txt_부정키워드 op5_16",
+          "txt_부정키워드급증10건_17": "Txt_부정키워드급증10건_17",
+          "txt_리뷰피드_18": "Txt_리뷰피드_18",
+          "txt_All감성_19": "Txt_ ll감성_19",
+          "txt_CS대응_23": "Txt_  대응_23",
+          "txt_Search결과No_24": "Txt_ earch결과 o_24",
+          "txt_AI인플루언서평가A_25": "Txt_  인플루언서평가 _25",
+          "txt_평가항목per점Co_26": "Txt_평가항목per점 o_26",
+          "txt_실적_27": "Txt_실적_27",
+          "txt_강점_28": "Txt_강점_28",
+          "txt_개선포인트_29": "Txt_개선포인트_29",
+          "txt_AI적정Commis_30": "Txt_  적정 ommis_30",
+          "txt_지역연령성per참여_31": "Txt_지역연령성per참여_31",
+          "txt_지역연령성per참여_34": "Txt_지역연령성per참여_34",
+          "txt_평가대상Creato_36": "Txt_평가대상 reato_36",
+          "txt_AI평가RunBut_37": "Txt_  평가 un ut_37",
+          "txt_포트폴리오종합Ana_38": "Txt_포트폴리오종합 na_38",
+          "txt_CreatorAI평_39": "Txt_ reator  평_39",
+          "txt_행Clicks시항목_40": "Txt_행 licks시항목_40",
+          "txt_AI점Count_41": "Txt_  점 ount_41",
+          "txt_계약갱신권고_42": "Txt_계약갱신권고_42",
+          "txt_권장Commissi_43": "Txt_권장 ommissi_43",
+          "txt_포트폴리오전략인사이_44": "Txt_포트폴리오전략인사이_44",
+          "txt_Budget최적화제_45": "Txt_ udget최적화제_45",
+          "txt_AI재Analysi_46": "Txt_  재 nalysi_46",
+          "txt_All리뷰_47": "Txt_ ll리뷰_47",
+          "txt_4개Channel합_48": "Txt_4개 hannel합_48",
+          "txt_Average평점_49": "Txt_ verage평점_49",
+          "txt_전Channel가i_50": "Txt_전 hannel가i_50",
+          "txt_부정리뷰_51": "Txt_부정리뷰_51",
+          "txt_즉시대응필요_52": "Txt_즉시대응필요_52",
+          "txt_긍정Rate_53": "Txt_긍정 ate_53",
+          "txt_전월31p_54": "Txt_전월31p_54"
+        }
+      }
+    }
   },
 
   "_marketing_1": {
