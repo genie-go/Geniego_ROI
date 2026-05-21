@@ -42901,5 +42901,13 @@ export default {
     "sports": "⚽ 스포츠 & 레저",
     "travel": "✈️ 여행 & 숙박"
   },
+
+  "grade": {
+    "champions": "챔피언",
+    "loyal": "충성",
+    "new": "신규",
+    "churnRisk": "이탈 위험",
+    "churned": "이탈"
+  }
 };
 
