@@ -6584,6 +6584,29 @@ export default {
     'Refresh Creative Assets': "크리에이티브 교체",
     'Send Discount Coupon': "할인 쿠폰 발송",
     'VIP Care': "VIP 전용 케어"
+  ,
+    'Adds underperforming search terms to the negative keyword list automatically': {
+      '': ""
+    },
+    'Automatically cuts a percentage of the current budget': {
+      ' Can be auto-restored when ROAS recovers': {
+        '': ""
+      }
+    },
+    'Automatically scales up budget when ROAS and Conversion Rate are exceptionally high': {
+      '': ""
+    },
+    'Creates and sends a special discount coupon to High-Value Churn Risk users via Kakao/Email': {
+      '': ""
+    },
+    'Immediately pauses an ad campaign': {
+      ' High-risk action requiring mandatory approval': {
+        '': ""
+      }
+    },
+    'Sends a critical alert to the designated Slack channel for manual review': {
+      '': ""
+    }
   },
   "lang": "English",
   "langCode": "en",
@@ -12165,6 +12188,85 @@ export default {
       'tabManSeg': "🏷 手動",
       'tabRfm': "📊 RFM 분석",
       'titDetail': "顧客詳細"
+    ,
+      'aiSetSaved': "✅ 저장 완료",
+      'anCamps': "캠페인",
+      'anClickRate': "클릭율",
+      'anDelivery': "전송 성공률",
+      'anNoData': "아직 분석할 발송 데이터가 없습니다.",
+      'anOpenRate': "오픈율",
+      'anSegPerf': "세그먼트별 성과",
+      'anTotalSent': "총 발송",
+      'awsRegion': "AWS 리전",
+      'btnCreate': "Btn Create",
+      'btnEditSave': "Btn Edit Save",
+      'btnSend': "Send",
+      'btnSending': "Sending...",
+      'btnTplSave': "Btn Tpl Save",
+      'cNew': "Create New Campaign",
+      'cStat': "Campaign Send Status",
+      'catPromotion': "프로모션",
+      'catRetention': "재방문",
+      'catTxn': "거래",
+      'catWelcome': "환영",
+      'colAction': "アクション",
+      'colClick': "클릭율",
+      'colName': "Campaign name",
+      'colOpen': "Open Rate",
+      'colSent': "Send",
+      'colStatus': "ステータス",
+      'colTarget': "Target",
+      'colTpl': "Template",
+      'emptyCamp': "No campaigns. Create your first campaign above.",
+      'fName': "名前",
+      'fTarget': "Segment",
+      'fTpl': "Template",
+      'fromEmail': "발신자 이메일",
+      'fromName': "발신자 이름",
+      'guideAnalyticsDesc': "パフォーマンス",
+      'guideAnalyticsName': "分析",
+      'guideCampDesc': "管理",
+      'guideCampName': "キャンペーン",
+      'guideSetDesc': "プロバイダー",
+      'guideSetName': "設定",
+      'guideTabsTitle': "タブ説明",
+      'guideTplDesc': "作成・編集",
+      'guideTplName': "テンプレート",
+      'kpiClick': "평균 클릭율",
+      'kpiEmails': "총 이메일",
+      'kpiOpen': "평균 오픈율",
+      'kpiSent': "Kpi Sent",
+      'kpiTotal': "全チャネル",
+      'lblCategory': "카테고리",
+      'lblMockTest': "모의 테스트",
+      'lblPassword': "비밀번호",
+      'lblProvider': "프로바이더",
+      'lblSmtpHost': "SMTP 호스트",
+      'lblSmtpPort': "SMTP 포트",
+      'lblSmtpUser': "SMTP 사용자",
+      'lblSubject': "제목라인",
+      'lblTplName': "템플릿 이름",
+      'mockMode': "모의 모드",
+      'msgCampDone': "✅ 캠페인이 생성되었습니다!",
+      'msgDelConfirm': "이 템플릿을 삭제하시겠습니까?",
+      'msgSendConfirm': "Send this campaign to all targets?",
+      'msgSendDone': "✅ 캠페인이 성공적으로 발송되었습니다!",
+      'noTemplates': "아직 템플릿이 없습니다. 새 템플릿을 만들어 시작하세요.",
+      'optAll': "All",
+      'optSel': "Opt Sel",
+      'setSaveBtn': "💾 Save Settings",
+      'subTitle': "Campaign · Template · Settings Unified Email Marketing System",
+      'subjPh': "이메일 제목을 입력하세요...",
+      'tabAnalytics': "📊 분석",
+      'tabCamp': "Campaign Manager",
+      'tabSettings': "設定",
+      'tabTpl': "Template Management",
+      'tfBody': "Tf Body",
+      'title': "Email Marketing",
+      'tplCreate': "Create Template",
+      'tplEdit': "Edit Template",
+      'tplNew': "New Template",
+      'users': "명"
     }
   ,
     'actPurchase': "購入",
