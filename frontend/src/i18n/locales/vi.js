@@ -871,6 +871,13 @@ export default {
     'priority': "優先度",
     'subtitle': "機械学習ベースのインサイト · 予測分析 · 自動推奨",
     'totalInsights': "総インサイト"
+  ,
+    'insightType': {
+      'anomaly': "異常",
+      'opportunity': "機会",
+      'risk': "リスク",
+      'trend': "トレンド"
+    }
   },
   "priceOpt": {
     "pageTitle": "Công Cụ Tối Ưu Giá",
@@ -7511,7 +7518,10 @@ export default {
         "edit": "Edit",
         "delete": "Delete",
         "noMappings": "No Mappings"
-      },
+      ,
+      'sub': "マッピングレジストリ",
+      'title': "매핑 레지스트리"
+    },
       "userMgmt": {
         "pageTitle": "🔌 Integration Hub",
         "pageSub": "Connector & integration management",
@@ -10850,7 +10860,10 @@ export default {
           "GuardDecide": "Demo mode - approval/rejection unavailable",
           "GuardExecute": "Demo mode - execution unavailable",
           "status": "Status"
-        },
+        ,
+      'sub': "承認 · 実行センター",
+      'title': "액션 센터"
+    },
         "systemMonitor": {
           "pageTitle": "🔌 Integration Hub",
           "pageSub": "Connector & integration management",
@@ -12054,6 +12067,15 @@ export default {
     "aiRuleEngine": {
       "title": "AI Rule Engine",
       "sub": "Quy tắc AI tự động"
+    }
+  ,
+    'aiPolicy': {
+      'sub': "AI ポリシー提案",
+      'title': "AI ポリシー"
+    },
+    'reports': {
+      'sub': "レポート · 分析",
+      'title': "レポート"
     }
   },
   "coupon": {
@@ -15330,6 +15352,12 @@ export default {
   'upload': "アップロード",
   'view': "詳細",
   'warning': "警告"
+,
+  'segment': {
+    'audience': "オーディエンス",
+    'category': "カテゴリー",
+    'creative': "クリエイティブ"
+  }
 },
   "mobile": {
     "hello": "Xin chào,",
