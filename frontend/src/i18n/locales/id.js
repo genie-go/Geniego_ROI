@@ -7483,7 +7483,10 @@ export default {
         "edit": "Edit",
         "delete": "Delete",
         "noMappings": "No Mappings"
-      },
+      ,
+      'sub': "マッピングレジストリ",
+      'title': "매핑 레지스트리"
+    },
       "userMgmt": {
         "pageTitle": "🔌 連携ハブ",
         "pageSub": "コネクタ＆統合管理",
@@ -9315,7 +9318,10 @@ export default {
           "badgeRules": "Badge Rules",
           "badgeRealtime": "Badge Realtime",
           "badgeSecurity": "Badge Security"
-        },
+        ,
+      'sub': "AI ポリシー提案",
+      'title': "AI ポリシー"
+    },
         "gSug": {
           "": ""
         },
@@ -13546,7 +13552,10 @@ export default {
           "GuardDecide": "デモモードでは承認/却下不可",
           "GuardExecute": "デモモードでは実行不可",
           "status": "Status"
-        },
+        ,
+      'sub': "承認 · 実行センター",
+      'title': "액션 센터"
+    },
         "systemMonitor": {
           "pageTitle": "🔌 連携ハブ",
           "pageSub": "コネクタ＆統合管理",
@@ -14747,6 +14756,15 @@ export default {
     "requestedPermissions": "Izin yang Diminta",
     "btnCancel": "Batal",
     "btnAuthorize": "Otorisasi"
+  ,
+    'alertPolicies': {
+      'sub': "アラートポリシーエンジン",
+      'title': "アラートポリシー"
+    },
+    'reports': {
+      'sub': "レポート · 分析",
+      'title': "レポート"
+    }
   },
   "apiKeys": {
     "pageTitle": "🔌 連携ハブ",
@@ -17265,6 +17283,13 @@ export default {
     'trendReturns': "반품률",
     'trendRevenue': "총 매출",
     'unitOrders': "件"
+  ,
+    'insightType': {
+      'anomaly': "異常",
+      'opportunity': "機会",
+      'risk': "リスク",
+      'trend': "トレンド"
+    }
   },
   "priceOpt": {
     "pageTitle": "Price Optimization Engine",
@@ -18915,6 +18940,12 @@ export default {
   'upload': "アップロード",
   'view': "詳細",
   'warning': "警告"
+,
+  'segment': {
+    'audience': "オーディエンス",
+    'category': "カテゴリー",
+    'creative': "クリエイティブ"
+  }
 },
   "mobile": {
     "hello": "Halo,",
@@ -19957,6 +19988,24 @@ export default {
     "defaultSummary": "Detailed help for this page is being prepared.",
     "defaultStep1": "Click the Manual in the top bar to view the full guide.",
     "defaultStep2": "Use Unified Search (Ctrl+K) to find any feature."
+  ,
+    'staticHelp': {
+      'connectors': {
+        'steps': "Steps",
+        'summary': "Send domestic SMS/LMS messages and manage send history and statistics.",
+        'title': "Email Marketing"
+      },
+      'help': {
+        'steps': "Steps",
+        'summary': "Send domestic SMS/LMS messages and manage send history and statistics.",
+        'title': "Email Marketing"
+      },
+      'smsMarketing': {
+        'steps': "Steps",
+        'summary': "Send domestic SMS/LMS messages and manage send history and statistics.",
+        'title': "Email Marketing"
+      }
+    }
   },
   "pricingDetail": {
     "free_tagline": "Start Free, Explore Platform",
