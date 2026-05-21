@@ -7892,7 +7892,10 @@ export default {
         "edit": "Edit",
         "delete": "Delete",
         "noMappings": "No Mappings"
-      },
+      ,
+      'sub': "マッピングレジストリ",
+      'title': "매핑 레지스트리"
+    },
       "userMgmt": {
         "pageTitle": "🔌 集成中心",
         "pageSub": "连接器与集成管理",
@@ -7942,7 +7945,10 @@ export default {
         "warning": "Warnings",
         "since": "Since",
         "callVolume": "Call Volume"
-      },
+      ,
+      'sub': "ガバナンス · 管理者",
+      'title': "ガバナンス"
+    },
       "auditLog": {
         "pageTitle": "🔌 集成中心",
         "pageSub": "连接器与集成管理",
@@ -9724,7 +9730,10 @@ export default {
           "badgeRules": "Badge Rules",
           "badgeRealtime": "Badge Realtime",
           "badgeSecurity": "Badge Security"
-        },
+        ,
+      'sub': "AI ポリシー提案",
+      'title': "AI ポリシー"
+    },
         "gSug": {
           "": ""
         },
@@ -11155,7 +11164,10 @@ export default {
             "guideRoleSync": "集成中心注册API的渠道自动添加。",
             "importSuccess": "结算数据已导入。",
             "importMock": "演示模式：请在集成中心连接API。"
-          },
+          ,
+      'sub': "精算ライン",
+      'title': "정산 내역"
+    },
           "sms": {
             "providerNhnDesc": "NHN Cloud bizMessage service",
             "providerAligoDesc": "Leading Korean SMS service",
@@ -11991,7 +12003,10 @@ export default {
         "root_pageTitle_influencer": "達人 & UGC",
         "root_pageTitle_reviewsUgc": "評論 & UGC",
         "root_pageTitle_webPopup": "網頁彈窗管理"
-      },
+      ,
+      'sub': "インフルエンサー · UGC",
+      'title': "인플루언서 허브"
+    },
       "omniChannel": {
         "heroDesc": "註冊API金鑰並管理連接狀態。",
         "badgeChannelCount": "支持{{n}}个渠道",
@@ -13337,7 +13352,10 @@ export default {
             "summary": "Send domestic SMS/LMS messages and manage send history and statistics.",
             "steps": "Steps",
             "tips": "Tips"
-          },
+          ,
+      'sub': "外部コネクター管理",
+      'title': "コネクター"
+    },
           "help": {
             "title": "Email Marketing",
             "summary": "Send domestic SMS/LMS messages and manage send history and statistics.",
@@ -13945,7 +13963,10 @@ export default {
           "GuardDecide": "演示模式下无法审批/拒绝",
           "GuardExecute": "演示模式下无法执行",
           "status": "Status"
-        },
+        ,
+      'sub': "承認 · 実行センター",
+      'title': "액션 센터"
+    },
         "systemMonitor": {
           "pageTitle": "🔌 集成中心",
           "pageSub": "连接器与集成管理",
@@ -15091,6 +15112,15 @@ export default {
     "requestedPermissions": "請求的權限",
     "btnCancel": "取消",
     "btnAuthorize": "授權"
+  ,
+    'alertPolicies': {
+      'sub': "アラートポリシーエンジン",
+      'title': "アラートポリシー"
+    },
+    'reports': {
+      'sub': "レポート · 分析",
+      'title': "レポート"
+    }
   },
   "sidebar": {
     "footerLine1": "營收 + 風險 + 治理",
@@ -15826,6 +15856,13 @@ export default {
     'trendReturns': "반품률",
     'trendRevenue': "총 매출",
     'unitOrders': "件"
+  ,
+    'insightType': {
+      'anomaly': "異常",
+      'opportunity': "機会",
+      'risk': "リスク",
+      'trend': "トレンド"
+    }
   },
   "priceOpt": {
     "pageTitle": "Price Optimization Engine",
@@ -17227,6 +17264,12 @@ export default {
   'upload': "アップロード",
   'view': "詳細",
   'warning': "警告"
+,
+  'segment': {
+    'audience': "オーディエンス",
+    'category': "カテゴリー",
+    'creative': "クリエイティブ"
+  }
 },
   "mobile": {
     "hello": "您好，",
@@ -17700,6 +17743,24 @@ export default {
     "defaultSummary": "此頁面的詳細說明正在準備中，請參考完整手冊。",
     "defaultStep1": "點選上方功能表中的「使用說明」查看完整指南。",
     "defaultStep2": "使用整合搜尋(Ctrl+K)尋找功能。"
+  ,
+    'staticHelp': {
+      'connectors': {
+        'steps': "Steps",
+        'summary': "Send domestic SMS/LMS messages and manage send history and statistics.",
+        'title': "Email Marketing"
+      },
+      'help': {
+        'steps': "Steps",
+        'summary': "Send domestic SMS/LMS messages and manage send history and statistics.",
+        'title': "Email Marketing"
+      },
+      'smsMarketing': {
+        'steps': "Steps",
+        'summary': "Send domestic SMS/LMS messages and manage send history and statistics.",
+        'title': "Email Marketing"
+      }
+    }
   },
   "pricingDetail": {
     "free_tagline": "免費開始，探索平台",
