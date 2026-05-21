@@ -1,0 +1,51 @@
+﻿=== 분류 결과 ===
+  ja_jp:     4640 (포함)
+  ja_hangul: 0 (포함)
+  ja_en:     28 (포함)
+  ja_cjk:    2616 (보류 — ja vs zh 비교 후 별도 처리)
+  ja_other:  24
+  non_string: 3
+
+TSV 대상 합계: 4668
+
+TSV 저장: D:\project\GeniegoROI\s143_passthrough_ja_jp.tsv (245718 bytes)
+
+=== ns 분포 (전체) ===
+  crm: 2101
+  pages: 1598
+  ruleEnginePage: 761
+  audit: 64
+  journeyBuilder: 22
+  channelKpi: 21
+  gAttr: 21
+  marketing: 17
+  performance: 17
+  lineChannel: 13
+  reportBuilder: 9
+  journeyTpl: 5
+  attribution: 5
+  aiPredict: 3
+  dataTrust: 3
+  nav: 2
+  team: 1
+  myTeam: 1
+  helpCenter: 1
+  userMgmt: 1
+  aiRec: 1
+  developerHub: 1
+
+=== ko root 교집합 ===
+  ko root 존재 (v3 처리됨): 13 ns, 합 4600 entries
+  ko root 부재 (v3 skip): 9 ns, 합 68 entries
+  skip 대상:
+    journeyBuilder: 22
+    gAttr: 21
+    lineChannel: 13
+    journeyTpl: 5
+    dataTrust: 3
+    team: 1
+    myTeam: 1
+    helpCenter: 1
+    developerHub: 1
+
+=== DONE ===

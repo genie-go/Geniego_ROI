@@ -1,0 +1,41 @@
+﻿[1] loaded 4668 targets (header_skipped=0)
+[2a] ko root keys: 632
+[2b] by ns (matched ko root):
+     aiPredict: 3
+     aiRec: 1
+     attribution: 5
+     audit: 64
+     channelKpi: 21
+     crm: 2101
+     marketing: 17
+     nav: 2
+     pages: 1598
+     performance: 17
+     reportBuilder: 9
+     ruleEnginePage: 761
+     userMgmt: 1
+[2c] skipped (ns not in ko root):
+     dataTrust: 3
+     developerHub: 1
+     gAttr: 21
+     helpCenter: 1
+     journeyBuilder: 22
+     journeyTpl: 5
+     lineChannel: 13
+     myTeam: 1
+     team: 1
+  [OK] aiPredict: +3 entries (existing=326, tree_skip=0)
+  [OK] aiRec: +1 entries (existing=8, tree_skip=0)
+  [OK] attribution: +5 entries (existing=4, tree_skip=0)
+  [OK] audit: +64 entries (existing=89, tree_skip=0)
+  [OK] channelKpi: +21 entries (existing=87, tree_skip=0)
+  [OK] crm: +2101 entries (existing=2237, tree_skip=0)
+  [OK] marketing: +0 entries (existing=905, tree_skip=0)
+  [OK] nav: +2 entries (existing=3934, tree_skip=0)
+  [OK] pages: +1598 entries (existing=4726, tree_skip=0)
+  [OK] performance: +17 entries (existing=7, tree_skip=0)
+  [OK] reportBuilder: +9 entries (existing=68, tree_skip=0)
+  [OK] ruleEnginePage: +761 entries (existing=1460, tree_skip=0)
+  [OK] userMgmt: +1 entries (existing=26, tree_skip=0)
+[4] total +4583 entries, byte 1030908 -> 1215803 (+184895)
+[5] DRY: D:\project\GeniegoROI\s142_kopt_v3_dry.js
