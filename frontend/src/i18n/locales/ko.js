@@ -35724,6 +35724,10 @@ export default {
     primaryAxisPrefix: '주축 접두어',
     secondaryAxisPrefix: '보조축 접두어',
     injected_nav: 'true',
+  
+    "gNav": {
+      "accountPerformance": "계정 성과"
+    }
   },
 
   "accountPerf": {
