@@ -27752,7 +27752,24 @@ export default {
     "team": "チーム",
     "colCvr": "CVR%",
     "compareTo": "Compare to",
-    "kpiCvr": "CVR"
+    "kpiCvr": "CVR",
+    "anomalyDetected": "異常が検出されました",
+    "audienceInsights": "視聴者に関する洞察",
+    "channelPerf": "チャネルのパフォーマンス",
+    "colChannel": "チャンネル",
+    "colConversions": "コンバージョン",
+    "colCtr": "クリック率%",
+    "colRoas": "ローアス",
+    "creativePerf": "クリエイティブなパフォーマンス",
+    "exportReport": "と比較してくださいレポートのエクスポート",
+    "kpiCtr": "クリック率",
+    "kpiRoas": "ローアス",
+    "noAnomaly": "異常は検出されませんでした",
+    "subtitle": "リアルタイム KPI モニタリング · 異常検出 · クロスチャネル分析",
+    "tabChannels": "チャンネル",
+    "tabCreatives": "クリエイティブ",
+    "title": "パフォーマンス ハブ",
+    "topProducts": "人気の製品"
   },
   performanceHub: {
     'adSpend': "広告費",
@@ -27891,7 +27908,16 @@ export default {
     "period": "期間",
     "tabSaved": "💾 保存済みレポート",
     "downloadExcel": "?뱿 ?묒? ?ㅼ슫濡쒕뱶",
-    "downloadPdf": "⬇ PDF"
+    "downloadPdf": "⬇ PDF",
+    "channels": "チャネル",
+    "generateReport": "📊 レポート生成",
+    "noReports": "保存済みレポートなし",
+    "pageSub": "カスタムレポート生成 · Excel/PDFダウンロード",
+    "previewTitle": "レポートプレビュー",
+    "reportType": "レポート種別",
+    "tabCreate": "📝 レポート作成",
+    "type_channel": "チャネル実績",
+    "type_influencer": "インフルエンサー"
   },
   reportCards: {
     'attribution': "어트리뷰션",
