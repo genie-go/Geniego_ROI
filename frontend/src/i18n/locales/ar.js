@@ -7665,6 +7665,36 @@ export default {
     "influencerDesc": "تحليل المبدعين",
     "system": "حالة النظام",
     "systemDesc": "مراقبة الخادم"
+  ,
+    'ageDist': "📊 年齢層分布",
+    'ai': "AI分析",
+    'brand': "ブランド影響力",
+    'buyerAge': "📊 購買者年齢",
+    'buyerGender': "⚥ 購買者性別",
+    'cautionMarket': "⚠️ 注意市場",
+    'channelRoas': "チャネル別売上・ROAS",
+    'contribution': "貢献度",
+    'convert': "転換(ROI)",
+    'country': "性別・年齢",
+    'countryChannel': "チャネル",
+    'countryOverview': "概要",
+    'countryRanking': "🏆 国別売上貢献度ランキング",
+    'countryRegion': "地域",
+    'engage': "エンゲージメント",
+    'genderDist': "⚥ 性別分布",
+    'globalTopProducts': "グローバル人気商品 Top 5",
+    'growth': "成長率",
+    'orderCount': "注文数",
+    'quality': "品質評価",
+    'reach': "リーチ成果",
+    'regionOrder': "📍 地域別注文",
+    'report': "成果レポート",
+    'selectChannel': "チャネルを選択すると\n詳細分析が表示されます",
+    'shareRate': "シェア",
+    'topGrowth': "🚀 高成長市場 Top 5",
+    'topRegion': "📍 Topエリア",
+    'totalRevenue': "総売上",
+    'vsYesterday': "vs昨日"
   },
   "mobileNav": {
     "home": "Home",
@@ -11400,6 +11430,16 @@ export default {
     "guideTip3": "Identify VIP customers with RFM.",
     "guideTip4": "Run retention campaigns for at-risk customers.",
     "guideTip5": "Provide personalized offers per segment."
+  ,
+    'btnAuthorize': "認証する",
+    'btnOAuthConnect': "OAuth接続",
+    'grantedScopes': "付与された権限",
+    'oauthModalDesc': "{{platform}}に安全に接続して広告データを自動収集します。いつでも接続を解除できます。",
+    'oauthModalSub': "広告アカウントへのアクセス権を付与",
+    'oauthModalTitle': "{{platform}} OAuth認証",
+    'oauthPrompt': "OAuth認証でプラットフォームに接続",
+    'requestedPermissions': "要求された権限",
+    'tokenExpiry': "トークン有効期限"
   },
   "dashGuide": {
     "title": "دليل استخدام لوحة المعلومات",
@@ -12230,4 +12270,40 @@ export default {
     "sendTime": "Sent At",
     "delivered": "Delivered"
   },
+
+  cat: {
+    'beauty': "💄 ビューティ・コスメ",
+    'digital': "💻 デジタル・アプリ",
+    'electronics': "📱 電子・IT",
+    'fashion': "👗 ファッション・アパレル",
+    'food': "🥗 食品・健康",
+    'forwarding': "🚢 配送代行",
+    'general': "🛍 生活雑貨",
+    'purchasing': "🛒 個人購買代行",
+    'sports': "⚽ スポーツ・レジャー",
+    'travel': "✈️ 旅行・宿泊"
+  },
+  gSug: {
+    'Apparel target audience setup': "アパレルターゲット顧客構成",
+    'Beauty TikTok ad budget allocation': "美容系TikTok広告の最適予算配分",
+    'Beauty brand Instagram ad strategy': "ビューティブランドのInstagram広告戦略",
+    'Cosmetic targeting ad effectiveness': "コスメブランドのターゲティング広告有効性",
+    'Electronics ROI analysis across channels': "電子機器のチャネル横断ROI分析",
+    'Fashion e-commerce season-off promotions': "アパレルECシーズンオフプロモ戦略",
+    'Health supplement Google Adwords tactics': "健康食品のGoogle検索広告展開戦略",
+    'Household goods conversion optimization': "日用品のコンバージョン最適化戦略",
+    'Organic food Meta ad approach': "オーガニック食品のMeta広告戦略",
+    'Overseas forwarding B2B lead gen': "海外配送B2B見込み客獲得",
+    'SaaS user acquisition techniques': "SaaSユーザー獲得手引",
+    'Skincare SNS marketing recommendations': "スキンケア商品のSNSマーケティング戦略",
+    'Sports equipment YouTube campaigns': "スポーツ用品のYouTubeキャンペーン計画",
+    'Travel package display ads strategy': "旅行パッケージのディスプレイ広告分析"
+  },
+  grade: {
+    'champions': "챔피언",
+    'churnRisk': "이탈 위험",
+    'churned': "이탈",
+    'loyal': "충성",
+    'new': "신규"
+  }
 };
