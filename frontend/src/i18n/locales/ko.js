@@ -3011,28 +3011,6 @@ export default {
 
     },
 
-    "": {
-
-      "LockBadge": "🔒 데모",
-
-      "SampleDesc2": "이 기능은 유료 플랜 연동 후에만 실제 데이터를 가져옵니다. 현재 화면은 가상의 샘플 데이터로 구성되어 있습니다.",
-
-      "SampleDesc3": "가상 데이터가 표출되고 있습니다.",
-
-      "PricingView": "요금제 확인하기",
-
-      "upgradeBarDesc": "지금 API를 연동하고 자사 데이터로 플랫폼을 100% 활용하세요.",
-
-      "ApiRegister": "실제 연동 가이드 보기",
-
-      "upgradeBarTitle": "🎉 실제 기업 데이터를 연동하고 7일간 전체 기능을 무료로 체험해 보세요!",
-
-      "upgradeBarCoupon": "현재 계정에 무료 쿠폰이 있습니다.",
-
-      "upgradeBarMembership": "멤버십 쿠폰 적용 안내"
-
-    },
-
     "dashboard": {
 
       "grossRevenue": "총매출",
@@ -10547,18 +10525,6 @@ export default {
   "enterprise": "엔터프라이즈",
 
   "workspace": {
-
-    "0": "워",
-
-    "1": "크",
-
-    "2": "스",
-
-    "3": "페",
-
-    "4": "이",
-
-    "5": "스",
 
     "title": "팀 워크스페이스",
 
