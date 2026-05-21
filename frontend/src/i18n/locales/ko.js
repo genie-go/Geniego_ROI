@@ -319,250 +319,138 @@ export default {
   },
 
   "ruleEnginePage": {
-
     "heroDesc": "판매·광고·분석 채널의 API 키를 등록하고 연결 상태를 관리합니다.",
-
     "badgeRealtime": "실시간 동기화",
-
     "badgeSecurity": "보안 가동 중",
-
     "badgeRulesActive": "개 규칙 활성",
-
     "badgeDemoMode": "DEMO 모드",
-
     "tabDiscover": "ML 패턴 탐지",
-
     "tabDiscoverDesc": "AI 자동 패턴 탐지",
-
     "tabModel": "AI 모델 현황",
-
     "tabModelDesc": "모델 성능 & 재학습",
-
     "tabActiveRules": "활성 규칙",
-
     "tabActiveRulesDesc": "실시간 규칙 관리",
-
     "tabLLM": "LLM 규칙 생성",
-
     "tabLLMDesc": "자연어 규칙 생성기",
-
     "tabGuideDesc": "AI 규칙 엔진 이용 가이드",
-
     "channelsLinked": "개 채널 연동",
-
     "export": "내보내기",
-
     "noPatterns": "탐지된 패턴 없음",
-
     "noPatternsDesc": "연동허브에서 채널을 연동하면 AI가 자동으로 비즈니스 패턴을 탐지합니다.",
-
     "patternDetected": "탐지된 패턴",
-
     "pendingApproval": "승인 대기",
-
     "approved": "승인됨",
-
     "rejected": "거부됨",
-
     "confidence": "신뢰도",
-
     "approve": "승인",
-
     "reject": "거부",
-
     "activeRules": "활성 규칙",
-
     "totalFires": "총 실행 횟수",
-
     "totalPrevented": "총 방지 건수",
-
     "noActiveRules": "활성 규칙 없음",
-
     "noActiveRulesDesc": "ML 패턴 탐지에서 패턴을 승인하거나 LLM에서 규칙을 생성하세요.",
-
     "colRuleName": "규칙명",
-
     "colCondition": "조건",
-
     "colAction": "조치",
-
     "colFires": "실행 횟수",
-
     "colPrevented": "방지 건수",
-
     "colOrigin": "출처",
-
     "colStatus": "상태",
-
     "statusActive": "가동 중",
-
     "statusPaused": "일시정지",
-
     "accuracy": "정확도",
-
     "precision": "정밀도",
-
     "recall": "재현율",
-
     "weeklyTrend": "주간 정확도 추이",
-
     "noTrainingData": "학습 데이터 없음",
-
     "trainingDataStatus": "학습 데이터 현황",
-
     "adEvents": "광고 이벤트",
-
     "ordersReturns": "주문/반품",
-
     "influencerTx": "인플루언서",
-
     "settlementRecords": "정산 레코드",
-
     "items": "건",
-
     "totalTrained": "총 {{count}} 건 학습됨",
-
     "retraining": "모델 재학습",
-
     "trainingInProgress": "학습 중...",
-
     "startRetraining": "재학습 시작",
-
     "trainingProgress": "학습 진행률",
-
     "noLogs": "학습 로그 없음",
-
     "trainStep1": "데이터 전처리 시작",
-
     "trainStep2": "특성 추출 중",
-
     "trainStep3": "모델 학습 진행",
-
     "trainStep4": "교차 검증 중",
-
     "trainStep5": "하이퍼파라미터 최적화",
-
     "trainStep6": "최종 모델 평가",
-
     "trainStep7": "학습 완료! 새 모델 배포됨",
-
     "llmGreeting": "안녕하세요! AI 규칙 생성 어시스턴트입니다. 자연어로 비즈니스 규칙을 설명해 주세요.",
-
     "suggestion1": "ROAS가 1.5 미만이면 해당 캠페인 광고비를 50% 줄여줘",
-
     "suggestion2": "재고가 안전재고 이하이면 자동 발주해 줘",
-
     "suggestion3": "반품률이 15% 초과 SKU를 알려줘",
-
     "suggestion4": "주간 매출이 전주 대비 30% 이상 감소하면 알림 보내줘",
-
     "suggestion5": "신규 고객 첫 구매 후 7일 내 재구매 유도 규칙 만들어 줘",
-
     "suggestion6": "광고 예산 90% 이상 소진 시 저효율 광고 일시정지해 줘",
-
     "inputPlaceholder": "비즈니스 규칙을 자연어로 설명해 주세요...",
-
     "createBtn": "규칙 생성",
-
     "generating": "규칙 생성 중...",
-
     "generatedRuleCode": "생성된 규칙 코드",
-
     "saveRule": "규칙 저장",
-
     "editRule": "규칙 편집",
-
     "savedAIRules": "저장된 AI 규칙",
-
     "llmGenericExplain": "입력하신 비즈니스 요구사항을 분석하여 실행 가능한 규칙 코드를 생성했습니다.",
-
     "riskReview": "사전 검토 필요",
-
     "riskTestFirst": "테스트 환경에서 먼저 실행 권장",
-
     "originMLDetect": "ML 자동탐지",
-
     "originLLM": "LLM 생성",
-
     "ruleApproved": "규칙 승인됨",
-
     "crossTabSync": "다른 탭에서 규칙 동기화됨",
-
     "secTitle": "보안 위협 감지",
-
     "secDesc": "잠재적 해킹 시도가 감지되어 모듈이 보호를 위해 잠겼습니다.",
-
     "secUnlockPlaceholder": "관리자 해제 코드 입력",
-
     "secUnlockBtn": "🔓 모듈 해제",
-
     "demoBanner": "AI 규칙 엔진 프리미엄 미리보기",
-
     "demoBannerDesc": "지금 보고 계신 것은 AI 규칙 엔진의 데모 버전입니다.",
-
     "demoBannerPaid": "유료 플랜에서 전체 기능 사용 가능",
-
     "upgradeBtn": "업그레이드",
-
     "llmLocked": "LLM 규칙 생성 잠금",
-
     "llmLockedDesc": "LLM 기반 자연어 규칙 생성기는 유료 기능입니다.",
-
     "llmLockedReq": "Business 이상 요금제",
-
     "llmLockedSuffix": "에서 이용 가능합니다.",
-
     "startPro": "Pro 시작하기",
-
     "freeCoupon": "무료 쿠폰 받기",
-
     "recentFires": "최근 규칙 실행",
-
     "patLowStock": "재고 부족 알림: {{sku}}",
-
     "patLowStockDesc": "재고 {{stock}} ≤ 안전재고 {{safe}}",
-
     "patBudgetOver": "예산 90%+ 소진: {{ch}}",
-
     "patBudgetOverDesc": "지출 {{spent}} / 예산 {{budget}} ({{pct}}%)",
-
     "actionAutoReorder": "자동 발주",
-
     "actionPauseLowROAS": "저효율 광고 일시정지",
-
     "guideTabsTitle": "탭별 기능 안내",
-
     "guideSecDiscover": "AI가 실시간 데이터를 분석하여 비즈니스 패턴을 자동으로 탐지하고 규칙을 추천합니다.",
-
     "guideSecModel": "AI 모델의 성능 지표를 모니터링하고 재학습을 실행합니다.",
-
     "guideSecRules": "승인된 모든 활성 규칙을 한눈에 관리합니다.",
-
     "guideSecLLM": "Claude AI 기반 대화형 규칙 생성기입니다.",
-
-    guideStep5Title: '정산 관리',
-    guideStepsTitle: '단계별 가이드',
-    tabGuide: '사용 가이드',
-    guideStep3Title: '배송 등록 및 추적',
-    guideStep4Title: '클레임·반품 처리',
-    guideStep6Title: '국제 주문 및 통관 관리',
-    guideTipsTitle: '전문가 팁',
-    guideTitle: '주문 센터 사용 가이드',
-    guideStep2Title: '주문 관리 및 상태 변경',
-    guideStep1Title: '채널 연동과 주문 자동 수집',
-    guideStep4Desc: '클레임/반품 탭에서 요청을 관리합니다.',
-    guideStep6Desc: '국제 주문 탭에서 해외 채널의 주문을 관리합니다.',
-    guideStep5Desc: '정산 탭에서 채널별 총매출과 비용을 확인합니다.',
-    guideStep2Desc: '주문 관리 탭에서 모든 주문을 필터링하여 확인합니다.',
-    guideStep3Desc: '주문 상세에서 배송사를 선택하고 송장번호를 입력하면 배송이 등록됩니다.',
-    guideTip2: 'SLA 모니터링을 활성화하면 출고 지연 페널티를 방지할 수 있습니다.',
-    guideTip3: '일괄 처리 기능을 활용하면 대량 주문 처리 시간을 90% 이상 단축할 수 있습니다.',
-    guideSub: '주문 센터의 모든 기능을 최대한 활용하기 위한 종합 가이드입니다.',
-    guideTip1: '연동 허브에서 채널 API 키를 등록하면 주문이 자동으로 수집됩니다.',
-    guideStep1Desc: '연동 허브에서 판매 채널의 API 키를 등록하면 주문이 자동으로 수집됩니다.',
-    guideTip4: '자동 라우팅 규칙을 설정하면 최적의 창고로 자동 할당됩니다.',
-    guideTip5: '국제 주문의 DDP/DDU 설정을 정확히 지정하면 관세 관련 문제를 방지할 수 있습니다.',
-  
+    "guideStep5Title": "정산 관리",
+    "guideStepsTitle": "단계별 가이드",
+    "tabGuide": "사용 가이드",
+    "guideStep3Title": "배송 등록 및 추적",
+    "guideStep4Title": "클레임·반품 처리",
+    "guideStep6Title": "국제 주문 및 통관 관리",
+    "guideTipsTitle": "전문가 팁",
+    "guideTitle": "주문 센터 사용 가이드",
+    "guideStep2Title": "주문 관리 및 상태 변경",
+    "guideStep1Title": "채널 연동과 주문 자동 수집",
+    "guideStep4Desc": "클레임/반품 탭에서 요청을 관리합니다.",
+    "guideStep6Desc": "국제 주문 탭에서 해외 채널의 주문을 관리합니다.",
+    "guideStep5Desc": "정산 탭에서 채널별 총매출과 비용을 확인합니다.",
+    "guideStep2Desc": "주문 관리 탭에서 모든 주문을 필터링하여 확인합니다.",
+    "guideStep3Desc": "주문 상세에서 배송사를 선택하고 송장번호를 입력하면 배송이 등록됩니다.",
+    "guideTip2": "SLA 모니터링을 활성화하면 출고 지연 페널티를 방지할 수 있습니다.",
+    "guideTip3": "일괄 처리 기능을 활용하면 대량 주문 처리 시간을 90% 이상 단축할 수 있습니다.",
+    "guideSub": "주문 센터의 모든 기능을 최대한 활용하기 위한 종합 가이드입니다.",
+    "guideTip1": "연동 허브에서 채널 API 키를 등록하면 주문이 자동으로 수집됩니다.",
+    "guideStep1Desc": "연동 허브에서 판매 채널의 API 키를 등록하면 주문이 자동으로 수집됩니다.",
+    "guideTip4": "자동 라우팅 규칙을 설정하면 최적의 창고로 자동 할당됩니다.",
+    "guideTip5": "국제 주문의 DDP/DDU 설정을 정확히 지정하면 관세 관련 문제를 방지할 수 있습니다.",
     "supplyChain": {
       "noRisk": "현재 감지된 위험이 없습니다.",
       "supplier": "공급사",
@@ -592,7 +480,10 @@ export default {
       "securityDismiss": "확인 및 닫기",
       "confirmDelete": "정말로 삭제하시겠습니까?",
       "addLine": "공급라인 등록",
-      "ruleAction": "자동 실행 액션"
+      "ruleAction": "자동 실행 액션",
+      "loading": "Loading...",
+      "noData": "No Data Available",
+      "productName": "Product name"
     },
     "wms": {
       "exportCsvBtn": "CSV 내보내기",
@@ -615,7 +506,421 @@ export default {
       "ioProductLabel": "상품명",
       "ioRefLabel": "참조번호",
       "pickDispatchBtn": "🔐 출고 승인",
-      "pickApprovalPending": "승인 대기"
+      "pickApprovalPending": "승인 대기",
+      "actions": "Actions",
+      "adjustInventory": "Adjust Inventory",
+      "auditAdjAlert": "Stock adjustment will be reflected in In/Out tab.",
+      "auditAllSku": "All SKUs",
+      "auditBulkAdj": "🔧 Bulk Adjust",
+      "auditColBook": "Book Stock",
+      "auditColDiff": "Diff",
+      "auditColInput": "Count Input",
+      "auditColProduct": "Product",
+      "auditColSku": "SKU",
+      "auditColStatus": "Status",
+      "auditCompleted": "✅ Completed",
+      "auditConfirmMsg": "{n} SKUs uncounted. Complete?",
+      "auditCounting": "🔄 Counting",
+      "auditDateLabel": "Audit Date",
+      "auditDiffQty": "Discrepancy",
+      "auditDiffReport": "🖨️ Diff Report",
+      "auditDiscTitle": "⚠️ Discrepancy Items",
+      "auditDoneBtn": "✅ Complete",
+      "auditDoneCount": "Counted",
+      "auditDraft": "📝 Draft",
+      "auditExcess": "📈 Excess",
+      "auditInputPh": "Input",
+      "auditLogBtn": "Movement History",
+      "auditLogClearBtn": "Delete History",
+      "auditLogClearConfirm": "Delete all history? This cannot be undone.",
+      "auditLogDesc": "Immutable log of all stock changes. Up to 500 records.",
+      "auditLogEmpty": "No movement history recorded.",
+      "auditLogTitle": "Stock Movement History (Audit Trail)",
+      "auditNoDiff": "No Issues",
+      "auditNormal": "✅ Normal",
+      "auditNotCounted": "Not Counted",
+      "auditNotDone": "Not Counted",
+      "auditPrintBtn": "🖨️ Print",
+      "auditSearchPh": "Search SKU or product...",
+      "auditShort": "📉 Short",
+      "auditStartBtn": "🔄 Start",
+      "auditTotalDiff": "Total Discrepancy Qty",
+      "bdlAddBtn": "+ Add Bundle",
+      "bdlAddComp": "+ Add",
+      "bdlAssemble": "Assemblable",
+      "bdlAvailable": "sets",
+      "bdlBomTitle": "Components (BOM)",
+      "bdlCancelBtn": "Cancel",
+      "bdlCostLabel": "Cost",
+      "bdlMarginLabel": "Margin",
+      "bdlNameLabel": "Bundle Name",
+      "bdlNamePh": "Bdl Name Ph",
+      "bdlNewTitle": "New Bundle",
+      "bdlPriceLabel": "Sale Price",
+      "bdlRegAlert": "Bundle Registration Complete:",
+      "bdlSaveBtn": "💾 Register",
+      "bdlShip1": "📦 Ship 1 Set",
+      "bdlShip10": "📦 Ship 10 Sets",
+      "bdlShipAlert": "Bundle Shipment:",
+      "bdlSkuLabel": "Bundle SKU",
+      "carrAddBtn": "+ Add Carrier",
+      "carrAllReg": "Total Registered",
+      "carrApiDone": "API Connected",
+      "carrApiKeyLabel": "API Key",
+      "carrApiKeyPh": "Enter API Key",
+      "carrApiKeyRequired": "Enter API Key first.",
+      "carrCancelBtn": "Cancel",
+      "carrCodeLabel": "Code *",
+      "carrCountryLabel": "Country",
+      "carrEditTitle": "✏️ Edit Carrier",
+      "carrFailMsg": "❌ Auth failed for {name}",
+      "carrFilterAll": "All",
+      "carrFilterFreight": "Freight",
+      "carrHideKey": "Hide",
+      "carrInactive": "Suspend",
+      "carrIntegFail": "❌ Failed",
+      "carrIntegOk": "✅ Connected",
+      "carrKeyReg": "🔑 Key Registered",
+      "carrLoadingMsg": "🔄 Testing {name} API...",
+      "carrNameLabel": "Company *",
+      "carrNameRequired": "Name and code required.",
+      "carrNewTitle": "➕ New Carrier",
+      "carrNoApi": "Not Connected",
+      "carrNoInteg": "⚠️ Not Connected",
+      "carrOkMsg": "✅ {name} API connected",
+      "carrResume": "Resume",
+      "carrSaveBtn": "💾 Save",
+      "carrSaveKey": "💾 Save",
+      "carrShowKey": "Show",
+      "carrTestBtn": "🔌 Test",
+      "carrTestLoading": "🔄 Testing",
+      "carrTestOk": "✅ Re-test",
+      "carrTrackUrlLabel": "Tracking URL",
+      "carrTypeLabel": "Type *",
+      "combApproveBtn": "✓ Approve",
+      "combApproved": "✓ Approved",
+      "combCarrierLabel": "Bundle Carrier",
+      "combDone": "✅ Complete",
+      "combInfo": "💡 Bundle multiple orders from the same buyer into one package.",
+      "combListTitle": "📋 Bundle Request List",
+      "combOrderListLabel": "Order Numbers",
+      "combOrderRequired": "Enter order numbers.",
+      "combPending": "⏳ Pending",
+      "combPrefix": "Combined Shipment",
+      "combRegTitle": "📦 Bundle Request",
+      "combReqAt": "Request",
+      "combReqBtn": "+ Bundle Request",
+      "combShipBtn": "🚚 Ship Complete",
+      "combTrackLabel": "Invoice",
+      "combTracking": "🚚 Tracking",
+      "csvExecuteBtn": "Execute Bulk Registration",
+      "csvImportBtn": "CSV Bulk Import",
+      "csvImportDesc": "Bulk register SKU/inventory via CSV file. Required columns:",
+      "csvImportDone": "records imported!",
+      "csvImportTitle": "Csv Import Title",
+      "csvMoreRows": "Csv More Rows",
+      "csvRowsDetected": "records detected",
+      "exportExcelBtn": "Export Excel Btn",
+      "invAdjApply": "Apply",
+      "invAdjCancel": "Cancel",
+      "invAdjQty": "Adjustment Qty",
+      "invAdjTitle": "🔧 Stock Adjustment (Live)",
+      "invColAdj": "Adjust",
+      "invColCost": "Cost",
+      "invColProduct": "Product",
+      "invColSafe": "Safety Stock",
+      "invColSku": "SKU",
+      "invColStatus": "Status",
+      "invColTotal": "Total",
+      "invColValue": "Value",
+      "invSearchPh": "Search SKU or product...",
+      "invTableTitle": "📦 Warehouse Stock by SKU",
+      "invTotalStock": "Total Stock (pcs) · Live",
+      "invcAddItem": "+ Add Item",
+      "invcAddrLabel": "Address",
+      "invcAddress": "Address",
+      "invcBasicInfo": "📄 Invoice Info",
+      "invcCarrierLabel": "Carrier",
+      "invcColAmt": "Amount",
+      "invcColDel": "Delete",
+      "invcColDesc": "Description",
+      "invcColHs": "HS Code",
+      "invcColOrigin": "Origin",
+      "invcColQty": "Qty",
+      "invcColUnit": "Unit Price",
+      "invcCompanyLabel": "Company",
+      "invcCompanyName": "Company/Name",
+      "invcCompanyNameLabel": "Company/Name",
+      "invcConsigneeTitle": "📦 Consignee",
+      "invcCopyNo": "📋 Copy Number",
+      "invcCurrLabel": "Currency",
+      "invcDateLabel": "Issue Date",
+      "invcDesc": "Auto-generate customs invoice",
+      "invcEmailLabel": "Email",
+      "invcExRateLabel": "Rate (KRW/{c})",
+      "invcExRateShort": "Exchange Rate",
+      "invcIncotermLabel": "INCOTERM",
+      "invcItemsTitle": "📋 Line Items",
+      "invcNoLabel": "Invoice No",
+      "invcPhone": "Phone",
+      "invcPhoneLabel": "Phone",
+      "invcPrintBtn": "🖨️ Print Invoice",
+      "invcRemarkLabel": "Remarks",
+      "invcRemarkPh": "Customs notes",
+      "invcShipperTitle": "🏢 Shipper",
+      "invcTitle": "🧾 Commercial Invoice",
+      "invcTotal": "Total",
+      "invcTrackLabel": "Tracking No",
+      "ioCancelBtn": "Cancel",
+      "ioColBy": "By",
+      "ioColDate": "Date",
+      "ioColProduct": "Product",
+      "ioColQty": "Qty",
+      "ioColRef": "Ref No",
+      "ioColSku": "SKU",
+      "ioColType": "Type",
+      "ioColUnit": "Unit Price",
+      "ioColWh": "Warehouse",
+      "ioFilterAdj": "Stock Adjustment",
+      "ioFilterAll": "All",
+      "ioFilterDisposal": "Disposal",
+      "ioFilterInbound": "Inbound",
+      "ioFilterOutbound": "Outbound",
+      "ioFilterRetInbound": "Return Inbound",
+      "ioFilterRetOutbound": "Return Outbound",
+      "ioFilterTransfer": "Transfer",
+      "ioItems": "items",
+      "ioMemoLabel": "Reason/Memo",
+      "ioQtyLabel": "Qty *",
+      "ioRefPh": "Order No or PO No",
+      "ioRegBtn": "+ Register In/Out",
+      "ioRegTitle": "📦 Register In/Out",
+      "ioReturnReason": "Return Reason",
+      "ioReturnReasonPh": "Change of mind, defective, etc.",
+      "ioSaveBtn": "💾 Register",
+      "ioSearchPh": "Search SKU/Product/Ref No...",
+      "ioSkuLabel": "SKU *",
+      "ioTransferDest": "Transfer Destination Warehouse",
+      "ioTypeLabel": "Type *",
+      "ioUnitLabel": "Io Unit Label",
+      "ioWhLabel": "Warehouse *",
+      "location": "Location",
+      "lotColDays": "Days Left",
+      "lotColExpiry": "Expiry",
+      "lotColId": "LOT ID",
+      "lotColLotNo": "Lot No",
+      "lotColMfg": "Mfg Date",
+      "lotColProduct": "Product",
+      "lotColQty": "Qty",
+      "lotColSku": "SKU",
+      "lotColWarn": "Warning",
+      "lotColWh": "Warehouse",
+      "lotDaysLeft": "days left",
+      "lotExpireSoon": "⚠️ Expiry within 30 days:",
+      "lotImminent": "⚠ Imminent",
+      "lotRegBtn": "Register",
+      "lotRegDone": "✅ Lot registered",
+      "lotRegTitle": "+ New Lot",
+      "pendingReceive": "Pending Receipt",
+      "pendingShip": "Pending Shipment",
+      "permAddBtn": "Add Permission",
+      "permBtn": "Permission Management",
+      "permColAction": "Management",
+      "permColRole": "Role",
+      "permColUser": "User",
+      "permDesc": "Control warehouse access permissions by user. Permissions vary by role.",
+      "permEmpty": "No permissions registered. Please add users.",
+      "permRoleAdmin": "Admin",
+      "permRoleLabel": "Role",
+      "permRoleManager": "Manager",
+      "permRoleOperator": "Operator",
+      "permRoleViewer": "Viewer",
+      "permTitle": "Perm Title",
+      "permUserLabel": "User Email",
+      "pickAll": "All",
+      "pickApprPending": "🔐 Approval Pending",
+      "pickColAction": "Action",
+      "pickColCreated": "Created",
+      "pickColId": "Pick ID",
+      "pickColOrder": "Order No",
+      "pickColProduct": "Product",
+      "pickColQty": "Qty",
+      "pickColSku": "SKU",
+      "pickColStatus": "Status",
+      "pickColWh": "Warehouse",
+      "pickDispatchAppr": "🔐 Dispatch",
+      "pickDispatchConfirm": "✅ Approve",
+      "pickDispatchSub": "Approve dispatch?",
+      "pickDispatchTitle": "Dispatch Approval",
+      "pickDispatchWarn": "Picking starts after approval.",
+      "pickItems": "items",
+      "pickPacked": "Packed",
+      "pickPending": "Pending",
+      "pickPicked": "Picked",
+      "pickPrintBtn": "🖨️ Print",
+      "pickShipped": "Shipped",
+      "processShipment": "Process Shipment",
+      "recvAllPO": "All POs",
+      "recvColAction": "Action",
+      "recvColEta": "ETA",
+      "recvColOrderDate": "Order Date",
+      "recvColPO": "PO No",
+      "recvColProduct": "Product",
+      "recvColQty": "Order Qty",
+      "recvColSku": "SKU",
+      "recvColStatus": "Status",
+      "recvColSupplier": "Supplier",
+      "recvColTotal": "Total",
+      "recvColUnit": "Unit Price",
+      "recvConfirmBtn": "✅ Confirm Receipt",
+      "recvInTransit": "In Transit",
+      "recvReceived": "Received",
+      "recvTotalAmt": "Total PO Amt",
+      "registerReceipt": "Register Receipt",
+      "replClickAuto": "Click to auto-fill PO",
+      "replColEta": "ETA",
+      "replColOrderDate": "Order Date",
+      "replColPO": "PO No",
+      "replColQty": "Qty",
+      "replColStatus": "Status",
+      "replColSupplier": "Supplier",
+      "replColTotal": "Total",
+      "replCreateBtn": "⚡ Create PO",
+      "replDone": "✅ PO created",
+      "replEtaLabel": "ETA",
+      "replFormTitle": "📋 Purchase Order",
+      "replHistTitle": "PO History",
+      "replNeedTitle": "⚡ Reorder needed ({n} types)",
+      "replQtyLabel": "Order Qty",
+      "replSupplierLabel": "Supplier",
+      "replTotal": "Est. Total",
+      "replUnitLabel": "Unit Price",
+      "scanApply": "Apply this SKU",
+      "scanBtn": "Barcode Scan",
+      "scanCamError": "Camera access denied. Check browser permissions.",
+      "scanDetected": "Barcode detected!",
+      "scanScanning": "Align barcode to scan area...",
+      "scanTitle": "Scan Title",
+      "securityBtn": "Security Monitor",
+      "securitySafe": "Security Status: Safe",
+      "securitySafeDesc": "No security threats detected so far.",
+      "securityTitle": "Security Threat Detection Monitor",
+      "sku": "SKU",
+      "status": "Status",
+      "supActivate": "Activate",
+      "supActive": "Active",
+      "supActiveVendor": "Active",
+      "supAddBtn": "+ Add Vendor",
+      "supCancelBtn": "Cancel",
+      "supCodeLabel": "Code *",
+      "supCodePh": "Sup Code Ph",
+      "supContactLabel": "Contact",
+      "supCountryLabel": "Country",
+      "supDrawerCode": "Code",
+      "supDrawerLeadTime": "Lead Time",
+      "supDrawerPayTerms": "Payment Terms",
+      "supDrawerPhone": "Contact",
+      "supDrawerTotalAmt": "Total Transaction Amount",
+      "supDrawerTotalPO": "Total PO Count",
+      "supEditBtn": "✏️ Edit",
+      "supEditTitle": "✏️ Edit Vendor",
+      "supEmailLabel": "Email",
+      "supInactivate": "Deactivate",
+      "supLeadLabel": "Lead Time (days)",
+      "supLeadTime": "Lead Time",
+      "supLeadTimeLabel": "Lead Time",
+      "supNameLabel": "Company *",
+      "supNamePh": "Sup Name Ph",
+      "supNewTitle": "➕ New Vendor",
+      "supPayLabel": "Payment Terms",
+      "supPhoneLabel": "Phone",
+      "supPoHistHint": "💡 Link PO history via Auto-PO tab.",
+      "supPoHistory": "📋 PO History",
+      "supRating": "Rating",
+      "supRatingLabel": "Rating",
+      "supRegVendor": "Registered",
+      "supSaveBtn": "💾 Save",
+      "supSearchPh": "Search vendor...",
+      "supTotalAmt": "Total Amount",
+      "supTotalAmtLabel": "Total Transaction Amount",
+      "supTotalPO": "Total POs",
+      "supTotalPOLabel": "Total PO",
+      "supType3PL": "3PL",
+      "supTypeLabel": "Type",
+      "supTypeManuf": "Manufacturer",
+      "supTypeOverseas": "Overseas",
+      "supTypeRawMat": "Raw Materials",
+      "supTypeWholesale": "Wholesale",
+      "supplierAdd": "+ Add Supplier",
+      "supplierCode": "Code",
+      "supplierContact": "Contact",
+      "supplierCountry": "Country",
+      "supplierEmail": "Email",
+      "supplierName": "Company",
+      "supplierPayment": "Payment Terms",
+      "supplierPhone": "Phone",
+      "supplierTitle": "Supplier Management",
+      "supplierType": "Type",
+      "tabBundleDesc": "BOM",
+      "tabDashboard": "Tab Dashboard",
+      "tabReturns": "Tab Returns",
+      "tabShipping": "Tab Shipping",
+      "totalStock": "Total Stock",
+      "trackCJ": "CJ Logistics",
+      "trackCarrierLabel": "Carrier",
+      "trackDemoTag": "📌 Demo data",
+      "trackDesc1": "Shipment Departed",
+      "trackDesc2": "Sorting Complete",
+      "trackDesc3": "Line-haul Arrived",
+      "trackDesc4": "Send",
+      "trackEtaToday": "ETA: This Afternoon",
+      "trackHJ": "Hanjin Express",
+      "trackLT": "Lotte Express",
+      "trackLZ": "Logen Express",
+      "trackLoc1": "Seoul Gangnam Delivery Center",
+      "trackLoc2": "Metropolitan Hub",
+      "trackLoc3": "Incheon Logistics Center",
+      "trackLoc4": "Busan Dispatch Center",
+      "trackNumLabel": "Tracking No",
+      "trackNumPh": "Track Num Ph",
+      "trackSearchTitle": "🔍 Track by Number",
+      "whActive": "Operating",
+      "whAddBtn": "+ Add Warehouse",
+      "whAddrLabel": "Address",
+      "whAreaLabel": "Area (㎡)",
+      "whCancelBtn": "Cancel",
+      "whCodeLabel": "Warehouse Code *",
+      "whCurrentStock": "Current Stock",
+      "whEditBtn": "✏️ Edit",
+      "whEditTitle": "✏️ Edit Warehouse",
+      "whListTitle": "🏭 Warehouse List",
+      "whNameLabel": "Warehouse Name *",
+      "whNameRequired": "Warehouse name and code are required.",
+      "whNewTitle": "➕ Register New Warehouse",
+      "whPhoneLabel": "Phone",
+      "whResumeBtn": "Resume",
+      "whTempCold": "Cold",
+      "whTempCombi": "Combination (Room+Cold)",
+      "whTempDefault": "Room Temp",
+      "whTempElec": "Electronics Only",
+      "whTempFrozen": "Frozen",
+      "whTempHazard": "Hazardous",
+      "whTempLabel": "Storage Type",
+      "whTempRoom": "Room Temp",
+      "whType3PL": "3PL",
+      "whTypeDefault": "Direct",
+      "whTypeDirect": "Direct",
+      "whTypeLabel": "Operation Type",
+      "whTypeRent": "Rental",
+      "wmsAssetValue": "Total Inventory Asset Value",
+      "wmsBadgeCarrier": "Carriers/Express",
+      "wmsBadgeLowStock": "⚠️ Low Stock {n} types",
+      "wmsBadgeOrders": "Orders {n} Linked",
+      "wmsBadgeSku": "SKUs",
+      "wmsBadgeTotalStock": "Total Stock {n} 🔴Live",
+      "wmsBadgeWh": "Warehouses",
+      "wmsBtnBudget": "💰 Budget Planner →",
+      "wmsBtnSalesChannel": "📡 Sales Channel →"
     },
     "dash": {
       "connectChannels": "광고 채널을 연동하면 성과 데이터가 표시됩니다",
@@ -637,10 +942,259 @@ export default {
       "chDetailTable": "채널 상세 성과",
       "achvRate": "달성률",
       "trendLabel": "추이",
-      "unitCount2": "건"
+      "unitCount2": "건",
+      "active": "Active",
+      "activeCampaigns": "Campaigns",
+      "activeCh": "Active Channels",
+      "adSpend": "Ad Spend",
+      "adTypePerf": "Performance by Ad Type",
+      "aiAdAnal": "🤖 AI Ad Analysis",
+      "alertCount": "Alerts",
+      "all": "All",
+      "amazonName": "Amazon US",
+      "avgCtr": "Avg CTR",
+      "avgRoas": "Blended ROAS",
+      "blendedRoas": "Blended ROAS",
+      "blocked": "Blocked",
+      "bounceRate": "Bounce Rate",
+      "buyerAge": "Buyer Age Group",
+      "buyerGender": "Buyer Gender",
+      "cartAdds": "Cart Adds",
+      "catLife": "Lifestyle",
+      "catPay": "Category · Payment Method",
+      "chCount": "Active Channels",
+      "chIntelDesc1": "Click on a channel card or performance table below",
+      "chIntelDesc2": "to select a specific channel",
+      "chIntelDesc3": "and",
+      "chIntelDesc4": "view detailed channel analysis:",
+      "chIntelReport": "Channel Intelligence Report",
+      "chIntelTitle": "Channel Intelligence",
+      "chName": "CHANNEL",
+      "chPerfSumm": "Channel Performance Summary",
+      "channelPerf": "📊 Channel Perf.",
+      "clickChannelHint": "Click a channel card → 5-section analysis",
+      "clickForAnalysis": "Click → 5-Section",
+      "clicks": "Clicks",
+      "conv": "CONV",
+      "convRate": "Conv. Rate",
+      "coupangName": "Coupang",
+      "couponApplied": "Coupon Applied",
+      "couponIssued": "Coupon Issued",
+      "cpa": "CPA",
+      "cpc": "CPC",
+      "cpm": "CPM",
+      "crossModuleSummary": "Cross Module Summary",
+      "ctr": "CTR",
+      "ctrLabel": "CTR",
+      "dismiss": "Dismiss",
+      "dropOff": "drop-off",
+      "enforced": "Enforced",
+      "execAdSpend": "Total Ad Spend",
+      "female": "Female",
+      "femaleBuyer": "👩 Female",
+      "flowCart": "Cart",
+      "flowCheckout": "Checkout",
+      "flowPurchase": "Purchase Complete",
+      "flowVisit": "Visitors",
+      "frequency": "Frequency",
+      "grossMargin": "Margin",
+      "impressions": "Impressions",
+      "info": "Info",
+      "inventoryValue": "Inventory Value",
+      "liveTotalOrd": "Real-time · Total Orders",
+      "lowStockItems": "Low Stock",
+      "male": "Male",
+      "maleBuyer": "👨 Male",
+      "mobileView": "Mobile",
+      "mode": "Mode",
+      "naver": "Naver",
+      "naverName": "Naver",
+      "netProfit": "Net Profit",
+      "new": "New",
+      "noActivity": "No activity",
+      "noChannelData": "No channel data available",
+      "noOrdersText": "No order results found.",
+      "noSecurityIssues": "No Security Issues",
+      "noTrendData": "No trend data available",
+      "operatingProfit": "Op. Profit",
+      "orders": "Orders",
+      "ordersCount": "Orders",
+      "ownName": "Own Mall",
+      "peakHourStr": "Peak Hours:",
+      "peakTime": "Peak Time",
+      "pendingOrders": "Pending Orders",
+      "platClickHint1": "Click a platform card to see",
+      "platClickHint2": "Buyer gender, age, region, category",
+      "platClickHint3": "Detail analysis provided",
+      "platRevShare": "Revenue Share by Platform",
+      "protected": "Protected",
+      "reach": "Reach",
+      "realTimeBlendedRoas": "Real-time · Blended ROAS",
+      "recentOrdersClick": "Recent Orders (Click → Detail Search)",
+      "regDist": "Conversion Analysis by Region",
+      "regionBusan": "Busan",
+      "regionDaegu": "Daegu",
+      "regionGyeonggi": "Gyeonggi",
+      "regionIncheon": "Incheon",
+      "regionOrders": "Orders by Region",
+      "regionSeoul": "Seoul",
+      "retRate": "Return Rate",
+      "rev": "Revenue",
+      "roleCommerce1": "Check Inventory Alerts",
+      "roleCommerce1Desc": "Check Near-Stockout Products",
+      "roleCommerce2": "Order Processing Status",
+      "roleCommerce2Desc": "Check Unprocessed Orders",
+      "roleCommerce3": "Returns/Exchange Management",
+      "roleCommerce3Desc": "Process Return Requests",
+      "roleDev1": "System Errors",
+      "roleDev1Desc": "Check Error Logs",
+      "roleDev2": "API Key Management",
+      "roleDev2Desc": "Renew Expiring Keys",
+      "roleDev3": "Data Schema",
+      "roleDev3Desc": "Review Schema Changes",
+      "roleFinance1": "P&L Status",
+      "roleFinance1Desc": "Check Today's P&L",
+      "roleFinance2": "Settlement Reconciliation",
+      "roleFinance2Desc": "Review Unmatched Transactions",
+      "roleFinance3": "Generate Report",
+      "roleFinance3Desc": "Create Weekly Report",
+      "roleMarketer1": "Crisis Response Guide",
+      "roleMarketer1Desc": "Check ROAS declining channels",
+      "roleMarketer2": "Campaign Optimization Suggestions",
+      "roleMarketer2Desc": "AI-based Auto Optimization",
+      "roleMarketer3": "Team Feedback Review",
+      "roleMarketer3Desc": "CRM Insights Review",
+      "roleOps1": "Logistics Issues",
+      "roleOps1Desc": "Check Shipping Delays",
+      "roleOps2": "Asia Logistics",
+      "roleOps2Desc": "Overseas Logistics Status",
+      "roleOps3": "Warehouse Management",
+      "roleOps3Desc": "Monitor Inventory Levels",
+      "secureStatus": "Secure",
+      "securityAlert": "Security Alert",
+      "securityMonitor": "Security Monitor",
+      "selectRoleBtn": "Select Role",
+      "selectRoleDesc": "We provide customized dashboards",
+      "selectRoleTitle": "Please Select Your Role",
+      "sessions": "Sessions",
+      "settlementChs": "Settlement Chs",
+      "shopeeName": "Shopee SG",
+      "signups": "Signups",
+      "smartstoreName": "Naver Store",
+      "spend": "SPEND",
+      "spendBudget": "Spend",
+      "syncSettled": "Settlement Complete",
+      "syncTotalRev": "Total Revenue",
+      "threatDetected": "Threat Detected",
+      "threatsDetected": "threats detected",
+      "todayTasks": "Today",
+      "topRegRev": "Top Regions",
+      "totalClicks": "Total Clicks",
+      "totalRev": "Total Revenue",
+      "totalSpend": "Total Spend",
+      "totalStock": "Total Stock",
+      "unitMins": "min",
+      "unitSecs": "s",
+      "unitTimes": " times",
+      "videoViews": "Video Views",
+      "warnings": "Warnings"
     },
     "operations": {
-      "ai_plat_tiktok": "틱톡"
+      "ai_plat_tiktok": "틱톡",
+      "0dv8o1": "0dv8o1",
+      "0qznpy": "0qznpy",
+      "0tibn3": "0tibn3",
+      "0zf65j": "0zf65j",
+      "2yw4oa": "2yw4oa",
+      "36vv4x": "36vv4x",
+      "3xorse": "3xorse",
+      "48hbi8": "48hbi8",
+      "51mnf7": "51mnf7",
+      "52p2cm": "52p2cm",
+      "53nfcg": "53nfcg",
+      "57ox7c": "57ox7c",
+      "5df7ph": "5df7ph",
+      "6iaz69": "6iaz69",
+      "6n5rm3": "6n5rm3",
+      "6sin3d": "6sin3d",
+      "7omsg9": "7omsg9",
+      "7zvzna": "7zvzna",
+      "84qmo9": "84qmo9",
+      "8w1sc8": "8w1sc8",
+      "99j8yb": "99j8yb",
+      "9o517z": "9o517z",
+      "9w750d": "9w750d",
+      "afrcw8": "Afrcw8",
+      "aig0mc": "Aig0mc",
+      "bey1v6": "Bey1v6",
+      "bpqhei": "Bpqhei",
+      "byaks6": "Byaks6",
+      "byw06k": "Byw06k",
+      "c3b73w": "C3b73w",
+      "colId": "ID",
+      "colSku": "SKU",
+      "djm5a1": "Djm5a1",
+      "dri5as": "Dri5as",
+      "e2rwrq": "E2rwrq",
+      "e9xreo": "E9xreo",
+      "eq33r1": "Eq33r1",
+      "f54xt0": "F54xt0",
+      "fd2k9b": "Fd2k9b",
+      "fieldSku": "SKU",
+      "gewezq": "Gewezq",
+      "gmmzsp": "Gmmzsp",
+      "gn14f4": "Gn14f4",
+      "gu0d4b": "Gu0d4b",
+      "h7b04x": "H7b04x",
+      "i8hx56": "I8hx56",
+      "ieaobd": "Ieaobd",
+      "if8y8c": "If8y8c",
+      "ip7udp": "Ip7udp",
+      "j0ciji": "J0ciji",
+      "jrgoxc": "Jrgoxc",
+      "ju3pdg": "Ju3pdg",
+      "kedt13": "Kedt13",
+      "l35aa7": "L35aa7",
+      "m22o88": "M22o88",
+      "m7h2zt": "M7h2zt",
+      "mfgt70": "Mfgt70",
+      "my5y5b": "My5y5b",
+      "mzfuvr": "Mzfuvr",
+      "o3ijo7": "O3ijo7",
+      "oa3o69": "Oa3o69",
+      "ocf8lv": "Ocf8lv",
+      "okq827": "Okq827",
+      "ov6k9r": "Ov6k9r",
+      "pks3gd": "Pks3gd",
+      "pph4s5": "Pph4s5",
+      "pq41lt": "Pq41lt",
+      "pqutmx": "Pqutmx",
+      "qhy2cu": "Qhy2cu",
+      "qlu4cd": "Qlu4cd",
+      "rzrqb2": "Rzrqb2",
+      "s40v25": "S40v25",
+      "sfp3ge": "Sfp3ge",
+      "sku": "SKU",
+      "sskd6g": "Sskd6g",
+      "t9984q": "T9984q",
+      "ti6jzc": "Ti6jzc",
+      "v3oq8x": "V3oq8x",
+      "v7v0fo": "V7v0fo",
+      "w04x7c": "W04x7c",
+      "w29eyh": "W29eyh",
+      "wix73i": "Wix73i",
+      "wlcfu5": "Wlcfu5",
+      "ws4j5c": "Ws4j5c",
+      "x7nb5k": "X7nb5k",
+      "x87ynu": "X87ynu",
+      "xcjer3": "Xcjer3",
+      "xwumtf": "Xwumtf",
+      "y4brfn": "Y4brfn",
+      "yhnpu2": "Yhnpu2",
+      "yn2mmg": "Yn2mmg",
+      "zasss2": "Zasss2",
+      "zgybil": "Zgybil",
+      "zwtpkr": "Zwtpkr"
     },
     "gNav": {
       "apiKeys": "API 키",
@@ -651,7 +1205,9 @@ export default {
       "alertPolicies": "알럿 정책",
       "actionPresets": "액션 프리셋",
       "dbAdmin": "DB 어드민",
-      "pgConfig": "게이트웨이 관리"
+      "pgConfig": "게이트웨이 관리",
+      "aiMarketingHub": "AI Communication",
+      "whatsapp": "WhatsApp"
     },
     "super": {
       "conTitle": "데이터 연동 허브",
@@ -734,8 +1290,517 @@ export default {
       "conKpiConnected": "연결된 채널",
       "conTabPlatform": "📡 플랫폼",
       "conFltAllBase": "전체",
-      "conFltDiscon": "미연결"
-    }
+      "conFltDiscon": "미연결",
+      "aaAddCmt": "Add a comment to the current view...",
+      "conFltOauth": "OAuth",
+      "conTabDw": "🔷 Data Warehouse",
+      "ihCafe": "Cafe24",
+      "ihCommerce": "Commerce",
+      "ihConnect": "Connect",
+      "ihConnected": "🟢 Connected",
+      "ihConnecting": "Connecting...",
+      "ihCrm": "CRM",
+      "ihGoogle": "Google Ads",
+      "ihMeta": "Meta Ads",
+      "ihSalesforce": "Salesforce",
+      "ihShopify": "Shopify",
+      "ihSlack": "Slack",
+      "kpiRoas": "ROAS",
+      "rbLib": "📊 Widget Library",
+      "rbTitle": "🛠️ Custom Report Builder"
+    },
+    "accountPerf": {
+      "colConv": "CV",
+      "colCtr": "CTR",
+      "colRoas": "ROAS"
+    },
+    "acctPerf": {
+      "colConv": "CV",
+      "colCtr": "CTR",
+      "colRoas": "ROAS"
+    },
+    "auto": {
+      "015zcn": "015zcn",
+      "04xbs5": "04xbs5",
+      "0626xl": "0626xl",
+      "08tz61": "Benepia",
+      "097xk9": "097xk9",
+      "0dge9p": "0dge9p",
+      "0f6cwr": "0f6cwr",
+      "0igpad": "0igpad",
+      "0ipu9q": "0ipu9q",
+      "0iy7a9": "0iy7a9",
+      "0l9bs3": "0l9bs3",
+      "0qntd6": "0qntd6",
+      "0utmsq": "0utmsq",
+      "0ywsne": "0ywsne",
+      "10vzv1": "10vzv1",
+      "112s5b": "112s5b",
+      "11t2zj": "⏸ Not Scanned",
+      "13f85a": "13f85a",
+      "16s2zv": "16s2zv",
+      "1fe4yq": "1fe4yq",
+      "1wmipx": "1wmipx",
+      "25smdq": "25smdq",
+      "278rrt": "278rrt",
+      "27h59f": "27h59f",
+      "29aghl": "29aghl",
+      "2b9bun": "2b9bun",
+      "2fpukf": "2fpukf",
+      "2fsv5a": "2fsv5a",
+      "2gdeh2": "2gdeh2",
+      "2hnb5b": "2hnb5b",
+      "2it6i0": "2it6i0",
+      "2jw234": "2jw234",
+      "2z78l4": "2z78l4",
+      "2za51t": "2za51t",
+      "34an2u": "34an2u",
+      "3aif0h": "3aif0h",
+      "3ck4pc": "3ck4pc",
+      "3x3snf": "3x3snf",
+      "40vixj": "40vixj",
+      "44dsvf": "44dsvf",
+      "451tyx": "451tyx",
+      "48uyea": "48uyea",
+      "4fmodr": "4fmodr",
+      "4ndk1j": "4ndk1j",
+      "4wtmsx": "📲 Social Media & Content",
+      "4yo8i3": "4yo8i3",
+      "50d64q": "50d64q",
+      "50hsuy": "50hsuy",
+      "52g89l": "52g89l",
+      "5n9f5p": "5n9f5p",
+      "5oyz45": "5oyz45",
+      "5rbky2": "5rbky2",
+      "5twxk6": "5twxk6",
+      "5u3680": "5u3680",
+      "5ugkrf": "5ugkrf",
+      "5uje4r": "5uje4r",
+      "6gmwno": "6gmwno",
+      "6odutv": "6odutv",
+      "6se8l8": "6se8l8",
+      "6w20f2": "6w20f2",
+      "6xwuah": "6xwuah",
+      "6z1v6b": "6z1v6b",
+      "6zmccp": "6zmccp",
+      "701c7g": "701c7g",
+      "71ijys": "71ijys",
+      "74kh59": "74kh59",
+      "7c2kpa": "7c2kpa",
+      "7cdh5t": "7cdh5t",
+      "7d8kze": "7d8kze",
+      "7dgzu5": "7dgzu5",
+      "7eowcy": "7eowcy",
+      "7i3pt9": "7i3pt9",
+      "7kne9i": "7kne9i",
+      "7x3v8j": "7x3v8j",
+      "80sn2d": "80sn2d",
+      "85bevl": "85bevl",
+      "8awgc0": "8awgc0",
+      "8bh6tu": "8bh6tu",
+      "8fu4v1": "8fu4v1",
+      "8jslz0": "8jslz0",
+      "8kezu3": "8kezu3",
+      "8w5ncj": "8w5ncj",
+      "8wyope": "8wyope",
+      "8xheqh": "8xheqh",
+      "9clapm": "9clapm",
+      "9cpaci": "9cpaci",
+      "9dvczd": "9dvczd",
+      "9eok3n": "9eok3n",
+      "9kmm7q": "9kmm7q",
+      "9ojkb5": "9ojkb5",
+      "9p6ucn": "Japan",
+      "9plavm": "9plavm",
+      "9ujts8": "9ujts8",
+      "9uk2a0": "9uk2a0",
+      "9zaela": "9zaela",
+      "a14086": "A14086",
+      "a2g2s6": "A2g2s6",
+      "a7fodt": "A7fodt",
+      "a99eaj": "A99eaj",
+      "aax6hu": "Aax6hu",
+      "ac75p7": "Ac75p7",
+      "akwt48": "Akwt48",
+      "amsa9k": "Amsa9k",
+      "b1kvdo": "B1kvdo",
+      "b3qru0": "B3qru0",
+      "b46onw": "B46onw",
+      "bchlcp": "Bchlcp",
+      "bejuou": "Bejuou",
+      "bgf8iz": "Bgf8iz",
+      "bglbas": "Bglbas",
+      "bj1uox": "Bj1uox",
+      "bqxgxj": "Bqxgxj",
+      "c2r938": "C2r938",
+      "c3fs0f": "C3fs0f",
+      "c6d6pj": "C6d6pj",
+      "cc2qm0": "Key Detected",
+      "cfwn37": "Cfwn37",
+      "cljj3j": "Cljj3j",
+      "cm1t1o": "Cm1t1o",
+      "cox1g4": "Cox1g4",
+      "cq8w8h": "Cq8w8h",
+      "ctzbj7": "Ctzbj7",
+      "cwwnes": "Cwwnes",
+      "d60jud": "D60jud",
+      "dfumga": "Dfumga",
+      "dh4f1z": "Dh4f1z",
+      "dkrli8": "Dkrli8",
+      "dtc0k1": "Dtc0k1",
+      "dtybkd": "Dtybkd",
+      "e7chl6": "E7chl6",
+      "ea765n": "Ea765n",
+      "eg4qia": "Eg4qia",
+      "ehujwr": "Ehujwr",
+      "eiyn3w": "Eiyn3w",
+      "ejm0pv": "Ejm0pv",
+      "eo8zzk": "Eo8zzk",
+      "epe971": "Epe971",
+      "eqn32v": "Eqn32v",
+      "et8d60": "Et8d60",
+      "event_empty": "Event empty",
+      "f0xa25": "F0xa25",
+      "f3f04y": "F3f04y",
+      "fdz98u": "Fdz98u",
+      "fprwyv": "Fprwyv",
+      "frgeo3": "Frgeo3",
+      "ft8h53": "Ft8h53",
+      "g490mm": "G490mm",
+      "g89o6q": "G89o6q",
+      "g8r09m": "G8r09m",
+      "g8tg35": "G8tg35",
+      "ga42ac": "Ga42ac",
+      "gckxb4": "Gckxb4",
+      "gcm8wt": "Gcm8wt",
+      "ge067w": "Ge067w",
+      "gjra61": "Gjra61",
+      "gtin56": "Gtin56",
+      "gv4r0c": "Gv4r0c",
+      "gzkv91": "Not Scanned",
+      "h0jnqu": "H0jnqu",
+      "h53dub": "H53dub",
+      "heea6f": "Heea6f",
+      "hfcznv": "Hfcznv",
+      "hovbjj": "Hovbjj",
+      "i0avx5": "I0avx5",
+      "ibhsge": "Ibhsge",
+      "ijvmlz": "Ijvmlz",
+      "imx43v": "Imx43v",
+      "iqdzrx": "Iqdzrx",
+      "izlkqz": "Izlkqz",
+      "j0pwc5": "J0pwc5",
+      "j3gdgq": "J3gdgq",
+      "jerrow": "Jerrow",
+      "jjw1v2": "Jjw1v2",
+      "jk0s5v": "Jk0s5v",
+      "json_err": "Json err",
+      "jznf9o": "Jznf9o",
+      "k1xv0h": "K1xv0h",
+      "k26xiq": "K26xiq",
+      "k2qk5x": "K2qk5x",
+      "knivsl": "Knivsl",
+      "kq3p3v": "Kq3p3v",
+      "kqpndx": "Kqpndx",
+      "krzijk": "Krzijk",
+      "ktdl83": "Ktdl83",
+      "kzbeb5": "Kzbeb5",
+      "l2spnk": "L2spnk",
+      "l36ov9": "L36ov9",
+      "laeux0": "Settlement",
+      "lh2mw5": "Lh2mw5",
+      "limqwg": "Limqwg",
+      "lp6ott": "Lp6ott",
+      "m7d1cm": "M7d1cm",
+      "m8wl6v": "M8wl6v",
+      "mcy2ek": "Mcy2ek",
+      "me7deo": "Me7deo",
+      "mgmepv": "Mgmepv",
+      "mi7ool": "Mi7ool",
+      "mk0dsg": "Mk0dsg",
+      "mlfykp": "Mlfykp",
+      "mnmmde": "Mnmmde",
+      "mqr1yb": "Mqr1yb",
+      "mr789w": "Mr789w",
+      "mzr83u": "Mzr83u",
+      "n2m798": "Security Guide",
+      "nb4gvn": "Nb4gvn",
+      "new900": " Channels Analyzed. Please confirm the scanned keys.",
+      "new901": "API Key Application",
+      "new902": " items",
+      "new903": "Detected",
+      "new904": "No Key",
+      "new905": "Application Done",
+      "nfsmh1": "Nfsmh1",
+      "nkk9ux": "Nkk9ux",
+      "not_arr": "Not arr",
+      "nzwqg9": "Nzwqg9",
+      "o0xohs": "O0xohs",
+      "o98iq1": "O98iq1",
+      "ofxnnr": "Ofxnnr",
+      "ondgbc": "Ondgbc",
+      "opre0m": "Opre0m",
+      "p4p4bc": "P4p4bc",
+      "p8ra5m": "P8ra5m",
+      "peum9f": "Peum9f",
+      "pkjv7l": "Pkjv7l",
+      "pmmmhz": "Pmmmhz",
+      "pprh01": "Pprh01",
+      "ps1rbq": "Ps1rbq",
+      "ps4hfy": "Contact",
+      "pw0pi7": "Pw0pi7",
+      "pw7qil": "Pw7qil",
+      "q6pu3l": "Q6pu3l",
+      "q8styk": "Q8styk",
+      "qce5y9": "Qce5y9",
+      "qkkmnp": "Qkkmnp",
+      "qkwef8": "Qkwef8",
+      "r35hhy": "R35hhy",
+      "r45lkr": "R45lkr",
+      "r4s8k3": "R4s8k3",
+      "r5e9fc": "R5e9fc",
+      "r5ukjf": "R5ukjf",
+      "r6zynz": "R6zynz",
+      "ra8479": "Ra8479",
+      "rjo7qo": "Rjo7qo",
+      "rpw5ig": "Rpw5ig",
+      "rytfcq": "Rytfcq",
+      "rytgjs": "Rytgjs",
+      "rzmlkl": "Rzmlkl",
+      "s3fgwk": "S3fgwk",
+      "s8ql8c": "S8ql8c",
+      "sa27lc": "Sa27lc",
+      "sa6nc8": "Sa6nc8",
+      "sc6npu": "Sc6npu",
+      "sdkpt7": "Sdkpt7",
+      "sn3xbe": "Sn3xbe",
+      "stfef4": "Stfef4",
+      "sudpqw": "Sudpqw",
+      "supil9": "Supil9",
+      "svbso9": "Svbso9",
+      "swwa95": "Swwa95",
+      "t4ufsx": "T4ufsx",
+      "tabsp8": "Tabsp8",
+      "tb5fnf": "Tb5fnf",
+      "tkoi8u": "Tkoi8u",
+      "tng2eo": "Tng2eo",
+      "tsl7hq": "Tsl7hq",
+      "tte7ij": "Tte7ij",
+      "tvzrow": "Tvzrow",
+      "txu9kw": "Txu9kw",
+      "tytk85": "Tytk85",
+      "u5v2c8": "U5v2c8",
+      "u7qakb": "U7qakb",
+      "unydu6": "Cafe24",
+      "uq20z5": "Uq20z5",
+      "uu8cwu": "Uu8cwu",
+      "uwwysx": "Uwwysx",
+      "uxu8dh": "Uxu8dh",
+      "v2eu9b": "V2eu9b",
+      "v3a6z4": "V3a6z4",
+      "va0526": "Va0526",
+      "veyvko": "Veyvko",
+      "vgs487": "Vgs487",
+      "vvzm41": "Vvzm41",
+      "w394fd": "🏢 Closed Mall / Welfare",
+      "w3od4h": "W3od4h",
+      "w4sb94": "W4sb94",
+      "w5qgaw": "W5qgaw",
+      "w66p5o": "W66p5o",
+      "w86vi6": "W86vi6",
+      "wdhsz1": "Wdhsz1",
+      "wf16yz": "Wf16yz",
+      "wuxyi0": "Wuxyi0",
+      "wynyfz": "Wynyfz",
+      "x00b7n": "X00b7n",
+      "xc7v8o": "Xc7v8o",
+      "xee1o4": "Xee1o4",
+      "xfucnv": "Xfucnv",
+      "xnh74m": "Xnh74m",
+      "xoo6im": "Xoo6im",
+      "xovpin": "Xovpin",
+      "xra4i7": "Xra4i7",
+      "xwzhme": "Xwzhme",
+      "y7avh5": "Y7avh5",
+      "yfr8lb": "Yfr8lb",
+      "ykf0wv": "Ykf0wv",
+      "ynyctt": "Ynyctt",
+      "yvy7wp": "Yvy7wp",
+      "yxgb6h": "Yxgb6h",
+      "z7kx77": "Z7kx77",
+      "z7ua1p": "Z7ua1p",
+      "z8sx81": "Z8sx81",
+      "z8x5tf": "Z8x5tf",
+      "ze6yi8": "Ze6yi8",
+      "zf1y2s": "Zf1y2s",
+      "zh1qxk": "Zh1qxk",
+      "zhzra1": "Zhzra1",
+      "znud7v": "Znud7v",
+      "zrqhyh": "Zrqhyh",
+      "zwl4qm": "Zwl4qm",
+      "zzv7gz": "Zzv7gz"
+    },
+    "budget": {
+      "allocated": "Allocated",
+      "onTrack": "On Track",
+      "overspend": "Overspend",
+      "spent": "Execution"
+    },
+    "marketing": {
+      "AIPolicy": "AI Policy",
+      "Alerts": "Alerts",
+      "ApiRegister": "View Integration Guide",
+      "Attribution": "Attribution",
+      "Badge": "Badge",
+      "GraphScore": "Graph Score",
+      "Influencer": "Influencer",
+      "Join": "Join",
+      "KRChannel": "KR Channel",
+      "LockBadge": "🔒 Demo",
+      "Locker": "Locker",
+      "Marketing": "Marketing",
+      "PriceCheck": "Price Check",
+      "PriceOpt": "Price Opt",
+      "PricingView": "Check Pricing Plans",
+      "Reconcile": "Reconciliation",
+      "Running": "Running",
+      "SampleDesc2": "This feature only fetches real data after paid plan integration. Current screen uses sample data.",
+      "SampleDesc3": "Virtual data is being displayed.",
+      "adAccountFilter": "Ad Account",
+      "adFilterAll": "All Accounts",
+      "adFilterSub": "Sub Account 1",
+      "adMetaDynChart": "Ad Meta Dynamic Chart Performance",
+      "adSpendSub": "Total Ad Spend",
+      "adTableSub": "Performance during the selected active period.",
+      "adTableTitle": "Ad Performance Detail (Campaign/Ad Set)",
+      "ageDist": "Age Distribution",
+      "aiReasonDetail": "Ai Reason Detail",
+      "analyticsModules": "Analytics Modules",
+      "approvedAt": "Approved At",
+      "approvedBy": "Approved By",
+      "avgOrder": "AOV",
+      "bgColCpa": "CPA",
+      "bgColCpc": "CPC",
+      "bgColCtr": "CTR",
+      "bgColRoi": "ROI",
+      "bgGuideTabPnlName": "P&L",
+      "bgPacingColRoas": "ROAS",
+      "bgPeriodMonthly": "Bg Period Monthly",
+      "bgPeriodQuarterly": "Bg Period Quarterly",
+      "bgPeriodYearly": "Bg Period Yearly",
+      "bgPlannerDesc": "Bg Planner",
+      "budgetTrackerTab": "Budget Tracker",
+      "chIntelDesc1": "Ch Intel Desc1",
+      "chIntelDesc2": "Ch Intel Desc2",
+      "chIntelDesc3": "Ch Intel Desc3",
+      "chIntelDesc4": "Ch Intel Desc4",
+      "chIntelTitle": "Channel Intelligence",
+      "chPerfDash": "Channel Performance Dashboard",
+      "chTrendKpi": "Key KPI Trends by Media",
+      "ch_google": "Google（YouTube）",
+      "ch_tiktok": "TikTok",
+      "channelDesc": "Core KPIs by Channel",
+      "channelMix": "Channel Mix",
+      "colAchieve": "Goal Achievement",
+      "colChan": "Channel Name",
+      "colCpa": "CPA Cost",
+      "colImpr": "Total Impressions",
+      "colItemName": "Col Item Name",
+      "colResultConv": "Actual Conversions",
+      "colRoas": "ROAS",
+      "colSpend": "Ad Spend",
+      "colTrend": "Trend",
+      "commerceDesc": "Order · Inventory · Settlement Unified Status",
+      "convFunnel": "Conversion Funnel Analysis",
+      "convRateSub": "vs Sessions",
+      "createdAt": "Created",
+      "defaultTeam": "Default Team",
+      "explainCatInsight": "Explain Cat Insight",
+      "explainChWhy": "Explain Ch Why",
+      "explainEditNote": "Explain Edit Note",
+      "explainSub": "Explain",
+      "explainTitle": "Explain Title",
+      "genderDist": "Gender Distribution",
+      "grossRevSub": "Today",
+      "influencerDesc": "Influencer · UGC Performance Analysis",
+      "liveActivity": "Live Activity",
+      "marketingDesc": "Ad · Campaign Integrated Analysis",
+      "memAccessSaved": "Mem Access Saved",
+      "metCpc": "CPC",
+      "metCpm": "CPM",
+      "metCtr": "CTR(%)",
+      "metRoas": "ROAS",
+      "metricClicks": "Total Clicks",
+      "metricConv": "Conversions",
+      "metricCpc": "Average CPC",
+      "metricCpm": "Average CPM",
+      "metricCtr": "Average CTR",
+      "metricImpr": "Impressions",
+      "metricReach": "Reach",
+      "metricRoas": "Return on Ad Spend (ROAS)",
+      "metricSpend": "Daily Spend",
+      "mktHierTitle": "Detailed Ad Media Performance",
+      "mode": "Mode",
+      "moduleShortcuts": "Module Shortcuts",
+      "naverName": "Naver Search Ads",
+      "netROASSub": "Net Profit / Ad Spend",
+      "overview": "Overview",
+      "overviewDesc": "All platform KPIs at a glance",
+      "purchaseWord": "purchases",
+      "quickFavs": "Favorites",
+      "quickRecents": "Recent",
+      "realModeLabel": "🔴 LIVE",
+      "sales": "Global Sales",
+      "salesDesc": "Revenue Status by Country/Region",
+      "sc_coupang": "Coupang",
+      "sc_gmarket": "Gmarket",
+      "sc_tiktok_shop": "TikTok Shop",
+      "selectRoleBtn": "Select Role",
+      "selectRoleDesc": "We suggest customized options and quick actions for your role.",
+      "selectRoleTitle": "Please select your role",
+      "sidebarAlertCount": "13 Alerts",
+      "sidebarLogout": "Exit  & Logout",
+      "statClicks": "Clicks",
+      "statConversions": "Conversions",
+      "statImpressions": "Impressions",
+      "statusActive": "Active",
+      "statusApproved": "Status Approved",
+      "statusOther": "Ended",
+      "statusPaused": "Status Paused",
+      "statusPending": "Status Pending",
+      "statusRejected": "Status Rejected",
+      "sysStatus": "System Status",
+      "system": "System Status",
+      "systemDesc": "API · Pipeline · Server Status",
+      "tabAdset": "Ad Set Level",
+      "tabCamp": "Campaign Manager",
+      "tag_b2b": "B2B",
+      "tag_saas": "SaaS",
+      "todayTasks": "Today",
+      "topRegion": "Top Visited Regions",
+      "totalLabel": "Total",
+      "totalOrderSub": "As of Today",
+      "upgradalBtn": "View Upgrade Plans",
+      "upgradalClose": "Close",
+      "upgradalDesc": "This is a powerful enterprise feature available in the paid plan.\nUpgrade to Pro now to experience all features without limits.",
+      "upgradalTitle": "Pro Plan Exclusive",
+      "upgradeBarCoupon": "Your account has a free coupon.",
+      "upgradeBarDesc": "Connect your API now and fully utilize the platform with your data.",
+      "upgradeBarMembership": "Membership Coupon Application Guide",
+      "upgradeBarTitle": "🎉 Connect real business data and try all features free for 7 days!",
+      "upgradeLabel": "PRO",
+      "vsYesterday": "vs Yesterday"
+    },
+    "root_pageTitle_aiPolicy": "Root_page Title_ai Policy",
+    "root_pageTitle_approvals": "Root_page Title_approvals",
+    "root_pageTitle_attribution": "Attribution",
+    "root_pageTitle_channelKpi": "Channel KPI",
+    "root_pageTitle_graphScore": "Graph Score",
+    "root_pageTitle_integrationHub": "Root_page Title_integration Hub",
+    "root_pageTitle_marketing": "Root_page Title_marketing",
+    "root_pageTitle_onboarding": "Root_page Title_onboarding",
+    "root_pageTitle_writeback": "Root_page Title_writeback",
+    "root_quickRecents": "Recent Visits"
   },
 
   "orderHub": {
@@ -10040,8290 +11105,4138 @@ export default {
   },
 
   "nav": {
-
     "home": "홈 대시보드",
-
     "dashboard": "종합 대시보드",
-
     "rollup": "Rollup 집계 레이어",
-
     "aiMarketing": "AI 마케팅 자동화",
-
     "autoMarketing": "오토 마케팅",
-
     "aiMarketingHub": "AI 마케팅 허브",
-
     "campaignManager": "캠페인 관리",
-
     "journeyBuilder": "고객 여정 빌더",
-
     "aiPrediction": "AI 성과 예측",
-
     "aiRecommend": "AI 상품 추천",
-
     "contentCalendar": "콘텐츠 캘린더",
-
     "budgetPlanner": "광고 예산 플래너",
-
     "adAnalytics": "광고 · 채널 스코어",
-
     "adPerformance": "광고성과",
-
     "attribution_ana": "기여 모델 (Attribution)",
-
     "channelKpi": "채널 KPI",
-
     "marketingIntel": "마케팅 인텔리전스",
-
     "graphScore": "그래프 스코어",
-
     "influencer_mgmt": "인플루언서 관리",
-
     "reviewsUgc": "리뷰 및 UGC",
-
     "digitalShelf": "디지털 셸프",
-
     "amazonRisk": "Amazon 리스크",
-
     "crm": "고객 · CRM 관리",
-
     "crmMain": "CRM 종합",
-
     "emailMarketing": "이메일 마케팅",
-
     "kakaoChannel": "카카오톡 채널 관리",
-
     "whatsapp": "WhatsApp (다국어)",
-
     "smsMarketing": "SMS/문자 마케팅",
-
     "instagramDm": "인스타그램 DM 대응",
-
     "lineChannel": "LINE 크로스보더",
-
     "webPopup": "On-site 팝업 마케팅",
-
     "commerce": "커머스",
-
     "omniChannel": "옴니채널 재고",
-
     "catalog": "카탈로그 동기화",
-
     "orderHub": "통합 주문 허브",
-
     "krChannel": "국내 채널 정산",
-
     "wms": "창고 물류 (WMS)",
-
     "priceOpt": "가격 최적화",
-
     "demandForecast": "수요 예측 엔진",
-
     "asiaLogistics": "아시아 권역 물류",
-
     "returnsPortal": "반품 · CS 포털",
-
     "supplyChain": "서플라이 체인 가시화",
-
     "supplierPortal": "벤더(공급사) 포털",
-
     "analytics": "종합 성과 · 분석",
-
     "performanceHub": "성과 · 정산 허브",
-
     "pnl_analytics": "P&L 수익성 분석",
-
     "aiInsights": "AI 인사이트 엔진",
-
     "reportBuilder": "리포트 빌더",
-
     "finance": "파이낸스",
-
     "reconciliation": "정산",
-
     "settlements": "정산 내역",
-
     "pricing": "요금제 / 업그레이드",
-
     "myCoupons": "내 쿠폰함",
-
     "audit": "감사 로그",
-
     "automation": "자동화",
-
     "aiRuleEngine": "AI 학습형 룰 엔진",
-
     "alertPolicies": "알림 정책",
-
     "aiPolicy": "AI 정책",
-
     "approvals": "액션 센터",
-
     "actionPresets": "액션 템",
-
     "pageTitle": "🤖 AI 정책 관리",
-
     "pageSub": "AI 기반 정책 제안 · 자동화 승인 워크플로우",
-
     "tabProposals": "💡 AI 제안",
-
     "tabApproved": "✅ 승인된 정책",
-
     "tabRejected": "❌ 거절된 정책",
-
     "policyTitle": "정책명",
-
     "description": "설명",
-
     "aiConfidence": "AI 신뢰도",
-
     "expectedEffect": "예상 효과",
-
     "riskLevel": "리스크",
-
     "createdAt": "생성일",
-
     "approve": "✅ 승인",
-
     "reject": "❌ 거절",
-
     "viewDetail": "상세 보기",
-
     "risk_low": "낮음",
-
     "risk_medium": "보통",
-
     "risk_high": "높음",
-
     "noProposals": "AI 정책 제안이 없습니다.",
-
     "pages": {
-
       "onboarding": {
-
         "guideRolesTitle": "역할별 경로 안내",
-
         "guideSecMarketer": "광고 채널 연동, 어트리뷰션 분석, AI 마케팅, CRM, A/B 테스트를 학습합니다.",
-
         "guideSecCommerce": "멀티채널 연동, 주문 허브, WMS 재고, 정산, 재고 경고를 학습합니다.",
-
         "guideSecFinance": "P&L 분석, 채널별 수익성, 정산 대사, ESG 리포트, 자동 보고서를 학습합니다.",
-
         "guideSecOps": "3PL 물류, 공급망 관리, 반품 포탈, 아시아 물류, 운영 알림을 학습합니다.",
-
         "guideSecDev": "API 키 등록, 커넥터, 데이터 스키마, 시스템 모니터링, AI 정책을 학습합니다.",
-
         "viewGuide": "이용 가이드",
-
         "backToRoles": "역할 선택으로 돌아가기",
-
         "export": "내보내기",
-
         "channelsLinked": "개 채널 연동",
-
         "welcomeTitle": "Geniego-ROI에 오신 것을 환영합니다!",
-
         "welcomeDesc": "역할을 선택하면 30분 내 첫 인사이트를 얻을 수 있는 맞춤형 5단계 경로를 안내합니다.",
-
         "estimatedTime": "예상 소요: 역할당 30분 이내",
-
         "selectRole": "역할을 선택하세요",
-
         "btnStart": "시작하기",
-
         "btnNext": "다음",
-
         "markComplete": "완료 표시",
-
         "changeRole": "역할 변경",
-
         "exclusiveGuide": "전용 시작 가이드",
-
         "fiveStepPath": "5단계 맞춤 경로",
-
         "minElapsed": "분 경과",
-
         "goal30min": "목표 30분",
-
         "progressLabel": "진행률",
-
         "expectedEffect": "이 단계 완료 시 예상 효과",
-
         "allComplete": "5단계 완료!",
-
         "completionMsg": "온보딩을 완료했습니다. 이제 Geniego-ROI로 ROI를 극대화하세요.",
-
         "goToDashboard": "대시보드로 이동",
-
         "exploreOtherRoles": "다른 역할 탐색",
-
         "roleStarted": "온보딩 시작됨",
-
         "stepCompleted": "단계 완료",
-
         "crossTabSync": "다른 탭에서 온보딩 동기화됨",
-
         "pageTitle": "🚀 온보딩",
-
         "pageSub": "맞춤형 시작 가이드",
-
         "roleMarketer": "마케터",
-
         "roleMarketerDesc": "광고 성과 분석, AI 캠페인 자동화, CRM 세그먼트",
-
         "roleCommerce": "커머스 운영자",
-
         "roleCommerceDesc": "멀티채널 주문·재고·WMS·반품 통합 관리",
-
         "roleFinance": "재무·경영자",
-
         "roleFinanceDesc": "P&L 분석, 채널별 수익성, ESG·리포트 자동화",
-
         "roleOps": "운영 관리자",
-
         "roleOpsDesc": "3PL·물류·공급망·반품 통합 운영",
-
         "roleDev": "개발자·IT 관리자",
-
         "roleDevDesc": "API 연동, 시스템 모니터링, 데이터 스키마",
-
         "tagAdsOpt": "광고 최적화",
-
         "tagAutomation": "자동화",
-
         "tagInventory": "재고 동기화",
-
         "tagOrders": "주문 관리",
-
         "tagProfitability": "수익성 분석",
-
         "tagSupplyChain": "공급망",
-
         "tagReturns": "반품",
-
         "tagMonitoring": "시스템 모니터링",
-
         "tagData": "데이터",
-
         "stepAdsIntegration": "광고 채널 연동",
-
         "stepAdsIntegrationDesc": "Meta·Google·TikTok·Naver·Kakao API 키 입력만으로 광고 데이터가 자동 수집됩니다.",
-
         "kpiAdsIntegration": "평균 30분 내 첫 데이터 수집",
-
         "stepAttribution": "어트리뷰션 분석",
-
         "stepAttributionDesc": "어떤 채널이 실제 매출에 기여했는지 Shapley Value 기반으로 공정하게 측정합니다.",
-
         "kpiAttribution": "채널 낭비 예산 평균 23% 절감",
-
         "stepAIMarketing": "AI 마케팅 자동화",
-
         "stepAIMarketingDesc": "AI가 고객 세그먼트를 자동 생성하고, 최적 발송 시간에 Email·Kakao·SMS를 자동 집행합니다.",
-
         "kpiAIMarketing": "CTR +41% 평균 향상",
-
         "stepCRM": "CRM 세그먼트 설정",
-
         "stepCRMDesc": "VIP·이탈 위험·재구매 가능 고객을 AI가 자동 분류합니다.",
-
         "kpiCRM": "이탈 예측 정확도 87%",
-
         "stepABTest": "A/B 테스트 실행",
-
         "stepABTestDesc": "Bayesian 최적화로 승자 변형을 통계적으로 95% 신뢰도에서 자동 확정합니다.",
-
         "kpiABTest": "전환율 평균 +18% 향상",
-
         "stepChannelConnect": "판매 채널 연동",
-
         "stepChannelConnectDesc": "Shopify·Coupang·Naver·Amazon API를 연결하면 상품·재고·주문이 실시간 동기화됩니다.",
-
         "kpiChannelConnect": "재고 오차 99.2% 제거",
-
         "stepOrderHub": "주문 허브 설정",
-
         "stepOrderHubDesc": "모든 채널 주문을 한 곳에서 처리하고 배송사 자동 배정 규칙을 설정합니다.",
-
         "kpiOrderHub": "주문 처리 시간 68% 단축",
-
         "stepWMS": "WMS 창고 설정",
-
         "stepWMSDesc": "입고·피킹·출고·재고 실사를 바코드 스캔 기반으로 자동화합니다.",
-
         "kpiWMS": "피킹 오류율 0.08% 이하",
-
         "stepSettlement": "정산 자동화",
-
         "stepSettlementDesc": "채널별 수수료를 자동 대사하고 실질 순이익을 실시간 계산합니다.",
-
         "kpiSettlement": "정산 처리 시간 84% 절감",
-
         "stepInventoryAlert": "재고 알림 설정",
-
         "stepInventoryAlertDesc": "안전재고 이하 진입 시 즉시 알림, 수요 예측 기반 자동 발주 권고를 받습니다.",
-
         "kpiInventoryAlert": "재고 소진 사전 방지",
-
         "stepPnL": "P&L 대시보드",
-
         "stepPnLDesc": "채널별·SKU별 실질 순이익을 광고비·수수료·물류비 차감 후 실시간으로 확인합니다.",
-
         "kpiPnL": "수익 구조 즉시 파악",
-
         "stepChannelProfit": "채널별 수익성 분석",
-
         "stepChannelProfitDesc": "LTV/CAC 비율로 어떤 채널이 장기적으로 가장 수익성이 높은지 분석합니다.",
-
         "kpiChannelProfit": "LTV/CAC 평균 7.2x 유지",
-
         "stepReconciliation": "정산 대조",
-
         "stepReconciliationDesc": "플랫폼 정산 내역과 실제 입금액을 자동 매칭해 미지급·오지급을 즉시 감지합니다.",
-
         "kpiReconciliation": "매칭률 97.6%",
-
         "stepESG": "ESG 리포트",
-
         "stepESGDesc": "탄소 배출·지속가능성 지표를 자동 집계해 투자자·규제 대응 리포트를 생성합니다.",
-
         "kpiESG": "규제 준수 자동화",
-
         "stepReportAuto": "리포트 자동화",
-
         "stepReportAutoDesc": "경영진용 주간/월간 리포트를 PDF·Excel로 스케줄 자동 발송 설정합니다.",
-
         "kpiReportAuto": "리포트 작성 시간 90% 절감",
-
         "step3PL": "3PL 파트너 등록",
-
         "step3PLDesc": "CJ대한통운·쿠팡풀필먼트 등 3PL 파트너를 등록하고 자동 배차 규칙을 설정합니다.",
-
         "kpi3PL": "물류비 최적화 평균 15%",
-
         "stepSupplyChain": "공급망 관리",
-
         "stepSupplyChainDesc": "공급업체부터 소비자까지 전체 공급망 가시성을 실시간으로 확인합니다.",
-
         "kpiSupplyChain": "공급망 리스크 조기 감지",
-
         "stepReturns": "반품 포털 설정",
-
         "stepReturnsDesc": "고객 반품 신청→검수→재입고→환불을 자동화하고 반품 원인을 분석합니다.",
-
         "kpiReturns": "반품 처리 42% 단축",
-
         "stepAsiaLogistics": "아시아 물류 연동",
-
         "stepAsiaLogisticsDesc": "한국·일본·동남아 3PL, 관세·통관 자동화, 다국 창고 관리를 설정합니다.",
-
         "kpiAsiaLogistics": "해외 배송 오류 78% 감소",
-
         "stepOpsAlert": "운영 알림 설정",
-
         "stepOpsAlertDesc": "배송 지연, 재고 임박, 시스템 오류 발생 시 즉각 알림을 Slack·Email로 받습니다.",
-
         "kpiOpsAlert": "문제 감지-대응 시간 단축",
-
         "stepAPIKey": "API 키 발급",
-
         "stepAPIKeyDesc": "REST API 키를 발급받아 외부 시스템과 Geniego-ROI를 통합합니다.",
-
         "kpiAPIKey": "400+ API 엔드포인트 지원",
-
         "stepConnector": "커넥터 설정",
-
         "stepConnectorDesc": "ERP·PIM·WMS 등 기존 시스템과 양방향 데이터 파이프라인을 구성합니다.",
-
         "kpiConnector": "100+ 시스템 통합 지원",
-
         "stepDataSchema": "데이터 스키마 확인",
-
         "stepDataSchemaDesc": "수집되는 모든 이벤트·주문·고객 데이터의 스키마와 정규화 규칙을 검토합니다.",
-
         "kpiDataSchema": "실시간 데이터 검증",
-
         "stepSysMonitor": "시스템 모니터링",
-
         "stepSysMonitorDesc": "API 레이턴시, DLQ 오류, 배치 실행 상태를 실시간 모니터링합니다.",
-
         "kpiSysMonitor": "p99 < 200ms 목표",
-
         "stepAIPolicy": "AI 정책 설정",
-
         "stepAIPolicyDesc": "AI 자동화 규칙의 실행 조건·승인 플로우·감사 로그를 구성합니다.",
-
         "kpiAIPolicy": "자동화 신뢰도 관리",
-
         "secTitle": "보안 위협 감지",
-
         "secCode": "해제 코드 입력",
-
         "secUnlock": "잠금 해제"
-
       },
-
       "writeback": {
-
         "heroDesc": "판매·광고·분석 채널의 API 키를 등록하고 연결 상태를 관리합니다.",
-
         "pageTitle": "↩ 데이터 라이트백",
-
         "pageSub": "채널 상품 데이터 동기화 · 정책 검증 · 실행 관리",
-
         "channel": "채널",
-
         "skuPlaceholder": "SKU 입력",
-
         "btnPrepare": "준비",
-
         "btnExecute": "실행",
-
         "btnPreview": "미리보기",
-
         "btnRefreshJobs": "작업 새로고침",
-
         "policyValidate": "정책 검증",
-
         "categorySuggestion": "카테고리 제안",
-
         "runPreparePolicy": "Prepare를 실행하여 정책을 검증하세요.",
-
         "runPrepareCategory": "Prepare를 실행하여 카테고리 제안을 받으세요.",
-
         "prepareResult": "준비 결과",
-
         "requiresApproval": "승인 필요",
-
         "policyFindings": "정책 발견사항",
-
         "payloadEditor": "페이로드 편집기",
-
         "payloadEditorDesc": "상품 JSON을 입력하고 미리보기로 실행 전 검증하세요.",
-
         "payloadPlaceholder": ":{ \"sku\": \"...\", \"title\": \"...\", \"price\": 0 }",
-
         "validationResult": "검증 결과",
-
         "needsFix": "수정 필요",
-
         "findings": "발견사항",
-
         "jobHistory": "작업 이력",
-
         "noJobs": "라이트백 작업 없음",
-
         "noJobsDesc": "라이트백 작업을 실행하면 여기에 이력이 표시됩니다. 실시간 동기화됩니다.",
-
         "colChannel": "채널",
-
         "colOp": "작업",
-
         "colStatus": "상태",
-
         "colAttempt": "시도",
-
         "colUpdated": "수정일",
-
         "tabConsole": "콘솔",
-
         "tabConsoleDesc": "채널 라이트백 작업",
-
         "tabJobs": "작업 이력",
-
         "tabJobsDesc": "라이트백 작업 로그",
-
         "tabSettings": "설정",
-
         "tabSettingsDesc": "라이트백 설정",
-
         "settingsTitle": "⚙ 라이트백 설정",
-
         "cfgAutoRetry": "자동 재시도",
-
         "cfgAutoRetryDesc": "실패한 라이트백 작업 자동 재시도",
-
         "cfgDryRun": "드라이런 모드",
-
         "cfgDryRunDesc": "실제 채널 API 호출 없이 시뮬레이션",
-
         "cfgApprovalGate": "승인 게이트",
-
         "cfgApprovalGateDesc": "고위험 라이트백 작업에 승인 필요",
-
         "cfgWebhookNotify": "웹훅 알림",
-
         "cfgWebhookNotifyDesc": "라이트백 완료/실패 시 웹훅 전송",
-
         "cfgRateLimit": "속도 제한",
-
         "cfgRateLimitDesc": "채널별 API 속도 제한 적용",
-
         "cfgAuditLog": "감사 로깅",
-
         "cfgAuditLogDesc": "컴플라이언스를 위한 모든 라이트백 작업 기록",
-
         "cfgChanged": "설정 변경됨",
-
         "enabled": "활성화",
-
         "disabled": "비활성",
-
         "badgeChannels": "채널",
-
         "badgeProducts": "상품",
-
         "badgeRealtime": "실시간 동기화",
-
         "badgeSecurity": "보안 활성",
-
         "syncInventory": "재고",
-
         "syncOrders": "주문",
-
         "syncBudgets": "예산",
-
         "syncRules": "AI 규칙",
-
         "liveSyncStatus": "실시간 데이터 동기화 상태",
-
         "demoBanner": "🎭 데모 모드 — 라이트백",
-
         "demoBannerDesc": "읽기 전용. Pro로 업그레이드하세요.",
-
         "upgradeBtn": "💎 Pro 업그레이드",
-
         "crossTabSync": "다른 탭에서 라이트백 동기화됨",
-
         "demoGuard": "데모 모드 — 라이트백 작업은 Pro 이상에서 이용 가능합니다",
-
         "errNoSku": "SKU를 입력하세요.",
-
         "errNoPayload": "상품 JSON을 먼저 입력하세요.",
-
         "prepareSuccess": "준비 완료",
-
         "executeSuccess": "실행 완료",
-
         "approvalCreated": "승인이 필요합니다. 승인 관리 페이지에서 승인하세요.",
-
         "secTitle": "보안 위협 감지",
-
         "secDesc": "의심스러운 활동이 감지되었습니다.",
-
         "secCode": "해제 코드 입력",
-
         "secUnlock": "잠금 해제"
-
       },
-
       "dashboard": {
-
         "grossRevenue": "총 매출",
-
         "adSpend": "광고비",
-
         "netROAS": "순 ROAS",
-
         "totalOrders": "총 주문 수",
-
         "convRateLbl": "전환율",
-
         "avgOrder": "평균 주문가",
-
         "grossRevSub": "오늘 총 매출",
-
         "adSpendSub": "전체 광고 지출",
-
         "netROASSub": "순수익 / 광고비",
-
         "totalOrderSub": "오늘 기준",
-
         "convRateSub": "세션 대비"
-
       },
-
       "marketing": {
-
         "title": "마케팅 (Marketing)",
-
         "sub": "광고 통합 인사이트"
-
       },
-
       "attribution": {
-
         "anomalyDetect": "🚨 이상감지",
-
         "modelCompare": "🕸️ 모델 비교",
-
         "aScore": "A-Score (Attribution 신뢰도)",
-
         "zScore": "Z-점수",
-
         "critical": "위험",
-
         "alert": "경보",
-
         "warn": "주의",
-
         "ok": "정상",
-
         "anomalyDesc": "Z-Score 기반 채널 이상감지 실시간 모니터링",
-
         "modelCompareDesc": "5개 Attribution 모델 레이더 차트 비교"
-
       },
-
       "graphScore": {
-
         "pageTitle": "그래프 스코어링",
-
         "heroDesc": "인플루언서·크리에이티브·SKU·주문 간의 그래프 네트워크를 분석하고, 각 노드의 기여도를 스코어링합니다.",
-
         "tabSummary": "요약 스코어",
-
         "tabBrowser": "그래프 브라우저",
-
         "tabInfluencer": "인플루언서 스코어",
-
         "tabSku": "SKU 스코어",
-
         "lbl_influencer": "인플루언서",
-
         "lbl_creative": "광고소재 (크리에이티브)",
-
         "lbl_sku": "상품 (SKU)",
-
         "lbl_order": "파생 주문",
-
         "nodes": "결속 노드",
-
         "totalEdge": "총 엣지 수 :",
-
         "countUnit": "결속",
-
         "topInfluencer": "상위 기여 인플루언서",
-
         "topCreative": "가장 효과적인 광고소재",
-
         "topSku": "상품별 전환 기여도",
-
         "unitCount": "건",
-
         "noData": "데이터가 없습니다. 연동허브에서 채널을 연결하고 데이터를 수집하세요.",
-
         "loading": "로딩 중…",
-
         "phInfId": "인플루언서 ID를 선택 또는 입력하세요",
-
         "phSkuId": "SKU ID를 선택 또는 입력하세요",
-
         "phNodeIdFilter": "노드 ID로 필터링",
-
         "analysis": "분석 실행",
-
         "graphScoreLabel": "그래프 스코어",
-
         "connectedSku": "연결된 SKU",
-
         "connectedOrders": "연결된 주문",
-
         "label": "라벨",
-
         "weightDesc": "엣지 가중치 = 기여도 지표",
-
         "weight": "가중치",
-
         "guideTabsTitle": "탭별 상세 안내",
-
         "guideSummaryName": "📊 요약 대시보드",
-
         "guideSummaryDesc": "전체 네트워크의 노드 수(인플루언서, 크리에이티브, SKU, 주문), 총 엣지(연결) 수, Top 기여자를 한눈에 파악하는 종합 대시보드입니다. 각 노드 타입별 색상 코딩으로 직관적인 시각화를 제공하며, 스코어 바를 통해 상대적 기여도를 빠르게 비교할 수 있습니다.",
-
         "guideBrowserName": "🔍 그래프 브라우저",
-
         "guideBrowserDesc": "전체 엣지(연결) 목록을 테이블 형식으로 조회하고, 노드 ID로 검색/필터링하는 탐색 도구입니다. 소스 노드, 타겟 노드, 가중치, 라벨을 확인할 수 있으며, 특정 노드의 연결 현황을 상세하게 파악할 수 있습니다. 새로고침 버튼으로 최신 데이터를 즉시 가져옵니다.",
-
         "guideInfluencerName": "🤝 인플루언서 스코어",
-
         "guideInfluencerDesc": "특정 인플루언서의 Graph Score(기여도 백분율), 연결된 SKU 수, 연결된 주문 수를 KPI 카드로 표시합니다. 하단의 기여 경로 테이블에서 인플루언서→크리에이티브→SKU→주문으로 이어지는 전체 전환 경로를 추적하며, 각 경로의 가중치를 확인하여 가장 효과적인 마케팅 경로를 식별할 수 있습니다.",
-
         "guideSkuName": "📦 SKU 스코어",
-
         "guideSkuDesc": "특정 SKU(상품)에 기여한 크리에이티브 수, 연결된 주문 수, 기여 인플루언서 수를 분석합니다. Top 기여 인플루언서 랭킹을 메달 표시(🥇🥈🥉)와 기여도 바로 시각화하여, 어떤 인플루언서가 해당 상품 판매에 가장 크게 기여했는지 빠르게 파악할 수 있습니다.",
-
         "tabCreative": "크리에이티브 스코어",
-
         "phCreativeId": "크리에이티브 ID를 선택 또는 입력하세요",
-
         "connectedCreatives": "연결된 크리에이티브",
-
         "connectedInfluencers": "연결된 인플루언서",
-
         "weightSettings": "가중치 설정",
-
         "weightSettingsDesc": "노드 타입별 가중치를 조절하여 스코어 산정 기준을 맞춤 설정합니다.",
-
         "weightInfluencer": "인플루언서 가중치",
-
         "weightCreative": "크리에이티브 가중치",
-
         "weightSku": "SKU 가중치",
-
         "weightOrder": "주문 가중치",
-
         "weightApply": "가중치 적용",
-
         "weightReset": "기본값 복원",
-
         "dateRange": "분석 기간",
-
         "dateFrom": "시작일",
-
         "dateTo": "종료일",
-
         "exportCsv": "CSV 내보내기",
-
         "exportExcel": "Excel 내보내기",
-
         "channelFee": "채널 수수료",
-
         "channelFeeDesc": "연결된 채널의 수수료를 반영한 순 기여도입니다.",
-
         "netContribution": "순 기여도",
-
         "connectedChannels": "연동 채널",
-
         "noConnectedChannels": "연동된 채널이 없습니다. 연동허브에서 API 키를 등록하세요.",
-
         "goIntegrationHub": "연동허브 이동",
-
         "lastSync": "마지막 동기화",
-
         "syncNow": "지금 동기화",
-
         "pathWeight": "경로 가중치",
-
         "contribPath": "기여 경로",
-
         "contribCreative": "기여 크리에이티브",
-
         "contribInfluencer": "기여 인플루언서",
-
         "sourceNode": "소스 노드",
-
         "targetNode": "타겟 노드",
-
         "noEdge": "엣지 없음 — 연동허브에서 채널을 연결하고 데이터를 수집하세요.",
-
         "noPath": "연결된 기여 경로 없음",
-
         "inf": "인플루언서",
-
         "crt": "크리에이티브",
-
         "sku": "SKU",
-
         "ord": "주문",
-
         "secLockTitle": "보안 경고 감지",
-
         "secLockDesc": "비정상적인 접근이 감지되어 차단되었습니다. 잠시 후 다시 시도하세요.",
-
         "dismiss": "확인",
-
         "liveSyncStatus": "실시간 크로스탭 동기화 활성화 — 모든 메뉴의 데이터가 실시간 반영됩니다.",
-
         "guideSummaryTitle": "요약 대시보드",
-
         "guideBrowserTitle": "그래프 브라우저",
-
         "guideInfluencerTitle": "인플루언서 스코어",
-
         "guideSkuTitle": "SKU 스코어",
-
         "guideCreativeName": "🎬 크리에이티브 스코어",
-
         "guideCreativeTitle": "크리에이티브 스코어",
-
         "guideCreativeDesc": "특정 크리에이티브(광고소재)의 Graph Score, 연결된 SKU, 관련 인플루언서, 파생 주문 수를 분석합니다. 어떤 광고소재가 가장 효과적으로 전환에 기여했는지 정량적으로 평가하고, 크리에이티브별 ROI를 최적화하는 데 활용합니다."
-
       },
-
       "commerce": {
-
         "liveSync": "실시간 동기화",
-
         "gender": "성별",
-
         "age": "연령",
-
         "region": "지역",
-
         "totalOrders": "총 주문",
-
         "totalRevenue": "총 매출",
-
         "returnRate": "반품율",
-
         "channels": "채널 수",
-
         "channelPerf": "채널 성과",
-
         "topSku": "TOP SKU",
-
         "orders": "주문",
-
         "revenue": "매출",
-
         "returns": "반품",
-
         "outOfStock": "품절",
-
         "ratio": "비율",
-
         "sku": "SKU",
-
         "product": "상품명",
-
         "sold": "판매량",
-
         "productHub": "상품 관리 허브",
-
         "productActive": "판매중",
-
         "productPaused": "일시중지",
-
         "productSoldout": "품절",
-
         "productLowStock": "재고 부족",
-
         "productAvgMargin": "평균 마진율",
-
         "productInvValue": "재고 자산",
-
         "productLowStockAlert": "재고 부족 알림",
-
         "productViewTable": "상품 목록 뷰",
-
         "productViewMargin": "원가/마진 분석 뷰",
-
         "ppl": "명",
-
         "items": "건",
-
         "types": "종",
-
         "perDay": "일",
-
         "ago": "전"
-
       },
-
       "amazonRisk": {
-
         "avgRating": "평균 평점",
-
         "fbaStockRate": "FBA 재고율",
-
         "highRisk": "고위험",
-
         "mediumRisk": "중위험",
-
         "accountScore": "계정 건강도",
-
         "buyBox": "바이박스 점유율",
-
         "riskAlerts": "리스크 알림",
-
         "action": "조치",
-
         "keyMetrics": "핵심 지표",
-
         "goal": "목표"
-
       },
-
       "digitalShelf": {
-
         "title": "디지털 셸프",
-
         "sub": "디지털 선반 관리"
-
       },
-
       "reviewsUgc": {
-
         "title": "리뷰·UGC 관리",
-
         "sub": "고객 리뷰 및 UGC 통합 관리"
-
       },
-
       "krChannel": {
-
         "pageTitle": "🇰🇷 한국 채널 정산 허브",
-
         "pageSub": "Coupang · Naver · 11번가 · Gmarket · 옥션 · 카카오선물하기 · 롯데ON · 위메프 · 티몬 — 정산 표준화 · 수수료 관리 · 대사 (v419)",
-
         "tabChannels": "🇰🇷 채널 목록",
-
         "tabFees": "📋 수수료 규칙",
-
         "tabIngest": "📥 정산 재처리",
-
         "tabSummary": "📊 채널 종합",
-
         "tabRecon": "🔍 정산 대사",
-
         "channelMaster": "🇰🇷 채널 마스터리스트",
-
         "apiDisconnected": "API 연결 대기 중",
-
         "currency": "화폐",
-
         "settleCycle": "정산 주기",
-
         "vatRate": "부가세",
-
         "commissionReg": "수수료 규칙 등록",
-
         "channelSelect": "채널 선택",
-
         "selectPlaceholder": "-- 선택 --",
-
         "categoryAll": "카테고리 (* = 전체)",
-
         "platformFeeRate": "플랫폼 수수료율",
-
         "adSpendRate": "광고비율",
-
         "shippingFee": "기본 배송비 (₩)",
-
         "returnFee": "기본 반품비 (₩)",
-
         "vatRateLabel": "부가세율",
-
         "effectiveDate": "적용 시작일",
-
         "note": "노트",
-
         "saveCommission": "+ 수수료 규칙 저장",
-
         "commissionHistory": "수수료 규칙 이력",
-
         "selectChannelHint": "채널을 선택하면 이력이 표시됩니다",
-
         "noRules": "등록된 수수료 규칙 없음",
-
         "ingestTitle": "정산 라인 재처리 (표준 포맷)",
-
         "loadSample": "샘플 데이터 로드",
-
         "reprocess": "📥 정산 재처리",
-
         "search": "조회",
-
         "totalRevenue": "총 매출액",
-
         "totalCommission": "총 수수료",
-
         "totalSettlement": "총 정산액",
-
         "channel": "채널",
-
         "count": "건수",
-
         "noDataHint": "데이터 없음 — 정산 재처리 탭에서 데이터를 먼저 재처리하세요",
-
         "reconRun": "대사 실행",
-
         "startDate": "시작일",
-
         "endDate": "종료일",
-
         "running": "⏳ 실행 중…",
-
         "reconStart": "🔍 대사 실행",
-
         "noReports": "대사 리포트 없음",
-
         "all": "전체",
-
         "matched": "일치",
-
         "mismatched": "불일치",
-
         "missingSettle": "정산 누락",
-
         "missingOrder": "주문 누락",
-
         "netDiff": "순액 차이",
-
         "feeDiff": "수수료 차이",
-
         "tickets": "차이 티켓",
-
         "noTickets": "✅ 티켓 없음 (차이 기준 미만)"
-
       },
-
       "priceOpt": {
-
         "tabSummary": "📊 요약",
-
         "tabOptimize": "🧮 최적화",
-
         "tabScenario": "🚀 시나리오",
-
         "tabMix": "🎯 채널 믹스",
-
         "tabRepricer": "⚡ 다이나믹 리프라이서",
-
         "tabCompetitor": "🔍 경쟁가",
-
         "tabCalendar": "📅 프로모션 캘린더",
-
         "loading": "로딩 중…",
-
         "regProduct": "등록 제품",
-
         "elasticityData": "탄력성 데이터",
-
         "optAdoption": "최적가 이행",
-
         "channelResult": "채널별 최적가 결과",
-
         "items": "건",
-
         "avgRecPrice": "평균 권장가",
-
         "recentHistory": "최근 최적가 이력",
-
         "refresh": "새로고침",
-
         "prodRegEdit": "상품 등록 / 수정",
-
         "regProducts": "등록된 상품",
-
         "calcParams": "최적가 계산 파라미터",
-
         "currentSalePrice": "현재 판매가 (₩)",
-
         "stockQty": "재고 수량",
-
         "calculating": "계산 중…",
-
         "calcOptimal": "최적가 계산",
-
         "allUnified": "전체 (통합)",
-
         "currentPrice": "현재 판매가",
-
         "optimalPrice": "최적 권장가",
-
         "costPrice": "원가",
-
         "minApplyPrice": "최소 적용가",
-
         "expectedMargin": "예상 마진율",
-
         "expectedQty": "예상 판매량",
-
         "scenarioSim": "가격 시나리오 시뮬레이터",
-
         "testPriceList": "테스트 가격 목록 (₩, 쉼표 구분)",
-
         "runSim": "시뮬레이션 실행",
-
         "invalidPriceList": "가격 목록을 올바르게 입력해 주세요. (쉼표로 구분)",
-
         "simFailed": "시뮬레이션 요청 실패:",
-
         "totalBudget": "총 예산",
-
         "runChannelMix": "채널 믹스 최적화",
-
         "totalProfit": "예상 총 수익",
-
         "unifiedROI": "통합 ROI",
-
         "pastSimulations": "과거 시뮬레이션",
-
         "activeRules": "활성 규칙",
-
         "todayChanges": "오늘 가격 변동",
-
         "avgMarginImprove": "평균 마진 개선",
-
         "dsIntegration": "디지털쉘프 연동",
-
         "autoRules": "가격 자동 조정 규칙",
-
         "changeHistory": "가격 변동 이력 (오늘)",
-
         "minPriceAlert": "최저가 위반 주의",
-
         "minPriceAlertSuffix": "종) — 경쟁사가 더 낮음",
-
         "promoEventReg": "프로모션 이벤트 등록",
-
         "promoSaved": "프로모션 일정 등록 완료",
-
         "register": "등록",
-
         "noAnalysis": "최적가 계산 후 SKU를 분석하면 결과가 표시됩니다.",
-
         "title": "가격 최적화",
-
         "sub": "탄력성 기반 최적가 산출 v420",
-
         "highRisk": "위험 (High)",
-
         "mediumRisk": "주의 (Medium)",
-
         "accountScore": "계정 점수",
-
         "buyBox": "바이박스",
-
         "riskAlerts": "리스크 알림",
-
         "keyMetrics": "핵심 지표",
-
         "action": "조치",
-
         "lastSeen": "마지막 접속",
-
         "since": "연결",
-
         "callVolume": "호출량",
-
         "subscriptionTitle": "구독·요금·메뉴 관리",
-
         "planPricingTab": "플랜 요금 설정",
-
         "menuPermissionsTab": "메뉴 접근 권한 설정",
-
         "activePlansTab": "활성 플랜 현황",
-
         "licenseMgmtTab": "라이선스 발급",
-
         "feedbackTab": "피드백",
-
         "ModeNotice": "관리자 — 데모 모드는 읽기 전용입니다. 요금/플랜 변경은 실사용 계정이 필요합니다.",
-
         "menuAccessDesc": "구독 플랜별 접근 가능한 메뉴를 설정하세요",
-
         "savePermissions": "권한 저장",
-
         "permSaved": "✅ 메뉴 접근 권한이 저장되었습니다.",
-
         "permBlocked": "📌 데모 모드: 권한 변경은 실사용 계정에서만 가능합니다.",
-
         "free": "무료",
-
         "growth": "Growth",
-
         "pro": "Pro",
-
         "enterprise": "Enterprise",
-
         "marketing": "마케팅·광고",
-
         "commerce": "커머스·물류",
-
         "analytics": "분석·성과",
-
         "finance": "정산·재무",
-
         "automation": "자동화·AI",
-
         "data": "데이터·연동",
-
         "system": "시스템·관리",
-
         "crm": "고객·CRM",
-
         "avgRating": "평균 평점",
-
         "fbaStockRate": "FBA 재고율",
-
         "goal": "목표"
-
       },
-
       "reconciliation": {
-
         "pageTitle": "⚖️ 정산 자동 조정",
-
         "pageSub": "쿠팡, 네이버, 11번가, G마켓에서 정산 데이터를 업로드하고 수수료 규정에 따라 자동 조정됩니다.",
-
         "tabUpload": "📤 업로드",
-
         "tabRecon": "⚖️ 화해",
-
         "tabReports": "📋 보고서",
-
         "tabTickets": "🎫 티켓",
-
         "tabFeeRules": "⚙️ 수수료 규정",
-
         "settledAmount": "해결됨",
-
         "pendingAmount": "보류 중",
-
         "adFeeCharged": "광고비 차감",
-
         "platformFee": "플랫폼 수수료",
-
         "viewPnl": "🌊 손익 대시보드에서 보기 →",
-
         "realtimePnl": "🔴 실시간 손익 영업이익",
-
         "pnlAutoUpdate": "정산 변경 시 손익 자동 업데이트",
-
         "uploadTitle": "📤 정산 데이터 업로드",
-
         "uploadDesc": "채널 정산 데이터를 JSON 배열로 붙여넣습니다. 한국어 열 이름은 표준 필드에 자동으로 매핑됩니다.",
-
         "uploadHint": "💡 {{ch}} 예시 열: 주문번호, 정산금액, 수수료, 쿠폰할인, 판매금액",
-
         "uploading": "업로드 중...",
-
         "upload": "📤 업로드",
-
         "uploadSuccess": ":{{n}}개의 레코드가 업로드되었습니다(채널: {{ch}})",
-
         "reconTitle": "⚖️ 조정 실행",
-
         "reconDesc": "업로드된 정산 데이터를 수수료 규정과 비교하여 자동으로 차이를 계산합니다.",
-
         "startDate": "시작일",
-
         "endDate": "종료일",
-
         "analyzing": "분석 중...",
-
         "runRecon": "⚖️ 정찰 실행",
-
         "totalOrders": "총 주문",
-
         "matched": "일치함",
-
         "mismatch": "불일치",
-
         "ticketsCreated": "티켓이 생성되었습니다",
-
         "feeDiff": "수수료 차이",
-
         "settleDiff": "정산 차이",
-
         "reportId": "보고서 ID",
-
         "reportList": "📋 화해 보고서",
-
         "noReports": "아직 보고서가 없습니다. 데이터를 업로드하고 먼저 조정을 실행하세요.",
-
         "reportDetail": "보고서 #{{n}} 세부정보",
-
         "mismatchTickets": "불일치 티켓({{n}})",
-
         "clickReport": "세부정보를 보려면 보고서를 클릭하세요",
-
         "ticketsTitle": "🎫 불일치 티켓 관리",
-
         "all": "모두",
-
         "status_open": "열기",
-
         "status_investigating": "조사 중",
-
         "status_resolved": "해결됨",
-
         "status_waived": "면제",
-
         "noTickets": "이 상태에는 티켓이 없습니다.",
-
         "orderNo": "주문 번호",
-
         "feeDiffLabel": "수수료 차이",
-
         "netDiffLabel": "순 차이",
-
         "feeRulesTitle": "⚙️ 채널 수수료 규정",
-
         "platformFeeRate": "플랫폼 수수료율",
-
         "adFeeRate": "광고 수수료율",
-
         "vatRate": "부가가치세율",
-
         "note": "참고",
-
         "saving": "저장 중...",
-
         "saveFeeRule": "💾 규칙 저장",
-
         "saved": "✅ 저장됨",
-
         "ruleHistory": "규칙 기록",
-
         "effectiveFrom": "발효일:"
-
       },
-
       "_marketing_1": {
-
         "pageTitle": "📣 광고 현황·분석",
-
         "pageSub": "광고 통합 인사이트 · Claude AI 기반 채널 효과 평가 분석",
-
         "tabAiEval": "🤖 AI 효과 평가 분석",
-
         "tabCampaigns": "📣 캠페인 관리",
-
         "aiEvalTitle": "🤖 AI 마케팅 효과 종합 평가",
-
         "aiEvalSub": "Claude Sonnet 3.5 기반 · 채널 효율 · 캠페인 성과 · 예산 재배분 · 전략 인사이트",
-
         "runAI": "🚀 AI 분석 실행",
-
         "running": "⏳ AI 분석 중...",
-
         "analyzing": "Claude AI가 마케팅 데이터를 분석 중입니다...",
-
         "analysisData": "📥 분석 대상 데이터 현황",
-
         "totalAdSpend": "총 광고비",
-
         "clickToRun": "AI 분석 실행 버튼을 클릭하여 Claude 분석을 시작하세요",
-
         "overallSummary": "종합 마케팅 성과 요약",
-
         "channelRanking": "🏆 채널 AI 평가 랭킹",
-
         "channelRankingSub": "채널 클릭 시 항목별 상세 분석 · 강점/약점 · AI 권장 액션 조회",
-
         "clickDetail": "클릭하여 상세 분석 보기 →",
-
         "campaignTable": "📋 캠페인별 AI 평가 분석표",
-
         "campaignTableSub": "캠페인 행 클릭 시 AI 인사이트 및 권장 액션 전개",
-
         "budgetRealloc": "💰 AI 예산 재배분 권고",
-
         "budgetReallocSub": "현재 예산 분배 대비 최적화 제안 · 클릭 가중치 기반",
-
         "topInsight": "🎯 가장 중요한 인사이트",
-
         "rerunAI": "🔄 AI 재분석 실행",
-
         "errorPrefix": "❌ 분석 오류:",
-
         "breakdown": "📊 항목별 평가 점수",
-
         "actual": "실적",
-
         "strengths": "✅ 강점",
-
         "weaknesses": "⚠️ 개선 포인트",
-
         "aiRecommend": "AI 권장 액션:",
-
         "campaignDetail": "캠페인 상세",
-
         "spendStatus": "집행 현황 · 예산 소진율 · 성과 지표",
-
         "colCampaign": "캠페인",
-
         "colChannel": "채널",
-
         "colScore": "AI 점수",
-
         "colGrade": "등급",
-
         "colBurnRate": "소진율",
-
         "colAiAction": "AI 액션",
-
         "colCurrent": "현재 비중",
-
         "colRecommend": "권장 비중",
-
         "colChange": "변화",
-
         "colRationale": "근거",
-
         "colBudget": "예산",
-
         "colSpent": "집행액",
-
         "colStatus": "상태",
-
         "colClicks": "클릭",
-
         "clickView": "클릭하여 보기",
-
         "autoTitle": "🚀 마케팅 자동화 플랫폼",
-
         "autoSub": "월 예산을 설정하면 AI가 틱톡·메타·네이버 등에 최적화된 마케팅 전략을 자동으로 수립합니다",
-
         "tabSetup": "① 캠페인 설정",
-
         "tabPreview": "② AI 전략 미리보기",
-
         "tabCampaignMgmt": "③ 캠페인 관리",
-
         "budgetSetup": "💰 월 마케팅 예산 설정",
-
         "directInput": "직접 입력 (원)",
-
         "campaignPeriod": "캠페인 기간",
-
         "monthly": "월간 (1개월)",
-
         "quarterly": "분기 (3개월)",
-
         "halfyear": "반기 (6개월)",
-
         "setBudget": "설정 예산:",
-
         "perMonth": "/ 월",
-
         "categorySelect": "🏷 판매 상품 카테고리 선택 (복수 선택 가능)",
-
         "channelSelect": "📡 마케팅 광고 채널 선택",
-
         "salesChannels": "🌐 연동된 판매채널 (마케팅 연계 대상)",
-
         "salesChannelSub": "활성화된 채널에 마케팅 성과 데이터가 연동됩니다.",
-
         "active": "● 활성",
-
         "inactive": "○ 비활성",
-
         "campaignDetail2": "📝 캠페인 상세 (선택)",
-
         "campaignNameLabel": "캠페인 이름 (미입력시 자동생성)",
-
         "campaignNamePh": "예: 2026 봄 뷰티 캠페인",
-
         "targetLabel": "타겟 고객 (선택)",
-
         "targetPh": "예: 20~35세 여성, 뷰티·패션 관심",
-
         "generateBtn": "🚀 AI 마케팅 전략 자동 생성",
-
         "generating": "🤖 AI가 마케팅 전략을 생성하는 중…",
-
         "needCatChannel": "⚠ 카테고리와 광고 채널 선택이 필요합니다.",
-
         "previewEmpty": "← 먼저 ① 캠페인 설정에서 AI 전략을 생성해주세요.",
-
         "goSetup": "설정으로 이동 →",
-
         "kpiTotal": "총 예산",
-
         "kpiImpressions": "예상 노출수",
-
         "kpiClicks": "예상 클릭수",
-
         "kpiConversions": "예상 전환수",
-
         "kpiRoas": "예상 ROAS",
-
         "channelAlloc": "🤖 AI 채널별 예산 배분 전략",
-
         "impressions": "노출",
-
         "clicks": "클릭",
-
         "conversions": "전환",
-
         "approvalTitle": "✅ 승인 요청하기",
-
         "approvalSub": "위 전략을 검토 후 승인하면 등록된 광고 채널을 통해 마케팅이 자동으로 전개됩니다.",
-
         "submitApproval": "📋 승인 요청 제출",
-
         "resetBtn": "↩ 처음부터",
-
         "noCampaign": "아직 캠페인이 없습니다. 먼저 마케팅 전략을 생성해주세요.",
-
         "createCampaign": "+ 마케팅 캠페인 만들기",
-
         "addCampaign": "+ 새 캠페인 만들기",
-
         "created": "생성",
-
         "approved": "✅ 승인",
-
         "reject": "❌ 반려",
-
         "activate": "🚀 캠페인 활성화",
-
         "pause": "⏸ 일시정지",
-
         "resume": "▶ 재시작",
-
         "viewDetail": "📊 상세 보기",
-
         "budget": "예산",
-
         "period": "기간",
-
         "estRoas": "예상 ROAS",
-
         "estConv": "예상 총 전환",
-
         "period_monthly": "월간",
-
         "period_quarterly": "분기",
-
         "period_halfyear": "반기",
-
         "pendingBadge": "⏳ 승인 대기",
-
         "activeBadge": "🟢 운영 중",
-
         "goCampaignMgr": "🎯 캠페인 관리 →",
-
         "goHelp": "📚 도움말",
-
         "minBudget": "최소",
-
         "selected": "✓ 선택됨",
-
         "cat_beauty": "뷰티·코스메틱",
-
         "cat_fashion": "패션·의류",
-
         "cat_general": "생활·잡화",
-
         "cat_food": "식품·건강",
-
         "cat_electronics": "전자·IT",
-
         "cat_overseas_ship": "배송대행",
-
         "cat_overseas_buy": "구매대행",
-
         "cat_sports": "스포츠·레저",
-
         "cat_travel": "여행·숙박",
-
         "cat_digital": "디지털·앱",
-
         "tag_skincare": "스킨케어",
-
         "tag_makeup": "메이크업",
-
         "tag_perfume": "향수",
-
         "tag_haircare": "헤어케어",
-
         "tag_womens": "여성복",
-
         "tag_mens": "남성복",
-
         "tag_outer": "아우터",
-
         "tag_accessories": "잡화",
-
         "tag_kitchen": "주방용품",
-
         "tag_cleaning": "청소용품",
-
         "tag_interior": "인테리어",
-
         "tag_small": "소품",
-
         "tag_health": "건강기능식품",
-
         "tag_processed": "가공식품",
-
         "tag_organic": "유기농",
-
         "tag_phone_acc": "스마트폰 액세서리",
-
         "tag_appliance": "가전",
-
         "tag_computer": "컴퓨터",
-
         "tag_proxy_ship": "직구대행",
-
         "tag_overseas_delivery": "해외배송",
-
         "tag_customs": "관세대행",
-
         "tag_us_direct": "미국직구",
-
         "tag_jp_direct": "일본직구",
-
         "tag_cn_direct": "중국직구",
-
         "tag_fitness": "헬스·요가",
-
         "tag_outdoor": "아웃도어",
-
         "tag_sportswear": "스포츠웨어",
-
         "tag_hotel": "호텔·숙박",
-
         "tag_flight": "항공권",
-
         "tag_tour": "투어·여행상품",
-
         "tag_leisure": "레저",
-
         "tag_app": "모바일 앱",
-
         "tag_saas": "SaaS",
-
         "tag_content": "디지털 콘텐츠",
-
         "tag_subscription": "구독 서비스",
-
         "ch_meta": "Meta(페이스북·인스타)",
-
         "ch_tiktok": "TikTok(틱톡)",
-
         "ch_google": "Google(구글·유튜브)",
-
         "ch_naver": "네이버 광고",
-
         "ch_kakao": "카카오 광고",
-
         "ch_coupang_ads": "쿠팡 광고",
-
         "ch_instagram": "인스타그램 쇼핑",
-
         "sc_coupang": "쿠팡",
-
         "sc_naver_smart": "네이버 스마트스토어",
-
         "sc_11st": "11번가",
-
         "sc_gmarket": "G마켓",
-
         "sc_kakao_shop": "카카오쇼핑",
-
         "sc_tiktok_shop": "TikTok Shop",
-
         "approvedBy": "에 의해",
-
         "approvedAt": "승인됨",
-
         "createdAt": "생성",
-
         "budgetTitle": "💰 예산 플래너",
-
         "budgetPageSub": "채널별·캠페인별 광고 예산을 계획하고 소진율을 추적합니다",
-
         "tabChannelBudget": "📊 채널별 예산",
-
         "tabMonthly": "📅 월별 현황",
-
         "tabAI": "🤖 AI 분석",
-
         "channelBudget": "채널별 현재 예산 현황",
-
         "totalBudget": "총 예산",
-
         "spent": "집행액",
-
         "remaining": "잔여",
-
         "burnRate": "소진율",
-
         "monthlyBudget": "월별 예산 현황 (2026)",
-
         "month": "월",
-
         "budgetLabel": "예산",
-
         "spentLabel": "집행",
-
         "attrTitle": "🔗 전환 기여도 분석",
-
         "attrSub": "구매 전환에 기여한 각 채널의 기여 비율을 분석합니다",
-
         "tabResults": "📋 결과",
-
         "tabScore": "🎯 점수 계산",
-
         "tabSummary": "📊 채널 요약",
-
         "tabCoupons": "🏷 쿠폰 & 딥링크",
-
         "tabAiAttr": "🤖 AI 분석",
-
         "calTitle": "📆 콘텐츠 캘린더",
-
         "calSub": "SNS 포스트·광고 소재·이벤트 일정을 달력 형식으로 계획·관리합니다",
-
         "tabCalendar": "📅 월별 캘린더",
-
         "tabList": "📋 콘텐츠 목록",
-
         "tabAiCal": "🤖 AI 분석",
-
         "status_draft": "작성중",
-
         "status_review": "심사중",
-
         "status_scheduled": "예약완료",
-
         "status_published": "발행완료",
-
         "status_cancelled": "취소",
-
         "colTitle": "제목",
-
         "colCreator": "크리에이터",
-
         "colPlatform": "플랫폼",
-
         "colDate": "일정",
-
         "aiHubTitle": "AI 마케팅 허브 먼저 확인하세요",
-
         "aiHubDesc1": "재고, 주문, CRM, 정산 데이터를 자동 분석하여 ",
-
         "aiHubDesc2": "ROI 기반 즉시 실행 가능한 추천",
-
         "aiHubDesc3": "을 제공합니다.",
-
         "aiHubDesc4": "직접 전략을 설계하려면 아래 설정을 진행하세요.",
-
         "aiHubBtn": "AI 마케팅 허브",
-
         "creativeAutoSync": "AI 광고소재 카테고리 → 캠페인 설정 자동 연동",
-
         "creativeSyncDesc1": "카테고리를 선택하고 ",
-
         "creativeSyncBtn": "캠페인 설정으로 이동",
-
         "creativeSyncDesc2": " 버튼을 클릭하면 선택한 카테고리가 ",
-
         "creativeSyncDesc3": "자동으로 연동",
-
         "creativeSyncDesc4": "됩니다.",
-
         "creativeGoSetup": "캠페인 설정으로 이동",
-
         "aiRecommendBadge": "AI 추천 채널 자동 선택 · 직접 변경 가능",
-
         "colTotalAdSpend": "총광고비 지출",
-
         "colBlendedRoas": "통합(Blended) ROAS",
-
         "colTotalConv": "통합 전환 목표",
-
         "colActivePlatforms": "운영 매체 현황",
-
         "statusActive": "활성",
-
         "statusPaused": "일시중지",
-
         "statusPending": "대기",
-
         "statusApproved": "✅ 승인됨",
-
         "statusRejected": "❌ 반려됨",
-
         "explainTitle": "AI 최적화 사유 안내",
-
         "explainSub": "예산 삭감 제안 근거",
-
         "explainCatInsight": "인사이트 내역",
-
         "explainChWhy": "채널별 동향",
-
         "explainEditNote": "수동 변경 권장됨",
-
         "statImpressions": "노출수 데이터",
-
         "statClicks": "클릭 성과",
-
         "statConversions": "전환 성과",
-
         "kpiAchieve": "KPI 달성"
-
       },
-
       "perms": {
-
         "readAll": "전체 읽기",
-
         "writeAll": "전체 쓰기",
-
         "changeSettings": "설정 변경",
-
         "manageUsers": "사용자 관리",
-
         "language": "언어",
-
         "languageSwitch": "언어 변경",
-
         "menu": {
-
           "home": "홈 대시보드",
-
           "dashboard": "통합 대시보드",
-
           "rollup": "통합 뷰",
-
           "aiMarketing": "🚀 AI 마케팅 자동화",
-
           "autoMarketing": "AI 전략 생성",
-
           "campaignManager": "캠페인 관리",
-
           "journeyBuilder": "고객 여정 빌더",
-
           "aiPrediction": "AI 예측 + 그래프 스코어",
-
           "contentCalendar": "콘텐츠 캘린더",
-
           "budgetPlanner": "예산 플래너",
-
           "adAnalytics": "광고·채널 분석",
-
           "adPerformance": "광고성과",
-
           "attribution": "어트리뷰션",
-
           "channelKpi": {
-
             "heroDesc": "판매·광고·분석 채널의 API 키를 등록하고 연결 상태를 관리합니다.",
-
             "achieved": "달성",
-
             "brandAwareness": "브랜드 인지도 강화",
-
             "brandAwarenessDesc": "노출, 도달, 브랜드 검색량 증대 목표",
-
             "webTraffic": "웹사이트 트래픽 극대화",
-
             "webTrafficDesc": "방문자 수 증대 및 세션 체류시간 확보 목표",
-
             "inquiriesPurchases": "문의 및 구매 전환 집중",
-
             "inquiriesPurchasesDesc": "CPA, 구매 전환율 최적화, 매출 증대",
-
             "bizGoalSetting": "1. 비즈니스 목표 설정",
-
             "selected": "✔ 선택됨",
-
             "clickSelect": "클릭하여 선택",
-
             "selectedGoals": "선택된 목표",
-
             "pleaseSelectGoal": "목표를 선택해 주세요.",
-
             "roleCaptureIntent": "고객 의도 포착 및 전환",
-
             "descCaptureIntent": "구매 의도가 높은 사용자를 타겟하여 직접적인 전환 발생",
-
             "roleBrandReach": "브랜드 도달 및 숏폼 인게이지먼트",
-
             "descBrandReach": "시각적 콘텐츠를 통한 잠재 고객 발굴 및 초기 인지도 형성",
-
             "roleInfoTrust": "정보 제공 및 신뢰도 구축",
-
             "pageViews": "페이지 뷰",
-
             "visitors": "방문자 수",
-
             "searchTraffic": "검색 유입",
-
             "descInfoTrust": "리뷰 및 전문 지식을 통한 고객 신뢰 획득 및 SEO 유입",
-
             "roleCustRel": "고객 관계 및 커뮤니티 육성",
-
             "postViews": "게시글 조회 수",
-
             "comments": "댓글/반응 수",
-
             "inquiries": "고객 문의 수",
-
             "newMembers": "신규 가입 수",
-
             "descCustRel": "기존 고객의 충성도 유지 및 자연스러운 입소문(UGC) 유도",
-
             "channelRoleDef": "2. 채널별 역할 정의",
-
             "coreKpis": "핵심 측정 지표",
-
             "hintCtr": "광고 클릭 비율",
-
             "hintConvRate": "방문자 대비 전환 비율",
-
             "hintCpa": "1회 전환(구매/문의)당 비용",
-
             "hintRoas": "광고비 대비 매출액 비율",
-
             "hintCpc": "1회 클릭당 비용",
-
             "targetSetup": "3. 채널별 개별 KPI 목표 설정",
-
             "snsKpiOverview": "SNS 매체 종합 성과",
-
             "allChannels": "모든 채널 합산",
-
             "snsKpiByChannel": "채널별 SNS KPI 상세",
-
             "contentKpi": "콘텐츠 채널 성과 (블로그/카페)",
-
             "contentImpressions": "콘텐츠 노출 규모",
-
             "siteTraffic": "사이트 트래픽 규모",
-
             "avgTime": "평균 체류 시간",
-
             "contentEngage": "콘텐츠 몰입도",
-
             "seoImpact": "검색엔진 최적화 유입",
-
             "monthlyTrend": "최근 14일 트렌드",
-
             "communityKpi": "커뮤니티 성과 및 가입자 지표",
-
             "contentInterest": "콘텐츠 관심도",
-
             "communityAct": "활성화 요인",
-
             "interestConv": "관심 전환율",
-
             "communityGrowth": "커뮤니티 성장률",
-
             "descCtr": "높을수록 광고 클릭 효율 좋음",
-
             "descConvRate": "최종 전환의 퍼센티지",
-
             "descCpa": "낮을수록 획득 비용 효율적",
-
             "descRoas": "광고비 투자 수익 배율",
-
             "descCpc": "클릭당 적정 비용",
-
             "targetVsActuals": "KPI 목표 대비 실제 달성률 추적",
-
             "overallAchieve": "종합 달성도 요약",
-
             "achievedOk": "목표 달성 완료",
-
             "belowTarget": "목표 미달성 (대응 필요)",
-
             "chkEff": "적정 효율",
-
             "chkCostPerf": "가성비 관리 필요",
-
             "chkImprove": "전환율 리스크",
-
             "monitorAi": "성과 모니터링 & AI 진단",
-
             "claudeAiTitle": "Claude AI KPI 심층 분석 리포트",
-
             "claudeAiDesc": "현재 집계된 모든 데이터를 종합하여 강점과 개선점을 리포트합니다.",
-
             "weeklyAi": "주간 요약 생성",
-
             "monthlyAi": "월간 요약 생성",
-
             "aiAnalyzing": "Claude AI가 다면 분석을 진행 중입니다...",
-
             "runAi": "AI 리포트 실행하기",
-
             "aiSummary": "AI 종합 요약",
-
             "strengths": "주요 강점 (Strengths)",
-
             "weaknesses": "취약점/리스크 (Weaknesses)",
-
             "improveRecs": "개선 권고사항",
-
             "weeklyAdTrend": "주간 주요 트렌드 (실시간 반영)",
-
             "checklist": "담당자 체크리스트",
-
             "aiHistoryList": "최근 AI 생성 기록 (최대 5건)",
-
             "noHistory": "아직 생성된 AI 리포트 기록이 없습니다.",
-
             "tabGoals": "목표 설정",
-
             "tabRoles": "채널 역할",
-
             "tabSetup": "세부 KPI 설정",
-
             "tabSns": "SNS KPI 심층 진단",
-
             "tabContent": "콘텐츠 KPI 집중",
-
             "tabCommunity": "커뮤니티 진단",
-
             "tabTargets": "목표 달성도 추적",
-
             "tabMonitor": "모니터링 & AI"
-
           },
-
           "marketingIntel": {
-
             "pageTitle": "🧠 마케팅 인텔리전스",
-
             "pageSub": "유입·전환 분석 · 20개 표준 KPI 기여도 점수화 · AI 추천 · 자동화 승인 실행",
-
             "badge4ch": "4 채널",
-
             "badge5inf": "5 인플루언서",
-
             "badge20kpi": "20개 KPI",
-
             "badgeAiRec": "AI 추천 {{n}}건",
-
             "todayAdSpend": "오늘 총 광고비",
-
             "summaryOrders": "주문 {{n}}건 · 총 매출 {{rev}} · ROAS {{roas}}x",
-
             "tabFunnel": "📊 유입·전환 분석",
-
             "tabFunnelDesc": "퍼널·채널·인플루언서 전환",
-
             "tabKpi": "📋 표준 평가지표",
-
             "tabKpiDesc": "20개 KPI 기여도 점수화",
-
             "tabAi": "🤖 AI 추천 엔진",
-
             "tabAiDesc": "AI 마케팅 방법 추천",
-
             "tabAuto": "⚙️ 마케팅 자동화",
-
             "tabAutoDesc": "자동화 규칙·승인·실행",
-
             "funnelTotal": "🔽 전체 마케팅 퍼널 (4개 채널 통합)",
-
             "funnelImp": "노출 수",
-
             "funnelClicks": "클릭 수",
-
             "funnelCart": "장바구니",
-
             "funnelOrders": "구매 수",
-
             "funnelSpend": "총 광고비",
-
             "ctr": "클릭률",
-
             "cartRate": "장바구니율",
-
             "finalCvr": "최종 전환율",
-
             "channelDetail": "📣 채널별 유입·전환 상세 (클릭하여 상세 보기)",
-
             "adSpend": "광고비",
-
             "cvr": "전환율",
-
             "cartToBuy": "카트→구매",
-
             "roas": "수익률",
-
             "cpc": "CPC",
-
             "cpo": "CPO (건당비용)",
-
             "aov": "AOV (평균주문가)",
-
             "totalRevContrib": "총 매출 기여",
-
             "newCustPct": "신규 고객 비율",
-
             "mobileCvr": "모바일 전환",
-
             "infFunnel": "🤝 인플루언서 캠페인 유입·전환",
-
             "creator": "크리에이터",
-
             "scale": "규모",
-
             "reach": "도달",
-
             "clicks": "클릭",
-
             "purchase": "구매",
-
             "convRate": "전환율",
-
             "investment": "투자비",
-
             "roi": "ROI",
-
             "verdict": "판정",
-
             "verdictGood": "우수",
-
             "verdictOk": "보통",
-
             "verdictBad": "저조",
-
             "kpiTotal": "🏆 채널 종합 기여도 점수 (20개 지표 가중 합산)",
-
             "kpiTable": "📋 20개 표준 평가지표 상세 (채널별)",
-
             "kpiMetric": "지표명",
-
             "kpiCat": "분류",
-
             "kpiWeight": "비중",
-
             "kpiContrib": "🔢 다차원 기여도 분석",
-
             "kpiContribSub": ":{{dim}} 기준 매출 기여도 분포",
-
             "dimChannel": "채널 유형",
-
             "dimContent": "콘텐츠 유형",
-
             "dimTier": "인플루언서 규모",
-
             "dimDevice": "디바이스",
-
             "dimTime": "시간대별",
-
             "dimCustomer": "고객 유형",
-
             "dimCoupon": "프로모션 유형",
-
             "dimTouch": "터치포인트 수",
-
             "aiEngine": "🤖 Claude AI 마케팅 추천 엔진",
-
             "aiEngineDesc": "유입·전환·기여도 분석 기반 최적 마케팅 전략 추천",
-
             "runAI": "🚀 AI 분석 실행",
-
             "analyzing": "⏳ 분석 중...",
-
             "confLabel": "신뢰도 {{n}}%",
-
             "expRoas": "기대 ROAS:",
-
             "effort": "실행 난이도:",
-
             "reasonLabel": "📌 추천 이유",
-
             "actionLabel": "실행 액션:",
-
             "autoRules": "⚙️ 자동화 규칙 목록",
-
             "statusPending": "승인 대기",
-
             "statusApproved": "승인됨",
-
             "statusActive": "실행 중",
-
             "statusRejected": "거절됨",
-
             "trigger": "트리거",
-
             "action": "액션",
-
             "effect": "예상 효과",
-
             "confidence": "AI 신뢰도",
-
             "approve": "✓ 승인",
-
             "reject": "✕ 거절",
-
             "execute": "🚀 실행",
-
             "running": "✓ 실행 중",
-
             "rejected": "✕ 거절됨",
-
             "riskLow": "낮음",
-
             "riskMedium": "보통",
-
             "riskHigh": "높음",
-
             "execLog": "📜 자동화 실행 로그",
-
             "logApproved": "✅ [승인]",
-
             "logRejected": "❌ [거절]",
-
             "logExecuted": "🚀 [실행]",
-
             "adCreativeTitle": "🎨 AI 광고 소재 생성 스튜디오",
-
             "adCreativeSub": "Claude AI가 채널·카테고리·타겟에 맞춤화된 광고 소재를 자동 생성합니다",
-
             "adPlatform": "📢 광고 플랫폼 선택",
-
             "adSize": "📐 광고 사이즈",
-
             "adStyle": "🎨 크리에이티브 스타일",
-
             "adTone": "✍️ 카피 톤앤매너",
-
             "adProduct": "🛍 상품명",
-
             "adProductPh": "예: 수분 크림 프리미엄 50ml",
-
             "adKeyword": "🔑 핵심 키워드",
-
             "adKeywordPh": "예: 수분, 탄력, 피부장벽",
-
             "adTarget": "🎯 타겟 오디언스",
-
             "adTargetPh": "예: 30대 여성, 건성 피부 관심",
-
             "adCta": "📣 CTA 버튼",
-
             "adGenerate": "✨ AI 광고 소재 생성",
-
             "adGenerating": "🤖 AI가 광고 소재를 생성하는 중…",
-
             "adResult": "🎨 생성된 광고 소재",
-
             "adHeadline": "헤드라인",
-
             "adBody": "본문 카피",
-
             "adCtaLabel": "CTA",
-
             "adHashtags": "해시태그",
-
             "adKeywords": "키워드",
-
             "adDownload": "⬇ 다운로드",
-
             "adRegenerate": "🔄 재생성",
-
             "adCopy": "📋 복사"
-
           },
-
           "graphScore": "그래프 스코어",
-
           "influencer": "인플루언서 관리",
-
           "reviewsUgc": "리뷰 & UGC 분석",
-
           "crm": "고객·CRM",
-
           "crmMain": "고객 CRM + AI 세그먼트",
-
           "emailMarketing": "이메일 + A/B테스트",
-
           "kakaoChannel": "카카오 채널",
-
           "whatsapp": "WhatsApp",
-
           "smsMarketing": "SMS/LMS 마케팅",
-
           "instagramDm": "Instagram/Facebook DM",
-
           "lineChannel": "LINE 채널",
-
           "webPopup": "웹 팝업",
-
           "customerCrm": "고객 CRM",
-
           "commerce": "🛒 커머스·물류",
-
           "commerceSearch": "통합 조회",
-
           "approvals": {
-
             "pageTitle": "✅ 승인 워크플로우",
-
             "pageSub": "캠페인·정책·예산 변경 승인 및 실행 센터",
-
             "tabPending": "⏳ 승인 대기",
-
             "tabApproved": "✅ 승인됨",
-
             "tabRejected": "❌ 반려",
-
             "itemTitle": "항목",
-
             "requester": "요청자",
-
             "requestedAt": "요청일",
-
             "approver": "승인자",
-
             "approvedAt": "승인일",
-
             "action": "액션",
-
             "approve": "✅ 승인",
-
             "reject": "❌ 반려",
-
             "viewDetail": "상세",
-
             "noPending": "승인 대기 항목이 없습니다.",
-
             "statusPending": "대기",
-
             "statusApproved": "승인됨",
-
             "statusExecuted": "실행완료",
-
             "statusRejected": "반려",
-
             "requestList": "요청 목록",
-
             "filterAll": "전체",
-
             "btnApprove": "승인",
-
             "btnReject": "반려",
-
             "btnExecute": "실행",
-
             "noRequests": "해당 상태의 요청이 없습니다",
-
             "GuardDecide": "데모 모드: 주문 승인/반려는 실제 운영 계정에서만 가능합니다.",
-
             "GuardExecute": "데모 모드: 액션 실행은 실제 운영 계정에서만 가능합니다.",
-
             "executeDone": "실행 완료 (데모 시뮬레이션)"
-
           },
-
           "writeback": {
-
             "pageTitle": "↩ 라이트백",
-
             "pageSub": "데이터 라이트백 정책 관리 · 외부 시스템 동기화",
-
             "tabPolicies": "📋 정책 목록",
-
             "tabLog": "📜 실행 로그",
-
             "policyName": "정책명",
-
             "target": "타겟 시스템",
-
             "trigger": "트리거",
-
             "frequency": "주기",
-
             "status": "상태",
-
             "lastRun": "최근 실행",
-
             "active": "활성",
-
             "inactive": "비활성",
-
             "createPolicy": "+ 정책 생성",
-
             "runNow": "▶ 지금 실행",
-
             "noPolicies": "라이트백 정책이 없습니다."
-
           },
-
           "connectors": {
-
             "pageTitle": "🔌 채널 커넥터",
-
             "pageSub": "Meta, Google, Naver, Coupang, TikTok을 포함한 30개 이상의 광고 및 판매 채널 API를 연결",
-
             "tabAll": "모두",
-
             "tabAds": "광고 채널",
-
             "tabSales": "판매 채널",
-
             "tabLogistics": "물류",
-
             "connected": "연결됨",
-
             "notConnected": "연결되지 않음",
-
             "connect": "연결",
-
             "disconnect": "연결 해제",
-
             "testConnection": "연결 테스트",
-
             "configure": "구성",
-
             "syncFrequency": "동기화 빈도",
-
             "lastSync": "마지막 동기화",
-
             "real_time": "실시간",
-
             "hourly": "매시간",
-
             "daily": "매일",
-
             "apiKey": "API 키",
-
             "oauthLogin": "OAuth 로그인",
-
             "noConnectors": "사용 가능한 커넥터가 없습니다."
-
           },
-
           "eventNorm": {
-
             "pageTitle": "🔄 이벤트 정규화",
-
             "pageSub": "채널 이벤트 스키마를 표준 형식으로 정규화",
-
             "tab스키마": "📋 스키마",
-
             "tabMapping": "🔗 매핑 규칙",
-
             "tabTest": "🔬 테스트",
-
             "eventName": "이벤트 이름",
-
             "sourceChannel": "소스 채널",
-
             "standardEvent": "표준 이벤트",
-
             "mappingRule": "매핑 규칙",
-
             "status": "상태",
-
             "addSchema": "+ 스키마 추가",
-
             "testEvent": "테스트 이벤트",
-
             "noSchemas": "등록된 스키마가 없습니다."
-
           },
-
           "mappingRegistry": {
-
             "pageTitle": "🧩 매핑 레지스트리",
-
             "pageSub": "채널, 제품 및 카테고리 매핑 규칙의 통합 관리",
-
             "tabChannelMap": "채널 매핑",
-
             "tabProductMap": "제품 매핑",
-
             "tabCategoryMap": "카테고리 매핑",
-
             "fromChannel": "출처",
-
             "toChannel": "대상",
-
             "mappingRule": "매핑 규칙",
-
             "addMapping": "+ 매핑 추가",
-
             "edit": "편집",
-
             "delete": "삭제",
-
             "noMappings": "등록된 매핑이 없습니다."
-
           }
-
         },
-
         "subtitle": "실시간 KPI 모니터링 · 이상 감지 · 채널 간 분석",
-
         "tabOverview": "개요",
-
         "tabChannels": "채널",
-
         "tabProducts": "상품",
-
         "tabAudience": "오디언스",
-
         "tabCreatives": "소재",
-
         "kpiRevenue": "총 매출",
-
         "kpiSpend": "총 광고비",
-
         "kpiRoas": "수익률",
-
         "kpiConversions": "전환",
-
         "kpiCtr": "클릭률",
-
         "kpiCvr": "CVR",
-
         "channelPerf": "채널별 성과",
-
         "productPerf": "상품별 성과",
-
         "audienceInsights": "오디언스 인사이트",
-
         "creativePerf": "소재 성과",
-
         "colChannel": "채널",
-
         "colRevenue": "매출",
-
         "colSpend": "광고비",
-
         "colRoas": "수익률",
-
         "colConversions": "전환",
-
         "colCtr": "CTR%",
-
         "colCvr": "CVR%",
-
         "topProducts": "상위 상품",
-
         "anomalyDetected": "이상 감지됨",
-
         "noAnomaly": "이상 없음",
-
         "dateRange": "기간",
-
         "compareTo": "비교 대상",
-
         "exportReport": "리포트 내보내기",
-
         "team": "팀",
-
         "allTeams": "전체 팀",
-
         "account": "계정",
-
         "allAccounts": "전체 계정",
-
         "prob30": "30일 구매확률",
-
         "churn": "이탈 위험"
-
       },
-
       "report": {
-
         "title": "리포트 빌더",
-
         "subtitle": "드래그 & 드롭으로 맞춤 리포트 생성 · 자동 발송 스케줄링",
-
         "tabBuilder": "리포트 빌더",
-
         "tabScheduled": "예약 리포트",
-
         "tabTemplates": "템플릿",
-
         "addWidget": "위젯 추가",
-
         "runReport": "리포트 실행",
-
         "saveReport": "저장",
-
         "exportPdf": "PDF 내보내기",
-
         "exportExcel": "엑셀 내보내기",
-
         "reportName": "리포트명",
-
         "reportNamePh": "예: 월간 성과 리포트",
-
         "selectMetrics": "지표 선택",
-
         "selectDimensions": "차원 선택",
-
         "dateRange": "기간",
-
         "granularity": "단위",
-
         "scheduleReport": "리포트 예약",
-
         "frequency": "주기",
-
         "freqDaily": "매일",
-
         "freqWeekly": "매주",
-
         "freqMonthly": "매월",
-
         "recipients": "수신자",
-
         "addRecipient": "수신자 추가",
-
         "lastRun": "마지막 실행",
-
         "nextRun": "다음 실행",
-
         "colReportName": "리포트명",
-
         "colFrequency": "주기",
-
         "colLastRun": "마지막 실행",
-
         "colStatus": "상태"
-
       },
-
-"coupon": {
-
+      "coupon": {
         "pageTitle": "🎟 내 보유쿠폰",
-
         "pageSub": "발급받은 쿠폰을 확인하고 바로 사용할 수 있습니다",
-
         "inputPlaceholder": "쿠폰번호 직접 입력 (GENIE-...)",
-
         "redeemBtn": "쿠폰 사용하기",
-
         "tabAvailable": "✅ 사용 가능",
-
         "tabUsed": "✔ 사용됨",
-
         "tabExpired": "⏰ 만료됨",
-
         "emptyAvailable": "사용 가능한 쿠폰이 없습니다.",
-
         "emptyUsed": "사용한 쿠폰이 없습니다.",
-
         "emptyExpired": "만료된 쿠폰이 없습니다.",
-
         "emptyHint": "쿠폰번호가 있으시면 위에 직접 입력해 사용하세요.",
-
         "successBanner": "🎉",
-
         "copyBtn": "복사",
-
         "copied": "✓ 복사됨",
-
         "expires": "만료",
-
         "useBtn": "사용하기 →",
-
         "modalTitle": "🎟 쿠폰 사용하기",
-
         "modalSub": "쿠폰코드를 입력하면 해당 플랜이 즉시 적용됩니다.",
-
         "modalCancel": "취소",
-
         "modalConfirm": "🎉 쿠폰 사용하기",
-
         "modalProcessing": "처리 중...",
-
         "networkError": "네트워크 오류",
-
         "invalidCode": "유효하지 않은 쿠폰코드"
-
       },
-
       "adminCoupon": {
-
         "tabTitle": "무료 쿠폰 관리",
-
         "totalIssued": "전체 발급",
-
         "available": "사용 가능",
-
         "used": "사용 완료",
-
         "cancelled": "취 소됨",
-
         "tabIssue": "🎟 쿠폰 발급",
-
         "tabHistory": "📋 발급 내역",
-
         "tabAutoRules": "⚙️ 자동 발급 규칙",
-
         "emailLabel": "대상 이메일",
-
         "emailPlaceholder": "user@email.com (비워두면 범용 쿠폰)",
-
         "codeLabel": "쿠폰코드",
-
         "codePlaceholder": "비워두면 자동 생성",
-
         "planLabel": "플랜",
-
         "periodLabel": "기간",
-
         "notifyEmail": "이메일 알림",
-
         "issueBtn": "쿠폰 발급",
-
         "colCode": "코드 / 수신자",
-
         "colPlan": "플랜",
-
         "colPeriod": "기간",
-
         "colUsage": "사용",
-
         "colStatus": "상태",
-
         "colIssueDate": "발급일",
-
         "colExpires": "소진",
-
         "colAction": "역션",
-
         "statusValid": "유효",
-
         "statusUsed": "사용됨",
-
         "statusExpired": "만료됨",
-
         "cancelBtn": "취소",
-
         "period1m": "1개월",
-
         "period2m": "2개월",
-
         "period3m": "3개월",
-
         "period6m": "6개월",
-
         "period1y": "1년"
-
       },
-
       "aiInsightsPage": {
-
         "heroDesc": "판매·광고·분석 채널의 API 키를 등록하고 연결 상태를 관리합니다.",
-
         "badge1": "즉각 조치 4건",
-
         "badge2": "ROAS 이상 2건",
-
         "badge3": "AI 모델 가동 중",
-
         "tabCards": "인사이트 카드",
-
         "tabCardsDesc": "P&L 이상 분석",
-
         "tabTrends": "트렌드 차트",
-
         "tabTrendsDesc": "주간 시계열 트렌드",
-
         "tabChat": "AI 어시스턴트",
-
         "tabChatDesc": "Claude AI 실시간 분석",
-
         "tabHistory": "분석 이력",
-
         "tabHistoryDesc": "저장된 AI 분석 결과",
-
         "analyzing": "분석 중...",
-
         "trendRoas": "채널 ROAS",
-
         "trendReturns": "반품율",
-
         "last12weeks": "최근 12주 트렌드",
-
         "adSpend": "광고비",
-
         "platformFee": "플랫폼 수수료",
-
         "influencerCost": "인플루언서 비용",
-
         "aiGreeting": "안녕하세요! Genie AI 어시스턴트입니다. P&L, ROAS, 반품율, 인플루언서 성과 등에 대해 질문해 주세요.",
-
         "returns": "반품",
-
         "selectContext": "분석 컨텍스트 선택",
-
         "inputPlaceholder": "P&L, ROAS, 반품율 등 질문...",
-
         "send": "전송",
-
         "analysisFailed": "분석 실패",
-
         "errorPrefix": "오류",
-
         "historyTitle": "📋 Claude AI 분석 이력",
-
         "noHistory": "분석 이력이 없습니다. AI 어시스턴트 탭에서 분석을 시작해 보세요.",
-
         "loading": "로딩 중...",
-
         "card1Title": "ROAS 경보 — TikTok CPP / 쿠팡 DA",
-
         "card1Desc": "손익분기점(3.0x) 이하로 운영 중인 캠페인 2개. 즉각적인 예산 조정이 필요합니다.",
-
         "card1B1": "TikTok CPP: ROAS 2.1x (목표 대비 -30%)",
-
         "card1B2": "쿠팡 DA: ROAS 1.7x (목표 대비 -43%)",
-
         "card1Action": "예산 재배분",
-
         "card2Title": "반품율 초과 — SKU-C3, SKU-D4",
-
         "card2Desc": "두 SKU가 3주 연속 12% 반품율 초과. 상품 품질/설명 개선이 필요합니다.",
-
         "card2B1": "SKU-C3 반품율 19.8% (기준 대비 +7.8pp 초과)",
-
         "card2B2": "SKU-D4 반품율 20.2% (기준 대비 +8.2pp 초과)",
-
         "card2Action": "상품 관리",
-
         "card3Title": "쿠폰 남용 — TikTok 크리에이터 TechVibe",
-
         "card3Desc": "쿠폰 사용률이 일반 패턴보다 3배 높습니다. 쿠폰 한도 조정을 권장합니다.",
-
         "card3B1": "340회 사용 / 198만 뷰 = 1.7‰ (2‰ 한도 근접)",
-
         "card3B2": "쿠폰 할인액 ₩17M — 매출의 19.1%",
-
         "card3Action": "쿠폰 한도 조정",
-
         "card4Title": "최고 성과 — Google 브랜드 KW ROAS 7.0x",
-
         "card4Desc": "Google 브랜드 캠페인이 최고 효율 유지 중. 예산 증액 기회 식별됨.",
-
         "card4B1": "네이버 SA도 7.1x — 동일한 높은 효율 수준",
-
         "card4B2": "합산 예산 증액 시 +₩2,800만 매출 추가 기대",
-
         "card4Action": "예산 증액 검토",
-
         "qq1": "지난달 대비 순이익이 개선되었나요?",
-
         "qq2": "ROAS가 가장 낮은 채널은 어디인가요?",
-
         "qq3": "반품율이 위험한 SKU는 무엇인가요?",
-
         "qq4": "비용 절감 우선순위는 무엇인가요?"
-
       },
-
       "auth": {
-
         "quickStart": "⚡ 빠른 체험",
-
         "try": "🎯 데모로 체험하기",
-
         "freeRegister": "✨ 무료 가입",
-
         "orLoginWith": "또는 계정으로 로그인",
-
         "emailLabel": "이메일",
-
         "passwordLabel": "비밀번호",
-
         "nameLabel": "이름",
-
         "loginBtn": "🔐 로그인",
-
         "loggingIn": "로그인 중...",
-
         "noAccount": "계정이 없으신가요?",
-
         "registerLink": "회원가입",
-
         "freeTrialTitle": "무료 체험 (데모) 가입",
-
         "freeTrialDesc": "간편하게 시작 · 핵심 기능 무료 체험",
-
         "passwordConfirm": "비밀번호 확인",
-
         "passwordHint": "비밀번호 (6자 이상)",
-
         "agreeTerms": "이용약관",
-
         "agreeAnd": "및",
-
         "agreePrivacy": "개인정보 처리방침",
-
         "agreeConsent": "에 동의합니다",
-
         "PlanNote": "📌 데모 플랜이 즉시 활성화됩니다. 유료 플랜 전환 시 추가 비즈니스 정보를 입력합니다.",
-
         "startFree": "🚀 무료로 시작하기",
-
         "registering": "가입 중...",
-
         "alreadyHaveAccount": "이미 계정이 있으신가요?",
-
         "loginLink": "로그인",
-
         "planTypeTitle": "가입 유형을 선택하세요",
-
         "freePlan": "무료 체험 (데모)",
-
         "freePlanDesc": "이메일·이름만으로 간편 가입, 핵심 기능 체험",
-
         "freeBadge": "무료",
-
         "paidPlan": "유료 플랜 가입",
-
         "paidPlanDesc": "광고·채널 연동, AI 기능 전체 이용 — 비즈니스 정보 필수 등록",
-
         "paidBadge": "유료",
-
         "planQuestion": "💎 {{plan}} 플랜이란?",
-
         "recommendedFor": "🎯 추천 대상",
-
         "includedFeatures": "✅ 포함 기능",
-
         "premiumOnly": "🔒 상위 플랜 전용",
-
         "loadingPrice": "불러오는 중...",
-
         "priceNotSet": "요금 미등록",
-
         "step1Account": "① 계정 정보",
-
         "step2Business": "② 비즈니스 정보",
-
         "step3Channels": "③ 채널 & 완료",
-
         "paidPlanTitle": ":{{plan}} 플랜 가입",
-
         "paidPlanNote": "채널 연동을 위해 비즈니스 정보 등록 필수",
-
         "nextBusiness": "다음 → 비즈니스 정보",
-
         "nextChannels": "다음 → 채널 선택",
-
         "businessWarning": "⚠️ 아래 정보는 채널 API 연동, 세금계산서 발행, 광고 계정 연결에 사용됩니다. 정확히 입력해주세요.",
-
         "companyLabel": "회사 (브랜드)명",
-
         "ceoNameLabel": "대표자명",
-
         "businessTypeLabel": "업종",
-
         "businessNumberLabel": "사업자등록번호",
-
         "businessNumberHint": "개인사업자/법인사업자 모두 입력",
-
         "countryLabel": "국가",
-
         "zipCodeLabel": "우편번호",
-
         "addressLabel": "주소",
-
         "addressDetailLabel": "상세주소",
-
         "phoneLabel": "연락처",
-
         "websiteLabel": "웹사이트 (선택)",
-
         "salesChannelTitle": "🛒 이용 중인 판매 채널",
-
         "salesChannelNote": "(API 자동 연동 대상)",
-
         "adChannelTitle": "📢 이용 중인 광고 채널",
-
         "adChannelNote": "(선택 · 마케팅 자동화 연동)",
-
         "monthlyRevenueLabel": "월 평균 매출",
-
         "agreeAll": "필수 약관에 동의해주세요.",
-
         "completionNote": "🎉 가입 완료 후 {{plan}} 플랜으로 즉시 활성화됩니다. 선택된 채널(총 {{count}}개)에 API 자동 연동을 시작합니다.",
-
         "startPlan": "🚀 {{plan}} 플랜으로 시작하기",
-
         "processingRegister": "가입 처리 중...",
-
         "selectPlaceholder": "선택하세요",
-
         "adminLoginTitle": "관리자 전용 로그인",
-
         "adminLoginDesc": "admin plan 계정만 접근 가능",
-
         "adminKeyLabel": "관리자 접속 키",
-
         "adminKeyPh": "관리자 접속 키 입력",
-
         "verifyKey": "접속 키 확인",
-
         "keyVerified": "✅ 접속 키 확인 완료.",
-
         "adminEmailLabel": "관리자 이메일",
-
         "adminLoginBtn": "🔐 관리자 로그인",
-
         "reenterKey": "← 접속 키 재입력",
-
         "passwordMismatch": "비밀번호가 일치하지 않습니다.",
-
         "agreeTermsRequired": "이용약관에 동의해주세요.",
-
         "nameRequired": "이름을 입력해주세요.",
-
         "emailRequired": "이메일을 입력해주세요.",
-
         "passwordTooShort": "비밀번호는 6자 이상이어야 합니다.",
-
         "companyRequired": "회사(브랜드)명을 입력해주세요.",
-
         "ceoRequired": "대표자명을 입력해주세요.",
-
         "businessTypeRequired": "업종을 선택해주세요.",
-
         "businessNumberRequired": "사업자등록번호를 입력해주세요.",
-
         "countryRequired": "국가를 선택해주세요.",
-
         "addressRequired": "주소를 입력해주세요.",
-
         "phoneRequired": "연락처를 입력해주세요.",
-
         "salesChannelRequired": "최소 1개 이상의 판매 채널을 선택해주세요.",
-
         "termsRequired": "필수 약관에 동의해주세요.",
-
         "notAdminAccount": "관리자 계정이 아닙니다.",
-
         "wrongAdminKey": "관리자 접속 키가 올바르지 않습니다.",
-
         "agreeMarketing": "마케팅 수신 동의"
-
       },
-
       "helpPanel": {
-
         "searchResult": "검색 결과",
-
         "currentPageHelp": "현재 페이지 도움말",
-
         "goBack": "← 돌아가기",
-
         "fullManual": "📚 전체 사용설명서 보기 →",
-
         "needMoreHelp": "더 자세한 내용이 필요하신가요?",
-
         "footerHelp": "Geniego-ROI v423 · 도움이 필요하면 관리자에게 문의하세요",
-
         "dataFrom": "📥 데이터 수집 출처",
-
         "provides": "📊 이 메뉴가 제공하는 정보",
-
         "howToUse": "📋 사용 방법",
-
         "canDo": "🎯 이 메뉴로 할 수 있는 것",
-
         "searchPlaceholder": "도움말 검색... (예: ROAS, 재고, API키)",
-
         "helpResultCount": "\":{{q}}\" — {{n}}건의 도움말",
-
         "goToPage": ":{{path}} 바로가기 →",
-
         "defaultTitle": "Geniego-ROI 도움말",
-
         "defaultSummary": "이 페이지의 상세 도움말을 준비 중입니다. 전체 사용설명서를 참고하세요.",
-
         "defaultStep1": "상단 메뉴에서 '사용설명서'를 클릭하면 전체 가이드를 볼 수 있습니다.",
-
         "defaultStep2": "통합검색(Ctrl+K)으로 원하는 기능을 찾아보세요.",
-
         "staticHelp": {
-
           "connectors": {
-
             "title": "채널 연동·커넥터",
-
             "summary": "시스템 사용자를 추가하고, 관리자·편집자·뷰어 등 역할별 접근 권한을 설정합니다.",
-
-            "tips": [
-
-              "최소 권한 원칙: 업무에 필요한 최소한의 권한만 부여하세요."
-
-            ],
-
+            "tips": ["최소 권한 원칙: 업무에 필요한 최소한의 권한만 부여하세요."],
             "help": {
-
               "title": "시스템 사용설명서",
-
               "summary": "Geniego-ROI의 모든 기능에 대한 상세 가이드, Q&A, 인증키 등록법, 권한별 업무를 안내합니다.",
-
-              "steps": [
-
-                "탭을 선택하여 원하는 정보를 찾아보세요.",
-
-                "메뉴 설명 탭: 각 메뉴의 기능과 사용법 확인",
-
-                "Q&A 탭: 자주 묻는 질문",
-
-                "인증키 등록 탭: API 키 발급 및 등록 방법",
-
-                "권한 안내 탭: 역할별 업무 범위 확인"
-
-              ]
-
+              "steps": ["탭을 선택하여 원하는 정보를 찾아보세요.", "메뉴 설명 탭: 각 메뉴의 기능과 사용법 확인", "Q&A 탭: 자주 묻는 질문", "인증키 등록 탭: API 키 발급 및 등록 방법", "권한 안내 탭: 역할별 업무 범위 확인"]
             },
-
             "smsMarketing": {
-
               "title": "SMS 마케팅",
-
               "summary": "국내 SMS/LMS 메시지를 발송하고 발송 이력과 통계를 관리합니다.",
-
-              "tips": [
-
-                "광고 문자는 '(광고)' 표시와 수신 거부 번호를 반드시 포함해야 합니다."
-
-              ]
-
+              "tips": ["광고 문자는 '(광고)' 표시와 수신 거부 번호를 반드시 포함해야 합니다."]
             }
-
           }
-
         }
-
       },
-
       "pricingDetail": {
-
         "free_tagline": "Free로 시작, 플랫폼 탐색",
-
         "free_headline": " 체험 플랜",
-
         "free_desc": "가입 즉시 Geniego-ROI 플랫폼 전체 기능을 체험할 수 있습니다.",
-
         "free_s1": "홈 대시보드",
-
         "free_s1i1": "KPI 위젯 ()",
-
         "free_s1i2": "바로가기 링크",
-
         "free_s1i3": "온보딩 가이드",
-
         "free_s2": "내 팀 & 도움말",
-
         "free_s2i2": "동영상 튜토리얼",
-
         "free_s2i3": "릴리스 노트",
-
         "free_s3": "구독 및 결제",
-
         "free_s3i1": "현재 플랜 보기",
-
         "free_s3i2": "플랜 업그레이드",
-
         "free_l1": "실시간 데이터 미제공",
-
         "free_l2": "실시간 채널 연동 미지원",
-
         "free_l3": "저장/다운로드 미지원",
-
         "growth_tagline": "성장기 중소 셀러·브랜드",
-
         "growth_headline": "마케팅 성장 플랜",
-
         "growth_desc": "국내 커머스 채널과 기본 CRM 자동화로 매출을 성장시킵니다.",
-
         "growth_s1": "AI 마케팅 자동화 (코어)",
-
         "growth_s1i1": "AI 광고 크리에이티브 생성",
-
         "growth_s1i2": "캠페인 설정·관리·목록·리포트",
-
         "growth_s1i3": "콘텐츠 캘린더",
-
         "growth_s1i4": "예산 플래너",
-
         "growth_s1i5": "알림 정책 목록 및 로그",
-
         "growth_s2": "광고·채널 분석 (국내)",
-
         "growth_s2i1": "광고 요약·채널·상품 분석",
-
         "growth_s2i2": "ROAS 분석",
-
         "growth_s2i3": "키워드 분석",
-
         "growth_s2i4": "채널 KPI (노출·CTR·CVR·CPA/CPC)",
-
         "growth_s2i5": "ROAS 계산기",
-
         "growth_s3": "고객 CRM (기본)",
-
         "growth_s3i1": "고객 DB·360° 뷰·태그 관리",
-
         "growth_s3i2": "RFM 분석·세그먼트 빌더·메시지 발송",
-
         "growth_s3i3": "이메일 캠페인 (발송·A/B·성과·예약)",
-
         "growth_s3i4": "카카오 알림톡·친구톡·통계",
-
         "growth_s3i5": "SMS/LMS 캠페인·문자 템플릿",
-
         "growth_s3i6": "이탈 팝업·웹 팝업 (기본)",
-
         "growth_s4": "커머스 및 물류 (국내)",
-
         "growth_s4i1": "쿠팡·네이버·카페24 채널 연동",
-
         "growth_s4i2": "주문 허브 (전체 주문·클레임·반품·배송)",
-
         "growth_s4i3": "대량 상품 등록·카탈로그 동기화·가격 규칙",
-
         "growth_s4i4": "기본 WMS (재고·알림·입고·출고)",
-
         "growth_s4i5": "월간 정산·배송·엑셀 내보내기",
-
         "growth_s4i6": "3PL 운송사 목록 보기",
-
         "growth_s5": "분석 및 성과",
-
         "growth_s5i1": "성과 요약·채널·상품·캠페인",
-
         "growth_s5i2": "P&L 개요",
-
         "growth_s5i3": "AI 인사이트 피드",
-
         "growth_s5i4": "맞춤 리포트·엑셀 내보내기",
-
         "growth_s6": "정산 및 재무",
-
         "growth_s6i1": "정산 내역·채널·엑셀",
-
         "growth_s6i2": "결제 목록·엑셀",
-
         "growth_s6i3": "플랜 보기·청구 내역·인보이스",
-
         "growth_s6i4": "라이선스 활성화·상태",
-
         "growth_s7": "채널·데이터 연동 (국내)",
-
         "growth_s7i1": "Meta·Google·TikTok·Naver·Kakao 광고 연동",
-
         "growth_s7i2": "쿠팡 커넥터",
-
         "growth_s7i3": "통화 선택 (KRW/USD/JPY/EUR Global)",
-
         "growth_s8": "팀 관리",
-
         "growth_s8i1": "팀 멤버 목록·초대",
-
         "growth_s8i2": "내 활동 기록",
-
         "growth_s8i3": "지원 티켓",
-
         "growth_l1": "AI 예측 (이탈·LTV) — Pro+",
-
         "growth_l2": "고객 여정 빌더 — Pro+",
-
         "growth_l3": "글로벌 채널 (WhatsApp·LINE·DM) — Pro+",
-
         "growth_l4": "AI 룰 엔진 — Pro+",
-
         "growth_l5": "1st-Party 픽셀·API 키 — Pro+",
-
         "growth_l6": "SmartConnect ERP 연동 — Pro+",
-
         "pro_tagline": "전문 이커머스 브랜드·에이전시",
-
         "pro_headline": "AI 자동화 플랜",
-
         "pro_badge": "인기",
-
         "pro_desc": "Growth 전체 + AI 예측·여정 빌더·글로벌 채널·룰 엔진·SmartConnect·1st-Party 픽셀·고급 BI.",
-
         "pro_s1": "AI 예측 엔진 (신규)",
-
         "pro_s1i1": "이탈·LTV·구매 확률 예측",
-
         "pro_s1i2": "그래프 스코어링",
-
         "pro_s1i3": "다음 최적 행동 추천",
-
         "pro_s1i4": "상품 추천 AI",
-
         "pro_s1i5": "AI 광고 인사이트",
-
         "pro_s1i6": "AI 세그먼트 (VIP·이탈 위험·잠재 VIP 자동 분류)",
-
         "pro_s2": "고객 여정 빌더 (신규)",
-
         "pro_s2i1": "여정 캔버스 (Drag&Drop)",
-
         "pro_s2i2": "트리거 설정·액션 노드 관리",
-
         "pro_s2i3": "여정 성과 통계 분석",
-
         "pro_s2i4": "A/B 테스트 (이메일·팝업)",
-
         "pro_s3": "글로벌 채널 전체 (신규)",
-
         "pro_s3i1": "Shopify·Amazon·LINE 광고 연동",
-
         "pro_s3i2": "WhatsApp 브로드캐스트·자동화",
-
         "pro_s3i3": "Instagram DM·Facebook DM·DM 캠페인",
-
         "pro_s3i4": "LINE 메시지 캠페인·통계",
-
         "pro_s3i5": "팝업 A/B 테스트·트리거 설정",
-
         "pro_s4": "고급 WMS + 커머스 확장",
-
         "pro_s4i1": "재고 조정·로케이션 관리·바코드 연동",
-
         "pro_s4i2": "월 정산 통합·세금계산서·결제 승인",
-
         "pro_s4i3": "3PL 추가·편집",
-
         "pro_s4i4": "수거 로그 기본 보기",
-
         "pro_s5": "AI 룰 엔진 및 자동화 (신규)",
-
         "pro_s5i1": "AI 정책 설정·룰 목록·테스트",
-
         "pro_s5i2": "알림 평가 모델",
-
         "pro_s5i3": "액션 프리셋 관리",
-
         "pro_s5i4": "라이트백 설정·로그",
-
         "pro_s5i5": "결재 의사결정 자동화",
-
         "pro_s6": "리뷰 및 UGC 분석 (신규)",
-
         "pro_s6i1": "채널 리뷰 수집·감성 분석",
-
         "pro_s6i2": "AI 자동 응답 초안 생성",
-
         "pro_s6i3": "UGC (Instagram·YouTube) 성과 분석",
-
         "pro_s6i4": "키워드 분석",
-
         "pro_s7": "SmartConnect 허브 (신규)",
-
         "pro_s7i1": "ERP·SCM·3PL 기본 연동 설정",
-
         "pro_s7i2": "REST API / Webhook / SFTP 연동",
-
         "pro_s7i3": "필드 매핑 설정",
-
         "pro_s7i4": "기본 동기화 로그 보기",
-
         "pro_s8": "1st-Party 픽셀 + 데이터",
-
         "pro_s8i1": "픽셀 코드 설치·검증",
-
         "pro_s8i2": "실시간 이벤트 스트림 보기",
-
         "pro_s8i3": "기여도 분석 (터치 모델·ROAS)",
-
         "pro_s8i4": "이벤트 수집·데이터 스키마·매핑",
-
         "pro_s8i5": "API 키·Webhook·OAuth 연동",
-
         "pro_s9": "고급 분석 및 BI",
-
         "pro_s9i1": "코호트 분석",
-
         "pro_s9i2": "채널·상품·트렌드별 P&L",
-
         "pro_s9i3": "이상 탐지·경쟁사 AI 분석",
-
         "pro_s9i4": "인플루언서 성과 보기",
-
         "pro_s10": "실시간 환율 + 팀 관리",
-
         "pro_s10i1": "실시간 환율 (글로벌 통화)",
-
         "pro_s10i2": "팀 활동 감사",
-
         "pro_s10i3": "시스템 상태·API 모니터링",
-
         "pro_s10i4": "배치 작업 실행·재처리",
-
         "pro_l1": "라이트백 즉시 롤백 — Enterprise",
-
         "pro_l2": "Amazon 정책·리뷰 관리 — Enterprise",
-
         "pro_l3": "시장 점유율·트렌드 AI — Enterprise",
-
         "pro_l4": "데이터 제품 SLA·거버넌스 — Enterprise",
-
         "pro_l5": "SmartConnect 파트너 API 양방향 — Enterprise",
-
         "pro_l6": "인플루언서 DB·캠페인 실행 — Enterprise",
-
         "pro_l7": "감사 로그 전체 내보내기 — Enterprise",
-
         "pro_l8": "자동 리포트·예약 발송 — Enterprise",
-
         "pro_l9": "API 데이터 스트리밍 내보내기 — Enterprise",
-
         "ent_tagline": "대형 이커머스·에이전시·그룹사",
-
         "ent_headline": "전체 무제한 플랜",
-
         "ent_badge": "최고사양",
-
         "ent_desc": "Pro 전체 + 즉시 롤백·Amazon 정책·시장 점유율·데이터 거버넌스·SmartConnect 파트너 API·인플루언서 DB·전체 감사·자동 리포트.",
-
         "ent_s1": "라이트백 즉시 롤백 (신규)",
-
         "ent_s1i1": "라이트백 설정·로그",
-
         "ent_s1i2": "즉시 롤백 (즉각적인 오류 복구)",
-
         "ent_s1i3": "멀티 브랜드 자동 실행",
-
         "ent_s1i4": "전체 롤백 이력 보기",
-
         "ent_s2": "Amazon 고급 운영 (신규)",
-
         "ent_s2i1": "Amazon 계정 상태 모니터",
-
         "ent_s2i2": "정책 컴플라이언스 관리",
-
         "ent_s2i3": "전체 리뷰 모니터링",
-
         "ent_s2i4": "리스팅 품질 감사",
-
         "ent_s3": "마켓 인텔리전스 (신규)",
-
         "ent_s3i1": "시장 점유율 분석",
-
         "ent_s3i2": "경쟁사 광고 추적 (AI)",
-
         "ent_s3i3": "트렌드 AI 예측 모델",
-
         "ent_s3i4": "채널 기여도 전체 모델",
-
         "ent_s3i5": "전환 경로 분석",
-
         "ent_s4": "데이터 제품 거버넌스 (신규)",
-
         "ent_s4i1": "데이터 제품 스키마·품질 지표",
-
         "ent_s4i2": "SLA 관리·소유자 지정",
-
         "ent_s4i3": "API 기반 데이터 스트리밍 내보내기",
-
         "ent_s4i4": "이벤트 정규화 전체 관리",
-
         "ent_s4i5": "OAuth 파트너 관리",
-
         "ent_s4i6": "고급 데이터 매핑",
-
         "ent_s5": "SmartConnect 파트너 API (신규)",
-
         "ent_s5i1": "파트너 수준 양방향 실시간 연동",
-
         "ent_s5i2": "전체 실시간 동기화 로그",
-
         "ent_s5i3": "ERP·SCM·WMS 전체 연동",
-
         "ent_s5i4": "맞춤 Webhook 고급 설정",
-
         "ent_s6": "고급 마케팅 (신규)",
-
         "ent_s6i1": "전체 인플루언서 DB·캠페인 실행·정산",
-
         "ent_s6i2": "카카오 비즈보드 (대규모 광고)",
-
         "ent_s6i3": "WhatsApp 고급 설정 (채널 API)",
-
         "ent_s6i4": "LINE 채널 고급 설정",
-
         "ent_s6i5": "AI 세그먼트 고급 (맞춤 기준)",
-
         "ent_s6i6": "경쟁사 리뷰 비교 분석",
-
         "ent_s7": "운영 및 거버넌스 전체 (신규)",
-
         "ent_s7i1": "Ops 허브 알림 발송 (관리자 공지)",
-
         "ent_s7i2": "3PL 삭제·계약 관리",
-
         "ent_s7i3": "전체 감사 로그·CSV 내보내기",
-
         "ent_s7i4": "시스템 모니터 알림 설정",
-
         "ent_s7i5": "자동 리포트 생성·예약 발송",
-
         "ent_s7i6": "대시보드 외부 공유·임베드",
-
         "ent_s8": "Pro 전체 포함 + 무제한",
-
         "ent_s8i1": "모든 Pro 플랜 기능 포함",
-
         "ent_s8i2": "무제한 계정·사용자·팀 멤버",
-
         "ent_s8i3": "우선 지원 SLA",
-
         "ent_s8i4": "전담 온보딩 컨설팅·연간 교육",
-
         "ent_s9": "맞춤형 전담 서비스",
-
         "ent_s9i1": "맞춤 대시보드 구성",
-
         "ent_s9i2": "전담 매니저 배정",
-
         "ent_s9i3": "연간 계약 기반 맞춤 할인",
-
         "ent_s9i4": "맞춤 교육·워크숍"
-
       },
-
       "cmpRow": {
-
         "r1": "홈 대시보드",
-
         "r2": "AI 광고 크리에이티브 및 캠페인 관리",
-
         "r3": "AI 예측 (이탈·LTV·구매 확률)",
-
         "r4": "고객 여정 빌더",
-
         "r5": "AI 세그먼트",
-
         "r6": "광고·채널 분석 (ROAS·KPI)",
-
         "r7": "기여도 분석 (터치 모델)",
-
         "r8": "경쟁사 AI 분석",
-
         "r9": "고객 CRM (이메일/카카오/SMS)",
-
         "r10": "리뷰 및 UGC 분석",
-
         "r11": "커머스 채널",
-
         "r12": "WMS (재고·입출고)",
-
         "r13": "3PL 관리",
-
         "r14": "Amazon 고급 운영",
-
         "r15": "분석 및 성과 (코호트·P&L)",
-
         "r16": "AI 룰 엔진 및 자동화",
-
         "r17": "SmartConnect (ERP·SCM)",
-
         "r18": "1st-Party 픽셀",
-
         "r19": "데이터 파이프라인 및 API",
-
         "r20": "데이터 제품 거버넌스",
-
         "r21": "BI 리포트",
-
         "r22": "통화 선택 (Global)",
-
         "r23": "인플루언서 관리",
-
         "r24": "Ops 허브 (배치·재처리)",
-
         "r25": "감사 로그",
-
         "r26": "팀 관리 (RBAC)",
-
         "r27": "계정 수",
-
         "r28": "지원 유형"
-
       },
-
       "cmpVal": {
-
         "all": "전체",
-
         "basic": "기본",
-
         "realtime": "실시간",
-
         "domestic_core": "내수 핵심",
-
         "domestic": "내수",
-
         "dom_global": "내수+글로벌",
-
         "market_share": "시장 점유율",
-
         "basic_auto": "기본 자동 분류",
-
         "advanced_custom": "고급 커스텀",
-
         "conv_path_all": "전환 경로 전체",
-
         "trend_forecast": "트렌드 예측",
-
         "bizboard": "비즈보드",
-
         "competitor_compare": "경쟁사 비교",
-
         "location_barcode": "위치 & 바코드",
-
         "list_view": "리스트 뷰",
-
         "contract": "계약",
-
         "policy_review": "정책 검토 목록",
-
         "cohort_pl": "코호트 손익 전체",
-
         "notification_basic": "알림 기본",
-
         "rule_writeback": "룰 엔진 리라이트",
-
         "instant_rollback": "즉시 롤백",
-
         "partner_api": "파트너 API 양방향",
-
         "install_analysis": "설치 & 분석",
-
         "server_side": "서버 사이드",
-
         "domestic_ads": "내수 광고 통합",
-
         "schema_quality_view": "스키마 품질 뷰",
-
         "owner_streaming": "오너 스트리밍",
-
         "custom_excel": "커스텀 엑셀",
-
         "anomaly_detect": "이상 탐지",
-
         "auto_scheduled_share": "자동 스케줄 공유",
-
         "manual": "수동",
-
         "realtime_rate": "실시간 비율",
-
         "perf_view": "성능 뷰",
-
         "campaign_settle": "캠페인 정산",
-
         "reprocess": "재처리",
-
         "notification_send": "알림 발송",
-
         "own_history": "자체 이력",
-
         "list_invite": "리스트 초대",
-
         "activity_history": "활동 이력",
-
         "rbac_role": "RBAC 역할 설정",
-
         "unlimited": "무제한",
-
         "chat_support": "채팅 지원",
-
         "dedicated_manager": "전담 매니저",
-
         "dedicated_sla": "전담 + SLA",
-
         "aiPredict": {
-
           "pageTitle": "AI 예측 분석 허브",
-
           "pageSub": "구매확률·LTV·이탈스코어·추천엔진·ML",
-
           "liveDB": "🟢 실시간 DB",
-
           "Sim": "🟡 데모 시뮬레이션",
-
           "loading": "ML 모델에서 예측 데이터 로드 중...",
-
           "filterAll": "전체 위험도",
-
           "filterHigh": "🔴 이탈위험",
-
           "filterMed": "🟡 중간위험",
-
           "filterLow": "🟢 안전",
-
           "noResults": "검색 결과 없음",
-
           "retry": "재시도",
-
           "bulkAction": "⚡ 이탈 일괄 대응",
-
           "kpi": {
-
             "k_0": "실시간 · 블렌디드 ROAS",
-
             "k_1": "영업이익",
-
             "k_2": "주문",
-
             "k_3": "수익률",
-
             "k_4": "매출",
-
             "k_5": "비용",
-
             "k_6": "클릭률",
-
             "k_7": "전환",
-
             "k_8": "CPC",
-
             "k_9": "채널 인텔리전스",
-
             "p_1": "총 매출",
-
             "p_2": "광고비",
-
             "p_3": "플랫폼 수수료",
-
             "p_4": "인플루언서 비용",
-
             "p_5": "순 정산액",
-
             "p_6": "순이익",
-
             "p_7": "총 주문",
-
             "p_8": "반품",
-
             "p_9": "이상치",
-
             "p_10": "블렌디드 ROAS",
-
             "p_11": "손익 워터폴 - 3-도메인 통합",
-
             "p_12": "광고 도메인",
-
             "p_13": "시장 도메인",
-
             "p_14": "인플루언서",
-
             "p_15": "SKU별",
-
             "p_16": "채널별",
-
             "p_17": "캠페인별",
-
             "p_18": "크리에이터별",
-
             "p_19": "예측 손익 시뮬레이션",
-
             "p_20": "파라미터 설정",
-
             "p_21": "연간 매출 예측",
-
             "p_22": "순이익 예측"
-
           },
-
           "tab": {
-
             "customers": "👤 고객",
-
             "onboardDesc": "가입 후 3단계 자동 케어",
-
             "vipDesc": "VIP 세그먼트 자동 케어",
-
             "churnDesc": "고위험 이탈 고객 자동 대응",
-
             "bdayDesc": "생일 고객 자동 쿠폰"
-
           },
-
           "aiRec": {
-
             "salesInfo": "📦 판매 제품 정보",
-
             "catalogAuto": "카탈로그 자동 입력",
-
             "skuCount": "상품명/SKU 수",
-
             "monthlyQty": "월 판매 목표",
-
             "avgPrice": "평균 단가",
-
             "marginRate": "마진율",
-
             "goalRevenue": "목표 매출",
-
             "mainChannels": "주요 판매 채널",
-
             "searchPh": "예: 뷰티 브랜드 인스타그램 광고 전략 또는 마케팅 목표 입력"
-
           },
-
           "cat": {
-
             "beauty": "💄 뷰티·코스메틱",
-
             "fashion": "👗 패션·의류",
-
             "general": "🛍 생활·잡화",
-
             "food": "🥗 식품·건강",
-
             "electronics": "📱 전자·IT",
-
             "forwarding": "🚢 배송대행",
-
             "purchasing": "🛒 구매대행",
-
             "travel": "✈️ 여행·숙박",
-
             "digital": "💻 디지털·앱",
-
             "sports": "⚽ 스포츠·레저"
-
           }
-
         }
-
       },
-
       "units": {
-
         "pts": "점",
-
         "ppl": "명",
-
         "items": "건",
-
         "types": "종",
-
         "perDay": "일",
-
         "ago": "전"
-
       },
-
       "menu": {
-
         "home": "홈 대시보드",
-
         "dashboard": "통합 대시보드",
-
         "rollup": "통합 뷰",
-
         "aiMarketing": "🚀 AI 마케팅 자동화",
-
         "autoMarketing": "AI 전략 생성",
-
         "campaignManager": "캠페인 관리",
-
         "journeyBuilder": "고객 여정 빌더",
-
         "aiPrediction": "AI 예측 + 그래프 스코어",
-
         "contentCalendar": "콘텐츠 캘린더",
-
         "budgetPlanner": "예산 플래너",
-
         "adAnalytics": "광고·채널 분석",
-
         "adPerformance": "광고성과",
-
         "attribution": "어트리뷰션",
-
         "channelKpi": {
-
           "heroDesc": "판매·광고·분석 채널의 API 키를 등록하고 연결 상태를 관리합니다.",
-
           "achieved": "달성",
-
           "brandAwareness": "브랜드 인지도 강화",
-
           "brandAwarenessDesc": "노출, 도달, 브랜드 검색량 증대 목표",
-
           "webTraffic": "웹사이트 트래픽 극대화",
-
           "webTrafficDesc": "방문자 수 증대 및 세션 체류시간 확보 목표",
-
           "inquiriesPurchases": "문의 및 구매 전환 집중",
-
           "inquiriesPurchasesDesc": "CPA, 구매 전환율 최적화, 매출 증대",
-
           "bizGoalSetting": "1. 비즈니스 목표 설정",
-
           "selected": "✔ 선택됨",
-
           "clickSelect": "클릭하여 선택",
-
           "selectedGoals": "선택된 목표",
-
           "pleaseSelectGoal": "목표를 선택해 주세요.",
-
           "roleCaptureIntent": "고객 의도 포착 및 전환",
-
           "descCaptureIntent": "구매 의도가 높은 사용자를 타겟하여 직접적인 전환 발생",
-
           "roleBrandReach": "브랜드 도달 및 숏폼 인게이지먼트",
-
           "descBrandReach": "시각적 콘텐츠를 통한 잠재 고객 발굴 및 초기 인지도 형성",
-
           "roleInfoTrust": "정보 제공 및 신뢰도 구축",
-
           "pageViews": "페이지 뷰",
-
           "visitors": "방문자 수",
-
           "searchTraffic": "검색 유입",
-
           "descInfoTrust": "리뷰 및 전문 지식을 통한 고객 신뢰 획득 및 SEO 유입",
-
           "roleCustRel": "고객 관계 및 커뮤니티 육성",
-
           "postViews": "게시글 조회 수",
-
           "comments": "댓글/반응 수",
-
           "inquiries": "고객 문의 수",
-
           "newMembers": "신규 가입 수",
-
           "descCustRel": "기존 고객의 충성도 유지 및 자연스러운 입소문(UGC) 유도",
-
           "channelRoleDef": "2. 채널별 역할 정의",
-
           "coreKpis": "핵심 측정 지표",
-
           "hintCtr": "광고 클릭 비율",
-
           "hintConvRate": "방문자 대비 전환 비율",
-
           "hintCpa": "1회 전환(구매/문의)당 비용",
-
           "hintRoas": "광고비 대비 매출액 비율",
-
           "hintCpc": "1회 클릭당 비용",
-
           "targetSetup": "3. 채널별 개별 KPI 목표 설정",
-
           "snsKpiOverview": "SNS 매체 종합 성과",
-
           "allChannels": "모든 채널 합산",
-
           "snsKpiByChannel": "채널별 SNS KPI 상세",
-
           "contentKpi": "콘텐츠 채널 성과 (블로그/카페)",
-
           "contentImpressions": "콘텐츠 노출 규모",
-
           "siteTraffic": "사이트 트래픽 규모",
-
           "avgTime": "평균 체류 시간",
-
           "contentEngage": "콘텐츠 몰입도",
-
           "seoImpact": "검색엔진 최적화 유입",
-
           "monthlyTrend": "최근 14일 트렌드",
-
           "communityKpi": "커뮤니티 성과 및 가입자 지표",
-
           "contentInterest": "콘텐츠 관심도",
-
           "communityAct": "활성화 요인",
-
           "interestConv": "관심 전환율",
-
           "communityGrowth": "커뮤니티 성장률",
-
           "descCtr": "높을수록 광고 클릭 효율 좋음",
-
           "descConvRate": "최종 전환의 퍼센티지",
-
           "descCpa": "낮을수록 획득 비용 효율적",
-
           "descRoas": "광고비 투자 수익 배율",
-
           "descCpc": "클릭당 적정 비용",
-
           "targetVsActuals": "KPI 목표 대비 실제 달성률 추적",
-
           "overallAchieve": "종합 달성도 요약",
-
           "achievedOk": "목표 달성 완료",
-
           "belowTarget": "목표 미달성 (대응 필요)",
-
           "chkEff": "적정 효율",
-
           "chkCostPerf": "가성비 관리 필요",
-
           "chkImprove": "전환율 리스크",
-
           "monitorAi": "성과 모니터링 & AI 진단",
-
           "claudeAiTitle": "Claude AI KPI 심층 분석 리포트",
-
           "claudeAiDesc": "현재 집계된 모든 데이터를 종합하여 강점과 개선점을 리포트합니다.",
-
           "weeklyAi": "주간 요약 생성",
-
           "monthlyAi": "월간 요약 생성",
-
           "aiAnalyzing": "Claude AI가 다면 분석을 진행 중입니다...",
-
           "runAi": "AI 리포트 실행하기",
-
           "aiSummary": "AI 종합 요약",
-
           "strengths": "주요 강점 (Strengths)",
-
           "weaknesses": "취약점/리스크 (Weaknesses)",
-
           "improveRecs": "개선 권고사항",
-
           "weeklyAdTrend": "주간 주요 트렌드 (실시간 반영)",
-
           "checklist": "담당자 체크리스트",
-
           "aiHistoryList": "최근 AI 생성 기록 (최대 5건)",
-
           "noHistory": "아직 생성된 AI 리포트 기록이 없습니다.",
-
           "tabGoals": "목표 설정",
-
           "tabRoles": "채널 역할",
-
           "tabSetup": "세부 KPI 설정",
-
           "tabSns": "SNS KPI 심층 진단",
-
           "tabContent": "콘텐츠 KPI 집중",
-
           "tabCommunity": "커뮤니티 진단",
-
           "tabTargets": "목표 달성도 추적",
-
           "tabMonitor": "모니터링 & AI"
-
         },
-
         "marketingIntel": {
-
           "pageTitle": "🧠 마케팅 인텔리전스",
-
           "pageSub": "유입·전환 분석 · 20개 표준 KPI 기여도 점수화 · AI 추천 · 자동화 승인 실행",
-
           "badge4ch": "4 채널",
-
           "badge5inf": "5 인플루언서",
-
           "badge20kpi": "20개 KPI",
-
           "badgeAiRec": "AI 추천 {{n}}건",
-
           "todayAdSpend": "오늘 총 광고비",
-
           "summaryOrders": "주문 {{n}}건 · 총 매출 {{rev}} · ROAS {{roas}}x",
-
           "tabFunnel": "📊 유입·전환 분석",
-
           "tabFunnelDesc": "퍼널·채널·인플루언서 전환",
-
           "tabKpi": "📋 표준 평가지표",
-
           "tabKpiDesc": "20개 KPI 기여도 점수화",
-
           "tabAi": "🤖 AI 추천 엔진",
-
           "tabAiDesc": "AI 마케팅 방법 추천",
-
           "tabAuto": "⚙️ 마케팅 자동화",
-
           "tabAutoDesc": "자동화 규칙·승인·실행",
-
           "funnelTotal": "🔽 전체 마케팅 퍼널 (4개 채널 통합)",
-
           "funnelImp": "노출 수",
-
           "funnelClicks": "클릭 수",
-
           "funnelCart": "장바구니",
-
           "funnelOrders": "구매 수",
-
           "funnelSpend": "총 광고비",
-
           "ctr": "클릭률",
-
           "cartRate": "장바구니율",
-
           "finalCvr": "최종 전환율",
-
           "channelDetail": "📣 채널별 유입·전환 상세 (클릭하여 상세 보기)",
-
           "adSpend": "광고비",
-
           "cvr": "전환율",
-
           "cartToBuy": "카트→구매",
-
           "roas": "수익률",
-
           "cpc": "CPC",
-
           "cpo": "CPO (건당비용)",
-
           "aov": "AOV (평균주문가)",
-
           "totalRevContrib": "총 매출 기여",
-
           "newCustPct": "신규 고객 비율",
-
           "mobileCvr": "모바일 전환",
-
           "infFunnel": "🤝 인플루언서 캠페인 유입·전환",
-
           "creator": "크리에이터",
-
           "scale": "규모",
-
           "reach": "도달",
-
           "clicks": "클릭",
-
           "purchase": "구매",
-
           "convRate": "전환율",
-
           "investment": "투자비",
-
           "roi": "ROI",
-
           "verdict": "판정",
-
           "verdictGood": "우수",
-
           "verdictOk": "보통",
-
           "verdictBad": "저조",
-
           "kpiTotal": "🏆 채널 종합 기여도 점수 (20개 지표 가중 합산)",
-
           "kpiTable": "📋 20개 표준 평가지표 상세 (채널별)",
-
           "kpiMetric": "지표명",
-
           "kpiCat": "분류",
-
           "kpiWeight": "비중",
-
           "kpiContrib": "🔢 다차원 기여도 분석",
-
           "kpiContribSub": ":{{dim}} 기준 매출 기여도 분포",
-
           "dimChannel": "채널 유형",
-
           "dimContent": "콘텐츠 유형",
-
           "dimTier": "인플루언서 규모",
-
           "dimDevice": "디바이스",
-
           "dimTime": "시간대별",
-
           "dimCustomer": "고객 유형",
-
           "dimCoupon": "프로모션 유형",
-
           "dimTouch": "터치포인트 수",
-
           "aiEngine": "🤖 Claude AI 마케팅 추천 엔진",
-
           "aiEngineDesc": "유입·전환·기여도 분석 기반 최적 마케팅 전략 추천",
-
           "runAI": "🚀 AI 분석 실행",
-
           "analyzing": "⏳ 분석 중...",
-
           "confLabel": "신뢰도 {{n}}%",
-
           "expRoas": "기대 ROAS:",
-
           "effort": "실행 난이도:",
-
           "reasonLabel": "📌 추천 이유",
-
           "actionLabel": "실행 액션:",
-
           "autoRules": "⚙️ 자동화 규칙 목록",
-
           "statusPending": "승인 대기",
-
           "statusApproved": "승인됨",
-
           "statusActive": "실행 중",
-
           "statusRejected": "거절됨",
-
           "trigger": "트리거",
-
           "action": "액션",
-
           "effect": "예상 효과",
-
           "confidence": "AI 신뢰도",
-
           "approve": "✓ 승인",
-
           "reject": "✕ 거절",
-
           "execute": "🚀 실행",
-
           "running": "✓ 실행 중",
-
           "rejected": "✕ 거절됨",
-
           "riskLow": "낮음",
-
           "riskMedium": "보통",
-
           "riskHigh": "높음",
-
           "execLog": "📜 자동화 실행 로그",
-
           "logApproved": "✅ [승인]",
-
           "logRejected": "❌ [거절]",
-
           "logExecuted": "🚀 [실행]",
-
           "adCreativeTitle": "🎨 AI 광고 소재 생성 스튜디오",
-
           "adCreativeSub": "Claude AI가 채널·카테고리·타겟에 맞춤화된 광고 소재를 자동 생성합니다",
-
           "adPlatform": "📢 광고 플랫폼 선택",
-
           "adSize": "📐 광고 사이즈",
-
           "adStyle": "🎨 크리에이티브 스타일",
-
           "adTone": "✍️ 카피 톤앤매너",
-
           "adProduct": "🛍 상품명",
-
           "adProductPh": "예: 수분 크림 프리미엄 50ml",
-
           "adKeyword": "🔑 핵심 키워드",
-
           "adKeywordPh": "예: 수분, 탄력, 피부장벽",
-
           "adTarget": "🎯 타겟 오디언스",
-
           "adTargetPh": "예: 30대 여성, 건성 피부 관심",
-
           "adCta": "📣 CTA 버튼",
-
           "adGenerate": "✨ AI 광고 소재 생성",
-
           "adGenerating": "🤖 AI가 광고 소재를 생성하는 중…",
-
           "adResult": "🎨 생성된 광고 소재",
-
           "adHeadline": "헤드라인",
-
           "adBody": "본문 카피",
-
           "adCtaLabel": "CTA",
-
           "adHashtags": "해시태그",
-
           "adKeywords": "키워드",
-
           "adDownload": "⬇ 다운로드",
-
           "adRegenerate": "🔄 재생성",
-
           "adCopy": "📋 복사"
-
         },
-
         "graphScore": "그래프 스코어",
-
         "influencer": "인플루언서 관리",
-
         "reviewsUgc": "리뷰 & UGC 분석",
-
         "crm": "고객·CRM",
-
         "crmMain": "고객 CRM + AI 세그먼트",
-
         "emailMarketing": "이메일 + A/B테스트",
-
         "kakaoChannel": "카카오 채널",
-
         "whatsapp": "WhatsApp",
-
         "smsMarketing": "SMS/LMS 마케팅",
-
         "instagramDm": "Instagram/Facebook DM",
-
         "lineChannel": "LINE 채널",
-
         "webPopup": "웹 팝업",
-
         "customerCrm": "고객 CRM",
-
         "commerce": "🛒 커머스·물류",
-
         "commerceSearch": "통합 조회",
-
         "approvals": {
-
           "pageTitle": "✅ 승인 워크플로우",
-
           "pageSub": "캠페인·정책·예산 변경 승인 및 실행 센터",
-
           "tabPending": "⏳ 승인 대기",
-
           "tabApproved": "✅ 승인됨",
-
           "tabRejected": "❌ 반려",
-
           "itemTitle": "항목",
-
           "requester": "요청자",
-
           "requestedAt": "요청일",
-
           "approver": "승인자",
-
           "approvedAt": "승인일",
-
           "action": "액션",
-
           "approve": "✅ 승인",
-
           "reject": "❌ 반려",
-
           "viewDetail": "상세",
-
           "noPending": "승인 대기 항목이 없습니다.",
-
           "statusPending": "대기",
-
           "statusApproved": "승인됨",
-
           "statusExecuted": "실행완료",
-
           "statusRejected": "반려",
-
           "requestList": "요청 목록",
-
           "filterAll": "전체",
-
           "btnApprove": "승인",
-
           "btnReject": "반려",
-
           "btnExecute": "실행",
-
           "noRequests": "해당 상태의 요청이 없습니다",
-
           "GuardDecide": "데모 모드: 주문 승인/반려는 실제 운영 계정에서만 가능합니다.",
-
           "GuardExecute": "데모 모드: 액션 실행은 실제 운영 계정에서만 가능합니다.",
-
           "executeDone": "실행 완료 (데모 시뮬레이션)"
-
         },
-
         "writeback": {
-
           "pageTitle": "↩ 라이트백",
-
           "pageSub": "데이터 라이트백 정책 관리 · 외부 시스템 동기화",
-
           "tabPolicies": "📋 정책 목록",
-
           "tabLog": "📜 실행 로그",
-
           "policyName": "정책명",
-
           "target": "타겟 시스템",
-
           "trigger": "트리거",
-
           "frequency": "주기",
-
           "status": "상태",
-
           "lastRun": "최근 실행",
-
           "active": "활성",
-
           "inactive": "비활성",
-
           "createPolicy": "+ 정책 생성",
-
           "runNow": "▶ 지금 실행",
-
           "noPolicies": "라이트백 정책이 없습니다."
-
         },
-
         "connectors": {
-
           "pageTitle": "🔌 채널 커넥터",
-
           "pageSub": "Meta, Google, Naver, Coupang, TikTok을 포함한 30개 이상의 광고 및 판매 채널 API를 연결",
-
           "tabAll": "모두",
-
           "tabAds": "광고 채널",
-
           "tabSales": "판매 채널",
-
           "tabLogistics": "물류",
-
           "connected": "연결됨",
-
           "notConnected": "연결되지 않음",
-
           "connect": "연결",
-
           "disconnect": "연결 해제",
-
           "testConnection": "연결 테스트",
-
           "configure": "구성",
-
           "syncFrequency": "동기화 빈도",
-
           "lastSync": "마지막 동기화",
-
           "real_time": "실시간",
-
           "hourly": "매시간",
-
           "daily": "매일",
-
           "apiKey": "API 키",
-
           "oauthLogin": "OAuth 로그인",
-
           "noConnectors": "사용 가능한 커넥터가 없습니다."
-
         },
-
         "eventNorm": {
-
           "pageTitle": "🔄 이벤트 정규화",
-
           "pageSub": "채널 이벤트 스키마를 표준 형식으로 정규화",
-
           "tab스키마": "📋 스키마",
-
           "tabMapping": "🔗 매핑 규칙",
-
           "tabTest": "🔬 테스트",
-
           "eventName": "이벤트 이름",
-
           "sourceChannel": "소스 채널",
-
           "standardEvent": "표준 이벤트",
-
           "mappingRule": "매핑 규칙",
-
           "status": "상태",
-
           "addSchema": "+ 스키마 추가",
-
           "testEvent": "테스트 이벤트",
-
           "noSchemas": "등록된 스키마가 없습니다."
-
         },
-
         "mappingRegistry": {
-
           "pageTitle": "🧩 매핑 레지스트리",
-
           "pageSub": "채널, 제품 및 카테고리 매핑 규칙의 통합 관리",
-
           "tabChannelMap": "채널 매핑",
-
           "tabProductMap": "제품 매핑",
-
           "tabCategoryMap": "카테고리 매핑",
-
           "fromChannel": "출처",
-
           "toChannel": "대상",
-
           "mappingRule": "매핑 규칙",
-
           "addMapping": "+ 매핑 추가",
-
           "edit": "편집",
-
           "delete": "삭제",
-
           "noMappings": "등록된 매핑이 없습니다."
-
         }
-
       },
-
       "subtitle": "실시간 KPI 모니터링 · 이상 감지 · 채널 간 분석",
-
       "tabOverview": "개요",
-
       "tabChannels": "채널",
-
       "tabProducts": "상품",
-
       "tabAudience": "오디언스",
-
       "tabCreatives": "소재",
-
       "kpiRevenue": "총 매출",
-
       "kpiSpend": "총 광고비",
-
       "kpiRoas": "수익률",
-
       "kpiConversions": "전환",
-
       "kpiCtr": "클릭률",
-
       "kpiCvr": "CVR",
-
       "channelPerf": "채널별 성과",
-
       "productPerf": "상품별 성과",
-
       "audienceInsights": "오디언스 인사이트",
-
       "creativePerf": "소재 성과",
-
       "colChannel": "채널",
-
       "colRevenue": "매출",
-
       "colSpend": "광고비",
-
       "colRoas": "수익률",
-
       "colConversions": "전환",
-
       "colCtr": "CTR%",
-
       "colCvr": "CVR%",
-
       "topProducts": "상위 상품",
-
       "anomalyDetected": "이상 감지됨",
-
       "noAnomaly": "이상 없음",
-
       "dateRange": "기간",
-
       "compareTo": "비교 대상",
-
       "exportReport": "리포트 내보내기",
-
       "team": "팀",
-
       "allTeams": "전체 팀",
-
       "account": "계정",
-
       "allAccounts": "전체 계정",
-
       "prob30": "30일 구매확률",
-
       "churn": "이탈 위험",
-
       "marketingIntel": {
-
         "pageTitle": "🧠 마케팅 인텔리전스",
-
         "pageSub": "유입·전환 분석 · 20개 표준 KPI 기여도 점수화 · AI 추천 · 자동화 승인 실행",
-
         "badge4ch": "4 채널",
-
         "badge5inf": "5 인플루언서",
-
         "badge20kpi": "20개 KPI",
-
         "badgeAiRec": "AI 추천 {{n}}건",
-
         "todayAdSpend": "오늘 총 광고비",
-
         "summaryOrders": "주문 {{n}}건 · 총 매출 {{rev}} · ROAS {{roas}}x",
-
         "tabFunnel": "📊 유입·전환 분석",
-
         "tabFunnelDesc": "퍼널·채널·인플루언서 전환",
-
         "tabKpi": "📋 표준 평가지표",
-
         "tabKpiDesc": "20개 KPI 기여도 점수화",
-
         "tabAi": "🤖 AI 추천 엔진",
-
         "tabAiDesc": "AI 마케팅 방법 추천",
-
         "tabAuto": "⚙️ 마케팅 자동화",
-
         "tabAutoDesc": "자동화 규칙·승인·실행",
-
         "funnelTotal": "🔽 전체 마케팅 퍼널 (4개 채널 통합)",
-
         "funnelImp": "노출 수",
-
         "funnelClicks": "클릭 수",
-
         "funnelCart": "장바구니",
-
         "funnelOrders": "구매 수",
-
         "funnelSpend": "총 광고비",
-
         "ctr": "클릭률",
-
         "cartRate": "장바구니율",
-
         "finalCvr": "최종 전환율",
-
         "channelDetail": "📣 채널별 유입·전환 상세 (클릭하여 상세 보기)",
-
         "adSpend": "광고비",
-
         "cvr": "전환율",
-
         "cartToBuy": "카트→구매",
-
         "roas": "수익률",
-
         "cpc": "CPC",
-
         "cpo": "CPO (건당비용)",
-
         "aov": "AOV (평균주문가)",
-
         "totalRevContrib": "총 매출 기여",
-
         "newCustPct": "신규 고객 비율",
-
         "mobileCvr": "모바일 전환",
-
         "infFunnel": "🤝 인플루언서 캠페인 유입·전환",
-
         "creator": "크리에이터",
-
         "scale": "규모",
-
         "reach": "도달",
-
         "clicks": "클릭",
-
         "purchase": "구매",
-
         "convRate": "전환율",
-
         "investment": "투자비",
-
         "roi": "ROI",
-
         "verdict": "판정",
-
         "verdictGood": "우수",
-
         "verdictOk": "보통",
-
         "verdictBad": "저조",
-
         "kpiTotal": "🏆 채널 종합 기여도 점수 (20개 지표 가중 합산)",
-
         "kpiTable": "📋 20개 표준 평가지표 상세 (채널별)",
-
         "kpiMetric": "지표명",
-
         "kpiCat": "분류",
-
         "kpiWeight": "비중",
-
         "kpiContrib": "🔢 다차원 기여도 분석",
-
         "kpiContribSub": ":{{dim}} 기준 매출 기여도 분포",
-
         "dimChannel": "채널 유형",
-
         "dimContent": "콘텐츠 유형",
-
         "dimTier": "인플루언서 규모",
-
         "dimDevice": "디바이스",
-
         "dimTime": "시간대별",
-
         "dimCustomer": "고객 유형",
-
         "dimCoupon": "프로모션 유형",
-
         "dimTouch": "터치포인트 수",
-
         "aiEngine": "🤖 Claude AI 마케팅 추천 엔진",
-
         "aiEngineDesc": "유입·전환·기여도 분석 기반 최적 마케팅 전략 추천",
-
         "runAI": "🚀 AI 분석 실행",
-
         "analyzing": "⏳ 분석 중...",
-
         "confLabel": "신뢰도 {{n}}%",
-
         "expRoas": "기대 ROAS:",
-
         "effort": "실행 난이도:",
-
         "reasonLabel": "📌 추천 이유",
-
         "actionLabel": "실행 액션:",
-
         "autoRules": "⚙️ 자동화 규칙 목록",
-
         "statusPending": "승인 대기",
-
         "statusApproved": "승인됨",
-
         "statusActive": "실행 중",
-
         "statusRejected": "거절됨",
-
         "trigger": "트리거",
-
         "action": "액션",
-
         "effect": "예상 효과",
-
         "confidence": "AI 신뢰도",
-
         "approve": "✓ 승인",
-
         "reject": "✕ 거절",
-
         "execute": "🚀 실행",
-
         "running": "✓ 실행 중",
-
         "rejected": "✕ 거절됨",
-
         "riskLow": "낮음",
-
         "riskMedium": "보통",
-
         "riskHigh": "높음",
-
         "execLog": "📜 자동화 실행 로그",
-
         "logApproved": "✅ [승인]",
-
         "logRejected": "❌ [거절]",
-
         "logExecuted": "🚀 [실행]",
-
         "adCreativeTitle": "🎨 AI 광고 소재 생성 스튜디오",
-
         "adCreativeSub": "Claude AI가 채널·카테고리·타겟에 맞춤화된 광고 소재를 자동 생성합니다",
-
         "adPlatform": "📢 광고 플랫폼 선택",
-
         "adSize": "📐 광고 사이즈",
-
         "adStyle": "🎨 크리에이티브 스타일",
-
         "adTone": "✍️ 카피 톤앤매너",
-
         "adProduct": "🛍 상품명",
-
         "adProductPh": "예: 수분 크림 프리미엄 50ml",
-
         "adKeyword": "🔑 핵심 키워드",
-
         "adKeywordPh": "예: 수분, 탄력, 피부장벽",
-
         "adTarget": "🎯 타겟 오디언스",
-
         "adTargetPh": "예: 30대 여성, 건성 피부 관심",
-
         "adCta": "📣 CTA 버튼",
-
         "adGenerate": "✨ AI 광고 소재 생성",
-
         "adGenerating": "🤖 AI가 광고 소재를 생성하는 중…",
-
         "adResult": "🎨 생성된 광고 소재",
-
         "adHeadline": "헤드라인",
-
         "adBody": "본문 카피",
-
         "adCtaLabel": "CTA",
-
         "adHashtags": "해시태그",
-
         "adKeywords": "키워드",
-
         "adDownload": "⬇ 다운로드",
-
         "adRegenerate": "🔄 재생성",
-
         "adCopy": "📋 복사",
-
         "aiSuggestions": "AI 제안",
-
         "optimizing": "최적화 중...",
-
         "budgetOptDesc": "AI 기반 예산 최적화",
-
         "channelAnalysis": "채널 분석",
-
         "trendDetection": "트렌드 감지",
-
         "creativeStudio": {
-
           "selectFirst": "먼저 카테고리를 선택해주세요",
-
           "selectFirstDesc": "배송대행 / 구매대행 / 뷰티 / 식품 등 카테고리를 선택하면해당 카테고리에 맞는 상품 정보 입력 폼이 자동으로 표시됩니다.",
-
           "selectStep": "① 카테고리 선택",
-
           "selectStepHint": "선택하면 해당 카테고리 전용 입력 폼으로 변경됩니다",
-
           "productInfo": "— 상품 정보 입력",
-
           "categoryOptimized": "📋 {{cat}} 카테고리에 최적화된 입력 폼입니다. 입력할수록 광고 소재 품질이 높아집니다.",
-
           "channelStep": "③ 광고 채널 선택",
-
           "adTipTitle": "💡 이 카테고리 광고 작성 팁",
-
           "headlineHint": "📌 헤드라인:",
-
           "bodyHint": "📝 본문:",
-
           "ctaHint": "👆 CTA",
-
           "customCopyToggle": "✍ 광고 헤드라인·본문 직접 입력하기 (선택, 미입력 시 AI 자동생성)",
-
           "customHeadline": "광고 헤드라인 (직접 입력)",
-
           "customBody": "광고 본문 (직접 입력)",
-
           "selectedLabel": "✓ 선택됨",
-
           "adTag": "광고",
-
           "adPreviewLabel": ":{{ch}} 광고 미리보기",
-
           "adFormatCount": ":{{n}}가지 포맷 자동 생성",
-
           "adSpec": "✅ {{ch}} 광고 규격 준수 · {{n}}종 포맷 자동 생성 완료",
-
           "cat_overseas_ship": "국제특송 배송대행",
-
           "cat_overseas_ship_desc": "해외 직구 상품을 대신 받아서 국내로 배송해드리는 서비스",
-
           "cat_overseas_buy": "구매대행",
-
           "cat_overseas_buy_desc": "해외 쇼핑몰 상품을 대신 구매해서 국내로 배송",
-
           "cat_beauty": "뷰티·코스메틱",
-
           "cat_beauty_desc": "스킨케어, 메이크업, 헤어케어 등 뷰티 제품",
-
           "cat_food": "식품·건강식품",
-
           "cat_food_desc": "건강기능식품, 가공식품, 유기농 식품 등",
-
           "cat_fashion": "패션·의류",
-
           "cat_fashion_desc": "의류, 잡화, 신발 등 패션 상품",
-
           "cat_general": "생활·잡화",
-
           "cat_general_desc": "주방용품, 생활소품, 인테리어 등",
-
           "cat_electronics": "전자·IT",
-
           "cat_electronics_desc": "스마트기기, 가전, 컴퓨터 주변기기 등",
-
           "cat_sports": "스포츠·레저",
-
           "cat_sports_desc": "운동용품, 아웃도어, 스포츠웨어 등"
-
         },
-
         "channelKpi": {
-
           "heroDesc": "판매·광고·분석 채널의 API 키를 등록하고 연결 상태를 관리합니다.",
-
           "achieved": "달성",
-
           "brandAwareness": "브랜드 인지도 강화",
-
           "brandAwarenessDesc": "노출, 도달, 브랜드 검색량 증대 목표",
-
           "webTraffic": "웹사이트 트래픽 극대화",
-
           "webTrafficDesc": "방문자 수 증대 및 세션 체류시간 확보 목표",
-
           "inquiriesPurchases": "문의 및 구매 전환 집중",
-
           "inquiriesPurchasesDesc": "CPA, 구매 전환율 최적화, 매출 증대",
-
           "bizGoalSetting": "1. 비즈니스 목표 설정",
-
           "selected": "✔ 선택됨",
-
           "clickSelect": "클릭하여 선택",
-
           "selectedGoals": "선택된 목표",
-
           "pleaseSelectGoal": "목표를 선택해 주세요.",
-
           "roleCaptureIntent": "고객 의도 포착 및 전환",
-
           "descCaptureIntent": "구매 의도가 높은 사용자를 타겟하여 직접적인 전환 발생",
-
           "roleBrandReach": "브랜드 도달 및 숏폼 인게이지먼트",
-
           "descBrandReach": "시각적 콘텐츠를 통한 잠재 고객 발굴 및 초기 인지도 형성",
-
           "roleInfoTrust": "정보 제공 및 신뢰도 구축",
-
           "pageViews": "페이지 뷰",
-
           "visitors": "방문자 수",
-
           "searchTraffic": "검색 유입",
-
           "descInfoTrust": "리뷰 및 전문 지식을 통한 고객 신뢰 획득 및 SEO 유입",
-
           "roleCustRel": "고객 관계 및 커뮤니티 육성",
-
           "postViews": "게시글 조회 수",
-
           "comments": "댓글/반응 수",
-
           "inquiries": "고객 문의 수",
-
           "newMembers": "신규 가입 수",
-
           "descCustRel": "기존 고객의 충성도 유지 및 자연스러운 입소문(UGC) 유도",
-
           "channelRoleDef": "2. 채널별 역할 정의",
-
           "coreKpis": "핵심 측정 지표",
-
           "hintCtr": "광고 클릭 비율",
-
           "hintConvRate": "방문자 대비 전환 비율",
-
           "hintCpa": "1회 전환(구매/문의)당 비용",
-
           "hintRoas": "광고비 대비 매출액 비율",
-
           "hintCpc": "1회 클릭당 비용",
-
           "targetSetup": "3. 채널별 개별 KPI 목표 설정",
-
           "snsKpiOverview": "SNS 매체 종합 성과",
-
           "allChannels": "모든 채널 합산",
-
           "snsKpiByChannel": "채널별 SNS KPI 상세",
-
           "contentKpi": "콘텐츠 채널 성과 (블로그/카페)",
-
           "contentImpressions": "콘텐츠 노출 규모",
-
           "siteTraffic": "사이트 트래픽 규모",
-
           "avgTime": "평균 체류 시간",
-
           "contentEngage": "콘텐츠 몰입도",
-
           "seoImpact": "검색엔진 최적화 유입",
-
           "monthlyTrend": "최근 14일 트렌드",
-
           "communityKpi": "커뮤니티 성과 및 가입자 지표",
-
           "contentInterest": "콘텐츠 관심도",
-
           "communityAct": "활성화 요인",
-
           "interestConv": "관심 전환율",
-
           "communityGrowth": "커뮤니티 성장률",
-
           "descCtr": "높을수록 광고 클릭 효율 좋음",
-
           "descConvRate": "최종 전환의 퍼센티지",
-
           "descCpa": "낮을수록 획득 비용 효율적",
-
           "descRoas": "광고비 투자 수익 배율",
-
           "descCpc": "클릭당 적정 비용",
-
           "targetVsActuals": "KPI 목표 대비 실제 달성률 추적",
-
           "overallAchieve": "종합 달성도 요약",
-
           "achievedOk": "목표 달성 완료",
-
           "belowTarget": "목표 미달성 (대응 필요)",
-
           "chkEff": "적정 효율",
-
           "chkCostPerf": "가성비 관리 필요",
-
           "chkImprove": "전환율 리스크",
-
           "monitorAi": "성과 모니터링 & AI 진단",
-
           "claudeAiTitle": "Claude AI KPI 심층 분석 리포트",
-
           "claudeAiDesc": "현재 집계된 모든 데이터를 종합하여 강점과 개선점을 리포트합니다.",
-
           "weeklyAi": "주간 요약 생성",
-
           "monthlyAi": "월간 요약 생성",
-
           "aiAnalyzing": "Claude AI가 다면 분석을 진행 중입니다...",
-
           "runAi": "AI 리포트 실행하기",
-
           "aiSummary": "AI 종합 요약",
-
           "strengths": "주요 강점 (Strengths)",
-
           "weaknesses": "취약점/리스크 (Weaknesses)",
-
           "improveRecs": "개선 권고사항",
-
           "weeklyAdTrend": "주간 주요 트렌드 (실시간 반영)",
-
           "checklist": "담당자 체크리스트",
-
           "aiHistoryList": "최근 AI 생성 기록 (최대 5건)",
-
           "noHistory": "아직 생성된 AI 리포트 기록이 없습니다.",
-
           "tabGoals": "목표 설정",
-
           "tabRoles": "채널 역할",
-
           "tabSetup": "세부 KPI 설정",
-
           "tabSns": "SNS KPI 심층 진단",
-
           "tabContent": "콘텐츠 KPI 집중",
-
           "tabCommunity": "커뮤니티 진단",
-
           "tabTargets": "목표 달성도 추적",
-
           "tabMonitor": "모니터링 & AI"
-
         },
-
         "approvals": {
-
           "heroDesc": "판매·광고·분석 채널의 API 키를 등록하고 연결 상태를 관리합니다.",
-
           "pageTitle": "✅ 승인 관리",
-
           "pageSub": "정책 → 승인 → 실행 → 감사",
-
           "statusPending": "대기",
-
           "statusApproved": "승인됨",
-
           "statusExecuted": "실행완료",
-
           "statusRejected": "반려",
-
           "filterAll": "전체",
-
           "requestList": "📋 승인 대기열",
-
           "noRequests": "승인 요청 없음",
-
           "noRequestsDesc": "AI 규칙 엔진 및 AI 정책의 승인 요청이 실시간으로 여기에 표시됩니다.",
-
           "btnApprove": "승인",
-
           "btnReject": "반려",
-
           "btnExecute": "실행",
-
           "executeDone": "실행 완료",
-
           "demoGuard": "데모 모드 — 승인 관리는 Pro 이상에서 이용 가능합니다",
-
           "tabQueue": "승인 대기열",
-
           "tabQueueDesc": "대기 중인 요청",
-
           "tabAudit": "감사 이력",
-
           "tabAuditDesc": "결정 로그",
-
           "tabSettings": "설정",
-
           "tabSettingsDesc": "승인 설정",
-
           "totalAudit": "감사 건수",
-
           "auditApproved": "승인됨",
-
           "auditSecurity": "보안",
-
           "noAudit": "감사 로그 없음",
-
           "noAuditDesc": "승인 결정 및 실행 로그가 실시간으로 여기에 표시됩니다.",
-
           "settingsTitle": "⚙ 승인 설정",
-
           "cfgAutoApprove": "저위험 자동 승인",
-
           "cfgAutoApproveDesc": "저위험 요청을 자동으로 승인",
-
           "cfgRequire2fa": "2FA 인증",
-
           "cfgRequire2faDesc": "승인 시 2단계 인증 필요",
-
           "cfgSlackNotify": "Slack 알림",
-
           "cfgSlackNotifyDesc": "승인 알림을 Slack으로 전송",
-
           "cfgEmailNotify": "이메일 알림",
-
           "cfgEmailNotifyDesc": "대기 중인 승인 시 이메일 전송",
-
           "cfgExecDelay": "실행 지연",
-
           "cfgExecDelayDesc": "액션 실행 전 5분 지연 추가",
-
           "cfgAuditLog": "감사 로깅",
-
           "cfgAuditLogDesc": "컴플라이언스를 위한 모든 승인 결정 기록",
-
           "cfgChanged": "설정 변경됨",
-
           "enabled": "활성화",
-
           "disabled": "비활성",
-
           "badgePending": "대기",
-
           "badgeTotal": "총 요청",
-
           "badgeRealtime": "실시간 동기화",
-
           "badgeSecurity": "보안 활성",
-
           "syncInventory": "재고",
-
           "syncOrders": "주문",
-
           "syncBudgets": "예산",
-
           "syncRules": "AI 규칙",
-
           "liveSyncStatus": "실시간 데이터 동기화 상태",
-
           "demoBanner": "🎭 데모 모드 — 승인 관리",
-
           "demoBannerDesc": "읽기 전용. Pro로 업그레이드하세요.",
-
           "upgradeBtn": "💎 Pro 업그레이드",
-
           "crossTabSync": "다른 탭에서 승인 동기화됨",
-
           "secTitle": "보안 위협 감지",
-
           "secDesc": "의심스러운 활동이 감지되었습니다.",
-
           "secCode": "해제 코드 입력",
-
           "secUnlock": "잠금 해제",
-
           "GuardDecide": "데모 모드에서는 승인/반려가 불가합니다",
-
           "GuardExecute": "데모 모드에서는 실행이 불가합니다"
-
         },
-
         "connectors": {
-
           "pageTitle": "🔌 채널 커넥터",
-
           "pageSub": "Meta, Google, Naver, Coupang, TikTok을 포함한 30개 이상의 광고 및 판매 채널 API를 연결",
-
           "tabAll": "모두",
-
           "tabAds": "광고 채널",
-
           "tabSales": "판매 채널",
-
           "tabLogistics": "물류",
-
           "connected": "연결됨",
-
           "notConnected": "연결되지 않음",
-
           "connect": "연결",
-
           "disconnect": "연결 해제",
-
           "testConnection": "연결 테스트",
-
           "configure": "구성",
-
           "syncFrequency": "동기화 빈도",
-
           "lastSync": "마지막 동기화",
-
           "real_time": "실시간",
-
           "hourly": "매시간",
-
           "daily": "매일",
-
           "apiKey": "API 키",
-
           "oauthLogin": "OAuth 로그인",
-
           "noConnectors": "사용 가능한 커넥터가 없습니다."
-
         },
-
         "eventNorm": {
-
           "pageTitle": "🔄 이벤트 정규화",
-
           "pageSub": "채널 이벤트 스키마를 표준 형식으로 정규화",
-
           "tab스키마": "📋 스키마",
-
           "tabMapping": "🔗 매핑 규칙",
-
           "tabTest": "🔬 테스트",
-
           "eventName": "이벤트 이름",
-
           "sourceChannel": "소스 채널",
-
           "standardEvent": "표준 이벤트",
-
           "mappingRule": "매핑 규칙",
-
           "status": "상태",
-
           "addSchema": "+ 스키마 추가",
-
           "testEvent": "테스트 이벤트",
-
           "noSchemas": "등록된 스키마가 없습니다."
-
         },
-
         "mappingRegistry": {
-
           "pageTitle": "🧩 매핑 레지스트리",
-
           "pageSub": "채널, 제품 및 카테고리 매핑 규칙의 통합 관리",
-
           "tabChannelMap": "채널 매핑",
-
           "tabProductMap": "제품 매핑",
-
           "tabCategoryMap": "카테고리 매핑",
-
           "fromChannel": "출처",
-
           "toChannel": "대상",
-
           "mappingRule": "매핑 규칙",
-
           "addMapping": "+ 매핑 추가",
-
           "edit": "편집",
-
           "delete": "삭제",
-
           "noMappings": "등록된 매핑이 없습니다."
-
         },
-
         "userMgmt": {
-
           "pageTitle": "👥 회원·권한 관리",
-
           "pageSub": "사용자 등록·권한 설정·역할 기반 접근 제어(RBAC)",
-
           "tabUsers": "👥 사용자 목록",
-
           "tabRoles": "🔐 역할 관리",
-
           "tabInvite": "✉️ 초대",
-
           "addUser": "+ 사용자 추가",
-
           "name": "이름",
-
           "email": "이메일",
-
           "role": "역할",
-
           "status": "상태",
-
           "lastLogin": "최근 로그인",
-
           "actions": "처리",
-
           "role_admin": "관리자",
-
           "role_editor": "편집자",
-
           "role_viewer": "뷰어",
-
           "role_": "데모",
-
           "status_active": "활성",
-
           "status_inactive": "비활성",
-
           "edit": "수정",
-
           "deactivate": "비활성화",
-
           "resendInvite": "초대 재발송",
-
           "inviteTitle": "사용자 초대",
-
           "inviteEmail": "초대할 이메일",
-
           "inviteRole": "역할 선택",
-
           "sendInvite": "초대 발송",
-
           "noUsers": "등록된 사용자가 없습니다."
-
         },
-
         "admin": {
-
           "pageTitle": "⚙️ 관리자 설정",
-
           "pageSub": "시스템 설정·거버넌스·워크스페이스 관리",
-
           "tabGeneral": "⚙️ 일반 설정",
-
           "tabWorkspace": "🏢 워크스페이스",
-
           "tabSecurity": "🔐 보안",
-
           "tabIntegrations": "🔌 연동",
-
           "tabBilling": "💳 결제",
-
           "workspaceName": "워크스페이스명",
-
           "workspacePlan": "플랜",
-
           "timezone": "시간대",
-
           "currency": "통화",
-
           "save": "설정 저장",
-
           "saved": "✅ 저장되었습니다",
-
           "twoFactor": "2단계 인증",
-
           "sessionTimeout": "세션 타임아웃",
-
           "ipRestriction": "IP 제한",
-
           "connected": "연결됨",
-
           "warning": "경고",
-
           "since": "이후",
-
           "callVolume": "통화량"
-
         },
-
         "auditLog": {
-
           "pageTitle": "🧾 감사 로그",
-
           "pageSub": "사용자 접속·데이터 변경·삭제 이력 추적",
-
           "filterUser": "사용자 필터",
-
           "filterAction": "액션 필터",
-
           "filterDate": "날짜 필터",
-
           "colTime": "시간",
-
           "colUser": "사용자",
-
           "colAction": "액션",
-
           "colDetail": "상세",
-
           "colIp": "IP",
-
           "colResult": "결과",
-
           "exportCsv": "CSV 내보내기",
-
           "noLogs": "감사 로그가 없습니다.",
-
           "action_login": "로그인",
-
           "action_logout": "로그아웃",
-
           "action_create": "생성",
-
           "action_update": "수정",
-
           "action_delete": "삭제",
-
           "action_export": "내보내기"
-
         },
-
         "dbAdmin": {
-
           "pageTitle": "🗄 DB 어드민",
-
           "pageSub": "데이터베이스 상태 모니터링 · 쿼리 실행 · 백업 관리",
-
           "tabStatus": "📊 상태",
-
           "tabQuery": "🔍 쿼리 실행",
-
           "tabBackup": "💾 백업",
-
           "dbConnected": "DB 연결됨",
-
           "totalTables": "총 테이블 수",
-
           "totalSize": "총 크기",
-
           "slowQueries": "슬로우 쿼리",
-
           "runQuery": "쿼리 실행",
-
           "queryPlaceholder": "SELECT * FROM ...",
-
           "execute": "실행",
-
           "queryResult": "쿼리 결과",
-
           "backupNow": "지금 백업",
-
           "lastBackup": "최근 백업",
-
           "backupHistory": "백업 이력"
-
         },
-
         "systemMonitor": {
-
           "pageTitle": "🖥️ 시스템 모니터",
-
           "pageSub": "서버 상태·API 응답시간·",
-
           "addFavorite": "즐겨찾기에 추가",
-
           "removeFavorite": "즐겨찾기에서 제거",
-
           "noFavorites": "즐겨찾기가 없습니다. ⭐ 를 클릭해 추가하세요.",
-
           "noRecents": "최근 방문 기록이 없습니다.",
-
           "pinned": "고정됨",
-
           "quickAccess": "빠른 접근",
-
           "removeFav": "즐겨찾기 해제",
-
           "addFav": "즐겨찾기 추가"
-
         }
-
       },
-
       "sidebar": {
-
         "favorites": "즐겨찾기",
-
         "recentVisits": "최근 방문",
-
         "addFavorite": "즐겨찾기에 추가",
-
         "removeFavorite": "즐겨찾기에서 제거",
-
         "noFavorites": "즐겨찾기가 없습니다. ⭐ 를 클릭해 추가하세요.",
-
         "noRecents": "최근 방문 기록이 없습니다.",
-
         "pinned": "고정됨",
-
         "quickAccess": "빠른 접근",
-
         "removeFav": "즐겨찾기 해제",
-
         "addFav": "즐겨찾기 추가",
-
         "footerLine1": "매출 + 리스크 + 거버넌스",
-
         "footerLine2": "정산 OS · v423.0.0"
-
       },
-
       "menuAccess": {
-
         "title": "🔐 메뉴 접근 권한 매트릭스",
-
         "desc": "역할별 메뉴·기능 접근 권한을 클릭으로 변경 (✅ 허용 · 👁 읽기전용 · 🔒 잠금)",
-
         "save": "💾 저장하기",
-
         "saved": "✓ 저장 완료",
-
         "reset": "↩ 기본값 초기화",
-
         "newFeature": "새 메뉴·기능 추가 시 즉시 반영 (이상감지·모델비교·즐겨찾기 포함)",
-
         "recommendTitle": "추천 접근 설정",
-
         "targetObj": "대상",
-
         "saveBtn": "저장",
-
         "permRead": "읽기",
-
         "permCreate": "생성",
-
         "permUpdate": "수정"
-
       },
-
       "triggerTypes": {
-
         "signup": "🌱 신규 가입",
-
         "purchase": "✅ 구매 완료",
-
         "cart_abandoned": "🛒 장바구니 이탈",
-
         "churned": "😴 이탈 위험 고객",
-
         "segment_entered": "📌 세그먼트 진입",
-
         "birthday": "🎂 생일",
-
         "manual": "▶ 수동 실행"
-
       },
-
       "nodeConfig": "⚙️ 노드 설정",
-
       "nodeName": "노드 이름",
-
       "triggerType": "트리거 유형",
-
       "emailSubject": "제목",
-
       "emailFrom": "발신자",
-
       "emailSubjectPh": "이메일 제목",
-
       "emailSenderPh": "Geniego",
-
       "emailTestSend": "✉️ 테스트 발송",
-
       "emailSimulate": "✉️ 시뮬레이션 발송",
-
       "kakaoTemplate": "템플릿 코드",
-
       "kakaoMsgType": "메시지 유형",
-
       "kakaoAlimtalk": "알림톡",
-
       "kakaoFriendtalk": "친구톡",
-
       "kakaoTest": "💬 카카오 시뮬레이션",
-
       "lineTemplate": "템플릿 코드",
-
       "lineMsgType": "메시지 유형",
-
       "lineTestSend": "💚 LINE 테스트",
-
       "lineSimulate": "💚 LINE 시뮬레이션",
-
       "delayTime": "대기 시간",
-
       "delayUnit": "단위",
-
       "minutes": "분",
-
       "hours": "시간",
-
       "days": "일",
-
       "conditionField": "조건 필드",
-
       "conditionEmailClicked": "이메일 클릭",
-
       "conditionEmailOpened": "이메일 열람",
-
       "conditionPurchased": "구매 완료",
-
       "conditionLtvGt": "LTV 초과",
-
       "conditionKakaoClicked": "카카오 클릭",
-
       "conditionLineClicked": "LINE 클릭",
-
       "abGroupA": "A그룹 비율 (%)",
-
       "abGroupB": "B그룹",
-
       "deleteNode": "🗑 삭제",
-
       "backToList": "← 목록으로",
-
       "saving": "저장 중...",
-
       "Simulation": "🎭 라이브 시뮬레이션",
-
       "execLog": "⚡ 실행 로그 (시뮬레이션)",
-
       "recentTriggers": "⚡ 최근 여정 트리거",
-
       "clickToEdit": "노드를 클릭하여 설정을 편집하세요",
-
       "nodeSettings": "⚙️ 노드 설정",
-
       "emailSendSim": "✉️ 이메일 {{count}}건 발송 (시뮬레이션)",
-
       "kakaoSendSim": "💬 카카오 {{count}}건 발송 (시뮬레이션)",
-
       "lineSendSim": "💚 LINE {{count}}건 발송 (시뮬레이션)",
-
       "ui": {
-
         "loading": "로딩 중…",
-
         "noData": "데이터 없음",
-
         "search": "검색…",
-
         "filter": "필터",
-
         "sort": "정렬",
-
         "export": "내보내기",
-
         "import": "가져오기",
-
         "create": "생성",
-
         "edit": "편집",
-
         "delete": "삭제",
-
         "view": "상세 보기",
-
         "save": "저장",
-
         "cancel": "취소",
-
         "confirm": "확인",
-
         "close": "닫기",
-
         "apply": "적용",
-
         "reset": "초기화",
-
         "prev": "이전",
-
         "next": "다음",
-
         "pageOf": ":{page} / {total}",
-
         "selectAll": "전체 선택",
-
         "deselectAll": "전체 해제",
-
         "colDate": "날짜",
-
         "colStatus": "상태",
-
         "colActions": "작업",
-
         "success": "성공",
-
         "error": "오류",
-
         "warning": "경고",
-
         "info": "정보",
-
         "copyLink": "링크 복사",
-
         "download": "다운로드",
-
         "upload": "업로드",
-
         "period": {
-
           "daily": "일별",
-
           "weekly": "주별",
-
           "monthly": "월별",
-
           "yearly": "연도별",
-
           "seasonal": "계절별"
-
         },
-
         "segment": {
-
           "audience": "오디언스",
-
           "category": "카테고리",
-
           "creative": "소재"
-
         }
-
       },
-
       "aiPredict": {
-
         "col": {
-
           "nextPurchase": "추정 다음 결제일",
-
           "prob30": "30일 이탈확률",
-
           "churn": "최종 이탈여부",
-
           "ltv12": "예상 12개월 LTV",
-
           "detail": "상세 보기"
-
         },
-
         "filterHigh": "고위험 이탈",
-
         "filterMed": "중위험 이탈",
-
         "filterLow": "이탈 징후 없음",
-
         "pageSub": "고객 데이터 기반 AI 평생 가치 예측 허브",
-
         "liveDB": "실시간 DB 연동 완료",
-
         "Sim": "AI 모델 시뮬레이션 모드",
-
         "kpi": {
-
           "k_16": "K_16",
-
           "k_17": "K_17",
-
           "k_18": "K_18",
-
           "k_19": "K_19",
-
           "k_20": "K_20",
-
           "k_3": "K_3",
-
           "k_4": "K_4",
-
           "k_5": "K_5",
-
           "k_6": "K_6",
-
           "k_7": "K_7",
-
           "k_8": "K_8",
-
           "target": "예측 대상",
-
           "churnRisk": "이탈 위험 고객",
-
           "churnAction": "즉시 조치 필요",
-
           "highLtv": "고 LTV 고객",
-
           "highLtvSub": "상위 20% 고객",
-
           "revenue": "예측 매출",
-
           "revenueSub": "다음 30일 예측",
-
           "mlAccuracy": "ML 정확도",
-
           "mlSub": "모델 신뢰도"
-
         },
-
         "adPerf": {
-
           "title": "광고 실적 통합 레포트",
-
           "team": "팀별 보기",
-
           "channel": "채널별 보기",
-
           "loading": "실시간 데이터 로딩 중...",
-
           "date": "날짜 (기간)",
-
           "impressions": "총 노출수",
-
           "clicks": "총 클릭수",
-
           "conversions": "총 전환수",
-
           "spend": "광고비 지출",
-
           "cpa": "CPA (전환단가)",
-
           "roas": "블렌디드 ROAS"
-
         },
-
         "gdpr": {
-
           "required": "필수",
-
           "panelTitle": "패널 제목",
-
           "panelSub": "패널 부제",
-
           "savePref": "환경설정 저장",
-
           "policyNote1": "정책 메모 1",
-
           "privacyPolicy": "개인정보 처리방침",
-
           "policyNote2": "정책 메모 2",
-
           "cookiePolicy": "쿠키 정책",
-
           "policyNote3": "정책 메모 3",
-
           "bannerTitle": "배너 제목",
-
           "bannerDesc": "배너 설명",
-
           "currentConsentStatus": "현재 동의 상태",
-
           "consented": "동의함",
-
           "notConsented": "동의 안 함",
-
           "consentDate": "동의 일자",
-
           "unknown": "알 수 없음",
-
           "editSettings": "설정 편집",
-
           "withdraw": "철회",
-
           "noConsentInfo": "동의 정보 없음",
-
           "consentNow": "지금 동의",
-
           "platformStats": "플랫폼 통계",
-
           "totalVisitors": "총 방문자 수",
-
           "consentRate": "동의율",
-
           "withdrawn": "철회됨",
-
           "analytics": "분석",
-
           "marketing": "마케팅"
-
         },
-
         "banner": {
-
           "mktLowRoas": "최근 24시간 Google Ads의 ROAS가 타겟 대비 30% 미달입니다. (현재 2.1x)",
-
           "mktRulesActive": "실시간 타겟팅 최적화 AI 규칙이 동작 중입니다.",
-
           "mktOptimizeNow": "수동 최적화 강제 개입",
-
           "mktHubAction": "마케팅 허브 바로가기",
-
           "mktHighRoas": "최근 48시간 TikTok의 ROAS가 타겟 대비 150%를 초과달성 중입니다.",
-
           "mktHighRoasSub": "수익성 극대화를 위해 예산 증액을 강력히 권장합니다.",
-
           "mktBudgetAction": "예산 20% 긴급 자동 증액",
-
           "crmChurn": "전체 VIP 유저 중 이탈 임박 고객이 2% 증가했습니다. (예상 손실액: 3천만원)",
-
           "crmVip": "VIP 전용 케어 시나리오 발동 대기 중입니다.",
-
           "crmJourney": "위험 고객 군에게 즉각적인 카카오 알림톡 특별 할인 쿠폰을 전송하시겠습니까?",
-
           "crmJourneyAction": "즉각 고객 여정 빌더 트리거 실행",
-
           "ordersAiRun": "배송 지연이 예측되는 주문이 24건 감지되었습니다. (동남아시아 권역)",
-
           "ordersAiSub": "해당 구매자들에게 지연 안내 Alimtalk 전송 여정을 구성할까요?",
-
           "ordersCampaignAction": "Alimtalk 사과 전송 캠페인 생성",
-
           "unified": {
-
             "mainTitle": "AI 통합 광고 캠페인 빌더",
-
             "heroDesc": "판매·광고·분석 채널의 API 키를 등록하고 연결 상태를 관리합니다.",
-
             "step1": "예산 입력",
-
             "step2": "AI 전략 추천",
-
             "step3": "원클릭 런치",
-
             "qBudget": "이번 캠페인에 얼마를 투자하시겠습니까?",
-
             "budgetSub": "나머지 채널별 복잡한 분배와 소재 생성은 AI가 알아서 해드립니다.",
-
             "whichCategory": "어떤 제품군을 광고하시나요? (카테고리 선택)",
-
             "catFashion": "👗 패션/의류",
-
             "catBeauty": "💄 뷰티/화장품",
-
             "catFood": "🍔 식품/건강",
-
             "catTech": "💻 가전/디지털",
-
             "catTravel": "✈️ 여행/숙박",
-
             "catSoftware": "☁️ 소프트웨어/플랫폼",
-
             "catGeneral": "🛍️ 기타/종합몰",
-
             "campName": "캠페인 명칭",
-
             "budgetLabel": "월 총 투자 예산 (₩)",
-
             "budgetErr": "카테고리를 선택하고 예산을 100,000원 이상 입력해 주세요.",
-
             "simulating": "AI 전략 수립 중...",
-
             "btnSimulate": "AI 통합 전략 수립하기",
-
             "mixTitle": "AI 미디어 믹스 추천",
-
             "mixSub": "입력하신 {amt}의 최적 분배안입니다.",
-
             "estRoas": "예상 통합 ROAS",
-
             "estConv": "예상 총 전환 수",
-
             "cases": "건",
-
             "expRoas": "예상 ROAS:",
-
             "btnRetry": "다시 입력",
-
             "btnNext": "이 전략으로 결제 진행 →",
-
             "launchTitle": "원클릭 승인 및 라이브 런치",
-
             "launchSub": "기존의 복잡한 결재 라인과 카드 등록 절차를 통합했습니다. 아래 버튼을 클릭하면 사전에 등록된 법인 카드 지갑에서 자동 과금되며 캠페인이 즉시 운영 모드로 진입합니다.",
-
             "payMethod": "결제 수단",
-
             "corporateCard": "법인 공용 카드 (끝자리 4821)",
-
             "totalAmt": "총 결제 금액",
-
             "btnReview": "전략 재검토",
-
             "btnLaunching": "결제 및 활성화 진행 중...",
-
             "btnLaunch": "결제 승인 및 즉시 라이브 시작",
-
             "alertSuccess": "결제 및 런칭(활성화)이 완료되었습니다! 대시보드로 이동합니다."
-
           },
-
           "influencerUGC": {
-
             "txt_WhitelistA_4": "Whitelist 허용 기간 내 집행 가능 (만료 전 적극 활용 권장)",
-
             "txt_Percontrac_8": "계약상 지급액",
-
             "txt_ActualPaid_9": "실가용액",
-
             "txt_Difference_10": "과/미지급 차액",
-
             "txt_CreatorROI_11": "🏆 크리에이터 ROI 랭킹",
-
             "txt_Engagement_12": "인게이지먼트 최상위군 광고 소재화 제안",
-
             "txt_AdCreative_13": "광고 소재화",
-
             "txt_ProductPag_14": "상품 랜딩 반영",
-
             "txt_Channelper_15": "📊 채널별 평균 리뷰 평점",
-
             "txt_부정키워드Top5_16": "⚠ 주요 블랙 키워드 (Top 5)",
-
             "txt_부정키워드급증10건_17": "부정 키워드 급증 즉시 CS 알림 발송",
-
             "txt_리뷰피드_18": "💬 라이브 리뷰 피드",
-
             "txt_All감성_19": "전체 극성",
-
             "txt_긍정_20": "긍정",
-
             "txt_inprogress_21": "중립",
-
             "txt_부정_22": "부정",
-
             "txt_CS대응_23": "CS 핫라인",
-
             "txt_Search결과No_24": "결과가 없습니다.",
-
             "txt_AI인플루언서평가A_25": "🤖 AI 데이터 마이닝 종합평가",
-
             "txt_평가항목per점Co_26": "📊 종합 스코어카드",
-
             "txt_실적_27": "누적 지표:",
-
             "txt_강점_28": "✅ 주요 강점 지표",
-
             "txt_개선포인트_29": "⚠️ 보완 여지 포인트",
-
             "txt_AI적정Commis_30": "💰 AI 산출 적정 커미션 제안",
-
             "txt_지역연령성per참여_31": "📊 데모그래픽 기반 구매 기여도",
-
             "txt_AI인플루언서종합평_32": "🤖 Claude 3.5 기반 인플루언서 실시간 평가",
-
             "txt_ClaudeSonn_33": "ROI·전환·인게이지먼트에 근거한 최적화 모델 구동 ·",
-
             "txt_지역연령성per참여_34": "지역/연령 분포 밀도 추적",
-
             "txt_ClaudeAI가C_35": "AI가 전체 크리에이터 누적 데이터베이스를 분석하고 있습니다...",
-
             "txt_평가대상Creato_36": "📥 이달의 평가 대상",
-
             "txt_AI평가RunBut_37": "분석을 실행하여 최적화 리포트를 다운로드하세요.",
-
             "txt_포트폴리오종합Ana_38": "📋 엔터프라이즈 포트폴리오 요약",
-
             "txt_CreatorAI평_39": "🏆 AI 티어 기반 순위 표",
-
             "txt_행Clicks시항목_40": "행 클릭 시 권장 커미션 및 갱신 권고 확인 가능",
-
             "txt_AI점Count_41": "AI 평가 지수",
-
             "txt_계약갱신권고_42": "연장 권장 레벨",
-
             "txt_권장Commissi_43": "권장 단가 범위",
-
             "txt_포트폴리오전략인사이_44": "💡 거시적 캠페인 포트폴리오 조언",
-
             "txt_Budget최적화제_45": "💰 예산 재할당 가이드라인",
-
             "txt_AI재Analysi_46": "🔄 재구성 분석 신청",
-
             "txt_All리뷰_47": "전체 리뷰 볼륨",
-
             "txt_4개Channel합_48": "4개 주요 채널",
-
             "txt_Average평점_49": "가중 평균 평점",
-
             "txt_전Channel가i_50": "모든 리뷰 기준",
-
             "txt_부정리뷰_51": "이슈성 언급량",
-
             "txt_즉시대응필요_52": "대응 채널 파견 필",
-
             "txt_긍정Rate_53": "긍정 극성 비중",
-
             "txt_전월31p_54": "전월 대비 상승률",
-
             "u_0": "활성 계약",
-
             "u_1": "e-Sign 대기",
-
             "u_2": "화이트리스트 임박",
-
             "u_3": "90일 이내",
-
             "u_4": "화이트리스트 만료",
-
             "u_5": "화이트리스트",
-
             "u_6": "전자서명 미완료 (계약 미발효)",
-
             "u_7": "서명 요청 재발송",
-
             "u_8": "광고 집행 즉시 중단",
-
             "u_9": "권한 갱신",
-
             "u_10": "계약 목록",
-
             "u_11": "크리에이터",
-
             "u_12": "계약 유형",
-
             "u_13": "고정비",
-
             "u_14": "성과율",
-
             "u_15": "권리 범위",
-
             "u_16": "계약 기간",
-
             "u_17": "서명 상태",
-
             "u_18": "전자서명",
-
             "u_19": "고정+성과",
-
             "u_20": "고정비",
-
             "u_21": "성과형",
-
             "u_22": "허용",
-
             "u_23": "만료됨",
-
             "u_24": "일 남음 ·",
-
             "u_25": "일 남음",
-
             "u_26": "없음",
-
             "u_27": "✓ 서명완료",
-
             "u_28": "⏳ 대기중",
-
             "u_29": "✗ 거절됨",
-
             "u_30": "상세 정보",
-
             "u_31": "광고 전환 (화이트리스트) 기간",
-
             "u_32": "까지",
-
             "u_33": "계약 상세 — ",
-
             "u_34": "닫기",
-
             "u_35": "📄 계약서 다운로드",
-
             "u_36": "총 지급 예정액",
-
             "u_37": "지급 완료",
-
             "u_38": "미지급",
-
             "u_39": "과지급 탐지",
-
             "u_40": "비정상 건수",
-
             "u_41": "검토 필요",
-
             "u_42": "🟣 과지급",
-
             "u_43": "🔴 미지급/부분지급",
-
             "u_44": "계약금",
-
             "u_45": "실제 지급액",
-
             "u_46": "차액",
-
             "u_47": "회수",
-
             "u_48": "잔여액 지급",
-
             "u_49": "정산 내역 (자동검증)",
-
             "u_50": "기간",
-
             "u_51": "결과",
-
             "u_52": "증빙서류",
-
             "u_53": "일치",
-
             "u_54": "문서 없음",
-
             "u_55": "명세서 다운로드",
-
             "u_56": "명세서",
-
             "u_57": "💰 명세서 — ",
-
             "u_58": "계약금액 (고정)",
-
             "u_59": "성과급 (",
-
             "u_60": "계약 총액",
-
             "u_61": "사업소득세 (3.3%)",
-
             "u_62": "지방소득세 (0.33%)",
-
             "u_63": "실 지급액",
-
             "u_64": "⚠ 과지급",
-
             "u_65": "⚠ 미지급/부분지급",
-
             "u_66": "✓ 일치",
-
             "u_67": "📥 명세서 다운로드",
-
             "u_68": "콘텐츠 매트릭스 (재활용 및 화이트리스트 ROI)",
-
             "u_69": "조회수 / 전환율 매트릭스",
-
             "u_70": "고조회/저구매 케이스 분석",
-
             "u_71": "조회 200K+ · 주문 <50 — 콘텐츠 최적화 또는 랜딩 페이지 개선 필요",
-
             "u_72": "콘텐츠 재활용 최적 후보 (광고 / 상품 페이지)",
-
             "u_73": "총 조회수",
-
             "u_74": "기여 주문",
-
             "u_75": "기여 매출액",
-
             "u_76": "계약 비용",
-
             "u_77": "조회→주문",
-
             "u_78": "조회/주문",
-
             "u_79": "조회수",
-
             "u_80": "주문 (기여)",
-
             "u_81": "액션 권고",
-
             "u_82": "유형",
-
             "u_83": "날짜",
-
             "u_84": "참여율",
-
             "u_85": "목표 전환율 (",
-
             "u_86": "UGC 매출",
-
             "u_87": "콘텐츠 ROI (총액)",
-
             "u_88": "총 비용",
-
             "u_89": "조회수/주문",
-
             "u_90": "평가주문액",
-
             "u_91": "전환율",
-
             "u_92": "주문수",
-
             "u_93": "부정적 반응 급증 알림",
-
             "u_94": "키워드",
-
             "u_95": "최근 7일",
-
             "u_96": "이전 7일",
-
             "u_97": "상승률",
-
             "u_98": "심각도",
-
             "u_99": "리뷰 목록",
-
             "u_100": "긍정",
-
             "u_101": "중립",
-
             "u_102": "부정",
-
             "u_103": "감성",
-
             "u_104": "내용 (",
-
             "u_105": "내용",
-
             "u_106": "평점",
-
             "u_107": "전체 채널",
-
             "u_108": "🚨 자동 알림 활성화됨",
-
             "u_109": "순위",
-
             "u_110": "등급",
-
             "u_111": "ROI",
-
             "u_112": "🛡️",
-
             "u_113": "📋 계약 유형:",
-
             "u_114": "총합",
-
             "u_115": "주문",
-
             "v_100": "계약 목록 (Contract List)",
-
             "v_101": "광고 전환 (화이트리스트) 기간",
-
             "v_102": "정산 내역 (자동검증)",
-
             "v_103": "고조회/저구매 케이스 분석",
-
             "v_104": "조회 200K+ · 주문 <50 — 콘텐츠 최적화 또는 랜딩 페이지 개선 필요",
-
             "v_105": "콘텐츠 재활용 최적 후보 (광고/상품 페이지)",
-
             "v_106": "총 조회수",
-
             "v_107": "고조회/저구매",
-
             "v_108": "기여 주문",
-
             "v_109": "기여 매출액",
-
             "v_110": "계약 비용",
-
             "v_111": "조회→주문",
-
             "v_112": "조회/주문",
-
             "v_113": "전자서명 미완료 (계약 미발효)",
-
             "w_200": "계약 목록 (Contract List)",
-
             "w_201": "광고 전환 (화이트리스트) 기간",
-
             "w_202": "정산 내역 (자동검증)",
-
             "w_203": "고조회/저구매 케이스 분석",
-
             "w_204": "조회 200K+ · 주문 <50 — 콘텐츠 최적화 또는 랜딩 페이지 개선 필요",
-
             "w_205": "콘텐츠 재활용 최적 후보 (광고/상품 페이지)",
-
             "w_206": "고조회/저구매",
-
             "w_207": "전자서명 미완료 (계약 미발효)",
-
             "w_300": "조회 200K+ · 주문 <50 — 콘텐츠 최적화 또는 랜딩 페이지 개선 필요",
-
             "w_301": "병합",
-
             "w_302": "통합 이메일 목록",
-
             "w_303": "⚠ 다중 이메일 탐지 — 동일인 여부를 확인하세요",
-
             "w_304": "검색...",
-
             "w_305": "고조회/저구매",
-
             "w_400": "⏳ AI 분석 진행중...",
-
             "w_401": "🚀 AI 평가 실행",
-
             "w_402": "명 크리에이터 · ROI 분석 · 커미션 최적화 · 연장 검토",
-
             "unit_persons": "명",
-
             "unit_items": "개"
-
           },
-
           "workspace": {
-
             "title": "팀 워크스페이스"
-
           }
-
         },
-
         "tab": {
-
           "ltv": "💰 LTV 예측",
-
           "graph": "📊 예측 그래프",
-
           "model": "🤖 모델 분석",
-
           "integration": "🔗 통합 연동"
-
         },
-
         "loading": "AI 예측 모델 로딩 중...",
-
         "retry": "재시도",
-
         "filterAll": "전체",
-
         "bulkAction": "일괄 작업",
-
         "noResults": "결과 없음"
-
       },
-
       "adPerf": {
-
         "title": "광고 실적 통합 레포트",
-
         "team": "팀별 보기",
-
         "channel": "채널별 보기",
-
         "loading": "실시간 데이터 로딩 중...",
-
         "date": "날짜 (기간)",
-
         "impressions": "총 노출수",
-
         "clicks": "총 클릭수",
-
         "conversions": "총 전환수",
-
         "spend": "광고비 지출",
-
         "cpa": "CPA (전환단가)",
-
         "roas": "블렌디드 ROAS",
-
         "pageTitle": "광고 성과 분석",
-
         "pageSub": "채널별 광고 성과 모니터링"
-
       },
-
       "kpi": {
-
         "k_16": "K_16",
-
         "k_17": "K_17",
-
         "k_18": "K_18",
-
         "k_19": "K_19",
-
         "k_20": "K_20",
-
         "k_3": "K_3",
-
         "k_4": "K_4",
-
         "k_5": "K_5",
-
         "k_6": "K_6",
-
         "k_7": "K_7",
-
         "k_8": "K_8"
-
       },
-
       "gdpr": {
-
         "required": "필수",
-
         "panelTitle": "패널 제목",
-
         "panelSub": "패널 부제",
-
         "savePref": "환경설정 저장",
-
         "policyNote1": "정책 메모 1",
-
         "privacyPolicy": "개인정보 처리방침",
-
         "policyNote2": "정책 메모 2",
-
         "cookiePolicy": "쿠키 정책",
-
         "policyNote3": "정책 메모 3",
-
         "bannerTitle": "배너 제목",
-
         "bannerDesc": "배너 설명",
-
         "currentConsentStatus": "현재 동의 상태",
-
         "consented": "동의함",
-
         "notConsented": "동의 안 함",
-
         "consentDate": "동의 일자",
-
         "unknown": "알 수 없음",
-
         "editSettings": "설정 편집",
-
         "withdraw": "철회",
-
         "noConsentInfo": "동의 정보 없음",
-
         "consentNow": "지금 동의",
-
         "platformStats": "플랫폼 통계",
-
         "totalVisitors": "총 방문자 수",
-
         "consentRate": "동의율",
-
         "withdrawn": "철회됨",
-
         "analytics": "분석",
-
         "marketing": "마케팅"
-
       },
-
       "banner": {
-
         "mktLowRoas": "최근 24시간 Google Ads의 ROAS가 타겟 대비 30% 미달입니다. (현재 2.1x)",
-
         "mktRulesActive": "실시간 타겟팅 최적화 AI 규칙이 동작 중입니다.",
-
         "mktOptimizeNow": "수동 최적화 강제 개입",
-
         "mktHubAction": "마케팅 허브 바로가기",
-
         "mktHighRoas": "최근 48시간 TikTok의 ROAS가 타겟 대비 150%를 초과달성 중입니다.",
-
         "mktHighRoasSub": "수익성 극대화를 위해 예산 증액을 강력히 권장합니다.",
-
         "mktBudgetAction": "예산 20% 긴급 자동 증액",
-
         "crmChurn": "전체 VIP 유저 중 이탈 임박 고객이 2% 증가했습니다. (예상 손실액: 3천만원)",
-
         "crmVip": "VIP 전용 케어 시나리오 발동 대기 중입니다.",
-
         "crmJourney": "위험 고객 군에게 즉각적인 카카오 알림톡 특별 할인 쿠폰을 전송하시겠습니까?",
-
         "crmJourneyAction": "즉각 고객 여정 빌더 트리거 실행",
-
         "ordersAiRun": "배송 지연이 예측되는 주문이 24건 감지되었습니다. (동남아시아 권역)",
-
         "ordersAiSub": "해당 구매자들에게 지연 안내 Alimtalk 전송 여정을 구성할까요?",
-
         "ordersCampaignAction": "Alimtalk 사과 전송 캠페인 생성",
-
         "unified": {
-
           "mainTitle": "AI 통합 광고 캠페인 빌더",
-
           "heroDesc": "판매·광고·분석 채널의 API 키를 등록하고 연결 상태를 관리합니다.",
-
           "step1": "예산 입력",
-
           "step2": "AI 전략 추천",
-
           "step3": "원클릭 런치",
-
           "qBudget": "이번 캠페인에 얼마를 투자하시겠습니까?",
-
           "budgetSub": "나머지 채널별 복잡한 분배와 소재 생성은 AI가 알아서 해드립니다.",
-
           "whichCategory": "어떤 제품군을 광고하시나요? (카테고리 선택)",
-
           "catFashion": "👗 패션/의류",
-
           "catBeauty": "💄 뷰티/화장품",
-
           "catFood": "🍔 식품/건강",
-
           "catTech": "💻 가전/디지털",
-
           "catTravel": "✈️ 여행/숙박",
-
           "catSoftware": "☁️ 소프트웨어/플랫폼",
-
           "catGeneral": "🛍️ 기타/종합몰",
-
           "campName": "캠페인 명칭",
-
           "budgetLabel": "월 총 투자 예산 (₩)",
-
           "budgetErr": "카테고리를 선택하고 예산을 100,000원 이상 입력해 주세요.",
-
           "simulating": "AI 전략 수립 중...",
-
           "btnSimulate": "AI 통합 전략 수립하기",
-
           "mixTitle": "AI 미디어 믹스 추천",
-
           "mixSub": "입력하신 {amt}의 최적 분배안입니다.",
-
           "estRoas": "예상 통합 ROAS",
-
           "estConv": "예상 총 전환 수",
-
           "cases": "건",
-
           "expRoas": "예상 ROAS:",
-
           "btnRetry": "다시 입력",
-
           "btnNext": "이 전략으로 결제 진행 →",
-
           "launchTitle": "원클릭 승인 및 라이브 런치",
-
           "launchSub": "기존의 복잡한 결재 라인과 카드 등록 절차를 통합했습니다. 아래 버튼을 클릭하면 사전에 등록된 법인 카드 지갑에서 자동 과금되며 캠페인이 즉시 운영 모드로 진입합니다.",
-
           "payMethod": "결제 수단",
-
           "corporateCard": "법인 공용 카드 (끝자리 4821)",
-
           "totalAmt": "총 결제 금액",
-
           "btnReview": "전략 재검토",
-
           "btnLaunching": "결제 및 활성화 진행 중...",
-
           "btnLaunch": "결제 승인 및 즉시 라이브 시작",
-
           "alertSuccess": "결제 및 런칭(활성화)이 완료되었습니다! 대시보드로 이동합니다."
-
         },
-
         "influencerUGC": {
-
           "txt_WhitelistA_4": "Whitelist 허용 기간 내 집행 가능 (만료 전 적극 활용 권장)",
-
           "txt_Percontrac_8": "계약상 지급액",
-
           "txt_ActualPaid_9": "실가용액",
-
           "txt_Difference_10": "과/미지급 차액",
-
           "txt_CreatorROI_11": "🏆 크리에이터 ROI 랭킹",
-
           "txt_Engagement_12": "인게이지먼트 최상위군 광고 소재화 제안",
-
           "txt_AdCreative_13": "광고 소재화",
-
           "txt_ProductPag_14": "상품 랜딩 반영",
-
           "txt_Channelper_15": "📊 채널별 평균 리뷰 평점",
-
           "txt_부정키워드Top5_16": "⚠ 주요 블랙 키워드 (Top 5)",
-
           "txt_부정키워드급증10건_17": "부정 키워드 급증 즉시 CS 알림 발송",
-
           "txt_리뷰피드_18": "💬 라이브 리뷰 피드",
-
           "txt_All감성_19": "전체 극성",
-
           "txt_긍정_20": "긍정",
-
           "txt_inprogress_21": "중립",
-
           "txt_부정_22": "부정",
-
           "txt_CS대응_23": "CS 핫라인",
-
           "txt_Search결과No_24": "결과가 없습니다.",
-
           "txt_AI인플루언서평가A_25": "🤖 AI 데이터 마이닝 종합평가",
-
           "txt_평가항목per점Co_26": "📊 종합 스코어카드",
-
           "txt_실적_27": "누적 지표:",
-
           "txt_강점_28": "✅ 주요 강점 지표",
-
           "txt_개선포인트_29": "⚠️ 보완 여지 포인트",
-
           "txt_AI적정Commis_30": "💰 AI 산출 적정 커미션 제안",
-
           "txt_지역연령성per참여_31": "📊 데모그래픽 기반 구매 기여도",
-
           "txt_AI인플루언서종합평_32": "🤖 Claude 3.5 기반 인플루언서 실시간 평가",
-
           "txt_ClaudeSonn_33": "ROI·전환·인게이지먼트에 근거한 최적화 모델 구동 ·",
-
           "txt_지역연령성per참여_34": "지역/연령 분포 밀도 추적",
-
           "txt_ClaudeAI가C_35": "AI가 전체 크리에이터 누적 데이터베이스를 분석하고 있습니다...",
-
           "txt_평가대상Creato_36": "📥 이달의 평가 대상",
-
           "txt_AI평가RunBut_37": "분석을 실행하여 최적화 리포트를 다운로드하세요.",
-
           "txt_포트폴리오종합Ana_38": "📋 엔터프라이즈 포트폴리오 요약",
-
           "txt_CreatorAI평_39": "🏆 AI 티어 기반 순위 표",
-
           "txt_행Clicks시항목_40": "행 클릭 시 권장 커미션 및 갱신 권고 확인 가능",
-
           "txt_AI점Count_41": "AI 평가 지수",
-
           "txt_계약갱신권고_42": "연장 권장 레벨",
-
           "txt_권장Commissi_43": "권장 단가 범위",
-
           "txt_포트폴리오전략인사이_44": "💡 거시적 캠페인 포트폴리오 조언",
-
           "txt_Budget최적화제_45": "💰 예산 재할당 가이드라인",
-
           "txt_AI재Analysi_46": "🔄 재구성 분석 신청",
-
           "txt_All리뷰_47": "전체 리뷰 볼륨",
-
           "txt_4개Channel합_48": "4개 주요 채널",
-
           "txt_Average평점_49": "가중 평균 평점",
-
           "txt_전Channel가i_50": "모든 리뷰 기준",
-
           "txt_부정리뷰_51": "이슈성 언급량",
-
           "txt_즉시대응필요_52": "대응 채널 파견 필",
-
           "txt_긍정Rate_53": "긍정 극성 비중",
-
           "txt_전월31p_54": "전월 대비 상승률",
-
           "u_0": "활성 계약",
-
           "u_1": "e-Sign 대기",
-
           "u_2": "화이트리스트 임박",
-
           "u_3": "90일 이내",
-
           "u_4": "화이트리스트 만료",
-
           "u_5": "화이트리스트",
-
           "u_6": "전자서명 미완료 (계약 미발효)",
-
           "u_7": "서명 요청 재발송",
-
           "u_8": "광고 집행 즉시 중단",
-
           "u_9": "권한 갱신",
-
           "u_10": "계약 목록",
-
           "u_11": "크리에이터",
-
           "u_12": "계약 유형",
-
           "u_13": "고정비",
-
           "u_14": "성과율",
-
           "u_15": "권리 범위",
-
           "u_16": "계약 기간",
-
           "u_17": "서명 상태",
-
           "u_18": "전자서명",
-
           "u_19": "고정+성과",
-
           "u_20": "고정비",
-
           "u_21": "성과형",
-
           "u_22": "허용",
-
           "u_23": "만료됨",
-
           "u_24": "일 남음 ·",
-
           "u_25": "일 남음",
-
           "u_26": "없음",
-
           "u_27": "✓ 서명완료",
-
           "u_28": "⏳ 대기중",
-
           "u_29": "✗ 거절됨",
-
           "u_30": "상세 정보",
-
           "u_31": "광고 전환 (화이트리스트) 기간",
-
           "u_32": "까지",
-
           "u_33": "계약 상세 — ",
-
           "u_34": "닫기",
-
           "u_35": "📄 계약서 다운로드",
-
           "u_36": "총 지급 예정액",
-
           "u_37": "지급 완료",
-
           "u_38": "미지급",
-
           "u_39": "과지급 탐지",
-
           "u_40": "비정상 건수",
-
           "u_41": "검토 필요",
-
           "u_42": "🟣 과지급",
-
           "u_43": "🔴 미지급/부분지급",
-
           "u_44": "계약금",
-
           "u_45": "실제 지급액",
-
           "u_46": "차액",
-
           "u_47": "회수",
-
           "u_48": "잔여액 지급",
-
           "u_49": "정산 내역 (자동검증)",
-
           "u_50": "기간",
-
           "u_51": "결과",
-
           "u_52": "증빙서류",
-
           "u_53": "일치",
-
           "u_54": "문서 없음",
-
           "u_55": "명세서 다운로드",
-
           "u_56": "명세서",
-
           "u_57": "💰 명세서 — ",
-
           "u_58": "계약금액 (고정)",
-
           "u_59": "성과급 (",
-
           "u_60": "계약 총액",
-
           "u_61": "사업소득세 (3.3%)",
-
           "u_62": "지방소득세 (0.33%)",
-
           "u_63": "실 지급액",
-
           "u_64": "⚠ 과지급",
-
           "u_65": "⚠ 미지급/부분지급",
-
           "u_66": "✓ 일치",
-
           "u_67": "📥 명세서 다운로드",
-
           "u_68": "콘텐츠 매트릭스 (재활용 및 화이트리스트 ROI)",
-
           "u_69": "조회수 / 전환율 매트릭스",
-
           "u_70": "고조회/저구매 케이스 분석",
-
           "u_71": "조회 200K+ · 주문 <50 — 콘텐츠 최적화 또는 랜딩 페이지 개선 필요",
-
           "u_72": "콘텐츠 재활용 최적 후보 (광고 / 상품 페이지)",
-
           "u_73": "총 조회수",
-
           "u_74": "기여 주문",
-
           "u_75": "기여 매출액",
-
           "u_76": "계약 비용",
-
           "u_77": "조회→주문",
-
           "u_78": "조회/주문",
-
           "u_79": "조회수",
-
           "u_80": "주문 (기여)",
-
           "u_81": "액션 권고",
-
           "u_82": "유형",
-
           "u_83": "날짜",
-
           "u_84": "참여율",
-
           "u_85": "목표 전환율 (",
-
           "u_86": "UGC 매출",
-
           "u_87": "콘텐츠 ROI (총액)",
-
           "u_88": "총 비용",
-
           "u_89": "조회수/주문",
-
           "u_90": "평가주문액",
-
           "u_91": "전환율",
-
           "u_92": "주문수",
-
           "u_93": "부정적 반응 급증 알림",
-
           "u_94": "키워드",
-
           "u_95": "최근 7일",
-
           "u_96": "이전 7일",
-
           "u_97": "상승률",
-
           "u_98": "심각도",
-
           "u_99": "리뷰 목록",
-
           "u_100": "긍정",
-
           "u_101": "중립",
-
           "u_102": "부정",
-
           "u_103": "감성",
-
           "u_104": "내용 (",
-
           "u_105": "내용",
-
           "u_106": "평점",
-
           "u_107": "전체 채널",
-
           "u_108": "🚨 자동 알림 활성화됨",
-
           "u_109": "순위",
-
           "u_110": "등급",
-
           "u_111": "ROI",
-
           "u_112": "🛡️",
-
           "u_113": "📋 계약 유형:",
-
           "u_114": "총합",
-
           "u_115": "주문",
-
           "v_100": "계약 목록 (Contract List)",
-
           "v_101": "광고 전환 (화이트리스트) 기간",
-
           "v_102": "정산 내역 (자동검증)",
-
           "v_103": "고조회/저구매 케이스 분석",
-
           "v_104": "조회 200K+ · 주문 <50 — 콘텐츠 최적화 또는 랜딩 페이지 개선 필요",
-
           "v_105": "콘텐츠 재활용 최적 후보 (광고/상품 페이지)",
-
           "v_106": "총 조회수",
-
           "v_107": "고조회/저구매",
-
           "v_108": "기여 주문",
-
           "v_109": "기여 매출액",
-
           "v_110": "계약 비용",
-
           "v_111": "조회→주문",
-
           "v_112": "조회/주문",
-
           "v_113": "전자서명 미완료 (계약 미발효)",
-
           "w_200": "계약 목록 (Contract List)",
-
           "w_201": "광고 전환 (화이트리스트) 기간",
-
           "w_202": "정산 내역 (자동검증)",
-
           "w_203": "고조회/저구매 케이스 분석",
-
           "w_204": "조회 200K+ · 주문 <50 — 콘텐츠 최적화 또는 랜딩 페이지 개선 필요",
-
           "w_205": "콘텐츠 재활용 최적 후보 (광고/상품 페이지)",
-
           "w_206": "고조회/저구매",
-
           "w_207": "전자서명 미완료 (계약 미발효)",
-
           "w_300": "조회 200K+ · 주문 <50 — 콘텐츠 최적화 또는 랜딩 페이지 개선 필요",
-
           "w_301": "병합",
-
           "w_302": "통합 이메일 목록",
-
           "w_303": "⚠ 다중 이메일 탐지 — 동일인 여부를 확인하세요",
-
           "w_304": "검색...",
-
           "w_305": "고조회/저구매",
-
           "w_400": "⏳ AI 분석 진행중...",
-
           "w_401": "🚀 AI 평가 실행",
-
           "w_402": "명 크리에이터 · ROI 분석 · 커미션 최적화 · 연장 검토",
-
           "unit_persons": "명",
-
           "unit_items": "개"
-
         },
-
         "workspace": {
-
           "title": "팀 워크스페이스"
-
         }
-
       },
-
       "unified": {
-
         "selectMarkets": "🌍 타겟 마켓",
-
         "optimalTime": "AI 최적 발송 시간",
-
         "weekday": "평일",
-
         "weekend": "주말",
-
         "cloneCampaign": "캠페인 복제",
-
         "saveTemplate": "템플릿으로 저장"
-
       },
-
       "influencerUGC": {
-
         "txt_WhitelistA_4": "Whitelist 허용 기간 내 집행 가능 (만료 전 적극 활용 권장)",
-
         "txt_Percontrac_8": "계약상 지급액",
-
         "txt_ActualPaid_9": "실가용액",
-
         "txt_Difference_10": "과/미지급 차액",
-
         "txt_CreatorROI_11": "🏆 크리에이터 ROI 랭킹",
-
         "txt_Engagement_12": "인게이지먼트 최상위군 광고 소재화 제안",
-
         "txt_AdCreative_13": "광고 소재화",
-
         "txt_ProductPag_14": "상품 랜딩 반영",
-
         "txt_Channelper_15": "📊 채널별 평균 리뷰 평점",
-
         "txt_부정키워드Top5_16": "⚠ 주요 블랙 키워드 (Top 5)",
-
         "txt_부정키워드급증10건_17": "부정 키워드 급증 즉시 CS 알림 발송",
-
         "txt_리뷰피드_18": "💬 라이브 리뷰 피드",
-
         "txt_All감성_19": "전체 극성",
-
         "txt_긍정_20": "긍정",
-
         "txt_inprogress_21": "중립",
-
         "txt_부정_22": "부정",
-
         "txt_CS대응_23": "CS 핫라인",
-
         "txt_Search결과No_24": "결과가 없습니다.",
-
         "txt_AI인플루언서평가A_25": "🤖 AI 데이터 마이닝 종합평가",
-
         "txt_평가항목per점Co_26": "📊 종합 스코어카드",
-
         "txt_실적_27": "누적 지표:",
-
         "txt_강점_28": "✅ 주요 강점 지표",
-
         "txt_개선포인트_29": "⚠️ 보완 여지 포인트",
-
         "txt_AI적정Commis_30": "💰 AI 산출 적정 커미션 제안",
-
         "txt_지역연령성per참여_31": "📊 데모그래픽 기반 구매 기여도",
-
         "txt_AI인플루언서종합평_32": "🤖 AI 실시간 크리에이터 종합 평가",
-
         "txt_ClaudeSonn_33": "AI 모델 기반 · ROI·전환·참여율·커미션 추천·계약 갱신 권고 + 지역·연령·성별 참여 기여도 분석",
-
         "txt_지역연령성per참여_34": "지역/연령 분포 밀도 추적",
-
         "txt_ClaudeAI가C_35": "AI가 크리에이터 데이터를 분석 중입니다...",
-
         "txt_평가대상Creato_36": "📥 이달의 평가 대상",
-
         "txt_AI평가RunBut_37": "분석을 실행하여 최적화 리포트를 다운로드하세요.",
-
         "txt_포트폴리오종합Ana_38": "📋 엔터프라이즈 포트폴리오 요약",
-
         "txt_CreatorAI평_39": "🏆 AI 티어 기반 순위 표",
-
         "txt_행Clicks시항목_40": "행 클릭 시 권장 커미션 및 갱신 권고 확인 가능",
-
         "txt_AI점Count_41": "AI 평가 지수",
-
         "txt_계약갱신권고_42": "연장 권장 레벨",
-
         "txt_권장Commissi_43": "권장 단가 범위",
-
         "txt_포트폴리오전략인사이_44": "💡 거시적 캠페인 포트폴리오 조언",
-
         "txt_Budget최적화제_45": "💰 예산 재할당 가이드라인",
-
         "txt_AI재Analysi_46": "🔄 재구성 분석 신청",
-
         "txt_All리뷰_47": "전체 리뷰 볼륨",
-
         "txt_4개Channel합_48": "4개 주요 채널",
-
         "txt_Average평점_49": "가중 평균 평점",
-
         "txt_전Channel가i_50": "모든 리뷰 기준",
-
         "txt_부정리뷰_51": "이슈성 언급량",
-
         "txt_즉시대응필요_52": "대응 채널 파견 필",
-
         "txt_긍정Rate_53": "긍정 극성 비중",
-
         "txt_전월31p_54": "전월 대비 상승률",
-
         "u_0": "활성 계약",
-
         "u_1": "e-Sign 대기",
-
         "u_2": "화이트리스트 임박",
-
         "u_3": "90일 이내",
-
         "u_4": "화이트리스트 만료",
-
         "u_5": "화이트리스트",
-
         "u_6": "전자서명 미완료 (계약 미발효)",
-
         "u_7": "서명 요청 재발송",
-
         "u_8": "광고 집행 즉시 중단",
-
         "u_9": "권한 갱신",
-
         "u_10": "계약 목록",
-
         "u_11": "크리에이터",
-
         "u_12": "계약 유형",
-
         "u_13": "고정비",
-
         "u_14": "성과율",
-
         "u_15": "권리 범위",
-
         "u_16": "계약 기간",
-
         "u_17": "서명 상태",
-
         "u_18": "전자서명",
-
         "u_19": "고정+성과",
-
         "u_20": "고정비",
-
         "u_21": "성과형",
-
         "u_22": "허용",
-
         "u_23": "만료됨",
-
         "u_24": "일 남음 ·",
-
         "u_25": "일 남음",
-
         "u_26": "없음",
-
         "u_27": "✓ 서명완료",
-
         "u_28": "⏳ 대기중",
-
         "u_29": "✗ 거절됨",
-
         "u_30": "상세 정보",
-
         "u_31": "광고 전환 (화이트리스트) 기간",
-
         "u_32": "까지",
-
         "u_33": "계약 상세 — ",
-
         "u_34": "닫기",
-
         "u_35": "📄 계약서 다운로드",
-
         "u_36": "총 지급 예정액",
-
         "u_37": "지급 완료",
-
         "u_38": "미지급",
-
         "u_39": "과지급 탐지",
-
         "u_40": "비정상 건수",
-
         "u_41": "검토 필요",
-
         "u_42": "🟣 과지급",
-
         "u_43": "🔴 미지급/부분지급",
-
         "u_44": "계약금",
-
         "u_45": "실제 지급액",
-
         "u_46": "차액",
-
         "u_47": "회수",
-
         "u_48": "잔여액 지급",
-
         "u_49": "정산 내역 (자동검증)",
-
         "u_50": "기간",
-
         "u_51": "결과",
-
         "u_52": "증빙서류",
-
         "u_53": "일치",
-
         "u_54": "문서 없음",
-
         "u_55": "명세서 다운로드",
-
         "u_56": "명세서",
-
         "u_57": "💰 명세서 — ",
-
         "u_58": "계약금액 (고정)",
-
         "u_59": "성과급 (",
-
         "u_60": "계약 총액",
-
         "u_61": "사업소득세 (3.3%)",
-
         "u_62": "지방소득세 (0.33%)",
-
         "u_63": "실 지급액",
-
         "u_64": "⚠ 과지급",
-
         "u_65": "⚠ 미지급/부분지급",
-
         "u_66": "✓ 일치",
-
         "u_67": "📥 명세서 다운로드",
-
         "u_68": "콘텐츠 매트릭스 (재활용 및 화이트리스트 ROI)",
-
         "u_69": "조회수 / 전환율 매트릭스",
-
         "u_70": "고조회/저구매 케이스 분석",
-
         "u_71": "조회 200K+ · 주문 <50 — 콘텐츠 최적화 또는 랜딩 페이지 개선 필요",
-
         "u_72": "콘텐츠 재활용 최적 후보 (광고 / 상품 페이지)",
-
         "u_73": "총 조회수",
-
         "u_74": "기여 주문",
-
         "u_75": "기여 매출액",
-
         "u_76": "계약 비용",
-
         "u_77": "조회→주문",
-
         "u_78": "조회/주문",
-
         "u_79": "조회수",
-
         "u_80": "주문 (기여)",
-
         "u_81": "액션 권고",
-
         "u_82": "유형",
-
         "u_83": "날짜",
-
         "u_84": "참여율",
-
         "u_85": "목표 전환율 (",
-
         "u_86": "UGC 매출",
-
         "u_87": "콘텐츠 ROI (총액)",
-
         "u_88": "총 비용",
-
         "u_89": "조회수/주문",
-
         "u_90": "평가주문액",
-
         "u_91": "전환율",
-
         "u_92": "주문수",
-
         "u_93": "부정적 반응 급증 알림",
-
         "u_94": "키워드",
-
         "u_95": "최근 7일",
-
         "u_96": "이전 7일",
-
         "u_97": "상승률",
-
         "u_98": "심각도",
-
         "u_99": "리뷰 목록",
-
         "u_100": "긍정",
-
         "u_101": "중립",
-
         "u_102": "부정",
-
         "u_103": "감성",
-
         "u_104": "내용 (",
-
         "u_105": "내용",
-
         "u_106": "평점",
-
         "u_107": "전체 채널",
-
         "u_108": "🚨 자동 알림 활성화됨",
-
         "u_109": "순위",
-
         "u_110": "등급",
-
         "u_111": "ROI",
-
         "u_112": "🛡️",
-
         "u_113": "📋 계약 유형:",
-
         "u_114": "총합",
-
         "u_115": "주문",
-
         "v_100": "계약 목록 (Contract List)",
-
         "v_101": "광고 전환 (화이트리스트) 기간",
-
         "v_102": "정산 내역 (자동검증)",
-
         "v_103": "고조회/저구매 케이스 분석",
-
         "v_104": "조회 200K+ · 주문 <50 — 콘텐츠 최적화 또는 랜딩 페이지 개선 필요",
-
         "v_105": "콘텐츠 재활용 최적 후보 (광고/상품 페이지)",
-
         "v_106": "총 조회수",
-
         "v_107": "고조회/저구매",
-
         "v_108": "기여 주문",
-
         "v_109": "기여 매출액",
-
         "v_110": "계약 비용",
-
         "v_111": "조회→주문",
-
         "v_112": "조회/주문",
-
         "v_113": "전자서명 미완료 (계약 미발효)",
-
         "w_200": "계약 목록 (Contract List)",
-
         "w_201": "광고 전환 (화이트리스트) 기간",
-
         "w_202": "정산 내역 (자동검증)",
-
         "w_203": "고조회/저구매 케이스 분석",
-
         "w_204": "조회 200K+ · 주문 <50 — 콘텐츠 최적화 또는 랜딩 페이지 개선 필요",
-
         "w_205": "콘텐츠 재활용 최적 후보 (광고/상품 페이지)",
-
         "w_206": "고조회/저구매",
-
         "w_207": "전자서명 미완료 (계약 미발효)",
-
         "w_300": "조회 200K+ · 주문 <50 — 콘텐츠 최적화 또는 랜딩 페이지 개선 필요",
-
         "w_301": "병합",
-
         "w_302": "통합 이메일 목록",
-
         "w_303": "⚠ 다중 이메일 탐지 — 동일인 여부를 확인하세요",
-
         "w_304": "검색...",
-
         "w_305": "고조회/저구매",
-
         "w_400": "⏳ AI 분석 진행중...",
-
         "w_401": "🚀 AI 평가 실행",
-
         "w_402": "명 크리에이터 · ROI 분석 · 커미션 최적화 · 연장 검토",
-
         "unit_persons": "명",
-
         "unit_items": "개"
-
       },
-
       "tabs": {
-
         "overview": "종합 현황",
-
         "overviewDesc": "플랫폼 전체 핵심 지표를 한눈에",
-
         "marketing": "마케팅 성과",
-
         "marketingDesc": "광고·캠페인 통합 분석",
-
         "channel": "채널 KPI",
-
         "channelDesc": "채널별 핵심 성과 지표",
-
         "commerce": "커머스·정산",
-
         "commerceDesc": "주문·재고·정산 통합 현황",
-
         "sales": "글로벌 매출",
-
         "salesDesc": "국가·권역별 매출 현황",
-
         "influencer": "인플루언서",
-
         "influencerDesc": "인플루언서·UGC 성과 분석",
-
         "system": "시스템 현황",
-
         "systemDesc": "API·파이프라인·서버 상태",
-
         "globalRevenue": "글로벌 매출",
-
         "avgGrowth": "평균 성장률",
-
         "topMarket": "최대 시장",
-
         "activeCountries": "활성 국가",
-
         "channelPerf": "채널 성과",
-
         "growthRate": "성장률",
-
         "popularProducts": "인기 상품",
-
         "guide": "📖 이용 가이드",
-
         "guideDesc": "대시보드 이용 가이드 및 기능 설명"
-
       },
-
       "rollup": {
-
         "unitPrice": "단가",
-
         "unitTenThousand": "만원",
-
         "commissionPerPost": "게시물당 수수료",
-
         "riskStatus": {
-
           "danger": "위험",
-
           "caution": "주의",
-
           "normal": "정상"
-
         },
-
         "campaignPnlRisk": "캠페인 P&L 리스크",
-
         "settleDeductWord": "정산 공제",
-
         "returnRateWord": "반품율",
-
         "lossEstWarning": "손실 예상 경고",
-
         "pnlStructure": "P&L 구조",
-
         "pnlDesc": "매출에서 비용을 차감한 순이익 구조",
-
         "pnlTotalRev": "총 매출",
-
         "pnlSettle": "정산액",
-
         "pnlNetRev": "순 매출",
-
         "pnlCogs": "매출원가",
-
         "pnlReturnLoss": "반품 손실",
-
         "pnlAdSpend": "광고비",
-
         "pnlFxLoss": "환차손",
-
         "pnlGrossProfit": "매출총이익"
-
       },
-
       "pricing": {
-
         "limitedFeat": "제한된 기능",
-
         "loadingText": "로딩 중..."
-
       },
-
       "influencer": {
-
         "title": "인플루언서·UGC",
-
         "sub": "크리에이터 관리 · 계약 · 정산 · ROI 분석"
-
       },
-
       "omniChannel": {
-
         "heroDesc": "판매·광고·분석 채널의 API 키를 등록하고 연결 상태를 관리합니다.",
-
         "badgeChannelCount": ":{{n}}개 채널 연동",
-
         "badgeRegion": "글로벌 + 국내",
-
         "badgeProInteg": "Pro API 통합",
-
         "badgeFree": "Free 기본 플랜",
-
         "badgeOrderMgmt": "주문 관리 {{n}}건",
-
         "autoSyncActive": "자동 동기화 활성",
-
         "unifiedRevenue": "통합 매출",
-
         "warehouseStock": "재고 현황 →",
-
         "tabChannels": "채널 연동",
-
         "tabChannelsDesc": "채널 목록 · 연결 상태",
-
         "tabProducts": "상품 관리",
-
         "tabProductsDesc": "통합 상품 목록",
-
         "tabOrders": "주문 관리",
-
         "tabOrdersDesc": "통합 주문 현황",
-
         "tabInventory": "재고 현황",
-
         "tabInventoryDesc": "실시간 재고 모니터링",
-
         "tabOverview": "통합 현황",
-
         "tabOverviewDesc": "채널 KPI 대시보드",
-
         "tabGuideDesc": "단계별 설정 안내",
-
         "groupGlobal": "🌍 글로벌 마켓플레이스",
-
         "groupJapan": "🇯🇵 일본 마켓플레이스",
-
         "groupDomestic": "🇰🇷 국내 마켓플레이스",
-
         "groupOwnMall": "🏪 자사몰 / 기타",
-
         "colProduct": "상품",
-
         "colOrderNo": "주문",
-
         "colRevenue": "매출",
-
         "statusNotConfig": "미연동",
-
         "statusConnected": "연결됨",
-
         "statusPending": "대기 중",
-
         "btnAuthKey": "🔑 인증 키 설정",
-
         "btnDisconnect": "연결 해제",
-
         "btnRefresh": "🔄 새로고침",
-
         "prodTitle": "통합 상품 관리",
-
         "prodTotalSKU": "전체 SKU 수",
-
         "prodChannelCoverage": "채널 커버리지",
-
         "prodAvgPrice": "평균 가격",
-
         "prodSyncStatus": "동기화 상태",
-
         "prodBtnSync": "🔄 전체 동기화",
-
         "prodColName": "상품명",
-
         "prodColSKU": "SKU",
-
         "prodColPrice": "가격",
-
         "prodColChannels": "판매 채널",
-
         "prodColStatus": "상태",
-
         "prodColLastSync": "최근 동기화",
-
         "ordTitle": "통합 주문 관리",
-
         "ordTotalOrders": "전체 주문",
-
         "ordPending": "대기 중",
-
         "ordShipping": "배송 중",
-
         "ordCompleted": "완료",
-
         "ordBtnExport": "📥 내보내기",
-
         "ordColOrderNo": "주문번호",
-
         "ordColChannel": "채널",
-
         "ordColCustomer": "고객",
-
         "ordColAmount": "금액",
-
         "ordColStatus": "상태",
-
         "ordColDate": "주문일",
-
         "invTitle": "실시간 재고 현황",
-
         "invTotalProducts": "전체 상품",
-
         "invLowStock": "재고 부족",
-
         "invOutOfStock": "품절",
-
         "invLastUpdate": "최종 업데이트",
-
         "invColProduct": "상품",
-
         "invColSKU": "SKU",
-
         "invColQuantity": "수량",
-
         "invColWarehouse": "창고",
-
         "invColAlert": "알림",
-
         "ovTitle": "통합 대시보드",
-
         "ovTotalRevenue": "총 매출",
-
         "ovTotalOrders": "총 주문",
-
         "ovAvgOrderValue": "평균 주문 금액",
-
         "ovChannelShare": "채널별 매출 점유율",
-
         "ovRevenueByChannel": "채널별 매출 추이",
-
         "guideTabsTitle": "탭 기능 요약",
-
         "guideDashName": "채널 연동",
-
         "guideDashDesc": "마켓플레이스 연결 관리",
-
         "guideFeedName": "상품/주문",
-
         "guideFeedDesc": "통합 상품·주문 관리",
-
         "guideTrendName": "주문 관리",
-
         "guideTrendDesc": "주문 상태 통합 관리",
-
         "guideSettingsName": "재고 현황",
-
         "guideSettingsDesc": "실시간 재고 모니터링",
-
         "guideGuideName": "통합 현황",
-
         "guideGuideDesc": "채널 KPI 대시보드"
-
       },
-
       "root_pageTitle_admin": "관리자 설정",
-
       "performance": {
-
         "pageTitle": "퍼포먼스 허브",
-
         "pageSub": "광고·정산·크리에이터·SKU 통합 분석",
-
         "realtimeSync": "실시간 동기화",
-
         "securityNormal": "보안 정상",
-
         "threatsDetected": "위협 감지",
-
         "securityAlert": "보안 위협 감지",
-
         "securityDesc": "악의적인 입력이 감지되어 차단되었습니다.",
-
         "dismiss": "확인",
-
         "team": "팀",
-
         "allTeams": "전체 팀",
-
         "account": "계정",
-
         "allAccounts": "전체 계정",
-
         "totalImpressions": "총 노출수",
-
         "teamSpecificTotal": "팀별 합계",
-
         "totalClicks": "총 클릭수",
-
         "cartAdds": "장바구니 추가",
-
         "purchases": "구매 전환",
-
         "totalRevenue": "총 매출",
-
         "adAttributedRevenue": "광고 기여 매출",
-
         "roas": "ROAS",
-
         "acos": "ACOS",
-
         "conversionFunnel": "전환 퍼널",
-
         "funnelImpressions": "노출",
-
         "funnelClicks": "클릭",
-
         "funnelCarts": "장바구니",
-
         "funnelOrders": "주문",
-
         "channelPerfDetail": "채널별 상세 성과",
-
         "sortRevenue": "매출순",
-
         "sortOrders": "주문순",
-
         "channel": "채널",
-
         "impressions": "노출수",
-
         "clicks": "클릭수",
-
         "revenue": "매출",
-
         "adSpend": "광고비",
-
         "totalAvg": "합계/평균",
-
         "deductPlatformFee": "플랫폼 수수료",
-
         "deductAdSpend": "광고비",
-
         "deductPaymentFee": "결제 수수료",
-
         "deductRefund": "환불/반품",
-
         "liveFxRates": "실시간 환율",
-
         "totalRevenueKrw": "총 매출(KRW)",
-
         "platformFee": "플랫폼 수수료",
-
         "totalDeductions": "총 공제액",
-
         "netSettlement": "순 정산액",
-
         "effectiveRate": "실효 정산율",
-
         "deductionBreakdown": "공제 내역 분석",
-
         "settleByChannel": "채널별 정산",
-
         "currency": "통화",
-
         "grossSales": "총매출",
-
         "paymentFee": "결제수수료",
-
         "refundReturn": "환불/반품",
-
         "netPayout": "순정산",
-
         "krwEquiv": "원화환산",
-
         "settleRate": "정산율",
-
         "totalCreators": "크리에이터 수",
-
         "people": "명",
-
         "totalPayoutEst": "총 정산 예정액",
-
         "creatorRevenue": "크리에이터 매출",
-
         "avgAttribution": "평균 기여도",
-
         "rightsExpiringSoon": "권리 만료 임박",
-
         "items": "건",
-
         "within90Days": "90일 이내",
-
         "expired": "만료됨",
-
         "daysLeft": "일 남음",
-
         "rightsExpiry": "권리 만료",
-
         "daysUnit": "일",
-
         "expiryDate": "만료일",
-
         "requestRenewal": "갱신 요청",
-
         "renewRights": "권리 갱신",
-
         "active": "활성",
-
         "collapse": "접기",
-
         "contentAttribution": "콘텐츠 기여도",
-
         "settle": "정산",
-
         "contractFee": "계약 금액",
-
         "attributedOrders": "기여 주문",
-
         "attributedRevenue": "기여 매출",
-
         "attribution": "기여도",
-
         "roi": "ROI",
-
         "contentAttribRate": "콘텐츠 기여율",
-
         "contentAttribBreakdown": "콘텐츠 기여 상세",
-
         "content": "콘텐츠",
-
         "views": "조회수",
-
         "creatorSettlement": "크리에이터 정산",
-
         "contractEnd": "계약 종료일",
-
         "contractAmount": "계약 금액",
-
         "bizIncomeTax": "사업소득세 (3.3%)",
-
         "localIncomeTax": "지방소득세 (0.33%)",
-
         "netPayoutInclTax": "세후 실지급액",
-
         "bank": "은행",
-
         "accountNo": "계좌번호",
-
         "cancel": "취소",
-
         "completeSettlement": "정산 완료",
-
         "skuTotalRevenue": "SKU 총 매출",
-
         "skuTotalMargin": "SKU 총 마진",
-
         "skuAvgMarginRate": "평균 마진율",
-
         "skuTopMarginSku": "최고 마진 SKU",
-
         "skuProfitDetail": "SKU 수익성 상세",
-
         "noData": "데이터가 없습니다",
-
         "skuProduct": "상품명",
-
         "skuCogs": "매출원가",
-
         "skuLogistics": "물류비",
-
         "skuMargin": "마진",
-
         "skuMarginRate": "마진율",
-
         "cohortTitle": "코호트 분석",
-
         "cohortSub": "월별 신규 고객 유지율 및 LTV",
-
         "retentionRate": "유지율",
-
         "cohortRevenue": "코호트 매출",
-
         "newUsers": "신규 유저",
-
         "cohortMonth": "코호트 월",
-
         "newLabel": "신규",
-
         "retention90": "90일 유지율",
-
         "ltvRevenue": "LTV 매출",
-
         "esgTitle": "ESG 대시보드",
-
         "esgSub": "환경·사회·거버넌스 지표",
-
         "esgEnvironment": "환경",
-
         "esgSocial": "사회",
-
         "esgGovernance": "거버넌스",
-
         "esgCarbon": "탄소 배출",
-
         "esgEnergy": "에너지 사용",
-
         "esgPackaging": "친환경 포장",
-
         "esgRecycleRate": "재활용률",
-
         "tabPerformance": "📊 광고 성과",
-
         "descPerformance": "노출·클릭·ROAS·ACOS",
-
         "tabSettlement": "💳 정산 대시보드",
-
         "descSettlement": "수수료·광고비·환율",
-
         "tabCreator": "🤝 크리에이터 정산",
-
         "descCreator": "지급·기여도·권리",
-
         "tabSkuProfit": "📈 SKU 수익성",
-
         "descSkuProfit": "매출·원가·광고비·손익",
-
         "tabCohort": "👥 코호트 분석",
-
         "descCohort": "유지율·LTV·신규 유저",
-
         "tabEsg": "🌱 ESG",
-
         "descEsg": "환경·사회·거버넌스",
-
         "descGuide": "퍼포먼스 허브 활용법",
-
         "rightsExpiryAlert": "권리 만료 알림",
-
         "guideStep9Title": "보안 모니터링",
-
         "guideStep9Desc": "내장된 보안 엔진이 XSS·SQL 인젝션·경로 탐색 등의 위협을 실시간으로 감지하고 차단합니다.",
-
         "guideStep10Title": "크로스탭 실시간 동기화",
-
         "guideStep10Desc": "BroadcastChannel을 통해 여러 탭에서 동시에 작업해도 30초 간격으로 데이터가 자동 동기화됩니다.",
-
         "threatDetectedLabel": "위협 감지",
-
-        "threatBodyPrefix": "입력 필드에서 공격 패턴 감지"
-
-      ,
-
+        "threatBodyPrefix": "입력 필드에서 공격 패턴 감지",
         "channelPerf": "채널 성과",
-
         "colConversions": "전환",
-
         "colCtr": "클릭률%",
-
         "colCvr": "CVR%",
-
         "colRevenue": "수익",
-
         "colRoas": "ROAS",
-
         "colSpend": "지출",
-
         "subtitle": "실시간 KPI 모니터링 · 이상 탐지 · 채널 통합 분석",
-
         "tabOverview": "개요",
-
         "tabProducts": "상품",
-
         "title": "성과 허브"
-  },
-
+      },
       "graph": {
-
         "contribPath": "🛤 기여 경로",
-
         "contribCreative": "기여 크리에이티브",
-
         "contribInfluencer": "기여 인플루언서",
-
         "topInfluencer": "🏆 Top 기여 인플루언서",
-
         "sourceNode": "소스 노드",
-
         "targetNode": "타겟 노드",
-
         "weight": "가중치",
-
         "noEdge": "엣지 없음 — 연동허브에서 채널을 연결하세요",
-
         "noPath": "연결된 기여 경로 없음",
-
         "inf": "인플루언서",
-
         "crt": "크리에이티브",
-
         "sku": "SKU",
-
         "ord": "주문",
-
         "pathW": "경로 가중치"
-
       },
-
-"kakao": {
-
+      "kakao": {
         "statCamp": "총 캠페인",
-
         "statSent": "총 발송",
-
         "statSucc": "성공",
-
         "statFail": "실패",
-
         "exportCsv": "CSV 내보내기",
-
         "connectedChannels": "연동 채널",
-
         "noChannels": "연동된 카카오 채널이 없습니다. 연동허브에서 API 키를 등록하세요.",
-
         "goHub": "연동허브 이동",
-
         "liveSyncStatus": "실시간 크로스탭 동기화 활성화 — 모든 메뉴의 데이터가 실시간 반영됩니다.",
-
         "secLockTitle": "보안 경고 감지",
-
         "secLockDesc": "비정상적인 접근이 감지되어 차단되었습니다. 잠시 후 다시 시도하세요.",
-
         "dismiss": "확인",
-
         "syncNow": "지금 동기화",
-
         "tabCreative": "🎨 크리에이티브",
-
         "costPerMsg": "건당 비용",
-
         "totalCost": "총 비용",
-
         "schedSend": "예약 발송",
-
         "schedDate": "발송 예정일시",
-
         "schedSet": "예약 설정",
-
         "delConfirm": "이 캠페인을 삭제하시겠습니까?",
-
         "btnDel": "삭제"
-
       },
-
       "contentCalendar": {
-
         "title": "콘텐츠 캘린더",
-
         "sub": "플랫폼별 콘텐츠 일정 관리 · 상태 추적 · AI 분석 · 실시간 동기화"
-
       },
-
       "webPopup": {
-
         "title": "웹 팝업 관리",
-
         "sub": "웹사이트 팝업 캠페인 관리"
-
       }
-
     },
-
     "dataProduct": "데이터 제품 명세서",
-
     "writeback": "라이트백",
-
     "onboarding": "자동 온보딩 맵",
-
     "data": "데이터 · 수집 채널",
-
     "connectors": "커넥터 관리",
-
     "eventNorm": "표준 이벤트 스키마",
-
     "dataSchema": "데이터 스키마 정의",
-
     "apiKeys": "API 키 관리",
-
     "pixelTracking": "픽셀 추적 / GTM",
-
     "dataTrust": "데이터 무결성 검증",
-
     "mappingRegistry": "매핑 레지스트리",
-
     "memberTools": "팀 공간 · 도움말",
-
     "workspace": "팀 워크스페이스 세션",
-
     "operations": "운영 / 실행",
-
     "caseStudy": "성공 사례 분석",
-
     "help": "플랫폼 공식 가이드",
-
     "feedback": "오류 신고 · 제안",
-
     "developerHub": "개발자 / webhook 포털",
-
     "adminCenter": "거버넌스 중앙 센터",
-
     "adminSettings": "최고 관리 환경",
-
     "userMgmt": "회원 및 권한 관리",
-
     "dbAdmin": "DB 관리",
-
     "pgConfig": "글로벌 PG 연동",
-
     "systemMonitor": "시스템 모니터",
-
     "core": "코어",
-
     "marketing": "마케팅",
-
     "system": "시스템",
-
     "integrations": "수집 / 연동",
-
     "performance": "성과 / 정산",
-
     "marketingAds": "마케팅 및 광고",
-
     "influencer": "인플루언서 허브",
-
     "attribution": "어트리뷰션",
-
     "commerceOps": "커머스 운영",
-
     "operationsHub": "운영 실행 허브",
-
     "pnl": "통합 P&L 대시보드",
-
     "reports": "리포트",
-
     "admin": "거버넌스",
-
-    "operationsGuide": "운영 가이드"
-
+    "operationsGuide": "운영 가이드",
+    "sub": "Unified Ops Cockpit · v421"
   },
 
   "sidebar": {
@@ -19656,179 +16569,93 @@ export default {
   },
 
   "channelKpi": {
-
     "tabGoals": "1. 목표 및 채널 (Goals)",
-
     "tabRoles": "2. 역할 할당 (Roles)",
-
     "tabSetup": "3. 목표 설정 (Setup)",
-
     "tabSns": "4. SNS 설정 (SNS)",
-
     "tabContent": "5. 콘텐츠 설정 (Content)",
-
     "tabCommunity": "6. 커뮤니티 (Community)",
-
     "tabTargets": "7. 목표 활성화 (Targets)",
-
     "tabMonitor": "8. 성과 모니터링 (Monitor)",
-
     "bizGoalSetting": "비즈니스 목표 설정",
-
     "brandAwareness": "브랜드 인지도 확대",
-
     "brandAwarenessDesc": "노출 및 도달 극대화, 신규 유입 극대",
-
     "webTraffic": "웹 트래픽 유도",
-
     "webTrafficDesc": "페이지 뷰 및 체류 시간 극대",
-
     "inquiriesPurchases": "문의 및 구매 전환",
-
     "inquiriesPurchasesDesc": "실질적 세일즈 극대 및 제품 정보",
-
     "selectedGoals": "선택된 목표",
-
     "clickSelect": "클릭하여 선택",
-
     "heroDesc": "판매·광고·분석 채널의 API 키를 등록하고 연결 상태를 관리합니다.",
-
     "achieved": "달성",
-
     "selected": "✔ 선택됨",
-
     "pleaseSelectGoal": "목표를 선택해 주세요.",
-
     "roleCaptureIntent": "고객 의도 포착 및 전환",
-
     "descCaptureIntent": "구매 의도가 높은 사용자를 타겟하여 직접적인 전환 발생",
-
     "roleBrandReach": "브랜드 도달 및 숏폼 인게이지먼트",
-
     "descBrandReach": "시각적 콘텐츠를 통한 잠재 고객 발굴 및 초기 인지도 형성",
-
     "roleInfoTrust": "정보 제공 및 신뢰도 구축",
-
     "pageViews": "페이지 뷰",
-
     "visitors": "방문자 수",
-
     "searchTraffic": "검색 유입",
-
     "descInfoTrust": "리뷰 및 전문 지식을 통한 고객 신뢰 획득 및 SEO 유입",
-
     "roleCustRel": "고객 관계 및 커뮤니티 육성",
-
     "postViews": "게시글 조회 수",
-
     "comments": "댓글/반응 수",
-
     "inquiries": "고객 문의 수",
-
     "newMembers": "신규 가입 수",
-
     "descCustRel": "기존 고객의 충성도 유지 및 자연스러운 입소문(UGC) 유도",
-
     "channelRoleDef": "2. 채널별 역할 정의",
-
     "coreKpis": "핵심 측정 지표",
-
     "hintCtr": "광고 클릭 비율",
-
     "hintConvRate": "방문자 대비 전환 비율",
-
     "hintCpa": "1회 전환(구매/문의)당 비용",
-
     "hintRoas": "광고비 대비 매출액 비율",
-
     "hintCpc": "1회 클릭당 비용",
-
     "targetSetup": "3. 채널별 개별 KPI 목표 설정",
-
     "snsKpiOverview": "SNS 매체 종합 성과",
-
     "allChannels": "모든 채널 합산",
-
     "snsKpiByChannel": "채널별 SNS KPI 상세",
-
     "contentKpi": "콘텐츠 채널 성과 (블로그/카페)",
-
     "contentImpressions": "콘텐츠 노출 규모",
-
     "siteTraffic": "사이트 트래픽 규모",
-
     "avgTime": "평균 체류 시간",
-
     "contentEngage": "콘텐츠 몰입도",
-
     "seoImpact": "검색엔진 최적화 유입",
-
     "monthlyTrend": "최근 14일 트렌드",
-
     "communityKpi": "커뮤니티 성과 및 가입자 지표",
-
     "contentInterest": "콘텐츠 관심도",
-
     "communityAct": "활성화 요인",
-
     "interestConv": "관심 전환율",
-
     "communityGrowth": "커뮤니티 성장률",
-
     "descCtr": "높을수록 광고 클릭 효율 좋음",
-
     "descConvRate": "최종 전환의 퍼센티지",
-
     "descCpa": "낮을수록 획득 비용 효율적",
-
     "descRoas": "광고비 투자 수익 배율",
-
     "descCpc": "클릭당 적정 비용",
-
     "targetVsActuals": "KPI 목표 대비 실제 달성률 추적",
-
     "overallAchieve": "종합 달성도 요약",
-
     "achievedOk": "목표 달성 완료",
-
     "belowTarget": "목표 미달성 (대응 필요)",
-
     "chkEff": "적정 효율",
-
     "chkCostPerf": "가성비 관리 필요",
-
     "chkImprove": "전환율 리스크",
-
     "monitorAi": "성과 모니터링 & AI 진단",
-
     "claudeAiTitle": "Claude AI KPI 심층 분석 리포트",
-
     "claudeAiDesc": "현재 집계된 모든 데이터를 종합하여 강점과 개선점을 리포트합니다.",
-
     "weeklyAi": "주간 요약 생성",
-
     "monthlyAi": "월간 요약 생성",
-
     "aiAnalyzing": "Claude AI가 다면 분석을 진행 중입니다...",
-
     "runAi": "AI 리포트 실행하기",
-
     "aiSummary": "AI 종합 요약",
-
     "strengths": "주요 강점 (Strengths)",
-
     "weaknesses": "취약점/리스크 (Weaknesses)",
-
     "improveRecs": "개선 권고사항",
-
     "weeklyAdTrend": "주간 주요 트렌드 (실시간 반영)",
-
     "checklist": "담당자 체크리스트",
-
     "aiHistoryList": "최근 AI 생성 기록 (최대 5건)",
-
-    "noHistory": "아직 생성된 AI 리포트 기록이 없습니다."
-
+    "noHistory": "아직 생성된 AI 리포트 기록이 없습니다.",
+    "blendedROAS": "Blended ROAS"
   },
 
   "graphScore": {
@@ -23517,566 +20344,273 @@ export default {
   },
 
   "banner": {
-
     "mktLowRoas": "최근 24시간 Google Ads의 ROAS가 타겟 대비 30% 미달입니다. (현재 2.1x)",
-
     "mktRulesActive": "실시간 타겟팅 최적화 AI 규칙이 동작 중입니다.",
-
     "mktOptimizeNow": "수동 최적화 강제 개입",
-
     "mktHubAction": "마케팅 허브 바로가기",
-
     "mktHighRoas": "최근 48시간 TikTok의 ROAS가 타겟 대비 150%를 초과달성 중입니다.",
-
     "mktHighRoasSub": "수익성 극대화를 위해 예산 증액을 강력히 권장합니다.",
-
     "mktBudgetAction": "예산 20% 긴급 자동 증액",
-
     "crmChurn": "전체 VIP 유저 중 이탈 임박 고객이 2% 증가했습니다. (예상 손실액: 3천만원)",
-
     "crmVip": "VIP 전용 케어 시나리오 발동 대기 중입니다.",
-
     "crmJourney": "위험 고객 군에게 즉각적인 카카오 알림톡 특별 할인 쿠폰을 전송하시겠습니까?",
-
     "crmJourneyAction": "즉각 고객 여정 빌더 트리거 실행",
-
     "ordersAiRun": "배송 지연이 예측되는 주문이 24건 감지되었습니다. (동남아시아 권역)",
-
     "ordersAiSub": "해당 구매자들에게 지연 안내 Alimtalk 전송 여정을 구성할까요?",
-
     "ordersCampaignAction": "Alimtalk 사과 전송 캠페인 생성",
-
     "unified": {
-
       "mainTitle": "AI 통합 광고 캠페인 빌더",
-
       "heroDesc": "판매·광고·분석 채널의 API 키를 등록하고 연결 상태를 관리합니다.",
-
       "step1": "예산 입력",
-
       "step2": "AI 전략 추천",
-
       "step3": "원클릭 런치",
-
       "qBudget": "이번 캠페인에 얼마를 투자하시겠습니까?",
-
       "budgetSub": "나머지 채널별 복잡한 분배와 소재 생성은 AI가 알아서 해드립니다.",
-
       "whichCategory": "어떤 제품군을 광고하시나요? (카테고리 선택)",
-
       "catFashion": "👗 패션/의류",
-
       "catBeauty": "💄 뷰티/화장품",
-
       "catFood": "🍔 식품/건강",
-
       "catTech": "💻 가전/디지털",
-
       "catTravel": "✈️ 여행/숙박",
-
       "catSoftware": "☁️ 소프트웨어/플랫폼",
-
       "catGeneral": "🛍️ 기타/종합몰",
-
       "campName": "캠페인 명칭",
-
       "budgetLabel": "월 총 투자 예산 (₩)",
-
       "budgetErr": "카테고리를 선택하고 예산을 100,000원 이상 입력해 주세요.",
-
       "simulating": "AI 전략 수립 중...",
-
       "btnSimulate": "AI 통합 전략 수립하기",
-
       "mixTitle": "AI 미디어 믹스 추천",
-
       "mixSub": "입력하신 {amt}의 최적 분배안입니다.",
-
       "estRoas": "예상 통합 ROAS",
-
       "estConv": "예상 총 전환 수",
-
       "cases": "건",
-
       "expRoas": "예상 ROAS:",
-
       "btnRetry": "다시 입력",
-
       "btnNext": "이 전략으로 결제 진행 →",
-
       "launchTitle": "원클릭 승인 및 라이브 런치",
-
       "launchSub": "기존의 복잡한 결재 라인과 카드 등록 절차를 통합했습니다. 아래 버튼을 클릭하면 사전에 등록된 법인 카드 지갑에서 자동 과금되며 캠페인이 즉시 운영 모드로 진입합니다.",
-
       "payMethod": "결제 수단",
-
       "corporateCard": "법인 공용 카드 (끝자리 4821)",
-
       "totalAmt": "총 결제 금액",
-
       "btnReview": "전략 재검토",
-
       "btnLaunching": "결제 및 활성화 진행 중...",
-
       "btnLaunch": "결제 승인 및 즉시 라이브 시작",
-
       "alertSuccess": "결제 및 런칭(활성화)이 완료되었습니다! 대시보드로 이동합니다."
-
     },
-
     "influencerUGC": {
-
       "txt_WhitelistA_4": "Whitelist 허용 기간 내 집행 가능 (만료 전 적극 활용 권장)",
-
       "txt_Percontrac_8": "계약상 지급액",
-
       "txt_ActualPaid_9": "실가용액",
-
       "txt_Difference_10": "과/미지급 차액",
-
       "txt_CreatorROI_11": "🏆 크리에이터 ROI 랭킹",
-
       "txt_Engagement_12": "인게이지먼트 최상위군 광고 소재화 제안",
-
       "txt_AdCreative_13": "광고 소재화",
-
       "txt_ProductPag_14": "상품 랜딩 반영",
-
       "txt_Channelper_15": "📊 채널별 평균 리뷰 평점",
-
       "txt_부정키워드Top5_16": "⚠ 주요 블랙 키워드 (Top 5)",
-
       "txt_부정키워드급증10건_17": "부정 키워드 급증 즉시 CS 알림 발송",
-
       "txt_리뷰피드_18": "💬 라이브 리뷰 피드",
-
       "txt_All감성_19": "전체 극성",
-
       "txt_긍정_20": "긍정",
-
       "txt_inprogress_21": "중립",
-
       "txt_부정_22": "부정",
-
       "txt_CS대응_23": "CS 핫라인",
-
       "txt_Search결과No_24": "결과가 없습니다.",
-
       "txt_AI인플루언서평가A_25": "🤖 AI 데이터 마이닝 종합평가",
-
       "txt_평가항목per점Co_26": "📊 종합 스코어카드",
-
       "txt_실적_27": "누적 지표:",
-
       "txt_강점_28": "✅ 주요 강점 지표",
-
       "txt_개선포인트_29": "⚠️ 보완 여지 포인트",
-
       "txt_AI적정Commis_30": "💰 AI 산출 적정 커미션 제안",
-
       "txt_지역연령성per참여_31": "📊 데모그래픽 기반 구매 기여도",
-
       "txt_AI인플루언서종합평_32": "🤖 Claude 3.5 기반 인플루언서 실시간 평가",
-
       "txt_ClaudeSonn_33": "ROI·전환·인게이지먼트에 근거한 최적화 모델 구동 ·",
-
       "txt_지역연령성per참여_34": "지역/연령 분포 밀도 추적",
-
       "txt_ClaudeAI가C_35": "AI가 전체 크리에이터 누적 데이터베이스를 분석하고 있습니다...",
-
       "txt_평가대상Creato_36": "📥 이달의 평가 대상",
-
       "txt_AI평가RunBut_37": "분석을 실행하여 최적화 리포트를 다운로드하세요.",
-
       "txt_포트폴리오종합Ana_38": "📋 엔터프라이즈 포트폴리오 요약",
-
       "txt_CreatorAI평_39": "🏆 AI 티어 기반 순위 표",
-
       "txt_행Clicks시항목_40": "행 클릭 시 권장 커미션 및 갱신 권고 확인 가능",
-
       "txt_AI점Count_41": "AI 평가 지수",
-
       "txt_계약갱신권고_42": "연장 권장 레벨",
-
       "txt_권장Commissi_43": "권장 단가 범위",
-
       "txt_포트폴리오전략인사이_44": "💡 거시적 캠페인 포트폴리오 조언",
-
       "txt_Budget최적화제_45": "💰 예산 재할당 가이드라인",
-
       "txt_AI재Analysi_46": "🔄 재구성 분석 신청",
-
       "txt_All리뷰_47": "전체 리뷰 볼륨",
-
       "txt_4개Channel합_48": "4개 주요 채널",
-
       "txt_Average평점_49": "가중 평균 평점",
-
       "txt_전Channel가i_50": "모든 리뷰 기준",
-
       "txt_부정리뷰_51": "이슈성 언급량",
-
       "txt_즉시대응필요_52": "대응 채널 파견 필",
-
       "txt_긍정Rate_53": "긍정 극성 비중",
-
       "txt_전월31p_54": "전월 대비 상승률",
-
       "u_0": "활성 계약",
-
       "u_1": "e-Sign 대기",
-
       "u_2": "화이트리스트 임박",
-
       "u_3": "90일 이내",
-
       "u_4": "화이트리스트 만료",
-
       "u_5": "화이트리스트",
-
       "u_6": "전자서명 미완료 (계약 미발효)",
-
       "u_7": "서명 요청 재발송",
-
       "u_8": "광고 집행 즉시 중단",
-
       "u_9": "권한 갱신",
-
       "u_10": "계약 목록",
-
       "u_11": "크리에이터",
-
       "u_12": "계약 유형",
-
       "u_13": "고정비",
-
       "u_14": "성과율",
-
       "u_15": "권리 범위",
-
       "u_16": "계약 기간",
-
       "u_17": "서명 상태",
-
       "u_18": "전자서명",
-
       "u_19": "고정+성과",
-
       "u_20": "고정비",
-
       "u_21": "성과형",
-
       "u_22": "허용",
-
       "u_23": "만료됨",
-
       "u_24": "일 남음 ·",
-
       "u_25": "일 남음",
-
       "u_26": "없음",
-
       "u_27": "✓ 서명완료",
-
       "u_28": "⏳ 대기중",
-
       "u_29": "✗ 거절됨",
-
       "u_30": "상세 정보",
-
       "u_31": "광고 전환 (화이트리스트) 기간",
-
       "u_32": "까지",
-
       "u_33": "계약 상세 — ",
-
       "u_34": "닫기",
-
       "u_35": "📄 계약서 다운로드",
-
       "u_36": "총 지급 예정액",
-
       "u_37": "지급 완료",
-
       "u_38": "미지급",
-
       "u_39": "과지급 탐지",
-
       "u_40": "비정상 건수",
-
       "u_41": "검토 필요",
-
       "u_42": "🟣 과지급",
-
       "u_43": "🔴 미지급/부분지급",
-
       "u_44": "계약금",
-
       "u_45": "실제 지급액",
-
       "u_46": "차액",
-
       "u_47": "회수",
-
       "u_48": "잔여액 지급",
-
       "u_49": "정산 내역 (자동검증)",
-
       "u_50": "기간",
-
       "u_51": "결과",
-
       "u_52": "증빙서류",
-
       "u_53": "일치",
-
       "u_54": "문서 없음",
-
       "u_55": "명세서 다운로드",
-
       "u_56": "명세서",
-
       "u_57": "💰 명세서 — ",
-
       "u_58": "계약금액 (고정)",
-
       "u_59": "성과급 (",
-
       "u_60": "계약 총액",
-
       "u_61": "사업소득세 (3.3%)",
-
       "u_62": "지방소득세 (0.33%)",
-
       "u_63": "실 지급액",
-
       "u_64": "⚠ 과지급",
-
       "u_65": "⚠ 미지급/부분지급",
-
       "u_66": "✓ 일치",
-
       "u_67": "📥 명세서 다운로드",
-
       "u_68": "콘텐츠 매트릭스 (재활용 및 화이트리스트 ROI)",
-
       "u_69": "조회수 / 전환율 매트릭스",
-
       "u_70": "고조회/저구매 케이스 분석",
-
       "u_71": "조회 200K+ · 주문 <50 — 콘텐츠 최적화 또는 랜딩 페이지 개선 필요",
-
       "u_72": "콘텐츠 재활용 최적 후보 (광고 / 상품 페이지)",
-
       "u_73": "총 조회수",
-
       "u_74": "기여 주문",
-
       "u_75": "기여 매출액",
-
       "u_76": "계약 비용",
-
       "u_77": "조회→주문",
-
       "u_78": "조회/주문",
-
       "u_79": "조회수",
-
       "u_80": "주문 (기여)",
-
       "u_81": "액션 권고",
-
       "u_82": "유형",
-
       "u_83": "날짜",
-
       "u_84": "참여율",
-
       "u_85": "목표 전환율 (",
-
       "u_86": "UGC 매출",
-
       "u_87": "콘텐츠 ROI (총액)",
-
       "u_88": "총 비용",
-
       "u_89": "조회수/주문",
-
       "u_90": "평가주문액",
-
       "u_91": "전환율",
-
       "u_92": "주문수",
-
       "u_93": "부정적 반응 급증 알림",
-
       "u_94": "키워드",
-
       "u_95": "최근 7일",
-
       "u_96": "이전 7일",
-
       "u_97": "상승률",
-
       "u_98": "심각도",
-
       "u_99": "리뷰 목록",
-
       "u_100": "긍정",
-
       "u_101": "중립",
-
       "u_102": "부정",
-
       "u_103": "감성",
-
       "u_104": "내용 (",
-
       "u_105": "내용",
-
       "u_106": "평점",
-
       "u_107": "전체 채널",
-
       "u_108": "🚨 자동 알림 활성화됨",
-
       "u_109": "순위",
-
       "u_110": "등급",
-
       "u_111": "ROI",
-
       "u_112": "🛡️",
-
       "u_113": "📋 계약 유형:",
-
       "u_114": "총합",
-
       "u_115": "주문",
-
       "v_100": "계약 목록 (Contract List)",
-
       "v_101": "광고 전환 (화이트리스트) 기간",
-
       "v_102": "정산 내역 (자동검증)",
-
       "v_103": "고조회/저구매 케이스 분석",
-
       "v_104": "조회 200K+ · 주문 <50 — 콘텐츠 최적화 또는 랜딩 페이지 개선 필요",
-
       "v_105": "콘텐츠 재활용 최적 후보 (광고/상품 페이지)",
-
       "v_106": "총 조회수",
-
       "v_107": "고조회/저구매",
-
       "v_108": "기여 주문",
-
       "v_109": "기여 매출액",
-
       "v_110": "계약 비용",
-
       "v_111": "조회→주문",
-
       "v_112": "조회/주문",
-
       "v_113": "전자서명 미완료 (계약 미발효)",
-
       "w_200": "계약 목록 (Contract List)",
-
       "w_201": "광고 전환 (화이트리스트) 기간",
-
       "w_202": "정산 내역 (자동검증)",
-
       "w_203": "고조회/저구매 케이스 분석",
-
       "w_204": "조회 200K+ · 주문 <50 — 콘텐츠 최적화 또는 랜딩 페이지 개선 필요",
-
       "w_205": "콘텐츠 재활용 최적 후보 (광고/상품 페이지)",
-
       "w_206": "고조회/저구매",
-
       "w_207": "전자서명 미완료 (계약 미발효)",
-
       "w_300": "조회 200K+ · 주문 <50 — 콘텐츠 최적화 또는 랜딩 페이지 개선 필요",
-
       "w_301": "병합",
-
       "w_302": "통합 이메일 목록",
-
       "w_303": "⚠ 다중 이메일 탐지 — 동일인 여부를 확인하세요",
-
       "w_304": "검색...",
-
       "w_305": "고조회/저구매",
-
       "w_400": "⏳ AI 분석 진행중...",
-
       "w_401": "🚀 AI 평가 실행",
-
       "w_402": "명 크리에이터 · ROI 분석 · 커미션 최적화 · 연장 검토",
-
       "unit_persons": "명",
-
       "unit_items": "개"
-
     },
-
     "workspace": {
-
       "title": "팀 워크스페이스"
-
     },
-
     "pnlLowMargin": "저마진",
-
-
-
     "pnlLowMarginSub": "저마진 상품",
-
-
-
     "pnlAiAction": "AI 액션",
-
-
-
     "pnlHighMargin": "고마진",
-
-
-
     "pnlHighMarginSub": "고마진 상품",
-
-
-
     "pnlBudgetAction": "예산 액션",
-
-
-
     "kpiRulesActive": "활성 규칙",
-
-
-
     "kpiRulesFired": "실행된 규칙",
-
-
-
     "kpiAllNormal": "전체 정상",
-
-
-
     "kpiRuleAction": "규칙 액션",
-
-
-
     "attrAiRun": "AI 실행",
-
-
-
-    "attrAiSub": "AI 기여"
-
-
-
-  ,
+    "attrAiSub": "AI 기여",
     "acctPerf": {
       "integrated": "통합 성과 요약",
       "breakdown": "팀/계정별 세부 성과 분석",
@@ -24084,7 +20618,9 @@ export default {
       "aiInsightDesc": "각 지역 팀이나 브랜드 단위의 서로 다른 목표와 고객층에 맞춘 심층 분석 및 맞춤형 대응 전략입니다.",
       "metaUs": "[미국팀] 목표: 신규 고객 확보(Acquisition). 제언: 시장 점유율 확보를 위해 약간 높은 CPA는 수용 가능합니다. 노출수와 전환 볼륨 극대화에 예산을 집중하세요.",
       "metaJp": "[일본팀] 목표: ROAS(수익성) 극대화. 제언: ROAS가 4.5x로 매우 강력합니다. 이익 마진이 높으므로 타 지역 예산의 20%를 이곳으로 이관하여 볼륨을 확장하세요.",
-      "metaEu": "[유럽팀] 목표: 비용 효율화. 제언: 전환단가(CPA)가 무려 ₩13,333으로 과도하게 높습니다. 입찰가를 하향 조정하고, 지역 타겟 고객층에 맞는 신규 소재(Creative)로 즉각 교체하세요."
+      "metaEu": "[유럽팀] 목표: 비용 효율화. 제언: 전환단가(CPA)가 무려 ₩13,333으로 과도하게 높습니다. 입찰가를 하향 조정하고, 지역 타겟 고객층에 맞는 신규 소재(Creative)로 즉각 교체하세요.",
+      "desc": "Compare campaign performance of the exact same product and channel across different regional teams or sub-accounts.",
+      "team": "Team / Account"
     }
   },
 
@@ -33352,7 +29888,45 @@ export default {
         "disconnectDoneToast": "✅ {{n}}개 상품 채널 연결 해제 완료!",
         "priceEditDoneToast": "✅ {{n}}개 상품 가격 편집 완료!",
         "rounding900": "900원 단위 (예: ₩29,900)",
-        "rounding990": "990원 단위 (예: ₩29,990)"
+        "rounding990": "990원 단위 (예: ₩29,990)",
+        "addProduct": "Add Product",
+        "allChannel": "Total Channels",
+        "allStatus": "All Status",
+        "autoSync": "Auto Sync",
+        "autoSyncDesc": "Auto Sync Desc",
+        "close": "Close",
+        "colCategory": "Category",
+        "colChannels": "Channel",
+        "colId": "ID",
+        "colMargin": "Col Margin",
+        "colProductName": "Product name",
+        "colSalePrice": "Sale Price",
+        "colStock": "Inventory",
+        "colSync": "Sync",
+        "colUnit": "Unit",
+        "costBreakdown": "Cost Breakdown",
+        "deselectAll": "Deselect All",
+        "discountRate": "Discount Rate",
+        "done": "Complete",
+        "exchangeRate": "Exchange Rate",
+        "loading": "Loading...",
+        "marginRate": "Margin Rate (based on sale price)",
+        "noData": "No Data Available",
+        "noHistory": "No execution history",
+        "pricing": "Pricing",
+        "processing": "Processing...",
+        "productCostAuto": "Product Cost Auto",
+        "productCount": "Product Count",
+        "registering": "Registering...",
+        "running": "Running",
+        "save": "Save",
+        "searchPlaceholder": "Search product/SKU...",
+        "specLabel": "Spec Label",
+        "statusWarning": "Warnings",
+        "syncNow": "Sync Now",
+        "type": "Type",
+        "unitBox": "Box",
+        "uploadImage": "Upload Image"
       },
       "campaignMgr": {
         "automationLinked": ":{{n}}개 자동화 캠페인 연동 중",
@@ -33421,7 +29995,26 @@ export default {
         "afterApproval": "승인 후",
         "afterApprovalDesc": "AI 캠페인 설정 화면으로 이동",
         "newCampaignWarn": "등록 후 AI가 자동으로 예산을 집행할 수 있습니다.",
-        "newCampaignConfirm": "승인 후 AI 캠페인 설정"
+        "newCampaignConfirm": "승인 후 AI 캠페인 설정",
+        "colName": "Campaign name"
+      },
+      "aiPolicy": {
+        "dimSku": "SKU"
+      },
+      "conn": {
+        "dwArchCRM": "CRM"
+      },
+      "ds": {
+        "flowBigQuery": "BigQuery",
+        "flowKafkaS3": "Kafka/S3",
+        "ruleROAS3": "ROAS < 3.0x"
+      },
+      "dt": {
+        "tiktokStep1": "TikTok Ads Manager → Assets → Events → Web Events"
+      },
+      "mr": {
+        "pfColId": "ID",
+        "pfColVat": "VAT%"
       }
     },
     "gUrgent": "긴급",
@@ -33620,7 +30213,444 @@ export default {
         "_51": "이슈성 언급량",
         "_52": "대응 채널 파견 필",
         "Rate_53": "긍정 극성 비중",
-        "p_54": "전월 대비 상승률"
+        "p_54": "전월 대비 상승률",
+        "Sim": "Sim",
+        "Simulation": "Simulation",
+        "abGroupA": "Ab Group A",
+        "abGroupB": "Ab Group B",
+        "achieved": "Achieved ✓",
+        "achievedOk": "Achieved ✓",
+        "aiAnalyzing": "AI Analyzing...",
+        "aiHistoryList": "AI Analysis History",
+        "aiSummary": "AI Analysis Summary",
+        "alertSuccess": "Alert Success",
+        "allChannel": "Total Channels",
+        "allChannels": "Total Channels",
+        "analytics": "Analytics",
+        "avgTime": "Avg Time",
+        "backToList": "Back To List",
+        "badgeAdSpend": "Total Ad Spend",
+        "badgeBlendedRoas": "Blended ROAS",
+        "badgeOpProfit": "Badge Op Profit",
+        "badgeOrders": "Badge Orders",
+        "bannerDesc": "Banner Desc",
+        "bannerTitle": "Banner Title",
+        "belowTarget": "Below Target",
+        "birthday": "🎂 Birthday",
+        "bizGoalSetting": "Biz Goal Setting",
+        "brandAwareness": "Brand Awareness",
+        "brandAwarenessDesc": "Brand Awareness Desc",
+        "btnLaunch": "Btn Launch",
+        "btnLaunching": "Btn Launching",
+        "btnRetry": "Btn Retry",
+        "btnReview": "Btn Review",
+        "btnSimulate": "Btn Simulate",
+        "budgetErr": "Budget Err",
+        "budgetLabel": "Budget Label",
+        "budgetSub": "Budget Sub",
+        "campName": "Campaign Name",
+        "cart_abandoned": "🛒 Cart Abandoned",
+        "cases": " orders",
+        "catBeauty": "Cat Beauty",
+        "catFashion": "Cat Fashion",
+        "catFood": "Cat Food",
+        "catGeneral": "Cat General",
+        "catSoftware": "Cat Software",
+        "catTech": "Cat Tech",
+        "catTravel": "Cat Travel",
+        "chBlog": "Ch Blog",
+        "chCommunity": "Ch Community",
+        "chSearchAds": "Ch Search Ads",
+        "chSnsAds": "Ch Sns Ads",
+        "channelCol": "Channel",
+        "channelRoleDef": "Channel Role Definition",
+        "checklist": "Key Action Items",
+        "chkCostPerf": "Cost vs Performance Check",
+        "chkEff": "Campaign Efficiency Check",
+        "chkImprove": "Identify Items for Improvement",
+        "churn": "Final Churn Status",
+        "churned": "😴 Churn Risk Customer",
+        "claudeAiDesc": "Claude Ai Desc",
+        "claudeAiTitle": "Claude Ai Title",
+        "clickSelect": "Click Select",
+        "clickToEdit": "Click To Edit",
+        "clicks": "Clicks",
+        "code": "Code",
+        "comments": "Comments",
+        "communityAct": "Community Act",
+        "communityGrowth": "Community Growth",
+        "communityKpi": "Community Kpi",
+        "conditionEmailClicked": "Condition Email Clicked",
+        "conditionEmailOpened": "Condition Email Opened",
+        "conditionField": "Condition Field",
+        "conditionKakaoClicked": "Condition Kakao Clicked",
+        "conditionLineClicked": "LINE Clicks",
+        "conditionLtvGt": "Condition Ltv Gt",
+        "conditionPurchased": "Purchase",
+        "consentDate": "Consent Date",
+        "consentNow": "Consent Now",
+        "consentRate": "Consent Rate",
+        "consented": "Consented",
+        "contentEngage": "Content Engage",
+        "contentImpressions": "Content Impressions",
+        "contentInterest": "Content Interest",
+        "contentKpi": "Content Kpi",
+        "convRate": "Conversion Rate",
+        "conversions": "Conversions",
+        "cookiePolicy": "Cookie Policy",
+        "copied": "Copied to clipboard",
+        "copy": "Copy",
+        "coreKpis": "Core KPIs",
+        "corporateCard": "Corporate Card",
+        "cpa": "Cost Per Acquisition (CPA)",
+        "cpc": "Cost Per Click (CPC)",
+        "crmChurn": "Crm Churn",
+        "crmJourney": "Crm Journey",
+        "crmJourneyAction": "Crm Journey Action",
+        "crmVip": "Crm Vip",
+        "ctr": "Click-through Rate (CTR)",
+        "currentConsentStatus": "Current Consent Status",
+        "currentMonth": "Current Month",
+        "cycle": "Cycle",
+        "date": "Date (Period)",
+        "days": " days",
+        "delayTime": "Delay Time",
+        "delayUnit": "Unit",
+        "deleteNode": "Delete Node",
+        "descBrandReach": "Large-scale brand exposure through SNS platform ads",
+        "descCaptureIntent": "Target users with high purchase intent via search algorithms",
+        "descConvRate": "Conversion Rate vs Target",
+        "descCpa": "Desc Cpa",
+        "descCpc": "Desc Cpc",
+        "descCtr": "Desc Ctr",
+        "descCustRel": "Secure customer loyalty through community activities",
+        "descInfoTrust": "Build expertise and trust through problem-solving content",
+        "descRoas": "Desc Roas",
+        "detail": "Detail View",
+        "editSettings": "Edit Settings",
+        "emailFrom": "Email From",
+        "emailSendSim": "Email Send Sim",
+        "emailSenderPh": "Geniego",
+        "emailSimulate": "Email Simulate",
+        "emailSubject": "Email Subject",
+        "emailSubjectPh": "Email Subject Ph",
+        "emailTestSend": "Email Test Send",
+        "engagement": "Engagement Rate",
+        "estConv": "Est Conv",
+        "estRoas": "Estimated Blended ROAS",
+        "execLog": "Auto Execution Log",
+        "expRoas": "Exp Roas",
+        "filterHigh": "Filter High",
+        "filterLow": "Filter Low",
+        "filterMed": "Filter Med",
+        "hintConvRate": "Hint Conv Rate",
+        "hintCpa": "Hint Cpa",
+        "hintCpc": "Hint Cpc",
+        "hintCtr": "Hint Ctr",
+        "hintRoas": "Hint Roas",
+        "hours": "Time",
+        "impressions": "Total Impressions",
+        "improveRecs": "Improvement Recommendations",
+        "inProgress": "In Progress",
+        "inquiries": "Inquiries",
+        "inquiriesPurchases": "Inquiries Purchases",
+        "inquiriesPurchasesDesc": "Inquiries Purchases Desc",
+        "interestConv": "Interest Conv",
+        "k_16": "K_16",
+        "k_17": "K_17",
+        "k_18": "K_18",
+        "k_19": "K_19",
+        "k_20": "K_20",
+        "k_3": "K_3",
+        "k_4": "K_4",
+        "k_5": "K_5",
+        "k_6": "K_6",
+        "k_7": "K_7",
+        "k_8": "K_8",
+        "kakaoAlimtalk": "Kakao Alimtalk",
+        "kakaoFriendtalk": "Kakao Friendtalk",
+        "kakaoGuild": "Kakao Guild",
+        "kakaoMsgType": "Kakao Msg Type",
+        "kakaoSendSim": "Kakao Send Sim",
+        "kakaoTemplate": "Kakao Template",
+        "kakaoTest": "Kakao Test",
+        "launchSub": "Launch Sub",
+        "launchTitle": "Launch Title",
+        "lblConvRate": "Conversion Rate",
+        "lblCpaFull": "Lbl Cpa Full",
+        "lblCpcFull": "Lbl Cpc Full",
+        "lblCtrFull": "Lbl Ctr Full",
+        "lblRoasFull": "Lbl Roas Full",
+        "lineMsgType": "Line Msg Type",
+        "lineSendSim": "Line Send Sim",
+        "lineSimulate": "Line Simulate",
+        "lineTemplate": "Line Template",
+        "lineTestSend": "Line Test Send",
+        "liveDB": "Live D B",
+        "loading": "Loading...",
+        "ltv12": "Ltv12",
+        "mainTitle": "Main Title",
+        "manual": "Manual",
+        "marketing": "Marketing Performance",
+        "message": "Message",
+        "minutes": "Minutes",
+        "mixSub": "Mix Sub",
+        "mixTitle": "AI Media Mix Recommendation",
+        "mktBudgetAction": "Mkt Budget Action",
+        "mktHighRoas": "Mkt High Roas",
+        "mktHighRoasSub": "Mkt High Roas Sub",
+        "mktHubAction": "Mkt Hub Action",
+        "mktLowRoas": "Mkt Low Roas",
+        "mktOptimizeNow": "Mkt Optimize Now",
+        "mktRulesActive": "Mkt Rules Active",
+        "monitorAi": "AI Channel Performance Monitoring",
+        "monthlyAi": "Monthly Report",
+        "monthlyTrend": "Monthly Trend",
+        "naverCafe": "Naver Cafe",
+        "negative": "Negative",
+        "newMembers": "New Signups",
+        "nextPurchase": "Next Purchase",
+        "noConsentInfo": "No Consent Info",
+        "noData": "No Data Available",
+        "noHistory": "No execution history",
+        "nodeConfig": "Node Config",
+        "nodeName": "Node Name",
+        "notConsented": "Not Consented",
+        "orderId": "Order ID",
+        "ordersAiRun": "Orders Ai Run",
+        "ordersAiSub": "Orders Ai Sub",
+        "ordersCampaignAction": "Orders Campaign Action",
+        "overallAchieve": "Overall Achievement Status",
+        "pageViews": "Page Views",
+        "panelSub": "Panel Sub",
+        "panelTitle": "Panel Title",
+        "payMethod": "Pay Method",
+        "period": "Analysis Period",
+        "platformStats": "Platform Stats",
+        "pleaseSelectGoal": "Please Select Goal",
+        "policyNote1": "Policy Note1",
+        "policyNote2": "Policy Note2",
+        "policyNote3": "Policy Note3",
+        "positive": "Positive",
+        "postViews": "Post Views",
+        "privacyPolicy": "Privacy Policy",
+        "prob30": "30-day Churn Probability",
+        "purchase": "✅ Purchase Complete",
+        "qBudget": "Q Budget",
+        "reach": "Reach",
+        "recentTriggers": "Recent Triggers",
+        "required": "Required",
+        "roas": "ROAS",
+        "roleBrandReach": "Brand Reach",
+        "roleCaptureIntent": "Capture Purchase Intent",
+        "roleCustRel": "Strengthen Customer Relationships",
+        "roleInfoTrust": "Info · Trust Building",
+        "save": "Save",
+        "savePref": "Save Pref",
+        "saving": "Saving...",
+        "searchPlaceholder": "Search product/SKU...",
+        "searchTraffic": "Search Traffic",
+        "segment_entered": "📌 Segment Entry",
+        "selected": "Selected",
+        "selectedGoals": "Selected Goals",
+        "seoImpact": "Seo Impact",
+        "share": "Rate",
+        "signup": "🌱 New Signup",
+        "simulating": "Simulating",
+        "siteTraffic": "Site Traffic",
+        "snsKpiByChannel": "Sns Kpi By Channel",
+        "snsKpiOverview": "Sns Kpi Overview",
+        "spend": "Spend",
+        "step1": "Step1",
+        "step2": "Step2",
+        "step3": "Step3",
+        "strengths": "Strengths",
+        "tabCommunity": "Tab Community",
+        "tabContent": "Tab Content",
+        "tabGoals": "Tab Goals",
+        "tabMonitor": "Tab Monitor",
+        "tabRoles": "Tab Roles",
+        "tabSetup": "Tab Setup",
+        "tabSns": "Tab Sns",
+        "tabTargets": "Tab Targets",
+        "targetSetup": "KPI Target Setting by Channel",
+        "targetVsActuals": "Target Vs Actuals",
+        "team": "View by Team",
+        "title": "Email Marketing",
+        "totalAmt": "Total Gross",
+        "totalVisitors": "Total Visitors",
+        "triggerType": "Trigger Type",
+        "txt_ActualPaid_9": "Txt_ Actual Paid_9",
+        "txt_AdCreative_13": "Txt_ Ad Creative_13",
+        "txt_Channelper_15": "Txt_ Channelper_15",
+        "txt_CreatorROI_11": "Txt_ Creator R O I_11",
+        "txt_Difference_10": "Txt_ Difference_10",
+        "txt_Engagement_12": "Txt_ Engagement_12",
+        "txt_Percontrac_8": "Txt_ Percontrac_8",
+        "txt_ProductPag_14": "Txt_ Product Pag_14",
+        "txt_WhitelistA_4": "Txt_ Whitelist A_4",
+        "txt_inprogress_21": "Neutral",
+        "u_0": "U_0",
+        "u_1": "U_1",
+        "u_10": "U_10",
+        "u_100": "Positive",
+        "u_101": "Neutral",
+        "u_102": "Negative",
+        "u_103": "Sentiment",
+        "u_104": "U_104",
+        "u_105": "U_105",
+        "u_106": "U_106",
+        "u_107": "Total Channels",
+        "u_108": "U_108",
+        "u_109": "Ranking",
+        "u_11": "Creator",
+        "u_110": "Tier",
+        "u_111": "ROI",
+        "u_113": "U_113",
+        "u_114": "Sum Total",
+        "u_115": "Order",
+        "u_12": "U_12",
+        "u_13": "U_13",
+        "u_14": "U_14",
+        "u_15": "U_15",
+        "u_16": "U_16",
+        "u_17": "U_17",
+        "u_18": "U_18",
+        "u_19": "U_19",
+        "u_2": "U_2",
+        "u_20": "U_20",
+        "u_21": "U_21",
+        "u_22": "U_22",
+        "u_23": "Expired",
+        "u_24": "U_24",
+        "u_25": "U_25",
+        "u_26": "U_26",
+        "u_27": "U_27",
+        "u_28": "U_28",
+        "u_29": "U_29",
+        "u_3": "U_3",
+        "u_30": "U_30",
+        "u_31": "U_31",
+        "u_32": "U_32",
+        "u_33": "U_33",
+        "u_34": "Close",
+        "u_35": "U_35",
+        "u_36": "U_36",
+        "u_37": "U_37",
+        "u_38": "U_38",
+        "u_39": "U_39",
+        "u_4": "U_4",
+        "u_40": "U_40",
+        "u_41": "U_41",
+        "u_42": "U_42",
+        "u_43": "U_43",
+        "u_44": "U_44",
+        "u_45": "U_45",
+        "u_46": "Difference",
+        "u_47": "U_47",
+        "u_48": "U_48",
+        "u_49": "U_49",
+        "u_5": "U_5",
+        "u_50": "Period",
+        "u_51": "Result",
+        "u_52": "U_52",
+        "u_53": "Matched",
+        "u_54": "U_54",
+        "u_55": "U_55",
+        "u_56": "U_56",
+        "u_57": "U_57",
+        "u_58": "U_58",
+        "u_59": "U_59",
+        "u_6": "U_6",
+        "u_60": "U_60",
+        "u_61": "U_61",
+        "u_62": "U_62",
+        "u_63": "U_63",
+        "u_64": "U_64",
+        "u_65": "U_65",
+        "u_66": "U_66",
+        "u_67": "U_67",
+        "u_68": "U_68",
+        "u_69": "U_69",
+        "u_7": "U_7",
+        "u_70": "U_70",
+        "u_71": "U_71",
+        "u_72": "U_72",
+        "u_73": "U_73",
+        "u_74": "U_74",
+        "u_75": "U_75",
+        "u_76": "U_76",
+        "u_77": "U_77",
+        "u_78": "U_78",
+        "u_79": "U_79",
+        "u_8": "U_8",
+        "u_80": "U_80",
+        "u_81": "Action Recommendations",
+        "u_82": "Type",
+        "u_83": "Date",
+        "u_84": "Engagement Rate",
+        "u_85": "U_85",
+        "u_86": "UGC Revenue",
+        "u_87": "U_87",
+        "u_88": "U_88",
+        "u_89": "U_89",
+        "u_9": "U_9",
+        "u_90": "U_90",
+        "u_91": "Conversion Rate",
+        "u_92": "Orders",
+        "u_93": "U_93",
+        "u_94": "U_94",
+        "u_95": "U_95",
+        "u_96": "U_96",
+        "u_97": "U_97",
+        "u_98": "Severity",
+        "u_99": "U_99",
+        "unitCount": " orders",
+        "unitItems": " orders",
+        "unit_items": "pcs",
+        "unit_persons": "people",
+        "unknown": "Unknown",
+        "v_100": "V_100",
+        "v_101": "V_101",
+        "v_102": "V_102",
+        "v_103": "V_103",
+        "v_104": "V_104",
+        "v_105": "V_105",
+        "v_106": "V_106",
+        "v_107": "V_107",
+        "v_108": "V_108",
+        "v_109": "V_109",
+        "v_110": "V_110",
+        "v_111": "V_111",
+        "v_112": "V_112",
+        "v_113": "V_113",
+        "videoViews": "Video Views",
+        "visitors": "Visitors",
+        "w_200": "W_200",
+        "w_201": "W_201",
+        "w_202": "W_202",
+        "w_203": "W_203",
+        "w_204": "W_204",
+        "w_205": "W_205",
+        "w_206": "W_206",
+        "w_207": "W_207",
+        "w_300": "W_300",
+        "w_301": "Merge",
+        "w_302": "W_302",
+        "w_303": "W_303",
+        "w_304": "W_304",
+        "w_305": "W_305",
+        "w_400": "W_400",
+        "w_401": "W_401",
+        "w_402": "W_402",
+        "weaknesses": "Weaknesses",
+        "webTraffic": "Web Traffic",
+        "webTrafficDesc": "Web Traffic Desc",
+        "weeklyAdTrend": "Weekly Ad Efficiency Trend",
+        "weeklyAi": "Weekly Report",
+        "whichCategory": "Which Category",
+        "withdraw": "Withdraw",
+        "withdrawn": "Withdrawn"
       },
       "aiHub": {
         "targetMissed": "목표 미달",
@@ -33666,7 +30696,81 @@ export default {
         "kpiEstProfit": "예상 수익",
         "noCardWarning": "카드 미등록 경고",
         "noCardDesc": "카드가 등록되지 않았습니다.",
-        "journeyDesc": "여정 자동화 설명"
+        "journeyDesc": "여정 자동화 설명",
+        "adSaving": "Ad Saving",
+        "addBudget": "Add Budget",
+        "analyzing": "Analyzing",
+        "approve": "Approve",
+        "approveAll": "Approve All",
+        "attribution": "Attribution",
+        "attributionDesc": "Attribution",
+        "attributionLink": "Attribution Link",
+        "autoExec": "Auto Exec",
+        "autoRegistered": "Auto Registered",
+        "boostReason": "Boost Reason",
+        "budgetShift": "Budget Shift",
+        "bulkApproved": "Bulk Approved",
+        "bulkExec": "Bulk Exec",
+        "campaignStatus": "Campaign Status",
+        "cardLimitAlert": "Card Limit Alert",
+        "cardsUnit": "Cards Unit",
+        "catBudgetOpt": "Cat Budget Opt",
+        "catCrmRetarget": "Cat Crm Retarget",
+        "catInventoryRisk": "Cat Inventory Risk",
+        "catSettlement": "Cat Settlement",
+        "checkInCampaignMgr": "Check In Campaign Mgr",
+        "countUnit": "Count Unit",
+        "currentCharged": "Current Charged",
+        "dailySales": "Daily Sales",
+        "dataSource": "Data Source",
+        "dpAdRoi": "Dp Ad Roi",
+        "dpAdSaving": "Dp Ad Saving",
+        "dpAddBudget": "Dp Add Budget",
+        "dpEstRoas": "Dp Est Roas",
+        "dpExpectedProfit": "Dp Expected Profit",
+        "dpExpireIn": "Dp Expire In",
+        "dpSettlementMargin": "Dp Settlement Margin",
+        "dpShiftBudget": "Dp Shift Budget",
+        "dpVipCount": "Dp Vip Count",
+        "dsActiveRules": "Ds Active Rules",
+        "dsRulesFired": "Ds Rules Fired",
+        "edit": "Edit",
+        "estRoas": "Est Roas",
+        "execBudget": "Exec Budget",
+        "execLog": "Exec Log",
+        "executed": "Executed",
+        "expectedProfit": "Expected Profit",
+        "filterAll": "Filter All",
+        "filterExecuted": "Filter Executed",
+        "heroSub": "Hero",
+        "inDays5": "In Days5",
+        "journeyAutomation": "Journey Automation",
+        "journeyLink": "Journey Link",
+        "kpiApproved": "Approved",
+        "needCard": "Need Card",
+        "netPayout": "Net Payout",
+        "netProfit": "Net Profit",
+        "noCardAlert": "No Card Alert",
+        "pcs": "Pcs",
+        "pendingCampaigns": "Pending Campaigns",
+        "priority": "Priority",
+        "readyToExec": "Ready To Exec",
+        "recBoostTitle": "Rec Boost Title",
+        "recLowStockTitle": "Rec Low Stock Title",
+        "recRebalanceTitle": "Rec Rebalance Title",
+        "recVipTitle": "Rec Vip Title",
+        "revenue": "Revenue",
+        "settlementMargin": "Settlement Margin",
+        "stock": "Stock",
+        "timesUnit": "Times Unit",
+        "totalExecBudget": "Total Exec Budget",
+        "unitPrice": "Unit Price",
+        "units": "Units",
+        "upgradeBtn": "Upgrade",
+        "viewCampaigns": "View Campaigns",
+        "vipInsight": "Vip Insight",
+        "vipReason": "Vip Reason",
+        "wastedBudget": "Wasted Budget"
       },
       "aiPolicy": {
         "policyCreated": "정책 생성됨",
@@ -33709,11 +30813,64 @@ export default {
         "tabGovernanceDesc": "감사 로그 및 거버넌스 현황",
         "tabConfig": "설정",
         "tabConfigDesc": "AI 정책 자동화 설정",
-        "badgePolicies": "정책"
+        "badgePolicies": "정책",
+        "badgeRealtime": "Badge Realtime",
+        "badgeRules": "Badge Rules",
+        "badgeSecurity": "Badge Security",
+        "cancel": "Cancel",
+        "cfgApprovalGate": "Cfg Approval Gate",
+        "condition": "Condition",
+        "crossTabSync": "Cross Sync",
+        "demoBanner": "Demo Banner",
+        "demoBannerDesc": "Demo Banner",
+        "dimSku": "SKU",
+        "disabled": "Disabled",
+        "enabled": "Enabled",
+        "firedTotal": "Fired Total",
+        "liveSyncStatus": "Live Sync Status",
+        "metric": "Metric",
+        "noPolicies": "No Policies",
+        "paused": "Paused",
+        "policyName": "Policy Name",
+        "secCode": "Sec Code",
+        "secDesc": "Sec",
+        "secTitle": "Sec Title",
+        "secUnlock": "Sec Unlock",
+        "severity": "Severity",
+        "syncActiveRules": "Sync Active Rules",
+        "syncBudgets": "Sync Budgets",
+        "syncInventory": "Sync Inventory",
+        "syncOrders": "Sync Orders",
+        "tabPolicies": "Policies",
+        "threshold": "Threshold",
+        "totalAudit": "Total Audit",
+        "upgradeBtn": "Upgrade"
       },
       "actionPresets": {
         "presetList": "프리셋 목록",
-        "usageGuide": "사용 가이드"
+        "usageGuide": "사용 가이드",
+        "guide": {
+          "step1": {
+            "desc": "desc",
+            "title": "Title"
+          },
+          "step2": {
+            "desc": "desc",
+            "title": "Title"
+          },
+          "step3": {
+            "desc": "desc",
+            "title": "Title"
+          },
+          "step4": {
+            "desc": "desc",
+            "title": "Title"
+          }
+        },
+        "pageSub": "Page",
+        "risk": {
+          "all": "All"
+        }
       },
       "crm": {
         "msgEmailDone": "이메일 발송 완료",
@@ -33741,7 +30898,9 @@ export default {
         "email": {
           "lblMockTest": "모의 테스트",
           "mockMode": "모의 모드"
-        }
+        },
+        "colLtv": "LTV",
+        "guideTabsTitle": "Guide Tabs Title"
       },
       "catalogSync": {
         "conn": {
@@ -33796,7 +30955,8 @@ export default {
           "tabPlatforms": "플랫폼",
           "filterDisconnected": "연결 해제 필터",
           "noPlatforms": "플랫폼 없음",
-          "noPlatformsDesc": "등록된 플랫폼이 없습니다"
+          "noPlatformsDesc": "등록된 플랫폼이 없습니다",
+          "filterAll": "Filter All"
         },
         "ds": {
           "adDesc": "Meta Ads, Google Ads 등 광고 플랫폼의 캠페인·성과 데이터 스키마입니다.",
@@ -33923,7 +31083,11 @@ export default {
           "guideSecAd": "광고 도메인의 캠페인 계층, 타겟팅, 성과 지표 필드를 정의합니다.",
           "guideSecMarket": "마켓 도메인의 주문, 정산, 반품 관련 필드를 정의합니다.",
           "guideSecUgc": "UGC/인플루언서 도메인의 크리에이터, 계약, 콘텐츠 성과 필드를 정의합니다.",
-          "noConnectedPlatforms": "연결된 플랫폼이 없습니다. 연동 허브에서 API 키를 등록하세요."
+          "noConnectedPlatforms": "연결된 플랫폼이 없습니다. 연동 허브에서 API 키를 등록하세요.",
+          "fRoas": "ROAS",
+          "fSku": "SKU",
+          "pipeCollect": "Data Collection",
+          "pipeNormalize": "Normalization/Mapping"
         },
         "journey": {
           "clickToEdit": "클릭하여 편집",
@@ -34010,7 +31174,53 @@ export default {
           "execLog": "실행 로그",
           "nodeSettings": "노드 설정",
           "copy": "복사",
-          "recentTriggers": "최근 트리거"
+          "recentTriggers": "최근 트리거",
+          "cancel": "Cancel",
+          "colStatus": "Status",
+          "connectedChannels": "Connected Channels",
+          "delete": "Delete",
+          "edit": "Edit",
+          "guideNodeAbTest": "Guide Node Ab Test",
+          "guideNodeCondition": "Guide Node Condition",
+          "guideNodeDelay": "Guide Node Delay",
+          "guideNodeEmail": "Guide Node Email",
+          "guideNodeEnd": "Guide Node End",
+          "guideNodeKakao": "Guide Node Kakao",
+          "guideNodeLine": "Guide Node Line",
+          "guideNodePush": "Guide Node Push",
+          "guideNodeSms": "Guide Node Sms",
+          "guideNodeTrigger": "Guide Node Trigger",
+          "guideNodeWebhook": "Guide Node Webhook",
+          "guideNodeWhatsapp": "Guide Node Whatsapp",
+          "nodeTypes": {
+            "ab_test": "Ab test",
+            "condition": "Condition",
+            "delay": "Delay",
+            "end": "End",
+            "instagram": "Instagram",
+            "kakao": "Kakao",
+            "line": "Line",
+            "popup": "Popup",
+            "push": "Push",
+            "sms": "Sms",
+            "tag": "Tag",
+            "trigger": "Trigger",
+            "webhook": "Webhook",
+            "whatsapp": "Whatsapp"
+          },
+          "save": "Save",
+          "trigger": "Trigger",
+          "triggerTypes": {
+            "birthday": "Birthday",
+            "cart_abandoned": "Cart abandoned",
+            "churned": "Churned",
+            "event": "Event",
+            "manual": "Manual",
+            "purchase": "Purchase",
+            "segment_entered": "Segment entered",
+            "signup": "Signup",
+            "webhook_trigger": "Webhook trigger"
+          }
         },
         "mr": {
           "pfEmptyTitle": "플랫폼이 없습니다",
@@ -34116,7 +31326,13 @@ export default {
           "dedColNote": "메모",
           "dedColAction": "작업",
           "dedBaseTotalRevenue": "총 매출 기준",
-          "dedBaseAdSpend": "광고비 기준"
+          "dedBaseAdSpend": "광고비 기준",
+          "pfColId": "ID",
+          "pfColRoas": "ROAS",
+          "pfColVat": "VAT",
+          "secLockDesc": "Sec Lock",
+          "secLockTitle": "Sec Lock Title",
+          "tabKpi": "KPI"
         },
         "reviews": {
           "sentiment_": "감성 분석",
@@ -34128,7 +31344,8 @@ export default {
           "demoMode": "데모 모드"
         },
         "webPopup": {
-          "badgeExit": "이탈 의도"
+          "badgeExit": "이탈 의도",
+          "linkUrlPh": "https://example.com/promo"
         },
         "alertAuto": {
           "secTitle": "보안 제목",
@@ -34194,7 +31411,14 @@ export default {
           "badgeAlerts": "알림 배지",
           "badgeRulesSync": "규칙 동기화 배지",
           "badgeRealtime": "실시간 배지",
-          "badgeSecurity": "보안 배지"
+          "badgeSecurity": "보안 배지",
+          "cancel": "Cancel",
+          "colAction": "Action",
+          "frequency": "Frequency",
+          "liveSyncStatus": "Live Sync Status",
+          "tabRules": "Rules",
+          "tabRulesDesc": "Rules",
+          "tabSettings": "Settings"
         },
         "ihub": {
           "helpTitle": "API Key 관리",
@@ -34386,8 +31610,266 @@ export default {
           "domesticDesc": "국내 마켓플레이스 API 키를 관리합니다.",
           "ownMallDesc": "자사몰 API 키를 관리합니다.",
           "closedMallDesc": "복지몰/폐쇄몰 API 키를 관리합니다.",
-          "socialMediaDesc": "소셜 미디어 계정 API 키를 관리합니다."
+          "socialMediaDesc": "소셜 미디어 계정 API 키를 관리합니다.",
+          "dwCrm": "CRM",
+          "dwFeatureUnity": "Unity Catalog",
+          "scTitle": "SmartConnect AI",
+          "secLockDesc": "Module locked due to abnormal access.",
+          "tabSmartConnect": "Smart Connect"
+        },
+        "caseStudy": {
+          "industry_b2b": "B2B"
+        },
+        "colSku": "SKU",
+        "colSkuHeader": "SKU",
+        "contentCal": {
+          "guideTabsTitle": "Guide Tabs Title"
+        },
+        "devHub": {
+          "rateLimits": "Rate Limits",
+          "tab_webhook": "⚡ Webhook"
+        },
+        "dt": {
+          "srcCRM": "CRM"
+        },
+        "graph": {
+          "sku": "SKU"
+        },
+        "pnl": {
+          "kpiRoas": "ROAS"
+        },
+        "pxl": {
+          "amount": "Amount",
+          "channelAttr": "Channel Attr",
+          "convRate": "Conv Rate",
+          "conversions": "Conversions",
+          "copy": "Copy",
+          "createError": "Create Error",
+          "createPixel": "Create Pixel",
+          "createPixelBtn": "Create Pixel",
+          "createSuccess": "Create Success",
+          "creating": "Creating",
+          "days": "Days",
+          "delete": "Delete",
+          "deleteConfirm": "Delete Confirm",
+          "domain": "Domain",
+          "eventType": "Event Type",
+          "funnelCart": "Funnel Cart",
+          "funnelCheckout": "Funnel Checkout",
+          "funnelProduct": "Funnel Product",
+          "funnelPurchase": "Funnel Purchase",
+          "funnelTitle": "Funnel Title",
+          "funnelVisit": "Funnel Visit",
+          "loading": "Loading",
+          "medium": "Medium",
+          "metaCAPIToken": "Meta C A P I Token",
+          "metaForward": "Meta Forward",
+          "nameRequired": "Name Required",
+          "noChannelData": "No Channel Data",
+          "noDataDesc": "No Data",
+          "noDataTitle": "No Data Title",
+          "noEvents": "No Events",
+          "noPixels": "No Pixels",
+          "pixelList": "Pixel List",
+          "pixelName": "Pixel Name",
+          "pixelNamePh": "Pixel Name Ph",
+          "purchases": "Purchases",
+          "realtimeStream": "Realtime Stream",
+          "revenue": "Revenue",
+          "secAlert": "Sec Alert",
+          "secBlocked": "Sec Blocked",
+          "secInputBlocked": "Sec Input Blocked",
+          "secLockDesc": "Sec Lock",
+          "secLockTitle": "Sec Lock Title",
+          "secLockWait": "Sec Lock Wait",
+          "secTotal": "Sec Total",
+          "sendEvent": "Send Event",
+          "sending": "Sending",
+          "serverSideCAPI": "Server Side C A P I",
+          "serverSideEvent": "Server Side Event",
+          "sessions": "Sessions",
+          "snippet": "Snippet",
+          "snippetGuide1": "Snippet Guide1",
+          "snippetGuide2": "Snippet Guide2",
+          "snippetGuide3": "Snippet Guide3",
+          "snippetTitle": "Snippet Title",
+          "source": "Source",
+          "tabDashboard": "Dashboard",
+          "tabSettings": "Settings",
+          "testEventSend": "Test Event Send",
+          "tiktokForward": "Tiktok Forward",
+          "totalEvents": "Total Events",
+          "totalRevenue": "Total Revenue"
+        },
+        "riskStatus": {
+          "caution": "Caution",
+          "danger": "Danger",
+          "normal": "Normal"
+        },
+        "security": {
+          "hackDetected": "Hack Detected"
         }
+      },
+      "adSaving": "Ad Saving",
+      "addBudget": "Add Budget",
+      "analyzing": "Analyzing...",
+      "approve": "Approve",
+      "approveAll": "Approve All",
+      "attribution": "Attribution",
+      "attributionDesc": "Attribution Desc",
+      "attributionLink": "Attribution Link",
+      "autoRegistered": "Auto Registered",
+      "boostReason": "Boost Reason",
+      "budgetShift": "Budget Shift",
+      "bulkApproved": "Bulk Approved",
+      "bulkExec": "Bulk Exec",
+      "campaignStatus": "Campaign Status",
+      "cardLimitAlert": "Card Limit Alert",
+      "cardsUnit": "Cards Unit",
+      "catBudgetOpt": "Cat Budget Opt",
+      "catCrmRetarget": "Cat Crm Retarget",
+      "catInventoryRisk": "Cat Inventory Risk",
+      "catSettlement": "Cat Settlement",
+      "channelFee": "Fee",
+      "channelFeeRate": "Fee Rate",
+      "checkInCampaignMgr": "Check In Campaign Mgr",
+      "countUnit": "count",
+      "creativeSub": "Enter a prompt and AI generates campaign ad designs.",
+      "creativeTitle": "AI Ad Creative Generator",
+      "currentCharged": "Current Charged",
+      "dailySales": "Daily Sales",
+      "dataSource": "Data Basis",
+      "dpAdRoi": "Dp Ad Roi",
+      "dpAdSaving": "Dp Ad Saving",
+      "dpAddBudget": "Dp Add Budget",
+      "dpEstRoas": "Dp Est Roas",
+      "dpExpectedProfit": "Dp Expected Profit",
+      "dpExpireIn": "Dp Expire In",
+      "dpSettlementMargin": "Dp Settlement Margin",
+      "dpShiftBudget": "Dp Shift Budget",
+      "dpVipCount": "Dp Vip Count",
+      "dsActiveRules": "Ds Active Rules",
+      "dsRulesFired": "Ds Rules Fired",
+      "edit": "Edit",
+      "estRoas": "Estimated Blended ROAS",
+      "execBudget": "Exec Budget",
+      "execLog": "Auto Execution Log",
+      "executed": "Executed",
+      "expectedProfit": "Profit",
+      "filterExecuted": "Filter Executed",
+      "guideTabAbDesc": "Integrated A/B test results.",
+      "guideTabAbName": "A/B Testing",
+      "guideTabBudgetDesc": "Automatic budget alert system.",
+      "guideTabBudgetName": "Budget Alerts",
+      "guideTabCopyDesc": "AI-powered ad copy generator.",
+      "guideTabCopyName": "AI Copywriter",
+      "guideTabCreativeDesc": "AI ad image generator with 16 scene types.",
+      "guideTabCreativeName": "AI Creative",
+      "guideTabCrmDesc": "Email and KakaoTalk status.",
+      "guideTabCrmName": "CRM Channels",
+      "guideTabDetailDesc": "KPI targets vs actuals.",
+      "guideTabDetailName": "Detail Analysis",
+      "guideTabGanttDesc": "Gantt chart visualization.",
+      "guideTabGanttName": "Schedule",
+      "guideTabMonitorDesc": "Live KPI monitoring.",
+      "guideTabMonitorName": "Real-time Monitor",
+      "guideTabOverviewDesc": "All campaigns displayed as filterable cards.",
+      "guideTabOverviewName": "Campaign Overview",
+      "guideTabRoiDesc": "Comprehensive ROI analysis.",
+      "guideTabRoiName": "ROI Analysis",
+      "heroSub": "Full platform real-time analysis → ROI-based AI recommendations → Budget registration → Approval → Card auto-execution",
+      "inDays5": "In Days5",
+      "influencer": "Influencer",
+      "journey": {
+        "colConvRate": "CVR",
+        "nodeTypes": {
+          "instagram": "Instagram DM",
+          "line": "LINE",
+          "sms": "SMS",
+          "webhook": "Webhook",
+          "whatsapp": "WhatsApp"
+        },
+        "webhookUrl": "Webhook URL"
+      },
+      "journeyAutomation": "Journey Automation",
+      "journeyLink": "Journey Link",
+      "kpiApproved": "Approved",
+      "mobileNav": {
+        "ariaLabel": "Aria Label"
+      },
+      "needCard": "Need Card",
+      "netPayout": "Net Payout",
+      "netProfit": "Net Profit",
+      "noCardAlert": "No Card Alert",
+      "noFeeData": "No fee data",
+      "omniChannel": {
+        "btnDisconnect": "Disconnect",
+        "colId": "ID",
+        "colSku": "SKU",
+        "groupOwnMall": "🏪 Own Mall / Others",
+        "invColAlert": "Alert",
+        "invColProduct": "Product",
+        "invColQuantity": "Qty",
+        "invColSKU": "SKU",
+        "invColWarehouse": "Warehouse",
+        "invLastUpdate": "Last Update",
+        "invLowStock": "Low Stock",
+        "invOutOfStock": "Out of Stock",
+        "invTitle": "Real-time Inventory",
+        "invTotalProducts": "Total Products",
+        "ordBtnExport": "📥 Export",
+        "ordColAmount": "Amount",
+        "ordColChannel": "Channel",
+        "ordColCustomer": "Customer",
+        "ordColDate": "Date",
+        "ordColOrderNo": "Order No",
+        "ordColStatus": "Status",
+        "ordCompleted": "Completed",
+        "ordPending": "Pending",
+        "ordShipping": "Shipping",
+        "ordTitle": "Unified Order Management",
+        "ordTotalOrders": "Total Orders",
+        "ovAvgOrderValue": "Avg Order Value",
+        "ovChannelShare": "Revenue Share by Channel",
+        "ovRevenueByChannel": "Revenue Trend by Channel",
+        "ovTitle": "Unified Dashboard",
+        "ovTotalOrders": "Total Orders",
+        "ovTotalRevenue": "Total Revenue",
+        "prodAvgPrice": "Avg Price",
+        "prodBtnSync": "🔄 Sync All",
+        "prodChannelCoverage": "Channel Coverage",
+        "prodColChannels": "Channels",
+        "prodColLastSync": "Last Sync",
+        "prodColName": "Product Name",
+        "prodColPrice": "Price",
+        "prodColSKU": "SKU",
+        "prodColStatus": "Status",
+        "prodSyncStatus": "Sync Status",
+        "prodTitle": "Unified Product Management",
+        "prodTotalSKU": "Total SKUs",
+        "statusPending": "Pending"
+      },
+      "pcs": "pcs",
+      "pendingCampaigns": "Pending Campaigns",
+      "readyToExec": "Ready To Exec",
+      "recBoostTitle": "Rec Boost Title",
+      "recLowStockTitle": "Rec Low Stock Title",
+      "recRebalanceTitle": "Rec Rebalance Title",
+      "recVipTitle": "Rec Vip Title",
+      "revenue": "Estimated Revenue",
+      "settlementMargin": "Settlement Margin",
+      "stock": "Inventory",
+      "tabCreative": "AI Creative",
+      "timesUnit": "Times Unit",
+      "totalExecBudget": "Total Exec Budget",
+      "unitPrice": "Unit Price",
+      "units": "estimated",
+      "viewCampaigns": "View Campaigns",
+      "vipInsight": "Vip Insight",
+      "vipReason": "Vip Reason",
+      "wastedBudget": "Wasted Budget",
+      "webPopup": {
+        "linkUrlPh": "https://example.com/landing-page"
       }
     }
   },
@@ -35079,1535 +32561,761 @@ export default {
   },
 
   "marketing": {
-
     "csTitle": "크리에이티브 스튜디오",
-
     "csSubtitle": "다양한 플랫폼의 광고 소재를 디자인하고 관리합니다",
-
     "csTabGallery": "갤러리",
-
     "csTabCreateNew": "새로 만들기",
-
     "csTabPerformance": "성과 분석",
-
     "csTabBrandAssets": "브랜드 에셋",
-
     "csKpiCreatives": "소재",
-
     "csKpiFormats": "포맷",
-
     "csKpiApproved": "승인됨",
-
     "csKpiTopCtr": "최고 CTR",
-
     "csFeatMultiFormat": "멀티 포맷 내보내기",
-
     "csFeatAiCopy": "AI 카피 생성기",
-
     "csFeatPerfAnalytics": "성과 분석 도구",
-
     "csFeatBrandCheck": "브랜드 일관성 검사",
-
     "csSystemOk": "시스템 정상 운영 중",
-
     "guideFullTitle": "📋 시작부터 마무리까지 — 완전 가이드",
-
     "guideFullSub": "AI 마케팅 자동화 플랫폼의 전체 워크플로우를 단계별로 안내합니다.",
-
     "guidePhaseA": "Phase A — 시작 준비",
-
     "guidePhaseB": "Phase B — 캠페인 설계",
-
     "guidePhaseC": "Phase C — AI 전략 & 소재 생성",
-
     "guidePhaseD": "Phase D — 실행 & 모니터링",
-
     "guidePhaseE": "Phase E — 최적화 & 마무리",
-
     "gf1Title": "로그인 & 환경 확인",
-
     "gf1Desc": "플랫폼에 로그인한 후, 좌측 사이드바에서 \"AI 마케팅 → 자동화 전략\" 메뉴를 클릭합니다. Production/Demo 환경을 확인하세요.",
-
     "gf2Title": "API 채널 연동",
-
     "gf2Desc": "연동 허브(Integration Hub)에서 Meta, Google, Naver 등 광고 채널 API Key를 등록합니다. 연동된 채널만 캠페인에 사용 가능합니다.",
-
     "gf3Title": "대시보드 현황 파악",
-
     "gf3Desc": "홈 대시보드에서 현재 KPI, 활성 캠페인 수, 채널별 ROAS를 확인합니다. 이 데이터가 AI 추천의 기반이 됩니다.",
-
     "gf4Title": "월 예산 설정",
-
     "gf4Desc": "\"② 캠페인 설정\" 탭에서 월 광고 예산을 선택하거나 직접 입력합니다. 예산 구간에 따라 AI가 최적 채널을 자동 추천합니다.",
-
     "gf5Title": "상품 카테고리 선택",
-
     "gf5Desc": "뷰티, 패션, 식품 등 11개 카테고리 중 해당하는 항목을 선택합니다. 복수 선택 시 교차 분석으로 정밀도가 높아집니다.",
-
     "gf6Title": "광고 채널 선택",
-
     "gf6Desc": "AI가 카테고리+예산을 분석하여 최적 채널 조합을 추천합니다. 직접 채널을 추가/제거할 수도 있습니다.",
-
     "gf7Title": "타겟 & 기간 설정",
-
     "gf7Desc": "캠페인명, 집행 기간(월/분기/반기), 타겟 오디언스를 설정합니다. AI가 채널별 최적 타겟팅을 자동 제안합니다.",
-
     "gf8Title": "AI 전략 시뮬레이션",
-
     "gf8Desc": "\"AI 전략 생성\" 버튼을 클릭하면 AI가 채널별 예산 배분, 예상 노출/클릭/전환/ROAS를 자동 계산합니다.",
-
     "gf9Title": "크리에이티브 소재 제작",
-
     "gf9Desc": "\"① 캠페인 설정\" 탭의 Creative Studio에서 AI가 채널별 최적 광고 소재를 자동 생성합니다. 텍스트, 이미지, 영상 포맷을 지원합니다.",
-
     "gf10Title": "전략 미리보기 & 수정",
-
     "gf10Desc": "\"③ AI 전략 미리보기\" 탭에서 채널별 배분액, 예상 KPI를 확인합니다. 슬라이더로 배분 비율을 직접 조정할 수 있습니다.",
-
     "gf11Title": "관리자 승인 제출",
-
     "gf11Desc": "전략을 확정하면 \"승인 요청\" 버튼을 클릭합니다. 관리자 승인 모달에서 예산, ROAS, 채널을 최종 확인 후 제출합니다.",
-
     "gf12Title": "캠페인 매니저 모니터링",
-
     "gf12Desc": "제출된 캠페인은 \"캠페인 관리\" 페이지에서 실시간 추적됩니다. 상태(대기/승인/활성/일시정지)를 모니터링합니다.",
-
     "gf13Title": "AI 자동 최적화",
-
     "gf13Desc": "AI가 실시간 데이터를 분석하여 성과가 낮은 채널의 예산을 성과 높은 채널로 자동 재배분합니다.",
-
     "gf14Title": "성과 리포트 분석",
-
     "gf14Desc": "캠페인 종료 후 채널별 ROAS, CPA, CTR 등 핵심 지표를 분석합니다. AI가 다음 캠페인을 위한 개선 포인트를 제안합니다.",
-
     "gf15Title": "다음 캠페인 반복",
-
     "gf15Desc": "분석 결과를 바탕으로 예산/카테고리/채널을 조정하여 새 캠페인을 생성합니다. 반복할수록 AI 학습이 강화됩니다.",
-
     "guideTip6": "AI 추천 채널과 직접 선택 채널을 비교하여 최적 조합을 찾으세요.",
-
     "guideTip7": "캠페인 실행 전 반드시 관리자 승인을 거치면 예산 초과를 방지할 수 있습니다.",
-
     "sidebarUpgrade": "계정 업그레이드",
-
     "sidebarAlertCount": "13개 알림",
-
     "sidebarLogout": "데모 종료 및 로그아웃",
-
     "upgradalTitle": "Pro 플랜 전용 메뉴",
-
     "upgradalDesc": "이 메뉴는 유료 요금제에서 제공되는 강력한 엔터프라이즈 기능입니다.\n지금 Pro 플랜으로 업그레이드하고 모든 기능을 제한 없이 경험해 보세요.",
-
     "upgradalClose": "닫기",
-
     "upgradalBtn": "업그레이드 알아보기",
-
     "upgradeLabel": "프로",
-
     "quickFavs": "즐겨찾기",
-
     "quickRecents": "최근 메뉴",
-
     "sidebarCampaignActive": "🟢 {{n}}개 캠페인 실행중",
-
     "home": "홈 대시보드",
-
     "dashboard": "종합 대시보드",
-
     "rollup": "롤업 뷰",
-
     "aiMarketing": "AI 마케팅",
-
     "autoMarketing": "자동화 전략",
-
     "aiMarketingHub": "AI 커뮤니케이션",
-
     "campaignManager": "캠페인 관리",
-
     "journeyBuilder": "여정 빌더",
-
     "adAnalytics": "광고 현황 & 분석",
-
     "adPerformance": "광고성과",
-
     "budgetTracker": "예산 트래커",
-
-
-
     "accountPerformance": "어카운트 성과",
-
     "attribution": "어트리뷰션",
-
     "channelKpi": "채널 KPI",
-
     "graphScore": "그래프 스코어",
-
     "crm": "고객 & 채널 (CRM)",
-
     "crmMain": "CRM 대시보드",
-
     "kakaoChannel": "카카오 비즈니스",
-
     "emailMarketing": "이메일 마케팅",
-
     "smsMarketing": "SMS 마케팅",
-
     "contentCalendar": "콘텐츠 캘린더",
-
     "aiBudgetAllocator": "AI 예산 배분",
-
     "influencer": "인플루언서",
-
     "reviewsUgc": "리뷰 및 UGC",
-
     "webPopup": "웹 팝업",
-
     "commerce": "커머스 정산",
-
     "omniChannel": "옴니 채널",
-
     "catalog": "카탈로그 동기화",
-
     "orderHub": "주문 허브",
-
     "wms": "WMS 재고관리",
-
     "priceOpt": "최적 가격 설정",
-
     "supplyChain": "공급망 모니터링",
-
     "returnsPortal": "반품 포털",
-
     "analytics": "인사이트 & 리포트",
-
     "performanceHub": "퍼포먼스 허브",
-
     "reportBuilder": "리포트 빌더",
-
     "Badge": "데모 체험중",
-
     "Join": "무료로 시작하기",
-
     "Running": "실시간 데이터가 아닙니다. 가상 데이터로 플랫폼을 체험 중입니다.",
-
     "PriceCheck": "도입 및 비용 문의",
-
     "LockBadge": "🔒 데모",
-
     "SampleDesc2": "이 기능은 유료 플랜 연동 후에만 실제 데이터를 가져옵니다. 현재 화면은 가상의 샘플 데이터로 구성되어 있습니다.",
-
     "SampleDesc3": "가상 데이터가 표출되고 있습니다.",
-
     "PricingView": "요금제 확인하기",
-
     "upgradeBarDesc": "지금 API를 연동하고 자사 데이터로 플랫폼을 100% 활용하세요.",
-
     "ApiRegister": "실제 연동 가이드 보기",
-
     "upgradeBarTitle": "🎉 실제 기업 데이터를 연동하고 7일간 전체 기능을 무료로 체험해 보세요!",
-
     "upgradeBarCoupon": "현재 계정에 무료 쿠폰이 있습니다.",
-
     "upgradeBarMembership": "멤버십 쿠폰 적용 안내",
-
     "grossRevenue": "총매출",
-
     "grossRevSub": "오늘 총 매출",
-
     "adSpend": "광고비",
-
     "adSpendSub": "전체 광고 지출",
-
     "netROAS": "순 ROAS",
-
     "netROASSub": "순수익 / 광고비",
-
     "totalOrders": "총 주문 수",
-
     "totalOrderSub": "오늘 기준",
-
     "convRateLbl": "전환율",
-
     "convRateSub": "세션 대비",
-
     "avgOrder": "평균 주문가",
-
     "vsYesterday": "어제 대비",
-
     "selectRoleTitle": "당신의 역할을 선택해주세요",
-
     "selectRoleDesc": "역할에 맞는 맞춤형 옵션과 퀵 액션을 제안합니다.",
-
     "selectRoleBtn": "역할 선택하기",
-
     "mode": "모드",
-
     "todayTasks": "오늘의 할 일",
-
     "changeRole": "역할 변경",
-
     "channelMix": "채널 믹스",
-
     "liveActivity": "실시간 활동",
-
     "sysStatus": "시스템 현황",
-
     "moduleShortcuts": "모듈 숏컷",
-
     "analyticsModules": "애널리틱스 모듈",
-
     "Attribution": "어트리뷰션",
-
     "GraphScore": "그래프점수",
-
     "KRChannel": "국내채널",
-
     "PriceOpt": "가격최적화",
-
     "Marketing": "마케팅",
-
     "Influencer": "인플루언서",
-
     "Reconcile": "정산대조",
-
     "Alerts": "알럿",
-
     "AIPolicy": "AI정책",
-
     "naverName": "네이버 검색광고",
-
     "chTrendKpi": "매체별 주요 KPI 트렌드",
-
     "chPerfDash": "채널별 퍼포먼스 대시보드",
-
     "colChan": "채널명",
-
     "colAchieve": "목표달성",
-
     "colCtr": "클릭률",
-
     "colConv": "전환율",
-
     "colTrend": "추이",
-
     "genderDist": "성별 분포",
-
     "ageDist": "연령별 분포",
-
     "topRegion": "방문 상위 지역",
-
     "convFunnel": "전환 퍼널 분석",
-
     "chIntelTitle": "채널 인텔리전스",
-
     "chIntelDesc1": "채널 카드 또는 테이블에서",
-
     "chIntelDesc2": "채널명을 클릭",
-
     "chIntelDesc3": "하면",
-
     "chIntelDesc4": "해당 채널의 상세 분석이 표시됩니다:",
-
     "overview": "종합 대시보드",
-
     "overviewDesc": "전체 현황 요약",
-
     "marketingDesc": "광고 성과 분석",
-
     "channel": "채널 KPI",
-
     "channelDesc": "채널별 주요 지표",
-
     "commerceDesc": "커머스 정산 현황",
-
     "sales": "매출 현황",
-
     "salesDesc": "매출 및 이익 분석",
-
     "influencerDesc": "크리에이터 분석",
-
     "system": "시스템 현황",
-
     "systemDesc": "서버 모니터링",
-
     "metImpressions": "노출수",
-
     "metReach": "도달수",
-
     "metSpend": "총 지출액",
-
     "metClicks": "클릭수",
-
     "metCtr": "클릭률 (%)",
-
     "metCpc": "CPC",
-
     "metCpm": "CPM",
-
     "metConv": "전환수",
-
     "metRoas": "ROAS (투자수익률)",
-
     "metricImpr": "노출수 (Impressions)",
-
     "metricReach": "도달 범위 (Reach)",
-
     "metricSpend": "일일 지출액 (Spend)",
-
     "metricClicks": "총 클릭수 (Clicks)",
-
     "metricCtr": "평균 CTR",
-
     "metricCpc": "평균 CPC",
-
     "metricCpm": "평균 CPM",
-
     "metricConv": "전환수 (Conv)",
-
     "metricRoas": "광고수익률 (ROAS)",
-
     "strictDateFilter": "📅 캠페인 활성 기간 (엄격한 기간 필터)",
-
     "strictDateDesc": "캐시를 무시하고 실시간 연동 운영 데이터를 즉시 불러옵니다.",
-
     "leftAxis": "(좌측 축 데이터)",
-
     "rightAxis": "(우측 축 데이터)",
-
     "tabOverview": "성과 요약",
-
     "mktHierTitle": "상세 광고 매체 성과",
-
     "pageTitle": "마케팅 & 광고 성과 (Overview)",
-
     "pageSub": "AI 매체 통합 분석 - 종합 광고 성과 분석 지표 관리",
-
     "adMetaDynChart": "광고 메타 동적 차트 실적",
-
     "totalLabel": "총계",
-
     "adTableTitle": "광고 실적 상세 내역 (캠페인/광고세트)",
-
     "adTableSub": "선택 기간 동안 실제 활성화된 성과 내역입니다.",
-
     "adAccountFilter": "광고 계정",
-
     "adFilterAll": "전체 계정",
-
     "adFilterSub": "서브 계정 1",
-
     "tabCamp": "캠페인 단위",
-
     "tabAdset": "광고세트 단위",
-
     "colStatus": "운영 상태",
-
     "colItemName": "캠페인 / 항목명",
-
     "colResultConv": "실제 전환",
-
     "colCpa": "CPA 비용",
-
     "colSpend": "지출 비용",
-
     "colImpr": "누적 노출",
-
     "colRoas": "최종 ROAS",
-
     "statusActive": "정상 액티브",
-
     "statusOther": "종료됨",
-
     "purchaseWord": "건 구매",
-
     "budgetTrackTitle": "예산 추적 대시보드",
-
     "budgetTrackSub": "실시간 예산 관리 및 매체별 지출 추적",
-
     "realModeLabel": "실시간",
-
     "bgSummaryBudget": "총 배정 예산",
-
     "bgSummaryActual": "총 실제 지출",
-
     "bgSummaryProfit": "잔여 예산",
-
     "bgAchievePct": "달성률",
-
     "bgBurnRateLabel": "소진율",
-
     "bgCategoryAlloc": "카테고리별 배분",
-
     "catPerformance": "퍼포먼스",
-
     "catBrand": "브랜드 인지도",
-
     "catRetargeting": "리타겟팅",
-
     "catInfluencer": "인플루언서/UGC",
-
     "bgKpiActualVsBudget": "월별 실제 vs 예산",
-
     "bgBarActualSpend": "실제 지출",
-
     "bgBarSetBudget": "예산",
-
     "bgKpiTopChan": "Top 채널",
-
     "noData": "데이터 없음",
-
     "bgTableCampaign": "캠페인 성과",
-
     "bgColCampSum": "캠페인",
-
     "bgColImpr": "노출수",
-
     "bgColCtr": "CTR",
-
     "bgColBudget": "예산",
-
     "bgColSpend": "지출",
-
     "bgColProfit": "이익",
-
     "bgColCpc": "CPC",
-
     "bgColCpa": "CPA",
-
     "bgColRoi": "ROI",
-
     "bgCampaignCount": "개 캠페인",
-
     "bgTabOverview": "예산 개요",
-
     "bgTabPacing": "채널 페이싱",
-
     "bgTabCampaigns": "캠페인별 예산",
-
     "bgTabPnl": "P&L 연동",
-
     "bgSecurityStatus": "보안 모니터",
-
     "bgSecuritySafe": "모든 시스템 안전",
-
     "bgSecurityAlert": "위협 감지됨",
-
     "bgPacingAllocated": "총 배정",
-
     "bgPacingSpent": "총 지출",
-
     "bgPacingRemaining": "총 잔여",
-
     "bgPacingChart": "채널별 예산 배분 vs 실제 지출",
-
     "bgPacingAllocLabel": "배정",
-
     "bgPacingSpentLabel": "실제 지출",
-
     "bgPacingTableTitle": "채널 페이싱 상세",
-
     "bgPacingColChannel": "채널",
-
     "bgPacingColAlloc": "배정",
-
     "bgPacingColSpend": "지출",
-
     "bgPacingColRemaining": "잔여",
-
     "bgPacingColBurn": "소진율",
-
     "bgPacingColRoas": "ROAS",
-
     "bgPacingColStatus": "상태",
-
     "bgPaceOnTrack": "정상",
-
     "bgPaceOverspend": "초과지출",
-
     "bgPaceUnderspend": "미달",
-
     "bgPnlRevenue": "매출",
-
     "bgPnlCogs": "매출원가",
-
     "bgPnlGross": "매출총이익",
-
     "bgPnlAdSpend": "광고비",
-
     "bgPnlPlatformFee": "플랫폼 수수료",
-
     "bgPnlOperating": "영업이익",
-
     "bgPnlMarginSummary": "마진 & ROAS 요약",
-
     "bgPnlMargin": "영업마진",
-
     "bgPnlNetMargin": "순마진",
-
     "bgPnlBlendedRoas": "통합 ROAS",
-
     "bgPnlAdRevenue": "광고 매출",
-
     "autoTitle": "🚀 마케팅 자동화 플랫폼",
-
     "autoSub": "월 예산을 설정하면 AI가 틱톡·메타·네이버 등에 최적화된 마케팅 전략을 자동으로 수립합니다",
-
     "tabSetup": "① 캠페인 설정",
-
     "tabPreview": "② AI 전략 미리보기",
-
     "tabCampaignMgmt": "③ 캠페인 관리",
-
     "budgetSetup": "💰 월 마케팅 예산 설정",
-
     "directInput": "직접 입력 (원)",
-
     "campaignPeriod": "캠페인 기간",
-
     "monthly": "월간 (1개월)",
-
     "quarterly": "분기 (3개월)",
-
     "halfyear": "반기 (6개월)",
-
     "setBudget": "설정 예산:",
-
     "perMonth": "/ 월",
-
     "categorySelect": "🏷 판매 상품 카테고리 선택 (복수 선택 가능)",
-
     "channelSelect": "📡 마케팅 광고 채널 선택",
-
     "salesChannels": "🌐 연동된 판매채널 (마케팅 연계 대상)",
-
     "salesChannelSub": "활성화된 채널에 마케팅 성과 데이터가 연동됩니다.",
-
     "active": "● 활성",
-
     "inactive": "○ 비활성",
-
     "connStatusOk": "연동됨",
-
     "connStatusNeed": "API Key 필요",
-
     "connClickToSetup": "클릭하여 연동허브에서 API Key를 설정하세요",
-
     "connSalesHint": "API Key가 미연동된 채널이 있습니다. 연동허브에서 API Key를 등록하면 자동으로 활성화됩니다.",
-
     "goIntegrationHub": "연동허브 이동",
-
     "campaignDetail2": "📝 캠페인 상세 (선택)",
-
     "campaignNameLabel": "캠페인 이름 (미입력시 자동생성)",
-
     "campaignNamePh": "예: 2026 봄 뷰티 캠페인",
-
     "targetLabel": "타겟 고객 (선택)",
-
     "targetPh": "예: 20~35세 여성, 뷰티·패션 관심",
-
     "generateBtn": "🚀 AI 마케팅 전략 자동 생성",
-
     "generating": "🤖 AI가 마케팅 전략을 생성하는 중…",
-
     "needCatChannel": "⚠ 카테고리와 광고 채널 선택이 필요합니다.",
-
     "previewEmpty": "← 먼저 ① 캠페인 설정에서 AI 전략을 생성해주세요.",
-
     "goSetup": "설정으로 이동 →",
-
     "kpiTotal": "총 예산",
-
     "kpiImpressions": "예상 노출수",
-
     "kpiClicks": "예상 클릭수",
-
     "kpiConversions": "예상 전환수",
-
     "kpiRoas": "예상 ROAS",
-
     "channelAlloc": "🤖 AI 채널별 예산 배분 전략",
-
     "impressions": "노출",
-
     "clicks": "클릭",
-
     "conversions": "전환",
-
     "approvalTitle": "✅ 승인 요청하기",
-
     "approvalSub": "위 전략을 검토 후 승인하면 등록된 광고 채널을 통해 마케팅이 자동으로 전개됩니다.",
-
     "submitApproval": "📋 승인 요청 제출",
-
     "resetBtn": "↩ 처음부터",
-
     "noCampaign": "아직 캠페인이 없습니다. 먼저 마케팅 전략을 생성해주세요.",
-
     "createCampaign": "+ 마케팅 캠페인 만들기",
-
     "addCampaign": "+ 새 캠페인 만들기",
-
     "created": "생성",
-
     "approved": "✅ 승인",
-
     "reject": "❌ 반려",
-
     "activate": "🚀 캠페인 활성화",
-
     "pause": "⏸ 일시정지",
-
     "resume": "▶ 재시작",
-
     "viewDetail": "📊 상세 보기",
-
     "budget": "예산",
-
     "period": "기간",
-
     "estRoas": "예상 ROAS",
-
     "estConv": "예상 총 전환",
-
     "goCampaignMgr": "🎯 캠페인 관리 →",
-
     "goHelp": "📚 도움말",
-
     "minBudget": "최소",
-
     "selected": "✓ 선택됨",
-
     "cat_beauty": "뷰티·코스메틱",
-
     "cat_fashion": "패션·의류",
-
     "cat_general": "생활·잡화",
-
     "cat_food": "식품·건강",
-
     "cat_electronics": "전자·IT",
-
     "cat_overseas_ship": "배송대행",
-
     "cat_overseas_buy": "구매대행",
-
     "cat_sports": "스포츠·레저",
-
     "cat_travel": "여행·숙박",
-
     "cat_digital": "디지털·앱",
-
     "tag_skincare": "스킨케어",
-
     "tag_makeup": "메이크업",
-
     "tag_perfume": "향수",
-
     "tag_haircare": "헤어케어",
-
     "tag_womens": "여성복",
-
     "tag_mens": "남성복",
-
     "tag_outer": "아우터",
-
     "tag_accessories": "잡화",
-
     "tag_kitchen": "주방용품",
-
     "tag_cleaning": "청소용품",
-
     "tag_interior": "인테리어",
-
     "tag_small": "소품",
-
     "tag_health": "건강기능식품",
-
     "tag_processed": "가공식품",
-
     "tag_organic": "유기농",
-
     "tag_phone_acc": "스마트폰 액세서리",
-
     "tag_appliance": "가전",
-
     "tag_computer": "컴퓨터",
-
     "tag_proxy_ship": "직구대행",
-
     "tag_overseas_delivery": "해외배송",
-
     "tag_customs": "관세대행",
-
     "tag_us_direct": "미국직구",
-
     "tag_jp_direct": "일본직구",
-
     "tag_cn_direct": "중국직구",
-
     "tag_fitness": "헬스·요가",
-
     "tag_outdoor": "아웃도어",
-
     "tag_sportswear": "스포츠웨어",
-
     "tag_hotel": "호텔·숙박",
-
     "tag_flight": "항공권",
-
     "tag_tour": "투어·여행상품",
-
     "tag_leisure": "레저",
-
     "tag_app": "모바일 앱",
-
     "tag_saas": "SaaS",
-
     "tag_content": "디지털 콘텐츠",
-
     "tag_subscription": "구독 서비스",
-
     "ch_meta": "Meta(페이스북·인스타)",
-
     "ch_tiktok": "TikTok(틱톡)",
-
     "ch_google": "Google(구글·유튜브)",
-
     "ch_naver": "네이버 광고",
-
     "ch_kakao": "카카오 광고",
-
     "ch_coupang_ads": "쿠팡 광고",
-
     "ch_instagram": "인스타그램 쇼핑",
-
     "sc_coupang": "쿠팡",
-
     "sc_naver_smart": "네이버 스마트스토어",
-
     "sc_11st": "11번가",
-
     "sc_gmarket": "G마켓",
-
     "sc_kakao_shop": "카카오쇼핑",
-
     "sc_tiktok_shop": "TikTok Shop",
-
     "pendingBadge": "⏳ 승인 대기",
-
     "activeBadge": "🟢 운영 중",
-
     "period_monthly": "월간",
-
     "period_quarterly": "분기",
-
     "period_halfyear": "반기",
-
     "approvedBy": "에 의해",
-
     "approvedAt": "승인됨",
-
     "createdAt": "생성",
-
     "aiHubTitle": "AI 마케팅 허브 먼저 확인하세요",
-
     "aiHubDesc1": "재고, 주문, CRM, 정산 데이터를 자동 분석하여 ",
-
     "aiHubDesc2": "ROI 기반 즉시 실행 가능한 추천",
-
     "aiHubDesc3": "을 제공합니다.",
-
     "aiHubDesc4": "직접 전략을 설계하려면 아래 설정을 진행하세요.",
-
     "aiHubBtn": "AI 마케팅 허브",
-
     "creativeAutoSync": "AI 광고소재 카테고리 → 캠페인 설정 자동 연동",
-
     "creativeSyncDesc1": "카테고리를 선택하고 ",
-
     "creativeSyncBtn": "캠페인 설정으로 이동",
-
     "creativeSyncDesc2": " 버튼을 클릭하면 선택한 카테고리가 ",
-
     "creativeSyncDesc3": "자동으로 연동",
-
     "creativeSyncDesc4": "됩니다.",
-
     "creativeGoSetup": "캠페인 설정으로 이동",
-
     "aiRecommendBadge": "AI 추천 채널 자동 선택 · 직접 변경 가능",
-
     "cat_platform": "플랫폼·SaaS",
-
     "tag_b2b": "B2B",
-
     "cpmApprox": "CPM 약",
-
     "guideStartBtn": "시작하기",
-
     "guideTabsTitle": "탭별 기능 안내",
-
     "guideTabSetupName": "캠페인 설정",
-
     "guideTabSetupDesc": "예산, 카테고리, 광고 채널을 설정하고 AI 추천을 받습니다. 연동허브에서 API 키를 등록하면 더 많은 채널을 사용할 수 있습니다.",
-
     "guideTabPreviewName": "AI 시뮬레이션 결과",
-
     "guideTabPreviewDesc": "채널별 예산 배분, 예상 노출/클릭/전환수, ROAS를 미리보기합니다. 배분 비율 조정 후 캠페인을 제출합니다.",
-
     "tabAdStatus": "매체별 상세",
-
     "tabCompare": "캠페인 비교",
-
     "connectedChannels": "연동된 광고 채널",
-
     "noConnectedChannels": "연동허브에서 API 키를 등록하면 채널이 자동으로 표시됩니다.",
-
     "connected": "연동됨",
-
     "noCreativeData": "크리에이티브 데이터 없음",
-
     "noCreativeDesc": "AI 오토 마케팅에서 캠페인을 생성하면 소재별 성과가 여기에 표시됩니다.",
-
     "creativePerformance": "소재별 클릭·전환 분석",
-
     "creativeTable": "소재별 상세 성과 테이블",
-
     "colCreativeName": "소재 / 캠페인명",
-
     "selectCampaigns": "캠페인 선택 (최대 4개)",
-
     "selectCampaignsDesc": "비교할 캠페인을 2개 이상 선택하세요. 레이더 차트와 KPI 비교 테이블이 표시됩니다.",
-
     "noCampaigns": "등록된 캠페인이 없습니다. AI 오토 마케팅에서 캠페인을 먼저 생성해 주세요.",
-
     "radarCompare": "레이더 차트 비교 분석",
-
     "kpiCompare": "KPI 비교 테이블",
-
     "selectAtLeast2": "2개 이상의 캠페인을 선택하면 비교 분석이 표시됩니다.",
-
     "guideTabStatusName": "매체별 상세",
-
     "guideTabStatusDesc": "캠페인·광고세트 계층별 상세 성과 테이블과 차트를 분석합니다.",
-
     "guideTabCompareName": "비교 분석",
-
     "guideTabCompareDesc": "채널 간 성과를 비교합니다.",
-
     "bgTabForecast": "소진 예측",
-
     "bgTabGuide": "이용 가이드",
-
     "bgForecastDaily": "일평균 소진액",
-
     "bgForecastProjected": "월말 예상 소진",
-
     "bgForecastOverUnder": "예산 대비 차이",
-
     "bgForecastBurn": "예상 소진율",
-
     "bgForecastChart": "예산 소진 예측 차트",
-
     "bgForecastBudgetLine": "예산 라인",
-
     "bgForecastActualLine": "실제 소진",
-
     "bgForecastProjLine": "예측 소진",
-
     "bgForecastSummary": "소진 예측 요약",
-
     "bgForecastUnder": "현재 페이스 기준으로 월말까지 예산 범위 내에서 소진될 것으로 예측됩니다.",
-
     "bgForecastOver": "현재 페이스 기준으로 월말에 예산을 초과할 것으로 예측됩니다. 예산 재조정을 검토하세요.",
-
     "bgGuideTitle": "예산 플래너 이용 가이드",
-
     "bgGuideSub": "예산 관리, 채널 페이싱, 손익 분석, 소진 예측까지 예산 관리의 모든 것을 안내합니다.",
-
     "bgGuideStepsTitle": "예산 관리 6단계",
-
     "bgGuideStep1Title": "예산 개요 확인",
-
     "bgGuideStep1Desc": "KPI 카드에서 총 배정 예산, 실제 지출, 잔여 예산을 한눈에 확인합니다.",
-
     "bgGuideStep2Title": "소진율 모니터링",
-
     "bgGuideStep2Desc": "도넛 차트에서 현재 예산 소진율을 실시간으로 모니터링합니다.",
-
     "bgGuideStep3Title": "채널 페이싱",
-
     "bgGuideStep3Desc": "채널별 예산 배분 대비 실제 지출 현황을 분석하여 과잉/미달 지출을 파악합니다.",
-
     "bgGuideStep4Title": "캠페인별 분석",
-
     "bgGuideStep4Desc": "개별 캠페인의 예산, 지출, ROI를 상세하게 분석합니다.",
-
     "bgGuideStep5Title": "P&L 연동",
-
     "bgGuideStep5Desc": "매출, 원가, 영업이익과 연동하여 광고 투자 대비 수익성을 평가합니다.",
-
     "bgGuideStep6Title": "소진 예측",
-
     "bgGuideStep6Desc": "현재 일평균 소진율 기반으로 월말 예산 소진을 예측합니다.",
-
     "bgGuideTabsTitle": "탭별 상세 안내",
-
     "bgGuideTabOverviewName": "예산 개요",
-
     "bgGuideTabOverviewDesc": "KPI 카드, 도넛 차트, 카테고리 배분, 월별 추이, Top 채널을 한눈에 파악합니다.",
-
     "bgGuideTabPacingName": "채널 페이싱",
-
     "bgGuideTabPacingDesc": "채널별 배정/지출 바 차트와 상세 테이블로 페이싱 상태를 분석합니다.",
-
     "bgGuideTabCampaignsName": "캠페인별 예산",
-
     "bgGuideTabCampaignsDesc": "캠페인 단위로 예산, 지출, CTR, CPC, ROI를 상세 분석합니다.",
-
     "bgGuideTabPnlName": "P&L 연동",
-
     "bgGuideTabPnlDesc": "매출총이익, 영업이익, 마진, ROAS를 손익계산서와 연동하여 분석합니다.",
-
     "bgGuideTabForecastName": "소진 예측",
-
     "bgGuideTabForecastDesc": "일평균 소진 기반 월말 소진 예측 차트와 초과/미달 요약을 제공합니다.",
-
     "bgGuideTipsTitle": "유용한 팁",
-
     "bgGuideTip1": "소진율이 80%를 초과하면 예산 재배분을 검토하세요.",
-
     "bgGuideTip2": "채널 페이싱에서 'OVERSPEND' 상태인 채널은 즉시 예산 조정이 필요합니다.",
-
     "bgGuideTip3": "P&L 탭에서 영업마진이 음수이면 광고비 대비 수익이 부족한 상태입니다.",
-
     "bgGuideTip4": "소진 예측 차트에서 예측선이 예산선을 넘으면 월말 초과가 예상됩니다.",
-
     "bgGuideTip5": "모든 데이터는 실시간 동기화되어 새로고침 없이 최신 상태가 유지됩니다.",
-
     "abPageTitle": "AI 마케팅 예산 배분",
-
     "abPageSub": "데이터 기반 초지능 예산 배분 엔진 — 예측 AI 모델로 ROAS를 극대화하세요",
-
     "abBtnGuide": "이용 가이드",
-
     "abConnectedChannels": "연동된 광고 채널",
-
     "abInputTitle": "총 마케팅 예산 입력",
-
     "abInputDesc": "AI가 과거 전환 데이터, 채널별 수확체감 곡선, 실시간 시장 포화도를 분석하여 최적 배분을 추천합니다.",
-
     "abInputPlaceholder": "예: 100,000,000",
-
     "abBtnProcessing": "분석 중...",
-
     "abBtnGenerate": "AI 플랜 생성",
-
     "abMinBudget": "최소 100,000 이상의 예산을 입력해주세요.",
-
     "abStep1": "과거 ROAS와 CAC 데이터 분석 중...",
-
     "abStep2": "실시간 채널 리스크와 포화도 평가 중...",
-
     "abStep3": "예측 LTV 모델 적용 중...",
-
     "abStep4": "채널별 수확체감 곡선 산출 중...",
-
     "abStep5": "최적 예산 배분 확정 중...",
-
     "abKpiTotal": "최적화된 총 예산",
-
     "abKpiRoas": "예상 통합 ROAS",
-
     "abKpiRevenue": "예상 추가 매출",
-
     "abChartDist": "예산 배분",
-
     "abChartRoas": "채널별 예상 ROAS",
-
     "abExpectedRoas": "예상 ROAS",
-
     "abProjectedCac": "예상 CAC",
-
     "abCacVsPast": "CAC 변동",
-
     "abOfTotal": "전체 예산 비율",
-
     "abRationaleTitle": "AI 분석 근거 및 정량화",
-
     "abReasonMetaTitle": "일관된 확장성 및 유사타겟 매칭",
-
     "abReasonMeta": "Meta는 알고리즘의 우수한 LTV 예측 덕분에 배분됩니다. 수확체감점이 다른 채널보다 높아 더 큰 예산을 흡수하면서도 ROAS를 유지합니다.",
-
     "abReasonGoogleTitle": "높은 구매 의도 포착",
-
     "abReasonGoogle": "Google Search는 퍼널 하단의 네트 역할을 합니다. 브랜드 키워드와 높은 의도 키워드 전환을 포착하여 높은 전환율을 보장합니다.",
-
     "abReasonTiktokTitle": "바이럴 잠재력 및 낮은 CPM",
-
     "abReasonTiktok": "TikTok은 저 CPM으로 공격적인 신규 오디언스 확보를 주도합니다. 상위 퍼널 고려도 생성에 필수적입니다.",
-
     "abReasonYoutubeTitle": "브랜드 인지도 및 리마케팅",
-
     "abReasonYoutube": "브랜드 인지도와 멀티터치 기여도를 지원합니다. 비디오 리마케팅은 전체 캠페인 전환 속도를 증가시킵니다.",
-
     "abReasonNaverTitle": "국내 검색 점유율",
-
     "abReasonNaver": "한국 시장에서 네이버 검색 광고는 높은 구매 의도 트래픽을 확보하는 핵심 채널입니다.",
-
     "abReasonKakaoTitle": "카카오 생태계 활용",
-
     "abReasonKakao": "카카오톡 메시지 및 카카오 모먼트를 통해 높은 도달률과 전환율을 달성합니다.",
-
     "abOptTip": "AI 최적화 팁",
-
     "abOptTipText": "크리에이티브를 14일마다 갱신하여 광고 피로도를 방지하고 예상 CAC를 유지하세요.",
-
     "abBtnDownload": "리포트 다운로드 (PDF)",
-
     "abBtnApply": "캠페인에 적용 & 전파",
-
     "abGuideTitle": "AI 예산배분 이용 가이드",
-
     "abGuideSub": "AI가 어떻게 최적 예산을 배분하는지, 결과를 어떻게 활용하는지 안내합니다.",
-
     "abGuideStepsTitle": "AI 예산배분 6단계",
-
     "abGuideStep1Title": "예산 입력",
-
     "abGuideStep1Desc": "총 마케팅 예산을 입력합니다. 최소 100,000 이상이 필요합니다.",
-
     "abGuideStep2Title": "AI 분석 실행",
-
     "abGuideStep2Desc": "'AI 플랜 생성' 버튼을 클릭하면 5단계 AI 분석이 시작됩니다.",
-
     "abGuideStep3Title": "결과 KPI 확인",
-
     "abGuideStep3Desc": "최적화된 예산, 통합 ROAS, 예상 매출을 KPI 카드에서 확인합니다.",
-
     "abGuideStep4Title": "채널별 배분 확인",
-
     "abGuideStep4Desc": "파이 차트에서 채널별 비율, 바 차트에서 ROAS를 확인합니다.",
-
     "abGuideStep5Title": "AI 근거 검토",
-
     "abGuideStep5Desc": "각 채널별 AI 배분 근거와 CAC 변동을 상세히 검토합니다.",
-
     "abGuideStep6Title": "캠페인 적용",
-
     "abGuideStep6Desc": "'캠페인에 적용' 버튼으로 AI 추천을 실제 캠페인에 전파합니다.",
-
     "abGuideTipsTitle": "유용한 팁",
-
     "abGuideTip1": "예산 규모에 따라 AI가 채널 수와 비율을 자동으로 조정합니다.",
-
     "abGuideTip2": "연동허브에서 API 키를 등록하면 해당 채널이 자동으로 배분 대상에 포함됩니다.",
-
     "abGuideTip3": "크리에이티브를 정기적으로 갱신하여 광고 피로도를 방지하세요.",
-
     "abGuideTip4": "CAC 변동이 상승세이면 타겟팅 또는 소재 전략을 재검토하세요.",
-
     "abGuideTip5": "결과는 실시간 동기화되어 예산 플래너와 캠페인 매니저에 즉시 반영됩니다.",
-
     "kpiAchieve": "KPI 달성",
-
     "defaultTeam": "운영팀",
-
     "statusPending": "⏳ 승인 대기",
-
     "statusApproved": "✅ 승인됨",
-
     "statusPaused": "⏸ 일시중지",
-
     "statusRejected": "❌ 반려됨",
-
     "aiReasonDetail": "{{cats}} 카테고리에 최적화된 채널 조합입니다. {{budget}} 예산 구간에서 가장 높은 ROAS를 기대할 수 있습니다.",
-
     "explainTitle": "🤖 AI 최적화 채널 추천 안내",
-
     "explainSub": "카테고리·예산 교차 분석 기반 채널 추천 근거",
-
     "explainCatInsight": "🏷 카테고리별 마케팅 인사이트",
-
     "explainChWhy": "📡 채널별 추천 근거 상세",
-
     "explainEditNote": "ℹ️ 위 추천은 AI 분석 결과입니다. 채널을 직접 추가/제거하면 수동 모드로 전환되며, 카테고리 재선택 시 AI 추천이 자동 갱신됩니다.",
-
     "statImpressions": "노출",
-
     "statClicks": "클릭",
-
     "statConversions": "전환",
-
     "bgPeriodMonthly": "월간",
-
     "bgPeriodQuarterly": "분기",
-
     "bgPeriodYearly": "연간",
-
     "budgetTrackerTab": "예산 추적",
-
     "bgPlannerDesc": "예산 플래너",
-
     "Locker": "보관함",
-
     "memAccessSaved": "메뉴 접근 권한이 저장되었습니다",
-
     "tabCreative": "① 캠페인 설정",
-
     "tabCampaign": "캠페인 관리",
-
     "heroSub": "월 예산을 설정하면 AI가 틱톡·메타·네이버 등에 최적화된 마케팅 전략을 자동으로 수립합니다.",
-
     "guideTabOverviewName": "종합 현황",
-
     "guideTabOverviewDesc": "전체 광고 성과를 확인합니다.",
-
     "guideTabCreativeName": "크리에이티브",
-
     "guideTabCreativeDesc": "소재별 성과를 분석합니다.",
-
     "tabAiDesign": "AI 디자인",
-
     "channelFeeTitle": "채널별 수수료",
-
     "channelFeeDesc": "연동된 광고 채널의 수수료율을 확인하세요",
-
     "estimatedFee": "예상 수수료",
-
     "totalFee": "총 수수료",
-
     "tabAiEval": "🤖 AI 효과 평가 분석",
-
     "aiEvalPlaceholderTitle": "🤖 AI 평가 자리표시자",
-
-
-
     "aiEvalPlaceholderDesc": "AI 평가 결과는 이전 버전에 존재하였으나 통합 대시보드 구조에 맞춰 리팩토링 중입니다.",
-
     "ModeLabel": "(Dr.Jart+ 데모 모드)",
-
     "teamA": "A팀_퍼포먼스",
-
     "teamB": "B팀_리타게팅",
-
     "teamC": "C팀_세일즈",
-
     "teamD": "D팀_브랜딩",
-
     "NewCampPrefixOrigin": "[생성테스트] ",
-
     "NewCampSuffixOrigin": " 신규 캠페인",
-
     "statusActiveKor": "활동 중",
-
     "AlertMsg": "✅ 테스트 캠페인 생성 완료! 예산 5억이 즉시 편성되었습니다.\n[종합 대시보드] 및 [예산 트래커]로 이동하여 동기화 된 수치를 확인해보세요.",
-
     "ForceSyncBtn": "✨ [데모] 가상 캠페인 강제 등록 (동기화 테스트)",
-
     "tabCampaigns": "📣 캠페인 관리",
-
     "aiEvalTitle": "🤖 AI 마케팅 효과 종합 평가",
-
     "aiEvalSub": "Claude Sonnet 3.5 기반 · 채널 효율 · 캠페인 성과 · 예산 재배분 · 전략 인사이트",
-
     "runAI": "🚀 AI 분석 실행",
-
     "running": "⏳ AI 분석 중...",
-
     "analyzing": "Claude AI가 마케팅 데이터를 분석 중입니다...",
-
     "analysisData": "📥 분석 대상 데이터 현황",
-
     "totalAdSpend": "총 광고비",
-
     "clickToRun": "AI 분석 실행 버튼을 클릭하여 Claude 분석을 시작하세요",
-
     "overallSummary": "종합 마케팅 성과 요약",
-
     "channelRanking": "🏆 채널 AI 평가 랭킹",
-
     "channelRankingSub": "채널 클릭 시 항목별 상세 분석 · 강점/약점 · AI 권장 액션 조회",
-
     "clickDetail": "클릭하여 상세 분석 보기 →",
-
     "campaignTable": "📋 캠페인별 AI 평가 분석표",
-
     "campaignTableSub": "캠페인 행 클릭 시 AI 인사이트 및 권장 액션 전개",
-
     "budgetRealloc": "💰 AI 예산 재배분 권고",
-
     "budgetReallocSub": "현재 예산 분배 대비 최적화 제안 · 클릭 가중치 기반",
-
     "topInsight": "🎯 가장 중요한 인사이트",
-
     "rerunAI": "🔄 AI 재분석 실행",
-
     "errorPrefix": "❌ 분석 오류:",
-
     "breakdown": "📊 항목별 평가 점수",
-
     "actual": "실적",
-
     "strengths": "✅ 강점",
-
     "weaknesses": "⚠️ 개선 포인트",
-
     "aiRecommend": "AI 권장 액션:",
-
     "campaignDetail": "캠페인 상세",
-
     "spendStatus": "집행 현황 · 예산 소진율 · 성과 지표",
-
     "colCampaign": "캠페인",
-
     "colChannel": "채널",
-
     "colScore": "AI 점수",
-
     "colGrade": "등급",
-
     "colBurnRate": "소진율",
-
     "colAiAction": "AI 액션",
-
     "colCurrent": "현재 비중",
-
     "colRecommend": "권장 비중",
-
     "colChange": "변화",
-
     "colRationale": "근거",
-
     "colBudget": "예산",
-
     "colSpent": "집행액",
-
     "colClicks": "클릭",
-
     "clickView": "클릭하여 보기",
-
     "budgetTitle": "💰 예산 플래너",
-
     "budgetPageSub": "채널별·캠페인별 광고 예산을 계획하고 소진율을 추적합니다",
-
     "tabChannelBudget": "📊 채널별 예산",
-
     "tabMonthly": "📅 월별 현황",
-
     "tabAI": "🤖 AI 분석",
-
     "channelBudget": "채널별 현재 예산 현황",
-
     "totalBudget": "총 예산",
-
     "spent": "집행액",
-
     "remaining": "잔여",
-
     "burnRate": "소진율",
-
     "monthlyBudget": "월별 예산 현황 (2026)",
-
     "month": "월",
-
     "budgetLabel": "예산",
-
     "spentLabel": "집행",
-
     "attrTitle": "🔗 전환 기여도 분석",
-
     "attrSub": "구매 전환에 기여한 각 채널의 기여 비율을 분석합니다",
-
     "tabResults": "📋 결과",
-
     "tabScore": "🎯 점수 계산",
-
     "tabSummary": "📊 채널 요약",
-
     "tabCoupons": "🏷 쿠폰 & 딥링크",
-
     "tabAiAttr": "🤖 AI 분석",
-
     "calTitle": "📆 콘텐츠 캘린더",
-
     "calSub": "SNS 포스트·광고 소재·이벤트 일정을 달력 형식으로 계획·관리합니다",
-
     "tabCalendar": "📅 월별 캘린더",
-
     "tabList": "📋 콘텐츠 목록",
-
     "tabAiCal": "🤖 AI 분석",
-
     "status_draft": "작성중",
-
     "status_review": "심사중",
-
     "status_scheduled": "예약완료",
-
     "status_published": "발행완료",
-
     "status_cancelled": "취소",
-
     "colTitle": "제목",
-
     "colCreator": "크리에이터",
-
     "colPlatform": "플랫폼",
-
     "colDate": "일정",
-
     "colTotalAdSpend": "총광고비 지출",
-
     "colBlendedRoas": "통합(Blended) ROAS",
-
     "colTotalConv": "통합 전환 목표",
-
     "colActivePlatforms": "운영 매체 현황",
-
     "guideTitle": "마케팅 자동화 이용 가이드",
-
     "guideSub": "AI 기반 마케팅 자동화 플랫폼의 주요 기능과 활용법을 안내합니다.",
-
     "guideStepsTitle": "시작 6단계",
-
     "guideStep1Title": "예산 설정",
-
     "guideStep1Desc": "월별 광고 예산을 설정하고 채널별 배분 비율을 지정합니다.",
-
     "guideStep2Title": "캠페인 생성",
-
     "guideStep2Desc": "AI가 추천하는 최적화된 캠페인을 생성합니다.",
-
     "guideStep3Title": "타겟 설정",
-
     "guideStep3Desc": "AI 세그먼트 기반으로 정밀 타겟팅을 설정합니다.",
-
     "guideStep4Title": "소재 제작",
-
     "guideStep4Desc": "AI 크리에이티브 도구로 광고 소재를 자동 생성합니다.",
-
     "guideStep5Title": "성과 모니터링",
-
     "guideStep5Desc": "실시간 대시보드에서 캠페인 성과를 추적합니다.",
-
     "guideStep6Title": "최적화 실행",
-
     "guideStep6Desc": "AI 추천에 따라 예산과 입찰가를 자동 최적화합니다.",
-
     "guideTipsTitle": "활용 팁",
-
     "guideTip1": "예산은 주 단위로 검토하세요.",
-
     "guideTip2": "A/B 테스트로 최적의 소재를 찾으세요.",
-
     "guideTip3": "AI 추천 세그먼트를 적극 활용하세요.",
-
     "guideTip4": "성과 리포트를 정기적으로 확인하세요.",
-
     "guideTip5": "시즌별 캠페인 전략을 미리 수립하세요.",
-
     "autoTab1": "① 크리에이티브 스튜디오",
-
     "autoTab2": "② 캠페인 설정",
-
     "autoTab3": "③ AI 전략 미리보기",
-
     "autoTab4": "④ 이용 가이드",
-
     "mktTabOverview": "종합 현황",
-
     "mktTabAdStatus": "광고 현황",
-
     "mktTabCreative": "크리에이티브",
-
     "mktTabCompare": "비교 분석",
-
     "mktTabAiDesign": "AI 디자인",
-
     "mktTabGuide": "이용 가이드",
-
     "dateRangeFilter": "매체별 실적 기간 필터",
-
     "dateRangeDesc": "선택한 기간 내 캠페인 실적을 일별로 분석합니다.",
-
     "aiGuideTitle": "AI 디자인 크리에이티브 엔진 — 완전 가이드",
-
-
-
     "aiGuideSub": "크리에이티브 설정부터 멀티채널 배포까지 단계별 안내",
-
-
-
     "aiGuideStepsTitle": "AI 디자인 — 단계별 워크플로우",
-
-
-
     "aiGuideTip1": "각 플랫폼은 광고 성과를 극대화하도록 최적화된 규격을 갖고 있으니 먼저 정확한 플랫폼을 선택하세요.",
-
-
-
     "aiGuideTip2": "한정 캠페인 (플래시 세일·시즌 프로모션·생일 이벤트)에는 이벤트 기간 탭을 사용하세요.",
-
-
-
     "aiDesignSub": "엔터프라이즈 AI 크리에이티브 엔진 · 14 플랫폼 · 멀티채널 광고 · 인터랙티브 팝업",
-
-
-
     "aiDesignLoading": "AI 엔진 로딩 중...",
-
-
-
     "aiGuideStep1Title": "기간 설정",
-
     "aiGuideStep1Desc": "분석할 날짜 범위를 설정합니다.",
-
     "aiGuideStep2Title": "KPI 확인",
-
     "aiGuideStep2Desc": "지출, 노출, 클릭, CTR, ROAS를 확인합니다.",
-
     "aiGuideStep3Title": "채널 비교",
-
     "aiGuideStep3Desc": "채널별 성과를 비교 분석합니다.",
-
     "aiGuideStep4Title": "크리에이티브 분석",
-
     "aiGuideStep4Desc": "소재별 성과를 분석합니다.",
-
     "aiGuideStep5Title": "AI 추천",
-
     "aiGuideStep5Desc": "AI 기반 최적화 추천을 확인합니다.",
-
     "aiGuideStep6Title": "리포트 생성",
-
     "aiGuideStep6Desc": "분석 결과를 리포트로 내보냅니다.",
-
     "guideTabAdStatusName": "광고 현황",
-
     "guideTabAdStatusDesc": "광고 상태별 성과를 분석합니다.",
-
     "guideTabAiDesignName": "AI 디자인",
-
     "guideTabAiDesignDesc": "AI 기반 크리에이티브를 생성합니다.",
-
     "guideTabGuideName": "이용 가이드",
-
     "guideTabGuideDesc": "사용법 안내를 확인합니다.",
-
     "guideFaqTitle": "자주 묻는 질문",
-
     "guideFaq1Q": "데이터가 표시되지 않아요.",
-
     "guideFaq1A": "광고 캠페인을 먼저 등록하세요.",
-
     "guideFaq2Q": "ROAS가 0이에요.",
-
     "guideFaq2A": "캠페인 실행 후 데이터 수집에 시간이 걸립니다.",
-
     "guideReadyTitle": "시작할 준비가 되셨나요?",
-
     "guideReadyDesc": "좌측 메뉴에서 광고성과를 선택하세요.",
     "marketing": "마케팅 성과",
     "abSetup": "⚙ 캠페인 설정",
@@ -36631,62 +33339,136 @@ export default {
     "tier5": "📦 무료",
     "tag_api": "API/통합",
     "tag_enterprise": "엔터프라이즈",
-    csColName: '소재명',
-    csColPlatform: '플랫폼',
-    csColStatus: '상태',
-    csDownload: '다운로드',
-    csPreview: '미리보기',
-    csStatusActive: '활성',
-    csStatusApproved: '승인',
-    csUnitCount: '건',
-    csAiOptTitle: 'AI 소재 최적화 제안',
-    csColFormat: '포맷',
-    csConv: '전환',
-    csFilterAll: '전체',
-    csFmtBanner: '배너',
-    csFmtCarousel: '캐러셀',
-    csFmtShort: '쇼츠',
-    csFmtVideo: '영상',
-    csPerfAvgConv: '평균 전환율',
-    csPerfAvgCtr: '평균 CTR',
-    csPerfTotalConv: '총 전환수',
-    csStatusReview: '심사 중',
-    csTypeBannerDesc: '반응형 디스플레이 배너',
-    csTypeMessageDesc: '카카오톡·라인 템플릿',
-    csTypeVideo: '영상 광고',
-    csUploadAsset: '에셋 업로드',
-    csTypeBanner: '배너 광고',
-    csColorComp: '색상 준수율',
-    csLogoComp: '로고 사용 준수',
-    csFontComp: '폰트 일관성',
-    csPerfEffScore: '소재 효율 점수',
-    csTypeCarousel: '캐러셀 광고',
-    csTypeMessage: '메시지 광고',
-    csTypeStory: '스토리 광고',
-    csGuideViolation: '위반 항목',
-    csTypeShopping: '쇼핑 광고',
-    csBrandCheck: '브랜드 일관성 검사',
-    csUseCampaign: '캠페인에 활용',
-    csBrandTitle: '브랜드 자산 관리',
-    csLastSync: '최종 동기화: 방금',
-    csPerfTable: '소재별 성과표',
-    csAiGenTitle: 'AI 크리에이티브 생성',
-    csTypeCarouselDesc: '다중 이미지 슬라이드',
-    csTypeShoppingDesc: '상품 피드 DPA 소재',
-    csStartFromSetup: '캠페인 설정에서 시작',
-    csTypeStoryDesc: '9:16 세로형 풀스크린',
-    csTypeVideoDesc: '15~60초 숏폼 영상 자동 제작',
-    csBrandDesc: '브랜드 가이드라인에 따른 일관된 소재 관리',
-    csAiOpt1: '영상의 CTR 이 캐러셀의 1.5배입니다. 영상 비중을 확대하세요.',
-    csAiGenDesc: '카테고리와 채널을 선택하면 AI 가 최적의 광고 소재를 자동 생성합니다.',
-    csAiOpt3: '2주 이상 노출된 소재는 광고 피로도가 올라갑니다. 새 크리에이티브로 교체하세요.',
-    csAiOpt2: 'TikTok 숏폼 소재의 전환율이 가장 높습니다. 15초 이내 소재를 추가 제작하세요.',
-    primaryAxisPrefix: '주축 접두어',
-    secondaryAxisPrefix: '보조축 접두어',
-    injected_nav: 'true',
-  
+    "csColName": "소재명",
+    "csColPlatform": "플랫폼",
+    "csColStatus": "상태",
+    "csDownload": "다운로드",
+    "csPreview": "미리보기",
+    "csStatusActive": "활성",
+    "csStatusApproved": "승인",
+    "csUnitCount": "건",
+    "csAiOptTitle": "AI 소재 최적화 제안",
+    "csColFormat": "포맷",
+    "csConv": "전환",
+    "csFilterAll": "전체",
+    "csFmtBanner": "배너",
+    "csFmtCarousel": "캐러셀",
+    "csFmtShort": "쇼츠",
+    "csFmtVideo": "영상",
+    "csPerfAvgConv": "평균 전환율",
+    "csPerfAvgCtr": "평균 CTR",
+    "csPerfTotalConv": "총 전환수",
+    "csStatusReview": "심사 중",
+    "csTypeBannerDesc": "반응형 디스플레이 배너",
+    "csTypeMessageDesc": "카카오톡·라인 템플릿",
+    "csTypeVideo": "영상 광고",
+    "csUploadAsset": "에셋 업로드",
+    "csTypeBanner": "배너 광고",
+    "csColorComp": "색상 준수율",
+    "csLogoComp": "로고 사용 준수",
+    "csFontComp": "폰트 일관성",
+    "csPerfEffScore": "소재 효율 점수",
+    "csTypeCarousel": "캐러셀 광고",
+    "csTypeMessage": "메시지 광고",
+    "csTypeStory": "스토리 광고",
+    "csGuideViolation": "위반 항목",
+    "csTypeShopping": "쇼핑 광고",
+    "csBrandCheck": "브랜드 일관성 검사",
+    "csUseCampaign": "캠페인에 활용",
+    "csBrandTitle": "브랜드 자산 관리",
+    "csLastSync": "최종 동기화: 방금",
+    "csPerfTable": "소재별 성과표",
+    "csAiGenTitle": "AI 크리에이티브 생성",
+    "csTypeCarouselDesc": "다중 이미지 슬라이드",
+    "csTypeShoppingDesc": "상품 피드 DPA 소재",
+    "csStartFromSetup": "캠페인 설정에서 시작",
+    "csTypeStoryDesc": "9:16 세로형 풀스크린",
+    "csTypeVideoDesc": "15~60초 숏폼 영상 자동 제작",
+    "csBrandDesc": "브랜드 가이드라인에 따른 일관된 소재 관리",
+    "csAiOpt1": "영상의 CTR 이 캐러셀의 1.5배입니다. 영상 비중을 확대하세요.",
+    "csAiGenDesc": "카테고리와 채널을 선택하면 AI 가 최적의 광고 소재를 자동 생성합니다.",
+    "csAiOpt3": "2주 이상 노출된 소재는 광고 피로도가 올라갑니다. 새 크리에이티브로 교체하세요.",
+    "csAiOpt2": "TikTok 숏폼 소재의 전환율이 가장 높습니다. 15초 이내 소재를 추가 제작하세요.",
+    "primaryAxisPrefix": "주축 접두어",
+    "secondaryAxisPrefix": "보조축 접두어",
+    "injected_nav": "true",
     "gNav": {
-      "accountPerformance": "계정 성과"
+      "accountPerformance": "계정 성과",
+      "adAnalytics": "Ad Analytics",
+      "adPerformance": "Ad Performance",
+      "aiInsights": "AI Insights",
+      "aiMarketing": "AI Marketing",
+      "aiMarketingHub": "AI Comms",
+      "aiPolicy": "AI Policy",
+      "aiRecommend": "AI Recommend",
+      "aiRuleEngine": "AI Rule Engine",
+      "alertAutomation": "Alert Automation",
+      "alertPolicies": "Alert Policies",
+      "analytics": "Insights & Reports",
+      "apiKeys": "API Keys",
+      "app_pricing": "Plans & Pricing",
+      "approvals": "Approvals",
+      "attribution": "Attribution",
+      "auditLog": "Audit Logs",
+      "autoMarketing": "Auto Strategy",
+      "automation": "Automation Systems",
+      "budgetTracker": "Budget Tracker",
+      "campaignManager": "Campaign Manager",
+      "caseStudy": "Case Study",
+      "catalog": "Catalog Sync",
+      "channelKpi": "Channel KPI",
+      "commerce": "Commerce & Logistics",
+      "crm": "CRM & Channels",
+      "crmMain": "CRM Dashboard",
+      "dashboard": "Unified Dashboard",
+      "data": "Data & Integration",
+      "dataProduct": "Data Products",
+      "dataSchema": "Data Schema",
+      "dataTrust": "Data Trust Center",
+      "developerHub": "Developer Hub",
+      "emailMarketing": "Email Marketing",
+      "feedback": "Feedback",
+      "finance": "Finance & Settlement",
+      "graphScore": "Graph Score",
+      "help": "Help Center",
+      "home": "Home",
+      "influencer": "Influencer Mgmt",
+      "integrationHub": "Integration Hub",
+      "journeyBuilder": "Journey Builder",
+      "kakaoChannel": "Kakao Business",
+      "mappingRegistry": "Mapping Registry",
+      "memberTools": "System Admin",
+      "omniChannel": "Omni Channel",
+      "onboarding": "Onboarding Map",
+      "operations": "Operations Manual",
+      "orderHub": "Order Hub",
+      "performanceHub": "Performance Hub",
+      "pixelTracking": "Pixel Tracking",
+      "pnl": "P&L Analytics",
+      "priceOpt": "Price Optimization",
+      "pricing": "Plans & Pricing",
+      "reconciliation": "Reconciliation",
+      "reportBuilder": "Report Builder",
+      "returnsPortal": "Returns Portal",
+      "reviewsUgc": "Reviews & UGC",
+      "rollup": "Rollup View",
+      "settlements": "Settlements",
+      "supplyChain": "Supply Chain",
+      "webPopup": "Web Popup",
+      "wms": "WMS Inventory",
+      "workspace": "Workspace Setting",
+      "writeback": "Data Writeback"
+    },
+    "g": {
+      "quickFavs": "Favorites",
+      "quickRecents": "Recent",
+      "sidebarAlertCount": "13 Alerts",
+      "sidebarLogout": "Exit  & Logout",
+      "upgradalBtn": "View Upgrade Plans",
+      "upgradalClose": "Close",
+      "upgradalDesc": "This is a powerful enterprise feature available in the paid plan.\nUpgrade to Pro now to experience all features without limits.",
+      "upgradalTitle": "Pro Plan Exclusive",
+      "upgradeLabel": "PRO"
     }
   },
 
@@ -39587,7 +36369,14 @@ export default {
 
   "graph": {},
 
-  "attr": {},
+  "attr": {
+    "anomalySummary": "📊 Anomaly Detection Summary",
+    "expectedBlendRoas": "Expected Blended ROAS",
+    "expectedRev": "Expected Revenue",
+    "health": "Health",
+    "modelCompareTable": "📋 Channel Contribution by Model (%)",
+    "radarCompare": "🕸️ Channel Contribution Radar"
+  },
 
   "gCat": {
 
@@ -39640,11 +36429,130 @@ export default {
   "pages": {
     "dashboard": {
       "title": "종합 대시보드",
-      "sub": "통합 운영 콕핏 · v421"
+      "sub": "통합 운영 콕핏 · v421",
+      "adSpend": "Ad Spend",
+      "adSpendSub": "Total Ad Spend",
+      "avgOrder": "Average Order Value",
+      "convRateLbl": "Conversion Rate",
+      "convRateSub": "vs Sessions",
+      "grossRevSub": "Today",
+      "netROAS": "Net R O A S",
+      "netROASSub": "Net Profit / Ad Spend",
+      "totalOrderSub": "As of Today",
+      "totalOrders": "Total Orders"
     },
     "marketing": {
       "title": "마케팅 및 광고",
-      "sub": "광고 통합 인사이트"
+      "sub": "광고 통합 인사이트",
+      "AIPolicy": "AI Policy",
+      "Alerts": "Alerts",
+      "ApiRegister": "View Integration Guide",
+      "Attribution": "Attribution",
+      "Badge": "Badge",
+      "GraphScore": "Graph Score",
+      "Influencer": "Influencer",
+      "Join": "Join",
+      "KRChannel": "KR Channel",
+      "LockBadge": "🔒 Demo",
+      "Marketing": "Marketing",
+      "PriceCheck": "Price Check",
+      "PriceOpt": "Price Opt",
+      "PricingView": "Check Pricing Plans",
+      "Reconcile": "Reconciliation",
+      "Running": "Running",
+      "SampleDesc2": "This feature only fetches real data after paid plan integration. Current screen uses sample data.",
+      "SampleDesc3": "Virtual data is being displayed.",
+      "accountPerformance": "Account Performance",
+      "adAnalytics": "Ad & Channel Analytics",
+      "adPerformance": "Ad Performance",
+      "adSpendSub": "Total Ad Spend",
+      "ageDist": "Age Distribution",
+      "aiMarketing": "🚀 AI Marketing Automation",
+      "aiMarketingHub": "AI Communication",
+      "aiRecommend": "AI Instant Recommendations",
+      "analytics": "Analytics",
+      "analyticsModules": "Analytics Modules",
+      "attribution": "Attribution",
+      "autoMarketing": "AI Strategy Generator",
+      "avgOrder": "AOV",
+      "budgetTracker": "Budget Tracker",
+      "campaignManager": "Campaign Manager",
+      "catalog": "Product Catalog",
+      "chIntelDesc1": "Ch Intel Desc1",
+      "chIntelDesc2": "Ch Intel Desc2",
+      "chIntelDesc3": "Ch Intel Desc3",
+      "chIntelDesc4": "Ch Intel Desc4",
+      "chIntelTitle": "Channel Intelligence",
+      "chPerfDash": "Channel Performance Dashboard",
+      "chTrendKpi": "Key KPI Trends by Media",
+      "channelDesc": "Core KPIs by Channel",
+      "channelKpi": "Channel KPI",
+      "channelMix": "Channel Mix",
+      "colAchieve": "Goal Achievement",
+      "colChan": "Channel Name",
+      "colConv": "Conversions",
+      "colCtr": "CTR%",
+      "colRoas": "ROAS",
+      "colSpend": "Ad Spend",
+      "colTrend": "Trend",
+      "commerce": "Commerce & Settlement",
+      "commerceDesc": "Order · Inventory · Settlement Unified Status",
+      "convFunnel": "Conversion Funnel Analysis",
+      "convRateSub": "vs Sessions",
+      "crm": "Customer · CRM",
+      "crmMain": "Customer CRM + AI Segment",
+      "dashboard": "Unified Dashboard",
+      "emailMarketing": "Email + A/B Test",
+      "genderDist": "Gender Distribution",
+      "graphScore": "Graph Score",
+      "grossRevSub": "Today",
+      "home": "Home",
+      "influencer": "Influencer",
+      "influencerDesc": "Influencer · UGC Performance Analysis",
+      "journeyBuilder": "Journey Builder",
+      "kakaoChannel": "Kakao Channel",
+      "liveActivity": "Live Activity",
+      "marketingDesc": "Ad · Campaign Integrated Analysis",
+      "mode": "Mode",
+      "moduleShortcuts": "Module Shortcuts",
+      "naverName": "Naver Search Ads",
+      "netROASSub": "Net Profit / Ad Spend",
+      "omniChannel": "Omni-Channel",
+      "orderHub": "Order Hub",
+      "overview": "Overview",
+      "overviewDesc": "All platform KPIs at a glance",
+      "performanceHub": "Performance Hub",
+      "priceOpt": "Price Optimization",
+      "quickFavs": "Favorites",
+      "quickRecents": "Recent Visits",
+      "reportBuilder": "Report Builder",
+      "returnsPortal": "Returns Automation Portal",
+      "reviewsUgc": "Reviews & UGC Analysis",
+      "rollup": "Rollup View",
+      "sales": "Global Sales",
+      "salesDesc": "Revenue Status by Country/Region",
+      "selectRoleBtn": "Select Role",
+      "selectRoleDesc": "We suggest customized options and quick actions for your role.",
+      "selectRoleTitle": "Please select your role",
+      "supplyChain": "Supply Chain Visibility",
+      "sysStatus": "System Status",
+      "system": "System Status",
+      "systemDesc": "API · Pipeline · Server Status",
+      "todayTasks": "Today",
+      "topRegion": "Top Visited Regions",
+      "totalOrderSub": "As of Today",
+      "upgradalBtn": "View Pricing Plans",
+      "upgradalClose": "Close",
+      "upgradalDesc": "This menu is available on paid plans. Upgrade to unlock all expert features.",
+      "upgradalTitle": "Upgrade Notice",
+      "upgradeBarCoupon": "Your account has a free coupon.",
+      "upgradeBarDesc": "Connect your API now and fully utilize the platform with your data.",
+      "upgradeBarMembership": "Membership Coupon Application Guide",
+      "upgradeBarTitle": "🎉 Connect real business data and try all features free for 7 days!",
+      "upgradeLabel": "Upgrade",
+      "vsYesterday": "vs Yesterday",
+      "webPopup": "Web Popup",
+      "wms": "WMS Inventory"
     },
     "influencer": {
       "title": "인플루언서 허브",
@@ -39660,11 +36568,14 @@ export default {
       "warn": "주의",
       "ok": "정상",
       "anomalyDesc": "Z-Score 기반 채널 이상감지 실시간 모니터링",
-      "modelCompareDesc": "5개 Attribution 모델 레이더 차트 비교"
+      "modelCompareDesc": "5개 Attribution 모델 레이더 차트 비교",
+      "critical": "Critical",
+      "zScore": "Z-Score"
     },
     "graphScore": {
       "title": "그래프 스코어링",
-      "sub": "노드 · 엣지 · 인플루언서 스코어"
+      "sub": "노드 · 엣지 · 인플루언서 스코어",
+      "sku": "SKU"
     },
     "commerce": {
       "title": "커머스 운영",
@@ -39693,11 +36604,26 @@ export default {
       "ppl": "명",
       "types": "종",
       "perDay": "일",
-      "ago": "전"
+      "ago": "전",
+      "channelPerf": "Channel Performance",
+      "orders": " orders",
+      "revenue": "Estimated Revenue",
+      "sku": "SKU",
+      "topSku": "TOP SKU",
+      "totalOrders": "Total Orders"
     },
     "amazonRisk": {
       "title": "Amazon 리스크",
-      "sub": "리스크 · 이상 탐지"
+      "sub": "리스크 · 이상 탐지",
+      "accountScore": "Account Health",
+      "avgRating": "Average Rating",
+      "buyBox": "Buy Box Rate",
+      "fbaStockRate": "FBA Stock Rate",
+      "goal": "Target",
+      "highRisk": "High Severity",
+      "keyMetrics": "Core KPIs",
+      "mediumRisk": "Medium Risk",
+      "riskAlerts": "Risk Alerts"
     },
     "digitalShelf": {
       "title": "디지털 셸프",
@@ -39709,7 +36635,55 @@ export default {
     },
     "krChannel": {
       "title": "국내 채널 정산",
-      "sub": "쿠팡 · 네이버 · 11번가"
+      "sub": "쿠팡 · 네이버 · 11번가",
+      "adSpendRate": "Ad Spend Rate",
+      "all": "All",
+      "apiDisconnected": "Api Disconnected",
+      "categoryAll": "Category All",
+      "channelMaster": "Channel Master",
+      "channelSelect": "Channel Select",
+      "commissionHistory": "Commission History",
+      "commissionReg": "Commission Reg",
+      "count": "Count",
+      "currency": "Currency",
+      "effectiveDate": "Effective Date",
+      "endDate": "End Date",
+      "feeDiff": "Fee Difference",
+      "ingestTitle": "Ingest Title",
+      "loadSample": "Load Sample",
+      "matched": "Matched",
+      "mismatched": "Mismatched",
+      "missingOrder": "Missing Order",
+      "missingSettle": "Missing Settle",
+      "netDiff": "Net Diff",
+      "noDataHint": "No Data Hint",
+      "noReports": "No reconciliation reports",
+      "noTickets": "✅ No Tickets (Below threshold)",
+      "note": "Note",
+      "platformFeeRate": "Platform Fee Rate",
+      "reconRun": "Recon Run",
+      "reconStart": "Recon Start",
+      "reprocess": "Reprocess",
+      "returnFee": "Return Fee",
+      "running": "Running",
+      "saveCommission": "Save Commission",
+      "search": "Search",
+      "selectChannelHint": "Select Channel Hint",
+      "selectPlaceholder": "Select Placeholder",
+      "settleCycle": "Settle Cycle",
+      "shippingFee": "Base Shipping Fee (₩)",
+      "startDate": "Start Date",
+      "tabChannels": "Tab Channels",
+      "tabFees": "Tab Fees",
+      "tabIngest": "Tab Ingest",
+      "tabRecon": "🔍 Settlement Reconciliation",
+      "tabSummary": "Summary Score",
+      "tickets": "Tickets",
+      "totalCommission": "Total Commission",
+      "totalRevenue": "Total Revenue",
+      "totalSettlement": "Total Settlement",
+      "vatRate": "VAT",
+      "vatRateLabel": "Vat Rate Label"
     },
     "priceOpt": {
       "title": "가격 최적화",
@@ -39789,11 +36763,73 @@ export default {
       "system": "시스템·관리",
       "avgRating": "평균 평점",
       "fbaStockRate": "FBA 재고율",
-      "goal": "목표"
+      "goal": "목표",
+      "analytics": "Analytics",
+      "commerce": "Commerce & Settlement",
+      "crm": "Customer · CRM",
+      "enterprise": "Enterprise",
+      "growth": "Growth",
+      "loading": "Loading...",
+      "marketing": "Marketing Performance",
+      "pro": "Pro",
+      "refresh": "Refresh"
     },
     "reconciliation": {
       "title": "정산",
-      "sub": "정산 대사 · 수수료 계산"
+      "sub": "정산 대사 · 수수료 계산",
+      "adFeeCharged": "Ad spend deduction",
+      "adFeeRate": "Ad Fee Rate",
+      "all": "All",
+      "analyzing": "Analyzing...",
+      "clickReport": "Click a report for details",
+      "effectiveFrom": "Effective from:",
+      "endDate": "End Date",
+      "feeDiff": "Fee Difference",
+      "feeDiffLabel": "Fee Difference",
+      "feeRulesTitle": "Fee Rules Title",
+      "matched": "Matched",
+      "mismatch": "Mismatched",
+      "mismatchTickets": "Mismatch Tickets",
+      "netDiffLabel": "Net Difference",
+      "noReports": "No reconciliation reports",
+      "noTickets": "✅ No Tickets (Below threshold)",
+      "note": "Note",
+      "orderNo": "Order No",
+      "pendingAmount": "Pending",
+      "platformFee": "Platform Fee",
+      "platformFeeRate": "Platform Fee Rate",
+      "pnlAutoUpdate": "P&L auto-updates on settlement changes",
+      "realtimePnl": "🔴 Real-time P&L Operating Profit",
+      "reconDesc": "Recon Desc",
+      "reconTitle": "⚖️ Run Reconciliation",
+      "reportDetail": "Report Detail",
+      "reportId": "Report ID",
+      "reportList": "Report List",
+      "ruleHistory": "Rule History",
+      "runRecon": "⚖️ Run Reconciliation",
+      "saveFeeRule": "💾 Save Rules",
+      "saved": "✓ Save Complete",
+      "saving": "Saving...",
+      "settleDiff": "Settlement Difference",
+      "settledAmount": "Settled",
+      "startDate": "Start Date",
+      "status_investigating": "Investigating",
+      "status_open": "Status_open",
+      "status_resolved": "Settled",
+      "status_waived": "Waived",
+      "tabFeeRules": "⚙️ Fee Rules",
+      "tabRecon": "🔍 Settlement Reconciliation",
+      "tabReports": "Tab Reports",
+      "tabTickets": "🎫 Tickets",
+      "ticketsCreated": "Tickets created",
+      "ticketsTitle": "Tickets Title",
+      "totalOrders": "Total Orders",
+      "upload": "Upload",
+      "uploadHint": "Upload Hint",
+      "uploadSuccess": "Upload Success",
+      "uploading": "Uploading...",
+      "vatRate": "VAT",
+      "viewPnl": "🌊 View in P&L Dashboard →"
     },
     "settlements": {
       "title": "정산 내역",
@@ -39817,7 +36853,8 @@ export default {
     },
     "writeback": {
       "title": "라이트백",
-      "sub": "데이터 라이트백 정책"
+      "sub": "데이터 라이트백 정책",
+      "payloadPlaceholder": "{ \"sku\": \"...\", \"title\": \"...\", \"price\": 0 }"
     },
     "mappingRegistry": {
       "title": "매핑 레지스트리",
@@ -40299,7 +37336,17 @@ export default {
       "statImpressions": "노출수 데이터",
       "statClicks": "클릭 성과",
       "statConversions": "전환 성과",
-      "kpiAchieve": "KPI 달성"
+      "kpiAchieve": "KPI 달성",
+      "clicks": "Clicks",
+      "colDate": "Date",
+      "impressions": "Total Impressions",
+      "kpiConversions": "Conversions",
+      "kpiRoas": "ROAS",
+      "month": "Month",
+      "sc_tiktok_shop": "TikTok Shop",
+      "strengths": "Strengths",
+      "tag_saas": "SaaS",
+      "weaknesses": "Weaknesses"
     },
     "perms": {
       "readAll": "전체 읽기",
@@ -40307,7 +37354,232 @@ export default {
       "changeSettings": "설정 변경",
       "manageUsers": "사용자 관리",
       "language": "언어",
-      "languageSwitch": "언어 변경"
+      "languageSwitch": "언어 변경",
+      "account": "Account",
+      "allAccounts": "All Accounts",
+      "allTeams": "All Teams",
+      "anomalyDetected": "Anomaly detected",
+      "audienceInsights": "Audience Insights",
+      "channelPerf": "Channel Performance",
+      "churn": "Final Churn Status",
+      "colConversions": "Conversions",
+      "colCtr": "CTR%",
+      "colCvr": "CVR%",
+      "colRevenue": "Revenue",
+      "colRoas": "ROAS",
+      "colSpend": "Ad Spend",
+      "compareTo": "Compare to",
+      "creativePerf": "Creative Perf",
+      "dateRange": "Period",
+      "exportReport": "Export Report",
+      "kpiConversions": "Conversions",
+      "kpiCtr": "CTR",
+      "kpiCvr": "CVR",
+      "kpiRevenue": "Gross Sales",
+      "kpiRoas": "ROAS",
+      "kpiSpend": "Total Ad Spend",
+      "menu": {
+        "adAnalytics": "Ad & Channel Analytics",
+        "adPerformance": "Ad Performance",
+        "aiMarketing": "🚀 AI Marketing Automation",
+        "aiPrediction": "Ai Prediction",
+        "approvals": {
+          "approve": "Approve",
+          "approvedAt": "Approved At",
+          "approver": "Approver",
+          "itemTitle": "Item",
+          "noPending": "No Pending",
+          "reject": "❌ Reject",
+          "requestedAt": "Request Date",
+          "requester": "Requester",
+          "tabApproved": "Tab Approved",
+          "tabPending": "Tab Pending",
+          "tabRejected": "❌ Reject",
+          "viewDetail": "Details"
+        },
+        "attribution": "Attribution",
+        "autoMarketing": "AI Strategy Generator",
+        "budgetPlanner": "Budget Planner",
+        "campaignManager": "Campaign Manager",
+        "channelKpi": {
+          "achieved": "Achieved ✓",
+          "achievedOk": "Achieved ✓",
+          "aiAnalyzing": "AI Analyzing...",
+          "aiHistoryList": "AI Analysis History",
+          "aiSummary": "AI Analysis Summary",
+          "allChannels": "Total Channels",
+          "avgTime": "Avg Time",
+          "belowTarget": "Below Target",
+          "bizGoalSetting": "Biz Goal Setting",
+          "brandAwareness": "Brand Awareness",
+          "brandAwarenessDesc": "Brand Awareness Desc",
+          "channelRoleDef": "Channel Role Definition",
+          "checklist": "Key Action Items",
+          "chkCostPerf": "Cost vs Performance Check",
+          "chkEff": "Campaign Efficiency Check",
+          "chkImprove": "Identify Items for Improvement",
+          "claudeAiDesc": "Claude Ai Desc",
+          "claudeAiTitle": "Claude Ai Title",
+          "clickSelect": "Click Select",
+          "comments": "Comments",
+          "communityAct": "Community Act",
+          "communityGrowth": "Community Growth",
+          "communityKpi": "Community Kpi",
+          "contentEngage": "Content Engage",
+          "contentImpressions": "Content Impressions",
+          "contentInterest": "Content Interest",
+          "contentKpi": "Content Kpi",
+          "coreKpis": "Core KPIs",
+          "descBrandReach": "Large-scale brand exposure through SNS platform ads",
+          "descCaptureIntent": "Target users with high purchase intent via search algorithms",
+          "descConvRate": "Conversion Rate vs Target",
+          "descCpa": "Desc Cpa",
+          "descCpc": "Desc Cpc",
+          "descCtr": "Desc Ctr",
+          "descCustRel": "Secure customer loyalty through community activities",
+          "descInfoTrust": "Build expertise and trust through problem-solving content",
+          "descRoas": "Desc Roas",
+          "hintConvRate": "Hint Conv Rate",
+          "hintCpa": "Hint Cpa",
+          "hintCpc": "Hint Cpc",
+          "hintCtr": "Hint Ctr",
+          "hintRoas": "Hint Roas",
+          "improveRecs": "Improvement Recommendations",
+          "inquiries": "Inquiries",
+          "inquiriesPurchases": "Inquiries Purchases",
+          "inquiriesPurchasesDesc": "Inquiries Purchases Desc",
+          "interestConv": "Interest Conv",
+          "monitorAi": "AI Channel Performance Monitoring",
+          "monthlyAi": "Monthly Report",
+          "monthlyTrend": "Monthly Trend",
+          "newMembers": "New Signups",
+          "noHistory": "No execution history",
+          "overallAchieve": "Overall Achievement Status",
+          "pageViews": "Page Views",
+          "pleaseSelectGoal": "Please Select Goal",
+          "postViews": "Post Views",
+          "roleBrandReach": "Brand Reach",
+          "roleCaptureIntent": "Capture Purchase Intent",
+          "roleCustRel": "Strengthen Customer Relationships",
+          "roleInfoTrust": "Info · Trust Building",
+          "searchTraffic": "Search Traffic",
+          "selected": "Selected",
+          "selectedGoals": "Selected Goals",
+          "seoImpact": "Seo Impact",
+          "siteTraffic": "Site Traffic",
+          "snsKpiByChannel": "Sns Kpi By Channel",
+          "snsKpiOverview": "Sns Kpi Overview",
+          "strengths": "Strengths",
+          "tabCommunity": "Tab Community",
+          "tabContent": "Tab Content",
+          "tabGoals": "Tab Goals",
+          "tabMonitor": "Tab Monitor",
+          "tabRoles": "Tab Roles",
+          "tabSetup": "Tab Setup",
+          "tabSns": "Tab Sns",
+          "tabTargets": "Tab Targets",
+          "targetSetup": "KPI Target Setting by Channel",
+          "targetVsActuals": "Target Vs Actuals",
+          "visitors": "Visitors",
+          "weaknesses": "Weaknesses",
+          "webTraffic": "Web Traffic",
+          "webTrafficDesc": "Web Traffic Desc",
+          "weeklyAdTrend": "Weekly Ad Efficiency Trend",
+          "weeklyAi": "Weekly Report"
+        },
+        "commerce": "Commerce & Settlement",
+        "commerceSearch": "Commerce Search",
+        "connectors": {
+          "apiKey": "Api Key",
+          "configure": "Configuration",
+          "daily": "Daily",
+          "hourly": "Hourly",
+          "lastSync": "Last Sync",
+          "noConnectors": "No Connectors",
+          "oauthLogin": "Oauth Login",
+          "real_time": "Real-time",
+          "syncFrequency": "Sync Frequency",
+          "tabAds": "Ad Channels",
+          "tabAll": "Tab All",
+          "tabLogistics": "Logistics",
+          "tabSales": "Sales channel",
+          "testConnection": "Connection Test"
+        },
+        "contentCalendar": "Content Calendar",
+        "crm": "Customer · CRM",
+        "crmMain": "Customer CRM + AI Segment",
+        "customerCrm": "Customer Crm",
+        "dashboard": "Unified Dashboard",
+        "emailMarketing": "Email + A/B Test",
+        "eventNorm": {
+          "addSchema": "Add Schema",
+          "eventName": "Event Name",
+          "mappingRule": "Mapping Rule",
+          "noSchemas": "No Schemas",
+          "sourceChannel": "Source Channel",
+          "standardEvent": "Standard Event",
+          "status": "Status",
+          "tabMapping": "Tab Mapping",
+          "tabSchemas": "📋 Schemas",
+          "tabTest": "Tab Test",
+          "testEvent": "Test Event"
+        },
+        "graphScore": "Graph Score",
+        "home": "Home",
+        "influencer": "Influencer",
+        "instagramDm": "Instagram/Facebook DM",
+        "journeyBuilder": "Journey Builder",
+        "kakaoChannel": "Kakao Channel",
+        "lineChannel": "Line Channel",
+        "mappingRegistry": {
+          "addMapping": "Add Mapping",
+          "delete": "Delete",
+          "edit": "Edit",
+          "fromChannel": "Origin",
+          "mappingRule": "Mapping Rule",
+          "noMappings": "No Mappings",
+          "tabCategoryMap": "Tab Category Map",
+          "tabChannelMap": "Tab Channel Map",
+          "tabProductMap": "Tab Product Map",
+          "toChannel": "Target"
+        },
+        "marketingIntel": {
+          "adCtaLabel": "CTA",
+          "badge20kpi": "20 KPI",
+          "cpc": "CPC",
+          "riskHigh": "high",
+          "riskLow": "low",
+          "riskMedium": "medium",
+          "roas": "ROAS",
+          "roi": "ROI"
+        },
+        "reviewsUgc": "Reviews & UGC Analysis",
+        "rollup": "Rollup View",
+        "smsMarketing": "SMS/LMS Marketing",
+        "webPopup": "Web Popup",
+        "whatsapp": "WhatsApp",
+        "writeback": {
+          "createPolicy": "Create Policy",
+          "inactive": "Deactivated",
+          "lastRun": "Last Run",
+          "runNow": "Run Now",
+          "status": "Status",
+          "tabLog": "Tab Log",
+          "target": "Target",
+          "trigger": "🎯 Trigger"
+        }
+      },
+      "noAnomaly": "No anomalies",
+      "prob30": "30-day Churn Probability",
+      "productPerf": "Product Perf",
+      "subtitle": "Precision Shapley (2^n) · Bayesian MMM · Markov Chain · Incremental Uplift (Dual ML) · Thompson Sampling A/B",
+      "tabAudience": "Tab Audience",
+      "tabChannels": "Tab Channels",
+      "tabCreatives": "Creative",
+      "tabOverview": "Campaign Status",
+      "tabProducts": "Products",
+      "team": "View by Team",
+      "topProducts": "Top Products"
     },
     "mobile": {
       "hello": "안녕하세요",
@@ -40385,7 +37657,9 @@ export default {
         "qq1": "지난달 대비 순이익이 개선되었나요?",
         "qq2": "ROAS가 가장 낮은 채널은 어디인가요?",
         "qq3": "반품율이 위험한 SKU는 무엇인가요?",
-        "qq4": "비용 절감 우선순위는 무엇인가요?"
+        "qq4": "비용 절감 우선순위는 무엇인가요?",
+        "adSpend": "Ad Spend",
+        "loading": "Loading..."
       },
       "helpPanel": {
         "searchResult": "검색 결과",
@@ -40404,8 +37678,178 @@ export default {
         "defaultTitle": "Geniego-ROI 도움말",
         "defaultSummary": "이 페이지의 상세 도움말을 준비 중입니다. 전체 사용설명서를 참고하세요.",
         "defaultStep1": "상단 메뉴에서 '사용설명서'를 클릭하면 전체 가이드를 볼 수 있습니다.",
-        "defaultStep2": "통합검색(Ctrl+K)으로 원하는 기능을 찾아보세요."
-      }
+        "defaultStep2": "통합검색(Ctrl+K)으로 원하는 기능을 찾아보세요.",
+        "staticHelp": {
+          "connectors": {
+            "steps": "Steps",
+            "summary": "Send domestic SMS/LMS messages and manage send history and statistics.",
+            "title": "Email Marketing"
+          },
+          "help": {
+            "steps": "Steps",
+            "summary": "Send domestic SMS/LMS messages and manage send history and statistics.",
+            "title": "Email Marketing"
+          },
+          "smsMarketing": {
+            "steps": "Steps",
+            "summary": "Send domestic SMS/LMS messages and manage send history and statistics.",
+            "title": "Email Marketing"
+          }
+        }
+      },
+      "adminCoupon": {
+        "available": "Available",
+        "cancelBtn": "Cancel",
+        "cancelled": "Cancelled",
+        "codeLabel": "Coupon Code",
+        "codePlaceholder": "Code Placeholder",
+        "colCode": "Code / Recipient",
+        "colExpires": "Spent",
+        "colIssueDate": "Issue Date",
+        "colPeriod": "Period",
+        "colPlan": "Plan",
+        "colUsage": "Usage",
+        "emailLabel": "Email",
+        "emailPlaceholder": "Email Placeholder",
+        "issueBtn": "Issue Coupon",
+        "notifyEmail": "Email Notifications",
+        "period1m": "1 month",
+        "period1y": "1 year",
+        "period2m": "2 months",
+        "period3m": "3 months",
+        "period6m": "6 months",
+        "periodLabel": "Period",
+        "planLabel": "Plan",
+        "statusExpired": "Expired",
+        "statusUsed": "Used",
+        "statusValid": "Valid",
+        "tabAutoRules": "Tab Auto Rules",
+        "tabIssue": "🎟 Issue Coupon",
+        "tabTitle": "Free Coupon Management",
+        "totalIssued": "Total Issued",
+        "used": "Used"
+      },
+      "analytics": "Analytics",
+      "auth": {
+        "PlanNote": "Plan Note",
+        "adChannelNote": "Ad Channel Note",
+        "adChannelTitle": "Ad Channel Title",
+        "addressDetailLabel": "Address Detail Label",
+        "addressLabel": "Address",
+        "addressRequired": "Address Required",
+        "adminEmailLabel": "Admin Email Label",
+        "adminKeyLabel": "Admin Key Label",
+        "adminKeyPh": "Admin Key Ph",
+        "adminLoginBtn": "Admin Login Btn",
+        "adminLoginDesc": "Admin Login Desc",
+        "adminLoginTitle": "Admin Login Title",
+        "agreeAll": "Agree All",
+        "agreeAnd": "Agree And",
+        "agreeConsent": "I agree to",
+        "agreeMarketing": "Agree Marketing",
+        "agreePrivacy": "Privacy Policy",
+        "agreeTerms": "Terms of Service",
+        "agreeTermsRequired": "Agree Terms Required",
+        "alreadyHaveAccount": "Already have an account?",
+        "businessNumberHint": "Business Number Hint",
+        "businessNumberLabel": "Business Number",
+        "businessNumberRequired": "Business Number Required",
+        "businessTypeLabel": "Industry",
+        "businessTypeRequired": "Business Type Required",
+        "businessWarning": "Business Warning",
+        "ceoNameLabel": "Ceo Name Label",
+        "ceoRequired": "Ceo Required",
+        "companyLabel": "Company Label",
+        "companyRequired": "Company Required",
+        "completionNote": "Completion Note",
+        "countryLabel": "Country",
+        "countryRequired": "Country Required",
+        "emailLabel": "Email",
+        "emailRequired": "Email Required",
+        "freeBadge": "Free",
+        "freePlan": "Free Trial (Demo)",
+        "freePlanDesc": "Simple sign up with email · name",
+        "freeRegister": "✨ Free Sign Up",
+        "freeTrialDesc": "Easy start · Free trial of core features",
+        "freeTrialTitle": "Free Trial (Demo) Registration",
+        "includedFeatures": "Included Features",
+        "keyVerified": "Key Verified",
+        "loadingPrice": "Loading...",
+        "loggingIn": "Logging in...",
+        "loginBtn": "🔐 Login",
+        "loginLink": "Login",
+        "monthlyRevenueLabel": "Monthly Revenue Label",
+        "nameLabel": "Name",
+        "nameRequired": "Name Required",
+        "nextBusiness": "Next Business",
+        "nextChannels": "Next Channels",
+        "noAccount": "Don",
+        "notAdminAccount": "Not Admin Account",
+        "orLoginWith": "Or login with account",
+        "paidBadge": "Paid",
+        "paidPlan": "Paid Plan Sign Up",
+        "paidPlanDesc": "Paid Plan Desc",
+        "paidPlanNote": "Paid Plan Note",
+        "paidPlanTitle": "Paid Plan Title",
+        "passwordConfirm": "Confirm Password",
+        "passwordHint": "Password (min 6 characters)",
+        "passwordLabel": "Password",
+        "passwordMismatch": "Password Mismatch",
+        "passwordTooShort": "Password Too Short",
+        "phoneLabel": "Contact",
+        "phoneRequired": "Phone Required",
+        "planQuestion": "Plan Question",
+        "planTypeTitle": "Select Registration Type",
+        "premiumOnly": "Premium Only",
+        "priceNotSet": "Price Not Set",
+        "processingRegister": "Processing Register",
+        "quickStart": "⚡ Quick Demo",
+        "recommendedFor": "Recommended For",
+        "reenterKey": "Reenter Key",
+        "registerLink": "Sign Up",
+        "registering": "Registering...",
+        "salesChannelNote": "Sales Channel Note",
+        "salesChannelRequired": "Sales Channel Required",
+        "salesChannelTitle": "Sales Channel Title",
+        "selectPlaceholder": "Select Placeholder",
+        "startFree": "🚀 Start Free",
+        "startPlan": "Start Plan",
+        "step1Account": "① Account Info",
+        "step2Business": "② Business Info",
+        "step3Channels": "③ Channels & Complete",
+        "termsRequired": "Terms Required",
+        "try": "🎯 Try Demo",
+        "verifyKey": "Verify Key",
+        "websiteLabel": "Website Label",
+        "wrongAdminKey": "Wrong Admin Key",
+        "zipCodeLabel": "Zip Code Label"
+      },
+      "avgRoas": "Average ROAS",
+      "commerce": "Commerce & Settlement",
+      "coupon": {
+        "copied": "Copied to clipboard",
+        "copyBtn": "Copy",
+        "emptyAvailable": "No available coupons.",
+        "emptyExpired": "No expired coupons.",
+        "emptyHint": "If you have a coupon code, enter it above.",
+        "emptyUsed": "No used coupons.",
+        "expires": "Expires",
+        "inputPlaceholder": "Ask about P&L, ROAS, return rates...",
+        "invalidCode": "Invalid coupon code",
+        "modalCancel": "Cancel",
+        "modalConfirm": "🎉 Redeem Coupon",
+        "modalProcessing": "Processing...",
+        "modalSub": "Enter coupon code to instantly activate the plan.",
+        "modalTitle": "🎟 Redeem Coupon",
+        "networkError": "Network Error",
+        "redeemBtn": "Redeem Coupon",
+        "tabAvailable": "✅ Available",
+        "tabExpired": "⏰ Expired",
+        "tabUsed": "✔ Used",
+        "useBtn": "Use →"
+      },
+      "home": "Home",
+      "marketing": "Marketing Performance"
     },
     "marketingIntel": {
       "aiPredict": {
@@ -40442,7 +37886,463 @@ export default {
           "txt_부정리뷰_51": "Txt_부정리뷰_51",
           "txt_즉시대응필요_52": "Txt_즉시대응필요_52",
           "txt_긍정Rate_53": "Txt_긍정 ate_53",
-          "txt_전월31p_54": "Txt_전월31p_54"
+          "txt_전월31p_54": "Txt_전월31p_54",
+          "txt_ActualPaid_9": "Txt_ Actual Paid_9",
+          "txt_AdCreative_13": "Txt_ Ad Creative_13",
+          "txt_Channelper_15": "Txt_ Channelper_15",
+          "txt_CreatorROI_11": "Txt_ Creator R O I_11",
+          "txt_Difference_10": "Txt_ Difference_10",
+          "txt_Engagement_12": "Txt_ Engagement_12",
+          "txt_Percontrac_8": "Txt_ Percontrac_8",
+          "txt_ProductPag_14": "Txt_ Product Pag_14",
+          "txt_WhitelistA_4": "Txt_ Whitelist A_4",
+          "txt_inprogress_21": "Neutral",
+          "txt_긍정_20": "Positive",
+          "txt_부정_22": "Negative",
+          "u_0": "U_0",
+          "u_1": "U_1",
+          "u_10": "U_10",
+          "u_100": "Positive",
+          "u_101": "Neutral",
+          "u_102": "Negative",
+          "u_103": "Sentiment",
+          "u_104": "U_104",
+          "u_105": "U_105",
+          "u_106": "U_106",
+          "u_107": "Total Channels",
+          "u_108": "U_108",
+          "u_109": "Ranking",
+          "u_11": "Creator",
+          "u_110": "Tier",
+          "u_111": "ROI",
+          "u_113": "U_113",
+          "u_114": "Sum Total",
+          "u_115": "Order",
+          "u_12": "U_12",
+          "u_13": "U_13",
+          "u_14": "U_14",
+          "u_15": "U_15",
+          "u_16": "U_16",
+          "u_17": "U_17",
+          "u_18": "U_18",
+          "u_19": "U_19",
+          "u_2": "U_2",
+          "u_20": "U_20",
+          "u_21": "U_21",
+          "u_22": "U_22",
+          "u_23": "Expired",
+          "u_24": "U_24",
+          "u_25": "U_25",
+          "u_26": "U_26",
+          "u_27": "U_27",
+          "u_28": "U_28",
+          "u_29": "U_29",
+          "u_3": "U_3",
+          "u_30": "U_30",
+          "u_31": "U_31",
+          "u_32": "U_32",
+          "u_33": "U_33",
+          "u_34": "Close",
+          "u_35": "U_35",
+          "u_36": "U_36",
+          "u_37": "U_37",
+          "u_38": "U_38",
+          "u_39": "U_39",
+          "u_4": "U_4",
+          "u_40": "U_40",
+          "u_41": "U_41",
+          "u_42": "U_42",
+          "u_43": "U_43",
+          "u_44": "U_44",
+          "u_45": "U_45",
+          "u_46": "Difference",
+          "u_47": "U_47",
+          "u_48": "U_48",
+          "u_49": "U_49",
+          "u_5": "U_5",
+          "u_50": "Period",
+          "u_51": "Result",
+          "u_52": "U_52",
+          "u_53": "Matched",
+          "u_54": "U_54",
+          "u_55": "U_55",
+          "u_56": "U_56",
+          "u_57": "U_57",
+          "u_58": "U_58",
+          "u_59": "U_59",
+          "u_6": "U_6",
+          "u_60": "U_60",
+          "u_61": "U_61",
+          "u_62": "U_62",
+          "u_63": "U_63",
+          "u_64": "U_64",
+          "u_65": "U_65",
+          "u_66": "U_66",
+          "u_67": "U_67",
+          "u_68": "U_68",
+          "u_69": "U_69",
+          "u_7": "U_7",
+          "u_70": "U_70",
+          "u_71": "U_71",
+          "u_72": "U_72",
+          "u_73": "U_73",
+          "u_74": "U_74",
+          "u_75": "U_75",
+          "u_76": "U_76",
+          "u_77": "U_77",
+          "u_78": "U_78",
+          "u_79": "U_79",
+          "u_8": "U_8",
+          "u_80": "U_80",
+          "u_81": "Action Recommendations",
+          "u_82": "Type",
+          "u_83": "Date",
+          "u_84": "Engagement Rate",
+          "u_85": "U_85",
+          "u_86": "UGC Revenue",
+          "u_87": "U_87",
+          "u_88": "U_88",
+          "u_89": "U_89",
+          "u_9": "U_9",
+          "u_90": "U_90",
+          "u_91": "Conversion Rate",
+          "u_92": "Orders",
+          "u_93": "U_93",
+          "u_94": "U_94",
+          "u_95": "U_95",
+          "u_96": "U_96",
+          "u_97": "U_97",
+          "u_98": "Severity",
+          "u_99": "U_99",
+          "unit_items": "pcs",
+          "unit_persons": "people",
+          "v_100": "V_100",
+          "v_101": "V_101",
+          "v_102": "V_102",
+          "v_103": "V_103",
+          "v_104": "V_104",
+          "v_105": "V_105",
+          "v_106": "V_106",
+          "v_107": "V_107",
+          "v_108": "V_108",
+          "v_109": "V_109",
+          "v_110": "V_110",
+          "v_111": "V_111",
+          "v_112": "V_112",
+          "v_113": "V_113",
+          "w_200": "W_200",
+          "w_201": "W_201",
+          "w_202": "W_202",
+          "w_203": "W_203",
+          "w_204": "W_204",
+          "w_205": "W_205",
+          "w_206": "W_206",
+          "w_207": "W_207",
+          "w_300": "W_300",
+          "w_301": "Merge",
+          "w_302": "W_302",
+          "w_303": "W_303",
+          "w_304": "W_304",
+          "w_305": "W_305",
+          "w_400": "W_400",
+          "w_401": "W_401",
+          "w_402": "W_402"
+        },
+        "Sim": "Sim",
+        "adPerf": {
+          "clicks": "Clicks",
+          "conversions": "Conversions",
+          "cpa": "Cost Per Acquisition (CPA)",
+          "date": "Date (Period)",
+          "impressions": "Total Impressions",
+          "loading": "Loading...",
+          "roas": "ROAS",
+          "spend": "Spend",
+          "team": "View by Team",
+          "title": "Email Marketing"
+        },
+        "banner": {
+          "Simulation": "Simulation",
+          "abGroupA": "Ab Group A",
+          "abGroupB": "Ab Group B",
+          "backToList": "Back To List",
+          "clickToEdit": "Click To Edit",
+          "conditionEmailClicked": "Condition Email Clicked",
+          "conditionEmailOpened": "Condition Email Opened",
+          "conditionField": "Condition Field",
+          "conditionKakaoClicked": "Condition Kakao Clicked",
+          "conditionLineClicked": "LINE Clicks",
+          "conditionLtvGt": "Condition Ltv Gt",
+          "conditionPurchased": "Purchase",
+          "crmChurn": "Crm Churn",
+          "crmJourney": "Crm Journey",
+          "crmJourneyAction": "Crm Journey Action",
+          "crmVip": "Crm Vip",
+          "days": " days",
+          "delayTime": "Delay Time",
+          "delayUnit": "Unit",
+          "deleteNode": "Delete Node",
+          "emailFrom": "Email From",
+          "emailSendSim": "Email Send Sim",
+          "emailSenderPh": "Geniego",
+          "emailSimulate": "Email Simulate",
+          "emailSubject": "Email Subject",
+          "emailSubjectPh": "Email Subject Ph",
+          "emailTestSend": "Email Test Send",
+          "execLog": "Auto Execution Log",
+          "hours": "Time",
+          "kakaoAlimtalk": "Kakao Alimtalk",
+          "kakaoFriendtalk": "Kakao Friendtalk",
+          "kakaoMsgType": "Kakao Msg Type",
+          "kakaoSendSim": "Kakao Send Sim",
+          "kakaoTemplate": "Kakao Template",
+          "kakaoTest": "Kakao Test",
+          "lineMsgType": "Line Msg Type",
+          "lineSendSim": "Line Send Sim",
+          "lineSimulate": "Line Simulate",
+          "lineTemplate": "Line Template",
+          "lineTestSend": "Line Test Send",
+          "minutes": "Minutes",
+          "mktBudgetAction": "Mkt Budget Action",
+          "mktHighRoas": "Mkt High Roas",
+          "mktHighRoasSub": "Mkt High Roas Sub",
+          "mktHubAction": "Mkt Hub Action",
+          "mktLowRoas": "Mkt Low Roas",
+          "mktOptimizeNow": "Mkt Optimize Now",
+          "mktRulesActive": "Mkt Rules Active",
+          "nodeConfig": "Node Config",
+          "nodeName": "Node Name",
+          "ordersAiRun": "Orders Ai Run",
+          "ordersAiSub": "Orders Ai Sub",
+          "ordersCampaignAction": "Orders Campaign Action",
+          "recentTriggers": "Recent Triggers",
+          "save": "Save",
+          "saving": "Saving...",
+          "triggerType": "Trigger Type",
+          "triggerTypes": {
+            "birthday": "🎂 Birthday",
+            "cart_abandoned": "🛒 Cart Abandoned",
+            "churned": "😴 Churn Risk Customer",
+            "manual": "Manual",
+            "purchase": "✅ Purchase Complete",
+            "segment_entered": "📌 Segment Entry",
+            "signup": "🌱 New Signup"
+          }
+        },
+        "channelKpiPage": {
+          "achieved": "Achieved ✓",
+          "achievedOk": "Achieved ✓",
+          "aiAnalyzing": "AI Analyzing...",
+          "aiHistoryList": "AI Analysis History",
+          "aiSummary": "AI Analysis Summary",
+          "allChannels": "Total Channels",
+          "avgTime": "Avg Time",
+          "badgeAdSpend": "Total Ad Spend",
+          "badgeBlendedRoas": "Blended ROAS",
+          "badgeOpProfit": "Badge Op Profit",
+          "badgeOrders": "Badge Orders",
+          "belowTarget": "Below Target",
+          "bizGoalSetting": "Biz Goal Setting",
+          "brandAwareness": "Brand Awareness",
+          "brandAwarenessDesc": "Brand Awareness Desc",
+          "chBlog": "Ch Blog",
+          "chCommunity": "Ch Community",
+          "chSearchAds": "Ch Search Ads",
+          "chSnsAds": "Ch Sns Ads",
+          "channelCol": "Channel",
+          "channelRoleDef": "Channel Role Definition",
+          "checklist": "Key Action Items",
+          "chkCostPerf": "Cost vs Performance Check",
+          "chkEff": "Campaign Efficiency Check",
+          "chkImprove": "Identify Items for Improvement",
+          "claudeAiDesc": "Claude Ai Desc",
+          "claudeAiTitle": "Claude Ai Title",
+          "clickSelect": "Click Select",
+          "comments": "Comments",
+          "communityAct": "Community Act",
+          "communityGrowth": "Community Growth",
+          "communityKpi": "Community Kpi",
+          "contentEngage": "Content Engage",
+          "contentImpressions": "Content Impressions",
+          "contentInterest": "Content Interest",
+          "contentKpi": "Content Kpi",
+          "convRate": "Conversion Rate",
+          "coreKpis": "Core KPIs",
+          "cpa": "Cost Per Acquisition (CPA)",
+          "cpc": "Cost Per Click (CPC)",
+          "ctr": "Click-through Rate (CTR)",
+          "currentMonth": "Current Month",
+          "descBrandReach": "Large-scale brand exposure through SNS platform ads",
+          "descCaptureIntent": "Target users with high purchase intent via search algorithms",
+          "descConvRate": "Conversion Rate vs Target",
+          "descCpa": "Desc Cpa",
+          "descCpc": "Desc Cpc",
+          "descCtr": "Desc Ctr",
+          "descCustRel": "Secure customer loyalty through community activities",
+          "descInfoTrust": "Build expertise and trust through problem-solving content",
+          "descRoas": "Desc Roas",
+          "engagement": "Engagement Rate",
+          "hintConvRate": "Hint Conv Rate",
+          "hintCpa": "Hint Cpa",
+          "hintCpc": "Hint Cpc",
+          "hintCtr": "Hint Ctr",
+          "hintRoas": "Hint Roas",
+          "improveRecs": "Improvement Recommendations",
+          "inquiries": "Inquiries",
+          "inquiriesPurchases": "Inquiries Purchases",
+          "inquiriesPurchasesDesc": "Inquiries Purchases Desc",
+          "interestConv": "Interest Conv",
+          "kakaoGuild": "Kakao Guild",
+          "lblConvRate": "Conversion Rate",
+          "lblCpaFull": "Lbl Cpa Full",
+          "lblCpcFull": "Lbl Cpc Full",
+          "lblCtrFull": "Lbl Ctr Full",
+          "lblRoasFull": "Lbl Roas Full",
+          "monitorAi": "AI Channel Performance Monitoring",
+          "monthlyAi": "Monthly Report",
+          "monthlyTrend": "Monthly Trend",
+          "naverCafe": "Naver Cafe",
+          "newMembers": "New Signups",
+          "noData": "No Data Available",
+          "noHistory": "No execution history",
+          "overallAchieve": "Overall Achievement Status",
+          "pageViews": "Page Views",
+          "period": "Analysis Period",
+          "pleaseSelectGoal": "Please Select Goal",
+          "postViews": "Post Views",
+          "reach": "Reach",
+          "roas": "ROAS",
+          "roleBrandReach": "Brand Reach",
+          "roleCaptureIntent": "Capture Purchase Intent",
+          "roleCustRel": "Strengthen Customer Relationships",
+          "roleInfoTrust": "Info · Trust Building",
+          "searchTraffic": "Search Traffic",
+          "selected": "Selected",
+          "selectedGoals": "Selected Goals",
+          "seoImpact": "Seo Impact",
+          "share": "Rate",
+          "siteTraffic": "Site Traffic",
+          "snsKpiByChannel": "Sns Kpi By Channel",
+          "snsKpiOverview": "Sns Kpi Overview",
+          "strengths": "Strengths",
+          "tabCommunity": "Tab Community",
+          "tabContent": "Tab Content",
+          "tabGoals": "Tab Goals",
+          "tabMonitor": "Tab Monitor",
+          "tabRoles": "Tab Roles",
+          "tabSetup": "Tab Setup",
+          "tabSns": "Tab Sns",
+          "tabTargets": "Tab Targets",
+          "targetSetup": "KPI Target Setting by Channel",
+          "targetVsActuals": "Target Vs Actuals",
+          "videoViews": "Video Views",
+          "visitors": "Visitors",
+          "weaknesses": "Weaknesses",
+          "webTraffic": "Web Traffic",
+          "webTrafficDesc": "Web Traffic Desc",
+          "weeklyAdTrend": "Weekly Ad Efficiency Trend",
+          "weeklyAi": "Weekly Report"
+        },
+        "col": {
+          "churn": "Final Churn Status",
+          "detail": "Detail View",
+          "ltv12": "Ltv12",
+          "nextPurchase": "Next Purchase",
+          "prob30": "30-day Churn Probability"
+        },
+        "filterHigh": "Filter High",
+        "filterLow": "Filter Low",
+        "filterMed": "Filter Med",
+        "gdpr": {
+          "analytics": "Analytics",
+          "bannerDesc": "Banner Desc",
+          "bannerTitle": "Banner Title",
+          "consentDate": "Consent Date",
+          "consentNow": "Consent Now",
+          "consentRate": "Consent Rate",
+          "consented": "Consented",
+          "cookiePolicy": "Cookie Policy",
+          "currentConsentStatus": "Current Consent Status",
+          "editSettings": "Edit Settings",
+          "marketing": "Marketing Performance",
+          "noConsentInfo": "No Consent Info",
+          "notConsented": "Not Consented",
+          "panelSub": "Panel Sub",
+          "panelTitle": "Panel Title",
+          "platformStats": "Platform Stats",
+          "policyNote1": "Policy Note1",
+          "policyNote2": "Policy Note2",
+          "policyNote3": "Policy Note3",
+          "privacyPolicy": "Privacy Policy",
+          "required": "Required",
+          "savePref": "Save Pref",
+          "totalVisitors": "Total Visitors",
+          "unknown": "Unknown",
+          "withdraw": "Withdraw",
+          "withdrawn": "Withdrawn"
+        },
+        "kpi": {
+          "churnAction": "Churn Action",
+          "churnRisk": "Churn Risk Customer",
+          "highLtv": "High Ltv",
+          "highLtvSub": "High Ltv Sub",
+          "k_16": "K_16",
+          "k_17": "K_17",
+          "k_18": "K_18",
+          "k_19": "K_19",
+          "k_20": "K_20",
+          "k_3": "K_3",
+          "k_4": "K_4",
+          "k_5": "K_5",
+          "k_6": "K_6",
+          "k_7": "K_7",
+          "k_8": "K_8",
+          "mlAccuracy": "Ml Accuracy",
+          "mlSub": "Ml Sub",
+          "revenue": "Estimated Revenue",
+          "revenueSub": "Revenue Sub",
+          "target": "Target"
+        },
+        "liveDB": "Live D B",
+        "unified": {
+          "alertSuccess": "Alert Success",
+          "btnLaunch": "Btn Launch",
+          "btnLaunching": "Btn Launching",
+          "btnRetry": "Btn Retry",
+          "btnReview": "Btn Review",
+          "btnSimulate": "Btn Simulate",
+          "budgetErr": "Budget Err",
+          "budgetLabel": "Budget Label",
+          "budgetSub": "Budget Sub",
+          "campName": "Campaign Name",
+          "cases": " orders",
+          "catBeauty": "Cat Beauty",
+          "catFashion": "Cat Fashion",
+          "catFood": "Cat Food",
+          "catGeneral": "Cat General",
+          "catSoftware": "Cat Software",
+          "catTech": "Cat Tech",
+          "catTravel": "Cat Travel",
+          "corporateCard": "Corporate Card",
+          "estConv": "Est Conv",
+          "estRoas": "Estimated Blended ROAS",
+          "expRoas": "Exp Roas",
+          "launchSub": "Launch Sub",
+          "launchTitle": "Launch Title",
+          "mainTitle": "Main Title",
+          "mixSub": "Mix Sub",
+          "mixTitle": "AI Media Mix Recommendation",
+          "payMethod": "Pay Method",
+          "qBudget": "Q Budget",
+          "simulating": "Simulating",
+          "step1": "Step1",
+          "step2": "Step2",
+          "step3": "Step3",
+          "totalAmt": "Total Gross",
+          "whichCategory": "Which Category"
+        },
+        "workspace": {
+          "title": "Email Marketing"
         }
       },
       "influencerUGC": {
@@ -40478,13 +38378,350 @@ export default {
         "txt_부정리뷰_51": "Txt_부정리뷰_51",
         "txt_즉시대응필요_52": "Txt_즉시대응필요_52",
         "txt_긍정Rate_53": "Txt_긍정 ate_53",
-        "txt_전월31p_54": "Txt_전월31p_54"
+        "txt_전월31p_54": "Txt_전월31p_54",
+        "txt_ActualPaid_9": "Txt_ Actual Paid_9",
+        "txt_AdCreative_13": "Txt_ Ad Creative_13",
+        "txt_Channelper_15": "Txt_ Channelper_15",
+        "txt_CreatorROI_11": "Txt_ Creator R O I_11",
+        "txt_Difference_10": "Txt_ Difference_10",
+        "txt_Engagement_12": "Txt_ Engagement_12",
+        "txt_Percontrac_8": "Txt_ Percontrac_8",
+        "txt_ProductPag_14": "Txt_ Product Pag_14",
+        "txt_WhitelistA_4": "Txt_ Whitelist A_4",
+        "txt_inprogress_21": "Neutral",
+        "txt_긍정_20": "Positive",
+        "txt_부정_22": "Negative",
+        "u_0": "U_0",
+        "u_1": "U_1",
+        "u_10": "U_10",
+        "u_100": "Positive",
+        "u_101": "Neutral",
+        "u_102": "Negative",
+        "u_103": "Sentiment",
+        "u_104": "U_104",
+        "u_105": "U_105",
+        "u_106": "U_106",
+        "u_107": "Total Channels",
+        "u_108": "U_108",
+        "u_109": "Ranking",
+        "u_11": "Creator",
+        "u_110": "Tier",
+        "u_111": "ROI",
+        "u_113": "U_113",
+        "u_114": "Sum Total",
+        "u_115": "Order",
+        "u_12": "U_12",
+        "u_13": "U_13",
+        "u_14": "U_14",
+        "u_15": "U_15",
+        "u_16": "U_16",
+        "u_17": "U_17",
+        "u_18": "U_18",
+        "u_19": "U_19",
+        "u_2": "U_2",
+        "u_20": "U_20",
+        "u_21": "U_21",
+        "u_22": "U_22",
+        "u_23": "Expired",
+        "u_24": "U_24",
+        "u_25": "U_25",
+        "u_26": "U_26",
+        "u_27": "U_27",
+        "u_28": "U_28",
+        "u_29": "U_29",
+        "u_3": "U_3",
+        "u_30": "U_30",
+        "u_31": "U_31",
+        "u_32": "U_32",
+        "u_33": "U_33",
+        "u_34": "Close",
+        "u_35": "U_35",
+        "u_36": "U_36",
+        "u_37": "U_37",
+        "u_38": "U_38",
+        "u_39": "U_39",
+        "u_4": "U_4",
+        "u_40": "U_40",
+        "u_41": "U_41",
+        "u_42": "U_42",
+        "u_43": "U_43",
+        "u_44": "U_44",
+        "u_45": "U_45",
+        "u_46": "Difference",
+        "u_47": "U_47",
+        "u_48": "U_48",
+        "u_49": "U_49",
+        "u_5": "U_5",
+        "u_50": "Period",
+        "u_51": "Result",
+        "u_52": "U_52",
+        "u_53": "Matched",
+        "u_54": "U_54",
+        "u_55": "U_55",
+        "u_56": "U_56",
+        "u_57": "U_57",
+        "u_58": "U_58",
+        "u_59": "U_59",
+        "u_6": "U_6",
+        "u_60": "U_60",
+        "u_61": "U_61",
+        "u_62": "U_62",
+        "u_63": "U_63",
+        "u_64": "U_64",
+        "u_65": "U_65",
+        "u_66": "U_66",
+        "u_67": "U_67",
+        "u_68": "U_68",
+        "u_69": "U_69",
+        "u_7": "U_7",
+        "u_70": "U_70",
+        "u_71": "U_71",
+        "u_72": "U_72",
+        "u_73": "U_73",
+        "u_74": "U_74",
+        "u_75": "U_75",
+        "u_76": "U_76",
+        "u_77": "U_77",
+        "u_78": "U_78",
+        "u_79": "U_79",
+        "u_8": "U_8",
+        "u_80": "U_80",
+        "u_81": "Action Recommendations",
+        "u_82": "Type",
+        "u_83": "Date",
+        "u_84": "Engagement Rate",
+        "u_85": "U_85",
+        "u_86": "UGC Revenue",
+        "u_87": "U_87",
+        "u_88": "U_88",
+        "u_89": "U_89",
+        "u_9": "U_9",
+        "u_90": "U_90",
+        "u_91": "Conversion Rate",
+        "u_92": "Orders",
+        "u_93": "U_93",
+        "u_94": "U_94",
+        "u_95": "U_95",
+        "u_96": "U_96",
+        "u_97": "U_97",
+        "u_98": "Severity",
+        "u_99": "U_99",
+        "unit_items": "pcs",
+        "unit_persons": "people",
+        "v_100": "V_100",
+        "v_101": "V_101",
+        "v_102": "V_102",
+        "v_103": "V_103",
+        "v_104": "V_104",
+        "v_105": "V_105",
+        "v_106": "V_106",
+        "v_107": "V_107",
+        "v_108": "V_108",
+        "v_109": "V_109",
+        "v_110": "V_110",
+        "v_111": "V_111",
+        "v_112": "V_112",
+        "v_113": "V_113",
+        "w_200": "W_200",
+        "w_201": "W_201",
+        "w_202": "W_202",
+        "w_203": "W_203",
+        "w_204": "W_204",
+        "w_205": "W_205",
+        "w_206": "W_206",
+        "w_207": "W_207",
+        "w_300": "W_300",
+        "w_301": "Merge",
+        "w_302": "W_302",
+        "w_303": "W_303",
+        "w_304": "W_304",
+        "w_305": "W_305",
+        "w_400": "W_400",
+        "w_401": "W_401",
+        "w_402": "W_402"
       },
       "influencer": {
         "attrData": {
           "negativeCount": "음수 기여",
-          "saturation": "포화"
-        }
+          "saturation": "포화",
+          "aScoreSub": "A Score Sub",
+          "abCollectMore": "Ab Collect More",
+          "abDeploy": "Ab Deploy",
+          "abKeepRunning": "Ab Keep Running",
+          "abWinner": "Ab Winner",
+          "alertCountSuffix": "Alert Count Suffix",
+          "allCompare": "All Compare",
+          "analysisJourney": "Analysis Journey",
+          "anomalyBodyText": "Anomaly Body Text",
+          "anomalyHeadDesc": "Anomaly Head Desc",
+          "anomalySummary": "Anomaly Summary",
+          "ascoreTitle": "Ascore Title",
+          "autoRefl": "Auto Refl",
+          "average": "Average",
+          "badgeMmm": "Badge Mmm",
+          "badgeShapley": "Badge Shapley",
+          "badgeUplift": "Badge Uplift",
+          "baseline": "Baseline",
+          "betaBinomial": "Beta Binomial",
+          "budgetAdjust": "Budget Adjust",
+          "cases": " orders",
+          "caution": "Caution",
+          "channelContrib": "Channel Contrib",
+          "channelSynergy": "Channel Synergy",
+          "cohortHdr": "Cohort",
+          "cohortTitle": "Cohort Title",
+          "compareDescText": "Compare Desc Text",
+          "conversion": "Conversions",
+          "currVal": "Curr Val",
+          "dataIncluded": "Data Included",
+          "excellent": "Excellent",
+          "expectedBlendRoas": "Expected Blend Roas",
+          "expectedRev": "Expected Revenue",
+          "explainAb": "Explain Ab",
+          "explainMarkov": "Explain Markov",
+          "explainMmm": "Explain Mmm",
+          "explainShapley": "Explain Shapley",
+          "filterIssue": "Filter Issue",
+          "filterOk": "Filter Ok",
+          "firstTouch": "First Touch",
+          "good": "Good",
+          "guideAbName": "Bayesian A/B",
+          "guideCompareName": "A-Score",
+          "guideLtvName": "LTV vs CAC",
+          "guideMarkovName": "Markov+Uplift",
+          "guideMmmName": "Bayesian MMM",
+          "guideMtaName": "Multi-Touch",
+          "guideShapleyName": "Shapley",
+          "health": "Health Score",
+          "highest": "Highest",
+          "hubRun": "Hub Run",
+          "increase": "Increase",
+          "lastTouch": "Last Touch",
+          "linear": "Linear",
+          "ltvcacTitle": "Ltvcac Title",
+          "maintain": "Maintain",
+          "markovInProgress": "Markov In Progress",
+          "markovRemoval": "🔗 Markov Chain — Removal Effect",
+          "markovTitle": "Markov Title",
+          "mmmSim": "Mmm Sim",
+          "mmmTitle": "Mmm Title",
+          "modelCompareTable": "Model Compare Table",
+          "noAbData": "No Ab Data",
+          "noJourneyData": "No Journey Data",
+          "noTimeSeriesData": "No Time Series Data",
+          "normal": "Medium",
+          "northbeam": "Northbeam",
+          "position": "Position",
+          "radarCompare": "Radar Compare",
+          "realtimeSync": "Real-time Sync ✓",
+          "review": "Review",
+          "roasSurge": "Roas Surge",
+          "saturationWarning": "Saturation Warning",
+          "shapleyBudgetRec": "Shapley Budget Rec",
+          "shapleyInProgress": "Shapley In Progress",
+          "shapleyTitle": "Shapley Title",
+          "sizeHdr": "Scale",
+          "statusAlert": "Status Alert",
+          "statusCrit": "Status Crit",
+          "statusInfo": "Status Info",
+          "statusOk": "Status Ok",
+          "statusWarn": "Status Warn",
+          "subtitle": "Precision Shapley (2^n) · Bayesian MMM · Markov Chain · Incremental Uplift (Dual ML) · Thompson Sampling A/B",
+          "tabAbDesc": "Tab Ab Desc",
+          "tabAbLabel": "Tab Ab Label",
+          "tabAnomalyDesc": "Tab Anomaly Desc",
+          "tabAnomalyLabel": "Tab Anomaly Label",
+          "tabCohortDesc": "Tab Cohort Desc",
+          "tabCohortLabel": "Tab Cohort Label",
+          "tabCompareDesc": "Tab Compare Desc",
+          "tabCompareLabel": "Tab Compare Label",
+          "tabLtvDesc": "Tab Ltv Desc",
+          "tabLtvLabel": "LTV vs CAC",
+          "tabMarkovDesc": "Tab Markov Desc",
+          "tabMarkovLabel": "Tab Markov Label",
+          "tabMmmDesc": "Tab Mmm Desc",
+          "tabMmmLabel": "Tab Mmm Label",
+          "tabMtaDesc": "Tab Mta Desc",
+          "tabMtaLabel": "Tab Mta Label",
+          "tabShapleyDesc": "Tab Shapley Desc",
+          "tabShapleyLabel": "Tab Shapley Label",
+          "timeDecay": "Time Decay",
+          "timeSeries": "Time Series",
+          "title": "Email Marketing",
+          "topPaths": "Top Paths",
+          "totalCac": "Total Cac",
+          "totalLtv": "Total Ltv",
+          "totalStr": "Total Str",
+          "upliftSub": "Uplift Sub",
+          "upliftTitle": "Uplift Title",
+          "visitor": "Visitors",
+          "winner": "🏆 Winner"
+        },
+        "activeInfluencers": "Active",
+        "addInfluencer": "Add Influencer",
+        "aiLoading": "Ai Loading",
+        "aiRun": "Ai Run",
+        "avgRoi": "Average ROI",
+        "colContent": "Col Content",
+        "colConversions": "Conversions",
+        "colEngagement": "Engagement Rate",
+        "colFollowers": "Followers",
+        "colInfluencer": "Influencer",
+        "colLikes": "Col Likes",
+        "colPlatform": "Platform",
+        "colRevenue": "Revenue",
+        "colRoi": "ROI",
+        "colTier": "Tier",
+        "colType": "Type",
+        "colViews": "Impressions",
+        "contentImage": "Image",
+        "contentReel": "Reels",
+        "contentStory": "Story",
+        "contentVideo": "Video",
+        "createCampaign": "+ Create Marketing Campaign",
+        "estTotal": "Est Total",
+        "graph": {
+          "contribCreative": "Contrib Creative",
+          "contribInfluencer": "Contrib Influencer",
+          "contribPath": "Contrib Path",
+          "crt": "Crt",
+          "inf": "Influencer",
+          "noEdge": "No Edge",
+          "noPath": "No Path",
+          "ord": "Order",
+          "pathW": "Path W",
+          "sku": "SKU",
+          "sourceNode": "Source Node",
+          "targetNode": "Target Node",
+          "topInfluencer": "Top Influencer",
+          "weight": "Weight"
+        },
+        "perfRate": "Perf Rate",
+        "recomFlat": "Recom Flat",
+        "refresh": "Refresh",
+        "system": {
+          "activeUsers": "Active Users",
+          "apiLatency": "Api Latency",
+          "cpu": "Cpu",
+          "critical": "Critical",
+          "disk": "Disk",
+          "errorRate": "Error Rate",
+          "healthy": "Healthy",
+          "memory": "Memory",
+          "serverStatus": "Server Status",
+          "uptime": "Uptime",
+          "warning": "Warnings"
+        },
+        "tabAnalytics": "Analysis Dashboard",
+        "tabCampaigns": "📣 Campaign Management",
+        "tabInfluencers": "Influencer",
+        "tabUgc": "Tab Ugc",
+        "tierMacro": "Macro",
+        "tierMega": "Mega",
+        "tierMicro": "Micro",
+        "tierNano": "Nano",
+        "totalInfluencers": "Total Influencers",
+        "totalUgcRevenue": "UGC Revenue"
       },
       "marketingIntel": {
         "aiPredict": {
@@ -40521,7 +38758,474 @@ export default {
             "txt_부정리뷰_51": "Txt_부정리뷰_51",
             "txt_즉시대응필요_52": "Txt_즉시대응필요_52",
             "txt_긍정Rate_53": "Txt_긍정 ate_53",
-            "txt_전월31p_54": "Txt_전월31p_54"
+            "txt_전월31p_54": "Txt_전월31p_54",
+            "txt_ActualPaid_9": "Txt_ Actual Paid_9",
+            "txt_AdCreative_13": "Txt_ Ad Creative_13",
+            "txt_Channelper_15": "Txt_ Channelper_15",
+            "txt_CreatorROI_11": "Txt_ Creator R O I_11",
+            "txt_Difference_10": "Txt_ Difference_10",
+            "txt_Engagement_12": "Txt_ Engagement_12",
+            "txt_Percontrac_8": "Txt_ Percontrac_8",
+            "txt_ProductPag_14": "Txt_ Product Pag_14",
+            "txt_WhitelistA_4": "Txt_ Whitelist A_4",
+            "txt_inprogress_21": "Neutral",
+            "txt_긍정_20": "Positive",
+            "txt_부정_22": "Negative",
+            "u_0": "U_0",
+            "u_1": "U_1",
+            "u_10": "U_10",
+            "u_100": "Positive",
+            "u_101": "Neutral",
+            "u_102": "Negative",
+            "u_103": "Sentiment",
+            "u_104": "U_104",
+            "u_105": "U_105",
+            "u_106": "U_106",
+            "u_107": "Total Channels",
+            "u_108": "U_108",
+            "u_109": "Ranking",
+            "u_11": "Creator",
+            "u_110": "Tier",
+            "u_111": "ROI",
+            "u_113": "U_113",
+            "u_114": "Sum Total",
+            "u_115": "Order",
+            "u_12": "U_12",
+            "u_13": "U_13",
+            "u_14": "U_14",
+            "u_15": "U_15",
+            "u_16": "U_16",
+            "u_17": "U_17",
+            "u_18": "U_18",
+            "u_19": "U_19",
+            "u_2": "U_2",
+            "u_20": "U_20",
+            "u_21": "U_21",
+            "u_22": "U_22",
+            "u_23": "Expired",
+            "u_24": "U_24",
+            "u_25": "U_25",
+            "u_26": "U_26",
+            "u_27": "U_27",
+            "u_28": "U_28",
+            "u_29": "U_29",
+            "u_3": "U_3",
+            "u_30": "U_30",
+            "u_31": "U_31",
+            "u_32": "U_32",
+            "u_33": "U_33",
+            "u_34": "Close",
+            "u_35": "U_35",
+            "u_36": "U_36",
+            "u_37": "U_37",
+            "u_38": "U_38",
+            "u_39": "U_39",
+            "u_4": "U_4",
+            "u_40": "U_40",
+            "u_41": "U_41",
+            "u_42": "U_42",
+            "u_43": "U_43",
+            "u_44": "U_44",
+            "u_45": "U_45",
+            "u_46": "Difference",
+            "u_47": "U_47",
+            "u_48": "U_48",
+            "u_49": "U_49",
+            "u_5": "U_5",
+            "u_50": "Period",
+            "u_51": "Result",
+            "u_52": "U_52",
+            "u_53": "Matched",
+            "u_54": "U_54",
+            "u_55": "U_55",
+            "u_56": "U_56",
+            "u_57": "U_57",
+            "u_58": "U_58",
+            "u_59": "U_59",
+            "u_6": "U_6",
+            "u_60": "U_60",
+            "u_61": "U_61",
+            "u_62": "U_62",
+            "u_63": "U_63",
+            "u_64": "U_64",
+            "u_65": "U_65",
+            "u_66": "U_66",
+            "u_67": "U_67",
+            "u_68": "U_68",
+            "u_69": "U_69",
+            "u_7": "U_7",
+            "u_70": "U_70",
+            "u_71": "U_71",
+            "u_72": "U_72",
+            "u_73": "U_73",
+            "u_74": "U_74",
+            "u_75": "U_75",
+            "u_76": "U_76",
+            "u_77": "U_77",
+            "u_78": "U_78",
+            "u_79": "U_79",
+            "u_8": "U_8",
+            "u_80": "U_80",
+            "u_81": "Action Recommendations",
+            "u_82": "Type",
+            "u_83": "Date",
+            "u_84": "Engagement Rate",
+            "u_85": "U_85",
+            "u_86": "UGC Revenue",
+            "u_87": "U_87",
+            "u_88": "U_88",
+            "u_89": "U_89",
+            "u_9": "U_9",
+            "u_90": "U_90",
+            "u_91": "Conversion Rate",
+            "u_92": "Orders",
+            "u_93": "U_93",
+            "u_94": "U_94",
+            "u_95": "U_95",
+            "u_96": "U_96",
+            "u_97": "U_97",
+            "u_98": "Severity",
+            "u_99": "U_99",
+            "unit_items": "pcs",
+            "unit_persons": "people",
+            "v_100": "V_100",
+            "v_101": "V_101",
+            "v_102": "V_102",
+            "v_103": "V_103",
+            "v_104": "V_104",
+            "v_105": "V_105",
+            "v_106": "V_106",
+            "v_107": "V_107",
+            "v_108": "V_108",
+            "v_109": "V_109",
+            "v_110": "V_110",
+            "v_111": "V_111",
+            "v_112": "V_112",
+            "v_113": "V_113",
+            "w_200": "W_200",
+            "w_201": "W_201",
+            "w_202": "W_202",
+            "w_203": "W_203",
+            "w_204": "W_204",
+            "w_205": "W_205",
+            "w_206": "W_206",
+            "w_207": "W_207",
+            "w_300": "W_300",
+            "w_301": "Merge",
+            "w_302": "W_302",
+            "w_303": "W_303",
+            "w_304": "W_304",
+            "w_305": "W_305",
+            "w_400": "W_400",
+            "w_401": "W_401",
+            "w_402": "W_402"
+          },
+          "Sim": "Sim",
+          "adPerf": {
+            "clicks": "Clicks",
+            "conversions": "Conversions",
+            "cpa": "Cost Per Acquisition (CPA)",
+            "date": "Date (Period)",
+            "impressions": "Total Impressions",
+            "loading": "Loading...",
+            "roas": "ROAS",
+            "spend": "Spend",
+            "team": "View by Team",
+            "title": "Email Marketing"
+          },
+          "banner": {
+            "Simulation": "Simulation",
+            "abGroupA": "Ab Group A",
+            "abGroupB": "Ab Group B",
+            "backToList": "Back To List",
+            "clickToEdit": "Click To Edit",
+            "conditionEmailClicked": "Condition Email Clicked",
+            "conditionEmailOpened": "Condition Email Opened",
+            "conditionField": "Condition Field",
+            "conditionKakaoClicked": "Condition Kakao Clicked",
+            "conditionLineClicked": "LINE Clicks",
+            "conditionLtvGt": "Condition Ltv Gt",
+            "conditionPurchased": "Purchase",
+            "crmChurn": "Crm Churn",
+            "crmJourney": "Crm Journey",
+            "crmJourneyAction": "Crm Journey Action",
+            "crmVip": "Crm Vip",
+            "days": " days",
+            "delayTime": "Delay Time",
+            "delayUnit": "Unit",
+            "deleteNode": "Delete Node",
+            "emailFrom": "Email From",
+            "emailSendSim": "Email Send Sim",
+            "emailSenderPh": "Geniego",
+            "emailSimulate": "Email Simulate",
+            "emailSubject": "Email Subject",
+            "emailSubjectPh": "Email Subject Ph",
+            "emailTestSend": "Email Test Send",
+            "execLog": "Auto Execution Log",
+            "hours": "Time",
+            "kakaoAlimtalk": "Kakao Alimtalk",
+            "kakaoFriendtalk": "Kakao Friendtalk",
+            "kakaoMsgType": "Kakao Msg Type",
+            "kakaoSendSim": "Kakao Send Sim",
+            "kakaoTemplate": "Kakao Template",
+            "kakaoTest": "Kakao Test",
+            "lineMsgType": "Line Msg Type",
+            "lineSendSim": "Line Send Sim",
+            "lineSimulate": "Line Simulate",
+            "lineTemplate": "Line Template",
+            "lineTestSend": "Line Test Send",
+            "minutes": "Minutes",
+            "mktBudgetAction": "Mkt Budget Action",
+            "mktHighRoas": "Mkt High Roas",
+            "mktHighRoasSub": "Mkt High Roas Sub",
+            "mktHubAction": "Mkt Hub Action",
+            "mktLowRoas": "Mkt Low Roas",
+            "mktOptimizeNow": "Mkt Optimize Now",
+            "mktRulesActive": "Mkt Rules Active",
+            "nodeConfig": "Node Config",
+            "nodeName": "Node Name",
+            "ordersAiRun": "Orders Ai Run",
+            "ordersAiSub": "Orders Ai Sub",
+            "ordersCampaignAction": "Orders Campaign Action",
+            "recentTriggers": "Recent Triggers",
+            "save": "Save",
+            "saving": "Saving...",
+            "triggerType": "Trigger Type",
+            "triggerTypes": {
+              "birthday": "🎂 Birthday",
+              "cart_abandoned": "🛒 Cart Abandoned",
+              "churned": "😴 Churn Risk Customer",
+              "manual": "Manual",
+              "purchase": "✅ Purchase Complete",
+              "segment_entered": "📌 Segment Entry",
+              "signup": "🌱 New Signup"
+            }
+          },
+          "bulkAction": "Bulk Action",
+          "channelKpiPage": {
+            "achieved": "Achieved ✓",
+            "achievedOk": "Achieved ✓",
+            "aiAnalyzing": "AI Analyzing...",
+            "aiHistoryList": "AI Analysis History",
+            "aiSummary": "AI Analysis Summary",
+            "allChannels": "Total Channels",
+            "avgTime": "Avg Time",
+            "badgeAdSpend": "Total Ad Spend",
+            "badgeBlendedRoas": "Blended ROAS",
+            "badgeOpProfit": "Badge Op Profit",
+            "badgeOrders": "Badge Orders",
+            "belowTarget": "Below Target",
+            "bizGoalSetting": "Biz Goal Setting",
+            "brandAwareness": "Brand Awareness",
+            "brandAwarenessDesc": "Brand Awareness Desc",
+            "chBlog": "Ch Blog",
+            "chCommunity": "Ch Community",
+            "chSearchAds": "Ch Search Ads",
+            "chSnsAds": "Ch Sns Ads",
+            "channelCol": "Channel",
+            "channelRoleDef": "Channel Role Definition",
+            "checklist": "Key Action Items",
+            "chkCostPerf": "Cost vs Performance Check",
+            "chkEff": "Campaign Efficiency Check",
+            "chkImprove": "Identify Items for Improvement",
+            "claudeAiDesc": "Claude Ai Desc",
+            "claudeAiTitle": "Claude Ai Title",
+            "clickSelect": "Click Select",
+            "comments": "Comments",
+            "communityAct": "Community Act",
+            "communityGrowth": "Community Growth",
+            "communityKpi": "Community Kpi",
+            "contentEngage": "Content Engage",
+            "contentImpressions": "Content Impressions",
+            "contentInterest": "Content Interest",
+            "contentKpi": "Content Kpi",
+            "convRate": "Conversion Rate",
+            "coreKpis": "Core KPIs",
+            "cpa": "Cost Per Acquisition (CPA)",
+            "cpc": "Cost Per Click (CPC)",
+            "ctr": "Click-through Rate (CTR)",
+            "currentMonth": "Current Month",
+            "descBrandReach": "Large-scale brand exposure through SNS platform ads",
+            "descCaptureIntent": "Target users with high purchase intent via search algorithms",
+            "descConvRate": "Conversion Rate vs Target",
+            "descCpa": "Desc Cpa",
+            "descCpc": "Desc Cpc",
+            "descCtr": "Desc Ctr",
+            "descCustRel": "Secure customer loyalty through community activities",
+            "descInfoTrust": "Build expertise and trust through problem-solving content",
+            "descRoas": "Desc Roas",
+            "engagement": "Engagement Rate",
+            "hintConvRate": "Hint Conv Rate",
+            "hintCpa": "Hint Cpa",
+            "hintCpc": "Hint Cpc",
+            "hintCtr": "Hint Ctr",
+            "hintRoas": "Hint Roas",
+            "improveRecs": "Improvement Recommendations",
+            "inquiries": "Inquiries",
+            "inquiriesPurchases": "Inquiries Purchases",
+            "inquiriesPurchasesDesc": "Inquiries Purchases Desc",
+            "interestConv": "Interest Conv",
+            "kakaoGuild": "Kakao Guild",
+            "lblConvRate": "Conversion Rate",
+            "lblCpaFull": "Lbl Cpa Full",
+            "lblCpcFull": "Lbl Cpc Full",
+            "lblCtrFull": "Lbl Ctr Full",
+            "lblRoasFull": "Lbl Roas Full",
+            "monitorAi": "AI Channel Performance Monitoring",
+            "monthlyAi": "Monthly Report",
+            "monthlyTrend": "Monthly Trend",
+            "naverCafe": "Naver Cafe",
+            "newMembers": "New Signups",
+            "noData": "No Data Available",
+            "noHistory": "No execution history",
+            "overallAchieve": "Overall Achievement Status",
+            "pageViews": "Page Views",
+            "period": "Analysis Period",
+            "pleaseSelectGoal": "Please Select Goal",
+            "postViews": "Post Views",
+            "reach": "Reach",
+            "roas": "ROAS",
+            "roleBrandReach": "Brand Reach",
+            "roleCaptureIntent": "Capture Purchase Intent",
+            "roleCustRel": "Strengthen Customer Relationships",
+            "roleInfoTrust": "Info · Trust Building",
+            "searchTraffic": "Search Traffic",
+            "selected": "Selected",
+            "selectedGoals": "Selected Goals",
+            "seoImpact": "Seo Impact",
+            "share": "Rate",
+            "siteTraffic": "Site Traffic",
+            "snsKpiByChannel": "Sns Kpi By Channel",
+            "snsKpiOverview": "Sns Kpi Overview",
+            "strengths": "Strengths",
+            "tabCommunity": "Tab Community",
+            "tabContent": "Tab Content",
+            "tabGoals": "Tab Goals",
+            "tabMonitor": "Tab Monitor",
+            "tabRoles": "Tab Roles",
+            "tabSetup": "Tab Setup",
+            "tabSns": "Tab Sns",
+            "tabTargets": "Tab Targets",
+            "targetSetup": "KPI Target Setting by Channel",
+            "targetVsActuals": "Target Vs Actuals",
+            "videoViews": "Video Views",
+            "visitors": "Visitors",
+            "weaknesses": "Weaknesses",
+            "webTraffic": "Web Traffic",
+            "webTrafficDesc": "Web Traffic Desc",
+            "weeklyAdTrend": "Weekly Ad Efficiency Trend",
+            "weeklyAi": "Weekly Report"
+          },
+          "col": {
+            "churn": "Final Churn Status",
+            "detail": "Detail View",
+            "ltv12": "Ltv12",
+            "nextPurchase": "Next Purchase",
+            "prob30": "30-day Churn Probability"
+          },
+          "filterAll": "Filter All",
+          "filterHigh": "Filter High",
+          "filterLow": "Filter Low",
+          "filterMed": "Filter Med",
+          "gdpr": {
+            "analytics": "Analytics",
+            "bannerDesc": "Banner Desc",
+            "bannerTitle": "Banner Title",
+            "consentDate": "Consent Date",
+            "consentNow": "Consent Now",
+            "consentRate": "Consent Rate",
+            "consented": "Consented",
+            "cookiePolicy": "Cookie Policy",
+            "currentConsentStatus": "Current Consent Status",
+            "editSettings": "Edit Settings",
+            "marketing": "Marketing Performance",
+            "noConsentInfo": "No Consent Info",
+            "notConsented": "Not Consented",
+            "panelSub": "Panel Sub",
+            "panelTitle": "Panel Title",
+            "platformStats": "Platform Stats",
+            "policyNote1": "Policy Note1",
+            "policyNote2": "Policy Note2",
+            "policyNote3": "Policy Note3",
+            "privacyPolicy": "Privacy Policy",
+            "required": "Required",
+            "savePref": "Save Pref",
+            "totalVisitors": "Total Visitors",
+            "unknown": "Unknown",
+            "withdraw": "Withdraw",
+            "withdrawn": "Withdrawn"
+          },
+          "kpi": {
+            "churnAction": "Churn Action",
+            "churnRisk": "Churn Risk Customer",
+            "highLtv": "High Ltv",
+            "highLtvSub": "High Ltv Sub",
+            "k_16": "K_16",
+            "k_17": "K_17",
+            "k_18": "K_18",
+            "k_19": "K_19",
+            "k_20": "K_20",
+            "k_3": "K_3",
+            "k_4": "K_4",
+            "k_5": "K_5",
+            "k_6": "K_6",
+            "k_7": "K_7",
+            "k_8": "K_8",
+            "mlAccuracy": "Ml Accuracy",
+            "mlSub": "Ml Sub",
+            "revenue": "Estimated Revenue",
+            "revenueSub": "Revenue Sub",
+            "target": "Target"
+          },
+          "liveDB": "Live D B",
+          "loading": "Loading",
+          "noResults": "No Results",
+          "retry": "Retry",
+          "tab": {
+            "graph": "Graph",
+            "integration": "Integration",
+            "ltv": "LTV",
+            "model": "Model"
+          },
+          "unified": {
+            "alertSuccess": "Alert Success",
+            "btnLaunch": "Btn Launch",
+            "btnLaunching": "Btn Launching",
+            "btnRetry": "Btn Retry",
+            "btnReview": "Btn Review",
+            "btnSimulate": "Btn Simulate",
+            "budgetErr": "Budget Err",
+            "budgetLabel": "Budget Label",
+            "budgetSub": "Budget Sub",
+            "campName": "Campaign Name",
+            "cases": " orders",
+            "catBeauty": "Cat Beauty",
+            "catFashion": "Cat Fashion",
+            "catFood": "Cat Food",
+            "catGeneral": "Cat General",
+            "catSoftware": "Cat Software",
+            "catTech": "Cat Tech",
+            "catTravel": "Cat Travel",
+            "corporateCard": "Corporate Card",
+            "estConv": "Est Conv",
+            "estRoas": "Estimated Blended ROAS",
+            "expRoas": "Exp Roas",
+            "launchSub": "Launch Sub",
+            "launchTitle": "Launch Title",
+            "mainTitle": "Main Title",
+            "mixSub": "Mix Sub",
+            "mixTitle": "AI Media Mix Recommendation",
+            "payMethod": "Pay Method",
+            "qBudget": "Q Budget",
+            "simulating": "Simulating",
+            "step1": "Step1",
+            "step2": "Step2",
+            "step3": "Step3",
+            "totalAmt": "Total Gross",
+            "whichCategory": "Which Category"
+          },
+          "workspace": {
+            "title": "Email Marketing"
           }
         },
         "influencerUGC": {
@@ -40557,9 +39261,2203 @@ export default {
           "txt_부정리뷰_51": "Txt_부정리뷰_51",
           "txt_즉시대응필요_52": "Txt_즉시대응필요_52",
           "txt_긍정Rate_53": "Txt_긍정 ate_53",
-          "txt_전월31p_54": "Txt_전월31p_54"
+          "txt_전월31p_54": "Txt_전월31p_54",
+          "txt_ActualPaid_9": "Txt_ Actual Paid_9",
+          "txt_AdCreative_13": "Txt_ Ad Creative_13",
+          "txt_Channelper_15": "Txt_ Channelper_15",
+          "txt_CreatorROI_11": "Txt_ Creator R O I_11",
+          "txt_Difference_10": "Txt_ Difference_10",
+          "txt_Engagement_12": "Txt_ Engagement_12",
+          "txt_Percontrac_8": "Txt_ Percontrac_8",
+          "txt_ProductPag_14": "Txt_ Product Pag_14",
+          "txt_WhitelistA_4": "Txt_ Whitelist A_4",
+          "txt_inprogress_21": "Neutral",
+          "txt_긍정_20": "Positive",
+          "txt_부정_22": "Negative",
+          "u_0": "U_0",
+          "u_1": "U_1",
+          "u_10": "U_10",
+          "u_100": "Positive",
+          "u_101": "Neutral",
+          "u_102": "Negative",
+          "u_103": "Sentiment",
+          "u_104": "U_104",
+          "u_105": "U_105",
+          "u_106": "U_106",
+          "u_107": "Total Channels",
+          "u_108": "U_108",
+          "u_109": "Ranking",
+          "u_11": "Creator",
+          "u_110": "Tier",
+          "u_111": "ROI",
+          "u_113": "U_113",
+          "u_114": "Sum Total",
+          "u_115": "Order",
+          "u_12": "U_12",
+          "u_13": "U_13",
+          "u_14": "U_14",
+          "u_15": "U_15",
+          "u_16": "U_16",
+          "u_17": "U_17",
+          "u_18": "U_18",
+          "u_19": "U_19",
+          "u_2": "U_2",
+          "u_20": "U_20",
+          "u_21": "U_21",
+          "u_22": "U_22",
+          "u_23": "Expired",
+          "u_24": "U_24",
+          "u_25": "U_25",
+          "u_26": "U_26",
+          "u_27": "U_27",
+          "u_28": "U_28",
+          "u_29": "U_29",
+          "u_3": "U_3",
+          "u_30": "U_30",
+          "u_31": "U_31",
+          "u_32": "U_32",
+          "u_33": "U_33",
+          "u_34": "Close",
+          "u_35": "U_35",
+          "u_36": "U_36",
+          "u_37": "U_37",
+          "u_38": "U_38",
+          "u_39": "U_39",
+          "u_4": "U_4",
+          "u_40": "U_40",
+          "u_41": "U_41",
+          "u_42": "U_42",
+          "u_43": "U_43",
+          "u_44": "U_44",
+          "u_45": "U_45",
+          "u_46": "Difference",
+          "u_47": "U_47",
+          "u_48": "U_48",
+          "u_49": "U_49",
+          "u_5": "U_5",
+          "u_50": "Period",
+          "u_51": "Result",
+          "u_52": "U_52",
+          "u_53": "Matched",
+          "u_54": "U_54",
+          "u_55": "U_55",
+          "u_56": "U_56",
+          "u_57": "U_57",
+          "u_58": "U_58",
+          "u_59": "U_59",
+          "u_6": "U_6",
+          "u_60": "U_60",
+          "u_61": "U_61",
+          "u_62": "U_62",
+          "u_63": "U_63",
+          "u_64": "U_64",
+          "u_65": "U_65",
+          "u_66": "U_66",
+          "u_67": "U_67",
+          "u_68": "U_68",
+          "u_69": "U_69",
+          "u_7": "U_7",
+          "u_70": "U_70",
+          "u_71": "U_71",
+          "u_72": "U_72",
+          "u_73": "U_73",
+          "u_74": "U_74",
+          "u_75": "U_75",
+          "u_76": "U_76",
+          "u_77": "U_77",
+          "u_78": "U_78",
+          "u_79": "U_79",
+          "u_8": "U_8",
+          "u_80": "U_80",
+          "u_81": "Action Recommendations",
+          "u_82": "Type",
+          "u_83": "Date",
+          "u_84": "Engagement Rate",
+          "u_85": "U_85",
+          "u_86": "UGC Revenue",
+          "u_87": "U_87",
+          "u_88": "U_88",
+          "u_89": "U_89",
+          "u_9": "U_9",
+          "u_90": "U_90",
+          "u_91": "Conversion Rate",
+          "u_92": "Orders",
+          "u_93": "U_93",
+          "u_94": "U_94",
+          "u_95": "U_95",
+          "u_96": "U_96",
+          "u_97": "U_97",
+          "u_98": "Severity",
+          "u_99": "U_99",
+          "unit_items": "pcs",
+          "unit_persons": "people",
+          "v_100": "V_100",
+          "v_101": "V_101",
+          "v_102": "V_102",
+          "v_103": "V_103",
+          "v_104": "V_104",
+          "v_105": "V_105",
+          "v_106": "V_106",
+          "v_107": "V_107",
+          "v_108": "V_108",
+          "v_109": "V_109",
+          "v_110": "V_110",
+          "v_111": "V_111",
+          "v_112": "V_112",
+          "v_113": "V_113",
+          "w_200": "W_200",
+          "w_201": "W_201",
+          "w_202": "W_202",
+          "w_203": "W_203",
+          "w_204": "W_204",
+          "w_205": "W_205",
+          "w_206": "W_206",
+          "w_207": "W_207",
+          "w_300": "W_300",
+          "w_301": "Merge",
+          "w_302": "W_302",
+          "w_303": "W_303",
+          "w_304": "W_304",
+          "w_305": "W_305",
+          "w_400": "W_400",
+          "w_401": "W_401",
+          "w_402": "W_402"
+        },
+        "adCtaLabel": "CTA",
+        "adPerf": {
+          "clicks": "Clicks",
+          "conversions": "Conversions",
+          "cpa": "Cost Per Acquisition (CPA)",
+          "date": "Date (Period)",
+          "impressions": "Total Impressions",
+          "loading": "Loading...",
+          "roas": "ROAS",
+          "spend": "Spend",
+          "team": "View by Team",
+          "title": "Email Marketing"
+        },
+        "aiSuggestions": "Ai Suggestions",
+        "approvals": {
+          "status": "Status"
+        },
+        "badge20kpi": "20 KPI",
+        "banner": {
+          "Simulation": "Simulation",
+          "abGroupA": "Ab Group A",
+          "abGroupB": "Ab Group B",
+          "attrAiRun": "Attr Ai Run",
+          "attrAiSub": "Attr Ai",
+          "backToList": "Back To List",
+          "clickToEdit": "Click To Edit",
+          "conditionEmailClicked": "Condition Email Clicked",
+          "conditionEmailOpened": "Condition Email Opened",
+          "conditionField": "Condition Field",
+          "conditionKakaoClicked": "Condition Kakao Clicked",
+          "conditionLineClicked": "LINE Clicks",
+          "conditionLtvGt": "Condition Ltv Gt",
+          "conditionPurchased": "Purchase",
+          "crmChurn": "Crm Churn",
+          "crmJourney": "Crm Journey",
+          "crmJourneyAction": "Crm Journey Action",
+          "crmVip": "Crm Vip",
+          "days": " days",
+          "delayTime": "Delay Time",
+          "delayUnit": "Unit",
+          "deleteNode": "Delete Node",
+          "emailFrom": "Email From",
+          "emailSendSim": "Email Send Sim",
+          "emailSenderPh": "Geniego",
+          "emailSimulate": "Email Simulate",
+          "emailSubject": "Email Subject",
+          "emailSubjectPh": "Email Subject Ph",
+          "emailTestSend": "Email Test Send",
+          "execLog": "Auto Execution Log",
+          "hours": "Time",
+          "kakaoAlimtalk": "Kakao Alimtalk",
+          "kakaoFriendtalk": "Kakao Friendtalk",
+          "kakaoMsgType": "Kakao Msg Type",
+          "kakaoSendSim": "Kakao Send Sim",
+          "kakaoTemplate": "Kakao Template",
+          "kakaoTest": "Kakao Test",
+          "kpiAllNormal": "All Normal",
+          "kpiRuleAction": "Rule Action",
+          "kpiRulesActive": "Rules Active",
+          "kpiRulesFired": "Rules Fired",
+          "lineMsgType": "Line Msg Type",
+          "lineSendSim": "Line Send Sim",
+          "lineSimulate": "Line Simulate",
+          "lineTemplate": "Line Template",
+          "lineTestSend": "Line Test Send",
+          "minutes": "Minutes",
+          "mktBudgetAction": "Mkt Budget Action",
+          "mktHighRoas": "Mkt High Roas",
+          "mktHighRoasSub": "Mkt High Roas Sub",
+          "mktHubAction": "Mkt Hub Action",
+          "mktLowRoas": "Mkt Low Roas",
+          "mktOptimizeNow": "Mkt Optimize Now",
+          "mktRulesActive": "Mkt Rules Active",
+          "nodeConfig": "Node Config",
+          "nodeName": "Node Name",
+          "ordersAiRun": "Orders Ai Run",
+          "ordersAiSub": "Orders Ai Sub",
+          "ordersCampaignAction": "Orders Campaign Action",
+          "pnlAiAction": "Pnl Ai Action",
+          "pnlBudgetAction": "Pnl Budget Action",
+          "pnlHighMargin": "Pnl High Margin",
+          "pnlHighMarginSub": "Pnl High Margin",
+          "pnlLowMargin": "Pnl Low Margin",
+          "pnlLowMarginSub": "Pnl Low Margin",
+          "recentTriggers": "Recent Triggers",
+          "save": "Save",
+          "saving": "Saving...",
+          "triggerType": "Trigger Type",
+          "triggerTypes": {
+            "birthday": "🎂 Birthday",
+            "cart_abandoned": "🛒 Cart Abandoned",
+            "churned": "😴 Churn Risk Customer",
+            "manual": "Manual",
+            "purchase": "✅ Purchase Complete",
+            "segment_entered": "📌 Segment Entry",
+            "signup": "🌱 New Signup"
+          }
+        },
+        "budgetOptDesc": "Budget Opt Desc",
+        "channelAnalysis": "Channel Analysis",
+        "channelKpiPage": {
+          "achieved": "Achieved ✓",
+          "achievedOk": "Achieved ✓",
+          "aiAnalyzing": "AI Analyzing...",
+          "aiHistoryList": "AI Analysis History",
+          "aiSummary": "AI Analysis Summary",
+          "allChannels": "Total Channels",
+          "avgTime": "Avg Time",
+          "badgeAdSpend": "Total Ad Spend",
+          "badgeBlendedRoas": "Blended ROAS",
+          "badgeOpProfit": "Badge Op Profit",
+          "badgeOrders": "Badge Orders",
+          "belowTarget": "Below Target",
+          "bizGoalSetting": "Biz Goal Setting",
+          "brandAwareness": "Brand Awareness",
+          "brandAwarenessDesc": "Brand Awareness Desc",
+          "chBlog": "Ch Blog",
+          "chCommunity": "Ch Community",
+          "chName_": "Ch Name",
+          "chSearchAds": "Ch Search Ads",
+          "chSnsAds": "Ch Sns Ads",
+          "channelCol": "Channel",
+          "channelRoleDef": "Channel Role Definition",
+          "checklist": "Key Action Items",
+          "chkCostPerf": "Cost vs Performance Check",
+          "chkEff": "Campaign Efficiency Check",
+          "chkImprove": "Identify Items for Improvement",
+          "claudeAiDesc": "Claude Ai Desc",
+          "claudeAiTitle": "Claude Ai Title",
+          "clickSelect": "Click Select",
+          "comments": "Comments",
+          "communityAct": "Community Act",
+          "communityGrowth": "Community Growth",
+          "communityKpi": "Community Kpi",
+          "contentEngage": "Content Engage",
+          "contentImpressions": "Content Impressions",
+          "contentInterest": "Content Interest",
+          "contentKpi": "Content Kpi",
+          "convRate": "Conversion Rate",
+          "coreKpis": "Core KPIs",
+          "cpa": "Cost Per Acquisition (CPA)",
+          "cpc": "Cost Per Click (CPC)",
+          "ctr": "Click-through Rate (CTR)",
+          "currentMonth": "Current Month",
+          "descBrandReach": "Large-scale brand exposure through SNS platform ads",
+          "descCaptureIntent": "Target users with high purchase intent via search algorithms",
+          "descConvRate": "Conversion Rate vs Target",
+          "descCpa": "Desc Cpa",
+          "descCpc": "Desc Cpc",
+          "descCtr": "Desc Ctr",
+          "descCustRel": "Secure customer loyalty through community activities",
+          "descInfoTrust": "Build expertise and trust through problem-solving content",
+          "descRoas": "Desc Roas",
+          "engagement": "Engagement Rate",
+          "hintConvRate": "Hint Conv Rate",
+          "hintCpa": "Hint Cpa",
+          "hintCpc": "Hint Cpc",
+          "hintCtr": "Hint Ctr",
+          "hintRoas": "Hint Roas",
+          "history": "History",
+          "improveRecs": "Improvement Recommendations",
+          "inquiries": "Inquiries",
+          "inquiriesPurchases": "Inquiries Purchases",
+          "inquiriesPurchasesDesc": "Inquiries Purchases Desc",
+          "interestConv": "Interest Conv",
+          "kakaoGuild": "Kakao Guild",
+          "keyInsight": "Key Insight",
+          "lblConvRate": "Conversion Rate",
+          "lblCpaFull": "Lbl Cpa Full",
+          "lblCpcFull": "Lbl Cpc Full",
+          "lblCtrFull": "Lbl Ctr Full",
+          "lblRoasFull": "Lbl Roas Full",
+          "monitorAi": "AI Channel Performance Monitoring",
+          "monthlyAi": "Monthly Report",
+          "monthlyTrend": "Monthly Trend",
+          "naverCafe": "Naver Cafe",
+          "newMembers": "New Signups",
+          "noData": "No Data Available",
+          "noHistory": "No execution history",
+          "overallAchieve": "Overall Achievement Status",
+          "pageViews": "Page Views",
+          "period": "Analysis Period",
+          "pleaseSelectGoal": "Please Select Goal",
+          "postViews": "Post Views",
+          "reach": "Reach",
+          "roas": "ROAS",
+          "roleBrandReach": "Brand Reach",
+          "roleCaptureIntent": "Capture Purchase Intent",
+          "roleCustRel": "Strengthen Customer Relationships",
+          "roleInfoTrust": "Info · Trust Building",
+          "searchTraffic": "Search Traffic",
+          "selected": "Selected",
+          "selectedGoals": "Selected Goals",
+          "seoImpact": "Seo Impact",
+          "share": "Rate",
+          "siteTraffic": "Site Traffic",
+          "snsKpiByChannel": "Sns Kpi By Channel",
+          "snsKpiOverview": "Sns Kpi Overview",
+          "strengths": "Strengths",
+          "tabCommunity": "Tab Community",
+          "tabContent": "Tab Content",
+          "tabGoals": "Tab Goals",
+          "tabMonitor": "Tab Monitor",
+          "tabRoles": "Tab Roles",
+          "tabSetup": "Tab Setup",
+          "tabSns": "Tab Sns",
+          "tabTargets": "Tab Targets",
+          "targetLabel": "Target",
+          "targetSetup": "KPI Target Setting by Channel",
+          "targetVsActuals": "Target Vs Actuals",
+          "videoViews": "Video Views",
+          "visitors": "Visitors",
+          "weaknesses": "Weaknesses",
+          "webTraffic": "Web Traffic",
+          "webTrafficDesc": "Web Traffic Desc",
+          "weeklyAdTrend": "Weekly Ad Efficiency Trend",
+          "weeklyAi": "Weekly Report"
+        },
+        "cpc": "CPC",
+        "creativeStudio": {
+          "adFormatCount": "Ad Format Count",
+          "adPreviewLabel": "Ad Preview Label",
+          "adSpec": "Ad Spec",
+          "adTag": "Advertising",
+          "adTipTitle": "Ad Tip Title",
+          "bodyHint": "Body Hint",
+          "cat_beauty": "Cat_beauty",
+          "cat_beauty_desc": "Cat_beauty_desc",
+          "cat_electronics": "Cat_electronics",
+          "cat_electronics_desc": "Cat_electronics_desc",
+          "cat_fashion": "Cat_fashion",
+          "cat_fashion_desc": "Cat_fashion_desc",
+          "cat_food": "Cat_food",
+          "cat_food_desc": "Cat_food_desc",
+          "cat_general": "Cat_general",
+          "cat_general_desc": "Cat_general_desc",
+          "cat_overseas_buy": "Cat_overseas_buy",
+          "cat_overseas_buy_desc": "Cat_overseas_buy_desc",
+          "cat_overseas_ship": "Cat_overseas_ship",
+          "cat_overseas_ship_desc": "Cat_overseas_ship_desc",
+          "cat_sports": "Cat_sports",
+          "cat_sports_desc": "Cat_sports_desc",
+          "categoryOptimized": "Category Optimized",
+          "channelStep": "Channel Step",
+          "ctaHint": "👆 CTA:",
+          "customBody": "Custom Body",
+          "customCopyToggle": "Custom Copy Toggle",
+          "customHeadline": "Custom Headline",
+          "headlineHint": "Headline Hint",
+          "productInfo": "Product Info",
+          "selectFirst": "Select First",
+          "selectFirstDesc": "Select First Desc",
+          "selectStep": "Select Step",
+          "selectStepHint": "Select Step Hint",
+          "selectedLabel": "Selected Label"
+        },
+        "gdpr": {
+          "analytics": "Analytics",
+          "bannerDesc": "Banner Desc",
+          "bannerTitle": "Banner Title",
+          "consentDate": "Consent Date",
+          "consentNow": "Consent Now",
+          "consentRate": "Consent Rate",
+          "consented": "Consented",
+          "cookiePolicy": "Cookie Policy",
+          "currentConsentStatus": "Current Consent Status",
+          "editSettings": "Edit Settings",
+          "marketing": "Marketing Performance",
+          "noConsentInfo": "No Consent Info",
+          "notConsented": "Not Consented",
+          "panelSub": "Panel Sub",
+          "panelTitle": "Panel Title",
+          "platformStats": "Platform Stats",
+          "policyNote1": "Policy Note1",
+          "policyNote2": "Policy Note2",
+          "policyNote3": "Policy Note3",
+          "privacyPolicy": "Privacy Policy",
+          "required": "Required",
+          "savePref": "Save Pref",
+          "totalVisitors": "Total Visitors",
+          "unknown": "Unknown",
+          "withdraw": "Withdraw",
+          "withdrawn": "Withdrawn"
+        },
+        "kpi": {
+          "k_3": "ROAS",
+          "k_6": "CTR",
+          "k_8": "CPC"
+        },
+        "menuAccess": {
+          "desc": "Click to change menu/feature access by role (✅ Allow · 👁 Read-only · 🔒 Locked)",
+          "newFeature": "New Feature",
+          "permCreate": "Created",
+          "permRead": "Perm Read",
+          "permUpdate": "Edit",
+          "recommendTitle": "Recommend Title",
+          "reset": "Reset",
+          "save": "Save",
+          "saveBtn": "Save",
+          "saved": "✓ Save Complete",
+          "targetObj": "Target",
+          "title": "Email Marketing"
+        },
+        "optimizing": "Optimizing",
+        "riskHigh": "high",
+        "riskLow": "low",
+        "riskMedium": "medium",
+        "roas": "ROAS",
+        "roi": "ROI",
+        "systemMonitor": {
+          "addFav": "Add Fav",
+          "addFavorite": "Add Favorite",
+          "noFavorites": "No Favorites",
+          "noRecents": "No Recents",
+          "pinned": "Pinned",
+          "quickAccess": "Quick Access",
+          "recentVisits": "Recent Visits",
+          "removeFav": "Remove Fav",
+          "removeFavorite": "Remove Favorite",
+          "status_error": "Status error",
+          "status_ok": "Status ok",
+          "status_warning": "Status warning",
+          "tabApis": "Apis"
+        },
+        "trendDetection": "Trend Detection",
+        "unified": {
+          "alertSuccess": "Alert Success",
+          "btnLaunch": "Launch",
+          "btnLaunching": "Launching",
+          "btnNext": "Next",
+          "btnRetry": "Retry",
+          "btnReview": "Review",
+          "btnSimulate": "Simulate",
+          "budgetErr": "Budget Err",
+          "budgetLabel": "Budget Label",
+          "budgetSub": "Budget",
+          "campName": "Camp Name",
+          "cases": "Cases",
+          "catBeauty": "Cat Beauty",
+          "catFashion": "Cat Fashion",
+          "catFood": "Cat Food",
+          "catGeneral": "Cat General",
+          "catSoftware": "Cat Software",
+          "catTech": "Cat Tech",
+          "catTravel": "Cat Travel",
+          "corporateCard": "Corporate Card",
+          "estConv": "Est Conv",
+          "estRoas": "Est Roas",
+          "expRoas": "Exp Roas",
+          "launchSub": "Launch",
+          "launchTitle": "Launch Title",
+          "mainTitle": "Main Title",
+          "mixSub": "Mix",
+          "mixTitle": "Mix Title",
+          "payMethod": "Pay Method",
+          "qBudget": "Q Budget",
+          "simulating": "Simulating",
+          "step1": "Step1",
+          "step2": "Step2",
+          "step3": "Step3",
+          "totalAmt": "Total Amt",
+          "whichCategory": "Which Category"
         }
+      },
+      "All": "All",
+      "Simulation": "Simulation",
+      "abGroupA": "Ab Group A",
+      "abGroupB": "Ab Group B",
+      "acos": "ACOS",
+      "actionLabel": "Action Label",
+      "adBody": "Ad Body",
+      "adCopy": "Ad Copy",
+      "adCreativeSub": "Ad Creative Sub",
+      "adCreativeTitle": "Ad Creative Title",
+      "adCta": "Ad Cta",
+      "adCtaLabel": "CTA",
+      "adDownload": "⬇ Download",
+      "adGenerate": "Ad Generate",
+      "adGenerating": "Ad Generating",
+      "adHashtags": "Ad Hashtags",
+      "adHeadline": "Ad Headline",
+      "adKeyword": "Ad Keyword",
+      "adKeywordPh": "Ad Keyword Ph",
+      "adKeywords": "Ad Keywords",
+      "adPerf": {
+        "clicks": "Clicks",
+        "conversions": "Conversions",
+        "cpa": "Cost Per Acquisition (CPA)",
+        "date": "Date (Period)",
+        "impressions": "Total Impressions",
+        "loading": "Loading...",
+        "roas": "ROAS",
+        "spend": "Spend",
+        "team": "View by Team",
+        "title": "Email Marketing"
+      },
+      "adPlatform": "Ad Platform",
+      "adProduct": "Ad Product",
+      "adProductPh": "Ad Product Ph",
+      "adRegenerate": "Ad Regenerate",
+      "adResult": "Ad Result",
+      "adSize": "Ad Size",
+      "adStyle": "Ad Style",
+      "adTarget": "Ad Target",
+      "adTargetPh": "Ad Target Ph",
+      "adTone": "Ad Tone",
+      "admin": {
+        "callVolume": "Call Volume",
+        "currency": "Currency",
+        "ipRestriction": "Ip Restriction",
+        "save": "Save",
+        "saved": "✓ Save Complete",
+        "sessionTimeout": "Session Timeout",
+        "since": "Since",
+        "tabBilling": "Tab Billing",
+        "tabGeneral": "Tab General",
+        "tabIntegrations": "Tab Integrations",
+        "tabSecurity": "Security",
+        "tabWorkspace": "Tab Workspace",
+        "timezone": "Timezone",
+        "twoFactor": "Two Factor",
+        "warning": "Warnings",
+        "workspaceName": "Workspace Name",
+        "workspacePlan": "Plan"
+      },
+      "aiEngine": "Ai Engine",
+      "aiEngineDesc": "Ai Engine Desc",
+      "aiSuggestions": "Ai Suggestions",
+      "amazonRisk": {
+        "accountScore": "Account Health",
+        "avgRating": "Average Rating",
+        "buyBox": "Buy Box Rate",
+        "fbaStockRate": "FBA Stock Rate",
+        "goal": "Target",
+        "highRisk": "High Severity",
+        "keyMetrics": "Core KPIs",
+        "mediumRisk": "Medium Risk",
+        "riskAlerts": "Risk Alerts"
+      },
+      "analyzing": "Analyzing...",
+      "anomalyDetected": "Anomaly detected",
+      "aov": "Aov",
+      "approve": "Approve",
+      "attrData": {
+        "guideLtvName": "💰 LTV vs CAC",
+        "tabLtvLabel": "LTV vs CAC"
+      },
+      "audienceInsights": "Audience Insights",
+      "auditLog": {
+        "action_create": "Created",
+        "action_delete": "Delete",
+        "action_export": "Export",
+        "action_login": "Login",
+        "action_logout": "Logout",
+        "action_update": "Edit",
+        "colDetail": "Col Detail",
+        "colIp": "IP",
+        "colUser": "User",
+        "exportCsv": "Export CSV",
+        "filterAction": "Filter Action",
+        "filterDate": "Filter Date",
+        "filterUser": "Filter User",
+        "noLogs": "No Logs"
+      },
+      "auth": {
+        "PlanNote": "Plan Note",
+        "adChannelNote": "Ad Channel Note",
+        "adChannelTitle": "Ad Channel Title",
+        "addressDetailLabel": "Address Detail Label",
+        "addressLabel": "Address",
+        "addressRequired": "Address Required",
+        "adminEmailLabel": "Admin Email Label",
+        "adminKeyLabel": "Admin Key Label",
+        "adminKeyPh": "Admin Key Ph",
+        "adminLoginBtn": "Admin Login Btn",
+        "adminLoginDesc": "Admin Login Desc",
+        "adminLoginTitle": "Admin Login Title",
+        "agreeAll": "Agree All",
+        "agreeAnd": "Agree And",
+        "agreeConsent": "I agree to",
+        "agreeMarketing": "Agree Marketing",
+        "agreePrivacy": "Privacy Policy",
+        "agreeTerms": "Terms of Service",
+        "agreeTermsRequired": "Agree Terms Required",
+        "alreadyHaveAccount": "Already have an account?",
+        "businessNumberHint": "Business Number Hint",
+        "businessNumberLabel": "Business Number",
+        "businessNumberRequired": "Business Number Required",
+        "businessTypeLabel": "Industry",
+        "businessTypeRequired": "Business Type Required",
+        "businessWarning": "Business Warning",
+        "ceoNameLabel": "Ceo Name Label",
+        "ceoRequired": "Ceo Required",
+        "companyLabel": "Company Label",
+        "companyRequired": "Company Required",
+        "completionNote": "Completion Note",
+        "countryLabel": "Country",
+        "countryRequired": "Country Required",
+        "emailLabel": "Email",
+        "emailRequired": "Email Required",
+        "freeBadge": "Free",
+        "freePlan": "Free Trial (Demo)",
+        "freePlanDesc": "Simple sign up with email · name",
+        "freeRegister": "✨ Free Sign Up",
+        "freeTrialDesc": "Easy start · Free trial of core features",
+        "freeTrialTitle": "Free Trial (Demo) Registration",
+        "includedFeatures": "Included Features",
+        "keyVerified": "Key Verified",
+        "loadingPrice": "Loading...",
+        "loggingIn": "Logging in...",
+        "loginBtn": "🔐 Login",
+        "loginLink": "Login",
+        "monthlyRevenueLabel": "Monthly Revenue Label",
+        "nameLabel": "Name",
+        "nameRequired": "Name Required",
+        "nextBusiness": "Next Business",
+        "nextChannels": "Next Channels",
+        "noAccount": "Don",
+        "notAdminAccount": "Not Admin Account",
+        "orLoginWith": "Or login with account",
+        "paidBadge": "Paid",
+        "paidPlan": "Paid Plan Sign Up",
+        "paidPlanDesc": "Paid Plan Desc",
+        "paidPlanNote": "Paid Plan Note",
+        "paidPlanTitle": "Paid Plan Title",
+        "passwordConfirm": "Confirm Password",
+        "passwordHint": "Password (min 6 characters)",
+        "passwordLabel": "Password",
+        "passwordMismatch": "Password Mismatch",
+        "passwordTooShort": "Password Too Short",
+        "phoneLabel": "Contact",
+        "phoneRequired": "Phone Required",
+        "planQuestion": "Plan Question",
+        "planTypeTitle": "Select Registration Type",
+        "premiumOnly": "Premium Only",
+        "priceNotSet": "Price Not Set",
+        "processingRegister": "Processing Register",
+        "quickStart": "⚡ Quick Demo",
+        "recommendedFor": "Recommended For",
+        "reenterKey": "Reenter Key",
+        "registerLink": "Sign Up",
+        "registering": "Registering...",
+        "salesChannelNote": "Sales Channel Note",
+        "salesChannelRequired": "Sales Channel Required",
+        "salesChannelTitle": "Sales Channel Title",
+        "selectPlaceholder": "Select Placeholder",
+        "startFree": "🚀 Start Free",
+        "startPlan": "Start Plan",
+        "step1Account": "① Account Info",
+        "step2Business": "② Business Info",
+        "step3Channels": "③ Channels & Complete",
+        "termsRequired": "Terms Required",
+        "try": "🎯 Try Demo",
+        "verifyKey": "Verify Key",
+        "websiteLabel": "Website Label",
+        "wrongAdminKey": "Wrong Admin Key",
+        "zipCodeLabel": "Zip Code Label"
+      },
+      "autoOrderMode": "Auto Order Mode",
+      "autoRules": "⚙️ Automation Rules List",
+      "avgConfidence": "Avg Confidence",
+      "avgEngRate": "Avg Eng Rate",
+      "backToList": "Back To List",
+      "badge20kpi": "Badge20kpi",
+      "badge4ch": "Badge4ch",
+      "badge5inf": "Badge5inf",
+      "badgeAiRec": "Badge Ai Rec",
+      "banner": {
+        "Simulation": "Simulation",
+        "abGroupA": "Ab Group A",
+        "abGroupB": "Ab Group B",
+        "backToList": "Back To List",
+        "clickToEdit": "Click To Edit",
+        "conditionEmailClicked": "Condition Email Clicked",
+        "conditionEmailOpened": "Condition Email Opened",
+        "conditionField": "Condition Field",
+        "conditionKakaoClicked": "Condition Kakao Clicked",
+        "conditionLineClicked": "LINE Clicks",
+        "conditionLtvGt": "Condition Ltv Gt",
+        "conditionPurchased": "Purchase",
+        "crmChurn": "Crm Churn",
+        "crmJourney": "Crm Journey",
+        "crmJourneyAction": "Crm Journey Action",
+        "crmVip": "Crm Vip",
+        "days": " days",
+        "delayTime": "Delay Time",
+        "delayUnit": "Unit",
+        "deleteNode": "Delete Node",
+        "emailFrom": "Email From",
+        "emailSendSim": "Email Send Sim",
+        "emailSenderPh": "Geniego",
+        "emailSimulate": "Email Simulate",
+        "emailSubject": "Email Subject",
+        "emailSubjectPh": "Email Subject Ph",
+        "emailTestSend": "Email Test Send",
+        "execLog": "Auto Execution Log",
+        "hours": "Time",
+        "kakaoAlimtalk": "Kakao Alimtalk",
+        "kakaoFriendtalk": "Kakao Friendtalk",
+        "kakaoMsgType": "Kakao Msg Type",
+        "kakaoSendSim": "Kakao Send Sim",
+        "kakaoTemplate": "Kakao Template",
+        "kakaoTest": "Kakao Test",
+        "lineMsgType": "Line Msg Type",
+        "lineSendSim": "Line Send Sim",
+        "lineSimulate": "Line Simulate",
+        "lineTemplate": "Line Template",
+        "lineTestSend": "Line Test Send",
+        "minutes": "Minutes",
+        "mktBudgetAction": "Mkt Budget Action",
+        "mktHighRoas": "Mkt High Roas",
+        "mktHighRoasSub": "Mkt High Roas Sub",
+        "mktHubAction": "Mkt Hub Action",
+        "mktLowRoas": "Mkt Low Roas",
+        "mktOptimizeNow": "Mkt Optimize Now",
+        "mktRulesActive": "Mkt Rules Active",
+        "nodeConfig": "Node Config",
+        "nodeName": "Node Name",
+        "ordersAiRun": "Orders Ai Run",
+        "ordersAiSub": "Orders Ai Sub",
+        "ordersCampaignAction": "Orders Campaign Action",
+        "recentTriggers": "Recent Triggers",
+        "save": "Save",
+        "saving": "Saving...",
+        "triggerType": "Trigger Type",
+        "triggerTypes": {
+          "birthday": "🎂 Birthday",
+          "cart_abandoned": "🛒 Cart Abandoned",
+          "churned": "😴 Churn Risk Customer",
+          "manual": "Manual",
+          "purchase": "✅ Purchase Complete",
+          "segment_entered": "📌 Segment Entry",
+          "signup": "🌱 New Signup"
+        }
+      },
+      "budgetOptDesc": "Budget Opt Desc",
+      "bulkAction": "Bulk Action",
+      "campaignMgr": {
+        "allSegments": "All Segments",
+        "kpiSection": "KPI",
+        "typeAutomation": "Type Automation"
+      },
+      "campaignROI": "Campaign R O I",
+      "canvas": "Canvas",
+      "cartRate": "Cart Rate",
+      "cartToBuy": "Cart To Buy",
+      "channelAnalysis": "Channel Analysis",
+      "channelDemand": "Channel Demand",
+      "channelDetail": "Channel Detail",
+      "channelKpiPage": {
+        "achieved": "Achieved ✓",
+        "achievedOk": "Achieved ✓",
+        "aiAnalyzing": "AI Analyzing...",
+        "aiHistoryList": "AI Analysis History",
+        "aiSummary": "AI Analysis Summary",
+        "allChannels": "Total Channels",
+        "avgTime": "Avg Time",
+        "badgeAdSpend": "Total Ad Spend",
+        "badgeBlendedRoas": "Blended ROAS",
+        "badgeOpProfit": "Badge Op Profit",
+        "badgeOrders": "Badge Orders",
+        "belowTarget": "Below Target",
+        "bizGoalSetting": "Biz Goal Setting",
+        "brandAwareness": "Brand Awareness",
+        "brandAwarenessDesc": "Brand Awareness Desc",
+        "chBlog": "Ch Blog",
+        "chCommunity": "Ch Community",
+        "chSearchAds": "Ch Search Ads",
+        "chSnsAds": "Ch Sns Ads",
+        "channelCol": "Channel",
+        "channelRoleDef": "Channel Role Definition",
+        "checklist": "Key Action Items",
+        "chkCostPerf": "Cost vs Performance Check",
+        "chkEff": "Campaign Efficiency Check",
+        "chkImprove": "Identify Items for Improvement",
+        "claudeAiDesc": "Claude Ai Desc",
+        "claudeAiTitle": "Claude Ai Title",
+        "clickSelect": "Click Select",
+        "comments": "Comments",
+        "communityAct": "Community Act",
+        "communityGrowth": "Community Growth",
+        "communityKpi": "Community Kpi",
+        "contentEngage": "Content Engage",
+        "contentImpressions": "Content Impressions",
+        "contentInterest": "Content Interest",
+        "contentKpi": "Content Kpi",
+        "convRate": "Conversion Rate",
+        "coreKpis": "Core KPIs",
+        "cpa": "Cost Per Acquisition (CPA)",
+        "cpc": "Cost Per Click (CPC)",
+        "ctr": "Click-through Rate (CTR)",
+        "currentMonth": "Current Month",
+        "descBrandReach": "Large-scale brand exposure through SNS platform ads",
+        "descCaptureIntent": "Target users with high purchase intent via search algorithms",
+        "descConvRate": "Conversion Rate vs Target",
+        "descCpa": "Desc Cpa",
+        "descCpc": "Desc Cpc",
+        "descCtr": "Desc Ctr",
+        "descCustRel": "Secure customer loyalty through community activities",
+        "descInfoTrust": "Build expertise and trust through problem-solving content",
+        "descRoas": "Desc Roas",
+        "engagement": "Engagement Rate",
+        "hintConvRate": "Hint Conv Rate",
+        "hintCpa": "Hint Cpa",
+        "hintCpc": "Hint Cpc",
+        "hintCtr": "Hint Ctr",
+        "hintRoas": "Hint Roas",
+        "history": "History",
+        "improveRecs": "Improvement Recommendations",
+        "inquiries": "Inquiries",
+        "inquiriesPurchases": "Inquiries Purchases",
+        "inquiriesPurchasesDesc": "Inquiries Purchases Desc",
+        "interestConv": "Interest Conv",
+        "kakaoGuild": "Kakao Guild",
+        "keyInsight": "Key Insight",
+        "lblConvRate": "Conversion Rate",
+        "lblCpaFull": "Lbl Cpa Full",
+        "lblCpcFull": "Lbl Cpc Full",
+        "lblCtrFull": "Lbl Ctr Full",
+        "lblRoasFull": "Lbl Roas Full",
+        "monitorAi": "AI Channel Performance Monitoring",
+        "monthlyAi": "Monthly Report",
+        "monthlyTrend": "Monthly Trend",
+        "naverCafe": "Naver Cafe",
+        "newMembers": "New Signups",
+        "noData": "No Data Available",
+        "noHistory": "No execution history",
+        "overallAchieve": "Overall Achievement Status",
+        "pageViews": "Page Views",
+        "period": "Analysis Period",
+        "pleaseSelectGoal": "Please Select Goal",
+        "postViews": "Post Views",
+        "reach": "Reach",
+        "roas": "ROAS",
+        "roleBrandReach": "Brand Reach",
+        "roleCaptureIntent": "Capture Purchase Intent",
+        "roleCustRel": "Strengthen Customer Relationships",
+        "roleInfoTrust": "Info · Trust Building",
+        "searchTraffic": "Search Traffic",
+        "selected": "Selected",
+        "selectedGoals": "Selected Goals",
+        "seoImpact": "Seo Impact",
+        "share": "Rate",
+        "siteTraffic": "Site Traffic",
+        "snsKpiByChannel": "Sns Kpi By Channel",
+        "snsKpiOverview": "Sns Kpi Overview",
+        "strengths": "Strengths",
+        "tabCommunity": "Tab Community",
+        "tabContent": "Tab Content",
+        "tabGoals": "Tab Goals",
+        "tabMonitor": "Tab Monitor",
+        "tabRoles": "Tab Roles",
+        "tabSetup": "Tab Setup",
+        "tabSns": "Tab Sns",
+        "tabTargets": "Tab Targets",
+        "targetLabel": "Target",
+        "targetSetup": "KPI Target Setting by Channel",
+        "targetVsActuals": "Target Vs Actuals",
+        "videoViews": "Video Views",
+        "visitors": "Visitors",
+        "weaknesses": "Weaknesses",
+        "webTraffic": "Web Traffic",
+        "webTrafficDesc": "Web Traffic Desc",
+        "weeklyAdTrend": "Weekly Ad Efficiency Trend",
+        "weeklyAi": "Weekly Report"
+      },
+      "channelPerf": "Channel Performance",
+      "churn": "Final Churn Status",
+      "clickToEdit": "Click To Edit",
+      "cmpVal": {
+        "aiPredict": {
+          "Sim": "Sim",
+          "aiRec": {
+            "avgPrice": "Average Unit Price",
+            "catalogAuto": "Catalog Auto-fill",
+            "goalRevenue": "Revenue Target",
+            "mainChannels": "Main Sales Channels",
+            "marginRate": "Margin Rate (based on sale price)",
+            "monthlyQty": "Monthly Sales Target",
+            "salesInfo": "📦 Product Sales Info",
+            "searchPh": "e.g. Beauty brand Instagram ad strategy or marketing goal",
+            "skuCount": "Product/SKU Count"
+          },
+          "bulkAction": "Bulk Action",
+          "cat": {
+            "beauty": "Beauty",
+            "digital": "Digital",
+            "electronics": "Electronics",
+            "fashion": "Fashion",
+            "food": "Food",
+            "forwarding": "Forwarding",
+            "general": "General",
+            "purchasing": "🛒 Purchase Agent",
+            "sports": "Sports",
+            "travel": "Travel"
+          },
+          "filterHigh": "Filter High",
+          "filterLow": "Filter Low",
+          "filterMed": "Filter Med",
+          "kpi": {
+            "k_0": "Real-time · Blended ROAS",
+            "k_1": "Gross Profit",
+            "k_2": "Order",
+            "k_3": "K_3",
+            "k_4": "K_4",
+            "k_5": "K_5",
+            "k_6": "K_6",
+            "k_7": "K_7",
+            "k_8": "K_8",
+            "k_9": "Channel Intelligen",
+            "p_10": "Blended ROAS",
+            "p_11": "P&L Waterfall — 3-Domain Integrated",
+            "p_12": "Ad Domain",
+            "p_13": "Market Domain",
+            "p_14": "Influencer",
+            "p_15": "By SKU",
+            "p_16": "By Channel",
+            "p_17": "By Campaign",
+            "p_18": "By Creator",
+            "p_19": "Forecast P&L Simulation",
+            "p_2": "Ad Spend",
+            "p_20": "Parameter Settings",
+            "p_21": "Forecast Annual Revenue",
+            "p_22": "Forecast Net Profit",
+            "p_3": "Platform Fee",
+            "p_4": "Influencer Cost",
+            "p_5": "Net Settlement",
+            "p_6": "Net Profit",
+            "p_7": "Total Orders",
+            "p_8": "Returns",
+            "p_9": "Anomalies",
+            "tab": {
+              "bdayDesc": "Bday Desc",
+              "churnDesc": "Churn Desc",
+              "vipDesc": "Vip Desc"
+            }
+          },
+          "liveDB": "Live D B",
+          "loading": "Loading...",
+          "noResults": "No Results",
+          "retry": "Retry"
+        },
+        "list_view": "List View"
+      },
+      "code": "Code",
+      "colConversions": "Conversions",
+      "colCtr": "CTR%",
+      "colCvr": "CVR%",
+      "colRevenue": "Revenue",
+      "colRoas": "ROAS",
+      "colSpend": "Ad Spend",
+      "compareTo": "Compare to",
+      "conditionEmailClicked": "Condition Email Clicked",
+      "conditionEmailOpened": "Condition Email Opened",
+      "conditionField": "Condition Field",
+      "conditionKakaoClicked": "Condition Kakao Clicked",
+      "conditionLineClicked": "Condition Line Clicked",
+      "conditionLtvGt": "Condition Ltv Gt",
+      "conditionPurchased": "Condition Purchased",
+      "confLabel": "Conf Label",
+      "confidence": "Confidence",
+      "connectors": {
+        "apiKey": "Api Key",
+        "configure": "Configuration",
+        "daily": "Daily",
+        "hourly": "Hourly",
+        "lastSync": "Last Sync",
+        "noConnectors": "No Connectors",
+        "oauthLogin": "Oauth Login",
+        "real_time": "Real-time",
+        "syncFrequency": "Sync Frequency",
+        "tabAds": "Ad Channels",
+        "tabAll": "Tab All",
+        "tabLogistics": "Logistics",
+        "tabSales": "Sales channel",
+        "testConnection": "Connection Test"
+      },
+      "convRate": "Conversion Rate",
+      "cpc": "Cost Per Click (CPC)",
+      "cpo": "Cpo",
+      "creativePerf": "Creative Perf",
+      "creativeStudio": {
+        "adFormatCount": "Ad Format Count",
+        "adPreviewLabel": "Ad Preview Label",
+        "adSpec": "Ad Spec",
+        "adTag": "Advertising",
+        "adTipTitle": "Ad Tip Title",
+        "bodyHint": "Body Hint",
+        "cat_beauty": "Cat_beauty",
+        "cat_beauty_desc": "Cat_beauty_desc",
+        "cat_electronics": "Cat_electronics",
+        "cat_electronics_desc": "Cat_electronics_desc",
+        "cat_fashion": "Cat_fashion",
+        "cat_fashion_desc": "Cat_fashion_desc",
+        "cat_food": "Cat_food",
+        "cat_food_desc": "Cat_food_desc",
+        "cat_general": "Cat_general",
+        "cat_general_desc": "Cat_general_desc",
+        "cat_overseas_buy": "Cat_overseas_buy",
+        "cat_overseas_buy_desc": "Cat_overseas_buy_desc",
+        "cat_overseas_ship": "Cat_overseas_ship",
+        "cat_overseas_ship_desc": "Cat_overseas_ship_desc",
+        "cat_sports": "Cat_sports",
+        "cat_sports_desc": "Cat_sports_desc",
+        "categoryOptimized": "Category Optimized",
+        "channelStep": "Channel Step",
+        "ctaHint": "👆 CTA:",
+        "customBody": "Custom Body",
+        "customCopyToggle": "Custom Copy Toggle",
+        "customHeadline": "Custom Headline",
+        "headlineHint": "Headline Hint",
+        "productInfo": "Product Info",
+        "selectFirst": "Select First",
+        "selectFirstDesc": "Select First Desc",
+        "selectStep": "Select Step",
+        "selectStepHint": "Select Step Hint",
+        "selectedLabel": "Selected Label"
+      },
+      "creator": "Creator",
+      "ctr": "Click-through Rate (CTR)",
+      "cvr": "Conversion Rate",
+      "cycle": "Cycle",
+      "dashboard": {
+        "adSpend": "Ad Spend",
+        "adSpendSub": "Total Ad Spend",
+        "avgOrder": "Average Order Value",
+        "convRateLbl": "Conversion Rate",
+        "convRateSub": "vs Sessions",
+        "grossRevSub": "Today",
+        "netROAS": "Net R O A S",
+        "netROASSub": "Net Profit / Ad Spend",
+        "totalOrderSub": "As of Today",
+        "totalOrders": "Total Orders"
+      },
+      "dateRange": "Period",
+      "days": " days",
+      "dbAdmin": {
+        "backupHistory": "Backup History",
+        "backupNow": "Backup Now",
+        "dbConnected": "Db Connected",
+        "execute": "Execute",
+        "lastBackup": "Last Backup",
+        "queryPlaceholder": "SELECT * FROM ...",
+        "queryResult": "Query Result",
+        "runQuery": "Run Query",
+        "slowQueries": "Slow Queries",
+        "tabBackup": "Tab Backup",
+        "tabQuery": "Tab Query",
+        "tabStatus": "Tab Status",
+        "totalSize": "Total Size",
+        "totalTables": "Total Tables"
+      },
+      "delayTime": "Delay Time",
+      "delayUnit": "Unit",
+      "deleteNode": "Delete Node",
+      "dimChannel": "Dim Channel",
+      "dimContent": "Content type",
+      "dimCoupon": "Dim Coupon",
+      "dimCustomer": "Dim Customer",
+      "dimDevice": "Dim Device",
+      "dimTier": "Dim Tier",
+      "dimTime": "Dim Time",
+      "dimTouch": "Dim Touch",
+      "effect": "Effect",
+      "effort": "Effort",
+      "emailFrom": "Email From",
+      "emailSendSim": "Email Send Sim",
+      "emailSenderPh": "Email Sender Ph",
+      "emailSimulate": "Email Simulate",
+      "emailSubject": "Email Subject",
+      "emailSubjectPh": "Email Subject Ph",
+      "emailTestSend": "Email Test Send",
+      "engagementTrend": "Engagement Trend",
+      "eventNorm": {
+        "addSchema": "Add Schema",
+        "eventName": "Event Name",
+        "mappingRule": "Mapping Rule",
+        "noSchemas": "No Schemas",
+        "sourceChannel": "Source Channel",
+        "standardEvent": "Standard Event",
+        "status": "Status",
+        "tabMapping": "Tab Mapping",
+        "tabSchemas": "📋 Schemas",
+        "tabTest": "Tab Test",
+        "testEvent": "Test Event"
+      },
+      "execLog": "Exec Log",
+      "execute": "Execute",
+      "expRoas": "Exp Roas",
+      "exportReport": "Export Report",
+      "finalCvr": "Final Cvr",
+      "forecast30d": "Forecast30d",
+      "forecast30dTotal": "Forecast30d Total",
+      "forecast7dTotal": "Forecast7d Total",
+      "funnelCart": "Cart",
+      "funnelImp": "Impression count",
+      "funnelSpend": "Total Ad Spend",
+      "funnelTotal": "Funnel Total",
+      "gdpr": {
+        "analytics": "Analytics",
+        "bannerDesc": "Banner Desc",
+        "bannerTitle": "Banner Title",
+        "consentDate": "Consent Date",
+        "consentNow": "Consent Now",
+        "consentRate": "Consent Rate",
+        "consented": "Consented",
+        "cookiePolicy": "Cookie Policy",
+        "currentConsentStatus": "Current Consent Status",
+        "editSettings": "Edit Settings",
+        "marketing": "Marketing Performance",
+        "noConsentInfo": "No Consent Info",
+        "notConsented": "Not Consented",
+        "panelSub": "Panel Sub",
+        "panelTitle": "Panel Title",
+        "platformStats": "Platform Stats",
+        "policyNote1": "Policy Note1",
+        "policyNote2": "Policy Note2",
+        "policyNote3": "Policy Note3",
+        "privacyPolicy": "Privacy Policy",
+        "required": "Required",
+        "savePref": "Save Pref",
+        "totalVisitors": "Total Visitors",
+        "unknown": "Unknown",
+        "withdraw": "Withdraw",
+        "withdrawn": "Withdrawn"
+      },
+      "graph": {
+        "sku": "SKU"
+      },
+      "graphScore": {
+        "sku": "SKU"
+      },
+      "helpPanel": {
+        "canDo": "🎯 What you can do with this menu",
+        "currentPageHelp": "Current Page Help",
+        "dataFrom": "Data From",
+        "defaultStep1": "Default Step1",
+        "defaultStep2": "Default Step2",
+        "defaultSummary": "Default Summary",
+        "defaultTitle": "Default Title",
+        "footerHelp": "Footer Help",
+        "fullManual": "Full Manual",
+        "goBack": "Go Back",
+        "goToPage": "Go To Page",
+        "helpResultCount": "\"{{q}}\" — {{n}}help articles",
+        "howToUse": "How To Use",
+        "needMoreHelp": "Need More Help",
+        "noHelpFound": "No Help Found",
+        "provides": "📊 Information this menu provides",
+        "searchPlaceholder": "Search product/SKU...",
+        "searchResult": "Search Results",
+        "staticHelp": {
+          "apiKeys": {
+            "steps": "Steps",
+            "summary": "Summary",
+            "tips": "Tips",
+            "title": "Title"
+          },
+          "connectors": {
+            "steps": "Steps",
+            "summary": "Send domestic SMS/LMS messages and manage send history and statistics.",
+            "tips": "Tips",
+            "title": "Email Marketing"
+          },
+          "help": {
+            "steps": "Steps",
+            "summary": "Send domestic SMS/LMS messages and manage send history and statistics.",
+            "title": "Email Marketing"
+          },
+          "smsMarketing": {
+            "steps": "Steps",
+            "summary": "Send domestic SMS/LMS messages and manage send history and statistics.",
+            "tips": "Tips",
+            "title": "Email Marketing"
+          },
+          "userMgmt": {
+            "steps": "Steps",
+            "summary": "Summary",
+            "tips": "Tips",
+            "title": "Title"
+          }
+        },
+        "tryOther": "Try Other"
+      },
+      "hours": "Time",
+      "id": "ID",
+      "infFunnel": "Inf Funnel",
+      "inventory": "Inventory",
+      "investment": "Investment",
+      "kakaoAlimtalk": "Kakao Alimtalk",
+      "kakaoFriendtalk": "Kakao Friendtalk",
+      "kakaoMsgType": "Kakao Msg Type",
+      "kakaoSendSim": "Kakao Send Sim",
+      "kakaoTemplate": "Kakao Template",
+      "kakaoTest": "Kakao Test",
+      "kpi": {
+        "k_16": "K_16",
+        "k_17": "K_17",
+        "k_18": "K_18",
+        "k_19": "K_19",
+        "k_20": "K_20",
+        "k_3": "K_3",
+        "k_4": "K_4",
+        "k_5": "K_5",
+        "k_6": "K_6",
+        "k_7": "K_7",
+        "k_8": "K_8"
+      },
+      "kpiCat": "Category",
+      "kpiContrib": "Kpi Contrib",
+      "kpiContribSub": "Kpi Contrib Sub",
+      "kpiConversions": "Conversions",
+      "kpiCtr": "CTR",
+      "kpiCvr": "CVR",
+      "kpiMetric": "Kpi Metric",
+      "kpiRevenue": "Gross Sales",
+      "kpiRoas": "ROAS",
+      "kpiSpend": "Total Ad Spend",
+      "kpiTable": "Kpi Table",
+      "kpiWeight": "Weight",
+      "krChannel": {
+        "adSpendRate": "Ad Spend Rate",
+        "all": "All",
+        "apiDisconnected": "Api Disconnected",
+        "categoryAll": "Category All",
+        "channelMaster": "Channel Master",
+        "channelSelect": "Channel Select",
+        "commissionHistory": "Commission History",
+        "commissionReg": "Commission Reg",
+        "count": "Count",
+        "currency": "Currency",
+        "effectiveDate": "Effective Date",
+        "endDate": "End Date",
+        "feeDiff": "Fee Difference",
+        "ingestTitle": "Ingest Title",
+        "loadSample": "Load Sample",
+        "matched": "Matched",
+        "mismatched": "Mismatched",
+        "missingOrder": "Missing Order",
+        "missingSettle": "Missing Settle",
+        "netDiff": "Net Diff",
+        "noDataHint": "No Data Hint",
+        "noReports": "No reconciliation reports",
+        "noTickets": "✅ No Tickets (Below threshold)",
+        "note": "Note",
+        "platformFeeRate": "Platform Fee Rate",
+        "reconRun": "Recon Run",
+        "reconStart": "Recon Start",
+        "reprocess": "Reprocess",
+        "returnFee": "Return Fee",
+        "running": "Running",
+        "saveCommission": "Save Commission",
+        "search": "Search",
+        "selectChannelHint": "Select Channel Hint",
+        "selectPlaceholder": "Select Placeholder",
+        "settleCycle": "Settle Cycle",
+        "shippingFee": "Base Shipping Fee (₩)",
+        "startDate": "Start Date",
+        "tabChannels": "Tab Channels",
+        "tabFees": "Tab Fees",
+        "tabIngest": "Tab Ingest",
+        "tabRecon": "🔍 Settlement Reconciliation",
+        "tabSummary": "Summary Score",
+        "tickets": "Tickets",
+        "totalCommission": "Total Commission",
+        "totalRevenue": "Total Revenue",
+        "totalSettlement": "Total Settlement",
+        "vatRate": "VAT",
+        "vatRateLabel": "Vat Rate Label"
+      },
+      "lineMsgType": "Line Msg Type",
+      "lineSendSim": "Line Send Sim",
+      "lineSimulate": "Line Simulate",
+      "lineTemplate": "Line Template",
+      "lineTestSend": "Line Test Send",
+      "logApproved": "✅ [Approve]",
+      "logExecuted": "Log Executed",
+      "logRejected": "Log Rejected",
+      "mappingRegistry": {
+        "addMapping": "Add Mapping",
+        "delete": "Delete",
+        "edit": "Edit",
+        "fromChannel": "Origin",
+        "mappingRule": "Mapping Rule",
+        "noMappings": "No Mappings",
+        "tabCategoryMap": "Tab Category Map",
+        "tabChannelMap": "Tab Channel Map",
+        "tabProductMap": "Tab Product Map",
+        "toChannel": "Target"
+      },
+      "menuAccess": {
+        "desc": "Click to change menu/feature access by role (✅ Allow · 👁 Read-only · 🔒 Locked)",
+        "newFeature": "New Feature",
+        "permCreate": "Created",
+        "permRead": "Perm Read",
+        "permUpdate": "Edit",
+        "recommendTitle": "Recommend Title",
+        "reset": "Reset",
+        "save": "Save",
+        "saveBtn": "Save",
+        "saved": "✓ Save Complete",
+        "targetObj": "Target",
+        "title": "Email Marketing"
+      },
+      "message": "Message",
+      "minutes": "Minutes",
+      "mobileCvr": "Mobile Cvr",
+      "newCustPct": "New Cust Pct",
+      "noAnomaly": "No anomalies",
+      "noResults": "No Results",
+      "nodeConfig": "Node Config",
+      "nodeName": "Node Name",
+      "nodeSettings": "Node Settings",
+      "omniChannel": {
+        "btnDisconnect": "Disconnect",
+        "colId": "ID",
+        "colSku": "SKU",
+        "groupOwnMall": "🏪 Own Mall / Others",
+        "invColAlert": "Alert",
+        "invColProduct": "Product",
+        "invColQuantity": "Qty",
+        "invColSKU": "SKU",
+        "invColWarehouse": "Warehouse",
+        "invLastUpdate": "Last Update",
+        "invLowStock": "Low Stock",
+        "invOutOfStock": "Out of Stock",
+        "invTitle": "Real-time Inventory",
+        "invTotalProducts": "Total Products",
+        "ordBtnExport": "📥 Export",
+        "ordColAmount": "Amount",
+        "ordColChannel": "Channel",
+        "ordColCustomer": "Customer",
+        "ordColDate": "Date",
+        "ordColOrderNo": "Order No",
+        "ordColStatus": "Status",
+        "ordCompleted": "Completed",
+        "ordPending": "Pending",
+        "ordShipping": "Shipping",
+        "ordTitle": "Unified Order Management",
+        "ordTotalOrders": "Total Orders",
+        "ovAvgOrderValue": "Avg Order Value",
+        "ovChannelShare": "Revenue Share by Channel",
+        "ovRevenueByChannel": "Revenue Trend by Channel",
+        "ovTitle": "Unified Dashboard",
+        "ovTotalOrders": "Total Orders",
+        "ovTotalRevenue": "Total Revenue",
+        "prodAvgPrice": "Avg Price",
+        "prodBtnSync": "🔄 Sync All",
+        "prodChannelCoverage": "Channel Coverage",
+        "prodColChannels": "Channels",
+        "prodColLastSync": "Last Sync",
+        "prodColName": "Product Name",
+        "prodColPrice": "Price",
+        "prodColSKU": "SKU",
+        "prodColStatus": "Status",
+        "prodSyncStatus": "Sync Status",
+        "prodTitle": "Unified Product Management",
+        "prodTotalSKU": "Total SKUs",
+        "statusPending": "Pending"
+      },
+      "optimizing": "Optimizing",
+      "orderHistory": "Order History",
+      "orderId": "Order ID",
+      "orderNeeded": "Order Needed",
+      "orderNeededSku": "Order Needed Sku",
+      "orders": " orders",
+      "paymentKey": "Payment Key",
+      "platformDist": "Platform Dist",
+      "price": "Price",
+      "pricing": {
+        "limitedFeat": "Limited Features",
+        "loadingText": "Loading..."
+      },
+      "pro": "PRO",
+      "prob30": "30-day Churn Probability",
+      "productCost": "Product Cost",
+      "productPerf": "Product Perf",
+      "purchase": "✅ Purchase Complete",
+      "purchaseCost": "Purchase Cost",
+      "reach": "Reach",
+      "recentTriggers": "Recent Triggers",
+      "reject": "❌ Reject",
+      "retry": "Retry",
+      "riskHigh": "high",
+      "riskLow": "low",
+      "riskMedium": "medium",
+      "roas": "ROAS",
+      "roi": "ROI",
+      "rollup": {
+        "campaignPnlRisk": "Campaign Pnl Risk",
+        "commissionPerPost": "Commission Per Post",
+        "lossEstWarning": "Loss Est Warning",
+        "pnlAdSpend": "Ad Spend",
+        "pnlCogs": "Pnl Cogs",
+        "pnlDesc": "Pnl Desc",
+        "pnlFxLoss": "Pnl Fx Loss",
+        "pnlGrossProfit": "Gross Profit",
+        "pnlNetRev": "Net Revenue",
+        "pnlReturnLoss": "Pnl Return Loss",
+        "pnlSettle": "Net Payout",
+        "pnlStructure": "Pnl Structure",
+        "pnlTotalRev": "Gross Sales",
+        "returnRateWord": "Return Rate",
+        "riskStatus": {
+          "caution": "Caution",
+          "danger": "Critical",
+          "normal": "Medium"
+        },
+        "settleDeductWord": "Settlement Deduction",
+        "unitPrice": "Unit Price",
+        "unitTenThousand": "10K KRW"
+      },
+      "root_pageTitle_channelKpi2": "Root_page Title_channel Kpi2",
+      "running": "Running",
+      "saving": "Saving...",
+      "scale": "Scale",
+      "script": "Script",
+      "skuAnalysis": "Sku Analysis",
+      "skuForecast": "Sku Forecast",
+      "skuName": "Products",
+      "skuPlatformFee": "Platform Fee",
+      "skuTopMargin": "Top Margin SKU",
+      "sortAcos": "ACOS",
+      "sortRoas": "ROAS",
+      "statusActive": "Active",
+      "subtitle": "Precision Shapley (2^n) · Bayesian MMM · Markov Chain · Incremental Uplift (Dual ML) · Thompson Sampling A/B",
+      "summaryOrders": "Summary Orders",
+      "systemMonitor": {
+        "addFav": "Add Fav",
+        "addFavorite": "Add Favorite",
+        "noFavorites": "No Favorites",
+        "noRecents": "No Recents",
+        "pinned": "Pinned",
+        "quickAccess": "Quick Access",
+        "recentVisits": "Recent Visits",
+        "removeFav": "Remove Fav",
+        "removeFavorite": "Remove Favorite"
+      },
+      "tab": "Tab",
+      "tabAi": "Tab Ai",
+      "tabAiDesc": "Tab Ai Desc",
+      "tabAudience": "Tab Audience",
+      "tabAuto": "Tab Auto",
+      "tabAutoDesc": "Tab Auto Desc",
+      "tabChannels": "Tab Channels",
+      "tabCreatives": "Creative",
+      "tabFunnel": "Tab Funnel",
+      "tabFunnelDesc": "Tab Funnel Desc",
+      "tabKpi": "Tab Kpi",
+      "tabKpiDesc": "Tab Kpi Desc",
+      "tabOverview": "Campaign Status",
+      "tabProducts": "Products",
+      "title": "Email Marketing",
+      "todayAdSpend": "Today Ad Spend",
+      "topCreators": "Top Creators",
+      "topProducts": "Top Products",
+      "total": "Total",
+      "totalFollowers": "Total Followers",
+      "totalPurchases": "Total Purchases",
+      "totalRevContrib": "Total Rev Contrib",
+      "trendDetection": "Trend Detection",
+      "trigger": "🎯 Trigger",
+      "triggerType": "Trigger Type",
+      "triggerTypes": {
+        "birthday": "🎂 Birthday",
+        "cart_abandoned": "🛒 Cart Abandoned",
+        "churned": "Churned",
+        "manual": "Manual",
+        "purchase": "✅ Purchase Complete",
+        "segment_entered": "📌 Segment Entry",
+        "signup": "🌱 New Signup"
+      },
+      "ui": {
+        "apply": "Apply",
+        "close": "Close",
+        "colActions": "Action",
+        "colDate": "Date",
+        "confirm": "Confirm",
+        "copyLink": "Copy Link",
+        "create": "Created",
+        "delete": "Delete",
+        "deselectAll": "Deselect All",
+        "download": "Download",
+        "edit": "Edit",
+        "error": "Errors",
+        "export": "Export",
+        "filter": "Filter",
+        "import": "Import",
+        "info": "Info",
+        "loading": "Loading...",
+        "next": "Next",
+        "noData": "No Data Available",
+        "pageOf": "{page} / {total}",
+        "period": {
+          "daily": "Daily",
+          "monthly": "Monthly",
+          "seasonal": "Seasonal",
+          "weekly": "Weekly",
+          "yearly": "Yearly"
+        },
+        "prev": "Previous",
+        "reset": "Reset",
+        "save": "Save",
+        "search": "Search",
+        "segment": {
+          "audience": "Audience",
+          "category": "Category",
+          "creative": "Creative"
+        },
+        "selectAll": "Select All",
+        "sort": "Sort",
+        "success": "Success",
+        "upload": "Upload",
+        "view": "View",
+        "warning": "Warnings"
+      },
+      "units": {
+        "ago": "Ago",
+        "perDay": " days",
+        "ppl": "people",
+        "pts": "Pts",
+        "types": "Types"
+      },
+      "userMgmt": {
+        "actions": "Actions",
+        "addUser": "Add User",
+        "deactivate": "Deactivate",
+        "edit": "Edit",
+        "email": "✉️ Email",
+        "inviteEmail": "Invite Email",
+        "inviteRole": "Select Role",
+        "inviteTitle": "Invite Title",
+        "lastLogin": "Last Login",
+        "name": "Name",
+        "noUsers": "No Users",
+        "resendInvite": "Resend Invite",
+        "role": "Role",
+        "role_": "Demo",
+        "role_admin": "Admin",
+        "role_editor": "Editor",
+        "role_viewer": "Viewer",
+        "sendInvite": "Send Invite",
+        "status": "Status",
+        "status_active": "Active",
+        "status_inactive": "Deactivated",
+        "tabInvite": "Tab Invite",
+        "tabRoles": "Tab Roles",
+        "tabUsers": "Tab Users"
+      },
+      "verdict": "Verdict",
+      "verdictBad": "Verdict Bad",
+      "verdictGood": "Verdict Good",
+      "verdictOk": "Medium",
+      "view": "View",
+      "writeback": {
+        "payloadPlaceholder": "{ \"sku\": \"...\", \"title\": \"...\", \"price\": 0 }"
       }
+    },
+    "actionPresets": {
+      "title": "Action Presets"
+    },
+    "cmpRow": {
+      "r1": "Home Dashboard",
+      "r10": "Review & UGC Analytics",
+      "r11": "Commerce Channels",
+      "r12": "WMS (Stock·In/Out)",
+      "r13": "3PL Management",
+      "r14": "Amazon Advanced Operations",
+      "r15": "Analytics & Performance (Cohort·P&L)",
+      "r16": "AI Rule Engine & Automation",
+      "r17": "SmartConnect (ERP·SCM)",
+      "r18": "1st-Party Pixel",
+      "r19": "Data Pipeline & API",
+      "r2": "AI Ad Creative & Campaign Mgmt",
+      "r20": "Data Product Governance",
+      "r21": "BI Reports",
+      "r22": "Currency Selection (Global)",
+      "r23": "Influencer Management",
+      "r24": "Ops Hub (Batch·Reprocess)",
+      "r25": "Audit Log",
+      "r26": "Team Management (RBAC)",
+      "r27": "Account Count",
+      "r28": "Support Type",
+      "r3": "AI Forecast (Churn·LTV·Purchase Prob.)",
+      "r4": "Customer Journey Builder",
+      "r5": "AI Segment",
+      "r6": "Ad & Channel Analytics (ROAS·KPI)",
+      "r7": "Attribution Analysis (Touch Model)",
+      "r8": "Competitor AI Analysis",
+      "r9": "Customer CRM (Email/Kakao/SMS)"
+    },
+    "cmpVal": {
+      "activity_history": "Activity History",
+      "advanced_custom": "Advanced Custom",
+      "aiPredict": {
+        "Sim": "Sim",
+        "aiRec": {
+          "avgPrice": "Average Unit Price",
+          "catalogAuto": "Catalog Auto-fill",
+          "goalRevenue": "Revenue Target",
+          "mainChannels": "Main Sales Channels",
+          "marginRate": "Margin Rate (based on sale price)",
+          "monthlyQty": "Monthly Sales Target",
+          "salesInfo": "📦 Product Sales Info",
+          "searchPh": "e.g. Beauty brand Instagram ad strategy or marketing goal",
+          "skuCount": "Product/SKU Count"
+        },
+        "bulkAction": "Bulk Action",
+        "cat": {
+          "beauty": "Beauty",
+          "digital": "Digital",
+          "electronics": "Electronics",
+          "fashion": "Fashion",
+          "food": "Food",
+          "forwarding": "Forwarding",
+          "general": "General",
+          "purchasing": "🛒 Purchase Agent",
+          "sports": "Sports",
+          "travel": "Travel"
+        },
+        "filterHigh": "Filter High",
+        "filterLow": "Filter Low",
+        "filterMed": "Filter Med",
+        "kpi": {
+          "k_0": "Real-time · Blended ROAS",
+          "k_1": "Gross Profit",
+          "k_2": "Order",
+          "k_3": "K_3",
+          "k_4": "K_4",
+          "k_5": "K_5",
+          "k_6": "K_6",
+          "k_7": "K_7",
+          "k_8": "K_8",
+          "k_9": "Channel Intelligen",
+          "p_10": "Blended ROAS",
+          "p_11": "P&L Waterfall — 3-Domain Integrated",
+          "p_12": "Ad Domain",
+          "p_13": "Market Domain",
+          "p_14": "Influencer",
+          "p_15": "By SKU",
+          "p_16": "By Channel",
+          "p_17": "By Campaign",
+          "p_18": "By Creator",
+          "p_19": "Forecast P&L Simulation",
+          "p_2": "Ad Spend",
+          "p_20": "Parameter Settings",
+          "p_21": "Forecast Annual Revenue",
+          "p_22": "Forecast Net Profit",
+          "p_3": "Platform Fee",
+          "p_4": "Influencer Cost",
+          "p_5": "Net Settlement",
+          "p_6": "Net Profit",
+          "p_7": "Total Orders",
+          "p_8": "Returns",
+          "p_9": "Anomalies",
+          "tab": {
+            "bdayDesc": "Bday Desc",
+            "churnDesc": "Churn Desc",
+            "vipDesc": "Vip Desc"
+          }
+        },
+        "liveDB": "Live D B",
+        "loading": "Loading...",
+        "noResults": "No Results",
+        "retry": "Retry"
+      },
+      "all": "All",
+      "anomaly_detect": "Anomaly Detection",
+      "auto_scheduled_share": "Auto·Scheduled·Share",
+      "basic": "Basic",
+      "basic_auto": "Basic Auto-classify",
+      "bizboard": "Bizboard",
+      "campaign_settle": "Campaign·Settlement",
+      "chat_support": "Chat Support",
+      "cohort_pl": "Cohort·P&L All",
+      "competitor_compare": "Competitor Compare",
+      "contract": "Contract",
+      "conv_path_all": "Conv. Path All",
+      "custom_excel": "Custom·Excel",
+      "dedicated_manager": "Dedicated Manager",
+      "dedicated_sla": "Dedicated + SLA",
+      "dom_global": "Domestic+Global",
+      "domestic": "Domestic",
+      "domestic_ads": "Domestic Ad Integration",
+      "domestic_core": "Domestic Core",
+      "install_analysis": "Install & Analysis",
+      "instant_rollback": "Instant Rollback",
+      "list_invite": "List·Invite",
+      "list_view": "List View",
+      "location_barcode": "Location & Barcode",
+      "manual": "Manual",
+      "market_share": "Market Share",
+      "notification_basic": "Notification Basic",
+      "notification_send": "Notification Send",
+      "own_history": "Own History",
+      "owner_streaming": "Owner·Streaming",
+      "partner_api": "Partner API Bidirectional",
+      "perf_view": "Performance View",
+      "policy_review": "Policy·Review·Listing",
+      "rbac_role": "RBAC Role Settings",
+      "realtime": "Real-time",
+      "realtime_rate": "Real-time Rate",
+      "reprocess": "Reprocess",
+      "rule_writeback": "Rule Engine·Writeback",
+      "schema_quality_view": "Schema·Quality View",
+      "server_side": "Server-side",
+      "trend_forecast": "Trend Forecast",
+      "unlimited": "Unlimited"
+    },
+    "colRevenue": "Revenue",
+    "colRoas": "ROAS",
+    "kpiRevenue": "Gross Sales",
+    "kpiRoas": "ROAS",
+    "menu": {
+      "adAnalytics": "Ad & Channel Analytics",
+      "adPerformance": "Ad Performance",
+      "aiMarketing": "🚀 AI Marketing Automation",
+      "aiPrediction": "Ai Prediction",
+      "approvals": {
+        "approve": "Approve",
+        "approvedAt": "Approved At",
+        "approver": "Approver",
+        "itemTitle": "Item",
+        "noPending": "No Pending",
+        "reject": "❌ Reject",
+        "requestedAt": "Request Date",
+        "requester": "Requester",
+        "tabApproved": "Tab Approved",
+        "tabPending": "Tab Pending",
+        "tabRejected": "❌ Reject",
+        "viewDetail": "Details"
+      },
+      "attribution": "Attribution",
+      "autoMarketing": "AI Strategy Generator",
+      "budgetPlanner": "Budget Planner",
+      "campaignManager": "Campaign Manager",
+      "channelKpi": {
+        "achieved": "Achieved ✓",
+        "achievedOk": "Achieved ✓",
+        "aiAnalyzing": "AI Analyzing...",
+        "aiHistoryList": "AI Analysis History",
+        "aiSummary": "AI Analysis Summary",
+        "allChannels": "Total Channels",
+        "avgTime": "Avg Time",
+        "belowTarget": "Below Target",
+        "bizGoalSetting": "Biz Goal Setting",
+        "brandAwareness": "Brand Awareness",
+        "brandAwarenessDesc": "Brand Awareness Desc",
+        "channelRoleDef": "Channel Role Definition",
+        "checklist": "Key Action Items",
+        "chkCostPerf": "Cost vs Performance Check",
+        "chkEff": "Campaign Efficiency Check",
+        "chkImprove": "Identify Items for Improvement",
+        "claudeAiDesc": "Claude Ai Desc",
+        "claudeAiTitle": "Claude Ai Title",
+        "clickSelect": "Click Select",
+        "comments": "Comments",
+        "communityAct": "Community Act",
+        "communityGrowth": "Community Growth",
+        "communityKpi": "Community Kpi",
+        "contentEngage": "Content Engage",
+        "contentImpressions": "Content Impressions",
+        "contentInterest": "Content Interest",
+        "contentKpi": "Content Kpi",
+        "coreKpis": "Core KPIs",
+        "descBrandReach": "Large-scale brand exposure through SNS platform ads",
+        "descCaptureIntent": "Target users with high purchase intent via search algorithms",
+        "descConvRate": "Conversion Rate vs Target",
+        "descCpa": "Desc Cpa",
+        "descCpc": "Desc Cpc",
+        "descCtr": "Desc Ctr",
+        "descCustRel": "Secure customer loyalty through community activities",
+        "descInfoTrust": "Build expertise and trust through problem-solving content",
+        "descRoas": "Desc Roas",
+        "hintConvRate": "Hint Conv Rate",
+        "hintCpa": "Hint Cpa",
+        "hintCpc": "Hint Cpc",
+        "hintCtr": "Hint Ctr",
+        "hintRoas": "Hint Roas",
+        "improveRecs": "Improvement Recommendations",
+        "inquiries": "Inquiries",
+        "inquiriesPurchases": "Inquiries Purchases",
+        "inquiriesPurchasesDesc": "Inquiries Purchases Desc",
+        "interestConv": "Interest Conv",
+        "monitorAi": "AI Channel Performance Monitoring",
+        "monthlyAi": "Monthly Report",
+        "monthlyTrend": "Monthly Trend",
+        "newMembers": "New Signups",
+        "noHistory": "No execution history",
+        "overallAchieve": "Overall Achievement Status",
+        "pageViews": "Page Views",
+        "pleaseSelectGoal": "Please Select Goal",
+        "postViews": "Post Views",
+        "roleBrandReach": "Brand Reach",
+        "roleCaptureIntent": "Capture Purchase Intent",
+        "roleCustRel": "Strengthen Customer Relationships",
+        "roleInfoTrust": "Info · Trust Building",
+        "searchTraffic": "Search Traffic",
+        "selected": "Selected",
+        "selectedGoals": "Selected Goals",
+        "seoImpact": "Seo Impact",
+        "siteTraffic": "Site Traffic",
+        "snsKpiByChannel": "Sns Kpi By Channel",
+        "snsKpiOverview": "Sns Kpi Overview",
+        "strengths": "Strengths",
+        "tabCommunity": "Tab Community",
+        "tabContent": "Tab Content",
+        "tabGoals": "Tab Goals",
+        "tabMonitor": "Tab Monitor",
+        "tabRoles": "Tab Roles",
+        "tabSetup": "Tab Setup",
+        "tabSns": "Tab Sns",
+        "tabTargets": "Tab Targets",
+        "targetSetup": "KPI Target Setting by Channel",
+        "targetVsActuals": "Target Vs Actuals",
+        "visitors": "Visitors",
+        "weaknesses": "Weaknesses",
+        "webTraffic": "Web Traffic",
+        "webTrafficDesc": "Web Traffic Desc",
+        "weeklyAdTrend": "Weekly Ad Efficiency Trend",
+        "weeklyAi": "Weekly Report"
+      },
+      "commerce": "Commerce & Settlement",
+      "commerceSearch": "Commerce Search",
+      "connectors": {
+        "apiKey": "Api Key",
+        "configure": "Configuration",
+        "daily": "Daily",
+        "hourly": "Hourly",
+        "lastSync": "Last Sync",
+        "noConnectors": "No Connectors",
+        "oauthLogin": "Oauth Login",
+        "real_time": "Real-time",
+        "syncFrequency": "Sync Frequency",
+        "tabAds": "Ad Channels",
+        "tabAll": "Tab All",
+        "tabLogistics": "Logistics",
+        "tabSales": "Sales channel",
+        "testConnection": "Connection Test"
+      },
+      "contentCalendar": "Content Calendar",
+      "crm": "Customer · CRM",
+      "crmMain": "Customer CRM + AI Segment",
+      "customerCrm": "Customer Crm",
+      "dashboard": "Unified Dashboard",
+      "emailMarketing": "Email + A/B Test",
+      "eventNorm": {
+        "addSchema": "Add Schema",
+        "eventName": "Event Name",
+        "mappingRule": "Mapping Rule",
+        "noSchemas": "No Schemas",
+        "sourceChannel": "Source Channel",
+        "standardEvent": "Standard Event",
+        "status": "Status",
+        "tabMapping": "Tab Mapping",
+        "tabSchemas": "📋 Schemas",
+        "tabTest": "Tab Test",
+        "testEvent": "Test Event"
+      },
+      "graphScore": "Graph Score",
+      "home": "Home",
+      "influencer": "Influencer",
+      "instagramDm": "Instagram/Facebook DM",
+      "journeyBuilder": "Journey Builder",
+      "kakaoChannel": "Kakao Channel",
+      "lineChannel": "Line Channel",
+      "mappingRegistry": {
+        "addMapping": "Add Mapping",
+        "delete": "Delete",
+        "edit": "Edit",
+        "fromChannel": "Origin",
+        "mappingRule": "Mapping Rule",
+        "noMappings": "No Mappings",
+        "tabCategoryMap": "Tab Category Map",
+        "tabChannelMap": "Tab Channel Map",
+        "tabProductMap": "Tab Product Map",
+        "toChannel": "Target"
+      },
+      "marketingIntel": {
+        "adCtaLabel": "CTA",
+        "badge20kpi": "20 KPI",
+        "cpc": "CPC",
+        "riskHigh": "high",
+        "riskLow": "low",
+        "riskMedium": "medium",
+        "roas": "ROAS",
+        "roi": "ROI"
+      },
+      "reviewsUgc": "Reviews & UGC Analysis",
+      "rollup": "Rollup View",
+      "smsMarketing": "SMS/LMS Marketing",
+      "webPopup": "Web Popup",
+      "whatsapp": "WhatsApp",
+      "writeback": {
+        "createPolicy": "Create Policy",
+        "inactive": "Deactivated",
+        "lastRun": "Last Run",
+        "runNow": "Run Now",
+        "status": "Status",
+        "tabLog": "Tab Log",
+        "target": "Target",
+        "trigger": "🎯 Trigger"
+      }
+    },
+    "pricingDetail": {
+      "ent_badge": "Ent_badge",
+      "ent_desc": "Pro All + Instant Rollback·Amazon Policy·Market Share·Data Governance·SmartConnect Partner API·Influencer DB·Full Audit·Auto Reports.",
+      "ent_headline": "Ent_headline",
+      "ent_s1": "Writeback Instant Rollback (New)",
+      "ent_s1i1": "Writeback Setup·Logs",
+      "ent_s1i2": "Instant Rollback (Immediate Error Recovery)",
+      "ent_s1i3": "Multi-Brand Auto Execution",
+      "ent_s1i4": "Full Rollback History View",
+      "ent_s2": "Amazon Advanced Operations (New)",
+      "ent_s2i1": "Amazon Account Health Monitor",
+      "ent_s2i2": "Policy Compliance Management",
+      "ent_s2i3": "Full Review Monitoring",
+      "ent_s2i4": "Listing Quality Audit",
+      "ent_s3": "Market Intelligence (New)",
+      "ent_s3i1": "Market Share Analysis",
+      "ent_s3i2": "Competitor Ad Tracking (AI)",
+      "ent_s3i3": "Trend AI Forecast Model",
+      "ent_s3i4": "Channel Attribution All Models",
+      "ent_s3i5": "Conversion Path Analysis",
+      "ent_s4": "Data Product Governance (New)",
+      "ent_s4i1": "Data Product Schema·Quality Metrics",
+      "ent_s4i2": "SLA Management·Owner Assignment",
+      "ent_s4i3": "API-based Data Streaming Export",
+      "ent_s4i4": "Event Normalization Full Mgmt",
+      "ent_s4i5": "OAuth Partner Management",
+      "ent_s4i6": "Advanced Data Mapping",
+      "ent_s5": "SmartConnect Partner API (New)",
+      "ent_s5i1": "Partner-level Bidirectional Real-time Integration",
+      "ent_s5i2": "Full Real-time Sync Logs",
+      "ent_s5i3": "ERP·SCM·WMS Full Integration",
+      "ent_s5i4": "Custom Webhook Advanced Setup",
+      "ent_s6": "Advanced Marketing (New)",
+      "ent_s6i1": "Full Influencer DB·Campaign Execution·Settlement",
+      "ent_s6i2": "Kakao Bizboard (Large-scale Ads)",
+      "ent_s6i3": "WhatsApp Advanced Setup (Channel API)",
+      "ent_s6i4": "LINE Channel Advanced Setup",
+      "ent_s6i5": "AI Segment Advanced (Custom Criteria)",
+      "ent_s6i6": "Competitor Review Comparison Analysis",
+      "ent_s7": "Operations & Governance All (New)",
+      "ent_s7i1": "Ops Hub Alert Send (Admin Notice)",
+      "ent_s7i2": "3PL Delete·Contract Management",
+      "ent_s7i3": "Full Audit Log·CSV Export",
+      "ent_s7i4": "System Monitor Alert Setup",
+      "ent_s7i5": "Auto Report Generate·Scheduled Send",
+      "ent_s7i6": "Dashboard External Share·Embed",
+      "ent_s8": "Pro All Included + Unlimited",
+      "ent_s8i1": "All Pro Plan Features Included",
+      "ent_s8i2": "Unlimited Accounts·Users·Team Members",
+      "ent_s8i3": "Priority Support SLA",
+      "ent_s8i4": "Dedicated Onboarding Consulting·Annual Training",
+      "ent_s9": "Custom & Dedicated Services",
+      "ent_s9i1": "Custom Dashboard Configuration",
+      "ent_s9i2": "Dedicated Manager Assignment",
+      "ent_s9i3": "Annual Contract-based Custom Discount",
+      "ent_s9i4": "Custom Training·Workshop",
+      "ent_tagline": "Ent_tagline",
+      "free_desc": "Experience the full Geniego-ROI platform instantly upon signup.",
+      "free_headline": " Experience Plan",
+      "free_l1": "No real-time data",
+      "free_l2": "No live channel integration",
+      "free_l3": "No save or download",
+      "free_s1": "Home Dashboard",
+      "free_s1i1": "KPI Widgets ()",
+      "free_s1i2": "Quick Links",
+      "free_s1i3": "Onboarding Guide",
+      "free_s2": "My Team & Help",
+      "free_s2i2": "Video Tutorials",
+      "free_s2i3": "Release Notes",
+      "free_s3": "Subscription & Billing",
+      "free_s3i1": "View Current Plan",
+      "free_s3i2": "Upgrade Plan",
+      "free_tagline": "Free_tagline",
+      "growth_desc": "Grow your revenue with domestic commerce channels and basic CRM automation.",
+      "growth_headline": "Growth_headline",
+      "growth_l1": "AI Forecast (Churn·LTV) — Pro+",
+      "growth_l2": "Customer Journey Builder — Pro+",
+      "growth_l3": "Global Channels (WhatsApp·LINE·DM) — Pro+",
+      "growth_l4": "AI Rule Engine — Pro+",
+      "growth_l5": "1st-Party Pixel·API Keys — Pro+",
+      "growth_l6": "SmartConnect ERP Integration — Pro+",
+      "growth_s1": "AI Marketing Automation (Core)",
+      "growth_s1i1": "AI Ad Creative Generation",
+      "growth_s1i2": "Campaign Setup·Manage·List·Report",
+      "growth_s1i3": "Content Calendar",
+      "growth_s1i4": "Budget Planner",
+      "growth_s1i5": "Alert Policy List & Logs",
+      "growth_s2": "Ad & Channel Analytics (Domestic)",
+      "growth_s2i1": "Ad Summary·Channel·Product Analysis",
+      "growth_s2i2": "ROAS Analysis",
+      "growth_s2i3": "Keyword Analysis",
+      "growth_s2i4": "Channel KPI (Impressions·CTR·CVR·CPA/CPC)",
+      "growth_s2i5": "ROAS Calculator",
+      "growth_s3": "Customer CRM (Basic)",
+      "growth_s3i1": "Customer DB·360° View·Tag Management",
+      "growth_s3i2": "RFM Analysis·Segment Builder·Message Send",
+      "growth_s3i3": "Email Campaign (Send·A/B·Performance·Schedule)",
+      "growth_s3i4": "Kakao Notification·FriendTalk·Stats",
+      "growth_s3i5": "SMS/LMS Campaign·Text Templates",
+      "growth_s3i6": "Exit Popup·Web Popup (Basic)",
+      "growth_s4": "Commerce & Logistics (Domestic)",
+      "growth_s4i1": "Coupang·Naver·Cafe24 Channel Integration",
+      "growth_s4i2": "Order Hub (All Orders·Claims·Returns·Shipping)",
+      "growth_s4i3": "Bulk Product Register·Catalog Sync·Price Rules",
+      "growth_s4i4": "Basic WMS (Stock·Alerts·Inbound·Outbound)",
+      "growth_s4i5": "Monthly Settlement·Shipping·Excel Export",
+      "growth_s4i6": "3PL Carrier List View",
+      "growth_s5": "Analytics & Performance",
+      "growth_s5i1": "Performance Summary·Channel·Product·Campaign",
+      "growth_s5i2": "P&L Overview",
+      "growth_s5i3": "AI Insight Feed",
+      "growth_s5i4": "Custom Report·Excel Export",
+      "growth_s6": "Settlement & Finance",
+      "growth_s6i1": "Settlement History·Channel·Excel",
+      "growth_s6i2": "Payment List·Excel",
+      "growth_s6i3": "Plan View·Billing History·Invoice",
+      "growth_s6i4": "License Activation·Status",
+      "growth_s7": "Channel & Data Integration (Domestic)",
+      "growth_s7i1": "Meta·Google·TikTok·Naver·Kakao Ad Integration",
+      "growth_s7i2": "Coupang Connector",
+      "growth_s7i3": "Currency Selection (KRW/USD/JPY/EUR Global)",
+      "growth_s8": "Team Management",
+      "growth_s8i1": "Team Member List·Invite",
+      "growth_s8i2": "My Activity History",
+      "growth_s8i3": "Support Ticket",
+      "growth_tagline": "Growth_tagline",
+      "pro_badge": "Pro_badge",
+      "pro_desc": "Growth All + AI Forecast·Journey Builder·Global Channels·Rule Engine·SmartConnect·1st-Party Pixel·Advanced BI.",
+      "pro_headline": "Pro_headline",
+      "pro_l1": "Writeback Instant Rollback — Enterprise",
+      "pro_l2": "Amazon Policy·Review Mgmt — Enterprise",
+      "pro_l3": "Market Share·Trend AI — Enterprise",
+      "pro_l4": "Data Product SLA·Governance — Enterprise",
+      "pro_l5": "SmartConnect Partner API Bidirectional — Enterprise",
+      "pro_l6": "Influencer DB·Campaign Execution — Enterprise",
+      "pro_l7": "Audit Log Full Export — Enterprise",
+      "pro_l8": "Auto Report·Scheduled Send — Enterprise",
+      "pro_l9": "API Data Streaming Export — Enterprise",
+      "pro_s1": "AI Forecast Engine (New)",
+      "pro_s10": "Real-time FX + Team Mgmt",
+      "pro_s10i1": "Real-time Exchange Rate (Global Currency)",
+      "pro_s10i2": "Team Activity Audit",
+      "pro_s10i3": "System Status·API Monitoring",
+      "pro_s10i4": "Batch Job Run·Reprocess",
+      "pro_s1i1": "Churn·LTV·Purchase Probability Forecast",
+      "pro_s1i2": "Graph Scoring",
+      "pro_s1i3": "Next Best Action Recommendation",
+      "pro_s1i4": "Product Recommendation AI",
+      "pro_s1i5": "AI Ad Insights",
+      "pro_s1i6": "AI Segment (VIP·Churn Risk·Potential VIP Auto-classify)",
+      "pro_s2": "Customer Journey Builder (New)",
+      "pro_s2i1": "Journey Canvas (Drag&Drop)",
+      "pro_s2i2": "Trigger Setup·Action Node Management",
+      "pro_s2i3": "Journey Performance Stats Analysis",
+      "pro_s2i4": "A/B Test (Email·Popup)",
+      "pro_s3": "Global Channel All (New)",
+      "pro_s3i1": "Shopify·Amazon·LINE Ads Integration",
+      "pro_s3i2": "WhatsApp Broadcast·Automation",
+      "pro_s3i3": "Instagram DM·Facebook DM·DM Campaign",
+      "pro_s3i4": "LINE Message Campaign·Statistics",
+      "pro_s3i5": "Popup A/B Test·Trigger Setup",
+      "pro_s4": "Advanced WMS + Commerce Expansion",
+      "pro_s4i1": "Stock Adjustment·Location Mgmt·Barcode Integration",
+      "pro_s4i2": "Monthly Settlement Integration·Tax Invoice·Payment Approval",
+      "pro_s4i3": "3PL Add·Edit",
+      "pro_s4i4": "Collection Log Basic View",
+      "pro_s5": "AI Rule Engine & Automation (New)",
+      "pro_s5i1": "AI Policy Setup·Rule List·Test",
+      "pro_s5i2": "Alert Evaluation Model",
+      "pro_s5i3": "Action Preset Management",
+      "pro_s5i4": "Writeback Setup·Logs",
+      "pro_s5i5": "Approval Decision Automation",
+      "pro_s6": "Review & UGC Analytics (New)",
+      "pro_s6i1": "Channel Review Collection·Sentiment Analysis",
+      "pro_s6i2": "AI Auto-Reply Draft Generation",
+      "pro_s6i3": "UGC (Instagram·YouTube) Performance Analysis",
+      "pro_s6i4": "Keyword Analysis",
+      "pro_s7": "SmartConnect Hub (New)",
+      "pro_s7i1": "ERP·SCM·3PL Basic Integration Setup",
+      "pro_s7i2": "REST API / Webhook / SFTP Integration",
+      "pro_s7i3": "Field Mapping Setup",
+      "pro_s7i4": "Basic Sync Log View",
+      "pro_s8": "1st-Party Pixel + Data",
+      "pro_s8i1": "Pixel Code Install·Verification",
+      "pro_s8i2": "Real-time Event Stream View",
+      "pro_s8i3": "Attribution Analysis (Touch Model·ROAS)",
+      "pro_s8i4": "Event Collection·Data Schema·Mapping",
+      "pro_s8i5": "API Key·Webhook·OAuth Integration",
+      "pro_s9": "Advanced Analytics & BI",
+      "pro_s9i1": "Cohort Analysis",
+      "pro_s9i2": "P&L by Channel·Product·Trend",
+      "pro_s9i3": "Anomaly Detection·Competitor AI Analysis",
+      "pro_s9i4": "Influencer Performance View",
+      "pro_tagline": "Pro_tagline"
+    },
+    "report": {
+      "addRecipient": "Add Recipient",
+      "addWidget": "Add Widget",
+      "colFrequency": "Frequency",
+      "colLastRun": "Last Run",
+      "colReportName": "Report Name",
+      "dateRange": "Period",
+      "exportExcel": "Excel Export",
+      "exportPdf": "PDF Export",
+      "freqDaily": "Daily",
+      "freqMonthly": "Monthly",
+      "freqWeekly": "Weekly",
+      "granularity": "Unit",
+      "lastRun": "Last Run",
+      "nextRun": "Next Run",
+      "recipients": "Recipients",
+      "reportName": "Report Name",
+      "reportNamePh": "Report Name Ph",
+      "runReport": "Run Report",
+      "saveReport": "Save",
+      "scheduleReport": "Schedule Report",
+      "selectDimensions": "Select Dimensions",
+      "selectMetrics": "Select Metrics",
+      "subtitle": "Precision Shapley (2^n) · Bayesian MMM · Markov Chain · Incremental Uplift (Dual ML) · Thompson Sampling A/B",
+      "tabBuilder": "Report Builder",
+      "tabScheduled": "Scheduled Reports",
+      "tabTemplates": "Template",
+      "title": "Email Marketing"
+    },
+    "subtitle": "Precision Shapley (2^n) · Bayesian MMM · Markov Chain · Incremental Uplift (Dual ML) · Thompson Sampling A/B",
+    "units": {
+      "ago": "Ago",
+      "perDay": " days",
+      "ppl": "people",
+      "pts": "Pts",
+      "types": "Types"
     }
   },
 
@@ -41046,154 +41944,71 @@ export default {
   },
 
   "commerce": {
-
     "totalOrders": "총 주문",
-
     "totalRevenue": "총 매출",
-
     "returnRate": "반품율",
-
     "channels": "채널 수",
-
     "channelPerf": "채널 성과",
-
     "topSku": "TOP SKU",
-
     "orders": "주문",
-
     "revenue": "매출",
-
     "returns": "반품",
-
     "outOfStock": "품절",
-
     "ratio": "비율",
-
     "sku": "SKU",
-
     "product": "상품명",
-
     "sold": "판매량",
-
     "productHub": "상품 관리 허브",
-
     "productActive": "판매중",
-
     "productPaused": "일시중지",
-
     "productSoldout": "품절",
-
     "productLowStock": "재고 부족",
-
     "productAvgMargin": "평균 마진율",
-
     "productInvValue": "재고 자산",
-
     "productLowStockAlert": "재고 부족 알림",
-
     "productViewTable": "상품 목록 뷰",
-
     "productViewMargin": "원가/마진 분석 뷰",
-
     "productSearch": "상품명·SKU 검색",
-
     "filterCategory": "카테고리",
-
     "filterStatus": "상태",
-
     "filterChannel": "채널",
-
     "excelDownload": "엑셀 다운로드",
-
     "colProductName": "상품명",
-
     "colSku": "SKU",
-
     "colCategory": "카테고리",
-
     "colSupplier": "공급처",
-
     "colCost": "원가",
-
     "colSupplyPrice": "공급가",
-
     "colSalePrice": "판매가",
-
     "colMarginAmt": "마진액",
-
     "colMarginRate": "마진율",
-
     "colSafeQty": "안전재고",
-
     "colStock": "재고",
-
     "colChannelStatus": "채널 등록",
-
     "colPromo": "프로모션",
-
     "colStatus": "상태",
-
     "colOrigin": "원산지",
-
     "colWeight": "무게(kg)",
-
     "colInvValue": "재고자산",
-
     "addProduct": "+ 신규 상품 등록",
-
     "editProduct": "상품 수정",
-
     "priceUpdate": "가격·원가 변경",
-
     "promoSetting": "프로모션 설정",
-
     "marginPreview": "마진 미리보기",
-
     "pauseProduct": "판매 중지",
-
     "resumeProduct": "판매 재개",
-
     "liveSync": "실시간 동기화",
-
-
-
     "grossRevenue": "총 매출",
-
-
-
     "settled": "정산 완료",
-
-
-
     "targetB3": "타겟 B3",
-
-
-
     "reconRate": "정합률",
-
-
-
     "autoMatch": "자동 매칭",
-
-
-
     "gender": "성별",
-
-
-
     "age": "연령",
-
-
-
-    "region": "지역"
-
-
-
-  ,
-
+    "region": "지역",
     "margin": "마진",
-
-    "stock": "재고"
+    "stock": "재고",
+    "top5Sku": "TOP 5 SKU"
   },
 
   "perms": {
@@ -41915,138 +42730,74 @@ export default {
   },
 
   "reportBuilder": {
-
     "pageTitle": "리포트 빌더",
-
     "pageDesc": "섹션 선택 · 기간/채널/SKU 필터 · 실시간 미리보기 — CSV/PDF 내보내기",
-
     "csvExport": "📥 CSV 내보내기",
-
     "pdfExport": "🖨 PDF 내보내기",
-
     "downloadReady": "다운로드 준비 완료",
-
     "sectionSelect": "📋 섹션 선택",
-
     "filterPanel": "🎛 리포트 필터",
-
     "period": "기간",
-
     "channel": "채널",
-
     "preview": "👁 실시간 미리보기",
-
     "sectionsSelected": "개 섹션 선택됨",
-
     "selectToPreview": "왼쪽에서 섹션을 선택하면 미리보기가 표시됩니다",
-
     "noChannelSelected": "선택된 채널 없음",
-
     "noSkuSelected": "선택된 SKU 없음",
-
     "period7d": "최근 7일",
-
     "period30d": "최근 30일",
-
     "period90d": "최근 90일",
-
     "periodQ1": "Q1 2026",
-
     "createdDate": "생성일",
-
     "includedSections": "포함 섹션",
-
     "reportTitle": "📊 Geniego-ROI 통합 리포트",
-
     "sectionKpi": "핵심 KPI 요약",
-
     "sectionKpiDesc": "매출·광고비·수익 지표",
-
     "sectionPnl": "P&L 워터폴",
-
     "sectionPnlDesc": "비용 구조 분석",
-
     "sectionCampaign": "캠페인 성과표",
-
     "sectionCampaignDesc": "채널별 ROAS·주문",
-
     "sectionCreator": "크리에이터 성과",
-
     "sectionCreatorDesc": "ROI·기여 매출",
-
     "sectionSku": "SKU 분석",
-
     "sectionSkuDesc": "상품별 마진·반품률",
-
     "sectionAnomaly": "이상징후 요약",
-
     "sectionAnomalyDesc": "자동 탐지 경보",
-
     "kpiRevenue": "총 매출",
-
     "kpiAdSpend": "광고비",
-
     "kpiNetProfit": "순이익",
-
     "kpiRoas": "Blended ROAS",
-
     "kpiOrders": "총 주문",
-
     "kpiReturnRate": "반품률",
-
     "colCampaign": "캠페인",
-
     "colChannel": "채널",
-
     "colAdSpend": "광고비",
-
     "colRoas": "ROAS",
-
     "colOrders": "주문",
-
     "colCreator": "크리에이터",
-
     "colTier": "등급",
-
     "colViews": "조회수",
-
     "colRevenue": "기여매출",
-
     "colRoi": "ROI",
-
     "colSku": "SKU",
-
     "colProductName": "상품명",
-
     "colMargin": "마진",
-
     "colReturnRate": "반품률",
-
     "pnlRevenue": "총 매출",
-
     "pnlAdSpend": "(-) 광고비",
-
     "pnlFees": "(-) 플랫폼 수수료",
-
     "pnlInfluencer": "(-) 인플루언서",
-
     "pnlNetProfit": "= 순이익",
-
     "anomalyTitle": "⚠ 이상징후 요약",
-
     "kpiTitle": "📊 핵심 KPI",
-
     "campaignTitle": "📣 캠페인 성과",
-
     "creatorTitle": "🤝 크리에이터 성과",
-
     "skuTitle": "📦 SKU 분석",
-
-    tabSaved: '💾 저장된 리포트',
-    allChannels: '전체 채널',
-    noData: '데이터가 없습니다.',
-  
-    "downloadExcel": "📥 엑셀 다운로드"
+    "tabSaved": "💾 저장된 리포트",
+    "allChannels": "전체 채널",
+    "noData": "데이터가 없습니다.",
+    "downloadExcel": "📥 엑셀 다운로드",
+    "downloadPdf": "⬇ PDF"
   },
 
   "alertPolicies": {
@@ -44101,7 +44852,48 @@ export default {
     "timelineView": "🕐 타임라인 보기",
     "todayEvents": "오늘의 이벤트",
     "totalEvents": "전체 이벤트 총합",
-    "totalEventsDesc": "감사 로그 항목 총합"
+    "totalEventsDesc": "감사 로그 항목 총합",
+    "apply": "Apply",
+    "close": "Close",
+    "colActions": "Action",
+    "colDate": "Date",
+    "colSku": "SKU",
+    "confirm": "Confirm",
+    "copyLink": "Copy Link",
+    "create": "Created",
+    "delete": "Delete",
+    "deselectAll": "Deselect All",
+    "download": "Download",
+    "edit": "Edit",
+    "error": "Errors",
+    "export": "Export",
+    "filter": "Filter",
+    "import": "Import",
+    "info": "Info",
+    "next": "Next",
+    "pageOf": "{page} / {total}",
+    "period": {
+      "daily": "Daily",
+      "monthly": "Monthly",
+      "seasonal": "Seasonal",
+      "weekly": "Weekly",
+      "yearly": "Yearly"
+    },
+    "prev": "Previous",
+    "reset": "Reset",
+    "save": "Save",
+    "search": "Search",
+    "segment": {
+      "audience": "Audience",
+      "category": "Category",
+      "creative": "Creative"
+    },
+    "selectAll": "Select All",
+    "sort": "Sort",
+    "success": "Success",
+    "upload": "Upload",
+    "view": "View",
+    "warning": "Warnings"
   },
   "graph": {
     "contribCreative": "기여 크리에이티브",
@@ -44116,13 +44908,19 @@ export default {
     "sourceNode": "출발 노드",
     "targetNode": "대상 노드",
     "topInfluencer": "🏆 상위 기여 인플루언서",
-    "weight": "가중치"
+    "weight": "가중치",
+    "mockData": "🟡 MOCK Data",
+    "mockResult": "🟡 MOCK Results",
+    "noEdge": "No Edge — Register Node/Edge in Tab above"
   },
   "performance": {
     "account": "계정",
     "allAccounts": "모든 계정",
     "allTeams": "모든 팀",
-    "team": "팀"
+    "team": "팀",
+    "colCvr": "CVR%",
+    "compareTo": "Compare to",
+    "kpiCvr": "CVR"
   },
   "attribution": {
     "alert": "알림",
