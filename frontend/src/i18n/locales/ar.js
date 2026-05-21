@@ -6676,7 +6676,6 @@ export default {
     "upgradeBarMembership": "Membership Coupon Setup"
   },
   "enterprise": "Enterprise",
-  "workspace": "Workspace",
   "myTeam": "My Team",
   "helpCenter": "Help Center",
   "plan": "Plan",
