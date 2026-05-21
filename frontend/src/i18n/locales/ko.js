@@ -24738,6 +24738,65 @@ export default {
 
     "guideDesc": "대시보드 사용법 안내"
 
+  ,
+
+    "ageDist": "📊 연령대 분포",
+
+    "ai": "AI 분석",
+
+    "brand": "브랜드 영향력",
+
+    "buyerAge": "📊 구매자 연령",
+
+    "buyerGender": "⚥ 구매자 성별",
+
+    "cautionMarket": "⚠️ 주의 시장",
+
+    "channelRoas": "채널별 매출·ROAS",
+
+    "contribution": "기여도",
+
+    "convert": "전환(ROI)",
+
+    "country": "성별·연령",
+
+    "countryChannel": "채널",
+
+    "countryOverview": "개요",
+
+    "countryRanking": "🏆 국가별 매출 기여도 랭킹",
+
+    "countryRegion": "지역",
+
+    "engage": "참여율",
+
+    "genderDist": "⚥ 성별 분포",
+
+    "globalTopProducts": "글로벌 인기 상품 Top 5",
+
+    "growth": "성장률",
+
+    "orderCount": "주문수",
+
+    "quality": "품질 평가",
+
+    "reach": "도달 성과",
+
+    "regionOrder": "📍 지역별 주문",
+
+    "report": "성과 리포트",
+
+    "selectChannel": "채널을 선택하면\n상세 분석이 표시됩니다",
+
+    "shareRate": "점유율",
+
+    "topGrowth": "🚀 고성장 시장 Top 5",
+
+    "topRegion": "📍 Top 지역",
+
+    "totalRevenue": "총 매출",
+
+    "vsYesterday": "vs 어제"
   },
 
   "pricing": {
