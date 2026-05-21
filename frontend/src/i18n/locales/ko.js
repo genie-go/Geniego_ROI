@@ -40810,6 +40810,8 @@ export default {
     tabSaved: '💾 저장된 리포트',
     allChannels: '전체 채널',
     noData: '데이터가 없습니다.',
+  
+    "downloadExcel": "📥 엑셀 다운로드"
   },
 
   "alertPolicies": {
