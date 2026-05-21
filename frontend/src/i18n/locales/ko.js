@@ -33004,7 +33004,136 @@ export default {
 
       "msgTplReq": "❌ 필수 입력 항목을 채워주세요"
 
-    },
+    ,
+
+      "actEmpty": "활동 없음",
+
+      "aiInsight": "AI 인사이트",
+
+      "aiSum1": "🤖 AI 세그먼트",
+
+      "aiSum2": "대상",
+
+      "aiSum3": "예상 매출",
+
+      "btnCancel": "취소",
+
+      "btnEmail": "📧 이메일",
+
+      "btnKakao": "💬 알림",
+
+      "btnRegister": "등록",
+
+      "btnSave": "저장",
+
+      "btnSaving": "저장 완료",
+
+      "colCnt": "횟수",
+
+      "colEmail": "이메일",
+
+      "colGrade": "등급",
+
+      "colLast": "최근",
+
+      "colLtv": "LTV",
+
+      "colPhone": "전화",
+
+      "emptyCust": "데이터 없음",
+
+      "fEmail": "이메일",
+
+      "fGrade": "등급",
+
+      "fGradeGen": "일반",
+
+      "fPhone": "전화",
+
+      "fSearch": "캠페인 검색...",
+
+      "formNew": "신규 고객",
+
+      "gChamp": "챔피언",
+
+      "gLost": "이탈",
+
+      "gLoyal": "충성",
+
+      "gNew": "신규",
+
+      "gNormal": "일반",
+
+      "gRisk": "리스크",
+
+      "gUrgent": "긴급",
+
+      "guideAiDesc": "자동 세그먼트",
+
+      "guideAiName": "AI",
+
+      "guideCustDesc": "LTV 및 등급 관리",
+
+      "guideCustName": "고객 목록",
+
+      "guideRfmDesc": "등급 분포 분석",
+
+      "guideRfmName": "📊 RFM 분석",
+
+      "guideSegDesc": "사용자 지정 조건",
+
+      "guideSegName": "수동 실행",
+
+      "htmlFallback": ",",
+
+      "lblAct": "활동",
+
+      "lblPhone": "전화",
+
+      "pageSub": "👥 고객 목록",
+
+      "pageTitle": "CRM 관리",
+
+      "rfmListTit": "RFM 목록",
+
+      "segAdd": "+ 추가",
+
+      "segColor": "색상",
+
+      "segCond": "조건",
+
+      "segCreate": "생성",
+
+      "segDesc": "설명",
+
+      "segEmpty": "없음",
+
+      "segName": "캠페인명",
+
+      "segNew": "신규",
+
+      "segUnit": "명",
+
+      "statAct": "활성",
+
+      "statLtv": "LTV 합계",
+
+      "statSeg": "세그먼트",
+
+      "statTot": "전체 고객",
+
+      "tDetail": "상세",
+
+      "tabAiSeg": "🤖 AI 세그먼트",
+
+      "tabCust": "👥 고객",
+
+      "tabManSeg": "🏷 수동",
+
+      "tabRfm": "📊 RFM 분석",
+
+      "titDetail": "고객 상세"
+  },
 
     "gUrgent": "긴급",
 
