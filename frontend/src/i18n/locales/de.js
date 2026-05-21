@@ -871,6 +871,13 @@ export default {
     'implemented': "適用済み",
     'priority': "優先度",
     'totalInsights': "総インサイト"
+  ,
+    'insightType': {
+      'anomaly': "異常",
+      'opportunity': "機会",
+      'risk': "リスク",
+      'trend': "トレンド"
+    }
   },
   "priceOpt": {
     "pageTitle": "Preisoptimierungsengine",
@@ -18536,6 +18543,12 @@ export default {
     'upload': "アップロード",
     'view': "詳細",
     'warning': "警告"
+  ,
+    'segment': {
+      'audience': "オーディエンス",
+      'category': "カテゴリー",
+      'creative': "クリエイティブ"
+    }
   },
   "mobile": {
     "hello": "Hallo,",
@@ -18908,6 +18921,24 @@ export default {
     "defaultSummary": "Detailed help for this page is being prepared.",
     "defaultStep1": "Click the Manual in the top bar to view the full guide.",
     "defaultStep2": "Use Unified Search (Ctrl+K) to find any feature."
+  ,
+    'staticHelp': {
+      'connectors': {
+        'steps': "Steps",
+        'summary': "Send domestic SMS/LMS messages and manage send history and statistics.",
+        'title': "Email Marketing"
+      },
+      'help': {
+        'steps': "Steps",
+        'summary': "Send domestic SMS/LMS messages and manage send history and statistics.",
+        'title': "Email Marketing"
+      },
+      'smsMarketing': {
+        'steps': "Steps",
+        'summary': "Send domestic SMS/LMS messages and manage send history and statistics.",
+        'title': "Email Marketing"
+      }
+    }
   },
   "pricingDetail": {
     "free_tagline": "Kostenlos starten",
