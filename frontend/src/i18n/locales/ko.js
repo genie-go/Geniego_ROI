@@ -20905,7 +20905,9 @@ export default {
 
           "tips": "팁"
 
-        }
+        },
+
+        "steps": "단계"
 
       },
 
@@ -20930,6 +20932,26 @@ export default {
         "steps": "단계",
 
         "tips": "팁"
+
+      },
+
+      "help": {
+
+        "steps": "단계",
+
+        "summary": "국내 SMS/LMS 메시지를 발송하고 발송 이력과 통계를 관리합니다.",
+
+        "title": "이메일 마케팅"
+
+      },
+
+      "smsMarketing": {
+
+        "steps": "단계",
+
+        "summary": "국내 SMS/LMS 메시지를 발송하고 발송 이력과 통계를 관리합니다.",
+
+        "title": "SMS 마케팅"
 
       }
 
