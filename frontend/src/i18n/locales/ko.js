@@ -32620,10 +32620,21 @@ export default {
   },
 
   "gSug": {
-
-    "": ""
-
-  },
+      "Beauty brand Instagram ad strategy": "뷰티 브랜드 Instagram 광고 전략",
+      "Skincare SNS marketing recommendations": "스킨케어 상품 SNS 마케팅 전략",
+      "Cosmetic targeting ad effectiveness": "화장품 타겟팅 광고 효과 분석",
+      "Beauty TikTok ad budget allocation": "뷰티 TikTok 광고 최적 예산 배분",
+      "Fashion e-commerce season-off promotions": "패션 EC 시즌오프 프로모션 전략",
+      "Apparel target audience setup": "의류 타겟 고객 구성",
+      "Household goods conversion optimization": "생활용품 전환 최적화 전략",
+      "Organic food Meta ad approach": "유기농 식품 Meta 광고 전략",
+      "Electronics ROI analysis across channels": "전자제품 채널별 ROI 분석",
+      "Overseas forwarding B2B lead gen": "해외배송 B2B 리드 확보",
+      "Travel package display ads strategy": "여행 패키지 디스플레이 광고 분석",
+      "SaaS user acquisition techniques": "SaaS 사용자 확보 가이드",
+      "Sports equipment YouTube campaigns": "스포츠 용품 YouTube 캠페인 기획",
+      "Health supplement Google Adwords tactics": "건강식품 Google 검색광고 전략"
+    },
 
   "actionPresets": {
 
