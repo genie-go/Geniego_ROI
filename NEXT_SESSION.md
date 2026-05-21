@@ -1,5 +1,37 @@
 # NEXT_SESSION.md — 143 → 144 인계서
 
+## ★ 144차 검수자 시작 시 사용자에게 먼저 물어야 할 사항
+
+다음 차수 검수자는 raw 무결성 측정 후, **작업 시작 전에 사용자에게 아래 결정 사항을 반드시 묻는다**:
+
+### 결정 1: 5-F 성과허브 (nav.pages.performance 11 ns) 다국어 운영 정책
+
+**배경**: ko 에 152 entries 존재. ja/zh 정답군에는 부재. 운영 정책 미정.
+
+**옵션**:
+- **A**: 모든 언어 지원 (ja 번역값 입력 → 13 lang PASSTHROUGH, +1,976)
+- **B**: ko-only 운영 (12 lang 에서 메뉴 숨김 코드 변경)
+- **C**: 영문 기준 글로벌 (en 번역값 입력 → 12 lang PASSTHROUGH, +1,824) ★ 검수자 추천
+
+**진단 도구**: `session143_probe_perfhub.mjs` (143차 작성, 미실행)
+
+### 결정 2: ja_jp PASSTHROUGH 승인 유지 여부
+
+**현황**: 143차에 사용자 명시 승인으로 4,668 entries PASSTHROUGH 완료 (ko 한글 위치에 일본어 노출).
+
+**144차 추가 가능 작업**:
+- ja_cjk 2,616건 분리 후 일본어 한자만 PASSTHROUGH (잠재 +500~1,500)
+
+**질문**: ja_jp PASSTHROUGH 승인 유지 → ja_cjk 분리 작업 진행 OK?
+
+### 결정 3: `_marketing_1` 3중 중복 처리 (-2,289 entries)
+
+**현황**: 142차 인계서 보고. 동일 ns 가 3번 중복 정의됨. dead code 가능성 높음.
+
+**작업**: 검수자가 코드 호출 grep 검증 → dead 확인되면 제거 권장. **사용자가 진행 승인 필요**.
+
+---
+
 ## 143차 종결 시점 무결성 (s143_step62_final_check3 기준)
 
 | 항목 | 값 |
@@ -67,7 +99,7 @@
 
 **예상 회수**: +24 entries
 
-### 2순위: ja_cjk 2,616건 분류 후 PASSTHROUGH
+### 2순위: ja_cjk 2,616건 분류 후 PASSTHROUGH (★ 사용자 결정 2 의 결과에 따라)
 
 **현황**: 한자만 — 일본어 한자 vs 중국어 한자 모호. ja vs zh 비교로 분리.
 
@@ -77,18 +109,16 @@
 
 **예상 회수**: +500~1,500 entries (정확한 비율은 측정 필요)
 
-### 3순위: 5-F 성과허브 nav.pages.performance 11개 신규 ns
-
-**현황**: ja/zh 정답군 부재 — 사용자 결정 영역.
+### 3순위: 5-F 성과허브 (★ 사용자 결정 1 의 결과에 따라)
 
 **진단 도구**: `session143_probe_perfhub.mjs` (143차 작성, 미실행)
 
-**잠재**: ko 152 entries × 12 lang propagation
+**잠재**: 결정 옵션에 따라 +1,824 ~ +1,976 (옵션 A 또는 C)
 
 ### 4순위: 142차 인계서 잔여 백로그
 
 - audit mismatch 22 / pages ambiguous 3 / only_B 88 (코드 grep 검증 선행)
-- `_marketing_1` 3중 중복 2,289 entries (코드 호출 검증 후 dead 면 제거)
+- `_marketing_1` 3중 중복 2,289 entries (★ 사용자 결정 3)
 - nested 위치 빈키 검증 (L3868/L10412/L21518 등 indent 4 위치)
 
 ### 5순위: 도구 개선
@@ -121,10 +151,11 @@
 
 ## 144차 시작 권장 절차
 
-1. raw 재측정: `Get-ChildItem`, `node session140_kojaintersect_missing.mjs`, 13 lang `node --check`
-2. ja_jp PASSTHROUGH 승인 유지 — ja_cjk 분리 진행 가능
-3. 1순위 잔여 24건 정리 (가성비 + 무결성 완성)
-4. 작업 여력 최대 활용, 종결 자제
+1. **raw 무결성 재측정**: `Get-ChildItem`, `node session140_kojaintersect_missing.mjs`, 13 lang `node --check`
+2. **★ 사용자에게 결정 1/2/3 의견 묻기** (위 섹션 참고)
+3. 사용자 답변에 따라 작업 후보 우선순위 조정
+4. 1순위 잔여 24건 정리 (가성비 + 무결성 완성)
+5. 작업 여력 최대 활용, 종결 자제
 
 ## 143차 git 커밋 6개 (master)
 
