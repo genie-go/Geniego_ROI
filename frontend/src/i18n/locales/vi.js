@@ -12077,6 +12077,15 @@ export default {
       'sub': "レポート · 分析",
       'title': "レポート"
     }
+  ,
+    "approvals": {
+      "title": "액션 센터",
+      "sub": "承認 · 実行センター"
+    },
+    "mappingRegistry": {
+      "title": "매핑 레지스트리",
+      "sub": "マッピングレジストリ"
+    }
   },
   "coupon": {
     "pageTitle": "🔌 Integration Hub",
