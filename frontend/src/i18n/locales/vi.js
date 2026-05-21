@@ -24616,7 +24616,9 @@ export default {
     'pageTitle': "📋 レポートビルダー",
     'period': "期間",
     'tabSaved': "💾 保存済みレポート"
-  },
+  ,
+    downloadExcel: "?뱿 ?묒? ?ㅼ슫濡쒕뱶"
+},
   reportCards: {
     'attribution': "어트리뷰션",
     'attributionDesc': "チャネル別貢献度 · 信頼度分布",
