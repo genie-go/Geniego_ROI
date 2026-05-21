@@ -17953,7 +17953,30 @@ export default {
 
         "threatBodyPrefix": "입력 필드에서 공격 패턴 감지"
 
-      },
+      ,
+
+        "channelPerf": "채널 성과",
+
+        "colConversions": "전환",
+
+        "colCtr": "클릭률%",
+
+        "colCvr": "CVR%",
+
+        "colRevenue": "수익",
+
+        "colRoas": "ROAS",
+
+        "colSpend": "지출",
+
+        "subtitle": "실시간 KPI 모니터링 · 이상 탐지 · 채널 통합 분석",
+
+        "tabOverview": "개요",
+
+        "tabProducts": "상품",
+
+        "title": "성과 허브"
+  },
 
       "graph": {
 
@@ -39868,6 +39891,11 @@ export default {
 
 
 
+  ,
+
+    "margin": "마진",
+
+    "stock": "재고"
   },
 
   "perms": {
