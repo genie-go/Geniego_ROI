@@ -26908,10 +26908,13 @@ export default {
     'comingSoonTitle': "近日公開予定"
   },
   performance: {
-    'account': "アカウント",
-    'allAccounts': "すべてのアカウント",
-    'allTeams': "すべてのチーム",
-    'team': "チーム"
+    "account": "アカウント",
+    "allAccounts": "すべてのアカウント",
+    "allTeams": "すべてのチーム",
+    "team": "チーム",
+    "colCvr": "CVR%",
+    "compareTo": "Compare to",
+    "kpiCvr": "CVR"
   }
 ,
   'account': "Account",
