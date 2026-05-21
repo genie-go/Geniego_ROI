@@ -15265,17 +15265,6 @@ export default {
     "guideReadyDesc": "Select Attribution from the menu."
   },
   "refresh": "Refresh",
-  "": {
-    "LockBadge": "🔒 ",
-    "SampleDesc2": "This feature fetches real data only after paid plan integration. The current view contains virtual sample data.",
-    "SampleDesc3": "Virtual data is being displayed.",
-    "PricingView": "View Pricing",
-    "upgradeBarDesc": "Connect your API now to fully utilize the platform with your own data.",
-    "ApiRegister": "View Integration Guide",
-    "upgradeBarTitle": "🎉 Connect your actual business data and try all features free for 7 days!",
-    "upgradeBarCoupon": "You have a free coupon on your account.",
-    "upgradeBarMembership": "Membership Coupon Setup"
-  },
   "myTeam": "My Team",
   "helpCenter": "Help Center",
   "logout": "Logout",
@@ -18559,7 +18548,6 @@ export default {
   "PDF": " P D F",
   "tab": "Tab",
   "sandbox": "Sandbox",
-  "2d": "2d",
   "aiRec": {
     "salesInfo": "Sales Info",
     "catalogAuto": "Catalog Auto",

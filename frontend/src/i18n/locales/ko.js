@@ -43741,15 +43741,7 @@ export default {
 
   "PDF": " P D F",
 
-  "": {
-
-    "": ""
-
-  },
-
   "sandbox": "Sandbox",
-
-  "2d": "2d",
 
   "aiRec": {
 
