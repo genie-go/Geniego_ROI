@@ -38,3 +38,5 @@ clean_src/
 # NEXT_SESSION.md backups
 NEXT_SESSION.md.bak*
 *.bak*_pre_*
+# session-147+ ko.js patch backups (local rollback only)
+frontend/backup_session147_*/

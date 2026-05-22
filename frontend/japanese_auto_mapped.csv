@@ -1,0 +1,828 @@
+﻿path,ko_current,ja_value,proposed_ko,ns,type
+ruleEnginePage.supplyChain.securityAlert,セキュリティ脅威検知,セキュリティ脅威検知,보안 위협 감지,ruleEnginePage,string
+ruleEnginePage.supplyChain.cancel,キャンセル,キャンセル,취소,ruleEnginePage,string
+ruleEnginePage.wms.tabTrackingDesc,リアルタイム,リアルタイム,실시간,ruleEnginePage,string
+ruleEnginePage.wms.pageSub,コネクタ＆統合管理,コネクタ＆統合管理,커넥터 & 통합 관리,ruleEnginePage,string
+ruleEnginePage.wms.tabGuideDesc,使い方,使い方,사용법,ruleEnginePage,string
+ruleEnginePage.wms.guideTabsTitle,タブ説明,タブ説明,탭 설명,ruleEnginePage,string
+ruleEnginePage.wms.ioBulkPreview,プレビュー,プレビュー,미리보기,ruleEnginePage,string
+ruleEnginePage.dash.Marketing,マーケティング,マーケティング,마케팅,ruleEnginePage,string
+ruleEnginePage.dash.Influencer,インフルエンサー,インフルエンサー,인플루언서,ruleEnginePage,string
+ruleEnginePage.dash.Alerts,アラート,アラート,알림,ruleEnginePage,string
+ruleEnginePage.dash.chRoas,チャネル別ROAS,チャネル別ROAS,채널별 ROAS,ruleEnginePage,string
+ruleEnginePage.dash.sysStatus,システム現況,システム現況,시스템 현황,ruleEnginePage,string
+ruleEnginePage.operations.pageTitle,🔌 連携ハブ,🔌 連携ハブ,🔌 연동 허브,ruleEnginePage,string
+ruleEnginePage.operations.pageSub,コネクタ＆統合管理,コネクタ＆統合管理,커넥터 & 통합 관리,ruleEnginePage,string
+ruleEnginePage.operations.viewAll,すべて表示,すべて表示,전체 보기,ruleEnginePage,string
+ruleEnginePage.operations.thCategory,カテゴリ,カテゴリ,카테고리,ruleEnginePage,string
+ruleEnginePage.operations.thStatus,ステータス,ステータス,상태,ruleEnginePage,string
+ruleEnginePage.operations.allCategory,全カテゴリ,全カテゴリ,전체 카테고리,ruleEnginePage,string
+ruleEnginePage.operations.allStatus,全ステータス,全ステータス,전체 상태,ruleEnginePage,string
+ruleEnginePage.operations.allChannel,全チャネル,全チャネル,전체 채널,ruleEnginePage,string
+ruleEnginePage.operations.campName,キャンペーン名,キャンペーン名,캠페인명,ruleEnginePage,string
+ruleEnginePage.operations.platform,プラットフォーム,プラットフォーム,플랫폼,ruleEnginePage,string
+ruleEnginePage.operations.type,タイプ,タイプ,타입,ruleEnginePage,string
+ruleEnginePage.operations.colCategory,カテゴリ,カテゴリ,카테고리,ruleEnginePage,string
+ruleEnginePage.operations.colPromotion,プロモーション,プロモーション,프로모션,ruleEnginePage,string
+ruleEnginePage.operations.colStatus,ステータス,ステータス,상태,ruleEnginePage,string
+ruleEnginePage.operations.colMarginRate,マージン率,マージン率,마진율,ruleEnginePage,string
+ruleEnginePage.operations.cancel,キャンセル,キャンセル,취소,ruleEnginePage,string
+ruleEnginePage.operations.clicks,クリック,クリック,클릭,ruleEnginePage,string
+ruleEnginePage.operations.ai_plat_popup,ポップアップ,ポップアップ,팝업,ruleEnginePage,string
+ruleEnginePage.operations.ai_plat_instagram,インスタグラム,インスタグラム,인스타그램,ruleEnginePage,string
+ruleEnginePage.operations.ai_plat_kakao,カカオ,カカオ,카카오,ruleEnginePage,string
+ruleEnginePage.operations.ai_adTitle,広告タイトル,広告タイトル,광고 제목,ruleEnginePage,string
+ruleEnginePage.operations.ai_category,カテゴリ,カテゴリ,카테고리,ruleEnginePage,string
+ruleEnginePage.operations.ai_cat_home,ホーム,ホーム,홈,ruleEnginePage,string
+ruleEnginePage.operations.ai_dupDismiss,閉じる,閉じる,닫기,ruleEnginePage,string
+ruleEnginePage.gNav.home,ホーム,ホーム,홈,ruleEnginePage,string
+ruleEnginePage.gNav.aiMarketing,AIマーケティング自動化,AIマーケティング自動化,AI 마케팅 자동화,ruleEnginePage,string
+ruleEnginePage.gNav.commerce,コマース・決済,コマース・決済,커머스 · 결제,ruleEnginePage,string
+ruleEnginePage.gNav.finance,財務・精算,財務・精算,재무 · 정산,ruleEnginePage,string
+ruleEnginePage.gNav.adminSystem,システム管理,システム管理,시스템 관리,ruleEnginePage,string
+ruleEnginePage.gNav.dashboard,ダッシュボード,ダッシュボード,대시보드,ruleEnginePage,string
+ruleEnginePage.gNav.channelKpi,チャネルKPI,チャネルKPI,채널 KPI,ruleEnginePage,string
+ruleEnginePage.gNav.kakaoChannel,カカオチャネル,カカオチャネル,카카오 채널,ruleEnginePage,string
+ruleEnginePage.gNav.aiInsights,AIインサイト,AIインサイト,AI 인사이트,ruleEnginePage,string
+ruleEnginePage.gNav.mappingRegistry,マッピングレジストリ,マッピングレジストリ,매핑 레지스트리,ruleEnginePage,string
+ruleEnginePage.gNav.pricing,料金プラン,料金プラン,요금제,ruleEnginePage,string
+ruleEnginePage.gNav.auditLog,監査ログ,監査ログ,감사 로그,ruleEnginePage,string
+ruleEnginePage.gNav.help,ヘルプセンター,ヘルプセンター,헬프 센터,ruleEnginePage,string
+ruleEnginePage.gNav.feedback,フィードバック,フィードバック,피드백,ruleEnginePage,string
+ruleEnginePage.gNav.userMgmt,ユーザー管理,ユーザー管理,사용자 관리,ruleEnginePage,string
+ruleEnginePage.gNav.contentCalendar,コンテンツカレンダー,コンテンツカレンダー,콘텐츠 캘린더,ruleEnginePage,string
+ruleEnginePage.super.noData,データがありません。,データがありません。,데이터가 없습니다.,ruleEnginePage,string
+ruleEnginePage.super.kpiClaimCount,クレーム,クレーム,클레임,ruleEnginePage,string
+ruleEnginePage.super.allChannels,全チャネル,全チャネル,전체 채널,ruleEnginePage,string
+ruleEnginePage.super.allStatus,全ステータス,全ステータス,전체 상태,ruleEnginePage,string
+ruleEnginePage.super.colChannel,チャネル,チャネル,채널,ruleEnginePage,string
+ruleEnginePage.super.badgeClaim,クレーム,クレーム,클레임,ruleEnginePage,string
+ruleEnginePage.super.labelChannel,チャネル,チャネル,채널,ruleEnginePage,string
+ruleEnginePage.super.settleColChannel,チャネル,チャネル,채널,ruleEnginePage,string
+ruleEnginePage.super.claimCancel,キャンセル,キャンセル,취소,ruleEnginePage,string
+ruleEnginePage.accountPerf.tabDashboard,ダッシュボード,ダッシュボード,대시보드,ruleEnginePage,string
+ruleEnginePage.accountPerf.objectiveConversion,コンバージョン,コンバージョン,전환,ruleEnginePage,string
+ruleEnginePage.accountPerf.colTeam,チーム,チーム,팀,ruleEnginePage,string
+ruleEnginePage.accountPerf.colClicks,クリック,クリック,클릭,ruleEnginePage,string
+ruleEnginePage.accountPerf.guideTabsTitle,タブ説明,タブ説明,탭 설명,ruleEnginePage,string
+ruleEnginePage.accountPerf.guideTabDashboardName,ダッシュボード,ダッシュボード,대시보드,ruleEnginePage,string
+ruleEnginePage.acctPerf.tabDashboard,ダッシュボード,ダッシュボード,대시보드,ruleEnginePage,string
+ruleEnginePage.acctPerf.objectiveConversion,コンバージョン,コンバージョン,전환,ruleEnginePage,string
+ruleEnginePage.acctPerf.colTeam,チーム,チーム,팀,ruleEnginePage,string
+ruleEnginePage.acctPerf.colClicks,クリック,クリック,클릭,ruleEnginePage,string
+ruleEnginePage.acctPerf.guideTabsTitle,タブ説明,タブ説明,탭 설명,ruleEnginePage,string
+ruleEnginePage.acctPerf.guideTabDashboardName,ダッシュボード,ダッシュボード,대시보드,ruleEnginePage,string
+ruleEnginePage.marketing.sidebarUpgrade,アップグレード,アップグレード,업그레이드,ruleEnginePage,string
+ruleEnginePage.marketing.convRateLbl,コンバージョン率,コンバージョン率,전환율,ruleEnginePage,string
+ruleEnginePage.marketing.channel,チャネル,チャネル,채널,ruleEnginePage,string
+ruleEnginePage.marketing.csTitle,クリエイティブスタジオ,クリエイティブスタジオ,크리에이티브 스튜디오,ruleEnginePage,string
+ruleEnginePage.marketing.csTabPerformance,パフォーマンス,パフォーマンス,퍼포먼스,ruleEnginePage,string
+ruleEnginePage.marketing.csKpiCreatives,クリエイティブ,クリエイティブ,크리에이티브,ruleEnginePage,string
+ruleEnginePage.marketing.csKpiApproved,承認済み,承認済み,승인됨,ruleEnginePage,string
+ruleEnginePage.marketing.csColPlatform,プラットフォーム,プラットフォーム,플랫폼,ruleEnginePage,string
+ruleEnginePage.marketing.csPreview,プレビュー,プレビュー,미리보기,ruleEnginePage,string
+ruleEnginePage.marketing.csDownload,ダウンロード,ダウンロード,다운로드,ruleEnginePage,string
+ruleEnginePage.marketing.metImpressions,インプレッション,インプレッション,노출,ruleEnginePage,string
+ruleEnginePage.marketing.metReach,リーチ,リーチ,도달,ruleEnginePage,string
+ruleEnginePage.marketing.metClicks,クリック,クリック,클릭,ruleEnginePage,string
+ruleEnginePage.marketing.metConv,コンバージョン,コンバージョン,전환,ruleEnginePage,string
+ruleEnginePage.marketing.colStatus,ステータス,ステータス,상태,ruleEnginePage,string
+ruleEnginePage.marketing.catPerformance,パフォーマンス,パフォーマンス,퍼포먼스,ruleEnginePage,string
+ruleEnginePage.marketing.catInfluencer,インフルエンサー,インフルエンサー,인플루언서,ruleEnginePage,string
+ruleEnginePage.marketing.noData,データなし,データなし,데이터 없음,ruleEnginePage,string
+ruleEnginePage.marketing.bgColCampSum,キャンペーン,キャンペーン,캠페인,ruleEnginePage,string
+ruleEnginePage.marketing.bgSecurityStatus,セキュリティ,セキュリティ,보안,ruleEnginePage,string
+ruleEnginePage.marketing.bgPacingColChannel,チャネル,チャネル,채널,ruleEnginePage,string
+ruleEnginePage.marketing.impressions,インプレッション,インプレッション,노출,ruleEnginePage,string
+ruleEnginePage.marketing.clicks,クリック,クリック,클릭,ruleEnginePage,string
+ruleEnginePage.marketing.conversions,コンバージョン,コンバージョン,전환,ruleEnginePage,string
+ruleEnginePage.marketing.defaultCampSuffix,キャンペーン,キャンペーン,캠페인,ruleEnginePage,string
+ruleEnginePage.marketing.guideTabsTitle,タブ別ガイド,タブ別ガイド,탭별 가이드,ruleEnginePage,string
+ruleEnginePage.marketing.connectedChannels,連携チャネル,連携チャネル,연동 채널,ruleEnginePage,string
+ruleEnginePage.marketing.bgGuideTabsTitle,タブ別ガイド,タブ別ガイド,탭별 가이드,ruleEnginePage,string
+ruleEnginePage.marketing.bgGuideTabCampaignsName,キャンペーン,キャンペーン,캠페인,ruleEnginePage,string
+ruleEnginePage.marketing.bgGuideTipsTitle,ヒント,ヒント,팁,ruleEnginePage,string
+ruleEnginePage.marketing.bgGuideTip5,リアルタイム同期,リアルタイム同期,실시간 동기화,ruleEnginePage,string
+ruleEnginePage.marketing.abConnectedChannels,連携チャネル,連携チャネル,연동 채널,ruleEnginePage,string
+ruleEnginePage.marketing.abChartRoas,チャネル別ROAS,チャネル別ROAS,채널별 ROAS,ruleEnginePage,string
+ruleEnginePage.marketing.abReasonKakaoTitle,カカオ,カカオ,카카오,ruleEnginePage,string
+ruleEnginePage.marketing.abGuideTipsTitle,ヒント,ヒント,팁,ruleEnginePage,string
+ruleEnginePage.noData,データがありません。,データがありません。,데이터가 없습니다.,ruleEnginePage,string
+ruleEnginePage.kpiClaimCount,クレーム,クレーム,클레임,ruleEnginePage,string
+ruleEnginePage.allChannels,全チャネル,全チャネル,전체 채널,ruleEnginePage,string
+ruleEnginePage.allStatus,全ステータス,全ステータス,전체 상태,ruleEnginePage,string
+ruleEnginePage.colChannel,チャネル,チャネル,채널,ruleEnginePage,string
+ruleEnginePage.badgeClaim,クレーム,クレーム,클레임,ruleEnginePage,string
+ruleEnginePage.labelChannel,チャネル,チャネル,채널,ruleEnginePage,string
+ruleEnginePage.settleColChannel,チャネル,チャネル,채널,ruleEnginePage,string
+ruleEnginePage.deliveryColChannel,チャネル,チャネル,채널,ruleEnginePage,string
+ruleEnginePage.claimCancel,キャンセル,キャンセル,취소,ruleEnginePage,string
+ruleEnginePage.claimColChannel,チャネル,チャネル,채널,ruleEnginePage,string
+ruleEnginePage.routingCancel,キャンセル,キャンセル,취소,ruleEnginePage,string
+ruleEnginePage.ovClaims,クレーム,クレーム,클레임,ruleEnginePage,string
+ruleEnginePage.enhColChannel,チャネル,チャネル,채널,ruleEnginePage,string
+ruleEnginePage.enhAllChannel,全チャネル,全チャネル,전체 채널,ruleEnginePage,string
+ruleEnginePage.enhAllStatus,全ステータス,全ステータス,전체 상태,ruleEnginePage,string
+ruleEnginePage.settleCoupon,クーポン,クーポン,쿠폰,ruleEnginePage,string
+ruleEnginePage.root_sidebarLogout,ログアウト,ログアウト,로그아웃,ruleEnginePage,string
+ruleEnginePage.root_pageTitle_mappingRegistry,マッピングレジストリ,マッピングレジストリ,매핑 레지스트리,ruleEnginePage,string
+ruleEnginePage.root_pageTitle_audit,監査ログ,監査ログ,감사 로그,ruleEnginePage,string
+ruleEnginePage.root_pageTitle_contentCalendar,コンテンツカレンダー,コンテンツカレンダー,콘텐츠 캘린더,ruleEnginePage,string
+ruleEnginePage.root_pageTitle_emailMarketing,メールマーケティング,メールマーケティング,이메일 마케팅,ruleEnginePage,string
+ruleEnginePage.root_pageTitle_kakaoChannel,カカオチャネル,カカオチャネル,카카오 채널,ruleEnginePage,string
+ruleEnginePage.root_pageTitle_orderHub,注文ハブ,注文ハブ,주문 허브,ruleEnginePage,string
+ruleEnginePage.root_pageTitle_performanceHub,パフォーマンスハブ,パフォーマンスハブ,퍼포먼스 허브,ruleEnginePage,string
+ruleEnginePage.root_pageTitle_dashboard,ダッシュボード,ダッシュボード,대시보드,ruleEnginePage,string
+performance.tabChannels,チャンネル,チャンネル,채널,performance,string
+performance.tabCreatives,クリエイティブ,クリエイティブ,크리에이티브,performance,string
+performance.kpiCtr,クリック率,クリック率,클릭률,performance,string
+performance.colChannel,チャンネル,チャンネル,채널,performance,string
+performance.colConversions,コンバージョン,コンバージョン,전환,performance,string
+crm.email.catalogSync.heroDesc,API キーを登録し接続状態を管理します。,API キーを登録し接続状態を管理します。,API 키를 등록하고 연결 상태를 관리합니다.,crm,string
+crm.email.catalogSync.statusError,エラー,エラー,오류,crm,string
+crm.email.catalogSync.colStatus,ステータス,ステータス,상태,crm,string
+crm.email.catalogSync.cancel,キャンセル,キャンセル,취소,crm,string
+crm.email.catalogSync.cancelBtn,キャンセル,キャンセル,취소,crm,string
+crm.email.catalogSync.mappingStatus,マッピング状況,マッピング状況,매핑 현황,crm,string
+crm.email.catalogSync.mapped,マッピング済み,マッピング済み,매핑됨,crm,string
+crm.email.campaignMgr.filterAll,全て,全て,전체,crm,string
+crm.email.campaignMgr.copyChannel,チャネル,チャネル,채널,crm,string
+crm.email.campaignMgr.copyCopy,コピー,コピー,복사,crm,string
+crm.email.campaignMgr.guideTabsTitle,タブ別ガイド,タブ別ガイド,탭별 가이드,crm,string
+crm.email.aiPolicy.heroDesc,API キーを登録し接続状態を管理します。,API キーを登録し接続状態を管理します。,API 키를 등록하고 연결 상태를 관리합니다.,crm,string
+crm.email.aiPolicy.tabGovernanceDesc,監査ログ,監査ログ,감사 로그,crm,string
+crm.email.aiPolicy.cancel,キャンセル,キャンセル,취소,crm,string
+crm.email.aiPolicy.dimCampaign,キャンペーン,キャンペーン,캠페인,crm,string
+crm.email.aiPolicy.dimCreator,クリエイター,クリエイター,크리에이터,crm,string
+crm.email.aiPolicy.dimPlatform,プラットフォーム,プラットフォーム,플랫폼,crm,string
+crm.email.aiPolicy.badgeRealtime,リアルタイム同期,リアルタイム同期,실시간 동기화,crm,string
+crm.email.aiPolicy.demoBanner,🎭 デモモード,🎭 デモモード,🎭 데모 모드,crm,string
+crm.email.aiPolicy.demoBannerDesc,読み取り専用。,読み取り専用。,읽기 전용.,crm,string
+crm.email.aiPolicy.upgradeBtn,💎 Proアップグレード,💎 Proアップグレード,💎 Pro 업그레이드,crm,string
+crm.email.aiPolicy.crossTabSync,別タブからスキーマ同期,別タブからスキーマ同期,다른 탭에서 스키마 동기화,crm,string
+crm.email.aiPolicy.secTitle,セキュリティ脅威検出,セキュリティ脅威検出,보안 위협 탐지,crm,string
+crm.email.aiPolicy.secDesc,不審なアクティビティ検出,不審なアクティビティ検出,의심스러운 활동 감지,crm,string
+crm.email.aiPolicy.secCode,ロック解除コード入力,ロック解除コード入力,잠금 해제 코드 입력,crm,string
+crm.email.aiPolicy.secUnlock,ロック解除,ロック解除,잠금 해제,crm,string
+crm.email.aiPolicy.liveSyncStatus,リアルタイムデータ同期状態,リアルタイムデータ同期状態,실시간 데이터 동기화 상태,crm,string
+crm.email.conn.heroDesc,API キーを登録し接続状態を管理します。,API キーを登録し接続状態を管理します。,API 키를 등록하고 연결 상태를 관리합니다.,crm,string
+crm.email.conn.secTitle,セキュリティ脅威検出,セキュリティ脅威検出,보안 위협 탐지,crm,string
+crm.email.conn.secCode,ロック解除コード入力,ロック解除コード入力,잠금 해제 코드 입력,crm,string
+crm.email.conn.secUnlock,ロック解除,ロック解除,잠금 해제,crm,string
+crm.email.conn.kpiTotal,全チャネル,全チャネル,전체 채널,crm,string
+crm.email.conn.kpiConnected,接続済み,接続済み,연결됨,crm,string
+crm.email.conn.connected,接続済み,接続済み,연결됨,crm,string
+crm.email.conn.badgeRealSync,リアルタイム同期,リアルタイム同期,실시간 동기화,crm,string
+crm.email.conn.filterAll,すべて,すべて,전체,crm,string
+crm.email.conn.eventFeedSub,リアルタイム,リアルタイム,실시간,crm,string
+crm.email.conn.crossTabSync,別タブからスキーマ同期,別タブからスキーマ同期,다른 탭에서 스키마 동기화,crm,string
+crm.email.conn.pageTitle,🔌 連携ハブ,🔌 連携ハブ,🔌 연동 허브,crm,string
+crm.email.conn.pageSub,コネクタ＆統合管理,コネクタ＆統合管理,커넥터 & 통합 관리,crm,string
+crm.email.conn.dwArchCommerce,コマース,コマース,커머스,crm,string
+crm.email.ds.heroDesc,API キーを登録し接続状態を管理します。,API キーを登録し接続状態を管理します。,API 키를 등록하고 연결 상태를 관리합니다.,crm,string
+crm.email.ds.secTitle,セキュリティ脅威検出,セキュリティ脅威検出,보안 위협 탐지,crm,string
+crm.email.ds.secCode,ロック解除コード入力,ロック解除コード入力,잠금 해제 코드 입력,crm,string
+crm.email.ds.secUnlock,ロック解除,ロック解除,잠금 해제,crm,string
+crm.email.ds.crossTabSync,別タブからスキーマ同期,別タブからスキーマ同期,다른 탭에서 스키마 동기화,crm,string
+crm.email.ds.thType,タイプ,タイプ,타입,crm,string
+crm.email.ds.thTags,タグ,タグ,태그,crm,string
+crm.email.ds.platforms,プラットフォーム,プラットフォーム,플랫폼,crm,string
+crm.email.ds.fCampaignName,キャンペーン名,キャンペーン名,캠페인명,crm,string
+crm.email.ds.fClicks,クリック数,クリック数,클릭 수,crm,string
+crm.email.ds.fCtr,クリック率,クリック率,클릭률,crm,string
+crm.email.ds.fPlatformFee,プラットフォーム手数料,プラットフォーム手数料,플랫폼 수수료,crm,string
+crm.email.ds.channel,チャネル,チャネル,채널,crm,string
+crm.email.dt.heroDesc,API キーを登録し接続状態を管理します。,API キーを登録し接続状態を管理します。,API 키를 등록하고 연결 상태를 관리합니다.,crm,string
+crm.email.dt.srcSettlement,精算データ,精算データ,정산 데이터,crm,string
+crm.email.dt.connectTest,接続テスト,接続テスト,연결 테스트,crm,string
+crm.email.dt.cancel,キャンセル,キャンセル,취소,crm,string
+crm.email.dt.tabAudit,監査ログ,監査ログ,감사 로그,crm,string
+crm.email.dt.lineageDashboard,ダッシュボード,ダッシュボード,대시보드,crm,string
+crm.email.mr.heroDesc,API キーを登録し接続状態を管理します。,API キーを登録し接続状態を管理します。,API 키를 등록하고 연결 상태를 관리합니다.,crm,string
+crm.email.mr.approvalPending,承認待ち,承認待ち,승인 대기,crm,string
+crm.email.mr.resetAll,リセット,リセット,리셋,crm,string
+crm.email.mr.pfColPlatform,プラットフォーム,プラットフォーム,플랫폼,crm,string
+crm.email.mr.pfColStatus,ステータス,ステータス,상태,crm,string
+crm.email.mr.pfCancel,キャンセル,キャンセル,취소,crm,string
+crm.email.mr.dedPlatform,プラットフォーム,プラットフォーム,플랫폼,crm,string
+crm.email.mr.dedColPlatform,プラットフォーム,プラットフォーム,플랫폼,crm,string
+crm.email.mr.dedCatPromotion,プロモーション,プロモーション,프로모션,crm,string
+crm.email.mr.kpiReset,リセット,リセット,리셋,crm,string
+crm.email.alertAuto.heroDesc,API キーを登録し接続状態を管理します。,API キーを登録し接続状態を管理します。,API 키를 등록하고 연결 상태를 관리합니다.,crm,string
+crm.email.alertAuto.cancel,キャンセル,キャンセル,취소,crm,string
+crm.email.alertAuto.channel,チャネル,チャネル,채널,crm,string
+crm.email.alertAuto.errorAlerts,エラー,エラー,오류,crm,string
+crm.email.alertAuto.connected,接続済み,接続済み,연결됨,crm,string
+crm.email.alertAuto.badgeRealtime,リアルタイム同期,リアルタイム同期,실시간 동기화,crm,string
+crm.email.alertAuto.demoBanner,🎭 デモモード,🎭 デモモード,🎭 데모 모드,crm,string
+crm.email.alertAuto.demoBannerDesc,読み取り専用。,読み取り専用。,읽기 전용.,crm,string
+crm.email.alertAuto.upgradeBtn,💎 Proアップグレード,💎 Proアップグレード,💎 Pro 업그레이드,crm,string
+crm.email.alertAuto.secTitle,セキュリティ脅威検出,セキュリティ脅威検出,보안 위협 탐지,crm,string
+crm.email.alertAuto.secDesc,不審なアクティビティ検出,不審なアクティビティ検出,의심스러운 활동 감지,crm,string
+crm.email.alertAuto.secCode,ロック解除コード入力,ロック解除コード入力,잠금 해제 코드 입력,crm,string
+crm.email.alertAuto.secUnlock,ロック解除,ロック解除,잠금 해제,crm,string
+crm.email.alertAuto.liveSyncStatus,リアルタイムデータ同期状態,リアルタイムデータ同期状態,실시간 데이터 동기화 상태,crm,string
+crm.email.alertAuto.colAction,アクション,アクション,액션,crm,string
+crm.email.alertAuto.crossTabSync,別タブからスキーマ同期,別タブからスキーマ同期,다른 탭에서 스키마 동기화,crm,string
+crm.email.pxl.heroDesc,API キーを登録し接続状態を管理します。,API キーを登録し接続状態を管理します。,API 키를 등록하고 연결 상태를 관리합니다.,crm,string
+crm.email.pxl.noDataTitle,データがありません,データがありません,데이터가 없습니다,crm,string
+crm.email.pxl.conversions,コンバージョン,コンバージョン,전환,crm,string
+crm.email.pxl.copy,コピー,コピー,복사,crm,string
+crm.email.settlements.importMock,デモモード,デモモード,데모 모드,crm,string
+crm.email.settlements.allChannels,全チャネル,全チャネル,전체 채널,crm,string
+crm.email.settlements.allStatus,全ステータス,全ステータス,전체 상태,crm,string
+crm.email.settlements.colChannel,チャネル,チャネル,채널,crm,string
+crm.email.settlements.colPlatformFee,プラットフォーム手数料,プラットフォーム手数料,플랫폼 수수료,crm,string
+crm.email.settlements.detailPlatformFee,プラットフォーム手数料,プラットフォーム手数料,플랫폼 수수료,crm,string
+crm.email.settlements.detailEfficiency,マージン率,マージン率,마진율,crm,string
+crm.aiHub.reviews.kpiTotal,全チャネル,全チャネル,전체 채널,crm,string
+crm.aiHub.reviews.heroDesc,API キーを登録し接続状態を管理します。,API キーを登録し接続状態を管理します。,API 키를 등록하고 연결 상태를 관리합니다.,crm,string
+crm.aiHub.reviews.pageSub,コネクタ＆統合管理,コネクタ＆統合管理,커넥터 & 통합 관리,crm,string
+crm.aiHub.reviews.channel,チャネル,チャネル,채널,crm,string
+crm.aiHub.reviews.btnNext,次へ,次へ,다음,crm,string
+crm.aiHub.reviews.tabDashboard,ダッシュボード,ダッシュボード,대시보드,crm,string
+crm.aiHub.reviews.close,閉じる,閉じる,닫기,crm,string
+crm.aiHub.reviews.guideTabsTitle,タブ別機能案内,タブ別機能案内,탭별 기능 안내,crm,string
+crm.aiHub.reviews.guideDashName,ダッシュボード,ダッシュボード,대시보드,crm,string
+crm.aiHub.reviews.guideGuideName,利用ガイド,利用ガイド,이용 가이드,crm,string
+crm.aiHub.reviews.pageTitle,🔌 連携ハブ,🔌 連携ハブ,🔌 연동 허브,crm,string
+crm.aiHub.aiPolicy.active,アクティブ,アクティブ,활성,crm,string
+crm.aiHub.aiPolicy.heroDesc,API キーを登録し接続状態を管理します。,API キーを登録し接続状態を管理します。,API 키를 등록하고 연결 상태를 관리합니다.,crm,string
+crm.aiHub.crm.email.catPromotion,プロモーション,プロモーション,프로모션,crm,string
+crm.aiHub.crm.email.lblCategory,カテゴリ,カテゴリ,카테고리,crm,string
+crm.aiHub.crm.email.kpiTotal,キャンペーン,キャンペーン,캠페인,crm,string
+crm.aiHub.crm.email.kpiClick,クリック率,クリック率,클릭률,crm,string
+crm.aiHub.crm.email.fTpl,テンプレート,テンプレート,템플릿,crm,string
+crm.aiHub.crm.email.colTpl,テンプレート,テンプレート,템플릿,crm,string
+crm.aiHub.crm.email.colTarget,セグメント,セグメント,세그먼트,crm,string
+crm.aiHub.crm.email.colClick,クリック率,クリック率,클릭률,crm,string
+crm.aiHub.crm.email.colStatus,ステータス,ステータス,상태,crm,string
+crm.aiHub.crm.email.anClickRate,クリック率,クリック率,클릭률,crm,string
+crm.aiHub.crm.email.anCamps,キャンペーン,キャンペーン,캠페인,crm,string
+crm.aiHub.crm.email.guideTabsTitle,タブ別機能ガイド,タブ別機能ガイド,탭별 기능 가이드,crm,string
+crm.aiHub.crm.email.guideCreativeName,クリエイティブ,クリエイティブ,크리에이티브,crm,string
+crm.aiHub.crm.email.secLockTitle,セキュリティ警告,セキュリティ警告,보안 경고,crm,string
+crm.aiHub.crm.email.syncNow,今すぐ同期,今すぐ同期,지금 동기화,crm,string
+crm.aiHub.crm.segDesc,セグメント,セグメント,세그먼트,crm,string
+crm.aiHub.crm.colEmail,メール,メール,이메일,crm,string
+crm.aiHub.crm.statAct,アクティブ,アクティブ,활성,crm,string
+crm.aiHub.crm.statSeg,セグメント,セグメント,세그먼트,crm,string
+crm.aiHub.crm.btnCancel,キャンセル,キャンセル,취소,crm,string
+crm.aiHub.crm.secLockTitle,セキュリティ警告検出,セキュリティ警告検出,보안 경고 감지,crm,string
+crm.aiHub.crm.prev,前へ,前へ,이전,crm,string
+crm.aiHub.crm.next,次へ,次へ,다음,crm,string
+crm.aiHub.crm.syncNow,今すぐ同期,今すぐ同期,지금 동기화,crm,string
+crm.aiHub.catalogSync.conn.heroDesc,API キーを登録し接続状態を管理します。,API キーを登録し接続状態を管理します。,API 키를 등록하고 연결 상태를 관리합니다.,crm,string
+crm.aiHub.catalogSync.ds.badgePlatforms,プラットフォーム,プラットフォーム,플랫폼,crm,string
+crm.aiHub.catalogSync.ds.tabAlerts,アラート,アラート,알림,crm,string
+crm.aiHub.catalogSync.ds.thType,タイプ,タイプ,타입,crm,string
+crm.aiHub.catalogSync.ds.thTags,タグ,タグ,태그,crm,string
+crm.aiHub.catalogSync.ds.platforms,プラットフォーム,プラットフォーム,플랫폼,crm,string
+crm.aiHub.catalogSync.ds.action,アクション,アクション,액션,crm,string
+crm.aiHub.catalogSync.ds.channel,チャネル,チャネル,채널,crm,string
+crm.aiHub.catalogSync.ds.secTitle,セキュリティ脅威検知,セキュリティ脅威検知,보안 위협 감지,crm,string
+crm.aiHub.catalogSync.ds.secUnlock,ロック解除,ロック解除,잠금 해제,crm,string
+crm.aiHub.catalogSync.journey.nodeTypes.email,メール,メール,이메일,crm,string
+crm.aiHub.catalogSync.journey.colActive,アクティブ,アクティブ,활성,crm,string
+crm.aiHub.catalogSync.journey.active,アクティブ,アクティブ,활성,crm,string
+crm.aiHub.catalogSync.journey.tabTemplates,テンプレート,テンプレート,템플릿,crm,string
+crm.aiHub.catalogSync.journey.platformPopup,ウェブポップアップ,ウェブポップアップ,웹 팝업,crm,string
+crm.aiHub.catalogSync.journey.platformKakao,カカオ,カカオ,카카오,crm,string
+crm.aiHub.catalogSync.mr.heroDesc,API キーを登録し接続状態を管理します。,API キーを登録し接続状態を管理します。,API 키를 등록하고 연결 상태를 관리합니다.,crm,string
+crm.aiHub.catalogSync.reviews.copy,コピー,コピー,복사,crm,string
+crm.aiHub.catalogSync.reviews.allChannel,全チャネル,全チャネル,전체 채널,crm,string
+crm.aiHub.catalogSync.reviews.guideTabsTitle,タブ機能案内,タブ機能案内,탭 기능 안내,crm,string
+crm.aiHub.catalogSync.reviews.tabDashboard,ダッシュボード,ダッシュボード,대시보드,crm,string
+crm.aiHub.catalogSync.reviews.close,閉じる,閉じる,닫기,crm,string
+crm.aiHub.catalogSync.reviews.guideDashName,ダッシュボード,ダッシュボード,대시보드,crm,string
+crm.aiHub.catalogSync.reviews.guideGuideName,利用ガイド,利用ガイド,이용 가이드,crm,string
+crm.aiHub.catalogSync.sms.tplCategory,カテゴリ,カテゴリ,카테고리,crm,string
+crm.aiHub.catalogSync.sms.cancel,キャンセル,キャンセル,취소,crm,string
+crm.aiHub.catalogSync.sms.campTemplate,テンプレート,テンプレート,템플릿,crm,string
+crm.aiHub.catalogSync.sms.campSegment,セグメント,セグメント,세그먼트,crm,string
+crm.aiHub.catalogSync.sms.campMessage,メッセージ,メッセージ,메시지,crm,string
+crm.aiHub.catalogSync.sms.guideTabsTitle,タブ機能ガイド,タブ機能ガイド,탭 기능 가이드,crm,string
+crm.aiHub.catalogSync.sms.tabTemplates,テンプレート,テンプレート,템플릿,crm,string
+crm.aiHub.catalogSync.sms.tabCampaigns,キャンペーン,キャンペーン,캠페인,crm,string
+crm.aiHub.catalogSync.sms.status,ステータス,ステータス,상태,crm,string
+crm.aiHub.catalogSync.sms.tabTemplate,テンプレート,テンプレート,템플릿,crm,string
+crm.aiHub.catalogSync.sms.filterAll,全て,全て,전체,crm,string
+crm.aiHub.catalogSync.sms.colMessage,メッセージ,メッセージ,메시지,crm,string
+crm.aiHub.catalogSync.sms.colStatus,ステータス,ステータス,상태,crm,string
+crm.aiHub.catalogSync.sms.guideTemplatesName,テンプレート,テンプレート,템플릿,crm,string
+crm.aiHub.catalogSync.sms.guideCampaignsName,キャンペーン,キャンペーン,캠페인,crm,string
+crm.aiHub.catalogSync.sms.guideCreativeName,クリエイティブ,クリエイティブ,크리에이티브,crm,string
+crm.aiHub.catalogSync.sms.secLockTitle,セキュリティ警告,セキュリティ警告,보안 경고,crm,string
+crm.aiHub.catalogSync.webPopup.platformPopup,ウェブポップアップ,ウェブポップアップ,웹 팝업,crm,string
+crm.aiHub.catalogSync.webPopup.platformKakao,カカオチャネル,カカオチャネル,카카오 채널,crm,string
+crm.aiHub.catalogSync.webPopup.statConv,コンバージョン,コンバージョン,전환,crm,string
+crm.aiHub.catalogSync.webPopup.colStatus,ステータス,ステータス,상태,crm,string
+crm.aiHub.catalogSync.webPopup.colClicks,クリック,クリック,클릭,crm,string
+crm.aiHub.catalogSync.webPopup.linkCopy,コピー,コピー,복사,crm,string
+crm.aiHub.catalogSync.webPopup.preview,プレビュー,プレビュー,미리보기,crm,string
+crm.aiHub.catalogSync.webPopup.guideTabsTitle,タブ機能案内,タブ機能案内,탭 기능 안내,crm,string
+crm.aiHub.catalogSync.webPopup.guideGuideName,利用ガイド,利用ガイド,이용 가이드,crm,string
+crm.aiHub.catalogSync.alertAuto.active,アクティブ,アクティブ,활성,crm,string
+crm.aiHub.catalogSync.alertAuto.heroDesc,API キーを登録し接続状態を管理します。,API キーを登録し接続状態を管理します。,API 키를 등록하고 연결 상태를 관리합니다.,crm,string
+crm.aiHub.catalogSync.ihub.tabApiKey,APIキー,APIキー,API 키,crm,string
+crm.aiHub.catalogSync.ihub.tabMember,メンバー,メンバー,멤버,crm,string
+crm.aiHub.catalogSync.ihub.viewGuide,利用ガイド,利用ガイド,이용 가이드,crm,string
+crm.aiHub.catalogSync.ihub.export,エクスポート,エクスポート,내보내기,crm,string
+crm.aiHub.catalogSync.ihub.filterAllLabel,全て,全て,전체,crm,string
+crm.aiHub.catalogSync.ihub.groupCount,接続済み,接続済み,연결됨,crm,string
+crm.aiHub.catalogSync.ihub.noSearchResult,結果なし,結果なし,결과 없음,crm,string
+crm.aiHub.catalogSync.ihub.cancel,キャンセル,キャンセル,취소,crm,string
+crm.aiHub.catalogSync.ihub.testBtn,接続テスト,接続テスト,연결 테스트,crm,string
+crm.aiHub.catalogSync.ihub.scAllCh,全チャネル,全チャネル,전체 채널,crm,string
+crm.aiHub.catalogSync.ihub.scFilterAll,全て,全て,전체,crm,string
+crm.aiHub.catalogSync.ihub.dwConnected,接続済み,接続済み,연결됨,crm,string
+crm.aiHub.catalogSync.ihub.dwCommerce,コマース,コマース,커머스,crm,string
+crm.aiHub.catalogSync.ihub.licUpgrade,アップグレード,アップグレード,업그레이드,crm,string
+crm.aiHub.catalogSync.ihub.nextStep,次へ,次へ,다음,crm,string
+crm.aiHub.catalogSync.ihub.prevStep,戻る,戻る,뒤로,crm,string
+crm.aiHub.catalogSync.ihub.memberEmail,メール,メール,이메일,crm,string
+crm.aiHub.catalogSync.caseStudy.badgeLive,リアルタイム同期,リアルタイム同期,실시간 동기화,crm,string
+crm.aiHub.catalogSync.caseStudy.kpi_connectedChannels,連携チャネル,連携チャネル,연동 채널,crm,string
+crm.aiHub.catalogSync.caseStudy.connectedChannelsTitle,連携チャネル,連携チャネル,연동 채널,crm,string
+crm.aiHub.catalogSync.caseStudy.platformFee,プラットフォーム手数料,プラットフォーム手数料,플랫폼 수수료,crm,string
+crm.aiHub.catalogSync.caseStudy.securityTitle,セキュリティ脅威検知,セキュリティ脅威検知,보안 위협 감지,crm,string
+crm.aiHub.catalogSync.contentCal.fieldCampaign,キャンペーン,キャンペーン,캠페인,crm,string
+crm.aiHub.catalogSync.contentCal.fieldPlatform,プラットフォーム,プラットフォーム,플랫폼,crm,string
+crm.aiHub.catalogSync.contentCal.fieldStatus,ステータス,ステータス,상태,crm,string
+crm.aiHub.catalogSync.contentCal.btnCancel,キャンセル,キャンセル,취소,crm,string
+crm.aiHub.catalogSync.contentCal.title,コンテンツカレンダー,コンテンツカレンダー,콘텐츠 캘린더,crm,string
+crm.aiHub.catalogSync.contentCal.statusLabel,ステータス,ステータス,상태,crm,string
+crm.aiHub.catalogSync.contentCal.st_review,レビュー,レビュー,리뷰,crm,string
+crm.aiHub.catalogSync.contentCal.st_cancelled,キャンセル,キャンセル,취소,crm,string
+crm.aiHub.catalogSync.contentCal.guideGuideName,利用ガイド,利用ガイド,이용 가이드,crm,string
+crm.aiHub.catalogSync.devHub.cancel,キャンセル,キャンセル,취소,crm,string
+crm.aiHub.catalogSync.devHub.copied,コピー済み,コピー済み,복사됨,crm,string
+crm.aiHub.catalogSync.devHub.copy,コピー,コピー,복사,crm,string
+crm.aiHub.catalogSync.devHub.securityTitle,セキュリティ脅威検知,セキュリティ脅威検知,보안 위협 감지,crm,string
+crm.aiHub.catalogSync.dt.liveData,リアルタイム,リアルタイム,실시간,crm,string
+crm.aiHub.catalogSync.dt.srcConversion,コンバージョン,コンバージョン,전환,crm,string
+crm.aiHub.catalogSync.dt.lineageDashboard,ダッシュボード,ダッシュボード,대시보드,crm,string
+crm.aiHub.catalogSync.dt.auditTitle,監査ログ,監査ログ,감사 로그,crm,string
+crm.aiHub.catalogSync.dt.secLockTitle,セキュリティ脅威検知,セキュリティ脅威検知,보안 위협 감지,crm,string
+crm.aiHub.catalogSync.graph.inf,インフルエンサー,インフルエンサー,인플루언서,crm,string
+crm.aiHub.catalogSync.graph.crt,クリエイティブ,クリエイティブ,크리에이티브,crm,string
+crm.aiHub.catalogSync.pnl.wfPlatformFee,プラットフォーム手数料,プラットフォーム手数料,플랫폼 수수료,crm,string
+crm.aiHub.catalogSync.pnl.margin,マージン,マージン,마진,crm,string
+crm.aiHub.catalogSync.pnl.colMargin,マージン,マージン,마진,crm,string
+crm.aiHub.catalogSync.pnl.colChannel,チャネル,チャネル,채널,crm,string
+crm.aiHub.catalogSync.pnl.connected,接続済み,接続済み,연결됨,crm,string
+crm.aiHub.catalogSync.pnl.realtimeSync,リアルタイム同期,リアルタイム同期,실시간 동기화,crm,string
+crm.aiHub.catalogSync.pnl.securityAlert,セキュリティ脅威検知,セキュリティ脅威検知,보안 위협 감지,crm,string
+crm.aiHub.catalogSync.pnl.guideTabsTitle,タブ別機能案内,タブ別機能案内,탭별 기능 안내,crm,string
+crm.aiHub.catalogSync.pxl.heroDesc,API キーを登録し接続状態を管理します。,API キーを登録し接続状態を管理します。,API 키를 등록하고 연결 상태를 관리합니다.,crm,string
+crm.aiHub.catalogSync.categoryLabel,カテゴリ,カテゴリ,카테고리,crm,string
+crm.aiHub.catalogSync.cancel,キャンセル,キャンセル,취소,crm,string
+crm.aiHub.catalogSync.cancelBtn,キャンセル,キャンセル,취소,crm,string
+crm.aiHub.catalogSync.colChannels,チャネル,チャネル,채널,crm,string
+crm.aiHub.catalogSync.backBtn,戻る,戻る,뒤로,crm,string
+crm.aiHub.catalogSync.statusError,エラー,エラー,오류,crm,string
+crm.aiHub.catalogSync.allChannel,全チャネル,全チャネル,전체 채널,crm,string
+crm.aiHub.catalogSync.allStatus,全ステータス,全ステータス,전체 상태,crm,string
+crm.aiHub.catalogSync.colMargin,マージン,マージン,마진,crm,string
+crm.aiHub.catalogSync.colCategory,カテゴリ,カテゴリ,카테고리,crm,string
+crm.aiHub.catalogSync.colStatus,ステータス,ステータス,상태,crm,string
+crm.aiHub.catalogSync.prevPage,前へ,前へ,이전,crm,string
+crm.aiHub.catalogSync.nextPage,次へ,次へ,다음,crm,string
+crm.aiHub.catalogSync.close,閉じる,閉じる,닫기,crm,string
+crm.aiHub.catalogSync.errors,エラー,エラー,오류,crm,string
+crm.aiHub.catalogSync.type,タイプ,タイプ,타입,crm,string
+crm.aiHub.catalogSync.mappingStatus,マッピング状況,マッピング状況,매핑 현황,crm,string
+crm.aiHub.catalogSync.mapped,マッピング済み,マッピング済み,매핑됨,crm,string
+crm.aiHub.catalogSync.tabCategories,カテゴリ,カテゴリ,카테고리,crm,string
+crm.aiHub.catalogSync.activeLabel,アクティブ,アクティブ,활성,crm,string
+crm.aiHub.catalogSync.connectedLabel,接続済み,接続済み,연결됨,crm,string
+crm.aiHub.catalogSync.cat_all,全カテゴリ,全カテゴリ,전체 카테고리,crm,string
+crm.aiHub.catalogSync.colStatusHeader,ステータス,ステータス,상태,crm,string
+crm.aiHub.catalogSync.reportBuilder.tabTemplates,テンプレート,テンプレート,템플릿,crm,string
+crm.aiHub.catalogSync.reportBuilder.widgetConversion,コンバージョン,コンバージョン,전환,crm,string
+crm.aiHub.catalogSync.reportBuilder.noData,データなし,データなし,데이터 없음,crm,string
+crm.aiHub.catalogSync.reportBuilder.realtimeSync,リアルタイム同期,リアルタイム同期,실시간 동기화,crm,string
+crm.aiHub.catalogSync.reportBuilder.securityAlert,セキュリティ脅威検知,セキュリティ脅威検知,보안 위협 감지,crm,string
+crm.aiHub.catalogSync.reportBuilder.allChannels,全チャネル,全チャネル,전체 채널,crm,string
+crm.aiHub.catalogSync.reportBuilder.tplPreview,プレビュー,プレビュー,미리보기,crm,string
+crm.aiHub.catalogSync.reportBuilder.schedActive,アクティブ,アクティブ,활성,crm,string
+crm.aiHub.catalogSync.reportBuilder.cancel,キャンセル,キャンセル,취소,crm,string
+crm.aiHub.catalogSync.settlements.colChannel,チャネル,チャネル,채널,crm,string
+crm.aiHub.catalogSync.settlements.colPlatformFee,プラットフォーム手数料,プラットフォーム手数料,플랫폼 수수료,crm,string
+crm.aiHub.catalogSync.settlements.importBtn,インポート,インポート,가져오기,crm,string
+crm.aiHub.catalogSync.settlements.allChannels,全チャネル,全チャネル,전체 채널,crm,string
+crm.aiHub.catalogSync.settlements.allStatus,全ステータス,全ステータス,전체 상태,crm,string
+crm.aiHub.catalogSync.settlements.detailPlatformFee,プラットフォーム手数料,プラットフォーム手数料,플랫폼 수수료,crm,string
+crm.aiHub.catalogSync.settlements.detailStatus,ステータス,ステータス,상태,crm,string
+crm.aiHub.catalogSync.recon.uploadBtn,アップロード,アップロード,업로드,crm,string
+crm.aiHub.catalogSync.recon.channel,チャネル,チャネル,채널,crm,string
+crm.aiHub.catalogSync.recon.filterAll,全て,全て,전체,crm,string
+crm.aiHub.catalogSync.recon.platformFee,プラットフォーム手数料,プラットフォーム手数料,플랫폼 수수료,crm,string
+crm.aiHub.catalogSync.recon.platformCommission,プラットフォーム手数料,プラットフォーム手数料,플랫폼 수수료,crm,string
+crm.aiHub.catalogSync.recon.loading,読み込み中...,読み込み中...,로딩 중...,crm,string
+crm.aiHub.catalogSync.recon.secLockTitle,セキュリティ脅威検出,セキュリティ脅威検出,보안 위협 탐지,crm,string
+crm.aiHub.journey.nodeTypes.email,メール,メール,이메일,crm,string
+crm.aiHub.journey.nodeTypes.tag,タグ,タグ,태그,crm,string
+crm.aiHub.journey.nodeTypes.push,プッシュ通知,プッシュ通知,푸시 알림,crm,string
+crm.aiHub.journey.nodeTypes.popup,ウェブポップアップ,ウェブポップアップ,웹 팝업,crm,string
+crm.aiHub.journey.nodeTypes.kakao,カカオトーク,カカオトーク,카카오톡,crm,string
+crm.aiHub.journey.cancel,キャンセル,キャンセル,취소,crm,string
+crm.aiHub.journey.copy,コピー,コピー,복사,crm,string
+crm.aiHub.journey.statusActive,アクティブ,アクティブ,활성,crm,string
+crm.aiHub.journey.active,アクティブ,アクティブ,활성,crm,string
+crm.aiHub.journey.lineMsgTemplate,テンプレート,テンプレート,템플릿,crm,string
+crm.aiHub.journey.analyticsConvRate,コンバージョン率,コンバージョン率,전환율,crm,string
+crm.aiHub.journey.colStatus,ステータス,ステータス,상태,crm,string
+crm.aiHub.journey.colActive,アクティブ,アクティブ,활성,crm,string
+crm.aiHub.omniChannel.badgeFree,無料プラン,無料プラン,무료 플랜,crm,string
+crm.aiHub.omniChannel.statusConnected,接続済み,接続済み,연결됨,crm,string
+crm.aiHub.omniChannel.guideTabsTitle,タブ機能案内,タブ機能案内,탭 기능 안내,crm,string
+crm.aiHub.omniChannel.guideGuideName,利用ガイド,利用ガイド,이용 가이드,crm,string
+crm.aiHub.omniChannel.kpiAllChannel,全チャネル,全チャネル,전체 채널,crm,string
+crm.aiHub.omniChannel.kpiIntegChannels,連携チャネル,連携チャネル,연동 채널,crm,string
+crm.aiHub.omniChannel.statusError,エラー,エラー,오류,crm,string
+crm.aiHub.omniChannel.colChannel,チャネル,チャネル,채널,crm,string
+crm.aiHub.omniChannel.colCategory,カテゴリ,カテゴリ,카테고리,crm,string
+crm.aiHub.omniChannel.colStatus,ステータス,ステータス,상태,crm,string
+crm.aiHub.omniChannel.colRevenueShare,売上シェア,売上シェア,매출 점유율,crm,string
+crm.aiHub.omniChannel.allChannel,全チャネル,全チャネル,전체 채널,crm,string
+crm.aiHub.omniChannel.loading,読み込み中...,読み込み中...,로딩 중...,crm,string
+crm.aiHub.omniChannel.noData,データなし,データなし,데이터 없음,crm,string
+crm.aiHub.omniChannel.btnConnTest,接続テスト,接続テスト,연결 테스트,crm,string
+crm.aiHub.omniChannel.btnClose,閉じる,閉じる,닫기,crm,string
+crm.aiHub.omniChannel.statusCancelReq,キャンセル,キャンセル,취소,crm,string
+crm.aiHub.omniChannel.active,アクティブ,アクティブ,활성,crm,string
+crm.aiHub.omniChannel.inactive,非アクティブ,非アクティブ,비활성,crm,string
+crm.aiHub.omniChannel.stepLabel,ステップ,ステップ,단계,crm,string
+crm.aiHub.webPopup.platformKakao,カカオチャネル,カカオチャネル,카카오 채널,crm,string
+crm.aiHub.webPopup.heroDesc,API キーを登録し接続状態を管理します。,API キーを登録し接続状態を管理します。,API 키를 등록하고 연결 상태를 관리합니다.,crm,string
+crm.aiHub.webPopup.statConv,コンバージョン,コンバージョン,전환,crm,string
+crm.aiHub.webPopup.tabOverview,パフォーマンス,パフォーマンス,퍼포먼스,crm,string
+crm.aiHub.webPopup.colName,キャンペーン名,キャンペーン名,캠페인명,crm,string
+crm.aiHub.webPopup.colStatus,ステータス,ステータス,상태,crm,string
+crm.aiHub.webPopup.colClicks,クリック,クリック,클릭,crm,string
+crm.aiHub.webPopup.colConv,コンバージョン,コンバージョン,전환,crm,string
+crm.aiHub.webPopup.preview,プレビュー,プレビュー,미리보기,crm,string
+crm.aiHub.webPopup.guideDashName,パフォーマンス,パフォーマンス,퍼포먼스,crm,string
+crm.aiHub.webPopup.uploadPreview,プレビュー,プレビュー,미리보기,crm,string
+crm.aiHub.title,統合ハブ,統合ハブ,통합 허브,crm,string
+crm.aiHub.upgradeBtn,💎 Proアップグレード,💎 Proアップグレード,💎 Pro 업그레이드,crm,string
+crm.aiHub.filterAll,すべて,すべて,전체,crm,string
+crm.aiHub.dashGuide.step5Title,リアルタイム同期,リアルタイム同期,실시간 동기화,crm,string
+crm.aiHub.dashGuide.tabsTitle,タブ別ガイド,タブ別ガイド,탭별 가이드,crm,string
+crm.aiHub.sms.guideTabsTitle,タブ別ガイド,タブ別ガイド,탭별 가이드,crm,string
+crm.aiHub.sms.guideAuthDesc,APIキー登録,APIキー登録,API 키 등록,crm,string
+crm.aiHub.sms.tabTemplates,テンプレート,テンプレート,템플릿,crm,string
+crm.aiHub.sms.tabCampaigns,キャンペーン,キャンペーン,캠페인,crm,string
+crm.aiHub.sms.heroDesc,API キーを登録し接続状態を管理します。,API キーを登録し接続状態を管理します。,API 키를 등록하고 연결 상태를 관리합니다.,crm,string
+crm.aiHub.sms.demoMode,デモモード,デモモード,데모 모드,crm,string
+crm.aiHub.sms.type,タイプ,タイプ,타입,crm,string
+crm.aiHub.sms.status,ステータス,ステータス,상태,crm,string
+crm.aiHub.sms.tplAll,全て,全て,전체,crm,string
+crm.aiHub.sms.tplCategory,カテゴリ,カテゴリ,카테고리,crm,string
+crm.aiHub.sms.tplCat_promotion,プロモーション,プロモーション,프로모션,crm,string
+crm.aiHub.sms.campAll,全て,全て,전체,crm,string
+crm.aiHub.sms.campName,キャンペーン名,キャンペーン名,캠페인명,crm,string
+crm.aiHub.sms.cancel,キャンセル,キャンセル,취소,crm,string
+crm.aiHub.sms.loading,読み込み中…,読み込み中…,로딩 중...,crm,string
+crm.aiHub.sms.guideTemplatesName,テンプレート,テンプレート,템플릿,crm,string
+crm.aiHub.sms.guideCampaignsName,キャンペーン,キャンペーン,캠페인,crm,string
+crm.aiHub.contentCal.title,コンテンツカレンダー,コンテンツカレンダー,콘텐츠 캘린더,crm,string
+crm.aiHub.contentCal.btnPrev,前へ,前へ,이전,crm,string
+crm.aiHub.contentCal.btnNext,次へ,次へ,다음,crm,string
+crm.aiHub.contentCal.btnCancel,キャンセル,キャンセル,취소,crm,string
+crm.aiHub.contentCal.statusLabel,ステータス,ステータス,상태,crm,string
+crm.aiHub.contentCal.filterAll,すべて,すべて,전체,crm,string
+crm.aiHub.contentCal.st_cancelled,キャンセル,キャンセル,취소,crm,string
+crm.aiHub.contentCal.fieldCreator,クリエイター,クリエイター,크리에이터,crm,string
+crm.aiHub.contentCal.fieldCampaign,キャンペーン,キャンペーン,캠페인,crm,string
+crm.aiHub.contentCal.fieldPlatform,プラットフォーム,プラットフォーム,플랫폼,crm,string
+crm.aiHub.contentCal.fieldStatus,ステータス,ステータス,상태,crm,string
+crm.aiHub.contentCal.guideTabsTitle,タブ別機能案内,タブ別機能案内,탭별 기능 안내,crm,string
+crm.aiHub.contentCal.guideGuideName,利用ガイド,利用ガイド,이용 가이드,crm,string
+crm.aiHub.guideTabsTitle,タブ機能ガイド,タブ機能ガイド,탭 기능 가이드,crm,string
+crm.aiHub.desc_guide,利用ガイド,利用ガイド,이용 가이드,crm,string
+crm.aiHub.filterAllChannel,全チャネル,全チャネル,전체 채널,crm,string
+pages.marketing.sidebarUpgrade,アップグレード,アップグレード,업그레이드,pages,string
+pages.marketing.sidebarLogout,ログアウト,ログアウト,로그아웃,pages,string
+pages.marketing.convRateLbl,コンバージョン率,コンバージョン率,전환율,pages,string
+pages.marketing.channel,チャネル,チャネル,채널,pages,string
+pages.graphScore.lbl_influencer,インフルエンサー,インフルエンサー,인플루언서,pages,string
+pages.graphScore.loading,読み込み中…,読み込み中…,로딩 중...,pages,string
+pages.graphScore.syncNow,今すぐ同期,今すぐ同期,지금 동기화,pages,string
+pages.graphScore.inf,インフルエンサー,インフルエンサー,인플루언서,pages,string
+pages.graphScore.crt,クリエイティブ,クリエイティブ,크리에이티브,pages,string
+pages.graphScore.secLockTitle,セキュリティ警告検出,セキュリティ警告検出,보안 경고 감지,pages,string
+pages.krChannel.pageTitle,🔌 連携ハブ,🔌 連携ハブ,🔌 연동 허브,pages,string
+pages.krChannel.pageSub,コネクタ＆統合管理,コネクタ＆統合管理,커넥터 & 통합 관리,pages,string
+pages.krChannel.channel,チャネル,チャネル,채널,pages,string
+pages.reconciliation.pageTitle,🔌 連携ハブ,🔌 連携ハブ,🔌 연동 허브,pages,string
+pages.reconciliation.pageSub,コネクタ＆統合管理,コネクタ＆統合管理,커넥터 & 통합 관리,pages,string
+pages.writeback.heroDesc,API キーを登録し接続状態を管理します。,API キーを登録し接続状態を管理します。,API 키를 등록하고 연결 상태를 관리합니다.,pages,string
+pages.writeback.pageTitle,🔌 連携ハブ,🔌 連携ハブ,🔌 연동 허브,pages,string
+pages.writeback.pageSub,コネクタ＆統合管理,コネクタ＆統合管理,커넥터 & 통합 관리,pages,string
+pages.writeback.channel,チャネル,チャネル,채널,pages,string
+pages.writeback.btnPreview,プレビュー,プレビュー,미리보기,pages,string
+pages.writeback.colChannel,チャネル,チャネル,채널,pages,string
+pages.writeback.colStatus,ステータス,ステータス,상태,pages,string
+pages.writeback.cfgAuditLog,監査ログ,監査ログ,감사 로그,pages,string
+pages.writeback.badgeChannels,チャネル,チャネル,채널,pages,string
+pages.writeback.badgeRealtime,リアルタイム同期,リアルタイム同期,실시간 동기화,pages,string
+pages.writeback.liveSyncStatus,リアルタイムデータ同期状態,リアルタイムデータ同期状態,실시간 데이터 동기화 상태,pages,string
+pages.writeback.demoBanner,🎭 デモモード,🎭 デモモード,🎭 데모 모드,pages,string
+pages.writeback.demoBannerDesc,読み取り専用。,読み取り専用。,읽기 전용.,pages,string
+pages.writeback.upgradeBtn,💎 Proアップグレード,💎 Proアップグレード,💎 Pro 업그레이드,pages,string
+pages.writeback.crossTabSync,別タブからスキーマ同期,別タブからスキーマ同期,다른 탭에서 스키마 동기화,pages,string
+pages.writeback.secTitle,セキュリティ脅威検出,セキュリティ脅威検出,보안 위협 탐지,pages,string
+pages.writeback.secDesc,不審なアクティビティ検出,不審なアクティビティ検出,의심스러운 활동 감지,pages,string
+pages.writeback.secCode,ロック解除コード入力,ロック解除コード入力,잠금 해제 코드 입력,pages,string
+pages.writeback.secUnlock,ロック解除,ロック解除,잠금 해제,pages,string
+pages._marketing_1.pageTitle,🔌 連携ハブ,🔌 連携ハブ,🔌 연동 허브,pages,string
+pages._marketing_1.pageSub,コネクタ＆統合管理,コネクタ＆統合管理,커넥터 & 통합 관리,pages,string
+pages._marketing_1.colChannel,チャネル,チャネル,채널,pages,string
+pages._marketing_1.colStatus,ステータス,ステータス,상태,pages,string
+pages._marketing_1.kpiTotal,全チャネル,全チャネル,전체 채널,pages,string
+pages._marketing_1.approved,承認済み,承認済み,승인됨,pages,string
+pages.perms.menu.approvals.pageTitle,🔌 連携ハブ,🔌 連携ハブ,🔌 연동 허브,pages,string
+pages.perms.menu.approvals.pageSub,コネクタ＆統合管理,コネクタ＆統合管理,커넥터 & 통합 관리,pages,string
+pages.perms.menu.approvals.filterAll,すべて,すべて,전체,pages,string
+pages.perms.menu.channelKpi.heroDesc,API キーを登録し接続状態を管理します。,API キーを登録し接続状態を管理します。,API 키를 등록하고 연결 상태를 관리합니다.,pages,string
+pages.perms.menu.connectors.pageTitle,🔌 連携ハブ,🔌 連携ハブ,🔌 연동 허브,pages,string
+pages.perms.menu.connectors.pageSub,コネクタ＆統合管理,コネクタ＆統合管理,커넥터 & 통합 관리,pages,string
+pages.perms.menu.connectors.connected,接続済み,接続済み,연결됨,pages,string
+pages.perms.menu.eventNorm.pageTitle,🔌 連携ハブ,🔌 連携ハブ,🔌 연동 허브,pages,string
+pages.perms.menu.eventNorm.pageSub,コネクタ＆統合管理,コネクタ＆統合管理,커넥터 & 통합 관리,pages,string
+pages.perms.menu.mappingRegistry.pageTitle,🔌 連携ハブ,🔌 連携ハブ,🔌 연동 허브,pages,string
+pages.perms.menu.mappingRegistry.pageSub,コネクタ＆統合管理,コネクタ＆統合管理,커넥터 & 통합 관리,pages,string
+pages.perms.menu.marketingIntel.funnelClicks,クリック数,クリック数,클릭 수,pages,string
+pages.perms.menu.marketingIntel.creator,クリエイター,クリエイター,크리에이터,pages,string
+pages.perms.menu.marketingIntel.reach,リーチ,リーチ,도달,pages,string
+pages.perms.menu.marketingIntel.clicks,クリック,クリック,클릭,pages,string
+pages.perms.menu.marketingIntel.statusPending,承認待ち,承認待ち,승인 대기,pages,string
+pages.perms.menu.marketingIntel.statusApproved,承認済み,承認済み,승인됨,pages,string
+pages.perms.menu.marketingIntel.action,アクション,アクション,액션,pages,string
+pages.perms.menu.writeback.pageTitle,🔌 連携ハブ,🔌 連携ハブ,🔌 연동 허브,pages,string
+pages.perms.menu.writeback.pageSub,コネクタ＆統合管理,コネクタ＆統合管理,커넥터 & 통합 관리,pages,string
+pages.perms.colChannel,チャネル,チャネル,채널,pages,string
+pages.mobile.aiInsightsPage.heroDesc,API キーを登録し接続状態を管理します。,API キーを登録し接続状態を管理します。,API 키를 등록하고 연결 상태를 관리합니다.,pages,string
+pages.mobile.adminCoupon.colStatus,ステータス,ステータス,상태,pages,string
+pages.mobile.adminCoupon.colAction,アクション,アクション,액션,pages,string
+pages.mobile.coupon.pageTitle,🔌 連携ハブ,🔌 連携ハブ,🔌 연동 허브,pages,string
+pages.mobile.coupon.pageSub,コネクタ＆統合管理,コネクタ＆統合管理,커넥터 & 통합 관리,pages,string
+pages.marketingIntel.aiPredict.adPerf.channel,チャネル,チャネル,채널,pages,string
+pages.marketingIntel.aiPredict.channelKpiPage.pageTitle,🔌 連携ハブ,🔌 連携ハブ,🔌 연동 허브,pages,string
+pages.marketingIntel.aiPredict.channelKpiPage.heroDesc,API キーを登録し接続状態を管理します。,API キーを登録し接続状態を管理します。,API 키를 등록하고 연결 상태를 관리합니다.,pages,string
+pages.marketingIntel.aiPredict.unified.heroDesc,API キーを登録し接続状態を管理します。,API キーを登録し接続状態を管理します。,API 키를 등록하고 연결 상태를 관리합니다.,pages,string
+pages.marketingIntel.aiPredict.unified.btnNext,次へ,次へ,다음,pages,string
+pages.marketingIntel.aiPredict.pageSub,コネクタ＆統合管理,コネクタ＆統合管理,커넥터 & 통합 관리,pages,string
+pages.marketingIntel.influencer.attrData.colChannel,チャネル,チャネル,채널,pages,string
+pages.marketingIntel.influencer.attrData.guideTabsTitle,タブ説明,タブ説明,탭 설명,pages,string
+pages.marketingIntel.influencer.colStatus,ステータス,ステータス,상태,pages,string
+pages.marketingIntel.marketingIntel.aiPredict.adPerf.channel,チャネル,チャネル,채널,pages,string
+pages.marketingIntel.marketingIntel.aiPredict.channelKpiPage.pageTitle,🔌 連携ハブ,🔌 連携ハブ,🔌 연동 허브,pages,string
+pages.marketingIntel.marketingIntel.aiPredict.channelKpiPage.heroDesc,API キーを登録し接続状態を管理します。,API キーを登録し接続状態を管理します。,API 키를 등록하고 연결 상태를 관리합니다.,pages,string
+pages.marketingIntel.marketingIntel.aiPredict.unified.heroDesc,API キーを登録し接続状態を管理します。,API キーを登録し接続状態を管理します。,API 키를 등록하고 연결 상태를 관리합니다.,pages,string
+pages.marketingIntel.marketingIntel.aiPredict.unified.btnNext,次へ,次へ,다음,pages,string
+pages.marketingIntel.marketingIntel.aiPredict.pageSub,コネクタ＆統合管理,コネクタ＆統合管理,커넥터 & 통합 관리,pages,string
+pages.marketingIntel.marketingIntel.adPerf.channel,チャネル,チャネル,채널,pages,string
+pages.marketingIntel.marketingIntel.adPerf.pageTitle,🔌 連携ハブ,🔌 連携ハブ,🔌 연동 허브,pages,string
+pages.marketingIntel.marketingIntel.adPerf.pageSub,コネクタ＆統合管理,コネクタ＆統合管理,커넥터 & 통합 관리,pages,string
+pages.marketingIntel.marketingIntel.approvals.heroDesc,API キーを登録し接続状態を管理します。,API キーを登録し接続状態を管理します。,API 키를 등록하고 연결 상태를 관리합니다.,pages,string
+pages.marketingIntel.marketingIntel.approvals.pageTitle,🔌 連携ハブ,🔌 連携ハブ,🔌 연동 허브,pages,string
+pages.marketingIntel.marketingIntel.approvals.pageSub,コネクタ＆統合管理,コネクタ＆統合管理,커넥터 & 통합 관리,pages,string
+pages.marketingIntel.marketingIntel.approvals.filterAll,すべて,すべて,전체,pages,string
+pages.marketingIntel.marketingIntel.approvals.auditSecurity,セキュリティ,セキュリティ,보안,pages,string
+pages.marketingIntel.marketingIntel.approvals.cfgAuditLog,監査ログ,監査ログ,감사 로그,pages,string
+pages.marketingIntel.marketingIntel.approvals.badgeRealtime,リアルタイム同期,リアルタイム同期,실시간 동기화,pages,string
+pages.marketingIntel.marketingIntel.approvals.liveSyncStatus,リアルタイムデータ同期状態,リアルタイムデータ同期状態,실시간 데이터 동기화 상태,pages,string
+pages.marketingIntel.marketingIntel.approvals.demoBanner,🎭 デモモード,🎭 デモモード,🎭 데모 모드,pages,string
+pages.marketingIntel.marketingIntel.approvals.demoBannerDesc,読み取り専用。,読み取り専用。,읽기 전용.,pages,string
+pages.marketingIntel.marketingIntel.approvals.upgradeBtn,💎 Proアップグレード,💎 Proアップグレード,💎 Pro 업그레이드,pages,string
+pages.marketingIntel.marketingIntel.approvals.crossTabSync,別タブからスキーマ同期,別タブからスキーマ同期,다른 탭에서 스키마 동기화,pages,string
+pages.marketingIntel.marketingIntel.approvals.secTitle,セキュリティ脅威検出,セキュリティ脅威検出,보안 위협 탐지,pages,string
+pages.marketingIntel.marketingIntel.approvals.secDesc,不審なアクティビティ検出,不審なアクティビティ検出,의심스러운 활동 감지,pages,string
+pages.marketingIntel.marketingIntel.approvals.secCode,ロック解除コード入力,ロック解除コード入力,잠금 해제 코드 입력,pages,string
+pages.marketingIntel.marketingIntel.approvals.secUnlock,ロック解除,ロック解除,잠금 해제,pages,string
+pages.marketingIntel.marketingIntel.channelKpiPage.pageTitle,🔌 連携ハブ,🔌 連携ハブ,🔌 연동 허브,pages,string
+pages.marketingIntel.marketingIntel.channelKpiPage.heroDesc,API キーを登録し接続状態を管理します。,API キーを登録し接続状態を管理します。,API 키를 등록하고 연결 상태를 관리합니다.,pages,string
+pages.marketingIntel.marketingIntel.channelKpiPage.guideTabsTitle,タブ説明,タブ説明,탭 설명,pages,string
+pages.marketingIntel.marketingIntel.channelKpiPage.guideContentName,コンテンツ,コンテンツ,콘텐츠,pages,string
+pages.marketingIntel.marketingIntel.kpi.k_16,インプレッション,インプレッション,노출,pages,string
+pages.marketingIntel.marketingIntel.kpi.k_17,クリック,クリック,클릭,pages,string
+pages.marketingIntel.marketingIntel.systemMonitor.pageTitle,🔌 連携ハブ,🔌 連携ハブ,🔌 연동 허브,pages,string
+pages.marketingIntel.marketingIntel.systemMonitor.pageSub,コネクタ＆統合管理,コネクタ＆統合管理,커넥터 & 통합 관리,pages,string
+pages.marketingIntel.marketingIntel.unified.heroDesc,API キーを登録し接続状態を管理します。,API キーを登録し接続状態を管理します。,API 키를 등록하고 연결 상태를 관리합니다.,pages,string
+pages.marketingIntel.marketingIntel.funnelClicks,クリック数,クリック数,클릭 수,pages,string
+pages.marketingIntel.marketingIntel.creator,クリエイター,クリエイター,크리에이터,pages,string
+pages.marketingIntel.marketingIntel.reach,リーチ,リーチ,도달,pages,string
+pages.marketingIntel.marketingIntel.clicks,クリック,クリック,클릭,pages,string
+pages.marketingIntel.marketingIntel.statusPending,承認待ち,承認待ち,승인 대기,pages,string
+pages.marketingIntel.marketingIntel.statusApproved,承認済み,承認済み,승인됨,pages,string
+pages.marketingIntel.marketingIntel.action,アクション,アクション,액션,pages,string
+pages.marketingIntel.marketingIntel.tabs.channel,チャネルKPI,チャネルKPI,채널 KPI,pages,string
+pages.marketingIntel.marketingIntel.tabs.influencer,インフルエンサー,インフルエンサー,인플루언서,pages,string
+pages.marketingIntel.marketingIntel.tabs.system,システム現況,システム現況,시스템 현황,pages,string
+pages.marketingIntel.marketingIntel.tabs.guide,利用ガイド,利用ガイド,이용 가이드,pages,string
+pages.marketingIntel.marketingIntel.pricing.pageTitle,料金プラン,料金プラン,요금제,pages,string
+pages.marketingIntel.adPerf.channel,チャネル,チャネル,채널,pages,string
+pages.marketingIntel.adPerf.pageTitle,🔌 連携ハブ,🔌 連携ハブ,🔌 연동 허브,pages,string
+pages.marketingIntel.adPerf.pageSub,コネクタ＆統合管理,コネクタ＆統合管理,커넥터 & 통합 관리,pages,string
+pages.marketingIntel.admin.pageTitle,🔌 連携ハブ,🔌 連携ハブ,🔌 연동 허브,pages,string
+pages.marketingIntel.admin.pageSub,コネクタ＆統合管理,コネクタ＆統合管理,커넥터 & 통합 관리,pages,string
+pages.marketingIntel.admin.connected,接続済み,接続済み,연결됨,pages,string
+pages.marketingIntel.attrData.tabGuideLabel,利用ガイド,利用ガイド,이용 가이드,pages,string
+pages.marketingIntel.attrData.tabGuideDesc,使い方,使い方,사용법,pages,string
+pages.marketingIntel.attrData.conversion,コンバージョン,コンバージョン,전환,pages,string
+pages.marketingIntel.attrData.colChannel,チャネル,チャネル,채널,pages,string
+pages.marketingIntel.attrData.guideTabsTitle,タブ別機能ガイド,タブ別機能ガイド,탭별 기능 가이드,pages,string
+pages.marketingIntel.auditLog.pageTitle,🔌 連携ハブ,🔌 連携ハブ,🔌 연동 허브,pages,string
+pages.marketingIntel.auditLog.pageSub,コネクタ＆統合管理,コネクタ＆統合管理,커넥터 & 통합 관리,pages,string
+pages.marketingIntel.auditLog.colAction,アクション,アクション,액션,pages,string
+pages.marketingIntel.campaignMgr.filterAll,全て,全て,전체,pages,string
+pages.marketingIntel.campaignMgr.conversions,コンバージョン,コンバージョン,전환,pages,string
+pages.marketingIntel.campaignMgr.abEmpty,結果なし,結果なし,결과 없음,pages,string
+pages.marketingIntel.campaignMgr.colName,キャンペーン名,キャンペーン名,캠페인명,pages,string
+pages.marketingIntel.campaignMgr.colSegment,セグメント,セグメント,세그먼트,pages,string
+pages.marketingIntel.campaignMgr.copyChannel,チャネル,チャネル,채널,pages,string
+pages.marketingIntel.campaignMgr.copyCopy,コピー,コピー,복사,pages,string
+pages.marketingIntel.campaignMgr.campaignType,タイプ,タイプ,타입,pages,string
+pages.marketingIntel.campaignMgr.channelSection,チャネル,チャネル,채널,pages,string
+pages.marketingIntel.campaignMgr.influencerSection,インフルエンサー,インフルエンサー,인플루언서,pages,string
+pages.marketingIntel.campaignMgr.adChannels,広告チャネル,広告チャネル,광고 채널,pages,string
+pages.marketingIntel.channelKpiPage.pageTitle,🔌 連携ハブ,🔌 連携ハブ,🔌 연동 허브,pages,string
+pages.marketingIntel.channelKpiPage.heroDesc,API キーを登録し接続状態を管理します。,API キーを登録し接続状態を管理します。,API 키를 등록하고 연결 상태를 관리합니다.,pages,string
+pages.marketingIntel.channelKpiPage.guideTabsTitle,タブ説明,タブ説明,탭 설명,pages,string
+pages.marketingIntel.channelKpiPage.guideContentName,コンテンツ,コンテンツ,콘텐츠,pages,string
+pages.marketingIntel.cmpVal.aiPredict.pageTitle,🔌 連携ハブ,🔌 連携ハブ,🔌 연동 허브,pages,string
+pages.marketingIntel.cmpVal.aiPredict.pageSub,コネクタ＆統合管理,コネクタ＆統合管理,커넥터 & 통합 관리,pages,string
+pages.marketingIntel.cmpVal.aiPredict.filterAll,すべて,すべて,전체,pages,string
+pages.marketingIntel.cmpVal.all,全て,全て,전체,pages,string
+pages.marketingIntel.cmpVal.realtime,リアルタイム,リアルタイム,실시간,pages,string
+pages.marketingIntel.connectors.pageTitle,🔌 連携ハブ,🔌 連携ハブ,🔌 연동 허브,pages,string
+pages.marketingIntel.connectors.pageSub,コネクタ＆統合管理,コネクタ＆統合管理,커넥터 & 통합 관리,pages,string
+pages.marketingIntel.connectors.connected,接続済み,接続済み,연결됨,pages,string
+pages.marketingIntel.dbAdmin.pageTitle,🔌 連携ハブ,🔌 連携ハブ,🔌 연동 허브,pages,string
+pages.marketingIntel.dbAdmin.pageSub,コネクタ＆統合管理,コネクタ＆統合管理,커넥터 & 통합 관리,pages,string
+pages.marketingIntel.eventNorm.pageTitle,🔌 連携ハブ,🔌 連携ハブ,🔌 연동 허브,pages,string
+pages.marketingIntel.eventNorm.pageSub,コネクタ＆統合管理,コネクタ＆統合管理,커넥터 & 통합 관리,pages,string
+pages.marketingIntel.graph.inf,インフルエンサー,インフルエンサー,인플루언서,pages,string
+pages.marketingIntel.graph.crt,クリエイティブ,クリエイティブ,크리에이티브,pages,string
+pages.marketingIntel.graphScore.influencer,インフルエンサー,インフルエンサー,인플루언서,pages,string
+pages.marketingIntel.graphScore.lbl_influencer,インフルエンサー,インフルエンサー,인플루언서,pages,string
+pages.marketingIntel.graphScore.loading,読み込み中…,読み込み中…,로딩 중...,pages,string
+pages.marketingIntel.graphScore.syncNow,今すぐ同期,今すぐ同期,지금 동기화,pages,string
+pages.marketingIntel.graphScore.inf,インフルエンサー,インフルエンサー,인플루언서,pages,string
+pages.marketingIntel.graphScore.crt,クリエイティブ,クリエイティブ,크리에이티브,pages,string
+pages.marketingIntel.graphScore.secLockTitle,セキュリティ警告検出,セキュリティ警告検出,보안 경고 감지,pages,string
+pages.marketingIntel.krChannel.pageTitle,🔌 連携ハブ,🔌 連携ハブ,🔌 연동 허브,pages,string
+pages.marketingIntel.krChannel.pageSub,コネクタ＆統合管理,コネクタ＆統合管理,커넥터 & 통합 관리,pages,string
+pages.marketingIntel.krChannel.channel,チャネル,チャネル,채널,pages,string
+pages.marketingIntel.mappingRegistry.pageTitle,🔌 連携ハブ,🔌 連携ハブ,🔌 연동 허브,pages,string
+pages.marketingIntel.mappingRegistry.pageSub,コネクタ＆統合管理,コネクタ＆統合管理,커넥터 & 통합 관리,pages,string
+pages.marketingIntel.omniChannel.heroDesc,API キーを登録し接続状態を管理します。,API キーを登録し接続状態を管理します。,API 키를 등록하고 연결 상태를 관리합니다.,pages,string
+pages.marketingIntel.omniChannel.statusConnected,接続済み,接続済み,연결됨,pages,string
+pages.marketingIntel.omniChannel.guideTabsTitle,タブ機能ガイド,タブ機能ガイド,탭 기능 가이드,pages,string
+pages.marketingIntel.omniChannel.kpiAllChannel,全チャネル,全チャネル,전체 채널,pages,string
+pages.marketingIntel.omniChannel.kpiIntegChannels,連携チャネル,連携チャネル,연동 채널,pages,string
+pages.marketingIntel.omniChannel.statusError,エラー,エラー,오류,pages,string
+pages.marketingIntel.omniChannel.colChannel,チャネル,チャネル,채널,pages,string
+pages.marketingIntel.omniChannel.colCategory,カテゴリ,カテゴリ,카테고리,pages,string
+pages.marketingIntel.omniChannel.colType,タイプ,タイプ,타입,pages,string
+pages.marketingIntel.omniChannel.colRevenueShare,売上シェア,売上シェア,매출 점유율,pages,string
+pages.marketingIntel.omniChannel.allChannel,全チャネル,全チャネル,전체 채널,pages,string
+pages.marketingIntel.omniChannel.loading,読み込み中...,読み込み中...,로딩 중...,pages,string
+pages.marketingIntel.omniChannel.noData,データがありません,データがありません,데이터가 없습니다,pages,string
+pages.marketingIntel.omniChannel.btnConnTest,接続テスト,接続テスト,연결 테스트,pages,string
+pages.marketingIntel.omniChannel.btnClose,閉じる,閉じる,닫기,pages,string
+pages.marketingIntel.systemMonitor.pageTitle,🔌 連携ハブ,🔌 連携ハブ,🔌 연동 허브,pages,string
+pages.marketingIntel.systemMonitor.pageSub,コネクタ＆統合管理,コネクタ＆統合管理,커넥터 & 통합 관리,pages,string
+pages.marketingIntel.ui.cancel,キャンセル,キャンセル,취소,pages,string
+pages.marketingIntel.ui.colStatus,ステータス,ステータス,상태,pages,string
+pages.marketingIntel.userMgmt.pageTitle,🔌 連携ハブ,🔌 連携ハブ,🔌 연동 허브,pages,string
+pages.marketingIntel.userMgmt.pageSub,コネクタ＆統合管理,コネクタ＆統合管理,커넥터 & 통합 관리,pages,string
+pages.marketingIntel.writeback.heroDesc,API キーを登録し接続状態を管理します。,API キーを登録し接続状態を管理します。,API 키를 등록하고 연결 상태를 관리합니다.,pages,string
+pages.marketingIntel.writeback.pageTitle,🔌 連携ハブ,🔌 連携ハブ,🔌 연동 허브,pages,string
+pages.marketingIntel.writeback.pageSub,コネクタ＆統合管理,コネクタ＆統合管理,커넥터 & 통합 관리,pages,string
+pages.marketingIntel.writeback.channel,チャネル,チャネル,채널,pages,string
+pages.marketingIntel.writeback.btnPreview,プレビュー,プレビュー,미리보기,pages,string
+pages.marketingIntel.writeback.colChannel,チャネル,チャネル,채널,pages,string
+pages.marketingIntel.writeback.colStatus,ステータス,ステータス,상태,pages,string
+pages.marketingIntel.writeback.cfgAuditLog,監査ログ,監査ログ,감사 로그,pages,string
+pages.marketingIntel.writeback.badgeChannels,チャネル,チャネル,채널,pages,string
+pages.marketingIntel.writeback.badgeRealtime,リアルタイム同期,リアルタイム同期,실시간 동기화,pages,string
+pages.marketingIntel.writeback.liveSyncStatus,リアルタイムデータ同期状態,リアルタイムデータ同期状態,실시간 데이터 동기화 상태,pages,string
+pages.marketingIntel.writeback.demoBanner,🎭 デモモード,🎭 デモモード,🎭 데모 모드,pages,string
+pages.marketingIntel.writeback.demoBannerDesc,読み取り専用。,読み取り専用。,읽기 전용.,pages,string
+pages.marketingIntel.writeback.upgradeBtn,💎 Proアップグレード,💎 Proアップグレード,💎 Pro 업그레이드,pages,string
+pages.marketingIntel.writeback.crossTabSync,別タブからスキーマ同期,別タブからスキーマ同期,다른 탭에서 스키마 동기화,pages,string
+pages.marketingIntel.writeback.secTitle,セキュリティ脅威検出,セキュリティ脅威検出,보안 위협 탐지,pages,string
+pages.marketingIntel.writeback.secDesc,不審なアクティビティ検出,不審なアクティビティ検出,의심스러운 활동 감지,pages,string
+pages.marketingIntel.writeback.secCode,ロック解除コード入力,ロック解除コード入力,잠금 해제 코드 입력,pages,string
+pages.marketingIntel.writeback.secUnlock,ロック解除,ロック解除,잠금 해제,pages,string
+pages.marketingIntel.pageTitle,パフォーマンスハブ,パフォーマンスハブ,퍼포먼스 허브,pages,string
+pages.marketingIntel.funnelClicks,クリック,クリック,클릭,pages,string
+pages.marketingIntel.clicks,クリック,クリック,클릭,pages,string
+pages.marketingIntel.kpiTotal,全チャネル,全チャネル,전체 채널,pages,string
+pages.marketingIntel.approvals.heroDesc,API キーを登録し接続状態を管理します。,API キーを登録し接続状態を管理します。,API 키를 등록하고 연결 상태를 관리합니다.,pages,string
+pages.marketingIntel.approvals.pageTitle,🔌 連携ハブ,🔌 連携ハブ,🔌 연동 허브,pages,string
+pages.marketingIntel.approvals.pageSub,コネクタ＆統合管理,コネクタ＆統合管理,커넥터 & 통합 관리,pages,string
+pages.marketingIntel.approvals.filterAll,すべて,すべて,전체,pages,string
+pages.marketingIntel.approvals.auditSecurity,セキュリティ,セキュリティ,보안,pages,string
+pages.marketingIntel.approvals.cfgAuditLog,監査ログ,監査ログ,감사 로그,pages,string
+pages.marketingIntel.approvals.badgeRealtime,リアルタイム同期,リアルタイム同期,실시간 동기화,pages,string
+pages.marketingIntel.approvals.liveSyncStatus,リアルタイムデータ同期状態,リアルタイムデータ同期状態,실시간 데이터 동기화 상태,pages,string
+pages.marketingIntel.approvals.demoBanner,🎭 デモモード,🎭 デモモード,🎭 데모 모드,pages,string
+pages.marketingIntel.approvals.demoBannerDesc,読み取り専用。,読み取り専用。,읽기 전용.,pages,string
+pages.marketingIntel.approvals.upgradeBtn,💎 Proアップグレード,💎 Proアップグレード,💎 Pro 업그레이드,pages,string
+pages.marketingIntel.approvals.crossTabSync,別タブからスキーマ同期,別タブからスキーマ同期,다른 탭에서 스키마 동기화,pages,string
+pages.marketingIntel.approvals.secTitle,セキュリティ脅威検出,セキュリティ脅威検出,보안 위협 탐지,pages,string
+pages.marketingIntel.approvals.secDesc,不審なアクティビティ検出,不審なアクティビティ検出,의심스러운 활동 감지,pages,string
+pages.marketingIntel.approvals.secCode,ロック解除コード入力,ロック解除コード入力,잠금 해제 코드 입력,pages,string
+pages.marketingIntel.approvals.secUnlock,ロック解除,ロック解除,잠금 해제,pages,string
+pages.marketingIntel.filterAll,すべて,すべて,전체,pages,string
+pages.marketingIntel.tabs.channel,チャネル,チャネル,채널,pages,string
+pages.marketingIntel.tabs.influencer,インフルエンサー,インフルエンサー,인플루언서,pages,string
+pages.marketingIntel.tabs.system,システム現況,システム現況,시스템 현황,pages,string
+pages.marketingIntel.kakao.secLockTitle,セキュリティ警告検出,セキュリティ警告検出,보안 경고 감지,pages,string
+pages.marketingIntel.kakao.syncNow,今すぐ同期,今すぐ同期,지금 동기화,pages,string
+pages.marketingIntel.contentCalendar.title,コンテンツカレンダー,コンテンツカレンダー,콘텐츠 캘린더,pages,string
+pages.marketingIntel.desc_guide,利用ガイド,利用ガイド,이용 가이드,pages,string
+pages.marketingIntel.guideTabsTitle,タブ機能案内,タブ機能案内,탭 기능 안내,pages,string
+pages.marketingIntel.account,アカウント,アカウント,계정,pages,string
+pages.marketingIntel.channel,チャネル,チャネル,채널,pages,string
+pages.marketingIntel.platformFee,プラットフォーム手数料,プラットフォーム手数料,플랫폼 수수료,pages,string
+pages.marketingIntel.deductPlatformFee,プラットフォーム手数料,プラットフォーム手数料,플랫폼 수수료,pages,string
+pages.marketingIntel.collapse,閉じる,閉じる,닫기,pages,string
+pages.marketingIntel.content,コンテンツ,コンテンツ,콘텐츠,pages,string
+pages.marketingIntel.cancel,キャンセル,キャンセル,취소,pages,string
+pages.marketingIntel.skuMargin,マージン,マージン,마진,pages,string
+pages.marketingIntel.skuMarginRate,マージン率,マージン率,마진율,pages,string
+pages.marketingIntel.noData,データがありません。,データがありません。,데이터가 없습니다.,pages,string
+pages.marketingIntel.securityAlert,セキュリティ脅威検知,セキュリティ脅威検知,보안 위협 감지,pages,string
+pages.marketingIntel.realtimeSync,リアルタイム同期,リアルタイム同期,실시간 동기화,pages,string
+pages.marketingIntel.colChannel,チャネル,チャネル,채널,pages,string
+pages.marketingIntel.onboarding.viewGuide,利用ガイド,利用ガイド,이용 가이드,pages,string
+pages.marketingIntel.onboarding.export,エクスポート,エクスポート,내보내기,pages,string
+pages.marketingIntel.onboarding.btnNext,次へ,次へ,다음,pages,string
+pages.marketingIntel.onboarding.crossTabSync,別タブからスキーマ同期,別タブからスキーマ同期,다른 탭에서 스키마 동기화,pages,string
+pages.marketingIntel.onboarding.pageTitle,🔌 連携ハブ,🔌 連携ハブ,🔌 연동 허브,pages,string
+pages.marketingIntel.onboarding.pageSub,コネクタ＆統合管理,コネクタ＆統合管理,커넥터 & 통합 관리,pages,string
+pages.marketingIntel.onboarding.tagMonitoring,システム監視,システム監視,시스템 모니터링,pages,string
+pages.marketingIntel.onboarding.stepAIMarketing,AIマーケティング自動化,AIマーケティング自動化,AI 마케팅 자동화,pages,string
+pages.marketingIntel.onboarding.stepSysMonitor,システム監視,システム監視,시스템 모니터링,pages,string
+pages.marketingIntel.onboarding.secTitle,セキュリティ脅威検出,セキュリティ脅威検出,보안 위협 탐지,pages,string
+pages.marketingIntel.onboarding.secCode,ロック解除コード入力,ロック解除コード入力,잠금 해제 코드 입력,pages,string
+pages.marketingIntel.onboarding.secUnlock,ロック解除,ロック解除,잠금 해제,pages,string
+pages.marketingIntel.pricingDetail.growth_s1i3,コンテンツカレンダー,コンテンツカレンダー,콘텐츠 캘린더,pages,string
+pages.marketingIntel.cmpRow.r25,監査ログ,監査ログ,감사 로그,pages,string
+pages.cmpVal.aiPredict.pageTitle,🔌 連携ハブ,🔌 連携ハブ,🔌 연동 허브,pages,string
+pages.cmpVal.aiPredict.pageSub,コネクタ＆統合管理,コネクタ＆統合管理,커넥터 & 통합 관리,pages,string
+pages.cmpVal.aiPredict.filterAll,すべて,すべて,전체,pages,string
+pages.menu.approvals.pageTitle,🔌 連携ハブ,🔌 連携ハブ,🔌 연동 허브,pages,string
+pages.menu.approvals.pageSub,コネクタ＆統合管理,コネクタ＆統合管理,커넥터 & 통합 관리,pages,string
+pages.menu.approvals.filterAll,すべて,すべて,전체,pages,string
+pages.menu.channelKpi.heroDesc,API キーを登録し接続状態を管理します。,API キーを登録し接続状態を管理します。,API 키를 등록하고 연결 상태를 관리합니다.,pages,string
+pages.menu.connectors.pageTitle,🔌 連携ハブ,🔌 連携ハブ,🔌 연동 허브,pages,string
+pages.menu.connectors.pageSub,コネクタ＆統合管理,コネクタ＆統合管理,커넥터 & 통합 관리,pages,string
+pages.menu.connectors.connected,接続済み,接続済み,연결됨,pages,string
+pages.menu.eventNorm.pageTitle,🔌 連携ハブ,🔌 連携ハブ,🔌 연동 허브,pages,string
+pages.menu.eventNorm.pageSub,コネクタ＆統合管理,コネクタ＆統合管理,커넥터 & 통합 관리,pages,string
+pages.menu.mappingRegistry.pageTitle,🔌 連携ハブ,🔌 連携ハブ,🔌 연동 허브,pages,string
+pages.menu.mappingRegistry.pageSub,コネクタ＆統合管理,コネクタ＆統合管理,커넥터 & 통합 관리,pages,string
+pages.menu.marketingIntel.funnelClicks,クリック数,クリック数,클릭 수,pages,string
+pages.menu.marketingIntel.creator,クリエイター,クリエイター,크리에이터,pages,string
+pages.menu.marketingIntel.reach,リーチ,リーチ,도달,pages,string
+pages.menu.marketingIntel.clicks,クリック,クリック,클릭,pages,string
+pages.menu.marketingIntel.statusPending,承認待ち,承認待ち,승인 대기,pages,string
+pages.menu.marketingIntel.statusApproved,承認済み,承認済み,승인됨,pages,string
+pages.menu.marketingIntel.action,アクション,アクション,액션,pages,string
+pages.menu.writeback.pageTitle,🔌 連携ハブ,🔌 連携ハブ,🔌 연동 허브,pages,string
+pages.menu.writeback.pageSub,コネクタ＆統合管理,コネクタ＆統合管理,커넥터 & 통합 관리,pages,string
+pages.report.colStatus,ステータス,ステータス,상태,pages,string
+pages.onboarding.viewGuide,利用ガイド,利用ガイド,이용 가이드,pages,string
+pages.onboarding.export,エクスポート,エクスポート,내보내기,pages,string
+pages.onboarding.btnNext,次へ,次へ,다음,pages,string
+pages.onboarding.crossTabSync,別タブからスキーマ同期,別タブからスキーマ同期,다른 탭에서 스키마 동기화,pages,string
+pages.onboarding.pageTitle,🔌 連携ハブ,🔌 連携ハブ,🔌 연동 허브,pages,string
+pages.onboarding.pageSub,コネクタ＆統合管理,コネクタ＆統合管理,커넥터 & 통합 관리,pages,string
+pages.onboarding.tagMonitoring,システム監視,システム監視,시스템 모니터링,pages,string
+pages.onboarding.stepAIMarketing,AIマーケティング自動化,AIマーケティング自動化,AI 마케팅 자동화,pages,string
+pages.onboarding.stepSysMonitor,システム監視,システム監視,시스템 모니터링,pages,string
+pages.onboarding.secTitle,セキュリティ脅威検出,セキュリティ脅威検出,보안 위협 탐지,pages,string
+pages.onboarding.secCode,ロック解除コード入力,ロック解除コード入力,잠금 해제 코드 입력,pages,string
+pages.onboarding.secUnlock,ロック解除,ロック解除,잠금 해제,pages,string
+pages.colChannel,チャネル,チャネル,채널,pages,string
+audit.title,監査ログ,監査ログ,감사 로그,audit,string
+audit.tabSecurity,セキュリティ,セキュリティ,보안,audit,string
+audit.colUser,ユーザー,ユーザー,사용자,audit,string
+audit.colAction,アクション,アクション,액션,audit,string
+audit.colStatus,ステータス,ステータス,상태,audit,string
+audit.cancel,キャンセル,キャンセル,취소,audit,string
+audit.colCampaign,キャンペーン,キャンペーン,캠페인,audit,string
+audit.colChannel,チャンネル,チャンネル,채널,audit,string
+audit.colCreator,クリエイター,クリエイター,크리에이터,audit,string
+audit.colMargin,マージン,マージン,마진,audit,string
+journeyBuilder.cancel,キャンセル,キャンセル,취소,journeyBuilder,string
+lineChannel.clickRate,クリック率,クリック率,클릭률,lineChannel,string
+lineChannel.approved,承認済み,承認済み,승인됨,lineChannel,string
+lineChannel.preview,プレビュー,プレビュー,미리보기,lineChannel,string

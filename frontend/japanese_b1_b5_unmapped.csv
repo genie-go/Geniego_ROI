@@ -1,0 +1,2530 @@
+﻿path,ko_current,ja_value,ns
+ruleEnginePage.supplyChain.pageTitle,サプライチェーン可視性,サプライチェーン可視性,ruleEnginePage
+ruleEnginePage.supplyChain.pageSub,サプライヤー → 生産 → 出荷 → 通関 → 入庫 → 出庫の全フロー リアルタイム追跡、リードタイム自動計算、供給リスク検知,サプライヤー → 生産 → 出荷 → 通関 → 入庫 → 出庫の全フロー リアルタイム追跡、リードタイム自動計算、供給リスク検知,ruleEnginePage
+ruleEnginePage.supplyChain.tabTimeline,供給タイムライン,供給タイムライン,ruleEnginePage
+ruleEnginePage.supplyChain.tabSuppliers,サプライヤー管理,サプライヤー管理,ruleEnginePage
+ruleEnginePage.supplyChain.tabLeadTime,リードタイム分析,リードタイム分析,ruleEnginePage
+ruleEnginePage.supplyChain.tabRisk,リスク検知,リスク検知,ruleEnginePage
+ruleEnginePage.supplyChain.invSupplier,サプライヤー保有,サプライヤー保有,ruleEnginePage
+ruleEnginePage.supplyChain.poSelectSupplier,サプライヤー選択,サプライヤー選択,ruleEnginePage
+ruleEnginePage.supplyChain.lcDesc,商品原価、物流費、関税、保険、ハンドリング費用を含む最終到着原価（Landed Cost）を計算します。,商品原価、物流費、関税、保険、ハンドリング費用を含む最終到着原価（Landed Cost）を計算します。,ruleEnginePage
+ruleEnginePage.supplyChain.lcHandling,ハンドリング,ハンドリング,ruleEnginePage
+ruleEnginePage.supplyChain.lcOther,その他費用,その他費用,ruleEnginePage
+ruleEnginePage.supplyChain.guideStep9Desc,全入力フィールドでXSS、SQLインジェクション、パストラバーサルなどのハッキング試行をリアルタイムで検知・ブロックします。,全入力フィールドでXSS、SQLインジェクション、パストラバーサルなどのハッキング試行をリアルタイムで検知・ブロックします。,ruleEnginePage
+ruleEnginePage.supplyChain.guideStep10Title,データ活用,データ活用,ruleEnginePage
+ruleEnginePage.supplyChain.guideStep10Desc,サプライチェーンデータは価格最適化、WMS管理者などの他モジュールとリアルタイム連携されます。,サプライチェーンデータは価格最適化、WMS管理者などの他モジュールとリアルタイム連携されます。,ruleEnginePage
+ruleEnginePage.wms.tabInventoryDesc,チャネル別リアルタイム在庫,チャネル別リアルタイム在庫,ruleEnginePage
+ruleEnginePage.wms.tabLot,ロット/消費期限,ロット/消費期限,ruleEnginePage
+ruleEnginePage.wms.tabInvoice,インボイス,インボイス,ruleEnginePage
+ruleEnginePage.wms.tabBundle,バンドル/BOM,バンドル/BOM,ruleEnginePage
+ruleEnginePage.wms.tabPicking,ピッキング/梱包,ピッキング/梱包,ruleEnginePage
+ruleEnginePage.wms.wmsHeroDesc,倉庫登録 · 入出庫 · 在庫管理 · バンドル · 宅配/特送 · コマーシャルインボイス管理,倉庫登録 · 入出庫 · 在庫管理 · バンドル · 宅配/特送 · コマーシャルインボイス管理,ruleEnginePage
+ruleEnginePage.wms.ioDemoMsg,📌 体験モード: 実際の入出庫は登録されません。,📌 体験モード: 実際の入出庫は登録されません。,ruleEnginePage
+ruleEnginePage.wms.ioSkuRequired,SKUと数量は必須です。,SKUと数量は必須です。,ruleEnginePage
+ruleEnginePage.wms.invLowOnly,⚠️ 不足商品のみ,⚠️ 不足商品のみ,ruleEnginePage
+ruleEnginePage.wms.invNoResult,🔍 検索結果がありません。,🔍 検索結果がありません。,ruleEnginePage
+ruleEnginePage.wms.invOutOfStock,📛 品切れ,📛 品切れ,ruleEnginePage
+ruleEnginePage.wms.invDemoAdj,📌 体験: 在庫調整は適用されません。,📌 体験: 在庫調整は適用されません。,ruleEnginePage
+ruleEnginePage.wms.bdlTitle,📦 バンドル・キット BOM管理,📦 バンドル・キット BOM管理,ruleEnginePage
+ruleEnginePage.wms.supNameRequired,会社名とコードは必須です。,会社名とコードは必須です。,ruleEnginePage
+ruleEnginePage.wms.auditTitle,📋 棚卸し,📋 棚卸し,ruleEnginePage
+ruleEnginePage.wms.trackTitle,🔍 リアルタイム配送追跡,🔍 リアルタイム配送追跡,ruleEnginePage
+ruleEnginePage.wms.trackDesc,宅配社APIで配送状態をリアルタイム照会,宅配社APIで配送状態をリアルタイム照会,ruleEnginePage
+ruleEnginePage.wms.trackNumRequired,送り状番号を入力してください。,送り状番号を入力してください。,ruleEnginePage
+ruleEnginePage.wms.guideStep9Title,プロモカレンダー,プロモカレンダー,ruleEnginePage
+ruleEnginePage.wms.guideStep9Desc,プロモーション価格イベントを計画・予約します。,プロモーション価格イベントを計画・予約します。,ruleEnginePage
+ruleEnginePage.wms.guideStep10Title,レビュー＆適用,レビュー＆適用,ruleEnginePage
+ruleEnginePage.wms.guideStep10Desc,サマリータブで最適化結果をレビューします。カタログ同期で推薦価格をリアルタイムでチャネルに適用します。,サマリータブで最適化結果をレビューします。カタログ同期で推薦価格をリアルタイムでチャネルに適用します。,ruleEnginePage
+ruleEnginePage.wms.guideStep11Title,コマーシャルインボイス,コマーシャルインボイス,ruleEnginePage
+ruleEnginePage.wms.guideStep11Desc,国際配送用の税関インボイスをINCOTERMS、HSコード、多通貨対応で自動生成します。,国際配送用の税関インボイスをINCOTERMS、HSコード、多通貨対応で自動生成します。,ruleEnginePage
+ruleEnginePage.wms.guideStep12Title,バンドル/キットBOM,バンドル/キットBOM,ruleEnginePage
+ruleEnginePage.wms.guideStep12Desc,BOM（部品表）で商品バンドルを作成します。構成品の在庫を追跡し、バンドルセットを組立/出荷します。,BOM（部品表）で商品バンドルを作成します。構成品の在庫を追跡し、バンドルセットを組立/出荷します。,ruleEnginePage
+ruleEnginePage.wms.guideStep13Desc,連絡先、支払条件、リードタイム、評価でサプライヤーを登録・管理します。サプライヤー別発注履歴を追跡します。,連絡先、支払条件、リードタイム、評価でサプライヤーを登録・管理します。サプライヤー別発注履歴を追跡します。,ruleEnginePage
+ruleEnginePage.wms.guideStep14Desc,実地棚卸を実施します。帳簿在庫と実物を比較し、差異を特定して差異報告書を作成します。,実地棚卸を実施します。帳簿在庫と実物を比較し、差異を特定して差異報告書を作成します。,ruleEnginePage
+ruleEnginePage.wms.guideTabWhDesc,倉庫を登録し、保管タイプを設定し、アクセス権限を管理し、施設別在庫レベルを監視します。,倉庫を登録し、保管タイプを設定し、アクセス権限を管理し、施設別在庫レベルを監視します。,ruleEnginePage
+ruleEnginePage.wms.guideTabInOutDesc,タイプ分類、参照番号、リアルタイム監査証跡ロギングで全在庫移動を記録します。,タイプ分類、参照番号、リアルタイム監査証跡ロギングで全在庫移動を記録します。,ruleEnginePage
+ruleEnginePage.wms.guideTabInvDesc,不足在庫アラート、CSVインポート/エクスポート、バーコードスキャンで全倉庫の統合在庫を確認します。,不足在庫アラート、CSVインポート/エクスポート、バーコードスキャンで全倉庫の統合在庫を確認します。,ruleEnginePage
+ruleEnginePage.wms.guideTabRecvDesc,入庫発注を追跡し、入庫確認すると在庫が自動更新されます。,入庫発注を追跡し、入庫確認すると在庫が自動更新されます。,ruleEnginePage
+ruleEnginePage.wms.guideTabPickDesc,出庫承認ワークフローでピッキングリストを処理し、梱包伝票を印刷し、処理状況を追跡します。,出庫承認ワークフローでピッキングリストを処理し、梱包伝票を印刷し、処理状況を追跡します。,ruleEnginePage
+ruleEnginePage.wms.guideTabLotDesc,期限切れ間近の商品の自動アラートでロット番号と消費期限を管理します。,期限切れ間近の商品の自動アラートでロット番号と消費期限を管理します。,ruleEnginePage
+ruleEnginePage.wms.guideTabReplDesc,再注文ポイントを自動検出し、安全在庫に基づく推奨数量で発注書を作成します。,再注文ポイントを自動検出し、安全在庫に基づく推奨数量で発注書を作成します。,ruleEnginePage
+ruleEnginePage.wms.guideTabCombDesc,コスト最適化と追跡のため複数注文を単一配送に統合します。,コスト最適化と追跡のため複数注文を単一配送に統合します。,ruleEnginePage
+ruleEnginePage.wms.guideTabCarrDesc,配送業者を登録し、API接続をテストし、国内外の配送パートナーを管理します。,配送業者を登録し、API接続をテストし、国内外の配送パートナーを管理します。,ruleEnginePage
+ruleEnginePage.wms.guideTabTrackDesc,配送業者APIによるリアルタイム配送追跡とタイムライン可視化。,配送業者APIによるリアルタイム配送追跡とタイムライン可視化。,ruleEnginePage
+ruleEnginePage.wms.guideTabInvcDesc,INCOTERMS、HSコード、為替レートで税関用コマーシャルインボイスを生成します。,INCOTERMS、HSコード、為替レートで税関用コマーシャルインボイスを生成します。,ruleEnginePage
+ruleEnginePage.wms.guideTabBdlDesc,BOMで商品キットを作成し、構成品在庫を追跡し、バンドル組立/出荷を管理します。,BOMで商品キットを作成し、構成品在庫を追跡し、バンドル組立/出荷を管理します。,ruleEnginePage
+ruleEnginePage.wms.guideTabSupDesc,サプライヤー情報、支払条件、リードタイム、発注履歴を管理します。,サプライヤー情報、支払条件、リードタイム、発注履歴を管理します。,ruleEnginePage
+ruleEnginePage.wms.guideTabAuditDesc,帳簿対実物比較と差異報告による実地棚卸。,帳簿対実物比較と差異報告による実地棚卸。,ruleEnginePage
+ruleEnginePage.wms.ioBulkTitle,入出庫一括アップロード,入出庫一括アップロード,ruleEnginePage
+ruleEnginePage.wms.ioBulkInfo,Excel(.xlsx)またはCSVファイルをアップロードして入出庫記録を一括登録します。サンプルファイルをダウンロードして書式を確認してください。,Excel(.xlsx)またはCSVファイルをアップロードして入出庫記録を一括登録します。サンプルファイルをダウンロードして書式を確認してください。,ruleEnginePage
+ruleEnginePage.wms.ioBulkSampleBtn,サンプルDL,サンプルDL,ruleEnginePage
+ruleEnginePage.wms.ioBulkSelectBtn,ファイル選択,ファイル選択,ruleEnginePage
+ruleEnginePage.wms.ioBulkDone,{n}件が正常に登録されました！,{n}件が正常に登録されました！,ruleEnginePage
+ruleEnginePage.wms.bulkXlsxError,Excelファイルの解析に失敗しました。書式を確認してください。,Excelファイルの解析に失敗しました。書式を確認してください。,ruleEnginePage
+ruleEnginePage.dash.chTrendKpi,チャネル成果推移,チャネル成果推移,ruleEnginePage
+ruleEnginePage.dash.KRChannel,KRチャネル,KRチャネル,ruleEnginePage
+ruleEnginePage.dash.chTrend,チャネルトレンド,チャネルトレンド,ruleEnginePage
+ruleEnginePage.dash.allChSummary,全チャネルサマリー,全チャネルサマリー,ruleEnginePage
+ruleEnginePage.dash.genderDist,性別・年齢分布,性別・年齢分布,ruleEnginePage
+ruleEnginePage.dash.channelMix,チャネル売上ミックス,チャネル売上ミックス,ruleEnginePage
+ruleEnginePage.dash.liveActivity,リアルタイム活動,リアルタイム活動,ruleEnginePage
+ruleEnginePage.dash.moduleShortcuts,モジュールショートカット,モジュールショートカット,ruleEnginePage
+ruleEnginePage.dash.analyticsModules,分析モジュール,分析モジュール,ruleEnginePage
+ruleEnginePage.operations.todayChecklist,今日のチェックリスト,今日のチェックリスト,ruleEnginePage
+ruleEnginePage.operations.priorityActions,優先アクション,優先アクション,ruleEnginePage
+ruleEnginePage.operations.executionFeed,実行フィード,実行フィード,ruleEnginePage
+ruleEnginePage.operations.noActions,アクション不要,アクション不要,ruleEnginePage
+ruleEnginePage.operations.hubTitle,⚡ オペレーションハブ,⚡ オペレーションハブ,ruleEnginePage
+ruleEnginePage.operations.tabCampaigns,📣 広告キャンペーン,📣 広告キャンペーン,ruleEnginePage
+ruleEnginePage.operations.goalType,目標タイプ,目標タイプ,ruleEnginePage
+ruleEnginePage.operations.applyChange,変更を適用,変更を適用,ruleEnginePage
+ruleEnginePage.operations.searchProduct,商品名・SKU検索...,商品名・SKU検索...,ruleEnginePage
+ruleEnginePage.operations.couponCode,クーポンコード,クーポンコード,ruleEnginePage
+ruleEnginePage.operations.priceApply,💹 価格変更を適用,💹 価格変更を適用,ruleEnginePage
+ruleEnginePage.operations.statusSoldout,売り切れ,売り切れ,ruleEnginePage
+ruleEnginePage.operations.viewProductList,商品リストを表示,商品リストを表示,ruleEnginePage
+ruleEnginePage.operations.costPriceMargin,原価マージン,原価マージン,ruleEnginePage
+ruleEnginePage.operations.tabInfluencer,🤝 インフルエンサー,🤝 インフルエンサー,ruleEnginePage
+ruleEnginePage.operations.heroDesc,クーポン/プロモーション運営とAI広告マーケティングデザイン生成を一画面で管理します。,クーポン/プロモーション運営とAI広告マーケティングデザイン生成を一画面で管理します。,ruleEnginePage
+ruleEnginePage.operations.tabProductsDesc,登録・編集・停止・価格・在庫・プロモ,登録・編集・停止・価格・在庫・プロモ,ruleEnginePage
+ruleEnginePage.operations.tabCampaignsDesc,作成・クリエイティブ・予算・入札,作成・クリエイティブ・予算・入札,ruleEnginePage
+ruleEnginePage.operations.tabPromo,🎁 クーポン/ディール/プロモ,🎁 クーポン/ディール/プロモ,ruleEnginePage
+ruleEnginePage.operations.tabPromoDesc,クーポン作成・ディール管理,クーポン作成・ディール管理,ruleEnginePage
+ruleEnginePage.operations.tabInfluencerDesc,オファー・契約・e-Sign・決済,オファー・契約・e-Sign・決済,ruleEnginePage
+ruleEnginePage.operations.costMargin,原価/マージン,原価/マージン,ruleEnginePage
+ruleEnginePage.operations.downloadExcel,📥 Excelダウンロード,📥 Excelダウンロード,ruleEnginePage
+ruleEnginePage.operations.noProducts,登録された商品はありません。商品を登録してください。,登録された商品はありません。商品を登録してください。,ruleEnginePage
+ruleEnginePage.operations.colChannelReg,チャネル登録状況,チャネル登録状況,ruleEnginePage
+ruleEnginePage.operations.colMarginAmt,マージン(円),マージン(円),ruleEnginePage
+ruleEnginePage.operations.colMargin,マージン(%),マージン(%),ruleEnginePage
+ruleEnginePage.operations.colChannels,チャネル数,チャネル数,ruleEnginePage
+ruleEnginePage.operations.btnPromo,🎁 プロモ,🎁 プロモ,ruleEnginePage
+ruleEnginePage.operations.modalPromo,🎁 プロモーション設定,🎁 プロモーション設定,ruleEnginePage
+ruleEnginePage.operations.fieldChannels,販売チャネル,販売チャネル,ruleEnginePage
+ruleEnginePage.operations.btnApplyPromo,🎁 プロモ適用,🎁 プロモ適用,ruleEnginePage
+ruleEnginePage.operations.fbUpdated,商品情報が更新されました。,商品情報が更新されました。,ruleEnginePage
+ruleEnginePage.operations.campaigns,件のキャンペーン,件のキャンペーン,ruleEnginePage
+ruleEnginePage.operations.noCampaigns,登録されたキャンペーンはありません。,登録されたキャンペーンはありません。,ruleEnginePage
+ruleEnginePage.operations.budgetBid,予算・入札,予算・入札,ruleEnginePage
+ruleEnginePage.operations.newCampaign,新規キャンペーン作成,新規キャンペーン作成,ruleEnginePage
+ruleEnginePage.operations.promotions,件のプロモーション,件のプロモーション,ruleEnginePage
+ruleEnginePage.operations.createPromo,プロモーション作成,プロモーション作成,ruleEnginePage
+ruleEnginePage.operations.noPromos,登録されたプロモーションはありません。,登録されたプロモーションはありません。,ruleEnginePage
+ruleEnginePage.operations.newPromo,新規プロモーション作成,新規プロモーション作成,ruleEnginePage
+ruleEnginePage.operations.promoName,プロモーション名,プロモーション名,ruleEnginePage
+ruleEnginePage.operations.influencers,名のインフルエンサー,名のインフルエンサー,ruleEnginePage
+ruleEnginePage.operations.noInfluencers,登録されたインフルエンサーはいません。,登録されたインフルエンサーはいません。,ruleEnginePage
+ruleEnginePage.operations.guideTipTitle,活用ティップ,活用ティップ,ruleEnginePage
+ruleEnginePage.operations.guideTipDesc,プロモーションとAIデザインを組み合わせて活用しましょう。,プロモーションとAIデザインを組み合わせて活用しましょう。,ruleEnginePage
+ruleEnginePage.operations.tabCreativeDesc,AI広告デザイン・画像生成・アップロード,AI広告デザイン・画像生成・アップロード,ruleEnginePage
+ruleEnginePage.operations.ai_creatives,件のクリエイティブ,件のクリエイティブ,ruleEnginePage
+ruleEnginePage.operations.ai_createDesign,AI広告デザイン作成,AI広告デザイン作成,ruleEnginePage
+ruleEnginePage.operations.ai_adTitlePh,プロモーションタイトルを入力,プロモーションタイトルを入力,ruleEnginePage
+ruleEnginePage.operations.ai_sale,セール/割引,セール/割引,ruleEnginePage
+ruleEnginePage.operations.ai_seasonal,シーズンプロモ,シーズンプロモ,ruleEnginePage
+ruleEnginePage.operations.ai_brand,ブランドキャンペーン,ブランドキャンペーン,ruleEnginePage
+ruleEnginePage.operations.ai_descPh,広告内容を簡単に入力,広告内容を簡単に入力,ruleEnginePage
+ruleEnginePage.operations.ai_customPrompt,カスタムイメージプロンプト,カスタムイメージプロンプト,ruleEnginePage
+ruleEnginePage.operations.ai_customPromptPh,希望のイメージスタイルを入力,希望のイメージスタイルを入力,ruleEnginePage
+ruleEnginePage.operations.ai_customPromptHelp,空白の場合、タイトル/イベント/季節から自動生成,空白の場合、タイトル/イベント/季節から自動生成,ruleEnginePage
+ruleEnginePage.operations.ai_addLinkUrl,ショートカットURLリンク追加,ショートカットURLリンク追加,ruleEnginePage
+ruleEnginePage.operations.ai_saveCreative,クリエイティブ保存,クリエイティブ保存,ruleEnginePage
+ruleEnginePage.operations.ai_goNow,今すぐ行く,今すぐ行く,ruleEnginePage
+ruleEnginePage.operations.ai_emptyTitle,AI広告デザインを作成しましょう,AI広告デザインを作成しましょう,ruleEnginePage
+ruleEnginePage.operations.ai_emptyDesc,プラットフォーム別広告画像をAIで自動生成またはアップロード,プラットフォーム別広告画像をAIで自動生成またはアップロード,ruleEnginePage
+ruleEnginePage.operations.ai_forPlatform,プラットフォーム用,プラットフォーム用,ruleEnginePage
+ruleEnginePage.operations.ai_cat_fashion,ファッション,ファッション,ruleEnginePage
+ruleEnginePage.operations.ai_cat_beauty,ビューティー,ビューティー,ruleEnginePage
+ruleEnginePage.operations.ai_cat_tech,テクノロジー,テクノロジー,ruleEnginePage
+ruleEnginePage.operations.ai_editDesign,デザイン編集,デザイン編集,ruleEnginePage
+ruleEnginePage.operations.ai_changeImageTitle,画像変更リクエスト,画像変更リクエスト,ruleEnginePage
+ruleEnginePage.operations.ai_changeImagePh,例: 「冬のテーマにして」「食べ物の写真を追加」,例: 「冬のテーマにして」「食べ物の写真を追加」,ruleEnginePage
+ruleEnginePage.operations.ai_changeImageHelp,希望のイメージスタイルを入力すると、それに合わせて再生成されます。,希望のイメージスタイルを入力すると、それに合わせて再生成されます。,ruleEnginePage
+ruleEnginePage.operations.ai_applyCampaign,🚀 キャンペーンに適用,🚀 キャンペーンに適用,ruleEnginePage
+ruleEnginePage.operations.ai_confirmDelete,このクリエイティブを削除しますか？,このクリエイティブを削除しますか？,ruleEnginePage
+ruleEnginePage.operations.ai_dupWarningTitle,同一のクリエイティブが既に存在します,同一のクリエイティブが既に存在します,ruleEnginePage
+ruleEnginePage.operations.ai_dupWarningDesc,同じクリエイティブがサーバーに保存されています。,同じクリエイティブがサーバーに保存されています。,ruleEnginePage
+ruleEnginePage.operations.ai_serverSynced,サーバー同期完了,サーバー同期完了,ruleEnginePage
+ruleEnginePage.gNav.adAnalytics,広告·チャネル分析,広告·チャネル分析,ruleEnginePage
+ruleEnginePage.gNav.crm,顧客・CRM,顧客・CRM,ruleEnginePage
+ruleEnginePage.gNav.automation,自動化・AIルール,自動化・AIルール,ruleEnginePage
+ruleEnginePage.gNav.data,データ・収集,データ・収集,ruleEnginePage
+ruleEnginePage.gNav.memberTools,メンバーツール,メンバーツール,ruleEnginePage
+ruleEnginePage.gNav.adPerformance,広告パフォーマンス,広告パフォーマンス,ruleEnginePage
+ruleEnginePage.gNav.accountPerformance,アカウントパフォーマンス,アカウントパフォーマンス,ruleEnginePage
+ruleEnginePage.gNav.emailMarketing,Eメールマーケティング,Eメールマーケティング,ruleEnginePage
+ruleEnginePage.gNav.influencer,インフルエンサー・UGC,インフルエンサー・UGC,ruleEnginePage
+ruleEnginePage.gNav.reviewsUgc,レビュー·UGC,レビュー·UGC,ruleEnginePage
+ruleEnginePage.gNav.orderHub,注文センター,注文センター,ruleEnginePage
+ruleEnginePage.gNav.supplyChain,サプライチェーン分析,サプライチェーン分析,ruleEnginePage
+ruleEnginePage.gNav.returnsPortal,返品ポータル,返品ポータル,ruleEnginePage
+ruleEnginePage.gNav.dataProduct,データプロダクト,データプロダクト,ruleEnginePage
+ruleEnginePage.gNav.aiRuleEngine,AIルールエンジン,AIルールエンジン,ruleEnginePage
+ruleEnginePage.gNav.alertAutomation,アラート自動化,アラート自動化,ruleEnginePage
+ruleEnginePage.gNav.writeback,データライトバック,データライトバック,ruleEnginePage
+ruleEnginePage.gNav.onboarding,オンボーディング,オンボーディング,ruleEnginePage
+ruleEnginePage.gNav.integrationHub,連動ハブ,連動ハブ,ruleEnginePage
+ruleEnginePage.gNav.dataSchema,データスキーマ,データスキーマ,ruleEnginePage
+ruleEnginePage.gNav.pixelTracking,ピクセルトラッキング,ピクセルトラッキング,ruleEnginePage
+ruleEnginePage.gNav.dataTrust,データトラスト,データトラスト,ruleEnginePage
+ruleEnginePage.gNav.workspace,ワークスペース,ワークスペース,ruleEnginePage
+ruleEnginePage.gNav.caseStudy,ケーススタディ,ケーススタディ,ruleEnginePage
+ruleEnginePage.gNav.developerHub,開発者ハブ,開発者ハブ,ruleEnginePage
+ruleEnginePage.gNav.platformEnv,プラットフォーム設定,プラットフォーム設定,ruleEnginePage
+ruleEnginePage.gNav.menuRule,メニューアクセス,メニューアクセス,ruleEnginePage
+ruleEnginePage.gNav.dbSchema,DBスキーマ,DBスキーマ,ruleEnginePage
+ruleEnginePage.gNav.aiRecommend,AI即時レコメンド,AI即時レコメンド,ruleEnginePage
+ruleEnginePage.gNav.marketingIntel,マーケティングインテリジェンス,マーケティングインテリジェンス,ruleEnginePage
+ruleEnginePage.gNav.digitalShelf,デジタルシェルフ,デジタルシェルフ,ruleEnginePage
+ruleEnginePage.gNav.amazonRisk,Amazonリスク,Amazonリスク,ruleEnginePage
+ruleEnginePage.gNav.krChannel,韓国チャネル精算,韓国チャネル精算,ruleEnginePage
+ruleEnginePage.gNav.asiaLogistics,アジア物流ハブ,アジア物流ハブ,ruleEnginePage
+ruleEnginePage.gNav.myCoupons,マイクーポン,マイクーポン,ruleEnginePage
+ruleEnginePage.gNav.connectors,マスターコネクタ,マスターコネクタ,ruleEnginePage
+ruleEnginePage.gNav.adminCenter,管理センター,管理センター,ruleEnginePage
+ruleEnginePage.gNav.menuAccessManager,メニューアクセス管理,メニューアクセス管理,ruleEnginePage
+ruleEnginePage.super.autoFeeDesc,チャネル接続時に標準手数料率が自動適用されます,チャネル接続時に標準手数料率が自動適用されます,ruleEnginePage
+ruleEnginePage.super.pageDesc,プラットフォーム別精算額追跡・手数料分析,プラットフォーム別精算額追跡・手数料分析,ruleEnginePage
+ruleEnginePage.super.settingsAutoCollectDesc,連携チャネルから注文データをリアルタイムで自動収集します。,連携チャネルから注文データをリアルタイムで自動収集します。,ruleEnginePage
+ruleEnginePage.super.settingsSlaMonitorDesc,チャネル別出荷SLA基準時間を監視し、違反時に即座に通知します。,チャネル別出荷SLA基準時間を監視し、違反時に即座に通知します。,ruleEnginePage
+ruleEnginePage.super.settingsNotifDesc,新規注文、クレーム受付、SLA違反時にSlack/Emailで通知します。,新規注文、クレーム受付、SLA違反時にSlack/Emailで通知します。,ruleEnginePage
+ruleEnginePage.super.routingNoRules,ルーティングルールがありません。ルールを追加してください。,ルーティングルールがありません。ルールを追加してください。,ruleEnginePage
+ruleEnginePage.marketing.sidebarCampaignActive,🟢 {{n}}キャンペーン実行中,🟢 {{n}}キャンペーン実行中,ruleEnginePage
+ruleEnginePage.marketing.guideFullTitle,📋 最初から最後まで — 完全ガイド,📋 最初から最後まで — 完全ガイド,ruleEnginePage
+ruleEnginePage.marketing.guideFullSub,AIマーケティング自動化プラットフォームの完全ワークフローをステップバイステップでご案内します。,AIマーケティング自動化プラットフォームの完全ワークフローをステップバイステップでご案内します。,ruleEnginePage
+ruleEnginePage.marketing.guidePhaseA,フェーズA — 開始準備,フェーズA — 開始準備,ruleEnginePage
+ruleEnginePage.marketing.guidePhaseB,フェーズB — キャンペーン設計,フェーズB — キャンペーン設計,ruleEnginePage
+ruleEnginePage.marketing.guidePhaseC,フェーズC — AI戦略＆クリエイティブ制作,フェーズC — AI戦略＆クリエイティブ制作,ruleEnginePage
+ruleEnginePage.marketing.guidePhaseD,フェーズD — 実行＆モニタリング,フェーズD — 実行＆モニタリング,ruleEnginePage
+ruleEnginePage.marketing.guidePhaseE,フェーズE — 最適化＆完了,フェーズE — 最適化＆完了,ruleEnginePage
+ruleEnginePage.marketing.gf1Title,ログイン＆環境確認,ログイン＆環境確認,ruleEnginePage
+ruleEnginePage.marketing.gf1Desc,ログインし、サイドバーから「AIマーケティング→自動戦略」に移動します。本番/デモ環境を確認してください。,ログインし、サイドバーから「AIマーケティング→自動戦略」に移動します。本番/デモ環境を確認してください。,ruleEnginePage
+ruleEnginePage.marketing.gf2Title,APIチャネル接続,APIチャネル接続,ruleEnginePage
+ruleEnginePage.marketing.gf2Desc,統合ハブでMeta、Google、Naverなどの APIキーを登録します。接続されたチャネルのみキャンペーンで使用できます。,統合ハブでMeta、Google、Naverなどの APIキーを登録します。接続されたチャネルのみキャンペーンで使用できます。,ruleEnginePage
+ruleEnginePage.marketing.gf3Title,ダッシュボードKPI確認,ダッシュボードKPI確認,ruleEnginePage
+ruleEnginePage.marketing.gf3Desc,ホームダッシュボードで現在のKPI、アクティブキャンペーン、チャネル別ROASを確認します。このデータがAI推奨の基盤です。,ホームダッシュボードで現在のKPI、アクティブキャンペーン、チャネル別ROASを確認します。このデータがAI推奨の基盤です。,ruleEnginePage
+ruleEnginePage.marketing.gf4Desc,「②キャンペーン設定」タブで月間広告予算を選択または入力します。AIが予算レベルに基づいてチャネル推奨を最適化します。,「②キャンペーン設定」タブで月間広告予算を選択または入力します。AIが予算レベルに基づいてチャネル推奨を最適化します。,ruleEnginePage
+ruleEnginePage.marketing.gf5Title,商品カテゴリ選択,商品カテゴリ選択,ruleEnginePage
+ruleEnginePage.marketing.gf5Desc,11カテゴリ（美容、ファッション、食品など）から選択します。複数選択でクロス分析が可能になり精度が向上します。,11カテゴリ（美容、ファッション、食品など）から選択します。複数選択でクロス分析が可能になり精度が向上します。,ruleEnginePage
+ruleEnginePage.marketing.gf6Title,広告チャネル選択,広告チャネル選択,ruleEnginePage
+ruleEnginePage.marketing.gf6Desc,AIがカテゴリ＋予算分析に基づいて最適なチャネルの組み合わせを推奨します。手動でチャネルを追加・削除できます。,AIがカテゴリ＋予算分析に基づいて最適なチャネルの組み合わせを推奨します。手動でチャネルを追加・削除できます。,ruleEnginePage
+ruleEnginePage.marketing.gf7Title,ターゲット＆期間設定,ターゲット＆期間設定,ruleEnginePage
+ruleEnginePage.marketing.gf7Desc,キャンペーン名、実行期間（月次/四半期/半期）、ターゲットオーディエンスを設定します。AIがチャネル別最適ターゲティングを提案します。,キャンペーン名、実行期間（月次/四半期/半期）、ターゲットオーディエンスを設定します。AIがチャネル別最適ターゲティングを提案します。,ruleEnginePage
+ruleEnginePage.marketing.gf8Title,AI戦略シミュレーション,AI戦略シミュレーション,ruleEnginePage
+ruleEnginePage.marketing.gf8Desc,「AI戦略生成」をクリックして、チャネル別予算配分、推定インプレッション、クリック、コンバージョン、ROASを自動計算します。,「AI戦略生成」をクリックして、チャネル別予算配分、推定インプレッション、クリック、コンバージョン、ROASを自動計算します。,ruleEnginePage
+ruleEnginePage.marketing.gf9Title,広告クリエイティブ制作,広告クリエイティブ制作,ruleEnginePage
+ruleEnginePage.marketing.gf9Desc,「①クリエイティブスタジオ」タブで、AIがチャネル別に最適化された広告クリエイティブを自動生成します。テキスト、画像、動画に対応。,「①クリエイティブスタジオ」タブで、AIがチャネル別に最適化された広告クリエイティブを自動生成します。テキスト、画像、動画に対応。,ruleEnginePage
+ruleEnginePage.marketing.gf10Title,戦略プレビュー＆調整,戦略プレビュー＆調整,ruleEnginePage
+ruleEnginePage.marketing.gf10Desc,「③AIプレビュー」タブでチャネル別配分と予想KPIを確認します。スライダーで配分比率を手動調整できます。,「③AIプレビュー」タブでチャネル別配分と予想KPIを確認します。スライダーで配分比率を手動調整できます。,ruleEnginePage
+ruleEnginePage.marketing.gf11Desc,戦略を確定し「承認リクエスト」をクリックします。送信前に承認モーダルで予算、ROAS、チャネルを最終確認します。,戦略を確定し「承認リクエスト」をクリックします。送信前に承認モーダルで予算、ROAS、チャネルを最終確認します。,ruleEnginePage
+ruleEnginePage.marketing.gf12Title,キャンペーンマネージャーで監視,キャンペーンマネージャーで監視,ruleEnginePage
+ruleEnginePage.marketing.gf12Desc,提出されたキャンペーンはキャンペーンマネージャーページでリアルタイム追跡されます。ステータス（保留/承認/アクティブ/一時停止）を監視します。,提出されたキャンペーンはキャンペーンマネージャーページでリアルタイム追跡されます。ステータス（保留/承認/アクティブ/一時停止）を監視します。,ruleEnginePage
+ruleEnginePage.marketing.gf13Desc,AIがリアルタイムデータを分析し、パフォーマンスの低いチャネルから高いチャネルへ予算を自動的に再配分します。,AIがリアルタイムデータを分析し、パフォーマンスの低いチャネルから高いチャネルへ予算を自動的に再配分します。,ruleEnginePage
+ruleEnginePage.marketing.gf14Title,パフォーマンスレポート分析,パフォーマンスレポート分析,ruleEnginePage
+ruleEnginePage.marketing.gf14Desc,キャンペーン終了後、チャネル別ROAS、CPA、CTRなどの主要指標を分析します。AIが次回キャンペーンの改善点を提案します。,キャンペーン終了後、チャネル別ROAS、CPA、CTRなどの主要指標を分析します。AIが次回キャンペーンの改善点を提案します。,ruleEnginePage
+ruleEnginePage.marketing.gf15Title,次のキャンペーンを繰り返し,次のキャンペーンを繰り返し,ruleEnginePage
+ruleEnginePage.marketing.gf15Desc,分析結果に基づいて予算/カテゴリ/チャネルを調整し、新しいキャンペーンを作成します。繰り返すごとにAI学習が強化されます。,分析結果に基づいて予算/カテゴリ/チャネルを調整し、新しいキャンペーンを作成します。繰り返すごとにAI学習が強化されます。,ruleEnginePage
+ruleEnginePage.marketing.guideTabGuideDesc,プラットフォーム機能と完全ワークフローのステップバイステップガイド。,プラットフォーム機能と完全ワークフローのステップバイステップガイド。,ruleEnginePage
+ruleEnginePage.marketing.guideTip6,最適な組み合わせを見つけるため、AI推奨チャネルと手動選択を比較してください。,最適な組み合わせを見つけるため、AI推奨チャネルと手動選択を比較してください。,ruleEnginePage
+ruleEnginePage.marketing.guideTip7,予算超過を防ぐため、実行前に必ずマネージャー承認に提出してください。,予算超過を防ぐため、実行前に必ずマネージャー承認に提出してください。,ruleEnginePage
+ruleEnginePage.marketing.csSubtitle,各プラットフォームの広告クリエイティブをデザイン・管理,各プラットフォームの広告クリエイティブをデザイン・管理,ruleEnginePage
+ruleEnginePage.marketing.csTabGallery,ギャラリー,ギャラリー,ruleEnginePage
+ruleEnginePage.marketing.csTabBrandAssets,ブランドアセット,ブランドアセット,ruleEnginePage
+ruleEnginePage.marketing.csFeatMultiFormat,マルチフォーマット出力,マルチフォーマット出力,ruleEnginePage
+ruleEnginePage.marketing.csFeatAiCopy,AIコピー生成,AIコピー生成,ruleEnginePage
+ruleEnginePage.marketing.csFeatPerfAnalytics,パフォーマンス分析,パフォーマンス分析,ruleEnginePage
+ruleEnginePage.marketing.csFeatBrandCheck,ブランド一貫性チェック,ブランド一貫性チェック,ruleEnginePage
+ruleEnginePage.marketing.csSystemOk,システム正常稼働中,システム正常稼働中,ruleEnginePage
+ruleEnginePage.marketing.csUseCampaign,キャンペーンに活用,キャンペーンに活用,ruleEnginePage
+ruleEnginePage.marketing.csAiGenTitle,AIクリエイティブ生成,AIクリエイティブ生成,ruleEnginePage
+ruleEnginePage.marketing.csAiGenDesc,カテゴリとチャネルを選択すると、AIが最適な広告素材を自動生成します。,カテゴリとチャネルを選択すると、AIが最適な広告素材を自動生成します。,ruleEnginePage
+ruleEnginePage.marketing.csStartFromSetup,キャンペーン設定から開始,キャンペーン設定から開始,ruleEnginePage
+ruleEnginePage.marketing.csTypeCarousel,カルーセル広告,カルーセル広告,ruleEnginePage
+ruleEnginePage.marketing.csTypeCarouselDesc,複数画像のスライド構成,複数画像のスライド構成,ruleEnginePage
+ruleEnginePage.marketing.csTypeVideoDesc,15～60秒ショート動画の自動制作,15～60秒ショート動画の自動制作,ruleEnginePage
+ruleEnginePage.marketing.csTypeBanner,バナー広告,バナー広告,ruleEnginePage
+ruleEnginePage.marketing.csTypeBannerDesc,レスポンシブディスプレイバナー,レスポンシブディスプレイバナー,ruleEnginePage
+ruleEnginePage.marketing.csTypeStory,ストーリー広告,ストーリー広告,ruleEnginePage
+ruleEnginePage.marketing.csTypeStoryDesc,9:16縦型フルスクリーン,9:16縦型フルスクリーン,ruleEnginePage
+ruleEnginePage.marketing.csTypeShopping,ショッピング広告,ショッピング広告,ruleEnginePage
+ruleEnginePage.marketing.csTypeShoppingDesc,商品フィードDPA素材,商品フィードDPA素材,ruleEnginePage
+ruleEnginePage.marketing.csTypeMessage,メッセージ広告,メッセージ広告,ruleEnginePage
+ruleEnginePage.marketing.csTypeMessageDesc,KakaoTalk·LINEテンプレート,KakaoTalk·LINEテンプレート,ruleEnginePage
+ruleEnginePage.marketing.csPerfEffScore,素材効率スコア,素材効率スコア,ruleEnginePage
+ruleEnginePage.marketing.csPerfTable,素材別パフォーマンス,素材別パフォーマンス,ruleEnginePage
+ruleEnginePage.marketing.csAiOpt1,動画のCTRがカルーセルの1.5倍です。動画比率を拡大してください。,動画のCTRがカルーセルの1.5倍です。動画比率を拡大してください。,ruleEnginePage
+ruleEnginePage.marketing.csAiOpt2,TikTokショート素材の転換率が最高です。15秒以内の素材を追加制作してください。,TikTokショート素材の転換率が最高です。15秒以内の素材を追加制作してください。,ruleEnginePage
+ruleEnginePage.marketing.csAiOpt3,2週間以上の素材は広告疲労が上昇します。新しいクリエイティブに交換してください。,2週間以上の素材は広告疲労が上昇します。新しいクリエイティブに交換してください。,ruleEnginePage
+ruleEnginePage.marketing.csBrandTitle,ブランドアセット管理,ブランドアセット管理,ruleEnginePage
+ruleEnginePage.marketing.csBrandDesc,ブランドガイドラインに沿った一貫した素材管理,ブランドガイドラインに沿った一貫した素材管理,ruleEnginePage
+ruleEnginePage.marketing.csUploadAsset,アセットアップロード,アセットアップロード,ruleEnginePage
+ruleEnginePage.marketing.csBrandCheck,ブランド一貫性検査,ブランド一貫性検査,ruleEnginePage
+ruleEnginePage.marketing.csColorComp,カラー準拠率,カラー準拠率,ruleEnginePage
+ruleEnginePage.marketing.csFontComp,フォント一貫性,フォント一貫性,ruleEnginePage
+ruleEnginePage.marketing.csLogoComp,ロゴ使用準拠,ロゴ使用準拠,ruleEnginePage
+ruleEnginePage.marketing.csGuideViolation,ガイドライン違反,ガイドライン違反,ruleEnginePage
+ruleEnginePage.marketing.csLastSync,最終同期: たった今,最終同期: たった今,ruleEnginePage
+ruleEnginePage.marketing.csFmtCarousel,カルーセル,カルーセル,ruleEnginePage
+ruleEnginePage.marketing.csFmtBanner,バナー,バナー,ruleEnginePage
+ruleEnginePage.marketing.csFmtShort,ショート,ショート,ruleEnginePage
+ruleEnginePage.marketing.autoTab1,① クリエイティブスタジオ,① クリエイティブスタジオ,ruleEnginePage
+ruleEnginePage.marketing.strictDateFilter,📅 キャンペーン期間フィルター,📅 キャンペーン期間フィルター,ruleEnginePage
+ruleEnginePage.marketing.strictDateDesc,リアルタイムデータを即座に取得,リアルタイムデータを即座に取得,ruleEnginePage
+ruleEnginePage.marketing.pageTitle,マーケティング＆広告成果,マーケティング＆広告成果,ruleEnginePage
+ruleEnginePage.marketing.budgetTrackTitle,予算管理ダッシュボード,予算管理ダッシュボード,ruleEnginePage
+ruleEnginePage.marketing.budgetTrackSub,リアルタイム予算管理,リアルタイム予算管理,ruleEnginePage
+ruleEnginePage.marketing.bgCategoryAlloc,カテゴリ配分,カテゴリ配分,ruleEnginePage
+ruleEnginePage.marketing.catBrand,ブランド,ブランド,ruleEnginePage
+ruleEnginePage.marketing.catRetargeting,リターゲティング,リターゲティング,ruleEnginePage
+ruleEnginePage.marketing.bgKpiTopChan,Topチャネル,Topチャネル,ruleEnginePage
+ruleEnginePage.marketing.bgTableCampaign,キャンペーン成果,キャンペーン成果,ruleEnginePage
+ruleEnginePage.marketing.bgTabCampaigns,キャンペーン予算,キャンペーン予算,ruleEnginePage
+ruleEnginePage.marketing.bgPacingChart,チャネル別配分vs支出,チャネル別配分vs支出,ruleEnginePage
+ruleEnginePage.marketing.bgPacingTableTitle,詳細ペーシング,詳細ペーシング,ruleEnginePage
+ruleEnginePage.marketing.bgPnlMarginSummary,マージン&ROAS,マージン&ROAS,ruleEnginePage
+ruleEnginePage.marketing.bgPnlMargin,営業マージン,営業マージン,ruleEnginePage
+ruleEnginePage.marketing.autoTitle,🚀 マーケティング自動化プラットフォーム,🚀 マーケティング自動化プラットフォーム,ruleEnginePage
+ruleEnginePage.marketing.autoSub,月予算を設定すると、AIがTikTok・Meta・Naverなどに最適化されたマーケティング戦略を自動で策定します,月予算を設定すると、AIがTikTok・Meta・Naverなどに最適化されたマーケティング戦略を自動で策定します,ruleEnginePage
+ruleEnginePage.marketing.tabSetup,⚙ キャンペーン設定,⚙ キャンペーン設定,ruleEnginePage
+ruleEnginePage.marketing.tabPreview,🔮 AI戦略プレビュー,🔮 AI戦略プレビュー,ruleEnginePage
+ruleEnginePage.marketing.tabCampaignMgmt,📋 キャンペーン管理,📋 キャンペーン管理,ruleEnginePage
+ruleEnginePage.marketing.budgetSetup,💰 月間マーケティング予算設定,💰 月間マーケティング予算設定,ruleEnginePage
+ruleEnginePage.marketing.directInput,直接入力（ウォン）,直接入力（ウォン）,ruleEnginePage
+ruleEnginePage.marketing.campaignPeriod,キャンペーン期間,キャンペーン期間,ruleEnginePage
+ruleEnginePage.marketing.monthly,月間（1ヶ月）,月間（1ヶ月）,ruleEnginePage
+ruleEnginePage.marketing.quarterly,四半期（3ヶ月）,四半期（3ヶ月）,ruleEnginePage
+ruleEnginePage.marketing.halfyear,半期（6ヶ月）,半期（6ヶ月）,ruleEnginePage
+ruleEnginePage.marketing.categorySelect,🏷 販売商品カテゴリ選択（複数選択可）,🏷 販売商品カテゴリ選択（複数選択可）,ruleEnginePage
+ruleEnginePage.marketing.channelSelect,📡 広告チャネル選択,📡 広告チャネル選択,ruleEnginePage
+ruleEnginePage.marketing.salesChannels,🌐 連携済み販売チャネル,🌐 連携済み販売チャネル,ruleEnginePage
+ruleEnginePage.marketing.salesChannelSub,有効化されたチャネルにマーケティング成果データが連携されます。,有効化されたチャネルにマーケティング成果データが連携されます。,ruleEnginePage
+ruleEnginePage.marketing.active,● アクティブ,● アクティブ,ruleEnginePage
+ruleEnginePage.marketing.inactive,○ 非アクティブ,○ 非アクティブ,ruleEnginePage
+ruleEnginePage.marketing.connStatusOk,連動済み,連動済み,ruleEnginePage
+ruleEnginePage.marketing.connStatusNeed,APIキーが必要,APIキーが必要,ruleEnginePage
+ruleEnginePage.marketing.connClickToSetup,クリックして連動ハブでAPIキーを設定してください,クリックして連動ハブでAPIキーを設定してください,ruleEnginePage
+ruleEnginePage.marketing.connSalesHint,APIキーが未連動のチャネルがあります。連動ハブでAPIキーを登録すると自動的に有効化されます。,APIキーが未連動のチャネルがあります。連動ハブでAPIキーを登録すると自動的に有効化されます。,ruleEnginePage
+ruleEnginePage.marketing.goIntegrationHub,連動ハブへ移動,連動ハブへ移動,ruleEnginePage
+ruleEnginePage.marketing.campaignDetail2,📝 キャンペーン詳細（任意）,📝 キャンペーン詳細（任意）,ruleEnginePage
+ruleEnginePage.marketing.campaignNameLabel,キャンペーン名（未入力時は自動生成）,キャンペーン名（未入力時は自動生成）,ruleEnginePage
+ruleEnginePage.marketing.campaignNamePh,例：2024年春ビューティーキャンペーン,例：2024年春ビューティーキャンペーン,ruleEnginePage
+ruleEnginePage.marketing.targetLabel,ターゲット顧客（任意）,ターゲット顧客（任意）,ruleEnginePage
+ruleEnginePage.marketing.targetPh,例：20〜35歳女性、ビューティー・ファッション関心,例：20〜35歳女性、ビューティー・ファッション関心,ruleEnginePage
+ruleEnginePage.marketing.generateBtn,🚀 AIマーケティング戦略を自動生成,🚀 AIマーケティング戦略を自動生成,ruleEnginePage
+ruleEnginePage.marketing.generating,🤖 AIがマーケティング戦略を生成中…,🤖 AIがマーケティング戦略を生成中…,ruleEnginePage
+ruleEnginePage.marketing.needCatChannel,⚠ カテゴリと広告チャネルの選択が必要です。,⚠ カテゴリと広告チャネルの選択が必要です。,ruleEnginePage
+ruleEnginePage.marketing.previewEmpty,← まずキャンペーン設定でAI戦略を生成してください。,← まずキャンペーン設定でAI戦略を生成してください。,ruleEnginePage
+ruleEnginePage.marketing.goSetup,設定へ移動 →,設定へ移動 →,ruleEnginePage
+ruleEnginePage.marketing.kpiImpressions,予想インプレッション,予想インプレッション,ruleEnginePage
+ruleEnginePage.marketing.kpiClicks,予想クリック数,予想クリック数,ruleEnginePage
+ruleEnginePage.marketing.kpiConversions,予想コンバージョン数,予想コンバージョン数,ruleEnginePage
+ruleEnginePage.marketing.channelAlloc,🤖 AIチャネル別予算配分戦略,🤖 AIチャネル別予算配分戦略,ruleEnginePage
+ruleEnginePage.marketing.approvalTitle,✅ 承認リクエスト,✅ 承認リクエスト,ruleEnginePage
+ruleEnginePage.marketing.approvalSub,上記の戦略をレビューし承認すると、登録された広告チャネルを通じてマーケティングが自動展開されます。,上記の戦略をレビューし承認すると、登録された広告チャネルを通じてマーケティングが自動展開されます。,ruleEnginePage
+ruleEnginePage.marketing.submitApproval,📋 承認リクエスト提出,📋 承認リクエスト提出,ruleEnginePage
+ruleEnginePage.marketing.resetBtn,↩ 最初から,↩ 最初から,ruleEnginePage
+ruleEnginePage.marketing.noCampaign,キャンペーンがありません。まずマーケティング戦略を生成してください。,キャンペーンがありません。まずマーケティング戦略を生成してください。,ruleEnginePage
+ruleEnginePage.marketing.createCampaign,+ マーケティングキャンペーン作成,+ マーケティングキャンペーン作成,ruleEnginePage
+ruleEnginePage.marketing.addCampaign,+ 新規キャンペーン作成,+ 新規キャンペーン作成,ruleEnginePage
+ruleEnginePage.marketing.approved,✅ 承認済み,✅ 承認済み,ruleEnginePage
+ruleEnginePage.marketing.activate,🚀 キャンペーン有効化,🚀 キャンペーン有効化,ruleEnginePage
+ruleEnginePage.marketing.estConv,予想総コンバージョン,予想総コンバージョン,ruleEnginePage
+ruleEnginePage.marketing.goCampaignMgr,🎯 キャンペーン管理 →,🎯 キャンペーン管理 →,ruleEnginePage
+ruleEnginePage.marketing.goHelp,📚 ヘルプ,📚 ヘルプ,ruleEnginePage
+ruleEnginePage.marketing.selected,✓ 選択済み,✓ 選択済み,ruleEnginePage
+ruleEnginePage.marketing.cat_fashion,ファッション・アパレル,ファッション・アパレル,ruleEnginePage
+ruleEnginePage.marketing.cat_general,生活・雑貨,生活・雑貨,ruleEnginePage
+ruleEnginePage.marketing.cat_food,食品・健康,食品・健康,ruleEnginePage
+ruleEnginePage.marketing.cat_electronics,電子機器・IT,電子機器・IT,ruleEnginePage
+ruleEnginePage.marketing.cat_sports,スポーツ・レジャー,スポーツ・レジャー,ruleEnginePage
+ruleEnginePage.marketing.cat_travel,旅行・宿泊,旅行・宿泊,ruleEnginePage
+ruleEnginePage.marketing.cat_digital,デジタル・アプリ,デジタル・アプリ,ruleEnginePage
+ruleEnginePage.marketing.tag_skincare,スキンケア,スキンケア,ruleEnginePage
+ruleEnginePage.marketing.tag_makeup,メイクアップ,メイクアップ,ruleEnginePage
+ruleEnginePage.marketing.tag_haircare,ヘアケア,ヘアケア,ruleEnginePage
+ruleEnginePage.marketing.tag_womens,レディース,レディース,ruleEnginePage
+ruleEnginePage.marketing.tag_mens,メンズ,メンズ,ruleEnginePage
+ruleEnginePage.marketing.tag_outer,アウター,アウター,ruleEnginePage
+ruleEnginePage.marketing.tag_accessories,アクセサリー,アクセサリー,ruleEnginePage
+ruleEnginePage.marketing.tag_kitchen,キッチン,キッチン,ruleEnginePage
+ruleEnginePage.marketing.tag_interior,インテリア,インテリア,ruleEnginePage
+ruleEnginePage.marketing.tag_organic,オーガニック,オーガニック,ruleEnginePage
+ruleEnginePage.marketing.tag_phone_acc,スマホアクセサリー,スマホアクセサリー,ruleEnginePage
+ruleEnginePage.marketing.tag_computer,パソコン,パソコン,ruleEnginePage
+ruleEnginePage.marketing.tag_outdoor,アウトドア,アウトドア,ruleEnginePage
+ruleEnginePage.marketing.tag_sportswear,スポーツウェア,スポーツウェア,ruleEnginePage
+ruleEnginePage.marketing.tag_hotel,ホテル,ホテル,ruleEnginePage
+ruleEnginePage.marketing.tag_tour,ツアー,ツアー,ruleEnginePage
+ruleEnginePage.marketing.tag_leisure,レジャー,レジャー,ruleEnginePage
+ruleEnginePage.marketing.tag_app,モバイルアプリ,モバイルアプリ,ruleEnginePage
+ruleEnginePage.marketing.tag_content,デジタルコンテンツ,デジタルコンテンツ,ruleEnginePage
+ruleEnginePage.marketing.tag_subscription,サブスクリプション,サブスクリプション,ruleEnginePage
+ruleEnginePage.marketing.ch_meta,Meta（Facebook・Instagram）,Meta（Facebook・Instagram）,ruleEnginePage
+ruleEnginePage.marketing.ch_instagram,Instagramショッピング,Instagramショッピング,ruleEnginePage
+ruleEnginePage.marketing.sc_naver_smart,Naverスマートストア,Naverスマートストア,ruleEnginePage
+ruleEnginePage.marketing.sc_kakao_shop,カカオショッピング,カカオショッピング,ruleEnginePage
+ruleEnginePage.marketing.pendingBadge,⏳ 承認待ち,⏳ 承認待ち,ruleEnginePage
+ruleEnginePage.marketing.aiHubTitle,AIマーケティングハブを先に確認,AIマーケティングハブを先に確認,ruleEnginePage
+ruleEnginePage.marketing.aiHubDesc1,在庫、注文、CRM、決済データを自動分析し、,在庫、注文、CRM、決済データを自動分析し、,ruleEnginePage
+ruleEnginePage.marketing.aiHubDesc2,ROI基盤の即時実行可能な推奨,ROI基盤の即時実行可能な推奨,ruleEnginePage
+ruleEnginePage.marketing.aiHubDesc3,を提供します。,を提供します。,ruleEnginePage
+ruleEnginePage.marketing.aiHubDesc4,直接戦略を設計するには、以下の設定を進めてください。,直接戦略を設計するには、以下の設定を進めてください。,ruleEnginePage
+ruleEnginePage.marketing.aiHubBtn,AIマーケティングハブ,AIマーケティングハブ,ruleEnginePage
+ruleEnginePage.marketing.creativeAutoSync,AI広告素材カテゴリ → キャンペーン設定自動連携,AI広告素材カテゴリ → キャンペーン設定自動連携,ruleEnginePage
+ruleEnginePage.marketing.creativeSyncDesc1,カテゴリを選択し、,カテゴリを選択し、,ruleEnginePage
+ruleEnginePage.marketing.creativeSyncDesc2,ボタンをクリックすると選択したカテゴリが,ボタンをクリックすると選択したカテゴリが,ruleEnginePage
+ruleEnginePage.marketing.creativeSyncDesc4,されます。,されます。,ruleEnginePage
+ruleEnginePage.marketing.aiRecommendBadge,AI推奨チャネル自動選択 · 変更可能,AI推奨チャネル自動選択 · 変更可能,ruleEnginePage
+ruleEnginePage.marketing.cat_platform,プラットフォーム・SaaS,プラットフォーム・SaaS,ruleEnginePage
+ruleEnginePage.marketing.alertNewApproval,新規マーケティングキャンペーンの承認リクエストが提出されました。,新規マーケティングキャンペーンの承認リクエストが提出されました。,ruleEnginePage
+ruleEnginePage.marketing.alertSelectCatCh,カテゴリと広告チャネルを1つ以上選択してください。,カテゴリと広告チャネルを1つ以上選択してください。,ruleEnginePage
+ruleEnginePage.marketing.alertSimulateError,AI戦略シミュレーションに失敗しました。もう一度お試しください。,AI戦略シミュレーションに失敗しました。もう一度お試しください。,ruleEnginePage
+ruleEnginePage.marketing.approvalSubtitle,マーケティング戦略のレビューと承認,マーケティング戦略のレビューと承認,ruleEnginePage
+ruleEnginePage.marketing.approvalWarning1,⚠ 承認後、選択したチャネルで広告が自動実行されます。慎重にご確認ください。,⚠ 承認後、選択したチャネルで広告が自動実行されます。慎重にご確認ください。,ruleEnginePage
+ruleEnginePage.marketing.approvalWarning2,📊 承認後、キャンペーンマネージャーでリアルタイム成果を確認できます。,📊 承認後、キャンペーンマネージャーでリアルタイム成果を確認できます。,ruleEnginePage
+ruleEnginePage.marketing.reason1,📈 過去のキャンペーンデータに基づく最適化,📈 過去のキャンペーンデータに基づく最適化,ruleEnginePage
+ruleEnginePage.marketing.reason2,🎯 ターゲット層に基づくカスタマイズチャネル選択,🎯 ターゲット層に基づくカスタマイズチャネル選択,ruleEnginePage
+ruleEnginePage.marketing.reason3,💰 最大ROIのためのAI予算最適配分,💰 最大ROIのためのAI予算最適配分,ruleEnginePage
+ruleEnginePage.marketing.reason4,⏱ 最適なキャンペーンスケジュール選定,⏱ 最適なキャンペーンスケジュール選定,ruleEnginePage
+ruleEnginePage.marketing.reason5,🧠 AI推奨クリエイティブ方向性,🧠 AI推奨クリエイティブ方向性,ruleEnginePage
+ruleEnginePage.marketing.tier1,🏆 プレミアム（3億ウォン以上）,🏆 プレミアム（3億ウォン以上）,ruleEnginePage
+ruleEnginePage.marketing.tier2,🥇 エンタープライズ（5千万ウォン以上）,🥇 エンタープライズ（5千万ウォン以上）,ruleEnginePage
+ruleEnginePage.marketing.tier3,🥈 グロース（1千万ウォン以上）,🥈 グロース（1千万ウォン以上）,ruleEnginePage
+ruleEnginePage.marketing.tier4,🥉 スターター（3百万ウォン以上）,🥉 スターター（3百万ウォン以上）,ruleEnginePage
+ruleEnginePage.marketing.tier5,📦 フリー,📦 フリー,ruleEnginePage
+ruleEnginePage.marketing.guideStartBtn,今すぐ開始,今すぐ開始,ruleEnginePage
+ruleEnginePage.marketing.guideTabSetupName,キャンペーン設定,キャンペーン設定,ruleEnginePage
+ruleEnginePage.marketing.guideTabSetupDesc,予算、カテゴリ、広告チャネルを設定しAI推薦を受けます。,予算、カテゴリ、広告チャネルを設定しAI推薦を受けます。,ruleEnginePage
+ruleEnginePage.marketing.guideTabPreviewName,シミュレーション結果,シミュレーション結果,ruleEnginePage
+ruleEnginePage.marketing.guideTabPreviewDesc,チャネル別予算配分と予想指標をプレビューします。,チャネル別予算配分と予想指標をプレビューします。,ruleEnginePage
+ruleEnginePage.marketing.tabCompare,キャンペーン比較,キャンペーン比較,ruleEnginePage
+ruleEnginePage.marketing.noConnectedChannels,連携ハブでAPIキーを登録してください,連携ハブでAPIキーを登録してください,ruleEnginePage
+ruleEnginePage.marketing.noCreativeData,クリエイティブデータなし,クリエイティブデータなし,ruleEnginePage
+ruleEnginePage.marketing.noCreativeDesc,AIオートマーケティングでキャンペーンを作成してください,AIオートマーケティングでキャンペーンを作成してください,ruleEnginePage
+ruleEnginePage.marketing.creativePerformance,素材別クリック・CV分析,素材別クリック・CV分析,ruleEnginePage
+ruleEnginePage.marketing.creativeTable,素材別成果テーブル,素材別成果テーブル,ruleEnginePage
+ruleEnginePage.marketing.colCreativeName,素材/キャンペーン名,素材/キャンペーン名,ruleEnginePage
+ruleEnginePage.marketing.selectCampaigns,キャンペーン選択(最大4),キャンペーン選択(最大4),ruleEnginePage
+ruleEnginePage.marketing.selectCampaignsDesc,2つ以上選択して比較,2つ以上選択して比較,ruleEnginePage
+ruleEnginePage.marketing.noCampaigns,キャンペーンがありません,キャンペーンがありません,ruleEnginePage
+ruleEnginePage.marketing.radarCompare,レーダー比較,レーダー比較,ruleEnginePage
+ruleEnginePage.marketing.selectAtLeast2,2つ以上選択してください,2つ以上選択してください,ruleEnginePage
+ruleEnginePage.marketing.guideTabStatusDesc,キャンペーン/広告セット分析,キャンペーン/広告セット分析,ruleEnginePage
+ruleEnginePage.marketing.guideTabCompareDesc,レーダーチャートとKPI比較,レーダーチャートとKPI比較,ruleEnginePage
+ruleEnginePage.marketing.bgForecastChart,消化予測チャート,消化予測チャート,ruleEnginePage
+ruleEnginePage.marketing.bgForecastBudgetLine,予算ライン,予算ライン,ruleEnginePage
+ruleEnginePage.marketing.bgForecastUnder,現在のペースでは月末まで予算内です。,現在のペースでは月末まで予算内です。,ruleEnginePage
+ruleEnginePage.marketing.bgForecastOver,予算超過が予測されます。再配分を検討してください。,予算超過が予測されます。再配分を検討してください。,ruleEnginePage
+ruleEnginePage.marketing.bgGuideTitle,予算管理ガイド,予算管理ガイド,ruleEnginePage
+ruleEnginePage.marketing.bgGuideSub,予算管理のすべてをご案内します,予算管理のすべてをご案内します,ruleEnginePage
+ruleEnginePage.marketing.bgGuideStepsTitle,管理6ステップ,管理6ステップ,ruleEnginePage
+ruleEnginePage.marketing.bgGuideStep1Desc,概要タブのKPIカードで総配分予算、実際の支出、残高を一目で確認します。バーンレートのドーナツチャートとカテゴリ配分でリアルタイムに予算の健全性を評価します。,概要タブのKPIカードで総配分予算、実際の支出、残高を一目で確認します。バーンレートのドーナツチャートとカテゴリ配分でリアルタイムに予算の健全性を評価します。,ruleEnginePage
+ruleEnginePage.marketing.bgGuideStep2Desc,ドーナツチャートで現在の予算消化率を監視します。70%以上でオレンジ、90%以上で赤の警告が表示されます。トップチャネルの支出ランキングを確認します。,ドーナツチャートで現在の予算消化率を監視します。70%以上でオレンジ、90%以上で赤の警告が表示されます。トップチャネルの支出ランキングを確認します。,ruleEnginePage
+ruleEnginePage.marketing.bgGuideStep3Desc,チャネルペーシングタブで各広告チャネルの配分予算vs実際支出を追跡します。ON TRACK/OVERSPEND/UNDERSPEND状態でリアルタイム監視します。,チャネルペーシングタブで各広告チャネルの配分予算vs実際支出を追跡します。ON TRACK/OVERSPEND/UNDERSPEND状態でリアルタイム監視します。,ruleEnginePage
+ruleEnginePage.marketing.bgGuideStep4Title,キャンペーン分析,キャンペーン分析,ruleEnginePage
+ruleEnginePage.marketing.bgGuideStep4Desc,キャンペーンタブで個別キャンペーンのインプレッション、CTR、予算、支出、利益、CPC、CPA、ROIを詳細分析します。,キャンペーンタブで個別キャンペーンのインプレッション、CTR、予算、支出、利益、CPC、CPA、ROIを詳細分析します。,ruleEnginePage
+ruleEnginePage.marketing.bgGuideStep5Desc,P&Lタブで売上からCOGS、粗利、広告費、プラットフォーム手数料、営業利益までウォーターフォール分析を提供します。,P&Lタブで売上からCOGS、粗利、広告費、プラットフォーム手数料、営業利益までウォーターフォール分析を提供します。,ruleEnginePage
+ruleEnginePage.marketing.bgGuideStep6Desc,予測タブで日平均消化額と月末予想消化を自動計算します。予測チャートで実績と予測を比較して予算超過リスクを事前検知します。,予測タブで日平均消化額と月末予想消化を自動計算します。予測チャートで実績と予測を比較して予算超過リスクを事前検知します。,ruleEnginePage
+ruleEnginePage.marketing.bgGuideTabOverviewDesc,総予算、実績、残高、バーンレート、カテゴリ配分、月次トレンドを一画面で確認します。,総予算、実績、残高、バーンレート、カテゴリ配分、月次トレンドを一画面で確認します。,ruleEnginePage
+ruleEnginePage.marketing.bgGuideTabPacingName,ペーシング,ペーシング,ruleEnginePage
+ruleEnginePage.marketing.bgGuideTabPacingDesc,チャネル別の配分vs実績をバーチャートと詳細テーブルで分析します。,チャネル別の配分vs実績をバーチャートと詳細テーブルで分析します。,ruleEnginePage
+ruleEnginePage.marketing.bgGuideTabCampaignsDesc,キャンペーン別の詳細指標をテーブルで確認します。,キャンペーン別の詳細指標をテーブルで確認します。,ruleEnginePage
+ruleEnginePage.marketing.bgGuideTabPnlDesc,売上から営業利益までのP&Lウォーターフォール分析とマージン/ROASサマリーを提供します。,売上から営業利益までのP&Lウォーターフォール分析とマージン/ROASサマリーを提供します。,ruleEnginePage
+ruleEnginePage.marketing.bgGuideTabForecastDesc,日平均消化に基づく月末予算消化予測と超過リスクの事前検知を行います。,日平均消化に基づく月末予算消化予測と超過リスクの事前検知を行います。,ruleEnginePage
+ruleEnginePage.marketing.bgGuideTip1,消化率80%超で再配分検討,消化率80%超で再配分検討,ruleEnginePage
+ruleEnginePage.marketing.bgGuideTip2,超過チャネルは即調整,超過チャネルは即調整,ruleEnginePage
+ruleEnginePage.marketing.bgGuideTip3,営業利益マイナスは要注意,営業利益マイナスは要注意,ruleEnginePage
+ruleEnginePage.marketing.bgGuideTip4,予測線超過で月末超過予測,予測線超過で月末超過予測,ruleEnginePage
+ruleEnginePage.marketing.abPageTitle,AI予算配分エンジン,AI予算配分エンジン,ruleEnginePage
+ruleEnginePage.marketing.abPageSub,データ駆動型AI予算配分,データ駆動型AI予算配分,ruleEnginePage
+ruleEnginePage.marketing.abInputTitle,総予算を入力,総予算を入力,ruleEnginePage
+ruleEnginePage.marketing.abInputDesc,AIが最適配分を推奨,AIが最適配分を推奨,ruleEnginePage
+ruleEnginePage.marketing.abBtnGenerate,AIプラン生成,AIプラン生成,ruleEnginePage
+ruleEnginePage.marketing.abMinBudget,"100,000以上入力してください","100,000以上入力してください",ruleEnginePage
+ruleEnginePage.marketing.abStep1,ROAS・CACデータ分析中...,ROAS・CACデータ分析中...,ruleEnginePage
+ruleEnginePage.marketing.abStep2,チャネルリスク評価中...,チャネルリスク評価中...,ruleEnginePage
+ruleEnginePage.marketing.abStep3,LTVモデル適用中...,LTVモデル適用中...,ruleEnginePage
+ruleEnginePage.marketing.abReasonMeta,MetaのLTV予測により配分,MetaのLTV予測により配分,ruleEnginePage
+ruleEnginePage.marketing.abReasonGoogle,検索コンバージョン確保,検索コンバージョン確保,ruleEnginePage
+ruleEnginePage.marketing.abReasonTiktokTitle,バイラル・低CPM,バイラル・低CPM,ruleEnginePage
+ruleEnginePage.marketing.abReasonTiktok,低CPMで新規獲得,低CPMで新規獲得,ruleEnginePage
+ruleEnginePage.marketing.abReasonYoutubeTitle,認知＆リマケ,認知＆リマケ,ruleEnginePage
+ruleEnginePage.marketing.abReasonYoutube,ブランド認知と動画リマケ,ブランド認知と動画リマケ,ruleEnginePage
+ruleEnginePage.marketing.abReasonNaver,ネイバー検索広告,ネイバー検索広告,ruleEnginePage
+ruleEnginePage.marketing.abReasonKakao,カカオトーク活用,カカオトーク活用,ruleEnginePage
+ruleEnginePage.marketing.abOptTip,最適化ヒント,最適化ヒント,ruleEnginePage
+ruleEnginePage.marketing.abOptTipText,14日ごとにクリエイティブ更新,14日ごとにクリエイティブ更新,ruleEnginePage
+ruleEnginePage.marketing.abBtnDownload,レポートDL,レポートDL,ruleEnginePage
+ruleEnginePage.marketing.abBtnApply,キャンペーンに適用,キャンペーンに適用,ruleEnginePage
+ruleEnginePage.marketing.abGuideTitle,AI予算配分ガイド,AI予算配分ガイド,ruleEnginePage
+ruleEnginePage.marketing.abGuideSub,AIの配分方法と活用法,AIの配分方法と活用法,ruleEnginePage
+ruleEnginePage.marketing.abGuideStepsTitle,6ステップ,6ステップ,ruleEnginePage
+ruleEnginePage.marketing.abGuideStep1Desc,連携ハブでMeta、Google、TikTokなどのAPIキーを登録すると、AI予算配分に自動的にチャネルが追加されます。各チャネルの過去実績データに基づいてAIが最適な配分を計算します。,連携ハブでMeta、Google、TikTokなどのAPIキーを登録すると、AI予算配分に自動的にチャネルが追加されます。各チャネルの過去実績データに基づいてAIが最適な配分を計算します。,ruleEnginePage
+ruleEnginePage.marketing.abGuideStep2Desc,月間総予算を入力するとAIエンジンが5段階分析で各チャネルの最適予算を自動配分します。予算規模に応じて高予算・低予算戦略が自動的に区分されます。,月間総予算を入力するとAIエンジンが5段階分析で各チャネルの最適予算を自動配分します。予算規模に応じて高予算・低予算戦略が自動的に区分されます。,ruleEnginePage
+ruleEnginePage.marketing.abGuideStep3Desc,チャネル別の配分予算、予想ROAS、予想CAC、過去比CAC変動率を詳細分析します。円グラフと棒グラフで配分比率を可視化します。,チャネル別の配分予算、予想ROAS、予想CAC、過去比CAC変動率を詳細分析します。円グラフと棒グラフで配分比率を可視化します。,ruleEnginePage
+ruleEnginePage.marketing.abGuideStep4Desc,AIが提示するチャネル別戦略根拠を確認します。最適化のヒントとともに詳細に説明します。,AIが提示するチャネル別戦略根拠を確認します。最適化のヒントとともに詳細に説明します。,ruleEnginePage
+ruleEnginePage.marketing.abGuideStep5Desc,配分結果をPDF/Excelでダウンロード、または「適用」ボタンで実際のキャンペーン予算に即座に反映できます。,配分結果をPDF/Excelでダウンロード、または「適用」ボタンで実際のキャンペーン予算に即座に反映できます。,ruleEnginePage
+ruleEnginePage.marketing.abGuideStep6Desc,配分後の実績をモニタリングし、次回配分時にAIがより精密な推奨を提供します。,配分後の実績をモニタリングし、次回配分時にAIがより精密な推奨を提供します。,ruleEnginePage
+ruleEnginePage.marketing.abGuideTip1,連携チャネルが多いほどAIの配分精度が向上します。最低3チャネル以上連携してください。,連携チャネルが多いほどAIの配分精度が向上します。最低3チャネル以上連携してください。,ruleEnginePage
+ruleEnginePage.marketing.abGuideTip2,高予算と低予算でAIの配分戦略が異なります。,高予算と低予算でAIの配分戦略が異なります。,ruleEnginePage
+ruleEnginePage.marketing.abGuideTip3,CAC変動率がマイナスなら顧客獲得効率が改善されています。,CAC変動率がマイナスなら顧客獲得効率が改善されています。,ruleEnginePage
+ruleEnginePage.marketing.abGuideTip4,Blended ROASが200%以上なら全体収益性は良好です。,Blended ROASが200%以上なら全体収益性は良好です。,ruleEnginePage
+ruleEnginePage.marketing.abGuideTip5,配分結果をダウンロードしてチームと共有し承認後に適用しましょう。,配分結果をダウンロードしてチームと共有し承認後に適用しましょう。,ruleEnginePage
+ruleEnginePage.marketing.tabCreative,① キャンペーン設定,① キャンペーン設定,ruleEnginePage
+ruleEnginePage.marketing.heroSub,月間予算を設定すると、AIがTikTok・Meta・Naverなどに最適化されたマーケティング戦略を自動で立案します。,月間予算を設定すると、AIがTikTok・Meta・Naverなどに最適化されたマーケティング戦略を自動で立案します。,ruleEnginePage
+ruleEnginePage.marketing.guideTabOverviewName,パフォーマンス概要,パフォーマンス概要,ruleEnginePage
+ruleEnginePage.marketing.guideTabOverviewDesc,KPIカードとデュアル軸トレンドチャートで全体の広告パフォーマンスを把握します。,KPIカードとデュアル軸トレンドチャートで全体の広告パフォーマンスを把握します。,ruleEnginePage
+ruleEnginePage.marketing.guideTabCreativeName,クリエイティブ分析,クリエイティブ分析,ruleEnginePage
+ruleEnginePage.marketing.guideTabCreativeDesc,キャンペーン別のクリック・コンバージョンを比較し、最高パフォーマンスのクリエイティブを特定します。,キャンペーン別のクリック・コンバージョンを比較し、最高パフォーマンスのクリエイティブを特定します。,ruleEnginePage
+ruleEnginePage.marketing.tabAiDesign,AIデザイン,AIデザイン,ruleEnginePage
+ruleEnginePage.marketing.channelFeeDesc,連携チャネルの手数料率を確認,連携チャネルの手数料率を確認,ruleEnginePage
+ruleEnginePage.heroDescI18n,すべてのチャネルの注文をリアルタイムで収集・管理・分析します。,すべてのチャネルの注文をリアルタイムで収集・管理・分析します。,ruleEnginePage
+ruleEnginePage.crmSyncDoneMsg,顧客情報がCRMに正常に同期されました。,顧客情報がCRMに正常に同期されました。,ruleEnginePage
+ruleEnginePage.crmSyncFailMsg,CRM同期に失敗しました。,CRM同期に失敗しました。,ruleEnginePage
+ruleEnginePage.crmViewBtn,CRMへ移動,CRMへ移動,ruleEnginePage
+ruleEnginePage.carrierCJ,CJ ロジスティクス,CJ ロジスティクス,ruleEnginePage
+ruleEnginePage.carrierLotte,ロッテ宅配,ロッテ宅配,ruleEnginePage
+ruleEnginePage.carrierLogen,ロジェン宅配,ロジェン宅配,ruleEnginePage
+ruleEnginePage.guideStep7Desc,B2Bタブで大量注文を別途管理します。,B2Bタブで大量注文を別途管理します。,ruleEnginePage
+ruleEnginePage.guideStep8Desc,自動ルーティングタブで条件別ルールを作成・管理します。,自動ルーティングタブで条件別ルールを作成・管理します。,ruleEnginePage
+ruleEnginePage.liveFeedTitle,リアルタイム注文フィード,リアルタイム注文フィード,ruleEnginePage
+ruleEnginePage.tabRouting,自動ルーティング,自動ルーティング,ruleEnginePage
+ruleEnginePage.deliveryNoData,配送データなし,配送データなし,ruleEnginePage
+ruleEnginePage.claimColId,クレームID,クレームID,ruleEnginePage
+ruleEnginePage.claimNoData,クレームなし,クレームなし,ruleEnginePage
+ruleEnginePage.intlNoData,国際注文なし,国際注文なし,ruleEnginePage
+ruleEnginePage.intlShipGuide,配送ガイド,配送ガイド,ruleEnginePage
+ruleEnginePage.intlDdpDesc,DDP:販売者が関税を負担します。,DDP:販売者が関税を負担します。,ruleEnginePage
+ruleEnginePage.intlDduDesc,DDU:購入者が関税を負担します。,DDU:購入者が関税を負担します。,ruleEnginePage
+ruleEnginePage.settingsDesc,注文収集と通知設定を管理します。,注文収集と通知設定を管理します。,ruleEnginePage
+ruleEnginePage.settingsAutoCollectDesc,連携チャネルからリアルタイムで自動収集します。,連携チャネルからリアルタイムで自動収集します。,ruleEnginePage
+ruleEnginePage.settingsSlaMonitorDesc,チャネル別SLAを監視します。,チャネル別SLAを監視します。,ruleEnginePage
+ruleEnginePage.settingsNotifDesc,新規注文・クレーム・SLA違反時に通知します。,新規注文・クレーム・SLA違反時に通知します。,ruleEnginePage
+ruleEnginePage.routingEngineDesc,条件別自動配送ルール管理,条件別自動配送ルール管理,ruleEnginePage
+ruleEnginePage.routingSimBtn,シミュレーション,シミュレーション,ruleEnginePage
+ruleEnginePage.routingAddBtn,＋ルール追加,＋ルール追加,ruleEnginePage
+ruleEnginePage.routingNewRule,新規ルール,新規ルール,ruleEnginePage
+ruleEnginePage.routingMatched,マッチ,マッチ,ruleEnginePage
+ruleEnginePage.routingNoRules,ルールがありません。,ルールがありません。,ruleEnginePage
+ruleEnginePage.ovChannelSales,チャネル別売上,チャネル別売上,ruleEnginePage
+ruleEnginePage.ovPickingList,ピッキングリスト,ピッキングリスト,ruleEnginePage
+ruleEnginePage.ovPackingSlip,パッキングスリップ,パッキングスリップ,ruleEnginePage
+ruleEnginePage.ovClaimRate,クレーム率,クレーム率,ruleEnginePage
+ruleEnginePage.ovActiveChannels,有効チャネル,有効チャネル,ruleEnginePage
+ruleEnginePage.enhTimelineTitle,注文タイムライン,注文タイムライン,ruleEnginePage
+ruleEnginePage.enhMemoTitle,メモ,メモ,ruleEnginePage
+ruleEnginePage.enhMemoSave,メモ保存,メモ保存,ruleEnginePage
+ruleEnginePage.settleBridgeTitle,精算センター,精算センター,ruleEnginePage
+ruleEnginePage.settleBridgeDesc,詳細精算・照合機能は専用モジュールで確認できます。,詳細精算・照合機能は専用モジュールで確認できます。,ruleEnginePage
+ruleEnginePage.root_pageTitle_campaignManager,キャンペーンマネージャー,キャンペーンマネージャー,ruleEnginePage
+ruleEnginePage.root_pageTitle_accountPerformance,アカウント別成果,アカウント別成果,ruleEnginePage
+ruleEnginePage.root_pageTitle_wms,WMSマネージャー,WMSマネージャー,ruleEnginePage
+nav.smartConnect,スマートコネクト,スマートコネクト,nav
+nav.license,ライセンス,ライセンス,nav
+performance.title,パフォーマンス ハブ,パフォーマンス ハブ,performance
+performance.subtitle,リアルタイム KPI モニタリング · 異常検出 · クロスチャネル分析,リアルタイム KPI モニタリング · 異常検出 · クロスチャネル分析,performance
+performance.channelPerf,チャネルのパフォーマンス,チャネルのパフォーマンス,performance
+performance.audienceInsights,視聴者に関する洞察,視聴者に関する洞察,performance
+performance.creativePerf,クリエイティブなパフォーマンス,クリエイティブなパフォーマンス,performance
+performance.colCtr,クリック率%,クリック率%,performance
+performance.topProducts,人気の製品,人気の製品,performance
+performance.anomalyDetected,異常が検出されました,異常が検出されました,performance
+performance.noAnomaly,異常は検出されませんでした,異常は検出されませんでした,performance
+performance.exportReport,と比較してくださいレポートのエクスポート,と比較してくださいレポートのエクスポート,performance
+attribution.aScore,Aスコア (アトリビューション信頼度),Aスコア (アトリビューション信頼度),attribution
+attribution.zScore,Zスコア,Zスコア,attribution
+attribution.anomalyDesc,Zスコアを用いたリアルタイムチャネルパフォーマンス監視,Zスコアを用いたリアルタイムチャネルパフォーマンス監視,attribution
+attribution.modelCompareDesc,レーダーチャートで5つのアトリビューションモデルを比較,レーダーチャートで5つのアトリビューションモデルを比較,attribution
+channelKpi.pageTitle,チャネルKPI高度化管理,チャネルKPI高度化管理,channelKpi
+channelKpi.pageSub,測定可能なKPI · ビジネス目標連携 · チャネル役割最適化 · 定期AI評価,測定可能なKPI · ビジネス目標連携 · チャネル役割最適化 · 定期AI評価,channelKpi
+channelKpi.tabRole,📡 チャネル役割,📡 チャネル役割,channelKpi
+channelKpi.goalTitle,🎯 ビジネス目標設定,🎯 ビジネス目標設定,channelKpi
+channelKpi.noGoal,目標を選択してください,目標を選択してください,channelKpi
+channelKpi.roleTitle,📡 チャネル別役割定義,📡 チャネル別役割定義,channelKpi
+channelKpi.coreKpi,コアKPI,コアKPI,channelKpi
+channelKpi.kpiSetupTitle,⚙️ チャネル別KPI目標設定,⚙️ チャネル別KPI目標設定,channelKpi
+channelKpi.channelSnsKpi,チャネル別SNS KPI比較,チャネル別SNS KPI比較,channelKpi
+channelKpi.contentTitle,📝 コンテンツチャネル (ブログ) KPI,📝 コンテンツチャネル (ブログ) KPI,channelKpi
+channelKpi.communityTitle,💬 コミュニティ/カフェ KPI,💬 コミュニティ/カフェ KPI,channelKpi
+channelKpi.channelAvg,チャネル全体平均達成状況,チャネル全体平均達成状況,channelKpi
+channelKpi.monitorTitle,📈 KPIモニタリング & AI改善分析,📈 KPIモニタリング & AI改善分析,channelKpi
+channelKpi.aiAnalysis,Claude AI チャネルKPI分析,Claude AI チャネルKPI分析,channelKpi
+channelKpi.aiSubtitle,チャネル別KPI達成状況総合評価 · 改善アクション提案,チャネル別KPI達成状況総合評価 · 改善アクション提案,channelKpi
+channelKpi.monthlyReview,📅 月間レビュー,📅 月間レビュー,channelKpi
+channelKpi.runAI,🚀 AI チャネルKPI分析実行,🚀 AI チャネルKPI分析実行,channelKpi
+channelKpi.topInsight,💡 最重要インサイト,💡 最重要インサイト,channelKpi
+channelKpi.immediateAction,⚡ 即時アクション,⚡ 即時アクション,channelKpi
+channelKpi.weeklyTrend,📊 週間広告パフォーマンス推移,📊 週間広告パフォーマンス推移,channelKpi
+aiPredict.pageTitle,AI予測分析ハブ,AI予測分析ハブ,aiPredict
+aiPredict.grade.churnRisk,チャーンリスク,チャーンリスク,aiPredict
+crm.email.catalogSync.boxDetailsTitle,📦 ボックス単位詳細,📦 ボックス単位詳細,crm
+crm.email.catalogSync.qtyPerBoxLabel,1ボックスあたり数量 (ea) *,1ボックスあたり数量 (ea) *,crm
+crm.email.catalogSync.palletDetailsTitle,📦📦 パレット(PL)単位詳細,📦📦 パレット(PL)単位詳細,crm
+crm.email.catalogSync.boxPerPlLabel,1PLあたりボックス数 *,1PLあたりボックス数 *,crm
+crm.email.catalogSync.selectChannelStep,チャネル選択,チャネル選択,crm
+crm.email.catalogSync.registerToChannelAction,✅ チャネル登録,✅ チャネル登録,crm
+crm.email.catalogSync.registerToChannelDesc,選択したチャネルで販売を登録/有効化,選択したチャネルで販売を登録/有効化,crm
+crm.email.catalogSync.unregisterChannelAction,⛔ チャネル解除,⛔ チャネル解除,crm
+crm.email.catalogSync.unregisterChannelDesc,選択したチャネルで商品を無効化,選択したチャネルで商品を無効化,crm
+crm.email.catalogSync.nextSetPriceBtn,次へ: 価格設定 →,次へ: 価格設定 →,crm
+crm.email.catalogSync.productsUnregister,{{n}}件の商品を解除,{{n}}件の商品を解除,crm
+crm.email.catalogSync.channelPriceRecommendTitle,💰 チャネル別推奨販売価格設定,💰 チャネル別推奨販売価格設定,crm
+crm.email.catalogSync.channelPriceRecommendDesc,原価(仕入原価+入出庫費+保管料+作業費+送料)にチャネル手数料・税金・利益率を反映した推奨価格です。,原価(仕入原価+入出庫費+保管料+作業費+送料)にチャネル手数料・税金・利益率を反映した推奨価格です。,crm
+crm.email.catalogSync.channelPriceAdjustDesc,マージン(%)を調整するとリアルタイムで再計算されます。直接入力で上書きも可能です。,マージン(%)を調整するとリアルタイムで再計算されます。直接入力で上書きも可能です。,crm
+crm.email.catalogSync.manualPriceNoteDesc,· 黄色表示は手動入力された価格です。,· 黄色表示は手動入力された価格です。,crm
+crm.email.catalogSync.backBtn,← 戻る,← 戻る,crm
+crm.email.catalogSync.nextApproveBtn,次へ: 承認 & 登録 →,次へ: 承認 & 登録 →,crm
+crm.email.catalogSync.finalReviewTitle,✅ 最終レビュー & 管理者承認,✅ 最終レビュー & 管理者承認,crm
+crm.email.catalogSync.channelFinalSummary,📋 チャネル別最終販売価格サマリー,📋 チャネル別最終販売価格サマリー,crm
+crm.email.catalogSync.managerApprovalText,✍️ 管理者承認: 上記価格で{{chCount}}チャネルに{{prodCount}}商品を登録,✍️ 管理者承認: 上記価格で{{chCount}}チャネルに{{prodCount}}商品を登録,crm
+crm.email.catalogSync.approvalNoteText,承認後、全チャネルまたは選択チャネルに販売登録が進行されます。,承認後、全チャネルまたは選択チャネルに販売登録が進行されます。,crm
+crm.email.catalogSync.registerDoneMsg,✅ {{prodCount}}商品 · {{chCount}}チャネル 登録完了！,✅ {{prodCount}}商品 · {{chCount}}チャネル 登録完了！,crm
+crm.email.catalogSync.registerRunMsg,🚀 {{prodCount}}商品 · {{chCount}}チャネル 登録実行,🚀 {{prodCount}}商品 · {{chCount}}チャネル 登録実行,crm
+crm.email.catalogSync.marginPctCol,マージン%,マージン%,crm
+crm.email.catalogSync.fixedPriceDesc,新しい価格を直接入力,新しい価格を直接入力,crm
+crm.email.catalogSync.markupDesc,現在価格に%を上乗せ,現在価格に%を上乗せ,crm
+crm.email.catalogSync.discountDesc,現在価格から%割引,現在価格から%割引,crm
+crm.email.catalogSync.fixedPricePh,新しい販売価格を入力,新しい販売価格を入力,crm
+crm.email.catalogSync.markupPh,上乗せ率 (例: 10),上乗せ率 (例: 10),crm
+crm.email.catalogSync.changePreview,📊 変更プレビュー,📊 変更プレビュー,crm
+crm.email.catalogSync.applyChannel,📡 適用チャネル,📡 適用チャネル,crm
+crm.email.catalogSync.roundingNone,なし,なし,crm
+crm.email.catalogSync.openPricePreview,💰 価格プレビュー,💰 価格プレビュー,crm
+crm.email.catalogSync.nearOutOfStockLabel,品切れ間近,品切れ間近,crm
+crm.email.catalogSync.catMapTitle,🗂️ カテゴリマッピング,🗂️ カテゴリマッピング,crm
+crm.email.catalogSync.catMapDesc,社内カテゴリを各チャネルのカテゴリにマッピングします。,社内カテゴリを各チャネルのカテゴリにマッピングします。,crm
+crm.email.catalogSync.internalCategory,社内カテゴリ,社内カテゴリ,crm
+crm.email.catalogSync.channelCategory,チャネルカテゴリ,チャネルカテゴリ,crm
+crm.email.catalogSync.addMapping,マッピング追加,マッピング追加,crm
+crm.email.catalogSync.editMapping,マッピング編集,マッピング編集,crm
+crm.email.catalogSync.deleteMapping,マッピング削除,マッピング削除,crm
+crm.email.catalogSync.autoMapSuggest,自動マッピング提案,自動マッピング提案,crm
+crm.email.catalogSync.catMapSaved,カテゴリマッピングが保存されました。,カテゴリマッピングが保存されました。,crm
+crm.email.catalogSync.scheduleTitle,⏰ 同期スケジュール,⏰ 同期スケジュール,crm
+crm.email.catalogSync.scheduleDesc,自動同期の間隔を設定します。,自動同期の間隔を設定します。,crm
+crm.email.catalogSync.scheduleEnabled,自動スケジュール有効化,自動スケジュール有効化,crm
+crm.email.catalogSync.scheduleSaved,スケジュールが保存されました。,スケジュールが保存されました。,crm
+crm.email.catalogSync.importExport,📥 インポート/エクスポート,📥 インポート/エクスポート,crm
+crm.email.catalogSync.importDesc,CSV/Excelファイルで商品を一括登録します。,CSV/Excelファイルで商品を一括登録します。,crm
+crm.email.catalogSync.exportDesc,現在の商品リストをエクスポートします。,現在の商品リストをエクスポートします。,crm
+crm.email.catalogSync.downloadTemplate,テンプレートダウンロード,テンプレートダウンロード,crm
+crm.email.catalogSync.importSuccess,{{n}}件の商品を正常にインポートしました。,{{n}}件の商品を正常にインポートしました。,crm
+crm.email.catalogSync.importError,インポート中にエラーが発生しました。,インポート中にエラーが発生しました。,crm
+crm.email.catalogSync.guideOverviewDesc,カタログ同期は、複数の販売チャネルに商品を一括登録・管理し、価格・在庫をリアルタイム同期するモジュールです。,カタログ同期は、複数の販売チャネルに商品を一括登録・管理し、価格・在庫をリアルタイム同期するモジュールです。,crm
+crm.email.catalogSync.templateDownloaded,一括登録テンプレートをダウンロードしました,一括登録テンプレートをダウンロードしました,crm
+crm.email.catalogSync.excelExportDone,{{n}}件の商品をExcelにエクスポートしました,{{n}}件の商品をExcelにエクスポートしました,crm
+crm.email.catalogSync.excelImportError,Excelファイル解析エラー,Excelファイル解析エラー,crm
+crm.email.catalogSync.excelImportEmpty,Excelファイルにデータがありません,Excelファイルにデータがありません,crm
+crm.email.catalogSync.excelImportDone,{{n}}件の商品をExcelから一括登録しました,{{n}}件の商品をExcelから一括登録しました,crm
+crm.email.catalogSync.excelTemplate,テンプレートDL,テンプレートDL,crm
+crm.email.catalogSync.commissionAutoApplyDesc,チャネル別の販売手数料率と税金はCHANNEL_RATESポリシーから自動適用されます。手動での変更も可能です。,チャネル別の販売手数料率と税金はCHANNEL_RATESポリシーから自動適用されます。手動での変更も可能です。,crm
+crm.email.catalogSync.csvImportError,CSVファイル解析エラー,CSVファイル解析エラー,crm
+crm.email.catalogSync.csvImportEmpty,CSVファイルにデータがありません,CSVファイルにデータがありません,crm
+crm.email.catalogSync.csvImportDone,{{n}}件の商品をCSVからインポートしました,{{n}}件の商品をCSVからインポートしました,crm
+crm.email.catalogSync.csvExportDone,{{n}}件の商品をCSVにエクスポートしました,{{n}}件の商品をCSVにエクスポートしました,crm
+crm.email.catalogSync.guideTips,💡 ヒント,💡 ヒント,crm
+crm.email.campaignMgr.pageSub,AIマーケティングキャンペーン統合管理 · 素材·予算·成果 · リアルタイム,AIマーケティングキャンペーン統合管理 · 素材·予算·成果 · リアルタイム,crm
+crm.email.campaignMgr.btnAiRecommend,AIマーケティング推奨,AIマーケティング推奨,crm
+crm.email.campaignMgr.tabCrm,CRMチャネル,CRMチャネル,crm
+crm.email.campaignMgr.newCampaignBtn,新規キャンペーン承認登録,新規キャンペーン承認登録,crm
+crm.email.campaignMgr.tabBudgetAlert,予算アラート,予算アラート,crm
+crm.email.campaignMgr.tabCopywriter,AIコピー,AIコピー,crm
+crm.email.campaignMgr.roiRanking,キャンペーンROIランキング,キャンペーンROIランキング,crm
+crm.email.campaignMgr.noCampaigns,キャンペーンがまだありません,キャンペーンがまだありません,crm
+crm.email.campaignMgr.remaining,残り,残り,crm
+crm.email.campaignMgr.noActive,アクティブキャンペーンなし,アクティブキャンペーンなし,crm
+crm.email.campaignMgr.monitorTitle,リアルタイムキャンペーンモニター,リアルタイムキャンペーンモニター,crm
+crm.email.campaignMgr.budgetAlertTitle,予算アラート & 自動停止,予算アラート & 自動停止,crm
+crm.email.campaignMgr.budgetAlertDesc,予算消化率70%以上のキャンペーンを監視。95%超で自動停止。,予算消化率70%以上のキャンペーンを監視。95%超で自動停止。,crm
+crm.email.campaignMgr.alertOnly,アラートのみ,アラートのみ,crm
+crm.email.campaignMgr.noBudgetAlerts,すべて正常,すべて正常,crm
+crm.email.campaignMgr.aiCopyTitle,AIコピーライター,AIコピーライター,crm
+crm.email.campaignMgr.copyPrompt,商品やサービスを説明してください...,商品やサービスを説明してください...,crm
+crm.email.campaignMgr.toneLuxury,ラグジュアリー,ラグジュアリー,crm
+crm.email.aiPolicy.tabPoliciesDesc,ガードレール管理,ガードレール管理,crm
+crm.email.aiPolicy.tabGovernance,📋 ガバナンス,📋 ガバナンス,crm
+crm.email.aiPolicy.tabConfigDesc,AIガードレール設定,AIガードレール設定,crm
+crm.email.aiPolicy.totalPolicies,ポリシー合計,ポリシー合計,crm
+crm.email.aiPolicy.policiesTitle,🛡️ AIガードレールポリシー,🛡️ AIガードレールポリシー,crm
+crm.email.aiPolicy.addPolicy,ポリシー追加,ポリシー追加,crm
+crm.email.aiPolicy.policyNamePh,例: ROAS下限ポリシー,例: ROAS下限ポリシー,crm
+crm.email.aiPolicy.savePolicy,ポリシー保存,ポリシー保存,crm
+crm.email.aiPolicy.policyCreated,ポリシー作成済み,ポリシー作成済み,crm
+crm.email.aiPolicy.noPoliciesDesc,ポリシーを作成してください,ポリシーを作成してください,crm
+crm.email.aiPolicy.policyFired,ポリシーイベント,ポリシーイベント,crm
+crm.email.aiPolicy.secEvents,セキュリティイベント,セキュリティイベント,crm
+crm.email.aiPolicy.noGovernance,ガバナンスログなし,ガバナンスログなし,crm
+crm.email.aiPolicy.noGovernanceDesc,ポリシー適用ログがここに表示されます,ポリシー適用ログがここに表示されます,crm
+crm.email.aiPolicy.configTitle,⚙ AIガードレール設定,⚙ AIガードレール設定,crm
+crm.email.aiPolicy.cfgBudgetDesc,AIの日次予算超過支出を防止,AIの日次予算超過支出を防止,crm
+crm.email.aiPolicy.cfgRoasDesc,最低閾値未満のROASキャンペーンをブロック,最低閾値未満のROASキャンペーンをブロック,crm
+crm.email.aiPolicy.cfgBidDesc,AIが設定可能な最大CPC/CPM,AIが設定可能な最大CPC/CPM,crm
+crm.email.aiPolicy.cfgFreqCap,フリークエンシーキャップ,フリークエンシーキャップ,crm
+crm.email.aiPolicy.cfgFreqDesc,ユーザーあたりの広告表示回数を制限,ユーザーあたりの広告表示回数を制限,crm
+crm.email.aiPolicy.cfgCreativeFilter,クリエイティブ安全,クリエイティブ安全,crm
+crm.email.aiPolicy.cfgCreativeDesc,未承認クリエイティブの自動配信をブロック,未承認クリエイティブの自動配信をブロック,crm
+crm.email.aiPolicy.cfgApprovalDesc,閾値超のAI変更に事前承認を要求,閾値超のAI変更に事前承認を要求,crm
+crm.email.aiPolicy.badgePolicies,ポリシー,ポリシー,crm
+crm.email.aiPolicy.crossTabConfig,別タブから設定変更,別タブから設定変更,crm
+crm.email.conn.tabPlatforms,📡 プラットフォーム,📡 プラットフォーム,crm
+crm.email.conn.noPlatforms,接続済みプラットフォームなし,接続済みプラットフォームなし,crm
+crm.email.conn.noPlatformsDesc,APIキーまたはOAuthで広告・コマース・CRMプラットフォームを接続してください。,APIキーまたはOAuthで広告・コマース・CRMプラットフォームを接続してください。,crm
+crm.email.conn.eventFeed,イベントフィード,イベントフィード,crm
+crm.email.conn.noEvents,受信イベントなし,受信イベントなし,crm
+crm.email.conn.dwTitle,データウェアハウス — 分析データ自動同期,データウェアハウス — 分析データ自動同期,crm
+crm.email.conn.dwDesc,BigQuery・Snowflake・Redshift・Databricksにマーケティングデータをリアルタイム同期。ネイティブコネクタで既存BIツールと即座に統合可能。,BigQuery・Snowflake・Redshift・Databricksにマーケティングデータをリアルタイム同期。ネイティブコネクタで既存BIツールと即座に統合可能。,crm
+crm.email.conn.dwBadge1,✓ Zero-ETLパイプライン,✓ Zero-ETLパイプライン,crm
+crm.email.conn.dwBadge2,✓ リアルタイムストリーミング,✓ リアルタイムストリーミング,crm
+crm.email.conn.dwBadge4,✓ 自動スキーマ進化,✓ 自動スキーマ進化,crm
+crm.email.conn.dwBadge5,✓ 圧縮・パーティショニング,✓ 圧縮・パーティショニング,crm
+crm.email.conn.dwArchTitle,データパイプラインアーキテクチャ,データパイプラインアーキテクチャ,crm
+crm.email.conn.dwArchAd,広告プラットフォーム,広告プラットフォーム,crm
+crm.email.conn.dwAuthSA,サービスアカウント,サービスアカウント,crm
+crm.email.conn.dwConnectPrompt,データウェアハウス接続後マーケティングデータを自動同期します,データウェアハウス接続後マーケティングデータを自動同期します,crm
+crm.email.conn.dwFeatureStreaming,リアルタイムストリーミング,リアルタイムストリーミング,crm
+crm.email.conn.dwFeaturePartition,パーティショニング自動化,パーティショニング自動化,crm
+crm.email.conn.dwFeatureML,MLモデル統合,MLモデル統合,crm
+crm.email.conn.dwFeatureAutoScale,自動スケーリング,自動スケーリング,crm
+crm.email.conn.dwFeatureSpectrum,Spectrum外部テーブル,Spectrum外部テーブル,crm
+crm.email.conn.dwFeatureMLBuiltin,ML内蔵サポート,ML内蔵サポート,crm
+crm.email.conn.dwFeatureDelta,Deltaトランザクション,Deltaトランザクション,crm
+crm.email.conn.dwSync5min,5分ごと,5分ごと,crm
+crm.email.conn.dwSync15min,15分ごと,15分ごと,crm
+crm.email.ds.tabSchemaDesc,標準フィールド仕様,標準フィールド仕様,crm
+crm.email.ds.tabPipelineDesc,データパイプライン,データパイプライン,crm
+crm.email.ds.tabAlerts,推奨/アラートルール,推奨/アラートルール,crm
+crm.email.ds.tabAlertsDesc,自動化トリガー,自動化トリガー,crm
+crm.email.ds.badgeTotalFields,全イベントフィールド,全イベントフィールド,crm
+crm.email.ds.badgeMetrics,メトリクス定義,メトリクス定義,crm
+crm.email.ds.badgePlatforms,対応プラットフォーム,対応プラットフォーム,crm
+crm.email.ds.adDesc,キャンペーン・クリエイティブ・キーワード・オーディエンスレベルのインプレッション/クリック/コンバージョンイベント標準スキーマ,キャンペーン・クリエイティブ・キーワード・オーディエンスレベルのインプレッション/クリック/コンバージョンイベント標準スキーマ,crm
+crm.email.ds.marketOrders,マーケット注文/精算,マーケット注文/精算,crm
+crm.email.ds.marketDesc,注文・返品・クレーム・精算の詳細控除項目を含むマーケットイベント標準スキーマ,注文・返品・クレーム・精算の詳細控除項目を含むマーケットイベント標準スキーマ,crm
+crm.email.ds.ugcDesc,コンテンツ活動・クリック・クーポン・契約・権利/ホワイトリスト標準スキーマ,コンテンツ活動・クリック・クーポン・契約・権利/ホワイトリスト標準スキーマ,crm
+crm.email.ds.secReturnClaim,返品・クレーム,返品・クレーム,crm
+crm.email.ds.secCreatorIdentity,クリエイター識別,クリエイター識別,crm
+crm.email.ds.secContentPerf,コンテンツパフォーマンス,コンテンツパフォーマンス,crm
+crm.email.ds.fEventId,イベント固有UUID v4,イベント固有UUID v4,crm
+crm.email.ds.fPlatform,プラットフォームコード,プラットフォームコード,crm
+crm.email.ds.fAccountId,広告アカウントID,広告アカウントID,crm
+crm.email.ds.fCampaignId,キャンペーンID,キャンペーンID,crm
+crm.email.ds.fCampaignObj,キャンペーン目標,キャンペーン目標,crm
+crm.email.ds.fAdsetId,広告セット/グループID,広告セット/グループID,crm
+crm.email.ds.fAdsetName,広告セット名,広告セット名,crm
+crm.email.ds.fAdId,クリエイティブ(広告)ID,クリエイティブ(広告)ID,crm
+crm.email.ds.fAdName,クリエイティブ名,クリエイティブ名,crm
+crm.email.ds.fCreativeType,クリエイティブタイプ,クリエイティブタイプ,crm
+crm.email.ds.fKeywordId,検索キーワードID,検索キーワードID,crm
+crm.email.ds.fKeywordText,キーワードテキスト,キーワードテキスト,crm
+crm.email.ds.fMatchType,キーワードマッチタイプ,キーワードマッチタイプ,crm
+crm.email.ds.fAudienceId,オーディエンスセグメントID,オーディエンスセグメントID,crm
+crm.email.ds.fAudienceType,リターゲト/LAL/関心,リターゲト/LAL/関心,crm
+crm.email.ds.fGeoCountry,国コード,国コード,crm
+crm.email.ds.fDeviceType,デバイスタイプ,デバイスタイプ,crm
+crm.email.ds.fEventDate,イベント日時UTC,イベント日時UTC,crm
+crm.email.ds.fImpressions,インプレッション数,インプレッション数,crm
+crm.email.ds.fCurrency,通貨コード,通貨コード,crm
+crm.email.ds.fConversions,コンバージョン数,コンバージョン数,crm
+crm.email.ds.fConvValue,コンバージョン金額,コンバージョン金額,crm
+crm.email.ds.fReach,ユニークリーチ,ユニークリーチ,crm
+crm.email.ds.fCpc,クリック単価,クリック単価,crm
+crm.email.ds.fCreatorId,内部クリエイターUUID,内部クリエイターUUID,crm
+crm.email.ds.fHandle,プラットフォームハンドル,プラットフォームハンドル,crm
+crm.email.ds.fTier,クリエイターティア,クリエイターティア,crm
+crm.email.ds.fContentId,プラットフォームコンテンツID,プラットフォームコンテンツID,crm
+crm.email.ds.fContentType,コンテンツタイプ,コンテンツタイプ,crm
+crm.email.ds.fLikes,いいね数,いいね数,crm
+crm.email.ds.fAttribRevenue,アトリビューション寄与売上,アトリビューション寄与売上,crm
+crm.email.ds.pipeMetricsCalc,メトリクス計算,メトリクス計算,crm
+crm.email.ds.pipeRecommend,推奨/アラート,推奨/アラート,crm
+crm.email.ds.pipeAdApiDesc,OAuth2トークン自動更新、15分間隔,OAuth2トークン自動更新、15分間隔,crm
+crm.email.ds.pipeMarketFile,マーケット精算ファイル,マーケット精算ファイル,crm
+crm.email.ds.pipeMarketFileDesc,精算CSV自動ダウンロード→S3ロード,精算CSV自動ダウンロード→S3ロード,crm
+crm.email.ds.pipeUgcCrawl,UGCコンテンツ収集,UGCコンテンツ収集,crm
+crm.email.ds.pipeUgcCrawlDesc,投稿後1h・24h・7d・30dスナップショット,投稿後1h・24h・7d・30dスナップショット,crm
+crm.email.ds.pipeFieldMap,フィールドマッピング・通貨変換,フィールドマッピング・通貨変換,crm
+crm.email.ds.pipeFieldMapDesc,プラットフォーム別→標準スキーママッピング,プラットフォーム別→標準スキーママッピング,crm
+crm.email.ds.pipeCreatorUnify,クリエイターID統合,クリエイターID統合,crm
+crm.email.ds.pipeCreatorUnifyDesc,メールハッシュ+ハンドル類似度ベース重複検出,メールハッシュ+ハンドル類似度ベース重複検出,crm
+crm.email.ds.pipeDQ,データ品質検証,データ品質検証,crm
+crm.email.ds.pipeDQDesc,必須フィールドNULLチェック、異常検出,必須フィールドNULLチェック、異常検出,crm
+crm.email.ds.pipeStreamAgg,リアルタイム集計,リアルタイム集計,crm
+crm.email.ds.pipeStreamAggDesc,Kafka Streams: 1分ウィンドウ集計→Redis→ダッシュボード,Kafka Streams: 1分ウィンドウ集計→Redis→ダッシュボード,crm
+crm.email.ds.pipeBatchAgg,日次バッチ集計,日次バッチ集計,crm
+crm.email.ds.pipeDerivedMetrics,派生メトリクス,派生メトリクス,crm
+crm.email.ds.pipeDerivedMetricsDesc,ROAS・ACOS・CTR・CVR・返品率等,ROAS・ACOS・CTR・CVR・返品率等,crm
+crm.email.ds.pipeAnomalyAlert,異常アラート,異常アラート,crm
+crm.email.ds.pipeAnomalyAlertDesc,anomaly_score > 70 → Slack + インアプリ,anomaly_score > 70 → Slack + インアプリ,crm
+crm.email.ds.pipeBudgetReallocDesc,ROAS基準予算移動シミュレーション,ROAS基準予算移動シミュレーション,crm
+crm.email.ds.flowPlatformApi,プラットフォームAPI,プラットフォームAPI,crm
+crm.email.ds.dataFlowSummary,データフロー要約,データフロー要約,crm
+crm.email.ds.definedMetrics,定義済みメトリクス,定義済みメトリクス,crm
+crm.email.ds.metCreatorROI,クリエイターROI,クリエイターROI,crm
+crm.email.ds.alertRuleCatalog,推奨/アラートルールカタログ,推奨/アラートルールカタログ,crm
+crm.email.ds.ruleROAS2Action,キャンペーン自動一時停止 + 即時Slack通知,キャンペーン自動一時停止 + 即時Slack通知,crm
+crm.email.ds.ruleROAS3Action,予算再配分推奨カード,予算再配分推奨カード,crm
+crm.email.ds.ruleReturn12Action,商品運営対策推奨 + MDメール,商品運営対策推奨 + MDメール,crm
+crm.email.ds.ruleOverpay,過払い検出,過払い検出,crm
+crm.email.ds.ruleOverpayAction,回収ワークフロートリガー,回収ワークフロートリガー,crm
+crm.email.ds.ruleWhitelistD30,ホワイトリスト満了 D-30,ホワイトリスト満了 D-30,crm
+crm.email.ds.ruleWhitelistD30Action,クリエイターに更新依頼メール,クリエイターに更新依頼メール,crm
+crm.email.ds.ruleWhitelistD7,ホワイトリスト満了 D-7,ホワイトリスト満了 D-7,crm
+crm.email.ds.ruleWhitelistD7Action,緊急広告配信レビューバナー,緊急広告配信レビューバナー,crm
+crm.email.ds.ruleWhitelistD0,ホワイトリスト D-0 期限切,ホワイトリスト D-0 期限切,crm
+crm.email.ds.ruleCreatorROI10,クリエイターROI < 10x,クリエイターROI < 10x,crm
+crm.email.ds.ruleHighViewLowOrderAction,コンテンツ/LP最適化推奨,コンテンツ/LP最適化推奨,crm
+crm.email.dt.trustScore,データ信頼度スコア,データ信頼度スコア,crm
+crm.email.dt.liveData,ライブデータ,ライブデータ,crm
+crm.email.dt.tabOverview,データ現況,データ現況,crm
+crm.email.dt.tabPixel,ピクセル連携,ピクセル連携,crm
+crm.email.dt.sourceOverview,データソース別信頼度状況,データソース別信頼度状況,crm
+crm.email.dt.srcInventory,在庫データ,在庫データ,crm
+crm.email.dt.srcInventoryDesc,API連携またはCSVアップロード,API連携またはCSVアップロード,crm
+crm.email.dt.srcOrders,注文データ,注文データ,crm
+crm.email.dt.srcOrdersDesc,チャネルAPIからリアルタイム収集,チャネルAPIからリアルタイム収集,crm
+crm.email.dt.srcAdROASDesc,ピクセル未連携時は推定値を使用,ピクセル未連携時は推定値を使用,crm
+crm.email.dt.srcConversion,コンバージョンデータ,コンバージョンデータ,crm
+crm.email.dt.srcConversionDesc,Meta/Googleピクセル連携が必要,Meta/Googleピクセル連携が必要,crm
+crm.email.dt.srcCRMDesc,AI推定セグメント（実測ではない）,AI推定セグメント（実測ではない）,crm
+crm.email.dt.srcSettlementDesc,チャネル精算レポートのアップロード,チャネル精算レポートのアップロード,crm
+crm.email.dt.srcAttributionDesc,サーバーサイドCAPI連携が必要,サーバーサイドCAPI連携が必要,crm
+crm.email.dt.srcPnLDesc,売上・在庫ベースの推定計算,売上・在庫ベースの推定計算,crm
+crm.email.dt.improveTitle,データ信頼度の向上方法,データ信頼度の向上方法,crm
+crm.email.dt.improveStep1,Meta Pixel + CAPI連携でコンバージョンデータを実測値に変換,Meta Pixel + CAPI連携でコンバージョンデータを実測値に変換,crm
+crm.email.dt.improveStep2,Google Analytics 4連携でサイトトラフィックの実測分析を開始,Google Analytics 4連携でサイトトラフィックの実測分析を開始,crm
+crm.email.dt.improveStep3,チャネルAPIキー登録で注文・在庫データをリアルタイム収集,チャネルAPIキー登録で注文・在庫データをリアルタイム収集,crm
+crm.email.dt.pixelTitle,広告ピクセル＆コンバージョンAPI連携,広告ピクセル＆コンバージョンAPI連携,crm
+crm.email.dt.pixelDesc,ピクセル連携により、ROAS・コンバージョンデータが推定値から実測値に切り替わります,ピクセル連携により、ROAS・コンバージョンデータが推定値から実測値に切り替わります,crm
+crm.email.dt.fillAllFields,すべてのフィールドを入力してください,すべてのフィールドを入力してください,crm
+crm.email.dt.testDone,テスト完了,テスト完了,crm
+crm.email.dt.saveIntegration,連携を保存,連携を保存,crm
+crm.email.dt.metaDesc,サーバーサイドConversion Event転送でiOS 14+の計測を復元,サーバーサイドConversion Event転送でiOS 14+の計測を復元,crm
+crm.email.dt.metaStep1,Metaビジネスマネージャー → イベントマネージャーを開く,Metaビジネスマネージャー → イベントマネージャーを開く,crm
+crm.email.dt.metaStep2,データソース追加 → ウェブサイト → Pixel IDをコピー,データソース追加 → ウェブサイト → Pixel IDをコピー,crm
+crm.email.dt.metaStep3,下の入力欄にPixel IDを入力して保存,下の入力欄にPixel IDを入力して保存,crm
+crm.email.dt.metaStep4,CAPIアクセストークンを生成（イベントマネージャー → 設定）,CAPIアクセストークンを生成（イベントマネージャー → 設定）,crm
+crm.email.dt.googleDesc,GA4 Enhanced Ecommerce + Google Ads コンバージョントラッキング,GA4 Enhanced Ecommerce + Google Ads コンバージョントラッキング,crm
+crm.email.dt.googleStep1,Google Analytics → 管理 → データストリーム → 測定IDをコピー,Google Analytics → 管理 → データストリーム → 測定IDをコピー,crm
+crm.email.dt.googleStep2,Google Ads → ツール → コンバージョン → タグ設定 → コンバージョンIDをコピー,Google Ads → ツール → コンバージョン → タグ設定 → コンバージョンIDをコピー,crm
+crm.email.dt.naverName,Naver共通スクリプト,Naver共通スクリプト,crm
+crm.email.dt.naverDesc,Naver SearchAd + ショッピングコンバージョントラッキング,Naver SearchAd + ショッピングコンバージョントラッキング,crm
+crm.email.dt.naverStep1,Naver SearchAd → ツール → コンバージョン追跡 → スクリプトキー確認,Naver SearchAd → ツール → コンバージョン追跡 → スクリプトキー確認,crm
+crm.email.dt.naverStep2,Naverショッピングパートナーセンター → 広告 → ピクセル管理 → IDコピー,Naverショッピングパートナーセンター → 広告 → ピクセル管理 → IDコピー,crm
+crm.email.dt.shoppingPixelId,ショッピングPixel ID,ショッピングPixel ID,crm
+crm.email.dt.tiktokDesc,TikTok Shop + TikTok Adsコンバージョン＆購入追跡,TikTok Shop + TikTok Adsコンバージョン＆購入追跡,crm
+crm.email.dt.tiktokStep2,ピクセル作成 → Pixel ID + Access Tokenをコピー,ピクセル作成 → Pixel ID + Access Tokenをコピー,crm
+crm.email.dt.kakaoDesc,Kakaoモーメント広告コンバージョン＆Kakaoチャネル分析,Kakaoモーメント広告コンバージョン＆Kakaoチャネル分析,crm
+crm.email.dt.kakaoStep1,Kakaoビジネス → Pixel&SDK → ピクセル作成 → Track IDコピー,Kakaoビジネス → Pixel&SDK → ピクセル作成 → Track IDコピー,crm
+crm.email.dt.kakaoStep2,下にTrack IDを入力,下にTrack IDを入力,crm
+crm.email.dt.qualityTitle,データ品質基準表,データ品質基準表,crm
+crm.email.dt.qualityLiveTitle,✅ ライブデータ (Real Data),✅ ライブデータ (Real Data),crm
+crm.email.dt.qualityLiveDesc,広告ピクセル/チャネルAPI/精算レポートから直接収集されたオリジナルデータ。最高の信頼度。,広告ピクセル/チャネルAPI/精算レポートから直接収集されたオリジナルデータ。最高の信頼度。,crm
+crm.email.dt.qualityLiveEx1,Meta CAPIコンバージョンイベント,Meta CAPIコンバージョンイベント,crm
+crm.email.dt.qualityLiveEx2,チャネルAPI注文データ,チャネルAPI注文データ,crm
+crm.email.dt.qualityLiveEx3,精算レポート金額,精算レポート金額,crm
+crm.email.dt.qualityLiveEx4,在庫APIリアルタイム数量,在庫APIリアルタイム数量,crm
+crm.email.dt.qualityEstDesc,ライブデータに基づいて計算・推定された値。方向性は正しいが、正確な数値ではない場合があります。,ライブデータに基づいて計算・推定された値。方向性は正しいが、正確な数値ではない場合があります。,crm
+crm.email.dt.qualityEstEx1,CRM AIセグメント,CRM AIセグメント,crm
+crm.email.dt.qualityEstEx3,ROAS設定値ベースの計算,ROAS設定値ベースの計算,crm
+crm.email.dt.qualityEstEx4,AI予測コンバージョン率,AI予測コンバージョン率,crm
+crm.email.dt.qualityNoneDesc,該当データソースが連携されていません。0値または空の状態が表示されます。,該当データソースが連携されていません。0値または空の状態が表示されます。,crm
+crm.email.dt.qualityNoneEx1,ピクセル未連携のコンバージョンデータ,ピクセル未連携のコンバージョンデータ,crm
+crm.email.dt.qualityNoneEx2,APIキー未登録チャネルデータ,APIキー未登録チャネルデータ,crm
+crm.email.dt.secLockDesc,異常なリクエストパターンが検知されました。30秒後に自動解除されます。,異常なリクエストパターンが検知されました。30秒後に自動解除されます。,crm
+crm.email.dt.tabLineage,データリネージ,データリネージ,crm
+crm.email.dt.tabHistory,スコア推移,スコア推移,crm
+crm.email.dt.lineageTitle,データリネージマップ,データリネージマップ,crm
+crm.email.dt.lineageDesc,データの収集元から加工を経て最終出力までのフローを可視化します,データの収集元から加工を経て最終出力までのフローを可視化します,crm
+crm.email.dt.lineageValidation,データ検証,データ検証,crm
+crm.email.dt.lineageSecCheck,セキュリティチェック,セキュリティチェック,crm
+crm.email.dt.lineageSummary,ソース接続状況,ソース接続状況,crm
+crm.email.dt.lineageNoneSources,未連携ソース,未連携ソース,crm
+crm.email.dt.historyTitle,信頼度スコア推移,信頼度スコア推移,crm
+crm.email.dt.historyDesc,時間の経過に伴うデータ信頼度スコアの変化を追跡します,時間の経過に伴うデータ信頼度スコアの変化を追跡します,crm
+crm.email.dt.historyCurrentScore,現在のスコア,現在のスコア,crm
+crm.email.dt.auditTitle,データ監査ログ,データ監査ログ,crm
+crm.email.dt.auditDesc,連携設定の変更とシステムイベントの記録を追跡します,連携設定の変更とシステムイベントの記録を追跡します,crm
+crm.email.dt.auditEntries,件の記録,件の記録,crm
+crm.email.dt.auditEmptyDesc,連携設定を変更するとここに記録されます,連携設定を変更するとここに記録されます,crm
+crm.email.dt.pixelBridgeDesc,連携設定とAPIキー管理は連携ハブで一元管理されています,連携設定とAPIキー管理は連携ハブで一元管理されています,crm
+crm.email.mr.tabPlatform,プラットフォームマッピング,プラットフォームマッピング,crm
+crm.email.mr.tabPlatformDesc,基準値レジストリ,基準値レジストリ,crm
+crm.email.mr.tabDeductionDesc,負担者・比率分解,負担者・比率分解,crm
+crm.email.mr.tabKpiDesc,ロールアップシミュレーション,ロールアップシミュレーション,crm
+crm.email.mr.tabApprovalDesc,変更承認・監査ログ,変更承認・監査ログ,crm
+crm.email.mr.badgePlatformCount,個 プラットフォーム,個 プラットフォーム,crm
+crm.email.mr.badge2StepApproval,2段階承認キュー,2段階承認キュー,crm
+crm.email.mr.badgeAuditAuto,監査ログ自動記録,監査ログ自動記録,crm
+crm.email.mr.pfSubtitle,プラットフォームマッピングレジストリ — 変更時に自動で承認キューに登録されます,プラットフォームマッピングレジストリ — 変更時に自動で承認キューに登録されます,crm
+crm.email.mr.pfEmptyTitle,登録されたプラットフォームなし,登録されたプラットフォームなし,crm
+crm.email.mr.pfEmptyDesc,連携ハブでチャネルを接続すると自動登録されます,連携ハブでチャネルを接続すると自動登録されます,crm
+crm.email.mr.dedSellerBurden,セラー負担,セラー負担,crm
+crm.email.mr.dedPlatformBurden,プラットフォーム負担,プラットフォーム負担,crm
+crm.email.mr.dedAllPlatform,全プラットフォーム,全プラットフォーム,crm
+crm.email.mr.dedSeller,セラー,セラー,crm
+crm.email.mr.dedColSellerPct,セラー負担%,セラー負担%,crm
+crm.email.mr.dedSellerShareDesc,セラー負担比率%（例：50＝セラー50%プラットフォーム50%）,セラー負担比率%（例：50＝セラー50%プラットフォーム50%）,crm
+crm.email.mr.dedDeleteConfirm,この控除項目を削除しますか？,この控除項目を削除しますか？,crm
+crm.email.mr.dedEmptyTitle,登録された控除項目なし,登録された控除項目なし,crm
+crm.email.mr.dedEmptyDesc,'+追加'ボタンで控除項目を登録してください,'+追加'ボタンで控除項目を登録してください,crm
+crm.email.mr.kpiTitle,KPI影響度シミュレーション,KPI影響度シミュレーション,crm
+crm.email.mr.kpiSellerDedTotal,セラー控除合計,セラー控除合計,crm
+crm.email.mr.kpiNoChange,変化なし,変化なし,crm
+crm.email.mr.kpiRollupTitle,📊 ロールアップシミュレーション基準,📊 ロールアップシミュレーション基準,crm
+crm.email.mr.kpiRollupNote,* 直近30日実績基準のシミュレーション — 控除項目変更時のKPI影響度推定,* 直近30日実績基準のシミュレーション — 控除項目変更時のKPI影響度推定,crm
+crm.email.mr.kpiRateOriginal,元の値,元の値,crm
+crm.email.mr.kpiSellerShare,セラー負担比率,セラー負担比率,crm
+crm.email.mr.kpiSellerActual,セラー実負担:,セラー実負担:,crm
+crm.email.mr.kpiChanged,変更済み,変更済み,crm
+crm.email.mr.kpiNoDedItems,該当プラットフォームに登録された控除項目なし,該当プラットフォームに登録された控除項目なし,crm
+crm.email.mr.apvApplied,適用済み,適用済み,crm
+crm.email.mr.apvTabPending,📋 承認待ち,📋 承認待ち,crm
+crm.email.mr.apvTabLog,📜 監査ログ,📜 監査ログ,crm
+crm.email.mr.apvNoItems,項目なし,項目なし,crm
+crm.email.mr.apvCurrentUser,現在のユーザー,現在のユーザー,crm
+crm.email.mr.apvQueued,✓ 承認キューに登録済み,✓ 承認キューに登録済み,crm
+crm.email.mr.apvTeamLead,チームリーダー,チームリーダー,crm
+crm.email.mr.apvRegistryApplied,レジストリ適用完了,レジストリ適用完了,crm
+crm.email.mr.secLockDesc,不審なアクセスが検出されたため30秒間ロックされています,不審なアクセスが検出されたため30秒間ロックされています,crm
+crm.email.alertAuto.tabRules,🔔 アラートルール,🔔 アラートルール,crm
+crm.email.alertAuto.tabRulesDesc,自動化ルール管理,自動化ルール管理,crm
+crm.email.alertAuto.totalRules,ルール合計,ルール合計,crm
+crm.email.alertAuto.rulesTitle,🔔 自動化アラートルール,🔔 自動化アラートルール,crm
+crm.email.alertAuto.ruleDeleted,削除済み,削除済み,crm
+crm.email.alertAuto.noRulesDesc,ルールを作成してください,ルールを作成してください,crm
+crm.email.alertAuto.noAlerts,履歴なし,履歴なし,crm
+crm.email.alertAuto.noAlertsDesc,アラートが表示されます,アラートが表示されます,crm
+crm.email.alertAuto.channelConfig,📡 通知チャンネル設定,📡 通知チャンネル設定,crm
+crm.email.alertAuto.scheduleConfig,⏰ スケジュール,⏰ スケジュール,crm
+crm.email.alertAuto.cooldown,クールダウン,クールダウン,crm
+crm.email.alertAuto.recentFires,最近の発動,最近の発動,crm
+crm.email.alertAuto.markAllRead,全て既読,全て既読,crm
+crm.email.alertAuto.noFired,発動履歴なし,発動履歴なし,crm
+crm.email.alertAuto.noFiredDesc,AIルールエンジンの発動ログがここに表示されます,AIルールエンジンの発動ログがここに表示されます,crm
+crm.email.alertAuto.colRule,ルール,ルール,crm
+crm.email.alertAuto.tabFired,⚡ ルール発動,⚡ ルール発動,crm
+crm.email.alertAuto.crossTabFire,別タブで発動,別タブで発動,crm
+crm.email.pxl.tabSettings,ピクセル設定,ピクセル設定,crm
+crm.email.pxl.loading,データ読み込み中...,データ読み込み中...,crm
+crm.email.pxl.noDataDesc,ピクセルをインストールすると分析データが収集されます。まずピクセル設定タブでピクセルを作成してください。,ピクセルをインストールすると分析データが収集されます。まずピクセル設定タブでピクセルを作成してください。,crm
+crm.email.pxl.totalEvents,全イベント,全イベント,crm
+crm.email.pxl.serverSideCAPI,サーバーサイドCAPI,サーバーサイドCAPI,crm
+crm.email.pxl.serverSideEvent,サーバーサイドイベント,サーバーサイドイベント,crm
+crm.email.pxl.funnelTitle,コンバージョンファネル (訪問 → 購入),コンバージョンファネル (訪問 → 購入),crm
+crm.email.pxl.funnelCart,カートに追加,カートに追加,crm
+crm.email.pxl.channelAttr,チャネル別アトリビューション,チャネル別アトリビューション,crm
+crm.email.pxl.noChannelData,データなし — ピクセル収集後に確認可能,データなし — ピクセル収集後に確認可能,crm
+crm.email.pxl.medium,メディア,メディア,crm
+crm.email.pxl.sessions,セッション,セッション,crm
+crm.email.pxl.createPixel,新規ピクセル作成,新規ピクセル作成,crm
+crm.email.pxl.pixelName,ピクセル名,ピクセル名,crm
+crm.email.pxl.pixelNamePh,メインショップピクセル,メインショップピクセル,crm
+crm.email.pxl.metaCAPIToken,Meta CAPIトークン,Meta CAPIトークン,crm
+crm.email.pxl.nameRequired,ピクセル名を入力してください,ピクセル名を入力してください,crm
+crm.email.pxl.createSuccess,ピクセルが作成されました,ピクセルが作成されました,crm
+crm.email.pxl.createPixelBtn,ピクセル作成,ピクセル作成,crm
+crm.email.pxl.pixelList,ピクセル一覧,ピクセル一覧,crm
+crm.email.pxl.noPixels,作成されたピクセルがありません,作成されたピクセルがありません,crm
+crm.email.pxl.snippet,スニペット,スニペット,crm
+crm.email.pxl.deleteConfirm,このピクセルを削除しますか？,このピクセルを削除しますか？,crm
+crm.email.pxl.snippetTitle,インストールスニペットコード,インストールスニペットコード,crm
+crm.email.pxl.snippetGuide1,上記のコードをウェブサイトの ,上記のコードをウェブサイトの ,crm
+crm.email.pxl.snippetGuide2, タグ内に貼り付けてください。, タグ内に貼り付けてください。,crm
+crm.email.pxl.snippetGuide3,Meta CAPIとTikTok Events APIにサーバーサイドで自動転送されます。,Meta CAPIとTikTok Events APIにサーバーサイドで自動転送されます。,crm
+crm.email.pxl.testEventSend,テストイベント送信,テストイベント送信,crm
+crm.email.pxl.sendEvent,イベント送信,イベント送信,crm
+crm.email.pxl.realtimeStream,リアルタイムイベントストリーム,リアルタイムイベントストリーム,crm
+crm.email.pxl.noEvents,イベントなし — テストイベントを送信するかピクセルをインストールしてください,イベントなし — テストイベントを送信するかピクセルをインストールしてください,crm
+crm.email.pxl.secAlert,🚨 セキュリティ警告：不審な入力を検知,🚨 セキュリティ警告：不審な入力を検知,crm
+crm.email.pxl.secTotal,件の脅威を検知,件の脅威を検知,crm
+crm.email.pxl.secLockDesc,異常なリクエストパターンが検知されました。セキュリティロックが有効化されました。,異常なリクエストパターンが検知されました。セキュリティロックが有効化されました。,crm
+crm.email.pxl.secLockWait,30秒後に自動解除されます,30秒後に自動解除されます,crm
+crm.email.pxl.secInputBlocked,セキュリティ：危険な入力がブロックされました,セキュリティ：危険な入力がブロックされました,crm
+crm.email.settlements.pageDesc,プラットフォーム別精算額追跡・手数料分析・元帳照合,プラットフォーム別精算額追跡・手数料分析・元帳照合,crm
+crm.email.settlements.importSuccess,✓ インポート成功,✓ インポート成功,crm
+crm.email.settlements.kpiPending,精算待ち,精算待ち,crm
+crm.email.settlements.kpiOrderSub,確定済み,確定済み,crm
+crm.email.settlements.kpiPendingWarn,手動確認が必要,手動確認が必要,crm
+crm.email.settlements.channelNetTitle,チャネル別Net Payout,チャネル別Net Payout,crm
+crm.email.settlements.searchPlaceholder,チャネル・注文番号検索,チャネル・注文番号検索,crm
+crm.email.settlements.autoFeeDesc,チャネル接続時に標準手数料率が自動適用,チャネル接続時に標準手数料率が自動適用,crm
+crm.aiHub.reviews.escalated,CSエスカレーション完了,CSエスカレーション完了,crm
+crm.aiHub.reviews.escalationTitle,危険レビュー確認,危険レビュー確認,crm
+crm.aiHub.reviews.escalationBody,迅速な処理が必要です。,迅速な処理が必要です。,crm
+crm.aiHub.reviews.bulkEscalate,ネガティブレビュー一括エスカレーション,ネガティブレビュー一括エスカレーション,crm
+crm.aiHub.reviews.channelRatingTitle,チャネル別評価,チャネル別評価,crm
+crm.aiHub.reviews.autoAlertActive,自動アラート有効,自動アラート有効,crm
+crm.aiHub.reviews.autoAlertDesc,ネガティブキーワード急増時Slackに自動通知,ネガティブキーワード急増時Slackに自動通知,crm
+crm.aiHub.reviews.feedSub,AI返信案・CSエスカレーション,AI返信案・CSエスカレーション,crm
+crm.aiHub.reviews.csAssigned,CS配置済み,CS配置済み,crm
+crm.aiHub.reviews.foundHelpful,人が役立った,人が役立った,crm
+crm.aiHub.reviews.kpiTotalSub2,接続チャネル合計,接続チャネル合計,crm
+crm.aiHub.reviews.kpiAvgRatingSub2,全チャネル加重平均,全チャネル加重平均,crm
+crm.aiHub.reviews.noTrendData,トレンドデータがありません,トレンドデータがありません,crm
+crm.aiHub.reviews.noTrendDataSub,レビューデータが蓄積されると感情分析トレンドが自動的に表示されます。,レビューデータが蓄積されると感情分析トレンドが自動的に表示されます。,crm
+crm.aiHub.reviews.trendTitle,感情分析トレンド,感情分析トレンド,crm
+crm.aiHub.reviews.autoEscalateDesc,1★のネガティブレビューを自動エスカレーション,1★のネガティブレビューを自動エスカレーション,crm
+crm.aiHub.reviews.slackWebhookSub,ネガティブキーワード急増時に自動通知を受け取るSlack Webhook URLを入力してください。,ネガティブキーワード急増時に自動通知を受け取るSlack Webhook URLを入力してください。,crm
+crm.aiHub.reviews.guideDashDesc,KPI要約、チャネル別評価、ネガティブキーワード監視,KPI要約、チャネル別評価、ネガティブキーワード監視,crm
+crm.aiHub.reviews.guideFeedDesc,レビューフィルタリング、AI返信生成、CSエスカレーション,レビューフィルタリング、AI返信生成、CSエスカレーション,crm
+crm.aiHub.reviews.guideTrendDesc,感情比率分析と時系列トレンド,感情比率分析と時系列トレンド,crm
+crm.aiHub.reviews.guideSettingsDesc,AIトーン設定、自動エスカレーション、Slackアラート,AIトーン設定、自動エスカレーション、Slackアラート,crm
+crm.aiHub.reviews.guideGuideDesc,レビュー管理ワークフロー案内,レビュー管理ワークフロー案内,crm
+crm.aiHub.reviews.aiDisclaimer,AI生成案です。送信前に確認してください。,AI生成案です。送信前に確認してください。,crm
+crm.aiHub.actionPresets.pageTitle,ページタイトル,ページタイトル,crm
+crm.aiHub.crm.email.lblProvider,プロバイダー,プロバイダー,crm
+crm.aiHub.crm.email.lblSmtpHost,SMTPホスト,SMTPホスト,crm
+crm.aiHub.crm.email.lblSmtpPort,SMTPポート,SMTPポート,crm
+crm.aiHub.crm.email.lblSmtpUser,SMTPユーザー,SMTPユーザー,crm
+crm.aiHub.crm.email.lblPassword,パスワード,パスワード,crm
+crm.aiHub.crm.email.fromEmail,送信元メール,送信元メール,crm
+crm.aiHub.crm.email.awsRegion,AWSリージョン,AWSリージョン,crm
+crm.aiHub.crm.email.msgDelConfirm,削除しますか?,削除しますか?,crm
+crm.aiHub.crm.email.catRetention,リテンション,リテンション,crm
+crm.aiHub.crm.email.tplNew,✨ 新規テンプレート,✨ 新規テンプレート,crm
+crm.aiHub.crm.email.subjPh,件名を入力...,件名を入力...,crm
+crm.aiHub.crm.email.msgSendConfirm,送信しますか?,送信しますか?,crm
+crm.aiHub.crm.email.kpiEmails,メール数,メール数,crm
+crm.aiHub.crm.email.cNew,🚀 新規キャンペーン,🚀 新規キャンペーン,crm
+crm.aiHub.crm.email.fName,キャンペーン名*,キャンペーン名*,crm
+crm.aiHub.crm.email.fTarget,対象セグメント,対象セグメント,crm
+crm.aiHub.crm.email.cStat,📊 キャンペーン状況,📊 キャンペーン状況,crm
+crm.aiHub.crm.email.emptyCamp,キャンペーンがありません。,キャンペーンがありません。,crm
+crm.aiHub.crm.email.anSegPerf,セグメント別パフォーマンス,セグメント別パフォーマンス,crm
+crm.aiHub.crm.email.anNoData,分析データなし,分析データなし,crm
+crm.aiHub.crm.email.tabCamp,📢 キャンペーン,📢 キャンペーン,crm
+crm.aiHub.crm.email.tabTpl,📝 テンプレート,📝 テンプレート,crm
+crm.aiHub.crm.email.title,📧 メールマーケティング,📧 メールマーケティング,crm
+crm.aiHub.crm.email.subTitle,全プラットフォームモジュールでリアルタイム同期のメールキャンペーンを作成,全プラットフォームモジュールでリアルタイム同期のメールキャンペーンを作成,crm
+crm.aiHub.crm.email.guideCampDesc,キャンペーンの作成・送信・パフォーマンス管理,キャンペーンの作成・送信・パフォーマンス管理,crm
+crm.aiHub.crm.email.guideTplName,テンプレート管理,テンプレート管理,crm
+crm.aiHub.crm.email.guideTplDesc,メールHTMLテンプレートの登録・編集,メールHTMLテンプレートの登録・編集,crm
+crm.aiHub.crm.email.guideAnalyticsDesc,開封率・クリック率の分析,開封率・クリック率の分析,crm
+crm.aiHub.crm.email.guideSetDesc,SMTP/AWS SESプロバイダー設定,SMTP/AWS SESプロバイダー設定,crm
+crm.aiHub.crm.email.guideCreativeDesc,AI画像生成でメールデザインを作成,AI画像生成でメールデザインを作成,crm
+crm.aiHub.crm.email.noChannels,メールサービス未接続,メールサービス未接続,crm
+crm.aiHub.crm.email.msgTplReq,❌ 必須項目を入力してください,❌ 必須項目を入力してください,crm
+crm.aiHub.crm.gRisk,リスク,リスク,crm
+crm.aiHub.crm.gLoyal,ロイヤル,ロイヤル,crm
+crm.aiHub.crm.emptyCust,顧客がありません。,顧客がありません。,crm
+crm.aiHub.crm.btnEmail,📧メール,📧メール,crm
+crm.aiHub.crm.btnKakao,💬カカオ,💬カカオ,crm
+crm.aiHub.crm.rfmListTit,RFMセグメント,RFMセグメント,crm
+crm.aiHub.crm.tabAiSeg,🤖 AIセグメント,🤖 AIセグメント,crm
+crm.aiHub.crm.tabManSeg,📋 手動セグメント,📋 手動セグメント,crm
+crm.aiHub.crm.pageSub,顧客データ統合管理 · セグメント · RFM · AI,顧客データ統合管理 · セグメント · RFM · AI,crm
+crm.aiHub.crm.guideCustName,👥 顧客リスト,👥 顧客リスト,crm
+crm.aiHub.crm.guideCustDesc,全顧客データをテーブル形式で管理。検索、ソート、ページネーション対応。クリックで詳細パネルを開き、購入履歴と活動ログを確認できます。,全顧客データをテーブル形式で管理。検索、ソート、ページネーション対応。クリックで詳細パネルを開き、購入履歴と活動ログを確認できます。,crm
+crm.aiHub.crm.guideAiName,🤖 AIセグメント,🤖 AIセグメント,crm
+crm.aiHub.crm.guideAiDesc,AIが顧客データを分析しセグメントを自動作成。VIPアップセル候補、離脱リスク顧客を識別し、予測売上とAIインサイトを提供します。,AIが顧客データを分析しセグメントを自動作成。VIPアップセル候補、離脱リスク顧客を識別し、予測売上とAIインサイトを提供します。,crm
+crm.aiHub.crm.guideSegName,🏷 手動セグメント,🏷 手動セグメント,crm
+crm.aiHub.crm.guideSegDesc,ユーザーが独自の条件を設定して顧客グループを作成。LTV、購入頻度などの条件を組み合わせてターゲットマーケティングに活用します。,ユーザーが独自の条件を設定して顧客グループを作成。LTV、購入頻度などの条件を組み合わせてターゲットマーケティングに活用します。,crm
+crm.aiHub.crm.guideRfmDesc,最近性・頻度・金額の3基準で顧客を5グレードに自動分類。グレード別顧客数を視覚的に確認し、詳細リストをテーブルで管理します。,最近性・頻度・金額の3基準で顧客を5グレードに自動分類。グレード別顧客数を視覚的に確認し、詳細リストをテーブルで管理します。,crm
+crm.aiHub.crm.aiSegVip,VIPアップセル候補,VIPアップセル候補,crm
+crm.aiHub.crm.aiSegVipReason,高LTV、直近30日以内に購入,高LTV、直近30日以内に購入,crm
+crm.aiHub.crm.aiSegVipInsight,プレミアムアップグレードの提案に適しています。,プレミアムアップグレードの提案に適しています。,crm
+crm.aiHub.crm.aiSegChurn,離脱リスク — 1回購入者,離脱リスク — 1回購入者,crm
+crm.aiHub.crm.aiSegChurnReason,1回のみ購入、60日以上非活動,1回のみ購入、60日以上非活動,crm
+crm.aiHub.crm.aiSegChurnInsight,リエンゲージメント割引を即座に送信してください。,リエンゲージメント割引を即座に送信してください。,crm
+crm.aiHub.crm.btnEmailMkt,📧 メールマーケティング,📧 メールマーケティング,crm
+crm.aiHub.crm.btnJourney,🗺️ カスタマージャーニー連携,🗺️ カスタマージャーニー連携,crm
+crm.aiHub.crm.deleteConfirm,この顧客を削除しますか？,この顧客を削除しますか？,crm
+crm.aiHub.crm.page,ページ,ページ,crm
+crm.aiHub.crm.dateFilter,期間フィルタ,期間フィルタ,crm
+crm.aiHub.catalogSync.ds.heroDesc,広告・コマース・UGC全ドメインの統合スキーマ、パイプライン、指標、アラートルールを管理します。,広告・コマース・UGC全ドメインの統合スキーマ、パイプライン、指標、アラートルールを管理します。,crm
+crm.aiHub.catalogSync.ds.badgeTotalFields,全フィールド,全フィールド,crm
+crm.aiHub.catalogSync.ds.tabSchema,スキーマ,スキーマ,crm
+crm.aiHub.catalogSync.ds.tabSchemaDesc,ドメイン別フィールド定義,ドメイン別フィールド定義,crm
+crm.aiHub.catalogSync.ds.tabPipeline,パイプライン,パイプライン,crm
+crm.aiHub.catalogSync.ds.tabPipelineDesc,データ収集・処理フロー,データ収集・処理フロー,crm
+crm.aiHub.catalogSync.ds.tabAlertsDesc,閾値アラートルール,閾値アラートルール,crm
+crm.aiHub.catalogSync.ds.marketOrders,マーケット注文,マーケット注文,crm
+crm.aiHub.catalogSync.ds.secReturnClaim,返品/クレーム,返品/クレーム,crm
+crm.aiHub.catalogSync.ds.secCreatorIdentity,クリエイター情報,クリエイター情報,crm
+crm.aiHub.catalogSync.ds.secContentPerf,コンテンツ実績,コンテンツ実績,crm
+crm.aiHub.catalogSync.ds.thField,フィールド名,フィールド名,crm
+crm.aiHub.catalogSync.ds.definedMetrics,定義済み指標,定義済み指標,crm
+crm.aiHub.catalogSync.ds.alertRuleCatalog,アラートルールカタログ,アラートルールカタログ,crm
+crm.aiHub.catalogSync.ds.secCode,セキュリティコードを入力,セキュリティコードを入力,crm
+crm.aiHub.catalogSync.ds.backToSchema,スキーマに戻る,スキーマに戻る,crm
+crm.aiHub.catalogSync.ds.exportSchema,スキーマ出力,スキーマ出力,crm
+crm.aiHub.catalogSync.journey.guideSubtitle,設定から実行・分析までのステップガイド,設定から実行・分析までのステップガイド,crm
+crm.aiHub.catalogSync.journey.guideStartBtn,始める,始める,crm
+crm.aiHub.catalogSync.journey.guideNodesTitle,🧩 ノードタイプリファレンス,🧩 ノードタイプリファレンス,crm
+crm.aiHub.catalogSync.journey.pageSub,AI搭載のオムニチャネル顧客ジャーニーを設計・自動化,AI搭載のオムニチャネル顧客ジャーニーを設計・自動化,crm
+crm.aiHub.catalogSync.journey.tplTitle,ジャーニーテンプレート,ジャーニーテンプレート,crm
+crm.aiHub.catalogSync.journey.tplSub,事前構築されたテンプレートで素早く開始,事前構築されたテンプレートで素早く開始,crm
+crm.aiHub.catalogSync.journey.tplUse,テンプレートを使用,テンプレートを使用,crm
+crm.aiHub.catalogSync.journey.tplWelcome,ウェルカムシリーズ,ウェルカムシリーズ,crm
+crm.aiHub.catalogSync.journey.tplPostPurchase,購入後フォロー,購入後フォロー,crm
+crm.aiHub.catalogSync.journey.aiTopicPh,タイトル/イベント/内容を入力,タイトル/イベント/内容を入力,crm
+crm.aiHub.catalogSync.journey.aiImagePh,AI画像の説明,AI画像の説明,crm
+crm.aiHub.catalogSync.journey.aiResultTitle,生成されたデザイン,生成されたデザイン,crm
+crm.aiHub.catalogSync.journey.aiThemeSeason,シーズン,シーズン,crm
+crm.aiHub.catalogSync.reviews.aiReplyPositive,"こんにちは！😊
+
+{{product}}への素敵なレビューをありがとうございます！お客様からのフィードバックはチーム全体の励みになります。
+
+引き続き良い製品とサービスをお届けします。またのご利用をお待ちしております！🙏","こんにちは！😊
+
+{{product}}への素敵なレビューをありがとうございます！お客様からのフィードバックはチーム全体の励みになります。
+
+引き続き良い製品とサービスをお届けします。またのご利用をお待ちしております！🙏",crm
+crm.aiHub.catalogSync.reviews.aiReplyNeutral,"こんにちは、
+
+{{product}}をご利用いただきありがとうございます。{{category}}に関するフィードバックを確認しました。
+
+担当チームに報告し改善に努めます。","こんにちは、
+
+{{product}}をご利用いただきありがとうございます。{{category}}に関するフィードバックを確認しました。
+
+担当チームに報告し改善に努めます。",crm
+crm.aiHub.catalogSync.reviews.aiReplyNegative,"こんにちは、
+
+{{product}}のご利用中にご不便をおかけし申し訳ございません。
+
+専任のCSスタッフを配定し24時間以内にご連絡いたします。🙇","こんにちは、
+
+{{product}}のご利用中にご不便をおかけし申し訳ございません。
+
+専任のCSスタッフを配定し24時間以内にご連絡いたします。🙇",crm
+crm.aiHub.catalogSync.reviews.bulkEscalate,ネガティブ一括エスカレーション,ネガティブ一括エスカレーション,crm
+crm.aiHub.catalogSync.reviews.kpiTotal,レビュー総数,レビュー総数,crm
+crm.aiHub.catalogSync.reviews.kpiTotalSub2,接続チャネル全体の合計,接続チャネル全体の合計,crm
+crm.aiHub.catalogSync.reviews.kpiAvgRatingSub2,チャネル別加重平均,チャネル別加重平均,crm
+crm.aiHub.catalogSync.reviews.kpiNegativeSub,即時対応が必要,即時対応が必要,crm
+crm.aiHub.catalogSync.reviews.channelRatingTitle,チャネル別レビュー評価,チャネル別レビュー評価,crm
+crm.aiHub.catalogSync.reviews.noData,接続チャネルからレビューデータを収集中です。,接続チャネルからレビューデータを収集中です。,crm
+crm.aiHub.catalogSync.reviews.negKeywordsTitle,ネガティブキーワードTOP,ネガティブキーワードTOP,crm
+crm.aiHub.catalogSync.reviews.autoAlertActive,自動ネガティブアラート有効,自動ネガティブアラート有効,crm
+crm.aiHub.catalogSync.reviews.autoAlertDesc,ネガティブキーワード急増時にSlack/メールで即時通知されます。,ネガティブキーワード急増時にSlack/メールで即時通知されます。,crm
+crm.aiHub.catalogSync.reviews.foundHelpful,役に立った,役に立った,crm
+crm.aiHub.catalogSync.reviews.aiGenerated,AI生成返信ドラフト,AI生成返信ドラフト,crm
+crm.aiHub.catalogSync.reviews.aiDisclaimer,AIが自動生成したドラフトです。送信前に必ず確認してください。,AIが自動生成したドラフトです。送信前に必ず確認してください。,crm
+crm.aiHub.catalogSync.reviews.feedSub,全レビュー·フィルター·AI返信,全レビュー·フィルター·AI返信,crm
+crm.aiHub.catalogSync.reviews.filterPositive,😊 ポジティブ,😊 ポジティブ,crm
+crm.aiHub.catalogSync.reviews.filterNegative,😠 ネガティブ,😠 ネガティブ,crm
+crm.aiHub.catalogSync.reviews.searchPlaceholder,レビューを検索...,レビューを検索...,crm
+crm.aiHub.catalogSync.reviews.noTrendData,トレンドデータなし,トレンドデータなし,crm
+crm.aiHub.catalogSync.reviews.noTrendDataSub,レビューデータが収集されるとトレンド分析が自動表示されます。,レビューデータが収集されるとトレンド分析が自動表示されます。,crm
+crm.aiHub.catalogSync.reviews.trendTitle,感情トレンド分析,感情トレンド分析,crm
+crm.aiHub.catalogSync.reviews.autoEscalateDesc,ネガティブレビュー（1〜2星）検出時にCSチームへ自動エスカレーションします。,ネガティブレビュー（1〜2星）検出時にCSチームへ自動エスカレーションします。,crm
+crm.aiHub.catalogSync.reviews.slackWebhookSub,ネガティブレビュー通知を受けるSlackチャネルのWebhook URLを入力してください。,ネガティブレビュー通知を受けるSlackチャネルのWebhook URLを入力してください。,crm
+crm.aiHub.catalogSync.reviews.draftGenerated,✅ AI返信ドラフトが生成されました。,✅ AI返信ドラフトが生成されました。,crm
+crm.aiHub.catalogSync.reviews.copied,📋 クリップボードにコピーしました。,📋 クリップボードにコピーしました。,crm
+crm.aiHub.catalogSync.reviews.escalated,🚨 CSチームにエスカレーションしました。,🚨 CSチームにエスカレーションしました。,crm
+crm.aiHub.catalogSync.reviews.escalationTitle,レビューエスカレーション,レビューエスカレーション,crm
+crm.aiHub.catalogSync.reviews.escalationBody,ネガティブレビューがCSチームにエスカレーションされました。,ネガティブレビューがCSチームにエスカレーションされました。,crm
+crm.aiHub.catalogSync.reviews.heroDesc,統合レビュー監視·AI感情分析·自動返信生成·ネガティブレビューエスカレーション·リアルタイム同期,統合レビュー監視·AI感情分析·自動返信生成·ネガティブレビューエスカレーション·リアルタイム同期,crm
+crm.aiHub.catalogSync.reviews.pageTitle,レビュー・UGC管理,レビュー・UGC管理,crm
+crm.aiHub.catalogSync.reviews.pageSub,顧客レビューとUGCの統合管理,顧客レビューとUGCの統合管理,crm
+crm.aiHub.catalogSync.reviews.guideDashDesc,KPI概要·チャネル評価·ネガティブキーワード·一括処理,KPI概要·チャネル評価·ネガティブキーワード·一括処理,crm
+crm.aiHub.catalogSync.reviews.guideFeedDesc,全レビュー·チャネル/感情フィルター·AI返信·エスカレーション,全レビュー·チャネル/感情フィルター·AI返信·エスカレーション,crm
+crm.aiHub.catalogSync.reviews.guideTrendDesc,感情比率分布·トレンドモニタリング·チャネル比較,感情比率分布·トレンドモニタリング·チャネル比較,crm
+crm.aiHub.catalogSync.reviews.guideSettingsDesc,AI返信トーン·自動エスカレーション·Slack通知設定,AI返信トーン·自動エスカレーション·Slack通知設定,crm
+crm.aiHub.catalogSync.reviews.guideGuideDesc,レビュー & UGCの使い方·6ステップワークフロー説明,レビュー & UGCの使い方·6ステップワークフロー説明,crm
+crm.aiHub.catalogSync.sms.providerCoolDesc,開発者向けAPI,開発者向けAPI,crm
+crm.aiHub.catalogSync.sms.connectTesting,テスト中...,テスト中...,crm
+crm.aiHub.catalogSync.sms.saveAndTest,保存&テスト,保存&テスト,crm
+crm.aiHub.catalogSync.sms.messagePlaceholder,メッセージを入力...,メッセージを入力...,crm
+crm.aiHub.catalogSync.sms.numberList,番号リスト,番号リスト,crm
+crm.aiHub.catalogSync.sms.broadcastMsgPlaceholder,一括メッセージ入力...,一括メッセージ入力...,crm
+crm.aiHub.catalogSync.sms.campMsgPh,メッセージ...,メッセージ...,crm
+crm.aiHub.catalogSync.sms.campEmpty,キャンペーンなし,キャンペーンなし,crm
+crm.aiHub.catalogSync.sms.heroDesc,SMS/LMSキャンペーンを管理します,SMS/LMSキャンペーンを管理します,crm
+crm.aiHub.catalogSync.sms.ihubAutoDetect,統合ハブ自動検出,統合ハブ自動検出,crm
+crm.aiHub.catalogSync.sms.noHistory,送信履歴なし,送信履歴なし,crm
+crm.aiHub.catalogSync.sms.emptyList,送信履歴がありません。,送信履歴がありません。,crm
+crm.aiHub.catalogSync.sms.guideComposeDesc,1件ずつ即時送信,1件ずつ即時送信,crm
+crm.aiHub.catalogSync.sms.guideBroadcastDesc,複数宛先に同時送信,複数宛先に同時送信,crm
+crm.aiHub.catalogSync.sms.guideCampaignsDesc,予約送信・ステータス管理,予約送信・ステータス管理,crm
+crm.aiHub.catalogSync.sms.tplCat_promotion,プロモ,プロモ,crm
+crm.aiHub.catalogSync.webPopup.couponExpiry,クーポン期限迫る,クーポン期限迫る,crm
+crm.aiHub.catalogSync.webPopup.emailPlaceholder,メールを入力,メールを入力,crm
+crm.aiHub.catalogSync.webPopup.linkOpen,リンクを開く,リンクを開く,crm
+crm.aiHub.catalogSync.webPopup.privacyNote,ご入力情報はプロモーション目的のみに使用されます。,ご入力情報はプロモーション目的のみに使用されます。,crm
+crm.aiHub.catalogSync.webPopup.couponApplied,🎉 クーポン適用完了！,🎉 クーポン適用完了！,crm
+crm.aiHub.catalogSync.webPopup.closingSoon,まもなく自動で閉じます。,まもなく自動で閉じます。,crm
+crm.aiHub.catalogSync.webPopup.createPopup,ポップアップ作成,ポップアップ作成,crm
+crm.aiHub.catalogSync.webPopup.popupNamePh,例：カート離脱割引,例：カート離脱割引,crm
+crm.aiHub.catalogSync.webPopup.titlePh,タイトルを入力,タイトルを入力,crm
+crm.aiHub.catalogSync.webPopup.ctaBtn,CTAボタン,CTAボタン,crm
+crm.aiHub.catalogSync.webPopup.bodyPh,本文を入力,本文を入力,crm
+crm.aiHub.catalogSync.webPopup.triggerType,トリガー種類,トリガー種類,crm
+crm.aiHub.catalogSync.webPopup.triggerExitDesc,マウスがブラウザ上部に移動時に表示,マウスがブラウザ上部に移動時に表示,crm
+crm.aiHub.catalogSync.webPopup.triggerTimeDesc,指定時間後に自動表示,指定時間後に自動表示,crm
+crm.aiHub.catalogSync.webPopup.triggerScrollDesc,一定割合スクロール時に表示,一定割合スクロール時に表示,crm
+crm.aiHub.catalogSync.webPopup.triggerInactiveDesc,ユーザー非活動タイムアウト時に表示,ユーザー非活動タイムアウト時に表示,crm
+crm.aiHub.catalogSync.webPopup.linkUrlDesc,CTAクリック時にこのURLに移動します。,CTAクリック時にこのURLに移動します。,crm
+crm.aiHub.catalogSync.webPopup.aiThemeDiscount,割引プロモ,割引プロモ,crm
+crm.aiHub.catalogSync.webPopup.heroDesc,Exit-Intent検出·AI自動デザイン·A/Bテスト·リアルタイムコンバージョン追跡·プラットフォーム最適化,Exit-Intent検出·AI自動デザイン·A/Bテスト·リアルタイムコンバージョン追跡·プラットフォーム最適化,crm
+crm.aiHub.catalogSync.webPopup.uploadApply,ポップアップとして登録,ポップアップとして登録,crm
+crm.aiHub.catalogSync.webPopup.popupPerf,ポップアップ実績,ポップアップ実績,crm
+crm.aiHub.catalogSync.webPopup.aiDesignTitle,AI自動デザイン生成,AI自動デザイン生成,crm
+crm.aiHub.catalogSync.webPopup.aiDesignDesc,テーマとプラットフォームを選択するとAIが最適化されたポップアップを自動生成します。,テーマとプラットフォームを選択するとAIが最適化されたポップアップを自動生成します。,crm
+crm.aiHub.catalogSync.webPopup.aiTopicPh,テーマ入力(例：春セール),テーマ入力(例：春セール),crm
+crm.aiHub.catalogSync.webPopup.aiImagePh,AI画像説明(例：ビーチでサングラスをかけた女性が歓声を上げる姿),AI画像説明(例：ビーチでサングラスをかけた女性が歓声を上げる姿),crm
+crm.aiHub.catalogSync.webPopup.aiGenerating,AIデザイン生成中...,AIデザイン生成中...,crm
+crm.aiHub.catalogSync.webPopup.uploadCustom,自作イメージ登録,自作イメージ登録,crm
+crm.aiHub.catalogSync.webPopup.uploadCustomDesc,自分でデザインしたポップアップ/広告画像をドラッグ＆ドロップでアップロード。,自分でデザインしたポップアップ/広告画像をドラッグ＆ドロップでアップロード。,crm
+crm.aiHub.catalogSync.webPopup.uploadDragDrop,画像をドラッグまたはクリックしてアップロード,画像をドラッグまたはクリックしてアップロード,crm
+crm.aiHub.catalogSync.webPopup.live,ライブポップアップテスト,ライブポップアップテスト,crm
+crm.aiHub.catalogSync.webPopup.step1,下の「検出開始」ボタンをクリックします。,下の「検出開始」ボタンをクリックします。,crm
+crm.aiHub.catalogSync.webPopup.step2,マウスをブラウザ上部の外に移動します。,マウスをブラウザ上部の外に移動します。,crm
+crm.aiHub.catalogSync.webPopup.step3,Exit-Intentが検出されるとポップアップが自動表示されます。,Exit-Intentが検出されるとポップアップが自動表示されます。,crm
+crm.aiHub.catalogSync.webPopup.step4,リアルタイムでコンバージョンが集計されます。,リアルタイムでコンバージョンが集計されます。,crm
+crm.aiHub.catalogSync.webPopup.liveMoveUp,検出有効 — マウスを上に移動,検出有効 — マウスを上に移動,crm
+crm.aiHub.catalogSync.webPopup.previewNow,今すぐプレビュー,今すぐプレビュー,crm
+crm.aiHub.catalogSync.webPopup.sessionConv,今回のセッション転換数,今回のセッション転換数,crm
+crm.aiHub.catalogSync.webPopup.noAbTests,A/Bテストデータなし,A/Bテストデータなし,crm
+crm.aiHub.catalogSync.webPopup.noAbTestsDesc,2つ以上のポップアップバリアントを登録するとA/Bテストが自動実行されます。,2つ以上のポップアップバリアントを登録するとA/Bテストが自動実行されます。,crm
+crm.aiHub.catalogSync.webPopup.abInsight,AIが最適バリアントを自動分析しコンバージョン率最適化を推奨します。,AIが最適バリアントを自動分析しコンバージョン率最適化を推奨します。,crm
+crm.aiHub.catalogSync.webPopup.settingExitDesc,マウス離脱検出ポップアップ有効化,マウス離脱検出ポップアップ有効化,crm
+crm.aiHub.catalogSync.webPopup.settingTab,タブ切替検出,タブ切替検出,crm
+crm.aiHub.catalogSync.webPopup.settingTabDesc,他タブへの切替時にポップアップ表示,他タブへの切替時にポップアップ表示,crm
+crm.aiHub.catalogSync.webPopup.settingInactiveDesc,30秒以上非活動時にポップアップ表示,30秒以上非活動時にポップアップ表示,crm
+crm.aiHub.catalogSync.webPopup.settingMobile,モバイル最適化,モバイル最適化,crm
+crm.aiHub.catalogSync.webPopup.settingMobileDesc,モバイルデバイスでポップアップ自動リサイズ,モバイルデバイスでポップアップ自動リサイズ,crm
+crm.aiHub.catalogSync.webPopup.settingCookieDesc,同一ユーザーへの24時間以内の重複表示防止,同一ユーザーへの24時間以内の重複表示防止,crm
+crm.aiHub.catalogSync.webPopup.settingGdprDesc,EUユーザー向けプライバシー同意表示,EUユーザー向けプライバシー同意表示,crm
+crm.aiHub.catalogSync.webPopup.aiDesignResult,AIデザイン結果,AIデザイン結果,crm
+crm.aiHub.catalogSync.webPopup.aiApply,ポップアップとして適用,ポップアップとして適用,crm
+crm.aiHub.catalogSync.webPopup.guideDashDesc,全体ポップアップKPI実績表示,全体ポップアップKPI実績表示,crm
+crm.aiHub.catalogSync.webPopup.guideFeedDesc,AIデザイン·作成/編集/削除,AIデザイン·作成/編集/削除,crm
+crm.aiHub.catalogSync.webPopup.guideTrendDesc,Exit-Intentテスト·リアルタイム転換,Exit-Intentテスト·リアルタイム転換,crm
+crm.aiHub.catalogSync.webPopup.guideSettingsDesc,トリガー·Cookie·GDPR·モバイル,トリガー·Cookie·GDPR·モバイル,crm
+crm.aiHub.catalogSync.webPopup.guideGuideDesc,ウェブポップアップ完全マニュアル,ウェブポップアップ完全マニュアル,crm
+crm.aiHub.catalogSync.webPopup.guideABDesc,バリアント比較·CTR分析·勝者判定,バリアント比較·CTR分析·勝者判定,crm
+crm.aiHub.catalogSync.ihub.heroDesc,販売・広告・分析チャネルのAPIキーを登録します。,販売・広告・分析チャネルのAPIキーを登録します。,crm
+crm.aiHub.catalogSync.ihub.tabEventsDesc,イベントログ,イベントログ,crm
+crm.aiHub.catalogSync.ihub.tabMemberDesc,メンバー管理,メンバー管理,crm
+crm.aiHub.catalogSync.ihub.chSearch,チャネル検索...,チャネル検索...,crm
+crm.aiHub.catalogSync.ihub.channelAddBtn,+ チャネル追加,+ チャネル追加,crm
+crm.aiHub.catalogSync.ihub.regCh,登録チャネル,登録チャネル,crm
+crm.aiHub.catalogSync.ihub.totalKeys,合計キー,合計キー,crm
+crm.aiHub.catalogSync.ihub.suppCh,対応チャネル,対応チャネル,crm
+crm.aiHub.catalogSync.ihub.freeBannerTitle,無料プラン制限,無料プラン制限,crm
+crm.aiHub.catalogSync.ihub.upgradeBtn,💎 Proにアップグレード,💎 Proにアップグレード,crm
+crm.aiHub.catalogSync.ihub.deleteConfirm,削除しますか？,削除しますか？,crm
+crm.aiHub.catalogSync.ihub.scDesc,AIがAPIキーのスキャン・連携を自動化します。,AIがAPIキーのスキャン・連携を自動化します。,crm
+crm.aiHub.catalogSync.ihub.scSubtitle,自動連携エンジン,自動連携エンジン,crm
+crm.aiHub.catalogSync.ihub.scFilterFound,キー発見,キー発見,crm
+crm.aiHub.catalogSync.ihub.scFilterApplied,申請済み,申請済み,crm
+crm.aiHub.catalogSync.ihub.dwDesc,DW連携を管理します。,DW連携を管理します。,crm
+crm.aiHub.catalogSync.ihub.dwConnect,接続する,接続する,crm
+crm.aiHub.catalogSync.ihub.dwConnPrompt,接続ボタンをクリックしてください。,接続ボタンをクリックしてください。,crm
+crm.aiHub.catalogSync.ihub.dwRtCdc,リアルタイムCDC,リアルタイムCDC,crm
+crm.aiHub.catalogSync.ihub.dwAutoSchema,自動スキーマ,自動スキーマ,crm
+crm.aiHub.catalogSync.ihub.dwE2E,エンドツーエンド,エンドツーエンド,crm
+crm.aiHub.catalogSync.ihub.dwFlexSch,柔軟スケジュール,柔軟スケジュール,crm
+crm.aiHub.catalogSync.ihub.dwCostOpt,コスト最適化,コスト最適化,crm
+crm.aiHub.catalogSync.ihub.archTitle,アーキテクチャ,アーキテクチャ,crm
+crm.aiHub.catalogSync.ihub.bulkImportBtn,一括インポート,一括インポート,crm
+crm.aiHub.catalogSync.ihub.efTitle,リアルタイムイベントフィード,リアルタイムイベントフィード,crm
+crm.aiHub.catalogSync.ihub.efDesc,チャネル活動をリアルタイム監視します。,チャネル活動をリアルタイム監視します。,crm
+crm.aiHub.catalogSync.ihub.efWait,イベント待機中...,イベント待機中...,crm
+crm.aiHub.catalogSync.ihub.efGuide1,連携後にイベントが表示されます。,連携後にイベントが表示されます。,crm
+crm.aiHub.catalogSync.ihub.efInfo1,リアルタイムチャネル監視,リアルタイムチャネル監視,crm
+crm.aiHub.catalogSync.ihub.efInfo2,チャネルイベント通知,チャネルイベント通知,crm
+crm.aiHub.catalogSync.ihub.efConnPlatforms,接続プラットフォーム,接続プラットフォーム,crm
+crm.aiHub.catalogSync.ihub.efNoEvents,イベントなし,イベントなし,crm
+crm.aiHub.catalogSync.ihub.efRecentEvents,最近のイベント,最近のイベント,crm
+crm.aiHub.catalogSync.ihub.licTitle,ライセンス管理,ライセンス管理,crm
+crm.aiHub.catalogSync.ihub.licPlanInfo,プラン情報,プラン情報,crm
+crm.aiHub.catalogSync.ihub.stepChannel,チャネル情報,チャネル情報,crm
+crm.aiHub.catalogSync.ihub.stepReview,確認・提出,確認・提出,crm
+crm.aiHub.catalogSync.ihub.memberDesc,全チャネルのAPIキーを一括申請できます。,全チャネルのAPIキーを一括申請できます。,crm
+crm.aiHub.catalogSync.ihub.memberBrandName,ブランド名,ブランド名,crm
+crm.aiHub.catalogSync.ihub.memberWebsite,ウェブサイト,ウェブサイト,crm
+crm.aiHub.catalogSync.ihub.backToHub,ハブに戻る,ハブに戻る,crm
+crm.aiHub.catalogSync.ihub.secAlert,セキュリティ脅威,セキュリティ脅威,crm
+crm.aiHub.catalogSync.ihub.secLockTitle,セキュリティロック,セキュリティロック,crm
+crm.aiHub.catalogSync.ihub.globalAds,グローバル広告,グローバル広告,crm
+crm.aiHub.catalogSync.ihub.globalCommerce,グローバルコマース,グローバルコマース,crm
+crm.aiHub.catalogSync.ihub.domestic,国内マーケット,国内マーケット,crm
+crm.aiHub.catalogSync.ihub.ownMallLabel,自社ストア,自社ストア,crm
+crm.aiHub.catalogSync.ihub.closedMallLabel,福利厚生モール,福利厚生モール,crm
+crm.aiHub.catalogSync.ihub.socialMediaLabel,ソーシャルメディア,ソーシャルメディア,crm
+crm.aiHub.catalogSync.caseStudy.heroDesc,Geniego-ROIを導入した企業の成果を確認し、連携チャネルとソリューションの活用事例を参考にしてください。,Geniego-ROIを導入した企業の成果を確認し、連携チャネルとソリューションの活用事例を参考にしてください。,crm
+crm.aiHub.catalogSync.caseStudy.tab_channels,🔗 連携チャネル,🔗 連携チャネル,crm
+crm.aiHub.catalogSync.caseStudy.kpi_totalSolutions,総ソリューション,総ソリューション,crm
+crm.aiHub.catalogSync.caseStudy.filterLabel,フィルター,フィルター,crm
+crm.aiHub.catalogSync.caseStudy.industry_fashion,ファッション・ビューティー,ファッション・ビューティー,crm
+crm.aiHub.catalogSync.caseStudy.industry_food,食品・健康,食品・健康,crm
+crm.aiHub.catalogSync.caseStudy.industry_electronics,電子・IT,電子・IT,crm
+crm.aiHub.catalogSync.caseStudy.industry_logistics,物流・配送,物流・配送,crm
+crm.aiHub.catalogSync.caseStudy.solution_all,全ソリューション,全ソリューション,crm
+crm.aiHub.catalogSync.caseStudy.emptyTitle,登録された事例がありません,登録された事例がありません,crm
+crm.aiHub.catalogSync.caseStudy.emptyDesc,実際の導入企業の事例が登録されるとここに表示されます。連携ハブでチャネルを接続し、実績データを蓄積してください。,実際の導入企業の事例が登録されるとここに表示されます。連携ハブでチャネルを接続し、実績データを蓄積してください。,crm
+crm.aiHub.catalogSync.caseStudy.ctaTitle,御社の成果もGeniego-ROIで実現しましょう,御社の成果もGeniego-ROIで実現しましょう,crm
+crm.aiHub.catalogSync.caseStudy.ctaDesc,AIマーケティング自動化からコマース・物流統合まで、7日間無料でお試しください。専任オンボーディングチームが初日からサポートします。,AIマーケティング自動化からコマース・物流統合まで、7日間無料でお試しください。専任オンボーディングチームが初日からサポートします。,crm
+crm.aiHub.catalogSync.caseStudy.ctaPricing,料金プランを見る,料金プランを見る,crm
+crm.aiHub.catalogSync.caseStudy.ctaGuide,導入ガイド,導入ガイド,crm
+crm.aiHub.catalogSync.caseStudy.noChannelsTitle,連携チャネルがありません,連携チャネルがありません,crm
+crm.aiHub.catalogSync.caseStudy.noChannelsDesc,連携ハブでAPIキーを登録すると、チャネルが自動的に表示されます。,連携ハブでAPIキーを登録すると、チャネルが自動的に表示されます。,crm
+crm.aiHub.catalogSync.caseStudy.connectedChannelsDesc,連携ハブでAPIキーが登録されたチャネルが自動表示されます。各チャネルのプラットフォーム手数料も確認できます。,連携ハブでAPIキーが登録されたチャネルが自動表示されます。各チャネルのプラットフォーム手数料も確認できます。,crm
+crm.aiHub.catalogSync.caseStudy.liveSyncStatus,リアルタイムデータ同期有効 · 全メニューと機能間の同期状態維持中,リアルタイムデータ同期有効 · 全メニューと機能間の同期状態維持中,crm
+crm.aiHub.catalogSync.contentCal.noContent,登録されたコンテンツがありません。,登録されたコンテンツがありません。,crm
+crm.aiHub.catalogSync.contentCal.noChannelData,接続チャネルデータなし,接続チャネルデータなし,crm
+crm.aiHub.catalogSync.contentCal.noChannelDataSub,連携ハブでチャネルを接続するとAI分析が自動的に有効になります。,連携ハブでチャネルを接続するとAI分析が自動的に有効になります。,crm
+crm.aiHub.catalogSync.contentCal.noEventsMonth,今月の予定コンテンツがありません。「+コンテンツ登録」で新規追加してください。,今月の予定コンテンツがありません。「+コンテンツ登録」で新規追加してください。,crm
+crm.aiHub.catalogSync.contentCal.guideCalDesc,月別スケジュールを視覚的に確認·TODAY表示·ステータス色分け,月別スケジュールを視覚的に確認·TODAY表示·ステータス色分け,crm
+crm.aiHub.catalogSync.contentCal.guideListDesc,ステータス別フィルタリング·プラットフォーム/担当者/キャンペーン情報表示,ステータス別フィルタリング·プラットフォーム/担当者/キャンペーン情報表示,crm
+crm.aiHub.catalogSync.contentCal.guideAiDesc,接続チャネルのAI自動パフォーマンス分析·KPI追跡·戦略推薦,接続チャネルのAI自動パフォーマンス分析·KPI追跡·戦略推薦,crm
+crm.aiHub.catalogSync.contentCal.guideGuideDesc,コンテンツカレンダーの使い方·6ステップワークフロー説明,コンテンツカレンダーの使い方·6ステップワークフロー説明,crm
+crm.aiHub.catalogSync.devHub.heroDesc,Geniego-ROI REST APIドキュメント、Webhook管理、JWT認証、SDK統合ガイドを提供します。,Geniego-ROI REST APIドキュメント、Webhook管理、JWT認証、SDK統合ガイドを提供します。,crm
+crm.aiHub.catalogSync.devHub.postmanDownload,Postman Collectionダウンロード,Postman Collectionダウンロード,crm
+crm.aiHub.catalogSync.devHub.tab_docs,📖 APIドキュメント,📖 APIドキュメント,crm
+crm.aiHub.catalogSync.devHub.endpointList,REST APIエンドポイント一覧,REST APIエンドポイント一覧,crm
+crm.aiHub.catalogSync.devHub.searchPlaceholder,パス・説明を検索...,パス・説明を検索...,crm
+crm.aiHub.catalogSync.devHub.params,パラメータ,パラメータ,crm
+crm.aiHub.catalogSync.devHub.epInvPost,在庫登録・編集,在庫登録・編集,crm
+crm.aiHub.catalogSync.devHub.epSettle,精算データ検索,精算データ検索,crm
+crm.aiHub.catalogSync.devHub.epCampGet,キャンペーン一覧検索,キャンペーン一覧検索,crm
+crm.aiHub.catalogSync.devHub.epCrm,CRMセグメント検索,CRMセグメント検索,crm
+crm.aiHub.catalogSync.devHub.epPnl,P&Lレポート作成,P&Lレポート作成,crm
+crm.aiHub.catalogSync.devHub.epBudget,チャネル予算状況,チャネル予算状況,crm
+crm.aiHub.catalogSync.devHub.connectedApis,連携チャネルAPI,連携チャネルAPI,crm
+crm.aiHub.catalogSync.devHub.selectEvents,受信するイベントを選択,受信するイベントを選択,crm
+crm.aiHub.catalogSync.devHub.noWebhooks,登録されたWebhookがありません,登録されたWebhookがありません,crm
+crm.aiHub.catalogSync.devHub.noWebhooksDesc,イベント通知を受け取るにはWebhookを登録してください。注文作成、在庫不足、キャンペーン承認などのイベントをリアルタイムで受信できます。,イベント通知を受け取るにはWebhookを登録してください。注文作成、在庫不足、キャンペーン承認などのイベントをリアルタイムで受信できます。,crm
+crm.aiHub.catalogSync.devHub.ev_order_status_changed,注文ステータス変更,注文ステータス変更,crm
+crm.aiHub.catalogSync.devHub.ev_campaign_executed,キャンペーン自動実行,キャンペーン自動実行,crm
+crm.aiHub.catalogSync.devHub.authComment,認証が必要なすべてのAPIにヘッダーを含める,認証が必要なすべてのAPIにヘッダーを含める,crm
+crm.aiHub.catalogSync.devHub.authLoginComment,ログインでトークン発行,ログインでトークン発行,crm
+crm.aiHub.catalogSync.devHub.sessionToken,現在のセッショントークン,現在のセッショントークン,crm
+crm.aiHub.catalogSync.devHub.loginRequired,ログインが必要,ログインが必要,crm
+crm.aiHub.catalogSync.devHub.goIntegrationHub,連携ハブでAPIキーを管理,連携ハブでAPIキーを管理,crm
+crm.aiHub.catalogSync.devHub.sdkTitle,SDK・外部統合ガイド,SDK・外部統合ガイド,crm
+crm.aiHub.catalogSync.devHub.liveSyncStatus,リアルタイムデータ同期有効 · 連携ハブチャネルと自動同期中,リアルタイムデータ同期有効 · 連携ハブチャネルと自動同期中,crm
+crm.aiHub.catalogSync.dt.heroDesc,データ品質・信頼性・系譜を統合管理し、Trust Scoreをリアルタイム監視します。,データ品質・信頼性・系譜を統合管理し、Trust Scoreをリアルタイム監視します。,crm
+crm.aiHub.catalogSync.dt.trustScore,信頼スコア,信頼スコア,crm
+crm.aiHub.catalogSync.dt.tabLineage,データ系譜,データ系譜,crm
+crm.aiHub.catalogSync.dt.tabPixel,ピクセル,ピクセル,crm
+crm.aiHub.catalogSync.dt.sourceOverview,データソース概要,データソース概要,crm
+crm.aiHub.catalogSync.dt.srcInventoryDesc,リアルタイム在庫データ,リアルタイム在庫データ,crm
+crm.aiHub.catalogSync.dt.srcOrdersDesc,注文処理・履行データ,注文処理・履行データ,crm
+crm.aiHub.catalogSync.dt.srcAdROASDesc,広告パフォーマンス・ROASデータ,広告パフォーマンス・ROASデータ,crm
+crm.aiHub.catalogSync.dt.srcConversionDesc,コンバージョン追跡・ピクセルデータ,コンバージョン追跡・ピクセルデータ,crm
+crm.aiHub.catalogSync.dt.srcCRMDesc,顧客関係管理データ,顧客関係管理データ,crm
+crm.aiHub.catalogSync.dt.srcSettlementDesc,精算・手数料データ,精算・手数料データ,crm
+crm.aiHub.catalogSync.dt.srcAttributionDesc,マルチタッチアトリビューションデータ,マルチタッチアトリビューションデータ,crm
+crm.aiHub.catalogSync.dt.srcPnLDesc,損益計算書データ,損益計算書データ,crm
+crm.aiHub.catalogSync.dt.improveTitle,信頼スコア向上ガイド,信頼スコア向上ガイド,crm
+crm.aiHub.catalogSync.dt.improveStep1,広告プラットフォームAPIキーを連動ハブで登録してください,広告プラットフォームAPIキーを連動ハブで登録してください,crm
+crm.aiHub.catalogSync.dt.improveStep2,ピクセル/コンバージョン追跡を設定してください,ピクセル/コンバージョン追跡を設定してください,crm
+crm.aiHub.catalogSync.dt.improveStep3,マーケット注文APIを接続してください,マーケット注文APIを接続してください,crm
+crm.aiHub.catalogSync.dt.qualityTitle,データ品質基準,データ品質基準,crm
+crm.aiHub.catalogSync.dt.qualityLiveTitle,リアルタイムデータ（API直接連携）,リアルタイムデータ（API直接連携）,crm
+crm.aiHub.catalogSync.dt.qualityLiveDesc,リアルタイムAPIで直接収集されたデータです。最高の信頼度を保証し、自動検証・整合性チェックを行います。,リアルタイムAPIで直接収集されたデータです。最高の信頼度を保証し、自動検証・整合性チェックを行います。,crm
+crm.aiHub.catalogSync.dt.qualityLiveEx1,APIリアルタイム注文,APIリアルタイム注文,crm
+crm.aiHub.catalogSync.dt.qualityLiveEx2,OAuth広告パフォーマンス,OAuth広告パフォーマンス,crm
+crm.aiHub.catalogSync.dt.qualityLiveEx3,SDKコンバージョン追跡,SDKコンバージョン追跡,crm
+crm.aiHub.catalogSync.dt.qualityLiveEx4,リアルタイム在庫同期,リアルタイム在庫同期,crm
+crm.aiHub.catalogSync.dt.qualityEstTitle,推定データ（間接・部分連携）,推定データ（間接・部分連携）,crm
+crm.aiHub.catalogSync.dt.qualityEstDesc,部分的に連携されたか間接的に収集されたデータです。制限された精度を持ち、API直接連携で品質向上が可能です。,部分的に連携されたか間接的に収集されたデータです。制限された精度を持ち、API直接連携で品質向上が可能です。,crm
+crm.aiHub.catalogSync.dt.qualityEstEx2,CSV一括インポート,CSV一括インポート,crm
+crm.aiHub.catalogSync.dt.qualityNoneTitle,未接続（データなし）,未接続（データなし）,crm
+crm.aiHub.catalogSync.dt.qualityNoneDesc,まだ連携されておらずデータを収集できません。連動ハブでAPIキーを登録してください。,まだ連携されておらずデータを収集できません。連動ハブでAPIキーを登録してください。,crm
+crm.aiHub.catalogSync.dt.qualityNoneEx1,未接続プラットフォーム,未接続プラットフォーム,crm
+crm.aiHub.catalogSync.dt.qualityNoneEx2,非アクティブコネクタ,非アクティブコネクタ,crm
+crm.aiHub.catalogSync.dt.lineageTitle,データ系譜マップ,データ系譜マップ,crm
+crm.aiHub.catalogSync.dt.lineageDesc,データの収集から処理、最終出力物への変換までの全体フローを可視化します。,データの収集から処理、最終出力物への変換までの全体フローを可視化します。,crm
+crm.aiHub.catalogSync.dt.lineageProcessing,処理レイヤー,処理レイヤー,crm
+crm.aiHub.catalogSync.dt.lineageSecCheck,セキュリティ検査,セキュリティ検査,crm
+crm.aiHub.catalogSync.dt.lineageScoring,スコアリング,スコアリング,crm
+crm.aiHub.catalogSync.dt.lineageNoneSources,未接続ソース,未接続ソース,crm
+crm.aiHub.catalogSync.dt.historyTitle,信頼スコア履歴,信頼スコア履歴,crm
+crm.aiHub.catalogSync.dt.historyDesc,時間経過に伴うデータ信頼スコアの変化を追跡します。,時間経過に伴うデータ信頼スコアの変化を追跡します。,crm
+crm.aiHub.catalogSync.dt.historyCurrentScore,現在スコア,現在スコア,crm
+crm.aiHub.catalogSync.dt.auditBridgeTitle,統合監査ログセンター,統合監査ログセンター,crm
+crm.aiHub.catalogSync.dt.auditBridgeDesc,全システムイベント・リスク分類・タイムラインビューを含む監査ログは専用モジュールで確認してください。,全システムイベント・リスク分類・タイムラインビューを含む監査ログは専用モジュールで確認してください。,crm
+crm.aiHub.catalogSync.dt.auditBridgeBtn,監査ログセンターへ移動,監査ログセンターへ移動,crm
+crm.aiHub.catalogSync.dt.secLockDesc,異常なアクセスが検知され一時的にロックされました。管理者にお問い合わせください。,異常なアクセスが検知され一時的にロックされました。管理者にお問い合わせください。,crm
+crm.aiHub.catalogSync.dt.guideRoleTrustScore,Trust Scoreはリアルタイムデータ比率、ピクセル接続数に基づいて自動計算されます（最大100点）。,Trust Scoreはリアルタイムデータ比率、ピクセル接続数に基づいて自動計算されます（最大100点）。,crm
+crm.aiHub.catalogSync.dt.guideRoleQuality,データ品質は3段階（リアルタイム/推定/未接続）に分類され、API直接連携で最高等級を取得できます。,データ品質は3段階（リアルタイム/推定/未接続）に分類され、API直接連携で最高等級を取得できます。,crm
+crm.aiHub.catalogSync.dt.guideRoleLineage,データ系譜マップはソース→処理→出力の全体フローを可視化してデータの透明性を保証します。,データ系譜マップはソース→処理→出力の全体フローを可視化してデータの透明性を保証します。,crm
+crm.aiHub.catalogSync.graph.topInfluencer,🏆 トップ貢献インフルエンサー,🏆 トップ貢献インフルエンサー,crm
+crm.aiHub.catalogSync.pnl.pageDesc,リアルタイム損益ウォーターフォール＆チャネル別P&Lダッシュボード,リアルタイム損益ウォーターフォール＆チャネル別P&Lダッシュボード,crm
+crm.aiHub.catalogSync.pnl.descOverview,リアルタイム売上・費用・利益ウォーターフォール,リアルタイム売上・費用・利益ウォーターフォール,crm
+crm.aiHub.catalogSync.pnl.descUnitPnl,チャネル別・商品別損益分析,チャネル別・商品別損益分析,crm
+crm.aiHub.catalogSync.pnl.descAnomaly,ROAS低下・返品急増の自動検知,ROAS低下・返品急増の自動検知,crm
+crm.aiHub.catalogSync.pnl.descAction,AI基盤の収益改善提案,AI基盤の収益改善提案,crm
+crm.aiHub.catalogSync.pnl.descForecast,成長率基盤の損益シミュレーション,成長率基盤の損益シミュレーション,crm
+crm.aiHub.catalogSync.pnl.descGuide,損益分析利用ガイド,損益分析利用ガイド,crm
+crm.aiHub.catalogSync.pnl.waterfallTitle,損益ウォーターフォール,損益ウォーターフォール,crm
+crm.aiHub.catalogSync.pnl.waterfallDesc,売上から営業利益までのフローを段階的に可視化します。,売上から営業利益までのフローを段階的に可視化します。,crm
+crm.aiHub.catalogSync.pnl.wfCoupon,クーポン割引,クーポン割引,crm
+crm.aiHub.catalogSync.pnl.noAnomalies,異常なし,異常なし,crm
+crm.aiHub.catalogSync.pnl.unitPnlDesc,チャネル別の単位損益を分析します。連携ハブでAPIキーを登録すると手数料が自動反映されます。,チャネル別の単位損益を分析します。連携ハブでAPIキーを登録すると手数料が自動反映されます。,crm
+crm.aiHub.catalogSync.pnl.unitPnlTable,損益要約テーブル,損益要約テーブル,crm
+crm.aiHub.catalogSync.pnl.noDataNote,※ 連携ハブでAPIキーを登録すると実データが自動反映されます。,※ 連携ハブでAPIキーを登録すると実データが自動反映されます。,crm
+crm.aiHub.catalogSync.pnl.channelBreakdownTitle,チャネル別損益分析,チャネル別損益分析,crm
+crm.aiHub.catalogSync.pnl.channelBreakdownDesc,連携ハブに登録されたチャネルの手数料率が自動反映されます。,連携ハブに登録されたチャネルの手数料率が自動反映されます。,crm
+crm.aiHub.catalogSync.pnl.anomCouponAbuse,クーポン悪用,クーポン悪用,crm
+crm.aiHub.catalogSync.pnl.noAnomaliesDetected,異常項目は検出されませんでした,異常項目は検出されませんでした,crm
+crm.aiHub.catalogSync.pnl.noAnomaliesDesc,すべての指標が正常範囲内です。,すべての指標が正常範囲内です。,crm
+crm.aiHub.catalogSync.pnl.actionDesc,AIが異常検知結果に基づき収益改善策を自動提案します。,AIが異常検知結果に基づき収益改善策を自動提案します。,crm
+crm.aiHub.catalogSync.pnl.noActions,実行計画なし,実行計画なし,crm
+crm.aiHub.catalogSync.pnl.noActionsDesc,現在異常項目がないため対応不要です。,現在異常項目がないため対応不要です。,crm
+crm.aiHub.catalogSync.pnl.forecastTitle,損益予測シミュレータ,損益予測シミュレータ,crm
+crm.aiHub.catalogSync.pnl.forecastDesc,成長率、広告費比率、手数料、返品率を調整して将来の損益をシミュレーションします。,成長率、広告費比率、手数料、返品率を調整して将来の損益をシミュレーションします。,crm
+crm.aiHub.catalogSync.pnl.paramSettings,パラメータ設定,パラメータ設定,crm
+crm.aiHub.catalogSync.pnl.liveRevenue,リアルタイム売上,リアルタイム売上,crm
+crm.aiHub.catalogSync.pnl.channelsConnected,チャネル接続,チャネル接続,crm
+crm.aiHub.catalogSync.pnl.guideSecOverview,売上から営業利益までのウォーターフォールとKPIを一覧で確認します。,売上から営業利益までのウォーターフォールとKPIを一覧で確認します。,crm
+crm.aiHub.catalogSync.pnl.guideSecUnit,チャネル別の売上、広告費、手数料、純利益をテーブルで比較分析します。,チャネル別の売上、広告費、手数料、純利益をテーブルで比較分析します。,crm
+crm.aiHub.catalogSync.pnl.guideSecAnomaly,ROAS低下や返品急増などの異常をAIが自動検知します。,ROAS低下や返品急増などの異常をAIが自動検知します。,crm
+crm.aiHub.catalogSync.pnl.guideSecAction,異常検知結果に基づきAIが収益改善策を自動提案します。,異常検知結果に基づきAIが収益改善策を自動提案します。,crm
+crm.aiHub.catalogSync.pnl.guideSecForecast,パラメータ調整で将来の損益をシミュレーションします。,パラメータ調整で将来の損益をシミュレーションします。,crm
+crm.aiHub.catalogSync.validationNameCategory,商品名とカテゴリを入力してください。,商品名とカテゴリを入力してください。,crm
+crm.aiHub.catalogSync.validationBox,箱ごとの数量を入力してください。,箱ごとの数量を入力してください。,crm
+crm.aiHub.catalogSync.validationPl,パレットごとの箱の数を入力してください。,パレットごとの箱の数を入力してください。,crm
+crm.aiHub.catalogSync.productNamePh,商品名を入力してください,商品名を入力してください,crm
+crm.aiHub.catalogSync.skuLabel,SKUコード,SKUコード,crm
+crm.aiHub.catalogSync.skuPh,SKUコードを入力してください,SKUコードを入力してください,crm
+crm.aiHub.catalogSync.specPh,仕様を入力してください,仕様を入力してください,crm
+crm.aiHub.catalogSync.unitSelection,販売単位の選択,販売単位の選択,crm
+crm.aiHub.catalogSync.boxDetailsTitle,箱の詳細,箱の詳細,crm
+crm.aiHub.catalogSync.qtyPerBoxLabel,箱あたりの数量,箱あたりの数量,crm
+crm.aiHub.catalogSync.palletDetailsTitle,パレットの詳細,パレットの詳細,crm
+crm.aiHub.catalogSync.boxPerPlLabel,パレットあたりの箱数,パレットあたりの箱数,crm
+crm.aiHub.catalogSync.registerToChannel,チャネル登録,チャネル登録,crm
+crm.aiHub.catalogSync.selectChannelStep,ステップ1: チャネル選択,ステップ1: チャネル選択,crm
+crm.aiHub.catalogSync.setPriceStep,ステップ2: 価格設定,ステップ2: 価格設定,crm
+crm.aiHub.catalogSync.approveRegisterStep,ステップ3: 最終承認,ステップ3: 最終承認,crm
+crm.aiHub.catalogSync.registerToChannelAction,チャネルに登録,チャネルに登録,crm
+crm.aiHub.catalogSync.registerToChannelDesc,選択したチャネルに商品を登録します。,選択したチャネルに商品を登録します。,crm
+crm.aiHub.catalogSync.unregisterChannelAction,チャネル接続解除,チャネル接続解除,crm
+crm.aiHub.catalogSync.unregisterChannelDesc,選択したチャネルから商品を解除します。,選択したチャネルから商品を解除します。,crm
+crm.aiHub.catalogSync.channelsSelected,{{n}}チャネル選択済み,{{n}}チャネル選択済み,crm
+crm.aiHub.catalogSync.nextSetPriceBtn,次へ: 価格設定,次へ: 価格設定,crm
+crm.aiHub.catalogSync.channelPriceRecommendTitle,チャネル別推奨販売価格,チャネル別推奨販売価格,crm
+crm.aiHub.catalogSync.channelPriceRecommendDesc,原価、手数料率、税率を考慮した自動計算推奨価格です。,原価、手数料率、税率を考慮した自動計算推奨価格です。,crm
+crm.aiHub.catalogSync.channelPriceAdjustDesc,マージン率を調整するか、直接価格を入力できます。,マージン率を調整するか、直接価格を入力できます。,crm
+crm.aiHub.catalogSync.nextApproveBtn,次へ: 最終承認,次へ: 最終承認,crm
+crm.aiHub.catalogSync.finalReviewTitle,最終レビュー,最終レビュー,crm
+crm.aiHub.catalogSync.channelFinalSummary,チャネル別最終サマリー,チャネル別最終サマリー,crm
+crm.aiHub.catalogSync.approvalNoteText,上記の内容を確認し、チャネル登録を進めます。,上記の内容を確認し、チャネル登録を進めます。,crm
+crm.aiHub.catalogSync.registerDoneMsg,✅ チャネル登録が完了しました！,✅ チャネル登録が完了しました！,crm
+crm.aiHub.catalogSync.registerRunMsg,{{n}}商品の登録実行,{{n}}商品の登録実行,crm
+crm.aiHub.catalogSync.fixedPriceDesc,すべての商品に同じ価格を設定します。,すべての商品に同じ価格を設定します。,crm
+crm.aiHub.catalogSync.markupDesc,現在の価格に対する上乗せ率を適用します。,現在の価格に対する上乗せ率を適用します。,crm
+crm.aiHub.catalogSync.discountDesc,現在の価格に対する割引率を適用します。,現在の価格に対する割引率を適用します。,crm
+crm.aiHub.catalogSync.fixedPricePh,固定価格を入力,固定価格を入力,crm
+crm.aiHub.catalogSync.markupPh,マークアップ率を入力,マークアップ率を入力,crm
+crm.aiHub.catalogSync.discountPh,割引率を入力,割引率を入力,crm
+crm.aiHub.catalogSync.changePreview,変更プレビュー,変更プレビュー,crm
+crm.aiHub.catalogSync.applyChannel,適用チャネル,適用チャネル,crm
+crm.aiHub.catalogSync.priceEditDoneMsg,✅ 価格編集が完了しました！,✅ 価格編集が完了しました！,crm
+crm.aiHub.catalogSync.priceEditApply,{{n}}商品の価格適用,{{n}}商品の価格適用,crm
+crm.aiHub.catalogSync.registerDoneToast,✅ {{n}}商品のチャネル登録完了！,✅ {{n}}商品のチャネル登録完了！,crm
+crm.aiHub.catalogSync.disconnectDoneToast,✅ {{n}}商品のチャネル接続解除完了！,✅ {{n}}商品のチャネル接続解除完了！,crm
+crm.aiHub.catalogSync.priceEditDoneToast,✅ {{n}}商品の価格編集完了！,✅ {{n}}商品の価格編集完了！,crm
+crm.aiHub.catalogSync.csvExportDone,📤 CSVエクスポート完了: {{n}}商品,📤 CSVエクスポート完了: {{n}}商品,crm
+crm.aiHub.catalogSync.csvImportEmpty,❌ CSVファイルに有効なデータがありません。,❌ CSVファイルに有効なデータがありません。,crm
+crm.aiHub.catalogSync.csvImportDone,📥 CSVインポート完了: {{n}}商品,📥 CSVインポート完了: {{n}}商品,crm
+crm.aiHub.catalogSync.csvImportError,❌ CSVファイル処理中にエラーが発生しました。,❌ CSVファイル処理中にエラーが発生しました。,crm
+crm.aiHub.catalogSync.excelImportEmpty,❌ Excelファイルに有効なデータがありません。,❌ Excelファイルに有効なデータがありません。,crm
+crm.aiHub.catalogSync.excelImportDone,📊 Excelインポート完了: {{n}}商品,📊 Excelインポート完了: {{n}}商品,crm
+crm.aiHub.catalogSync.excelImportError,❌ Excelファイル処理中にエラーが発生しました。,❌ Excelファイル処理中にエラーが発生しました。,crm
+crm.aiHub.catalogSync.excelExportDone,📊 Excelエクスポート完了: {{n}}商品,📊 Excelエクスポート完了: {{n}}商品,crm
+crm.aiHub.catalogSync.templateDownloaded,📋 Excelテンプレートがダウンロードされました。,📋 Excelテンプレートがダウンロードされました。,crm
+crm.aiHub.catalogSync.searchPlaceholder,商品名またはSKU検索...,商品名またはSKU検索...,crm
+crm.aiHub.catalogSync.excelTemplate,Excelテンプレート,Excelテンプレート,crm
+crm.aiHub.catalogSync.excelImport,Excelインポート,Excelインポート,crm
+crm.aiHub.catalogSync.bulkRegisterBtn,一括チャネル登録,一括チャネル登録,crm
+crm.aiHub.catalogSync.optionColor,カラー,カラー,crm
+crm.aiHub.catalogSync.optionSize,サイズ,サイズ,crm
+crm.aiHub.catalogSync.channelPrice,チャネル別販売価格,チャネル別販売価格,crm
+crm.aiHub.catalogSync.optionsVariants,オプション/バリエーション,オプション/バリエーション,crm
+crm.aiHub.catalogSync.totalSkuCombo,合計SKU組み合わせ: {{n}},合計SKU組み合わせ: {{n}},crm
+crm.aiHub.catalogSync.reservedStockLabel,予約済み在庫,予約済み在庫,crm
+crm.aiHub.catalogSync.syncThisProduct,この商品を同期,この商品を同期,crm
+crm.aiHub.catalogSync.scheduleTitle,自動同期スケジュール,自動同期スケジュール,crm
+crm.aiHub.catalogSync.fullSync,フル同期,フル同期,crm
+crm.aiHub.catalogSync.fullSyncDesc,すべての商品データを最初から完全に同期します。大量データ処理に時間がかかります。,すべての商品データを最初から完全に同期します。大量データ処理に時間がかかります。,crm
+crm.aiHub.catalogSync.incrementalSyncDesc,最後の同期以降に変更されたアイテムのみを迅速に同期します。,最後の同期以降に変更されたアイテムのみを迅速に同期します。,crm
+crm.aiHub.catalogSync.dryRun,シミュレーション (Dry-Run),シミュレーション (Dry-Run),crm
+crm.aiHub.catalogSync.dryRunStartBtn,シミュレーション実行,シミュレーション実行,crm
+crm.aiHub.catalogSync.processed,処理済み,処理済み,crm
+crm.aiHub.catalogSync.tabPriceRules,価格ルール,価格ルール,crm
+crm.aiHub.catalogSync.globalMarkup,グローバルマークアップ(%),グローバルマークアップ(%),crm
+crm.aiHub.catalogSync.rounding,丸めルール,丸めルール,crm
+crm.aiHub.catalogSync.channelMarkup,チャネル別マークアップ,チャネル別マークアップ,crm
+crm.aiHub.catalogSync.commissionAutoApplyDesc,チャネル別手数料と税金はCHANNEL_RATES設定から自動適用されます。手動で修正も可能です。,チャネル別手数料と税金はCHANNEL_RATES設定から自動適用されます。手動で修正も可能です。,crm
+crm.aiHub.catalogSync.minMargin,最低マージン(%),最低マージン(%),crm
+crm.aiHub.catalogSync.openPricePreview,価格プレビューを開く,価格プレビューを開く,crm
+crm.aiHub.catalogSync.previewPrices,価格プレビュー,価格プレビュー,crm
+crm.aiHub.catalogSync.marginResult,マージン結果,マージン結果,crm
+crm.aiHub.catalogSync.stockThreshold,安全在庫しきい値,安全在庫しきい値,crm
+crm.aiHub.catalogSync.lowStockAlertTitle,⚠️ 在庫不足アラート ({{n}}件),⚠️ 在庫不足アラート ({{n}}件),crm
+crm.aiHub.catalogSync.currentStock,現在の在庫,現在の在庫,crm
+crm.aiHub.catalogSync.afterDistribution,配分後の数量,配分後の数量,crm
+crm.aiHub.catalogSync.nearOutOfStockLabel,品切れリスク,品切れリスク,crm
+crm.aiHub.catalogSync.jobId,ジョブID,ジョブID,crm
+crm.aiHub.catalogSync.noHistory,同期履歴はありません。,同期履歴はありません。,crm
+crm.aiHub.catalogSync.catMapSaved,✅ カテゴリマッピングが保存されました。,✅ カテゴリマッピングが保存されました。,crm
+crm.aiHub.catalogSync.catMapDesc,内部カテゴリを各販売チャネルのカテゴリ体系にマッピングします。,内部カテゴリを各販売チャネルのカテゴリ体系にマッピングします。,crm
+crm.aiHub.catalogSync.internalCategory,内部カテゴリ,内部カテゴリ,crm
+crm.aiHub.catalogSync.guideOverviewDesc,カタログ同期は、商品カタログを複数の販売チャネルに自動登録・管理するエンタープライズ級統合ソリューションです。以下の8ステップに従って設定してください。,カタログ同期は、商品カタログを複数の販売チャネルに自動登録・管理するエンタープライズ級統合ソリューションです。以下の8ステップに従って設定してください。,crm
+crm.aiHub.catalogSync.guideTips,💡 プロのヒント,💡 プロのヒント,crm
+crm.aiHub.catalogSync.tabCatalog,カタログ,カタログ,crm
+crm.aiHub.catalogSync.tabStockPolicy,在庫ポリシー,在庫ポリシー,crm
+crm.aiHub.catalogSync.heroDesc,商品カタログを複数の販売チャネルに自動登録・管理するエンタープライズ級統合ソリューション,商品カタログを複数の販売チャネルに自動登録・管理するエンタープライズ級統合ソリューション,crm
+crm.aiHub.catalogSync.kpiErrorProduct,エラー商品,エラー商品,crm
+crm.aiHub.catalogSync.pageSub,商品カタログ統合管理,商品カタログ統合管理,crm
+crm.aiHub.catalogSync.noProducts,登録された商品はありません。,登録された商品はありません。,crm
+crm.aiHub.catalogSync.betaMode,ベータモード,ベータモード,crm
+crm.aiHub.catalogSync.betaModeDesc,実際のチャネルAPI呼び出しなしでシミュレーションされます。有料プランで実際の連携が利用可能です。,実際のチャネルAPI呼び出しなしでシミュレーションされます。有料プランで実際の連携が利用可能です。,crm
+crm.aiHub.catalogSync.priceFormulaDesc,推奨販売価格の計算式: 原価 ÷ (1 - 手数料率 - 税率 - 利益率)。黄色の価格は手動入力された価格です。,推奨販売価格の計算式: 原価 ÷ (1 - 手数料率 - 税率 - 利益率)。黄色の価格は手動入力された価格です。,crm
+crm.aiHub.catalogSync.alertBulkPriceSync,💰 一括価格編集同期: {{n}}商品 → グローバル価格システム更新完了,💰 一括価格編集同期: {{n}}商品 → グローバル価格システム更新完了,crm
+crm.aiHub.catalogSync.alertNewProduct,📂 カタログ新規登録同期: [{{name}}] → グローバル在庫更新完了,📂 カタログ新規登録同期: [{{name}}] → グローバル在庫更新完了,crm
+crm.aiHub.catalogSync.alertCsvExport,📤 CSV出力: {{n}}商品エクスポート完了,📤 CSV出力: {{n}}商品エクスポート完了,crm
+crm.aiHub.catalogSync.alertCsvImport,📥 CSV入力: {{n}}商品インポート → グローバル在庫同期完了,📥 CSV入力: {{n}}商品インポート → グローバル在庫同期完了,crm
+crm.aiHub.catalogSync.alertExcelImport,📊 Excelインポート: {{n}}商品一括登録 → グローバル在庫同期完了,📊 Excelインポート: {{n}}商品一括登録 → グローバル在庫同期完了,crm
+crm.aiHub.catalogSync.alertExcelExport,📊 Excelエクスポート: {{n}}商品出力完了,📊 Excelエクスポート: {{n}}商品出力完了,crm
+crm.aiHub.catalogSync.alertScheduleSaved,⏰ 同期スケジュール保存: {{freq}} {{time}},⏰ 同期スケジュール保存: {{freq}} {{time}},crm
+crm.aiHub.catalogSync.cat_electronics_audio,電子機器 > オーディオ,電子機器 > オーディオ,crm
+crm.aiHub.catalogSync.cat_electronics_input,電子機器 > 入力デバイス,電子機器 > 入力デバイス,crm
+crm.aiHub.catalogSync.cat_electronics_camera,電子機器 > カメラ,電子機器 > カメラ,crm
+crm.aiHub.catalogSync.cat_fashion_clothing,ファッション > 衣類,ファッション > 衣類,crm
+crm.aiHub.catalogSync.cat_fashion_accessories,ファッション > アクセサリー,ファッション > アクセサリー,crm
+crm.aiHub.catalogSync.cat_beauty_skincare,ビューティー > スキンケア,ビューティー > スキンケア,crm
+crm.aiHub.catalogSync.cat_beauty_makeup,ビューティー > メイクアップ,ビューティー > メイクアップ,crm
+crm.aiHub.catalogSync.cat_living_kitchen,リビング > キッチン,リビング > キッチン,crm
+crm.aiHub.catalogSync.cat_sports_equipment,スポーツ > 用品,スポーツ > 用品,crm
+crm.aiHub.catalogSync.cat_toys_hobbies,おもちゃ & ホビー,おもちゃ & ホビー,crm
+crm.aiHub.catalogSync.reserveDesc,チャネルごとの予約数量を設定します。,チャネルごとの予約数量を設定します。,crm
+crm.aiHub.catalogSync.thresholdDesc,在庫がこの閾値以下になるとアラートが送信されます。,在庫がこの閾値以下になるとアラートが送信されます。,crm
+crm.aiHub.catalogSync.addCustomCategory,カテゴリ追加,カテゴリ追加,crm
+crm.aiHub.catalogSync.addCategoryPh,新カテゴリID（例: digital/tablet）,新カテゴリID（例: digital/tablet）,crm
+crm.aiHub.catalogSync.addCategoryLabelPh,表示名（例: デジタル > タブレット）,表示名（例: デジタル > タブレット）,crm
+crm.aiHub.catalogSync.categoryAdded,✅ カテゴリが追加されました。,✅ カテゴリが追加されました。,crm
+crm.aiHub.catalogSync.categoryDeleted,🗑️ カテゴリが削除されました。,🗑️ カテゴリが削除されました。,crm
+crm.aiHub.catalogSync.securityBannerTitle,🛡️ セキュリティ脅威検出,🛡️ セキュリティ脅威検出,crm
+crm.aiHub.catalogSync.securityBannerMsg,{{type}}攻撃がブロックされました。（累計{{count}}回）,{{type}}攻撃がブロックされました。（累計{{count}}回）,crm
+crm.aiHub.catalogSync.crossSyncToast,✅ 商品データが価格最適化と同期されました。,✅ 商品データが価格最適化と同期されました。,crm
+crm.aiHub.catalogSync.reportBuilder.pageDesc,エンタープライズグレード ドラッグ&ドロップ ダッシュボードスタジオ,エンタープライズグレード ドラッグ&ドロップ ダッシュボードスタジオ,crm
+crm.aiHub.catalogSync.reportBuilder.tabCanvas,レポートキャンバス,レポートキャンバス,crm
+crm.aiHub.catalogSync.reportBuilder.widgetLibrary,ウィジェットライブラリ,ウィジェットライブラリ,crm
+crm.aiHub.catalogSync.reportBuilder.dragDesc,ウィジェットをキャンバスにドラッグしてください,ウィジェットをキャンバスにドラッグしてください,crm
+crm.aiHub.catalogSync.reportBuilder.widgetRoasTrend,ROASトレンド,ROASトレンド,crm
+crm.aiHub.catalogSync.reportBuilder.widgetDailyClicks,日別クリック数,日別クリック数,crm
+crm.aiHub.catalogSync.reportBuilder.widgetKpiSummary,KPIサマリー,KPIサマリー,crm
+crm.aiHub.catalogSync.reportBuilder.widgetRevenueTrend,売上トレンド,売上トレンド,crm
+crm.aiHub.catalogSync.reportBuilder.widgetChannelPie,チャネル構成比,チャネル構成比,crm
+crm.aiHub.catalogSync.reportBuilder.dropHere,ここにドロップ,ここにドロップ,crm
+crm.aiHub.catalogSync.reportBuilder.dropHereDesc,左のウィジェットライブラリからドラッグしてください,左のウィジェットライブラリからドラッグしてください,crm
+crm.aiHub.catalogSync.reportBuilder.saveLayout,レイアウト保存,レイアウト保存,crm
+crm.aiHub.catalogSync.reportBuilder.layoutNamePh,レイアウト名を入力,レイアウト名を入力,crm
+crm.aiHub.catalogSync.reportBuilder.widgetsCount,個のウィジェット,個のウィジェット,crm
+crm.aiHub.catalogSync.reportBuilder.securityDesc,悪意のある入力が検出されブロックされました。,悪意のある入力が検出されブロックされました。,crm
+crm.aiHub.catalogSync.reportBuilder.channelFilter,チャネルフィルター,チャネルフィルター,crm
+crm.aiHub.catalogSync.reportBuilder.widgetSize,ウィジェットサイズ,ウィジェットサイズ,crm
+crm.aiHub.catalogSync.reportBuilder.tplTitle,レポートテンプレート,レポートテンプレート,crm
+crm.aiHub.catalogSync.reportBuilder.tplSubtitle,よく使うレポートパターンを素早く適用できます,よく使うレポートパターンを素早く適用できます,crm
+crm.aiHub.catalogSync.reportBuilder.tplPerformance,パフォーマンスレポート,パフォーマンスレポート,crm
+crm.aiHub.catalogSync.reportBuilder.tplPerformanceDesc,ROAS、クリック、コンバージョンなどの主要指標を一覧で確認します。,ROAS、クリック、コンバージョンなどの主要指標を一覧で確認します。,crm
+crm.aiHub.catalogSync.reportBuilder.tplRevenue,売上レポート,売上レポート,crm
+crm.aiHub.catalogSync.reportBuilder.tplRevenueDesc,売上トレンド、広告費、チャネル構成比を分析します。,売上トレンド、広告費、チャネル構成比を分析します。,crm
+crm.aiHub.catalogSync.reportBuilder.tplChannel,チャネルレポート,チャネルレポート,crm
+crm.aiHub.catalogSync.reportBuilder.tplChannelDesc,チャネル別のパフォーマンス、手数料、ROASを比較分析します。,チャネル別のパフォーマンス、手数料、ROASを比較分析します。,crm
+crm.aiHub.catalogSync.reportBuilder.tplExecutive,経営レポート,経営レポート,crm
+crm.aiHub.catalogSync.reportBuilder.tplExecutiveDesc,経営陣向けの主要KPIサマリーダッシュボードです。,経営陣向けの主要KPIサマリーダッシュボードです。,crm
+crm.aiHub.catalogSync.reportBuilder.tplWidgetCount,ウィジェット数,ウィジェット数,crm
+crm.aiHub.catalogSync.reportBuilder.schedTitle,スケジュールレポート,スケジュールレポート,crm
+crm.aiHub.catalogSync.reportBuilder.schedNew,+ 新規スケジュール,+ 新規スケジュール,crm
+crm.aiHub.catalogSync.reportBuilder.schedName,レポート名,レポート名,crm
+crm.aiHub.catalogSync.reportBuilder.schedEmail,受信メール,受信メール,crm
+crm.aiHub.catalogSync.reportBuilder.schedCreate,スケジュール作成,スケジュール作成,crm
+crm.aiHub.catalogSync.reportBuilder.schedEmpty,スケジュールされたレポートがありません。,スケジュールされたレポートがありません。,crm
+crm.aiHub.catalogSync.reportBuilder.savedEmpty,保存済みレイアウトがありません。,保存済みレイアウトがありません。,crm
+crm.aiHub.catalogSync.reportBuilder.guideWidgetsTitle,ウィジェットリファレンス,ウィジェットリファレンス,crm
+crm.aiHub.catalogSync.reportBuilder.guideWidgetRoas,期間別ROASの推移をエリアチャートで可視化します。,期間別ROASの推移をエリアチャートで可視化します。,crm
+crm.aiHub.catalogSync.reportBuilder.guideWidgetClicks,日別クリック数をバーチャートで表示します。,日別クリック数をバーチャートで表示します。,crm
+crm.aiHub.catalogSync.reportBuilder.guideWidgetSpend,広告費の推移をエリアチャートで分析します。,広告費の推移をエリアチャートで分析します。,crm
+crm.aiHub.catalogSync.reportBuilder.guideWidgetKpi,売上、ROAS、注文、CVRの4大指標を要約します。,売上、ROAS、注文、CVRの4大指標を要約します。,crm
+crm.aiHub.catalogSync.reportBuilder.guideWidgetConv,コンバージョンデータをバーチャートで可視化します。,コンバージョンデータをバーチャートで可視化します。,crm
+crm.aiHub.catalogSync.reportBuilder.guideWidgetRevenue,売上トレンドをエリアチャートで追跡します。,売上トレンドをエリアチャートで追跡します。,crm
+crm.aiHub.catalogSync.reportBuilder.guideWidgetPie,チャネル別売上比率をパイチャートで表示します。,チャネル別売上比率をパイチャートで表示します。,crm
+crm.aiHub.catalogSync.reportBuilder.guideWidgetFee,チャネル別手数料率を比較します。,チャネル別手数料率を比較します。,crm
+crm.aiHub.catalogSync.settlements.pageDesc,チャネル別売上・手数料・精算金を統合管理・分析します。,チャネル別売上・手数料・精算金を統合管理・分析します。,crm
+crm.aiHub.catalogSync.settlements.colNetKRW,韓国ウォン換算,韓国ウォン換算,crm
+crm.aiHub.catalogSync.settlements.csvSuccess,CSVがダウンロードされました。,CSVがダウンロードされました。,crm
+crm.aiHub.catalogSync.settlements.importSuccess,精算データをインポートしました。,精算データをインポートしました。,crm
+crm.aiHub.catalogSync.settlements.importMock,デモ: 連動ハブでAPIを接続してください。,デモ: 連動ハブでAPIを接続してください。,crm
+crm.aiHub.catalogSync.settlements.searchPlaceholder,チャネル/ID検索...,チャネル/ID検索...,crm
+crm.aiHub.catalogSync.settlements.channelNetTitle,チャネル別純精算金,チャネル別純精算金,crm
+crm.aiHub.catalogSync.settlements.kpiPendingWarn,未確定あり,未確定あり,crm
+crm.aiHub.catalogSync.settlements.kpiAllDone,全て確定,全て確定,crm
+crm.aiHub.catalogSync.settlements.krvConversion,韓国ウォン換算,韓国ウォン換算,crm
+crm.aiHub.catalogSync.settlements.detailCsvBtn,この精算CSVダウンロード,この精算CSVダウンロード,crm
+crm.aiHub.catalogSync.settlements.guideRoleFee,手数料はプラットフォーム、広告、決済、返金に分類されます。,手数料はプラットフォーム、広告、決済、返金に分類されます。,crm
+crm.aiHub.catalogSync.settlements.guideRoleSync,連動ハブでAPI登録されたチャネルは自動追加されます。,連動ハブでAPI登録されたチャネルは自動追加されます。,crm
+crm.aiHub.catalogSync.recon.pageDesc,チャネル精算データをアップロードし手数料ルールと自動照合します。,チャネル精算データをアップロードし手数料ルールと自動照合します。,crm
+crm.aiHub.catalogSync.recon.tabUpload,データアップロード,データアップロード,crm
+crm.aiHub.catalogSync.recon.tabTickets,チケット対応,チケット対応,crm
+crm.aiHub.catalogSync.recon.uploadDesc,チャネルの精算データをJSON配列で貼り付けてください。,チャネルの精算データをJSON配列で貼り付けてください。,crm
+crm.aiHub.catalogSync.recon.uploadHint,JSON配列形式で入力してください。,JSON配列形式で入力してください。,crm
+crm.aiHub.catalogSync.recon.uploadFailed,アップロード失敗,アップロード失敗,crm
+crm.aiHub.catalogSync.recon.uploadSuccess,アップロード完了,アップロード完了,crm
+crm.aiHub.catalogSync.recon.jsonError,JSON形式エラーです。,JSON形式エラーです。,crm
+crm.aiHub.catalogSync.recon.notArray,配列形式ではありません。,配列形式ではありません。,crm
+crm.aiHub.catalogSync.recon.reconDesc,アップロードされたデータと手数料ルールを比較し差異を自動計算します。,アップロードされたデータと手数料ルールを比較し差異を自動計算します。,crm
+crm.aiHub.catalogSync.recon.ticketsCreated,作成チケット,作成チケット,crm
+crm.aiHub.catalogSync.recon.ticketCount,チケット数,チケット数,crm
+crm.aiHub.catalogSync.recon.noReports,照合レポートがまだありません。まずデータをアップロードして照合を実行してください。,照合レポートがまだありません。まずデータをアップロードして照合を実行してください。,crm
+crm.aiHub.catalogSync.recon.selectReport,レポートを選択してください,レポートを選択してください,crm
+crm.aiHub.catalogSync.recon.reportDetail,レポート詳細,レポート詳細,crm
+crm.aiHub.catalogSync.recon.mismatchTickets,不一致チケット,不一致チケット,crm
+crm.aiHub.catalogSync.recon.noTickets,該当ステータスのチケットがありません。,該当ステータスのチケットがありません。,crm
+crm.aiHub.catalogSync.recon.platformFeeRate,プラットフォーム手数料率,プラットフォーム手数料率,crm
+crm.aiHub.catalogSync.recon.notePlaceholder,メモ入力,メモ入力,crm
+crm.aiHub.catalogSync.recon.saved,保存されました,保存されました,crm
+crm.aiHub.catalogSync.recon.ruleHistory,登録ルール履歴,登録ルール履歴,crm
+crm.aiHub.catalogSync.recon.viewPnl,P&Lダッシュボード確認 →,P&Lダッシュボード確認 →,crm
+crm.aiHub.catalogSync.recon.auction,オークション,オークション,crm
+crm.aiHub.catalogSync.recon.secLockDesc,異常アクセスが検出されました。一時ロック。,異常アクセスが検出されました。一時ロック。,crm
+crm.aiHub.catalogSync.recon.guideRoleUpload,チャネル別精算データをJSON形式でアップロードします。,チャネル別精算データをJSON形式でアップロードします。,crm
+crm.aiHub.catalogSync.recon.guideRoleRecon,データと手数料ルールを自動照合し差異を計算・不一致チケットを作成します。,データと手数料ルールを自動照合し差異を計算・不一致チケットを作成します。,crm
+crm.aiHub.catalogSync.recon.guideRoleTicket,不一致チケットのステータスを管理します（未処理→調査中→解決/免除）。,不一致チケットのステータスを管理します（未処理→調査中→解決/免除）。,crm
+crm.aiHub.catalogSync.root_pageTitle_influencer,インフルエンサー & UGC,インフルエンサー & UGC,crm
+crm.aiHub.journey.pageSub,メール・カカオ・LINE・SMS・WhatsApp マルチチャネル自動化 · A/Bテスト · リアルタイム連携,メール・カカオ・LINE・SMS・WhatsApp マルチチャネル自動化 · A/Bテスト · リアルタイム連携,crm
+crm.aiHub.journey.myJourneys,マイジャーニー,マイジャーニー,crm
+crm.aiHub.journey.newJourney,+ 新規ジャーニー,+ 新規ジャーニー,crm
+crm.aiHub.journey.journeyNamePh,例：新規顧客ウェルカムジャーニー,例：新規顧客ウェルカムジャーニー,crm
+crm.aiHub.journey.noJourneys,ジャーニーがありません。新しいジャーニーを作成しましょう！,ジャーニーがありません。新しいジャーニーを作成しましょう！,crm
+crm.aiHub.journey.confirmDelete,このジャーニーを削除しますか？,このジャーニーを削除しますか？,crm
+crm.aiHub.journey.backToList,← 一覧に戻る,← 一覧に戻る,crm
+crm.aiHub.journey.nodeSettings,ノード設定,ノード設定,crm
+crm.aiHub.journey.clickToEdit,ノードをクリックして編集,ノードをクリックして編集,crm
+crm.aiHub.journey.nodeName,ノード名,ノード名,crm
+crm.aiHub.journey.selectSegment,セグメントを選択,セグメントを選択,crm
+crm.aiHub.journey.emailSubject,メール件名,メール件名,crm
+crm.aiHub.journey.emailSubjectPh,件名を入力,件名を入力,crm
+crm.aiHub.journey.emailSenderPh,送信者名を入力,送信者名を入力,crm
+crm.aiHub.journey.kakaoAlimtalk,アリムトーク,アリムトーク,crm
+crm.aiHub.journey.kakaoFriendtalk,フレンドトーク,フレンドトーク,crm
+crm.aiHub.journey.lineMsgText,テキスト,テキスト,crm
+crm.aiHub.journey.lineMsgFlex,Flexメッセージ,Flexメッセージ,crm
+crm.aiHub.journey.waLang,言語コード,言語コード,crm
+crm.aiHub.journey.igMessage,DMメッセージ,DMメッセージ,crm
+crm.aiHub.journey.igMessagePh,Instagram DMメッセージを入力,Instagram DMメッセージを入力,crm
+crm.aiHub.journey.smsMessage,SMSメッセージ,SMSメッセージ,crm
+crm.aiHub.journey.smsMessagePh,SMSメッセージを入力,SMSメッセージを入力,crm
+crm.aiHub.journey.webhookMethod,HTTPメソッド,HTTPメソッド,crm
+crm.aiHub.journey.pushTitle,プッシュ通知タイトル,プッシュ通知タイトル,crm
+crm.aiHub.journey.pushBody,プッシュ通知内容,プッシュ通知内容,crm
+crm.aiHub.journey.popupTemplate,ポップアップテンプレート,ポップアップテンプレート,crm
+crm.aiHub.journey.popupTemplatePh,テンプレートIDを入力,テンプレートIDを入力,crm
+crm.aiHub.journey.conditionField,条件フィールド,条件フィールド,crm
+crm.aiHub.journey.conditionEmailClicked,メールクリック,メールクリック,crm
+crm.aiHub.journey.conditionEmailOpened,メール開封,メール開封,crm
+crm.aiHub.journey.conditionKakaoClicked,カカオクリック,カカオクリック,crm
+crm.aiHub.journey.conditionLineClicked,LINEクリック,LINEクリック,crm
+crm.aiHub.journey.conditionPageVisited,ページ訪問,ページ訪問,crm
+crm.aiHub.journey.conditionCartValueGt,カート金額以上,カート金額以上,crm
+crm.aiHub.journey.abGroupA,Aグループ比率 (%),Aグループ比率 (%),crm
+crm.aiHub.journey.abGroupB,Bグループ,Bグループ,crm
+crm.aiHub.journey.deleteNode,ノードを削除,ノードを削除,crm
+crm.aiHub.journey.channelNotConnected,連携ハブでチャネルを接続してください,連携ハブでチャネルを接続してください,crm
+crm.aiHub.journey.connectedChannels,接続済みチャネル,接続済みチャネル,crm
+crm.aiHub.journey.recentTriggers,最近のトリガー,最近のトリガー,crm
+crm.aiHub.journey.emailSendSim,メール送信シミュレーション: {{count}}名,メール送信シミュレーション: {{count}}名,crm
+crm.aiHub.journey.kakaoSendSim,カカオ送信シミュレーション: {{count}}名,カカオ送信シミュレーション: {{count}}名,crm
+crm.aiHub.journey.lineSendSim,LINE送信シミュレーション: {{count}}名,LINE送信シミュレーション: {{count}}名,crm
+crm.aiHub.journey.analyticsActive,現在アクティブ,現在アクティブ,crm
+crm.aiHub.journey.noAnalyticsData,分析データがありません,分析データがありません,crm
+crm.aiHub.journey.journeyPerformance,ジャーニー別パフォーマンス,ジャーニー別パフォーマンス,crm
+crm.aiHub.journey.triggerTypes.churned,離脱リスク,離脱リスク,crm
+crm.aiHub.journey.triggerTypes.segment_entered,セグメント進入,セグメント進入,crm
+crm.aiHub.journey.triggerTypes.event,カスタムイベント,カスタムイベント,crm
+crm.aiHub.journey.triggerTypes.webhook_trigger,Webhookトリガー,Webhookトリガー,crm
+crm.aiHub.journey.guideSubtitle,顧客の行動に応じて自動でメッセージを送るジャーニーを簡単に作成できます,顧客の行動に応じて自動でメッセージを送るジャーニーを簡単に作成できます,crm
+crm.aiHub.journey.guideNodeTrigger,ジャーニーの開始点です。,ジャーニーの開始点です。,crm
+crm.aiHub.journey.guideNodeEmail,メールを自動送信します。,メールを自動送信します。,crm
+crm.aiHub.journey.guideNodeKakao,カカオメッセージを送信します。,カカオメッセージを送信します。,crm
+crm.aiHub.journey.guideNodeLine,LINEメッセージを送信します。,LINEメッセージを送信します。,crm
+crm.aiHub.journey.guideNodeSms,SMSを送信します。,SMSを送信します。,crm
+crm.aiHub.journey.guideNodeWhatsapp,WhatsAppメッセージを送信します。,WhatsAppメッセージを送信します。,crm
+crm.aiHub.journey.guideNodeDelay,指定時間待機します。,指定時間待機します。,crm
+crm.aiHub.journey.guideNodeCondition,顧客行動で分岐します。,顧客行動で分岐します。,crm
+crm.aiHub.journey.guideNodeAbTest,2グループに分けて比較します。,2グループに分けて比較します。,crm
+crm.aiHub.journey.guideNodeWebhook,外部システムにデータを送信します。,外部システムにデータを送信します。,crm
+crm.aiHub.journey.guideNodePush,プッシュ通知を送信します。,プッシュ通知を送信します。,crm
+crm.aiHub.journey.guideNodeEnd,終了地点です。,終了地点です。,crm
+crm.aiHub.omniChannel.heroDesc,グローバル・日本・国内13の販売チャネルを一つのダッシュボードで統合管理。APIキー登録、商品/受注/在庫のリアルタイム同期。,グローバル・日本・国内13の販売チャネルを一つのダッシュボードで統合管理。APIキー登録、商品/受注/在庫のリアルタイム同期。,crm
+crm.aiHub.omniChannel.badgeChannelCount,:{{n}}チャネル連携,:{{n}}チャネル連携,crm
+crm.aiHub.omniChannel.groupGlobal,グローバルチャネル,グローバルチャネル,crm
+crm.aiHub.omniChannel.groupJapan,日本チャネル,日本チャネル,crm
+crm.aiHub.omniChannel.groupDomestic,国内チャネル,国内チャネル,crm
+crm.aiHub.omniChannel.btnAuthKey,認証キー,認証キー,crm
+crm.aiHub.omniChannel.guideDashDesc,APIキー登録・接続テスト・自動同期,APIキー登録・接続テスト・自動同期,crm
+crm.aiHub.omniChannel.guideFeedDesc,収集商品一覧・手数料計算,収集商品一覧・手数料計算,crm
+crm.aiHub.omniChannel.guideTrendDesc,統合注文閲覧・ステータス更新,統合注文閲覧・ステータス更新,crm
+crm.aiHub.omniChannel.guideSettingsDesc,在庫モニタリング・不足アラート,在庫モニタリング・不足アラート,crm
+crm.aiHub.omniChannel.guideGuideDesc,オムニチャネル完全マニュアル,オムニチャネル完全マニュアル,crm
+crm.aiHub.omniChannel.planPro,🔑 PRO — 全チャネルリアルタイム同期,🔑 PRO — 全チャネルリアルタイム同期,crm
+crm.aiHub.omniChannel.planFree,🎮 無料プラン — 基本チャネル対応,🎮 無料プラン — 基本チャネル対応,crm
+crm.aiHub.omniChannel.demoSaveMsg,デモモードでは保存が無効です。,デモモードでは保存が無効です。,crm
+crm.aiHub.omniChannel.demoTestMsg,デモモードではテストが無効です。,デモモードではテストが無効です。,crm
+crm.aiHub.omniChannel.demoStatusMsg,デモモードではステータス変更が無効です。,デモモードではステータス変更が無効です。,crm
+crm.aiHub.omniChannel.integSuccess,連携成功：商品{{products}}件、注文{{orders}}件を収集,連携成功：商品{{products}}件、注文{{orders}}件を収集,crm
+crm.aiHub.omniChannel.overviewTitle,チャネル別統合現況,チャネル別統合現況,crm
+crm.aiHub.omniChannel.pageTitle,オムニチャネル管理,オムニチャネル管理,crm
+crm.aiHub.omniChannel.pageSub,統合販売チャネル管理,統合販売チャネル管理,crm
+crm.aiHub.omniChannel.addChannel,チャネル追加,チャネル追加,crm
+crm.aiHub.omniChannel.noChannels,登録されたチャネルがありません。,登録されたチャネルがありません。,crm
+crm.aiHub.omniChannel.colName,チャネル名,チャネル名,crm
+crm.aiHub.omniChannel.defaultWarehouse,デフォルト,デフォルト,crm
+crm.aiHub.webPopup.linkUrlDesc,ポップアップクリック時のランディングページURL,ポップアップクリック時のランディングページURL,crm
+crm.aiHub.webPopup.linkEnabled,ショートカットリンク有効,ショートカットリンク有効,crm
+crm.aiHub.webPopup.linkOpen,新しいタブで開く,新しいタブで開く,crm
+crm.aiHub.webPopup.linkBadge,ショートカット,ショートカット,crm
+crm.aiHub.webPopup.linkCopy,URLコピー,URLコピー,crm
+crm.aiHub.webPopup.linkCopied,コピー完了!,コピー完了!,crm
+crm.aiHub.webPopup.aiImagePh,AI画像説明 (例: 夏のビーチにサングラス),AI画像説明 (例: 夏のビーチにサングラス),crm
+crm.aiHub.webPopup.badgeLive,リアルタイムトリガー,リアルタイムトリガー,crm
+crm.aiHub.webPopup.popupPerf,ポップアップパフォーマンス,ポップアップパフォーマンス,crm
+crm.aiHub.webPopup.triggerInactive,非アクティブ検知,非アクティブ検知,crm
+crm.aiHub.webPopup.triggerExitDesc,マウスがビューポートを離脱時,マウスがビューポートを離脱時,crm
+crm.aiHub.webPopup.triggerScrollDesc,N%スクロール時,N%スクロール時,crm
+crm.aiHub.webPopup.triggerInactiveDesc,N秒操作なし時,N秒操作なし時,crm
+crm.aiHub.webPopup.createPopup,新規ポップアップ作成,新規ポップアップ作成,crm
+crm.aiHub.webPopup.popupNamePh,例: カート離脱クーポン,例: カート離脱クーポン,crm
+crm.aiHub.webPopup.titlePh,例: お待ちください！今なら10%オフ！,例: お待ちください！今なら10%オフ！,crm
+crm.aiHub.webPopup.ctaBtn,CTAボタンテキスト,CTAボタンテキスト,crm
+crm.aiHub.webPopup.bodyPh,ポップアップ本文...,ポップアップ本文...,crm
+crm.aiHub.webPopup.live,Exit-Intentライブデモ,Exit-Intentライブデモ,crm
+crm.aiHub.webPopup.howItWorks,Exit-Intentの動作方法,Exit-Intentの動作方法,crm
+crm.aiHub.webPopup.step1,「検知開始」ボタンをクリック,「検知開始」ボタンをクリック,crm
+crm.aiHub.webPopup.step2,マウスをブラウザ上部に素早く移動,マウスをブラウザ上部に素早く移動,crm
+crm.aiHub.webPopup.step3,3秒以内にポップアップが表示されます！,3秒以内にポップアップが表示されます！,crm
+crm.aiHub.webPopup.step4,タブ切替でもトリガーされます,タブ切替でもトリガーされます,crm
+crm.aiHub.webPopup.liveMoveUp,検知有効 — マウスを上に！,検知有効 — マウスを上に！,crm
+crm.aiHub.webPopup.previewNow,ポップアップをプレビュー,ポップアップをプレビュー,crm
+crm.aiHub.webPopup.sessionConv,セッションコンバージョン,セッションコンバージョン,crm
+crm.aiHub.webPopup.abInsight,AI分析: ベイジアン信頼度に基づく最適バリアント自動配信推奨,AI分析: ベイジアン信頼度に基づく最適バリアント自動配信推奨,crm
+crm.aiHub.webPopup.globalSettings,グローバルトリガー設定,グローバルトリガー設定,crm
+crm.aiHub.webPopup.settingExitDesc,マウスがビューポート上部を離脱時,マウスがビューポート上部を離脱時,crm
+crm.aiHub.webPopup.settingTab,タブ切替検知,タブ切替検知,crm
+crm.aiHub.webPopup.settingTabDesc,ユーザーが他のタブに移動時,ユーザーが他のタブに移動時,crm
+crm.aiHub.webPopup.settingInactive,非アクティブ自動トリガー,非アクティブ自動トリガー,crm
+crm.aiHub.webPopup.settingInactiveDesc,30秒以上操作なし時,30秒以上操作なし時,crm
+crm.aiHub.webPopup.settingMobile,モバイルスクロールトリガー,モバイルスクロールトリガー,crm
+crm.aiHub.webPopup.settingMobileDesc,下部バウンススクロール検知,下部バウンススクロール検知,crm
+crm.aiHub.webPopup.settingCookie,クッキー重複防止,クッキー重複防止,crm
+crm.aiHub.webPopup.settingCookieDesc,既読ポップアップを24時間非表示,既読ポップアップを24時間非表示,crm
+crm.aiHub.webPopup.settingGdprDesc,同意済みユーザーのみ表示,同意済みユーザーのみ表示,crm
+crm.aiHub.webPopup.limitedOffer,限定オファー,限定オファー,crm
+crm.aiHub.webPopup.couponExpiry,クーポン期限まで,クーポン期限まで,crm
+crm.aiHub.webPopup.emailPlaceholder,メールアドレス入力（任意）,メールアドレス入力（任意）,crm
+crm.aiHub.webPopup.privacyNote,クーポンコードはメールで送信 · 個人情報収集なしで即時適用可能,クーポンコードはメールで送信 · 個人情報収集なしで即時適用可能,crm
+crm.aiHub.webPopup.couponApplied,クーポンが適用されました！,クーポンが適用されました！,crm
+crm.aiHub.webPopup.closingSoon,まもなく閉じます…,まもなく閉じます…,crm
+crm.aiHub.webPopup.noAbTests,実行中のA/Bテストなし,実行中のA/Bテストなし,crm
+crm.aiHub.webPopup.noAbTestsDesc,ポップアップを作成してA/Bテストを有効にすると結果がリアルタイムで表示されます。,ポップアップを作成してA/Bテストを有効にすると結果がリアルタイムで表示されます。,crm
+crm.aiHub.webPopup.aiDesignTitle,AIポップアップ自動デザイン,AIポップアップ自動デザイン,crm
+crm.aiHub.webPopup.aiDesignDesc,テーマとトピックを入力するとAIが最適なポップアップデザインを自動生成します。,テーマとトピックを入力するとAIが最適なポップアップデザインを自動生成します。,crm
+crm.aiHub.webPopup.aiThemeLabel,テーマ,テーマ,crm
+crm.aiHub.webPopup.aiThemeDiscount,割引クーポン,割引クーポン,crm
+crm.aiHub.webPopup.aiTopicLabel,トピック/商品名,トピック/商品名,crm
+crm.aiHub.webPopup.aiTopicPh,例: 夏の新作20%オフ,例: 夏の新作20%オフ,crm
+crm.aiHub.webPopup.aiGenerating,デザイン生成中...,デザイン生成中...,crm
+crm.aiHub.webPopup.aiDesignResult,AI生成ポップアップデザイン,AI生成ポップアップデザイン,crm
+crm.aiHub.webPopup.aiApply,このデザインを適用,このデザインを適用,crm
+crm.aiHub.webPopup.guideTabsTitle,タブ機能,タブ機能,crm
+crm.aiHub.webPopup.guideFeedDesc,CRUD、AIデザイン,CRUD、AIデザイン,crm
+crm.aiHub.webPopup.guideTrendDesc,Exit-Intentテスト,Exit-Intentテスト,crm
+crm.aiHub.webPopup.guideSettingsDesc,バリアント比較,バリアント比較,crm
+crm.aiHub.webPopup.guideGuideDesc,トリガー、GDPR管理,トリガー、GDPR管理,crm
+crm.aiHub.webPopup.uploadCustom,カスタムポップアップ登録,カスタムポップアップ登録,crm
+crm.aiHub.webPopup.uploadCustomDesc,自作画像をアップロードしてポップアップや広告コンテンツに使用。,自作画像をアップロードしてポップアップや広告コンテンツに使用。,crm
+crm.aiHub.webPopup.uploadApply,ポップアップに適用,ポップアップに適用,crm
+crm.aiHub.webPopup.uploadRemove,画像を削除,画像を削除,crm
+crm.aiHub.guideSubtitle,顧客の行動に応じて自動でメッセージを送るジャーニーを簡単に作成できます,顧客の行動に応じて自動でメッセージを送るジャーニーを簡単に作成できます,crm
+crm.aiHub.guideNodeTrigger,ジャーニーの開始点です。会員登録、購入、カート離脱などのイベントでトリガーされます。,ジャーニーの開始点です。会員登録、購入、カート離脱などのイベントでトリガーされます。,crm
+crm.aiHub.guideNodeEmail,顧客に自動でメールを送信します。件名と送信者名を設定できます。,顧客に自動でメールを送信します。件名と送信者名を設定できます。,crm
+crm.aiHub.guideNodeKakao,カカオアリムトーク/フレンドトークを送信。登録済みテンプレートコードを使用します。,カカオアリムトーク/フレンドトークを送信。登録済みテンプレートコードを使用します。,crm
+crm.aiHub.guideNodeLine,LINEメッセージを送信。テキスト、Flex、テンプレートメッセージに対応。,LINEメッセージを送信。テキスト、Flex、テンプレートメッセージに対応。,crm
+crm.aiHub.guideNodeSms,SMS テキストメッセージを送信します。,SMS テキストメッセージを送信します。,crm
+crm.aiHub.guideNodeWhatsapp,WhatsAppメッセージを送信。事前承認済みテンプレートを使用します。,WhatsAppメッセージを送信。事前承認済みテンプレートを使用します。,crm
+crm.aiHub.guideNodeDelay,次のノード実行前に指定時間待機します（分/時間/日）。,次のノード実行前に指定時間待機します（分/時間/日）。,crm
+crm.aiHub.guideNodeCondition,顧客の行動（メールクリック、購入など）に基づきジャーニーを分岐します。,顧客の行動（メールクリック、購入など）に基づきジャーニーを分岐します。,crm
+crm.aiHub.guideNodeAbTest,顧客を2グループに分けて異なるメッセージの効果を比較します。,顧客を2グループに分けて異なるメッセージの効果を比較します。,crm
+crm.aiHub.guideNodeWebhook,外部システムにデータを送信します（HTTP POST/GET）。,外部システムにデータを送信します（HTTP POST/GET）。,crm
+crm.aiHub.guideNodePush,モバイルアプリのプッシュ通知を送信します。,モバイルアプリのプッシュ通知を送信します。,crm
+crm.aiHub.guideNodeEnd,ジャーニーの終了地点を示します。,ジャーニーの終了地点を示します。,crm
+crm.aiHub.dashGuide.subtitle,Geniego-ROIダッシュボードの主要機能と活用方法をご案内します。リアルタイムKPIを監視し、データに基づく意思決定を行いましょう。,Geniego-ROIダッシュボードの主要機能と活用方法をご案内します。リアルタイムKPIを監視し、データに基づく意思決定を行いましょう。,crm
+crm.aiHub.dashGuide.stepsTitle,ダッシュボード開始6ステップ,ダッシュボード開始6ステップ,crm
+crm.aiHub.dashGuide.step1Title,タブを選択,タブを選択,crm
+crm.aiHub.dashGuide.step1Desc,タブバーから目的のダッシュボードを選択します。統合概要、マーケティング、チャネルKPI、コマース、売上、インフルエンサー、システムの7種類。,タブバーから目的のダッシュボードを選択します。統合概要、マーケティング、チャネルKPI、コマース、売上、インフルエンサー、システムの7種類。,crm
+crm.aiHub.dashGuide.step2Title,KPIカード確認,KPIカード確認,crm
+crm.aiHub.dashGuide.step2Desc,各ダッシュボード上部のKPIカードで主要指標を一目で確認できます。,各ダッシュボード上部のKPIカードで主要指標を一目で確認できます。,crm
+crm.aiHub.dashGuide.step3Title,チャート分析,チャート分析,crm
+crm.aiHub.dashGuide.step3Desc,トレンドチャート、チャネル比較チャートなどでデータを視覚的に分析できます。,トレンドチャート、チャネル比較チャートなどでデータを視覚的に分析できます。,crm
+crm.aiHub.dashGuide.step4Title,期間フィルター,期間フィルター,crm
+crm.aiHub.dashGuide.step4Desc,日付範囲を変更して任意の期間のデータを表示できます。,日付範囲を変更して任意の期間のデータを表示できます。,crm
+crm.aiHub.dashGuide.step5Desc,5秒ごとに自動更新されます。LIVEバッジはリアルタイムデータを示します。,5秒ごとに自動更新されます。LIVEバッジはリアルタイムデータを示します。,crm
+crm.aiHub.dashGuide.step6Title,通貨・言語変更,通貨・言語変更,crm
+crm.aiHub.dashGuide.step6Desc,右上から通貨と言語を自由に切り替えられます。,右上から通貨と言語を自由に切り替えられます。,crm
+crm.aiHub.dashGuide.tabOverview,売上、注文数、訪問者、ROASなどの統合KPIを表示します。,売上、注文数、訪問者、ROASなどの統合KPIを表示します。,crm
+crm.aiHub.dashGuide.tabMarketing,マーケティングチャネル別の成果とROIを分析します。,マーケティングチャネル別の成果とROIを分析します。,crm
+crm.aiHub.dashGuide.tabChannel,チャネル別KPIとコンバージョン率を比較します。,チャネル別KPIとコンバージョン率を比較します。,crm
+crm.aiHub.dashGuide.tabCommerce,注文、決済、精算などのコマース運営状況をモニタリングします。,注文、決済、精算などのコマース運営状況をモニタリングします。,crm
+crm.aiHub.dashGuide.tabSales,グローバル売上と通貨別実績を確認します。,グローバル売上と通貨別実績を確認します。,crm
+crm.aiHub.dashGuide.tabInfluencer,インフルエンサー連携の成果とROIを追跡します。,インフルエンサー連携の成果とROIを追跡します。,crm
+crm.aiHub.dashGuide.tabSystem,サーバー状態とAPI応答率を監視します。,サーバー状態とAPI応答率を監視します。,crm
+crm.aiHub.dashGuide.feat1Title,リアルタイムデータ,リアルタイムデータ,crm
+crm.aiHub.dashGuide.feat1Desc,5秒間隔で自動更新し常に最新の状態を維持します。,5秒間隔で自動更新し常に最新の状態を維持します。,crm
+crm.aiHub.dashGuide.feat2Title,クロスチャネル統合,クロスチャネル統合,crm
+crm.aiHub.dashGuide.feat2Desc,全チャネルのデータを一つのダッシュボードで管理します。,全チャネルのデータを一つのダッシュボードで管理します。,crm
+crm.aiHub.dashGuide.feat3Desc,日本語、韓国語、英語、中国語など9言語に対応。,日本語、韓国語、英語、中国語など9言語に対応。,crm
+crm.aiHub.dashGuide.feat4Title,マルチ通貨,マルチ通貨,crm
+crm.aiHub.dashGuide.feat4Desc,JPY、USD、KRWなど主要通貨で自動換算表示します。,JPY、USD、KRWなど主要通貨で自動換算表示します。,crm
+crm.aiHub.dashGuide.feat5Desc,エンタープライズ級のリアルタイム脅威検知システム。,エンタープライズ級のリアルタイム脅威検知システム。,crm
+crm.aiHub.dashGuide.feat6Title,レスポンシブデザイン,レスポンシブデザイン,crm
+crm.aiHub.dashGuide.feat6Desc,全デバイスに最適化されたUI。,全デバイスに最適化されたUI。,crm
+crm.aiHub.dashGuide.tipsTitle,役立つヒント,役立つヒント,crm
+crm.aiHub.dashGuide.tip1,まず概要タブでビジネス全体の健全性を把握しましょう。,まず概要タブでビジネス全体の健全性を把握しましょう。,crm
+crm.aiHub.dashGuide.tip2,KPI変化率を注視して異常を早期発見しましょう。,KPI変化率を注視して異常を早期発見しましょう。,crm
+crm.aiHub.dashGuide.tip3,チャネルKPIで最も効率的なチャネルを特定しましょう。,チャネルKPIで最も効率的なチャネルを特定しましょう。,crm
+crm.aiHub.dashGuide.tip4,システムタブで定期的にAPIとサーバーを確認しましょう。,システムタブで定期的にAPIとサーバーを確認しましょう。,crm
+crm.aiHub.dashGuide.tip5,URLに?view=tabIDを追加すると特定タブに直接移動できます。,URLに?view=tabIDを追加すると特定タブに直接移動できます。,crm
+crm.aiHub.sms.providerNhnDesc,国内最大SMS API (KT/SK/LGネットワーク),国内最大SMS API (KT/SK/LGネットワーク),crm
+crm.aiHub.sms.providerAligoDesc,小規模/スタートアップ向け,小規模/スタートアップ向け,crm
+crm.aiHub.sms.providerCoolDesc,開発者フレンドリーAPI,開発者フレンドリーAPI,crm
+crm.aiHub.sms.connectTesting,接続テスト中…,接続テスト中…,crm
+crm.aiHub.sms.saveAndTest,保存＋接続テスト,保存＋接続テスト,crm
+crm.aiHub.sms.messagePlaceholder,メッセージを入力…,メッセージを入力…,crm
+crm.aiHub.sms.smsCostInfo,SMS: 90文字以下、1件約10〜20ウォン,SMS: 90文字以下、1件約10〜20ウォン,crm
+crm.aiHub.sms.lmsCostInfo,LMS: 長文、1件約50〜60ウォン,LMS: 長文、1件約50〜60ウォン,crm
+crm.aiHub.sms.numberList,受信番号リスト（改行区切り）,受信番号リスト（改行区切り）,crm
+crm.aiHub.sms.numbersCount,件の番号,件の番号,crm
+crm.aiHub.sms.broadcastMsgPlaceholder,送信するメッセージを入力...,送信するメッセージを入力...,crm
+crm.aiHub.sms.statsSentThisMonth,今月の送信,今月の送信,crm
+crm.aiHub.sms.tplSearch,テンプレート検索…,テンプレート検索…,crm
+crm.aiHub.sms.tplNew,新規テンプレート,新規テンプレート,crm
+crm.aiHub.sms.tplBody,メッセージ本文,メッセージ本文,crm
+crm.aiHub.sms.tplBodyPh,"メッセージを作成。変数: #{名前}, #{注文番号}","メッセージを作成。変数: #{名前}, #{注文番号}",crm
+crm.aiHub.sms.tplVars,変数（カンマ区切り）,変数（カンマ区切り）,crm
+crm.aiHub.sms.tplEmpty,テンプレートがありません。新しいテンプレートを作成してください。,テンプレートがありません。新しいテンプレートを作成してください。,crm
+crm.aiHub.sms.tplCat_transaction,トランザクション,トランザクション,crm
+crm.aiHub.sms.campNew,新規キャンペーン,新規キャンペーン,crm
+crm.aiHub.sms.campNamePh,例: 夏のプロモーション,例: 夏のプロモーション,crm
+crm.aiHub.sms.campTemplate,テンプレート選択,テンプレート選択,crm
+crm.aiHub.sms.campSelectTpl,テンプレートを選択,テンプレートを選択,crm
+crm.aiHub.sms.campSegmentPh,セグメントID,セグメントID,crm
+crm.aiHub.sms.campMessage,メッセージ（直接入力）,メッセージ（直接入力）,crm
+crm.aiHub.sms.campMsgPh,テンプレート未選択時に直接入力,テンプレート未選択時に直接入力,crm
+crm.aiHub.sms.campEmpty,キャンペーンがありません。新しいキャンペーンを作成してください。,キャンペーンがありません。新しいキャンペーンを作成してください。,crm
+crm.aiHub.sms.campStatus_sent,送信済み,送信済み,crm
+crm.aiHub.sms.guideCampaignsDesc,ターゲットキャンペーン管理,ターゲットキャンペーン管理,crm
+crm.aiHub.sms.ihubLinked,チャネル連携済み,チャネル連携済み,crm
+crm.aiHub.sms.ihubAutoDetect,統合ハブから自動検出されたSMSチャネル：,統合ハブから自動検出されたSMSチャネル：,crm
+crm.aiHub.contentCal.subtitle,コンテンツスケジュール管理 · チーム協業 · マルチチャネル配信 · AI分析,コンテンツスケジュール管理 · チーム協業 · マルチチャネル配信 · AI分析,crm
+crm.aiHub.contentCal.st_review,レビュー中,レビュー中,crm
+crm.aiHub.contentCal.st_published,公開済み,公開済み,crm
+crm.aiHub.contentCal.noContent,登録されたコンテンツがありません。+ コンテンツ登録ボタンで開始してください。,登録されたコンテンツがありません。+ コンテンツ登録ボタンで開始してください。,crm
+crm.aiHub.contentCal.noEventsMonth,今月のコンテンツはありません。,今月のコンテンツはありません。,crm
+crm.aiHub.contentCal.noChannelData,接続されたチャネルデータがありません,接続されたチャネルデータがありません,crm
+crm.aiHub.contentCal.noChannelDataSub,統合ハブでAPIキーを登録すると、チャネル分析データが自動的に表示されます。,統合ハブでAPIキーを登録すると、チャネル分析データが自動的に表示されます。,crm
+crm.aiHub.contentCal.guideCalDesc,月別コンテンツスケジュールを一目で確認,月別コンテンツスケジュールを一目で確認,crm
+crm.aiHub.contentCal.guideListDesc,ステータス別フィルタリングと詳細情報確認,ステータス別フィルタリングと詳細情報確認,crm
+crm.aiHub.contentCal.guideAiDesc,チャネル別パフォーマンス分析とAIインサイト,チャネル別パフォーマンス分析とAIインサイト,crm
+crm.aiHub.contentCal.guideGuideDesc,コンテンツ管理ワークフロー案内,コンテンツ管理ワークフロー案内,crm
+crm.aiHub.helpful,参考になった,参考になった,crm
+crm.aiHub.guideIdentDesc,マルチプラットフォーム統合·重複/なりすまし検出·認証管理,マルチプラットフォーム統合·重複/なりすまし検出·認証管理,crm
+crm.aiHub.guideContractDesc,固定費/成果報酬·権利範囲·電子署名·ホワイトリスト管理,固定費/成果報酬·権利範囲·電子署名·ホワイトリスト管理,crm
+crm.aiHub.guideSettleDesc,契約ベース自動精算·過払い/未払い検出·税金自動控除,契約ベース自動精算·過払い/未払い検出·税金自動控除,crm
+crm.aiHub.guideRoiDesc,クリエイター別ROI順位·高閲覧/低購入分析·コンテンツ再利用推薦,クリエイター別ROI順位·高閲覧/低購入分析·コンテンツ再利用推薦,crm
+crm.aiHub.guideUgcDesc,チャネル別レビュー感情分析·ネガティブキーワード追跡·自動CS通知,チャネル別レビュー感情分析·ネガティブキーワード追跡·自動CS通知,crm
+crm.aiHub.guideAiDesc,AI総合スコア/グレード·コミッション最適化·契約更新勧告,AI総合スコア/グレード·コミッション最適化·契約更新勧告,crm
+crm.aiHub.kpiPosRate,ポジティブ率,ポジティブ率,crm
+crm.aiHub.kpiAllReviewsSub,全チャネル合計,全チャネル合計,crm
+crm.aiHub.channelRatingTitle,チャネル別評価状況,チャネル別評価状況,crm
+crm.aiHub.negKeywordAlert,ネガティブキーワード急増時Slack自動通知,ネガティブキーワード急増時Slack自動通知,crm
+crm.aiHub.searchPh,レビュー検索...,レビュー検索...,crm
+crm.aiHub.noResults,検索結果なし,検索結果なし,crm
+crm.aiHub.aiEvalTitle,AIインフルエンサー総合評価,AIインフルエンサー総合評価,crm
+crm.aiHub.aiEvalSub,Claude Sonnet 3.5基盤·ROI·コンバージョン·エンゲージメント·コミッション・更新勧告,Claude Sonnet 3.5基盤·ROI·コンバージョン·エンゲージメント·コミッション・更新勧告,crm
+crm.aiHub.aiDemoGraphics,地域·年齢·性別エンゲージメント分析,地域·年齢·性別エンゲージメント分析,crm
+crm.aiHub.aiAnalyzing,Claude AIがクリエイターデータを分析中です...,Claude AIがクリエイターデータを分析中です...,crm
+crm.aiHub.aiAnalyzingSub,名クリエイター·ROI分析·コミッション最適化·更新検討,名クリエイター·ROI分析·コミッション最適化·更新検討,crm
+crm.aiHub.aiTargetCreators,評価対象クリエイター,評価対象クリエイター,crm
+crm.aiHub.aiStartMsg,上の「AI評価実行」ボタンをクリックして分析を開始してください。,上の「AI評価実行」ボタンをクリックして分析を開始してください。,crm
+crm.aiHub.aiPortfolioSummary,ポートフォリオ総合分析,ポートフォリオ総合分析,crm
+crm.aiHub.aiCreatorRanking,クリエイターAI評価ランキング,クリエイターAI評価ランキング,crm
+crm.aiHub.aiRankingDesc,行をクリックして項目別スコア·コミッション推薦·契約更新勧告の詳細を確認,行をクリックして項目別スコア·コミッション推薦·契約更新勧告の詳細を確認,crm
+crm.aiHub.aiScoreTitle,AIスコア,AIスコア,crm
+crm.aiHub.aiRecCommission,推薦コミッション,推薦コミッション,crm
+crm.aiHub.aiEvalItemScores,項目別スコア,項目別スコア,crm
+crm.aiHub.aiCommissionRec,AI推薦コミッション,AI推薦コミッション,crm
+crm.aiHub.aiPortfolioInsights,ポートフォリオ戦略インサイト,ポートフォリオ戦略インサイト,crm
+crm.aiHub.roiRanking,クリエイターROIランキング,クリエイターROIランキング,crm
+crm.aiHub.hvlsDesc,閲覧200K+·注文<50 — コンテンツ最適化またはLP改善必要,閲覧200K+·注文<50 — コンテンツ最適化またはLP改善必要,crm
+crm.aiHub.contentReuse,コンテンツ再利用推薦,コンテンツ再利用推薦,crm
+crm.aiHub.contentReuseSub,エンゲージメント率5%+·注文50件+コンテンツ,エンゲージメント率5%+·注文50件+コンテンツ,crm
+crm.aiHub.settleNoDocs,書類なし,書類なし,crm
+crm.aiHub.aiBreakdown,評価項目別スコア,評価項目別スコア,crm
+crm.aiHub.aiRanking,AI評価ランキング,AI評価ランキング,crm
+crm.aiHub.aiRankingSub,行クリックで詳細表示,行クリックで詳細表示,crm
+pages.marketing.sidebarAlertCount,🚨 {{n}}件アラート,🚨 {{n}}件アラート,pages
+pages.marketing.sidebarCampaignActive,🟢 {{n}}キャンペーン実行中,🟢 {{n}}キャンペーン実行中,pages
+pages.graphScore.guideSummaryName,📊 サマリーダッシュボード,📊 サマリーダッシュボード,pages
+pages.graphScore.guideBrowserName,🔍 グラフブラウザ,🔍 グラフブラウザ,pages
+pages.graphScore.guideInfluencerName,🤝 インフルエンサースコア,🤝 インフルエンサースコア,pages
+pages.graphScore.guideSkuName,📦 SKUスコア,📦 SKUスコア,pages
+pages.graphScore.guideCreativeName,🎬 クリエイティブスコア,🎬 クリエイティブスコア,pages
+pages.reconciliation.tabUpload,📤 商品アップロード,📤 商品アップロード,pages
+pages.reconciliation.uploadTitle,📤 商品一括アップロード,📤 商品一括アップロード,pages
+pages.reconciliation.uploadDesc,CSVファイルをドロップしてチャネル間在庫を自動アップロードします。,CSVファイルをドロップしてチャネル間在庫を自動アップロードします。,pages
+pages.writeback.cfgApprovalGateDesc,高リスク操作に承認必要,高リスク操作に承認必要,pages
+pages._marketing_1.generating,ルール生成中...,ルール生成中...,pages
+pages.marketingIntel.influencer.attrData.guideMtaDesc,5モデル比較,5モデル比較,pages
+pages.marketingIntel.influencer.attrData.guideShapleyDesc,公平な貢献度,公平な貢献度,pages
+pages.marketingIntel.influencer.title,インフルエンサー & UGCハブ,インフルエンサー & UGCハブ,pages
+pages.marketingIntel.influencer.sub,インフルエンサー·UGCハブ,インフルエンサー·UGCハブ,pages
+pages.marketingIntel.influencer.subtitle,クリエイターID統合(複製/なりすまし)·モジュール式契約·自動精算·ROIランキング·コンテンツ再利用提案,クリエイターID統合(複製/なりすまし)·モジュール式契約·自動精算·ROIランキング·コンテンツ再利用提案,pages
+pages.marketingIntel.influencer.tab_identity,🧑 クリエイター統合,🧑 クリエイター統合,pages
+pages.marketingIntel.influencer.desc_identity,ID統合·重複·チャネル検出,ID統合·重複·チャネル検出,pages
+pages.marketingIntel.influencer.tab_contract,📝 契約 & ホワイトリスト,📝 契約 & ホワイトリスト,pages
+pages.marketingIntel.influencer.desc_settle,支払い·監査·過払い検出,支払い·監査·過払い検出,pages
+pages.marketingIntel.influencer.tab_roi,🏆 ROIランキング,🏆 ROIランキング,pages
+pages.marketingIntel.influencer.desc_roi,アトリビューション·高閲覧/低購入,アトリビューション·高閲覧/低購入,pages
+pages.marketingIntel.influencer.tab_ugc,⭐ UGCレビュー,⭐ UGCレビュー,pages
+pages.marketingIntel.influencer.desc_ugc,レビュー·感情分析·異常検出,レビュー·感情分析·異常検出,pages
+pages.marketingIntel.influencer.desc_ai_eval,スコア·コミッション推薦·更新勧告,スコア·コミッション推薦·更新勧告,pages
+pages.marketingIntel.influencer.dupAlert,⚠ 変形なりすまし検出 — ,⚠ 変形なりすまし検出 — ,pages
+pages.marketingIntel.influencer.btnCollapse,▲ 閉じる,▲ 閉じる,pages
+pages.marketingIntel.influencer.btnChannelDetails,▼ チャネル詳細,▼ チャネル詳細,pages
+pages.marketingIntel.influencer.totalCreators,全クリエイター,全クリエイター,pages
+pages.marketingIntel.influencer.dupSuspected,重複疑い,重複疑い,pages
+pages.marketingIntel.influencer.dupSub,複数アカウント検出,複数アカウント検出,pages
+pages.marketingIntel.influencer.unverifiedChannels,未認証チャネル,未認証チャネル,pages
+pages.marketingIntel.influencer.connectedPlatforms,接続済プラットフォーム,接続済プラットフォーム,pages
+pages.marketingIntel.marketingIntel.unified.selectMarkets,🌍 ターゲット市場,🌍 ターゲット市場,pages
+pages.marketingIntel.marketingIntel.tabs.overviewDesc,主要指標を一目で確認,主要指標を一目で確認,pages
+pages.marketingIntel.marketingIntel.tabs.marketingDesc,キャンペーンROI・成果分析,キャンペーンROI・成果分析,pages
+pages.marketingIntel.marketingIntel.tabs.channelDesc,チャネル別KPI監視,チャネル別KPI監視,pages
+pages.marketingIntel.marketingIntel.tabs.commerce,コマース・精算,コマース・精算,pages
+pages.marketingIntel.marketingIntel.tabs.commerceDesc,EC売上・精算状況,EC売上・精算状況,pages
+pages.marketingIntel.marketingIntel.tabs.salesDesc,グローバル売上・地域分析,グローバル売上・地域分析,pages
+pages.marketingIntel.marketingIntel.tabs.influencerDesc,インフルエンサー成果追跡,インフルエンサー成果追跡,pages
+pages.marketingIntel.marketingIntel.tabs.systemDesc,システム・インフラ監視,システム・インフラ監視,pages
+pages.marketingIntel.marketingIntel.tabs.guideDesc,ダッシュボード使い方案内,ダッシュボード使い方案内,pages
+pages.marketingIntel.marketingIntel.pricing.loadingText,料金情報を読み込み中...,料金情報を読み込み中...,pages
+pages.marketingIntel.marketingIntel.pricing.acctSelect,アカウント数選択,アカウント数選択,pages
+pages.marketingIntel.marketingIntel.pricing.totalLabel,ヶ月合計 ,ヶ月合計 ,pages
+pages.marketingIntel.marketingIntel.pricing.btnSubscribe,購読する,購読する,pages
+pages.marketingIntel.marketingIntel.pricing.btnViewLess,閉じる ▲,閉じる ▲,pages
+pages.marketingIntel.marketingIntel.pricing.btnViewAll,全機能を見る ▼,全機能を見る ▼,pages
+pages.marketingIntel.marketingIntel.pricing.heroDesc,販売・広告・分析チャネルのAPIキーを登録し接続状態を管理します。,販売・広告・分析チャネルのAPIキーを登録し接続状態を管理します。,pages
+pages.marketingIntel.marketingIntel.pricing.heroSaving,年間決済で最大,年間決済で最大,pages
+pages.marketingIntel.marketingIntel.pricing.compareBtnHide,📊 比較を閉じる,📊 比較を閉じる,pages
+pages.marketingIntel.marketingIntel.pricing.compareBtnShow,📊 プラン比較を見る,📊 プラン比較を見る,pages
+pages.marketingIntel.marketingIntel.pricing.compareTitle,プラン別機能比較,プラン別機能比較,pages
+pages.marketingIntel.marketingIntel.pricing.savingTitle,コスト削減効果,コスト削減効果,pages
+pages.marketingIntel.marketingIntel.pricing.savingDesc,個別ソリューション導入時の年間推定コスト ,個別ソリューション導入時の年間推定コスト ,pages
+pages.marketingIntel.marketingIntel.pricing.savingDesc2,Geniego-ROIに統合すると ,Geniego-ROIに統合すると ,pages
+pages.marketingIntel.marketingIntel.pricing.faqTitle,よくある質問,よくある質問,pages
+pages.marketingIntel.marketingIntel.pricing.faq1q,無料プランではどの機能が使えますか？,無料プランではどの機能が使えますか？,pages
+pages.marketingIntel.marketingIntel.pricing.faq1a,無料プランはKPIダッシュボード、FAQ、動画チュートリアルなどの基本機能を提供します。,無料プランはKPIダッシュボード、FAQ、動画チュートリアルなどの基本機能を提供します。,pages
+pages.marketingIntel.marketingIntel.pricing.faq2q,途中でプラン変更できますか？,途中でプラン変更できますか？,pages
+pages.marketingIntel.marketingIntel.pricing.faq2a,はい、いつでもアップグレードできます。差額は日割り計算されます。,はい、いつでもアップグレードできます。差額は日割り計算されます。,pages
+pages.marketingIntel.marketingIntel.pricing.faq3q,年間決済の割引率は？,年間決済の割引率は？,pages
+pages.marketingIntel.marketingIntel.pricing.faq3a,年間決済で月間比最大30%割引。割引率はプランにより異なります。,年間決済で月間比最大30%割引。割引率はプランにより異なります。,pages
+pages.marketingIntel.marketingIntel.pricing.faq4q,Enterpriseの申し込み方法は？,Enterpriseの申し込み方法は？,pages
+pages.marketingIntel.marketingIntel.pricing.faq4a,カスタム見積もりが必要です。contact@genie-roi.comへお問い合わせください。,カスタム見積もりが必要です。contact@genie-roi.comへお問い合わせください。,pages
+pages.marketingIntel.marketingIntel.pricing.faq5q,対応決済方法は？,対応決済方法は？,pages
+pages.marketingIntel.marketingIntel.pricing.faq5a,Toss Paymentsによるクレジットカード決済に対応。Enterpriseは銀行振込も可能です。,Toss Paymentsによるクレジットカード決済に対応。Enterpriseは銀行振込も可能です。,pages
+pages.marketingIntel.marketingIntel.pricing.faq6q,返金ポリシーは？,返金ポリシーは？,pages
+pages.marketingIntel.marketingIntel.pricing.faq6a,購読開始後7日以内は全額返金。以降は残期間の部分返金が適用されます。,購読開始後7日以内は全額返金。以降は残期間の部分返金が適用されます。,pages
+pages.marketingIntel.marketingIntel.pricing.termsNote,購読により利用規約に同意したものとみなされます。,購読により利用規約に同意したものとみなされます。,pages
+pages.marketingIntel.marketingIntel.pricing.pageSub,プランと料金管理,プランと料金管理,pages
+pages.marketingIntel.attrData.title,マーケティングアトリビューション — リアルタイムMLエンジン v3.0,マーケティングアトリビューション — リアルタイムMLエンジン v3.0,pages
+pages.marketingIntel.attrData.subtitle,正確Shapley (2^n) · ベイジアンMMM · マルコフ連鎖 · インクリメンタルアップリフト · トンプソンA/B,正確Shapley (2^n) · ベイジアンMMM · マルコフ連鎖 · インクリメンタルアップリフト · トンプソンA/B,pages
+pages.marketingIntel.attrData.badgeUplift,ダブルMLアップリフト,ダブルMLアップリフト,pages
+pages.marketingIntel.attrData.tabMtaLabel,マルチタッチMTA,マルチタッチMTA,pages
+pages.marketingIntel.attrData.tabMarkovLabel,マルコフ+アップリフト,マルコフ+アップリフト,pages
+pages.marketingIntel.attrData.tabMarkovDesc,除去効果+ダブルML,除去効果+ダブルML,pages
+pages.marketingIntel.attrData.tabAbLabel,ベイジアンA/B,ベイジアンA/B,pages
+pages.marketingIntel.attrData.tabAbDesc,トンプソンサンプリング,トンプソンサンプリング,pages
+pages.marketingIntel.attrData.tabCohortDesc,週次リテンション,週次リテンション,pages
+pages.marketingIntel.attrData.tabLtvDesc,チャネル効率,チャネル効率,pages
+pages.marketingIntel.attrData.tabAnomalyDesc,Zスコア監視,Zスコア監視,pages
+pages.marketingIntel.attrData.tabCompareLabel,モデル比較,モデル比較,pages
+pages.marketingIntel.attrData.explainShapley,ゲーム理論に基づく公正なチャネル貢献度を算出。すべてのチャネル組合せ(2^n)を精密計算。,ゲーム理論に基づく公正なチャネル貢献度を算出。すべてのチャネル組合せ(2^n)を精密計算。,pages
+pages.marketingIntel.attrData.explainMmm,52週の時系列データで広告支出と売上の因果関係をベイジアン回帰で分析。,52週の時系列データで広告支出と売上の因果関係をベイジアン回帰で分析。,pages
+pages.marketingIntel.attrData.explainMarkov,マルコフ連鎖によるチャネル除去効果とダブルMLによる純増分効果を分析。,マルコフ連鎖によるチャネル除去効果とダブルMLによる純増分効果を分析。,pages
+pages.marketingIntel.attrData.explainAb,"トンプソンサンプリング(5,000回)でベータ二項分布ベースのA/Bテスト勝者を判定。","トンプソンサンプリング(5,000回)でベータ二項分布ベースのA/Bテスト勝者を判定。",pages
+pages.marketingIntel.attrData.noTimeSeriesData,連携チャネルから時系列データが収集されると自動的に分析が開始されます。連携ハブでチャネルを接続してください。,連携チャネルから時系列データが収集されると自動的に分析が開始されます。連携ハブでチャネルを接続してください。,pages
+pages.marketingIntel.attrData.noJourneyData,カスタマージャーニーデータが連携されると自動的に分析が開始されます。,カスタマージャーニーデータが連携されると自動的に分析が開始されます。,pages
+pages.marketingIntel.attrData.noAbData,進行中のA/Bテストデータがありません。キャンペーンマネージャーからA/Bテストを作成してください。,進行中のA/Bテストデータがありません。キャンペーンマネージャーからA/Bテストを作成してください。,pages
+pages.marketingIntel.attrData.shapleyInProgress,2^n精密Shapley貢献度を計算中…,2^n精密Shapley貢献度を計算中…,pages
+pages.marketingIntel.attrData.shapleyTitle,🎯 チャネル別Exact Shapley貢献度,🎯 チャネル別Exact Shapley貢献度,pages
+pages.marketingIntel.attrData.negativeCount,マイナス貢献,マイナス貢献,pages
+pages.marketingIntel.attrData.channelSynergy,⚡ チャネルシナジー,⚡ チャネルシナジー,pages
+pages.marketingIntel.attrData.shapleyBudgetRec,💡 Shapleyベース予算推奨,💡 Shapleyベース予算推奨,pages
+pages.marketingIntel.attrData.mmmTitle,📈 ベイジアンMMM — チャネル貢献度 (52週),📈 ベイジアンMMM — チャネル貢献度 (52週),pages
+pages.marketingIntel.attrData.budgetAdjust,予算配分スライダー,予算配分スライダー,pages
+pages.marketingIntel.attrData.mmmSim,📈 MMMシミュレーション結果,📈 MMMシミュレーション結果,pages
+pages.marketingIntel.attrData.expectedBlendRoas,予想ブレンドROAS,予想ブレンドROAS,pages
+pages.marketingIntel.attrData.markovInProgress,マルコフ連鎖+ダブルML増分分析計算中…,マルコフ連鎖+ダブルML増分分析計算中…,pages
+pages.marketingIntel.attrData.markovTitle,🔗 マルコフ連鎖 — 除去効果,🔗 マルコフ連鎖 — 除去効果,pages
+pages.marketingIntel.attrData.upliftTitle,📐 増分モデル (ダブルMLアップリフト),📐 増分モデル (ダブルMLアップリフト),pages
+pages.marketingIntel.attrData.upliftSub,ロビンソン偏回帰による純増分効果を算出,ロビンソン偏回帰による純増分効果を算出,pages
+pages.marketingIntel.attrData.linear,リニア,リニア,pages
+pages.marketingIntel.attrData.timeDecay,タイムディケイ,タイムディケイ,pages
+pages.marketingIntel.attrData.position,ポジションベース,ポジションベース,pages
+pages.marketingIntel.attrData.channelContrib,チャネル別貢献売上,チャネル別貢献売上,pages
+pages.marketingIntel.attrData.topPaths,主要コンバージョンパス,主要コンバージョンパス,pages
+pages.marketingIntel.attrData.thompsonInProgress,"トンプソンサンプリング(5,000回)実行中…","トンプソンサンプリング(5,000回)実行中…",pages
+pages.marketingIntel.attrData.betaBinomial,ベータ二項分布 · {{count}}名参加,ベータ二項分布 · {{count}}名参加,pages
+pages.marketingIntel.attrData.abWinner,{{name}}が{{prob}}%の確率で最適です。,{{name}}が{{prob}}%の確率で最適です。,pages
+pages.marketingIntel.attrData.abDeploy, ✅ 即時デプロイ推奨, ✅ 即時デプロイ推奨,pages
+pages.marketingIntel.attrData.abCollectMore, 🟡 追加データ収集推奨, 🟡 追加データ収集推奨,pages
+pages.marketingIntel.attrData.cohortTitle,📅 週次購入コホート — リテンション率(%),📅 週次購入コホート — リテンション率(%),pages
+pages.marketingIntel.attrData.ltvcacTitle,💰 チャネル別 LTV vs CAC,💰 チャネル別 LTV vs CAC,pages
+pages.marketingIntel.attrData.anomalyHeadDesc,リアルタイム異常検知,リアルタイム異常検知,pages
+pages.marketingIntel.attrData.anomalyBodyText,Zスコアベース監視。|z|>2.0時自動アラート、7日移動平均トレンド分析。,Zスコアベース監視。|z|>2.0時自動アラート、7日移動平均トレンド分析。,pages
+pages.marketingIntel.attrData.filterIssue,異常のみ,異常のみ,pages
+pages.marketingIntel.attrData.anomalySummary,📊 異常検知サマリー,📊 異常検知サマリー,pages
+pages.marketingIntel.attrData.radarCompare,🕸️ チャネル貢献度レーダー比較,🕸️ チャネル貢献度レーダー比較,pages
+pages.marketingIntel.attrData.ascoreTitle,A-Score (アトリビューション信頼度),A-Score (アトリビューション信頼度),pages
+pages.marketingIntel.attrData.aScoreSub,モデル間一貫性ベース — 高いほど全モデルが同意する高信頼チャネル,モデル間一貫性ベース — 高いほど全モデルが同意する高信頼チャネル,pages
+pages.marketingIntel.attrData.compareDescText,5つのモデルの貢献度をレーダーチャートで比較しA-Scoreを算定。,5つのモデルの貢献度をレーダーチャートで比較しA-Scoreを算定。,pages
+pages.marketingIntel.attrData.modelCompareTable,📋 モデル別チャネル貢献度比較表 (%),📋 モデル別チャネル貢献度比較表 (%),pages
+pages.marketingIntel.attrData.hubRun,AIマーケティングハブ実行結果,AIマーケティングハブ実行結果,pages
+pages.marketingIntel.attrData.autoRefl,件がアトリビューションに自動反映,件がアトリビューションに自動反映,pages
+pages.marketingIntel.attrData.dataIncluded,ジャーニー実行・AI推奨データがモデル貢献度に含まれます,ジャーニー実行・AI推奨データがモデル貢献度に含まれます,pages
+pages.marketingIntel.attrData.realtimeSync,リアルタイム同期 ✓,リアルタイム同期 ✓,pages
+pages.marketingIntel.attrData.guideMtaName,📊 マルチタッチMTA,📊 マルチタッチMTA,pages
+pages.marketingIntel.attrData.guideMtaDesc,5つのモデルでチャネル別貢献売上と変換パスを分析。,5つのモデルでチャネル別貢献売上と変換パスを分析。,pages
+pages.marketingIntel.attrData.guideShapleyDesc,2^n精密貢献度、シナジー分析、予算推奨を提供。,2^n精密貢献度、シナジー分析、予算推奨を提供。,pages
+pages.marketingIntel.attrData.guideMmmName,📈 ベイジアンMMM,📈 ベイジアンMMM,pages
+pages.marketingIntel.attrData.guideMmmDesc,52週時系列回帰分析、残留効果、飽和度、予算シミュレーター。,52週時系列回帰分析、残留効果、飽和度、予算シミュレーター。,pages
+pages.marketingIntel.attrData.guideMarkovName,🔗 マルコフ+アップリフト,🔗 マルコフ+アップリフト,pages
+pages.marketingIntel.attrData.guideMarkovDesc,除去効果とダブルMLベース純増分効果を分析。,除去効果とダブルMLベース純増分効果を分析。,pages
+pages.marketingIntel.attrData.guideAbName,🧪 ベイジアンA/B,🧪 ベイジアンA/B,pages
+pages.marketingIntel.attrData.guideAbDesc,"5,000回シミュレーションでA/Bテスト勝者を統計判定。","5,000回シミュレーションでA/Bテスト勝者を統計判定。",pages
+pages.marketingIntel.attrData.guideCohortName,📅 コホート分析,📅 コホート分析,pages
+pages.marketingIntel.attrData.guideCohortDesc,週次コホートのリテンション率をヒートマップで可視化。,週次コホートのリテンション率をヒートマップで可視化。,pages
+pages.marketingIntel.attrData.guideLtvDesc,チャネル別LTVとCACを比較し投資効率を評価。,チャネル別LTVとCACを比較し投資効率を評価。,pages
+pages.marketingIntel.attrData.guideAnomalyDesc,Zスコアリアルタイム検知、急変時自動アラート。,Zスコアリアルタイム検知、急変時自動アラート。,pages
+pages.marketingIntel.attrData.guideCompareDesc,5モデルをレーダー比較しA-Scoreを算定。,5モデルをレーダー比較しA-Scoreを算定。,pages
+pages.marketingIntel.campaignMgr.pageSub,AIマーケティングキャンペーン統合管理・素材・予算・成果・リアルタイム,AIマーケティングキャンペーン統合管理・素材・予算・成果・リアルタイム,pages
+pages.marketingIntel.campaignMgr.newCampaignBtn,🎯 新規キャンペーン承認登録,🎯 新規キャンペーン承認登録,pages
+pages.marketingIntel.campaignMgr.btnAiRecommend,✨ AIマーケティング推奨,✨ AIマーケティング推奨,pages
+pages.marketingIntel.campaignMgr.tabGantt,📅 スケジュール,📅 スケジュール,pages
+pages.marketingIntel.campaignMgr.tabCrm,🔗 CRMチャネル,🔗 CRMチャネル,pages
+pages.marketingIntel.campaignMgr.tabMonitor,📡 モニタリング,📡 モニタリング,pages
+pages.marketingIntel.campaignMgr.tabBudgetAlert,🔔 予算アラート,🔔 予算アラート,pages
+pages.marketingIntel.campaignMgr.tabCopywriter,🤖 AIコピー,🤖 AIコピー,pages
+pages.marketingIntel.campaignMgr.noCampaigns,登録されたキャンペーンがありません。,登録されたキャンペーンがありません。,pages
+pages.marketingIntel.campaignMgr.monitorTitle,リアルタイムモニター,リアルタイムモニター,pages
+pages.marketingIntel.campaignMgr.months,ヶ月,ヶ月,pages
+pages.marketingIntel.campaignMgr.emailTitle,メールA/Bテスト,メールA/Bテスト,pages
+pages.marketingIntel.campaignMgr.emailAb,メール送信履歴,メール送信履歴,pages
+pages.marketingIntel.campaignMgr.noEmail,メール履歴なし,メール履歴なし,pages
+pages.marketingIntel.campaignMgr.kakaoTitle,カカオ通知,カカオ通知,pages
+pages.marketingIntel.campaignMgr.noKakao,カカオ履歴なし,カカオ履歴なし,pages
+pages.marketingIntel.campaignMgr.abSub,キャンペーン素材A/Bテスト,キャンペーン素材A/Bテスト,pages
+pages.marketingIntel.campaignMgr.startEmailAb,メールA/Bテスト開始,メールA/Bテスト開始,pages
+pages.marketingIntel.campaignMgr.budgetAlertTitle,予算アラート設定,予算アラート設定,pages
+pages.marketingIntel.campaignMgr.budgetAlertDesc,予算消化率アラートを管理,予算消化率アラートを管理,pages
+pages.marketingIntel.campaignMgr.noBudgetAlerts,予算アラート未設定,予算アラート未設定,pages
+pages.marketingIntel.campaignMgr.alertOnly,通知のみ,通知のみ,pages
+pages.marketingIntel.campaignMgr.aiCopyTitle,AIコピーライティング,AIコピーライティング,pages
+pages.marketingIntel.campaignMgr.copyPrompt,プロンプト,プロンプト,pages
+pages.marketingIntel.campaignMgr.toneLuxury,プレミアム,プレミアム,pages
+pages.marketingIntel.campaignMgr.ganttTitle,キャンペーンスケジュール,キャンペーンスケジュール,pages
+pages.marketingIntel.campaignMgr.roiRanking,ランキング,ランキング,pages
+pages.marketingIntel.campaignMgr.newCampaignTitle,新規キャンペーン登録,新規キャンペーン登録,pages
+pages.marketingIntel.campaignMgr.newCampaignSubtitle,基本情報を入力,基本情報を入力,pages
+pages.marketingIntel.campaignMgr.newCampaignWarn,必須項目を入力してください,必須項目を入力してください,pages
+pages.marketingIntel.campaignMgr.approvalWarn1,承認後すぐに運用されます,承認後すぐに運用されます,pages
+pages.marketingIntel.campaignMgr.approvalWarn2,承認取消はできません,承認取消はできません,pages
+pages.marketingIntel.campaignMgr.afterApprovalDesc,承認後に自動有効化,承認後に自動有効化,pages
+pages.marketingIntel.campaignMgr.manager,マネージャー,マネージャー,pages
+pages.marketingIntel.campaignMgr.managerAI,AIマネージャー,AIマネージャー,pages
+pages.marketingIntel.campaignMgr.noActive,アクティブなし,アクティブなし,pages
+pages.marketingIntel.campaignMgr.todayNote,今日のメモ,今日のメモ,pages
+pages.marketingIntel.campaignMgr.ruleEngine,ルールエンジン,ルールエンジン,pages
+pages.marketingIntel.campaignMgr.aiHubLinked,AIハブ連携済,AIハブ連携済,pages
+pages.marketingIntel.campaignMgr.viewAiHub,AIハブを見る,AIハブを見る,pages
+pages.marketingIntel.campaignMgr.selectCampaignHint,キャンペーンを選択,キャンペーンを選択,pages
+pages.marketingIntel.campaignMgr.activeRules,アクティブルール,アクティブルール,pages
+pages.marketingIntel.campaignMgr.rulesFired,ルール実行,ルール実行,pages
+pages.marketingIntel.campaignMgr.guideTabsTitle,タブガイド,タブガイド,pages
+pages.marketingIntel.cmpVal.domestic_core,国内コア,国内コア,pages
+pages.marketingIntel.cmpVal.dom_global,国内+グローバル,国内+グローバル,pages
+pages.marketingIntel.cmpVal.market_share,市場シェア,市場シェア,pages
+pages.marketingIntel.cmpVal.advanced_custom,高度カスタム,高度カスタム,pages
+pages.marketingIntel.cmpVal.conv_path_all,全コンバージョンパス,全コンバージョンパス,pages
+pages.marketingIntel.cmpVal.trend_forecast,トレンド予測,トレンド予測,pages
+pages.marketingIntel.cmpVal.bizboard,ビズボード,ビズボード,pages
+pages.marketingIntel.cmpVal.location_barcode,ロケーション・バーコード,ロケーション・バーコード,pages
+pages.marketingIntel.cmpVal.policy_review,ポリシー・レビュー,ポリシー・レビュー,pages
+pages.marketingIntel.cmpVal.cohort_pl,コホート・P&L,コホート・P&L,pages
+pages.marketingIntel.cmpVal.rule_writeback,ルール・ライトバック,ルール・ライトバック,pages
+pages.marketingIntel.cmpVal.instant_rollback,即時ロールバック,即時ロールバック,pages
+pages.marketingIntel.cmpVal.partner_api,パートナーAPI,パートナーAPI,pages
+pages.marketingIntel.cmpVal.install_analysis,インストール・分析,インストール・分析,pages
+pages.marketingIntel.cmpVal.server_side,サーバーサイド,サーバーサイド,pages
+pages.marketingIntel.cmpVal.schema_quality_view,スキーマ・品質表示,スキーマ・品質表示,pages
+pages.marketingIntel.cmpVal.owner_streaming,担当者・ストリーミング,担当者・ストリーミング,pages
+pages.marketingIntel.cmpVal.custom_excel,カスタム・Excel,カスタム・Excel,pages
+pages.marketingIntel.cmpVal.auto_scheduled_share,自動・予約・共有,自動・予約・共有,pages
+pages.marketingIntel.cmpVal.realtime_rate,リアルタイムレート,リアルタイムレート,pages
+pages.marketingIntel.cmpVal.perf_view,パフォーマンス表示,パフォーマンス表示,pages
+pages.marketingIntel.cmpVal.campaign_settle,キャンペーン・精算,キャンペーン・精算,pages
+pages.marketingIntel.cmpVal.own_history,自分の履歴,自分の履歴,pages
+pages.marketingIntel.cmpVal.list_invite,一覧・招待,一覧・招待,pages
+pages.marketingIntel.cmpVal.activity_history,アクティビティ履歴,アクティビティ履歴,pages
+pages.marketingIntel.cmpVal.rbac_role,ロールベースアクセス,ロールベースアクセス,pages
+pages.marketingIntel.cmpVal.chat_support,チャットサポート,チャットサポート,pages
+pages.marketingIntel.cmpVal.dedicated_manager,専任マネージャー,専任マネージャー,pages
+pages.marketingIntel.graph.topInfluencer,🏆 トップ貢献インフルエンサー,🏆 トップ貢献インフルエンサー,pages
+pages.marketingIntel.graphScore.connectionCount,結合ノード,結合ノード,pages
+pages.marketingIntel.graphScore.count,カウント,カウント,pages
+pages.marketingIntel.graphScore.guideSummaryName,📊 サマリーダッシュボード,📊 サマリーダッシュボード,pages
+pages.marketingIntel.graphScore.guideBrowserName,🔍 グラフブラウザ,🔍 グラフブラウザ,pages
+pages.marketingIntel.graphScore.guideInfluencerName,🤝 インフルエンサースコア,🤝 インフルエンサースコア,pages
+pages.marketingIntel.graphScore.guideSkuName,📦 SKUスコア,📦 SKUスコア,pages
+pages.marketingIntel.graphScore.guideCreativeName,🎬 クリエイティブスコア,🎬 クリエイティブスコア,pages
+pages.marketingIntel.omniChannel.badgeChannelCount,{{n}}チャネル対応,{{n}}チャネル対応,pages
+pages.marketingIntel.omniChannel.badgeFree,無料基本プラン,無料基本プラン,pages
+pages.marketingIntel.omniChannel.groupGlobal,🌍 グローバルマーケットプレイス,🌍 グローバルマーケットプレイス,pages
+pages.marketingIntel.omniChannel.groupJapan,🇯🇵 日本マーケットプレイス,🇯🇵 日本マーケットプレイス,pages
+pages.marketingIntel.omniChannel.groupDomestic,🇰🇷 韓国マーケットプレイス,🇰🇷 韓国マーケットプレイス,pages
+pages.marketingIntel.omniChannel.btnAuthKey,🔑 認証キー設定,🔑 認証キー設定,pages
+pages.marketingIntel.omniChannel.guideDashDesc,13チャネル APIキー登録・テスト・同期,13チャネル APIキー登録・テスト・同期,pages
+pages.marketingIntel.omniChannel.guideFeedDesc,統合商品リスト・SKU検索,統合商品リスト・SKU検索,pages
+pages.marketingIntel.omniChannel.guideTrendDesc,統合注文管理・ステータス変更,統合注文管理・ステータス変更,pages
+pages.marketingIntel.omniChannel.guideSettingsName,在庫モニタリング,在庫モニタリング,pages
+pages.marketingIntel.omniChannel.guideSettingsDesc,リアルタイム在庫・低在庫アラート,リアルタイム在庫・低在庫アラート,pages
+pages.marketingIntel.omniChannel.planPro,🔑 Pro実連携：全チャネルAPI統合有効,🔑 Pro実連携：全チャネルAPI統合有効,pages
+pages.marketingIntel.omniChannel.planFree,🎮 無料体験：実データ連携はPro購読時利用可能,🎮 無料体験：実データ連携はPro購読時利用可能,pages
+pages.marketingIntel.omniChannel.searchPlaceholder,商品名またはSKUで検索,商品名またはSKUで検索,pages
+pages.marketingIntel.omniChannel.btnSaveSync,保存して同期,保存して同期,pages
+pages.marketingIntel.omniChannel.authTitle,認証キー設定,認証キー設定,pages
+pages.marketingIntel.omniChannel.demoSaveMsg,デモモードでは保存できません,デモモードでは保存できません,pages
+pages.marketingIntel.omniChannel.demoTestMsg,デモモードではテストできません,デモモードではテストできません,pages
+pages.marketingIntel.omniChannel.demoStatusMsg,デモモードでは変更できません,デモモードでは変更できません,pages
+pages.marketingIntel.omniChannel.integSuccess,統合成功！商品 {{products}}件・注文 {{orders}}件を同期しました,統合成功！商品 {{products}}件・注文 {{orders}}件を同期しました,pages
+pages.marketingIntel.omniChannel.integFail,統合に失敗しました,統合に失敗しました,pages
+pages.marketingIntel.omniChannel.statusShipPending,出荷待ち,出荷待ち,pages
+pages.marketingIntel.omniChannel.statusCancelReq,キャンセル要請,キャンセル要請,pages
+pages.marketingIntel.omniChannel.overviewTitle,チャネル別統合分析,チャネル別統合分析,pages
+pages.marketingIntel.writeback.cfgApprovalGateDesc,高リスク操作に承認必要,高リスク操作に承認必要,pages
+pages.marketingIntel.pageSub,広告成果・精算・クリエイター・SKU収益性・コホート・ESGを統合管理,広告成果・精算・クリエイター・SKU収益性・コホート・ESGを統合管理,pages
+pages.marketingIntel.channelKpi.tabGoals,1. 目標・チャネル (Goals),1. 目標・チャネル (Goals),pages
+pages.marketingIntel.channelKpi.tabContent,5. コンテンツ設定 (Content),5. コンテンツ設定 (Content),pages
+pages.marketingIntel.channelKpi.tabCommunity,6. コミュニティ (Community),6. コミュニティ (Community),pages
+pages.marketingIntel.channelKpi.tabMonitor,8. 成果モニタリング (Monitor),8. 成果モニタリング (Monitor),pages
+pages.marketingIntel.channelKpi.bizGoalSetting,ビジネス目標設定,ビジネス目標設定,pages
+pages.marketingIntel.channelKpi.brandAwareness,ブランド認知度拡大,ブランド認知度拡大,pages
+pages.marketingIntel.channelKpi.brandAwarenessDesc,露出とリーチの最大化,露出とリーチの最大化,pages
+pages.marketingIntel.channelKpi.webTraffic,ウェブトラフィック誘導,ウェブトラフィック誘導,pages
+pages.marketingIntel.channelKpi.webTrafficDesc,ページビューと滞在時間の最大化,ページビューと滞在時間の最大化,pages
+pages.marketingIntel.channelKpi.inquiriesPurchases,問い合わせ・購買転換,問い合わせ・購買転換,pages
+pages.marketingIntel.channelKpi.inquiriesPurchasesDesc,実質的な売上転換の最大化,実質的な売上転換の最大化,pages
+pages.marketingIntel.channelKpi.selectedGoals,選択された目標,選択された目標,pages
+pages.marketingIntel.sidebar.footerLine1,売上 + リスク + ガバナンス,売上 + リスク + ガバナンス,pages
+pages.marketingIntel.sidebar.removeFav,お気に入り解除,お気に入り解除,pages
+pages.marketingIntel.unified.selectMarkets,🌍 ターゲット市場,🌍 ターゲット市場,pages
+pages.marketingIntel.tabs.overviewDesc,プラットフォーム全体の主要指標を一目で,プラットフォーム全体の主要指標を一目で,pages
+pages.marketingIntel.tabs.marketingDesc,広告·キャンペーン統合分析,広告·キャンペーン統合分析,pages
+pages.marketingIntel.tabs.channelDesc,チャネル別主要KPI,チャネル別主要KPI,pages
+pages.marketingIntel.tabs.commerce,コマース·決済,コマース·決済,pages
+pages.marketingIntel.tabs.influencerDesc,インフルエンサー·UGC成果分析,インフルエンサー·UGC成果分析,pages
+pages.marketingIntel.tabs.systemDesc,API·パイプライン·サーバー状態,API·パイプライン·サーバー状態,pages
+pages.marketingIntel.kakao.statCamp,総キャンペーン,総キャンペーン,pages
+pages.marketingIntel.kakao.noChannels,カカオチャネルが接続されていません。統合ハブでAPIキーを登録してください。,カカオチャネルが接続されていません。統合ハブでAPIキーを登録してください。,pages
+pages.marketingIntel.kakao.liveSyncStatus,リアルタイムクロスタブ同期有効,リアルタイムクロスタブ同期有効,pages
+pages.marketingIntel.kakao.costPerMsg,1件あたりコスト,1件あたりコスト,pages
+pages.marketingIntel.kakao.totalCost,総コスト,総コスト,pages
+pages.marketingIntel.kakao.delConfirm,このキャンペーンを削除しますか？,このキャンペーンを削除しますか？,pages
+pages.marketingIntel.stPartial,一部払い,一部払い,pages
+pages.marketingIntel.payRemaining,残額支払い,残額支払い,pages
+pages.marketingIntel.helpful,人が参考になった,人が参考になった,pages
+pages.marketingIntel.guideIdentDesc,マルチプラットフォームアカウント統合と重複検出,マルチプラットフォームアカウント統合と重複検出,pages
+pages.marketingIntel.guideContractDesc,契約条件、e-Sign、ホワイトリスト管理,契約条件、e-Sign、ホワイトリスト管理,pages
+pages.marketingIntel.guideSettleDesc,自動精算検証と異常検出,自動精算検証と異常検出,pages
+pages.marketingIntel.guideRoiDesc,クリエイター/コンテンツROI分析,クリエイター/コンテンツROI分析,pages
+pages.marketingIntel.guideUgcDesc,レビュー感性分析とネガティブキーワード監視,レビュー感性分析とネガティブキーワード監視,pages
+pages.marketingIntel.guideAiDesc,AI基盤総合評価とコミッション推薦,AI基盤総合評価とコミッション推薦,pages
+pages.marketingIntel.creatorRevenue,クリエイター売上,クリエイター売上,pages
+pages.marketingIntel.allTeams,全チーム,全チーム,pages
+pages.marketingIntel.allAccounts,全アカウント,全アカウント,pages
+pages.marketingIntel.livePerformance,リアルタイム成果,リアルタイム成果,pages
+pages.marketingIntel.descPerformance,表示・クリック・ROAS・ACOS,表示・クリック・ROAS・ACOS,pages
+pages.marketingIntel.descSettlement,手数料・広告費・為替,手数料・広告費・為替,pages
+pages.marketingIntel.tabCreator,🤝 クリエイター精算,🤝 クリエイター精算,pages
+pages.marketingIntel.descCreator,支払・貢献度・著作権,支払・貢献度・著作権,pages
+pages.marketingIntel.descSkuProfit,売上・原価・広告費・P&L,売上・原価・広告費・P&L,pages
+pages.marketingIntel.tabCohort,👥 コホート分析,👥 コホート分析,pages
+pages.marketingIntel.descCohort,リテンション・LTV・新規ユーザー,リテンション・LTV・新規ユーザー,pages
+pages.marketingIntel.tabEsg,🌿 ESGレポート,🌿 ESGレポート,pages
+pages.marketingIntel.descEsg,環境・社会・ガバナンス,環境・社会・ガバナンス,pages
+pages.marketingIntel.descGuide,ステップガイド・プロのヒント,ステップガイド・プロのヒント,pages
+pages.marketingIntel.totalClicks,総クリック,総クリック,pages
+pages.marketingIntel.cartAdds,カート追加,カート追加,pages
+pages.marketingIntel.channelPerfDetail,チャネル別成果詳細,チャネル別成果詳細,pages
+pages.marketingIntel.teamSpecificTotal,チーム別合計,チーム別合計,pages
+pages.marketingIntel.liveFxRates,リアルタイム為替,リアルタイム為替,pages
+pages.marketingIntel.settleByChannel,チャネル別精算,チャネル別精算,pages
+pages.marketingIntel.totalCreators,クリエイター数,クリエイター数,pages
+pages.marketingIntel.contentAttribution,コンテンツ貢献度,コンテンツ貢献度,pages
+pages.marketingIntel.contentAttribRate,コンテンツ貢献率,コンテンツ貢献率,pages
+pages.marketingIntel.contentAttribBreakdown,コンテンツ別貢献度,コンテンツ別貢献度,pages
+pages.marketingIntel.creatorSettlement,クリエイター精算,クリエイター精算,pages
+pages.marketingIntel.skuTotalMargin,SKU総マージン,SKU総マージン,pages
+pages.marketingIntel.skuTopMarginSku,最高マージンSKU,最高マージンSKU,pages
+pages.marketingIntel.cohortSub,月別新規ユーザーのリテンションとLTVを分析します。,月別新規ユーザーのリテンションとLTVを分析します。,pages
+pages.marketingIntel.retentionRate,リテンション率,リテンション率,pages
+pages.marketingIntel.retention90,90日リテンション,90日リテンション,pages
+pages.marketingIntel.newUsers,新規ユーザー,新規ユーザー,pages
+pages.marketingIntel.esgSub,環境・社会・ガバナンス指標をモニタリングします。,環境・社会・ガバナンス指標をモニタリングします。,pages
+pages.marketingIntel.esgGovernance,ガバナンス,ガバナンス,pages
+pages.marketingIntel.esgEnergy,エネルギー使用量,エネルギー使用量,pages
+pages.marketingIntel.esgRecycleRate,リサイクル率,リサイクル率,pages
+pages.marketingIntel.guideStep9Desc,ESG指標をモニタリングします。,ESG指標をモニタリングします。,pages
+pages.marketingIntel.guideStep10Desc,ハッキング試行を検知・ブロックします。,ハッキング試行を検知・ブロックします。,pages
+pages.marketingIntel.dashGuide.subtitle,GeniegoROIダッシュボードの全機能を活用する方法をご案内します。各タブの役割とデータフローを理解し、リアルタイムKPIを効果的にモニタリングしましょう。,GeniegoROIダッシュボードの全機能を活用する方法をご案内します。各タブの役割とデータフローを理解し、リアルタイムKPIを効果的にモニタリングしましょう。,pages
+pages.marketingIntel.dashGuide.stepsTitle,🚀 クイックスタートガイド,🚀 クイックスタートガイド,pages
+pages.marketingIntel.dashGuide.step1Title,連携ハブでチャネル接続,連携ハブでチャネル接続,pages
+pages.marketingIntel.dashGuide.step1Desc,連携ハブメニューで販売チャネル（Naver、Coupangなど）と広告チャネル（Meta、Googleなど）のAPIキーを登録してください。登録されたチャネルはダッシュボードに自動反映されます。,連携ハブメニューで販売チャネル（Naver、Coupangなど）と広告チャネル（Meta、Googleなど）のAPIキーを登録してください。登録されたチャネルはダッシュボードに自動反映されます。,pages
+pages.marketingIntel.dashGuide.step2Desc,ダッシュボードのメイン画面で総売上、広告費、ROAS、注文数、コンバージョン率、平均注文額をリアルタイムで確認できます。,ダッシュボードのメイン画面で総売上、広告費、ROAS、注文数、コンバージョン率、平均注文額をリアルタイムで確認できます。,pages
+pages.marketingIntel.dashGuide.step3Title,マーケティング成果分析,マーケティング成果分析,pages
+pages.marketingIntel.dashGuide.step3Desc,マーケティング成果タブでキャンペーン別ROI、チャネル別広告費、コンバージョン推移を分析できます。,マーケティング成果タブでキャンペーン別ROI、チャネル別広告費、コンバージョン推移を分析できます。,pages
+pages.marketingIntel.dashGuide.step4Title,チャネルKPIモニタリング,チャネルKPIモニタリング,pages
+pages.marketingIntel.dashGuide.step4Desc,各連携チャネルの支出、クリック、コンバージョン、ROASをリアルタイムで追跡できます。,各連携チャネルの支出、クリック、コンバージョン、ROASをリアルタイムで追跡できます。,pages
+pages.marketingIntel.dashGuide.step5Title,コマース・精算管理,コマース・精算管理,pages
+pages.marketingIntel.dashGuide.step5Desc,オムニチャネル売上、注文処理状況、精算内訳を確認できます。各チャネルの手数料が自動反映されます。,オムニチャネル売上、注文処理状況、精算内訳を確認できます。各チャネルの手数料が自動反映されます。,pages
+pages.marketingIntel.dashGuide.step6Desc,システム現況タブでAPI状態、インフラレイテンシ、セキュリティ脅威をリアルタイムで監視できます。,システム現況タブでAPI状態、インフラレイテンシ、セキュリティ脅威をリアルタイムで監視できます。,pages
+pages.marketingIntel.dashGuide.tabsTitle,📋 タブ別機能案内,📋 タブ別機能案内,pages
+pages.marketingIntel.dashGuide.tabOverview,総売上、広告費、ROAS等の主要KPIをリアルタイム監視します。,総売上、広告費、ROAS等の主要KPIをリアルタイム監視します。,pages
+pages.marketingIntel.dashGuide.tabMarketing,マーケティングキャンペーンのROIとチャネル別広告成果を分析します。,マーケティングキャンペーンのROIとチャネル別広告成果を分析します。,pages
+pages.marketingIntel.dashGuide.tabChannel,各チャネルのKPI（支出、クリック、コンバージョン、ROAS）を詳細分析します。,各チャネルのKPI（支出、クリック、コンバージョン、ROAS）を詳細分析します。,pages
+pages.marketingIntel.dashGuide.tabCommerce,オムニチャネルコマース売上と精算を統合管理します。,オムニチャネルコマース売上と精算を統合管理します。,pages
+pages.marketingIntel.dashGuide.tabSales,グローバル市場別売上データをワールドマップと共に可視化します。,グローバル市場別売上データをワールドマップと共に可視化します。,pages
+pages.marketingIntel.dashGuide.tabInfluencer,インフルエンサーマーケティング成果を追跡し、AI評価エンジンを活用できます。,インフルエンサーマーケティング成果を追跡し、AI評価エンジンを活用できます。,pages
+pages.marketingIntel.dashGuide.tabSystem,システムインフラ状態とセキュリティ監視を提供します。,システムインフラ状態とセキュリティ監視を提供します。,pages
+pages.marketingIntel.dashGuide.featuresTitle,✨ 主な機能,✨ 主な機能,pages
+pages.marketingIntel.dashGuide.feat1Title,リアルタイムデータ同期,リアルタイムデータ同期,pages
+pages.marketingIntel.dashGuide.feat1Desc,全連携チャネルのデータがリアルタイムで同期されます。,全連携チャネルのデータがリアルタイムで同期されます。,pages
+pages.marketingIntel.dashGuide.feat2Title,クロスモジュール統合,クロスモジュール統合,pages
+pages.marketingIntel.dashGuide.feat2Desc,全モジュールの主要指標がダッシュボードに自動集計されます。,全モジュールの主要指標がダッシュボードに自動集計されます。,pages
+pages.marketingIntel.dashGuide.feat3Title,グローバル多言語対応,グローバル多言語対応,pages
+pages.marketingIntel.dashGuide.feat3Desc,9言語で全インターフェースを利用できます。,9言語で全インターフェースを利用できます。,pages
+pages.marketingIntel.dashGuide.feat4Title,チャネル手数料自動反映,チャネル手数料自動反映,pages
+pages.marketingIntel.dashGuide.feat4Desc,各チャネルの手数料率が精算に自動反映されます。,各チャネルの手数料率が精算に自動反映されます。,pages
+pages.marketingIntel.dashGuide.feat5Title,エンタープライズセキュリティ,エンタープライズセキュリティ,pages
+pages.marketingIntel.dashGuide.feat5Desc,XSS、CSRF等のセキュリティ脅威をリアルタイムで検知・ブロックします。,XSS、CSRF等のセキュリティ脅威をリアルタイムで検知・ブロックします。,pages
+pages.marketingIntel.dashGuide.feat6Title,モバイル対応,モバイル対応,pages
+pages.marketingIntel.dashGuide.feat6Desc,全画面がモバイル・タブレットに最適化されています。,全画面がモバイル・タブレットに最適化されています。,pages
+pages.marketingIntel.dashGuide.tipsTitle,活用ヒント,活用ヒント,pages
+pages.marketingIntel.dashGuide.tip1,連携ハブでチャネルを追加するとダッシュボードに自動反映されます。,連携ハブでチャネルを追加するとダッシュボードに自動反映されます。,pages
+pages.marketingIntel.dashGuide.tip2,KPIカードのスパークラインチャートでトレンドを素早く把握できます。,KPIカードのスパークラインチャートでトレンドを素早く把握できます。,pages
+pages.marketingIntel.dashGuide.tip3,セキュリティアラート発生時は即座に確認してください。,セキュリティアラート発生時は即座に確認してください。,pages
+pages.marketingIntel.dashGuide.tip4,グローバル売上タブで国をクリックすると詳細分析が表示されます。,グローバル売上タブで国をクリックすると詳細分析が表示されます。,pages
+pages.marketingIntel.dashGuide.tip5,API応答時間が200msを超えた場合はインフラ点検を推奨します。,API応答時間が200msを超えた場合はインフラ点検を推奨します。,pages
+pages.marketingIntel.onboarding.guideSecMarketer,広告、アトリビューション、AI、CRM、A/B。,広告、アトリビューション、AI、CRM、A/B。,pages
+pages.marketingIntel.onboarding.roleDev,開発者・IT管理者,開発者・IT管理者,pages
+pages.marketingIntel.onboarding.stepReturnsDesc,顧客返品申請→検品→再入庫→返金を自動化し、返品原因を分析します。,顧客返品申請→検品→再入庫→返金を自動化し、返品原因を分析します。,pages
+pages.marketingIntel.onboarding.stepAsiaLogisticsDesc,韓国・日本・東南アジア3PL、関税・通関自動化、多国倉庫管理を設定します。,韓国・日本・東南アジア3PL、関税・通関自動化、多国倉庫管理を設定します。,pages
+pages.marketingIntel.pricingDetail.free_tagline,無料で始めるプラットフォーム体験,無料で始めるプラットフォーム体験,pages
+pages.marketingIntel.pricingDetail.free_headline,体験プラン,体験プラン,pages
+pages.marketingIntel.pricingDetail.free_desc,Geniego-ROIプラットフォームの基本機能を即座に無料でお試しください。,Geniego-ROIプラットフォームの基本機能を即座に無料でお試しください。,pages
+pages.marketingIntel.pricingDetail.free_s1i1,KPIウィジェット,KPIウィジェット,pages
+pages.marketingIntel.pricingDetail.free_s1i2,クイックリンク,クイックリンク,pages
+pages.marketingIntel.pricingDetail.free_s1i3,オンボーディングガイド,オンボーディングガイド,pages
+pages.marketingIntel.pricingDetail.free_s2,チーム＆ヘルプ,チーム＆ヘルプ,pages
+pages.marketingIntel.pricingDetail.free_s2i2,動画チュートリアル,動画チュートリアル,pages
+pages.marketingIntel.pricingDetail.free_s2i3,リリースノート,リリースノート,pages
+pages.marketingIntel.pricingDetail.free_s3,サブスクリプション＆請求,サブスクリプション＆請求,pages
+pages.marketingIntel.pricingDetail.free_s3i1,現在のプラン確認,現在のプラン確認,pages
+pages.marketingIntel.pricingDetail.free_s3i2,プランアップグレード,プランアップグレード,pages
+pages.marketingIntel.pricingDetail.free_l1,リアルタイムデータなし,リアルタイムデータなし,pages
+pages.marketingIntel.pricingDetail.free_l2,チャネル連携なし,チャネル連携なし,pages
+pages.marketingIntel.pricingDetail.free_l3,保存/ダウンロード不可,保存/ダウンロード不可,pages
+pages.marketingIntel.pricingDetail.growth_tagline,成長期の中小セラー・ブランド,成長期の中小セラー・ブランド,pages
+pages.marketingIntel.pricingDetail.growth_headline,マーケティング成長プラン,マーケティング成長プラン,pages
+pages.marketingIntel.pricingDetail.growth_desc,国内コマースチャネルと基本CRM自動化で売上を伸ばしましょう。,国内コマースチャネルと基本CRM自動化で売上を伸ばしましょう。,pages
+pages.marketingIntel.pricingDetail.growth_s1,AIマーケティング自動化（コア）,AIマーケティング自動化（コア）,pages
+pages.marketingIntel.pricingDetail.growth_s1i1,AI広告クリエイティブ生成,AI広告クリエイティブ生成,pages
+pages.marketingIntel.pricingDetail.growth_s1i2,キャンペーン設定・管理・リスト・レポート,キャンペーン設定・管理・リスト・レポート,pages
+pages.marketingIntel.pricingDetail.growth_s1i5,アラートポリシー一覧＆ログ,アラートポリシー一覧＆ログ,pages
+pages.marketingIntel.pricingDetail.growth_s2,広告・チャネル分析（国内）,広告・チャネル分析（国内）,pages
+pages.marketingIntel.pricingDetail.growth_s2i1,広告要約・チャネル・商品分析,広告要約・チャネル・商品分析,pages
+pages.marketingIntel.pricingDetail.growth_s2i4,チャネルKPI（表示・CTR・CVR・CPA/CPC）,チャネルKPI（表示・CTR・CVR・CPA/CPC）,pages
+pages.marketingIntel.pricingDetail.growth_s3i1,顧客DB・360°ビュー・タグ管理,顧客DB・360°ビュー・タグ管理,pages
+pages.marketingIntel.pricingDetail.growth_s3i2,RFM分析・セグメントビルダー・メッセージ送信,RFM分析・セグメントビルダー・メッセージ送信,pages
+pages.marketingIntel.pricingDetail.growth_s3i3,メールキャンペーン（送信・A/B・成果・予約）,メールキャンペーン（送信・A/B・成果・予約）,pages
+pages.marketingIntel.pricingDetail.growth_s3i4,カカオ通知トーク・フレンドトーク・統計,カカオ通知トーク・フレンドトーク・統計,pages
+pages.marketingIntel.pricingDetail.growth_s3i5,SMS/LMSキャンペーン・テンプレート,SMS/LMSキャンペーン・テンプレート,pages
+pages.marketingIntel.pricingDetail.growth_s3i6,離脱ポップアップ・Webポップアップ（基本）,離脱ポップアップ・Webポップアップ（基本）,pages
+pages.marketingIntel.pricingDetail.growth_s4,コマース＆物流（国内）,コマース＆物流（国内）,pages
+pages.marketingIntel.pricingDetail.growth_s4i1,Coupang・Naver・Cafe24チャネル連携,Coupang・Naver・Cafe24チャネル連携,pages
+pages.marketingIntel.pricingDetail.growth_s4i2,注文ハブ（全注文・クレーム・返品・配送）,注文ハブ（全注文・クレーム・返品・配送）,pages
+pages.marketingIntel.pricingDetail.growth_s4i3,一括商品登録・カタログ同期・価格ルール,一括商品登録・カタログ同期・価格ルール,pages
+pages.marketingIntel.pricingDetail.growth_s4i4,基本WMS（在庫・アラート・入出庫）,基本WMS（在庫・アラート・入出庫）,pages
+pages.marketingIntel.pricingDetail.growth_s4i5,月次精算・配送・Excel出力,月次精算・配送・Excel出力,pages
+pages.marketingIntel.pricingDetail.growth_s5,分析＆パフォーマンス,分析＆パフォーマンス,pages
+pages.marketingIntel.pricingDetail.growth_s5i1,パフォーマンス要約・チャネル・商品・キャンペーン,パフォーマンス要約・チャネル・商品・キャンペーン,pages
+pages.marketingIntel.pricingDetail.growth_s5i3,AIインサイトフィード,AIインサイトフィード,pages
+pages.marketingIntel.pricingDetail.growth_s5i4,カスタムレポート・Excel出力,カスタムレポート・Excel出力,pages
+pages.marketingIntel.pricingDetail.growth_s6i1,精算履歴・チャネル・Excel,精算履歴・チャネル・Excel,pages
+pages.marketingIntel.pricingDetail.growth_s6i2,決済一覧・Excel,決済一覧・Excel,pages
+pages.marketingIntel.pricingDetail.growth_s6i3,プラン表示・決済履歴・インボイス,プラン表示・決済履歴・インボイス,pages
+pages.marketingIntel.pricingDetail.growth_s6i4,ライセンス有効化・状態,ライセンス有効化・状態,pages
+pages.marketingIntel.pricingDetail.growth_s7,チャネル＆データ連携（国内）,チャネル＆データ連携（国内）,pages
+pages.marketingIntel.pricingDetail.growth_s7i1,Meta・Google・TikTok・Naver・カカオ広告連携,Meta・Google・TikTok・Naver・カカオ広告連携,pages
+pages.marketingIntel.pricingDetail.growth_s7i2,Coupangコネクタ,Coupangコネクタ,pages
+pages.marketingIntel.pricingDetail.growth_s7i3,通貨選択（KRW/USD/JPY/EURグローバル）,通貨選択（KRW/USD/JPY/EURグローバル）,pages
+pages.marketingIntel.pricingDetail.growth_s8i1,チームメンバー一覧・招待,チームメンバー一覧・招待,pages
+pages.marketingIntel.pricingDetail.growth_s8i2,自分のアクティビティ履歴,自分のアクティビティ履歴,pages
+pages.marketingIntel.pricingDetail.growth_s8i3,サポートチケット,サポートチケット,pages
+pages.marketingIntel.pricingDetail.growth_l1,AI予測（離脱・LTV）— Pro以上,AI予測（離脱・LTV）— Pro以上,pages
+pages.marketingIntel.pricingDetail.growth_l2,カスタマージャーニービルダー — Pro以上,カスタマージャーニービルダー — Pro以上,pages
+pages.marketingIntel.pricingDetail.growth_l3,グローバルチャネル — Pro以上,グローバルチャネル — Pro以上,pages
+pages.marketingIntel.pricingDetail.growth_l4,AIルールエンジン — Pro以上,AIルールエンジン — Pro以上,pages
+pages.marketingIntel.pricingDetail.growth_l5,1st-Partyピクセル・APIキー — Pro以上,1st-Partyピクセル・APIキー — Pro以上,pages
+pages.marketingIntel.pricingDetail.pro_tagline,プロのeコマースブランド・エージェンシー,プロのeコマースブランド・エージェンシー,pages
+pages.marketingIntel.pricingDetail.pro_headline,AI自動化プラン,AI自動化プラン,pages
+pages.marketingIntel.pricingDetail.pro_desc,Growth全機能 + AI予測・ジャーニービルダー・グローバルチャネル・ルールエンジン・SmartConnect・1st-Partyピクセル・高度なBI。,Growth全機能 + AI予測・ジャーニービルダー・グローバルチャネル・ルールエンジン・SmartConnect・1st-Partyピクセル・高度なBI。,pages
+pages.marketingIntel.pricingDetail.pro_s1,AI予測エンジン（新）,AI予測エンジン（新）,pages
+pages.marketingIntel.pricingDetail.pro_s1i1,離脱・LTV・購買確率予測,離脱・LTV・購買確率予測,pages
+pages.marketingIntel.pricingDetail.pro_s1i3,ネクストベストアクション推奨,ネクストベストアクション推奨,pages
+pages.marketingIntel.pricingDetail.pro_s1i5,AI広告インサイト,AI広告インサイト,pages
+pages.marketingIntel.pricingDetail.pro_s1i6,AIセグメント（VIP・離脱リスク・潜在VIP自動分類）,AIセグメント（VIP・離脱リスク・潜在VIP自動分類）,pages
+pages.marketingIntel.pricingDetail.pro_s2,カスタマージャーニービルダー（新）,カスタマージャーニービルダー（新）,pages
+pages.marketingIntel.pricingDetail.pro_s2i1,ジャーニーキャンバス（ドラッグ＆ドロップ）,ジャーニーキャンバス（ドラッグ＆ドロップ）,pages
+pages.marketingIntel.pricingDetail.pro_s2i2,トリガー設定・アクションノード管理,トリガー設定・アクションノード管理,pages
+pages.marketingIntel.pricingDetail.pro_s2i3,ジャーニーパフォーマンス統計分析,ジャーニーパフォーマンス統計分析,pages
+pages.marketingIntel.pricingDetail.pro_s2i4,A/Bテスト（メール・ポップアップ）,A/Bテスト（メール・ポップアップ）,pages
+pages.marketingIntel.pricingDetail.pro_s3,グローバルチャネル全体（新）,グローバルチャネル全体（新）,pages
+pages.marketingIntel.pricingDetail.pro_s3i1,Shopify・Amazon・LINE Ads連携,Shopify・Amazon・LINE Ads連携,pages
+pages.marketingIntel.pricingDetail.pro_s3i2,WhatsAppブロードキャスト・自動化,WhatsAppブロードキャスト・自動化,pages
+pages.marketingIntel.pricingDetail.pro_s3i3,Instagram DM・Facebook DM・DMキャンペーン,Instagram DM・Facebook DM・DMキャンペーン,pages
+pages.marketingIntel.pricingDetail.pro_s3i4,LINEメッセージキャンペーン・統計,LINEメッセージキャンペーン・統計,pages
+pages.marketingIntel.pricingDetail.pro_s3i5,ポップアップA/Bテスト・トリガー設定,ポップアップA/Bテスト・トリガー設定,pages
+pages.marketingIntel.pricingDetail.pro_s4,高度なWMS+コマース拡張,高度なWMS+コマース拡張,pages
+pages.marketingIntel.pricingDetail.pro_s4i1,在庫調整・ロケーション管理・バーコード連携,在庫調整・ロケーション管理・バーコード連携,pages
+pages.marketingIntel.pricingDetail.pro_s4i2,月次精算連携・税金請求書・決済承認,月次精算連携・税金請求書・決済承認,pages
+pages.marketingIntel.pricingDetail.pro_s4i3,3PL追加・編集,3PL追加・編集,pages
+pages.marketingIntel.pricingDetail.pro_s4i4,収集ログ基本表示,収集ログ基本表示,pages
+pages.marketingIntel.pricingDetail.pro_s5,AIルールエンジン＆自動化（新）,AIルールエンジン＆自動化（新）,pages
+pages.marketingIntel.pricingDetail.pro_s5i1,AIポリシー設定・ルール一覧・テスト,AIポリシー設定・ルール一覧・テスト,pages
+pages.marketingIntel.pricingDetail.pro_s5i2,アラート評価モデル,アラート評価モデル,pages
+pages.marketingIntel.pricingDetail.pro_s5i3,アクションプリセット管理,アクションプリセット管理,pages
+pages.marketingIntel.pricingDetail.pro_s6,レビュー＆UGC分析（新）,レビュー＆UGC分析（新）,pages
+pages.marketingIntel.pricingDetail.pro_s6i1,チャネルレビュー収集・感情分析,チャネルレビュー収集・感情分析,pages
+pages.marketingIntel.pricingDetail.pro_s6i2,AI自動返信ドラフト生成,AI自動返信ドラフト生成,pages
+pages.marketingIntel.pricingDetail.pro_s6i3,UGC（Instagram・YouTube）パフォーマンス分析,UGC（Instagram・YouTube）パフォーマンス分析,pages
+pages.marketingIntel.pricingDetail.pro_s7,SmartConnectハブ（新）,SmartConnectハブ（新）,pages
+pages.marketingIntel.pricingDetail.pro_s7i1,ERP・SCM・3PL基本連携設定,ERP・SCM・3PL基本連携設定,pages
+pages.marketingIntel.pricingDetail.pro_s7i3,フィールドマッピング設定,フィールドマッピング設定,pages
+pages.marketingIntel.pricingDetail.pro_s7i4,基本同期ログ表示,基本同期ログ表示,pages
+pages.marketingIntel.pricingDetail.pro_s8,1st-Partyピクセル+データ,1st-Partyピクセル+データ,pages
+pages.marketingIntel.pricingDetail.pro_s8i1,ピクセルコードインストール・検証,ピクセルコードインストール・検証,pages
+pages.marketingIntel.pricingDetail.pro_s8i2,リアルタイムイベントストリーム表示,リアルタイムイベントストリーム表示,pages
+pages.marketingIntel.pricingDetail.pro_s8i3,アトリビューション分析（タッチモデル・ROAS）,アトリビューション分析（タッチモデル・ROAS）,pages
+pages.marketingIntel.pricingDetail.pro_s8i4,イベント収集・データスキーマ・マッピング,イベント収集・データスキーマ・マッピング,pages
+pages.marketingIntel.pricingDetail.pro_s8i5,APIキー・Webhook・OAuth連携,APIキー・Webhook・OAuth連携,pages
+pages.marketingIntel.pricingDetail.pro_s9,高度な分析＆BI,高度な分析＆BI,pages
+pages.marketingIntel.pricingDetail.pro_s9i2,チャネル・商品・トレンド別P&L,チャネル・商品・トレンド別P&L,pages
+pages.marketingIntel.pricingDetail.pro_s9i3,異常検知・競合AI分析,異常検知・競合AI分析,pages
+pages.marketingIntel.pricingDetail.pro_s9i4,インフルエンサー実績表示,インフルエンサー実績表示,pages
+pages.marketingIntel.pricingDetail.pro_s10,リアルタイム為替+チーム管理,リアルタイム為替+チーム管理,pages
+pages.marketingIntel.pricingDetail.pro_s10i1,リアルタイム為替（グローバル通貨）,リアルタイム為替（グローバル通貨）,pages
+pages.marketingIntel.pricingDetail.pro_s10i2,チームアクティビティ監査,チームアクティビティ監査,pages
+pages.marketingIntel.pricingDetail.pro_s10i3,システム状態・APIモニタリング,システム状態・APIモニタリング,pages
+pages.marketingIntel.pricingDetail.pro_s10i4,バッチジョブ実行・再処理,バッチジョブ実行・再処理,pages
+pages.marketingIntel.pricingDetail.pro_l1,ライトバック即時ロールバック — Enterprise,ライトバック即時ロールバック — Enterprise,pages
+pages.marketingIntel.pricingDetail.pro_l2,Amazonポリシー・レビュー管理 — Enterprise,Amazonポリシー・レビュー管理 — Enterprise,pages
+pages.marketingIntel.pricingDetail.pro_l3,市場シェア・トレンドAI — Enterprise,市場シェア・トレンドAI — Enterprise,pages
+pages.marketingIntel.pricingDetail.pro_l4,データ製品SLA・ガバナンス — Enterprise,データ製品SLA・ガバナンス — Enterprise,pages
+pages.marketingIntel.pricingDetail.pro_l5,SmartConnectパートナーAPI双方向 — Enterprise,SmartConnectパートナーAPI双方向 — Enterprise,pages
+pages.marketingIntel.pricingDetail.pro_l6,インフルエンサーDB・キャンペーン実行 — Enterprise,インフルエンサーDB・キャンペーン実行 — Enterprise,pages
+pages.marketingIntel.pricingDetail.pro_l7,監査ログ全体エクスポート — Enterprise,監査ログ全体エクスポート — Enterprise,pages
+pages.marketingIntel.pricingDetail.pro_l8,自動レポート・予約送信 — Enterprise,自動レポート・予約送信 — Enterprise,pages
+pages.marketingIntel.pricingDetail.pro_l9,APIデータストリーミングエクスポート — Enterprise,APIデータストリーミングエクスポート — Enterprise,pages
+pages.marketingIntel.pricingDetail.ent_tagline,大規模eコマース・エージェンシー・グループ,大規模eコマース・エージェンシー・グループ,pages
+pages.marketingIntel.pricingDetail.ent_headline,全機能無制限プラン,全機能無制限プラン,pages
+pages.marketingIntel.pricingDetail.ent_desc,Pro全機能 + 即時ロールバック・Amazonポリシー・市場シェア・データガバナンス・SmartConnectパートナーAPI。,Pro全機能 + 即時ロールバック・Amazonポリシー・市場シェア・データガバナンス・SmartConnectパートナーAPI。,pages
+pages.marketingIntel.pricingDetail.ent_s1,ライトバック即時ロールバック（新）,ライトバック即時ロールバック（新）,pages
+pages.marketingIntel.pricingDetail.ent_s1i2,即時ロールバック（即座のエラー復旧）,即時ロールバック（即座のエラー復旧）,pages
+pages.marketingIntel.pricingDetail.ent_s1i3,マルチブランド自動実行,マルチブランド自動実行,pages
+pages.marketingIntel.pricingDetail.ent_s1i4,全ロールバック履歴表示,全ロールバック履歴表示,pages
+pages.marketingIntel.pricingDetail.ent_s2i1,Amazonアカウント状態モニター,Amazonアカウント状態モニター,pages
+pages.marketingIntel.pricingDetail.ent_s2i2,ポリシーコンプライアンス管理,ポリシーコンプライアンス管理,pages
+pages.marketingIntel.pricingDetail.ent_s2i3,全レビューモニタリング,全レビューモニタリング,pages
+pages.marketingIntel.pricingDetail.ent_s2i4,リスティング品質監査,リスティング品質監査,pages
+pages.marketingIntel.pricingDetail.ent_s3,市場インテリジェンス（新）,市場インテリジェンス（新）,pages
+pages.marketingIntel.pricingDetail.ent_s3i1,市場シェア分析,市場シェア分析,pages
+pages.marketingIntel.pricingDetail.ent_s3i2,競合広告トラッキング（AI）,競合広告トラッキング（AI）,pages
+pages.marketingIntel.pricingDetail.ent_s3i3,トレンドAI予測モデル,トレンドAI予測モデル,pages
+pages.marketingIntel.pricingDetail.ent_s3i4,チャネルアトリビューション全モデル,チャネルアトリビューション全モデル,pages
+pages.marketingIntel.pricingDetail.ent_s3i5,コンバージョンパス分析,コンバージョンパス分析,pages
+pages.marketingIntel.pricingDetail.ent_s4,データ製品ガバナンス（新）,データ製品ガバナンス（新）,pages
+pages.marketingIntel.pricingDetail.ent_s4i1,データ製品スキーマ・品質指標,データ製品スキーマ・品質指標,pages
+pages.marketingIntel.pricingDetail.ent_s4i2,SLA管理・担当者割当,SLA管理・担当者割当,pages
+pages.marketingIntel.pricingDetail.ent_s4i3,APIベースデータストリーミング出力,APIベースデータストリーミング出力,pages
+pages.marketingIntel.pricingDetail.ent_s4i4,イベント正規化全管理,イベント正規化全管理,pages
+pages.marketingIntel.pricingDetail.ent_s4i5,OAuthパートナー管理,OAuthパートナー管理,pages
+pages.marketingIntel.pricingDetail.ent_s4i6,高度なデータマッピング,高度なデータマッピング,pages
+pages.marketingIntel.pricingDetail.ent_s5,SmartConnectパートナーAPI（新）,SmartConnectパートナーAPI（新）,pages
+pages.marketingIntel.pricingDetail.ent_s5i1,パートナーレベル双方向リアルタイム連携,パートナーレベル双方向リアルタイム連携,pages
+pages.marketingIntel.pricingDetail.ent_s5i2,全リアルタイム同期ログ,全リアルタイム同期ログ,pages
+pages.marketingIntel.pricingDetail.ent_s5i3,ERP・SCM・WMS全連携,ERP・SCM・WMS全連携,pages
+pages.marketingIntel.pricingDetail.ent_s5i4,カスタムWebhook高度設定,カスタムWebhook高度設定,pages
+pages.marketingIntel.pricingDetail.ent_s6,高度なマーケティング（新）,高度なマーケティング（新）,pages
+pages.marketingIntel.pricingDetail.ent_s6i1,全インフルエンサーDB・キャンペーン実行・精算,全インフルエンサーDB・キャンペーン実行・精算,pages
+pages.marketingIntel.pricingDetail.ent_s6i2,カカオビズボード（大型広告）,カカオビズボード（大型広告）,pages
+pages.marketingIntel.pricingDetail.ent_s6i3,WhatsApp高度設定（チャネルAPI）,WhatsApp高度設定（チャネルAPI）,pages
+pages.marketingIntel.pricingDetail.ent_s6i4,LINEチャネル高度設定,LINEチャネル高度設定,pages
+pages.marketingIntel.pricingDetail.ent_s6i5,AIセグメント高度（カスタム基準）,AIセグメント高度（カスタム基準）,pages
+pages.marketingIntel.pricingDetail.ent_s6i6,競合レビュー比較分析,競合レビュー比較分析,pages
+pages.marketingIntel.pricingDetail.ent_s7,運用＆ガバナンス全体（新）,運用＆ガバナンス全体（新）,pages
+pages.marketingIntel.pricingDetail.ent_s7i1,運用ハブアラート送信（管理者通知）,運用ハブアラート送信（管理者通知）,pages
+pages.marketingIntel.pricingDetail.ent_s7i2,3PL削除・契約管理,3PL削除・契約管理,pages
+pages.marketingIntel.pricingDetail.ent_s7i3,全監査ログ・CSVエクスポート,全監査ログ・CSVエクスポート,pages
+pages.marketingIntel.pricingDetail.ent_s7i4,システムモニタアラート設定,システムモニタアラート設定,pages
+pages.marketingIntel.pricingDetail.ent_s7i5,自動レポート生成・予約送信,自動レポート生成・予約送信,pages
+pages.marketingIntel.pricingDetail.ent_s7i6,ダッシュボード外部共有・埋め込み,ダッシュボード外部共有・埋め込み,pages
+pages.marketingIntel.pricingDetail.ent_s8,Pro全機能含む+無制限,Pro全機能含む+無制限,pages
+pages.marketingIntel.pricingDetail.ent_s8i1,Proプラン全機能含む,Proプラン全機能含む,pages
+pages.marketingIntel.pricingDetail.ent_s8i2,無制限アカウント・ユーザー・チーム,無制限アカウント・ユーザー・チーム,pages
+pages.marketingIntel.pricingDetail.ent_s8i3,優先サポートSLA,優先サポートSLA,pages
+pages.marketingIntel.pricingDetail.ent_s8i4,専任オンボーディング・年間研修,専任オンボーディング・年間研修,pages
+pages.marketingIntel.pricingDetail.ent_s9,カスタム＆専用サービス,カスタム＆専用サービス,pages
+pages.marketingIntel.pricingDetail.ent_s9i1,カスタムダッシュボード設定,カスタムダッシュボード設定,pages
+pages.marketingIntel.pricingDetail.ent_s9i2,専任マネージャー配置,専任マネージャー配置,pages
+pages.marketingIntel.pricingDetail.ent_s9i3,年間契約ベースのカスタム割引,年間契約ベースのカスタム割引,pages
+pages.marketingIntel.pricingDetail.ent_s9i4,カスタム研修・ワークショップ,カスタム研修・ワークショップ,pages
+pages.marketingIntel.cmpRow.r2,AI広告クリエイティブ&キャンペーン,AI広告クリエイティブ&キャンペーン,pages
+pages.marketingIntel.cmpRow.r3,AI予測（離脱・LTV・購買確率）,AI予測（離脱・LTV・購買確率）,pages
+pages.marketingIntel.cmpRow.r5,AIセグメント,AIセグメント,pages
+pages.marketingIntel.cmpRow.r6,広告・チャネル分析,広告・チャネル分析,pages
+pages.marketingIntel.cmpRow.r8,市場インテリジェンス,市場インテリジェンス,pages
+pages.marketingIntel.cmpRow.r9,オムニチャネルメッセージング,オムニチャネルメッセージング,pages
+pages.marketingIntel.cmpRow.r10,レビュー&UGC分析,レビュー&UGC分析,pages
+pages.marketingIntel.cmpRow.r11,コマースチャネル連携,コマースチャネル連携,pages
+pages.marketingIntel.cmpRow.r16,自動化&ルールエンジン,自動化&ルールエンジン,pages
+pages.marketingIntel.cmpRow.r18,1st-Partyピクセル・SDK,1st-Partyピクセル・SDK,pages
+pages.marketingIntel.cmpRow.r19,広告プラットフォーム連携,広告プラットフォーム連携,pages
+pages.marketingIntel.cmpRow.r20,データガバナンス,データガバナンス,pages
+pages.marketingIntel.cmpRow.r21,レポート&エクスポート,レポート&エクスポート,pages
+pages.marketingIntel.cmpRow.r22,多言語・通貨,多言語・通貨,pages
+pages.marketingIntel.cmpRow.r24,バッチジョブ,バッチジョブ,pages
+pages.marketingIntel.cmpRow.r27,アカウント数,アカウント数,pages
+pages.marketingIntel.cmpRow.r28,カスタマーサポート,カスタマーサポート,pages
+pages.actionPresets.sub,プリセット管理,プリセット管理,pages
+pages.onboarding.guideSecMarketer,広告連携、アトリビューション、AI、CRM、A/B。,広告連携、アトリビューション、AI、CRM、A/B。,pages
+pages.onboarding.roleDev,開発者・IT管理者,開発者・IT管理者,pages
+pages.onboarding.stepReturnsDesc,顧客返品申請→検品→再入庫→返金を自動化し、返品原因を分析します。,顧客返品申請→検品→再入庫→返金を自動化し、返品原因を分析します。,pages
+pages.onboarding.stepAsiaLogisticsDesc,韓国・日本・東南アジア3PL、関税・通関自動化、多国倉庫管理を設定します。,韓国・日本・東南アジア3PL、関税・通関自動化、多国倉庫管理を設定します。,pages
+aiRec.searchPh,例：「ビューティのInstagram広告戦略」またはマーケティング目標を入力,例：「ビューティのInstagram広告戦略」またはマーケティング目標を入力,aiRec
+audit.subtitle,完全なアクティビティ履歴 · セキュリティ監視 · コンプライアンスレポート,完全なアクティビティ履歴 · セキュリティ監視 · コンプライアンスレポート,audit
+audit.tabAll,すべてのログ,すべてのログ,audit
+audit.tabData,データの変更,データの変更,audit
+audit.searchLogs,ログを検索…,ログを検索…,audit
+audit.colResource,リソース,リソース,audit
+audit.colIpAddress,IP アドレス,IP アドレス,audit
+audit.statusFailed,失敗しました,失敗しました,audit
+audit.exportAudit,監査ログのエクスポート,監査ログのエクスポート,audit
+audit.filterByUser,ユーザーごとにフィルター,ユーザーごとにフィルター,audit
+audit.filterByAction,アクションによるフィルター,アクションによるフィルター,audit
+audit.securityEvents,セキュリティ イベント,セキュリティ イベント,audit
+audit.uniqueUsers,ユニーク ユーザー,ユニーク ユーザー,audit
+audit.failedAttempts,失敗した試行,失敗した試行,audit
+audit.preview,👁 ライブプレビュー,👁 ライブプレビュー,audit
+audit.sectionsSelected,選択されたセクション,選択されたセクション,audit
+audit.selectToPreview,左側のセクションを選択してプレビューを表示します,左側のセクションを選択してプレビューを表示します,audit
+audit.noChannelSelected,チャンネルが選択されていません,チャンネルが選択されていません,audit
+audit.noSkuSelected,SKU が選択されていません,SKU が選択されていません,audit
+audit.action_ACTION_EXECUTED,アクション実行,アクション実行,audit
+audit.action_ALERT_TRIGGERED,アラート発生,アラート発生,audit
+audit.action_POLICY_UPDATED,ポリシー更新,ポリシー更新,audit
+audit.action_KEY_CREATED,キー作成,キー作成,audit
+audit.action_KEY_REVOKED,キー削除,キー削除,audit
+audit.action_CONNECTOR_SYNCED,コネクタ同期,コネクタ同期,audit
+audit.action_MAPPING_UPDATED,マッピング更新,マッピング更新,audit
+audit.action_SETTLEMENT_IMPORTED,精算インポート,精算インポート,audit
+audit.action_REPORT_EXPORTED,レポート出力,レポート出力,audit
+audit.action_USER_ROLE_CHANGED,ロール変更,ロール変更,audit
+audit.action_LOGIN_SUCCESS,ログイン成功,ログイン成功,audit
+audit.action_LOGIN_FAILED,ログイン失敗,ログイン失敗,audit
+audit.action_DATA_EXPORTED,データエクスポート,データエクスポート,audit
+audit.createdDate,作成されました,作成されました,audit
+audit.includedSections,含まれるセクション,含まれるセクション,audit
+audit.reportTitle,📊 Geniego-ROI 統合レポート,📊 Geniego-ROI 統合レポート,audit
+audit.sectionKpi,主要な KPI の概要,主要な KPI の概要,audit
+audit.sectionPnl,損益の滝,損益の滝,audit
+audit.sectionPnlDesc,コスト構造分析,コスト構造分析,audit
+audit.sectionCampaign,キャンペーンのパフォーマンス,キャンペーンのパフォーマンス,audit
+audit.sectionCampaignDesc,ROAS · チャネル別の注文,ROAS · チャネル別の注文,audit
+audit.sectionCreator,クリエイターのパフォーマンス,クリエイターのパフォーマンス,audit
+audit.sectionSkuDesc,商品別マージン・返品率,商品別マージン・返品率,audit
+audit.sectionAnomaly,異常の概要,異常の概要,audit
+audit.sectionAnomalyDesc,自動検出されたアラート,自動検出されたアラート,audit
+audit.kpiRoas,ブレンド ROAS,ブレンド ROAS,audit
+audit.colViews,ビュー,ビュー,audit
+audit.pnlFees,(-) プラットフォーム料金,(-) プラットフォーム料金,audit
+audit.pnlInfluencer,(-) インフルエンサー,(-) インフルエンサー,audit
+audit.anomalyTitle,⚠ 異常の概要,⚠ 異常の概要,audit
+audit.kpiTitle,📊 主要な KPI,📊 主要な KPI,audit
+audit.campaignTitle,📣 キャンペーンのパフォーマンス,📣 キャンペーンのパフォーマンス,audit
+audit.creatorTitle,🤝 クリエイターのパフォーマンス,🤝 クリエイターのパフォーマンス,audit
+journeyBuilder.pageSub,メール・カカオ・LINE・SMSマルチチャンネル自動化,メール・カカオ・LINE・SMSマルチチャンネル自動化,journeyBuilder
+journeyBuilder.noJourneys,ジャーニーがありません。テンプレートから始めましょう！,ジャーニーがありません。テンプレートから始めましょう！,journeyBuilder
+journeyBuilder.quickStart,⚡ テンプレートでクイックスタート,⚡ テンプレートでクイックスタート,journeyBuilder
+journeyBuilder.myJourneys,📁 マイジャーニー一覧,📁 マイジャーニー一覧,journeyBuilder
+journeyBuilder.newJourney,＋ 新規ジャーニー,＋ 新規ジャーニー,journeyBuilder
+journeyBuilder.active,🟢 アクティブ,🟢 アクティブ,journeyBuilder
+journeyBuilder.draft,⚪ 下書き,⚪ 下書き,journeyBuilder
+journeyBuilder.nodeTypes.trigger,🎯 トリガー,🎯 トリガー,journeyBuilder
+journeyBuilder.nodeTypes.email,✉️ メール,✉️ メール,journeyBuilder
+journeyBuilder.nodeTypes.kakao,💬 カカオ,💬 カカオ,journeyBuilder
+journeyBuilder.nodeTypes.ab_test,🧪 A/Bテスト,🧪 A/Bテスト,journeyBuilder
+journeyBuilder.nodeTypes.tag,🏷 タグ追加,🏷 タグ追加,journeyBuilder
+journeyBuilder.triggerTypes.cart_abandoned,🛒 カート放棄,🛒 カート放棄,journeyBuilder
+journeyBuilder.triggerTypes.churned,😴 離脱リスク顧客,😴 離脱リスク顧客,journeyBuilder
+journeyBuilder.triggerTypes.segment_entered,📌 セグメント進入,📌 セグメント進入,journeyBuilder
+journeyBuilder.simEmail,✉️ メール送信シミュレーション,✉️ メール送信シミュレーション,journeyBuilder
+journeyBuilder.simKakao,💬 カカオシミュレーション,💬 カカオシミュレーション,journeyBuilder
+journeyBuilder.simLine,💚 LINEシミュレーション,💚 LINEシミュレーション,journeyBuilder
+gAttr.title,📈 マーケティングアトリビューション — リアルタイムMLエンジンv3.0,📈 マーケティングアトリビューション — リアルタイムMLエンジンv3.0,gAttr
+gAttr.northbeam,Northbeam スタンダード,Northbeam スタンダード,gAttr
+gAttr.tabMtaLabel,🗺️ マルチタッチMTA,🗺️ マルチタッチMTA,gAttr
+gAttr.tabMmmLabel,📊 ベイズMMM,📊 ベイズMMM,gAttr
+gAttr.tabAbLabel,🧪 ベイズA/B,🧪 ベイズA/B,gAttr
+gAttr.tabAbDesc,トンプソン抽出法,トンプソン抽出法,gAttr
+gAttr.tabCohortLabel,📅 コホート分析,📅 コホート分析,gAttr
+gAttr.tabCohortDesc,週間購入パターン,週間購入パターン,gAttr
+gAttr.tabAnomalyDesc,Z-score リアルタイム,Z-score リアルタイム,gAttr
+gAttr.tabCompareDesc,レーダー + Aスコア,レーダー + Aスコア,gAttr
+gAttr.position,接点ベース(Position),接点ベース(Position),gAttr
+gAttr.channelContrib,📊 チャネル貢献度,📊 チャネル貢献度,gAttr
+gAttr.topPaths,🗺️ トップ6コンバージョン経路,🗺️ トップ6コンバージョン経路,gAttr
+lineChannel.pageTitle,LINEチャンネル,LINEチャンネル,lineChannel
+lineChannel.pageSub,メッセージ配信 · テンプレート管理 · 日本市場対応,メッセージ配信 · テンプレート管理 · 日本市場対応,lineChannel
+lineChannel.tabCampaigns,📊 キャンペーン,📊 キャンペーン,lineChannel
+lineChannel.tabTemplates,📝 テンプレート,📝 テンプレート,lineChannel
+lineChannel.followers,フォロワー数,フォロワー数,lineChannel
+lineChannel.typeTransactional,🔔 トランザクション,🔔 トランザクション,lineChannel
+lineChannel.typeMarketing,📣 マーケティング,📣 マーケティング,lineChannel
+lineChannel.crmLink,🔗 CRMセグメント連携,🔗 CRMセグメント連携,lineChannel
+lineChannel.noTemplate,テンプレートを選択してください,テンプレートを選択してください,lineChannel
+journeyTpl.cartDesc,離脱顧客をメール+Kakaoで再エンゲージ,離脱顧客をメール+Kakaoで再エンゲージ,journeyTpl
+journeyTpl.onboardDesc,登録後3ステップ自動ケア,登録後3ステップ自動ケア,journeyTpl
+journeyTpl.vipDesc,VIPセグメント自動ケア,VIPセグメント自動ケア,journeyTpl
+journeyTpl.churnDesc,高リスクチャーン自動対応,高リスクチャーン自動対応,journeyTpl
+journeyTpl.bdayDesc,誕生日自動クーポン,誕生日自動クーポン,journeyTpl
+dataTrust.ModeBadge,🎭 デモシミュレーションモード,🎭 デモシミュレーションモード,dataTrust
+dataTrust.ModeTitle,デモモード · サンプルデータのみ,デモモード · サンプルデータのみ,dataTrust
+dataTrust.ModeDesc,ライブアカウントを接続して実データを表示,ライブアカウントを接続して実データを表示,dataTrust

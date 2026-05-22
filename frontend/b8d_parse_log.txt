@@ -1,0 +1,65 @@
+══════════════════════════════════════════════════════════════════════
+B8-D: Parse 10 batches + Top 500 → unique mapping → expand to 2,505 rows
+══════════════════════════════════════════════════════════════════════
+
+[batch_01] parsed 249/249 (skipped 0), issues: 0
+[batch_02] parsed 249/249 (skipped 0), issues: 0
+[batch_03] parsed 249/249 (skipped 0), issues: 1
+  ⚠ idx 247 [JA_NORMALIZED]: ja_value normalized (round-trip corruption fix applied)
+[batch_04] parsed 249/249 (skipped 0), issues: 0
+[batch_05] parsed 249/249 (skipped 0), issues: 0
+[batch_06] parsed 249/249 (skipped 0), issues: 0
+[batch_07] parsed 248/248 (skipped 0), issues: 0
+[batch_08] parsed 248/248 (skipped 0), issues: 2
+  ⚠ idx 168 [JA_NORMALIZED]: ja_value normalized (round-trip corruption fix applied)
+  ⚠ idx 169 [JA_NORMALIZED]: ja_value normalized (round-trip corruption fix applied)
+[batch_09] parsed 248/248 (skipped 0), issues: 0
+[batch_10] parsed 248/248 (skipped 0), issues: 0
+
+Batch parsing summary:
+  Total lines read: 2486
+  Total entries parsed: 2486
+  Unique ja_value: 2486
+  Cross-batch conflicts: 0
+
+──────────────────────────────────────────────────────────────────────
+Step 2: Top 500 fallback (b7 already applied — informational only)
+──────────────────────────────────────────────────────────────────────
+  Top 500 lines read: 500
+  Top 500 added (not in b8 batches): 500
+  Top 500 conflicts with b8 batches: 0 (b8 batch kept)
+
+Combined map size: 2986 unique ja_value
+
+──────────────────────────────────────────────────────────────────────
+Step 3: Expand mapping to japanese_b1_b5_unmapped.csv (2,505 rows)
+──────────────────────────────────────────────────────────────────────
+  unmapped header: [path, ko_current, ja_value, ns]
+  unmapped data rows: 2505
+
+Expansion result:
+  Tail rows mapped: 2505 / 2505
+  Lookup misses: 0
+
+──────────────────────────────────────────────────────────────────────
+Step 4: Write outputs
+──────────────────────────────────────────────────────────────────────
+  ✓ E:\project\GeniegoROI\frontend\japanese_b8_combined_mapping.csv
+    rows: 2986 unique
+  ✓ E:\project\GeniegoROI\frontend\japanese_tail_mapped.csv
+    rows: 2505
+
+══════════════════════════════════════════════════════════════════════
+SUMMARY
+══════════════════════════════════════════════════════════════════════
+  Input unmapped rows:      2505
+  Unique ja_value mapped:   2986
+  Expanded tail rows:       2505
+  Lookup misses:            0
+  Cross-batch conflicts:    0
+  Per-batch issue counts:
+    batch_03: 1 warnings
+    batch_08: 2 warnings
+
+  ✅ FULL COVERAGE: every unmapped row has a translation.
+  → Next step: b8e applies tail_mapped.csv to ko.js (b7v2 algorithm reuse)

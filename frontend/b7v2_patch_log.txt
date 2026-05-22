@@ -1,0 +1,5 @@
+# B7 v2 patch log — 2026-05-22T09:38:04.719Z
+# mode: APPLY
+# csv rows: 2122
+# ko.js leaves: 33347; path map size: 33339
+
