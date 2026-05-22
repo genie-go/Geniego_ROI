@@ -32822,9 +32822,9 @@ export default {
     viewPnl: "🌊 View in P&L Dashboard →"
   },
   reportBuilder: {
-    pageTitle: "📋 レポートビルダー",
+    pageTitle: "📋 Report Builder",
     period: "期間",
-    tabSaved: "💾 保存済みレポート",
+    tabSaved: "💾 Saved Reports",
     downloadExcel: "?뱿 ?묒? ?ㅼ슫濡쒕뱶",
     downloadPdf: "⬇ PDF",
     channels: "Channels",
@@ -33603,5 +33603,7 @@ export default {
     Join: "Start for Free",
     Running: "Mock data mode. You are currently experiencing the virtual .",
     PriceCheck: "Pricing Inquiry"
-  }
+  },
+  tab: "Tab",
+  a: "A"
 };

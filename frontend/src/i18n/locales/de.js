@@ -31020,5 +31020,7 @@ export default {
     Join: "Start for Free",
     Running: "Mock data mode. You are currently experiencing the virtual .",
     PriceCheck: "Pricing Inquiry"
-  }
+  },
+  tab: "Tab",
+  a: "A"
 };
