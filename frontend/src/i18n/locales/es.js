@@ -24949,7 +24949,13 @@ export default {
         xssBlocked: "Malicious input detected — blocked.",
         stepLabel: "STEP",
         defaultWarehouse: "Default",
-        statusActive: "Active"
+        statusActive: "Active",
+        statusConfirm: "Confirmed",
+        statusShipPending: "Ship Pending",
+        statusShipping: "Shipping",
+        statusDelivered: "Delivered",
+        statusCancelReq: "Cancel Request",
+        statusReturnRecv: "Return Received"
       },
       performance: "Performance",
       fixedPerf: "Fixed Perf",
