@@ -36738,7 +36738,7 @@ export default {
     "inviteRole": "역할 선택",
     "sendInvite": "초대 발송",
     "noUsers": "등록된 사용자가 없습니다.",
-    "role_ModeStr": "デモ"
+    "role_ModeStr": "데모"
   },
 
   "admin": {
@@ -46931,15 +46931,15 @@ export default {
     "noData": "데이터가 없습니다.",
     "downloadExcel": "📥 엑셀 다운로드",
     "downloadPdf": "⬇ PDF",
-    "pageSub": "カスタムレポート生成 · Excel/PDFダウンロード",
-    "tabCreate": "📝 レポート作成",
-    "reportType": "レポート種別",
-    "channels": "チャネル",
-    "generateReport": "📊 レポート生成",
-    "noReports": "保存済みレポートなし",
-    "previewTitle": "レポートプレビュー",
-    "type_channel": "チャネル実績",
-    "type_influencer": "インフルエンサー"
+    "pageSub": "커스텀 리포트 생성 · Excel/PDF 다운로드",
+    "tabCreate": "📝 리포트 작성",
+    "reportType": "리포트 종류",
+    "channels": "채널",
+    "generateReport": "📊 리포트 생성",
+    "noReports": "저장된 리포트 없음",
+    "previewTitle": "리포트 미리보기",
+    "type_channel": "채널 실적",
+    "type_influencer": "인플루언서"
   },
 
   "alertPolicies": {
