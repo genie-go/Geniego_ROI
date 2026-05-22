@@ -6690,7 +6690,7 @@ export default {
     helpResultCount: "{{n}} result(s) for \"{{q}}\"",
     goToPage: "Go to {{path}}",
     helpFooter: "Geniego-ROI v423 · Contact admin for support",
-    bgTheme: "背景テーマ",
+    bgTheme: "Background Theme",
     switchLang: "言語切替"
   },
   nav: {
