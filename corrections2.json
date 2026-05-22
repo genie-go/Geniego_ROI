@@ -1,0 +1,7 @@
+{
+  "corrections": [
+    {"path":"reportBuilder.colRevenue","en":"Attributed Revenue","reason":"기여매출 = attribution 의미 (Revenue 단독 불충분)"},
+    {"path":"reportBuilder.csvExport","en":"📥 Export CSV","reason":"이모지 누락 보정 (UI 일관성)"},
+    {"path":"reportBuilder.sectionsSelected","en":"sections selected","reason":"선행 공백 제거 (ko 원본은 공백 없음)"}
+  ]
+}

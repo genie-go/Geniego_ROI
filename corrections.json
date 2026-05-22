@@ -1,0 +1,14 @@
+{
+  "corrections": [
+    {"path":"reportBuilder.downloadReady","en":"Download ready","reason":"미채움 수동"},
+    {"path":"reportBuilder.filterPanel","en":"🎛 Report Filters","reason":"미채움 수동"},
+    {"path":"reportBuilder.pdfExport","en":"🖨 Export PDF","reason":"미채움 수동"},
+    {"path":"reportBuilder.sectionSelect","en":"📋 Select Sections","reason":"미채움 수동"},
+    {"path":"userMgmt.role_ModeStr","en":"Demo","reason":"오염 skip 복원"},
+    {"path":"userMgmt.role_","en":"Demo","reason":"명시 채움"},
+    {"path":"reportBuilder.pageDesc","en":"Select sections · Date/Channel/SKU filters — Export CSV/PDF","reason":"검수자 작성"},
+    {"path":"reportBuilder.colCampaign","en":"Campaign","reason":"similar 정정 (Col Campaign → Campaign)"},
+    {"path":"reportBuilder.colViews","en":"Views","reason":"similar 정정 (Impressions → Views)"},
+    {"path":"reportBuilder.pnlAdSpend","en":"(-) Ad Spend","reason":"similar 정정"}
+  ]
+}

@@ -1,0 +1,446 @@
+[
+  {
+    "path": "reportBuilder.allChannels",
+    "ko_value": "전체 채널",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.anomalyTitle",
+    "ko_value": "⚠ 이상징후 요약",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.campaignTitle",
+    "ko_value": "📣 캠페인 성과",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.channel",
+    "ko_value": "채널",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.channels",
+    "ko_value": "채널",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.colAdSpend",
+    "ko_value": "광고비",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.colCampaign",
+    "ko_value": "캠페인",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.colChannel",
+    "ko_value": "채널",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.colCreator",
+    "ko_value": "크리에이터",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.colMargin",
+    "ko_value": "마진",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.colOrders",
+    "ko_value": "주문",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.colProductName",
+    "ko_value": "상품명",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.colReturnRate",
+    "ko_value": "반품률",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.colRevenue",
+    "ko_value": "기여매출",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.colRoas",
+    "ko_value": "ROAS",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.colRoi",
+    "ko_value": "ROI",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.colSku",
+    "ko_value": "SKU",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.colTier",
+    "ko_value": "등급",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.colViews",
+    "ko_value": "조회수",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.createdDate",
+    "ko_value": "생성일",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.creatorTitle",
+    "ko_value": "🤝 크리에이터 성과",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.csvExport",
+    "ko_value": "📥 CSV 내보내기",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.downloadReady",
+    "ko_value": "다운로드 준비 완료",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.filterPanel",
+    "ko_value": "🎛 리포트 필터",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.generateReport",
+    "ko_value": "📊 리포트 생성",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.includedSections",
+    "ko_value": "포함 섹션",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.kpiAdSpend",
+    "ko_value": "광고비",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.kpiNetProfit",
+    "ko_value": "순이익",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.kpiOrders",
+    "ko_value": "총 주문",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.kpiReturnRate",
+    "ko_value": "반품률",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.kpiRevenue",
+    "ko_value": "총 매출",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.kpiRoas",
+    "ko_value": "Blended ROAS",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.kpiTitle",
+    "ko_value": "📊 핵심 KPI",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.noChannelSelected",
+    "ko_value": "선택된 채널 없음",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.noData",
+    "ko_value": "데이터가 없습니다.",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.noReports",
+    "ko_value": "저장된 리포트 없음",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.noSkuSelected",
+    "ko_value": "선택된 SKU 없음",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.pageDesc",
+    "ko_value": "섹션 선택 · 기간/채널/SKU 필터 · 실시간 미리보기 — CSV/PDF 내보내기",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.pageSub",
+    "ko_value": "커스텀 리포트 생성 · Excel/PDF 다운로드",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.pdfExport",
+    "ko_value": "🖨 PDF 내보내기",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.period30d",
+    "ko_value": "최근 30일",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.period7d",
+    "ko_value": "최근 7일",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.period90d",
+    "ko_value": "최근 90일",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.periodQ1",
+    "ko_value": "Q1 2026",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.pnlAdSpend",
+    "ko_value": "(-) 광고비",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.pnlFees",
+    "ko_value": "(-) 플랫폼 수수료",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.pnlInfluencer",
+    "ko_value": "(-) 인플루언서",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.pnlNetProfit",
+    "ko_value": "= 순이익",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.pnlRevenue",
+    "ko_value": "총 매출",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.preview",
+    "ko_value": "👁 실시간 미리보기",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.previewTitle",
+    "ko_value": "리포트 미리보기",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.reportTitle",
+    "ko_value": "📊 Geniego-ROI 통합 리포트",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.reportType",
+    "ko_value": "리포트 종류",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.sectionAnomaly",
+    "ko_value": "이상징후 요약",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.sectionAnomalyDesc",
+    "ko_value": "자동 탐지 경보",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.sectionCampaign",
+    "ko_value": "캠페인 성과표",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.sectionCampaignDesc",
+    "ko_value": "채널별 ROAS·주문",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.sectionCreator",
+    "ko_value": "크리에이터 성과",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.sectionCreatorDesc",
+    "ko_value": "ROI·기여 매출",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.sectionKpi",
+    "ko_value": "핵심 KPI 요약",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.sectionKpiDesc",
+    "ko_value": "매출·광고비·수익 지표",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.sectionPnl",
+    "ko_value": "P&L 워터폴",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.sectionPnlDesc",
+    "ko_value": "비용 구조 분석",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.sectionSelect",
+    "ko_value": "📋 섹션 선택",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.sectionSku",
+    "ko_value": "SKU 분석",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.sectionSkuDesc",
+    "ko_value": "상품별 마진·반품률",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.sectionsSelected",
+    "ko_value": "개 섹션 선택됨",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.selectToPreview",
+    "ko_value": "왼쪽에서 섹션을 선택하면 미리보기가 표시됩니다",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.skuTitle",
+    "ko_value": "📦 SKU 분석",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.tabCreate",
+    "ko_value": "📝 리포트 작성",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.type_channel",
+    "ko_value": "채널 실적",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "reportBuilder.type_influencer",
+    "ko_value": "인플루언서",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "userMgmt.role_",
+    "ko_value": "데모",
+    "en_suggestion": "",
+    "needs_review": true
+  },
+  {
+    "path": "userMgmt.role_ModeStr",
+    "ko_value": "데모",
+    "en_suggestion": "",
+    "needs_review": true
+  }
+]

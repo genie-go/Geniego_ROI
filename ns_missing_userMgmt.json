@@ -1,0 +1,58 @@
+{
+  "ns": "userMgmt",
+  "langs": {
+    "en": [],
+    "es": [],
+    "fr": [],
+    "th": [
+      {
+        "path": "userMgmt.role_",
+        "ko_value": "데모"
+      },
+      {
+        "path": "userMgmt.role_ModeStr",
+        "ko_value": "데모"
+      }
+    ],
+    "vi": [
+      {
+        "path": "userMgmt.role_",
+        "ko_value": "데모"
+      },
+      {
+        "path": "userMgmt.role_ModeStr",
+        "ko_value": "데모"
+      }
+    ],
+    "id": [
+      {
+        "path": "userMgmt.role_",
+        "ko_value": "데모"
+      },
+      {
+        "path": "userMgmt.role_ModeStr",
+        "ko_value": "데모"
+      }
+    ],
+    "de": [
+      {
+        "path": "userMgmt.role_",
+        "ko_value": "데모"
+      }
+    ],
+    "zh-TW": [
+      {
+        "path": "userMgmt.role_",
+        "ko_value": "데모"
+      },
+      {
+        "path": "userMgmt.role_ModeStr",
+        "ko_value": "데모"
+      }
+    ],
+    "ar": [],
+    "hi": [],
+    "pt": [],
+    "ru": []
+  }
+}

@@ -1,0 +1,3089 @@
+{
+  "ns": "reportBuilder",
+  "langs": {
+    "en": [
+      {
+        "path": "reportBuilder.pageDesc",
+        "ko_value": "섹션 선택 · 기간/채널/SKU 필터 · 실시간 미리보기 — CSV/PDF 내보내기"
+      },
+      {
+        "path": "reportBuilder.csvExport",
+        "ko_value": "📥 CSV 내보내기"
+      },
+      {
+        "path": "reportBuilder.pdfExport",
+        "ko_value": "🖨 PDF 내보내기"
+      },
+      {
+        "path": "reportBuilder.downloadReady",
+        "ko_value": "다운로드 준비 완료"
+      },
+      {
+        "path": "reportBuilder.sectionSelect",
+        "ko_value": "📋 섹션 선택"
+      },
+      {
+        "path": "reportBuilder.filterPanel",
+        "ko_value": "🎛 리포트 필터"
+      },
+      {
+        "path": "reportBuilder.channel",
+        "ko_value": "채널"
+      },
+      {
+        "path": "reportBuilder.preview",
+        "ko_value": "👁 실시간 미리보기"
+      },
+      {
+        "path": "reportBuilder.sectionsSelected",
+        "ko_value": "개 섹션 선택됨"
+      },
+      {
+        "path": "reportBuilder.selectToPreview",
+        "ko_value": "왼쪽에서 섹션을 선택하면 미리보기가 표시됩니다"
+      },
+      {
+        "path": "reportBuilder.noChannelSelected",
+        "ko_value": "선택된 채널 없음"
+      },
+      {
+        "path": "reportBuilder.noSkuSelected",
+        "ko_value": "선택된 SKU 없음"
+      },
+      {
+        "path": "reportBuilder.period7d",
+        "ko_value": "최근 7일"
+      },
+      {
+        "path": "reportBuilder.period30d",
+        "ko_value": "최근 30일"
+      },
+      {
+        "path": "reportBuilder.period90d",
+        "ko_value": "최근 90일"
+      },
+      {
+        "path": "reportBuilder.periodQ1",
+        "ko_value": "Q1 2026"
+      },
+      {
+        "path": "reportBuilder.createdDate",
+        "ko_value": "생성일"
+      },
+      {
+        "path": "reportBuilder.includedSections",
+        "ko_value": "포함 섹션"
+      },
+      {
+        "path": "reportBuilder.reportTitle",
+        "ko_value": "📊 Geniego-ROI 통합 리포트"
+      },
+      {
+        "path": "reportBuilder.sectionKpi",
+        "ko_value": "핵심 KPI 요약"
+      },
+      {
+        "path": "reportBuilder.sectionKpiDesc",
+        "ko_value": "매출·광고비·수익 지표"
+      },
+      {
+        "path": "reportBuilder.sectionPnl",
+        "ko_value": "P&L 워터폴"
+      },
+      {
+        "path": "reportBuilder.sectionPnlDesc",
+        "ko_value": "비용 구조 분석"
+      },
+      {
+        "path": "reportBuilder.sectionCampaign",
+        "ko_value": "캠페인 성과표"
+      },
+      {
+        "path": "reportBuilder.sectionCampaignDesc",
+        "ko_value": "채널별 ROAS·주문"
+      },
+      {
+        "path": "reportBuilder.sectionCreator",
+        "ko_value": "크리에이터 성과"
+      },
+      {
+        "path": "reportBuilder.sectionCreatorDesc",
+        "ko_value": "ROI·기여 매출"
+      },
+      {
+        "path": "reportBuilder.sectionSku",
+        "ko_value": "SKU 분석"
+      },
+      {
+        "path": "reportBuilder.sectionSkuDesc",
+        "ko_value": "상품별 마진·반품률"
+      },
+      {
+        "path": "reportBuilder.sectionAnomaly",
+        "ko_value": "이상징후 요약"
+      },
+      {
+        "path": "reportBuilder.sectionAnomalyDesc",
+        "ko_value": "자동 탐지 경보"
+      },
+      {
+        "path": "reportBuilder.kpiRevenue",
+        "ko_value": "총 매출"
+      },
+      {
+        "path": "reportBuilder.kpiAdSpend",
+        "ko_value": "광고비"
+      },
+      {
+        "path": "reportBuilder.kpiNetProfit",
+        "ko_value": "순이익"
+      },
+      {
+        "path": "reportBuilder.kpiRoas",
+        "ko_value": "Blended ROAS"
+      },
+      {
+        "path": "reportBuilder.kpiOrders",
+        "ko_value": "총 주문"
+      },
+      {
+        "path": "reportBuilder.kpiReturnRate",
+        "ko_value": "반품률"
+      },
+      {
+        "path": "reportBuilder.colCampaign",
+        "ko_value": "캠페인"
+      },
+      {
+        "path": "reportBuilder.colChannel",
+        "ko_value": "채널"
+      },
+      {
+        "path": "reportBuilder.colAdSpend",
+        "ko_value": "광고비"
+      },
+      {
+        "path": "reportBuilder.colRoas",
+        "ko_value": "ROAS"
+      },
+      {
+        "path": "reportBuilder.colOrders",
+        "ko_value": "주문"
+      },
+      {
+        "path": "reportBuilder.colCreator",
+        "ko_value": "크리에이터"
+      },
+      {
+        "path": "reportBuilder.colTier",
+        "ko_value": "등급"
+      },
+      {
+        "path": "reportBuilder.colViews",
+        "ko_value": "조회수"
+      },
+      {
+        "path": "reportBuilder.colRevenue",
+        "ko_value": "기여매출"
+      },
+      {
+        "path": "reportBuilder.colRoi",
+        "ko_value": "ROI"
+      },
+      {
+        "path": "reportBuilder.colSku",
+        "ko_value": "SKU"
+      },
+      {
+        "path": "reportBuilder.colProductName",
+        "ko_value": "상품명"
+      },
+      {
+        "path": "reportBuilder.colMargin",
+        "ko_value": "마진"
+      },
+      {
+        "path": "reportBuilder.colReturnRate",
+        "ko_value": "반품률"
+      },
+      {
+        "path": "reportBuilder.pnlRevenue",
+        "ko_value": "총 매출"
+      },
+      {
+        "path": "reportBuilder.pnlAdSpend",
+        "ko_value": "(-) 광고비"
+      },
+      {
+        "path": "reportBuilder.pnlFees",
+        "ko_value": "(-) 플랫폼 수수료"
+      },
+      {
+        "path": "reportBuilder.pnlInfluencer",
+        "ko_value": "(-) 인플루언서"
+      },
+      {
+        "path": "reportBuilder.pnlNetProfit",
+        "ko_value": "= 순이익"
+      },
+      {
+        "path": "reportBuilder.anomalyTitle",
+        "ko_value": "⚠ 이상징후 요약"
+      },
+      {
+        "path": "reportBuilder.kpiTitle",
+        "ko_value": "📊 핵심 KPI"
+      },
+      {
+        "path": "reportBuilder.campaignTitle",
+        "ko_value": "📣 캠페인 성과"
+      },
+      {
+        "path": "reportBuilder.creatorTitle",
+        "ko_value": "🤝 크리에이터 성과"
+      },
+      {
+        "path": "reportBuilder.skuTitle",
+        "ko_value": "📦 SKU 분석"
+      },
+      {
+        "path": "reportBuilder.allChannels",
+        "ko_value": "전체 채널"
+      },
+      {
+        "path": "reportBuilder.noData",
+        "ko_value": "데이터가 없습니다."
+      }
+    ],
+    "es": [
+      {
+        "path": "reportBuilder.pageDesc",
+        "ko_value": "섹션 선택 · 기간/채널/SKU 필터 · 실시간 미리보기 — CSV/PDF 내보내기"
+      },
+      {
+        "path": "reportBuilder.csvExport",
+        "ko_value": "📥 CSV 내보내기"
+      },
+      {
+        "path": "reportBuilder.pdfExport",
+        "ko_value": "🖨 PDF 내보내기"
+      },
+      {
+        "path": "reportBuilder.downloadReady",
+        "ko_value": "다운로드 준비 완료"
+      },
+      {
+        "path": "reportBuilder.sectionSelect",
+        "ko_value": "📋 섹션 선택"
+      },
+      {
+        "path": "reportBuilder.filterPanel",
+        "ko_value": "🎛 리포트 필터"
+      },
+      {
+        "path": "reportBuilder.channel",
+        "ko_value": "채널"
+      },
+      {
+        "path": "reportBuilder.preview",
+        "ko_value": "👁 실시간 미리보기"
+      },
+      {
+        "path": "reportBuilder.sectionsSelected",
+        "ko_value": "개 섹션 선택됨"
+      },
+      {
+        "path": "reportBuilder.selectToPreview",
+        "ko_value": "왼쪽에서 섹션을 선택하면 미리보기가 표시됩니다"
+      },
+      {
+        "path": "reportBuilder.noChannelSelected",
+        "ko_value": "선택된 채널 없음"
+      },
+      {
+        "path": "reportBuilder.noSkuSelected",
+        "ko_value": "선택된 SKU 없음"
+      },
+      {
+        "path": "reportBuilder.period7d",
+        "ko_value": "최근 7일"
+      },
+      {
+        "path": "reportBuilder.period30d",
+        "ko_value": "최근 30일"
+      },
+      {
+        "path": "reportBuilder.period90d",
+        "ko_value": "최근 90일"
+      },
+      {
+        "path": "reportBuilder.periodQ1",
+        "ko_value": "Q1 2026"
+      },
+      {
+        "path": "reportBuilder.createdDate",
+        "ko_value": "생성일"
+      },
+      {
+        "path": "reportBuilder.includedSections",
+        "ko_value": "포함 섹션"
+      },
+      {
+        "path": "reportBuilder.reportTitle",
+        "ko_value": "📊 Geniego-ROI 통합 리포트"
+      },
+      {
+        "path": "reportBuilder.sectionKpi",
+        "ko_value": "핵심 KPI 요약"
+      },
+      {
+        "path": "reportBuilder.sectionKpiDesc",
+        "ko_value": "매출·광고비·수익 지표"
+      },
+      {
+        "path": "reportBuilder.sectionPnl",
+        "ko_value": "P&L 워터폴"
+      },
+      {
+        "path": "reportBuilder.sectionPnlDesc",
+        "ko_value": "비용 구조 분석"
+      },
+      {
+        "path": "reportBuilder.sectionCampaign",
+        "ko_value": "캠페인 성과표"
+      },
+      {
+        "path": "reportBuilder.sectionCampaignDesc",
+        "ko_value": "채널별 ROAS·주문"
+      },
+      {
+        "path": "reportBuilder.sectionCreator",
+        "ko_value": "크리에이터 성과"
+      },
+      {
+        "path": "reportBuilder.sectionCreatorDesc",
+        "ko_value": "ROI·기여 매출"
+      },
+      {
+        "path": "reportBuilder.sectionSku",
+        "ko_value": "SKU 분석"
+      },
+      {
+        "path": "reportBuilder.sectionSkuDesc",
+        "ko_value": "상품별 마진·반품률"
+      },
+      {
+        "path": "reportBuilder.sectionAnomaly",
+        "ko_value": "이상징후 요약"
+      },
+      {
+        "path": "reportBuilder.sectionAnomalyDesc",
+        "ko_value": "자동 탐지 경보"
+      },
+      {
+        "path": "reportBuilder.kpiRevenue",
+        "ko_value": "총 매출"
+      },
+      {
+        "path": "reportBuilder.kpiAdSpend",
+        "ko_value": "광고비"
+      },
+      {
+        "path": "reportBuilder.kpiNetProfit",
+        "ko_value": "순이익"
+      },
+      {
+        "path": "reportBuilder.kpiRoas",
+        "ko_value": "Blended ROAS"
+      },
+      {
+        "path": "reportBuilder.kpiOrders",
+        "ko_value": "총 주문"
+      },
+      {
+        "path": "reportBuilder.kpiReturnRate",
+        "ko_value": "반품률"
+      },
+      {
+        "path": "reportBuilder.colCampaign",
+        "ko_value": "캠페인"
+      },
+      {
+        "path": "reportBuilder.colChannel",
+        "ko_value": "채널"
+      },
+      {
+        "path": "reportBuilder.colAdSpend",
+        "ko_value": "광고비"
+      },
+      {
+        "path": "reportBuilder.colRoas",
+        "ko_value": "ROAS"
+      },
+      {
+        "path": "reportBuilder.colOrders",
+        "ko_value": "주문"
+      },
+      {
+        "path": "reportBuilder.colCreator",
+        "ko_value": "크리에이터"
+      },
+      {
+        "path": "reportBuilder.colTier",
+        "ko_value": "등급"
+      },
+      {
+        "path": "reportBuilder.colViews",
+        "ko_value": "조회수"
+      },
+      {
+        "path": "reportBuilder.colRevenue",
+        "ko_value": "기여매출"
+      },
+      {
+        "path": "reportBuilder.colRoi",
+        "ko_value": "ROI"
+      },
+      {
+        "path": "reportBuilder.colSku",
+        "ko_value": "SKU"
+      },
+      {
+        "path": "reportBuilder.colProductName",
+        "ko_value": "상품명"
+      },
+      {
+        "path": "reportBuilder.colMargin",
+        "ko_value": "마진"
+      },
+      {
+        "path": "reportBuilder.colReturnRate",
+        "ko_value": "반품률"
+      },
+      {
+        "path": "reportBuilder.pnlRevenue",
+        "ko_value": "총 매출"
+      },
+      {
+        "path": "reportBuilder.pnlAdSpend",
+        "ko_value": "(-) 광고비"
+      },
+      {
+        "path": "reportBuilder.pnlFees",
+        "ko_value": "(-) 플랫폼 수수료"
+      },
+      {
+        "path": "reportBuilder.pnlInfluencer",
+        "ko_value": "(-) 인플루언서"
+      },
+      {
+        "path": "reportBuilder.pnlNetProfit",
+        "ko_value": "= 순이익"
+      },
+      {
+        "path": "reportBuilder.anomalyTitle",
+        "ko_value": "⚠ 이상징후 요약"
+      },
+      {
+        "path": "reportBuilder.kpiTitle",
+        "ko_value": "📊 핵심 KPI"
+      },
+      {
+        "path": "reportBuilder.campaignTitle",
+        "ko_value": "📣 캠페인 성과"
+      },
+      {
+        "path": "reportBuilder.creatorTitle",
+        "ko_value": "🤝 크리에이터 성과"
+      },
+      {
+        "path": "reportBuilder.skuTitle",
+        "ko_value": "📦 SKU 분석"
+      },
+      {
+        "path": "reportBuilder.allChannels",
+        "ko_value": "전체 채널"
+      },
+      {
+        "path": "reportBuilder.noData",
+        "ko_value": "데이터가 없습니다."
+      }
+    ],
+    "fr": [
+      {
+        "path": "reportBuilder.pageDesc",
+        "ko_value": "섹션 선택 · 기간/채널/SKU 필터 · 실시간 미리보기 — CSV/PDF 내보내기"
+      },
+      {
+        "path": "reportBuilder.csvExport",
+        "ko_value": "📥 CSV 내보내기"
+      },
+      {
+        "path": "reportBuilder.pdfExport",
+        "ko_value": "🖨 PDF 내보내기"
+      },
+      {
+        "path": "reportBuilder.downloadReady",
+        "ko_value": "다운로드 준비 완료"
+      },
+      {
+        "path": "reportBuilder.sectionSelect",
+        "ko_value": "📋 섹션 선택"
+      },
+      {
+        "path": "reportBuilder.filterPanel",
+        "ko_value": "🎛 리포트 필터"
+      },
+      {
+        "path": "reportBuilder.channel",
+        "ko_value": "채널"
+      },
+      {
+        "path": "reportBuilder.preview",
+        "ko_value": "👁 실시간 미리보기"
+      },
+      {
+        "path": "reportBuilder.sectionsSelected",
+        "ko_value": "개 섹션 선택됨"
+      },
+      {
+        "path": "reportBuilder.selectToPreview",
+        "ko_value": "왼쪽에서 섹션을 선택하면 미리보기가 표시됩니다"
+      },
+      {
+        "path": "reportBuilder.noChannelSelected",
+        "ko_value": "선택된 채널 없음"
+      },
+      {
+        "path": "reportBuilder.noSkuSelected",
+        "ko_value": "선택된 SKU 없음"
+      },
+      {
+        "path": "reportBuilder.period7d",
+        "ko_value": "최근 7일"
+      },
+      {
+        "path": "reportBuilder.period30d",
+        "ko_value": "최근 30일"
+      },
+      {
+        "path": "reportBuilder.period90d",
+        "ko_value": "최근 90일"
+      },
+      {
+        "path": "reportBuilder.periodQ1",
+        "ko_value": "Q1 2026"
+      },
+      {
+        "path": "reportBuilder.createdDate",
+        "ko_value": "생성일"
+      },
+      {
+        "path": "reportBuilder.includedSections",
+        "ko_value": "포함 섹션"
+      },
+      {
+        "path": "reportBuilder.reportTitle",
+        "ko_value": "📊 Geniego-ROI 통합 리포트"
+      },
+      {
+        "path": "reportBuilder.sectionKpi",
+        "ko_value": "핵심 KPI 요약"
+      },
+      {
+        "path": "reportBuilder.sectionKpiDesc",
+        "ko_value": "매출·광고비·수익 지표"
+      },
+      {
+        "path": "reportBuilder.sectionPnl",
+        "ko_value": "P&L 워터폴"
+      },
+      {
+        "path": "reportBuilder.sectionPnlDesc",
+        "ko_value": "비용 구조 분석"
+      },
+      {
+        "path": "reportBuilder.sectionCampaign",
+        "ko_value": "캠페인 성과표"
+      },
+      {
+        "path": "reportBuilder.sectionCampaignDesc",
+        "ko_value": "채널별 ROAS·주문"
+      },
+      {
+        "path": "reportBuilder.sectionCreator",
+        "ko_value": "크리에이터 성과"
+      },
+      {
+        "path": "reportBuilder.sectionCreatorDesc",
+        "ko_value": "ROI·기여 매출"
+      },
+      {
+        "path": "reportBuilder.sectionSku",
+        "ko_value": "SKU 분석"
+      },
+      {
+        "path": "reportBuilder.sectionSkuDesc",
+        "ko_value": "상품별 마진·반품률"
+      },
+      {
+        "path": "reportBuilder.sectionAnomaly",
+        "ko_value": "이상징후 요약"
+      },
+      {
+        "path": "reportBuilder.sectionAnomalyDesc",
+        "ko_value": "자동 탐지 경보"
+      },
+      {
+        "path": "reportBuilder.kpiRevenue",
+        "ko_value": "총 매출"
+      },
+      {
+        "path": "reportBuilder.kpiAdSpend",
+        "ko_value": "광고비"
+      },
+      {
+        "path": "reportBuilder.kpiNetProfit",
+        "ko_value": "순이익"
+      },
+      {
+        "path": "reportBuilder.kpiRoas",
+        "ko_value": "Blended ROAS"
+      },
+      {
+        "path": "reportBuilder.kpiOrders",
+        "ko_value": "총 주문"
+      },
+      {
+        "path": "reportBuilder.kpiReturnRate",
+        "ko_value": "반품률"
+      },
+      {
+        "path": "reportBuilder.colCampaign",
+        "ko_value": "캠페인"
+      },
+      {
+        "path": "reportBuilder.colChannel",
+        "ko_value": "채널"
+      },
+      {
+        "path": "reportBuilder.colAdSpend",
+        "ko_value": "광고비"
+      },
+      {
+        "path": "reportBuilder.colRoas",
+        "ko_value": "ROAS"
+      },
+      {
+        "path": "reportBuilder.colOrders",
+        "ko_value": "주문"
+      },
+      {
+        "path": "reportBuilder.colCreator",
+        "ko_value": "크리에이터"
+      },
+      {
+        "path": "reportBuilder.colTier",
+        "ko_value": "등급"
+      },
+      {
+        "path": "reportBuilder.colViews",
+        "ko_value": "조회수"
+      },
+      {
+        "path": "reportBuilder.colRevenue",
+        "ko_value": "기여매출"
+      },
+      {
+        "path": "reportBuilder.colRoi",
+        "ko_value": "ROI"
+      },
+      {
+        "path": "reportBuilder.colSku",
+        "ko_value": "SKU"
+      },
+      {
+        "path": "reportBuilder.colProductName",
+        "ko_value": "상품명"
+      },
+      {
+        "path": "reportBuilder.colMargin",
+        "ko_value": "마진"
+      },
+      {
+        "path": "reportBuilder.colReturnRate",
+        "ko_value": "반품률"
+      },
+      {
+        "path": "reportBuilder.pnlRevenue",
+        "ko_value": "총 매출"
+      },
+      {
+        "path": "reportBuilder.pnlAdSpend",
+        "ko_value": "(-) 광고비"
+      },
+      {
+        "path": "reportBuilder.pnlFees",
+        "ko_value": "(-) 플랫폼 수수료"
+      },
+      {
+        "path": "reportBuilder.pnlInfluencer",
+        "ko_value": "(-) 인플루언서"
+      },
+      {
+        "path": "reportBuilder.pnlNetProfit",
+        "ko_value": "= 순이익"
+      },
+      {
+        "path": "reportBuilder.anomalyTitle",
+        "ko_value": "⚠ 이상징후 요약"
+      },
+      {
+        "path": "reportBuilder.kpiTitle",
+        "ko_value": "📊 핵심 KPI"
+      },
+      {
+        "path": "reportBuilder.campaignTitle",
+        "ko_value": "📣 캠페인 성과"
+      },
+      {
+        "path": "reportBuilder.creatorTitle",
+        "ko_value": "🤝 크리에이터 성과"
+      },
+      {
+        "path": "reportBuilder.skuTitle",
+        "ko_value": "📦 SKU 분석"
+      },
+      {
+        "path": "reportBuilder.allChannels",
+        "ko_value": "전체 채널"
+      },
+      {
+        "path": "reportBuilder.noData",
+        "ko_value": "데이터가 없습니다."
+      }
+    ],
+    "th": [
+      {
+        "path": "reportBuilder.pageDesc",
+        "ko_value": "섹션 선택 · 기간/채널/SKU 필터 · 실시간 미리보기 — CSV/PDF 내보내기"
+      },
+      {
+        "path": "reportBuilder.csvExport",
+        "ko_value": "📥 CSV 내보내기"
+      },
+      {
+        "path": "reportBuilder.pdfExport",
+        "ko_value": "🖨 PDF 내보내기"
+      },
+      {
+        "path": "reportBuilder.downloadReady",
+        "ko_value": "다운로드 준비 완료"
+      },
+      {
+        "path": "reportBuilder.sectionSelect",
+        "ko_value": "📋 섹션 선택"
+      },
+      {
+        "path": "reportBuilder.filterPanel",
+        "ko_value": "🎛 리포트 필터"
+      },
+      {
+        "path": "reportBuilder.channel",
+        "ko_value": "채널"
+      },
+      {
+        "path": "reportBuilder.preview",
+        "ko_value": "👁 실시간 미리보기"
+      },
+      {
+        "path": "reportBuilder.sectionsSelected",
+        "ko_value": "개 섹션 선택됨"
+      },
+      {
+        "path": "reportBuilder.selectToPreview",
+        "ko_value": "왼쪽에서 섹션을 선택하면 미리보기가 표시됩니다"
+      },
+      {
+        "path": "reportBuilder.noChannelSelected",
+        "ko_value": "선택된 채널 없음"
+      },
+      {
+        "path": "reportBuilder.noSkuSelected",
+        "ko_value": "선택된 SKU 없음"
+      },
+      {
+        "path": "reportBuilder.period7d",
+        "ko_value": "최근 7일"
+      },
+      {
+        "path": "reportBuilder.period30d",
+        "ko_value": "최근 30일"
+      },
+      {
+        "path": "reportBuilder.period90d",
+        "ko_value": "최근 90일"
+      },
+      {
+        "path": "reportBuilder.periodQ1",
+        "ko_value": "Q1 2026"
+      },
+      {
+        "path": "reportBuilder.createdDate",
+        "ko_value": "생성일"
+      },
+      {
+        "path": "reportBuilder.includedSections",
+        "ko_value": "포함 섹션"
+      },
+      {
+        "path": "reportBuilder.reportTitle",
+        "ko_value": "📊 Geniego-ROI 통합 리포트"
+      },
+      {
+        "path": "reportBuilder.sectionKpi",
+        "ko_value": "핵심 KPI 요약"
+      },
+      {
+        "path": "reportBuilder.sectionKpiDesc",
+        "ko_value": "매출·광고비·수익 지표"
+      },
+      {
+        "path": "reportBuilder.sectionPnl",
+        "ko_value": "P&L 워터폴"
+      },
+      {
+        "path": "reportBuilder.sectionPnlDesc",
+        "ko_value": "비용 구조 분석"
+      },
+      {
+        "path": "reportBuilder.sectionCampaign",
+        "ko_value": "캠페인 성과표"
+      },
+      {
+        "path": "reportBuilder.sectionCampaignDesc",
+        "ko_value": "채널별 ROAS·주문"
+      },
+      {
+        "path": "reportBuilder.sectionCreator",
+        "ko_value": "크리에이터 성과"
+      },
+      {
+        "path": "reportBuilder.sectionCreatorDesc",
+        "ko_value": "ROI·기여 매출"
+      },
+      {
+        "path": "reportBuilder.sectionSku",
+        "ko_value": "SKU 분석"
+      },
+      {
+        "path": "reportBuilder.sectionSkuDesc",
+        "ko_value": "상품별 마진·반품률"
+      },
+      {
+        "path": "reportBuilder.sectionAnomaly",
+        "ko_value": "이상징후 요약"
+      },
+      {
+        "path": "reportBuilder.sectionAnomalyDesc",
+        "ko_value": "자동 탐지 경보"
+      },
+      {
+        "path": "reportBuilder.kpiRevenue",
+        "ko_value": "총 매출"
+      },
+      {
+        "path": "reportBuilder.kpiAdSpend",
+        "ko_value": "광고비"
+      },
+      {
+        "path": "reportBuilder.kpiNetProfit",
+        "ko_value": "순이익"
+      },
+      {
+        "path": "reportBuilder.kpiRoas",
+        "ko_value": "Blended ROAS"
+      },
+      {
+        "path": "reportBuilder.kpiOrders",
+        "ko_value": "총 주문"
+      },
+      {
+        "path": "reportBuilder.kpiReturnRate",
+        "ko_value": "반품률"
+      },
+      {
+        "path": "reportBuilder.colCampaign",
+        "ko_value": "캠페인"
+      },
+      {
+        "path": "reportBuilder.colChannel",
+        "ko_value": "채널"
+      },
+      {
+        "path": "reportBuilder.colAdSpend",
+        "ko_value": "광고비"
+      },
+      {
+        "path": "reportBuilder.colRoas",
+        "ko_value": "ROAS"
+      },
+      {
+        "path": "reportBuilder.colOrders",
+        "ko_value": "주문"
+      },
+      {
+        "path": "reportBuilder.colCreator",
+        "ko_value": "크리에이터"
+      },
+      {
+        "path": "reportBuilder.colTier",
+        "ko_value": "등급"
+      },
+      {
+        "path": "reportBuilder.colViews",
+        "ko_value": "조회수"
+      },
+      {
+        "path": "reportBuilder.colRevenue",
+        "ko_value": "기여매출"
+      },
+      {
+        "path": "reportBuilder.colRoi",
+        "ko_value": "ROI"
+      },
+      {
+        "path": "reportBuilder.colSku",
+        "ko_value": "SKU"
+      },
+      {
+        "path": "reportBuilder.colProductName",
+        "ko_value": "상품명"
+      },
+      {
+        "path": "reportBuilder.colMargin",
+        "ko_value": "마진"
+      },
+      {
+        "path": "reportBuilder.colReturnRate",
+        "ko_value": "반품률"
+      },
+      {
+        "path": "reportBuilder.pnlRevenue",
+        "ko_value": "총 매출"
+      },
+      {
+        "path": "reportBuilder.pnlAdSpend",
+        "ko_value": "(-) 광고비"
+      },
+      {
+        "path": "reportBuilder.pnlFees",
+        "ko_value": "(-) 플랫폼 수수료"
+      },
+      {
+        "path": "reportBuilder.pnlInfluencer",
+        "ko_value": "(-) 인플루언서"
+      },
+      {
+        "path": "reportBuilder.pnlNetProfit",
+        "ko_value": "= 순이익"
+      },
+      {
+        "path": "reportBuilder.anomalyTitle",
+        "ko_value": "⚠ 이상징후 요약"
+      },
+      {
+        "path": "reportBuilder.kpiTitle",
+        "ko_value": "📊 핵심 KPI"
+      },
+      {
+        "path": "reportBuilder.campaignTitle",
+        "ko_value": "📣 캠페인 성과"
+      },
+      {
+        "path": "reportBuilder.creatorTitle",
+        "ko_value": "🤝 크리에이터 성과"
+      },
+      {
+        "path": "reportBuilder.skuTitle",
+        "ko_value": "📦 SKU 분석"
+      },
+      {
+        "path": "reportBuilder.allChannels",
+        "ko_value": "전체 채널"
+      },
+      {
+        "path": "reportBuilder.noData",
+        "ko_value": "데이터가 없습니다."
+      }
+    ],
+    "vi": [
+      {
+        "path": "reportBuilder.pageDesc",
+        "ko_value": "섹션 선택 · 기간/채널/SKU 필터 · 실시간 미리보기 — CSV/PDF 내보내기"
+      },
+      {
+        "path": "reportBuilder.csvExport",
+        "ko_value": "📥 CSV 내보내기"
+      },
+      {
+        "path": "reportBuilder.pdfExport",
+        "ko_value": "🖨 PDF 내보내기"
+      },
+      {
+        "path": "reportBuilder.downloadReady",
+        "ko_value": "다운로드 준비 완료"
+      },
+      {
+        "path": "reportBuilder.sectionSelect",
+        "ko_value": "📋 섹션 선택"
+      },
+      {
+        "path": "reportBuilder.filterPanel",
+        "ko_value": "🎛 리포트 필터"
+      },
+      {
+        "path": "reportBuilder.channel",
+        "ko_value": "채널"
+      },
+      {
+        "path": "reportBuilder.preview",
+        "ko_value": "👁 실시간 미리보기"
+      },
+      {
+        "path": "reportBuilder.sectionsSelected",
+        "ko_value": "개 섹션 선택됨"
+      },
+      {
+        "path": "reportBuilder.selectToPreview",
+        "ko_value": "왼쪽에서 섹션을 선택하면 미리보기가 표시됩니다"
+      },
+      {
+        "path": "reportBuilder.noChannelSelected",
+        "ko_value": "선택된 채널 없음"
+      },
+      {
+        "path": "reportBuilder.noSkuSelected",
+        "ko_value": "선택된 SKU 없음"
+      },
+      {
+        "path": "reportBuilder.period7d",
+        "ko_value": "최근 7일"
+      },
+      {
+        "path": "reportBuilder.period30d",
+        "ko_value": "최근 30일"
+      },
+      {
+        "path": "reportBuilder.period90d",
+        "ko_value": "최근 90일"
+      },
+      {
+        "path": "reportBuilder.periodQ1",
+        "ko_value": "Q1 2026"
+      },
+      {
+        "path": "reportBuilder.createdDate",
+        "ko_value": "생성일"
+      },
+      {
+        "path": "reportBuilder.includedSections",
+        "ko_value": "포함 섹션"
+      },
+      {
+        "path": "reportBuilder.reportTitle",
+        "ko_value": "📊 Geniego-ROI 통합 리포트"
+      },
+      {
+        "path": "reportBuilder.sectionKpi",
+        "ko_value": "핵심 KPI 요약"
+      },
+      {
+        "path": "reportBuilder.sectionKpiDesc",
+        "ko_value": "매출·광고비·수익 지표"
+      },
+      {
+        "path": "reportBuilder.sectionPnl",
+        "ko_value": "P&L 워터폴"
+      },
+      {
+        "path": "reportBuilder.sectionPnlDesc",
+        "ko_value": "비용 구조 분석"
+      },
+      {
+        "path": "reportBuilder.sectionCampaign",
+        "ko_value": "캠페인 성과표"
+      },
+      {
+        "path": "reportBuilder.sectionCampaignDesc",
+        "ko_value": "채널별 ROAS·주문"
+      },
+      {
+        "path": "reportBuilder.sectionCreator",
+        "ko_value": "크리에이터 성과"
+      },
+      {
+        "path": "reportBuilder.sectionCreatorDesc",
+        "ko_value": "ROI·기여 매출"
+      },
+      {
+        "path": "reportBuilder.sectionSku",
+        "ko_value": "SKU 분석"
+      },
+      {
+        "path": "reportBuilder.sectionSkuDesc",
+        "ko_value": "상품별 마진·반품률"
+      },
+      {
+        "path": "reportBuilder.sectionAnomaly",
+        "ko_value": "이상징후 요약"
+      },
+      {
+        "path": "reportBuilder.sectionAnomalyDesc",
+        "ko_value": "자동 탐지 경보"
+      },
+      {
+        "path": "reportBuilder.kpiRevenue",
+        "ko_value": "총 매출"
+      },
+      {
+        "path": "reportBuilder.kpiAdSpend",
+        "ko_value": "광고비"
+      },
+      {
+        "path": "reportBuilder.kpiNetProfit",
+        "ko_value": "순이익"
+      },
+      {
+        "path": "reportBuilder.kpiRoas",
+        "ko_value": "Blended ROAS"
+      },
+      {
+        "path": "reportBuilder.kpiOrders",
+        "ko_value": "총 주문"
+      },
+      {
+        "path": "reportBuilder.kpiReturnRate",
+        "ko_value": "반품률"
+      },
+      {
+        "path": "reportBuilder.colCampaign",
+        "ko_value": "캠페인"
+      },
+      {
+        "path": "reportBuilder.colChannel",
+        "ko_value": "채널"
+      },
+      {
+        "path": "reportBuilder.colAdSpend",
+        "ko_value": "광고비"
+      },
+      {
+        "path": "reportBuilder.colRoas",
+        "ko_value": "ROAS"
+      },
+      {
+        "path": "reportBuilder.colOrders",
+        "ko_value": "주문"
+      },
+      {
+        "path": "reportBuilder.colCreator",
+        "ko_value": "크리에이터"
+      },
+      {
+        "path": "reportBuilder.colTier",
+        "ko_value": "등급"
+      },
+      {
+        "path": "reportBuilder.colViews",
+        "ko_value": "조회수"
+      },
+      {
+        "path": "reportBuilder.colRevenue",
+        "ko_value": "기여매출"
+      },
+      {
+        "path": "reportBuilder.colRoi",
+        "ko_value": "ROI"
+      },
+      {
+        "path": "reportBuilder.colSku",
+        "ko_value": "SKU"
+      },
+      {
+        "path": "reportBuilder.colProductName",
+        "ko_value": "상품명"
+      },
+      {
+        "path": "reportBuilder.colMargin",
+        "ko_value": "마진"
+      },
+      {
+        "path": "reportBuilder.colReturnRate",
+        "ko_value": "반품률"
+      },
+      {
+        "path": "reportBuilder.pnlRevenue",
+        "ko_value": "총 매출"
+      },
+      {
+        "path": "reportBuilder.pnlAdSpend",
+        "ko_value": "(-) 광고비"
+      },
+      {
+        "path": "reportBuilder.pnlFees",
+        "ko_value": "(-) 플랫폼 수수료"
+      },
+      {
+        "path": "reportBuilder.pnlInfluencer",
+        "ko_value": "(-) 인플루언서"
+      },
+      {
+        "path": "reportBuilder.pnlNetProfit",
+        "ko_value": "= 순이익"
+      },
+      {
+        "path": "reportBuilder.anomalyTitle",
+        "ko_value": "⚠ 이상징후 요약"
+      },
+      {
+        "path": "reportBuilder.kpiTitle",
+        "ko_value": "📊 핵심 KPI"
+      },
+      {
+        "path": "reportBuilder.campaignTitle",
+        "ko_value": "📣 캠페인 성과"
+      },
+      {
+        "path": "reportBuilder.creatorTitle",
+        "ko_value": "🤝 크리에이터 성과"
+      },
+      {
+        "path": "reportBuilder.skuTitle",
+        "ko_value": "📦 SKU 분석"
+      },
+      {
+        "path": "reportBuilder.allChannels",
+        "ko_value": "전체 채널"
+      },
+      {
+        "path": "reportBuilder.noData",
+        "ko_value": "데이터가 없습니다."
+      },
+      {
+        "path": "reportBuilder.pageSub",
+        "ko_value": "커스텀 리포트 생성 · Excel/PDF 다운로드"
+      },
+      {
+        "path": "reportBuilder.tabCreate",
+        "ko_value": "📝 리포트 작성"
+      },
+      {
+        "path": "reportBuilder.reportType",
+        "ko_value": "리포트 종류"
+      },
+      {
+        "path": "reportBuilder.channels",
+        "ko_value": "채널"
+      },
+      {
+        "path": "reportBuilder.generateReport",
+        "ko_value": "📊 리포트 생성"
+      },
+      {
+        "path": "reportBuilder.noReports",
+        "ko_value": "저장된 리포트 없음"
+      },
+      {
+        "path": "reportBuilder.previewTitle",
+        "ko_value": "리포트 미리보기"
+      },
+      {
+        "path": "reportBuilder.type_channel",
+        "ko_value": "채널 실적"
+      },
+      {
+        "path": "reportBuilder.type_influencer",
+        "ko_value": "인플루언서"
+      }
+    ],
+    "id": [
+      {
+        "path": "reportBuilder.pageDesc",
+        "ko_value": "섹션 선택 · 기간/채널/SKU 필터 · 실시간 미리보기 — CSV/PDF 내보내기"
+      },
+      {
+        "path": "reportBuilder.csvExport",
+        "ko_value": "📥 CSV 내보내기"
+      },
+      {
+        "path": "reportBuilder.pdfExport",
+        "ko_value": "🖨 PDF 내보내기"
+      },
+      {
+        "path": "reportBuilder.downloadReady",
+        "ko_value": "다운로드 준비 완료"
+      },
+      {
+        "path": "reportBuilder.sectionSelect",
+        "ko_value": "📋 섹션 선택"
+      },
+      {
+        "path": "reportBuilder.filterPanel",
+        "ko_value": "🎛 리포트 필터"
+      },
+      {
+        "path": "reportBuilder.channel",
+        "ko_value": "채널"
+      },
+      {
+        "path": "reportBuilder.preview",
+        "ko_value": "👁 실시간 미리보기"
+      },
+      {
+        "path": "reportBuilder.sectionsSelected",
+        "ko_value": "개 섹션 선택됨"
+      },
+      {
+        "path": "reportBuilder.selectToPreview",
+        "ko_value": "왼쪽에서 섹션을 선택하면 미리보기가 표시됩니다"
+      },
+      {
+        "path": "reportBuilder.noChannelSelected",
+        "ko_value": "선택된 채널 없음"
+      },
+      {
+        "path": "reportBuilder.noSkuSelected",
+        "ko_value": "선택된 SKU 없음"
+      },
+      {
+        "path": "reportBuilder.period7d",
+        "ko_value": "최근 7일"
+      },
+      {
+        "path": "reportBuilder.period30d",
+        "ko_value": "최근 30일"
+      },
+      {
+        "path": "reportBuilder.period90d",
+        "ko_value": "최근 90일"
+      },
+      {
+        "path": "reportBuilder.periodQ1",
+        "ko_value": "Q1 2026"
+      },
+      {
+        "path": "reportBuilder.createdDate",
+        "ko_value": "생성일"
+      },
+      {
+        "path": "reportBuilder.includedSections",
+        "ko_value": "포함 섹션"
+      },
+      {
+        "path": "reportBuilder.reportTitle",
+        "ko_value": "📊 Geniego-ROI 통합 리포트"
+      },
+      {
+        "path": "reportBuilder.sectionKpi",
+        "ko_value": "핵심 KPI 요약"
+      },
+      {
+        "path": "reportBuilder.sectionKpiDesc",
+        "ko_value": "매출·광고비·수익 지표"
+      },
+      {
+        "path": "reportBuilder.sectionPnl",
+        "ko_value": "P&L 워터폴"
+      },
+      {
+        "path": "reportBuilder.sectionPnlDesc",
+        "ko_value": "비용 구조 분석"
+      },
+      {
+        "path": "reportBuilder.sectionCampaign",
+        "ko_value": "캠페인 성과표"
+      },
+      {
+        "path": "reportBuilder.sectionCampaignDesc",
+        "ko_value": "채널별 ROAS·주문"
+      },
+      {
+        "path": "reportBuilder.sectionCreator",
+        "ko_value": "크리에이터 성과"
+      },
+      {
+        "path": "reportBuilder.sectionCreatorDesc",
+        "ko_value": "ROI·기여 매출"
+      },
+      {
+        "path": "reportBuilder.sectionSku",
+        "ko_value": "SKU 분석"
+      },
+      {
+        "path": "reportBuilder.sectionSkuDesc",
+        "ko_value": "상품별 마진·반품률"
+      },
+      {
+        "path": "reportBuilder.sectionAnomaly",
+        "ko_value": "이상징후 요약"
+      },
+      {
+        "path": "reportBuilder.sectionAnomalyDesc",
+        "ko_value": "자동 탐지 경보"
+      },
+      {
+        "path": "reportBuilder.kpiRevenue",
+        "ko_value": "총 매출"
+      },
+      {
+        "path": "reportBuilder.kpiAdSpend",
+        "ko_value": "광고비"
+      },
+      {
+        "path": "reportBuilder.kpiNetProfit",
+        "ko_value": "순이익"
+      },
+      {
+        "path": "reportBuilder.kpiRoas",
+        "ko_value": "Blended ROAS"
+      },
+      {
+        "path": "reportBuilder.kpiOrders",
+        "ko_value": "총 주문"
+      },
+      {
+        "path": "reportBuilder.kpiReturnRate",
+        "ko_value": "반품률"
+      },
+      {
+        "path": "reportBuilder.colCampaign",
+        "ko_value": "캠페인"
+      },
+      {
+        "path": "reportBuilder.colChannel",
+        "ko_value": "채널"
+      },
+      {
+        "path": "reportBuilder.colAdSpend",
+        "ko_value": "광고비"
+      },
+      {
+        "path": "reportBuilder.colRoas",
+        "ko_value": "ROAS"
+      },
+      {
+        "path": "reportBuilder.colOrders",
+        "ko_value": "주문"
+      },
+      {
+        "path": "reportBuilder.colCreator",
+        "ko_value": "크리에이터"
+      },
+      {
+        "path": "reportBuilder.colTier",
+        "ko_value": "등급"
+      },
+      {
+        "path": "reportBuilder.colViews",
+        "ko_value": "조회수"
+      },
+      {
+        "path": "reportBuilder.colRevenue",
+        "ko_value": "기여매출"
+      },
+      {
+        "path": "reportBuilder.colRoi",
+        "ko_value": "ROI"
+      },
+      {
+        "path": "reportBuilder.colSku",
+        "ko_value": "SKU"
+      },
+      {
+        "path": "reportBuilder.colProductName",
+        "ko_value": "상품명"
+      },
+      {
+        "path": "reportBuilder.colMargin",
+        "ko_value": "마진"
+      },
+      {
+        "path": "reportBuilder.colReturnRate",
+        "ko_value": "반품률"
+      },
+      {
+        "path": "reportBuilder.pnlRevenue",
+        "ko_value": "총 매출"
+      },
+      {
+        "path": "reportBuilder.pnlAdSpend",
+        "ko_value": "(-) 광고비"
+      },
+      {
+        "path": "reportBuilder.pnlFees",
+        "ko_value": "(-) 플랫폼 수수료"
+      },
+      {
+        "path": "reportBuilder.pnlInfluencer",
+        "ko_value": "(-) 인플루언서"
+      },
+      {
+        "path": "reportBuilder.pnlNetProfit",
+        "ko_value": "= 순이익"
+      },
+      {
+        "path": "reportBuilder.anomalyTitle",
+        "ko_value": "⚠ 이상징후 요약"
+      },
+      {
+        "path": "reportBuilder.kpiTitle",
+        "ko_value": "📊 핵심 KPI"
+      },
+      {
+        "path": "reportBuilder.campaignTitle",
+        "ko_value": "📣 캠페인 성과"
+      },
+      {
+        "path": "reportBuilder.creatorTitle",
+        "ko_value": "🤝 크리에이터 성과"
+      },
+      {
+        "path": "reportBuilder.skuTitle",
+        "ko_value": "📦 SKU 분석"
+      },
+      {
+        "path": "reportBuilder.allChannels",
+        "ko_value": "전체 채널"
+      },
+      {
+        "path": "reportBuilder.noData",
+        "ko_value": "데이터가 없습니다."
+      }
+    ],
+    "de": [
+      {
+        "path": "reportBuilder.pageDesc",
+        "ko_value": "섹션 선택 · 기간/채널/SKU 필터 · 실시간 미리보기 — CSV/PDF 내보내기"
+      },
+      {
+        "path": "reportBuilder.csvExport",
+        "ko_value": "📥 CSV 내보내기"
+      },
+      {
+        "path": "reportBuilder.pdfExport",
+        "ko_value": "🖨 PDF 내보내기"
+      },
+      {
+        "path": "reportBuilder.downloadReady",
+        "ko_value": "다운로드 준비 완료"
+      },
+      {
+        "path": "reportBuilder.sectionSelect",
+        "ko_value": "📋 섹션 선택"
+      },
+      {
+        "path": "reportBuilder.filterPanel",
+        "ko_value": "🎛 리포트 필터"
+      },
+      {
+        "path": "reportBuilder.channel",
+        "ko_value": "채널"
+      },
+      {
+        "path": "reportBuilder.preview",
+        "ko_value": "👁 실시간 미리보기"
+      },
+      {
+        "path": "reportBuilder.sectionsSelected",
+        "ko_value": "개 섹션 선택됨"
+      },
+      {
+        "path": "reportBuilder.selectToPreview",
+        "ko_value": "왼쪽에서 섹션을 선택하면 미리보기가 표시됩니다"
+      },
+      {
+        "path": "reportBuilder.noChannelSelected",
+        "ko_value": "선택된 채널 없음"
+      },
+      {
+        "path": "reportBuilder.noSkuSelected",
+        "ko_value": "선택된 SKU 없음"
+      },
+      {
+        "path": "reportBuilder.period7d",
+        "ko_value": "최근 7일"
+      },
+      {
+        "path": "reportBuilder.period30d",
+        "ko_value": "최근 30일"
+      },
+      {
+        "path": "reportBuilder.period90d",
+        "ko_value": "최근 90일"
+      },
+      {
+        "path": "reportBuilder.periodQ1",
+        "ko_value": "Q1 2026"
+      },
+      {
+        "path": "reportBuilder.createdDate",
+        "ko_value": "생성일"
+      },
+      {
+        "path": "reportBuilder.includedSections",
+        "ko_value": "포함 섹션"
+      },
+      {
+        "path": "reportBuilder.reportTitle",
+        "ko_value": "📊 Geniego-ROI 통합 리포트"
+      },
+      {
+        "path": "reportBuilder.sectionKpi",
+        "ko_value": "핵심 KPI 요약"
+      },
+      {
+        "path": "reportBuilder.sectionKpiDesc",
+        "ko_value": "매출·광고비·수익 지표"
+      },
+      {
+        "path": "reportBuilder.sectionPnl",
+        "ko_value": "P&L 워터폴"
+      },
+      {
+        "path": "reportBuilder.sectionPnlDesc",
+        "ko_value": "비용 구조 분석"
+      },
+      {
+        "path": "reportBuilder.sectionCampaign",
+        "ko_value": "캠페인 성과표"
+      },
+      {
+        "path": "reportBuilder.sectionCampaignDesc",
+        "ko_value": "채널별 ROAS·주문"
+      },
+      {
+        "path": "reportBuilder.sectionCreator",
+        "ko_value": "크리에이터 성과"
+      },
+      {
+        "path": "reportBuilder.sectionCreatorDesc",
+        "ko_value": "ROI·기여 매출"
+      },
+      {
+        "path": "reportBuilder.sectionSku",
+        "ko_value": "SKU 분석"
+      },
+      {
+        "path": "reportBuilder.sectionSkuDesc",
+        "ko_value": "상품별 마진·반품률"
+      },
+      {
+        "path": "reportBuilder.sectionAnomaly",
+        "ko_value": "이상징후 요약"
+      },
+      {
+        "path": "reportBuilder.sectionAnomalyDesc",
+        "ko_value": "자동 탐지 경보"
+      },
+      {
+        "path": "reportBuilder.kpiRevenue",
+        "ko_value": "총 매출"
+      },
+      {
+        "path": "reportBuilder.kpiAdSpend",
+        "ko_value": "광고비"
+      },
+      {
+        "path": "reportBuilder.kpiNetProfit",
+        "ko_value": "순이익"
+      },
+      {
+        "path": "reportBuilder.kpiRoas",
+        "ko_value": "Blended ROAS"
+      },
+      {
+        "path": "reportBuilder.kpiOrders",
+        "ko_value": "총 주문"
+      },
+      {
+        "path": "reportBuilder.kpiReturnRate",
+        "ko_value": "반품률"
+      },
+      {
+        "path": "reportBuilder.colCampaign",
+        "ko_value": "캠페인"
+      },
+      {
+        "path": "reportBuilder.colChannel",
+        "ko_value": "채널"
+      },
+      {
+        "path": "reportBuilder.colAdSpend",
+        "ko_value": "광고비"
+      },
+      {
+        "path": "reportBuilder.colRoas",
+        "ko_value": "ROAS"
+      },
+      {
+        "path": "reportBuilder.colOrders",
+        "ko_value": "주문"
+      },
+      {
+        "path": "reportBuilder.colCreator",
+        "ko_value": "크리에이터"
+      },
+      {
+        "path": "reportBuilder.colTier",
+        "ko_value": "등급"
+      },
+      {
+        "path": "reportBuilder.colViews",
+        "ko_value": "조회수"
+      },
+      {
+        "path": "reportBuilder.colRevenue",
+        "ko_value": "기여매출"
+      },
+      {
+        "path": "reportBuilder.colRoi",
+        "ko_value": "ROI"
+      },
+      {
+        "path": "reportBuilder.colSku",
+        "ko_value": "SKU"
+      },
+      {
+        "path": "reportBuilder.colProductName",
+        "ko_value": "상품명"
+      },
+      {
+        "path": "reportBuilder.colMargin",
+        "ko_value": "마진"
+      },
+      {
+        "path": "reportBuilder.colReturnRate",
+        "ko_value": "반품률"
+      },
+      {
+        "path": "reportBuilder.pnlRevenue",
+        "ko_value": "총 매출"
+      },
+      {
+        "path": "reportBuilder.pnlAdSpend",
+        "ko_value": "(-) 광고비"
+      },
+      {
+        "path": "reportBuilder.pnlFees",
+        "ko_value": "(-) 플랫폼 수수료"
+      },
+      {
+        "path": "reportBuilder.pnlInfluencer",
+        "ko_value": "(-) 인플루언서"
+      },
+      {
+        "path": "reportBuilder.pnlNetProfit",
+        "ko_value": "= 순이익"
+      },
+      {
+        "path": "reportBuilder.anomalyTitle",
+        "ko_value": "⚠ 이상징후 요약"
+      },
+      {
+        "path": "reportBuilder.kpiTitle",
+        "ko_value": "📊 핵심 KPI"
+      },
+      {
+        "path": "reportBuilder.campaignTitle",
+        "ko_value": "📣 캠페인 성과"
+      },
+      {
+        "path": "reportBuilder.creatorTitle",
+        "ko_value": "🤝 크리에이터 성과"
+      },
+      {
+        "path": "reportBuilder.skuTitle",
+        "ko_value": "📦 SKU 분석"
+      },
+      {
+        "path": "reportBuilder.allChannels",
+        "ko_value": "전체 채널"
+      },
+      {
+        "path": "reportBuilder.noData",
+        "ko_value": "데이터가 없습니다."
+      }
+    ],
+    "zh-TW": [
+      {
+        "path": "reportBuilder.pageDesc",
+        "ko_value": "섹션 선택 · 기간/채널/SKU 필터 · 실시간 미리보기 — CSV/PDF 내보내기"
+      },
+      {
+        "path": "reportBuilder.csvExport",
+        "ko_value": "📥 CSV 내보내기"
+      },
+      {
+        "path": "reportBuilder.pdfExport",
+        "ko_value": "🖨 PDF 내보내기"
+      },
+      {
+        "path": "reportBuilder.downloadReady",
+        "ko_value": "다운로드 준비 완료"
+      },
+      {
+        "path": "reportBuilder.sectionSelect",
+        "ko_value": "📋 섹션 선택"
+      },
+      {
+        "path": "reportBuilder.filterPanel",
+        "ko_value": "🎛 리포트 필터"
+      },
+      {
+        "path": "reportBuilder.channel",
+        "ko_value": "채널"
+      },
+      {
+        "path": "reportBuilder.preview",
+        "ko_value": "👁 실시간 미리보기"
+      },
+      {
+        "path": "reportBuilder.sectionsSelected",
+        "ko_value": "개 섹션 선택됨"
+      },
+      {
+        "path": "reportBuilder.selectToPreview",
+        "ko_value": "왼쪽에서 섹션을 선택하면 미리보기가 표시됩니다"
+      },
+      {
+        "path": "reportBuilder.noChannelSelected",
+        "ko_value": "선택된 채널 없음"
+      },
+      {
+        "path": "reportBuilder.noSkuSelected",
+        "ko_value": "선택된 SKU 없음"
+      },
+      {
+        "path": "reportBuilder.period7d",
+        "ko_value": "최근 7일"
+      },
+      {
+        "path": "reportBuilder.period30d",
+        "ko_value": "최근 30일"
+      },
+      {
+        "path": "reportBuilder.period90d",
+        "ko_value": "최근 90일"
+      },
+      {
+        "path": "reportBuilder.periodQ1",
+        "ko_value": "Q1 2026"
+      },
+      {
+        "path": "reportBuilder.createdDate",
+        "ko_value": "생성일"
+      },
+      {
+        "path": "reportBuilder.includedSections",
+        "ko_value": "포함 섹션"
+      },
+      {
+        "path": "reportBuilder.reportTitle",
+        "ko_value": "📊 Geniego-ROI 통합 리포트"
+      },
+      {
+        "path": "reportBuilder.sectionKpi",
+        "ko_value": "핵심 KPI 요약"
+      },
+      {
+        "path": "reportBuilder.sectionKpiDesc",
+        "ko_value": "매출·광고비·수익 지표"
+      },
+      {
+        "path": "reportBuilder.sectionPnl",
+        "ko_value": "P&L 워터폴"
+      },
+      {
+        "path": "reportBuilder.sectionPnlDesc",
+        "ko_value": "비용 구조 분석"
+      },
+      {
+        "path": "reportBuilder.sectionCampaign",
+        "ko_value": "캠페인 성과표"
+      },
+      {
+        "path": "reportBuilder.sectionCampaignDesc",
+        "ko_value": "채널별 ROAS·주문"
+      },
+      {
+        "path": "reportBuilder.sectionCreator",
+        "ko_value": "크리에이터 성과"
+      },
+      {
+        "path": "reportBuilder.sectionCreatorDesc",
+        "ko_value": "ROI·기여 매출"
+      },
+      {
+        "path": "reportBuilder.sectionSku",
+        "ko_value": "SKU 분석"
+      },
+      {
+        "path": "reportBuilder.sectionSkuDesc",
+        "ko_value": "상품별 마진·반품률"
+      },
+      {
+        "path": "reportBuilder.sectionAnomaly",
+        "ko_value": "이상징후 요약"
+      },
+      {
+        "path": "reportBuilder.sectionAnomalyDesc",
+        "ko_value": "자동 탐지 경보"
+      },
+      {
+        "path": "reportBuilder.kpiRevenue",
+        "ko_value": "총 매출"
+      },
+      {
+        "path": "reportBuilder.kpiAdSpend",
+        "ko_value": "광고비"
+      },
+      {
+        "path": "reportBuilder.kpiNetProfit",
+        "ko_value": "순이익"
+      },
+      {
+        "path": "reportBuilder.kpiRoas",
+        "ko_value": "Blended ROAS"
+      },
+      {
+        "path": "reportBuilder.kpiOrders",
+        "ko_value": "총 주문"
+      },
+      {
+        "path": "reportBuilder.kpiReturnRate",
+        "ko_value": "반품률"
+      },
+      {
+        "path": "reportBuilder.colCampaign",
+        "ko_value": "캠페인"
+      },
+      {
+        "path": "reportBuilder.colChannel",
+        "ko_value": "채널"
+      },
+      {
+        "path": "reportBuilder.colAdSpend",
+        "ko_value": "광고비"
+      },
+      {
+        "path": "reportBuilder.colRoas",
+        "ko_value": "ROAS"
+      },
+      {
+        "path": "reportBuilder.colOrders",
+        "ko_value": "주문"
+      },
+      {
+        "path": "reportBuilder.colCreator",
+        "ko_value": "크리에이터"
+      },
+      {
+        "path": "reportBuilder.colTier",
+        "ko_value": "등급"
+      },
+      {
+        "path": "reportBuilder.colViews",
+        "ko_value": "조회수"
+      },
+      {
+        "path": "reportBuilder.colRevenue",
+        "ko_value": "기여매출"
+      },
+      {
+        "path": "reportBuilder.colRoi",
+        "ko_value": "ROI"
+      },
+      {
+        "path": "reportBuilder.colSku",
+        "ko_value": "SKU"
+      },
+      {
+        "path": "reportBuilder.colProductName",
+        "ko_value": "상품명"
+      },
+      {
+        "path": "reportBuilder.colMargin",
+        "ko_value": "마진"
+      },
+      {
+        "path": "reportBuilder.colReturnRate",
+        "ko_value": "반품률"
+      },
+      {
+        "path": "reportBuilder.pnlRevenue",
+        "ko_value": "총 매출"
+      },
+      {
+        "path": "reportBuilder.pnlAdSpend",
+        "ko_value": "(-) 광고비"
+      },
+      {
+        "path": "reportBuilder.pnlFees",
+        "ko_value": "(-) 플랫폼 수수료"
+      },
+      {
+        "path": "reportBuilder.pnlInfluencer",
+        "ko_value": "(-) 인플루언서"
+      },
+      {
+        "path": "reportBuilder.pnlNetProfit",
+        "ko_value": "= 순이익"
+      },
+      {
+        "path": "reportBuilder.anomalyTitle",
+        "ko_value": "⚠ 이상징후 요약"
+      },
+      {
+        "path": "reportBuilder.kpiTitle",
+        "ko_value": "📊 핵심 KPI"
+      },
+      {
+        "path": "reportBuilder.campaignTitle",
+        "ko_value": "📣 캠페인 성과"
+      },
+      {
+        "path": "reportBuilder.creatorTitle",
+        "ko_value": "🤝 크리에이터 성과"
+      },
+      {
+        "path": "reportBuilder.skuTitle",
+        "ko_value": "📦 SKU 분석"
+      },
+      {
+        "path": "reportBuilder.allChannels",
+        "ko_value": "전체 채널"
+      },
+      {
+        "path": "reportBuilder.noData",
+        "ko_value": "데이터가 없습니다."
+      }
+    ],
+    "ar": [
+      {
+        "path": "reportBuilder.pageDesc",
+        "ko_value": "섹션 선택 · 기간/채널/SKU 필터 · 실시간 미리보기 — CSV/PDF 내보내기"
+      },
+      {
+        "path": "reportBuilder.csvExport",
+        "ko_value": "📥 CSV 내보내기"
+      },
+      {
+        "path": "reportBuilder.pdfExport",
+        "ko_value": "🖨 PDF 내보내기"
+      },
+      {
+        "path": "reportBuilder.downloadReady",
+        "ko_value": "다운로드 준비 완료"
+      },
+      {
+        "path": "reportBuilder.sectionSelect",
+        "ko_value": "📋 섹션 선택"
+      },
+      {
+        "path": "reportBuilder.filterPanel",
+        "ko_value": "🎛 리포트 필터"
+      },
+      {
+        "path": "reportBuilder.channel",
+        "ko_value": "채널"
+      },
+      {
+        "path": "reportBuilder.preview",
+        "ko_value": "👁 실시간 미리보기"
+      },
+      {
+        "path": "reportBuilder.sectionsSelected",
+        "ko_value": "개 섹션 선택됨"
+      },
+      {
+        "path": "reportBuilder.selectToPreview",
+        "ko_value": "왼쪽에서 섹션을 선택하면 미리보기가 표시됩니다"
+      },
+      {
+        "path": "reportBuilder.noChannelSelected",
+        "ko_value": "선택된 채널 없음"
+      },
+      {
+        "path": "reportBuilder.noSkuSelected",
+        "ko_value": "선택된 SKU 없음"
+      },
+      {
+        "path": "reportBuilder.period7d",
+        "ko_value": "최근 7일"
+      },
+      {
+        "path": "reportBuilder.period30d",
+        "ko_value": "최근 30일"
+      },
+      {
+        "path": "reportBuilder.period90d",
+        "ko_value": "최근 90일"
+      },
+      {
+        "path": "reportBuilder.periodQ1",
+        "ko_value": "Q1 2026"
+      },
+      {
+        "path": "reportBuilder.createdDate",
+        "ko_value": "생성일"
+      },
+      {
+        "path": "reportBuilder.includedSections",
+        "ko_value": "포함 섹션"
+      },
+      {
+        "path": "reportBuilder.reportTitle",
+        "ko_value": "📊 Geniego-ROI 통합 리포트"
+      },
+      {
+        "path": "reportBuilder.sectionKpi",
+        "ko_value": "핵심 KPI 요약"
+      },
+      {
+        "path": "reportBuilder.sectionKpiDesc",
+        "ko_value": "매출·광고비·수익 지표"
+      },
+      {
+        "path": "reportBuilder.sectionPnl",
+        "ko_value": "P&L 워터폴"
+      },
+      {
+        "path": "reportBuilder.sectionPnlDesc",
+        "ko_value": "비용 구조 분석"
+      },
+      {
+        "path": "reportBuilder.sectionCampaign",
+        "ko_value": "캠페인 성과표"
+      },
+      {
+        "path": "reportBuilder.sectionCampaignDesc",
+        "ko_value": "채널별 ROAS·주문"
+      },
+      {
+        "path": "reportBuilder.sectionCreator",
+        "ko_value": "크리에이터 성과"
+      },
+      {
+        "path": "reportBuilder.sectionCreatorDesc",
+        "ko_value": "ROI·기여 매출"
+      },
+      {
+        "path": "reportBuilder.sectionSku",
+        "ko_value": "SKU 분석"
+      },
+      {
+        "path": "reportBuilder.sectionSkuDesc",
+        "ko_value": "상품별 마진·반품률"
+      },
+      {
+        "path": "reportBuilder.sectionAnomaly",
+        "ko_value": "이상징후 요약"
+      },
+      {
+        "path": "reportBuilder.sectionAnomalyDesc",
+        "ko_value": "자동 탐지 경보"
+      },
+      {
+        "path": "reportBuilder.kpiRevenue",
+        "ko_value": "총 매출"
+      },
+      {
+        "path": "reportBuilder.kpiAdSpend",
+        "ko_value": "광고비"
+      },
+      {
+        "path": "reportBuilder.kpiNetProfit",
+        "ko_value": "순이익"
+      },
+      {
+        "path": "reportBuilder.kpiRoas",
+        "ko_value": "Blended ROAS"
+      },
+      {
+        "path": "reportBuilder.kpiOrders",
+        "ko_value": "총 주문"
+      },
+      {
+        "path": "reportBuilder.kpiReturnRate",
+        "ko_value": "반품률"
+      },
+      {
+        "path": "reportBuilder.colCampaign",
+        "ko_value": "캠페인"
+      },
+      {
+        "path": "reportBuilder.colChannel",
+        "ko_value": "채널"
+      },
+      {
+        "path": "reportBuilder.colAdSpend",
+        "ko_value": "광고비"
+      },
+      {
+        "path": "reportBuilder.colRoas",
+        "ko_value": "ROAS"
+      },
+      {
+        "path": "reportBuilder.colOrders",
+        "ko_value": "주문"
+      },
+      {
+        "path": "reportBuilder.colCreator",
+        "ko_value": "크리에이터"
+      },
+      {
+        "path": "reportBuilder.colTier",
+        "ko_value": "등급"
+      },
+      {
+        "path": "reportBuilder.colViews",
+        "ko_value": "조회수"
+      },
+      {
+        "path": "reportBuilder.colRevenue",
+        "ko_value": "기여매출"
+      },
+      {
+        "path": "reportBuilder.colRoi",
+        "ko_value": "ROI"
+      },
+      {
+        "path": "reportBuilder.colSku",
+        "ko_value": "SKU"
+      },
+      {
+        "path": "reportBuilder.colProductName",
+        "ko_value": "상품명"
+      },
+      {
+        "path": "reportBuilder.colMargin",
+        "ko_value": "마진"
+      },
+      {
+        "path": "reportBuilder.colReturnRate",
+        "ko_value": "반품률"
+      },
+      {
+        "path": "reportBuilder.pnlRevenue",
+        "ko_value": "총 매출"
+      },
+      {
+        "path": "reportBuilder.pnlAdSpend",
+        "ko_value": "(-) 광고비"
+      },
+      {
+        "path": "reportBuilder.pnlFees",
+        "ko_value": "(-) 플랫폼 수수료"
+      },
+      {
+        "path": "reportBuilder.pnlInfluencer",
+        "ko_value": "(-) 인플루언서"
+      },
+      {
+        "path": "reportBuilder.pnlNetProfit",
+        "ko_value": "= 순이익"
+      },
+      {
+        "path": "reportBuilder.anomalyTitle",
+        "ko_value": "⚠ 이상징후 요약"
+      },
+      {
+        "path": "reportBuilder.kpiTitle",
+        "ko_value": "📊 핵심 KPI"
+      },
+      {
+        "path": "reportBuilder.campaignTitle",
+        "ko_value": "📣 캠페인 성과"
+      },
+      {
+        "path": "reportBuilder.creatorTitle",
+        "ko_value": "🤝 크리에이터 성과"
+      },
+      {
+        "path": "reportBuilder.skuTitle",
+        "ko_value": "📦 SKU 분석"
+      },
+      {
+        "path": "reportBuilder.allChannels",
+        "ko_value": "전체 채널"
+      },
+      {
+        "path": "reportBuilder.noData",
+        "ko_value": "데이터가 없습니다."
+      }
+    ],
+    "hi": [
+      {
+        "path": "reportBuilder.pageDesc",
+        "ko_value": "섹션 선택 · 기간/채널/SKU 필터 · 실시간 미리보기 — CSV/PDF 내보내기"
+      },
+      {
+        "path": "reportBuilder.csvExport",
+        "ko_value": "📥 CSV 내보내기"
+      },
+      {
+        "path": "reportBuilder.pdfExport",
+        "ko_value": "🖨 PDF 내보내기"
+      },
+      {
+        "path": "reportBuilder.downloadReady",
+        "ko_value": "다운로드 준비 완료"
+      },
+      {
+        "path": "reportBuilder.sectionSelect",
+        "ko_value": "📋 섹션 선택"
+      },
+      {
+        "path": "reportBuilder.filterPanel",
+        "ko_value": "🎛 리포트 필터"
+      },
+      {
+        "path": "reportBuilder.channel",
+        "ko_value": "채널"
+      },
+      {
+        "path": "reportBuilder.preview",
+        "ko_value": "👁 실시간 미리보기"
+      },
+      {
+        "path": "reportBuilder.sectionsSelected",
+        "ko_value": "개 섹션 선택됨"
+      },
+      {
+        "path": "reportBuilder.selectToPreview",
+        "ko_value": "왼쪽에서 섹션을 선택하면 미리보기가 표시됩니다"
+      },
+      {
+        "path": "reportBuilder.noChannelSelected",
+        "ko_value": "선택된 채널 없음"
+      },
+      {
+        "path": "reportBuilder.noSkuSelected",
+        "ko_value": "선택된 SKU 없음"
+      },
+      {
+        "path": "reportBuilder.period7d",
+        "ko_value": "최근 7일"
+      },
+      {
+        "path": "reportBuilder.period30d",
+        "ko_value": "최근 30일"
+      },
+      {
+        "path": "reportBuilder.period90d",
+        "ko_value": "최근 90일"
+      },
+      {
+        "path": "reportBuilder.periodQ1",
+        "ko_value": "Q1 2026"
+      },
+      {
+        "path": "reportBuilder.createdDate",
+        "ko_value": "생성일"
+      },
+      {
+        "path": "reportBuilder.includedSections",
+        "ko_value": "포함 섹션"
+      },
+      {
+        "path": "reportBuilder.reportTitle",
+        "ko_value": "📊 Geniego-ROI 통합 리포트"
+      },
+      {
+        "path": "reportBuilder.sectionKpi",
+        "ko_value": "핵심 KPI 요약"
+      },
+      {
+        "path": "reportBuilder.sectionKpiDesc",
+        "ko_value": "매출·광고비·수익 지표"
+      },
+      {
+        "path": "reportBuilder.sectionPnl",
+        "ko_value": "P&L 워터폴"
+      },
+      {
+        "path": "reportBuilder.sectionPnlDesc",
+        "ko_value": "비용 구조 분석"
+      },
+      {
+        "path": "reportBuilder.sectionCampaign",
+        "ko_value": "캠페인 성과표"
+      },
+      {
+        "path": "reportBuilder.sectionCampaignDesc",
+        "ko_value": "채널별 ROAS·주문"
+      },
+      {
+        "path": "reportBuilder.sectionCreator",
+        "ko_value": "크리에이터 성과"
+      },
+      {
+        "path": "reportBuilder.sectionCreatorDesc",
+        "ko_value": "ROI·기여 매출"
+      },
+      {
+        "path": "reportBuilder.sectionSku",
+        "ko_value": "SKU 분석"
+      },
+      {
+        "path": "reportBuilder.sectionSkuDesc",
+        "ko_value": "상품별 마진·반품률"
+      },
+      {
+        "path": "reportBuilder.sectionAnomaly",
+        "ko_value": "이상징후 요약"
+      },
+      {
+        "path": "reportBuilder.sectionAnomalyDesc",
+        "ko_value": "자동 탐지 경보"
+      },
+      {
+        "path": "reportBuilder.kpiRevenue",
+        "ko_value": "총 매출"
+      },
+      {
+        "path": "reportBuilder.kpiAdSpend",
+        "ko_value": "광고비"
+      },
+      {
+        "path": "reportBuilder.kpiNetProfit",
+        "ko_value": "순이익"
+      },
+      {
+        "path": "reportBuilder.kpiRoas",
+        "ko_value": "Blended ROAS"
+      },
+      {
+        "path": "reportBuilder.kpiOrders",
+        "ko_value": "총 주문"
+      },
+      {
+        "path": "reportBuilder.kpiReturnRate",
+        "ko_value": "반품률"
+      },
+      {
+        "path": "reportBuilder.colCampaign",
+        "ko_value": "캠페인"
+      },
+      {
+        "path": "reportBuilder.colChannel",
+        "ko_value": "채널"
+      },
+      {
+        "path": "reportBuilder.colAdSpend",
+        "ko_value": "광고비"
+      },
+      {
+        "path": "reportBuilder.colRoas",
+        "ko_value": "ROAS"
+      },
+      {
+        "path": "reportBuilder.colOrders",
+        "ko_value": "주문"
+      },
+      {
+        "path": "reportBuilder.colCreator",
+        "ko_value": "크리에이터"
+      },
+      {
+        "path": "reportBuilder.colTier",
+        "ko_value": "등급"
+      },
+      {
+        "path": "reportBuilder.colViews",
+        "ko_value": "조회수"
+      },
+      {
+        "path": "reportBuilder.colRevenue",
+        "ko_value": "기여매출"
+      },
+      {
+        "path": "reportBuilder.colRoi",
+        "ko_value": "ROI"
+      },
+      {
+        "path": "reportBuilder.colSku",
+        "ko_value": "SKU"
+      },
+      {
+        "path": "reportBuilder.colProductName",
+        "ko_value": "상품명"
+      },
+      {
+        "path": "reportBuilder.colMargin",
+        "ko_value": "마진"
+      },
+      {
+        "path": "reportBuilder.colReturnRate",
+        "ko_value": "반품률"
+      },
+      {
+        "path": "reportBuilder.pnlRevenue",
+        "ko_value": "총 매출"
+      },
+      {
+        "path": "reportBuilder.pnlAdSpend",
+        "ko_value": "(-) 광고비"
+      },
+      {
+        "path": "reportBuilder.pnlFees",
+        "ko_value": "(-) 플랫폼 수수료"
+      },
+      {
+        "path": "reportBuilder.pnlInfluencer",
+        "ko_value": "(-) 인플루언서"
+      },
+      {
+        "path": "reportBuilder.pnlNetProfit",
+        "ko_value": "= 순이익"
+      },
+      {
+        "path": "reportBuilder.anomalyTitle",
+        "ko_value": "⚠ 이상징후 요약"
+      },
+      {
+        "path": "reportBuilder.kpiTitle",
+        "ko_value": "📊 핵심 KPI"
+      },
+      {
+        "path": "reportBuilder.campaignTitle",
+        "ko_value": "📣 캠페인 성과"
+      },
+      {
+        "path": "reportBuilder.creatorTitle",
+        "ko_value": "🤝 크리에이터 성과"
+      },
+      {
+        "path": "reportBuilder.skuTitle",
+        "ko_value": "📦 SKU 분석"
+      },
+      {
+        "path": "reportBuilder.allChannels",
+        "ko_value": "전체 채널"
+      },
+      {
+        "path": "reportBuilder.noData",
+        "ko_value": "데이터가 없습니다."
+      }
+    ],
+    "pt": [
+      {
+        "path": "reportBuilder.pageDesc",
+        "ko_value": "섹션 선택 · 기간/채널/SKU 필터 · 실시간 미리보기 — CSV/PDF 내보내기"
+      },
+      {
+        "path": "reportBuilder.csvExport",
+        "ko_value": "📥 CSV 내보내기"
+      },
+      {
+        "path": "reportBuilder.pdfExport",
+        "ko_value": "🖨 PDF 내보내기"
+      },
+      {
+        "path": "reportBuilder.downloadReady",
+        "ko_value": "다운로드 준비 완료"
+      },
+      {
+        "path": "reportBuilder.sectionSelect",
+        "ko_value": "📋 섹션 선택"
+      },
+      {
+        "path": "reportBuilder.filterPanel",
+        "ko_value": "🎛 리포트 필터"
+      },
+      {
+        "path": "reportBuilder.channel",
+        "ko_value": "채널"
+      },
+      {
+        "path": "reportBuilder.preview",
+        "ko_value": "👁 실시간 미리보기"
+      },
+      {
+        "path": "reportBuilder.sectionsSelected",
+        "ko_value": "개 섹션 선택됨"
+      },
+      {
+        "path": "reportBuilder.selectToPreview",
+        "ko_value": "왼쪽에서 섹션을 선택하면 미리보기가 표시됩니다"
+      },
+      {
+        "path": "reportBuilder.noChannelSelected",
+        "ko_value": "선택된 채널 없음"
+      },
+      {
+        "path": "reportBuilder.noSkuSelected",
+        "ko_value": "선택된 SKU 없음"
+      },
+      {
+        "path": "reportBuilder.period7d",
+        "ko_value": "최근 7일"
+      },
+      {
+        "path": "reportBuilder.period30d",
+        "ko_value": "최근 30일"
+      },
+      {
+        "path": "reportBuilder.period90d",
+        "ko_value": "최근 90일"
+      },
+      {
+        "path": "reportBuilder.periodQ1",
+        "ko_value": "Q1 2026"
+      },
+      {
+        "path": "reportBuilder.createdDate",
+        "ko_value": "생성일"
+      },
+      {
+        "path": "reportBuilder.includedSections",
+        "ko_value": "포함 섹션"
+      },
+      {
+        "path": "reportBuilder.reportTitle",
+        "ko_value": "📊 Geniego-ROI 통합 리포트"
+      },
+      {
+        "path": "reportBuilder.sectionKpi",
+        "ko_value": "핵심 KPI 요약"
+      },
+      {
+        "path": "reportBuilder.sectionKpiDesc",
+        "ko_value": "매출·광고비·수익 지표"
+      },
+      {
+        "path": "reportBuilder.sectionPnl",
+        "ko_value": "P&L 워터폴"
+      },
+      {
+        "path": "reportBuilder.sectionPnlDesc",
+        "ko_value": "비용 구조 분석"
+      },
+      {
+        "path": "reportBuilder.sectionCampaign",
+        "ko_value": "캠페인 성과표"
+      },
+      {
+        "path": "reportBuilder.sectionCampaignDesc",
+        "ko_value": "채널별 ROAS·주문"
+      },
+      {
+        "path": "reportBuilder.sectionCreator",
+        "ko_value": "크리에이터 성과"
+      },
+      {
+        "path": "reportBuilder.sectionCreatorDesc",
+        "ko_value": "ROI·기여 매출"
+      },
+      {
+        "path": "reportBuilder.sectionSku",
+        "ko_value": "SKU 분석"
+      },
+      {
+        "path": "reportBuilder.sectionSkuDesc",
+        "ko_value": "상품별 마진·반품률"
+      },
+      {
+        "path": "reportBuilder.sectionAnomaly",
+        "ko_value": "이상징후 요약"
+      },
+      {
+        "path": "reportBuilder.sectionAnomalyDesc",
+        "ko_value": "자동 탐지 경보"
+      },
+      {
+        "path": "reportBuilder.kpiRevenue",
+        "ko_value": "총 매출"
+      },
+      {
+        "path": "reportBuilder.kpiAdSpend",
+        "ko_value": "광고비"
+      },
+      {
+        "path": "reportBuilder.kpiNetProfit",
+        "ko_value": "순이익"
+      },
+      {
+        "path": "reportBuilder.kpiRoas",
+        "ko_value": "Blended ROAS"
+      },
+      {
+        "path": "reportBuilder.kpiOrders",
+        "ko_value": "총 주문"
+      },
+      {
+        "path": "reportBuilder.kpiReturnRate",
+        "ko_value": "반품률"
+      },
+      {
+        "path": "reportBuilder.colCampaign",
+        "ko_value": "캠페인"
+      },
+      {
+        "path": "reportBuilder.colChannel",
+        "ko_value": "채널"
+      },
+      {
+        "path": "reportBuilder.colAdSpend",
+        "ko_value": "광고비"
+      },
+      {
+        "path": "reportBuilder.colRoas",
+        "ko_value": "ROAS"
+      },
+      {
+        "path": "reportBuilder.colOrders",
+        "ko_value": "주문"
+      },
+      {
+        "path": "reportBuilder.colCreator",
+        "ko_value": "크리에이터"
+      },
+      {
+        "path": "reportBuilder.colTier",
+        "ko_value": "등급"
+      },
+      {
+        "path": "reportBuilder.colViews",
+        "ko_value": "조회수"
+      },
+      {
+        "path": "reportBuilder.colRevenue",
+        "ko_value": "기여매출"
+      },
+      {
+        "path": "reportBuilder.colRoi",
+        "ko_value": "ROI"
+      },
+      {
+        "path": "reportBuilder.colSku",
+        "ko_value": "SKU"
+      },
+      {
+        "path": "reportBuilder.colProductName",
+        "ko_value": "상품명"
+      },
+      {
+        "path": "reportBuilder.colMargin",
+        "ko_value": "마진"
+      },
+      {
+        "path": "reportBuilder.colReturnRate",
+        "ko_value": "반품률"
+      },
+      {
+        "path": "reportBuilder.pnlRevenue",
+        "ko_value": "총 매출"
+      },
+      {
+        "path": "reportBuilder.pnlAdSpend",
+        "ko_value": "(-) 광고비"
+      },
+      {
+        "path": "reportBuilder.pnlFees",
+        "ko_value": "(-) 플랫폼 수수료"
+      },
+      {
+        "path": "reportBuilder.pnlInfluencer",
+        "ko_value": "(-) 인플루언서"
+      },
+      {
+        "path": "reportBuilder.pnlNetProfit",
+        "ko_value": "= 순이익"
+      },
+      {
+        "path": "reportBuilder.anomalyTitle",
+        "ko_value": "⚠ 이상징후 요약"
+      },
+      {
+        "path": "reportBuilder.kpiTitle",
+        "ko_value": "📊 핵심 KPI"
+      },
+      {
+        "path": "reportBuilder.campaignTitle",
+        "ko_value": "📣 캠페인 성과"
+      },
+      {
+        "path": "reportBuilder.creatorTitle",
+        "ko_value": "🤝 크리에이터 성과"
+      },
+      {
+        "path": "reportBuilder.skuTitle",
+        "ko_value": "📦 SKU 분석"
+      },
+      {
+        "path": "reportBuilder.allChannels",
+        "ko_value": "전체 채널"
+      },
+      {
+        "path": "reportBuilder.noData",
+        "ko_value": "데이터가 없습니다."
+      }
+    ],
+    "ru": [
+      {
+        "path": "reportBuilder.pageDesc",
+        "ko_value": "섹션 선택 · 기간/채널/SKU 필터 · 실시간 미리보기 — CSV/PDF 내보내기"
+      },
+      {
+        "path": "reportBuilder.csvExport",
+        "ko_value": "📥 CSV 내보내기"
+      },
+      {
+        "path": "reportBuilder.pdfExport",
+        "ko_value": "🖨 PDF 내보내기"
+      },
+      {
+        "path": "reportBuilder.downloadReady",
+        "ko_value": "다운로드 준비 완료"
+      },
+      {
+        "path": "reportBuilder.sectionSelect",
+        "ko_value": "📋 섹션 선택"
+      },
+      {
+        "path": "reportBuilder.filterPanel",
+        "ko_value": "🎛 리포트 필터"
+      },
+      {
+        "path": "reportBuilder.channel",
+        "ko_value": "채널"
+      },
+      {
+        "path": "reportBuilder.preview",
+        "ko_value": "👁 실시간 미리보기"
+      },
+      {
+        "path": "reportBuilder.sectionsSelected",
+        "ko_value": "개 섹션 선택됨"
+      },
+      {
+        "path": "reportBuilder.selectToPreview",
+        "ko_value": "왼쪽에서 섹션을 선택하면 미리보기가 표시됩니다"
+      },
+      {
+        "path": "reportBuilder.noChannelSelected",
+        "ko_value": "선택된 채널 없음"
+      },
+      {
+        "path": "reportBuilder.noSkuSelected",
+        "ko_value": "선택된 SKU 없음"
+      },
+      {
+        "path": "reportBuilder.period7d",
+        "ko_value": "최근 7일"
+      },
+      {
+        "path": "reportBuilder.period30d",
+        "ko_value": "최근 30일"
+      },
+      {
+        "path": "reportBuilder.period90d",
+        "ko_value": "최근 90일"
+      },
+      {
+        "path": "reportBuilder.periodQ1",
+        "ko_value": "Q1 2026"
+      },
+      {
+        "path": "reportBuilder.createdDate",
+        "ko_value": "생성일"
+      },
+      {
+        "path": "reportBuilder.includedSections",
+        "ko_value": "포함 섹션"
+      },
+      {
+        "path": "reportBuilder.reportTitle",
+        "ko_value": "📊 Geniego-ROI 통합 리포트"
+      },
+      {
+        "path": "reportBuilder.sectionKpi",
+        "ko_value": "핵심 KPI 요약"
+      },
+      {
+        "path": "reportBuilder.sectionKpiDesc",
+        "ko_value": "매출·광고비·수익 지표"
+      },
+      {
+        "path": "reportBuilder.sectionPnl",
+        "ko_value": "P&L 워터폴"
+      },
+      {
+        "path": "reportBuilder.sectionPnlDesc",
+        "ko_value": "비용 구조 분석"
+      },
+      {
+        "path": "reportBuilder.sectionCampaign",
+        "ko_value": "캠페인 성과표"
+      },
+      {
+        "path": "reportBuilder.sectionCampaignDesc",
+        "ko_value": "채널별 ROAS·주문"
+      },
+      {
+        "path": "reportBuilder.sectionCreator",
+        "ko_value": "크리에이터 성과"
+      },
+      {
+        "path": "reportBuilder.sectionCreatorDesc",
+        "ko_value": "ROI·기여 매출"
+      },
+      {
+        "path": "reportBuilder.sectionSku",
+        "ko_value": "SKU 분석"
+      },
+      {
+        "path": "reportBuilder.sectionSkuDesc",
+        "ko_value": "상품별 마진·반품률"
+      },
+      {
+        "path": "reportBuilder.sectionAnomaly",
+        "ko_value": "이상징후 요약"
+      },
+      {
+        "path": "reportBuilder.sectionAnomalyDesc",
+        "ko_value": "자동 탐지 경보"
+      },
+      {
+        "path": "reportBuilder.kpiRevenue",
+        "ko_value": "총 매출"
+      },
+      {
+        "path": "reportBuilder.kpiAdSpend",
+        "ko_value": "광고비"
+      },
+      {
+        "path": "reportBuilder.kpiNetProfit",
+        "ko_value": "순이익"
+      },
+      {
+        "path": "reportBuilder.kpiRoas",
+        "ko_value": "Blended ROAS"
+      },
+      {
+        "path": "reportBuilder.kpiOrders",
+        "ko_value": "총 주문"
+      },
+      {
+        "path": "reportBuilder.kpiReturnRate",
+        "ko_value": "반품률"
+      },
+      {
+        "path": "reportBuilder.colCampaign",
+        "ko_value": "캠페인"
+      },
+      {
+        "path": "reportBuilder.colChannel",
+        "ko_value": "채널"
+      },
+      {
+        "path": "reportBuilder.colAdSpend",
+        "ko_value": "광고비"
+      },
+      {
+        "path": "reportBuilder.colRoas",
+        "ko_value": "ROAS"
+      },
+      {
+        "path": "reportBuilder.colOrders",
+        "ko_value": "주문"
+      },
+      {
+        "path": "reportBuilder.colCreator",
+        "ko_value": "크리에이터"
+      },
+      {
+        "path": "reportBuilder.colTier",
+        "ko_value": "등급"
+      },
+      {
+        "path": "reportBuilder.colViews",
+        "ko_value": "조회수"
+      },
+      {
+        "path": "reportBuilder.colRevenue",
+        "ko_value": "기여매출"
+      },
+      {
+        "path": "reportBuilder.colRoi",
+        "ko_value": "ROI"
+      },
+      {
+        "path": "reportBuilder.colSku",
+        "ko_value": "SKU"
+      },
+      {
+        "path": "reportBuilder.colProductName",
+        "ko_value": "상품명"
+      },
+      {
+        "path": "reportBuilder.colMargin",
+        "ko_value": "마진"
+      },
+      {
+        "path": "reportBuilder.colReturnRate",
+        "ko_value": "반품률"
+      },
+      {
+        "path": "reportBuilder.pnlRevenue",
+        "ko_value": "총 매출"
+      },
+      {
+        "path": "reportBuilder.pnlAdSpend",
+        "ko_value": "(-) 광고비"
+      },
+      {
+        "path": "reportBuilder.pnlFees",
+        "ko_value": "(-) 플랫폼 수수료"
+      },
+      {
+        "path": "reportBuilder.pnlInfluencer",
+        "ko_value": "(-) 인플루언서"
+      },
+      {
+        "path": "reportBuilder.pnlNetProfit",
+        "ko_value": "= 순이익"
+      },
+      {
+        "path": "reportBuilder.anomalyTitle",
+        "ko_value": "⚠ 이상징후 요약"
+      },
+      {
+        "path": "reportBuilder.kpiTitle",
+        "ko_value": "📊 핵심 KPI"
+      },
+      {
+        "path": "reportBuilder.campaignTitle",
+        "ko_value": "📣 캠페인 성과"
+      },
+      {
+        "path": "reportBuilder.creatorTitle",
+        "ko_value": "🤝 크리에이터 성과"
+      },
+      {
+        "path": "reportBuilder.skuTitle",
+        "ko_value": "📦 SKU 분석"
+      },
+      {
+        "path": "reportBuilder.allChannels",
+        "ko_value": "전체 채널"
+      },
+      {
+        "path": "reportBuilder.noData",
+        "ko_value": "데이터가 없습니다."
+      }
+    ]
+  }
+}

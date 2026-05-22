@@ -1,0 +1,162 @@
+{
+  "missing": [
+    {
+      "lang": "vi",
+      "ns": "reportBuilder",
+      "key": "pageSub",
+      "ko_value": "[NOT_FOUND_IN_KO]"
+    },
+    {
+      "lang": "vi",
+      "ns": "reportBuilder",
+      "key": "tabCreate",
+      "ko_value": "[NOT_FOUND_IN_KO]"
+    },
+    {
+      "lang": "vi",
+      "ns": "reportBuilder",
+      "key": "reportType",
+      "ko_value": "[NOT_FOUND_IN_KO]"
+    },
+    {
+      "lang": "vi",
+      "ns": "reportBuilder",
+      "key": "channels",
+      "ko_value": "[NOT_FOUND_IN_KO]"
+    },
+    {
+      "lang": "vi",
+      "ns": "reportBuilder",
+      "key": "generateReport",
+      "ko_value": "[NOT_FOUND_IN_KO]"
+    },
+    {
+      "lang": "vi",
+      "ns": "reportBuilder",
+      "key": "noReports",
+      "ko_value": "[NOT_FOUND_IN_KO]"
+    },
+    {
+      "lang": "vi",
+      "ns": "reportBuilder",
+      "key": "previewTitle",
+      "ko_value": "[NOT_FOUND_IN_KO]"
+    },
+    {
+      "lang": "vi",
+      "ns": "reportBuilder",
+      "key": "type_channel",
+      "ko_value": "[NOT_FOUND_IN_KO]"
+    },
+    {
+      "lang": "vi",
+      "ns": "reportBuilder",
+      "key": "type_influencer",
+      "ko_value": "[NOT_FOUND_IN_KO]"
+    },
+    {
+      "lang": "vi",
+      "ns": "userMgmt",
+      "key": "role_ModeStr",
+      "ko_value": "[NOT_FOUND_IN_KO]"
+    },
+    {
+      "lang": "th",
+      "ns": "reportBuilder",
+      "key": "PLACEHOLDER",
+      "ko_value": "[NOT_FOUND_IN_KO]"
+    },
+    {
+      "lang": "th",
+      "ns": "userMgmt",
+      "key": "role_ModeStr",
+      "ko_value": "[NOT_FOUND_IN_KO]"
+    },
+    {
+      "lang": "id",
+      "ns": "reportBuilder",
+      "key": "PLACEHOLDER",
+      "ko_value": "[NOT_FOUND_IN_KO]"
+    },
+    {
+      "lang": "id",
+      "ns": "userMgmt",
+      "key": "role_ModeStr",
+      "ko_value": "[NOT_FOUND_IN_KO]"
+    },
+    {
+      "lang": "zh-TW",
+      "ns": "reportBuilder",
+      "key": "PLACEHOLDER",
+      "ko_value": "[NOT_FOUND_IN_KO]"
+    },
+    {
+      "lang": "zh-TW",
+      "ns": "userMgmt",
+      "key": "role_ModeStr",
+      "ko_value": "[NOT_FOUND_IN_KO]"
+    },
+    {
+      "lang": "en",
+      "ns": "userMgmt",
+      "key": "role_ModeStr",
+      "ko_value": "[NOT_FOUND_IN_KO]"
+    },
+    {
+      "lang": "es",
+      "ns": "userMgmt",
+      "key": "role_ModeStr",
+      "ko_value": "[NOT_FOUND_IN_KO]"
+    },
+    {
+      "lang": "fr",
+      "ns": "userMgmt",
+      "key": "role_ModeStr",
+      "ko_value": "[NOT_FOUND_IN_KO]"
+    },
+    {
+      "lang": "de",
+      "ns": "userMgmt",
+      "key": "role_ModeStr",
+      "ko_value": "[NOT_FOUND_IN_KO]"
+    },
+    {
+      "lang": "ar",
+      "ns": "userMgmt",
+      "key": "role_ModeStr",
+      "ko_value": "[NOT_FOUND_IN_KO]"
+    },
+    {
+      "lang": "hi",
+      "ns": "userMgmt",
+      "key": "role_ModeStr",
+      "ko_value": "[NOT_FOUND_IN_KO]"
+    },
+    {
+      "lang": "pt",
+      "ns": "userMgmt",
+      "key": "role_ModeStr",
+      "ko_value": "[NOT_FOUND_IN_KO]"
+    },
+    {
+      "lang": "ru",
+      "ns": "userMgmt",
+      "key": "role_ModeStr",
+      "ko_value": "[NOT_FOUND_IN_KO]"
+    }
+  ],
+  "summary": {
+    "vi": 10,
+    "th": 2,
+    "id": 2,
+    "zh-TW": 2,
+    "en": 1,
+    "es": 1,
+    "fr": 1,
+    "de": 1,
+    "ar": 1,
+    "hi": 1,
+    "pt": 1,
+    "ru": 1
+  }
+}
