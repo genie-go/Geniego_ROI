@@ -1,0 +1,113 @@
+path,ko_value,path_last_seg,missing_tokens,has_double_space,has_trailing_num
+ruleEnginePage.wms.permColRole,Role,permColRole,Col→ol,false,false
+ruleEnginePage.super.conKpiApi,API 키 인증,conKpiApi,Kpi→pi,false,false
+kakao.pTplCode,예: ORDER_COMPLETE,pTplCode,Tpl→pl,false,false
+super.conKpiApi,API 키 인증,conKpiApi,Kpi→pi,false,false
+nav.pages.onboarding.kpiAPIKey,400+ API 엔드포인트 지원,kpiAPIKey,kpi→pi,false,false
+nav.pages.pricingDetail.pro_desc,Growth 전체 + AI 예측·여정 빌더·글로벌 채널·룰 엔진·SmartConnect·1st-Party 픽셀·고급 BI.,pro_desc,pro→ro,false,false
+nav.pages.pricingDetail.pro_s2i1,여정 캔버스 (Drag&Drop),pro_s2i1,pro→ro,false,false
+nav.pages.pricingDetail.pro_s8i3,기여도 분석 (터치 모델·ROAS),pro_s8i3,pro→ro,false,false
+nav.pages.aiPredict.banner.mktHighRoas,최근 48시간 TikTok의 ROAS가 타겟 대비 150%를 초과달성 중입니다.,mktHighRoas,mkt→kt,false,false
+nav.pages.banner.mktHighRoas,최근 48시간 TikTok의 ROAS가 타겟 대비 150%를 초과달성 중입니다.,mktHighRoas,mkt→kt,false,false
+attrData.ascoreTitle,A-Score (어트리뷰션 신뢰도),ascoreTitle,ascore→score,false,false
+onboarding.kpiAPIKey,400+ API 엔드포인트 지원,kpiAPIKey,kpi→pi,false,false
+pricingDetail.pro_desc,Growth 전체 + AI 예측·여정 빌더·글로벌 채널·규칙 엔진·SmartConnect·1st-Party 픽셀·고급 BI.,pro_desc,pro→ro,false,false
+pricingDetail.pro_s8i3,어트리뷰션 분석 (터치 모델·ROAS),pro_s8i3,pro→ro,false,false
+aiPredict.banner.mktHighRoas,최근 48시간 TikTok의 ROAS가 타겟 대비 150%를 초과달성 중입니다.,mktHighRoas,mkt→kt,false,false
+banner.mktHighRoas,최근 48시간 TikTok의 ROAS가 타겟 대비 150%를 초과달성 중입니다.,mktHighRoas,mkt→kt,false,false
+pricing.influencer.attrData.ascoreTitle,A-Score (어트리뷰션 신뢰도),ascoreTitle,ascore→score,false,false
+catalogSync.ihub.dwFeatureMLflow,ML Flow 통합,dwFeatureMLflow,Lflow→flow,false,false
+dt.qualityEstEx4,AI Forecast 전환율,qualityEstEx4,Est→st,false,false
+crm.email.catalogSync.registerRunMsg,🚀 상품 {{prodCount}}개 · 채널 {{chCount}}개 등록 실행,registerRunMsg,Run→un,false,false
+crm.guideTip3,RFM 분석으로 VIP 고객을 식별하세요.,guideTip3,Tip→ip,false,false
+crm.aiHub.catalogSync.ihub.dwFeatureMLflow,ML Flow 통합,dwFeatureMLflow,Lflow→flow,false,false
+reviews.mktHighRoas,최근 48시간 TikTok의 ROAS가 타겟 대비 150%를 초과달성 중입니다.,mktHighRoas,mkt→kt,false,false
+pages.marketingIntel.aiPredict.influencerUGC.txt_부정키워드Top5_16,Txt_부정키워드 op5_16,txt_부정키워드Top5_16,Top→op,false,true
+pages.marketingIntel.aiPredict.influencerUGC.txt_All감성_19,Txt_ ll감성_19,txt_All감성_19,All→ll,false,true
+pages.marketingIntel.aiPredict.influencerUGC.txt_CS대응_23,Txt_  대응_23,txt_CS대응_23,,true,true
+pages.marketingIntel.aiPredict.influencerUGC.txt_Search결과No_24,Txt_ earch결과 o_24,txt_Search결과No_24,Search→earch,false,true
+pages.marketingIntel.aiPredict.influencerUGC.txt_AI인플루언서평가A_25,Txt_  인플루언서평가 _25,txt_AI인플루언서평가A_25,,true,true
+pages.marketingIntel.aiPredict.influencerUGC.txt_AI적정Commis_30,Txt_  적정 ommis_30,txt_AI적정Commis_30,Commis→ommis,true,true
+pages.marketingIntel.aiPredict.influencerUGC.txt_평가대상Creato_36,Txt_평가대상 reato_36,txt_평가대상Creato_36,Creato→reato,false,true
+pages.marketingIntel.aiPredict.influencerUGC.txt_AI평가RunBut_37,Txt_  평가 un ut_37,txt_AI평가RunBut_37,Run→un|But→ut,true,true
+pages.marketingIntel.aiPredict.influencerUGC.txt_포트폴리오종합Ana_38,Txt_포트폴리오종합 na_38,txt_포트폴리오종합Ana_38,Ana→na,false,true
+pages.marketingIntel.aiPredict.influencerUGC.txt_CreatorAI평_39,Txt_ reator  평_39,txt_CreatorAI평_39,Creator→reator,true,true
+pages.marketingIntel.aiPredict.influencerUGC.txt_행Clicks시항목_40,Txt_행 licks시항목_40,txt_행Clicks시항목_40,Clicks→licks,false,true
+pages.marketingIntel.aiPredict.influencerUGC.txt_AI점Count_41,Txt_  점 ount_41,txt_AI점Count_41,Count→ount,true,true
+pages.marketingIntel.aiPredict.influencerUGC.txt_권장Commissi_43,Txt_권장 ommissi_43,txt_권장Commissi_43,Commissi→ommissi,false,true
+pages.marketingIntel.aiPredict.influencerUGC.txt_Budget최적화제_45,Txt_ udget최적화제_45,txt_Budget최적화제_45,Budget→udget,false,true
+pages.marketingIntel.aiPredict.influencerUGC.txt_AI재Analysi_46,Txt_  재 nalysi_46,txt_AI재Analysi_46,Analysi→nalysi,true,true
+pages.marketingIntel.aiPredict.influencerUGC.txt_All리뷰_47,Txt_ ll리뷰_47,txt_All리뷰_47,All→ll,false,true
+pages.marketingIntel.aiPredict.influencerUGC.txt_4개Channel합_48,Txt_4개 hannel합_48,txt_4개Channel합_48,Channel→hannel,false,true
+pages.marketingIntel.aiPredict.influencerUGC.txt_Average평점_49,Txt_ verage평점_49,txt_Average평점_49,Average→verage,false,true
+pages.marketingIntel.aiPredict.influencerUGC.txt_전Channel가i_50,Txt_전 hannel가i_50,txt_전Channel가i_50,Channel→hannel,false,true
+pages.marketingIntel.aiPredict.influencerUGC.txt_긍정Rate_53,Txt_긍정 ate_53,txt_긍정Rate_53,Rate→ate,false,true
+pages.marketingIntel.influencerUGC.txt_부정키워드Top5_16,Txt_부정키워드 op5_16,txt_부정키워드Top5_16,Top→op,false,true
+pages.marketingIntel.influencerUGC.txt_All감성_19,Txt_ ll감성_19,txt_All감성_19,All→ll,false,true
+pages.marketingIntel.influencerUGC.txt_CS대응_23,Txt_  대응_23,txt_CS대응_23,,true,true
+pages.marketingIntel.influencerUGC.txt_Search결과No_24,Txt_ earch결과 o_24,txt_Search결과No_24,Search→earch,false,true
+pages.marketingIntel.influencerUGC.txt_AI인플루언서평가A_25,Txt_  인플루언서평가 _25,txt_AI인플루언서평가A_25,,true,true
+pages.marketingIntel.influencerUGC.txt_AI적정Commis_30,Txt_  적정 ommis_30,txt_AI적정Commis_30,Commis→ommis,true,true
+pages.marketingIntel.influencerUGC.txt_평가대상Creato_36,Txt_평가대상 reato_36,txt_평가대상Creato_36,Creato→reato,false,true
+pages.marketingIntel.influencerUGC.txt_AI평가RunBut_37,Txt_  평가 un ut_37,txt_AI평가RunBut_37,Run→un|But→ut,true,true
+pages.marketingIntel.influencerUGC.txt_포트폴리오종합Ana_38,Txt_포트폴리오종합 na_38,txt_포트폴리오종합Ana_38,Ana→na,false,true
+pages.marketingIntel.influencerUGC.txt_CreatorAI평_39,Txt_ reator  평_39,txt_CreatorAI평_39,Creator→reator,true,true
+pages.marketingIntel.influencerUGC.txt_행Clicks시항목_40,Txt_행 licks시항목_40,txt_행Clicks시항목_40,Clicks→licks,false,true
+pages.marketingIntel.influencerUGC.txt_AI점Count_41,Txt_  점 ount_41,txt_AI점Count_41,Count→ount,true,true
+pages.marketingIntel.influencerUGC.txt_권장Commissi_43,Txt_권장 ommissi_43,txt_권장Commissi_43,Commissi→ommissi,false,true
+pages.marketingIntel.influencerUGC.txt_Budget최적화제_45,Txt_ udget최적화제_45,txt_Budget최적화제_45,Budget→udget,false,true
+pages.marketingIntel.influencerUGC.txt_AI재Analysi_46,Txt_  재 nalysi_46,txt_AI재Analysi_46,Analysi→nalysi,true,true
+pages.marketingIntel.influencerUGC.txt_All리뷰_47,Txt_ ll리뷰_47,txt_All리뷰_47,All→ll,false,true
+pages.marketingIntel.influencerUGC.txt_4개Channel합_48,Txt_4개 hannel합_48,txt_4개Channel합_48,Channel→hannel,false,true
+pages.marketingIntel.influencerUGC.txt_Average평점_49,Txt_ verage평점_49,txt_Average평점_49,Average→verage,false,true
+pages.marketingIntel.influencerUGC.txt_전Channel가i_50,Txt_전 hannel가i_50,txt_전Channel가i_50,Channel→hannel,false,true
+pages.marketingIntel.influencerUGC.txt_긍정Rate_53,Txt_긍정 ate_53,txt_긍정Rate_53,Rate→ate,false,true
+pages.marketingIntel.influencer.colFollowers,Followers,colFollowers,col→ol,false,false
+pages.marketingIntel.marketingIntel.aiPredict.influencerUGC.txt_부정키워드Top5_16,Txt_부정키워드 op5_16,txt_부정키워드Top5_16,Top→op,false,true
+pages.marketingIntel.marketingIntel.aiPredict.influencerUGC.txt_All감성_19,Txt_ ll감성_19,txt_All감성_19,All→ll,false,true
+pages.marketingIntel.marketingIntel.aiPredict.influencerUGC.txt_CS대응_23,Txt_  대응_23,txt_CS대응_23,,true,true
+pages.marketingIntel.marketingIntel.aiPredict.influencerUGC.txt_Search결과No_24,Txt_ earch결과 o_24,txt_Search결과No_24,Search→earch,false,true
+pages.marketingIntel.marketingIntel.aiPredict.influencerUGC.txt_AI인플루언서평가A_25,Txt_  인플루언서평가 _25,txt_AI인플루언서평가A_25,,true,true
+pages.marketingIntel.marketingIntel.aiPredict.influencerUGC.txt_AI적정Commis_30,Txt_  적정 ommis_30,txt_AI적정Commis_30,Commis→ommis,true,true
+pages.marketingIntel.marketingIntel.aiPredict.influencerUGC.txt_평가대상Creato_36,Txt_평가대상 reato_36,txt_평가대상Creato_36,Creato→reato,false,true
+pages.marketingIntel.marketingIntel.aiPredict.influencerUGC.txt_AI평가RunBut_37,Txt_  평가 un ut_37,txt_AI평가RunBut_37,Run→un|But→ut,true,true
+pages.marketingIntel.marketingIntel.aiPredict.influencerUGC.txt_포트폴리오종합Ana_38,Txt_포트폴리오종합 na_38,txt_포트폴리오종합Ana_38,Ana→na,false,true
+pages.marketingIntel.marketingIntel.aiPredict.influencerUGC.txt_CreatorAI평_39,Txt_ reator  평_39,txt_CreatorAI평_39,Creator→reator,true,true
+pages.marketingIntel.marketingIntel.aiPredict.influencerUGC.txt_행Clicks시항목_40,Txt_행 licks시항목_40,txt_행Clicks시항목_40,Clicks→licks,false,true
+pages.marketingIntel.marketingIntel.aiPredict.influencerUGC.txt_AI점Count_41,Txt_  점 ount_41,txt_AI점Count_41,Count→ount,true,true
+pages.marketingIntel.marketingIntel.aiPredict.influencerUGC.txt_권장Commissi_43,Txt_권장 ommissi_43,txt_권장Commissi_43,Commissi→ommissi,false,true
+pages.marketingIntel.marketingIntel.aiPredict.influencerUGC.txt_Budget최적화제_45,Txt_ udget최적화제_45,txt_Budget최적화제_45,Budget→udget,false,true
+pages.marketingIntel.marketingIntel.aiPredict.influencerUGC.txt_AI재Analysi_46,Txt_  재 nalysi_46,txt_AI재Analysi_46,Analysi→nalysi,true,true
+pages.marketingIntel.marketingIntel.aiPredict.influencerUGC.txt_All리뷰_47,Txt_ ll리뷰_47,txt_All리뷰_47,All→ll,false,true
+pages.marketingIntel.marketingIntel.aiPredict.influencerUGC.txt_4개Channel합_48,Txt_4개 hannel합_48,txt_4개Channel합_48,Channel→hannel,false,true
+pages.marketingIntel.marketingIntel.aiPredict.influencerUGC.txt_Average평점_49,Txt_ verage평점_49,txt_Average평점_49,Average→verage,false,true
+pages.marketingIntel.marketingIntel.aiPredict.influencerUGC.txt_전Channel가i_50,Txt_전 hannel가i_50,txt_전Channel가i_50,Channel→hannel,false,true
+pages.marketingIntel.marketingIntel.aiPredict.influencerUGC.txt_긍정Rate_53,Txt_긍정 ate_53,txt_긍정Rate_53,Rate→ate,false,true
+pages.marketingIntel.marketingIntel.influencerUGC.txt_부정키워드Top5_16,Txt_부정키워드 op5_16,txt_부정키워드Top5_16,Top→op,false,true
+pages.marketingIntel.marketingIntel.influencerUGC.txt_All감성_19,Txt_ ll감성_19,txt_All감성_19,All→ll,false,true
+pages.marketingIntel.marketingIntel.influencerUGC.txt_CS대응_23,Txt_  대응_23,txt_CS대응_23,,true,true
+pages.marketingIntel.marketingIntel.influencerUGC.txt_Search결과No_24,Txt_ earch결과 o_24,txt_Search결과No_24,Search→earch,false,true
+pages.marketingIntel.marketingIntel.influencerUGC.txt_AI인플루언서평가A_25,Txt_  인플루언서평가 _25,txt_AI인플루언서평가A_25,,true,true
+pages.marketingIntel.marketingIntel.influencerUGC.txt_AI적정Commis_30,Txt_  적정 ommis_30,txt_AI적정Commis_30,Commis→ommis,true,true
+pages.marketingIntel.marketingIntel.influencerUGC.txt_평가대상Creato_36,Txt_평가대상 reato_36,txt_평가대상Creato_36,Creato→reato,false,true
+pages.marketingIntel.marketingIntel.influencerUGC.txt_AI평가RunBut_37,Txt_  평가 un ut_37,txt_AI평가RunBut_37,Run→un|But→ut,true,true
+pages.marketingIntel.marketingIntel.influencerUGC.txt_포트폴리오종합Ana_38,Txt_포트폴리오종합 na_38,txt_포트폴리오종합Ana_38,Ana→na,false,true
+pages.marketingIntel.marketingIntel.influencerUGC.txt_CreatorAI평_39,Txt_ reator  평_39,txt_CreatorAI평_39,Creator→reator,true,true
+pages.marketingIntel.marketingIntel.influencerUGC.txt_행Clicks시항목_40,Txt_행 licks시항목_40,txt_행Clicks시항목_40,Clicks→licks,false,true
+pages.marketingIntel.marketingIntel.influencerUGC.txt_AI점Count_41,Txt_  점 ount_41,txt_AI점Count_41,Count→ount,true,true
+pages.marketingIntel.marketingIntel.influencerUGC.txt_권장Commissi_43,Txt_권장 ommissi_43,txt_권장Commissi_43,Commissi→ommissi,false,true
+pages.marketingIntel.marketingIntel.influencerUGC.txt_Budget최적화제_45,Txt_ udget최적화제_45,txt_Budget최적화제_45,Budget→udget,false,true
+pages.marketingIntel.marketingIntel.influencerUGC.txt_AI재Analysi_46,Txt_  재 nalysi_46,txt_AI재Analysi_46,Analysi→nalysi,true,true
+pages.marketingIntel.marketingIntel.influencerUGC.txt_All리뷰_47,Txt_ ll리뷰_47,txt_All리뷰_47,All→ll,false,true
+pages.marketingIntel.marketingIntel.influencerUGC.txt_4개Channel합_48,Txt_4개 hannel합_48,txt_4개Channel합_48,Channel→hannel,false,true
+pages.marketingIntel.marketingIntel.influencerUGC.txt_Average평점_49,Txt_ verage평점_49,txt_Average평점_49,Average→verage,false,true
+pages.marketingIntel.marketingIntel.influencerUGC.txt_전Channel가i_50,Txt_전 hannel가i_50,txt_전Channel가i_50,Channel→hannel,false,true
+pages.marketingIntel.marketingIntel.influencerUGC.txt_긍정Rate_53,Txt_긍정 ate_53,txt_긍정Rate_53,Rate→ate,false,true
+pages.marketingIntel.attrData.ascoreTitle,A-Score (어트리뷰션 신뢰도),ascoreTitle,ascore→score,false,false
+pages.marketingIntel.onboarding.kpiAPIKey,400개 이상 API 엔드포인트 지원,kpiAPIKey,kpi→pi,false,false
+pages.marketingIntel.pricingDetail.pro_desc,Growth 전체 기능 + AI 예측·여정 빌더·글로벌 채널·룰 엔진·SmartConnect·1st-Party 픽셀·고급 BI.,pro_desc,pro→ro,false,false
+pages.marketingIntel.pricingDetail.pro_s8i3,어트리뷰션 분석(터치 모델·ROAS),pro_s8i3,pro→ro,false,false
+pages.pricingDetail.pro_s8i3,어트리뷰션 분석(터치 모델·ROAS),pro_s8i3,pro→ro,false,false
+pages.onboarding.kpiAPIKey,400개 이상 API 엔드포인트 지원,kpiAPIKey,kpi→pi,false,false
+jb.guideTip5,VIP 세그먼트에 프리미엄 오퍼를.,guideTip5,Tip→ip,false,false
+wa.getStartedDesc,Meta Business Suite에서 Phone Number ID와 Access Token을 복사하여 ⚙️ 인증 설정에 입력하면 즉시 연동됩니다.,getStartedDesc,get→et,false,false

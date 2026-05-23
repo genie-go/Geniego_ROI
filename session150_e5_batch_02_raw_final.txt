@@ -1,0 +1,89 @@
+# path: catalogSync.alertExcelImport
+# ko : 📊 Excel 가져오기 완료 · 상품 {{n}}개 → 전역 재고 동기화
+
+# path: catalogSync.alertExcelExport
+# ko : 📊 Excel 내보내기 완료 · 상품 {{n}}개
+
+# path: catalogSync.contentCal.guideCalDesc
+# ko : 월별 일정을 시각적 캘린더로 확인 · 오늘 표시 · 상태별 색상 구분
+
+# path: catalogSync.ds.pipeAdApiDesc
+# ko : OAuth2 인증 기반 15분 주기 자동 수집. Rate limit 준수 및 재시도 로직 포함.
+
+# path: catalogSync.sms.heroDesc
+# ko : NHN Cloud, Aligo, CoolSMS 등 프로바이더 연동으로 SMS/LMS 캠페인을 관리합니다.
+
+# path: catalogSync.sms.pageSub
+# ko : SMS·MMS 대량 발송 관리
+
+# path: catalogSync.devHub.authComment
+# ko : 모든 인증 필요 API에 Header 포함
+
+# path: ds.fGender
+# ko : 성별 타겟 (ALL/M/F)
+
+# path: ds.fHandle
+# ko : 플랫폼 핸들 (@username)
+
+# path: ds.fContractType
+# ko : 계약 유형 (flat/perf)
+
+# path: ds.pipeCreatorUnifyDesc
+# ko : 이메일 해시 + 핸들 유사도 기반 중복 감지 → identity_group_id 할당
+
+# path: ds.pipeDQDesc
+# ko : 필수 필드 NULL 검사, 음수 금액 방어, ROAS 임계치 이상 감지, 중복 event_id 제거
+
+# path: dt.improveStep3
+# ko : 채널 API Key 등록으로 주문·재고 데이터를 실시간 수집
+
+# path: dt.metaDesc
+# ko : Conversion Event 서버사이드 전송으로 iOS 14+ 추적 복원
+
+# path: dt.qualityNoneEx2
+# ko : API Key 미등록 채널 데이터
+
+# path: omniChannel.tabShipping
+# ko : 🚚 TMS 배송
+
+# path: negKeywordAlert
+# ko : 부정 키워드 급증 시 Slack #cs-alerts 자동 전송
+
+# path: gSug.Fashion e-commerce season-off promotions
+# ko : 패션 EC 시즌오프 프로모션 전략
+
+# path: crm.email.guideSetDesc
+# ko : SMTP, AWS SES 등 이메일 프로바이더를 설정합니다.
+
+# path: crm.email.ds.ruleHighViewLowOrderAction
+# ko : 콘텐츠 · LP 최적화 추천
+
+# path: crm.email.dt.metaDesc
+# ko : 서버 사이드 Conversion Event 전송으로 iOS 14+ 측정 복원
+
+# path: crm.aiHub.catalogSync.ds.pipeAdApiDesc
+# ko : OAuth2 인증 기반 15분 주기 자동 수집. Rate limit 준수 및 재시도 로직 포함.
+
+# path: crm.aiHub.catalogSync.contentCal.guideCalDesc
+# ko : 월별 일정 시각적 확인 · 오늘 표시 · 상태별 색상 구분
+
+# path: crm.aiHub.guideNodeLine
+# ko : LINE 메시지를 발송합니다. 텍스트, Flex, 템플릿 메시지를 지원합니다.
+
+# path: crm.aiHub.guideNodeWebhook
+# ko : 외부 시스템으로 데이터를 전송합니다 (HTTP POST/GET).
+
+# path: crm.aiHub.dashGuide.tip5
+# ko : URL에 ?view=tabID를 추가하면 특정 탭으로 바로 이동할 수 있습니다.
+
+# path: crm.aiHub.sms.providerNhnDesc
+# ko : 국내 최대 SMS API (KT/SK/LG 네트워크)
+
+# path: auto.5twxk6
+# ko : 🏪 자사몰 · 기타
+
+# path: auto.xwzhme
+# ko : 포인트몰 (KT/SKT/LG)
+
+# path: auto.7i3pt9
+# ko : Naver 개발자센터 → 애플리케이션 등록

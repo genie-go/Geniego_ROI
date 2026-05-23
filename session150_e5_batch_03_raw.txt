@@ -1,0 +1,149 @@
+# path: auto.rzmlkl
+# residual: WordPress
+# en : WordPress 관리자 → 프로필 → 애플리케이션 비밀번호 생성
+# ko : 
+
+# path: auto.6gmwno
+# residual: Auth
+# en : 📋 Auth 필드
+# ko : 
+
+# path: auto.1fe4yq
+# residual: Add
+# en : + 필드 Add
+# ko : 
+
+# path: auto.j0pwc5
+# residual: Confirm
+# en : 키 유효성 Error — API 키를 Confirm하세요
+# ko : 
+
+# path: auto.tng2eo
+# residual: Auto|Count
+# en : 📖 API 키를 Auto으로 가져올 Count 없는 Channel — 가이드
+# ko : 
+
+# path: auto.me7deo
+# residual: Activate
+# en : 라이센스가 이미 Activate되어 있습니다
+# ko : 
+
+# path: auto.7x3v8j
+# residual: Register
+# en : 🎟 라이센스 키 Register
+# ko : 
+
+# path: auto.13f85a
+# residual: Auth|Delete
+# en : 이 Auth키를 Delete하시겠습니까?
+# ko : 
+
+# path: auto.0dge9p
+# residual: progress
+# en : 🔄 불러오는 in progress...
+# ko : 
+
+# path: marketing.connClickToSetup
+# residual: Key
+# en : 클릭하여 연동허브에서 API Key를 설정하세요
+# ko : 
+
+# path: marketing.connSalesHint
+# residual: Key|Key
+# en : API Key가 미연동된 채널이 있습니다. 연동허브에서 API Key를 등록하면 자동으로 활성화됩니다.
+# ko : 
+
+# path: marketing.ModeLabel
+# residual: Dr.Jart
+# en : (Dr.Jart+ 데모 모드)
+# ko : 
+
+# path: guideNodeLine
+# residual: Flex
+# en : LINE 메시지를 발송합니다. 텍스트, Flex, 템플릿 메시지를 지원합니다.
+# ko : 
+
+# path: guideNodeWebhook
+# residual: POST/GET
+# en : 외부 시스템에 데이터를 전송합니다 (HTTP POST/GET).
+# ko : 
+
+# path: sms.providerNhnDesc
+# residual: KT/SK/LG
+# en : 국내 최대 SMS API (KT/SK/LG 네트워크)
+# ko : 
+
+# path: sms.guideTemplatesDesc
+# residual: CRUD
+# en : 메시지 템플릿 CRUD
+# ko : 
+
+# path: reviews.coreKpis
+# residual: KPIs
+# en : 핵심 측정 지표 (KPIs)
+# ko : 
+
+# path: webPopup.guideFeedDesc
+# residual: CRUD
+# en : CRUD, AI 자동 디자인, 미리보기
+# ko : 
+
+# path: webPopup.uploadFormats
+# residual: MB
+# en : 지원: PNG, JPG, GIF, SVG (최대 5MB)
+# ko : 
+
+# path: graph.mockData
+# residual: MOCK
+# en : 🟡 MOCK 데이터
+# ko : 
+
+# path: graph.mockResult
+# residual: MOCK
+# en : 🟡 MOCK 결과
+# ko : 
+
+# path: pages.attribution.anomalyDesc
+# residual: Z-Score
+# en : Z-Score 기반 채널 이상감지 실시간 모니터링
+# ko : 
+
+# path: pages.writeback.runPreparePolicy
+# residual: Prepare
+# en : Prepare를 실행하여 정책을 검증합니다.
+# ko : 
+
+# path: pages.writeback.runPrepareCategory
+# residual: Prepare
+# en : Prepare를 실행하여 카테고리 추천을 가져옵니다.
+# ko : 
+
+# path: pages.marketingIntel.marketingIntel.tabs.commerceDesc
+# residual: EC
+# en : EC 매출·정산 현황
+# ko : 
+
+# path: pages.marketingIntel.marketingIntel.pricing.faq5a
+# residual: Payments
+# en : Toss Payments를 통한 신용카드 결제를 지원합니다. Enterprise는 계좌 이체도 가능합니다.
+# ko : 
+
+# path: pages.marketingIntel.writeback.runPreparePolicy
+# residual: Prepare
+# en : Prepare를 실행하여 정책을 검증합니다.
+# ko : 
+
+# path: pages.marketingIntel.writeback.runPrepareCategory
+# residual: Prepare
+# en : Prepare를 실행하여 카테고리 추천을 가져옵니다.
+# ko : 
+
+# path: pages.marketingIntel.guideContractDesc
+# residual: e-Sign
+# en : 계약 조건, e-Sign, 화이트리스트 관리
+# ko : 
+
+# path: reportCards.attributionDesc
+# residual: Confidence
+# en : 채널별 기여도 · Confidence 분포
+# ko : 

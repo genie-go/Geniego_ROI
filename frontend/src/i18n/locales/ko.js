@@ -44,9 +44,9 @@ export default {
 
     "categorySuggestion": "카테고리 제안",
 
-    "runPreparePolicy": "Prepare를 실행하여 정책을 검증하세요.",
+    "runPreparePolicy": "사전 검증을 실행하여 정책을 검증하세요.",
 
-    "runPrepareCategory": "Prepare를 실행하여 카테고리 제안을 받으세요.",
+    "runPrepareCategory": "사전 분석을 실행하여 카테고리 제안을 받으세요.",
 
     "prepareResult": "준비 결과",
 
@@ -1172,7 +1172,7 @@ export default {
       totalSpend: "총 지출",
       totalStock: "총 재고",
       unitMins: "min",
-      unitSecs: "s",
+      unitSecs: "초",
       unitTimes: "회",
       videoViews: "동영상 조회 수",
       warnings: "경고",
@@ -2121,7 +2121,7 @@ export default {
       totalOrderSub: "오늘 기준",
       upgradalBtn: "업그레이드 플랜 보기",
       upgradalClose: "닫기",
-      upgradalDesc: "This is a powerful enterprise feature available in the paid plan.\nUpgrade to Pro now to experience all features without limits.",
+      upgradalDesc: "유료 플랜에서 제공되는 강력한 엔터프라이즈 기능입니다.\n지금 Pro로 업그레이드하여 모든 기능을 제한 없이 경험해 보세요.",
       upgradalTitle: "Pro 플랜 전용",
       upgradeBarCoupon: "계정에 무료 쿠폰이 있습니다.",
       upgradeBarDesc: "API를 연결하고 실제 데이터 기반으로 플랫폼 기능을 활용해보세요.",
@@ -5340,7 +5340,7 @@ export default {
     carrTypeLabel: "유형 *",
     carrCountryLabel: "국가코드",
     carrTrackUrlLabel: "배송조회 URL",
-    carrApiKeyLabel: "API Key / 인증키",
+    carrApiKeyLabel: "API Key / 인증 키",
     carrSaveBtn: "💾 저장",
     carrCancelBtn: "취소",
     carrApiKeyPh: "API Key 입력",
@@ -5353,14 +5353,14 @@ export default {
     carrInactive: "중단",
     carrResume: "재개",
     carrOkMsg: "✅ {name} API 연동 성공",
-    carrFailMsg: "❌ 인증 실패 — API Key 확인 필요",
+    carrFailMsg: "❌ 인증에 실패했습니다. API Key를 확인해주세요.",
     carrLoadingMsg: "🔄 {name} API 인증 요청 중...",
     carrIntegOk: "✅ 연동 성공",
     carrIntegFail: "❌ 인증 실패",
     carrKeyReg: "🔑 키 등록됨",
     carrNoInteg: "⚠️ 미연동",
     carrNameRequired: "택배사명과 코드는 필수입니다.",
-    carrApiKeyRequired: "API Key를 먼저 입력하세요.",
+    carrApiKeyRequired: "먼저 API Key를 입력해주세요.",
     carrDomestic: "국내택배",
     carrIntlExpress: "국제특송",
     carrIntlPost: "국제우편",
@@ -5723,7 +5723,7 @@ export default {
 
     "aiMode": "🤖 AI 이메일 생성 — 데모 모드",
 
-    "aiDesc": "Claude API Key 없이도 AI 샘플 이메일을 생성할 수 있습니다.",
+    "aiDesc": "Claude API Key 없이도 AI 이메일 샘플을 생성할 수 있습니다.",
 
     "aiProd": "상품/서비스명",
 
@@ -5950,7 +5950,7 @@ export default {
 
     "guideSetName": "채널 설정",
 
-    "guideSetDesc": "카카오 API키, Sender Key, 발송 모드를 설정합니다.",
+    "guideSetDesc": "카카오 API Key, Sender Key 및 발송 모드를 설정합니다.",
 
     "guideTabsTitle": "가이드 탭 제목",
 
@@ -9519,7 +9519,7 @@ export default {
 
     "btnReg": "카드 등록",
 
-    "cSecure": "카드 정보는 암호화되며 CVC는 저장되지 않습니다.",
+    "cSecure": "카드 정보는 암호화되어 저장되며, CVC는 별도로 저장되지 않습니다.",
 
     "btnAdd": "결제 카드 추가",
 
@@ -9535,7 +9535,7 @@ export default {
 
     "e1": "유효한 카드 번호를 입력하세요.",
 
-    "e2": "만료일을 MM/YY 형식으로 입력하세요.",
+    "e2": "만료일을 MM/YY 형식으로 입력해주세요.",
 
     "charged": "청구됨"
 
@@ -11257,7 +11257,7 @@ export default {
     smsMarketing: "SMS/문자 마케팅",
     instagramDm: "인스타그램 DM 대응",
     lineChannel: "LINE 크로스보더",
-    webPopup: "On-site 팝업 마케팅",
+    webPopup: "온사이트 팝업 마케팅",
     commerce: "커머스",
     omniChannel: "옴니채널 재고",
     catalog: "카탈로그 동기화",
@@ -11450,8 +11450,8 @@ export default {
         btnRefreshJobs: "작업 새로고침",
         policyValidate: "정책 검증",
         categorySuggestion: "카테고리 제안",
-        runPreparePolicy: "Prepare를 실행하여 정책을 검증하세요.",
-        runPrepareCategory: "Prepare를 실행하여 카테고리 제안을 받으세요.",
+        runPreparePolicy: "사전 검증을 실행하여 정책을 검증하세요.",
+        runPrepareCategory: "사전 분석을 실행하여 카테고리 제안을 받으세요.",
         prepareResult: "준비 결과",
         requiresApproval: "승인 필요",
         policyFindings: "정책 발견사항",
@@ -11541,7 +11541,7 @@ export default {
         alert: "경보",
         warn: "주의",
         ok: "정상",
-        anomalyDesc: "Z-Score 기반 채널 이상감지 실시간 모니터링",
+        anomalyDesc: "Z-Score 기반 채널 이상 감지 실시간 모니터링",
         modelCompareDesc: "5개 Attribution 모델 레이더 차트 비교"
       },
       graphScore: {
@@ -12726,7 +12726,7 @@ export default {
         processingRegister: "가입 처리 중...",
         selectPlaceholder: "선택하세요",
         adminLoginTitle: "관리자 전용 로그인",
-        adminLoginDesc: "admin plan 계정만 접근 가능",
+        adminLoginDesc: "관리자 플랜 계정만 접근할 수 있습니다.",
         adminKeyLabel: "관리자 접속 키",
         adminKeyPh: "관리자 접속 키 입력",
         verifyKey: "접속 키 확인",
@@ -12880,7 +12880,7 @@ export default {
         pro_s1i5: "AI 광고 인사이트",
         pro_s1i6: "AI 세그먼트 (VIP·이탈 위험·잠재 VIP 자동 분류)",
         pro_s2: "고객 여정 빌더 (신규)",
-        pro_s2i1: "여정 캔버스 (Drag&Drop)",
+        pro_s2i1: "여정 캔버스 (드래그 앤 드롭)",
         pro_s2i2: "트리거 설정·액션 노드 관리",
         pro_s2i3: "여정 성과 통계 분석",
         pro_s2i4: "A/B 테스트 (이메일·팝업)",
@@ -15347,7 +15347,7 @@ export default {
     caseStudy: "성공 사례 분석",
     help: "플랫폼 공식 가이드",
     feedback: "오류 신고 · 제안",
-    developerHub: "개발자 / webhook 포털",
+    developerHub: "개발자 / Webhook 포털",
     adminCenter: "거버넌스 중앙 센터",
     adminSettings: "최고 관리 환경",
     userMgmt: "회원 및 권한 관리",
@@ -15375,7 +15375,7 @@ export default {
 
   "sidebar": {
 
-    "footerLine1": "매출 + Risk + 거버넌스",
+    "footerLine1": "매출 · 리스크 · 거버넌스",
 
     "footerLine2": "정산 OS · v423.0.0",
 
@@ -16054,7 +16054,7 @@ export default {
 
     "faq4Q": "보안 알림이 계속 나타나요",
 
-    "faq4A": "SecurityGuard가 위협을 감지했습니다. 해제를 사용하세요.",
+    "faq4A": "SecurityGuard에서 위협을 감지했습니다. 차단 해제를 진행해주세요.",
 
     "faq5Q": "언어는 어떻게 변경하나요?",
 
@@ -16328,7 +16328,7 @@ export default {
     modelCompareTable: "📋 모델별 채널 기여도 비교표 (%)",
     hubRun: "AI Marketing 허브 실행 결과",
     autoRefl: "건이 Attribution에 자동 반영됨",
-    dataIncluded: "Journey 실행 · AI 추천 집행 데이터가 모델 기여도에 포함됩니다",
+    dataIncluded: "여정 실행 · AI 추천 집행 데이터가 모델 기여도 분석에 반영됩니다",
     realtimeSync: "실시간 동기화 ✓",
     guideTabsTitle: "탭별 기능 안내",
     guideMtaName: "📊 멀티터치 MTA",
@@ -16357,7 +16357,7 @@ export default {
     markovRemoval: "🔗 마르코프 체인 — 제거 효과",
     upliftDesc: "Robinson's Partial회귀 기반 순Count 증분 효과",
     ltvTitle: "💰 채널별 LTV vs CAC",
-    anomalySum: "📊 이상감지 Summary",
+    anomalySum: "📊 이상 감지 요약",
     compareTbl1: "📋 모델per Channel 기여도 Compare표 (%)",
     modelRadar: "🕸️ Channel 기여도 레이더 Compare",
     mmmDescText: "Ridge 정규화 OLS + Adstock 감쇠 + Hill 곡선 포화. 200회 부트스트랩 사후 신뢰구간.",
@@ -16895,9 +16895,9 @@ export default {
 
     "categorySuggestion": "카테고리 제안",
 
-    "runPreparePolicy": "Prepare를 실행하여 정책을 검증하세요.",
+    "runPreparePolicy": "사전 검증을 실행하여 정책을 검증하세요.",
 
-    "runPrepareCategory": "Prepare를 실행하여 카테고리 제안을 받으세요.",
+    "runPrepareCategory": "사전 분석을 실행하여 카테고리 제안을 받으세요.",
 
     "prepareResult": "준비 결과",
 
@@ -17463,7 +17463,7 @@ export default {
 
     "adminLoginTitle": "관리자 전용 로그인",
 
-    "adminLoginDesc": "admin plan 계정만 접근 가능",
+    "adminLoginDesc": "관리자 플랜 계정만 접근할 수 있습니다.",
 
     "adminKeyLabel": "관리자 접속 키",
 
@@ -18420,7 +18420,7 @@ export default {
 
     "journeyTpl": {
 
-      "cartDesc": "이탈 고객을 Email+Kakao로 재유치",
+      "cartDesc": "이탈 고객 대상 이메일·카카오 재유치 캠페인",
 
       "onboardDesc": "가입 후 3단계 자동 케어",
 
@@ -21885,13 +21885,13 @@ export default {
 
     "alertNewProduct": "📂 카탈로그 신규 등록 동기화: [{{name}}] → 전역 재고 시스템 반영 완료",
 
-    "alertCsvExport": "📤 CSV Export: {{n}}개 상품 내보내기 완료",
+    "alertCsvExport": "📤 CSV 내보내기 완료 · 상품 {{n}}개",
 
-    "alertCsvImport": "📥 CSV Import: {{n}}개 상품 가져오기 완료 → 전역 재고 동기화",
+    "alertCsvImport": "📥 CSV 가져오기 완료 · 상품 {{n}}개 → 전역 재고 동기화",
 
-    "alertExcelImport": "📊 Excel Import: {{n}}개 상품 일괄 등록 완료 → 전역 재고 동기화",
+    "alertExcelImport": "📊 Excel 가져오기 완료 · 상품 {{n}}개 → 전역 재고 동기화",
 
-    "alertExcelExport": "📊 Excel Export: {{n}}개 상품 내보내기 완료",
+    "alertExcelExport": "📊 Excel 내보내기 완료 · 상품 {{n}}개",
 
     "alertScheduleSaved": "⏰ 동기화 스케줄 등록: {{freq}} {{time}}",
 
@@ -22229,7 +22229,7 @@ export default {
 
       "guideCalName": "캘린더 뷰",
 
-      "guideCalDesc": "월별 일정을 시각적 캘린더로 확인 · TODAY 표시 · 상태별 색상 구분",
+      "guideCalDesc": "월별 일정을 시각적 캘린더로 확인 · 오늘 표시 · 상태별 색상 구분",
 
       "guideListName": "목록 뷰",
 
@@ -29286,7 +29286,7 @@ export default {
         ruleWhitelistD7Action: "긴급 광고 배포 검토 배너",
         ruleWhitelistD0: "화이트리스트 D-0 만료",
         ruleCreatorROI10: "크리에이터 ROI < 10x",
-        ruleHighViewLowOrderAction: "콘텐츠/LP 최적화 추천"
+        ruleHighViewLowOrderAction: "콘텐츠 · LP 최적화 추천"
       },
       dt: {
         tiktokStep1: "TikTok Ads Manager → Assets → Events → Web Events",
@@ -31746,7 +31746,7 @@ export default {
           liveSyncMsg: "실시간 크로스탭 동기화 활성화 — 모든 모듈 데이터 실시간 반영",
           exportCsv: "CSV 내보내기",
           guideCalName: "캘린더 보기",
-          guideCalDesc: "월별 일정 시각적 확인·TODAY 표시·상태별 색상 구분",
+          guideCalDesc: "월별 일정 시각적 확인 · 오늘 표시 · 상태별 색상 구분",
           guideListName: "목록 보기",
           guideListDesc: "상태별 필터링·플랫폼/담당자/캠페인 정보 표시",
           guideAiDesc: "연결된 채널의 AI 자동 성과 분석·KPI 추적·전략 추천",
@@ -32726,7 +32726,7 @@ export default {
       guideNodeDelay: "다음 노드 실행 전 지정한 시간 동안 대기합니다(분/시간/일).",
       guideNodeCondition: "고객 행동(이메일 클릭, 구매 등)을 기반으로 여정을 분기합니다.",
       guideNodeAbTest: "고객을 2그룹으로 나누어 서로 다른 메시지의 효과를 비교합니다.",
-      guideNodeWebhook: "외부 시스템으로 데이터를 전송합니다(HTTP POST/GET).",
+      guideNodeWebhook: "외부 시스템으로 데이터를 전송합니다 (HTTP POST/GET).",
       guideNodePush: "모바일 앱 푸시 알림을 발송합니다.",
       guideNodeEnd: "여정의 종료 지점을 나타냅니다.",
       dashGuide: {
@@ -33017,7 +33017,7 @@ export default {
 
     "jerrow": "Gmarket / 옥션",
 
-    "5twxk6": "🏪 Own Mall / 기타",
+    "5twxk6": "🏪 자사몰 · 기타",
 
     "7cdh5t": "Own Mall 및 기타 Integration 키",
 
@@ -33069,7 +33069,7 @@ export default {
 
     "m7d1cm": "Naver 블로그",
 
-    "7i3pt9": "Naver 개발자센터 → 애플리케이션 Register",
+    "7i3pt9": "Naver 개발자센터 → 애플리케이션 등록",
 
     "3aif0h": "OAuth 로그인 후 Issue",
 
@@ -33105,9 +33105,9 @@ export default {
 
     "2gdeh2": "대표 Color",
 
-    "6gmwno": "📋 Auth 필드",
+    "6gmwno": "📋 인증 필드",
 
-    "1fe4yq": "+ 필드 Add",
+    "1fe4yq": "+ 필드 추가",
 
     "k1xv0h": "key (영문)",
 
@@ -33175,7 +33175,7 @@ export default {
 
     "9zaela": "(실Time)",
 
-    "j0pwc5": "키 유효성 Error — API 키를 Confirm하세요",
+    "j0pwc5": "API 키 유효성 오류 — API 키를 확인해주세요",
 
     "jznf9o": "회원Info를 기반으로 Auto Issue신청합니다. Issue Done 시 Auto Sync됩니다.",
 
@@ -33233,7 +33233,7 @@ export default {
 
     "sdkpt7": "→ 개발자 콘솔 열기 ↗",
 
-    "tng2eo": "📖 API 키를 Auto으로 가져올 Count 없는 Channel — 가이드",
+    "tng2eo": "📖 API 키를 자동으로 가져올 수 없는 채널 — 가이드",
 
     "mnmmde": "OAuth 필요 Channel",
 
@@ -33247,13 +33247,13 @@ export default {
 
     "peum9f": "라이센스 Activate Done!",
 
-    "me7deo": "라이센스가 이미 Activate되어 있습니다",
+    "me7deo": "라이선스가 이미 활성화되어 있습니다",
 
     "v2eu9b": "🔌 커넥터 현황",
 
     "jjw1v2": "🏠 Dashboard로 Move",
 
-    "7x3v8j": "🎟 라이센스 키 Register",
+    "7x3v8j": "🎟 라이선스 키 등록",
 
     "tvzrow": "구매하신 라이센스 키를 입력하면",
 
@@ -33289,7 +33289,7 @@ export default {
 
     "6xwuah": "폐쇄몰",
 
-    "13f85a": "이 Auth키를 Delete하시겠습니까?",
+    "13f85a": "이 인증 키를 삭제하시겠습니까?",
 
     "mgmepv": "삭제되었습니다.",
 
@@ -33323,7 +33323,7 @@ export default {
 
     "8kezu3": "💎 Paid Conversion하기 →",
 
-    "0dge9p": "🔄 불러오는 in progress...",
+    "0dge9p": "🔄 불러오는 중...",
 
     "n2m798": "보안 안내",
 
@@ -34531,7 +34531,7 @@ export default {
       sidebarLogout: "종료 & 로그아웃",
       upgradalBtn: "업그레이드 플랜 보기",
       upgradalClose: "닫기",
-      upgradalDesc: "This is a powerful enterprise feature available in the paid plan.\nUpgrade to Pro now to experience all features without limits.",
+      upgradalDesc: "유료 플랜에서 제공되는 강력한 엔터프라이즈 기능입니다.\n지금 Pro로 업그레이드하여 모든 기능을 제한 없이 경험해 보세요.",
       upgradalTitle: "Pro 플랜 전용",
       upgradeLabel: "PRO"
     }
@@ -36906,7 +36906,7 @@ export default {
 
     "channelRoleDef": "채널별 역할 (Role) 정의",
 
-    "coreKpis": "핵심 측정 지표 (KPIs)",
+    "coreKpis": "핵심 성과 지표 (KPIs)",
 
     "lblCtrFull": "CTR (클릭률)",
 
@@ -37198,7 +37198,7 @@ export default {
     uploadCustomDesc: "자체 제작한 이미지를 업로드하여 팝업 또는 광고 마케팅용 콘텐츠를 등록합니다.",
     uploadImage: "이미지 업로드",
     uploadDragDrop: "이미지를 드래그하거나 클릭하여 업로드",
-    uploadFormats: "지원: PNG, JPG, GIF, SVG (최대 5MB)",
+    uploadFormats: "지원 형식: PNG, JPG, GIF, SVG (최대 5MB)",
     uploadPreview: "미리보기",
     uploadApply: "팝업에 적용",
     uploadRemove: "이미지 제거",
@@ -37451,7 +37451,7 @@ export default {
       alert: "경보",
       warn: "주의",
       ok: "정상",
-      anomalyDesc: "Z-Score 기반 채널 이상감지 실시간 모니터링",
+      anomalyDesc: "Z-Score 기반 채널 이상 감지 실시간 모니터링",
       modelCompareDesc: "5개 Attribution 모델 레이더 차트 비교",
       critical: "Critical",
       zScore: "Z-Score"
@@ -37830,8 +37830,8 @@ export default {
       btnRefreshJobs: "작업 새로고침",
       policyValidate: "정책 검증",
       categorySuggestion: "카테고리 추천",
-      runPreparePolicy: "Prepare를 실행하여 정책을 검증합니다.",
-      runPrepareCategory: "Prepare를 실행하여 카테고리 추천을 가져옵니다.",
+      runPreparePolicy: "사전 검증을 실행하여 정책을 검증합니다.",
+      runPrepareCategory: "사전 분석을 실행하여 카테고리 제안을 가져옵니다.",
       policyFindings: "정책 발견 사항",
       payloadEditor: "페이로드 에디터",
       payloadEditorDesc: "상품 JSON을 입력하고 미리보기로 실행 전 검증합니다.",
@@ -38971,39 +38971,6 @@ export default {
     marketingIntel: {
       aiPredict: {
         influencerUGC: {
-          "txt_부정키워드Top5_16": "Txt_부정키워드 op5_16",
-          "txt_부정키워드급증10건_17": "Txt_부정키워드급증10건_17",
-          "txt_리뷰피드_18": "Txt_리뷰피드_18",
-          "txt_All감성_19": "Txt_ ll감성_19",
-          "txt_CS대응_23": "Txt_  대응_23",
-          "txt_Search결과No_24": "Txt_ earch결과 o_24",
-          "txt_AI인플루언서평가A_25": "Txt_  인플루언서평가 _25",
-          "txt_평가항목per점Co_26": "Txt_평가항목per점 o_26",
-          "txt_실적_27": "Txt_실적_27",
-          "txt_강점_28": "Txt_강점_28",
-          "txt_개선포인트_29": "Txt_개선포인트_29",
-          "txt_AI적정Commis_30": "Txt_  적정 ommis_30",
-          "txt_지역연령성per참여_31": "Txt_지역연령성per참여_31",
-          "txt_지역연령성per참여_34": "Txt_지역연령성per참여_34",
-          "txt_평가대상Creato_36": "Txt_평가대상 reato_36",
-          "txt_AI평가RunBut_37": "Txt_  평가 un ut_37",
-          "txt_포트폴리오종합Ana_38": "Txt_포트폴리오종합 na_38",
-          "txt_CreatorAI평_39": "Txt_ reator  평_39",
-          "txt_행Clicks시항목_40": "Txt_행 licks시항목_40",
-          "txt_AI점Count_41": "Txt_  점 ount_41",
-          "txt_계약갱신권고_42": "Txt_계약갱신권고_42",
-          "txt_권장Commissi_43": "Txt_권장 ommissi_43",
-          "txt_포트폴리오전략인사이_44": "Txt_포트폴리오전략인사이_44",
-          "txt_Budget최적화제_45": "Txt_ udget최적화제_45",
-          "txt_AI재Analysi_46": "Txt_  재 nalysi_46",
-          "txt_All리뷰_47": "Txt_ ll리뷰_47",
-          "txt_4개Channel합_48": "Txt_4개 hannel합_48",
-          "txt_Average평점_49": "Txt_ verage평점_49",
-          "txt_전Channel가i_50": "Txt_전 hannel가i_50",
-          "txt_부정리뷰_51": "Txt_부정리뷰_51",
-          "txt_즉시대응필요_52": "Txt_즉시대응필요_52",
-          "txt_긍정Rate_53": "Txt_긍정 ate_53",
-          "txt_전월31p_54": "Txt_전월31p_54",
           txt_ActualPaid_9: "실제 지급액",
           txt_AdCreative_13: "광고 크리에이티브",
           txt_Channelper_15: "채널별",
@@ -39472,39 +39439,6 @@ export default {
         pageSub: "커넥터 & 통합 관리"
       },
       influencerUGC: {
-        "txt_부정키워드Top5_16": "Txt_부정키워드 op5_16",
-        "txt_부정키워드급증10건_17": "Txt_부정키워드급증10건_17",
-        "txt_리뷰피드_18": "Txt_리뷰피드_18",
-        "txt_All감성_19": "Txt_ ll감성_19",
-        "txt_CS대응_23": "Txt_  대응_23",
-        "txt_Search결과No_24": "Txt_ earch결과 o_24",
-        "txt_AI인플루언서평가A_25": "Txt_  인플루언서평가 _25",
-        "txt_평가항목per점Co_26": "Txt_평가항목per점 o_26",
-        "txt_실적_27": "Txt_실적_27",
-        "txt_강점_28": "Txt_강점_28",
-        "txt_개선포인트_29": "Txt_개선포인트_29",
-        "txt_AI적정Commis_30": "Txt_  적정 ommis_30",
-        "txt_지역연령성per참여_31": "Txt_지역연령성per참여_31",
-        "txt_지역연령성per참여_34": "Txt_지역연령성per참여_34",
-        "txt_평가대상Creato_36": "Txt_평가대상 reato_36",
-        "txt_AI평가RunBut_37": "Txt_  평가 un ut_37",
-        "txt_포트폴리오종합Ana_38": "Txt_포트폴리오종합 na_38",
-        "txt_CreatorAI평_39": "Txt_ reator  평_39",
-        "txt_행Clicks시항목_40": "Txt_행 licks시항목_40",
-        "txt_AI점Count_41": "Txt_  점 ount_41",
-        "txt_계약갱신권고_42": "Txt_계약갱신권고_42",
-        "txt_권장Commissi_43": "Txt_권장 ommissi_43",
-        "txt_포트폴리오전략인사이_44": "Txt_포트폴리오전략인사이_44",
-        "txt_Budget최적화제_45": "Txt_ udget최적화제_45",
-        "txt_AI재Analysi_46": "Txt_  재 nalysi_46",
-        "txt_All리뷰_47": "Txt_ ll리뷰_47",
-        "txt_4개Channel합_48": "Txt_4개 hannel합_48",
-        "txt_Average평점_49": "Txt_ verage평점_49",
-        "txt_전Channel가i_50": "Txt_전 hannel가i_50",
-        "txt_부정리뷰_51": "Txt_부정리뷰_51",
-        "txt_즉시대응필요_52": "Txt_즉시대응필요_52",
-        "txt_긍정Rate_53": "Txt_긍정 ate_53",
-        "txt_전월31p_54": "Txt_전월31p_54",
         txt_ActualPaid_9: "실제 지급액",
         txt_AdCreative_13: "광고 크리에이티브",
         txt_Channelper_15: "채널별",
@@ -39802,7 +39736,6 @@ export default {
         colContent: "콘텐츠",
         colConversions: "전환",
         colEngagement: "참여율",
-        colFollowers: "Followers",
         colInfluencer: "인플루언서",
         colLikes: "좋아요",
         colPlatform: "Platform",
@@ -39885,39 +39818,6 @@ export default {
       marketingIntel: {
         aiPredict: {
           influencerUGC: {
-            "txt_부정키워드Top5_16": "Txt_부정키워드 op5_16",
-            "txt_부정키워드급증10건_17": "Txt_부정키워드급증10건_17",
-            "txt_리뷰피드_18": "Txt_리뷰피드_18",
-            "txt_All감성_19": "Txt_ ll감성_19",
-            "txt_CS대응_23": "Txt_  대응_23",
-            "txt_Search결과No_24": "Txt_ earch결과 o_24",
-            "txt_AI인플루언서평가A_25": "Txt_  인플루언서평가 _25",
-            "txt_평가항목per점Co_26": "Txt_평가항목per점 o_26",
-            "txt_실적_27": "Txt_실적_27",
-            "txt_강점_28": "Txt_강점_28",
-            "txt_개선포인트_29": "Txt_개선포인트_29",
-            "txt_AI적정Commis_30": "Txt_  적정 ommis_30",
-            "txt_지역연령성per참여_31": "Txt_지역연령성per참여_31",
-            "txt_지역연령성per참여_34": "Txt_지역연령성per참여_34",
-            "txt_평가대상Creato_36": "Txt_평가대상 reato_36",
-            "txt_AI평가RunBut_37": "Txt_  평가 un ut_37",
-            "txt_포트폴리오종합Ana_38": "Txt_포트폴리오종합 na_38",
-            "txt_CreatorAI평_39": "Txt_ reator  평_39",
-            "txt_행Clicks시항목_40": "Txt_행 licks시항목_40",
-            "txt_AI점Count_41": "Txt_  점 ount_41",
-            "txt_계약갱신권고_42": "Txt_계약갱신권고_42",
-            "txt_권장Commissi_43": "Txt_권장 ommissi_43",
-            "txt_포트폴리오전략인사이_44": "Txt_포트폴리오전략인사이_44",
-            "txt_Budget최적화제_45": "Txt_ udget최적화제_45",
-            "txt_AI재Analysi_46": "Txt_  재 nalysi_46",
-            "txt_All리뷰_47": "Txt_ ll리뷰_47",
-            "txt_4개Channel합_48": "Txt_4개 hannel합_48",
-            "txt_Average평점_49": "Txt_ verage평점_49",
-            "txt_전Channel가i_50": "Txt_전 hannel가i_50",
-            "txt_부정리뷰_51": "Txt_부정리뷰_51",
-            "txt_즉시대응필요_52": "Txt_즉시대응필요_52",
-            "txt_긍정Rate_53": "Txt_긍정 ate_53",
-            "txt_전월31p_54": "Txt_전월31p_54",
             txt_ActualPaid_9: "실제 지급액",
             txt_AdCreative_13: "광고 크리에이티브",
             txt_Channelper_15: "채널별",
@@ -40397,39 +40297,6 @@ export default {
           pageSub: "커넥터 & 통합 관리"
         },
         influencerUGC: {
-          "txt_부정키워드Top5_16": "Txt_부정키워드 op5_16",
-          "txt_부정키워드급증10건_17": "Txt_부정키워드급증10건_17",
-          "txt_리뷰피드_18": "Txt_리뷰피드_18",
-          "txt_All감성_19": "Txt_ ll감성_19",
-          "txt_CS대응_23": "Txt_  대응_23",
-          "txt_Search결과No_24": "Txt_ earch결과 o_24",
-          "txt_AI인플루언서평가A_25": "Txt_  인플루언서평가 _25",
-          "txt_평가항목per점Co_26": "Txt_평가항목per점 o_26",
-          "txt_실적_27": "Txt_실적_27",
-          "txt_강점_28": "Txt_강점_28",
-          "txt_개선포인트_29": "Txt_개선포인트_29",
-          "txt_AI적정Commis_30": "Txt_  적정 ommis_30",
-          "txt_지역연령성per참여_31": "Txt_지역연령성per참여_31",
-          "txt_지역연령성per참여_34": "Txt_지역연령성per참여_34",
-          "txt_평가대상Creato_36": "Txt_평가대상 reato_36",
-          "txt_AI평가RunBut_37": "Txt_  평가 un ut_37",
-          "txt_포트폴리오종합Ana_38": "Txt_포트폴리오종합 na_38",
-          "txt_CreatorAI평_39": "Txt_ reator  평_39",
-          "txt_행Clicks시항목_40": "Txt_행 licks시항목_40",
-          "txt_AI점Count_41": "Txt_  점 ount_41",
-          "txt_계약갱신권고_42": "Txt_계약갱신권고_42",
-          "txt_권장Commissi_43": "Txt_권장 ommissi_43",
-          "txt_포트폴리오전략인사이_44": "Txt_포트폴리오전략인사이_44",
-          "txt_Budget최적화제_45": "Txt_ udget최적화제_45",
-          "txt_AI재Analysi_46": "Txt_  재 nalysi_46",
-          "txt_All리뷰_47": "Txt_ ll리뷰_47",
-          "txt_4개Channel합_48": "Txt_4개 hannel합_48",
-          "txt_Average평점_49": "Txt_ verage평점_49",
-          "txt_전Channel가i_50": "Txt_전 hannel가i_50",
-          "txt_부정리뷰_51": "Txt_부정리뷰_51",
-          "txt_즉시대응필요_52": "Txt_즉시대응필요_52",
-          "txt_긍정Rate_53": "Txt_긍정 ate_53",
-          "txt_전월31p_54": "Txt_전월31p_54",
           txt_ActualPaid_9: "실제 지급액",
           txt_AdCreative_13: "광고 크리에이티브",
           txt_Channelper_15: "채널별",
@@ -41288,7 +41155,6 @@ export default {
         filterIssue: "이상만",
         anomalySummary: "📊 이상 감지 요약",
         radarCompare: "🕸️ 채널 기여도 레이더 비교",
-        ascoreTitle: "A-Score (어트리뷰션 신뢰도)",
         aScoreSub: "모델 간 일관성 기반 — 높을수록 모든 모델이 동의하는 고신뢰 채널",
         compareDescText: "5개 모델의 기여도를 레이더 차트로 비교하여 A-Score를 산정합니다.",
         modelCompareTable: "📋 모델별 채널 기여도 비교표(%)",
@@ -42606,8 +42472,8 @@ export default {
         btnRefreshJobs: "작업 새로고침",
         policyValidate: "정책 검증",
         categorySuggestion: "카테고리 추천",
-        runPreparePolicy: "Prepare를 실행하여 정책을 검증합니다.",
-        runPrepareCategory: "Prepare를 실행하여 카테고리 추천을 가져옵니다.",
+        runPreparePolicy: "사전 검증을 실행하여 정책을 검증합니다.",
+        runPrepareCategory: "사전 분석을 실행하여 카테고리 제안을 가져옵니다.",
         policyFindings: "정책 발견 사항",
         payloadEditor: "페이로드 에디터",
         payloadEditorDesc: "상품 JSON을 입력하고 미리보기로 실행 전 검증합니다.",
@@ -42775,7 +42641,7 @@ export default {
       guideTabsTitle: "탭 기능 안내",
       guideIdentName: "크리에이터 통합",
       guideIdentDesc: "멀티플랫폼 계정 통합과 중복 감지",
-      guideContractDesc: "계약 조건, e-Sign, 화이트리스트 관리",
+      guideContractDesc: "계약 조건, 전자 서명, 화이트리스트 관리",
       guideSettleDesc: "자동 정산 검증 및 이상 감지",
       guideRoiName: "ROI 랭킹",
       guideRoiDesc: "크리에이터/콘텐츠 ROI 분석",
@@ -42975,7 +42841,6 @@ export default {
         stepOpsAlertDesc: "배송 지연·재고 부족·시스템 오류 발생 시 즉시 Slack·Email 알림을 받습니다.",
         stepAPIKey: "API 키 발급",
         stepAPIKeyDesc: "REST API 키를 발급하여 외부 시스템과 Geniego-ROI를 연동합니다.",
-        kpiAPIKey: "400개 이상 API 엔드포인트 지원",
         stepConnector: "커넥터 설정",
         stepConnectorDesc: "ERP·PIM·WMS 등 기존 시스템과 양방향 데이터 파이프라인을 구성합니다.",
         kpiConnector: "100개 이상 시스템 통합 지원",
@@ -43054,7 +42919,6 @@ export default {
         growth_l5: "1st-Party 픽셀·API 키 — Pro 이상",
         pro_tagline: "프로 이커머스 브랜드·에이전시",
         pro_headline: "AI 자동화 플랜",
-        pro_desc: "Growth 전체 기능 + AI 예측·여정 빌더·글로벌 채널·룰 엔진·SmartConnect·1st-Party 픽셀·고급 BI.",
         pro_s1: "AI 예측 엔진(신규)",
         pro_s1i1: "이탈·LTV·구매 확률 예측",
         pro_s1i2: "그래프 스코어링",
@@ -43094,7 +42958,6 @@ export default {
         pro_s8: "1st-Party 픽셀 + 데이터",
         pro_s8i1: "픽셀 코드 설치·검증",
         pro_s8i2: "실시간 이벤트 스트림 표시",
-        pro_s8i3: "어트리뷰션 분석(터치 모델·ROAS)",
         pro_s8i4: "이벤트 수집·데이터 스키마·매핑",
         pro_s8i5: "API 키·Webhook·OAuth 연동",
         pro_s9: "고급 분석 & BI",
@@ -44559,7 +44422,7 @@ export default {
 
     "attribution": "어트리뷰션",
 
-    "attributionDesc": "채널별 기여도 · Confidence 분포"
+    "attributionDesc": "채널별 기여도 · 신뢰도 분포"
 
   },
 

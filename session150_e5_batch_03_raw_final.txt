@@ -1,0 +1,89 @@
+# path: auto.rzmlkl
+# ko : WordPress 관리자 → 프로필 → 애플리케이션 비밀번호 생성
+
+# path: auto.6gmwno
+# ko : 📋 인증 필드
+
+# path: auto.1fe4yq
+# ko : + 필드 추가
+
+# path: auto.j0pwc5
+# ko : API 키 유효성 오류 — API 키를 확인해주세요
+
+# path: auto.tng2eo
+# ko : 📖 API 키를 자동으로 가져올 수 없는 채널 — 가이드
+
+# path: auto.me7deo
+# ko : 라이선스가 이미 활성화되어 있습니다
+
+# path: auto.7x3v8j
+# ko : 🎟 라이선스 키 등록
+
+# path: auto.13f85a
+# ko : 이 인증 키를 삭제하시겠습니까?
+
+# path: auto.0dge9p
+# ko : 🔄 불러오는 중...
+
+# path: marketing.connClickToSetup
+# ko : 클릭하여 연동허브에서 API Key를 설정하세요
+
+# path: marketing.connSalesHint
+# ko : API Key가 미연동된 채널이 있습니다. 연동허브에서 API Key를 등록하면 자동으로 활성화됩니다.
+
+# path: marketing.ModeLabel
+# ko : (Dr.Jart+ 데모 모드)
+
+# path: guideNodeLine
+# ko : LINE 메시지를 발송합니다. 텍스트, Flex, 템플릿 메시지를 지원합니다.
+
+# path: guideNodeWebhook
+# ko : 외부 시스템에 데이터를 전송합니다 (HTTP POST/GET).
+
+# path: sms.providerNhnDesc
+# ko : 국내 최대 SMS API (KT/SK/LG 네트워크)
+
+# path: sms.guideTemplatesDesc
+# ko : 메시지 템플릿 CRUD
+
+# path: reviews.coreKpis
+# ko : 핵심 성과 지표 (KPIs)
+
+# path: webPopup.guideFeedDesc
+# ko : CRUD, AI 자동 디자인, 미리보기
+
+# path: webPopup.uploadFormats
+# ko : 지원 형식: PNG, JPG, GIF, SVG (최대 5MB)
+
+# path: graph.mockData
+# ko : 🟡 MOCK 데이터
+
+# path: graph.mockResult
+# ko : 🟡 MOCK 결과
+
+# path: pages.attribution.anomalyDesc
+# ko : Z-Score 기반 채널 이상 감지 실시간 모니터링
+
+# path: pages.writeback.runPreparePolicy
+# ko : 사전 검증을 실행하여 정책을 검증합니다.
+
+# path: pages.writeback.runPrepareCategory
+# ko : 사전 분석을 실행하여 카테고리 제안을 가져옵니다.
+
+# path: pages.marketingIntel.marketingIntel.tabs.commerceDesc
+# ko : EC 매출·정산 현황
+
+# path: pages.marketingIntel.marketingIntel.pricing.faq5a
+# ko : Toss Payments를 통한 신용카드 결제를 지원합니다. Enterprise는 계좌 이체도 가능합니다.
+
+# path: pages.marketingIntel.writeback.runPreparePolicy
+# ko : 사전 검증을 실행하여 정책을 검증합니다.
+
+# path: pages.marketingIntel.writeback.runPrepareCategory
+# ko : 사전 분석을 실행하여 카테고리 제안을 가져옵니다.
+
+# path: pages.marketingIntel.guideContractDesc
+# ko : 계약 조건, 전자 서명, 화이트리스트 관리
+
+# path: reportCards.attributionDesc
+# ko : 채널별 기여도 · 신뢰도 분포

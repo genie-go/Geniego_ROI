@@ -1,0 +1,15 @@
+# path: mobile.alert2
+# en : AI 캠페인 #C-041 ROAS 4.8x 달성
+# ko : AI 캠페인 #C-041 ROAS 4.8x 달성
+
+# path: coupon.inputPlaceholder
+# en : 쿠폰번호 직접 입력 (GENIE-...)
+# ko : 쿠폰번호 직접 입력 (GENIE-...)
+
+# path: aiInsightsPage.heroDesc
+# en : P&L 이상 자동 감지 · 트렌드 분석 · 대화형 AI 어시스턴트 — Genie AI v422
+# ko : P&L 이상 자동 감지 · 트렌드 분석 · 대화형 AI 어시스턴트 — Genie AI v422
+
+# path: sc.oauthStep2
+# en : 권한 동의 화면에서 "Allow" 클릭 → 자동으로 Access Token 수신
+# ko : 권한 동의 화면에서 "Allow" 클릭 → 자동으로 Access Token 수신

@@ -1,0 +1,89 @@
+# path: writebackPage.runPreparePolicy
+# ko : 사전 검증을 실행하여 정책을 검증하세요.
+
+# path: writebackPage.runPrepareCategory
+# ko : 사전 분석을 실행하여 카테고리 제안을 받으세요.
+
+# path: priceOpt.dsIntegration
+# ko : DS 연동
+
+# path: wms.carrApiKeyLabel
+# ko : API Key / 인증 키
+
+# path: wms.carrFailMsg
+# ko : ❌ 인증에 실패했습니다. API Key를 확인해주세요.
+
+# path: wms.carrApiKeyRequired
+# ko : 먼저 API Key를 입력해주세요.
+
+# path: email.aiDesc
+# ko : Claude API Key 없이도 AI 이메일 샘플을 생성할 수 있습니다.
+
+# path: kakao.optAt
+# ko : 알림톡 (AT)
+
+# path: kakao.guideSetDesc
+# ko : 카카오 API Key, Sender Key 및 발송 모드를 설정합니다.
+
+# path: gBudget.cSecure
+# ko : 카드 정보는 암호화되어 저장되며, CVC는 별도로 저장되지 않습니다.
+
+# path: gBudget.e2
+# ko : 만료일을 MM/YY 형식으로 입력해주세요.
+
+# path: nav.rollup
+# ko : Rollup 집계 레이어
+
+# path: nav.webPopup
+# ko : 온사이트 팝업 마케팅
+
+# path: nav.pages.writeback.runPreparePolicy
+# ko : 사전 검증을 실행하여 정책을 검증하세요.
+
+# path: nav.pages.writeback.runPrepareCategory
+# ko : 사전 분석을 실행하여 카테고리 제안을 받으세요.
+
+# path: nav.pages.attribution.anomalyDesc
+# ko : Z-Score 기반 채널 이상 감지 실시간 모니터링
+
+# path: nav.pages.auth.adminLoginDesc
+# ko : 관리자 플랜 계정만 접근할 수 있습니다.
+
+# path: nav.pages.pricingDetail.pro_s2i1
+# ko : 여정 캔버스 (드래그 앤 드롭)
+
+# path: nav.developerHub
+# ko : 개발자 / Webhook 포털
+
+# path: sidebar.footerLine1
+# ko : 매출 · 리스크 · 거버넌스
+
+# path: dashGuide.faq4A
+# ko : SecurityGuard에서 위협을 감지했습니다. 차단 해제를 진행해주세요.
+
+# path: attrData.dataIncluded
+# ko : 여정 실행 · AI 추천 집행 데이터가 모델 기여도 분석에 반영됩니다
+
+# path: attrData.anomalySum
+# ko : 📊 이상 감지 요약
+
+# path: attrData.mmmDescText
+# ko : Ridge 정규화 OLS + Adstock 감쇠 + Hill 곡선 포화. 200회 부트스트랩 사후 신뢰구간.
+
+# path: writeback.runPreparePolicy
+# ko : 사전 검증을 실행하여 정책을 검증하세요.
+
+# path: writeback.runPrepareCategory
+# ko : 사전 분석을 실행하여 카테고리 제안을 받으세요.
+
+# path: auth.adminLoginDesc
+# ko : 관리자 플랜 계정만 접근할 수 있습니다.
+
+# path: cmpVal.journeyTpl.cartDesc
+# ko : 이탈 고객 대상 이메일·카카오 재유치 캠페인
+
+# path: catalogSync.alertCsvExport
+# ko : 📤 CSV 내보내기 완료 · 상품 {{n}}개
+
+# path: catalogSync.alertCsvImport
+# ko : 📥 CSV 가져오기 완료 · 상품 {{n}}개 → 전역 재고 동기화

@@ -1,0 +1,95 @@
+path,ko_value,residual_tokens
+writebackPage.runPreparePolicy,Prepare를 실행하여 정책을 검증하세요.,Prepare
+writebackPage.runPrepareCategory,Prepare를 실행하여 카테고리 제안을 받으세요.,Prepare
+priceOpt.dsIntegration,DS 연동,DS
+wms.carrApiKeyLabel,API Key / 인증키,Key
+wms.carrFailMsg,❌ 인증 실패 — API Key 확인 필요,Key
+wms.carrApiKeyRequired,API Key를 먼저 입력하세요.,Key
+email.aiDesc,Claude API Key 없이도 AI 샘플 이메일을 생성할 수 있습니다.,Key
+kakao.optAt,알림톡 (AT),AT
+kakao.guideSetDesc,"카카오 API키, Sender Key, 발송 모드를 설정합니다.",Sender|Key
+gBudget.cSecure,카드 정보는 암호화되며 CVC는 저장되지 않습니다.,CVC
+gBudget.e2,만료일을 MM/YY 형식으로 입력하세요.,MM/YY
+nav.rollup,Rollup 집계 레이어,Rollup
+nav.webPopup,On-site 팝업 마케팅,On-site
+nav.pages.writeback.runPreparePolicy,Prepare를 실행하여 정책을 검증하세요.,Prepare
+nav.pages.writeback.runPrepareCategory,Prepare를 실행하여 카테고리 제안을 받으세요.,Prepare
+nav.pages.attribution.anomalyDesc,Z-Score 기반 채널 이상감지 실시간 모니터링,Z-Score
+nav.pages.auth.adminLoginDesc,admin plan 계정만 접근 가능,admin|plan
+nav.pages.pricingDetail.pro_s2i1,여정 캔버스 (Drag&Drop),Drag&Drop
+nav.developerHub,개발자 / webhook 포털,webhook
+sidebar.footerLine1,매출 + Risk + 거버넌스,Risk
+dashGuide.faq4A,SecurityGuard가 위협을 감지했습니다. 해제를 사용하세요.,SecurityGuard
+attrData.dataIncluded,Journey 실행 · AI 추천 집행 데이터가 모델 기여도에 포함됩니다,Journey
+attrData.anomalySum,📊 이상감지 Summary,Summary
+attrData.mmmDescText,Ridge 정규화 OLS + Adstock 감쇠 + Hill 곡선 포화. 200회 부트스트랩 사후 신뢰구간.,Ridge|OLS|Adstock
+writeback.runPreparePolicy,Prepare를 실행하여 정책을 검증하세요.,Prepare
+writeback.runPrepareCategory,Prepare를 실행하여 카테고리 제안을 받으세요.,Prepare
+auth.adminLoginDesc,admin plan 계정만 접근 가능,admin|plan
+cmpVal.journeyTpl.cartDesc,이탈 고객을 Email+Kakao로 재유치,Email+Kakao
+catalogSync.alertCsvExport,📤 CSV Export: {{n}}개 상품 내보내기 완료,Export
+catalogSync.alertCsvImport,📥 CSV Import: {{n}}개 상품 가져오기 완료 → 전역 재고 동기화,Import
+catalogSync.alertExcelImport,📊 Excel Import: {{n}}개 상품 일괄 등록 완료 → 전역 재고 동기화,Import
+catalogSync.alertExcelExport,📊 Excel Export: {{n}}개 상품 내보내기 완료,Export
+catalogSync.contentCal.guideCalDesc,월별 일정을 시각적 캘린더로 확인 · TODAY 표시 · 상태별 색상 구분,TODAY
+catalogSync.ds.pipeAdApiDesc,OAuth2 인증 기반 15분 주기 자동 수집. Rate limit 준수 및 재시도 로직 포함.,limit
+catalogSync.sms.heroDesc,"NHN Cloud, Aligo, CoolSMS 등 프로바이더 연동으로 SMS/LMS 캠페인을 관리합니다.",NHN|Cloud|Aligo|CoolSMS
+catalogSync.sms.pageSub,SMS·MMS 대량 발송 관리,MMS
+catalogSync.devHub.authComment,모든 인증 필요 API에 Header 포함,Header
+ds.fGender,성별 타겟 (ALL/M/F),ALL/M/F
+ds.fHandle,플랫폼 핸들 (@username),username
+ds.fContractType,계약 유형 (flat/perf),flat/perf
+ds.pipeCreatorUnifyDesc,이메일 해시 + 핸들 유사도 기반 중복 감지 → identity_group_id 할당,identity_group_id
+ds.pipeDQDesc,"필수 필드 NULL 검사, 음수 금액 방어, ROAS 임계치 이상 감지, 중복 event_id 제거",event_id
+dt.improveStep3,채널 API Key 등록으로 주문·재고 데이터를 실시간 수집,Key
+dt.metaDesc,Conversion Event 서버사이드 전송으로 iOS 14+ 추적 복원,Conversion|Event
+dt.qualityNoneEx2,API Key 미등록 채널 데이터,Key
+omniChannel.tabShipping,🚚 TMS 배송,TMS
+negKeywordAlert,부정 키워드 급증 시 Slack #cs-alerts 자동 전송,cs-alerts
+gSug.Fashion e-commerce season-off promotions,패션 EC 시즌오프 프로모션 전략,EC
+crm.email.guideSetDesc,"SMTP, AWS SES 등 이메일 프로바이더를 설정합니다.",SMTP|SES
+crm.email.ds.ruleHighViewLowOrderAction,콘텐츠/LP 최적화 추천,LP
+crm.email.dt.metaDesc,서버 사이드 Conversion Event 전송으로 iOS 14+ 측정 복원,Conversion|Event
+crm.aiHub.catalogSync.ds.pipeAdApiDesc,OAuth2 인증 기반 15분 주기 자동 수집. Rate limit 준수 및 재시도 로직 포함.,limit
+crm.aiHub.catalogSync.contentCal.guideCalDesc,월별 일정 시각적 확인·TODAY 표시·상태별 색상 구분,TODAY
+crm.aiHub.guideNodeLine,"LINE 메시지를 발송합니다. 텍스트, Flex, 템플릿 메시지를 지원합니다.",Flex
+crm.aiHub.guideNodeWebhook,외부 시스템으로 데이터를 전송합니다(HTTP POST/GET).,POST/GET
+crm.aiHub.dashGuide.tip5,URL에 ?view=tabID를 추가하면 특정 탭으로 바로 이동할 수 있습니다.,view|tabID
+crm.aiHub.sms.providerNhnDesc,국내 최대 SMS API (KT/SK/LG 네트워크),KT/SK/LG
+auto.5twxk6,🏪 Own Mall / 기타,Own|Mall
+auto.xwzhme,포인트몰 (KT/SKT/LG),KT/SKT/LG
+auto.7i3pt9,Naver 개발자센터 → 애플리케이션 Register,Register
+auto.rzmlkl,WordPress 관리자 → 프로필 → 애플리케이션 비밀번호 생성,WordPress
+auto.6gmwno,📋 Auth 필드,Auth
+auto.1fe4yq,+ 필드 Add,Add
+auto.j0pwc5,키 유효성 Error — API 키를 Confirm하세요,Confirm
+auto.tng2eo,📖 API 키를 Auto으로 가져올 Count 없는 Channel — 가이드,Auto|Count
+auto.me7deo,라이센스가 이미 Activate되어 있습니다,Activate
+auto.7x3v8j,🎟 라이센스 키 Register,Register
+auto.13f85a,이 Auth키를 Delete하시겠습니까?,Auth|Delete
+auto.0dge9p,🔄 불러오는 in progress...,progress
+marketing.connClickToSetup,클릭하여 연동허브에서 API Key를 설정하세요,Key
+marketing.connSalesHint,API Key가 미연동된 채널이 있습니다. 연동허브에서 API Key를 등록하면 자동으로 활성화됩니다.,Key|Key
+marketing.ModeLabel,(Dr.Jart+ 데모 모드),Dr.Jart
+guideNodeLine,"LINE 메시지를 발송합니다. 텍스트, Flex, 템플릿 메시지를 지원합니다.",Flex
+guideNodeWebhook,외부 시스템에 데이터를 전송합니다 (HTTP POST/GET).,POST/GET
+sms.providerNhnDesc,국내 최대 SMS API (KT/SK/LG 네트워크),KT/SK/LG
+sms.guideTemplatesDesc,메시지 템플릿 CRUD,CRUD
+reviews.coreKpis,핵심 측정 지표 (KPIs),KPIs
+webPopup.guideFeedDesc,"CRUD, AI 자동 디자인, 미리보기",CRUD
+webPopup.uploadFormats,"지원: PNG, JPG, GIF, SVG (최대 5MB)",MB
+graph.mockData,🟡 MOCK 데이터,MOCK
+graph.mockResult,🟡 MOCK 결과,MOCK
+pages.attribution.anomalyDesc,Z-Score 기반 채널 이상감지 실시간 모니터링,Z-Score
+pages.writeback.runPreparePolicy,Prepare를 실행하여 정책을 검증합니다.,Prepare
+pages.writeback.runPrepareCategory,Prepare를 실행하여 카테고리 추천을 가져옵니다.,Prepare
+pages.marketingIntel.marketingIntel.tabs.commerceDesc,EC 매출·정산 현황,EC
+pages.marketingIntel.marketingIntel.pricing.faq5a,Toss Payments를 통한 신용카드 결제를 지원합니다. Enterprise는 계좌 이체도 가능합니다.,Payments
+pages.marketingIntel.writeback.runPreparePolicy,Prepare를 실행하여 정책을 검증합니다.,Prepare
+pages.marketingIntel.writeback.runPrepareCategory,Prepare를 실행하여 카테고리 추천을 가져옵니다.,Prepare
+pages.marketingIntel.guideContractDesc,"계약 조건, e-Sign, 화이트리스트 관리",e-Sign
+reportCards.attributionDesc,채널별 기여도 · Confidence 분포,Confidence
+mobile.alert2,AI 캠페인 #C-041 ROAS 4.8x 달성,C-041
+coupon.inputPlaceholder,쿠폰번호 직접 입력 (GENIE-...),GENIE
+aiInsightsPage.heroDesc,P&L 이상 자동 감지 · 트렌드 분석 · 대화형 AI 어시스턴트 — Genie AI v422,Genie|v422
+sc.oauthStep2,"권한 동의 화면에서 ""Allow"" 클릭 → 자동으로 Access Token 수신",Allow|Access

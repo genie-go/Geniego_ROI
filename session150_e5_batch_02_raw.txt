@@ -1,0 +1,149 @@
+# path: catalogSync.alertExcelImport
+# residual: Import
+# en : 📊 Excel Import: {{n}}개 상품 일괄 등록 완료 → 전역 재고 동기화
+# ko : 
+
+# path: catalogSync.alertExcelExport
+# residual: Export
+# en : 📊 Excel Export: {{n}}개 상품 내보내기 완료
+# ko : 
+
+# path: catalogSync.contentCal.guideCalDesc
+# residual: TODAY
+# en : 월별 일정을 시각적 캘린더로 확인 · TODAY 표시 · 상태별 색상 구분
+# ko : 
+
+# path: catalogSync.ds.pipeAdApiDesc
+# residual: limit
+# en : OAuth2 인증 기반 15분 주기 자동 수집. Rate limit 준수 및 재시도 로직 포함.
+# ko : 
+
+# path: catalogSync.sms.heroDesc
+# residual: NHN|Cloud|Aligo|CoolSMS
+# en : NHN Cloud, Aligo, CoolSMS 등 프로바이더 연동으로 SMS/LMS 캠페인을 관리합니다.
+# ko : 
+
+# path: catalogSync.sms.pageSub
+# residual: MMS
+# en : SMS·MMS 대량 발송 관리
+# ko : 
+
+# path: catalogSync.devHub.authComment
+# residual: Header
+# en : 모든 인증 필요 API에 Header 포함
+# ko : 
+
+# path: ds.fGender
+# residual: ALL/M/F
+# en : 성별 타겟 (ALL/M/F)
+# ko : 
+
+# path: ds.fHandle
+# residual: username
+# en : 플랫폼 핸들 (@username)
+# ko : 
+
+# path: ds.fContractType
+# residual: flat/perf
+# en : 계약 유형 (flat/perf)
+# ko : 
+
+# path: ds.pipeCreatorUnifyDesc
+# residual: identity_group_id
+# en : 이메일 해시 + 핸들 유사도 기반 중복 감지 → identity_group_id 할당
+# ko : 
+
+# path: ds.pipeDQDesc
+# residual: event_id
+# en : 필수 필드 NULL 검사, 음수 금액 방어, ROAS 임계치 이상 감지, 중복 event_id 제거
+# ko : 
+
+# path: dt.improveStep3
+# residual: Key
+# en : 채널 API Key 등록으로 주문·재고 데이터를 실시간 수집
+# ko : 
+
+# path: dt.metaDesc
+# residual: Conversion|Event
+# en : Conversion Event 서버사이드 전송으로 iOS 14+ 추적 복원
+# ko : 
+
+# path: dt.qualityNoneEx2
+# residual: Key
+# en : API Key 미등록 채널 데이터
+# ko : 
+
+# path: omniChannel.tabShipping
+# residual: TMS
+# en : 🚚 TMS 배송
+# ko : 
+
+# path: negKeywordAlert
+# residual: cs-alerts
+# en : 부정 키워드 급증 시 Slack #cs-alerts 자동 전송
+# ko : 
+
+# path: gSug.Fashion e-commerce season-off promotions
+# residual: EC
+# en : 패션 EC 시즌오프 프로모션 전략
+# ko : 
+
+# path: crm.email.guideSetDesc
+# residual: SMTP|SES
+# en : SMTP, AWS SES 등 이메일 프로바이더를 설정합니다.
+# ko : 
+
+# path: crm.email.ds.ruleHighViewLowOrderAction
+# residual: LP
+# en : 콘텐츠/LP 최적화 추천
+# ko : 
+
+# path: crm.email.dt.metaDesc
+# residual: Conversion|Event
+# en : 서버 사이드 Conversion Event 전송으로 iOS 14+ 측정 복원
+# ko : 
+
+# path: crm.aiHub.catalogSync.ds.pipeAdApiDesc
+# residual: limit
+# en : OAuth2 인증 기반 15분 주기 자동 수집. Rate limit 준수 및 재시도 로직 포함.
+# ko : 
+
+# path: crm.aiHub.catalogSync.contentCal.guideCalDesc
+# residual: TODAY
+# en : 월별 일정 시각적 확인·TODAY 표시·상태별 색상 구분
+# ko : 
+
+# path: crm.aiHub.guideNodeLine
+# residual: Flex
+# en : LINE 메시지를 발송합니다. 텍스트, Flex, 템플릿 메시지를 지원합니다.
+# ko : 
+
+# path: crm.aiHub.guideNodeWebhook
+# residual: POST/GET
+# en : 외부 시스템으로 데이터를 전송합니다(HTTP POST/GET).
+# ko : 
+
+# path: crm.aiHub.dashGuide.tip5
+# residual: view|tabID
+# en : URL에 ?view=tabID를 추가하면 특정 탭으로 바로 이동할 수 있습니다.
+# ko : 
+
+# path: crm.aiHub.sms.providerNhnDesc
+# residual: KT/SK/LG
+# en : 국내 최대 SMS API (KT/SK/LG 네트워크)
+# ko : 
+
+# path: auto.5twxk6
+# residual: Own|Mall
+# en : 🏪 Own Mall / 기타
+# ko : 
+
+# path: auto.xwzhme
+# residual: KT/SKT/LG
+# en : 포인트몰 (KT/SKT/LG)
+# ko : 
+
+# path: auto.7i3pt9
+# residual: Register
+# en : Naver 개발자센터 → 애플리케이션 Register
+# ko : 
