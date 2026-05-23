@@ -1,0 +1,139 @@
+ko_value,count,path,ja_value,en_value,suggested_ko
+Cat_sports_desc,2,pages.marketingIntel.creativeStudio.cat_sports_desc,Cat_sports_desc,Cat_sports_desc,스포츠 카테고리 설명
+Category Optimized,2,pages.marketingIntel.creativeStudio.categoryOptimized,Category Optimized,Category Optimized,카테고리 최적화
+Channel Step,2,pages.marketingIntel.creativeStudio.channelStep,Channel Step,Channel Step,채널 단계
+👆 CTA:,2,pages.marketingIntel.creativeStudio.ctaHint,👆 CTA:,👆 CTA:,👆 CTA:
+Custom Body,2,pages.marketingIntel.creativeStudio.customBody,Custom Body,Custom Body,본문 직접 작성
+Custom Copy Toggle,2,pages.marketingIntel.creativeStudio.customCopyToggle,Custom Copy Toggle,Custom Copy Toggle,직접 작성 사용
+Custom Headline,2,pages.marketingIntel.creativeStudio.customHeadline,Custom Headline,Custom Headline,헤드라인 직접 작성
+Headline Hint,2,pages.marketingIntel.creativeStudio.headlineHint,Headline Hint,Headline Hint,헤드라인 작성 가이드
+Product Info,2,pages.marketingIntel.creativeStudio.productInfo,Product Info,Product Info,상품 정보
+Selected Label,2,pages.marketingIntel.creativeStudio.selectedLabel,Selected Label,Selected Label,선택됨
+Select First,2,pages.marketingIntel.creativeStudio.selectFirst,Select First,Select First,먼저 선택해주세요
+Select First Desc,2,pages.marketingIntel.creativeStudio.selectFirstDesc,Select First Desc,Select First Desc,먼저 항목을 선택해주세요
+Select Step,2,pages.marketingIntel.creativeStudio.selectStep,Select Step,Select Step,선택 단계
+Select Step Hint,2,pages.marketingIntel.creativeStudio.selectStepHint,Select Step Hint,Select Step Hint,단계별 선택 가이드
+Export Report,2,pages.marketingIntel.exportReport,Export Report,Export Report,리포트 내보내기
+Pnl High Margin,2,pages.marketingIntel.marketingIntel.banner.pnlHighMargin,Pnl High Margin,Pnl High Margin,고마진 P&L
+Pnl Low Margin,2,pages.marketingIntel.marketingIntel.banner.pnlLowMargin,Pnl Low Margin,Pnl Low Margin,저마진 P&L
+Click to change menu/feature access by role (✅ Allow · 👁 Read-only · 🔒 Locked),2,pages.marketingIntel.marketingIntel.menuAccess.desc,Click to change menu/feature access by role (✅ Allow · 👁 Read-only · 🔒 Locked),Click to change menu/feature access by role (✅ Allow · 👁 Read-only · 🔒 Locked),클릭하여 역할별 메뉴/기능 접근 권한을 변경하세요 (✅ 허용 · 👁 읽기 전용 · 🔒 잠금)
+New Feature,2,pages.marketingIntel.marketingIntel.menuAccess.newFeature,New Feature,New Feature,신규 기능
+Perm Read,2,pages.marketingIntel.marketingIntel.menuAccess.permRead,Perm Read,Perm Read,읽기 전용
+Recommend Title,2,pages.marketingIntel.marketingIntel.menuAccess.recommendTitle,Recommend Title,Recommend Title,추천 항목
+Add Fav,2,pages.marketingIntel.marketingIntel.systemMonitor.addFav,Add Fav,Add Fav,즐겨찾기 추가
+Add Favorite,2,pages.marketingIntel.marketingIntel.systemMonitor.addFavorite,Add Favorite,Add Favorite,즐겨찾기 추가
+No Favorites,2,pages.marketingIntel.marketingIntel.systemMonitor.noFavorites,No Favorites,No Favorites,즐겨찾기 항목이 없습니다
+No Recents,2,pages.marketingIntel.marketingIntel.systemMonitor.noRecents,No Recents,No Recents,최근 항목이 없습니다
+Quick Access,2,pages.marketingIntel.marketingIntel.systemMonitor.quickAccess,Quick Access,Quick Access,빠른 접근
+Remove Fav,2,pages.marketingIntel.marketingIntel.systemMonitor.removeFav,Remove Fav,Remove Fav,즐겨찾기 해제
+Remove Favorite,2,pages.marketingIntel.marketingIntel.systemMonitor.removeFavorite,Remove Favorite,Remove Favorite,즐겨찾기 해제
+Trend Detection,2,pages.marketingIntel.marketingIntel.trendDetection,Trend Detection,Trend Detection,트렌드 감지
+No anomalies,2,pages.marketingIntel.noAnomaly,No anomalies,No anomalies,이상 징후 없음
+Product Perf,2,pages.marketingIntel.productPerf,Product Perf,Product Perf,상품 성과
+Tab Audience,2,pages.marketingIntel.tabAudience,Tab Audience,Tab Audience,오디언스
+"{ ""sku"": ""..."", ""title"": ""..."", ""price"": 0 }",2,pages.marketingIntel.writeback.payloadPlaceholder,"{ ""sku"": ""..."", ""title"": ""..."", ""price"": 0 }","{ ""sku"": ""..."", ""title"": ""..."", ""price"": 0 }","{ ""sku"": ""..."", ""title"": ""..."", ""price"": 0 }"
+Ai Prediction,2,pages.menu.aiPrediction,Ai Prediction,Ai Prediction,AI 예측
+No Pending,2,pages.menu.approvals.noPending,No Pending,No Pending,대기 중인 요청이 없습니다
+Request Date,2,pages.menu.approvals.requestedAt,Request Date,Request Date,요청일
+Tab Approved,2,pages.menu.approvals.tabApproved,Tab Approved,Tab Approved,승인 완료
+Tab Pending,2,pages.menu.approvals.tabPending,Tab Pending,Tab Pending,승인 대기
+Commerce Search,2,pages.menu.commerceSearch,Commerce Search,Commerce Search,커머스 검색
+Customer Crm,2,pages.menu.customerCrm,Customer Crm,Customer Crm,고객 CRM
+Line Channel,2,pages.menu.lineChannel,Line Channel,Line Channel,LINE 채널
+SMS/LMS Marketing,2,pages.menu.smsMarketing,SMS/LMS Marketing,SMS/LMS Marketing,SMS/LMS 마케팅
+Create Policy,2,pages.menu.writeback.createPolicy,Create Policy,Create Policy,정책 생성
+Run Now,2,pages.menu.writeback.runNow,Run Now,Run Now,지금 실행
+Tab Log,2,pages.menu.writeback.tabLog,Tab Log,Tab Log,로그
+Issue Date,2,pages.mobile.adminCoupon.colIssueDate,Issue Date,Issue Date,발급일
+All Accounts,2,pages.perms.allAccounts,All Accounts,All Accounts,전체 계정
+Writeback Setup·Logs,2,pages.pricingDetail.ent_s1i1,Writeback Setup·Logs,Writeback Setup·Logs,Writeback 설정·로그
+Keyword Analysis,2,pages.pricingDetail.growth_s2i3,Keyword Analysis,Keyword Analysis,키워드 분석
+⚖️ Run Reconciliation,2,pages.reconciliation.reconTitle,⚖️ Run Reconciliation,⚖️ Run Reconciliation,⚖️ 정산 대조 실행
+Report Name,2,pages.report.colReportName,Report Name,Report Name,리포트명
+Active Channels,2,ruleEnginePage.dash.activeCh,Active Channels,Active Channels,활성 채널
+Security Monitor,2,ruleEnginePage.dash.securityMonitor,Security Monitor,Security Monitor,보안 모니터링
+Total Stock,2,ruleEnginePage.dash.totalStock,Total Stock,Total Stock,총 재고
+Google Ads,2,ruleEnginePage.super.ihGoogle,Google Ads,Google Ads,Google Ads
+Meta Ads,2,ruleEnginePage.super.ihMeta,Meta Ads,Meta Ads,Meta Ads
+✅ Complete,2,ruleEnginePage.wms.auditDoneBtn,✅ Complete,✅ Complete,✅ 완료
+Not Counted,2,ruleEnginePage.wms.auditNotCounted,Not Counted,Not Counted,미실사
+🖨️ Print,2,ruleEnginePage.wms.auditPrintBtn,🖨️ Print,🖨️ Print,🖨️ 인쇄
+Search SKU or product...,2,ruleEnginePage.wms.auditSearchPh,Search SKU or product...,Search SKU or product...,SKU 또는 상품 검색...
+💾 Register,2,ruleEnginePage.wms.bdlSaveBtn,💾 Register,💾 Register,💾 등록
+Code *,2,ruleEnginePage.wms.carrCodeLabel,Code *,Code *,코드 *
+Company *,2,ruleEnginePage.wms.carrNameLabel,Company *,Company *,회사명 *
+Type *,2,ruleEnginePage.wms.carrTypeLabel,Type *,Type *,유형 *
+Company/Name,2,ruleEnginePage.wms.invcCompanyName,Company/Name,Company/Name,회사명/이름
+Tracking No,2,ruleEnginePage.wms.invcTrackLabel,Tracking No,Tracking No,운송장 번호
+SKU *,2,ruleEnginePage.wms.ioSkuLabel,SKU *,SKU *,SKU *
+LOT ID,2,ruleEnginePage.wms.lotColId,LOT ID,LOT ID,로트 ID
+Order Date,2,ruleEnginePage.wms.recvColOrderDate,Order Date,Order Date,주문일
+PO No,2,ruleEnginePage.wms.recvColPO,PO No,PO No,발주 번호
+Order Qty,2,ruleEnginePage.wms.recvColQty,Order Qty,Order Qty,주문 수량
+Total Transaction Amount,2,ruleEnginePage.wms.supDrawerTotalAmt,Total Transaction Amount,Total Transaction Amount,총 거래 금액
+✏️ Edit,2,ruleEnginePage.wms.supEditBtn,✏️ Edit,✏️ Edit,✏️ 편집
+Room Temp,2,ruleEnginePage.wms.whTempDefault,Room Temp,Room Temp,상온
+Actual Paid,1,actualPaid,Actual Paid,Actual Paid,실제 지급액
+Ad Creative,1,adCreative,Ad Creative,Ad Creative,광고 크리에이티브
+Ad Ready,1,adReady,Ad Ready,Ad Ready,광고 집행 준비 완료
+📊 Anomaly Detection Summary,1,attr.anomalySummary,📊 Anomaly Detection Summary,📊 Anomaly Detection Summary,📊 이상 징후 감지 요약
+Expected Blended ROAS,1,attr.expectedBlendRoas,Expected Blended ROAS,Expected Blended ROAS,예상 Blended ROAS
+📋 Channel Contribution by Model (%),1,attr.modelCompareTable,📋 Channel Contribution by Model (%),📋 Channel Contribution by Model (%),📋 모델별 채널 기여도(%)
+🕸️ Channel Contribution Radar,1,attr.radarCompare,🕸️ Channel Contribution Radar,🕸️ Channel Contribution Radar,🕸️ 채널 기여도 레이더
+Compare campaign performance of the exact same product and channel across different regional teams or sub-accounts.,1,banner.acctPerf.desc,Compare campaign performance of the exact same product and channel across different regional teams or sub-accounts.,Compare campaign performance of the exact same product and channel across different regional teams or sub-accounts.,동일한 상품과 채널의 캠페인 성과를 지역 팀이나 하위 계정별로 비교합니다.
+Team / Account,1,banner.acctPerf.team,Team / Account,Team / Account,팀 / 계정
+Check Rights,1,checkRights,Check Rights,Check Rights,권한 확인
+TOP 5 SKU,1,commerce.top5Sku,TOP 5 SKU,TOP 5 SKU,TOP 5 SKU
+CampaignEnterpriseTabs,1,common.underConstruction,CampaignEnterpriseTabs,CampaignEnterpriseTabs,캠페인 엔터프라이즈 탭
+Auto Exec,1,crm.aiHub.aiHub.autoExec,Auto Exec,Auto Exec,자동 실행
+Count Unit,1,crm.aiHub.aiHub.countUnit,Count Unit,Count Unit,건
+Expected Profit,1,crm.aiHub.aiHub.expectedProfit,Expected Profit,Expected Profit,예상 수익
+Badge Realtime,1,crm.aiHub.aiPolicy.badgeRealtime,Badge Realtime,Badge Realtime,실시간 배지
+Badge Rules,1,crm.aiHub.aiPolicy.badgeRules,Badge Rules,Badge Rules,규칙 배지
+Badge Security,1,crm.aiHub.aiPolicy.badgeSecurity,Badge Security,Badge Security,보안 배지
+Cfg Approval Gate,1,crm.aiHub.aiPolicy.cfgApprovalGate,Cfg Approval Gate,Cfg Approval Gate,승인 게이트 설정
+Cross Sync,1,crm.aiHub.aiPolicy.crossTabSync,Cross Sync,Cross Sync,교차 동기화
+Fired Total,1,crm.aiHub.aiPolicy.firedTotal,Fired Total,Fired Total,총 실행 건수
+No Policies,1,crm.aiHub.aiPolicy.noPolicies,No Policies,No Policies,등록된 정책이 없습니다
+Policy Name,1,crm.aiHub.aiPolicy.policyName,Policy Name,Policy Name,정책명
+Sec Code,1,crm.aiHub.aiPolicy.secCode,Sec Code,Sec Code,보안 코드
+Sec Title,1,crm.aiHub.aiPolicy.secTitle,Sec Title,Sec Title,보안 제목
+Sec Unlock,1,crm.aiHub.aiPolicy.secUnlock,Sec Unlock,Sec Unlock,보안 해제
+Sync Active Rules,1,crm.aiHub.aiPolicy.syncActiveRules,Sync Active Rules,Sync Active Rules,활성 규칙 동기화
+Sync Budgets,1,crm.aiHub.aiPolicy.syncBudgets,Sync Budgets,Sync Budgets,예산 동기화
+Sync Inventory,1,crm.aiHub.aiPolicy.syncInventory,Sync Inventory,Sync Inventory,재고 동기화
+Sync Orders,1,crm.aiHub.aiPolicy.syncOrders,Sync Orders,Sync Orders,주문 동기화
+Total Audit,1,crm.aiHub.aiPolicy.totalAudit,Total Audit,Total Audit,전체 감사 로그
+Attribution Desc,1,crm.aiHub.attributionDesc,Attribution Desc,Attribution Desc,어트리뷰션 안내
+Rate Limits,1,crm.aiHub.catalogSync.devHub.rateLimits,Rate Limits,Rate Limits,요청 제한
+⚡ Webhook,1,crm.aiHub.catalogSync.devHub.tab_webhook,⚡ Webhook,⚡ Webhook,⚡ Webhook
+Data Collection,1,crm.aiHub.catalogSync.ds.pipeCollect,Data Collection,Data Collection,데이터 수집
+Normalization/Mapping,1,crm.aiHub.catalogSync.ds.pipeNormalize,Normalization/Mapping,Normalization/Mapping,데이터 정규화/매핑
+Module locked due to abnormal access.,1,crm.aiHub.catalogSync.ihub.secLockDesc,Module locked due to abnormal access.,Module locked due to abnormal access.,비정상 접근으로 인해 모듈이 잠금되었습니다.
+Connected Channels,1,crm.aiHub.catalogSync.journey.connectedChannels,Connected Channels,Connected Channels,연결된 채널
+Guide Node Ab Test,1,crm.aiHub.catalogSync.journey.guideNodeAbTest,Guide Node Ab Test,Guide Node Ab Test,A/B 테스트 노드 안내
+Guide Node Condition,1,crm.aiHub.catalogSync.journey.guideNodeCondition,Guide Node Condition,Guide Node Condition,조건 노드 안내
+Guide Node Delay,1,crm.aiHub.catalogSync.journey.guideNodeDelay,Guide Node Delay,Guide Node Delay,지연 노드 안내
+Guide Node Email,1,crm.aiHub.catalogSync.journey.guideNodeEmail,Guide Node Email,Guide Node Email,이메일 노드 안내
+Guide Node End,1,crm.aiHub.catalogSync.journey.guideNodeEnd,Guide Node End,Guide Node End,종료 노드 안내
+Guide Node Kakao,1,crm.aiHub.catalogSync.journey.guideNodeKakao,Guide Node Kakao,Guide Node Kakao,카카오 노드 안내
+Guide Node Line,1,crm.aiHub.catalogSync.journey.guideNodeLine,Guide Node Line,Guide Node Line,LINE 노드 안내
+Guide Node Push,1,crm.aiHub.catalogSync.journey.guideNodePush,Guide Node Push,Guide Node Push,푸시 노드 안내
+Guide Node Sms,1,crm.aiHub.catalogSync.journey.guideNodeSms,Guide Node Sms,Guide Node Sms,SMS 노드 안내
+Guide Node Trigger,1,crm.aiHub.catalogSync.journey.guideNodeTrigger,Guide Node Trigger,Guide Node Trigger,트리거 노드 안내
+Guide Node Webhook,1,crm.aiHub.catalogSync.journey.guideNodeWebhook,Guide Node Webhook,Guide Node Webhook,Webhook 노드 안내
+Guide Node Whatsapp,1,crm.aiHub.catalogSync.journey.guideNodeWhatsapp,Guide Node Whatsapp,Guide Node Whatsapp,WhatsApp 노드 안내
+Ab test,1,crm.aiHub.catalogSync.journey.nodeTypes.ab_test,Ab test,Ab test,A/B 테스트
+Cart abandoned,1,crm.aiHub.catalogSync.journey.triggerTypes.cart_abandoned,Cart abandoned,Cart abandoned,장바구니 이탈
+Segment entered,1,crm.aiHub.catalogSync.journey.triggerTypes.segment_entered,Segment entered,Segment entered,세그먼트 진입
+Webhook trigger,1,crm.aiHub.catalogSync.journey.triggerTypes.webhook_trigger,Webhook trigger,Webhook trigger,Webhook 트리거
+Channel Attr,1,crm.aiHub.catalogSync.pxl.channelAttr,Channel Attr,Channel Attr,채널 어트리뷰션
+Conv Rate,1,crm.aiHub.catalogSync.pxl.convRate,Conv Rate,Conv Rate,전환율
+Create Error,1,crm.aiHub.catalogSync.pxl.createError,Create Error,Create Error,생성 실패
+Create Success,1,crm.aiHub.catalogSync.pxl.createSuccess,Create Success,Create Success,생성 완료
+Delete Confirm,1,crm.aiHub.catalogSync.pxl.deleteConfirm,Delete Confirm,Delete Confirm,삭제 확인
+Event Type,1,crm.aiHub.catalogSync.pxl.eventType,Event Type,Event Type,이벤트 유형
+Funnel Cart,1,crm.aiHub.catalogSync.pxl.funnelCart,Funnel Cart,Funnel Cart,장바구니 퍼널
+Funnel Checkout,1,crm.aiHub.catalogSync.pxl.funnelCheckout,Funnel Checkout,Funnel Checkout,결제 퍼널
+Funnel Product,1,crm.aiHub.catalogSync.pxl.funnelProduct,Funnel Product,Funnel Product,상품 조회 퍼널
+Funnel Purchase,1,crm.aiHub.catalogSync.pxl.funnelPurchase,Funnel Purchase,Funnel Purchase,구매 퍼널

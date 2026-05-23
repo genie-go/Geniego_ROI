@@ -1,0 +1,135 @@
+ko_value,count,path,ja_value,en_value,suggested_ko
+HS Code,1,ruleEnginePage.wms.invcColHs,HS Code,HS Code,HS 코드
+📦 Consignee,1,ruleEnginePage.wms.invcConsigneeTitle,📦 Consignee,📦 Consignee,📦 수하인
+📋 Copy Number,1,ruleEnginePage.wms.invcCopyNo,📋 Copy Number,📋 Copy Number,📋 번호 복사
+Auto-generate customs invoice,1,ruleEnginePage.wms.invcDesc,Auto-generate customs invoice,Auto-generate customs invoice,통관 인보이스 자동 생성
+Rate (KRW/{c}),1,ruleEnginePage.wms.invcExRateLabel,Rate (KRW/{c}),Rate (KRW/{c}),환율 (KRW/{c})
+📋 Line Items,1,ruleEnginePage.wms.invcItemsTitle,📋 Line Items,📋 Line Items,📋 품목 내역
+Invoice No,1,ruleEnginePage.wms.invcNoLabel,Invoice No,Invoice No,인보이스 번호
+Safety Stock,1,ruleEnginePage.wms.invColSafe,Safety Stock,Safety Stock,안전 재고
+🖨️ Print Invoice,1,ruleEnginePage.wms.invcPrintBtn,🖨️ Print Invoice,🖨️ Print Invoice,🖨️ 인보이스 인쇄
+Customs notes,1,ruleEnginePage.wms.invcRemarkPh,Customs notes,Customs notes,통관 비고
+🏢 Shipper,1,ruleEnginePage.wms.invcShipperTitle,🏢 Shipper,🏢 Shipper,🏢 송하인
+🧾 Commercial Invoice,1,ruleEnginePage.wms.invcTitle,🧾 Commercial Invoice,🧾 Commercial Invoice,🧾 상업 송장
+📦 Warehouse Stock by SKU,1,ruleEnginePage.wms.invTableTitle,📦 Warehouse Stock by SKU,📦 Warehouse Stock by SKU,📦 SKU별 창고 재고
+Total Stock (pcs) · Live,1,ruleEnginePage.wms.invTotalStock,Total Stock (pcs) · Live,Total Stock (pcs) · Live,총 재고 (개) · 실시간
+Ref No,1,ruleEnginePage.wms.ioColRef,Ref No,Ref No,참조 번호
+Stock Adjustment,1,ruleEnginePage.wms.ioFilterAdj,Stock Adjustment,Stock Adjustment,재고 조정
+Return Inbound,1,ruleEnginePage.wms.ioFilterRetInbound,Return Inbound,Return Inbound,반품 입고
+Return Outbound,1,ruleEnginePage.wms.ioFilterRetOutbound,Return Outbound,Return Outbound,반품 출고
+Reason/Memo,1,ruleEnginePage.wms.ioMemoLabel,Reason/Memo,Reason/Memo,사유·메모
+Qty *,1,ruleEnginePage.wms.ioQtyLabel,Qty *,Qty *,수량 *
+Order No or PO No,1,ruleEnginePage.wms.ioRefPh,Order No or PO No,Order No or PO No,주문 번호 또는 발주 번호
++ Register In/Out,1,ruleEnginePage.wms.ioRegBtn,+ Register In/Out,+ Register In/Out,+ 입출고 등록
+📦 Register In/Out,1,ruleEnginePage.wms.ioRegTitle,📦 Register In/Out,📦 Register In/Out,📦 입출고 등록
+Return Reason,1,ruleEnginePage.wms.ioReturnReason,Return Reason,Return Reason,반품 사유
+"Change of mind, defective, etc.",1,ruleEnginePage.wms.ioReturnReasonPh,"Change of mind, defective, etc.","Change of mind, defective, etc.","단순 변심, 불량 등"
+Search SKU/Product/Ref No...,1,ruleEnginePage.wms.ioSearchPh,Search SKU/Product/Ref No...,Search SKU/Product/Ref No...,SKU·상품·참조 번호 검색...
+Transfer Destination Warehouse,1,ruleEnginePage.wms.ioTransferDest,Transfer Destination Warehouse,Transfer Destination Warehouse,이동 대상 창고
+Io Unit Label,1,ruleEnginePage.wms.ioUnitLabel,Io Unit Label,Io Unit Label,단위
+Warehouse *,1,ruleEnginePage.wms.ioWhLabel,Warehouse *,Warehouse *,창고 *
+Lot No,1,ruleEnginePage.wms.lotColLotNo,Lot No,Lot No,로트 번호
+Mfg Date,1,ruleEnginePage.wms.lotColMfg,Mfg Date,Mfg Date,제조일
+days left,1,ruleEnginePage.wms.lotDaysLeft,days left,days left,일 남음
+⚠️ Expiry within 30 days:,1,ruleEnginePage.wms.lotExpireSoon,⚠️ Expiry within 30 days:,⚠️ Expiry within 30 days:,⚠️ 30일 이내 만료 예정:
+⚠ Imminent,1,ruleEnginePage.wms.lotImminent,⚠ Imminent,⚠ Imminent,⚠ 임박
+✅ Lot registered,1,ruleEnginePage.wms.lotRegDone,✅ Lot registered,✅ Lot registered,✅ 로트 등록 완료
++ New Lot,1,ruleEnginePage.wms.lotRegTitle,+ New Lot,+ New Lot,+ 새 로트
+Pending Receipt,1,ruleEnginePage.wms.pendingReceive,Pending Receipt,Pending Receipt,입고 대기
+Pending Shipment,1,ruleEnginePage.wms.pendingShip,Pending Shipment,Pending Shipment,출고 대기
+Add Permission,1,ruleEnginePage.wms.permAddBtn,Add Permission,Add Permission,권한 추가
+Permission Management,1,ruleEnginePage.wms.permBtn,Permission Management,Permission Management,권한 관리
+Control warehouse access permissions by user. Permissions vary by role.,1,ruleEnginePage.wms.permDesc,Control warehouse access permissions by user. Permissions vary by role.,Control warehouse access permissions by user. Permissions vary by role.,사용자별 창고 접근 권한을 관리합니다. 역할에 따라 권한이 달라집니다.
+No permissions registered. Please add users.,1,ruleEnginePage.wms.permEmpty,No permissions registered. Please add users.,No permissions registered. Please add users.,등록된 권한이 없습니다. 사용자를 추가해주세요.
+Perm Title,1,ruleEnginePage.wms.permTitle,Perm Title,Perm Title,권한
+User Email,1,ruleEnginePage.wms.permUserLabel,User Email,User Email,사용자 이메일
+🔐 Approval Pending,1,ruleEnginePage.wms.pickApprPending,🔐 Approval Pending,🔐 Approval Pending,🔐 승인 대기
+Pick ID,1,ruleEnginePage.wms.pickColId,Pick ID,Pick ID,피킹 ID
+🔐 Dispatch,1,ruleEnginePage.wms.pickDispatchAppr,🔐 Dispatch,🔐 Dispatch,🔐 출고 지시
+✅ Approve,1,ruleEnginePage.wms.pickDispatchConfirm,✅ Approve,✅ Approve,✅ 승인
+Approve dispatch?,1,ruleEnginePage.wms.pickDispatchSub,Approve dispatch?,Approve dispatch?,출고를 승인하시겠습니까?
+Dispatch Approval,1,ruleEnginePage.wms.pickDispatchTitle,Dispatch Approval,Dispatch Approval,출고 승인
+Picking starts after approval.,1,ruleEnginePage.wms.pickDispatchWarn,Picking starts after approval.,Picking starts after approval.,승인 후 피킹이 시작됩니다.
+Process Shipment,1,ruleEnginePage.wms.processShipment,Process Shipment,Process Shipment,출고 처리
+All POs,1,ruleEnginePage.wms.recvAllPO,All POs,All POs,전체 발주
+✅ Confirm Receipt,1,ruleEnginePage.wms.recvConfirmBtn,✅ Confirm Receipt,✅ Confirm Receipt,✅ 입고 확정
+In Transit,1,ruleEnginePage.wms.recvInTransit,In Transit,In Transit,운송 중
+Total PO Amt,1,ruleEnginePage.wms.recvTotalAmt,Total PO Amt,Total PO Amt,총 발주 금액
+Register Receipt,1,ruleEnginePage.wms.registerReceipt,Register Receipt,Register Receipt,입고 등록
+Click to auto-fill PO,1,ruleEnginePage.wms.replClickAuto,Click to auto-fill PO,Click to auto-fill PO,클릭하면 발주 정보가 자동 입력됩니다
+⚡ Create PO,1,ruleEnginePage.wms.replCreateBtn,⚡ Create PO,⚡ Create PO,⚡ 발주 생성
+✅ PO created,1,ruleEnginePage.wms.replDone,✅ PO created,✅ PO created,✅ 발주 생성 완료
+📋 Purchase Order,1,ruleEnginePage.wms.replFormTitle,📋 Purchase Order,📋 Purchase Order,📋 발주서
+PO History,1,ruleEnginePage.wms.replHistTitle,PO History,PO History,발주 이력
+⚡ Reorder needed ({n} types),1,ruleEnginePage.wms.replNeedTitle,⚡ Reorder needed ({n} types),⚡ Reorder needed ({n} types),⚡ 재발주 필요 ({n}개 품목)
+Est. Total,1,ruleEnginePage.wms.replTotal,Est. Total,Est. Total,예상 합계
+Apply this SKU,1,ruleEnginePage.wms.scanApply,Apply this SKU,Apply this SKU,이 SKU 적용
+Barcode Scan,1,ruleEnginePage.wms.scanBtn,Barcode Scan,Barcode Scan,바코드 스캔
+Camera access denied. Check browser permissions.,1,ruleEnginePage.wms.scanCamError,Camera access denied. Check browser permissions.,Camera access denied. Check browser permissions.,카메라 접근이 거부되었습니다. 브라우저 권한을 확인해주세요.
+Barcode detected!,1,ruleEnginePage.wms.scanDetected,Barcode detected!,Barcode detected!,바코드 감지됨!
+Align barcode to scan area...,1,ruleEnginePage.wms.scanScanning,Align barcode to scan area...,Align barcode to scan area...,바코드를 스캔 영역에 맞춰주세요...
+Scan Title,1,ruleEnginePage.wms.scanTitle,Scan Title,Scan Title,스캔
+Security Status: Safe,1,ruleEnginePage.wms.securitySafe,Security Status: Safe,Security Status: Safe,보안 상태: 안전
+No security threats detected so far.,1,ruleEnginePage.wms.securitySafeDesc,No security threats detected so far.,No security threats detected so far.,현재까지 감지된 보안 위협이 없습니다.
+Security Threat Detection Monitor,1,ruleEnginePage.wms.securityTitle,Security Threat Detection Monitor,Security Threat Detection Monitor,보안 위협 감지 모니터
++ Add Vendor,1,ruleEnginePage.wms.supAddBtn,+ Add Vendor,+ Add Vendor,+ 거래처 추가
+Sup Code Ph,1,ruleEnginePage.wms.supCodePh,Sup Code Ph,Sup Code Ph,거래처 코드를 입력해주세요
+Total PO Count,1,ruleEnginePage.wms.supDrawerTotalPO,Total PO Count,Total PO Count,총 발주 건수
+✏️ Edit Vendor,1,ruleEnginePage.wms.supEditTitle,✏️ Edit Vendor,✏️ Edit Vendor,✏️ 거래처 수정
+Lead Time (days),1,ruleEnginePage.wms.supLeadLabel,Lead Time (days),Lead Time (days),리드타임 (일)
+Sup Name Ph,1,ruleEnginePage.wms.supNamePh,Sup Name Ph,Sup Name Ph,거래처명을 입력해주세요
+➕ New Vendor,1,ruleEnginePage.wms.supNewTitle,➕ New Vendor,➕ New Vendor,➕ 새 거래처
++ Add Supplier,1,ruleEnginePage.wms.supplierAdd,+ Add Supplier,+ Add Supplier,+ 공급사 추가
+Supplier Management,1,ruleEnginePage.wms.supplierTitle,Supplier Management,Supplier Management,공급사 관리
+💡 Link PO history via Auto-PO tab.,1,ruleEnginePage.wms.supPoHistHint,💡 Link PO history via Auto-PO tab.,💡 Link PO history via Auto-PO tab.,💡 자동 발주 탭에서 발주 이력을 연결할 수 있습니다.
+📋 PO History,1,ruleEnginePage.wms.supPoHistory,📋 PO History,📋 PO History,📋 발주 이력
+Search vendor...,1,ruleEnginePage.wms.supSearchPh,Search vendor...,Search vendor...,거래처 검색...
+Total Amount,1,ruleEnginePage.wms.supTotalAmt,Total Amount,Total Amount,총 금액
+Total POs,1,ruleEnginePage.wms.supTotalPO,Total POs,Total POs,총 발주 건수
+Total PO,1,ruleEnginePage.wms.supTotalPOLabel,Total PO,Total PO,총 발주
+Manufacturer,1,ruleEnginePage.wms.supTypeManuf,Manufacturer,Manufacturer,제조사
+Raw Materials,1,ruleEnginePage.wms.supTypeRawMat,Raw Materials,Raw Materials,원자재
+Tab Dashboard,1,ruleEnginePage.wms.tabDashboard,Tab Dashboard,Tab Dashboard,대시보드
+Tab Returns,1,ruleEnginePage.wms.tabReturns,Tab Returns,Tab Returns,반품
+Tab Shipping,1,ruleEnginePage.wms.tabShipping,Tab Shipping,Tab Shipping,배송
+CJ Logistics,1,ruleEnginePage.wms.trackCJ,CJ Logistics,CJ Logistics,CJ대한통운
+📌 Demo data,1,ruleEnginePage.wms.trackDemoTag,📌 Demo data,📌 Demo data,📌 데모 데이터
+Shipment Departed,1,ruleEnginePage.wms.trackDesc1,Shipment Departed,Shipment Departed,출고 완료
+Sorting Complete,1,ruleEnginePage.wms.trackDesc2,Sorting Complete,Sorting Complete,분류 완료
+Line-haul Arrived,1,ruleEnginePage.wms.trackDesc3,Line-haul Arrived,Line-haul Arrived,간선 도착
+ETA: This Afternoon,1,ruleEnginePage.wms.trackEtaToday,ETA: This Afternoon,ETA: This Afternoon,도착 예정: 오늘 오후
+Hanjin Express,1,ruleEnginePage.wms.trackHJ,Hanjin Express,Hanjin Express,한진택배
+Seoul Gangnam Delivery Center,1,ruleEnginePage.wms.trackLoc1,Seoul Gangnam Delivery Center,Seoul Gangnam Delivery Center,서울 강남 배송센터
+Metropolitan Hub,1,ruleEnginePage.wms.trackLoc2,Metropolitan Hub,Metropolitan Hub,수도권 허브
+Incheon Logistics Center,1,ruleEnginePage.wms.trackLoc3,Incheon Logistics Center,Incheon Logistics Center,인천 물류센터
+Busan Dispatch Center,1,ruleEnginePage.wms.trackLoc4,Busan Dispatch Center,Busan Dispatch Center,부산 발송센터
+Lotte Express,1,ruleEnginePage.wms.trackLT,Lotte Express,Lotte Express,롯데택배
+Logen Express,1,ruleEnginePage.wms.trackLZ,Logen Express,Logen Express,로젠택배
+Track Num Ph,1,ruleEnginePage.wms.trackNumPh,Track Num Ph,Track Num Ph,운송장 번호를 입력해주세요
+🔍 Track by Number,1,ruleEnginePage.wms.trackSearchTitle,🔍 Track by Number,🔍 Track by Number,🔍 운송장 번호 조회
++ Add Warehouse,1,ruleEnginePage.wms.whAddBtn,+ Add Warehouse,+ Add Warehouse,+ 창고 추가
+Area (㎡),1,ruleEnginePage.wms.whAreaLabel,Area (㎡),Area (㎡),면적 (㎡)
+Warehouse Code *,1,ruleEnginePage.wms.whCodeLabel,Warehouse Code *,Warehouse Code *,창고 코드 *
+Current Stock,1,ruleEnginePage.wms.whCurrentStock,Current Stock,Current Stock,현재 재고
+✏️ Edit Warehouse,1,ruleEnginePage.wms.whEditTitle,✏️ Edit Warehouse,✏️ Edit Warehouse,✏️ 창고 수정
+🏭 Warehouse List,1,ruleEnginePage.wms.whListTitle,🏭 Warehouse List,🏭 Warehouse List,🏭 창고 목록
+Warehouse Name *,1,ruleEnginePage.wms.whNameLabel,Warehouse Name *,Warehouse Name *,창고명 *
+Warehouse name and code are required.,1,ruleEnginePage.wms.whNameRequired,Warehouse name and code are required.,Warehouse name and code are required.,창고명과 코드를 입력해주세요.
+➕ Register New Warehouse,1,ruleEnginePage.wms.whNewTitle,➕ Register New Warehouse,➕ Register New Warehouse,➕ 새 창고 등록
+Combination (Room+Cold),1,ruleEnginePage.wms.whTempCombi,Combination (Room+Cold),Combination (Room+Cold),복합형 (상온+냉장)
+Electronics Only,1,ruleEnginePage.wms.whTempElec,Electronics Only,Electronics Only,전자제품 전용
+Storage Type,1,ruleEnginePage.wms.whTempLabel,Storage Type,Storage Type,보관 유형
+Operation Type,1,ruleEnginePage.wms.whTypeLabel,Operation Type,Operation Type,운영 유형
+Total Inventory Asset Value,1,ruleEnginePage.wms.wmsAssetValue,Total Inventory Asset Value,Total Inventory Asset Value,총 재고 자산 가치
+Carriers/Express,1,ruleEnginePage.wms.wmsBadgeCarrier,Carriers/Express,Carriers/Express,운송사·택배
+⚠️ Low Stock {n} types,1,ruleEnginePage.wms.wmsBadgeLowStock,⚠️ Low Stock {n} types,⚠️ Low Stock {n} types,⚠️ 재고 부족 {n}개 품목
+Orders {n} Linked,1,ruleEnginePage.wms.wmsBadgeOrders,Orders {n} Linked,Orders {n} Linked,연동 주문 {n}건
+Total Stock {n} 🔴Live,1,ruleEnginePage.wms.wmsBadgeTotalStock,Total Stock {n} 🔴Live,Total Stock {n} 🔴Live,총 재고 {n} 🔴실시간
+💰 Budget Planner →,1,ruleEnginePage.wms.wmsBtnBudget,💰 Budget Planner →,💰 Budget Planner →,💰 예산 플래너 →
+📡 Sales Channel →,1,ruleEnginePage.wms.wmsBtnSalesChannel,📡 Sales Channel →,📡 Sales Channel →,📡 판매 채널 →
+St Overpaid,1,stOverpaid,St Overpaid,St Overpaid,초과 결제
+St Paid,1,stPaid,St Paid,St Paid,결제 완료
+St Partial,1,stPartial,St Partial,St Partial,부분 결제
+St Unpaid,1,stUnpaid,St Unpaid,St Unpaid,미결제
+Views Per Order,1,viewsPerOrder,Views Per Order,Views Per Order,주문당 조회 수
+Demo environment — data is isolated from production,1,webPopup.demoIsolation,Demo environment — data is isolated from production,Demo environment — data is isolated from production,데모 환경 — 운영 데이터와 분리되어 있습니다

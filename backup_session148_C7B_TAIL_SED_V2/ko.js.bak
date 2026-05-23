@@ -47998,9 +47998,9 @@ export default {
     "targetNode": "대상 노드",
     "topInfluencer": "🏆 상위 기여 인플루언서",
     "weight": "가중치",
-    "mockData": "🟡 MOCK 데이터",
-    "mockResult": "🟡 MOCK 결과",
-    "noEdge": "연결된 엣지가 없습니다. 상단 탭에서 노드/엣지를 등록해주세요."
+    "mockData": "🟡 MOCK Data",
+    "mockResult": "🟡 MOCK Results",
+    "noEdge": "No Edge — Register Node/Edge in Tab above"
   },
   performance: {
     account: "계정",

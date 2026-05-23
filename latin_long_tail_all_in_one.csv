@@ -1,0 +1,1877 @@
+ko_value,suggested_ko,count,path_sample,source
+days,일,8,crm.aiHub.reviews.days,top500
+No Data Available,데이터 없음,8,crm.aiHub.reviews.noData,top500
+No execution history,실행 이력 없음,8,crm.aiHub.reviews.noHistory,top500
+Tab Roles,역할 탭,8,crm.aiHub.reviews.tabRoles,top500
+Unit Price,단가,7,crm.aiHub.aiHub.unitPrice,top500
+AI Analysis History,AI 분석 이력,7,crm.aiHub.reviews.aiHistoryList,top500
+AI Analysis Summary,AI 분석 요약,7,crm.aiHub.reviews.aiSummary,top500
+Avg Time,평균 시간,7,crm.aiHub.reviews.avgTime,top500
+Biz Goal Setting,비즈니스 목표 설정,7,crm.aiHub.reviews.bizGoalSetting,top500
+Brand Awareness Desc,브랜드 인지도 안내,7,crm.aiHub.reviews.brandAwarenessDesc,top500
+Channel Role Definition,채널 역할 정의,7,crm.aiHub.reviews.channelRoleDef,top500
+Key Action Items,핵심 액션 아이템,7,crm.aiHub.reviews.checklist,top500
+Cost vs Performance Check,비용 대비 성과 점검,7,crm.aiHub.reviews.chkCostPerf,top500
+Campaign Efficiency Check,캠페인 효율 점검,7,crm.aiHub.reviews.chkEff,top500
+Identify Items for Improvement,개선 항목 파악,7,crm.aiHub.reviews.chkImprove,top500
+Claude Ai Desc,Claude AI 안내,7,crm.aiHub.reviews.claudeAiDesc,top500
+Claude Ai Title,Claude AI 제목,7,crm.aiHub.reviews.claudeAiTitle,top500
+Click Select,클릭하여 선택,7,crm.aiHub.reviews.clickSelect,top500
+Community Act,커뮤니티 활동,7,crm.aiHub.reviews.communityAct,top500
+Community Growth,커뮤니티 성장,7,crm.aiHub.reviews.communityGrowth,top500
+Community Kpi,커뮤니티 KPI,7,crm.aiHub.reviews.communityKpi,top500
+Content Engage,콘텐츠 참여,7,crm.aiHub.reviews.contentEngage,top500
+Content Impressions,콘텐츠 노출 수,7,crm.aiHub.reviews.contentImpressions,top500
+Content Interest,콘텐츠 관심도,7,crm.aiHub.reviews.contentInterest,top500
+Content Kpi,콘텐츠 KPI,7,crm.aiHub.reviews.contentKpi,top500
+Large-scale brand exposure through SNS platform ads,SNS 플랫폼 광고를 통한 대규모 브랜드 노출,7,crm.aiHub.reviews.descBrandReach,top500
+Target users with high purchase intent via search algorithms,검색 알고리즘을 활용한 구매 의도 높은 사용자 타겟팅,7,crm.aiHub.reviews.descCaptureIntent,top500
+Conversion Rate vs Target,목표 대비 전환율,7,crm.aiHub.reviews.descConvRate,top500
+Desc Cpa,CPA 안내,7,crm.aiHub.reviews.descCpa,top500
+Desc Cpc,CPC 안내,7,crm.aiHub.reviews.descCpc,top500
+Desc Ctr,CTR 안내,7,crm.aiHub.reviews.descCtr,top500
+Secure customer loyalty through community activities,커뮤니티 활동을 통한 고객 충성도 확보,7,crm.aiHub.reviews.descCustRel,top500
+Build expertise and trust through problem-solving content,문제 해결 콘텐츠를 통한 전문성과 신뢰 구축,7,crm.aiHub.reviews.descInfoTrust,top500
+Desc Roas,ROAS 안내,7,crm.aiHub.reviews.descRoas,top500
+Hint Conv Rate,전환율 도움말,7,crm.aiHub.reviews.hintConvRate,top500
+Hint Cpa,CPA 도움말,7,crm.aiHub.reviews.hintCpa,top500
+Hint Cpc,CPC 도움말,7,crm.aiHub.reviews.hintCpc,top500
+Hint Ctr,CTR 도움말,7,crm.aiHub.reviews.hintCtr,top500
+Hint Roas,ROAS 도움말,7,crm.aiHub.reviews.hintRoas,top500
+Improvement Recommendations,개선 추천 사항,7,crm.aiHub.reviews.improveRecs,top500
+Inquiries Purchases,문의·구매,7,crm.aiHub.reviews.inquiriesPurchases,top500
+Inquiries Purchases Desc,문의·구매 안내,7,crm.aiHub.reviews.inquiriesPurchasesDesc,top500
+Interest Conv,관심·전환,7,crm.aiHub.reviews.interestConv,top500
+AI Channel Performance Monitoring,AI 채널 성과 모니터링,7,crm.aiHub.reviews.monitorAi,top500
+Monthly Report,월간 리포트,7,crm.aiHub.reviews.monthlyAi,top500
+Monthly Trend,월간 트렌드,7,crm.aiHub.reviews.monthlyTrend,top500
+New Signups,신규 가입,7,crm.aiHub.reviews.newMembers,top500
+Overall Achievement Status,전체 달성 현황,7,crm.aiHub.reviews.overallAchieve,top500
+Page Views,페이지뷰,7,crm.aiHub.reviews.pageViews,top500
+Please Select Goal,목표를 선택해주세요,7,crm.aiHub.reviews.pleaseSelectGoal,top500
+Post Views,게시물 조회 수,7,crm.aiHub.reviews.postViews,top500
+Privacy Policy,개인정보 처리방침,7,crm.aiHub.reviews.privacyPolicy,top500
+✅ Purchase Complete,✅ 구매 완료,7,crm.aiHub.reviews.purchase,top500
+Brand Reach,브랜드 도달,7,crm.aiHub.reviews.roleBrandReach,top500
+Capture Purchase Intent,구매 의도 포착,7,crm.aiHub.reviews.roleCaptureIntent,top500
+Strengthen Customer Relationships,고객 관계 강화,7,crm.aiHub.reviews.roleCustRel,top500
+Info · Trust Building,정보·신뢰 구축,7,crm.aiHub.reviews.roleInfoTrust,top500
+Search Traffic,검색 트래픽,7,crm.aiHub.reviews.searchTraffic,top500
+Selected Goals,선택된 목표,7,crm.aiHub.reviews.selectedGoals,top500
+Seo Impact,SEO 영향도,7,crm.aiHub.reviews.seoImpact,top500
+Site Traffic,사이트 트래픽,7,crm.aiHub.reviews.siteTraffic,top500
+Sns Kpi By Channel,채널별 SNS KPI,7,crm.aiHub.reviews.snsKpiByChannel,top500
+Sns Kpi Overview,SNS KPI 개요,7,crm.aiHub.reviews.snsKpiOverview,top500
+Tab Community,커뮤니티,7,crm.aiHub.reviews.tabCommunity,top500
+Tab Content,콘텐츠,7,crm.aiHub.reviews.tabContent,top500
+Tab Goals,목표,7,crm.aiHub.reviews.tabGoals,top500
+Tab Monitor,모니터링,7,crm.aiHub.reviews.tabMonitor,top500
+Tab Setup,설정,7,crm.aiHub.reviews.tabSetup,top500
+Tab Sns,SNS,7,crm.aiHub.reviews.tabSns,top500
+Tab Targets,타겟 탭,7,crm.aiHub.reviews.tabTargets,top500
+KPI Target Setting by Channel,채널별 KPI 목표 설정,7,crm.aiHub.reviews.targetSetup,top500
+Target Vs Actuals,목표 대비 실적,7,crm.aiHub.reviews.targetVsActuals,top500
+Web Traffic,웹 트래픽,7,crm.aiHub.reviews.webTraffic,top500
+Web Traffic Desc,웹 트래픽 안내,7,crm.aiHub.reviews.webTrafficDesc,top500
+Weekly Ad Efficiency Trend,주간 광고 효율 트렌드,7,crm.aiHub.reviews.weeklyAdTrend,top500
+Weekly Report,주간 리포트,7,crm.aiHub.reviews.weeklyAi,top500
+TikTok Shop,TikTok Shop,6,_marketing_1.sc_tiktok_shop,top500
+LTV vs CAC,LTV vs CAC,6,attrData.tabLtvLabel,top500
+Auto Execution Log,자동 실행 로그,6,crm.aiHub.execLog,top500
+Unified Dashboard,통합 대시보드,6,crm.aiHub.omniChannel.ovTitle,top500
+Ab Group A,A 그룹,6,crm.aiHub.reviews.abGroupA,top500
+Ab Group B,B 그룹,6,crm.aiHub.reviews.abGroupB,top500
+Back To List,목록으로 돌아가기,6,crm.aiHub.reviews.backToList,top500
+🎂 Birthday,🎂 생일,6,crm.aiHub.reviews.birthday,top500
+🛒 Cart Abandoned,🛒 장바구니 이탈,6,crm.aiHub.reviews.cart_abandoned,top500
+Click To Edit,클릭하여 편집,6,crm.aiHub.reviews.clickToEdit,top500
+Condition Email Clicked,이메일 클릭 조건,6,crm.aiHub.reviews.conditionEmailClicked,top500
+Condition Email Opened,이메일 열람 조건,6,crm.aiHub.reviews.conditionEmailOpened,top500
+Condition Field,조건 필드,6,crm.aiHub.reviews.conditionField,top500
+Condition Kakao Clicked,카카오 클릭 조건,6,crm.aiHub.reviews.conditionKakaoClicked,top500
+Condition Ltv Gt,LTV 초과 조건,6,crm.aiHub.reviews.conditionLtvGt,top500
+Click-through Rate (CTR),클릭률 (CTR),6,crm.aiHub.reviews.ctr,top500
+Delay Time,지연 시간,6,crm.aiHub.reviews.delayTime,top500
+Delete Node,노드 삭제,6,crm.aiHub.reviews.deleteNode,top500
+Email From,발신자,6,crm.aiHub.reviews.emailFrom,top500
+Email Send Sim,이메일 발송 시뮬레이션,6,crm.aiHub.reviews.emailSendSim,top500
+Email Simulate,이메일 시뮬레이션,6,crm.aiHub.reviews.emailSimulate,top500
+Email Subject,이메일 제목,6,crm.aiHub.reviews.emailSubject,top500
+Email Subject Ph,이메일 제목 입력,6,crm.aiHub.reviews.emailSubjectPh,top500
+Email Test Send,이메일 테스트 발송,6,crm.aiHub.reviews.emailTestSend,top500
+Kakao Alimtalk,카카오 알림톡,6,crm.aiHub.reviews.kakaoAlimtalk,top500
+Kakao Friendtalk,카카오 친구톡,6,crm.aiHub.reviews.kakaoFriendtalk,top500
+Kakao Msg Type,카카오 메시지 유형,6,crm.aiHub.reviews.kakaoMsgType,top500
+Kakao Send Sim,카카오 발송 시뮬레이션,6,crm.aiHub.reviews.kakaoSendSim,top500
+Kakao Template,카카오 템플릿,6,crm.aiHub.reviews.kakaoTemplate,top500
+Kakao Test,카카오 테스트,6,crm.aiHub.reviews.kakaoTest,top500
+Line Msg Type,LINE 메시지 유형,6,crm.aiHub.reviews.lineMsgType,top500
+Line Send Sim,LINE 발송 시뮬레이션,6,crm.aiHub.reviews.lineSendSim,top500
+Line Simulate,LINE 시뮬레이션,6,crm.aiHub.reviews.lineSimulate,top500
+Line Template,LINE 템플릿,6,crm.aiHub.reviews.lineTemplate,top500
+Line Test Send,LINE 테스트 발송,6,crm.aiHub.reviews.lineTestSend,top500
+Node Config,노드 설정,6,crm.aiHub.reviews.nodeConfig,top500
+Node Name,노드명,6,crm.aiHub.reviews.nodeName,top500
+Recent Triggers,최근 트리거,6,crm.aiHub.reviews.recentTriggers,top500
+📌 Segment Entry,📌 세그먼트 진입,6,crm.aiHub.reviews.segment_entered,top500
+🌱 New Signup,🌱 신규 가입,6,crm.aiHub.reviews.signup,top500
+View by Team,팀별 보기,6,crm.aiHub.reviews.team,top500
+Trigger Type,트리거 유형,6,crm.aiHub.reviews.triggerType,top500
+UGC Revenue,UGC 매출,6,crm.aiHub.reviews.u_86,top500
+Video Views,동영상 조회 수,6,crm.aiHub.reviews.videoViews,top500
+Mapping Rule,매핑 규칙,6,pages.marketingIntel.eventNorm.mappingRule,top500
+Send domestic SMS/LMS messages and manage send history and statistics.,국내 SMS/LMS 메시지를 발송하고 발송 이력과 통계를 관리합니다.,6,pages.marketingIntel.helpPanel.staticHelp.connectors.summary,top500
+Net Profit,순이익,5,crm.aiHub.aiHub.netProfit,top500
+Last Sync,최근 동기화,5,crm.aiHub.omniChannel.prodColLastSync,top500
+Badge Op Profit,영업이익 배지,5,crm.aiHub.reviews.badgeOpProfit,top500
+Badge Orders,주문 배지,5,crm.aiHub.reviews.badgeOrders,top500
+Banner Desc,배너 설명,5,crm.aiHub.reviews.bannerDesc,top500
+Banner Title,배너 제목,5,crm.aiHub.reviews.bannerTitle,top500
+Ch Blog,블로그 채널,5,crm.aiHub.reviews.chBlog,top500
+Ch Community,커뮤니티 채널,5,crm.aiHub.reviews.chCommunity,top500
+Ch Search Ads,검색 광고 채널,5,crm.aiHub.reviews.chSearchAds,top500
+Ch Sns Ads,SNS 광고 채널,5,crm.aiHub.reviews.chSnsAds,top500
+Final Churn Status,최종 이탈 상태,5,crm.aiHub.reviews.churn,top500
+😴 Churn Risk Customer,😴 이탈 위험 고객,5,crm.aiHub.reviews.churned,top500
+LINE Clicks,LINE 클릭,5,crm.aiHub.reviews.conditionLineClicked,top500
+Consent Date,동의일,5,crm.aiHub.reviews.consentDate,top500
+Consent Now,지금 동의,5,crm.aiHub.reviews.consentNow,top500
+Consent Rate,동의율,5,crm.aiHub.reviews.consentRate,top500
+Cookie Policy,쿠키 정책,5,crm.aiHub.reviews.cookiePolicy,top500
+Crm Churn,CRM 이탈,5,crm.aiHub.reviews.crmChurn,top500
+Crm Journey,CRM 여정,5,crm.aiHub.reviews.crmJourney,top500
+Crm Journey Action,CRM 여정 액션,5,crm.aiHub.reviews.crmJourneyAction,top500
+Crm Vip,CRM VIP,5,crm.aiHub.reviews.crmVip,top500
+Current Consent Status,현재 동의 상태,5,crm.aiHub.reviews.currentConsentStatus,top500
+Current Month,이번 달,5,crm.aiHub.reviews.currentMonth,top500
+Date (Period),날짜 (기간),5,crm.aiHub.reviews.date,top500
+Edit Settings,설정 편집,5,crm.aiHub.reviews.editSettings,top500
+Exp Roas,예상 ROAS,5,crm.aiHub.reviews.expRoas,top500
+Filter High,높음,5,crm.aiHub.reviews.filterHigh,top500
+Filter Low,낮음,5,crm.aiHub.reviews.filterLow,top500
+Filter Med,중간,5,crm.aiHub.reviews.filterMed,top500
+Kakao Guild,카카오 가이드,5,crm.aiHub.reviews.kakaoGuild,top500
+Lbl Cpa Full,고객 획득 비용(CPA),5,crm.aiHub.reviews.lblCpaFull,top500
+Lbl Cpc Full,클릭당 비용(CPC),5,crm.aiHub.reviews.lblCpcFull,top500
+Lbl Ctr Full,클릭률(CTR),5,crm.aiHub.reviews.lblCtrFull,top500
+Lbl Roas Full,광고 수익률(ROAS),5,crm.aiHub.reviews.lblRoasFull,top500
+Live D B,라이브 DB,5,crm.aiHub.reviews.liveDB,top500
+Mkt Budget Action,마케팅 예산 액션,5,crm.aiHub.reviews.mktBudgetAction,top500
+Mkt High Roas,고 ROAS 마케팅,5,crm.aiHub.reviews.mktHighRoas,top500
+Mkt High Roas Sub,고 ROAS 마케팅 안내,5,crm.aiHub.reviews.mktHighRoasSub,top500
+Mkt Hub Action,마케팅 허브 액션,5,crm.aiHub.reviews.mktHubAction,top500
+Mkt Low Roas,저 ROAS 마케팅,5,crm.aiHub.reviews.mktLowRoas,top500
+Mkt Optimize Now,지금 마케팅 최적화,5,crm.aiHub.reviews.mktOptimizeNow,top500
+Mkt Rules Active,활성 마케팅 규칙,5,crm.aiHub.reviews.mktRulesActive,top500
+Naver Cafe,네이버 카페,5,crm.aiHub.reviews.naverCafe,top500
+No Consent Info,동의 정보 없음,5,crm.aiHub.reviews.noConsentInfo,top500
+Not Consented,미동의,5,crm.aiHub.reviews.notConsented,top500
+Orders Ai Run,주문 AI 실행,5,crm.aiHub.reviews.ordersAiRun,top500
+Orders Ai Sub,주문 AI 안내,5,crm.aiHub.reviews.ordersAiSub,top500
+Orders Campaign Action,주문 캠페인 액션,5,crm.aiHub.reviews.ordersCampaignAction,top500
+Panel Sub,패널 설명,5,crm.aiHub.reviews.panelSub,top500
+Panel Title,패널 제목,5,crm.aiHub.reviews.panelTitle,top500
+Analysis Period,분석 기간,5,crm.aiHub.reviews.period,top500
+Platform Stats,플랫폼 통계,5,crm.aiHub.reviews.platformStats,top500
+Policy Note1,정책 안내 1,5,crm.aiHub.reviews.policyNote1,top500
+Policy Note2,정책 안내 2,5,crm.aiHub.reviews.policyNote2,top500
+Policy Note3,정책 안내 3,5,crm.aiHub.reviews.policyNote3,top500
+30-day Churn Probability,30일 이탈 확률,5,crm.aiHub.reviews.prob30,top500
+Save Pref,환경설정 저장,5,crm.aiHub.reviews.savePref,top500
+Txt_ Actual Paid_9,실제 지급액,5,crm.aiHub.reviews.txt_ActualPaid_9,top500
+Txt_ Ad Creative_13,광고 크리에이티브,5,crm.aiHub.reviews.txt_AdCreative_13,top500
+Txt_ Channelper_15,채널별,5,crm.aiHub.reviews.txt_Channelper_15,top500
+Txt_ Creator R O I_11,크리에이터 ROI,5,crm.aiHub.reviews.txt_CreatorROI_11,top500
+Txt_ Difference_10,차액,5,crm.aiHub.reviews.txt_Difference_10,top500
+Txt_ Engagement_12,참여도,5,crm.aiHub.reviews.txt_Engagement_12,top500
+Txt_ Percontrac_8,계약당,5,crm.aiHub.reviews.txt_Percontrac_8,top500
+Txt_ Product Pag_14,상품 페이지,5,crm.aiHub.reviews.txt_ProductPag_14,top500
+Txt_ Whitelist A_4,화이트리스트 A,5,crm.aiHub.reviews.txt_WhitelistA_4,top500
+Sum Total,합계,5,crm.aiHub.reviews.u_114,top500
+Action Recommendations,액션 추천,5,crm.aiHub.reviews.u_81,top500
+Campaign Manager,캠페인 매니저,5,marketing.gNav.campaignManager,top500
+Instagram/Facebook DM,Instagram/Facebook DM,5,menu.instagramDm,top500
+Commerce & Settlement,커머스 & 정산,5,pages.marketing.commerce,top500
+Precision Shapley (2^n) · Bayesian MMM · Markov Chain · Incremental Uplift (Dual ML) · Thompson Sampling A/B,정밀 Shapley (2^n) · 베이지안 MMM · 마르코프 체인 · 인크리멘털 업리프트 (Dual ML) · 톰슨 샘플링 A/B,5,pages.marketingIntel.influencer.attrData.subtitle,top500
+❌ Reject,❌ 거부,5,pages.marketingIntel.reject,top500
+Campaign Status,캠페인 상태,4,crm.aiHub.aiHub.campaignStatus,top500
+Estimated Blended ROAS,예상 Blended ROAS,4,crm.aiHub.estRoas,top500
+Order No,주문 번호,4,crm.aiHub.omniChannel.ordColOrderNo,top500
+Estimated Revenue,예상 매출,4,crm.aiHub.revenue,top500
+Alert Success,알림 발송 성공,4,crm.aiHub.reviews.alertSuccess,top500
+Budget Err,예산 오류,4,crm.aiHub.reviews.budgetErr,top500
+Budget Label,예산,4,crm.aiHub.reviews.budgetLabel,top500
+Cat Beauty,뷰티,4,crm.aiHub.reviews.catBeauty,top500
+Cat Fashion,패션,4,crm.aiHub.reviews.catFashion,top500
+Cat Food,식품,4,crm.aiHub.reviews.catFood,top500
+Cat General,일반,4,crm.aiHub.reviews.catGeneral,top500
+Cat Software,소프트웨어,4,crm.aiHub.reviews.catSoftware,top500
+Cat Tech,테크,4,crm.aiHub.reviews.catTech,top500
+Cat Travel,여행,4,crm.aiHub.reviews.catTravel,top500
+Corporate Card,법인 카드,4,crm.aiHub.reviews.corporateCard,top500
+Est Conv,예상 전환 수,4,crm.aiHub.reviews.estConv,top500
+Launch Title,런칭 제목,4,crm.aiHub.reviews.launchTitle,top500
+Main Title,메인 제목,4,crm.aiHub.reviews.mainTitle,top500
+Pay Method,결제 수단,4,crm.aiHub.reviews.payMethod,top500
+Q Budget,분기 예산,4,crm.aiHub.reviews.qBudget,top500
+Which Category,카테고리 선택,4,crm.aiHub.reviews.whichCategory,top500
+Ad Performance,광고 성과,4,marketing.gNav.adPerformance,top500
+Journey Builder,여정 빌더,4,marketing.gNav.journeyBuilder,top500
+Rollup View,롤업 뷰,4,marketing.gNav.rollup,top500
+Web Popup,웹 팝업,4,marketing.gNav.webPopup,top500
+Bulk Action,일괄 작업,4,pages.cmpVal.aiPredict.bulkAction,top500
+Platform Fee,플랫폼 수수료,4,pages.cmpVal.aiPredict.kpi.p_3,top500
+No Results,결과 없음,4,pages.cmpVal.aiPredict.noResults,top500
+vs Sessions,세션 대비,4,pages.dashboard.convRateSub,top500
+Net Profit / Ad Spend,순이익 / 광고비,4,pages.dashboard.netROASSub,top500
+As of Today,오늘 기준,4,pages.dashboard.totalOrderSub,top500
+Gross Sales,총 매출,4,pages.kpiRevenue,top500
+Fee Difference,수수료 차액,4,pages.krChannel.feeDiff,top500
+Select Placeholder,선택해주세요,4,pages.krChannel.selectPlaceholder,top500
+Tab Channels,채널,4,pages.krChannel.tabChannels,top500
+Customer · CRM,고객 · CRM,4,pages.marketing.crm,top500
+Recent Visits,최근 방문,4,pages.marketing.quickRecents,top500
+Select Role,역할 선택,4,pages.marketing.selectRoleBtn,top500
+System Status,시스템 상태,4,pages.marketing.sysStatus,top500
+✓ Save Complete,✓ 저장 완료,4,pages.marketingIntel.admin.saved,top500
+Impressions,노출 수,4,pages.marketingIntel.influencer.colViews,top500
+Last Run,마지막 실행,4,pages.menu.writeback.lastRun,top500
+💰 LTV vs CAC,💰 LTV vs CAC,3,attrData.guideLtvName,top500
+Deselect All,전체 선택 해제,3,audit.deselectAll,top500
+{page} / {total},{page} / {total},3,audit.pageOf,top500
+TOP SKU,TOP SKU,3,commerce.topSku,top500
+👆 CTA,👆 CTA,3,creativeStudio.ctaHint,top500
+Filter All,전체,3,crm.aiHub.aiHub.filterAll,top500
+Name Required,이름을 입력해주세요,3,crm.aiHub.catalogSync.pxl.nameRequired,top500
+Low Stock,재고 부족,3,crm.aiHub.omniChannel.invLowStock,top500
+Btn Launch,런칭,3,crm.aiHub.reviews.btnLaunch,top500
+Btn Launching,런칭 중,3,crm.aiHub.reviews.btnLaunching,top500
+Btn Retry,재시도,3,crm.aiHub.reviews.btnRetry,top500
+Btn Review,검토,3,crm.aiHub.reviews.btnReview,top500
+Btn Simulate,시뮬레이션 실행,3,crm.aiHub.reviews.btnSimulate,top500
+Budget Sub,예산 안내,3,crm.aiHub.reviews.budgetSub,top500
+Campaign Name,캠페인명,3,crm.aiHub.reviews.campName,top500
+Detail View,상세 보기,3,crm.aiHub.reviews.detail,top500
+Launch Sub,런칭 안내,3,crm.aiHub.reviews.launchSub,top500
+Mix Sub,믹스 안내,3,crm.aiHub.reviews.mixSub,top500
+AI Media Mix Recommendation,AI 미디어 믹스 추천,3,crm.aiHub.reviews.mixTitle,top500
+Next Purchase,다음 구매,3,crm.aiHub.reviews.nextPurchase,top500
+Search product/SKU...,상품/SKU 검색...,3,crm.aiHub.reviews.searchPlaceholder,top500
+Total Gross,총 금액,3,crm.aiHub.reviews.totalAmt,top500
+Margin Rate (based on sale price),마진율 (판매가 기준),3,crm.email.catalogSync.marginRate,top500
+Registering...,등록 중...,3,crm.email.catalogSync.registering,top500
+SELECT * FROM ...,SELECT * FROM ...,3,dbAdmin.queryPlaceholder,top500
+AI Policy,AI 정책,3,marketing.gNav.aiPolicy,top500
+Budget Tracker,예산 트래커,3,marketing.gNav.budgetTracker,top500
+Channel KPI,채널 KPI,3,marketing.gNav.channelKpi,top500
+Reconciliation,정산 대조,3,marketing.gNav.reconciliation,top500
+Report Builder,리포트 빌더,3,marketing.gNav.reportBuilder,top500
+":{ ""sku"": ""..."", ""title"": ""..."", ""price"": 0 }",":{ ""sku"": ""..."", ""title"": ""..."", ""price"": 0 }",3,nav.pages.writeback.payloadPlaceholder,top500
+Real-time · Blended ROAS,실시간 · Blended ROAS,3,pages.cmpVal.aiPredict.kpi.k_0,top500
+Gross Profit,매출총이익,3,pages.cmpVal.aiPredict.kpi.k_1,top500
+Channel Performance,채널 성과,3,pages.commerce.channelPerf,top500
+End Date,종료일,3,pages.krChannel.endDate,top500
+No reconciliation reports,정산 대조 보고서 없음,3,pages.krChannel.noReports,top500
+✅ No Tickets (Below threshold),✅ 티켓 없음 (임계값 미만),3,pages.krChannel.noTickets,top500
+Platform Fee Rate,플랫폼 수수료율,3,pages.krChannel.platformFeeRate,top500
+Start Date,시작일,3,pages.krChannel.startDate,top500
+🔍 Settlement Reconciliation,🔍 정산 대조,3,pages.krChannel.tabRecon,top500
+Ad & Channel Analytics,광고 & 채널 분석,3,pages.marketing.adAnalytics,top500
+🚀 AI Marketing Automation,🚀 AI 마케팅 자동화,3,pages.marketing.aiMarketing,top500
+AI Strategy Generator,AI 전략 생성기,3,pages.marketing.autoMarketing,top500
+Channel Intelligence,채널 인텔리전스,3,pages.marketing.chIntelTitle,top500
+Customer CRM + AI Segment,고객 CRM + AI 세그먼트,3,pages.marketing.crmMain,top500
+Email + A/B Test,이메일 + A/B 테스트,3,pages.marketing.emailMarketing,top500
+Kakao Channel,카카오 채널,3,pages.marketing.kakaoChannel,top500
+Reviews & UGC Analysis,리뷰 & UGC 분석,3,pages.marketing.reviewsUgc,top500
+Compare to,비교 대상,3,pages.marketingIntel.compareTo,top500
+Api Key,API 키,3,pages.marketingIntel.connectors.apiKey,top500
+Configuration,설정,3,pages.marketingIntel.connectors.configure,top500
+No Connectors,커넥터 없음,3,pages.marketingIntel.connectors.noConnectors,top500
+Oauth Login,OAuth 로그인,3,pages.marketingIntel.connectors.oauthLogin,top500
+Sync Frequency,동기화 주기,3,pages.marketingIntel.connectors.syncFrequency,top500
+Ad Channels,광고 채널,3,pages.marketingIntel.connectors.tabAds,top500
+Tab All,전체,3,pages.marketingIntel.connectors.tabAll,top500
+Sales channel,판매 채널,3,pages.marketingIntel.connectors.tabSales,top500
+Connection Test,연결 테스트,3,pages.marketingIntel.connectors.testConnection,top500
+Add Schema,스키마 추가,3,pages.marketingIntel.eventNorm.addSchema,top500
+Event Name,이벤트명,3,pages.marketingIntel.eventNorm.eventName,top500
+No Schemas,스키마 없음,3,pages.marketingIntel.eventNorm.noSchemas,top500
+Source Channel,소스 채널,3,pages.marketingIntel.eventNorm.sourceChannel,top500
+Standard Event,표준 이벤트,3,pages.marketingIntel.eventNorm.standardEvent,top500
+Tab Mapping,매핑,3,pages.marketingIntel.eventNorm.tabMapping,top500
+📋 Schemas,📋 스키마,3,pages.marketingIntel.eventNorm.tabSchemas,top500
+Tab Test,테스트,3,pages.marketingIntel.eventNorm.tabTest,top500
+Test Event,테스트 이벤트,3,pages.marketingIntel.eventNorm.testEvent,top500
+Add Mapping,매핑 추가,3,pages.marketingIntel.mappingRegistry.addMapping,top500
+No Mappings,매핑 없음,3,pages.marketingIntel.mappingRegistry.noMappings,top500
+Tab Category Map,카테고리 매핑,3,pages.marketingIntel.mappingRegistry.tabCategoryMap,top500
+Tab Channel Map,채널 매핑,3,pages.marketingIntel.mappingRegistry.tabChannelMap,top500
+Tab Product Map,상품 매핑,3,pages.marketingIntel.mappingRegistry.tabProductMap,top500
+20 KPI,20 KPI,3,pages.marketingIntel.marketingIntel.badge20kpi,top500
+🎯 Trigger,🎯 트리거,3,pages.marketingIntel.trigger,top500
+Deactivated,비활성,3,pages.marketingIntel.userMgmt.status_inactive,top500
+Approved At,승인 시각,3,pages.menu.approvals.approvedAt,top500
+Budget Planner,예산 플래너,3,pages.menu.budgetPlanner,top500
+Content Calendar,콘텐츠 캘린더,3,pages.menu.contentCalendar,top500
+💾 Save,💾 저장,3,ruleEnginePage.wms.carrSaveBtn,top500
+Lead Time,리드타임,3,ruleEnginePage.wms.supDrawerLeadTime,top500
+Payment Terms,결제 조건,3,ruleEnginePage.wms.supDrawerPayTerms,top500
+Expected Revenue,예상 매출,2,attr.expectedRev,top500
+items,건,2,attrData.cases,top500
+Copy Link,링크 복사,2,audit.copyLink,top500
+Select All,전체 선택,2,audit.selectAll,top500
+Unity Catalog,Unity Catalog,2,catalogSync.ihub.dwFeatureUnity,top500
+SmartConnect AI,SmartConnect AI,2,catalogSync.ihub.scTitle,top500
+Smart Connect,Smart Connect,2,catalogSync.ihub.tabSmartConnect,top500
+https://example.com/promo,https://example.com/promo,2,catalogSync.webPopup.linkUrlPh,top500
+Add Budget,예산 추가,2,crm.aiHub.addBudget,top500
+Ad Saving,광고비 절감,2,crm.aiHub.adSaving,top500
+Approve All,전체 승인,2,crm.aiHub.aiHub.approveAll,top500
+Attribution Link,어트리뷰션 링크,2,crm.aiHub.aiHub.attributionLink,top500
+Auto Registered,자동 등록됨,2,crm.aiHub.aiHub.autoRegistered,top500
+Boost Reason,부스트 사유,2,crm.aiHub.aiHub.boostReason,top500
+Budget Shift,예산 재배분,2,crm.aiHub.aiHub.budgetShift,top500
+Bulk Approved,일괄 승인됨,2,crm.aiHub.aiHub.bulkApproved,top500
+Bulk Exec,일괄 실행,2,crm.aiHub.aiHub.bulkExec,top500
+Card Limit Alert,카드 한도 알림,2,crm.aiHub.aiHub.cardLimitAlert,top500
+Cards Unit,장,2,crm.aiHub.aiHub.cardsUnit,top500
+Cat Budget Opt,카테고리 예산 최적화,2,crm.aiHub.aiHub.catBudgetOpt,top500
+Cat Crm Retarget,CRM 리타게팅,2,crm.aiHub.aiHub.catCrmRetarget,top500
+Cat Inventory Risk,재고 리스크,2,crm.aiHub.aiHub.catInventoryRisk,top500
+Cat Settlement,정산,2,crm.aiHub.aiHub.catSettlement,top500
+Check In Campaign Mgr,캠페인 매니저에서 확인,2,crm.aiHub.aiHub.checkInCampaignMgr,top500
+Current Charged,현재 청구액,2,crm.aiHub.aiHub.currentCharged,top500
+Daily Sales,일 매출,2,crm.aiHub.aiHub.dailySales,top500
+Dp Add Budget,예산 추가,2,crm.aiHub.aiHub.dpAddBudget,top500
+Dp Ad Roi,광고 ROI,2,crm.aiHub.aiHub.dpAdRoi,top500
+Dp Ad Saving,광고비 절감,2,crm.aiHub.aiHub.dpAdSaving,top500
+Dp Est Roas,예상 ROAS,2,crm.aiHub.aiHub.dpEstRoas,top500
+Dp Expected Profit,예상 이익,2,crm.aiHub.aiHub.dpExpectedProfit,top500
+Dp Expire In,만료 예정,2,crm.aiHub.aiHub.dpExpireIn,top500
+Dp Settlement Margin,정산 마진,2,crm.aiHub.aiHub.dpSettlementMargin,top500
+Dp Shift Budget,예산 재배분,2,crm.aiHub.aiHub.dpShiftBudget,top500
+Dp Vip Count,VIP 수,2,crm.aiHub.aiHub.dpVipCount,top500
+Ds Active Rules,활성 규칙,2,crm.aiHub.aiHub.dsActiveRules,top500
+Ds Rules Fired,실행된 규칙,2,crm.aiHub.aiHub.dsRulesFired,top500
+Est Roas,예상 ROAS,2,crm.aiHub.aiHub.estRoas,top500
+Exec Budget,집행 예산,2,crm.aiHub.aiHub.execBudget,top500
+Exec Log,실행 로그,2,crm.aiHub.aiHub.execLog,top500
+Filter Executed,실행됨,2,crm.aiHub.aiHub.filterExecuted,top500
+In Days5,5일 이내,2,crm.aiHub.aiHub.inDays5,top500
+Journey Automation,여정 자동화,2,crm.aiHub.aiHub.journeyAutomation,top500
+Journey Link,여정 링크,2,crm.aiHub.aiHub.journeyLink,top500
+Need Card,카드 필요,2,crm.aiHub.aiHub.needCard,top500
+No Card Alert,카드 없음 알림,2,crm.aiHub.aiHub.noCardAlert,top500
+Pending Campaigns,대기 중 캠페인,2,crm.aiHub.aiHub.pendingCampaigns,top500
+Ready To Exec,실행 준비 완료,2,crm.aiHub.aiHub.readyToExec,top500
+Rec Boost Title,부스트 추천,2,crm.aiHub.aiHub.recBoostTitle,top500
+Rec Low Stock Title,재고 부족 추천,2,crm.aiHub.aiHub.recLowStockTitle,top500
+Rec Rebalance Title,재배분 추천,2,crm.aiHub.aiHub.recRebalanceTitle,top500
+Rec Vip Title,VIP 추천,2,crm.aiHub.aiHub.recVipTitle,top500
+Settlement Margin,정산 마진,2,crm.aiHub.aiHub.settlementMargin,top500
+Times Unit,회,2,crm.aiHub.aiHub.timesUnit,top500
+Total Exec Budget,총 실행 예산,2,crm.aiHub.aiHub.totalExecBudget,top500
+View Campaigns,캠페인 보기,2,crm.aiHub.aiHub.viewCampaigns,top500
+Vip Insight,VIP 인사이트,2,crm.aiHub.aiHub.vipInsight,top500
+Vip Reason,VIP 사유,2,crm.aiHub.aiHub.vipReason,top500
+Wasted Budget,낭비 예산,2,crm.aiHub.aiHub.wastedBudget,top500
+Demo Banner,데모 배너,2,crm.aiHub.aiPolicy.demoBanner,top500
+Live Sync Status,라이브 동기화 상태,2,crm.aiHub.aiPolicy.liveSyncStatus,top500
+Guide Tabs Title,가이드 탭 제목,2,crm.aiHub.catalogSync.contentCal.guideTabsTitle,top500
+Sec Lock,보안 잠금,2,crm.aiHub.catalogSync.mr.secLockDesc,top500
+Sec Lock Title,보안 잠금 제목,2,crm.aiHub.catalogSync.mr.secLockTitle,top500
+Create Pixel,픽셀 생성,2,crm.aiHub.catalogSync.pxl.createPixel,top500
+AI Creative,AI 크리에이티브,2,crm.aiHub.guideTabCreativeName,top500
+Instagram DM,Instagram DM,2,crm.aiHub.journey.nodeTypes.instagram,top500
+Webhook URL,Webhook URL,2,crm.aiHub.journey.webhookUrl,top500
+Aria Label,ARIA 라벨,2,crm.aiHub.mobileNav.ariaLabel,top500
+🏪 Own Mall / Others,🏪 자사몰 / 기타,2,crm.aiHub.omniChannel.groupOwnMall,top500
+Last Update,최종 업데이트,2,crm.aiHub.omniChannel.invLastUpdate,top500
+Out of Stock,품절,2,crm.aiHub.omniChannel.invOutOfStock,top500
+Real-time Inventory,실시간 재고,2,crm.aiHub.omniChannel.invTitle,top500
+Total Products,총 상품 수,2,crm.aiHub.omniChannel.invTotalProducts,top500
+📥 Export,📥 내보내기,2,crm.aiHub.omniChannel.ordBtnExport,top500
+Unified Order Management,통합 주문 관리,2,crm.aiHub.omniChannel.ordTitle,top500
+Avg Order Value,평균 주문 금액,2,crm.aiHub.omniChannel.ovAvgOrderValue,top500
+Revenue Share by Channel,채널별 매출 비중,2,crm.aiHub.omniChannel.ovChannelShare,top500
+Revenue Trend by Channel,채널별 매출 트렌드,2,crm.aiHub.omniChannel.ovRevenueByChannel,top500
+Avg Price,평균 가격,2,crm.aiHub.omniChannel.prodAvgPrice,top500
+🔄 Sync All,🔄 전체 동기화,2,crm.aiHub.omniChannel.prodBtnSync,top500
+Channel Coverage,채널 커버리지,2,crm.aiHub.omniChannel.prodChannelCoverage,top500
+Product Name,상품명,2,crm.aiHub.omniChannel.prodColName,top500
+Sync Status,동기화 상태,2,crm.aiHub.omniChannel.prodSyncStatus,top500
+Unified Product Management,통합 상품 관리,2,crm.aiHub.omniChannel.prodTitle,top500
+Total SKUs,총 SKU 수,2,crm.aiHub.omniChannel.prodTotalSKU,top500
+Copied to clipboard,클립보드에 복사되었습니다,2,crm.aiHub.reviews.copied,top500
+Order ID,주문 ID,2,crm.aiHub.reviews.orderId,top500
+https://example.com/landing-page,https://example.com/landing-page,2,crm.aiHub.webPopup.linkUrlPh,top500
+Product name,상품명,2,crm.email.catalogSync.colProductName,top500
+Sale Price,판매가,2,crm.email.catalogSync.colSalePrice,top500
+Exchange Rate,환율,2,crm.email.catalogSync.exchangeRate,top500
+ROAS < 3.0x,ROAS < 3.0x,2,crm.email.ds.ruleROAS3,top500
+TikTok Ads Manager → Assets → Events → Web Events,TikTok Ads Manager → Assets → Events → Web Events,2,crm.email.dt.tiktokStep1,top500
+Days Left,남은 일수,2,daysLeft,top500
+13 Alerts,알림 13건,2,marketing.g.sidebarAlertCount,top500
+Exit  & Logout,종료 & 로그아웃,2,marketing.g.sidebarLogout,top500
+View Upgrade Plans,업그레이드 플랜 보기,2,marketing.g.upgradalBtn,top500
+Pro Plan Exclusive,Pro 플랜 전용,2,marketing.g.upgradalTitle,top500
+Plans & Pricing,플랜 & 요금,2,marketing.gNav.app_pricing,top500
+Data Schema,데이터 스키마,2,marketing.gNav.dataSchema,top500
+Order Hub,주문 허브,2,marketing.gNav.orderHub,top500
+Performance Hub,성과 허브,2,marketing.gNav.performanceHub,top500
+Price Optimization,가격 최적화,2,marketing.gNav.priceOpt,top500
+WMS Inventory,WMS 재고,2,marketing.gNav.wms,top500
+SmartConnect (ERP·SCM),SmartConnect (ERP·SCM),2,nav.pages.cmpRow.r17,top500
+:{page} / {total},:{page} / {total},2,nav.pages.ui.pageOf,top500
+Account Health,계정 건전성,2,pages.amazonRisk.accountScore,top500
+Average Rating,평균 평점,2,pages.amazonRisk.avgRating,top500
+Buy Box Rate,바이박스 점유율,2,pages.amazonRisk.buyBox,top500
+FBA Stock Rate,FBA 재고율,2,pages.amazonRisk.fbaStockRate,top500
+High Severity,높은 심각도,2,pages.amazonRisk.highRisk,top500
+Medium Risk,중간 리스크,2,pages.amazonRisk.mediumRisk,top500
+Risk Alerts,리스크 알림,2,pages.amazonRisk.riskAlerts,top500
+Home Dashboard,홈 대시보드,2,pages.cmpRow.r1,top500
+Average Unit Price,평균 단가,2,pages.cmpVal.aiPredict.aiRec.avgPrice,top500
+Catalog Auto-fill,카탈로그 자동 입력,2,pages.cmpVal.aiPredict.aiRec.catalogAuto,top500
+Revenue Target,매출 목표,2,pages.cmpVal.aiPredict.aiRec.goalRevenue,top500
+Main Sales Channels,주요 판매 채널,2,pages.cmpVal.aiPredict.aiRec.mainChannels,top500
+Monthly Sales Target,월 판매 목표,2,pages.cmpVal.aiPredict.aiRec.monthlyQty,top500
+📦 Product Sales Info,📦 상품 판매 정보,2,pages.cmpVal.aiPredict.aiRec.salesInfo,top500
+e.g. Beauty brand Instagram ad strategy or marketing goal,예: 뷰티 브랜드 Instagram 광고 전략 또는 마케팅 목표,2,pages.cmpVal.aiPredict.aiRec.searchPh,top500
+Product/SKU Count,상품/SKU 수,2,pages.cmpVal.aiPredict.aiRec.skuCount,top500
+Electronics,전자제품,2,pages.cmpVal.aiPredict.cat.electronics,top500
+🛒 Purchase Agent,🛒 구매 대행,2,pages.cmpVal.aiPredict.cat.purchasing,top500
+Channel Intelligen,채널 인텔리전스,2,pages.cmpVal.aiPredict.kpi.k_9,top500
+P&L Waterfall — 3-Domain Integrated,P&L 워터폴 — 3개 도메인 통합,2,pages.cmpVal.aiPredict.kpi.p_11,top500
+Ad Domain,광고 도메인,2,pages.cmpVal.aiPredict.kpi.p_12,top500
+Market Domain,시장 도메인,2,pages.cmpVal.aiPredict.kpi.p_13,top500
+By SKU,SKU별,2,pages.cmpVal.aiPredict.kpi.p_15,top500
+By Channel,채널별,2,pages.cmpVal.aiPredict.kpi.p_16,top500
+By Campaign,캠페인별,2,pages.cmpVal.aiPredict.kpi.p_17,top500
+By Creator,크리에이터별,2,pages.cmpVal.aiPredict.kpi.p_18,top500
+Forecast P&L Simulation,P&L 예측 시뮬레이션,2,pages.cmpVal.aiPredict.kpi.p_19,top500
+Parameter Settings,파라미터 설정,2,pages.cmpVal.aiPredict.kpi.p_20,top500
+Forecast Annual Revenue,예상 연간 매출,2,pages.cmpVal.aiPredict.kpi.p_21,top500
+Forecast Net Profit,예상 순이익,2,pages.cmpVal.aiPredict.kpi.p_22,top500
+Influencer Cost,인플루언서 비용,2,pages.cmpVal.aiPredict.kpi.p_4,top500
+Net Settlement,순 정산액,2,pages.cmpVal.aiPredict.kpi.p_5,top500
+Bday Desc,생일 안내,2,pages.cmpVal.aiPredict.kpi.tab.bdayDesc,top500
+Churn Desc,이탈 안내,2,pages.cmpVal.aiPredict.kpi.tab.churnDesc,top500
+Vip Desc,VIP 안내,2,pages.cmpVal.aiPredict.kpi.tab.vipDesc,top500
+List View,목록 보기,2,pages.cmpVal.list_view,top500
+Average Order Value,평균 주문 금액,2,pages.dashboard.avgOrder,top500
+Net R O A S,Net ROAS,2,pages.dashboard.netROAS,top500
+Ad Spend Rate,광고 비용률,2,pages.krChannel.adSpendRate,top500
+Api Disconnected,API 연결 해제,2,pages.krChannel.apiDisconnected,top500
+Category All,전체 카테고리,2,pages.krChannel.categoryAll,top500
+Channel Master,채널 마스터,2,pages.krChannel.channelMaster,top500
+Channel Select,채널 선택,2,pages.krChannel.channelSelect,top500
+Commission History,수수료 이력,2,pages.krChannel.commissionHistory,top500
+Commission Reg,수수료 등록,2,pages.krChannel.commissionReg,top500
+Effective Date,적용일,2,pages.krChannel.effectiveDate,top500
+Ingest Title,데이터 수집 제목,2,pages.krChannel.ingestTitle,top500
+Load Sample,샘플 불러오기,2,pages.krChannel.loadSample,top500
+Missing Order,누락된 주문,2,pages.krChannel.missingOrder,top500
+Missing Settle,누락된 정산,2,pages.krChannel.missingSettle,top500
+Net Diff,순 차액,2,pages.krChannel.netDiff,top500
+No Data Hint,데이터 없음 안내,2,pages.krChannel.noDataHint,top500
+Recon Run,대조 실행,2,pages.krChannel.reconRun,top500
+Recon Start,대조 시작,2,pages.krChannel.reconStart,top500
+Return Fee,반품 수수료,2,pages.krChannel.returnFee,top500
+Save Commission,수수료 저장,2,pages.krChannel.saveCommission,top500
+Select Channel Hint,채널을 선택하세요,2,pages.krChannel.selectChannelHint,top500
+Settle Cycle,정산 주기,2,pages.krChannel.settleCycle,top500
+Base Shipping Fee (₩),기본 배송비 (₩),2,pages.krChannel.shippingFee,top500
+Tab Fees,수수료,2,pages.krChannel.tabFees,top500
+Tab Ingest,데이터 수집,2,pages.krChannel.tabIngest,top500
+Summary Score,요약 점수,2,pages.krChannel.tabSummary,top500
+Total Commission,총 수수료,2,pages.krChannel.totalCommission,top500
+Total Settlement,총 정산액,2,pages.krChannel.totalSettlement,top500
+Vat Rate Label,VAT 세율,2,pages.krChannel.vatRateLabel,top500
+Age Distribution,연령 분포,2,pages.marketing.ageDist,top500
+AI Communication,AI 커뮤니케이션,2,pages.marketing.aiMarketingHub,top500
+Analytics Modules,분석 모듈,2,pages.marketing.analyticsModules,top500
+View Integration Guide,연동 가이드 보기,2,pages.marketing.ApiRegister,top500
+Core KPIs by Channel,채널별 핵심 KPI,2,pages.marketing.channelDesc,top500
+Channel Mix,채널 믹스,2,pages.marketing.channelMix,top500
+Ch Intel Desc1,채널 인텔리전스 안내 1,2,pages.marketing.chIntelDesc1,top500
+Ch Intel Desc2,채널 인텔리전스 안내 2,2,pages.marketing.chIntelDesc2,top500
+Ch Intel Desc3,채널 인텔리전스 안내 3,2,pages.marketing.chIntelDesc3,top500
+Ch Intel Desc4,채널 인텔리전스 안내 4,2,pages.marketing.chIntelDesc4,top500
+Channel Performance Dashboard,채널 성과 대시보드,2,pages.marketing.chPerfDash,batch_01
+Key KPI Trends by Media,매체별 핵심 KPI 추이,2,pages.marketing.chTrendKpi,batch_01
+Goal Achievement,목표 달성률,2,pages.marketing.colAchieve,batch_01
+Channel Name,채널명,2,pages.marketing.colChan,batch_01
+Order · Inventory · Settlement Unified Status,주문 · 재고 · 정산 통합 현황,2,pages.marketing.commerceDesc,batch_01
+Conversion Funnel Analysis,전환 퍼널 분석,2,pages.marketing.convFunnel,batch_01
+Gender Distribution,성별 분포,2,pages.marketing.genderDist,batch_01
+Influencer · UGC Performance Analysis,인플루언서 · UGC 성과 분석,2,pages.marketing.influencerDesc,batch_01
+KR Channel,국내 채널,2,pages.marketing.KRChannel,batch_01
+Live Activity,실시간 활동,2,pages.marketing.liveActivity,batch_01
+🔒 Demo,🔒 데모,2,pages.marketing.LockBadge,batch_01
+Ad · Campaign Integrated Analysis,광고 · 캠페인 통합 분석,2,pages.marketing.marketingDesc,batch_01
+Module Shortcuts,모듈 바로가기,2,pages.marketing.moduleShortcuts,batch_01
+Naver Search Ads,네이버 검색광고,2,pages.marketing.naverName,batch_01
+All platform KPIs at a glance,전체 플랫폼 KPI 한눈에 보기,2,pages.marketing.overviewDesc,batch_01
+Price Check,가격 점검,2,pages.marketing.PriceCheck,batch_01
+Price Opt,가격 최적화,2,pages.marketing.PriceOpt,batch_01
+Check Pricing Plans,요금제 확인,2,pages.marketing.PricingView,batch_01
+Global Sales,글로벌 매출,2,pages.marketing.sales,batch_01
+Revenue Status by Country/Region,국가/지역별 매출 현황,2,pages.marketing.salesDesc,batch_01
+This feature only fetches real data after paid plan integration. Current screen uses sample data.,이 기능은 유료 플랜 연동 후 실제 데이터를 제공합니다. 현재 화면은 샘플 데이터를 사용 중입니다.,2,pages.marketing.SampleDesc2,batch_01
+Virtual data is being displayed.,현재 샘플 데이터가 표시되고 있습니다.,2,pages.marketing.SampleDesc3,batch_01
+We suggest customized options and quick actions for your role.,역할에 맞는 추천 기능과 빠른 실행 메뉴를 제공합니다.,2,pages.marketing.selectRoleDesc,batch_01
+Please select your role,역할을 선택해주세요,2,pages.marketing.selectRoleTitle,batch_01
+API · Pipeline · Server Status,API · 파이프라인 · 서버 상태,2,pages.marketing.systemDesc,batch_01
+Top Visited Regions,상위 방문 지역,2,pages.marketing.topRegion,batch_01
+Your account has a free coupon.,계정에 무료 쿠폰이 있습니다.,2,pages.marketing.upgradeBarCoupon,batch_01
+Connect your API now and fully utilize the platform with your data.,API를 연결하고 실제 데이터 기반으로 플랫폼 기능을 활용해보세요.,2,pages.marketing.upgradeBarDesc,batch_01
+Membership Coupon Application Guide,멤버십 쿠폰 적용 가이드,2,pages.marketing.upgradeBarMembership,batch_01
+🎉 Connect real business data and try all features free for 7 days!,🎉 실제 비즈니스 데이터를 연결하고 모든 기능을 7일간 무료로 체험해보세요!,2,pages.marketing.upgradeBarTitle,batch_01
+vs Yesterday,전일 대비,2,pages.marketing.vsYesterday,batch_01
+Churn Action,이탈 대응 액션,2,pages.marketingIntel.aiPredict.kpi.churnAction,batch_01
+Churn Risk Customer,이탈 위험 고객,2,pages.marketingIntel.aiPredict.kpi.churnRisk,batch_01
+High Ltv,고 LTV 고객,2,pages.marketingIntel.aiPredict.kpi.highLtv,batch_01
+High Ltv Sub,고 LTV 고객 안내,2,pages.marketingIntel.aiPredict.kpi.highLtvSub,batch_01
+Ml Accuracy,ML 정확도,2,pages.marketingIntel.aiPredict.kpi.mlAccuracy,batch_01
+Ml Sub,ML 분석 안내,2,pages.marketingIntel.aiPredict.kpi.mlSub,batch_01
+Revenue Sub,매출 분석 안내,2,pages.marketingIntel.aiPredict.kpi.revenueSub,batch_01
+Ai Suggestions,AI 추천,2,pages.marketingIntel.aiSuggestions,batch_01
+Anomaly detected,이상 징후 감지,2,pages.marketingIntel.anomalyDetected,batch_01
+Audience Insights,오디언스 인사이트,2,pages.marketingIntel.audienceInsights,batch_01
+Ad Channel Note,광고 채널 안내,2,pages.marketingIntel.auth.adChannelNote,batch_01
+Ad Channel Title,광고 채널,2,pages.marketingIntel.auth.adChannelTitle,batch_01
+Address Detail Label,상세 주소,2,pages.marketingIntel.auth.addressDetailLabel,batch_01
+Address Required,주소를 입력해주세요,2,pages.marketingIntel.auth.addressRequired,batch_01
+Admin Email Label,관리자 이메일,2,pages.marketingIntel.auth.adminEmailLabel,batch_01
+Admin Key Label,관리자 키,2,pages.marketingIntel.auth.adminKeyLabel,batch_01
+Admin Key Ph,관리자 키 입력,2,pages.marketingIntel.auth.adminKeyPh,batch_01
+Admin Login Btn,관리자 로그인,2,pages.marketingIntel.auth.adminLoginBtn,batch_01
+Admin Login Desc,관리자 계정으로 로그인해주세요,2,pages.marketingIntel.auth.adminLoginDesc,batch_01
+Admin Login Title,관리자 로그인,2,pages.marketingIntel.auth.adminLoginTitle,batch_01
+Agree All,전체 동의,2,pages.marketingIntel.auth.agreeAll,batch_01
+Agree And,및,2,pages.marketingIntel.auth.agreeAnd,batch_01
+I agree to,동의합니다,2,pages.marketingIntel.auth.agreeConsent,batch_01
+Agree Marketing,마케팅 수신 동의,2,pages.marketingIntel.auth.agreeMarketing,batch_01
+Terms of Service,이용약관,2,pages.marketingIntel.auth.agreeTerms,batch_01
+Agree Terms Required,이용약관 동의가 필요합니다,2,pages.marketingIntel.auth.agreeTermsRequired,batch_01
+Already have an account?,이미 계정이 있으신가요?,2,pages.marketingIntel.auth.alreadyHaveAccount,batch_01
+Business Number Hint,사업자등록번호 안내,2,pages.marketingIntel.auth.businessNumberHint,batch_01
+Business Number,사업자등록번호,2,pages.marketingIntel.auth.businessNumberLabel,batch_01
+Business Number Required,사업자등록번호를 입력해주세요,2,pages.marketingIntel.auth.businessNumberRequired,batch_01
+Business Type Required,업종을 선택해주세요,2,pages.marketingIntel.auth.businessTypeRequired,batch_01
+Business Warning,사업자 정보 확인이 필요합니다,2,pages.marketingIntel.auth.businessWarning,batch_01
+Ceo Name Label,대표자명,2,pages.marketingIntel.auth.ceoNameLabel,batch_01
+Ceo Required,대표자명을 입력해주세요,2,pages.marketingIntel.auth.ceoRequired,batch_01
+Company Label,회사명,2,pages.marketingIntel.auth.companyLabel,batch_01
+Company Required,회사명을 입력해주세요,2,pages.marketingIntel.auth.companyRequired,batch_01
+Completion Note,가입 완료 안내,2,pages.marketingIntel.auth.completionNote,batch_01
+Country Required,국가를 선택해주세요,2,pages.marketingIntel.auth.countryRequired,batch_01
+Email Required,이메일을 입력해주세요,2,pages.marketingIntel.auth.emailRequired,batch_01
+Free Trial (Demo),무료 체험 (데모),2,pages.marketingIntel.auth.freePlan,batch_01
+Simple sign up with email · name,이메일 · 이름만으로 간편 가입,2,pages.marketingIntel.auth.freePlanDesc,batch_01
+✨ Free Sign Up,✨ 무료 가입,2,pages.marketingIntel.auth.freeRegister,batch_01
+Easy start · Free trial of core features,간편하게 시작하고 핵심 기능을 무료로 체험해보세요,2,pages.marketingIntel.auth.freeTrialDesc,batch_01
+Free Trial (Demo) Registration,무료 체험(데모) 가입,2,pages.marketingIntel.auth.freeTrialTitle,batch_01
+Included Features,포함 기능,2,pages.marketingIntel.auth.includedFeatures,batch_01
+Key Verified,키 검증 완료,2,pages.marketingIntel.auth.keyVerified,batch_01
+Logging in...,로그인 중입니다...,2,pages.marketingIntel.auth.loggingIn,batch_01
+🔐 Login,🔐 로그인,2,pages.marketingIntel.auth.loginBtn,batch_01
+Monthly Revenue Label,월 매출,2,pages.marketingIntel.auth.monthlyRevenueLabel,batch_01
+Next Business,다음: 사업자 정보,2,pages.marketingIntel.auth.nextBusiness,batch_01
+Next Channels,다음: 채널 설정,2,pages.marketingIntel.auth.nextChannels,batch_01
+Not Admin Account,관리자 계정이 아닙니다,2,pages.marketingIntel.auth.notAdminAccount,batch_01
+Or login with account,또는 계정으로 로그인,2,pages.marketingIntel.auth.orLoginWith,batch_01
+Paid Plan Sign Up,유료 플랜 가입,2,pages.marketingIntel.auth.paidPlan,batch_01
+Paid Plan Desc,유료 플랜 안내,2,pages.marketingIntel.auth.paidPlanDesc,batch_01
+Paid Plan Note,유료 플랜 참고사항,2,pages.marketingIntel.auth.paidPlanNote,batch_01
+Paid Plan Title,유료 플랜 가입,2,pages.marketingIntel.auth.paidPlanTitle,batch_01
+Confirm Password,비밀번호 확인,2,pages.marketingIntel.auth.passwordConfirm,batch_01
+Password (min 6 characters),비밀번호 (최소 6자 이상),2,pages.marketingIntel.auth.passwordHint,batch_01
+Password Mismatch,비밀번호가 일치하지 않습니다,2,pages.marketingIntel.auth.passwordMismatch,batch_01
+Password Too Short,비밀번호가 너무 짧습니다,2,pages.marketingIntel.auth.passwordTooShort,batch_01
+Phone Required,전화번호를 입력해주세요,2,pages.marketingIntel.auth.phoneRequired,batch_01
+Plan Note,플랜 참고사항,2,pages.marketingIntel.auth.PlanNote,batch_01
+Plan Question,플랜 문의,2,pages.marketingIntel.auth.planQuestion,batch_01
+Select Registration Type,가입 유형 선택,2,pages.marketingIntel.auth.planTypeTitle,batch_01
+Premium Only,프리미엄 전용,2,pages.marketingIntel.auth.premiumOnly,batch_01
+Price Not Set,가격 미설정,2,pages.marketingIntel.auth.priceNotSet,batch_01
+Processing Register,가입 처리 중입니다,2,pages.marketingIntel.auth.processingRegister,batch_01
+⚡ Quick Demo,⚡ 빠른 데모,2,pages.marketingIntel.auth.quickStart,batch_01
+Recommended For,추천 대상,2,pages.marketingIntel.auth.recommendedFor,batch_01
+Reenter Key,키 다시 입력,2,pages.marketingIntel.auth.reenterKey,batch_01
+Sales Channel Note,판매 채널 안내,2,pages.marketingIntel.auth.salesChannelNote,batch_01
+Sales Channel Required,판매 채널을 선택해주세요,2,pages.marketingIntel.auth.salesChannelRequired,batch_01
+Sales Channel Title,판매 채널,2,pages.marketingIntel.auth.salesChannelTitle,batch_01
+🚀 Start Free,🚀 무료로 시작하기,2,pages.marketingIntel.auth.startFree,batch_01
+Start Plan,플랜 시작,2,pages.marketingIntel.auth.startPlan,batch_01
+① Account Info,① 계정 정보,2,pages.marketingIntel.auth.step1Account,batch_01
+② Business Info,② 사업자 정보,2,pages.marketingIntel.auth.step2Business,batch_01
+③ Channels & Complete,③ 채널 설정 및 완료,2,pages.marketingIntel.auth.step3Channels,batch_01
+Terms Required,약관 동의가 필요합니다,2,pages.marketingIntel.auth.termsRequired,batch_01
+🎯 Try Demo,🎯 데모 체험,2,pages.marketingIntel.auth.try,batch_01
+Verify Key,키 검증,2,pages.marketingIntel.auth.verifyKey,batch_01
+Website Label,웹사이트,2,pages.marketingIntel.auth.websiteLabel,batch_01
+Wrong Admin Key,관리자 키가 올바르지 않습니다,2,pages.marketingIntel.auth.wrongAdminKey,batch_01
+Zip Code Label,우편번호,2,pages.marketingIntel.auth.zipCodeLabel,batch_01
+Budget Opt Desc,예산 최적화 안내,2,pages.marketingIntel.budgetOptDesc,batch_01
+Channel Analysis,채널 분석,2,pages.marketingIntel.channelAnalysis,batch_01
+Key Insight,핵심 인사이트,2,pages.marketingIntel.channelKpiPage.keyInsight,batch_01
+Creative Perf,크리에이티브 성과,2,pages.marketingIntel.creativePerf,batch_01
+Ad Format Count,광고 포맷 수,2,pages.marketingIntel.creativeStudio.adFormatCount,batch_01
+Ad Preview Label,광고 미리보기,2,pages.marketingIntel.creativeStudio.adPreviewLabel,batch_01
+Ad Spec,광고 사양,2,pages.marketingIntel.creativeStudio.adSpec,batch_01
+Advertising,광고,2,pages.marketingIntel.creativeStudio.adTag,batch_01
+Ad Tip Title,광고 운영 팁,2,pages.marketingIntel.creativeStudio.adTipTitle,batch_01
+Body Hint,본문 작성 가이드,2,pages.marketingIntel.creativeStudio.bodyHint,batch_01
+Cat_beauty_desc,뷰티 카테고리 설명,2,pages.marketingIntel.creativeStudio.cat_beauty_desc,batch_01
+Cat_electronics,전자기기,2,pages.marketingIntel.creativeStudio.cat_electronics,batch_01
+Cat_electronics_desc,전자기기 카테고리 설명,2,pages.marketingIntel.creativeStudio.cat_electronics_desc,batch_01
+Cat_fashion,패션,2,pages.marketingIntel.creativeStudio.cat_fashion,batch_01
+Cat_fashion_desc,패션 카테고리 설명,2,pages.marketingIntel.creativeStudio.cat_fashion_desc,batch_01
+Cat_food_desc,식품 카테고리 설명,2,pages.marketingIntel.creativeStudio.cat_food_desc,batch_01
+Cat_general,일반,2,pages.marketingIntel.creativeStudio.cat_general,batch_01
+Cat_general_desc,일반 카테고리 설명,2,pages.marketingIntel.creativeStudio.cat_general_desc,batch_01
+Cat_overseas_buy,해외 구매대행,2,pages.marketingIntel.creativeStudio.cat_overseas_buy,batch_01
+Cat_overseas_buy_desc,해외 구매대행 설명,2,pages.marketingIntel.creativeStudio.cat_overseas_buy_desc,batch_01
+Cat_overseas_ship,해외 배송대행,2,pages.marketingIntel.creativeStudio.cat_overseas_ship,batch_01
+Cat_overseas_ship_desc,해외 배송대행 설명,2,pages.marketingIntel.creativeStudio.cat_overseas_ship_desc,batch_01
+Cat_sports_desc,스포츠 카테고리 설명,2,pages.marketingIntel.creativeStudio.cat_sports_desc,batch_02
+Category Optimized,카테고리 최적화,2,pages.marketingIntel.creativeStudio.categoryOptimized,batch_02
+Channel Step,채널 단계,2,pages.marketingIntel.creativeStudio.channelStep,batch_02
+👆 CTA:,👆 CTA:,2,pages.marketingIntel.creativeStudio.ctaHint,batch_02
+Custom Body,본문 직접 작성,2,pages.marketingIntel.creativeStudio.customBody,batch_02
+Custom Copy Toggle,직접 작성 사용,2,pages.marketingIntel.creativeStudio.customCopyToggle,batch_02
+Custom Headline,헤드라인 직접 작성,2,pages.marketingIntel.creativeStudio.customHeadline,batch_02
+Headline Hint,헤드라인 작성 가이드,2,pages.marketingIntel.creativeStudio.headlineHint,batch_02
+Product Info,상품 정보,2,pages.marketingIntel.creativeStudio.productInfo,batch_02
+Selected Label,선택됨,2,pages.marketingIntel.creativeStudio.selectedLabel,batch_02
+Select First,먼저 선택해주세요,2,pages.marketingIntel.creativeStudio.selectFirst,batch_02
+Select First Desc,먼저 항목을 선택해주세요,2,pages.marketingIntel.creativeStudio.selectFirstDesc,batch_02
+Select Step,선택 단계,2,pages.marketingIntel.creativeStudio.selectStep,batch_02
+Select Step Hint,단계별 선택 가이드,2,pages.marketingIntel.creativeStudio.selectStepHint,batch_02
+Export Report,리포트 내보내기,2,pages.marketingIntel.exportReport,batch_02
+Pnl High Margin,고마진 P&L,2,pages.marketingIntel.marketingIntel.banner.pnlHighMargin,batch_02
+Pnl Low Margin,저마진 P&L,2,pages.marketingIntel.marketingIntel.banner.pnlLowMargin,batch_02
+Click to change menu/feature access by role (✅ Allow · 👁 Read-only · 🔒 Locked),클릭하여 역할별 메뉴/기능 접근 권한을 변경하세요 (✅ 허용 · 👁 읽기 전용 · 🔒 잠금),2,pages.marketingIntel.marketingIntel.menuAccess.desc,batch_02
+New Feature,신규 기능,2,pages.marketingIntel.marketingIntel.menuAccess.newFeature,batch_02
+Perm Read,읽기 전용,2,pages.marketingIntel.marketingIntel.menuAccess.permRead,batch_02
+Recommend Title,추천 항목,2,pages.marketingIntel.marketingIntel.menuAccess.recommendTitle,batch_02
+Add Fav,즐겨찾기 추가,2,pages.marketingIntel.marketingIntel.systemMonitor.addFav,batch_02
+Add Favorite,즐겨찾기 추가,2,pages.marketingIntel.marketingIntel.systemMonitor.addFavorite,batch_02
+No Favorites,즐겨찾기 항목이 없습니다,2,pages.marketingIntel.marketingIntel.systemMonitor.noFavorites,batch_02
+No Recents,최근 항목이 없습니다,2,pages.marketingIntel.marketingIntel.systemMonitor.noRecents,batch_02
+Quick Access,빠른 접근,2,pages.marketingIntel.marketingIntel.systemMonitor.quickAccess,batch_02
+Remove Fav,즐겨찾기 해제,2,pages.marketingIntel.marketingIntel.systemMonitor.removeFav,batch_02
+Remove Favorite,즐겨찾기 해제,2,pages.marketingIntel.marketingIntel.systemMonitor.removeFavorite,batch_02
+Trend Detection,트렌드 감지,2,pages.marketingIntel.marketingIntel.trendDetection,batch_02
+No anomalies,이상 징후 없음,2,pages.marketingIntel.noAnomaly,batch_02
+Product Perf,상품 성과,2,pages.marketingIntel.productPerf,batch_02
+Tab Audience,오디언스,2,pages.marketingIntel.tabAudience,batch_02
+"{ ""sku"": ""..."", ""title"": ""..."", ""price"": 0 }","{ ""sku"": ""..."", ""title"": ""..."", ""price"": 0 }",2,pages.marketingIntel.writeback.payloadPlaceholder,batch_02
+Ai Prediction,AI 예측,2,pages.menu.aiPrediction,batch_02
+No Pending,대기 중인 요청이 없습니다,2,pages.menu.approvals.noPending,batch_02
+Request Date,요청일,2,pages.menu.approvals.requestedAt,batch_02
+Tab Approved,승인 완료,2,pages.menu.approvals.tabApproved,batch_02
+Tab Pending,승인 대기,2,pages.menu.approvals.tabPending,batch_02
+Commerce Search,커머스 검색,2,pages.menu.commerceSearch,batch_02
+Customer Crm,고객 CRM,2,pages.menu.customerCrm,batch_02
+Line Channel,LINE 채널,2,pages.menu.lineChannel,batch_02
+SMS/LMS Marketing,SMS/LMS 마케팅,2,pages.menu.smsMarketing,batch_02
+Create Policy,정책 생성,2,pages.menu.writeback.createPolicy,batch_02
+Run Now,지금 실행,2,pages.menu.writeback.runNow,batch_02
+Tab Log,로그,2,pages.menu.writeback.tabLog,batch_02
+Issue Date,발급일,2,pages.mobile.adminCoupon.colIssueDate,batch_02
+All Accounts,전체 계정,2,pages.perms.allAccounts,batch_02
+Writeback Setup·Logs,Writeback 설정·로그,2,pages.pricingDetail.ent_s1i1,batch_02
+Keyword Analysis,키워드 분석,2,pages.pricingDetail.growth_s2i3,batch_02
+⚖️ Run Reconciliation,⚖️ 정산 대조 실행,2,pages.reconciliation.reconTitle,batch_02
+Report Name,리포트명,2,pages.report.colReportName,batch_02
+Active Channels,활성 채널,2,ruleEnginePage.dash.activeCh,batch_02
+Security Monitor,보안 모니터링,2,ruleEnginePage.dash.securityMonitor,batch_02
+Total Stock,총 재고,2,ruleEnginePage.dash.totalStock,batch_02
+Google Ads,Google Ads,2,ruleEnginePage.super.ihGoogle,batch_02
+Meta Ads,Meta Ads,2,ruleEnginePage.super.ihMeta,batch_02
+✅ Complete,✅ 완료,2,ruleEnginePage.wms.auditDoneBtn,batch_02
+Not Counted,미실사,2,ruleEnginePage.wms.auditNotCounted,batch_02
+🖨️ Print,🖨️ 인쇄,2,ruleEnginePage.wms.auditPrintBtn,batch_02
+Search SKU or product...,SKU 또는 상품 검색...,2,ruleEnginePage.wms.auditSearchPh,batch_02
+💾 Register,💾 등록,2,ruleEnginePage.wms.bdlSaveBtn,batch_02
+Code *,코드 *,2,ruleEnginePage.wms.carrCodeLabel,batch_02
+Company *,회사명 *,2,ruleEnginePage.wms.carrNameLabel,batch_02
+Type *,유형 *,2,ruleEnginePage.wms.carrTypeLabel,batch_02
+Company/Name,회사명/이름,2,ruleEnginePage.wms.invcCompanyName,batch_02
+Tracking No,운송장 번호,2,ruleEnginePage.wms.invcTrackLabel,batch_02
+SKU *,SKU *,2,ruleEnginePage.wms.ioSkuLabel,batch_02
+LOT ID,로트 ID,2,ruleEnginePage.wms.lotColId,batch_02
+Order Date,주문일,2,ruleEnginePage.wms.recvColOrderDate,batch_02
+PO No,발주 번호,2,ruleEnginePage.wms.recvColPO,batch_02
+Order Qty,주문 수량,2,ruleEnginePage.wms.recvColQty,batch_02
+Total Transaction Amount,총 거래 금액,2,ruleEnginePage.wms.supDrawerTotalAmt,batch_02
+✏️ Edit,✏️ 편집,2,ruleEnginePage.wms.supEditBtn,batch_02
+Room Temp,상온,2,ruleEnginePage.wms.whTempDefault,batch_02
+Actual Paid,실제 지급액,1,actualPaid,batch_02
+Ad Creative,광고 크리에이티브,1,adCreative,batch_02
+Ad Ready,광고 집행 준비 완료,1,adReady,batch_02
+📊 Anomaly Detection Summary,📊 이상 징후 감지 요약,1,attr.anomalySummary,batch_02
+Expected Blended ROAS,예상 Blended ROAS,1,attr.expectedBlendRoas,batch_02
+📋 Channel Contribution by Model (%),📋 모델별 채널 기여도(%),1,attr.modelCompareTable,batch_02
+🕸️ Channel Contribution Radar,🕸️ 채널 기여도 레이더,1,attr.radarCompare,batch_02
+Compare campaign performance of the exact same product and channel across different regional teams or sub-accounts.,동일한 상품과 채널의 캠페인 성과를 지역 팀이나 하위 계정별로 비교합니다.,1,banner.acctPerf.desc,batch_02
+Team / Account,팀 / 계정,1,banner.acctPerf.team,batch_02
+Check Rights,권한 확인,1,checkRights,batch_02
+TOP 5 SKU,TOP 5 SKU,1,commerce.top5Sku,batch_02
+CampaignEnterpriseTabs,캠페인 엔터프라이즈 탭,1,common.underConstruction,batch_02
+Auto Exec,자동 실행,1,crm.aiHub.aiHub.autoExec,batch_02
+Count Unit,건,1,crm.aiHub.aiHub.countUnit,batch_02
+Expected Profit,예상 수익,1,crm.aiHub.aiHub.expectedProfit,batch_02
+Badge Realtime,실시간 배지,1,crm.aiHub.aiPolicy.badgeRealtime,batch_02
+Badge Rules,규칙 배지,1,crm.aiHub.aiPolicy.badgeRules,batch_02
+Badge Security,보안 배지,1,crm.aiHub.aiPolicy.badgeSecurity,batch_02
+Cfg Approval Gate,승인 게이트 설정,1,crm.aiHub.aiPolicy.cfgApprovalGate,batch_02
+Cross Sync,교차 동기화,1,crm.aiHub.aiPolicy.crossTabSync,batch_02
+Fired Total,총 실행 건수,1,crm.aiHub.aiPolicy.firedTotal,batch_02
+No Policies,등록된 정책이 없습니다,1,crm.aiHub.aiPolicy.noPolicies,batch_02
+Policy Name,정책명,1,crm.aiHub.aiPolicy.policyName,batch_02
+Sec Code,보안 코드,1,crm.aiHub.aiPolicy.secCode,batch_02
+Sec Title,보안 제목,1,crm.aiHub.aiPolicy.secTitle,batch_02
+Sec Unlock,보안 해제,1,crm.aiHub.aiPolicy.secUnlock,batch_02
+Sync Active Rules,활성 규칙 동기화,1,crm.aiHub.aiPolicy.syncActiveRules,batch_02
+Sync Budgets,예산 동기화,1,crm.aiHub.aiPolicy.syncBudgets,batch_02
+Sync Inventory,재고 동기화,1,crm.aiHub.aiPolicy.syncInventory,batch_02
+Sync Orders,주문 동기화,1,crm.aiHub.aiPolicy.syncOrders,batch_02
+Total Audit,전체 감사 로그,1,crm.aiHub.aiPolicy.totalAudit,batch_02
+Attribution Desc,어트리뷰션 안내,1,crm.aiHub.attributionDesc,batch_02
+Rate Limits,요청 제한,1,crm.aiHub.catalogSync.devHub.rateLimits,batch_02
+⚡ Webhook,⚡ Webhook,1,crm.aiHub.catalogSync.devHub.tab_webhook,batch_02
+Data Collection,데이터 수집,1,crm.aiHub.catalogSync.ds.pipeCollect,batch_02
+Normalization/Mapping,데이터 정규화/매핑,1,crm.aiHub.catalogSync.ds.pipeNormalize,batch_02
+Module locked due to abnormal access.,비정상 접근으로 인해 모듈이 잠금되었습니다.,1,crm.aiHub.catalogSync.ihub.secLockDesc,batch_02
+Connected Channels,연결된 채널,1,crm.aiHub.catalogSync.journey.connectedChannels,batch_02
+Guide Node Ab Test,A/B 테스트 노드 안내,1,crm.aiHub.catalogSync.journey.guideNodeAbTest,batch_02
+Guide Node Condition,조건 노드 안내,1,crm.aiHub.catalogSync.journey.guideNodeCondition,batch_02
+Guide Node Delay,지연 노드 안내,1,crm.aiHub.catalogSync.journey.guideNodeDelay,batch_02
+Guide Node Email,이메일 노드 안내,1,crm.aiHub.catalogSync.journey.guideNodeEmail,batch_02
+Guide Node End,종료 노드 안내,1,crm.aiHub.catalogSync.journey.guideNodeEnd,batch_02
+Guide Node Kakao,카카오 노드 안내,1,crm.aiHub.catalogSync.journey.guideNodeKakao,batch_02
+Guide Node Line,LINE 노드 안내,1,crm.aiHub.catalogSync.journey.guideNodeLine,batch_02
+Guide Node Push,푸시 노드 안내,1,crm.aiHub.catalogSync.journey.guideNodePush,batch_02
+Guide Node Sms,SMS 노드 안내,1,crm.aiHub.catalogSync.journey.guideNodeSms,batch_02
+Guide Node Trigger,트리거 노드 안내,1,crm.aiHub.catalogSync.journey.guideNodeTrigger,batch_02
+Guide Node Webhook,Webhook 노드 안내,1,crm.aiHub.catalogSync.journey.guideNodeWebhook,batch_02
+Guide Node Whatsapp,WhatsApp 노드 안내,1,crm.aiHub.catalogSync.journey.guideNodeWhatsapp,batch_02
+Ab test,A/B 테스트,1,crm.aiHub.catalogSync.journey.nodeTypes.ab_test,batch_02
+Cart abandoned,장바구니 이탈,1,crm.aiHub.catalogSync.journey.triggerTypes.cart_abandoned,batch_02
+Segment entered,세그먼트 진입,1,crm.aiHub.catalogSync.journey.triggerTypes.segment_entered,batch_02
+Webhook trigger,Webhook 트리거,1,crm.aiHub.catalogSync.journey.triggerTypes.webhook_trigger,batch_02
+Channel Attr,채널 어트리뷰션,1,crm.aiHub.catalogSync.pxl.channelAttr,batch_02
+Conv Rate,전환율,1,crm.aiHub.catalogSync.pxl.convRate,batch_02
+Create Error,생성 실패,1,crm.aiHub.catalogSync.pxl.createError,batch_02
+Create Success,생성 완료,1,crm.aiHub.catalogSync.pxl.createSuccess,batch_02
+Delete Confirm,삭제 확인,1,crm.aiHub.catalogSync.pxl.deleteConfirm,batch_02
+Event Type,이벤트 유형,1,crm.aiHub.catalogSync.pxl.eventType,batch_02
+Funnel Cart,장바구니 퍼널,1,crm.aiHub.catalogSync.pxl.funnelCart,batch_02
+Funnel Checkout,결제 퍼널,1,crm.aiHub.catalogSync.pxl.funnelCheckout,batch_02
+Funnel Product,상품 조회 퍼널,1,crm.aiHub.catalogSync.pxl.funnelProduct,batch_02
+Funnel Purchase,구매 퍼널,1,crm.aiHub.catalogSync.pxl.funnelPurchase,batch_02
+Funnel Title,퍼널명,1,crm.aiHub.catalogSync.pxl.funnelTitle,batch_03
+Funnel Visit,방문 퍼널,1,crm.aiHub.catalogSync.pxl.funnelVisit,batch_03
+Meta C A P I Token,Meta CAPI 토큰,1,crm.aiHub.catalogSync.pxl.metaCAPIToken,batch_03
+Meta Forward,Meta 전달 설정,1,crm.aiHub.catalogSync.pxl.metaForward,batch_03
+No Channel Data,채널 데이터가 없습니다,1,crm.aiHub.catalogSync.pxl.noChannelData,batch_03
+No Data,데이터가 없습니다,1,crm.aiHub.catalogSync.pxl.noDataDesc,batch_03
+No Data Title,데이터 없음,1,crm.aiHub.catalogSync.pxl.noDataTitle,batch_03
+No Events,이벤트가 없습니다,1,crm.aiHub.catalogSync.pxl.noEvents,batch_03
+No Pixels,등록된 픽셀이 없습니다,1,crm.aiHub.catalogSync.pxl.noPixels,batch_03
+Pixel List,픽셀 목록,1,crm.aiHub.catalogSync.pxl.pixelList,batch_03
+Pixel Name,픽셀명,1,crm.aiHub.catalogSync.pxl.pixelName,batch_03
+Pixel Name Ph,픽셀명을 입력해주세요,1,crm.aiHub.catalogSync.pxl.pixelNamePh,batch_03
+Realtime Stream,실시간 스트림,1,crm.aiHub.catalogSync.pxl.realtimeStream,batch_03
+Sec Alert,보안 알림,1,crm.aiHub.catalogSync.pxl.secAlert,batch_03
+Sec Blocked,보안 차단,1,crm.aiHub.catalogSync.pxl.secBlocked,batch_03
+Sec Input Blocked,입력 차단,1,crm.aiHub.catalogSync.pxl.secInputBlocked,batch_03
+Sec Lock Wait,잠금 대기,1,crm.aiHub.catalogSync.pxl.secLockWait,batch_03
+Sec Total,전체 보안 건수,1,crm.aiHub.catalogSync.pxl.secTotal,batch_03
+Send Event,이벤트 전송,1,crm.aiHub.catalogSync.pxl.sendEvent,batch_03
+Server Side C A P I,서버사이드 CAPI,1,crm.aiHub.catalogSync.pxl.serverSideCAPI,batch_03
+Server Side Event,서버사이드 이벤트,1,crm.aiHub.catalogSync.pxl.serverSideEvent,batch_03
+Snippet Guide1,스니펫 가이드 1,1,crm.aiHub.catalogSync.pxl.snippetGuide1,batch_03
+Snippet Guide2,스니펫 가이드 2,1,crm.aiHub.catalogSync.pxl.snippetGuide2,batch_03
+Snippet Guide3,스니펫 가이드 3,1,crm.aiHub.catalogSync.pxl.snippetGuide3,batch_03
+Snippet Title,스니펫 제목,1,crm.aiHub.catalogSync.pxl.snippetTitle,batch_03
+Test Event Send,테스트 이벤트 전송,1,crm.aiHub.catalogSync.pxl.testEventSend,batch_03
+Tiktok Forward,TikTok 전달 설정,1,crm.aiHub.catalogSync.pxl.tiktokForward,batch_03
+Total Events,총 이벤트 수,1,crm.aiHub.catalogSync.pxl.totalEvents,batch_03
+Hack Detected,해킹 시도가 감지되었습니다,1,crm.aiHub.catalogSync.security.hackDetected,batch_03
+Fee Rate,수수료율,1,crm.aiHub.channelFeeRate,batch_03
+Enter a prompt and AI generates campaign ad designs.,프롬프트를 입력하면 AI가 캠페인 광고 디자인을 자동 생성합니다.,1,crm.aiHub.creativeSub,batch_03
+AI Ad Creative Generator,AI 광고 크리에이티브 생성기,1,crm.aiHub.creativeTitle,batch_03
+Data Basis,데이터 기준,1,crm.aiHub.dataSource,batch_03
+Integrated A/B test results.,통합 A/B 테스트 결과를 제공합니다.,1,crm.aiHub.guideTabAbDesc,batch_03
+A/B Testing,A/B 테스트,1,crm.aiHub.guideTabAbName,batch_03
+Automatic budget alert system.,자동 예산 알림 시스템입니다.,1,crm.aiHub.guideTabBudgetDesc,batch_03
+Budget Alerts,예산 알림,1,crm.aiHub.guideTabBudgetName,batch_03
+AI-powered ad copy generator.,AI 기반 광고 카피 생성 기능입니다.,1,crm.aiHub.guideTabCopyDesc,batch_03
+AI Copywriter,AI 카피라이터,1,crm.aiHub.guideTabCopyName,batch_03
+AI ad image generator with 16 scene types.,16개 장면 유형을 지원하는 AI 광고 이미지 생성 기능입니다.,1,crm.aiHub.guideTabCreativeDesc,batch_03
+Email and KakaoTalk status.,이메일 및 카카오톡 발송 상태입니다.,1,crm.aiHub.guideTabCrmDesc,batch_03
+CRM Channels,CRM 채널,1,crm.aiHub.guideTabCrmName,batch_03
+KPI targets vs actuals.,KPI 목표 대비 실적입니다.,1,crm.aiHub.guideTabDetailDesc,batch_03
+Detail Analysis,상세 분석,1,crm.aiHub.guideTabDetailName,batch_03
+Gantt chart visualization.,간트 차트 시각화 기능입니다.,1,crm.aiHub.guideTabGanttDesc,batch_03
+Live KPI monitoring.,실시간 KPI 모니터링 기능입니다.,1,crm.aiHub.guideTabMonitorDesc,batch_03
+Real-time Monitor,실시간 모니터링,1,crm.aiHub.guideTabMonitorName,batch_03
+All campaigns displayed as filterable cards.,모든 캠페인을 필터 가능한 카드 형태로 제공합니다.,1,crm.aiHub.guideTabOverviewDesc,batch_03
+Campaign Overview,캠페인 개요,1,crm.aiHub.guideTabOverviewName,batch_03
+Comprehensive ROI analysis.,종합 ROI 분석 기능입니다.,1,crm.aiHub.guideTabRoiDesc,batch_03
+ROI Analysis,ROI 분석,1,crm.aiHub.guideTabRoiName,batch_03
+Full platform real-time analysis → ROI-based AI recommendations → Budget registration → Approval → Card auto-execution,전체 플랫폼 실시간 분석 → ROI 기반 AI 추천 → 예산 등록 → 승인 → 카드 자동 집행,1,crm.aiHub.heroSub,batch_03
+No fee data,수수료 데이터가 없습니다,1,crm.aiHub.noFeeData,batch_03
+Campaign name,캠페인명,1,crm.email.campaignMgr.colName,batch_03
+Add Product,상품 추가,1,crm.email.catalogSync.addProduct,batch_03
+All Status,전체 상태,1,crm.email.catalogSync.allStatus,batch_03
+Auto Sync,자동 동기화,1,crm.email.catalogSync.autoSync,batch_03
+Auto Sync Desc,자동으로 최신 데이터를 동기화합니다,1,crm.email.catalogSync.autoSyncDesc,batch_03
+Col Margin,마진,1,crm.email.catalogSync.colMargin,batch_03
+Cost Breakdown,비용 상세 내역,1,crm.email.catalogSync.costBreakdown,batch_03
+Discount Rate,할인율,1,crm.email.catalogSync.discountRate,batch_03
+Product Cost Auto,상품 원가 자동 계산,1,crm.email.catalogSync.productCostAuto,batch_03
+Product Count,상품 수,1,crm.email.catalogSync.productCount,batch_03
+Spec Label,사양,1,crm.email.catalogSync.specLabel,batch_03
+Sync Now,지금 동기화,1,crm.email.catalogSync.syncNow,batch_03
+Upload Image,이미지 업로드,1,crm.email.catalogSync.uploadImage,batch_03
+C S V,CSV,1,CSV,batch_03
+Fixed Perf,고정+성과형,1,fixedPerf,batch_03
+Exact Shapley (2^n) · Bayesian MMM · Markov Chain · Incremental Uplift (Double ML) · Thompson Sampling A/B,정밀 Shapley (2^n) · 베이지안 MMM · 마르코프 체인 · 인크리멘털 업리프트 (Double ML) · 톰슨 샘플링 A/B,1,gAttr.subtitle,batch_03
+🔗 Markov+Uplift,🔗 마르코프+업리프트,1,gAttr.tabMarkovLabel,batch_03
+Ridge+Adstock+Hill,Ridge+Adstock+Hill,1,gAttr.tabMmmDesc,batch_03
+🎯 Exact Shapley,🎯 정밀 Shapley,1,gAttr.tabShapleyLabel,batch_03
+🟡 MOCK Data,🟡 MOCK 데이터,1,graph.mockData,batch_03
+🟡 MOCK Results,🟡 MOCK 결과,1,graph.mockResult,batch_03
+No Edge — Register Node/Edge in Tab above,연결된 엣지가 없습니다. 상단 탭에서 노드/엣지를 등록해주세요.,1,graph.noEdge,batch_03
+❓ Q&A,❓ Q&A,1,help.tabFaq,batch_03
+💚 LINE,💚 LINE,1,journeyBuilder.nodeTypes.line,batch_03
+📱 SMS,📱 SMS,1,journeyBuilder.nodeTypes.sms,batch_03
+Ad Analytics,광고 분석,1,marketing.gNav.adAnalytics,batch_03
+AI Insights,AI 인사이트,1,marketing.gNav.aiInsights,batch_03
+AI Marketing,AI 마케팅,1,marketing.gNav.aiMarketing,batch_03
+AI Comms,AI 커뮤니케이션,1,marketing.gNav.aiMarketingHub,batch_03
+AI Recommend,AI 추천,1,marketing.gNav.aiRecommend,batch_03
+AI Rule Engine,AI 룰 엔진,1,marketing.gNav.aiRuleEngine,batch_03
+Alert Automation,알림 자동화,1,marketing.gNav.alertAutomation,batch_03
+Alert Policies,알림 정책,1,marketing.gNav.alertPolicies,batch_03
+Insights & Reports,인사이트 & 리포트,1,marketing.gNav.analytics,batch_03
+API Keys,API 키,1,marketing.gNav.apiKeys,batch_03
+Audit Logs,감사 로그,1,marketing.gNav.auditLog,batch_03
+Auto Strategy,자동 전략,1,marketing.gNav.autoMarketing,batch_03
+Automation Systems,자동화 시스템,1,marketing.gNav.automation,batch_03
+Case Study,성공 사례,1,marketing.gNav.caseStudy,batch_03
+Catalog Sync,카탈로그 동기화,1,marketing.gNav.catalog,batch_03
+Commerce & Logistics,커머스 & 물류,1,marketing.gNav.commerce,batch_03
+CRM & Channels,CRM & 채널,1,marketing.gNav.crm,batch_03
+CRM Dashboard,CRM 대시보드,1,marketing.gNav.crmMain,batch_03
+Data & Integration,데이터 & 연동,1,marketing.gNav.data,batch_03
+Data Products,데이터 프로덕트,1,marketing.gNav.dataProduct,batch_03
+Data Trust Center,데이터 신뢰 센터,1,marketing.gNav.dataTrust,batch_03
+Developer Hub,개발자 허브,1,marketing.gNav.developerHub,batch_03
+Finance & Settlement,재무 & 정산,1,marketing.gNav.finance,batch_03
+Help Center,도움말 센터,1,marketing.gNav.help,batch_03
+Influencer Mgmt,인플루언서 관리,1,marketing.gNav.influencer,batch_03
+Integration Hub,연동 허브,1,marketing.gNav.integrationHub,batch_03
+Kakao Business,카카오 비즈니스,1,marketing.gNav.kakaoChannel,batch_03
+Mapping Registry,매핑 레지스트리,1,marketing.gNav.mappingRegistry,batch_03
+System Admin,시스템 관리,1,marketing.gNav.memberTools,batch_03
+Omni Channel,옴니채널,1,marketing.gNav.omniChannel,batch_03
+Onboarding Map,온보딩 맵,1,marketing.gNav.onboarding,batch_03
+Operations Manual,운영 매뉴얼,1,marketing.gNav.operations,batch_03
+Pixel Tracking,픽셀 트래킹,1,marketing.gNav.pixelTracking,batch_03
+P&L Analytics,P&L 분석,1,marketing.gNav.pnl,batch_03
+Returns Portal,반품 포털,1,marketing.gNav.returnsPortal,batch_03
+Reviews & UGC,리뷰 & UGC,1,marketing.gNav.reviewsUgc,batch_03
+Settlements,정산,1,marketing.gNav.settlements,batch_03
+Supply Chain,공급망,1,marketing.gNav.supplyChain,batch_03
+Workspace Setting,워크스페이스 설정,1,marketing.gNav.workspace,batch_03
+Data Writeback,데이터 Writeback,1,marketing.gNav.writeback,batch_03
+🌱 ESG,🌱 ESG,1,nav.pages.performance.tabEsg,batch_03
+Unified Ops Cockpit · v421,통합 운영 콕핏 · v421,1,nav.sub,batch_03
+Demo environment — data isolated from production,데모 환경 — 운영 데이터와 분리되어 있습니다,1,omniChannel.demoIsolation,batch_03
+Action Presets,액션 프리셋,1,pages.actionPresets.title,batch_03
+Review & UGC Analytics,리뷰 & UGC 분석,1,pages.cmpRow.r10,batch_03
+Commerce Channels,커머스 채널,1,pages.cmpRow.r11,batch_03
+WMS (Stock·In/Out),WMS(재고·입출고),1,pages.cmpRow.r12,batch_03
+3PL Management,3PL 관리,1,pages.cmpRow.r13,batch_03
+Amazon Advanced Operations,Amazon 고급 운영,1,pages.cmpRow.r14,batch_03
+Analytics & Performance (Cohort·P&L),분석 & 성과(코호트·P&L),1,pages.cmpRow.r15,batch_03
+AI Rule Engine & Automation,AI 룰 엔진 & 자동화,1,pages.cmpRow.r16,batch_03
+1st-Party Pixel,퍼스트파티 픽셀,1,pages.cmpRow.r18,batch_03
+Data Pipeline & API,데이터 파이프라인 & API,1,pages.cmpRow.r19,batch_03
+AI Ad Creative & Campaign Mgmt,AI 광고 크리에이티브 & 캠페인 관리,1,pages.cmpRow.r2,batch_03
+Data Product Governance,데이터 프로덕트 거버넌스,1,pages.cmpRow.r20,batch_03
+BI Reports,BI 리포트,1,pages.cmpRow.r21,batch_03
+Currency Selection (Global),통화 선택(글로벌),1,pages.cmpRow.r22,batch_03
+Influencer Management,인플루언서 관리,1,pages.cmpRow.r23,batch_03
+Ops Hub (Batch·Reprocess),운영 허브(배치·재처리),1,pages.cmpRow.r24,batch_03
+Audit Log,감사 로그,1,pages.cmpRow.r25,batch_03
+Team Management (RBAC),팀 관리(RBAC),1,pages.cmpRow.r26,batch_04
+Account Count,계정 수,1,pages.cmpRow.r27,batch_04
+Support Type,지원 유형,1,pages.cmpRow.r28,batch_04
+AI Forecast (Churn·LTV·Purchase Prob.),AI 예측(이탈·LTV·구매 확률),1,pages.cmpRow.r3,batch_04
+Customer Journey Builder,고객 여정 빌더,1,pages.cmpRow.r4,batch_04
+AI Segment,AI 세그먼트,1,pages.cmpRow.r5,batch_04
+Ad & Channel Analytics (ROAS·KPI),광고·채널 분석(ROAS·KPI),1,pages.cmpRow.r6,batch_04
+Attribution Analysis (Touch Model),어트리뷰션 분석(터치 모델),1,pages.cmpRow.r7,batch_04
+Competitor AI Analysis,경쟁사 AI 분석,1,pages.cmpRow.r8,batch_04
+Customer CRM (Email/Kakao/SMS),고객 CRM(이메일·카카오·SMS),1,pages.cmpRow.r9,batch_04
+Activity History,활동 이력,1,pages.cmpVal.activity_history,batch_04
+Advanced Custom,고급 커스텀,1,pages.cmpVal.advanced_custom,batch_04
+Anomaly Detection,이상 징후 감지,1,pages.cmpVal.anomaly_detect,batch_04
+Auto·Scheduled·Share,자동·예약·공유,1,pages.cmpVal.auto_scheduled_share,batch_04
+Basic Auto-classify,기본 자동 분류,1,pages.cmpVal.basic_auto,batch_04
+Campaign·Settlement,캠페인·정산,1,pages.cmpVal.campaign_settle,batch_04
+Chat Support,채팅 지원,1,pages.cmpVal.chat_support,batch_04
+Cohort·P&L All,코호트·P&L 전체,1,pages.cmpVal.cohort_pl,batch_04
+Competitor Compare,경쟁사 비교,1,pages.cmpVal.competitor_compare,batch_04
+Conv. Path All,전체 전환 경로,1,pages.cmpVal.conv_path_all,batch_04
+Custom·Excel,커스텀·Excel,1,pages.cmpVal.custom_excel,batch_04
+Dedicated Manager,전담 매니저,1,pages.cmpVal.dedicated_manager,batch_04
+Dedicated + SLA,전담 관리 + SLA,1,pages.cmpVal.dedicated_sla,batch_04
+Domestic+Global,국내·글로벌,1,pages.cmpVal.dom_global,batch_04
+Domestic Ad Integration,국내 광고 연동,1,pages.cmpVal.domestic_ads,batch_04
+Domestic Core,국내 핵심 기능,1,pages.cmpVal.domestic_core,batch_04
+Install & Analysis,설치·분석,1,pages.cmpVal.install_analysis,batch_04
+Instant Rollback,즉시 롤백,1,pages.cmpVal.instant_rollback,batch_04
+List·Invite,목록·초대,1,pages.cmpVal.list_invite,batch_04
+Location & Barcode,위치·바코드,1,pages.cmpVal.location_barcode,batch_04
+Market Share,시장 점유율,1,pages.cmpVal.market_share,batch_04
+Notification Basic,기본 알림,1,pages.cmpVal.notification_basic,batch_04
+Notification Send,알림 발송,1,pages.cmpVal.notification_send,batch_04
+Own History,자체 이력,1,pages.cmpVal.own_history,batch_04
+Owner·Streaming,오너·스트리밍,1,pages.cmpVal.owner_streaming,batch_04
+Partner API Bidirectional,파트너 API 양방향 연동,1,pages.cmpVal.partner_api,batch_04
+Performance View,성과 보기,1,pages.cmpVal.perf_view,batch_04
+Policy·Review·Listing,정책·심사·노출,1,pages.cmpVal.policy_review,batch_04
+RBAC Role Settings,RBAC 권한 설정,1,pages.cmpVal.rbac_role,batch_04
+Real-time Rate,실시간 환율,1,pages.cmpVal.realtime_rate,batch_04
+Rule Engine·Writeback,룰 엔진·Writeback,1,pages.cmpVal.rule_writeback,batch_04
+Schema·Quality View,스키마·품질 현황,1,pages.cmpVal.schema_quality_view,batch_04
+Server-side,서버사이드,1,pages.cmpVal.server_side,batch_04
+Trend Forecast,트렌드 예측,1,pages.cmpVal.trend_forecast,batch_04
+Account Performance,계정 성과,1,pages.marketing.accountPerformance,batch_04
+AI Instant Recommendations,AI 즉시 추천,1,pages.marketing.aiRecommend,batch_04
+Product Catalog,상품 카탈로그,1,pages.marketing.catalog,batch_04
+Returns Automation Portal,반품 자동화 포털,1,pages.marketing.returnsPortal,batch_04
+Supply Chain Visibility,공급망 가시성,1,pages.marketing.supplyChain,batch_04
+View Pricing Plans,요금제 보기,1,pages.marketing.upgradalBtn,batch_04
+This menu is available on paid plans. Upgrade to unlock all expert features.,이 메뉴는 유료 플랜에서 사용할 수 있습니다. 업그레이드 후 모든 전문가 기능을 이용해보세요.,1,pages.marketing.upgradalDesc,batch_04
+Upgrade Notice,업그레이드 안내,1,pages.marketing.upgradalTitle,batch_04
+Action Label,액션,1,pages.marketingIntel.actionLabel,batch_04
+Ad Body,광고 본문,1,pages.marketingIntel.adBody,batch_04
+Ad Copy,광고 카피,1,pages.marketingIntel.adCopy,batch_04
+Ad Creative Sub,광고 크리에이티브 안내,1,pages.marketingIntel.adCreativeSub,batch_04
+Ad Creative Title,광고 크리에이티브,1,pages.marketingIntel.adCreativeTitle,batch_04
+Ad Cta,광고 CTA,1,pages.marketingIntel.adCta,batch_04
+⬇ Download,⬇ 다운로드,1,pages.marketingIntel.adDownload,batch_04
+Ad Generate,광고 생성,1,pages.marketingIntel.adGenerate,batch_04
+Ad Generating,광고 생성 중...,1,pages.marketingIntel.adGenerating,batch_04
+Ad Hashtags,광고 해시태그,1,pages.marketingIntel.adHashtags,batch_04
+Ad Headline,광고 헤드라인,1,pages.marketingIntel.adHeadline,batch_04
+Ad Keyword,광고 키워드,1,pages.marketingIntel.adKeyword,batch_04
+Ad Keyword Ph,광고 키워드를 입력해주세요,1,pages.marketingIntel.adKeywordPh,batch_04
+Ad Keywords,광고 키워드,1,pages.marketingIntel.adKeywords,batch_04
+Call Volume,호출량,1,pages.marketingIntel.admin.callVolume,batch_04
+Ip Restriction,IP 제한,1,pages.marketingIntel.admin.ipRestriction,batch_04
+Session Timeout,세션 타임아웃,1,pages.marketingIntel.admin.sessionTimeout,batch_04
+Tab Billing,결제,1,pages.marketingIntel.admin.tabBilling,batch_04
+Tab General,일반,1,pages.marketingIntel.admin.tabGeneral,batch_04
+Tab Integrations,연동,1,pages.marketingIntel.admin.tabIntegrations,batch_04
+Tab Workspace,워크스페이스,1,pages.marketingIntel.admin.tabWorkspace,batch_04
+Two Factor,2단계 인증,1,pages.marketingIntel.admin.twoFactor,batch_04
+Workspace Name,워크스페이스명,1,pages.marketingIntel.admin.workspaceName,batch_04
+Ad Platform,광고 플랫폼,1,pages.marketingIntel.adPlatform,batch_04
+Ad Product,광고 상품,1,pages.marketingIntel.adProduct,batch_04
+Ad Product Ph,광고 상품을 입력해주세요,1,pages.marketingIntel.adProductPh,batch_04
+Ad Regenerate,광고 다시 생성,1,pages.marketingIntel.adRegenerate,batch_04
+Ad Result,광고 결과,1,pages.marketingIntel.adResult,batch_04
+Ad Size,광고 사이즈,1,pages.marketingIntel.adSize,batch_04
+Ad Style,광고 스타일,1,pages.marketingIntel.adStyle,batch_04
+Ad Target,광고 타겟,1,pages.marketingIntel.adTarget,batch_04
+Ad Target Ph,광고 타겟을 입력해주세요,1,pages.marketingIntel.adTargetPh,batch_04
+Ad Tone,광고 톤앤매너,1,pages.marketingIntel.adTone,batch_04
+Ai Engine,AI 엔진,1,pages.marketingIntel.aiEngine,batch_04
+Ai Engine Desc,AI 엔진 안내,1,pages.marketingIntel.aiEngineDesc,batch_04
+Col Detail,상세 정보,1,pages.marketingIntel.auditLog.colDetail,batch_04
+Export CSV,CSV 내보내기,1,pages.marketingIntel.auditLog.exportCsv,batch_04
+Filter Action,액션 필터,1,pages.marketingIntel.auditLog.filterAction,batch_04
+Filter Date,날짜 필터,1,pages.marketingIntel.auditLog.filterDate,batch_04
+Filter User,사용자 필터,1,pages.marketingIntel.auditLog.filterUser,batch_04
+No Logs,로그가 없습니다,1,pages.marketingIntel.auditLog.noLogs,batch_04
+Auto Order Mode,자동 주문 모드,1,pages.marketingIntel.autoOrderMode,batch_04
+⚙️ Automation Rules List,⚙️ 자동화 규칙 목록,1,pages.marketingIntel.autoRules,batch_04
+Avg Confidence,평균 신뢰도,1,pages.marketingIntel.avgConfidence,batch_04
+Avg Eng Rate,평균 참여율,1,pages.marketingIntel.avgEngRate,batch_04
+Badge Ai Rec,AI 추천 배지,1,pages.marketingIntel.badgeAiRec,batch_04
+All Segments,전체 세그먼트,1,pages.marketingIntel.campaignMgr.allSegments,batch_04
+Type Automation,자동화 유형,1,pages.marketingIntel.campaignMgr.typeAutomation,batch_04
+Campaign R O I,캠페인 ROI,1,pages.marketingIntel.campaignROI,batch_04
+Cart Rate,장바구니 전환율,1,pages.marketingIntel.cartRate,batch_04
+Cart To Buy,장바구니 → 구매,1,pages.marketingIntel.cartToBuy,batch_04
+Channel Demand,채널 수요,1,pages.marketingIntel.channelDemand,batch_04
+Channel Detail,채널 상세,1,pages.marketingIntel.channelDetail,batch_04
+Condition Line Clicked,조건: LINE 클릭,1,pages.marketingIntel.conditionLineClicked,batch_04
+Condition Purchased,조건: 구매 완료,1,pages.marketingIntel.conditionPurchased,batch_04
+Conf Label,신뢰도,1,pages.marketingIntel.confLabel,batch_04
+Backup History,백업 이력,1,pages.marketingIntel.dbAdmin.backupHistory,batch_04
+Backup Now,지금 백업,1,pages.marketingIntel.dbAdmin.backupNow,batch_04
+Db Connected,DB 연결 완료,1,pages.marketingIntel.dbAdmin.dbConnected,batch_04
+Last Backup,최근 백업,1,pages.marketingIntel.dbAdmin.lastBackup,batch_04
+Query Result,쿼리 결과,1,pages.marketingIntel.dbAdmin.queryResult,batch_04
+Run Query,쿼리 실행,1,pages.marketingIntel.dbAdmin.runQuery,batch_04
+Slow Queries,슬로우 쿼리,1,pages.marketingIntel.dbAdmin.slowQueries,batch_04
+Tab Backup,백업,1,pages.marketingIntel.dbAdmin.tabBackup,batch_04
+Tab Query,쿼리,1,pages.marketingIntel.dbAdmin.tabQuery,batch_04
+Tab Status,상태,1,pages.marketingIntel.dbAdmin.tabStatus,batch_04
+Total Size,전체 용량,1,pages.marketingIntel.dbAdmin.totalSize,batch_04
+Total Tables,전체 테이블 수,1,pages.marketingIntel.dbAdmin.totalTables,batch_04
+Dim Channel,채널 차원,1,pages.marketingIntel.dimChannel,batch_04
+Content type,콘텐츠 유형,1,pages.marketingIntel.dimContent,batch_04
+Dim Coupon,쿠폰 차원,1,pages.marketingIntel.dimCoupon,batch_04
+Dim Customer,고객 차원,1,pages.marketingIntel.dimCustomer,batch_04
+Dim Device,디바이스 차원,1,pages.marketingIntel.dimDevice,batch_04
+Dim Tier,등급 차원,1,pages.marketingIntel.dimTier,batch_04
+Dim Time,시간 차원,1,pages.marketingIntel.dimTime,batch_04
+Dim Touch,터치 차원,1,pages.marketingIntel.dimTouch,batch_04
+Email Sender Ph,발신자 이메일을 입력해주세요,1,pages.marketingIntel.emailSenderPh,batch_04
+Engagement Trend,참여도 추이,1,pages.marketingIntel.engagementTrend,batch_04
+Final Cvr,최종 전환율,1,pages.marketingIntel.finalCvr,batch_04
+Forecast30d,30일 예측,1,pages.marketingIntel.forecast30d,batch_04
+Forecast30d Total,30일 예측 합계,1,pages.marketingIntel.forecast30dTotal,batch_04
+Forecast7d Total,7일 예측 합계,1,pages.marketingIntel.forecast7dTotal,batch_04
+Impression count,노출 수,1,pages.marketingIntel.funnelImp,batch_04
+Funnel Total,전체 퍼널,1,pages.marketingIntel.funnelTotal,batch_04
+🎯 What you can do with this menu,🎯 이 메뉴에서 할 수 있는 작업,1,pages.marketingIntel.helpPanel.canDo,batch_04
+Current Page Help,현재 페이지 도움말,1,pages.marketingIntel.helpPanel.currentPageHelp,batch_04
+Data From,데이터 출처,1,pages.marketingIntel.helpPanel.dataFrom,batch_05
+Default Step1,기본 단계 1,1,pages.marketingIntel.helpPanel.defaultStep1,batch_05
+Default Step2,기본 단계 2,1,pages.marketingIntel.helpPanel.defaultStep2,batch_05
+Default Summary,기본 요약,1,pages.marketingIntel.helpPanel.defaultSummary,batch_05
+Default Title,기본 제목,1,pages.marketingIntel.helpPanel.defaultTitle,batch_05
+Footer Help,하단 도움말,1,pages.marketingIntel.helpPanel.footerHelp,batch_05
+Full Manual,전체 매뉴얼,1,pages.marketingIntel.helpPanel.fullManual,batch_05
+Go Back,뒤로 가기,1,pages.marketingIntel.helpPanel.goBack,batch_05
+Go To Page,페이지로 이동,1,pages.marketingIntel.helpPanel.goToPage,batch_05
+"""{{q}}"" — {{n}}help articles","""{{q}}"" 관련 도움말 {{n}}건",1,pages.marketingIntel.helpPanel.helpResultCount,batch_05
+How To Use,사용 방법,1,pages.marketingIntel.helpPanel.howToUse,batch_05
+Need More Help,추가 도움이 필요하신가요?,1,pages.marketingIntel.helpPanel.needMoreHelp,batch_05
+No Help Found,도움말을 찾을 수 없습니다,1,pages.marketingIntel.helpPanel.noHelpFound,batch_05
+📊 Information this menu provides,📊 이 메뉴에서 제공하는 정보,1,pages.marketingIntel.helpPanel.provides,batch_05
+Search Results,검색 결과,1,pages.marketingIntel.helpPanel.searchResult,batch_05
+Try Other,다른 검색어로 시도해보세요,1,pages.marketingIntel.helpPanel.tryOther,batch_05
+Inf Funnel,인플루언서 퍼널,1,pages.marketingIntel.infFunnel,batch_05
+Add Influencer,인플루언서 추가,1,pages.marketingIntel.influencer.addInfluencer,batch_05
+Ai Loading,AI 분석 로딩 중...,1,pages.marketingIntel.influencer.aiLoading,batch_05
+Ai Run,AI 실행,1,pages.marketingIntel.influencer.aiRun,batch_05
+Ab Collect More,데이터 추가 수집 필요,1,pages.marketingIntel.influencer.attrData.abCollectMore,batch_05
+Ab Deploy,A/B 테스트 배포,1,pages.marketingIntel.influencer.attrData.abDeploy,batch_05
+Ab Keep Running,A/B 테스트 계속 진행,1,pages.marketingIntel.influencer.attrData.abKeepRunning,batch_05
+Ab Winner,A/B 테스트 우승안,1,pages.marketingIntel.influencer.attrData.abWinner,batch_05
+Alert Count Suffix,건,1,pages.marketingIntel.influencer.attrData.alertCountSuffix,batch_05
+All Compare,전체 비교,1,pages.marketingIntel.influencer.attrData.allCompare,batch_05
+Analysis Journey,분석 여정,1,pages.marketingIntel.influencer.attrData.analysisJourney,batch_05
+Anomaly Body Text,이상 징후 상세 안내,1,pages.marketingIntel.influencer.attrData.anomalyBodyText,batch_05
+Anomaly Head Desc,이상 징후 안내,1,pages.marketingIntel.influencer.attrData.anomalyHeadDesc,batch_05
+Anomaly Summary,이상 징후 요약,1,pages.marketingIntel.influencer.attrData.anomalySummary,batch_05
+A Score Sub,어트리뷰션 스코어 안내,1,pages.marketingIntel.influencer.attrData.aScoreSub,batch_05
+Ascore Title,어트리뷰션 스코어,1,pages.marketingIntel.influencer.attrData.ascoreTitle,batch_05
+Auto Refl,자동 반영,1,pages.marketingIntel.influencer.attrData.autoRefl,batch_05
+Badge Mmm,MMM 배지,1,pages.marketingIntel.influencer.attrData.badgeMmm,batch_05
+Badge Shapley,Shapley 배지,1,pages.marketingIntel.influencer.attrData.badgeShapley,batch_05
+Badge Uplift,업리프트 배지,1,pages.marketingIntel.influencer.attrData.badgeUplift,batch_05
+Beta Binomial,베타-이항 분포,1,pages.marketingIntel.influencer.attrData.betaBinomial,batch_05
+Budget Adjust,예산 조정,1,pages.marketingIntel.influencer.attrData.budgetAdjust,batch_05
+Channel Contrib,채널 기여도,1,pages.marketingIntel.influencer.attrData.channelContrib,batch_05
+Channel Synergy,채널 시너지,1,pages.marketingIntel.influencer.attrData.channelSynergy,batch_05
+Cohort Title,코호트 분석,1,pages.marketingIntel.influencer.attrData.cohortTitle,batch_05
+Compare Desc Text,비교 안내,1,pages.marketingIntel.influencer.attrData.compareDescText,batch_05
+Curr Val,현재 값,1,pages.marketingIntel.influencer.attrData.currVal,batch_05
+Data Included,포함 데이터,1,pages.marketingIntel.influencer.attrData.dataIncluded,batch_05
+Expected Blend Roas,예상 Blended ROAS,1,pages.marketingIntel.influencer.attrData.expectedBlendRoas,batch_05
+Explain Ab,A/B 테스트 설명,1,pages.marketingIntel.influencer.attrData.explainAb,batch_05
+Explain Markov,마르코프 모델 설명,1,pages.marketingIntel.influencer.attrData.explainMarkov,batch_05
+Explain Mmm,MMM 분석 설명,1,pages.marketingIntel.influencer.attrData.explainMmm,batch_05
+Explain Shapley,Shapley 분석 설명,1,pages.marketingIntel.influencer.attrData.explainShapley,batch_05
+Filter Issue,이슈 필터,1,pages.marketingIntel.influencer.attrData.filterIssue,batch_05
+Filter Ok,정상 필터,1,pages.marketingIntel.influencer.attrData.filterOk,batch_05
+First Touch,첫 터치,1,pages.marketingIntel.influencer.attrData.firstTouch,batch_05
+Bayesian A/B,베이지안 A/B,1,pages.marketingIntel.influencer.attrData.guideAbName,batch_05
+Markov+Uplift,마르코프+업리프트,1,pages.marketingIntel.influencer.attrData.guideMarkovName,batch_05
+Bayesian MMM,베이지안 MMM,1,pages.marketingIntel.influencer.attrData.guideMmmName,batch_05
+Health Score,헬스 스코어,1,pages.marketingIntel.influencer.attrData.health,batch_05
+Hub Run,허브 실행,1,pages.marketingIntel.influencer.attrData.hubRun,batch_05
+Last Touch,마지막 터치,1,pages.marketingIntel.influencer.attrData.lastTouch,batch_05
+Ltvcac Title,LTV/CAC 분석,1,pages.marketingIntel.influencer.attrData.ltvcacTitle,batch_05
+Markov In Progress,마르코프 분석 진행 중...,1,pages.marketingIntel.influencer.attrData.markovInProgress,batch_05
+🔗 Markov Chain — Removal Effect,🔗 마르코프 체인 — 제거 효과,1,pages.marketingIntel.influencer.attrData.markovRemoval,batch_05
+Markov Title,마르코프 분석,1,pages.marketingIntel.influencer.attrData.markovTitle,batch_05
+Mmm Sim,MMM 시뮬레이션,1,pages.marketingIntel.influencer.attrData.mmmSim,batch_05
+Mmm Title,MMM 분석,1,pages.marketingIntel.influencer.attrData.mmmTitle,batch_05
+Model Compare Table,모델 비교표,1,pages.marketingIntel.influencer.attrData.modelCompareTable,batch_05
+No Ab Data,A/B 테스트 데이터가 없습니다,1,pages.marketingIntel.influencer.attrData.noAbData,batch_05
+No Journey Data,고객 여정 데이터가 없습니다,1,pages.marketingIntel.influencer.attrData.noJourneyData,batch_05
+No Time Series Data,시계열 데이터가 없습니다,1,pages.marketingIntel.influencer.attrData.noTimeSeriesData,batch_05
+Radar Compare,레이더 비교,1,pages.marketingIntel.influencer.attrData.radarCompare,batch_05
+Real-time Sync ✓,실시간 동기화 ✓,1,pages.marketingIntel.influencer.attrData.realtimeSync,batch_05
+Roas Surge,ROAS 급등,1,pages.marketingIntel.influencer.attrData.roasSurge,batch_05
+Saturation Warning,포화 경고,1,pages.marketingIntel.influencer.attrData.saturationWarning,batch_05
+Shapley Budget Rec,Shapley 기반 예산 추천,1,pages.marketingIntel.influencer.attrData.shapleyBudgetRec,batch_05
+Shapley In Progress,Shapley 분석 진행 중...,1,pages.marketingIntel.influencer.attrData.shapleyInProgress,batch_05
+Shapley Title,Shapley 분석,1,pages.marketingIntel.influencer.attrData.shapleyTitle,batch_05
+Status Alert,알림,1,pages.marketingIntel.influencer.attrData.statusAlert,batch_05
+Status Crit,심각,1,pages.marketingIntel.influencer.attrData.statusCrit,batch_05
+Status Info,정보,1,pages.marketingIntel.influencer.attrData.statusInfo,batch_05
+Status Ok,정상,1,pages.marketingIntel.influencer.attrData.statusOk,batch_05
+Status Warn,주의,1,pages.marketingIntel.influencer.attrData.statusWarn,batch_05
+Tab Ab Desc,A/B 테스트 안내,1,pages.marketingIntel.influencer.attrData.tabAbDesc,batch_05
+Tab Ab Label,A/B 테스트,1,pages.marketingIntel.influencer.attrData.tabAbLabel,batch_05
+Tab Anomaly Desc,이상 징후 안내,1,pages.marketingIntel.influencer.attrData.tabAnomalyDesc,batch_05
+Tab Anomaly Label,이상 징후,1,pages.marketingIntel.influencer.attrData.tabAnomalyLabel,batch_05
+Tab Cohort Desc,코호트 분석 안내,1,pages.marketingIntel.influencer.attrData.tabCohortDesc,batch_05
+Tab Cohort Label,코호트,1,pages.marketingIntel.influencer.attrData.tabCohortLabel,batch_05
+Tab Compare Desc,비교 분석 안내,1,pages.marketingIntel.influencer.attrData.tabCompareDesc,batch_05
+Tab Compare Label,비교,1,pages.marketingIntel.influencer.attrData.tabCompareLabel,batch_05
+Tab Ltv Desc,LTV 분석 안내,1,pages.marketingIntel.influencer.attrData.tabLtvDesc,batch_05
+Tab Markov Desc,마르코프 분석 안내,1,pages.marketingIntel.influencer.attrData.tabMarkovDesc,batch_05
+Tab Markov Label,마르코프,1,pages.marketingIntel.influencer.attrData.tabMarkovLabel,batch_05
+Tab Mmm Desc,MMM 분석 안내,1,pages.marketingIntel.influencer.attrData.tabMmmDesc,batch_05
+Tab Mmm Label,MMM,1,pages.marketingIntel.influencer.attrData.tabMmmLabel,batch_05
+Tab Mta Desc,MTA 분석 안내,1,pages.marketingIntel.influencer.attrData.tabMtaDesc,batch_05
+Tab Mta Label,MTA,1,pages.marketingIntel.influencer.attrData.tabMtaLabel,batch_05
+Tab Shapley Desc,Shapley 분석 안내,1,pages.marketingIntel.influencer.attrData.tabShapleyDesc,batch_05
+Tab Shapley Label,Shapley,1,pages.marketingIntel.influencer.attrData.tabShapleyLabel,batch_05
+Time Series,시계열 데이터,1,pages.marketingIntel.influencer.attrData.timeSeries,batch_05
+Top Paths,주요 전환 경로,1,pages.marketingIntel.influencer.attrData.topPaths,batch_05
+Total Cac,총 CAC,1,pages.marketingIntel.influencer.attrData.totalCac,batch_05
+Total Ltv,총 LTV,1,pages.marketingIntel.influencer.attrData.totalLtv,batch_05
+Total Str,전체 합계,1,pages.marketingIntel.influencer.attrData.totalStr,batch_05
+Uplift Sub,업리프트 분석 안내,1,pages.marketingIntel.influencer.attrData.upliftSub,batch_05
+Uplift Title,업리프트 분석,1,pages.marketingIntel.influencer.attrData.upliftTitle,batch_05
+🏆 Winner,🏆 우승안,1,pages.marketingIntel.influencer.attrData.winner,batch_05
+Average ROI,평균 ROI,1,pages.marketingIntel.influencer.avgRoi,batch_05
+Col Content,콘텐츠,1,pages.marketingIntel.influencer.colContent,batch_05
+Col Likes,좋아요,1,pages.marketingIntel.influencer.colLikes,batch_05
++ Create Marketing Campaign,+ 마케팅 캠페인 생성,1,pages.marketingIntel.influencer.createCampaign,batch_05
+Est Total,예상 합계,1,pages.marketingIntel.influencer.estTotal,batch_05
+Contrib Creative,크리에이티브 기여도,1,pages.marketingIntel.influencer.graph.contribCreative,batch_05
+Contrib Influencer,인플루언서 기여도,1,pages.marketingIntel.influencer.graph.contribInfluencer,batch_05
+Contrib Path,전환 경로 기여도,1,pages.marketingIntel.influencer.graph.contribPath,batch_05
+No Edge,연결된 엣지가 없습니다,1,pages.marketingIntel.influencer.graph.noEdge,batch_05
+No Path,경로 데이터가 없습니다,1,pages.marketingIntel.influencer.graph.noPath,batch_05
+Path W,경로 가중치,1,pages.marketingIntel.influencer.graph.pathW,batch_05
+Source Node,시작 노드,1,pages.marketingIntel.influencer.graph.sourceNode,batch_05
+Target Node,대상 노드,1,pages.marketingIntel.influencer.graph.targetNode,batch_05
+Top Influencer,상위 인플루언서,1,pages.marketingIntel.influencer.graph.topInfluencer,batch_05
+Perf Rate,성과율,1,pages.marketingIntel.influencer.perfRate,batch_05
+Recom Flat,정액 추천,1,pages.marketingIntel.influencer.recomFlat,batch_05
+Active Users,활성 사용자 수,1,pages.marketingIntel.influencer.system.activeUsers,batch_05
+Api Latency,API 응답 지연시간,1,pages.marketingIntel.influencer.system.apiLatency,batch_05
+Error Rate,오류율,1,pages.marketingIntel.influencer.system.errorRate,batch_05
+Server Status,서버 상태,1,pages.marketingIntel.influencer.system.serverStatus,batch_05
+Analysis Dashboard,분석 대시보드,1,pages.marketingIntel.influencer.tabAnalytics,batch_05
+📣 Campaign Management,📣 캠페인 관리,1,pages.marketingIntel.influencer.tabCampaigns,batch_05
+Tab Ugc,UGC,1,pages.marketingIntel.influencer.tabUgc,batch_05
+Total Influencers,전체 인플루언서 수,1,pages.marketingIntel.influencer.totalInfluencers,batch_05
+Kpi Contrib,KPI 기여도,1,pages.marketingIntel.kpiContrib,batch_05
+Kpi Contrib Sub,KPI 기여도 안내,1,pages.marketingIntel.kpiContribSub,batch_05
+Kpi Metric,KPI 지표,1,pages.marketingIntel.kpiMetric,batch_05
+Kpi Table,KPI 테이블,1,pages.marketingIntel.kpiTable,batch_05
+✅ [Approve],✅ [승인],1,pages.marketingIntel.logApproved,batch_05
+Log Executed,실행 완료,1,pages.marketingIntel.logExecuted,batch_05
+Log Rejected,반려됨,1,pages.marketingIntel.logRejected,batch_05
+Integration,연동,1,pages.marketingIntel.marketingIntel.aiPredict.tab.integration,batch_05
+Attr Ai Run,어트리뷰션 AI 실행,1,pages.marketingIntel.marketingIntel.banner.attrAiRun,batch_05
+Attr Ai,어트리뷰션 AI,1,pages.marketingIntel.marketingIntel.banner.attrAiSub,batch_06
+All Normal,전체 정상,1,pages.marketingIntel.marketingIntel.banner.kpiAllNormal,batch_06
+Rule Action,룰 실행 액션,1,pages.marketingIntel.marketingIntel.banner.kpiRuleAction,batch_06
+Rules Active,활성 룰,1,pages.marketingIntel.marketingIntel.banner.kpiRulesActive,batch_06
+Rules Fired,실행된 룰,1,pages.marketingIntel.marketingIntel.banner.kpiRulesFired,batch_06
+Pnl Ai Action,P&L AI 액션,1,pages.marketingIntel.marketingIntel.banner.pnlAiAction,batch_06
+Pnl Budget Action,P&L 예산 액션,1,pages.marketingIntel.marketingIntel.banner.pnlBudgetAction,batch_06
+Ch Name,채널명,1,pages.marketingIntel.marketingIntel.channelKpiPage.chName_,batch_06
+Status error,오류,1,pages.marketingIntel.marketingIntel.systemMonitor.status_error,batch_06
+Status ok,정상,1,pages.marketingIntel.marketingIntel.systemMonitor.status_ok,batch_06
+Status warning,경고,1,pages.marketingIntel.marketingIntel.systemMonitor.status_warning,batch_06
+Camp Name,캠페인명,1,pages.marketingIntel.marketingIntel.unified.campName,batch_06
+Mix Title,믹스 분석,1,pages.marketingIntel.marketingIntel.unified.mixTitle,batch_06
+Total Amt,총 금액,1,pages.marketingIntel.marketingIntel.unified.totalAmt,batch_06
+Mobile Cvr,모바일 전환율,1,pages.marketingIntel.mobileCvr,batch_06
+New Cust Pct,신규 고객 비율,1,pages.marketingIntel.newCustPct,batch_06
+Node Settings,노드 설정,1,pages.marketingIntel.nodeSettings,batch_06
+Order History,주문 이력,1,pages.marketingIntel.orderHistory,batch_06
+Order Needed,발주 필요,1,pages.marketingIntel.orderNeeded,batch_06
+Order Needed Sku,발주 필요 SKU,1,pages.marketingIntel.orderNeededSku,batch_06
+Payment Key,결제 키,1,pages.marketingIntel.paymentKey,batch_06
+Platform Dist,플랫폼 분포,1,pages.marketingIntel.platformDist,batch_06
+Limited Features,일부 기능 제한,1,pages.marketingIntel.pricing.limitedFeat,batch_06
+Product Cost,상품 원가,1,pages.marketingIntel.productCost,batch_06
+Purchase Cost,매입 원가,1,pages.marketingIntel.purchaseCost,batch_06
+Campaign Pnl Risk,캠페인 P&L 리스크,1,pages.marketingIntel.rollup.campaignPnlRisk,batch_06
+Commission Per Post,게시물당 수수료,1,pages.marketingIntel.rollup.commissionPerPost,batch_06
+Loss Est Warning,손실 예상 경고,1,pages.marketingIntel.rollup.lossEstWarning,batch_06
+Pnl Cogs,매출원가(COGS),1,pages.marketingIntel.rollup.pnlCogs,batch_06
+Pnl Desc,P&L 안내,1,pages.marketingIntel.rollup.pnlDesc,batch_06
+Pnl Fx Loss,환차손,1,pages.marketingIntel.rollup.pnlFxLoss,batch_06
+Net Revenue,순매출,1,pages.marketingIntel.rollup.pnlNetRev,batch_06
+Pnl Return Loss,반품 손실,1,pages.marketingIntel.rollup.pnlReturnLoss,batch_06
+Pnl Structure,P&L 구조,1,pages.marketingIntel.rollup.pnlStructure,batch_06
+Settlement Deduction,정산 공제,1,pages.marketingIntel.rollup.settleDeductWord,batch_06
+10K KRW,만원,1,pages.marketingIntel.rollup.unitTenThousand,batch_06
+Root_page Title_channel Kpi2,채널 KPI 페이지,1,pages.marketingIntel.root_pageTitle_channelKpi2,batch_06
+Sku Analysis,SKU 분석,1,pages.marketingIntel.skuAnalysis,batch_06
+Sku Forecast,SKU 예측,1,pages.marketingIntel.skuForecast,batch_06
+Top Margin SKU,고마진 SKU,1,pages.marketingIntel.skuTopMargin,batch_06
+Summary Orders,주문 요약,1,pages.marketingIntel.summaryOrders,batch_06
+Tab Ai,AI,1,pages.marketingIntel.tabAi,batch_06
+Tab Ai Desc,AI 분석 안내,1,pages.marketingIntel.tabAiDesc,batch_06
+Tab Auto,자동화,1,pages.marketingIntel.tabAuto,batch_06
+Tab Auto Desc,자동화 안내,1,pages.marketingIntel.tabAutoDesc,batch_06
+Tab Funnel,퍼널,1,pages.marketingIntel.tabFunnel,batch_06
+Tab Funnel Desc,퍼널 분석 안내,1,pages.marketingIntel.tabFunnelDesc,batch_06
+Tab Kpi,KPI,1,pages.marketingIntel.tabKpi,batch_06
+Tab Kpi Desc,KPI 분석 안내,1,pages.marketingIntel.tabKpiDesc,batch_06
+Today Ad Spend,오늘 광고비,1,pages.marketingIntel.todayAdSpend,batch_06
+Top Creators,상위 크리에이터,1,pages.marketingIntel.topCreators,batch_06
+Total Followers,총 팔로워 수,1,pages.marketingIntel.totalFollowers,batch_06
+Total Purchases,총 구매 수,1,pages.marketingIntel.totalPurchases,batch_06
+Total Rev Contrib,총 매출 기여도,1,pages.marketingIntel.totalRevContrib,batch_06
+Add User,사용자 추가,1,pages.marketingIntel.userMgmt.addUser,batch_06
+✉️ Email,✉️ 이메일,1,pages.marketingIntel.userMgmt.email,batch_06
+Invite Email,초대 이메일,1,pages.marketingIntel.userMgmt.inviteEmail,batch_06
+Invite Title,사용자 초대,1,pages.marketingIntel.userMgmt.inviteTitle,batch_06
+Last Login,최근 로그인,1,pages.marketingIntel.userMgmt.lastLogin,batch_06
+No Users,등록된 사용자가 없습니다.,1,pages.marketingIntel.userMgmt.noUsers,batch_06
+Resend Invite,초대 재전송,1,pages.marketingIntel.userMgmt.resendInvite,batch_06
+Send Invite,초대 발송,1,pages.marketingIntel.userMgmt.sendInvite,batch_06
+Tab Invite,초대 관리,1,pages.marketingIntel.userMgmt.tabInvite,batch_06
+Tab Users,사용자 관리,1,pages.marketingIntel.userMgmt.tabUsers,batch_06
+Verdict Bad,부정,1,pages.marketingIntel.verdictBad,batch_06
+Verdict Good,긍정,1,pages.marketingIntel.verdictGood,batch_06
+Coupon Code,쿠폰 코드,1,pages.mobile.adminCoupon.codeLabel,batch_06
+Code Placeholder,쿠폰 코드를 입력해주세요.,1,pages.mobile.adminCoupon.codePlaceholder,batch_06
+Code / Recipient,코드 / 수신자,1,pages.mobile.adminCoupon.colCode,batch_06
+Email Placeholder,이메일을 입력해주세요.,1,pages.mobile.adminCoupon.emailPlaceholder,batch_06
+Issue Coupon,쿠폰 발급,1,pages.mobile.adminCoupon.issueBtn,batch_06
+Email Notifications,이메일 알림,1,pages.mobile.adminCoupon.notifyEmail,batch_06
+1 month,1개월,1,pages.mobile.adminCoupon.period1m,batch_06
+1 year,1년,1,pages.mobile.adminCoupon.period1y,batch_06
+2 months,2개월,1,pages.mobile.adminCoupon.period2m,batch_06
+3 months,3개월,1,pages.mobile.adminCoupon.period3m,batch_06
+6 months,6개월,1,pages.mobile.adminCoupon.period6m,batch_06
+Tab Auto Rules,자동 규칙,1,pages.mobile.adminCoupon.tabAutoRules,batch_06
+🎟 Issue Coupon,🎟 쿠폰 발급,1,pages.mobile.adminCoupon.tabIssue,batch_06
+Free Coupon Management,무료 쿠폰 관리,1,pages.mobile.adminCoupon.tabTitle,batch_06
+Total Issued,총 발급 수,1,pages.mobile.adminCoupon.totalIssued,batch_06
+Average ROAS,평균 ROAS,1,pages.mobile.avgRoas,batch_06
+No available coupons.,사용 가능한 쿠폰이 없습니다.,1,pages.mobile.coupon.emptyAvailable,batch_06
+No expired coupons.,만료된 쿠폰이 없습니다.,1,pages.mobile.coupon.emptyExpired,batch_06
+"If you have a coupon code, enter it above.",쿠폰 코드가 있으시면 위에 입력해주세요.,1,pages.mobile.coupon.emptyHint,batch_06
+No used coupons.,사용 완료된 쿠폰이 없습니다.,1,pages.mobile.coupon.emptyUsed,batch_06
+"Ask about P&L, ROAS, return rates...","P&L, ROAS, 반품률 등을 물어보세요...",1,pages.mobile.coupon.inputPlaceholder,batch_06
+Invalid coupon code,유효하지 않은 쿠폰 코드입니다.,1,pages.mobile.coupon.invalidCode,batch_06
+🎉 Redeem Coupon,🎉 쿠폰 사용,1,pages.mobile.coupon.modalConfirm,batch_06
+Enter coupon code to instantly activate the plan.,쿠폰 코드를 입력하면 플랜이 즉시 활성화됩니다.,1,pages.mobile.coupon.modalSub,batch_06
+🎟 Redeem Coupon,🎟 쿠폰 사용,1,pages.mobile.coupon.modalTitle,batch_06
+Network Error,네트워크 오류,1,pages.mobile.coupon.networkError,batch_06
+Redeem Coupon,쿠폰 사용하기,1,pages.mobile.coupon.redeemBtn,batch_06
+✅ Available,✅ 사용 가능,1,pages.mobile.coupon.tabAvailable,batch_06
+⏰ Expired,⏰ 만료됨,1,pages.mobile.coupon.tabExpired,batch_06
+✔ Used,✔ 사용 완료,1,pages.mobile.coupon.tabUsed,batch_06
+Use →,사용하기 →,1,pages.mobile.coupon.useBtn,batch_06
+All Teams,전체 팀,1,pages.perms.allTeams,batch_06
+Pro All + Instant Rollback·Amazon Policy·Market Share·Data Governance·SmartConnect Partner API·Influencer DB·Full Audit·Auto Reports.,Pro 전체 기능 + 즉시 롤백·Amazon 정책 관리·시장 점유율 분석·데이터 거버넌스·SmartConnect 파트너 API·인플루언서 DB·전체 감사 로그·자동 리포트 제공,1,pages.pricingDetail.ent_desc,batch_06
+Ent_headline,엔터프라이즈 플랜,1,pages.pricingDetail.ent_headline,batch_06
+Writeback Instant Rollback (New),Writeback 즉시 롤백 (신규),1,pages.pricingDetail.ent_s1,batch_06
+Instant Rollback (Immediate Error Recovery),즉시 롤백 (오류 즉시 복구),1,pages.pricingDetail.ent_s1i2,batch_06
+Multi-Brand Auto Execution,멀티 브랜드 자동 실행,1,pages.pricingDetail.ent_s1i3,batch_06
+Full Rollback History View,전체 롤백 이력 조회,1,pages.pricingDetail.ent_s1i4,batch_06
+Amazon Advanced Operations (New),Amazon 고급 운영 (신규),1,pages.pricingDetail.ent_s2,batch_06
+Amazon Account Health Monitor,Amazon 계정 상태 모니터링,1,pages.pricingDetail.ent_s2i1,batch_06
+Policy Compliance Management,정책 준수 관리,1,pages.pricingDetail.ent_s2i2,batch_06
+Full Review Monitoring,전체 리뷰 모니터링,1,pages.pricingDetail.ent_s2i3,batch_06
+Listing Quality Audit,상품 노출 품질 진단,1,pages.pricingDetail.ent_s2i4,batch_06
+Market Intelligence (New),마켓 인텔리전스 (신규),1,pages.pricingDetail.ent_s3,batch_06
+Market Share Analysis,시장 점유율 분석,1,pages.pricingDetail.ent_s3i1,batch_06
+Competitor Ad Tracking (AI),경쟁사 광고 추적 (AI),1,pages.pricingDetail.ent_s3i2,batch_06
+Trend AI Forecast Model,트렌드 AI 예측 모델,1,pages.pricingDetail.ent_s3i3,batch_06
+Channel Attribution All Models,채널 어트리뷰션 전체 모델,1,pages.pricingDetail.ent_s3i4,batch_06
+Conversion Path Analysis,전환 경로 분석,1,pages.pricingDetail.ent_s3i5,batch_06
+Data Product Governance (New),데이터 프로덕트 거버넌스 (신규),1,pages.pricingDetail.ent_s4,batch_06
+Data Product Schema·Quality Metrics,데이터 프로덕트 스키마·품질 지표,1,pages.pricingDetail.ent_s4i1,batch_06
+SLA Management·Owner Assignment,SLA 관리·담당자 지정,1,pages.pricingDetail.ent_s4i2,batch_06
+API-based Data Streaming Export,API 기반 데이터 스트리밍 내보내기,1,pages.pricingDetail.ent_s4i3,batch_06
+Event Normalization Full Mgmt,이벤트 정규화 통합 관리,1,pages.pricingDetail.ent_s4i4,batch_06
+OAuth Partner Management,OAuth 파트너 관리,1,pages.pricingDetail.ent_s4i5,batch_06
+Advanced Data Mapping,고급 데이터 매핑,1,pages.pricingDetail.ent_s4i6,batch_06
+SmartConnect Partner API (New),SmartConnect 파트너 API (신규),1,pages.pricingDetail.ent_s5,batch_06
+Partner-level Bidirectional Real-time Integration,파트너 단위 양방향 실시간 연동,1,pages.pricingDetail.ent_s5i1,batch_06
+Full Real-time Sync Logs,전체 실시간 동기화 로그,1,pages.pricingDetail.ent_s5i2,batch_06
+ERP·SCM·WMS Full Integration,ERP·SCM·WMS 통합 연동,1,pages.pricingDetail.ent_s5i3,batch_06
+Custom Webhook Advanced Setup,커스텀 Webhook 고급 설정,1,pages.pricingDetail.ent_s5i4,batch_06
+Advanced Marketing (New),고급 마케팅 (신규),1,pages.pricingDetail.ent_s6,batch_06
+Full Influencer DB·Campaign Execution·Settlement,인플루언서 DB·캠페인 운영·정산 통합 지원,1,pages.pricingDetail.ent_s6i1,batch_06
+Kakao Bizboard (Large-scale Ads),카카오 비즈보드 (대규모 광고),1,pages.pricingDetail.ent_s6i2,batch_06
+WhatsApp Advanced Setup (Channel API),WhatsApp 고급 설정 (Channel API),1,pages.pricingDetail.ent_s6i3,batch_06
+LINE Channel Advanced Setup,LINE 채널 고급 설정,1,pages.pricingDetail.ent_s6i4,batch_06
+AI Segment Advanced (Custom Criteria),AI 세그먼트 고급 설정 (커스텀 기준),1,pages.pricingDetail.ent_s6i5,batch_06
+Competitor Review Comparison Analysis,경쟁사 리뷰 비교 분석,1,pages.pricingDetail.ent_s6i6,batch_06
+Operations & Governance All (New),운영·거버넌스 통합 관리 (신규),1,pages.pricingDetail.ent_s7,batch_06
+Ops Hub Alert Send (Admin Notice),운영 허브 알림 발송 (관리자 공지),1,pages.pricingDetail.ent_s7i1,batch_06
+3PL Delete·Contract Management,3PL 삭제·계약 관리,1,pages.pricingDetail.ent_s7i2,batch_06
+Full Audit Log·CSV Export,전체 감사 로그·CSV 내보내기,1,pages.pricingDetail.ent_s7i3,batch_06
+System Monitor Alert Setup,시스템 모니터 알림 설정,1,pages.pricingDetail.ent_s7i4,batch_07
+Auto Report Generate·Scheduled Send,자동 리포트 생성·예약 발송,1,pages.pricingDetail.ent_s7i5,batch_07
+Dashboard External Share·Embed,대시보드 외부 공유·임베드,1,pages.pricingDetail.ent_s7i6,batch_07
+Pro All Included + Unlimited,Pro 전체 기능 포함 + 무제한,1,pages.pricingDetail.ent_s8,batch_07
+All Pro Plan Features Included,Pro 플랜 전체 기능 포함,1,pages.pricingDetail.ent_s8i1,batch_07
+Unlimited Accounts·Users·Team Members,계정·사용자·팀원 무제한,1,pages.pricingDetail.ent_s8i2,batch_07
+Priority Support SLA,우선 지원 SLA,1,pages.pricingDetail.ent_s8i3,batch_07
+Dedicated Onboarding Consulting·Annual Training,전담 온보딩 컨설팅·연간 교육,1,pages.pricingDetail.ent_s8i4,batch_07
+Custom & Dedicated Services,맞춤형·전담 서비스,1,pages.pricingDetail.ent_s9,batch_07
+Custom Dashboard Configuration,맞춤 대시보드 구성,1,pages.pricingDetail.ent_s9i1,batch_07
+Dedicated Manager Assignment,전담 매니저 배정,1,pages.pricingDetail.ent_s9i2,batch_07
+Annual Contract-based Custom Discount,연간 계약 기반 맞춤 할인,1,pages.pricingDetail.ent_s9i3,batch_07
+Custom Training·Workshop,맞춤 교육·워크숍,1,pages.pricingDetail.ent_s9i4,batch_07
+Ent_tagline,엔터프라이즈 플랜 태그라인,1,pages.pricingDetail.ent_tagline,batch_07
+Experience the full Geniego-ROI platform instantly upon signup.,가입 즉시 Geniego-ROI 플랫폼 전체 기능을 체험해보세요.,1,pages.pricingDetail.free_desc,batch_07
+Experience Plan,체험 플랜,1,pages.pricingDetail.free_headline,batch_07
+No real-time data,실시간 데이터 미지원,1,pages.pricingDetail.free_l1,batch_07
+No live channel integration,실시간 채널 연동 미지원,1,pages.pricingDetail.free_l2,batch_07
+No save or download,저장·다운로드 미지원,1,pages.pricingDetail.free_l3,batch_07
+KPI Widgets (),KPI 위젯,1,pages.pricingDetail.free_s1i1,batch_07
+Quick Links,빠른 링크,1,pages.pricingDetail.free_s1i2,batch_07
+Onboarding Guide,온보딩 가이드,1,pages.pricingDetail.free_s1i3,batch_07
+My Team & Help,내 팀 & 도움말,1,pages.pricingDetail.free_s2,batch_07
+Video Tutorials,동영상 튜토리얼,1,pages.pricingDetail.free_s2i2,batch_07
+Release Notes,릴리스 노트,1,pages.pricingDetail.free_s2i3,batch_07
+Subscription & Billing,구독 & 결제,1,pages.pricingDetail.free_s3,batch_07
+View Current Plan,현재 플랜 보기,1,pages.pricingDetail.free_s3i1,batch_07
+Upgrade Plan,플랜 업그레이드,1,pages.pricingDetail.free_s3i2,batch_07
+Free_tagline,무료 플랜 태그라인,1,pages.pricingDetail.free_tagline,batch_07
+Grow your revenue with domestic commerce channels and basic CRM automation.,국내 커머스 채널과 기본 CRM 자동화로 매출 성장을 시작해보세요.,1,pages.pricingDetail.growth_desc,batch_07
+Growth_headline,그로스 플랜,1,pages.pricingDetail.growth_headline,batch_07
+AI Forecast (Churn·LTV) — Pro+,AI 예측(이탈·LTV) — Pro+,1,pages.pricingDetail.growth_l1,batch_07
+Customer Journey Builder — Pro+,고객 여정 빌더 — Pro+,1,pages.pricingDetail.growth_l2,batch_07
+Global Channels (WhatsApp·LINE·DM) — Pro+,글로벌 채널(WhatsApp·LINE·DM) — Pro+,1,pages.pricingDetail.growth_l3,batch_07
+AI Rule Engine — Pro+,AI 룰 엔진 — Pro+,1,pages.pricingDetail.growth_l4,batch_07
+1st-Party Pixel·API Keys — Pro+,퍼스트파티 픽셀·API 키 — Pro+,1,pages.pricingDetail.growth_l5,batch_07
+SmartConnect ERP Integration — Pro+,SmartConnect ERP 연동 — Pro+,1,pages.pricingDetail.growth_l6,batch_07
+AI Marketing Automation (Core),AI 마케팅 자동화(Core),1,pages.pricingDetail.growth_s1,batch_07
+AI Ad Creative Generation,AI 광고 크리에이티브 생성,1,pages.pricingDetail.growth_s1i1,batch_07
+Campaign Setup·Manage·List·Report,캠페인 설정·관리·목록·리포트,1,pages.pricingDetail.growth_s1i2,batch_07
+Alert Policy List & Logs,알림 정책 목록·로그,1,pages.pricingDetail.growth_s1i5,batch_07
+Ad & Channel Analytics (Domestic),광고·채널 분석(국내),1,pages.pricingDetail.growth_s2,batch_07
+Ad Summary·Channel·Product Analysis,광고 요약·채널·상품 분석,1,pages.pricingDetail.growth_s2i1,batch_07
+ROAS Analysis,ROAS 분석,1,pages.pricingDetail.growth_s2i2,batch_07
+Channel KPI (Impressions·CTR·CVR·CPA/CPC),채널 KPI(노출·CTR·CVR·CPA/CPC),1,pages.pricingDetail.growth_s2i4,batch_07
+ROAS Calculator,ROAS 계산기,1,pages.pricingDetail.growth_s2i5,batch_07
+Customer CRM (Basic),고객 CRM(기본),1,pages.pricingDetail.growth_s3,batch_07
+Customer DB·360° View·Tag Management,고객 DB·360° 뷰·태그 관리,1,pages.pricingDetail.growth_s3i1,batch_07
+RFM Analysis·Segment Builder·Message Send,RFM 분석·세그먼트 빌더·메시지 발송,1,pages.pricingDetail.growth_s3i2,batch_07
+Email Campaign (Send·A/B·Performance·Schedule),이메일 캠페인(발송·A/B 테스트·성과·예약),1,pages.pricingDetail.growth_s3i3,batch_07
+Kakao Notification·FriendTalk·Stats,카카오 알림톡·친구톡·통계,1,pages.pricingDetail.growth_s3i4,batch_07
+SMS/LMS Campaign·Text Templates,SMS/LMS 캠페인·문자 템플릿,1,pages.pricingDetail.growth_s3i5,batch_07
+Exit Popup·Web Popup (Basic),이탈 팝업·웹 팝업(기본),1,pages.pricingDetail.growth_s3i6,batch_07
+Commerce & Logistics (Domestic),커머스·물류(국내),1,pages.pricingDetail.growth_s4,batch_07
+Coupang·Naver·Cafe24 Channel Integration,쿠팡·네이버·Cafe24 채널 연동,1,pages.pricingDetail.growth_s4i1,batch_07
+Order Hub (All Orders·Claims·Returns·Shipping),주문 허브(주문·클레임·반품·배송 통합 관리),1,pages.pricingDetail.growth_s4i2,batch_07
+Bulk Product Register·Catalog Sync·Price Rules,대량 상품 등록·카탈로그 동기화·가격 규칙,1,pages.pricingDetail.growth_s4i3,batch_07
+Basic WMS (Stock·Alerts·Inbound·Outbound),기본 WMS(재고·알림·입고·출고),1,pages.pricingDetail.growth_s4i4,batch_07
+Monthly Settlement·Shipping·Excel Export,월별 정산·배송·Excel 내보내기,1,pages.pricingDetail.growth_s4i5,batch_07
+3PL Carrier List View,3PL 운송사 목록 조회,1,pages.pricingDetail.growth_s4i6,batch_07
+Analytics & Performance,분석·성과,1,pages.pricingDetail.growth_s5,batch_07
+Performance Summary·Channel·Product·Campaign,성과 요약·채널·상품·캠페인,1,pages.pricingDetail.growth_s5i1,batch_07
+P&L Overview,P&L 개요,1,pages.pricingDetail.growth_s5i2,batch_07
+AI Insight Feed,AI 인사이트 피드,1,pages.pricingDetail.growth_s5i3,batch_07
+Custom Report·Excel Export,맞춤 리포트·Excel 내보내기,1,pages.pricingDetail.growth_s5i4,batch_07
+Settlement & Finance,정산·재무,1,pages.pricingDetail.growth_s6,batch_07
+Settlement History·Channel·Excel,정산 이력·채널·Excel,1,pages.pricingDetail.growth_s6i1,batch_07
+Payment List·Excel,결제 목록·Excel,1,pages.pricingDetail.growth_s6i2,batch_07
+Plan View·Billing History·Invoice,플랜 조회·결제 이력·인보이스,1,pages.pricingDetail.growth_s6i3,batch_07
+License Activation·Status,라이선스 활성화·상태,1,pages.pricingDetail.growth_s6i4,batch_07
+Channel & Data Integration (Domestic),채널·데이터 연동(국내),1,pages.pricingDetail.growth_s7,batch_07
+Meta·Google·TikTok·Naver·Kakao Ad Integration,Meta·Google·TikTok·네이버·카카오 광고 연동,1,pages.pricingDetail.growth_s7i1,batch_07
+Coupang Connector,쿠팡 커넥터,1,pages.pricingDetail.growth_s7i2,batch_07
+Currency Selection (KRW/USD/JPY/EUR Global),통화 선택(KRW/USD/JPY/EUR 글로벌),1,pages.pricingDetail.growth_s7i3,batch_07
+Team Management,팀 관리,1,pages.pricingDetail.growth_s8,batch_07
+Team Member List·Invite,팀원 목록·초대,1,pages.pricingDetail.growth_s8i1,batch_07
+My Activity History,내 활동 이력,1,pages.pricingDetail.growth_s8i2,batch_07
+Support Ticket,지원 티켓,1,pages.pricingDetail.growth_s8i3,batch_07
+Growth_tagline,그로스 플랜 태그라인,1,pages.pricingDetail.growth_tagline,batch_07
+Growth All + AI Forecast·Journey Builder·Global Channels·Rule Engine·SmartConnect·1st-Party Pixel·Advanced BI.,그로스 전체 기능 + AI 예측·여정 빌더·글로벌 채널·룰 엔진·SmartConnect·퍼스트파티 픽셀·고급 BI 제공,1,pages.pricingDetail.pro_desc,batch_07
+Pro_headline,프로 플랜,1,pages.pricingDetail.pro_headline,batch_07
+Writeback Instant Rollback — Enterprise,Writeback 즉시 롤백 — 엔터프라이즈,1,pages.pricingDetail.pro_l1,batch_07
+Amazon Policy·Review Mgmt — Enterprise,Amazon 정책·리뷰 관리 — 엔터프라이즈,1,pages.pricingDetail.pro_l2,batch_07
+Market Share·Trend AI — Enterprise,시장 점유율·트렌드 AI — 엔터프라이즈,1,pages.pricingDetail.pro_l3,batch_07
+Data Product SLA·Governance — Enterprise,데이터 프로덕트 SLA·거버넌스 — 엔터프라이즈,1,pages.pricingDetail.pro_l4,batch_07
+SmartConnect Partner API Bidirectional — Enterprise,SmartConnect 파트너 API 양방향 연동 — 엔터프라이즈,1,pages.pricingDetail.pro_l5,batch_07
+Influencer DB·Campaign Execution — Enterprise,인플루언서 DB·캠페인 운영 — 엔터프라이즈,1,pages.pricingDetail.pro_l6,batch_07
+Audit Log Full Export — Enterprise,감사 로그 전체 내보내기 — 엔터프라이즈,1,pages.pricingDetail.pro_l7,batch_07
+Auto Report·Scheduled Send — Enterprise,자동 리포트·예약 발송 — 엔터프라이즈,1,pages.pricingDetail.pro_l8,batch_07
+API Data Streaming Export — Enterprise,API 데이터 스트리밍 내보내기 — 엔터프라이즈,1,pages.pricingDetail.pro_l9,batch_07
+AI Forecast Engine (New),AI 예측 엔진(신규),1,pages.pricingDetail.pro_s1,batch_07
+Real-time FX + Team Mgmt,실시간 환율·팀 관리,1,pages.pricingDetail.pro_s10,batch_07
+Real-time Exchange Rate (Global Currency),실시간 환율(글로벌 통화),1,pages.pricingDetail.pro_s10i1,batch_07
+Team Activity Audit,팀 활동 감사,1,pages.pricingDetail.pro_s10i2,batch_07
+System Status·API Monitoring,시스템 상태·API 모니터링,1,pages.pricingDetail.pro_s10i3,batch_07
+Batch Job Run·Reprocess,배치 작업 실행·재처리,1,pages.pricingDetail.pro_s10i4,batch_07
+Churn·LTV·Purchase Probability Forecast,이탈·LTV·구매 확률 예측,1,pages.pricingDetail.pro_s1i1,batch_07
+Graph Scoring,그래프 스코어링,1,pages.pricingDetail.pro_s1i2,batch_07
+Next Best Action Recommendation,다음 최적 액션 추천,1,pages.pricingDetail.pro_s1i3,batch_07
+Product Recommendation AI,상품 추천 AI,1,pages.pricingDetail.pro_s1i4,batch_07
+AI Ad Insights,AI 광고 인사이트,1,pages.pricingDetail.pro_s1i5,batch_07
+AI Segment (VIP·Churn Risk·Potential VIP Auto-classify),AI 세그먼트(VIP·이탈 위험·잠재 VIP 자동 분류),1,pages.pricingDetail.pro_s1i6,batch_07
+Customer Journey Builder (New),고객 여정 빌더(신규),1,pages.pricingDetail.pro_s2,batch_07
+Journey Canvas (Drag&Drop),여정 캔버스(드래그 앤 드롭),1,pages.pricingDetail.pro_s2i1,batch_07
+Trigger Setup·Action Node Management,트리거 설정·액션 노드 관리,1,pages.pricingDetail.pro_s2i2,batch_07
+Journey Performance Stats Analysis,여정 성과 통계 분석,1,pages.pricingDetail.pro_s2i3,batch_07
+A/B Test (Email·Popup),A/B 테스트(이메일·팝업),1,pages.pricingDetail.pro_s2i4,batch_07
+Global Channel All (New),글로벌 채널 통합(신규),1,pages.pricingDetail.pro_s3,batch_07
+Shopify·Amazon·LINE Ads Integration,Shopify·Amazon·LINE Ads 연동,1,pages.pricingDetail.pro_s3i1,batch_07
+WhatsApp Broadcast·Automation,WhatsApp 브로드캐스트·자동화,1,pages.pricingDetail.pro_s3i2,batch_07
+Instagram DM·Facebook DM·DM Campaign,Instagram DM·Facebook DM·DM 캠페인,1,pages.pricingDetail.pro_s3i3,batch_07
+LINE Message Campaign·Statistics,LINE 메시지 캠페인·통계,1,pages.pricingDetail.pro_s3i4,batch_07
+Popup A/B Test·Trigger Setup,팝업 A/B 테스트·트리거 설정,1,pages.pricingDetail.pro_s3i5,batch_07
+Advanced WMS + Commerce Expansion,고급 WMS·커머스 확장,1,pages.pricingDetail.pro_s4,batch_07
+Stock Adjustment·Location Mgmt·Barcode Integration,재고 조정·위치 관리·바코드 연동,1,pages.pricingDetail.pro_s4i1,batch_07
+Monthly Settlement Integration·Tax Invoice·Payment Approval,월별 정산 연동·세금계산서·결제 승인,1,pages.pricingDetail.pro_s4i2,batch_07
+3PL Add·Edit,3PL 추가·수정,1,pages.pricingDetail.pro_s4i3,batch_07
+Collection Log Basic View,수집 로그 기본 보기,1,pages.pricingDetail.pro_s4i4,batch_07
+AI Rule Engine & Automation (New),AI 룰 엔진·자동화(신규),1,pages.pricingDetail.pro_s5,batch_07
+AI Policy Setup·Rule List·Test,AI 정책 설정·룰 목록·테스트,1,pages.pricingDetail.pro_s5i1,batch_07
+Alert Evaluation Model,알림 평가 모델,1,pages.pricingDetail.pro_s5i2,batch_07
+Action Preset Management,액션 프리셋 관리,1,pages.pricingDetail.pro_s5i3,batch_07
+Approval Decision Automation,승인 결정 자동화,1,pages.pricingDetail.pro_s5i5,batch_07
+Review & UGC Analytics (New),리뷰·UGC 분석(신규),1,pages.pricingDetail.pro_s6,batch_07
+Channel Review Collection·Sentiment Analysis,채널 리뷰 수집·감성 분석,1,pages.pricingDetail.pro_s6i1,batch_07
+AI Auto-Reply Draft Generation,AI 자동 답변 초안 생성,1,pages.pricingDetail.pro_s6i2,batch_07
+UGC (Instagram·YouTube) Performance Analysis,UGC(Instagram·YouTube) 성과 분석,1,pages.pricingDetail.pro_s6i3,batch_07
+SmartConnect Hub (New),SmartConnect 허브(신규),1,pages.pricingDetail.pro_s7,batch_07
+ERP·SCM·3PL Basic Integration Setup,ERP·SCM·3PL 기본 연동 설정,1,pages.pricingDetail.pro_s7i1,batch_07
+REST API / Webhook / SFTP Integration,REST API·Webhook·SFTP 연동,1,pages.pricingDetail.pro_s7i2,batch_07
+Field Mapping Setup,필드 매핑 설정,1,pages.pricingDetail.pro_s7i3,batch_07
+Basic Sync Log View,기본 동기화 로그 보기,1,pages.pricingDetail.pro_s7i4,batch_07
+1st-Party Pixel + Data,퍼스트파티 픽셀·데이터,1,pages.pricingDetail.pro_s8,batch_07
+Pixel Code Install·Verification,픽셀 코드 설치·검증,1,pages.pricingDetail.pro_s8i1,batch_07
+Real-time Event Stream View,실시간 이벤트 스트림 보기,1,pages.pricingDetail.pro_s8i2,batch_07
+Attribution Analysis (Touch Model·ROAS),어트리뷰션 분석(터치 모델·ROAS),1,pages.pricingDetail.pro_s8i3,batch_07
+Event Collection·Data Schema·Mapping,이벤트 수집·데이터 스키마·매핑,1,pages.pricingDetail.pro_s8i4,batch_07
+API Key·Webhook·OAuth Integration,API 키·Webhook·OAuth 연동,1,pages.pricingDetail.pro_s8i5,batch_07
+Advanced Analytics & BI,고급 분석·BI,1,pages.pricingDetail.pro_s9,batch_08
+P&L by Channel·Product·Trend,채널·상품·트렌드별 P&L,1,pages.pricingDetail.pro_s9i2,batch_08
+Anomaly Detection·Competitor AI Analysis,이상 징후 감지·경쟁사 AI 분석,1,pages.pricingDetail.pro_s9i3,batch_08
+Influencer Performance View,인플루언서 성과 보기,1,pages.pricingDetail.pro_s9i4,batch_08
+Pro_tagline,프로 플랜 태그라인,1,pages.pricingDetail.pro_tagline,batch_08
+Ad spend deduction,광고비 차감,1,pages.reconciliation.adFeeCharged,batch_08
+Ad Fee Rate,광고 수수료율,1,pages.reconciliation.adFeeRate,batch_08
+Click a report for details,상세 내용은 리포트를 클릭해주세요,1,pages.reconciliation.clickReport,batch_08
+Effective from:,적용 시작일:,1,pages.reconciliation.effectiveFrom,batch_08
+Fee Rules Title,수수료 규칙,1,pages.reconciliation.feeRulesTitle,batch_08
+Mismatch Tickets,불일치 티켓,1,pages.reconciliation.mismatchTickets,batch_08
+Net Difference,순차액,1,pages.reconciliation.netDiffLabel,batch_08
+P&L auto-updates on settlement changes,정산 변경 시 P&L이 자동 업데이트됩니다.,1,pages.reconciliation.pnlAutoUpdate,batch_08
+🔴 Real-time P&L Operating Profit,🔴 실시간 P&L 영업이익,1,pages.reconciliation.realtimePnl,batch_08
+Recon Desc,정산 대조 안내,1,pages.reconciliation.reconDesc,batch_08
+Report Detail,리포트 상세,1,pages.reconciliation.reportDetail,batch_08
+Report ID,리포트 ID,1,pages.reconciliation.reportId,batch_08
+Report List,리포트 목록,1,pages.reconciliation.reportList,batch_08
+Rule History,규칙 이력,1,pages.reconciliation.ruleHistory,batch_08
+💾 Save Rules,💾 규칙 저장,1,pages.reconciliation.saveFeeRule,batch_08
+Settlement Difference,정산 차액,1,pages.reconciliation.settleDiff,batch_08
+Investigating,조사 중,1,pages.reconciliation.status_investigating,batch_08
+Status_open,진행 중,1,pages.reconciliation.status_open,batch_08
+⚙️ Fee Rules,⚙️ 수수료 규칙,1,pages.reconciliation.tabFeeRules,batch_08
+Tab Reports,리포트,1,pages.reconciliation.tabReports,batch_08
+🎫 Tickets,🎫 티켓,1,pages.reconciliation.tabTickets,batch_08
+Tickets created,생성된 티켓,1,pages.reconciliation.ticketsCreated,batch_08
+Tickets Title,티켓,1,pages.reconciliation.ticketsTitle,batch_08
+Upload Hint,업로드 안내,1,pages.reconciliation.uploadHint,batch_08
+Uploading...,업로드 중...,1,pages.reconciliation.uploading,batch_08
+Upload Success,업로드 완료,1,pages.reconciliation.uploadSuccess,batch_08
+🌊 View in P&L Dashboard →,🌊 P&L 대시보드에서 보기 →,1,pages.reconciliation.viewPnl,batch_08
+Add Recipient,수신자 추가,1,pages.report.addRecipient,batch_08
+Add Widget,위젯 추가,1,pages.report.addWidget,batch_08
+Excel Export,Excel 내보내기,1,pages.report.exportExcel,batch_08
+PDF Export,PDF 내보내기,1,pages.report.exportPdf,batch_08
+Next Run,다음 실행,1,pages.report.nextRun,batch_08
+Report Name Ph,리포트명을 입력해주세요,1,pages.report.reportNamePh,batch_08
+Run Report,리포트 실행,1,pages.report.runReport,batch_08
+Schedule Report,리포트 예약,1,pages.report.scheduleReport,batch_08
+Select Dimensions,차원 선택,1,pages.report.selectDimensions,batch_08
+Select Metrics,지표 선택,1,pages.report.selectMetrics,batch_08
+Scheduled Reports,예약된 리포트,1,pages.report.tabScheduled,batch_08
+Pay Remaining,잔금 결제,1,payRemaining,batch_08
+P D F,PDF,1,PDF,batch_08
+Per Contract,계약별,1,perContract,batch_08
+Product Page,상품 페이지,1,productPage,batch_08
+⬇ PDF,⬇ PDF 다운로드,1,reportBuilder.downloadPdf,batch_08
+Q1 2026,2026년 1분기,1,reportBuilder.periodQ1,batch_08
+var(--text-1),var(--text-1),1,"rgba(99,140,255,0.12)",batch_08
+⏸ Not Scanned,⏸ 미스캔,1,ruleEnginePage.auto.11t2zj,batch_08
+📲 Social Media & Content,📲 소셜 미디어·콘텐츠,1,ruleEnginePage.auto.4wtmsx,batch_08
+Key Detected,키 감지됨,1,ruleEnginePage.auto.cc2qm0,batch_08
+Event empty,이벤트 없음,1,ruleEnginePage.auto.event_empty,batch_08
+Not Scanned,미스캔,1,ruleEnginePage.auto.gzkv91,batch_08
+Json err,JSON 오류,1,ruleEnginePage.auto.json_err,batch_08
+Security Guide,보안 가이드,1,ruleEnginePage.auto.n2m798,batch_08
+Channels Analyzed. Please confirm the scanned keys.,채널 분석이 완료되었습니다. 스캔된 키를 확인해주세요.,1,ruleEnginePage.auto.new900,batch_08
+API Key Application,API 키 신청,1,ruleEnginePage.auto.new901,batch_08
+No Key,키 없음,1,ruleEnginePage.auto.new904,batch_08
+Application Done,신청 완료,1,ruleEnginePage.auto.new905,batch_08
+Not arr,배열 형식 아님,1,ruleEnginePage.auto.not_arr,batch_08
+🏢 Closed Mall / Welfare,🏢 폐쇄몰·복지몰,1,ruleEnginePage.auto.w394fd,batch_08
+On Track,정상 진행,1,ruleEnginePage.budget.onTrack,batch_08
+Performance by Ad Type,광고 유형별 성과,1,ruleEnginePage.dash.adTypePerf,batch_08
+🤖 AI Ad Analysis,🤖 AI 광고 분석,1,ruleEnginePage.dash.aiAdAnal,batch_08
+Amazon US,Amazon US,1,ruleEnginePage.dash.amazonName,batch_08
+Avg CTR,평균 CTR,1,ruleEnginePage.dash.avgCtr,batch_08
+Buyer Age Group,구매자 연령대,1,ruleEnginePage.dash.buyerAge,batch_08
+Buyer Gender,구매자 성별,1,ruleEnginePage.dash.buyerGender,batch_08
+Cart Adds,장바구니 담기,1,ruleEnginePage.dash.cartAdds,batch_08
+Category · Payment Method,카테고리 · 결제 수단,1,ruleEnginePage.dash.catPay,batch_08
+📊 Channel Perf.,📊 채널 성과,1,ruleEnginePage.dash.channelPerf,batch_08
+Click on a channel card or performance table below,아래 채널 카드 또는 성과 표를 클릭하세요,1,ruleEnginePage.dash.chIntelDesc1,batch_08
+to select a specific channel,특정 채널을 선택하면,1,ruleEnginePage.dash.chIntelDesc2,batch_08
+view detailed channel analysis:,상세 채널 분석을 확인할 수 있습니다:,1,ruleEnginePage.dash.chIntelDesc4,batch_08
+Channel Intelligence Report,채널 인텔리전스 리포트,1,ruleEnginePage.dash.chIntelReport,batch_08
+Channel Performance Summary,채널 성과 요약,1,ruleEnginePage.dash.chPerfSumm,batch_08
+Click a channel card → 5-section analysis,채널 카드 클릭 → 5개 섹션 분석,1,ruleEnginePage.dash.clickChannelHint,batch_08
+Click → 5-Section,클릭 → 5개 섹션 보기,1,ruleEnginePage.dash.clickForAnalysis,batch_08
+Conv. Rate,전환율,1,ruleEnginePage.dash.convRate,batch_08
+Coupon Applied,쿠폰 적용,1,ruleEnginePage.dash.couponApplied,batch_08
+Coupon Issued,쿠폰 발급,1,ruleEnginePage.dash.couponIssued,batch_08
+Cross Module Summary,크로스 모듈 요약,1,ruleEnginePage.dash.crossModuleSummary,batch_08
+👩 Female,👩 여성,1,ruleEnginePage.dash.femaleBuyer,batch_08
+Purchase Complete,구매 완료,1,ruleEnginePage.dash.flowPurchase,batch_08
+Inventory Value,재고 자산,1,ruleEnginePage.dash.inventoryValue,batch_08
+Real-time · Total Orders,실시간 · 총 주문,1,ruleEnginePage.dash.liveTotalOrd,batch_08
+👨 Male,👨 남성,1,ruleEnginePage.dash.maleBuyer,batch_08
+No activity,활동 없음,1,ruleEnginePage.dash.noActivity,batch_08
+No channel data available,채널 데이터가 없습니다,1,ruleEnginePage.dash.noChannelData,batch_08
+No order results found.,주문 결과가 없습니다.,1,ruleEnginePage.dash.noOrdersText,batch_08
+No Security Issues,보안 이슈 없음,1,ruleEnginePage.dash.noSecurityIssues,batch_08
+No trend data available,트렌드 데이터가 없습니다,1,ruleEnginePage.dash.noTrendData,batch_08
+Op. Profit,영업이익,1,ruleEnginePage.dash.operatingProfit,batch_08
+Own Mall,자사몰,1,ruleEnginePage.dash.ownName,batch_08
+Peak Hours:,피크 시간:,1,ruleEnginePage.dash.peakHourStr,batch_08
+Peak Time,피크 시간,1,ruleEnginePage.dash.peakTime,batch_08
+Pending Orders,처리 대기 주문,1,ruleEnginePage.dash.pendingOrders,batch_08
+Click a platform card to see,플랫폼 카드를 클릭하면,1,ruleEnginePage.dash.platClickHint1,batch_08
+"Buyer gender, age, region, category",구매자 성별·연령·지역·카테고리,1,ruleEnginePage.dash.platClickHint2,batch_08
+Detail analysis provided,상세 분석을 확인할 수 있습니다,1,ruleEnginePage.dash.platClickHint3,batch_08
+Revenue Share by Platform,플랫폼별 매출 비중,1,ruleEnginePage.dash.platRevShare,batch_08
+Recent Orders (Click → Detail Search),최근 주문(클릭 → 상세 조회),1,ruleEnginePage.dash.recentOrdersClick,batch_08
+Conversion Analysis by Region,지역별 전환 분석,1,ruleEnginePage.dash.regDist,batch_08
+Orders by Region,지역별 주문,1,ruleEnginePage.dash.regionOrders,batch_08
+Check Inventory Alerts,재고 알림 확인,1,ruleEnginePage.dash.roleCommerce1,batch_08
+Check Near-Stockout Products,품절 임박 상품 확인,1,ruleEnginePage.dash.roleCommerce1Desc,batch_08
+Order Processing Status,주문 처리 현황,1,ruleEnginePage.dash.roleCommerce2,batch_08
+Check Unprocessed Orders,미처리 주문 확인,1,ruleEnginePage.dash.roleCommerce2Desc,batch_08
+Returns/Exchange Management,반품·교환 관리,1,ruleEnginePage.dash.roleCommerce3,batch_08
+Process Return Requests,반품 요청 처리,1,ruleEnginePage.dash.roleCommerce3Desc,batch_08
+System Errors,시스템 오류,1,ruleEnginePage.dash.roleDev1,batch_08
+Check Error Logs,오류 로그 확인,1,ruleEnginePage.dash.roleDev1Desc,batch_08
+API Key Management,API 키 관리,1,ruleEnginePage.dash.roleDev2,batch_08
+Renew Expiring Keys,만료 예정 키 갱신,1,ruleEnginePage.dash.roleDev2Desc,batch_08
+Review Schema Changes,스키마 변경 검토,1,ruleEnginePage.dash.roleDev3Desc,batch_08
+P&L Status,P&L 현황,1,ruleEnginePage.dash.roleFinance1,batch_08
+Check Today's P&L,오늘의 P&L 확인,1,ruleEnginePage.dash.roleFinance1Desc,batch_08
+Settlement Reconciliation,정산 대조,1,ruleEnginePage.dash.roleFinance2,batch_08
+Review Unmatched Transactions,불일치 거래 검토,1,ruleEnginePage.dash.roleFinance2Desc,batch_08
+Generate Report,리포트 생성,1,ruleEnginePage.dash.roleFinance3,batch_08
+Create Weekly Report,주간 리포트 작성,1,ruleEnginePage.dash.roleFinance3Desc,batch_08
+Crisis Response Guide,위기 대응 가이드,1,ruleEnginePage.dash.roleMarketer1,batch_08
+Check ROAS declining channels,ROAS 하락 채널 확인,1,ruleEnginePage.dash.roleMarketer1Desc,batch_08
+Campaign Optimization Suggestions,캠페인 최적화 제안,1,ruleEnginePage.dash.roleMarketer2,batch_08
+AI-based Auto Optimization,AI 기반 자동 최적화,1,ruleEnginePage.dash.roleMarketer2Desc,batch_08
+Team Feedback Review,팀 피드백 검토,1,ruleEnginePage.dash.roleMarketer3,batch_08
+CRM Insights Review,CRM 인사이트 검토,1,ruleEnginePage.dash.roleMarketer3Desc,batch_08
+Logistics Issues,물류 이슈,1,ruleEnginePage.dash.roleOps1,batch_08
+Check Shipping Delays,배송 지연 확인,1,ruleEnginePage.dash.roleOps1Desc,batch_08
+Asia Logistics,아시아 물류,1,ruleEnginePage.dash.roleOps2,batch_08
+Overseas Logistics Status,해외 물류 현황,1,ruleEnginePage.dash.roleOps2Desc,batch_08
+Warehouse Management,창고 관리,1,ruleEnginePage.dash.roleOps3,batch_08
+Monitor Inventory Levels,재고 수준 모니터링,1,ruleEnginePage.dash.roleOps3Desc,batch_08
+Security Alert,보안 알림,1,ruleEnginePage.dash.securityAlert,batch_08
+We provide customized dashboards,역할에 맞는 맞춤 대시보드를 제공합니다,1,ruleEnginePage.dash.selectRoleDesc,batch_08
+Please Select Your Role,역할을 선택해주세요,1,ruleEnginePage.dash.selectRoleTitle,batch_08
+Settlement Chs,정산 채널,1,ruleEnginePage.dash.settlementChs,batch_09
+Shopee SG,Shopee SG,1,ruleEnginePage.dash.shopeeName,batch_09
+Naver Store,네이버 스토어,1,ruleEnginePage.dash.smartstoreName,batch_09
+Settlement Complete,정산 완료,1,ruleEnginePage.dash.syncSettled,batch_09
+Threat Detected,위협 감지됨,1,ruleEnginePage.dash.threatDetected,batch_09
+threats detected,건의 위협 감지됨,1,ruleEnginePage.dash.threatsDetected,batch_09
+Top Regions,상위 지역,1,ruleEnginePage.dash.topRegRev,batch_09
+times,회,1,ruleEnginePage.dash.unitTimes,batch_09
+Ad Account,광고 계정,1,ruleEnginePage.marketing.adAccountFilter,batch_09
+Sub Account 1,서브 계정 1,1,ruleEnginePage.marketing.adFilterSub,batch_09
+Ad Meta Dynamic Chart Performance,Meta 동적 광고 성과,1,ruleEnginePage.marketing.adMetaDynChart,batch_09
+Performance during the selected active period.,선택한 기간의 성과입니다.,1,ruleEnginePage.marketing.adTableSub,batch_09
+Ad Performance Detail (Campaign/Ad Set),광고 성과 상세 (캠페인/광고 세트),1,ruleEnginePage.marketing.adTableTitle,batch_09
+Ai Reason Detail,AI 판단 근거 상세,1,ruleEnginePage.marketing.aiReasonDetail,batch_09
+Approved By,승인자,1,ruleEnginePage.marketing.approvedBy,batch_09
+Bg Period Monthly,월별,1,ruleEnginePage.marketing.bgPeriodMonthly,batch_09
+Bg Period Quarterly,분기별,1,ruleEnginePage.marketing.bgPeriodQuarterly,batch_09
+Bg Period Yearly,연도별,1,ruleEnginePage.marketing.bgPeriodYearly,batch_09
+Bg Planner,예산 플래너 안내,1,ruleEnginePage.marketing.bgPlannerDesc,batch_09
+Google（YouTube）,Google（YouTube）,1,ruleEnginePage.marketing.ch_google,batch_09
+CPA Cost,CPA,1,ruleEnginePage.marketing.colCpa,batch_09
+Col Item Name,항목명,1,ruleEnginePage.marketing.colItemName,batch_09
+Actual Conversions,실제 전환 수,1,ruleEnginePage.marketing.colResultConv,batch_09
+Default Team,기본 팀,1,ruleEnginePage.marketing.defaultTeam,batch_09
+Explain Cat Insight,카테고리 인사이트 설명,1,ruleEnginePage.marketing.explainCatInsight,batch_09
+Explain Ch Why,채널 판단 근거,1,ruleEnginePage.marketing.explainChWhy,batch_09
+Explain Edit Note,편집 메모 설명,1,ruleEnginePage.marketing.explainEditNote,batch_09
+Explain Title,설명,1,ruleEnginePage.marketing.explainTitle,batch_09
+Mem Access Saved,멤버 접근 권한 저장 완료,1,ruleEnginePage.marketing.memAccessSaved,batch_09
+Average CPC,평균 CPC,1,ruleEnginePage.marketing.metricCpc,batch_09
+Average CPM,평균 CPM,1,ruleEnginePage.marketing.metricCpm,batch_09
+Average CTR,평균 CTR,1,ruleEnginePage.marketing.metricCtr,batch_09
+Return on Ad Spend (ROAS),광고 수익률 (ROAS),1,ruleEnginePage.marketing.metricRoas,batch_09
+Daily Spend,일별 광고비,1,ruleEnginePage.marketing.metricSpend,batch_09
+Detailed Ad Media Performance,광고 매체 상세 성과,1,ruleEnginePage.marketing.mktHierTitle,batch_09
+🔴 LIVE,🔴 LIVE,1,ruleEnginePage.marketing.realModeLabel,batch_09
+Status Approved,승인됨,1,ruleEnginePage.marketing.statusApproved,batch_09
+Status Paused,일시정지,1,ruleEnginePage.marketing.statusPaused,batch_09
+Status Pending,대기 중,1,ruleEnginePage.marketing.statusPending,batch_09
+Status Rejected,반려됨,1,ruleEnginePage.marketing.statusRejected,batch_09
+Ad Set Level,광고 세트 레벨,1,ruleEnginePage.marketing.tabAdset,batch_09
+Root_page Title_ai Policy,AI 정책,1,ruleEnginePage.root_pageTitle_aiPolicy,batch_09
+Root_page Title_approvals,승인 관리,1,ruleEnginePage.root_pageTitle_approvals,batch_09
+Root_page Title_integration Hub,연동 허브,1,ruleEnginePage.root_pageTitle_integrationHub,batch_09
+Root_page Title_marketing,마케팅,1,ruleEnginePage.root_pageTitle_marketing,batch_09
+Root_page Title_onboarding,온보딩,1,ruleEnginePage.root_pageTitle_onboarding,batch_09
+Root_page Title_writeback,Writeback,1,ruleEnginePage.root_pageTitle_writeback,batch_09
+Add a comment to the current view...,현재 화면에 코멘트를 추가하세요...,1,ruleEnginePage.super.aaAddCmt,batch_09
+🔷 Data Warehouse,🔷 데이터 웨어하우스,1,ruleEnginePage.super.conTabDw,batch_09
+🟢 Connected,🟢 연결됨,1,ruleEnginePage.super.ihConnected,batch_09
+Connecting...,연결 중...,1,ruleEnginePage.super.ihConnecting,batch_09
+📊 Widget Library,📊 위젯 라이브러리,1,ruleEnginePage.super.rbLib,batch_09
+🛠️ Custom Report Builder,🛠️ 맞춤 리포트 빌더,1,ruleEnginePage.super.rbTitle,batch_09
+Adjust Inventory,재고 조정,1,ruleEnginePage.wms.adjustInventory,batch_09
+Stock adjustment will be reflected in In/Out tab.,재고 조정 내역은 입출고 탭에 반영됩니다.,1,ruleEnginePage.wms.auditAdjAlert,batch_09
+All SKUs,전체 SKU,1,ruleEnginePage.wms.auditAllSku,batch_09
+🔧 Bulk Adjust,🔧 일괄 조정,1,ruleEnginePage.wms.auditBulkAdj,batch_09
+Book Stock,장부 재고,1,ruleEnginePage.wms.auditColBook,batch_09
+Count Input,실사 입력,1,ruleEnginePage.wms.auditColInput,batch_09
+✅ Completed,✅ 완료,1,ruleEnginePage.wms.auditCompleted,batch_09
+{n} SKUs uncounted. Complete?,{n}개 SKU가 미실사 상태입니다. 완료하시겠습니까?,1,ruleEnginePage.wms.auditConfirmMsg,batch_09
+🔄 Counting,🔄 실사 진행 중,1,ruleEnginePage.wms.auditCounting,batch_09
+Audit Date,실사 일자,1,ruleEnginePage.wms.auditDateLabel,batch_09
+Discrepancy,차이 수량,1,ruleEnginePage.wms.auditDiffQty,batch_09
+🖨️ Diff Report,🖨️ 차이 리포트,1,ruleEnginePage.wms.auditDiffReport,batch_09
+⚠️ Discrepancy Items,⚠️ 불일치 항목,1,ruleEnginePage.wms.auditDiscTitle,batch_09
+📝 Draft,📝 임시 저장,1,ruleEnginePage.wms.auditDraft,batch_09
+📈 Excess,📈 초과,1,ruleEnginePage.wms.auditExcess,batch_09
+Movement History,이동 이력,1,ruleEnginePage.wms.auditLogBtn,batch_09
+Delete History,이력 삭제,1,ruleEnginePage.wms.auditLogClearBtn,batch_09
+Delete all history? This cannot be undone.,전체 이력을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.,1,ruleEnginePage.wms.auditLogClearConfirm,batch_09
+Immutable log of all stock changes. Up to 500 records.,모든 재고 변경 이력이 기록됩니다. 최대 500건까지 저장됩니다.,1,ruleEnginePage.wms.auditLogDesc,batch_09
+No movement history recorded.,기록된 이동 이력이 없습니다.,1,ruleEnginePage.wms.auditLogEmpty,batch_09
+Stock Movement History (Audit Trail),재고 이동 이력 (감사 로그),1,ruleEnginePage.wms.auditLogTitle,batch_09
+No Issues,이슈 없음,1,ruleEnginePage.wms.auditNoDiff,batch_09
+✅ Normal,✅ 정상,1,ruleEnginePage.wms.auditNormal,batch_09
+📉 Short,📉 부족,1,ruleEnginePage.wms.auditShort,batch_09
+🔄 Start,🔄 시작,1,ruleEnginePage.wms.auditStartBtn,batch_09
+Total Discrepancy Qty,총 차이 수량,1,ruleEnginePage.wms.auditTotalDiff,batch_09
++ Add Bundle,+ 번들 추가,1,ruleEnginePage.wms.bdlAddBtn,batch_09
++ Add,+ 추가,1,ruleEnginePage.wms.bdlAddComp,batch_09
+Assemblable,조립 가능 수량,1,ruleEnginePage.wms.bdlAssemble,batch_09
+Components (BOM),구성품 (BOM),1,ruleEnginePage.wms.bdlBomTitle,batch_09
+Bundle Name,번들명,1,ruleEnginePage.wms.bdlNameLabel,batch_09
+Bdl Name Ph,번들명을 입력해주세요,1,ruleEnginePage.wms.bdlNamePh,batch_09
+New Bundle,새 번들,1,ruleEnginePage.wms.bdlNewTitle,batch_09
+Bundle Registration Complete:,번들 등록 완료:,1,ruleEnginePage.wms.bdlRegAlert,batch_09
+📦 Ship 1 Set,📦 1세트 출고,1,ruleEnginePage.wms.bdlShip1,batch_09
+📦 Ship 10 Sets,📦 10세트 출고,1,ruleEnginePage.wms.bdlShip10,batch_09
+Bundle Shipment:,번들 출고:,1,ruleEnginePage.wms.bdlShipAlert,batch_09
+Bundle SKU,번들 SKU,1,ruleEnginePage.wms.bdlSkuLabel,batch_09
++ Add Carrier,+ 운송사 추가,1,ruleEnginePage.wms.carrAddBtn,batch_09
+Total Registered,전체 등록 수,1,ruleEnginePage.wms.carrAllReg,batch_09
+API Connected,API 연결됨,1,ruleEnginePage.wms.carrApiDone,batch_09
+API Key,API 키,1,ruleEnginePage.wms.carrApiKeyLabel,batch_09
+Enter API Key,API 키를 입력해주세요,1,ruleEnginePage.wms.carrApiKeyPh,batch_09
+Enter API Key first.,API 키를 먼저 입력해주세요.,1,ruleEnginePage.wms.carrApiKeyRequired,batch_09
+✏️ Edit Carrier,✏️ 운송사 수정,1,ruleEnginePage.wms.carrEditTitle,batch_09
+❌ Auth failed for {name},❌ {name} 인증 실패,1,ruleEnginePage.wms.carrFailMsg,batch_09
+❌ Failed,❌ 실패,1,ruleEnginePage.wms.carrIntegFail,batch_09
+✅ Connected,✅ 연결됨,1,ruleEnginePage.wms.carrIntegOk,batch_09
+🔑 Key Registered,🔑 키 등록 완료,1,ruleEnginePage.wms.carrKeyReg,batch_09
+🔄 Testing {name} API...,🔄 {name} API 테스트 중...,1,ruleEnginePage.wms.carrLoadingMsg,batch_09
+Name and code required.,이름과 코드를 입력해주세요.,1,ruleEnginePage.wms.carrNameRequired,batch_09
+➕ New Carrier,➕ 새 운송사,1,ruleEnginePage.wms.carrNewTitle,batch_09
+Not Connected,연결 안 됨,1,ruleEnginePage.wms.carrNoApi,batch_09
+⚠️ Not Connected,⚠️ 연결 안 됨,1,ruleEnginePage.wms.carrNoInteg,batch_09
+✅ {name} API connected,✅ {name} API 연결 완료,1,ruleEnginePage.wms.carrOkMsg,batch_09
+🔌 Test,🔌 테스트,1,ruleEnginePage.wms.carrTestBtn,batch_09
+🔄 Testing,🔄 테스트 중,1,ruleEnginePage.wms.carrTestLoading,batch_09
+✅ Re-test,✅ 재테스트,1,ruleEnginePage.wms.carrTestOk,batch_09
+Tracking URL,배송 추적 URL,1,ruleEnginePage.wms.carrTrackUrlLabel,batch_09
+✓ Approve,✓ 승인,1,ruleEnginePage.wms.combApproveBtn,batch_09
+✓ Approved,✓ 승인됨,1,ruleEnginePage.wms.combApproved,batch_09
+Bundle Carrier,묶음 배송 운송사,1,ruleEnginePage.wms.combCarrierLabel,batch_09
+💡 Bundle multiple orders from the same buyer into one package.,💡 동일 구매자의 여러 주문을 하나의 패키지로 묶어 배송합니다.,1,ruleEnginePage.wms.combInfo,batch_09
+📋 Bundle Request List,📋 묶음 배송 요청 목록,1,ruleEnginePage.wms.combListTitle,batch_09
+Order Numbers,주문 번호,1,ruleEnginePage.wms.combOrderListLabel,batch_09
+Enter order numbers.,주문 번호를 입력해주세요.,1,ruleEnginePage.wms.combOrderRequired,batch_09
+⏳ Pending,⏳ 대기 중,1,ruleEnginePage.wms.combPending,batch_09
+Combined Shipment,묶음 배송,1,ruleEnginePage.wms.combPrefix,batch_09
+📦 Bundle Request,📦 묶음 배송 요청,1,ruleEnginePage.wms.combRegTitle,batch_09
++ Bundle Request,+ 묶음 배송 요청,1,ruleEnginePage.wms.combReqBtn,batch_09
+🚚 Ship Complete,🚚 출고 완료,1,ruleEnginePage.wms.combShipBtn,batch_09
+🚚 Tracking,🚚 배송 추적,1,ruleEnginePage.wms.combTracking,batch_09
+Execute Bulk Registration,일괄 등록 실행,1,ruleEnginePage.wms.csvExecuteBtn,batch_09
+CSV Bulk Import,CSV 일괄 업로드,1,ruleEnginePage.wms.csvImportBtn,batch_09
+Bulk register SKU/inventory via CSV file. Required columns:,CSV 파일로 SKU·재고를 일괄 등록합니다. 필수 컬럼:,1,ruleEnginePage.wms.csvImportDesc,batch_09
+records imported!,건 업로드 완료!,1,ruleEnginePage.wms.csvImportDone,batch_09
+Csv Import Title,CSV 업로드,1,ruleEnginePage.wms.csvImportTitle,batch_09
+Csv More Rows,CSV 더 보기,1,ruleEnginePage.wms.csvMoreRows,batch_09
+records detected,건 감지됨,1,ruleEnginePage.wms.csvRowsDetected,batch_09
+Export Excel Btn,Excel 내보내기,1,ruleEnginePage.wms.exportExcelBtn,batch_09
+Adjustment Qty,조정 수량,1,ruleEnginePage.wms.invAdjQty,batch_09
+🔧 Stock Adjustment (Live),🔧 재고 조정 (실시간),1,ruleEnginePage.wms.invAdjTitle,batch_09
++ Add Item,+ 항목 추가,1,ruleEnginePage.wms.invcAddItem,batch_09
+📄 Invoice Info,📄 인보이스 정보,1,ruleEnginePage.wms.invcBasicInfo,batch_09
+Description,설명,1,ruleEnginePage.wms.invcColDesc,batch_09
+HS Code,HS 코드,1,ruleEnginePage.wms.invcColHs,batch_10
+📦 Consignee,📦 수하인,1,ruleEnginePage.wms.invcConsigneeTitle,batch_10
+📋 Copy Number,📋 번호 복사,1,ruleEnginePage.wms.invcCopyNo,batch_10
+Auto-generate customs invoice,통관 인보이스 자동 생성,1,ruleEnginePage.wms.invcDesc,batch_10
+Rate (KRW/{c}),환율 (KRW/{c}),1,ruleEnginePage.wms.invcExRateLabel,batch_10
+📋 Line Items,📋 품목 내역,1,ruleEnginePage.wms.invcItemsTitle,batch_10
+Invoice No,인보이스 번호,1,ruleEnginePage.wms.invcNoLabel,batch_10
+Safety Stock,안전 재고,1,ruleEnginePage.wms.invColSafe,batch_10
+🖨️ Print Invoice,🖨️ 인보이스 인쇄,1,ruleEnginePage.wms.invcPrintBtn,batch_10
+Customs notes,통관 비고,1,ruleEnginePage.wms.invcRemarkPh,batch_10
+🏢 Shipper,🏢 송하인,1,ruleEnginePage.wms.invcShipperTitle,batch_10
+🧾 Commercial Invoice,🧾 상업 송장,1,ruleEnginePage.wms.invcTitle,batch_10
+📦 Warehouse Stock by SKU,📦 SKU별 창고 재고,1,ruleEnginePage.wms.invTableTitle,batch_10
+Total Stock (pcs) · Live,총 재고 (개) · 실시간,1,ruleEnginePage.wms.invTotalStock,batch_10
+Ref No,참조 번호,1,ruleEnginePage.wms.ioColRef,batch_10
+Stock Adjustment,재고 조정,1,ruleEnginePage.wms.ioFilterAdj,batch_10
+Return Inbound,반품 입고,1,ruleEnginePage.wms.ioFilterRetInbound,batch_10
+Return Outbound,반품 출고,1,ruleEnginePage.wms.ioFilterRetOutbound,batch_10
+Reason/Memo,사유·메모,1,ruleEnginePage.wms.ioMemoLabel,batch_10
+Qty *,수량 *,1,ruleEnginePage.wms.ioQtyLabel,batch_10
+Order No or PO No,주문 번호 또는 발주 번호,1,ruleEnginePage.wms.ioRefPh,batch_10
++ Register In/Out,+ 입출고 등록,1,ruleEnginePage.wms.ioRegBtn,batch_10
+📦 Register In/Out,📦 입출고 등록,1,ruleEnginePage.wms.ioRegTitle,batch_10
+Return Reason,반품 사유,1,ruleEnginePage.wms.ioReturnReason,batch_10
+"Change of mind, defective, etc.","단순 변심, 불량 등",1,ruleEnginePage.wms.ioReturnReasonPh,batch_10
+Search SKU/Product/Ref No...,SKU·상품·참조 번호 검색...,1,ruleEnginePage.wms.ioSearchPh,batch_10
+Transfer Destination Warehouse,이동 대상 창고,1,ruleEnginePage.wms.ioTransferDest,batch_10
+Io Unit Label,단위,1,ruleEnginePage.wms.ioUnitLabel,batch_10
+Warehouse *,창고 *,1,ruleEnginePage.wms.ioWhLabel,batch_10
+Lot No,로트 번호,1,ruleEnginePage.wms.lotColLotNo,batch_10
+Mfg Date,제조일,1,ruleEnginePage.wms.lotColMfg,batch_10
+days left,일 남음,1,ruleEnginePage.wms.lotDaysLeft,batch_10
+⚠️ Expiry within 30 days:,⚠️ 30일 이내 만료 예정:,1,ruleEnginePage.wms.lotExpireSoon,batch_10
+⚠ Imminent,⚠ 임박,1,ruleEnginePage.wms.lotImminent,batch_10
+✅ Lot registered,✅ 로트 등록 완료,1,ruleEnginePage.wms.lotRegDone,batch_10
++ New Lot,+ 새 로트,1,ruleEnginePage.wms.lotRegTitle,batch_10
+Pending Receipt,입고 대기,1,ruleEnginePage.wms.pendingReceive,batch_10
+Pending Shipment,출고 대기,1,ruleEnginePage.wms.pendingShip,batch_10
+Add Permission,권한 추가,1,ruleEnginePage.wms.permAddBtn,batch_10
+Permission Management,권한 관리,1,ruleEnginePage.wms.permBtn,batch_10
+Control warehouse access permissions by user. Permissions vary by role.,사용자별 창고 접근 권한을 관리합니다. 역할에 따라 권한이 달라집니다.,1,ruleEnginePage.wms.permDesc,batch_10
+No permissions registered. Please add users.,등록된 권한이 없습니다. 사용자를 추가해주세요.,1,ruleEnginePage.wms.permEmpty,batch_10
+Perm Title,권한,1,ruleEnginePage.wms.permTitle,batch_10
+User Email,사용자 이메일,1,ruleEnginePage.wms.permUserLabel,batch_10
+🔐 Approval Pending,🔐 승인 대기,1,ruleEnginePage.wms.pickApprPending,batch_10
+Pick ID,피킹 ID,1,ruleEnginePage.wms.pickColId,batch_10
+🔐 Dispatch,🔐 출고 지시,1,ruleEnginePage.wms.pickDispatchAppr,batch_10
+✅ Approve,✅ 승인,1,ruleEnginePage.wms.pickDispatchConfirm,batch_10
+Approve dispatch?,출고를 승인하시겠습니까?,1,ruleEnginePage.wms.pickDispatchSub,batch_10
+Dispatch Approval,출고 승인,1,ruleEnginePage.wms.pickDispatchTitle,batch_10
+Picking starts after approval.,승인 후 피킹이 시작됩니다.,1,ruleEnginePage.wms.pickDispatchWarn,batch_10
+Process Shipment,출고 처리,1,ruleEnginePage.wms.processShipment,batch_10
+All POs,전체 발주,1,ruleEnginePage.wms.recvAllPO,batch_10
+✅ Confirm Receipt,✅ 입고 확정,1,ruleEnginePage.wms.recvConfirmBtn,batch_10
+In Transit,운송 중,1,ruleEnginePage.wms.recvInTransit,batch_10
+Total PO Amt,총 발주 금액,1,ruleEnginePage.wms.recvTotalAmt,batch_10
+Register Receipt,입고 등록,1,ruleEnginePage.wms.registerReceipt,batch_10
+Click to auto-fill PO,클릭하면 발주 정보가 자동 입력됩니다,1,ruleEnginePage.wms.replClickAuto,batch_10
+⚡ Create PO,⚡ 발주 생성,1,ruleEnginePage.wms.replCreateBtn,batch_10
+✅ PO created,✅ 발주 생성 완료,1,ruleEnginePage.wms.replDone,batch_10
+📋 Purchase Order,📋 발주서,1,ruleEnginePage.wms.replFormTitle,batch_10
+PO History,발주 이력,1,ruleEnginePage.wms.replHistTitle,batch_10
+⚡ Reorder needed ({n} types),⚡ 재발주 필요 ({n}개 품목),1,ruleEnginePage.wms.replNeedTitle,batch_10
+Est. Total,예상 합계,1,ruleEnginePage.wms.replTotal,batch_10
+Apply this SKU,이 SKU 적용,1,ruleEnginePage.wms.scanApply,batch_10
+Barcode Scan,바코드 스캔,1,ruleEnginePage.wms.scanBtn,batch_10
+Camera access denied. Check browser permissions.,카메라 접근이 거부되었습니다. 브라우저 권한을 확인해주세요.,1,ruleEnginePage.wms.scanCamError,batch_10
+Barcode detected!,바코드 감지됨!,1,ruleEnginePage.wms.scanDetected,batch_10
+Align barcode to scan area...,바코드를 스캔 영역에 맞춰주세요...,1,ruleEnginePage.wms.scanScanning,batch_10
+Scan Title,스캔,1,ruleEnginePage.wms.scanTitle,batch_10
+Security Status: Safe,보안 상태: 안전,1,ruleEnginePage.wms.securitySafe,batch_10
+No security threats detected so far.,현재까지 감지된 보안 위협이 없습니다.,1,ruleEnginePage.wms.securitySafeDesc,batch_10
+Security Threat Detection Monitor,보안 위협 감지 모니터,1,ruleEnginePage.wms.securityTitle,batch_10
++ Add Vendor,+ 거래처 추가,1,ruleEnginePage.wms.supAddBtn,batch_10
+Sup Code Ph,거래처 코드를 입력해주세요,1,ruleEnginePage.wms.supCodePh,batch_10
+Total PO Count,총 발주 건수,1,ruleEnginePage.wms.supDrawerTotalPO,batch_10
+✏️ Edit Vendor,✏️ 거래처 수정,1,ruleEnginePage.wms.supEditTitle,batch_10
+Lead Time (days),리드타임 (일),1,ruleEnginePage.wms.supLeadLabel,batch_10
+Sup Name Ph,거래처명을 입력해주세요,1,ruleEnginePage.wms.supNamePh,batch_10
+➕ New Vendor,➕ 새 거래처,1,ruleEnginePage.wms.supNewTitle,batch_10
++ Add Supplier,+ 공급사 추가,1,ruleEnginePage.wms.supplierAdd,batch_10
+Supplier Management,공급사 관리,1,ruleEnginePage.wms.supplierTitle,batch_10
+💡 Link PO history via Auto-PO tab.,💡 자동 발주 탭에서 발주 이력을 연결할 수 있습니다.,1,ruleEnginePage.wms.supPoHistHint,batch_10
+📋 PO History,📋 발주 이력,1,ruleEnginePage.wms.supPoHistory,batch_10
+Search vendor...,거래처 검색...,1,ruleEnginePage.wms.supSearchPh,batch_10
+Total Amount,총 금액,1,ruleEnginePage.wms.supTotalAmt,batch_10
+Total POs,총 발주 건수,1,ruleEnginePage.wms.supTotalPO,batch_10
+Total PO,총 발주,1,ruleEnginePage.wms.supTotalPOLabel,batch_10
+Manufacturer,제조사,1,ruleEnginePage.wms.supTypeManuf,batch_10
+Raw Materials,원자재,1,ruleEnginePage.wms.supTypeRawMat,batch_10
+Tab Dashboard,대시보드,1,ruleEnginePage.wms.tabDashboard,batch_10
+Tab Returns,반품,1,ruleEnginePage.wms.tabReturns,batch_10
+Tab Shipping,배송,1,ruleEnginePage.wms.tabShipping,batch_10
+CJ Logistics,CJ대한통운,1,ruleEnginePage.wms.trackCJ,batch_10
+📌 Demo data,📌 데모 데이터,1,ruleEnginePage.wms.trackDemoTag,batch_10
+Shipment Departed,출고 완료,1,ruleEnginePage.wms.trackDesc1,batch_10
+Sorting Complete,분류 완료,1,ruleEnginePage.wms.trackDesc2,batch_10
+Line-haul Arrived,간선 도착,1,ruleEnginePage.wms.trackDesc3,batch_10
+ETA: This Afternoon,도착 예정: 오늘 오후,1,ruleEnginePage.wms.trackEtaToday,batch_10
+Hanjin Express,한진택배,1,ruleEnginePage.wms.trackHJ,batch_10
+Seoul Gangnam Delivery Center,서울 강남 배송센터,1,ruleEnginePage.wms.trackLoc1,batch_10
+Metropolitan Hub,수도권 허브,1,ruleEnginePage.wms.trackLoc2,batch_10
+Incheon Logistics Center,인천 물류센터,1,ruleEnginePage.wms.trackLoc3,batch_10
+Busan Dispatch Center,부산 발송센터,1,ruleEnginePage.wms.trackLoc4,batch_10
+Lotte Express,롯데택배,1,ruleEnginePage.wms.trackLT,batch_10
+Logen Express,로젠택배,1,ruleEnginePage.wms.trackLZ,batch_10
+Track Num Ph,운송장 번호를 입력해주세요,1,ruleEnginePage.wms.trackNumPh,batch_10
+🔍 Track by Number,🔍 운송장 번호 조회,1,ruleEnginePage.wms.trackSearchTitle,batch_10
++ Add Warehouse,+ 창고 추가,1,ruleEnginePage.wms.whAddBtn,batch_10
+Area (㎡),면적 (㎡),1,ruleEnginePage.wms.whAreaLabel,batch_10
+Warehouse Code *,창고 코드 *,1,ruleEnginePage.wms.whCodeLabel,batch_10
+Current Stock,현재 재고,1,ruleEnginePage.wms.whCurrentStock,batch_10
+✏️ Edit Warehouse,✏️ 창고 수정,1,ruleEnginePage.wms.whEditTitle,batch_10
+🏭 Warehouse List,🏭 창고 목록,1,ruleEnginePage.wms.whListTitle,batch_10
+Warehouse Name *,창고명 *,1,ruleEnginePage.wms.whNameLabel,batch_10
+Warehouse name and code are required.,창고명과 코드를 입력해주세요.,1,ruleEnginePage.wms.whNameRequired,batch_10
+➕ Register New Warehouse,➕ 새 창고 등록,1,ruleEnginePage.wms.whNewTitle,batch_10
+Combination (Room+Cold),복합형 (상온+냉장),1,ruleEnginePage.wms.whTempCombi,batch_10
+Electronics Only,전자제품 전용,1,ruleEnginePage.wms.whTempElec,batch_10
+Storage Type,보관 유형,1,ruleEnginePage.wms.whTempLabel,batch_10
+Operation Type,운영 유형,1,ruleEnginePage.wms.whTypeLabel,batch_10
+Total Inventory Asset Value,총 재고 자산 가치,1,ruleEnginePage.wms.wmsAssetValue,batch_10
+Carriers/Express,운송사·택배,1,ruleEnginePage.wms.wmsBadgeCarrier,batch_10
+⚠️ Low Stock {n} types,⚠️ 재고 부족 {n}개 품목,1,ruleEnginePage.wms.wmsBadgeLowStock,batch_10
+Orders {n} Linked,연동 주문 {n}건,1,ruleEnginePage.wms.wmsBadgeOrders,batch_10
+Total Stock {n} 🔴Live,총 재고 {n} 🔴실시간,1,ruleEnginePage.wms.wmsBadgeTotalStock,batch_10
+💰 Budget Planner →,💰 예산 플래너 →,1,ruleEnginePage.wms.wmsBtnBudget,batch_10
+📡 Sales Channel →,📡 판매 채널 →,1,ruleEnginePage.wms.wmsBtnSalesChannel,batch_10
+St Overpaid,초과 결제,1,stOverpaid,batch_10
+St Paid,결제 완료,1,stPaid,batch_10
+St Partial,부분 결제,1,stPartial,batch_10
+St Unpaid,미결제,1,stUnpaid,batch_10
+Views Per Order,주문당 조회 수,1,viewsPerOrder,batch_10
+Demo environment — data is isolated from production,데모 환경 — 운영 데이터와 분리되어 있습니다,1,webPopup.demoIsolation,batch_10

@@ -1,0 +1,139 @@
+ko_value,count,path,ja_value,en_value,suggested_ko
+Advanced Analytics & BI,1,pages.pricingDetail.pro_s9,Advanced Analytics & BI,Advanced Analytics & BI,고급 분석·BI
+P&L by Channel·Product·Trend,1,pages.pricingDetail.pro_s9i2,P&L by Channel·Product·Trend,P&L by Channel·Product·Trend,채널·상품·트렌드별 P&L
+Anomaly Detection·Competitor AI Analysis,1,pages.pricingDetail.pro_s9i3,Anomaly Detection·Competitor AI Analysis,Anomaly Detection·Competitor AI Analysis,이상 징후 감지·경쟁사 AI 분석
+Influencer Performance View,1,pages.pricingDetail.pro_s9i4,Influencer Performance View,Influencer Performance View,인플루언서 성과 보기
+Pro_tagline,1,pages.pricingDetail.pro_tagline,Pro_tagline,Pro_tagline,프로 플랜 태그라인
+Ad spend deduction,1,pages.reconciliation.adFeeCharged,Ad spend deduction,Ad spend deduction,광고비 차감
+Ad Fee Rate,1,pages.reconciliation.adFeeRate,Ad Fee Rate,Ad Fee Rate,광고 수수료율
+Click a report for details,1,pages.reconciliation.clickReport,Click a report for details,Click a report for details,상세 내용은 리포트를 클릭해주세요
+Effective from:,1,pages.reconciliation.effectiveFrom,Effective from:,Effective from:,적용 시작일:
+Fee Rules Title,1,pages.reconciliation.feeRulesTitle,Fee Rules Title,Fee Rules Title,수수료 규칙
+Mismatch Tickets,1,pages.reconciliation.mismatchTickets,Mismatch Tickets,Mismatch Tickets,불일치 티켓
+Net Difference,1,pages.reconciliation.netDiffLabel,Net Difference,Net Difference,순차액
+P&L auto-updates on settlement changes,1,pages.reconciliation.pnlAutoUpdate,P&L auto-updates on settlement changes,P&L auto-updates on settlement changes,정산 변경 시 P&L이 자동 업데이트됩니다.
+🔴 Real-time P&L Operating Profit,1,pages.reconciliation.realtimePnl,🔴 Real-time P&L Operating Profit,🔴 Real-time P&L Operating Profit,🔴 실시간 P&L 영업이익
+Recon Desc,1,pages.reconciliation.reconDesc,Recon Desc,Recon Desc,정산 대조 안내
+Report Detail,1,pages.reconciliation.reportDetail,Report Detail,Report Detail,리포트 상세
+Report ID,1,pages.reconciliation.reportId,Report ID,Report ID,리포트 ID
+Report List,1,pages.reconciliation.reportList,Report List,Report List,리포트 목록
+Rule History,1,pages.reconciliation.ruleHistory,Rule History,Rule History,규칙 이력
+💾 Save Rules,1,pages.reconciliation.saveFeeRule,💾 Save Rules,💾 Save Rules,💾 규칙 저장
+Settlement Difference,1,pages.reconciliation.settleDiff,Settlement Difference,Settlement Difference,정산 차액
+Investigating,1,pages.reconciliation.status_investigating,Investigating,Investigating,조사 중
+Status_open,1,pages.reconciliation.status_open,Status_open,Status_open,진행 중
+⚙️ Fee Rules,1,pages.reconciliation.tabFeeRules,⚙️ Fee Rules,⚙️ Fee Rules,⚙️ 수수료 규칙
+Tab Reports,1,pages.reconciliation.tabReports,Tab Reports,Tab Reports,리포트
+🎫 Tickets,1,pages.reconciliation.tabTickets,🎫 Tickets,🎫 Tickets,🎫 티켓
+Tickets created,1,pages.reconciliation.ticketsCreated,Tickets created,Tickets created,생성된 티켓
+Tickets Title,1,pages.reconciliation.ticketsTitle,Tickets Title,Tickets Title,티켓
+Upload Hint,1,pages.reconciliation.uploadHint,Upload Hint,Upload Hint,업로드 안내
+Uploading...,1,pages.reconciliation.uploading,Uploading...,Uploading...,업로드 중...
+Upload Success,1,pages.reconciliation.uploadSuccess,Upload Success,Upload Success,업로드 완료
+🌊 View in P&L Dashboard →,1,pages.reconciliation.viewPnl,🌊 View in P&L Dashboard →,🌊 View in P&L Dashboard →,🌊 P&L 대시보드에서 보기 →
+Add Recipient,1,pages.report.addRecipient,Add Recipient,Add Recipient,수신자 추가
+Add Widget,1,pages.report.addWidget,Add Widget,Add Widget,위젯 추가
+Excel Export,1,pages.report.exportExcel,Excel Export,Excel Export,Excel 내보내기
+PDF Export,1,pages.report.exportPdf,PDF Export,PDF Export,PDF 내보내기
+Next Run,1,pages.report.nextRun,Next Run,Next Run,다음 실행
+Report Name Ph,1,pages.report.reportNamePh,Report Name Ph,Report Name Ph,리포트명을 입력해주세요
+Run Report,1,pages.report.runReport,Run Report,Run Report,리포트 실행
+Schedule Report,1,pages.report.scheduleReport,Schedule Report,Schedule Report,리포트 예약
+Select Dimensions,1,pages.report.selectDimensions,Select Dimensions,Select Dimensions,차원 선택
+Select Metrics,1,pages.report.selectMetrics,Select Metrics,Select Metrics,지표 선택
+Scheduled Reports,1,pages.report.tabScheduled,Scheduled Reports,Scheduled Reports,예약된 리포트
+Pay Remaining,1,payRemaining,Pay Remaining,Pay Remaining,잔금 결제
+P D F,1,PDF,P D F,P D F,PDF
+Per Contract,1,perContract,Per Contract,Per Contract,계약별
+Product Page,1,productPage,Product Page,Product Page,상품 페이지
+⬇ PDF,1,reportBuilder.downloadPdf,⬇ PDF,⬇ PDF,⬇ PDF 다운로드
+Q1 2026,1,reportBuilder.periodQ1,Q1 2026,Q1 2026,2026년 1분기
+var(--text-1),1,"rgba(99,140,255,0.12)",var(--text-1),var(--text-1),var(--text-1)
+⏸ Not Scanned,1,ruleEnginePage.auto.11t2zj,⏸ Not Scanned,⏸ Not Scanned,⏸ 미스캔
+📲 Social Media & Content,1,ruleEnginePage.auto.4wtmsx,📲 Social Media & Content,📲 Social Media & Content,📲 소셜 미디어·콘텐츠
+Key Detected,1,ruleEnginePage.auto.cc2qm0,Key Detected,Key Detected,키 감지됨
+Event empty,1,ruleEnginePage.auto.event_empty,Event empty,Event empty,이벤트 없음
+Not Scanned,1,ruleEnginePage.auto.gzkv91,Not Scanned,Not Scanned,미스캔
+Json err,1,ruleEnginePage.auto.json_err,Json err,Json err,JSON 오류
+Security Guide,1,ruleEnginePage.auto.n2m798,Security Guide,Security Guide,보안 가이드
+Channels Analyzed. Please confirm the scanned keys.,1,ruleEnginePage.auto.new900,Channels Analyzed. Please confirm the scanned keys.,Channels Analyzed. Please confirm the scanned keys.,채널 분석이 완료되었습니다. 스캔된 키를 확인해주세요.
+API Key Application,1,ruleEnginePage.auto.new901,API Key Application,API Key Application,API 키 신청
+No Key,1,ruleEnginePage.auto.new904,No Key,No Key,키 없음
+Application Done,1,ruleEnginePage.auto.new905,Application Done,Application Done,신청 완료
+Not arr,1,ruleEnginePage.auto.not_arr,Not arr,Not arr,배열 형식 아님
+🏢 Closed Mall / Welfare,1,ruleEnginePage.auto.w394fd,🏢 Closed Mall / Welfare,🏢 Closed Mall / Welfare,🏢 폐쇄몰·복지몰
+On Track,1,ruleEnginePage.budget.onTrack,On Track,On Track,정상 진행
+Performance by Ad Type,1,ruleEnginePage.dash.adTypePerf,Performance by Ad Type,Performance by Ad Type,광고 유형별 성과
+🤖 AI Ad Analysis,1,ruleEnginePage.dash.aiAdAnal,🤖 AI Ad Analysis,🤖 AI Ad Analysis,🤖 AI 광고 분석
+Amazon US,1,ruleEnginePage.dash.amazonName,Amazon US,Amazon US,Amazon US
+Avg CTR,1,ruleEnginePage.dash.avgCtr,Avg CTR,Avg CTR,평균 CTR
+Buyer Age Group,1,ruleEnginePage.dash.buyerAge,Buyer Age Group,Buyer Age Group,구매자 연령대
+Buyer Gender,1,ruleEnginePage.dash.buyerGender,Buyer Gender,Buyer Gender,구매자 성별
+Cart Adds,1,ruleEnginePage.dash.cartAdds,Cart Adds,Cart Adds,장바구니 담기
+Category · Payment Method,1,ruleEnginePage.dash.catPay,Category · Payment Method,Category · Payment Method,카테고리 · 결제 수단
+📊 Channel Perf.,1,ruleEnginePage.dash.channelPerf,📊 Channel Perf.,📊 Channel Perf.,📊 채널 성과
+Click on a channel card or performance table below,1,ruleEnginePage.dash.chIntelDesc1,Click on a channel card or performance table below,Click on a channel card or performance table below,아래 채널 카드 또는 성과 표를 클릭하세요
+to select a specific channel,1,ruleEnginePage.dash.chIntelDesc2,to select a specific channel,to select a specific channel,특정 채널을 선택하면
+view detailed channel analysis:,1,ruleEnginePage.dash.chIntelDesc4,view detailed channel analysis:,view detailed channel analysis:,상세 채널 분석을 확인할 수 있습니다:
+Channel Intelligence Report,1,ruleEnginePage.dash.chIntelReport,Channel Intelligence Report,Channel Intelligence Report,채널 인텔리전스 리포트
+Channel Performance Summary,1,ruleEnginePage.dash.chPerfSumm,Channel Performance Summary,Channel Performance Summary,채널 성과 요약
+Click a channel card → 5-section analysis,1,ruleEnginePage.dash.clickChannelHint,Click a channel card → 5-section analysis,Click a channel card → 5-section analysis,채널 카드 클릭 → 5개 섹션 분석
+Click → 5-Section,1,ruleEnginePage.dash.clickForAnalysis,Click → 5-Section,Click → 5-Section,클릭 → 5개 섹션 보기
+Conv. Rate,1,ruleEnginePage.dash.convRate,Conv. Rate,Conv. Rate,전환율
+Coupon Applied,1,ruleEnginePage.dash.couponApplied,Coupon Applied,Coupon Applied,쿠폰 적용
+Coupon Issued,1,ruleEnginePage.dash.couponIssued,Coupon Issued,Coupon Issued,쿠폰 발급
+Cross Module Summary,1,ruleEnginePage.dash.crossModuleSummary,Cross Module Summary,Cross Module Summary,크로스 모듈 요약
+👩 Female,1,ruleEnginePage.dash.femaleBuyer,👩 Female,👩 Female,👩 여성
+Purchase Complete,1,ruleEnginePage.dash.flowPurchase,Purchase Complete,Purchase Complete,구매 완료
+Inventory Value,1,ruleEnginePage.dash.inventoryValue,Inventory Value,Inventory Value,재고 자산
+Real-time · Total Orders,1,ruleEnginePage.dash.liveTotalOrd,Real-time · Total Orders,Real-time · Total Orders,실시간 · 총 주문
+👨 Male,1,ruleEnginePage.dash.maleBuyer,👨 Male,👨 Male,👨 남성
+No activity,1,ruleEnginePage.dash.noActivity,No activity,No activity,활동 없음
+No channel data available,1,ruleEnginePage.dash.noChannelData,No channel data available,No channel data available,채널 데이터가 없습니다
+No order results found.,1,ruleEnginePage.dash.noOrdersText,No order results found.,No order results found.,주문 결과가 없습니다.
+No Security Issues,1,ruleEnginePage.dash.noSecurityIssues,No Security Issues,No Security Issues,보안 이슈 없음
+No trend data available,1,ruleEnginePage.dash.noTrendData,No trend data available,No trend data available,트렌드 데이터가 없습니다
+Op. Profit,1,ruleEnginePage.dash.operatingProfit,Op. Profit,Op. Profit,영업이익
+Own Mall,1,ruleEnginePage.dash.ownName,Own Mall,Own Mall,자사몰
+Peak Hours:,1,ruleEnginePage.dash.peakHourStr,Peak Hours:,Peak Hours:,피크 시간:
+Peak Time,1,ruleEnginePage.dash.peakTime,Peak Time,Peak Time,피크 시간
+Pending Orders,1,ruleEnginePage.dash.pendingOrders,Pending Orders,Pending Orders,처리 대기 주문
+Click a platform card to see,1,ruleEnginePage.dash.platClickHint1,Click a platform card to see,Click a platform card to see,플랫폼 카드를 클릭하면
+"Buyer gender, age, region, category",1,ruleEnginePage.dash.platClickHint2,"Buyer gender, age, region, category","Buyer gender, age, region, category",구매자 성별·연령·지역·카테고리
+Detail analysis provided,1,ruleEnginePage.dash.platClickHint3,Detail analysis provided,Detail analysis provided,상세 분석을 확인할 수 있습니다
+Revenue Share by Platform,1,ruleEnginePage.dash.platRevShare,Revenue Share by Platform,Revenue Share by Platform,플랫폼별 매출 비중
+Recent Orders (Click → Detail Search),1,ruleEnginePage.dash.recentOrdersClick,Recent Orders (Click → Detail Search),Recent Orders (Click → Detail Search),최근 주문(클릭 → 상세 조회)
+Conversion Analysis by Region,1,ruleEnginePage.dash.regDist,Conversion Analysis by Region,Conversion Analysis by Region,지역별 전환 분석
+Orders by Region,1,ruleEnginePage.dash.regionOrders,Orders by Region,Orders by Region,지역별 주문
+Check Inventory Alerts,1,ruleEnginePage.dash.roleCommerce1,Check Inventory Alerts,Check Inventory Alerts,재고 알림 확인
+Check Near-Stockout Products,1,ruleEnginePage.dash.roleCommerce1Desc,Check Near-Stockout Products,Check Near-Stockout Products,품절 임박 상품 확인
+Order Processing Status,1,ruleEnginePage.dash.roleCommerce2,Order Processing Status,Order Processing Status,주문 처리 현황
+Check Unprocessed Orders,1,ruleEnginePage.dash.roleCommerce2Desc,Check Unprocessed Orders,Check Unprocessed Orders,미처리 주문 확인
+Returns/Exchange Management,1,ruleEnginePage.dash.roleCommerce3,Returns/Exchange Management,Returns/Exchange Management,반품·교환 관리
+Process Return Requests,1,ruleEnginePage.dash.roleCommerce3Desc,Process Return Requests,Process Return Requests,반품 요청 처리
+System Errors,1,ruleEnginePage.dash.roleDev1,System Errors,System Errors,시스템 오류
+Check Error Logs,1,ruleEnginePage.dash.roleDev1Desc,Check Error Logs,Check Error Logs,오류 로그 확인
+API Key Management,1,ruleEnginePage.dash.roleDev2,API Key Management,API Key Management,API 키 관리
+Renew Expiring Keys,1,ruleEnginePage.dash.roleDev2Desc,Renew Expiring Keys,Renew Expiring Keys,만료 예정 키 갱신
+Review Schema Changes,1,ruleEnginePage.dash.roleDev3Desc,Review Schema Changes,Review Schema Changes,스키마 변경 검토
+P&L Status,1,ruleEnginePage.dash.roleFinance1,P&L Status,P&L Status,P&L 현황
+Check Today's P&L,1,ruleEnginePage.dash.roleFinance1Desc,Check Today's P&L,Check Today's P&L,오늘의 P&L 확인
+Settlement Reconciliation,1,ruleEnginePage.dash.roleFinance2,Settlement Reconciliation,Settlement Reconciliation,정산 대조
+Review Unmatched Transactions,1,ruleEnginePage.dash.roleFinance2Desc,Review Unmatched Transactions,Review Unmatched Transactions,불일치 거래 검토
+Generate Report,1,ruleEnginePage.dash.roleFinance3,Generate Report,Generate Report,리포트 생성
+Create Weekly Report,1,ruleEnginePage.dash.roleFinance3Desc,Create Weekly Report,Create Weekly Report,주간 리포트 작성
+Crisis Response Guide,1,ruleEnginePage.dash.roleMarketer1,Crisis Response Guide,Crisis Response Guide,위기 대응 가이드
+Check ROAS declining channels,1,ruleEnginePage.dash.roleMarketer1Desc,Check ROAS declining channels,Check ROAS declining channels,ROAS 하락 채널 확인
+Campaign Optimization Suggestions,1,ruleEnginePage.dash.roleMarketer2,Campaign Optimization Suggestions,Campaign Optimization Suggestions,캠페인 최적화 제안
+AI-based Auto Optimization,1,ruleEnginePage.dash.roleMarketer2Desc,AI-based Auto Optimization,AI-based Auto Optimization,AI 기반 자동 최적화
+Team Feedback Review,1,ruleEnginePage.dash.roleMarketer3,Team Feedback Review,Team Feedback Review,팀 피드백 검토
+CRM Insights Review,1,ruleEnginePage.dash.roleMarketer3Desc,CRM Insights Review,CRM Insights Review,CRM 인사이트 검토
+Logistics Issues,1,ruleEnginePage.dash.roleOps1,Logistics Issues,Logistics Issues,물류 이슈
+Check Shipping Delays,1,ruleEnginePage.dash.roleOps1Desc,Check Shipping Delays,Check Shipping Delays,배송 지연 확인
+Asia Logistics,1,ruleEnginePage.dash.roleOps2,Asia Logistics,Asia Logistics,아시아 물류
+Overseas Logistics Status,1,ruleEnginePage.dash.roleOps2Desc,Overseas Logistics Status,Overseas Logistics Status,해외 물류 현황
+Warehouse Management,1,ruleEnginePage.dash.roleOps3,Warehouse Management,Warehouse Management,창고 관리
+Monitor Inventory Levels,1,ruleEnginePage.dash.roleOps3Desc,Monitor Inventory Levels,Monitor Inventory Levels,재고 수준 모니터링
+Security Alert,1,ruleEnginePage.dash.securityAlert,Security Alert,Security Alert,보안 알림
+We provide customized dashboards,1,ruleEnginePage.dash.selectRoleDesc,We provide customized dashboards,We provide customized dashboards,역할에 맞는 맞춤 대시보드를 제공합니다
+Please Select Your Role,1,ruleEnginePage.dash.selectRoleTitle,Please Select Your Role,Please Select Your Role,역할을 선택해주세요

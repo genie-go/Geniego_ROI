@@ -1,0 +1,139 @@
+ko_value,count,path,ja_value,en_value,suggested_ko
+Data From,1,pages.marketingIntel.helpPanel.dataFrom,Data From,Data From,데이터 출처
+Default Step1,1,pages.marketingIntel.helpPanel.defaultStep1,Default Step1,Default Step1,기본 단계 1
+Default Step2,1,pages.marketingIntel.helpPanel.defaultStep2,Default Step2,Default Step2,기본 단계 2
+Default Summary,1,pages.marketingIntel.helpPanel.defaultSummary,Default Summary,Default Summary,기본 요약
+Default Title,1,pages.marketingIntel.helpPanel.defaultTitle,Default Title,Default Title,기본 제목
+Footer Help,1,pages.marketingIntel.helpPanel.footerHelp,Footer Help,Footer Help,하단 도움말
+Full Manual,1,pages.marketingIntel.helpPanel.fullManual,Full Manual,Full Manual,전체 매뉴얼
+Go Back,1,pages.marketingIntel.helpPanel.goBack,Go Back,Go Back,뒤로 가기
+Go To Page,1,pages.marketingIntel.helpPanel.goToPage,Go To Page,Go To Page,페이지로 이동
+"""{{q}}"" — {{n}}help articles",1,pages.marketingIntel.helpPanel.helpResultCount,"""{{q}}"" — {{n}}help articles","""{{q}}"" — {{n}}help articles","""{{q}}"" 관련 도움말 {{n}}건"
+How To Use,1,pages.marketingIntel.helpPanel.howToUse,How To Use,How To Use,사용 방법
+Need More Help,1,pages.marketingIntel.helpPanel.needMoreHelp,Need More Help,Need More Help,추가 도움이 필요하신가요?
+No Help Found,1,pages.marketingIntel.helpPanel.noHelpFound,No Help Found,No Help Found,도움말을 찾을 수 없습니다
+📊 Information this menu provides,1,pages.marketingIntel.helpPanel.provides,📊 Information this menu provides,📊 Information this menu provides,📊 이 메뉴에서 제공하는 정보
+Search Results,1,pages.marketingIntel.helpPanel.searchResult,Search Results,Search Results,검색 결과
+Try Other,1,pages.marketingIntel.helpPanel.tryOther,Try Other,Try Other,다른 검색어로 시도해보세요
+Inf Funnel,1,pages.marketingIntel.infFunnel,Inf Funnel,Inf Funnel,인플루언서 퍼널
+Add Influencer,1,pages.marketingIntel.influencer.addInfluencer,Add Influencer,Add Influencer,인플루언서 추가
+Ai Loading,1,pages.marketingIntel.influencer.aiLoading,Ai Loading,Ai Loading,AI 분석 로딩 중...
+Ai Run,1,pages.marketingIntel.influencer.aiRun,Ai Run,Ai Run,AI 실행
+Ab Collect More,1,pages.marketingIntel.influencer.attrData.abCollectMore,Ab Collect More,Ab Collect More,데이터 추가 수집 필요
+Ab Deploy,1,pages.marketingIntel.influencer.attrData.abDeploy,Ab Deploy,Ab Deploy,A/B 테스트 배포
+Ab Keep Running,1,pages.marketingIntel.influencer.attrData.abKeepRunning,Ab Keep Running,Ab Keep Running,A/B 테스트 계속 진행
+Ab Winner,1,pages.marketingIntel.influencer.attrData.abWinner,Ab Winner,Ab Winner,A/B 테스트 우승안
+Alert Count Suffix,1,pages.marketingIntel.influencer.attrData.alertCountSuffix,Alert Count Suffix,Alert Count Suffix,건
+All Compare,1,pages.marketingIntel.influencer.attrData.allCompare,All Compare,All Compare,전체 비교
+Analysis Journey,1,pages.marketingIntel.influencer.attrData.analysisJourney,Analysis Journey,Analysis Journey,분석 여정
+Anomaly Body Text,1,pages.marketingIntel.influencer.attrData.anomalyBodyText,Anomaly Body Text,Anomaly Body Text,이상 징후 상세 안내
+Anomaly Head Desc,1,pages.marketingIntel.influencer.attrData.anomalyHeadDesc,Anomaly Head Desc,Anomaly Head Desc,이상 징후 안내
+Anomaly Summary,1,pages.marketingIntel.influencer.attrData.anomalySummary,Anomaly Summary,Anomaly Summary,이상 징후 요약
+A Score Sub,1,pages.marketingIntel.influencer.attrData.aScoreSub,A Score Sub,A Score Sub,어트리뷰션 스코어 안내
+Ascore Title,1,pages.marketingIntel.influencer.attrData.ascoreTitle,Ascore Title,Ascore Title,어트리뷰션 스코어
+Auto Refl,1,pages.marketingIntel.influencer.attrData.autoRefl,Auto Refl,Auto Refl,자동 반영
+Badge Mmm,1,pages.marketingIntel.influencer.attrData.badgeMmm,Badge Mmm,Badge Mmm,MMM 배지
+Badge Shapley,1,pages.marketingIntel.influencer.attrData.badgeShapley,Badge Shapley,Badge Shapley,Shapley 배지
+Badge Uplift,1,pages.marketingIntel.influencer.attrData.badgeUplift,Badge Uplift,Badge Uplift,업리프트 배지
+Beta Binomial,1,pages.marketingIntel.influencer.attrData.betaBinomial,Beta Binomial,Beta Binomial,베타-이항 분포
+Budget Adjust,1,pages.marketingIntel.influencer.attrData.budgetAdjust,Budget Adjust,Budget Adjust,예산 조정
+Channel Contrib,1,pages.marketingIntel.influencer.attrData.channelContrib,Channel Contrib,Channel Contrib,채널 기여도
+Channel Synergy,1,pages.marketingIntel.influencer.attrData.channelSynergy,Channel Synergy,Channel Synergy,채널 시너지
+Cohort Title,1,pages.marketingIntel.influencer.attrData.cohortTitle,Cohort Title,Cohort Title,코호트 분석
+Compare Desc Text,1,pages.marketingIntel.influencer.attrData.compareDescText,Compare Desc Text,Compare Desc Text,비교 안내
+Curr Val,1,pages.marketingIntel.influencer.attrData.currVal,Curr Val,Curr Val,현재 값
+Data Included,1,pages.marketingIntel.influencer.attrData.dataIncluded,Data Included,Data Included,포함 데이터
+Expected Blend Roas,1,pages.marketingIntel.influencer.attrData.expectedBlendRoas,Expected Blend Roas,Expected Blend Roas,예상 Blended ROAS
+Explain Ab,1,pages.marketingIntel.influencer.attrData.explainAb,Explain Ab,Explain Ab,A/B 테스트 설명
+Explain Markov,1,pages.marketingIntel.influencer.attrData.explainMarkov,Explain Markov,Explain Markov,마르코프 모델 설명
+Explain Mmm,1,pages.marketingIntel.influencer.attrData.explainMmm,Explain Mmm,Explain Mmm,MMM 분석 설명
+Explain Shapley,1,pages.marketingIntel.influencer.attrData.explainShapley,Explain Shapley,Explain Shapley,Shapley 분석 설명
+Filter Issue,1,pages.marketingIntel.influencer.attrData.filterIssue,Filter Issue,Filter Issue,이슈 필터
+Filter Ok,1,pages.marketingIntel.influencer.attrData.filterOk,Filter Ok,Filter Ok,정상 필터
+First Touch,1,pages.marketingIntel.influencer.attrData.firstTouch,First Touch,First Touch,첫 터치
+Bayesian A/B,1,pages.marketingIntel.influencer.attrData.guideAbName,Bayesian A/B,Bayesian A/B,베이지안 A/B
+Markov+Uplift,1,pages.marketingIntel.influencer.attrData.guideMarkovName,Markov+Uplift,Markov+Uplift,마르코프+업리프트
+Bayesian MMM,1,pages.marketingIntel.influencer.attrData.guideMmmName,Bayesian MMM,Bayesian MMM,베이지안 MMM
+Health Score,1,pages.marketingIntel.influencer.attrData.health,Health Score,Health Score,헬스 스코어
+Hub Run,1,pages.marketingIntel.influencer.attrData.hubRun,Hub Run,Hub Run,허브 실행
+Last Touch,1,pages.marketingIntel.influencer.attrData.lastTouch,Last Touch,Last Touch,마지막 터치
+Ltvcac Title,1,pages.marketingIntel.influencer.attrData.ltvcacTitle,Ltvcac Title,Ltvcac Title,LTV/CAC 분석
+Markov In Progress,1,pages.marketingIntel.influencer.attrData.markovInProgress,Markov In Progress,Markov In Progress,마르코프 분석 진행 중...
+🔗 Markov Chain — Removal Effect,1,pages.marketingIntel.influencer.attrData.markovRemoval,🔗 Markov Chain — Removal Effect,🔗 Markov Chain — Removal Effect,🔗 마르코프 체인 — 제거 효과
+Markov Title,1,pages.marketingIntel.influencer.attrData.markovTitle,Markov Title,Markov Title,마르코프 분석
+Mmm Sim,1,pages.marketingIntel.influencer.attrData.mmmSim,Mmm Sim,Mmm Sim,MMM 시뮬레이션
+Mmm Title,1,pages.marketingIntel.influencer.attrData.mmmTitle,Mmm Title,Mmm Title,MMM 분석
+Model Compare Table,1,pages.marketingIntel.influencer.attrData.modelCompareTable,Model Compare Table,Model Compare Table,모델 비교표
+No Ab Data,1,pages.marketingIntel.influencer.attrData.noAbData,No Ab Data,No Ab Data,A/B 테스트 데이터가 없습니다
+No Journey Data,1,pages.marketingIntel.influencer.attrData.noJourneyData,No Journey Data,No Journey Data,고객 여정 데이터가 없습니다
+No Time Series Data,1,pages.marketingIntel.influencer.attrData.noTimeSeriesData,No Time Series Data,No Time Series Data,시계열 데이터가 없습니다
+Radar Compare,1,pages.marketingIntel.influencer.attrData.radarCompare,Radar Compare,Radar Compare,레이더 비교
+Real-time Sync ✓,1,pages.marketingIntel.influencer.attrData.realtimeSync,Real-time Sync ✓,Real-time Sync ✓,실시간 동기화 ✓
+Roas Surge,1,pages.marketingIntel.influencer.attrData.roasSurge,Roas Surge,Roas Surge,ROAS 급등
+Saturation Warning,1,pages.marketingIntel.influencer.attrData.saturationWarning,Saturation Warning,Saturation Warning,포화 경고
+Shapley Budget Rec,1,pages.marketingIntel.influencer.attrData.shapleyBudgetRec,Shapley Budget Rec,Shapley Budget Rec,Shapley 기반 예산 추천
+Shapley In Progress,1,pages.marketingIntel.influencer.attrData.shapleyInProgress,Shapley In Progress,Shapley In Progress,Shapley 분석 진행 중...
+Shapley Title,1,pages.marketingIntel.influencer.attrData.shapleyTitle,Shapley Title,Shapley Title,Shapley 분석
+Status Alert,1,pages.marketingIntel.influencer.attrData.statusAlert,Status Alert,Status Alert,알림
+Status Crit,1,pages.marketingIntel.influencer.attrData.statusCrit,Status Crit,Status Crit,심각
+Status Info,1,pages.marketingIntel.influencer.attrData.statusInfo,Status Info,Status Info,정보
+Status Ok,1,pages.marketingIntel.influencer.attrData.statusOk,Status Ok,Status Ok,정상
+Status Warn,1,pages.marketingIntel.influencer.attrData.statusWarn,Status Warn,Status Warn,주의
+Tab Ab Desc,1,pages.marketingIntel.influencer.attrData.tabAbDesc,Tab Ab Desc,Tab Ab Desc,A/B 테스트 안내
+Tab Ab Label,1,pages.marketingIntel.influencer.attrData.tabAbLabel,Tab Ab Label,Tab Ab Label,A/B 테스트
+Tab Anomaly Desc,1,pages.marketingIntel.influencer.attrData.tabAnomalyDesc,Tab Anomaly Desc,Tab Anomaly Desc,이상 징후 안내
+Tab Anomaly Label,1,pages.marketingIntel.influencer.attrData.tabAnomalyLabel,Tab Anomaly Label,Tab Anomaly Label,이상 징후
+Tab Cohort Desc,1,pages.marketingIntel.influencer.attrData.tabCohortDesc,Tab Cohort Desc,Tab Cohort Desc,코호트 분석 안내
+Tab Cohort Label,1,pages.marketingIntel.influencer.attrData.tabCohortLabel,Tab Cohort Label,Tab Cohort Label,코호트
+Tab Compare Desc,1,pages.marketingIntel.influencer.attrData.tabCompareDesc,Tab Compare Desc,Tab Compare Desc,비교 분석 안내
+Tab Compare Label,1,pages.marketingIntel.influencer.attrData.tabCompareLabel,Tab Compare Label,Tab Compare Label,비교
+Tab Ltv Desc,1,pages.marketingIntel.influencer.attrData.tabLtvDesc,Tab Ltv Desc,Tab Ltv Desc,LTV 분석 안내
+Tab Markov Desc,1,pages.marketingIntel.influencer.attrData.tabMarkovDesc,Tab Markov Desc,Tab Markov Desc,마르코프 분석 안내
+Tab Markov Label,1,pages.marketingIntel.influencer.attrData.tabMarkovLabel,Tab Markov Label,Tab Markov Label,마르코프
+Tab Mmm Desc,1,pages.marketingIntel.influencer.attrData.tabMmmDesc,Tab Mmm Desc,Tab Mmm Desc,MMM 분석 안내
+Tab Mmm Label,1,pages.marketingIntel.influencer.attrData.tabMmmLabel,Tab Mmm Label,Tab Mmm Label,MMM
+Tab Mta Desc,1,pages.marketingIntel.influencer.attrData.tabMtaDesc,Tab Mta Desc,Tab Mta Desc,MTA 분석 안내
+Tab Mta Label,1,pages.marketingIntel.influencer.attrData.tabMtaLabel,Tab Mta Label,Tab Mta Label,MTA
+Tab Shapley Desc,1,pages.marketingIntel.influencer.attrData.tabShapleyDesc,Tab Shapley Desc,Tab Shapley Desc,Shapley 분석 안내
+Tab Shapley Label,1,pages.marketingIntel.influencer.attrData.tabShapleyLabel,Tab Shapley Label,Tab Shapley Label,Shapley
+Time Series,1,pages.marketingIntel.influencer.attrData.timeSeries,Time Series,Time Series,시계열 데이터
+Top Paths,1,pages.marketingIntel.influencer.attrData.topPaths,Top Paths,Top Paths,주요 전환 경로
+Total Cac,1,pages.marketingIntel.influencer.attrData.totalCac,Total Cac,Total Cac,총 CAC
+Total Ltv,1,pages.marketingIntel.influencer.attrData.totalLtv,Total Ltv,Total Ltv,총 LTV
+Total Str,1,pages.marketingIntel.influencer.attrData.totalStr,Total Str,Total Str,전체 합계
+Uplift Sub,1,pages.marketingIntel.influencer.attrData.upliftSub,Uplift Sub,Uplift Sub,업리프트 분석 안내
+Uplift Title,1,pages.marketingIntel.influencer.attrData.upliftTitle,Uplift Title,Uplift Title,업리프트 분석
+🏆 Winner,1,pages.marketingIntel.influencer.attrData.winner,🏆 Winner,🏆 Winner,🏆 우승안
+Average ROI,1,pages.marketingIntel.influencer.avgRoi,Average ROI,Average ROI,평균 ROI
+Col Content,1,pages.marketingIntel.influencer.colContent,Col Content,Col Content,콘텐츠
+Col Likes,1,pages.marketingIntel.influencer.colLikes,Col Likes,Col Likes,좋아요
++ Create Marketing Campaign,1,pages.marketingIntel.influencer.createCampaign,+ Create Marketing Campaign,+ Create Marketing Campaign,+ 마케팅 캠페인 생성
+Est Total,1,pages.marketingIntel.influencer.estTotal,Est Total,Est Total,예상 합계
+Contrib Creative,1,pages.marketingIntel.influencer.graph.contribCreative,Contrib Creative,Contrib Creative,크리에이티브 기여도
+Contrib Influencer,1,pages.marketingIntel.influencer.graph.contribInfluencer,Contrib Influencer,Contrib Influencer,인플루언서 기여도
+Contrib Path,1,pages.marketingIntel.influencer.graph.contribPath,Contrib Path,Contrib Path,전환 경로 기여도
+No Edge,1,pages.marketingIntel.influencer.graph.noEdge,No Edge,No Edge,연결된 엣지가 없습니다
+No Path,1,pages.marketingIntel.influencer.graph.noPath,No Path,No Path,경로 데이터가 없습니다
+Path W,1,pages.marketingIntel.influencer.graph.pathW,Path W,Path W,경로 가중치
+Source Node,1,pages.marketingIntel.influencer.graph.sourceNode,Source Node,Source Node,시작 노드
+Target Node,1,pages.marketingIntel.influencer.graph.targetNode,Target Node,Target Node,대상 노드
+Top Influencer,1,pages.marketingIntel.influencer.graph.topInfluencer,Top Influencer,Top Influencer,상위 인플루언서
+Perf Rate,1,pages.marketingIntel.influencer.perfRate,Perf Rate,Perf Rate,성과율
+Recom Flat,1,pages.marketingIntel.influencer.recomFlat,Recom Flat,Recom Flat,정액 추천
+Active Users,1,pages.marketingIntel.influencer.system.activeUsers,Active Users,Active Users,활성 사용자 수
+Api Latency,1,pages.marketingIntel.influencer.system.apiLatency,Api Latency,Api Latency,API 응답 지연시간
+Error Rate,1,pages.marketingIntel.influencer.system.errorRate,Error Rate,Error Rate,오류율
+Server Status,1,pages.marketingIntel.influencer.system.serverStatus,Server Status,Server Status,서버 상태
+Analysis Dashboard,1,pages.marketingIntel.influencer.tabAnalytics,Analysis Dashboard,Analysis Dashboard,분석 대시보드
+📣 Campaign Management,1,pages.marketingIntel.influencer.tabCampaigns,📣 Campaign Management,📣 Campaign Management,📣 캠페인 관리
+Tab Ugc,1,pages.marketingIntel.influencer.tabUgc,Tab Ugc,Tab Ugc,UGC
+Total Influencers,1,pages.marketingIntel.influencer.totalInfluencers,Total Influencers,Total Influencers,전체 인플루언서 수
+Kpi Contrib,1,pages.marketingIntel.kpiContrib,Kpi Contrib,Kpi Contrib,KPI 기여도
+Kpi Contrib Sub,1,pages.marketingIntel.kpiContribSub,Kpi Contrib Sub,Kpi Contrib Sub,KPI 기여도 안내
+Kpi Metric,1,pages.marketingIntel.kpiMetric,Kpi Metric,Kpi Metric,KPI 지표
+Kpi Table,1,pages.marketingIntel.kpiTable,Kpi Table,Kpi Table,KPI 테이블
+✅ [Approve],1,pages.marketingIntel.logApproved,✅ [Approve],✅ [Approve],✅ [승인]
+Log Executed,1,pages.marketingIntel.logExecuted,Log Executed,Log Executed,실행 완료
+Log Rejected,1,pages.marketingIntel.logRejected,Log Rejected,Log Rejected,반려됨
+Integration,1,pages.marketingIntel.marketingIntel.aiPredict.tab.integration,Integration,Integration,연동
+Attr Ai Run,1,pages.marketingIntel.marketingIntel.banner.attrAiRun,Attr Ai Run,Attr Ai Run,어트리뷰션 AI 실행

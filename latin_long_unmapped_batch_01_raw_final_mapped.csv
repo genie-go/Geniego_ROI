@@ -1,0 +1,139 @@
+ko_value,count,path,ja_value,en_value,suggested_ko
+Channel Performance Dashboard,2,pages.marketing.chPerfDash,Channel Performance Dashboard,Channel Performance Dashboard,채널 성과 대시보드
+Key KPI Trends by Media,2,pages.marketing.chTrendKpi,Key KPI Trends by Media,Key KPI Trends by Media,매체별 핵심 KPI 추이
+Goal Achievement,2,pages.marketing.colAchieve,Goal Achievement,Goal Achievement,목표 달성률
+Channel Name,2,pages.marketing.colChan,Channel Name,Channel Name,채널명
+Order · Inventory · Settlement Unified Status,2,pages.marketing.commerceDesc,Order · Inventory · Settlement Unified Status,Order · Inventory · Settlement Unified Status,주문 · 재고 · 정산 통합 현황
+Conversion Funnel Analysis,2,pages.marketing.convFunnel,Conversion Funnel Analysis,Conversion Funnel Analysis,전환 퍼널 분석
+Gender Distribution,2,pages.marketing.genderDist,Gender Distribution,Gender Distribution,성별 분포
+Influencer · UGC Performance Analysis,2,pages.marketing.influencerDesc,Influencer · UGC Performance Analysis,Influencer · UGC Performance Analysis,인플루언서 · UGC 성과 분석
+KR Channel,2,pages.marketing.KRChannel,KR Channel,KR Channel,국내 채널
+Live Activity,2,pages.marketing.liveActivity,Live Activity,Live Activity,실시간 활동
+🔒 Demo,2,pages.marketing.LockBadge,🔒 Demo,🔒 Demo,🔒 데모
+Ad · Campaign Integrated Analysis,2,pages.marketing.marketingDesc,Ad · Campaign Integrated Analysis,Ad · Campaign Integrated Analysis,광고 · 캠페인 통합 분석
+Module Shortcuts,2,pages.marketing.moduleShortcuts,Module Shortcuts,Module Shortcuts,모듈 바로가기
+Naver Search Ads,2,pages.marketing.naverName,Naver Search Ads,Naver Search Ads,네이버 검색광고
+All platform KPIs at a glance,2,pages.marketing.overviewDesc,All platform KPIs at a glance,All platform KPIs at a glance,전체 플랫폼 KPI 한눈에 보기
+Price Check,2,pages.marketing.PriceCheck,Price Check,Price Check,가격 점검
+Price Opt,2,pages.marketing.PriceOpt,Price Opt,Price Opt,가격 최적화
+Check Pricing Plans,2,pages.marketing.PricingView,Check Pricing Plans,Check Pricing Plans,요금제 확인
+Global Sales,2,pages.marketing.sales,Global Sales,Global Sales,글로벌 매출
+Revenue Status by Country/Region,2,pages.marketing.salesDesc,Revenue Status by Country/Region,Revenue Status by Country/Region,국가/지역별 매출 현황
+This feature only fetches real data after paid plan integration. Current screen uses sample data.,2,pages.marketing.SampleDesc2,This feature only fetches real data after paid plan integration. Current screen uses sample data.,This feature only fetches real data after paid plan integration. Current screen uses sample data.,이 기능은 유료 플랜 연동 후 실제 데이터를 제공합니다. 현재 화면은 샘플 데이터를 사용 중입니다.
+Virtual data is being displayed.,2,pages.marketing.SampleDesc3,Virtual data is being displayed.,Virtual data is being displayed.,현재 샘플 데이터가 표시되고 있습니다.
+We suggest customized options and quick actions for your role.,2,pages.marketing.selectRoleDesc,We suggest customized options and quick actions for your role.,We suggest customized options and quick actions for your role.,역할에 맞는 추천 기능과 빠른 실행 메뉴를 제공합니다.
+Please select your role,2,pages.marketing.selectRoleTitle,Please select your role,Please select your role,역할을 선택해주세요
+API · Pipeline · Server Status,2,pages.marketing.systemDesc,API · Pipeline · Server Status,API · Pipeline · Server Status,API · 파이프라인 · 서버 상태
+Top Visited Regions,2,pages.marketing.topRegion,Top Visited Regions,Top Visited Regions,상위 방문 지역
+Your account has a free coupon.,2,pages.marketing.upgradeBarCoupon,Your account has a free coupon.,Your account has a free coupon.,계정에 무료 쿠폰이 있습니다.
+Connect your API now and fully utilize the platform with your data.,2,pages.marketing.upgradeBarDesc,Connect your API now and fully utilize the platform with your data.,Connect your API now and fully utilize the platform with your data.,API를 연결하고 실제 데이터 기반으로 플랫폼 기능을 활용해보세요.
+Membership Coupon Application Guide,2,pages.marketing.upgradeBarMembership,Membership Coupon Application Guide,Membership Coupon Application Guide,멤버십 쿠폰 적용 가이드
+🎉 Connect real business data and try all features free for 7 days!,2,pages.marketing.upgradeBarTitle,🎉 Connect real business data and try all features free for 7 days!,🎉 Connect real business data and try all features free for 7 days!,🎉 실제 비즈니스 데이터를 연결하고 모든 기능을 7일간 무료로 체험해보세요!
+vs Yesterday,2,pages.marketing.vsYesterday,vs Yesterday,vs Yesterday,전일 대비
+Churn Action,2,pages.marketingIntel.aiPredict.kpi.churnAction,Churn Action,Churn Action,이탈 대응 액션
+Churn Risk Customer,2,pages.marketingIntel.aiPredict.kpi.churnRisk,Churn Risk Customer,Churn Risk Customer,이탈 위험 고객
+High Ltv,2,pages.marketingIntel.aiPredict.kpi.highLtv,High Ltv,High Ltv,고 LTV 고객
+High Ltv Sub,2,pages.marketingIntel.aiPredict.kpi.highLtvSub,High Ltv Sub,High Ltv Sub,고 LTV 고객 안내
+Ml Accuracy,2,pages.marketingIntel.aiPredict.kpi.mlAccuracy,Ml Accuracy,Ml Accuracy,ML 정확도
+Ml Sub,2,pages.marketingIntel.aiPredict.kpi.mlSub,Ml Sub,Ml Sub,ML 분석 안내
+Revenue Sub,2,pages.marketingIntel.aiPredict.kpi.revenueSub,Revenue Sub,Revenue Sub,매출 분석 안내
+Ai Suggestions,2,pages.marketingIntel.aiSuggestions,Ai Suggestions,Ai Suggestions,AI 추천
+Anomaly detected,2,pages.marketingIntel.anomalyDetected,Anomaly detected,Anomaly detected,이상 징후 감지
+Audience Insights,2,pages.marketingIntel.audienceInsights,Audience Insights,Audience Insights,오디언스 인사이트
+Ad Channel Note,2,pages.marketingIntel.auth.adChannelNote,Ad Channel Note,Ad Channel Note,광고 채널 안내
+Ad Channel Title,2,pages.marketingIntel.auth.adChannelTitle,Ad Channel Title,Ad Channel Title,광고 채널
+Address Detail Label,2,pages.marketingIntel.auth.addressDetailLabel,Address Detail Label,Address Detail Label,상세 주소
+Address Required,2,pages.marketingIntel.auth.addressRequired,Address Required,Address Required,주소를 입력해주세요
+Admin Email Label,2,pages.marketingIntel.auth.adminEmailLabel,Admin Email Label,Admin Email Label,관리자 이메일
+Admin Key Label,2,pages.marketingIntel.auth.adminKeyLabel,Admin Key Label,Admin Key Label,관리자 키
+Admin Key Ph,2,pages.marketingIntel.auth.adminKeyPh,Admin Key Ph,Admin Key Ph,관리자 키 입력
+Admin Login Btn,2,pages.marketingIntel.auth.adminLoginBtn,Admin Login Btn,Admin Login Btn,관리자 로그인
+Admin Login Desc,2,pages.marketingIntel.auth.adminLoginDesc,Admin Login Desc,Admin Login Desc,관리자 계정으로 로그인해주세요
+Admin Login Title,2,pages.marketingIntel.auth.adminLoginTitle,Admin Login Title,Admin Login Title,관리자 로그인
+Agree All,2,pages.marketingIntel.auth.agreeAll,Agree All,Agree All,전체 동의
+Agree And,2,pages.marketingIntel.auth.agreeAnd,Agree And,Agree And,및
+I agree to,2,pages.marketingIntel.auth.agreeConsent,I agree to,I agree to,동의합니다
+Agree Marketing,2,pages.marketingIntel.auth.agreeMarketing,Agree Marketing,Agree Marketing,마케팅 수신 동의
+Terms of Service,2,pages.marketingIntel.auth.agreeTerms,Terms of Service,Terms of Service,이용약관
+Agree Terms Required,2,pages.marketingIntel.auth.agreeTermsRequired,Agree Terms Required,Agree Terms Required,이용약관 동의가 필요합니다
+Already have an account?,2,pages.marketingIntel.auth.alreadyHaveAccount,Already have an account?,Already have an account?,이미 계정이 있으신가요?
+Business Number Hint,2,pages.marketingIntel.auth.businessNumberHint,Business Number Hint,Business Number Hint,사업자등록번호 안내
+Business Number,2,pages.marketingIntel.auth.businessNumberLabel,Business Number,Business Number,사업자등록번호
+Business Number Required,2,pages.marketingIntel.auth.businessNumberRequired,Business Number Required,Business Number Required,사업자등록번호를 입력해주세요
+Business Type Required,2,pages.marketingIntel.auth.businessTypeRequired,Business Type Required,Business Type Required,업종을 선택해주세요
+Business Warning,2,pages.marketingIntel.auth.businessWarning,Business Warning,Business Warning,사업자 정보 확인이 필요합니다
+Ceo Name Label,2,pages.marketingIntel.auth.ceoNameLabel,Ceo Name Label,Ceo Name Label,대표자명
+Ceo Required,2,pages.marketingIntel.auth.ceoRequired,Ceo Required,Ceo Required,대표자명을 입력해주세요
+Company Label,2,pages.marketingIntel.auth.companyLabel,Company Label,Company Label,회사명
+Company Required,2,pages.marketingIntel.auth.companyRequired,Company Required,Company Required,회사명을 입력해주세요
+Completion Note,2,pages.marketingIntel.auth.completionNote,Completion Note,Completion Note,가입 완료 안내
+Country Required,2,pages.marketingIntel.auth.countryRequired,Country Required,Country Required,국가를 선택해주세요
+Email Required,2,pages.marketingIntel.auth.emailRequired,Email Required,Email Required,이메일을 입력해주세요
+Free Trial (Demo),2,pages.marketingIntel.auth.freePlan,Free Trial (Demo),Free Trial (Demo),무료 체험 (데모)
+Simple sign up with email · name,2,pages.marketingIntel.auth.freePlanDesc,Simple sign up with email · name,Simple sign up with email · name,이메일 · 이름만으로 간편 가입
+✨ Free Sign Up,2,pages.marketingIntel.auth.freeRegister,✨ Free Sign Up,✨ Free Sign Up,✨ 무료 가입
+Easy start · Free trial of core features,2,pages.marketingIntel.auth.freeTrialDesc,Easy start · Free trial of core features,Easy start · Free trial of core features,간편하게 시작하고 핵심 기능을 무료로 체험해보세요
+Free Trial (Demo) Registration,2,pages.marketingIntel.auth.freeTrialTitle,Free Trial (Demo) Registration,Free Trial (Demo) Registration,무료 체험(데모) 가입
+Included Features,2,pages.marketingIntel.auth.includedFeatures,Included Features,Included Features,포함 기능
+Key Verified,2,pages.marketingIntel.auth.keyVerified,Key Verified,Key Verified,키 검증 완료
+Logging in...,2,pages.marketingIntel.auth.loggingIn,Logging in...,Logging in...,로그인 중입니다...
+🔐 Login,2,pages.marketingIntel.auth.loginBtn,🔐 Login,🔐 Login,🔐 로그인
+Monthly Revenue Label,2,pages.marketingIntel.auth.monthlyRevenueLabel,Monthly Revenue Label,Monthly Revenue Label,월 매출
+Next Business,2,pages.marketingIntel.auth.nextBusiness,Next Business,Next Business,다음: 사업자 정보
+Next Channels,2,pages.marketingIntel.auth.nextChannels,Next Channels,Next Channels,다음: 채널 설정
+Not Admin Account,2,pages.marketingIntel.auth.notAdminAccount,Not Admin Account,Not Admin Account,관리자 계정이 아닙니다
+Or login with account,2,pages.marketingIntel.auth.orLoginWith,Or login with account,Or login with account,또는 계정으로 로그인
+Paid Plan Sign Up,2,pages.marketingIntel.auth.paidPlan,Paid Plan Sign Up,Paid Plan Sign Up,유료 플랜 가입
+Paid Plan Desc,2,pages.marketingIntel.auth.paidPlanDesc,Paid Plan Desc,Paid Plan Desc,유료 플랜 안내
+Paid Plan Note,2,pages.marketingIntel.auth.paidPlanNote,Paid Plan Note,Paid Plan Note,유료 플랜 참고사항
+Paid Plan Title,2,pages.marketingIntel.auth.paidPlanTitle,Paid Plan Title,Paid Plan Title,유료 플랜 가입
+Confirm Password,2,pages.marketingIntel.auth.passwordConfirm,Confirm Password,Confirm Password,비밀번호 확인
+Password (min 6 characters),2,pages.marketingIntel.auth.passwordHint,Password (min 6 characters),Password (min 6 characters),비밀번호 (최소 6자 이상)
+Password Mismatch,2,pages.marketingIntel.auth.passwordMismatch,Password Mismatch,Password Mismatch,비밀번호가 일치하지 않습니다
+Password Too Short,2,pages.marketingIntel.auth.passwordTooShort,Password Too Short,Password Too Short,비밀번호가 너무 짧습니다
+Phone Required,2,pages.marketingIntel.auth.phoneRequired,Phone Required,Phone Required,전화번호를 입력해주세요
+Plan Note,2,pages.marketingIntel.auth.PlanNote,Plan Note,Plan Note,플랜 참고사항
+Plan Question,2,pages.marketingIntel.auth.planQuestion,Plan Question,Plan Question,플랜 문의
+Select Registration Type,2,pages.marketingIntel.auth.planTypeTitle,Select Registration Type,Select Registration Type,가입 유형 선택
+Premium Only,2,pages.marketingIntel.auth.premiumOnly,Premium Only,Premium Only,프리미엄 전용
+Price Not Set,2,pages.marketingIntel.auth.priceNotSet,Price Not Set,Price Not Set,가격 미설정
+Processing Register,2,pages.marketingIntel.auth.processingRegister,Processing Register,Processing Register,가입 처리 중입니다
+⚡ Quick Demo,2,pages.marketingIntel.auth.quickStart,⚡ Quick Demo,⚡ Quick Demo,⚡ 빠른 데모
+Recommended For,2,pages.marketingIntel.auth.recommendedFor,Recommended For,Recommended For,추천 대상
+Reenter Key,2,pages.marketingIntel.auth.reenterKey,Reenter Key,Reenter Key,키 다시 입력
+Sales Channel Note,2,pages.marketingIntel.auth.salesChannelNote,Sales Channel Note,Sales Channel Note,판매 채널 안내
+Sales Channel Required,2,pages.marketingIntel.auth.salesChannelRequired,Sales Channel Required,Sales Channel Required,판매 채널을 선택해주세요
+Sales Channel Title,2,pages.marketingIntel.auth.salesChannelTitle,Sales Channel Title,Sales Channel Title,판매 채널
+🚀 Start Free,2,pages.marketingIntel.auth.startFree,🚀 Start Free,🚀 Start Free,🚀 무료로 시작하기
+Start Plan,2,pages.marketingIntel.auth.startPlan,Start Plan,Start Plan,플랜 시작
+① Account Info,2,pages.marketingIntel.auth.step1Account,① Account Info,① Account Info,① 계정 정보
+② Business Info,2,pages.marketingIntel.auth.step2Business,② Business Info,② Business Info,② 사업자 정보
+③ Channels & Complete,2,pages.marketingIntel.auth.step3Channels,③ Channels & Complete,③ Channels & Complete,③ 채널 설정 및 완료
+Terms Required,2,pages.marketingIntel.auth.termsRequired,Terms Required,Terms Required,약관 동의가 필요합니다
+🎯 Try Demo,2,pages.marketingIntel.auth.try,🎯 Try Demo,🎯 Try Demo,🎯 데모 체험
+Verify Key,2,pages.marketingIntel.auth.verifyKey,Verify Key,Verify Key,키 검증
+Website Label,2,pages.marketingIntel.auth.websiteLabel,Website Label,Website Label,웹사이트
+Wrong Admin Key,2,pages.marketingIntel.auth.wrongAdminKey,Wrong Admin Key,Wrong Admin Key,관리자 키가 올바르지 않습니다
+Zip Code Label,2,pages.marketingIntel.auth.zipCodeLabel,Zip Code Label,Zip Code Label,우편번호
+Budget Opt Desc,2,pages.marketingIntel.budgetOptDesc,Budget Opt Desc,Budget Opt Desc,예산 최적화 안내
+Channel Analysis,2,pages.marketingIntel.channelAnalysis,Channel Analysis,Channel Analysis,채널 분석
+Key Insight,2,pages.marketingIntel.channelKpiPage.keyInsight,Key Insight,Key Insight,핵심 인사이트
+Creative Perf,2,pages.marketingIntel.creativePerf,Creative Perf,Creative Perf,크리에이티브 성과
+Ad Format Count,2,pages.marketingIntel.creativeStudio.adFormatCount,Ad Format Count,Ad Format Count,광고 포맷 수
+Ad Preview Label,2,pages.marketingIntel.creativeStudio.adPreviewLabel,Ad Preview Label,Ad Preview Label,광고 미리보기
+Ad Spec,2,pages.marketingIntel.creativeStudio.adSpec,Ad Spec,Ad Spec,광고 사양
+Advertising,2,pages.marketingIntel.creativeStudio.adTag,Advertising,Advertising,광고
+Ad Tip Title,2,pages.marketingIntel.creativeStudio.adTipTitle,Ad Tip Title,Ad Tip Title,광고 운영 팁
+Body Hint,2,pages.marketingIntel.creativeStudio.bodyHint,Body Hint,Body Hint,본문 작성 가이드
+Cat_beauty_desc,2,pages.marketingIntel.creativeStudio.cat_beauty_desc,Cat_beauty_desc,Cat_beauty_desc,뷰티 카테고리 설명
+Cat_electronics,2,pages.marketingIntel.creativeStudio.cat_electronics,Cat_electronics,Cat_electronics,전자기기
+Cat_electronics_desc,2,pages.marketingIntel.creativeStudio.cat_electronics_desc,Cat_electronics_desc,Cat_electronics_desc,전자기기 카테고리 설명
+Cat_fashion,2,pages.marketingIntel.creativeStudio.cat_fashion,Cat_fashion,Cat_fashion,패션
+Cat_fashion_desc,2,pages.marketingIntel.creativeStudio.cat_fashion_desc,Cat_fashion_desc,Cat_fashion_desc,패션 카테고리 설명
+Cat_food_desc,2,pages.marketingIntel.creativeStudio.cat_food_desc,Cat_food_desc,Cat_food_desc,식품 카테고리 설명
+Cat_general,2,pages.marketingIntel.creativeStudio.cat_general,Cat_general,Cat_general,일반
+Cat_general_desc,2,pages.marketingIntel.creativeStudio.cat_general_desc,Cat_general_desc,Cat_general_desc,일반 카테고리 설명
+Cat_overseas_buy,2,pages.marketingIntel.creativeStudio.cat_overseas_buy,Cat_overseas_buy,Cat_overseas_buy,해외 구매대행
+Cat_overseas_buy_desc,2,pages.marketingIntel.creativeStudio.cat_overseas_buy_desc,Cat_overseas_buy_desc,Cat_overseas_buy_desc,해외 구매대행 설명
+Cat_overseas_ship,2,pages.marketingIntel.creativeStudio.cat_overseas_ship,Cat_overseas_ship,Cat_overseas_ship,해외 배송대행
+Cat_overseas_ship_desc,2,pages.marketingIntel.creativeStudio.cat_overseas_ship_desc,Cat_overseas_ship_desc,Cat_overseas_ship_desc,해외 배송대행 설명

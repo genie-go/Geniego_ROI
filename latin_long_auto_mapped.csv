@@ -1,0 +1,259 @@
+ns,path,pollution_type,ko_value,ja_value,en_value,ko_length,suggested_ko
+channelKpi,channelKpi.blendedROAS,LATIN_LONG,Blended ROAS,Blended ROAS,Blended ROAS,12,Blended ROAS
+crm,crm.aiHub.aiHub.attribution,LATIN_LONG,Attribution,Attribution,Attribution,11,어트리뷰션
+crm,crm.aiHub.aiHub.attributionDesc,LATIN_LONG,Attribution,Attribution,Attribution,11,어트리뷰션
+crm,crm.aiHub.aiHub.dataSource,LATIN_LONG,Data Source,Data Source,Data Source,11,데이터 소스
+crm,crm.aiHub.aiHub.netPayout,LATIN_LONG,Net Payout,Net Payout,Net Payout,10,Net Payout
+crm,crm.aiHub.analyzing,LATIN_LONG,Analyzing...,Analyzing...,Analyzing...,12,분석 중...
+crm,crm.aiHub.attribution,LATIN_LONG,Attribution,Attribution,Attribution,11,어트리뷰션
+crm,crm.aiHub.catalogSync.pxl.conversions,LATIN_LONG,Conversions,Conversions,Conversions,11,전환
+crm,crm.aiHub.catalogSync.pxl.totalRevenue,LATIN_LONG,Total Revenue,Total Revenue,Total Revenue,13,총 매출
+crm,crm.aiHub.netPayout,LATIN_LONG,Net Payout,Net Payout,Net Payout,10,Net Payout
+crm,crm.aiHub.omniChannel.ordTotalOrders,LATIN_LONG,Total Orders,Total Orders,Total Orders,12,총 주문
+crm,crm.aiHub.omniChannel.ovTotalOrders,LATIN_LONG,Total Orders,Total Orders,Total Orders,12,총 주문
+crm,crm.aiHub.omniChannel.ovTotalRevenue,LATIN_LONG,Total Revenue,Total Revenue,Total Revenue,13,총 매출
+crm,crm.aiHub.reviews.achieved,LATIN_LONG,Achieved ✓,Achieved ✓,Achieved ✓,10,달성 ✓
+crm,crm.aiHub.reviews.achievedOk,LATIN_LONG,Achieved ✓,Achieved ✓,Achieved ✓,10,달성 ✓
+crm,crm.aiHub.reviews.aiAnalyzing,LATIN_LONG,AI Analyzing...,AI Analyzing...,AI Analyzing...,15,AI 분석 중...
+crm,crm.aiHub.reviews.allChannel,LATIN_LONG,Total Channels,Total Channels,Total Channels,14,전체 채널
+crm,crm.aiHub.reviews.allChannels,LATIN_LONG,Total Channels,Total Channels,Total Channels,14,전체 채널
+crm,crm.aiHub.reviews.badgeAdSpend,LATIN_LONG,Total Ad Spend,Total Ad Spend,Total Ad Spend,14,총 광고 비용
+crm,crm.aiHub.reviews.badgeBlendedRoas,LATIN_LONG,Blended ROAS,Blended ROAS,Blended ROAS,12,Blended ROAS
+crm,crm.aiHub.reviews.belowTarget,LATIN_LONG,Below Target,Below Target,Below Target,12,목표 미달
+crm,crm.aiHub.reviews.brandAwareness,LATIN_LONG,Brand Awareness,Brand Awareness,Brand Awareness,15,브랜드 인지도
+crm,crm.aiHub.reviews.cases,LATIN_LONG, orders, orders, orders,7,주문
+crm,crm.aiHub.reviews.conversions,LATIN_LONG,Conversions,Conversions,Conversions,11,전환
+crm,crm.aiHub.reviews.convRate,LATIN_LONG,Conversion Rate,Conversion Rate,Conversion Rate,15,전환율
+crm,crm.aiHub.reviews.coreKpis,LATIN_LONG,Core KPIs,Core KPIs,Core KPIs,9,핵심 KPI
+crm,crm.aiHub.reviews.cpa,LATIN_LONG,Cost Per Acquisition (CPA),Cost Per Acquisition (CPA),Cost Per Acquisition (CPA),26,고객 획득 비용 (CPA)
+crm,crm.aiHub.reviews.cpc,LATIN_LONG,Cost Per Click (CPC),Cost Per Click (CPC),Cost Per Click (CPC),20,클릭당 비용 (CPC)
+crm,crm.aiHub.reviews.engagement,LATIN_LONG,Engagement Rate,Engagement Rate,Engagement Rate,15,참여율
+crm,crm.aiHub.reviews.impressions,LATIN_LONG,Total Impressions,Total Impressions,Total Impressions,17,총 노출
+crm,crm.aiHub.reviews.inProgress,LATIN_LONG,In Progress,In Progress,In Progress,11,진행 중
+crm,crm.aiHub.reviews.lblConvRate,LATIN_LONG,Conversion Rate,Conversion Rate,Conversion Rate,15,전환율
+crm,crm.aiHub.reviews.marketing,LATIN_LONG,Marketing Performance,Marketing Performance,Marketing Performance,21,마케팅 성과
+crm,crm.aiHub.reviews.title,LATIN_LONG,Email Marketing,Email Marketing,Email Marketing,15,이메일 마케팅
+crm,crm.aiHub.reviews.totalVisitors,LATIN_LONG,Total Visitors,Total Visitors,Total Visitors,14,총 방문자
+crm,crm.aiHub.reviews.u_107,LATIN_LONG,Total Channels,Total Channels,Total Channels,14,전체 채널
+crm,crm.aiHub.reviews.u_84,LATIN_LONG,Engagement Rate,Engagement Rate,Engagement Rate,15,참여율
+crm,crm.aiHub.reviews.u_91,LATIN_LONG,Conversion Rate,Conversion Rate,Conversion Rate,15,전환율
+crm,crm.aiHub.reviews.unitCount,LATIN_LONG, orders, orders, orders,7,주문
+crm,crm.aiHub.reviews.unitItems,LATIN_LONG, orders, orders, orders,7,주문
+crm,crm.email.catalogSync.allChannel,LATIN_LONG,Total Channels,Total Channels,All Channels,14,전체 채널
+crm,crm.email.catalogSync.processing,LATIN_LONG,Processing...,Processing...,Processing...,13,처리 중...
+marketing,marketing.gNav.attribution,LATIN_LONG,Attribution,Attribution,Attribution,11,어트리뷰션
+marketing,marketing.gNav.emailMarketing,LATIN_LONG,Email Marketing,Email Marketing,Email Marketing,15,이메일 마케팅
+marketing,marketing.gNav.graphScore,LATIN_LONG,Graph Score,Graph Score,Graph Score,11,Graph Score
+pages,pages._marketing_1.impressions,LATIN_LONG,Total Impressions,Total Impressions,Total Impressions,17,총 노출
+pages,pages._marketing_1.kpiConversions,LATIN_LONG,Conversions,Conversions,Conversions,11,전환
+pages,pages.amazonRisk.keyMetrics,LATIN_LONG,Core KPIs,Core KPIs,Core KPIs,9,핵심 KPI
+pages,pages.cmpVal.aiPredict.kpi.p_10,LATIN_LONG,Blended ROAS,Blended ROAS,Blended ROAS,12,Blended ROAS
+pages,pages.cmpVal.aiPredict.kpi.p_2,LATIN_LONG,Ad Spend,Ad Spend,Ad Spend,8,광고 비용
+pages,pages.cmpVal.aiPredict.kpi.p_7,LATIN_LONG,Total Orders,Total Orders,Total Orders,12,총 주문
+pages,pages.commerce.orders,LATIN_LONG, orders, orders,cases,7,주문
+pages,pages.commerce.totalOrders,LATIN_LONG,Total Orders,Total Orders,Total Orders,12,총 주문
+pages,pages.dashboard.adSpend,LATIN_LONG,Ad Spend,Ad Spend,Ad Spend,8,광고 비용
+pages,pages.dashboard.adSpendSub,LATIN_LONG,Total Ad Spend,Total Ad Spend,Total Ad Spend,14,총 광고 비용
+pages,pages.dashboard.convRateLbl,LATIN_LONG,Conversion Rate,Conversion Rate,Conversion Rate,15,전환율
+pages,pages.dashboard.totalOrders,LATIN_LONG,Total Orders,Total Orders,Total Orders,12,총 주문
+pages,pages.krChannel.totalRevenue,LATIN_LONG,Total Revenue,Total Revenue,Total Revenue,13,총 매출
+pages,pages.marketing.adSpendSub,LATIN_LONG,Total Ad Spend,Total Ad Spend,Total Ad Spend,14,총 광고 비용
+pages,pages.marketing.attribution,LATIN_LONG,Attribution,Attribution,Attribution,11,어트리뷰션
+pages,pages.marketing.Attribution,LATIN_LONG,Attribution,Attribution,Attribution,11,어트리뷰션
+pages,pages.marketing.colConv,LATIN_LONG,Conversions,Conversions,Conversions,11,전환
+pages,pages.marketing.colSpend,LATIN_LONG,Ad Spend,Ad Spend,Ad Spend,8,광고 비용
+pages,pages.marketing.graphScore,LATIN_LONG,Graph Score,Graph Score,Graph Score,11,Graph Score
+pages,pages.marketing.GraphScore,LATIN_LONG,Graph Score,Graph Score,Graph Score,11,Graph Score
+pages,pages.marketing.omniChannel,LATIN_LONG,Omni-Channel,Omni-Channel,Omni-Channel,12,옴니채널
+pages,pages.marketingIntel.adPerf.conversions,LATIN_LONG,Conversions,Conversions,Conversions,11,전환
+pages,pages.marketingIntel.adPerf.cpa,LATIN_LONG,Cost Per Acquisition (CPA),Cost Per Acquisition (CPA),Cost Per Acquisition (CPA),26,고객 획득 비용 (CPA)
+pages,pages.marketingIntel.adPerf.impressions,LATIN_LONG,Total Impressions,Total Impressions,Total Impressions,17,총 노출
+pages,pages.marketingIntel.adPerf.title,LATIN_LONG,Email Marketing,Email Marketing,Email Marketing,15,이메일 마케팅
+pages,pages.marketingIntel.aiPredict.adPerf.conversions,LATIN_LONG,Conversions,Conversions,Conversions,11,전환
+pages,pages.marketingIntel.aiPredict.adPerf.cpa,LATIN_LONG,Cost Per Acquisition (CPA),Cost Per Acquisition (CPA),Cost Per Acquisition (CPA),26,고객 획득 비용 (CPA)
+pages,pages.marketingIntel.aiPredict.adPerf.impressions,LATIN_LONG,Total Impressions,Total Impressions,Total Impressions,17,총 노출
+pages,pages.marketingIntel.aiPredict.adPerf.title,LATIN_LONG,Email Marketing,Email Marketing,Email Marketing,15,이메일 마케팅
+pages,pages.marketingIntel.aiPredict.channelKpiPage.achieved,LATIN_LONG,Achieved ✓,Achieved ✓,Achieved ✓,10,달성 ✓
+pages,pages.marketingIntel.aiPredict.channelKpiPage.achievedOk,LATIN_LONG,Achieved ✓,Achieved ✓,Achieved ✓,10,달성 ✓
+pages,pages.marketingIntel.aiPredict.channelKpiPage.aiAnalyzing,LATIN_LONG,AI Analyzing...,AI Analyzing...,AI Analyzing...,15,AI 분석 중...
+pages,pages.marketingIntel.aiPredict.channelKpiPage.allChannels,LATIN_LONG,Total Channels,Total Channels,All Channels,14,전체 채널
+pages,pages.marketingIntel.aiPredict.channelKpiPage.badgeAdSpend,LATIN_LONG,Total Ad Spend,Total Ad Spend,Total Ad Spend,14,총 광고 비용
+pages,pages.marketingIntel.aiPredict.channelKpiPage.badgeBlendedRoas,LATIN_LONG,Blended ROAS,Blended ROAS,Blended ROAS,12,Blended ROAS
+pages,pages.marketingIntel.aiPredict.channelKpiPage.belowTarget,LATIN_LONG,Below Target,Below Target,Below Target,12,목표 미달
+pages,pages.marketingIntel.aiPredict.channelKpiPage.brandAwareness,LATIN_LONG,Brand Awareness,Brand Awareness,Brand Awareness,15,브랜드 인지도
+pages,pages.marketingIntel.aiPredict.channelKpiPage.convRate,LATIN_LONG,Conversion Rate,Conversion Rate,Conversion Rate,15,전환율
+pages,pages.marketingIntel.aiPredict.channelKpiPage.coreKpis,LATIN_LONG,Core KPIs,Core KPIs,Core KPIs,9,핵심 KPI
+pages,pages.marketingIntel.aiPredict.channelKpiPage.cpa,LATIN_LONG,Cost Per Acquisition (CPA),Cost Per Acquisition (CPA),Cost Per Acquisition (CPA),26,고객 획득 비용 (CPA)
+pages,pages.marketingIntel.aiPredict.channelKpiPage.cpc,LATIN_LONG,Cost Per Click (CPC),Cost Per Click (CPC),Cost Per Click (CPC),20,클릭당 비용 (CPC)
+pages,pages.marketingIntel.aiPredict.channelKpiPage.engagement,LATIN_LONG,Engagement Rate,Engagement Rate,Engagement Rate,15,참여율
+pages,pages.marketingIntel.aiPredict.channelKpiPage.lblConvRate,LATIN_LONG,Conversion Rate,Conversion Rate,Conversion Rate,15,전환율
+pages,pages.marketingIntel.aiPredict.gdpr.marketing,LATIN_LONG,Marketing Performance,Marketing Performance,Marketing Performance,21,마케팅 성과
+pages,pages.marketingIntel.aiPredict.gdpr.totalVisitors,LATIN_LONG,Total Visitors,Total Visitors,Total Visitors,14,총 방문자
+pages,pages.marketingIntel.aiPredict.influencerUGC.u_107,LATIN_LONG,Total Channels,Total Channels,All Channels,14,전체 채널
+pages,pages.marketingIntel.aiPredict.influencerUGC.u_84,LATIN_LONG,Engagement Rate,Engagement Rate,Engagement Rate,15,참여율
+pages,pages.marketingIntel.aiPredict.influencerUGC.u_91,LATIN_LONG,Conversion Rate,Conversion Rate,Conversion Rate,15,전환율
+pages,pages.marketingIntel.aiPredict.unified.cases,LATIN_LONG, orders, orders,cases,7,주문
+pages,pages.marketingIntel.aiPredict.workspace.title,LATIN_LONG,Email Marketing,Email Marketing,Email Marketing,15,이메일 마케팅
+pages,pages.marketingIntel.amazonRisk.keyMetrics,LATIN_LONG,Core KPIs,Core KPIs,Core KPIs,9,핵심 KPI
+pages,pages.marketingIntel.analyzing,LATIN_LONG,Analyzing...,Analyzing...,Analyzing...,12,분석 중...
+pages,pages.marketingIntel.auth.registerLink,LATIN_LONG,Sign Up,Sign Up,Sign Up,7,회원가입
+pages,pages.marketingIntel.channelKpiPage.achieved,LATIN_LONG,Achieved ✓,Achieved ✓,Achieved ✓,10,달성 ✓
+pages,pages.marketingIntel.channelKpiPage.achievedOk,LATIN_LONG,Achieved ✓,Achieved ✓,Achieved ✓,10,달성 ✓
+pages,pages.marketingIntel.channelKpiPage.aiAnalyzing,LATIN_LONG,AI Analyzing...,AI Analyzing...,AI Analyzing...,15,AI 분석 중...
+pages,pages.marketingIntel.channelKpiPage.allChannels,LATIN_LONG,Total Channels,Total Channels,All Channels,14,전체 채널
+pages,pages.marketingIntel.channelKpiPage.badgeAdSpend,LATIN_LONG,Total Ad Spend,Total Ad Spend,Total Ad Spend,14,총 광고 비용
+pages,pages.marketingIntel.channelKpiPage.badgeBlendedRoas,LATIN_LONG,Blended ROAS,Blended ROAS,Blended ROAS,12,Blended ROAS
+pages,pages.marketingIntel.channelKpiPage.belowTarget,LATIN_LONG,Below Target,Below Target,Below Target,12,목표 미달
+pages,pages.marketingIntel.channelKpiPage.brandAwareness,LATIN_LONG,Brand Awareness,Brand Awareness,Brand Awareness,15,브랜드 인지도
+pages,pages.marketingIntel.channelKpiPage.convRate,LATIN_LONG,Conversion Rate,Conversion Rate,Conversion Rate,15,전환율
+pages,pages.marketingIntel.channelKpiPage.coreKpis,LATIN_LONG,Core KPIs,Core KPIs,Core KPIs,9,핵심 KPI
+pages,pages.marketingIntel.channelKpiPage.cpa,LATIN_LONG,Cost Per Acquisition (CPA),Cost Per Acquisition (CPA),Cost Per Acquisition (CPA),26,고객 획득 비용 (CPA)
+pages,pages.marketingIntel.channelKpiPage.cpc,LATIN_LONG,Cost Per Click (CPC),Cost Per Click (CPC),Cost Per Click (CPC),20,클릭당 비용 (CPC)
+pages,pages.marketingIntel.channelKpiPage.engagement,LATIN_LONG,Engagement Rate,Engagement Rate,Engagement Rate,15,참여율
+pages,pages.marketingIntel.channelKpiPage.lblConvRate,LATIN_LONG,Conversion Rate,Conversion Rate,Conversion Rate,15,전환율
+pages,pages.marketingIntel.cmpVal.aiPredict.kpi.p_10,LATIN_LONG,Blended ROAS,Blended ROAS,Blended ROAS,12,Blended ROAS
+pages,pages.marketingIntel.cmpVal.aiPredict.kpi.p_2,LATIN_LONG,Ad Spend,Ad Spend,Ad Spend,8,광고 비용
+pages,pages.marketingIntel.cmpVal.aiPredict.kpi.p_7,LATIN_LONG,Total Orders,Total Orders,Total Orders,12,총 주문
+pages,pages.marketingIntel.colConversions,LATIN_LONG,Conversions,Conversions,Conversions,11,전환
+pages,pages.marketingIntel.colSpend,LATIN_LONG,Ad Spend,Ad Spend,Ad Spend,8,광고 비용
+pages,pages.marketingIntel.convRate,LATIN_LONG,Conversion Rate,Conversion Rate,Conversion Rate,15,전환율
+pages,pages.marketingIntel.cpc,LATIN_LONG,Cost Per Click (CPC),Cost Per Click (CPC),Cost Per Click (CPC),20,클릭당 비용 (CPC)
+pages,pages.marketingIntel.cvr,LATIN_LONG,Conversion Rate,Conversion Rate,Conversion Rate,15,전환율
+pages,pages.marketingIntel.dashboard.adSpend,LATIN_LONG,Ad Spend,Ad Spend,Ad Spend,8,광고 비용
+pages,pages.marketingIntel.dashboard.adSpendSub,LATIN_LONG,Total Ad Spend,Total Ad Spend,Total Ad Spend,14,총 광고 비용
+pages,pages.marketingIntel.dashboard.convRateLbl,LATIN_LONG,Conversion Rate,Conversion Rate,Conversion Rate,15,전환율
+pages,pages.marketingIntel.dashboard.totalOrders,LATIN_LONG,Total Orders,Total Orders,Total Orders,12,총 주문
+pages,pages.marketingIntel.funnelSpend,LATIN_LONG,Total Ad Spend,Total Ad Spend,Total Ad Spend,14,총 광고 비용
+pages,pages.marketingIntel.gdpr.marketing,LATIN_LONG,Marketing Performance,Marketing Performance,Marketing Performance,21,마케팅 성과
+pages,pages.marketingIntel.gdpr.totalVisitors,LATIN_LONG,Total Visitors,Total Visitors,Total Visitors,14,총 방문자
+pages,pages.marketingIntel.helpPanel.staticHelp.connectors.title,LATIN_LONG,Email Marketing,Email Marketing,Email Marketing,15,이메일 마케팅
+pages,pages.marketingIntel.helpPanel.staticHelp.help.title,LATIN_LONG,Email Marketing,Email Marketing,Email Marketing,15,이메일 마케팅
+pages,pages.marketingIntel.helpPanel.staticHelp.smsMarketing.title,LATIN_LONG,Email Marketing,Email Marketing,Email Marketing,15,이메일 마케팅
+pages,pages.marketingIntel.influencer.attrData.cases,LATIN_LONG, orders, orders,cases,7,주문
+pages,pages.marketingIntel.influencer.attrData.conversion,LATIN_LONG,Conversions,Conversions,Conversions,11,전환
+pages,pages.marketingIntel.influencer.attrData.guideMtaName,LATIN_LONG,Multi-Touch,Multi-Touch,Multi-Touch,11,멀티터치
+pages,pages.marketingIntel.influencer.attrData.timeDecay,LATIN_LONG,Time Decay,Time Decay,Time Decay,10,시간 감소
+pages,pages.marketingIntel.influencer.attrData.title,LATIN_LONG,Email Marketing,Email Marketing,Email Marketing,15,이메일 마케팅
+pages,pages.marketingIntel.influencer.colConversions,LATIN_LONG,Conversions,Conversions,Conversions,11,전환
+pages,pages.marketingIntel.influencer.colEngagement,LATIN_LONG,Engagement Rate,Engagement Rate,Engagement Rate,15,참여율
+pages,pages.marketingIntel.influencerUGC.u_107,LATIN_LONG,Total Channels,Total Channels,All Channels,14,전체 채널
+pages,pages.marketingIntel.influencerUGC.u_84,LATIN_LONG,Engagement Rate,Engagement Rate,Engagement Rate,15,참여율
+pages,pages.marketingIntel.influencerUGC.u_91,LATIN_LONG,Conversion Rate,Conversion Rate,Conversion Rate,15,전환율
+pages,pages.marketingIntel.kpiConversions,LATIN_LONG,Conversions,Conversions,Conversions,11,전환
+pages,pages.marketingIntel.kpiSpend,LATIN_LONG,Total Ad Spend,Total Ad Spend,Total Ad Spend,14,총 광고 비용
+pages,pages.marketingIntel.krChannel.totalRevenue,LATIN_LONG,Total Revenue,Total Revenue,Total Revenue,13,총 매출
+pages,pages.marketingIntel.marketingIntel.adPerf.conversions,LATIN_LONG,Conversions,Conversions,Conversions,11,전환
+pages,pages.marketingIntel.marketingIntel.adPerf.cpa,LATIN_LONG,Cost Per Acquisition (CPA),Cost Per Acquisition (CPA),Cost Per Acquisition (CPA),26,고객 획득 비용 (CPA)
+pages,pages.marketingIntel.marketingIntel.adPerf.impressions,LATIN_LONG,Total Impressions,Total Impressions,Total Impressions,17,총 노출
+pages,pages.marketingIntel.marketingIntel.adPerf.title,LATIN_LONG,Email Marketing,Email Marketing,Email Marketing,15,이메일 마케팅
+pages,pages.marketingIntel.marketingIntel.aiPredict.adPerf.conversions,LATIN_LONG,Conversions,Conversions,Conversions,11,전환
+pages,pages.marketingIntel.marketingIntel.aiPredict.adPerf.cpa,LATIN_LONG,Cost Per Acquisition (CPA),Cost Per Acquisition (CPA),Cost Per Acquisition (CPA),26,고객 획득 비용 (CPA)
+pages,pages.marketingIntel.marketingIntel.aiPredict.adPerf.impressions,LATIN_LONG,Total Impressions,Total Impressions,Total Impressions,17,총 노출
+pages,pages.marketingIntel.marketingIntel.aiPredict.adPerf.title,LATIN_LONG,Email Marketing,Email Marketing,Email Marketing,15,이메일 마케팅
+pages,pages.marketingIntel.marketingIntel.aiPredict.channelKpiPage.achieved,LATIN_LONG,Achieved ✓,Achieved ✓,Achieved ✓,10,달성 ✓
+pages,pages.marketingIntel.marketingIntel.aiPredict.channelKpiPage.achievedOk,LATIN_LONG,Achieved ✓,Achieved ✓,Achieved ✓,10,달성 ✓
+pages,pages.marketingIntel.marketingIntel.aiPredict.channelKpiPage.aiAnalyzing,LATIN_LONG,AI Analyzing...,AI Analyzing...,AI Analyzing...,15,AI 분석 중...
+pages,pages.marketingIntel.marketingIntel.aiPredict.channelKpiPage.allChannels,LATIN_LONG,Total Channels,Total Channels,All Channels,14,전체 채널
+pages,pages.marketingIntel.marketingIntel.aiPredict.channelKpiPage.badgeAdSpend,LATIN_LONG,Total Ad Spend,Total Ad Spend,Total Ad Spend,14,총 광고 비용
+pages,pages.marketingIntel.marketingIntel.aiPredict.channelKpiPage.badgeBlendedRoas,LATIN_LONG,Blended ROAS,Blended ROAS,Blended ROAS,12,Blended ROAS
+pages,pages.marketingIntel.marketingIntel.aiPredict.channelKpiPage.belowTarget,LATIN_LONG,Below Target,Below Target,Below Target,12,목표 미달
+pages,pages.marketingIntel.marketingIntel.aiPredict.channelKpiPage.brandAwareness,LATIN_LONG,Brand Awareness,Brand Awareness,Brand Awareness,15,브랜드 인지도
+pages,pages.marketingIntel.marketingIntel.aiPredict.channelKpiPage.convRate,LATIN_LONG,Conversion Rate,Conversion Rate,Conversion Rate,15,전환율
+pages,pages.marketingIntel.marketingIntel.aiPredict.channelKpiPage.coreKpis,LATIN_LONG,Core KPIs,Core KPIs,Core KPIs,9,핵심 KPI
+pages,pages.marketingIntel.marketingIntel.aiPredict.channelKpiPage.cpa,LATIN_LONG,Cost Per Acquisition (CPA),Cost Per Acquisition (CPA),Cost Per Acquisition (CPA),26,고객 획득 비용 (CPA)
+pages,pages.marketingIntel.marketingIntel.aiPredict.channelKpiPage.cpc,LATIN_LONG,Cost Per Click (CPC),Cost Per Click (CPC),Cost Per Click (CPC),20,클릭당 비용 (CPC)
+pages,pages.marketingIntel.marketingIntel.aiPredict.channelKpiPage.engagement,LATIN_LONG,Engagement Rate,Engagement Rate,Engagement Rate,15,참여율
+pages,pages.marketingIntel.marketingIntel.aiPredict.channelKpiPage.lblConvRate,LATIN_LONG,Conversion Rate,Conversion Rate,Conversion Rate,15,전환율
+pages,pages.marketingIntel.marketingIntel.aiPredict.gdpr.marketing,LATIN_LONG,Marketing Performance,Marketing Performance,Marketing Performance,21,마케팅 성과
+pages,pages.marketingIntel.marketingIntel.aiPredict.gdpr.totalVisitors,LATIN_LONG,Total Visitors,Total Visitors,Total Visitors,14,총 방문자
+pages,pages.marketingIntel.marketingIntel.aiPredict.influencerUGC.u_107,LATIN_LONG,Total Channels,Total Channels,All Channels,14,전체 채널
+pages,pages.marketingIntel.marketingIntel.aiPredict.influencerUGC.u_84,LATIN_LONG,Engagement Rate,Engagement Rate,Engagement Rate,15,참여율
+pages,pages.marketingIntel.marketingIntel.aiPredict.influencerUGC.u_91,LATIN_LONG,Conversion Rate,Conversion Rate,Conversion Rate,15,전환율
+pages,pages.marketingIntel.marketingIntel.aiPredict.unified.cases,LATIN_LONG, orders, orders,cases,7,주문
+pages,pages.marketingIntel.marketingIntel.aiPredict.workspace.title,LATIN_LONG,Email Marketing,Email Marketing,Email Marketing,15,이메일 마케팅
+pages,pages.marketingIntel.marketingIntel.channelKpiPage.achieved,LATIN_LONG,Achieved ✓,Achieved ✓,Achieved ✓,10,달성 ✓
+pages,pages.marketingIntel.marketingIntel.channelKpiPage.achievedOk,LATIN_LONG,Achieved ✓,Achieved ✓,Achieved ✓,10,달성 ✓
+pages,pages.marketingIntel.marketingIntel.channelKpiPage.aiAnalyzing,LATIN_LONG,AI Analyzing...,AI Analyzing...,AI Analyzing...,15,AI 분석 중...
+pages,pages.marketingIntel.marketingIntel.channelKpiPage.allChannels,LATIN_LONG,Total Channels,Total Channels,All Channels,14,전체 채널
+pages,pages.marketingIntel.marketingIntel.channelKpiPage.badgeAdSpend,LATIN_LONG,Total Ad Spend,Total Ad Spend,Total Ad Spend,14,총 광고 비용
+pages,pages.marketingIntel.marketingIntel.channelKpiPage.badgeBlendedRoas,LATIN_LONG,Blended ROAS,Blended ROAS,Blended ROAS,12,Blended ROAS
+pages,pages.marketingIntel.marketingIntel.channelKpiPage.belowTarget,LATIN_LONG,Below Target,Below Target,Below Target,12,목표 미달
+pages,pages.marketingIntel.marketingIntel.channelKpiPage.brandAwareness,LATIN_LONG,Brand Awareness,Brand Awareness,Brand Awareness,15,브랜드 인지도
+pages,pages.marketingIntel.marketingIntel.channelKpiPage.convRate,LATIN_LONG,Conversion Rate,Conversion Rate,Conversion Rate,15,전환율
+pages,pages.marketingIntel.marketingIntel.channelKpiPage.coreKpis,LATIN_LONG,Core KPIs,Core KPIs,Core KPIs,9,핵심 KPI
+pages,pages.marketingIntel.marketingIntel.channelKpiPage.cpa,LATIN_LONG,Cost Per Acquisition (CPA),Cost Per Acquisition (CPA),Cost Per Acquisition (CPA),26,고객 획득 비용 (CPA)
+pages,pages.marketingIntel.marketingIntel.channelKpiPage.cpc,LATIN_LONG,Cost Per Click (CPC),Cost Per Click (CPC),Cost Per Click (CPC),20,클릭당 비용 (CPC)
+pages,pages.marketingIntel.marketingIntel.channelKpiPage.engagement,LATIN_LONG,Engagement Rate,Engagement Rate,Engagement Rate,15,참여율
+pages,pages.marketingIntel.marketingIntel.channelKpiPage.lblConvRate,LATIN_LONG,Conversion Rate,Conversion Rate,Conversion Rate,15,전환율
+pages,pages.marketingIntel.marketingIntel.gdpr.marketing,LATIN_LONG,Marketing Performance,Marketing Performance,Marketing Performance,21,마케팅 성과
+pages,pages.marketingIntel.marketingIntel.gdpr.totalVisitors,LATIN_LONG,Total Visitors,Total Visitors,Total Visitors,14,총 방문자
+pages,pages.marketingIntel.marketingIntel.influencerUGC.u_107,LATIN_LONG,Total Channels,Total Channels,All Channels,14,전체 채널
+pages,pages.marketingIntel.marketingIntel.influencerUGC.u_84,LATIN_LONG,Engagement Rate,Engagement Rate,Engagement Rate,15,참여율
+pages,pages.marketingIntel.marketingIntel.influencerUGC.u_91,LATIN_LONG,Conversion Rate,Conversion Rate,Conversion Rate,15,전환율
+pages,pages.marketingIntel.marketingIntel.menuAccess.title,LATIN_LONG,Email Marketing,Email Marketing,Email Marketing,15,이메일 마케팅
+pages,pages.marketingIntel.menuAccess.title,LATIN_LONG,Email Marketing,Email Marketing,Email Marketing,15,이메일 마케팅
+pages,pages.marketingIntel.omniChannel.ordTotalOrders,LATIN_LONG,Total Orders,Total Orders,Total Orders,12,총 주문
+pages,pages.marketingIntel.omniChannel.ovTotalOrders,LATIN_LONG,Total Orders,Total Orders,Total Orders,12,총 주문
+pages,pages.marketingIntel.omniChannel.ovTotalRevenue,LATIN_LONG,Total Revenue,Total Revenue,Total Revenue,13,총 매출
+pages,pages.marketingIntel.orders,LATIN_LONG, orders, orders,cases,7,주문
+pages,pages.marketingIntel.rollup.pnlAdSpend,LATIN_LONG,Ad Spend,Ad Spend,Ad Spend,8,광고 비용
+pages,pages.marketingIntel.rollup.pnlSettle,LATIN_LONG,Net Payout,Net Payout,Pnl Settle,10,Net Payout
+pages,pages.marketingIntel.rollup.returnRateWord,LATIN_LONG,Return Rate,Return Rate,Return Rate,11,반품률
+pages,pages.marketingIntel.title,LATIN_LONG,Email Marketing,Email Marketing,Email Marketing,15,이메일 마케팅
+pages,pages.marketingIntel.topProducts,LATIN_LONG,Top Products,Top Products,Top Products,12,인기 상품
+pages,pages.menu.attribution,LATIN_LONG,Attribution,Attribution,Attribution,11,어트리뷰션
+pages,pages.menu.channelKpi.achieved,LATIN_LONG,Achieved ✓,Achieved ✓,Achieved ✓,10,달성 ✓
+pages,pages.menu.channelKpi.achievedOk,LATIN_LONG,Achieved ✓,Achieved ✓,Achieved ✓,10,달성 ✓
+pages,pages.menu.channelKpi.aiAnalyzing,LATIN_LONG,AI Analyzing...,AI Analyzing...,AI Analyzing...,15,AI 분석 중...
+pages,pages.menu.channelKpi.allChannels,LATIN_LONG,Total Channels,Total Channels,All Channels,14,전체 채널
+pages,pages.menu.channelKpi.belowTarget,LATIN_LONG,Below Target,Below Target,Below Target,12,목표 미달
+pages,pages.menu.channelKpi.brandAwareness,LATIN_LONG,Brand Awareness,Brand Awareness,Brand Awareness,15,브랜드 인지도
+pages,pages.menu.channelKpi.coreKpis,LATIN_LONG,Core KPIs,Core KPIs,Core KPIs,9,핵심 KPI
+pages,pages.menu.graphScore,LATIN_LONG,Graph Score,Graph Score,Graph Score,11,Graph Score
+pages,pages.mobile.aiInsightsPage.adSpend,LATIN_LONG,Ad Spend,Ad Spend,Ad Spend,8,광고 비용
+pages,pages.mobile.auth.registerLink,LATIN_LONG,Sign Up,Sign Up,Sign Up,7,회원가입
+pages,pages.mobile.coupon.modalProcessing,LATIN_LONG,Processing...,Processing...,Processing...,13,처리 중...
+pages,pages.mobile.helpPanel.staticHelp.connectors.title,LATIN_LONG,Email Marketing,Email Marketing,Email Marketing,15,이메일 마케팅
+pages,pages.mobile.helpPanel.staticHelp.help.title,LATIN_LONG,Email Marketing,Email Marketing,Email Marketing,15,이메일 마케팅
+pages,pages.mobile.helpPanel.staticHelp.smsMarketing.title,LATIN_LONG,Email Marketing,Email Marketing,Email Marketing,15,이메일 마케팅
+pages,pages.mobile.marketing,LATIN_LONG,Marketing Performance,Marketing Performance,Marketing Performance,21,마케팅 성과
+pages,pages.perms.colConversions,LATIN_LONG,Conversions,Conversions,Conversions,11,전환
+pages,pages.perms.colSpend,LATIN_LONG,Ad Spend,Ad Spend,Ad Spend,8,광고 비용
+pages,pages.perms.kpiConversions,LATIN_LONG,Conversions,Conversions,Conversions,11,전환
+pages,pages.perms.kpiSpend,LATIN_LONG,Total Ad Spend,Total Ad Spend,Total Ad Spend,14,총 광고 비용
+pages,pages.perms.menu.attribution,LATIN_LONG,Attribution,Attribution,Attribution,11,어트리뷰션
+pages,pages.perms.menu.channelKpi.achieved,LATIN_LONG,Achieved ✓,Achieved ✓,Achieved ✓,10,달성 ✓
+pages,pages.perms.menu.channelKpi.achievedOk,LATIN_LONG,Achieved ✓,Achieved ✓,Achieved ✓,10,달성 ✓
+pages,pages.perms.menu.channelKpi.aiAnalyzing,LATIN_LONG,AI Analyzing...,AI Analyzing...,AI Analyzing...,15,AI 분석 중...
+pages,pages.perms.menu.channelKpi.allChannels,LATIN_LONG,Total Channels,Total Channels,All Channels,14,전체 채널
+pages,pages.perms.menu.channelKpi.belowTarget,LATIN_LONG,Below Target,Below Target,Below Target,12,목표 미달
+pages,pages.perms.menu.channelKpi.brandAwareness,LATIN_LONG,Brand Awareness,Brand Awareness,Brand Awareness,15,브랜드 인지도
+pages,pages.perms.menu.channelKpi.coreKpis,LATIN_LONG,Core KPIs,Core KPIs,Core KPIs,9,핵심 KPI
+pages,pages.perms.menu.graphScore,LATIN_LONG,Graph Score,Graph Score,Graph Score,11,Graph Score
+pages,pages.perms.topProducts,LATIN_LONG,Top Products,Top Products,Top Products,12,인기 상품
+pages,pages.priceOpt.marketing,LATIN_LONG,Marketing Performance,Marketing Performance,Marketing Performance,21,마케팅 성과
+pages,pages.pricingDetail.pro_s9i1,LATIN_LONG,Cohort Analysis,Cohort Analysis,Cohort Analysis,15,코호트 분석
+pages,pages.reconciliation.analyzing,LATIN_LONG,Analyzing...,Analyzing...,Analyzing...,12,분석 중...
+pages,pages.reconciliation.totalOrders,LATIN_LONG,Total Orders,Total Orders,Total Orders,12,총 주문
+pages,pages.report.title,LATIN_LONG,Email Marketing,Email Marketing,Email Marketing,15,이메일 마케팅
+reportBuilder,reportBuilder.kpiRoas,LATIN_LONG,Blended ROAS,,ROAS,12,Blended ROAS
+ruleEnginePage,ruleEnginePage.dash.adSpend,LATIN_LONG,Ad Spend,Ad Spend,Ad Spend,8,광고 비용
+ruleEnginePage,ruleEnginePage.dash.avgRoas,LATIN_LONG,Blended ROAS,Blended ROAS,Blended ROAS,12,Blended ROAS
+ruleEnginePage,ruleEnginePage.dash.blendedRoas,LATIN_LONG,Blended ROAS,Blended ROAS,Blended ROAS,12,Blended ROAS
+ruleEnginePage,ruleEnginePage.dash.bounceRate,LATIN_LONG,Bounce Rate,Bounce Rate,Bounce Rate,11,이탈률
+ruleEnginePage,ruleEnginePage.dash.execAdSpend,LATIN_LONG,Total Ad Spend,Total Ad Spend,Total Ad Spend,14,총 광고 비용
+ruleEnginePage,ruleEnginePage.dash.retRate,LATIN_LONG,Return Rate,Return Rate,Return Rate,11,반품률
+ruleEnginePage,ruleEnginePage.dash.syncTotalRev,LATIN_LONG,Total Revenue,Total Revenue,Total Revenue,13,총 매출
+ruleEnginePage,ruleEnginePage.dash.totalClicks,LATIN_LONG,Total Clicks,Total Clicks,Total Clicks,12,총 클릭
+ruleEnginePage,ruleEnginePage.dash.totalRev,LATIN_LONG,Total Revenue,Total Revenue,Total Revenue,13,총 매출
+ruleEnginePage,ruleEnginePage.dash.totalSpend,LATIN_LONG,Total Spend,Total Spend,Total Spend,11,총 지출
+ruleEnginePage,ruleEnginePage.marketing.adSpendSub,LATIN_LONG,Total Ad Spend,Total Ad Spend,Total Ad Spend,14,총 광고 비용
+ruleEnginePage,ruleEnginePage.marketing.Attribution,LATIN_LONG,Attribution,Attribution,Attribution,11,어트리뷰션
+ruleEnginePage,ruleEnginePage.marketing.colImpr,LATIN_LONG,Total Impressions,Total Impressions,Total Impressions,17,총 노출
+ruleEnginePage,ruleEnginePage.marketing.colSpend,LATIN_LONG,Ad Spend,Ad Spend,Ad Spend,8,광고 비용
+ruleEnginePage,ruleEnginePage.marketing.GraphScore,LATIN_LONG,Graph Score,Graph Score,Graph Score,11,Graph Score
+ruleEnginePage,ruleEnginePage.marketing.metricClicks,LATIN_LONG,Total Clicks,Total Clicks,Total Clicks,12,총 클릭
+ruleEnginePage,ruleEnginePage.marketing.metricConv,LATIN_LONG,Conversions,Conversions,Conversions,11,전환
+ruleEnginePage,ruleEnginePage.marketing.statConversions,LATIN_LONG,Conversions,Conversions,Conversions,11,전환
+ruleEnginePage,ruleEnginePage.root_pageTitle_attribution,LATIN_LONG,Attribution,Attribution,Attribution,11,어트리뷰션
+ruleEnginePage,ruleEnginePage.root_pageTitle_graphScore,LATIN_LONG,Graph Score,Graph Score,Graph Score,11,Graph Score

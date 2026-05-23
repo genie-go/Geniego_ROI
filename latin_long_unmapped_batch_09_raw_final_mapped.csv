@@ -1,0 +1,139 @@
+ko_value,count,path,ja_value,en_value,suggested_ko
+Settlement Chs,1,ruleEnginePage.dash.settlementChs,Settlement Chs,Settlement Chs,정산 채널
+Shopee SG,1,ruleEnginePage.dash.shopeeName,Shopee SG,Shopee SG,Shopee SG
+Naver Store,1,ruleEnginePage.dash.smartstoreName,Naver Store,Naver Store,네이버 스토어
+Settlement Complete,1,ruleEnginePage.dash.syncSettled,Settlement Complete,Settlement Complete,정산 완료
+Threat Detected,1,ruleEnginePage.dash.threatDetected,Threat Detected,Threat Detected,위협 감지됨
+threats detected,1,ruleEnginePage.dash.threatsDetected,threats detected,threats detected,건의 위협 감지됨
+Top Regions,1,ruleEnginePage.dash.topRegRev,Top Regions,Top Regions,상위 지역
+times,1,ruleEnginePage.dash.unitTimes,times,times,회
+Ad Account,1,ruleEnginePage.marketing.adAccountFilter,Ad Account,Ad Account,광고 계정
+Sub Account 1,1,ruleEnginePage.marketing.adFilterSub,Sub Account 1,Sub Account 1,서브 계정 1
+Ad Meta Dynamic Chart Performance,1,ruleEnginePage.marketing.adMetaDynChart,Ad Meta Dynamic Chart Performance,Ad Meta Dynamic Chart Performance,Meta 동적 광고 성과
+Performance during the selected active period.,1,ruleEnginePage.marketing.adTableSub,Performance during the selected active period.,Performance during the selected active period.,선택한 기간의 성과입니다.
+Ad Performance Detail (Campaign/Ad Set),1,ruleEnginePage.marketing.adTableTitle,Ad Performance Detail (Campaign/Ad Set),Ad Performance Detail (Campaign/Ad Set),광고 성과 상세 (캠페인/광고 세트)
+Ai Reason Detail,1,ruleEnginePage.marketing.aiReasonDetail,Ai Reason Detail,Ai Reason Detail,AI 판단 근거 상세
+Approved By,1,ruleEnginePage.marketing.approvedBy,Approved By,Approved By,승인자
+Bg Period Monthly,1,ruleEnginePage.marketing.bgPeriodMonthly,Bg Period Monthly,Bg Period Monthly,월별
+Bg Period Quarterly,1,ruleEnginePage.marketing.bgPeriodQuarterly,Bg Period Quarterly,Bg Period Quarterly,분기별
+Bg Period Yearly,1,ruleEnginePage.marketing.bgPeriodYearly,Bg Period Yearly,Bg Period Yearly,연도별
+Bg Planner,1,ruleEnginePage.marketing.bgPlannerDesc,Bg Planner,Bg Planner,예산 플래너 안내
+Google（YouTube）,1,ruleEnginePage.marketing.ch_google,Google（YouTube）,Google（YouTube）,Google（YouTube）
+CPA Cost,1,ruleEnginePage.marketing.colCpa,CPA Cost,CPA Cost,CPA
+Col Item Name,1,ruleEnginePage.marketing.colItemName,Col Item Name,Col Item Name,항목명
+Actual Conversions,1,ruleEnginePage.marketing.colResultConv,Actual Conversions,Actual Conversions,실제 전환 수
+Default Team,1,ruleEnginePage.marketing.defaultTeam,Default Team,Default Team,기본 팀
+Explain Cat Insight,1,ruleEnginePage.marketing.explainCatInsight,Explain Cat Insight,Explain Cat Insight,카테고리 인사이트 설명
+Explain Ch Why,1,ruleEnginePage.marketing.explainChWhy,Explain Ch Why,Explain Ch Why,채널 판단 근거
+Explain Edit Note,1,ruleEnginePage.marketing.explainEditNote,Explain Edit Note,Explain Edit Note,편집 메모 설명
+Explain Title,1,ruleEnginePage.marketing.explainTitle,Explain Title,Explain Title,설명
+Mem Access Saved,1,ruleEnginePage.marketing.memAccessSaved,Mem Access Saved,Mem Access Saved,멤버 접근 권한 저장 완료
+Average CPC,1,ruleEnginePage.marketing.metricCpc,Average CPC,Average CPC,평균 CPC
+Average CPM,1,ruleEnginePage.marketing.metricCpm,Average CPM,Average CPM,평균 CPM
+Average CTR,1,ruleEnginePage.marketing.metricCtr,Average CTR,Average CTR,평균 CTR
+Return on Ad Spend (ROAS),1,ruleEnginePage.marketing.metricRoas,Return on Ad Spend (ROAS),Return on Ad Spend (ROAS),광고 수익률 (ROAS)
+Daily Spend,1,ruleEnginePage.marketing.metricSpend,Daily Spend,Daily Spend,일별 광고비
+Detailed Ad Media Performance,1,ruleEnginePage.marketing.mktHierTitle,Detailed Ad Media Performance,Detailed Ad Media Performance,광고 매체 상세 성과
+🔴 LIVE,1,ruleEnginePage.marketing.realModeLabel,🔴 LIVE,🔴 LIVE,🔴 LIVE
+Status Approved,1,ruleEnginePage.marketing.statusApproved,Status Approved,Status Approved,승인됨
+Status Paused,1,ruleEnginePage.marketing.statusPaused,Status Paused,Status Paused,일시정지
+Status Pending,1,ruleEnginePage.marketing.statusPending,Status Pending,Status Pending,대기 중
+Status Rejected,1,ruleEnginePage.marketing.statusRejected,Status Rejected,Status Rejected,반려됨
+Ad Set Level,1,ruleEnginePage.marketing.tabAdset,Ad Set Level,Ad Set Level,광고 세트 레벨
+Root_page Title_ai Policy,1,ruleEnginePage.root_pageTitle_aiPolicy,Root_page Title_ai Policy,Root_page Title_ai Policy,AI 정책
+Root_page Title_approvals,1,ruleEnginePage.root_pageTitle_approvals,Root_page Title_approvals,Root_page Title_approvals,승인 관리
+Root_page Title_integration Hub,1,ruleEnginePage.root_pageTitle_integrationHub,Root_page Title_integration Hub,Root_page Title_integration Hub,연동 허브
+Root_page Title_marketing,1,ruleEnginePage.root_pageTitle_marketing,Root_page Title_marketing,Root_page Title_marketing,마케팅
+Root_page Title_onboarding,1,ruleEnginePage.root_pageTitle_onboarding,Root_page Title_onboarding,Root_page Title_onboarding,온보딩
+Root_page Title_writeback,1,ruleEnginePage.root_pageTitle_writeback,Root_page Title_writeback,Root_page Title_writeback,Writeback
+Add a comment to the current view...,1,ruleEnginePage.super.aaAddCmt,Add a comment to the current view...,Add a comment to the current view...,현재 화면에 코멘트를 추가하세요...
+🔷 Data Warehouse,1,ruleEnginePage.super.conTabDw,🔷 Data Warehouse,🔷 Data Warehouse,🔷 데이터 웨어하우스
+🟢 Connected,1,ruleEnginePage.super.ihConnected,🟢 Connected,🟢 Connected,🟢 연결됨
+Connecting...,1,ruleEnginePage.super.ihConnecting,Connecting...,Connecting...,연결 중...
+📊 Widget Library,1,ruleEnginePage.super.rbLib,📊 Widget Library,📊 Widget Library,📊 위젯 라이브러리
+🛠️ Custom Report Builder,1,ruleEnginePage.super.rbTitle,🛠️ Custom Report Builder,🛠️ Custom Report Builder,🛠️ 맞춤 리포트 빌더
+Adjust Inventory,1,ruleEnginePage.wms.adjustInventory,Adjust Inventory,Adjust Inventory,재고 조정
+Stock adjustment will be reflected in In/Out tab.,1,ruleEnginePage.wms.auditAdjAlert,Stock adjustment will be reflected in In/Out tab.,Stock adjustment will be reflected in In/Out tab.,재고 조정 내역은 입출고 탭에 반영됩니다.
+All SKUs,1,ruleEnginePage.wms.auditAllSku,All SKUs,All SKUs,전체 SKU
+🔧 Bulk Adjust,1,ruleEnginePage.wms.auditBulkAdj,🔧 Bulk Adjust,🔧 Bulk Adjust,🔧 일괄 조정
+Book Stock,1,ruleEnginePage.wms.auditColBook,Book Stock,Book Stock,장부 재고
+Count Input,1,ruleEnginePage.wms.auditColInput,Count Input,Count Input,실사 입력
+✅ Completed,1,ruleEnginePage.wms.auditCompleted,✅ Completed,✅ Completed,✅ 완료
+{n} SKUs uncounted. Complete?,1,ruleEnginePage.wms.auditConfirmMsg,{n} SKUs uncounted. Complete?,{n} SKUs uncounted. Complete?,{n}개 SKU가 미실사 상태입니다. 완료하시겠습니까?
+🔄 Counting,1,ruleEnginePage.wms.auditCounting,🔄 Counting,🔄 Counting,🔄 실사 진행 중
+Audit Date,1,ruleEnginePage.wms.auditDateLabel,Audit Date,Audit Date,실사 일자
+Discrepancy,1,ruleEnginePage.wms.auditDiffQty,Discrepancy,Discrepancy,차이 수량
+🖨️ Diff Report,1,ruleEnginePage.wms.auditDiffReport,🖨️ Diff Report,🖨️ Diff Report,🖨️ 차이 리포트
+⚠️ Discrepancy Items,1,ruleEnginePage.wms.auditDiscTitle,⚠️ Discrepancy Items,⚠️ Discrepancy Items,⚠️ 불일치 항목
+📝 Draft,1,ruleEnginePage.wms.auditDraft,📝 Draft,📝 Draft,📝 임시 저장
+📈 Excess,1,ruleEnginePage.wms.auditExcess,📈 Excess,📈 Excess,📈 초과
+Movement History,1,ruleEnginePage.wms.auditLogBtn,Movement History,Movement History,이동 이력
+Delete History,1,ruleEnginePage.wms.auditLogClearBtn,Delete History,Delete History,이력 삭제
+Delete all history? This cannot be undone.,1,ruleEnginePage.wms.auditLogClearConfirm,Delete all history? This cannot be undone.,Delete all history? This cannot be undone.,전체 이력을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.
+Immutable log of all stock changes. Up to 500 records.,1,ruleEnginePage.wms.auditLogDesc,Immutable log of all stock changes. Up to 500 records.,Immutable log of all stock changes. Up to 500 records.,모든 재고 변경 이력이 기록됩니다. 최대 500건까지 저장됩니다.
+No movement history recorded.,1,ruleEnginePage.wms.auditLogEmpty,No movement history recorded.,No movement history recorded.,기록된 이동 이력이 없습니다.
+Stock Movement History (Audit Trail),1,ruleEnginePage.wms.auditLogTitle,Stock Movement History (Audit Trail),Stock Movement History (Audit Trail),재고 이동 이력 (감사 로그)
+No Issues,1,ruleEnginePage.wms.auditNoDiff,No Issues,No Issues,이슈 없음
+✅ Normal,1,ruleEnginePage.wms.auditNormal,✅ Normal,✅ Normal,✅ 정상
+📉 Short,1,ruleEnginePage.wms.auditShort,📉 Short,📉 Short,📉 부족
+🔄 Start,1,ruleEnginePage.wms.auditStartBtn,🔄 Start,🔄 Start,🔄 시작
+Total Discrepancy Qty,1,ruleEnginePage.wms.auditTotalDiff,Total Discrepancy Qty,Total Discrepancy Qty,총 차이 수량
++ Add Bundle,1,ruleEnginePage.wms.bdlAddBtn,+ Add Bundle,+ Add Bundle,+ 번들 추가
++ Add,1,ruleEnginePage.wms.bdlAddComp,+ Add,+ Add,+ 추가
+Assemblable,1,ruleEnginePage.wms.bdlAssemble,Assemblable,Assemblable,조립 가능 수량
+Components (BOM),1,ruleEnginePage.wms.bdlBomTitle,Components (BOM),Components (BOM),구성품 (BOM)
+Bundle Name,1,ruleEnginePage.wms.bdlNameLabel,Bundle Name,Bundle Name,번들명
+Bdl Name Ph,1,ruleEnginePage.wms.bdlNamePh,Bdl Name Ph,Bdl Name Ph,번들명을 입력해주세요
+New Bundle,1,ruleEnginePage.wms.bdlNewTitle,New Bundle,New Bundle,새 번들
+Bundle Registration Complete:,1,ruleEnginePage.wms.bdlRegAlert,Bundle Registration Complete:,Bundle Registration Complete:,번들 등록 완료:
+📦 Ship 1 Set,1,ruleEnginePage.wms.bdlShip1,📦 Ship 1 Set,📦 Ship 1 Set,📦 1세트 출고
+📦 Ship 10 Sets,1,ruleEnginePage.wms.bdlShip10,📦 Ship 10 Sets,📦 Ship 10 Sets,📦 10세트 출고
+Bundle Shipment:,1,ruleEnginePage.wms.bdlShipAlert,Bundle Shipment:,Bundle Shipment:,번들 출고:
+Bundle SKU,1,ruleEnginePage.wms.bdlSkuLabel,Bundle SKU,Bundle SKU,번들 SKU
++ Add Carrier,1,ruleEnginePage.wms.carrAddBtn,+ Add Carrier,+ Add Carrier,+ 운송사 추가
+Total Registered,1,ruleEnginePage.wms.carrAllReg,Total Registered,Total Registered,전체 등록 수
+API Connected,1,ruleEnginePage.wms.carrApiDone,API Connected,API Connected,API 연결됨
+API Key,1,ruleEnginePage.wms.carrApiKeyLabel,API Key,API Key,API 키
+Enter API Key,1,ruleEnginePage.wms.carrApiKeyPh,Enter API Key,Enter API Key,API 키를 입력해주세요
+Enter API Key first.,1,ruleEnginePage.wms.carrApiKeyRequired,Enter API Key first.,Enter API Key first.,API 키를 먼저 입력해주세요.
+✏️ Edit Carrier,1,ruleEnginePage.wms.carrEditTitle,✏️ Edit Carrier,✏️ Edit Carrier,✏️ 운송사 수정
+❌ Auth failed for {name},1,ruleEnginePage.wms.carrFailMsg,❌ Auth failed for {name},❌ Auth failed for {name},❌ {name} 인증 실패
+❌ Failed,1,ruleEnginePage.wms.carrIntegFail,❌ Failed,❌ Failed,❌ 실패
+✅ Connected,1,ruleEnginePage.wms.carrIntegOk,✅ Connected,✅ Connected,✅ 연결됨
+🔑 Key Registered,1,ruleEnginePage.wms.carrKeyReg,🔑 Key Registered,🔑 Key Registered,🔑 키 등록 완료
+🔄 Testing {name} API...,1,ruleEnginePage.wms.carrLoadingMsg,🔄 Testing {name} API...,🔄 Testing {name} API...,🔄 {name} API 테스트 중...
+Name and code required.,1,ruleEnginePage.wms.carrNameRequired,Name and code required.,Name and code required.,이름과 코드를 입력해주세요.
+➕ New Carrier,1,ruleEnginePage.wms.carrNewTitle,➕ New Carrier,➕ New Carrier,➕ 새 운송사
+Not Connected,1,ruleEnginePage.wms.carrNoApi,Not Connected,Not Connected,연결 안 됨
+⚠️ Not Connected,1,ruleEnginePage.wms.carrNoInteg,⚠️ Not Connected,⚠️ Not Connected,⚠️ 연결 안 됨
+✅ {name} API connected,1,ruleEnginePage.wms.carrOkMsg,✅ {name} API connected,✅ {name} API connected,✅ {name} API 연결 완료
+🔌 Test,1,ruleEnginePage.wms.carrTestBtn,🔌 Test,🔌 Test,🔌 테스트
+🔄 Testing,1,ruleEnginePage.wms.carrTestLoading,🔄 Testing,🔄 Testing,🔄 테스트 중
+✅ Re-test,1,ruleEnginePage.wms.carrTestOk,✅ Re-test,✅ Re-test,✅ 재테스트
+Tracking URL,1,ruleEnginePage.wms.carrTrackUrlLabel,Tracking URL,Tracking URL,배송 추적 URL
+✓ Approve,1,ruleEnginePage.wms.combApproveBtn,✓ Approve,✓ Approve,✓ 승인
+✓ Approved,1,ruleEnginePage.wms.combApproved,✓ Approved,✓ Approved,✓ 승인됨
+Bundle Carrier,1,ruleEnginePage.wms.combCarrierLabel,Bundle Carrier,Bundle Carrier,묶음 배송 운송사
+💡 Bundle multiple orders from the same buyer into one package.,1,ruleEnginePage.wms.combInfo,💡 Bundle multiple orders from the same buyer into one package.,💡 Bundle multiple orders from the same buyer into one package.,💡 동일 구매자의 여러 주문을 하나의 패키지로 묶어 배송합니다.
+📋 Bundle Request List,1,ruleEnginePage.wms.combListTitle,📋 Bundle Request List,📋 Bundle Request List,📋 묶음 배송 요청 목록
+Order Numbers,1,ruleEnginePage.wms.combOrderListLabel,Order Numbers,Order Numbers,주문 번호
+Enter order numbers.,1,ruleEnginePage.wms.combOrderRequired,Enter order numbers.,Enter order numbers.,주문 번호를 입력해주세요.
+⏳ Pending,1,ruleEnginePage.wms.combPending,⏳ Pending,⏳ Pending,⏳ 대기 중
+Combined Shipment,1,ruleEnginePage.wms.combPrefix,Combined Shipment,Combined Shipment,묶음 배송
+📦 Bundle Request,1,ruleEnginePage.wms.combRegTitle,📦 Bundle Request,📦 Bundle Request,📦 묶음 배송 요청
++ Bundle Request,1,ruleEnginePage.wms.combReqBtn,+ Bundle Request,+ Bundle Request,+ 묶음 배송 요청
+🚚 Ship Complete,1,ruleEnginePage.wms.combShipBtn,🚚 Ship Complete,🚚 Ship Complete,🚚 출고 완료
+🚚 Tracking,1,ruleEnginePage.wms.combTracking,🚚 Tracking,🚚 Tracking,🚚 배송 추적
+Execute Bulk Registration,1,ruleEnginePage.wms.csvExecuteBtn,Execute Bulk Registration,Execute Bulk Registration,일괄 등록 실행
+CSV Bulk Import,1,ruleEnginePage.wms.csvImportBtn,CSV Bulk Import,CSV Bulk Import,CSV 일괄 업로드
+Bulk register SKU/inventory via CSV file. Required columns:,1,ruleEnginePage.wms.csvImportDesc,Bulk register SKU/inventory via CSV file. Required columns:,Bulk register SKU/inventory via CSV file. Required columns:,CSV 파일로 SKU·재고를 일괄 등록합니다. 필수 컬럼:
+records imported!,1,ruleEnginePage.wms.csvImportDone,records imported!,records imported!,건 업로드 완료!
+Csv Import Title,1,ruleEnginePage.wms.csvImportTitle,Csv Import Title,Csv Import Title,CSV 업로드
+Csv More Rows,1,ruleEnginePage.wms.csvMoreRows,Csv More Rows,Csv More Rows,CSV 더 보기
+records detected,1,ruleEnginePage.wms.csvRowsDetected,records detected,records detected,건 감지됨
+Export Excel Btn,1,ruleEnginePage.wms.exportExcelBtn,Export Excel Btn,Export Excel Btn,Excel 내보내기
+Adjustment Qty,1,ruleEnginePage.wms.invAdjQty,Adjustment Qty,Adjustment Qty,조정 수량
+🔧 Stock Adjustment (Live),1,ruleEnginePage.wms.invAdjTitle,🔧 Stock Adjustment (Live),🔧 Stock Adjustment (Live),🔧 재고 조정 (실시간)
++ Add Item,1,ruleEnginePage.wms.invcAddItem,+ Add Item,+ Add Item,+ 항목 추가
+📄 Invoice Info,1,ruleEnginePage.wms.invcBasicInfo,📄 Invoice Info,📄 Invoice Info,📄 인보이스 정보
+Description,1,ruleEnginePage.wms.invcColDesc,Description,Description,설명

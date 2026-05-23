@@ -1,0 +1,139 @@
+ko_value,count,path,ja_value,en_value,suggested_ko
+Funnel Title,1,crm.aiHub.catalogSync.pxl.funnelTitle,Funnel Title,Funnel Title,퍼널명
+Funnel Visit,1,crm.aiHub.catalogSync.pxl.funnelVisit,Funnel Visit,Funnel Visit,방문 퍼널
+Meta C A P I Token,1,crm.aiHub.catalogSync.pxl.metaCAPIToken,Meta C A P I Token,Meta C A P I Token,Meta CAPI 토큰
+Meta Forward,1,crm.aiHub.catalogSync.pxl.metaForward,Meta Forward,Meta Forward,Meta 전달 설정
+No Channel Data,1,crm.aiHub.catalogSync.pxl.noChannelData,No Channel Data,No Channel Data,채널 데이터가 없습니다
+No Data,1,crm.aiHub.catalogSync.pxl.noDataDesc,No Data,No Data,데이터가 없습니다
+No Data Title,1,crm.aiHub.catalogSync.pxl.noDataTitle,No Data Title,No Data Title,데이터 없음
+No Events,1,crm.aiHub.catalogSync.pxl.noEvents,No Events,No Events,이벤트가 없습니다
+No Pixels,1,crm.aiHub.catalogSync.pxl.noPixels,No Pixels,No Pixels,등록된 픽셀이 없습니다
+Pixel List,1,crm.aiHub.catalogSync.pxl.pixelList,Pixel List,Pixel List,픽셀 목록
+Pixel Name,1,crm.aiHub.catalogSync.pxl.pixelName,Pixel Name,Pixel Name,픽셀명
+Pixel Name Ph,1,crm.aiHub.catalogSync.pxl.pixelNamePh,Pixel Name Ph,Pixel Name Ph,픽셀명을 입력해주세요
+Realtime Stream,1,crm.aiHub.catalogSync.pxl.realtimeStream,Realtime Stream,Realtime Stream,실시간 스트림
+Sec Alert,1,crm.aiHub.catalogSync.pxl.secAlert,Sec Alert,Sec Alert,보안 알림
+Sec Blocked,1,crm.aiHub.catalogSync.pxl.secBlocked,Sec Blocked,Sec Blocked,보안 차단
+Sec Input Blocked,1,crm.aiHub.catalogSync.pxl.secInputBlocked,Sec Input Blocked,Sec Input Blocked,입력 차단
+Sec Lock Wait,1,crm.aiHub.catalogSync.pxl.secLockWait,Sec Lock Wait,Sec Lock Wait,잠금 대기
+Sec Total,1,crm.aiHub.catalogSync.pxl.secTotal,Sec Total,Sec Total,전체 보안 건수
+Send Event,1,crm.aiHub.catalogSync.pxl.sendEvent,Send Event,Send Event,이벤트 전송
+Server Side C A P I,1,crm.aiHub.catalogSync.pxl.serverSideCAPI,Server Side C A P I,Server Side C A P I,서버사이드 CAPI
+Server Side Event,1,crm.aiHub.catalogSync.pxl.serverSideEvent,Server Side Event,Server Side Event,서버사이드 이벤트
+Snippet Guide1,1,crm.aiHub.catalogSync.pxl.snippetGuide1,Snippet Guide1,Snippet Guide1,스니펫 가이드 1
+Snippet Guide2,1,crm.aiHub.catalogSync.pxl.snippetGuide2,Snippet Guide2,Snippet Guide2,스니펫 가이드 2
+Snippet Guide3,1,crm.aiHub.catalogSync.pxl.snippetGuide3,Snippet Guide3,Snippet Guide3,스니펫 가이드 3
+Snippet Title,1,crm.aiHub.catalogSync.pxl.snippetTitle,Snippet Title,Snippet Title,스니펫 제목
+Test Event Send,1,crm.aiHub.catalogSync.pxl.testEventSend,Test Event Send,Test Event Send,테스트 이벤트 전송
+Tiktok Forward,1,crm.aiHub.catalogSync.pxl.tiktokForward,Tiktok Forward,Tiktok Forward,TikTok 전달 설정
+Total Events,1,crm.aiHub.catalogSync.pxl.totalEvents,Total Events,Total Events,총 이벤트 수
+Hack Detected,1,crm.aiHub.catalogSync.security.hackDetected,Hack Detected,Hack Detected,해킹 시도가 감지되었습니다
+Fee Rate,1,crm.aiHub.channelFeeRate,Fee Rate,Fee Rate,수수료율
+Enter a prompt and AI generates campaign ad designs.,1,crm.aiHub.creativeSub,Enter a prompt and AI generates campaign ad designs.,Enter a prompt and AI generates campaign ad designs.,프롬프트를 입력하면 AI가 캠페인 광고 디자인을 자동 생성합니다.
+AI Ad Creative Generator,1,crm.aiHub.creativeTitle,AI Ad Creative Generator,AI Ad Creative Generator,AI 광고 크리에이티브 생성기
+Data Basis,1,crm.aiHub.dataSource,Data Basis,Data Basis,데이터 기준
+Integrated A/B test results.,1,crm.aiHub.guideTabAbDesc,Integrated A/B test results.,Integrated A/B test results.,통합 A/B 테스트 결과를 제공합니다.
+A/B Testing,1,crm.aiHub.guideTabAbName,A/B Testing,A/B Testing,A/B 테스트
+Automatic budget alert system.,1,crm.aiHub.guideTabBudgetDesc,Automatic budget alert system.,Automatic budget alert system.,자동 예산 알림 시스템입니다.
+Budget Alerts,1,crm.aiHub.guideTabBudgetName,Budget Alerts,Budget Alerts,예산 알림
+AI-powered ad copy generator.,1,crm.aiHub.guideTabCopyDesc,AI-powered ad copy generator.,AI-powered ad copy generator.,AI 기반 광고 카피 생성 기능입니다.
+AI Copywriter,1,crm.aiHub.guideTabCopyName,AI Copywriter,AI Copywriter,AI 카피라이터
+AI ad image generator with 16 scene types.,1,crm.aiHub.guideTabCreativeDesc,AI ad image generator with 16 scene types.,AI ad image generator with 16 scene types.,16개 장면 유형을 지원하는 AI 광고 이미지 생성 기능입니다.
+Email and KakaoTalk status.,1,crm.aiHub.guideTabCrmDesc,Email and KakaoTalk status.,Email and KakaoTalk status.,이메일 및 카카오톡 발송 상태입니다.
+CRM Channels,1,crm.aiHub.guideTabCrmName,CRM Channels,CRM Channels,CRM 채널
+KPI targets vs actuals.,1,crm.aiHub.guideTabDetailDesc,KPI targets vs actuals.,KPI targets vs actuals.,KPI 목표 대비 실적입니다.
+Detail Analysis,1,crm.aiHub.guideTabDetailName,Detail Analysis,Detail Analysis,상세 분석
+Gantt chart visualization.,1,crm.aiHub.guideTabGanttDesc,Gantt chart visualization.,Gantt chart visualization.,간트 차트 시각화 기능입니다.
+Live KPI monitoring.,1,crm.aiHub.guideTabMonitorDesc,Live KPI monitoring.,Live KPI monitoring.,실시간 KPI 모니터링 기능입니다.
+Real-time Monitor,1,crm.aiHub.guideTabMonitorName,Real-time Monitor,Real-time Monitor,실시간 모니터링
+All campaigns displayed as filterable cards.,1,crm.aiHub.guideTabOverviewDesc,All campaigns displayed as filterable cards.,All campaigns displayed as filterable cards.,모든 캠페인을 필터 가능한 카드 형태로 제공합니다.
+Campaign Overview,1,crm.aiHub.guideTabOverviewName,Campaign Overview,Campaign Overview,캠페인 개요
+Comprehensive ROI analysis.,1,crm.aiHub.guideTabRoiDesc,Comprehensive ROI analysis.,Comprehensive ROI analysis.,종합 ROI 분석 기능입니다.
+ROI Analysis,1,crm.aiHub.guideTabRoiName,ROI Analysis,ROI Analysis,ROI 분석
+Full platform real-time analysis → ROI-based AI recommendations → Budget registration → Approval → Card auto-execution,1,crm.aiHub.heroSub,Full platform real-time analysis → ROI-based AI recommendations → Budget registration → Approval → Card auto-execution,Full platform real-time analysis → ROI-based AI recommendations → Budget registration → Approval → Card auto-execution,전체 플랫폼 실시간 분석 → ROI 기반 AI 추천 → 예산 등록 → 승인 → 카드 자동 집행
+No fee data,1,crm.aiHub.noFeeData,No fee data,No fee data,수수료 데이터가 없습니다
+Campaign name,1,crm.email.campaignMgr.colName,Campaign name,Campaign name,캠페인명
+Add Product,1,crm.email.catalogSync.addProduct,Add Product,Add Product,상품 추가
+All Status,1,crm.email.catalogSync.allStatus,All Status,All Status,전체 상태
+Auto Sync,1,crm.email.catalogSync.autoSync,Auto Sync,Auto Sync,자동 동기화
+Auto Sync Desc,1,crm.email.catalogSync.autoSyncDesc,Auto Sync Desc,Auto Sync Desc,자동으로 최신 데이터를 동기화합니다
+Col Margin,1,crm.email.catalogSync.colMargin,Col Margin,Col Margin,마진
+Cost Breakdown,1,crm.email.catalogSync.costBreakdown,Cost Breakdown,Cost Breakdown,비용 상세 내역
+Discount Rate,1,crm.email.catalogSync.discountRate,Discount Rate,Discount Rate,할인율
+Product Cost Auto,1,crm.email.catalogSync.productCostAuto,Product Cost Auto,Product Cost Auto,상품 원가 자동 계산
+Product Count,1,crm.email.catalogSync.productCount,Product Count,Product Count,상품 수
+Spec Label,1,crm.email.catalogSync.specLabel,Spec Label,Spec Label,사양
+Sync Now,1,crm.email.catalogSync.syncNow,Sync Now,Sync Now,지금 동기화
+Upload Image,1,crm.email.catalogSync.uploadImage,Upload Image,Upload Image,이미지 업로드
+C S V,1,CSV,C S V,C S V,CSV
+Fixed Perf,1,fixedPerf,Fixed Perf,Fixed Perf,고정+성과형
+Exact Shapley (2^n) · Bayesian MMM · Markov Chain · Incremental Uplift (Double ML) · Thompson Sampling A/B,1,gAttr.subtitle,Exact Shapley (2^n) · Bayesian MMM · Markov Chain · Incremental Uplift (Double ML) · Thompson Sampling A/B,Exact Shapley (2^n) · Bayesian MMM · Markov Chain · Incremental Uplift (Double ML) · Thompson Sampling A/B,정밀 Shapley (2^n) · 베이지안 MMM · 마르코프 체인 · 인크리멘털 업리프트 (Double ML) · 톰슨 샘플링 A/B
+🔗 Markov+Uplift,1,gAttr.tabMarkovLabel,🔗 Markov+Uplift,🔗 Markov+Uplift,🔗 마르코프+업리프트
+Ridge+Adstock+Hill,1,gAttr.tabMmmDesc,Ridge+Adstock+Hill,Ridge+Adstock+Hill,Ridge+Adstock+Hill
+🎯 Exact Shapley,1,gAttr.tabShapleyLabel,🎯 Exact Shapley,🎯 Exact Shapley,🎯 정밀 Shapley
+🟡 MOCK Data,1,graph.mockData,🟡 MOCK Data,🟡 MOCK Data,🟡 MOCK 데이터
+🟡 MOCK Results,1,graph.mockResult,🟡 MOCK Results,🟡 MOCK Results,🟡 MOCK 결과
+No Edge — Register Node/Edge in Tab above,1,graph.noEdge,No Edge — Register Node/Edge in Tab above,No Edge — Register Node/Edge in Tab above,연결된 엣지가 없습니다. 상단 탭에서 노드/엣지를 등록해주세요.
+❓ Q&A,1,help.tabFaq,❓ Q&A,❓ Q&A,❓ Q&A
+💚 LINE,1,journeyBuilder.nodeTypes.line,💚 LINE,💚 LINE,💚 LINE
+📱 SMS,1,journeyBuilder.nodeTypes.sms,📱 SMS,📱 SMS,📱 SMS
+Ad Analytics,1,marketing.gNav.adAnalytics,Ad Analytics,Ad Analytics,광고 분석
+AI Insights,1,marketing.gNav.aiInsights,AI Insights,AI Insights,AI 인사이트
+AI Marketing,1,marketing.gNav.aiMarketing,AI Marketing,AI Marketing,AI 마케팅
+AI Comms,1,marketing.gNav.aiMarketingHub,AI Comms,AI Comms,AI 커뮤니케이션
+AI Recommend,1,marketing.gNav.aiRecommend,AI Recommend,AI Recommend,AI 추천
+AI Rule Engine,1,marketing.gNav.aiRuleEngine,AI Rule Engine,AI Rule Engine,AI 룰 엔진
+Alert Automation,1,marketing.gNav.alertAutomation,Alert Automation,Alert Automation,알림 자동화
+Alert Policies,1,marketing.gNav.alertPolicies,Alert Policies,Alert Policies,알림 정책
+Insights & Reports,1,marketing.gNav.analytics,Insights & Reports,Insights & Reports,인사이트 & 리포트
+API Keys,1,marketing.gNav.apiKeys,API Keys,API Keys,API 키
+Audit Logs,1,marketing.gNav.auditLog,Audit Logs,Audit Logs,감사 로그
+Auto Strategy,1,marketing.gNav.autoMarketing,Auto Strategy,Auto Strategy,자동 전략
+Automation Systems,1,marketing.gNav.automation,Automation Systems,Automation Systems,자동화 시스템
+Case Study,1,marketing.gNav.caseStudy,Case Study,Case Study,성공 사례
+Catalog Sync,1,marketing.gNav.catalog,Catalog Sync,Catalog Sync,카탈로그 동기화
+Commerce & Logistics,1,marketing.gNav.commerce,Commerce & Logistics,Commerce & Logistics,커머스 & 물류
+CRM & Channels,1,marketing.gNav.crm,CRM & Channels,CRM & Channels,CRM & 채널
+CRM Dashboard,1,marketing.gNav.crmMain,CRM Dashboard,CRM Dashboard,CRM 대시보드
+Data & Integration,1,marketing.gNav.data,Data & Integration,Data & Integration,데이터 & 연동
+Data Products,1,marketing.gNav.dataProduct,Data Products,Data Products,데이터 프로덕트
+Data Trust Center,1,marketing.gNav.dataTrust,Data Trust Center,Data Trust Center,데이터 신뢰 센터
+Developer Hub,1,marketing.gNav.developerHub,Developer Hub,Developer Hub,개발자 허브
+Finance & Settlement,1,marketing.gNav.finance,Finance & Settlement,Finance & Settlement,재무 & 정산
+Help Center,1,marketing.gNav.help,Help Center,Help Center,도움말 센터
+Influencer Mgmt,1,marketing.gNav.influencer,Influencer Mgmt,Influencer Mgmt,인플루언서 관리
+Integration Hub,1,marketing.gNav.integrationHub,Integration Hub,Integration Hub,연동 허브
+Kakao Business,1,marketing.gNav.kakaoChannel,Kakao Business,Kakao Business,카카오 비즈니스
+Mapping Registry,1,marketing.gNav.mappingRegistry,Mapping Registry,Mapping Registry,매핑 레지스트리
+System Admin,1,marketing.gNav.memberTools,System Admin,System Admin,시스템 관리
+Omni Channel,1,marketing.gNav.omniChannel,Omni Channel,Omni Channel,옴니채널
+Onboarding Map,1,marketing.gNav.onboarding,Onboarding Map,Onboarding Map,온보딩 맵
+Operations Manual,1,marketing.gNav.operations,Operations Manual,Operations Manual,운영 매뉴얼
+Pixel Tracking,1,marketing.gNav.pixelTracking,Pixel Tracking,Pixel Tracking,픽셀 트래킹
+P&L Analytics,1,marketing.gNav.pnl,P&L Analytics,P&L Analytics,P&L 분석
+Returns Portal,1,marketing.gNav.returnsPortal,Returns Portal,Returns Portal,반품 포털
+Reviews & UGC,1,marketing.gNav.reviewsUgc,Reviews & UGC,Reviews & UGC,리뷰 & UGC
+Settlements,1,marketing.gNav.settlements,Settlements,Settlements,정산
+Supply Chain,1,marketing.gNav.supplyChain,Supply Chain,Supply Chain,공급망
+Workspace Setting,1,marketing.gNav.workspace,Workspace Setting,Workspace Setting,워크스페이스 설정
+Data Writeback,1,marketing.gNav.writeback,Data Writeback,Data Writeback,데이터 Writeback
+🌱 ESG,1,nav.pages.performance.tabEsg,🌱 ESG,🌱 ESG,🌱 ESG
+Unified Ops Cockpit · v421,1,nav.sub,Unified Ops Cockpit · v421,Unified Ops Cockpit · v421,통합 운영 콕핏 · v421
+Demo environment — data isolated from production,1,omniChannel.demoIsolation,Demo environment — data isolated from production,Demo environment — data isolated from production,데모 환경 — 운영 데이터와 분리되어 있습니다
+Action Presets,1,pages.actionPresets.title,Action Presets,Action Presets,액션 프리셋
+Review & UGC Analytics,1,pages.cmpRow.r10,Review & UGC Analytics,Review & UGC Analytics,리뷰 & UGC 분석
+Commerce Channels,1,pages.cmpRow.r11,Commerce Channels,Commerce Channels,커머스 채널
+WMS (Stock·In/Out),1,pages.cmpRow.r12,WMS (Stock·In/Out),WMS (Stock·In/Out),WMS(재고·입출고)
+3PL Management,1,pages.cmpRow.r13,3PL Management,3PL Management,3PL 관리
+Amazon Advanced Operations,1,pages.cmpRow.r14,Amazon Advanced Operations,Amazon Advanced Operations,Amazon 고급 운영
+Analytics & Performance (Cohort·P&L),1,pages.cmpRow.r15,Analytics & Performance (Cohort·P&L),Analytics & Performance (Cohort·P&L),분석 & 성과(코호트·P&L)
+AI Rule Engine & Automation,1,pages.cmpRow.r16,AI Rule Engine & Automation,AI Rule Engine & Automation,AI 룰 엔진 & 자동화
+1st-Party Pixel,1,pages.cmpRow.r18,1st-Party Pixel,1st-Party Pixel,퍼스트파티 픽셀
+Data Pipeline & API,1,pages.cmpRow.r19,Data Pipeline & API,Data Pipeline & API,데이터 파이프라인 & API
+AI Ad Creative & Campaign Mgmt,1,pages.cmpRow.r2,AI Ad Creative & Campaign Mgmt,AI Ad Creative & Campaign Mgmt,AI 광고 크리에이티브 & 캠페인 관리
+Data Product Governance,1,pages.cmpRow.r20,Data Product Governance,Data Product Governance,데이터 프로덕트 거버넌스
+BI Reports,1,pages.cmpRow.r21,BI Reports,BI Reports,BI 리포트
+Currency Selection (Global),1,pages.cmpRow.r22,Currency Selection (Global),Currency Selection (Global),통화 선택(글로벌)
+Influencer Management,1,pages.cmpRow.r23,Influencer Management,Influencer Management,인플루언서 관리
+Ops Hub (Batch·Reprocess),1,pages.cmpRow.r24,Ops Hub (Batch·Reprocess),Ops Hub (Batch·Reprocess),운영 허브(배치·재처리)
+Audit Log,1,pages.cmpRow.r25,Audit Log,Audit Log,감사 로그

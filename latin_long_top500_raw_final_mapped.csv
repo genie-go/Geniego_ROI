@@ -1,0 +1,501 @@
+ko_value,count,path,ja_value,en_value,suggested_ko
+days,8,crm.aiHub.reviews.days,days,days,일
+No Data Available,8,crm.aiHub.reviews.noData,No Data Available,No Data Available,데이터 없음
+No execution history,8,crm.aiHub.reviews.noHistory,No execution history,No execution history,실행 이력 없음
+Tab Roles,8,crm.aiHub.reviews.tabRoles,Tab Roles,Tab Roles,역할 탭
+Unit Price,7,crm.aiHub.aiHub.unitPrice,Unit Price,Unit Price,단가
+AI Analysis History,7,crm.aiHub.reviews.aiHistoryList,AI Analysis History,AI Analysis History,AI 분석 이력
+AI Analysis Summary,7,crm.aiHub.reviews.aiSummary,AI Analysis Summary,AI Analysis Summary,AI 분석 요약
+Avg Time,7,crm.aiHub.reviews.avgTime,Avg Time,Avg Time,평균 시간
+Biz Goal Setting,7,crm.aiHub.reviews.bizGoalSetting,Biz Goal Setting,Biz Goal Setting,비즈니스 목표 설정
+Brand Awareness Desc,7,crm.aiHub.reviews.brandAwarenessDesc,Brand Awareness Desc,Brand Awareness Desc,브랜드 인지도 안내
+Channel Role Definition,7,crm.aiHub.reviews.channelRoleDef,Channel Role Definition,Channel Role Definition,채널 역할 정의
+Key Action Items,7,crm.aiHub.reviews.checklist,Key Action Items,Key Action Items,핵심 액션 아이템
+Cost vs Performance Check,7,crm.aiHub.reviews.chkCostPerf,Cost vs Performance Check,Cost vs Performance Check,비용 대비 성과 점검
+Campaign Efficiency Check,7,crm.aiHub.reviews.chkEff,Campaign Efficiency Check,Campaign Efficiency Check,캠페인 효율 점검
+Identify Items for Improvement,7,crm.aiHub.reviews.chkImprove,Identify Items for Improvement,Identify Items for Improvement,개선 항목 파악
+Claude Ai Desc,7,crm.aiHub.reviews.claudeAiDesc,Claude Ai Desc,Claude Ai Desc,Claude AI 안내
+Claude Ai Title,7,crm.aiHub.reviews.claudeAiTitle,Claude Ai Title,Claude Ai Title,Claude AI 제목
+Click Select,7,crm.aiHub.reviews.clickSelect,Click Select,Click Select,클릭하여 선택
+Community Act,7,crm.aiHub.reviews.communityAct,Community Act,Community Act,커뮤니티 활동
+Community Growth,7,crm.aiHub.reviews.communityGrowth,Community Growth,Community Growth,커뮤니티 성장
+Community Kpi,7,crm.aiHub.reviews.communityKpi,Community Kpi,Community Kpi,커뮤니티 KPI
+Content Engage,7,crm.aiHub.reviews.contentEngage,Content Engage,Content Engage,콘텐츠 참여
+Content Impressions,7,crm.aiHub.reviews.contentImpressions,Content Impressions,Content Impressions,콘텐츠 노출 수
+Content Interest,7,crm.aiHub.reviews.contentInterest,Content Interest,Content Interest,콘텐츠 관심도
+Content Kpi,7,crm.aiHub.reviews.contentKpi,Content Kpi,Content Kpi,콘텐츠 KPI
+Large-scale brand exposure through SNS platform ads,7,crm.aiHub.reviews.descBrandReach,Large-scale brand exposure through SNS platform ads,Large-scale brand exposure through SNS platform ads,SNS 플랫폼 광고를 통한 대규모 브랜드 노출
+Target users with high purchase intent via search algorithms,7,crm.aiHub.reviews.descCaptureIntent,Target users with high purchase intent via search algorithms,Target users with high purchase intent via search algorithms,검색 알고리즘을 활용한 구매 의도 높은 사용자 타겟팅
+Conversion Rate vs Target,7,crm.aiHub.reviews.descConvRate,Conversion Rate vs Target,Conversion Rate vs Target,목표 대비 전환율
+Desc Cpa,7,crm.aiHub.reviews.descCpa,Desc Cpa,Desc Cpa,CPA 안내
+Desc Cpc,7,crm.aiHub.reviews.descCpc,Desc Cpc,Desc Cpc,CPC 안내
+Desc Ctr,7,crm.aiHub.reviews.descCtr,Desc Ctr,Desc Ctr,CTR 안내
+Secure customer loyalty through community activities,7,crm.aiHub.reviews.descCustRel,Secure customer loyalty through community activities,Secure customer loyalty through community activities,커뮤니티 활동을 통한 고객 충성도 확보
+Build expertise and trust through problem-solving content,7,crm.aiHub.reviews.descInfoTrust,Build expertise and trust through problem-solving content,Build expertise and trust through problem-solving content,문제 해결 콘텐츠를 통한 전문성과 신뢰 구축
+Desc Roas,7,crm.aiHub.reviews.descRoas,Desc Roas,Desc Roas,ROAS 안내
+Hint Conv Rate,7,crm.aiHub.reviews.hintConvRate,Hint Conv Rate,Hint Conv Rate,전환율 도움말
+Hint Cpa,7,crm.aiHub.reviews.hintCpa,Hint Cpa,Hint Cpa,CPA 도움말
+Hint Cpc,7,crm.aiHub.reviews.hintCpc,Hint Cpc,Hint Cpc,CPC 도움말
+Hint Ctr,7,crm.aiHub.reviews.hintCtr,Hint Ctr,Hint Ctr,CTR 도움말
+Hint Roas,7,crm.aiHub.reviews.hintRoas,Hint Roas,Hint Roas,ROAS 도움말
+Improvement Recommendations,7,crm.aiHub.reviews.improveRecs,Improvement Recommendations,Improvement Recommendations,개선 추천 사항
+Inquiries Purchases,7,crm.aiHub.reviews.inquiriesPurchases,Inquiries Purchases,Inquiries Purchases,문의·구매
+Inquiries Purchases Desc,7,crm.aiHub.reviews.inquiriesPurchasesDesc,Inquiries Purchases Desc,Inquiries Purchases Desc,문의·구매 안내
+Interest Conv,7,crm.aiHub.reviews.interestConv,Interest Conv,Interest Conv,관심·전환
+AI Channel Performance Monitoring,7,crm.aiHub.reviews.monitorAi,AI Channel Performance Monitoring,AI Channel Performance Monitoring,AI 채널 성과 모니터링
+Monthly Report,7,crm.aiHub.reviews.monthlyAi,Monthly Report,Monthly Report,월간 리포트
+Monthly Trend,7,crm.aiHub.reviews.monthlyTrend,Monthly Trend,Monthly Trend,월간 트렌드
+New Signups,7,crm.aiHub.reviews.newMembers,New Signups,New Signups,신규 가입
+Overall Achievement Status,7,crm.aiHub.reviews.overallAchieve,Overall Achievement Status,Overall Achievement Status,전체 달성 현황
+Page Views,7,crm.aiHub.reviews.pageViews,Page Views,Page Views,페이지뷰
+Please Select Goal,7,crm.aiHub.reviews.pleaseSelectGoal,Please Select Goal,Please Select Goal,목표를 선택해주세요
+Post Views,7,crm.aiHub.reviews.postViews,Post Views,Post Views,게시물 조회 수
+Privacy Policy,7,crm.aiHub.reviews.privacyPolicy,Privacy Policy,Privacy Policy,개인정보 처리방침
+✅ Purchase Complete,7,crm.aiHub.reviews.purchase,✅ Purchase Complete,✅ Purchase Complete,✅ 구매 완료
+Brand Reach,7,crm.aiHub.reviews.roleBrandReach,Brand Reach,Brand Reach,브랜드 도달
+Capture Purchase Intent,7,crm.aiHub.reviews.roleCaptureIntent,Capture Purchase Intent,Capture Purchase Intent,구매 의도 포착
+Strengthen Customer Relationships,7,crm.aiHub.reviews.roleCustRel,Strengthen Customer Relationships,Strengthen Customer Relationships,고객 관계 강화
+Info · Trust Building,7,crm.aiHub.reviews.roleInfoTrust,Info · Trust Building,Info · Trust Building,정보·신뢰 구축
+Search Traffic,7,crm.aiHub.reviews.searchTraffic,Search Traffic,Search Traffic,검색 트래픽
+Selected Goals,7,crm.aiHub.reviews.selectedGoals,Selected Goals,Selected Goals,선택된 목표
+Seo Impact,7,crm.aiHub.reviews.seoImpact,Seo Impact,Seo Impact,SEO 영향도
+Site Traffic,7,crm.aiHub.reviews.siteTraffic,Site Traffic,Site Traffic,사이트 트래픽
+Sns Kpi By Channel,7,crm.aiHub.reviews.snsKpiByChannel,Sns Kpi By Channel,Sns Kpi By Channel,채널별 SNS KPI
+Sns Kpi Overview,7,crm.aiHub.reviews.snsKpiOverview,Sns Kpi Overview,Sns Kpi Overview,SNS KPI 개요
+Tab Community,7,crm.aiHub.reviews.tabCommunity,Tab Community,Tab Community,커뮤니티
+Tab Content,7,crm.aiHub.reviews.tabContent,Tab Content,Tab Content,콘텐츠
+Tab Goals,7,crm.aiHub.reviews.tabGoals,Tab Goals,Tab Goals,목표
+Tab Monitor,7,crm.aiHub.reviews.tabMonitor,Tab Monitor,Tab Monitor,모니터링
+Tab Setup,7,crm.aiHub.reviews.tabSetup,Tab Setup,Tab Setup,설정
+Tab Sns,7,crm.aiHub.reviews.tabSns,Tab Sns,Tab Sns,SNS
+Tab Targets,7,crm.aiHub.reviews.tabTargets,Tab Targets,Tab Targets,타겟 탭
+KPI Target Setting by Channel,7,crm.aiHub.reviews.targetSetup,KPI Target Setting by Channel,KPI Target Setting by Channel,채널별 KPI 목표 설정
+Target Vs Actuals,7,crm.aiHub.reviews.targetVsActuals,Target Vs Actuals,Target Vs Actuals,목표 대비 실적
+Web Traffic,7,crm.aiHub.reviews.webTraffic,Web Traffic,Web Traffic,웹 트래픽
+Web Traffic Desc,7,crm.aiHub.reviews.webTrafficDesc,Web Traffic Desc,Web Traffic Desc,웹 트래픽 안내
+Weekly Ad Efficiency Trend,7,crm.aiHub.reviews.weeklyAdTrend,Weekly Ad Efficiency Trend,Weekly Ad Efficiency Trend,주간 광고 효율 트렌드
+Weekly Report,7,crm.aiHub.reviews.weeklyAi,Weekly Report,Weekly Report,주간 리포트
+TikTok Shop,6,_marketing_1.sc_tiktok_shop,,TikTok Shop,TikTok Shop
+LTV vs CAC,6,attrData.tabLtvLabel,LTV,LTV,LTV vs CAC
+Auto Execution Log,6,crm.aiHub.execLog,Auto Execution Log,Auto Execution Log,자동 실행 로그
+Unified Dashboard,6,crm.aiHub.omniChannel.ovTitle,Unified Dashboard,Unified Dashboard,통합 대시보드
+Ab Group A,6,crm.aiHub.reviews.abGroupA,Ab Group A,Ab Group A,A 그룹
+Ab Group B,6,crm.aiHub.reviews.abGroupB,Ab Group B,Ab Group B,B 그룹
+Back To List,6,crm.aiHub.reviews.backToList,Back To List,Back To List,목록으로 돌아가기
+🎂 Birthday,6,crm.aiHub.reviews.birthday,🎂 Birthday,🎂 Birthday,🎂 생일
+🛒 Cart Abandoned,6,crm.aiHub.reviews.cart_abandoned,🛒 Cart Abandoned,🛒 Cart Abandoned,🛒 장바구니 이탈
+Click To Edit,6,crm.aiHub.reviews.clickToEdit,Click To Edit,Click To Edit,클릭하여 편집
+Condition Email Clicked,6,crm.aiHub.reviews.conditionEmailClicked,Condition Email Clicked,Condition Email Clicked,이메일 클릭 조건
+Condition Email Opened,6,crm.aiHub.reviews.conditionEmailOpened,Condition Email Opened,Condition Email Opened,이메일 열람 조건
+Condition Field,6,crm.aiHub.reviews.conditionField,Condition Field,Condition Field,조건 필드
+Condition Kakao Clicked,6,crm.aiHub.reviews.conditionKakaoClicked,Condition Kakao Clicked,Condition Kakao Clicked,카카오 클릭 조건
+Condition Ltv Gt,6,crm.aiHub.reviews.conditionLtvGt,Condition Ltv Gt,Condition Ltv Gt,LTV 초과 조건
+Click-through Rate (CTR),6,crm.aiHub.reviews.ctr,Click-through Rate (CTR),Click-through Rate (CTR),클릭률 (CTR)
+Delay Time,6,crm.aiHub.reviews.delayTime,Delay Time,Delay Time,지연 시간
+Delete Node,6,crm.aiHub.reviews.deleteNode,Delete Node,Delete Node,노드 삭제
+Email From,6,crm.aiHub.reviews.emailFrom,Email From,Email From,발신자
+Email Send Sim,6,crm.aiHub.reviews.emailSendSim,Email Send Sim,Email Send Sim,이메일 발송 시뮬레이션
+Email Simulate,6,crm.aiHub.reviews.emailSimulate,Email Simulate,Email Simulate,이메일 시뮬레이션
+Email Subject,6,crm.aiHub.reviews.emailSubject,Email Subject,Email Subject,이메일 제목
+Email Subject Ph,6,crm.aiHub.reviews.emailSubjectPh,Email Subject Ph,Email Subject Ph,이메일 제목 입력
+Email Test Send,6,crm.aiHub.reviews.emailTestSend,Email Test Send,Email Test Send,이메일 테스트 발송
+Kakao Alimtalk,6,crm.aiHub.reviews.kakaoAlimtalk,Kakao Alimtalk,Kakao Alimtalk,카카오 알림톡
+Kakao Friendtalk,6,crm.aiHub.reviews.kakaoFriendtalk,Kakao Friendtalk,Kakao Friendtalk,카카오 친구톡
+Kakao Msg Type,6,crm.aiHub.reviews.kakaoMsgType,Kakao Msg Type,Kakao Msg Type,카카오 메시지 유형
+Kakao Send Sim,6,crm.aiHub.reviews.kakaoSendSim,Kakao Send Sim,Kakao Send Sim,카카오 발송 시뮬레이션
+Kakao Template,6,crm.aiHub.reviews.kakaoTemplate,Kakao Template,Kakao Template,카카오 템플릿
+Kakao Test,6,crm.aiHub.reviews.kakaoTest,Kakao Test,Kakao Test,카카오 테스트
+Line Msg Type,6,crm.aiHub.reviews.lineMsgType,Line Msg Type,Line Msg Type,LINE 메시지 유형
+Line Send Sim,6,crm.aiHub.reviews.lineSendSim,Line Send Sim,Line Send Sim,LINE 발송 시뮬레이션
+Line Simulate,6,crm.aiHub.reviews.lineSimulate,Line Simulate,Line Simulate,LINE 시뮬레이션
+Line Template,6,crm.aiHub.reviews.lineTemplate,Line Template,Line Template,LINE 템플릿
+Line Test Send,6,crm.aiHub.reviews.lineTestSend,Line Test Send,Line Test Send,LINE 테스트 발송
+Node Config,6,crm.aiHub.reviews.nodeConfig,Node Config,Node Config,노드 설정
+Node Name,6,crm.aiHub.reviews.nodeName,Node Name,Node Name,노드명
+Recent Triggers,6,crm.aiHub.reviews.recentTriggers,Recent Triggers,Recent Triggers,최근 트리거
+📌 Segment Entry,6,crm.aiHub.reviews.segment_entered,📌 Segment Entry,📌 Segment Entry,📌 세그먼트 진입
+🌱 New Signup,6,crm.aiHub.reviews.signup,🌱 New Signup,🌱 New Signup,🌱 신규 가입
+View by Team,6,crm.aiHub.reviews.team,View by Team,View by Team,팀별 보기
+Trigger Type,6,crm.aiHub.reviews.triggerType,Trigger Type,Trigger Type,트리거 유형
+UGC Revenue,6,crm.aiHub.reviews.u_86,UGC Revenue,UGC Revenue,UGC 매출
+Video Views,6,crm.aiHub.reviews.videoViews,Video Views,Video Views,동영상 조회 수
+Mapping Rule,6,pages.marketingIntel.eventNorm.mappingRule,Mapping Rule,Mapping Rule,매핑 규칙
+Send domestic SMS/LMS messages and manage send history and statistics.,6,pages.marketingIntel.helpPanel.staticHelp.connectors.summary,Send domestic SMS/LMS messages and manage send history and statistics.,Send domestic SMS/LMS messages and manage send history and statistics.,국내 SMS/LMS 메시지를 발송하고 발송 이력과 통계를 관리합니다.
+Net Profit,5,crm.aiHub.aiHub.netProfit,Net Profit,Net Profit,순이익
+Last Sync,5,crm.aiHub.omniChannel.prodColLastSync,Last Sync,Last Sync,최근 동기화
+Badge Op Profit,5,crm.aiHub.reviews.badgeOpProfit,Badge Op Profit,Badge Op Profit,영업이익 배지
+Badge Orders,5,crm.aiHub.reviews.badgeOrders,Badge Orders,Badge Orders,주문 배지
+Banner Desc,5,crm.aiHub.reviews.bannerDesc,Banner Desc,Banner Desc,배너 설명
+Banner Title,5,crm.aiHub.reviews.bannerTitle,Banner Title,Banner Title,배너 제목
+Ch Blog,5,crm.aiHub.reviews.chBlog,Ch Blog,Ch Blog,블로그 채널
+Ch Community,5,crm.aiHub.reviews.chCommunity,Ch Community,Ch Community,커뮤니티 채널
+Ch Search Ads,5,crm.aiHub.reviews.chSearchAds,Ch Search Ads,Ch Search Ads,검색 광고 채널
+Ch Sns Ads,5,crm.aiHub.reviews.chSnsAds,Ch Sns Ads,Ch Sns Ads,SNS 광고 채널
+Final Churn Status,5,crm.aiHub.reviews.churn,Final Churn Status,Final Churn Status,최종 이탈 상태
+😴 Churn Risk Customer,5,crm.aiHub.reviews.churned,😴 Churn Risk Customer,😴 Churn Risk Customer,😴 이탈 위험 고객
+LINE Clicks,5,crm.aiHub.reviews.conditionLineClicked,LINE Clicks,LINE Clicks,LINE 클릭
+Consent Date,5,crm.aiHub.reviews.consentDate,Consent Date,Consent Date,동의일
+Consent Now,5,crm.aiHub.reviews.consentNow,Consent Now,Consent Now,지금 동의
+Consent Rate,5,crm.aiHub.reviews.consentRate,Consent Rate,Consent Rate,동의율
+Cookie Policy,5,crm.aiHub.reviews.cookiePolicy,Cookie Policy,Cookie Policy,쿠키 정책
+Crm Churn,5,crm.aiHub.reviews.crmChurn,Crm Churn,Crm Churn,CRM 이탈
+Crm Journey,5,crm.aiHub.reviews.crmJourney,Crm Journey,Crm Journey,CRM 여정
+Crm Journey Action,5,crm.aiHub.reviews.crmJourneyAction,Crm Journey Action,Crm Journey Action,CRM 여정 액션
+Crm Vip,5,crm.aiHub.reviews.crmVip,Crm Vip,Crm Vip,CRM VIP
+Current Consent Status,5,crm.aiHub.reviews.currentConsentStatus,Current Consent Status,Current Consent Status,현재 동의 상태
+Current Month,5,crm.aiHub.reviews.currentMonth,Current Month,Current Month,이번 달
+Date (Period),5,crm.aiHub.reviews.date,Date (Period),Date (Period),날짜 (기간)
+Edit Settings,5,crm.aiHub.reviews.editSettings,Edit Settings,Edit Settings,설정 편집
+Exp Roas,5,crm.aiHub.reviews.expRoas,Exp Roas,Exp Roas,예상 ROAS
+Filter High,5,crm.aiHub.reviews.filterHigh,Filter High,Filter High,높음
+Filter Low,5,crm.aiHub.reviews.filterLow,Filter Low,Filter Low,낮음
+Filter Med,5,crm.aiHub.reviews.filterMed,Filter Med,Filter Med,중간
+Kakao Guild,5,crm.aiHub.reviews.kakaoGuild,Kakao Guild,Kakao Guild,카카오 가이드
+Lbl Cpa Full,5,crm.aiHub.reviews.lblCpaFull,Lbl Cpa Full,Lbl Cpa Full,고객 획득 비용(CPA)
+Lbl Cpc Full,5,crm.aiHub.reviews.lblCpcFull,Lbl Cpc Full,Lbl Cpc Full,클릭당 비용(CPC)
+Lbl Ctr Full,5,crm.aiHub.reviews.lblCtrFull,Lbl Ctr Full,Lbl Ctr Full,클릭률(CTR)
+Lbl Roas Full,5,crm.aiHub.reviews.lblRoasFull,Lbl Roas Full,Lbl Roas Full,광고 수익률(ROAS)
+Live D B,5,crm.aiHub.reviews.liveDB,Live D B,Live D B,라이브 DB
+Mkt Budget Action,5,crm.aiHub.reviews.mktBudgetAction,Mkt Budget Action,Mkt Budget Action,마케팅 예산 액션
+Mkt High Roas,5,crm.aiHub.reviews.mktHighRoas,Mkt High Roas,Mkt High Roas,고 ROAS 마케팅
+Mkt High Roas Sub,5,crm.aiHub.reviews.mktHighRoasSub,Mkt High Roas Sub,Mkt High Roas Sub,고 ROAS 마케팅 안내
+Mkt Hub Action,5,crm.aiHub.reviews.mktHubAction,Mkt Hub Action,Mkt Hub Action,마케팅 허브 액션
+Mkt Low Roas,5,crm.aiHub.reviews.mktLowRoas,Mkt Low Roas,Mkt Low Roas,저 ROAS 마케팅
+Mkt Optimize Now,5,crm.aiHub.reviews.mktOptimizeNow,Mkt Optimize Now,Mkt Optimize Now,지금 마케팅 최적화
+Mkt Rules Active,5,crm.aiHub.reviews.mktRulesActive,Mkt Rules Active,Mkt Rules Active,활성 마케팅 규칙
+Naver Cafe,5,crm.aiHub.reviews.naverCafe,Naver Cafe,Naver Cafe,네이버 카페
+No Consent Info,5,crm.aiHub.reviews.noConsentInfo,No Consent Info,No Consent Info,동의 정보 없음
+Not Consented,5,crm.aiHub.reviews.notConsented,Not Consented,Not Consented,미동의
+Orders Ai Run,5,crm.aiHub.reviews.ordersAiRun,Orders Ai Run,Orders Ai Run,주문 AI 실행
+Orders Ai Sub,5,crm.aiHub.reviews.ordersAiSub,Orders Ai Sub,Orders Ai Sub,주문 AI 안내
+Orders Campaign Action,5,crm.aiHub.reviews.ordersCampaignAction,Orders Campaign Action,Orders Campaign Action,주문 캠페인 액션
+Panel Sub,5,crm.aiHub.reviews.panelSub,Panel Sub,Panel Sub,패널 설명
+Panel Title,5,crm.aiHub.reviews.panelTitle,Panel Title,Panel Title,패널 제목
+Analysis Period,5,crm.aiHub.reviews.period,Analysis Period,Analysis Period,분석 기간
+Platform Stats,5,crm.aiHub.reviews.platformStats,Platform Stats,Platform Stats,플랫폼 통계
+Policy Note1,5,crm.aiHub.reviews.policyNote1,Policy Note1,Policy Note1,정책 안내 1
+Policy Note2,5,crm.aiHub.reviews.policyNote2,Policy Note2,Policy Note2,정책 안내 2
+Policy Note3,5,crm.aiHub.reviews.policyNote3,Policy Note3,Policy Note3,정책 안내 3
+30-day Churn Probability,5,crm.aiHub.reviews.prob30,30-day Churn Probability,30-day Churn Probability,30일 이탈 확률
+Save Pref,5,crm.aiHub.reviews.savePref,Save Pref,Save Pref,환경설정 저장
+Txt_ Actual Paid_9,5,crm.aiHub.reviews.txt_ActualPaid_9,Txt_ Actual Paid_9,Txt_ Actual Paid_9,실제 지급액
+Txt_ Ad Creative_13,5,crm.aiHub.reviews.txt_AdCreative_13,Txt_ Ad Creative_13,Txt_ Ad Creative_13,광고 크리에이티브
+Txt_ Channelper_15,5,crm.aiHub.reviews.txt_Channelper_15,Txt_ Channelper_15,Txt_ Channelper_15,채널별
+Txt_ Creator R O I_11,5,crm.aiHub.reviews.txt_CreatorROI_11,Txt_ Creator R O I_11,Txt_ Creator R O I_11,크리에이터 ROI
+Txt_ Difference_10,5,crm.aiHub.reviews.txt_Difference_10,Txt_ Difference_10,Txt_ Difference_10,차액
+Txt_ Engagement_12,5,crm.aiHub.reviews.txt_Engagement_12,Txt_ Engagement_12,Txt_ Engagement_12,참여도
+Txt_ Percontrac_8,5,crm.aiHub.reviews.txt_Percontrac_8,Txt_ Percontrac_8,Txt_ Percontrac_8,계약당
+Txt_ Product Pag_14,5,crm.aiHub.reviews.txt_ProductPag_14,Txt_ Product Pag_14,Txt_ Product Pag_14,상품 페이지
+Txt_ Whitelist A_4,5,crm.aiHub.reviews.txt_WhitelistA_4,Txt_ Whitelist A_4,Txt_ Whitelist A_4,화이트리스트 A
+Sum Total,5,crm.aiHub.reviews.u_114,Sum Total,Sum Total,합계
+Action Recommendations,5,crm.aiHub.reviews.u_81,Action Recommendations,Action Recommendations,액션 추천
+Campaign Manager,5,marketing.gNav.campaignManager,Campaign Manager,Campaign Manager,캠페인 매니저
+Instagram/Facebook DM,5,menu.instagramDm,Instagram/Facebook DM,Instagram / Facebook DM,Instagram/Facebook DM
+Commerce & Settlement,5,pages.marketing.commerce,Commerce & Settlement,Commerce & Settlement,커머스 & 정산
+Precision Shapley (2^n) · Bayesian MMM · Markov Chain · Incremental Uplift (Dual ML) · Thompson Sampling A/B,5,pages.marketingIntel.influencer.attrData.subtitle,Precision Shapley (2^n) · Bayesian MMM · Markov Chain · Incremental Uplift (Dual ML) · Thompson Sampling A/B,Precision Shapley (2^n) · Bayesian MMM · Markov Chain · Incremental Uplift (Dual ML) · Thompson Sampling A/B,정밀 Shapley (2^n) · 베이지안 MMM · 마르코프 체인 · 인크리멘털 업리프트 (Dual ML) · 톰슨 샘플링 A/B
+❌ Reject,5,pages.marketingIntel.reject,❌ Reject,❌ Reject,❌ 거부
+Campaign Status,4,crm.aiHub.aiHub.campaignStatus,Campaign Status,Campaign Status,캠페인 상태
+Estimated Blended ROAS,4,crm.aiHub.estRoas,Estimated Blended ROAS,Estimated Blended ROAS,예상 Blended ROAS
+Order No,4,crm.aiHub.omniChannel.ordColOrderNo,Order No,Order No,주문 번호
+Estimated Revenue,4,crm.aiHub.revenue,Estimated Revenue,Estimated Revenue,예상 매출
+Alert Success,4,crm.aiHub.reviews.alertSuccess,Alert Success,Alert Success,알림 발송 성공
+Budget Err,4,crm.aiHub.reviews.budgetErr,Budget Err,Budget Err,예산 오류
+Budget Label,4,crm.aiHub.reviews.budgetLabel,Budget Label,Budget Label,예산
+Cat Beauty,4,crm.aiHub.reviews.catBeauty,Cat Beauty,Cat Beauty,뷰티
+Cat Fashion,4,crm.aiHub.reviews.catFashion,Cat Fashion,Cat Fashion,패션
+Cat Food,4,crm.aiHub.reviews.catFood,Cat Food,Cat Food,식품
+Cat General,4,crm.aiHub.reviews.catGeneral,Cat General,Cat General,일반
+Cat Software,4,crm.aiHub.reviews.catSoftware,Cat Software,Cat Software,소프트웨어
+Cat Tech,4,crm.aiHub.reviews.catTech,Cat Tech,Cat Tech,테크
+Cat Travel,4,crm.aiHub.reviews.catTravel,Cat Travel,Cat Travel,여행
+Corporate Card,4,crm.aiHub.reviews.corporateCard,Corporate Card,Corporate Card,법인 카드
+Est Conv,4,crm.aiHub.reviews.estConv,Est Conv,Est Conv,예상 전환 수
+Launch Title,4,crm.aiHub.reviews.launchTitle,Launch Title,Launch Title,런칭 제목
+Main Title,4,crm.aiHub.reviews.mainTitle,Main Title,Main Title,메인 제목
+Pay Method,4,crm.aiHub.reviews.payMethod,Pay Method,Pay Method,결제 수단
+Q Budget,4,crm.aiHub.reviews.qBudget,Q Budget,Q Budget,분기 예산
+Which Category,4,crm.aiHub.reviews.whichCategory,Which Category,Which Category,카테고리 선택
+Ad Performance,4,marketing.gNav.adPerformance,Ad Performance,Ad Performance,광고 성과
+Journey Builder,4,marketing.gNav.journeyBuilder,Journey Builder,Journey Builder,여정 빌더
+Rollup View,4,marketing.gNav.rollup,Rollup View,Rollup View,롤업 뷰
+Web Popup,4,marketing.gNav.webPopup,Web Popup,Web Popup,웹 팝업
+Bulk Action,4,pages.cmpVal.aiPredict.bulkAction,Bulk Action,Bulk Action,일괄 작업
+Platform Fee,4,pages.cmpVal.aiPredict.kpi.p_3,Platform Fee,Platform Fee,플랫폼 수수료
+No Results,4,pages.cmpVal.aiPredict.noResults,No Results,No Results,결과 없음
+vs Sessions,4,pages.dashboard.convRateSub,vs Sessions,vs Sessions,세션 대비
+Net Profit / Ad Spend,4,pages.dashboard.netROASSub,Net Profit / Ad Spend,Net Profit / Ad Spend,순이익 / 광고비
+As of Today,4,pages.dashboard.totalOrderSub,As of Today,As of Today,오늘 기준
+Gross Sales,4,pages.kpiRevenue,Gross Sales,Total Revenue,총 매출
+Fee Difference,4,pages.krChannel.feeDiff,Fee Difference,Fee Difference,수수료 차액
+Select Placeholder,4,pages.krChannel.selectPlaceholder,Select Placeholder,Select Placeholder,선택해주세요
+Tab Channels,4,pages.krChannel.tabChannels,Tab Channels,Tab Channels,채널
+Customer · CRM,4,pages.marketing.crm,Customer · CRM,Customer · CRM,고객 · CRM
+Recent Visits,4,pages.marketing.quickRecents,Recent Visits,Recent Visits,최근 방문
+Select Role,4,pages.marketing.selectRoleBtn,Select Role,Select Role,역할 선택
+System Status,4,pages.marketing.sysStatus,System Status,System Status,시스템 상태
+✓ Save Complete,4,pages.marketingIntel.admin.saved,✓ Save Complete,✓ Save Complete,✓ 저장 완료
+Impressions,4,pages.marketingIntel.influencer.colViews,Impressions,Impressions,노출 수
+Last Run,4,pages.menu.writeback.lastRun,Last Run,Last Run,마지막 실행
+💰 LTV vs CAC,3,attrData.guideLtvName,,,💰 LTV vs CAC
+Deselect All,3,audit.deselectAll,Deselect All,Deselect All,전체 선택 해제
+{page} / {total},3,audit.pageOf,{page} / {total},{page} / {total},{page} / {total}
+TOP SKU,3,commerce.topSku,TOP SKU,TOP SKU,TOP SKU
+👆 CTA,3,creativeStudio.ctaHint,👆 CTA:,👆 CTA:,👆 CTA
+Filter All,3,crm.aiHub.aiHub.filterAll,Filter All,Filter All,전체
+Name Required,3,crm.aiHub.catalogSync.pxl.nameRequired,Name Required,Name Required,이름을 입력해주세요
+Low Stock,3,crm.aiHub.omniChannel.invLowStock,Low Stock,Low Stock,재고 부족
+Btn Launch,3,crm.aiHub.reviews.btnLaunch,Btn Launch,Btn Launch,런칭
+Btn Launching,3,crm.aiHub.reviews.btnLaunching,Btn Launching,Btn Launching,런칭 중
+Btn Retry,3,crm.aiHub.reviews.btnRetry,Btn Retry,Btn Retry,재시도
+Btn Review,3,crm.aiHub.reviews.btnReview,Btn Review,Btn Review,검토
+Btn Simulate,3,crm.aiHub.reviews.btnSimulate,Btn Simulate,Btn Simulate,시뮬레이션 실행
+Budget Sub,3,crm.aiHub.reviews.budgetSub,Budget Sub,Budget Sub,예산 안내
+Campaign Name,3,crm.aiHub.reviews.campName,Campaign Name,Campaign Name,캠페인명
+Detail View,3,crm.aiHub.reviews.detail,Detail View,Detail View,상세 보기
+Launch Sub,3,crm.aiHub.reviews.launchSub,Launch Sub,Launch Sub,런칭 안내
+Mix Sub,3,crm.aiHub.reviews.mixSub,Mix Sub,Mix Sub,믹스 안내
+AI Media Mix Recommendation,3,crm.aiHub.reviews.mixTitle,AI Media Mix Recommendation,AI Media Mix Recommendation,AI 미디어 믹스 추천
+Next Purchase,3,crm.aiHub.reviews.nextPurchase,Next Purchase,Next Purchase,다음 구매
+Search product/SKU...,3,crm.aiHub.reviews.searchPlaceholder,Search product/SKU...,Search product/SKU...,상품/SKU 검색...
+Total Gross,3,crm.aiHub.reviews.totalAmt,Total Gross,Total Gross,총 금액
+Margin Rate (based on sale price),3,crm.email.catalogSync.marginRate,Margin Rate (based on sale price),Margin Rate (based on sale price),마진율 (판매가 기준)
+Registering...,3,crm.email.catalogSync.registering,Registering...,Registering...,등록 중...
+SELECT * FROM ...,3,dbAdmin.queryPlaceholder,SELECT * FROM ...,SELECT * FROM ...,SELECT * FROM ...
+AI Policy,3,marketing.gNav.aiPolicy,AI Policy,AI Policy,AI 정책
+Budget Tracker,3,marketing.gNav.budgetTracker,Budget Tracker,Budget Tracker,예산 트래커
+Channel KPI,3,marketing.gNav.channelKpi,Channel KPI,Channel KPI,채널 KPI
+Reconciliation,3,marketing.gNav.reconciliation,Reconciliation,Reconciliation,정산 대조
+Report Builder,3,marketing.gNav.reportBuilder,Report Builder,Report Builder,리포트 빌더
+":{ ""sku"": ""..."", ""title"": ""..."", ""price"": 0 }",3,nav.pages.writeback.payloadPlaceholder,,,":{ ""sku"": ""..."", ""title"": ""..."", ""price"": 0 }"
+Real-time · Blended ROAS,3,pages.cmpVal.aiPredict.kpi.k_0,Real-time · Blended ROAS,Real-time · Blended ROAS,실시간 · Blended ROAS
+Gross Profit,3,pages.cmpVal.aiPredict.kpi.k_1,Gross Profit,Operating Profit,매출총이익
+Channel Performance,3,pages.commerce.channelPerf,Channel Performance,Channel Performance,채널 성과
+End Date,3,pages.krChannel.endDate,End Date,End Date,종료일
+No reconciliation reports,3,pages.krChannel.noReports,No reconciliation reports,No reconciliation reports,정산 대조 보고서 없음
+✅ No Tickets (Below threshold),3,pages.krChannel.noTickets,✅ No Tickets (Below threshold),✅ No Tickets (Below threshold),✅ 티켓 없음 (임계값 미만)
+Platform Fee Rate,3,pages.krChannel.platformFeeRate,Platform Fee Rate,Platform Fee Rate,플랫폼 수수료율
+Start Date,3,pages.krChannel.startDate,Start Date,Start Date,시작일
+🔍 Settlement Reconciliation,3,pages.krChannel.tabRecon,🔍 Settlement Reconciliation,🔍 Settlement Reconciliation,🔍 정산 대조
+Ad & Channel Analytics,3,pages.marketing.adAnalytics,Ad & Channel Analytics,Ad & Channel Analytics,광고 & 채널 분석
+🚀 AI Marketing Automation,3,pages.marketing.aiMarketing,🚀 AI Marketing Automation,🚀 AI Marketing Automation,🚀 AI 마케팅 자동화
+AI Strategy Generator,3,pages.marketing.autoMarketing,AI Strategy Generator,AI Strategy Generator,AI 전략 생성기
+Channel Intelligence,3,pages.marketing.chIntelTitle,Channel Intelligence,Channel Intelligence,채널 인텔리전스
+Customer CRM + AI Segment,3,pages.marketing.crmMain,Customer CRM + AI Segment,Customer CRM + AI Segment,고객 CRM + AI 세그먼트
+Email + A/B Test,3,pages.marketing.emailMarketing,Email + A/B Test,Email + A/B Test,이메일 + A/B 테스트
+Kakao Channel,3,pages.marketing.kakaoChannel,Kakao Channel,Kakao Channel,카카오 채널
+Reviews & UGC Analysis,3,pages.marketing.reviewsUgc,Reviews & UGC Analysis,Reviews & UGC Analysis,리뷰 & UGC 분석
+Compare to,3,pages.marketingIntel.compareTo,Compare to,Compare to,비교 대상
+Api Key,3,pages.marketingIntel.connectors.apiKey,Api Key,Api Key,API 키
+Configuration,3,pages.marketingIntel.connectors.configure,Configuration,Configuration,설정
+No Connectors,3,pages.marketingIntel.connectors.noConnectors,No Connectors,No Connectors,커넥터 없음
+Oauth Login,3,pages.marketingIntel.connectors.oauthLogin,Oauth Login,Oauth Login,OAuth 로그인
+Sync Frequency,3,pages.marketingIntel.connectors.syncFrequency,Sync Frequency,Sync Frequency,동기화 주기
+Ad Channels,3,pages.marketingIntel.connectors.tabAds,Ad Channels,Ad Channels,광고 채널
+Tab All,3,pages.marketingIntel.connectors.tabAll,Tab All,Tab All,전체
+Sales channel,3,pages.marketingIntel.connectors.tabSales,Sales channel,Sales channel,판매 채널
+Connection Test,3,pages.marketingIntel.connectors.testConnection,Connection Test,Test Connection,연결 테스트
+Add Schema,3,pages.marketingIntel.eventNorm.addSchema,Add Schema,Add Schema,스키마 추가
+Event Name,3,pages.marketingIntel.eventNorm.eventName,Event Name,Event Name,이벤트명
+No Schemas,3,pages.marketingIntel.eventNorm.noSchemas,No Schemas,No Schemas,스키마 없음
+Source Channel,3,pages.marketingIntel.eventNorm.sourceChannel,Source Channel,Source Channel,소스 채널
+Standard Event,3,pages.marketingIntel.eventNorm.standardEvent,Standard Event,Standard Event,표준 이벤트
+Tab Mapping,3,pages.marketingIntel.eventNorm.tabMapping,Tab Mapping,Tab Mapping,매핑
+📋 Schemas,3,pages.marketingIntel.eventNorm.tabSchemas,📋 Schemas,📋 Schemas,📋 스키마
+Tab Test,3,pages.marketingIntel.eventNorm.tabTest,Tab Test,Tab Test,테스트
+Test Event,3,pages.marketingIntel.eventNorm.testEvent,Test Event,Test Event,테스트 이벤트
+Add Mapping,3,pages.marketingIntel.mappingRegistry.addMapping,Add Mapping,Add Mapping,매핑 추가
+No Mappings,3,pages.marketingIntel.mappingRegistry.noMappings,No Mappings,No Mappings,매핑 없음
+Tab Category Map,3,pages.marketingIntel.mappingRegistry.tabCategoryMap,Tab Category Map,Tab Category Map,카테고리 매핑
+Tab Channel Map,3,pages.marketingIntel.mappingRegistry.tabChannelMap,Tab Channel Map,Tab Channel Map,채널 매핑
+Tab Product Map,3,pages.marketingIntel.mappingRegistry.tabProductMap,Tab Product Map,Tab Product Map,상품 매핑
+20 KPI,3,pages.marketingIntel.marketingIntel.badge20kpi,20 KPI,Badge20kpi,20 KPI
+🎯 Trigger,3,pages.marketingIntel.trigger,🎯 Trigger,🎯 Trigger,🎯 트리거
+Deactivated,3,pages.marketingIntel.userMgmt.status_inactive,Deactivated,Inactive,비활성
+Approved At,3,pages.menu.approvals.approvedAt,Approved At,Approved At,승인 시각
+Budget Planner,3,pages.menu.budgetPlanner,Budget Planner,Budget Planner,예산 플래너
+Content Calendar,3,pages.menu.contentCalendar,Content Calendar,Content Calendar,콘텐츠 캘린더
+💾 Save,3,ruleEnginePage.wms.carrSaveBtn,💾 Save,💾 Save,💾 저장
+Lead Time,3,ruleEnginePage.wms.supDrawerLeadTime,Lead Time,Lead Time,리드타임
+Payment Terms,3,ruleEnginePage.wms.supDrawerPayTerms,Payment Terms,Payment Terms,결제 조건
+Expected Revenue,2,attr.expectedRev,Expected Revenue,Expected Revenue,예상 매출
+items,2,attrData.cases,items,items,건
+Copy Link,2,audit.copyLink,Copy Link,Copy Link,링크 복사
+Select All,2,audit.selectAll,Select All,Select All,전체 선택
+Unity Catalog,2,catalogSync.ihub.dwFeatureUnity,,,Unity Catalog
+SmartConnect AI,2,catalogSync.ihub.scTitle,,,SmartConnect AI
+Smart Connect,2,catalogSync.ihub.tabSmartConnect,,,Smart Connect
+https://example.com/promo,2,catalogSync.webPopup.linkUrlPh,,,https://example.com/promo
+Add Budget,2,crm.aiHub.addBudget,Add Budget,Add Budget,예산 추가
+Ad Saving,2,crm.aiHub.adSaving,Ad Saving,Ad Saving,광고비 절감
+Approve All,2,crm.aiHub.aiHub.approveAll,Approve All,Approve All,전체 승인
+Attribution Link,2,crm.aiHub.aiHub.attributionLink,Attribution Link,Attribution Link,어트리뷰션 링크
+Auto Registered,2,crm.aiHub.aiHub.autoRegistered,Auto Registered,Auto Registered,자동 등록됨
+Boost Reason,2,crm.aiHub.aiHub.boostReason,Boost Reason,Boost Reason,부스트 사유
+Budget Shift,2,crm.aiHub.aiHub.budgetShift,Budget Shift,Budget Shift,예산 재배분
+Bulk Approved,2,crm.aiHub.aiHub.bulkApproved,Bulk Approved,Bulk Approved,일괄 승인됨
+Bulk Exec,2,crm.aiHub.aiHub.bulkExec,Bulk Exec,Bulk Exec,일괄 실행
+Card Limit Alert,2,crm.aiHub.aiHub.cardLimitAlert,Card Limit Alert,Card Limit Alert,카드 한도 알림
+Cards Unit,2,crm.aiHub.aiHub.cardsUnit,Cards Unit,Cards Unit,장
+Cat Budget Opt,2,crm.aiHub.aiHub.catBudgetOpt,Cat Budget Opt,Cat Budget Opt,카테고리 예산 최적화
+Cat Crm Retarget,2,crm.aiHub.aiHub.catCrmRetarget,Cat Crm Retarget,Cat Crm Retarget,CRM 리타게팅
+Cat Inventory Risk,2,crm.aiHub.aiHub.catInventoryRisk,Cat Inventory Risk,Cat Inventory Risk,재고 리스크
+Cat Settlement,2,crm.aiHub.aiHub.catSettlement,Cat Settlement,Cat Settlement,정산
+Check In Campaign Mgr,2,crm.aiHub.aiHub.checkInCampaignMgr,Check In Campaign Mgr,Check In Campaign Mgr,캠페인 매니저에서 확인
+Current Charged,2,crm.aiHub.aiHub.currentCharged,Current Charged,Current Charged,현재 청구액
+Daily Sales,2,crm.aiHub.aiHub.dailySales,Daily Sales,Daily Sales,일 매출
+Dp Add Budget,2,crm.aiHub.aiHub.dpAddBudget,Dp Add Budget,Dp Add Budget,예산 추가
+Dp Ad Roi,2,crm.aiHub.aiHub.dpAdRoi,Dp Ad Roi,Dp Ad Roi,광고 ROI
+Dp Ad Saving,2,crm.aiHub.aiHub.dpAdSaving,Dp Ad Saving,Dp Ad Saving,광고비 절감
+Dp Est Roas,2,crm.aiHub.aiHub.dpEstRoas,Dp Est Roas,Dp Est Roas,예상 ROAS
+Dp Expected Profit,2,crm.aiHub.aiHub.dpExpectedProfit,Dp Expected Profit,Dp Expected Profit,예상 이익
+Dp Expire In,2,crm.aiHub.aiHub.dpExpireIn,Dp Expire In,Dp Expire In,만료 예정
+Dp Settlement Margin,2,crm.aiHub.aiHub.dpSettlementMargin,Dp Settlement Margin,Dp Settlement Margin,정산 마진
+Dp Shift Budget,2,crm.aiHub.aiHub.dpShiftBudget,Dp Shift Budget,Dp Shift Budget,예산 재배분
+Dp Vip Count,2,crm.aiHub.aiHub.dpVipCount,Dp Vip Count,Dp Vip Count,VIP 수
+Ds Active Rules,2,crm.aiHub.aiHub.dsActiveRules,Ds Active Rules,Ds Active Rules,활성 규칙
+Ds Rules Fired,2,crm.aiHub.aiHub.dsRulesFired,Ds Rules Fired,Ds Rules Fired,실행된 규칙
+Est Roas,2,crm.aiHub.aiHub.estRoas,Est Roas,Est Roas,예상 ROAS
+Exec Budget,2,crm.aiHub.aiHub.execBudget,Exec Budget,Exec Budget,집행 예산
+Exec Log,2,crm.aiHub.aiHub.execLog,Exec Log,Exec Log,실행 로그
+Filter Executed,2,crm.aiHub.aiHub.filterExecuted,Filter Executed,Filter Executed,실행됨
+In Days5,2,crm.aiHub.aiHub.inDays5,In Days5,In Days5,5일 이내
+Journey Automation,2,crm.aiHub.aiHub.journeyAutomation,Journey Automation,Journey Automation,여정 자동화
+Journey Link,2,crm.aiHub.aiHub.journeyLink,Journey Link,Journey Link,여정 링크
+Need Card,2,crm.aiHub.aiHub.needCard,Need Card,Need Card,카드 필요
+No Card Alert,2,crm.aiHub.aiHub.noCardAlert,No Card Alert,No Card Alert,카드 없음 알림
+Pending Campaigns,2,crm.aiHub.aiHub.pendingCampaigns,Pending Campaigns,Pending Campaigns,대기 중 캠페인
+Ready To Exec,2,crm.aiHub.aiHub.readyToExec,Ready To Exec,Ready To Exec,실행 준비 완료
+Rec Boost Title,2,crm.aiHub.aiHub.recBoostTitle,Rec Boost Title,Rec Boost Title,부스트 추천
+Rec Low Stock Title,2,crm.aiHub.aiHub.recLowStockTitle,Rec Low Stock Title,Rec Low Stock Title,재고 부족 추천
+Rec Rebalance Title,2,crm.aiHub.aiHub.recRebalanceTitle,Rec Rebalance Title,Rec Rebalance Title,재배분 추천
+Rec Vip Title,2,crm.aiHub.aiHub.recVipTitle,Rec Vip Title,Rec Vip Title,VIP 추천
+Settlement Margin,2,crm.aiHub.aiHub.settlementMargin,Settlement Margin,Settlement Margin,정산 마진
+Times Unit,2,crm.aiHub.aiHub.timesUnit,Times Unit,Times Unit,회
+Total Exec Budget,2,crm.aiHub.aiHub.totalExecBudget,Total Exec Budget,Total Exec Budget,총 실행 예산
+View Campaigns,2,crm.aiHub.aiHub.viewCampaigns,View Campaigns,View Campaigns,캠페인 보기
+Vip Insight,2,crm.aiHub.aiHub.vipInsight,Vip Insight,Vip Insight,VIP 인사이트
+Vip Reason,2,crm.aiHub.aiHub.vipReason,Vip Reason,Vip Reason,VIP 사유
+Wasted Budget,2,crm.aiHub.aiHub.wastedBudget,Wasted Budget,Wasted Budget,낭비 예산
+Demo Banner,2,crm.aiHub.aiPolicy.demoBanner,Demo Banner,Demo Banner,데모 배너
+Live Sync Status,2,crm.aiHub.aiPolicy.liveSyncStatus,Live Sync Status,Live Sync Status,라이브 동기화 상태
+Guide Tabs Title,2,crm.aiHub.catalogSync.contentCal.guideTabsTitle,Guide Tabs Title,Guide Tabs Title,가이드 탭 제목
+Sec Lock,2,crm.aiHub.catalogSync.mr.secLockDesc,Sec Lock,Sec Lock,보안 잠금
+Sec Lock Title,2,crm.aiHub.catalogSync.mr.secLockTitle,Sec Lock Title,Sec Lock Title,보안 잠금 제목
+Create Pixel,2,crm.aiHub.catalogSync.pxl.createPixel,Create Pixel,Create Pixel,픽셀 생성
+AI Creative,2,crm.aiHub.guideTabCreativeName,AI Creative,AI Creative,AI 크리에이티브
+Instagram DM,2,crm.aiHub.journey.nodeTypes.instagram,Instagram DM,Instagram DM,Instagram DM
+Webhook URL,2,crm.aiHub.journey.webhookUrl,Webhook URL,Webhook URL,Webhook URL
+Aria Label,2,crm.aiHub.mobileNav.ariaLabel,Aria Label,Aria Label,ARIA 라벨
+🏪 Own Mall / Others,2,crm.aiHub.omniChannel.groupOwnMall,🏪 Own Mall / Others,🏪 Own Mall / Others,🏪 자사몰 / 기타
+Last Update,2,crm.aiHub.omniChannel.invLastUpdate,Last Update,Last Update,최종 업데이트
+Out of Stock,2,crm.aiHub.omniChannel.invOutOfStock,Out of Stock,Out of Stock,품절
+Real-time Inventory,2,crm.aiHub.omniChannel.invTitle,Real-time Inventory,Real-time Inventory,실시간 재고
+Total Products,2,crm.aiHub.omniChannel.invTotalProducts,Total Products,Total Products,총 상품 수
+📥 Export,2,crm.aiHub.omniChannel.ordBtnExport,📥 Export,📥 Export,📥 내보내기
+Unified Order Management,2,crm.aiHub.omniChannel.ordTitle,Unified Order Management,Unified Order Management,통합 주문 관리
+Avg Order Value,2,crm.aiHub.omniChannel.ovAvgOrderValue,Avg Order Value,Avg Order Value,평균 주문 금액
+Revenue Share by Channel,2,crm.aiHub.omniChannel.ovChannelShare,Revenue Share by Channel,Revenue Share by Channel,채널별 매출 비중
+Revenue Trend by Channel,2,crm.aiHub.omniChannel.ovRevenueByChannel,Revenue Trend by Channel,Revenue Trend by Channel,채널별 매출 트렌드
+Avg Price,2,crm.aiHub.omniChannel.prodAvgPrice,Avg Price,Avg Price,평균 가격
+🔄 Sync All,2,crm.aiHub.omniChannel.prodBtnSync,🔄 Sync All,🔄 Sync All,🔄 전체 동기화
+Channel Coverage,2,crm.aiHub.omniChannel.prodChannelCoverage,Channel Coverage,Channel Coverage,채널 커버리지
+Product Name,2,crm.aiHub.omniChannel.prodColName,Product Name,Product Name,상품명
+Sync Status,2,crm.aiHub.omniChannel.prodSyncStatus,Sync Status,Sync Status,동기화 상태
+Unified Product Management,2,crm.aiHub.omniChannel.prodTitle,Unified Product Management,Unified Product Management,통합 상품 관리
+Total SKUs,2,crm.aiHub.omniChannel.prodTotalSKU,Total SKUs,Total SKUs,총 SKU 수
+Copied to clipboard,2,crm.aiHub.reviews.copied,Copied to clipboard,Copied to clipboard,클립보드에 복사되었습니다
+Order ID,2,crm.aiHub.reviews.orderId,Order ID,Order ID,주문 ID
+https://example.com/landing-page,2,crm.aiHub.webPopup.linkUrlPh,https://example.com/landing-page,https://example.com/landing-page,https://example.com/landing-page
+Product name,2,crm.email.catalogSync.colProductName,Product name,Product Name,상품명
+Sale Price,2,crm.email.catalogSync.colSalePrice,Sale Price,Sale Price,판매가
+Exchange Rate,2,crm.email.catalogSync.exchangeRate,Exchange Rate,Exchange Rate,환율
+ROAS < 3.0x,2,crm.email.ds.ruleROAS3,ROAS < 3.0x,ROAS < 3.0x,ROAS < 3.0x
+TikTok Ads Manager → Assets → Events → Web Events,2,crm.email.dt.tiktokStep1,TikTok Ads Manager → Assets → Events → Web Events,TikTok Ads Manager → Assets → Events → Web Events,TikTok Ads Manager → Assets → Events → Web Events
+Days Left,2,daysLeft,,days left,남은 일수
+13 Alerts,2,marketing.g.sidebarAlertCount,13 Alerts,13 Alerts,알림 13건
+Exit  & Logout,2,marketing.g.sidebarLogout,Exit  & Logout,Exit  & Logout,종료 & 로그아웃
+View Upgrade Plans,2,marketing.g.upgradalBtn,View Upgrade Plans,View Upgrade Plans,업그레이드 플랜 보기
+Pro Plan Exclusive,2,marketing.g.upgradalTitle,Pro Plan Exclusive,Pro Plan Exclusive,Pro 플랜 전용
+Plans & Pricing,2,marketing.gNav.app_pricing,Plans & Pricing,Plans & Pricing,플랜 & 요금
+Data Schema,2,marketing.gNav.dataSchema,Data Schema,Data Schema,데이터 스키마
+Order Hub,2,marketing.gNav.orderHub,Order Hub,Order Hub,주문 허브
+Performance Hub,2,marketing.gNav.performanceHub,Performance Hub,Performance Hub,성과 허브
+Price Optimization,2,marketing.gNav.priceOpt,Price Optimization,Price Optimization,가격 최적화
+WMS Inventory,2,marketing.gNav.wms,WMS Inventory,WMS Inventory,WMS 재고
+SmartConnect (ERP·SCM),2,nav.pages.cmpRow.r17,,,SmartConnect (ERP·SCM)
+:{page} / {total},2,nav.pages.ui.pageOf,,,:{page} / {total}
+Account Health,2,pages.amazonRisk.accountScore,Account Health,Account Health,계정 건전성
+Average Rating,2,pages.amazonRisk.avgRating,Average Rating,Average Rating,평균 평점
+Buy Box Rate,2,pages.amazonRisk.buyBox,Buy Box Rate,Buy Box Rate,바이박스 점유율
+FBA Stock Rate,2,pages.amazonRisk.fbaStockRate,FBA Stock Rate,FBA Stock Rate,FBA 재고율
+High Severity,2,pages.amazonRisk.highRisk,High Severity,High Risk,높은 심각도
+Medium Risk,2,pages.amazonRisk.mediumRisk,Medium Risk,Medium Risk,중간 리스크
+Risk Alerts,2,pages.amazonRisk.riskAlerts,Risk Alerts,Risk Alerts,리스크 알림
+Home Dashboard,2,pages.cmpRow.r1,Home Dashboard,Home Dashboard,홈 대시보드
+Average Unit Price,2,pages.cmpVal.aiPredict.aiRec.avgPrice,Average Unit Price,Average Unit Price,평균 단가
+Catalog Auto-fill,2,pages.cmpVal.aiPredict.aiRec.catalogAuto,Catalog Auto-fill,Catalog Auto-fill,카탈로그 자동 입력
+Revenue Target,2,pages.cmpVal.aiPredict.aiRec.goalRevenue,Revenue Target,Revenue Target,매출 목표
+Main Sales Channels,2,pages.cmpVal.aiPredict.aiRec.mainChannels,Main Sales Channels,Main Sales Channels,주요 판매 채널
+Monthly Sales Target,2,pages.cmpVal.aiPredict.aiRec.monthlyQty,Monthly Sales Target,Monthly Sales Target,월 판매 목표
+📦 Product Sales Info,2,pages.cmpVal.aiPredict.aiRec.salesInfo,📦 Product Sales Info,📦 Product Sales Info,📦 상품 판매 정보
+e.g. Beauty brand Instagram ad strategy or marketing goal,2,pages.cmpVal.aiPredict.aiRec.searchPh,e.g. Beauty brand Instagram ad strategy or marketing goal,e.g. Beauty brand Instagram ad strategy or marketing goal,예: 뷰티 브랜드 Instagram 광고 전략 또는 마케팅 목표
+Product/SKU Count,2,pages.cmpVal.aiPredict.aiRec.skuCount,Product/SKU Count,Product/SKU Count,상품/SKU 수
+Electronics,2,pages.cmpVal.aiPredict.cat.electronics,Electronics,Electronics,전자제품
+🛒 Purchase Agent,2,pages.cmpVal.aiPredict.cat.purchasing,🛒 Purchase Agent,🛒 Purchase Agent,🛒 구매 대행
+Channel Intelligen,2,pages.cmpVal.aiPredict.kpi.k_9,Channel Intelligen,Channel Intelligen,채널 인텔리전스
+P&L Waterfall — 3-Domain Integrated,2,pages.cmpVal.aiPredict.kpi.p_11,P&L Waterfall — 3-Domain Integrated,P&L Waterfall — 3-Domain Integrated,P&L 워터폴 — 3개 도메인 통합
+Ad Domain,2,pages.cmpVal.aiPredict.kpi.p_12,Ad Domain,Ad Domain,광고 도메인
+Market Domain,2,pages.cmpVal.aiPredict.kpi.p_13,Market Domain,Market Domain,시장 도메인
+By SKU,2,pages.cmpVal.aiPredict.kpi.p_15,By SKU,By SKU,SKU별
+By Channel,2,pages.cmpVal.aiPredict.kpi.p_16,By Channel,By Channel,채널별
+By Campaign,2,pages.cmpVal.aiPredict.kpi.p_17,By Campaign,By Campaign,캠페인별
+By Creator,2,pages.cmpVal.aiPredict.kpi.p_18,By Creator,By Creator,크리에이터별
+Forecast P&L Simulation,2,pages.cmpVal.aiPredict.kpi.p_19,Forecast P&L Simulation,Forecast P&L Simulation,P&L 예측 시뮬레이션
+Parameter Settings,2,pages.cmpVal.aiPredict.kpi.p_20,Parameter Settings,Parameter Settings,파라미터 설정
+Forecast Annual Revenue,2,pages.cmpVal.aiPredict.kpi.p_21,Forecast Annual Revenue,Forecast Annual Revenue,예상 연간 매출
+Forecast Net Profit,2,pages.cmpVal.aiPredict.kpi.p_22,Forecast Net Profit,Forecast Net Profit,예상 순이익
+Influencer Cost,2,pages.cmpVal.aiPredict.kpi.p_4,Influencer Cost,Influencer Cost,인플루언서 비용
+Net Settlement,2,pages.cmpVal.aiPredict.kpi.p_5,Net Settlement,Net Settlement,순 정산액
+Bday Desc,2,pages.cmpVal.aiPredict.kpi.tab.bdayDesc,Bday Desc,Bday Desc,생일 안내
+Churn Desc,2,pages.cmpVal.aiPredict.kpi.tab.churnDesc,Churn Desc,Churn Desc,이탈 안내
+Vip Desc,2,pages.cmpVal.aiPredict.kpi.tab.vipDesc,Vip Desc,Vip Desc,VIP 안내
+List View,2,pages.cmpVal.list_view,List View,List View,목록 보기
+Average Order Value,2,pages.dashboard.avgOrder,Average Order Value,Average Order Value,평균 주문 금액
+Net R O A S,2,pages.dashboard.netROAS,Net R O A S,Net R O A S,Net ROAS
+Ad Spend Rate,2,pages.krChannel.adSpendRate,Ad Spend Rate,Ad Spend Rate,광고 비용률
+Api Disconnected,2,pages.krChannel.apiDisconnected,Api Disconnected,Api Disconnected,API 연결 해제
+Category All,2,pages.krChannel.categoryAll,Category All,Category All,전체 카테고리
+Channel Master,2,pages.krChannel.channelMaster,Channel Master,Channel Master,채널 마스터
+Channel Select,2,pages.krChannel.channelSelect,Channel Select,Channel Select,채널 선택
+Commission History,2,pages.krChannel.commissionHistory,Commission History,Commission History,수수료 이력
+Commission Reg,2,pages.krChannel.commissionReg,Commission Reg,Commission Reg,수수료 등록
+Effective Date,2,pages.krChannel.effectiveDate,Effective Date,Effective Date,적용일
+Ingest Title,2,pages.krChannel.ingestTitle,Ingest Title,Ingest Title,데이터 수집 제목
+Load Sample,2,pages.krChannel.loadSample,Load Sample,Load Sample,샘플 불러오기
+Missing Order,2,pages.krChannel.missingOrder,Missing Order,Missing Order,누락된 주문
+Missing Settle,2,pages.krChannel.missingSettle,Missing Settle,Missing Settle,누락된 정산
+Net Diff,2,pages.krChannel.netDiff,Net Diff,Net Diff,순 차액
+No Data Hint,2,pages.krChannel.noDataHint,No Data Hint,No Data Hint,데이터 없음 안내
+Recon Run,2,pages.krChannel.reconRun,Recon Run,Recon Run,대조 실행
+Recon Start,2,pages.krChannel.reconStart,Recon Start,Recon Start,대조 시작
+Return Fee,2,pages.krChannel.returnFee,Return Fee,Return Fee,반품 수수료
+Save Commission,2,pages.krChannel.saveCommission,Save Commission,Save Commission,수수료 저장
+Select Channel Hint,2,pages.krChannel.selectChannelHint,Select Channel Hint,Select Channel Hint,채널을 선택하세요
+Settle Cycle,2,pages.krChannel.settleCycle,Settle Cycle,Settle Cycle,정산 주기
+Base Shipping Fee (₩),2,pages.krChannel.shippingFee,Base Shipping Fee (₩),Base Shipping Fee (₩),기본 배송비 (₩)
+Tab Fees,2,pages.krChannel.tabFees,Tab Fees,Tab Fees,수수료
+Tab Ingest,2,pages.krChannel.tabIngest,Tab Ingest,Tab Ingest,데이터 수집
+Summary Score,2,pages.krChannel.tabSummary,Summary Score,Summary Score,요약 점수
+Total Commission,2,pages.krChannel.totalCommission,Total Commission,Total Commission,총 수수료
+Total Settlement,2,pages.krChannel.totalSettlement,Total Settlement,Total Settlement,총 정산액
+Vat Rate Label,2,pages.krChannel.vatRateLabel,Vat Rate Label,Vat Rate Label,VAT 세율
+Age Distribution,2,pages.marketing.ageDist,Age Distribution,Age Distribution,연령 분포
+AI Communication,2,pages.marketing.aiMarketingHub,AI Communication,AI Communication,AI 커뮤니케이션
+Analytics Modules,2,pages.marketing.analyticsModules,Analytics Modules,Analytics Modules,분석 모듈
+View Integration Guide,2,pages.marketing.ApiRegister,View Integration Guide,View Integration Guide,연동 가이드 보기
+Core KPIs by Channel,2,pages.marketing.channelDesc,Core KPIs by Channel,Core KPIs by Channel,채널별 핵심 KPI
+Channel Mix,2,pages.marketing.channelMix,Channel Mix,Channel Mix,채널 믹스
+Ch Intel Desc1,2,pages.marketing.chIntelDesc1,Ch Intel Desc1,Ch Intel Desc1,채널 인텔리전스 안내 1
+Ch Intel Desc2,2,pages.marketing.chIntelDesc2,Ch Intel Desc2,Ch Intel Desc2,채널 인텔리전스 안내 2
+Ch Intel Desc3,2,pages.marketing.chIntelDesc3,Ch Intel Desc3,Ch Intel Desc3,채널 인텔리전스 안내 3
+Ch Intel Desc4,2,pages.marketing.chIntelDesc4,Ch Intel Desc4,Ch Intel Desc4,채널 인텔리전스 안내 4

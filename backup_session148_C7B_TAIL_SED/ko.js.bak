@@ -15408,7 +15408,7 @@ export default {
 
   "performance": "Performance",
 
-  "fixedPerf": "고정+성과형",
+  "fixedPerf": "Fixed Perf",
 
   "expired": "Expired",
 
@@ -15420,37 +15420,37 @@ export default {
 
   "rejected": "Rejected",
 
-  "stPaid": "결제 완료",
+  "stPaid": "St Paid",
 
-  "stPartial": "부분 결제",
+  "stPartial": "St Partial",
 
-  "stUnpaid": "미결제",
+  "stUnpaid": "St Unpaid",
 
-  "stOverpaid": "초과 결제",
+  "stOverpaid": "St Overpaid",
 
-  "perContract": "계약별",
+  "perContract": "Per Contract",
 
-  "actualPaid": "실제 지급액",
+  "actualPaid": "Actual Paid",
 
   "difference": "Difference",
 
   "recover": "Recover",
 
-  "payRemaining": "잔금 결제",
+  "payRemaining": "Pay Remaining",
 
   "matchOk": "✓ 일치",
 
-  "adReady": "광고 집행 준비 완료",
+  "adReady": "Ad Ready",
 
-  "checkRights": "권한 확인",
+  "checkRights": "Check Rights",
 
-  "adCreative": "광고 크리에이티브",
+  "adCreative": "Ad Creative",
 
-  "productPage": "상품 페이지",
+  "productPage": "Product Page",
 
   "engagement": "Engagement",
 
-  "viewsPerOrder": "주문당 조회 수",
+  "viewsPerOrder": "Views Per Order",
 
   "positive": "Positive",
 
@@ -46828,9 +46828,9 @@ export default {
 
   },
 
-  "CSV": "CSV",
+  "CSV": " C S V",
 
-  "PDF": "PDF",
+  "PDF": " P D F",
 
   "sandbox": "Sandbox",
 
@@ -47998,9 +47998,9 @@ export default {
     "targetNode": "대상 노드",
     "topInfluencer": "🏆 상위 기여 인플루언서",
     "weight": "가중치",
-    "mockData": "🟡 MOCK 데이터",
-    "mockResult": "🟡 MOCK 결과",
-    "noEdge": "연결된 엣지가 없습니다. 상단 탭에서 노드/엣지를 등록해주세요."
+    "mockData": "🟡 MOCK Data",
+    "mockResult": "🟡 MOCK Results",
+    "noEdge": "No Edge — Register Node/Edge in Tab above"
   },
   performance: {
     account: "계정",

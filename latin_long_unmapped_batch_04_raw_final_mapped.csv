@@ -1,0 +1,139 @@
+ko_value,count,path,ja_value,en_value,suggested_ko
+Team Management (RBAC),1,pages.cmpRow.r26,Team Management (RBAC),Team Management (RBAC),팀 관리(RBAC)
+Account Count,1,pages.cmpRow.r27,Account Count,Account Count,계정 수
+Support Type,1,pages.cmpRow.r28,Support Type,Support Type,지원 유형
+AI Forecast (Churn·LTV·Purchase Prob.),1,pages.cmpRow.r3,AI Forecast (Churn·LTV·Purchase Prob.),AI Forecast (Churn·LTV·Purchase Prob.),AI 예측(이탈·LTV·구매 확률)
+Customer Journey Builder,1,pages.cmpRow.r4,Customer Journey Builder,Customer Journey Builder,고객 여정 빌더
+AI Segment,1,pages.cmpRow.r5,AI Segment,AI Segment,AI 세그먼트
+Ad & Channel Analytics (ROAS·KPI),1,pages.cmpRow.r6,Ad & Channel Analytics (ROAS·KPI),Ad & Channel Analytics (ROAS·KPI),광고·채널 분석(ROAS·KPI)
+Attribution Analysis (Touch Model),1,pages.cmpRow.r7,Attribution Analysis (Touch Model),Attribution Analysis (Touch Model),어트리뷰션 분석(터치 모델)
+Competitor AI Analysis,1,pages.cmpRow.r8,Competitor AI Analysis,Competitor AI Analysis,경쟁사 AI 분석
+Customer CRM (Email/Kakao/SMS),1,pages.cmpRow.r9,Customer CRM (Email/Kakao/SMS),Customer CRM (Email/Kakao/SMS),고객 CRM(이메일·카카오·SMS)
+Activity History,1,pages.cmpVal.activity_history,Activity History,Activity History,활동 이력
+Advanced Custom,1,pages.cmpVal.advanced_custom,Advanced Custom,Advanced Custom,고급 커스텀
+Anomaly Detection,1,pages.cmpVal.anomaly_detect,Anomaly Detection,Anomaly Detection,이상 징후 감지
+Auto·Scheduled·Share,1,pages.cmpVal.auto_scheduled_share,Auto·Scheduled·Share,Auto·Scheduled·Share,자동·예약·공유
+Basic Auto-classify,1,pages.cmpVal.basic_auto,Basic Auto-classify,Basic Auto-classify,기본 자동 분류
+Campaign·Settlement,1,pages.cmpVal.campaign_settle,Campaign·Settlement,Campaign·Settlement,캠페인·정산
+Chat Support,1,pages.cmpVal.chat_support,Chat Support,Chat Support,채팅 지원
+Cohort·P&L All,1,pages.cmpVal.cohort_pl,Cohort·P&L All,Cohort·P&L All,코호트·P&L 전체
+Competitor Compare,1,pages.cmpVal.competitor_compare,Competitor Compare,Competitor Compare,경쟁사 비교
+Conv. Path All,1,pages.cmpVal.conv_path_all,Conv. Path All,Conv. Path All,전체 전환 경로
+Custom·Excel,1,pages.cmpVal.custom_excel,Custom·Excel,Custom·Excel,커스텀·Excel
+Dedicated Manager,1,pages.cmpVal.dedicated_manager,Dedicated Manager,Dedicated Manager,전담 매니저
+Dedicated + SLA,1,pages.cmpVal.dedicated_sla,Dedicated + SLA,Dedicated + SLA,전담 관리 + SLA
+Domestic+Global,1,pages.cmpVal.dom_global,Domestic+Global,Domestic+Global,국내·글로벌
+Domestic Ad Integration,1,pages.cmpVal.domestic_ads,Domestic Ad Integration,Domestic Ad Integration,국내 광고 연동
+Domestic Core,1,pages.cmpVal.domestic_core,Domestic Core,Domestic Core,국내 핵심 기능
+Install & Analysis,1,pages.cmpVal.install_analysis,Install & Analysis,Install & Analysis,설치·분석
+Instant Rollback,1,pages.cmpVal.instant_rollback,Instant Rollback,Instant Rollback,즉시 롤백
+List·Invite,1,pages.cmpVal.list_invite,List·Invite,List·Invite,목록·초대
+Location & Barcode,1,pages.cmpVal.location_barcode,Location & Barcode,Location & Barcode,위치·바코드
+Market Share,1,pages.cmpVal.market_share,Market Share,Market Share,시장 점유율
+Notification Basic,1,pages.cmpVal.notification_basic,Notification Basic,Notification Basic,기본 알림
+Notification Send,1,pages.cmpVal.notification_send,Notification Send,Notification Send,알림 발송
+Own History,1,pages.cmpVal.own_history,Own History,Own History,자체 이력
+Owner·Streaming,1,pages.cmpVal.owner_streaming,Owner·Streaming,Owner·Streaming,오너·스트리밍
+Partner API Bidirectional,1,pages.cmpVal.partner_api,Partner API Bidirectional,Partner API Bidirectional,파트너 API 양방향 연동
+Performance View,1,pages.cmpVal.perf_view,Performance View,Performance View,성과 보기
+Policy·Review·Listing,1,pages.cmpVal.policy_review,Policy·Review·Listing,Policy·Review·Listing,정책·심사·노출
+RBAC Role Settings,1,pages.cmpVal.rbac_role,RBAC Role Settings,RBAC Role Settings,RBAC 권한 설정
+Real-time Rate,1,pages.cmpVal.realtime_rate,Real-time Rate,Real-time Rate,실시간 환율
+Rule Engine·Writeback,1,pages.cmpVal.rule_writeback,Rule Engine·Writeback,Rule Engine·Writeback,룰 엔진·Writeback
+Schema·Quality View,1,pages.cmpVal.schema_quality_view,Schema·Quality View,Schema·Quality View,스키마·품질 현황
+Server-side,1,pages.cmpVal.server_side,Server-side,Server-side,서버사이드
+Trend Forecast,1,pages.cmpVal.trend_forecast,Trend Forecast,Trend Forecast,트렌드 예측
+Account Performance,1,pages.marketing.accountPerformance,Account Performance,Account Performance,계정 성과
+AI Instant Recommendations,1,pages.marketing.aiRecommend,AI Instant Recommendations,AI Instant Recommendations,AI 즉시 추천
+Product Catalog,1,pages.marketing.catalog,Product Catalog,Product Catalog,상품 카탈로그
+Returns Automation Portal,1,pages.marketing.returnsPortal,Returns Automation Portal,Returns Automation Portal,반품 자동화 포털
+Supply Chain Visibility,1,pages.marketing.supplyChain,Supply Chain Visibility,Supply Chain Visibility,공급망 가시성
+View Pricing Plans,1,pages.marketing.upgradalBtn,View Pricing Plans,View Pricing Plans,요금제 보기
+This menu is available on paid plans. Upgrade to unlock all expert features.,1,pages.marketing.upgradalDesc,This menu is available on paid plans. Upgrade to unlock all expert features.,This menu is available on paid plans. Upgrade to unlock all expert features.,이 메뉴는 유료 플랜에서 사용할 수 있습니다. 업그레이드 후 모든 전문가 기능을 이용해보세요.
+Upgrade Notice,1,pages.marketing.upgradalTitle,Upgrade Notice,Upgrade Notice,업그레이드 안내
+Action Label,1,pages.marketingIntel.actionLabel,Action Label,Action Label,액션
+Ad Body,1,pages.marketingIntel.adBody,Ad Body,Ad Body,광고 본문
+Ad Copy,1,pages.marketingIntel.adCopy,Ad Copy,Ad Copy,광고 카피
+Ad Creative Sub,1,pages.marketingIntel.adCreativeSub,Ad Creative Sub,Ad Creative Sub,광고 크리에이티브 안내
+Ad Creative Title,1,pages.marketingIntel.adCreativeTitle,Ad Creative Title,Ad Creative Title,광고 크리에이티브
+Ad Cta,1,pages.marketingIntel.adCta,Ad Cta,Ad Cta,광고 CTA
+⬇ Download,1,pages.marketingIntel.adDownload,⬇ Download,⬇ Download,⬇ 다운로드
+Ad Generate,1,pages.marketingIntel.adGenerate,Ad Generate,Ad Generate,광고 생성
+Ad Generating,1,pages.marketingIntel.adGenerating,Ad Generating,Ad Generating,광고 생성 중...
+Ad Hashtags,1,pages.marketingIntel.adHashtags,Ad Hashtags,Ad Hashtags,광고 해시태그
+Ad Headline,1,pages.marketingIntel.adHeadline,Ad Headline,Ad Headline,광고 헤드라인
+Ad Keyword,1,pages.marketingIntel.adKeyword,Ad Keyword,Ad Keyword,광고 키워드
+Ad Keyword Ph,1,pages.marketingIntel.adKeywordPh,Ad Keyword Ph,Ad Keyword Ph,광고 키워드를 입력해주세요
+Ad Keywords,1,pages.marketingIntel.adKeywords,Ad Keywords,Ad Keywords,광고 키워드
+Call Volume,1,pages.marketingIntel.admin.callVolume,Call Volume,Call Volume,호출량
+Ip Restriction,1,pages.marketingIntel.admin.ipRestriction,Ip Restriction,Ip Restriction,IP 제한
+Session Timeout,1,pages.marketingIntel.admin.sessionTimeout,Session Timeout,Session Timeout,세션 타임아웃
+Tab Billing,1,pages.marketingIntel.admin.tabBilling,Tab Billing,Tab Billing,결제
+Tab General,1,pages.marketingIntel.admin.tabGeneral,Tab General,Tab General,일반
+Tab Integrations,1,pages.marketingIntel.admin.tabIntegrations,Tab Integrations,Tab Integrations,연동
+Tab Workspace,1,pages.marketingIntel.admin.tabWorkspace,Tab Workspace,Tab Workspace,워크스페이스
+Two Factor,1,pages.marketingIntel.admin.twoFactor,Two Factor,Two Factor,2단계 인증
+Workspace Name,1,pages.marketingIntel.admin.workspaceName,Workspace Name,Workspace Name,워크스페이스명
+Ad Platform,1,pages.marketingIntel.adPlatform,Ad Platform,Ad Platform,광고 플랫폼
+Ad Product,1,pages.marketingIntel.adProduct,Ad Product,Ad Product,광고 상품
+Ad Product Ph,1,pages.marketingIntel.adProductPh,Ad Product Ph,Ad Product Ph,광고 상품을 입력해주세요
+Ad Regenerate,1,pages.marketingIntel.adRegenerate,Ad Regenerate,Ad Regenerate,광고 다시 생성
+Ad Result,1,pages.marketingIntel.adResult,Ad Result,Ad Result,광고 결과
+Ad Size,1,pages.marketingIntel.adSize,Ad Size,Ad Size,광고 사이즈
+Ad Style,1,pages.marketingIntel.adStyle,Ad Style,Ad Style,광고 스타일
+Ad Target,1,pages.marketingIntel.adTarget,Ad Target,Ad Target,광고 타겟
+Ad Target Ph,1,pages.marketingIntel.adTargetPh,Ad Target Ph,Ad Target Ph,광고 타겟을 입력해주세요
+Ad Tone,1,pages.marketingIntel.adTone,Ad Tone,Ad Tone,광고 톤앤매너
+Ai Engine,1,pages.marketingIntel.aiEngine,Ai Engine,Ai Engine,AI 엔진
+Ai Engine Desc,1,pages.marketingIntel.aiEngineDesc,Ai Engine Desc,Ai Engine Desc,AI 엔진 안내
+Col Detail,1,pages.marketingIntel.auditLog.colDetail,Col Detail,Col Detail,상세 정보
+Export CSV,1,pages.marketingIntel.auditLog.exportCsv,Export CSV,Export CSV,CSV 내보내기
+Filter Action,1,pages.marketingIntel.auditLog.filterAction,Filter Action,Filter Action,액션 필터
+Filter Date,1,pages.marketingIntel.auditLog.filterDate,Filter Date,Filter Date,날짜 필터
+Filter User,1,pages.marketingIntel.auditLog.filterUser,Filter User,Filter User,사용자 필터
+No Logs,1,pages.marketingIntel.auditLog.noLogs,No Logs,No Logs,로그가 없습니다
+Auto Order Mode,1,pages.marketingIntel.autoOrderMode,Auto Order Mode,Auto Order Mode,자동 주문 모드
+⚙️ Automation Rules List,1,pages.marketingIntel.autoRules,⚙️ Automation Rules List,⚙️ Automation Rules List,⚙️ 자동화 규칙 목록
+Avg Confidence,1,pages.marketingIntel.avgConfidence,Avg Confidence,Avg Confidence,평균 신뢰도
+Avg Eng Rate,1,pages.marketingIntel.avgEngRate,Avg Eng Rate,Avg Eng Rate,평균 참여율
+Badge Ai Rec,1,pages.marketingIntel.badgeAiRec,Badge Ai Rec,Badge Ai Rec,AI 추천 배지
+All Segments,1,pages.marketingIntel.campaignMgr.allSegments,All Segments,All Segments,전체 세그먼트
+Type Automation,1,pages.marketingIntel.campaignMgr.typeAutomation,Type Automation,Type Automation,자동화 유형
+Campaign R O I,1,pages.marketingIntel.campaignROI,Campaign R O I,Campaign R O I,캠페인 ROI
+Cart Rate,1,pages.marketingIntel.cartRate,Cart Rate,Cart Rate,장바구니 전환율
+Cart To Buy,1,pages.marketingIntel.cartToBuy,Cart To Buy,Cart To Buy,장바구니 → 구매
+Channel Demand,1,pages.marketingIntel.channelDemand,Channel Demand,Channel Demand,채널 수요
+Channel Detail,1,pages.marketingIntel.channelDetail,Channel Detail,Channel Detail,채널 상세
+Condition Line Clicked,1,pages.marketingIntel.conditionLineClicked,Condition Line Clicked,Condition Line Clicked,조건: LINE 클릭
+Condition Purchased,1,pages.marketingIntel.conditionPurchased,Condition Purchased,Condition Purchased,조건: 구매 완료
+Conf Label,1,pages.marketingIntel.confLabel,Conf Label,Conf Label,신뢰도
+Backup History,1,pages.marketingIntel.dbAdmin.backupHistory,Backup History,Backup History,백업 이력
+Backup Now,1,pages.marketingIntel.dbAdmin.backupNow,Backup Now,Backup Now,지금 백업
+Db Connected,1,pages.marketingIntel.dbAdmin.dbConnected,Db Connected,Db Connected,DB 연결 완료
+Last Backup,1,pages.marketingIntel.dbAdmin.lastBackup,Last Backup,Last Backup,최근 백업
+Query Result,1,pages.marketingIntel.dbAdmin.queryResult,Query Result,Query Result,쿼리 결과
+Run Query,1,pages.marketingIntel.dbAdmin.runQuery,Run Query,Run Query,쿼리 실행
+Slow Queries,1,pages.marketingIntel.dbAdmin.slowQueries,Slow Queries,Slow Queries,슬로우 쿼리
+Tab Backup,1,pages.marketingIntel.dbAdmin.tabBackup,Tab Backup,Tab Backup,백업
+Tab Query,1,pages.marketingIntel.dbAdmin.tabQuery,Tab Query,Tab Query,쿼리
+Tab Status,1,pages.marketingIntel.dbAdmin.tabStatus,Tab Status,Tab Status,상태
+Total Size,1,pages.marketingIntel.dbAdmin.totalSize,Total Size,Total Size,전체 용량
+Total Tables,1,pages.marketingIntel.dbAdmin.totalTables,Total Tables,Total Tables,전체 테이블 수
+Dim Channel,1,pages.marketingIntel.dimChannel,Dim Channel,Dim Channel,채널 차원
+Content type,1,pages.marketingIntel.dimContent,Content type,Content type,콘텐츠 유형
+Dim Coupon,1,pages.marketingIntel.dimCoupon,Dim Coupon,Dim Coupon,쿠폰 차원
+Dim Customer,1,pages.marketingIntel.dimCustomer,Dim Customer,Dim Customer,고객 차원
+Dim Device,1,pages.marketingIntel.dimDevice,Dim Device,Dim Device,디바이스 차원
+Dim Tier,1,pages.marketingIntel.dimTier,Dim Tier,Dim Tier,등급 차원
+Dim Time,1,pages.marketingIntel.dimTime,Dim Time,Dim Time,시간 차원
+Dim Touch,1,pages.marketingIntel.dimTouch,Dim Touch,Dim Touch,터치 차원
+Email Sender Ph,1,pages.marketingIntel.emailSenderPh,Email Sender Ph,Email Sender Ph,발신자 이메일을 입력해주세요
+Engagement Trend,1,pages.marketingIntel.engagementTrend,Engagement Trend,Engagement Trend,참여도 추이
+Final Cvr,1,pages.marketingIntel.finalCvr,Final Cvr,Final Cvr,최종 전환율
+Forecast30d,1,pages.marketingIntel.forecast30d,Forecast30d,Forecast30d,30일 예측
+Forecast30d Total,1,pages.marketingIntel.forecast30dTotal,Forecast30d Total,Forecast30d Total,30일 예측 합계
+Forecast7d Total,1,pages.marketingIntel.forecast7dTotal,Forecast7d Total,Forecast7d Total,7일 예측 합계
+Impression count,1,pages.marketingIntel.funnelImp,Impression count,Impression count,노출 수
+Funnel Total,1,pages.marketingIntel.funnelTotal,Funnel Total,Funnel Total,전체 퍼널
+🎯 What you can do with this menu,1,pages.marketingIntel.helpPanel.canDo,🎯 What you can do with this menu,🎯 What you can do with this menu,🎯 이 메뉴에서 할 수 있는 작업
+Current Page Help,1,pages.marketingIntel.helpPanel.currentPageHelp,Current Page Help,Current Page Help,현재 페이지 도움말

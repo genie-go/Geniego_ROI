@@ -1,0 +1,139 @@
+ko_value,count,path,ja_value,en_value,suggested_ko
+Attr Ai,1,pages.marketingIntel.marketingIntel.banner.attrAiSub,Attr Ai,Attr Ai,어트리뷰션 AI
+All Normal,1,pages.marketingIntel.marketingIntel.banner.kpiAllNormal,All Normal,All Normal,전체 정상
+Rule Action,1,pages.marketingIntel.marketingIntel.banner.kpiRuleAction,Rule Action,Rule Action,룰 실행 액션
+Rules Active,1,pages.marketingIntel.marketingIntel.banner.kpiRulesActive,Rules Active,Rules Active,활성 룰
+Rules Fired,1,pages.marketingIntel.marketingIntel.banner.kpiRulesFired,Rules Fired,Rules Fired,실행된 룰
+Pnl Ai Action,1,pages.marketingIntel.marketingIntel.banner.pnlAiAction,Pnl Ai Action,Pnl Ai Action,P&L AI 액션
+Pnl Budget Action,1,pages.marketingIntel.marketingIntel.banner.pnlBudgetAction,Pnl Budget Action,Pnl Budget Action,P&L 예산 액션
+Ch Name,1,pages.marketingIntel.marketingIntel.channelKpiPage.chName_,Ch Name,Ch Name,채널명
+Status error,1,pages.marketingIntel.marketingIntel.systemMonitor.status_error,Status error,Status error,오류
+Status ok,1,pages.marketingIntel.marketingIntel.systemMonitor.status_ok,Status ok,Status ok,정상
+Status warning,1,pages.marketingIntel.marketingIntel.systemMonitor.status_warning,Status warning,Status warning,경고
+Camp Name,1,pages.marketingIntel.marketingIntel.unified.campName,Camp Name,Camp Name,캠페인명
+Mix Title,1,pages.marketingIntel.marketingIntel.unified.mixTitle,Mix Title,Mix Title,믹스 분석
+Total Amt,1,pages.marketingIntel.marketingIntel.unified.totalAmt,Total Amt,Total Amt,총 금액
+Mobile Cvr,1,pages.marketingIntel.mobileCvr,Mobile Cvr,Mobile Cvr,모바일 전환율
+New Cust Pct,1,pages.marketingIntel.newCustPct,New Cust Pct,New Cust Pct,신규 고객 비율
+Node Settings,1,pages.marketingIntel.nodeSettings,Node Settings,Node Settings,노드 설정
+Order History,1,pages.marketingIntel.orderHistory,Order History,Order History,주문 이력
+Order Needed,1,pages.marketingIntel.orderNeeded,Order Needed,Order Needed,발주 필요
+Order Needed Sku,1,pages.marketingIntel.orderNeededSku,Order Needed Sku,Order Needed Sku,발주 필요 SKU
+Payment Key,1,pages.marketingIntel.paymentKey,Payment Key,Payment Key,결제 키
+Platform Dist,1,pages.marketingIntel.platformDist,Platform Dist,Platform Dist,플랫폼 분포
+Limited Features,1,pages.marketingIntel.pricing.limitedFeat,Limited Features,Limited Features,일부 기능 제한
+Product Cost,1,pages.marketingIntel.productCost,Product Cost,Product Cost,상품 원가
+Purchase Cost,1,pages.marketingIntel.purchaseCost,Purchase Cost,Purchase Cost,매입 원가
+Campaign Pnl Risk,1,pages.marketingIntel.rollup.campaignPnlRisk,Campaign Pnl Risk,Campaign Pnl Risk,캠페인 P&L 리스크
+Commission Per Post,1,pages.marketingIntel.rollup.commissionPerPost,Commission Per Post,Commission Per Post,게시물당 수수료
+Loss Est Warning,1,pages.marketingIntel.rollup.lossEstWarning,Loss Est Warning,Loss Est Warning,손실 예상 경고
+Pnl Cogs,1,pages.marketingIntel.rollup.pnlCogs,Pnl Cogs,Pnl Cogs,매출원가(COGS)
+Pnl Desc,1,pages.marketingIntel.rollup.pnlDesc,Pnl Desc,Pnl Desc,P&L 안내
+Pnl Fx Loss,1,pages.marketingIntel.rollup.pnlFxLoss,Pnl Fx Loss,Pnl Fx Loss,환차손
+Net Revenue,1,pages.marketingIntel.rollup.pnlNetRev,Net Revenue,Net Revenue,순매출
+Pnl Return Loss,1,pages.marketingIntel.rollup.pnlReturnLoss,Pnl Return Loss,Pnl Return Loss,반품 손실
+Pnl Structure,1,pages.marketingIntel.rollup.pnlStructure,Pnl Structure,Pnl Structure,P&L 구조
+Settlement Deduction,1,pages.marketingIntel.rollup.settleDeductWord,Settlement Deduction,Settlement Deduction,정산 공제
+10K KRW,1,pages.marketingIntel.rollup.unitTenThousand,10K KRW,10K KRW,만원
+Root_page Title_channel Kpi2,1,pages.marketingIntel.root_pageTitle_channelKpi2,Root_page Title_channel Kpi2,Root_page Title_channel Kpi2,채널 KPI 페이지
+Sku Analysis,1,pages.marketingIntel.skuAnalysis,Sku Analysis,Sku Analysis,SKU 분석
+Sku Forecast,1,pages.marketingIntel.skuForecast,Sku Forecast,Sku Forecast,SKU 예측
+Top Margin SKU,1,pages.marketingIntel.skuTopMargin,Top Margin SKU,Top Margin SKU,고마진 SKU
+Summary Orders,1,pages.marketingIntel.summaryOrders,Summary Orders,Summary Orders,주문 요약
+Tab Ai,1,pages.marketingIntel.tabAi,Tab Ai,Tab Ai,AI
+Tab Ai Desc,1,pages.marketingIntel.tabAiDesc,Tab Ai Desc,Tab Ai Desc,AI 분석 안내
+Tab Auto,1,pages.marketingIntel.tabAuto,Tab Auto,Tab Auto,자동화
+Tab Auto Desc,1,pages.marketingIntel.tabAutoDesc,Tab Auto Desc,Tab Auto Desc,자동화 안내
+Tab Funnel,1,pages.marketingIntel.tabFunnel,Tab Funnel,Tab Funnel,퍼널
+Tab Funnel Desc,1,pages.marketingIntel.tabFunnelDesc,Tab Funnel Desc,Tab Funnel Desc,퍼널 분석 안내
+Tab Kpi,1,pages.marketingIntel.tabKpi,Tab Kpi,Tab Kpi,KPI
+Tab Kpi Desc,1,pages.marketingIntel.tabKpiDesc,Tab Kpi Desc,Tab Kpi Desc,KPI 분석 안내
+Today Ad Spend,1,pages.marketingIntel.todayAdSpend,Today Ad Spend,Today Ad Spend,오늘 광고비
+Top Creators,1,pages.marketingIntel.topCreators,Top Creators,Top Creators,상위 크리에이터
+Total Followers,1,pages.marketingIntel.totalFollowers,Total Followers,Total Followers,총 팔로워 수
+Total Purchases,1,pages.marketingIntel.totalPurchases,Total Purchases,Total Purchases,총 구매 수
+Total Rev Contrib,1,pages.marketingIntel.totalRevContrib,Total Rev Contrib,Total Rev Contrib,총 매출 기여도
+Add User,1,pages.marketingIntel.userMgmt.addUser,Add User,Add User,사용자 추가
+✉️ Email,1,pages.marketingIntel.userMgmt.email,✉️ Email,✉️ Email,✉️ 이메일
+Invite Email,1,pages.marketingIntel.userMgmt.inviteEmail,Invite Email,Invite Email,초대 이메일
+Invite Title,1,pages.marketingIntel.userMgmt.inviteTitle,Invite Title,Invite Title,사용자 초대
+Last Login,1,pages.marketingIntel.userMgmt.lastLogin,Last Login,Last Login,최근 로그인
+No Users,1,pages.marketingIntel.userMgmt.noUsers,No Users,No Users,등록된 사용자가 없습니다.
+Resend Invite,1,pages.marketingIntel.userMgmt.resendInvite,Resend Invite,Resend Invite,초대 재전송
+Send Invite,1,pages.marketingIntel.userMgmt.sendInvite,Send Invite,Send Invite,초대 발송
+Tab Invite,1,pages.marketingIntel.userMgmt.tabInvite,Tab Invite,Tab Invite,초대 관리
+Tab Users,1,pages.marketingIntel.userMgmt.tabUsers,Tab Users,Tab Users,사용자 관리
+Verdict Bad,1,pages.marketingIntel.verdictBad,Verdict Bad,Verdict Bad,부정
+Verdict Good,1,pages.marketingIntel.verdictGood,Verdict Good,Verdict Good,긍정
+Coupon Code,1,pages.mobile.adminCoupon.codeLabel,Coupon Code,Coupon Code,쿠폰 코드
+Code Placeholder,1,pages.mobile.adminCoupon.codePlaceholder,Code Placeholder,Code Placeholder,쿠폰 코드를 입력해주세요.
+Code / Recipient,1,pages.mobile.adminCoupon.colCode,Code / Recipient,Code / Recipient,코드 / 수신자
+Email Placeholder,1,pages.mobile.adminCoupon.emailPlaceholder,Email Placeholder,Email Placeholder,이메일을 입력해주세요.
+Issue Coupon,1,pages.mobile.adminCoupon.issueBtn,Issue Coupon,Issue Coupon,쿠폰 발급
+Email Notifications,1,pages.mobile.adminCoupon.notifyEmail,Email Notifications,Email Notifications,이메일 알림
+1 month,1,pages.mobile.adminCoupon.period1m,1 month,1 month,1개월
+1 year,1,pages.mobile.adminCoupon.period1y,1 year,1 year,1년
+2 months,1,pages.mobile.adminCoupon.period2m,2 months,2 months,2개월
+3 months,1,pages.mobile.adminCoupon.period3m,3 months,3 months,3개월
+6 months,1,pages.mobile.adminCoupon.period6m,6 months,6 months,6개월
+Tab Auto Rules,1,pages.mobile.adminCoupon.tabAutoRules,Tab Auto Rules,Tab Auto Rules,자동 규칙
+🎟 Issue Coupon,1,pages.mobile.adminCoupon.tabIssue,🎟 Issue Coupon,🎟 Issue Coupon,🎟 쿠폰 발급
+Free Coupon Management,1,pages.mobile.adminCoupon.tabTitle,Free Coupon Management,Free Coupon Management,무료 쿠폰 관리
+Total Issued,1,pages.mobile.adminCoupon.totalIssued,Total Issued,Total Issued,총 발급 수
+Average ROAS,1,pages.mobile.avgRoas,Average ROAS,Average ROAS,평균 ROAS
+No available coupons.,1,pages.mobile.coupon.emptyAvailable,No available coupons.,No available coupons.,사용 가능한 쿠폰이 없습니다.
+No expired coupons.,1,pages.mobile.coupon.emptyExpired,No expired coupons.,No expired coupons.,만료된 쿠폰이 없습니다.
+"If you have a coupon code, enter it above.",1,pages.mobile.coupon.emptyHint,"If you have a coupon code, enter it above.","If you have a coupon code, enter it above.",쿠폰 코드가 있으시면 위에 입력해주세요.
+No used coupons.,1,pages.mobile.coupon.emptyUsed,No used coupons.,No used coupons.,사용 완료된 쿠폰이 없습니다.
+"Ask about P&L, ROAS, return rates...",1,pages.mobile.coupon.inputPlaceholder,"Ask about P&L, ROAS, return rates...","Ask about P&L, ROAS, return rates...","P&L, ROAS, 반품률 등을 물어보세요..."
+Invalid coupon code,1,pages.mobile.coupon.invalidCode,Invalid coupon code,Invalid coupon code,유효하지 않은 쿠폰 코드입니다.
+🎉 Redeem Coupon,1,pages.mobile.coupon.modalConfirm,🎉 Redeem Coupon,🎉 Redeem Coupon,🎉 쿠폰 사용
+Enter coupon code to instantly activate the plan.,1,pages.mobile.coupon.modalSub,Enter coupon code to instantly activate the plan.,Enter coupon code to instantly activate the plan.,쿠폰 코드를 입력하면 플랜이 즉시 활성화됩니다.
+🎟 Redeem Coupon,1,pages.mobile.coupon.modalTitle,🎟 Redeem Coupon,🎟 Redeem Coupon,🎟 쿠폰 사용
+Network Error,1,pages.mobile.coupon.networkError,Network Error,Network Error,네트워크 오류
+Redeem Coupon,1,pages.mobile.coupon.redeemBtn,Redeem Coupon,Redeem Coupon,쿠폰 사용하기
+✅ Available,1,pages.mobile.coupon.tabAvailable,✅ Available,✅ Available,✅ 사용 가능
+⏰ Expired,1,pages.mobile.coupon.tabExpired,⏰ Expired,⏰ Expired,⏰ 만료됨
+✔ Used,1,pages.mobile.coupon.tabUsed,✔ Used,✔ Used,✔ 사용 완료
+Use →,1,pages.mobile.coupon.useBtn,Use →,Use →,사용하기 →
+All Teams,1,pages.perms.allTeams,All Teams,All Teams,전체 팀
+Pro All + Instant Rollback·Amazon Policy·Market Share·Data Governance·SmartConnect Partner API·Influencer DB·Full Audit·Auto Reports.,1,pages.pricingDetail.ent_desc,Pro All + Instant Rollback·Amazon Policy·Market Share·Data Governance·SmartConnect Partner API·Influencer DB·Full Audit·Auto Reports.,Pro All + Instant Rollback·Amazon Policy·Market Share·Data Governance·SmartConnect Partner API·Influencer DB·Full Audit·Auto Reports.,Pro 전체 기능 + 즉시 롤백·Amazon 정책 관리·시장 점유율 분석·데이터 거버넌스·SmartConnect 파트너 API·인플루언서 DB·전체 감사 로그·자동 리포트 제공
+Ent_headline,1,pages.pricingDetail.ent_headline,Ent_headline,Ent_headline,엔터프라이즈 플랜
+Writeback Instant Rollback (New),1,pages.pricingDetail.ent_s1,Writeback Instant Rollback (New),Writeback Instant Rollback (New),Writeback 즉시 롤백 (신규)
+Instant Rollback (Immediate Error Recovery),1,pages.pricingDetail.ent_s1i2,Instant Rollback (Immediate Error Recovery),Instant Rollback (Immediate Error Recovery),즉시 롤백 (오류 즉시 복구)
+Multi-Brand Auto Execution,1,pages.pricingDetail.ent_s1i3,Multi-Brand Auto Execution,Multi-Brand Auto Execution,멀티 브랜드 자동 실행
+Full Rollback History View,1,pages.pricingDetail.ent_s1i4,Full Rollback History View,Full Rollback History View,전체 롤백 이력 조회
+Amazon Advanced Operations (New),1,pages.pricingDetail.ent_s2,Amazon Advanced Operations (New),Amazon Advanced Operations (New),Amazon 고급 운영 (신규)
+Amazon Account Health Monitor,1,pages.pricingDetail.ent_s2i1,Amazon Account Health Monitor,Amazon Account Health Monitor,Amazon 계정 상태 모니터링
+Policy Compliance Management,1,pages.pricingDetail.ent_s2i2,Policy Compliance Management,Policy Compliance Management,정책 준수 관리
+Full Review Monitoring,1,pages.pricingDetail.ent_s2i3,Full Review Monitoring,Full Review Monitoring,전체 리뷰 모니터링
+Listing Quality Audit,1,pages.pricingDetail.ent_s2i4,Listing Quality Audit,Listing Quality Audit,상품 노출 품질 진단
+Market Intelligence (New),1,pages.pricingDetail.ent_s3,Market Intelligence (New),Market Intelligence (New),마켓 인텔리전스 (신규)
+Market Share Analysis,1,pages.pricingDetail.ent_s3i1,Market Share Analysis,Market Share Analysis,시장 점유율 분석
+Competitor Ad Tracking (AI),1,pages.pricingDetail.ent_s3i2,Competitor Ad Tracking (AI),Competitor Ad Tracking (AI),경쟁사 광고 추적 (AI)
+Trend AI Forecast Model,1,pages.pricingDetail.ent_s3i3,Trend AI Forecast Model,Trend AI Forecast Model,트렌드 AI 예측 모델
+Channel Attribution All Models,1,pages.pricingDetail.ent_s3i4,Channel Attribution All Models,Channel Attribution All Models,채널 어트리뷰션 전체 모델
+Conversion Path Analysis,1,pages.pricingDetail.ent_s3i5,Conversion Path Analysis,Conversion Path Analysis,전환 경로 분석
+Data Product Governance (New),1,pages.pricingDetail.ent_s4,Data Product Governance (New),Data Product Governance (New),데이터 프로덕트 거버넌스 (신규)
+Data Product Schema·Quality Metrics,1,pages.pricingDetail.ent_s4i1,Data Product Schema·Quality Metrics,Data Product Schema·Quality Metrics,데이터 프로덕트 스키마·품질 지표
+SLA Management·Owner Assignment,1,pages.pricingDetail.ent_s4i2,SLA Management·Owner Assignment,SLA Management·Owner Assignment,SLA 관리·담당자 지정
+API-based Data Streaming Export,1,pages.pricingDetail.ent_s4i3,API-based Data Streaming Export,API-based Data Streaming Export,API 기반 데이터 스트리밍 내보내기
+Event Normalization Full Mgmt,1,pages.pricingDetail.ent_s4i4,Event Normalization Full Mgmt,Event Normalization Full Mgmt,이벤트 정규화 통합 관리
+OAuth Partner Management,1,pages.pricingDetail.ent_s4i5,OAuth Partner Management,OAuth Partner Management,OAuth 파트너 관리
+Advanced Data Mapping,1,pages.pricingDetail.ent_s4i6,Advanced Data Mapping,Advanced Data Mapping,고급 데이터 매핑
+SmartConnect Partner API (New),1,pages.pricingDetail.ent_s5,SmartConnect Partner API (New),SmartConnect Partner API (New),SmartConnect 파트너 API (신규)
+Partner-level Bidirectional Real-time Integration,1,pages.pricingDetail.ent_s5i1,Partner-level Bidirectional Real-time Integration,Partner-level Bidirectional Real-time Integration,파트너 단위 양방향 실시간 연동
+Full Real-time Sync Logs,1,pages.pricingDetail.ent_s5i2,Full Real-time Sync Logs,Full Real-time Sync Logs,전체 실시간 동기화 로그
+ERP·SCM·WMS Full Integration,1,pages.pricingDetail.ent_s5i3,ERP·SCM·WMS Full Integration,ERP·SCM·WMS Full Integration,ERP·SCM·WMS 통합 연동
+Custom Webhook Advanced Setup,1,pages.pricingDetail.ent_s5i4,Custom Webhook Advanced Setup,Custom Webhook Advanced Setup,커스텀 Webhook 고급 설정
+Advanced Marketing (New),1,pages.pricingDetail.ent_s6,Advanced Marketing (New),Advanced Marketing (New),고급 마케팅 (신규)
+Full Influencer DB·Campaign Execution·Settlement,1,pages.pricingDetail.ent_s6i1,Full Influencer DB·Campaign Execution·Settlement,Full Influencer DB·Campaign Execution·Settlement,인플루언서 DB·캠페인 운영·정산 통합 지원
+Kakao Bizboard (Large-scale Ads),1,pages.pricingDetail.ent_s6i2,Kakao Bizboard (Large-scale Ads),Kakao Bizboard (Large-scale Ads),카카오 비즈보드 (대규모 광고)
+WhatsApp Advanced Setup (Channel API),1,pages.pricingDetail.ent_s6i3,WhatsApp Advanced Setup (Channel API),WhatsApp Advanced Setup (Channel API),WhatsApp 고급 설정 (Channel API)
+LINE Channel Advanced Setup,1,pages.pricingDetail.ent_s6i4,LINE Channel Advanced Setup,LINE Channel Advanced Setup,LINE 채널 고급 설정
+AI Segment Advanced (Custom Criteria),1,pages.pricingDetail.ent_s6i5,AI Segment Advanced (Custom Criteria),AI Segment Advanced (Custom Criteria),AI 세그먼트 고급 설정 (커스텀 기준)
+Competitor Review Comparison Analysis,1,pages.pricingDetail.ent_s6i6,Competitor Review Comparison Analysis,Competitor Review Comparison Analysis,경쟁사 리뷰 비교 분석
+Operations & Governance All (New),1,pages.pricingDetail.ent_s7,Operations & Governance All (New),Operations & Governance All (New),운영·거버넌스 통합 관리 (신규)
+Ops Hub Alert Send (Admin Notice),1,pages.pricingDetail.ent_s7i1,Ops Hub Alert Send (Admin Notice),Ops Hub Alert Send (Admin Notice),운영 허브 알림 발송 (관리자 공지)
+3PL Delete·Contract Management,1,pages.pricingDetail.ent_s7i2,3PL Delete·Contract Management,3PL Delete·Contract Management,3PL 삭제·계약 관리
+Full Audit Log·CSV Export,1,pages.pricingDetail.ent_s7i3,Full Audit Log·CSV Export,Full Audit Log·CSV Export,전체 감사 로그·CSV 내보내기
