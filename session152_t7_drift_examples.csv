@@ -1,0 +1,1492 @@
+namespace_l2,locale,clone_cluster,key,value_sample
+crm.contentCal,en,en-cluster,crm.contentCal.title,Content Calendar
+crm.contentCal,en,en-cluster,crm.contentCal.subtitle,Content scheduling · Team collaboration · Multi-channel publishing · AI analytics
+crm.contentCal,en,en-cluster,crm.contentCal.tabCalendar,Calendar
+crm.contentCal,en,en-cluster,crm.contentCal.tabList,List
+crm.contentCal,en,en-cluster,crm.contentCal.tabAi,AI Analysis
+crm.contentCal,zh-TW,,crm.contentCal.title,Content Calendar
+crm.contentCal,zh-TW,,crm.contentCal.subtitle,Content scheduling · Team collaboration · Multi-channel publishing · AI analytics
+crm.contentCal,zh-TW,,crm.contentCal.tabCalendar,Calendar
+crm.contentCal,zh-TW,,crm.contentCal.tabList,List
+crm.contentCal,zh-TW,,crm.contentCal.tabAi,AI Analysis
+crm.contentCal,es,en-cluster,crm.contentCal.title,Content Calendar
+crm.contentCal,es,en-cluster,crm.contentCal.subtitle,Content scheduling · Team collaboration · Multi-channel publishing · AI analytics
+crm.contentCal,es,en-cluster,crm.contentCal.tabCalendar,Calendar
+crm.contentCal,es,en-cluster,crm.contentCal.tabList,List
+crm.contentCal,es,en-cluster,crm.contentCal.tabAi,AI Analysis
+crm.contentCal,fr,en-cluster,crm.contentCal.title,Content Calendar
+crm.contentCal,fr,en-cluster,crm.contentCal.subtitle,Content scheduling · Team collaboration · Multi-channel publishing · AI analytics
+crm.contentCal,fr,en-cluster,crm.contentCal.tabCalendar,Calendar
+crm.contentCal,fr,en-cluster,crm.contentCal.tabList,List
+crm.contentCal,fr,en-cluster,crm.contentCal.tabAi,AI Analysis
+crm.contentCal,de,,crm.contentCal.title,Content Calendar
+crm.contentCal,de,,crm.contentCal.subtitle,Content scheduling · Team collaboration · Multi-channel publishing · AI analytics
+crm.contentCal,de,,crm.contentCal.tabCalendar,Calendar
+crm.contentCal,de,,crm.contentCal.tabList,List
+crm.contentCal,de,,crm.contentCal.tabAi,AI Analysis
+crm.contentCal,pt,pt-cluster,crm.contentCal.title,Content Calendar
+crm.contentCal,pt,pt-cluster,crm.contentCal.subtitle,Content scheduling · Team collaboration · Multi-channel publishing · AI analytics
+crm.contentCal,pt,pt-cluster,crm.contentCal.tabCalendar,Calendar
+crm.contentCal,pt,pt-cluster,crm.contentCal.tabList,List
+crm.contentCal,pt,pt-cluster,crm.contentCal.tabAi,AI Analysis
+crm.contentCal,ru,pt-cluster,crm.contentCal.title,Content Calendar
+crm.contentCal,ru,pt-cluster,crm.contentCal.subtitle,Content scheduling · Team collaboration · Multi-channel publishing · AI analytics
+crm.contentCal,ru,pt-cluster,crm.contentCal.tabCalendar,Calendar
+crm.contentCal,ru,pt-cluster,crm.contentCal.tabList,List
+crm.contentCal,ru,pt-cluster,crm.contentCal.tabAi,AI Analysis
+crm.contentCal,ar,pt-cluster,crm.contentCal.title,Content Calendar
+crm.contentCal,ar,pt-cluster,crm.contentCal.subtitle,Content scheduling · Team collaboration · Multi-channel publishing · AI analytics
+crm.contentCal,ar,pt-cluster,crm.contentCal.tabCalendar,Calendar
+crm.contentCal,ar,pt-cluster,crm.contentCal.tabList,List
+crm.contentCal,ar,pt-cluster,crm.contentCal.tabAi,AI Analysis
+crm.contentCal,hi,pt-cluster,crm.contentCal.title,Content Calendar
+crm.contentCal,hi,pt-cluster,crm.contentCal.subtitle,Content scheduling · Team collaboration · Multi-channel publishing · AI analytics
+crm.contentCal,hi,pt-cluster,crm.contentCal.tabCalendar,Calendar
+crm.contentCal,hi,pt-cluster,crm.contentCal.tabList,List
+crm.contentCal,hi,pt-cluster,crm.contentCal.tabAi,AI Analysis
+crm.contentCal,id,,crm.contentCal.title,Content Calendar
+crm.contentCal,id,,crm.contentCal.subtitle,Content scheduling · Team collaboration · Multi-channel publishing · AI analytics
+crm.contentCal,id,,crm.contentCal.tabCalendar,Calendar
+crm.contentCal,id,,crm.contentCal.tabList,List
+crm.contentCal,id,,crm.contentCal.tabAi,AI Analysis
+crm.contentCal,th,,crm.contentCal.title,Content Calendar
+crm.contentCal,th,,crm.contentCal.subtitle,Content scheduling · Team collaboration · Multi-channel publishing · AI analytics
+crm.contentCal,th,,crm.contentCal.tabCalendar,Calendar
+crm.contentCal,th,,crm.contentCal.tabList,List
+crm.contentCal,th,,crm.contentCal.tabAi,AI Analysis
+crm.contentCal,vi,,crm.contentCal.title,Lịch Nội dung
+crm.contentCal,vi,,crm.contentCal.subtitle,Quản lý lịch nội dung · Cộng tác nhóm · Xuất bản đa kênh · Phân tích AI
+crm.contentCal,vi,,crm.contentCal.tabCalendar,Lịch
+crm.contentCal,vi,,crm.contentCal.tabList,Danh sách
+crm.contentCal,vi,,crm.contentCal.tabAi,Phân tích AI
+pages.marketingIntel,en,en-cluster,pages.marketingIntel.funnelOrders,Orders
+pages.marketingIntel,en,en-cluster,pages.marketingIntel.adSpend,Ad Spend
+pages.marketingIntel,en,en-cluster,pages.marketingIntel.runAI,Run A I
+pages.marketingIntel,en,en-cluster,pages.marketingIntel.reasonLabel,📌
+pages.marketingIntel,en,en-cluster,pages.marketingIntel.statusPending,Pending
+pages.marketingIntel,ja,,pages.marketingIntel.funnelOrders,注文
+pages.marketingIntel,ja,,pages.marketingIntel.adSpend,広告費
+pages.marketingIntel,ja,,pages.marketingIntel.runAI,🚀 AI分析実行
+pages.marketingIntel,ja,,pages.marketingIntel.reasonLabel,📌
+pages.marketingIntel,ja,,pages.marketingIntel.statusPending,保留
+pages.marketingIntel,zh,,pages.marketingIntel.funnelOrders,订单
+pages.marketingIntel,zh,,pages.marketingIntel.adSpend,广告费
+pages.marketingIntel,zh,,pages.marketingIntel.runAI,🚀 运行AI分析
+pages.marketingIntel,zh,,pages.marketingIntel.reasonLabel,📌
+pages.marketingIntel,zh,,pages.marketingIntel.statusPending,待审批
+pages.marketingIntel,zh-TW,,pages.marketingIntel.funnelOrders,订单
+pages.marketingIntel,zh-TW,,pages.marketingIntel.adSpend,广告费
+pages.marketingIntel,zh-TW,,pages.marketingIntel.runAI,Run A I
+pages.marketingIntel,zh-TW,,pages.marketingIntel.reasonLabel,📌
+pages.marketingIntel,zh-TW,,pages.marketingIntel.statusPending,待审批
+pages.marketingIntel,es,en-cluster,pages.marketingIntel.funnelOrders,Orders
+pages.marketingIntel,es,en-cluster,pages.marketingIntel.adSpend,Gasto Publicitario
+pages.marketingIntel,es,en-cluster,pages.marketingIntel.runAI,Run A I
+pages.marketingIntel,es,en-cluster,pages.marketingIntel.reasonLabel,📌
+pages.marketingIntel,es,en-cluster,pages.marketingIntel.statusPending,Pending
+pages.marketingIntel,fr,en-cluster,pages.marketingIntel.funnelOrders,Orders
+pages.marketingIntel,fr,en-cluster,pages.marketingIntel.adSpend,Dépense Pub.
+pages.marketingIntel,fr,en-cluster,pages.marketingIntel.runAI,Run A I
+pages.marketingIntel,fr,en-cluster,pages.marketingIntel.reasonLabel,📌
+pages.marketingIntel,fr,en-cluster,pages.marketingIntel.statusPending,Pending
+pages.marketingIntel,de,,pages.marketingIntel.funnelOrders,Purchase
+pages.marketingIntel,de,,pages.marketingIntel.adSpend,Ad Spend
+pages.marketingIntel,de,,pages.marketingIntel.runAI,Run A I
+pages.marketingIntel,de,,pages.marketingIntel.reasonLabel,📌
+pages.marketingIntel,de,,pages.marketingIntel.statusPending,Pending
+pages.marketingIntel,pt,pt-cluster,pages.marketingIntel.aiPredict.influencerUGC.txt_부정키워드Top5_16,Txt_부정키워드 op5_16
+pages.marketingIntel,pt,pt-cluster,pages.marketingIntel.aiPredict.influencerUGC.txt_부정키워드급증10건_17,Txt_부정키워드급증10건_17
+pages.marketingIntel,pt,pt-cluster,pages.marketingIntel.aiPredict.influencerUGC.txt_리뷰피드_18,Txt_리뷰피드_18
+pages.marketingIntel,pt,pt-cluster,pages.marketingIntel.aiPredict.influencerUGC.txt_All감성_19,Txt_ ll감성_19
+pages.marketingIntel,pt,pt-cluster,pages.marketingIntel.aiPredict.influencerUGC.txt_CS대응_23,Txt_  대응_23
+pages.marketingIntel,ru,pt-cluster,pages.marketingIntel.aiPredict.influencerUGC.txt_부정키워드Top5_16,Txt_부정키워드 op5_16
+pages.marketingIntel,ru,pt-cluster,pages.marketingIntel.aiPredict.influencerUGC.txt_부정키워드급증10건_17,Txt_부정키워드급증10건_17
+pages.marketingIntel,ru,pt-cluster,pages.marketingIntel.aiPredict.influencerUGC.txt_리뷰피드_18,Txt_리뷰피드_18
+pages.marketingIntel,ru,pt-cluster,pages.marketingIntel.aiPredict.influencerUGC.txt_All감성_19,Txt_ ll감성_19
+pages.marketingIntel,ru,pt-cluster,pages.marketingIntel.aiPredict.influencerUGC.txt_CS대응_23,Txt_  대응_23
+pages.marketingIntel,ar,pt-cluster,pages.marketingIntel.aiPredict.influencerUGC.txt_부정키워드Top5_16,Txt_부정키워드 op5_16
+pages.marketingIntel,ar,pt-cluster,pages.marketingIntel.aiPredict.influencerUGC.txt_부정키워드급증10건_17,Txt_부정키워드급증10건_17
+pages.marketingIntel,ar,pt-cluster,pages.marketingIntel.aiPredict.influencerUGC.txt_리뷰피드_18,Txt_리뷰피드_18
+pages.marketingIntel,ar,pt-cluster,pages.marketingIntel.aiPredict.influencerUGC.txt_All감성_19,Txt_ ll감성_19
+pages.marketingIntel,ar,pt-cluster,pages.marketingIntel.aiPredict.influencerUGC.txt_CS대응_23,Txt_  대응_23
+pages.marketingIntel,hi,pt-cluster,pages.marketingIntel.aiPredict.influencerUGC.txt_부정키워드Top5_16,Txt_부정키워드 op5_16
+pages.marketingIntel,hi,pt-cluster,pages.marketingIntel.aiPredict.influencerUGC.txt_부정키워드급증10건_17,Txt_부정키워드급증10건_17
+pages.marketingIntel,hi,pt-cluster,pages.marketingIntel.aiPredict.influencerUGC.txt_리뷰피드_18,Txt_리뷰피드_18
+pages.marketingIntel,hi,pt-cluster,pages.marketingIntel.aiPredict.influencerUGC.txt_All감성_19,Txt_ ll감성_19
+pages.marketingIntel,hi,pt-cluster,pages.marketingIntel.aiPredict.influencerUGC.txt_CS대응_23,Txt_  대응_23
+pages.marketingIntel,id,,pages.marketingIntel.funnelOrders,Purchase
+pages.marketingIntel,id,,pages.marketingIntel.adSpend,Ad Spend
+pages.marketingIntel,id,,pages.marketingIntel.runAI,Run A I
+pages.marketingIntel,id,,pages.marketingIntel.reasonLabel,📌
+pages.marketingIntel,id,,pages.marketingIntel.statusPending,保留
+pages.marketingIntel,th,,pages.marketingIntel.funnelOrders,Purchase
+pages.marketingIntel,th,,pages.marketingIntel.adSpend,Ad Spend
+pages.marketingIntel,th,,pages.marketingIntel.runAI,Run A I
+pages.marketingIntel,th,,pages.marketingIntel.reasonLabel,📌
+pages.marketingIntel,th,,pages.marketingIntel.statusPending,⏳ รอดำเนินการ
+pages.marketingIntel,vi,,pages.marketingIntel.funnelOrders,援щℓ
+pages.marketingIntel,vi,,pages.marketingIntel.adSpend,Ad Spend
+pages.marketingIntel,vi,,pages.marketingIntel.runAI,Run A I
+pages.marketingIntel,vi,,pages.marketingIntel.reasonLabel,📌
+pages.marketingIntel,vi,,pages.marketingIntel.statusPending,Pending
+dash.operations,en,en-cluster,dash.operations.marketing.csFilterAll,All
+dash.operations,en,en-cluster,dash.operations.marketing.csStatusApproved,Approved
+dash.operations,en,en-cluster,dash.operations.marketing.csStatusReview,In Review
+dash.operations,en,en-cluster,dash.operations.marketing.csStatusActive,Active
+dash.operations,en,en-cluster,dash.operations.marketing.csConv,Conv.
+dash.operations,zh-TW,,dash.operations.marketing.csFilterAll,All
+dash.operations,zh-TW,,dash.operations.marketing.csStatusApproved,Approved
+dash.operations,zh-TW,,dash.operations.marketing.csStatusReview,In Review
+dash.operations,zh-TW,,dash.operations.marketing.csStatusActive,Active
+dash.operations,zh-TW,,dash.operations.marketing.csConv,Conv.
+dash.operations,es,en-cluster,dash.operations.marketing.guideTabGuideDesc,Guía paso a paso de las funcionalidades de la plataforma y flujo completo.
+dash.operations,es,en-cluster,dash.operations.marketing.csFilterAll,Todo
+dash.operations,es,en-cluster,dash.operations.marketing.csStatusApproved,Aprobado
+dash.operations,es,en-cluster,dash.operations.marketing.csStatusReview,En revisión
+dash.operations,es,en-cluster,dash.operations.marketing.csStatusActive,Activo
+dash.operations,fr,en-cluster,dash.operations.marketing.guideTabGuideDesc,Guide étape par étape des fonctionnalités et du flux complet.
+dash.operations,fr,en-cluster,dash.operations.marketing.csFilterAll,Tout
+dash.operations,fr,en-cluster,dash.operations.marketing.csStatusApproved,Approuvé
+dash.operations,fr,en-cluster,dash.operations.marketing.csStatusReview,En révision
+dash.operations,fr,en-cluster,dash.operations.marketing.csStatusActive,Actif
+dash.operations,de,,dash.operations.marketing.guideTabGuideDesc,Schritt-für-Schritt-Anleitung zu Plattformfunktionen und komplettem Workflow.
+dash.operations,de,,dash.operations.marketing.csFilterAll,Alle
+dash.operations,de,,dash.operations.marketing.csStatusApproved,Genehmigt
+dash.operations,de,,dash.operations.marketing.csStatusReview,In Prüfung
+dash.operations,de,,dash.operations.marketing.csStatusActive,Aktiv
+dash.operations,pt,pt-cluster,dash.operations.marketing.csFilterAll,All
+dash.operations,pt,pt-cluster,dash.operations.marketing.csStatusApproved,Approved
+dash.operations,pt,pt-cluster,dash.operations.marketing.csStatusReview,In Review
+dash.operations,pt,pt-cluster,dash.operations.marketing.csStatusActive,Active
+dash.operations,pt,pt-cluster,dash.operations.marketing.csConv,Conv.
+dash.operations,ru,pt-cluster,dash.operations.marketing.csFilterAll,All
+dash.operations,ru,pt-cluster,dash.operations.marketing.csStatusApproved,Approved
+dash.operations,ru,pt-cluster,dash.operations.marketing.csStatusReview,In Review
+dash.operations,ru,pt-cluster,dash.operations.marketing.csStatusActive,Active
+dash.operations,ru,pt-cluster,dash.operations.marketing.csConv,Conv.
+dash.operations,ar,pt-cluster,dash.operations.marketing.csFilterAll,All
+dash.operations,ar,pt-cluster,dash.operations.marketing.csStatusApproved,Approved
+dash.operations,ar,pt-cluster,dash.operations.marketing.csStatusReview,In Review
+dash.operations,ar,pt-cluster,dash.operations.marketing.csStatusActive,Active
+dash.operations,ar,pt-cluster,dash.operations.marketing.csConv,Conv.
+dash.operations,hi,pt-cluster,dash.operations.marketing.csFilterAll,All
+dash.operations,hi,pt-cluster,dash.operations.marketing.csStatusApproved,Approved
+dash.operations,hi,pt-cluster,dash.operations.marketing.csStatusReview,In Review
+dash.operations,hi,pt-cluster,dash.operations.marketing.csStatusActive,Active
+dash.operations,hi,pt-cluster,dash.operations.marketing.csConv,Conv.
+dash.operations,id,,dash.operations.marketing.csFilterAll,All
+dash.operations,id,,dash.operations.marketing.csStatusApproved,Approved
+dash.operations,id,,dash.operations.marketing.csStatusReview,In Review
+dash.operations,id,,dash.operations.marketing.csStatusActive,Active
+dash.operations,id,,dash.operations.marketing.csConv,Conv.
+dash.operations,th,,dash.operations.marketing.csFilterAll,All
+dash.operations,th,,dash.operations.marketing.csStatusApproved,Approved
+dash.operations,th,,dash.operations.marketing.csStatusReview,In Review
+dash.operations,th,,dash.operations.marketing.csStatusActive,Active
+dash.operations,th,,dash.operations.marketing.csConv,Conv.
+dash.operations,vi,,dash.operations.marketing.csFilterAll,All
+dash.operations,vi,,dash.operations.marketing.csStatusApproved,Approved
+dash.operations,vi,,dash.operations.marketing.csStatusReview,In Review
+dash.operations,vi,,dash.operations.marketing.csStatusActive,Active
+dash.operations,vi,,dash.operations.marketing.csConv,Conv.
+crm.email,en,en-cluster,crm.email.aiBtnKakao,💬 Kakao Alert
+crm.email,en,en-cluster,crm.email.msgEmailDone,📧 Email connected!
+crm.email,en,en-cluster,crm.email.msgKakaoDone,💬 Kakao connected!
+crm.email,en,en-cluster,crm.email.msgJourneyDone,🗺️ Journey connected!
+crm.email,en,en-cluster,crm.email.catalogSync.colCommission,Commission (%)
+crm.email,ja,,crm.email.catalogSync.colCommission,手数料(%)
+crm.email,ja,,crm.email.catalogSync.enabled,有効
+crm.email,ja,,crm.email.catalogSync.stockQtyUnit,在庫数量 ({{unit}} 基準)
+crm.email,ja,,crm.email.catalogSync.setPriceStep,価格設定
+crm.email,ja,,crm.email.catalogSync.approveRegisterStep,承認 & 登録
+crm.email,zh-TW,,crm.email.catalogSync.colCommission,Commission (%)
+crm.email,zh-TW,,crm.email.catalogSync.enabled,Enabled
+crm.email,zh-TW,,crm.email.catalogSync.stockQtyUnit,Stock Qty ({{unit}} basis)
+crm.email,zh-TW,,crm.email.catalogSync.setPriceStep,Set Price
+crm.email,zh-TW,,crm.email.catalogSync.approveRegisterStep,Approve & Register
+crm.email,es,en-cluster,crm.email.aiBtnKakao,💬 Kakao Alert
+crm.email,es,en-cluster,crm.email.msgEmailDone,📧 Email connected!
+crm.email,es,en-cluster,crm.email.msgKakaoDone,💬 Kakao connected!
+crm.email,es,en-cluster,crm.email.msgJourneyDone,🗺️ Journey connected!
+crm.email,es,en-cluster,crm.email.catalogSync.colCommission,Commission (%)
+crm.email,fr,en-cluster,crm.email.aiBtnKakao,💬 Kakao Alert
+crm.email,fr,en-cluster,crm.email.msgEmailDone,📧 Email connected!
+crm.email,fr,en-cluster,crm.email.msgKakaoDone,💬 Kakao connected!
+crm.email,fr,en-cluster,crm.email.msgJourneyDone,🗺️ Journey connected!
+crm.email,fr,en-cluster,crm.email.catalogSync.colCommission,Commission (%)
+crm.email,de,,crm.email.catalogSync.colCommission,Commission (%)
+crm.email,de,,crm.email.catalogSync.enabled,Enabled
+crm.email,de,,crm.email.catalogSync.stockQtyUnit,Stock Qty ({{unit}} basis)
+crm.email,de,,crm.email.catalogSync.setPriceStep,Set Price
+crm.email,de,,crm.email.catalogSync.approveRegisterStep,Approve & Register
+crm.email,pt,pt-cluster,crm.email.catalogSync.colCommission,Commission (%)
+crm.email,pt,pt-cluster,crm.email.catalogSync.enabled,Enabled
+crm.email,pt,pt-cluster,crm.email.catalogSync.stockQtyUnit,Stock Qty ({{unit}} basis)
+crm.email,pt,pt-cluster,crm.email.catalogSync.setPriceStep,Set Price
+crm.email,pt,pt-cluster,crm.email.catalogSync.approveRegisterStep,Approve & Register
+crm.email,ru,pt-cluster,crm.email.catalogSync.colCommission,Commission (%)
+crm.email,ru,pt-cluster,crm.email.catalogSync.enabled,Enabled
+crm.email,ru,pt-cluster,crm.email.catalogSync.stockQtyUnit,Stock Qty ({{unit}} basis)
+crm.email,ru,pt-cluster,crm.email.catalogSync.setPriceStep,Set Price
+crm.email,ru,pt-cluster,crm.email.catalogSync.approveRegisterStep,Approve & Register
+crm.email,ar,pt-cluster,crm.email.catalogSync.colCommission,Commission (%)
+crm.email,ar,pt-cluster,crm.email.catalogSync.enabled,Enabled
+crm.email,ar,pt-cluster,crm.email.catalogSync.stockQtyUnit,Stock Qty ({{unit}} basis)
+crm.email,ar,pt-cluster,crm.email.catalogSync.setPriceStep,Set Price
+crm.email,ar,pt-cluster,crm.email.catalogSync.approveRegisterStep,Approve & Register
+crm.email,hi,pt-cluster,crm.email.catalogSync.colCommission,Commission (%)
+crm.email,hi,pt-cluster,crm.email.catalogSync.enabled,Enabled
+crm.email,hi,pt-cluster,crm.email.catalogSync.stockQtyUnit,Stock Qty ({{unit}} basis)
+crm.email,hi,pt-cluster,crm.email.catalogSync.setPriceStep,Set Price
+crm.email,hi,pt-cluster,crm.email.catalogSync.approveRegisterStep,Approve & Register
+crm.email,id,,crm.email.catalogSync.colCommission,Commission (%)
+crm.email,id,,crm.email.catalogSync.enabled,Enabled
+crm.email,id,,crm.email.catalogSync.stockQtyUnit,Stock Qty ({{unit}} basis)
+crm.email,id,,crm.email.catalogSync.setPriceStep,Set Price
+crm.email,id,,crm.email.catalogSync.approveRegisterStep,Approve & Register
+crm.email,th,,crm.email.catalogSync.colCommission,Commission (%)
+crm.email,th,,crm.email.catalogSync.enabled,Enabled
+crm.email,th,,crm.email.catalogSync.stockQtyUnit,Stock Qty ({{unit}} basis)
+crm.email,th,,crm.email.catalogSync.setPriceStep,Set Price
+crm.email,th,,crm.email.catalogSync.approveRegisterStep,Approve & Register
+crm.email,vi,,crm.email.catalogSync.colCommission,Hoa hồng (%)
+crm.email,vi,,crm.email.catalogSync.enabled,Enabled
+crm.email,vi,,crm.email.catalogSync.stockQtyUnit,Stock Qty ({{unit}} basis)
+crm.email,vi,,crm.email.catalogSync.setPriceStep,Set Price
+crm.email,vi,,crm.email.catalogSync.approveRegisterStep,Approve & Register
+ruleEnginePage.operations,ja,,ruleEnginePage.operations.pending,待機
+ruleEnginePage.operations,ja,,ruleEnginePage.operations.completed,完了
+ruleEnginePage.operations,ja,,ruleEnginePage.operations.critical,緊急
+ruleEnginePage.operations,ja,,ruleEnginePage.operations.high,高
+ruleEnginePage.operations,ja,,ruleEnginePage.operations.medium,中
+ruleEnginePage.operations,id,,ruleEnginePage.operations.pending,Pending
+ruleEnginePage.operations,id,,ruleEnginePage.operations.completed,Complete
+ruleEnginePage.operations,id,,ruleEnginePage.operations.critical,Critical
+ruleEnginePage.operations,id,,ruleEnginePage.operations.high,High
+ruleEnginePage.operations,id,,ruleEnginePage.operations.medium,Normal
+ruleEnginePage.operations,th,,ruleEnginePage.operations.pending,รอดำเนินการ
+ruleEnginePage.operations,th,,ruleEnginePage.operations.completed,Complete
+ruleEnginePage.operations,th,,ruleEnginePage.operations.critical,Critical
+ruleEnginePage.operations,th,,ruleEnginePage.operations.high,High
+ruleEnginePage.operations,th,,ruleEnginePage.operations.medium,Medium
+crm.aiHub,en,en-cluster,crm.aiHub.priority,Priority
+crm.aiHub,en,en-cluster,crm.aiHub.autoExec,Auto-execute
+crm.aiHub,en,en-cluster,crm.aiHub.journey.create,Create
+crm.aiHub,en,en-cluster,crm.aiHub.journey.statusPaused,Paused
+crm.aiHub,en,en-cluster,crm.aiHub.journey.entered,Entered
+crm.aiHub,ja,,crm.aiHub.priority,優先度
+crm.aiHub,ja,,crm.aiHub.autoExec,自動実行
+crm.aiHub,ja,,crm.aiHub.journey.create,作成
+crm.aiHub,ja,,crm.aiHub.journey.statusPaused,一時停止
+crm.aiHub,ja,,crm.aiHub.journey.entered,進入
+crm.aiHub,zh-TW,,crm.aiHub.journey.nodeTypes.delay,Delay
+crm.aiHub,zh-TW,,crm.aiHub.journey.nodeTypes.condition,Condition
+crm.aiHub,zh-TW,,crm.aiHub.journey.nodeTypes.end,End
+crm.aiHub,zh-TW,,crm.aiHub.journey.triggerTypes.signup,Sign Up
+crm.aiHub,zh-TW,,crm.aiHub.journey.triggerTypes.purchase,Purchase
+crm.aiHub,es,en-cluster,crm.aiHub.priority,Priority
+crm.aiHub,es,en-cluster,crm.aiHub.autoExec,Auto-execute
+crm.aiHub,es,en-cluster,crm.aiHub.journey.create,Create
+crm.aiHub,es,en-cluster,crm.aiHub.journey.statusPaused,Paused
+crm.aiHub,es,en-cluster,crm.aiHub.journey.entered,Entered
+crm.aiHub,fr,en-cluster,crm.aiHub.priority,Priority
+crm.aiHub,fr,en-cluster,crm.aiHub.autoExec,Auto-execute
+crm.aiHub,fr,en-cluster,crm.aiHub.journey.create,Create
+crm.aiHub,fr,en-cluster,crm.aiHub.journey.statusPaused,Paused
+crm.aiHub,fr,en-cluster,crm.aiHub.journey.entered,Entered
+crm.aiHub,de,,crm.aiHub.journey.nodeTypes.delay,Delay
+crm.aiHub,de,,crm.aiHub.journey.nodeTypes.condition,Condition
+crm.aiHub,de,,crm.aiHub.journey.nodeTypes.end,End
+crm.aiHub,de,,crm.aiHub.journey.triggerTypes.signup,Sign Up
+crm.aiHub,de,,crm.aiHub.journey.triggerTypes.purchase,Purchase
+crm.aiHub,pt,pt-cluster,crm.aiHub.journey.nodeTypes.delay,Delay
+crm.aiHub,pt,pt-cluster,crm.aiHub.journey.nodeTypes.condition,Condition
+crm.aiHub,pt,pt-cluster,crm.aiHub.journey.nodeTypes.end,End
+crm.aiHub,pt,pt-cluster,crm.aiHub.journey.triggerTypes.signup,Sign Up
+crm.aiHub,pt,pt-cluster,crm.aiHub.journey.triggerTypes.purchase,Purchase
+crm.aiHub,ru,pt-cluster,crm.aiHub.journey.nodeTypes.delay,Delay
+crm.aiHub,ru,pt-cluster,crm.aiHub.journey.nodeTypes.condition,Condition
+crm.aiHub,ru,pt-cluster,crm.aiHub.journey.nodeTypes.end,End
+crm.aiHub,ru,pt-cluster,crm.aiHub.journey.triggerTypes.signup,Sign Up
+crm.aiHub,ru,pt-cluster,crm.aiHub.journey.triggerTypes.purchase,Purchase
+crm.aiHub,ar,pt-cluster,crm.aiHub.journey.nodeTypes.delay,Delay
+crm.aiHub,ar,pt-cluster,crm.aiHub.journey.nodeTypes.condition,Condition
+crm.aiHub,ar,pt-cluster,crm.aiHub.journey.nodeTypes.end,End
+crm.aiHub,ar,pt-cluster,crm.aiHub.journey.triggerTypes.signup,Sign Up
+crm.aiHub,ar,pt-cluster,crm.aiHub.journey.triggerTypes.purchase,Purchase
+crm.aiHub,hi,pt-cluster,crm.aiHub.journey.nodeTypes.delay,Delay
+crm.aiHub,hi,pt-cluster,crm.aiHub.journey.nodeTypes.condition,Condition
+crm.aiHub,hi,pt-cluster,crm.aiHub.journey.nodeTypes.end,End
+crm.aiHub,hi,pt-cluster,crm.aiHub.journey.triggerTypes.signup,Sign Up
+crm.aiHub,hi,pt-cluster,crm.aiHub.journey.triggerTypes.purchase,Purchase
+crm.aiHub,id,,crm.aiHub.journey.nodeTypes.delay,Delay
+crm.aiHub,id,,crm.aiHub.journey.nodeTypes.condition,Condition
+crm.aiHub,id,,crm.aiHub.journey.nodeTypes.end,End
+crm.aiHub,id,,crm.aiHub.journey.triggerTypes.signup,Sign Up
+crm.aiHub,id,,crm.aiHub.journey.triggerTypes.purchase,Purchase
+crm.aiHub,th,,crm.aiHub.journey.nodeTypes.delay,Delay
+crm.aiHub,th,,crm.aiHub.journey.nodeTypes.condition,Condition
+crm.aiHub,th,,crm.aiHub.journey.nodeTypes.end,End
+crm.aiHub,th,,crm.aiHub.journey.triggerTypes.signup,Sign Up
+crm.aiHub,th,,crm.aiHub.journey.triggerTypes.purchase,Purchase
+crm.aiHub,vi,,crm.aiHub.priority,Priority
+crm.aiHub,vi,,crm.aiHub.autoExec,Auto-execute
+crm.aiHub,vi,,crm.aiHub.journey.create,Buat
+crm.aiHub,vi,,crm.aiHub.journey.statusPaused,Dijeda
+crm.aiHub,vi,,crm.aiHub.journey.entered,Entered
+pages.perms,en,en-cluster,pages.perms.menu.channelKpi.runAi,Run AI Analysis
+pages.perms,en,en-cluster,pages.perms.menu.marketingIntel.badgeAiRec,Badge Ai Rec
+pages.perms,en,en-cluster,pages.perms.menu.marketingIntel.todayAdSpend,Today Ad Spend
+pages.perms,en,en-cluster,pages.perms.menu.marketingIntel.summaryOrders,Summary Orders
+pages.perms,en,en-cluster,pages.perms.menu.marketingIntel.tabKpi,Tab Kpi
+pages.perms,ja,,pages.perms.menu.aiBudgetAllocator,AI予算配分
+pages.perms,ja,,pages.perms.menu.channelKpi.runAi,AI分析実行
+pages.perms,ja,,pages.perms.menu.marketingIntel.badgeAiRec,AI推薦 {{n}}件
+pages.perms,ja,,pages.perms.menu.marketingIntel.todayAdSpend,本日総広告費
+pages.perms,ja,,pages.perms.menu.marketingIntel.summaryOrders,注文 {{n}}件 · 総売上 {{rev}} · ROAS {{roas}}x
+pages.perms,zh,,pages.perms.menu.aiBudgetAllocator,AI预算分配
+pages.perms,zh,,pages.perms.menu.channelKpi.runAi,运行AI分析
+pages.perms,zh,,pages.perms.menu.marketingIntel.badgeAiRec,AI推荐 {{n}}条
+pages.perms,zh,,pages.perms.menu.marketingIntel.todayAdSpend,今日广告总支出
+pages.perms,zh,,pages.perms.menu.marketingIntel.summaryOrders,{{n}}笔订单 · 总收入 {{rev}} · ROAS {{roas}}x
+pages.perms,zh-TW,,pages.perms.menu.aiBudgetAllocator,AI预算分配
+pages.perms,zh-TW,,pages.perms.menu.channelKpi.runAi,Run AI Analysis
+pages.perms,zh-TW,,pages.perms.menu.marketingIntel.badgeAiRec,Badge Ai Rec
+pages.perms,zh-TW,,pages.perms.menu.marketingIntel.todayAdSpend,Today Ad Spend
+pages.perms,zh-TW,,pages.perms.menu.marketingIntel.summaryOrders,Summary Orders
+pages.perms,es,en-cluster,pages.perms.menu.channelKpi.runAi,Run AI Analysis
+pages.perms,es,en-cluster,pages.perms.menu.marketingIntel.badgeAiRec,Badge Ai Rec
+pages.perms,es,en-cluster,pages.perms.menu.marketingIntel.todayAdSpend,Today Ad Spend
+pages.perms,es,en-cluster,pages.perms.menu.marketingIntel.summaryOrders,Summary Orders
+pages.perms,es,en-cluster,pages.perms.menu.marketingIntel.tabKpi,Tab Kpi
+pages.perms,fr,en-cluster,pages.perms.menu.channelKpi.runAi,Run AI Analysis
+pages.perms,fr,en-cluster,pages.perms.menu.marketingIntel.badgeAiRec,Badge Ai Rec
+pages.perms,fr,en-cluster,pages.perms.menu.marketingIntel.todayAdSpend,Today Ad Spend
+pages.perms,fr,en-cluster,pages.perms.menu.marketingIntel.summaryOrders,Summary Orders
+pages.perms,fr,en-cluster,pages.perms.menu.marketingIntel.tabKpi,Tab Kpi
+pages.perms,de,,pages.perms.menu.channelKpi.runAi,Run AI Analysis
+pages.perms,de,,pages.perms.menu.marketingIntel.badgeAiRec,Badge Ai Rec
+pages.perms,de,,pages.perms.menu.marketingIntel.todayAdSpend,Today Ad Spend
+pages.perms,de,,pages.perms.menu.marketingIntel.summaryOrders,Summary Orders
+pages.perms,de,,pages.perms.menu.marketingIntel.tabKpi,Tab Kpi
+pages.perms,pt,pt-cluster,pages.perms.menu.approvals.action,Action
+pages.perms,pt,pt-cluster,pages.perms.menu.approvals.statusPending,Pending
+pages.perms,pt,pt-cluster,pages.perms.menu.approvals.statusApproved,Approved
+pages.perms,pt,pt-cluster,pages.perms.menu.approvals.statusExecuted,Executed
+pages.perms,pt,pt-cluster,pages.perms.menu.approvals.statusRejected,Rejected
+pages.perms,ru,pt-cluster,pages.perms.menu.approvals.action,Action
+pages.perms,ru,pt-cluster,pages.perms.menu.approvals.statusPending,Pending
+pages.perms,ru,pt-cluster,pages.perms.menu.approvals.statusApproved,Approved
+pages.perms,ru,pt-cluster,pages.perms.menu.approvals.statusExecuted,Executed
+pages.perms,ru,pt-cluster,pages.perms.menu.approvals.statusRejected,Rejected
+pages.perms,ar,pt-cluster,pages.perms.menu.approvals.action,Action
+pages.perms,ar,pt-cluster,pages.perms.menu.approvals.statusPending,Pending
+pages.perms,ar,pt-cluster,pages.perms.menu.approvals.statusApproved,Approved
+pages.perms,ar,pt-cluster,pages.perms.menu.approvals.statusExecuted,Executed
+pages.perms,ar,pt-cluster,pages.perms.menu.approvals.statusRejected,Rejected
+pages.perms,hi,pt-cluster,pages.perms.menu.approvals.action,Action
+pages.perms,hi,pt-cluster,pages.perms.menu.approvals.statusPending,Pending
+pages.perms,hi,pt-cluster,pages.perms.menu.approvals.statusApproved,Approved
+pages.perms,hi,pt-cluster,pages.perms.menu.approvals.statusExecuted,Executed
+pages.perms,hi,pt-cluster,pages.perms.menu.approvals.statusRejected,Rejected
+pages.perms,id,,pages.perms.menu.aiBudgetAllocator,AI預算分配
+pages.perms,id,,pages.perms.menu.channelKpi.runAi,Run AI Analysis
+pages.perms,id,,pages.perms.menu.marketingIntel.badgeAiRec,Badge Ai Rec
+pages.perms,id,,pages.perms.menu.marketingIntel.todayAdSpend,Today Ad Spend
+pages.perms,id,,pages.perms.menu.marketingIntel.summaryOrders,Summary Orders
+pages.perms,th,,pages.perms.menu.aiBudgetAllocator,การจัดสรรงบประมาณ AI
+pages.perms,th,,pages.perms.menu.channelKpi.runAi,Run AI Analysis
+pages.perms,th,,pages.perms.menu.marketingIntel.badgeAiRec,Badge Ai Rec
+pages.perms,th,,pages.perms.menu.marketingIntel.todayAdSpend,Today Ad Spend
+pages.perms,th,,pages.perms.menu.marketingIntel.summaryOrders,Summary Orders
+pages.perms,vi,,pages.perms.menu.channelKpi.runAi,Run AI Analysis
+pages.perms,vi,,pages.perms.menu.marketingIntel.badgeAiRec,Badge Ai Rec
+pages.perms,vi,,pages.perms.menu.marketingIntel.todayAdSpend,Today Ad Spend
+pages.perms,vi,,pages.perms.menu.marketingIntel.summaryOrders,Summary Orders
+pages.perms,vi,,pages.perms.menu.marketingIntel.tabKpi,Tab Kpi
+pages.menu,en,en-cluster,pages.menu.channelKpi.runAi,Run AI Analysis
+pages.menu,en,en-cluster,pages.menu.marketingIntel.badgeAiRec,Badge Ai Rec
+pages.menu,en,en-cluster,pages.menu.marketingIntel.todayAdSpend,Today Ad Spend
+pages.menu,en,en-cluster,pages.menu.marketingIntel.summaryOrders,Summary Orders
+pages.menu,en,en-cluster,pages.menu.marketingIntel.tabKpi,Tab Kpi
+pages.menu,ja,,pages.menu.aiBudgetAllocator,AI予算配分
+pages.menu,ja,,pages.menu.channelKpi.runAi,AI分析実行
+pages.menu,ja,,pages.menu.marketingIntel.badgeAiRec,AI推薦 {{n}}件
+pages.menu,ja,,pages.menu.marketingIntel.todayAdSpend,本日総広告費
+pages.menu,ja,,pages.menu.marketingIntel.summaryOrders,注文 {{n}}件 · 総売上 {{rev}} · ROAS {{roas}}x
+pages.menu,zh,,pages.menu.aiBudgetAllocator,AI预算分配
+pages.menu,zh,,pages.menu.channelKpi.runAi,运行AI分析
+pages.menu,zh,,pages.menu.marketingIntel.badgeAiRec,AI推荐 {{n}}条
+pages.menu,zh,,pages.menu.marketingIntel.todayAdSpend,今日广告总支出
+pages.menu,zh,,pages.menu.marketingIntel.summaryOrders,{{n}}笔订单 · 总收入 {{rev}} · ROAS {{roas}}x
+pages.menu,zh-TW,,pages.menu.aiBudgetAllocator,AI预算分配
+pages.menu,zh-TW,,pages.menu.channelKpi.runAi,Run AI Analysis
+pages.menu,zh-TW,,pages.menu.marketingIntel.badgeAiRec,Badge Ai Rec
+pages.menu,zh-TW,,pages.menu.marketingIntel.todayAdSpend,Today Ad Spend
+pages.menu,zh-TW,,pages.menu.marketingIntel.summaryOrders,Summary Orders
+pages.menu,es,en-cluster,pages.menu.channelKpi.runAi,Run AI Analysis
+pages.menu,es,en-cluster,pages.menu.marketingIntel.badgeAiRec,Badge Ai Rec
+pages.menu,es,en-cluster,pages.menu.marketingIntel.todayAdSpend,Today Ad Spend
+pages.menu,es,en-cluster,pages.menu.marketingIntel.summaryOrders,Summary Orders
+pages.menu,es,en-cluster,pages.menu.marketingIntel.tabKpi,Tab Kpi
+pages.menu,fr,en-cluster,pages.menu.channelKpi.runAi,Run AI Analysis
+pages.menu,fr,en-cluster,pages.menu.marketingIntel.badgeAiRec,Badge Ai Rec
+pages.menu,fr,en-cluster,pages.menu.marketingIntel.todayAdSpend,Today Ad Spend
+pages.menu,fr,en-cluster,pages.menu.marketingIntel.summaryOrders,Summary Orders
+pages.menu,fr,en-cluster,pages.menu.marketingIntel.tabKpi,Tab Kpi
+pages.menu,de,,pages.menu.channelKpi.runAi,Run AI Analysis
+pages.menu,de,,pages.menu.marketingIntel.badgeAiRec,Badge Ai Rec
+pages.menu,de,,pages.menu.marketingIntel.todayAdSpend,Today Ad Spend
+pages.menu,de,,pages.menu.marketingIntel.summaryOrders,Summary Orders
+pages.menu,de,,pages.menu.marketingIntel.tabKpi,Tab Kpi
+pages.menu,pt,pt-cluster,pages.menu.approvals.action,Action
+pages.menu,pt,pt-cluster,pages.menu.approvals.statusPending,Pending
+pages.menu,pt,pt-cluster,pages.menu.approvals.statusApproved,Approved
+pages.menu,pt,pt-cluster,pages.menu.approvals.statusExecuted,Executed
+pages.menu,pt,pt-cluster,pages.menu.approvals.statusRejected,Rejected
+pages.menu,ru,pt-cluster,pages.menu.approvals.action,Action
+pages.menu,ru,pt-cluster,pages.menu.approvals.statusPending,Pending
+pages.menu,ru,pt-cluster,pages.menu.approvals.statusApproved,Approved
+pages.menu,ru,pt-cluster,pages.menu.approvals.statusExecuted,Executed
+pages.menu,ru,pt-cluster,pages.menu.approvals.statusRejected,Rejected
+pages.menu,ar,pt-cluster,pages.menu.approvals.action,Action
+pages.menu,ar,pt-cluster,pages.menu.approvals.statusPending,Pending
+pages.menu,ar,pt-cluster,pages.menu.approvals.statusApproved,Approved
+pages.menu,ar,pt-cluster,pages.menu.approvals.statusExecuted,Executed
+pages.menu,ar,pt-cluster,pages.menu.approvals.statusRejected,Rejected
+pages.menu,hi,pt-cluster,pages.menu.approvals.action,Action
+pages.menu,hi,pt-cluster,pages.menu.approvals.statusPending,Pending
+pages.menu,hi,pt-cluster,pages.menu.approvals.statusApproved,Approved
+pages.menu,hi,pt-cluster,pages.menu.approvals.statusExecuted,Executed
+pages.menu,hi,pt-cluster,pages.menu.approvals.statusRejected,Rejected
+pages.menu,id,,pages.menu.aiBudgetAllocator,AI預算分配
+pages.menu,id,,pages.menu.channelKpi.runAi,Run AI Analysis
+pages.menu,id,,pages.menu.marketingIntel.badgeAiRec,Badge Ai Rec
+pages.menu,id,,pages.menu.marketingIntel.todayAdSpend,Today Ad Spend
+pages.menu,id,,pages.menu.marketingIntel.summaryOrders,Summary Orders
+pages.menu,th,,pages.menu.aiBudgetAllocator,การจัดสรรงบประมาณ AI
+pages.menu,th,,pages.menu.channelKpi.runAi,Run AI Analysis
+pages.menu,th,,pages.menu.marketingIntel.badgeAiRec,Badge Ai Rec
+pages.menu,th,,pages.menu.marketingIntel.todayAdSpend,Today Ad Spend
+pages.menu,th,,pages.menu.marketingIntel.summaryOrders,Summary Orders
+pages.menu,vi,,pages.menu.channelKpi.runAi,Run AI Analysis
+pages.menu,vi,,pages.menu.marketingIntel.badgeAiRec,Badge Ai Rec
+pages.menu,vi,,pages.menu.marketingIntel.todayAdSpend,Today Ad Spend
+pages.menu,vi,,pages.menu.marketingIntel.summaryOrders,Summary Orders
+pages.menu,vi,,pages.menu.marketingIntel.tabKpi,Tab Kpi
+operations.marketing,vi,,operations.marketing.home,??
+operations.marketing,vi,,operations.marketing.dashboard,Unified Dashboard
+operations.marketing,vi,,operations.marketing.rollup,Rollup View
+operations.marketing,vi,,operations.marketing.aiMarketing,🚀 AI Marketing Automation
+operations.marketing,vi,,operations.marketing.autoMarketing,AI Strategy Generator
+ruleEnginePage.dataProduct,zh-TW,,ruleEnginePage.dataProduct.tabOverviewDesc,Pipeline & coverage overview
+ruleEnginePage.dataProduct,zh-TW,,ruleEnginePage.dataProduct.tabSchemaDesc,Standard event field spec
+ruleEnginePage.dataProduct,zh-TW,,ruleEnginePage.dataProduct.tabPlatformDesc,Platform field mapping
+ruleEnginePage.dataProduct,zh-TW,,ruleEnginePage.dataProduct.tabMetricsDesc,Derived metric catalog
+ruleEnginePage.dataProduct,zh-TW,,ruleEnginePage.dataProduct.tabRulesDesc,Alert & recommendation rules
+ruleEnginePage.dataProduct,id,,ruleEnginePage.dataProduct.tabOverviewDesc,Pipeline & coverage overview
+ruleEnginePage.dataProduct,id,,ruleEnginePage.dataProduct.tabSchemaDesc,Standard event field spec
+ruleEnginePage.dataProduct,id,,ruleEnginePage.dataProduct.tabPlatformDesc,Platform field mapping
+ruleEnginePage.dataProduct,id,,ruleEnginePage.dataProduct.tabMetricsDesc,Derived metric catalog
+ruleEnginePage.dataProduct,id,,ruleEnginePage.dataProduct.tabRulesDesc,Alert & recommendation rules
+ruleEnginePage.dataProduct,th,,ruleEnginePage.dataProduct.tabOverviewDesc,Pipeline & coverage overview
+ruleEnginePage.dataProduct,th,,ruleEnginePage.dataProduct.tabSchemaDesc,Standard event field spec
+ruleEnginePage.dataProduct,th,,ruleEnginePage.dataProduct.tabPlatformDesc,Platform field mapping
+ruleEnginePage.dataProduct,th,,ruleEnginePage.dataProduct.tabMetricsDesc,Derived metric catalog
+ruleEnginePage.dataProduct,th,,ruleEnginePage.dataProduct.tabRulesDesc,Alert & recommendation rules
+ruleEnginePage.priceOpt,zh-TW,,ruleEnginePage.priceOpt.pageTitle,价格优化引擎
+ruleEnginePage.priceOpt,zh-TW,,ruleEnginePage.priceOpt.pageSub,AI最优定价·场景模拟·渠道组合·竞品监控·动态调价
+ruleEnginePage.priceOpt,zh-TW,,ruleEnginePage.priceOpt.tabSummary,汇总
+ruleEnginePage.priceOpt,zh-TW,,ruleEnginePage.priceOpt.tabProducts,商品管理
+ruleEnginePage.priceOpt,zh-TW,,ruleEnginePage.priceOpt.tabOptimize,最优定价
+ruleEnginePage.priceOpt,id,,ruleEnginePage.priceOpt.pageTitle,Mesin Optimasi Harga
+ruleEnginePage.priceOpt,id,,ruleEnginePage.priceOpt.pageSub,Penetapan harga optimal AI · Simulasi skenario · Campuran saluran · Pemantauan pesaing · Repricing d
+ruleEnginePage.priceOpt,id,,ruleEnginePage.priceOpt.tabSummary,Ringkasan
+ruleEnginePage.priceOpt,id,,ruleEnginePage.priceOpt.tabProducts,Produk
+ruleEnginePage.priceOpt,id,,ruleEnginePage.priceOpt.tabOptimize,Optimasi
+ruleEnginePage.priceOpt,th,,ruleEnginePage.priceOpt.pageTitle,การตลาดและผลการดำเนินงานโฆษณา (Overview)
+ruleEnginePage.priceOpt,th,,ruleEnginePage.priceOpt.pageSub,การวิเคราะห์ AI แบบบูรณาการ - การจัดการตัวชี้วัดผลการดำเนินงานโฆษณาแบบครบวงจร
+ruleEnginePage.priceOpt,th,,ruleEnginePage.priceOpt.tabSummary,ภาพรวม
+ruleEnginePage.priceOpt,th,,ruleEnginePage.priceOpt.tabProducts,สินค้า
+ruleEnginePage.priceOpt,th,,ruleEnginePage.priceOpt.tabOptimize,ปรับราคา
+pages.onboarding,en,en-cluster,pages.onboarding.guideRolesTitle,Role Path Guide
+pages.onboarding,en,en-cluster,pages.onboarding.changeRole,Change Role
+pages.onboarding,en,en-cluster,pages.onboarding.minElapsed, min elapsed
+pages.onboarding,en,en-cluster,pages.onboarding.goal30min,Goal 30 min
+pages.onboarding,en,en-cluster,pages.onboarding.progressLabel,Progress
+pages.onboarding,ja,,pages.onboarding.guideRolesTitle,役割別経路
+pages.onboarding,ja,,pages.onboarding.changeRole,役割変更
+pages.onboarding,ja,,pages.onboarding.minElapsed,分経過
+pages.onboarding,ja,,pages.onboarding.goal30min,目標30分
+pages.onboarding,ja,,pages.onboarding.progressLabel,進捗率
+pages.onboarding,zh,,pages.onboarding.guideRolesTitle,角色路径
+pages.onboarding,zh,,pages.onboarding.changeRole,更换角色
+pages.onboarding,zh,,pages.onboarding.minElapsed,分钟
+pages.onboarding,zh,,pages.onboarding.goal30min,目标30分钟
+pages.onboarding,zh,,pages.onboarding.progressLabel,进度
+pages.onboarding,zh-TW,,pages.onboarding.guideRolesTitle,角色路徑
+pages.onboarding,zh-TW,,pages.onboarding.changeRole,更换角色
+pages.onboarding,zh-TW,,pages.onboarding.minElapsed,分钟
+pages.onboarding,zh-TW,,pages.onboarding.goal30min,目标30分钟
+pages.onboarding,zh-TW,,pages.onboarding.progressLabel,进度
+pages.onboarding,es,en-cluster,pages.onboarding.guideRolesTitle,Role Path Guide
+pages.onboarding,es,en-cluster,pages.onboarding.changeRole,Change Role
+pages.onboarding,es,en-cluster,pages.onboarding.minElapsed, min elapsed
+pages.onboarding,es,en-cluster,pages.onboarding.goal30min,Goal 30 min
+pages.onboarding,es,en-cluster,pages.onboarding.progressLabel,Progress
+pages.onboarding,fr,en-cluster,pages.onboarding.guideRolesTitle,Role Path Guide
+pages.onboarding,fr,en-cluster,pages.onboarding.changeRole,Change Role
+pages.onboarding,fr,en-cluster,pages.onboarding.minElapsed, min elapsed
+pages.onboarding,fr,en-cluster,pages.onboarding.goal30min,Goal 30 min
+pages.onboarding,fr,en-cluster,pages.onboarding.progressLabel,Progress
+pages.onboarding,de,,pages.onboarding.guideRolesTitle,Rollenübersicht
+pages.onboarding,de,,pages.onboarding.changeRole,Change Role
+pages.onboarding,de,,pages.onboarding.minElapsed, min elapsed
+pages.onboarding,de,,pages.onboarding.goal30min,Goal 30 min
+pages.onboarding,de,,pages.onboarding.progressLabel,Progress
+pages.onboarding,pt,pt-cluster,pages.onboarding.guideRolesTitle,Role Path Guide
+pages.onboarding,pt,pt-cluster,pages.onboarding.changeRole,Change Role
+pages.onboarding,pt,pt-cluster,pages.onboarding.minElapsed, min elapsed
+pages.onboarding,pt,pt-cluster,pages.onboarding.goal30min,Goal 30 min
+pages.onboarding,pt,pt-cluster,pages.onboarding.progressLabel,Progress
+pages.onboarding,ru,pt-cluster,pages.onboarding.guideRolesTitle,Role Path Guide
+pages.onboarding,ru,pt-cluster,pages.onboarding.changeRole,Change Role
+pages.onboarding,ru,pt-cluster,pages.onboarding.minElapsed, min elapsed
+pages.onboarding,ru,pt-cluster,pages.onboarding.goal30min,Goal 30 min
+pages.onboarding,ru,pt-cluster,pages.onboarding.progressLabel,Progress
+pages.onboarding,ar,pt-cluster,pages.onboarding.guideRolesTitle,Role Path Guide
+pages.onboarding,ar,pt-cluster,pages.onboarding.changeRole,Change Role
+pages.onboarding,ar,pt-cluster,pages.onboarding.minElapsed, min elapsed
+pages.onboarding,ar,pt-cluster,pages.onboarding.goal30min,Goal 30 min
+pages.onboarding,ar,pt-cluster,pages.onboarding.progressLabel,Progress
+pages.onboarding,hi,pt-cluster,pages.onboarding.guideRolesTitle,Role Path Guide
+pages.onboarding,hi,pt-cluster,pages.onboarding.changeRole,Change Role
+pages.onboarding,hi,pt-cluster,pages.onboarding.minElapsed, min elapsed
+pages.onboarding,hi,pt-cluster,pages.onboarding.goal30min,Goal 30 min
+pages.onboarding,hi,pt-cluster,pages.onboarding.progressLabel,Progress
+pages.onboarding,id,,pages.onboarding.guideRolesTitle,Jalur Peran
+pages.onboarding,id,,pages.onboarding.changeRole,役割変更
+pages.onboarding,id,,pages.onboarding.minElapsed,分経過
+pages.onboarding,id,,pages.onboarding.goal30min,目標30分
+pages.onboarding,id,,pages.onboarding.progressLabel,進捗率
+pages.onboarding,th,,pages.onboarding.guideRolesTitle,เส้นทาง
+pages.onboarding,th,,pages.onboarding.uideSecOps,"3PL, ซัพพลายเชน, คืนสินค้า, แจ้งเตือน"
+pages.onboarding,th,,pages.onboarding.changeRole,Change Role
+pages.onboarding,th,,pages.onboarding.minElapsed, min elapsed
+pages.onboarding,th,,pages.onboarding.goal30min,Goal 30 min
+pages.onboarding,vi,,pages.onboarding.guideRolesTitle,Vai trò
+pages.onboarding,vi,,pages.onboarding.changeRole,Change Role
+pages.onboarding,vi,,pages.onboarding.minElapsed, min elapsed
+pages.onboarding,vi,,pages.onboarding.goal30min,Goal 30 min
+pages.onboarding,vi,,pages.onboarding.progressLabel,Progress
+pages.dashboard,en,en-cluster,pages.dashboard.grossRevenue,Gross Revenue
+pages.dashboard,en,en-cluster,pages.dashboard.hero,Unified Ops Cockpit
+pages.dashboard,en,en-cluster,pages.dashboard.heroDesc,Ads·Commerce·Attribution·Settlement·Graph·Price Opt — Single Ops Loop
+pages.dashboard,en,en-cluster,pages.dashboard.allSystemsGo,All Systems Go
+pages.dashboard,en,en-cluster,pages.dashboard.totalRevToday,Total Revenue Today
+pages.dashboard,ja,,pages.dashboard.grossRevenue,総売上
+pages.dashboard,zh,,pages.dashboard.grossRevenue,总收入
+pages.dashboard,zh-TW,,pages.dashboard.grossRevenue,总收入
+pages.dashboard,zh-TW,,pages.dashboard.hero,Unified Ops Cockpit
+pages.dashboard,zh-TW,,pages.dashboard.heroDesc,Ads·Commerce·Attribution·Settlement·Graph·Price Opt — Single Ops Loop
+pages.dashboard,zh-TW,,pages.dashboard.allSystemsGo,All Systems Go
+pages.dashboard,zh-TW,,pages.dashboard.totalRevToday,Total Revenue Today
+pages.dashboard,es,en-cluster,pages.dashboard.grossRevenue,Gross Revenue
+pages.dashboard,es,en-cluster,pages.dashboard.hero,Unified Ops Cockpit
+pages.dashboard,es,en-cluster,pages.dashboard.heroDesc,Ads·Commerce·Attribution·Settlement·Graph·Price Opt — Single Ops Loop
+pages.dashboard,es,en-cluster,pages.dashboard.allSystemsGo,All Systems Go
+pages.dashboard,es,en-cluster,pages.dashboard.totalRevToday,Total Revenue Today
+pages.dashboard,fr,en-cluster,pages.dashboard.grossRevenue,Gross Revenue
+pages.dashboard,fr,en-cluster,pages.dashboard.hero,Unified Ops Cockpit
+pages.dashboard,fr,en-cluster,pages.dashboard.heroDesc,Ads·Commerce·Attribution·Settlement·Graph·Price Opt — Single Ops Loop
+pages.dashboard,fr,en-cluster,pages.dashboard.allSystemsGo,All Systems Go
+pages.dashboard,fr,en-cluster,pages.dashboard.totalRevToday,Total Revenue Today
+pages.dashboard,de,,pages.dashboard.grossRevenue,Gross Revenue
+pages.dashboard,de,,pages.dashboard.activeAlerts,Active Alerts
+pages.dashboard,de,,pages.dashboard.activeAlertSub,Policy triggers
+pages.dashboard,de,,pages.dashboard.achieveRate,Today Achievement
+pages.dashboard,de,,pages.dashboard.revTarget,Revenue Target
+pages.dashboard,pt,pt-cluster,pages.dashboard.hero,Unified Ops Cockpit
+pages.dashboard,pt,pt-cluster,pages.dashboard.heroDesc,Ads·Commerce·Attribution·Settlement·Graph·Price Opt — Single Ops Loop
+pages.dashboard,pt,pt-cluster,pages.dashboard.allSystemsGo,All Systems Go
+pages.dashboard,pt,pt-cluster,pages.dashboard.totalRevToday,Total Revenue Today
+pages.dashboard,pt,pt-cluster,pages.dashboard.orders,Orders
+pages.dashboard,ru,pt-cluster,pages.dashboard.hero,Unified Ops Cockpit
+pages.dashboard,ru,pt-cluster,pages.dashboard.heroDesc,Ads·Commerce·Attribution·Settlement·Graph·Price Opt — Single Ops Loop
+pages.dashboard,ru,pt-cluster,pages.dashboard.allSystemsGo,All Systems Go
+pages.dashboard,ru,pt-cluster,pages.dashboard.totalRevToday,Total Revenue Today
+pages.dashboard,ru,pt-cluster,pages.dashboard.orders,Orders
+pages.dashboard,ar,pt-cluster,pages.dashboard.hero,Unified Ops Cockpit
+pages.dashboard,ar,pt-cluster,pages.dashboard.heroDesc,Ads·Commerce·Attribution·Settlement·Graph·Price Opt — Single Ops Loop
+pages.dashboard,ar,pt-cluster,pages.dashboard.allSystemsGo,All Systems Go
+pages.dashboard,ar,pt-cluster,pages.dashboard.totalRevToday,Total Revenue Today
+pages.dashboard,ar,pt-cluster,pages.dashboard.orders,Orders
+pages.dashboard,hi,pt-cluster,pages.dashboard.hero,Unified Ops Cockpit
+pages.dashboard,hi,pt-cluster,pages.dashboard.heroDesc,Ads·Commerce·Attribution·Settlement·Graph·Price Opt — Single Ops Loop
+pages.dashboard,hi,pt-cluster,pages.dashboard.allSystemsGo,All Systems Go
+pages.dashboard,hi,pt-cluster,pages.dashboard.totalRevToday,Total Revenue Today
+pages.dashboard,hi,pt-cluster,pages.dashboard.orders,Orders
+pages.dashboard,id,,pages.dashboard.grossRevenue,総売上
+pages.dashboard,id,,pages.dashboard.netPayoutSub,After fees & refunds
+pages.dashboard,id,,pages.dashboard.activeAlertSub,Policy triggers
+pages.dashboard,id,,pages.dashboard.channelMixSub,Revenue share by platform · Today
+pages.dashboard,id,,pages.dashboard.recentEvents,Recent Events
+pages.dashboard,th,,pages.dashboard.grossRevenue,Gross Revenue
+pages.dashboard,th,,pages.dashboard.netPayoutSub,After fees & refunds
+pages.dashboard,th,,pages.dashboard.activeAlertSub,Policy triggers
+pages.dashboard,th,,pages.dashboard.channelMixSub,Revenue share by platform · Today
+pages.dashboard,th,,pages.dashboard.recentEvents,Recent Events
+pages.dashboard,vi,,pages.dashboard.grossRevenue,Pendapatan Kotor
+pages.dashboard,vi,,pages.dashboard.netPayoutSub,After fees & refunds
+pages.dashboard,vi,,pages.dashboard.activeAlertSub,Policy triggers
+pages.dashboard,vi,,pages.dashboard.channelMixSub,Revenue share by platform · Today
+pages.dashboard,vi,,pages.dashboard.recentEvents,Recent Events
+operations.auto,vi,,operations.auto.new900, Channels Analyzed. Please confirm the scanned keys.
+operations.auto,vi,,operations.auto.new901,API Key Application
+operations.auto,vi,,operations.auto.new902, items
+operations.auto,vi,,operations.auto.new903,Detected
+operations.auto,vi,,operations.auto.new904,No Key
+ruleEnginePage.kakao,zh-TW,,ruleEnginePage.kakao.title,Email Marketing
+ruleEnginePage.kakao,zh-TW,,ruleEnginePage.kakao.subTitle,Campaign · Template · Settings Unified Email Marketing System
+ruleEnginePage.kakao,zh-TW,,ruleEnginePage.kakao.tabCamp,Campaign Manager
+ruleEnginePage.kakao,zh-TW,,ruleEnginePage.kakao.tabTpl,Template Management
+ruleEnginePage.kakao,zh-TW,,ruleEnginePage.kakao.tabSet,Tab Set
+ruleEnginePage.kakao,id,,ruleEnginePage.kakao.title,Email Marketing
+ruleEnginePage.kakao,id,,ruleEnginePage.kakao.subTitle,Campaign · Template · Settings Unified Email Marketing System
+ruleEnginePage.kakao,id,,ruleEnginePage.kakao.tabCamp,Campaign Manager
+ruleEnginePage.kakao,id,,ruleEnginePage.kakao.tabTpl,Template Management
+ruleEnginePage.kakao,id,,ruleEnginePage.kakao.tabSet,Tab Set
+ruleEnginePage.kakao,th,,ruleEnginePage.kakao.title,Email Marketing
+ruleEnginePage.kakao,th,,ruleEnginePage.kakao.subTitle,Campaign · Template · Settings Unified Email Marketing System
+ruleEnginePage.kakao,th,,ruleEnginePage.kakao.tabCamp,ระดับแคมเปญ
+ruleEnginePage.kakao,th,,ruleEnginePage.kakao.tabTpl,Template Management
+ruleEnginePage.kakao,th,,ruleEnginePage.kakao.tabSet,Tab Set
+cmpVal.aiPredict,en,en-cluster,cmpVal.aiPredict.kpi.target,Forecast Target
+cmpVal.aiPredict,en,en-cluster,cmpVal.aiPredict.kpi.churnRisk,Churn Risk
+cmpVal.aiPredict,en,en-cluster,cmpVal.aiPredict.kpi.churnAction,Immediate action needed
+cmpVal.aiPredict,en,en-cluster,cmpVal.aiPredict.kpi.highLtv,High LTV Potential
+cmpVal.aiPredict,en,en-cluster,cmpVal.aiPredict.kpi.highLtvSub,CLV ₩3M+
+cmpVal.aiPredict,zh,,cmpVal.aiPredict.kpi.target,预测目标
+cmpVal.aiPredict,zh,,cmpVal.aiPredict.kpi.churnRisk,流失风险
+cmpVal.aiPredict,zh,,cmpVal.aiPredict.kpi.churnAction,需要立即行动
+cmpVal.aiPredict,zh,,cmpVal.aiPredict.kpi.highLtv,高LTV潜力
+cmpVal.aiPredict,zh,,cmpVal.aiPredict.kpi.highLtvSub,CLV ₩3M+
+cmpVal.aiPredict,zh-TW,,cmpVal.aiPredict.kpi.target,預測目標
+cmpVal.aiPredict,zh-TW,,cmpVal.aiPredict.kpi.churnRisk,流失風險
+cmpVal.aiPredict,zh-TW,,cmpVal.aiPredict.kpi.churnAction,需要立即行動
+cmpVal.aiPredict,zh-TW,,cmpVal.aiPredict.kpi.highLtv,高LTV潛力
+cmpVal.aiPredict,zh-TW,,cmpVal.aiPredict.kpi.highLtvSub,CLV ₩3M+
+cmpVal.aiPredict,es,en-cluster,cmpVal.aiPredict.kpi.target,Forecast Target
+cmpVal.aiPredict,es,en-cluster,cmpVal.aiPredict.kpi.churnRisk,Churn Risk
+cmpVal.aiPredict,es,en-cluster,cmpVal.aiPredict.kpi.churnAction,Immediate action needed
+cmpVal.aiPredict,es,en-cluster,cmpVal.aiPredict.kpi.highLtv,High LTV Potential
+cmpVal.aiPredict,es,en-cluster,cmpVal.aiPredict.kpi.highLtvSub,CLV ₩3M+
+cmpVal.aiPredict,fr,en-cluster,cmpVal.aiPredict.kpi.target,Forecast Target
+cmpVal.aiPredict,fr,en-cluster,cmpVal.aiPredict.kpi.churnRisk,Churn Risk
+cmpVal.aiPredict,fr,en-cluster,cmpVal.aiPredict.kpi.churnAction,Immediate action needed
+cmpVal.aiPredict,fr,en-cluster,cmpVal.aiPredict.kpi.highLtv,High LTV Potential
+cmpVal.aiPredict,fr,en-cluster,cmpVal.aiPredict.kpi.highLtvSub,CLV ₩3M+
+cmpVal.aiPredict,de,,cmpVal.aiPredict.kpi.target,Prognose-Zielgruppe
+cmpVal.aiPredict,de,,cmpVal.aiPredict.kpi.churnRisk,Abwanderungsrisiko
+cmpVal.aiPredict,de,,cmpVal.aiPredict.kpi.churnAction,Sofortmaßnahmen
+cmpVal.aiPredict,de,,cmpVal.aiPredict.kpi.highLtv,Hohes LTV-Potenzial
+cmpVal.aiPredict,de,,cmpVal.aiPredict.kpi.highLtvSub,CLV ₩3M+
+cmpVal.aiPredict,pt,pt-cluster,cmpVal.aiPredict.kpi.target,Forecast Target
+cmpVal.aiPredict,pt,pt-cluster,cmpVal.aiPredict.kpi.churnRisk,Churn Risk
+cmpVal.aiPredict,pt,pt-cluster,cmpVal.aiPredict.kpi.churnAction,Immediate action needed
+cmpVal.aiPredict,pt,pt-cluster,cmpVal.aiPredict.kpi.highLtv,High LTV Potential
+cmpVal.aiPredict,pt,pt-cluster,cmpVal.aiPredict.kpi.highLtvSub,CLV ₩3M+
+cmpVal.aiPredict,ru,pt-cluster,cmpVal.aiPredict.kpi.target,Forecast Target
+cmpVal.aiPredict,ru,pt-cluster,cmpVal.aiPredict.kpi.churnRisk,Churn Risk
+cmpVal.aiPredict,ru,pt-cluster,cmpVal.aiPredict.kpi.churnAction,Immediate action needed
+cmpVal.aiPredict,ru,pt-cluster,cmpVal.aiPredict.kpi.highLtv,High LTV Potential
+cmpVal.aiPredict,ru,pt-cluster,cmpVal.aiPredict.kpi.highLtvSub,CLV ₩3M+
+cmpVal.aiPredict,ar,pt-cluster,cmpVal.aiPredict.kpi.target,Forecast Target
+cmpVal.aiPredict,ar,pt-cluster,cmpVal.aiPredict.kpi.churnRisk,Churn Risk
+cmpVal.aiPredict,ar,pt-cluster,cmpVal.aiPredict.kpi.churnAction,Immediate action needed
+cmpVal.aiPredict,ar,pt-cluster,cmpVal.aiPredict.kpi.highLtv,High LTV Potential
+cmpVal.aiPredict,ar,pt-cluster,cmpVal.aiPredict.kpi.highLtvSub,CLV ₩3M+
+cmpVal.aiPredict,hi,pt-cluster,cmpVal.aiPredict.kpi.target,Forecast Target
+cmpVal.aiPredict,hi,pt-cluster,cmpVal.aiPredict.kpi.churnRisk,Churn Risk
+cmpVal.aiPredict,hi,pt-cluster,cmpVal.aiPredict.kpi.churnAction,Immediate action needed
+cmpVal.aiPredict,hi,pt-cluster,cmpVal.aiPredict.kpi.highLtv,High LTV Potential
+cmpVal.aiPredict,hi,pt-cluster,cmpVal.aiPredict.kpi.highLtvSub,CLV ₩3M+
+cmpVal.aiPredict,id,,cmpVal.aiPredict.kpi.target,Target Forecast
+cmpVal.aiPredict,id,,cmpVal.aiPredict.kpi.churnRisk,Risiko Churn
+cmpVal.aiPredict,id,,cmpVal.aiPredict.kpi.churnAction,Tindakan segera
+cmpVal.aiPredict,id,,cmpVal.aiPredict.kpi.highLtv,LTV Tinggi
+cmpVal.aiPredict,id,,cmpVal.aiPredict.kpi.highLtvSub,CLV ₩3M+
+cmpVal.aiPredict,th,,cmpVal.aiPredict.kpi.target,เป้าหมายพยากรณ์
+cmpVal.aiPredict,th,,cmpVal.aiPredict.kpi.churnRisk,ความเสี่ยงออก
+cmpVal.aiPredict,th,,cmpVal.aiPredict.kpi.churnAction,ต้องดำเนินการทันที
+cmpVal.aiPredict,th,,cmpVal.aiPredict.kpi.highLtv,LTV สูง
+cmpVal.aiPredict,th,,cmpVal.aiPredict.kpi.highLtvSub,CLV ₩3M+
+cmpVal.aiPredict,vi,,cmpVal.aiPredict.kpi.target,Mục tiêu dự báo
+cmpVal.aiPredict,vi,,cmpVal.aiPredict.kpi.churnRisk,Rủi ro rời bỏ
+cmpVal.aiPredict,vi,,cmpVal.aiPredict.kpi.churnAction,Cần hành động ngay
+cmpVal.aiPredict,vi,,cmpVal.aiPredict.kpi.highLtv,LTV cao
+cmpVal.aiPredict,vi,,cmpVal.aiPredict.kpi.highLtvSub,CLV ₩3M+
+pages.writeback,en,en-cluster,pages.writeback.btnPrepare,Prepare
+pages.writeback,en,en-cluster,pages.writeback.btnExecute,Execute
+pages.writeback,en,en-cluster,pages.writeback.prepareResult,Prepare Result
+pages.writeback,en,en-cluster,pages.writeback.requiresApproval,Requires Approval
+pages.writeback,en,en-cluster,pages.writeback.validationResult,Validation Result
+pages.writeback,ja,,pages.writeback.btnPrepare,準備
+pages.writeback,ja,,pages.writeback.btnExecute,実行
+pages.writeback,ja,,pages.writeback.prepareResult,準備結果
+pages.writeback,ja,,pages.writeback.requiresApproval,承認必要
+pages.writeback,ja,,pages.writeback.validationResult,検証結果
+pages.writeback,zh,,pages.writeback.btnPrepare,准备
+pages.writeback,zh,,pages.writeback.btnExecute,执行
+pages.writeback,zh,,pages.writeback.prepareResult,准备结果
+pages.writeback,zh,,pages.writeback.requiresApproval,需要审批
+pages.writeback,zh,,pages.writeback.validationResult,验证结果
+pages.writeback,zh-TW,,pages.writeback.btnPrepare,准备
+pages.writeback,zh-TW,,pages.writeback.btnExecute,执行
+pages.writeback,zh-TW,,pages.writeback.prepareResult,准备结果
+pages.writeback,zh-TW,,pages.writeback.requiresApproval,需要审批
+pages.writeback,zh-TW,,pages.writeback.validationResult,验证结果
+pages.writeback,es,en-cluster,pages.writeback.btnPrepare,Prepare
+pages.writeback,es,en-cluster,pages.writeback.btnExecute,Execute
+pages.writeback,es,en-cluster,pages.writeback.prepareResult,Prepare Result
+pages.writeback,es,en-cluster,pages.writeback.requiresApproval,Requires Approval
+pages.writeback,es,en-cluster,pages.writeback.validationResult,Validation Result
+pages.writeback,fr,en-cluster,pages.writeback.btnPrepare,Prepare
+pages.writeback,fr,en-cluster,pages.writeback.btnExecute,Execute
+pages.writeback,fr,en-cluster,pages.writeback.prepareResult,Prepare Result
+pages.writeback,fr,en-cluster,pages.writeback.requiresApproval,Requires Approval
+pages.writeback,fr,en-cluster,pages.writeback.validationResult,Validation Result
+pages.writeback,de,,pages.writeback.btnPrepare,Prepare
+pages.writeback,de,,pages.writeback.btnExecute,Execute
+pages.writeback,de,,pages.writeback.prepareResult,Prepare Result
+pages.writeback,de,,pages.writeback.requiresApproval,Requires Approval
+pages.writeback,de,,pages.writeback.validationResult,Validation Result
+pages.writeback,pt,pt-cluster,pages.writeback.btnPrepare,Prepare
+pages.writeback,pt,pt-cluster,pages.writeback.btnExecute,Execute
+pages.writeback,pt,pt-cluster,pages.writeback.prepareResult,Prepare Result
+pages.writeback,pt,pt-cluster,pages.writeback.requiresApproval,Requires Approval
+pages.writeback,pt,pt-cluster,pages.writeback.validationResult,Validation Result
+pages.writeback,ru,pt-cluster,pages.writeback.btnPrepare,Prepare
+pages.writeback,ru,pt-cluster,pages.writeback.btnExecute,Execute
+pages.writeback,ru,pt-cluster,pages.writeback.prepareResult,Prepare Result
+pages.writeback,ru,pt-cluster,pages.writeback.requiresApproval,Requires Approval
+pages.writeback,ru,pt-cluster,pages.writeback.validationResult,Validation Result
+pages.writeback,ar,pt-cluster,pages.writeback.btnPrepare,Prepare
+pages.writeback,ar,pt-cluster,pages.writeback.btnExecute,Execute
+pages.writeback,ar,pt-cluster,pages.writeback.prepareResult,Prepare Result
+pages.writeback,ar,pt-cluster,pages.writeback.requiresApproval,Requires Approval
+pages.writeback,ar,pt-cluster,pages.writeback.validationResult,Validation Result
+pages.writeback,hi,pt-cluster,pages.writeback.btnPrepare,Prepare
+pages.writeback,hi,pt-cluster,pages.writeback.btnExecute,Execute
+pages.writeback,hi,pt-cluster,pages.writeback.prepareResult,Prepare Result
+pages.writeback,hi,pt-cluster,pages.writeback.requiresApproval,Requires Approval
+pages.writeback,hi,pt-cluster,pages.writeback.validationResult,Validation Result
+pages.writeback,id,,pages.writeback.btnPrepare,準備
+pages.writeback,id,,pages.writeback.btnExecute,実行
+pages.writeback,id,,pages.writeback.prepareResult,準備結果
+pages.writeback,id,,pages.writeback.requiresApproval,承認必要
+pages.writeback,id,,pages.writeback.validationResult,検証結果
+pages.writeback,th,,pages.writeback.btnPrepare,Prepare
+pages.writeback,th,,pages.writeback.btnExecute,Execute
+pages.writeback,th,,pages.writeback.prepareResult,Prepare Result
+pages.writeback,th,,pages.writeback.requiresApproval,Requires Approval
+pages.writeback,th,,pages.writeback.validationResult,Validation Result
+pages.writeback,vi,,pages.writeback.btnPrepare,Prepare
+pages.writeback,vi,,pages.writeback.btnExecute,Execute
+pages.writeback,vi,,pages.writeback.prepareResult,Prepare Result
+pages.writeback,vi,,pages.writeback.requiresApproval,Requires Approval
+pages.writeback,vi,,pages.writeback.validationResult,Validation Result
+ruleEnginePage.returnsPortal,zh-TW,,ruleEnginePage.returnsPortal.pageTitle,🔌 集成中心
+ruleEnginePage.returnsPortal,zh-TW,,ruleEnginePage.returnsPortal.pageSub,连接器与集成管理
+ruleEnginePage.returnsPortal,zh-TW,,ruleEnginePage.returnsPortal.tabDashboard,仪表盘
+ruleEnginePage.returnsPortal,zh-TW,,ruleEnginePage.returnsPortal.tabList,退货列表
+ruleEnginePage.returnsPortal,zh-TW,,ruleEnginePage.returnsPortal.tabSettings,设置
+ruleEnginePage.returnsPortal,id,,ruleEnginePage.returnsPortal.pageTitle,🔌 連携ハブ
+ruleEnginePage.returnsPortal,id,,ruleEnginePage.returnsPortal.pageSub,コネクタ＆統合管理
+ruleEnginePage.returnsPortal,id,,ruleEnginePage.returnsPortal.tabDashboard,Dasbor
+ruleEnginePage.returnsPortal,id,,ruleEnginePage.returnsPortal.tabList,Daftar Retur
+ruleEnginePage.returnsPortal,id,,ruleEnginePage.returnsPortal.tabSettings,Pengaturan
+ruleEnginePage.returnsPortal,th,,ruleEnginePage.returnsPortal.pageTitle,การตลาดและผลการดำเนินงานโฆษณา (Overview)
+ruleEnginePage.returnsPortal,th,,ruleEnginePage.returnsPortal.pageSub,การวิเคราะห์ AI แบบบูรณาการ - การจัดการตัวชี้วัดผลการดำเนินงานโฆษณาแบบครบวงจร
+ruleEnginePage.returnsPortal,th,,ruleEnginePage.returnsPortal.tabDashboard,แดชบอร์ด
+ruleEnginePage.returnsPortal,th,,ruleEnginePage.returnsPortal.tabList,รายการคืน
+ruleEnginePage.returnsPortal,th,,ruleEnginePage.returnsPortal.tabSettings,ตั้งค่า
+ruleEnginePage.orderHub,id,,ruleEnginePage.orderHub.heroTitle,Pusat Pesanan
+ruleEnginePage.orderHub,id,,ruleEnginePage.orderHub.heroDescI18n,Kumpulkan kelola dan analisis pesanan secara real-time.
+ruleEnginePage.orderHub,id,,ruleEnginePage.orderHub.crmTitle,Sinkronisasi CRM
+ruleEnginePage.orderHub,id,,ruleEnginePage.orderHub.crmSyncDoneMsg,Sinkronisasi CRM berhasil.
+ruleEnginePage.orderHub,id,,ruleEnginePage.orderHub.crmSyncFailMsg,Sinkronisasi CRM gagal.
+ruleEnginePage.wms,ja,,ruleEnginePage.wms.tabPickingDesc,同期
+ruleEnginePage.wms,ja,,ruleEnginePage.wms.tabLotDesc,消費期限
+ruleEnginePage.wms,ja,,ruleEnginePage.wms.tabReplenishmentDesc,自動PO
+ruleEnginePage.wms,ja,,ruleEnginePage.wms.tabAuditDesc,実地棚卸
+ruleEnginePage.wms,ja,,ruleEnginePage.wms.tabReceivingDesc,発注
+ruleEnginePage.wms,zh,,ruleEnginePage.wms.tabPickingDesc,同步
+ruleEnginePage.wms,zh,,ruleEnginePage.wms.tabLotDesc,保质期
+ruleEnginePage.wms,zh,,ruleEnginePage.wms.tabReplenishmentDesc,自动PO
+ruleEnginePage.wms,zh,,ruleEnginePage.wms.tabAuditDesc,盘点记录
+ruleEnginePage.wms,zh,,ruleEnginePage.wms.tabReceivingDesc,采购单
+ruleEnginePage.wms,zh-TW,,ruleEnginePage.wms.tabPickingDesc,同步
+ruleEnginePage.wms,zh-TW,,ruleEnginePage.wms.tabLotDesc,保质期
+ruleEnginePage.wms,zh-TW,,ruleEnginePage.wms.tabReplenishmentDesc,自动PO
+ruleEnginePage.wms,zh-TW,,ruleEnginePage.wms.tabAuditDesc,盘点记录
+ruleEnginePage.wms,zh-TW,,ruleEnginePage.wms.tabReceivingDesc,采购单
+ruleEnginePage.wms,id,,ruleEnginePage.wms.tabPickingDesc,Sinkronisasi
+ruleEnginePage.wms,id,,ruleEnginePage.wms.tabLotDesc,Tanggal kedaluwarsa
+ruleEnginePage.wms,id,,ruleEnginePage.wms.tabReplenishmentDesc,PO Otomatis
+ruleEnginePage.wms,id,,ruleEnginePage.wms.tabAuditDesc,Hitung stok
+ruleEnginePage.wms,id,,ruleEnginePage.wms.tabReceivingDesc,PO
+ruleEnginePage.wms,th,,ruleEnginePage.wms.tabPickingDesc,ซิงค์
+ruleEnginePage.wms,th,,ruleEnginePage.wms.tabLotDesc,วันหมดอายุ
+ruleEnginePage.wms,th,,ruleEnginePage.wms.tabReplenishmentDesc,PO อัตโนมัติ
+ruleEnginePage.wms,th,,ruleEnginePage.wms.tabAuditDesc,ตรวจนับสต็อก
+ruleEnginePage.wms,th,,ruleEnginePage.wms.tabReceivingDesc,ใบสั่งซื้อ
+ruleEnginePage.email,zh-TW,,ruleEnginePage.email.title,Email Marketing
+ruleEnginePage.email,zh-TW,,ruleEnginePage.email.subTitle,Campaign · Template · Settings Unified Email Marketing System
+ruleEnginePage.email,zh-TW,,ruleEnginePage.email.tabCamp,Campaign Manager
+ruleEnginePage.email,zh-TW,,ruleEnginePage.email.tabAi,Tab Ai
+ruleEnginePage.email,zh-TW,,ruleEnginePage.email.tabAb,🧪 A/B Test
+ruleEnginePage.email,id,,ruleEnginePage.email.title,Email Marketing
+ruleEnginePage.email,id,,ruleEnginePage.email.subTitle,Campaign · Template · Settings Unified Email Marketing System
+ruleEnginePage.email,id,,ruleEnginePage.email.tabCamp,Campaign Manager
+ruleEnginePage.email,id,,ruleEnginePage.email.tabAi,Tab Ai
+ruleEnginePage.email,id,,ruleEnginePage.email.tabAb,🧪 A/B Test
+ruleEnginePage.email,th,,ruleEnginePage.email.title,Email Marketing
+ruleEnginePage.email,th,,ruleEnginePage.email.subTitle,Campaign · Template · Settings Unified Email Marketing System
+ruleEnginePage.email,th,,ruleEnginePage.email.tabCamp,ระดับแคมเปญ
+ruleEnginePage.email,th,,ruleEnginePage.email.tabAi,Tab Ai
+ruleEnginePage.email,th,,ruleEnginePage.email.tabAb,🧪 A/B Test
+ruleEnginePage.aiInsights,zh-TW,,ruleEnginePage.aiInsights.heroDesc,註冊API金鑰並管理連接狀態。
+ruleEnginePage.aiInsights,zh-TW,,ruleEnginePage.aiInsights.tabCards,洞察卡片
+ruleEnginePage.aiInsights,zh-TW,,ruleEnginePage.aiInsights.tabTrends,趨勢概況
+ruleEnginePage.aiInsights,zh-TW,,ruleEnginePage.aiInsights.tabChat,AI助手
+ruleEnginePage.aiInsights,zh-TW,,ruleEnginePage.aiInsights.tabHistory,分析歷史
+ruleEnginePage.aiInsights,id,,ruleEnginePage.aiInsights.heroDesc,Daftarkan dan kelola API Key.
+ruleEnginePage.aiInsights,id,,ruleEnginePage.aiInsights.tabCards,Kartu Insight
+ruleEnginePage.aiInsights,id,,ruleEnginePage.aiInsights.tabTrends,Ringkasan Tren
+ruleEnginePage.aiInsights,id,,ruleEnginePage.aiInsights.tabChat,AI Asisten
+ruleEnginePage.aiInsights,id,,ruleEnginePage.aiInsights.tabHistory,Riwayat Analisis
+ruleEnginePage.aiInsights,th,,ruleEnginePage.aiInsights.heroDesc,ลงทะเบียนและจัดการ API Key
+ruleEnginePage.aiInsights,th,,ruleEnginePage.aiInsights.tabCards,การ์ดอินไซต์
+ruleEnginePage.aiInsights,th,,ruleEnginePage.aiInsights.tabTrends,สรุปแนวโน้ม
+ruleEnginePage.aiInsights,th,,ruleEnginePage.aiInsights.tabChat,AI ผู้ช่วย
+ruleEnginePage.aiInsights,th,,ruleEnginePage.aiInsights.tabHistory,ประวัติการวิเคราะห์
+pages.graphScore,en,en-cluster,pages.graphScore.lbl_sku,Product (SKU)
+pages.graphScore,en,en-cluster,pages.graphScore.lbl_order,Derived Orders
+pages.graphScore,en,en-cluster,pages.graphScore.countUnit,connections
+pages.graphScore,en,en-cluster,pages.graphScore.unitCount,cases
+pages.graphScore,en,en-cluster,pages.graphScore.analysis,Run Analysis
+pages.graphScore,ja,,pages.graphScore.lbl_sku,商品（SKU）
+pages.graphScore,ja,,pages.graphScore.lbl_order,派生注文
+pages.graphScore,ja,,pages.graphScore.countUnit,接続
+pages.graphScore,ja,,pages.graphScore.unitCount,件
+pages.graphScore,ja,,pages.graphScore.analysis,分析実行
+pages.graphScore,zh,,pages.graphScore.lbl_sku,商品（SKU）
+pages.graphScore,zh,,pages.graphScore.lbl_order,衍生订单
+pages.graphScore,zh,,pages.graphScore.countUnit,连接
+pages.graphScore,zh,,pages.graphScore.unitCount,件
+pages.graphScore,zh,,pages.graphScore.analysis,执行分析
+pages.graphScore,zh-TW,,pages.graphScore.lbl_sku,商品（SKU）
+pages.graphScore,zh-TW,,pages.graphScore.lbl_order,衍生訂單
+pages.graphScore,zh-TW,,pages.graphScore.countUnit,連接
+pages.graphScore,zh-TW,,pages.graphScore.unitCount,件
+pages.graphScore,zh-TW,,pages.graphScore.analysis,執行分析
+pages.graphScore,es,en-cluster,pages.graphScore.lbl_sku,Product (SKU)
+pages.graphScore,es,en-cluster,pages.graphScore.lbl_order,Derived Orders
+pages.graphScore,es,en-cluster,pages.graphScore.countUnit,connections
+pages.graphScore,es,en-cluster,pages.graphScore.unitCount,cases
+pages.graphScore,es,en-cluster,pages.graphScore.analysis,Run Analysis
+pages.graphScore,fr,en-cluster,pages.graphScore.lbl_sku,Product (SKU)
+pages.graphScore,fr,en-cluster,pages.graphScore.lbl_order,Derived Orders
+pages.graphScore,fr,en-cluster,pages.graphScore.countUnit,connections
+pages.graphScore,fr,en-cluster,pages.graphScore.unitCount,cases
+pages.graphScore,fr,en-cluster,pages.graphScore.analysis,Run Analysis
+pages.graphScore,de,,pages.graphScore.lbl_sku,Produkt (SKU)
+pages.graphScore,de,,pages.graphScore.lbl_order,Abgeleitete Bestellungen
+pages.graphScore,de,,pages.graphScore.countUnit,Verbindungen
+pages.graphScore,de,,pages.graphScore.unitCount,Fälle
+pages.graphScore,de,,pages.graphScore.analysis,Analyse starten
+pages.graphScore,pt,pt-cluster,pages.graphScore.lbl_sku,Product (SKU)
+pages.graphScore,pt,pt-cluster,pages.graphScore.lbl_order,Derived Orders
+pages.graphScore,pt,pt-cluster,pages.graphScore.countUnit,connections
+pages.graphScore,pt,pt-cluster,pages.graphScore.unitCount,cases
+pages.graphScore,pt,pt-cluster,pages.graphScore.analysis,Run Analysis
+pages.graphScore,ru,pt-cluster,pages.graphScore.lbl_sku,Product (SKU)
+pages.graphScore,ru,pt-cluster,pages.graphScore.lbl_order,Derived Orders
+pages.graphScore,ru,pt-cluster,pages.graphScore.countUnit,connections
+pages.graphScore,ru,pt-cluster,pages.graphScore.unitCount,cases
+pages.graphScore,ru,pt-cluster,pages.graphScore.analysis,Run Analysis
+pages.graphScore,ar,pt-cluster,pages.graphScore.lbl_sku,Product (SKU)
+pages.graphScore,ar,pt-cluster,pages.graphScore.lbl_order,Derived Orders
+pages.graphScore,ar,pt-cluster,pages.graphScore.countUnit,connections
+pages.graphScore,ar,pt-cluster,pages.graphScore.unitCount,cases
+pages.graphScore,ar,pt-cluster,pages.graphScore.analysis,Run Analysis
+pages.graphScore,hi,pt-cluster,pages.graphScore.lbl_sku,Product (SKU)
+pages.graphScore,hi,pt-cluster,pages.graphScore.lbl_order,Derived Orders
+pages.graphScore,hi,pt-cluster,pages.graphScore.countUnit,connections
+pages.graphScore,hi,pt-cluster,pages.graphScore.unitCount,cases
+pages.graphScore,hi,pt-cluster,pages.graphScore.analysis,Run Analysis
+pages.graphScore,id,,pages.graphScore.lbl_sku,Produk (SKU)
+pages.graphScore,id,,pages.graphScore.lbl_order,Pesanan Turunan
+pages.graphScore,id,,pages.graphScore.countUnit,koneksi
+pages.graphScore,id,,pages.graphScore.unitCount,kasus
+pages.graphScore,id,,pages.graphScore.analysis,Jalankan Analisis
+pages.graphScore,th,,pages.graphScore.lbl_sku,สินค้า (SKU)
+pages.graphScore,th,,pages.graphScore.lbl_order,คำสั่งซื้อที่เกิดขึ้น
+pages.graphScore,th,,pages.graphScore.countUnit,การเชื่อมต่อ
+pages.graphScore,th,,pages.graphScore.unitCount,รายการ
+pages.graphScore,th,,pages.graphScore.analysis,เริ่มวิเคราะห์
+pages.graphScore,vi,,pages.graphScore.lbl_sku,Sản phẩm (SKU)
+pages.graphScore,vi,,pages.graphScore.lbl_order,Đơn hàng Phát sinh
+pages.graphScore,vi,,pages.graphScore.countUnit,kết nối
+pages.graphScore,vi,,pages.graphScore.unitCount,trường hợp
+pages.graphScore,vi,,pages.graphScore.analysis,Chạy Phân tích
+operations.super,vi,,operations.super.conTitle,Data Integration Hub
+operations.super,vi,,operations.super.conDesc,"Manage OAuth 2.0 and API Key integration, permission scopes, token auto-renewal, and webhook events "
+operations.super,vi,,operations.super.conKpiAll,Total Channels
+operations.super,vi,,operations.super.conKpiConn,Integration Done
+operations.super,vi,,operations.super.conKpiOauth,OAuth Auth
+ruleEnginePage.marketing,ja,,ruleEnginePage.marketing.grossRevenue,総売上
+ruleEnginePage.marketing,ja,,ruleEnginePage.marketing.adSpend,広告費
+ruleEnginePage.marketing,ja,,ruleEnginePage.marketing.netROAS,純ROAS
+ruleEnginePage.marketing,ja,,ruleEnginePage.marketing.totalOrders,総注文数
+ruleEnginePage.marketing,ja,,ruleEnginePage.marketing.changeRole,役割変更
+marketing.marketing,ja,,marketing.marketing.budgetTrackTitle,Budget Tracking Dashboard
+marketing.marketing,ja,,marketing.marketing.budgetTrackSub,Daily/Monthly spend trends and burn rates by media
+marketing.marketing,ja,,marketing.marketing.bgSummaryBudget,Total Allocated Budget
+marketing.marketing,ja,,marketing.marketing.bgSummaryActual,Total Spent
+marketing.marketing,ja,,marketing.marketing.bgSummaryProfit,Remaining Balance
+marketing.marketing,zh,,marketing.marketing.sidebarCampaignActive,🟢 {{n}}个活动运行中
+marketing.marketing,zh,,marketing.marketing.sidebarUpgrade,升级
+marketing.marketing,zh,,marketing.marketing.Badge,Badge
+marketing.marketing,zh,,marketing.marketing.Join,Join
+marketing.marketing,zh,,marketing.marketing.Running,Running
+marketing.marketing,id,,marketing.marketing.budgetTrackTitle,Budget Tracking Dashboard
+marketing.marketing,id,,marketing.marketing.budgetTrackSub,Daily/Monthly spend trends and burn rates by media
+marketing.marketing,id,,marketing.marketing.bgSummaryBudget,Total Allocated Budget
+marketing.marketing,id,,marketing.marketing.bgSummaryActual,Total Spent
+marketing.marketing,id,,marketing.marketing.bgSummaryProfit,Remaining Balance
+marketing.marketing,th,,marketing.marketing.budgetTrackTitle,Budget Tracking Dashboard
+marketing.marketing,th,,marketing.marketing.budgetTrackSub,Daily/Monthly spend trends and burn rates by media
+marketing.marketing,th,,marketing.marketing.bgSummaryBudget,Total Allocated Budget
+marketing.marketing,th,,marketing.marketing.bgSummaryActual,Total Spent
+marketing.marketing,th,,marketing.marketing.bgSummaryProfit,Remaining Balance
+cmpVal.adPerf,en,en-cluster,cmpVal.adPerf.title,Advertising Performance
+cmpVal.adPerf,en,en-cluster,cmpVal.adPerf.team,Team
+cmpVal.adPerf,en,en-cluster,cmpVal.adPerf.channel,Channel
+cmpVal.adPerf,en,en-cluster,cmpVal.adPerf.loading,Loading performance data...
+cmpVal.adPerf,en,en-cluster,cmpVal.adPerf.date,Date
+cmpVal.adPerf,zh-TW,,cmpVal.adPerf.title,Advertising Performance
+cmpVal.adPerf,zh-TW,,cmpVal.adPerf.team,Team
+cmpVal.adPerf,zh-TW,,cmpVal.adPerf.channel,Channel
+cmpVal.adPerf,zh-TW,,cmpVal.adPerf.loading,Loading performance data...
+cmpVal.adPerf,zh-TW,,cmpVal.adPerf.date,Date
+cmpVal.adPerf,es,en-cluster,cmpVal.adPerf.title,Advertising Performance
+cmpVal.adPerf,es,en-cluster,cmpVal.adPerf.team,Team
+cmpVal.adPerf,es,en-cluster,cmpVal.adPerf.channel,Channel
+cmpVal.adPerf,es,en-cluster,cmpVal.adPerf.loading,Loading performance data...
+cmpVal.adPerf,es,en-cluster,cmpVal.adPerf.date,Date
+cmpVal.adPerf,fr,en-cluster,cmpVal.adPerf.title,Advertising Performance
+cmpVal.adPerf,fr,en-cluster,cmpVal.adPerf.team,Team
+cmpVal.adPerf,fr,en-cluster,cmpVal.adPerf.channel,Channel
+cmpVal.adPerf,fr,en-cluster,cmpVal.adPerf.loading,Loading performance data...
+cmpVal.adPerf,fr,en-cluster,cmpVal.adPerf.date,Date
+cmpVal.adPerf,de,,cmpVal.adPerf.title,Advertising Performance
+cmpVal.adPerf,de,,cmpVal.adPerf.team,Team
+cmpVal.adPerf,de,,cmpVal.adPerf.channel,Channel
+cmpVal.adPerf,de,,cmpVal.adPerf.loading,Loading performance data...
+cmpVal.adPerf,de,,cmpVal.adPerf.date,Date
+cmpVal.adPerf,pt,pt-cluster,cmpVal.adPerf.title,Advertising Performance
+cmpVal.adPerf,pt,pt-cluster,cmpVal.adPerf.team,Team
+cmpVal.adPerf,pt,pt-cluster,cmpVal.adPerf.channel,Channel
+cmpVal.adPerf,pt,pt-cluster,cmpVal.adPerf.loading,Loading performance data...
+cmpVal.adPerf,pt,pt-cluster,cmpVal.adPerf.date,Date
+cmpVal.adPerf,ru,pt-cluster,cmpVal.adPerf.title,Advertising Performance
+cmpVal.adPerf,ru,pt-cluster,cmpVal.adPerf.team,Team
+cmpVal.adPerf,ru,pt-cluster,cmpVal.adPerf.channel,Channel
+cmpVal.adPerf,ru,pt-cluster,cmpVal.adPerf.loading,Loading performance data...
+cmpVal.adPerf,ru,pt-cluster,cmpVal.adPerf.date,Date
+cmpVal.adPerf,ar,pt-cluster,cmpVal.adPerf.title,Advertising Performance
+cmpVal.adPerf,ar,pt-cluster,cmpVal.adPerf.team,Team
+cmpVal.adPerf,ar,pt-cluster,cmpVal.adPerf.channel,Channel
+cmpVal.adPerf,ar,pt-cluster,cmpVal.adPerf.loading,Loading performance data...
+cmpVal.adPerf,ar,pt-cluster,cmpVal.adPerf.date,Date
+cmpVal.adPerf,hi,pt-cluster,cmpVal.adPerf.title,Advertising Performance
+cmpVal.adPerf,hi,pt-cluster,cmpVal.adPerf.team,Team
+cmpVal.adPerf,hi,pt-cluster,cmpVal.adPerf.channel,Channel
+cmpVal.adPerf,hi,pt-cluster,cmpVal.adPerf.loading,Loading performance data...
+cmpVal.adPerf,hi,pt-cluster,cmpVal.adPerf.date,Date
+cmpVal.adPerf,id,,cmpVal.adPerf.title,Advertising Performance
+cmpVal.adPerf,id,,cmpVal.adPerf.team,Team
+cmpVal.adPerf,id,,cmpVal.adPerf.channel,Channel
+cmpVal.adPerf,id,,cmpVal.adPerf.loading,Loading performance data...
+cmpVal.adPerf,id,,cmpVal.adPerf.date,Date
+cmpVal.adPerf,th,,cmpVal.adPerf.title,Advertising Performance
+cmpVal.adPerf,th,,cmpVal.adPerf.team,Team
+cmpVal.adPerf,th,,cmpVal.adPerf.channel,Channel
+cmpVal.adPerf,th,,cmpVal.adPerf.loading,Loading performance data...
+cmpVal.adPerf,th,,cmpVal.adPerf.date,Date
+cmpVal.adPerf,vi,,cmpVal.adPerf.title,Advertising Performance
+cmpVal.adPerf,vi,,cmpVal.adPerf.team,Team
+cmpVal.adPerf,vi,,cmpVal.adPerf.channel,Channel
+cmpVal.adPerf,vi,,cmpVal.adPerf.loading,Loading performance data...
+cmpVal.adPerf,vi,,cmpVal.adPerf.date,Date
+ruleEnginePage.supplyChain,ja,,ruleEnginePage.supplyChain.orderCount,注文数
+ruleEnginePage.supplyChain,ja,,ruleEnginePage.supplyChain.register,登録
+ruleEnginePage.supplyChain,ja,,ruleEnginePage.supplyChain.tabInventory,在庫可視性
+ruleEnginePage.supplyChain,ja,,ruleEnginePage.supplyChain.tabPO,発注管理
+ruleEnginePage.supplyChain,ja,,ruleEnginePage.supplyChain.tabLandedCost,原価分析
+ruleEnginePage.supplyChain,zh,,ruleEnginePage.supplyChain.orderCount,订单数
+ruleEnginePage.supplyChain,zh,,ruleEnginePage.supplyChain.register,注册
+ruleEnginePage.supplyChain,zh,,ruleEnginePage.supplyChain.tabInventory,库存可视性
+ruleEnginePage.supplyChain,zh,,ruleEnginePage.supplyChain.tabPO,采购管理
+ruleEnginePage.supplyChain,zh,,ruleEnginePage.supplyChain.tabLandedCost,到岸成本
+ruleEnginePage.supplyChain,zh-TW,,ruleEnginePage.supplyChain.orderCount,订单数
+ruleEnginePage.supplyChain,zh-TW,,ruleEnginePage.supplyChain.register,注册
+ruleEnginePage.supplyChain,zh-TW,,ruleEnginePage.supplyChain.tabInventory,库存可视性
+ruleEnginePage.supplyChain,zh-TW,,ruleEnginePage.supplyChain.tabPO,采购管理
+ruleEnginePage.supplyChain,zh-TW,,ruleEnginePage.supplyChain.tabLandedCost,到岸成本
+ruleEnginePage.supplyChain,id,,ruleEnginePage.supplyChain.orderCount,注文数
+ruleEnginePage.supplyChain,id,,ruleEnginePage.supplyChain.register,登録
+ruleEnginePage.supplyChain,id,,ruleEnginePage.supplyChain.tabInventory,Visibilitas Stok
+ruleEnginePage.supplyChain,id,,ruleEnginePage.supplyChain.tabPO,Manajemen PO
+ruleEnginePage.supplyChain,id,,ruleEnginePage.supplyChain.tabLandedCost,Biaya Mendarat
+ruleEnginePage.supplyChain,th,,ruleEnginePage.supplyChain.orderCount,จำนวนคำสั่งซื้อ
+ruleEnginePage.supplyChain,th,,ruleEnginePage.supplyChain.register,ลงทะเบียน
+ruleEnginePage.supplyChain,th,,ruleEnginePage.supplyChain.tabInventory,การมองเห็นสินค้าคงคลัง
+ruleEnginePage.supplyChain,th,,ruleEnginePage.supplyChain.tabPO,จัดการคำสั่งซื้อ
+ruleEnginePage.supplyChain,th,,ruleEnginePage.supplyChain.tabLandedCost,ต้นทุนถึงปลายทาง
+operations.gNav,vi,,operations.gNav.home,Trang chủ
+operations.gNav,vi,,operations.gNav.aiMarketing,Tự động hóa AI Marketing
+operations.gNav,vi,,operations.gNav.adAnalytics,Phân tích quảng cáo
+operations.gNav,vi,,operations.gNav.crm,CRM khách hàng
+operations.gNav,vi,,operations.gNav.commerce,Thương mại·Thanh toán
+pages._marketing_1,en,en-cluster,pages._marketing_1.runAI,Run A I
+pages._marketing_1,en,en-cluster,pages._marketing_1.rerunAI,Rerun A I
+pages._marketing_1,en,en-cluster,pages._marketing_1.active,Active
+pages._marketing_1,en,en-cluster,pages._marketing_1.statusPending,Pending
+pages._marketing_1,en,en-cluster,pages._marketing_1.statusApproved,Approved
+pages._marketing_1,ja,,pages._marketing_1.runAI,🚀 AI分析実行
+pages._marketing_1,ja,,pages._marketing_1.rerunAI,🔄 AI再分析実行
+pages._marketing_1,ja,,pages._marketing_1.active,有効
+pages._marketing_1,ja,,pages._marketing_1.statusPending,保留
+pages._marketing_1,ja,,pages._marketing_1.statusApproved,承認済
+pages._marketing_1,zh,,pages._marketing_1.runAI,🚀 运行AI分析
+pages._marketing_1,zh,,pages._marketing_1.rerunAI,🔄 重新运行AI分析
+pages._marketing_1,zh,,pages._marketing_1.active,已启用
+pages._marketing_1,zh,,pages._marketing_1.statusPending,待审批
+pages._marketing_1,zh,,pages._marketing_1.statusApproved,已批准
+pages._marketing_1,zh-TW,,pages._marketing_1.runAI,Run A I
+pages._marketing_1,zh-TW,,pages._marketing_1.rerunAI,Rerun A I
+pages._marketing_1,zh-TW,,pages._marketing_1.active,已启用
+pages._marketing_1,zh-TW,,pages._marketing_1.statusPending,待审批
+pages._marketing_1,zh-TW,,pages._marketing_1.statusApproved,已批准
+pages._marketing_1,es,en-cluster,pages._marketing_1.runAI,Run A I
+pages._marketing_1,es,en-cluster,pages._marketing_1.rerunAI,Rerun A I
+pages._marketing_1,es,en-cluster,pages._marketing_1.active,Active
+pages._marketing_1,es,en-cluster,pages._marketing_1.statusPending,Pending
+pages._marketing_1,es,en-cluster,pages._marketing_1.statusApproved,Approved
+pages._marketing_1,fr,en-cluster,pages._marketing_1.runAI,Run A I
+pages._marketing_1,fr,en-cluster,pages._marketing_1.rerunAI,Rerun A I
+pages._marketing_1,fr,en-cluster,pages._marketing_1.active,Active
+pages._marketing_1,fr,en-cluster,pages._marketing_1.statusPending,Pending
+pages._marketing_1,fr,en-cluster,pages._marketing_1.statusApproved,Approved
+pages._marketing_1,de,,pages._marketing_1.runAI,Run A I
+pages._marketing_1,de,,pages._marketing_1.rerunAI,Rerun A I
+pages._marketing_1,de,,pages._marketing_1.active,Active
+pages._marketing_1,de,,pages._marketing_1.statusPending,Pending
+pages._marketing_1,de,,pages._marketing_1.statusApproved,Approved
+pages._marketing_1,pt,pt-cluster,pages._marketing_1.runAI,Run A I
+pages._marketing_1,pt,pt-cluster,pages._marketing_1.rerunAI,Rerun A I
+pages._marketing_1,pt,pt-cluster,pages._marketing_1.active,Active
+pages._marketing_1,pt,pt-cluster,pages._marketing_1.statusPending,Pending
+pages._marketing_1,pt,pt-cluster,pages._marketing_1.statusApproved,Approved
+pages._marketing_1,ru,pt-cluster,pages._marketing_1.runAI,Run A I
+pages._marketing_1,ru,pt-cluster,pages._marketing_1.rerunAI,Rerun A I
+pages._marketing_1,ru,pt-cluster,pages._marketing_1.active,Active
+pages._marketing_1,ru,pt-cluster,pages._marketing_1.statusPending,Pending
+pages._marketing_1,ru,pt-cluster,pages._marketing_1.statusApproved,Approved
+pages._marketing_1,ar,pt-cluster,pages._marketing_1.runAI,Run A I
+pages._marketing_1,ar,pt-cluster,pages._marketing_1.rerunAI,Rerun A I
+pages._marketing_1,ar,pt-cluster,pages._marketing_1.active,Active
+pages._marketing_1,ar,pt-cluster,pages._marketing_1.statusPending,Pending
+pages._marketing_1,ar,pt-cluster,pages._marketing_1.statusApproved,Approved
+pages._marketing_1,hi,pt-cluster,pages._marketing_1.runAI,Run A I
+pages._marketing_1,hi,pt-cluster,pages._marketing_1.rerunAI,Rerun A I
+pages._marketing_1,hi,pt-cluster,pages._marketing_1.active,Active
+pages._marketing_1,hi,pt-cluster,pages._marketing_1.statusPending,Pending
+pages._marketing_1,hi,pt-cluster,pages._marketing_1.statusApproved,Approved
+pages._marketing_1,id,,pages._marketing_1.runAI,Run A I
+pages._marketing_1,id,,pages._marketing_1.rerunAI,Rerun A I
+pages._marketing_1,id,,pages._marketing_1.active,有効
+pages._marketing_1,id,,pages._marketing_1.statusPending,保留
+pages._marketing_1,id,,pages._marketing_1.statusApproved,承認済
+pages._marketing_1,th,,pages._marketing_1.runAI,Run A I
+pages._marketing_1,th,,pages._marketing_1.rerunAI,Rerun A I
+pages._marketing_1,th,,pages._marketing_1.active,● ใช้งาน
+pages._marketing_1,th,,pages._marketing_1.statusPending,⏳ รอดำเนินการ
+pages._marketing_1,th,,pages._marketing_1.statusApproved,✅ อนุมัติแล้ว
+pages._marketing_1,vi,,pages._marketing_1.runAI,Run A I
+pages._marketing_1,vi,,pages._marketing_1.rerunAI,Rerun A I
+pages._marketing_1,vi,,pages._marketing_1.active,Active
+pages._marketing_1,vi,,pages._marketing_1.statusPending,Pending
+pages._marketing_1,vi,,pages._marketing_1.statusApproved,Approved
+operations.gAiRec,vi,,operations.gAiRec.title,Email Marketing
+operations.gAiRec,vi,,operations.gAiRec.subtitle,Precision Shapley (2^n) · Bayesian MMM · Markov Chain · Incremental Uplift (Dual ML) · Thompson Samp
+operations.gAiRec,vi,,operations.gAiRec.salesInfo,📦 Product Sales Info
+operations.gAiRec,vi,,operations.gAiRec.catalogAuto,Catalog Auto-fill
+operations.gAiRec,vi,,operations.gAiRec.skuCount,Product/SKU Count
+pages.marketing,en,en-cluster,pages.marketing.grossRevenue,Gross Revenue
+pages.marketing,en,en-cluster,pages.marketing.adSpend,Ad Spend
+pages.marketing,en,en-cluster,pages.marketing.netROAS,Net R O A S
+pages.marketing,en,en-cluster,pages.marketing.totalOrders,Total Orders
+pages.marketing,en,en-cluster,pages.marketing.changeRole,Change Role
+pages.marketing,ja,,pages.marketing.grossRevenue,総売上
+pages.marketing,ja,,pages.marketing.adSpend,広告費
+pages.marketing,ja,,pages.marketing.netROAS,純ROAS
+pages.marketing,ja,,pages.marketing.totalOrders,総注文数
+pages.marketing,ja,,pages.marketing.changeRole,役割変更
+pages.marketing,zh,,pages.marketing.grossRevenue,总收入
+pages.marketing,zh,,pages.marketing.adSpend,Ad Spend
+pages.marketing,zh,,pages.marketing.netROAS,Net R O A S
+pages.marketing,zh,,pages.marketing.totalOrders,Total Orders
+pages.marketing,zh,,pages.marketing.changeRole,更换角色
+pages.marketing,zh-TW,,pages.marketing.grossRevenue,总收入
+pages.marketing,zh-TW,,pages.marketing.adSpend,Ad Spend
+pages.marketing,zh-TW,,pages.marketing.netROAS,Net R O A S
+pages.marketing,zh-TW,,pages.marketing.totalOrders,Total Orders
+pages.marketing,zh-TW,,pages.marketing.changeRole,更换角色
+pages.marketing,es,en-cluster,pages.marketing.grossRevenue,Ingresos Totales
+pages.marketing,es,en-cluster,pages.marketing.adSpend,Gasto Publicitario
+pages.marketing,es,en-cluster,pages.marketing.netROAS,ROAS Neto
+pages.marketing,es,en-cluster,pages.marketing.totalOrders,Pedidos Totales
+pages.marketing,es,en-cluster,pages.marketing.changeRole,Change Role
+pages.marketing,fr,en-cluster,pages.marketing.grossRevenue,Revenus Totaux
+pages.marketing,fr,en-cluster,pages.marketing.adSpend,Dépenses Pub
+pages.marketing,fr,en-cluster,pages.marketing.netROAS,ROAS Net
+pages.marketing,fr,en-cluster,pages.marketing.totalOrders,Commandes Totales
+pages.marketing,fr,en-cluster,pages.marketing.changeRole,Change Role
+pages.marketing,de,,pages.marketing.grossRevenue,Gesamtumsatz
+pages.marketing,de,,pages.marketing.adSpend,Werbeausgaben
+pages.marketing,de,,pages.marketing.netROAS,Netto-ROAS
+pages.marketing,de,,pages.marketing.totalOrders,Gesamtbestellungen
+pages.marketing,de,,pages.marketing.changeRole,Change Role
+pages.marketing,pt,pt-cluster,pages.marketing.grossRevenue,Gross Revenue
+pages.marketing,pt,pt-cluster,pages.marketing.adSpend,Ad Spend
+pages.marketing,pt,pt-cluster,pages.marketing.netROAS,Net R O A S
+pages.marketing,pt,pt-cluster,pages.marketing.totalOrders,Total Orders
+pages.marketing,pt,pt-cluster,pages.marketing.changeRole,Change Role
+pages.marketing,ru,pt-cluster,pages.marketing.grossRevenue,Gross Revenue
+pages.marketing,ru,pt-cluster,pages.marketing.adSpend,Ad Spend
+pages.marketing,ru,pt-cluster,pages.marketing.netROAS,Net R O A S
+pages.marketing,ru,pt-cluster,pages.marketing.totalOrders,Total Orders
+pages.marketing,ru,pt-cluster,pages.marketing.changeRole,Change Role
+pages.marketing,ar,pt-cluster,pages.marketing.grossRevenue,Gross Revenue
+pages.marketing,ar,pt-cluster,pages.marketing.adSpend,Ad Spend
+pages.marketing,ar,pt-cluster,pages.marketing.netROAS,Net R O A S
+pages.marketing,ar,pt-cluster,pages.marketing.totalOrders,Total Orders
+pages.marketing,ar,pt-cluster,pages.marketing.changeRole,Change Role
+pages.marketing,hi,pt-cluster,pages.marketing.grossRevenue,Gross Revenue
+pages.marketing,hi,pt-cluster,pages.marketing.adSpend,Ad Spend
+pages.marketing,hi,pt-cluster,pages.marketing.netROAS,Net R O A S
+pages.marketing,hi,pt-cluster,pages.marketing.totalOrders,Total Orders
+pages.marketing,hi,pt-cluster,pages.marketing.changeRole,Change Role
+pages.marketing,id,,pages.marketing.grossRevenue,Total Pendapatan
+pages.marketing,id,,pages.marketing.adSpend,Belanja Iklan
+pages.marketing,id,,pages.marketing.netROAS,ROAS Bersih
+pages.marketing,id,,pages.marketing.totalOrders,Total Pesanan
+pages.marketing,id,,pages.marketing.changeRole,役割変更
+pages.marketing,th,,pages.marketing.grossRevenue,รายได้รวม
+pages.marketing,th,,pages.marketing.adSpend,ค่าโฆษณา
+pages.marketing,th,,pages.marketing.netROAS,ROAS สุทธิ
+pages.marketing,th,,pages.marketing.totalOrders,คำสั่งซื้อทั้งหมด
+pages.marketing,th,,pages.marketing.changeRole,Change Role
+pages.marketing,vi,,pages.marketing.grossRevenue,Tổng doanh thu
+pages.marketing,vi,,pages.marketing.adSpend,Chi phí quảng cáo
+pages.marketing,vi,,pages.marketing.netROAS,ROAS ròng
+pages.marketing,vi,,pages.marketing.totalOrders,Tổng đơn hàng
+pages.marketing,vi,,pages.marketing.changeRole,Change Role
+operations.gBudget,vi,,operations.gBudget.title,Email Marketing
+operations.gBudget,vi,,operations.gBudget.subtitle,Precision Shapley (2^n) · Bayesian MMM · Markov Chain · Incremental Uplift (Dual ML) · Thompson Samp
+operations.gBudget,vi,,operations.gBudget.revenue,Estimated Revenue
+operations.gBudget,vi,,operations.gBudget.adSpeed,Ad Spend Burned
+operations.gBudget,vi,,operations.gBudget.remain,Remaining Budget
+operations.acctPerf,zh-TW,,operations.acctPerf.desc,Compare campaign performance of the exact same product and channel across different regional teams o
+operations.acctPerf,zh-TW,,operations.acctPerf.integrated,Integrated Performance Overview
+operations.acctPerf,zh-TW,,operations.acctPerf.breakdown,Performance Breakdown by Team / Account
+operations.acctPerf,zh-TW,,operations.acctPerf.team,Team / Account
+operations.acctPerf,zh-TW,,operations.acctPerf.aiInsightTitle,💡 AI Strategic Insights by Brand/Team
+operations.acctPerf,id,,operations.acctPerf.desc,Compare campaign performance of the exact same product and channel across different regional teams o
+operations.acctPerf,id,,operations.acctPerf.integrated,Integrated Performance Overview
+operations.acctPerf,id,,operations.acctPerf.breakdown,Performance Breakdown by Team / Account
+operations.acctPerf,id,,operations.acctPerf.team,Team / Account
+operations.acctPerf,id,,operations.acctPerf.aiInsightTitle,💡 AI Strategic Insights by Brand/Team
+operations.acctPerf,th,,operations.acctPerf.desc,Compare campaign performance of the exact same product and channel across different regional teams o
+operations.acctPerf,th,,operations.acctPerf.integrated,Integrated Performance Overview
+operations.acctPerf,th,,operations.acctPerf.breakdown,Performance Breakdown by Team / Account
+operations.acctPerf,th,,operations.acctPerf.team,Team / Account
+operations.acctPerf,th,,operations.acctPerf.aiInsightTitle,💡 AI Strategic Insights by Brand/Team
+operations.acctPerf,vi,,operations.acctPerf.tabDashboard,Dashboard
+operations.acctPerf,vi,,operations.acctPerf.tabDrilldown,Hierarki
+operations.acctPerf,vi,,operations.acctPerf.objectiveAwareness,Kesadaran
+operations.acctPerf,vi,,operations.acctPerf.objectiveConsideration,Pertimbangan
+operations.acctPerf,vi,,operations.acctPerf.objectiveConversion,Konversi
+ruleEnginePage.super,ja,,ruleEnginePage.super.autoFeeTitle,自動手数料率
+ruleEnginePage.super,ja,,ruleEnginePage.super.colVatTax,VAT/税金(%)
+ruleEnginePage.super,ja,,ruleEnginePage.super.colCommission,手数料(%)
+ruleEnginePage.super,ja,,ruleEnginePage.super.statusPaid,決済完了
+ruleEnginePage.super,ja,,ruleEnginePage.super.statusPreparing,準備中
+pages.priceOpt,en,en-cluster,pages.priceOpt.items, items
+pages.priceOpt,en,en-cluster,pages.priceOpt.register,Register
+pages.priceOpt,en,en-cluster,pages.priceOpt.action,Action
+pages.priceOpt,ja,,pages.priceOpt.items, 件
+pages.priceOpt,ja,,pages.priceOpt.register,登録
+pages.priceOpt,ja,,pages.priceOpt.action,実行動作
+pages.priceOpt,zh,,pages.priceOpt.items, 件
+pages.priceOpt,zh,,pages.priceOpt.register,注册
+pages.priceOpt,zh,,pages.priceOpt.action,조치
+pages.priceOpt,zh-TW,,pages.priceOpt.items, 件
+pages.priceOpt,zh-TW,,pages.priceOpt.register,注册
+pages.priceOpt,zh-TW,,pages.priceOpt.action,Action
+pages.priceOpt,es,en-cluster,pages.priceOpt.items, items
+pages.priceOpt,es,en-cluster,pages.priceOpt.register,Register
+pages.priceOpt,es,en-cluster,pages.priceOpt.action,Action
+pages.priceOpt,fr,en-cluster,pages.priceOpt.items, items
+pages.priceOpt,fr,en-cluster,pages.priceOpt.register,Register
+pages.priceOpt,fr,en-cluster,pages.priceOpt.action,Action
+pages.priceOpt,de,,pages.priceOpt.items, items
+pages.priceOpt,de,,pages.priceOpt.register,Register
+pages.priceOpt,de,,pages.priceOpt.action,Action
+pages.priceOpt,pt,pt-cluster,pages.priceOpt.items, items
+pages.priceOpt,pt,pt-cluster,pages.priceOpt.register,Register
+pages.priceOpt,pt,pt-cluster,pages.priceOpt.action,Action
+pages.priceOpt,ru,pt-cluster,pages.priceOpt.items, items
+pages.priceOpt,ru,pt-cluster,pages.priceOpt.register,Register
+pages.priceOpt,ru,pt-cluster,pages.priceOpt.action,Action
+pages.priceOpt,ar,pt-cluster,pages.priceOpt.items, items
+pages.priceOpt,ar,pt-cluster,pages.priceOpt.register,Register
+pages.priceOpt,ar,pt-cluster,pages.priceOpt.action,Action
+pages.priceOpt,hi,pt-cluster,pages.priceOpt.items, items
+pages.priceOpt,hi,pt-cluster,pages.priceOpt.register,Register
+pages.priceOpt,hi,pt-cluster,pages.priceOpt.action,Action
+pages.priceOpt,id,,pages.priceOpt.items, 件
+pages.priceOpt,id,,pages.priceOpt.register,登録
+pages.priceOpt,id,,pages.priceOpt.action,実行動作
+pages.priceOpt,th,,pages.priceOpt.items, muc
+pages.priceOpt,th,,pages.priceOpt.register,ลงทะเบียน
+pages.priceOpt,th,,pages.priceOpt.action,Action
+pages.priceOpt,vi,,pages.priceOpt.items, item
+pages.priceOpt,vi,,pages.priceOpt.register,Daftar
+pages.priceOpt,vi,,pages.priceOpt.action,Action
+ruleEnginePage.gCat,id,,ruleEnginePage.gCat.beauty_label,Beauty_label
+ruleEnginePage.gCat,id,,ruleEnginePage.gCat.beauty_route,"Skincare, Color, Domestic/Global Beauty"
+ruleEnginePage.gCat,id,,ruleEnginePage.gCat.fashion_label,👗 Fashion & Apparel
+ruleEnginePage.gCat,id,,ruleEnginePage.gCat.fashion_route,"Women, Men"
+ruleEnginePage.gCat,id,,ruleEnginePage.gCat.general_label,🛍 Life & Living
+ruleEnginePage.gCat,th,,ruleEnginePage.gCat.beauty_label,Beauty_label
+ruleEnginePage.gCat,th,,ruleEnginePage.gCat.beauty_route,"Skincare, Color, Domestic/Global Beauty"
+ruleEnginePage.gCat,th,,ruleEnginePage.gCat.fashion_label,👗 Fashion & Apparel
+ruleEnginePage.gCat,th,,ruleEnginePage.gCat.fashion_route,"Women, Men"
+ruleEnginePage.gCat,th,,ruleEnginePage.gCat.general_label,🛍 Life & Living
+operations.accountPerf,vi,,operations.accountPerf.pageTitle,Performa Akun
+operations.accountPerf,vi,,operations.accountPerf.pageSub,Ringkasan tim
+operations.accountPerf,vi,,operations.accountPerf.teamDashboard,Anggaran Tim
+operations.accountPerf,vi,,operations.accountPerf.tabDashboard,Dashboard
+operations.accountPerf,vi,,operations.accountPerf.tabDrilldown,Hierarki
+pages.mobile,en,en-cluster,pages.mobile.coupon.successBanner,🎉
+pages.mobile,en,en-cluster,pages.mobile.helpPanel.staticHelp.connectors.tips,0
+pages.mobile,en,en-cluster,pages.mobile.helpPanel.staticHelp.smsMarketing.tips,0
+pages.mobile,ja,,pages.mobile.coupon.successBanner,🎉
+pages.mobile,ja,,pages.mobile.helpPanel.staticHelp.connectors.tips,0
+pages.mobile,ja,,pages.mobile.helpPanel.staticHelp.smsMarketing.tips,0
+pages.mobile,zh,,pages.mobile.coupon.successBanner,🎉
+pages.mobile,zh,,pages.mobile.helpPanel.staticHelp.connectors.tips,0
+pages.mobile,zh,,pages.mobile.helpPanel.staticHelp.smsMarketing.tips,0
+pages.mobile,zh-TW,,pages.mobile.coupon.successBanner,🎉
+pages.mobile,zh-TW,,pages.mobile.helpPanel.staticHelp.connectors.tips,0
+pages.mobile,zh-TW,,pages.mobile.helpPanel.staticHelp.smsMarketing.tips,0
+pages.mobile,es,en-cluster,pages.mobile.coupon.successBanner,🎉
+pages.mobile,es,en-cluster,pages.mobile.helpPanel.staticHelp.connectors.tips,0
+pages.mobile,es,en-cluster,pages.mobile.helpPanel.staticHelp.smsMarketing.tips,0
+pages.mobile,fr,en-cluster,pages.mobile.coupon.successBanner,🎉
+pages.mobile,fr,en-cluster,pages.mobile.helpPanel.staticHelp.connectors.tips,0
+pages.mobile,fr,en-cluster,pages.mobile.helpPanel.staticHelp.smsMarketing.tips,0
+pages.mobile,de,,pages.mobile.coupon.successBanner,🎉
+pages.mobile,de,,pages.mobile.helpPanel.staticHelp.connectors.tips,0
+pages.mobile,de,,pages.mobile.helpPanel.staticHelp.smsMarketing.tips,0
+pages.mobile,pt,pt-cluster,pages.mobile.coupon.successBanner,🎉
+pages.mobile,ru,pt-cluster,pages.mobile.coupon.successBanner,🎉
+pages.mobile,ar,pt-cluster,pages.mobile.coupon.successBanner,🎉
+pages.mobile,hi,pt-cluster,pages.mobile.coupon.successBanner,🎉
+pages.mobile,id,,pages.mobile.coupon.successBanner,🎉
+pages.mobile,id,,pages.mobile.helpPanel.staticHelp.connectors.tips,0
+pages.mobile,id,,pages.mobile.helpPanel.staticHelp.smsMarketing.tips,0
+pages.mobile,th,,pages.mobile.coupon.successBanner,🎉
+pages.mobile,th,,pages.mobile.helpPanel.staticHelp.connectors.tips,0
+pages.mobile,th,,pages.mobile.helpPanel.staticHelp.smsMarketing.tips,0
+pages.mobile,vi,,pages.mobile.coupon.successBanner,🎉
+pages.mobile,vi,,pages.mobile.helpPanel.staticHelp.connectors.tips,0
+pages.mobile,vi,,pages.mobile.helpPanel.staticHelp.smsMarketing.tips,0
+help.faq,zh-TW,,help.faq.q1,如何切換語言？
+help.faq,zh-TW,,help.faq.a1,點擊畫面右上角的語言選擇按鈕，然後選擇所需語言。
+help.faq,zh-TW,,help.faq.q2,Attribution資料的準確度如何？
+help.faq,zh-TW,,help.faq.a2,Genie ROI結合Shapley Value和MMM以達到最高準確度。A-Score顯示信心水準。
+help.faq,zh-TW,,help.faq.q3,如何新增最愛？
+help.faq,id,,help.faq.q1,Bagaimana cara mengubah bahasa?
+help.faq,id,,help.faq.a1,"Klik tombol pilih bahasa di pojok kanan atas layar, lalu pilih bahasa yang diinginkan."
+help.faq,id,,help.faq.q2,Seberapa akurat data Attribution?
+help.faq,id,,help.faq.a2,Genie ROI menggunakan Shapley Value dan MMM secara bersamaan untuk akurasi tertinggi. A-Score menunj
+help.faq,id,,help.faq.q3,Bagaimana cara menambahkan favorit?
+help.faq,th,,help.faq.q1,ฉันจะเปลี่ยนภาษาได้อย่างไร?
+help.faq,th,,help.faq.a1,คลิกที่ปุ่มเลือกภาษาที่มุมบนขวาของหน้าจอ แล้วเลือกภาษาที่ต้องการ
+help.faq,th,,help.faq.q2,ข้อมูล Attribution มีความแม่นยำเพียงใด?
+help.faq,th,,help.faq.a2,Genie ROI ใช้ Shapley Value และ MMM ร่วมกันเพื่อให้ความแม่นยำสูงสุด A-Score แสดงระดับความเชื่อมั่น
+help.faq,th,,help.faq.q3,ฉันจะเพิ่มรายการโปรดได้อย่างไร?
+help.faq,vi,,help.faq.q1,Làm thế nào để thay đổi ngôn ngữ?
+help.faq,vi,,help.faq.a1,"Nhấn vào nút chọn ngôn ngữ ở góc trên bên phải màn hình, sau đó chọn ngôn ngữ mong muốn."
+help.faq,vi,,help.faq.q2,Dữ liệu Attribution có chính xác không?
+help.faq,vi,,help.faq.a2,Genie ROI sử dụng Shapley Value và MMM kết hợp để đạt độ chính xác cao nhất. A-Score hiển thị mức độ
+help.faq,vi,,help.faq.q3,Làm thế nào để thêm vào yêu thích?
+admin.menuCategories,zh-TW,,admin.menuCategories.marketing,行銷·廣告
+admin.menuCategories,zh-TW,,admin.menuCategories.commerce,Commerce & Logistics
+admin.menuCategories,zh-TW,,admin.menuCategories.analytics,Insights & Reports
+admin.menuCategories,zh-TW,,admin.menuCategories.finance,Finance & Settlements
+admin.menuCategories,zh-TW,,admin.menuCategories.automation,Automation System
+admin.menuCategories,id,,admin.menuCategories.marketing,Marketing · Iklan
+admin.menuCategories,id,,admin.menuCategories.commerce,Commerce & Logistics
+admin.menuCategories,id,,admin.menuCategories.analytics,Insights & Reports
+admin.menuCategories,id,,admin.menuCategories.finance,Finance & Settlements
+admin.menuCategories,id,,admin.menuCategories.automation,Automation System
+admin.menuCategories,th,,admin.menuCategories.marketing,การตลาด · โฆษณา
+admin.menuCategories,th,,admin.menuCategories.commerce,Commerce & Logistics
+admin.menuCategories,th,,admin.menuCategories.analytics,Insights & Reports
+admin.menuCategories,th,,admin.menuCategories.finance,Finance & Settlements
+admin.menuCategories,th,,admin.menuCategories.automation,Automation System
+admin.menuCategories,vi,,admin.menuCategories.marketing,Marketing · Quảng cáo
+admin.menuCategories,vi,,admin.menuCategories.commerce,Commerce & Logistics
+admin.menuCategories,vi,,admin.menuCategories.analytics,Insights & Reports
+admin.menuCategories,vi,,admin.menuCategories.finance,Finance & Settlements
+admin.menuCategories,vi,,admin.menuCategories.automation,Automation System
+pages.commerce,en,en-cluster,pages.commerce.returnRate,return rate
+pages.commerce,en,en-cluster,pages.commerce.items, items
+pages.commerce,ja,,pages.commerce.returnRate,返品率
+pages.commerce,ja,,pages.commerce.items, 件
+pages.commerce,zh,,pages.commerce.returnRate,退货率
+pages.commerce,zh,,pages.commerce.items, 件
+pages.commerce,zh-TW,,pages.commerce.returnRate,退货率
+pages.commerce,zh-TW,,pages.commerce.items, 件
+pages.commerce,es,en-cluster,pages.commerce.returnRate,return rate
+pages.commerce,es,en-cluster,pages.commerce.items, items
+pages.commerce,fr,en-cluster,pages.commerce.returnRate,return rate
+pages.commerce,fr,en-cluster,pages.commerce.items, items
+pages.commerce,de,,pages.commerce.returnRate,return rate
+pages.commerce,de,,pages.commerce.items, items
+pages.commerce,pt,pt-cluster,pages.commerce.returnRate,return rate
+pages.commerce,pt,pt-cluster,pages.commerce.items, items
+pages.commerce,ru,pt-cluster,pages.commerce.returnRate,return rate
+pages.commerce,ru,pt-cluster,pages.commerce.items, items
+pages.commerce,ar,pt-cluster,pages.commerce.returnRate,return rate
+pages.commerce,ar,pt-cluster,pages.commerce.items, items
+pages.commerce,hi,pt-cluster,pages.commerce.returnRate,return rate
+pages.commerce,hi,pt-cluster,pages.commerce.items, items
+pages.commerce,id,,pages.commerce.returnRate,返品率
+pages.commerce,id,,pages.commerce.items, 件
+pages.commerce,th,,pages.commerce.returnRate,ty le tra
+pages.commerce,th,,pages.commerce.items, muc
+pages.commerce,vi,,pages.commerce.returnRate,tingkat retur
+pages.commerce,vi,,pages.commerce.items, item
+ruleEnginePage.dash,ja,,ruleEnginePage.dash.PriceOpt,価格最適化
+ruleEnginePage.dash,ja,,ruleEnginePage.dash.Reconcile,精算
+ruleEnginePage.dash,ja,,ruleEnginePage.dash.ageDist,年齢分布
+ruleEnginePage.dash,ja,,ruleEnginePage.dash.vsYesterday,前日比
+ruleEnginePage.dash,ja,,ruleEnginePage.dash.changeRole,役割変更
+ruleEnginePage.dash,zh,,ruleEnginePage.dash.vsYesterday,较昨日
+ruleEnginePage.dash,zh,,ruleEnginePage.dash.PriceOpt,价格优化
+ruleEnginePage.dash,zh,,ruleEnginePage.dash.Reconcile,对账
+ruleEnginePage.dash,zh,,ruleEnginePage.dash.ageDist,年龄分布
+ruleEnginePage.dash,zh,,ruleEnginePage.dash.changeRole,更换角色
+ruleEnginePage.dash,zh-TW,,ruleEnginePage.dash.vsYesterday,較昨日
+ruleEnginePage.dash,zh-TW,,ruleEnginePage.dash.PriceOpt,價格優化
+ruleEnginePage.dash,zh-TW,,ruleEnginePage.dash.Reconcile,結算
+ruleEnginePage.dash,zh-TW,,ruleEnginePage.dash.ageDist,年齡分佈
+ruleEnginePage.dash,zh-TW,,ruleEnginePage.dash.changeRole,更换角色
+ruleEnginePage.dash,id,,ruleEnginePage.dash.vsYesterday,vs kemarin
+ruleEnginePage.dash,id,,ruleEnginePage.dash.PriceOpt,Optimasi Harga
+ruleEnginePage.dash,id,,ruleEnginePage.dash.Reconcile,Rekonsiliasi
+ruleEnginePage.dash,id,,ruleEnginePage.dash.ageDist,Distribusi Usia
+ruleEnginePage.dash,id,,ruleEnginePage.dash.changeRole,役割変更
+ruleEnginePage.dash,th,,ruleEnginePage.dash.vsYesterday,เทียบเมื่อวาน
+ruleEnginePage.dash,th,,ruleEnginePage.dash.PriceOpt,ปรับราคา
+ruleEnginePage.dash,th,,ruleEnginePage.dash.Reconcile,ชำระเงิน
+ruleEnginePage.dash,th,,ruleEnginePage.dash.ageDist,การกระจายอายุ
+ruleEnginePage.dash,th,,ruleEnginePage.dash.changeRole,Change Role
+help.tabs,zh-TW,,help.tabs.menu,📋 功能說明
+help.tabs,zh-TW,,help.tabs.faq,❓ 常見問題
+help.tabs,zh-TW,,help.tabs.api,🔌 API指南
+help.tabs,zh-TW,,help.tabs.roles,👥 角色與權限
+help.tabs,zh-TW,,help.tabs.release,📣 版本說明
+help.tabs,id,,help.tabs.menu,📋 Panduan Menu
+help.tabs,id,,help.tabs.faq,❓ FAQ
+help.tabs,id,,help.tabs.api,🔌 API Guide
+help.tabs,id,,help.tabs.roles,👥 Peran & Izin
+help.tabs,id,,help.tabs.release,📣 Release Notes
+help.tabs,th,,help.tabs.menu,📋 คู่มือเมนู
+help.tabs,th,,help.tabs.faq,❓ คำถามที่พบบ่อย
+help.tabs,th,,help.tabs.api,🔌 API Guide
+help.tabs,th,,help.tabs.roles,👥 บทบาทและสิทธิ์
+help.tabs,th,,help.tabs.release,📣 Release Notes
+help.tabs,vi,,help.tabs.menu,📋 Hướng dẫn Menu
+help.tabs,vi,,help.tabs.faq,❓ Câu hỏi thường gặp
+help.tabs,vi,,help.tabs.api,🔌 API Guide
+help.tabs,vi,,help.tabs.roles,👥 Vai trò & Quyền
+help.tabs,vi,,help.tabs.release,📣 Release Notes
+operations.apiKeys,vi,,operations.apiKeys.pageTitle,🔌 Integration Hub
+operations.apiKeys,vi,,operations.apiKeys.pageSub,Connector & integration management
+operations.apiKeys,vi,,operations.apiKeys.addKey,+ Add API Key
+operations.apiKeys,vi,,operations.apiKeys.service,Service
+operations.apiKeys,vi,,operations.apiKeys.keyValue,Key Value
+ruleEnginePage.accountPerf,ja,,ruleEnginePage.accountPerf.tabDrilldown,階層分析
+ruleEnginePage.accountPerf,ja,,ruleEnginePage.accountPerf.objectiveAwareness,認知
+ruleEnginePage.accountPerf,ja,,ruleEnginePage.accountPerf.objectiveConsideration,検討
+ruleEnginePage.accountPerf,ja,,ruleEnginePage.accountPerf.kpiSpend,累計支出
+ruleEnginePage.accountPerf,ja,,ruleEnginePage.accountPerf.avgRoas,平均ROAS
+ruleEnginePage.acctPerf,ja,,ruleEnginePage.acctPerf.tabDrilldown,階層分析
+ruleEnginePage.acctPerf,ja,,ruleEnginePage.acctPerf.objectiveAwareness,認知
+ruleEnginePage.acctPerf,ja,,ruleEnginePage.acctPerf.objectiveConsideration,検討
+ruleEnginePage.acctPerf,ja,,ruleEnginePage.acctPerf.kpiSpend,累計支出
+ruleEnginePage.acctPerf,ja,,ruleEnginePage.acctPerf.avgRoas,平均ROAS
+ruleEnginePage.gNav,ja,,ruleEnginePage.gNav.rollup,統合現況
+ruleEnginePage.gNav,ja,,ruleEnginePage.gNav.crmMain,顧客管理
+ruleEnginePage.gNav,ja,,ruleEnginePage.gNav.wms,WMS管理
+ruleEnginePage.gNav,ja,,ruleEnginePage.gNav.priceOpt,価格最適化
+ruleEnginePage.gNav,ja,,ruleEnginePage.gNav.pnl,損益分析
+admin.planLabels,zh-TW,,admin.planLabels.free,免費
+admin.planLabels,zh-TW,,admin.planLabels.growth,Growth
+admin.planLabels,zh-TW,,admin.planLabels.pro,Pro
+admin.planLabels,zh-TW,,admin.planLabels.enterprise,Enterprise
+admin.planLabels,id,,admin.planLabels.free,Gratis
+admin.planLabels,id,,admin.planLabels.growth,Growth
+admin.planLabels,id,,admin.planLabels.pro,Pro
+admin.planLabels,id,,admin.planLabels.enterprise,Enterprise
+admin.planLabels,th,,admin.planLabels.free,ฟรี
+admin.planLabels,th,,admin.planLabels.growth,Growth
+admin.planLabels,th,,admin.planLabels.pro,Pro
+admin.planLabels,th,,admin.planLabels.enterprise,Enterprise
+admin.planLabels,vi,,admin.planLabels.free,Miễn phí
+admin.planLabels,vi,,admin.planLabels.growth,Growth
+admin.planLabels,vi,,admin.planLabels.pro,Pro
+admin.planLabels,vi,,admin.planLabels.enterprise,Enterprise
+pages.amazonRisk,en,en-cluster,pages.amazonRisk.action,Action
+pages.amazonRisk,ja,,pages.amazonRisk.action,実行動作
+pages.amazonRisk,zh,,pages.amazonRisk.action,Action
+pages.amazonRisk,zh-TW,,pages.amazonRisk.action,Action
+pages.amazonRisk,es,en-cluster,pages.amazonRisk.action,Action
+pages.amazonRisk,fr,en-cluster,pages.amazonRisk.action,Action
+pages.amazonRisk,de,,pages.amazonRisk.action,Action
+pages.amazonRisk,pt,pt-cluster,pages.amazonRisk.action,Action
+pages.amazonRisk,ru,pt-cluster,pages.amazonRisk.action,Action
+pages.amazonRisk,ar,pt-cluster,pages.amazonRisk.action,Action
+pages.amazonRisk,hi,pt-cluster,pages.amazonRisk.action,Action
+pages.amazonRisk,id,,pages.amazonRisk.action,実行動作
+pages.amazonRisk,th,,pages.amazonRisk.action,Action
+pages.amazonRisk,vi,,pages.amazonRisk.action,Action
