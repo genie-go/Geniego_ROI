@@ -1,4 +1,5 @@
 import React, { useEffect, createContext, useCallback, useContext, useRef, useState, useMemo } from "react";
+import { planRank } from "./plans.js";
 
 
 export const AuthContext = createContext(null);
@@ -14,10 +15,6 @@ const TOKEN_KEY = KEY_PREFIX + "token";
 const USER_KEY = KEY_PREFIX + "user";
 const REAL_KEYS_FLAG = KEY_PREFIX + "has_real_keys";
 const AUTO_LOGOUT_KEY = KEY_PREFIX + "auto_logout_min";
-
-/* 플랜 계층: free=0, demo: 0, starter=1, growth=2, pro=3, enterprise=4, admin=5 */
-const PLAN_RANK = { free: 0, demo: 0, starter: 1, growth: 2, pro: 3, enterprise: 4, admin: 5 };
-function planRank(plan) { return PLAN_RANK[plan] ?? 0; }
 
 export function AuthProvider({ children }) {
     const [token, setToken] = useState(() => localStorage.getItem(TOKEN_KEY));
@@ -152,8 +149,7 @@ export function AuthProvider({ children }) {
                             // 캐시된 plan이 admin인데 서버가 /free를 반환하는 경우 → 로컬 admin 우선 유지
                             const cachedPlan = cached?.plan || "";
                             const serverPlan = d.user.plan || "";
-                            const PLAN_RANK_LOCAL = { free: 0, demo: 0, starter: 1, growth: 2, pro: 3, enterprise: 4, admin: 5 };
-                            const useServerPlan = (PLAN_RANK_LOCAL[serverPlan] ?? 0) >= (PLAN_RANK_LOCAL[cachedPlan] ?? 0);
+                            const useServerPlan = planRank(serverPlan) >= planRank(cachedPlan);
 
                             // 서버 user + 로컬 캐시 merge (plans, is_local 등 로컬 필드 보존)
                             const merged = {

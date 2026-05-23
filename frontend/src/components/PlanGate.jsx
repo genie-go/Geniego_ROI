@@ -15,11 +15,10 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { useGlobalData } from "../context/GlobalDataContext.jsx";
+import { planRank, PLAN_LABEL } from "../auth/plans.js";
 
 
-/* Plan 계층 */
-const PLAN_RANK = { demo: 0, pro: 1, starter: 1, enterprise: 2, admin: 3 };
-const PLAN_LABEL = { demo: "", pro: "Pro", enterprise: "Enterprise", admin: "Admin" };
+/* PLAN_RANK / PLAN_LABEL: ../auth/plans.js SSOT (152차 W2) */
 
 /* 기능별 최소 Plan 요구사항 */
 const FEATURE_PLANS = {
@@ -71,8 +70,8 @@ export default function PlanGate({ children, feature, minPlan, fallback }) {
     }
     requiredPlan = requiredPlan || "pro";
 
-    const userRank = PLAN_RANK[plan] ?? 0;
-    const requiredRank = PLAN_RANK[requiredPlan] ?? 1;
+    const userRank = planRank(plan);
+    const requiredRank = planRank(requiredPlan);
 
     // ── 데모 제한 정책 (데모/Free 유저 처리 제거, 철저한 권한 체크) ──
     const isFreeUser = plan === "" || plan === "free" || !plan;
@@ -80,7 +79,7 @@ export default function PlanGate({ children, feature, minPlan, fallback }) {
 
     // admin 기능은 계속 차단, 나머지는 Plan 등급에 따라 허용
     const hasAccess = isAdminFeature
-        ? (PLAN_RANK[plan] ?? 0) >= PLAN_RANK["admin"]
+        ? planRank(plan) >= planRank("admin")
         : userRank >= requiredRank;
 
     if (hasAccess) return <>{children}</>;
