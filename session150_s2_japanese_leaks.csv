@@ -1,0 +1,22 @@
+path,ko_value,ja_value
+gAttr.itemsCount,{n} 件,{n} 件
+gAttr.tabAnomalyLabel,🚨 異常検知,🚨 異常検知
+gAttr.tabLtvDesc,顧客獲得単価,顧客獲得単価
+gAttr.tabShapleyDesc,2^n 精密計算,2^n 精密計算
+journeyBuilder.completed,完了,完了
+journeyBuilder.create,作成,作成
+journeyBuilder.edit,✏️ 編集,✏️ 編集
+journeyBuilder.entered,進入,進入
+journeyBuilder.launch,▶ 実行,▶ 実行
+journeyBuilder.nodeTypes.condition,🔀 条件分岐,🔀 条件分岐
+journeyBuilder.nodeTypes.delay,⏱ 待機,⏱ 待機
+journeyBuilder.nodeTypes.end,🏁 終了,🏁 終了
+journeyBuilder.triggerTypes.birthday,🎂 誕生日,🎂 誕生日
+journeyBuilder.triggerTypes.manual,▶ 手動実行,▶ 手動実行
+journeyBuilder.triggerTypes.purchase,✅ 購入完了,✅ 購入完了
+journeyBuilder.triggerTypes.signup,🌱 新規登録,🌱 新規登録
+lineChannel.openRate,開封率,開封率
+lineChannel.pending,審査中,審査中
+lineChannel.sentCount,配信数,配信数
+lineChannel.statusActive,配信中,配信中
+lineChannel.tabSettings,⚙️ 設定,⚙️ 設定
