@@ -40,3 +40,24 @@ NEXT_SESSION.md.bak*
 *.bak*_pre_*
 # session-147+ ko.js patch backups (local rollback only)
 frontend/backup_session147_*/
+# === Session 150+ artifacts (i18n cleanup workflow) ===
+# Backup directories (rollback chains, ~1.5MB each)
+backup_session*/
+
+# Intermediate iteration outputs (superseded by final versions)
+session*_d[2-4]_*
+session*_e[1-4]_*
+session*_d3_b_token_freq.csv
+session*_e[1-4]_b_token_freq*.csv
+
+# Patch logs
+*_patch_log_*.txt
+
+# Claude conversation dumps
+_claude_dump_*
+
+# Python cache
+__pycache__/
+
+# Manual rename markers
+*.deprecated
