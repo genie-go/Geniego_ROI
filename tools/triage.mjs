@@ -12,7 +12,7 @@ const VALID_LOCALES = new Set([
   'ko', 'en', 'ja', 'zh', 'zh-TW', 'es', 'fr', 'de',
   'pt', 'ru', 'ar', 'hi', 'id', 'th', 'vi',
 ]);
-const VALID_MODES = new Set(['collision', 'mojibake', 'wrong-language', 'dead-subtree']);
+const VALID_MODES = new Set(['collision', 'mojibake', 'wrong-language', 'dead-subtree', 'all']);
 
 function parseArgs(argv) {
   const args = { locale: null, mode: null, csvPath: null, jsonPath: null, quiet: false, root: null, srcRoot: 'frontend/src' };
@@ -39,6 +39,9 @@ function parseArgs(argv) {
         break;
       case '--src-root':
         args.srcRoot = argv[++i];
+        break;
+      case '--out-dir':
+        args.outDir = argv[++i];
         break;
       case '-h':
       case '--help':
@@ -312,6 +315,9 @@ function main() {
   }
   if (args.mode === 'dead-subtree') {
     return runDeadSubtree(args);
+  }
+  if (args.mode === 'all') {
+    return runAll(args);
   }
   const { src, file } = loadLocale(args.locale);
   const ast = parseAST(src, file);
@@ -1008,6 +1014,84 @@ function runDeadSubtree(args) {
 
   const exitCode = total_consumers === 0 ? 1 : 0;
   process.exit(exitCode);
+}
+
+// ─── mode all (Session 157 Step E-4) ─────────────────────────────────
+
+function runAll(args) {
+  const outDir = args.outDir || `triage_out_${args.locale}`;
+  fs.mkdirSync(outDir, { recursive: true });
+
+  const modes = ['collision', 'mojibake', 'wrong-language'];
+  if (args.root) modes.push('dead-subtree');
+
+  const results = {};
+  let aggregateExit = 0;
+
+  for (const mode of modes) {
+    const csvPath = path.join(outDir, `${mode}.csv`);
+    const jsonPath = path.join(outDir, `${mode}.json`);
+    const cmd = [
+      process.argv[0],
+      process.argv[1],
+      '--locale', args.locale,
+      '--mode', mode,
+      '--csv', csvPath,
+      '--json', jsonPath,
+      '--quiet',
+    ];
+    if (mode === 'dead-subtree') {
+      cmd.push('--root', args.root);
+      if (args.srcRoot && args.srcRoot !== 'frontend/src') {
+        cmd.push('--src-root', args.srcRoot);
+      }
+    }
+    let exitCode = 0;
+    try {
+      execSync(cmd.map((c) => `"${String(c).replace(/"/g, '\\"')}"`).join(' '), { stdio: 'pipe' });
+    } catch (e) {
+      exitCode = e.status || 1;
+    }
+    let total = 0;
+    let extra = {};
+    try {
+      const data = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
+      if ('total_collisions' in data) total = data.total_collisions;
+      else if ('total_detections' in data) total = data.total_detections;
+      else if ('subtree_leaf_count' in data) total = data.subtree_leaf_count;
+      if (mode === 'wrong-language' && data.by_script) extra.by_script = data.by_script;
+      if (mode === 'dead-subtree') {
+        extra.status = data.status;
+        extra.verdict = data.verdict;
+        extra.total_consumers = data.total_consumers;
+      }
+    } catch (e) {}
+    results[mode] = { total, exit_code: exitCode, ...extra };
+    if (exitCode === 2) aggregateExit = 2;
+    else if (exitCode === 1 && aggregateExit !== 2) aggregateExit = 1;
+  }
+
+  const summary = {
+    locale: args.locale,
+    mode: 'all',
+    generated_at: new Date().toISOString(),
+    modes_run: modes,
+    results,
+    aggregate_exit_code: aggregateExit,
+  };
+  fs.writeFileSync(path.join(outDir, 'summary.json'), JSON.stringify(summary, null, 2) + '\n');
+
+  if (!args.quiet) {
+    console.log(`[triage:all] locale=${args.locale}  out=${outDir}`);
+    for (const mode of modes) {
+      const r = results[mode];
+      let extra = '';
+      if (mode === 'dead-subtree' && r.status) extra = `  status=${r.status}  consumers=${r.total_consumers}`;
+      console.log(`  ${mode.padEnd(16)}: ${String(r.total).padStart(6)} (exit ${r.exit_code})${extra}`);
+    }
+    console.log(`aggregate exit code: ${aggregateExit}`);
+  }
+  process.exit(aggregateExit);
 }
 
 main();
