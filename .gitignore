@@ -288,3 +288,11 @@ session155_*.json
 session155_*.md
 session155_*.txt
 session155_*.sh
+
+# Session 156 — analysis artifacts (session-scoped, gitignored at next session close per CONTRIBUTING.md §3)
+session156_*.mjs
+session156_*.csv
+session156_*.json
+session156_*.md
+session156_*.txt
+session156_*.sh

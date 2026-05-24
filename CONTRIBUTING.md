@@ -80,6 +80,12 @@ These are referenced throughout the codebase and handover documents. They are im
 |---|---|
 | **N-155-A** | Mojibake-aware locale edits MUST use line-number + regex value-substitution scripts, not the Edit tool's string-anchor matching. The Edit tool does NOT guarantee byte preservation of CJK Compatibility Ideographs (U+F900-U+FAFF) or C1 control characters (U+0080-U+009F). Its `\uXXXX` auto-swap covers single-codepoint variants only, not combined variant + invisible-char damage. Session 155 step 7 first attempt: 22 Edits → 15 failed due to compat CJK (紐 U+F9CF, 留 U+F9CD, 吏 U+F9DE) + hidden U+0080. Resolution: rollback (Option R) + `session{NN}_vi_mojibake_apply.mjs` script (commits f68117d, 9c18640). |
 
+### Session 156 (new)
+
+| ID | Principle |
+|---|---|
+| **N-156-A** | After completing the primary track of a session, if additional work capacity remains, proceed with as much additional work as possible — even at the cost of intermediate partial closures. When external dependency is zero AND the additional track is structurally cohesive, the reviewer recommends without waiting for user prompt; the user decides go/no-go and entry is immediate. Partial closure is NOT incomplete closure: each commit unit must guarantee cohesion, validation, and deploy completeness, but the count is unbounded. This principle is compatible with N-152-F (track separation): never bundle non-cohesive work, but always pursue cohesive additional tracks. **Session 156 demonstration**: primary track (18 dotted-keypath collisions) closed after 2 commits → discovered dash.operations dead subtree → entered 3 additional tracks (ko.js single-locale / 12 non-sacred locales / ja+zh sacred under N-79 addendum) → 5 commits total, -20,902 leaves removed across 15 locales, ~1.06 MB i18n reduction. |
+
 ---
 
 ## 3. Naming convention
