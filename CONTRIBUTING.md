@@ -142,6 +142,7 @@ The pre-commit hook (`.githooks/pre-commit`) enforces:
 | Tool | Purpose |
 |---|---|
 | `tools/ci_watch.sh` | Polls GitHub Actions for the HEAD SHA's workflow run, reports status/conclusion, runs production smoke (HTTP 200 + i18n `lang="ko"`) on success. jq-free, gh-CLI-free. |
+| `tools/session_init.sh` | Per-session boot-strapper. Idempotent `.gitignore` patch for `session{NN}_*.{mjs,csv,json,md,txt,sh}` per §3. Runs reconnaissance (HEAD, sacred SHA, ko.js leaf count, quarantine, untracked) with baseline drift warnings. Auto-infers session number from `NEXT_SESSION.md`. `--session NN` and `--dry-run` flags. |
 | `.githooks/pre-commit` | Bank-grade pre-commit safety gate. See section 4. |
 
 ### Session 154 (analysis, gitignored at session close)
@@ -151,7 +152,16 @@ The pre-commit hook (`.githooks/pre-commit`) enforces:
 | `session154_selfnest_cleanup.mjs` | v1 self-nest removal (AST+astring; reverted, kept for audit). |
 | `session154_selfnest_cleanup_v2.mjs` | v2 surgical offset-based removal (applied). |
 | `session154_placeholder_triage.mjs` | v1 placeholder scan. |
-| `session154_placeholder_triage_v2.mjs` | v2 with acronym whitelist + 6-pattern auto-label (PAT_A–E + X). |
+| `session154_placeholder_triage_v2.mjs` | v3 — expanded acronym whitelist (~130 entries: ACOS/TACOS/CDP/DMP/SKU/etc.) + 7-pattern auto-label (PAT_A guide-copy / PAT_B mechanical-translate / PAT_C ko-source-missing / PAT_D parity-drift / PAT_E ko-regression / PAT_F degenerate-keys / PAT_X residual). Commits: 6ee9c54 v2 → f841594 v3. |
+
+### Session 154 (data artifacts, gitignored at session close)
+
+| Artifact | Purpose |
+|---|---|
+| `session154_placeholder_scan.csv` | v1 placeholder scan (7,043 rows × 30+ cols). Superseded by v2. |
+| `session154_placeholder_scan_v2.csv` | v3 scan with 7-pattern auto-labels. 155 phase input. |
+| `session154_placeholder_summary.md` | Human-readable digest of action distribution + per-pattern × action breakdown + 7-phase next-session plan. |
+| `session154_selfnest_cleanup_v2_report.csv` | Per-locale apply report for self-nest removal (19,599 entries, 15 locales, surgical excision). |
 
 ### Locale layout
 
