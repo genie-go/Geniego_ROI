@@ -1,0 +1,96 @@
+#!/usr/bin/env bash
+# .githooks/pre-commit — Session 154 bank-grade safety gate
+# Install: git config core.hooksPath .githooks
+# Bypass:  git commit --no-verify (requires N-145-G explicit approval)
+
+set -e
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT"
+
+BASELINE=".githooks/baseline.json"
+[ -f "$BASELINE" ] || { echo "❌ pre-commit: $BASELINE missing"; exit 1; }
+
+FAIL=0
+warn() { echo "⚠️  $*"; }
+fail() { echo "❌ $*"; FAIL=1; }
+ok()   { echo "✅ $*"; }
+
+STAGED=$(git diff --cached --name-only --diff-filter=ACMR)
+
+# B1 — *.bak* tracking refused
+BAK_HITS=$(echo "$STAGED" | grep -E '\.bak[0-9]*(_|$|\.)' || true)
+if [ -n "$BAK_HITS" ]; then
+  fail "B1: staged backup files (.bak*) — move to _quarantine/ or use .gitignore"
+  echo "$BAK_HITS" | sed 's/^/   /'
+fi
+
+# B2 — _quarantine/ paths refused
+QUAR_HITS=$(echo "$STAGED" | grep -E '(^|/)_quarantine/' || true)
+if [ -n "$QUAR_HITS" ]; then
+  fail "B2: _quarantine/ paths staged — gitignored by Session 153 policy"
+  echo "$QUAR_HITS" | sed 's/^/   /'
+fi
+
+# B3 — NEXT_SESSION.md size sanity (between 1KB and 500KB if staged)
+if echo "$STAGED" | grep -qx 'NEXT_SESSION.md'; then
+  SIZE=$(wc -c < NEXT_SESSION.md)
+  if [ "$SIZE" -lt 1024 ] || [ "$SIZE" -gt 512000 ]; then
+    fail "B3: NEXT_SESSION.md size out of range ($SIZE bytes; expected 1KB-500KB)"
+  else
+    ok  "B3: NEXT_SESSION.md size $SIZE bytes (sane)"
+  fi
+fi
+
+# B4 — secret-shaped patterns in staged diff
+SECRETS=$(git diff --cached -U0 | grep -E '^\+' | grep -iE \
+  '(password\s*=\s*["'\''][^"'\'']{4,}|api[_-]?key\s*=\s*["'\''][^"'\'']{8,}|BEGIN (RSA |EC |OPENSSH |)PRIVATE KEY|aws_secret_access_key|-----BEGIN CERTIFICATE-----)' \
+  || true)
+if [ -n "$SECRETS" ]; then
+  fail "B4: secret-shaped lines added to staging"
+  echo "$SECRETS" | head -5 | sed 's/^/   /'
+fi
+
+# G2 — Sacred SHA check (ja.js, zh.js)
+JA_EXPECT=$(node -e "console.log(require('./$BASELINE').sacred_sha['ja.js'])")
+ZH_EXPECT=$(node -e "console.log(require('./$BASELINE').sacred_sha['zh.js'])")
+JA_ACTUAL=$(sha256sum frontend/src/i18n/locales/ja.js | awk '{print $1}')
+ZH_ACTUAL=$(sha256sum frontend/src/i18n/locales/zh.js | awk '{print $1}')
+if [ "$JA_ACTUAL" != "$JA_EXPECT" ]; then
+  fail "G2: ja.js SHA drift — expected ${JA_EXPECT:0:16}… got ${JA_ACTUAL:0:16}…"
+  echo "   intentional change? update .githooks/baseline.json then --no-verify"
+fi
+if [ "$ZH_ACTUAL" != "$ZH_EXPECT" ]; then
+  fail "G2: zh.js SHA drift — expected ${ZH_EXPECT:0:16}… got ${ZH_ACTUAL:0:16}…"
+  echo "   intentional change? update .githooks/baseline.json then --no-verify"
+fi
+[ "$JA_ACTUAL" = "$JA_EXPECT" ] && [ "$ZH_ACTUAL" = "$ZH_EXPECT" ] && ok "G2: sacred SHA match (ja, zh)"
+
+# G5 — ko.js leaf count tolerance
+if echo "$STAGED" | grep -qE 'frontend/src/i18n/locales/ko\.js'; then
+  EXPECT=$(node -e "console.log(require('./$BASELINE').ko_leaf_count)")
+  TOL_PCT=$(node -e "console.log(require('./$BASELINE').leaf_tolerance_pct)")
+  ACTUAL=$(node -e "
+    const fs=require('fs');const {parse}=require('acorn');
+    const src=fs.readFileSync('frontend/src/i18n/locales/ko.js','utf8');
+    const ast=parse(src,{ecmaVersion:'latest',sourceType:'module'});
+    function obj(n){for(const b of n.body)if(b.type==='ExportDefaultDeclaration')return b.declaration;return null}
+    function L(o){if(!o||o.type!=='ObjectExpression')return 0;let n=0;for(const p of o.properties){if(p.type!=='Property')continue;const v=p.value;if(v&&v.type==='ObjectExpression')n+=L(v);else n+=1}return n}
+    console.log(L(obj(ast)));
+  ")
+  DELTA=$(( ACTUAL > EXPECT ? ACTUAL - EXPECT : EXPECT - ACTUAL ))
+  MAX=$(( EXPECT * TOL_PCT / 100 ))
+  if [ "$DELTA" -gt "$MAX" ]; then
+    fail "G5: ko.js leaf count drift — expected $EXPECT actual $ACTUAL delta $DELTA > tol $MAX"
+    echo "   intentional bulk change? update .githooks/baseline.json then --no-verify"
+  else
+    ok "G5: ko.js leaves $ACTUAL (Δ$DELTA ≤ $MAX)"
+  fi
+fi
+
+if [ "$FAIL" -ne 0 ]; then
+  echo ""
+  echo "Pre-commit blocked. Resolve issues or bypass with: git commit --no-verify (N-145-G)"
+  exit 1
+fi
+ok "pre-commit gates pass"
+exit 0
