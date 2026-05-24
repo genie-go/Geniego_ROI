@@ -3068,7 +3068,7 @@ export default {
 
     "tabProcessing": "처리중",
 
-    "tabShipped": "배송中",
+    "tabShipped": "배송중",
 
     "tabDelivered": "배송완료",
 
@@ -3088,7 +3088,7 @@ export default {
 
     "statusPending": "대기중",
 
-    "statusShipped": "배송中",
+    "statusShipped": "배송중",
 
     "statusCancelled": "취소",
 
