@@ -277,3 +277,6 @@ t-cmd-B-perfhub.md
 t-cmd-C-jacjk.md
 t-cmd-D-marketing.md
 tsession148_c1_extract_latin_long.bat
+
+# Session 154 — claude_agent/ infrastructure protection (block per-session output dumps)
+claude_agent/session*.py
