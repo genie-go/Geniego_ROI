@@ -11,7 +11,7 @@ const VALID_LOCALES = new Set([
   'ko', 'en', 'ja', 'zh', 'zh-TW', 'es', 'fr', 'de',
   'pt', 'ru', 'ar', 'hi', 'id', 'th', 'vi',
 ]);
-const VALID_MODES = new Set(['collision']);
+const VALID_MODES = new Set(['collision', 'mojibake']);
 
 function parseArgs(argv) {
   const args = { locale: null, mode: null, csvPath: null, jsonPath: null, quiet: false };
@@ -297,6 +297,9 @@ function emitSummary(locale, totals, exitCode, quiet, collisions) {
 
 function main() {
   const args = parseArgs(process.argv);
+  if (args.mode === 'mojibake') {
+    return runMojibake(args);
+  }
   const { src, file } = loadLocale(args.locale);
   const ast = parseAST(src, file);
   const root = extractRoot(ast, file);
@@ -323,6 +326,201 @@ function main() {
   if (args.csvPath) emitCSV(args.locale, groups, args.csvPath);
   if (args.jsonPath) emitJSON(args.locale, file, groups, totals, args.jsonPath);
   emitSummary(args.locale, totals, exitCode, args.quiet, groups);
+  process.exit(exitCode);
+}
+
+// ─── mojibake mode (Session 157 Step E-1) ────────────────────────────
+
+const MOJIBAKE_MAP_PATH = path.join('tools', 'mojibake_map.json');
+
+function loadMojibakeMap() {
+  if (!fs.existsSync(MOJIBAKE_MAP_PATH)) {
+    console.error(`[triage:mojibake] map file not found: ${MOJIBAKE_MAP_PATH}`);
+    process.exit(2);
+  }
+  let raw;
+  try {
+    raw = JSON.parse(fs.readFileSync(MOJIBAKE_MAP_PATH, 'utf8'));
+  } catch (e) {
+    console.error(`[triage:mojibake] map JSON parse failed: ${e.message}`);
+    process.exit(2);
+  }
+  if (!Array.isArray(raw.patterns) || raw.patterns.length === 0) {
+    console.error(`[triage:mojibake] map has no patterns`);
+    process.exit(2);
+  }
+  return raw.patterns.map((p) => ({
+    id: p.id,
+    broken_raw: p.broken,
+    broken_nfkc: String(p.broken).normalize('NFKC'),
+    fixed_vi: p.fixed_vi,
+    requires_context_match: !!p.requires_context_match,
+  }));
+}
+
+function walkLeavesOnly(node, pathParts, out) {
+  for (const prop of node.properties) {
+    if (prop.type !== 'Property') continue;
+    const name = keyName(prop);
+    if (name === null) continue;
+    if (prop.value.type === 'ObjectExpression') {
+      walkLeavesOnly(prop.value, [...pathParts, name], out);
+    } else if (prop.value.type === 'Literal' && typeof prop.value.value === 'string') {
+      out.push({
+        path: [...pathParts, name].join('.'),
+        line: prop.loc.start.line,
+        value: prop.value.value,
+      });
+    }
+  }
+}
+
+function stripC1(s) {
+  return s.replace(/[-]/g, '');
+}
+
+function normalizeForMatch(s) {
+  return stripC1(s.normalize('NFKC'));
+}
+
+function countOccurrences(haystack, needle) {
+  if (!needle) return 0;
+  let count = 0;
+  let i = 0;
+  while (true) {
+    const idx = haystack.indexOf(needle, i);
+    if (idx === -1) break;
+    count++;
+    i = idx + needle.length;
+  }
+  return count;
+}
+
+function detectMojibake(leaves, patterns) {
+  const detections = [];
+  for (const leaf of leaves) {
+    const cleaned = normalizeForMatch(leaf.value);
+    const hits = [];
+    for (const pat of patterns) {
+      const occ = countOccurrences(cleaned, pat.broken_nfkc);
+      if (occ > 0) hits.push({ pattern: pat, occ });
+    }
+    if (hits.length === 0) continue;
+    const distinctMatchCount = hits.length;
+    const maxRun = hits.reduce((m, h) => Math.max(m, h.occ), 0);
+    let status;
+    if (distinctMatchCount >= 2) {
+      status = 'multi_pattern';
+    } else {
+      const only = hits[0];
+      status = only.pattern.requires_context_match ? 'context_required' : 'detected';
+    }
+    detections.push({
+      path: leaf.path,
+      line: leaf.line,
+      value: leaf.value,
+      hits,
+      match_count: distinctMatchCount,
+      run_equality_count: maxRun,
+      status,
+    });
+  }
+  return detections;
+}
+
+function emitMojibakeCSV(locale, detections, csvPath) {
+  const header = ['locale', 'path', 'line', 'value_preview', 'pattern_id', 'broken', 'fixed_vi', 'match_count', 'run_equality_count', 'status'];
+  const rows = [header.map(csvField).join(',')];
+  for (const d of detections) {
+    const ids = d.hits.map((h) => h.pattern.id).join('+');
+    const brokens = d.hits.map((h) => h.pattern.broken_raw).join('+');
+    const fixed = d.hits.map((h) => h.pattern.fixed_vi).join('+');
+    const preview = d.value.length > 200 ? d.value.slice(0, 200) + '…' : d.value;
+    rows.push([
+      locale,
+      d.path,
+      d.line,
+      preview,
+      ids,
+      brokens,
+      fixed,
+      d.match_count,
+      d.run_equality_count,
+      d.status,
+    ].map(csvField).join(','));
+  }
+  fs.writeFileSync(csvPath, rows.join('\r\n') + '\r\n', 'utf8');
+}
+
+function emitMojibakeJSON(locale, file, detections, totals, jsonPath) {
+  const out = {
+    locale,
+    mode: 'mojibake',
+    file,
+    total_detections: detections.length,
+    by_pattern: totals.byPattern,
+    by_status: totals.byStatus,
+    detections: detections.map((d) => ({
+      path: d.path,
+      line: d.line,
+      value: d.value,
+      patterns: d.hits.map((h) => ({ id: h.pattern.id, broken: h.pattern.broken_raw, fixed_vi: h.pattern.fixed_vi, occurrences: h.occ })),
+      match_count: d.match_count,
+      run_equality_count: d.run_equality_count,
+      status: d.status,
+    })),
+    generated_at: new Date().toISOString(),
+  };
+  fs.writeFileSync(jsonPath, JSON.stringify(out, null, 2) + '\n', 'utf8');
+}
+
+function emitMojibakeSummary(locale, detections, totals, exitCode, quiet) {
+  console.log(`[triage:mojibake] locale=${locale}`);
+  console.log(`  total detections: ${detections.length}`);
+  console.log(`  by status:`);
+  console.log(`    detected: ${totals.byStatus.detected}`);
+  console.log(`    context_required: ${totals.byStatus.context_required}`);
+  console.log(`    multi_pattern: ${totals.byStatus.multi_pattern}`);
+  console.log(`  by pattern:`);
+  for (const [id, n] of Object.entries(totals.byPattern)) {
+    console.log(`    ${id}: ${n}`);
+  }
+  if (!quiet && detections.length > 0) {
+    const sample = detections.slice(0, 10);
+    console.log(`  sample (first ${sample.length}):`);
+    for (const d of sample) {
+      const ids = d.hits.map((h) => h.pattern.id).join('+');
+      const preview = d.value.length > 60 ? d.value.slice(0, 60) + '…' : d.value;
+      console.log(`    L${d.line} [${d.status}] ${ids}  ${d.path}  ${JSON.stringify(preview)}`);
+    }
+    if (detections.length > sample.length) {
+      console.log(`    … and ${detections.length - sample.length} more`);
+    }
+  }
+  console.log(`exit code: ${exitCode}`);
+}
+
+function runMojibake(args) {
+  const { src, file } = loadLocale(args.locale);
+  const ast = parseAST(src, file);
+  const root = extractRoot(ast, file);
+  const patterns = loadMojibakeMap();
+  const leaves = [];
+  walkLeavesOnly(root, [], leaves);
+  const detections = detectMojibake(leaves, patterns);
+  const totals = {
+    byStatus: { detected: 0, context_required: 0, multi_pattern: 0 },
+    byPattern: {},
+  };
+  for (const p of patterns) totals.byPattern[p.id] = 0;
+  for (const d of detections) {
+    if (d.status in totals.byStatus) totals.byStatus[d.status]++;
+    for (const h of d.hits) totals.byPattern[h.pattern.id]++;
+  }
+  const exitCode = detections.length === 0 ? 0 : 1;
+  if (args.csvPath) emitMojibakeCSV(args.locale, detections, args.csvPath);
+  if (args.jsonPath) emitMojibakeJSON(args.locale, file, detections, totals, args.jsonPath);
+  emitMojibakeSummary(args.locale, detections, totals, exitCode, args.quiet);
   process.exit(exitCode);
 }
 

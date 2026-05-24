@@ -1,0 +1,70 @@
+{
+  "version": 1,
+  "comment": "Mojibake patterns extracted from Session 155 (f68117d). Korean source strings that became unreadable in vi.js due to encoding mishandling.",
+  "patterns": [
+    {
+      "id": "nguoi",
+      "broken": "紐?",
+      "fixed_vi": "người",
+      "context": "Korean 사람 (person) becomes 紐? in vi pipeline",
+      "first_seen": "f68117d"
+    },
+    {
+      "id": "cai",
+      "broken": "媛?",
+      "fixed_vi": "cái",
+      "context": "Korean 개 (counter) → 媛?",
+      "first_seen": "f68117d"
+    },
+    {
+      "id": "khach",
+      "broken": "諛⑸Ц????",
+      "fixed_vi": "khách",
+      "context": "Korean 방문객 → 諛⑸Ц????",
+      "first_seen": "f68117d"
+    },
+    {
+      "id": "va",
+      "broken": "諛?",
+      "fixed_vi": "và",
+      "context": "Korean 및 (and) → 諛?",
+      "first_seen": "f68117d"
+    },
+    {
+      "id": "thue_gtgt",
+      "broken": "遺媛??",
+      "fixed_vi": "thuế GTGT",
+      "context": "Korean 부가세 → 遺媛??",
+      "first_seen": "f68117d"
+    },
+    {
+      "id": "ngay",
+      "broken": "??",
+      "fixed_vi": "ngày",
+      "context": "Korean 일 (day) → ?? — high false-positive risk, NFKC+context match required",
+      "first_seen": "f68117d",
+      "requires_context_match": true
+    },
+    {
+      "id": "khu_vuc",
+      "broken": "吏??",
+      "fixed_vi": "khu vực",
+      "context": "Korean 지역 → 吏??",
+      "first_seen": "f68117d"
+    },
+    {
+      "id": "hang_tuan",
+      "broken": "留ㅼ＜",
+      "fixed_vi": "hàng tuần",
+      "context": "Korean 매주 → 留ㅼ＜",
+      "first_seen": "f68117d"
+    },
+    {
+      "id": "gia",
+      "broken": "媛寃?",
+      "fixed_vi": "giá",
+      "context": "Korean 가격 → 媛寃?",
+      "first_seen": "f68117d"
+    }
+  ]
+}
