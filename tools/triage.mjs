@@ -15,7 +15,7 @@ const VALID_LOCALES = new Set([
 const VALID_MODES = new Set(['collision', 'mojibake', 'wrong-language', 'dead-subtree', 'all']);
 
 function parseArgs(argv) {
-  const args = { locale: null, mode: null, csvPath: null, jsonPath: null, quiet: false, root: null, srcRoot: 'frontend/src' };
+  const args = { locale: null, mode: null, csvPath: null, jsonPath: null, quiet: false, root: null, srcRoot: 'frontend/src', src: null };
   for (let i = 2; i < argv.length; i++) {
     const a = argv[i];
     switch (a) {
@@ -39,6 +39,9 @@ function parseArgs(argv) {
         break;
       case '--src-root':
         args.srcRoot = argv[++i];
+        break;
+      case '--src':
+        args.src = argv[++i];
         break;
       case '--out-dir':
         args.outDir = argv[++i];
@@ -73,11 +76,12 @@ function parseArgs(argv) {
 }
 
 function printUsage() {
-  console.error('Usage: node tools/triage.mjs --locale <name> --mode collision [--csv <path>] [--json <path>] [--quiet]');
+  console.error('Usage: node tools/triage.mjs --locale <name> --mode collision [--csv <path>] [--json <path>] [--src <path>] [--quiet]');
+  console.error('  --src <path>  alternate locale source file (default: frontend/src/i18n/locales/<locale>.js)');
 }
 
-function loadLocale(locale) {
-  const file = path.join('frontend', 'src', 'i18n', 'locales', `${locale}.js`);
+function loadLocale(locale, srcOverride = null) {
+  const file = srcOverride ?? path.join('frontend', 'src', 'i18n', 'locales', `${locale}.js`);
   if (!fs.existsSync(file)) {
     console.error(`[triage:collision] locale file not found: ${file}`);
     process.exit(2);
@@ -319,7 +323,7 @@ function main() {
   if (args.mode === 'all') {
     return runAll(args);
   }
-  const { src, file } = loadLocale(args.locale);
+  const { src, file } = loadLocale(args.locale, args.src);
   const ast = parseAST(src, file);
   const root = extractRoot(ast, file);
   const records = [];
@@ -520,7 +524,7 @@ function emitMojibakeSummary(locale, detections, totals, exitCode, quiet) {
 }
 
 function runMojibake(args) {
-  const { src, file } = loadLocale(args.locale);
+  const { src, file } = loadLocale(args.locale, args.src);
   const ast = parseAST(src, file);
   const root = extractRoot(ast, file);
   const patterns = loadMojibakeMap();
@@ -702,7 +706,7 @@ function emitWrongLanguageSummary(locale, detections, totals, exitCode, quiet) {
 }
 
 function runWrongLanguage(args) {
-  const { src, file } = loadLocale(args.locale);
+  const { src, file } = loadLocale(args.locale, args.src);
   const ast = parseAST(src, file);
   const root = extractRoot(ast, file);
   const profile = loadLocaleScriptProfile(args.locale);
@@ -949,7 +953,7 @@ function runDeadSubtree(args) {
     console.error('[triage:dead-subtree] missing required --root <dotted.path>');
     process.exit(2);
   }
-  const { src, file } = loadLocale(args.locale);
+  const { src, file } = loadLocale(args.locale, args.src);
   const ast = parseAST(src, file);
   const root = extractRoot(ast, file);
   const subtree = findSubtree(root, args.root);
