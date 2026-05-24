@@ -5,16 +5,17 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
+import { execSync } from 'node:child_process';
 import * as acorn from 'acorn';
 
 const VALID_LOCALES = new Set([
   'ko', 'en', 'ja', 'zh', 'zh-TW', 'es', 'fr', 'de',
   'pt', 'ru', 'ar', 'hi', 'id', 'th', 'vi',
 ]);
-const VALID_MODES = new Set(['collision', 'mojibake', 'wrong-language']);
+const VALID_MODES = new Set(['collision', 'mojibake', 'wrong-language', 'dead-subtree']);
 
 function parseArgs(argv) {
-  const args = { locale: null, mode: null, csvPath: null, jsonPath: null, quiet: false };
+  const args = { locale: null, mode: null, csvPath: null, jsonPath: null, quiet: false, root: null, srcRoot: 'frontend/src' };
   for (let i = 2; i < argv.length; i++) {
     const a = argv[i];
     switch (a) {
@@ -32,6 +33,12 @@ function parseArgs(argv) {
         break;
       case '--quiet':
         args.quiet = true;
+        break;
+      case '--root':
+        args.root = argv[++i];
+        break;
+      case '--src-root':
+        args.srcRoot = argv[++i];
         break;
       case '-h':
       case '--help':
@@ -302,6 +309,9 @@ function main() {
   }
   if (args.mode === 'wrong-language') {
     return runWrongLanguage(args);
+  }
+  if (args.mode === 'dead-subtree') {
+    return runDeadSubtree(args);
   }
   const { src, file } = loadLocale(args.locale);
   const ast = parseAST(src, file);
@@ -705,6 +715,298 @@ function runWrongLanguage(args) {
   if (args.csvPath) emitWrongLanguageCSV(args.locale, detections, args.csvPath);
   if (args.jsonPath) emitWrongLanguageJSON(args.locale, file, profile, detections, totals, args.jsonPath);
   emitWrongLanguageSummary(args.locale, detections, totals, exitCode, args.quiet);
+  process.exit(exitCode);
+}
+
+// ─── dead-subtree mode (Session 157 Step E-3) ────────────────────────
+
+const ALL_LOCALES = ['ko', 'en', 'ja', 'zh', 'zh-TW', 'es', 'fr', 'de', 'pt', 'ru', 'ar', 'hi', 'id', 'th', 'vi'];
+const I18N_RESOLVER_FILE = path.join('frontend', 'src', 'i18n', 'index.js');
+const EXPECTED_RESOLVER_PATTERN = /deepGet\s*\([^)]*,\s*key\s*\)/;
+const SOURCE_EXTS = ['.js', '.jsx', '.ts', '.tsx', '.vue'];
+const SKIP_DIRS = new Set(['node_modules', 'dist', 'build', '.git', '__pycache__']);
+
+let _rgChecked = false;
+let _rgAvailable = false;
+function rgAvailable() {
+  if (_rgChecked) return _rgAvailable;
+  _rgChecked = true;
+  try {
+    execSync('rg --version', { stdio: 'ignore' });
+    _rgAvailable = true;
+  } catch (e) {
+    _rgAvailable = false;
+  }
+  return _rgAvailable;
+}
+
+function findSubtree(root, dottedPath) {
+  const parts = dottedPath.split('.');
+  let cur = root;
+  for (const part of parts) {
+    if (!cur || cur.type !== 'ObjectExpression') return null;
+    let next = null;
+    for (const prop of cur.properties) {
+      if (prop.type !== 'Property') continue;
+      const name = keyName(prop);
+      if (name === part) {
+        next = prop.value;
+        break;
+      }
+    }
+    if (next === null) return null;
+    cur = next;
+  }
+  return cur;
+}
+
+function* walkSourceFiles(dir) {
+  let entries;
+  try {
+    entries = fs.readdirSync(dir, { withFileTypes: true });
+  } catch (e) {
+    return;
+  }
+  for (const ent of entries) {
+    if (ent.isDirectory()) {
+      if (SKIP_DIRS.has(ent.name)) continue;
+      yield* walkSourceFiles(path.join(dir, ent.name));
+    } else if (ent.isFile()) {
+      const ext = path.extname(ent.name);
+      if (SOURCE_EXTS.includes(ext)) {
+        yield path.join(dir, ent.name);
+      }
+    }
+  }
+}
+
+function rgSearch(pattern, srcRoot, isLiteral) {
+  const occurrences = [];
+  if (rgAvailable()) {
+    const args = [
+      '--no-messages',
+      '--line-number',
+      '--with-filename',
+      isLiteral ? '-F' : '-e',
+      pattern,
+      ...SOURCE_EXTS.map((e) => `--glob=*${e}`),
+      srcRoot,
+    ];
+    let stdout;
+    try {
+      stdout = execSync(`rg ${args.map((a) => `"${a.replace(/"/g, '\\"')}"`).join(' ')}`, {
+        encoding: 'utf8',
+        maxBuffer: 64 * 1024 * 1024,
+      });
+    } catch (e) {
+      // rg exits 1 when no matches — that's normal
+      if (e.status === 1 && (!e.stdout || e.stdout.toString() === '')) {
+        return { hits: 0, occurrences: [] };
+      }
+      // any other error: fall back to JS
+      stdout = '';
+    }
+    const lines = stdout.split('\n').filter(Boolean);
+    for (const ln of lines) {
+      const m = ln.match(/^(.+?):(\d+):(.*)$/);
+      if (!m) continue;
+      occurrences.push({ file: m[1].replace(/\\/g, '/'), line: parseInt(m[2], 10), preview: m[3].slice(0, 120) });
+    }
+    return { hits: occurrences.length, occurrences };
+  }
+  // fs fallback
+  const re = isLiteral ? null : new RegExp(pattern);
+  for (const f of walkSourceFiles(srcRoot)) {
+    let content;
+    try {
+      content = fs.readFileSync(f, 'utf8');
+    } catch (e) {
+      continue;
+    }
+    const lines = content.split('\n');
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const match = isLiteral ? line.includes(pattern) : re.test(line);
+      if (match) {
+        occurrences.push({ file: f.replace(/\\/g, '/'), line: i + 1, preview: line.slice(0, 120) });
+      }
+    }
+  }
+  return { hits: occurrences.length, occurrences };
+}
+
+function escapeRegex(s) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function checkResolverInvariant() {
+  const file = I18N_RESOLVER_FILE;
+  if (!fs.existsSync(file)) {
+    return { valid: false, file, reason: 'resolver file not found' };
+  }
+  const src = fs.readFileSync(file, 'utf8');
+  const m = src.match(EXPECTED_RESOLVER_PATTERN);
+  if (!m) {
+    return { valid: false, file, reason: 'expected deepGet(...,key) pattern not found' };
+  }
+  return { valid: true, file, snippet: m[0] };
+}
+
+function crossLocaleAstScan(rootPath) {
+  const present = [];
+  const absent = [];
+  for (const loc of ALL_LOCALES) {
+    const fp = path.join('frontend', 'src', 'i18n', 'locales', `${loc}.js`);
+    if (!fs.existsSync(fp)) {
+      absent.push(loc);
+      continue;
+    }
+    let ast;
+    try {
+      ast = acorn.parse(fs.readFileSync(fp, 'utf8'), { ecmaVersion: 'latest', sourceType: 'module' });
+    } catch (e) {
+      absent.push(loc);
+      continue;
+    }
+    const ed = ast.body.find((n) => n.type === 'ExportDefaultDeclaration');
+    if (!ed || ed.declaration.type !== 'ObjectExpression') {
+      absent.push(loc);
+      continue;
+    }
+    const sub = findSubtree(ed.declaration, rootPath);
+    if (sub !== null) present.push(loc);
+    else absent.push(loc);
+  }
+  return {
+    total_locales: ALL_LOCALES.length,
+    present_in: present,
+    absent_in: absent,
+    symmetric: absent.length === 0,
+  };
+}
+
+function emitDeadSubtreeCSV(locale, rootPath, layers, csvPath) {
+  const header = ['locale', 'root_path', 'layer', 'pattern', 'hit_count', 'file', 'line_number', 'context_preview'];
+  const rows = [header.map(csvField).join(',')];
+  const layerSpecs = [
+    { id: 'L1_literal', pattern: rootPath, data: layers.L1_literal },
+    { id: 'L2_template', pattern: layers.L2_template.pattern, data: layers.L2_template },
+    { id: 'L2_bracket_parent', pattern: layers.L2_bracket_parent.pattern, data: layers.L2_bracket_parent },
+    { id: 'L2_bracket_self', pattern: layers.L2_bracket_self.pattern, data: layers.L2_bracket_self },
+  ];
+  for (const L of layerSpecs) {
+    if (L.data.hits === 0) {
+      rows.push([locale, rootPath, L.id, L.pattern, 0, '', '', ''].map(csvField).join(','));
+    } else {
+      for (const o of L.data.occurrences) {
+        rows.push([locale, rootPath, L.id, L.pattern, L.data.hits, o.file, o.line, o.preview].map(csvField).join(','));
+      }
+    }
+  }
+  rows.push([locale, rootPath, 'L3_semantic', 'resolver_invariant', layers.L3_semantic.valid ? 'ok' : 'invalid', layers.L3_semantic.file, '', layers.L3_semantic.snippet || layers.L3_semantic.reason || ''].map(csvField).join(','));
+  rows.push([locale, rootPath, 'L4_xlocale_presence', 'present_in', layers.L4_xlocale_presence.present_in.length, '', '', layers.L4_xlocale_presence.present_in.join(',')].map(csvField).join(','));
+  fs.writeFileSync(csvPath, rows.join('\r\n') + '\r\n', 'utf8');
+}
+
+function emitDeadSubtreeJSON(result, jsonPath) {
+  fs.writeFileSync(jsonPath, JSON.stringify(result, null, 2) + '\n', 'utf8');
+}
+
+function emitDeadSubtreeSummary(result, quiet) {
+  console.log(`[triage:dead-subtree] locale=${result.locale} root=${result.root_path}`);
+  console.log(`  subtree_leaf_count: ${result.subtree_leaf_count}`);
+  console.log(`  Layer 1 literal:        ${result.layers.L1_literal.hits} hits`);
+  console.log(`  Layer 2 template:       ${result.layers.L2_template.hits} hits  (${result.layers.L2_template.pattern})`);
+  console.log(`  Layer 2 bracket-parent: ${result.layers.L2_bracket_parent.hits} hits  (${result.layers.L2_bracket_parent.pattern})`);
+  console.log(`  Layer 2 bracket-self:   ${result.layers.L2_bracket_self.hits} hits  (${result.layers.L2_bracket_self.pattern})`);
+  console.log(`  Layer 3 resolver:       ${result.layers.L3_semantic.valid ? 'valid' : 'INVALID'} (${result.layers.L3_semantic.file})`);
+  const x = result.layers.L4_xlocale_presence;
+  console.log(`  Layer 4 xlocale:        ${x.present_in.length}/${x.total_locales} present  ${x.symmetric ? '(symmetric)' : '(asymmetric: absent in ' + x.absent_in.join(',') + ')'}`);
+  console.log(`  total_consumers: ${result.total_consumers}`);
+  console.log(`  status: ${result.status}  verdict: ${result.verdict}`);
+  if (!quiet && result.total_consumers > 0) {
+    console.log(`  sample consumer hits (first 5):`);
+    const all = [
+      ...result.layers.L1_literal.occurrences.map((o) => ({ ...o, layer: 'L1' })),
+      ...result.layers.L2_template.occurrences.map((o) => ({ ...o, layer: 'L2t' })),
+      ...result.layers.L2_bracket_parent.occurrences.map((o) => ({ ...o, layer: 'L2bp' })),
+      ...result.layers.L2_bracket_self.occurrences.map((o) => ({ ...o, layer: 'L2bs' })),
+    ].slice(0, 5);
+    for (const o of all) {
+      console.log(`    [${o.layer}] ${o.file}:${o.line}  ${JSON.stringify(o.preview)}`);
+    }
+  }
+}
+
+function runDeadSubtree(args) {
+  if (!args.root) {
+    console.error('[triage:dead-subtree] missing required --root <dotted.path>');
+    process.exit(2);
+  }
+  const { src, file } = loadLocale(args.locale);
+  const ast = parseAST(src, file);
+  const root = extractRoot(ast, file);
+  const subtree = findSubtree(root, args.root);
+  if (subtree === null) {
+    console.error(`[triage:dead-subtree] root path "${args.root}" not found in ${file}`);
+    process.exit(2);
+  }
+  const subtreeLeafCount = countLeaves(subtree);
+
+  const lastSeg = args.root.split('.').pop();
+  const parts = args.root.split('.');
+  const parentSeg = parts.length >= 2 ? parts[parts.length - 2] : null;
+
+  const srcRoot = args.srcRoot;
+
+  const L1 = rgSearch(args.root, srcRoot, true);
+  const L2tpl = rgSearch(`t\\(\`\\$\\{[^}]+\\}${escapeRegex(lastSeg)}\``, srcRoot, false);
+  L2tpl.pattern = `t(\`\${...}${lastSeg}\`)`;
+  const L2bp = parentSeg
+    ? (() => { const r = rgSearch(`\\b${escapeRegex(parentSeg)}\\s*\\[`, srcRoot, false); r.pattern = `${parentSeg}[`; return r; })()
+    : { hits: 0, occurrences: [], pattern: '(no parent)' };
+  const L2bs = (() => { const r = rgSearch(`\\b${escapeRegex(lastSeg)}\\s*\\[`, srcRoot, false); r.pattern = `${lastSeg}[`; return r; })();
+
+  const L3 = checkResolverInvariant();
+  const L4 = crossLocaleAstScan(args.root);
+
+  const total_consumers = L1.hits + L2tpl.hits + L2bp.hits + L2bs.hits;
+  let status, verdict;
+  if (total_consumers === 0 && L3.valid) {
+    status = 'dead'; verdict = 'safe_to_delete';
+  } else if (total_consumers === 0 && !L3.valid) {
+    status = 'dead_uncertain'; verdict = 'review_resolver';
+  } else if (L1.hits === 0 && (L2tpl.hits + L2bp.hits + L2bs.hits) > 0) {
+    status = 'live_dynamic_only'; verdict = 'do_not_delete';
+  } else {
+    status = 'live'; verdict = 'do_not_delete';
+  }
+
+  const result = {
+    locale: args.locale,
+    mode: 'dead-subtree',
+    root_path: args.root,
+    src_root: srcRoot,
+    subtree_leaf_count: subtreeLeafCount,
+    layers: {
+      L1_literal: L1,
+      L2_template: L2tpl,
+      L2_bracket_parent: L2bp,
+      L2_bracket_self: L2bs,
+      L3_semantic: L3,
+      L4_xlocale_presence: L4,
+    },
+    total_consumers,
+    status,
+    verdict,
+    generated_at: new Date().toISOString(),
+  };
+
+  if (args.csvPath) emitDeadSubtreeCSV(args.locale, args.root, result.layers, args.csvPath);
+  if (args.jsonPath) emitDeadSubtreeJSON(result, args.jsonPath);
+  emitDeadSubtreeSummary(result, args.quiet);
+
+  const exitCode = total_consumers === 0 ? 1 : 0;
   process.exit(exitCode);
 }
 
