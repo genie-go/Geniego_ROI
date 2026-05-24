@@ -11,7 +11,7 @@ const VALID_LOCALES = new Set([
   'ko', 'en', 'ja', 'zh', 'zh-TW', 'es', 'fr', 'de',
   'pt', 'ru', 'ar', 'hi', 'id', 'th', 'vi',
 ]);
-const VALID_MODES = new Set(['collision', 'mojibake']);
+const VALID_MODES = new Set(['collision', 'mojibake', 'wrong-language']);
 
 function parseArgs(argv) {
   const args = { locale: null, mode: null, csvPath: null, jsonPath: null, quiet: false };
@@ -300,6 +300,9 @@ function main() {
   if (args.mode === 'mojibake') {
     return runMojibake(args);
   }
+  if (args.mode === 'wrong-language') {
+    return runWrongLanguage(args);
+  }
   const { src, file } = loadLocale(args.locale);
   const ast = parseAST(src, file);
   const root = extractRoot(ast, file);
@@ -521,6 +524,187 @@ function runMojibake(args) {
   if (args.csvPath) emitMojibakeCSV(args.locale, detections, args.csvPath);
   if (args.jsonPath) emitMojibakeJSON(args.locale, file, detections, totals, args.jsonPath);
   emitMojibakeSummary(args.locale, detections, totals, exitCode, args.quiet);
+  process.exit(exitCode);
+}
+
+// ─── wrong-language mode (Session 157 Step E-2) ──────────────────────
+
+const LOCALE_SCRIPT_PROFILE_PATH = path.join('tools', 'locale_script_profile.json');
+
+const SCRIPT_RANGES = {
+  Hangul:     /[가-힯ᄀ-ᇿ㄰-㆏ꥠ-꥿ힰ-퟿]/,
+  Hiragana:   /[぀-ゟ]/,
+  Katakana:   /[゠-ヿㇰ-ㇿ]/,
+  Han:        /[一-鿿㐀-䶿]/,
+  Latin:      /[A-Za-zÀ-ɏḀ-ỿ]/,
+  Cyrillic:   /[Ѐ-ӿԀ-ԯ]/,
+  Arabic:     /[؀-ۿݐ-ݿࢠ-ࣿﭐ-﷿ﹰ-﻿]/,
+  Devanagari: /[ऀ-ॿ]/,
+  Thai:       /[฀-๿]/,
+  Bopomofo:   /[㄀-ㄯㆠ-ㆿ]/,
+};
+const SCRIPT_NAMES = Object.keys(SCRIPT_RANGES);
+
+function loadLocaleScriptProfile(locale) {
+  if (!fs.existsSync(LOCALE_SCRIPT_PROFILE_PATH)) {
+    console.error(`[triage:wrong-language] profile file not found: ${LOCALE_SCRIPT_PROFILE_PATH}`);
+    process.exit(2);
+  }
+  let raw;
+  try {
+    raw = JSON.parse(fs.readFileSync(LOCALE_SCRIPT_PROFILE_PATH, 'utf8'));
+  } catch (e) {
+    console.error(`[triage:wrong-language] profile JSON parse failed: ${e.message}`);
+    process.exit(2);
+  }
+  const p = raw.profiles && raw.profiles[locale];
+  if (!p) {
+    console.error(`[triage:wrong-language] no profile for locale "${locale}"`);
+    process.exit(2);
+  }
+  return {
+    primary: new Set(p.primary || []),
+    allowed: new Set(p.allowed_supplementary || []),
+    forbidden: new Set(p.forbidden || []),
+  };
+}
+
+function detectScript(ch) {
+  for (const name of SCRIPT_NAMES) {
+    if (SCRIPT_RANGES[name].test(ch)) return name;
+  }
+  return null;
+}
+
+function scriptHistogram(s) {
+  const hist = Object.create(null);
+  let scripted = 0;
+  for (const ch of s) {
+    const sc = detectScript(ch);
+    if (!sc) continue;
+    hist[sc] = (hist[sc] || 0) + 1;
+    scripted++;
+  }
+  return { hist, scripted };
+}
+
+function detectWrongLanguage(leaves, profile) {
+  const detections = [];
+  for (const leaf of leaves) {
+    const { hist, scripted } = scriptHistogram(leaf.value);
+    if (scripted === 0) continue;
+    for (const [scriptName, count] of Object.entries(hist)) {
+      if (profile.primary.has(scriptName)) continue;
+      if (profile.allowed.has(scriptName)) continue;
+      const severity = profile.forbidden.has(scriptName) ? 'forbidden' : 'unknown';
+      const ratio = count / scripted;
+      detections.push({
+        path: leaf.path,
+        line: leaf.line,
+        value: leaf.value,
+        detected_script: scriptName,
+        char_count: count,
+        total_chars: scripted,
+        ratio,
+        severity,
+      });
+    }
+  }
+  return detections;
+}
+
+function emitWrongLanguageCSV(locale, detections, csvPath) {
+  const header = ['locale', 'path', 'line', 'value_preview', 'detected_script', 'char_count', 'total_chars', 'ratio', 'severity'];
+  const rows = [header.map(csvField).join(',')];
+  for (const d of detections) {
+    const preview = d.value.length > 200 ? d.value.slice(0, 200) + '…' : d.value;
+    rows.push([
+      locale,
+      d.path,
+      d.line,
+      preview,
+      d.detected_script,
+      d.char_count,
+      d.total_chars,
+      d.ratio.toFixed(2),
+      d.severity,
+    ].map(csvField).join(','));
+  }
+  fs.writeFileSync(csvPath, rows.join('\r\n') + '\r\n', 'utf8');
+}
+
+function emitWrongLanguageJSON(locale, file, profile, detections, totals, jsonPath) {
+  const out = {
+    locale,
+    mode: 'wrong-language',
+    file,
+    profile: {
+      primary: [...profile.primary],
+      allowed_supplementary: [...profile.allowed],
+      forbidden: [...profile.forbidden],
+    },
+    total_detections: detections.length,
+    by_script: totals.byScript,
+    by_severity: totals.bySeverity,
+    detections: detections.map((d) => ({
+      path: d.path,
+      line: d.line,
+      value: d.value,
+      detected_script: d.detected_script,
+      char_count: d.char_count,
+      total_chars: d.total_chars,
+      ratio: d.ratio,
+      severity: d.severity,
+    })),
+    generated_at: new Date().toISOString(),
+  };
+  fs.writeFileSync(jsonPath, JSON.stringify(out, null, 2) + '\n', 'utf8');
+}
+
+function emitWrongLanguageSummary(locale, detections, totals, exitCode, quiet) {
+  console.log(`[triage:wrong-language] locale=${locale}`);
+  console.log(`  total detections: ${detections.length}`);
+  console.log(`  by severity:`);
+  console.log(`    forbidden: ${totals.bySeverity.forbidden}`);
+  console.log(`    unknown: ${totals.bySeverity.unknown}`);
+  console.log(`  by script:`);
+  for (const [s, n] of Object.entries(totals.byScript)) {
+    console.log(`    ${s}: ${n}`);
+  }
+  if (!quiet && detections.length > 0) {
+    const sample = detections.slice(0, 10);
+    console.log(`  sample (first ${sample.length}):`);
+    for (const d of sample) {
+      const preview = d.value.length > 60 ? d.value.slice(0, 60) + '…' : d.value;
+      console.log(`    L${d.line} [${d.severity}] ${d.detected_script}(${d.char_count}/${d.total_chars}) ${d.path}  ${JSON.stringify(preview)}`);
+    }
+    if (detections.length > sample.length) {
+      console.log(`    … and ${detections.length - sample.length} more`);
+    }
+  }
+  console.log(`exit code: ${exitCode}`);
+}
+
+function runWrongLanguage(args) {
+  const { src, file } = loadLocale(args.locale);
+  const ast = parseAST(src, file);
+  const root = extractRoot(ast, file);
+  const profile = loadLocaleScriptProfile(args.locale);
+  const leaves = [];
+  walkLeavesOnly(root, [], leaves);
+  const detections = detectWrongLanguage(leaves, profile);
+  const totals = {
+    bySeverity: { forbidden: 0, unknown: 0 },
+    byScript: {},
+  };
+  for (const d of detections) {
+    totals.bySeverity[d.severity]++;
+    totals.byScript[d.detected_script] = (totals.byScript[d.detected_script] || 0) + 1;
+  }
+  const exitCode = detections.length === 0 ? 0 : 1;
+  if (args.csvPath) emitWrongLanguageCSV(args.locale, detections, args.csvPath);
+  if (args.jsonPath) emitWrongLanguageJSON(args.locale, file, profile, detections, totals, args.jsonPath);
+  emitWrongLanguageSummary(args.locale, detections, totals, exitCode, args.quiet);
   process.exit(exitCode);
 }
 

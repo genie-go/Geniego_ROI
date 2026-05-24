@@ -1,0 +1,84 @@
+{
+  "version": 1,
+  "comment": "Locale Unicode script profiles. Strings whose dominant script doesn't match the locale profile are flagged.",
+  "profiles": {
+    "ko": {
+      "primary": ["Hangul"],
+      "allowed_supplementary": ["Latin", "Common", "Inherited"],
+      "forbidden": ["Hiragana", "Katakana", "Han"],
+      "comment": "Korean uses Hangul + Latin (loanwords/units). CJK is forbidden in modern ko UI."
+    },
+    "en": {
+      "primary": ["Latin"],
+      "allowed_supplementary": ["Common", "Inherited"],
+      "forbidden": ["Hangul", "Hiragana", "Katakana", "Han", "Arabic", "Devanagari", "Thai"]
+    },
+    "ja": {
+      "primary": ["Hiragana", "Katakana", "Han"],
+      "allowed_supplementary": ["Latin", "Common", "Inherited"],
+      "forbidden": ["Hangul"],
+      "comment": "Japanese uses kana + kanji + Latin. Hangul = Korean leftover."
+    },
+    "zh": {
+      "primary": ["Han"],
+      "allowed_supplementary": ["Latin", "Common", "Inherited"],
+      "forbidden": ["Hangul", "Hiragana", "Katakana"],
+      "comment": "zh-Hans uses Han (simplified) + Latin. Hangul/kana = wrong locale."
+    },
+    "zh-TW": {
+      "primary": ["Han"],
+      "allowed_supplementary": ["Latin", "Common", "Inherited", "Bopomofo"],
+      "forbidden": ["Hangul", "Hiragana", "Katakana"]
+    },
+    "es": {
+      "primary": ["Latin"],
+      "allowed_supplementary": ["Common", "Inherited"],
+      "forbidden": ["Hangul", "Hiragana", "Katakana", "Han", "Arabic", "Devanagari", "Thai", "Cyrillic"]
+    },
+    "fr": {
+      "primary": ["Latin"],
+      "allowed_supplementary": ["Common", "Inherited"],
+      "forbidden": ["Hangul", "Hiragana", "Katakana", "Han", "Arabic", "Devanagari", "Thai", "Cyrillic"]
+    },
+    "de": {
+      "primary": ["Latin"],
+      "allowed_supplementary": ["Common", "Inherited"],
+      "forbidden": ["Hangul", "Hiragana", "Katakana", "Han", "Arabic", "Devanagari", "Thai", "Cyrillic"]
+    },
+    "pt": {
+      "primary": ["Latin"],
+      "allowed_supplementary": ["Common", "Inherited"],
+      "forbidden": ["Hangul", "Hiragana", "Katakana", "Han", "Arabic", "Devanagari", "Thai", "Cyrillic"]
+    },
+    "ru": {
+      "primary": ["Cyrillic"],
+      "allowed_supplementary": ["Latin", "Common", "Inherited"],
+      "forbidden": ["Hangul", "Hiragana", "Katakana", "Han", "Arabic", "Devanagari", "Thai"]
+    },
+    "ar": {
+      "primary": ["Arabic"],
+      "allowed_supplementary": ["Latin", "Common", "Inherited"],
+      "forbidden": ["Hangul", "Hiragana", "Katakana", "Han", "Devanagari", "Thai", "Cyrillic"]
+    },
+    "hi": {
+      "primary": ["Devanagari"],
+      "allowed_supplementary": ["Latin", "Common", "Inherited"],
+      "forbidden": ["Hangul", "Hiragana", "Katakana", "Han", "Arabic", "Thai", "Cyrillic"]
+    },
+    "id": {
+      "primary": ["Latin"],
+      "allowed_supplementary": ["Common", "Inherited"],
+      "forbidden": ["Hangul", "Hiragana", "Katakana", "Han", "Arabic", "Devanagari", "Thai", "Cyrillic"]
+    },
+    "th": {
+      "primary": ["Thai"],
+      "allowed_supplementary": ["Latin", "Common", "Inherited"],
+      "forbidden": ["Hangul", "Hiragana", "Katakana", "Han", "Arabic", "Devanagari", "Cyrillic"]
+    },
+    "vi": {
+      "primary": ["Latin"],
+      "allowed_supplementary": ["Common", "Inherited"],
+      "forbidden": ["Hangul", "Hiragana", "Katakana", "Han", "Arabic", "Devanagari", "Thai", "Cyrillic"]
+    }
+  }
+}
