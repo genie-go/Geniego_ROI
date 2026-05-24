@@ -87,6 +87,31 @@ if echo "$STAGED" | grep -qE 'frontend/src/i18n/locales/ko\.js'; then
   fi
 fi
 
+# G6: i18n collision auto-check (Session 157 Step E-5)
+STAGED_LOCALES=$(git diff --cached --name-only | grep -E '^frontend/src/i18n/locales/[^/]+\.js$' || true)
+if [ -n "$STAGED_LOCALES" ]; then
+  G6_FAIL=0
+  for f in $STAGED_LOCALES; do
+    LOCALE_NAME=$(basename "$f" .js)
+    if ! node tools/triage.mjs --locale "$LOCALE_NAME" --mode collision --quiet >/dev/null 2>&1; then
+      EXIT=$?
+      if [ $EXIT -eq 2 ]; then
+        echo "❌ G6: $f failed to parse"
+      else
+        echo "❌ G6: $f has collisions (run: node tools/triage.mjs --locale $LOCALE_NAME --mode collision)"
+      fi
+      G6_FAIL=1
+    else
+      echo "  ✓ G6: $LOCALE_NAME collision-free"
+    fi
+  done
+  if [ $G6_FAIL -eq 1 ]; then
+    echo "❌ G6: collision gate failed"
+    exit 1
+  fi
+  echo "✅ G6: staged locale collisions verified"
+fi
+
 if [ "$FAIL" -ne 0 ]; then
   echo ""
   echo "Pre-commit blocked. Resolve issues or bypass with: git commit --no-verify (N-145-G)"
