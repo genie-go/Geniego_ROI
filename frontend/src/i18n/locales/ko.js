@@ -8118,11 +8118,9 @@ export default {
 
     "colChan": "채널명",
 
-    "colRoas": "수익률",
 
     "colAchieve": "목표달성",
 
-    "colSpend": "지출예산",
 
     "colCtr": "클릭률",
 
