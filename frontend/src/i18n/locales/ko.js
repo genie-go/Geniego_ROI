@@ -46104,24 +46104,6 @@ export default {
     campaignTitle: "📣 캠페인 퍼포먼스",
     creatorTitle: "🤝 크리에이터 퍼포먼스"
   },
-  "graph": {
-    "contribCreative": "기여 크리에이티브",
-    "contribInfluencer": "기여 인플루언서",
-    "contribPath": "🛤 기여 경로",
-    "crt": "크리에이티브",
-    "inf": "인플루언서",
-    "noPath": "연결된 경로 없음",
-    "ord": "주문",
-    "pathW": "경로 가중치",
-    "sku": "SKU",
-    "sourceNode": "출발 노드",
-    "targetNode": "대상 노드",
-    "topInfluencer": "🏆 상위 기여 인플루언서",
-    "weight": "가중치",
-    "mockData": "🟡 MOCK 데이터",
-    "mockResult": "🟡 MOCK 결과",
-    "noEdge": "연결된 엣지가 없습니다. 상단 탭에서 노드/엣지를 등록해주세요."
-  },
   performance: {
     account: "계정",
     allAccounts: "모든 계정",
