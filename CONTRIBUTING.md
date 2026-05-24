@@ -86,6 +86,16 @@ These are referenced throughout the codebase and handover documents. They are im
 |---|---|
 | **N-156-A** | After completing the primary track of a session, if additional work capacity remains, proceed with as much additional work as possible — even at the cost of intermediate partial closures. When external dependency is zero AND the additional track is structurally cohesive, the reviewer recommends without waiting for user prompt; the user decides go/no-go and entry is immediate. Partial closure is NOT incomplete closure: each commit unit must guarantee cohesion, validation, and deploy completeness, but the count is unbounded. This principle is compatible with N-152-F (track separation): never bundle non-cohesive work, but always pursue cohesive additional tracks. **Session 156 demonstration**: primary track (18 dotted-keypath collisions) closed after 2 commits → discovered dash.operations dead subtree → entered 3 additional tracks (ko.js single-locale / 12 non-sacred locales / ja+zh sacred under N-79 addendum) → 5 commits total, -20,902 leaves removed across 15 locales, ~1.06 MB i18n reduction. |
 
+- **N-157-A**: **세션 내 반복 검출/수정 패턴은 영구 도구화하고 hook gate 로 자동 차단한다**. 한 세션에서 동일 패턴의 ad-hoc detection script 가 2회 이상 작성되거나, 향후 4+ 세션 재사용이 예상되면 `tools/` 영구 자산으로 productionise. 자산화 시 다음 4-tier 구조 준수:
+  1. **Detector** (`tools/<name>.mjs`): AST-based, read-only, mode 분기 (단일 도구 다중 모드 권장), CSV/JSON emitter, 외부 데이터는 JSON 으로 분리 (`tools/<map>.json`)
+  2. **Regression validation**: detector 가 과거 commit history 와 invariant (e.g., `ed3c4a0~1` 시점 측정값 ⊇ commit 보고 수치). detector 가 strictly more conservative 임을 commit body 에 명시
+  3. **Hook gate** (`.githooks/pre-commit` G<N>): detector exit code 를 gate 로 변환. trigger 는 staged file pattern 매치로 한정 (zero overhead). reproduction command 를 fail message 에 포함
+  4. **Bypass env var** (`<TOOL>_SKIP=1`): G<N> 단독 bypass 제공. `--no-verify` 대비 G2 sacred / G5 leaf / B1-B4 보호 유지 (recon-only commit / detector 검증 단계용)
+  
+  **157차 실증**: triage.mjs (5 mode: collision/mojibake/wrong-language/dead-subtree/all) + mojibake_map.json + locale_script_profile.json + G6 hook gate + TRIAGE_SKIP bypass. 155+156 의 5 ad-hoc detection script (session155_*, session156_*) 가 1개 영구 도구로 통합. 8 commit, 모두 deploy 완결성 보장.
+  
+  본 원칙은 N-156-A 와 양립: 응집 가능한 추가 트랙은 적극 진행하되, **detector pattern 이 반복되면 첫 발견 시 ad-hoc 후 두번째에서 즉시 productionise** (4+ 세션 재사용 예상 시).
+
 ---
 
 ## 3. Naming convention
