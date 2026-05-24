@@ -61,3 +61,5 @@ __pycache__/
 
 # Manual rename markers
 *.deprecated
+# Session 153: locale backup quarantine (N-145-B safe storage)
+frontend/_quarantine/
