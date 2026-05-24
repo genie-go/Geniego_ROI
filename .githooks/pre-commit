@@ -41,8 +41,8 @@ if echo "$STAGED" | grep -qx 'NEXT_SESSION.md'; then
   fi
 fi
 
-# B4 — secret-shaped patterns in staged diff
-SECRETS=$(git diff --cached -U0 | grep -E '^\+' | grep -iE \
+# B4 — secret-shaped patterns in staged diff (excluding .githooks/ self + lockfiles)
+SECRETS=$(git diff --cached -U0 -- ':!.githooks/' ':!*lock.json' ':!*.lock' | grep -E '^\+' | grep -iE \
   '(password\s*=\s*["'\''][^"'\'']{4,}|api[_-]?key\s*=\s*["'\''][^"'\'']{8,}|BEGIN (RSA |EC |OPENSSH |)PRIVATE KEY|aws_secret_access_key|-----BEGIN CERTIFICATE-----)' \
   || true)
 if [ -n "$SECRETS" ]; then
