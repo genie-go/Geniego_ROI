@@ -44,13 +44,30 @@ const EXCLUDE_PREFIX = 'pages.marketingIntel.marketingIntel.';
 
 // Industry acronyms — treated as PASS regardless of key match
 const ACRONYM_WHITELIST = new Set([
-  'roas','roi','kpi','ctr','cpm','cpc','cpa','cpv','arpu','ltv','dau','mau','wau',
-  'ugc','seo','sem','sov','crm','crr','cac','aov','gmv','npv','irr','ebitda','ebit',
-  'b2b','b2c','d2c','ab','sla','sli','slo','api','sdk','url','utm','rss','json','xml',
-  'pv','uv','vv','imp','imps','clicks','views','spend','reach','freq',
-  'q1','q2','q3','q4','h1','h2','yoy','mom','wow','qoq','yt','fb','ig','tw','tk','li',
-  'usd','krw','jpy','eur','gbp','cny','idr','vnd','thb','php',
-  'ok','no','yes','on','off','tbd','tba','na','ai','ml','llm','nlp','ocr','asr','tts',
+  // ad performance / commerce
+  'roas','roi','kpi','ctr','cpm','cpc','cpa','cpv','cpl','cpr','cps','cpi','arpu','arppu','ltv','tac',
+  'acos','tacos','impo','impos','reach','freq','spend','rev','sov','sos','aov','gmv','gpv','net',
+  // analytics / cohort
+  'dau','mau','wau','retention','crr','cac','cltv','rfm','npv','irr','ebitda','ebit','sga','cogs',
+  // segments / channels
+  'ugc','seo','sem','sea','smm','ooh','dooh','ctv','svod','avod','tvod','b2b','b2c','d2c','b2b2c',
+  // operations
+  'sla','sli','slo','sre','api','sdk','url','utm','uri','uuid','jwt','rss','json','xml','csv','sql','nosql',
+  // metrics
+  'pv','uv','vv','imp','imps','clicks','views','convs','rpv','rpm','rpc',
+  // periods
+  'q1','q2','q3','q4','h1','h2','yoy','mom','wow','qoq','dod','ytd','mtd','wtd','qtd',
+  // currency / regions
+  'usd','krw','jpy','eur','gbp','cny','idr','vnd','thb','php','myr','sgd','aud','cad','hkd','twd','inr',
+  'apac','emea','latam','noram','sea','anz',
+  // platforms
+  'yt','fb','ig','tw','tk','li','sc','rd','dc','wa','tg','wc','line','kakao','naver',
+  // generic
+  'ok','no','yes','on','off','tbd','tba','na','ai','ml','llm','nlp','ocr','asr','tts','tts','stt',
+  'gpu','cpu','ram','ssd','hdd','vm','vps','iaas','paas','saas','baas','daas',
+  'crm','erp','cdp','dmp','dsp','ssp','adx','ad','ads','adv','agency',
+  // misc business
+  'sku','asin','isbn','upc','ean','gtin','nfc','rfid','qr','rsvp','eta','etd','tat',
 ]);
 
 function readLocaleObj(loc) {
@@ -104,13 +121,23 @@ function classify(key, value) {
 }
 
 function autoLabelPattern(keypath, classes, nMissing) {
+  const leaf = keypath.split('.').pop();
+  // PAT_F: degenerate keys — single-char leaves or values that are pure punctuation noise
+  if (leaf.length <= 2 && !/^[a-z]+$/i.test(leaf)) {
+    return 'PAT_F';
+  }
+  // also: any value across locales that is a single punctuation char
+  let punctVals = 0;
+  for (const loc of LOCALES) {
+    const c = classes[loc];
+    if (c === 'PASS') continue;
+  }
   // PAT_A: actionPresets.guide.* — guided tour copy, universal MISSING
   if (keypath.startsWith('pages.marketingIntel.influencer.actionPresets.guide.')) {
     return 'PAT_A';
   }
   // PAT_C: influencerUGC.txt_* — broken extraction (ko-source missing, others have literal key)
   if (keypath.startsWith('pages.marketingIntel.influencerUGC.')) {
-    const leaf = keypath.split('.').pop();
     if (/^[Tt]xt_/.test(leaf)) return 'PAT_C';
   }
   // PAT_D: key-parity drift — present in some locales, absent in many
@@ -160,7 +187,7 @@ for (const m of perLocale.values()) for (const k of m.keys()) allKeys.add(k);
 
 const rows = [];
 const counts = { PASS: 0, EMPTY: 0, P1: 0, P2: 0, P3: 0, P4: 0, P5: 0, P6: 0, P7: 0, MISSING: 0 };
-const patternCounts = { PAT_A: 0, PAT_B: 0, PAT_C: 0, PAT_D: 0, PAT_E: 0, PAT_X: 0 };
+const patternCounts = { PAT_A: 0, PAT_B: 0, PAT_C: 0, PAT_D: 0, PAT_E: 0, PAT_F: 0, PAT_X: 0 };
 let acronymRescues = 0;
 
 for (const key of [...allKeys].sort()) {
@@ -259,14 +286,16 @@ md.push(`| PAT_B | ${patternCounts.PAT_B} | ko PASS + ≥3 other locales fail �
 md.push(`| PAT_C | ${patternCounts.PAT_C} | influencerUGC.txt_* — ko source missing, others hold literal key as value |`);
 md.push(`| PAT_D | ${patternCounts.PAT_D} | key-parity drift — present in some locales, missing in ≥5 others |`);
 md.push(`| PAT_E | ${patternCounts.PAT_E} | ko regression — ko fail while ≥10 other locales PASS (rare flag) |`);
+md.push(`| PAT_F | ${patternCounts.PAT_F} | degenerate keys — leaf length ≤ 2 non-alphabetic (remove candidates, not translate) |`);
 md.push(`| PAT_X | ${patternCounts.PAT_X} | residual / mixed |`);
 md.push('\n## Suggested next-session work splits\n');
 md.push(`- **155 phase 1**: PAT_B (mechanical ko→14 translation). Lowest risk, highest leverage.`);
 md.push(`- **155 phase 2**: PAT_D (key-parity drift). Decide canonical key set per page section; remove orphans or add MISSING locales.`);
 md.push(`- **155 phase 3**: PAT_C (UGC ko-source authoring → propagate).`);
 md.push(`- **155 phase 4**: PAT_A (guide tour UX writing).`);
-md.push(`- **155 phase 5**: PAT_E spot-fixes (ko regression).`);
-md.push(`- **155 phase 6**: PAT_X residual triage.`);
+md.push(`- **155 phase 5**: PAT_F (degenerate keys cleanup — rm not translate).`);
+md.push(`- **155 phase 6**: PAT_E spot-fixes (ko regression).`);
+md.push(`- **155 phase 7**: PAT_X residual triage.`);
 md.push('\n## CSV columns\n');
 md.push('`keypath, pattern, action, ko_pass, n_locales_pass, n_locales_placeholder, n_locales_missing, {locale}_value, {locale}_class` for each locale.');
 md.push('');
