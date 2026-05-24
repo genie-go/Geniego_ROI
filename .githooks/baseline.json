@@ -5,7 +5,7 @@
     "ja.js": "67ca086561405874b2c039352741c9ef99a528997bdaa0ecf24b69568fac20d4",
     "zh.js": "a4b72633d5925778eedb5820cd034538df53a766d7eac8de54df7bfc3a2e0dde"
   },
-  "ko_leaf_count": 30658,
+  "ko_leaf_count": 30656,
   "leaf_tolerance_pct": 5,
   "_note": "Updated each session when intentional drift via --no-verify is approved (N-145-G). zh.js SHA placeholder — operator to fill from `sha256sum frontend/src/i18n/locales/zh.js` (Session 154 commit ae1d52e baseline)."
 }

@@ -12535,8 +12535,6 @@ export default {
     upgrade: '업그레이드',
   },
 
-  "performance": "Performance",
-
   "fixedPerf": "고정+성과형",
 
   "expired": "만료",
@@ -12826,8 +12824,6 @@ export default {
   "attributedOrders": "기여 주문",
 
   "attributedRevenue": "기여 매출",
-
-  "attribution": "기여도",
 
   "roi": "ROI",
 
