@@ -63,3 +63,88 @@ __pycache__/
 *.deprecated
 # Session 153: locale backup quarantine (N-145-B safe storage)
 frontend/_quarantine/
+
+# Session 153: diagnostic/dump artifacts hygiene (sessions 96-143)
+# Underscore-prefixed dumps
+_ko_sheet_*
+_raw_*
+_t104_*
+_ja_*
+_comingsoon_*
+_creative_*
+_cs_*
+_common_*
+_only_*
+_recommendable_*
+_s140_*
+_s14[0-9]_*
+
+# Session-prefixed work artifacts (sessions 96-143)
+session96_*
+session97_*
+session98_*
+session99_*
+session10[0-9]_*
+session11[0-9]_*
+session12[0-9]_*
+session13[0-9]_*
+session14[0-3]_*
+
+# Short-form session artifacts
+s12[0-9]_*
+s13[0-9]_*
+s14[0-3]_*
+
+# Untracked list dumps
+untracked_list_session*.txt
+txt_pattern_workbook.csv
+
+# Conflict-resolved backup files
+NEXT_SESSION*(*.md
+
+# Session 153 round 2: extended diagnostic patterns
+_ko_*
+_t10[5-9]_*
+_t1[1-9][0-9]_*
+
+# PowerShell rendering trap artifacts (CLAUDE.md documented)
+D__project_*
+
+# Session 153 round 3: extended t/s/session patterns (latin_* excluded - tracked conflict)
+_t[0-9]_*
+_t[0-9][0-9]_*
+t10[8-9]_*
+t1[12][0-9]_*
+session9[45]_*
+s140p[0-9]_*
+s140np[0-9]_*
+s141p[0-9]_*
+short_*
+*.s132user
+
+# Session 153 round 4: surgical patterns (avoid tracked source conflicts)
+
+# Diagnostic dumps only (.txt) — protects committed .mjs/.py/.json tools
+/session9[23]_*.txt
+/session14[4-9]_*.txt
+/session150_*.txt
+/session9[23]_*.csv
+/session14[4-9]_*.csv
+/session150_*.csv
+
+# Underscore-prefix variants (root only)
+/_user_work_*
+/_zh_*
+/s140p2x_*
+/s140clean_*
+/s141p_*
+/s141rb_*
+
+# c-prefix patch files (root only, narrow)
+/c[0-9]_PATCH*
+/c[0-9][a-z]_PATCH*
+/c[0-9]_patch_*
+/c[0-9][a-z]_patch_*
+
+# 단일 t prefix files (root only)
+/t_*.txt
