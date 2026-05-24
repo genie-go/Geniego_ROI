@@ -280,3 +280,11 @@ tsession148_c1_extract_latin_long.bat
 
 # Session 154 — claude_agent/ infrastructure protection (block per-session output dumps)
 claude_agent/session*.py
+
+# Session 155 — analysis artifacts (session-scoped, gitignored at next session close per CONTRIBUTING.md §3)
+session155_*.mjs
+session155_*.csv
+session155_*.json
+session155_*.md
+session155_*.txt
+session155_*.sh
