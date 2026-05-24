@@ -74,6 +74,12 @@ These are referenced throughout the codebase and handover documents. They are im
 | **N-154-C** | Tools (`.mjs`, `.sh`, `.py`) belong in `tools/`. Session-specific analysis artifacts (`session{NN}_*.mjs`, `*_scan.csv`, `*_summary.md`) belong at repo root and are added to `.gitignore` at session close. The pre-commit hook treats backup files (`*.bak*`) and `_quarantine/` paths as blockers. |
 | **N-154-D** | Self-policing tools (security scanners, the pre-commit hook itself) must exclude their own source via pathspec (`':!.githooks/'`) — regex definitions self-match. Auditing the auditor requires this. |
 
+### Session 155 (new)
+
+| ID | Principle |
+|---|---|
+| **N-155-A** | Mojibake-aware locale edits MUST use line-number + regex value-substitution scripts, not the Edit tool's string-anchor matching. The Edit tool does NOT guarantee byte preservation of CJK Compatibility Ideographs (U+F900-U+FAFF) or C1 control characters (U+0080-U+009F). Its `\uXXXX` auto-swap covers single-codepoint variants only, not combined variant + invisible-char damage. Session 155 step 7 first attempt: 22 Edits → 15 failed due to compat CJK (紐 U+F9CF, 留 U+F9CD, 吏 U+F9DE) + hidden U+0080. Resolution: rollback (Option R) + `session{NN}_vi_mojibake_apply.mjs` script (commits f68117d, 9c18640). |
+
 ---
 
 ## 3. Naming convention
@@ -203,6 +209,9 @@ The pre-commit hook (`.githooks/pre-commit`) enforces:
 | **AST stringify reformatting** (154) | N-154-A: offset-based source slicing for surgical changes. |
 | **Working-tree-vs-index drift** (154) | N-154-B: `git add` after every edit, verify with `git diff --cached`. |
 | **Self-policing regex matches itself** (154) | N-154-D: pathspec-exclude the policy file from its own scanner. |
+| **Edit tool byte-anchor for compat CJK / C1** (155) | N-155-A: switch to line-number + regex value-substitution script. |
+| **NFKC partial application** (155) | NFKC must apply to BOTH value AND map keys; one-side breaks longest-match substring lookup (session 155 detector bug #4). |
+| **ripgrep blind-spot for compat CJK + C1** (155) | grep patterns using canonical CJK miss compatibility variants (U+F9xx). For residue verification, use AST + NFKC normalization (re-run scan), not grep. |
 
 ---
 
@@ -233,6 +242,8 @@ The pre-commit hook (`.githooks/pre-commit`) enforces:
 | 9 | Edit-after-stage without re-staging (committed pre-edit version) | 154 | N-154-B |
 | 10 | Security regex matches its own definition | 154 | N-154-D |
 | 11 | Asking the operator to save when CC can edit directly | 154 | N-154-B |
+| 12 | Detector iteration without unit-tests (5 bugs surfaced via real-data iteration) | 155 | N-155-A precondition: detector must self-test for compat CJK + C1 + NFKC interaction before catalog-driven workflow |
+| 13 | Assuming Edit tool string anchors preserve all Unicode variants | 155 | N-155-A |
 
 ---
 
