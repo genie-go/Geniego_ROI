@@ -748,13 +748,42 @@ function makeDeadSubtreeSkip(row_index, r, file, rationale) {
   };
 }
 
+function manifestCoversDirect(directConsumers, rootPath) {
+  // root_path 의 self 또는 self.* 가 direct consumer 목록에 있는지
+  for (const p of directConsumers) {
+    if (p === rootPath || p.startsWith(rootPath + '.')) return p;
+  }
+  return null;
+}
+
+function manifestCoversPrefix(prefixConsumers, rootPath) {
+  // prefix pattern "a.b.*" → base "a.b" → rootPath 가 "a.b" 또는 "a.b.*" 인지 검사
+  for (const p of prefixConsumers) {
+    const base = p.replace(/\.\*$/, '');
+    if (rootPath === base || rootPath.startsWith(base + '.') || base.startsWith(rootPath + '.')) return p;
+  }
+  return null;
+}
+
+function manifestCoversDynamic(dynamicConsumers, rootPath) {
+  // dynamic var name 이 rootPath 의 self 또는 self.x 와 매칭되는지 (보수적)
+  for (const v of dynamicConsumers) {
+    if (rootPath === v || rootPath.startsWith(v + '.')) return v;
+  }
+  return null;
+}
+
 function buildPlanDeadSubtree(rows, options, preLeafCount, srcAST) {
-  // patch07 §4.2 — 4-step false-positive 검증 (manifest 부재 시 모두 skip)
+  // patch07 §4.2 + manifest v1 §4.1 — 5-step false-positive 검증
   const localePath = options.target || localeFilePath(options.locale);
   const manifest = loadResolverManifest(options.resolver_manifest);
   const conservative = manifest == null;
   const decisions = [];
   let idx = 0;
+
+  const directs  = (manifest?.consumers?.direct)  || [];
+  const prefixes = (manifest?.consumers?.prefix)  || [];
+  const dynamics = (manifest?.consumers?.dynamic) || [];
 
   for (const r of rows) {
     // Step 0: AST drift 검사 (현 AST 에 path 부재 → skip)
@@ -783,11 +812,28 @@ function buildPlanDeadSubtree(rows, options, preLeafCount, srcAST) {
       continue;
     }
 
-    // Step 2: prefix retry candidate (manifest 검사) — 별도 manifest schema 정의 필요
-    //   여기서는 stub. manifest 가 정의되면 활성화.
-    // Step 3: dynamic key suspicion — stub.
+    // Step 2: manifest direct consumer 검사
+    const directHit = manifestCoversDirect(directs, r.root_path);
+    if (directHit) {
+      decisions.push(makeDeadSubtreeSkip(idx++, r, localePath, `manifest direct consumer: ${directHit}`));
+      continue;
+    }
 
-    // 통과: delete
+    // Step 3: manifest prefix consumer 검사
+    const prefixHit = manifestCoversPrefix(prefixes, r.root_path);
+    if (prefixHit) {
+      decisions.push(makeDeadSubtreeSkip(idx++, r, localePath, `manifest prefix consumer: ${prefixHit}`));
+      continue;
+    }
+
+    // Step 4: manifest dynamic consumer 검사
+    const dynHit = manifestCoversDynamic(dynamics, r.root_path);
+    if (dynHit) {
+      decisions.push(makeDeadSubtreeSkip(idx++, r, localePath, `manifest dynamic suspect: ${dynHit}`));
+      continue;
+    }
+
+    // Step 5: 통과 → delete (manifest 검증 + AST 존재)
     decisions.push(makeDeadSubtreeDelete(idx++, r, localePath));
   }
 
