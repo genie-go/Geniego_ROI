@@ -1,10 +1,10 @@
-## 159차 세션 인계서 (NEXT_SESSION.md)
+## 161차 세션 인계서 (NEXT_SESSION.md)
 
 > **작성일**: 2026-05-25
-> **이전 세션**: 158차 (P2 apply + hierarchical dedup + P3 self-test + B-1/B-2 마무리)
-> **다음 세션**: 159차
+> **이전 세션**: 160차 (patch08 + patch09 + patch10 + CONTRIBUTING §7 trap 6건 + §6 spec drafting standards, 7 commit)
+> **다음 세션**: 161차
 > **저장 위치**: repo root `NEXT_SESSION.md`
-> **종결 방식**: 사용자 명시 종결 결정 (N-152-G)
+> **종결 방식**: 사용자 명시 종결 결정 (N-152-G), 검수자 추천 → 사용자 승인
 
 ---
 
@@ -14,29 +14,29 @@
 
 - **Repo**: `E:\project\GeniegoROI\` (Windows, PowerShell + Git Bash)
 - **Branch**: `master`
-- **HEAD**: `d608a91` feat(tools): session_init.sh self-test integration
-- **ko.js**: 1,441,177 B (158차 변화 0 B, 2 leaf 수정 = size 보존)
-- **ko.js leaves**: 30,656 (157차 30,656 → 158차 30,656, Δ=0)
-- **참조 locale 파일**: 15개 (ja/zh sacred 156차 갱신 그대로 유지)
+- **HEAD**: `8fbda89` docs(contributing): §7 신규 trap — spec 파일 저장 경로 중첩 재발 (160 patch08/09/10 공통 학습)
+- **ko.js**: 1,441,177 B (160차 변화 0 B — tooling/hooks/docs 만 변경)
+- **ko.js leaves**: 30,656 (159→160 Δ=0, frontend 무터치)
+- **참조 locale 파일**: 15개 (ja/zh sacred 156차 갱신 그대로)
 
-### 1.2 Sacred SHA (156 baseline 유지, 157~158 변경 없음)
+### 1.2 Sacred SHA (156 baseline 그대로 유지)
 
 - **ja.js**: `67ca086561405874b2c039352741c9ef99a528997bdaa0ecf24b69568fac20d4` ✓
 - **zh.js**: `a4b72633d5925778eedb5820cd034538df53a766d7eac8de54df7bfc3a2e0dde` ✓
 
 baseline 파일: `.githooks/baseline.json` (version 156, ko_leaf_count 30656)
 
-### 1.3 3자 협업 구조
+### 1.3 3자 협업 구조 (158차 그대로 계승)
 
-- **CC (Claude Code)**: repo root, `t`-prefix 명령 실행. `cd /e/project/GeniegoROI &&` prefix 의무 (N-153-A)
-- **검수자 (Claude 채팅)**: 도구 작성, 진단, 설계 문서, 결정 추천. **CC Edit tool 우선** (N-154-B)
-- **사용자**: cross-validation, 파일 저장 (검수자 spec 문서), 명시 승인 (commit/push), 세션 종결 결정
+- **CC (Claude Code)**: repo root, `t`-prefix 명령. `cd /e/project/GeniegoROI &&` prefix 의무 (N-153-A)
+- **검수자 (Claude 채팅)**: 도구 spec, 결정 추천, CC Edit 우선 (N-154-B)
+- **사용자**: cross-validation, spec 파일 저장, 명시 승인, 세션 종결 결정
 
-### 1.4 운영 원칙 (필수 준수, 149~158차 누적)
+### 1.4 운영 원칙 (필수 준수, 149~160차 누적)
 
-**영구 ref**: `CONTRIBUTING.md` (158차 commit `fee1388` 에 §7 신규 trap 3건 추가). 다음 세션 검수자 첫 응답 시 참조 의무.
+**영구 ref**: `CONTRIBUTING.md` (160차 commit `4c1b083` §6 신규 sub-section + commit `8fbda89` §7 신규 trap 추가).
 
-**N-prefix 누적 인덱스** (CONTRIBUTING.md §2 의 단순 재현):
+**N-prefix 누적 인덱스** (CONTRIBUTING.md §2 단순 재현):
 
 - N-15, N-79, N-145-B, N-145-G (sacred / safety)
 - N-150-A (collaboration)
@@ -46,308 +46,357 @@ baseline 파일: `.githooks/baseline.json` (version 156, ko_leaf_count 30656)
 - N-155-A (155차)
 - N-156-A (156차)
 - N-157-A (157차)
-- **158차는 신규 N-prefix 추가 없음**: N-157-A 4-tier 패턴이 그대로 적용된 직접 실증 세션. 단, 158차 학습은 §7 trap 3건 + 신규 도구 4개로 영구화
+- **158~160차 신규 N-prefix 없음**: §6 Spec drafting standards (160 신규 sub-section) 는 trap-style 학습 카탈로그로 영구화
 
-### 1.5 기술 트랩 (148~158차 누적)
+### 1.5 기술 트랩 (148~160차 누적)
 
-CONTRIBUTING.md §7 영구 기록. 158차 신규 3건 (hybrid format 도입):
+CONTRIBUTING.md §7 영구 기록. **160차 §7 신규 trap 6건 추가**:
+- (160 commit `f90e938`): Detector CSV columns ≠ spec 추정 (159 patch06/07 학습)
+- (160 commit `f90e938`): paths-ignore 정상 동작 인지 (159 학습)
+- (160 commit `f90e938`): Default-resolution 도입 시 self-test 의미 침범 (160 patch08 학습)
+- (160 commit `4c1b083`): bash `set -e` + 함수 마지막 `[[ ]] && X` 패턴 silent abort (160 patch09 학습)
+- (160 commit `4c1b083`): `pipefail` + `$(cmd | grep | ...)` silent abort (160 patch09 학습)
+- (160 commit `8fbda89`): Spec 파일 저장 경로 중첩 재발 (160 patch08/09/10 공통 학습)
 
-- **MSYS path-translation 비대칭 (158차)**: bare CLI args 는 자동 변환되지만 `node -e` string literal 내부의 경로는 미변환. Mitigation: `cygpath -m` 사전 변환 + Linux fallback (`triage_apply_self_test.sh` 패턴 참조)
-- **Node ESM dynamic-import 캐시 (158차)**: `await import(url)` 가 URL 기준 caching → write 후 stale 반환. Mitigation: `?v=${Date.now()}` query suffix (`triage_apply.mjs countLeaves`, `leaf_count.mjs` 참조)
-- **Heredoc backslash double-escape (158차)**: `t bash -c "cat << EOF"` 의 2-layer 처리로 backslash collapse. Mitigation: heredoc 대신 CC Create/Write tool 사용
+§6 신규 sub-section (`### Spec drafting standards`, 160 commit `4c1b083`):
+- Repo path canonical verification (#33)
+- Import pattern sanity check (#34)
+- Production domain sanity check (#35)
+- `set -e` / `pipefail` shell idiom audit (patch09 학습)
 
-### 1.6 158차 종결 시점 상태
+### 1.6 160차 종결 시점 상태
 
-- **HEAD**: `d608a91`
-- **Working tree**: clean (M .gitignore session158 block 만 unstaged, 정상)
-- **ko.js**: 30,656 leaves, 0 collisions, 0 mojibake, 0 wrong-language ✓
+- **HEAD**: `8fbda89`
+- **Working tree**: clean (untracked: 사전 quarantine `triage_out_ko/`, `session157_*/` 등 모두 gitignore 적용)
+- **ko.js**: 30,656 leaves, 0 collisions, 0 wrong-language, dead-subtree 0 (dry-run 만)
 - **Sacred SHA**: ja/zh 156차 값 그대로 보존 ✓
-- **Quarantine 누적**: 4 dirs (158차 신규 0)
-- **Production**: HTTP 200 / lang="ko" / smoke green ✓ (8 production deploys + 2 paths-ignore)
-- **Pre-commit hook**: G2/G5/B1-B4/G6 활성 (157차 baseline 그대로)
-- **신규 도구 4개**: triage_apply.mjs, leaf_count.mjs, triage_apply_self_test.sh, triage.mjs --src
+- **Quarantine 누적**: 4 dirs (160차 신규 0)
+- **Production**: HTTP 200 / lang="ko" / patch09 self-smoke + patch10 T1-T7 PASS ✓
+- **Pre-commit hook**: G2/G5/B1-B4/G6 + **160 신규 G7-self-test** (ko.js staged 시 aggregate 자동 invoke)
+- **신규 영구 도구 (160차)**: 2개 (`tools/triage_apply_self_test_all.sh`, `tools/production_smoke.sh`)
 
 ---
 
-## 2. 158차 작업 완결 보고
+## 2. 160차 작업 완결 보고
 
 ### 2.1 통계 요약
 
 | 항목 | 값 |
 |---|---|
-| **commit (본 작업)** | 10개 |
-| **push** | 10회 |
-| **CI deploys** | 8 production green + 2 paths-ignore (정상, docs-only) |
-| **smoke dogfood** | 8회 |
-| **신규 영구 도구 (tools/)** | 3 (triage_apply.mjs 513 lines / leaf_count.mjs 38 lines / triage_apply_self_test.sh 208 lines) |
-| **기존 도구 확장** | 2 (triage.mjs --src flag / session_init.sh --self-test) |
-| **신규 영구 문서** | 1 spec (triage_apply_v1.md 287 lines) + 1 spec patch (patch02 흡수) |
-| **CONTRIBUTING.md 갱신** | §7 3건 추가 (hybrid format 도입) |
-| **운영 원칙 신규** | 0 (N-157-A 패턴 직접 실증) |
-| **i18n entries 수정 (ko)** | 2 leaves (Han 中 → Hangul 중) |
-| **ko.js size 변화** | 0 B (UTF-8 3-byte 동일) |
+| **commit** | 7개 |
+| **push** | 4회 |
+| **CI deploys** | 다수 success |
+| **smoke dogfood** | 다회 (HTTP 200 / lang="ko") |
+| **신규 영구 도구** | 2 (triage_apply_self_test_all.sh + production_smoke.sh) |
+| **신규 영구 문서** | 4 spec (patch08/09/10 + CONTRIBUTING §7 patch draft) |
+| **CONTRIBUTING.md 갱신** | §7 trap 6건 + §6 신규 sub-section |
+| **운영 원칙 신규** | 0 |
+| **i18n entries 수정 (ko)** | 0 |
+| **ko.js size 변화** | 0 B |
 | **ko.js leaves 변화** | 0 |
-| **ko triage 상태** | collision 0 / mojibake 0 / wrong-language 0 (158 신규 wrong-language fix 후) |
 
-### 2.2 commit 별 상세
+### 2.2 commit 분포
 
-| # | Hash | Subject | LOC |
-|---|---|---|---|
-| 1 | `641c609` | fix(i18n/ko): 배송中 → 배송중 | +2/-2 |
-| 2 | `751f538` | docs(spec): triage_apply v1 spec | +238 |
-| 3 | `460b185` | feat(tools): triage_apply v1 P1 (collision dry-run) | +349 |
-| 4 | `08d387c` | feat(tools): triage.mjs --src flag | +12/-8 |
-| 5 | `5c3ac5f` | docs(spec): patch02 hierarchical overlap | +51/-1 |
-| 6 | `8521971` | feat(tools): triage_apply v1 P2 (apply + dedup + safety-net G3) | +175/-11 |
-| 7 | `0d1b0f6` | feat(tools): leaf_count.mjs (P3 self-test 의존 영구화) | +38 |
-| 8 | `c5fd04f` | feat(tools): triage_apply_self_test.sh (13 invariants) | +208 |
-| 9 | `fee1388` | docs(contributing): 3 new traps from session 158 | +30 |
-| 10 | `d608a91` | feat(tools): session_init.sh self-test integration | +32/-10 |
+| commit | 내용 | 결과 |
+|---|---|---|
+| `5d4e708` | feat(triage_apply): manifest v2 default 자동 적용 (#27) | G2 PASS |
+| `f0503a9` | feat(tools): triage_apply_self_test_all.sh aggregate runner (#24) | G2 PASS, 3/3 |
+| `f90e938` | feat(hooks): pre-commit self-test default-on + CONTRIBUTING §7 trap 3건 | G2 PASS |
+| `af859bd` | feat(tools): production_smoke.sh — standalone G7-smoke + snapshot diff (#28) | G2 PASS, S1-S7 |
+| `4c1b083` | docs(contributing): §7 patch09 trap 2건 + §6 spec drafting standards | G2 PASS |
+| `a67d718` | refactor(tools): ci_watch.sh ↔ production_smoke.sh 통합 (DRY, #28 마무리) | G2 PASS, T1-T7 |
+| `8fbda89` | docs(contributing): §7 신규 trap — spec 파일 저장 경로 중첩 재발 | G2 PASS |
 
-### 2.3 핵심 발견 및 학습
+### 2.3 patch 그룹별 영구화
 
-#### 2.3.1 hierarchical overlap destruction risk
+#### 2.3.1 patch08 (manifest v2 default + self-test aggregate + pre-commit default-on)
 
-158차 P2 live test 의 **가장 중요한 발견**. ed3c4a0~1 snapshot 의 graph subtree (16 leaves) 가 naive apply 시 파괴됨. 원인:
-- detector 가 block-level + leaf-level 을 독립 보고
-- applier 가 양쪽 모두 처리 시 parent block 의 child 가 sibling block 결정으로 사라짐
+- `RESOLVER_MANIFEST_DEFAULT = 'tools/resolver_consumer_manifest_v2.json'`
+- `--resolver-manifest` 미지정 시 default v2 자동 fallback
+- `TRIAGE_NO_DEFAULT_MANIFEST=1` env escape hatch
+- `triage_apply_self_test_all.sh` aggregate runner
+- `.githooks/pre-commit`: ko.js staged 시 aggregate 자동 invoke, `TRIAGE_SELFTEST_SKIP=1` bypass
 
-Fix: `demoteOverlappingLeaves` 함수 — block decision 이 path-prefix 매칭 leaf decision 흡수. spec §5.1.1 로 영구화.
+R1-R8 PASS
 
-**Lesson**: detector 와 applier 의 invariant 가 일치하지 않으면 data destruction risk. 양쪽 spec 을 명문화하고 cross-check 필수.
+#### 2.3.2 patch09 (production_smoke.sh standalone)
 
-#### 2.3.2 N-157-A Tier 2 (regression validation) 의 가치 입증
+- ci_watch.sh embedded smoke 를 standalone 화
+- before/after snapshot mode + JSON diff
+- `--paths` multi-probe, `--domain` override
+- exit codes 0/1/2/3/4
+- `set -e` + pipefail 함정 회피
+- `.gitignore`: `.smoke_snapshots/`
 
-P2 live test 가 hierarchical overlap bug 를 **commit 전에** 발견. 만약 spec 만 보고 구현 후 production locale 에 적용했다면 16 leaves 손실. self-test 의 사후 자동화 가치 즉시 입증.
+S1-S7 PASS, self-smoke 자기검증 PASS
 
-#### 2.3.3 cross-platform tooling 의 함정 3종
+#### 2.3.3 patch10 (ci_watch ↔ production_smoke DRY 통합)
 
-158차에서 직접 부딪힌 환경 트랩이 CONTRIBUTING.md §7 에 영구화. 모두 Mitigation 패턴 확립:
-- MSYS path: cygpath -m
-- ESM cache: ?v=Date.now()
-- Heredoc: Create/Write tool
+- production_smoke.sh: `--soft-lang` flag 추가
+- ci_watch.sh: embedded smoke → production_smoke.sh 위임
+- 의미론 보존 + DRY
 
-#### 2.3.4 safety-net G3 의 실용성
+T1-T7 PASS
 
-§5.1.3 의 2단계 설계 (safety-net → strict) 가 단계적 도입을 가능케 함. precise estimator (§5.1.2) 가 미완성이어도 loss-only 검증으로 P2 production-ready 도달. 향후 strict promotion 은 별도 작업.
+#### 2.3.4 CONTRIBUTING.md §6 신규 sub-section + §7 trap 6건
 
-### 2.4 158차 검수자 자기-비판
+§6 `### Spec drafting standards (160 학습)`:
+- Repo path canonical verification (#33)
+- Import pattern sanity check (#34)
+- Production domain sanity check (#35)
+- `set -e` / `pipefail` shell idiom audit
+
+§7 신규 trap 6건: 위 §1.5 명시.
+
+### 2.4 핵심 학습 (160 신규 3건)
+
+#### 2.4.1 Default-resolution 도입 시 self-test 의미 침범
+
+patch08 default v2 fallback 도입 직후 dead-subtree self-test Mode A 가 default v2 강제 주입으로 6/16 D-check 실패. env var escape hatch 로 self-test 만 default 우회.
+
+#### 2.4.2 bash set -e + pipefail 함정 (2건)
+
+patch09 production_smoke.sh 의 정상 입력 silent abort 회귀:
+- 함수 마지막 `[[ ]] && X` 패턴
+- `lang=$(curl | grep | ...)` pipefail
+
+**Mitigation**: `return 0` 명시 + `|| echo ""` 폴백.
+
+#### 2.4.3 Spec 파일 저장 경로 중첩 (3회 재발)
+
+patch08/09/10 모두 `docs/spec/docs/spec/` 중첩. CC 매번 cleanup. IDE save dialog default 원인.
+
+### 2.5 160차 검수자 자기-비판
 
 | 사례 | 도출 |
 |---|---|
-| spec patch 파일 경로 mishap 재발 (patch01 + contributing_patch_158 양쪽) — 검수자가 `cd docs/spec/` 컨텍스트 가정 명시 안 함 | spec 파일 저장 경로 안내 시 **항상 repo root 기준 절대경로 명시** (e.g., `E:\project\GeniegoROI\docs\spec\<file>.md`) |
-| spec §5.1 의 identical leaf preserve 방향이 instruction (last-wins) 과 불일치 | spec 변경 시 instruction 과 cross-check 의무화. 또는 spec 본문에 "단, 158차 instruction 으로 last-wins 채택" 명시 |
-| ko.js 경로 추정 오류 (locales/ vs frontend/src/i18n/locales/) | CLAUDE.md / NEXT_SESSION.md 의 file system map 우선 참조 |
+| spec §3.2.2 path regex 오류 (`src/locale/` → 실: `frontend/src/i18n/locales/`) | §6 #33 영구화 |
+| spec §3.1.2 `fs.existsSync` (실: named `existsSync`) | §6 #34 영구화 |
+| smoke 도메인 typo (`geniegoroi.app` → 실: `roi.genie-go.com`) | §6 #35 영구화 |
+| spec §3.1 shell idiom 미대비 | §6 shell idiom audit + §7 trap 2건 영구화 |
+| **NEXT_SESSION 초안 사용자 미승인 작성 (세션 중반)** | **161차: 인계서 작성 전 사용자 명시 승인 의무** |
+| **작업 여력 잔존 시 추가 트랙 진입 적극성 부족 (1차 종결 시도 후 사용자 지적)** | **161차: 핵심 목표 달성 후 작업 여력 명시 확인 + 추가 트랙 후보 제시 의무** |
+| CC tool 의 본문 출력 압축 회피 우회 다회 시도 | 161차: 짧은 범위 + `cat -n` + `printf '=== ===\n'` 패턴 우선 |
 
-159차 검수자: 위 3건 인지 + 첫 응답에서 N-152-A~H + N-153-A~D + N-154-A~D + N-155-A + N-156-A + N-157-A 준수 명시.
+161차 검수자: 위 7건 인지 + 첫 응답에서 N-152-A~H + N-153-A~D + N-154-A~D + N-155-A + N-156-A + N-157-A 준수 명시.
 
 ---
 
-## 3. 159차 작업 진입
+## 3. 161차 작업 진입
 
 ### 3.1 외부 의존 / 진입 조건
 
-**158 deploy 잔여 의존: 0**. 모든 158 작업 production live.
+**160 deploy 잔여 의존: 0**. 7 commit 모두 production live.
 
-157차 잔여 의존 그대로 계승 (사용자 canonical 결정 필요). 158차 신규 외부 의존 없음.
+159 외부 의존 그대로 계승:
+- **P4 dead-subtree 실 apply** — 사용자 review 후 결정 (depth=2 73건, depth=3 115건 candidates)
+- **manifest v2 default 승격** — **160 patch08 완료** ✓
+- **G7 production smoke 자동화** — **160 patch09 + patch10 완료** ✓
 
-### 3.2 트랙 구조 (158차 종결 시점)
+### 3.2 트랙 구조 (160차 종결 시점)
 
-#### 3.2.1 외부 의존 0, 즉시 진입 가능 (158 신규 트랙)
+#### 3.2.1 외부 의존 0, 즉시 진입 가능
 
 | 트랙 | 분량 | 비고 |
 |---|---|---|
-| **§5.1.2 precise estimator + strict G3 promotion** | 0.4 세션 | leaf-shadowed Δ=0 정확 계산. block_identical Δ=-leaf_count 정밀화. 그 후 G3 strict equality 활성 |
-| **G4 target-line gate** | 0.2 세션 | post-apply 에 target line 의 key 가 사라졌는지 sed 검증. spec §6 G4 명문 |
-| **G5 triage-rerun gate** | 0.3 세션 | post-apply 에 detector 재실행 → collision count = pre - delete count 일치 검증 |
-| **P4 wrong-language detector apply path** | 0.5 세션 | 단일 char 치환 자동화. 158 ko 배송中 케이스 같은 패턴 일괄 처리 |
-| **P4 dead-subtree detector apply path** | 0.5 세션 | resolver prefix retry 검증 (`pages.*` 케이스) 필수 |
-| **P5 14 non-ko locale dry-run + plan review** | 0.5 세션 | session157_collisions/ 14 CSV → 14 plan JSON 생성 + 사용자 review |
-| **--self-test default-on** | 작음 | 안정성 충분 입증 후 `--no-self-test` bypass 도입 |
-| **tools/triage_apply --target --dry-run-write** | 작음 | apply 결과를 별도 파일에 출력 (diff 검토용) |
+| **parse_errors 43건 분석** | 0.3 세션 | babel-parser 실패 frontend/src 파일 |
+| **wrapper 함수 추적** | 0.5 세션 | `const tx = useT(); tx('foo')` 패턴 |
+| **non-ko locale manifest** | 0.4 세션 | 우선순위 ↓ |
 
-#### 3.2.2 사용자 canonical 결정 후 (157차 carry-over)
+#### 3.2.2 사용자 canonical 결정 후 (159 carry-over)
 
 | 트랙 | 의존 |
 |---|---|
-| **ja ruleEnginePage.dash.\* cleanup** | sacred SHA 갱신 + N-79 addendum. canonical 결정 (Group 1 vs 2) |
-| **zh ruleEnginePage.dash.\* cleanup** | 동일 |
+| **P4 점진 apply 시작** | 사용자가 159 SUMMARY review 후 candidate 결정 |
+| **ja/zh ruleEnginePage.dash.\* cleanup** | sacred SHA 갱신 + N-79 addendum |
 | **id 6,010 Chinese contamination** | 번역 mode 결정 |
-| **pt=ru=ar=hi 5,298 identical fallback** | 번역 pipeline 수정 (system-wide) |
+| **pt=ru=ar=hi 5,298 identical fallback** | 번역 pipeline 수정 |
 | **es=fr 5,083 identical** | 동일 |
 | **de Thai 191** | 번역 누락 처리 |
 | **vi mojibake HOLD 3 + DEFER 2 잔재** | 번역 mode |
 
-#### 3.2.3 156~157차 carry-over 트랙
+#### 3.2.3 큰 사용자 요청 트랙 (외부 사양 필요, 사용자 명시 우선순위)
 
-CONTRIBUTING.md §7 참조. W0/T3/T7/PM Phase 2/badge20kpi/PAT_B/PAT_D/PAT_J/K/Emoji-prefix damage/REMNANT 2+totalCac.
+- **T1 PM Phase 2**: 프로젝트 관리 기능 확장
+- **T4 마케팅 자동화**: 8 카테고리 구현
+- **T5 팀 채팅**: 팀 협업 채팅
+- **T6 프로젝트 협업**: 프로젝트 단위 협업
 
-### 3.3 159차 첫 응답 권장 패턴
+**중요**: N-152-F (PM 본 작업 진입 시 새 채팅 세션 분리 의무). 사양 작성 후 별도 세션에서 본 작업 진입.
 
-159차 검수자가 사용자 첫 메시지 받으면:
+### 3.3 161차 첫 응답 권장 패턴
 
-1. `tools/session_init.sh --session 159 --self-test` 실행 권유 (158 신규 --self-test 활용)
+161차 검수자가 사용자 첫 메시지 받으면:
+
+1. `tools/session_init.sh --session 161 --self-test` 실행 권유
 2. 결과 확인 (HEAD / sacred SHA / leaf count / 13 invariants)
 3. 트랙 결정 (검수자 추천 1개 명시, N-152-B)
 
-**검수자 추천 후보 (159차 진입 시)**:
-- **§5.1.2 precise estimator + strict G3** (외부 의존 0, P2 완성도 ↑↑, 0.4 세션)
-- 또는 **G5 triage-rerun gate** (P2 검증 강화, 작은 응집)
-- 또는 **P5 14 non-ko locale dry-run** (158 도구 즉시 활용, 사용자 review 기반 의사결정 데이터 확보)
+**검수자 추천 후보 (161차 진입 시)**:
+
+1. **T1~T6 spec 작성** (사용자 명시 우선순위)
+   - 사용자 지정 1개 트랙 spec 작성
+   - 본 작업은 별도 세션 (N-152-F)
+
+2. **parse_errors 43건 분석** (외부 의존 0, 0.3 세션)
+   - manifest v2 정밀도 추가 ↑
+
+3. **P4 점진 apply 시작** (사용자 결정 후)
+   - patch09/10 G7 smoke 로 안전 보장
 
 CC 첫 명령:
 
 ```
-t bash -c "cd /e/project/GeniegoROI && tools/session_init.sh --session 159 --self-test"
+t bash -c "cd /e/project/GeniegoROI && tools/session_init.sh --session 161 --self-test"
 ```
 
-기대값: HEAD `d608a91`, ko.js 1,441,177 B, leaves 30,656, ja SHA `67ca0865...` ✓, zh SHA `a4b72633...` ✓, quarantine 4 dirs, self-test PASS (13/13).
+기대값: HEAD `8fbda89` (or descendant), ko.js 1,441,177 B, leaves 30,656, ja/zh SHA ✓, self-test PASS (13/13).
 
 ---
 
-## 4. 158차 작업 자산
+## 4. 160차 작업 자산
 
 ### 4.1 영구 도구 (tools/, tracked)
 
-| 경로 | 크기 | 용도 |
-|---|---:|---|
-| `tools/triage_apply.mjs` | 18 KB / 513 lines | N-157-A Tier 1 applier (collision dry-run + apply + dedup + 3-gate) |
-| `tools/leaf_count.mjs` | 1 KB / 38 lines | cross-platform leaf count diagnostic |
-| `tools/triage_apply_self_test.sh` | 12 KB / 208 lines | 13 invariants regression validation |
+159차 16개 + 160차 2개 신규 = 18개 누적:
 
-158차 기존 도구 확장:
-- `tools/triage.mjs` (--src flag 추가, 12/-8 lines)
-- `tools/session_init.sh` (--self-test flag, leaf_count.mjs 호출, 32/-10 lines)
-
-### 4.2 Hook gate (157차 그대로, 158 신규 0)
-
-| Gate | 트리거 | 동작 |
+| 경로 | 158/159/160 | 용도 |
 |---|---|---|
-| G2 | sacred ja/zh SHA mismatch | abort |
-| G5 | ko.js leaf count drift > 5% | abort |
-| B1-B4 | backup/quarantine file staged | abort |
-| G6 | locale staged + collision detected | abort (TRIAGE_SKIP=1 bypass) |
+| `tools/triage_apply.mjs` | 158/확장/**160 default v2 + env hatch** | 3 detector × 6-gate apply |
+| `tools/leaf_count.mjs` | 158 | cross-platform leaf count |
+| `tools/triage_apply_self_test.sh` | 158/확장 | collision 16 invariants |
+| `tools/triage_apply_wronglang_self_test.sh` | 159 | wronglang 8 W-invariants |
+| `tools/triage_apply_dead_subtree_self_test.sh` | 159/**160 env prefix** | dead-subtree dual-mode 16 D-checks |
+| `tools/triage_apply_self_test_all.sh` | **160 신규** | aggregate 3 self-test runner |
+| `tools/production_smoke.sh` | **160 신규** | standalone G7-smoke + snapshot diff + soft-lang |
+| `tools/ci_watch.sh` | 154/**160 DRY** | production_smoke.sh 위임 |
+| `tools/wrong_language_replacement_map.json` | 159 | char substitution map |
+| `tools/build_resolver_manifest.mjs` | 159 | regex 기반 (v1) |
+| `tools/build_resolver_manifest_v2.mjs` | 159 | babel-parser AST (v2, **default**) |
+| `tools/resolver_consumer_manifest.json` | 159 | v1 산출 |
+| `tools/resolver_consumer_manifest_v2.json` | 159/**160 default** | v2 산출 |
+| `tools/p4_root_enumerator.mjs` | 159 | depth N AST enumeration |
+| `tools/p4_verdict_aggregator.mjs` | 159 | verdict CSV 생성 |
+| `tools/p4_summary.mjs` | 159 | SUMMARY 생성 |
+| `tools/p4_dead_subtree_dryrun.sh` | 159 | depth N pipeline |
+| `tools/p5_non_ko_dryrun.sh` | 158→159 | 12 non-ko dryrun |
+| `tools/p5_summary.mjs` | 158→159 | P5 SUMMARY |
 
-### 4.3 데이터 자산 (gitignored, 158차 신규)
+### 4.2 Hook gate (160 신규 G7)
 
-| 경로 | 내용 |
+| Gate | 위치 | 트리거 | 신규 |
+|---|---|---|---|
+| G2 | pre-commit | sacred SHA mismatch | -- |
+| G5 | pre-commit | leaf drift >5% | -- |
+| B1-B4 | pre-commit | backup/quarantine staged | -- |
+| G6 | pre-commit | locale staged + collision | -- |
+| **G7-self-test** | **pre-commit** | **ko.js staged → aggregate self-test 자동 invoke** | **160 신규** |
+| **G7-smoke** (de-facto) | **post-apply / CI** | **production_smoke.sh + before/after diff** | **160 신규** |
+
+### 4.3 영구 spec 문서 (docs/spec/, tracked, 160 신규 4개)
+
+| 경로 | 용도 |
 |---|---|
-| `/tmp/ko_at_ed3c4a0_parent.js` | ed3c4a0~1 snapshot (158 P2/P3 baseline) |
-| `/tmp/triage_apply_selftest_*` | self-test sandbox (PID-suffixed, trap cleanup) |
-| `/tmp/session_init_selftest_*.log` | --self-test 실패 시 로그 |
-
-### 4.4 Quarantine 누적 (gitignored, 로컬 보존)
-
-157차 그대로 (158차 신규 0): 4 dirs.
-
-### 4.5 .gitignore session 158 block
-
-session_init.sh 가 자동 추가한 7 line block. 158 종결 시점에 unstaged (정상, 159 진입 시 처리).
+| 기존 159 spec 13개 | 그대로 |
+| `docs/spec/triage_apply_v1_patch08_v2_default_and_selftest_default.md` | **160** |
+| `docs/spec/triage_apply_v1_patch09_production_smoke.md` | **160** |
+| `docs/spec/triage_apply_v1_patch10_ci_watch_integration.md` | **160** |
+| `docs/spec/CONTRIBUTING_S7_159_traps_patch.md` | **160** patch draft |
 
 ---
 
-## 5. 잔여 작업 (159차 이후)
+## 5. 잔여 작업 (161차 이후)
 
 ### 5.1 즉시 진행 가능 (외부 의존 0)
 
-158 신규:
-- **§5.1.2 precise estimator** (0.4 세션)
-- **G4 target-line gate** (0.2 세션)
-- **G5 triage-rerun gate** (0.3 세션)
-- **P4 wrong-language apply path** (0.5 세션)
-- **P4 dead-subtree apply path** (0.5 세션)
-- **P5 14 non-ko locale dry-run** (0.5 세션)
-- **--self-test default-on** (작음)
+160 신규 완료: 1순위 묶음 + G7 smoke 자동화 + DRY 통합 + §7 trap 영구화.
 
-157 carry-over:
-- v3 catalog generator fix / PAT_F + PAT_E 잔여 / gSug cross-locale sync / NEXT_SESSION 68-153 archive gap rollup / drift Category A 보존 확정
+159 carry-over:
+- parse_errors 43건 분석 (0.3 세션)
+- wrapper 함수 추적 (0.5 세션)
+- non-ko locale manifest (0.4 세션, 우선순위 ↓)
+
+157 carry-over: v3 catalog generator / PAT_F/E / gSug cross-locale sync / drift Category A 보존.
 
 ### 5.2 외부 의존 후 진행
 
-157 carry-over (사용자 결정 필요): ja/zh ruleEnginePage.dash.\* cleanup / id 6,010 / pt=ru=ar=hi 5,298 / es=fr 5,083 / de Thai 191 / vi HOLD+DEFER 잔재.
+159 신규: P4 점진 apply (사용자 review 후).
 
-156 carry-over: W0 / PAT_B / PAT_J / K / PAT_C / PAT_A / PAT_D / Emoji-prefix damage / badge20kpi / REMNANT 2+totalCac / ja-zh multi-decl canonical / T3 / T7 / PM Phase 2.
+157 carry-over: ja/zh dash.* / id 6,010 / pt=ru=ar=hi 5,298 / es=fr 5,083 / de Thai 191 / vi HOLD+DEFER.
 
-### 5.3 큰 사용자 요청 트랙 (외부 사양 필요)
+156 carry-over: W0 / PAT_B/J/K/C/A/D / Emoji-prefix damage / badge20kpi / REMNANT 2+totalCac / ja-zh multi-decl / T3 / T7.
 
-- T1 PM Phase 2
-- T4 마케팅 자동화 8 카테고리
-- T5 팀 채팅
-- T6 프로젝트 협업
+### 5.3 큰 사용자 요청 트랙 (외부 사양 필요, 사용자 명시 우선순위)
+
+- **T1 PM Phase 2**
+- **T4 마케팅 자동화** 8 카테고리
+- **T5 팀 채팅**
+- **T6 프로젝트 협업**
 
 ---
 
-## 6. 초엔터프라이즈 보강 메모 (159차 결정용)
+## 6. 초엔터프라이즈 보강 메모 (161차 결정용)
 
-154차 #5~#8 + 155차 #9~#11 + 156차 #12~#15 + 157차 #16~#19 + 158차 신규:
-
-| # | 항목 | 사유 | 158 상태 |
+| # | 항목 | 사유 | 160 상태 |
 |---|---|---|---|
-| **#5** | Hook G6 working-tree-vs-index drift | 154 W2 carry-over | 진행 |
-| **#6** | tools/session_close.sh | session_init 반대 | 진행 |
-| **#7** | tools/triage.mjs | 157차 달성 ✓ | 완료 |
-| **#8** | drift category 자동 라벨링 | 154 carry-over | 진행 |
-| **#9** | Pre-detector unit-test discipline | 155 carry-over | 진행 |
-| **#10** | Pre-execution grep verification | 155 carry-over | 진행 |
-| **#11** | Edit tool capability flag | 155 N-155-A | 진행 |
-| **#12** | AST-only consumer audit standard step | 156 carry-over | 진행 |
-| **#13** | Sacred SHA 3-way invariant pattern | 156 carry-over | 진행 |
-| **#14** | Transactional N-phase batch script template | 156 carry-over | 진행 |
-| **#15** | N-153-D 명문 준수 (recon-only / cleanup 분리) | 156 carry-over | 진행 |
-| **#16** | tools/triage_apply.mjs batch cleanup | 157 carry-over | **158차 P1+P2 완료** ✓ |
-| **#17** | G7 wrong-language hook gate | 157 carry-over | 진행 |
-| **#18** | CI workflow PR-time --mode all | 157 carry-over | 진행 |
-| **#19** | tools/triage_self_test.sh | 157 carry-over | **158차 완료** ✓ |
-| **#20 (158 신규)** | §5.1.2 precise estimator + strict G3 | 158 P2 의 safety-net 졸업 | 후보 |
-| **#21 (158 신규)** | G4 + G5 gates | spec §6 의 full 5-gate 도달 | 후보 |
-| **#22 (158 신규)** | P4 detector apply paths | wrong-language / dead-subtree 확장 | 후보 |
-| **#23 (158 신규)** | P5 non-ko locale dry-run | 14 locale plan JSON 생성기 | 후보 |
-| **#24 (158 신규)** | --self-test default-on | opt-in 안정성 입증 후 | 후보 |
+| #25 | resolver manifest v1/v2 | dead-subtree apply 의존 | 완료 |
+| #26 | P4 depth1/2/3 dry-run | candidate 발굴 | 완료 |
+| **#27** | **manifest v2 default 승격** | v1 false-positive 제거 | **160 patch08 완료** ✓ |
+| **#28** | **G7 production smoke 자동화** | 실 apply 진입 전 안전 | **160 patch09 + patch10 완료** ✓ |
+| #29 | parse_errors 43건 분석 | manifest v2 정밀도 ↑ | 후보 |
+| #30 | wrapper 함수 추적 | const tx=useT() 패턴 | 후보 |
+| #31 | P4 점진 apply 트랙 | 115 candidates 실 apply | 후보 (외부 의존) |
+| **#32** | **--self-test default-on (pre-commit G7)** | ko.js staged 자동 회귀 | **160 patch08 완료** ✓ |
+| **#33** | **detector spec repo path canonical 표준** | spec 작성 시 path 사전 grep | **160 §6 영구화** ✓ |
+| **#34** | **spec 코드 예제 import 패턴 사전 grep** | fs.existsSync 회귀 방지 | **160 §6 영구화** ✓ |
+| **#35** | **smoke 도메인 spec 사전 검증** | production domain 확인 | **160 §6 영구화** ✓ |
+| **#36 (160 신규)** | **shell set -e/pipefail idiom audit 표준** | patch09 silent abort 회피 | **160 §6 영구화** ✓ |
+| **#37 (160 신규)** | **spec 파일 저장 경로 중첩 회피 표준** | patch08/09/10 3회 재발 | **160 §7 영구화** ✓ |
 
-159차 검수자: 위 항목 별도 트랙 진입 시 사용자 결정 우선. **#20 (precise estimator)** 가 가장 logical 다음.
+161차 검수자: **#29 parse_errors 분석** 또는 **#31 P4 점진 apply (사용자 결정 후)** 가 logical 다음 후보.
 
 ---
 
-## 7. 알려진 이슈 / 주의사항 (148~158차 누적)
+## 7. 알려진 이슈 / 주의사항 (148~160차 누적)
 
-CONTRIBUTING.md §7 영구 기록 참조. 158차 신규 3건 (hybrid format):
-
-- **MSYS path-translation 비대칭**: cygpath -m 사전 변환
-- **Node ESM dynamic-import 캐시**: ?v=Date.now() query suffix
-- **Heredoc backslash double-escape**: Create/Write tool 사용
+CONTRIBUTING.md §7 영구 기록 참조. **160차 §7 trap 누적**: 158 신규 3건 + 159 신규 2건 + **160 신규 3건** = 8건+.
 
 ### 7.1 CI / 프로덕션
 
 - **배포 자동 트리거**: master push 시 자동 (deploy.yml)
-- **paths-ignore**: `**.md`, `**.txt`, `docs/**`, `.claude/**`
-- **CI 소요**: 평균 53~65초 (158차 측정)
-- **158차 종결 시점 배포**: 8 commits production + 2 docs-only paths-ignore
-- **Sacred locale 변경 없이 G2 통과**: 158차 10 commits 전부
+- **paths-ignore**: `**.md`, `**.txt`, `docs/**`, `.claude/**` (158 인계서 명시)
+- **160차 7 push**: tools/ + .githooks/ 변경 다수 → CI 트리거 모두 success
+- **CI 소요**: 평균 38~46초
 
-### 7.2 158차 검수자 행동 학습 사례 (3건)
+### 7.2 160차 검수자 행동 학습 (7건)
 
 | 사례 | 도출 |
 |---|---|
-| spec patch 파일 경로 mishap (patch01 + contributing_patch_158 양쪽 발생) | 저장 경로 안내 시 repo root 기준 절대경로 명시 의무 (보강 #25 후보) |
-| spec §5.1 의 identical leaf preserve 방향 instruction 불일치 | spec 변경 시 instruction cross-check 의무 |
-| ko.js 경로 추정 오류 | CLAUDE.md / NEXT_SESSION.md 우선 참조 |
-
-159차 검수자: 위 3건 인지.
+| spec path regex 오류 | 161차: §6 #33 의무 준수 |
+| spec import 패턴 오류 | 161차: §6 #34 의무 준수 |
+| smoke 도메인 typo | 161차: §6 #35 의무 준수 |
+| spec shell idiom 미대비 | 161차: §6 shell idiom audit 의무 준수 |
+| **NEXT_SESSION 초안 사용자 미승인 작성** | **161차: 인계서 작성 전 사용자 명시 승인 의무** |
+| **작업 여력 잔존 시 추가 트랙 진입 적극성 부족** | **161차: 핵심 목표 달성 후 작업 여력 명시 확인 + 추가 트랙 후보 제시 의무** |
+| CC tool 의 본문 출력 압축 회피 우회 | 161차: 짧은 범위 + `cat -n` + `printf '=== ===\n'` 패턴 우선 |
 
 ---
 
 ## 8. 핵심 메트릭 요약
 
-### 8.1 i18n 전체 진행 누적 (147~158차)
+### 8.1 i18n 전체 진행 누적 (147~160차)
 
 | 카테고리 | 처리 결과 |
 |---|---|
-| 147~157 (147 Japanese pollution ~ 157 triage 영구화) | 157차 인계서 참조 |
-| **158차 ko 2 leaf 수정** | 배송中 → 배송중 (orderHub.tabShipped, statusShipped) ✓ |
-| **158차 P2 hierarchical overlap fix** | data destruction risk 사전 발견 + spec §5.1.1 영구화 ✓ |
-| **158차 P3 regression validation** | 13 invariants 자동 검증 (ed3c4a0~1 baseline) ✓ |
+| 147~159 | 159차 인계서 참조 |
+| **160 patch08 manifest v2 default** | RESOLVER_MANIFEST_DEFAULT + escape hatch ✓ |
+| **160 patch08 self-test aggregate** | triage_apply_self_test_all.sh ✓ |
+| **160 patch08 pre-commit G7** | ko.js staged 시 자동 invoke ✓ |
+| **160 patch09 production_smoke standalone** | snapshot diff + soft-lang ✓ |
+| **160 patch10 ci_watch DRY 통합** | embedded smoke 제거, 단일 진입점 ✓ |
+| **160 CONTRIBUTING §6 + §7 영구화** | spec drafting standards + 6 신규 trap ✓ |
 
-### 8.2 ko.js leaf trajectory (147~158)
+### 8.2 ko.js leaf trajectory (147~160)
 
 | Session | Leaves | Δ |
 |---|---:|---:|
@@ -356,63 +405,72 @@ CONTRIBUTING.md §7 영구 기록 참조. 158차 신규 3건 (hybrid format):
 | 155 종결 | 32,090 | -6 |
 | 156 종결 | 30,658 | -1,432 |
 | 157 종결 | 30,656 | -2 |
-| **158 종결** | **30,656** | **0** (size 보존 fix only) |
+| 158 종결 | 30,656 | 0 |
+| 159 종결 | 30,656 | 0 |
+| **160 종결** | **30,656** | **0** (tooling/hooks/docs only) |
 
-### 8.3 158차 작업 결과
+**P4 dry-run 잠재 감축** (사용자 review 후 실 apply 시):
+- depth=2 73 candidates: 최대 -11,390 leaves
+- depth=3 115 candidates: 최대 -6,770 leaves
+
+### 8.3 160차 작업 결과
 
 | 항목 | 값 |
 |---|---|
-| commit | 10 |
-| push | 10 |
-| CI deploys | 8 production + 2 paths-ignore |
-| smoke dogfood | 8회 |
-| 신규 영구 도구 | 3 (triage_apply.mjs / leaf_count.mjs / triage_apply_self_test.sh) |
-| 기존 도구 확장 | 2 (triage.mjs --src / session_init.sh --self-test) |
-| 신규 영구 문서 | 1 spec (287 lines) + patch02 흡수 |
-| CONTRIBUTING.md 갱신 | 3 trap entries (hybrid format 도입) |
-| 운영 원칙 신규 | 0 (N-157-A 직접 실증) |
-| i18n entries 수정 (ko) | 2 leaves |
+| commit | 7 |
+| push | 4 batch |
+| CI deploys | 다수 success |
+| smoke dogfood | 다회 (HTTP 200 / lang="ko") |
+| 신규 영구 도구 | 2 (triage_apply_self_test_all.sh + production_smoke.sh) |
+| 신규 영구 문서 | 4 spec |
+| 신규 SUMMARY (tracked) | 0 |
+| CONTRIBUTING.md 갱신 | §6 신규 sub-section + §7 trap 6건 ✓ |
+| 운영 원칙 신규 | 0 |
+| i18n entries 수정 (ko) | 0 |
 | ko.js size 변화 | 0 B |
-| ko wrong-language | 2 → 0 |
-| 검수자 학습 사례 | 3건 |
-| 신규 트랙 후보 | 5 (#20~#24 보강 메모) |
+| 검수자 학습 사례 | 7건 |
+| 신규 트랙 후보 | 6 (#32~#37 보강 메모) |
 
 ---
 
-## 9. 159차 첫 메시지 권장 패턴
+## 9. 161차 첫 메시지 권장 패턴
 
 ### 사용자 → 검수자
 
-"158차 인계서 첨부합니다. 159차 [트랙 결정 또는 구체 작업 지시]. [NEXT_SESSION.md 첨부]"
+"160차 인계서 첨부합니다. 161차 [T1~T6 중 하나 또는 #29/#31 결정]. [NEXT_SESSION.md 첨부]"
 
 ### 검수자 첫 응답 의무
 
-- 운영 원칙 인지 명시 (특히 N-157-A + N-156-A + N-155-A + N-154-A~D + N-153-A 누적)
-- `tools/session_init.sh --session 159 --self-test` 실행 권유 (158 신규 활용)
+- 운영 원칙 인지 명시 (N-157-A + N-156-A + N-155-A + N-154-A~D + N-153-A 누적)
+- `tools/session_init.sh --session 161 --self-test` 실행 권유
 - 트랙 결정 시 검수자 추천 1개 명시 (N-152-B 의무)
 - t bash 명령은 `cd /e/project/GeniegoROI &&` prefix (N-153-A)
-- 사용자 저장 부담 줄이기 위해 CC Edit tool 우선 (N-154-B)
+- CC Edit tool 우선 (N-154-B)
 - consumer audit 4-layer 의무 (156 신규)
 - sacred 파일 cleanup 시 N-79 addendum + 3-way invariant (156 신규)
-- detector 반복 패턴 발견 시 즉시 productionise 검토 (N-157-A)
-- spec 파일 저장 경로 안내 시 repo root 기준 절대경로 명시 (158 학습)
+- detector 반복 패턴 발견 시 즉시 productionise (N-157-A)
+- **§6 Spec drafting standards 4건 의무 준수** (160 신규): repo path / import 패턴 / production 도메인 / shell idiom 사전 grep
+- **spec 파일 안내 시 절대경로 + dropdown 주의 + 저장 후 find 검증 3건 명시** (160 §7 trap)
+- **NEXT_SESSION 인계서 작성 전 사용자 명시 승인 의무** (160 검수자 자기-비판)
+- **작업 여력 잔존 시 추가 트랙 후보 제시 의무** (160 검수자 자기-비판)
 - 핵심만 짧게, 한 번에 하나씩, 세션 종결은 사용자 결정 후에만
-- **PM 본 작업 진입 시 새 채팅 세션 분리 의무** (N-152-F)
+- **PM 본 작업 (T1~T6) 진입 시 새 채팅 세션 분리 의무** (N-152-F)
 - **N-156-A 정신상 추가 작업 가능 시 적극 진행**
 
-### 검수자 추천 159차 진입 트랙 (N-152-B)
+### 검수자 추천 161차 진입 트랙 (N-152-B)
 
-1. **§5.1.2 precise estimator + strict G3** (외부 의존 0, P2 safety-net 졸업, 0.4 세션)
-   - leaf-shadowed Δ=0 정확 계산
-   - block_identical Δ=-leaf_count 정밀화
-   - G3 strict equality 활성
-   - 158 spec §5.1.3 의 "도입 시점" 도달
+**1순위 (사용자 명시 우선순위 T1~T6)**:
+- 사용자 지정 T1~T6 중 1개 spec 작성
+- 검수자 spec draft 작성 → 사용자 저장 → CC repo 반영
+- 본 작업은 별도 세션 (N-152-F)
 
-2. (작은 응집 선호 시): **G5 triage-rerun gate** (0.3 세션, P2 검증 강화)
+**2순위 (작업 여력 최대 원칙 시, 외부 의존 0)**:
+- **parse_errors 43건 분석** (#29, 0.3 세션)
 
-3. (사용자 review 필요 데이터 확보 시): **P5 14 non-ko locale dry-run** (0.5 세션)
+**3순위 (사용자 결정 후)**:
+- **P4 점진 apply 시작** (#31, patch09/10 G7 smoke 로 안전 보장)
 
-4. (사용자 결정 후): ja/zh ruleEnginePage.dash.\* cleanup (sacred SHA + N-79)
+**4순위 (사용자 결정 후)**: ja/zh ruleEnginePage.dash.\* cleanup
 
 ---
 
