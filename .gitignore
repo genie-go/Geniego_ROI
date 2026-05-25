@@ -342,3 +342,6 @@ session160_*.json
 session160_*.md
 session160_*.txt
 session160_*.sh
+
+# patch09: production_smoke.sh snapshots
+.smoke_snapshots/
