@@ -17,6 +17,7 @@
 #   tools/session_init.sh                  # auto-infer from NEXT_SESSION.md
 #   tools/session_init.sh --session 155    # explicit
 #   tools/session_init.sh --dry-run        # report only, no .gitignore patch
+#   tools/session_init.sh --self-test      # P3 regression invariants 검증 (옵션, ~40s)
 #   tools/session_init.sh --help
 #
 # Exit codes
@@ -37,12 +38,14 @@ cd "$REPO_ROOT"
 # ---------------------------------------------------------------------------
 SESSION=""
 DRY_RUN=0
+RUN_SELFTEST=0
 while [ $# -gt 0 ]; do
   case "$1" in
     --session) shift; SESSION="$1" ;;
     --dry-run) DRY_RUN=1 ;;
+    --self-test) RUN_SELFTEST=1 ;;
     --help|-h)
-      sed -n '2,25p' "$0"; exit 0 ;;
+      sed -n '2,26p' "$0"; exit 0 ;;
     -*) echo "❌ unknown flag: $1"; exit 1 ;;
     *)  echo "❌ unexpected arg: $1"; exit 1 ;;
   esac
@@ -108,15 +111,8 @@ KO_SIZE=$(wc -c < frontend/src/i18n/locales/ko.js)
 JA_SHA=$(sha256sum frontend/src/i18n/locales/ja.js | awk '{print $1}')
 ZH_SHA=$(sha256sum frontend/src/i18n/locales/zh.js | awk '{print $1}')
 
-# Leaf count via inline node (acorn already in root devDeps)
-KO_LEAVES=$(node -e "
-  const fs=require('fs');const {parse}=require('acorn');
-  const src=fs.readFileSync('frontend/src/i18n/locales/ko.js','utf8');
-  const ast=parse(src,{ecmaVersion:'latest',sourceType:'module'});
-  function obj(n){for(const b of n.body)if(b.type==='ExportDefaultDeclaration')return b.declaration;return null}
-  function L(o){if(!o||o.type!=='ObjectExpression')return 0;let n=0;for(const p of o.properties){if(p.type!=='Property')continue;const v=p.value;if(v&&v.type==='ObjectExpression')n+=L(v);else n+=1}return n}
-  console.log(L(obj(ast)));
-")
+# leaf_count.mjs 사용 (cross-tool consistency, 158 commit 0d1b0f6)
+KO_LEAVES=$(node tools/leaf_count.mjs frontend/src/i18n/locales/ko.js 2>/dev/null | awk -F': ' '{print $2}' | tr -d ' ')
 
 # Baseline comparison
 BASELINE=".githooks/baseline.json"
@@ -143,6 +139,30 @@ QUAR_LIST=$(ls -d frontend/_quarantine/*/ 2>/dev/null | xargs -n1 basename 2>/de
 UNTRACKED=$(git status --short | grep -c '^??' || true)
 
 # ---------------------------------------------------------------------------
+# Optional: P3 regression invariants (158 N-157-A Tier 2)
+# ---------------------------------------------------------------------------
+SELFTEST_STATUS="skipped"
+SELFTEST_EXIT=0
+if [ "$RUN_SELFTEST" = "1" ]; then
+  echo ""
+  echo "─────────────────────────────────────────────────────────────────────"
+  echo " Optional: triage_apply self-test (13 invariants)"
+  echo "─────────────────────────────────────────────────────────────────────"
+  set +e
+  bash tools/triage_apply_self_test.sh > /tmp/session_init_selftest_$$.log 2>&1
+  SELFTEST_EXIT=$?
+  set -e
+  if [ "$SELFTEST_EXIT" = "0" ]; then
+    SELFTEST_STATUS="PASS (13/13)"
+    echo "  ✓ all 13 invariants pass"
+  else
+    SELFTEST_STATUS="FAIL (exit $SELFTEST_EXIT)"
+    echo "  ✗ self-test failed (exit $SELFTEST_EXIT) — see /tmp/session_init_selftest_$$.log"
+    tail -10 /tmp/session_init_selftest_$$.log | sed 's/^/    /'
+  fi
+fi
+
+# ---------------------------------------------------------------------------
 # Step 3 — Emit reviewer-friendly snippet
 # ---------------------------------------------------------------------------
 cat <<EOF
@@ -159,6 +179,7 @@ zh.js SHA    : ${ZH_SHA:0:16}…  ${ZH_MATCH}
 baseline ver : ${BL_VERSION}
 quarantine   : ${QUAR_DIRS} dirs
 untracked    : ${UNTRACKED} files
+self-test    : ${SELFTEST_STATUS}
 
 ─────────────────────────────────────────────────────────────────────
  Markdown snippet (paste into reviewer chat, optional)
@@ -171,6 +192,7 @@ Session ${SESSION} reconnaissance:
 - zh SHA ${ZH_SHA:0:16}… ${ZH_MATCH}
 - quarantine: ${QUAR_DIRS} dirs
 - untracked: ${UNTRACKED}
+- self-test: ${SELFTEST_STATUS}
 \`\`\`
 ─────────────────────────────────────────────────────────────────────
 EOF
