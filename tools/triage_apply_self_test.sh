@@ -147,15 +147,24 @@ check "I5: apply exit code" "$APPLY_RC" "0"
 # I6: post leaf count (no data loss)
 # ─────────────────────────────────────────────────────────────────────────────
 echo ""
-echo "[5/9] post leaf count"
+echo "[5/10] post leaf count"
 POST_LEAVES=$(node tools/leaf_count.mjs "$SANDBOX" 2>/dev/null | awk -F': ' '{print $2}' | tr -d ' ')
 check "I6: post leaf count (loss 0)" "$POST_LEAVES" "$EXPECTED_POST_LEAVES"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# I14: precise estimator equality (patch03 §5.1)
+# ─────────────────────────────────────────────────────────────────────────────
+echo ""
+echo "[6/10] precise estimator equality"
+ESTIMATED_DELTA=$(node -e "const p=JSON.parse(require('fs').readFileSync('$PLAN_WIN','utf-8')); console.log(p.summary.estimated_leaf_delta);")
+ACTUAL_DELTA=$((POST_LEAVES - PRE_LEAVES))
+check "I14: estimator equality (Δ=$ESTIMATED_DELTA, post-pre=$ACTUAL_DELTA)" "$ESTIMATED_DELTA" "$ACTUAL_DELTA"
 
 # ─────────────────────────────────────────────────────────────────────────────
 # I7: post detector — collisions resolved
 # ─────────────────────────────────────────────────────────────────────────────
 echo ""
-echo "[6/9] post detector"
+echo "[7/10] post detector"
 node tools/triage.mjs --locale "$LOCALE" --mode collision --src "$SANDBOX" --csv "/tmp/triage_apply_selftest_$$_post.csv" --quiet >/dev/null
 POST_RC=$?
 POST_COLLISIONS=$(($(wc -l < "/tmp/triage_apply_selftest_$$_post.csv") - 1))
@@ -167,7 +176,7 @@ rm -f "/tmp/triage_apply_selftest_$$_post.csv"
 # I8: sacred SHA unchanged
 # ─────────────────────────────────────────────────────────────────────────────
 echo ""
-echo "[7/9] sacred SHA invariance"
+echo "[8/10] sacred SHA invariance"
 POST_JA_SHA=$(sha256sum frontend/src/i18n/locales/ja.js | awk '{print $1}')
 POST_ZH_SHA=$(sha256sum frontend/src/i18n/locales/zh.js | awk '{print $1}')
 check "I8a: ja.js SHA" "$POST_JA_SHA" "$PRE_JA_SHA"
@@ -177,7 +186,7 @@ check "I8b: zh.js SHA" "$POST_ZH_SHA" "$PRE_ZH_SHA"
 # I9: graph subtree intact (16 keys)
 # ─────────────────────────────────────────────────────────────────────────────
 echo ""
-echo "[8/9] graph subtree preservation"
+echo "[9/10] graph subtree preservation"
 GRAPH_KEYS=$(node --input-type=module -e "
 import { pathToFileURL } from 'node:url';
 import { resolve } from 'node:path';
@@ -192,7 +201,7 @@ check "I9: graph subtree keys" "$GRAPH_KEYS" "$EXPECTED_GRAPH_KEYS"
 # Summary
 # ─────────────────────────────────────────────────────────────────────────────
 echo ""
-echo "[9/9] summary"
+echo "[10/10] summary"
 echo "═══════════════════════════════════════════════════════════════════════"
 if [ ${#FAILED[@]} -eq 0 ]; then
   echo " ✓ ALL ${#INFO[@]} INVARIANTS PASS"
