@@ -773,35 +773,74 @@ function countUniqueCollisionPaths(csvPath) {
   return paths.size;
 }
 
+function countCsvDataRows(csvPath) {
+  if (!existsSync(csvPath)) return 0;
+  const text = readFileSync(csvPath, 'utf-8');
+  const lines = text.split(/\r?\n/).filter(l => l.length > 0);
+  return Math.max(0, lines.length - 1);  // header 제외
+}
+
 async function validateGates(plan, postGates, g3Mode = 'strict', opts = {}) {
   const failed = [];
   const pre = plan.gates;
   const summary = plan.summary;
+  const isWronglang = opts.detector === 'wrong-language';
+
+  // G2 — sacred SHA (always)
   if (postGates.pre_ja_sha !== pre.pre_ja_sha) failed.push('G2_ja_sha_changed');
   if (postGates.pre_zh_sha !== pre.pre_zh_sha) failed.push('G2_zh_sha_changed');
-  // patch03 §4 — G3 strict equality (default) with safety-net opt-in
+
+  // G3 — leaf count
+  //   collision: estimated_leaf_delta != 0 일반적; strict/safety-net 선택
+  //   wrong-language (patch06 §6): estimated_leaf_delta = 0 항상; strict-zero (post == pre)
   const expectedLeaves = pre.pre_leaves + summary.estimated_leaf_delta;
   if (postGates.pre_leaves != null && expectedLeaves != null) {
-    if (g3Mode === 'safety-net') {
+    if (g3Mode === 'safety-net' && !isWronglang) {
       if (postGates.pre_leaves < expectedLeaves) {
         failed.push(`G3_leaf_loss (post ${postGates.pre_leaves} < expected ${expectedLeaves}, mode=safety-net)`);
       }
     } else {
       if (postGates.pre_leaves !== expectedLeaves) {
-        failed.push(`G3_leaf_strict (post ${postGates.pre_leaves} !== expected ${expectedLeaves}, mode=strict)`);
+        const modeLabel = isWronglang ? 'wrong-language-strict-zero' : 'strict';
+        failed.push(`G3_leaf_strict (post ${postGates.pre_leaves} !== expected ${expectedLeaves}, mode=${modeLabel})`);
       }
     }
   }
-  if (postGates.pre_size >= pre.pre_size) failed.push('G1_size_did_not_decrease');
 
-  // patch05 §2 — G4 target-line (AST-level survivor check)
+  // G1 — size
+  //   collision: post < pre (감소)
+  //   wrong-language (patch06 §6): post ≈ pre (substitute count × 4 byte tolerance)
+  if (!isWronglang) {
+    if (postGates.pre_size >= pre.pre_size) failed.push('G1_size_did_not_decrease');
+  } else {
+    const tolerance = (summary.substitute || 0) * 4;
+    if (postGates.pre_size != null && pre.pre_size != null) {
+      if (Math.abs(postGates.pre_size - pre.pre_size) > tolerance) {
+        failed.push(`G1_size_drift_wronglang (|post ${postGates.pre_size} - pre ${pre.pre_size}| > ε=${tolerance})`);
+      }
+    }
+  }
+
+  // G4 — target-line / path-preserve (AST-level)
   const g4Mode = opts.g4_mode || 'strict';
   if (g4Mode !== 'skip') {
     const targetPath = opts.target || localeFilePath(opts.locale);
     const postAST = await loadLocaleAST(targetPath);
     if (postAST == null) {
       failed.push('G4_post_ast_load_failed');
+    } else if (isWronglang) {
+      // patch06 §6 — substitute path 모두 post-AST 에 존재 (path preserve)
+      for (let i = 0; i < plan.decisions.length; i++) {
+        const d = plan.decisions[i];
+        if (d.action !== 'substitute') continue;
+        const resolved = resolvePath(postAST, d.key_path);
+        if (resolved === undefined) {
+          failed.push(`G4_path_lost_wronglang (decision[${i}] key_path=${d.key_path})`);
+          break;
+        }
+      }
     } else {
+      // patch05 — collision: delete decision survivor check
       for (let i = 0; i < plan.decisions.length; i++) {
         const d = plan.decisions[i];
         if (d.action !== 'delete') continue;
@@ -809,38 +848,83 @@ async function validateGates(plan, postGates, g3Mode = 'strict', opts = {}) {
         const resolved = resolvePath(postAST, d.key_path);
         if (resolved === undefined) {
           failed.push(`G4_target_line_drift (decision[${i}] key_path=${d.key_path} kind=${d.kind})`);
-          break;  // 첫 위반에서 중단 (rollback 트리거)
+          break;
         }
       }
     }
   }
 
-  // patch04 §2 — G5 triage-rerun (collision detector only, unique-path semantics)
+  // G5 — detector rerun
+  //   collision: unique-path 산술
+  //   wrong-language (patch06 §6): post wronglang count == pre - substitute count
   const g5Mode = opts.g5_mode || 'strict';
-  if (opts.detector === 'collision' && g5Mode !== 'skip') {
-    const postCsv = join(tmpdir(), `triage_apply_g5_${process.pid}.csv`);
+  if (g5Mode !== 'skip') {
     const targetPath = opts.target || localeFilePath(opts.locale);
-    const rerun = spawnSync('node', [
-      'tools/triage.mjs',
-      '--locale', opts.locale,
-      '--mode', 'collision',
-      '--src', targetPath,
-      '--csv', postCsv,
-      '--quiet',
-    ], { encoding: 'utf-8' });
-    // triage.mjs: exit 0 = no findings, exit 1 = findings (both ok for G5)
-    if (rerun.status !== 0 && rerun.status !== 1) {
-      failed.push(`G5_detector_rerun_failed (rc=${rerun.status})`);
-    } else {
-      const postUniquePaths = countUniqueCollisionPaths(postCsv);
-      const expected = (pre.pre_collision_count ?? 0) - (pre.collision_delete_count ?? 0);
-      if (postUniquePaths !== expected) {
-        failed.push(`G5_collision_drift (post ${postUniquePaths} !== expected ${expected})`);
+    if (opts.detector === 'collision') {
+      const postCsv = join(tmpdir(), `triage_apply_g5_${process.pid}.csv`);
+      const rerun = spawnSync('node', [
+        'tools/triage.mjs', '--locale', opts.locale, '--mode', 'collision',
+        '--src', targetPath, '--csv', postCsv, '--quiet',
+      ], { encoding: 'utf-8' });
+      if (rerun.status !== 0 && rerun.status !== 1) {
+        failed.push(`G5_detector_rerun_failed (rc=${rerun.status})`);
+      } else {
+        const postUniquePaths = countUniqueCollisionPaths(postCsv);
+        const expected = (pre.pre_collision_count ?? 0) - (pre.collision_delete_count ?? 0);
+        if (postUniquePaths !== expected) {
+          failed.push(`G5_collision_drift (post ${postUniquePaths} !== expected ${expected})`);
+        }
+        try { unlinkSync(postCsv); } catch {}
       }
-      try { unlinkSync(postCsv); } catch {}
+    } else if (isWronglang) {
+      const postCsv = join(tmpdir(), `triage_apply_g5_wl_${process.pid}.csv`);
+      const rerun = spawnSync('node', [
+        'tools/triage.mjs', '--locale', opts.locale, '--mode', 'wrong-language',
+        '--src', targetPath, '--csv', postCsv, '--quiet',
+      ], { encoding: 'utf-8' });
+      if (rerun.status !== 0 && rerun.status !== 1) {
+        failed.push(`G5_wronglang_rerun_failed (rc=${rerun.status})`);
+      } else {
+        const postCount = countCsvDataRows(postCsv);
+        const expected = (pre.pre_wronglang_count ?? 0) - (pre.wronglang_substitute_count ?? 0);
+        if (postCount !== expected) {
+          failed.push(`G5_wronglang_drift (post ${postCount} !== expected ${expected})`);
+        }
+        try { unlinkSync(postCsv); } catch {}
+      }
     }
   }
-  // G4 (target lines empty) intentionally out of scope here.
+
+  // G6 — value-content (wrong-language 한정, patch06 §6)
+  //   substituted line 에 ch_orig 없음 + ch_replace 있음
+  if (isWronglang) {
+    const localePath = opts.target || localeFilePath(opts.locale);
+    if (existsSync(localePath)) {
+      const src = readFileSync(localePath, 'utf-8');
+      const parts = src.split(/(\r?\n)/);
+      for (let i = 0; i < plan.decisions.length; i++) {
+        const d = plan.decisions[i];
+        if (d.action !== 'substitute') continue;
+        const idx = (d.line - 1) * 2;
+        if (idx >= parts.length) {
+          failed.push(`G6_line_out_of_range (decision[${i}] line=${d.line})`);
+          break;
+        }
+        const line = parts[idx];
+        if (line.includes(d.ch_orig)) {
+          failed.push(`G6_ch_orig_still_present (decision[${i}] key_path=${d.key_path} line=${d.line} ch_orig='${d.ch_orig}')`);
+          break;
+        }
+        if (!line.includes(d.ch_replace)) {
+          failed.push(`G6_ch_replace_missing (decision[${i}] key_path=${d.key_path} line=${d.line} ch_replace='${d.ch_replace}')`);
+          break;
+        }
+      }
+    } else {
+      failed.push(`G6_locale_file_missing (${localePath})`);
+    }
+  }
+
   return { ok: failed.length === 0, failed };
 }
 
@@ -918,9 +1002,16 @@ async function main() {
       rollback(localePath);
       process.exit(1);
     }
-    const g4Label = `, G4 target-line [${opts.g4_mode}]`;
-    const g5Label = opts.detector === 'collision' ? `, G5 collision [${opts.g5_mode}]` : '';
-    process.stdout.write(`\n✓ All gates passed (G1 size↓, G2 sacred SHA, G3 leaf count [${opts.g3_mode}]${g4Label}${g5Label}). Changes written.\n`);
+    const isWl = opts.detector === 'wrong-language';
+    const g1Label = isWl ? 'G1 size≈' : 'G1 size↓';
+    const g3Label = isWl ? 'G3 leaf count [strict-zero]' : `G3 leaf count [${opts.g3_mode}]`;
+    const g4Label = isWl ? `G4 path-preserve [${opts.g4_mode}]` : `G4 target-line [${opts.g4_mode}]`;
+    const g5Label = isWl ? `G5 wrong-language [${opts.g5_mode}]`
+                  : (opts.detector === 'collision' ? `G5 collision [${opts.g5_mode}]` : null);
+    const parts = [g1Label, 'G2 sacred SHA', g3Label, g4Label];
+    if (g5Label) parts.push(g5Label);
+    if (isWl) parts.push('G6 value-content [strict]');
+    process.stdout.write(`\n✓ All gates passed (${parts.join(', ')}). Changes written.\n`);
     process.stdout.write(`  size:   ${plan.gates.pre_size?.toLocaleString()} → ${postGates.pre_size?.toLocaleString()}\n`);
     process.stdout.write(`  leaves: ${plan.gates.pre_leaves?.toLocaleString()} → ${postGates.pre_leaves?.toLocaleString()}\n`);
   }
