@@ -28,6 +28,7 @@ const VALID_G4_MODES   = new Set(['strict', 'skip']);
 const VALID_G5_MODES   = new Set(['strict', 'skip']);
 const COLLISION_HEADER = ['locale','path','kind','group_index','line','key_type','leaf_count','first_child_key_type','status','value_preview'];
 const WRONGLANG_HEADER = ['locale','path','line','value_preview','detected_script','char_count','total_chars','ratio','severity'];
+const DEAD_SUBTREE_HEADER = ['locale','root_path','status','verdict','subtree_leaf_count','total_consumers','root_line'];  // patch07 §3.2
 const LOCALE_DIR       = 'frontend/src/i18n/locales';
 const WRONGLANG_MAP_PATH = 'tools/wrong_language_replacement_map.json';
 
@@ -69,6 +70,9 @@ Options:
   --g5-mode <mode>     strict | skip (default: strict, collision detector 한정).
                        strict = post unique-path detector rerun 후 expected 와 정합
                        skip   = G5 비활성 (회귀 대비 비상 옵션)
+  --resolver-manifest <path>
+                       dead-subtree detector 전용. resolver consumer manifest JSON 경로.
+                       부재 시 §4.3 conservative skip (모든 row 를 skip, apply 0건).
   --help               이 메시지 출력 후 종료
 
 Phase : P1 (collision dry-run only). P2 apply / P4 other detectors 는 stub.
@@ -89,6 +93,7 @@ function parseArgs(argv) {
     g3_mode: 'strict',  // patch03 §4 default
     g4_mode: 'strict',  // patch05 §3.2 default
     g5_mode: 'strict',  // patch04 §3.3 default
+    resolver_manifest: null,  // patch07 §4.3 (optional; absent → conservative skip)
   };
   const args = argv.slice(2);
   for (let i = 0; i < args.length; i++) {
@@ -106,6 +111,7 @@ function parseArgs(argv) {
       case '--g3-mode':  opts.g3_mode = args[++i]; break;
       case '--g4-mode':  opts.g4_mode = args[++i]; break;
       case '--g5-mode':  opts.g5_mode = args[++i]; break;
+      case '--resolver-manifest': opts.resolver_manifest = args[++i]; break;
       default: die(`unknown flag: ${a}\n\n${usage()}`);
     }
   }
@@ -419,7 +425,8 @@ function sha256Hex8(path) {
 }
 
 function currentGates(mainPath, preLeafCount, preCollisionCount = null, collisionDeleteCount = null,
-                     preWronglangCount = null, wronglangSubstituteCount = null) {
+                     preWronglangCount = null, wronglangSubstituteCount = null,
+                     preDeadSubtreeCount = null, deadSubtreeDeleteCount = null, deadSubtreeLeafSum = null) {
   // sacred (ja/zh) 는 항상 canonical 경로에서 — --target 으로 우회 불가
   const ja = localeFilePath('ja');
   const zh = localeFilePath('zh');
@@ -432,6 +439,9 @@ function currentGates(mainPath, preLeafCount, preCollisionCount = null, collisio
     collision_delete_count: collisionDeleteCount,     // patch04 §3.1 (direct ∪ shadow)
     pre_wronglang_count: preWronglangCount,           // patch06 §4.2 (wrong-language detector rows)
     wronglang_substitute_count: wronglangSubstituteCount,
+    pre_dead_subtree_count: preDeadSubtreeCount,      // patch07 §4 (dead-subtree verdict rows)
+    dead_subtree_delete_count: deadSubtreeDeleteCount,
+    dead_subtree_leaf_sum: deadSubtreeLeafSum,         // sum of subtree_leaf_count over delete decisions
   };
 }
 
@@ -693,6 +703,145 @@ function runTriageWronglang(locale) {
   return tmpCsv;
 }
 
+// ─────────────────────────────────────────────────────────────────────
+// patch07 — dead-subtree detector apply path (plumbing-only when manifest absent)
+// ─────────────────────────────────────────────────────────────────────
+
+function loadResolverManifest(path) {
+  // §4.3 — manifest 부재 시 null 반환 → 모든 row conservative skip
+  if (!path) return null;
+  if (!existsSync(path)) {
+    process.stderr.write(`[triage_apply] resolver manifest not found: ${path} (conservative skip mode)\n`);
+    return null;
+  }
+  try { return JSON.parse(readFileSync(path, 'utf-8')); }
+  catch (e) { die(`failed to parse resolver manifest ${path}: ${e.message}`); }
+}
+
+function makeDeadSubtreeDelete(row_index, r, file) {
+  const leafCount = Number(r.subtree_leaf_count) || 0;
+  return {
+    row_index,
+    detector: 'dead-subtree',
+    action: 'delete',
+    kind: 'block',  // dead-subtree 는 root subtree 전체 — block 으로 통일
+    key_path: r.root_path,
+    status: r.status,
+    verdict: r.verdict,
+    rationale: `dead-subtree (status=${r.status}, ${r.total_consumers} consumers)`,
+    target: { file, line: Number(r.root_line) || 0, leaf_count: leafCount },
+    safety: { is_sacred: false },
+  };
+}
+
+function makeDeadSubtreeSkip(row_index, r, file, rationale) {
+  return {
+    row_index,
+    detector: 'dead-subtree',
+    action: 'skip',
+    kind: 'block',
+    key_path: r.root_path,
+    status: r.status,
+    verdict: r.verdict,
+    rationale,
+    target: { file, line: Number(r.root_line) || 0 },
+  };
+}
+
+function buildPlanDeadSubtree(rows, options, preLeafCount, srcAST) {
+  // patch07 §4.2 — 4-step false-positive 검증 (manifest 부재 시 모두 skip)
+  const localePath = options.target || localeFilePath(options.locale);
+  const manifest = loadResolverManifest(options.resolver_manifest);
+  const conservative = manifest == null;
+  const decisions = [];
+  let idx = 0;
+
+  for (const r of rows) {
+    // Step 0: AST drift 검사 (현 AST 에 path 부재 → skip)
+    const resolved = resolvePath(srcAST, r.root_path);
+    if (resolved === undefined) {
+      decisions.push(makeDeadSubtreeSkip(idx++, r, localePath, `path not in current AST (drift)`));
+      continue;
+    }
+
+    // Conservative skip: manifest 부재 시 모든 row skip (안전)
+    if (conservative) {
+      decisions.push(makeDeadSubtreeSkip(idx++, r, localePath,
+        `manifest unavailable; conservative skip (status=${r.status}, verdict=${r.verdict})`));
+      continue;
+    }
+
+    // Step 1: detector verdict 신뢰 (status === 'live' 등)
+    if (r.status !== 'dead' || r.verdict !== 'safe_to_delete') {
+      decisions.push(makeDeadSubtreeSkip(idx++, r, localePath,
+        `not dead (status=${r.status}, verdict=${r.verdict})`));
+      continue;
+    }
+    if (Number(r.total_consumers) > 0) {
+      decisions.push(makeDeadSubtreeSkip(idx++, r, localePath,
+        `has ${r.total_consumers} consumers`));
+      continue;
+    }
+
+    // Step 2: prefix retry candidate (manifest 검사) — 별도 manifest schema 정의 필요
+    //   여기서는 stub. manifest 가 정의되면 활성화.
+    // Step 3: dynamic key suspicion — stub.
+
+    // 통과: delete
+    decisions.push(makeDeadSubtreeDelete(idx++, r, localePath));
+  }
+
+  // dead-subtree: estimated_leaf_delta = -sum(deleted leaf_count)
+  let leafSum = 0;
+  for (const d of decisions) {
+    if (d.action === 'delete') {
+      d.estimated_leaf_delta = -(d.target.leaf_count || 0);
+      leafSum += (d.target.leaf_count || 0);
+    } else {
+      d.estimated_leaf_delta = 0;
+    }
+  }
+
+  const summary = summarize(decisions, -leafSum);
+
+  return {
+    version: 1,
+    tool: 'triage_apply',
+    generated_at: new Date().toISOString(),
+    input: {
+      locale: options.locale,
+      detector: options.detector,
+      csv: options.input,
+      row_count: rows.length,
+      resolver_manifest: options.resolver_manifest,
+      conservative_skip: conservative,
+    },
+    decisions,
+    summary,
+    gates: currentGates(localePath, preLeafCount, null, null, null, null,
+                        rows.length, summary.delete, leafSum),
+  };
+}
+
+function applyDeadSubtree(plan, localePath) {
+  // patch07 §5.1 — block-range deletion. collision applier (applyDeletions) 와 동일 패턴.
+  const deletes = plan.decisions
+    .filter(d => d.action === 'delete')
+    .sort((a, b) => b.target.line - a.target.line);
+  if (deletes.length === 0) return;  // conservative-skip mode no-op
+  const original = readFileSync(localePath, 'utf-8');
+  const lines = original.split('\n');
+  for (const d of deletes) {
+    const startIdx = d.target.line - 1;
+    const endIdx = findBlockEnd(lines, startIdx);
+    if (endIdx === -1) throw new Error(`unable to find block end for line ${d.target.line} (key=${d.key_path})`);
+    lines.splice(startIdx, endIdx - startIdx + 1);
+  }
+  const tmpPath = localePath + '.triage_apply_tmp';
+  writeFileSync(tmpPath, lines.join('\n'), 'utf-8');
+  renameSync(tmpPath, localePath);
+}
+
 function promptConfirm(_plan) {
   return new Promise((resolve) => {
     const rl = createInterface({ input: process.stdin, output: process.stdout });
@@ -940,12 +1089,19 @@ function rollback(localePath) {
 
 async function main() {
   const opts = parseArgs(process.argv);
-  if (opts.detector === 'dead-subtree') {
-    process.stdout.write(`[triage_apply v1] detector='${opts.detector}' — P4 not implemented yet. dry-run abort.\n`);
-    process.exit(0);
-  }
   const csvCleanup = !opts.input;
-  const csv = opts.input ?? (opts.detector === 'collision' ? runTriage(opts.locale) : runTriageWronglang(opts.locale));
+  let csv;
+  if (opts.detector === 'collision') {
+    csv = opts.input ?? runTriage(opts.locale);
+  } else if (opts.detector === 'wrong-language') {
+    csv = opts.input ?? runTriageWronglang(opts.locale);
+  } else if (opts.detector === 'dead-subtree') {
+    // patch07: verdict CSV 는 검수자 사전 집계. detector auto-invoke 안 함.
+    if (!opts.input) die(`--detector dead-subtree requires --input <verdict-csv> (auto-invoke not supported; see patch07 §3.2)`);
+    csv = opts.input;
+  } else {
+    die(`unknown detector: ${opts.detector}`);
+  }
   opts.input = csv;
 
   const effectivePath = opts.target || localeFilePath(opts.locale);
@@ -956,10 +1112,13 @@ async function main() {
   if (opts.detector === 'collision') {
     const rows = loadDetectorOutput(csv, COLLISION_HEADER);
     plan = buildPlan(rows, opts, leafCount, srcAST);
-  } else {
-    // wrong-language (patch06)
+  } else if (opts.detector === 'wrong-language') {
     const rows = loadDetectorOutput(csv, WRONGLANG_HEADER);
     plan = buildPlanWrongLang(rows, opts, leafCount);
+  } else {
+    // dead-subtree (patch07)
+    const rows = loadDetectorOutput(csv, DEAD_SUBTREE_HEADER);
+    plan = buildPlanDeadSubtree(rows, opts, leafCount, srcAST);
   }
 
   writeFileSync(opts.out, JSON.stringify(plan, null, 2));
@@ -969,7 +1128,9 @@ async function main() {
 
   if (opts.apply) {
     const actionable = (plan.summary.delete || 0) + (plan.summary.substitute || 0);
-    if (actionable === 0) {
+    // dead-subtree conservative-skip 모드: 0 actionable 이어도 gate validation 통과
+    // (success log 생성 → self-test D8 검증 가능). collision/wronglang 은 fast-exit 유지.
+    if (actionable === 0 && opts.detector !== 'dead-subtree') {
       process.stdout.write(`\n[triage_apply v1] --apply: 적용 대상 0 건 — no-op.\n`);
       process.exit(0);
     }
@@ -986,8 +1147,10 @@ async function main() {
     try {
       if (opts.detector === 'collision') {
         applyDeletions(plan, localePath);
-      } else {
+      } else if (opts.detector === 'wrong-language') {
         applyWrongLanguage(localePath, plan.decisions);
+      } else {
+        applyDeadSubtree(plan, localePath);
       }
     } catch (e) {
       process.stderr.write(`apply failed: ${e.message}\n`);
