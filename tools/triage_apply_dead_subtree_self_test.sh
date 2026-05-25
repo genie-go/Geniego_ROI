@@ -104,7 +104,7 @@ PRE_SIZE_A=$(wc -c < "$SANDBOX_A" | tr -d ' ')
 
 echo ""
 echo "[A2/8] D-A: plan dry-run (no --resolver-manifest)"
-node tools/triage_apply.mjs \
+TRIAGE_NO_DEFAULT_MANIFEST=1 node tools/triage_apply.mjs \
   --locale "$LOCALE" --detector dead-subtree \
   --input "$CSV_A" --target "$SANDBOX_A" --out "$PLAN_A" >/dev/null
 DELETE_A=$(node -e "const p=JSON.parse(require('fs').readFileSync('$PLAN_A_WIN','utf-8')); console.log(p.summary.delete);")
@@ -121,7 +121,7 @@ fi
 
 echo ""
 echo "[A3/8] D-A: apply --yes (no-op pipeline)"
-node tools/triage_apply.mjs \
+TRIAGE_NO_DEFAULT_MANIFEST=1 node tools/triage_apply.mjs \
   --locale "$LOCALE" --detector dead-subtree \
   --input "$CSV_A" --target "$SANDBOX_A" --out "$PLAN_A" \
   --apply --yes 2>&1 | tee "$APPLY_LOG_A" >/dev/null
