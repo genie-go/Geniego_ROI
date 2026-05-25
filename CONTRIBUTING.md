@@ -229,6 +229,36 @@ The pre-commit hook (`.githooks/pre-commit`) enforces:
 | **NFKC partial application** (155) | NFKC must apply to BOTH value AND map keys; one-side breaks longest-match substring lookup (session 155 detector bug #4). |
 | **ripgrep blind-spot for compat CJK + C1** (155) | grep patterns using canonical CJK miss compatibility variants (U+F9xx). For residue verification, use AST + NFKC normalization (re-run scan), not grep. |
 
+### MSYS path-translation 비대칭 (158차)
+
+Git Bash / MSYS / Antigravity bash 환경에서 POSIX path 가 native 도구에
+전달될 때 처리 방식이 인자 유형에 따라 다르다:
+- **bare CLI args** (`cp /tmp/foo dest`): MSYS 가 자동 변환 (`C:/Users/.../Temp/foo`)
+- **string literal inside `node -e`**: MSYS 변환 안 됨 → Node 가 drive-relative 로 해석 (`E:\tmp\foo`) → `ENOENT` 또는 `ERR_INVALID_FILE_URL_PATH`
+
+**Mitigation**: `cygpath -m "$PATH" 2>/dev/null || echo "$PATH"` 로 사전 변환
+후 string literal 사용. Linux/Mac 에선 cygpath 부재 → POSIX path 그대로 사용
+(fallback). 158차 `triage_apply_self_test.sh` 의 `SANDBOX_WIN`/`CSV_WIN`/`PLAN_WIN` 패턴 참조.
+
+### Node ESM dynamic-import 캐시 (158차)
+
+`await import(url)` 은 URL 기준으로 module 을 캐시. 같은 파일을 write 후
+재import 시 stale cache 반환 → leaf count 등 검증값이 pre-state 와 동일하게
+나옴 (G3 strict false-negative).
+
+**Mitigation**: URL 끝에 `?v=${Date.now()}` query 추가 → 매번 cache miss.
+158차 `tools/triage_apply.mjs` 의 `countLeaves`, `tools/leaf_count.mjs` 패턴 참조.
+
+### Heredoc backslash double-escape (158차)
+
+`t bash -c "cat > file << 'EOF' ... EOF"` 패턴에서 single-quote heredoc
+delimiter 사용해도 outer bash + Bash tool wrap 의 2-layer 처리로 backslash
+가 한 번 더 collapse. `\\\\` (4개) 가 최종 `\` (1개) 로 도착 → regex 손상.
+
+**Mitigation**: 다중 라인 파일 생성 시 heredoc 대신 **CC 의 Create file 또는
+Write tool 사용**. tool 은 string content 를 그대로 disk 에 write 하므로
+escape layer 없음. 158차 `/tmp/leaf_count.mjs` 작성 시 heredoc → tool 전환 사례.
+
 ---
 
 ## 8. Session lifecycle
