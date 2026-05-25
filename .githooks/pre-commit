@@ -159,19 +159,14 @@ else
       exit 1
     fi
 
-    G8_PE_COUNT=$(node -e "const m=require('./tools/resolver_consumer_manifest_v2.json'); console.log((m.parse_errors||[]).length);" 2>/dev/null || echo "-1")
+    G8_PE_COUNT=$(node -e "const m=require('./tools/resolver_consumer_manifest_v2.json'); console.log((m.summary && typeof m.summary.parse_errors === 'number') ? m.summary.parse_errors : -1);" 2>/dev/null || echo "-1")
 
     if [[ "$G8_PE_COUNT" == "0" ]]; then
       echo "[G8] manifest-clean: parse_errors=0 ✓"
     else
       echo "[G8] manifest-clean: parse_errors=${G8_PE_COUNT} ✗"
       echo "[G8] FAIL — manifest v2 정밀도 회귀. 첫 10건:"
-      node -e "
-        const m=require('./tools/resolver_consumer_manifest_v2.json');
-        (m.parse_errors||[]).slice(0,10).forEach(e => {
-          console.log('  - ' + (e.file||'?') + ':' + (e.line||'?') + ' ' + (e.message||e.error||''));
-        });
-      " 2>/dev/null || cat /tmp/g8_parse_errors.json 2>/dev/null | head -20
+      (cat /tmp/g8_parse_errors.json 2>/dev/null | head -20 ; echo "") || echo "  (parse_errors_out 파일 없음 — 재현 명령 실행 필요)"
       echo "[G8] Mitigation:"
       echo "  1. parse_errors 파일 syntax 수정 후 재staged"
       echo "  2. 의도적 backup/legacy 디렉터리이면 SKIP_DIRS 동기 갱신"
