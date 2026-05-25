@@ -22,6 +22,7 @@ import { createHash } from 'node:crypto';
 const SACRED_LOCALES   = new Set(['ja', 'zh']);
 const VALID_DETECTORS  = new Set(['collision', 'wrong-language', 'dead-subtree']);
 const VALID_SEVERITIES = new Set(['forbidden', 'warn', 'all']);
+const VALID_G3_MODES   = new Set(['strict', 'safety-net']);
 const COLLISION_HEADER = ['locale','path','kind','group_index','line','key_type','leaf_count','first_child_key_type','status','value_preview'];
 const LOCALE_DIR       = 'frontend/src/i18n/locales';
 
@@ -40,6 +41,9 @@ Options:
   --out <path>         plan JSON 경로 (default: triage_apply_plan_<locale>_<detector>.json)
   --target <path>      적용 대상 파일 override (default: frontend/src/i18n/locales/<locale>.js)
                        — basename 이 ja.js/zh.js 이면 즉시 abort (N-79)
+  --g3-mode <mode>     strict | safety-net (default: strict).
+                       strict     = post == pre + estimated_leaf_delta (patch03 §4)
+                       safety-net = post >= pre + estimated_leaf_delta (loss only)
   --help               이 메시지 출력 후 종료
 
 Phase : P1 (collision dry-run only). P2 apply / P4 other detectors 는 stub.
@@ -57,6 +61,7 @@ function parseArgs(argv) {
     locale: null, detector: null, input: null,
     severity: 'forbidden', apply: false, yes: false,
     out: null, target: null, help: false,
+    g3_mode: 'strict',  // patch03 §4 default
   };
   const args = argv.slice(2);
   for (let i = 0; i < args.length; i++) {
@@ -71,6 +76,7 @@ function parseArgs(argv) {
       case '--severity': opts.severity = args[++i]; break;
       case '--out':      opts.out = args[++i]; break;
       case '--target':   opts.target = args[++i]; break;
+      case '--g3-mode':  opts.g3_mode = args[++i]; break;
       default: die(`unknown flag: ${a}\n\n${usage()}`);
     }
   }
@@ -85,6 +91,9 @@ function parseArgs(argv) {
   }
   if (!VALID_SEVERITIES.has(opts.severity)) {
     die(`invalid --severity '${opts.severity}'. expected: ${[...VALID_SEVERITIES].join(' | ')}`);
+  }
+  if (!VALID_G3_MODES.has(opts.g3_mode)) {
+    die(`invalid --g3-mode '${opts.g3_mode}'. expected: ${[...VALID_G3_MODES].join(' | ')}`);
   }
   if (opts.target) {
     // N-79 belt-and-suspenders: --target basename 도 sacred 파일이면 차단
@@ -522,17 +531,24 @@ function applyDeletions(plan, localePath) {
   renameSync(tmpPath, localePath);
 }
 
-function validateGates(plan, postGates) {
+function validateGates(plan, postGates, g3Mode = 'strict') {
   const failed = [];
   const pre = plan.gates;
   const summary = plan.summary;
   if (postGates.pre_ja_sha !== pre.pre_ja_sha) failed.push('G2_ja_sha_changed');
   if (postGates.pre_zh_sha !== pre.pre_zh_sha) failed.push('G2_zh_sha_changed');
-  // §5.1.3 safety-net G3: loss only (post >= expected).
-  // strict equality 는 §5.1.2 precise estimate 도입 후 별도 작업.
+  // patch03 §4 — G3 strict equality (default) with safety-net opt-in
   const expectedLeaves = pre.pre_leaves + summary.estimated_leaf_delta;
-  if (postGates.pre_leaves < expectedLeaves) {
-    failed.push(`G3_leaf_loss (post ${postGates.pre_leaves} < expected ${expectedLeaves})`);
+  if (postGates.pre_leaves != null && expectedLeaves != null) {
+    if (g3Mode === 'safety-net') {
+      if (postGates.pre_leaves < expectedLeaves) {
+        failed.push(`G3_leaf_loss (post ${postGates.pre_leaves} < expected ${expectedLeaves}, mode=safety-net)`);
+      }
+    } else {
+      if (postGates.pre_leaves !== expectedLeaves) {
+        failed.push(`G3_leaf_strict (post ${postGates.pre_leaves} !== expected ${expectedLeaves}, mode=strict)`);
+      }
+    }
   }
   if (postGates.pre_size >= pre.pre_size) failed.push('G1_size_did_not_decrease');
   // G4 (target lines empty) and G5 (triage re-run) intentionally out of scope here.
@@ -594,13 +610,13 @@ async function main() {
     }
     const postLeaves = await countLeaves(localePath);
     const postGates = currentGates(localePath, postLeaves);
-    const result = validateGates(plan, postGates);
+    const result = validateGates(plan, postGates, opts.g3_mode);
     if (!result.ok) {
       process.stderr.write(`GATE FAILURE: ${result.failed.join(', ')}\n`);
       rollback(localePath);
       process.exit(1);
     }
-    process.stdout.write(`\n✓ All gates passed (G1 size↓, G2 sacred SHA, G3 leaf count). Changes written.\n`);
+    process.stdout.write(`\n✓ All gates passed (G1 size↓, G2 sacred SHA, G3 leaf count [${opts.g3_mode}]). Changes written.\n`);
     process.stdout.write(`  size:   ${plan.gates.pre_size?.toLocaleString()} → ${postGates.pre_size?.toLocaleString()}\n`);
     process.stdout.write(`  leaves: ${plan.gates.pre_leaves?.toLocaleString()} → ${postGates.pre_leaves?.toLocaleString()}\n`);
   }
