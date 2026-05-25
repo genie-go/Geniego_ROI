@@ -5,6 +5,7 @@
 #   tools/production_smoke.sh --snapshot before     # before snapshot 저장
 #   tools/production_smoke.sh --snapshot after      # after snapshot + diff vs before
 #   tools/production_smoke.sh --paths "/ /api/health /login"  # 다중 path
+#   tools/production_smoke.sh --soft-lang                    # lang fail 시 WARN + exit 0 (ci_watch 호환)
 # Exit codes: 0=PASS, 1=HTTP fail, 2=lang fail, 3=diff fail, 4=usage error
 
 set -euo pipefail
@@ -15,12 +16,14 @@ DOMAIN="${PRODUCTION_DOMAIN:-https://roi.genie-go.com}"
 SNAPSHOT_DIR=".smoke_snapshots"
 MODE="single"
 PATHS="/"
+SOFT_LANG=0
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --snapshot) MODE="$2"; shift 2 ;;
     --paths)    PATHS="$2"; shift 2 ;;
     --domain)   DOMAIN="$2"; shift 2 ;;
+    --soft-lang) SOFT_LANG=1; shift ;;
     --help)
       sed -n '2,9p' "$0"
       exit 0
@@ -104,8 +107,12 @@ if (( FAIL_HTTP > 0 )); then
   exit 1
 fi
 if (( FAIL_LANG > 0 )); then
-  echo "[FAIL] ${FAIL_LANG} lang mismatch"
-  exit 2
+  if (( SOFT_LANG == 1 )); then
+    echo "[WARN] ${FAIL_LANG} lang mismatch (soft mode, exit 0)"
+  else
+    echo "[FAIL] ${FAIL_LANG} lang mismatch"
+    exit 2
+  fi
 fi
 
 echo "[PASS] smoke green"

@@ -200,12 +200,17 @@ echo "✅ workflow succeeded"
 if [ "$SMOKE" -eq 1 ]; then
   echo ""
   echo "→ production smoke test…"
-  HTTP=$(curl -s -o /dev/null -w '%{http_code} %{time_total}s' https://roi.genie-go.com/) || HTTP="(curl-fail)"
-  LANG_ATTR=$(curl -s https://roi.genie-go.com/ | grep -oE 'lang="[^"]*"' | head -1 || true)
-  echo "  HTTP=${HTTP}  ${LANG_ATTR}"
-  echo "$HTTP" | grep -qE '^200 ' || { echo "❌ smoke: non-200"; exit 1; }
-  echo "$LANG_ATTR" | grep -q 'lang="ko"' || { echo "⚠️  smoke: lang attr not ko (i18n drift?)"; }
-  echo "✅ smoke pass"
+  if bash tools/production_smoke.sh --soft-lang; then
+    echo "✅ production smoke pass"
+  else
+    smoke_ec=$?
+    if [ $smoke_ec -eq 1 ]; then
+      echo "❌ production smoke HTTP fail"
+      exit 1
+    fi
+    echo "❌ production smoke unknown ec=$smoke_ec"
+    exit 1
+  fi
 fi
 
 echo ""
