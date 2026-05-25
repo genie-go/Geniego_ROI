@@ -88,6 +88,48 @@ triage.mjs detector 의 CSV/JSON 출력을 입력으로, **안전 deletion plan 
 | `status=block_identical` | delete (뒤쪽 block) | 무손실 |
 | `status=block_divergent` | **skip** | canonical 결정 필요 |
 
+### 5.1.1 Hierarchical Overlap Resolution
+
+같은 detector run 에서 block-level + leaf-level decision 이 같은 subtree 를
+동시에 가리키는 경우, **block decision 이 leaf decision 을 흡수**한다.
+
+**규칙**:
+- block delete 가 path P 에 존재 → path 가 `P.` 로 시작하는 모든 leaf decision 을
+  **skip 으로 강등** (rationale: "covered by parent block decision at line N")
+- block skip (block_divergent) 가 path P 에 존재 → 동일하게 child leaf decision skip
+- 처리 순서: block decisions 먼저, 그 후 leaf decisions
+
+**근거**: detector 는 block-level 과 leaf-level 을 독립 보고하지만, JS 의 nested
+object 구조상 두 결정이 같은 subtree 를 가리키면 applier 가 양쪽 모두 처리 시
+parent block 의 child 내용이 sibling block 의 결정으로 사라짐.
+
+**158차 실증** (ed3c4a0~1 snapshot):
+- 1 block decision: graph block @ 46107 delete (16 leaves)
+- 16 leaf decisions: graph.contribCreative...noEdge @ 37220-37235 delete
+- naive apply: graph block #1 의 16 leaves 가 leaf decision 으로 삭제 + graph
+  block #2 가 block decision 으로 삭제 → graph subtree 0 leaves (파괴)
+- correct apply: block decision 만 적용, leaf decision 16건 demote → graph
+  subtree intact (16 leaves preserved in block #1)
+
+### 5.1.2 estimated_leaf_delta 산정 정밀화
+
+기존: 모든 delete 의 leaf_count 합산.
+
+수정:
+- leaf delete: 동일 path 에 더 나중 declaration 이 존재하면 Δ=0 (JS last-wins)
+- block delete: `+ leaf_count` (block 자체가 사라지므로 그 leaf 가 root 에서 소실)
+- 단, block delete 가 demote 시킨 leaf decision 은 산입 X (이미 skip)
+
+### 5.1.3 Gate G3 의미 재정의
+
+기존: post_leaves == pre_leaves + estimated_leaf_delta (strict equality)
+
+수정 (다음 두 단계 검증):
+- **strict**: post_leaves == pre_leaves + estimated_leaf_delta (정밀 산정 후 가능)
+- **safety net**: post_leaves >= pre_leaves + estimated_leaf_delta (loss 만 차단)
+
+158차 P2 는 strict 도입 시점에서 정밀 산정과 함께 enable.
+
 ### 5.2 wrong-language
 
 | 상황 | Action |
@@ -196,8 +238,16 @@ tools/triage_apply.mjs        (~600 lines 예상)
 | `displayPlanSummary` | plan | — | stdout |
 | `promptConfirm` | plan | 'yes' \| 'no' \| 'diff' | stdin |
 | `validateGates` | phase, plan | { ok, failed[] } | read fs + git |
-| `applyDeletions` | plan | result object | write fs |
+| `applyDeletions` | plan | result object | write fs (descending line, block first then leaf, atomic write) |
 | `rollback` | files[] | — | git checkout |
+
+### applyDeletions 처리 순서
+
+1. block delete decisions 추출 → descending line order
+2. leaf delete decisions 중 demote 되지 않은 것 추출 → descending line order
+3. 두 list 를 line descending 으로 merge sort
+4. 순차 splice (큰 line 부터 → line shift 없음)
+5. atomic write (temp + rename)
 
 ## 11. 실증 시나리오 (158차 본 작업)
 
