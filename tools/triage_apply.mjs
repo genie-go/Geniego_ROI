@@ -14,7 +14,8 @@
  */
 
 import { readFileSync, writeFileSync, existsSync, statSync, unlinkSync, renameSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { resolve, join } from 'node:path';
+import { tmpdir } from 'node:os';
 import { spawnSync } from 'node:child_process';
 import { createInterface } from 'node:readline';
 import { createHash } from 'node:crypto';
@@ -23,6 +24,7 @@ const SACRED_LOCALES   = new Set(['ja', 'zh']);
 const VALID_DETECTORS  = new Set(['collision', 'wrong-language', 'dead-subtree']);
 const VALID_SEVERITIES = new Set(['forbidden', 'warn', 'all']);
 const VALID_G3_MODES   = new Set(['strict', 'safety-net']);
+const VALID_G5_MODES   = new Set(['strict', 'skip']);
 const COLLISION_HEADER = ['locale','path','kind','group_index','line','key_type','leaf_count','first_child_key_type','status','value_preview'];
 const LOCALE_DIR       = 'frontend/src/i18n/locales';
 
@@ -44,6 +46,9 @@ Options:
   --g3-mode <mode>     strict | safety-net (default: strict).
                        strict     = post == pre + estimated_leaf_delta (patch03 §4)
                        safety-net = post >= pre + estimated_leaf_delta (loss only)
+  --g5-mode <mode>     strict | skip (default: strict, collision detector 한정).
+                       strict = post unique-path detector rerun 후 expected 와 정합
+                       skip   = G5 비활성 (회귀 대비 비상 옵션)
   --help               이 메시지 출력 후 종료
 
 Phase : P1 (collision dry-run only). P2 apply / P4 other detectors 는 stub.
@@ -62,6 +67,7 @@ function parseArgs(argv) {
     severity: 'forbidden', apply: false, yes: false,
     out: null, target: null, help: false,
     g3_mode: 'strict',  // patch03 §4 default
+    g5_mode: 'strict',  // patch04 §3.3 default
   };
   const args = argv.slice(2);
   for (let i = 0; i < args.length; i++) {
@@ -77,6 +83,7 @@ function parseArgs(argv) {
       case '--out':      opts.out = args[++i]; break;
       case '--target':   opts.target = args[++i]; break;
       case '--g3-mode':  opts.g3_mode = args[++i]; break;
+      case '--g5-mode':  opts.g5_mode = args[++i]; break;
       default: die(`unknown flag: ${a}\n\n${usage()}`);
     }
   }
@@ -94,6 +101,9 @@ function parseArgs(argv) {
   }
   if (!VALID_G3_MODES.has(opts.g3_mode)) {
     die(`invalid --g3-mode '${opts.g3_mode}'. expected: ${[...VALID_G3_MODES].join(' | ')}`);
+  }
+  if (!VALID_G5_MODES.has(opts.g5_mode)) {
+    die(`invalid --g5-mode '${opts.g5_mode}'. expected: ${[...VALID_G5_MODES].join(' | ')}`);
   }
   if (opts.target) {
     // N-79 belt-and-suspenders: --target basename 도 sacred 파일이면 차단
@@ -209,6 +219,10 @@ function buildPlan(rows, options, preLeafCount, srcAST) {
     d.estimated_leaf_delta = est.perDecision.get(d.row_index) ?? 0;
   }
 
+  // patch04 §3.1 — collision gate fields (collision detector only)
+  const isCollision = options.detector === 'collision';
+  const cg = isCollision ? computeCollisionGateFields(rows, decisions) : { pre: null, delete: null };
+
   return {
     version: 1,
     tool: 'triage_apply',
@@ -221,7 +235,7 @@ function buildPlan(rows, options, preLeafCount, srcAST) {
     },
     decisions,
     summary: summarize(decisions, est.totalDelta),
-    gates: currentGates(localePath, preLeafCount),
+    gates: currentGates(localePath, preLeafCount, cg.pre, cg.delete),
   };
 }
 
@@ -377,7 +391,7 @@ function sha256Hex8(path) {
   return createHash('sha256').update(readFileSync(path)).digest('hex').slice(0, 8) + '...';
 }
 
-function currentGates(mainPath, preLeafCount) {
+function currentGates(mainPath, preLeafCount, preCollisionCount = null, collisionDeleteCount = null) {
   // sacred (ja/zh) 는 항상 canonical 경로에서 — --target 으로 우회 불가
   const ja = localeFilePath('ja');
   const zh = localeFilePath('zh');
@@ -386,7 +400,27 @@ function currentGates(mainPath, preLeafCount) {
     pre_leaves:  preLeafCount,
     pre_ja_sha:  existsSync(ja) ? sha256Hex8(ja) : null,
     pre_zh_sha:  existsSync(zh) ? sha256Hex8(zh) : null,
+    pre_collision_count: preCollisionCount,        // patch04 §3.1 (unique-path)
+    collision_delete_count: collisionDeleteCount,  // patch04 §3.1 (direct ∪ shadow)
   };
+}
+
+function computeCollisionGateFields(rows, decisions) {
+  // patch04 §3.1 IIFE — unique-path semantics.
+  // pre = unique path count from detector CSV.
+  // delete = unique paths resolved by direct delete OR by shadow under a block-delete.
+  const pre = new Set(rows.map(r => r.path)).size;
+  const resolved = new Set();
+  const blockDeletePaths = decisions
+    .filter(d => d.action === 'delete' && d.kind === 'block')
+    .map(d => d.key_path);
+  for (const r of rows) {
+    const direct = decisions.some(d => d.action === 'delete' && d.key_path === r.path);
+    const shadowed = blockDeletePaths.some(bp =>
+      r.path !== bp && r.path.startsWith(bp + '.'));
+    if (direct || shadowed) resolved.add(r.path);
+  }
+  return { pre, delete: resolved.size };
 }
 
 async function loadLocaleAST(localePath) {
@@ -531,7 +565,21 @@ function applyDeletions(plan, localePath) {
   renameSync(tmpPath, localePath);
 }
 
-function validateGates(plan, postGates, g3Mode = 'strict') {
+function countUniqueCollisionPaths(csvPath) {
+  // patch04 §2.1 — post detector CSV 의 unique `path` 수
+  if (!existsSync(csvPath)) return 0;
+  const text = readFileSync(csvPath, 'utf-8');
+  const lines = text.split(/\r?\n/).filter(l => l.length > 0);
+  if (lines.length <= 1) return 0;  // header only or empty
+  const paths = new Set();
+  for (let i = 1; i < lines.length; i++) {
+    const fields = parseCsvLine(lines[i]);
+    paths.add(fields[1]);  // 'path' column index per COLLISION_HEADER
+  }
+  return paths.size;
+}
+
+function validateGates(plan, postGates, g3Mode = 'strict', opts = {}) {
   const failed = [];
   const pre = plan.gates;
   const summary = plan.summary;
@@ -551,7 +599,33 @@ function validateGates(plan, postGates, g3Mode = 'strict') {
     }
   }
   if (postGates.pre_size >= pre.pre_size) failed.push('G1_size_did_not_decrease');
-  // G4 (target lines empty) and G5 (triage re-run) intentionally out of scope here.
+
+  // patch04 §2 — G5 triage-rerun (collision detector only, unique-path semantics)
+  const g5Mode = opts.g5_mode || 'strict';
+  if (opts.detector === 'collision' && g5Mode !== 'skip') {
+    const postCsv = join(tmpdir(), `triage_apply_g5_${process.pid}.csv`);
+    const targetPath = opts.target || localeFilePath(opts.locale);
+    const rerun = spawnSync('node', [
+      'tools/triage.mjs',
+      '--locale', opts.locale,
+      '--mode', 'collision',
+      '--src', targetPath,
+      '--csv', postCsv,
+      '--quiet',
+    ], { encoding: 'utf-8' });
+    // triage.mjs: exit 0 = no findings, exit 1 = findings (both ok for G5)
+    if (rerun.status !== 0 && rerun.status !== 1) {
+      failed.push(`G5_detector_rerun_failed (rc=${rerun.status})`);
+    } else {
+      const postUniquePaths = countUniqueCollisionPaths(postCsv);
+      const expected = (pre.pre_collision_count ?? 0) - (pre.collision_delete_count ?? 0);
+      if (postUniquePaths !== expected) {
+        failed.push(`G5_collision_drift (post ${postUniquePaths} !== expected ${expected})`);
+      }
+      try { unlinkSync(postCsv); } catch {}
+    }
+  }
+  // G4 (target lines empty) intentionally out of scope here.
   return { ok: failed.length === 0, failed };
 }
 
@@ -610,13 +684,14 @@ async function main() {
     }
     const postLeaves = await countLeaves(localePath);
     const postGates = currentGates(localePath, postLeaves);
-    const result = validateGates(plan, postGates, opts.g3_mode);
+    const result = validateGates(plan, postGates, opts.g3_mode, opts);
     if (!result.ok) {
       process.stderr.write(`GATE FAILURE: ${result.failed.join(', ')}\n`);
       rollback(localePath);
       process.exit(1);
     }
-    process.stdout.write(`\n✓ All gates passed (G1 size↓, G2 sacred SHA, G3 leaf count [${opts.g3_mode}]). Changes written.\n`);
+    const g5Label = opts.detector === 'collision' ? `, G5 collision [${opts.g5_mode}]` : '';
+    process.stdout.write(`\n✓ All gates passed (G1 size↓, G2 sacred SHA, G3 leaf count [${opts.g3_mode}]${g5Label}). Changes written.\n`);
     process.stdout.write(`  size:   ${plan.gates.pre_size?.toLocaleString()} → ${postGates.pre_size?.toLocaleString()}\n`);
     process.stdout.write(`  leaves: ${plan.gates.pre_leaves?.toLocaleString()} → ${postGates.pre_leaves?.toLocaleString()}\n`);
   }
