@@ -201,18 +201,20 @@ console.error(`[v2] scanned=${scanned} parseErrors=${parseErrors} ...`);  // 기
 ```bash
 # T1: 기존 동작 보존
 node tools/build_resolver_manifest_v2.mjs
-# 기대: stderr "[v2] scanned=NN parseErrors=43 ..." 만 (breakdown 없음)
-# 기대: tools/resolver_consumer_manifest_v2.json 변화 0 (diff 0)
+# 기대: stderr "✓ Manifest v2 written / direct: NN / prefix: NN / dynamic: NN / scan_files: NN / parse_errors: 43" — breakdown 라인 없음
+# 기대: tools/resolver_consumer_manifest_v2.json 콘텐츠 동일 (generated_at 제외, §3.3 검증식 사용)
 
 # T2: 신규 flag — stderr summary
-node tools/build_resolver_manifest_v2.mjs --emit-parse-errors 2>&1 | grep parse-error
-# 기대: "[v2] parse-error-breakdown: SyntaxError=N TypeError=M ..." 출력
+node tools/build_resolver_manifest_v2.mjs --emit-parse-errors 2>&1 | grep -E '^\[v2\] parse-error-breakdown:'
+# 기대: 정확히 1줄 hit, exit 0 (예: [v2] parse-error-breakdown: SyntaxError=43)
+# 주의: 단순 `grep parse-error` 는 "unknown flag: --emit-parse-errors" 에도 매칭 (false positive)
 
 # T3: 신규 flag — JSON dump
 node tools/build_resolver_manifest_v2.mjs --parse-errors-out /tmp/parse_errors_161.json
 # 기대: 파일 생성 + 43건 array
-test -f /tmp/parse_errors_161.json && jq 'length' /tmp/parse_errors_161.json
+node -e "console.log(require(process.argv[1]).length)" /tmp/parse_errors_161.json
 # 기대: 43
+# 주의: MSYS bash 는 /tmp/* 를 Windows TEMP 로 자동 변환하나 node -e JS 리터럴 내부는 변환하지 않으므로 path 는 argv 로 전달
 
 # T4: invalid flag 검증
 node tools/build_resolver_manifest_v2.mjs --bogus 2>&1
@@ -221,19 +223,22 @@ node tools/build_resolver_manifest_v2.mjs --bogus 2>&1
 
 ### 3.3 manifest_v2.json 불변
 
-T1-T4 모두 `tools/resolver_consumer_manifest_v2.json` SHA 가 patch11 전후 동일해야 함.
+T1-T4 모두 `tools/resolver_consumer_manifest_v2.json` 콘텐츠가 patch11 전후 동일해야 함.
+
+> **주의**: `generated_at` 필드는 매 빌드마다 `new Date().toISOString()` 으로 갱신되므로
+> raw SHA 비교는 항상 FAIL. `generated_at` 을 제외한 콘텐츠 SHA 비교가 필요하다.
+> bash 환경에 jq 가 없으므로 node 기반으로 추출한다.
 
 ```bash
-# patch11 적용 전 SHA 기록
-sha256sum tools/resolver_consumer_manifest_v2.json > /tmp/manifest_v2_pre.sha
+# generated_at 제외 후 SHA 비교 (jq 미설치 환경 대응 — node 사용)
+node -e "const j=JSON.parse(require('fs').readFileSync('tools/resolver_consumer_manifest_v2.json'));delete j.generated_at;process.stdout.write(JSON.stringify(j))" | sha256sum > /tmp/manifest_v2_content_pre.sha
 
 # patch11 적용 후 재빌드
 node tools/build_resolver_manifest_v2.mjs
-sha256sum tools/resolver_consumer_manifest_v2.json > /tmp/manifest_v2_post.sha
 
-# 동일성 검증
-diff /tmp/manifest_v2_pre.sha /tmp/manifest_v2_post.sha
-# 기대: 0 diff
+node -e "const j=JSON.parse(require('fs').readFileSync('tools/resolver_consumer_manifest_v2.json'));delete j.generated_at;process.stdout.write(JSON.stringify(j))" | sha256sum > /tmp/manifest_v2_content_post.sha
+
+diff /tmp/manifest_v2_content_pre.sha /tmp/manifest_v2_content_post.sha && echo 'CONTENT INVARIANT PASS'
 ```
 
 ---
@@ -283,14 +288,14 @@ feat(tools): build_resolver_manifest_v2 --emit-parse-errors flag (#29 prep)
 # patch11 적용 후
 node tools/build_resolver_manifest_v2.mjs --parse-errors-out /tmp/parse_errors_43.json
 
-# 분류 분석
-jq 'group_by(.errorName) | map({name: .[0].errorName, count: length})' /tmp/parse_errors_43.json
+# 분류 분석 (jq 미설치 환경 대응 — node 사용)
+node -e "const r=require(process.argv[1]);const g={};for(const x of r)g[x.errorName]=(g[x.errorName]||0)+1;console.log(JSON.stringify(g,null,2))" /tmp/parse_errors_43.json
 
-# 경로 패턴 분석
-jq -r '.[].path' /tmp/parse_errors_43.json | xargs -I{} dirname {} | sort | uniq -c | sort -rn | head -10
+# 경로 패턴 분석 (디렉터리 별 상위 10건)
+node -e "const r=require(process.argv[1]);const p=require('path');const d={};for(const x of r){const k=p.dirname(x.path);d[k]=(d[k]||0)+1}for(const [k,v] of Object.entries(d).sort((a,b)=>b[1]-a[1]).slice(0,10))console.log(v,k)" /tmp/parse_errors_43.json
 
 # 메시지 패턴 분석 (상위 5개 distinct message)
-jq -r '.[].message' /tmp/parse_errors_43.json | sort | uniq -c | sort -rn | head -5
+node -e "const r=require(process.argv[1]);const m={};for(const x of r)m[x.message]=(m[x.message]||0)+1;for(const [k,v] of Object.entries(m).sort((a,b)=>b[1]-a[1]).slice(0,5))console.log(v,k)" /tmp/parse_errors_43.json
 ```
 
 → 분석 결과 기반으로 `@babel/parser` plugin 추가 (e.g. `'decorators-legacy'`, `'typescript'` 옵션 누락 여부) 또는 파일 유형 (`.vue`, `.svelte` 등) 제외 판정.
@@ -306,6 +311,7 @@ jq -r '.[].message' /tmp/parse_errors_43.json | sort | uniq -c | sort -rn | head
 | #35 production 도메인 | N/A (production 영향 0) |
 | #36 shell idiom | N/A (Node.js 스크립트, bash 변경 없음) |
 | #37 spec 저장 경로 중첩 | 사용자 저장 시 `docs/spec/` 단일 레벨 확인 의무 |
+| #38 spec 검증식 자체 dogfood 의무 | ✓ 161차 patch11 적용 중 spec §3.2/§3.3/§5 결함 4건 발견 후 보정 (jq 미설치 / generated_at drift / MSYS path 변환 / grep prefix anchor) |
 
 ---
 
