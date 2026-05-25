@@ -53,7 +53,7 @@ function parseArgs(argv) {
   return opts;
 }
 
-const SKIP_DIRS = new Set(['node_modules', 'dist', 'build', '.git', '.next', 'coverage']);
+const SKIP_DIRS = new Set(['node_modules', 'dist', 'build', '.git', '.next', 'coverage', 'pages_backup']);
 // locale data 는 manifest 산정 대상이 아님 (자기 자신 import — false positive 위험)
 const SKIP_PATH_SUBSTRINGS = ['i18n' + sep + 'locales', 'i18n' + sep + 'locales_backup'];
 const EXTS = new Set(['.js', '.jsx', '.ts', '.tsx', '.mjs', '.cjs']);
