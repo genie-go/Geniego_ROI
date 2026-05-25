@@ -29,6 +29,7 @@ const VALID_G5_MODES   = new Set(['strict', 'skip']);
 const COLLISION_HEADER = ['locale','path','kind','group_index','line','key_type','leaf_count','first_child_key_type','status','value_preview'];
 const WRONGLANG_HEADER = ['locale','path','line','value_preview','detected_script','char_count','total_chars','ratio','severity'];
 const DEAD_SUBTREE_HEADER = ['locale','root_path','status','verdict','subtree_leaf_count','total_consumers','root_line'];  // patch07 §3.2
+const RESOLVER_MANIFEST_DEFAULT = 'tools/resolver_consumer_manifest_v2.json';
 const LOCALE_DIR       = 'frontend/src/i18n/locales';
 const WRONGLANG_MAP_PATH = 'tools/wrong_language_replacement_map.json';
 
@@ -70,9 +71,8 @@ Options:
   --g5-mode <mode>     strict | skip (default: strict, collision detector 한정).
                        strict = post unique-path detector rerun 후 expected 와 정합
                        skip   = G5 비활성 (회귀 대비 비상 옵션)
-  --resolver-manifest <path>
-                       dead-subtree detector 전용. resolver consumer manifest JSON 경로.
-                       부재 시 §4.3 conservative skip (모든 row 를 skip, apply 0건).
+  --resolver-manifest <path>  i18n consumer manifest JSON. 미지정 시 자동: tools/resolver_consumer_manifest_v2.json (v2 AST default).
+                            부재 시 conservative-skip (manifest absent mode).
   --help               이 메시지 출력 후 종료
 
 Phase : P1 (collision dry-run only). P2 apply / P4 other detectors 는 stub.
@@ -117,6 +117,19 @@ function parseArgs(argv) {
   }
   if (opts.help) { process.stdout.write(usage()); process.exit(0); }
   if (!opts.locale)   die(`--locale required\n\n${usage()}`);
+  // patch08 §3.1.2: --resolver-manifest 미지정 시 v2 default 자동 적용 (부재 시 conservative-skip 폴백)
+  // TRIAGE_NO_DEFAULT_MANIFEST=1 환경변수로 default-resolution 우회 (self-test Mode A 의미 보존)
+  if (!opts.resolver_manifest) {
+    if (process.env.TRIAGE_NO_DEFAULT_MANIFEST === '1') {
+      console.log('[INFO] TRIAGE_NO_DEFAULT_MANIFEST=1 감지. default-resolution 우회, conservative-skip 진입.');
+    } else if (existsSync(RESOLVER_MANIFEST_DEFAULT)) {
+      opts.resolver_manifest = RESOLVER_MANIFEST_DEFAULT;
+      console.log(`[INFO] --resolver-manifest 미지정. default v2 적용: ${RESOLVER_MANIFEST_DEFAULT}`);
+    } else {
+      console.warn(`[WARN] default manifest 부재: ${RESOLVER_MANIFEST_DEFAULT}. conservative-skip 진입.`);
+    }
+  }
+
   if (!opts.detector) die(`--detector required\n\n${usage()}`);
   if (SACRED_LOCALES.has(opts.locale)) {
     die(`N-79 violation: locale '${opts.locale}' is sacred (write-protected). aborting.`);
