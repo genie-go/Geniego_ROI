@@ -147,7 +147,7 @@ function groupByPath(rows) {
   return groups;
 }
 
-function buildPlan(rows, options, preLeafCount) {
+function buildPlan(rows, options, preLeafCount, srcAST) {
   // Decision rules (158차 instruction; differs from spec §5.1 on `identical`:
   //   leaf identical/divergent → last-wins (delete earlier rows, preserve last)
   //   block_identical          → first-wins (delete later blocks, preserve first)
@@ -194,6 +194,12 @@ function buildPlan(rows, options, preLeafCount) {
   // delete 를 흡수. 158차 ed3c4a0~1 graph subtree 파괴 케이스 예방.
   demoteOverlappingLeaves(decisions);
 
+  // patch03 §3 — precise per-decision Δ
+  const est = estimateLeafDelta(decisions, srcAST, rows);
+  for (const d of decisions) {
+    d.estimated_leaf_delta = est.perDecision.get(d.row_index) ?? 0;
+  }
+
   return {
     version: 1,
     tool: 'triage_apply',
@@ -205,7 +211,7 @@ function buildPlan(rows, options, preLeafCount) {
       row_count: rows.length,
     },
     decisions,
-    summary: summarize(decisions),
+    summary: summarize(decisions, est.totalDelta),
     gates: currentGates(localePath, preLeafCount),
   };
 }
@@ -249,18 +255,109 @@ function makeSkip(row_index, r, file, rationale) {
   };
 }
 
-function summarize(decisions) {
-  let del = 0, skip = 0, leafDelta = 0;
+function summarize(decisions, totalDelta) {
+  let del = 0, skip = 0;
   for (const d of decisions) {
-    if (d.action === 'delete') { del++; leafDelta -= (d.target.leaf_count || 1); }
+    if (d.action === 'delete') del++;
     else if (d.action === 'skip') skip++;
   }
   return {
     delete: del,
     skip,
-    estimated_leaf_delta: leafDelta,
+    estimated_leaf_delta: totalDelta,
     estimated_size_delta_bytes: null,
   };
+}
+
+// ─────────────────────────────────────────────────────────────────────
+// patch03 §3 — Precise estimator
+// ─────────────────────────────────────────────────────────────────────
+
+function walkLeaves(o) {
+  // §3.4 — invariant identical to tools/leaf_count.mjs `count`.
+  let n = 0;
+  for (const v of Object.values(o)) {
+    if (v && typeof v === 'object' && !Array.isArray(v)) n += walkLeaves(v);
+    else n++;
+  }
+  return n;
+}
+
+function resolvePath(root, dotPath) {
+  if (!root || typeof root !== 'object') return null;
+  if (!dotPath) return root;
+  const parts = dotPath.split('.');
+  let cur = root;
+  for (const p of parts) {
+    if (cur == null || typeof cur !== 'object') return null;
+    cur = cur[p];
+  }
+  return cur;
+}
+
+function countLeavesInBlock(blockPath, srcAST) {
+  // §3.4 — # leaves under blockPath in srcAST; 0 if missing.
+  const node = resolvePath(srcAST, blockPath);
+  if (node == null) return 0;
+  if (typeof node !== 'object' || Array.isArray(node)) return 1;
+  return walkLeaves(node);
+}
+
+function estimateLeafDelta(decisions, srcAST, rows) {
+  // §3.1 returns { totalDelta, perDecision }.
+  //
+  // 케이스:
+  //   1. shadowed by parent block delete (§3.3)         → Δ=0
+  //   2. same-path survivor in source rows (collision)  → Δ=0  (JS last-wins)
+  //   3. AST loss (no survivor, path exists in srcAST):
+  //        - leaf  : Δ=-1
+  //        - block : Δ=-countLeavesInBlock(path)
+  //   4. action != 'delete'                              → Δ=0
+  const perDecision = new Map();
+
+  const rowsByPath = new Map();
+  if (rows) {
+    for (const r of rows) rowsByPath.set(r.path, (rowsByPath.get(r.path) || 0) + 1);
+  }
+
+  const deleteCountByPath = new Map();
+  for (const d of decisions) {
+    if (d.action !== 'delete') continue;
+    deleteCountByPath.set(d.key_path, (deleteCountByPath.get(d.key_path) || 0) + 1);
+  }
+
+  const blockDeletePaths = decisions
+    .filter(d => d.action === 'delete' && d.kind === 'block')
+    .map(d => d.key_path);
+
+  const lossAttributed = new Set();
+
+  for (const d of decisions) {
+    if (d.action !== 'delete') { perDecision.set(d.row_index, 0); continue; }
+
+    // Case 1: hierarchical shadow (descendant of a block-delete)
+    const shadowed = blockDeletePaths.some(bp => d.key_path !== bp && d.key_path.startsWith(bp + '.'));
+    if (shadowed) { perDecision.set(d.row_index, 0); continue; }
+
+    // Case 2: same-path survivor in source rows
+    const totalRows = rowsByPath.get(d.key_path) || 0;
+    const deletesAtPath = deleteCountByPath.get(d.key_path) || 0;
+    const remaining = totalRows - deletesAtPath;
+    if (remaining >= 1) { perDecision.set(d.row_index, 0); continue; }
+
+    // Case 3: AST loss — attribute once per path (first delete in group)
+    if (lossAttributed.has(d.key_path)) { perDecision.set(d.row_index, 0); continue; }
+    lossAttributed.add(d.key_path);
+
+    let delta = 0;
+    if (d.kind === 'leaf') delta = -1;
+    else if (d.kind === 'block') delta = -countLeavesInBlock(d.key_path, srcAST);
+    perDecision.set(d.row_index, delta);
+  }
+
+  let totalDelta = 0;
+  for (const v of perDecision.values()) totalDelta += v;
+  return { totalDelta, perDecision };
 }
 
 function localeFilePath(locale) {
@@ -283,26 +380,25 @@ function currentGates(mainPath, preLeafCount) {
   };
 }
 
-async function countLeaves(localePath) {
+async function loadLocaleAST(localePath) {
   try {
     const abs = resolve(localePath);
     const url = (process.platform === 'win32'
       ? 'file:///' + abs.replace(/\\/g, '/')
       : 'file://' + abs) + '?v=' + Date.now();
     const m = await import(url);
-    const root = m.default ?? m;
-    let n = 0;
-    const walk = (o) => {
-      for (const v of Object.values(o)) {
-        if (v && typeof v === 'object' && !Array.isArray(v)) walk(v);
-        else n++;
-      }
-    };
-    walk(root);
-    return n;
-  } catch {
-    return null;
-  }
+    return m.default ?? m;
+  } catch { return null; }
+}
+
+function countLeavesAST(ast) {
+  if (!ast || typeof ast !== 'object') return null;
+  return walkLeaves(ast);
+}
+
+async function countLeaves(localePath) {
+  const ast = await loadLocaleAST(localePath);
+  return countLeavesAST(ast);
 }
 
 function breakdown(decisions) {
@@ -464,9 +560,10 @@ async function main() {
   opts.input = csv;
 
   const effectivePath = opts.target || localeFilePath(opts.locale);
-  const leafCount = await countLeaves(effectivePath);
+  const srcAST = await loadLocaleAST(effectivePath);
+  const leafCount = countLeavesAST(srcAST);
   const rows = loadDetectorOutput(csv, COLLISION_HEADER);
-  const plan = buildPlan(rows, opts, leafCount);
+  const plan = buildPlan(rows, opts, leafCount, srcAST);
 
   writeFileSync(opts.out, JSON.stringify(plan, null, 2));
   displayPlanSummary(plan, opts);
