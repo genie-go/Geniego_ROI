@@ -259,6 +259,44 @@ delimiter 사용해도 outer bash + Bash tool wrap 의 2-layer 처리로 backsla
 Write tool 사용**. tool 은 string content 를 그대로 disk 에 write 하므로
 escape layer 없음. 158차 `/tmp/leaf_count.mjs` 작성 시 heredoc → tool 전환 사례.
 
+### Detector CSV columns ≠ spec 추정 (159 patch06/07 학습)
+
+**Symptom**: spec §3 "데이터 입력" 에 detector 의 CSV 컬럼 가정 (e.g. `ch_orig`, `ch_replace`, `resolver_refs`) 작성 후 실 detector 출력이 다른 컬럼 (`verdict`, `ref_count`, `from_locale_only`) 만 산출. apply 진입 시 컬럼 미스매치로 즉시 중단.
+
+**Root cause**: detector 산출 schema 와 spec 작성자의 추측이 분기. 159 patch06 (wronglang) / patch07 (dead-subtree) 양쪽 동일 패턴 발생.
+
+**Mitigation**:
+- 모든 detector 트랙 spec 의 §3 (또는 등가 절) 에 다음 명시 의무: "CC 가 spec 진입 전 `head -5 <detector_output.csv>` 로 실제 columns 확인".
+- 검수자는 spec draft 작성 후 사용자 저장 전 CC 에게 detector 출력 sample grep 1회 명령 발행.
+- spec ↔ 출력 불일치 발견 시 즉시 spec 재설계, commit 전 사용자 재확인.
+
+**Recovery**: 159 patch06 은 외부 매핑 JSON (`wrong_language_replacement_map.json`) 도입으로, patch07 은 7-col verdict + conservative skip 모드로 우회. spec 재설계 후 진입 즉시 PASS.
+
+### paths-ignore 정상 동작 인지 (159 학습)
+
+**Symptom**: docs/* + tools/* + *.md 만 변경된 commit push 후 GitHub Actions CI workflow 가 트리거되지 않음. 159 후반 다수 commit (manifest v2 spec / SUMMARY 등) 가 CI status 미노출.
+
+**Root cause**: `.github/workflows/deploy.yml` 의 `paths-ignore` 가 `**.md`, `**.txt`, `docs/**`, `.claude/**` 매칭 → workflow 자체 skip. **production 영향 0** (정상 의도된 동작).
+
+**Mitigation**:
+- paths-ignore 매칭 commit 의 CI status check 은 최대 1회 curl. 미노출 시 즉시 정상 처리, 60s polling loop 금지.
+- workflow 트리거 필요 시 (e.g. `src/**` 또는 `package.json` 변경 포함) 동일 commit 에 묶거나 별도 commit.
+
+**Recovery**: 불필요. paths-ignore commit 은 의도된 CI skip. paranoia 금지.
+
+### Default-resolution 도입 시 self-test 의미 침범 (160 patch08 학습)
+
+**Symptom**: `--resolver-manifest` 미지정 시 v2 자동 fallback 도입 후, dead-subtree self-test Mode A ("manifest absent → conservative-skip") 가 default v2 를 강제 주입받아 6/16 D-check 실패. expected delete=0, got 1.
+
+**Root cause**: production 편의 (default-on) 와 self-test 의미 (특정 absent 상태 재현) 가 동일 옵션 분기를 공유 → 한쪽 변경이 다른 쪽 의미를 침범.
+
+**Mitigation**:
+- default-resolution 기능 도입 시 self-test 측 의도된 absent / null / disable 시나리오 사전 식별 의무.
+- env var escape hatch (e.g. `TRIAGE_NO_DEFAULT_MANIFEST=1`) 로 self-test 만 default 우회.
+- 신규 default 분기 spec 에 §"Self-test impact" 절 추가 의무.
+
+**Recovery**: env var escape hatch 1줄 (mjs) + self-test invocation 2건 prefix 추가. 즉시 3 PASS / 0 FAIL 복귀.
+
 ---
 
 ## 8. Session lifecycle

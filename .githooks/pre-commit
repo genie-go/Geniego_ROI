@@ -123,4 +123,17 @@ if [ "$FAIL" -ne 0 ]; then
   exit 1
 fi
 ok "pre-commit gates pass"
+
+# patch08 §3.2.2: self-test default-on (ko staged 시 aggregate 자동 invoke, TRIAGE_SELFTEST_SKIP=1 bypass)
+# sacred ja/zh 는 G2 가드 영역. self-test 는 ko 회귀 검증 목적.
+if [ -z "${TRIAGE_SELFTEST_SKIP:-}" ]; then
+  if git diff --cached --name-only | grep -qE '^frontend/src/i18n/locales/ko\.js$'; then
+    echo "[pre-commit] ko.js staged -> triage_apply_self_test_all.sh 자동 실행 (bypass: TRIAGE_SELFTEST_SKIP=1)"
+    if ! bash tools/triage_apply_self_test_all.sh; then
+      echo "[abort] self-test FAIL. commit 차단."
+      exit 1
+    fi
+  fi
+fi
+
 exit 0
