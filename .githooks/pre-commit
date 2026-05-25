@@ -136,4 +136,49 @@ if [ -z "${TRIAGE_SELFTEST_SKIP:-}" ]; then
   fi
 fi
 
+# ─────────────────────────────────────────────────────────────
+# G8-manifest-clean — Session 162
+# ─────────────────────────────────────────────────────────────
+# Trigger: ko.js or manifest builder staged
+# Action: rebuild manifest v2 + verify parse_errors == 0
+# Skip: SKIP=g8 (env), or neither trigger file staged
+# ─────────────────────────────────────────────────────────────
+
+if [[ "${SKIP:-}" == *"g8"* ]]; then
+  echo "[G8] manifest-clean: SKIP (SKIP=g8)"
+else
+  G8_TRIGGER=""
+  if git diff --cached --name-only | grep -qE '^(frontend/src/i18n/locales/ko\.js|tools/build_resolver_manifest_v2\.mjs)$'; then
+    G8_TRIGGER="1"
+  fi
+
+  if [[ -n "$G8_TRIGGER" ]]; then
+    if ! node tools/build_resolver_manifest_v2.mjs --emit-parse-errors --parse-errors-out /tmp/g8_parse_errors.json >/dev/null 2>&1; then
+      echo "[G8] manifest-clean: builder FAILED ✗"
+      echo "[G8] 재현 명령: node tools/build_resolver_manifest_v2.mjs --emit-parse-errors --parse-errors-out /tmp/g8_parse_errors.json"
+      exit 1
+    fi
+
+    G8_PE_COUNT=$(node -e "const m=require('./tools/resolver_consumer_manifest_v2.json'); console.log((m.parse_errors||[]).length);" 2>/dev/null || echo "-1")
+
+    if [[ "$G8_PE_COUNT" == "0" ]]; then
+      echo "[G8] manifest-clean: parse_errors=0 ✓"
+    else
+      echo "[G8] manifest-clean: parse_errors=${G8_PE_COUNT} ✗"
+      echo "[G8] FAIL — manifest v2 정밀도 회귀. 첫 10건:"
+      node -e "
+        const m=require('./tools/resolver_consumer_manifest_v2.json');
+        (m.parse_errors||[]).slice(0,10).forEach(e => {
+          console.log('  - ' + (e.file||'?') + ':' + (e.line||'?') + ' ' + (e.message||e.error||''));
+        });
+      " 2>/dev/null || cat /tmp/g8_parse_errors.json 2>/dev/null | head -20
+      echo "[G8] Mitigation:"
+      echo "  1. parse_errors 파일 syntax 수정 후 재staged"
+      echo "  2. 의도적 backup/legacy 디렉터리이면 SKIP_DIRS 동기 갱신"
+      echo "  3. 우회 필요 시 SKIP=g8 git commit ... (비권장)"
+      exit 1
+    fi
+  fi
+fi
+
 exit 0
