@@ -256,7 +256,7 @@ export default function TierPricingTab() {
                     </div>
                     <div style={{ display: "flex", gap: 8 }}>
                         <button onClick={() => setViewMode("create")} style={{ ...S.btn(viewMode === "create" ? "p" : "g"), fontSize: 11, padding: "6px 14px" }}>➕ 패키지 Register</button>
-                        <button onClick={() => { setViewMode("list"); loadPackages() }} style={{ .btn(viewMode === "list" ? "p" : "g"), fontSize: 11, padding: "6px 14px" }}>📋 Register List ({packages.length})</button>
+                        <button onClick={() => { setViewMode("list"); loadPackages() }} style={{ ...S.btn(viewMode === "list" ? "p" : "g"), fontSize: 11, padding: "6px 14px" }}>📋 Register List ({packages.length})</button>
                     </div>
                 </div>
             </div>
@@ -282,7 +282,7 @@ export default function TierPricingTab() {
                             <div style={{ display: "flex", gap: 5 }}>
                                 <button onClick={togAll} style={{ ...S.btn("g"), fontSize: 10, padding: "3px 9px" }}>{ALL_KEYS.every(k => sel[k]) ? "All Disconnect" : "All Select"}</button>
                                 <button onClick={() => setExpanded({})} style={{ ...S.btn("g"), fontSize: 10, padding: "3px 9px" }}>펼치기</button>
-                                <button onClick={() => { const c = {}; MENU_TREE.forEach(m => { c[m.key] = false; m.children.forEach(s => { c[s.key] = false; }); }); setExpanded(c) }} style={{ .btn("g"), fontSize: 10, padding: "3px 9px" }}>접기</button>
+                                <button onClick={() => { const c = {}; MENU_TREE.forEach(m => { c[m.key] = false; m.children.forEach(s => { c[s.key] = false; }); }); setExpanded(c) }} style={{ ...S.btn("g"), fontSize: 10, padding: "3px 9px" }}>접기</button>
                             </div>
                         </div>
                         <div style={{ maxHeight: 540, overflowY: "auto" }}>{renderTree(MENU_TREE)}</div>
