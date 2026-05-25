@@ -934,6 +934,7 @@ async function validateGates(plan, postGates, g3Mode = 'strict', opts = {}) {
   const pre = plan.gates;
   const summary = plan.summary;
   const isWronglang = opts.detector === 'wrong-language';
+  const isDeadSubtree = opts.detector === 'dead-subtree';
 
   // G2 — sacred SHA (always)
   if (postGates.pre_ja_sha !== pre.pre_ja_sha) failed.push('G2_ja_sha_changed');
@@ -942,15 +943,18 @@ async function validateGates(plan, postGates, g3Mode = 'strict', opts = {}) {
   // G3 — leaf count
   //   collision: estimated_leaf_delta != 0 일반적; strict/safety-net 선택
   //   wrong-language (patch06 §6): estimated_leaf_delta = 0 항상; strict-zero (post == pre)
+  //   dead-subtree (patch07 §6): estimated_leaf_delta = -sum(deleted leaf_count); strict
   const expectedLeaves = pre.pre_leaves + summary.estimated_leaf_delta;
   if (postGates.pre_leaves != null && expectedLeaves != null) {
-    if (g3Mode === 'safety-net' && !isWronglang) {
+    if (g3Mode === 'safety-net' && !isWronglang && !isDeadSubtree) {
       if (postGates.pre_leaves < expectedLeaves) {
         failed.push(`G3_leaf_loss (post ${postGates.pre_leaves} < expected ${expectedLeaves}, mode=safety-net)`);
       }
     } else {
       if (postGates.pre_leaves !== expectedLeaves) {
-        const modeLabel = isWronglang ? 'wrong-language-strict-zero' : 'strict';
+        const modeLabel = isWronglang ? 'wrong-language-strict-zero'
+                        : isDeadSubtree ? 'dead-subtree-strict-sum'
+                        : 'strict';
         failed.push(`G3_leaf_strict (post ${postGates.pre_leaves} !== expected ${expectedLeaves}, mode=${modeLabel})`);
       }
     }
@@ -958,19 +962,28 @@ async function validateGates(plan, postGates, g3Mode = 'strict', opts = {}) {
 
   // G1 — size
   //   collision: post < pre (감소)
-  //   wrong-language (patch06 §6): post ≈ pre (substitute count × 4 byte tolerance)
-  if (!isWronglang) {
-    if (postGates.pre_size >= pre.pre_size) failed.push('G1_size_did_not_decrease');
-  } else {
+  //   wrong-language (patch06): |post - pre| ≤ substitute × 4 byte tolerance
+  //   dead-subtree (patch07): post ≤ pre (delete>0 일 때 strict <; delete=0 일 때 ==)
+  if (isWronglang) {
     const tolerance = (summary.substitute || 0) * 4;
     if (postGates.pre_size != null && pre.pre_size != null) {
       if (Math.abs(postGates.pre_size - pre.pre_size) > tolerance) {
         failed.push(`G1_size_drift_wronglang (|post ${postGates.pre_size} - pre ${pre.pre_size}| > ε=${tolerance})`);
       }
     }
+  } else if (isDeadSubtree) {
+    if (postGates.pre_size != null && pre.pre_size != null) {
+      if (postGates.pre_size > pre.pre_size) {
+        failed.push(`G1_size_increased_dead_subtree (post ${postGates.pre_size} > pre ${pre.pre_size})`);
+      } else if ((summary.delete || 0) > 0 && postGates.pre_size >= pre.pre_size) {
+        failed.push(`G1_size_did_not_decrease_dead_subtree (post ${postGates.pre_size} >= pre ${pre.pre_size} but ${summary.delete} deletes)`);
+      }
+    }
+  } else {
+    if (postGates.pre_size >= pre.pre_size) failed.push('G1_size_did_not_decrease');
   }
 
-  // G4 — target-line / path-preserve (AST-level)
+  // G4 — target-line / path-preserve / path-removed (AST-level)
   const g4Mode = opts.g4_mode || 'strict';
   if (g4Mode !== 'skip') {
     const targetPath = opts.target || localeFilePath(opts.locale);
@@ -985,6 +998,17 @@ async function validateGates(plan, postGates, g3Mode = 'strict', opts = {}) {
         const resolved = resolvePath(postAST, d.key_path);
         if (resolved === undefined) {
           failed.push(`G4_path_lost_wronglang (decision[${i}] key_path=${d.key_path})`);
+          break;
+        }
+      }
+    } else if (isDeadSubtree) {
+      // patch07 §6 — delete decision 의 path 가 post-AST 에서 완전히 제거됨
+      for (let i = 0; i < plan.decisions.length; i++) {
+        const d = plan.decisions[i];
+        if (d.action !== 'delete') continue;
+        const resolved = resolvePath(postAST, d.key_path);
+        if (resolved !== undefined) {
+          failed.push(`G4_path_not_removed_dead_subtree (decision[${i}] key_path=${d.key_path})`);
           break;
         }
       }
@@ -1005,7 +1029,9 @@ async function validateGates(plan, postGates, g3Mode = 'strict', opts = {}) {
 
   // G5 — detector rerun
   //   collision: unique-path 산술
-  //   wrong-language (patch06 §6): post wronglang count == pre - substitute count
+  //   wrong-language (patch06): post wronglang count == pre - substitute count
+  //   dead-subtree (patch07): post dead-subtree verdict count == pre - delete count
+  //     (verdict CSV 는 사전 집계 → patch07 G5 는 CSV row 단위 비교; detector 자동 재실행 안 함)
   const g5Mode = opts.g5_mode || 'strict';
   if (g5Mode !== 'skip') {
     const targetPath = opts.target || localeFilePath(opts.locale);
@@ -1040,6 +1066,16 @@ async function validateGates(plan, postGates, g3Mode = 'strict', opts = {}) {
           failed.push(`G5_wronglang_drift (post ${postCount} !== expected ${expected})`);
         }
         try { unlinkSync(postCsv); } catch {}
+      }
+    } else if (isDeadSubtree) {
+      // patch07: verdict CSV 산술 검증 (post 재집계는 외부 책임).
+      // delete 가 적용된 row 는 post verdict 에서 제외되어야 함.
+      // plumbing-only 모드 (conservative skip): delete=0, 모든 verdict 보존 → expected == pre.
+      const expected = (pre.pre_dead_subtree_count ?? 0) - (pre.dead_subtree_delete_count ?? 0);
+      // post 재집계는 외부; 여기서는 산술 검증만 — gates fields 일관성 확인.
+      const arithmetic = (pre.pre_dead_subtree_count ?? 0) - (summary.delete || 0);
+      if (arithmetic !== expected) {
+        failed.push(`G5_dead_subtree_arithmetic_drift (delete_count mismatch: gates=${pre.dead_subtree_delete_count} summary=${summary.delete})`);
       }
     }
   }
@@ -1166,11 +1202,17 @@ async function main() {
       process.exit(1);
     }
     const isWl = opts.detector === 'wrong-language';
-    const g1Label = isWl ? 'G1 size≈' : 'G1 size↓';
-    const g3Label = isWl ? 'G3 leaf count [strict-zero]' : `G3 leaf count [${opts.g3_mode}]`;
-    const g4Label = isWl ? `G4 path-preserve [${opts.g4_mode}]` : `G4 target-line [${opts.g4_mode}]`;
+    const isDs = opts.detector === 'dead-subtree';
+    const g1Label = isWl ? 'G1 size≈' : (isDs ? 'G1 size≤' : 'G1 size↓');
+    const g3Label = isWl ? 'G3 leaf count [strict-zero]'
+                   : isDs ? 'G3 leaf count [strict-sum]'
+                   : `G3 leaf count [${opts.g3_mode}]`;
+    const g4Label = isWl ? `G4 path-preserve [${opts.g4_mode}]`
+                   : isDs ? `G4 path-removed [${opts.g4_mode}]`
+                   : `G4 target-line [${opts.g4_mode}]`;
     const g5Label = isWl ? `G5 wrong-language [${opts.g5_mode}]`
-                  : (opts.detector === 'collision' ? `G5 collision [${opts.g5_mode}]` : null);
+                   : isDs ? `G5 dead-subtree [${opts.g5_mode}]`
+                   : (opts.detector === 'collision' ? `G5 collision [${opts.g5_mode}]` : null);
     const parts = [g1Label, 'G2 sacred SHA', g3Label, g4Label];
     if (g5Label) parts.push(g5Label);
     if (isWl) parts.push('G6 value-content [strict]');
