@@ -31,6 +31,8 @@ function parseArgs(argv) {
     root: 'frontend/src',
     locale: 'ko',
     out: 'tools/resolver_consumer_manifest_v2.json',
+    emitParseErrors: false,
+    parseErrorsOut: null,
   };
   const args = argv.slice(2);
   for (let i = 0; i < args.length; i++) {
@@ -38,8 +40,10 @@ function parseArgs(argv) {
       case '--root':   opts.root = args[++i]; break;
       case '--locale': opts.locale = args[++i]; break;
       case '--out':    opts.out = args[++i]; break;
+      case '--emit-parse-errors': opts.emitParseErrors = true; break;
+      case '--parse-errors-out': opts.parseErrorsOut = args[++i]; opts.emitParseErrors = true; break;
       case '--help':
-        process.stdout.write(`Usage: node tools/build_resolver_manifest_v2.mjs [--root <dir>] [--locale <code>] [--out <path>]\n`);
+        process.stdout.write(`Usage: node tools/build_resolver_manifest_v2.mjs [--root <dir>] [--locale <code>] [--out <path>] [--emit-parse-errors] [--parse-errors-out <path>]\n`);
         process.exit(0);
       default:
         process.stderr.write(`unknown flag: ${args[i]}\n`);
@@ -124,6 +128,7 @@ function main() {
   const files = walkFiles(opts.root);
   const all = { direct: new Set(), prefix: new Set(), dynamic: new Set() };
   let parseErrors = 0;
+  const parseErrorRecords = [];
 
   for (const f of files) {
     let content;
@@ -137,6 +142,13 @@ function main() {
       });
     } catch (e) {
       parseErrors++;
+      if (opts.emitParseErrors) {
+        parseErrorRecords.push({
+          path: f,
+          errorName: e.name || 'Error',
+          message: String(e.message || e).split('\n')[0].slice(0, 200),
+        });
+      }
       continue;
     }
     const parts = extractFromAst(ast);
@@ -174,6 +186,31 @@ function main() {
   process.stderr.write(`  dynamic: ${manifest.summary.dynamic_count}\n`);
   process.stderr.write(`  scan_files: ${manifest.summary.scan_files}\n`);
   process.stderr.write(`  parse_errors: ${manifest.summary.parse_errors}\n`);
+
+  if (opts.emitParseErrors && parseErrorRecords.length > 0) {
+    const byName = {};
+    for (const r of parseErrorRecords) {
+      byName[r.errorName] = (byName[r.errorName] || 0) + 1;
+    }
+    const summary = Object.entries(byName)
+      .map(([k, v]) => `${k}=${v}`).join(' ');
+    process.stderr.write(`[v2] parse-error-breakdown: ${summary}\n`);
+
+    if (opts.parseErrorsOut) {
+      writeFileSync(
+        opts.parseErrorsOut,
+        JSON.stringify(parseErrorRecords, null, 2)
+      );
+      process.stderr.write(`[v2] parse errors dumped: ${opts.parseErrorsOut} (${parseErrorRecords.length} records)\n`);
+    } else {
+      for (const r of parseErrorRecords.slice(0, 5)) {
+        process.stderr.write(`[v2]   ${r.path}: ${r.errorName}: ${r.message}\n`);
+      }
+      if (parseErrorRecords.length > 5) {
+        process.stderr.write(`[v2]   ... +${parseErrorRecords.length - 5} more (use --parse-errors-out <path>)\n`);
+      }
+    }
+  }
 }
 
 main();
