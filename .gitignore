@@ -324,5 +324,9 @@ session159_*.sh
 # Session 159 P5 — per-locale dry-run plans (local artifact; SUMMARY.md is tracked)
 session159_plans/*_plan.json
 
+# Session 159 P4 — dead-subtree dryrun artifacts (verdicts/plan local; SUMMARY.md tracked)
+session159_dead_subtree/*.csv
+session159_dead_subtree/*.json
+
 # Session 15x spec docs under docs/spec/ are tracked (override session*_*.md pattern above)
 !docs/spec/session15*_*.md
