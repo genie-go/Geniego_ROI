@@ -327,6 +327,8 @@ session159_plans/*_plan.json
 # Session 159 P4 — dead-subtree dryrun artifacts (verdicts/plan local; SUMMARY.md tracked)
 session159_dead_subtree/*.csv
 session159_dead_subtree/*.json
+session159_dead_subtree_depth*/*.csv
+session159_dead_subtree_depth*/*.json
 
 # Session 15x spec docs under docs/spec/ are tracked (override session*_*.md pattern above)
 !docs/spec/session15*_*.md

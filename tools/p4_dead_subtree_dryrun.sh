@@ -1,23 +1,40 @@
 #!/usr/bin/env bash
 # tools/p4_dead_subtree_dryrun.sh
 #
-# Session 159 P4 — ko top-level root 전체 대상 dead-subtree dry-run.
-#   1. p4_root_enumerator.mjs → object-typed top-level keys 추출
+# Session 159 P4 — ko root 전체 대상 dead-subtree dry-run.
+#   1. p4_root_enumerator.mjs → object-typed root paths 추출 (depth 인자)
 #   2. per-root: triage.mjs --mode dead-subtree --root <r> --json verdict_NNN.json
 #   3. p4_verdict_aggregator.mjs → ko_all_verdicts.csv (patch07 §3.2 schema)
 #   4. triage_apply.mjs --detector dead-subtree --resolver-manifest 으로 dry-run plan
 #   5. p4_summary.mjs → SUMMARY.md
 #
-# --apply 절대 없음. ko.js 절대 불변. Spec §1, §3.1.
+# --apply 절대 없음. ko.js 절대 불변.
 #
-# Usage: bash tools/p4_dead_subtree_dryrun.sh
+# Usage:
+#   bash tools/p4_dead_subtree_dryrun.sh                # depth=1 (default, top-level)
+#   bash tools/p4_dead_subtree_dryrun.sh --depth 2      # depth=2 (parent.child)
+#
+# Spec: docs/spec/session159_p4_dead_subtree_ko_dryrun.md §3.1,
+#       docs/spec/session159_p4_depth2_enumeration.md §3
 
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
+DEPTH=1
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --depth) DEPTH="$2"; shift 2 ;;
+    *) echo "unknown arg: $1" >&2; exit 2 ;;
+  esac
+done
+
 LOCALE="ko"
 LOCALE_PATH="frontend/src/i18n/locales/${LOCALE}.js"
-OUT_DIR="session159_dead_subtree"
+if [ "$DEPTH" = "1" ]; then
+  OUT_DIR="session159_dead_subtree"
+else
+  OUT_DIR="session159_dead_subtree_depth${DEPTH}"
+fi
 MANIFEST="tools/resolver_consumer_manifest.json"
 mkdir -p "$OUT_DIR"
 
@@ -27,15 +44,20 @@ if [ ! -f "$MANIFEST" ]; then
 fi
 
 echo "═══════════════════════════════════════════════════════════════════════"
-echo " P4 ko dead-subtree dry-run"
+echo " P4 ko dead-subtree dry-run (depth=${DEPTH}, out=${OUT_DIR})"
 echo "═══════════════════════════════════════════════════════════════════════"
 
 # Step 1: enumerate roots
 echo ""
-echo "[1/5] enumerate top-level roots"
-ROOTS=$(node tools/p4_root_enumerator.mjs "$LOCALE_PATH")
+echo "[1/5] enumerate roots (depth=${DEPTH})"
+ROOTS=$(node tools/p4_root_enumerator.mjs "$LOCALE_PATH" --depth "$DEPTH")
 ROOT_COUNT=$(echo "$ROOTS" | wc -l | tr -d ' ')
 echo "  → ${ROOT_COUNT} object-typed roots"
+echo "  → first 10: $(echo "$ROOTS" | head -10 | tr '\n' ' ')"
+# 시간 예측 (per-root ≈ 1.6s 가정)
+EST_SEC=$((ROOT_COUNT * 16 / 10))
+EST_MIN=$((EST_SEC / 60))
+echo "  → estimated runtime: ~${EST_MIN}m ${EST_SEC}s (at ~1.6s/root)"
 
 # Step 2: per-root detector → JSON
 echo ""
