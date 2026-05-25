@@ -24,6 +24,7 @@ const SACRED_LOCALES   = new Set(['ja', 'zh']);
 const VALID_DETECTORS  = new Set(['collision', 'wrong-language', 'dead-subtree']);
 const VALID_SEVERITIES = new Set(['forbidden', 'warn', 'all']);
 const VALID_G3_MODES   = new Set(['strict', 'safety-net']);
+const VALID_G4_MODES   = new Set(['strict', 'skip']);
 const VALID_G5_MODES   = new Set(['strict', 'skip']);
 const COLLISION_HEADER = ['locale','path','kind','group_index','line','key_type','leaf_count','first_child_key_type','status','value_preview'];
 const LOCALE_DIR       = 'frontend/src/i18n/locales';
@@ -46,6 +47,9 @@ Options:
   --g3-mode <mode>     strict | safety-net (default: strict).
                        strict     = post == pre + estimated_leaf_delta (patch03 §4)
                        safety-net = post >= pre + estimated_leaf_delta (loss only)
+  --g4-mode <mode>     strict | skip (default: strict).
+                       strict = post-AST 에서 각 delete decision 의 survivor 확인 (patch05 §2)
+                       skip   = G4 비활성 (회귀 대비 비상 옵션)
   --g5-mode <mode>     strict | skip (default: strict, collision detector 한정).
                        strict = post unique-path detector rerun 후 expected 와 정합
                        skip   = G5 비활성 (회귀 대비 비상 옵션)
@@ -67,6 +71,7 @@ function parseArgs(argv) {
     severity: 'forbidden', apply: false, yes: false,
     out: null, target: null, help: false,
     g3_mode: 'strict',  // patch03 §4 default
+    g4_mode: 'strict',  // patch05 §3.2 default
     g5_mode: 'strict',  // patch04 §3.3 default
   };
   const args = argv.slice(2);
@@ -83,6 +88,7 @@ function parseArgs(argv) {
       case '--out':      opts.out = args[++i]; break;
       case '--target':   opts.target = args[++i]; break;
       case '--g3-mode':  opts.g3_mode = args[++i]; break;
+      case '--g4-mode':  opts.g4_mode = args[++i]; break;
       case '--g5-mode':  opts.g5_mode = args[++i]; break;
       default: die(`unknown flag: ${a}\n\n${usage()}`);
     }
@@ -101,6 +107,9 @@ function parseArgs(argv) {
   }
   if (!VALID_G3_MODES.has(opts.g3_mode)) {
     die(`invalid --g3-mode '${opts.g3_mode}'. expected: ${[...VALID_G3_MODES].join(' | ')}`);
+  }
+  if (!VALID_G4_MODES.has(opts.g4_mode)) {
+    die(`invalid --g4-mode '${opts.g4_mode}'. expected: ${[...VALID_G4_MODES].join(' | ')}`);
   }
   if (!VALID_G5_MODES.has(opts.g5_mode)) {
     die(`invalid --g5-mode '${opts.g5_mode}'. expected: ${[...VALID_G5_MODES].join(' | ')}`);
@@ -579,7 +588,7 @@ function countUniqueCollisionPaths(csvPath) {
   return paths.size;
 }
 
-function validateGates(plan, postGates, g3Mode = 'strict', opts = {}) {
+async function validateGates(plan, postGates, g3Mode = 'strict', opts = {}) {
   const failed = [];
   const pre = plan.gates;
   const summary = plan.summary;
@@ -599,6 +608,27 @@ function validateGates(plan, postGates, g3Mode = 'strict', opts = {}) {
     }
   }
   if (postGates.pre_size >= pre.pre_size) failed.push('G1_size_did_not_decrease');
+
+  // patch05 §2 — G4 target-line (AST-level survivor check)
+  const g4Mode = opts.g4_mode || 'strict';
+  if (g4Mode !== 'skip') {
+    const targetPath = opts.target || localeFilePath(opts.locale);
+    const postAST = await loadLocaleAST(targetPath);
+    if (postAST == null) {
+      failed.push('G4_post_ast_load_failed');
+    } else {
+      for (let i = 0; i < plan.decisions.length; i++) {
+        const d = plan.decisions[i];
+        if (d.action !== 'delete') continue;
+        if (d.estimated_leaf_delta === 0 && d.kind === 'leaf') continue;  // shadowed/survivor
+        const resolved = resolvePath(postAST, d.key_path);
+        if (resolved === undefined) {
+          failed.push(`G4_target_line_drift (decision[${i}] key_path=${d.key_path} kind=${d.kind})`);
+          break;  // 첫 위반에서 중단 (rollback 트리거)
+        }
+      }
+    }
+  }
 
   // patch04 §2 — G5 triage-rerun (collision detector only, unique-path semantics)
   const g5Mode = opts.g5_mode || 'strict';
@@ -684,14 +714,15 @@ async function main() {
     }
     const postLeaves = await countLeaves(localePath);
     const postGates = currentGates(localePath, postLeaves);
-    const result = validateGates(plan, postGates, opts.g3_mode, opts);
+    const result = await validateGates(plan, postGates, opts.g3_mode, opts);
     if (!result.ok) {
       process.stderr.write(`GATE FAILURE: ${result.failed.join(', ')}\n`);
       rollback(localePath);
       process.exit(1);
     }
+    const g4Label = `, G4 target-line [${opts.g4_mode}]`;
     const g5Label = opts.detector === 'collision' ? `, G5 collision [${opts.g5_mode}]` : '';
-    process.stdout.write(`\n✓ All gates passed (G1 size↓, G2 sacred SHA, G3 leaf count [${opts.g3_mode}]${g5Label}). Changes written.\n`);
+    process.stdout.write(`\n✓ All gates passed (G1 size↓, G2 sacred SHA, G3 leaf count [${opts.g3_mode}]${g4Label}${g5Label}). Changes written.\n`);
     process.stdout.write(`  size:   ${plan.gates.pre_size?.toLocaleString()} → ${postGates.pre_size?.toLocaleString()}\n`);
     process.stdout.write(`  leaves: ${plan.gates.pre_leaves?.toLocaleString()} → ${postGates.pre_leaves?.toLocaleString()}\n`);
   }
