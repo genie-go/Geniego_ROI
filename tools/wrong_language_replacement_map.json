@@ -1,0 +1,9 @@
+{
+  "_comment": "Wrong-language → target-script char replacement map. Used by tools/triage_apply.mjs --detector wrong-language. Structure: { locale: { detected_script: { ch_orig: ch_replace, ... }, ... }, ... }. Add entries as needed; missing entries → decision action='skip' (rationale='no replacement mapping'). Bootstrapped from 158차 ko orderHub fix.",
+  "_spec": "docs/spec/triage_apply_v1_patch06_wrong_language_apply.md §3.3",
+  "ko": {
+    "Han": {
+      "中": "중"
+    }
+  }
+}
