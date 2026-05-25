@@ -304,3 +304,25 @@ session157_*.json
 session157_*.md
 session157_*.txt
 session157_*.sh
+
+# Session 158 — analysis artifacts (session-scoped, gitignored at next session close per CONTRIBUTING.md §3)
+session158_*.mjs
+session158_*.csv
+session158_*.json
+session158_*.md
+session158_*.txt
+session158_*.sh
+
+# Session 159 — analysis artifacts (session-scoped, gitignored at next session close per CONTRIBUTING.md §3)
+session159_*.mjs
+session159_*.csv
+session159_*.json
+session159_*.md
+session159_*.txt
+session159_*.sh
+
+# Session 159 P5 — per-locale dry-run plans (local artifact; SUMMARY.md is tracked)
+session159_plans/*_plan.json
+
+# Session 15x spec docs under docs/spec/ are tracked (override session*_*.md pattern above)
+!docs/spec/session15*_*.md
