@@ -13,9 +13,10 @@
  * 외부 의존 0 — node:fs / node:path / node:child_process / node:crypto 만 사용.
  */
 
-import { readFileSync, writeFileSync, existsSync, statSync, unlinkSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, statSync, unlinkSync, renameSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
+import { createInterface } from 'node:readline';
 import { createHash } from 'node:crypto';
 
 const SACRED_LOCALES   = new Set(['ja', 'zh']);
@@ -37,6 +38,8 @@ Options:
   --apply              실제 적용 (미지정 시 100% dry-run; P2 미구현)
   --yes                --apply 결합 시 interactive confirm 생략 (CI 용)
   --out <path>         plan JSON 경로 (default: triage_apply_plan_<locale>_<detector>.json)
+  --target <path>      적용 대상 파일 override (default: frontend/src/i18n/locales/<locale>.js)
+                       — basename 이 ja.js/zh.js 이면 즉시 abort (N-79)
   --help               이 메시지 출력 후 종료
 
 Phase : P1 (collision dry-run only). P2 apply / P4 other detectors 는 stub.
@@ -53,7 +56,7 @@ function parseArgs(argv) {
   const opts = {
     locale: null, detector: null, input: null,
     severity: 'forbidden', apply: false, yes: false,
-    out: null, help: false,
+    out: null, target: null, help: false,
   };
   const args = argv.slice(2);
   for (let i = 0; i < args.length; i++) {
@@ -67,6 +70,7 @@ function parseArgs(argv) {
       case '--input':    opts.input = args[++i]; break;
       case '--severity': opts.severity = args[++i]; break;
       case '--out':      opts.out = args[++i]; break;
+      case '--target':   opts.target = args[++i]; break;
       default: die(`unknown flag: ${a}\n\n${usage()}`);
     }
   }
@@ -81,6 +85,13 @@ function parseArgs(argv) {
   }
   if (!VALID_SEVERITIES.has(opts.severity)) {
     die(`invalid --severity '${opts.severity}'. expected: ${[...VALID_SEVERITIES].join(' | ')}`);
+  }
+  if (opts.target) {
+    // N-79 belt-and-suspenders: --target basename 도 sacred 파일이면 차단
+    const basename = opts.target.split(/[\\/]/).pop();
+    if (basename === 'ja.js' || basename === 'zh.js') {
+      die(`N-79 violation: --target '${opts.target}' is a sacred file. aborting.`);
+    }
   }
   if (!opts.out) opts.out = `triage_apply_plan_${opts.locale}_${opts.detector}.json`;
   return opts;
@@ -142,7 +153,7 @@ function buildPlan(rows, options, preLeafCount) {
   //   block_identical          → first-wins (delete later blocks, preserve first)
   //   block_divergent          → skip (canonical 결정 외부 의존)
   const decisions = [];
-  const localePath = localeFilePath(options.locale);
+  const localePath = options.target || localeFilePath(options.locale);
   let idx = 0;
   for (const [path, members] of groupByPath(rows)) {
     if (members.length < 2) {
@@ -177,6 +188,12 @@ function buildPlan(rows, options, preLeafCount) {
       }
     }
   }
+
+  // §5.1.1 Hierarchical Overlap Resolution:
+  // block decision (delete or skip) 이 path-prefix 로 매칭되는 child leaf
+  // delete 를 흡수. 158차 ed3c4a0~1 graph subtree 파괴 케이스 예방.
+  demoteOverlappingLeaves(decisions);
+
   return {
     version: 1,
     tool: 'triage_apply',
@@ -189,8 +206,30 @@ function buildPlan(rows, options, preLeafCount) {
     },
     decisions,
     summary: summarize(decisions),
-    gates: currentGates(options.locale, preLeafCount),
+    gates: currentGates(localePath, preLeafCount),
   };
+}
+
+function demoteOverlappingLeaves(decisions) {
+  // 1. block decisions (delete + skip 둘 다) 의 path 수집
+  const blockPaths = decisions
+    .filter(d => d.kind === 'block')
+    .map(d => ({ path: d.key_path, line: d.target.line, action: d.action }));
+
+  if (blockPaths.length === 0) return;
+
+  // 2. leaf delete decisions 중 block path 의 child 인 것 demote
+  for (const d of decisions) {
+    if (d.kind !== 'leaf') continue;
+    if (d.action !== 'delete') continue;
+    for (const bp of blockPaths) {
+      if (d.key_path.startsWith(bp.path + '.')) {
+        d.action = 'skip';
+        d.rationale = `demoted: covered by parent block ${bp.action} at line ${bp.line} (path: ${bp.path})`;
+        break;
+      }
+    }
+  }
 }
 
 function makeDelete(row_index, r, file, rationale) {
@@ -232,12 +271,12 @@ function sha256Hex8(path) {
   return createHash('sha256').update(readFileSync(path)).digest('hex').slice(0, 8) + '...';
 }
 
-function currentGates(locale, preLeafCount) {
-  const main = localeFilePath(locale);
+function currentGates(mainPath, preLeafCount) {
+  // sacred (ja/zh) 는 항상 canonical 경로에서 — --target 으로 우회 불가
   const ja = localeFilePath('ja');
   const zh = localeFilePath('zh');
   return {
-    pre_size:    existsSync(main) ? statSync(main).size : null,
+    pre_size:    existsSync(mainPath) ? statSync(mainPath).size : null,
     pre_leaves:  preLeafCount,
     pre_ja_sha:  existsSync(ja) ? sha256Hex8(ja) : null,
     pre_zh_sha:  existsSync(zh) ? sha256Hex8(zh) : null,
@@ -247,9 +286,9 @@ function currentGates(locale, preLeafCount) {
 async function countLeaves(localePath) {
   try {
     const abs = resolve(localePath);
-    const url = process.platform === 'win32'
+    const url = (process.platform === 'win32'
       ? 'file:///' + abs.replace(/\\/g, '/')
-      : 'file://' + abs;
+      : 'file://' + abs) + '?v=' + Date.now();
     const m = await import(url);
     const root = m.default ?? m;
     let n = 0;
@@ -321,6 +360,99 @@ function runTriage(locale) {
   return tmpCsv;
 }
 
+function promptConfirm(_plan) {
+  return new Promise((resolve) => {
+    const rl = createInterface({ input: process.stdin, output: process.stdout });
+    rl.question('Proceed? [yes/no/diff]: ', (a) => {
+      rl.close();
+      const v = (a || '').trim().toLowerCase();
+      resolve(v === 'yes' ? 'yes' : v === 'diff' ? 'diff' : 'no');
+    });
+  });
+}
+
+function findBlockEnd(lines, startIdx) {
+  // start line 의 '{' 부터 brace depth 0 까지. 문자열/escape-aware.
+  // 주의: escaped 플래그는 라인 사이에서 reset 되지 않지만, 멀티라인 끝의
+  // \\ 는 i18n 파일에 거의 없어 실용상 무시 가능.
+  let depth = 0;
+  let inString = false;
+  let stringChar = null;
+  let escaped = false;
+  let started = false;
+  for (let i = startIdx; i < lines.length; i++) {
+    const line = lines[i];
+    for (let j = 0; j < line.length; j++) {
+      const c = line[j];
+      if (escaped) { escaped = false; continue; }
+      if (c === '\\') { escaped = true; continue; }
+      if (inString) {
+        if (c === stringChar) inString = false;
+        continue;
+      }
+      if (c === '"' || c === "'" || c === '`') { inString = true; stringChar = c; continue; }
+      if (c === '{') { depth++; started = true; }
+      else if (c === '}') {
+        depth--;
+        if (started && depth === 0) return i;
+      }
+    }
+  }
+  return -1;
+}
+
+function applyDeletions(plan, localePath) {
+  // descending line order so earlier-line deletions don't shift later targets
+  const deletes = plan.decisions
+    .filter(d => d.action === 'delete')
+    .sort((a, b) => b.target.line - a.target.line);
+  const original = readFileSync(localePath, 'utf-8');
+  const lines = original.split('\n');
+  for (const d of deletes) {
+    const startIdx = d.target.line - 1;
+    if (d.kind === 'leaf') {
+      lines.splice(startIdx, 1);
+    } else if (d.kind === 'block') {
+      const endIdx = findBlockEnd(lines, startIdx);
+      if (endIdx === -1) throw new Error(`unable to find block end for line ${d.target.line} (key=${d.key_path})`);
+      lines.splice(startIdx, endIdx - startIdx + 1);
+    } else {
+      throw new Error(`unknown kind: ${d.kind}`);
+    }
+  }
+  const newContent = lines.join('\n');
+  const tmpPath = localePath + '.triage_apply_tmp';
+  writeFileSync(tmpPath, newContent, 'utf-8');
+  renameSync(tmpPath, localePath);
+}
+
+function validateGates(plan, postGates) {
+  const failed = [];
+  const pre = plan.gates;
+  const summary = plan.summary;
+  if (postGates.pre_ja_sha !== pre.pre_ja_sha) failed.push('G2_ja_sha_changed');
+  if (postGates.pre_zh_sha !== pre.pre_zh_sha) failed.push('G2_zh_sha_changed');
+  // §5.1.3 safety-net G3: loss only (post >= expected).
+  // strict equality 는 §5.1.2 precise estimate 도입 후 별도 작업.
+  const expectedLeaves = pre.pre_leaves + summary.estimated_leaf_delta;
+  if (postGates.pre_leaves < expectedLeaves) {
+    failed.push(`G3_leaf_loss (post ${postGates.pre_leaves} < expected ${expectedLeaves})`);
+  }
+  if (postGates.pre_size >= pre.pre_size) failed.push('G1_size_did_not_decrease');
+  // G4 (target lines empty) and G5 (triage re-run) intentionally out of scope here.
+  return { ok: failed.length === 0, failed };
+}
+
+function rollback(localePath) {
+  const result = spawnSync('git', ['checkout', 'HEAD', '--', localePath], { stdio: 'inherit' });
+  if (result.status !== 0) {
+    console.error(`rollback failed: git checkout exited ${result.status} (file may be outside repo or untracked)`);
+    return false;
+  }
+  console.error(`rolled back via git checkout: ${localePath}`);
+  return true;
+}
+
 async function main() {
   const opts = parseArgs(process.argv);
   if (opts.detector !== 'collision') {
@@ -331,7 +463,8 @@ async function main() {
   const csv = opts.input ?? runTriage(opts.locale);
   opts.input = csv;
 
-  const leafCount = await countLeaves(localeFilePath(opts.locale));
+  const effectivePath = opts.target || localeFilePath(opts.locale);
+  const leafCount = await countLeaves(effectivePath);
   const rows = loadDetectorOutput(csv, COLLISION_HEADER);
   const plan = buildPlan(rows, opts, leafCount);
 
@@ -341,7 +474,38 @@ async function main() {
   if (csvCleanup) { try { unlinkSync(csv); } catch {} }
 
   if (opts.apply) {
-    process.stdout.write(`\n[triage_apply v1] --apply 통과했지만 P2 미구현 — dry-run only.\n`);
+    if (plan.summary.delete === 0) {
+      process.stdout.write(`\n[triage_apply v1] --apply: 삭제 대상 0 건 — no-op.\n`);
+      process.exit(0);
+    }
+    if (!opts.yes) {
+      const answer = await promptConfirm(plan);
+      if (answer === 'no') { process.stdout.write('aborted by user\n'); process.exit(0); }
+      if (answer === 'diff') {
+        process.stdout.write(JSON.stringify(plan, null, 2) + '\n');
+        const answer2 = await promptConfirm(plan);
+        if (answer2 !== 'yes') { process.stdout.write('aborted\n'); process.exit(0); }
+      }
+    }
+    const localePath = effectivePath;
+    try {
+      applyDeletions(plan, localePath);
+    } catch (e) {
+      process.stderr.write(`apply failed: ${e.message}\n`);
+      rollback(localePath);
+      process.exit(1);
+    }
+    const postLeaves = await countLeaves(localePath);
+    const postGates = currentGates(localePath, postLeaves);
+    const result = validateGates(plan, postGates);
+    if (!result.ok) {
+      process.stderr.write(`GATE FAILURE: ${result.failed.join(', ')}\n`);
+      rollback(localePath);
+      process.exit(1);
+    }
+    process.stdout.write(`\n✓ All gates passed (G1 size↓, G2 sacred SHA, G3 leaf count). Changes written.\n`);
+    process.stdout.write(`  size:   ${plan.gates.pre_size?.toLocaleString()} → ${postGates.pre_size?.toLocaleString()}\n`);
+    process.stdout.write(`  leaves: ${plan.gates.pre_leaves?.toLocaleString()} → ${postGates.pre_leaves?.toLocaleString()}\n`);
   }
   process.exit(0);
 }
