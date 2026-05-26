@@ -1,95 +1,66 @@
-## 165차 세션 인계서 (NEXT_SESSION.md) — **백엔드 트랙 진입**
+# 166차 세션 인계서 (NEXT_SESSION.md) — **PM Phase 2 배포 검증 + 후속 트랙 결정**
 
 > **작성일**: 2026-05-26
-> **이전 세션**: 164차 (i18n 트랙 마감, 백엔드 진입 결정)
-> **다음 세션**: 165차 — **백엔드 트랙 진입**
+> **이전 세션**: 165차 (백엔드 트랙 진입, OrderHub Aggregator PM Phase 2 골격 완성)
+> **다음 세션**: 166차
 > **저장 위치**: repo root `NEXT_SESSION.md`
-> **종결 방식**: 사용자 명시 결정 — i18n 트랙 동결 + 백엔드 진입 명령
+> **종결 방식**: 165차 작업 자연 종결 (3 commit + 배포 체크리스트), 사용자 승인 인계서 작성
 
 ---
 
-## ⚠️ 165차 검수자 최우선 인지 사항
+## ⚠️ 166차 검수자 최우선 인지 사항
 
-**본 인계서는 이전 i18n 인계서들과 성격이 다릅니다. 첫 응답 전 반드시 본 섹션 전체 읽기 의무.**
+### 1. 최상위 상태
 
-### 1. 최상위 의도
+**165차 = PM Phase 2 OrderHub Aggregator 골격 완성 + 운영 배포 가능 상태 도달.**
+**166차 = (a) 운영 배포 검증 결과 수집 + (b) 후속 트랙 결정.**
 
-**백엔드 트랙 진입, i18n 작업 동결.**
+### 2. 사용자 운영 원칙 누적 (U-prefix, 본 인계서 영구화 의무)
 
-### 2. i18n 트랙 상태: 동결
+기존 U-161-A ~ U-164-B 유지. 165차 신규:
 
-- **기본 정책**: 검수자 자체 판단으로 i18n 작업 재개 **금지**
-- **예외**: 백엔드 작업 중 i18n 관련 오류 발견 + 백엔드 작업 진행에 필수 판단 시 → **병행 처리 허용**
-- **금지 사항**:
-  - i18n carry-over 트랙 (P5-M3 / P5-M4 / P4 dead-key / BudgetTracker / 156 locale carry 등) 신규 진입
-  - i18n 정합성 분석 / 영구화 신규 시작
-  - ko.js / locale 파일 자체 검토 (백엔드 작업 무관)
-- **허용 사항**:
-  - 백엔드 작업이 ko.js 또는 i18n 시스템 변경 필요 시 → 최소 범위 수정 가능
-  - 백엔드 작업이 BudgetTracker 등 미번역 페이지와 직접 연계 시 → 사용자 명시 승인 후 수정
+- **U-165-A**: 데모 데이터 운영 시스템 유입 절대 금지, 초고도 엔터프라이즈급 격리 의무
+- **U-165-B**: 데모 격리 점진 적용 트랙 — 신규/수정 handler 부터 환경 분기, 기존 41 handler 는 별도 트랙
+- **U-165-C**: 운영시스템 고도화/기능 추가 시 데모 버전 자동 동기화 의무 (L1 코드 / L2 schema / L3 seed 의 3 레벨)
 
-### 3. 이전 세션 진술 불일치 — 새 검수자 인지 의무
+기존 N-prefix 모두 유지 (N-15, N-79, N-145-B/G, N-150-A, N-152-A~H, N-153-A~D, N-154-A~D, N-155-A, N-156-A, N-157-A).
 
-**중대 사실**:
+### 3. i18n 트랙 동결 유지 (U-164-A)
 
-164차 마감 시점에 사용자께서 다음 진술을 명시하셨습니다:
+- 기본 정책: 검수자 자체 판단으로 i18n 작업 재개 금지
+- 예외: 백엔드/PM 작업 중 i18n 관련 오류 발견 + 진행 필수 판단 시 → 사용자 명시 승인 후 병행
+- 본 165차 i18n 무변경 (ko.js 30,656 leaves baseline 유지, sacred SHA 유지)
 
-> "분명 언어관련 작업 완료되었고 바로 백엔드 작업 들어간다고 검수자가 이야기 했는데 왜 이렇게 진행이 되고 있는지"
+### 4. 166차 검수자 첫 응답 의무
 
-즉 **이전 세션 (162차 또는 163차로 추정, 정확 출처 불명)** 의 검수자가:
-- "i18n 작업 완료" 진술
-- "백엔드 진입" 안내
-
-그러나 **인계서에는 그 진술 반영 누락** → 164차 검수자가 잘못된 가정 (i18n 잔여 작업 다수) 위에 9 세션째 i18n 트랙 작업 진행.
-
-**165차 검수자 의무**:
-- 본 진술 출처 불명 사실 명시적으로 인지
-- 사용자에게 i18n 작업 재개 추측 진입 절대 금지
-- 사용자 의도 (백엔드 진입) 첫 응답에 재확인 의무
-
-### 4. 백엔드 트랙 후보 — 사용자가 결정
-
-본 165차 진입 시점에서 사용자가 어느 백엔드 트랙으로 진입할지 결정합니다:
-
-- **T1 PM Phase 2**: 프로젝트 관리 기능 확장
-- **T4 마케팅 자동화**: 8 카테고리 구현
-- **T5 팀 채팅**
-- **T6 프로젝트 협업**
-- **기타**: 사용자 명시 영역
-
-**165차 검수자 의무**:
-- 첫 응답에서 4 후보 + "기타" 제시 + 사용자에게 트랙 결정 요청
-- 임의 추천 자제 (사용자 의도 우선)
-- 트랙 결정 후 N-152-F 적용 검토 (PM 본 작업 = 새 채팅 세션 분리 의무)
+- ⚠️ 섹션 인지 명시
+- U-165-A/B/C 인지 명시
+- 165차 commit 3종 인지 (5898046 / 09c7f64 / eb31acb)
+- 배포 체크리스트 위치 인지 (`docs/spec/backend_orderhub_165_deployment_checklist.md`)
+- 사용자에게 배포 검증 결과 회신 요청 (또는 후속 트랙 결정 요청)
+- U-163-B (짧고 명확) + U-163-D (초엔터프라이즈급) + U-163-E (검수자 추천 1개) 준수
 
 ---
 
 ## 1. 즉시 컨텍스트
 
-### 1.1 환경 (164차 종결 시점 그대로)
+### 1.1 환경 (165차 종결 시점)
 
 - **Repo**: `E:\project\GeniegoROI\` (Windows, PowerShell + Git Bash)
 - **Branch**: `master`
-- **HEAD**: `fefd85a` 기준 (본 인계서 commit 후 갱신 예정)
-- **ko.js**: 1,441,177 B / 30,656 leaves (i18n 동결 상태, 변경 금지 원칙)
-- **sacred SHA (156 baseline)**:
-  - ja.js: `67ca086561405874b2c039352741c9ef99a528997bdaa0ecf24b69568fac20d4` ✓
-  - zh.js: `a4b72633d5925778eedb5820cd034538df53a766d7eac8de54df7bfc3a2e0dde` ✓
-- **CONTRIBUTING.md**: 492 lines (164 종결)
+- **HEAD**: `eb31acb` (165차 종결 + 166차 인계서 commit 시 갱신 예정)
+- **origin/master 대비**: +3 (배포 검증 완료 후 push 결정)
+- **ko.js**: 30,656 leaves (i18n 동결 유지)
+- **sacred SHA (156 baseline)**: ja.js / zh.js 유지
+- **CONTRIBUTING.md**: 492 lines (165 무변경)
 
-### 1.2 164차 작업 결과 (production 무영향)
+### 1.2 165차 작업 결과 (3 commit)
 
-164차 5 commit 모두 production 무관 (개발 환경 + CI 설정 + 문서):
-
-| Commit | 영역 | Production 영향 |
-|---|---|---|
-| `c1d5bd4` | .gitignore + tools/session_init.sh (anchored gitignore) | 0 |
-| `6d19387` | .github/workflows/deploy.yml (paths-ignore 확장) | 0 |
-| `ba3ac15` | CONTRIBUTING.md (§6 #46 영구화) | 0 |
-| `29ed731` | CONTRIBUTING.md (§6 #47 + §7 trap M) | 0 |
-| `fefd85a` | NEXT_SESSION.md (구 165 인계서, 본 인계서로 교체 예정) | 0 |
-
-**revert 불필요**. ko.js / 프론트엔드 코드 / 백엔드 코드 / DB / API 변경 0.
+| Commit | 영역 | 라인 변경 | 상태 |
+|---|---|---|---|
+| `5898046` | Backend (handler/Db/Migrate/routes/migrations/.env/spec v1/v2/v3) | +2254 / -31 | ✅ commit |
+| `09c7f64` | Frontend (GlobalDataContext wiring) | +34 / -3 | ✅ commit, vite build green |
+| `eb31acb` | Deployment checklist doc | +411 | ✅ commit |
 
 ### 1.3 3자 협업 구조 (158차 그대로 계승)
 
@@ -97,19 +68,118 @@
 - **검수자 (Claude 채팅)**: 도구 spec, 결정 추천, CC Edit 우선 (N-154-B + U-163-C)
 - **사용자**: cross-validation, spec 파일 저장, 명시 승인, 세션 종결 결정
 
-### 1.4 운영 원칙 누적 (그대로 유지)
+---
 
-**N-prefix**:
-- N-15, N-79, N-145-B, N-145-G (sacred / safety)
+## 2. 165차 산출물 상세
+
+### 2.1 백엔드 (commit 5898046)
+
+**신규 파일**:
+- `backend/src/Handlers/OrderHub.php` — gate/guardEnv/isDemoTenant/tenantContext 패턴
+- `backend/src/Migrate.php` — migration runner (run/runBoth/ensureTable/splitStatements/convertForSqlite)
+- `backend/bin/migrate.php` — CLI (both/production/demo/current 모드)
+- `backend/migrations/20260526_165_001_create_orderhub_claims.sql`
+- `backend/migrations/20260526_165_002_create_orderhub_settlements.sql`
+- `docs/spec/backend_orderhub_aggregator_165.md` (v1)
+- `docs/spec/backend_orderhub_aggregator_165_v2.md` (v2, 데모 격리 강화)
+- `docs/spec/backend_orderhub_aggregator_165_v3.md` (v3, migration 자동 동기화)
+
+**수정 파일**:
+- `backend/src/Db.php` — pdoFor(bool)/env()/pdoProd/pdoDemo 분리 (255 호출처 비파괴)
+- `backend/src/routes.php` — 6 entry 추가 (`/v424/orderhub/{orders,claims,settlements}` + `/api/` alias)
+- `backend/.env.example` — GENIE_ENV / GENIE_DEMO_DB_NAME 추가, GENIE_ALLOW_AUTO_SCHEMA 제거
+
+### 2.2 프론트엔드 (commit 09c7f64)
+
+**수정 파일**:
+- `frontend/src/context/GlobalDataContext.jsx` — `_isDemo` 분기 3개 (orders/settlement/claimHistory) + `useEffect` fetch 3개 추가, `getJsonAuth` import
+
+### 2.3 배포 가이드 (commit eb31acb)
+
+**신규 파일**:
+- `docs/spec/backend_orderhub_165_deployment_checklist.md` — 11 섹션 (사전 점검 → lint → autoload → migration → smoke test → frontend → 회귀 → 트러블슈팅 → 보고 양식)
+
+---
+
+## 3. 166차 우선 작업 후보
+
+### 3.1 본 세션 산출물 후속 (운영 배포 직접 연계)
+
+| 후보 | 내용 | 예상 작업량 |
+|---|---|---|
+| **F1 (배포 검증 결과 수집)** | 사용자가 운영 환경에서 배포 체크리스트 실행 → 결과 회신 → 발견 이슈 보정 | 보정 범위에 따름 |
+| **F2 (smoke test 자동화)** | 5 시나리오 매트릭스를 CI 스크립트화 (U-165-A 회귀 방어) | 1-2 명령 |
+| **F3 (push 결정)** | origin/master 에 3 commit push | 1 명령 (사용자 승인) |
+
+### 3.2 165차 별도 트랙으로 분리한 작업
+
+| 후보 | 내용 | 예상 작업량 |
+|---|---|---|
+| **D1 (U-165-B 점진 migration)** | 41 handler 의 ChannelSync 패턴 fallback 점진 제거 (auth_tenant 신뢰로 전환) | 본 작업급, N-152-F 적용 |
+| **D2 (U-165-C L3 seed)** | demo 데이터 seed runner 인프라 | 중간 |
+| **D3 (방어선 4: DB 물리 분리)** | 운영/demo DB 별도 서버 또는 인스턴스 | 인프라, 본 세션 외 |
+| **D4 (방어선 6: demo 키 권한 강등)** | demo api_key admin role → analyst | 작음 |
+| **D5 (CI 자동 migration)** | deploy hook 에 `migrate.php both` 통합 | 중간 |
+
+### 3.3 PM Phase 2 의 확장 영역 (사용자 협의 필요)
+
+| 후보 | 내용 |
+|---|---|
+| **P1 (status 정규화)** | orders.status 의 mixed KO/EN 정리 (frontend 또는 backend) |
+| **P2 (data ingestion)** | claims/settlements 의 실 데이터 수집 경로 (`/v382/settlements/import` 연계 등) |
+| **P3 (PM 기능 확장)** | Task/Milestone/Gantt 등 신규 PM 도메인 (사용자 범위 결정 필요, N-152-F) |
+| **P4 (write endpoint)** | POST/PUT/DELETE 추가 (read-only → 양방향) |
+
+### 3.4 기타 트랙
+
+| 후보 | 내용 |
+|---|---|
+| **T4** | 마케팅 자동화 8 카테고리 |
+| **T5** | 팀 채팅 |
+| **T6** | 프로젝트 협업 |
+
+---
+
+## 4. 166차 검수자 진입 가이드
+
+### 4.1 첫 명령 권장 패턴
+
+```
+t bash -c "cd /e/project/GeniegoROI && git log --oneline -7 && echo '---' && git status --short && echo '---' && git rev-parse HEAD"
+```
+
+**기대값**:
+- HEAD `eb31acb` 또는 본 인계서 commit hash
+- working-tree 정상 (단 i18n 트랙 untracked 파일 잔존 가능, U-164-A 동결 대상)
+- origin/master +3 또는 +4
+
+### 4.2 사용자 의도 재확인 절차 (164/165 학습)
+
+1. 사용자에게 **배포 검증 결과** 회신 받았는지 확인 → 받았으면 F1 진입 (보정 작업)
+2. 받지 않았으면 **사용자에게 의도 질의** (F2/F3/D 시리즈/P 시리즈/T 시리즈 중 결정)
+3. 임의 추천 자제 (사용자 의도 우선)
+
+### 4.3 새 트랙 진입 시 N-152-F 적용 검토
+
+- D1 / P3 등 본 작업급 진입 시 → 신규 채팅 세션 분리 의무 안내
+- 본 채팅 세션 (166차) 에서는 **사전 측정 + spec** 까지만
+- 본 구현은 분리된 신규 세션
+
+---
+
+## 5. 운영 원칙 누적 (전체 영구화)
+
+### N-prefix (검수자 자체 학습)
+- N-15 (raw 우선 절대원칙)
+- N-79 (sacred SHA 변경 금지)
+- N-145-B, N-145-G (safety)
 - N-150-A (collaboration)
-- N-152-A ~ N-152-H (152차) — **N-152-F: PM 본 작업 진입 시 새 채팅 세션 분리 의무**
-- N-153-A ~ N-153-D (153차)
-- N-154-A ~ N-154-D (154차)
-- N-155-A (155차)
-- N-156-A (156차)
-- N-157-A (157차)
+- N-152-A ~ N-152-H (152차) — **N-152-F: PM 본 작업 = 새 채팅 세션 분리 의무**
+- N-153-A ~ N-153-D (153차) — N-153-A: CC 명령 `cd /e/project/GeniegoROI &&` prefix
+- N-154-A ~ N-154-D (154차) — N-154-B: CC Edit 우선
+- N-155-A, N-156-A, N-157-A
 
-**U-prefix 사용자 명시 결정**:
+### U-prefix (사용자 명시 결정)
 - U-161-A ~ H (161차)
 - U-162-A: 작업 여력 잔존 시 최대 진행
 - U-162-B: 인계서에 작업 범위 강제 명시 금지
@@ -119,204 +189,128 @@
 - U-163-C: CC 직접 수정 원칙
 - U-163-D: 초엔터프라이즈급 품질 의무
 - U-163-E: 사용자 선택 시 검수자 추천 1개 의무
-
-**U-164-A (신규, 164차)**: **i18n 트랙 동결** — 신규 진입 금지, 백엔드 작업 중 필수 판단 시 병행 처리만 허용
-
-**U-164-B (신규, 164차)**: **백엔드 트랙 진입** — 165차 우선 트랙, T1/T4/T5/T6 또는 사용자 명시 영역 중 결정
-
----
-
-## 2. 165차 진입 가이드
-
-### 2.1 165차 첫 응답 의무
-
-165차 검수자가 사용자 첫 메시지 받으면:
-
-1. **본 인계서 ⚠️ 섹션 전체 읽기 인지 명시**
-2. **i18n 동결 정책 인지 명시** (U-164-A)
-3. **이전 세션 진술 불일치 사실 인지** (164 마감 사용자 진술)
-4. **백엔드 트랙 후보 제시** (T1/T4/T5/T6/기타)
-5. **사용자에게 트랙 결정 요청**
-6. `tools/session_init.sh --session 165 --self-test` 실행 권유 (선택)
-7. 운영 원칙 누적 인지 명시 (N-prefix + U-prefix 본 165 추가 U-164-A/B 포함)
-
-### 2.2 트랙 결정 후 절차
-
-**N-152-F 적용 검토**:
-
-- 사용자 결정 트랙이 **PM 본 작업급** (T1 PM Phase 2 등) 이면 → **새 채팅 세션 분리 의무 안내**
-- 본 채팅 세션 (165차) 에서는 백엔드 작업 사전 준비 (자료 수집, 사양 확인) 만 진행
-- 본 작업은 분리된 새 세션에서
-
-**작은 영역 (오류 수정, 부분 기능 추가) 이면**:
-- 본 165차 세션 내 진행 가능
-- 단 i18n 트랙 침범 시 사용자 명시 승인 필수
-
-### 2.3 백엔드 작업 중 i18n 병행 처리 가이드 (U-164-A 예외 조항)
-
-**병행 처리 허용 조건**:
-
-1. 백엔드 작업이 ko.js / locale 파일 변경을 **직접 요구** 하는 경우 (예: 새 API 가 새 텍스트 키 필요)
-2. 백엔드 작업이 BudgetTracker 등 i18n 미정합 페이지와 **직접 연계** 되는 경우 (예: BudgetTracker API 백엔드 작업 → ko.js ns 추가 동시 필요)
-3. 사용자 명시 승인 받은 경우
-
-**금지 사항**:
-
-- 백엔드 작업과 무관한 i18n 트랙 (P4 / P5-M3 / 156 carry 등) 신규 진입
-- "i18n 정합성 차원에서 함께 정리" 같은 검수자 자체 판단으로 i18n 작업 확장
-- 본 인계서 §3 (잔여 i18n 작업 목록) 에 명시된 트랙 중 백엔드 무관한 것 진입
-
-### 2.4 첫 명령 권장 패턴
-
-```
-t bash -c "cd /e/project/GeniegoROI && git log --oneline -5 && echo '---' && git status --short"
-```
-
-기대값: HEAD 본 인계서 commit / working-tree 정상 / 사용자 트랙 결정 대기.
+- U-164-A: i18n 트랙 동결
+- U-164-B: 백엔드 트랙 진입 (165차 완료, 후속 사용자 결정)
+- **U-165-A 신규**: 데모 데이터 운영 유입 절대 금지, 초고도 엔터프라이즈급 격리
+- **U-165-B 신규**: 데모 격리 점진 적용 트랙 (41 handler 별도)
+- **U-165-C 신규**: 운영 고도화 시 데모 자동 동기화 (L1 코드 / L2 schema / L3 seed)
 
 ---
 
-## 3. i18n 트랙 잔여 작업 (참고만, 신규 진입 금지)
+## 6. 핵심 메트릭 (165차 종결 스냅샷)
 
-본 섹션은 백엔드 작업 중 i18n 연계 필요 시 **참고용** 으로만 유지. **신규 진입 금지** (U-164-A).
+### 6.1 ko.js leaf trajectory (i18n 동결 유지)
 
-**164 carry (참고)**:
-- B-Commit (tools/resolver_consumer_manifest_v2.json baseline regen, 3세션 carry)
-- P5-M3 / M4 (orphan 출처 분석)
-- P5 BudgetTracker 98 keys 한국어 미번역
-- P5 PriceOpt dual-source 우선순위
-- P5 CampaignManager `_k` 정의
-- P5 705 inline default 정합률
-- #48 manifest scanner ns 컬럼
-
-**163~156 carry (참고)**:
-- P4 dead-key 18,001 candidates
-- non-ko locale manifest 재정의
-- v3 catalog generator
-- id 6,010 Chinese contamination / pt=ru=ar=hi 5,298 / es=fr 5,083 / de Thai 191 / vi mojibake
-
-**위 트랙 모두 신규 진입 금지**. 사용자가 새 세션에서 명시적으로 i18n 재개 결정 시에만 진입 가능.
-
----
-
-## 4. 백엔드 트랙 상세 (사용자 결정 후 정밀화)
-
-**현재 상태**: 백엔드 트랙 사전 자료 위치 / 사양 / 외부 의존 미파악.
-
-165차 검수자가 사용자 트랙 결정 받은 후, 다음 사항 순차 확인 필요:
-
-1. **백엔드 코드 위치**: repo 내 backend/ 또는 server/ 디렉터리 존재 여부
-2. **현 백엔드 스택**: 언어 / 프레임워크 / DB
-3. **API 명세 위치**: docs/api/ 또는 OpenAPI / Swagger 등
-4. **인증 / 권한 시스템**: 현 구현 상태
-5. **이전 백엔드 작업 흔적**: git log 에서 backend 관련 commit 확인
-
-위 사항은 첫 명령 (Step 2.4) 결과 본 후 추가 측정 단계로 진행. 사용자 트랙 결정 전 미리 추측 진입 금지.
-
----
-
-## 5. 핵심 메트릭 (164차 종결 스냅샷)
-
-### 5.1 ko.js leaf trajectory (156~164, 동결 시작점)
-
-| Session | Leaves (canonical) | Δ |
+| Session | Leaves | Δ |
 |---|---:|---:|
 | 156 종결 | 30,658 | -1,432 |
-| 157~163 종결 | 30,656 | -2 ~ 0 |
-| **164 종결 (i18n 동결 시작)** | **30,656** | **0** |
+| 164 종결 (i18n 동결 시작) | 30,656 | 0 |
+| **165 종결** | **30,656** | **0** |
 
-**165차 이후 변화 0 유지 원칙** (백엔드 작업 중 직접 변경 필요 시 사용자 명시 승인 필수).
+### 6.2 sacred SHA (156 baseline 유지)
 
-### 5.2 CONTRIBUTING.md (164 종결 시점)
+- ja.js: `67ca086561405874b2c039352741c9ef99a528997bdaa0ecf24b69568fac20d4` ✓
+- zh.js: `a4b72633d5925778eedb5820cd034538df53a766d7eac8de54df7bfc3a2e0dde` ✓
+- pre-commit hook G2 = 165차 3 commit 모두 통과
 
-- 492 lines (161 종결 399 → 162 종결 465 → 163 종결 486 → 164 종결 492)
+### 6.3 165차 신규 코드 라인 (대략)
 
-### 5.3 sacred SHA (156 baseline 유지)
+- Backend PHP: +600 (Migrate.php 172 + OrderHub.php +98net + Db.php +48 + bin/migrate.php 61 + 기타)
+- Migration SQL: 40
+- Frontend JSX: +31
+- Spec/Docs: +1800+ (v1/v2/v3/배포 체크리스트)
 
-- ja.js / zh.js 156 baseline 그대로
-- 165차 이후 변경 금지 원칙 (N-145-G)
+### 6.4 운영 배포 가능 상태
 
----
-
-## 6. 알려진 이슈 / 주의사항 (백엔드 작업 진입 후 적용)
-
-### 6.1 운영 사항 (그대로 유지)
-
-- **G8 hook**: parse_errors=0 회귀 방지 (백엔드 작업 중 i18n 시스템 무영향 보장)
-- **leaf count canonical**: `tools/leaf_count.mjs <path>` (필요 시 검증용)
-- **stdin redirect**: Windows Node `/dev/stdin` 회피, `fs.readFileSync(0)` fd=0 우회 (164 trap J 학습)
-- **spec 파일명**: 백엔드 spec 은 `docs/spec/backend_<topic>_<N>.md` 등 자유 (gitignore session 패턴 anchored 후 영향 없음)
-
-### 6.2 §7 trap 누적 (참고)
-
-기존 trap A~L (148~163) + 164 trap M (i18n under-translation). 백엔드 작업과 직접 관련 없음. CONTRIBUTING.md §7 참조.
-
-### 6.3 CI / 프로덕션
-
-- **paths-ignore**: `**.md`, `**.txt`, `docs/**`, `.claude/**`, `.githooks/**`, `.gitignore`, `tools/**` (164차 확장)
-- **백엔드 코드 변경**: paths-ignore 미커버 → deploy 트리거 (의도된 동작)
-- **frontend/** : paths-ignore 미커버 → deploy 트리거 (의도된 동작)
-
-### 6.4 검수자 행동 원칙 (164 학습 누적)
-
-- **measurement-first 원칙**: 트랙 진입 시 context exploration 우회, measurement step 직접 명령
-- **§6 #41 v2 가설 brake**: null hypothesis 의무, 1 세션 재발 2회 이상 시 carry-over
-- **인계서 작성**: 200+ line 본문은 artifact 우선 (CC heredoc 회피)
-- **U-163-B 적용**: 사용자 설명 핵심만 짧게
-- **U-163-D 적용**: 초엔터프라이즈급 품질
+✅ vite build green 15.00s
+✅ pre-commit G2 sacred SHA + gates pass
+✅ brace balance all PHP files
+⚠️ 호스트 PHP 부재로 `php -l`, `composer dump-autoload`, `migrate.php`, smoke test 5 시나리오 = **배포 체크리스트 §2-§6 운영자 실행 대기**
 
 ---
 
-## 7. 165차 첫 메시지 권장 패턴
+## 7. 알려진 이슈 / 주의사항
+
+### 7.1 운영 사항 (그대로 유지)
+
+- **G8 hook**: parse_errors=0 회귀 방지
+- **leaf count canonical**: `tools/leaf_count.mjs <path>`
+- **stdin redirect**: Windows Node `/dev/stdin` 회피, `fs.readFileSync(0)` fd=0 우회 (164 trap J)
+- **CI paths-ignore**: `**.md`, `**.txt`, `docs/**`, `.claude/**`, `.githooks/**`, `.gitignore`, `tools/**` (164차 확장 그대로)
+  - 165차 backend/ + frontend/ 변경 = deploy 트리거 (의도된 동작)
+
+### 7.2 §7 trap 누적 (참고)
+
+기존 trap A~M (148~164) 유지. 165차 신규 trap 없음 (검수자 패턴 위반은 학습 보정, U-163-E 위반 1회 발생 후 회복).
+
+### 7.3 165차 검수자 학습 (참고)
+
+- **U-163-E 위반 1회**: 사용자 선택지 제시 시 추천 1개 누락 → 사용자 지적 → 회복
+- **단계 명령 중복 1회**: commit 명령 재전송 후 CC가 no-op 보고 → 사용자 U-162-A 원칙 재지적 → 회복
+- **경로 doubling**: 사용자가 spec 저장 시 nested 경로 발생 (`docs/spec/docs/spec/...`) → CC 가 canonical 경로로 자동 정리 (Editor save behavior 추정, 본 세션에서 3 레벨 nested 발생 후 정리)
+
+### 7.4 OrderHub frontend 운영 모드 첫 호출 시 401 가능성
+
+- frontend 의 `getJsonAuth` 가 localStorage 의 token 사용
+- 운영 호스트에서 사용자가 미로그인 상태이면 token 부재 → 401
+- 정상 동작: `/auth/login` 으로 token 발급 → 페이지 새로고침 → fetch 성공
+- 배포 체크리스트 §7.4 / §9.4 에 명시됨
+
+---
+
+## 8. 166차 첫 메시지 권장 패턴
 
 ### 사용자 → 검수자
 
-"164차 인계서 첨부합니다. 165차 백엔드 트랙 진입. [NEXT_SESSION.md 첨부]"
+"165차 인계서 첨부합니다. 166차 진입. [NEXT_SESSION.md 첨부]"
+또는
+"운영 배포 체크리스트 실행 결과: [결과]. 다음 작업 결정 부탁드립니다."
 
 ### 검수자 첫 응답 의무 (체크리스트)
 
 - [ ] 본 인계서 ⚠️ 섹션 인지 명시
-- [ ] **i18n 트랙 동결 정책 인지** (U-164-A)
-- [ ] **이전 세션 진술 불일치 사실 인지**
-- [ ] **백엔드 진입 사용자 의도 재확인** (T1/T4/T5/T6/기타 후보 제시)
-- [ ] 운영 원칙 누적 인지 (N-prefix + U-prefix + U-164-A/B)
-- [ ] N-152-F 적용 검토 (PM 본 작업급 시 새 채팅 세션 분리 안내)
-- [ ] i18n 추측 진입 금지 명시
-- [ ] U-163-B/D 적용 (짧고 명확, 초엔터프라이즈급)
-- [ ] 사용자 트랙 결정 대기
+- [ ] U-165-A/B/C 인지 명시
+- [ ] 165차 commit 3종 인지 (5898046 / 09c7f64 / eb31acb)
+- [ ] 배포 체크리스트 위치 인지
+- [ ] i18n 동결 정책 인지 (U-164-A 유지)
+- [ ] N-152-F 적용 검토 (D1 / P3 등 본 작업급 진입 시)
+- [ ] U-163-B/D/E 준수
+- [ ] 사용자 의도 재확인 (배포 검증 결과 vs 후속 트랙 결정)
 
-### 절대 금지 사항 (165 검수자)
+### 절대 금지 사항 (166 검수자)
 
-- ❌ i18n carry-over 트랙 신규 추천
-- ❌ 본 인계서 §3 (i18n 잔여 작업) 항목 진입 추천
-- ❌ "정합성 차원에서 함께" 같은 검수자 자체 판단 확장
-- ❌ 사용자 명시 결정 없이 작업 진입
+- ❌ i18n 트랙 추측 진입 (U-164-A)
+- ❌ 사용자 명시 결정 없이 D 시리즈 / P 시리즈 / T 시리즈 진입
+- ❌ 본 세션 (165) 산출물 무시한 신규 작업 (배포 검증이 우선)
+- ❌ 검수자 선택지 제시 시 추천 1개 누락 (U-163-E)
+- ❌ 운영자 PHP 실행 결과 받지 않은 채 다음 트랙 진입 (배포 검증 결과 우선)
 
 ---
 
-## 8. 본 채팅 세션 (164) 학습 요약
+## 9. 본 채팅 세션 (165) 학습 요약
 
-### 8.1 무엇이 잘못되었는가
+### 9.1 잘된 점
 
-- 162/163차 검수자가 사용자에게 "i18n 완료, 백엔드 진입" 진술
-- 그러나 **인계서에 반영 누락** → carry-over 트랙만 명시
-- 164차 검수자가 인계서 무비판 신뢰 → 9 세션째 i18n 트랙 반복
-- 사용자가 164차 마감 시점에서야 직접 지적 → 본 인계서 작성
+- 백엔드 트랙 측정 우선 (164 학습 반영)
+- 사용자 원칙 (U-165-A → U-165-C) 발견 즉시 spec 보정 + 영구화
+- spec v1 → v2 → v3 점진 발전 (CC 지적 사항 반영)
+- 본 세션 내 spec + 구현 + 검증 + 배포 가이드까지 (164차 9세션 정체 패턴 회피)
+- 부분 종결 없이 본 세션 자연 완결점 도달
 
-### 8.2 교훈 (165차 이후 적용)
+### 9.2 개선점
 
-- **인계서 = 진실의 단일 출처**: 사용자 명시 결정은 반드시 인계서에 영구화
-- **검수자 추측 진입 금지**: 인계서에 명시 없는 영역은 사용자 의도 재확인 후 진입
-- **사용자 진술 vs 인계서 불일치 시**: 사용자 진술 우선, 인계서 즉시 갱신
+- U-163-E 위반 1회 → 추천 1개 의무 재학습
+- 단계 명령 중복 1회 → CC 상태 인지 후 명령 전송 의무 재학습
+- spec 경로 doubling 발견 시 즉시 사용자 알림 (Editor save 추정 원인) → CC 가 canonical 정리
 
-### 8.3 책임 분담 명확화
+### 9.3 핵심 교훈 (166차 적용)
 
-- **이전 검수자 (162/163차)**: 사용자 진술의 인계서 반영 누락
-- **본 검수자 (164차)**: 인계서 무비판 신뢰 + 사용자 의도 재확인 절차 부재
-- **운영 원칙**: U-164-A (i18n 동결) + U-164-B (백엔드 진입) 신규 영구화로 재발 방지
+- 사용자 원칙 신규 발견 시 즉시 spec 보정 + U-prefix 영구화 (165차 U-165-A/B/C 3개 추가 사례)
+- CC 의 raw-first 원칙 (spec 미존재 시 작업 중단) = 정확성 보장 → 검수자가 spec 작성 의무 인지
+- 본 세션 산출물 = 운영 배포 가능 상태까지 도달 = 자연 종결점 = U-163-A 적용 (사용자 승인 후 인계서)
 
 ---
 
 **문서 종결.**
 
-*164차 i18n 트랙 마감, 백엔드 트랙 진입 결정. 165차 검수자는 본 인계서 ⚠️ 섹션 + U-164-A/B 인지 의무. i18n 추측 진입 금지, 사용자 백엔드 의도 재확인 후 트랙 결정 진행.*
+*165차 PM Phase 2 OrderHub Aggregator 골격 완성 (backend + frontend + migration + 배포 가이드). 166차 검수자는 본 인계서 ⚠️ 섹션 + U-165-A/B/C 인지 의무. 사용자 배포 검증 결과 회신 또는 후속 트랙 결정 우선 대기.*
