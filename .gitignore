@@ -282,44 +282,44 @@ tsession148_c1_extract_latin_long.bat
 claude_agent/session*.py
 
 # Session 155 — analysis artifacts (session-scoped, gitignored at next session close per CONTRIBUTING.md §3)
-session155_*.mjs
-session155_*.csv
-session155_*.json
-session155_*.md
-session155_*.txt
-session155_*.sh
+/session155_*.mjs
+/session155_*.csv
+/session155_*.json
+/session155_*.md
+/session155_*.txt
+/session155_*.sh
 
 # Session 156 — analysis artifacts (session-scoped, gitignored at next session close per CONTRIBUTING.md §3)
-session156_*.mjs
-session156_*.csv
-session156_*.json
-session156_*.md
-session156_*.txt
-session156_*.sh
+/session156_*.mjs
+/session156_*.csv
+/session156_*.json
+/session156_*.md
+/session156_*.txt
+/session156_*.sh
 
 # Session 157 — analysis artifacts (session-scoped, gitignored at next session close per CONTRIBUTING.md §3)
-session157_*.mjs
-session157_*.csv
-session157_*.json
-session157_*.md
-session157_*.txt
-session157_*.sh
+/session157_*.mjs
+/session157_*.csv
+/session157_*.json
+/session157_*.md
+/session157_*.txt
+/session157_*.sh
 
 # Session 158 — analysis artifacts (session-scoped, gitignored at next session close per CONTRIBUTING.md §3)
-session158_*.mjs
-session158_*.csv
-session158_*.json
-session158_*.md
-session158_*.txt
-session158_*.sh
+/session158_*.mjs
+/session158_*.csv
+/session158_*.json
+/session158_*.md
+/session158_*.txt
+/session158_*.sh
 
 # Session 159 — analysis artifacts (session-scoped, gitignored at next session close per CONTRIBUTING.md §3)
-session159_*.mjs
-session159_*.csv
-session159_*.json
-session159_*.md
-session159_*.txt
-session159_*.sh
+/session159_*.mjs
+/session159_*.csv
+/session159_*.json
+/session159_*.md
+/session159_*.txt
+/session159_*.sh
 
 # Session 159 P5 — per-locale dry-run plans (local artifact; SUMMARY.md is tracked)
 session159_plans/*_plan.json
@@ -333,15 +333,47 @@ session159_dead_subtree_depth*_v*/*.csv
 session159_dead_subtree_depth*_v*/*.json
 
 # Session 15x spec docs under docs/spec/ are tracked (override session*_*.md pattern above)
-!docs/spec/session15*_*.md
+!docs/spec/session*_*.md
 
 # Session 160 — analysis artifacts (session-scoped, gitignored at next session close per CONTRIBUTING.md §3)
-session160_*.mjs
-session160_*.csv
-session160_*.json
-session160_*.md
-session160_*.txt
-session160_*.sh
+/session160_*.mjs
+/session160_*.csv
+/session160_*.json
+/session160_*.md
+/session160_*.txt
+/session160_*.sh
 
 # patch09: production_smoke.sh snapshots
 .smoke_snapshots/
+
+# Session 161 — analysis artifacts (session-scoped, gitignored at next session close per CONTRIBUTING.md §3)
+/session161_*.mjs
+/session161_*.csv
+/session161_*.json
+/session161_*.md
+/session161_*.txt
+/session161_*.sh
+
+# Session 162 — analysis artifacts (session-scoped, gitignored at next session close per CONTRIBUTING.md §3)
+/session162_*.mjs
+/session162_*.csv
+/session162_*.json
+/session162_*.md
+/session162_*.txt
+/session162_*.sh
+
+# Session 163 — analysis artifacts (session-scoped, gitignored at next session close per CONTRIBUTING.md §3)
+/session163_*.mjs
+/session163_*.csv
+/session163_*.json
+/session163_*.md
+/session163_*.txt
+/session163_*.sh
+
+# Session 164 — analysis artifacts (session-scoped, gitignored at next session close per CONTRIBUTING.md §3)
+/session164_*.mjs
+/session164_*.csv
+/session164_*.json
+/session164_*.md
+/session164_*.txt
+/session164_*.sh
