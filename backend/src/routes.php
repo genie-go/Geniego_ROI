@@ -1409,7 +1409,9 @@ return function (App $app): void {
     $register('POST', '/v423/alerts/test-notify');
 
     // ── Auth: License Key Activation ─────────────────────────────────
-    $app->post('/auth/license', [\Genie\Handlers\UserAuth::class, 'activateLicense']);
+    // 168차 deploy fix: $register 'POST /auth/license' (L1892, $custom L543 정합) 와 중복.
+    // FastRoute "Cannot register two routes matching /auth/license POST" → 직접 호출 주석.
+    // $app->post('/auth/license', [\Genie\Handlers\UserAuth::class, 'activateLicense']);
 
     // ── Admin: License Key Management ────────────────────────────────
     // POST /admin/license/generate  — 새 라이선스 키 발급   (admin only)
