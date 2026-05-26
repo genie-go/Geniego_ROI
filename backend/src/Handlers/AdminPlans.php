@@ -96,6 +96,133 @@ final class AdminPlans
         return self::json($res, ['ok' => true]);
     }
 
+    /**
+     * GET /auth/pricing/public-plans  (public, auth 불필요)
+     *
+     * AuthContext.loadMenuAccess 가 호출 (frontend 가 user.plan 기반 sidebar 필터 사용).
+     * 응답 형식 정합:
+     *   { ok: true, plans: [
+     *       { id, name, price_usd, price_annual_usd, price_id_monthly, price_id_annual,
+     *         features, limits, is_custom_quote, menuAccess: [menu_key, ...] }, ...
+     *   ] }
+     *
+     * menuAccess: plan_menu_access 의 enabled=1 row 의 menu_key 목록.
+     * 초기 DB empty 시 menuAccess: [] → AuthContext 가 graceful 허용 (기존 동작 유지).
+     */
+    public static function publicPlans(Request $req, Response $res): Response
+    {
+        $pdo = Db::pdo();
+        $stmt = $pdo->query(
+            'SELECT plan_id, name, description, price_usd, price_annual_usd,
+                    price_id_monthly, price_id_annual, features_json, limits_json,
+                    display_order, is_custom_quote
+             FROM plan_config WHERE is_active = 1
+             ORDER BY display_order, plan_id'
+        );
+        $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+        $accessByPlan = [];
+        $accStmt = $pdo->query('SELECT plan_id, menu_key FROM plan_menu_access WHERE enabled = 1');
+        foreach ($accStmt->fetchAll(\PDO::FETCH_ASSOC) as $r) {
+            $accessByPlan[$r['plan_id']][] = $r['menu_key'];
+        }
+
+        $plans = array_map(static function ($row) use ($accessByPlan) {
+            $features = json_decode((string)($row['features_json'] ?? '[]'), true) ?: [];
+            $limits   = json_decode((string)($row['limits_json']   ?? '{}'), true) ?: [];
+            return [
+                'id'               => $row['plan_id'],
+                'name'             => $row['name'],
+                'description'      => $row['description'],
+                'price_usd'        => $row['price_usd'] !== null ? (float)$row['price_usd'] : null,
+                'price_annual_usd' => $row['price_annual_usd'] !== null ? (float)$row['price_annual_usd'] : null,
+                'price_id_monthly' => $row['price_id_monthly'] ?? '',
+                'price_id_annual'  => $row['price_id_annual']  ?? '',
+                'features'         => $features,
+                'limits'           => $limits,
+                'is_custom_quote'  => (bool)$row['is_custom_quote'],
+                'menuAccess'       => $accessByPlan[$row['plan_id']] ?? [],
+            ];
+        }, $rows);
+
+        // 초기 DB empty fallback — Paddle.php hardcoded 3 plan 정합 (메뉴 권한은 빈 배열 = graceful 허용)
+        if (!$plans) {
+            $plans = [
+                ['id'=>'starter','name'=>'Starter','price_usd'=>49,'price_annual_usd'=>39,'features'=>[],'limits'=>[],'menuAccess'=>[]],
+                ['id'=>'pro','name'=>'Pro','price_usd'=>149,'price_annual_usd'=>119,'features'=>[],'limits'=>[],'menuAccess'=>[]],
+                ['id'=>'enterprise','name'=>'Enterprise','price_usd'=>null,'price_annual_usd'=>null,'is_custom_quote'=>true,'features'=>[],'limits'=>[],'menuAccess'=>[]],
+            ];
+        }
+
+        return self::json($res, ['ok' => true, 'plans' => $plans]);
+    }
+
+    /**
+     * GET /v424/admin/plans/menu-access
+     * 전체 매트릭스: { plans: [...], menus: [...], access: { plan_id: { menu_key: 1 } } }
+     */
+    public static function menuAccessAll(Request $req, Response $res): Response
+    {
+        $pdo = Db::pdo();
+        $plans = $pdo->query(
+            'SELECT plan_id, name, display_order FROM plan_config WHERE is_active=1 ORDER BY display_order, plan_id'
+        )->fetchAll(\PDO::FETCH_ASSOC);
+        $menus = $pdo->query(
+            'SELECT id, label_key, route, menu_key, display_order
+             FROM menu_tree ORDER BY display_order, id'
+        )->fetchAll(\PDO::FETCH_ASSOC);
+        $rows = $pdo->query(
+            'SELECT plan_id, menu_key, enabled FROM plan_menu_access'
+        )->fetchAll(\PDO::FETCH_ASSOC);
+        $access = [];
+        foreach ($rows as $r) {
+            $access[$r['plan_id']][$r['menu_key']] = (int)$r['enabled'];
+        }
+        return self::json($res, [
+            'ok'     => true,
+            'plans'  => $plans,
+            'menus'  => $menus,
+            'access' => $access,
+        ]);
+    }
+
+    /**
+     * PUT /v424/admin/plans/{id}/menu-access
+     * Body: { menus: { menu_key: 1/0, ... } }
+     * 본 plan 의 menu access bulk UPSERT (DELETE 후 INSERT) — atomic.
+     */
+    public static function menuAccessUpsert(Request $req, Response $res, array $args): Response
+    {
+        $planId = (string)($args['id'] ?? '');
+        if (!preg_match('/^[a-z0-9_-]{1,64}$/i', $planId)) {
+            return self::json($res, ['error' => 'invalid_plan_id'], 422);
+        }
+        $body  = (array)$req->getParsedBody();
+        $menus = isset($body['menus']) && is_array($body['menus']) ? $body['menus'] : [];
+        $actor = substr((string)($req->getAttribute('auth_key') ?? 'admin'), 0, 64);
+
+        $pdo = Db::pdo();
+        $pdo->beginTransaction();
+        try {
+            $pdo->prepare('DELETE FROM plan_menu_access WHERE plan_id = ?')->execute([$planId]);
+            if ($menus) {
+                $ins = $pdo->prepare(
+                    'INSERT INTO plan_menu_access (plan_id, menu_key, enabled, updated_by)
+                     VALUES (?,?,?,?)'
+                );
+                foreach ($menus as $menuKey => $enabled) {
+                    if (!is_string($menuKey) || $menuKey === '') continue;
+                    $ins->execute([$planId, (string)$menuKey, (int)!empty($enabled), $actor]);
+                }
+            }
+            $pdo->commit();
+        } catch (\Throwable $e) {
+            $pdo->rollBack();
+            return self::json($res, ['error' => 'save_failed', 'detail' => $e->getMessage()], 500);
+        }
+        return self::json($res, ['ok' => true, 'plan_id' => $planId, 'count' => count($menus)]);
+    }
+
     private static function hydrate(array $row): array
     {
         $row['features'] = json_decode((string)($row['features_json'] ?? '[]'), true) ?: [];

@@ -457,12 +457,16 @@ return function (App $app): void {
         'GET /api/v424/health'  => 'Genie\\Handlers\\Health::check',
 
         // ── v424 admin plans (169차 사용자 발견 issue fix — 플랜별 구독요금 설정) ──
-        'GET /v424/admin/plans'             => 'Genie\\Handlers\\AdminPlans::list',
-        'PUT /v424/admin/plans/{id}'        => 'Genie\\Handlers\\AdminPlans::upsert',
-        'DELETE /v424/admin/plans/{id}'     => 'Genie\\Handlers\\AdminPlans::delete',
-        'GET /api/v424/admin/plans'         => 'Genie\\Handlers\\AdminPlans::list',
-        'PUT /api/v424/admin/plans/{id}'    => 'Genie\\Handlers\\AdminPlans::upsert',
-        'DELETE /api/v424/admin/plans/{id}' => 'Genie\\Handlers\\AdminPlans::delete',
+        'GET /v424/admin/plans'                         => 'Genie\\Handlers\\AdminPlans::list',
+        'PUT /v424/admin/plans/{id}'                    => 'Genie\\Handlers\\AdminPlans::upsert',
+        'DELETE /v424/admin/plans/{id}'                 => 'Genie\\Handlers\\AdminPlans::delete',
+        'GET /v424/admin/plans-menu-access'             => 'Genie\\Handlers\\AdminPlans::menuAccessAll',
+        'PUT /v424/admin/plans/{id}/menu-access'        => 'Genie\\Handlers\\AdminPlans::menuAccessUpsert',
+        'GET /api/v424/admin/plans'                     => 'Genie\\Handlers\\AdminPlans::list',
+        'PUT /api/v424/admin/plans/{id}'                => 'Genie\\Handlers\\AdminPlans::upsert',
+        'DELETE /api/v424/admin/plans/{id}'             => 'Genie\\Handlers\\AdminPlans::delete',
+        'GET /api/v424/admin/plans-menu-access'         => 'Genie\\Handlers\\AdminPlans::menuAccessAll',
+        'PUT /api/v424/admin/plans/{id}/menu-access'    => 'Genie\\Handlers\\AdminPlans::menuAccessUpsert',
 
         // ── v425 PM-Core (168차 N-152-F Task/Milestone/Gantt, spec: docs/spec/n152f_pm_features_spec.md §4) ─
         // Projects
@@ -576,7 +580,9 @@ return function (App $app): void {
         'POST /auth/pricing/paddle-sync'       => 'Genie\\Handlers\\Payment::paddleSyncAll',
 
         // ── 공개 구독요금 조회 (인증 불요 — 가입 화면용) ───────────────────
-        'GET /auth/pricing/public-plans'       => 'Genie\\Handlers\\Payment::getPublicPricingPlans',
+        // 169차 P4: AdminPlans::publicPlans 로 redirect — plan_config + plan_menu_access JOIN 응답
+        'GET /auth/pricing/public-plans'       => 'Genie\\Handlers\\AdminPlans::publicPlans',
+        'GET /api/auth/pricing/public-plans'   => 'Genie\\Handlers\\AdminPlans::publicPlans',
 
         // ── 메뉴 접근권한 저장/조회 (관리자 전용 — MenuAccessTab) ───────
         'GET /auth/pricing/menu-access'        => 'Genie\\Handlers\\Payment::getMenuAccess',
@@ -1345,6 +1351,7 @@ return function (App $app): void {
 
     // ── 공개 구독요금 조회 (인증 불요 — 가입 화면용) ─────────────────
     $register('GET',    '/auth/pricing/public-plans');
+    $register('GET',    '/api/auth/pricing/public-plans');
 
     // ── Subscription Packages ────────────────────────────────────────
     $register('GET',    '/auth/pricing/packages');
@@ -1751,9 +1758,13 @@ return function (App $app): void {
     $register('GET',    '/v424/admin/plans');
     $register('PUT',    '/v424/admin/plans/{id}');
     $register('DELETE', '/v424/admin/plans/{id}');
+    $register('GET',    '/v424/admin/plans-menu-access');
+    $register('PUT',    '/v424/admin/plans/{id}/menu-access');
     $register('GET',    '/api/v424/admin/plans');
     $register('PUT',    '/api/v424/admin/plans/{id}');
     $register('DELETE', '/api/v424/admin/plans/{id}');
+    $register('GET',    '/api/v424/admin/plans-menu-access');
+    $register('PUT',    '/api/v424/admin/plans/{id}/menu-access');
 
     // ── V425 PM-Core (168차 N-152-F Task/Milestone/Gantt) ──
     $register('GET',    '/v425/pm/projects');

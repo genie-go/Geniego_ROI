@@ -2,6 +2,17 @@ import React, { useState, useEffect, useCallback } from "react";
 import { getJsonAuth, requestJsonAuth } from "../services/apiClient.js";
 
 /**
+ * 169차 P4 완벽 동기화 — admin 저장 후 user 측 sidebar 즉시 갱신.
+ * BroadcastChannel + custom event 둘 다 발행 (cross-tab + same-tab).
+ * AuthContext.loadMenuAccess listener 가 받음.
+ */
+const SYNC_CHANNEL = "geniego_menu_access_sync";
+function publishMenuAccessSync(payload) {
+  try { new BroadcastChannel(SYNC_CHANNEL).postMessage({ type: "menu_access_updated", ts: Date.now(), ...payload }); } catch {}
+  try { window.dispatchEvent(new CustomEvent("menu-access-saved", { detail: payload })); } catch {}
+}
+
+/**
  * PlanPricing — admin 플랜별 구독요금 설정 (169차 사용자 발견 issue fix).
  *
  * 168차 USD/Paddle 단일 정책 정합:
@@ -51,6 +62,10 @@ function PlanPricing() {
   const [error, setError] = useState(null);
   const [saving, setSaving] = useState(null);
   const [activePlanIdx, setActivePlanIdx] = useState(0);
+  const [outerTab, setOuterTab] = useState('pricing'); // pricing | permissions
+  const [menus, setMenus] = useState([]);
+  const [access, setAccess] = useState({});
+  const [accessDirty, setAccessDirty] = useState(false);
 
   const fetchPlans = useCallback(async () => {
     setLoading(true); setError(null);
@@ -65,7 +80,58 @@ function PlanPricing() {
     }
   }, []);
 
+  const fetchMenuAccess = useCallback(async () => {
+    try {
+      const data = await getJsonAuth('/v424/admin/plans-menu-access');
+      setMenus(Array.isArray(data?.menus) ? data.menus : []);
+      setAccess(data?.access && typeof data.access === 'object' ? data.access : {});
+      setAccessDirty(false);
+    } catch (e) {
+      setError(String(e?.message || e));
+    }
+  }, []);
+
   useEffect(() => { fetchPlans(); }, [fetchPlans]);
+  useEffect(() => { if (outerTab === 'permissions') fetchMenuAccess(); }, [outerTab, fetchMenuAccess]);
+
+  const toggleMenuAccess = (planId, menuKey) => {
+    setAccess(prev => {
+      const planAcc = { ...(prev[planId] || {}) };
+      planAcc[menuKey] = planAcc[menuKey] ? 0 : 1;
+      return { ...prev, [planId]: planAcc };
+    });
+    setAccessDirty(true);
+  };
+
+  const togglePlanAll = (planId, value) => {
+    setAccess(prev => {
+      const planAcc = {};
+      menus.forEach(m => { planAcc[m.menu_key || m.id] = value ? 1 : 0; });
+      return { ...prev, [planId]: planAcc };
+    });
+    setAccessDirty(true);
+  };
+
+  const saveAllAccess = async () => {
+    setSaving('access');
+    try {
+      for (const p of plans) {
+        const menusForPlan = {};
+        menus.forEach(m => {
+          const key = m.menu_key || m.id;
+          menusForPlan[key] = access[p.plan_id]?.[key] ? 1 : 0;
+        });
+        await requestJsonAuth(`/v424/admin/plans/${encodeURIComponent(p.plan_id)}/menu-access`, 'PUT', { menus: menusForPlan });
+      }
+      await fetchMenuAccess();
+      publishMenuAccessSync({ source: 'menu_access_bulk' });
+      alert('메뉴 접근 권한 저장 완료 — 모든 user sidebar 자동 갱신');
+    } catch (e) {
+      alert(`저장 실패: ${e?.message || e}`);
+    } finally {
+      setSaving(null);
+    }
+  };
 
   const updateField = (idx, patch) => {
     setPlans(prev => prev.map((p, i) => i === idx ? { ...p, ...patch } : p));
@@ -113,7 +179,8 @@ function PlanPricing() {
         is_custom_quote: !!plan.is_custom_quote,
       });
       await fetchPlans();
-      alert(`${plan.name} 저장 완료`);
+      publishMenuAccessSync({ plan_id: plan.plan_id, source: 'plan_save' });
+      alert(`${plan.name} 저장 완료 (sidebar 자동 갱신)`);
     } catch (e) {
       alert(`저장 실패: ${e?.message || e}`);
     } finally {
@@ -129,7 +196,8 @@ function PlanPricing() {
       } catch (e) { console.error('seed', p.plan_id, e); }
     }
     await fetchPlans();
-    alert('초기 시드 완료');
+    publishMenuAccessSync({ source: 'seed' });
+    alert('초기 시드 완료 (sidebar 자동 갱신)');
   };
 
   const archivePlan = async (plan) => {
@@ -203,13 +271,39 @@ function PlanPricing() {
         }}>⚠ 플랜 조회 실패 — {error}</div>
       )}
 
-      {loading && (
+      {/* outer tab: pricing | permissions */}
+      <div style={{
+        display: 'flex', gap: 0, marginBottom: 16, borderBottom: '1px solid rgba(255,255,255,0.08)',
+      }}>
+        {[
+          { id: 'pricing',     label: '💳 요금·상세' },
+          { id: 'permissions', label: '🔐 메뉴 접근 권한' },
+        ].map(tb => (
+          <button key={tb.id} onClick={() => setOuterTab(tb.id)} style={{
+            padding: '12px 22px', border: 'none', background: 'transparent',
+            color: outerTab === tb.id ? 'var(--text-1)' : 'var(--text-3)',
+            fontSize: 13, fontWeight: outerTab === tb.id ? 800 : 600, cursor: 'pointer',
+            borderBottom: outerTab === tb.id ? '2px solid #22c55e' : '2px solid transparent',
+            marginBottom: -1,
+          }}>{tb.label}</button>
+        ))}
+      </div>
+
+      {outerTab === 'permissions' && (
+        <PermissionsMatrix
+          plans={plans} menus={menus} access={access}
+          toggleMenuAccess={toggleMenuAccess} togglePlanAll={togglePlanAll}
+          saveAllAccess={saveAllAccess} saving={saving === 'access'} dirty={accessDirty}
+        />
+      )}
+
+      {outerTab === 'pricing' && loading && (
         <div style={{ ...cardStyle, textAlign: 'center', padding: 40, color: 'var(--text-3)' }}>
           플랜 목록 로딩 중…
         </div>
       )}
 
-      {!loading && plans.length === 0 && !error && (
+      {outerTab === 'pricing' && !loading && plans.length === 0 && !error && (
         <div style={{ ...cardStyle, padding: 40, textAlign: 'center' }}>
           <div style={{ fontSize: 32, marginBottom: 10 }}>📭</div>
           <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 6 }}>등록된 플랜이 없습니다</div>
@@ -219,7 +313,7 @@ function PlanPricing() {
         </div>
       )}
 
-      {!loading && plans.length > 0 && (
+      {outerTab === 'pricing' && !loading && plans.length > 0 && (
         <>
           <div style={{
             display: 'flex', gap: 4, marginBottom: 20, padding: 4, borderRadius: 12,
@@ -329,6 +423,114 @@ function Field({ label, children }) {
       <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-3)', marginBottom: 4 }}>{label}</div>
       {children}
     </label>
+  );
+}
+
+function PermissionsMatrix({ plans, menus, access, toggleMenuAccess, togglePlanAll, saveAllAccess, saving, dirty }) {
+  if (!plans.length) {
+    return (
+      <div style={{
+        padding: 40, borderRadius: 14, textAlign: 'center',
+        background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)',
+        color: 'var(--text-3)', fontSize: 13,
+      }}>플랜이 없습니다. 먼저 "요금·상세" 탭에서 플랜을 등록하세요.</div>
+    );
+  }
+  if (!menus.length) {
+    return (
+      <div style={{
+        padding: 40, borderRadius: 14, textAlign: 'center',
+        background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)',
+        color: 'var(--text-3)', fontSize: 13,
+      }}>menu_tree 가 비어 있습니다. 169차 P1 seed migration 적용 필요.</div>
+    );
+  }
+
+  const planCounts = plans.map(p => {
+    const acc = access[p.plan_id] || {};
+    return menus.filter(m => acc[m.menu_key || m.id]).length;
+  });
+
+  return (
+    <div>
+      <div style={{
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14,
+      }}>
+        <div style={{ fontSize: 12, color: 'var(--text-3)' }}>
+          각 플랜이 사용 가능한 메뉴를 체크. user 의 plan 에 따라 sidebar 에 표시되는 메뉴가 결정됩니다.
+        </div>
+        <button onClick={saveAllAccess} disabled={saving || !dirty} style={{
+          padding: '9px 22px', borderRadius: 9, border: 'none',
+          background: dirty ? 'linear-gradient(135deg,#16a34a,#22c55e)' : 'rgba(255,255,255,0.06)',
+          color: dirty ? '#fff' : 'var(--text-3)',
+          fontSize: 13, fontWeight: 800, cursor: dirty ? 'pointer' : 'default',
+          opacity: saving ? 0.6 : 1,
+        }}>{saving ? '저장 중…' : (dirty ? '💾 전체 저장' : '저장됨')}</button>
+      </div>
+
+      <div style={{
+        borderRadius: 14, overflow: 'hidden',
+        background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)',
+      }}>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: `2fr repeat(${plans.length}, 1fr)`,
+          background: 'rgba(99,102,241,0.06)',
+          borderBottom: '1px solid rgba(255,255,255,0.06)',
+          fontSize: 11, fontWeight: 800, color: 'var(--text-2)',
+        }}>
+          <div style={{ padding: '12px 16px' }}>메뉴</div>
+          {plans.map((p, i) => (
+            <div key={p.plan_id} style={{ padding: '8px 12px', textAlign: 'center' }}>
+              <div style={{ fontWeight: 800, color: 'var(--text-1)' }}>{p.name || p.plan_id}</div>
+              <div style={{ fontSize: 9, color: 'var(--text-3)', marginTop: 2 }}>
+                {planCounts[i]} / {menus.length}
+              </div>
+              <div style={{ display: 'flex', gap: 4, justifyContent: 'center', marginTop: 4 }}>
+                <button onClick={() => togglePlanAll(p.plan_id, true)} style={{
+                  fontSize: 9, padding: '2px 6px', borderRadius: 4,
+                  background: 'rgba(34,197,94,0.15)', color: '#22c55e',
+                  border: '1px solid rgba(34,197,94,0.25)', cursor: 'pointer',
+                }}>all</button>
+                <button onClick={() => togglePlanAll(p.plan_id, false)} style={{
+                  fontSize: 9, padding: '2px 6px', borderRadius: 4,
+                  background: 'rgba(248,113,113,0.10)', color: '#f87171',
+                  border: '1px solid rgba(248,113,113,0.25)', cursor: 'pointer',
+                }}>none</button>
+              </div>
+            </div>
+          ))}
+        </div>
+        {menus.map((m, mi) => {
+          const key = m.menu_key || m.id;
+          return (
+            <div key={m.id || m.menu_key} style={{
+              display: 'grid',
+              gridTemplateColumns: `2fr repeat(${plans.length}, 1fr)`,
+              borderBottom: mi < menus.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none',
+              background: mi % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.015)',
+            }}>
+              <div style={{ padding: '8px 16px', fontSize: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ color: 'var(--text-3)', fontSize: 10, fontFamily: 'monospace' }}>{key}</span>
+                {m.route && <span style={{ color: 'var(--text-3)', fontSize: 10 }}>· {m.route}</span>}
+              </div>
+              {plans.map(p => {
+                const checked = !!access[p.plan_id]?.[key];
+                return (
+                  <div key={p.plan_id} style={{
+                    padding: '6px 12px', textAlign: 'center', cursor: 'pointer',
+                  }} onClick={() => toggleMenuAccess(p.plan_id, key)}>
+                    <input type="checkbox" checked={checked} readOnly style={{
+                      cursor: 'pointer', accentColor: '#22c55e', width: 16, height: 16,
+                    }} />
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 

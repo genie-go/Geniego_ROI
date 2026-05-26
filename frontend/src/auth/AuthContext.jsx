@@ -113,6 +113,31 @@ export function AuthProvider({ children }) {
 
     useEffect(() => { loadMenuAccess(); }, [loadMenuAccess]);
 
+    /*
+     * 169차 P4 완벽 동기화: PlanPricing admin save 시 발행되는 sync event 수신.
+     * - BroadcastChannel: cross-tab (다른 브라우저 탭의 user)
+     * - custom event: same-tab (admin 본인 탭)
+     * 둘 다 menuAccessLoadedRef 리셋 + loadMenuAccess() 재호출 → sidebar 자동 갱신.
+     */
+    useEffect(() => {
+        const reload = () => {
+            menuAccessLoadedRef.current = false;
+            setPlanMenuAccess(null);
+            loadMenuAccess();
+        };
+        let bc = null;
+        try {
+            bc = new BroadcastChannel("geniego_menu_access_sync");
+            bc.onmessage = (e) => { if (e.data?.type === "menu_access_updated") reload(); };
+        } catch { /* unsupported */ }
+        const sameTabHandler = () => reload();
+        window.addEventListener("menu-access-saved", sameTabHandler);
+        return () => {
+            try { bc?.close(); } catch {}
+            window.removeEventListener("menu-access-saved", sameTabHandler);
+        };
+    }, [loadMenuAccess]);
+
     const saveSession = useCallback((tok, usr) => {
         setToken(tok);
         setUser(usr);
