@@ -1,7 +1,9 @@
 <?php
 declare(strict_types=1);
 
-namespace Genie\Services;
+// PSR-4 fix (166차): namespace Genie\Services → Genie (파일 위치 src/RoiService.php 정합)
+// 별도 트랙: src/Services/RoiService.php (18 lines stub) 와 중복 — 사용처 0, cleanup 후속
+namespace Genie;
 
 use Genie\Db;
 use PDO;

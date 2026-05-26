@@ -6,7 +6,8 @@
  * 라이선스 키 형식 검증, 생성, 포맷팅을 중앙 집중화합니다.
  */
 
-namespace GeniegoROI\Utils;
+// PSR-4 fix (166차): namespace GeniegoROI\Utils → Genie\Utils (legacy ns 정합)
+namespace Genie\Utils;
 
 class LicenseKeyUtils
 {

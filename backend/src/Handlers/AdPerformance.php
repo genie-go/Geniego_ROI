@@ -1,5 +1,6 @@
 <?php
-namespace Handlers;
+// PSR-4 fix (166차): namespace Handlers → Genie\Handlers
+namespace Genie\Handlers;
 
 use PDO;
 use Exception;
