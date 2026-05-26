@@ -8,6 +8,9 @@ on:
       - '**.txt'
       - 'docs/**'
       - '.claude/**'
+      - '.gitignore'
+      - 'tools/**'
+      - '.githooks/**'
 
 env:
   HAS_SSH_SECRETS: ${{ secrets.REMOTE_IP != '' && secrets.REMOTE_USER != '' && secrets.SSH_PRIVATE_KEY != '' }}
