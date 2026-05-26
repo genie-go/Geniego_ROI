@@ -1,6 +1,11 @@
 node_modules/
 vendor/
 .env
+# MySQL credentials (운영 호스트 .my.cnf.bak 방식 — 166차 deploy-backend 백업)
+.my.cnf
+.my.cnf.bak
+backend/.my.cnf
+backend/.my.cnf.bak
 .DS_Store
 .idea/
 .vscode/

@@ -138,7 +138,7 @@ jobs:
           source: "backend.tgz"
           target: "/tmp/"
 
-      - name: "[BACKEND P3] Extract + composer install + migrate (운영 PHP 8.1+)"
+      - name: "[BACKEND P3] Pre-backup + Extract + composer install + migrate (운영 PHP 8.1+)"
         if: ${{ env.HAS_SSH_SECRETS == 'true' }}
         uses: appleboy/ssh-action@master
         with:
@@ -147,20 +147,54 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             set -e
-            # extract — tar exclude로 .env/vendor/data/logs는 덮어쓰기 X (보존)
+
+            # ── P3.0 자동 백업 (mysqldump, 운영 호스트 .my.cnf.bak credentials) ──
+            # 166차: GitHub secrets 미사용 결정 → 운영 호스트 .my.cnf.bak (chmod 600) 방식
+            # 사전 설치 필요: /home/wwwroot/roi.geniego.com/backend/.my.cnf.bak
+            #   [client]
+            #   host = localhost
+            #   user = root
+            #   password = <비밀번호>
+            CNF=/home/wwwroot/roi.geniego.com/backend/.my.cnf.bak
+            if [ ! -f "$CNF" ]; then
+              echo "[FAIL] $CNF 미존재 — 운영 호스트 mysqldump credentials 1회 설치 필요"
+              echo "  설치: cat > \$CNF <<'EOF' / [client] / host=localhost / user=root / password=<...> / EOF"
+              echo "  권한: chmod 600 \$CNF"
+              exit 1
+            fi
+            TS=$(date +%Y%m%d_%H%M%S)
+            mysqldump --defaults-file=$CNF \
+              --single-transaction --routines --triggers --events \
+              --default-character-set=utf8mb4 geniego_roi \
+              | gzip > /tmp/backup_geniego_roi_pre_deploy_${TS}.sql.gz
+            mysqldump --defaults-file=$CNF \
+              --single-transaction --routines --triggers --events \
+              --default-character-set=utf8mb4 geniego_roi_demo \
+              | gzip > /tmp/backup_geniego_roi_demo_pre_deploy_${TS}.sql.gz
+            gunzip -t /tmp/backup_*_pre_deploy_${TS}.sql.gz
+            echo "[OK] Backup ${TS}: $(ls -lh /tmp/backup_*_pre_deploy_${TS}.sql.gz | awk '{print $5, $9}')"
+
+            # ── P3.1 extract — tar exclude로 .env/vendor/data/logs는 덮어쓰기 X (보존) ──
             tar -xzf /tmp/backend.tgz -C /home/wwwroot/roi.geniego.com/
             chown -R www:www /home/wwwroot/roi.geniego.com/backend
             cd /home/wwwroot/roi.geniego.com/backend
-            # vendor 생성/갱신 — 운영 PHP 환경에서 install (ABI 안전)
+
+            # ── P3.2 vendor 생성/갱신 — 운영 PHP 환경에서 install (ABI 안전) ──
             php composer.phar install --no-dev --optimize-autoloader --no-interaction
-            # migration — both 모드 (운영 + demo DB 동시 적용, schema_migrations 체크로 idempotent)
+
+            # ── P3.3 migration plan log (dry-run) + 실 적용 (both, idempotent) ──
+            echo "=== Migration plan (dry-run) ==="
+            php bin/migrate.php both --dry-run
+            echo "=== Migration apply ==="
             php bin/migrate.php both
-            # PHP-FPM reload — opcache 클리어, 시스템에 따라 fallback
+
+            # ── P3.4 PHP-FPM reload — opcache 클리어, 시스템에 따라 fallback ──
             (systemctl reload php-fpm 2>/dev/null \
               || systemctl reload php8.1-fpm 2>/dev/null \
               || systemctl reload php8.2-fpm 2>/dev/null \
               || /usr/local/nginx/sbin/nginx -s reload) || true
-            # cleanup
+
+            # ── cleanup ──
             rm -f /tmp/backend.tgz
 
       - name: "[BACKEND P4] Health check (root /)"
