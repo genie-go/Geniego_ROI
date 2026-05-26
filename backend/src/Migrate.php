@@ -108,6 +108,10 @@ final class Migrate
      */
     private static function splitStatements(string $sql): array
     {
+        // 168차 deploy 발견 버그: @rollback ... @end-rollback 블록을 forward apply 시 strip.
+        // 기존: -- 라인만 제거하여 그 사이 DROP TABLE statement 가 살아남아 CREATE 직후 DROP.
+        $sql = preg_replace('/^\s*--\s*@rollback\s*$.*?^\s*--\s*@end-rollback\s*$/ms', '', $sql) ?? $sql;
+
         $sql = preg_replace('!/\*.*?\*/!s', '', $sql) ?? $sql;
         $sql = preg_replace('!^\s*--.*$!m', '', $sql) ?? $sql;
         $parts = preg_split('/;\s*(\r?\n|$)/', $sql) ?: [];
