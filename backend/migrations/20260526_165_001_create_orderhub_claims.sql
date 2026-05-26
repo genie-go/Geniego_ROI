@@ -17,3 +17,7 @@ CREATE TABLE IF NOT EXISTS orderhub_claims (
   KEY idx_tenant_status (tenant_id, status),
   KEY idx_order (order_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- @rollback
+DROP TABLE IF EXISTS orderhub_claims;
+-- @end-rollback

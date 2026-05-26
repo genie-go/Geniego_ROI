@@ -243,4 +243,140 @@ final class Migrate
             'demo'       => self::dryRun(Db::pdoFor(true), $dir),
         ];
     }
+
+    /**
+     * Rollback: schema_migrations 의 마지막 $steps 개 record 의 @rollback 블록 SQL 적용 후 record DELETE.
+     *
+     * Convention: migration 파일은 `-- @rollback` 마커 이후 reverse DDL 을 포함해야 함.
+     * 옵션으로 `-- @end-rollback` 종료 마커 지원 (생략 시 파일 끝까지).
+     *
+     * @return array{reverted: string[], errors: string[]}
+     */
+    public static function rollback(\PDO $pdo, int $steps = 1, ?string $dir = null): array
+    {
+        $dir = $dir ?: __DIR__ . '/../migrations';
+        if (!is_dir($dir)) {
+            throw new \RuntimeException("Migration dir not found: $dir");
+        }
+        $steps = max(1, $steps);
+
+        self::ensureTable($pdo);
+
+        $stmt = $pdo->query("SELECT filename FROM schema_migrations ORDER BY applied_at DESC, filename DESC LIMIT " . $steps);
+        $targets = $stmt ? $stmt->fetchAll(\PDO::FETCH_COLUMN) : [];
+
+        $reverted = [];
+        $errors = [];
+
+        foreach ($targets as $basename) {
+            $path = $dir . '/' . $basename;
+            if (!is_file($path)) {
+                throw new \RuntimeException("Migration file missing for rollback: $basename");
+            }
+            $sql = (string)file_get_contents($path);
+            $block = self::extractRollbackBlock($sql);
+            if ($block === null) {
+                throw new \RuntimeException("No @rollback block in: $basename — rollback requires '-- @rollback' marker convention");
+            }
+
+            $driver = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME);
+            try {
+                $pdo->beginTransaction();
+                foreach (self::splitStatements($block) as $s) {
+                    if (trim($s) === '') continue;
+                    $resolved = ($driver === 'mysql') ? [$s] : self::convertForSqlite($s);
+                    foreach ($resolved as $exec) {
+                        if (trim($exec) === '') continue;
+                        $pdo->exec($exec);
+                    }
+                }
+                $del = $pdo->prepare("DELETE FROM schema_migrations WHERE filename = ?");
+                $del->execute([$basename]);
+                if ($pdo->inTransaction()) $pdo->commit();
+                $reverted[] = $basename;
+            } catch (\Throwable $e) {
+                if ($pdo->inTransaction()) $pdo->rollBack();
+                throw new \RuntimeException("Rollback failed: $basename — " . $e->getMessage(), 0, $e);
+            }
+        }
+
+        return ['reverted' => $reverted, 'errors' => $errors];
+    }
+
+    /**
+     * Dry-run rollback: 적용 예정 reverse 식별. DB 변경 없음.
+     * @return array{planned: string[], missing_rollback: string[]}
+     */
+    public static function dryRunRollback(\PDO $pdo, int $steps = 1, ?string $dir = null): array
+    {
+        $dir = $dir ?: __DIR__ . '/../migrations';
+        if (!is_dir($dir)) {
+            throw new \RuntimeException("Migration dir not found: $dir");
+        }
+        $steps = max(1, $steps);
+
+        self::ensureTable($pdo);
+
+        $stmt = $pdo->query("SELECT filename FROM schema_migrations ORDER BY applied_at DESC, filename DESC LIMIT " . $steps);
+        $targets = $stmt ? $stmt->fetchAll(\PDO::FETCH_COLUMN) : [];
+
+        $planned = [];
+        $missing = [];
+
+        foreach ($targets as $basename) {
+            $path = $dir . '/' . $basename;
+            if (!is_file($path)) {
+                $missing[] = "$basename (file missing)";
+                continue;
+            }
+            $sql = (string)file_get_contents($path);
+            if (self::extractRollbackBlock($sql) === null) {
+                $missing[] = "$basename (no @rollback block)";
+            } else {
+                $planned[] = $basename;
+            }
+        }
+
+        return ['planned' => $planned, 'missing_rollback' => $missing];
+    }
+
+    /**
+     * Rollback 양쪽 동시 — runBoth() 와 동형.
+     */
+    public static function rollbackBoth(int $steps = 1, ?string $dir = null): array
+    {
+        return [
+            'production' => self::rollback(Db::pdoFor(false), $steps, $dir),
+            'demo'       => self::rollback(Db::pdoFor(true), $steps, $dir),
+        ];
+    }
+
+    /**
+     * Dry-run rollback 양쪽 동시.
+     */
+    public static function dryRunRollbackBoth(int $steps = 1, ?string $dir = null): array
+    {
+        return [
+            'production' => self::dryRunRollback(Db::pdoFor(false), $steps, $dir),
+            'demo'       => self::dryRunRollback(Db::pdoFor(true), $steps, $dir),
+        ];
+    }
+
+    /**
+     * @rollback 블록 추출. `-- @rollback` 라인 이후 부터 `-- @end-rollback` (선택) 까지.
+     * 마커 없으면 null 반환.
+     */
+    private static function extractRollbackBlock(string $sql): ?string
+    {
+        if (!preg_match('/^\s*--\s*@rollback\s*$/mi', $sql, $m, PREG_OFFSET_CAPTURE)) {
+            return null;
+        }
+        $start = $m[0][1] + strlen($m[0][0]);
+        $rest = substr($sql, $start);
+        if (preg_match('/^\s*--\s*@end-rollback\s*$/mi', $rest, $em, PREG_OFFSET_CAPTURE)) {
+            $rest = substr($rest, 0, $em[0][1]);
+        }
+        $rest = trim($rest);
+        return $rest === '' ? null : $rest;
+    }
 }

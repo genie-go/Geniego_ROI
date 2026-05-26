@@ -21,3 +21,7 @@ CREATE TABLE IF NOT EXISTS orderhub_settlements (
   KEY idx_tenant_period (tenant_id, period),
   UNIQUE KEY uniq_tenant_period_channel (tenant_id, period, channel)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- @rollback
+DROP TABLE IF EXISTS orderhub_settlements;
+-- @end-rollback
