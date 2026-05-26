@@ -452,6 +452,10 @@ return function (App $app): void {
         'GET /api/v424/orderhub/claims'      => 'Genie\\Handlers\\OrderHub::claims',
         'GET /api/v424/orderhub/settlements' => 'Genie\\Handlers\\OrderHub::settlements',
 
+        // ── v424 enterprise health endpoint (167차 5순위, U-166-E) ──
+        'GET /v424/health'      => 'Genie\\Handlers\\Health::check',
+        'GET /api/v424/health'  => 'Genie\\Handlers\\Health::check',
+
         // ── Auth — 회원가입 / 로그인 / 플랜 ──────────────────────────────────
         'POST /auth/register' => 'Genie\\Handlers\\UserAuth::register',
         'POST /auth/login'    => 'Genie\\Handlers\\UserAuth::login',
@@ -1640,5 +1644,17 @@ return function (App $app): void {
     $register('PUT', '/creatives/{id}');
     $register('DELETE', '/creatives/{id}');
     $register('POST', '/creatives/check-duplicate');
+
+    // ── V424 OrderHub Aggregator (165차 deploy + 167차 register 매핑 보강) ──
+    $register('GET', '/v424/orderhub/orders');
+    $register('GET', '/v424/orderhub/claims');
+    $register('GET', '/v424/orderhub/settlements');
+    $register('GET', '/api/v424/orderhub/orders');
+    $register('GET', '/api/v424/orderhub/claims');
+    $register('GET', '/api/v424/orderhub/settlements');
+
+    // ── V424 enterprise health (167차 5순위) ──
+    $register('GET', '/v424/health');
+    $register('GET', '/api/v424/health');
 
     };
