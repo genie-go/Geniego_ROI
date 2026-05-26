@@ -1079,8 +1079,10 @@ return function (App $app): void {
     $register('POST', '/v410/alerts/evaluate');
     $register('GET', '/v410/alerts');
     $register('GET', '/v410/action_requests');
-    $register('POST', '/v410/action_requests/{action_id}/decide');
-    $register('POST', '/v410/action_requests/{action_id}/execute');
+    // 168차 deploy fix: {action_id} ↔ {id} wildcard 충돌 (FastRoute "Cannot register two routes")
+    // L1809-1810 의 {id} 와일드카드 가 167차 ec139ed 의 정합 보강 결과 ($custom L159-160 정합).
+    // $register('POST', '/v410/action_requests/{action_id}/decide');
+    // $register('POST', '/v410/action_requests/{action_id}/execute');
     $register('GET', '/v410/audit_logs');
     $register('GET', '/v410/ai/policies/suggest');
     $register('POST', '/v411/events/ingest');
