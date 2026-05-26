@@ -62,7 +62,8 @@ final class Migrate
                 }
                 $ins = $pdo->prepare("INSERT INTO schema_migrations (filename, checksum) VALUES (?, ?)");
                 $ins->execute([$basename, $checksum]);
-                $pdo->commit();
+                // MySQL DDL implicit commit 으로 트랜잭션 무효화 가능 → inTransaction 체크 (166차 fix)
+                if ($pdo->inTransaction()) $pdo->commit();
                 $applied[] = $basename;
             } catch (\Throwable $e) {
                 if ($pdo->inTransaction()) $pdo->rollBack();
