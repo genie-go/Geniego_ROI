@@ -238,9 +238,10 @@ const FullLoader = () => (
 );
 
 function SmartPricing() {
-  const { user, loading } = useAuth();
+  // 168차 N-152-F: USD 단일 + Paddle 카드 전용 정책 적용 (spec: n152f_billing_usd_card_only.md).
+  // 인증/비인증 모두 PricingPublic (USD/Paddle) 으로 통일. /app-pricing 은 /pricing 으로 redirect.
+  const { loading } = useAuth();
   if (loading) return <FullLoader />;
-  if (user) return <Navigate to="/app-pricing" replace />;
   return <PricingPublic />;
 }
 
@@ -341,8 +342,9 @@ function AppLayout() {
                       <Route path="/integration-hub" element={<ApiKeys />} />
                       <Route path="/alert-automation" element={<Navigate to="/ai-rule-engine" replace />} />
                       <Route path="/event-norm" element={<Navigate to="/data-schema" replace />} />
-                      <Route path="/pricing" element={<Pricing />} />
-                      <Route path="/app-pricing" element={<Pricing />} />
+                      {/* 168차 N-152-F USD/Paddle 단일 정책 — /pricing 과 /app-pricing 모두 PricingPublic 으로 통일 */}
+                      <Route path="/pricing" element={<PricingPublic />} />
+                      <Route path="/app-pricing" element={<Navigate to="/pricing" replace />} />
                       <Route path="/data-product" element={<DataProduct />} />
                       <Route path="/db-admin" element={<DbAdmin />} />
                       <Route path="/rollup" element={<RollupDashboard />} />

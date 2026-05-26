@@ -132,7 +132,14 @@ export default function PricingPublic() {
             await loadPaddleV2(clientToken);
             window.Paddle.Checkout.open({
                 items: [{ priceId, quantity: 1 }],
-                settings: { displayMode: "overlay", theme: "dark", locale: "en" },
+                // 168차 N-152-F: 카드 전용 강제 (allowedPaymentMethods=['card']).
+                // spec: docs/spec/n152f_billing_usd_card_only.md §2.3
+                settings: {
+                    displayMode: "overlay",
+                    theme: "dark",
+                    locale: "en",
+                    allowedPaymentMethods: ["card"],
+                },
                 successCallback: () => setSuccess(true),
             });
         } catch (e) {
@@ -308,7 +315,7 @@ export default function PricingPublic() {
                         By purchasing, you agree to our{" "}
                         <Link to="/terms" style={{ color: "#4f8ef7" }}>Terms of Service</Link> and{" "}
                         <Link to="/privacy" style={{ color: "#4f8ef7" }}>Privacy Policy</Link>.<br />
-                        All prices in USD. Taxes may apply depending on your location. Powered by Paddle.com (Merchant of Record).
+                        All prices in USD. <strong style={{ color: "rgba(255,255,255,0.45)" }}>Card payments only</strong>. Taxes may apply depending on your location. Powered by Paddle.com (Merchant of Record).
                     </p>
                 </div>
             </section>

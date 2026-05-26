@@ -543,17 +543,19 @@ return function (App $app): void {
         'POST /auth/license'       => 'Genie\\Handlers\\UserAuth::activateLicense', // 라이선스 키 활성화
         'GET /auth/license/list'   => 'Genie\\Handlers\\UserAuth::listLicenseKeys', // 라이선스 목록 (admin)
 
-        // ── Payment (Toss PG) ──────────────────────────────────────────────
-        'GET /auth/payment/config'    => 'Genie\\Handlers\\Payment::config',
-        'GET /auth/payment/plans'     => 'Genie\\Handlers\\Payment::plans',
-        'POST /auth/payment/confirm'  => 'Genie\\Handlers\\Payment::confirm',
-        'POST /auth/payment/cancel'   => 'Genie\\Handlers\\Payment::cancel',
-        'POST /payment/webhook/toss'  => 'Genie\\Handlers\\Payment::tossWebhook',
+        // ── Payment (Toss PG) — 168차 DEPRECATED (N-152-F USD/Paddle 단일 정책)
+        //    spec: docs/spec/n152f_billing_usd_card_only.md §2.2
+        //    Handler 코드는 보존, routing 만 차단 (404). 운영 cleanup 은 N-152-G 트랙.
+        // 'GET /auth/payment/config'    => 'Genie\\Handlers\\Payment::config',
+        // 'GET /auth/payment/plans'     => 'Genie\\Handlers\\Payment::plans',
+        // 'POST /auth/payment/confirm'  => 'Genie\\Handlers\\Payment::confirm',
+        // 'POST /auth/payment/cancel'   => 'Genie\\Handlers\\Payment::cancel',
+        // 'POST /payment/webhook/toss'  => 'Genie\\Handlers\\Payment::tossWebhook',
 
-        // ── PG Config Admin ──────────────────────────────────────────────
-        'GET /auth/pg/config'             => 'Genie\\Handlers\\Payment::getPgConfig',
-        'POST /auth/pg/config'            => 'Genie\\Handlers\\Payment::savePgConfig',
-        'DELETE /auth/pg/config/{provider}' => 'Genie\\Handlers\\Payment::deletePgConfig',
+        // ── PG Config Admin — 168차 DEPRECATED (Toss/직접 PG 경로 전체 차단) ─
+        // 'GET /auth/pg/config'             => 'Genie\\Handlers\\Payment::getPgConfig',
+        // 'POST /auth/pg/config'            => 'Genie\\Handlers\\Payment::savePgConfig',
+        // 'DELETE /auth/pg/config/{provider}' => 'Genie\\Handlers\\Payment::deletePgConfig',
 
         // ── Pricing Config Admin ──────────────────────────────────────────
         'GET /auth/pricing/config'   => 'Genie\\Handlers\\Payment::getPricingConfig',
@@ -1308,17 +1310,18 @@ return function (App $app): void {
     $register('GET',  '/auth/plan-check'); // 현재 플랜 + 기능 접근 목록
 
 
-    // ── Payment (Toss PG) ────────────────────────────────────────────
-    $register('GET',  '/auth/payment/config');
-    $register('GET',  '/auth/payment/plans');
-    $register('POST', '/auth/payment/confirm');
-    $register('POST', '/auth/payment/cancel');
-    $register('POST', '/payment/webhook/toss');
+    // ── Payment (Toss PG) — 168차 DEPRECATED (N-152-F USD/Paddle 단일) ──
+    //    spec: docs/spec/n152f_billing_usd_card_only.md
+    // $register('GET',  '/auth/payment/config');
+    // $register('GET',  '/auth/payment/plans');
+    // $register('POST', '/auth/payment/confirm');
+    // $register('POST', '/auth/payment/cancel');
+    // $register('POST', '/payment/webhook/toss');
 
-    // ── PG Config Admin ──────────────────────────────────────────────
-    $register('GET',  '/auth/pg/config');
-    $register('POST', '/auth/pg/config');
-    $register('DELETE', '/auth/pg/config/{provider}');
+    // ── PG Config Admin — 168차 DEPRECATED ───────────────────────────
+    // $register('GET',  '/auth/pg/config');
+    // $register('POST', '/auth/pg/config');
+    // $register('DELETE', '/auth/pg/config/{provider}');
 
     // ── Pricing Config Admin ─────────────────────────────────────────
     $register('GET',  '/auth/pricing/config');
