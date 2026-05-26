@@ -18,7 +18,30 @@ env:
   HAS_SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL != '' }}
 
 jobs:
+  # 165차: frontend/backend 변경 감지 — 무관한 job skip
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      frontend: ${{ steps.filter.outputs.frontend }}
+      backend: ${{ steps.filter.outputs.backend }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            frontend:
+              - 'frontend/**'
+              - 'package.json'
+              - 'package-lock.json'
+              - 'vite.config.js'
+              - 'inject_journey_ko.cjs'
+            backend:
+              - 'backend/**'
+
   deploy:
+    needs: changes
+    if: needs.changes.outputs.frontend == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Source Code
@@ -75,6 +98,83 @@ jobs:
           fi
 
       - name: Slack Notification
+        if: ${{ always() && env.HAS_SLACK_WEBHOOK == 'true' }}
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          fields: repo,message,commit,author,action,eventName,ref,workflow
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  # 165차 신규: backend 자동 배포 — backend/** 변경 시 SCP + composer install + migration 자동 실행
+  # 보존 디렉토리(운영 호스트에 이미 존재 → tar exclude): backend/.env, backend/vendor, backend/data, backend/logs
+  deploy-backend:
+    needs: changes
+    if: needs.changes.outputs.backend == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: "[BACKEND P1] Package backend (보존 디렉토리 제외)"
+        run: |
+          tar -czf backend.tgz \
+            --exclude='backend/.env' \
+            --exclude='backend/vendor' \
+            --exclude='backend/data' \
+            --exclude='backend/logs' \
+            --exclude='backend/composer.lock.bak' \
+            --exclude='backend/*.sqlite' \
+            backend/
+          ls -lh backend.tgz
+
+      - name: "[BACKEND P2] SCP tarball to remote /tmp"
+        if: ${{ env.HAS_SSH_SECRETS == 'true' }}
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.REMOTE_IP }}
+          username: ${{ secrets.REMOTE_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "backend.tgz"
+          target: "/tmp/"
+
+      - name: "[BACKEND P3] Extract + composer install + migrate (운영 PHP 8.1+)"
+        if: ${{ env.HAS_SSH_SECRETS == 'true' }}
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.REMOTE_IP }}
+          username: ${{ secrets.REMOTE_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+            # extract — tar exclude로 .env/vendor/data/logs는 덮어쓰기 X (보존)
+            tar -xzf /tmp/backend.tgz -C /home/wwwroot/roi.geniego.com/
+            chown -R www:www /home/wwwroot/roi.geniego.com/backend
+            cd /home/wwwroot/roi.geniego.com/backend
+            # vendor 생성/갱신 — 운영 PHP 환경에서 install (ABI 안전)
+            php composer.phar install --no-dev --optimize-autoloader --no-interaction
+            # migration — both 모드 (운영 + demo DB 동시 적용, schema_migrations 체크로 idempotent)
+            php bin/migrate.php both
+            # PHP-FPM reload — opcache 클리어, 시스템에 따라 fallback
+            (systemctl reload php-fpm 2>/dev/null \
+              || systemctl reload php8.1-fpm 2>/dev/null \
+              || systemctl reload php8.2-fpm 2>/dev/null \
+              || /usr/local/nginx/sbin/nginx -s reload) || true
+            # cleanup
+            rm -f /tmp/backend.tgz
+
+      - name: "[BACKEND P4] Health check (root /)"
+        if: ${{ env.HAS_SSH_SECRETS == 'true' }}
+        run: |
+          sleep 5
+          HTTP=$(curl -sk -o /dev/null -w "%{http_code}" "https://roi.genie-go.com/")
+          if [[ "$HTTP" != "200" ]]; then
+            echo "[FAIL] Backend health check: HTTP $HTTP"
+            exit 1
+          fi
+          echo "[OK] Backend root health: HTTP $HTTP"
+
+      - name: Slack Notification (backend)
         if: ${{ always() && env.HAS_SLACK_WEBHOOK == 'true' }}
         uses: 8398a7/action-slack@v3
         with:
