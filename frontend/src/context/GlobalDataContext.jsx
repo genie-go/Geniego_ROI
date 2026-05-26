@@ -11,6 +11,7 @@
 // └─────────────────────────────────────────────────────────────────────────┘
 import React, { createContext, useContext, useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { guardProductionState } from '../security/ContaminationGuard.js';
+import { getJsonAuth } from '../services/apiClient.js';
 import {
   DEMO_INVENTORY, DEMO_ORDERS, DEMO_INOUT, DEMO_BUDGETS,
   DEMO_SETTLEMENT, DEMO_CAMPAIGNS, DEMO_CRM_SEGMENTS,
@@ -163,10 +164,10 @@ export function GlobalDataProvider({ children }) {
 
     /* ── 핵심 공유 상태 ─────────────────────────── */
     const [inventory, setInventory] = useState(INIT_INVENTORY);
-    const [orders, setOrders] = useState(INIT_ORDERS);
+    const [orders, setOrders] = useState(_isDemo ? INIT_ORDERS : []);
     const [inOutHistory, setInOutHistory] = useState(INIT_INOUT);
     const [channelBudgets, setChannelBudgets] = useState(INIT_CHANNEL_BUDGETS);
-    const [settlement, setSettlement] = useState(INIT_SETTLEMENT);
+    const [settlement, setSettlement] = useState(_isDemo ? INIT_SETTLEMENT : []);
     const [sharedCampaigns, setSharedCampaigns] = useState(loadDemoState('shared_campaigns', DEMO_CAMPAIGNS));
     const [alerts, setAlerts] = useState(INIT_ALERTS);
     const [dateRange, setDateRange] = useState({ from: null, to: null, label: 'This Month' });
@@ -199,7 +200,7 @@ export function GlobalDataProvider({ children }) {
     // 🔗 [v9 NEW] 크로스 기능 동기화 상태
     const [pickingLists, setPickingLists] = useState([]);             // WMS 피킹리스트
     const [packingSlips, setPackingSlips] = useState([]);             // WMS 패킹슬립
-    const [claimHistory, setClaimHistory] = useState([]);             // 클레임/반품 이력
+    const [claimHistory, setClaimHistory] = useState(_isDemo ? loadDemoState('claimHistory', []) : []);  // 클레임/반품 이력
     const [digitalShelfData, setDigitalShelfData] = useState({});     // DigitalShelf SoS 데이터
     const [campaignOrderMap, setCampaignOrderMap] = useState({});     // 캠페인 ID → Orders 매핑
     const [orderMemos, setOrderMemos] = useState({});                 // Orders별 메모
@@ -294,6 +295,36 @@ export function GlobalDataProvider({ children }) {
             })
             .catch(() => { /* Error 시 INIT_INVENTORY 유지 */ });
     }, []); // 한 번만 Run
+
+    // ── [165차 PM Phase 2-B] OrderHub Aggregator API → orders / claimHistory / settlement
+    //    spec: docs/spec/backend_orderhub_aggregator_165_v3.md §8 (v1 §7 동일 패턴)
+    //    데모 모드: 시드 데이터 유지 (API 스킵). 운영 모드: /api/v424/orderhub/* 호출.
+    useEffect(() => {
+        if (_isDemo) return;
+        let cancelled = false;
+        getJsonAuth('/api/v424/orderhub/orders?limit=200')
+            .then(res => { if (!cancelled && res?.ok && Array.isArray(res.items)) setOrders(res.items); })
+            .catch(() => { /* network/auth 실패 시 빈 배열 유지 */ });
+        return () => { cancelled = true; };
+    }, []);
+
+    useEffect(() => {
+        if (_isDemo) return;
+        let cancelled = false;
+        getJsonAuth('/api/v424/orderhub/claims?limit=200')
+            .then(res => { if (!cancelled && res?.ok && Array.isArray(res.items)) setClaimHistory(res.items); })
+            .catch(() => { /* 빈 배열 유지 */ });
+        return () => { cancelled = true; };
+    }, []);
+
+    useEffect(() => {
+        if (_isDemo) return;
+        let cancelled = false;
+        getJsonAuth('/api/v424/orderhub/settlements?limit=200')
+            .then(res => { if (!cancelled && res?.ok && Array.isArray(res.items)) setSettlement(res.items); })
+            .catch(() => { /* 빈 배열 유지 */ });
+        return () => { cancelled = true; };
+    }, []);
 
     // ── [DEMO v15] 데모 모드: 시드 데이터가 풍부하므로 Rollup API는 완전 삭제 처리 (운영 환경 오염 방지) ──
 
