@@ -456,6 +456,20 @@ return function (App $app): void {
         'GET /v424/health'      => 'Genie\\Handlers\\Health::check',
         'GET /api/v424/health'  => 'Genie\\Handlers\\Health::check',
 
+        // ── v425 Admin/User 메뉴 가시성 토글 (168차 N-152-F F2/F3 = T3, spec: docs/spec/n152f_consolidated_pm_track.md §4) ─
+        'GET /v425/admin/menu-tree'             => 'Genie\\Handlers\\AdminMenu::getAdminTree',
+        'GET /v425/menu-tree'                   => 'Genie\\Handlers\\AdminMenu::getTree',
+        'PATCH /v425/admin/menu-tree/{menu_id}' => 'Genie\\Handlers\\AdminMenu::patch',
+        'POST /v425/admin/menu-tree/reorder'    => 'Genie\\Handlers\\AdminMenu::reorder',
+        'POST /v425/admin/menu-tree/reset'      => 'Genie\\Handlers\\AdminMenu::reset',
+        'GET /v425/admin/menu-tree/audit-log'   => 'Genie\\Handlers\\AdminMenu::auditLog',
+        'GET /api/v425/admin/menu-tree'             => 'Genie\\Handlers\\AdminMenu::getAdminTree',
+        'GET /api/v425/menu-tree'                   => 'Genie\\Handlers\\AdminMenu::getTree',
+        'PATCH /api/v425/admin/menu-tree/{menu_id}' => 'Genie\\Handlers\\AdminMenu::patch',
+        'POST /api/v425/admin/menu-tree/reorder'    => 'Genie\\Handlers\\AdminMenu::reorder',
+        'POST /api/v425/admin/menu-tree/reset'      => 'Genie\\Handlers\\AdminMenu::reset',
+        'GET /api/v425/admin/menu-tree/audit-log'   => 'Genie\\Handlers\\AdminMenu::auditLog',
+
         // ── Auth — 회원가입 / 로그인 / 플랜 ──────────────────────────────────
         'POST /auth/register' => 'Genie\\Handlers\\UserAuth::register',
         'POST /auth/login'    => 'Genie\\Handlers\\UserAuth::login',
@@ -1656,6 +1670,20 @@ return function (App $app): void {
     // ── V424 enterprise health (167차 5순위) ──
     $register('GET', '/v424/health');
     $register('GET', '/api/v424/health');
+
+    // ── V425 Admin/User 메뉴 가시성 (168차 N-152-F F2/F3 = T3) ──
+    $register('GET',   '/v425/admin/menu-tree');
+    $register('GET',   '/v425/menu-tree');
+    $register('PATCH', '/v425/admin/menu-tree/{menu_id}');
+    $register('POST',  '/v425/admin/menu-tree/reorder');
+    $register('POST',  '/v425/admin/menu-tree/reset');
+    $register('GET',   '/v425/admin/menu-tree/audit-log');
+    $register('GET',   '/api/v425/admin/menu-tree');
+    $register('GET',   '/api/v425/menu-tree');
+    $register('PATCH', '/api/v425/admin/menu-tree/{menu_id}');
+    $register('POST',  '/api/v425/admin/menu-tree/reorder');
+    $register('POST',  '/api/v425/admin/menu-tree/reset');
+    $register('GET',   '/api/v425/admin/menu-tree/audit-log');
 
     // ── 167차 routes audit 일괄 정합 보강 ($custom 정의되었으나 $register 미호출 78건) ──
     // backend/bin/audit_routes.php 로 재검출 가능. v410/v418*/v420 광범위.
