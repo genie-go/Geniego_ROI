@@ -66,6 +66,9 @@ const DbAdmin = lazy(() => import("./pages/DbAdmin.jsx"));
 const RollupDashboard = lazy(() => import("./pages/RollupDashboard.jsx"));
 const AdminMenuManager = lazy(() => import("./pages/AdminMenuManager.jsx"));
 const UserMenuPreferences = lazy(() => import("./pages/UserMenuPreferences.jsx"));
+const PMOverview = lazy(() => import("./pages/PMOverview.jsx"));
+const PMProjectDetail = lazy(() => import("./pages/PMProjectDetail.jsx"));
+const PMTaskBoard = lazy(() => import("./pages/PMTaskBoard.jsx"));
 const CampaignManager = lazy(() => import("./pages/CampaignManager.jsx"));
 const ContentCalendar = lazy(() => import("./pages/ContentCalendar.jsx"));
 const BudgetPlanner = lazy(() => import("./pages/BudgetPlanner.jsx"));
@@ -318,6 +321,9 @@ function AppLayout() {
                       <Route path="/admin" element={<Admin />} />
                       <Route path="/admin/menu-tree" element={<AdminMenuManager />} />
                       <Route path="/me/menu" element={<UserMenuPreferences />} />
+                      <Route path="/pm" element={<PMOverview />} />
+                      <Route path="/pm/projects/:id" element={<PMProjectDetail />} />
+                      <Route path="/pm/projects/:id/board" element={<PMTaskBoard />} />
                       <Route path="/alert-policies" element={<Navigate to="/alert-automation" replace />} />
                       <Route path="/attribution" element={<Attribution />} />
                       <Route path="/graph-score" element={<GraphScore />} />
