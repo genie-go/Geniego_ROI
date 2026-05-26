@@ -9,6 +9,7 @@ import { GlobalDataProvider } from "./context/GlobalDataContext.jsx";
 import { CurrencyProvider } from "./contexts/CurrencyContext.jsx";
 import { MobileSidebarProvider } from "./context/MobileSidebarContext.jsx";
 import { ConnectorSyncProvider } from "./context/ConnectorSyncContext.jsx";
+import { MenuVisibilityProvider } from "./context/MenuVisibilityContext.jsx";
 import NetworkStatus from "./components/NetworkStatus.jsx";
 import { ToastProvider } from "./components/ToastProvider.jsx";
 import SessionExpiryWarning from "./components/SessionExpiryWarning.jsx";
@@ -63,6 +64,8 @@ const ApiKeys = lazy(() => import("./pages/ApiKeys.jsx"));
 const DataProduct = lazy(() => import("./pages/DataProduct.jsx"));
 const DbAdmin = lazy(() => import("./pages/DbAdmin.jsx"));
 const RollupDashboard = lazy(() => import("./pages/RollupDashboard.jsx"));
+const AdminMenuManager = lazy(() => import("./pages/AdminMenuManager.jsx"));
+const UserMenuPreferences = lazy(() => import("./pages/UserMenuPreferences.jsx"));
 const CampaignManager = lazy(() => import("./pages/CampaignManager.jsx"));
 const ContentCalendar = lazy(() => import("./pages/ContentCalendar.jsx"));
 const BudgetPlanner = lazy(() => import("./pages/BudgetPlanner.jsx"));
@@ -313,6 +316,8 @@ function AppLayout() {
                       <Route path="/action-presets" element={<Navigate to="/ai-rule-engine" replace />} />
                       <Route path="/mapping-registry" element={<Navigate to="/integration-hub" replace />} />
                       <Route path="/admin" element={<Admin />} />
+                      <Route path="/admin/menu-tree" element={<AdminMenuManager />} />
+                      <Route path="/me/menu" element={<UserMenuPreferences />} />
                       <Route path="/alert-policies" element={<Navigate to="/alert-automation" replace />} />
                       <Route path="/attribution" element={<Attribution />} />
                       <Route path="/graph-score" element={<GraphScore />} />
@@ -402,6 +407,7 @@ export default function App() {
     <AuthProvider>
       <ToastProvider>
         <GlobalDataProvider>
+          <MenuVisibilityProvider>
           <ConnectorSyncProvider>
             <Suspense fallback={<Loader />}>
               <Routes>
@@ -421,6 +427,7 @@ export default function App() {
             </Suspense>
             <NetworkStatus />
           </ConnectorSyncProvider>
+          </MenuVisibilityProvider>
         </GlobalDataProvider>
       </ToastProvider>
     </AuthProvider>
