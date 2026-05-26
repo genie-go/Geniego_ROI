@@ -191,4 +191,55 @@ final class Migrate
         foreach ($indexStatements as $idx) $out[] = $idx;
         return $out;
     }
+
+    /**
+     * Dry-run: 적용 예정 migration 식별. DB 변경 없음.
+     * schema_migrations 테이블만 idempotent CREATE — 실제 migration DDL 은 실행하지 않음.
+     * @return array{pending: string[], skipped: string[]}
+     */
+    public static function dryRun(\PDO $pdo, ?string $dir = null): array
+    {
+        $dir = $dir ?: __DIR__ . '/../migrations';
+        if (!is_dir($dir)) {
+            throw new \RuntimeException("Migration dir not found: $dir");
+        }
+
+        self::ensureTable($pdo);
+
+        $pending = [];
+        $skipped = [];
+
+        $files = glob($dir . '/*.sql') ?: [];
+        sort($files);
+
+        foreach ($files as $path) {
+            $basename = basename($path);
+
+            $check = $pdo->prepare("SELECT 1 FROM schema_migrations WHERE filename = ?");
+            $check->execute([$basename]);
+            if ($check->fetchColumn()) {
+                $skipped[] = $basename;
+                continue;
+            }
+
+            $sql = file_get_contents($path);
+            if ($sql === false || trim($sql) === '') {
+                throw new \RuntimeException("Empty/unreadable migration: $basename");
+            }
+            $pending[] = $basename;
+        }
+
+        return ['pending' => $pending, 'skipped' => $skipped];
+    }
+
+    /**
+     * Dry-run 양쪽 동시 — runBoth() 와 동형, DB 변경 없음.
+     */
+    public static function dryRunBoth(?string $dir = null): array
+    {
+        return [
+            'production' => self::dryRun(Db::pdoFor(false), $dir),
+            'demo'       => self::dryRun(Db::pdoFor(true), $dir),
+        ];
+    }
 }
