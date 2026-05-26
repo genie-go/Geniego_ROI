@@ -456,6 +456,14 @@ return function (App $app): void {
         'GET /v424/health'      => 'Genie\\Handlers\\Health::check',
         'GET /api/v424/health'  => 'Genie\\Handlers\\Health::check',
 
+        // ── v424 admin plans (169차 사용자 발견 issue fix — 플랜별 구독요금 설정) ──
+        'GET /v424/admin/plans'             => 'Genie\\Handlers\\AdminPlans::list',
+        'PUT /v424/admin/plans/{id}'        => 'Genie\\Handlers\\AdminPlans::upsert',
+        'DELETE /v424/admin/plans/{id}'     => 'Genie\\Handlers\\AdminPlans::delete',
+        'GET /api/v424/admin/plans'         => 'Genie\\Handlers\\AdminPlans::list',
+        'PUT /api/v424/admin/plans/{id}'    => 'Genie\\Handlers\\AdminPlans::upsert',
+        'DELETE /api/v424/admin/plans/{id}' => 'Genie\\Handlers\\AdminPlans::delete',
+
         // ── v425 PM-Core (168차 N-152-F Task/Milestone/Gantt, spec: docs/spec/n152f_pm_features_spec.md §4) ─
         // Projects
         'GET /v425/pm/projects'                  => 'Genie\\Handlers\\PM\\Projects::list',
@@ -1738,6 +1746,14 @@ return function (App $app): void {
     // ── V424 enterprise health (167차 5순위) ──
     $register('GET', '/v424/health');
     $register('GET', '/api/v424/health');
+
+    // ── V424 admin plans (169차 사용자 발견 issue) ──
+    $register('GET',    '/v424/admin/plans');
+    $register('PUT',    '/v424/admin/plans/{id}');
+    $register('DELETE', '/v424/admin/plans/{id}');
+    $register('GET',    '/api/v424/admin/plans');
+    $register('PUT',    '/api/v424/admin/plans/{id}');
+    $register('DELETE', '/api/v424/admin/plans/{id}');
 
     // ── V425 PM-Core (168차 N-152-F Task/Milestone/Gantt) ──
     $register('GET',    '/v425/pm/projects');

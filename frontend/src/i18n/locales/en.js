@@ -12404,6 +12404,8 @@ export default {
       memberTools: "Member Tools",
       adminSystem: "System Admin",
       platformEnvLabel: "Platform Environment",
+      planPricingLabel: "Plan Pricing",
+      menuTreeLabel: "Menu Tree Admin",
       dbSchemaLabel: "DB Schema",
       paymentPgLabel: "Payment PG Config",
       dashboard: "Dashboard",

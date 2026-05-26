@@ -66,6 +66,7 @@ const DbAdmin = lazy(() => import("./pages/DbAdmin.jsx"));
 const RollupDashboard = lazy(() => import("./pages/RollupDashboard.jsx"));
 const AdminMenuManager = lazy(() => import("./pages/AdminMenuManager.jsx"));
 const UserMenuPreferences = lazy(() => import("./pages/UserMenuPreferences.jsx"));
+const PlanPricing = lazy(() => import("./pages/PlanPricing.jsx"));
 const PMOverview = lazy(() => import("./pages/PMOverview.jsx"));
 const PMProjectDetail = lazy(() => import("./pages/PMProjectDetail.jsx"));
 const PMTaskBoard = lazy(() => import("./pages/PMTaskBoard.jsx"));
@@ -321,6 +322,7 @@ function AppLayout() {
                       <Route path="/mapping-registry" element={<Navigate to="/integration-hub" replace />} />
                       <Route path="/admin" element={<Admin />} />
                       <Route path="/admin/menu-tree" element={<AdminMenuManager />} />
+                      <Route path="/admin/plan-pricing" element={<PlanPricing />} />
                       <Route path="/me/menu" element={<UserMenuPreferences />} />
                       <Route path="/pm" element={<PMOverview />} />
                       <Route path="/pm/projects/:id" element={<PMProjectDetail />} />

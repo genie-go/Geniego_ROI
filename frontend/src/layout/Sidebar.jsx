@@ -235,9 +235,11 @@ const ADMIN_MENU = [
     icon: "🔧",
     labelKey: "gNav.adminSystem",
     items: [
-      { to: "/admin",     icon: "⚙", labelKey: "gNav.platformEnvLabel",  menuKey: "system||admin" },
-      { to: "/db-admin",  icon: "🗄️", labelKey: "gNav.dbSchemaLabel",   menuKey: "system||db_admin" },
-      { to: "/pg-config", icon: "💳", labelKey: "gNav.paymentPgLabel",  menuKey: "system||pg_config" },
+      { to: "/admin",              icon: "⚙",  labelKey: "gNav.platformEnvLabel",  menuKey: "system||admin" },
+      { to: "/admin/plan-pricing", icon: "💳", labelKey: "gNav.planPricingLabel",  menuKey: "system||plan_pricing" },
+      { to: "/admin/menu-tree",    icon: "🗂", labelKey: "gNav.menuTreeLabel",     menuKey: "system||menu_tree" },
+      { to: "/db-admin",           icon: "🗄️", labelKey: "gNav.dbSchemaLabel",     menuKey: "system||db_admin" },
+      { to: "/pg-config",          icon: "💳", labelKey: "gNav.paymentPgLabel",    menuKey: "system||pg_config" },
     ],
   },
 ];

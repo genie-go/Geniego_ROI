@@ -1431,6 +1431,8 @@ export default {
       memberTools: "멤버 도구",
       adminSystem: "시스템 관리",
       platformEnvLabel: "플랫폼 환경",
+      planPricingLabel: "플랜별 구독요금",
+      menuTreeLabel: "메뉴 트리 관리",
       dbSchemaLabel: "DB 스키마",
       paymentPgLabel: "결제 PG 설정",
       dashboard: "대시보드",
