@@ -32,6 +32,12 @@ const PRODUCT_CATEGORIES_BASE = [
     { id: "overseas_ship", icon: "🚢", tagKeys: ["tag_proxy_ship", "tag_overseas_delivery", "tag_customs"] },
     { id: "overseas_buy", icon: "🛒", tagKeys: ["tag_us_direct", "tag_jp_direct", "tag_cn_direct"] },
     { id: "sports", icon: "⚽", tagKeys: ["tag_fitness", "tag_outdoor", "tag_sportswear"] },
+    { id: "finance", icon: "💰", tagKeys: ["tag_loan", "tag_card", "tag_invest", "tag_account"] },
+    { id: "insurance", icon: "🛡", tagKeys: ["tag_life_ins", "tag_health_ins", "tag_auto_ins", "tag_property_ins"] },
+    { id: "medical", icon: "🏥", tagKeys: ["tag_clinic", "tag_telemed", "tag_health_check", "tag_specialty"] },
+    { id: "tax", icon: "📊", tagKeys: ["tag_income_tax", "tag_corp_tax", "tag_vat", "tag_accounting"] },
+    { id: "legal", icon: "⚖️", tagKeys: ["tag_civil", "tag_corp_law", "tag_criminal", "tag_family_law"] },
+    { id: "etc_service", icon: "🧩", tagKeys: ["tag_consulting", "tag_education", "tag_repair", "tag_misc"] },
 ];
 
 // Categoryper 최적 Ad Channel Recommend (AI Recommend 기준)
@@ -47,6 +53,12 @@ const CATEGORY_AD_RECOMMEND = {
     overseas_ship:["meta", "google", "naver"],
     overseas_buy: ["meta", "instagram", "google"],
     sports:       ["tiktok", "instagram", "meta"],
+    finance:      ["google", "naver", "meta"],
+    insurance:    ["naver", "google", "kakao"],
+    medical:      ["naver", "google", "instagram"],
+    tax:          ["naver", "google", "kakao"],
+    legal:        ["google", "naver", "meta"],
+    etc_service:  ["meta", "instagram", "google"],
 };
 
 const AD_CHANNELS_BASE = [
@@ -85,6 +97,12 @@ const CATEGORY_EXPLAIN = {
     overseas_ship: { insightKey: "cat_explain_overseas_ship" },
     overseas_buy:  { insightKey: "cat_explain_overseas_buy"  },
     sports:        { insightKey: "cat_explain_sports"        },
+    finance:       { insightKey: "cat_explain_finance"       },
+    insurance:     { insightKey: "cat_explain_insurance"     },
+    medical:       { insightKey: "cat_explain_medical"       },
+    tax:           { insightKey: "cat_explain_tax"           },
+    legal:         { insightKey: "cat_explain_legal"         },
+    etc_service:   { insightKey: "cat_explain_etc_service"   },
 };
 
 // ───────────────────────────────────────────────────────────────────────────

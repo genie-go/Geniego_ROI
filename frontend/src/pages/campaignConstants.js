@@ -16,6 +16,12 @@ export const CAT_TO_PRODUCT = {
     digital: ['Digital/Apps', 'Digital/SaaS', 'Digital/Content'],
     forwarding: [],
     purchasing: [],
+    finance: ['Finance/Loan', 'Finance/Card', 'Finance/Investment', 'Finance/Account'],
+    insurance: ['Insurance/Life', 'Insurance/Health', 'Insurance/Auto', 'Insurance/Property'],
+    medical: ['Medical/Clinic', 'Medical/Telemed', 'Medical/HealthCheck', 'Medical/Specialty'],
+    tax: ['Tax/Income', 'Tax/Corporate', 'Tax/VAT', 'Tax/Accounting'],
+    legal: ['Legal/Civil', 'Legal/Corporate', 'Legal/Criminal', 'Legal/Family'],
+    etc_service: ['Service/Consulting', 'Service/Education', 'Service/Repair', 'Service/Misc'],
 };
 
 export const CAT_OPTIONS = [
@@ -78,5 +84,41 @@ export const CAT_OPTIONS = [
         color: '#14b8a6', icon: '⚽',
         context: 'Fitness, yoga, outdoor, sportswear brands',
         suggestions: ['Sports brand ad channel recommendations', 'Sports goods Instagram ad effectiveness', 'Outdoor brand YouTube ad', 'Sports & leisure ad budget allocation'],
+    },
+    {
+        id: 'finance', catKey: 'finance', label: '💰 Finance', route: 'Loan, card, investment, account services',
+        color: '#10b981', icon: '💰',
+        context: 'Banking, loan, credit card, investment, and account services for B2C',
+        suggestions: ['Finance lead-gen Google ad strategy', 'Loan/card Naver SA budget allocation', 'Investment app TikTok ad targeting', 'Finance brand trust-building KPI'],
+    },
+    {
+        id: 'insurance', catKey: 'insurance', label: '🛡 Insurance', route: 'Life, health, auto, property insurance',
+        color: '#0ea5e9', icon: '🛡',
+        context: 'Life, health, auto and property insurance products',
+        suggestions: ['Insurance lead Naver SA strategy', 'Auto insurance Google Performance Max', 'Health insurance Kakao Channel ad', 'Insurance comparison-platform partnership'],
+    },
+    {
+        id: 'medical', catKey: 'medical', label: '🏥 Medical Services', route: 'Clinic, telemedicine, checkup, specialty',
+        color: '#ef4444', icon: '🏥',
+        context: 'Clinics, telemedicine, health checkup and specialty medical services',
+        suggestions: ['Local clinic Naver Place + SA', 'Telemedicine app Instagram ad', 'Health checkup season Google ad', 'Medical service compliance ad gating'],
+    },
+    {
+        id: 'tax', catKey: 'tax', label: '📊 Tax & Accounting', route: 'Income, corporate, VAT, accounting',
+        color: '#f59e0b', icon: '📊',
+        context: 'Tax filing, corporate accounting, VAT and bookkeeping services',
+        suggestions: ['Tax-season Naver SA peak strategy', 'Corp accounting B2B LinkedIn ad', 'VAT filing Kakao Channel CRM', 'Accounting firm long-tail SEO'],
+    },
+    {
+        id: 'legal', catKey: 'legal', label: '⚖️ Legal Services', route: 'Civil, corporate, criminal, family law',
+        color: '#6366f1', icon: '⚖️',
+        context: 'Civil, corporate, criminal and family law consulting services',
+        suggestions: ['Legal consult Google search ad', 'Law firm Naver SA brand keyword', 'Family law Instagram education content', 'Legal service compliance ad gating'],
+    },
+    {
+        id: 'etc_service', catKey: 'etc_service', label: '🧩 Other Services', route: 'Consulting, education, repair, misc',
+        color: '#94a3b8', icon: '🧩',
+        context: 'Other professional services — consulting, education, repair, misc',
+        suggestions: ['Service business Meta ad strategy', 'Education category YouTube ad', 'Repair service Naver Place ad', 'Misc service per-channel budget'],
     },
 ];
