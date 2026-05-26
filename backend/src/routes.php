@@ -444,6 +444,14 @@ return function (App $app): void {
         // one-time DB migration (restrict in production after first use)
         'GET /v423/paddle/migrate'       => 'Genie\\Handlers\\Paddle::migrate',
 
+        // ── v424 OrderHub Aggregator (PM Phase 2, spec: docs/spec/backend_orderhub_aggregator_165.md) ─
+        'GET /v424/orderhub/orders'      => 'Genie\\Handlers\\OrderHub::orders',
+        'GET /v424/orderhub/claims'      => 'Genie\\Handlers\\OrderHub::claims',
+        'GET /v424/orderhub/settlements' => 'Genie\\Handlers\\OrderHub::settlements',
+        'GET /api/v424/orderhub/orders'      => 'Genie\\Handlers\\OrderHub::orders',
+        'GET /api/v424/orderhub/claims'      => 'Genie\\Handlers\\OrderHub::claims',
+        'GET /api/v424/orderhub/settlements' => 'Genie\\Handlers\\OrderHub::settlements',
+
         // ── Auth — 회원가입 / 로그인 / 플랜 ──────────────────────────────────
         'POST /auth/register' => 'Genie\\Handlers\\UserAuth::register',
         'POST /auth/login'    => 'Genie\\Handlers\\UserAuth::login',

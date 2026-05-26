@@ -17,35 +17,87 @@ use PDO;
  */
 final class Db
 {
-    private static ?PDO $pdo = null;
+    private static ?PDO $pdoProd = null;
+    private static ?PDO $pdoDemo = null;
 
+    /**
+     * 하위 호환 진입점 — GENIE_ENV 에 따라 운영/데모 PDO 반환.
+     * 기존 호출처 (Db::pdo()) 비파괴: GENIE_ENV 미설정 시 production 기본 → 종전 동작 유지.
+     */
     public static function pdo(): PDO
     {
-        if (self::$pdo instanceof PDO) return self::$pdo;
+        return self::env() === 'demo' ? self::pdoDemo() : self::pdoProd();
+    }
 
-        /* ── DB 연결: .env 파일 직접 파싱 → 환경변수 → 기본값 순서 ───────
-         *  1) 백엔드 .env 파일 직접 로드 (PHP-FPM 환경변수 의존 제거)
-         *  2) getenv() 환경변수 우선
-         *  3) MySQL 연결 실패 시만 → SQLite 로컬 개발 폴백
-         * ─────────────────────────────────────────────────────────── */
-        // .env 파일 직접 파싱 (PHP-FPM이 env var를 전달하지 않아도 작동)
+    /**
+     * 명시적 환경 지정 PDO. Handler 가 환경/tenant 종류 cross-check 후 호출.
+     */
+    public static function pdoFor(bool $isDemo): PDO
+    {
+        return $isDemo ? self::pdoDemo() : self::pdoProd();
+    }
+
+    /**
+     * 환경 식별. 미설정 시 'production' (안전 측 기본).
+     */
+    public static function env(): string
+    {
+        self::loadEnvFile();
+        $env = getenv('GENIE_ENV');
+        return $env === 'demo' ? 'demo' : 'production';
+    }
+
+    private static function pdoProd(): PDO
+    {
+        if (self::$pdoProd instanceof PDO) return self::$pdoProd;
+        $dbname = getenv('GENIE_DB_NAME') ?: 'geniego_roi';
+        self::$pdoProd = self::buildPdo($dbname);
+        return self::$pdoProd;
+    }
+
+    private static function pdoDemo(): PDO
+    {
+        if (self::$pdoDemo instanceof PDO) return self::$pdoDemo;
+        // 방어선 4 (DB 물리 분리) 미적용 시 GENIE_DEMO_DB_NAME 미설정이면 운영 DB 와 동일 이름 fallback.
+        // 본 spec 적용 후에는 인프라 작업으로 별도 DB 명시 권장.
+        $dbname = getenv('GENIE_DEMO_DB_NAME') ?: (getenv('GENIE_DB_NAME') ?: 'geniego_roi');
+        self::$pdoDemo = self::buildPdo($dbname);
+        return self::$pdoDemo;
+    }
+
+    /**
+     * .env 파일 직접 파싱 — PHP-FPM 등이 환경변수 전달하지 않는 환경 대응.
+     * 멱등 (이미 putenv 된 키는 덮어쓰지 않음).
+     */
+    private static function loadEnvFile(): void
+    {
+        static $loaded = false;
+        if ($loaded) return;
+        $loaded = true;
         $envFile = __DIR__ . '/../../.env';
-        if (file_exists($envFile)) {
-            foreach (file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
-                $line = trim($line);
-                if ($line === '' || $line[0] === '#') continue;
-                if (strpos($line, '=') === false) continue;
-                [$k, $v] = explode('=', $line, 2);
-                $k = trim($k); $v = trim($v);
-                if ($k !== '' && getenv($k) === false) {
-                    putenv("$k=$v");
-                }
+        if (!file_exists($envFile)) return;
+        foreach (file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
+            $line = trim($line);
+            if ($line === '' || $line[0] === '#') continue;
+            if (strpos($line, '=') === false) continue;
+            [$k, $v] = explode('=', $line, 2);
+            $k = trim($k); $v = trim($v);
+            if ($k !== '' && getenv($k) === false) {
+                putenv("$k=$v");
             }
         }
+    }
+
+    /**
+     * 실 PDO 생성 — dbname 만 인자로 받고 나머지 (host/port/user/pass) 는 기존 env 그대로.
+     * 종전 pdo() 의 연결/SQLite 폴백/migration 로직을 그대로 보존.
+     */
+    private static function buildPdo(string $name): PDO
+    {
+        self::loadEnvFile();
 
         $host = getenv('GENIE_DB_HOST') ?: '127.0.0.1';
         $port = getenv('GENIE_DB_PORT') ?: '3306';
-        $name = getenv('GENIE_DB_NAME') ?: 'geniego_roi';
         $user = getenv('GENIE_DB_USER') ?: 'root';
         $pass = getenv('GENIE_DB_PASS') ?: '';
 
@@ -62,17 +114,16 @@ final class Db
             );
         } catch (\PDOException $e) {
             // MySQL 연결 실패 → SQLite 폴백 (/tmp 디렉토리 사용 — 서버 쓰기 권한 보장)
-            // SQLSTATE[HY000][14] 방지: data/ 대신 시스템 tmp 사용
-            $tmpDir  = sys_get_temp_dir(); // /tmp on Linux
-            $dbPath  = $tmpDir . '/genie_roi.sqlite';
+            $tmpDir  = sys_get_temp_dir();
+            // 환경별 분리된 SQLite 파일 (prod/demo 동시 사용 시 충돌 방지)
+            $dbPath  = $tmpDir . '/genie_roi_' . $name . '.sqlite';
 
-            // data/ 경로도 병행 시도 (권한 있는 경우 우선)
-            $dataPath = __DIR__ . '/../../data/genie.sqlite';
+            $dataPath = __DIR__ . '/../../data/genie_' . $name . '.sqlite';
             if (is_writable(dirname($dataPath)) || @mkdir(dirname($dataPath), 0775, true)) {
                 $dbPath = $dataPath;
             }
 
-            error_log('[Genie DB] MySQL connect failed (' . $e->getMessage() . '), fallback → SQLite: ' . $dbPath);
+            error_log('[Genie DB] MySQL connect failed for db=' . $name . ' (' . $e->getMessage() . '), fallback → SQLite: ' . $dbPath);
 
             $pdo = new PDO('sqlite:' . $dbPath, null, null, [
                 PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
@@ -81,11 +132,8 @@ final class Db
             $pdo->exec('PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON; PRAGMA busy_timeout=5000;');
         }
 
-        self::$pdo = $pdo;
-
-        // ENTERPRISE OPTIMIZATION: Do not execute 100+ DDLs per request.
-        // Check temp lock file to run migration only once per server startup/deployment.
-        $migrationLock = sys_get_temp_dir() . '/genie_roi_v424_migrated.lock';
+        // ENTERPRISE OPTIMIZATION: 100+ DDLs 매 요청 실행 회피, DB 이름별 lock 으로 분리.
+        $migrationLock = sys_get_temp_dir() . '/genie_roi_v424_migrated_' . $name . '.lock';
         if (!file_exists($migrationLock)) {
             self::migrate($pdo);
             @file_put_contents($migrationLock, date('Y-m-d H:i:s'));
