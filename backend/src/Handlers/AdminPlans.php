@@ -97,6 +97,127 @@ final class AdminPlans
     }
 
     /**
+     * GET /v424/admin/db/stats — 169차 P5 mock 제거 (DbAdmin.jsx 의 2.4GB / 48 / 99.97% 가상 제거)
+     * MySQL information_schema + SHOW STATUS 실 데이터.
+     * SQLite fallback: PRAGMA / count.
+     */
+    public static function dbStats(Request $req, Response $res): Response
+    {
+        $pdo = Db::pdo();
+        $driver = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME);
+        $stats = [
+            'driver'      => $driver,
+            'database'    => null,
+            'version'     => null,
+            'tables'      => 0,
+            'size_mb'     => 0,
+            'uptime_sec'  => null,
+            'connections' => null,
+            'data_source' => 'live',
+            'mock'        => false,
+        ];
+        try {
+            if ($driver === 'mysql') {
+                $stats['version']    = (string)$pdo->query('SELECT VERSION()')->fetchColumn();
+                $stats['database']   = (string)$pdo->query('SELECT DATABASE()')->fetchColumn();
+                $stats['tables']     = (int)$pdo->query(
+                    "SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE()"
+                )->fetchColumn();
+                $stats['size_mb']    = (float)$pdo->query(
+                    "SELECT ROUND(SUM(DATA_LENGTH + INDEX_LENGTH) / 1024 / 1024, 2)
+                     FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE()"
+                )->fetchColumn();
+                $stats['uptime_sec'] = (int)$pdo->query("SHOW STATUS LIKE 'Uptime'")->fetch(\PDO::FETCH_ASSOC)['Value'] ?? null;
+                $conn = $pdo->query("SHOW STATUS LIKE 'Threads_connected'")->fetch(\PDO::FETCH_ASSOC);
+                $stats['connections'] = isset($conn['Value']) ? (int)$conn['Value'] : null;
+            } else {
+                $stats['version']  = (string)$pdo->query("SELECT sqlite_version()")->fetchColumn();
+                $stats['database'] = 'sqlite';
+                $stats['tables']   = (int)$pdo->query("SELECT COUNT(*) FROM sqlite_master WHERE type='table'")->fetchColumn();
+            }
+        } catch (\Throwable $e) {
+            $stats['data_source'] = 'query_failed';
+            $stats['error']       = $e->getMessage();
+        }
+        return self::json($res, ['ok' => true, 'stats' => $stats]);
+    }
+
+    /**
+     * GET /v424/admin/paddle/stats — 169차 사용자 발견 issue fix
+     *
+     * PgConfig.jsx 의 가상데이터 (142건/8.4M/토스페이먼츠) 제거 → paddle_subscriptions 실 통계.
+     * 168차 USD/Paddle 단일 정책 정합. 모든 KPI 실 DB read, mock fallback 절대 금지.
+     *
+     * 응답:
+     *   - provider: "Paddle (MoR)"
+     *   - currency: "USD"
+     *   - env: sandbox/production
+     *   - subscriptions: { active, total, cancelled }
+     *   - month: { tx_count, revenue_usd } — paddle_subscriptions 의 current_period_end 가 이번 달
+     *   - integration_status: env 기반 (token 존재 여부)
+     *
+     * 테이블 미존재 시 zero 응답 (mock 금지). data_source 명시.
+     */
+    public static function paddleStats(Request $req, Response $res): Response
+    {
+        $pdo = Db::pdo();
+        $stats = [
+            'provider'           => 'Paddle (MoR)',
+            'currency'           => 'USD',
+            'env'                => getenv('PADDLE_ENV') ?: 'sandbox',
+            'integration_status' => getenv('PADDLE_CLIENT_TOKEN') ? 'configured' : 'not_configured',
+            'subscriptions'      => ['active' => 0, 'total' => 0, 'cancelled' => 0],
+            'month'              => ['tx_count' => 0, 'revenue_usd' => 0.0],
+            'data_source'        => 'paddle_subscriptions',
+            'mock'               => false,
+        ];
+
+        // 테이블 존재 여부 확인 (운영 backend deploy 안 됐을 수 있음 — graceful)
+        try {
+            $check = $pdo->query("SHOW TABLES LIKE 'paddle_subscriptions'")->fetch();
+            if (!$check) {
+                $stats['data_source'] = 'table_missing';
+                return self::json($res, ['ok' => true, 'stats' => $stats]);
+            }
+        } catch (\Throwable $e) {
+            $stats['data_source'] = 'check_failed';
+            $stats['error'] = $e->getMessage();
+            return self::json($res, ['ok' => true, 'stats' => $stats]);
+        }
+
+        try {
+            $row = $pdo->query(
+                "SELECT
+                    COUNT(*)                                          AS total,
+                    SUM(CASE WHEN status='active'    THEN 1 ELSE 0 END) AS active,
+                    SUM(CASE WHEN status='canceled'  THEN 1 ELSE 0 END)
+                  + SUM(CASE WHEN status='cancelled' THEN 1 ELSE 0 END) AS cancelled
+                 FROM paddle_subscriptions"
+            )->fetch(\PDO::FETCH_ASSOC);
+            $stats['subscriptions']['total']     = (int)($row['total'] ?? 0);
+            $stats['subscriptions']['active']    = (int)($row['active'] ?? 0);
+            $stats['subscriptions']['cancelled'] = (int)($row['cancelled'] ?? 0);
+
+            // 이번 달 (YYYY-MM) 시작 ISO 8601 prefix
+            $monthPrefix = date('Y-m');
+            $row = $pdo->prepare(
+                "SELECT COUNT(*) AS tx_count, COALESCE(SUM(unit_price),0) AS revenue_usd
+                 FROM paddle_subscriptions
+                 WHERE status = 'active' AND SUBSTRING(current_period_end, 1, 7) = ?"
+            );
+            $row->execute([$monthPrefix]);
+            $r = $row->fetch(\PDO::FETCH_ASSOC);
+            $stats['month']['tx_count']    = (int)($r['tx_count'] ?? 0);
+            $stats['month']['revenue_usd'] = (float)($r['revenue_usd'] ?? 0);
+        } catch (\Throwable $e) {
+            $stats['data_source'] = 'query_failed';
+            $stats['error']       = $e->getMessage();
+        }
+
+        return self::json($res, ['ok' => true, 'stats' => $stats]);
+    }
+
+    /**
      * GET /auth/pricing/public-plans  (public, auth 불필요)
      *
      * AuthContext.loadMenuAccess 가 호출 (frontend 가 user.plan 기반 sidebar 필터 사용).

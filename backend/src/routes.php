@@ -462,6 +462,10 @@ return function (App $app): void {
         'DELETE /v424/admin/plans/{id}'                 => 'Genie\\Handlers\\AdminPlans::delete',
         'GET /v424/admin/plans-menu-access'             => 'Genie\\Handlers\\AdminPlans::menuAccessAll',
         'PUT /v424/admin/plans/{id}/menu-access'        => 'Genie\\Handlers\\AdminPlans::menuAccessUpsert',
+        'GET /v424/admin/paddle/stats'                  => 'Genie\\Handlers\\AdminPlans::paddleStats',
+        'GET /api/v424/admin/paddle/stats'              => 'Genie\\Handlers\\AdminPlans::paddleStats',
+        'GET /v424/admin/db/stats'                      => 'Genie\\Handlers\\AdminPlans::dbStats',
+        'GET /api/v424/admin/db/stats'                  => 'Genie\\Handlers\\AdminPlans::dbStats',
         'GET /api/v424/admin/plans'                     => 'Genie\\Handlers\\AdminPlans::list',
         'PUT /api/v424/admin/plans/{id}'                => 'Genie\\Handlers\\AdminPlans::upsert',
         'DELETE /api/v424/admin/plans/{id}'             => 'Genie\\Handlers\\AdminPlans::delete',
@@ -1760,6 +1764,10 @@ return function (App $app): void {
     $register('DELETE', '/v424/admin/plans/{id}');
     $register('GET',    '/v424/admin/plans-menu-access');
     $register('PUT',    '/v424/admin/plans/{id}/menu-access');
+    $register('GET',    '/v424/admin/paddle/stats');
+    $register('GET',    '/api/v424/admin/paddle/stats');
+    $register('GET',    '/v424/admin/db/stats');
+    $register('GET',    '/api/v424/admin/db/stats');
     $register('GET',    '/api/v424/admin/plans');
     $register('PUT',    '/api/v424/admin/plans/{id}');
     $register('DELETE', '/api/v424/admin/plans/{id}');
