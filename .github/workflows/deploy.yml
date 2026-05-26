@@ -19,6 +19,7 @@ env:
 
 jobs:
   # 165차: frontend/backend 변경 감지 — 무관한 job skip
+  # 166차 fix: checkout fetch-depth: 0 + paths-filter base 명시 (default depth=1 fail 해소)
   changes:
     runs-on: ubuntu-latest
     outputs:
@@ -26,9 +27,12 @@ jobs:
       backend: ${{ steps.filter.outputs.backend }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: dorny/paths-filter@v3
         id: filter
         with:
+          base: ${{ github.event.before }}
           filters: |
             frontend:
               - 'frontend/**'
