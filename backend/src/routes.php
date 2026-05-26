@@ -1657,4 +1657,93 @@ return function (App $app): void {
     $register('GET', '/v424/health');
     $register('GET', '/api/v424/health');
 
+    // ── 167차 routes audit 일괄 정합 보강 ($custom 정의되었으나 $register 미호출 78건) ──
+    // backend/bin/audit_routes.php 로 재검출 가능. v410/v418*/v420 광범위.
+    // v410 Alerting action_requests
+    $register('POST', '/v410/action_requests/{id}/decide');
+    $register('POST', '/v410/action_requests/{id}/execute');
+    // v418 / v418.1 Insights + Decisioning ingest
+    $register('POST', '/v418/insights/audience-breakdowns');
+    $register('POST', '/v418/insights/influencer-audience');
+    $register('POST', '/v418/insights/commerce-aggregates');
+    $register('POST', '/v418/insights/creative-sku-map');
+    $register('GET',  '/v418/insights/target-performance');
+    $register('POST', '/v4181/ingest/ad-insights');
+    $register('POST', '/v4181/ingest/influencer-insights');
+    $register('POST', '/v4181/ingest/commerce-agg');
+    $register('GET',  '/v4181/decisioning/segments');
+    $register('GET',  '/v4181/decisioning/recommendations');
+    $register('GET',  '/v4181/decisioning/segment/{gender}/{age}/{region}/affinity');
+    $register('POST', '/v4181/insights/audience-breakdowns');
+    $register('POST', '/v4181/insights/influencer-audience');
+    $register('POST', '/v4181/insights/commerce-aggregates');
+    $register('POST', '/v4181/insights/creative-sku-map');
+    $register('GET',  '/v4181/insights/target-performance');
+    // v418.2 / v418.3 Insights + Decisioning ingest
+    $register('POST', '/v4182/ingest/ad-insights');
+    $register('POST', '/v4182/ingest/influencer-insights');
+    $register('POST', '/v4182/ingest/commerce-agg');
+    $register('GET',  '/v4182/decisioning/segments');
+    $register('GET',  '/v4182/decisioning/recommendations');
+    $register('GET',  '/v4182/decisioning/segment/{gender}/{age}/{region}/affinity');
+    $register('POST', '/v4182/insights/audience-breakdowns');
+    $register('POST', '/v4182/insights/influencer-audience');
+    $register('POST', '/v4182/insights/commerce-aggregates');
+    $register('POST', '/v4182/insights/creative-sku-map');
+    $register('GET',  '/v4182/insights/target-performance');
+    $register('POST', '/v4183/ingest/ad-insights');
+    $register('POST', '/v4183/ingest/influencer-insights');
+    $register('POST', '/v4183/ingest/commerce-agg');
+    $register('GET',  '/v4183/decisioning/segments');
+    $register('GET',  '/v4183/decisioning/recommendations');
+    $register('GET',  '/v4183/decisioning/segment/{gender}/{age}/{region}/affinity');
+    $register('POST', '/v4183/insights/audience-breakdowns');
+    $register('POST', '/v4183/insights/influencer-audience');
+    $register('POST', '/v4183/insights/commerce-aggregates');
+    $register('POST', '/v4183/insights/creative-sku-map');
+    $register('GET',  '/v4183/insights/target-performance');
+    // v420 PriceOpt
+    $register('PUT',    '/v420/price/products/{sku}');
+    $register('DELETE', '/v420/price/products/{sku}');
+    $register('POST',   '/v420/price/elasticity/bulk');
+    $register('POST',   '/v420/price/optimize/batch');
+    $register('GET',    '/v420/price/competitor');
+    $register('POST',   '/v420/price/competitor');
+    $register('GET',    '/v420/price/repricer/rules');
+    $register('POST',   '/v420/price/repricer/rules');
+    $register('GET',    '/v420/price/repricer/history');
+    $register('POST',   '/v420/price/repricer/rules/{id}/toggle');
+    $register('GET',    '/v420/price/calendar');
+    $register('POST',   '/v420/price/calendar');
+    $register('DELETE', '/v420/price/calendar/{id}');
+    // v420 SupplyChain
+    $register('GET',    '/v420/supply/lines');
+    $register('POST',   '/v420/supply/lines');
+    $register('PUT',    '/v420/supply/lines/{id}');
+    $register('DELETE', '/v420/supply/lines/{id}');
+    $register('POST',   '/v420/supply/lines/{id}/stage');
+    $register('GET',    '/v420/supply/suppliers');
+    $register('POST',   '/v420/supply/suppliers');
+    $register('PUT',    '/v420/supply/suppliers/{id}');
+    $register('DELETE', '/v420/supply/suppliers/{id}');
+    $register('GET',    '/v420/supply/risk-rules');
+    $register('POST',   '/v420/supply/risk-rules');
+    $register('POST',   '/v420/supply/risk-rules/{id}/toggle');
+    $register('GET',    '/v420/supply/summary');
+    // v420 ReturnsPortal
+    $register('GET',    '/v420/returns/list');
+    $register('POST',   '/v420/returns');
+    $register('POST',   '/v420/returns/{id}/status');
+    $register('POST',   '/v420/returns/{id}/wms-link');
+    $register('DELETE', '/v420/returns/{id}');
+    $register('GET',    '/v420/returns/summary');
+    $register('GET',    '/v420/returns/settings');
+    $register('POST',   '/v420/returns/settings');
+    $register('POST',   '/v420/returns/automation/toggle');
+    // auth license (UserAuth)
+    $register('POST',   '/auth/license');
+    $register('GET',    '/auth/license/list');
+    // api/v1 (AdPerformance)
+    $register('GET',    '/api/v1/ad-performance/summary');
+
     };
