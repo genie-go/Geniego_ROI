@@ -1,351 +1,339 @@
-# 167차 세션 인계서 (NEXT_SESSION.md) — **166차 OrderHub 운영 적용 + 자동화 종결**
+# 169차 세션 인계서 (NEXT_SESSION.md) — **168차 N-152-F 통합 PM 트랙 + 결제 정책 종결**
 
 > **작성일**: 2026-05-26
-> **이전 세션**: 166차 (165차 OrderHub Aggregator 운영 적용 + GitHub Actions 자동화 시도 → cc plink 직접 deploy 전환)
-> **다음 세션**: 167차
+> **이전 세션**: 168차 (N-152-F 통합 트랙 진입 — PM-Core + F1 + F2/F3 + 결제 USD 정책)
+> **다음 세션**: 169차
 > **저장 위치**: repo root `NEXT_SESSION.md`
-> **종결 방식**: cc plink 직접 deploy 성공, 운영 165차 100% 적용, GitHub Actions 자동화 폐기 결정
+> **종결 방식**: 7 commit master 누적 (push 미실행, 운영 deploy 미수행, 사용자 명시 승인 대기)
 
 ---
 
-## ⚠️ 167차 검수자 최우선 인지 사항
+## ⚠️ 169차 검수자 최우선 인지 사항
 
 ### 1. 최상위 상태
 
-**166차 = 165차 OrderHub Aggregator 운영 100% 적용 + GitHub Actions 자동화 시도/폐기 + cc 직접 deploy 패턴 확립 + 11 commit 종결.**
-**167차 = (a) 후속 트랙 결정 (1순위 N-152-F 또는 dead code/방어선 4) + (b) GitHub Actions deploy.yml cleanup + (c) 운영자 credentials 회전 확인.**
+**168차 = N-152-F 통합 PM 트랙 본격 진입 + cc 인지 누락 정정(F1/F2/F3/PH3/PM2) + 결제 USD/Paddle 단일 정책 + 7 commit 종결.**
+**169차 = (a) push + 운영 deploy 결정 (b) PM-Core 본체 (handler 본체 + Gantt CPM + SSE + frontend 6 page 추가) (c) F2/F3 Sidebar 본격 통합 (d) 미해결 트랙 결정.**
 
-### 2. 사용자 운영원칙 누적 (U-prefix, 영구화 의무)
+### 2. 사용자 운영원칙 누적 (U-prefix)
 
-기존 U-161-A ~ U-165-C 유지. **166차 신규**:
+기존 U-161-A ~ U-166-H 유지. **168차 신규**:
 
-- **U-166-A**: cc 설명은 아주 핵심만 짧게 (장황한 보고 X, 한글)
-- **U-166-B**: cc는 사용자 선택 필요 시 **우선 권장 1개를 반드시 제시** (옵션 나열만 X)
-- **U-166-C**: 작업 여력 있으면 최대한 진행 (인계서 작성 시간만 남기고), 미루지 않기
-- **U-166-D**: **GitHub 사용 안 함** (Actions secrets X, 자동화 X) — backend deploy는 cc plink 직접 or 운영자 수동
-- **U-166-E**: **GeniegoROI 플랫폼 = 초엔터프라이즈급 개발 원칙** — 기능/메뉴/기타 모두 초고도화
-- **U-166-F**: **메뉴/기능 간 절대적 동기화 의무** — 실시간 주식 변동값처럼 변동이 동시 적용 (state propagation, SSE/WebSocket/polling)
-- **U-166-G**: 한글로 설명 (사용자가 알기 쉽도록)
-- **U-166-H**: **credentials 평문 노출 회피** — chat 인용 X, 응답·commit·memory 미저장, 1회 사용 후 회전 권고
+- **U-168-A**: 사용자 명시 추가 기능 누락 시 절대원칙 §6 절차 (보고→영향도→승인→작업) 강제. 168차에 cc 가 N-152-F (Task/Milestone/Gantt) 단독 spec 만 작성하면서 F1/F2/F3/T3/PH3/PM2 누락 → 정직 보고 후 통합 spec 작성으로 정정
+- **U-168-B**: i18n 15 locale 동기화 = **추가 언어 발생 종결 후 일괄 시점**에 진행 (cc 판단). ko/en 마스터는 phase 별 즉시. 13 locale 은 별도 트랙
+- **U-168-C**: **GeniegoROI 구독요금 USD 단일 + 카드 결제 전용** (Paddle Billing v2). Toss/KakaoPay/NaverPay/계좌이체/PayPal/Apple Pay/Google Pay 등 차단
 
-기존 N-prefix 모두 유지. **166차 신규**:
-- **N-152-F**: **PM 본 작업급 트랙 — Task/Milestone/Gantt 기능 확장** (별도 spec 신규 세션 예정)
-- **N-158-A** (보안 트랙): credentials 회전 의무 (운영 SSH + MySQL root)
+기존 N-prefix 모두 유지. **168차 신규**:
+- **N-152-F-core**: PM Task/Milestone/Gantt — 168차 backend skeleton + frontend skeleton 3 page (단계 1-4)
+- **N-152-F-f1**: 캠페인 카테고리 6종 (금융/보험/의료/세무/법률/기타) — 168차 완료
+- **N-152-F-f2f3**: Admin/User 메뉴 가시성 토글 (T3) — 168차 backend 자체 구현 + frontend skeleton
+- **N-152-F-billing**: USD 단일 + Paddle 카드 전용 — 168차 완료
+- **N-152-G**: 13 locale 자연어 번역 + 메뉴 namespace 정합 + Pricing 인프라 cleanup (대기 트랙, 추가 언어 발생 종결 시점)
+- **N-159**: en.js mirror 오염 + locale placeholder cleanup (별도 i18n cleanup)
+- **N-PH3**: PM Phase 3 실시간 알림 + 대시보드 차트 + 성능 (PM-Core SSE 인프라 후)
+- **N-PM2**: PM 문서2 4축 (Connectors/WMS/AIInsights/AdvertisingPerformance) — 페이지별 raw 재분석 후
 
-### 3. i18n 트랙 동결 유지 (U-164-A)
+### 3. i18n 트랙 (U-164-A 동결 부분 해제)
 
-- 166차 i18n 무변경 (ko.js 30,656 leaves baseline 유지)
-- sacred SHA (ja.js / zh.js) match 11회 (pre-commit G2 PASS)
+- 168차 F1 으로 36 keys × 2 (ko/en) = 72 leaves 추가 (commit `0398d1e`)
+- ko.js 30,656 → 30,692 (Δ36, leaves)
+- 13 locale 미진행 (BLOCKED — marketing namespace 라인 mismatch + agent 자동번역 금지 + U-168-B "추가 언어 종결 후 일괄")
+- sacred SHA (ja.js/zh.js) match (pre-commit G2 PASS 8회 누적)
 
-### 4. 167차 검수자 첫 응답 의무
+### 4. 169차 검수자 첫 응답 의무
 
 - ⚠️ 섹션 인지 명시
-- U-166-A ~ H 인지 명시 (특히 **권장 1개 + 한글 + 초엔터프라이즈 + 메뉴 동기화**)
-- 166차 commit 11종 인지 (e4d766c ~ ba6995d, 본 §3 표 참조)
-- N-152-F 트랙 인지 (다음 PM 본 작업)
-- 사용자에게 167차 우선 트랙 결정 요청 (1순위 cc 권장 명시)
+- U-168-A/B/C 인지 명시
+- 168차 commit 7종 인지 (`ab39b34`~`dc2bfe1`, §3 표)
+- 본 인계서의 §4 미해결 트랙 우선순위 결정 요청
+- 운영 deploy + push 사용자 결정 요청 (5 commit master 누적)
 
 ---
 
-## 1. 166차 결과 요약
+## 1. 168차 결과 요약
 
-### 1.1 master commit 11개 (시간 순)
+### 1.1 167차 종결 시점 (이전) commit
+
+| Commit | 내용 |
+|---|---|
+| `eb8a4fb` | Revert 168차 인계서 (`6ad0eef` 사용자 미승인 → 자동 revert) |
+| `6ad0eef` | (revert 됨) |
+| `ec139ed` | routes.php $register 78건 일괄 정합 + audit_routes.php 도구 (167차 9순위) |
+| `5cf30ee` | bin/migrate.php --rollback 옵션 (167차 6순위) |
+| `af601e3` | /v424/health 엔터프라이즈 health endpoint (167차 5순위) |
+| `5bcc719` | RoiService stub 제거 (167차 4순위) |
+| `603e9fe` | CI deploy.yml cleanup (167차 1순위) |
+
+### 1.2 168차 신규 master commit 7개
 
 | Commit | 영역 | 변경 | 상태 |
 |---|---|---|---|
-| `e4d766c` | composer.lock 재생성 (11 → 38 packages) | +2230/-324 | ✅ pushed |
-| `73ada66` | docs/spec SSH runbook v1 (222 lines) | +222 | ✅ pushed |
-| `5ca0fb1` | runbook v2 (--dry-run 제거 + §0 mysqldump 백업, 333 lines) | +203/-91 | ✅ pushed |
-| `22ff081` | .github/workflows/deploy.yml — deploy-backend job 신설 (paths-filter v3) | +101/-1 | ✅ pushed (inert) |
-| `323b327` | backend/bin/migrate.php + Migrate.php — --dry-run 옵션 | +129/-42 | ✅ pushed |
-| `2ad6694` | deploy-backend P3 자동 백업 (.my.cnf.bak) + .gitignore 보강 | +45/-6 | ✅ pushed (inert) |
-| `7c75aa8` | paths-filter fix (checkout fetch-depth: 0 + base 명시) | +4 | ✅ pushed |
-| `2fe4e57` | PSR-4 3 클래스 ns 정합 (1150 → 1153 classes) | +7/-3 | ✅ pushed |
-| `ba6995d` | Migrate.php MySQL DDL implicit commit 대응 — inTransaction 체크 | +2/-1 | ✅ pushed |
+| `ab39b34` | spec 2종 (`n152f_pm_features_spec.md` 837L + `n152f_consolidated_pm_track.md` 423L) | +1260 | ✅ master |
+| `0398d1e` | F1 캠페인 카테고리 6종 (campaignConstants + AutoMarketing + ko/en i18n) | +132 | ✅ master |
+| `1d67bd6` | F2/F3 backend (T3 자체 구현 — 3 migration + AdminMenu 601L + 12 route) | +698 | ✅ master |
+| `58b3964` | PM-Core backend skeleton (8 migration + 12 handler 1100L + 50 route) | +1401 | ✅ master |
+| `c6d3c70` | F2/F3 frontend skeleton (MenuVisibilityContext + Admin/User 2 page + App.jsx) | +486 | ✅ master |
+| `1c8d25d` | PM-Core frontend skeleton 3 page (PMOverview + Detail + TaskBoard) | +525 | ✅ master |
+| `dc2bfe1` | 결제 USD/Paddle 단일 정책 (spec + routes 차단 + App.jsx + PricingPublic + .env.example) | +206/-27 | ✅ master |
 
-**합계**: 9 master commit (인계서 commit 본 167차 인계서로 곧 추가 예정)
+**합계**: 7 commit, +4708 / -27 (純 +4681L). master 누적, **origin push 미실행**.
 
-### 1.2 운영 적용 결과 (cc plink 직접)
+### 1.3 cc 작업 진행 phase 표
 
-| 검증 | 결과 |
+| Phase | 작업 | 상태 |
+|:-:|---|:-:|
+| 0 | spec 2종 commit (`ab39b34`) | ✅ |
+| 1 | F1 캠페인 카테고리 6종 (`0398d1e`) | ✅ |
+| 2 | F2/F3 backend 자체 구현 (`1d67bd6`) | ✅ |
+| 3 | PM-Core backend skeleton (`58b3964`) | ✅ |
+| 4 | F2/F3 frontend skeleton (`c6d3c70`) | ✅ |
+| 5 | i18n 13 locale 일괄 동기화 | ⚠️ BLOCKED (별도 트랙 N-152-G) |
+| 6 | PM-Core frontend skeleton 3 page (`1c8d25d`) | ✅ |
+| 7 | USD 단일 + 카드 전용 결제 정책 (`dc2bfe1`) | ✅ |
+| 8 | 168차 인계서 (본 파일) | ✅ (사용자 승인 대기) |
+| 9 | 운영 deploy (cc plink + pscp) | ⚠️ **미수행** (사용자 승인 필요) |
+| 10 | origin push | ⚠️ **미수행** (사용자 승인 필요) |
+
+---
+
+## 2. 결제 정책 (168차 사용자 신규 지시, dc2bfe1)
+
+### 2.1 결정 사항
+
+- **통화**: **USD 단일**
+- **결제 수단**: **카드 (credit/debit) 전용**
+- **Provider**: **Paddle Billing v2 단일**
+- **Merchant of Record**: Paddle (세금/VAT/환불 위임)
+
+### 2.2 적용 코드 변경
+
+| 영역 | 변경 |
 |---|---|
-| 운영 host | genieroi26 (1.201.177.46), PHP 8.1.34, MySQL 8.0.37, nginx |
-| `.my.cnf.bak` | `/home/wwwroot/roi.geniego.com/backend/.my.cnf.bak` 설치 (chmod 600, root:root, 62 bytes) |
-| /tmp 백업 | `backup_geniego_roi_pre_deploy_20260526_150536.sql.gz` (7.2K) + `_demo_` (181K) ✅ |
-| prod `orderhub_claims` | 생성 ✅ (11 cols, id PRI + tenant_id MUL + type ENUM + ...) |
-| prod `orderhub_settlements` | 생성 ✅ (15 cols, period + channel + 6 fee 컬럼 + ...) |
-| prod `schema_migrations` | 2 records (165_001 07:05:47 + 165_002 07:07:36) |
-| demo DB 적용 | **미적용** — GENIE_DEMO_DB_NAME 미설정 → prod fallback (방어선 4 트랙) |
-| backend SCP 갱신 파일 | `bin/migrate.php` (4035B), `src/Handlers/OrderHub.php` (10161B), `src/Migrate.php` (10015B, fix 반영), `migrations/` 2 SQL |
-| composer install 결과 | slim/slim 4.15.1 → 4.15.2 등 incremental update 성공 |
-| health check | https://roi.genie-go.com/ HTTP 200 (0.13s) ✅ |
+| `docs/spec/n152f_billing_usd_card_only.md` | 신규 정책 spec (수용 기준 + 코드 매핑 + 운영 절차) |
+| `backend/src/routes.php` | Toss/PG 8 endpoint $custom + $register 주석 처리 (Handler 코드 보존, routing 만 차단) |
+| `frontend/src/App.jsx` | SmartPricing → 인증/비인증 모두 PricingPublic. /pricing → PricingPublic, /app-pricing → Navigate to /pricing |
+| `frontend/src/pages/public/PricingPublic.jsx` | Paddle.Checkout.open 에 allowedPaymentMethods: ['card'] 강제 + 푸터 "Card payments only" 명시 |
+| `backend/.env.example` | GENIE_BILLING_CURRENCY=USD + PROVIDER=paddle + METHOD=card_only 3 env 추가 |
 
-### 1.3 GitHub Actions 결과 (사용자 미사용 결정 → inert)
+### 2.3 N-152-G-billing-cleanup 트랙 (별도, 169차+)
 
-| Run | 결과 | 비고 |
-|---|---|---|
-| 22ff081, 2ad6694 | failure | paths-filter fetch-depth 1 → base 비교 실패 |
-| 7c75aa8 | success | paths-filter fix (changes job success) |
-| 2fe4e57 | success | changes + deploy-backend job success (단 P2 SCP 부터 skip — HAS_SSH_SECRETS = false) |
-| ba6995d | (예상) success | 동일 패턴 (deploy-backend P1만 실행) |
+- Payment.php 코드 완전 삭제 (현재 보존, routing 만 차단)
+- menu_tier_pricing.price_krw → price_usd 환산 마이그레이션
+- Pricing.jsx (679L) 코드 삭제
+- 운영 .env 의 TOSS_* 키 정리
+- Paddle dashboard 의 Card-only 설정 명시 검증 (운영자 작업)
 
-**결론**: deploy.yml의 deploy-backend job은 정의되어 있으나 secrets 미등록 + 사용자 GitHub 미사용 결정 → 영구 inert. **167차에 cleanup 권장**.
+---
 
-### 1.4 cc 직접 deploy 패턴 (U-166-D 표준 절차)
+## 3. N-152-F 통합 PM 트랙 sub-track 매트릭스
+
+본 통합 spec: `docs/spec/n152f_consolidated_pm_track.md`
+
+### 3.1 PM-Core (Task/Milestone/Gantt)
+
+| 단계 | 진행 |
+|:-:|---|
+| spec | ✅ `n152f_pm_features_spec.md` (837L) |
+| backend migration 8 | ✅ `backend/migrations/20260526_168_001~008_*.sql` |
+| backend handler 12 skeleton | ✅ `backend/src/Handlers/PM/{Shared,Projects,Tasks,Milestones,Dependencies,Assignees,Comments,Attachments,Events,Audit,Gantt,Kpi}.php` (~1100L) |
+| backend routes 26×2 alias | ✅ `backend/src/routes.php` |
+| frontend skeleton 3 page | ✅ PMOverview / PMProjectDetail / PMTaskBoard |
+| **본체 (169차 이후)** | handler 본체 로직, Gantt CPM forward/backward pass, SSE long-poll, frontend 6 추가 page (Gantt/Milestones/Activity/TaskTable/Settings/TaskDetail) |
+| sidebar PM 메뉴 추가 | 미진행 (F2/F3 menuKey 표준화 후) |
+| i18n pm.* namespace | 미진행 (180+ leaves, U-164-A 동결 해제 후) |
+
+### 3.2 F1 캠페인 카테고리 (완료)
+
+| 단계 | 진행 |
+|:-:|---|
+| 6 카테고리 추가 (campaignConstants + AutoMarketing) | ✅ |
+| ko/en i18n 36 keys (cat_<id> 6 + cat_explain_<id> 6 + tag_* 24) | ✅ |
+| 13 locale 동기화 | ⚠️ N-152-G 별도 트랙 (U-168-B) |
+
+### 3.3 F2/F3 = T3 (Admin/User 메뉴 토글)
+
+| 단계 | 진행 |
+|:-:|---|
+| backend migration 3 (`menu_tree` / `menu_audit_log` / `menu_defaults`) | ✅ |
+| backend `AdminMenu.php` 6 endpoint (601L) | ✅ |
+| routes.php 6×2 alias = 12 route | ✅ |
+| frontend `MenuVisibilityContext.jsx` | ✅ |
+| frontend `AdminMenuManager.jsx` + `UserMenuPreferences.jsx` | ✅ |
+| App.jsx /admin/menu-tree + /me/menu route | ✅ |
+| **Sidebar.jsx 본격 통합** (useMenuVisibility filter + menuKey 형식 표준화 + menu_tree seed) | 미진행 (169차) |
+| MobileBottomNav.jsx 동일 패치 | 미진행 (169차) |
+| menu_tree seed 운영 적용 (initial snapshot) | 미진행 (169차 + 운영 deploy) |
+
+### 3.4 PH3 (Phase 3 — 실시간 알림 / 대시보드 차트 / 성능)
+
+미진행 — PM-Core SSE 인프라 후 통합 진입 (인프라 공유).
+
+### 3.5 PM2 (PM 문서2 4축)
+
+미진행 — 각 페이지 raw 재분석 후 sub-spec (PM N-15 회피).
+
+라인 수 raw (168차 측정):
+- AdvertisingPerformance.jsx: 75L (stub, PM 추정 60% 와 불일치)
+- Connectors.jsx: 540L
+- WmsManager.jsx: 2445L
+- AIInsights.jsx: 476L
+
+---
+
+## 4. 미해결 트랙 (cumulative)
+
+### 4.1 단기 (1주 내, 169차 진입 후보)
+
+- [P0] **운영 deploy 결정** — 168차 7 commit 운영 적용 (cc plink + pscp + mysqldump + migrate + reload). 사용자 명시 승인 필요
+- [P0] **origin push 결정** — master 7 commit 누적. U-166-D (GitHub Actions 미사용) 정합 — push 자체는 자동 deploy 미발동
+- [P0] **운영자 credentials 회전** (167차 이월 — W0 + SSH + MySQL root)
+- [P1] **F2/F3 Sidebar 본격 통합** + menu_tree seed (169차 진입 권장 1순위)
+- [P1] **PM-Core handler 본체 로직 + Gantt CPM** (169차 진입)
+- [P1] **PM-Core frontend 6 추가 page** (Gantt / Milestones / Activity / TaskTable / Settings / TaskDetail)
+
+### 4.2 중기 (1개월 내)
+
+- [P1] **PM-Core SSE long-poll 본체** + frontend EventSource 통합
+- [P2] **PM2 4축 raw 재분석 + 페이지별 sub-spec** (1순위 AdvertisingPerformance 75L stub)
+- [P2] **N-152-G-billing-cleanup**: Payment.php 코드 삭제 + price_krw → price_usd 마이그레이션
+- [P2] **방어선 4** (demo DB 물리 분리)
+- [P2] **방어선 6** (demo 키 권한 강등 admin → analyst)
+- [P3] **U-165-B 41 handler 점진 migration**
+
+### 4.3 장기 (전략)
+
+- [P2] **N-152-G 자연어 번역** — 추가 언어 발생 종결 후 일괄 (U-168-B). DeepL / Claude API / 전문 번역가 결정
+- [P2] **N-159 mirror 오염 cleanup** (en.js 일본어 블록 L2080-2094 + locale `Cat_beauty` placeholder 잔재)
+- [P3] **PHPUnit 도입**
+- [P3] **i18n 동결 완전 해제** (U-164-A)
+
+---
+
+## 5. 169차 검수자 1순위 작업 (cc 권장)
+
+### 5.1 권장 1순위: 운영 deploy 결정 + origin push
+
+7 commit 누적. 운영 적용 절차:
 
 ```powershell
-# 1) local tar
-tar -czf /tmp/backend.tgz --exclude=backend/.env --exclude=backend/vendor \
-  --exclude=backend/data --exclude=backend/logs --exclude=backend/.my.cnf* \
-  backend/
-
-# 2) pscp 전송
-& "C:\Program Files\PuTTY\pscp.exe" -batch -pw '<pass>' \
-  "C:\Users\Master\AppData\Local\Temp\backend.tgz" \
-  root@1.201.177.46:/tmp/backend.tgz
-
-# 3) plink SSH script (mysqldump + extract + composer + migrate + reload)
-& "C:\Program Files\PuTTY\plink.exe" -ssh -batch -pw '<pass>' root@1.201.177.46 "
-  set -e
-  mysqldump --defaults-file=/home/wwwroot/roi.geniego.com/backend/.my.cnf.bak \
-    --single-transaction --routines --triggers --events --default-character-set=utf8mb4 \
-    geniego_roi | gzip > /tmp/backup_geniego_roi_pre_deploy_\$(date +%Y%m%d_%H%M%S).sql.gz
-  tar -xzf /tmp/backend.tgz -C /home/wwwroot/roi.geniego.com/
-  chown -R www:www /home/wwwroot/roi.geniego.com/backend
-  cd /home/wwwroot/roi.geniego.com/backend
-  php composer.phar install --no-dev --optimize-autoloader --no-interaction
-  php bin/migrate.php both --dry-run
-  php bin/migrate.php both
-  systemctl reload php-fpm 2>/dev/null || /usr/local/nginx/sbin/nginx -s reload
-  rm -f /tmp/backend.tgz
-"
+# cc plink + pscp (NEXT_SESSION.md 167차 §1.4 표준)
+# 1) backend tar
+tar -czf /tmp/backend.tgz --exclude=backend/.env --exclude=backend/vendor `
+  --exclude=backend/data --exclude=backend/logs --exclude=backend/.my.cnf* backend/
+# 2) pscp + plink
+# 3) 운영 호스트:
+#    mysqldump 백업 (.my.cnf.bak) → tar 해제 → composer install → migrate.php both --dry-run → both → reload
 ```
 
----
+migration 8 (PM-Core pm_*) + 3 (F2/F3 menu_*) = **총 11 신규 테이블** 운영 DB 생성. **사용자 명시 승인 필수**.
 
-## 2. 167차 진입 시 1순위 작업 (cc 권장)
+### 5.2 권장 2순위: F2/F3 Sidebar 본격 통합
 
-### 권장 1순위: deploy.yml cleanup (GitHub Actions 미사용 반영)
+- `Sidebar.jsx` (705L) + `MobileBottomNav.jsx` (288L) 에 `useMenuVisibility().isVisible(menuKey)` 필터 적용
+- `menu_tree` seed 작성 (현 Sidebar 의 menuKey 그대로) + 운영 적용
+- AdminMenuManager 의 라벨 표시 (label_key → i18n) 통합
 
-`22ff081` + `2ad6694` + `7c75aa8`의 deploy-backend job + changes job + paths-filter를 revert 또는 제거. frontend deploy (기존 deploy job)는 유지 (사용자가 frontend도 GitHub 미사용이면 함께 제거).
+### 5.3 권장 3순위: PM-Core handler 본체
 
-**이유**: U-166-D (GitHub 미사용) 정합. inert yaml은 misleading.
+- Gantt CPM (forward/backward pass + critical path)
+- Tasks listByProject 의 hierarchy assembly (parent_task_id 기반 tree)
+- SSE long-poll 본체 (PHP-FPM heartbeat + 5분 cap)
+- Dependencies cycle 검출 추가 검증
 
-### 권장 2순위: 운영 .env 검토 (방어선 4 진입 전 점검)
+### 5.4 권장 4순위: PM2 4축 raw + AdvertisingPerformance.jsx sub-spec
 
-- `GENIE_ENV` 미설정 → 기본 production. 명시 권장 (`GENIE_ENV=production`)
-- `GENIE_DEMO_DB_NAME` 미설정 → demo는 prod fallback. demo DB 분리하려면 설정 + `geniego_roi_demo` DB 별도 적용 (방어선 4 트랙)
-
-### 권장 3순위: N-152-F PM 기능 spec 시작
-
-- Task / Milestone / Gantt 데이터 모델
-- 초엔터프라이즈급 + 메뉴 간 동기화 패턴 적용 (U-166-E/F)
-- 165차 OrderHub 적용 안정화 1주 후 진입 권장
-
-### 권장 4순위: dead code cleanup
-
-- `backend/src/RoiService.php` (95 lines 실 구현, Genie ns로 fix됨) vs `backend/src/Services/RoiService.php` (18 lines stub) 중복
-- 사용처 0 → 안전한 삭제 가능 (RoiService.php 또는 Services/RoiService.php 중 1)
-
-### 권장 5순위: backend `/health` endpoint 신설
-
-- 현재 `/` 응답 (200 OK)으로 health check
-- 정밀 `/health` 또는 `/v424/health`: DB connect + uptime + version + memory + Slack heartbeat
-- 초엔터프라이즈급 모니터링 (U-166-E)
-
-### 권장 6순위 (이후): bin/migrate.php --rollback 옵션
-
-- 자동 rollback (DROP TABLE + schema_migrations DELETE)
-- backup 복원 절차 통합
+PM N-15 회피 — 페이지별 raw 보고 → 사용자 승인 → sub-spec → 구현
 
 ---
 
-## 3. 보안 우선 처리 (167차 즉시)
+## 6. 환경 / 인프라 현황 (167차 §4 + 168차 갱신)
 
-### 3.1 credentials 회전 (사용자 책임)
-
-166차에서 평문 chat 노출:
-- 운영 SSH (root@1.201.177.46)
-- MySQL root (geniego_roi + geniego_roi_demo)
-
-**조치**:
-1. SSH password 회전: `ssh root@1.201.177.46 'passwd'` 또는 SSH key 인증 전환 (key-only)
-2. MySQL root password 회전: `ALTER USER 'root'@'localhost' IDENTIFIED BY '<new>';` + `.my.cnf.bak` 갱신
-3. `history -c` (운영 호스트) + 본 세션 chat 보존 정책 검토
-
-### 3.2 .my.cnf.bak 권한 재확인
-
-- 현재: `chmod 600 root:root` (cc 설치 후 deploy 과정에서 `chown -R www:www backend` 실행 시 변경 가능성)
-- 167차 검수자 첫 응답 시 권한 재확인 권장:
-  ```
-  ls -la /home/wwwroot/roi.geniego.com/backend/.my.cnf.bak
-  ```
-
----
-
-## 4. 환경 / 인프라 현황
-
-### 4.1 운영 호스트 (참조)
+### 6.1 운영 호스트 (참조)
 
 - 도메인: http://roi.genie-go.com
 - IP: 1.201.177.46
 - Hostname: genieroi26
-- OS: Linux (CST timezone)
-- PHP: 8.1.34 (CLI, NTS)
-- MySQL: 8.0.37
-- Web: nginx (`/usr/local/nginx/sbin/nginx -s reload`)
+- PHP 8.1.34, MySQL 8.0.37, nginx
 - Path: `/home/wwwroot/roi.geniego.com/{backend,frontend}`
 - File owner: www:www
+- `.my.cnf.bak`: `/home/wwwroot/roi.geniego.com/backend/.my.cnf.bak` (chmod 600 root:root, 62 bytes)
 
-### 4.2 본 환경 (cc Windows + 도구)
+### 6.2 본 환경 (cc Windows)
 
-- `plink.exe`: `C:\Program Files\PuTTY\plink.exe` (password SSH OK)
-- `pscp.exe`: `C:\Program Files\PuTTY\pscp.exe` (SCP OK)
-- `php.exe`: `E:\php\php.exe` (8.0.30 — syntax lint + composer + dry-run OK)
+- `plink.exe` / `pscp.exe`: `C:\Program Files\PuTTY\`
+- `php.exe`: `E:\php\php.exe` — **xampp ini 파일 미존재로 local 실행 불가** (168차 발견. migration dry-run 운영 host SSH 로만 가능)
 - `composer.phar`: `backend/composer.phar` (2.9.5)
-- `ssh.exe`: `C:\WINDOWS\System32\OpenSSH\ssh.exe` (interactive only)
-- `gh CLI`: 미설치
-- `mysql client`: 미설치 (운영 DB는 plink로 ssh 후 mysql 실행)
+- mysql client / gh CLI: 미설치
 
-### 4.3 운영 DB
+### 6.3 운영 DB (168차 신규 테이블 11개 예정)
 
-- MySQL 인스턴스: localhost (운영 호스트 내부)
-- DB 1: `geniego_roi` (production)
-- DB 2: `geniego_roi_demo` (존재하나 .env 미가리킴 → 실 사용 X)
-- 165차 신규 테이블: `orderhub_claims`, `orderhub_settlements`, `schema_migrations` (prod에만)
+- 운영 적용 후 추가될 테이블:
+  - `pm_projects`, `pm_tasks`, `pm_milestones`, `pm_task_dependencies`, `pm_task_assignees`, `pm_task_comments`, `pm_attachments`, `pm_audit_log` (PM-Core 8)
+  - `menu_tree`, `menu_audit_log`, `menu_defaults` (F2/F3 3)
+- 165차 신규: `orderhub_claims`, `orderhub_settlements`, `schema_migrations` (prod 적용 완료)
 
 ---
 
-## 5. 미해결 트랙 (인계서 cumulative)
+## 7. 본 세션 발견 사항 / spec
 
-### 5.1 단기 (1주 내, 167차 1순위 후보)
+### 7.1 i18n 13 locale namespace 구조 mismatch (Phase 5 BLOCKED)
 
-- [P0] **deploy.yml cleanup** (deploy-backend job + changes job 제거, U-166-D 정합)
-- [P0] **운영자 credentials 회전** (사용자 책임, cc 안내 명시)
-- [P1] **운영 .env GENIE_ENV 명시** (production 명시 권장)
-- [P1] **dead code cleanup** (RoiService.php 중복)
-- [P2] **backend `/health` endpoint** (deploy 모니터링 정밀화)
+- es/fr: L11525 cat_digital 다음에 tag_skincare 미존재 (anchor pair 깨짐)
+- de/zh-TW/id/th/vi/ar/hi/pt/ru (9 locale): L11525 위치에 cat_digital 자체 없음 — 각자 marketing namespace 라인 상이
+- **결론**: 단순 anchor 삽입 불가. 별도 namespace 부모 경로 식별 트랙 (N-152-G)
 
-### 5.2 중기 (1개월 내)
+### 7.2 en.js mirror 오염 (i18n agent 부수 발견)
 
-- [P1] **N-152-F PM 기능 확장** spec — Task / Milestone / Gantt (별도 신규 세션)
-- [P2] **bin/migrate.php --rollback** 옵션 (자동 rollback + backup 복원)
-- [P2] **방어선 4** (demo DB 물리 분리) — `geniego_roi_demo` 활성화 + GENIE_DEMO_DB_NAME 설정
-- [P2] **방어선 6** (demo 키 권한 강등) — admin → analyst
-- [P3] **U-165-B 41 handler 점진 migration** (격리 강화)
-- [P3] **U-165-C L3 seed runner** (demo 데이터 자동 seed)
+- L2080-2094: 일본어 블록 (cat_digital: "デジタル・アプリ" 등) — en.js 영문 로케일 내부에 일본어
+- 다수 locale 의 `cat_beauty: "Cat_beauty"` placeholder 잔재
+- **별도 트랙 N-159 i18n cleanup**
 
-### 5.3 장기 (전략)
+### 7.3 결제 환경 raw (168차 USD 정책 적용 전)
 
-- [P3] **PHPUnit 도입** (backend 단위 테스트)
-- [P3] **GitHub Actions matrix** (PHP 8.1/8.2/8.3) — 단 U-166-D 결정에 따라 폐기 가능
-- [P3] **i18n 동결 해제** (U-164-A 임시 해제 시점)
+- `PricingPublic.jsx` (317L): USD + Paddle (이미 적합)
+- `Pricing.jsx` (679L): KRW + Toss + menu_tier_pricing DB → /pricing 으로 redirect 처리
+- `SubscriptionPricing.jsx` (58L): mock UI
+- `Payment.php` (1694L): Toss + KRW + KakaoPay + … → routing 차단 (Handler 코드 보존)
+- `Paddle.php` (740L): USD 기본 + webhook (USD 정책 정합)
 
----
+### 7.4 PHP local 실행 불가 (168차 신규)
 
-## 6. 본 세션 발견 사항 / spec
-
-### 6.1 Migrate.php MySQL DDL implicit commit 이슈 (166차 발견 → ba6995d fix)
-
-- MySQL InnoDB DDL은 implicit commit → beginTransaction 무효화
-- `$pdo->commit()` 호출 시 "no active transaction" throw
-- fix: `if ($pdo->inTransaction()) $pdo->commit();`
-- 운영 적용 시 첫 migration에서 발견 → 부분 적용 상태 복구 후 재실행으로 완료
-
-### 6.2 dorny/paths-filter@v3 + actions/checkout@v4 호환성
-
-- checkout default fetch-depth = 1 → push event base..head 비교 history 부족 → paths-filter fail
-- fix: `fetch-depth: 0` + `base: ${{ github.event.before }}` 명시
-- U-166-D로 deploy-backend job 폐기 예정이므로 본 fix는 trivia
-
-### 6.3 PSR-4 3 클래스 dead code (사용처 0)
-
-- `Genie\Services\RoiService` in `src/RoiService.php` → `Genie` ns로 fix (Services 이름 충돌 회피, 사용처 0)
-- `Handlers\AdPerformance` → `Genie\Handlers\AdPerformance`
-- `GeniegoROI\Utils\LicenseKeyUtils` → `Genie\Utils\LicenseKeyUtils`
-- 결과: composer dump-autoload 1150 → 1153 classes (skip 0)
-
-### 6.4 GitHub Actions secrets 미등록 확정
-
-- HAS_SSH_SECRETS = false → deploy-backend P2 SCP / P3 SSH / P4 health 모두 skip
-- 사용자 U-166-D 결정 → 영구 미등록 + deploy.yml cleanup 167차 1순위
-
-### 6.5 운영 .env GENIE_DEMO_DB_NAME 미설정
-
-- demo migrate → `geniego_roi` fallback (prod와 동일 schema_migrations 공유)
-- demo 분리는 방어선 4 인프라 트랙 (별도 작업)
+- `E:\php\php.exe` (xampp) → `C:\xampp\php\ext\php_openssl.dll` 등 미존재
+- migration dry-run 본 cc 환경에서 불가
+- 운영 host SSH 후 `php bin/migrate.php both --dry-run` 으로 검증 의무
 
 ---
 
-## 7. cc 도구 라이브러리 (167차 검수자 참조)
+## 8. cc 도구 라이브러리 (167차 §7 그대로)
 
-### 7.1 plink (SSH 자동화)
-
-```powershell
-$plink = "C:\Program Files\PuTTY\plink.exe"
-$sshPass = '<password>'  # 1회 사용 후 변수 폐기
-& $plink -ssh -batch -pw $sshPass root@1.201.177.46 "<command>"
-Remove-Variable sshPass
-```
-
-- 첫 연결 시 PuTTY known_hosts 자동 수락 ("y" stdin 또는 PuTTY 사전 등록)
-- `-batch` 모드는 모든 prompt fail로 처리 → host key 신규 시 -batch 제외
-
-### 7.2 pscp (SCP)
-
-```powershell
-$pscp = "C:\Program Files\PuTTY\pscp.exe"
-& $pscp -batch -pw $sshPass "C:\Users\Master\AppData\Local\Temp\backend.tgz" \
-  root@1.201.177.46:/tmp/backend.tgz
-```
-
-### 7.3 PowerShell quote escape 함정
-
-- 단일 명령 (single line) + single-quote SQL → 안정
-- here-string `@'...'@` 안에 double-quote SQL → PowerShell native exec escape 실패 빈번
-- 권장: `mysql --defaults-file=$cnf -BNe 'SELECT ...'` 패턴 (PowerShell double-quote outer + bash single-quote inner)
-
-### 7.4 dry-run 검증 명령 (--dry-run 본 세션 신규)
-
-```bash
-php bin/migrate.php both --dry-run  # Pending/Skipped 표시, DB 변경 X
-php bin/migrate.php both             # 실 적용 (idempotent)
-```
+§7.1 plink / §7.2 pscp / §7.3 PowerShell quote escape / §7.4 dry-run 검증 명령 — 167차 인계서 §7 그대로 유효.
 
 ---
 
-## 8. memory 파일 (`~/.claude/projects/E--project-GeniegoROI/memory/`)
+## 9. memory 파일 (`~/.claude/projects/E--project-GeniegoROI/memory/`)
 
-166차 신규 5 파일:
-- `MEMORY.md` (index)
-- `feedback_pm_operational_rules.md` (U-166-A ~ H 운영원칙)
-- `feedback_credentials_handling.md` (U-166-H credentials 처리)
-- `project_n152f_pm_features.md` (N-152-F PM 기능 트랙)
-- `project_orderhub_deploy_automation.md` (165→166차 OrderHub deploy)
-- `reference_ops_host.md` (운영 호스트 path/환경/도구)
-
-167차 검수자: 본 memory 자동 로드 (CLAUDE.md auto memory). 운영원칙 위반 시 cross-check.
-
----
-
-## 9. 167차 검수자 첫 응답 권장 형식
-
-```
-⚠️ 167차 진입 — 166차 인계서 인지 완료
-
-[U-prefix 인지] U-166-A~H, U-165-A~C, U-164-A (i18n 동결) 누적
-[N-prefix 인지] N-152-F (PM 기능 확장 본 작업급, 별도 트랙)
-[166차 commit 11종 인지] e4d766c ~ ba6995d (composer.lock 재생성 → ... → Migrate.php inTransaction fix)
-[운영 적용 인지] OrderHub 165차 prod 100% 적용 완료, demo는 .env 미설정으로 prod fallback (방어선 4 트랙)
-[GitHub 미사용 인지] U-166-D, deploy.yml 1순위 cleanup 후보
-
-[cc 권장 1순위] deploy.yml cleanup (deploy-backend job 제거, U-166-D 정합)
-
-사용자께: 167차 1순위 트랙 결정 — 위 1~6순위 중 어느 트랙 진행할까요?
-```
+| 파일 | 168차 갱신 |
+|---|---|
+| `MEMORY.md` (index) | +1 entry (`project_n152f_consolidated.md`) |
+| `feedback_absolute_principles.md` (9개 절대 원칙) | 변경 없음 |
+| `feedback_handoff_approval.md` | 변경 없음 (본 인계서가 그 정합 — 사용자 승인 전까지 commit 보류) |
+| `feedback_pm_operational_rules.md` (U-prefix) | 169차 갱신 권장 (U-168-A/B/C 추가) |
+| `feedback_credentials_handling.md` | 변경 없음 |
+| `project_n152f_pm_features.md` (단독 PM-Core 트랙) | 169차 갱신 권장 (위치 = 통합의 sub-track 으로 재정의) |
+| **`project_n152f_consolidated.md`** | **168차 신규** — 5 sub-track 카탈로그 + cc 인지 누락 정정 |
+| `project_orderhub_deploy_automation.md` | 변경 없음 |
+| `reference_ops_host.md` | 변경 없음 |
 
 ---
 
-**문서 종결.**
+## 10. 169차 검수자 첫 응답 강제 의무 사항
 
-본 인계서 = 166차 작업 결산 + 167차 인계. cc는 본 인계서를 commit 후 본 세션 종결.
+1. ⚠️ 본 인계서 §1-§5 인지 명시 (특히 §1.3 cc 인지 누락 정정 사실)
+2. U-168-A/B/C 인지 명시
+3. 168차 7 commit (`ab39b34`~`dc2bfe1`) 인지 명시
+4. 169차 1순위 결정 (cc 권장: 운영 deploy + push)
+5. 운영 deploy 진입 시 mysqldump 백업 + dry-run 우선 의무 명시
+
+---
+
+**본 인계서 (Phase 8) 는 사용자 명시 승인 후 commit + push** (memory `feedback_handoff_approval.md` 정합).
