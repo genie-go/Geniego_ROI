@@ -5,6 +5,7 @@ import SIDEBAR_DICT from './sidebarI18n.js';
 import { useAuth } from "../auth/AuthContext.jsx";
 import { useGlobalData } from "../context/GlobalDataContext.jsx";
 import { useMobileSidebar } from "../context/MobileSidebarContext.jsx";
+import { useMenuVisibility } from "../context/MenuVisibilityContext.jsx";
 
 /* 데모 모드 감지 */
 const IS_DEMO_MODE = typeof window !== 'undefined'
@@ -245,20 +246,24 @@ const ADMIN_MENU = [
 /* Section Component with Lock Support */
 function NavSection({ section, t, isOpen, onToggle, hasMenuAccess, isDemo, onLockClick }) {
   const location = useLocation();
+  const { isVisible: isMenuVisible } = useMenuVisibility();
   const hasActive = section.items.some(i => location.pathname === i.to);
 
   const sectionLabel = section.label ?? t(section.labelKey, section.labelKey.split('.')[1]);
 
-  // 접근 권한 체크:
+  // 169차 F2/F3 가시성 필터 (admin 전역 hidden ∨ user 개인 hidden → 완전 비노출 / return null).
+  // menu_tree DB empty 시 default true → 기존 동작 유지. 자물쇠 (plan/role 잠금) 와 별개 의미.
+  const itemMenuKey = (item) => item.menuKey || item.to.replace(/^\//, "");
+  const itemIsVisible = (item) => isMenuVisible(itemMenuKey(item));
+
+  // 접근 권한 체크 (plan/role):
   //  - 데모 User: ADMIN_ONLY_MENU_KEYS에 해당하는 것만 잠금, 나머지 전부 열람 가능
   //  - 유료 User: hasMenuAccess(서버 Save 권한) 기준으로 체크
   const itemHasAccess = (item) => {
-    const key = item.menuKey || item.to.replace(/^\//, "");
-    // 데모 User는 admin 전용 메뉴만 잠금 (나머지 모두 열람 가능)
+    const key = itemMenuKey(item);
     if (isDemo) {
       return !ADMIN_ONLY_MENU_KEYS.has(key);
     }
-    // 유료/admin User: hasMenuAccess 서버 권한 체크 (없으면 허용)
     if (!hasMenuAccess) return true;
     return hasMenuAccess(key);
   };
@@ -266,6 +271,7 @@ function NavSection({ section, t, isOpen, onToggle, hasMenuAccess, isDemo, onLoc
   // Single-item sections render without accordion
   if (section.items.length === 1) {
     const item = section.items[0];
+    if (!itemIsVisible(item)) return null; // F2/F3: hidden item → 섹션 자체 비노출
     const label = item.label ?? t(item.labelKey, item.labelKey.split('.')[1]);
     const accessible = itemHasAccess(item);
     if (!accessible) {
@@ -320,7 +326,7 @@ function NavSection({ section, t, isOpen, onToggle, hasMenuAccess, isDemo, onLoc
         transition: "max-height 220ms cubic-bezier(.4,0,.2,1)",
       }}>
         <div style={{ paddingLeft: 10 }}>
-          {section.items.map(item => {
+          {section.items.filter(itemIsVisible).map(item => {
             const label = item.label ?? t(item.labelKey, item.labelKey.split('.')[1]);
             const accessible = itemHasAccess(item);
             if (!accessible) {
