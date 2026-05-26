@@ -456,6 +456,67 @@ return function (App $app): void {
         'GET /v424/health'      => 'Genie\\Handlers\\Health::check',
         'GET /api/v424/health'  => 'Genie\\Handlers\\Health::check',
 
+        // ── v425 PM-Core (168차 N-152-F Task/Milestone/Gantt, spec: docs/spec/n152f_pm_features_spec.md §4) ─
+        // Projects
+        'GET /v425/pm/projects'                  => 'Genie\\Handlers\\PM\\Projects::list',
+        'POST /v425/pm/projects'                 => 'Genie\\Handlers\\PM\\Projects::create',
+        'GET /v425/pm/projects/{id}'             => 'Genie\\Handlers\\PM\\Projects::get',
+        'PATCH /v425/pm/projects/{id}'           => 'Genie\\Handlers\\PM\\Projects::patch',
+        'DELETE /v425/pm/projects/{id}'          => 'Genie\\Handlers\\PM\\Projects::delete',
+        'GET /v425/pm/projects/{id}/tasks'       => 'Genie\\Handlers\\PM\\Projects::listTasks',
+        'GET /v425/pm/projects/{id}/gantt'       => 'Genie\\Handlers\\PM\\Gantt::view',
+        'GET /v425/pm/projects/{id}/kpi'         => 'Genie\\Handlers\\PM\\Kpi::projectKpi',
+        // Tasks
+        'POST /v425/pm/tasks'                    => 'Genie\\Handlers\\PM\\Tasks::create',
+        'GET /v425/pm/tasks/{id}'                => 'Genie\\Handlers\\PM\\Tasks::get',
+        'PATCH /v425/pm/tasks/{id}'              => 'Genie\\Handlers\\PM\\Tasks::patch',
+        'DELETE /v425/pm/tasks/{id}'             => 'Genie\\Handlers\\PM\\Tasks::delete',
+        'POST /v425/pm/tasks/{id}/assignees'     => 'Genie\\Handlers\\PM\\Assignees::add',
+        'DELETE /v425/pm/tasks/{id}/assignees/{userId}' => 'Genie\\Handlers\\PM\\Assignees::remove',
+        'POST /v425/pm/tasks/{id}/comments'      => 'Genie\\Handlers\\PM\\Comments::create',
+        'GET /v425/pm/tasks/{id}/comments'       => 'Genie\\Handlers\\PM\\Comments::listByTask',
+        // Dependencies
+        'POST /v425/pm/dependencies'             => 'Genie\\Handlers\\PM\\Dependencies::create',
+        'DELETE /v425/pm/dependencies/{id}'      => 'Genie\\Handlers\\PM\\Dependencies::delete',
+        // Milestones
+        'GET /v425/pm/milestones'                => 'Genie\\Handlers\\PM\\Milestones::list',
+        'POST /v425/pm/milestones'               => 'Genie\\Handlers\\PM\\Milestones::create',
+        'PATCH /v425/pm/milestones/{id}'         => 'Genie\\Handlers\\PM\\Milestones::patch',
+        'DELETE /v425/pm/milestones/{id}'        => 'Genie\\Handlers\\PM\\Milestones::delete',
+        // Attachments
+        'POST /v425/pm/attachments/sign'         => 'Genie\\Handlers\\PM\\Attachments::signUpload',
+        'POST /v425/pm/attachments'              => 'Genie\\Handlers\\PM\\Attachments::create',
+        // Events (SSE) + Audit
+        'GET /v425/pm/events/stream'             => 'Genie\\Handlers\\PM\\Events::stream',
+        'GET /v425/pm/audit'                     => 'Genie\\Handlers\\PM\\Audit::list',
+        // /api/ alias (Apache Alias /api 환경 호환)
+        'GET /api/v425/pm/projects'                  => 'Genie\\Handlers\\PM\\Projects::list',
+        'POST /api/v425/pm/projects'                 => 'Genie\\Handlers\\PM\\Projects::create',
+        'GET /api/v425/pm/projects/{id}'             => 'Genie\\Handlers\\PM\\Projects::get',
+        'PATCH /api/v425/pm/projects/{id}'           => 'Genie\\Handlers\\PM\\Projects::patch',
+        'DELETE /api/v425/pm/projects/{id}'          => 'Genie\\Handlers\\PM\\Projects::delete',
+        'GET /api/v425/pm/projects/{id}/tasks'       => 'Genie\\Handlers\\PM\\Projects::listTasks',
+        'GET /api/v425/pm/projects/{id}/gantt'       => 'Genie\\Handlers\\PM\\Gantt::view',
+        'GET /api/v425/pm/projects/{id}/kpi'         => 'Genie\\Handlers\\PM\\Kpi::projectKpi',
+        'POST /api/v425/pm/tasks'                    => 'Genie\\Handlers\\PM\\Tasks::create',
+        'GET /api/v425/pm/tasks/{id}'                => 'Genie\\Handlers\\PM\\Tasks::get',
+        'PATCH /api/v425/pm/tasks/{id}'              => 'Genie\\Handlers\\PM\\Tasks::patch',
+        'DELETE /api/v425/pm/tasks/{id}'             => 'Genie\\Handlers\\PM\\Tasks::delete',
+        'POST /api/v425/pm/tasks/{id}/assignees'     => 'Genie\\Handlers\\PM\\Assignees::add',
+        'DELETE /api/v425/pm/tasks/{id}/assignees/{userId}' => 'Genie\\Handlers\\PM\\Assignees::remove',
+        'POST /api/v425/pm/tasks/{id}/comments'      => 'Genie\\Handlers\\PM\\Comments::create',
+        'GET /api/v425/pm/tasks/{id}/comments'       => 'Genie\\Handlers\\PM\\Comments::listByTask',
+        'POST /api/v425/pm/dependencies'             => 'Genie\\Handlers\\PM\\Dependencies::create',
+        'DELETE /api/v425/pm/dependencies/{id}'      => 'Genie\\Handlers\\PM\\Dependencies::delete',
+        'GET /api/v425/pm/milestones'                => 'Genie\\Handlers\\PM\\Milestones::list',
+        'POST /api/v425/pm/milestones'               => 'Genie\\Handlers\\PM\\Milestones::create',
+        'PATCH /api/v425/pm/milestones/{id}'         => 'Genie\\Handlers\\PM\\Milestones::patch',
+        'DELETE /api/v425/pm/milestones/{id}'        => 'Genie\\Handlers\\PM\\Milestones::delete',
+        'POST /api/v425/pm/attachments/sign'         => 'Genie\\Handlers\\PM\\Attachments::signUpload',
+        'POST /api/v425/pm/attachments'              => 'Genie\\Handlers\\PM\\Attachments::create',
+        'GET /api/v425/pm/events/stream'             => 'Genie\\Handlers\\PM\\Events::stream',
+        'GET /api/v425/pm/audit'                     => 'Genie\\Handlers\\PM\\Audit::list',
+
         // ── v425 Admin/User 메뉴 가시성 토글 (168차 N-152-F F2/F3 = T3, spec: docs/spec/n152f_consolidated_pm_track.md §4) ─
         'GET /v425/admin/menu-tree'             => 'Genie\\Handlers\\AdminMenu::getAdminTree',
         'GET /v425/menu-tree'                   => 'Genie\\Handlers\\AdminMenu::getTree',
@@ -1670,6 +1731,60 @@ return function (App $app): void {
     // ── V424 enterprise health (167차 5순위) ──
     $register('GET', '/v424/health');
     $register('GET', '/api/v424/health');
+
+    // ── V425 PM-Core (168차 N-152-F Task/Milestone/Gantt) ──
+    $register('GET',    '/v425/pm/projects');
+    $register('POST',   '/v425/pm/projects');
+    $register('GET',    '/v425/pm/projects/{id}');
+    $register('PATCH',  '/v425/pm/projects/{id}');
+    $register('DELETE', '/v425/pm/projects/{id}');
+    $register('GET',    '/v425/pm/projects/{id}/tasks');
+    $register('GET',    '/v425/pm/projects/{id}/gantt');
+    $register('GET',    '/v425/pm/projects/{id}/kpi');
+    $register('POST',   '/v425/pm/tasks');
+    $register('GET',    '/v425/pm/tasks/{id}');
+    $register('PATCH',  '/v425/pm/tasks/{id}');
+    $register('DELETE', '/v425/pm/tasks/{id}');
+    $register('POST',   '/v425/pm/tasks/{id}/assignees');
+    $register('DELETE', '/v425/pm/tasks/{id}/assignees/{userId}');
+    $register('POST',   '/v425/pm/tasks/{id}/comments');
+    $register('GET',    '/v425/pm/tasks/{id}/comments');
+    $register('POST',   '/v425/pm/dependencies');
+    $register('DELETE', '/v425/pm/dependencies/{id}');
+    $register('GET',    '/v425/pm/milestones');
+    $register('POST',   '/v425/pm/milestones');
+    $register('PATCH',  '/v425/pm/milestones/{id}');
+    $register('DELETE', '/v425/pm/milestones/{id}');
+    $register('POST',   '/v425/pm/attachments/sign');
+    $register('POST',   '/v425/pm/attachments');
+    $register('GET',    '/v425/pm/events/stream');
+    $register('GET',    '/v425/pm/audit');
+    $register('GET',    '/api/v425/pm/projects');
+    $register('POST',   '/api/v425/pm/projects');
+    $register('GET',    '/api/v425/pm/projects/{id}');
+    $register('PATCH',  '/api/v425/pm/projects/{id}');
+    $register('DELETE', '/api/v425/pm/projects/{id}');
+    $register('GET',    '/api/v425/pm/projects/{id}/tasks');
+    $register('GET',    '/api/v425/pm/projects/{id}/gantt');
+    $register('GET',    '/api/v425/pm/projects/{id}/kpi');
+    $register('POST',   '/api/v425/pm/tasks');
+    $register('GET',    '/api/v425/pm/tasks/{id}');
+    $register('PATCH',  '/api/v425/pm/tasks/{id}');
+    $register('DELETE', '/api/v425/pm/tasks/{id}');
+    $register('POST',   '/api/v425/pm/tasks/{id}/assignees');
+    $register('DELETE', '/api/v425/pm/tasks/{id}/assignees/{userId}');
+    $register('POST',   '/api/v425/pm/tasks/{id}/comments');
+    $register('GET',    '/api/v425/pm/tasks/{id}/comments');
+    $register('POST',   '/api/v425/pm/dependencies');
+    $register('DELETE', '/api/v425/pm/dependencies/{id}');
+    $register('GET',    '/api/v425/pm/milestones');
+    $register('POST',   '/api/v425/pm/milestones');
+    $register('PATCH',  '/api/v425/pm/milestones/{id}');
+    $register('DELETE', '/api/v425/pm/milestones/{id}');
+    $register('POST',   '/api/v425/pm/attachments/sign');
+    $register('POST',   '/api/v425/pm/attachments');
+    $register('GET',    '/api/v425/pm/events/stream');
+    $register('GET',    '/api/v425/pm/audit');
 
     // ── V425 Admin/User 메뉴 가시성 (168차 N-152-F F2/F3 = T3) ──
     $register('GET',   '/v425/admin/menu-tree');
