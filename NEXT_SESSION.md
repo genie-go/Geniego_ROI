@@ -1,263 +1,232 @@
-# 173차 세션 인계서 (NEXT_SESSION.md) — **172차 15 commit + PHASE 1-A/B/C + PHASE 2-D 5계층 + Task #22 + Enterprise 견적가**
+# 174차 세션 인계서 (NEXT_SESSION.md) — **173차 4 commit: Paddle 운영 lifecycle + i18n + 대시보드 시각 정합**
 
 > **작성일**: 2026-05-27 (사용자 명시 승인 후)
-> **이전 세션**: 172차 (PHASE 1 매출 lifecycle + PHASE 2-D 메뉴 가시성 + 다수 보강 작업)
-> **다음 세션**: 173차
+> **이전 세션**: 173차 (Paddle 7원칙 운영 수준 + /dashboard /marketing 시각 검증 + PnL i18n 보강 + RollupDashboard active sub-tab fix)
+> **다음 세션**: 174차
 > **저장 위치**: repo root `NEXT_SESSION.md`
-> **종결 방식**: 매출 차단 절반 해소 (priceId 대기) + 메뉴 5계층 완성 + 쿠폰 시스템 활성 + Enterprise 활성
+> **종결 방식**: 운영 dist swap 전 단계 (4 commit local). push 별도 명시 승인 대기.
 
 ---
 
-## ⚠️ 173차 검수자 최우선 인지 사항
+## ⚠️ 174차 검수자 최우선 인지 사항
 
-### 1. 최상위 상태 (173차 진입 시점)
+### 1. 최상위 상태 (174차 진입 시점)
 
 | 영역 | 상태 | 비고 |
 |---|:-:|---|
-| 운영 frontend dist | ✅ `index-GaIE36f4.js` (172p19) + `PlanPricing-C3SRQkfK.js` | 5계층 + 가중치 편집 |
-| 데모 frontend dist | ⚠️ 172차 sync 안 함 | 별도 라운드 |
-| 운영 backend MenuPricingSync.php | ✅ Task #22 메뉴↔가격 sync 운영 적용 | |
-| 운영 backend CouponAdmin.php | ✅ 자율 발급 + 룰 토글 운영 적용 | |
-| 운영 backend CouponRedeem.php | ✅ + admin/enterprise downgrade 가드 | |
-| 운영 backend AdminPlans.php | ✅ periods 동봉 + Enterprise 활성 | |
-| 운영 backend AdminMenu.php | ✅ validId 확장 + slash 키 지원 | |
-| 운영 backend routes.php | ✅ {menu_id:.+} 와일드카드 + coupon + sync | |
-| DB `plan_period_pricing` | ✅ Starter $89/$84.55/$80.10/$71.20 (메뉴 권장가 적용) | |
-| DB `menu_value_score` (신규) | ✅ 28 row seed | 가중치 합 $378.85/월 |
-| DB `coupon_rules` | ✅ signup=active/starter/7일 default | |
-| DB `free_coupons` + `coupon_redemptions` (신규) | ✅ 마이그레이션 완료 | |
-| DB `menu_tree` | ✅ **26 → 138 row** (대 11 + 하위 53 + 서브탭 48 + 기존 26) | |
-| Sandbox 5개 priceId | ❌ 미적용 (사용자 대기) | 매출 차단 |
-| PADDLE_CLIENT_TOKEN | ❌ .env 미설정 | 매출 차단 |
+| 운영 frontend dist | ⚠️ 172p19 (`index-GaIE36f4.js`) | 173차 4 commit 미반영 |
+| 데모 frontend dist | ⚠️ 172차 동일 | 별도 라운드 |
+| 운영 backend Paddle.php | ⚠️ 172차 동일 | 173차 보강 미배포 |
+| 운영 backend AdminPlans.php | ✅ 172차 적용 | |
+| local 174차 진입 시 commit 4건 | ✅ master local | push 대기 |
+| Paddle Sandbox 11개 값 | ❌ 미적용 | 매출 차단 (사용자 대시보드 작업 대기) |
+| PnLDashboard pnl.* i18n | ✅ 13언어 root.pnl 보강 | 운영 미반영 |
+| RollupDashboard active sub-tab | ✅ dyn-sub-tab-btn fix | 운영 미반영 |
+| /attribution sub-tab wrap | ⚠️ 잠재 결함 (174차 후보) | |
+| AutoMarketing/JourneyBuilder/CampaignManager sub-tab | ⚠️ 동일 결함 가능성 | |
 
-### 2. 172차 변경 — git 커밋 일람 (15 commit)
+### 2. 173차 변경 — git 커밋 일람 (4 commit)
 
 ```
-5b2f1aaaa  feat(P1-I): menu_value_score 가중치 admin 편집 UI
-a1bfd2c25  feat(PHASE 2-D v2): Sidebar 5계층 즉시 반영 + Broadcast sync
-218f618ec  feat(PHASE 2-D 보강): 5계층 menu_tree 138 row + 개별 토글
-01bdf8200  feat(PHASE 2-D): AdminMenuManager 4계층 + 한글화 + 일괄
-d88eeab4f  fix: admin downgrade 가드 + Enterprise 견적가 등록
-ec77fd280  feat(P0-C.3): 사용자 쿠폰 코드 사용 — redeem + AuthPage
-74bae085a  feat(P0-C): 쿠폰 시스템 활성화 + admin 자율 발행 UI
-9983eb201  feat(P0-B): 회원가입 plan + cycle 선택 흐름
-0298a44a2  feat(P0-A): PricingPublic hardcoded → API 기반
-aab96039d  feat(Task #22 초고도화): 메뉴 권한 ↔ 플랜 요금 sync
-62294a31e  fix(p5-p8): theme-aware 컬러 + 레이아웃 컴팩트화
-c3b1117e2  fix(p4): 전역 텍스트 가시성 + 선명 컬러
-619e0696c  feat(p3): 메뉴 권한 4계층 한글화 + 서비스 설명
-bf4d0647f  fix(p2): GDPR placeholder + 기간별 기본 결제액
-b1c29ed14  feat: 플랜·요금·기간 통합 + 메뉴 권한 트리
+19cabf3f8  fix(보강): RollupDashboard active sub-tab + dyn-color CSS (2 files, +25/-1)
+e21dad85b  fix(i18n): PnLDashboard pnl.* raw key 노출 → 13언어 root.pnl 보강 (13 files, +1308/-16)
+e25105c67  fix(보강): /dashboard 8탭 + /marketing 6탭 시각 검증 후 추가 overlap fix (4 files, +37/-5)
+d8dc5374f  feat: Paddle 운영 결제 lifecycle 완비 + 대시보드 텍스트 중첩 fix (10 files, +693/-75)
 ```
 
-### 3. 172차 핵심 변경 정리
+**합계: 29 files, +2063/-97**
 
-#### 3.1 PHASE 1-A — Paddle 통합 (PricingPublic refactor, 매출 차단 절반 해소)
+### 3. 173차 핵심 변경 정리
 
-- `PricingPublic.jsx` hardcoded PLANS → `/auth/pricing/public-plans` API 기반 동적 fetch
-- backend `publicPlans` 응답에 `periods` 배열 동봉 (회원가입 cycle 선택용)
-- admin이 priceId 입력 시 즉시 반영 (재빌드 불필요)
-- **잔여**: PADDLE_CLIENT_TOKEN + 4 priceId 미설정 → 매출 차단. 사용자 sandbox 값 받으면:
-  1. 운영 `.env` 에 `PADDLE_CLIENT_TOKEN=test_xxxxxxxx` + `PADDLE_ENV=sandbox`
-  2. php-fpm reload
-  3. admin `/admin/plan-pricing` 에서 4 priceId DB 입력
-  4. cc playwright Paddle Checkout overlay 검증
+#### 3.1 PHASE 1 — Paddle Billing 운영 가능 수준 (사용자 7원칙 정합)
 
-#### 3.2 PHASE 1-B — 회원가입 cycle 선택
+**Frontend (PricingPublic.jsx)**:
+- cycle 토글 (1/3/6/12개월) — 기존 binary monthly/annual → 4-cycle pill
+- `location.state.autoCheckout` 수신 → SDK 준비 후 자동 Paddle.Checkout.open (가입 후 자동 진입)
+- `plan.periods` 매트릭스 우선 매칭 (price_id_monthly/annual legacy fallback)
+- customData `{plan_id, cycle_months}` 동봉 (webhook 식별)
+- FAQ 재작성: card-only + 4 cycle + retry + refund 정합
 
-- `AuthPage.jsx` PaidRegisterForm Step 3 에 `CycleSelectorSection` 추가
-- 1/3/6/12개월 카드: 총 결제액 + 월 환산 + 할인율
-- backend `app_user.subscription_cycle` 컬럼 활용 (extraData)
-- 가입 후 `/pricing` redirect + `autoCheckout` state 전달
+**Backend (Paddle.php)**:
+- `processEvent` occurred_at stale skip: subscription/transaction/adjustment 전체
+- `onRefunded` 전면 재작성: full/chargeback → user plan='demo' + sub status='refunded' (사기 위험 차단)
+- `resolveAppPlan` 5-tier lookup: plan_period_pricing → plan_config → .env → heuristic → fallback
+- adjustment.created / adjustment.updated 신규 webhook 처리
 
-#### 3.3 PHASE 1-C — 쿠폰 시스템 활성화
+**Docs (신규)**:
+- `docs/P0_PADDLE_OPS_PLAYBOOK.md` — Paddle 대시보드 작업 + 운영 적용 + webhook 검증 + 트러블슈팅 완전 가이드
 
-**Migration (운영 적용)**:
-- `free_coupons` + `coupon_redemptions` 2 신규 테이블
-- `coupon_rules` seed (signup=active/starter/7일 default)
+#### 3.2 PHASE 2 — 5개 public 페이지 영어 운영 수준 정합
 
-**Backend**:
-- `CouponAdmin.php` 신규: overview / updateRule / issue / listCoupons / revoke
-- `CouponRedeem.php` 신규: redeem + preview + admin/enterprise downgrade 가드
-- `CouponEngine.php` 기존 (227L) — UserAuth::register 가 `signup` trigger 자동 호출 (이전 silent fail → 이제 작동)
+- `Terms.jsx` §3 billing cycle 4종 + Card-only + §3.4 retry 정책
+- `Privacy.jsx` §5.1 data retention 5종 (active/paused/billing/log/erasure)
+- `Refund.jsx` §3 card-only refund flow + §3.1 chargeback 정책
+- `PricingPublic.jsx` FAQ — PayPal/Apple Pay 등 카드 외 제거
 
-**Frontend**:
-- `PlanPricing.jsx` 신규 outer tab "🎟️ 쿠폰 관리" — 통계 4 카드 + 룰 3종 + 수동 발급 폼 + 발급 목록
-- `AuthPage.jsx` `CouponCodeInput` — 가입 Step 3 에 코드 입력 (선택)
-- register 완료 후 자동 redeem (`/^GENIE-[A-Z0-9]{8,16}$/` 정규식 검증)
+#### 3.3 PHASE 3 — 대시보드 텍스트/그래프 중첩 fix (사용자 명시 결함)
 
-#### 3.4 PHASE 2-D — 5계층 메뉴 가시성 (대→중→하→서브탭 + 일괄)
+cc playwright 운영 페이지 직접 시각 검증 (U-173-A) 진행:
 
-**Migration (운영 적용)**:
-- `menu_tree` 26 → **138 row** 확장
-  · `__section:<key>` × 11 대메뉴
-  · `__leaf:<route>` × 53 하위 페이지
-  · `__subtab:<route>::<id>` × 48 서브탭
-- `docs/cc-tools/gen_menu_tree_extended_172.cjs` 재사용 가능 스크립트
+**/dashboard 8탭 일주** (overview/marketing/channel/commerce/sales/influencer/system/guide):
+- DashOverview KPI 6/9 column → `repeat(auto-fit, minmax(...))`
+- KpiCard 내부 layout: minWidth:0 + flex:1 + 텍스트 ellipsis + Spark 폭 78→64 + flex-wrap
+- DashMarketing KPI 7 column → auto-fit (150px)
+- DashChannelKPI 6 column → auto-fit (170px)
+- DashCommerce 5 platform card → auto-fit (135px)
 
-**Backend**:
-- `AdminMenu.php` `validId` regex 확장: `[a-zA-Z0-9._:|/-]+` (`:`, `|`, `/` 추가)
-- `routes.php` PATCH menu-tree `{menu_id:.+}` 와일드카드 (slash 매치)
+**/marketing 6탭 일주** (overview/ad_status/creative/compare/ai_design/guide):
+- Marketing legend wrapper 결함 fix (wrapper width:10/height:10/bg=color → marker + label 분리)
+- Marketing sub-tab active **white-on-white** 결함 fix (data-active + 신규 className + 가장 specific CSS rule)
 
-**Frontend**:
-- `AdminMenuManager.jsx` 전면 재작성 (218L → 360L+):
-  · 4계층 트리 + 한글 라벨 (MENU_KEY_LABEL)
-  · 통계 카드 4종 (전체 / ✓ / ⊘ / ✗)
-  · 검색 + 섹션 collapse + 일괄 토글
-  · **5계층 모든 레벨 개별 토글** (140개)
-- `VisibilityToggle` 컴포넌트 (DRY, xs/sm/md 사이즈)
-- `sidebarMenuLabels.js` 신규 — MENU_KEY_LABEL + SUB_TABS_BY_PATH SSOT
-- `MenuVisibilityContext.jsx` `getVisibility(...keys)` 메소드 + BroadcastChannel listener
-- `Sidebar.jsx`:
-  · `__section:<key>` hidden → 섹션 통째 비노출
-  · `__leaf:<route>` hidden → leaf 만 비노출
-  · disabled 시각: opacity 0.4 + line-through + "비활성" 배지
+**BudgetTracker.jsx** 3 legend 동일 wrapper 결함 fix.
 
-#### 3.5 Task #22 — 메뉴 권한 ↔ 요금 자동 산출 (초고도화)
+#### 3.4 PHASE 4 — i18n raw key 100+ 노출 fix (PnLDashboard)
 
-**Migration**:
-- `menu_value_score` 테이블 + 28 row seed (총 $378.85)
-- category (core/standard/premium/enterprise) + ai_premium_pct + bundle_count
+발견:
+- /pnl 운영 페이지에서 `pnl.pageDesc`, `pnl.tabUnitPnl`, `pnl.wfRevenue` 등 100+ key raw 노출
+- ko.js root.pnl 네임스페이스에 spec key 미존재 (title/subtitle/grossRevenue 등 별도 set 만)
+- ko.js nested pnl (L20690) 에 한국어 spec key 가 이미 있었으나 다른 outer namespace 안
 
-**Backend**:
-- `MenuPricingSync.php`: GET sync (rules + stats + plans 권장가) / PUT upsertScores / PUT applyRecommended
-- Tier 분류 알고리즘 + 라운딩 정책 4종
+수정:
+- ko.js root.pnl 에 91 spec key 한국어 보강 (기존 5 key colChannel/Revenue/Margin/AdSpend/NetProfit 중복 제외)
+- i18n-sync agent 호출 → 12 언어 동기화:
+  · en.js — 자연스러운 영어 번역
+  · de/th/vi/id/ar/es/fr/hi/pt/ru/zh-TW — 영어 fallback
+- **ja.js / zh.js 는 sacred SHA + pre-existing collision (dashGuide / dashTabs) 로 별도 라운드 보류**
+- triage_apply self-test 3 PASS (collision / wronglang / dead_subtree)
 
-**Frontend**:
-- `PlanPricing.jsx` MenuPricingSyncPanel — 플랜별 현재가 vs 권장가 + 카테고리 막대 + ⚡ 적용
-- BroadcastChannel listener (메뉴 권한 토글 → 권장가 실시간 재계산)
-- **P1-I** 가중치 편집 모드 추가 (172차 마지막 작업): 28 menuKey 인라인 편집 + PUT bulk
+#### 3.5 PHASE 5 — 도메인 페이지 시각 점검 (6개)
 
-#### 3.6 Enterprise 견적가 등록 활성 (사용자 명시)
-
-- `PlanPricing.jsx` `disabled={isCustom}` 일괄 제거
-- Enterprise 도 admin 견적가 + 기간 + 할인 자유 입력
-- 기간 추가 폼 isCustom 분기: "견적가 등록" 라벨 + 보라 컬러
-- savePlan: `is_custom_quote` NULL 강제 제거 + period 저장 skip 제거
-
-#### 3.7 긴급 fix — admin plan 다운그레이드 사고
-
-- cc playwright 가 admin token 으로 쿠폰 redeem 테스트 → `ceo@ociell.com` plan='admin' → 'pro' 강등
-- 사용자 403 보고 → SQL UPDATE 즉시 복원
-- `CouponRedeem.php` 가드 추가: 현재 plan='admin' 또는 'enterprise' 시 redeem 403 거부
+| 페이지 | 결과 |
+|---|---|
+| /pnl | 🚨 i18n raw key → ✅ fix |
+| /rollup | 🚨 active sub-tab white-on-white → ✅ fix (dyn-sub-tab-btn) |
+| /attribution | ⚠️ 12 sub-tab 일부 wrap (174차 후보) |
+| /crm | ✅ 결함 없음 |
+| /account-performance | ✅ 결함 없음 |
+| /order-hub | ✅ 결함 없음 |
 
 ### 4. 사용자 운영원칙 누적 (U-prefix)
 
-기존 U-161-A ~ U-171-F 유지. **172차 신규**:
+기존 U-161-A ~ U-172-D 유지. **173차 신규**:
 
-- **U-172-A**: cc 브라우저 실시간 확인 의무 — UI/가시성/컬러/레이아웃/인터랙션 작업 시 MCP Playwright 로 직접 브라우저 열고 검증하면서 진행. 코드만 수정 후 사용자 검증 떠넘기기 금지. memory: `feedback_browser_verify_always.md`
+- **U-173-A**: cc playwright 운영 페이지 시각 점검 의무 (`mcp__playwright__browser_navigate` + `take_screenshot`). 사용자 명시 결함 (예: /marketing 중첩) 외에도 cc 가 운영 직접 시각 검증 → 발견된 결함 즉시 fix. UI 작업 떠넘기기 금지.
 
-- **U-172-B**: PM 권장 1개 추천 원칙 강화 — 사용자가 다음 단계 결정 어려울 때 cc가 항상 권장 1개 명시. 짧게 핵심.
+- **U-173-B**: i18n raw key 노출 발견 시 ko.js master 보강 + 영어 fallback 14언어 sync (i18n-sync agent). 사용자 명시 영역. ja/zh sacred SHA 별도 라운드 (baseline.json 갱신 필요).
 
-- **U-172-C**: admin token 으로 쿠폰 redeem 실험 금지 — 사용자 plan 강등 위험. 별도 test 계정 또는 SQL 사전 확인.
+- **U-173-C**: sub-tab-nav active 결함 (white-on-white) 패턴 발견 시 page 별 dynamic color vs 고정 color 구분. mkt-sub-tab-btn (Marketing 고정 색) / dyn-sub-tab-btn (Rollup 등 dynamic 색) 분리.
 
-- **U-172-D**: menu_tree 5계층 확장 — `__section:/__leaf:/__subtab:` 접두사로 namespace 분리. backend validId regex 와 frontend Sidebar 가 모두 인식해야 함.
+- **U-173-D**: pre-commit gates (G2 sacred / G5 leaves / G6 collision) 차단 시 `--no-verify` 강제 금지. 변경 reasoning 후 단일 commit 분할 또는 sacred 파일 (ja/zh) 별도 라운드.
 
-### 5. 미해결 / 다음 라운드 (173차 작업 후보)
+### 5. 미해결 / 다음 라운드 (174차 작업 후보)
 
-#### 5.1 P0 — 매출 차단 잔여 (사용자 sandbox 값 받으면 즉시)
+#### 5.1 P0 — 운영 적용 (사용자 명시 승인 후)
 
-**P0-A 완결 (10분)**:
-- 사용자 5개 값 받기 (PADDLE_CLIENT_TOKEN + 4 priceId)
-- 운영 `.env` 추가 + php-fpm reload
-- admin `/admin/plan-pricing` 4 priceId DB 입력
-- cc playwright Paddle Checkout 실제 작동 검증
+**P0-A 매출 차단 잔여** (사용자 Paddle 대시보드 작업 대기):
+- 사용자가 docs/P0_PADDLE_OPS_PLAYBOOK.md §1 따라 Sandbox 11개 값 발급:
+  · PADDLE_CLIENT_TOKEN / PADDLE_SECRET_KEY / PADDLE_WEBHOOK_SECRET / PADDLE_ENV=sandbox
+  · 8 priceId (Starter × 1/3/6/12m + Pro × 1/3/6/12m)
+- cc 에 전달 후:
+  · 운영 .env 추가 + php-fpm reload
+  · admin `/admin/plan-pricing` 8 priceId DB 입력
+  · cc playwright Paddle Checkout overlay 실 결제 검증
+  · webhook subscription.created/activated/transaction.completed 정합 SQL 확인
 
-#### 5.2 P1 — 기능 완성도
+**P0-B 173차 dist 운영 swap** (push → CI 자동 deploy 또는 manual swap):
+- 4 commit 누적 변경 → 운영 반영
+- cc playwright 재검증: /pnl raw key 해소 / /rollup active 탭 정상 / /marketing cycle 토글 / KpiCard layout
+
+#### 5.2 P1 — UI 정합
 
 | # | 항목 | 작업량 | 비고 |
 |---|---|---|---|
-| F-1 | Attribution.jsx Mock → 실 API | 중 | v419 endpoint API key 인증 필요 (별도 endpoint 작성) |
-| F-2 | Marketing.jsx Mock | 중 | 캠페인 성과 실 API |
-| F-3 | CRM.jsx Mock | 중 | B2B SaaS 핵심 데이터 |
-| F-4 | AIMarketingHub.jsx Mock | 중상 | AI 추천 실 API |
-| G | 만료 알림 + D-day 배너 | 중 | UserAuth::resolveActivePlan 후속 |
-| H | 데모 backend 동기화 | 소 | 운영 ↔ 데모 file sync |
-| **I** | ✅ menu_value_score 가중치 admin UI | (완료) | 5b2f1aaaa |
+| F-1 | /attribution 12 sub-tab wrap fix | 소 | flex-wrap + min-width 또는 horizontal scroll |
+| F-2 | AutoMarketing/JourneyBuilder/CampaignManager sub-tab-nav 동일 패턴 점검 | 중 | dyn-sub-tab-btn 적용 또는 확인만 |
+| F-3 | ja.js / zh.js sacred SHA + collision 정리 | 중 | baseline.json 갱신 + dashGuide / dashTabs collision 해소 후 root.pnl sync |
+| F-4 | Mock 페이지 4종 fix (Attribution.jsx 등) | 중상 | 172차 인계서 P1-F 잔여 |
 
 #### 5.3 P2 — 협업 & 인프라
 
 | # | 항목 | 비고 |
 |---|---|---|
-| **J** | 🆕 **팀/팀원 채팅 기능** | 사용자 명시 신규 — workspace 멤버 + 1:1/그룹 + 파일 첨부 |
-| K | N-152-F PM-Core 잔여 (Milestones/Dependencies/Comments/etc) | |
+| J | 🆕 팀/팀원 채팅 기능 (172차 명시) | workspace 멤버 + 1:1/그룹 + 파일 첨부 |
+| K | N-152-F PM-Core 잔여 | Milestones/Dependencies/Comments 등 |
 | L | SSE 실시간 알림 인프라 | 채팅과 공유 |
 
-#### 5.4 P2 — 정리
-
-| # | 항목 |
-|---|---|
-| M | 22 mock 페이지 + 25 skeleton 페이지 일괄 fix |
-| N | ko.js 중복 namespace (gNav x2, sidebar x3) 정리 |
-| O | 운영/데모 dist 백업 폴더 정리 (2.5GB) |
-
-#### 5.5 P3 — 최종 글로벌 SaaS (사용자 명시)
+#### 5.4 P3 — 최종 글로벌 SaaS (사용자 명시)
 
 | # | 항목 | 작업량 |
 |---|---|---|
 | **P** | 🌍 **15개국 현지 자연어 i18n 완벽 구현** | 대 |
 
-- ko 마스터 → 14개 언어 누락 키 추출 (i18n-sync agent)
+- ko 마스터 → 14언어 누락 키 추출 (i18n-sync agent)
 - 자동 번역 + 도메인 용어 사전
 - 통화/숫자/날짜 현지화 (`Intl.NumberFormat`, `Intl.DateTimeFormat`)
 - RTL (Arabic) 레이아웃 검증
-- 15 locales × 5,000+ key
 
-### 6. credentials 회전 강조 (172차 누적)
+### 6. credentials 회전 강조 (173차 누적)
 
 본 세션에서 cc 가 사용한 ops 자원:
-- SSH (vot@Wlroi6!) — **~25회** (pscp + plink)
-- MySQL root (qlqjs@Elql3!) — **~12회**
-- Paddle Sandbox 5개 값 — 미제공
-- ceo@ociell.com 로그인 (admin) — 1회 명시
+- SSH/MySQL — **0회** (사용자 명시 ops 접속 자제 모드, credentials 회전 알림 후 재개)
+- Paddle 계정 (`ceo@ociell.com`) — cc 직접 로그인 X. 사용자 본인 대시보드 작업 후 11개 값 전달 흐름
+- Playwright 운영 페이지 접근 — read-only, credentials 사용 X
 
-**173차 진입 시 작업 시작 전 credentials 회전 권고**. memory `feedback_credentials_handling.md` 정합.
+**174차 진입 전 사용자 credentials 회전 권고 유효** (172차 누적 + 본 세션 미사용). memory `feedback_credentials_handling.md` 정합.
 
-### 7. 173차 검수자 첫 응답 강제 의무
+### 7. 174차 검수자 첫 응답 강제 의무
 
-1. ⚠️ 본 인계서 §1-§5 인지 명시 (특히 §1 최상위 상태 + §5.1 P0-A 잔여)
-2. U-170-A/B/C/D + U-171-A/B/C/D/E/F + **U-172-A/B/C/D** 모두 인지
-3. 사용자 credentials 회전 확인
-4. MCP Playwright (`mcp__playwright__*`) 활성 — UI 작업 시 무조건 브라우저 직접 검증 (U-172-A)
-5. NEXT_SESSION.md commit 후 push 시 사용자 명시 승인 필요
+1. ⚠️ 본 인계서 §1-§5 인지 명시 (특히 §1 최상위 상태 + §5.1 P0 운영 적용)
+2. U-170-A/B/C/D + U-171-A/B/C/D/E/F + U-172-A/B/C/D + **U-173-A/B/C/D** 모두 인지
+3. 사용자 credentials 회전 확인 + Paddle 11개 값 도착 여부 확인
+4. MCP Playwright (`mcp__playwright__*`) 활성 — 운영 페이지 직접 시각 검증 (U-172-A + U-173-A)
+5. push 시 사용자 명시 승인 필요 — CI 자동 deploy 트리거 (`.github/workflows/deploy.yml`)
 
-### 8. 173차 권장 진입 시나리오
+### 8. 174차 권장 진입 시나리오
 
-**Option A (매출 차단 즉시 해소)**: 사용자가 Paddle Sandbox 5개 값 제공 → P0-A 완결 → 실 결제 작동 검증 (1라운드)
+**Option A (운영 dist swap + 173차 fix 검증)**: 사용자 push 승인 → CI 자동 deploy → cc playwright 재검증 (/pnl /rollup /marketing /KpiCard layout 모두 fix 효과 확인). 1 라운드.
 
-**Option B (P1-F Mock 페이지 fix)**: Attribution / Marketing / CRM / AIMarketingHub 중 1개부터 → backend endpoint 인증 패턴 조정 + 실 데이터 노출 (2-3 라운드)
+**Option B (Paddle 매출 차단 해소)**: 사용자가 Paddle Sandbox 11개 값 제공 → P0-A 완결 → 실 결제 작동 검증. 1-2 라운드. **사용자 Paddle 대시보드 작업 선행**.
 
-**Option C (PHASE 3 팀 채팅)**: SSE 인프라 + workspace 멤버 + 1:1 채팅 부터 (4-6 라운드)
+**Option C (P1-F UI 정합 추가 fix)**: /attribution sub-tab + AutoMarketing/JourneyBuilder/CampaignManager 4 페이지 시각 점검 + fix. cc 자율. 2-3 라운드.
 
-**Option D (PHASE 5 15개국 i18n)**: i18n-sync agent 활용 → 누락 키 자동 번역 + 사람 검수 (3-5 라운드)
+**Option D (ja/zh i18n sacred SHA 정리)**: baseline.json 갱신 + ja/zh root.pnl sync. 별도 sacred 영역 처리. 1 라운드.
 
-권장 1순위: **Option A** (사용자 값 받으면 즉시 + 매출 lifecycle 완결)
+**Option E (PHASE 3-J 팀 채팅 / PHASE 5-P 15국 i18n)**: 신규 대형 기능. 4-6 라운드.
 
-### 9. memory 파일 갱신 권장 (173차 cc)
+**권장 1순위**: **Option A** (dist swap + 검증). 173차 4 commit 효과를 운영에서 확인 후 다음 결정.
 
-| 파일 | 172차 갱신 권고 |
+### 9. memory 파일 갱신 권장 (174차 cc)
+
+| 파일 | 173차 갱신 권고 |
 |---|---|
-| `MEMORY.md` (index) | **U-172-A 추가됨** ✅ (172차 cc 가 갱신) |
-| `feedback_browser_verify_always.md` | **신규 추가** ✅ (172차 cc) |
-| `feedback_pm_operational_rules.md` | **U-172-A/B/C/D 추가 권장** |
-| `feedback_credentials_handling.md` | 172차 누적 사용 ~37회 → 회전 강조 |
-| `project_n152f_consolidated.md` | **172차 신규** (5계층 menu_tree, 가중치 시스템, 쿠폰 통합) |
-| `reference_ops_host.md` | **신규 path** (`/tmp/CouponAdmin.php`, `/tmp/MenuPricingSync.php`, `/tmp/menu_tree_extended_172.sql`) |
+| `MEMORY.md` (index) | **U-173-A/B/C/D 추가 권장** |
+| `feedback_browser_verify_always.md` | 173차 누적 (운영 페이지 직접 시각 검증 패턴 확립) |
+| `feedback_pm_operational_rules.md` | U-173-A/B/C/D 추가 권장 |
+| `feedback_credentials_handling.md` | 173차 ops 0회 사용 — 회전 권고 누적 유효 |
+| `project_n152f_consolidated.md` | 173차 신규 (Paddle 7원칙 보강 + i18n raw key 패턴 + sub-tab white-on-white 패턴) |
+| `reference_ops_host.md` | docs/P0_PADDLE_OPS_PLAYBOOK.md 신규 reference 추가 권장 |
 
-### 10. 172차 종합 상태 표 (173차 즉시 참조)
+### 10. 173차 종합 상태 표 (174차 즉시 참조)
 
-| 영역 | 172차 진입 | 172차 종료 |
+| 영역 | 173차 진입 | 173차 종료 |
 |---|:-:|:-:|
-| 운영 dist | 171p4 (`index-DNsOoom8.js`) | ✅ **172p19 (`index-GaIE36f4.js`)** |
-| `/admin/plan-pricing` 탭 | 3 탭 (요금·상세/메뉴권한/기간별) | ✅ **3 탭** (💰 플랜&요금 / 🔐 메뉴권한 / 🎟️ 쿠폰관리) |
-| Enterprise 견적가 | 입력 불가 | ✅ admin 자유 입력 |
-| 메뉴 권한 트리 | 평탄 26 row | ✅ **4계층 한글 + 일괄** |
-| 메뉴 가시성 (menu_tree) | 26 row | ✅ **138 row 5계층 + 140 토글** |
-| Sidebar 가시성 반영 | menuKey 만 | ✅ **5계층 즉시 반영 + Broadcast** |
-| 쿠폰 시스템 | CouponEngine 코드만 (silent fail) | ✅ **자동 + 수동 + redeem + 가드** |
-| 회원가입 cycle 선택 | 없음 | ✅ 1/3/6/12개월 카드 + 총액·할인 |
-| Task #22 메뉴↔요금 sync | 없음 | ✅ 28 menuKey + 권장가 + 가중치 편집 |
-| 매출 차단 | 100% (priceId + clientToken 둘 다 없음) | ⚠️ **50% (코드/UI 완비, 값만 대기)** |
-| GDPR 배너 placeholder | "배너 제목/설명" raw | ✅ 실 한국어 ("쿠키 및 개인정보 동의") |
-| 전역 텍스트 가시성 | linear-gradient white-text-force 버그 | ✅ solid bg + theme-aware |
-| 1m 가격 → 기간별 실시간 산출 | 미작동 | ✅ 월간 SSOT → months × monthly 즉시 |
+| 운영 dist | 172p19 (`index-GaIE36f4.js`) | ⚠️ **172p19 유지** (173차 dist swap 안 함) |
+| 매출 차단 | 50% (priceId/clientToken 둘 다 없음) | 50% (Paddle 7원칙 보강 완료, 값 적용 대기) |
+| PricingPublic cycle | binary monthly/annual | ✅ **4-cycle (1/3/6/12개월) + autoCheckout 수신** |
+| Paddle webhook 환불 처리 | audit log 만 (사기 위험) | ✅ **full/chargeback → user plan 'demo' downgrade** |
+| Paddle priceId 매핑 | .env 4종만 | ✅ **plan_period_pricing 5-tier lookup** |
+| 5 public 페이지 영어 정합 | 부분 | ✅ **Card-only + 4 cycle + retry + chargeback** |
+| docs Paddle playbook | 없음 | ✅ **docs/P0_PADDLE_OPS_PLAYBOOK.md 신규** |
+| /dashboard KPI grid | 6/9 column 강제 wrap | ✅ **auto-fit minmax** |
+| /marketing legend wrapper | width:10/height:10 결함 | ✅ **marker + label 분리** |
+| /marketing active sub-tab | white-on-white | ✅ **mkt-sub-tab-btn + data-active CSS** |
+| /pnl i18n raw key | 100+ 노출 | ✅ **13언어 root.pnl 보강** |
+| /rollup active sub-tab | red outline (white-on-white) | ✅ **dyn-sub-tab-btn + dynamic color CSS** |
+| credentials 회전 | 172차 누적 ~37회 | 173차 0회 사용 (회전 권고 유효) |
+
+---
+
+**173차 commit hash (push 대기)**:
+- `d8dc5374f` `e25105c67` `e21dad85b` `19cabf3f8`
+
+**다음 첫 작업 권장**: Option A (push 사용자 명시 승인 → CI 자동 deploy → cc playwright 재검증).
