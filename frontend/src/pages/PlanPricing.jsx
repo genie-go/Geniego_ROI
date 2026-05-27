@@ -574,15 +574,22 @@ function PlanPricing() {
         {[
           { id: 'plan',        label: '💰 플랜 & 요금 (정의 + 기간별 가격 통합)' },
           { id: 'permissions', label: '🔐 메뉴 접근 권한' },
-        ].map(tb => (
-          <button key={tb.id} onClick={() => setOuterTab(tb.id)} style={{
-            padding: '12px 22px', border: 'none', background: 'transparent',
-            color: outerTab === tb.id ? 'var(--text-1)' : 'var(--text-3)',
-            fontSize: 14, fontWeight: outerTab === tb.id ? 800 : 600, cursor: 'pointer',
-            borderBottom: outerTab === tb.id ? '2px solid #22c55e' : '2px solid transparent',
-            marginBottom: -1,
-          }}>{tb.label}</button>
-        ))}
+        ].map(tb => {
+          const active = outerTab === tb.id;
+          return (
+            <button key={tb.id} onClick={() => setOuterTab(tb.id)} style={{
+              padding: '13px 24px', border: 'none',
+              // 활성: 찐한 파랑 배경 + 노랑 텍스트 (최대 가시성, 172차 p4)
+              background: active ? '#1e3a8a' : 'transparent',
+              color: active ? '#fde047' : '#94a3b8',
+              fontSize: 15, fontWeight: active ? 900 : 600, cursor: 'pointer',
+              borderBottom: active ? '3px solid #fde047' : '3px solid transparent',
+              borderRadius: active ? '8px 8px 0 0' : 0,
+              marginBottom: -1,
+              transition: 'all 150ms',
+            }}>{tb.label}</button>
+          );
+        })}
       </div>
 
       {outerTab === 'permissions' && (
@@ -614,23 +621,29 @@ function PlanPricing() {
 
       {outerTab === 'plan' && !loading && plans.length > 0 && (
         <>
-          {/* 플랜 선택 탭 */}
+          {/* 플랜 선택 탭 — 172차 p4 선명 컬러 */}
           <div style={{
-            display: 'flex', gap: 4, marginBottom: 16, padding: 4, borderRadius: 12,
-            background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)',
+            display: 'flex', gap: 6, marginBottom: 16, padding: 5, borderRadius: 12,
+            background: 'rgba(0,0,0,0.35)', border: '1px solid rgba(255,255,255,0.08)',
           }}>
-            {plans.map((p, i) => (
+            {plans.map((p, i) => {
+              const sel = activePlanIdx === i;
+              return (
               <button key={p.plan_id} onClick={() => setActivePlanIdx(i)} style={{
-                flex: 1, padding: '10px 16px', borderRadius: 10, border: 'none', cursor: 'pointer',
-                fontWeight: 700, fontSize: 13,
-                background: activePlanIdx === i ? 'linear-gradient(135deg,#16a34a,#22c55e)' : 'transparent',
-                color: activePlanIdx === i ? '#fff' : 'var(--text-2)',
+                flex: 1, padding: '12px 18px', borderRadius: 9, border: 'none', cursor: 'pointer',
+                fontWeight: sel ? 900 : 700, fontSize: 14,
+                // 활성: 찐한 파랑 + 선명 노랑 텍스트, 비활성: 어두운 배경 + 밝은 텍스트
+                background: sel ? '#1e3a8a' : 'rgba(255,255,255,0.04)',
+                color: sel ? '#fde047' : '#e2e8f0',
+                boxShadow: sel ? '0 0 0 2px #fde047 inset' : 'none',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                transition: 'all 150ms',
               }}>
                 {(p.is_recommended === true || p.is_recommended === 1) && <span style={{ fontSize: 11 }}>⭐</span>}
                 {p.name || p.plan_id}
               </button>
-            ))}
+              );
+            })}
           </div>
 
           {plan && (
@@ -789,12 +802,23 @@ function ServiceDescriptionCard() {
             ))}
           </div>
           <div style={{
-            padding: '10px 14px', borderRadius: 8, fontSize: 13, color: 'var(--text-2)', lineHeight: 1.7,
-            background: 'rgba(0,0,0,0.18)', border: '1px solid rgba(255,255,255,0.05)',
+            padding: '14px 18px', borderRadius: 8, fontSize: 14, lineHeight: 1.75,
+            background: 'rgba(0,0,0,0.45)', border: '2px solid #fde047',
+            // 172차 p4 — 명시적 밝은 텍스트 (CSS var 의존 X)
+            color: '#f1f5f9',
           }}>
-            <strong>플랜별 메뉴 접근 권한 운영 방식</strong>:&nbsp;
-            본 페이지의 <strong>🔐 메뉴 접근 권한</strong> 탭에서 플랜(Starter / Pro / Enterprise / Admin)별로 8개 영역의 세부 메뉴를 자유롭게 활성/비활성 선택할 수 있습니다.
-            메뉴 트리는 <strong>대메뉴 → 중메뉴(통합 그룹) → 하위 페이지 → 페이지 내 서브탭</strong> 4단계로 구성되며 admin 이 모든 단계 개별 토글 가능합니다.
+            <strong style={{ color: '#fde047', fontSize: 15 }}>📋 플랜별 메뉴 접근 권한 운영 방식</strong>
+            <div style={{ marginTop: 8 }}>
+              본 페이지의 <strong style={{ color: '#fde047' }}>🔐 메뉴 접근 권한</strong> 탭에서 플랜(Starter / Pro / Enterprise / Admin)별로 8개 영역의 세부 메뉴를 자유롭게 활성/비활성 선택할 수 있습니다.
+            </div>
+            <div style={{ marginTop: 8 }}>
+              메뉴 트리 구조:
+              <span style={{ color: '#a5b4fc', fontWeight: 700, marginLeft: 6 }}>대메뉴</span> →
+              <span style={{ color: '#22c55e', fontWeight: 700, marginLeft: 6 }}>중메뉴(통합 그룹)</span> →
+              <span style={{ color: '#fbbf24', fontWeight: 700, marginLeft: 6 }}>하위 페이지</span> →
+              <span style={{ color: '#c084fc', fontWeight: 700, marginLeft: 6 }}>📑 페이지 내 서브탭</span>
+              <span style={{ marginLeft: 6 }}>4단계 / 모든 단계 개별 토글 가능</span>
+            </div>
           </div>
         </div>
       )}
@@ -915,23 +939,29 @@ function MenuAccessTree({ plans, menus, access, setMenuAccess, setMenuAccessBulk
 
       {/* 플랜 선택 탭 — 한 플랜씩 편집 */}
       <div style={{
-        display: 'flex', gap: 6, marginBottom: 14, padding: 4, borderRadius: 12,
-        background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', flexWrap: 'wrap',
+        display: 'flex', gap: 6, marginBottom: 14, padding: 5, borderRadius: 12,
+        background: 'rgba(0,0,0,0.35)', border: '1px solid rgba(255,255,255,0.08)', flexWrap: 'wrap',
       }}>
-        {plans.map((p, i) => (
+        {plans.map((p, i) => {
+          const sel = activePlanIdx === i;
+          return (
           <button key={p.plan_id} onClick={() => setActivePlanIdx(i)} style={{
-            flex: 1, minWidth: 160, padding: '12px 18px', borderRadius: 10, border: 'none', cursor: 'pointer',
-            fontWeight: 700, fontSize: 14,
-            background: activePlanIdx === i ? 'linear-gradient(135deg,#6366f1,#4f8ef7)' : 'transparent',
-            color: activePlanIdx === i ? '#fff' : 'var(--text-2)',
+            flex: 1, minWidth: 160, padding: '12px 18px', borderRadius: 9, border: 'none', cursor: 'pointer',
+            fontWeight: sel ? 900 : 700, fontSize: 14,
+            // 172차 p4 — 찐한 파랑 + 노랑 텍스트, 미선택은 어두운 회색 + 밝은 텍스트
+            background: sel ? '#1e3a8a' : 'rgba(255,255,255,0.04)',
+            color: sel ? '#fde047' : '#e2e8f0',
+            boxShadow: sel ? '0 0 0 2px #fde047 inset' : 'none',
             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
+            transition: 'all 150ms',
           }}>
             <span>{p.name || p.plan_id}</span>
-            <span style={{ fontSize: 12, opacity: 0.8 }}>
+            <span style={{ fontSize: 12, opacity: sel ? 0.9 : 0.7 }}>
               {planStats[i].onCount} / {planStats[i].total} 활성
             </span>
           </button>
-        ))}
+          );
+        })}
       </div>
 
       {/* 검색 + 활성 플랜 컨트롤 */}
