@@ -6,6 +6,7 @@ namespace Genie\Handlers;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
 use Genie\Db;
+use Genie\Handlers\UserAuth;
 
 /**
  * Admin/User 메뉴 가시성 토글 Handler — N-152-F F2/F3 (T3 트랙) 자체 구현.
@@ -36,6 +37,25 @@ final class AdminMenu
 
     private static function gate(Request $req, Response $resp, string $minRole = 'viewer'): array
     {
+        // 170차 P0 #1 — admin endpoint (/v425/admin/*) 는 bearer token + plan='admin' 기반.
+        // index.php middleware 가 v424/v425/admin 을 bypass 하므로 attribute 미설정 → token gate 사용.
+        // viewer 용 /v425/menu-tree 는 기존 v421 middleware attribute 패턴 유지.
+        if ($minRole === 'admin') {
+            $gate = UserAuth::requirePlan($req, $resp, 'admin');
+            if ($gate !== null) {
+                return ['error' => $gate];
+            }
+            return [
+                'tenant'   => 'default',
+                'role'     => 'admin',
+                'scope'    => 'admin:*',
+                'pdo'      => Db::pdoFor(false),
+                'user_id'  => 'admin',
+                'is_super' => true,
+            ];
+        }
+
+        // viewer/connector/analyst — v421 middleware attribute 기반 (legacy path)
         $role  = (string)($req->getAttribute('auth_role') ?? '');
         $scope = (string)($req->getAttribute('auth_scope') ?? '');
         $tenant = (string)($req->getAttribute('auth_tenant') ?? '');
@@ -55,13 +75,11 @@ final class AdminMenu
             ], 403)];
         }
 
-        // 메뉴 트리는 운영 DB 글로벌 — demo 분기 없음
-        $pdo = Db::pdoFor(false);
         return [
             'tenant'   => $tenant,
             'role'     => $role,
             'scope'    => $scope,
-            'pdo'      => $pdo,
+            'pdo'      => Db::pdoFor(false),
             'user_id'  => $tenant,
             'is_super' => self::isSuper($role, $scope),
         ];

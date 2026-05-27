@@ -1,479 +1,459 @@
-# 170차 세션 인계서 (NEXT_SESSION.md) — **169차 P0-P5 6 commit + 운영/데모 deploy 완료 + 사용자 검증 결과**
+# 171차 세션 인계서 (NEXT_SESSION.md) — **170차 P0 #1 5회 화이트 + cc puppeteer root cause 확정 + 5회 rollback + 본 phase 종결**
 
 > **작성일**: 2026-05-27 (사용자 명시 승인 후)
-> **이전 세션**: 169차 (사용자 발견 issue 5종 + admin 페이지 mock 완전 제거 + PM Gantt CPM + Sidebar F2/F3 통합)
-> **다음 세션**: 170차
+> **이전 세션**: 170차 (P0 #1 진단 + backend 적용 + frontend 5회 deploy 실패)
+> **다음 세션**: 171차
 > **저장 위치**: repo root `NEXT_SESSION.md`
-> **종결 방식**: **6 commit master 누적 + origin push 완료 + 운영/데모 frontend deploy 완료 + backend AdminPlans + DB plan_config/plan_menu_access 적용 완료**
+> **종결 방식**: **backend 170p1 admin gate 운영 적용 commit 준비 + frontend 169 P5 정합 유지 + sw.js unregister-only deploy + cc puppeteer 직접 검증으로 root cause 확정**
 
 ---
 
-## ⚠️ 170차 검수자 최우선 인지 사항
+## ⚠️ 171차 검수자 최우선 인지 사항
 
-### 1. 최상위 상태 — 169차 결과
+### 1. 최상위 상태 — 170차 결과
 
-**169차 = 사용자 발견 issue 5종 + admin 페이지 mock 완전 제거 + PM Gantt CPM 본체 + Sidebar F2/F3 통합 + 운영/데모 통합 deploy.**
+**170차 = P0 #1 (PlanPricing/AdminMenuManager 진입 불가) 진단 완료 + backend admin gate 운영 적용 + DB 3 plan seed + sw.js unregister-only 적용 + frontend 5회 화이트 후 5회 rollback → 본 phase 안전 우선 종결.**
 
-**Backend 운영 적용 결과** ✅:
-- `Migrate.php` 169 fix (`@rollback` block multiline strip) — 168차 deploy 발견 버그 해소
-- `Handlers/PM/Gantt.php` CPM forward/backward pass 본체 (skeleton → 176 LOC 실 구현)
-- `Handlers/AdminPlans.php` 신규 (6 method: list / upsert / delete / publicPlans / menuAccessAll / menuAccessUpsert / paddleStats / dbStats)
-- `routes.php` v424/admin/plans 14 endpoint 등록 + `/auth/pricing/public-plans` AdminPlans 로 routing 교체
-- `plan_config` + `plan_menu_access` 운영 DB 테이블 생성
-- `menu_tree` seed 26 row (169 P1)
-- `schema_migrations` 16 row (168차 13 + 169 P1/P2/P3 = 16)
-- php8.1-fpm restart 완료
+**최종 운영 상태** (171차 진입 시점):
 
-**Frontend 운영 상태** ✅ deploy 성공 (운영 + 데모 동일 active index, `index-BZy8BlmR.js`):
-- `Admin.jsx` AdminEnvironment 실구현 (10L stub → 250L)
-- `PgConfig.jsx` 완전 재작성 (53L hardcoded mock → 250L 실 Paddle stats fetch)
-- `DbAdmin.jsx` 완전 재작성 (53L hardcoded mock → 170L 실 information_schema fetch)
-- `SubscriptionPricing.jsx` 12L redirect → `/admin/plan-pricing`
-- `PlanPricing.jsx` **신규 작성** (admin 플랜별 구독요금 + 메뉴권한 매트릭스 + 실시간 동기화)
-- `Sidebar.jsx` F2/F3 통합 (`useMenuVisibility().isVisible(menuKey)` 필터) + ADMIN_MENU 2 항목 추가
-- `AuthContext.jsx` BroadcastChannel listener (admin 권한 변경 시 user sidebar 실시간 갱신)
-- i18n ko/en `gNav.{platformEnvLabel,planPricingLabel,menuTreeLabel,dbSchemaLabel,paymentPgLabel}` 5 keys
+| 영역 | 상태 | 비고 |
+|---|:-:|---|
+| 운영 frontend dist | ✅ 169 P5 정합 `index-Bx_jPaID.js` | 5회 rollback 후 |
+| 데모 frontend dist | ✅ 169 P5 정합 `index-Bx_jPaID.js` | 동일 |
+| 운영 backend `index.php` | ✅ 170p1 admin gate bypass (v424/v425/admin) | commit 대기 |
+| 운영 backend `AdminPlans.php` | ✅ 170p1 (7 method admin gate) | commit 대기 |
+| 운영 backend `AdminMenu.php` | ✅ 170p1 (gate() admin minRole 분기) | commit 대기 |
+| 운영 sw.js (typo path `roi.genie-go.com`) | ✅ NEW unregister-only 1377 bytes | commit 대기 |
+| 데모 sw.js (typo path `roidemo.genie-go.com`) | ✅ NEW unregister-only 1377 bytes | 동일 |
+| 운영 DB `plan_config` seed | ✅ 3 row (starter/pro/enterprise) | 보존 |
+| 운영 DB `plan_menu_access` | ⚠️ 0 row (PlanPricing 진입 못 해서 채우지 못함) | 171차 |
+| php8.1-fpm | ✅ active | |
+| `/v424/health` | ✅ 200 | |
+| `/v424/admin/plans` (no auth) | ✅ 401 (admin gate 작동) | |
+| `/v425/admin/menu-tree` (no auth) | ✅ 401 (gate() admin 분기 작동) | |
+| 운영 root | ✅ 200 (화이트 없음, cc puppeteer 검증) | |
 
-**⚠️ 사용자 검증 시 발견 — 170차 P0 #1 의무**:
-- 사이드바 메뉴 (`관리자 시스템 > 플랜별 구독요금`, `메뉴 트리 관리`) 는 정상 표시 ✅
-- 그러나 **메뉴 클릭 시 PlanPricing / AdminMenuManager 페이지가 표시 안 됨** ❌
-- 메뉴 권한 설정 페이지 (각 plan × menu 매트릭스) 도 진입 불가
-- **원인 진단 + 재구현 의무** — §5.1 참조
+**P0 #1 미해결** ❌:
+- AdminMenuManager (`/admin/menu-tree`) — "접근 불가" 표시 (frontend `user.role` 체크, DB `role` 컬럼 없음)
+- PlanPricing (`/admin/plan-pricing`) — 페이지 진입 가능하나 apiClient base=`localhost:8000` fallback fail → 빈 화면
 
-### 2. 사용자 운영원칙 누적 (U-prefix)
+### 2. cc puppeteer 직접 검증으로 root cause 결정적 확정
 
-기존 U-161-A ~ U-168-C 유지. **169차 신규**:
+170차 4회 deploy 후 사용자 화이트 호소 → cc가 puppeteer headless 설치 + 운영 직접 접속 검증:
 
-- **U-169-A**: admin 페이지 mock 데이터 유입 절대 금지 정책. 모든 KPI = backend fetch + fail 시 `—` placeholder. mock 대체 절대 금지. `data_source` UI 명시 + `LIVE` 배지 시각 표시. 169차 P5 commit `b841307` 정합.
-- **U-169-B**: admin 의 plan-menu-access 변경 → 모든 user sidebar 새로고침 없이 즉시 반영 (BroadcastChannel `geniego_menu_access_sync` + custom event `menu-access-saved`). cross-tab + same-tab 둘 다 처리.
-- **U-169-C**: PG/결제 표기 = `Paddle (MoR)` 고정. KRW/Toss/PayPal/Apple Pay/Google Pay 표기 절대 금지 (168차 U-168-C 정합).
-- **U-169-D**: DB migration 적용은 운영 `bin/migrate.php both` 사용. **mysql cli `<` redirect 금지** — `-- @rollback` 다음 `DROP TABLE` 도 실행되는 cli 우회 issue (169차 P3 deploy 시 발견 + heredoc 직접 CREATE 로 우회 적용).
+**170p5 dist (B_HhJz2K) — fresh headless (SW/cache 없음)**:
+```
+PAGEERR: Cannot read properties of null (reading 'useCallback')
+TypeError: Cannot read properties of null (reading 'useCallback')
+    at vendor-react-DuxosCKn.js:1:6273
+    at pages-ai-CoKrPWkS.js:47:65790
+```
 
-기존 N-prefix 유지. **169차 신규**:
-- **N-169-pg-admin**: admin 플랜별 구독요금 + 플랜별 메뉴 접근 권한 관리 + 실시간 동기화 (169차 작성 / **사용자 검증 결과 페이지 진입 불가 → 170차 P0 #1 재구현 의무**)
-- **N-169-mock-purge**: admin 페이지 hardcoded mock 완전 제거 (3 페이지 완료 + 22 페이지 audit 리스트, 170차 후속)
-- **N-169-perf**: vendor-locales 11.5MB chunk lazy-split (168차 화이트스크린 재발 방지, 별도 트랙)
+**169 P5 dist (Bx_jPaID) — fresh headless**: ✅ login 페이지 정상 render
 
-### 3. 170차 검수자 첫 응답 의무
+⇒ **170차 화이트 root cause = vite.config.js `manualChunks` 의 vendor-react 분리가 PlanPricing.jsx 변경 후 chunk graph 재분배 시 init order race condition 야기** (SW/cache 무관, build 자체 issue).
 
-- ⚠️ 본 인계서 §1-§5 인지 명시
-- U-169-A/B/C/D 인지 명시
-- 169차 6 commit (`32bad7e3` ~ `b8413075`) 인지 명시 + push 완료 인지
-- 운영 + 데모 적용 상태 인지 (active index `index-BZy8BlmR.js` 정합)
-- **170차 P0 #1 (PlanPricing 페이지 진입 불가 issue) 진단 + 재구현** 1순위 결정
-- **사용자 credentials 회전 확인 의무** (운영 SSH + MySQL root)
+**부가 발견** (cc 진단 중):
+- nginx vhost typo: `location = /sw.js { root /home/wwwroot/roi.genie-go.com/...; }` (하이픈) — main root는 `roi.geniego.com` (하이픈 없음). sw.js만 별도 typo 디렉토리에서 serve됨. dist swap 시 sw.js 미반영 → 옛 SW가 chunk 강제 캐싱 → 화이트 보조 트리거.
+- `apiClient.js` L1 `const base = import.meta.env.VITE_API_BASE || "http://localhost:8000";` — `.env` 파일 부재로 fallback 적용 → 운영 브라우저가 localhost 호출 → CORS fail (28 페이지 영향, cc puppeteer로 OrderHub 등 `ERR_CONNECTION_REFUSED` 직접 확인).
+
+### 3. 사용자 운영원칙 누적 (U-prefix)
+
+기존 U-161-A ~ U-169-D 유지. **170차 신규**:
+
+- **U-170-A**: frontend dist swap 후 cc puppeteer headless 직접 검증 필수. 사용자 브라우저 화이트 호소 시 SW/cache 영향 배제 위해 fresh browser 시뮬레이션 (puppeteer `headless: 'new'` + `--no-sandbox`). cc 진단 script = `_cc_verify_ops_170.cjs` 패턴 (콘솔 로그 + pageerror + failedRequests + screenshot).
+- **U-170-B**: nginx vhost `location = /sw.js` root 정합성 점검 의무. 새 dist swap 시 sw.js 위치가 main root 와 동일한지 확인. 운영 환경의 typo (`genie-go` vs `geniego`) 가 1회 deploy 화이트 트리거.
+- **U-170-C**: vite manualChunks 변경 (vendor-react 분리 등) 은 init order race risk. PlanPricing.jsx 같은 단일 페이지 변경도 chunk graph 재분배 야기 → 전체 build 영향. 변경 후 cc puppeteer 검증 의무.
+- **U-170-D**: PWA Service Worker 가 chunk 강제 캐싱 — dist swap 후 옛 SW 잔존으로 새 chunk 못 받음 → 화이트. unregister-only sw.js 가 정합 fix (본 phase 적용). 향후 PWA 기능 필요 시 SW를 cache-first → network-first 전환.
+
+기존 N-prefix 유지. **170차 신규**:
+- **N-170-vite-fix**: vite.config.js `manualChunks` 의 vendor-react/vendor-router 분리 제거 (entry 흡수) → init order 안정. 171차 P0 #1 통합 fix 의 일부.
+- **N-170-apiclient-base**: apiClient.js L1 base fallback `localhost:8000` → `""` (relative path, 동일 origin). 28 페이지 영향 — 171차 P0 #1 통합 fix.
+- **N-170-nginx-typo**: nginx vhost (`/usr/local/nginx/conf/vhost/{roi,roidemo}.genie-go.com.conf`) `location = /sw.js` root → main root 정합 (`roi.geniego.com`, 하이픈 없음).
+- **N-170-pwa-strategy**: PWA SW를 unregister-only 로 영구 유지하거나, 향후 PWA 기능 필요 시 cache-first → network-first 전환. 본 170차에 unregister-only sw.js 적용.
+
+### 4. 171차 검수자 첫 응답 의무
+
+- ⚠️ 본 인계서 §1-§5 인지 명시 (특히 §1 최상위 상태 + §2 cc puppeteer root cause)
+- U-170-A/B/C/D 인지 명시
+- **P0 #1 미해결 인지 + 171차 1순위 통합 fix 진행 결정** (cc 권장: vite.config.js + apiClient + nginx + PlanPricing 통합 fix)
+- 5회 화이트 trauma 인지 → 향후 frontend dist 변경 시 cc puppeteer 검증 의무
+- 사용자 credentials 회전 확인 의무 (운영 SSH + MySQL root 169차에 9회 + 170차에 12회 추가 사용)
 
 ---
 
-## 1. 169차 commit 6종 (origin/master push 완료)
+## 1. 170차 작업 시퀀스 (5회 화이트 → 5회 rollback)
 
-| Commit | 영역 | 변경 | 상태 |
-|---|---|---|:-:|
-| `32bad7e3` | Migrate.php @rollback strip + AdminEnvironment 실구현 + i18n 3 keys (gNav.platformEnvLabel/dbSchemaLabel/paymentPgLabel) | +290 / -5 | ✅ deploy |
-| `7be46973` | Sidebar F2/F3 통합 + menu_tree seed 26 menuKey | +78 / -5 | ✅ deploy (menu_tree 26 row) |
-| `1547ea76` | PM Gantt CPM forward/backward pass 본체 (skeleton → 176L) | +176 / -30 | ✅ deploy |
-| `5cd03b1a` | PlanPricing admin 페이지 신규 (USD/Paddle 정합) + plan_config 테이블 | +550 / -3 | ✅ deploy |
-| `c898ed28` | 완벽 동기화 — admin 메뉴권한 → user sidebar 실시간 (BroadcastChannel + AuthContext listener) | +397 / -12 | ✅ deploy |
-| `b8413075` | PgConfig + DbAdmin + SubscriptionPricing **mock 완전 제거** + Paddle/DB 실 stats endpoint | +542 / -119 | ✅ deploy |
+| Phase | 변경 영역 | 결과 | rollback |
+|:-:|---|:-:|:-:|
+| 170p1 | backend 3 file (admin gate) + frontend dist (PlanPricing + AdminMenuManager fix) | ❌ 화이트 | ✅ 1차 rollback (169 P5) |
+| 170p2 | frontend dist (PlanPricing useAuth 제거 + AdminMenuManager 유지) | ❌ 화이트 | ✅ 2차 rollback |
+| 170p3 | frontend dist (apiClient base fallback `localhost:8000` → `""` fix) | ❌ 화이트 | ✅ 3차 rollback |
+| 170p4 | frontend dist (apiClient fix + index.html v6.1.0 cache-bust bump) | ❌ 화이트 | ✅ 4차 rollback (긴급 — 잘못된 timestamp tgz 로 dist 사라짐 → `dist.prev170p4` mv 로 즉시 복구) |
+| 170p5 | backend only redeploy + frontend dist (PlanPricing inline fetch + index.html v6.1.0) | ❌ 화이트 (cc puppeteer 확정) | ✅ 5차 rollback |
 
-**합계**: 6 commit, +2033 / -174 (純 +1859L). origin/master 동기화 완료.
+**4차 rollback 시 긴급 issue**: backup tgz timestamp 가정 실패 (`pre170p4_20260527_092951` vs 실제 `pre170p4_20260527_092619`) → tar extract fail → dist 사라짐 → ops/demo root 404 → `dist.prev170p4` 폴더 mv 로 즉시 복구. **U-170-A 정합 (검증 + backup timestamp 정확성)**.
 
-### 1.1 운영 deploy 시퀀스 (3회)
+### 1.1 cc puppeteer 검증 절차 (U-170-A 정합)
 
-**1차 (commit 32bad7e3)**:
-- Backend `Migrate.php` pscp + fpm restart → `/v424/health` 200
-- Frontend dist tar pscp → 운영 `dist/` 교체 (active `index-ErZUZuka.js`)
-- Backup: `/tmp/Migrate.php.pre169_20260527_062647` + `/tmp/frontend_dist_pre169_20260527_062647.tgz`
+**Script** (`_cc_verify_ops_170.cjs`, 본 phase 작성 + 171차 보존 권장):
+```js
+const puppeteer = require('puppeteer');
+const browser = await puppeteer.launch({ headless: 'new', args: ['--no-sandbox', '--disable-setuid-sandbox', '--ignore-certificate-errors'] });
+const page = await browser.newPage();
+page.on('console', msg => consoleLogs.push(`[${msg.type()}] ${msg.text()}`));
+page.on('pageerror', err => pageErrors.push(`PAGEERR: ${err.message}\n${err.stack}`));
+page.on('requestfailed', req => failedRequests.push(`FAIL: ${req.url()} (${req.failure().errorText})`));
+await page.goto('https://roi.genie-go.com/login', { waitUntil: 'networkidle2', timeout: 30000 });
+// 콘솔 로그 + pageerror + failedRequests + screenshot 출력
+```
 
-**2차 (commit 7be46973)**:
-- 운영 + 데모 frontend dist 교체 (active `index-BZy8BlmR.js`)
-- menu_tree DB seed 26 row (개별 INSERT — multi-row INSERT 가 mysql cli stdin redirect 에서 silent fail 한 후 단순화 적용)
-- schema_migrations 14 (169 P1 기록)
-- Backup: `/tmp/frontend_{ops,demo}_dist_pre169p1_20260527_064532.tgz`
+**170p5 vs 169 P5 비교 결과**:
+```
+[170p5 dist B_HhJz2K]
+ROOT_INNER_HTML: '' (빈 — React render 실패)
+PAGEERR: Cannot read properties of null (reading 'useCallback')
+       at vendor-react-DuxosCKn.js:1:6273
+       at pages-ai-CoKrPWkS.js:47:65790
 
-**3차 통합 (commits 5cd03b1a + c898ed28 + b8413075)**:
-- Backend `AdminPlans.php` 신규 + `routes.php` 갱신 + `Handlers/PM/Gantt.php` 본체 + `Migrate.php` (P0)
-- Frontend dist 통합 교체 (운영 + 데모 둘 다)
-- DB migration `plan_config` + `plan_menu_access` heredoc 직접 CREATE 적용 (mysql cli `<` redirect 우회 — §1.2 참조)
-- schema_migrations 16 (168차 13 + 169 P1/P2/P3 = 16)
-- Backup: `/tmp/frontend_{ops,demo}_dist_pre169p5_20260527_072047.tgz` + `/tmp/routes.php.pre169p5_*` + `/tmp/AdminPlans.php.169p5`
+[169 P5 dist Bx_jPaID]
+ROOT_INNER_HTML: <div style="min-height: 100vh; ..."> (login UI 정상 render)
+PAGEERR: (없음)
+FAIL: http://localhost:8000/api/v424/orderhub/orders (apiClient base fallback issue, 별도)
+```
 
-### 1.2 mysql cli `<` redirect 우회 issue (169차 발견, U-169-D 정합)
+⇒ **170p5의 PlanPricing.jsx + index.html 변경이 vite chunk graph 재분배 → vendor-react init order race → useCallback null**.
 
-`/tmp/m169_002.sql` 내용:
+### 1.2 nginx /sw.js typo (U-170-B)
+
+```nginx
+# /usr/local/nginx/conf/vhost/roi.genie-go.com.conf
+server {
+    root /home/wwwroot/roi.geniego.com/frontend/dist;  # 정확 (geniego, 하이픈 없음)
+    ...
+    location = /sw.js {
+        ...
+        root /home/wwwroot/roi.genie-go.com/frontend/dist;  # typo (genie-go, 하이픈 있음!)
+    }
+}
+```
+
+⇒ dist swap 시 sw.js 만 `/home/wwwroot/roi.genie-go.com/frontend/dist/sw.js` 에서 serve. 본 phase 직접 복사로 우회 적용. 171차에 nginx config fix 필요.
+
+---
+
+## 2. 운영 적용 사항 (171차 진입 시점 보존됨)
+
+### 2.1 Backend (운영만, 데모 미동기화)
+
+| 파일 | 변경 | 운영 적용 |
+|---|---|:-:|
+| `backend/public/index.php` | v424/v425 admin bypass 4 path 추가 (L86-89, v423/admin 정합) | ✅ |
+| `backend/src/Handlers/AdminPlans.php` | `use UserAuth` + 7 method (list/upsert/delete/dbStats/paddleStats/menuAccessAll/menuAccessUpsert) 에 `UserAuth::requirePlan(.., 'admin')` gate 추가. publicPlans 제외 (public bypass 정합). | ✅ |
+| `backend/src/Handlers/AdminMenu.php` | `use UserAuth` + `gate()` 함수에 admin minRole 분기 (token-based) + viewer/connector/analyst 기존 attribute 방식 유지 | ✅ |
+
+**Backup** (운영 `/tmp/`):
+- `index.php.pre170p1_20260527_090215`
+- `AdminPlans.php.pre170p1_20260527_090215`
+- `AdminMenu.php.pre170p1_20260527_090215`
+
+### 2.2 Frontend (운영 + 데모)
+
+| 파일 | 변경 | 운영 적용 |
+|---|---|:-:|
+| dist (전체) | 169 P5 정합 유지 (5회 rollback 후) | ✅ active `index-Bx_jPaID.js` |
+| `sw.js` (typo path `roi.genie-go.com/frontend/dist`) | unregister-only 1377 bytes (caches.delete + self.unregister + clients.navigate) | ✅ |
+| `sw.js` (typo path `roidemo.genie-go.com/frontend/dist`) | 동일 unregister-only | ✅ |
+
+**Backup** (운영 `/tmp/`):
+- `frontend_ops_dist_pre170p1_20260527_090215.tgz`
+- `frontend_demo_dist_pre170p1_20260527_090215.tgz`
+- ... pre170p2 / pre170p3 / pre170p4 / pre170p5 각 운영/데모 = 총 10 tgz (디스크 정리 필요 — `/tmp/` 약 120 MB)
+
+### 2.3 DB (운영만)
+
 ```sql
-CREATE TABLE IF NOT EXISTS plan_config (...);
--- @rollback
-DROP TABLE IF EXISTS plan_config;
--- @end-rollback
+-- plan_config seed (170차에 추가)
+INSERT INTO plan_config (plan_id, name, description, price_usd, price_annual_usd, ...)
+VALUES
+  ('starter','Starter','소규모 팀 · 단일 채널 운영', 49.00, 39.00, ...),
+  ('pro','Pro','성장 브랜드 · 멀티채널 운영', 149.00, 119.00, ...),
+  ('enterprise','Enterprise','대규모 운영 · 맞춤 통합', NULL, NULL, ...)
+ON DUPLICATE KEY UPDATE ...;
 ```
 
-`mysql -uroot ... geniego_roi < /tmp/m169_002.sql` 실행 시:
-- mysql cli 가 `-- @rollback` 을 단순 line comment 로 처리
-- 그 다음 줄 `DROP TABLE IF EXISTS plan_config;` 실행
-- 결과: CREATE 직후 DROP → 테이블 미생성 (`ERROR 1146` 후속 확인)
+`plan_menu_access` = 0 row (PlanPricing 진입 못 해서 admin 이 매트릭스 작성 불가).
 
-**169차 Migrate.php fix** (`splitStatements` L111 의 multiline @rollback strip) 는 **운영 `bin/migrate.php both` 사용 시만 적용**. mysql cli stdin redirect 는 우회 경로 → fix 적용 안 됨.
+### 2.4 운영 dist 디렉토리 잔존 (정리 필요)
 
-**170차 의무**: migration 적용은 운영 `bin/migrate.php both` 사용. mysql cli `<` redirect 금지 (U-169-D).
-
-운영 적용 패턴:
-```bash
-# 운영 host
-pscp E:\...\backend\migrations\20260527_169_002_create_plan_config.sql root@1.201.177.46:/home/wwwroot/roi.geniego.com/backend/migrations/
-cd /home/wwwroot/roi.geniego.com/backend && php bin/migrate.php both --dry-run
-php bin/migrate.php both
+```
+/home/wwwroot/roi.geniego.com/frontend/
+├── dist (현재 활성 = 169 P5)
+├── dist.170p1_bad_*  (170p1 화이트 dist)
+├── dist.170p2_bad_*  (170p2 화이트 dist)
+├── dist.170p3_bad_*  (170p3 화이트 dist)
+├── dist.170p4_bad_*  (170p4 화이트 dist)
+├── dist.170p5_bad_*  (170p5 화이트 dist)
+├── dist.broken_168, dist.old, dist.pre169_*, dist.pre169p1_*, dist.pre169p5_*
+├── dist.prev170p3, dist.prev170p4, dist.prev170p5, dist.rollback170p1
 ```
 
-### 1.3 phase 표 (169차 최종)
+171차에 운영/데모 백업 디렉토리 정리 권장 (현재 ~12 폴더 × 80MB ≈ 1GB 점유).
 
-| Phase | 작업 | 상태 |
-|:-:|---|:-:|
-| 0 | 168차 frontend 화이트스크린 진단 (Task #1) | ✅ 종결 (root cause 단언 불가, 운영 정상) |
-| 1 | AdminEnvironment 실구현 (Task #2) | ✅ + 사용자 검증 OK |
-| 2 | 채널 KPI 경로 오류 진단 (Task #3) | ✅ Admin.jsx fix 로 자동 해소 |
-| 3 | Migrate.php @rollback strip fix (Task #4) | ✅ 운영 PHP 8.1 검증 PASS |
-| 4 | 169차 1차 운영 deploy (Task #5) | ✅ |
-| 5 | 169차 1차 데모 deploy (Task #6) | ✅ |
-| 6 | Sidebar F2/F3 통합 + menu_tree seed (Task #7) | ✅ |
-| 7 | PM Gantt CPM 본체 (Task #8) | ✅ |
-| 8 | PlanPricing admin 페이지 신규 (Task #9) | ⚠️ 작성/deploy 완료 / **페이지 진입 불가 (170차 P0 #1)** |
-| 9 | PgConfig + DbAdmin + SubscriptionPricing mock 제거 (Task #10) | ✅ deploy |
-| 10 | 169차 인계서 v3 (본 파일, 사용자 명시 승인 후) | 진행 중 |
+### 2.5 운영 user_session 검증 (170차 진단)
+
+```
+admin user = ceo@ociell.com (id=5, plan='admin', is_active=1)
+user_session row 1개 (active, expires_at=2026-06-25)
+plan_distribution: admin=1, demo=2, pro=2
+app_user 스키마: role 컬럼 부재! (plan='admin'이 사실상 admin role 대체)
+```
+
+170차 발견 정합 — AdminMenuManager의 `user.role === 'admin'` 체크는 항상 false → "접근 불가" 표시. 171차에 `user.plan === 'admin'` 으로 fix (또는 useAuth `isAdmin` 사용) 필요.
 
 ---
 
-## 2. 사용자 발견 issue 5종 결과
+## 3. local repo 변경 사항 (commit 대기)
 
-| Issue | 상태 |
-|---|---|
-| `/admin` AdminEnvironment stub redirect | ✅ Admin.jsx 실구현 deploy + 사용자 검증 OK |
-| 채널 KPI 경로 오류 | ✅ Admin.jsx fix 로 자동 해소 |
-| `/pg-config` 142건/8.4M/토스페이먼츠 가상데이터 | ✅ 완전 제거 + Paddle 실 stats fetch |
-| **admin 플랜별 구독요금 설정 페이지 누락** | ⚠️ 작성 완료 / **페이지 진입 불가 → 170차 P0 #1** |
-| **사용자 구독 plan ↔ sidebar 완벽 동기화** | ✅ BroadcastChannel + AuthContext listener (검증은 P0 #1 후 가능) |
+```
+M  backend/public/index.php             (v424/v425 admin bypass 4 path 추가)
+M  backend/src/Handlers/AdminMenu.php   (gate() admin minRole 분기)
+M  backend/src/Handlers/AdminPlans.php  (7 method admin gate)
+M  frontend/public/sw.js                (unregister-only)
+M  tools/resolver_consumer_manifest_v2.json  (170차 무관, 별도)
+?? _cc_verify_ops_170.cjs               (cc puppeteer 진단 script — 보존 권장)
+?? _cc_verify_screenshot_login.png      (cc 진단 screenshot)
+?? data/genie_geniego_roi.sqlite        (170차 무관)
+?? docs/spec/docs/                      (170차 무관)
+?? session157_collisions/, session157_wronglang/  (170차 무관)
+?? triage_*.json, triage_out_ko/        (170차 무관)
+```
 
----
+**170차 commit 권장**: backend 3 file + sw.js + 본 인계서. **사용자 명시 승인 후 commit** (memory `feedback_handoff_approval.md` 정합).
 
-## 3. 운영 + 데모 적용 상태 (169차 종결 시점)
-
-| 영역 | 운영 (`roi.genie-go.com`) | 데모 (`roidemo.genie-go.com`) |
-|---|---|---|
-| frontend dist active index | ✅ `index-BZy8BlmR.js` | ✅ `index-BZy8BlmR.js` (정합) |
-| `/` http | ✅ 200 | ✅ 200 |
-| backend `AdminPlans.php` | ✅ 16903 bytes | ⚠️ 별도 backend (옛 Apr 12, v424/v425 routing 없음) |
-| backend `Handlers/PM/Gantt.php` | ✅ 본체 | ⚠️ 별도 backend |
-| backend `Migrate.php` 169 fix | ✅ | ⚠️ 별도 backend (Migrate.php 자체 없음) |
-| DB `plan_config` 테이블 | ✅ 생성 | (데모 DB 별도) |
-| DB `plan_menu_access` 테이블 | ✅ 생성 | (데모 DB 별도) |
-| DB `menu_tree` 26 row | ✅ | (데모 DB 별도) |
-| DB `schema_migrations` | ✅ 16 row | (데모 DB 별도) |
-| `/v424/health` | ✅ 200 | ⚠️ 404 (nginx vhost v424/v425 routing 없음) |
-| `/v424/admin/paddle/stats` | ✅ 401 auth gate | ⚠️ 404 |
-| `/auth/pricing/public-plans` | ✅ 200 + 3 plan fallback | (데모 backend 옛 routing) |
-| php8.1-fpm | ✅ active | ✅ active (php-fpm-demo.sock 별도) |
-
-**운영 backup 보존** (`/tmp/`):
-- `Migrate.php.pre169_*`
-- `Gantt.php.pre169p2_*`
-- `routes.php.pre169p5_*`
-- `frontend_dist_pre169_*.tgz`
-- `frontend_ops_dist_pre169p1_*.tgz`
-- `frontend_demo_dist_pre169p1_*.tgz`
-- `frontend_ops_dist_pre169p5_*.tgz`
-- `frontend_demo_dist_pre169p5_*.tgz`
+`_cc_verify_*` 산물 — 171차에 cc 가 재사용할 수 있도록 `_cc_verify_ops_170.cjs` 보존 권장 (gitignore 추가 또는 별도 docs/cc-tools/ 이동).
 
 ---
 
-## 4. 미해결 트랙 (cumulative)
+## 4. 171차 1순위 작업 (cc 권장)
 
-### 4.1 단기 (170차 P0/P1)
+### 4.1 권장 1순위 (P0 #1 통합 fix)
 
-- **[P0 #1] 플랜별 구독요금 설정 + 플랜별 접근권한 설정 페이지 실 작동 검증/재구현** — §5.1 진단 절차 의무
-- [P1] 22 추가 mock 페이지 fix (N-169-mock-purge 후속, §4.3)
-- [P1] 데모 backend 동기화 (옛 Apr 12 → 운영 정합)
-- [P1] 데모 nginx vhost `v424/v425` routing 추가 (backend 동기화 후)
-- [P1] PM-Core handler 본체 잔여 (Milestones, Dependencies, Assignees, Comments, Attachments, Events, Audit, Kpi)
-- [P1] PM-Core frontend 6 추가 page (Gantt / Milestones / Activity / TaskTable / Settings / TaskDetail)
+**fix 4 영역 동시 진행 + cc puppeteer 즉시 검증**:
 
-### 4.2 중기 (1개월 내)
-
-- [P1] PM-Core SSE long-poll 본체 + frontend EventSource 통합
-- [P2] N-169-perf vendor-locales 11.5MB chunk lazy-split (168차 화이트스크린 재발 방지)
-- [P2] MobileBottomNav F2/F3 매핑 (5 탭 menuKey 신규 정의 필요)
-- [P2] 구독자 상세내역 page (subscribers / invoice / seats — `app_user` + `paddle_subscriptions` 조회)
-- [P2] N-152-G-billing-cleanup: Payment.php 코드 삭제 + price_krw → price_usd 마이그레이션
-- [P2] 방어선 4 (demo DB 물리 분리 — 이미 분리됨 확인 필요)
-- [P3] U-165-B 41 handler 점진 migration
-
-### 4.3 mock 제거 후속 (N-169-mock-purge, 170차 audit)
-
-169차 P5 (Task #10) audit 결과 발견된 hardcoded mock 페이지 22종:
-`OrderHubEnhancedOrder` / `OrderHubOverview` / `OrderHubSettlement` / `PixelTracking` / `ReportBuilder` / `SupplierPortal` / `TeamWorkspace` / `UnifiedAIBuilder` / `AIRuleEngine` / `AlertAutomation` / `ApiKeys` / `BudgetPlanner` / `CampaignEnterpriseTabs` / `CaseStudy` / `CommerceUnifiedSearch` / `CreativeStudioTab` / `DataTrustDashboard` / `DemandForecast` / `DeveloperHub` / `DLQ` / `FeedbackCenter`
-
-각 페이지 별 backend fetch endpoint 신규 또는 기존 활용 + `—` placeholder + `LIVE` 배지 + `data_source` 명시 (U-169-A 정합).
-
-### 4.4 장기 (전략)
-
-- [P2] N-152-G 자연어 번역 — 추가 언어 발생 종결 후 일괄 (U-168-B). DeepL / Claude API / 전문 번역가 결정
-- [P2] N-159 mirror 오염 cleanup (en.js 일본어 블록 L2080-2094 + locale `Cat_beauty` placeholder)
-- [P3] PHPUnit 도입
-- [P3] i18n 동결 완전 해제 (U-164-A)
-
----
-
-## 4-bis 보안 인지 사항 (169차 누적, 의무 회전)
-
-- 169차에 운영 SSH/MySQL root credentials **9회 사용** (`$sshPass` PowerShell 변수 1회당 Remove-Variable 폐기, memory/commit/응답 미저장 정합)
-- chat session 자체에 credentials plaintext 노출 + 운영 `/root/.bash_history` 의 plink session 잔존 가능
-- **170차 진입 시 첫 작업: 사용자 credentials 회전 확인** (SSH root + MySQL root 둘 다)
-- 회전 후 `history -c` 권고
-
----
-
-## 5. 170차 검수자 1순위 작업 (cc 권장)
-
-### 5.1 권장 1순위 (P0 #1): 플랜별 구독요금 설정 + 플랜별 접근권한 설정 페이지 실 작동 검증/재구현
-
-**사용자 검증 결과 (169차 종결 시점)**:
-- 사이드바 메뉴 (`관리자 시스템 > 플랜별 구독요금`, `메뉴 트리 관리`) **표시 됨** ✅
-- 메뉴 클릭 시 **PlanPricing / AdminMenuManager 페이지가 표시 안 됨** ❌
-- 메뉴 권한 설정 매트릭스 (각 plan × menu 체크박스) 도 진입 불가
-
-**169차 작성 완료 항목 (deploy 됨)**:
-- `frontend/src/pages/PlanPricing.jsx` (신규, 약 400L — 좌 편집폼 + 우 미리보기 + permissions matrix)
-- `frontend/src/App.jsx` L70 `const PlanPricing = lazy(() => import("./pages/PlanPricing.jsx"));` + Route `/admin/plan-pricing`
-- `frontend/src/layout/Sidebar.jsx` ADMIN_MENU 에 2 항목 추가 (`/admin/plan-pricing`, `/admin/menu-tree`)
-- `backend/src/Handlers/AdminPlans.php` 6 method (list/upsert/delete/publicPlans/menuAccessAll/menuAccessUpsert/paddleStats/dbStats)
-- `backend/migrations/20260527_169_002_create_plan_config.sql` + `20260527_169_003_create_plan_menu_access.sql` (운영 DB 적용 완료)
-- `routes.php` 14 endpoint 등록
-
-**진단 절차 (170차 의무)**:
-
-1. **운영 dist active index 와 PlanPricing chunk 존재 확인**:
-   ```powershell
-   # active index hash
-   plink ... "grep -oE 'index-[A-Za-z0-9]+\.js' /home/wwwroot/roi.geniego.com/frontend/dist/index.html | head -1"
-   # PlanPricing chunk 존재
-   plink ... "ls /home/wwwroot/roi.geniego.com/frontend/dist/assets/PlanPricing-*.js"
-   # 169 P5 deploy 시 ops/demo active index hash 빈 출력 issue 있었음 — 실제 새 hash 가 적용됐는지 재확인
+1. **`vite.config.js` manualChunks 수정** (N-170-vite-fix):
+   ```js
+   // 현재 (170차 4회 화이트 root cause)
+   if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) {
+     return 'vendor-react';
+   }
+   // 제안 (entry 흡수 — init order 보장)
+   // ↑ 위 블록 제거. React를 entry chunk에 통합 → 모든 lazy chunk가 entry init 후 React 안정 사용.
+   // 또는: vendor-react 유지하되 entry에서 명시적 `import 'react'` 강제 (main.jsx 첫 줄).
    ```
 
-2. **브라우저 콘솔 확인 (사용자 협조)**:
-   - F12 → Console → `/admin/plan-pricing` 진입 시 에러
-   - `localStorage.getItem('LATEST_CRASH_ERR')`
-   - `localStorage.getItem('LATEST_CRASH_UNHANDLED')`
-   - `localStorage.getItem('LATEST_CRASH_CONSOLE')`
-   - Network 탭 → `/v424/admin/plans` 응답 확인 (401 인지 200 인지)
+2. **`apiClient.js` base fallback fix** (N-170-apiclient-base):
+   ```js
+   // 현재
+   const base = import.meta.env.VITE_API_BASE || "http://localhost:8000";
+   // 제안
+   const base = import.meta.env.VITE_API_BASE || "";  // relative path = 동일 origin
+   ```
 
-3. **RequireAuth / admin 권한 체크 redirect 검사**:
-   - `App.jsx` L429-433: `<Route path="/*" element={<RequireAuth><AppLayout /></RequireAuth>} />`
-   - admin 로그인 사용자가 `/admin/plan-pricing` 진입 시 redirect 발생 여부
-   - `Sidebar.jsx` L237 의 menuKey `system||admin` 가 admin 사용자만 sidebar 에 표시되는데, sub-item `/admin/plan-pricing` 의 menuKey `system||plan_pricing` 가 admin/enterprise 외 사용자 접근 차단 여부
+3. **nginx vhost typo fix** (N-170-nginx-typo):
+   ```nginx
+   # 운영 + 데모 vhost 둘 다
+   location = /sw.js {
+       root /home/wwwroot/roi.geniego.com/frontend/dist;  # 하이픈 제거
+   }
+   ```
 
-4. **lazy import 실패 또는 chunk 누락**:
-   - 운영 dist 의 PlanPricing chunk 가 build 되었지만 nginx 가 못 찾는 경우 (chunk hash mismatch)
-   - ChunkLoadError → ErrorBoundary 의 reload loop
+4. **`AdminMenuManager.jsx` + `PlanPricing.jsx` fix**:
+   - AdminMenuManager L17-22, L122: `user.role === 'admin'` → `useAuth().plan === 'admin'` 또는 `useAuth().isAdmin`
+   - PlanPricing: useAuth import 또는 localStorage 직접 admin check
+   - 단, **단순 변경도 chunk graph 영향 → vite.config.js fix 후에 진행**
 
-5. **결정**:
-   - 단순 deploy reload 로 해결 가능한 경우 (cache busting)
-   - 또는 코드 fix 필요한 경우 (RequireAuth/Sidebar 권한 체크 등)
-   - 또는 PlanPricing.jsx 자체 재구현 (import path 또는 export 누락)
+5. **clean build + cc puppeteer 검증 의무**:
+   ```powershell
+   cd "E:/project/GeniegoROI"
+   rm -rf frontend/node_modules/.vite frontend/.vite
+   npm run build
+   node _cc_verify_ops_170.cjs  # 운영 deploy 전 local dev server 또는 운영 staging 검증
+   ```
 
-**170차 진입 시 cc 가 즉시 수행할 명령** (사용자 password 회전 후):
+6. **운영 + 데모 통합 deploy** (이번엔 vite.config.js fix 적용 후 한 번에):
+   - backend (이미 적용, 추가 변경 없음 — 단, AdminMenu/AdminPlans에 P0 #1 commit + push 후 git 정합)
+   - frontend dist 전체 교체
+   - sw.js typo path 정합 (nginx config fix 후 일반 root 사용)
+   - cc puppeteer 즉시 검증 (login 페이지 + admin login + /admin/plan-pricing 진입 + 3 plan card)
 
-```powershell
-$sshPass = '<new_password>'
-$cmd = @'
-echo === ops active index ===
-cat /home/wwwroot/roi.geniego.com/frontend/dist/index.html | grep -oE 'index-[A-Za-z0-9]+\.js' | head -1
-echo === PlanPricing chunk ===
-ls /home/wwwroot/roi.geniego.com/frontend/dist/assets/PlanPricing* 2>/dev/null
-echo === AdminMenuManager chunk ===
-ls /home/wwwroot/roi.geniego.com/frontend/dist/assets/AdminMenuManager* 2>/dev/null
-echo === plan_config DB row ===
-mysql -uroot -p'qlqjs@Elql3!' geniego_roi 2>&1 <<EOSQL
-SELECT COUNT(*) AS plans FROM plan_config;
-SELECT COUNT(*) AS menu_access_rows FROM plan_menu_access;
-EOSQL
-'@
-& "C:\Program Files\PuTTY\plink.exe" -ssh -batch -pw $sshPass root@1.201.177.46 $cmd
-Remove-Variable sshPass
+### 4.2 권장 2순위: 운영 dist 백업 디렉토리 정리
+
+§2.4 의 12 디렉토리 ~ 1GB 정리. 다음 명령 (171차 deploy 정합 검증 완료 후):
+```bash
+# 운영 호스트
+rm -rf /home/wwwroot/roi.geniego.com/frontend/dist.{170p1,170p2,170p3,170p4,170p5}_bad_*
+rm -rf /home/wwwroot/roi.geniego.com/frontend/dist.prev170{p3,p4,p5}
+rm -rf /home/wwwroot/roi.geniego.com/frontend/dist.rollback170p1
+# 데모도 동일
+# /tmp/frontend_*_pre170*.tgz 도 정리 (10 tgz × 12MB ≈ 120MB)
 ```
 
-### 5.2 권장 2순위: 22 추가 mock 페이지 fix (N-169-mock-purge)
+### 4.3 권장 3순위: 데모 backend 동기화 (169차 §4.1 잔여)
 
-§4.3 의 22 페이지 별 backend fetch endpoint 통합. U-169-A 정합 (mock 절대 금지 + `—` placeholder + `LIVE` 배지 + `data_source` 명시). 페이지 별 약 100-150L refactor 분량.
+데모 backend = 옛 Apr 12 코드 (AdminPlans/AdminMenu 부재, v424/v425 routing 없음). 운영 정합 동기화 필요. PlanPricing fix 완료 후 데모도 동일 작동 보장.
 
-### 5.3 권장 3순위: 데모 backend 동기화
+### 4.4 권장 4순위: PM-Core handler 본체 잔여 (169차 §4.1)
 
-데모 환경 (옛 Apr 12 코드, `Migrate.php` 자체 없음, v424/v425 routing 없음) → 운영 정합. 약 1-2 시간 작업.
-
-### 5.4 권장 4순위: PM-Core handler 본체 잔여 + frontend 6 추가 page
-
-168차에 skeleton 작성, 169차 Gantt 본체 완료. Milestones / Dependencies / Assignees / Comments / Attachments / Events / Audit / Kpi 본체 + frontend Gantt / Milestones / Activity / TaskTable / Settings / TaskDetail page.
+Milestones / Dependencies / Assignees / Comments / Attachments / Events / Audit / Kpi 본체 + frontend Gantt / Milestones / Activity / TaskTable / Settings / TaskDetail page.
 
 ---
 
-## 6. 환경 / 인프라 현황 (169차 갱신)
+## 5. 미해결 트랙 (cumulative, 169차 §4 그대로 + 170차 발견)
 
-### 6.1 운영 호스트 (참조)
+### 5.1 단기 (171차 P0/P1)
 
-- 도메인: https://roi.genie-go.com
-- IP: 1.201.177.46
-- Hostname: genieroi26
-- PHP 8.1.34, MySQL 8.0.37, nginx
-- Path: `/home/wwwroot/roi.geniego.com/{backend,frontend}`
-- File owner: www:www
-- `.my.cnf.bak`: `/home/wwwroot/roi.geniego.com/backend/.my.cnf.bak` (chmod 600 root:root, 62 bytes)
+- **[P0 #1] PlanPricing + AdminMenuManager 통합 fix + cc puppeteer 검증 + 운영/데모 deploy** (§4.1)
+- [P1] 운영 dist 백업 디렉토리 정리 (§4.2)
+- [P1] nginx vhost typo fix (운영 + 데모, root reload)
+- [P1] 22 추가 mock 페이지 fix (N-169-mock-purge, 169차 §4.3)
+- [P1] 데모 backend 동기화 (§4.3)
+- [P1] PM-Core handler 본체 잔여 (§4.4)
 
-### 6.2 데모 호스트
+### 5.2 중기 / 장기
 
-- 도메인: https://roidemo.genie-go.com
-- 같은 host (1.201.177.46), 별도 vhost
-- Path: `/home/wwwroot/roidemo.geniego.com/{backend,frontend}`
-- 별도 PHP-FPM pool: `unix:/run/php/php-fpm-demo.sock`
-- 별도 DB: `geniego_roi_demo`
-- nginx vhost: `/usr/local/nginx/conf/vhost/roidemo.genie-go.com.conf`
-- 데모 backend = 옛 Apr 12 코드 (`Migrate.php` 없음, v424/v425 routing 없음)
-
-### 6.3 본 환경 (cc Windows)
-
-- `plink.exe` / `pscp.exe`: `C:\Program Files\PuTTY\`
-- `php.exe`: `E:\php\php.exe` — **xampp ini 미존재로 local 실행 불가** (168차 발견)
-- `composer.phar`: `backend/composer.phar` (2.9.5)
-- mysql client / gh CLI: 미설치
-
-### 6.4 운영 DB (169차 신규 테이블 2개)
-
-- `plan_config` (12 col + PK plan_id) — 169차 P3
-- `plan_menu_access` (5 col + PK plan_id+menu_key) — 169차 P4
-- 168차 신규 11 + 169차 신규 2 = 누적 13 신규 (165차 2 포함 schema_migrations 16)
+169차 §4.2 / §4.4 그대로 유효.
 
 ---
 
-## 7. 본 169차 발견 사항
+## 6. 본 170차 발견 사항
 
-### 7.1 mock 25 페이지 audit (N-169-mock-purge, U-169-A 신설)
+### 6.1 vite manualChunks init order race (N-170-vite-fix)
 
-`grep "val:\\s*['\"]" frontend/src/pages/*.jsx` 25 매칭. 169차 P5 에 3 페이지 (PgConfig/DbAdmin/SubscriptionPricing) 제거. 22 페이지 잔존 (§4.3 리스트).
+§1.1 cc puppeteer 검증 결과. PlanPricing.jsx 단일 변경이 vite chunk graph 재분배 → vendor-react가 lazy chunk (pages-ai) 보다 늦게 init → `useCallback` null → 화이트.
 
-### 7.2 운영 dist 와 git HEAD 정합화 자동 완료 (169차 deploy 부수 효과)
+확인된 chunk:
+- 170p5: `pages-ai-CoKrPWkS.js:47:65790` → vendor-react-DuxosCKn.js의 useCallback 호출 시 null
+- 169 P5: 동일 chunk hash 인데 정상 작동 (entry chunk 269KB vs 170p5 209KB — entry에서 무엇이 빠짐)
 
-168차 인계서 시점: 운영 dist 가 git HEAD 보다 진보된 미커밋 코드 (예: i18n `platformEnvLabel`) 보유. 169차 P0 commit `32bad7e3` 가 ko/en 에 해당 키 추가 → git HEAD 정합. 운영 deploy 로 git HEAD 적용 → 정합 완료.
+근본 fix = vendor-react 분리 제거 또는 main.jsx 첫 줄에 `import 'react'` 명시.
 
-### 7.3 mysql cli `<` redirect 우회 issue (U-169-D 신설)
+### 6.2 nginx /sw.js typo (N-170-nginx-typo)
 
-§1.2 참조. 170차 의무: `bin/migrate.php both` 사용.
+§1.2 참조. 운영 + 데모 vhost 둘 다 동일 typo. `/sw.js` 만 별도 디렉토리에서 serve → dist swap 시 미반영 → 옛 SW 잔존.
 
-### 7.4 frontend dist active index hash 변경 추적 (169차 3회)
+본 phase 우회 적용: typo 디렉토리에 직접 sw.js 복사. 171차에 nginx config fix + reload 필요.
 
-| 시점 | active index | 비고 |
-|---|---|---|
-| 169 P0 deploy | `index-ErZUZuka.js` | Migrate.php + AdminEnvironment + i18n 3 keys |
-| 169 P1 deploy | `index-BZy8BlmR.js` | Sidebar F2/F3 + menu_tree |
-| 169 P5 deploy | `index-BZy8BlmR.js` 정합 유지 (또는 신규 hash — 검증 필요) | mock 제거 + PlanPricing + Gantt |
+### 6.3 apiClient base fallback fail (N-170-apiclient-base)
 
-**170차 P0 #1 진단** 시 active index 가 169 P5 deploy 의 신규 hash 와 정합한지 확인 필요.
+§1.1 cc puppeteer 결과: `FAIL: http://localhost:8000/api/v424/orderhub/orders (net::ERR_CONNECTION_REFUSED)` 등 — 169 P5 dist 에서도 OrderHub mount 시 fetch fail. 28 페이지 영향. base fallback `localhost:8000` → `""` (relative) 로 fix 필요.
 
----
+### 6.4 PWA SW chunk 강제 캐싱 (N-170-pwa-strategy)
 
-## 8. cc 도구 라이브러리 (167차 §7 + 169차 §1.2 D 추가)
+옛 SW (Apr 30, 6312 bytes) 가 cache-first 전략 + chunk URL 캐싱 → dist swap 시 새 chunk hash 받아도 SW cache hit 으로 옛 chunk serve → entry hash mismatch → ChunkLoadError → 화이트 보조 트리거.
 
-§7.1 plink / §7.2 pscp / §7.3 PowerShell quote escape / §7.4 dry-run 검증 — 167차 인계서 §7 그대로 유효.
+본 phase 적용한 unregister-only sw.js 가 영구 fix (사용자 다음 접속 시 SW 자동 unregister + cache 정리). 171차에 PWA 전략 재정의 (cache-first 영구 폐기 또는 network-first 전환).
 
-**169차 신규 §7.5**: migration 적용은 `bin/migrate.php both` 사용. mysql cli `<` redirect 금지 (U-169-D).
+### 6.5 `app_user` 테이블 `role` 컬럼 부재 재확인
 
-**169차 신규 §7.6**: heredoc 안의 PowerShell 의 `/` 파싱 충돌 — `@' ... '@` here-string 안의 `to:"/admin"` 같은 패턴이 PowerShell parser 에서 division 으로 해석되는 케이스. 우회: 변수에 패턴 저장 후 사용 또는 character class `[/]` 사용.
+169차에 이미 발견 (`user.role` 항상 undefined). 170차 AdminMenuManager 진입 불가 root cause. 171차 frontend fix 시 `user.plan === 'admin'` 또는 `useAuth().isAdmin` 사용 정합.
 
 ---
 
-## 9. memory 파일 (`~/.claude/projects/E--project-GeniegoROI/memory/`)
+## 7. cc 도구 라이브러리 (169차 §7 + 170차 §1.1 추가)
 
-| 파일 | 169차 갱신 권고 |
+§7.1 plink / §7.2 pscp / §7.3 PowerShell quote escape / §7.4 dry-run 검증 / §7.5 `bin/migrate.php both` / §7.6 PowerShell `/` parsing 우회 — 169차 인계서 §7 그대로 유효.
+
+**170차 신규 §7.7**: cc puppeteer headless 직접 검증 (U-170-A 정합):
+```js
+const puppeteer = require('puppeteer');
+const browser = await puppeteer.launch({ headless: 'new', args: ['--no-sandbox'] });
+// page.on('console') + page.on('pageerror') + page.on('requestfailed') 캡처
+// page.goto(url, { waitUntil: 'networkidle2' })
+// document.getElementById('root').innerHTML 검사 (빈 ⇒ React render fail)
+// page.screenshot() 보조
+```
+
+설치: `cd "E:/project/GeniegoROI" && npm install --no-save puppeteer` (시간 ~1분, chromium 자동 download).
+
+**170차 신규 §7.8**: backup tgz timestamp 정확성. PowerShell `Get-Date -Format` 으로 ts 변수 사용 시 rollback 시점에 정확히 받아야. 가정값 사용 금지 → tar extract fail → dist 손실 risk. 본 phase 1회 발생 후 즉시 복구 (`dist.prev170p4` mv 사용).
+
+---
+
+## 8. memory 파일 (`~/.claude/projects/E--project-GeniegoROI/memory/`)
+
+| 파일 | 170차 갱신 권고 |
 |---|---|
-| `MEMORY.md` (index) | +0 (본 cc 가 별도 entry 추가 안 함 — 170차 cc 결정) |
+| `MEMORY.md` (index) | +0 (본 cc 가 별도 entry 추가 안 함 — 171차 cc 결정) |
 | `feedback_absolute_principles.md` (9개 절대 원칙) | 변경 없음 |
-| `feedback_handoff_approval.md` | 본 인계서가 그 정합 정합 — 사용자 승인 후 commit/push |
-| `feedback_pm_operational_rules.md` (U-prefix) | 170차 갱신 권장 (U-169-A/B/C/D 추가) |
-| `feedback_credentials_handling.md` | 변경 없음 (169차에 9회 사용 정합 처리) |
-| `project_n152f_pm_features.md` | 169차 Gantt CPM 본체 완료 반영 권장 |
-| `project_n152f_consolidated.md` | 170차 갱신 권장 (N-169-pg-admin + N-169-mock-purge + N-169-perf 추가) |
+| `feedback_handoff_approval.md` | 본 인계서가 그 정합 — 사용자 승인 후 commit/push |
+| `feedback_pm_operational_rules.md` (U-prefix) | 171차 갱신 권장 (U-170-A/B/C/D 추가) |
+| `feedback_credentials_handling.md` | 170차에 12회 추가 사용 정합 처리 — 171차 회전 확인 의무 |
+| `project_n152f_pm_features.md` | 변경 없음 |
+| `project_n152f_consolidated.md` | 171차 갱신 권장 (N-170-vite-fix / N-170-apiclient-base / N-170-nginx-typo / N-170-pwa-strategy 추가) |
 | `project_orderhub_deploy_automation.md` | 변경 없음 |
-| `reference_ops_host.md` | 169차 신규 환경 (`roidemo.genie-go.com`, php-fpm-demo.sock, geniego_roi_demo DB) 추가 권장 |
+| `reference_ops_host.md` | 170차 신규 nginx /sw.js typo + apiClient base + 170 backup tgz 위치 추가 권장 |
 
 ---
 
-## 10. 170차 검수자 첫 응답 강제 의무 사항
+## 9. 171차 검수자 첫 응답 강제 의무 사항
 
-1. ⚠️ 본 인계서 §1-§5 인지 명시 (특히 §1 최상위 상태 + §5.1 P0 #1)
-2. U-169-A/B/C/D 인지 명시
-3. 169차 6 commit (`32bad7e3` ~ `b8413075`) 인지 명시 + push 완료 인지
-4. 운영 + 데모 적용 상태 인지 (active index `index-BZy8BlmR.js` 정합)
-5. **170차 1순위 결정 (cc 권장: PlanPricing 페이지 진입 불가 진단 + 재구현)**
-6. **사용자 credentials 회전 확인 의무** (운영 SSH + MySQL root 둘 다)
-7. 사용자 발견 issue 5종 인지 + 4종 종결 + 1종 미해결 (P0 #1) 인지
+1. ⚠️ 본 인계서 §1-§5 인지 명시 (특히 §1 최상위 상태 + §2 cc puppeteer root cause + §4.1 1순위)
+2. U-170-A/B/C/D 인지 명시
+3. P0 #1 미해결 인지 + 171차 1순위 통합 fix 진행 결정 의무
+4. **사용자 credentials 회전 확인 의무** (운영 SSH + MySQL root 169차에 9회 + 170차에 12회 = 누적 21회 사용)
+5. 운영 dist 백업 디렉토리 정리 (§4.2) 진행 결정
+6. cc puppeteer 검증 의무 (U-170-A) 인지
 
 ---
 
-## 11. 169차 운영 deploy 종합 상태 표 (170차 즉시 참조)
+## 10. 170차 종합 상태 표 (171차 즉시 참조)
 
-| 영역 | 운영 적용 | 데모 적용 | 비고 |
+| 영역 | 170차 진입 | 170차 종료 | 비고 |
 |---|:-:|:-:|---|
-| Backend `Migrate.php` 169 fix | ✅ | ❌ | 데모 backend 자체 없음 |
-| Backend `Handlers/PM/Gantt.php` 본체 | ✅ | ❌ | 데모 backend 옛 코드 |
-| Backend `Handlers/AdminPlans.php` 신규 | ✅ | ❌ | 데모 backend 옛 코드 |
-| Backend `routes.php` (v424 admin 14 + public-plans redirect) | ✅ | ❌ | 데모 v424/v425 routing 없음 |
-| DB `plan_config` 11 col | ✅ | ❌ | 데모 DB 별도 |
-| DB `plan_menu_access` 5 col | ✅ | ❌ | 데모 DB 별도 |
-| DB `menu_tree` 26 seed row | ✅ | ❌ | 데모 DB 별도 |
-| DB `schema_migrations` 16 row | ✅ | ❌ | 데모 DB 별도 |
-| Frontend dist (169 P0/P1/P5 통합 build) | ✅ | ✅ | active `index-BZy8BlmR.js` 정합 |
-| Sidebar F2/F3 useMenuVisibility 통합 | ✅ | ✅ | frontend 통합 정합 |
-| AuthContext BroadcastChannel listener | ✅ | ✅ | frontend 통합 정합 |
-| Admin/AdminEnvironment 실구현 | ✅ | ✅ | 사용자 검증 OK |
-| PlanPricing 페이지 (route + sidebar 매핑 + 신규 page) | ✅ deploy / ❌ 진입 불가 | ✅ deploy / ❌ 진입 불가 | **170차 P0 #1** |
-| PgConfig mock 제거 + Paddle 실 stats | ✅ | ✅ | (데모 backend 옛 routing 으로 fetch fail 가능) |
-| DbAdmin mock 제거 + DB 실 stats | ✅ | ✅ | (데모 backend 옛 routing 으로 fetch fail 가능) |
-| Local repo (master, origin) | ✅ 6 commit pushed | ✅ | |
+| 운영 frontend dist | ✅ 169 P5 | ✅ 169 P5 (5회 rollback 후) | 변경 0 |
+| 데모 frontend dist | ✅ 169 P5 | ✅ 169 P5 | 변경 0 |
+| 운영 backend `index.php` | 169 P5 | ✅ 170p1 admin bypass | local commit 대기 |
+| 운영 backend `AdminPlans.php` | 169 P5 | ✅ 170p1 admin gate | local commit 대기 |
+| 운영 backend `AdminMenu.php` | 169 P5 | ✅ 170p1 admin gate | local commit 대기 |
+| 운영 + 데모 sw.js (typo path) | 옛 6312 bytes Apr 30 | ✅ unregister-only 1377 bytes | local commit 대기 |
+| 운영 DB `plan_config` | 0 row | ✅ 3 row seed (starter/pro/enterprise) | |
+| 운영 DB `plan_menu_access` | 0 row | ⚠️ 0 row (PlanPricing 진입 못 함) | 171차 admin 작업 |
+| PlanPricing (`/admin/plan-pricing`) | 빈 화면 | ⚠️ 빈 화면 (apiClient base fail) | 171차 fix |
+| AdminMenuManager (`/admin/menu-tree`) | "접근 불가" | ⚠️ "접근 불가" (user.role 체크) | 171차 fix |
+| local repo (master, origin) | 169차 6 commit pushed | 본 인계서 + 4 file commit 대기 | 사용자 명시 승인 후 |
 
 ---
 
-## 12. 170차 진입 시 본 cc 가 즉시 수행할 검증 명령
+## 11. 171차 진입 시 cc 가 즉시 수행할 검증 명령
 
 ```powershell
-# 1) 운영 dist active index + PlanPricing chunk 존재 검증
-$sshPass = '<new_password_after_rotation>'
+# 1) 현재 운영 dist + backend 상태 확인
+$sshPass = '<rotated_password>'
 $cmd = @'
-echo === ops active index ===
-grep -oE 'index-[A-Za-z0-9]+\.js' /home/wwwroot/roi.geniego.com/frontend/dist/index.html | head -1
-echo === ops modulepreload list ===
-grep -oE 'modulepreload[^>]+' /home/wwwroot/roi.geniego.com/frontend/dist/index.html
-echo === PlanPricing chunk ===
-ls /home/wwwroot/roi.geniego.com/frontend/dist/assets/PlanPricing* 2>/dev/null
-echo === AdminMenuManager chunk ===
-ls /home/wwwroot/roi.geniego.com/frontend/dist/assets/AdminMenuManager* 2>/dev/null
-echo === plan_config + plan_menu_access row count ===
-mysql -uroot -p'<mysql_password>' geniego_roi 2>&1 <<EOSQL
-SELECT COUNT(*) AS plans FROM plan_config;
-SELECT COUNT(*) AS menu_access_rows FROM plan_menu_access;
-SHOW TABLES LIKE 'plan_%';
-EOSQL
+echo === ops_active_index ===
+grep -oE 'index-[A-Za-z0-9_-]+\.js' /home/wwwroot/roi.geniego.com/frontend/dist/index.html | head -1
+echo === backend_files ===
+ls -la /home/wwwroot/roi.geniego.com/backend/src/Handlers/AdminPlans.php /home/wwwroot/roi.geniego.com/backend/src/Handlers/AdminMenu.php /home/wwwroot/roi.geniego.com/backend/public/index.php
+echo === sw_js_typo_path ===
+curl -sIS https://roi.genie-go.com/sw.js | head -8
+curl -sS https://roi.genie-go.com/sw.js | head -c 100
+echo === admin_gates ===
+curl -sS -o /dev/null -w 'admin_plans=%{http_code}\n' https://roi.genie-go.com/v424/admin/plans
+curl -sS -o /dev/null -w 'admin_menu_tree=%{http_code}\n' https://roi.genie-go.com/v425/admin/menu-tree
 '@
-& "C:\Program Files\PuTTY\plink.exe" -ssh -batch -pw $sshPass root@1.201.177.46 $cmd
+& 'C:\Program Files\PuTTY\plink.exe' -ssh -batch -pw $sshPass root@1.201.177.46 $cmd
 Remove-Variable sshPass
 
-# 2) 사용자에게 브라우저 콘솔 출력 요청
-# F12 → Console at /admin/plan-pricing :
-#   console.log(localStorage.getItem('LATEST_CRASH_ERR'))
-#   console.log(localStorage.getItem('LATEST_CRASH_UNHANDLED'))
-#   Network 탭 → /v424/admin/plans 응답 status
+# 2) cc puppeteer fresh headless 검증 (운영 dist 상태)
+cd "E:/project/GeniegoROI"
+node _cc_verify_ops_170.cjs
+# 예상: 화이트 없음 (169 P5 정합)
 
-# 3) RequireAuth 체크
-#   user 가 admin/enterprise plan 인지 확인
-#   Sidebar.jsx 의 itemHasAccess() 가 system||plan_pricing 에 대해 어떤 결과 반환하는지
+# 3) 171차 1순위 통합 fix 진행 (vite.config.js + apiClient + PlanPricing + AdminMenuManager)
+# 단계별 fix + clean build + cc puppeteer 검증 + 사용자 승인 후 deploy
 ```
 
 ---
 
-**본 인계서 v3 = 사용자 명시 승인 후 commit + push** (memory `feedback_handoff_approval.md` 정합).
+**본 인계서 v1 = 사용자 명시 승인 후 commit + push** (memory `feedback_handoff_approval.md` 정합).

@@ -83,6 +83,11 @@ $app->add(function (Request $request, $handler) {
         // Admin panel — session-based auth (requireAdmin handles its own auth)
         || strpos($path, '/v423/admin/') === 0
         || strpos($path, '/api/v423/admin/') === 0
+        // v424/v425 admin — handler-level admin auth via UserAuth::requirePlan('admin')
+        || strpos($path, '/v424/admin/') === 0
+        || strpos($path, '/api/v424/admin/') === 0
+        || strpos($path, '/v425/admin/') === 0
+        || strpos($path, '/api/v425/admin/') === 0
         // v424 Creative Store — JWT auth handled in handler
         || strpos($path, '/api/creatives') === 0
         || strpos($path, '/creatives') === 0

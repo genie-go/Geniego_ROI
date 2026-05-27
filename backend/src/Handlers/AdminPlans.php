@@ -6,6 +6,7 @@ namespace Genie\Handlers;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
 use Genie\Db;
+use Genie\Handlers\UserAuth;
 
 /**
  * AdminPlans — 169차 신규.
@@ -24,6 +25,8 @@ final class AdminPlans
 {
     public static function list(Request $req, Response $res): Response
     {
+        $gate = UserAuth::requirePlan($req, $res, 'admin');
+        if ($gate !== null) return $gate;
         $pdo  = Db::pdo();
         $stmt = $pdo->query(
             'SELECT plan_id, name, description, price_usd, price_annual_usd,
@@ -39,6 +42,8 @@ final class AdminPlans
 
     public static function upsert(Request $req, Response $res, array $args): Response
     {
+        $gate = UserAuth::requirePlan($req, $res, 'admin');
+        if ($gate !== null) return $gate;
         $planId = (string)($args['id'] ?? '');
         if (!preg_match('/^[a-z0-9_-]{1,64}$/i', $planId)) {
             return self::json($res, ['error' => 'invalid_plan_id'], 422);
@@ -87,6 +92,8 @@ final class AdminPlans
 
     public static function delete(Request $req, Response $res, array $args): Response
     {
+        $gate = UserAuth::requirePlan($req, $res, 'admin');
+        if ($gate !== null) return $gate;
         $planId = (string)($args['id'] ?? '');
         if (!preg_match('/^[a-z0-9_-]{1,64}$/i', $planId)) {
             return self::json($res, ['error' => 'invalid_plan_id'], 422);
@@ -103,6 +110,8 @@ final class AdminPlans
      */
     public static function dbStats(Request $req, Response $res): Response
     {
+        $gate = UserAuth::requirePlan($req, $res, 'admin');
+        if ($gate !== null) return $gate;
         $pdo = Db::pdo();
         $driver = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME);
         $stats = [
@@ -160,6 +169,8 @@ final class AdminPlans
      */
     public static function paddleStats(Request $req, Response $res): Response
     {
+        $gate = UserAuth::requirePlan($req, $res, 'admin');
+        if ($gate !== null) return $gate;
         $pdo = Db::pdo();
         $stats = [
             'provider'           => 'Paddle (MoR)',
@@ -284,6 +295,8 @@ final class AdminPlans
      */
     public static function menuAccessAll(Request $req, Response $res): Response
     {
+        $gate = UserAuth::requirePlan($req, $res, 'admin');
+        if ($gate !== null) return $gate;
         $pdo = Db::pdo();
         $plans = $pdo->query(
             'SELECT plan_id, name, display_order FROM plan_config WHERE is_active=1 ORDER BY display_order, plan_id'
@@ -314,6 +327,8 @@ final class AdminPlans
      */
     public static function menuAccessUpsert(Request $req, Response $res, array $args): Response
     {
+        $gate = UserAuth::requirePlan($req, $res, 'admin');
+        if ($gate !== null) return $gate;
         $planId = (string)($args['id'] ?? '');
         if (!preg_match('/^[a-z0-9_-]{1,64}$/i', $planId)) {
             return self::json($res, ['error' => 'invalid_plan_id'], 422);
