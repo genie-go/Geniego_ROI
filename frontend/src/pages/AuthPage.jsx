@@ -732,6 +732,9 @@ function PaidRegisterForm({ selectedPlan, onBack, onSwitch }) {
     if (err) { setError(err); return; }
     setLoading(true);
     try {
+      // 172차 P0-C.3 — coupon code (선택, DOM 에서 직접 추출 — 자식 컴포넌트 state 캡슐화 유지)
+      const couponInput = document.getElementById('coupon_code');
+      const couponCode = (couponInput?.value || '').trim().toUpperCase();
       const extraData = {
         plan: selectedPlan,
         company, ceo_name: ceoName, business_type: businessType,
@@ -744,12 +747,25 @@ function PaidRegisterForm({ selectedPlan, onBack, onSwitch }) {
         cycle_months: cycleMonths,
       };
       const result = await register(email, password, name, company, extraData);
+      // 172차 P0-C.3 — 회원가입 후 즉시 쿠폰 redeem (token 발급된 상태)
+      let manualCoupon = null;
+      if (couponCode && /^GENIE-[A-Z0-9]{8,16}$/.test(couponCode)) {
+        try {
+          const tok = localStorage.getItem('genie_token');
+          const r = await fetch('/auth/coupon/redeem', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${tok}` },
+            body: JSON.stringify({ code: couponCode }),
+          });
+          manualCoupon = await r.json();
+        } catch (ce) { console.warn('coupon redeem fail:', ce?.message); }
+      }
       // 가입 완료 후 가격 페이지로 redirect (Paddle Checkout 진입). cycleMonths state 전달.
       navigate("/pricing", {
         replace: true,
         state: {
           autoCheckout: { planId: selectedPlan, cycleMonths },
-          couponAlert: result?.coupon || null,
+          couponAlert: manualCoupon?.ok ? manualCoupon : (result?.coupon || null),
         },
       });
     } catch (err) { setError(err.message); }
@@ -889,6 +905,9 @@ function PaidRegisterForm({ selectedPlan, onBack, onSwitch }) {
             setCycleMonths={setCycleMonths}
           />
 
+          {/* 172차 P0-C.3 — 쿠폰 코드 입력 (선택) */}
+          <CouponCodeInput planCfg={PLAN_CFG} onApplied={(info) => { /* 토큰 발급 후 적용되도록 register 응답 분기 */ }} />
+
           <TermsAgreementSection
             agreeTerms={agreeTerms} setAgreeTerms={setAgreeTerms}
             agreePrivacy={agreePrivacy} setAgreePrivacy={setAgreePrivacy}
@@ -1002,6 +1021,45 @@ function CycleSelectorSection({ planCfg, planPeriods, cycleMonths, setCycleMonth
       }}>
         💡 가입 즉시 결제가 진행됩니다. 카드 결제 (Paddle MoR) — VAT/GST 자동 처리. 30일 환불 보장.
       </div>
+    </div>
+  );
+}
+
+/**
+ * 172차 P0-C.3 — CouponCodeInput
+ * 회원가입 / 마이페이지에서 쿠폰 코드 입력. 검증은 GET /auth/coupon/preview (인증 필요).
+ * 가입 흐름에서는 register 후 token 받은 다음 자동으로 redeem (extraData.coupon_code 동봉).
+ */
+function CouponCodeInput({ planCfg, onApplied }) {
+  const [code, setCode] = useState('');
+  const [touched, setTouched] = useState(false);
+  return (
+    <div style={{
+      padding: '12px 14px', borderRadius: 10,
+      background: 'rgba(168,85,247,0.05)', border: '1.5px dashed rgba(168,85,247,0.25)',
+    }}>
+      <div style={{ fontSize: 13, fontWeight: 800, color: planCfg?.color || '#a855f7', marginBottom: 4 }}>
+        🎟️ 쿠폰 코드 (선택)
+      </div>
+      <div style={{ fontSize: 11, color: 'var(--text-3)', marginBottom: 8 }}>
+        가입 시 보유 중인 쿠폰 코드를 입력하시면 무료 기간이 자동 적용됩니다 (예: GENIE-XXXXXXXXXX)
+      </div>
+      <input
+        type="text" name="coupon_code" id="coupon_code"
+        value={code}
+        onChange={(e) => { setCode(e.target.value.toUpperCase()); setTouched(true); }}
+        placeholder="GENIE-XXXXXXXXXX (선택사항)"
+        style={{
+          width: '100%', padding: '9px 12px', borderRadius: 7,
+          border: '1px solid rgba(168,85,247,0.25)', background: 'rgba(0,0,0,0.18)',
+          color: 'var(--text-1)', fontSize: 13, fontFamily: 'monospace', letterSpacing: 0.5,
+        }}
+      />
+      {touched && code && (
+        <div style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 4 }}>
+          가입 완료 후 자동 적용됩니다. 코드가 잘못된 경우 가입 자체는 정상 진행되며 쿠폰만 미적용.
+        </div>
+      )}
     </div>
   );
 }

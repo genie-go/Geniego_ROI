@@ -467,6 +467,11 @@ return function (App $app): void {
         'PUT /v424/admin/plans/{id}/period-pricing'     => 'Genie\\Handlers\\AdminPlans::periodPricingUpsert',
         'GET /api/v424/admin/plans-period-pricing'      => 'Genie\\Handlers\\AdminPlans::periodPricingAll',
         'PUT /api/v424/admin/plans/{id}/period-pricing' => 'Genie\\Handlers\\AdminPlans::periodPricingUpsert',
+        // 172차 P0-C — 쿠폰 사용 (user)
+        'POST /auth/coupon/redeem'      => 'Genie\\Handlers\\CouponRedeem::redeem',
+        'GET /auth/coupon/preview'      => 'Genie\\Handlers\\CouponRedeem::preview',
+        'POST /api/auth/coupon/redeem'  => 'Genie\\Handlers\\CouponRedeem::redeem',
+        'GET /api/auth/coupon/preview'  => 'Genie\\Handlers\\CouponRedeem::preview',
         // 172차 P0-C — 쿠폰 관리 (admin 자율 발행 + 룰 토글 + 통계)
         'GET /v424/admin/coupons/overview'                  => 'Genie\\Handlers\\CouponAdmin::overview',
         'PUT /v424/admin/coupons/rules/{name}'              => 'Genie\\Handlers\\CouponAdmin::updateRule',
@@ -1792,6 +1797,11 @@ return function (App $app): void {
     $register('PUT',    '/v424/admin/plans/{id}/period-pricing');
     $register('GET',    '/api/v424/admin/plans-period-pricing');
     $register('PUT',    '/api/v424/admin/plans/{id}/period-pricing');
+    // 172차 P0-C — coupon redeem (user)
+    $register('POST',   '/auth/coupon/redeem');
+    $register('GET',    '/auth/coupon/preview');
+    $register('POST',   '/api/auth/coupon/redeem');
+    $register('GET',    '/api/auth/coupon/preview');
     // 172차 P0-C — coupon admin
     $register('GET',    '/v424/admin/coupons/overview');
     $register('PUT',    '/v424/admin/coupons/rules/{name}');
