@@ -2,7 +2,19 @@ import React, { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import PublicLayout from "../../layout/PublicLayout.jsx";
 
-const PLANS = [
+/**
+ * 172차 PHASE 1-A — hardcoded PLANS 제거 → backend `/auth/pricing/public-plans` 기반 동적 fetch.
+ * admin이 가격/priceId/features 를 DB 에서 편집하면 즉시 반영 (재빌드 불필요).
+ * fallback: 옛 build-time env 변수 + hardcoded default (graceful degradation).
+ */
+const PLAN_UI_META = {
+  starter:    { color: "#4f8ef7", tagAuto: null },
+  pro:        { color: "#6366f1", tagAuto: "Most Popular" },
+  enterprise: { color: "#a855f7", tagAuto: "Custom" },
+};
+
+// fallback: backend 응답 실패 시 사용 (운영 cold start 또는 backend 다운)
+const FALLBACK_PLANS = [
     {
         id: "starter", name: "Starter", priceMonthly: 49, priceAnnual: 39,
         tag: null, color: "#4f8ef7",
@@ -10,12 +22,8 @@ const PLANS = [
         priceIdMonthly: import.meta.env.VITE_PADDLE_PRICE_STARTER_MONTHLY || "",
         priceIdAnnual: import.meta.env.VITE_PADDLE_PRICE_STARTER_ANNUAL || "",
         features: [
-            "3 sales channels",
-            "1 warehouse (WMS)",
-            "Marketing analytics dashboard",
-            "Up to 2 team members",
-            "10,000 API calls / month",
-            "Email support (48h)",
+            "3 sales channels", "1 warehouse (WMS)", "Marketing analytics dashboard",
+            "Up to 2 team members", "10,000 API calls / month", "Email support (48h)",
         ],
         notIncluded: ["AI Intelligence", "Influencer evaluation", "International invoice"],
     },
@@ -26,14 +34,9 @@ const PLANS = [
         priceIdMonthly: import.meta.env.VITE_PADDLE_PRICE_PRO_MONTHLY || "",
         priceIdAnnual: import.meta.env.VITE_PADDLE_PRICE_PRO_ANNUAL || "",
         features: [
-            "Unlimited sales channels",
-            "Unlimited warehouses (WMS)",
-            "AI Marketing Intelligence",
-            "Influencer evaluation engine",
-            "Commercial invoice auto-gen",
-            "Up to 10 team members",
-            "500,000 API calls / month",
-            "Priority support (8h)",
+            "Unlimited sales channels", "Unlimited warehouses (WMS)", "AI Marketing Intelligence",
+            "Influencer evaluation engine", "Commercial invoice auto-gen", "Up to 10 team members",
+            "500,000 API calls / month", "Priority support (8h)",
         ],
         notIncluded: ["Custom AI models", "Dedicated account manager"],
     },
@@ -43,18 +46,37 @@ const PLANS = [
         desc: "For large-scale operations requiring full customization.",
         priceIdMonthly: "", priceIdAnnual: "",
         features: [
-            "Everything in Pro",
-            "Custom AI model training",
-            "Dedicated account manager",
-            "SLA 99.9% uptime guarantee",
-            "Unlimited team members",
-            "Unlimited API calls",
-            "Custom integrations & webhooks",
-            "On-premise deployment option",
+            "Everything in Pro", "Custom AI model training", "Dedicated account manager",
+            "SLA 99.9% uptime guarantee", "Unlimited team members", "Unlimited API calls",
+            "Custom integrations & webhooks", "On-premise deployment option",
         ],
         notIncluded: [],
     },
 ];
+
+/**
+ * backend 응답 → frontend PLANS 형식 변환.
+ * - price_usd → priceMonthly
+ * - price_annual_usd → priceAnnual (이미 월 환산값)
+ * - is_custom_quote=true → priceMonthly null (enterprise 패턴)
+ */
+function hydratePlanFromApi(p) {
+  const meta = PLAN_UI_META[p.id] || { color: "#4f8ef7", tagAuto: null };
+  return {
+    id: p.id,
+    name: p.name || p.id,
+    priceMonthly: p.is_custom_quote ? null : (p.price_usd ?? null),
+    priceAnnual:  p.is_custom_quote ? null : (p.price_annual_usd ?? null),
+    tag: p.is_custom_quote ? "Custom" : meta.tagAuto,
+    color: meta.color,
+    desc: p.description || "",
+    priceIdMonthly: p.price_id_monthly || "",
+    priceIdAnnual:  p.price_id_annual  || "",
+    features: Array.isArray(p.features) ? p.features : [],
+    notIncluded: [],
+    isCustomQuote: !!p.is_custom_quote,
+  };
+}
 
 const FAQS = [
     { q: "Can I cancel anytime?", a: "Yes — cancel any time from your account settings. Your access continues until the end of your billing period. No cancellation fees." },
@@ -111,10 +133,19 @@ export default function PricingPublic() {
     const [faqOpen, setFaqOpen] = useState(null);
     const [showComparison, setShowComparison] = useState(false);
     const [clientToken, setClientToken] = useState(import.meta.env.VITE_PADDLE_CLIENT_TOKEN || "");
+    // 172차 PHASE 1-A — plans 를 backend 에서 동적 fetch
+    const [plans, setPlans] = useState(FALLBACK_PLANS);
 
     useEffect(() => {
-        const apiBase = import.meta.env.VITE_API_BASE || "/api";
-        fetch(`${apiBase}/v423/paddle/config`).then(r => r.json()).then(d => { if (d.clientToken) setClientToken(d.clientToken); }).catch(() => {});
+        const apiBase = import.meta.env.VITE_API_BASE || "";
+        // Paddle clientToken (backend .env 또는 admin DB)
+        fetch(`${apiBase}/api/v423/paddle/config`).then(r => r.json()).then(d => { if (d.clientToken) setClientToken(d.clientToken); }).catch(() => {});
+        // Pricing plans (plan_config + plan_period_pricing 기반)
+        fetch(`${apiBase}/auth/pricing/public-plans`).then(r => r.json()).then(d => {
+            if (d?.ok && Array.isArray(d.plans) && d.plans.length > 0) {
+                setPlans(d.plans.map(hydratePlanFromApi));
+            }
+        }).catch(() => { /* fallback to default plans */ });
     }, []);
 
     useEffect(() => { if (clientToken) loadPaddleV2(clientToken).catch(console.error); }, [clientToken]);
@@ -183,8 +214,8 @@ export default function PricingPublic() {
                     </div>
 
                     {/* Plan cards */}
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 16, maxWidth: 1040, margin: "0 auto" }}>
-                        {PLANS.map(plan => {
+                    <div style={{ display: "grid", gridTemplateColumns: `repeat(${Math.min(plans.length, 3)},1fr)`, gap: 16, maxWidth: 1040, margin: "0 auto" }}>
+                        {plans.map(plan => {
                             const price = plan.priceMonthly ? (annual ? plan.priceAnnual : plan.priceMonthly) : null;
                             const isPro = plan.id === "pro";
                             return (
