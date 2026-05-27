@@ -617,6 +617,7 @@ function PlanPricing() {
         {[
           { id: 'plan',        label: '💰 플랜 & 요금 (정의 + 기간별 가격 통합)' },
           { id: 'permissions', label: '🔐 메뉴 접근 권한' },
+          { id: 'coupons',     label: '🎟️ 쿠폰 관리' },
         ].map(tb => {
           const active = outerTab === tb.id;
           return (
@@ -643,6 +644,8 @@ function PlanPricing() {
           saveAllAccess={saveAllAccess} saving={saving === 'access'} dirty={accessDirty}
         />
       )}
+
+      {outerTab === 'coupons' && <CouponAdminPanel plans={plans} />}
 
       {outerTab === 'plan' && <ServiceDescriptionCard />}
       {outerTab === 'plan' && menuPricingSync && (
@@ -1054,6 +1057,305 @@ function MenuPricingSyncPanel({ sync, onApply, applying }) {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+/**
+ * CouponAdminPanel — 172차 P0-C 초고도화.
+ *
+ * Admin 자율 발행 + 트리거 룰 관리 + 발행 현황. 사용자 명시:
+ * "admin 이 자율로 무료 구독 기간 설정 발행 가능".
+ *
+ * Sections:
+ *  ① 트리거 룰 (signup/upgrade/renewal) — on/off + plan/duration 조정
+ *  ② 수동 발급 폼 — plan + duration_days + max_uses + email(optional) + quantity (배치)
+ *  ③ 발급 통계 + 카테고리 분류
+ *  ④ 발급 목록 — 검색 + 상태 필터 + revoke
+ */
+function CouponAdminPanel({ plans }) {
+  const [data, setData] = useState(null); // { ok, rules, stats, recent }
+  const [loading, setLoading] = useState(false);
+  const [issueForm, setIssueForm] = useState({
+    plan: 'starter', duration_days: 30, max_uses: 1, issued_to_email: '', note: '', quantity: 1,
+  });
+  const [issueResult, setIssueResult] = useState(null);
+  const [listFilter, setListFilter] = useState({ status: 'all', q: '' });
+  const [listRows, setListRows] = useState([]);
+
+  const planOptions = plans.length > 0
+    ? plans.map(p => ({ id: p.plan_id, name: p.name }))
+    : [{ id: 'starter', name: 'Starter' }, { id: 'pro', name: 'Pro' }, { id: 'enterprise', name: 'Enterprise' }];
+
+  const fetchOverview = useCallback(async () => {
+    setLoading(true);
+    try {
+      const d = await getJsonAuth('/v424/admin/coupons/overview');
+      setData(d);
+    } catch (e) {
+      console.warn('coupon overview fail:', e?.message || e);
+      setData(null);
+    } finally { setLoading(false); }
+  }, []);
+
+  const fetchList = useCallback(async () => {
+    try {
+      const q = new URLSearchParams({ status: listFilter.status, q: listFilter.q, limit: '100' });
+      const d = await getJsonAuth(`/v424/admin/coupons/list?${q}`);
+      setListRows(d?.coupons || []);
+    } catch {}
+  }, [listFilter]);
+
+  useEffect(() => { fetchOverview(); }, [fetchOverview]);
+  useEffect(() => { fetchList(); }, [fetchList]);
+
+  const updateRule = async (name, patch) => {
+    try {
+      await requestJsonAuth(`/v424/admin/coupons/rules/${name}`, 'PUT', patch);
+      await fetchOverview();
+    } catch (e) { alert(`룰 저장 실패: ${e?.message || e}`); }
+  };
+
+  const handleIssue = async (e) => {
+    e?.preventDefault?.();
+    try {
+      const result = await requestJsonAuth('/v424/admin/coupons/issue', 'POST', issueForm);
+      setIssueResult(result);
+      await Promise.all([fetchOverview(), fetchList()]);
+    } catch (e) { alert(`발급 실패: ${e?.message || e}`); }
+  };
+
+  const revokeCoupon = async (code) => {
+    if (!window.confirm(`쿠폰 ${code} 을 무효화하시겠습니까?`)) return;
+    try {
+      await requestJsonAuth(`/v424/admin/coupons/${encodeURIComponent(code)}/revoke`, 'POST');
+      await fetchList();
+      await fetchOverview();
+    } catch (e) { alert(`무효화 실패: ${e?.message || e}`); }
+  };
+
+  const inputS = {
+    width: '100%', padding: '8px 12px', borderRadius: 7,
+    border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(0,0,0,0.18)',
+    color: 'var(--text-1)', fontSize: 13, fontFamily: 'inherit',
+  };
+
+  if (loading && !data) return <div style={{ padding: 30, textAlign: 'center', color: 'var(--text-3)', fontSize: 13 }}>쿠폰 데이터 로딩 중…</div>;
+  const rules = data?.rules || [];
+  const stats = data?.stats || {};
+
+  return (
+    <div style={{ display: 'grid', gap: 14 }}>
+      {/* ① 통계 카드 */}
+      <div style={{
+        display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10,
+      }}>
+        {[
+          { label: '전체 발급', value: stats.total_coupons || 0, color: '#4f46e5' },
+          { label: '미사용 활성', value: stats.active_coupons || 0, color: '#16a34a' },
+          { label: '사용 완료', value: stats.redeemed || 0, color: '#d97706' },
+          { label: '무효화', value: stats.revoked || 0, color: '#dc2626' },
+        ].map(s => (
+          <div key={s.label} style={{
+            padding: '14px 16px', borderRadius: 10,
+            background: `${s.color}10`, border: `1px solid ${s.color}33`,
+          }}>
+            <div style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 700, marginBottom: 4 }}>{s.label}</div>
+            <div style={{ fontSize: 26, fontWeight: 900, color: s.color }}>{s.value}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* ② 트리거 룰 카드 */}
+      <div style={{ padding: '14px 16px', borderRadius: 12, background: 'rgba(99,102,241,0.06)', border: '1px solid rgba(99,102,241,0.22)' }}>
+        <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--text-1)', marginBottom: 4 }}>📌 자동 발급 트리거 룰</div>
+        <div style={{ fontSize: 12, color: 'var(--text-3)', marginBottom: 10 }}>
+          signup/upgrade/renewal 이벤트 발생 시 자동 발급. 각 룰 on/off + 플랜/기간 조정 가능.
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
+          {rules.map(r => (
+            <div key={r.trigger_name} style={{
+              padding: '12px 14px', borderRadius: 8,
+              background: r.is_active ? 'rgba(34,197,94,0.06)' : 'rgba(255,255,255,0.03)',
+              border: `1.5px solid ${r.is_active ? 'rgba(34,197,94,0.32)' : 'rgba(255,255,255,0.08)'}`,
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--text-1)' }}>
+                  {r.trigger_name === 'signup' ? '🌱 가입' : r.trigger_name === 'upgrade' ? '⬆️ 유료 전환' : '🔄 갱신'}
+                </span>
+                <div style={{ flex: 1 }} />
+                <label style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'var(--text-2)', cursor: 'pointer' }}>
+                  <input type="checkbox" checked={!!r.is_active} onChange={e => updateRule(r.trigger_name, { is_active: e.target.checked ? 1 : 0 })} />
+                  {r.is_active ? '활성' : '비활성'}
+                </label>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+                <div>
+                  <div style={{ fontSize: 10, color: 'var(--text-3)', marginBottom: 2 }}>플랜</div>
+                  <select value={r.plan} onChange={e => updateRule(r.trigger_name, { plan: e.target.value })} style={inputS}>
+                    {planOptions.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <div style={{ fontSize: 10, color: 'var(--text-3)', marginBottom: 2 }}>기간 (일)</div>
+                  <input type="number" min="1" max="365" value={r.duration_days}
+                    onChange={e => updateRule(r.trigger_name, { duration_days: Number(e.target.value) })}
+                    style={inputS} />
+                </div>
+              </div>
+              <div style={{ marginTop: 6, fontSize: 10, color: 'var(--text-3)', fontStyle: 'italic' }}>{r.note}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ③ 수동 발급 폼 */}
+      <form onSubmit={handleIssue} style={{
+        padding: '14px 16px', borderRadius: 12,
+        background: 'rgba(34,197,94,0.06)', border: '1.5px solid rgba(34,197,94,0.28)',
+      }}>
+        <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--text-1)', marginBottom: 4 }}>✨ 수동 쿠폰 발급 (admin 자율)</div>
+        <div style={{ fontSize: 12, color: 'var(--text-3)', marginBottom: 12 }}>
+          플랜·무료 기간·발급 수량 자유 설정. 코드 자동 생성 (GENIE-XXXXXXXXXX).
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 8, alignItems: 'end' }}>
+          <div>
+            <div style={{ fontSize: 10, color: 'var(--text-3)', marginBottom: 2, fontWeight: 700 }}>플랜</div>
+            <select value={issueForm.plan} onChange={e => setIssueForm(f => ({ ...f, plan: e.target.value }))} style={inputS}>
+              {planOptions.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+            </select>
+          </div>
+          <div>
+            <div style={{ fontSize: 10, color: 'var(--text-3)', marginBottom: 2, fontWeight: 700 }}>무료 기간 (일)</div>
+            <input type="number" min="1" max="365" value={issueForm.duration_days}
+              onChange={e => setIssueForm(f => ({ ...f, duration_days: Number(e.target.value) || 1 }))}
+              style={inputS} />
+          </div>
+          <div>
+            <div style={{ fontSize: 10, color: 'var(--text-3)', marginBottom: 2, fontWeight: 700 }}>최대 사용 횟수</div>
+            <input type="number" min="1" max="10000" value={issueForm.max_uses}
+              onChange={e => setIssueForm(f => ({ ...f, max_uses: Number(e.target.value) || 1 }))}
+              style={inputS} />
+          </div>
+          <div>
+            <div style={{ fontSize: 10, color: 'var(--text-3)', marginBottom: 2, fontWeight: 700 }}>발급 수량</div>
+            <input type="number" min="1" max="100" value={issueForm.quantity}
+              onChange={e => setIssueForm(f => ({ ...f, quantity: Number(e.target.value) || 1 }))}
+              style={inputS} />
+          </div>
+          <div style={{ gridColumn: 'span 2' }}>
+            <div style={{ fontSize: 10, color: 'var(--text-3)', marginBottom: 2, fontWeight: 700 }}>대상 이메일 (선택, 미입력 시 누구나 사용)</div>
+            <input type="email" placeholder="user@example.com" value={issueForm.issued_to_email}
+              onChange={e => setIssueForm(f => ({ ...f, issued_to_email: e.target.value }))} style={inputS} />
+          </div>
+          <div style={{ gridColumn: 'span 5' }}>
+            <div style={{ fontSize: 10, color: 'var(--text-3)', marginBottom: 2, fontWeight: 700 }}>메모 (admin 참고용)</div>
+            <input type="text" placeholder="예: 4월 캠페인 / VIP 고객 / 데모 체험권" value={issueForm.note}
+              onChange={e => setIssueForm(f => ({ ...f, note: e.target.value }))} style={inputS} />
+          </div>
+          <button type="submit" style={{
+            padding: '10px 14px', borderRadius: 8, border: 'none',
+            background: 'linear-gradient(135deg,#16a34a,#22c55e)', color: '#fff',
+            fontSize: 13, fontWeight: 900, cursor: 'pointer', height: 38,
+          }}>🎟️ 발급</button>
+        </div>
+        {issueResult && (
+          <div style={{
+            marginTop: 10, padding: '10px 14px', borderRadius: 8,
+            background: 'rgba(34,197,94,0.12)', border: '1px solid rgba(34,197,94,0.35)',
+            fontSize: 12, color: 'var(--text-1)',
+          }}>
+            ✅ 발급 완료 — {issueResult.quantity}개 × {issueResult.plan} {issueResult.duration}일 ·
+            <strong style={{ marginLeft: 6, fontFamily: 'monospace', color: '#16a34a' }}>
+              {issueResult.coupons?.map(c => c.code).join(', ')}
+            </strong>
+            <button type="button" onClick={() => setIssueResult(null)} style={{
+              marginLeft: 8, padding: '2px 8px', borderRadius: 4, border: 'none',
+              background: 'rgba(255,255,255,0.06)', color: 'var(--text-3)', fontSize: 10, cursor: 'pointer',
+            }}>✕</button>
+          </div>
+        )}
+      </form>
+
+      {/* ④ 발급 목록 */}
+      <div style={{ padding: '14px 16px', borderRadius: 12, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12, flexWrap: 'wrap' }}>
+          <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--text-1)' }}>📋 발급 목록</div>
+          <div style={{ display: 'flex', gap: 6 }}>
+            {[
+              { id: 'all',      label: '전체' },
+              { id: 'active',   label: '활성' },
+              { id: 'redeemed', label: '사용됨' },
+              { id: 'revoked',  label: '무효' },
+            ].map(s => (
+              <button key={s.id} type="button" onClick={() => setListFilter(f => ({ ...f, status: s.id }))} style={{
+                padding: '4px 10px', borderRadius: 6, border: '1px solid rgba(255,255,255,0.1)',
+                background: listFilter.status === s.id ? '#1e3a8a' : 'transparent',
+                color: listFilter.status === s.id ? '#fde047' : 'var(--text-2)',
+                fontSize: 11, fontWeight: 700, cursor: 'pointer',
+              }}>{s.label}</button>
+            ))}
+          </div>
+          <input type="text" placeholder="코드/이메일/메모 검색…" value={listFilter.q}
+            onChange={e => setListFilter(f => ({ ...f, q: e.target.value }))}
+            style={{ ...inputS, flex: 1, minWidth: 220, padding: '6px 10px', fontSize: 12 }} />
+          <button onClick={fetchList} style={{
+            padding: '6px 12px', borderRadius: 6, border: '1px solid rgba(255,255,255,0.1)',
+            background: 'rgba(255,255,255,0.04)', color: 'var(--text-2)',
+            fontSize: 11, fontWeight: 700, cursor: 'pointer',
+          }}>🔄 새로고침</button>
+        </div>
+        {listRows.length === 0 ? (
+          <div style={{ padding: 20, textAlign: 'center', color: 'var(--text-3)', fontSize: 12, fontStyle: 'italic' }}>
+            조건에 맞는 쿠폰 없음
+          </div>
+        ) : (
+          <div style={{ maxHeight: 400, overflowY: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)', color: 'var(--text-3)', textAlign: 'left' }}>
+                  <th style={{ padding: '8px 6px' }}>코드</th>
+                  <th style={{ padding: '8px 6px' }}>플랜</th>
+                  <th style={{ padding: '8px 6px' }}>기간</th>
+                  <th style={{ padding: '8px 6px' }}>사용</th>
+                  <th style={{ padding: '8px 6px' }}>대상</th>
+                  <th style={{ padding: '8px 6px' }}>상태</th>
+                  <th style={{ padding: '8px 6px' }}>발급일</th>
+                  <th style={{ padding: '8px 6px' }}>액션</th>
+                </tr>
+              </thead>
+              <tbody>
+                {listRows.map(c => {
+                  const status = c.is_revoked ? '무효' : (c.redeemed_at ? '사용됨' : '활성');
+                  const statusColor = c.is_revoked ? '#dc2626' : (c.redeemed_at ? '#d97706' : '#16a34a');
+                  return (
+                    <tr key={c.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                      <td style={{ padding: '6px 6px', fontFamily: 'monospace', fontWeight: 700 }}>{c.code}</td>
+                      <td style={{ padding: '6px 6px' }}>{c.plan}</td>
+                      <td style={{ padding: '6px 6px' }}>{c.duration_days}일</td>
+                      <td style={{ padding: '6px 6px' }}>{c.use_count}/{c.max_uses}</td>
+                      <td style={{ padding: '6px 6px', fontSize: 11 }}>{c.issued_to_email || '누구나'}</td>
+                      <td style={{ padding: '6px 6px' }}>
+                        <span style={{ padding: '1px 8px', borderRadius: 8, fontSize: 10, fontWeight: 800, background: `${statusColor}1A`, color: statusColor }}>{status}</span>
+                      </td>
+                      <td style={{ padding: '6px 6px', fontSize: 10, color: 'var(--text-3)' }}>{c.created_at?.slice(0, 16)}</td>
+                      <td style={{ padding: '6px 6px' }}>
+                        {!c.is_revoked && (
+                          <button onClick={() => revokeCoupon(c.code)} style={{
+                            padding: '2px 8px', borderRadius: 4, fontSize: 10, fontWeight: 700,
+                            background: 'rgba(248,113,113,0.10)', color: '#dc2626',
+                            border: '1px solid rgba(248,113,113,0.25)', cursor: 'pointer',
+                          }}>무효화</button>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

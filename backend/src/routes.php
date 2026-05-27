@@ -467,6 +467,17 @@ return function (App $app): void {
         'PUT /v424/admin/plans/{id}/period-pricing'     => 'Genie\\Handlers\\AdminPlans::periodPricingUpsert',
         'GET /api/v424/admin/plans-period-pricing'      => 'Genie\\Handlers\\AdminPlans::periodPricingAll',
         'PUT /api/v424/admin/plans/{id}/period-pricing' => 'Genie\\Handlers\\AdminPlans::periodPricingUpsert',
+        // 172차 P0-C — 쿠폰 관리 (admin 자율 발행 + 룰 토글 + 통계)
+        'GET /v424/admin/coupons/overview'                  => 'Genie\\Handlers\\CouponAdmin::overview',
+        'PUT /v424/admin/coupons/rules/{name}'              => 'Genie\\Handlers\\CouponAdmin::updateRule',
+        'POST /v424/admin/coupons/issue'                    => 'Genie\\Handlers\\CouponAdmin::issue',
+        'GET /v424/admin/coupons/list'                      => 'Genie\\Handlers\\CouponAdmin::listCoupons',
+        'POST /v424/admin/coupons/{code}/revoke'            => 'Genie\\Handlers\\CouponAdmin::revoke',
+        'GET /api/v424/admin/coupons/overview'              => 'Genie\\Handlers\\CouponAdmin::overview',
+        'PUT /api/v424/admin/coupons/rules/{name}'          => 'Genie\\Handlers\\CouponAdmin::updateRule',
+        'POST /api/v424/admin/coupons/issue'                => 'Genie\\Handlers\\CouponAdmin::issue',
+        'GET /api/v424/admin/coupons/list'                  => 'Genie\\Handlers\\CouponAdmin::listCoupons',
+        'POST /api/v424/admin/coupons/{code}/revoke'        => 'Genie\\Handlers\\CouponAdmin::revoke',
         // 172차 Task #22 — 메뉴 권한 ↔ 가격 자동 sync (초고도화)
         'GET /v424/admin/menu-pricing-sync'                  => 'Genie\\Handlers\\MenuPricingSync::syncAll',
         'PUT /v424/admin/menu-value-score'                   => 'Genie\\Handlers\\MenuPricingSync::upsertScores',
@@ -1781,6 +1792,17 @@ return function (App $app): void {
     $register('PUT',    '/v424/admin/plans/{id}/period-pricing');
     $register('GET',    '/api/v424/admin/plans-period-pricing');
     $register('PUT',    '/api/v424/admin/plans/{id}/period-pricing');
+    // 172차 P0-C — coupon admin
+    $register('GET',    '/v424/admin/coupons/overview');
+    $register('PUT',    '/v424/admin/coupons/rules/{name}');
+    $register('POST',   '/v424/admin/coupons/issue');
+    $register('GET',    '/v424/admin/coupons/list');
+    $register('POST',   '/v424/admin/coupons/{code}/revoke');
+    $register('GET',    '/api/v424/admin/coupons/overview');
+    $register('PUT',    '/api/v424/admin/coupons/rules/{name}');
+    $register('POST',   '/api/v424/admin/coupons/issue');
+    $register('GET',    '/api/v424/admin/coupons/list');
+    $register('POST',   '/api/v424/admin/coupons/{code}/revoke');
     // 172차 Task #22 — menu pricing sync
     $register('GET',    '/v424/admin/menu-pricing-sync');
     $register('PUT',    '/v424/admin/menu-value-score');
