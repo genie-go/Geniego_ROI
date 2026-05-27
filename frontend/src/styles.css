@@ -6996,3 +6996,27 @@ button.cs-inactive-tab {
   border: none !important;
   box-shadow: none !important;
 }
+
+/* 173차 fix v2 — dyn-sub-tab-btn: 동적 color 사용 페이지 (RollupDashboard 등).
+   active 시 inline style 의 background 색을 보존 (page 별 dynamic color).
+   text-color 만 강제 + border/box-shadow override 차단. */
+.sub-tab-nav button.dyn-sub-tab-btn[data-active="true"],
+[data-theme] .sub-tab-nav button.dyn-sub-tab-btn[data-active="true"],
+[data-theme] .container>div:last-child .sub-tab-nav button.dyn-sub-tab-btn[data-active="true"] {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  border: none !important;
+  /* background 는 inline style 우선 — !important 안 줌 */
+}
+
+.sub-tab-nav button.dyn-sub-tab-btn[data-active="false"],
+[data-theme] .sub-tab-nav button.dyn-sub-tab-btn[data-active="false"],
+[data-theme] .container>div:last-child .sub-tab-nav button.dyn-sub-tab-btn[data-active="false"] {
+  background: transparent !important;
+  background-image: none !important;
+  background-color: transparent !important;
+  color: #475569 !important;
+  -webkit-text-fill-color: #475569 !important;
+  border: none !important;
+  box-shadow: none !important;
+}

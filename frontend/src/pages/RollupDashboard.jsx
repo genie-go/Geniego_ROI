@@ -1078,7 +1078,7 @@ function DashboardContent({ txt, fc, isRTL, TABS, tab, setTab, period, setPeriod
               const isActive = tab === tb.id;
               const clr = TAB_COLORS[tb.id] || '#6366f1';
               return (
-                <button key={tb.id} onClick={() => setTab(tb.id)}
+                <button key={tb.id} data-active={isActive ? 'true' : 'false'} className="dyn-sub-tab-btn" onClick={() => setTab(tb.id)}
                   style={{
                     display: 'flex', alignItems: 'center', gap: 5,
                     padding: '7px 14px', borderRadius: 9, border: 'none', cursor: 'pointer',
