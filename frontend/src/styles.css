@@ -96,31 +96,10 @@
 
   --body-bg: #020617;
   /* 아주 어두운 배경 */
-  --text-main: #f1f5f9;
-  /* 다크 테마는 텍스트도 밝게 (이전 #111827 → invisible bug fix, 172차 p4) */
+  --text-main: #111827;
 }
-
-/* 172차 p4 — 긴급 가시성 fix:
- * dark theme 들 (deep_space, aurora, midnight_gold, ocean_depth, crimson_nexus, dark)
- * 에서 --text-1/2/3 가 root level 의 어두운색 그대로 → 어두운 bg 와 합쳐져 텍스트 invisible.
- * light theme (arctic_white, pearl_office) 는 line 4282 의 emergency override 가 처리.
- * 본 블록은 dark theme 에 LIGHT text 변수 명시.
- * data-theme 미지정 시 deep_space 가 default (line 134) 이므로 추가 :root 정의 안 함. */
-[data-theme="deep_space"],
-[data-theme="aurora"],
-[data-theme="midnight_gold"],
-[data-theme="ocean_depth"],
-[data-theme="crimson_nexus"],
-[data-theme="dark"],
-html:not([data-theme]),
-body:not([data-theme]) {
-  --text-1: #f8fafc;
-  /* 거의 흰색 — 최대 가시성 */
-  --text-2: #cbd5e1;
-  /* 밝은 슬레이트 — 본문 강조 */
-  --text-3: #94a3b8;
-  /* 중간 슬레이트 — 보조 라벨 */
-}
+/* 172차 p4 의 전역 --text-1/2/3 override 는 light-card 페이지에 regression 발생 → revert (172차 p5).
+   페이지별 가시성 fix 는 inline explicit 컬러로 처리. */
 
 /* 3. 실제 적용 */
 body {

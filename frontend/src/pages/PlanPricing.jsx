@@ -521,19 +521,19 @@ function PlanPricing() {
   const plan = plans[activePlanIdx];
 
   return (
-    <div style={{ padding: 24, minHeight: '100%', color: 'var(--text-1)' }}>
+    <div style={{ padding: '18px 24px', minHeight: '100%', color: 'var(--text-1)' }}>
       <div style={{
-        borderRadius: 18, padding: '28px 32px', marginBottom: 22,
-        background: 'linear-gradient(135deg, rgba(34,197,94,0.10), rgba(16,185,129,0.06))',
+        borderRadius: 14, padding: '16px 20px', marginBottom: 14,
+        background: 'rgba(34,197,94,0.10)',
         border: '1px solid rgba(34,197,94,0.18)',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-            <span style={{ fontSize: 32 }}>💳</span>
+            <span style={{ fontSize: 24 }}>💳</span>
             <div>
-              <div style={{ fontSize: 24, fontWeight: 800 }}>플랜별 구독요금 설정</div>
-              <div style={{ fontSize: 14, color: 'var(--text-3)', marginTop: 2 }}>
-                USD 단일 · Paddle MoR · 카드 결제 전용 (168차 N-152-F 정책)
+              <div style={{ fontSize: 18, fontWeight: 800 }}>플랜별 구독요금 설정</div>
+              <div style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 1 }}>
+                USD 단일 · Paddle MoR · 카드 결제 전용
               </div>
             </div>
           </div>
@@ -581,7 +581,7 @@ function PlanPricing() {
               padding: '13px 24px', border: 'none',
               // 활성: 찐한 파랑 배경 + 노랑 텍스트 (최대 가시성, 172차 p4)
               background: active ? '#1e3a8a' : 'transparent',
-              color: active ? '#fde047' : '#94a3b8',
+              color: active ? '#fde047' : 'var(--text-3)',
               fontSize: 15, fontWeight: active ? 900 : 600, cursor: 'pointer',
               borderBottom: active ? '3px solid #fde047' : '3px solid transparent',
               borderRadius: active ? '8px 8px 0 0' : 0,
@@ -634,7 +634,7 @@ function PlanPricing() {
                 fontWeight: sel ? 900 : 700, fontSize: 14,
                 // 활성: 찐한 파랑 + 선명 노랑 텍스트, 비활성: 어두운 배경 + 밝은 텍스트
                 background: sel ? '#1e3a8a' : 'rgba(255,255,255,0.04)',
-                color: sel ? '#fde047' : '#e2e8f0',
+                color: sel ? '#fde047' : 'var(--text-2)',
                 boxShadow: sel ? '0 0 0 2px #fde047 inset' : 'none',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                 transition: 'all 150ms',
@@ -762,62 +762,61 @@ function ServiceDescriptionCard() {
   const [open, setOpen] = useState(true);
   return (
     <div style={{
-      marginBottom: 18, borderRadius: 14,
-      background: 'linear-gradient(135deg, rgba(99,102,241,0.06), rgba(34,197,94,0.04))',
-      border: '1px solid rgba(99,102,241,0.18)',
+      marginBottom: 12, borderRadius: 12,
+      background: 'rgba(99,102,241,0.08)',
+      border: '1px solid rgba(99,102,241,0.22)',
       overflow: 'hidden',
     }}>
       <button onClick={() => setOpen(o => !o)} style={{
-        width: '100%', padding: '14px 20px',
-        display: 'flex', alignItems: 'center', gap: 12, justifyContent: 'flex-start',
+        width: '100%', padding: '10px 16px',
+        display: 'flex', alignItems: 'center', gap: 10, justifyContent: 'flex-start',
         background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left',
         color: 'var(--text-1)',
       }}>
-        <span style={{ fontSize: 22 }}>ℹ️</span>
+        <span style={{ fontSize: 18 }}>ℹ️</span>
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 15, fontWeight: 800 }}>GeniegoROI 서비스 안내</div>
-          <div style={{ fontSize: 13, color: 'var(--text-3)', marginTop: 2 }}>
-            올인원 커머스 AI 자동화 플랫폼 — 광고 자동화 · 상품 등록 · 재고 관리 · 주문 처리 · 배송 추적 · 성과 분석 · 정산까지 A부터 Z를 AI 가 자동화
+          <div style={{ fontSize: 14, fontWeight: 800 }}>GeniegoROI 서비스 안내</div>
+          <div style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 1 }}>
+            올인원 커머스 AI 자동화 — 광고·상품·재고·주문·배송·분석·정산 A~Z 자동화
           </div>
         </div>
-        <span style={{ color: 'var(--text-3)', fontSize: 13 }}>{open ? '▼ 접기' : '▶ 펼치기'}</span>
+        <span style={{ color: 'var(--text-3)', fontSize: 12 }}>{open ? '▼ 접기' : '▶ 펼치기'}</span>
       </button>
       {open && (
-        <div style={{ padding: '0 20px 18px' }}>
+        <div style={{ padding: '0 16px 14px' }}>
           <div style={{
-            display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 10,
-            marginBottom: 12,
+            display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))', gap: 8,
+            marginBottom: 10,
           }}>
             {SERVICE_FEATURES.map((f, i) => (
               <div key={i} style={{
-                padding: '12px 14px', borderRadius: 10,
-                background: 'rgba(0,0,0,0.18)', border: '1px solid rgba(255,255,255,0.05)',
+                padding: '8px 10px', borderRadius: 8,
+                background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.18)',
               }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                  <span style={{ fontSize: 18 }}>{f.icon}</span>
-                  <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--text-1)' }}>{f.title}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 }}>
+                  <span style={{ fontSize: 15 }}>{f.icon}</span>
+                  <span style={{ fontSize: 12, fontWeight: 800, color: 'var(--text-1)' }}>{f.title}</span>
                 </div>
-                <div style={{ fontSize: 13, color: 'var(--text-3)', lineHeight: 1.55 }}>{f.desc}</div>
+                <div style={{ fontSize: 11, color: 'var(--text-2)', lineHeight: 1.45 }}>{f.desc}</div>
               </div>
             ))}
           </div>
           <div style={{
-            padding: '14px 18px', borderRadius: 8, fontSize: 14, lineHeight: 1.75,
-            background: 'rgba(0,0,0,0.45)', border: '2px solid #fde047',
-            // 172차 p4 — 명시적 밝은 텍스트 (CSS var 의존 X)
-            color: '#f1f5f9',
+            padding: '10px 14px', borderRadius: 8, fontSize: 12, lineHeight: 1.6,
+            background: 'rgba(253,224,71,0.08)', border: '1.5px solid #ca8a04',
+            color: 'var(--text-1)',
           }}>
-            <strong style={{ color: '#fde047', fontSize: 15 }}>📋 플랜별 메뉴 접근 권한 운영 방식</strong>
-            <div style={{ marginTop: 8 }}>
-              본 페이지의 <strong style={{ color: '#fde047' }}>🔐 메뉴 접근 권한</strong> 탭에서 플랜(Starter / Pro / Enterprise / Admin)별로 8개 영역의 세부 메뉴를 자유롭게 활성/비활성 선택할 수 있습니다.
+            <strong style={{ color: '#ca8a04', fontSize: 13 }}>📋 플랜별 메뉴 접근 권한 운영 방식</strong>
+            <div style={{ marginTop: 4 }}>
+              <strong style={{ color: '#ca8a04' }}>🔐 메뉴 접근 권한</strong> 탭에서 플랜(Starter/Pro/Enterprise/Admin)별 8개 영역 세부 메뉴 자유 활성/비활성.
             </div>
-            <div style={{ marginTop: 8 }}>
-              메뉴 트리 구조:
-              <span style={{ color: '#a5b4fc', fontWeight: 700, marginLeft: 6 }}>대메뉴</span> →
-              <span style={{ color: '#22c55e', fontWeight: 700, marginLeft: 6 }}>중메뉴(통합 그룹)</span> →
-              <span style={{ color: '#fbbf24', fontWeight: 700, marginLeft: 6 }}>하위 페이지</span> →
-              <span style={{ color: '#c084fc', fontWeight: 700, marginLeft: 6 }}>📑 페이지 내 서브탭</span>
-              <span style={{ marginLeft: 6 }}>4단계 / 모든 단계 개별 토글 가능</span>
+            <div style={{ marginTop: 4 }}>
+              트리:&nbsp;
+              <span style={{ color: '#4f46e5', fontWeight: 800 }}>대메뉴</span> →
+              <span style={{ color: '#16a34a', fontWeight: 800, marginLeft: 4 }}>중메뉴</span> →
+              <span style={{ color: '#d97706', fontWeight: 800, marginLeft: 4 }}>하위</span> →
+              <span style={{ color: '#9333ea', fontWeight: 800, marginLeft: 4 }}>📑 서브탭</span>
+              <span style={{ marginLeft: 6 }}>4단계 개별 토글</span>
             </div>
           </div>
         </div>
@@ -931,7 +930,7 @@ function MenuAccessTree({ plans, menus, access, setMenuAccess, setMenuAccessBulk
         <button onClick={saveAllAccess} disabled={saving || !dirty} style={{
           padding: '11px 26px', borderRadius: 10, border: 'none',
           background: dirty ? 'linear-gradient(135deg,#16a34a,#22c55e)' : 'rgba(255,255,255,0.06)',
-          color: dirty ? '#fff' : 'var(--text-3)',
+          color: dirty ? '#fff' : '#94a3b8',
           fontSize: 14, fontWeight: 800, cursor: dirty ? 'pointer' : 'default',
           opacity: saving ? 0.6 : 1, whiteSpace: 'nowrap',
         }}>{saving ? '저장 중…' : (dirty ? '💾 전체 저장 (모든 플랜)' : '✓ 저장됨')}</button>
@@ -950,7 +949,7 @@ function MenuAccessTree({ plans, menus, access, setMenuAccess, setMenuAccessBulk
             fontWeight: sel ? 900 : 700, fontSize: 14,
             // 172차 p4 — 찐한 파랑 + 노랑 텍스트, 미선택은 어두운 회색 + 밝은 텍스트
             background: sel ? '#1e3a8a' : 'rgba(255,255,255,0.04)',
-            color: sel ? '#fde047' : '#e2e8f0',
+            color: sel ? '#fde047' : 'var(--text-2)',
             boxShadow: sel ? '0 0 0 2px #fde047 inset' : 'none',
             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
             transition: 'all 150ms',
@@ -1094,7 +1093,7 @@ function MenuAccessTree({ plans, menus, access, setMenuAccess, setMenuAccessBulk
                               style={{
                                 padding: '5px 12px', borderRadius: 6,
                                 background: on ? 'rgba(255,255,255,0.04)' : 'rgba(34,197,94,0.15)',
-                                color: on ? 'var(--text-3)' : '#22c55e',
+                                color: on ? '#94a3b8' : '#22c55e',
                                 border: `1px solid ${on ? 'rgba(255,255,255,0.06)' : 'rgba(34,197,94,0.32)'}`,
                                 fontSize: 13, fontWeight: 700, cursor: (!inDb || on) ? 'default' : 'pointer',
                                 opacity: (!inDb || on) ? 0.55 : 1,
@@ -1107,7 +1106,7 @@ function MenuAccessTree({ plans, menus, access, setMenuAccess, setMenuAccessBulk
                               style={{
                                 padding: '5px 12px', borderRadius: 6,
                                 background: !on ? 'rgba(255,255,255,0.04)' : 'rgba(248,113,113,0.12)',
-                                color: !on ? 'var(--text-3)' : '#f87171',
+                                color: !on ? '#94a3b8' : '#f87171',
                                 border: `1px solid ${!on ? 'rgba(255,255,255,0.06)' : 'rgba(248,113,113,0.32)'}`,
                                 fontSize: 13, fontWeight: 700, cursor: (!inDb || !on) ? 'default' : 'pointer',
                                 opacity: (!inDb || !on) ? 0.55 : 1,
@@ -1134,7 +1133,7 @@ function MenuAccessTree({ plans, menus, access, setMenuAccess, setMenuAccessBulk
                                   {/* 하위메뉴 (leaf 페이지) */}
                                   <div style={{
                                     display: 'flex', alignItems: 'center', gap: 8, fontSize: 13,
-                                    color: on ? 'var(--text-2)' : 'var(--text-3)',
+                                    color: on ? '#cbd5e1' : '#94a3b8',
                                   }}>
                                     <span style={{ width: 14, textAlign: 'center', opacity: 0.6 }}>{it.icon}</span>
                                     <span style={{
@@ -1166,7 +1165,7 @@ function MenuAccessTree({ plans, menus, access, setMenuAccess, setMenuAccessBulk
                                               padding: '4px 10px', borderRadius: 14, fontSize: 12, fontWeight: 700,
                                               border: subOn ? '1px solid rgba(168,85,247,0.45)' : '1px solid rgba(255,255,255,0.08)',
                                               background: subOn ? 'rgba(168,85,247,0.18)' : 'rgba(0,0,0,0.25)',
-                                              color: subOn ? '#c084fc' : 'var(--text-3)',
+                                              color: subOn ? '#c084fc' : '#94a3b8',
                                               cursor: 'pointer',
                                               display: 'inline-flex', alignItems: 'center', gap: 4,
                                             }}
@@ -1196,8 +1195,8 @@ function MenuAccessTree({ plans, menus, access, setMenuAccess, setMenuAccessBulk
         {/* 우측 — 선택 요약 */}
         <div style={{
           position: 'sticky', top: 16, borderRadius: 14, padding: '20px 22px',
-          background: 'linear-gradient(155deg, rgba(99,102,241,0.08), rgba(34,197,94,0.04))',
-          border: '1px solid rgba(99,102,241,0.18)',
+          background: 'rgba(99,102,241,0.08)',
+          border: '1px solid rgba(99,102,241,0.22)',
         }}>
           <div style={{ fontSize: 13, fontWeight: 800, color: '#a5b4fc', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 12 }}>
             선택 요약 — {activePlan.name}
@@ -1327,7 +1326,7 @@ function PeriodPricingPanel({ plan, periodPricing, updatePeriodField, addPeriod,
           <button type="submit" disabled={!newPeriodInput} style={{
             padding: '7px 16px', borderRadius: 7, border: 'none',
             background: newPeriodInput ? 'linear-gradient(135deg,#16a34a,#22c55e)' : 'rgba(255,255,255,0.06)',
-            color: newPeriodInput ? '#fff' : 'var(--text-3)',
+            color: newPeriodInput ? '#fff' : '#94a3b8',
             fontSize: 13, fontWeight: 800, cursor: newPeriodInput ? 'pointer' : 'default',
           }}>＋ 추가</button>
           <div style={{ flex: 1 }} />
@@ -1466,8 +1465,8 @@ function PreviewCard({ plan, periods = {} }) {
       position: 'relative',
       padding: '32px 26px', borderRadius: 18,
       background: isRecommended
-        ? 'linear-gradient(155deg, rgba(99,102,241,0.18), rgba(79,142,247,0.08))'
-        : 'linear-gradient(155deg, rgba(34,197,94,0.10), rgba(16,185,129,0.04))',
+        ? 'rgba(99,102,241,0.16)'
+        : 'rgba(34,197,94,0.10)',
       border: isRecommended ? '1px solid rgba(99,102,241,0.45)' : '1px solid rgba(34,197,94,0.25)',
     }}>
       {isRecommended && (
@@ -1507,7 +1506,7 @@ function PreviewCard({ plan, periods = {} }) {
                 <span key={m} style={{
                   padding: '3px 8px', borderRadius: 6, fontSize: 11,
                   background: cfg.is_active === false ? 'rgba(255,255,255,0.04)' : 'rgba(34,197,94,0.10)',
-                  color: cfg.is_active === false ? 'var(--text-3)' : 'var(--text-2)',
+                  color: cfg.is_active === false ? '#94a3b8' : '#cbd5e1',
                   border: cfg.is_active === false ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(34,197,94,0.22)',
                   textDecoration: cfg.is_active === false ? 'line-through' : 'none',
                 }}>
