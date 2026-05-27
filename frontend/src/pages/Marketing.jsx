@@ -721,7 +721,7 @@ export default function Marketing() {
             {TABS.map(tb => {
               const active = tab === tb.id;
               return (
-                <button key={tb.id} onClick={() => { setTab(tb.id); broadcastMkt('MKT_TAB_CHANGE', tb.id); }} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '7px 14px', borderRadius: 9, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700, transition: 'all 0.2s cubic-bezier(.4,0,.2,1)', background: active ? 'linear-gradient(135deg,#4f8ef7,#6366f1)' : 'transparent', color: active ? '#ffffff' : '#64748b', boxShadow: active ? '0 3px 14px rgba(79,142,247,0.3)' : 'none', transform: active ? 'translateY(-1px)' : 'none' }}><span>{tb.icon}</span> {tb.label}</button>
+                <button key={tb.id} data-active={active ? 'true' : 'false'} className="mkt-sub-tab-btn" onClick={() => { setTab(tb.id); broadcastMkt('MKT_TAB_CHANGE', tb.id); }} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '7px 14px', borderRadius: 9, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700, transition: 'all 0.2s cubic-bezier(.4,0,.2,1)', background: active ? 'linear-gradient(135deg,#4f8ef7,#6366f1)' : 'transparent', color: active ? '#ffffff' : '#475569', boxShadow: active ? '0 3px 14px rgba(79,142,247,0.3)' : 'none', transform: active ? 'translateY(-1px)' : 'none' }}><span>{tb.icon}</span> {tb.label}</button>
               );
             })}
           </div>

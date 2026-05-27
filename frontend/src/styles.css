@@ -6964,3 +6964,35 @@ button.cs-inactive-tab {
 [data-theme="arctic_white"] .container>div:last-child [style*="var(--text-1)"] {
   color: #0f1c3a !important;
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   173차 fix — Marketing sub-tab active 상태 white-on-white 결함
+   원인: 기존 selector 들 (L5541 linear-gradient / L6565 translateY /
+        L5552 card-glass linear-gradient) 가 충돌해서 운영 dist 에서
+        active 탭 background: white + color: white → 텍스트 invisible.
+   해결: data-active 명시 attribute + 가장 specific selector 로 강제.
+   적용 페이지: Marketing.jsx (.mkt-sub-tab-btn 클래스 사용)
+   ═══════════════════════════════════════════════════════════════ */
+.sub-tab-nav button.mkt-sub-tab-btn[data-active="true"],
+[data-theme] .sub-tab-nav button.mkt-sub-tab-btn[data-active="true"],
+[data-theme] .container>div:last-child .sub-tab-nav button.mkt-sub-tab-btn[data-active="true"] {
+  background: linear-gradient(135deg, #4f8ef7, #6366f1) !important;
+  background-image: linear-gradient(135deg, #4f8ef7, #6366f1) !important;
+  background-color: #4f8ef7 !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  border: none !important;
+  box-shadow: 0 3px 14px rgba(79,142,247,0.3) !important;
+}
+
+.sub-tab-nav button.mkt-sub-tab-btn[data-active="false"],
+[data-theme] .sub-tab-nav button.mkt-sub-tab-btn[data-active="false"],
+[data-theme] .container>div:last-child .sub-tab-nav button.mkt-sub-tab-btn[data-active="false"] {
+  background: transparent !important;
+  background-image: none !important;
+  background-color: transparent !important;
+  color: #475569 !important;
+  -webkit-text-fill-color: #475569 !important;
+  border: none !important;
+  box-shadow: none !important;
+}

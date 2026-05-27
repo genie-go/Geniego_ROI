@@ -568,8 +568,8 @@ export default function DashCommerce() {
       <div style={{ display:'grid', gridTemplateColumns:'3fr 2fr', gap:GAP }}>
         <div style={{ display:'flex', flexDirection:'column', gap:GAP }}>
 
-          {/* Platform Cards */}
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:GAP }}>
+          {/* Platform Cards — 173차 fix: auto-fit (좁은 viewport 자동 wrap) */}
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(135px, 1fr))', gap:GAP }}>
             {platformData.map(p => {
               const isSel = sel === p.id;
               return (

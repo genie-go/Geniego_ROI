@@ -398,10 +398,10 @@ export default function DashMarketing() {
       {/* ══════════════════════ 채널 퍼포먼스 탭 ══════════════════════ */}
       {tab === 'channels' && (
         <div style={{ display: 'grid', gap: G }}>
-          {/* ── KPI 상단 카드 그리드 ───────────────────────────────── */}
+          {/* ── KPI 상단 카드 그리드 — 173차 fix: auto-fit (좁은 viewport 자동 wrap) ─ */}
           <div style={{
             display: 'grid',
-            gridTemplateColumns: isMobile ? 'repeat(2,1fr)' : 'repeat(7,1fr)',
+            gridTemplateColumns: isMobile ? 'repeat(2,1fr)' : 'repeat(auto-fit, minmax(150px, 1fr))',
             gap: isMobile ? 8 : G,
           }}>
             {metricsTop.map(m => (
