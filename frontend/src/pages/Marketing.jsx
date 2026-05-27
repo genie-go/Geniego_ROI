@@ -253,9 +253,33 @@ function AmazonOverviewTab() {
                     })}
                 </div>
                 {/* 5-Metric ComposedChart */}
-                <div style={{ width: '100%', borderTop: "1px dashed rgba(0,0,0,0.06))", paddingTop: 16 }}>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 14, marginBottom: 12 }}>
-                        {CORE_CHART_METRICS.map(mId => { const md = ALL_METRICS.find(m => m.id === mId); if (!md) return null; const al = mId === 'spend' ? '(Left)' : (mId === 'impressions' || mId === 'clicks') ? '(Right)' : '(%/x)'; return (<div key={mId} style={{ display: 'flex', alignItems: 'center', gap: 5, width: 10, height: 10, borderRadius: mId === 'ctr' || mId === 'roas' ? '50%' : 2, background: md.color, fontSize: 9, fontWeight: 400, color: '#94a3b8' }} ><div /><span>{t(md.labelKey, md.label)} <span>{al}</span></span></div>); })}
+                <div style={{ width: '100%', borderTop: "1px dashed rgba(0,0,0,0.06)", paddingTop: 16 }}>
+                    {/* 173차 fix — Legend wrapper 구조 정정: marker(10px box) + label(읽기 가능 fontSize) 분리.
+                        이전: wrapper div 자체에 width:10/height:10 + 컬러 → 라벨 텍스트가 작은 박스 안에서 강제 wrap. */}
+                    <div style={{ display: 'flex', flexWrap: 'wrap', columnGap: 18, rowGap: 8, marginBottom: 14, alignItems: 'center' }}>
+                        {CORE_CHART_METRICS.map(mId => {
+                            const md = ALL_METRICS.find(m => m.id === mId);
+                            if (!md) return null;
+                            const al = mId === 'spend' ? '(Left)'
+                                     : (mId === 'impressions' || mId === 'clicks') ? '(Right)'
+                                     : '(%/x)';
+                            const isCircle = mId === 'ctr' || mId === 'roas';
+                            return (
+                                <div key={mId} style={{ display: 'inline-flex', alignItems: 'center', gap: 7, whiteSpace: 'nowrap' }}>
+                                    <span style={{
+                                        width: 12, height: 12,
+                                        borderRadius: isCircle ? '50%' : 3,
+                                        background: md.color,
+                                        flexShrink: 0,
+                                        display: 'inline-block',
+                                    }} />
+                                    <span style={{ fontSize: 12, fontWeight: 600, color: '#334155' }}>
+                                        {t(md.labelKey, md.label)}
+                                        <span style={{ fontSize: 11, fontWeight: 500, color: '#94a3b8', marginLeft: 4 }}>{al}</span>
+                                    </span>
+                                </div>
+                            );
+                        })}
                     </div>
                     <div style={{ width: '100%', height: 420 }}>
                         <ResponsiveContainer width="100%" height="100%">

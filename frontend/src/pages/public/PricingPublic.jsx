@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import PublicLayout from "../../layout/PublicLayout.jsx";
 
 /**
@@ -59,9 +59,17 @@ const FALLBACK_PLANS = [
  * - price_usd → priceMonthly
  * - price_annual_usd → priceAnnual (이미 월 환산값)
  * - is_custom_quote=true → priceMonthly null (enterprise 패턴)
+ * - periods → 173차 신규: 1/3/6/12개월 cycle 별 paddle_price_id 매트릭스
  */
 function hydratePlanFromApi(p) {
   const meta = PLAN_UI_META[p.id] || { color: "#4f8ef7", tagAuto: null };
+  // 173차 — periods 배열 보존 (cycle 토글 + 자동 priceId 매칭)
+  const periods = Array.isArray(p.periods) ? p.periods : [];
+  // periods 가 비어있으면 legacy price_id_monthly / price_id_annual 로 fallback period 2종 합성
+  const periodsHydrated = periods.length > 0 ? periods : [
+    p.price_id_monthly ? { period_months: 1,  price_usd: p.price_usd ?? null, paddle_price_id: p.price_id_monthly, discount_pct: 0, total_charge: p.price_usd ?? null } : null,
+    p.price_id_annual  ? { period_months: 12, price_usd: p.price_annual_usd ?? null, paddle_price_id: p.price_id_annual, discount_pct: 20, total_charge: (p.price_annual_usd != null ? p.price_annual_usd * 12 : null) } : null,
+  ].filter(Boolean);
   return {
     id: p.id,
     name: p.name || p.id,
@@ -75,16 +83,38 @@ function hydratePlanFromApi(p) {
     features: Array.isArray(p.features) ? p.features : [],
     notIncluded: [],
     isCustomQuote: !!p.is_custom_quote,
+    periods: periodsHydrated,
   };
 }
 
+// 173차 — cycle 옵션 (1/3/6/12 개월). admin DB 의 period_months 와 정합.
+const CYCLE_OPTIONS = [
+  { months: 1,  label: "Monthly",       short: "1mo" },
+  { months: 3,  label: "Quarterly",     short: "3mo" },
+  { months: 6,  label: "Semi-Annual",   short: "6mo" },
+  { months: 12, label: "Annual",        short: "12mo" },
+];
+
+/** plan.periods 에서 month 매칭. 없으면 가장 가까운 (>=) period fallback. */
+function findPeriod(plan, months) {
+  if (!plan?.periods || plan.periods.length === 0) return null;
+  const exact = plan.periods.find(pp => pp.period_months === months);
+  if (exact) return exact;
+  // fallback: 가장 가까운 더 작은 period (소비자 친화: 작은 약정으로)
+  const sorted = [...plan.periods].sort((a, b) => a.period_months - b.period_months);
+  const lower = [...sorted].reverse().find(pp => pp.period_months <= months);
+  return lower || sorted[0];
+}
+
 const FAQS = [
-    { q: "Can I cancel anytime?", a: "Yes — cancel any time from your account settings. Your access continues until the end of your billing period. No cancellation fees." },
-    { q: "What payment methods are accepted?", a: "All major credit/debit cards, PayPal, Apple Pay, Google Pay, and 100+ local payment methods via Paddle (our Merchant of Record). Paddle handles VAT/GST compliance globally." },
-    { q: "Is there a free trial?", a: "Every new account starts on a free Demo plan with no credit card required. Explore the platform at your own pace, then upgrade when you're ready — backed by our 30-day money-back guarantee." },
-    { q: "How does billing work for annual plans?", a: "Annual plans are billed once upfront and save approximately 20% compared to monthly plans. You'll receive one invoice per year. You can switch between monthly and annual at any time." },
-    { q: "Will taxes be added to my bill?", a: "Paddle handles all VAT/GST/sales tax compliance globally. Applicable taxes are calculated and shown at checkout based on your location. Your invoice will include a detailed tax breakdown." },
-    { q: "What happens if my payment fails?", a: "Paddle will attempt to retry failed payments automatically. You'll receive email notifications. Your subscription remains active during the retry period. If payment ultimately fails, your plan will be paused (not cancelled) and can be resumed." },
+    { q: "Can I cancel anytime?", a: "Yes — cancel any time from your account settings. Your access continues until the end of your current billing cycle. No cancellation fees." },
+    { q: "What payment methods are accepted?", a: "Credit and debit cards only (Visa, Mastercard, American Express, and other major networks) via Paddle.com — our Merchant of Record. Paddle handles VAT/GST/sales-tax compliance globally and bills in USD." },
+    { q: "Which billing cycles are available?", a: "Four cycles: Monthly (1 month), Quarterly (3 months), Semi-Annual (6 months), and Annual (12 months). Longer cycles unlock larger discounts. All cycles renew automatically at the chosen interval." },
+    { q: "Is there a free trial?", a: "Every new account starts on a free Demo plan with no card required. Explore the platform at your own pace, then upgrade when you're ready — backed by our 30-day money-back guarantee." },
+    { q: "How does billing work for longer cycles?", a: "Quarterly, semi-annual, and annual plans are billed once upfront for the full cycle. The effective monthly rate is shown next to each cycle option above. You can switch cycles or plans at any time; changes take effect at the next renewal." },
+    { q: "Will taxes be added to my bill?", a: "Paddle handles all VAT/GST/sales-tax compliance globally. Applicable taxes are calculated and shown at checkout based on your location. Your invoice will include a detailed tax breakdown." },
+    { q: "What happens if my payment fails?", a: "Paddle automatically retries failed card payments on a fixed schedule (typically days 1, 3, 5, 7). You'll receive email notifications at each retry. If all retries fail, your plan is paused (not cancelled) and can be resumed any time within 90 days." },
+    { q: "How do refunds work?", a: "First-time subscribers get a full refund within 30 days, no questions asked. Refunds return to the same card and your account is automatically downgraded to the Demo plan. See our Refund Policy for full details." },
 ];
 
 const COMPARISON = [
@@ -127,7 +157,8 @@ function loadPaddleV2(clientToken) {
 }
 
 export default function PricingPublic() {
-    const [annual, setAnnual] = useState(false);
+    // 173차 — monthly/annual toggle → cycle 토글 (1/3/6/12개월) 로 치환
+    const [cycleMonths, setCycleMonths] = useState(1);
     const [loading, setLoading] = useState({});
     const [success, setSuccess] = useState(false);
     const [faqOpen, setFaqOpen] = useState(null);
@@ -135,6 +166,30 @@ export default function PricingPublic() {
     const [clientToken, setClientToken] = useState(import.meta.env.VITE_PADDLE_CLIENT_TOKEN || "");
     // 172차 PHASE 1-A — plans 를 backend 에서 동적 fetch
     const [plans, setPlans] = useState(FALLBACK_PLANS);
+    const [plansLoaded, setPlansLoaded] = useState(false);
+    // 173차 — 가입 후 navigate("/pricing", {state: {autoCheckout: {planId, cycleMonths}}}) 수신
+    const location = useLocation();
+    const navigate = useNavigate();
+    const autoCheckoutPending = useRef(null); // {planId, cycleMonths}
+    const [couponBanner, setCouponBanner] = useState(null);
+
+    useEffect(() => {
+        // location.state.autoCheckout: AuthPage 가입 완료 후 자동 진입
+        const st = location.state;
+        if (st?.autoCheckout?.planId) {
+            autoCheckoutPending.current = {
+                planId: String(st.autoCheckout.planId),
+                cycleMonths: Number(st.autoCheckout.cycleMonths) || 1,
+            };
+            setCycleMonths(autoCheckoutPending.current.cycleMonths);
+        }
+        if (st?.couponAlert?.ok) setCouponBanner(st.couponAlert);
+        // 한 번 처리한 후 navigate state 정리 (새로고침 시 재트리거 방지)
+        if (st && (st.autoCheckout || st.couponAlert)) {
+            navigate(location.pathname, { replace: true, state: null });
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     useEffect(() => {
         const apiBase = import.meta.env.VITE_API_BASE || "";
@@ -145,24 +200,43 @@ export default function PricingPublic() {
             if (d?.ok && Array.isArray(d.plans) && d.plans.length > 0) {
                 setPlans(d.plans.map(hydratePlanFromApi));
             }
-        }).catch(() => { /* fallback to default plans */ });
+        })
+        .catch(() => { /* fallback to default plans */ })
+        .finally(() => setPlansLoaded(true));
     }, []);
 
     useEffect(() => { if (clientToken) loadPaddleV2(clientToken).catch(console.error); }, [clientToken]);
 
-    const checkout = useCallback(async (plan) => {
-        if (!plan.priceIdMonthly && !plan.priceIdAnnual) {
-            window.location.href = "mailto:support@genie-go.com?subject=Enterprise%20Plan%20Inquiry";
+    const checkout = useCallback(async (plan, cycleArg) => {
+        // is_custom_quote (Enterprise) → mailto. period 도 없으면 동일.
+        const hasAnyPriceId = plan.priceIdMonthly || plan.priceIdAnnual || (plan.periods || []).some(pp => pp.paddle_price_id);
+        if (!hasAnyPriceId || plan.isCustomQuote) {
+            window.location.href = `mailto:support@genie-go.com?subject=${encodeURIComponent(plan.name + " Plan Inquiry")}`;
             return;
         }
-        const priceId = annual ? plan.priceIdAnnual : plan.priceIdMonthly;
-        if (!priceId) { alert(`${annual ? "Annual" : "Monthly"} pricing not yet configured. Please contact support@genie-go.com.`); return; }
+        const months = Number(cycleArg ?? cycleMonths) || 1;
+        // 173차 — periods 우선 매칭. legacy fallback (1m→priceIdMonthly, 12m→priceIdAnnual)
+        let priceId = "";
+        const period = findPeriod(plan, months);
+        if (period?.paddle_price_id) {
+            priceId = period.paddle_price_id;
+        } else if (months === 12 && plan.priceIdAnnual) {
+            priceId = plan.priceIdAnnual;
+        } else if (plan.priceIdMonthly) {
+            priceId = plan.priceIdMonthly;
+        }
+        if (!priceId) {
+            alert(`${months}-month pricing not yet configured for ${plan.name}. Please choose a different cycle or contact support@genie-go.com.`);
+            return;
+        }
         setLoading(p => ({ ...p, [plan.id]: true }));
         try {
             if (!clientToken) throw new Error("Payment system not configured");
             await loadPaddleV2(clientToken);
+            // customData: webhook 처리 시 cycle/plan 식별 (Paddle 가 webhook payload 에 포함시킴)
             window.Paddle.Checkout.open({
                 items: [{ priceId, quantity: 1 }],
+                customData: { plan_id: plan.id, cycle_months: months },
                 // 168차 N-152-F: 카드 전용 강제 (allowedPaymentMethods=['card']).
                 // spec: docs/spec/n152f_billing_usd_card_only.md §2.3
                 settings: {
@@ -179,7 +253,19 @@ export default function PricingPublic() {
         } finally {
             setLoading(p => ({ ...p, [plan.id]: false }));
         }
-    }, [annual, clientToken]);
+    }, [cycleMonths, clientToken]);
+
+    // 173차 — autoCheckout: plans + clientToken 모두 준비되면 자동 호출
+    useEffect(() => {
+        if (!plansLoaded || !clientToken || !autoCheckoutPending.current) return;
+        const pending = autoCheckoutPending.current;
+        const plan = plans.find(p => p.id === pending.planId);
+        if (!plan) { autoCheckoutPending.current = null; return; }
+        autoCheckoutPending.current = null;
+        // 소액 지연으로 SDK init 완료 보장
+        const t = setTimeout(() => checkout(plan, pending.cycleMonths), 250);
+        return () => clearTimeout(t);
+    }, [plansLoaded, clientToken, plans, checkout]);
 
     return (
         <PublicLayout>
@@ -202,21 +288,49 @@ export default function PricingPublic() {
                         </div>
                     )}
 
-                    {/* Toggle */}
-                    <div style={{ display: "inline-flex", alignItems: "center", gap: 14, margin: "32px 0 48px", padding: "8px 20px", borderRadius: 99, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)" }}>
-                        <span style={{ fontSize: 13, color: annual ? "rgba(255,255,255,0.45)" : "#fff", fontWeight: 700, transition: "color 200ms" }}>Monthly</span>
-                        <button onClick={() => setAnnual(a => !a)} style={{ width: 44, height: 24, borderRadius: 12, border: "none", background: annual ? "linear-gradient(135deg,#4f8ef7,#6366f1)" : "rgba(255,255,255,0.12)", cursor: "pointer", position: "relative", transition: "background 300ms" }}>
-                            <div style={{ position: "absolute", width: 18, height: 18, borderRadius: "50%", background: "#fff", top: 3, left: annual ? 23 : 3, transition: "left 300ms cubic-bezier(0.4,0,0.2,1)", boxShadow: "0 1px 4px rgba(0,0,0,0.3)" }} />
-                        </button>
-                        <span style={{ fontSize: 13, color: annual ? "#fff" : "rgba(255,255,255,0.45)", fontWeight: 700, transition: "color 200ms" }}>
-                            Annual <span style={{ color: "#22c55e", fontSize: 11, fontWeight: 800, marginLeft: 4, padding: "2px 8px", borderRadius: 6, background: "rgba(34,197,94,0.1)" }}>Save 20%</span>
-                        </span>
+                    {couponBanner && (
+                        <div style={{ margin: "16px auto 0", maxWidth: 560, padding: "14px 22px", borderRadius: 14, background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.25)", color: "#f59e0b", fontSize: 13, fontWeight: 600 }}>
+                            🎟️ Coupon applied — {couponBanner.message || couponBanner.code || "free access granted"}.
+                        </div>
+                    )}
+
+                    {/* 173차 — Cycle 토글: 1/3/6/12 개월 */}
+                    <div style={{ display: "inline-flex", alignItems: "center", gap: 4, margin: "32px 0 16px", padding: 4, borderRadius: 99, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                        {CYCLE_OPTIONS.map(opt => {
+                            const active = cycleMonths === opt.months;
+                            return (
+                                <button key={opt.months}
+                                    onClick={() => setCycleMonths(opt.months)}
+                                    style={{
+                                        padding: "8px 16px", borderRadius: 99, border: "none",
+                                        background: active ? "linear-gradient(135deg,#4f8ef7,#6366f1)" : "transparent",
+                                        color: active ? "#fff" : "rgba(255,255,255,0.55)",
+                                        fontSize: 12, fontWeight: 700, cursor: "pointer",
+                                        transition: "all 200ms",
+                                        boxShadow: active ? "0 2px 12px rgba(79,142,247,0.3)" : "none",
+                                    }}>
+                                    {opt.label}
+                                    {opt.months > 1 && (
+                                        <span style={{ fontSize: 10, marginLeft: 6, opacity: active ? 0.85 : 0.5 }}>
+                                            ({opt.short})
+                                        </span>
+                                    )}
+                                </button>
+                            );
+                        })}
                     </div>
+                    <p style={{ fontSize: 11, color: "var(--text-3)", marginBottom: 32 }}>
+                        Longer cycles unlock larger discounts. All cycles billed upfront via Paddle. <strong style={{ color: "rgba(255,255,255,0.45)" }}>Card payments only</strong>.
+                    </p>
 
                     {/* Plan cards */}
                     <div style={{ display: "grid", gridTemplateColumns: `repeat(${Math.min(plans.length, 3)},1fr)`, gap: 16, maxWidth: 1040, margin: "0 auto" }}>
                         {plans.map(plan => {
-                            const price = plan.priceMonthly ? (annual ? plan.priceAnnual : plan.priceMonthly) : null;
+                            // 173차 — period 기반 가격 산정. periods 가 비어있으면 legacy (1m/12m) fallback.
+                            const period = plan.isCustomQuote ? null : findPeriod(plan, cycleMonths);
+                            const monthlyPrice = period?.price_usd ?? (cycleMonths === 12 ? plan.priceAnnual : plan.priceMonthly);
+                            const totalCharge = period?.total_charge ?? (monthlyPrice != null ? monthlyPrice * cycleMonths : null);
+                            const discountPct = period?.discount_pct ?? (cycleMonths === 12 ? 20 : 0);
                             const isPro = plan.id === "pro";
                             return (
                                 <div key={plan.id} style={{
@@ -237,11 +351,20 @@ export default function PricingPublic() {
                                     <div style={{ fontSize: 12, color: "var(--text-3)", marginBottom: 24, lineHeight: 1.6, minHeight: 38 }}>{plan.desc}</div>
 
                                     <div style={{ marginBottom: 28 }}>
-                                        {price !== null ? (
+                                        {monthlyPrice !== null && !plan.isCustomQuote ? (
                                             <>
-                                                <span style={{ fontSize: 48, fontWeight: 900, color: "#fff", letterSpacing: -2 }}>${price}</span>
+                                                <span style={{ fontSize: 48, fontWeight: 900, color: "#fff", letterSpacing: -2 }}>${Math.round(monthlyPrice * 100) / 100}</span>
                                                 <span style={{ fontSize: 14, color: "var(--text-3)", marginLeft: 4 }}>/mo</span>
-                                                {annual && <div style={{ fontSize: 11, color: "var(--text-3)", marginTop: 4 }}>Billed annually (${price * 12}/yr)</div>}
+                                                {cycleMonths > 1 && totalCharge != null && (
+                                                    <div style={{ fontSize: 11, color: "var(--text-3)", marginTop: 6 }}>
+                                                        Billed every {cycleMonths} months (${Math.round(totalCharge * 100) / 100})
+                                                        {discountPct > 0 && (
+                                                            <span style={{ color: "#22c55e", fontWeight: 700, marginLeft: 6, padding: "1px 7px", borderRadius: 6, background: "rgba(34,197,94,0.1)" }}>
+                                                                Save {discountPct}%
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                )}
                                             </>
                                         ) : (
                                             <span style={{ fontSize: 36, fontWeight: 900, color: "#fff" }}>Custom</span>
@@ -250,7 +373,7 @@ export default function PricingPublic() {
 
                                     <button onClick={() => checkout(plan)} disabled={!!loading[plan.id]}
                                         style={{ width: "100%", padding: "14px 0", borderRadius: 12, border: "none", cursor: loading[plan.id] ? "default" : "pointer", fontWeight: 800, fontSize: 14, background: isPro ? "linear-gradient(135deg,#4f8ef7,#7c3aed)" : "rgba(255,255,255,0.06)", color: "#fff", marginBottom: 28, opacity: loading[plan.id] ? 0.6 : 1, transition: "all 200ms", boxShadow: isPro ? "0 0 30px rgba(79,142,247,0.2)" : "none" }}>
-                                        {loading[plan.id] ? "Opening checkout…" : plan.priceMonthly ? "Get Started" : "Contact Sales"}
+                                        {loading[plan.id] ? "Opening checkout…" : (plan.isCustomQuote || !monthlyPrice) ? "Contact Sales" : "Get Started"}
                                     </button>
 
                                     <div style={{ display: "grid", gap: 10 }}>

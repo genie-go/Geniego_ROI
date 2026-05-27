@@ -93,6 +93,18 @@ export default function Privacy() {
                 </div>
 
                 <div style={S.section}>
+                    <h2 style={S.h2}>⏱ 5.1 Data Retention</h2>
+                    <p style={S.p}>We retain personal data only as long as necessary to provide the Service or to comply with legal obligations:</p>
+                    <ul style={S.ul}>
+                        <li style={S.li}><strong style={{ color: "#fff" }}>Active accounts:</strong> retained for the duration of the subscription, plus 30 days after cancellation for reactivation grace</li>
+                        <li style={S.li}><strong style={{ color: "#fff" }}>Paused subscriptions (payment failure):</strong> account data retained for 90 days; permanently deleted thereafter unless reactivated</li>
+                        <li style={S.li}><strong style={{ color: "#fff" }}>Billing records:</strong> retained by Paddle.com for 7 years to satisfy tax and audit requirements (per applicable jurisdiction)</li>
+                        <li style={S.li}><strong style={{ color: "#fff" }}>Server logs:</strong> retained for 90 days for security monitoring; anonymized aggregates may be kept longer</li>
+                        <li style={S.li}><strong style={{ color: "#fff" }}>Right-to-erasure requests:</strong> processed within 30 days; some records may be retained where required by law (e.g., tax invoices)</li>
+                    </ul>
+                </div>
+
+                <div style={S.section}>
                     <h2 style={S.h2}>⚖️ 6. Your Rights (GDPR / CCPA)</h2>
                     <p style={S.p}>Depending on your jurisdiction, you may have the following rights:</p>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>

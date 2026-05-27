@@ -58,36 +58,44 @@ function KpiCard({ icon, label, value, sub, change, color, spark }) {
           position: 'absolute', right: 10, top: 8,
           fontSize: 28, opacity: 0.06,
         }}>{icon}</div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <div>
+        {/* 173차 fix — 카드 좁은 viewport (auto-fit 165px) 에서 라벨 세로 wrap 방지.
+            좌측 label/value 컬럼 → min-width:0 + flex:1 (Spark 와 안전한 공간 분배).
+            우측 Spark → 폭 축소 + flex-shrink. */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, minWidth: 0 }}>
+          <div style={{ minWidth: 0, flex: 1 }}>
             <div style={{
               fontSize: 10, color: 'var(--text-3)',
-              fontWeight: 700, letterSpacing: 0.8, textTransform: 'uppercase',
+              fontWeight: 700, letterSpacing: 0.6, textTransform: 'uppercase',
               marginBottom: 6,
-            }}>{label}</div>
+              whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+            }} title={typeof label === 'string' ? label : undefined}>{label}</div>
             <div style={{
-              fontSize: 24, fontWeight: 900, color,
-              lineHeight: 1.1, fontVariantNumeric: 'tabular-nums',
+              fontSize: 22, fontWeight: 900, color,
+              lineHeight: 1.15, fontVariantNumeric: 'tabular-nums',
               textShadow: `0 0 20px ${color}55`,
-            }}>{value}</div>
+              whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+            }} title={typeof value === 'string' ? value : undefined}>{value}</div>
           </div>
-          <Spark data={spark} color={color} h={34} w={78} area />
+          <div style={{ flexShrink: 0 }}>
+            <Spark data={spark} color={color} h={32} w={64} area />
+          </div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 8 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 8, gap: 6, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
             <span style={{
               fontSize: 11, fontWeight: 800,
               color: up ? '#4ade80' : '#f87171',
               background: up ? 'rgba(74,222,128,0.1)' : 'rgba(248,113,113,0.1)',
               padding: '1px 7px', borderRadius: 6,
+              whiteSpace: 'nowrap', flexShrink: 0,
             }}>
               {up ? '▲' : '▼'} {Math.abs(change || 0).toFixed(1)}%
             </span>
-            <span style={{ fontSize: 10, color: 'var(--text-3)' }}>
+            <span style={{ fontSize: 10, color: 'var(--text-3)', whiteSpace: 'nowrap' }}>
               {t('dash.vsYesterday', '전일 대비')}
             </span>
           </div>
-          {sub && <span style={{ fontSize: 9, color: 'var(--text-3)' }}>{sub}</span>}
+          {sub && <span style={{ fontSize: 9, color: 'var(--text-3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '60%' }} title={sub}>{sub}</span>}
         </div>
       </div>
     </div>
@@ -420,7 +428,8 @@ function ModuleShortcuts({ t, navigate }) {
           {t('dash.analyticsModules', '분석 모듈')}
         </div>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(9,1fr)', gap: 8 }}>
+      {/* 173차 fix — 9-column → auto-fit (모듈 아이콘 카드 좁아지면 자동 wrap) */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(102px, 1fr))', gap: 8 }}>
         {modules.map(m => (
           <button key={m.label} onClick={() => navigate(m.to)}
             style={{
@@ -514,8 +523,8 @@ export default function DashOverview({ ticker }) {
 
   return (
     <div style={{ display: 'grid', gap: G }}>
-      {/* ── Row 1: 6-column KPIs ─────────────────────────────────── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6,1fr)', gap: G }}>
+      {/* ── Row 1: 6-column KPIs — 173차 fix: auto-fit 으로 viewport 좁아질 시 자동 wrap ─ */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(165px, 1fr))', gap: G }}>
         <KpiCard icon="💰" label={t('dashboard.grossRevenue', '총 매출')} value={fmtCurrency(base.grossRev, { compact: true })} sub={t('dashboard.grossRevSub', '전체 채널 합산')} change={0} color="#4f8ef7" spark={sparks.gross} />
         <KpiCard icon="📢" label={t('dashboard.adSpend', '광고비')} value={fmtCurrency(base.adSpend, { compact: true })} sub={t('dashboard.adSpendSub', '전체 채널 합산')} change={0} color="#f97316" spark={sparks.spend} />
         <KpiCard icon="📈" label={t('dashboard.netROAS', 'Net ROAS')} value={base.roas.toFixed(2) + 'x'} sub={t('dashboard.netROASSub', '순수익 기준')} change={0} color="#22c55e" spark={sparks.roas} />

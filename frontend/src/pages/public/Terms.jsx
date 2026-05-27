@@ -51,13 +51,15 @@ export default function Terms() {
 
                 <div style={S.section}>
                     <h2 style={S.h2}>💳 3. Subscription & Billing</h2>
-                    <p style={S.p}>The Service offers free (Demo) and paid subscription plans (Starter, Pro, Enterprise). Paid subscriptions are billed in advance on a monthly or annual basis through our payment processor, <strong style={{ color: "#fff" }}>Paddle.com</strong> (the Merchant of Record).</p>
+                    <p style={S.p}>The Service offers a free Demo plan and paid subscription plans (Starter, Pro, Enterprise). Paid subscriptions are billed in advance on a <strong style={{ color: "#fff" }}>monthly, quarterly, semi-annual, or annual</strong> basis (1, 3, 6, or 12 months) through our payment processor, <strong style={{ color: "#fff" }}>Paddle.com</strong> (the Merchant of Record). Longer billing cycles unlock discounted rates as displayed at checkout.</p>
                     <h3 style={S.h3}>3.1 Payment Processing</h3>
-                    <p style={S.p}>All payments are processed by Paddle.com, which acts as the Merchant of Record for all transactions. Paddle handles all billing, invoicing, tax compliance (VAT/GST/sales tax), and payment method management. Your financial data is processed directly by Paddle and is never stored on our servers.</p>
+                    <p style={S.p}>All payments are processed by Paddle.com, which acts as the Merchant of Record for all transactions. Paddle handles billing, invoicing, tax compliance (VAT/GST/sales tax), and payment method management. Your financial data is processed directly by Paddle and is never stored on our servers. We accept <strong style={{ color: "#fff" }}>credit and debit cards only</strong> at this time.</p>
                     <h3 style={S.h3}>3.2 Pricing</h3>
                     <p style={S.p}>Prices are stated in USD. Applicable taxes may be added based on your location and will be shown at checkout. We reserve the right to change pricing with 30 days' advance notice. Existing subscribers will be grandfathered at their current rate until the end of their current billing period.</p>
                     <h3 style={S.h3}>3.3 Auto-Renewal</h3>
-                    <p style={S.p}>Subscriptions automatically renew unless cancelled before the end of the current billing period. You may cancel at any time from your account settings or by contacting support.</p>
+                    <p style={S.p}>Subscriptions automatically renew at the end of each billing cycle (1 / 3 / 6 / 12 months) unless cancelled before the renewal date. You may cancel at any time from your account settings or by contacting support — cancellation takes effect at the end of the current paid period.</p>
+                    <h3 style={S.h3}>3.4 Failed Payments</h3>
+                    <p style={S.p}>If a renewal payment fails, Paddle will automatically retry on a fixed schedule (typically days 1, 3, 5, and 7). You will be notified by email at each retry. If all retries fail, your subscription will be paused (not cancelled) and access to paid features will be suspended until payment is resolved. Account data is retained for 90 days during the paused state.</p>
                 </div>
 
                 <div style={S.section}>

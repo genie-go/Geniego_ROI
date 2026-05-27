@@ -378,19 +378,27 @@ class Paddle
         string $occurredAt,
         array  $data
     ): void {
-        // occurred_at ordering: skip stale events for same subscription
-        $subId = $data['id'] ?? '';   // subscription id in Billing v2 data.id
+        // 173차 — occurred_at ordering: subscription.* + transaction.* + adjustment.* 모두 stale skip
+        // subscription.* : data.id 가 sub id
+        // transaction.*  : data.subscription_id 가 sub id (없으면 일회성 결제)
+        // adjustment.*   : data.subscription_id (refund 등)
+        $subIdForOrdering = '';
+        if (str_starts_with($eventType, 'subscription.')) {
+            $subIdForOrdering = (string)($data['id'] ?? '');
+        } elseif (str_starts_with($eventType, 'transaction.') || str_starts_with($eventType, 'adjustment.')) {
+            $subIdForOrdering = (string)($data['subscription_id'] ?? '');
+        }
 
-        if ($subId && str_starts_with($eventType, 'subscription.')) {
+        if ($subIdForOrdering) {
             $stmt = $db->prepare(
                 "SELECT last_event_at FROM paddle_subscriptions WHERE paddle_subscription_id = ? LIMIT 1"
             );
-            $stmt->execute([$subId]);
+            $stmt->execute([$subIdForOrdering]);
             $existing = $stmt->fetch(\PDO::FETCH_ASSOC);
 
             if ($existing && $existing['last_event_at'] >= $occurredAt) {
                 self::auditLog($notificationId, 'skipped_stale',
-                    "existing:{$existing['last_event_at']} incoming:$occurredAt");
+                    "type=$eventType existing:{$existing['last_event_at']} incoming:$occurredAt");
                 return;
             }
         }
@@ -403,7 +411,9 @@ class Paddle
             'subscription.paused'          => self::onSubscriptionPaused($db, $data, $occurredAt),
             'transaction.completed'        => self::onTransactionCompleted($db, $data, $occurredAt),
             'transaction.payment_failed'   => self::onPaymentFailed($db, $data, $occurredAt),
-            'transaction.refunded'         => self::onRefunded($db, $data, $occurredAt),
+            'transaction.refunded',
+            'adjustment.created',
+            'adjustment.updated'           => self::onRefunded($db, $data, $occurredAt),
             default                        => self::auditLog($notificationId, 'unhandled_event', $eventType),
         };
     }
@@ -591,22 +601,110 @@ class Paddle
         self::auditLog($subId ?: 'unknown', 'payment_failed', "at=$at");
     }
 
+    /**
+     * 173차 보강 — Refund / Chargeback / Adjustment 처리.
+     *
+     * Paddle Billing v2 의 환불은 두 가지 형태로 도착:
+     *  (a) transaction.refunded  — 단순 환불 알림 (구식 payload, totals 가 details.totals 에 위치)
+     *  (b) adjustment.created    — 신식 (action: full | partial | chargeback)
+     *
+     * full / chargeback → user plan 'demo' 로 즉시 다운그레이드 + paddle_subscriptions.status='refunded'
+     * partial          → 감사 로그만 (서비스 유지)
+     *
+     * 환불 후 user plan 유지를 막아 사기 / 분쟁 시 매출 보호.
+     */
     private static function onRefunded(\PDO $db, array $d, string $at): void
     {
-        $txnId  = $d['id']        ?? '';
-        $amount = $d['details']['totals']['total'] ?? 0;
-        $curr   = $d['currency_code'] ?? 'USD';
-        self::auditLog($txnId, 'transaction_refunded', "amount=$amount $curr at=$at");
+        $adjId  = (string)($d['id']              ?? '');
+        $txnId  = (string)($d['transaction_id']  ?? '');
+        $subId  = (string)($d['subscription_id'] ?? '');
+        $action = (string)($d['action']          ?? 'full');  // full | partial | chargeback
+        // amount: adjustment payload 는 totals.total, legacy transaction.refunded 는 details.totals.total
+        $amount = (string)($d['totals']['total']             ?? $d['details']['totals']['total'] ?? '0');
+        $curr   = (string)($d['currency_code']               ?? 'USD');
+
+        // Lookup user_email (subscription_id 또는 custom_data 경로)
+        $email = (string)($d['custom_data']['user_email'] ?? $d['custom_data']['email'] ?? '');
+        if ($subId && !$email) {
+            try {
+                $stmt = $db->prepare(
+                    "SELECT user_email FROM paddle_subscriptions WHERE paddle_subscription_id=? LIMIT 1"
+                );
+                $stmt->execute([$subId]);
+                $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+                $email = (string)($row['user_email'] ?? '');
+            } catch (\Throwable $e) { /* graceful */ }
+        }
+
+        // full refund 또는 chargeback → 즉시 다운그레이드
+        $isFull = in_array($action, ['full', 'chargeback'], true);
+
+        if ($isFull) {
+            if ($subId) {
+                try {
+                    $db->prepare("
+                        UPDATE paddle_subscriptions SET
+                            status='refunded', last_event_at=?, updated_at=NOW()
+                        WHERE paddle_subscription_id=?
+                    ")->execute([$at, $subId]);
+                } catch (\Throwable $e) { /* graceful */ }
+            }
+            if ($email) {
+                self::setUserPlan($db, $email, 'demo', null);
+            }
+            self::auditLog($adjId ?: ($txnId ?: 'unknown'),
+                "refunded_$action",
+                "txn=$txnId sub=$subId email=$email amount=$amount $curr"
+            );
+        } else {
+            // partial: 서비스 유지, 감사만
+            self::auditLog($adjId ?: ($txnId ?: 'unknown'),
+                'refunded_partial',
+                "txn=$txnId sub=$subId email=$email amount=$amount $curr"
+            );
+        }
     }
 
     // ── User plan activation (app_user table) ─────────────────────────────────
 
     /**
-     * Map Paddle price/product IDs → app plan name
+     * Map Paddle price/product IDs → app plan name.
+     *
+     * 173차 보강 — 우선순위:
+     *  1. plan_period_pricing.paddle_price_id 직접 lookup (1/3/6/12 매트릭스 지원)
+     *  2. plan_config.price_id_monthly / price_id_annual lookup (legacy 2종)
+     *  3. .env PADDLE_PRICE_* 환경변수 lookup (구식 4종)
+     *  4. priceId/prodId 문자열 heuristic
+     *  5. fallback 'pro'
      */
     private static function resolveAppPlan(string $priceId, string $prodId): string
     {
-        // Check env-configured price IDs
+        if ($priceId !== '') {
+            // 1. plan_period_pricing 매트릭스 (173차 cycle 1/3/6/12 지원)
+            try {
+                $stmt = self::db()->prepare(
+                    "SELECT plan_id FROM plan_period_pricing
+                     WHERE paddle_price_id = ? AND is_active = 1 LIMIT 1"
+                );
+                $stmt->execute([$priceId]);
+                $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+                if ($row && !empty($row['plan_id'])) return (string)$row['plan_id'];
+            } catch (\Throwable $e) { /* graceful */ }
+
+            // 2. plan_config legacy 2종 (price_id_monthly / annual)
+            try {
+                $stmt = self::db()->prepare(
+                    "SELECT plan_id FROM plan_config
+                     WHERE (price_id_monthly = ? OR price_id_annual = ?) AND is_active = 1
+                     LIMIT 1"
+                );
+                $stmt->execute([$priceId, $priceId]);
+                $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+                if ($row && !empty($row['plan_id'])) return (string)$row['plan_id'];
+            } catch (\Throwable $e) { /* graceful */ }
+        }
+
+        // 3. .env 구식 4종
         $starterMonthly = getenv('PADDLE_PRICE_STARTER_MONTHLY') ?: '';
         $starterAnnual  = getenv('PADDLE_PRICE_STARTER_ANNUAL')  ?: '';
         $proMonthly     = getenv('PADDLE_PRICE_PRO_MONTHLY')     ?: '';
@@ -615,13 +713,14 @@ class Paddle
         if ($priceId && in_array($priceId, [$starterMonthly, $starterAnnual], true)) return 'starter';
         if ($priceId && in_array($priceId, [$proMonthly, $proAnnual], true))         return 'pro';
 
-        // Fallback: name heuristic
+        // 4. heuristic
         $lower = strtolower($priceId . $prodId);
         if (str_contains($lower, 'enterprise')) return 'enterprise';
         if (str_contains($lower, 'pro'))        return 'pro';
         if (str_contains($lower, 'starter'))    return 'starter';
 
-        return 'pro'; // default to pro if activated
+        // 5. fallback
+        return 'pro';
     }
 
     /**

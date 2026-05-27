@@ -209,8 +209,8 @@ export default function DashChannelKPI() {
                 </span>
             </div>
             
-            {/* Row 1: Channel Scorecard */}
-            <div style={{ display:'grid', gridTemplateColumns: 'repeat(6,1fr)', gap: G }}>
+            {/* Row 1: Channel Scorecard — 173차 fix: auto-fit (좁은 viewport 자동 wrap) */}
+            <div style={{ display:'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: G }}>
                 {liveList.map(c => {
                     const isSel = sel === c.id;
                     return (

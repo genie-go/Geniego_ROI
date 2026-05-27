@@ -63,12 +63,18 @@ export default function Refund() {
 
                 <div style={S.section}>
                     <h2 style={S.h2}>💳 3. Refund Method</h2>
-                    <p style={S.p}>Refunds are processed by <strong style={{ color: "#fff" }}>Paddle.com</strong>, our Merchant of Record. The refund will be returned to the original payment method used at checkout. Processing times vary by payment provider:</p>
+                    <p style={S.p}>Refunds are processed by <strong style={{ color: "#fff" }}>Paddle.com</strong>, our Merchant of Record. The refund will be returned to the same credit or debit card used at checkout. We accept <strong style={{ color: "#fff" }}>card payments only</strong>; refunds therefore always return to the issuing card. Processing times by card network:</p>
                     <ul style={S.ul}>
-                        <li style={S.li}><strong style={{ color: "#fff" }}>Credit/Debit Cards:</strong> 5–10 business days</li>
-                        <li style={S.li}><strong style={{ color: "#fff" }}>PayPal:</strong> 3–5 business days</li>
-                        <li style={S.li}><strong style={{ color: "#fff" }}>Other methods:</strong> Up to 14 business days depending on the provider</li>
+                        <li style={S.li}><strong style={{ color: "#fff" }}>Visa / Mastercard:</strong> typically 5–7 business days</li>
+                        <li style={S.li}><strong style={{ color: "#fff" }}>American Express:</strong> typically 7–10 business days</li>
+                        <li style={S.li}><strong style={{ color: "#fff" }}>Other issuers:</strong> up to 14 business days depending on bank policy</li>
                     </ul>
+                    <p style={S.p}>The refund amount will appear as a credit on your card statement. Taxes collected at checkout (VAT/GST/sales tax) are refunded in full alongside the principal. Upon refund completion, our system automatically downgrades your account to the free Demo plan and your paid subscription is marked as <strong style={{ color: "#fff" }}>refunded</strong>.</p>
+                </div>
+
+                <div style={S.section}>
+                    <h2 style={S.h2}>⚠️ 3.1 Chargebacks</h2>
+                    <p style={S.p}>If you dispute a charge directly with your card issuer (a "chargeback") rather than contacting us first, Paddle.com is required to respond on our behalf. Chargebacks are treated as full refunds for service-revocation purposes: your account will be downgraded to the Demo plan immediately upon receiving the chargeback notification. We strongly recommend emailing <strong style={{ color: "#4f8ef7" }}>support@genie-go.com</strong> before initiating a chargeback — most issues can be resolved within 24 hours.</p>
                 </div>
 
                 <div style={S.section}>

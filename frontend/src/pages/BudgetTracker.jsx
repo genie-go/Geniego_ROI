@@ -359,10 +359,21 @@ function BurnRateTab({ campaigns, tr, fmt }) {
       <div className="card card-glass" style={{ padding: 20, color: '#1e293b' }}>
         <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 4, color: '#1e293b' }}>📈 {tr('dailyTrend')}</div>
         <div style={{ fontSize: 11, color: '#94a3b8', marginBottom: 16 }}>{tr('dailyTrendDesc')}</div>
-        <div style={{ display: 'flex', gap: 16, marginBottom: 12, flexWrap: 'wrap' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 5, width: 10, height: 10, borderRadius: 2, background: '#f97316', fontSize: 11, fontWeight: 700, color: '#f97316' }} ><div /><span>{tr('daily')}</span></div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 5, width: 10, height: 10, borderRadius: '50%', background: '#4f8ef7', fontSize: 11, fontWeight: 700, color: '#4f8ef7' }} ><div /><span>{tr('cumulative')}</span></div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 5, width: 10, height: 3, background: '#22c55e', fontSize: 11, fontWeight: 700, color: '#22c55e' }} ><div /><span>{tr('budgetLine')}</span></div>
+        {/* 173차 fix — Legend wrapper 구조 정정 (marker box + label 분리).
+            이전: wrapper div 자체에 width:10/height:10 + bg color → 라벨 텍스트가 작은 박스 안에서 강제 wrap. */}
+        <div style={{ display: 'flex', gap: 18, rowGap: 8, marginBottom: 12, flexWrap: 'wrap', alignItems: 'center' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 7, whiteSpace: 'nowrap' }}>
+            <span style={{ width: 12, height: 12, borderRadius: 3, background: '#f97316', flexShrink: 0, display: 'inline-block' }} />
+            <span style={{ fontSize: 12, fontWeight: 600, color: '#334155' }}>{tr('daily')}</span>
+          </div>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 7, whiteSpace: 'nowrap' }}>
+            <span style={{ width: 12, height: 12, borderRadius: '50%', background: '#4f8ef7', flexShrink: 0, display: 'inline-block' }} />
+            <span style={{ fontSize: 12, fontWeight: 600, color: '#334155' }}>{tr('cumulative')}</span>
+          </div>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 7, whiteSpace: 'nowrap' }}>
+            <span style={{ width: 14, height: 3, background: '#22c55e', flexShrink: 0, display: 'inline-block', borderRadius: 1 }} />
+            <span style={{ fontSize: 12, fontWeight: 600, color: '#334155' }}>{tr('budgetLine')}</span>
+          </div>
         </div>
         <div style={{ width: '100%', height: 360 }}>
           <ResponsiveContainer width="100%" height="100%">
