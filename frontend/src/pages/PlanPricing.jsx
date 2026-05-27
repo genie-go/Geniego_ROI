@@ -67,6 +67,144 @@ const SEED_PLANS = [
 
 /** 기간 라벨 — 1/3/6/12/24/36 명칭 + 그 외 단순 N개월. admin 이 자유 추가/제거 가능 (1~60개월). */
 const NAMED_PERIODS = { 1: '월간', 3: '분기', 6: '반기', 12: '연간', 24: '2년', 36: '3년' };
+
+/**
+ * menuKey → 한글 라벨 + 설명 매핑 (대메뉴/중메뉴 구분 보강).
+ * 메뉴 접근 권한 트리에서 영문 monospace 키 대신 한글로 명확하게 표시.
+ */
+const MENU_KEY_LABEL = {
+  // 홈
+  'home||dashboard':              { title: '홈 - 대시보드',        desc: 'KPI 요약 + 채널별 실시간 매출/광고비/ROAS' },
+  'home||rollup':                 { title: '홈 - 롤업 뷰',          desc: '판매·광고·재고 통합 실시간 모니터링' },
+  // 통합 그룹 (다수 페이지 함께 제어)
+  'marketing':                    { title: '마케팅 / 광고 / CRM 통합', desc: '자동마케팅·캠페인·여정·광고분석·CRM·카카오·이메일·SMS·인플루언서·UGC 등 17개 페이지 함께 제어' },
+  'ops':                          { title: '커머스 / 물류 통합',     desc: '옴니채널·카탈로그·주문허브·WMS·가격최적화·공급망·반품 등 7개 페이지 함께 제어' },
+  'billing':                      { title: '재무 / 결산 통합',       desc: '정산·대사·요금제·감사로그 등 4개 페이지 함께 제어' },
+  // 인사이트
+  'analytics||performance_hub':   { title: '인사이트 - 성과 허브',   desc: '광고 성과 8차원 분석 + 채널/캠페인 비교' },
+  'analytics||report_builder':    { title: '인사이트 - 리포트 빌더', desc: '커스텀 리포트 + 자동 발송 스케줄' },
+  'analytics||pnl_analytics':     { title: '인사이트 - 통합 손익(P&L)', desc: 'SKU·채널·캠페인·크리에이터별 실시간 손익 + 이상 감지' },
+  'analytics||ai_insights':       { title: '인사이트 - AI 인사이트', desc: 'GPT 기반 자동 인사이트 + 액션 추천' },
+  'analytics||data_product':      { title: '인사이트 - 데이터 프로덕트', desc: '데이터 마트 + 쿼리 워크스페이스' },
+  // 자동화
+  'automation||ai_rule_engine':   { title: '자동화 - AI 룰 엔진',    desc: '임계값 기반 자동 액션 + GPT 제안' },
+  'automation||approvals':        { title: '자동화 - 승인 큐',       desc: 'AI 제안 검토 + 원클릭 승인/반려' },
+  'automation||writeback':        { title: '자동화 - 채널 라이트백', desc: '룰 결과를 광고 플랫폼에 자동 반영' },
+  'automation||onboarding':       { title: '자동화 - 온보딩',        desc: '신규 고객 가이드 + 초기 설정 자동화' },
+  // 데이터
+  'data||integration_hub':        { title: '데이터 - 연동 허브',     desc: 'OAuth 커넥터 + 30+ 채널 API 관리' },
+  'data||data_schema':            { title: '데이터 - 데이터 스키마', desc: '표준 이벤트 매핑 + 스키마 거버넌스' },
+  'data||data_trust':             { title: '데이터 - 데이터 신뢰',   desc: '품질 검증 + 변화 감지 + 리니지' },
+  // 운영 & 지원
+  'system||workspace':            { title: '시스템 - 워크스페이스',  desc: '팀 멤버 / 권한 / 알림 설정' },
+  'system||operations':           { title: '시스템 - 오퍼레이션',    desc: '백그라운드 작업 / 실패 큐 모니터링' },
+  'system||case_study':           { title: '시스템 - 케이스 스터디', desc: '벤치마크 + 베스트 프랙티스 라이브러리' },
+  'system||help_center':          { title: '시스템 - 도움말 센터',   desc: 'FAQ + 가이드 + 영상 튜토리얼' },
+  'system||feedback':             { title: '시스템 - 피드백',        desc: '버그 신고 + 기능 제안' },
+  'system||developer_hub':        { title: '시스템 - 개발자 허브',   desc: 'API 키 + 웹훅 + Webhook 로그' },
+  // 관리자 전용
+  'system||admin':                { title: '관리자 - 플랫폼 환경',   desc: '운영 환경 / 시스템 설정 (admin 전용)' },
+  'system||plan_pricing':         { title: '관리자 - 플랜·요금',     desc: '구독 플랜 / 기간별 가격 / 메뉴 권한 관리' },
+  'system||menu_tree':            { title: '관리자 - 메뉴 트리',     desc: 'sidebar 메뉴 정의 / 가시성 / 권한 매핑' },
+  'system||db_admin':             { title: '관리자 - DB 스키마',     desc: '테이블 / 마이그레이션 / 통계' },
+  'system||pg_config':            { title: '관리자 - 결제 PG',       desc: 'Paddle 환경설정 / 구독 통계' },
+};
+
+/**
+ * 페이지별 서브탭 정의 — `/route` → [{ id, label }].
+ * 페이지 내부 탭을 4단계로 노출해 admin 이 인지 가능. 권한 토글 시 `<route>::<id>` 형식으로
+ * plan_menu_access 에 저장 (페이지 컴포넌트가 향후 단계적으로 본 권한 체크 반영).
+ * 알려진 핵심 페이지만 정의 — 미정의 페이지는 sub-tab 없이 leaf 만 노출.
+ */
+const SUB_TABS_BY_PATH = {
+  '/admin/plan-pricing': [
+    { id: 'plan',        label: '플랜 & 요금' },
+    { id: 'permissions', label: '메뉴 접근 권한' },
+  ],
+  '/db-admin': [
+    { id: 'overview', label: '데이터베이스 현황' },
+    { id: 'tables',   label: '테이블 관리' },
+    { id: 'query',    label: '쿼리 실행기' },
+    { id: 'backup',   label: '백업/복구' },
+  ],
+  '/performance': [
+    { id: 'overview',  label: '개요' },
+    { id: 'channels',  label: '채널별' },
+    { id: 'campaigns', label: '캠페인별' },
+    { id: 'funnel',    label: '퍼널' },
+  ],
+  '/pnl': [
+    { id: 'overall',  label: '전체 손익' },
+    { id: 'by_sku',   label: 'SKU별' },
+    { id: 'by_channel', label: '채널별' },
+    { id: 'by_campaign', label: '캠페인별' },
+  ],
+  '/integration-hub': [
+    { id: 'connectors', label: '커넥터' },
+    { id: 'mapping',    label: '매핑' },
+    { id: 'logs',       label: '실행 로그' },
+  ],
+  '/ai-rule-engine': [
+    { id: 'rules',   label: '룰 목록' },
+    { id: 'builder', label: '룰 빌더' },
+    { id: 'history', label: '실행 이력' },
+  ],
+  '/developer-hub': [
+    { id: 'api_keys', label: 'API 키' },
+    { id: 'webhooks', label: '웹훅' },
+    { id: 'logs',     label: '웹훅 로그' },
+  ],
+  '/audit': [
+    { id: 'recent',  label: '최근 활동' },
+    { id: 'admin',   label: '관리자 행동' },
+    { id: 'system',  label: '시스템 이벤트' },
+  ],
+  '/crm': [
+    { id: 'segments', label: '세그먼트' },
+    { id: 'cohort',   label: '코호트' },
+    { id: 'journeys', label: '여정' },
+    { id: 'churn',    label: '이탈 예측' },
+  ],
+  '/auto-marketing': [
+    { id: 'overview', label: '개요' },
+    { id: 'rules',    label: '자동화 룰' },
+    { id: 'history',  label: '실행 이력' },
+  ],
+  '/campaign-manager': [
+    { id: 'active',    label: '진행중' },
+    { id: 'paused',    label: '일시중지' },
+    { id: 'completed', label: '완료' },
+  ],
+  '/wms-manager': [
+    { id: 'inventory', label: '재고 현황' },
+    { id: 'warehouses', label: '창고 관리' },
+    { id: 'transfers', label: '이동/조정' },
+  ],
+  '/order-hub': [
+    { id: 'pending',   label: '신규/대기' },
+    { id: 'shipping',  label: '배송중' },
+    { id: 'completed', label: '완료' },
+    { id: 'returns',   label: '반품' },
+  ],
+  '/admin': [
+    { id: 'environment', label: '환경 설정' },
+    { id: 'accounts',    label: '계정 관리' },
+    { id: 'audit',       label: '감사 로그' },
+    { id: 'maintenance', label: '유지보수' },
+  ],
+};
+
+/** GeniegoROI 서비스 8개 핵심 기능 — Landing.jsx (f1~f8) 정합. 구버전 카피 참고. */
+const SERVICE_FEATURES = [
+  { icon: '🌐', title: '옴니채널 커머스',    desc: '쿠팡·네이버·아마존·쇼피파이·틱톡샵 등 30+ 마켓을 하나의 허브로 연결. 주문·재고·배송을 표준화합니다.' },
+  { icon: '🏭', title: 'WMS 창고·물류',      desc: '다중 창고 재고 추적, 합배송 관리, 운송사 API 연동, 국제 특송 상업 송장 자동 생성.' },
+  { icon: '🤖', title: 'AI 마케팅 인텔리전스', desc: '8차원 광고 기여도 분석, 인플루언서 캠페인, 쿠폰 흐름 종합 분석. AI 예산 추천과 실시간 승인.' },
+  { icon: '🤝', title: '인플루언서 분석',    desc: '도달률·참여율·전환율·ROI 평가. 자동 수수료 관리 + 실시간 캠페인 성과 추적.' },
+  { icon: '📊', title: '통합 손익 분석',     desc: 'SKU·채널·캠페인·크리에이터별 실시간 손익. ROAS 하락·반품 급증·쿠폰 이상 패턴 자동 감지.' },
+  { icon: '💰', title: '정산·대사',           desc: '모든 채널 정산 자동 대사. 채널 지급액과 예상 금액 간 불일치를 즉시 포착.' },
+  { icon: '⚙️', title: 'AI 자동화 엔진',     desc: '규칙 기반 + GPT 자동화 워크플로우. 임계값 설정 / AI 제안 / 원클릭 승인·오버라이드.' },
+  { icon: '🔌', title: '30+ 채널 커넥터',     desc: '국내(쿠팡·네이버·11번가) + 글로벌(아마존·메타·틱톡) 사전 구축 API + OAuth 인증 관리.' },
+];
 function getPeriodLabel(m) {
   const named = NAMED_PERIODS[m];
   return named ? `${named} (${m}개월)` : `${m}개월`;
@@ -374,10 +512,10 @@ function PlanPricing() {
     border: '1px solid rgba(255,255,255,0.07)',
   };
   const inputStyle = {
-    width: '100%', padding: '8px 10px', borderRadius: 8,
+    width: '100%', padding: '9px 12px', borderRadius: 8,
     border: '1px solid rgba(255,255,255,0.1)',
     background: 'rgba(0,0,0,0.2)', color: 'var(--text-1)',
-    fontSize: 13, fontFamily: 'inherit',
+    fontSize: 14, fontFamily: 'inherit',
   };
 
   const plan = plans[activePlanIdx];
@@ -393,29 +531,29 @@ function PlanPricing() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
             <span style={{ fontSize: 32 }}>💳</span>
             <div>
-              <div style={{ fontSize: 22, fontWeight: 800 }}>플랜별 구독요금 설정</div>
-              <div style={{ fontSize: 13, color: 'var(--text-3)', marginTop: 2 }}>
+              <div style={{ fontSize: 24, fontWeight: 800 }}>플랜별 구독요금 설정</div>
+              <div style={{ fontSize: 14, color: 'var(--text-3)', marginTop: 2 }}>
                 USD 단일 · Paddle MoR · 카드 결제 전용 (168차 N-152-F 정책)
               </div>
             </div>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
             <button onClick={() => window.open('https://vendors.paddle.com/products-v2', '_blank')} style={{
-              padding: '9px 14px', borderRadius: 9, border: '1px solid rgba(255,255,255,0.12)',
+              padding: '10px 16px', borderRadius: 9, border: '1px solid rgba(255,255,255,0.12)',
               background: 'rgba(255,255,255,0.04)', color: 'var(--text-2)',
-              fontSize: 12, fontWeight: 700, cursor: 'pointer',
+              fontSize: 14, fontWeight: 700, cursor: 'pointer',
             }}>🔗 Paddle Dashboard</button>
             {plans.length === 0 && !loading && (
               <button onClick={seedDefaults} style={{
-                padding: '9px 14px', borderRadius: 9, border: 'none',
+                padding: '10px 16px', borderRadius: 9, border: 'none',
                 background: 'linear-gradient(135deg,#16a34a,#22c55e)',
-                color: '#fff', fontSize: 12, fontWeight: 800, cursor: 'pointer',
+                color: '#fff', fontSize: 14, fontWeight: 800, cursor: 'pointer',
               }}>🌱 초기 3 플랜 등록</button>
             )}
             <button onClick={fetchPlans} style={{
-              padding: '9px 14px', borderRadius: 9, border: '1px solid rgba(255,255,255,0.12)',
+              padding: '10px 16px', borderRadius: 9, border: '1px solid rgba(255,255,255,0.12)',
               background: 'rgba(255,255,255,0.04)', color: 'var(--text-2)',
-              fontSize: 12, fontWeight: 700, cursor: 'pointer',
+              fontSize: 14, fontWeight: 700, cursor: 'pointer',
             }}>🔄 새로고침</button>
           </div>
         </div>
@@ -425,7 +563,7 @@ function PlanPricing() {
         <div style={{
           marginBottom: 18, padding: '12px 16px', borderRadius: 10,
           background: 'rgba(248,113,113,0.06)', border: '1px solid rgba(248,113,113,0.20)',
-          color: '#f87171', fontSize: 12,
+          color: '#f87171', fontSize: 13,
         }}>⚠ 플랜 조회 실패 — {error}</div>
       )}
 
@@ -440,7 +578,7 @@ function PlanPricing() {
           <button key={tb.id} onClick={() => setOuterTab(tb.id)} style={{
             padding: '12px 22px', border: 'none', background: 'transparent',
             color: outerTab === tb.id ? 'var(--text-1)' : 'var(--text-3)',
-            fontSize: 13, fontWeight: outerTab === tb.id ? 800 : 600, cursor: 'pointer',
+            fontSize: 14, fontWeight: outerTab === tb.id ? 800 : 600, cursor: 'pointer',
             borderBottom: outerTab === tb.id ? '2px solid #22c55e' : '2px solid transparent',
             marginBottom: -1,
           }}>{tb.label}</button>
@@ -456,6 +594,8 @@ function PlanPricing() {
         />
       )}
 
+      {outerTab === 'plan' && <ServiceDescriptionCard />}
+
       {outerTab === 'plan' && loading && (
         <div style={{ ...cardStyle, textAlign: 'center', padding: 40, color: 'var(--text-3)' }}>
           플랜 목록 로딩 중…
@@ -466,7 +606,7 @@ function PlanPricing() {
         <div style={{ ...cardStyle, padding: 40, textAlign: 'center' }}>
           <div style={{ fontSize: 32, marginBottom: 10 }}>📭</div>
           <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 6 }}>등록된 플랜이 없습니다</div>
-          <div style={{ fontSize: 12, color: 'var(--text-3)', marginBottom: 16 }}>
+          <div style={{ fontSize: 13, color: 'var(--text-3)', marginBottom: 16 }}>
             상단 "초기 3 플랜 등록" 으로 Starter/Pro/Enterprise 기본값을 생성하세요
           </div>
         </div>
@@ -482,7 +622,7 @@ function PlanPricing() {
             {plans.map((p, i) => (
               <button key={p.plan_id} onClick={() => setActivePlanIdx(i)} style={{
                 flex: 1, padding: '10px 16px', borderRadius: 10, border: 'none', cursor: 'pointer',
-                fontWeight: 700, fontSize: 12,
+                fontWeight: 700, fontSize: 13,
                 background: activePlanIdx === i ? 'linear-gradient(135deg,#16a34a,#22c55e)' : 'transparent',
                 color: activePlanIdx === i ? '#fff' : 'var(--text-2)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
@@ -499,7 +639,7 @@ function PlanPricing() {
             }}>
               {/* 좌측 — 플랜 정의 (가격 제외 / name/desc/features/limits/flags) */}
               <div style={{ ...cardStyle, padding: '22px 24px' }}>
-                <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-3)', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 12 }}>
+                <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--text-3)', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 12 }}>
                   📋 플랜 정의
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
@@ -509,24 +649,24 @@ function PlanPricing() {
                 <Field label="설명"><textarea value={plan.description || ''} onChange={e => updateField(activePlanIdx, { description: e.target.value })} rows={2} style={{ ...inputStyle, resize: 'vertical' }} /></Field>
 
                 <div style={{ marginTop: 16 }}>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-2)', marginBottom: 8 }}>기능 목록</div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)', marginBottom: 8 }}>기능 목록</div>
                   {(plan.features || []).map((f, i) => (
                     <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 6 }}>
                       <input value={f} onChange={e => updateFeature(activePlanIdx, i, e.target.value)} style={inputStyle} />
                       <button onClick={() => removeFeature(activePlanIdx, i)} style={{
                         padding: '0 12px', borderRadius: 8, border: '1px solid rgba(248,113,113,0.25)',
-                        background: 'rgba(248,113,113,0.06)', color: '#f87171', fontSize: 12, cursor: 'pointer',
+                        background: 'rgba(248,113,113,0.06)', color: '#f87171', fontSize: 13, cursor: 'pointer',
                       }}>×</button>
                     </div>
                   ))}
                   <button onClick={() => addFeature(activePlanIdx)} style={{
                     padding: '6px 12px', borderRadius: 8, border: '1px dashed rgba(99,102,241,0.3)',
-                    background: 'transparent', color: '#a5b4fc', fontSize: 11, fontWeight: 700, cursor: 'pointer', marginTop: 4,
+                    background: 'transparent', color: '#a5b4fc', fontSize: 12, fontWeight: 700, cursor: 'pointer', marginTop: 4,
                   }}>＋ 기능 추가</button>
                 </div>
 
                 <div style={{ marginTop: 18 }}>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-2)', marginBottom: 8 }}>한도 (Limits) · -1 = 무제한</div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)', marginBottom: 8 }}>한도 (Limits) · -1 = 무제한</div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
                     {['warehouses', 'channels', 'users'].map(key => (
                       <Field key={key} label={key}>
@@ -537,31 +677,31 @@ function PlanPricing() {
                 </div>
 
                 <div style={{ display: 'flex', gap: 14, marginTop: 18, flexWrap: 'wrap' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--text-3)' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--text-3)' }}>
                     <input type="checkbox" checked={plan.is_custom_quote || false} onChange={e => updateField(activePlanIdx, { is_custom_quote: e.target.checked })} /> 맞춤 견적 (Enterprise)
                   </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--text-3)' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--text-3)' }}>
                     <input type="checkbox" checked={plan.is_active !== false} onChange={e => updateField(activePlanIdx, { is_active: e.target.checked })} /> 활성
                   </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--text-3)' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--text-3)' }}>
                     <input type="checkbox" checked={plan.is_recommended === true || plan.is_recommended === 1} onChange={e => updateField(activePlanIdx, { is_recommended: e.target.checked ? 1 : 0 })} /> ⭐ 추천 플랜
                   </label>
                 </div>
 
                 {/* 통합 저장 + 비활성화 */}
                 <div style={{ display: 'flex', gap: 10, marginTop: 18, padding: '14px 0 0', borderTop: '1px solid rgba(255,255,255,0.06)', alignItems: 'center', flexWrap: 'wrap' }}>
-                  <div style={{ fontSize: 11, color: 'var(--text-3)', flex: '0 1 auto' }}>
+                  <div style={{ fontSize: 12, color: 'var(--text-3)', flex: '0 1 auto' }}>
                     💡 저장 시 플랜 정의 + 모든 기간별 가격이 함께 반영됩니다
                   </div>
                   <div style={{ flex: 1 }} />
                   <button onClick={() => archivePlan(plan)} style={{
                     padding: '9px 14px', borderRadius: 9, border: '1px solid rgba(248,113,113,0.25)',
-                    background: 'rgba(248,113,113,0.06)', color: '#f87171', fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                    background: 'rgba(248,113,113,0.06)', color: '#f87171', fontSize: 13, fontWeight: 700, cursor: 'pointer',
                   }}>비활성화</button>
                   <button onClick={() => savePlan(plan)} disabled={saving === plan.plan_id} style={{
                     padding: '10px 24px', borderRadius: 9, border: 'none',
                     background: 'linear-gradient(135deg,#16a34a,#22c55e)',
-                    color: '#fff', fontSize: 13, fontWeight: 800, cursor: 'pointer',
+                    color: '#fff', fontSize: 14, fontWeight: 800, cursor: 'pointer',
                     opacity: saving === plan.plan_id ? 0.6 : 1,
                   }}>{saving === plan.plan_id ? '저장 중…' : '💾 통합 저장 (플랜 + 기간별 가격)'}</button>
                 </div>
@@ -579,7 +719,7 @@ function PlanPricing() {
                   setNewPeriodInput={setNewPeriodInput}
                 />
                 <div>
-                  <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-3)', letterSpacing: 1, marginBottom: 10, textTransform: 'uppercase' }}>실시간 미리보기</div>
+                  <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--text-3)', letterSpacing: 1, marginBottom: 10, textTransform: 'uppercase' }}>실시간 미리보기</div>
                   <PreviewCard plan={plan} periods={periodPricing[plan.plan_id] || {}} />
                 </div>
               </div>
@@ -594,9 +734,71 @@ function PlanPricing() {
 function Field({ label, children }) {
   return (
     <label style={{ display: 'block' }}>
-      <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-3)', marginBottom: 4 }}>{label}</div>
+      <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-3)', marginBottom: 4 }}>{label}</div>
       {children}
     </label>
+  );
+}
+
+/**
+ * ServiceDescriptionCard — 구버전 Landing 카피 정합.
+ * /admin/plan-pricing 진입 시 admin 이 GeniegoROI 가 제공하는 8개 핵심 기능을 한눈에 인지.
+ * collapse 토글로 공간 절약.
+ */
+function ServiceDescriptionCard() {
+  const [open, setOpen] = useState(true);
+  return (
+    <div style={{
+      marginBottom: 18, borderRadius: 14,
+      background: 'linear-gradient(135deg, rgba(99,102,241,0.06), rgba(34,197,94,0.04))',
+      border: '1px solid rgba(99,102,241,0.18)',
+      overflow: 'hidden',
+    }}>
+      <button onClick={() => setOpen(o => !o)} style={{
+        width: '100%', padding: '14px 20px',
+        display: 'flex', alignItems: 'center', gap: 12, justifyContent: 'flex-start',
+        background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left',
+        color: 'var(--text-1)',
+      }}>
+        <span style={{ fontSize: 22 }}>ℹ️</span>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 15, fontWeight: 800 }}>GeniegoROI 서비스 안내</div>
+          <div style={{ fontSize: 13, color: 'var(--text-3)', marginTop: 2 }}>
+            올인원 커머스 AI 자동화 플랫폼 — 광고 자동화 · 상품 등록 · 재고 관리 · 주문 처리 · 배송 추적 · 성과 분석 · 정산까지 A부터 Z를 AI 가 자동화
+          </div>
+        </div>
+        <span style={{ color: 'var(--text-3)', fontSize: 13 }}>{open ? '▼ 접기' : '▶ 펼치기'}</span>
+      </button>
+      {open && (
+        <div style={{ padding: '0 20px 18px' }}>
+          <div style={{
+            display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 10,
+            marginBottom: 12,
+          }}>
+            {SERVICE_FEATURES.map((f, i) => (
+              <div key={i} style={{
+                padding: '12px 14px', borderRadius: 10,
+                background: 'rgba(0,0,0,0.18)', border: '1px solid rgba(255,255,255,0.05)',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                  <span style={{ fontSize: 18 }}>{f.icon}</span>
+                  <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--text-1)' }}>{f.title}</span>
+                </div>
+                <div style={{ fontSize: 13, color: 'var(--text-3)', lineHeight: 1.55 }}>{f.desc}</div>
+              </div>
+            ))}
+          </div>
+          <div style={{
+            padding: '10px 14px', borderRadius: 8, fontSize: 13, color: 'var(--text-2)', lineHeight: 1.7,
+            background: 'rgba(0,0,0,0.18)', border: '1px solid rgba(255,255,255,0.05)',
+          }}>
+            <strong>플랜별 메뉴 접근 권한 운영 방식</strong>:&nbsp;
+            본 페이지의 <strong>🔐 메뉴 접근 권한</strong> 탭에서 플랜(Starter / Pro / Enterprise / Admin)별로 8개 영역의 세부 메뉴를 자유롭게 활성/비활성 선택할 수 있습니다.
+            메뉴 트리는 <strong>대메뉴 → 중메뉴(통합 그룹) → 하위 페이지 → 페이지 내 서브탭</strong> 4단계로 구성되며 admin 이 모든 단계 개별 토글 가능합니다.
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -630,7 +832,7 @@ function MenuAccessTree({ plans, menus, access, setMenuAccess, setMenuAccessBulk
       <div style={{
         padding: 40, borderRadius: 14, textAlign: 'center',
         background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)',
-        color: 'var(--text-3)', fontSize: 13,
+        color: 'var(--text-3)', fontSize: 14,
       }}>플랜이 없습니다. 먼저 "요금·상세" 탭에서 플랜을 등록하세요.</div>
     );
   }
@@ -639,7 +841,7 @@ function MenuAccessTree({ plans, menus, access, setMenuAccess, setMenuAccessBulk
       <div style={{
         padding: 40, borderRadius: 14, textAlign: 'center',
         background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)',
-        color: 'var(--text-3)', fontSize: 13,
+        color: 'var(--text-3)', fontSize: 14,
       }}>menu_tree 가 비어 있습니다. 169차 P1 seed migration 적용 필요.</div>
     );
   }
@@ -697,16 +899,16 @@ function MenuAccessTree({ plans, menus, access, setMenuAccess, setMenuAccessBulk
     <div>
       {/* 헤더: 안내 + 전체 저장 */}
       <div style={{
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, gap: 14, flexWrap: 'wrap',
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14, gap: 14, flexWrap: 'wrap',
       }}>
-        <div style={{ fontSize: 12, color: 'var(--text-3)', lineHeight: 1.6 }}>
-          각 플랜의 user 가 사이드바에서 볼 수 있는 메뉴를 결정합니다. 좌측 트리에서 ➕ <strong style={{ color:'#22c55e' }}>선택 추가</strong> / ➖ <strong style={{ color:'#f87171' }}>선택 제거</strong> 로 명시적 편집 후 우측 <strong>전체 저장</strong>.
+        <div style={{ fontSize: 14, color: 'var(--text-3)', lineHeight: 1.6 }}>
+          각 플랜의 사용자가 사이드바에서 볼 수 있는 메뉴를 결정합니다. 트리 구조: <strong>대메뉴(섹션) → 중메뉴(통합 그룹) → 하위 페이지 → 페이지 내 서브탭</strong>. ➕ <strong style={{ color:'#22c55e' }}>추가</strong> / ➖ <strong style={{ color:'#f87171' }}>제거</strong> 로 명시적 편집 후 우측 <strong>전체 저장</strong>.
         </div>
         <button onClick={saveAllAccess} disabled={saving || !dirty} style={{
-          padding: '10px 24px', borderRadius: 9, border: 'none',
+          padding: '11px 26px', borderRadius: 10, border: 'none',
           background: dirty ? 'linear-gradient(135deg,#16a34a,#22c55e)' : 'rgba(255,255,255,0.06)',
           color: dirty ? '#fff' : 'var(--text-3)',
-          fontSize: 13, fontWeight: 800, cursor: dirty ? 'pointer' : 'default',
+          fontSize: 14, fontWeight: 800, cursor: dirty ? 'pointer' : 'default',
           opacity: saving ? 0.6 : 1, whiteSpace: 'nowrap',
         }}>{saving ? '저장 중…' : (dirty ? '💾 전체 저장 (모든 플랜)' : '✓ 저장됨')}</button>
       </div>
@@ -718,14 +920,14 @@ function MenuAccessTree({ plans, menus, access, setMenuAccess, setMenuAccessBulk
       }}>
         {plans.map((p, i) => (
           <button key={p.plan_id} onClick={() => setActivePlanIdx(i)} style={{
-            flex: 1, minWidth: 140, padding: '10px 16px', borderRadius: 10, border: 'none', cursor: 'pointer',
-            fontWeight: 700, fontSize: 12,
+            flex: 1, minWidth: 160, padding: '12px 18px', borderRadius: 10, border: 'none', cursor: 'pointer',
+            fontWeight: 700, fontSize: 14,
             background: activePlanIdx === i ? 'linear-gradient(135deg,#6366f1,#4f8ef7)' : 'transparent',
             color: activePlanIdx === i ? '#fff' : 'var(--text-2)',
             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
           }}>
             <span>{p.name || p.plan_id}</span>
-            <span style={{ fontSize: 10, opacity: 0.8 }}>
+            <span style={{ fontSize: 12, opacity: 0.8 }}>
               {planStats[i].onCount} / {planStats[i].total} 활성
             </span>
           </button>
@@ -736,33 +938,33 @@ function MenuAccessTree({ plans, menus, access, setMenuAccess, setMenuAccessBulk
       <div style={{ display: 'flex', gap: 10, marginBottom: 14, alignItems: 'center', flexWrap: 'wrap' }}>
         <input
           type="text" value={filter} onChange={e => setFilter(e.target.value)}
-          placeholder="🔍 메뉴/경로/키 검색…"
+          placeholder="🔍 메뉴 이름/경로/키 검색…"
           style={{
-            flex: 1, minWidth: 220, padding: '9px 12px', borderRadius: 8,
+            flex: 1, minWidth: 240, padding: '10px 14px', borderRadius: 8,
             border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.2)',
-            color: 'var(--text-1)', fontSize: 13,
+            color: 'var(--text-1)', fontSize: 14,
           }}
         />
         <button onClick={() => togglePlanAll(activePlan.plan_id, true)} style={{
-          padding: '9px 14px', borderRadius: 8,
+          padding: '10px 16px', borderRadius: 8,
           background: 'rgba(34,197,94,0.12)', color: '#22c55e',
-          border: '1px solid rgba(34,197,94,0.3)', fontSize: 12, fontWeight: 700, cursor: 'pointer',
+          border: '1px solid rgba(34,197,94,0.3)', fontSize: 14, fontWeight: 700, cursor: 'pointer',
         }}>✓ {activePlan.name} 전체 추가</button>
         <button onClick={() => togglePlanAll(activePlan.plan_id, false)} style={{
-          padding: '9px 14px', borderRadius: 8,
+          padding: '10px 16px', borderRadius: 8,
           background: 'rgba(248,113,113,0.10)', color: '#f87171',
-          border: '1px solid rgba(248,113,113,0.3)', fontSize: 12, fontWeight: 700, cursor: 'pointer',
+          border: '1px solid rgba(248,113,113,0.3)', fontSize: 14, fontWeight: 700, cursor: 'pointer',
         }}>✗ {activePlan.name} 전체 제거</button>
       </div>
 
       {/* 2-pane 본체 — 좌: 트리, 우: 선택 요약 */}
       <div style={{ display: 'grid', gridTemplateColumns: '2.2fr 1fr', gap: 18, alignItems: 'start' }}>
-        {/* 좌측 — 전체 메뉴 트리 (섹션 → menuKey 그룹 → leaf 페이지) */}
+        {/* 좌측 — 전체 메뉴 트리 (대메뉴 → 중메뉴 → 하위 페이지 → 서브탭, 4단계) */}
         <div style={{
-          borderRadius: 14, padding: '14px 18px',
+          borderRadius: 14, padding: '16px 20px',
           background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)',
         }}>
-          <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-3)', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 10 }}>
+          <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--text-3)', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 12 }}>
             전체 메뉴 트리 — {activePlan.name}
           </div>
           {sections.map(section => {
@@ -772,23 +974,27 @@ function MenuAccessTree({ plans, menus, access, setMenuAccess, setMenuAccessBulk
             const isCollapsed = collapsed.has(section.key);
             const allOn = meta.onKeys === meta.totalKeys && meta.totalKeys > 0;
             const allOff = meta.onKeys === 0;
-            const partial = !allOn && !allOff;
             const sectionLabel = t(section.labelKey, section.labelKey.split('.').pop());
             return (
               <div key={section.key} style={{
-                marginBottom: 10, borderRadius: 10,
+                marginBottom: 12, borderRadius: 10,
                 background: 'rgba(0,0,0,0.18)', border: '1px solid rgba(255,255,255,0.04)',
               }}>
-                {/* 섹션 헤더 — collapse + 섹션 단위 추가/제거 */}
+                {/* 대메뉴 헤더 (Level 1) — collapse + 섹션 일괄 토글 */}
                 <div style={{
-                  display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px',
+                  display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px',
                   cursor: 'pointer', borderBottom: isCollapsed ? 'none' : '1px solid rgba(255,255,255,0.04)',
+                  flexWrap: 'wrap',
                 }} onClick={() => toggleCollapse(section.key)}>
-                  <span style={{ width: 12, color: 'var(--text-3)', fontSize: 11 }}>{isCollapsed ? '▶' : '▼'}</span>
-                  <span style={{ fontSize: 14 }}>{section.icon}</span>
-                  <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--text-1)' }}>{sectionLabel}</span>
+                  <span style={{ width: 12, color: 'var(--text-3)', fontSize: 12 }}>{isCollapsed ? '▶' : '▼'}</span>
+                  <span style={{ fontSize: 16 }}>{section.icon}</span>
                   <span style={{
-                    padding: '2px 8px', borderRadius: 10, fontSize: 10, fontWeight: 800,
+                    padding: '2px 8px', borderRadius: 8, fontSize: 11, fontWeight: 800,
+                    background: 'rgba(99,102,241,0.15)', color: '#a5b4fc', letterSpacing: 0.5,
+                  }}>대메뉴</span>
+                  <span style={{ fontSize: 15, fontWeight: 800, color: 'var(--text-1)' }}>{sectionLabel}</span>
+                  <span style={{
+                    padding: '2px 10px', borderRadius: 10, fontSize: 12, fontWeight: 800,
                     background: allOn ? 'rgba(34,197,94,0.18)' : (allOff ? 'rgba(248,113,113,0.10)' : 'rgba(251,146,60,0.18)'),
                     color: allOn ? '#22c55e' : (allOff ? '#f87171' : '#fb923c'),
                   }}>
@@ -796,50 +1002,58 @@ function MenuAccessTree({ plans, menus, access, setMenuAccess, setMenuAccessBulk
                   </span>
                   <div style={{ flex: 1 }} />
                   <button onClick={e => { e.stopPropagation(); setMenuAccessBulk(activePlan.plan_id, meta.groups.map(g => g.menuKey), true); }} style={{
-                    padding: '4px 10px', borderRadius: 6,
+                    padding: '5px 12px', borderRadius: 6,
                     background: 'rgba(34,197,94,0.12)', color: '#22c55e',
-                    border: '1px solid rgba(34,197,94,0.28)', fontSize: 10, fontWeight: 700, cursor: 'pointer',
+                    border: '1px solid rgba(34,197,94,0.28)', fontSize: 12, fontWeight: 700, cursor: 'pointer',
                   }}>➕ 섹션 추가</button>
                   <button onClick={e => { e.stopPropagation(); setMenuAccessBulk(activePlan.plan_id, meta.groups.map(g => g.menuKey), false); }} style={{
-                    padding: '4px 10px', borderRadius: 6,
+                    padding: '5px 12px', borderRadius: 6,
                     background: 'rgba(248,113,113,0.10)', color: '#f87171',
-                    border: '1px solid rgba(248,113,113,0.28)', fontSize: 10, fontWeight: 700, cursor: 'pointer',
+                    border: '1px solid rgba(248,113,113,0.28)', fontSize: 12, fontWeight: 700, cursor: 'pointer',
                   }}>➖ 섹션 제거</button>
                 </div>
 
-                {/* 섹션 내용 — menuKey 그룹별 */}
+                {/* 중메뉴 (Level 2 — menuKey 그룹) */}
                 {!isCollapsed && (
-                  <div style={{ padding: '6px 10px 10px 28px' }}>
+                  <div style={{ padding: '8px 12px 12px 30px' }}>
                     {visibleGroups.map(group => {
                       const on = isOn(group.menuKey);
                       const inDb = dbMenuKeys.has(group.menuKey);
                       const items = group.items.filter(matchesFilter);
                       const shareCount = group.items.length;
+                      const groupLabel = MENU_KEY_LABEL[group.menuKey];
                       return (
                         <div key={group.menuKey} style={{
-                          marginTop: 8, padding: '8px 10px', borderRadius: 8,
+                          marginTop: 10, padding: '10px 12px', borderRadius: 8,
                           background: on ? 'rgba(34,197,94,0.05)' : 'rgba(248,113,113,0.03)',
-                          border: `1px solid ${on ? 'rgba(34,197,94,0.18)' : 'rgba(255,255,255,0.04)'}`,
+                          border: `1px solid ${on ? 'rgba(34,197,94,0.22)' : 'rgba(255,255,255,0.05)'}`,
                           opacity: inDb ? 1 : 0.55,
                         }}>
-                          {/* menuKey 헤더 — 상태 + 추가/제거 버튼 */}
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                          {/* 중메뉴 헤더 */}
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, flexWrap: 'wrap' }}>
                             <span style={{
-                              fontSize: 14, color: on ? '#22c55e' : '#f87171', width: 16, textAlign: 'center',
+                              fontSize: 16, color: on ? '#22c55e' : '#f87171', width: 18, textAlign: 'center',
                             }}>{on ? '✓' : '✗'}</span>
+                            <span style={{
+                              padding: '2px 7px', borderRadius: 8, fontSize: 10, fontWeight: 800,
+                              background: 'rgba(34,197,94,0.15)', color: '#22c55e', letterSpacing: 0.5,
+                            }}>중메뉴</span>
+                            <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--text-1)' }}>
+                              {groupLabel?.title || group.menuKey}
+                            </span>
                             <code style={{
-                              fontSize: 11, fontFamily: 'monospace', color: 'var(--text-2)',
-                              padding: '2px 6px', borderRadius: 4, background: 'rgba(0,0,0,0.3)',
+                              fontSize: 11, fontFamily: 'monospace', color: 'var(--text-3)',
+                              padding: '1px 5px', borderRadius: 3, background: 'rgba(0,0,0,0.3)',
                             }}>{group.menuKey}</code>
                             {shareCount > 1 && (
                               <span style={{
-                                padding: '1px 7px', borderRadius: 10, fontSize: 9, fontWeight: 800,
+                                padding: '2px 8px', borderRadius: 10, fontSize: 11, fontWeight: 800,
                                 background: 'rgba(99,102,241,0.15)', color: '#a5b4fc',
                               }}>🔗 {shareCount}개 페이지 함께 제어</span>
                             )}
                             {!inDb && (
                               <span style={{
-                                padding: '1px 7px', borderRadius: 10, fontSize: 9, fontWeight: 800,
+                                padding: '2px 8px', borderRadius: 10, fontSize: 11, fontWeight: 800,
                                 background: 'rgba(251,146,60,0.15)', color: '#fb923c',
                               }}>⚠ menu_tree 미등록</span>
                             )}
@@ -848,11 +1062,11 @@ function MenuAccessTree({ plans, menus, access, setMenuAccess, setMenuAccessBulk
                               onClick={() => setMenuAccess(activePlan.plan_id, group.menuKey, true)}
                               disabled={!inDb || on}
                               style={{
-                                padding: '4px 10px', borderRadius: 6,
+                                padding: '5px 12px', borderRadius: 6,
                                 background: on ? 'rgba(255,255,255,0.04)' : 'rgba(34,197,94,0.15)',
                                 color: on ? 'var(--text-3)' : '#22c55e',
                                 border: `1px solid ${on ? 'rgba(255,255,255,0.06)' : 'rgba(34,197,94,0.32)'}`,
-                                fontSize: 11, fontWeight: 700, cursor: (!inDb || on) ? 'default' : 'pointer',
+                                fontSize: 13, fontWeight: 700, cursor: (!inDb || on) ? 'default' : 'pointer',
                                 opacity: (!inDb || on) ? 0.55 : 1,
                               }}
                               title="이 메뉴(및 연결된 모든 페이지)를 플랜에 추가"
@@ -861,28 +1075,80 @@ function MenuAccessTree({ plans, menus, access, setMenuAccess, setMenuAccessBulk
                               onClick={() => setMenuAccess(activePlan.plan_id, group.menuKey, false)}
                               disabled={!inDb || !on}
                               style={{
-                                padding: '4px 10px', borderRadius: 6,
+                                padding: '5px 12px', borderRadius: 6,
                                 background: !on ? 'rgba(255,255,255,0.04)' : 'rgba(248,113,113,0.12)',
                                 color: !on ? 'var(--text-3)' : '#f87171',
                                 border: `1px solid ${!on ? 'rgba(255,255,255,0.06)' : 'rgba(248,113,113,0.32)'}`,
-                                fontSize: 11, fontWeight: 700, cursor: (!inDb || !on) ? 'default' : 'pointer',
+                                fontSize: 13, fontWeight: 700, cursor: (!inDb || !on) ? 'default' : 'pointer',
                                 opacity: (!inDb || !on) ? 0.55 : 1,
                               }}
                               title="이 메뉴(및 연결된 모든 페이지)를 플랜에서 제거"
                             >➖ 제거</button>
                           </div>
-                          {/* leaf 페이지 목록 — 토글 아닌 정보 노출 */}
-                          <div style={{ display: 'grid', gap: 3, paddingLeft: 24 }}>
+                          {groupLabel?.desc && (
+                            <div style={{ fontSize: 13, color: 'var(--text-3)', marginLeft: 26, marginBottom: 8, lineHeight: 1.6 }}>
+                              {groupLabel.desc}
+                            </div>
+                          )}
+                          {/* 하위메뉴 (Level 3 — leaf 페이지) + 서브탭 (Level 4) */}
+                          <div style={{ display: 'grid', gap: 4, paddingLeft: 26 }}>
                             {items.map(it => {
                               const leafLabel = t(it.labelKey, it.labelKey.split('.').pop());
+                              const subTabs = SUB_TABS_BY_PATH[it.to] || [];
                               return (
                                 <div key={it.to} style={{
-                                  display: 'flex', alignItems: 'center', gap: 8, fontSize: 11,
-                                  color: on ? 'var(--text-2)' : 'var(--text-3)',
+                                  padding: '6px 8px', borderRadius: 6,
+                                  background: 'rgba(0,0,0,0.15)',
+                                  border: '1px solid rgba(255,255,255,0.03)',
                                 }}>
-                                  <span style={{ width: 12, textAlign: 'center', opacity: 0.5 }}>{it.icon}</span>
-                                  <span style={{ minWidth: 130, fontWeight: 600 }}>{leafLabel}</span>
-                                  <code style={{ fontSize: 10, color: 'var(--text-3)', fontFamily: 'monospace' }}>{it.to}</code>
+                                  {/* 하위메뉴 (leaf 페이지) */}
+                                  <div style={{
+                                    display: 'flex', alignItems: 'center', gap: 8, fontSize: 13,
+                                    color: on ? 'var(--text-2)' : 'var(--text-3)',
+                                  }}>
+                                    <span style={{ width: 14, textAlign: 'center', opacity: 0.6 }}>{it.icon}</span>
+                                    <span style={{
+                                      padding: '1px 6px', borderRadius: 6, fontSize: 10, fontWeight: 800,
+                                      background: 'rgba(251,191,36,0.15)', color: '#fbbf24', letterSpacing: 0.3,
+                                    }}>하위</span>
+                                    <span style={{ minWidth: 140, fontWeight: 700 }}>{leafLabel}</span>
+                                    <code style={{ fontSize: 11, color: 'var(--text-3)', fontFamily: 'monospace' }}>{it.to}</code>
+                                    {subTabs.length > 0 && (
+                                      <span style={{
+                                        padding: '1px 6px', borderRadius: 8, fontSize: 10, fontWeight: 700,
+                                        background: 'rgba(168,85,247,0.12)', color: '#c084fc',
+                                      }}>📑 서브탭 {subTabs.length}</span>
+                                    )}
+                                  </div>
+                                  {/* 서브탭 (Level 4) — 페이지 내부 탭 개별 토글 */}
+                                  {subTabs.length > 0 && (
+                                    <div style={{
+                                      marginTop: 6, paddingLeft: 22, display: 'flex', flexWrap: 'wrap', gap: 6,
+                                    }}>
+                                      {subTabs.map(st => {
+                                        const subKey = `${it.to}::${st.id}`; // sub-tab access key
+                                        const subOn = !!planAcc[subKey];
+                                        return (
+                                          <button
+                                            key={st.id}
+                                            onClick={() => setMenuAccess(activePlan.plan_id, subKey, !subOn)}
+                                            style={{
+                                              padding: '4px 10px', borderRadius: 14, fontSize: 12, fontWeight: 700,
+                                              border: subOn ? '1px solid rgba(168,85,247,0.45)' : '1px solid rgba(255,255,255,0.08)',
+                                              background: subOn ? 'rgba(168,85,247,0.18)' : 'rgba(0,0,0,0.25)',
+                                              color: subOn ? '#c084fc' : 'var(--text-3)',
+                                              cursor: 'pointer',
+                                              display: 'inline-flex', alignItems: 'center', gap: 4,
+                                            }}
+                                            title={`${st.label} (${subKey})`}
+                                          >
+                                            <span>{subOn ? '✓' : '○'}</span>
+                                            <span>{st.label}</span>
+                                          </button>
+                                        );
+                                      })}
+                                    </div>
+                                  )}
                                 </div>
                               );
                             })}
@@ -899,46 +1165,54 @@ function MenuAccessTree({ plans, menus, access, setMenuAccess, setMenuAccessBulk
 
         {/* 우측 — 선택 요약 */}
         <div style={{
-          position: 'sticky', top: 16, borderRadius: 14, padding: '18px 20px',
+          position: 'sticky', top: 16, borderRadius: 14, padding: '20px 22px',
           background: 'linear-gradient(155deg, rgba(99,102,241,0.08), rgba(34,197,94,0.04))',
           border: '1px solid rgba(99,102,241,0.18)',
         }}>
-          <div style={{ fontSize: 11, fontWeight: 800, color: '#a5b4fc', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 10 }}>
+          <div style={{ fontSize: 13, fontWeight: 800, color: '#a5b4fc', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 12 }}>
             선택 요약 — {activePlan.name}
           </div>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 4 }}>
-            <span style={{ fontSize: 28, fontWeight: 900, color: '#22c55e' }}>{enabledKeys.length}</span>
-            <span style={{ fontSize: 13, color: 'var(--text-3)' }}>/ {dbMenuKeys.size} menuKey 활성</span>
+            <span style={{ fontSize: 32, fontWeight: 900, color: '#22c55e' }}>{enabledKeys.length}</span>
+            <span style={{ fontSize: 14, color: 'var(--text-3)' }}>/ {dbMenuKeys.size} 메뉴 활성</span>
           </div>
-          <div style={{ fontSize: 12, color: 'var(--text-3)', marginBottom: 14 }}>
-            영향받는 leaf 페이지 <strong style={{ color: 'var(--text-2)' }}>{totalLeafImpact}개</strong>
+          <div style={{ fontSize: 14, color: 'var(--text-3)', marginBottom: 16 }}>
+            영향받는 페이지 <strong style={{ color: 'var(--text-2)' }}>{totalLeafImpact}개</strong>
           </div>
-          <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 12, marginBottom: 8, fontSize: 11, fontWeight: 700, color: 'var(--text-3)' }}>
-            ✓ 포함된 menuKey ({enabledKeys.length})
+          <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 12, marginBottom: 8, fontSize: 13, fontWeight: 700, color: 'var(--text-3)' }}>
+            ✓ 포함된 메뉴 ({enabledKeys.length})
           </div>
-          <div style={{ maxHeight: 280, overflowY: 'auto', display: 'grid', gap: 4 }}>
+          <div style={{ maxHeight: 320, overflowY: 'auto', display: 'grid', gap: 5 }}>
             {enabledKeys.length === 0 && (
-              <div style={{ fontSize: 11, color: 'var(--text-3)', padding: '8px 0', fontStyle: 'italic' }}>
+              <div style={{ fontSize: 13, color: 'var(--text-3)', padding: '8px 0', fontStyle: 'italic' }}>
                 선택된 메뉴 없음
               </div>
             )}
             {enabledKeys.map(k => {
               const leafs = menuKeyIndex.get(k) || [];
+              // sub-tab 키 (xxx::yyy 형식) 와 일반 menuKey 분리
+              const isSubTab = k.includes('::');
+              const koLabel = MENU_KEY_LABEL[k]?.title;
               return (
                 <div key={k} style={{
                   display: 'flex', alignItems: 'center', gap: 6,
-                  padding: '4px 8px', borderRadius: 6,
-                  background: 'rgba(34,197,94,0.06)',
-                  fontSize: 10, fontFamily: 'monospace',
+                  padding: '6px 10px', borderRadius: 6,
+                  background: isSubTab ? 'rgba(168,85,247,0.06)' : 'rgba(34,197,94,0.06)',
+                  fontSize: 13,
                 }}>
-                  <span style={{ color: '#22c55e' }}>✓</span>
-                  <span style={{ color: 'var(--text-2)' }}>{k}</span>
-                  {leafs.length > 1 && (
-                    <span style={{ color: 'var(--text-3)' }}>×{leafs.length}</span>
-                  )}
-                  <div style={{ flex: 1 }} />
+                  <span style={{ color: isSubTab ? '#c084fc' : '#22c55e' }}>{isSubTab ? '📑' : '✓'}</span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {koLabel || k}
+                    </div>
+                    {(koLabel || leafs.length > 1) && (
+                      <div style={{ fontSize: 11, color: 'var(--text-3)', fontFamily: 'monospace', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {k}{leafs.length > 1 && ` · ${leafs.length}개 페이지`}
+                      </div>
+                    )}
+                  </div>
                   <button onClick={() => setMenuAccess(activePlan.plan_id, k, false)} style={{
-                    padding: '1px 6px', borderRadius: 4, fontSize: 9,
+                    padding: '2px 8px', borderRadius: 4, fontSize: 12,
                     background: 'rgba(248,113,113,0.10)', color: '#f87171',
                     border: '1px solid rgba(248,113,113,0.25)', cursor: 'pointer',
                   }} title="제거">×</button>
@@ -946,8 +1220,10 @@ function MenuAccessTree({ plans, menus, access, setMenuAccess, setMenuAccessBulk
               );
             })}
           </div>
-          <div style={{ marginTop: 14, padding: '10px 12px', borderRadius: 8, background: 'rgba(0,0,0,0.2)', fontSize: 10, color: 'var(--text-3)', lineHeight: 1.6 }}>
-            💡 동일 menuKey 를 공유하는 페이지는 함께 노출/숨김됩니다. 예: <code style={{ color: 'var(--text-2)' }}>marketing</code> 1개 키로 자동마케팅·CRM·캠페인 등 17개 페이지 일괄 제어.
+          <div style={{ marginTop: 14, padding: '10px 14px', borderRadius: 8, background: 'rgba(0,0,0,0.2)', fontSize: 12, color: 'var(--text-3)', lineHeight: 1.65 }}>
+            💡 <strong>중메뉴 토글</strong> = 동일 menuKey 를 공유하는 모든 하위 페이지가 일괄 노출/숨김.<br/>
+            예: <code style={{ color: 'var(--text-2)' }}>marketing</code> 1개 토글 → 자동마케팅·CRM·캠페인 등 17개 페이지 동시 제어.<br/>
+            <strong style={{ color: '#c084fc' }}>📑 서브탭</strong> 은 페이지 내 개별 탭 권한 (향후 단계 적용 예정).
           </div>
         </div>
       </div>
@@ -972,7 +1248,7 @@ function PeriodPricingPanel({ plan, periodPricing, updatePeriodField, addPeriod,
   const inputS = {
     width: '100%', padding: '6px 8px', borderRadius: 6,
     border: '1px solid rgba(255,255,255,0.12)',
-    background: 'rgba(0,0,0,0.18)', color: 'inherit', fontSize: 12, fontFamily: 'inherit',
+    background: 'rgba(0,0,0,0.18)', color: 'inherit', fontSize: 13, fontFamily: 'inherit',
   };
 
   const handleAddSubmit = (e) => {
@@ -987,19 +1263,19 @@ function PeriodPricingPanel({ plan, periodPricing, updatePeriodField, addPeriod,
       background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-        <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-3)', letterSpacing: 1, textTransform: 'uppercase' }}>
+        <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--text-3)', letterSpacing: 1, textTransform: 'uppercase' }}>
           📅 기간별 구독 가격
         </div>
         <div style={{ flex: 1 }} />
         {isCustom && (
-          <span style={{ padding: '2px 8px', borderRadius: 10, background: 'rgba(251,146,60,0.15)', color: '#fb923c', fontSize: 10, fontWeight: 800 }}>
+          <span style={{ padding: '2px 8px', borderRadius: 10, background: 'rgba(251,146,60,0.15)', color: '#fb923c', fontSize: 11, fontWeight: 800 }}>
             맞춤 견적 — 가격 입력 불필요
           </span>
         )}
       </div>
 
       {/* 안내 */}
-      <div style={{ padding: '10px 14px', borderRadius: 8, background: 'rgba(99,102,241,0.06)', border: '1px solid rgba(99,102,241,0.18)', fontSize: 11, color: 'var(--text-2)', marginBottom: 12, lineHeight: 1.6 }}>
+      <div style={{ padding: '10px 14px', borderRadius: 8, background: 'rgba(99,102,241,0.06)', border: '1px solid rgba(99,102,241,0.18)', fontSize: 12, color: 'var(--text-2)', marginBottom: 12, lineHeight: 1.6 }}>
         💡 <strong>월간 요금 (1개월)</strong> 이 SSOT. 입력 즉시 모든 기간의 <strong>기본 결제액 = 개월수 × 월간요금</strong> 으로 실시간 산출됩니다. 각 기간 할인율(%) 은 admin 자유 설정 → 최종 결제액 자동 계산. 통화 USD 고정 (Paddle MoR).
       </div>
 
@@ -1010,7 +1286,7 @@ function PeriodPricingPanel({ plan, periodPricing, updatePeriodField, addPeriod,
           padding: '10px 12px', borderRadius: 8,
           background: 'rgba(34,197,94,0.04)', border: '1px dashed rgba(34,197,94,0.25)',
         }}>
-          <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-2)' }}>＋ 기간 추가</span>
+          <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-2)' }}>＋ 기간 추가</span>
           <input
             type="number" min="1" max="60"
             value={newPeriodInput}
@@ -1022,10 +1298,10 @@ function PeriodPricingPanel({ plan, periodPricing, updatePeriodField, addPeriod,
             padding: '7px 16px', borderRadius: 7, border: 'none',
             background: newPeriodInput ? 'linear-gradient(135deg,#16a34a,#22c55e)' : 'rgba(255,255,255,0.06)',
             color: newPeriodInput ? '#fff' : 'var(--text-3)',
-            fontSize: 12, fontWeight: 800, cursor: newPeriodInput ? 'pointer' : 'default',
+            fontSize: 13, fontWeight: 800, cursor: newPeriodInput ? 'pointer' : 'default',
           }}>＋ 추가</button>
           <div style={{ flex: 1 }} />
-          <span style={{ fontSize: 10, color: 'var(--text-3)' }}>
+          <span style={{ fontSize: 11, color: 'var(--text-3)' }}>
             추천: 2, 9, 18, 24, 36개월 등 자유 설정
           </span>
         </form>
@@ -1033,7 +1309,7 @@ function PeriodPricingPanel({ plan, periodPricing, updatePeriodField, addPeriod,
 
       {/* 기간 매트릭스 */}
       {sortedMonths.length === 0 ? (
-        <div style={{ padding: 20, textAlign: 'center', color: 'var(--text-3)', fontSize: 12, fontStyle: 'italic' }}>
+        <div style={{ padding: 20, textAlign: 'center', color: 'var(--text-3)', fontSize: 13, fontStyle: 'italic' }}>
           {isCustom ? '맞춤 견적 플랜 — 기간별 가격 없음' : '등록된 기간이 없습니다. 상단에서 기간을 추가하세요.'}
         </div>
       ) : (() => {
@@ -1045,7 +1321,7 @@ function PeriodPricingPanel({ plan, periodPricing, updatePeriodField, addPeriod,
             <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)', color: 'var(--text-3)', textAlign: 'left' }}>
               <th style={{ padding: '8px 6px', width: '16%' }}>기간</th>
               <th style={{ padding: '8px 6px', width: '13%' }}>월간 요금 $</th>
-              <th style={{ padding: '8px 6px', width: '14%' }}>기본 결제액 $<br/><span style={{ fontSize: 9, fontWeight: 400, opacity: 0.7 }}>(개월 × 월간)</span></th>
+              <th style={{ padding: '8px 6px', width: '14%' }}>기본 결제액 $<br/><span style={{ fontSize: 10, fontWeight: 400, opacity: 0.7 }}>(개월 × 월간)</span></th>
               <th style={{ padding: '8px 6px', width: '9%' }}>할인 %</th>
               <th style={{ padding: '8px 6px', width: '14%' }}>최종 결제액 $</th>
               <th style={{ padding: '8px 6px', width: '20%' }}>Paddle priceId</th>
@@ -1074,7 +1350,7 @@ function PeriodPricingPanel({ plan, periodPricing, updatePeriodField, addPeriod,
                 }}>
                   <td style={{ padding: '8px 6px', fontWeight: 700 }}>
                     {getPeriodLabel(months)}
-                    {isBase && <span style={{ display: 'block', fontSize: 9, color: '#22c55e', fontWeight: 700, marginTop: 2 }}>SSOT 기준</span>}
+                    {isBase && <span style={{ display: 'block', fontSize: 10, color: '#22c55e', fontWeight: 700, marginTop: 2 }}>SSOT 기준</span>}
                   </td>
                   <td style={{ padding: '8px 6px' }}>
                     {isBase ? (
@@ -1090,7 +1366,7 @@ function PeriodPricingPanel({ plan, periodPricing, updatePeriodField, addPeriod,
                   <td style={{ padding: '8px 6px', fontWeight: 600, color: 'var(--text-2)' }}>
                     {grossTotal != null ? `$${grossTotal.toFixed(2)}` : '—'}
                     {!isBase && monthlyBase > 0 && (
-                      <span style={{ display: 'block', fontSize: 9, color: 'var(--text-3)' }}>
+                      <span style={{ display: 'block', fontSize: 10, color: 'var(--text-3)' }}>
                         = {months} × ${monthlyBase.toFixed(2)}
                       </span>
                     )}
@@ -1105,7 +1381,7 @@ function PeriodPricingPanel({ plan, periodPricing, updatePeriodField, addPeriod,
                   <td style={{ padding: '8px 6px', color: '#22c55e', fontWeight: 800, fontSize: 13 }}>
                     {finalTotal != null ? `$${finalTotal.toFixed(2)}` : '—'}
                     {!isBase && discountPct > 0 && finalTotal != null && grossTotal != null && (
-                      <span style={{ display: 'block', fontSize: 9, color: '#fb923c', fontWeight: 700 }}>
+                      <span style={{ display: 'block', fontSize: 10, color: '#fb923c', fontWeight: 700 }}>
                         −${(grossTotal - finalTotal).toFixed(2)} 절약
                       </span>
                     )}
@@ -1121,13 +1397,13 @@ function PeriodPricingPanel({ plan, periodPricing, updatePeriodField, addPeriod,
                   </td>
                   <td style={{ padding: '8px 6px', textAlign: 'center' }}>
                     {isBase ? (
-                      <span style={{ fontSize: 9, color: 'var(--text-3)', fontStyle: 'italic' }}>기준</span>
+                      <span style={{ fontSize: 10, color: 'var(--text-3)', fontStyle: 'italic' }}>기준</span>
                     ) : (
                       <button onClick={() => removePeriod(plan.plan_id, months)} disabled={isCustom} style={{
                         padding: '3px 8px', borderRadius: 6,
                         background: 'rgba(248,113,113,0.10)', color: '#f87171',
                         border: '1px solid rgba(248,113,113,0.28)',
-                        fontSize: 11, fontWeight: 700,
+                        fontSize: 12, fontWeight: 700,
                         cursor: isCustom ? 'default' : 'pointer', opacity: isCustom ? 0.4 : 1,
                       }} title="이 기간 제거 (저장 시 적용)">×</button>
                     )}
@@ -1169,12 +1445,12 @@ function PreviewCard({ plan, periods = {} }) {
           position: 'absolute', top: -12, right: 16,
           padding: '4px 12px', borderRadius: 20,
           background: 'linear-gradient(135deg,#6366f1,#4f8ef7)',
-          color: '#fff', fontSize: 10, fontWeight: 800, letterSpacing: 0.5,
+          color: '#fff', fontSize: 11, fontWeight: 800, letterSpacing: 0.5,
           boxShadow: '0 4px 12px rgba(99,102,241,0.4)',
         }}>⭐ MOST POPULAR</div>
       )}
-      <div style={{ fontSize: 11, fontWeight: 700, color: isRecommended ? '#6366f1' : '#22c55e', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 8 }}>{plan.name}</div>
-      <div style={{ fontSize: 12, color: 'var(--text-3)', marginBottom: 22, minHeight: 32 }}>{plan.description || '—'}</div>
+      <div style={{ fontSize: 12, fontWeight: 700, color: isRecommended ? '#6366f1' : '#22c55e', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 8 }}>{plan.name}</div>
+      <div style={{ fontSize: 13, color: 'var(--text-3)', marginBottom: 22, minHeight: 32 }}>{plan.description || '—'}</div>
       <div style={{ marginBottom: 18 }}>
         {isCustom ? (
           <span style={{ fontSize: 32, fontWeight: 900 }}>맞춤 견적</span>
@@ -1182,9 +1458,9 @@ function PreviewCard({ plan, periods = {} }) {
           <>
             <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-3)' }}>USD </span>
             <span style={{ fontSize: 44, fontWeight: 900 }}>${m1Price ?? '—'}</span>
-            <span style={{ fontSize: 13, color: 'var(--text-3)', marginLeft: 4 }}>/월</span>
+            <span style={{ fontSize: 14, color: 'var(--text-3)', marginLeft: 4 }}>/월</span>
             {m12Price != null && (
-              <div style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 4 }}>연간 결제 시 ${m12Price}/월 (총 ${(m12Price * 12).toFixed(2)}/년)</div>
+              <div style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 4 }}>연간 결제 시 ${m12Price}/월 (총 ${(m12Price * 12).toFixed(2)}/년)</div>
             )}
           </>
         )}
@@ -1193,13 +1469,13 @@ function PreviewCard({ plan, periods = {} }) {
       {/* 등록된 기간 옵션 요약 */}
       {!isCustom && sortedMonths.length > 0 && (
         <div style={{ marginBottom: 16, padding: '8px 10px', borderRadius: 8, background: 'rgba(0,0,0,0.18)', border: '1px solid rgba(255,255,255,0.04)' }}>
-          <div style={{ fontSize: 9, fontWeight: 800, color: 'var(--text-3)', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 6 }}>구독 옵션 ({sortedMonths.length}개 기간)</div>
+          <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-3)', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 6 }}>구독 옵션 ({sortedMonths.length}개 기간)</div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
             {sortedMonths.map(m => {
               const cfg = periods[m] || {};
               return (
                 <span key={m} style={{
-                  padding: '3px 8px', borderRadius: 6, fontSize: 10,
+                  padding: '3px 8px', borderRadius: 6, fontSize: 11,
                   background: cfg.is_active === false ? 'rgba(255,255,255,0.04)' : 'rgba(34,197,94,0.10)',
                   color: cfg.is_active === false ? 'var(--text-3)' : 'var(--text-2)',
                   border: cfg.is_active === false ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(34,197,94,0.22)',
@@ -1216,14 +1492,14 @@ function PreviewCard({ plan, periods = {} }) {
 
       <div style={{ display: 'grid', gap: 8 }}>
         {(plan.features || []).slice(0, 8).map((f, i) => (
-          <div key={i} style={{ display: 'flex', gap: 8, fontSize: 12, color: 'rgba(255,255,255,0.7)' }}>
+          <div key={i} style={{ display: 'flex', gap: 8, fontSize: 13, color: 'rgba(255,255,255,0.7)' }}>
             <span style={{ color: '#22c55e' }}>✓</span>{f}
           </div>
         ))}
       </div>
       <div style={{ marginTop: 18, padding: '8px 12px', borderRadius: 8, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
-        <div style={{ fontSize: 10, color: 'var(--text-3)', marginBottom: 4 }}>Paddle priceId (legacy 동기화)</div>
-        <div style={{ fontSize: 10, fontFamily: 'monospace', color: 'var(--text-2)' }}>
+        <div style={{ fontSize: 11, color: 'var(--text-3)', marginBottom: 4 }}>Paddle priceId (legacy 동기화)</div>
+        <div style={{ fontSize: 11, fontFamily: 'monospace', color: 'var(--text-2)' }}>
           M (1m): {m1PaddleId || '미설정'}<br />
           A (12m): {m12PaddleId || '미설정'}
         </div>
