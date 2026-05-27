@@ -16579,25 +16579,25 @@ export default {
 
     "required": "필수",
 
-    "panelTitle": "패널 제목",
+    "panelTitle": "개인정보 동의 설정",
 
-    "panelSub": "패널 부제",
+    "panelSub": "데이터 사용 목적별 동의를 설정하세요",
 
     "savePref": "환경설정 저장",
 
-    "policyNote1": "정책 안내1",
+    "policyNote1": "본 서비스는 귀하의 개인정보를 ",
 
     "privacyPolicy": "개인정보 처리방침",
 
-    "policyNote2": "정책 안내2",
+    "policyNote2": " 및 ",
 
     "cookiePolicy": "쿠키 정책",
 
-    "policyNote3": "정책 안내3",
+    "policyNote3": " 에 따라 처리합니다.",
 
-    "bannerTitle": "배너 제목",
+    "bannerTitle": "쿠키 및 개인정보 동의",
 
-    "bannerDesc": "배너 설명",
+    "bannerDesc": "더 나은 서비스 제공을 위해 쿠키와 개인정보 수집에 동의해 주세요. 분석·마케팅 쿠키는 선택 가능합니다.",
 
     "currentConsentStatus": "현재 동의 상태",
 

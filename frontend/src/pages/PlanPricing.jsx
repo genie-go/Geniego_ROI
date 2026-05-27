@@ -1000,7 +1000,7 @@ function PeriodPricingPanel({ plan, periodPricing, updatePeriodField, addPeriod,
 
       {/* 안내 */}
       <div style={{ padding: '10px 14px', borderRadius: 8, background: 'rgba(99,102,241,0.06)', border: '1px solid rgba(99,102,241,0.18)', fontSize: 11, color: 'var(--text-2)', marginBottom: 12, lineHeight: 1.6 }}>
-        💡 1개월 가격 입력 시 다른 기간 자동 산출 (각 기간 할인율 기반). 모든 값 admin 자유 편집. 통화 USD 고정 (Paddle MoR).
+        💡 <strong>월간 요금 (1개월)</strong> 이 SSOT. 입력 즉시 모든 기간의 <strong>기본 결제액 = 개월수 × 월간요금</strong> 으로 실시간 산출됩니다. 각 기간 할인율(%) 은 admin 자유 설정 → 최종 결제액 자동 계산. 통화 USD 고정 (Paddle MoR).
       </div>
 
       {/* 기간 추가 폼 */}
@@ -1036,47 +1036,80 @@ function PeriodPricingPanel({ plan, periodPricing, updatePeriodField, addPeriod,
         <div style={{ padding: 20, textAlign: 'center', color: 'var(--text-3)', fontSize: 12, fontStyle: 'italic' }}>
           {isCustom ? '맞춤 견적 플랜 — 기간별 가격 없음' : '등록된 기간이 없습니다. 상단에서 기간을 추가하세요.'}
         </div>
-      ) : (
+      ) : (() => {
+        // 172차: 월간 요금이 SSOT. 1m 가격 변경 시 모든 기간 기본 결제액 = months × monthly 실시간 갱신.
+        const monthlyBase = Number(pp[1]?.price_usd) || 0; // 기준 월간 요금
+        return (
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
           <thead>
             <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)', color: 'var(--text-3)', textAlign: 'left' }}>
-              <th style={{ padding: '8px 6px', width: '18%' }}>기간</th>
-              <th style={{ padding: '8px 6px', width: '14%' }}>월 환산 $</th>
-              <th style={{ padding: '8px 6px', width: '10%' }}>할인 %</th>
-              <th style={{ padding: '8px 6px', width: '14%' }}>총액 $</th>
-              <th style={{ padding: '8px 6px', width: '24%' }}>Paddle priceId</th>
-              <th style={{ padding: '8px 6px', width: '8%', textAlign: 'center' }}>활성</th>
-              <th style={{ padding: '8px 6px', width: '12%', textAlign: 'center' }}>제거</th>
+              <th style={{ padding: '8px 6px', width: '16%' }}>기간</th>
+              <th style={{ padding: '8px 6px', width: '13%' }}>월간 요금 $</th>
+              <th style={{ padding: '8px 6px', width: '14%' }}>기본 결제액 $<br/><span style={{ fontSize: 9, fontWeight: 400, opacity: 0.7 }}>(개월 × 월간)</span></th>
+              <th style={{ padding: '8px 6px', width: '9%' }}>할인 %</th>
+              <th style={{ padding: '8px 6px', width: '14%' }}>최종 결제액 $</th>
+              <th style={{ padding: '8px 6px', width: '20%' }}>Paddle priceId</th>
+              <th style={{ padding: '8px 6px', width: '7%', textAlign: 'center' }}>활성</th>
+              <th style={{ padding: '8px 6px', width: '7%', textAlign: 'center' }}>제거</th>
             </tr>
           </thead>
           <tbody>
             {sortedMonths.map(months => {
               const cfg = pp[months] || {};
-              const total = cfg.price_usd != null ? (cfg.price_usd * months).toFixed(2) : '—';
               const isBase = months === 1;
+              // 기본 결제액 = months × 월간 요금 (SSOT, 실시간 계산)
+              const grossTotal = monthlyBase > 0 ? +(monthlyBase * months).toFixed(2) : null;
+              // 최종 결제액 = 기본 결제액 × (1 - discount/100)  (할인 0 이면 = 기본)
+              const discountPct = Number(cfg.discount_pct || 0);
+              const finalTotal = grossTotal != null
+                ? +(grossTotal * (1 - discountPct / 100)).toFixed(2)
+                : (cfg.price_usd != null ? +(cfg.price_usd * months).toFixed(2) : null);
+              // 1m 행은 월간 요금 input 활성. 다른 행은 월간 요금 readonly (1m 에서 결정됨).
+              // 단, admin 이 비-1m 기간의 월요금을 직접 override 하고 싶으면 (예외 케이스) 편집 가능하게 둠.
+              const perMonthDisplay = cfg.price_usd != null ? cfg.price_usd.toFixed(2) : '—';
               return (
                 <tr key={months} style={{
                   borderBottom: '1px solid rgba(255,255,255,0.05)',
-                  background: isBase ? 'rgba(34,197,94,0.04)' : 'transparent',
+                  background: isBase ? 'rgba(34,197,94,0.06)' : 'transparent',
                 }}>
                   <td style={{ padding: '8px 6px', fontWeight: 700 }}>
                     {getPeriodLabel(months)}
-                    {isBase && <span style={{ display: 'block', fontSize: 9, color: '#22c55e', fontWeight: 700, marginTop: 2 }}>기준 가격</span>}
+                    {isBase && <span style={{ display: 'block', fontSize: 9, color: '#22c55e', fontWeight: 700, marginTop: 2 }}>SSOT 기준</span>}
                   </td>
                   <td style={{ padding: '8px 6px' }}>
-                    <input type="number" step="0.01" min="0" disabled={isCustom}
-                      value={cfg.price_usd ?? ''}
-                      onChange={e => updatePeriodField(plan.plan_id, months, { price_usd: e.target.value === '' ? null : Number(e.target.value) })}
-                      style={inputS} />
+                    {isBase ? (
+                      <input type="number" step="0.01" min="0" disabled={isCustom}
+                        value={cfg.price_usd ?? ''}
+                        onChange={e => updatePeriodField(plan.plan_id, 1, { price_usd: e.target.value === '' ? null : Number(e.target.value) })}
+                        style={{ ...inputS, fontWeight: 700, color: '#22c55e' }}
+                        placeholder="기준 월 요금" />
+                    ) : (
+                      <span style={{ color: 'var(--text-3)', fontSize: 11 }}>${perMonthDisplay}/월</span>
+                    )}
+                  </td>
+                  <td style={{ padding: '8px 6px', fontWeight: 600, color: 'var(--text-2)' }}>
+                    {grossTotal != null ? `$${grossTotal.toFixed(2)}` : '—'}
+                    {!isBase && monthlyBase > 0 && (
+                      <span style={{ display: 'block', fontSize: 9, color: 'var(--text-3)' }}>
+                        = {months} × ${monthlyBase.toFixed(2)}
+                      </span>
+                    )}
                   </td>
                   <td style={{ padding: '8px 6px' }}>
                     <input type="number" step="1" min="0" max="80" disabled={isCustom || isBase}
                       value={cfg.discount_pct ?? 0}
                       onChange={e => updatePeriodField(plan.plan_id, months, { discount_pct: e.target.value === '' ? 0 : Number(e.target.value) })}
-                      style={{ ...inputS, opacity: isBase ? 0.5 : 1 }}
-                      title={isBase ? '기준 가격은 할인율 0' : ''} />
+                      style={{ ...inputS, opacity: isBase ? 0.4 : 1, textAlign: 'center' }}
+                      title={isBase ? '기준 가격(1m)은 할인 없음' : `${months}개월 할인율 (%)`} />
                   </td>
-                  <td style={{ padding: '8px 6px', color: '#22c55e', fontWeight: 700 }}>${total}</td>
+                  <td style={{ padding: '8px 6px', color: '#22c55e', fontWeight: 800, fontSize: 13 }}>
+                    {finalTotal != null ? `$${finalTotal.toFixed(2)}` : '—'}
+                    {!isBase && discountPct > 0 && finalTotal != null && grossTotal != null && (
+                      <span style={{ display: 'block', fontSize: 9, color: '#fb923c', fontWeight: 700 }}>
+                        −${(grossTotal - finalTotal).toFixed(2)} 절약
+                      </span>
+                    )}
+                  </td>
                   <td style={{ padding: '8px 6px' }}>
                     <input type="text" value={cfg.paddle_price_id ?? ''} placeholder="pri_xxxxxxxxxx"
                       onChange={e => updatePeriodField(plan.plan_id, months, { paddle_price_id: e.target.value })}
@@ -1087,20 +1120,25 @@ function PeriodPricingPanel({ plan, periodPricing, updatePeriodField, addPeriod,
                       onChange={e => updatePeriodField(plan.plan_id, months, { is_active: e.target.checked })} />
                   </td>
                   <td style={{ padding: '8px 6px', textAlign: 'center' }}>
-                    <button onClick={() => removePeriod(plan.plan_id, months)} disabled={isCustom} style={{
-                      padding: '3px 10px', borderRadius: 6,
-                      background: 'rgba(248,113,113,0.10)', color: '#f87171',
-                      border: '1px solid rgba(248,113,113,0.28)',
-                      fontSize: 11, fontWeight: 700,
-                      cursor: isCustom ? 'default' : 'pointer', opacity: isCustom ? 0.4 : 1,
-                    }} title="이 기간 제거 (저장 시 적용)">× 제거</button>
+                    {isBase ? (
+                      <span style={{ fontSize: 9, color: 'var(--text-3)', fontStyle: 'italic' }}>기준</span>
+                    ) : (
+                      <button onClick={() => removePeriod(plan.plan_id, months)} disabled={isCustom} style={{
+                        padding: '3px 8px', borderRadius: 6,
+                        background: 'rgba(248,113,113,0.10)', color: '#f87171',
+                        border: '1px solid rgba(248,113,113,0.28)',
+                        fontSize: 11, fontWeight: 700,
+                        cursor: isCustom ? 'default' : 'pointer', opacity: isCustom ? 0.4 : 1,
+                      }} title="이 기간 제거 (저장 시 적용)">×</button>
+                    )}
                   </td>
                 </tr>
               );
             })}
           </tbody>
         </table>
-      )}
+        );
+      })()}
     </div>
   );
 }
