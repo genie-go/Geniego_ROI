@@ -1,4 +1,6 @@
-const base = import.meta.env.VITE_API_BASE || "http://localhost:8000";
+// [171차 N-170-apiclient-base] localhost:8000 fallback 제거 → relative path (동일 origin).
+// 운영 브라우저가 .env 부재 시 localhost 호출하여 CORS/ERR_CONNECTION_REFUSED 발생하던 28페이지 fix.
+const base = import.meta.env.VITE_API_BASE || "";
 
 /* ── 데모 모드 감지 ── */
 const IS_DEMO = import.meta.env.VITE_DEMO_MODE === 'true';

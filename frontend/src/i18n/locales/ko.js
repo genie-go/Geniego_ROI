@@ -31682,7 +31682,12 @@ export default {
       webPopup: "웹 팝업",
       wms: "WMS 재고",
       workspace: "워크스페이스 설정",
-      writeback: "데이터 Writeback"
+      writeback: "데이터 Writeback",
+      planPricingLabel: "플랜별 구독요금",
+      menuTreeLabel: "메뉴 트리 관리",
+      platformEnvLabel: "플랫폼 환경",
+      dbSchemaLabel: "DB 스키마",
+      paymentPgLabel: "결제 PG 설정"
     },
     g: {
       quickFavs: "즐겨찾기",
@@ -38552,7 +38557,11 @@ export default {
       },
       sidebar: {
         footerLine1: "매출 + 리스크 + 거버넌스",
-        removeFav: "즐겨찾기 해제"
+        removeFav: "즐겨찾기 해제",
+        prodMode: "🏢 운영 시스템",
+        prodDesc: "운영 환경",
+        demoMode: "🧪 데모 모드",
+        demoDesc: "가상 데이터로 모든 기능 체험"
       },
       filterAll: "전체",
       unified: {

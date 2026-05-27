@@ -382,3 +382,9 @@ session159_dead_subtree_depth*_v*/*.json
 /session164_*.md
 /session164_*.txt
 /session164_*.sh
+
+# Session 170-171 — cc puppeteer 진단 산물 (도구 본체는 docs/cc-tools/ 에 추적)
+/_cc_verify_ops_170.cjs
+/_cc_verify_screenshot_*.png
+/dist_171*.tgz
+/dist_17*_*.tgz

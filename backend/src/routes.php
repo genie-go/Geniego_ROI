@@ -462,6 +462,11 @@ return function (App $app): void {
         'DELETE /v424/admin/plans/{id}'                 => 'Genie\\Handlers\\AdminPlans::delete',
         'GET /v424/admin/plans-menu-access'             => 'Genie\\Handlers\\AdminPlans::menuAccessAll',
         'PUT /v424/admin/plans/{id}/menu-access'        => 'Genie\\Handlers\\AdminPlans::menuAccessUpsert',
+        // 171차 — 4-tier 기간별 구독 가격 (1/3/6/12개월)
+        'GET /v424/admin/plans-period-pricing'          => 'Genie\\Handlers\\AdminPlans::periodPricingAll',
+        'PUT /v424/admin/plans/{id}/period-pricing'     => 'Genie\\Handlers\\AdminPlans::periodPricingUpsert',
+        'GET /api/v424/admin/plans-period-pricing'      => 'Genie\\Handlers\\AdminPlans::periodPricingAll',
+        'PUT /api/v424/admin/plans/{id}/period-pricing' => 'Genie\\Handlers\\AdminPlans::periodPricingUpsert',
         'GET /v424/admin/paddle/stats'                  => 'Genie\\Handlers\\AdminPlans::paddleStats',
         'GET /api/v424/admin/paddle/stats'              => 'Genie\\Handlers\\AdminPlans::paddleStats',
         'GET /v424/admin/db/stats'                      => 'Genie\\Handlers\\AdminPlans::dbStats',
@@ -1764,6 +1769,11 @@ return function (App $app): void {
     $register('DELETE', '/v424/admin/plans/{id}');
     $register('GET',    '/v424/admin/plans-menu-access');
     $register('PUT',    '/v424/admin/plans/{id}/menu-access');
+    // 171차 — 4-tier 기간별 구독 가격
+    $register('GET',    '/v424/admin/plans-period-pricing');
+    $register('PUT',    '/v424/admin/plans/{id}/period-pricing');
+    $register('GET',    '/api/v424/admin/plans-period-pricing');
+    $register('PUT',    '/api/v424/admin/plans/{id}/period-pricing');
     $register('GET',    '/v424/admin/paddle/stats');
     $register('GET',    '/api/v424/admin/paddle/stats');
     $register('GET',    '/v424/admin/db/stats');

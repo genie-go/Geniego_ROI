@@ -532,7 +532,10 @@ const LOC = {
 
 // ── Helpers ─────────────────────────────────────────────
 const getAuthToken = () => localStorage.getItem("genie_token") || localStorage.getItem("genie_auth_token") || '';
-const API = useCallback(async (path) => {
+// [171차 fix] React useCallback 은 컴포넌트 함수 본체에서만 호출 가능 (Rules of Hooks).
+// module top-level 에서 호출하면 모듈 init 시 Cannot read properties of null/undefined 'useCallback' 발생 →
+// 사용자 보고 "롤업뷰 클릭 시 화면오류" root cause. 일반 함수로 강등.
+const API = async (path) => {
   try {
     const res = await fetch(path, { headers: { Authorization: `Bearer ${getAuthToken()}` } });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -541,7 +544,7 @@ const API = useCallback(async (path) => {
     if (path.includes('sku') || path.includes('campaign') || path.includes('creator') || path.includes('platform')) return { rows: [] };
     return { kpi: {}, by_platform: {}, top_skus: [], alerts: [] };
   }
-}, []);
+};
 
 const fmt = {
   num: (v) => v?.toLocaleString(undefined) ?? "-",

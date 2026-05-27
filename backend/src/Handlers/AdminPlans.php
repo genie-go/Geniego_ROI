@@ -31,7 +31,10 @@ final class AdminPlans
         $stmt = $pdo->query(
             'SELECT plan_id, name, description, price_usd, price_annual_usd,
                     price_id_monthly, price_id_annual, features_json, limits_json,
-                    display_order, is_active, is_custom_quote, updated_by, updated_at
+                    display_order, is_active, is_custom_quote,
+                    IFNULL(is_recommended, 0) AS is_recommended,
+                    IFNULL(discount_pct, 20) AS discount_pct,
+                    updated_by, updated_at
              FROM plan_config WHERE is_active = 1
              ORDER BY display_order, plan_id'
         );
@@ -59,19 +62,23 @@ final class AdminPlans
         $actor = (string)($req->getAttribute('auth_key') ?? 'admin');
 
         $pdo = Db::pdo();
+        // [171차] is_recommended + discount_pct 컬럼 추가 — 추천 플랜 + 자동 산출 비율
         $pdo->prepare(
             'INSERT INTO plan_config
                (plan_id, name, description, price_usd, price_annual_usd,
                 price_id_monthly, price_id_annual, features_json, limits_json,
-                display_order, is_active, is_custom_quote, updated_by)
-             VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
+                display_order, is_active, is_custom_quote,
+                is_recommended, discount_pct, updated_by)
+             VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
              ON DUPLICATE KEY UPDATE
                name=VALUES(name), description=VALUES(description),
                price_usd=VALUES(price_usd), price_annual_usd=VALUES(price_annual_usd),
                price_id_monthly=VALUES(price_id_monthly), price_id_annual=VALUES(price_id_annual),
                features_json=VALUES(features_json), limits_json=VALUES(limits_json),
                display_order=VALUES(display_order), is_active=VALUES(is_active),
-               is_custom_quote=VALUES(is_custom_quote), updated_by=VALUES(updated_by)'
+               is_custom_quote=VALUES(is_custom_quote),
+               is_recommended=VALUES(is_recommended), discount_pct=VALUES(discount_pct),
+               updated_by=VALUES(updated_by)'
         )->execute([
             $planId,
             $name,
@@ -85,6 +92,8 @@ final class AdminPlans
             (int)($body['display_order']   ?? 0),
             (int)!empty($body['is_active'] ?? true),
             (int)!empty($body['is_custom_quote'] ?? false),
+            (int)!empty($body['is_recommended'] ?? false),
+            (int)($body['discount_pct'] ?? 20),
             substr($actor, 0, 64),
         ]);
         return self::json($res, ['ok' => true, 'plan_id' => $planId]);
@@ -357,6 +366,96 @@ final class AdminPlans
             return self::json($res, ['error' => 'save_failed', 'detail' => $e->getMessage()], 500);
         }
         return self::json($res, ['ok' => true, 'plan_id' => $planId, 'count' => count($menus)]);
+    }
+
+    /**
+     * GET /v424/admin/plans/period-pricing
+     * 전체 plan × period 가격 매트릭스 조회
+     */
+    public static function periodPricingAll(Request $req, Response $res): Response
+    {
+        $gate = UserAuth::requirePlan($req, $res, 'admin');
+        if ($gate !== null) return $gate;
+        $pdo = Db::pdo();
+        $plans = $pdo->query(
+            "SELECT plan_id, name, display_order, is_custom_quote
+             FROM plan_config WHERE is_active = 1 ORDER BY display_order"
+        )->fetchAll(\PDO::FETCH_ASSOC);
+
+        $rows = $pdo->query(
+            "SELECT plan_id, period_months, price_usd, discount_pct,
+                    paddle_price_id, is_active, display_order, updated_by, updated_at
+             FROM plan_period_pricing ORDER BY plan_id, period_months"
+        )->fetchAll(\PDO::FETCH_ASSOC);
+
+        // group by plan_id
+        $byPlan = [];
+        foreach ($rows as $r) {
+            $byPlan[$r['plan_id']][(int)$r['period_months']] = [
+                'price_usd'       => $r['price_usd'] !== null ? (float)$r['price_usd'] : null,
+                'discount_pct'    => (int)$r['discount_pct'],
+                'paddle_price_id' => (string)$r['paddle_price_id'],
+                'is_active'       => (bool)$r['is_active'],
+                'display_order'   => (int)$r['display_order'],
+                'total_charge'    => $r['price_usd'] !== null
+                    ? round((float)$r['price_usd'] * (int)$r['period_months'], 2)
+                    : null,
+            ];
+        }
+        return self::json($res, ['ok' => true, 'plans' => $plans, 'pricing' => $byPlan]);
+    }
+
+    /**
+     * PUT /v424/admin/plans/{id}/period-pricing
+     * Body: { periods: { "1": {price_usd, discount_pct, paddle_price_id, is_active}, "3": {...}, ... } }
+     * 사용자 명시: 자동 추천값 제시 + admin 최종 결정. 본 endpoint 가 admin 저장 적용.
+     */
+    public static function periodPricingUpsert(Request $req, Response $res, array $args): Response
+    {
+        $gate = UserAuth::requirePlan($req, $res, 'admin');
+        if ($gate !== null) return $gate;
+        $planId = (string)($args['id'] ?? '');
+        if (!preg_match('/^[a-z0-9_-]{1,64}$/i', $planId)) {
+            return self::json($res, ['error' => 'invalid_plan_id'], 422);
+        }
+        $body    = (array)$req->getParsedBody();
+        $periods = isset($body['periods']) && is_array($body['periods']) ? $body['periods'] : [];
+        $actor   = substr((string)($req->getAttribute('auth_key') ?? 'admin'), 0, 64);
+
+        $pdo = Db::pdo();
+        $pdo->beginTransaction();
+        try {
+            $up = $pdo->prepare(
+                'INSERT INTO plan_period_pricing
+                   (plan_id, period_months, price_usd, discount_pct, paddle_price_id, is_active, display_order, updated_by)
+                 VALUES (?,?,?,?,?,?,?,?)
+                 ON DUPLICATE KEY UPDATE
+                   price_usd=VALUES(price_usd),
+                   discount_pct=VALUES(discount_pct),
+                   paddle_price_id=VALUES(paddle_price_id),
+                   is_active=VALUES(is_active),
+                   display_order=VALUES(display_order),
+                   updated_by=VALUES(updated_by)'
+            );
+            $orderBase = 10;
+            foreach ($periods as $months => $cfg) {
+                $m = (int)$months;
+                if ($m <= 0 || $m > 60) continue; // 1~60 개월
+                $price    = self::numOrNull($cfg['price_usd'] ?? null);
+                $discount = (int)($cfg['discount_pct'] ?? 0);
+                if ($discount < 0) $discount = 0;
+                if ($discount > 100) $discount = 100;
+                $paddleId = (string)($cfg['paddle_price_id'] ?? '');
+                $active   = (int)!empty($cfg['is_active'] ?? true);
+                $order    = (int)($cfg['display_order'] ?? ($orderBase + $m));
+                $up->execute([$planId, $m, $price, $discount, $paddleId, $active, $order, $actor]);
+            }
+            $pdo->commit();
+        } catch (\Throwable $e) {
+            $pdo->rollBack();
+            return self::json($res, ['error' => 'save_failed', 'detail' => $e->getMessage()], 500);
+        }
+        return self::json($res, ['ok' => true, 'plan_id' => $planId, 'count' => count($periods)]);
     }
 
     private static function hydrate(array $row): array

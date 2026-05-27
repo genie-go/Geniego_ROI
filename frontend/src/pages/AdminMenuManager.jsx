@@ -16,10 +16,11 @@ import { useT } from '../i18n/index.js';
  */
 export default function AdminMenuManager() {
   const t = useT();
-  const { token, user } = useAuth() || {};
-  const role = user?.role || '';
+  // [171차 fix] app_user 테이블 role 컬럼 부재 → user.role 항상 undefined.
+  // AuthContext의 isAdmin (userPlan === 'admin' || IS_DEMO_MODE) + plan 사용.
+  const { token, user, isAdmin, plan } = useAuth() || {};
   const scope = user?.scope || '';
-  const isSuper = role === 'admin' && (scope.includes('admin:menu_super') || scope.includes('admin:*'));
+  const isSuper = isAdmin && (scope.includes('admin:menu_super') || scope.includes('admin:*'));
 
   const [tree, setTree] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -119,11 +120,11 @@ export default function AdminMenuManager() {
     return m;
   }, [tree]);
 
-  if (role !== 'admin') {
+  if (!isAdmin) {
     return (
       <div style={{ padding: 32 }}>
         <h2>접근 불가</h2>
-        <p>본 페이지는 admin role 필수입니다. 현재 role: {role || '(unknown)'}</p>
+        <p>본 페이지는 admin plan 필수입니다. 현재 plan: {plan || '(unknown)'}</p>
       </div>
     );
   }

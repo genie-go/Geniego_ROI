@@ -1,0 +1,3 @@
+SELECT COLUMN_NAME, COLUMN_TYPE, CHARACTER_SET_NAME, COLLATION_NAME
+FROM information_schema.columns
+WHERE TABLE_SCHEMA='geniego_roi' AND TABLE_NAME='plan_config' AND COLUMN_NAME='plan_id';

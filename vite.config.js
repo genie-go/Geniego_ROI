@@ -45,75 +45,19 @@ export default defineConfig({
     // input omitted – Vite will use default index.html
     output: {
         // 수동 청크 분리 — 라이브러리 / 기능 영역별 분리
+        // [171차 N-170-vite-fix v2] vendor-react + vendor-router + shared-ui 분리 모두 제거.
+        // 170차 5회 화이트 + 171차 첫 시도 화이트 root cause = lazy chunk 가
+        // shared-ui/vendor-react init 전에 React.useCallback 호출 → null.
+        // React/Router/공유 컴포넌트 모두 entry chunk 흡수 → init order 보장.
+        // i18n locales 만 별도 청크 유지 (13MB, gzip 4.5MB — 반드시 분리).
         manualChunks(id) {
-          // React 코어
-          if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) {
-            return 'vendor-react';
-          }
-          // 라우터
-          if (id.includes('node_modules/react-router-dom') || id.includes('node_modules/react-router')) {
-            return 'vendor-router';
-          }
-         // 공유 UI 컴포넌트 (45차 발견 — 순환 청크 해소 + dashboards 통합)
-        if (id.includes('/components/dashboards/') ||
-        id.includes('/components/CommandPalette')) {
-      return 'shared-ui';
-    }
-          // i18n 로케일 파일들 - 별도 청크
+          // [171차 N-170-vite-fix v3] page-group manualChunks 전부 제거.
+          // 그룹화가 chunk 간 동일 React 모듈 참조를 만들어 init order race 야기.
+          // i18n locales 만 분리 (13MB / 4.5MB gzip — 반드시 별도 청크).
+          // 페이지는 Vite 기본 chunking(파일별 lazy 청크)로 위임 → 각 페이지가 자체
+          // 의존성 import → Rollup 이 React 등 공통 vendor 를 entry 에 안전 배치.
           if (id.includes('/i18n/locales/')) {
             return 'i18n-locales';
-          }
-          // 무거운 페이지 그룹 1: Analytics/Dashboard
-          if (id.includes('/pages/Dashboard') || id.includes('/pages/PnLDashboard') || id.includes('/pages/PerformanceHub')) {
-            return 'pages-analytics';
-          }
-          // 무거운 페이지 그룹 2: Commerce
-          if (id.includes('/pages/InfluencerUGC') || id.includes('/pages/Commerce') || id.includes('/pages/OrderHub')) {
-            return 'pages-commerce';
-          }
-          // 무거운 페이지 그룹 3: Data/Schema
-          if (id.includes('/pages/DataSchema') || id.includes('/pages/DataProduct') || id.includes('/pages/EventNorm')) {
-            return 'pages-data';
-          }
-          // 무거운 페이지 그룹 4: Operations
-          if (id.includes('/pages/OperationsHub') || id.includes('/pages/CatalogSync') || id.includes('/pages/KrChannel')) {
-            return 'pages-ops';
-          }
-          // Rollup/AI 그룹
-          if (id.includes('/pages/RollupDashboard') || id.includes('/pages/AIRuleEngine') || id.includes('/pages/AIInsights')) {
-            return 'pages-ai';
-          }
-          // 매핑 레지스트리
-          if (id.includes('/pages/MappingRegistry')) {
-            return 'pages-mapping';
-          }
-          // [최적화 추가] 가장 무거운 단일 페이지 — SubscriptionPricing (195KB)
-          if (id.includes('/pages/SubscriptionPricing')) {
-            return 'pages-subscription';
-          }
-          // [최적화 추가] Admin 대시보드 (139KB)
-          if (id.includes('/pages/Admin')) {
-            return 'pages-admin';
-          }
-          // [최적화 추가] 이메일·자동화 마케팅 (82KB + 51KB)
-          if (id.includes('/pages/EmailMarketing') || id.includes('/pages/AutoMarketing') || id.includes('/pages/AIMarketingHub')) {
-            return 'pages-marketing2';
-          }
-          // [최적화 추가] WMS·주문 (96KB + 99KB) — CatalogSync는 pages-ops에 위치
-          if (id.includes('/pages/WmsManager')) {
-            return 'pages-ops2';
-          }
-          // [최적화 추가] API Keys·Attribution (89KB + 57KB)
-          if (id.includes('/pages/ApiKeys') || id.includes('/pages/Attribution')) {
-            return 'pages-apikeys';
-          }
-          // [최적화 추가] 구독 가격·결제 (62KB + 42KB)
-          if (id.includes('/pages/PriceOpt') || id.includes('/pages/Pricing')) {
-            return 'pages-pricing';
-          }
-          // [최적화 추가] HelpCenter·FeedbackCenter (42KB + 17KB)
-          if (id.includes('/pages/HelpCenter') || id.includes('/pages/FeedbackCenter') || id.includes('/pages/Onboarding')) {
-            return 'pages-support';
           }
         },
         // 에셋 파일명 해시
