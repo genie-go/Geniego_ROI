@@ -785,9 +785,43 @@ function ServiceDescriptionCard() {
 function MenuPricingSyncPanel({ sync, onApply, applying }) {
   const [roundTo, setRoundTo] = useState('nearest-9');
   const [open, setOpen] = useState(true);
+  // 172차 P1-I — 가중치 편집 모드
+  const [editMode, setEditMode] = useState(false);
+  const [editedScores, setEditedScores] = useState({}); // { menu_key: { weight_usd, category, ai_premium_pct } }
+  const [savingScores, setSavingScores] = useState(false);
   if (!sync?.plans) return null;
   const fmt = (n) => Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const totalValue = sync.totals?.allMenusValue || 0;
+
+  const updateScore = (menuKey, patch) => {
+    setEditedScores(prev => ({ ...prev, [menuKey]: { ...(prev[menuKey] || {}), ...patch } }));
+  };
+  const saveScores = async () => {
+    const dirty = Object.entries(editedScores).filter(([_, p]) => Object.keys(p).length > 0);
+    if (dirty.length === 0) { alert('변경사항 없음'); return; }
+    setSavingScores(true);
+    try {
+      // 기존 score 와 merge
+      const scores = dirty.map(([menu_key, patch]) => {
+        const orig = sync.menuScores.find(s => s.menu_key === menu_key) || {};
+        return {
+          menu_key,
+          weight_usd:     patch.weight_usd     ?? orig.weight_usd     ?? 0,
+          category:       patch.category       ?? orig.category       ?? 'standard',
+          ai_premium_pct: patch.ai_premium_pct ?? orig.ai_premium_pct ?? 0,
+          bundle_count:   orig.bundle_count    ?? 1,
+          description:    orig.description     ?? '',
+        };
+      });
+      await requestJsonAuth('/v424/admin/menu-value-score', 'PUT', { scores });
+      setEditedScores({});
+      setEditMode(false);
+      // sync data refetch
+      try { new BroadcastChannel('geniego_menu_access_sync').postMessage({ type: 'menu_access_updated', source: 'weight_edit', ts: Date.now() }); } catch {}
+      alert(`${dirty.length}개 가중치 저장 완료. 권장가 자동 재계산.`);
+    } catch (e) { alert(`저장 실패: ${e?.message || e}`); }
+    finally { setSavingScores(false); }
+  };
   return (
     <div style={{
       marginBottom: 14, borderRadius: 12,
@@ -806,10 +840,88 @@ function MenuPricingSyncPanel({ sync, onApply, applying }) {
             각 메뉴의 가치 가중치 합 + AI premium → 플랜별 권장 월 요금. 전체 메뉴 가치 합 ${fmt(totalValue)}/월.
           </div>
         </div>
+        <button onClick={e => { e.stopPropagation(); setEditMode(m => !m); }} style={{
+          padding: '5px 12px', borderRadius: 6, border: 'none',
+          background: editMode ? '#1e3a8a' : 'rgba(168,85,247,0.18)',
+          color: editMode ? '#fde047' : '#9333ea', fontSize: 11, fontWeight: 800, cursor: 'pointer',
+          marginRight: 8,
+        }}>{editMode ? '✓ 편집 모드 종료' : '💎 가중치 편집'}</button>
         <span style={{ color: 'var(--text-3)', fontSize: 12 }}>{open ? '▼ 접기' : '▶ 펼치기'}</span>
       </button>
       {open && (
         <div style={{ padding: '0 14px 14px' }}>
+          {/* 172차 P1-I — 가중치 편집 모드 */}
+          {editMode && (
+            <div style={{
+              marginBottom: 12, padding: '10px 12px', borderRadius: 8,
+              background: 'rgba(168,85,247,0.05)', border: '1.5px solid rgba(168,85,247,0.28)',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                <span style={{ fontSize: 13, fontWeight: 800, color: '#9333ea' }}>💎 메뉴 가치 가중치 편집</span>
+                <span style={{ fontSize: 11, color: 'var(--text-3)' }}>
+                  각 menuKey 의 weight_usd / category / AI premium 변경. 저장 즉시 권장가 재계산.
+                </span>
+                <div style={{ flex: 1 }} />
+                <button onClick={saveScores} disabled={savingScores || Object.keys(editedScores).length === 0} style={{
+                  padding: '6px 14px', borderRadius: 7, border: 'none',
+                  background: Object.keys(editedScores).length > 0 ? 'linear-gradient(135deg,#7c3aed,#9333ea)' : 'rgba(255,255,255,0.06)',
+                  color: Object.keys(editedScores).length > 0 ? '#fff' : 'var(--text-3)',
+                  fontSize: 12, fontWeight: 800, cursor: 'pointer',
+                  opacity: savingScores ? 0.6 : 1,
+                }}>{savingScores ? '저장 중…' : `💾 저장 (${Object.keys(editedScores).length}개)`}</button>
+              </div>
+              <div style={{ maxHeight: 320, overflowY: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
+                  <thead>
+                    <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', color: 'var(--text-3)', textAlign: 'left' }}>
+                      <th style={{ padding: '6px 8px' }}>menuKey</th>
+                      <th style={{ padding: '6px 8px', width: 110 }}>weight $</th>
+                      <th style={{ padding: '6px 8px', width: 130 }}>category</th>
+                      <th style={{ padding: '6px 8px', width: 100 }}>AI premium %</th>
+                      <th style={{ padding: '6px 8px' }}>description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {sync.menuScores.map(s => {
+                      const ed = editedScores[s.menu_key] || {};
+                      const weight = ed.weight_usd ?? s.weight_usd;
+                      const cat = ed.category ?? s.category;
+                      const ai = ed.ai_premium_pct ?? s.ai_premium_pct;
+                      const dirty = Object.keys(ed).length > 0;
+                      return (
+                        <tr key={s.menu_key} style={{
+                          borderBottom: '1px solid rgba(255,255,255,0.03)',
+                          background: dirty ? 'rgba(168,85,247,0.06)' : 'transparent',
+                        }}>
+                          <td style={{ padding: '4px 8px', fontFamily: 'monospace', fontSize: 10 }}>{s.menu_key}</td>
+                          <td style={{ padding: '4px 6px' }}>
+                            <input type="number" step="0.5" min="0" value={weight}
+                              onChange={e => updateScore(s.menu_key, { weight_usd: Number(e.target.value) })}
+                              style={{ width: 80, padding: '3px 6px', borderRadius: 4, border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(0,0,0,0.18)', color: 'var(--text-1)', fontSize: 11 }} />
+                          </td>
+                          <td style={{ padding: '4px 6px' }}>
+                            <select value={cat} onChange={e => updateScore(s.menu_key, { category: e.target.value })}
+                              style={{ width: 110, padding: '3px 6px', borderRadius: 4, border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(0,0,0,0.18)', color: 'var(--text-1)', fontSize: 11 }}>
+                              <option value="core">core</option>
+                              <option value="standard">standard</option>
+                              <option value="premium">premium</option>
+                              <option value="enterprise">enterprise</option>
+                            </select>
+                          </td>
+                          <td style={{ padding: '4px 6px' }}>
+                            <input type="number" step="5" min="0" max="100" value={ai}
+                              onChange={e => updateScore(s.menu_key, { ai_premium_pct: Number(e.target.value) })}
+                              style={{ width: 70, padding: '3px 6px', borderRadius: 4, border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(0,0,0,0.18)', color: 'var(--text-1)', fontSize: 11 }} />
+                          </td>
+                          <td style={{ padding: '4px 8px', color: 'var(--text-3)', fontSize: 10 }}>{s.description}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
           <div style={{
             display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap',
             padding: '8px 12px', borderRadius: 8, background: 'rgba(0,0,0,0.06)',
