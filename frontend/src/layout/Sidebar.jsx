@@ -114,15 +114,31 @@ function Upgradal({ menuLabel, onClose, t }) {
 /* Section Component with Lock Support */
 function NavSection({ section, t, isOpen, onToggle, hasMenuAccess, isDemo, onLockClick }) {
   const location = useLocation();
-  const { isVisible: isMenuVisible } = useMenuVisibility();
+  const { isVisible: isMenuVisible, getVisibility } = useMenuVisibility();
   const hasActive = section.items.some(i => location.pathname === i.to);
 
   const sectionLabel = section.label ?? t(section.labelKey, section.labelKey.split('.')[1]);
 
-  // 169차 F2/F3 가시성 필터 (admin 전역 hidden ∨ user 개인 hidden → 완전 비노출 / return null).
-  // menu_tree DB empty 시 default true → 기존 동작 유지. 자물쇠 (plan/role 잠금) 와 별개 의미.
+  // 172차 PHASE 2-D 5계층: section 자체 visibility 우선 체크.
+  // __section:<key> 가 hidden → 섹션 통째로 비노출.
+  const sectionKey = `__section:${section.key}`;
+  const sectionVis = getVisibility(sectionKey);
+  if (sectionVis === 'hidden') return null;
+  const sectionDisabled = sectionVis === 'disabled';
+
+  // 169차 F2/F3 + 172차 leaf 확장:
+  //   item 의 menuKey (중메뉴) OR __leaf:/path (하위) 둘 다 visible 이어야 노출.
   const itemMenuKey = (item) => item.menuKey || item.to.replace(/^\//, "");
-  const itemIsVisible = (item) => isMenuVisible(itemMenuKey(item));
+  const itemLeafKey = (item) => `__leaf:${item.to}`;
+  const itemIsVisible = (item) => {
+    if (!isMenuVisible(itemMenuKey(item))) return false;
+    return getVisibility(itemLeafKey(item)) !== 'hidden';
+  };
+  const itemIsDisabled = (item) => {
+    const vis1 = getVisibility(itemMenuKey(item));
+    const vis2 = getVisibility(itemLeafKey(item));
+    return vis1 === 'disabled' || vis2 === 'disabled' || sectionDisabled;
+  };
 
   // 접근 권한 체크 (plan/role):
   //  - 데모 User: ADMIN_ONLY_MENU_KEYS에 해당하는 것만 잠금, 나머지 전부 열람 가능
@@ -151,6 +167,16 @@ function NavSection({ section, t, isOpen, onToggle, hasMenuAccess, isDemo, onLoc
         >
           <span className="nav-icon">🔒</span>
           <span className="truncate">{label}</span>
+        </div>
+      );
+    }
+    const disabled = itemIsDisabled(item);
+    if (disabled) {
+      return (
+        <div className="nav-item" style={{ opacity: 0.4, cursor: 'not-allowed', pointerEvents: 'none' }} title="관리자가 비활성으로 설정한 메뉴입니다">
+          <span className="nav-icon">{item.icon}</span>
+          <span className="truncate" style={{ textDecoration: 'line-through' }}>{label}</span>
+          <span style={{ marginLeft: 'auto', fontSize: 9, padding: '1px 5px', borderRadius: 4, background: 'rgba(220,38,38,0.15)', color: '#dc2626' }}>비활성</span>
         </div>
       );
     }
@@ -219,6 +245,29 @@ function NavSection({ section, t, isOpen, onToggle, hasMenuAccess, isDemo, onLoc
                     background: "rgba(99,102,241,0.15)", color: "#a5b4fc",
                     border: "1px solid rgba(99,102,241,0.25)", whiteSpace: "nowrap", flexShrink: 0,
                   }}>{t('g.upgradeLabel')}</span>
+                </div>
+              );
+            }
+            // 172차 PHASE 2-D — disabled 상태 시각 표시 (line-through + 회색)
+            if (itemIsDisabled(item)) {
+              return (
+                <div
+                  key={item.to}
+                  className="nav-item"
+                  style={{
+                    fontSize: 11, paddingLeft: 24, position: 'relative',
+                    opacity: 0.4, cursor: 'not-allowed', pointerEvents: 'none',
+                    display: 'flex', alignItems: 'center',
+                  }}
+                  title="관리자가 비활성으로 설정한 메뉴"
+                >
+                  <span style={{
+                    position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)',
+                    width: 6, height: 1, background: 'rgba(99,140,255,0.25)',
+                  }} />
+                  <span className="nav-icon" style={{ fontSize: 12 }}>{item.icon}</span>
+                  <span className="truncate" style={{ textDecoration: 'line-through' }}>{label}</span>
+                  <span style={{ marginLeft: 'auto', fontSize: 8, padding: '1px 5px', borderRadius: 4, background: 'rgba(220,38,38,0.15)', color: '#dc2626' }}>비활성</span>
                 </div>
               );
             }

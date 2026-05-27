@@ -564,13 +564,13 @@ return function (App $app): void {
         // ── v425 Admin/User 메뉴 가시성 토글 (168차 N-152-F F2/F3 = T3, spec: docs/spec/n152f_consolidated_pm_track.md §4) ─
         'GET /v425/admin/menu-tree'             => 'Genie\\Handlers\\AdminMenu::getAdminTree',
         'GET /v425/menu-tree'                   => 'Genie\\Handlers\\AdminMenu::getTree',
-        'PATCH /v425/admin/menu-tree/{menu_id}' => 'Genie\\Handlers\\AdminMenu::patch',
+        'PATCH /v425/admin/menu-tree/{menu_id:.+}' => 'Genie\\Handlers\\AdminMenu::patch',
         'POST /v425/admin/menu-tree/reorder'    => 'Genie\\Handlers\\AdminMenu::reorder',
         'POST /v425/admin/menu-tree/reset'      => 'Genie\\Handlers\\AdminMenu::reset',
         'GET /v425/admin/menu-tree/audit-log'   => 'Genie\\Handlers\\AdminMenu::auditLog',
         'GET /api/v425/admin/menu-tree'             => 'Genie\\Handlers\\AdminMenu::getAdminTree',
         'GET /api/v425/menu-tree'                   => 'Genie\\Handlers\\AdminMenu::getTree',
-        'PATCH /api/v425/admin/menu-tree/{menu_id}' => 'Genie\\Handlers\\AdminMenu::patch',
+        'PATCH /api/v425/admin/menu-tree/{menu_id:.+}' => 'Genie\\Handlers\\AdminMenu::patch',
         'POST /api/v425/admin/menu-tree/reorder'    => 'Genie\\Handlers\\AdminMenu::reorder',
         'POST /api/v425/admin/menu-tree/reset'      => 'Genie\\Handlers\\AdminMenu::reset',
         'GET /api/v425/admin/menu-tree/audit-log'   => 'Genie\\Handlers\\AdminMenu::auditLog',
@@ -1887,13 +1887,13 @@ return function (App $app): void {
     // ── V425 Admin/User 메뉴 가시성 (168차 N-152-F F2/F3 = T3) ──
     $register('GET',   '/v425/admin/menu-tree');
     $register('GET',   '/v425/menu-tree');
-    $register('PATCH', '/v425/admin/menu-tree/{menu_id}');
+    $register('PATCH', '/v425/admin/menu-tree/{menu_id:.+}');
     $register('POST',  '/v425/admin/menu-tree/reorder');
     $register('POST',  '/v425/admin/menu-tree/reset');
     $register('GET',   '/v425/admin/menu-tree/audit-log');
     $register('GET',   '/api/v425/admin/menu-tree');
     $register('GET',   '/api/v425/menu-tree');
-    $register('PATCH', '/api/v425/admin/menu-tree/{menu_id}');
+    $register('PATCH', '/api/v425/admin/menu-tree/{menu_id:.+}');
     $register('POST',  '/api/v425/admin/menu-tree/reorder');
     $register('POST',  '/api/v425/admin/menu-tree/reset');
     $register('GET',   '/api/v425/admin/menu-tree/audit-log');

@@ -189,8 +189,10 @@ final class AdminMenu
 
     private static function validId(string $id): bool
     {
+        // 172차 PHASE 2-D — 확장 키 (__section:/__leaf:/__subtab:) 지원
+        // : | / 추가 허용. 기존 home||dashboard 호환 + __subtab:/path::id 호환.
         if ($id === '' || strlen($id) > 255) return false;
-        return (bool)preg_match('/^[a-z0-9._-]+$/i', $id);
+        return (bool)preg_match('/^[a-zA-Z0-9._:|\/-]+$/', $id);
     }
 
     /* ──────────────────────────────────────────────────────────────────

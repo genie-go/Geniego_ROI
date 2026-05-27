@@ -71,8 +71,9 @@ export function MenuVisibilityProvider({ children }) {
   const [error, setError] = useState(null);
 
   /**
-   * 글로벌 visibility 페치 — /api/v425/menu-tree
+   * 글로벌 visibility 페치 — /v425/admin/menu-tree (admin 전체 트리 사용 — 172차 변경)
    * 응답을 menu_id → visibility 맵으로 변환.
+   * 5계층 모든 key (__section:/__leaf:/__subtab: 포함) 캐싱.
    * 본 skeleton: 백엔드 미배포 환경에서 fail-silent (캐시 fallback).
    */
   const fetchGlobal = useCallback(async () => {
@@ -81,12 +82,25 @@ export function MenuVisibilityProvider({ children }) {
     setError(null);
     try {
       const base = import.meta.env.VITE_API_BASE || '';
-      const res = await fetch(`${base}/api/v425/menu-tree`, {
+      // 172차: viewer endpoint /v425/menu-tree 는 visibility=visible 만 반환 (hidden 식별 불가).
+      // admin endpoint 는 전체 row 반환 → hidden/disabled 까지 캐싱.
+      // viewer 가 admin 아니면 403 → catch 후 viewer endpoint 폴백.
+      let json;
+      const adminRes = await fetch(`${base}/v425/admin/menu-tree`, {
         headers: { Authorization: `Bearer ${token}` },
         credentials: 'omit',
       });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const json = await res.json();
+      if (adminRes.ok) {
+        json = await adminRes.json();
+      } else {
+        // non-admin: viewer endpoint
+        const viewerRes = await fetch(`${base}/v425/menu-tree`, {
+          headers: { Authorization: `Bearer ${token}` },
+          credentials: 'omit',
+        });
+        if (!viewerRes.ok) throw new Error(`HTTP ${viewerRes.status}`);
+        json = await viewerRes.json();
+      }
       const tree = Array.isArray(json?.tree) ? json.tree : [];
       const map = {};
       for (const node of tree) {
@@ -110,6 +124,18 @@ export function MenuVisibilityProvider({ children }) {
 
   useEffect(() => { fetchGlobal(); }, [fetchGlobal]);
 
+  // 172차 PHASE 2-D — AdminMenuManager 가 PATCH 후 broadcast → 즉시 sidebar 반영
+  useEffect(() => {
+    let bc;
+    try {
+      bc = new BroadcastChannel('geniego_menu_visibility_sync');
+      bc.onmessage = (ev) => {
+        if (ev?.data?.type === 'menu_visibility_updated') fetchGlobal();
+      };
+    } catch {}
+    return () => { try { bc?.close(); } catch {} };
+  }, [fetchGlobal]);
+
   /**
    * 사용자 개인 가시성 토글.
    */
@@ -128,7 +154,7 @@ export function MenuVisibilityProvider({ children }) {
 
   /**
    * 최종 가시성 — admin 전역 > 사용자 개인 우선.
-   * - global hidden/disabled → 항상 비노출
+   * - global hidden/disabled → 항상 비노출 (isVisible false)
    * - global visible + user hidden → 비노출 (개인 숨김)
    * - global visible + user visible/미설정 → 노출
    * - global 미등록 → 기본 visible (sidebar hardcode 정합)
@@ -144,8 +170,29 @@ export function MenuVisibilityProvider({ children }) {
     return true;
   }, [globalVisibility, userPrefs]);
 
+  /**
+   * 172차 PHASE 2-D 보강 — 가시성 raw 값 반환 (visible | hidden | disabled).
+   * disabled 처리 (Sidebar 회색 표시 + click 차단) 위해 사용.
+   * keys[] 다수 입력 시 가장 strict 한 값 반환 (hidden > disabled > visible).
+   */
+  const getVisibility = useCallback((...keys) => {
+    let worst = 'visible';
+    const RANK = { visible: 0, disabled: 1, hidden: 2 };
+    for (const k of keys) {
+      if (!k) continue;
+      const g = globalVisibility[k];
+      if (g && g.visibility && g.visibility !== 'visible') {
+        if (RANK[g.visibility] > RANK[worst]) worst = g.visibility;
+      }
+      const u = userPrefs[k];
+      if (u === 'hidden' && RANK.hidden > RANK[worst]) worst = 'hidden';
+    }
+    return worst;
+  }, [globalVisibility, userPrefs]);
+
   const value = useMemo(() => ({
     isVisible,
+    getVisibility,
     globalVisibility,
     userPrefs,
     setUserVisibility,
@@ -153,7 +200,7 @@ export function MenuVisibilityProvider({ children }) {
     refresh: fetchGlobal,
     loading,
     error,
-  }), [isVisible, globalVisibility, userPrefs, setUserVisibility, resetUserPrefs, fetchGlobal, loading, error]);
+  }), [isVisible, getVisibility, globalVisibility, userPrefs, setUserVisibility, resetUserPrefs, fetchGlobal, loading, error]);
 
   return (
     <MenuVisibilityContext.Provider value={value}>
@@ -167,6 +214,7 @@ export function useMenuVisibility() {
   if (!ctx) {
     return {
       isVisible: () => true,
+      getVisibility: () => 'visible',
       globalVisibility: {},
       userPrefs: {},
       setUserVisibility: () => {},
