@@ -665,6 +665,22 @@ function PaidRegisterForm({ selectedPlan, onBack, onSwitch }) {
   const [agreeEcommerce, setAgreeEcommerce] = useState(false);
   const [agreeMarketing, setAgreeMarketing] = useState(false);
 
+  // 172차 P0-B — 구독 cycle 선택 (1/3/6/12개월). 1 = 월간 default.
+  const [cycleMonths, setCycleMonths] = useState(1);
+  // 선택 플랜의 periods (backend /auth/pricing/public-plans 의 periods 배열)
+  const [planPeriods, setPlanPeriods] = useState(null); // null=로딩, []=없음, [...]=있음
+
+  useEffect(() => {
+    fetch('/auth/pricing/public-plans')
+      .then(r => r.json())
+      .then(d => {
+        if (!d?.ok) return;
+        const p = (d.plans || []).find(x => x.id === selectedPlan);
+        setPlanPeriods(Array.isArray(p?.periods) ? p.periods : []);
+      })
+      .catch(() => setPlanPeriods([]));
+  }, [selectedPlan]);
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -723,11 +739,18 @@ function PaidRegisterForm({ selectedPlan, onBack, onSwitch }) {
         address: `${address} ${addressDetail}`.trim(), phone, website,
         sales_channels: salesChannels, ad_channels: adChannels,
         monthly_revenue: monthlyRevenue, agree_marketing: agreeMarketing,
+        // 172차 P0-B — 구독 cycle 정보 (backend app_user.subscription_cycle 저장 → 가입 후 Paddle Checkout)
+        subscription_cycle: cycleMonths === 1 ? 'monthly' : cycleMonths === 12 ? 'annual' : `${cycleMonths}m`,
+        cycle_months: cycleMonths,
       };
       const result = await register(email, password, name, company, extraData);
-      navigate("/dashboard", {
+      // 가입 완료 후 가격 페이지로 redirect (Paddle Checkout 진입). cycleMonths state 전달.
+      navigate("/pricing", {
         replace: true,
-        state: result?.coupon ? { couponAlert: result.coupon } : undefined,
+        state: {
+          autoCheckout: { planId: selectedPlan, cycleMonths },
+          couponAlert: result?.coupon || null,
+        },
       });
     } catch (err) { setError(err.message); }
     setLoading(false);
@@ -857,6 +880,15 @@ function PaidRegisterForm({ selectedPlan, onBack, onSwitch }) {
           </div>
           <SelectField label={t("auth.monthlyRevenueLabel")} value={monthlyRevenue} onChange={setMonthlyRevenue}
             options={["Under 100M", "100M-500M", "500M-2B", "2B-10B", "Over 10B"]} />
+
+          {/* 172차 P0-B — 구독 cycle 선택 (가입 후 Paddle Checkout 가격 결정) */}
+          <CycleSelectorSection
+            planCfg={PLAN_CFG}
+            planPeriods={planPeriods}
+            cycleMonths={cycleMonths}
+            setCycleMonths={setCycleMonths}
+          />
+
           <TermsAgreementSection
             agreeTerms={agreeTerms} setAgreeTerms={setAgreeTerms}
             agreePrivacy={agreePrivacy} setAgreePrivacy={setAgreePrivacy}
@@ -876,6 +908,100 @@ function PaidRegisterForm({ selectedPlan, onBack, onSwitch }) {
           </div>
         </form>
       )}
+    </div>
+  );
+}
+
+/**
+ * 172차 P0-B — CycleSelectorSection
+ * 회원가입 마지막 step 에서 구독 cycle (1/3/6/12개월) 선택.
+ * backend plan_period_pricing 데이터 우선, fallback 으로 기본 4-tier 단순 산출.
+ * total payment + savings 표시.
+ */
+function CycleSelectorSection({ planCfg, planPeriods, cycleMonths, setCycleMonths }) {
+  // periods 가 backend 에서 도착하면 그 데이터, 아니면 기본값 산출.
+  // backend periods 의 1m row 우선 → planCfg fallback (PAID_PLANS 의 priceFallback 또는 priceMonthly)
+  const periodOne = Array.isArray(planPeriods) ? planPeriods.find(p => p.period_months === 1) : null;
+  const monthlyBase = Number(periodOne?.price_usd)
+    || Number(planCfg?.priceMonthly)
+    || Number((planCfg?.priceFallback || '').replace(/[^0-9.]/g, ''))
+    || 0;
+  const DEFAULT_DISCOUNTS = { 1: 0, 3: 5, 6: 10, 12: 20 };
+  const cycles = (planPeriods && planPeriods.length > 0)
+    ? planPeriods.map(p => ({
+        months: p.period_months,
+        priceUsd: Number(p.price_usd) || 0,
+        discountPct: Number(p.discount_pct) || 0,
+        totalCharge: Number(p.total_charge) || 0,
+      })).sort((a, b) => a.months - b.months)
+    : [1, 3, 6, 12].map(m => ({
+        months: m,
+        priceUsd: +(monthlyBase * (1 - (DEFAULT_DISCOUNTS[m] || 0) / 100)).toFixed(2),
+        discountPct: DEFAULT_DISCOUNTS[m] || 0,
+        totalCharge: +(monthlyBase * m * (1 - (DEFAULT_DISCOUNTS[m] || 0) / 100)).toFixed(2),
+      }));
+
+  const namedPeriod = (m) => ({ 1: '월간', 3: '분기', 6: '반기', 12: '연간', 24: '2년', 36: '3년' })[m] || `${m}개월`;
+
+  if (!monthlyBase || monthlyBase <= 0) {
+    return (
+      <div style={{
+        padding: 12, borderRadius: 10,
+        background: 'rgba(251,146,60,0.06)', border: '1px solid rgba(251,146,60,0.25)',
+        fontSize: 11, color: '#d97706',
+      }}>
+        ⚠ {planCfg?.label || '본 플랜'} 의 월 요금이 아직 설정되지 않았습니다. 관리자에게 문의 또는 가입 후 별도 결제.
+      </div>
+    );
+  }
+
+  return (
+    <div style={{
+      padding: '14px 16px', borderRadius: 12,
+      background: `${planCfg?.color || '#6366f1'}0D`,
+      border: `1.5px solid ${planCfg?.color || '#6366f1'}33`,
+    }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 10 }}>
+        <span style={{ fontSize: 14, fontWeight: 800, color: planCfg?.color || '#6366f1' }}>📅 구독 기간 선택</span>
+        <span style={{ fontSize: 11, color: 'var(--text-3)' }}>가입 후 결제할 cycle 을 선택하세요. 연간 결제 시 최대 20% 할인.</span>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
+        {cycles.map(c => {
+          const sel = cycleMonths === c.months;
+          return (
+            <button
+              key={c.months}
+              type="button"
+              onClick={() => setCycleMonths(c.months)}
+              style={{
+                padding: '12px 10px', borderRadius: 10,
+                background: sel ? '#1e3a8a' : 'rgba(255,255,255,0.04)',
+                color: sel ? '#fde047' : 'var(--text-2)',
+                border: sel ? '2px solid #fde047' : '1.5px solid rgba(99,102,241,0.18)',
+                cursor: 'pointer', textAlign: 'center', fontWeight: sel ? 900 : 600,
+                transition: 'all 150ms',
+              }}
+            >
+              <div style={{ fontSize: 12, marginBottom: 4 }}>{namedPeriod(c.months)}</div>
+              <div style={{ fontSize: 16, fontWeight: 900 }}>${c.totalCharge.toFixed(c.totalCharge >= 100 ? 0 : 2)}</div>
+              <div style={{ fontSize: 10, opacity: 0.85, marginTop: 2 }}>${c.priceUsd}/월</div>
+              {c.discountPct > 0 && (
+                <div style={{
+                  marginTop: 4, padding: '1px 6px', borderRadius: 8,
+                  background: sel ? 'rgba(253,224,71,0.18)' : 'rgba(34,197,94,0.12)',
+                  color: sel ? '#fde047' : '#16a34a', fontSize: 9, fontWeight: 800, display: 'inline-block',
+                }}>−{c.discountPct}%</div>
+              )}
+            </button>
+          );
+        })}
+      </div>
+      <div style={{
+        marginTop: 10, padding: '8px 12px', borderRadius: 8,
+        background: 'rgba(0,0,0,0.05)', fontSize: 11, color: 'var(--text-2)', lineHeight: 1.6,
+      }}>
+        💡 가입 즉시 결제가 진행됩니다. 카드 결제 (Paddle MoR) — VAT/GST 자동 처리. 30일 환불 보장.
+      </div>
     </div>
   );
 }

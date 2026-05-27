@@ -268,7 +268,32 @@ final class AdminPlans
             $accessByPlan[$r['plan_id']][] = $r['menu_key'];
         }
 
-        $plans = array_map(static function ($row) use ($accessByPlan) {
+        // 172차 P0-B — periods (회원가입 cycle 선택용) 동봉
+        // graceful: 테이블 미존재 시 빈 배열 (옛 backend 호환)
+        $periodsByPlan = [];
+        try {
+            $check = $pdo->query("SHOW TABLES LIKE 'plan_period_pricing'")->fetch();
+            if ($check) {
+                $ppStmt = $pdo->query(
+                    'SELECT plan_id, period_months, price_usd, discount_pct, paddle_price_id, is_active
+                     FROM plan_period_pricing WHERE is_active = 1
+                     ORDER BY plan_id, period_months'
+                );
+                foreach ($ppStmt->fetchAll(\PDO::FETCH_ASSOC) as $r) {
+                    $months = (int)$r['period_months'];
+                    $price  = $r['price_usd'] !== null ? (float)$r['price_usd'] : null;
+                    $periodsByPlan[$r['plan_id']][] = [
+                        'period_months'   => $months,
+                        'price_usd'       => $price,                                        // 월 환산
+                        'discount_pct'    => (int)$r['discount_pct'],
+                        'total_charge'    => $price !== null ? round($price * $months, 2) : null,  // 총 결제액
+                        'paddle_price_id' => (string)($r['paddle_price_id'] ?? ''),
+                    ];
+                }
+            }
+        } catch (\Throwable $e) { /* graceful */ }
+
+        $plans = array_map(static function ($row) use ($accessByPlan, $periodsByPlan) {
             $features = json_decode((string)($row['features_json'] ?? '[]'), true) ?: [];
             $limits   = json_decode((string)($row['limits_json']   ?? '{}'), true) ?: [];
             return [
@@ -283,6 +308,7 @@ final class AdminPlans
                 'limits'           => $limits,
                 'is_custom_quote'  => (bool)$row['is_custom_quote'],
                 'menuAccess'       => $accessByPlan[$row['plan_id']] ?? [],
+                'periods'          => $periodsByPlan[$row['plan_id']] ?? [],  // 172차 P0-B 신규
             ];
         }, $rows);
 
