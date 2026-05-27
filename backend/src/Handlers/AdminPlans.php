@@ -408,7 +408,18 @@ final class AdminPlans
     /**
      * PUT /v424/admin/plans/{id}/period-pricing
      * Body: { periods: { "1": {price_usd, discount_pct, paddle_price_id, is_active}, "3": {...}, ... } }
-     * 사용자 명시: 자동 추천값 제시 + admin 최종 결정. 본 endpoint 가 admin 저장 적용.
+     *
+     * 172차 변경 (두 탭 통합 + 기간 자유 설정):
+     *  - DELETE 후 INSERT 패턴 → admin 이 기간을 자유롭게 추가/제거 가능
+     *    (예: 기존 {1,3,6,12} → {1,2,9,12,24} 로 변경 시 미포함 row 제거)
+     *  - 저장 후 plan_config legacy 5컬럼 자동 동기화:
+     *      price_usd        ← periods[1].price_usd     (없으면 NULL)
+     *      price_annual_usd ← periods[12].price_usd    (없으면 NULL)
+     *      price_id_monthly ← periods[1].paddle_price_id  (없으면 '')
+     *      price_id_annual  ← periods[12].paddle_price_id (없으면 '')
+     *      discount_pct     ← periods[12].discount_pct (12m 존재 시에만 갱신)
+     *  - plan_period_pricing 가 가격 SSOT, plan_config 는 derived view.
+     *    /auth/pricing/public-plans (plan_config 기반 공용 API) 동작 보존.
      */
     public static function periodPricingUpsert(Request $req, Response $res, array $args): Response
     {
@@ -422,40 +433,72 @@ final class AdminPlans
         $periods = isset($body['periods']) && is_array($body['periods']) ? $body['periods'] : [];
         $actor   = substr((string)($req->getAttribute('auth_key') ?? 'admin'), 0, 64);
 
+        // 입력 정규화: month → cfg, 유효 범위(1~60) 외 제거
+        $clean = [];
+        foreach ($periods as $months => $cfg) {
+            $m = (int)$months;
+            if ($m <= 0 || $m > 60) continue;
+            if (!is_array($cfg)) continue;
+            $clean[$m] = [
+                'price_usd'       => self::numOrNull($cfg['price_usd'] ?? null),
+                'discount_pct'    => max(0, min(100, (int)($cfg['discount_pct'] ?? 0))),
+                'paddle_price_id' => (string)($cfg['paddle_price_id'] ?? ''),
+                'is_active'       => (int)!empty($cfg['is_active'] ?? true),
+                'display_order'   => (int)($cfg['display_order'] ?? (10 + $m)),
+            ];
+        }
+
         $pdo = Db::pdo();
         $pdo->beginTransaction();
         try {
-            $up = $pdo->prepare(
-                'INSERT INTO plan_period_pricing
-                   (plan_id, period_months, price_usd, discount_pct, paddle_price_id, is_active, display_order, updated_by)
-                 VALUES (?,?,?,?,?,?,?,?)
-                 ON DUPLICATE KEY UPDATE
-                   price_usd=VALUES(price_usd),
-                   discount_pct=VALUES(discount_pct),
-                   paddle_price_id=VALUES(paddle_price_id),
-                   is_active=VALUES(is_active),
-                   display_order=VALUES(display_order),
-                   updated_by=VALUES(updated_by)'
-            );
-            $orderBase = 10;
-            foreach ($periods as $months => $cfg) {
-                $m = (int)$months;
-                if ($m <= 0 || $m > 60) continue; // 1~60 개월
-                $price    = self::numOrNull($cfg['price_usd'] ?? null);
-                $discount = (int)($cfg['discount_pct'] ?? 0);
-                if ($discount < 0) $discount = 0;
-                if ($discount > 100) $discount = 100;
-                $paddleId = (string)($cfg['paddle_price_id'] ?? '');
-                $active   = (int)!empty($cfg['is_active'] ?? true);
-                $order    = (int)($cfg['display_order'] ?? ($orderBase + $m));
-                $up->execute([$planId, $m, $price, $discount, $paddleId, $active, $order, $actor]);
+            // 1) 본 플랜의 기존 row 전체 제거 → 누락 기간은 자연스럽게 삭제됨
+            $pdo->prepare('DELETE FROM plan_period_pricing WHERE plan_id = ?')->execute([$planId]);
+
+            // 2) 신규 row INSERT
+            if ($clean) {
+                $ins = $pdo->prepare(
+                    'INSERT INTO plan_period_pricing
+                       (plan_id, period_months, price_usd, discount_pct, paddle_price_id, is_active, display_order, updated_by)
+                     VALUES (?,?,?,?,?,?,?,?)'
+                );
+                foreach ($clean as $m => $cfg) {
+                    $ins->execute([
+                        $planId, $m, $cfg['price_usd'], $cfg['discount_pct'],
+                        $cfg['paddle_price_id'], $cfg['is_active'], $cfg['display_order'], $actor,
+                    ]);
+                }
             }
+
+            // 3) plan_config 동기화 (1m/12m → legacy 컬럼)
+            $cfg1  = $clean[1]  ?? null;
+            $cfg12 = $clean[12] ?? null;
+            $syncFields = [
+                'price_usd = ?',
+                'price_annual_usd = ?',
+                'price_id_monthly = ?',
+                'price_id_annual = ?',
+            ];
+            $syncParams = [
+                $cfg1  ? $cfg1['price_usd']        : null,
+                $cfg12 ? $cfg12['price_usd']       : null,
+                $cfg1  ? $cfg1['paddle_price_id']  : '',
+                $cfg12 ? $cfg12['paddle_price_id'] : '',
+            ];
+            if ($cfg12) {
+                $syncFields[] = 'discount_pct = ?';
+                $syncParams[] = $cfg12['discount_pct'];
+            }
+            $syncParams[] = $planId;
+            $pdo->prepare(
+                'UPDATE plan_config SET ' . implode(', ', $syncFields) . ' WHERE plan_id = ?'
+            )->execute($syncParams);
+
             $pdo->commit();
         } catch (\Throwable $e) {
             $pdo->rollBack();
             return self::json($res, ['error' => 'save_failed', 'detail' => $e->getMessage()], 500);
         }
-        return self::json($res, ['ok' => true, 'plan_id' => $planId, 'count' => count($periods)]);
+        return self::json($res, ['ok' => true, 'plan_id' => $planId, 'count' => count($clean)]);
     }
 
     private static function hydrate(array $row): array

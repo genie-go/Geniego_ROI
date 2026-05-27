@@ -6,6 +6,7 @@ import { useAuth } from "../auth/AuthContext.jsx";
 import { useGlobalData } from "../context/GlobalDataContext.jsx";
 import { useMobileSidebar } from "../context/MobileSidebarContext.jsx";
 import { useMenuVisibility } from "../context/MenuVisibilityContext.jsx";
+import { MEMBER_MENU, ADMIN_MENU, ADMIN_ONLY_MENU_KEYS } from './sidebarManifest.js';
 
 /* 데모 모드 감지 */
 const IS_DEMO_MODE = typeof window !== 'undefined'
@@ -106,143 +107,8 @@ function Upgradal({ menuLabel, onClose, t }) {
   );
 }
 
-// Admin 전용 메뉴 잠금 목록 (데모 User에게 잠금)
-const ADMIN_ONLY_MENU_KEYS = new Set([
-  "system||admin",
-  "system||user_management",
-  "system||db_admin",
-  "system||pg_config",
-  "system||system_monitor",
-]);
-
-
-/* 일반 회원 메뉴 (Free/유료 회원 공통) */
-const MEMBER_MENU = [
-  /* 홈 */
-  {
-    key: "home", icon: "⬡", labelKey: "gNav.home",
-    items: [
-      { to: "/dashboard",  icon: "⬡", labelKey: "gNav.dashboardLabel",    menuKey: "home||dashboard" },
-      { to: "/rollup",     icon: "🗂️", labelKey: "gNav.rollupLabel",        menuKey: "home||rollup" },
-    ],
-  },
-  /* AI 전략 & 캠페인 */
-  {
-    key: "ai_marketing", icon: "🚀", labelKey: "gNav.aiMarketing",
-    items: [
-      { to: "/auto-marketing",      icon: "💎", labelKey: "gNav.autoMarketingLabel",      menuKey: "marketing" },
-      { to: "/campaign-manager",    icon: "🎯", labelKey: "gNav.campaignManagerLabel",    menuKey: "marketing" },
-      { to: "/journey-builder",     icon: "🗺️", labelKey: "gNav.journeyBuilderLabel",     menuKey: "marketing" },
-    ],
-  },
-  /* 광고 성과 분석 */
-  {
-    key: "ad_analytics", icon: "📣", labelKey: "gNav.adAnalytics",
-    items: [
-      { to: "/marketing",               icon: "📣", labelKey: "gNav.adPerformanceLabel",      menuKey: "marketing" },
-      { to: "/budget-tracker",          icon: "💰", labelKey: "gNav.budgetTrackerLabel",      menuKey: "marketing" },
-      { to: "/account-performance",     icon: "🏢", labelKey: "gNav.accountPerformanceLabel", menuKey: "marketing" },
-      { to: "/attribution",             icon: "🔗", labelKey: "gNav.attributionLabel",        menuKey: "marketing" },
-      { to: "/channel-kpi",             icon: "📊", labelKey: "gNav.channelKpiLabel",         menuKey: "marketing" },
-      { to: "/graph-score",             icon: "🕸️", labelKey: "gNav.graphScoreLabel",         menuKey: "marketing" },
-    ],
-  },
-  /* 고객 & 채널 (CRM/UGC 통합) */
-  {
-    key: "crm", icon: "👤", labelKey: "gNav.crmLabel",
-    items: [
-      { to: "/crm",             icon: "👥", labelKey: "gNav.crmMainLabel",         menuKey: "marketing" },
-      { to: "/kakao-channel",   icon: "💬", labelKey: "gNav.kakaoChannelLabel",    menuKey: "marketing" },
-      { to: "/email-marketing", icon: "✉️", labelKey: "gNav.emailMarketingLabel",  menuKey: "marketing" },
-      { to: "/sms-marketing",   icon: "📱", labelKey: "gNav.smsMarketingLabel",    menuKey: "marketing" },
-      { to: "/influencer",      icon: "🤝", labelKey: "gNav.influencerLabel",      menuKey: "marketing" },
-      { to: "/content-calendar",icon: "📅", labelKey: "gNav.contentCalendarLabel", menuKey: "marketing" },
-      { to: "/reviews-ugc",     icon: "⭐", labelKey: "gNav.reviewsUgcLabel",      menuKey: "marketing" },
-      { to: "/web-popup",       icon: "🎯", labelKey: "gNav.webPopupLabel",        menuKey: "marketing" },
-    ],
-  },
-  /* 커머스 & 물류 */
-  {
-    key: "commerce", icon: "🛒", labelKey: "gNav.commerceLabel",
-    items: [
-      { to: "/omni-channel",    icon: "🌐", labelKey: "gNav.omniChannelLabel",      menuKey: "ops" },
-      { to: "/catalog-sync",    icon: "📂", labelKey: "gNav.catalogLabel",          menuKey: "ops" },
-      { to: "/order-hub",       icon: "📦", labelKey: "gNav.orderHubLabel",         menuKey: "ops" },
-      { to: "/wms-manager",     icon: "🏭", labelKey: "gNav.wmsLabel",              menuKey: "ops" },
-      { to: "/price-opt",       icon: "💡", labelKey: "gNav.priceOptLabel",         menuKey: "ops" },
-      { to: "/supply-chain",    icon: "🔭", labelKey: "gNav.supplyChainLabel",      menuKey: "ops" },
-      { to: "/returns-portal",  icon: "🔄", labelKey: "gNav.returnsPortalLabel",    menuKey: "ops" },
-    ],
-  },
-  /* 인사이트 & 리포트 */
-  {
-    key: "analytics", icon: "📊", labelKey: "gNav.analytics",
-    items: [
-      { to: "/performance",    icon: "📊", labelKey: "gNav.performanceHubLabel", menuKey: "analytics||performance_hub" },
-      { to: "/report-builder", icon: "📋", labelKey: "gNav.reportBuilderLabel", menuKey: "analytics||report_builder" },
-      { to: "/pnl",            icon: "🌊", labelKey: "gNav.pnlLabel",           menuKey: "analytics||pnl_analytics" },
-      { to: "/ai-insights",    icon: "🤖", labelKey: "gNav.aiInsightsLabel",    menuKey: "analytics||ai_insights" },
-      { to: "/data-product",   icon: "🗂️", labelKey: "gNav.dataProductLabel",   menuKey: "analytics||data_product" },
-    ],
-  },
-  /* 자동화 & 알람 (통합) */
-  {
-    key: "automation", icon: "🤖", labelKey: "gNav.automation",
-    items: [
-      { to: "/ai-rule-engine",    icon: "🧠", labelKey: "gNav.aiRuleEngineLabel",    menuKey: "automation||ai_rule_engine" },
-      { to: "/approvals",         icon: "✅", labelKey: "gNav.approvalsLabel",       menuKey: "automation||approvals" },
-      { to: "/writeback",         icon: "↩", labelKey: "gNav.writebackLabel",       menuKey: "automation||writeback" },
-      { to: "/onboarding",        icon: "🗺️", labelKey: "gNav.onboardingLabel",      menuKey: "automation||onboarding" },
-    ],
-  },
-  /* 데이터 & 연동 (통합) */
-  {
-    key: "data", icon: "🔌", labelKey: "gNav.data",
-    items: [
-      { to: "/integration-hub",  icon: "🔗", labelKey: "gNav.integrationHubLabel", menuKey: "data||integration_hub" },
-      { to: "/data-schema",      icon: "📋", labelKey: "gNav.dataSchemaLabel",     menuKey: "data||data_schema" },
-      { to: "/data-trust",       icon: "🔬", labelKey: "gNav.dataTrustLabel",      menuKey: "data||data_trust" },
-    ],
-  },
-  /* 재무 & 결산 */
-  {
-    key: "finance", icon: "💳", labelKey: "gNav.finance",
-    items: [
-      { to: "/settlements",    icon: "📋", labelKey: "gNav.settlementsLabel",    menuKey: "billing" },
-      { to: "/reconciliation", icon: "💰", labelKey: "gNav.reconciliationLabel", menuKey: "billing" },
-      { to: "/app-pricing",    icon: "💳", labelKey: "gNav.pricingLabel",        menuKey: "billing" },
-      { to: "/audit",          icon: "🧾", labelKey: "gNav.auditLogLabel",       menuKey: "billing" },
-    ],
-  },
-  /* 운영 & 지원 (일반) */
-  {
-    key: "member_tools", icon: "👥", labelKey: "gNav.memberTools",
-    items: [
-      { to: "/workspace",       icon: "👥", labelKey: "gNav.workspaceLabel",     menuKey: "system||workspace" },
-      { to: "/operations",      icon: "⚡", labelKey: "gNav.operationsLabel",    menuKey: "system||operations" },
-      { to: "/case-study",      icon: "🏆", labelKey: "gNav.caseStudyLabel",     menuKey: "system||case_study" },
-      { to: "/help",            icon: "📚", labelKey: "gNav.helpLabel",          menuKey: "system||help_center" },
-      { to: "/feedback",        icon: "💬", labelKey: "gNav.feedbackLabel",      menuKey: "system||feedback" },
-      { to: "/developer-hub",   icon: "⚙️", labelKey: "gNav.developerHubLabel", menuKey: "system||developer_hub" },
-    ],
-  },
-];
-
-/* 플랫폼 Admin 전용 메뉴 (중복 통합 완료) */
-const ADMIN_MENU = [
-  {
-    key: "system",
-    icon: "🔧",
-    labelKey: "gNav.adminSystem",
-    items: [
-      { to: "/admin",              icon: "⚙",  labelKey: "gNav.platformEnvLabel",  menuKey: "system||admin" },
-      { to: "/admin/plan-pricing", icon: "💳", labelKey: "gNav.planPricingLabel",  menuKey: "system||plan_pricing" },
-      { to: "/admin/menu-tree",    icon: "🗂", labelKey: "gNav.menuTreeLabel",     menuKey: "system||menu_tree" },
-      { to: "/db-admin",           icon: "🗄️", labelKey: "gNav.dbSchemaLabel",     menuKey: "system||db_admin" },
-      { to: "/pg-config",          icon: "💳", labelKey: "gNav.paymentPgLabel",    menuKey: "system||pg_config" },
-    ],
-  },
-];
+// MEMBER_MENU / ADMIN_MENU / ADMIN_ONLY_MENU_KEYS 는 ./sidebarManifest.js 에서 import
+// (PlanPricing 의 "🔐 메뉴 접근 권한" 트리 뷰가 동일 manifest 를 SSOT 로 사용)
 
 
 /* Section Component with Lock Support */
