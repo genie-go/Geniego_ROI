@@ -50,6 +50,11 @@ export default function AdminMenuManager() {
 
   const dbKeySet = useMemo(() => new Set(tree.map(r => r.id)), [tree]);
 
+  // 172차: 5계층 확장 키 변환 헬퍼 (__section:/__leaf:/__subtab:)
+  const sectionKeyOf = (sectionKey) => `__section:${sectionKey}`;
+  const leafKeyOf = (route) => `__leaf:${route}`;
+  const subtabKeyOf = (route, subId) => `__subtab:${route}::${subId}`;
+
   const fetchTree = useCallback(async () => {
     if (!token) return;
     setLoading(true); setError(null);
@@ -252,7 +257,10 @@ export default function AdminMenuManager() {
           if (filter.trim() && visibleGroups.length === 0) return null;
           const isCollapsed = collapsed.has(section.key);
           const sectionLabel = t(section.labelKey, section.labelKey.split('.').pop());
-          // 섹션 단위 visibility 통계
+          // 섹션 단위 visibility 통계 + section 자체 키 (__section:<key>)
+          const sectionExtKey = sectionKeyOf(section.key);
+          const sectionExtVis = visibilityByKey[sectionExtKey] || 'visible';
+          const sectionInDb = dbKeySet.has(sectionExtKey);
           const sectionKeys = groups.map(g => g.menuKey);
           const sectionVisCount = sectionKeys.filter(k => visibilityByKey[k] === 'visible').length;
           return (
@@ -278,21 +286,27 @@ export default function AdminMenuManager() {
                   background: 'rgba(34,197,94,0.10)', color: '#16a34a',
                 }}>{sectionVisCount} / {sectionKeys.length} 표시</span>
                 <div style={{ flex: 1 }} />
+                {/* 대메뉴 자체 visibility 토글 (172차 — section level 신규) */}
+                {sectionInDb && (
+                  <div onClick={e => e.stopPropagation()}>
+                    <VisibilityToggle
+                      current={sectionExtVis}
+                      onChange={(v) => updateVisibility(sectionExtKey, v)}
+                      saving={savingId === sectionExtKey}
+                      size="sm"
+                    />
+                  </div>
+                )}
                 <button onClick={e => { e.stopPropagation(); bulkUpdate(sectionKeys.filter(k => dbKeySet.has(k)), 'visible'); }} disabled={bulkSaving} style={{
                   padding: '5px 10px', borderRadius: 6, fontSize: 11, fontWeight: 700,
                   background: 'rgba(34,197,94,0.12)', color: '#16a34a',
                   border: '1px solid rgba(34,197,94,0.28)', cursor: 'pointer',
-                }}>✓ 전체 표시</button>
+                }}>✓ 중메뉴 전체 표시</button>
                 <button onClick={e => { e.stopPropagation(); bulkUpdate(sectionKeys.filter(k => dbKeySet.has(k)), 'hidden'); }} disabled={bulkSaving} style={{
                   padding: '5px 10px', borderRadius: 6, fontSize: 11, fontWeight: 700,
                   background: 'rgba(217,119,6,0.12)', color: '#d97706',
                   border: '1px solid rgba(217,119,6,0.28)', cursor: 'pointer',
-                }}>⊘ 전체 숨김</button>
-                <button onClick={e => { e.stopPropagation(); bulkUpdate(sectionKeys.filter(k => dbKeySet.has(k)), 'disabled'); }} disabled={bulkSaving} style={{
-                  padding: '5px 10px', borderRadius: 6, fontSize: 11, fontWeight: 700,
-                  background: 'rgba(220,38,38,0.10)', color: '#dc2626',
-                  border: '1px solid rgba(220,38,38,0.25)', cursor: 'pointer',
-                }}>✗ 전체 비활성</button>
+                }}>⊘ 중메뉴 전체 숨김</button>
               </div>
               {/* 중메뉴 그룹 */}
               {!isCollapsed && (
@@ -324,24 +338,11 @@ export default function AdminMenuManager() {
                           <div style={{ flex: 1 }} />
                           {/* visibility 토글 */}
                           {inDb && (
-                            <div style={{ display: 'flex', gap: 4, padding: 3, borderRadius: 6, background: 'rgba(0,0,0,0.2)' }}>
-                              {[
-                                { v: 'visible',  label: '✓ 표시',   color: '#16a34a' },
-                                { v: 'hidden',   label: '⊘ 숨김',   color: '#d97706' },
-                                { v: 'disabled', label: '✗ 비활성', color: '#dc2626' },
-                              ].map(o => (
-                                <button key={o.v}
-                                  onClick={() => updateVisibility(group.menuKey, o.v)}
-                                  disabled={savingId === group.menuKey}
-                                  style={{
-                                    padding: '3px 8px', borderRadius: 4, fontSize: 10, fontWeight: 700,
-                                    border: 'none',
-                                    background: currentVis === o.v ? o.color : 'transparent',
-                                    color: currentVis === o.v ? '#fff' : 'var(--text-3)',
-                                    cursor: 'pointer',
-                                  }}>{o.label}</button>
-                              ))}
-                            </div>
+                            <VisibilityToggle
+                              current={currentVis}
+                              onChange={(v) => updateVisibility(group.menuKey, v)}
+                              saving={savingId === group.menuKey}
+                            />
                           )}
                         </div>
                         {ko?.desc && (
@@ -352,12 +353,15 @@ export default function AdminMenuManager() {
                           {items.map(it => {
                             const leafLabel = t(it.labelKey, it.labelKey.split('.').pop());
                             const subTabs = SUB_TABS_BY_PATH[it.to] || [];
+                            const leafExtKey = leafKeyOf(it.to);
+                            const leafExtVis = visibilityByKey[leafExtKey] || 'visible';
+                            const leafInDb = dbKeySet.has(leafExtKey);
                             return (
                               <div key={it.to} style={{
                                 padding: '5px 8px', borderRadius: 6,
                                 background: 'rgba(0,0,0,0.12)', border: '1px solid rgba(255,255,255,0.03)',
                               }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, flexWrap: 'wrap' }}>
                                   <span style={{ width: 14, textAlign: 'center', opacity: 0.6 }}>{it.icon}</span>
                                   <span style={{
                                     padding: '1px 6px', borderRadius: 6, fontSize: 9, fontWeight: 800,
@@ -370,16 +374,47 @@ export default function AdminMenuManager() {
                                       📑 서브탭 {subTabs.length}
                                     </span>
                                   )}
+                                  <div style={{ flex: 1 }} />
+                                  {/* 하위 leaf 토글 — 172차 */}
+                                  {leafInDb && (
+                                    <VisibilityToggle
+                                      current={leafExtVis}
+                                      onChange={(v) => updateVisibility(leafExtKey, v)}
+                                      saving={savingId === leafExtKey}
+                                      size="xs"
+                                    />
+                                  )}
                                 </div>
                                 {subTabs.length > 0 && (
-                                  <div style={{ marginTop: 4, paddingLeft: 20, display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                                    {subTabs.map(st => (
-                                      <span key={st.id} style={{
-                                        padding: '2px 8px', borderRadius: 10, fontSize: 10,
-                                        background: 'rgba(0,0,0,0.18)', color: 'var(--text-3)',
-                                        border: '1px solid rgba(255,255,255,0.06)',
-                                      }}>📑 {st.label}</span>
-                                    ))}
+                                  <div style={{ marginTop: 6, paddingLeft: 20, display: 'grid', gap: 3 }}>
+                                    {subTabs.map(st => {
+                                      const stKey = subtabKeyOf(it.to, st.id);
+                                      const stVis = visibilityByKey[stKey] || 'visible';
+                                      const stInDb = dbKeySet.has(stKey);
+                                      return (
+                                        <div key={st.id} style={{
+                                          display: 'flex', alignItems: 'center', gap: 6, fontSize: 11,
+                                          padding: '3px 8px', borderRadius: 6,
+                                          background: 'rgba(168,85,247,0.04)', border: '1px solid rgba(168,85,247,0.10)',
+                                        }}>
+                                          <span style={{
+                                            padding: '1px 6px', borderRadius: 6, fontSize: 9, fontWeight: 800,
+                                            background: 'rgba(168,85,247,0.18)', color: '#9333ea',
+                                          }}>📑 서브탭</span>
+                                          <span style={{ fontWeight: 700 }}>{st.label}</span>
+                                          <code style={{ fontSize: 9, color: 'var(--text-3)', fontFamily: 'monospace' }}>{st.id}</code>
+                                          <div style={{ flex: 1 }} />
+                                          {stInDb && (
+                                            <VisibilityToggle
+                                              current={stVis}
+                                              onChange={(v) => updateVisibility(stKey, v)}
+                                              saving={savingId === stKey}
+                                              size="xs"
+                                            />
+                                          )}
+                                        </div>
+                                      );
+                                    })}
                                   </div>
                                 )}
                               </div>
@@ -396,6 +431,20 @@ export default function AdminMenuManager() {
         })}
       </div>
 
+      {/* — 5계층 토글 안내 — */}
+      <div style={{
+        marginTop: 14, padding: '10px 14px', borderRadius: 8,
+        background: 'rgba(99,102,241,0.06)', border: '1px solid rgba(99,102,241,0.18)',
+        fontSize: 12, color: 'var(--text-2)', lineHeight: 1.7,
+      }}>
+        🆕 <strong>5계층 개별 토글</strong>:
+        <span style={{ color: '#4f46e5', fontWeight: 700, marginLeft: 6 }}>대메뉴</span> →
+        <span style={{ color: '#16a34a', fontWeight: 700, marginLeft: 6 }}>중메뉴</span> →
+        <span style={{ color: '#d97706', fontWeight: 700, marginLeft: 6 }}>하위 페이지</span> →
+        <span style={{ color: '#9333ea', fontWeight: 700, marginLeft: 6 }}>📑 서브탭</span>
+        — 모든 레벨에서 ✓ 표시 / ⊘ 숨김 / ✗ 비활성 개별 선택 가능.
+      </div>
+
       {/* 사용자 안내 */}
       <div style={{
         marginTop: 18, padding: '12px 16px', borderRadius: 10,
@@ -408,6 +457,40 @@ export default function AdminMenuManager() {
         <span style={{ color: '#dc2626', fontWeight: 700, marginLeft: 6 }}>✗ 비활성</span> 노출되지만 클릭 비활성. <br/>
         변경 즉시 MenuVisibilityContext 캐시 무효 + 다음 페이지 로드 시 반영 (강제 새로고침은 불필요).
       </div>
+    </div>
+  );
+}
+
+/**
+ * 172차 PHASE 2-D 보강 — VisibilityToggle (모든 5계층 공유).
+ * 3-state segmented control: visible / hidden / disabled.
+ */
+function VisibilityToggle({ current, onChange, saving, size = 'md' }) {
+  const opts = [
+    { v: 'visible',  label: '✓ 표시',   color: '#16a34a' },
+    { v: 'hidden',   label: '⊘ 숨김',   color: '#d97706' },
+    { v: 'disabled', label: '✗ 비활성', color: '#dc2626' },
+  ];
+  const fontSize = size === 'xs' ? 9 : size === 'sm' ? 10 : 11;
+  const padding = size === 'xs' ? '2px 6px' : size === 'sm' ? '3px 7px' : '3px 8px';
+  return (
+    <div style={{
+      display: 'flex', gap: 2, padding: 2, borderRadius: 5,
+      background: 'rgba(0,0,0,0.2)', opacity: saving ? 0.6 : 1,
+    }}>
+      {opts.map(o => (
+        <button
+          key={o.v}
+          onClick={() => onChange(o.v)}
+          disabled={saving || current === o.v}
+          style={{
+            padding, borderRadius: 3, fontSize, fontWeight: 700, border: 'none',
+            background: current === o.v ? o.color : 'transparent',
+            color: current === o.v ? '#fff' : 'var(--text-3)',
+            cursor: saving ? 'default' : 'pointer', whiteSpace: 'nowrap',
+          }}
+        >{o.label}</button>
+      ))}
     </div>
   );
 }
