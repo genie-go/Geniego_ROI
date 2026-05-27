@@ -1,345 +1,263 @@
-# 172차 세션 인계서 (NEXT_SESSION.md) — **171차 P0 #1 완전 종결 + 4-tier 기간별 가격 + 한글화 + 자동 추천/admin 자유 설정 패턴**
+# 173차 세션 인계서 (NEXT_SESSION.md) — **172차 15 commit + PHASE 1-A/B/C + PHASE 2-D 5계층 + Task #22 + Enterprise 견적가**
 
 > **작성일**: 2026-05-27 (사용자 명시 승인 후)
-> **이전 세션**: 171차 (P0 #1 통합 fix + RollupDashboard fix + 플랜·요금·메뉴 동기화 + 4-tier 기간별 가격)
-> **다음 세션**: 172차
+> **이전 세션**: 172차 (PHASE 1 매출 lifecycle + PHASE 2-D 메뉴 가시성 + 다수 보강 작업)
+> **다음 세션**: 173차
 > **저장 위치**: repo root `NEXT_SESSION.md`
-> **종결 방식**: 170차 5회 화이트 trauma 완전 종식 + 사용자 발견 issue (admin/plan-pricing 401, 롤업뷰 화면오류, 영어 표시, 자동 산출 미작동) 모두 fix + 4-tier 기간별 가격 신규 + cc puppeteer 운영 검증 통과
+> **종결 방식**: 매출 차단 절반 해소 (priceId 대기) + 메뉴 5계층 완성 + 쿠폰 시스템 활성 + Enterprise 활성
 
 ---
 
-## ⚠️ 172차 검수자 최우선 인지 사항
+## ⚠️ 173차 검수자 최우선 인지 사항
 
-### 1. 최상위 상태 (172차 진입 시점)
+### 1. 최상위 상태 (173차 진입 시점)
 
 | 영역 | 상태 | 비고 |
 |---|:-:|---|
-| 운영 frontend dist | ✅ `index-DNsOoom8.js` (171p4) | 5회 화이트 완전 종식 |
-| 데모 frontend dist | ✅ 동일 hash | 정합 |
-| 운영 backend AdminPlans.php | ✅ 171p4 (periodPricing CRUD 추가) | local commit 대기 |
-| 운영 backend routes.php | ✅ 171p4 ($custom + $register 2단계 등록 정합) | local commit 대기 |
-| 운영 backend index.php | ✅ 170p1 (v424/v425 admin bypass) | 이미 commit (170차) |
-| 운영 backend AdminMenu.php | ✅ 170p1 | 이미 commit (170차) |
-| 운영 sw.js (main root) | ✅ unregister-only 1377 bytes | nginx fix로 main root에서 serve |
-| 운영 nginx vhost (운영/데모) | ✅ `/sw.js` typo path fix 적용 | reload 완료 |
-| DB `plan_config` | ✅ 3 row + `is_recommended`/`discount_pct` 컬럼 추가 + features_json 한글 | Pro=추천 |
-| DB `plan_menu_access` | ✅ 104 row (4 plan × 26 menu) seed | starter 11 / pro 21 / enterprise 23 / admin 26 enabled |
-| DB `plan_period_pricing` (신규) | ✅ 12 row (3 plan × 4 period) | 1/3/6/12개월 |
-| DB `menu_tree` | ✅ 26 row | 169 P1 정합 |
-| 데모 backend AdminPlans.php | ❌ 부재 | 169차 §4.3 정합 — 별도 라운드 |
-| MCP Playwright | ✅ `.mcp.json` 등록 | 다음 세션부터 활성화 |
+| 운영 frontend dist | ✅ `index-GaIE36f4.js` (172p19) + `PlanPricing-C3SRQkfK.js` | 5계층 + 가중치 편집 |
+| 데모 frontend dist | ⚠️ 172차 sync 안 함 | 별도 라운드 |
+| 운영 backend MenuPricingSync.php | ✅ Task #22 메뉴↔가격 sync 운영 적용 | |
+| 운영 backend CouponAdmin.php | ✅ 자율 발급 + 룰 토글 운영 적용 | |
+| 운영 backend CouponRedeem.php | ✅ + admin/enterprise downgrade 가드 | |
+| 운영 backend AdminPlans.php | ✅ periods 동봉 + Enterprise 활성 | |
+| 운영 backend AdminMenu.php | ✅ validId 확장 + slash 키 지원 | |
+| 운영 backend routes.php | ✅ {menu_id:.+} 와일드카드 + coupon + sync | |
+| DB `plan_period_pricing` | ✅ Starter $89/$84.55/$80.10/$71.20 (메뉴 권장가 적용) | |
+| DB `menu_value_score` (신규) | ✅ 28 row seed | 가중치 합 $378.85/월 |
+| DB `coupon_rules` | ✅ signup=active/starter/7일 default | |
+| DB `free_coupons` + `coupon_redemptions` (신규) | ✅ 마이그레이션 완료 | |
+| DB `menu_tree` | ✅ **26 → 138 row** (대 11 + 하위 53 + 서브탭 48 + 기존 26) | |
+| Sandbox 5개 priceId | ❌ 미적용 (사용자 대기) | 매출 차단 |
+| PADDLE_CLIENT_TOKEN | ❌ .env 미설정 | 매출 차단 |
 
-### 2. 171차 핵심 변경 — root cause + fix
+### 2. 172차 변경 — git 커밋 일람 (15 commit)
 
-#### 2.1 vite manualChunks init order race (170차 root cause 종결)
-
-**170차 5회 화이트 root cause**: `vite.config.js` manualChunks 의 `vendor-react`/`vendor-router`/`shared-ui`/`pages-*` 분리가 lazy chunk init 보다 늦게 발동 → `useCallback` null. 171차 1차 시도(`vendor-react` 제거)에서 `shared-ui` 가 React 흡수 → 동일 race. 2차 시도(`shared-ui` 제거)에서 `pages-apikeys` createContext undefined. **최종 fix (v3)**: `i18n-locales` 만 유지, 나머지 전부 제거 → React/Router/공통 vendor entry chunk 흡수 → init order 보장.
-
-- entry chunk: 209KB → **530KB** (gzip +107KB) trade-off
-- 페이지: Vite 기본 lazy chunking 위임 (페이지마다 자체 청크)
-- chunk graph 재분배 risk 영구 제거 — 향후 페이지 변경해도 안전
-
-#### 2.2 apiClient base fallback (28 페이지 fix)
-
-`frontend/src/services/apiClient.js`:
-```js
-// before: const base = import.meta.env.VITE_API_BASE || "http://localhost:8000";
-const base = import.meta.env.VITE_API_BASE || "";  // relative path
 ```
-운영 `.env` 부재 시 localhost 호출 → ERR_CONNECTION_REFUSED → 28 페이지 fetch fail issue 해소.
-
-#### 2.3 AdminMenuManager admin 체크 fix
-
-`app_user.role` 컬럼 부재 → `user.role` 항상 undefined → "접근 불가" 영구 표시.
-fix: `useAuth().isAdmin` + `plan` 사용 (AuthContext L491 정합 — `userPlan === 'admin' || IS_DEMO_MODE`).
-
-#### 2.4 RollupDashboard `useCallback` module top-level 호출 (사용자 발견 신규 issue)
-
-`frontend/src/pages/RollupDashboard.jsx:535` 였던 코드:
-```js
-const API = useCallback(async (path) => { ... }, []);  // ❌ module top-level
-```
-**React Rules of Hooks 위반** — Hook은 컴포넌트 함수 본체에서만. /rollup lazy chunk import 시 모듈 init → `Cannot read properties of null (useCallback)` → 화이트.
-
-fix: 일반 `async function` 강등 (deps `[]` 였으므로 캐싱 의미 없음). cc puppeteer dynamic import 직접 검증으로 root cause 결정적 확정.
-
-#### 2.5 nginx /sw.js typo path fix
-
-운영 vhost `/usr/local/nginx/conf/vhost/roi.genie-go.com.conf:69`, 데모 동일 위치 line 59:
-```nginx
-# before
-root /home/wwwroot/roi.genie-go.com/frontend/dist;   # 하이픈 (typo)
-# after (171p1)
-root /home/wwwroot/roi.geniego.com/frontend/dist;    # 하이픈 없음
-```
-nginx -t 통과 + reload. `/sw.js` 가 이제 main root 에서 serve → 향후 dist swap 시 자동 반영. sw.js md5 (`12b3670d...`) 양쪽 path 동일했으므로 동작 변화 없음 + 정합성 fix.
-
-### 3. 171차 신규 — 플랜별 구독요금 + 메뉴권한 + 추천 + 4-tier 기간별 가격
-
-#### 3.1 plan_config 확장
-
-```sql
-ALTER TABLE plan_config
-  ADD COLUMN is_recommended TINYINT(1) DEFAULT 0,  -- "Most Popular" 배지
-  ADD COLUMN discount_pct TINYINT UNSIGNED DEFAULT 20;  -- 연 할인율
-```
-- 운영 적용: starter=0 / **pro=1 (추천)** / enterprise=0
-- features_json 한글화: "판매 채널 3개", "AI 마케팅 인텔리전스" 등
-
-#### 3.2 plan_menu_access 104 row seed
-
-4 plan × 26 menu 매트릭스:
-- starter: 11 enabled (홈/롤업/performance/integration/help_center 등 기본)
-- pro: 21 enabled (starter + analytics 전체 + automation 전체 + marketing)
-- enterprise: 23 enabled (admin section 제외 전체)
-- admin: 26 enabled (전체)
-
-사용자 admin UI 토글 + `BroadcastChannel("geniego_menu_access_sync")` 발행 → AuthContext.loadMenuAccess listener 가 받음 → sidebar 실시간 갱신 (169차 P4 정합).
-
-#### 3.3 plan_period_pricing 신규 테이블 (4-tier 1/3/6/12개월)
-
-```sql
-CREATE TABLE plan_period_pricing (
-  plan_id VARCHAR(64) COLLATE utf8mb4_unicode_ci,
-  period_months TINYINT UNSIGNED,
-  price_usd DECIMAL(10,2) NULL,
-  discount_pct TINYINT UNSIGNED DEFAULT 0,
-  paddle_price_id VARCHAR(128),
-  is_active TINYINT(1) DEFAULT 1,
-  ...
-  PRIMARY KEY (plan_id, period_months)
-  -- FK 제거: plan_config 는 soft delete 만 사용 → app-level 무결성
-);
+5b2f1aaaa  feat(P1-I): menu_value_score 가중치 admin 편집 UI
+a1bfd2c25  feat(PHASE 2-D v2): Sidebar 5계층 즉시 반영 + Broadcast sync
+218f618ec  feat(PHASE 2-D 보강): 5계층 menu_tree 138 row + 개별 토글
+01bdf8200  feat(PHASE 2-D): AdminMenuManager 4계층 + 한글화 + 일괄
+d88eeab4f  fix: admin downgrade 가드 + Enterprise 견적가 등록
+ec77fd280  feat(P0-C.3): 사용자 쿠폰 코드 사용 — redeem + AuthPage
+74bae085a  feat(P0-C): 쿠폰 시스템 활성화 + admin 자율 발행 UI
+9983eb201  feat(P0-B): 회원가입 plan + cycle 선택 흐름
+0298a44a2  feat(P0-A): PricingPublic hardcoded → API 기반
+aab96039d  feat(Task #22 초고도화): 메뉴 권한 ↔ 플랜 요금 sync
+62294a31e  fix(p5-p8): theme-aware 컬러 + 레이아웃 컴팩트화
+c3b1117e2  fix(p4): 전역 텍스트 가시성 + 선명 컬러
+619e0696c  feat(p3): 메뉴 권한 4계층 한글화 + 서비스 설명
+bf4d0647f  fix(p2): GDPR placeholder + 기간별 기본 결제액
+b1c29ed14  feat: 플랜·요금·기간 통합 + 메뉴 권한 트리
 ```
 
-운영 seed (12 row):
-- starter: 1m $49 / 3m $46.55 (5%) / 6m $44.10 (10%) / 12m $39.20 (20%)
-- pro: 1m $149 / 3m $141.55 / 6m $134.10 / 12m $119.20
-- enterprise: NULL (custom_quote)
+### 3. 172차 핵심 변경 정리
 
-#### 3.4 backend AdminPlans.php — periodPricing CRUD
+#### 3.1 PHASE 1-A — Paddle 통합 (PricingPublic refactor, 매출 차단 절반 해소)
 
-신규 endpoint:
-- `GET /v424/admin/plans-period-pricing` → `{ plans: [...], pricing: { plan_id: { 1: {...}, 3: {...}, ... } } }`
-- `PUT /v424/admin/plans/{id}/period-pricing` → bulk upsert (transaction)
-- `/api/v424/...` alias 동일
+- `PricingPublic.jsx` hardcoded PLANS → `/auth/pricing/public-plans` API 기반 동적 fetch
+- backend `publicPlans` 응답에 `periods` 배열 동봉 (회원가입 cycle 선택용)
+- admin이 priceId 입력 시 즉시 반영 (재빌드 불필요)
+- **잔여**: PADDLE_CLIENT_TOKEN + 4 priceId 미설정 → 매출 차단. 사용자 sandbox 값 받으면:
+  1. 운영 `.env` 에 `PADDLE_CLIENT_TOKEN=test_xxxxxxxx` + `PADDLE_ENV=sandbox`
+  2. php-fpm reload
+  3. admin `/admin/plan-pricing` 에서 4 priceId DB 입력
+  4. cc playwright Paddle Checkout overlay 검증
 
-#### 3.5 routes.php 2단계 등록 정합
+#### 3.2 PHASE 1-B — 회원가입 cycle 선택
 
-**중요 지식 (172차 cc 반드시 인지)**: routes.php 는 2단계 패턴:
-1. `$custom = [...]` 배열에 route → handler 매핑 등록
-2. `$register('METHOD', '/path')` **별도 호출** → Slim 라우터에 실제 등록
+- `AuthPage.jsx` PaidRegisterForm Step 3 에 `CycleSelectorSection` 추가
+- 1/3/6/12개월 카드: 총 결제액 + 월 환산 + 할인율
+- backend `app_user.subscription_cycle` 컬럼 활용 (extraData)
+- 가입 후 `/pricing` redirect + `autoCheckout` state 전달
 
-`$custom` 만 추가하면 route 등록 안 됨 (Slim "Not Found"). 신규 endpoint 추가 시 항상 2단계 모두 수행 필수. 171차에 cc 가 1단계만 하고 2단계 누락 → 운영 적용 후 404 진단 → 2단계 보강 후 정합.
+#### 3.3 PHASE 1-C — 쿠폰 시스템 활성화
 
-#### 3.6 PlanPricing.jsx — 3 탭 admin UI
+**Migration (운영 적용)**:
+- `free_coupons` + `coupon_redemptions` 2 신규 테이블
+- `coupon_rules` seed (signup=active/starter/7일 default)
 
-탭 구성:
-1. **💰 요금·상세** (기존) — plan 기본 정보 + 월/연/할인율 + 자동 산출 + 절약 표시 + 추천 토글 + USD 강조
-2. **🔐 메뉴 접근 권한** (기존) — 4 plan × 26 menu 매트릭스
-3. **📅 기간별 구독 가격 (1/3/6/12개월)** (신규) — admin이 각 기간별 가격/할인율/Paddle priceId/활성 자유 설정
+**Backend**:
+- `CouponAdmin.php` 신규: overview / updateRule / issue / listCoupons / revoke
+- `CouponRedeem.php` 신규: redeem + preview + admin/enterprise downgrade 가드
+- `CouponEngine.php` 기존 (227L) — UserAuth::register 가 `signup` trigger 자동 호출 (이전 silent fail → 이제 작동)
 
-자동 추천 정책 (사용자 명시 정합):
-- 1개월 가격 입력 → 3/6/12개월 자동 산출 (할인율 기반)
-- 할인율 변경 → 해당 기간 가격 즉시 갱신
-- admin이 특정 기간 가격 직접 입력 → 그 값 유지 (override)
+**Frontend**:
+- `PlanPricing.jsx` 신규 outer tab "🎟️ 쿠폰 관리" — 통계 4 카드 + 룰 3종 + 수동 발급 폼 + 발급 목록
+- `AuthPage.jsx` `CouponCodeInput` — 가입 Step 3 에 코드 입력 (선택)
+- register 완료 후 자동 redeem (`/^GENIE-[A-Z0-9]{8,16}$/` 정규식 검증)
 
-#### 3.7 ko.js 누락 키 추가
+#### 3.4 PHASE 2-D — 5계층 메뉴 가시성 (대→중→하→서브탭 + 일괄)
 
-ko.js 가 거대 (1.3 MB) + **중복 namespace 정의** (gNav x2, sidebar x3) 발견 — 후자가 전자 덮어쓰면서 admin 메뉴 키들이 영어 fallback 표시 issue. fix:
-- 두 번째 `gNav` (line 31685 직전) 에 admin 5 키 추가: `planPricingLabel`, `menuTreeLabel`, `platformEnvLabel`, `dbSchemaLabel`, `paymentPgLabel`
-- 세 번째 `sidebar` (line 38554) 에 4 키 추가: `prodMode`, `prodDesc`, `demoMode`, `demoDesc`
+**Migration (운영 적용)**:
+- `menu_tree` 26 → **138 row** 확장
+  · `__section:<key>` × 11 대메뉴
+  · `__leaf:<route>` × 53 하위 페이지
+  · `__subtab:<route>::<id>` × 48 서브탭
+- `docs/cc-tools/gen_menu_tree_extended_172.cjs` 재사용 가능 스크립트
 
-ko.js 중복 namespace 자체는 i18n 구조적 issue — 172차 또는 별도 라운드에서 i18n 전체 정리 필요 (15개 로케일 동일 패턴 확인 필요).
+**Backend**:
+- `AdminMenu.php` `validId` regex 확장: `[a-zA-Z0-9._:|/-]+` (`:`, `|`, `/` 추가)
+- `routes.php` PATCH menu-tree `{menu_id:.+}` 와일드카드 (slash 매치)
+
+**Frontend**:
+- `AdminMenuManager.jsx` 전면 재작성 (218L → 360L+):
+  · 4계층 트리 + 한글 라벨 (MENU_KEY_LABEL)
+  · 통계 카드 4종 (전체 / ✓ / ⊘ / ✗)
+  · 검색 + 섹션 collapse + 일괄 토글
+  · **5계층 모든 레벨 개별 토글** (140개)
+- `VisibilityToggle` 컴포넌트 (DRY, xs/sm/md 사이즈)
+- `sidebarMenuLabels.js` 신규 — MENU_KEY_LABEL + SUB_TABS_BY_PATH SSOT
+- `MenuVisibilityContext.jsx` `getVisibility(...keys)` 메소드 + BroadcastChannel listener
+- `Sidebar.jsx`:
+  · `__section:<key>` hidden → 섹션 통째 비노출
+  · `__leaf:<route>` hidden → leaf 만 비노출
+  · disabled 시각: opacity 0.4 + line-through + "비활성" 배지
+
+#### 3.5 Task #22 — 메뉴 권한 ↔ 요금 자동 산출 (초고도화)
+
+**Migration**:
+- `menu_value_score` 테이블 + 28 row seed (총 $378.85)
+- category (core/standard/premium/enterprise) + ai_premium_pct + bundle_count
+
+**Backend**:
+- `MenuPricingSync.php`: GET sync (rules + stats + plans 권장가) / PUT upsertScores / PUT applyRecommended
+- Tier 분류 알고리즘 + 라운딩 정책 4종
+
+**Frontend**:
+- `PlanPricing.jsx` MenuPricingSyncPanel — 플랜별 현재가 vs 권장가 + 카테고리 막대 + ⚡ 적용
+- BroadcastChannel listener (메뉴 권한 토글 → 권장가 실시간 재계산)
+- **P1-I** 가중치 편집 모드 추가 (172차 마지막 작업): 28 menuKey 인라인 편집 + PUT bulk
+
+#### 3.6 Enterprise 견적가 등록 활성 (사용자 명시)
+
+- `PlanPricing.jsx` `disabled={isCustom}` 일괄 제거
+- Enterprise 도 admin 견적가 + 기간 + 할인 자유 입력
+- 기간 추가 폼 isCustom 분기: "견적가 등록" 라벨 + 보라 컬러
+- savePlan: `is_custom_quote` NULL 강제 제거 + period 저장 skip 제거
+
+#### 3.7 긴급 fix — admin plan 다운그레이드 사고
+
+- cc playwright 가 admin token 으로 쿠폰 redeem 테스트 → `ceo@ociell.com` plan='admin' → 'pro' 강등
+- 사용자 403 보고 → SQL UPDATE 즉시 복원
+- `CouponRedeem.php` 가드 추가: 현재 plan='admin' 또는 'enterprise' 시 redeem 403 거부
 
 ### 4. 사용자 운영원칙 누적 (U-prefix)
 
-기존 U-161-A ~ U-170-D 유지. **171차 신규**:
+기존 U-161-A ~ U-171-F 유지. **172차 신규**:
 
-- **U-171-A**: cc puppeteer 운영 직접 검증 패턴 정합 — 화이트/PAGEERR 진단은 lazy chunk dynamic import 직접 시도 (`page.evaluate(() => import('/assets/RollupDashboard-XXX.js'))`) 가 결정적. localStorage token 주입으로 admin auth 시뮬레이션 가능 (사용자 password 노출 회피).
+- **U-172-A**: cc 브라우저 실시간 확인 의무 — UI/가시성/컬러/레이아웃/인터랙션 작업 시 MCP Playwright 로 직접 브라우저 열고 검증하면서 진행. 코드만 수정 후 사용자 검증 떠넘기기 금지. memory: `feedback_browser_verify_always.md`
 
-- **U-171-B**: Slim routes.php 2단계 등록 패턴 — `$custom` 배열 등록 + `$register('METHOD', '/path')` 호출. 한 단계 누락 시 운영 404. 신규 endpoint 추가 시 항상 양쪽 수행. PHP-FPM reload 또는 restart 필요할 수 있음.
+- **U-172-B**: PM 권장 1개 추천 원칙 강화 — 사용자가 다음 단계 결정 어려울 때 cc가 항상 권장 1개 명시. 짧게 핵심.
 
-- **U-171-C**: 자동 추천 + admin 최종 결정 패턴 — 시스템이 default/추천값 제시 (예: 월 가격 → 연 가격 자동 산출, plan별 메뉴 권한 default 매트릭스), admin이 모든 값 자유롭게 override. seed 는 초기값 + admin UI 가 영구적 변경 권한. 본 패턴이 plan_config/plan_menu_access/plan_period_pricing 전체에 일관 적용.
+- **U-172-C**: admin token 으로 쿠폰 redeem 실험 금지 — 사용자 plan 강등 위험. 별도 test 계정 또는 SQL 사전 확인.
 
-- **U-171-D**: PowerShell-bash-mysql 다중 quoting 회피 — SQL/script 파일을 pscp 로 업로드 후 운영에서 `mysql < /tmp/file.sql` 실행. `mysql -e "SELECT ..."` 같은 inline 명령은 PowerShell 큰따옴표 escape 처리에서 깨짐. plink 출력은 plink banner prefix 가 stdout에 섞이므로 `[regex]::Match($out, '[a-f0-9]{64}')` 같은 패턴 매칭으로 정확 추출.
+- **U-172-D**: menu_tree 5계층 확장 — `__section:/__leaf:/__subtab:` 접두사로 namespace 분리. backend validId regex 와 frontend Sidebar 가 모두 인식해야 함.
 
-- **U-171-E**: pscp 대용량 파일 truncation risk — 17KB+ 파일은 default protocol 에서 16KB block 단위로 잘릴 수 있음 (1회 확인). md5 비교 + `-sftp` 옵션 명시로 회피. 신규 PHP 파일 deploy 시 항상 md5 검증.
+### 5. 미해결 / 다음 라운드 (173차 작업 후보)
 
-- **U-171-F**: brave/whale 같은 브라우저 강력 cache — dist swap 후 사용자가 fresh 시도 안 하면 옛 chunk + 옛 localStorage 잔존 → 401 등 stale 응답 가능. 시크릿 모드 또는 hard reload 권장. SW unregister-only 가 자동 정리하지만 첫 1회는 사용자 액션 필요.
+#### 5.1 P0 — 매출 차단 잔여 (사용자 sandbox 값 받으면 즉시)
 
-### 5. 미해결 / 추가 진행 권장 (172차 작업 후보)
+**P0-A 완결 (10분)**:
+- 사용자 5개 값 받기 (PADDLE_CLIENT_TOKEN + 4 priceId)
+- 운영 `.env` 추가 + php-fpm reload
+- admin `/admin/plan-pricing` 4 priceId DB 입력
+- cc playwright Paddle Checkout 실제 작동 검증
 
-#### 5.1 P0 — 사용자 명시 미비 (171차 발견, 별도 라운드)
+#### 5.2 P1 — 기능 완성도
 
-171차 agent 발굴 결과 (172차 cc 검토 필수):
+| # | 항목 | 작업량 | 비고 |
+|---|---|---|---|
+| F-1 | Attribution.jsx Mock → 실 API | 중 | v419 endpoint API key 인증 필요 (별도 endpoint 작성) |
+| F-2 | Marketing.jsx Mock | 중 | 캠페인 성과 실 API |
+| F-3 | CRM.jsx Mock | 중 | B2B SaaS 핵심 데이터 |
+| F-4 | AIMarketingHub.jsx Mock | 중상 | AI 추천 실 API |
+| G | 만료 알림 + D-day 배너 | 중 | UserAuth::resolveActivePlan 후속 |
+| H | 데모 backend 동기화 | 소 | 운영 ↔ 데모 file sync |
+| **I** | ✅ menu_value_score 가중치 admin UI | (완료) | 5b2f1aaaa |
 
-**구버전(168차 이전) 자료**: backend/src/Db.php 의 `subscription_coupon`, `coupon_rules`, `free_coupons`, `coupon_redemptions` 테이블 + `backend/src/CouponEngine.php` (227L 자동 발급 엔진) **이미 구현**되어 있으나 활성화 안 됨.
+#### 5.3 P2 — 협업 & 인프라
 
-- **subscription_coupon 테이블**: `trigger_type` (manual/new_paid/renew_3m/renew_6m/renew_1y), `status` (pending/applied/expired/cancelled), `months` (1~6)
-- **CouponEngine::fire()**: signup/upgrade/renewal trigger 시 자동 발급
-- **commit 6e6e4edb**: 옛 "1개월 trial pro mode for all new signups" 자동 부여 패턴 (현재 폐기)
-- **현 가입 응답**: `register` 가 `{ user, coupon: { issued, code, plan, duration_days, expires_at } }` 형식 가능
+| # | 항목 | 비고 |
+|---|---|---|
+| **J** | 🆕 **팀/팀원 채팅 기능** | 사용자 명시 신규 — workspace 멤버 + 1:1/그룹 + 파일 첨부 |
+| K | N-152-F PM-Core 잔여 (Milestones/Dependencies/Comments/etc) | |
+| L | SSE 실시간 알림 인프라 | 채팅과 공유 |
 
-**172차 P0 권장**:
-- `coupon_rules` 활성화 (signup=starter 7일 자동 등 admin UI에서 토글)
-- admin "쿠폰 발행 관리" 탭 (수동 발급 + 사용 현황 조회)
-- 사용자 측 "쿠폰 코드 입력" UI (회원가입 또는 마이페이지)
+#### 5.4 P2 — 정리
 
-#### 5.2 P0 — 회원가입 cycle 선택 (구버전 정합)
-
-사용자 명시: "회원가입 시 3개월 / 6개월 / 1년 구독 시 요금 및 할인 적용율 등록".
-
-현재 AuthPage.jsx 의 회원가입 흐름에 plan/cycle 선택 단계 없음. 172차 추가 필요:
-- 가입 step 추가: plan 선택 → cycle (1/3/6/12개월) 선택 → 가격 표시 + 할인율 → Paddle Checkout 진입
-- backend `register` 응답에 cycle/period 저장 (`app_user.subscription_cycle` 미사용 컬럼 활성화)
-- payment_history.cycle 동기
-
-#### 5.3 P1 — 만료 알림 + 결제 유도
-
-`UserAuth::resolveActivePlan` 이 만료 시 `subscription_status='expired'` 반환만. 미구현:
-- 만료 7일 전 / 1일 전 이메일 알림
-- 대시보드 D-day 배너
-- 만료 후 재활성화 API
-
-#### 5.4 P1 — 데모 backend 동기화
-
-`/home/wwwroot/roidemo.geniego.com/backend/src/Handlers/AdminPlans.php` **부재** (169차 §4.3 정합). 데모에서 `/admin/plan-pricing` 진입 시 backend 옛 코드라 401 또는 500. 172차에 데모 backend 전체 동기화 (운영과 동일하게).
-
-#### 5.5 P1 — 운영/데모 dist 백업 디렉토리 정리
-
-170차 인계서 §4.2 + 171차에 추가 backup 생성:
-```
-/home/wwwroot/roi.geniego.com/frontend/
-├── dist (현재 활성 = 171p4)
-├── dist.170p[1-5]_bad_*  (170차 5회 화이트)
-├── dist.broken_168, dist.old, dist.pre169_*, dist.pre169p1_*, dist.pre169p5_*
-├── dist.prev170p[3-5], dist.rollback170p1
-├── dist.prev171p[1-4]_*  (171차 4회 swap)
-```
-운영 ~17 폴더 + 데모 ~15 폴더 × 80MB ≈ 2.5GB 점유. 안정성 확인 후 정리.
-
-#### 5.6 P1 — ko.js 중복 namespace 구조적 정리
-
-171차에 발견된 `gNav` x2, `sidebar` x3 중복. 15개 로케일 동일 패턴 추정. 구조적 cleanup 필요 (별도 라운드, i18n-sync agent 활용 권장).
-
-#### 5.7 P1 — Paddle priceId 매핑
-
-`plan_config.price_id_monthly/annual` + `plan_period_pricing.paddle_price_id` 현재 모두 비어있음. 실제 결제 작동을 위해 admin이 Paddle dashboard 의 priceId 입력 필요 (admin UI는 171차에 input field 제공됨).
-
-#### 5.8 P2 — PM-Core handler 본체 + UI 잔여 (169차 §4.4)
-
-Milestones / Dependencies / Assignees / Comments / Attachments / Events / Audit / Kpi 본체 + frontend Gantt / Milestones / Activity / TaskTable / Settings / TaskDetail page.
-
-#### 5.9 P2 — 22 추가 mock 페이지 fix (N-169-mock-purge, 169차 §4.3)
-
-### 6. cc 진단 도구 라이브러리 (171차 추가)
-
-`docs/cc-tools/` 디렉토리에 5 script + 1 SQL 보존 (commit 포함):
-
-| 도구 | 용도 |
+| # | 항목 |
 |---|---|
-| `_cc_verify_local_171.cjs` | local vite preview puppeteer 검증 (3 path PAGEERR/root_len) |
-| `_cc_verify_ops_171.cjs` | 운영 puppeteer 검증 (CC_TARGET 환경변수로 데모도 가능) |
-| `_cc_verify_rollup_171.cjs` | /rollup 직접 navigate + 콘솔 로그 캡처 |
-| `_cc_verify_rollup_lazy_171.cjs` | RollupDashboard 청크 dynamic import → 모듈 init PAGEERR 결정적 |
-| `_cc_diag_admin_api_171.sh` | 운영 admin API 진단 (token 추출 + curl 다양한 패턴) |
-| `_cc_repro_admin_401_171.cjs` | localStorage token 주입 → admin API fetch 시뮬레이션 |
-| `_cc_get_admin_token.sql` | ceo@ociell.com 의 active token 추출 (mysql < file 패턴) |
-| `_cc_check_collation.sql` | plan_config.plan_id charset/collation 확인 (FK 정합용) |
+| M | 22 mock 페이지 + 25 skeleton 페이지 일괄 fix |
+| N | ko.js 중복 namespace (gNav x2, sidebar x3) 정리 |
+| O | 운영/데모 dist 백업 폴더 정리 (2.5GB) |
 
-172차 cc 가 재사용 가능. `.gitignore` 추가로 `_cc_verify_ops_170.cjs` (옛 password 포함), `_cc_verify_screenshot_*.png`, `dist_171*.tgz` 제외.
+#### 5.5 P3 — 최종 글로벌 SaaS (사용자 명시)
 
-### 7. 172차 검수자 첫 응답 강제 의무
+| # | 항목 | 작업량 |
+|---|---|---|
+| **P** | 🌍 **15개국 현지 자연어 i18n 완벽 구현** | 대 |
 
-1. ⚠️ 본 인계서 §1-§5 인지 명시 (특히 §1 최상위 상태 + §2.5 nginx fix + §3.5 routes.php 2단계 + §5 미해결)
-2. U-170-A/B/C/D 유지 + **U-171-A/B/C/D/E/F** 인지 명시
-3. 미해결 §5.1 (쿠폰/트라이얼 활성화) + §5.2 (회원가입 cycle) + §5.4 (데모 backend) 진행 결정
-4. **사용자 credentials 회전 확인 의무** (171차에 SSH ~20회 + MySQL root ~15회 사용 = 누적 약 56회. 사용자가 171차 시작 시 1회 회전했으나 작업 양 많아 재회전 권장)
-5. MCP Playwright (`.mcp.json` 등록) 활성화 — `mcp__playwright__*` 도구 사용 시 puppeteer 대체 가능 (브라우저 직접 조작 가능, 옛 cjs script 보다 강력)
-6. cc puppeteer 검증 의무 (U-170-A, U-171-A) 인지
+- ko 마스터 → 14개 언어 누락 키 추출 (i18n-sync agent)
+- 자동 번역 + 도메인 용어 사전
+- 통화/숫자/날짜 현지화 (`Intl.NumberFormat`, `Intl.DateTimeFormat`)
+- RTL (Arabic) 레이아웃 검증
+- 15 locales × 5,000+ key
 
-### 8. memory 파일 갱신 권장 (172차 cc 작업)
+### 6. credentials 회전 강조 (172차 누적)
 
-| 파일 | 171차 갱신 권고 |
+본 세션에서 cc 가 사용한 ops 자원:
+- SSH (vot@Wlroi6!) — **~25회** (pscp + plink)
+- MySQL root (qlqjs@Elql3!) — **~12회**
+- Paddle Sandbox 5개 값 — 미제공
+- ceo@ociell.com 로그인 (admin) — 1회 명시
+
+**173차 진입 시 작업 시작 전 credentials 회전 권고**. memory `feedback_credentials_handling.md` 정합.
+
+### 7. 173차 검수자 첫 응답 강제 의무
+
+1. ⚠️ 본 인계서 §1-§5 인지 명시 (특히 §1 최상위 상태 + §5.1 P0-A 잔여)
+2. U-170-A/B/C/D + U-171-A/B/C/D/E/F + **U-172-A/B/C/D** 모두 인지
+3. 사용자 credentials 회전 확인
+4. MCP Playwright (`mcp__playwright__*`) 활성 — UI 작업 시 무조건 브라우저 직접 검증 (U-172-A)
+5. NEXT_SESSION.md commit 후 push 시 사용자 명시 승인 필요
+
+### 8. 173차 권장 진입 시나리오
+
+**Option A (매출 차단 즉시 해소)**: 사용자가 Paddle Sandbox 5개 값 제공 → P0-A 완결 → 실 결제 작동 검증 (1라운드)
+
+**Option B (P1-F Mock 페이지 fix)**: Attribution / Marketing / CRM / AIMarketingHub 중 1개부터 → backend endpoint 인증 패턴 조정 + 실 데이터 노출 (2-3 라운드)
+
+**Option C (PHASE 3 팀 채팅)**: SSE 인프라 + workspace 멤버 + 1:1 채팅 부터 (4-6 라운드)
+
+**Option D (PHASE 5 15개국 i18n)**: i18n-sync agent 활용 → 누락 키 자동 번역 + 사람 검수 (3-5 라운드)
+
+권장 1순위: **Option A** (사용자 값 받으면 즉시 + 매출 lifecycle 완결)
+
+### 9. memory 파일 갱신 권장 (173차 cc)
+
+| 파일 | 172차 갱신 권고 |
 |---|---|
-| `MEMORY.md` (index) | +0 또는 신규 entry 추가 (172차 cc 결정) |
-| `feedback_absolute_principles.md` (9개 절대 원칙) | 변경 없음 |
-| `feedback_handoff_approval.md` | 본 인계서 정합 작성 — 사용자 명시 승인 후 commit |
-| `feedback_pm_operational_rules.md` (U-prefix) | **갱신 권장** — U-171-A/B/C/D/E/F 추가 |
-| `feedback_credentials_handling.md` | 171차에 약 56회 사용 → 회전 권고 강화 |
-| `project_n152f_pm_features.md` | 변경 없음 |
-| `project_n152f_consolidated.md` | **갱신 권장** — 171차 신규 (plan_period_pricing, periodPricing endpoint, RollupDashboard fix, ko.js 중복 namespace) |
-| `project_orderhub_deploy_automation.md` | 변경 없음 |
-| `reference_ops_host.md` | **갱신 권장** — 171차 신규 path (`/tmp/cc_token.sql`, `/tmp/AdminPlans_171p4.php` 등), 데모 backend 미동기화 명시 |
-| `reference_nginx_sw_typo.md` | **갱신 권장** — 171차에 nginx vhost fix 완료 (운영 line 69, 데모 line 59) — 현재 main root 정합 |
+| `MEMORY.md` (index) | **U-172-A 추가됨** ✅ (172차 cc 가 갱신) |
+| `feedback_browser_verify_always.md` | **신규 추가** ✅ (172차 cc) |
+| `feedback_pm_operational_rules.md` | **U-172-A/B/C/D 추가 권장** |
+| `feedback_credentials_handling.md` | 172차 누적 사용 ~37회 → 회전 강조 |
+| `project_n152f_consolidated.md` | **172차 신규** (5계층 menu_tree, 가중치 시스템, 쿠폰 통합) |
+| `reference_ops_host.md` | **신규 path** (`/tmp/CouponAdmin.php`, `/tmp/MenuPricingSync.php`, `/tmp/menu_tree_extended_172.sql`) |
 
-### 9. local repo 변경 사항 (172차 진입 시 commit/push 완료된 상태)
+### 10. 172차 종합 상태 표 (173차 즉시 참조)
 
-171차 commit 2개:
-- commit 1: P0 #1 통합 fix + 4-tier 기간별 가격 + 한글화 + DB migration + cc-tools + .mcp.json
-- commit 2: 본 인계서 (NEXT_SESSION.md)
-
-`master` push → CI `.github/workflows/deploy.yml` 자동 trigger (배포). **운영은 이미 동일 dist 상태**라 idempotent — CI 실패 risk 낮음.
-
-### 10. 171차 종합 상태 표 (172차 즉시 참조)
-
-| 영역 | 171차 진입 | 171차 종료 |
+| 영역 | 172차 진입 | 172차 종료 |
 |---|:-:|:-:|
-| 운영 frontend dist | 169 P5 (index-Bx_jPaID.js) | ✅ **171p4 (index-DNsOoom8.js)** |
-| 데모 frontend dist | 169 P5 | ✅ 동일 |
-| 운영 PAGEERR (5회 화이트) | ⚠ 5회 발생 | ✅ **완전 종식 (cc puppeteer 검증)** |
-| 운영 PlanPricing 진입 | 빈 화면 | ✅ 3 탭 정상 (요금·상세/메뉴권한/기간별가격) |
-| 운영 AdminMenuManager 진입 | "접근 불가" | ✅ 정상 |
-| 운영 /rollup (롤업뷰) | 화면오류 | ✅ 정상 (useCallback module top-level fix) |
-| 사이드바 영어 표시 | "Plan Pricing", "Production System" | ✅ "플랜별 구독요금", "🏢 운영 시스템" |
-| PlanPricing 자동 산출 | 미작동 | ✅ 월/할인율 변경 시 즉시 산출 + override 가능 |
-| 추천 플랜 표시 | 없음 | ✅ Pro = "⭐ MOST POPULAR" 배지 |
-| 4-tier 기간별 가격 (1/3/6/12) | 없음 | ✅ 12 row seed + admin UI |
-| 운영 backend admin gate | 170p1 정합 | ✅ 유지 |
-| nginx /sw.js typo path | typo (운영+데모) | ✅ main root 정합 (운영+데모 reload) |
-| local repo | 171차 8 file pending | ✅ 2 commit + push (사용자 명시 승인 후) |
-
----
-
-## 11. 172차 진입 시 cc 즉시 수행 검증 명령
-
-```powershell
-# 1) 운영 dist + backend + DB 상태 확인
-$sshPass = '<rotated_password>'
-$mysqlPw = '<rotated_mysql_pw>'
-
-# entry hash + endpoint 응답 + DB row counts
-$cmd = @'
-echo === ops_active_entry ===
-grep -oE 'index-[A-Za-z0-9_-]+\.js' /home/wwwroot/roi.geniego.com/frontend/dist/index.html | head -1
-echo === ops_backend_files ===
-ls -la /home/wwwroot/roi.geniego.com/backend/src/Handlers/AdminPlans.php
-ls -la /home/wwwroot/roi.geniego.com/backend/src/routes.php
-echo === admin_gates ===
-curl -sS -o /dev/null -w 'plans=%{http_code}\n' https://roi.genie-go.com/v424/admin/plans
-curl -sS -o /dev/null -w 'menu=%{http_code}\n' https://roi.genie-go.com/v424/admin/plans-menu-access
-curl -sS -o /dev/null -w 'period=%{http_code}\n' https://roi.genie-go.com/v424/admin/plans-period-pricing
-'@
-& 'C:\Program Files\PuTTY\plink.exe' -ssh -batch -pw $sshPass root@1.201.177.46 $cmd
-
-# DB row counts
-$sql = "SELECT 'plan_config' AS t, COUNT(*) AS c FROM plan_config UNION SELECT 'plan_menu_access', COUNT(*) FROM plan_menu_access UNION SELECT 'plan_period_pricing', COUNT(*) FROM plan_period_pricing UNION SELECT 'menu_tree', COUNT(*) FROM menu_tree;"
-# 위 SQL 파일에 저장 + scp + mysql < file 패턴 (U-171-D 정합)
-
-# 2) cc puppeteer 운영 검증 (login + admin paths + /rollup)
-cd "E:/project/GeniegoROI"
-node docs/cc-tools/_cc_verify_ops_171.cjs
-# 예상: 모든 path PAGEERR none, ROOT_LEN > 6000
-
-# 3) 172차 1순위 결정
-# - 쿠폰/트라이얼 활성화 (§5.1 P0)
-# - 회원가입 cycle 선택 (§5.2 P0)
-# - 데모 backend 동기화 (§5.4 P1)
-# - 만료 알림 (§5.3 P1)
-# 사용자 컨펌 받아 진행
-```
-
----
-
-**본 인계서 v1 = 사용자 명시 승인 후 commit + push** (memory `feedback_handoff_approval.md` 정합).
+| 운영 dist | 171p4 (`index-DNsOoom8.js`) | ✅ **172p19 (`index-GaIE36f4.js`)** |
+| `/admin/plan-pricing` 탭 | 3 탭 (요금·상세/메뉴권한/기간별) | ✅ **3 탭** (💰 플랜&요금 / 🔐 메뉴권한 / 🎟️ 쿠폰관리) |
+| Enterprise 견적가 | 입력 불가 | ✅ admin 자유 입력 |
+| 메뉴 권한 트리 | 평탄 26 row | ✅ **4계층 한글 + 일괄** |
+| 메뉴 가시성 (menu_tree) | 26 row | ✅ **138 row 5계층 + 140 토글** |
+| Sidebar 가시성 반영 | menuKey 만 | ✅ **5계층 즉시 반영 + Broadcast** |
+| 쿠폰 시스템 | CouponEngine 코드만 (silent fail) | ✅ **자동 + 수동 + redeem + 가드** |
+| 회원가입 cycle 선택 | 없음 | ✅ 1/3/6/12개월 카드 + 총액·할인 |
+| Task #22 메뉴↔요금 sync | 없음 | ✅ 28 menuKey + 권장가 + 가중치 편집 |
+| 매출 차단 | 100% (priceId + clientToken 둘 다 없음) | ⚠️ **50% (코드/UI 완비, 값만 대기)** |
+| GDPR 배너 placeholder | "배너 제목/설명" raw | ✅ 실 한국어 ("쿠키 및 개인정보 동의") |
+| 전역 텍스트 가시성 | linear-gradient white-text-force 버그 | ✅ solid bg + theme-aware |
+| 1m 가격 → 기간별 실시간 산출 | 미작동 | ✅ 월간 SSOT → months × monthly 즉시 |
