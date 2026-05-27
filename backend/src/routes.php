@@ -467,6 +467,13 @@ return function (App $app): void {
         'PUT /v424/admin/plans/{id}/period-pricing'     => 'Genie\\Handlers\\AdminPlans::periodPricingUpsert',
         'GET /api/v424/admin/plans-period-pricing'      => 'Genie\\Handlers\\AdminPlans::periodPricingAll',
         'PUT /api/v424/admin/plans/{id}/period-pricing' => 'Genie\\Handlers\\AdminPlans::periodPricingUpsert',
+        // 172차 Task #22 — 메뉴 권한 ↔ 가격 자동 sync (초고도화)
+        'GET /v424/admin/menu-pricing-sync'                  => 'Genie\\Handlers\\MenuPricingSync::syncAll',
+        'PUT /v424/admin/menu-value-score'                   => 'Genie\\Handlers\\MenuPricingSync::upsertScores',
+        'PUT /v424/admin/plans/{id}/apply-recommended'       => 'Genie\\Handlers\\MenuPricingSync::applyRecommended',
+        'GET /api/v424/admin/menu-pricing-sync'              => 'Genie\\Handlers\\MenuPricingSync::syncAll',
+        'PUT /api/v424/admin/menu-value-score'               => 'Genie\\Handlers\\MenuPricingSync::upsertScores',
+        'PUT /api/v424/admin/plans/{id}/apply-recommended'   => 'Genie\\Handlers\\MenuPricingSync::applyRecommended',
         'GET /v424/admin/paddle/stats'                  => 'Genie\\Handlers\\AdminPlans::paddleStats',
         'GET /api/v424/admin/paddle/stats'              => 'Genie\\Handlers\\AdminPlans::paddleStats',
         'GET /v424/admin/db/stats'                      => 'Genie\\Handlers\\AdminPlans::dbStats',
@@ -1774,6 +1781,13 @@ return function (App $app): void {
     $register('PUT',    '/v424/admin/plans/{id}/period-pricing');
     $register('GET',    '/api/v424/admin/plans-period-pricing');
     $register('PUT',    '/api/v424/admin/plans/{id}/period-pricing');
+    // 172차 Task #22 — menu pricing sync
+    $register('GET',    '/v424/admin/menu-pricing-sync');
+    $register('PUT',    '/v424/admin/menu-value-score');
+    $register('PUT',    '/v424/admin/plans/{id}/apply-recommended');
+    $register('GET',    '/api/v424/admin/menu-pricing-sync');
+    $register('PUT',    '/api/v424/admin/menu-value-score');
+    $register('PUT',    '/api/v424/admin/plans/{id}/apply-recommended');
     $register('GET',    '/v424/admin/paddle/stats');
     $register('GET',    '/api/v424/admin/paddle/stats');
     $register('GET',    '/v424/admin/db/stats');

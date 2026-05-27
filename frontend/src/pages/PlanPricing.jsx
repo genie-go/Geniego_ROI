@@ -224,6 +224,9 @@ function PlanPricing() {
   // 기간별 가격 (admin 자유 추가/제거, 1~60개월) — backend plan_period_pricing 매핑
   const [periodPricing, setPeriodPricing] = useState({}); // { plan_id: { months: { price_usd, discount_pct, paddle_price_id, is_active } } }
   const [newPeriodInput, setNewPeriodInput] = useState(''); // "기간 추가" input 상태
+  // 172차 Task #22 초고도화 — 메뉴 권한 ↔ 가격 자동 산출
+  const [menuPricingSync, setMenuPricingSync] = useState(null); // { menuScores, plans:[{plan_id, recommendedMonthly, currentMonthly, delta, suggestedTier, categoryBreakdown, ...}], totals }
+  const [pricingSyncApplying, setPricingSyncApplying] = useState(null);
 
   const fetchPlans = useCallback(async () => {
     setLoading(true); setError(null);
@@ -258,6 +261,33 @@ function PlanPricing() {
       setError(String(e?.message || e));
     }
   }, []);
+
+  // 172차 Task #22 — 메뉴↔가격 sync 조회
+  const fetchMenuPricingSync = useCallback(async () => {
+    try {
+      const data = await getJsonAuth('/v424/admin/menu-pricing-sync');
+      setMenuPricingSync(data?.ok ? data : null);
+    } catch (e) {
+      // graceful — backend 가 미배포 상태일 수 있음
+      console.warn('menu-pricing-sync fetch failed:', e?.message || e);
+      setMenuPricingSync(null);
+    }
+  }, []);
+
+  /** 권장가 1m 적용 → 모든 기간 자동 산출 + plan_config sync (백엔드 transaction) */
+  const applyRecommendedPrice = async (planId, roundTo = 'nearest-9') => {
+    setPricingSyncApplying(planId);
+    try {
+      const result = await requestJsonAuth(`/v424/admin/plans/${encodeURIComponent(planId)}/apply-recommended`, 'PUT', { roundTo });
+      await Promise.all([fetchPlans(), fetchPeriodPricing(), fetchMenuPricingSync()]);
+      publishMenuAccessSync({ plan_id: planId, source: 'apply_recommended', appliedPrice: result?.appliedPrice });
+      alert(`권장가 적용 완료 — $${result?.appliedPrice}/월 (raw $${result?.recommendedRaw}, 라운딩: ${roundTo})`);
+    } catch (e) {
+      alert(`적용 실패: ${e?.message || e}`);
+    } finally {
+      setPricingSyncApplying(null);
+    }
+  };
 
   /**
    * 자동 추천 로직 — 동적 기간 지원 (1~60개월 자유).
@@ -340,6 +370,19 @@ function PlanPricing() {
   useEffect(() => { fetchPlans(); }, [fetchPlans]);
   useEffect(() => { if (outerTab === 'permissions') fetchMenuAccess(); }, [outerTab, fetchMenuAccess]);
   useEffect(() => { if (outerTab === 'plan') fetchPeriodPricing(); }, [outerTab, fetchPeriodPricing]);
+  // 172차 Task #22 — sync 데이터는 양쪽 탭에서 필요 (가격 탭 표시 + 권한 탭 저장 후 갱신)
+  useEffect(() => { fetchMenuPricingSync(); }, [fetchMenuPricingSync]);
+  // 메뉴 권한이 저장되면 sync 데이터 즉시 refetch (BroadcastChannel 이벤트)
+  useEffect(() => {
+    let bc;
+    try {
+      bc = new BroadcastChannel('geniego_menu_access_sync');
+      bc.onmessage = (ev) => {
+        if (ev?.data?.type === 'menu_access_updated') fetchMenuPricingSync();
+      };
+    } catch {}
+    return () => { try { bc?.close(); } catch {} };
+  }, [fetchMenuPricingSync]);
 
   // 명시적 추가/제거 (선택 추가 / 선택 삭제 버튼 전용 — 토글이 아니라 의도된 값 설정)
   const setMenuAccess = (planId, menuKey, enabled) => {
@@ -602,6 +645,13 @@ function PlanPricing() {
       )}
 
       {outerTab === 'plan' && <ServiceDescriptionCard />}
+      {outerTab === 'plan' && menuPricingSync && (
+        <MenuPricingSyncPanel
+          sync={menuPricingSync}
+          onApply={applyRecommendedPrice}
+          applying={pricingSyncApplying}
+        />
+      )}
 
       {outerTab === 'plan' && loading && (
         <div style={{ ...cardStyle, textAlign: 'center', padding: 40, color: 'var(--text-3)' }}>
@@ -838,6 +888,176 @@ function ServiceDescriptionCard() {
  * 다수 leaf 가 동일 menuKey 를 공유하는 경우 (예: marketing 17개 페이지) 그룹 헤더에 "🔗 17개
  * 페이지 함께 제어됨" 배지로 표시 → admin 이 한 번에 영향받는 범위를 인지.
  */
+/**
+ * MenuPricingSyncPanel — 172차 Task #22 초고도화 핵심 UI.
+ *
+ * 각 플랜의 메뉴 권한 → 권장 월 요금 자동 산출. admin 이 한 번 클릭으로 1m 가격 적용,
+ * 다른 기간(3/6/12개월 등)은 backend 가 할인율 기반 자동 cascade.
+ *
+ * 표시:
+ *   - 플랜별 현재 가격 vs 권장 가격 + delta + delta %
+ *   - 카테고리 분류 breakdown (core / standard / premium / enterprise)
+ *   - AI premium 가중치 분리 표시
+ *   - tier 분류 자동 제안 (현재 plan_id 와 다르면 경고)
+ *   - 라운딩 정책 선택 (정수 / 10단위 / 9끝자리 / 원본)
+ *   - 적용 버튼 → 백엔드 PUT /plans/{id}/apply-recommended
+ *   - BroadcastChannel 으로 메뉴 권한 탭에서 토글 시 즉시 갱신
+ */
+function MenuPricingSyncPanel({ sync, onApply, applying }) {
+  const [roundTo, setRoundTo] = useState('nearest-9');
+  const [open, setOpen] = useState(true);
+  if (!sync?.plans) return null;
+  const fmt = (n) => Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const totalValue = sync.totals?.allMenusValue || 0;
+  return (
+    <div style={{
+      marginBottom: 14, borderRadius: 12,
+      background: 'rgba(168,85,247,0.06)', border: '1.5px solid rgba(168,85,247,0.28)',
+      overflow: 'hidden',
+    }}>
+      <button onClick={() => setOpen(o => !o)} style={{
+        width: '100%', padding: '10px 16px',
+        display: 'flex', alignItems: 'center', gap: 10, background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left',
+        color: 'var(--text-1)',
+      }}>
+        <span style={{ fontSize: 18 }}>📊</span>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 14, fontWeight: 800 }}>메뉴 권한 → 권장 요금 자동 산출 <span style={{ fontSize: 11, color: '#9333ea', fontWeight: 700 }}>초고도화</span></div>
+          <div style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 1 }}>
+            각 메뉴의 가치 가중치 합 + AI premium → 플랜별 권장 월 요금. 전체 메뉴 가치 합 ${fmt(totalValue)}/월.
+          </div>
+        </div>
+        <span style={{ color: 'var(--text-3)', fontSize: 12 }}>{open ? '▼ 접기' : '▶ 펼치기'}</span>
+      </button>
+      {open && (
+        <div style={{ padding: '0 14px 14px' }}>
+          <div style={{
+            display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap',
+            padding: '8px 12px', borderRadius: 8, background: 'rgba(0,0,0,0.06)',
+            marginBottom: 10, fontSize: 12,
+          }}>
+            <span style={{ color: 'var(--text-2)', fontWeight: 700 }}>라운딩 정책:</span>
+            {[
+              { id: 'integer',    label: '정수 (예: $147)' },
+              { id: 'nearest-10', label: '10단위 (예: $150)' },
+              { id: 'nearest-9',  label: '9끝자리 (예: $149)' },
+              { id: 'raw',        label: '원본 (소수점)' },
+            ].map(r => (
+              <button key={r.id} onClick={() => setRoundTo(r.id)} style={{
+                padding: '4px 10px', borderRadius: 6, fontSize: 11, fontWeight: 700,
+                cursor: 'pointer',
+                background: roundTo === r.id ? '#1e3a8a' : 'rgba(255,255,255,0.04)',
+                color: roundTo === r.id ? '#fde047' : 'var(--text-2)',
+                border: roundTo === r.id ? '1px solid #fde047' : '1px solid rgba(255,255,255,0.08)',
+              }}>{r.label}</button>
+            ))}
+          </div>
+          <div style={{
+            display: 'grid', gridTemplateColumns: `repeat(${Math.min(sync.plans.length, 4)}, 1fr)`, gap: 10,
+          }}>
+            {sync.plans.map(p => {
+              const isCustom = p.is_custom_quote;
+              const positive = p.delta >= 0;
+              const tierMismatch = p.suggestedTier && p.plan_id !== p.suggestedTier
+                && !(p.plan_id === 'admin' && p.suggestedTier === 'enterprise');
+              return (
+                <div key={p.plan_id} style={{
+                  padding: '12px 14px', borderRadius: 10,
+                  background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(168,85,247,0.18)',
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+                    <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--text-1)' }}>{p.name}</span>
+                    <span style={{ fontSize: 10, color: 'var(--text-3)' }}>{p.plan_id}</span>
+                    {isCustom && <span style={{ padding: '1px 6px', borderRadius: 8, fontSize: 9, fontWeight: 700, background: 'rgba(251,146,60,0.15)', color: '#d97706' }}>맞춤</span>}
+                  </div>
+                  <div style={{ fontSize: 11, color: 'var(--text-3)', marginBottom: 2 }}>활성 메뉴 {p.enabledCount}개</div>
+                  <div style={{ fontSize: 11, color: 'var(--text-2)', marginBottom: 8 }}>
+                    현재 <strong style={{ color: 'var(--text-1)' }}>${fmt(p.currentMonthly)}</strong>/월
+                  </div>
+                  <div style={{
+                    padding: '6px 10px', borderRadius: 6, marginBottom: 6,
+                    background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.22)',
+                  }}>
+                    <div style={{ fontSize: 10, color: 'var(--text-3)', fontWeight: 600 }}>권장 월 요금</div>
+                    <div style={{ fontSize: 18, fontWeight: 900, color: '#16a34a' }}>${fmt(p.recommendedMonthly)}</div>
+                    <div style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 2 }}>
+                      기본 ${fmt(p.baseSum)} + AI premium ${fmt(p.aiPremiumAdded)}
+                    </div>
+                  </div>
+                  {/* delta */}
+                  {!isCustom && (
+                    <div style={{
+                      fontSize: 11, fontWeight: 700, marginBottom: 6,
+                      color: positive ? '#16a34a' : '#dc2626',
+                    }}>
+                      {positive ? '↑' : '↓'} ${fmt(Math.abs(p.delta))}
+                      {p.deltaPct !== null && <span style={{ marginLeft: 4 }}>({positive ? '+' : ''}{p.deltaPct}%)</span>}
+                      <span style={{ color: 'var(--text-3)', fontWeight: 500, marginLeft: 4 }}>vs 현재</span>
+                    </div>
+                  )}
+                  {/* category breakdown bar */}
+                  <div style={{ display: 'grid', gap: 2, marginBottom: 6, fontSize: 10 }}>
+                    {[
+                      { k: 'core',       label: 'Core',       color: '#94a3b8' },
+                      { k: 'standard',   label: 'Standard',   color: '#4f46e5' },
+                      { k: 'premium',    label: 'Premium',    color: '#16a34a' },
+                      { k: 'enterprise', label: 'Enterprise', color: '#9333ea' },
+                    ].map(cat => p.categoryBreakdown?.[cat.k] > 0 && (
+                      <div key={cat.k} style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+                        <span style={{ width: 8, height: 8, borderRadius: 2, background: cat.color }} />
+                        <span style={{ color: 'var(--text-3)', minWidth: 64 }}>{cat.label}</span>
+                        <span style={{ color: 'var(--text-2)', fontFamily: 'monospace', fontSize: 10 }}>
+                          ${fmt(p.categoryBreakdown[cat.k])}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  {/* tier 분류 제안 */}
+                  {tierMismatch && (
+                    <div style={{
+                      fontSize: 10, padding: '4px 8px', borderRadius: 4,
+                      background: 'rgba(251,146,60,0.10)', border: '1px solid rgba(251,146,60,0.25)',
+                      color: '#d97706', marginBottom: 6,
+                    }}>
+                      💡 tier 분류 제안: <strong>{p.suggestedTier}</strong>
+                    </div>
+                  )}
+                  {/* 적용 버튼 */}
+                  {!isCustom && (
+                    <button
+                      onClick={() => onApply(p.plan_id, roundTo)}
+                      disabled={applying === p.plan_id || p.delta === 0}
+                      style={{
+                        width: '100%', padding: '7px 12px', borderRadius: 7, border: 'none',
+                        background: p.delta === 0 ? 'rgba(255,255,255,0.06)' : 'linear-gradient(135deg,#7c3aed,#9333ea)',
+                        color: p.delta === 0 ? 'var(--text-3)' : '#fff',
+                        fontSize: 12, fontWeight: 800,
+                        cursor: (applying === p.plan_id || p.delta === 0) ? 'default' : 'pointer',
+                        opacity: applying === p.plan_id ? 0.6 : 1,
+                      }}
+                      title={`권장가 $${fmt(p.recommendedMonthly)} 를 1m 가격에 적용 + 다른 기간 자동 산출`}
+                    >
+                      {applying === p.plan_id ? '적용 중…' : (p.delta === 0 ? '✓ 권장가 일치' : '⚡ 권장가 적용')}
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          <div style={{
+            marginTop: 10, padding: '8px 12px', borderRadius: 6, fontSize: 11, lineHeight: 1.6,
+            background: 'rgba(0,0,0,0.06)', color: 'var(--text-2)',
+          }}>
+            💡 <strong>작동 원리</strong>: 각 메뉴의 USD 가치 (관리자 설정) + AI 가중치 합 = 권장 월 요금.
+            <strong>🔐 메뉴 접근 권한</strong> 탭에서 메뉴를 추가/제거하면 권장가가 실시간 재계산됩니다.
+            <strong>⚡ 권장가 적용</strong> 버튼 클릭 시 1m 가격 → 다른 기간 (3/6/12개월) 자동 cascade (할인율 유지).
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function MenuAccessTree({ plans, menus, access, setMenuAccess, setMenuAccessBulk, togglePlanAll, saveAllAccess, saving, dirty }) {
   const t = useT();
   const [activePlanIdx, setActivePlanIdx] = useState(0);
