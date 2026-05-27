@@ -483,9 +483,9 @@ function PlanPricing() {
       await requestJsonAuth(`/v424/admin/plans/${encodeURIComponent(plan.plan_id)}`, 'PUT', {
         name: plan.name,
         description: plan.description,
-        // 가격 필드는 step 2 에서 동기화되지만 enterprise(맞춤견적) 의 NULL 처리 위해 명시 전송
-        price_usd: plan.is_custom_quote ? null : plan.price_usd ?? null,
-        price_annual_usd: plan.is_custom_quote ? null : plan.price_annual_usd ?? null,
+        // 172차: Enterprise(맞춤견적) 도 admin 견적가 입력 가능 (NULL 강제 제거)
+        price_usd: plan.price_usd ?? null,
+        price_annual_usd: plan.price_annual_usd ?? null,
         price_id_monthly: plan.price_id_monthly ?? '',
         price_id_annual: plan.price_id_annual ?? '',
         discount_pct: plan.discount_pct ?? 20,
@@ -497,24 +497,22 @@ function PlanPricing() {
         is_recommended: !!plan.is_recommended,
       });
 
-      // 2) 기간별 가격 저장 (맞춤견적 플랜은 skip — 가격 없음)
-      if (!plan.is_custom_quote) {
-        const ppForPlan = periodPricing[plan.plan_id] || {};
-        const periodsPayload = {};
-        for (const m of Object.keys(ppForPlan).map(Number).filter(Number.isFinite)) {
-          const cfg = ppForPlan[m] || {};
-          periodsPayload[m] = {
-            price_usd: cfg.price_usd ?? null,
-            discount_pct: cfg.discount_pct ?? 0,
-            paddle_price_id: cfg.paddle_price_id ?? '',
-            is_active: cfg.is_active !== false,
-          };
-        }
-        await requestJsonAuth(
-          `/v424/admin/plans/${encodeURIComponent(plan.plan_id)}/period-pricing`,
-          'PUT', { periods: periodsPayload },
-        );
+      // 2) 기간별 가격 저장 — 172차: Enterprise 도 admin 견적가 등록 가능
+      const ppForPlan = periodPricing[plan.plan_id] || {};
+      const periodsPayload = {};
+      for (const m of Object.keys(ppForPlan).map(Number).filter(Number.isFinite)) {
+        const cfg = ppForPlan[m] || {};
+        periodsPayload[m] = {
+          price_usd: cfg.price_usd ?? null,
+          discount_pct: cfg.discount_pct ?? 0,
+          paddle_price_id: cfg.paddle_price_id ?? '',
+          is_active: cfg.is_active !== false,
+        };
       }
+      await requestJsonAuth(
+        `/v424/admin/plans/${encodeURIComponent(plan.plan_id)}/period-pricing`,
+        'PUT', { periods: periodsPayload },
+      );
 
       await fetchPlans();
       await fetchPeriodPricing();
@@ -1830,38 +1828,43 @@ function PeriodPricingPanel({ plan, periodPricing, updatePeriodField, addPeriod,
         💡 <strong>월간 요금 (1개월)</strong> 이 SSOT. 입력 즉시 모든 기간의 <strong>기본 결제액 = 개월수 × 월간요금</strong> 으로 실시간 산출됩니다. 각 기간 할인율(%) 은 admin 자유 설정 → 최종 결제액 자동 계산. 통화 USD 고정 (Paddle MoR).
       </div>
 
-      {/* 기간 추가 폼 */}
-      {!isCustom && (
-        <form onSubmit={handleAddSubmit} style={{
-          display: 'flex', gap: 8, alignItems: 'center', marginBottom: 14,
-          padding: '10px 12px', borderRadius: 8,
-          background: 'rgba(34,197,94,0.04)', border: '1px dashed rgba(34,197,94,0.25)',
-        }}>
-          <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-2)' }}>＋ 기간 추가</span>
-          <input
-            type="number" min="1" max="60"
-            value={newPeriodInput}
-            onChange={e => setNewPeriodInput(e.target.value)}
-            placeholder="개월수 (1~60)"
-            style={{ ...inputS, width: 160 }}
-          />
-          <button type="submit" disabled={!newPeriodInput} style={{
-            padding: '7px 16px', borderRadius: 7, border: 'none',
-            background: newPeriodInput ? 'linear-gradient(135deg,#16a34a,#22c55e)' : 'rgba(255,255,255,0.06)',
-            color: newPeriodInput ? '#fff' : '#94a3b8',
-            fontSize: 13, fontWeight: 800, cursor: newPeriodInput ? 'pointer' : 'default',
-          }}>＋ 추가</button>
-          <div style={{ flex: 1 }} />
-          <span style={{ fontSize: 11, color: 'var(--text-3)' }}>
-            추천: 2, 9, 18, 24, 36개월 등 자유 설정
-          </span>
-        </form>
-      )}
+      {/* 기간 추가 폼 — Enterprise(맞춤견적) 도 활성 (172차 사용자 요청: 견적가 등록 가능) */}
+      <form onSubmit={handleAddSubmit} style={{
+        display: 'flex', gap: 8, alignItems: 'center', marginBottom: 14,
+        padding: '10px 12px', borderRadius: 8,
+        background: isCustom ? 'rgba(168,85,247,0.06)' : 'rgba(34,197,94,0.04)',
+        border: isCustom ? '1px dashed rgba(168,85,247,0.35)' : '1px dashed rgba(34,197,94,0.25)',
+      }}>
+        <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)' }}>
+          ＋ {isCustom ? '견적가 등록 (기간별)' : '기간 추가'}
+        </span>
+        <input
+          type="number" min="1" max="60"
+          value={newPeriodInput}
+          onChange={e => setNewPeriodInput(e.target.value)}
+          placeholder="개월수 (1~60)"
+          style={{ ...inputS, width: 160 }}
+        />
+        <button type="submit" disabled={!newPeriodInput} style={{
+          padding: '7px 16px', borderRadius: 7, border: 'none',
+          background: newPeriodInput
+            ? (isCustom ? 'linear-gradient(135deg,#7c3aed,#a855f7)' : 'linear-gradient(135deg,#16a34a,#22c55e)')
+            : 'rgba(255,255,255,0.06)',
+          color: newPeriodInput ? '#fff' : '#94a3b8',
+          fontSize: 13, fontWeight: 800, cursor: newPeriodInput ? 'pointer' : 'default',
+        }}>＋ {isCustom ? '견적가 추가' : '추가'}</button>
+        <div style={{ flex: 1 }} />
+        <span style={{ fontSize: 11, color: 'var(--text-3)' }}>
+          {isCustom
+            ? '맞춤 견적가를 기간별로 직접 입력하세요 (Paddle Checkout 또는 수동 결제 안내)'
+            : '추천: 2, 9, 18, 24, 36개월 등 자유 설정'}
+        </span>
+      </form>
 
-      {/* 기간 매트릭스 */}
+      {/* 기간 매트릭스 — Enterprise(맞춤견적) 도 admin 이 견적가/요금 입력 가능 (172차 사용자 요청) */}
       {sortedMonths.length === 0 ? (
         <div style={{ padding: 20, textAlign: 'center', color: 'var(--text-3)', fontSize: 13, fontStyle: 'italic' }}>
-          {isCustom ? '맞춤 견적 플랜 — 기간별 가격 없음' : '등록된 기간이 없습니다. 상단에서 기간을 추가하세요.'}
+          {isCustom ? '맞춤 견적 플랜 — 상단 [+ 기간 추가] 로 견적가 등록' : '등록된 기간이 없습니다. 상단에서 기간을 추가하세요.'}
         </div>
       ) : (() => {
         // 172차: 월간 요금이 SSOT. 1m 가격 변경 시 모든 기간 기본 결제액 = months × monthly 실시간 갱신.
@@ -1905,7 +1908,7 @@ function PeriodPricingPanel({ plan, periodPricing, updatePeriodField, addPeriod,
                   </td>
                   <td style={{ padding: '8px 6px' }}>
                     {isBase ? (
-                      <input type="number" step="0.01" min="0" disabled={isCustom}
+                      <input type="number" step="0.01" min="0" disabled={false /* 172차: Enterprise 도 admin 견적가 입력 가능 */}
                         value={cfg.price_usd ?? ''}
                         onChange={e => updatePeriodField(plan.plan_id, 1, { price_usd: e.target.value === '' ? null : Number(e.target.value) })}
                         style={{ ...inputS, fontWeight: 700, color: '#22c55e' }}
@@ -1923,7 +1926,7 @@ function PeriodPricingPanel({ plan, periodPricing, updatePeriodField, addPeriod,
                     )}
                   </td>
                   <td style={{ padding: '8px 6px' }}>
-                    <input type="number" step="1" min="0" max="80" disabled={isCustom || isBase}
+                    <input type="number" step="1" min="0" max="80" disabled={isBase /* 172차: 1m 은 SSOT (할인 0%), 그 외 Enterprise 포함 활성 */}
                       value={cfg.discount_pct ?? 0}
                       onChange={e => updatePeriodField(plan.plan_id, months, { discount_pct: e.target.value === '' ? 0 : Number(e.target.value) })}
                       style={{ ...inputS, opacity: isBase ? 0.4 : 1, textAlign: 'center' }}
@@ -1950,7 +1953,7 @@ function PeriodPricingPanel({ plan, periodPricing, updatePeriodField, addPeriod,
                     {isBase ? (
                       <span style={{ fontSize: 10, color: 'var(--text-3)', fontStyle: 'italic' }}>기준</span>
                     ) : (
-                      <button onClick={() => removePeriod(plan.plan_id, months)} disabled={isCustom} style={{
+                      <button onClick={() => removePeriod(plan.plan_id, months)} disabled={false /* 172차: Enterprise 도 admin 견적가 입력 가능 */} style={{
                         padding: '3px 8px', borderRadius: 6,
                         background: 'rgba(248,113,113,0.10)', color: '#f87171',
                         border: '1px solid rgba(248,113,113,0.28)',

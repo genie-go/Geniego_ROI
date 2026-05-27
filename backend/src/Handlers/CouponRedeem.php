@@ -80,6 +80,22 @@ final class CouponRedeem
             return self::json($res, ['error' => 'coupon_already_used', 'message' => '이미 사용한 쿠폰입니다.'], 403);
         }
 
+        // 4.5) admin / enterprise downgrade 방지 (172차 P0-C.3 긴급 fix)
+        //   admin/enterprise plan 인 user 가 쿠폰으로 starter/pro 받으면 권한 손실 발생.
+        //   이런 경우 거부 — 사용자 명시 요청 시 admin 이 직접 plan 조정.
+        $protectedPlans = ['admin', 'enterprise'];
+        $userPlanStmt = $pdo->prepare('SELECT plan FROM app_user WHERE id = ?');
+        $userPlanStmt->execute([$userId]);
+        $userCurrentPlan = (string)$userPlanStmt->fetchColumn();
+        if (in_array($userCurrentPlan, $protectedPlans, true)) {
+            return self::json($res, [
+                'error' => 'protected_plan',
+                'message' => "현재 {$userCurrentPlan} 플랜이라 쿠폰을 적용하면 권한이 다운그레이드됩니다. 관리자에게 문의하세요.",
+                'currentPlan' => $userCurrentPlan,
+                'couponPlan'  => $coupon['plan'],
+            ], 403);
+        }
+
         // 5) 적용 — subscription_expires_at 갱신 + free_coupons.use_count++
         $duration = (int)$coupon['duration_days'];
         $plan     = (string)$coupon['plan'];
