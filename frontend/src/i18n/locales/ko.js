@@ -43316,7 +43316,7 @@ export default {
 
     "scanNotif": "API 키 스캔 완료",
 
-    "scanNotifBody": "개 채널 분석 완료 — 개 키 감지",
+    "scanNotifBody": "{{total}}개 채널 분석 완료 — {{found}}개 키 감지",
 
     "syncNotif": "자동 연동 완료",
 
@@ -43324,7 +43324,15 @@ export default {
 
     "issueNotif": "발급 신청 완료",
 
-    "issueNotifBody": "1~3 영업일 후 이메일로 키가 발송됩니다."
+    "issueNotifBody": "1~3 영업일 후 이메일로 키가 발송됩니다.",
+
+    "autoSyncOk": "{{ch}} 자동 연동 완료",
+
+    "autoSyncFail": "{{ch}} 연결 실패",
+
+    "autoSyncFailHint": "API 키 등록 상태를 확인하세요",
+
+    "capabilitiesActivated": "{{caps}} 기능이 활성화되었습니다"
 
   },
 
@@ -44363,6 +44371,88 @@ export default {
     permRead: "열람조회 (Read)",
     permCreate: "개체생성 (Create)",
     permUpdate: "수정승인 (Update)",
+  },
+
+
+  // 177차 PM 4.E TOP 1 본체: ApiKeys 재설계 ak namespace (last-key-wins)
+  ak: {
+    heroTitle: "API 키 관리 허브",
+    heroDesc: "모든 채널의 API 자격증명을 통합 관리하고, 연결 테스트와 신규 발급 신청을 수행합니다",
+    addBtn: "키 추가",
+    reload: "새로고침",
+    demoBanner: "데모 모드 — 운영 DB 에 저장되지 않습니다",
+    demoLocked: "데모 모드에서는 사용할 수 없습니다",
+    kpiTotal: "전체 키",
+    kpiActive: "활성",
+    kpiOk: "테스트 통과",
+    kpiErrored: "테스트 실패",
+    tabOverview: "개요",
+    tabActive: "활성 키",
+    tabHistory: "테스트 이력",
+    tabSettings: "설정",
+    live: "활성",
+    empty: "미등록",
+    testBtn: "테스트",
+    testing: "테스트 중…",
+    applyBtn: "발급 신청",
+    deleteBtn: "삭제",
+    confirmDelete: "이 자격증명을 삭제하시겠습니까?",
+    saved: "자격증명 저장 완료",
+    deleted: "자격증명 삭제 완료",
+    applied: "발급 신청 완료 (티켓 {{ticket}})",
+    keyCount: "{{count}} 개 키",
+    statusUntested: "미테스트",
+    colChannel: "채널",
+    colKeyName: "키 이름",
+    colValue: "값 (마스킹)",
+    colStatus: "상태",
+    colLastTest: "마지막 테스트",
+    colActions: "작업",
+    historyTitle: "최근 테스트 이력 (top 30)",
+    historyEmpty: "테스트 이력이 없습니다",
+    settingsTitle: "자격증명 정책",
+    settingsDesc: "저장된 자격증명의 자동 회전 및 알림 정책",
+    settingItem1: "자동 회전 스케줄 — 추후 구현 (백엔드 endpoint 신설 대기)",
+    settingItem2: "만료 알림 — 추후 구현",
+    settingItem3: "키별 사용량 분석 — 추후 구현",
+    settingItem4: "취소 및 재발급 — 추후 구현",
+    addModalTitle: "자격증명 추가",
+    fieldChannel: "채널",
+    fieldCredType: "유형",
+    fieldLabel: "라벨 (선택)",
+    fieldKeyName: "키 이름 *",
+    fieldKeyValue: "키 값 (저장은 평문 / 조회는 마스킹)",
+    fieldNote: "메모 (선택)",
+    requiredFields: "채널과 키 이름은 필수입니다",
+    save: "저장",
+    saving: "저장 중…",
+    cancel: "취소",
+    applyModalTitle: "{{ch}} 키 발급 신청",
+    applyModalSub: "발급된 키는 1~3 영업일 이내 이메일로 전송됩니다",
+    applyName: "이름",
+    applyEmail: "이메일 *",
+    applyCompany: "회사",
+    applyBiznum: "사업자 번호",
+    applyPhone: "전화",
+    applySubmit: "신청",
+    applying: "신청 중…",
+    emailRequired: "이메일은 필수입니다",
+    loading: "불러오는 중…",
+    emptyTitle: "등록된 자격증명이 없습니다",
+    emptyHint: "상단의 '키 추가' 버튼을 누르거나 아래 채널에서 발급 신청하세요",
+    errorTitle: "오류가 발생했습니다",
+    retry: "다시 시도",
+  },
+
+
+  // 177차 PM 4.E TOP 2 강화: ProfileEditModal 운영/데모 분기 5 keys (last-key-wins)
+  profileExt: {
+    sessionExpired: "세션이 만료되었습니다. 다시 로그인해 주세요.",
+    invalidInput: "입력값이 올바르지 않습니다.",
+    savedLocalDemo: "프로필이 로컬에 저장되었습니다 (데모 모드).",
+    savedLocalOffline: "프로필이 로컬에 저장되었습니다 (오프라인).",
+    networkError: "네트워크 오류가 발생했습니다. 다시 시도해 주세요.",
+    saveFail: "프로필 저장 실패.",
   },
 
 };

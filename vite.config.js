@@ -21,15 +21,30 @@ export default defineConfig({
     port: 5173,
     proxy: (() => {
       const backend = process.env.VITE_BACKEND || 'http://localhost:8080';
-      const mk = () => ({ target: backend, changeOrigin: true, secure: false });
+      // 177차 fix: bypass 함수로 SPA route 차단 — vite 의 prefix match 로 /api-keys 같은
+      // frontend route 가 backend proxy 되던 문제 해소.
+      const SPA_ROUTES = ['/api-keys'];
+      const isSpaRoute = (url) => {
+        const p = (url || '').split('?')[0];
+        return SPA_ROUTES.some(r => p === r || p.startsWith(r + '/'));
+      };
+      const mk = () => ({
+        target: backend,
+        changeOrigin: true,
+        secure: false,
+        bypass: (req) => isSpaRoute(req.url) ? req.url : null,
+      });
       return {
-        // ── 로컬 개발 (XAMPP): /api → localhost:8080 ─────────────────────
-        // ── 운영 직접 검증 (cc audit): VITE_BACKEND=https://roi.genie-go.com npx vite ──
         '/api':  mk(),
         '/auth': mk(),
         '/v3':   mk(),
         '/v4':   mk(),
         '/v419': mk(),
+        '/v420': mk(),
+        '/v421': mk(),
+        '/v422': mk(),
+        '/v423': mk(),
+        '/v424': mk(),
       };
     })(),
     // HMR 최적화
