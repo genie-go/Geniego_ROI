@@ -13404,6 +13404,11 @@ export default {
   },
 
   attrData: {
+    // 176차 PM8 S6-P1: Live channel/touches wire-up
+    liveChannelPerf: "Live 채널 성과 (실 backend)",
+    channel: "채널",
+    spend: "광고비",
+    recentTouches: "최근 터치 (실 backend)",
     title: "마케팅 어트리뷰션 — 실시간 ML 엔진 v3.0",
     subtitle: "정밀 Shapley (2^n) · 베이지안 MMM · 마르코프 체인 · 증분 업리프트 (이중 ML) · 톰슨 샘플링 A/B",
     badgeShapley: "정밀 Shapley 2^n",

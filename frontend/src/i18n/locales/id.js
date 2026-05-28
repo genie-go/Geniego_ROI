@@ -31230,4 +31230,13 @@ export default {
     enterpriseEngine: "Enterprise AI Engine",
   },
 
+
+  // 176차 PM8 S6-P1: attrData live channel/touches append (last-key-wins, append-only)
+  attrData: {
+    liveChannelPerf: "Live Channel Performance (real backend)",
+    channel: "Channel",
+    spend: "Spend",
+    recentTouches: "Recent Touches (real backend)",
+  },
+
 };

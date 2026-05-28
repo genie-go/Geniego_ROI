@@ -200,6 +200,9 @@ const _IS_DEMO_ENV = (() => {
 let _JOURNEYS = _IS_DEMO_ENV ? buildDemoJourneys(null) : [];
 let TS_DATA   = _IS_DEMO_ENV ? buildDemoTimeSeries(null) : { spends: {}, revenue: [] };
 let _DEMO_INITIALIZED = !_IS_DEMO_ENV; /* production: skip demo init forever */
+/* ── 176차 PM8 S6-P1: /v424/attribution/channels + /touches live ────── */
+let _CHANNELS_LIVE = []; /* [{channel, spend, revenue, roas, ctr, impressions, clicks, conversions, days}] */
+let _TOUCHES_LIVE  = { by_channel: [], recent: [], total: 0 };
 
 /* ── 1. EXACT SHAPLEY TAB ───────────────────────────────────── */
 const ShapleyTab = memo(function ShapleyTab() {
@@ -616,8 +619,59 @@ const AttributionTab = memo(function AttributionTab() {
           ))}
         </div>
       </div>
+      {/* 176차 PM8 S6-P1: Live channel performance + touches — 데이터 부재 시 자동 숨김 */}
+      {(_CHANNELS_LIVE.length > 0 || _TOUCHES_LIVE.recent.length > 0) && (
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+          {_CHANNELS_LIVE.length > 0 && (
+            <div className="card card-glass">
+              <div style={{ fontWeight: 900, fontSize: 13, marginBottom: 14 }}>📡 {t('attrData.liveChannelPerf', 'Live 채널 성과 (실 backend)')}</div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr 1fr 1fr', gap: 6, fontSize: 10, color: 'var(--text-3)', fontWeight: 700, marginBottom: 6 }}>
+                <span>{t('attrData.channel', '채널')}</span>
+                <span style={{ textAlign: 'right' }}>{t('attrData.spend', 'Spend')}</span>
+                <span style={{ textAlign: 'right' }}>ROAS</span>
+                <span style={{ textAlign: 'right' }}>CTR %</span>
+              </div>
+              {_CHANNELS_LIVE.slice(0, 8).map(c => {
+                const color = CH_COLORS[c.channel] || '#4f8ef7';
+                return (
+                  <div key={c.channel} style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr 1fr 1fr', gap: 6, padding: '6px 0', borderBottom: '1px solid rgba(99,140,255,0.05)', fontSize: 11, alignItems: 'center' }}>
+                    <span style={{ color, fontWeight: 700 }}>{CH_LABELS[c.channel] || c.channel}</span>
+                    <span style={{ textAlign: 'right', fontFamily: 'monospace' }}>{fmtC(Math.round(c.spend || 0))}</span>
+                    <span style={{ textAlign: 'right', fontWeight: 700, color: (c.roas || 0) >= 2 ? '#22c55e' : (c.roas || 0) >= 1 ? '#f59e0b' : '#ef4444' }}>{(c.roas || 0).toFixed(2)}x</span>
+                    <span style={{ textAlign: 'right', fontFamily: 'monospace', color: 'var(--text-2)' }}>{(c.ctr || 0).toFixed(2)}</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+          {_TOUCHES_LIVE.recent.length > 0 && (
+            <div className="card card-glass">
+              <div style={{ fontWeight: 900, fontSize: 13, marginBottom: 14 }}>
+                👁️ {t('attrData.recentTouches', '최근 touch (실 backend)')}
+                <span style={{ marginLeft: 8, fontSize: 10, fontWeight: 600, color: 'var(--text-3)' }}>total {_TOUCHES_LIVE.total}</span>
+              </div>
+              <div style={{ maxHeight: 240, overflowY: 'auto' }}>
+                {_TOUCHES_LIVE.recent.slice(0, 12).map((tch, i) => {
+                  const color = CH_COLORS[tch.channel] || '#4f8ef7';
+                  return (
+                    <div key={i} style={{ padding: '6px 8px', borderBottom: '1px solid rgba(99,140,255,0.04)', fontSize: 10 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 }}>
+                        <span style={{ color, fontWeight: 700, fontSize: 11 }}>{CH_LABELS[tch.channel] || tch.channel || '—'}</span>
+                        <span style={{ color: 'var(--text-3)', fontSize: 9 }}>{tch.touched_at ? String(tch.touched_at).slice(0, 16) : ''}</span>
+                      </div>
+                      <div style={{ color: 'var(--text-3)', fontSize: 9, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {[tch.utm_source, tch.utm_medium, tch.utm_campaign].filter(Boolean).join(' · ') || '(no utm)'}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
-  
+
 );
 });
 
@@ -1223,9 +1277,12 @@ export default function Attribution() {
     if (!_IS_DEMO_ENV && _JOURNEYS.length === 0) {
       (async () => {
         try {
-          const [jRes, tsRes] = await Promise.all([
+          /* 176차 PM8 S6-P1: 4 endpoint 병렬 fetch — journeys / time-series / channels / touches */
+          const [jRes, tsRes, chRes, tcRes] = await Promise.all([
             getJsonAuth('/v424/attribution/journeys').catch(() => null),
             getJsonAuth('/v424/attribution/time-series').catch(() => null),
+            getJsonAuth('/v424/attribution/channels').catch(() => null),
+            getJsonAuth('/v424/attribution/touches').catch(() => null),
           ]);
           if (jRes && Array.isArray(jRes.journeys) && jRes.journeys.length > 0) {
             _JOURNEYS = jRes.journeys.map(j => ({ path: j.path || [], revenue: 0 }));
@@ -1236,6 +1293,16 @@ export default function Attribution() {
               spends[ch] = (arr || []).map(p => p.spend || 0);
             });
             TS_DATA = { spends, revenue: [] };
+          }
+          if (chRes && Array.isArray(chRes.channels)) {
+            _CHANNELS_LIVE = chRes.channels;
+          }
+          if (tcRes && (Array.isArray(tcRes.by_channel) || Array.isArray(tcRes.recent))) {
+            _TOUCHES_LIVE = {
+              by_channel: Array.isArray(tcRes.by_channel) ? tcRes.by_channel : [],
+              recent: Array.isArray(tcRes.recent) ? tcRes.recent : [],
+              total: Number(tcRes.total) || 0,
+            };
           }
           setDataReady(true);
         } catch (_e) { /* 빈 데이터 — EmptyState 노출 */ }
