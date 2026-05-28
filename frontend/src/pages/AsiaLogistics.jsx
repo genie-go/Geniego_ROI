@@ -180,7 +180,7 @@ export default function AsiaLogistics() {
                 <div className="card fade-up">
                     <div style={{ fontWeight:800, fontSize:14, marginBottom:14 }}>✈️ 국제 물류 루트 매트릭스</div>
                     <table className="table">
-                        <thead><tr><th>출발지</th><th>도착지</th><th>운송 방식</th><th>소요일</th><th>Cost/kg</th><th>비고</th></tr></thead>
+                        <thead><tr><th>출발지</th><th>도착지</th><th>운송 방식</th><th>소요일</th><th>{t("asiaLogisticsPage.costPerKg", "kg당 비용")}</th><th>비고</th></tr></thead>
                         <tbody>
                             {ROUTE_MATRIX.map((r, i) => (
                                 <tr key={i}>
@@ -201,7 +201,7 @@ export default function AsiaLogistics() {
                 <div className="card fade-up">
                     <div style={{ fontWeight:800, fontSize:14, marginBottom:14 }}>📋 Countryper 관세·규제 현황</div>
                     <table className="table">
-                        <thead><tr><th>Country</th><th>면세 한도</th><th>세율</th><th>특이사항</th><th>주요 Platform</th></tr></thead>
+                        <thead><tr><th>{t("asiaLogisticsPage.country", "국가")}</th><th>면세 한도</th><th>세율</th><th>특이사항</th><th>주요 Platform</th></tr></thead>
                         <tbody>
                             {REGULATIONS.map((r, i) => (
                                 <tr key={i}>
@@ -235,7 +235,7 @@ export default function AsiaLogistics() {
                                 <div style={{ fontSize:10, color:'var(--text-3)', margin:'10px 0 6px', fontWeight:700 }}>단점</div>
                                 {fc.cons.map(c => <div key={c} style={{ fontSize:11, color:'#ef4444', marginBottom:3 }}>✗ {c}</div>)}
                                 <div style={{ marginTop:14, padding:'8px 12px', background:'rgba(79,142,247,0.08)', borderRadius:8 }}>
-                                    <div style={{ fontSize:9, color:'var(--text-3)', fontWeight:700 }}>Recommend Apply</div>
+                                    <div style={{ fontSize:9, color:'var(--text-3)', fontWeight:700 }}>{t("asiaLogisticsPage.recommendApply", "추천 적용")}</div>
                                     <div style={{ fontSize:11, color:'#4f8ef7', fontWeight:700, marginTop:2 }}>{fc.recommend}</div>
                                 </div>
                             </div>
@@ -289,7 +289,7 @@ export default function AsiaLogistics() {
                     <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:14 }}>
                         {carriers3pl.map(c => (
                             <div key={c.id} style={{ background: 'var(--surface)', borderRadius:14, padding:18, border:`1px solid ${c.color}25`, position:'relative' }}>
-                                <button onClick={() => removeCarrier(c.id)} title="Delete"
+                                <button onClick={() => removeCarrier(c.id)} title={t("asiaLogisticsPage.delete", "삭제")}
                                     style={{ position:'absolute', top:10, right:10, width:22, height:22, borderRadius:'50%', border:'none', background:'rgba(239,68,68,0.15)', color:'#ef4444', cursor:'pointer', fontSize:12, display:'flex', alignItems:'center', justifyContent:'center' }}>×</button>
                                 <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12, paddingRight:28 }}>
                                     <div style={{ fontSize:16, fontWeight:900 }}>{c.icon} {c.name}</div>

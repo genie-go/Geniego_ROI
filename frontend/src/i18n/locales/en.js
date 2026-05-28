@@ -26446,4 +26446,45 @@ export default {
     material: "Material"
   },
 
+
+  // 176차 PM8-Total B4 — Top 5 페이지 hardcoded 영문 fallback (사용자 영향)
+  eventNormPage: {
+    date: "Date",
+    eventType: "Event Type",
+    summaryNoData: "No summary data",
+    ugcEventNone: "No UGC events",
+    totalRawEvent: "Total Raw Events",
+    totalAdSpend: "Total Ad Spend",
+    branded: "Branded",
+  },
+  rulesEditorPage: {
+    draftCreate: "Create Draft",
+    approval: "Approval",
+    source: "Source",
+    destination: "Destination",
+    save: "Save",
+    delete: "Delete",
+  },
+  whatsappPage: {
+    name: "Name",
+    language: "Language",
+    category: "Category",
+    status: "Status",
+  },
+  asiaLogisticsPage: {
+    errorOccurred: "An error occurred",
+    costPerKg: "Cost/kg",
+    country: "Country",
+    recommendApply: "Recommend Apply",
+    apiIntegrationSettings: "API Integration Settings",
+    delete: "Delete",
+  },
+  aiInsightsPage: {
+    realtimeGuardrails: "AI Real-time Guardrails",
+    actualData: "Actual Data",
+    mlPrediction: "ML Prediction",
+    copilotEngine: "AI Copilot Engine",
+    enterpriseEngine: "Enterprise AI Engine",
+  },
+
 };

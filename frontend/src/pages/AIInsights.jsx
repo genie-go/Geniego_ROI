@@ -135,7 +135,7 @@ const InsightCardsTab = memo(function InsightCardsTab({ live, t, connectedChanne
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 20px', borderRadius: 12, background: 'linear-gradient(90deg, rgba(168,85,247,0.1), rgba(79,142,247,0.05))', border: '1px solid rgba(168,85,247,0.2)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     <span style={{ fontSize: 18 }}>👁️‍🗨️</span>
-                    <span style={{ fontSize: 13, color: '#e2e8f0', fontWeight: 700 }}>AI Real-time Guardrails</span>
+                    <span style={{ fontSize: 13, color: '#e2e8f0', fontWeight: 700 }}>{t("aiInsightsPage.realtimeGuardrails", "AI 실시간 가드레일")}</span>
                 </div>
                 {connectedChannels.length > 0 && (
                     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
@@ -344,7 +344,7 @@ const GuideTab = memo(function GuideTab({ t }) {
         <div style={{ display: 'grid', gap: 24, gridTemplateColumns: 'minmax(300px, 1fr) 2fr' }}>
             <div style={{ ...CARD, background: `linear-gradient(145deg, ${ACCENT}15, transparent)`, borderColor: ACCENT + '40', textAlign: 'center', padding: 40 }}>
                 <div style={{ fontSize: 56, marginBottom: 16 }}>🧠</div>
-                <div style={{ fontWeight: 900, fontSize: 24, color: '#f8fafc', marginBottom: 8 }}>AI Copilot Engine</div>
+                <div style={{ fontWeight: 900, fontSize: 24, color: '#f8fafc', marginBottom: 8 }}>{t("aiInsightsPage.copilotEngine", "AI 코파일럿 엔진")}</div>
                 <div style={{ fontSize: 13, color: '#94a3b8', lineHeight: 1.6 }}>An enterprise-grade orchestration layer powered by deep learning. Automatically detects risks, forecasts constraints, and executes complex marketing adjustments at scale.</div>
             </div>
             <div style={{ display: 'grid', gap: 16 }}>
@@ -430,7 +430,7 @@ export default function AIInsights() {
                                 🤖
                             </div>
                             <div>
-                                <h1 style={{ margin: 0, fontSize: 28, fontWeight: 900, color: '#f8fafc', letterSpacing: -0.5 }}>Enterprise AI Engine</h1>
+                                <h1 style={{ margin: 0, fontSize: 28, fontWeight: 900, color: '#f8fafc', letterSpacing: -0.5 }}>{t("aiInsightsPage.enterpriseEngine", "엔터프라이즈 AI 엔진")}</h1>
                                 <p style={{ margin: '6px 0 0', fontSize: 14, color: '#94a3b8', maxWidth: 400, lineHeight: 1.5 }}>Autonomous orchestration, real-time predictive analytics, and automated decision-making.</p>
                             </div>
                         </div>

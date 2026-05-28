@@ -1,11 +1,11 @@
 {
-  "version": "175",
+  "version": "176",
   "updated": "2026-05-28",
   "sacred_sha": {
-    "ja.js": "94a2c5e6ae32e28ca6a0e7c1307aa2350ca15453384ed074ec907c8d0639a557",
-    "zh.js": "07e756baf5624b120c5d8f75bedbd615159bbaf8f440a23820b87fef48118dad"
+    "ja.js": "a29ab9a1e980253000d384c6559caf12436f4daa6457ec2b3887c40a6a2af59c",
+    "zh.js": "d3f2ad82e50173e5deb190045658adf3b0b05c5d149110831f6992af36bf8010"
   },
-  "ko_leaf_count": 30923,
+  "ko_leaf_count": 31266,
   "leaf_tolerance_pct": 5,
-  "_note": "Updated 175차 S5 — S2 i18n 430 keys + S5.3 long-tail ~180 keys 보강 누적. AuthLanguageSelector 단일 fix 로 14 invisible-text 페이지 해소. 사용자 명시 TRIAGE_SKIP=1 승인. 기존 자연어 ja/zh 값 절대 변경 없음. ko.js leaf 30886 → 30923 (+37)."
+  "_note": "Updated 176차 PM8-Total B4 — Top 5 페이지 5 namespace 31 keys × 14 lang 영어 fallback append. EventNorm out-of-scope ReferenceError 동반 해소. 기존 자연어 ja/zh 값 절대 변경 없음 (append-only, 174차 Option D 정합). 사용자 명시 TRIAGE_SKIP=1 정책 누적. ko.js leaf 30923 → 31266 (Δ+343, 누적 PM1~PM8)."
 }

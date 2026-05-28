@@ -114,6 +114,7 @@ const FALLBACK_SUMMARY = {};
 
 /* ─── Tab: Schema Diagram ────────────────────────────────── */
 function SchemaTab() {
+    const t = useT();
     return (
         <div style={{ display: "grid", gap: 20 }}>
             {/* Flow arrow */}
@@ -180,6 +181,7 @@ function SchemaTab() {
 
 /* ─── Tab: Raw Events ────────────────────────────────────── */
 function RawTab({ rows, loading, onSeed, onNormalize }) {
+    const t = useT();
     const [expanded, setExpanded] = useState(null);
     return (
         <div style={{ display: "grid", gap: 12 }}>
@@ -243,6 +245,7 @@ const NORM_COLS = {
 };
 
 function NormTab({ rows, loading }) {
+    const t = useT();
     const [domain, setDomain] = useState("all");
     const filtered = domain === "all" ? rows : rows.filter(r => r.domain === domain);
     const cols = domain === "all"
@@ -266,7 +269,7 @@ function NormTab({ rows, loading }) {
                     <table className="table" style={{ fontSize: 10, minWidth: 700 }}>
                         <thead>
                             <tr>
-                                <th>ID</th><th>Date</th><th>Event Type</th><th>{t('auto.pprh01', '도메인')}</th>
+                                <th>ID</th><th>{t("eventNormPage.date", "날짜")}</th><th>{t("eventNormPage.eventType", "이벤트 유형")}</th><th>{t('auto.pprh01', '도메인')}</th>
                                 {cols.map(c => <th key={c}>{c.replace(/_/g, " ")}</th>)}
                             </tr>
                         </thead>
@@ -299,7 +302,8 @@ function NormTab({ rows, loading }) {
 
 /* ─── Tab: Summary ───────────────────────────────────────── */
 function SummaryTab({ summary }) {
-    if (!summary) return <div style={{ padding: 40, textAlign: "center", color: "var(--text-3)" }}>Summary No data</div>;
+    const t = useT();
+    if (!summary) return <div style={{ padding: 40, textAlign: "center", color: "var(--text-3)" }}>{t("eventNormPage.summaryNoData", "요약 데이터 없음")}</div>;
     const { raw, normalized } = summary;
     const StatBox = ({ label, value, color }) => (
         <div style={{ padding: "14px 16px", borderRadius: 12, background: color + "10", border: `1px solid ${color}25` }}>
@@ -311,10 +315,10 @@ function SummaryTab({ summary }) {
         <div style={{ display: "grid", gap: 20 }}>
             {/* KPI */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12 }}>
-                <StatBox label="Total Raw Event" value={raw?.total ?? 0} color="#f97316" />
+                <StatBox label={t("eventNormPage.totalRawEvent", "총 원시 이벤트")} value={raw?.total ?? 0} color="#f97316" />
                 <StatBox label={t('auto.rytgjs', '정규화 Done')} value={raw?.by_status?.normalized ?? 0} color="#22c55e" />
                 <StatBox label={t('auto.m8wl6v', '표준 Event Total계')} value={Object.values(normalized?.by_domain ?? {}).reduce((a, b) => a + +b, 0)} color="#4f8ef7" />
-                <StatBox label="Total Ad Spend" value={fmtM(normalized?.total_ad_spend ?? 0)} color="#a855f7" />
+                <StatBox label={t("eventNormPage.totalAdSpend", "총 광고비")} value={fmtM(normalized?.total_ad_spend ?? 0)} color="#a855f7" />
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
@@ -346,12 +350,12 @@ function SummaryTab({ summary }) {
                             <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: 3 }}>
                                 <Badge label={t('auto.bchlcp', '권리:') + (u.ugc_rights_status || "—")} color={u.ugc_rights_status === "granted" ? "#22c55e" : "#64748b"} />
                                 <Badge label={"WL:" + (u.ugc_whitelist_status || "—")} color={u.ugc_whitelist_status === "whitelisted" ? "#4f8ef7" : "#f97316"} />
-                                {u.ugc_branded_content ? <Badge label="Branded" color="#a855f7" /> : null}
+                                {u.ugc_branded_content ? <Badge label={t("eventNormPage.branded", "브랜드")} color="#a855f7" /> : null}
                             </div>
                             <div style={{ color: "var(--text-3)" }}>{u.cnt}건</div>
                         </div>
                     ))}
-                    {!(normalized?.ugc_breakdown?.length) && <div style={{ color: "var(--text-3)", fontSize: 10 }}>UGC Event None</div>}
+                    {!(normalized?.ugc_breakdown?.length) && <div style={{ color: "var(--text-3)", fontSize: 10 }}>{t("eventNormPage.ugcEventNone", "UGC 이벤트 없음")}</div>}
                 </div>
             </div>
 

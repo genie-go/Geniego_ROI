@@ -164,10 +164,10 @@ export default function RulesEditorV2(){
             <option value="rakuten">Rakuten</option>
             <option value="amazon">Amazon</option>
           </select>
-          <button className="btn" onClick={createDraft}>Draft Create</button>
-          <button className="btn" onClick={saveDraft}>Save</button>
+          <button className="btn" onClick={createDraft}>{t("rulesEditorPage.draftCreate", "초안 생성")}</button>
+          <button className="btn" onClick={saveDraft}>{t("rulesEditorPage.save", "저장")}</button>
           <button className="btn" onClick={submit}>제출</button>
-          <button className="btn" onClick={approve}>Approval</button>
+          <button className="btn" onClick={approve}>{t("rulesEditorPage.approval", "승인")}</button>
           <button className="btn" onClick={publish}>배포</button>
         </div>
       </div>
@@ -187,14 +187,14 @@ export default function RulesEditorV2(){
               <div className="sub">여기로 내부 필드를 드래그해서 매핑을 Add하세요.</div>
             ) : null}
             <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr auto", gap: 10, marginTop: 6 }}>
-              <div style={{ fontWeight: 700 }}>Source</div>
-              <div style={{ fontWeight: 700 }}>Destination</div>
+              <div style={{ fontWeight: 700 }}>{t("rulesEditorPage.source", "소스")}</div>
+              <div style={{ fontWeight: 700 }}>{t("rulesEditorPage.destination", "대상")}</div>
               <div />
               {Object.entries(mapping).map(([src,dst])=>(
                 <React.Fragment key={src}>
                   <div style={{ padding:"8px 10px", border:"1px solid #eee", borderRadius: 10 }}>{src}</div>
                   <div onClick={()=>editDst(src)} style={{ padding:"8px 10px", border:"1px solid #eee", borderRadius: 10, cursor:"pointer" }} title="Clicks하여 Edit">{dst}</div>
-                  <button className="btn" onClick={()=>remove(src)}>Delete</button>
+                  <button className="btn" onClick={()=>remove(src)}>{t("rulesEditorPage.delete", "삭제")}</button>
                 </React.Fragment>
               ))}
             </div>

@@ -265,7 +265,7 @@ export default function WhatsApp() {
                 <div className="card card-glass">
                     <div style={{ fontWeight: 900, fontSize: 13, marginBottom: 14 }}>{t('wa.messageTemplates','Message Templates')}</div>
                     <table className="table">
-                        <thead><tr><th>Name</th><th>Language</th><th>Category</th><th>Status</th><th>{t('wa.contentPreview','Content Preview')}</th></tr></thead>
+                        <thead><tr><th>{t("whatsappPage.name", "이름")}</th><th>{t("whatsappPage.language", "언어")}</th><th>{t("whatsappPage.category", "카테고리")}</th><th>Status</th><th>{t('wa.contentPreview','Content Preview')}</th></tr></thead>
                         <tbody>
                             {templates.map(t => (
                                 <tr key={t.name}>

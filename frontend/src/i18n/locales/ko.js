@@ -43979,6 +43979,46 @@ export default {
     webhookEndpoint: "웹훅 엔드포인트",
   },
 
+  // 176차 PM8-Total B4 — Top 5 페이지 hardcoded 영문 fallback (사용자 영향)
+  eventNormPage: {
+    date: "날짜",
+    eventType: "이벤트 유형",
+    summaryNoData: "요약 데이터 없음",
+    ugcEventNone: "UGC 이벤트 없음",
+    totalRawEvent: "총 원시 이벤트",
+    totalAdSpend: "총 광고비",
+    branded: "브랜드",
+  },
+  rulesEditorPage: {
+    draftCreate: "초안 생성",
+    approval: "승인",
+    source: "소스",
+    destination: "대상",
+    save: "저장",
+    delete: "삭제",
+  },
+  whatsappPage: {
+    name: "이름",
+    language: "언어",
+    category: "카테고리",
+    status: "상태",
+  },
+  asiaLogisticsPage: {
+    errorOccurred: "오류가 발생했습니다",
+    costPerKg: "kg당 비용",
+    country: "국가",
+    recommendApply: "추천 적용",
+    apiIntegrationSettings: "API 연동 설정",
+    delete: "삭제",
+  },
+  aiInsightsPage: {
+    realtimeGuardrails: "AI 실시간 가드레일",
+    actualData: "실제 데이터",
+    mlPrediction: "ML 예측",
+    copilotEngine: "AI 코파일럿 엔진",
+    enterpriseEngine: "엔터프라이즈 AI 엔진",
+  },
+
   // 176차 PM8-Total B1 — AIPrediction 페이지 hardcoded 영문 fallback
   aiPredictPage: {
     customerAnalysisDetail: "AI 고객 분석 상세",
