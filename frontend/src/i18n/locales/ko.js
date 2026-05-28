@@ -42971,8 +42971,6 @@ export default {
 
   "Pricing for the selected cycle is not yet available": {},
 
-  "recon": {},
-
   "rgba(99,140,255,0": {
 
     "12)": "var(--text-1)",
@@ -43702,6 +43700,61 @@ export default {
       active: "진행 중",
       completed: "완료",
     },
+  },
+
+  // [176차 PM2] Reconciliation 페이지 root-level recon namespace
+  // (이전에는 crm.aiHub.catalogSync.recon nested — root에서 t('recon.*') resolve 실패)
+  recon: {
+    pageDesc: "채널 정산 데이터를 업로드하여 수수료 규칙과 자동 매칭합니다.",
+    tabUpload: "데이터 업로드",
+    tabRecon: "대사 실행",
+    tabReports: "리포트",
+    tabTickets: "티켓 대응",
+    tabGuide: "이용 가이드",
+    uploadDesc: "채널 정산 데이터를 JSON 배열로 붙여넣어주세요.",
+    uploadHint: "JSON 배열 형식으로 입력해주세요.",
+    uploadBtn: "업로드",
+    uploadFailed: "업로드 실패",
+    uploadSuccess: "업로드 완료",
+    jsonError: "JSON 형식 오류입니다.",
+    notArray: "배열 형식이 아닙니다.",
+    reconDesc: "업로드된 데이터와 수수료 규칙을 비교하여 차이를 자동 계산합니다.",
+    channel: "채널",
+    ticketsCreated: "생성된 티켓",
+    ticketCount: "티켓 수",
+    noReports: "대조 리포트가 아직 없습니다. 먼저 데이터를 업로드하고 대조를 실행해주세요.",
+    selectReport: "리포트를 선택해주세요",
+    reportDetail: "리포트 상세",
+    mismatchTickets: "불일치 티켓",
+    noTickets: "해당 상태의 티켓이 없습니다.",
+    filterAll: "전체",
+    report: "리포트",
+    platformFeeRate: "플랫폼 수수료율",
+    notePlaceholder: "메모 입력",
+    saveRules: "규칙 저장",
+    saved: "저장되었습니다",
+    ruleHistory: "등록 규칙 이력",
+    platformFee: "플랫폼 수수료",
+    platformCommission: "플랫폼 수수료",
+    viewPnl: "P&L 대시보드 확인 →",
+    loading: "로딩 중...",
+    auction: "경매",
+    secLockTitle: "보안 위협 탐지",
+    secLockDesc: "비정상 접근이 감지되었습니다. 일시 잠금.",
+    guideRoleUpload: "채널별 정산 데이터를 JSON 형식으로 업로드합니다.",
+    guideRoleRecon: "데이터와 수수료 규칙을 자동 매칭하여 차이를 계산하고 불일치 티켓을 생성합니다.",
+    guideRoleTicket: "불일치 티켓 상태를 관리합니다(미처리→조사 중→해결/면제).",
+  },
+
+  // [176차 PM2] menuAccess 동적 키 prefix (Sidebar 동적 메뉴 + admin 페이지)
+  menuAccess: {
+    catAds: "광고 및 채널 분석",
+    catCRM: "고객/CRM",
+    catComm: "커머스 및 물류",
+    item_CRM: "CRM 대시보드",
+    item_WMS: "WMS 재고관리",
+    item_AI: "AI 마케팅",
+    item_: "메뉴 항목", // 동적 키 fallback (item_xxx 미정의)
   },
 
 };
