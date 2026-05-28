@@ -2,10 +2,10 @@
   "version": "176",
   "updated": "2026-05-28",
   "sacred_sha": {
-    "ja.js": "13cdb28c18763dd54e6d93073c628c65d27341218ba4303568033e2a16fee311",
-    "zh.js": "24cea8d89680e7b5caa935dca65dc862ae68b155856d007be41d947188078969"
+    "ja.js": "f3351634c3e93478e160538517c6b58ac2b558001e80eb275b3ea90c515145fe",
+    "zh.js": "a8bcc4746d42653687dcaec7ad492c0ed0694a304fb93841833235b22a7561fd"
   },
-  "ko_leaf_count": 31329,
+  "ko_leaf_count": 31494,
   "leaf_tolerance_pct": 5,
-  "_note": "Updated 176차 PM8 S8 — AIRecommendTab gAiRec 33 missing keys 한국어 자연어 + 14 lang 영어 fallback append-only. AIRecommendTab raw key missing 34 → 1 (동적 channel_ prefix 잔존, 무해). 기존 자연어 ja/zh 값 절대 변경 없음. ko.js leaf 31296 → 31329 (Δ+33)."
+  "_note": "Updated 176차 PM8 S8 — DataSchema 165 missing ds.* keys 한국어 자연어 + 14 lang 영어 fallback append-only. DataSchema ds.* missing 165 → 0 (DB 필드/메트릭/파이프라인/규칙 도메인 일괄). S8 long-tail 3 페이지(Recon/DataSchema/AIRecommendTab) 종결. 기존 자연어 ja/zh 값 절대 변경 없음. ko.js leaf 31329 → 31494 (Δ+165)."
 }
