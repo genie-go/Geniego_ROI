@@ -15496,8 +15496,14 @@ export default {
     "colReportName": "レポート名",
     "colFrequency": "頻度",
     "colLastRun": "最終実行",
-    "colStatus": "ステータス"
-  },
+    "colStatus": "ステータス",
+    "pageSub": "Real-time KPI · Anomaly Detection · Cross-channel Analytics",
+    "tabSettlement": "Settlement",
+    "tabCreator": "Creator",
+    "tabSkuProfit": "SKU Profit",
+    "tabCohort": "Cohort",
+    "tabAccountPerformance": "Account Performance"
+    },
   "audit": {
     "pageDesc": "すべての運用イベントの不変監査レコード",
     "tableView": "📋 テーブルビュー",
@@ -16339,8 +16345,12 @@ export default {
     "Travel package display ads strategy": "旅行パッケージのディスプレイ広告分析",
     "SaaS user acquisition techniques": "SaaSユーザー獲得手引",
     "Sports equipment YouTube campaigns": "スポーツ用品のYouTubeキャンペーン計画",
-    "Health supplement Google Adwords tactics": "健康食品のGoogle検索広告展開戦略"
-  },
+    "Health supplement Google Adwords tactics": "健康食品のGoogle検索広告展開戦略",
+    "tax_label": "Tax",
+    "tax_route": "/tax",
+    "etc_service_label": "Other Service",
+    "etc_service_route": "/etc"
+    },
   "gBudget": {
     "title": "💰 広告予算プランナー",
     "subtitle": "チャネル予算配分 · リアルタイム広告費 · AI最適化シミュレーション",
@@ -16407,8 +16417,15 @@ export default {
     "d3": "📌 デモ版: 本番カードは有料プランで使用可能です。現在はバーチャルになります。",
     "e1": "有効なカード番号を入力してください。",
     "e2": "有効期限はMM/YY形式で入力してください。",
-    "charged": "請求済み"
-  },
+    "charged": "請求済み",
+    "channel_NaverShopping": "Naver Shopping",
+    "channel_Coupang": "Coupang",
+    "channel_Amazon": "Amazon",
+    "channel_Shopify": "Shopify",
+    "channel_TikTok": "TikTok",
+    "channel_Meta": "Meta",
+    "channel_Google": "Google"
+    },
   "gAttr": {
     "title": "📈 マーケティングアトリビューション — リアルタイムMLエンジンv3.0",
     "subtitle": "Exact Shapley (2^n) · Bayesian MMM · Markov Chain · Incremental Uplift (Double ML) · Thompson Sampling A/B",
@@ -16506,8 +16523,20 @@ export default {
     "copied": "✓ クリップボードにコピーしました",
     "escalated": "🚨 CSチームにエスカレーションしました",
     "escalationTitle": "CSエスカレーション完了",
-    "escalationBody": "レビュー #{{id}} がCSチームに割り当てられました。"
-  },
+    "escalationBody": "レビュー #{{id}} がCSチームに割り当てられました。",
+    "item_dashboard": "Dashboard",
+    "item_rollup": "Rollup",
+    "item_marketing": "Marketing",
+    "item_attribution": "Attribution",
+    "item_crm": "CRM",
+    "item_omni": "Omni Channel",
+    "item_orderhub": "OrderHub",
+    "item_wms": "WMS",
+    "item_performance": "Performance",
+    "item_pnl": "P&L",
+    "item_ai": "AI",
+    "item_admin": "Admin"
+    },
   "gdpr": {
     "bannerTitle": "クッキー(Cookie)の設定",
     "bannerDesc": "体験の向上、トラフィック分析、コンテンツのパーソナライズのためにクッキーを使用します。設定を管理できます。",
@@ -23386,7 +23415,14 @@ export default {
     pending: "Pending",
     adDeduction: "Ad Deduction",
     platformCommission: "Platform Commission",
-  },
+    "pageDesc": "Upload channel settlement data and auto-match against fee rules.",
+    "viewPnl": "View P&L Dashboard",
+    "tabUpload": "Upload",
+    "tabRecon": "Reconcile",
+    "tabReports": "Reports",
+    "tabTickets": "Tickets",
+    "tabGuide": "Guide"
+    },
   pm: {
     overview: {
       title: "Project Management",
@@ -23408,7 +23444,9 @@ export default {
     secTitle: "Section",
     secCode: "Code",
     secUnlock: "Unlock",
-  },
+    "exportCSV": "Export CSV",
+    "tabGuideDesc": "Data schema guide"
+    },
   sms: {
     noChannels: "No SMS channels connected.",
     liveSyncStatus: "Live Sync",

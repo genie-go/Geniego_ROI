@@ -16538,8 +16538,20 @@ export default {
     "grade": {
       "champions": "챔피언",
       "churnRisk": "이탈 위험"
-    }
-  },
+    },
+    "item_dashboard": "대시보드",
+    "item_rollup": "롤업",
+    "item_marketing": "마케팅",
+    "item_attribution": "어트리뷰션",
+    "item_crm": "CRM",
+    "item_omni": "옴니채널",
+    "item_orderhub": "주문허브",
+    "item_wms": "WMS",
+    "item_performance": "성과",
+    "item_pnl": "P&L",
+    "item_ai": "AI",
+    "item_admin": "관리자"
+    },
 
   "adPerf": {
 
@@ -24341,9 +24353,10 @@ export default {
 
     "secLockWait": "30초 후 자동 해제됩니다",
 
-    "secInputBlocked": "보안: 잠재적 위험 입력이 차단되었습니다"
-
-  },
+    "secInputBlocked": "보안: 잠재적 위험 입력이 차단되었습니다",
+    "exportCSV": "CSV 내보내기",
+    "tabGuideDesc": "데이터 스키마 가이드"
+    },
 
   "dt": {
 
@@ -32146,9 +32159,15 @@ export default {
 
     "instantRun": "즉시 실행",
 
-    "channel_": "채널"
-
-  },
+    "channel_": "채널",
+    "channel_NaverShopping": "네이버 쇼핑",
+    "channel_Coupang": "쿠팡",
+    "channel_Amazon": "아마존",
+    "channel_Shopify": "Shopify",
+    "channel_TikTok": "TikTok",
+    "channel_Meta": "Meta",
+    "channel_Google": "Google"
+    },
 
   "creativeStudio": {
 
@@ -39901,8 +39920,12 @@ export default {
       secCode: "잠금 해제 코드 입력",
       secUnlock: "잠금 해제"
     },
-    colChannel: "채널"
-  },
+    colChannel: "채널",
+    "tax_label": "세무",
+    "tax_route": "/tax",
+    "etc_service_label": "기타 서비스",
+    "etc_service_route": "/etc"
+    },
 
   "_marketing_1": {
 
@@ -42970,9 +42993,14 @@ export default {
 
     "comingSoonDesc": "해당 기능은 현재 개발 중입니다.",
 
-    "comingSoonSub": "곧 업데이트를 통해 제공될 예정입니다."
-
-  }
+    "comingSoonSub": "곧 업데이트를 통해 제공될 예정입니다.",
+    "viewPnl": "P&L 대시보드 확인",
+    "tabUpload": "데이터 업로드",
+    "tabRecon": "대조 실행",
+    "tabReports": "리포트",
+    "tabTickets": "티켓 대응",
+    "tabGuide": "가이드"
+    }
 
 ,
 
@@ -43524,8 +43552,14 @@ export default {
     "aScore": "A 점수 (어트리뷰션 신뢰도)",
     "zScore": "Z 점수",
     "anomalyDesc": "Z 점수 기반 실시간 채널 퍼포먼스 모니터링",
-    "modelCompareDesc": "레이더 차트로 5개 어트리뷰션 모델 비교"
-  },
+    "modelCompareDesc": "레이더 차트로 5개 어트리뷰션 모델 비교",
+    "pageSub": "실시간 KPI 모니터링 · 이상 감지 · 크로스채널 분석",
+    "tabSettlement": "정산",
+    "tabCreator": "크리에이터",
+    "tabSkuProfit": "SKU 수익성",
+    "tabCohort": "코호트",
+    "tabAccountPerformance": "계정 성과"
+    },
   "cat": {
     "beauty": "💄 뷰티 & 코스메틱",
     "digital": "💻 디지털 & 앱",

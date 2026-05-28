@@ -2,10 +2,10 @@
   "version": "175",
   "updated": "2026-05-28",
   "sacred_sha": {
-    "ja.js": "1652e843751ba4ffd762e7f99642509075c505d250fc84da839add7ce524a625",
-    "zh.js": "1d75cf4aba4a11dce520988f05c17add0731806c84e9507d1d3da9987409aca4"
+    "ja.js": "94a2c5e6ae32e28ca6a0e7c1307aa2350ca15453384ed074ec907c8d0639a557",
+    "zh.js": "07e756baf5624b120c5d8f75bedbd615159bbaf8f440a23820b87fef48118dad"
   },
-  "ko_leaf_count": 30886,
+  "ko_leaf_count": 30923,
   "leaf_tolerance_pct": 5,
-  "_note": "Updated 175차 S2 — i18n raw-key 일괄 보강 (430 keys, 13 namespace, 15 locale). 사용자 명시 TRIAGE_SKIP=1 승인. ja.js +44 keys (영어 fallback), zh.js +36 keys (영어 fallback). 기존 자연어 일본어/중국어 값 절대 변경 없음. ko.js leaf count 30656 → 30886 (+230)."
+  "_note": "Updated 175차 S5 — S2 i18n 430 keys + S5.3 long-tail ~180 keys 보강 누적. AuthLanguageSelector 단일 fix 로 14 invisible-text 페이지 해소. 사용자 명시 TRIAGE_SKIP=1 승인. 기존 자연어 ja/zh 값 절대 변경 없음. ko.js leaf 30886 → 30923 (+37)."
 }

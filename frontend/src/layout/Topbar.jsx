@@ -317,6 +317,7 @@ export default function Topbar() {
         <div ref={langRef} style={{ position: 'relative' }}>
           <button
             className="topbar-lang-btn"
+            className="topbar-lang-btn"
             onClick={() => { setShowLang(!showLang); setShowTheme(false); setShowNotif(false); }}
             style={{
               display: 'flex', alignItems: 'center', gap: 5,

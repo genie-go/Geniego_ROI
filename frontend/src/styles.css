@@ -3529,9 +3529,17 @@ body:not([data-theme]) .sidebar-footer {
   color: #64748b !important;
 }
 
-/* ── 언어 선택 버튼: 기본(다크 테마) 색상 ── */
+/* ── 언어 선택 버튼: 기본 색상 (175차 S5 — 다크/라이트 양쪽 가시성 보장) ── */
 .topbar-lang-btn {
   color: #93c5fd;
+}
+
+/* 175차 S5: 자체 inline bg 가 dark gradient 인 다크 테마는 light-blue OK,
+   light theme 에서는 dark text 강제 — 라이트 배경 환경(rgba(255,255,255,*))에서 보장 */
+.topbar-lang-btn,
+.topbar-lang-btn span,
+.topbar-lang-btn .topbar-lang-label {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3); /* 어떤 배경에서도 텍스트 윤곽 가시성 보장 */
 }
 
 .topbar-lang-btn span,

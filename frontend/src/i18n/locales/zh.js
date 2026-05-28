@@ -1916,8 +1916,12 @@ export default {
     "addTitle": "API 키 추가",
     "selectService": "서비스 선택",
     "keyPlaceholder": "여기에 API 키를 붙여넣으세요",
-    "save": "구하다"
-  },
+    "save": "구하다",
+    "tax_label": "Tax",
+    "tax_route": "/tax",
+    "etc_service_label": "Other Service",
+    "etc_service_route": "/etc"
+    },
   "auto": {
     "new900": " Channels Analyzed. Please confirm the scanned keys.",
     "new901": "API Key Application",
@@ -3400,8 +3404,15 @@ export default {
     "imgCreateReadyDesc": "AI已准备好生成广告图像。",
     "adCampaignTimeline": "广告活动时间线",
     "instantRun": "立即执行",
-    "channel_": "Channel"
-  },
+    "channel_": "Channel",
+    "channel_NaverShopping": "Naver Shopping",
+    "channel_Coupang": "Coupang",
+    "channel_Amazon": "Amazon",
+    "channel_Shopify": "Shopify",
+    "channel_TikTok": "TikTok",
+    "channel_Meta": "Meta",
+    "channel_Google": "Google"
+    },
   "gBudget": {
     "title": "💰 광고 예산 플래너",
     "subtitle": "Precision Shapley (2^n) · Bayesian MMM · Markov Chain · Incremental Uplift (Dual ML) · Thompson Sampling A/B",
@@ -18255,8 +18266,20 @@ export default {
     "period2m": "2 个月",
     "period3m": "3 个月",
     "period6m": "6 个月",
-    "period1y": "1年"
-  },
+    "period1y": "1年",
+    "item_dashboard": "Dashboard",
+    "item_rollup": "Rollup",
+    "item_marketing": "Marketing",
+    "item_attribution": "Attribution",
+    "item_crm": "CRM",
+    "item_omni": "Omni Channel",
+    "item_orderhub": "OrderHub",
+    "item_wms": "WMS",
+    "item_performance": "Performance",
+    "item_pnl": "P&L",
+    "item_ai": "AI",
+    "item_admin": "Admin"
+    },
   "reviews": {
     "positive": "积极",
     "neutral": "中性",
@@ -19696,7 +19719,14 @@ export default {
     pending: "Pending",
     adDeduction: "Ad Deduction",
     platformCommission: "Platform Commission",
-  },
+    "pageDesc": "Upload channel settlement data and auto-match against fee rules.",
+    "viewPnl": "View P&L Dashboard",
+    "tabUpload": "Upload",
+    "tabRecon": "Reconcile",
+    "tabReports": "Reports",
+    "tabTickets": "Tickets",
+    "tabGuide": "Guide"
+    },
   pm: {
     overview: {
       title: "Project Management",
@@ -19718,7 +19748,9 @@ export default {
     secTitle: "Section",
     secCode: "Code",
     secUnlock: "Unlock",
-  },
+    "exportCSV": "Export CSV",
+    "tabGuideDesc": "Data schema guide"
+    },
   sms: {
     noChannels: "No SMS channels connected.",
     liveSyncStatus: "Live Sync",

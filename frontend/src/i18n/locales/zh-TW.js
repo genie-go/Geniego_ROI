@@ -29396,6 +29396,12 @@ export default {
     liveSyncMsg: "Live sync active",
     tabGuide: "Guide",
     heroTitle: "Content Calendar",
-  },
+    "pageDesc": "Upload channel settlement data and auto-match against fee rules.",
+    "viewPnl": "View P&L Dashboard",
+    "tabUpload": "Upload",
+    "tabRecon": "Reconcile",
+    "tabReports": "Reports",
+    "tabTickets": "Tickets"
+    },
 
 };

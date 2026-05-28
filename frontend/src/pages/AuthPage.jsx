@@ -1142,9 +1142,9 @@ function AuthLanguageSelector() {
 
   return (
     <div style={{ position: "relative", display: "inline-block" }}>
-      <button type="button" onClick={() => setOpen(o => !o)} style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 14px", borderRadius: 10, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(99,140,255,0.15)", color: '#fff', fontSize: 12, fontWeight: 600, cursor: "pointer", transition: "all 200ms", backdropFilter: "blur(12px)" }}
-        onMouseEnter={e => { e.currentTarget.style.background = "rgba(99,140,255,0.08)"; }}
-        onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.04)"; }}
+      <button type="button" onClick={() => setOpen(o => !o)} style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 14px", borderRadius: 10, background: "rgba(15,23,42,0.08)", border: "1px solid rgba(99,140,255,0.35)", color: '#1e293b', fontSize: 12, fontWeight: 700, cursor: "pointer", transition: "all 200ms", backdropFilter: "blur(12px)" }}
+        onMouseEnter={e => { e.currentTarget.style.background = "rgba(99,140,255,0.15)"; }}
+        onMouseLeave={e => { e.currentTarget.style.background = "rgba(15,23,42,0.08)"; }}
       >
         <span style={{ fontSize: 16 }}>{current.flag}</span>
         <span>{current.label}</span>

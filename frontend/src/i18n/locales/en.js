@@ -26159,11 +26159,21 @@ export default {
     tabAnalytics: "Analytics",
     tabCreative: "Creative",
     tabGuide: "Guide",
-  },
+    "pageDesc": "Upload channel settlement data and auto-match against fee rules.",
+    "viewPnl": "View P&L Dashboard",
+    "tabUpload": "Upload",
+    "tabRecon": "Reconcile",
+    "tabReports": "Reports",
+    "tabTickets": "Tickets"
+    },
   contentCal: {
     liveSyncMsg: "Live sync active",
     tabGuide: "Guide",
     heroTitle: "Content Calendar",
-  },
+    "tabSettlement": "Settlement",
+    "tabSkuProfit": "SKU Profit",
+    "tabCohort": "Cohort",
+    "tabAccountPerformance": "Account Performance"
+    },
 
 };
