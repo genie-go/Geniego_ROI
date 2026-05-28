@@ -167,7 +167,7 @@ function CustomerDetailPanel({ customer, onClose, onAction }) {
     return (
         <div style={{ position: "fixed", right: 0, top: 0, height: "100vh", width: 420, background: C.surface, borderLeft: `1px solid ${C.border}`, zIndex: 300, boxShadow: "-8px 0 40px rgba(0,0,0,0.4)", overflowY: "auto", padding: 24 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-                <div style={{ fontWeight: 800, fontSize: 15 }}>Customer AI Analysis Detail</div>
+                <div style={{ fontWeight: 800, fontSize: 15 }}>{t('aiPredictPage.customerAnalysisDetail', 'AI 고객 분석 상세')}</div>
                 <button onClick={onClose} style={{ background: "none", border: "none", color: C.muted, fontSize: 20, cursor: "pointer" }}>✕</button>
             </div>
 
@@ -189,7 +189,7 @@ function CustomerDetailPanel({ customer, onClose, onAction }) {
                     <DonutGauge value={c.purchase_prob_30d ?? 0} color={probColor} size={80} />
                 </div>
                 <div style={{ background: C.card, borderRadius: 12, padding: 14, textAlign: "center" }}>
-                    <div style={{ fontSize: 10, color: C.muted, marginBottom: 6 }}>Churn Risk Score</div>
+                    <div style={{ fontSize: 10, color: C.muted, marginBottom: 6 }}>{t('aiPredictPage.churnRiskScore', '이탈 위험 점수')}</div>
                     <DonutGauge value={c.churn_score ?? 0} color={churnColor} size={80} />
                 </div>
             </div>
@@ -230,13 +230,13 @@ function CustomerDetailPanel({ customer, onClose, onAction }) {
                     ))}
                     {/* RFM 바 */}
                     <div style={{ background: C.card, borderRadius: 8, padding: 12, marginTop: 4 }}>
-                        <div style={{ fontSize: 11, fontWeight: 700, marginBottom: 8, color: C.accent }}>RFM Score</div>
-                        <GaugeBar label="Recency" value={Math.max(0, 100 - (c.churn_score || 0))} color={C.accent} />
+                        <div style={{ fontSize: 11, fontWeight: 700, marginBottom: 8, color: C.accent }}>{t('aiPredictPage.rfmScore', 'RFM 점수')}</div>
+                        <GaugeBar label={t('aiPredictPage.recency', '최근성')} value={Math.max(0, 100 - (c.churn_score || 0))} color={C.accent} />
                         <div style={{ marginTop: 6 }}>
-                            <GaugeBar label="Frequency" value={Math.min(100, (c.purchase_count || 0) * 10)} color={C.purple} />
+                            <GaugeBar label={t('aiPredictPage.frequency', '빈도')} value={Math.min(100, (c.purchase_count || 0) * 10)} color={C.purple} />
                         </div>
                         <div style={{ marginTop: 6 }}>
-                            <GaugeBar label="Amount" value={Math.min(100, Math.round((c.total_ltv || 0) / 20000))} color={C.green} />
+                            <GaugeBar label={t('aiPredictPage.amount', '금액')} value={Math.min(100, Math.round((c.total_ltv || 0) / 20000))} color={C.green} />
                         </div>
                     </div>
                 </div>
@@ -260,7 +260,7 @@ function CustomerDetailPanel({ customer, onClose, onAction }) {
 
             {tab === "action" && (
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                    <div style={{ fontSize: 11, color: C.muted, marginBottom: 4 }}>AI Recommend Auto Action</div>
+                    <div style={{ fontSize: 11, color: C.muted, marginBottom: 4 }}>{t('aiPredictPage.aiAutoAction', 'AI 추천 자동 액션')}</div>
                     {[
                         { label: "📧 Email Create Campaign", action: c.risk_level === "high" ? "winback_campaign" : "nurture_campaign", channel: "email", color: C.accent },
                         { label: "💬 Kakao Notification톡 Send", action: "winback_campaign", channel: "kakao", color: C.yellow },
@@ -516,11 +516,11 @@ function AIPredictionInner() {
                 <div>
                     <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
                         <div style={{ padding: "10px 18px", borderRadius: 12, background: `${C.green}15`, border: `1px solid ${C.green}30` }}>
-                            <div style={{ fontSize: 9, color: C.green, fontWeight: 700 }}>System Score</div>
+                            <div style={{ fontSize: 9, color: C.green, fontWeight: 700 }}>{t('aiPredictPage.systemScore', '시스템 점수')}</div>
                             <div style={{ fontSize: 14, fontWeight: 900, color: C.muted }} >{modelMetrics?.overall_score || 8.7}<span>/10</span></div>
                         </div>
                         <div style={{ flex: 1, fontSize: 12, color: C.muted, lineHeight: 1.7 }}>
-                            <div>Training Schedule: Daily 04:00 KST Auto-retrain</div>
+                            <div>{t('aiPredictPage.trainingSchedule', '학습 일정: 매일 04:00 KST 자동 재학습')}</div>
                             <div>Model Version: {modelMetrics?.version || "v2.4.1"}</div>
                             <div>Last Trained: {modelMetrics?.churn_prediction?.last_trained || "2026-03-11"}</div>
                         </div>
@@ -564,7 +564,7 @@ function AIPredictionInner() {
             {!loading && activeTab === "graph_score" && (
                 <div style={{ display: "grid", gap: 16 }}>
                     <div style={{ padding: "14px 18px", borderRadius: 12, background: `${C.purple}0d`, border: `1px solid ${C.purple}30`, fontSize: 13 }}>
-                        🕸️ <b style={{ color: C.purple }}>Graph Score</b> — Customer Network Analysis, Influencer Score, Purchase Influence Index
+                        🕸️ <b style={{ color: C.purple }}>{t('aiPredictPage.graphScore', '그래프 점수')}</b> — Customer Network Analysis, Influencer Score, Purchase Influence Index
                     </div>
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12 }}>
                         {[
@@ -588,7 +588,7 @@ function AIPredictionInner() {
                                         <span style={{ width: 22, height: 22, borderRadius: "50%", background: `${C.purple}25`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 900, color: C.purple }}>{i + 1}</span>
                                         <span style={{ fontSize: 12, fontWeight: 600 }}>{name}</span>
                                     </div>
-                                    <button style={{ padding: "3px 10px", borderRadius: 6, border: "none", background: `${C.purple}15`, color: C.purple, fontSize: 10, cursor: "pointer", fontWeight: 700 }}>Analysis</button>
+                                    <button style={{ padding: "3px 10px", borderRadius: 6, border: "none", background: `${C.purple}15`, color: C.purple, fontSize: 10, cursor: "pointer", fontWeight: 700 }}>{t('aiPredictPage.analysis', '분석')}</button>
                                 </div>
                             ))}
                         </div>

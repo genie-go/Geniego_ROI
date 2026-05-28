@@ -75,6 +75,7 @@ function Toast({ msg, onClose }) {
 
 /* ─── 키워드 Add Modal ────────────────────────────────────────── */
 function AddKeywordModal({ onClose, onAdd }) {
+  const t = useT();
   const [kw, setKw] = useState("");
   const [channel, setChannel] = useState("coupang");
   const [brandSos, setBrandSos] = useState("15");
@@ -100,7 +101,7 @@ function AddKeywordModal({ onClose, onAdd }) {
             <input className="input" value={kw} onChange={e => setKw(e.target.value)} placeholder="예: Wireless Earbuds" />
           </div>
           <div>
-            <label className="input-label">Channel</label>
+            <label className="input-label">{t('digitalShelf.channel', '채널')}</label>
             <select className="input" value={channel} onChange={e => setChannel(e.target.value)}>
               {CHANNELS.map(c => <option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}
             </select>
@@ -117,8 +118,8 @@ function AddKeywordModal({ onClose, onAdd }) {
           </div>
         </div>
         <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 20 }}>
-          <button className="btn-ghost" onClick={onClose}>Cancel</button>
-          <button className="btn-primary" onClick={handleAdd} disabled={!kw.trim()}>Add</button>
+          <button className="btn-ghost" onClick={onClose}>{t('cancel', '취소')}</button>
+          <button className="btn-primary" onClick={handleAdd} disabled={!kw.trim()}>{t('add', '추가')}</button>
         </div>
       </div>
     </>
@@ -130,6 +131,7 @@ function AddKeywordModal({ onClose, onAdd }) {
 
 /* ── Enterprise Error Boundary ─────────────────────────── */
 function ErrorFallback({ error, onRetry }) {
+  const t = useT();
   return (
     <div style={{
       padding: '40px 28px', textAlign: 'center', borderRadius: 16,
@@ -138,7 +140,7 @@ function ErrorFallback({ error, onRetry }) {
     }}>
       <div style={{ fontSize: 40, marginBottom: 12 }}>⚠️</div>
       <div style={{ fontWeight: 800, fontSize: 16, color: '#ef4444', marginBottom: 8 }}>
-        An error occurred
+        {t('digitalShelf.errorOccurred', '오류가 발생했습니다')}
       </div>
       <div style={{
         fontSize: 11, color: 'var(--text-3)', marginBottom: 16,
@@ -254,7 +256,7 @@ export default function DigitalShelf() {
             <div className="hero-icon" style={{ background: "linear-gradient(135deg,rgba(20,217,176,0.25),rgba(79,142,247,0.15))" }}>🛍</div>
             <div>
               <div className="hero-title" style={{ background: "linear-gradient(135deg,#14d9b0,#4f8ef7)" }}>
-                Digital Shelf
+                {t('digitalShelf.title', '디지털 쉘프')}
               </div>
               <div className="hero-desc">Domestic 5개 Channel 자사 Product Search 가시성 · 경쟁 점유율(SoS) · 키워드 Rank를 실Time 모니터링합니다.</div>
               <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
@@ -390,12 +392,12 @@ export default function DigitalShelf() {
               <SortTh k="brand_sos" label="자사 SoS" />
               <SortTh k="comp_sos" label="경쟁사 SoS" />
               <th>SoS 시각화</th>
-              <th>Rank</th>
+              <th>{t('digitalShelf.rank', '순위')}</th>
               <SortTh k="vol" label="Search량" right />
               <SortTh k="ctr" label="CTR" right />
               <SortTh k="rev_share" label="Revenue 기여" right />
               <th>트렌드</th>
-              <th>Channel Count</th>
+              <th>{t('digitalShelf.channelCount', '채널 수')}</th>
               <th></th>
             </tr>
           </thead>
@@ -529,7 +531,7 @@ export default function DigitalShelf() {
                 </div>
                 <div style={{ display: "flex", gap: 16, fontSize: 12 }}>
                   <div style={{ textAlign: "center" }}>
-                    <div style={{ color: "var(--text-3)", fontSize: 10 }}>Rating</div>
+                    <div style={{ color: "var(--text-3)", fontSize: 10 }}>{t('digitalShelf.rating', '평점')}</div>
                     <div style={{ fontWeight: 700, color: "#fde047" }}>★ {p.rating}</div>
                   </div>
                   <div style={{ textAlign: "center" }}>
@@ -537,11 +539,11 @@ export default function DigitalShelf() {
                     <div style={{ fontWeight: 700 }}>{p.reviews.toLocaleString()}</div>
                   </div>
                   <div style={{ textAlign: "center" }}>
-                    <div style={{ color: "var(--text-3)", fontSize: 10 }}>Price</div>
+                    <div style={{ color: "var(--text-3)", fontSize: 10 }}>{t('digitalShelf.price', '가격')}</div>
                     <div style={{ fontWeight: 700, color: "#4f8ef7" }}>{p.price}</div>
                   </div>
                   <div style={{ textAlign: "center" }}>
-                    <div style={{ color: "var(--text-3)", fontSize: 10 }}>Rank Change</div>
+                    <div style={{ color: "var(--text-3)", fontSize: 10 }}>{t('digitalShelf.rankChange', '순위 변동')}</div>
                     <div style={{ fontWeight: 700, color: diff > 0 ? "#22c55e" : diff < 0 ? "#ef4444" : "var(--text-3)" }}>
                       {diff > 0 ? `▲${diff}` : diff < 0 ? `▼${Math.abs(diff)}` : "─"}
                     </div>

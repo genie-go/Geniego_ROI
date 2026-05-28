@@ -14628,6 +14628,10 @@ export default {
 
     "paidBadge": "유료",
 
+    "selectOption": "선택",
+    "namePh": "홍길동",
+    "footerTagline": "격리된 엔터프라이즈 플로우",
+
     "planQuestion": "💎 {{plan}} 플랜이란?",
 
     "recommendedFor": "🎯 추천 대상",
@@ -43908,6 +43912,33 @@ export default {
   wms: {
     tabGuide: "이용 가이드",
     tabGuideDesc: "WMS 사용 가이드",
+  },
+
+  // 176차 PM8-Total B1 — DigitalShelf 페이지 hardcoded 영문 fallback
+  digitalShelf: {
+    title: "디지털 쉘프",
+    channel: "채널",
+    errorOccurred: "오류가 발생했습니다",
+    rank: "순위",
+    channelCount: "채널 수",
+    rating: "평점",
+    price: "가격",
+    rankChange: "순위 변동",
+  },
+
+  // 176차 PM8-Total B1 — AIPrediction 페이지 hardcoded 영문 fallback
+  aiPredictPage: {
+    customerAnalysisDetail: "AI 고객 분석 상세",
+    churnRiskScore: "이탈 위험 점수",
+    rfmScore: "RFM 점수",
+    aiAutoAction: "AI 추천 자동 액션",
+    systemScore: "시스템 점수",
+    trainingSchedule: "학습 일정: 매일 04:00 KST 자동 재학습",
+    graphScore: "그래프 점수",
+    analysis: "분석",
+    recency: "최근성",
+    frequency: "빈도",
+    amount: "금액",
   },
   email: {
     goHub: "통합 허브로 이동",

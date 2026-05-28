@@ -263,7 +263,7 @@ function SelectField({ label, value, onChange, options, required }) {
       </label>
       <select value={value} onChange={e => onChange(e.target.value)}
         style={{ padding: "10px 14px", borderRadius: 10, border: "1px solid var(--border)", background: "rgba(20,30,50,0.9)", color: '#fff', fontSize: 13, outline: "none", cursor: "pointer", width: "100%", boxSizing: "border-box" }}>
-        <option value="">Select</option>
+        <option value="">{t('auth.selectOption', '선택')}</option>
         {options.map(o => <option key={o} value={o}>{o}</option>)}
       </select>
     </div>
@@ -594,7 +594,7 @@ function FreeRegisterForm({ onSwitch, onBack, variant = "demo" }) {
         <button type="button" onClick={onBack} style={{ marginLeft: "auto", background: "none", border: "none", color: "var(--text-3)", cursor: "pointer", fontSize: 18 }}>←</button>
       </div>
 
-      <Field label={t("auth.nameLabel")} value={name} onChange={setName} placeholder="John Doe" required autoComplete="name" />
+      <Field label={t("auth.nameLabel")} value={name} onChange={setName} placeholder={t('auth.namePh', '홍길동')} required autoComplete="name" />
       <Field label={t("auth.emailLabel")} type="email" value={email} onChange={setEmail} placeholder="you@example.com" required autoComplete="email" />
       <div>
         <Field label={t("auth.passwordHint")} type="password" value={password} onChange={setPassword} placeholder="••••••••" required autoComplete="new-password" />
@@ -809,7 +809,7 @@ function PaidRegisterForm({ selectedPlan, onBack, onSwitch }) {
       {/* ─── STEP 1: Account ─── */}
       {step === 1 && (
         <div style={{ display: "grid", gap: 12 }}>
-          <Field label={t("auth.nameLabel")} value={name} onChange={setName} placeholder="John Doe" required autoComplete="name" />
+          <Field label={t("auth.nameLabel")} value={name} onChange={setName} placeholder={t('auth.namePh', '홍길동')} required autoComplete="name" />
           <Field label={t("auth.emailLabel")} type="email" value={email} onChange={setEmail} placeholder="business@company.com" required autoComplete="email" />
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
             <div style={{ gridColumn: "1 / -1" }}>
@@ -834,7 +834,7 @@ function PaidRegisterForm({ selectedPlan, onBack, onSwitch }) {
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
             <Field label={t("auth.companyLabel")} value={company} onChange={setCompany} placeholder="Geniego Inc." required />
-            <Field label={t("auth.ceoNameLabel")} value={ceoName} onChange={setCeoName} placeholder="John Smith" required />
+            <Field label={t("auth.ceoNameLabel")} value={ceoName} onChange={setCeoName} placeholder={t('auth.namePh', '홍길동')} required />
           </div>
           <SelectField label={t("auth.businessTypeLabel")} value={businessType} onChange={setBusinessType} options={BUSINESS_TYPES} required />
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
@@ -1383,12 +1383,12 @@ export default function AuthPage() {
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
                 <button onClick={() => { setPlanType("free"); setMode("free"); }} style={{ padding: "18px 12px", borderRadius: 14, border: "1px solid rgba(34,197,94,0.3)", background: "rgba(34,197,94,0.06)", cursor: "pointer", textAlign: "center" }}>
                   <div style={{ fontSize: 20, marginBottom: 6 }}>🆓</div>
-                  <div style={{ fontWeight: 800, fontSize: 13, color: "#22c55e" }}>Free</div>
+                  <div style={{ fontWeight: 800, fontSize: 13, color: "#22c55e" }}>{t('auth.freeBadge', '무료')}</div>
                   <div style={{ fontSize: 10, color: "var(--text-3)", marginTop: 4 }}>{t('auth.prodFreeTrial')}</div>
                 </button>
                 <button onClick={() => { setPlanType("paid"); setMode("paid"); }} style={{ padding: "18px 12px", borderRadius: 14, border: "1px solid rgba(168,85,247,0.3)", background: "rgba(168,85,247,0.06)", cursor: "pointer", textAlign: "center" }}>
                   <div style={{ fontSize: 20, marginBottom: 6 }}>💎</div>
-                  <div style={{ fontWeight: 800, fontSize: 13, color: "#a855f7" }}>Paid</div>
+                  <div style={{ fontWeight: 800, fontSize: 13, color: "#a855f7" }}>{t('auth.paidBadge', '유료')}</div>
                   <div style={{ fontSize: 10, color: "var(--text-3)", marginTop: 4 }}>{t('auth.prodSubscription')}</div>
                 </button>
               </div>
@@ -1425,7 +1425,7 @@ export default function AuthPage() {
 
         <div style={{ textAlign: "center", marginTop: 18, fontSize: 10, color: "#8B87A0", lineHeight: 1.6 }}>
           v423.0.0 · © 2026 Geniego-ROI. All rights reserved.<br />
-          <span style={{ opacity: 0.7, fontWeight: 600, letterSpacing: '0.5px' }}>Strict Isolated Enterprise Flow</span>
+          <span style={{ opacity: 0.7, fontWeight: 600, letterSpacing: '0.5px' }}>{t('auth.footerTagline', '격리된 엔터프라이즈 플로우')}</span>
         </div>
       </div>
     </div>
