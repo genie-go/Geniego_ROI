@@ -456,6 +456,10 @@ return function (App $app): void {
         'GET /v424/health'      => 'Genie\\Handlers\\Health::check',
         'GET /api/v424/health'  => 'Genie\\Handlers\\Health::check',
 
+        // ── v424 system metrics — DashSystem 시스템 서브탭 실측 (176차) ──
+        'GET /v424/system/metrics'     => 'Genie\\Handlers\\SystemMetrics::metrics',
+        'GET /api/v424/system/metrics' => 'Genie\\Handlers\\SystemMetrics::metrics',
+
         // ── v424 admin plans (169차 사용자 발견 issue fix — 플랜별 구독요금 설정) ──
         'GET /v424/admin/plans'                         => 'Genie\\Handlers\\AdminPlans::list',
         'PUT /v424/admin/plans/{id}'                    => 'Genie\\Handlers\\AdminPlans::upsert',

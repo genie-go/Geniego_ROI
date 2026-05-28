@@ -51,6 +51,12 @@ export default defineConfig({
         target: 'https://roi.genie-go.com',
         changeOrigin: true,
       },
+      // 176차 — DashSystem 실 API 검증용 운영 백엔드 proxy
+      // backend deploy 완료 후에는 운영 endpoint 직접 호출되므로 필수
+      '/v424': {
+        target: 'https://roi.genie-go.com',
+        changeOrigin: true,
+      },
     },
   },
 });

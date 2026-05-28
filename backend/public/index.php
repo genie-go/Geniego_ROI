@@ -59,6 +59,7 @@ $app->add(function (Request $request, $handler) {
     // Note: when using Alias /api, REQUEST_URI is /api/auth/login (not /auth/login)
     if ($path === '/'
         || preg_match('#^(/api)?/v\d+[\w.]*/health[z]?$#', $path)
+        || preg_match('#^(/api)?/v\d+[\w.]*/system/metrics$#', $path)
         || strpos($path, '/auth/') === 0
         || $path === '/auth'
         || strpos($path, '/api/auth/') === 0

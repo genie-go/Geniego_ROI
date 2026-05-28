@@ -2,14 +2,15 @@ import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { useI18n } from '../../i18n';
 import { useGlobalData } from '../../context/GlobalDataContext.jsx';
 import { useSecurityGuard, getSecurityAlerts } from '../../security/SecurityGuard.js';
-import { LineChart, fmt } from './ChartUtils.jsx';
+// LineChart/fmt 제거 (실측 시계열 데이터 미공급 → EmptyState 노출 중)
+import { getJson } from '../../services/apiClient.js';
 
 // ══════════════════════════════════════════════════════════════════════
-//  🖥️ DashSystem — System Status Super-Premium Enterprise Dashboard
-//  ✅ Zero Mock Data: 100% GlobalDataContext real-time sync
-//  ✅ Enterprise i18n: LOC local dictionary + t() dual i18n (9 languages)
+//  🖥️ DashSystem — System Status (176차 ZERO-MOCK REWRITE)
+//  ✅ /v424/system/metrics 실측 fetch (5초 polling, mock data 완전 제거)
+//  ✅ 백엔드 미응답 시 EmptyState — 가짜 데이터 일절 표시 안 함
+//  ✅ Enterprise i18n: LOC local dictionary + t() dual i18n (15 languages)
 //  ✅ SecurityGuard: Real-time threat monitoring + instant alerts
-//  ✅ Performance: React.memo, useMemo, useCallback optimization
 // ══════════════════════════════════════════════════════════════════════
 
 const G = 10;
@@ -294,18 +295,7 @@ const LOC = {
   },
 };
 
-// ─── Demo System Modules (realistic monitoring data) ────────────────
-const MODULES = {
-  gw: { id:'gw', name:'API Gateway', icon:'🌐', status:'ok', latency:12, rpm:4850, uptime:99.99, errorRate:0.01, col:'#22c55e' },
-  auth: { id:'auth', name:'Auth Service', icon:'🔐', status:'ok', latency:8, rpm:1200, uptime:99.98, errorRate:0.02, col:'#4f8ef7' },
-  wms: { id:'wms', name:'WMS Engine', icon:'📦', status:'ok', latency:23, rpm:860, uptime:99.95, errorRate:0.04, col:'#f97316' },
-  order: { id:'order', name:'OrderHub', icon:'🛒', status:'ok', latency:18, rpm:2100, uptime:99.97, errorRate:0.03, col:'#a855f7' },
-  ad: { id:'ad', name:'Ad Engine', icon:'📢', status:'ok', latency:45, rpm:3200, uptime:99.92, errorRate:0.08, col:'#ec4899' },
-  crm: { id:'crm', name:'CRM Engine', icon:'👥', status:'ok', latency:15, rpm:980, uptime:99.96, errorRate:0.02, col:'#06b6d4' },
-  analytics: { id:'analytics', name:'Analytics Engine', icon:'📊', status:'ok', latency:32, rpm:1500, uptime:99.94, errorRate:0.05, col:'#eab308' },
-  cdn: { id:'cdn', name:'CDN / Static', icon:'🌍', status:'ok', latency:5, rpm:8900, uptime:99.99, errorRate:0.00, col:'#14d9b0' },
-};
-const MLIST = Object.values(MODULES);
+// ─── Date axis for charts (real-time data only — see fetched modules) ──
 const DAYS = Array.from({ length: 14 }, (_, i) => {
   const d = new Date(); d.setDate(d.getDate() - (13 - i));
   return `${d.getMonth() + 1}/${d.getDate()}`;
@@ -447,23 +437,68 @@ export default function DashSystem() {
     return () => clearInterval(timer);
   }, []);
 
-  // Real-time KPI from modules (zero mock data)
-  const kpis = useMemo(() => ({
-    okCount: MLIST.filter(m => m.status === 'ok').length,
-    total: MLIST.length,
-    avgLat: MLIST.length > 0 ? (MLIST.reduce((s, m) => s + m.latency, 0) / MLIST.length).toFixed(0) : '0',
-    totalRPM: MLIST.reduce((s, m) => s + (m.rpm || 0), 0),
-    errRate: '0.00',
-  }), []);
+  // ── 176차: 실 시스템 메트릭 fetch (5초 polling, mock data 완전 제거) ──
+  const [metricsState, setMetricsState] = useState({ loading: true, error: null, modules: [], summary: null, fetchedAt: null });
+  useEffect(() => {
+    let mounted = true;
+    const fetchMetrics = async () => {
+      try {
+        const data = await getJson('/v424/system/metrics');
+        if (!mounted) return;
+        if (data && Array.isArray(data.modules)) {
+          setMetricsState({ loading: false, error: null, modules: data.modules, summary: data.summary || null, fetchedAt: data.timestamp || new Date().toISOString() });
+        } else {
+          setMetricsState(s => ({ ...s, loading: false, error: 'invalid-response' }));
+        }
+      } catch (e) {
+        if (!mounted) return;
+        setMetricsState(s => ({ ...s, loading: false, error: e?.message || 'fetch-failed' }));
+      }
+    };
+    fetchMetrics();
+    const timer = setInterval(fetchMetrics, 5000);
+    return () => { mounted = false; clearInterval(timer); };
+  }, []);
+
+  const MLIST = useMemo(
+    () => (metricsState.modules || []).map(m => ({
+      id: m.id,
+      name: m.name,
+      icon: m.icon,
+      col: m.col || '#94a3b8',
+      status: m.status,
+      latency: typeof m.latency_ms === 'number' ? m.latency_ms : null,
+      rpm: typeof m.rpm === 'number' ? m.rpm : null,
+      uptime: typeof m.uptime === 'number' ? m.uptime : null,
+      errorRate: typeof m.error_rate === 'number' ? m.error_rate : null,
+      detail: m.detail || null,
+    })),
+    [metricsState.modules],
+  );
+
+  // Real-time KPI summary — 백엔드 summary 우선, 없으면 클라이언트 집계
+  const kpis = useMemo(() => {
+    const s = metricsState.summary;
+    if (s) {
+      return {
+        okCount: s.ok_count ?? 0,
+        total: s.total ?? MLIST.length,
+        avgLat: s.avg_latency_ms != null ? Number(s.avg_latency_ms).toFixed(0) : (MLIST.length ? (MLIST.reduce((a, m) => a + (m.latency || 0), 0) / MLIST.length).toFixed(0) : '—'),
+        totalRPM: s.total_rpm ?? null,
+        errRate: s.error_rate != null ? Number(s.error_rate).toFixed(2) : '—',
+      };
+    }
+    return { okCount: 0, total: 0, avgLat: '—', totalRPM: null, errRate: '—' };
+  }, [metricsState.summary, MLIST]);
 
   return (
     <div style={{ display:'grid', gap:G }}>
       {/* ── KPI Summary 4-col ── */}
       <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:G }}>
-        <KPICard ico="✅" label={txt('systemStatus')} value={`${kpis.okCount}/${kpis.total} OK`} delta={0} col="#22c55e" hint={txt('stable')} />
-        <KPICard ico="⚡" label={txt('avgLatency')} value={`${kpis.avgLat}ms`} delta={0} col="#4f8ef7" hint={txt('optimal')} />
-        <KPICard ico="📊" label={txt('totalRpm')} value={kpis.totalRPM.toLocaleString()} delta={0} col="#a855f7" hint={txt('throughput')} />
-        <KPICard ico="⛔" label={txt('errorRate')} value={`${kpis.errRate}%`} delta={0} col="#14d9b0" hint={txt('target')} />
+        <KPICard ico="✅" label={txt('systemStatus')} value={kpis.total ? `${kpis.okCount}/${kpis.total} OK` : (metricsState.loading ? '...' : '—')} delta={0} col="#22c55e" hint={kpis.total === 0 ? '—' : (kpis.okCount === kpis.total ? txt('stable') : txt('sloWarn'))} />
+        <KPICard ico="⚡" label={txt('avgLatency')} value={kpis.avgLat === '—' ? '—' : `${kpis.avgLat}ms`} delta={0} col="#4f8ef7" hint={kpis.avgLat === '—' ? '—' : txt('optimal')} />
+        <KPICard ico="📊" label={txt('totalRpm')} value={kpis.totalRPM != null ? kpis.totalRPM.toLocaleString() : '—'} delta={0} col="#a855f7" hint={txt('throughput')} />
+        <KPICard ico="⛔" label={txt('errorRate')} value={kpis.errRate === '—' ? '—' : `${kpis.errRate}%`} delta={0} col="#14d9b0" hint={txt('target')} />
       </div>
 
       {/* ── Main Content Grid ── */}
@@ -480,14 +515,11 @@ export default function DashSystem() {
                 {txt('infraLatTrend')}
               </span>
             </div>
-            {MLIST.length > 0 ? (
-              <LineChart data={MLIST.slice(0,3).map(m => DAYS.map((_,i) => Math.round(m.latency * (0.85 + Math.sin(i*0.5)*0.15 + (i%3)*0.02))))} labels={DAYS} series={MLIST.slice(0,3).map(m => ({name:m.name, color:m.col}))} width={660} height={130} />
-            ) : (
-              <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', height:130, color: 'var(--text-3)', fontSize:11 }}>
-                <span style={{ fontSize:24, marginBottom:8 }}>📈</span>
-                {txt('connectModules')}
-              </div>
-            )}
+            {/* 14일 시계열은 실측 backend 누적 데이터 필요 — 현재 endpoint 미공급 시 EmptyState */}
+            <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', height:130, color: 'var(--text-3)', fontSize:11 }}>
+              <span style={{ fontSize:24, marginBottom:8 }}>📈</span>
+              {metricsState.loading ? '...' : txt('connectModules')}
+            </div>
           </div>
 
           {/* Major API Status */}
@@ -500,16 +532,25 @@ export default function DashSystem() {
             </div>
             {MLIST.length > 0 ? (
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:6 }}>
-                {MLIST.map(m => (
-                  <div key={m.id} style={{ display:'flex', alignItems:'center', gap:8, padding:'8px 10px', borderRadius:8, background:`${m.col}08`, border:`1px solid ${m.col}14` }}>
-                    <span style={{ fontSize:14 }}>{m.icon}</span>
-                    <div style={{ flex:1 }}>
-                      <div style={{ fontSize:10, fontWeight:700, color: 'var(--text-1)' }}>{m.name}</div>
-                      <div style={{ fontSize:9, color: 'var(--text-3)' }}>{m.latency}ms · {m.rpm} RPM</div>
+                {MLIST.map(m => {
+                  const statusCol = m.status === 'ok' ? '#22c55e' : (m.status === 'degraded' ? '#eab308' : '#ef4444');
+                  const statusBg = m.status === 'ok' ? 'rgba(34,197,94,0.15)' : (m.status === 'degraded' ? 'rgba(234,179,8,0.15)' : 'rgba(239,68,68,0.15)');
+                  const statusBorder = m.status === 'ok' ? 'rgba(34,197,94,0.3)' : (m.status === 'degraded' ? 'rgba(234,179,8,0.3)' : 'rgba(239,68,68,0.3)');
+                  const sub = [
+                    m.latency != null ? `${m.latency}ms` : null,
+                    m.rpm != null ? `${m.rpm} RPM` : null,
+                  ].filter(Boolean).join(' · ') || '—';
+                  return (
+                    <div key={m.id} style={{ display:'flex', alignItems:'center', gap:8, padding:'8px 10px', borderRadius:8, background:`${m.col}08`, border:`1px solid ${m.col}14` }}>
+                      <span style={{ fontSize:14 }}>{m.icon}</span>
+                      <div style={{ flex:1 }}>
+                        <div style={{ fontSize:10, fontWeight:700, color: 'var(--text-1)' }}>{m.name}</div>
+                        <div style={{ fontSize:9, color: 'var(--text-3)' }}>{sub}</div>
+                      </div>
+                      <span style={{ fontSize:9, fontWeight:800, padding:'2px 6px', borderRadius:4, background: statusBg, color: statusCol, border: `1px solid ${statusBorder}` }}>{(m.status || '—').toUpperCase()}</span>
                     </div>
-                    <span style={{ fontSize:9, fontWeight:800, padding:'2px 6px', borderRadius:4, background:'rgba(34,197,94,0.15)', color:'#22c55e', border:'1px solid rgba(34,197,94,0.3)' }}>OK</span>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             ) : <EmptyState txt={txt} />}
           </div>
@@ -526,15 +567,21 @@ export default function DashSystem() {
               {txt('systemOverview')}
             </div>
             {MLIST.length > 0 ? (
-              MLIST.map(m => (
-                <div key={m.id} onClick={() => setSel(sel === m.id ? null : m.id)} style={{ display:'flex', alignItems:'center', gap:8, padding:'8px 10px', borderRadius:8, marginBottom:4, cursor:'pointer', background:`${m.col}08`, border:`1px solid ${m.col}14`, transition:'background 0.2s' }}>
-                  <span style={{ fontSize:14 }}>{m.icon}</span>
-                  <div style={{ flex:1 }}>
-                    <div style={{ fontSize:11, fontWeight:700, color: 'var(--text-1)' }}>{m.name}</div>
-                    <div style={{ fontSize:10, color: 'var(--text-3)' }}>{m.uptime}% uptime · {m.latency}ms</div>
+              MLIST.map(m => {
+                const overviewSub = [
+                  m.uptime != null ? `${m.uptime}% uptime` : null,
+                  m.latency != null ? `${m.latency}ms` : null,
+                ].filter(Boolean).join(' · ') || (m.detail ? Object.entries(m.detail).slice(0, 2).map(([k, v]) => `${k}: ${v}`).join(' · ') : '—');
+                return (
+                  <div key={m.id} onClick={() => setSel(sel === m.id ? null : m.id)} style={{ display:'flex', alignItems:'center', gap:8, padding:'8px 10px', borderRadius:8, marginBottom:4, cursor:'pointer', background:`${m.col}08`, border:`1px solid ${m.col}14`, transition:'background 0.2s' }}>
+                    <span style={{ fontSize:14 }}>{m.icon}</span>
+                    <div style={{ flex:1 }}>
+                      <div style={{ fontSize:11, fontWeight:700, color: 'var(--text-1)' }}>{m.name}</div>
+                      <div style={{ fontSize:10, color: 'var(--text-3)' }}>{overviewSub}</div>
+                    </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             ) : (
               <div style={{ textAlign:'center', padding:'16px 0', color: 'var(--text-3)' }}>
                 <div style={{ fontSize:11, marginBottom:6 }}>✅ {txt('allSystemsOp')}</div>
