@@ -87,8 +87,10 @@ export default {
     "guideTabsTitle": "タブ別機能案内",
     "guideSecConsole": "チャネル選択、SKU入力、ポリシー検証、カテゴリ提案、ペイロード編集を行います。",
     "guideSecJobs": "全ライトバック作業の状態をリアルタイムで追跡します。",
-    "guideSecSettings": "自動リトライ、ドライラン、承認ゲートなどを制御します。"
-  },
+    "guideSecSettings": "自動リトライ、ドライラン、承認ゲートなどを制御します。",
+    "heroTitle": "Writeback Console",
+    "tabGuide": "Guide"
+    },
   "approvalsPage": {
     "heroDesc": "API キーを登録し接続状態を管理します。",
     "badgeRealtime": "リアルタイム同期",
@@ -156,8 +158,10 @@ export default {
     "guideTabsTitle": "タブ別機能案内",
     "guideSecQueue": "AIルールエンジンとAIポリシーからの承認リクエストをリアルタイムで表示します。",
     "guideSecAudit": "すべての承認決定と実行記録を時系列で追跡します。",
-    "guideSecSettings": "自動承認、2FA、通知チャネル、実行遅延、監査ログなど承認ワークフロー全般を制御します。"
-  },
+    "guideSecSettings": "自動承認、2FA、通知チャネル、実行遅延、監査ログなど承認ワークフロー全般を制御します。",
+    "heroTitle": "Approvals Workflow",
+    "tabGuide": "Guide"
+    },
   "ruleEnginePage": {
     "heroDesc": "API キーを登録し接続状態を管理します。",
     "badgeRealtime": "リアルタイム同期",
@@ -4664,8 +4668,10 @@ export default {
     "status": "Status",
     "addProduct": "+ Add Product",
     "viewLineage": "View Lineage",
-    "noProducts": "No data products registered."
-  },
+    "noProducts": "No data products registered.",
+    "heroTitle": "Data Product",
+    "tabGuide": "Guide"
+    },
   "returnsPortal": {
     "pageTitle": "🔌 連携ハブ",
     "pageSub": "コネクタ＆統合管理",
@@ -4994,8 +5000,14 @@ export default {
     "abNew": "+ 새 A/B 테스트",
     "abCancel": "취소",
     "setSmtp": "SMTP 설정",
-    "setSaveBtn": "설정 저장"
-  },
+    "setSaveBtn": "설정 저장",
+    "noChannels": "No email channels connected.",
+    "liveSyncStatus": "Live Sync",
+    "heroTitle": "Email Marketing",
+    "tabAnalytics": "Analytics",
+    "tabCreative": "Creative",
+    "tabGuide": "Guide"
+    },
   "kakao": {
     "title": "카카오 비즈니스",
     "subTitle": "알림톡 템플릿 · 세그먼트 타겟 발송 · CRM 자동 동기화",
@@ -14111,8 +14123,9 @@ export default {
     "guideSettingsName": "재고 현황",
     "guideSettingsDesc": "재고 모니터링 · 부족 알림",
     "guideGuideName": "이용 가이드",
-    "guideGuideDesc": "옴니채널 완전 사용 매뉴얼"
-  },
+    "guideGuideDesc": "옴니채널 완전 사용 매뉴얼",
+    "heroTitle": "Omni Channel"
+    },
   "wms": {
     "pageTitle": "🏭 WMS倉庫・物流管理",
     "pageSub": "入出庫・在庫・ピッキング・梱包・返品統合管理システム",
@@ -15128,8 +15141,12 @@ export default {
     "medium": "中",
     "markDone": "完了処理",
     "viewAll": "全件表示",
-    "noActions": "実行するアクションなし"
-  },
+    "noActions": "実行するアクションなし",
+    "heroTitle": "Operations Hub",
+    "tabCreative": "Creative",
+    "tabCreativeDesc": "Manage ad creatives",
+    "guideTitle": "Operations Guide"
+    },
   "pricing": {
     "pageTitle": "💳 プラン・サブスクリプション",
     "pageSub": "サービスプラン選択・決済・サブスクリプション管理",
@@ -15441,8 +15458,15 @@ export default {
     "team": "チーム",
     "allTeams": "すべてのチーム",
     "account": "アカウント",
-    "allAccounts": "すべてのアカウント"
-  },
+    "allAccounts": "すべてのアカウント",
+    "pageTitle": "Performance Hub",
+    "realtimeSync": "Live Sync",
+    "securityNormal": "Security OK",
+    "badgeSecurity": "Security Active",
+    "descPerformance": "Real-time KPI monitoring",
+    "tabPerformance": "Performance",
+    "threatsDetected": "Threats Detected"
+    },
   "report": {
     "title": "レポートビルダー",
     "subtitle": "ドラッグ＆ドロップでカスタムレポート作成 · 自動配信スケジュール",
@@ -16287,8 +16311,20 @@ export default {
     "digital_label": "💻 デジタル・アプリ",
     "digital_route": "SaaS・アプリ・デジタル商品",
     "sports_label": "⚽ スポーツ・レジャー",
-    "sports_route": "スポーツ用品およびレジャ活動"
-  },
+    "sports_route": "スポーツ用品およびレジャ活動",
+    "finance_label": "Finance",
+    "finance_route": "/finance",
+    "insurance_label": "Insurance",
+    "insurance_route": "/insurance",
+    "medical_label": "Medical",
+    "medical_route": "/medical",
+    "legal_label": "Legal",
+    "legal_route": "/legal",
+    "education_label": "Education",
+    "education_route": "/education",
+    "realestate_label": "Real Estate",
+    "realestate_route": "/realestate"
+    },
   "gSug": {
     "Beauty brand Instagram ad strategy": "ビューティブランドのInstagram広告戦略",
     "Skincare SNS marketing recommendations": "スキンケア商品のSNSマーケティング戦略",
@@ -16432,8 +16468,16 @@ export default {
     "save": "💾 保存",
     "saved": "✓ 保存完了",
     "reset": "↩ デフォルトにリセット",
-    "newFeature": "新しいメニュー/機能（異常検知、モデル比較など）を自動反映"
-  },
+    "newFeature": "新しいメニュー/機能（異常検知、モデル比較など）を自動反映",
+    "catDash": "Dashboard",
+    "catAI": "AI",
+    "catMkt": "Marketing",
+    "catCommerce": "Commerce",
+    "catOps": "Operations",
+    "catData": "Data",
+    "catAdmin": "Admin",
+    "catFin": "Finance"
+    },
   "reviews": {
     "positive": "ポジティブ",
     "neutral": "ニュートラル",
@@ -23334,5 +23378,49 @@ export default {
     "comingSoonTitle": "近日公開予定",
     "comingSoonDesc": "この機能は現在開発中です。",
     "comingSoonSub": "まもなくアップデートで提供される予定です。"
-  }
+  },
+  // [175차 S2] missing namespaces — auto-injected
+  recon: {
+    pageTitle: "Reconciliation & Settlement",
+    settled: "Settled",
+    pending: "Pending",
+    adDeduction: "Ad Deduction",
+    platformCommission: "Platform Commission",
+  },
+  pm: {
+    overview: {
+      title: "Project Management",
+      newProject: "+ New Project",
+      newProjectPrompt: "Enter project name",
+      empty: "No projects yet. Create one to get started.",
+    },
+    kpi: {
+      total: "Total",
+      planning: "Planning",
+      active: "Active",
+      completed: "Completed",
+    },
+  },
+  ds: {
+    heroTitle: "Data Schema",
+    exportJSON: "Export JSON",
+    tabGuide: "Guide",
+    secTitle: "Section",
+    secCode: "Code",
+    secUnlock: "Unlock",
+  },
+  sms: {
+    noChannels: "No SMS channels connected.",
+    liveSyncStatus: "Live Sync",
+    heroTitle: "SMS Marketing",
+    tabAnalytics: "Analytics",
+    tabCreative: "Creative",
+    tabGuide: "Guide",
+  },
+  contentCal: {
+    liveSyncMsg: "Live sync active",
+    tabGuide: "Guide",
+    heroTitle: "Content Calendar",
+  },
+
 };

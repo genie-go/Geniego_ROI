@@ -176,9 +176,10 @@ export default {
 
     "guideSecJobs": "모든 라이트백 작업의 상태(완료/실행중/실패/대기)를 실시간으로 추적합니다.",
 
-    "guideSecSettings": "자동 재시도, 드라이 런, 승인 게이트, 웹훅 알림, 속도 제한, 감사 로깅을 제어합니다."
-
-  },
+    "guideSecSettings": "자동 재시도, 드라이 런, 승인 게이트, 웹훅 알림, 속도 제한, 감사 로깅을 제어합니다.",
+    "heroTitle": "라이트백 콘솔",
+    "tabGuide": "가이드"
+    },
 
   "approvalsPage": {
 
@@ -314,9 +315,10 @@ export default {
 
     "guideSecAudit": "모든 승인 결정과 실행 기록을 시간순으로 추적합니다.",
 
-    "guideSecSettings": "자동 승인, 2FA, 알림, 실행 지연, 감사 로깅 등을 세밀하게 제어합니다."
-
-  },
+    "guideSecSettings": "자동 승인, 2FA, 알림, 실행 지연, 감사 로깅 등을 세밀하게 제어합니다.",
+    "heroTitle": "승인 워크플로우",
+    "tabGuide": "가이드"
+    },
 
   ruleEnginePage: {
     heroDesc: "판매·광고·분석 채널의 API 키를 등록하고 연결 상태를 관리합니다.",
@@ -4149,9 +4151,10 @@ export default {
 
       "quickRecents": "최근 메뉴"
 
-    }
-
-  },
+    },
+    "heroTitle": "데이터 프로덕트",
+    "tabGuide": "가이드"
+    },
 
   "aiInsights": {
 
@@ -5821,7 +5824,13 @@ export default {
     "setSaveBtn": "설정 저장",
 
     syncNow: '지금 동기화',
-  },
+    "noChannels": "이메일 채널이 연결되지 않았습니다.",
+    "liveSyncStatus": "실시간 동기화",
+    "heroTitle": "이메일 마케팅",
+    "tabAnalytics": "분석",
+    "tabCreative": "크리에이티브",
+    "tabGuide": "가이드"
+    },
 
   "kakao": {
 
@@ -16169,9 +16178,16 @@ export default {
 
     "permCreate": "생성",
 
-    "permUpdate": "수정"
-
-  },
+    "permUpdate": "수정",
+    "catDash": "대시보드",
+    "catAI": "AI",
+    "catMkt": "마케팅",
+    "catCommerce": "커머스",
+    "catOps": "운영",
+    "catData": "데이터",
+    "catAdmin": "관리자",
+    "catFin": "재무"
+    },
 
   "aiPredict": {
     "col": {
@@ -24193,9 +24209,11 @@ export default {
 
     "ruleHighViewLowOrder": "높은 조회수(20만+) & 낮은 주문(50건-)",
 
-    "ruleHighViewLowOrderAction": "콘텐츠/랜딩 최적화 추천"
-
-  },
+    "ruleHighViewLowOrderAction": "콘텐츠/랜딩 최적화 추천",
+    "heroTitle": "데이터 스키마",
+    "exportJSON": "JSON 내보내기",
+    "tabGuide": "가이드"
+    },
 
   "pxl": {
 
@@ -25401,8 +25419,9 @@ export default {
     connected: "연동됨",
     syncNow: "지금 동기화",
     totalOrders: "오늘 주문",
-    totalRevenue: "오늘 매출"
-  },
+    totalRevenue: "오늘 매출",
+    "heroTitle": "옴니채널"
+    },
 
   "liveSyncMsg": "실시간 크로스탭 동기화 활성화 — 모든 메뉴의 데이터가 실시간 반영됩니다.",
 
@@ -33155,7 +33174,13 @@ export default {
     "ihubAutoDetect": "연동허브에서 자동 감지된 SMS 채널:",
 
     syncNow: '지금 동기화',
-  },
+    "noChannels": "SMS 채널이 연결되지 않았습니다.",
+    "liveSyncStatus": "실시간 동기화",
+    "heroTitle": "SMS 마케팅",
+    "tabAnalytics": "분석",
+    "tabCreative": "크리에이티브",
+    "tabGuide": "가이드"
+    },
 
   "contentCal": {
 
@@ -33273,9 +33298,11 @@ export default {
 
     "guideGuideName": "이용 가이드",
 
-    "guideGuideDesc": "콘텐츠 관리 워크플로우 안내"
-
-  },
+    "guideGuideDesc": "콘텐츠 관리 워크플로우 안내",
+    "liveSyncMsg": "실시간 동기화 활성",
+    "tabGuide": "가이드",
+    "heroTitle": "콘텐츠 캘린더"
+    },
 
   "reviews": {
 
@@ -34517,9 +34544,20 @@ export default {
 
     "sports_label": "⚽ 스포츠 & 레저",
 
-    "sports_route": "피트니스, 요가, 아웃도어, 스포츠"
-
-  },
+    "sports_route": "피트니스, 요가, 아웃도어, 스포츠",
+    "finance_label": "금융",
+    "finance_route": "/finance",
+    "insurance_label": "보험",
+    "insurance_route": "/insurance",
+    "medical_label": "의료",
+    "medical_route": "/medical",
+    "legal_label": "법률",
+    "legal_route": "/legal",
+    "education_label": "교육",
+    "education_route": "/education",
+    "realestate_label": "부동산",
+    "realestate_route": "/realestate"
+    },
 
   "refresh": "새로고침",
 
@@ -41625,7 +41663,10 @@ export default {
     ai_changeImagePh: '예: "겨울 테마로 변경", "음식 사진 추가"',
     heroDesc: '한 화면에서 쿠폰/프로모션과 AI 광고 마케팅 디자인을 관리합니다.',
     guideTipDesc: '프로모션과 AI 디자인을 함께 사용하면 효과가 더 좋습니다. 쿠폰 생성 후 AI 로 홍보 이미지를 생성하세요.',
-  },
+    "heroTitle": "운영 허브",
+    "tabCreative": "크리에이티브",
+    "guideTitle": "운영 가이드"
+    },
 
   "report": {
 
@@ -42911,9 +42952,13 @@ export default {
 
   "rgba(99,140,255,0": {
 
-    "12)": "var(--text-1)"
-
-  },
+    "12)": "var(--text-1)",
+    "pageTitle": "대조 & 정산",
+    "settled": "정산 완료",
+    "pending": "대기 중",
+    "adDeduction": "광고비 차감",
+    "platformCommission": "플랫폼 수수료"
+    },
 
   "creative": {
 
@@ -43461,8 +43506,15 @@ export default {
     topProducts: "인기 상품",
     anomalyDetected: "이상이 감지되었습니다",
     noAnomaly: "이상이 감지되지 않았습니다",
-    exportReport: "비교 리포트 내보내기"
-  },
+    exportReport: "비교 리포트 내보내기",
+    "pageTitle": "성과 허브",
+    "realtimeSync": "실시간 동기화",
+    "securityNormal": "보안 정상",
+    "badgeSecurity": "보안 활성",
+    "descPerformance": "실시간 KPI 모니터링",
+    "tabPerformance": "성과",
+    "threatsDetected": "위협 감지됨"
+    },
   "attribution": {
     "alert": "알림",
     "critical": "치명적",
@@ -43600,7 +43652,22 @@ export default {
     "ModeBadge": "🎭 데모 시뮬레이션 모드",
     "ModeTitle": "데모 모드 · 샘플 데이터만 표시",
     "ModeDesc": "실제 계정을 연결하여 실데이터 표시"
-  }
+  },
+
+  // [175차 S2] missing namespaces — auto-injected
+  pm: {
+    overview: {
+      title: "프로젝트 관리",
+      newProject: "+ 신규 프로젝트",
+      newProjectPrompt: "프로젝트 이름을 입력하세요",
+      empty: "아직 프로젝트가 없습니다. 새로 만들어 시작하세요.",
+    },
+    kpi: {
+      total: "전체",
+      planning: "계획 중",
+      active: "진행 중",
+      completed: "완료",
+    },
+  },
 
 };
-

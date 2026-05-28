@@ -27954,5 +27954,72 @@ export default {
   cycle: "Cycle",
   All: "All",
   script: "Script",
-  a: "A"
+  a: "A",
+  // [175차 S2] missing namespaces — auto-injected
+  recon: {
+    pageTitle: "Reconciliation & Settlement",
+    settled: "Settled",
+    pending: "Pending",
+    adDeduction: "Ad Deduction",
+    platformCommission: "Platform Commission",
+    "descPerformance": "Real-time KPI monitoring",
+    "tabPerformance": "Performance",
+    "threatsDetected": "Threats Detected"
+    },
+  pm: {
+    overview: {
+      title: "Project Management",
+      newProject: "+ New Project",
+      newProjectPrompt: "Enter project name",
+      empty: "No projects yet. Create one to get started.",
+    },
+    kpi: {
+      total: "Total",
+      planning: "Planning",
+      active: "Active",
+      completed: "Completed",
+    },
+    "finance_label": "Finance",
+    "finance_route": "/finance",
+    "insurance_label": "Insurance",
+    "insurance_route": "/insurance",
+    "medical_label": "Medical",
+    "medical_route": "/medical",
+    "legal_label": "Legal",
+    "legal_route": "/legal",
+    "education_label": "Education",
+    "education_route": "/education",
+    "realestate_label": "Real Estate",
+    "realestate_route": "/realestate"
+    },
+  ds: {
+    heroTitle: "Data Schema",
+    exportJSON: "Export JSON",
+    tabGuide: "Guide",
+    secTitle: "Section",
+    secCode: "Code",
+    secUnlock: "Unlock",
+    "catDash": "Dashboard",
+    "catAI": "AI",
+    "catMkt": "Marketing",
+    "catCommerce": "Commerce",
+    "catOps": "Operations",
+    "catData": "Data",
+    "catAdmin": "Admin",
+    "catFin": "Finance"
+    },
+  sms: {
+    noChannels: "No SMS channels connected.",
+    liveSyncStatus: "Live Sync",
+    heroTitle: "SMS Marketing",
+    tabAnalytics: "Analytics",
+    tabCreative: "Creative",
+    tabGuide: "Guide",
+  },
+  contentCal: {
+    liveSyncMsg: "Live sync active",
+    tabGuide: "Guide",
+    heroTitle: "Content Calendar",
+  },
+
 };

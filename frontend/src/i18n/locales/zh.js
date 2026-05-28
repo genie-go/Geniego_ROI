@@ -87,8 +87,10 @@ export default {
     "guideTabsTitle": "标签功能",
     "guideSecConsole": "渠道选择、SKU输入、策略验证、分类建议和执行。",
     "guideSecJobs": "实时追踪所有作业状态。",
-    "guideSecSettings": "配置自动重试、试运行和审批关卡。"
-  },
+    "guideSecSettings": "配置自动重试、试运行和审批关卡。",
+    "heroTitle": "Writeback Console",
+    "tabGuide": "Guide"
+    },
   "approvalsPage": {
     "heroDesc": "注册API密钥并管理连接状态。",
     "badgeRealtime": "实时同步",
@@ -156,8 +158,10 @@ export default {
     "guideTabsTitle": "标签功能",
     "guideSecQueue": "实时显示来自AI规则引擎的审批请求。",
     "guideSecAudit": "按时间顺序追踪所有审批决定和执行记录。",
-    "guideSecSettings": "精细控制自动审批、认证、通知和审计日志。"
-  },
+    "guideSecSettings": "精细控制自动审批、认证、通知和审计日志。",
+    "heroTitle": "Approvals Workflow",
+    "tabGuide": "Guide"
+    },
   "ruleEnginePage": {
     "heroDesc": "注册API密钥并管理连接状态。",
     "badgeRealtime": "实时同步",
@@ -1577,8 +1581,20 @@ export default {
     "digital_route": "SaaS、移动应用、数字订阅",
     "sports_label": "⚽ 体育 & 休闲",
     "sports_route": "健身、瑜伽、户外、运动",
-    "": ""
-  },
+    "": "",
+    "finance_label": "Finance",
+    "finance_route": "/finance",
+    "insurance_label": "Insurance",
+    "insurance_route": "/insurance",
+    "medical_label": "Medical",
+    "medical_route": "/medical",
+    "legal_label": "Legal",
+    "legal_route": "/legal",
+    "education_label": "Education",
+    "education_route": "/education",
+    "realestate_label": "Real Estate",
+    "realestate_route": "/realestate"
+    },
   "operations": {
     "pageTitle": "🔌 集成中心",
     "pageSub": "连接器与集成管理",
@@ -1875,8 +1891,11 @@ export default {
     "ai_dupWarningTitle": "已存在相同的创意素材",
     "ai_dupWarningDesc": "服务器上已保存相同的创意素材。",
     "ai_dupDismiss": "忽略并关闭",
-    "ai_serverSynced": "服务器同步完成"
-  },
+    "ai_serverSynced": "服务器同步完成",
+    "heroTitle": "Operations Hub",
+    "tabCreative": "Creative",
+    "guideTitle": "Operations Guide"
+    },
   "apiKeys": {
     "pageTitle": "🔌 集成中心",
     "pageSub": "连接器与集成管理",
@@ -5272,8 +5291,10 @@ export default {
     "status": "Status",
     "addProduct": "+ Add Product",
     "viewLineage": "View Lineage",
-    "noProducts": "No data products registered."
-  },
+    "noProducts": "No data products registered.",
+    "heroTitle": "Data Product",
+    "tabGuide": "Guide"
+    },
   "returnsPortal": {
     "pageTitle": "🔌 集成中心",
     "pageSub": "连接器与集成管理",
@@ -5602,8 +5623,14 @@ export default {
     "abNew": "+ 새 A/B 테스트",
     "abCancel": "취소",
     "setSmtp": "SMTP 설정",
-    "setSaveBtn": "설정 저장"
-  },
+    "setSaveBtn": "설정 저장",
+    "noChannels": "No email channels connected.",
+    "liveSyncStatus": "Live Sync",
+    "heroTitle": "Email Marketing",
+    "tabAnalytics": "Analytics",
+    "tabCreative": "Creative",
+    "tabGuide": "Guide"
+    },
   "kakao": {
     "title": "카카오 비즈니스",
     "subTitle": "알림톡 템플릿 · 세그먼트 타겟 발송 · CRM 자동 동기화",
@@ -15998,8 +16025,9 @@ export default {
     "guideSettingsName": "재고 현황",
     "guideSettingsDesc": "재고 모니터링 · 부족 알림",
     "guideGuideName": "이용 가이드",
-    "guideGuideDesc": "옴니채널 완전 사용 매뉴얼"
-  },
+    "guideGuideDesc": "옴니채널 완전 사용 매뉴얼",
+    "heroTitle": "Omni Channel"
+    },
   "wms": {
     "pageTitle": "🏭 WMS仓储物流管理",
     "pageSub": "入库、出库、库存、拣货、打包、退货综合管理系统",
@@ -18184,8 +18212,16 @@ export default {
     "save": "💾 保存",
     "saved": "✓ 已保存",
     "reset": "↩ 重置为默认值",
-    "newFeature": "自动反映新菜单/功能（包括异常检测、模型比较、收藏夹）"
-  },
+    "newFeature": "自动反映新菜单/功能（包括异常检测、模型比较、收藏夹）",
+    "catDash": "Dashboard",
+    "catAI": "AI",
+    "catMkt": "Marketing",
+    "catCommerce": "Commerce",
+    "catOps": "Operations",
+    "catData": "Data",
+    "catAdmin": "Admin",
+    "catFin": "Finance"
+    },
   "adminCoupon": {
     "tabTitle": "免费优惠券管理",
     "totalIssued": "发行总量",
@@ -19652,5 +19688,49 @@ export default {
     "comingSoonTitle": "即将推出",
     "comingSoonDesc": "此功能目前正在开发中。",
     "comingSoonSub": "即将通过更新提供。"
-  }
+  },
+  // [175차 S2] missing namespaces — auto-injected
+  recon: {
+    pageTitle: "Reconciliation & Settlement",
+    settled: "Settled",
+    pending: "Pending",
+    adDeduction: "Ad Deduction",
+    platformCommission: "Platform Commission",
+  },
+  pm: {
+    overview: {
+      title: "Project Management",
+      newProject: "+ New Project",
+      newProjectPrompt: "Enter project name",
+      empty: "No projects yet. Create one to get started.",
+    },
+    kpi: {
+      total: "Total",
+      planning: "Planning",
+      active: "Active",
+      completed: "Completed",
+    },
+  },
+  ds: {
+    heroTitle: "Data Schema",
+    exportJSON: "Export JSON",
+    tabGuide: "Guide",
+    secTitle: "Section",
+    secCode: "Code",
+    secUnlock: "Unlock",
+  },
+  sms: {
+    noChannels: "No SMS channels connected.",
+    liveSyncStatus: "Live Sync",
+    heroTitle: "SMS Marketing",
+    tabAnalytics: "Analytics",
+    tabCreative: "Creative",
+    tabGuide: "Guide",
+  },
+  contentCal: {
+    liveSyncMsg: "Live sync active",
+    tabGuide: "Guide",
+    heroTitle: "Content Calendar",
+  },
+
 };

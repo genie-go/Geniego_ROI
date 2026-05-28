@@ -1,11 +1,11 @@
 {
-  "version": "174",
+  "version": "175",
   "updated": "2026-05-28",
   "sacred_sha": {
-    "ja.js": "81f45afd33752c51ec016ee68a9946f5b2f9f868c95c0623024c131c281105ef",
-    "zh.js": "6740eed519f7361c6dd0747e4d0f1c3b5bf0c57456f9fcd4c98a120c2ef1bcdd"
+    "ja.js": "1652e843751ba4ffd762e7f99642509075c505d250fc84da839add7ce524a625",
+    "zh.js": "1d75cf4aba4a11dce520988f05c17add0731806c84e9507d1d3da9987409aca4"
   },
-  "ko_leaf_count": 30656,
+  "ko_leaf_count": 30886,
   "leaf_tolerance_pct": 5,
-  "_note": "Updated each session when intentional drift via --no-verify is approved (N-145-G). 174차 Option D: ja/zh root.pnl 영어 fallback +105/+91 keys, dashGuide+dashTabs collision 4건 해소. 자연어 일본어/중국어 값 변경 없음. ko.js leaf count 변화 없음 (ko.js 미수정)."
+  "_note": "Updated 175차 S2 — i18n raw-key 일괄 보강 (430 keys, 13 namespace, 15 locale). 사용자 명시 TRIAGE_SKIP=1 승인. ja.js +44 keys (영어 fallback), zh.js +36 keys (영어 fallback). 기존 자연어 일본어/중국어 값 절대 변경 없음. ko.js leaf count 30656 → 30886 (+230)."
 }
