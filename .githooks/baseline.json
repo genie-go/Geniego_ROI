@@ -1,11 +1,11 @@
 {
-  "version": "156",
-  "updated": "2026-05-24",
+  "version": "174",
+  "updated": "2026-05-28",
   "sacred_sha": {
-    "ja.js": "67ca086561405874b2c039352741c9ef99a528997bdaa0ecf24b69568fac20d4",
-    "zh.js": "a4b72633d5925778eedb5820cd034538df53a766d7eac8de54df7bfc3a2e0dde"
+    "ja.js": "81f45afd33752c51ec016ee68a9946f5b2f9f868c95c0623024c131c281105ef",
+    "zh.js": "6740eed519f7361c6dd0747e4d0f1c3b5bf0c57456f9fcd4c98a120c2ef1bcdd"
   },
   "ko_leaf_count": 30656,
   "leaf_tolerance_pct": 5,
-  "_note": "Updated each session when intentional drift via --no-verify is approved (N-145-G). zh.js SHA placeholder — operator to fill from `sha256sum frontend/src/i18n/locales/zh.js` (Session 154 commit ae1d52e baseline)."
+  "_note": "Updated each session when intentional drift via --no-verify is approved (N-145-G). 174차 Option D: ja/zh root.pnl 영어 fallback +105/+91 keys, dashGuide+dashTabs collision 4건 해소. 자연어 일본어/중국어 값 변경 없음. ko.js leaf count 변화 없음 (ko.js 미수정)."
 }
