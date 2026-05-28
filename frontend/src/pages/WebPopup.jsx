@@ -41,10 +41,6 @@ const TAB_ICONS = ["📊", "🎨", "🔴", "🧪", "⚙️", "📖"];
 
 /* ══ Pill Tab Bar ══ */
 function PillTabs({ tabs, icons, active, setActive, t }) {
-  /* Enterprise Error Boundary */
-
-  if (_pageError) return <ErrorFallback error={_pageError} onRetry={() => { _setPageError(null); _setRetryCount(c => c + 1); }} />;
-
   return (
     <div style={{ display: "flex", gap: 6, padding: "6px 0", flexWrap: "wrap" }}>
       {tabs.map((k, i) => (

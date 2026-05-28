@@ -65,12 +65,6 @@ function ProductTab() {
   const applyAction=()=>{if(modal==='edit'||modal==='add'){if(modal==='add')setProducts(ps=>[...ps,{...form,id:`P${String(ps.length+1).padStart(3,'0')}`,channelIds:{}}]);else setProducts(ps=>ps.map(p=>p.id===editing.id?{...p,...form}:p));}else if(modal==='price'){setProducts(ps=>ps.map(p=>p.id===editing.id?{...p,price:+form.newPrice,cost:form.newCost!==undefined?+form.newCost:p.cost}:p));}else if(modal==='promo'){setProducts(ps=>ps.map(p=>p.id===editing.id?{...p,promo:{type:form.promoType,rate:+form.promoRate}}:p));}setModal(null);pushNotification&&pushNotification({type:'success',message:t('operations.fbUpdated')});};
   const handleExcel=()=>{downloadCSV(`Products_${new Date().toISOString().slice(0,10)}.csv`,[t('operations.colId'),t('operations.colSku'),t('operations.colName'),t('operations.colCategory'),t('operations.colSupplier'),t('operations.colCost'),t('operations.colSupplyPrice'),t('operations.colSalePrice'),t('operations.colMargin'),t('operations.colSafeStock'),t('operations.colStock'),t('operations.colOrigin'),t('operations.colWeight'),t('operations.colStatus'),t('operations.colChannels')],filtered.map(p=>[p.id,p.sku,p.name,p.category||'',p.supplier||'',p.cost,p.supplyPrice||'',p.price,margin(p),p.safeQty||'',p.stock,p.origin||'',p.weightKg||'',STATUS_CFG[p.status]?.label||p.status,p.channels?.length||0]));};
 
-  /* Enterprise Error Boundary */
-
-
-  if (_pageError) return <ErrorFallback error={_pageError} onRetry={() => { _setPageError(null); _setRetryCount(c => c + 1); }} />;
-
-
   return (
     <div style={{ display:'grid', gap:16 }}>
       <div style={{ display:'grid', gridTemplateColumns:'repeat(6,1fr)', gap:10 }}>

@@ -158,10 +158,6 @@ function OverviewTab({ campaigns, tr, fmt }) {
   const getUtilColor = (pct) => pct > 100 ? '#ef4444' : pct > 80 ? '#f97316' : pct > 50 ? '#eab308' : '#22c55e';
 
   if (campaigns.length === 0) {
-    /* Enterprise Error Boundary */
-
-    if (_pageError) return <ErrorFallback error={_pageError} onRetry={() => { _setPageError(null); _setRetryCount(c => c + 1); }} />;
-
     return (
       <div className="card card-glass" style={{ padding: 60, textAlign: 'center', color: '#1e293b' }}>
         <div style={{ fontSize: 48, marginBottom: 16 }}>💰</div>

@@ -28,10 +28,6 @@ function MonthCalendar({year,month,events,t}){
   for(const e of events){const dk=e.date?.slice(0,10);if(!dk)continue;if(!evByDate[dk])evByDate[dk]=[];evByDate[dk].push(e);}
   const STATUS_COLORS={draft:"#eab308",review:"#f97316",scheduled:"#4f8ef7",published:"#22c55e",cancelled:"#ef4444"};
   const PLAT_ICO={instagram:"📸",youtube:"▶",tiktok:"🎵",blog:"📝",facebook:"📘",twitter:"🐦",linkedin:"💼",pinterest:"📌"};
-  /* Enterprise Error Boundary */
-
-  if (_pageError) return <ErrorFallback error={_pageError} onRetry={() => { _setPageError(null); _setRetryCount(c => c + 1); }} />;
-
   return(
     <div>
       <div style={{ display:"grid", gridTemplateColumns:"repeat(7,1fr)", gap:2, marginBottom:6 }}>

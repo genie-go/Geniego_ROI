@@ -55,10 +55,6 @@ function TrendIcon({ t }) {
 
 function SoSBar({ brand, comp }) {
   const other = Math.max(0, 100 - brand - comp);
-  /* Enterprise Error Boundary */
-
-  if (_pageError) return <ErrorFallback error={_pageError} onRetry={() => { _setPageError(null); _setRetryCount(c => c + 1); }} />;
-
   return (
     <div style={{ display: "flex", height: 6, borderRadius: 4, overflow: "hidden", minWidth: 100, gap: 1 }}>
       <div style={{ width: `${brand}%`, background: "#4f8ef7" }} title={`자사 ${brand}%`} />

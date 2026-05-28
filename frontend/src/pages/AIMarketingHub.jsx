@@ -198,12 +198,6 @@ function RecommendCard({ rec, onBudgetChange, onApprove, onExecute, approved, ex
         setEditing(false);
     };
 
-    /* Enterprise Error Boundary */
-
-
-    if (_pageError) return <ErrorFallback error={_pageError} onRetry={() => { _setPageError(null); _setRetryCount(c => c + 1); }} />;
-
-
     return (
         <div className="card card-glass" style={{ border: `1.5px solid ${approved ? rec.color + '55' : executed ? 'rgba(34,197,94,0.3)' : 'rgba(255,255,255,0.07)'}`, padding: 20, transition: 'border 0.3s' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, marginBottom: 12 }}>

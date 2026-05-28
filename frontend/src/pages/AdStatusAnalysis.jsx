@@ -11,10 +11,6 @@ import { useT } from '../i18n/index.js';
 
 /* ── Enterprise Error Boundary ─────────────────────────── */
 function ErrorFallback({ error, onRetry }) {
-  /* Enterprise Error Boundary */
-
-  if (_pageError) return <ErrorFallback error={_pageError} onRetry={() => { _setPageError(null); _setRetryCount(c => c + 1); }} />;
-
   return (
     <div style={{
       padding: '40px 28px', textAlign: 'center', borderRadius: 16,
