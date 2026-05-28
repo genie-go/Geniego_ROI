@@ -634,46 +634,65 @@ const ProfileEditModal = memo(function ProfileEditModal({ user, token, onClose }
   const handleSaveProfile = async () => {
     if (!name.trim()) { showMsg(t('profile.nameRequired', 'Please enter your name.'), 'err'); return; }
     setSaving(true);
+
+    // 177차 §4.E TOP 2 강화 + U-177-A 정합:
+    // - 운영 모드: 서버 응답에 따라 명확히 분기 (silent localStorage update 제거 — 데이터 불일치 위험)
+    // - 데모 모드: 기존대로 localStorage 만 update (backend 가 demo tenant 변경 거부할 수 있음)
+    const KEY_PREFIX = IS_DEMO ? 'demo_genie_' : 'genie_';
+    const updateLocalCache = (serverUser = null) => {
+      try {
+        const cached = JSON.parse(localStorage.getItem(KEY_PREFIX + 'user') || '{}');
+        const updated = serverUser
+          ? { ...cached, ...serverUser }
+          : { ...cached, name: name.trim(), phone: phone.trim(), company: company.trim() };
+        localStorage.setItem(KEY_PREFIX + 'user', JSON.stringify(updated));
+      } catch { /* localStorage 불가 — 무시 */ }
+    };
+
     try {
       const r = await fetch('/api/auth/profile', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ name: name.trim(), phone: phone.trim(), company: company.trim() }),
       });
-      if (r.ok) {
-        const d = await r.json();
-        if (d.ok) {
-          // 로컬 캐시 업데이트
-          const KEY_PREFIX = (window.location.hostname.includes('demo') ? 'demo_genie_' : 'genie_');
-          try {
-            const cached = JSON.parse(localStorage.getItem(KEY_PREFIX + 'user') || '{}');
-            const updated = { ...cached, name: name.trim(), phone: phone.trim(), company: company.trim() };
-            localStorage.setItem(KEY_PREFIX + 'user', JSON.stringify(updated));
-          } catch { }
-          showMsg(t('profile.saved', 'Profile updated.'), 'ok');
-          setTimeout(() => window.location.reload(), 1200);
-          return;
-        }
+      const d = await r.json().catch(() => null);
+
+      if (r.ok && d?.ok) {
+        updateLocalCache(d.user);
+        showMsg(t('profile.saved', 'Profile updated.'), 'ok');
+        setTimeout(() => window.location.reload(), 1200);
+        return;
       }
-      // API가 없는 경우 로컬 캐시만 업데이트
-      const KEY_PREFIX = (window.location.hostname.includes('demo') ? 'demo_genie_' : 'genie_');
-      try {
-        const cached = JSON.parse(localStorage.getItem(KEY_PREFIX + 'user') || '{}');
-        const updated = { ...cached, name: name.trim(), phone: phone.trim(), company: company.trim() };
-        localStorage.setItem(KEY_PREFIX + 'user', JSON.stringify(updated));
-      } catch { }
-      showMsg(t('profile.saved', 'Profile updated.'), 'ok');
-      setTimeout(() => window.location.reload(), 1200);
-    } catch {
-      // 서버 연결 실패 시 로컬 캐시만 업데이트
-      const KEY_PREFIX = (window.location.hostname.includes('demo') ? 'demo_genie_' : 'genie_');
-      try {
-        const cached = JSON.parse(localStorage.getItem(KEY_PREFIX + 'user') || '{}');
-        const updated = { ...cached, name: name.trim(), phone: phone.trim(), company: company.trim() };
-        localStorage.setItem(KEY_PREFIX + 'user', JSON.stringify(updated));
-      } catch { }
-      showMsg(t('profile.savedLocal', 'Profile saved locally.'), 'ok');
-      setTimeout(() => window.location.reload(), 1200);
+
+      // 401/403 — 세션 만료 (운영/데모 동일)
+      if (r.status === 401 || r.status === 403) {
+        showMsg(t('profileExt.sessionExpired', 'Session expired. Please log in again.'), 'err');
+        return;
+      }
+
+      // 422 — 검증 실패 (서버 메시지 표시)
+      if (r.status === 422) {
+        showMsg(d?.error || t('profileExt.invalidInput', 'Invalid input.'), 'err');
+        return;
+      }
+
+      // 그 외 — 운영/데모 분기
+      if (IS_DEMO) {
+        updateLocalCache();
+        showMsg(t('profileExt.savedLocalDemo', 'Profile saved locally (demo mode).'), 'warn');
+        setTimeout(() => window.location.reload(), 1200);
+      } else {
+        showMsg((d?.error || t('profileExt.saveFail', 'Failed to save profile.')) + ' (HTTP ' + r.status + ')', 'err');
+      }
+    } catch (e) {
+      // 네트워크 실패 — 운영/데모 분기
+      if (IS_DEMO) {
+        updateLocalCache();
+        showMsg(t('profileExt.savedLocalOffline', 'Profile saved locally (offline).'), 'warn');
+        setTimeout(() => window.location.reload(), 1200);
+      } else {
+        showMsg(t('profileExt.networkError', 'Network error. Please try again.'), 'err');
+      }
     } finally { setSaving(false); }
   };
 
