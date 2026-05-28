@@ -103,7 +103,7 @@ function ConsentPanel({ onSave, onClose }) {
                     </button>
                     <button onClick={() => { setChoices({ necessary: true, analytics: true, marketing: true, personalization: true }); setTimeout(handleSave, 50); }}
                         style={{ flex: 1, padding: '10px 20px', borderRadius: 10, border: '1px solid rgba(79,142,247,0.3)', background: 'transparent', color: '#4f8ef7', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
-                        {t('.cookieAcceptAll')}
+                        {t('gdpr.cookieAcceptAll', '모두 동의')}
                     </button>
                 </div>
                 <div style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 12, lineHeight: 1.6 }}>
@@ -133,10 +133,10 @@ function ConsentBanner({ onAcceptAll, onSettings }) {
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
                 <button onClick={onAcceptAll} style={{ flex: 1, padding: '8px 16px', borderRadius: 8, border: 'none', background: 'linear-gradient(135deg,#4f8ef7,#6366f1)', color: 'var(--text-1)', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
-                    {t('.cookieAcceptAll')}
+                    {t('gdpr.cookieAcceptAll', '모두 동의')}
                 </button>
                 <button onClick={onSettings} style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid rgba(79,142,247,0.3)', background: 'transparent', color: 'var(--text-2)', fontSize: 12, cursor: 'pointer' }}>
-                    {t('.cookieSettings')}
+                    {t('gdpr.cookieSettings', '쿠키 설정')}
                 </button>
             </div>
         </div>

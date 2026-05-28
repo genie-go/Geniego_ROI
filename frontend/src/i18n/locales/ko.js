@@ -13771,6 +13771,56 @@ export default {
 
   "onboarding": {
 
+    "tour": {
+
+      "skip": "건너뛰기",
+
+      "next": "다음",
+
+      "finish": "시작하기",
+
+      "welcome": {
+
+        "title": "지니고 ROI에 오신 것을 환영합니다! 👋",
+
+        "desc": "마케팅 ROI 최적화를 위한 올인원 플랫폼입니다. 주요 기능을 빠르게 둘러보겠습니다."
+
+      },
+
+      "dashboard": {
+
+        "title": "대시보드에서 모든 것을 한눈에",
+
+        "desc": "실시간 KPI, 채널별 성과, 예산 현황을 통합 대시보드에서 확인하세요."
+
+      },
+
+      "marketing": {
+
+        "title": "AI 마케팅 자동화",
+
+        "desc": "AI가 캠페인을 자동으로 최적화하고, 예산을 효율적으로 배분합니다."
+
+      },
+
+      "integration": {
+
+        "title": "채널 연동하기",
+
+        "desc": "Meta, Google, TikTok, Naver 등 주요 광고 채널을 연결하여 데이터를 통합 관리하세요."
+
+      },
+
+      "complete": {
+
+        "title": "준비 완료! 🎉",
+
+        "desc": "이제 지니고 ROI의 모든 기능을 사용할 수 있습니다. 궁금한 점이 있으면 언제든지 도움말을 참고하세요."
+
+      }
+
+    },
+
     "guideRolesTitle": "역할별 경로 안내",
 
     "guideSecMarketer": "광고 채널 연동, 어트리뷰션, AI 마케팅, CRM, A/B 테스트를 학습합니다.",
@@ -16585,6 +16635,10 @@ export default {
 
     "savePref": "환경설정 저장",
 
+    "cookieAcceptAll": "모두 동의",
+
+    "cookieSettings": "쿠키 설정",
+
     "policyNote1": "본 서비스는 귀하의 개인정보를 ",
 
     "privacyPolicy": "개인정보 처리방침",
@@ -18542,6 +18596,8 @@ export default {
   "rfmListTit": "RFM 분석 목록",
 
   "catalogSync": {
+
+    "heroTitle": "카탈로그 동기화 — 상품 마스터 일괄 관리",
 
     "validationNameCategory": "상품명과 카테고리를 입력해 주세요.",
 

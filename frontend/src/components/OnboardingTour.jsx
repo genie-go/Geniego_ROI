@@ -181,7 +181,7 @@ export function OnboardingTour({ onComplete }) {
                             lineHeight: 1.3,
                         }}
                     >
-                        {t(step.title) || step.title}
+                        {t(step.title, step.title)}
                     </div>
 
                     {/* Description */}
@@ -193,7 +193,7 @@ export function OnboardingTour({ onComplete }) {
                             marginBottom: 32,
                         }}
                     >
-                        {t(step.desc) || step.desc}
+                        {t(step.desc, step.desc)}
                     </div>
 
                     {/* Actions */}
@@ -219,7 +219,7 @@ export function OnboardingTour({ onComplete }) {
                                 e.target.style.background = 'rgba(255,255,255,0.05)';
                             }}
                         >
-                            {t('onboarding.tour.skip') || '건너뛰기'}
+                            {t('onboarding.tour.skip', '건너뛰기')}
                         </button>
                         <button
                             onClick={handleNext}
@@ -246,8 +246,8 @@ export function OnboardingTour({ onComplete }) {
                             }}
                         >
                             {currentStep === TOUR_STEPS.length - 1
-                                ? t('onboarding.tour.finish') || '시작하기'
-                                : t('onboarding.tour.next') || '다음'}
+                                ? t('onboarding.tour.finish', '시작하기')
+                                : t('onboarding.tour.next', '다음')}
                         </button>
                     </div>
                 </div>

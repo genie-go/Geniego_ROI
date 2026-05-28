@@ -14233,6 +14233,8 @@ export default {
       guideGuideDesc: "View detailed guide."
     },
   catalogSync: {
+      heroTitle: "Catalog Sync — Unified Product Master",
+      heroDesc: "Sync product info, images, and stock across all channels with full change history.",
       pageTitle: "📂 Product Catalog",
       pageSub: "Product management and channel synchronization",
       tabProducts: "📦 Products",
@@ -15935,7 +15937,37 @@ export default {
         }
       }
     },
+  onboarding: {
+    tour: {
+      skip: "Skip",
+      next: "Next",
+      finish: "Get Started",
+      welcome: {
+        title: "Welcome to Geniego ROI! 👋",
+        desc: "An all-in-one platform for marketing ROI optimization. Let's take a quick tour of the key features.",
+      },
+      dashboard: {
+        title: "See Everything at a Glance",
+        desc: "Monitor real-time KPIs, channel performance, and budget status on the unified dashboard.",
+      },
+      marketing: {
+        title: "AI Marketing Automation",
+        desc: "AI automatically optimizes campaigns and allocates budgets efficiently.",
+      },
+      integration: {
+        title: "Connect Your Channels",
+        desc: "Integrate major ad channels like Meta, Google, TikTok, and Naver to manage data centrally.",
+      },
+      complete: {
+        title: "You're All Set! 🎉",
+        desc: "You can now use all features of Geniego ROI. Check the help section anytime if you have questions.",
+      },
+    },
+  },
+
   gdpr: {
+      cookieAcceptAll: "Accept All",
+      cookieSettings: "Cookie Settings",
       bannerTitle: "Cookie Preferences",
       bannerDesc: "We use cookies to enhance your experience, analyze traffic, and personalize content. You can manage your preferences.",
       panelTitle: "Cookie Settings",

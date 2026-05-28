@@ -6,7 +6,7 @@ export default defineConfig({
   // 프로젝트 루트 지정
     root: path.resolve(__dirname, 'frontend'),
   // Vite 캐시 디렉터리 - D: 드라이브로 이동
-  cacheDir: 'D:/cache/vite',
+  cacheDir: process.env.VITE_CACHE_DIR || 'D:/cache/vite',
   publicDir: 'public',
 
   plugins: [
@@ -19,20 +19,19 @@ export default defineConfig({
 
   server: {
     port: 5173,
-    proxy: {
-      // ── 로컬 개발 (XAMPP): /api → localhost:8080 ─────────────────────
-      '/api': { target: 'http://localhost:8080', changeOrigin: true, secure: false },
-      '/auth': { target: 'http://localhost:8080', changeOrigin: true, secure: false },
-      '/v3': { target: 'http://localhost:8080', changeOrigin: true, secure: false },
-      '/v4': { target: 'http://localhost:8080', changeOrigin: true, secure: false },
-      '/v419': { target: 'http://localhost:8080', changeOrigin: true, secure: false },
-      // ── 운영 서버 (배포 시 아래 줄 활성화 후 위 로컬 설정 주석처리) ──
-      // '/api': { target: 'https://roi.genie-go.com', changeOrigin: true, secure: false },
-      // '/auth': { target: 'https://roi.genie-go.com', changeOrigin: true, secure: false },
-      // '/v3': { target: 'https://roi.genie-go.com', changeOrigin: true, secure: false },
-      // '/v4': { target: 'https://roi.genie-go.com', changeOrigin: true, secure: false },
-      // '/v419': { target: 'https://roi.genie-go.com', changeOrigin: true, secure: false },
-    },
+    proxy: (() => {
+      const backend = process.env.VITE_BACKEND || 'http://localhost:8080';
+      const mk = () => ({ target: backend, changeOrigin: true, secure: false });
+      return {
+        // ── 로컬 개발 (XAMPP): /api → localhost:8080 ─────────────────────
+        // ── 운영 직접 검증 (cc audit): VITE_BACKEND=https://roi.genie-go.com npx vite ──
+        '/api':  mk(),
+        '/auth': mk(),
+        '/v3':   mk(),
+        '/v4':   mk(),
+        '/v419': mk(),
+      };
+    })(),
     // HMR 최적화
     hmr: { overlay: false },
   },
