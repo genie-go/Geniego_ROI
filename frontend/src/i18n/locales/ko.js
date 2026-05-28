@@ -42934,27 +42934,44 @@ export default {
 },
 
   "budgetTracker": {
-
+    // 176차 PM8 — BudgetTracker 영문 fallback 한글화 (사용자 자연어 번역 직접 제공)
     "tabOverview": "종합 현황",
-
     "tabAllocation": "예산 배분",
-
     "tabBurnRate": "소진율",
-
     "tabAlerts": "알림",
-
     "tabGuide": "이용 가이드",
-
     "guideTitle": "예산 추적 이용 가이드",
-
     "guideSub": "실시간 광고 예산 소비 및 최적화 추적 가이드입니다.",
-
-    guideStep7Desc: 'B2B 탭에서 대량 주문을 별도 관리합니다.',
-    guideStep7Title: 'B2B 도매 주문 관리',
-    guideStep8Desc: '자동 라우팅 탭에서 조건별 규칙을 생성·관리합니다.',
-    guideStep8Title: '자동 라우팅 엔진',
-    pageTitle: 'AI 예측 분석 허브',
-    pageSub: '측정 가능한 KPI · 비즈니스 목표 연동 · 채널 역할 최적화 · 정기 AI 평가',
+    "utilization": "예산 사용률",
+    "avgDaily": "일평균 지출액",
+    "projectedEnd": "예상 종료일",
+    "campaignName": "캠페인명",
+    "velocity": "집행 속도",
+    "overBudget": "예산 초과",
+    "underSpend": "예산 미달 집행",
+    "channelAllocDesc": "광고 채널별 예산 분배 현황",
+    "dailyTrend": "일별 지출 추이",
+    "dailyTrendDesc": "일별 지출 및 예산 소진 속도를 추적합니다",
+    "cumulative": "누적 지출액",
+    "budgetLine": "예산 기준선",
+    "alertTitle": "예산 알림",
+    "alertDesc": "예산 임계값 및 이상 징후 기반 자동 알림",
+    "alertOver80": "예산 80% 이상 사용",
+    "alertOver100": "예산 초과",
+    "alertLowVelocity": "낮은 집행 속도",
+    "alertHighVelocity": "높은 집행 속도",
+    "guideTabAllocationName": "🥧 예산 분배",
+    "guideTabAllocationDesc": "파이 차트로 채널별 예산 분배를 시각화합니다.",
+    "guideTabBurnRateName": "🔥 소진율",
+    "guideTabBurnRateDesc": "최근 21일 일별 지출 막대 차트 및 누적 지출 대비 예산 영역 차트입니다.",
+    "guideTabAlertsName": "🔔 알림",
+    "guideTabAlertsDesc": "예산 80% 이상 경고, 100% 초과 위험, 낮은 집행 감지 시 자동 알림을 제공합니다.",
+    "guideFaq3Q": "알림이 너무 자주 발생해요",
+    "guideFaq3A": "80% 경고는 핵심 예산 관리 기능입니다. 알림이 너무 많다면 전체 예산을 늘리거나 효율이 낮은 캠페인을 일시 중지해 보세요.",
+    "guideFaq4Q": "채널 분배 차트에 Other만 표시돼요",
+    "guideFaq4A": "광고 채널이 지정되지 않은 캠페인은 Other로 분류됩니다. 정확한 분석을 위해 캠페인 관리자에서 Meta, Google 등의 채널을 지정해 주세요.",
+    "guideFaq5Q": "데이터가 실시간으로 업데이트되나요?",
+    "guideFaq5A": "네, Budget Tracker는 GlobalDataContext를 통해 실시간으로 동기화됩니다. 캠페인 관리자에서 변경한 내용이 새로고침 없이 즉시 반영됩니다.",
   },
 
   "🤖 Auto-Optimization Applied Successfully": {},
