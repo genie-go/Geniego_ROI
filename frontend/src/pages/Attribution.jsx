@@ -1238,25 +1238,28 @@ export default function Attribution() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', color: 'var(--text-1, #1e293b)', direction: isRTL ? 'rtl' : 'ltr', height: 'calc(100vh - 54px)', overflow: 'hidden', background: 'var(--bg, #f5f7fa)' }}>
-      {/* ═══ STICKY SUB-TAB MENU (never scrolls away) ═══ */}
+      {/* ═══ STICKY SUB-TAB MENU (never scrolls away) ═══
+           174차 fix: 10탭 wrap → nowrap + horizontal scroll, dyn-sub-tab-btn class 적용 */}
       <div style={{ flexShrink: 0, position: 'sticky', top: 0, zIndex: 20, background: 'var(--bg, #f5f7fa)' }}>
         <div style={{ padding: '8px 16px', background: 'var(--bg, #f5f7fa)', borderBottom: '2px solid var(--border, #e2e8f0)' }}>
-          <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', background: 'var(--surface, #ffffff)', border: '1px solid var(--border, #e2e8f0)', borderRadius: 12, padding: '6px 8px', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
+          <div className="sub-tab-nav" style={{ display: 'flex', gap: 4, flexWrap: 'nowrap', overflowX: 'auto', overflowY: 'hidden', background: 'var(--surface, #ffffff)', border: '1px solid var(--border, #e2e8f0)', borderRadius: 12, padding: '6px 8px', boxShadow: '0 1px 4px rgba(0,0,0,0.04)', scrollbarWidth: 'thin', WebkitOverflowScrolling: 'touch' }}>
             {getTabs(t).map(tb => {
               const isActive = tab === tb.id;
               const clr = TAB_COLORS[tb.id] || '#6366f1';
               return (
                 <button key={tb.id} onClick={() => setTab(tb.id)}
+                  className="dyn-sub-tab-btn"
+                  data-active={isActive ? 'true' : 'false'}
                   style={{
                     padding: '7px 14px', borderRadius: 9, border: 'none', cursor: 'pointer',
-                    fontWeight: 700, fontSize: 11, flex: 1, minWidth: 90,
+                    fontWeight: 700, fontSize: 11, flex: '0 0 auto', minWidth: 95,
                     transition: 'all 0.2s cubic-bezier(.4,0,.2,1)',
                     background: isActive ? clr : 'transparent',
                     color: isActive ? '#ffffff' : 'var(--text-2, #475569)',
                     boxShadow: isActive ? `0 3px 16px ${clr}45` : 'none',
                     transform: isActive ? 'translateY(-1px)' : 'none' }}>
-                  <div>{tb.label}</div>
-                  <div style={{ fontSize: 9, opacity: 0.7, marginTop: 1 }}>{tb.desc}</div>
+                  <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tb.label}</div>
+                  <div style={{ fontSize: 9, opacity: 0.7, marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tb.desc}</div>
                 </button>
               );
             })}

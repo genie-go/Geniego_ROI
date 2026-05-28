@@ -239,7 +239,7 @@ export default function JourneyBuilder() {
                             const active = tab === tb.id;
                             const c = TAB_CLR[tb.id];
                             return (
-                                <button key={tb.id} onClick={() => setTab(tb.id)} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '7px 14px', borderRadius: 9, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700, transition: 'all 0.2s cubic-bezier(.4,0,.2,1)', background: active ? c : 'transparent', color: active ? '#ffffff' : '#64748b', boxShadow: active ? `0 3px 14px ${c}40` : 'none', transform: active ? 'translateY(-1px)' : 'none' }}>{tb.icon} {tb.label}</button>
+                                <button key={tb.id} onClick={() => setTab(tb.id)} className="dyn-sub-tab-btn" data-active={active ? 'true' : 'false'} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '7px 14px', borderRadius: 9, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700, transition: 'all 0.2s cubic-bezier(.4,0,.2,1)', background: active ? c : 'transparent', color: active ? '#ffffff' : '#64748b', boxShadow: active ? `0 3px 14px ${c}40` : 'none', transform: active ? 'translateY(-1px)' : 'none' }}>{tb.icon} {tb.label}</button>
                             );
                         })}
                     </div>
