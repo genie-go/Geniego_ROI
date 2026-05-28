@@ -1,151 +1,163 @@
-# 174차 세션 인계서 (NEXT_SESSION.md) — **173차 4 commit: Paddle 운영 lifecycle + i18n + 대시보드 시각 정합**
+# 175차 세션 인계서 (NEXT_SESSION.md) — **174차 6 commit: cc 자율 브라우저 검증 + 진짜 흰색-텍스트/i18n raw key 광범위 fix**
 
-> **작성일**: 2026-05-27 (사용자 명시 승인 후)
-> **이전 세션**: 173차 (Paddle 7원칙 운영 수준 + /dashboard /marketing 시각 검증 + PnL i18n 보강 + RollupDashboard active sub-tab fix)
-> **다음 세션**: 174차
+> **작성일**: 2026-05-28 (사용자 명시 승인 후)
+> **이전 세션**: 174차 (cc puppeteer 자율 검증 + audit 455→120건 + ja/zh root.pnl 보강 + styles.css gradient hijack 해소)
+> **다음 세션**: 175차
 > **저장 위치**: repo root `NEXT_SESSION.md`
-> **종결 방식**: 운영 dist swap 전 단계 (4 commit local). push 별도 명시 승인 대기.
+> **종결 방식**: push 완료 (6 commit). 운영 CI auto-deploy 자동 진행 중.
 
 ---
 
-## ⚠️ 174차 검수자 최우선 인지 사항
+## ⚠️ 175차 검수자 최우선 인지 사항
 
-### 1. 최상위 상태 (174차 진입 시점)
+### 1. 최상위 상태 (175차 진입 시점)
 
 | 영역 | 상태 | 비고 |
 |---|:-:|---|
-| 운영 frontend dist | ⚠️ 172p19 (`index-GaIE36f4.js`) | 173차 4 commit 미반영 |
+| 운영 frontend dist | ✅ afc9fb42d push 후 CI 자동 진행 | 사용자 본인 hash 확인 권장 |
 | 데모 frontend dist | ⚠️ 172차 동일 | 별도 라운드 |
-| 운영 backend Paddle.php | ⚠️ 172차 동일 | 173차 보강 미배포 |
-| 운영 backend AdminPlans.php | ✅ 172차 적용 | |
-| local 174차 진입 시 commit 4건 | ✅ master local | push 대기 |
 | Paddle Sandbox 11개 값 | ❌ 미적용 | 매출 차단 (사용자 대시보드 작업 대기) |
-| PnLDashboard pnl.* i18n | ✅ 13언어 root.pnl 보강 | 운영 미반영 |
-| RollupDashboard active sub-tab | ✅ dyn-sub-tab-btn fix | 운영 미반영 |
-| /attribution sub-tab wrap | ⚠️ 잠재 결함 (174차 후보) | |
-| AutoMarketing/JourneyBuilder/CampaignManager sub-tab | ⚠️ 동일 결함 가능성 | |
+| 운영 i18n root.pnl 13언어 보강 | ✅ 173차+174차 누적 반영 | ko/en/de/th/vi/id/ar/es/fr/hi/pt/ru/zh-TW + ja/zh |
+| GdprBanner / OnboardingTour raw key | ✅ ko/en 정식 namespace + fallback | 14언어 자동 fallback |
+| styles.css gradient 버튼 hijack | ✅ :not(button):not(a) 추가 (P1-G2) | 광범위 효과 |
+| ja.js / zh.js G6 collision 1,304건 | ⚠️ ruleEnginePage.dash.* nested | 175차+ 별도 라운드 |
+| 14언어 wrong-language 16,835건 | ⚠️ en 5085 / ar 5298 / ja 3739 / zh 2713 | 175차+ 핵심 트랙 |
+| admin/connectors/hero 카드 children invisible | ⚠️ KpiCard children color | 별도 컴포넌트 패턴 |
 
-### 2. 173차 변경 — git 커밋 일람 (4 commit)
+### 2. 174차 변경 — git 커밋 일람 (6 commit, 모두 push 완료)
 
 ```
-19cabf3f8  fix(보강): RollupDashboard active sub-tab + dyn-color CSS (2 files, +25/-1)
-e21dad85b  fix(i18n): PnLDashboard pnl.* raw key 노출 → 13언어 root.pnl 보강 (13 files, +1308/-16)
-e25105c67  fix(보강): /dashboard 8탭 + /marketing 6탭 시각 검증 후 추가 overlap fix (4 files, +37/-5)
-d8dc5374f  feat: Paddle 운영 결제 lifecycle 완비 + 대시보드 텍스트 중첩 fix (10 files, +693/-75)
+afc9fb42d  fix(174차 P1-G2): styles.css 광범위 gradient 버튼 hijack 해소 + EmptyState className 보호 (2 files, +17/-4)
+1ec7eb46b  fix(174차 P1-G): cc 브라우저 자율 검증으로 진짜 흰색-텍스트/i18n raw-key 결함 4종 해소 (6 files, +110/-27)
+366efc157  fix(174차 Option D): ja/zh i18n sacred 부분 해소 — root.pnl +105/+91 + collision 4건 (TRIAGE_SKIP 명시 승인) (3 files, +221/-175)
+0efe7106c  fix(174차 P1-F): Attribution 10 sub-tab wrap fix + JourneyBuilder dyn-sub-tab-btn 방어 적용 (2 files, +9/-6)
+334dc9d47  chore(174차): styles.css trivial touch — CI deploy 강제 트리거
+e38e8648f  chore(174차): CI deploy 재트리거 — 173차 4 commit 운영 반영용 empty commit
 ```
 
-**합계: 29 files, +2063/-97**
+**합계: 13 files 변경, +357/-212**
 
-### 3. 173차 핵심 변경 정리
+### 3. 174차 핵심 변경 정리
 
-#### 3.1 PHASE 1 — Paddle Billing 운영 가능 수준 (사용자 7원칙 정합)
+#### 3.1 PHASE 1 — P1-F (Sub-tab UI 정합)
 
-**Frontend (PricingPublic.jsx)**:
-- cycle 토글 (1/3/6/12개월) — 기존 binary monthly/annual → 4-cycle pill
-- `location.state.autoCheckout` 수신 → SDK 준비 후 자동 Paddle.Checkout.open (가입 후 자동 진입)
-- `plan.periods` 매트릭스 우선 매칭 (price_id_monthly/annual legacy fallback)
-- customData `{plan_id, cycle_months}` 동봉 (webhook 식별)
-- FAQ 재작성: card-only + 4 cycle + retry + refund 정합
+**Attribution.jsx**:
+- 10 sub-tab `flexWrap: 'wrap'` → `'nowrap'` + `overflowX: 'auto'` + `flex: '0 0 auto'` + `minWidth: 95`
+- `className="sub-tab-nav"` + `className="dyn-sub-tab-btn"` + `data-active` (173차 styles.css CSS rule 활용)
+- label/desc ellipsize
 
-**Backend (Paddle.php)**:
-- `processEvent` occurred_at stale skip: subscription/transaction/adjustment 전체
-- `onRefunded` 전면 재작성: full/chargeback → user plan='demo' + sub status='refunded' (사기 위험 차단)
-- `resolveAppPlan` 5-tier lookup: plan_period_pricing → plan_config → .env → heuristic → fallback
-- adjustment.created / adjustment.updated 신규 webhook 처리
+**JourneyBuilder.jsx**: 5 sub-tab 에 `className="dyn-sub-tab-btn"` + `data-active` 방어 적용 (173차 RollupDashboard 동일 패턴)
 
-**Docs (신규)**:
-- `docs/P0_PADDLE_OPS_PLAYBOOK.md` — Paddle 대시보드 작업 + 운영 적용 + webhook 검증 + 트러블슈팅 완전 가이드
+AutoMarketing / CampaignManager 점검 결과 미패치 (각 page 별 보호 기존 적용).
 
-#### 3.2 PHASE 2 — 5개 public 페이지 영어 운영 수준 정합
+#### 3.2 PHASE 2 — Option D (ja/zh i18n 잔여)
 
-- `Terms.jsx` §3 billing cycle 4종 + Card-only + §3.4 retry 정책
-- `Privacy.jsx` §5.1 data retention 5종 (active/paused/billing/log/erasure)
-- `Refund.jsx` §3 card-only refund flow + §3.1 chargeback 정책
-- `PricingPublic.jsx` FAQ — PayPal/Apple Pay 등 카드 외 제거
+- ja.js root.pnl: +105 keys (p_1~p_18 14 + 173차 spec 91, 영어 fallback)
+- zh.js root.pnl: +91 keys (173차 spec 91, 영어 fallback)
+- ja.js / zh.js dashGuide/dashTabs collision 4건 해소
+- 기존 일본어/중국어 자연어 값 절대 변경 없음
+- baseline.json sacred SHA 갱신: ja 81f45afd / zh 6740eed5 / version 156→174
+- **G6 잔여**: ja.js 566 + zh.js 738 = 1,304 collision (대부분 `ruleEnginePage.dash.*` nested), TRIAGE_SKIP=1 우회 commit (사용자 명시 승인)
 
-#### 3.3 PHASE 3 — 대시보드 텍스트/그래프 중첩 fix (사용자 명시 결함)
+#### 3.3 PHASE 3 — cc 자율 브라우저 검증 (U-174-A 정합)
 
-cc playwright 운영 페이지 직접 시각 검증 (U-173-A) 진행:
+**환경 확립**:
+- VITE_DEMO_MODE=true + VITE_BACKEND=https://roi.genie-go.com proxy
+- localStorage 강제 주입: `genie_token='local_admin_*' prefix` (AuthContext.jsx L156 — 서버 호출 skip)
+- `geniego_tour_completed='1'` + GDPR cookie (모달 차단)
+- `_tmp_174_browser_audit.cjs` — 44 페이지 자동 일주 + screenshot + DOM 분석
 
-**/dashboard 8탭 일주** (overview/marketing/channel/commerce/sales/influencer/system/guide):
-- DashOverview KPI 6/9 column → `repeat(auto-fit, minmax(...))`
-- KpiCard 내부 layout: minWidth:0 + flex:1 + 텍스트 ellipsis + Spark 폭 78→64 + flex-wrap
-- DashMarketing KPI 7 column → auto-fit (150px)
-- DashChannelKPI 6 column → auto-fit (170px)
-- DashCommerce 5 platform card → auto-fit (135px)
+**audit 진화 통계**:
+| 단계 | invisible | lowContrast | 비고 |
+|---|---|---|---|
+| 초기 | 455 | 5 | nearestBg 부정확 + 모달 + raw key |
+| 개선 1 (nearestBg gradient 인식) | 182 | 41 | -273 false positive 제거 |
+| 개선 2 (OnboardingTour/GDPR 차단) | 140 | 41 | -42 모달 결함 제거 |
+| 개선 3 (styles.css L3337 :not(button)) | **120** | 35 | -20 광범위 |
 
-**/marketing 6탭 일주** (overview/ad_status/creative/compare/ai_design/guide):
-- Marketing legend wrapper 결함 fix (wrapper width:10/height:10/bg=color → marker + label 분리)
-- Marketing sub-tab active **white-on-white** 결함 fix (data-active + 신규 className + 가장 specific CSS rule)
+#### 3.4 PHASE 4 — P1-G (진짜 결함 4종 fix)
 
-**BudgetTracker.jsx** 3 legend 동일 wrapper 결함 fix.
+**[1] GdprBanner.jsx (모든 페이지 공통)**:
+- L106/L136/L139 `t('.cookieAcceptAll')` (leading dot) → `t('gdpr.cookieAcceptAll', '모두 동의')` 등
+- ko.js root.gdpr / en.js root.gdpr 에 cookieAcceptAll/cookieSettings 신규
 
-#### 3.4 PHASE 4 — i18n raw key 100+ 노출 fix (PnLDashboard)
+**[2] HelpCenter.jsx (페이지 자체 깨짐)**:
+- L14 `ErrorFallback({error, onRetry})` 안의 `if (_pageError) return ...` 제거
+- 원인: main HelpCenter() hook 변수 `_pageError` 를 ErrorFallback 함수에 잘못 옮겨붙여 ReferenceError → ErrorBoundary catch → "Runtime Error" 노출
+- 효과: /help-center 페이지 정상 렌더링
 
-발견:
-- /pnl 운영 페이지에서 `pnl.pageDesc`, `pnl.tabUnitPnl`, `pnl.wfRevenue` 등 100+ key raw 노출
-- ko.js root.pnl 네임스페이스에 spec key 미존재 (title/subtitle/grossRevenue 등 별도 set 만)
-- ko.js nested pnl (L20690) 에 한국어 spec key 가 이미 있었으나 다른 outer namespace 안
+**[3] OnboardingTour.jsx (모든 페이지 첫 진입 모달)**:
+- L184/L196/L222/L249/L250 `t(key) || fallback` → `t(key, fallback)` (5건)
+- 원인: i18n util 의 `t(missingKey)` 가 key 자체 반환 (truthy) → JS `||` 평가 시 fallback 안 됨
+- ko.js root.onboarding.tour 전체 (skip/next/finish + 5 step × title+desc = 13 keys)
+- en.js root.onboarding 신규 namespace (tour 전체)
 
-수정:
-- ko.js root.pnl 에 91 spec key 한국어 보강 (기존 5 key colChannel/Revenue/Margin/AdSpend/NetProfit 중복 제외)
-- i18n-sync agent 호출 → 12 언어 동기화:
-  · en.js — 자연스러운 영어 번역
-  · de/th/vi/id/ar/es/fr/hi/pt/ru/zh-TW — 영어 fallback
-- **ja.js / zh.js 는 sacred SHA + pre-existing collision (dashGuide / dashTabs) 로 별도 라운드 보류**
-- triage_apply self-test 3 PASS (collision / wronglang / dead_subtree)
+**[4] catalogSync.heroTitle/heroDesc**:
+- ko.js / en.js 에 추가 (heroDesc는 ko.js L19062에 이미 정의 — collision 회피 위해 우리 heroDesc 만 재제거)
 
-#### 3.5 PHASE 5 — 도메인 페이지 시각 점검 (6개)
+#### 3.5 PHASE 5 — P1-G2 (styles.css 광범위 gradient hijack)
 
-| 페이지 | 결과 |
-|---|---|
-| /pnl | 🚨 i18n raw key → ✅ fix |
-| /rollup | 🚨 active sub-tab white-on-white → ✅ fix (dyn-sub-tab-btn) |
-| /attribution | ⚠️ 12 sub-tab 일부 wrap (174차 후보) |
-| /crm | ✅ 결함 없음 |
-| /account-performance | ✅ 결함 없음 |
-| /order-hub | ✅ 결함 없음 |
+styles.css L3337 셀렉터 `[style*="linear-gradient"][style*="background"]` 가 너무 광범위:
+- 의도: light theme 에서 dark hero div → white card
+- 부작용: **모든 inline gradient 버튼/링크** 도 매칭 → background 강제 white → 흰 글자 invisible
+- **Fix (한 줄)**: `:not(button):not(a)` 추가 → 버튼/링크는 자체 gradient 유지
+- 영향 페이지: JourneyBuilder EmptyState, Connectors, MappingRegistry, Admin, HelpCenter, AI*, AutoMarketing, PlanPricing, InfluencerUGC 등 다수
+- audit invisible: 140 → 120 (광범위 효과)
+
+EmptyState.jsx 추가 보강:
+- `jb-empty-create-btn` / `jb-empty-template-btn` className + `data-jb-action` attribute 부여
+- inline `backgroundImage` + `backgroundColor` + `WebkitTextFillColor` 명시 (다단 방어)
 
 ### 4. 사용자 운영원칙 누적 (U-prefix)
 
-기존 U-161-A ~ U-172-D 유지. **173차 신규**:
+기존 U-161-A ~ U-173-D 유지. **174차 신규 (사용자 명시 절대 원칙 4종)**:
 
-- **U-173-A**: cc playwright 운영 페이지 시각 점검 의무 (`mcp__playwright__browser_navigate` + `take_screenshot`). 사용자 명시 결함 (예: /marketing 중첩) 외에도 cc 가 운영 직접 시각 검증 → 발견된 결함 즉시 fix. UI 작업 떠넘기기 금지.
+- **U-174-A**: cc 브라우저 직접 검증 + fix-as-you-go 원칙. 사용자 검증 떠넘기기 절대 금지. (Puppeteer/Playwright 사용, 인증 게이트 시 demo 회원가입 / VITE_DEMO_MODE / 임시 토큰 발급 등으로 우회)
 
-- **U-173-B**: i18n raw key 노출 발견 시 ko.js master 보강 + 영어 fallback 14언어 sync (i18n-sync agent). 사용자 명시 영역. ja/zh sacred SHA 별도 라운드 (baseline.json 갱신 필요).
+- **U-174-B**: 거의 모든 페이지의 흰색-텍스트 invisible 결함 — 모든 페이지 일주 + fix 의무. 173차 dyn-sub-tab-btn / mkt-sub-tab-btn / am-active-tab / cs-active-tab className 보호 패턴 + 174차 styles.css `:not(button):not(a)` 패턴 활용. light + dark theme 모두 검증.
 
-- **U-173-C**: sub-tab-nav active 결함 (white-on-white) 패턴 발견 시 page 별 dynamic color vs 고정 color 구분. mkt-sub-tab-btn (Marketing 고정 색) / dyn-sub-tab-btn (Rollup 등 dynamic 색) 분리.
+- **U-174-C**: 초엔터프라이즈/SaaS급 구현 원칙 재강조. [[feedback-absolute-principles]] 9개 절대 원칙 정합. 단순 fix 아닌 완성도 추구. 글로벌 SaaS 표준 (i18n/RTL/접근성/성능/보안).
 
-- **U-173-D**: pre-commit gates (G2 sacred / G5 leaves / G6 collision) 차단 시 `--no-verify` 강제 금지. 변경 reasoning 후 단일 commit 분할 또는 sacred 파일 (ja/zh) 별도 라운드.
+- **U-174-D**: 다음 차수 미루기 절대 금지. 작업 여력이 있는 한 단일 세션에서 가능한 모든 트랙 자율 진행. 보고는 최종 단계 한 번.
 
-### 5. 미해결 / 다음 라운드 (174차 작업 후보)
+### 5. 미해결 / 다음 라운드 (175차 작업 후보)
 
 #### 5.1 P0 — 운영 적용 (사용자 명시 승인 후)
 
 **P0-A 매출 차단 잔여** (사용자 Paddle 대시보드 작업 대기):
-- 사용자가 docs/P0_PADDLE_OPS_PLAYBOOK.md §1 따라 Sandbox 11개 값 발급:
-  · PADDLE_CLIENT_TOKEN / PADDLE_SECRET_KEY / PADDLE_WEBHOOK_SECRET / PADDLE_ENV=sandbox
-  · 8 priceId (Starter × 1/3/6/12m + Pro × 1/3/6/12m)
-- cc 에 전달 후:
-  · 운영 .env 추가 + php-fpm reload
-  · admin `/admin/plan-pricing` 8 priceId DB 입력
-  · cc playwright Paddle Checkout overlay 실 결제 검증
-  · webhook subscription.created/activated/transaction.completed 정합 SQL 확인
+- Paddle Sandbox 11개 값 (CLIENT_TOKEN / SECRET_KEY / WEBHOOK_SECRET + 8 priceId) 발급
+- cc 에 전달 후: 운영 .env 추가 + admin DB 입력 + 실 결제 검증
 
-**P0-B 173차 dist 운영 swap** (push → CI 자동 deploy 또는 manual swap):
-- 4 commit 누적 변경 → 운영 반영
-- cc playwright 재검증: /pnl raw key 해소 / /rollup active 탭 정상 / /marketing cycle 토글 / KpiCard layout
+**P0-B 174차 운영 dist swap 검증** (afc9fb42d push 후):
+- 사용자 본인 운영 페이지 시각 검증 또는
+- cc 데모 계정 credentials 받아 puppeteer 재검증
 
-#### 5.2 P1 — UI 정합
+#### 5.2 P1 — UI 정합 (cc 자율 진행 가능)
 
 | # | 항목 | 작업량 | 비고 |
 |---|---|---|---|
-| F-1 | /attribution 12 sub-tab wrap fix | 소 | flex-wrap + min-width 또는 horizontal scroll |
-| F-2 | AutoMarketing/JourneyBuilder/CampaignManager sub-tab-nav 동일 패턴 점검 | 중 | dyn-sub-tab-btn 적용 또는 확인만 |
-| F-3 | ja.js / zh.js sacred SHA + collision 정리 | 중 | baseline.json 갱신 + dashGuide / dashTabs collision 해소 후 root.pnl sync |
-| F-4 | Mock 페이지 4종 fix (Attribution.jsx 등) | 중상 | 172차 인계서 P1-F 잔여 |
+| F-5 | admin/connectors/mapping-registry KpiCard children invisible | 중상 | 별도 컴포넌트 패턴, children color 강제는 부작용 우려, 컴포넌트별 className 보호 |
+| F-6 | EmptyState 두 번째 템플릿 버튼 (transparent bg) 텍스트 | 소 | inline color 강화 또는 styles.css 추가 보호 |
+| F-7 | 운영 dist 변경 검증 후 추가 cc 자율 audit 사이클 | 중 | 175차 cc 가 _tmp_174_browser_audit.cjs 재사용 |
 
-#### 5.3 P2 — 협업 & 인프라
+#### 5.3 P1 — i18n 잔여 (큰 작업)
+
+| # | 항목 | 작업량 | 비고 |
+|---|---|---|---|
+| I-1 | ja.js / zh.js G6 collision 1,304건 정리 | 대 | identical 461 자동 안전, divergent 843 자연어 우세 채택. N-79 정책 검토 필요 |
+| I-2 | **🌍 14언어 wrong-language 16,835건** | 대 | en 5085 / ar 5298 / ja 3739 / zh 2713. 가장 광범위 결함. 자국어 파일에 다른 언어 값 잠재 |
+| I-3 | 14언어 누락 키 진단 + 자연어 sync (PHASE 5-P) | 매우대 | zh 18,817 (61%) / ja 22,427 (73%) 최저. catalogSync/pages/crm/marketing namespace 우선 |
+
+#### 5.4 P1 — Mock → 실 API (사용자 의사결정 필요)
+
+| # | 항목 | 작업량 |
+|---|---|---|
+| F-1 | Attribution.jsx Mock → 실 API | 중 |
+| F-2 | Marketing.jsx Mock | 중 |
+| F-3 | CRM.jsx Mock | 중 |
+| F-4 | AIMarketingHub.jsx Mock | 중상 |
+
+#### 5.5 P2 — 협업 & 인프라
 
 | # | 항목 | 비고 |
 |---|---|---|
@@ -153,80 +165,82 @@ cc playwright 운영 페이지 직접 시각 검증 (U-173-A) 진행:
 | K | N-152-F PM-Core 잔여 | Milestones/Dependencies/Comments 등 |
 | L | SSE 실시간 알림 인프라 | 채팅과 공유 |
 
-#### 5.4 P3 — 최종 글로벌 SaaS (사용자 명시)
-
-| # | 항목 | 작업량 |
-|---|---|---|
-| **P** | 🌍 **15개국 현지 자연어 i18n 완벽 구현** | 대 |
-
-- ko 마스터 → 14언어 누락 키 추출 (i18n-sync agent)
-- 자동 번역 + 도메인 용어 사전
-- 통화/숫자/날짜 현지화 (`Intl.NumberFormat`, `Intl.DateTimeFormat`)
-- RTL (Arabic) 레이아웃 검증
-
-### 6. credentials 회전 강조 (173차 누적)
+### 6. credentials 회전 강조 (174차 누적)
 
 본 세션에서 cc 가 사용한 ops 자원:
-- SSH/MySQL — **0회** (사용자 명시 ops 접속 자제 모드, credentials 회전 알림 후 재개)
-- Paddle 계정 (`ceo@ociell.com`) — cc 직접 로그인 X. 사용자 본인 대시보드 작업 후 11개 값 전달 흐름
-- Playwright 운영 페이지 접근 — read-only, credentials 사용 X
+- SSH/MySQL — **0회** (사용자 명시 ops 접속 자제 모드)
+- Paddle 계정 — cc 직접 로그인 X
+- Playwright 운영 페이지 접근 — read-only 검증 시도. 인증 게이트로 실 접근 X
+- 데모 계정 — cc 자율 발급 시도 (`/api/auth/demo` 501 미구현 확인) — 별도 자체 흐름으로 우회 (localStorage `local_admin_*` token)
 
-**174차 진입 전 사용자 credentials 회전 권고 유효** (172차 누적 + 본 세션 미사용). memory `feedback_credentials_handling.md` 정합.
+**175차 진입 전 사용자 credentials 회전 권고 유효**. memory `feedback_credentials_handling.md` 정합.
 
-### 7. 174차 검수자 첫 응답 강제 의무
+### 7. 175차 검수자 첫 응답 강제 의무
 
-1. ⚠️ 본 인계서 §1-§5 인지 명시 (특히 §1 최상위 상태 + §5.1 P0 운영 적용)
-2. U-170-A/B/C/D + U-171-A/B/C/D/E/F + U-172-A/B/C/D + **U-173-A/B/C/D** 모두 인지
+1. ⚠️ 본 인계서 §1-§5 인지 명시 (특히 §1 최상위 상태 + §5.2 P1-F UI 정합 + §5.3 i18n 잔여)
+2. U-prefix 누적 모두 인지 — 특히 **U-174-A/B/C/D** (cc 브라우저 자율 검증 의무 + 흰색-텍스트 fix + 초엔터프라이즈 + 다음 차수 미루기 금지)
 3. 사용자 credentials 회전 확인 + Paddle 11개 값 도착 여부 확인
-4. MCP Playwright (`mcp__playwright__*`) 활성 — 운영 페이지 직접 시각 검증 (U-172-A + U-173-A)
+4. **cc 자율 브라우저 검증 진입** — `_tmp_174_browser_audit.cjs` 도구 (또는 더 정교한 신규 audit) + VITE_DEMO_MODE + localStorage `local_admin_*` 우회 패턴 활용
 5. push 시 사용자 명시 승인 필요 — CI 자동 deploy 트리거 (`.github/workflows/deploy.yml`)
 
-### 8. 174차 권장 진입 시나리오
+### 8. 175차 권장 진입 시나리오
 
-**Option A (운영 dist swap + 173차 fix 검증)**: 사용자 push 승인 → CI 자동 deploy → cc playwright 재검증 (/pnl /rollup /marketing /KpiCard layout 모두 fix 효과 확인). 1 라운드.
+**Option A (P1-F-5/F-6 admin/connectors KpiCard children invisible fix)**: cc 자율. _tmp_174_browser_audit.cjs 재실행 → admin/connectors/mapping-registry screenshot 직접 확인 → 컴포넌트별 className 보호 + inline color 강화. 광범위 효과 가능. 1-2 라운드.
 
-**Option B (Paddle 매출 차단 해소)**: 사용자가 Paddle Sandbox 11개 값 제공 → P0-A 완결 → 실 결제 작동 검증. 1-2 라운드. **사용자 Paddle 대시보드 작업 선행**.
+**Option B (P1-I-2 14언어 wrong-language 16,835건 정리)**: cc 자율. i18n-sync agent 활용. 자국어 파일에 잘못 들어간 다른 언어 값 추출 + 자국어 자연어 fallback. en/ar (각 5000건) 우선. 매우 큰 작업, 2-4 라운드.
 
-**Option C (P1-F UI 정합 추가 fix)**: /attribution sub-tab + AutoMarketing/JourneyBuilder/CampaignManager 4 페이지 시각 점검 + fix. cc 자율. 2-3 라운드.
+**Option C (P0-A Paddle 매출 차단 해소)**: 사용자 Paddle 대시보드 작업 대기. 11개 값 도착 후 cc 진행. 1-2 라운드.
 
-**Option D (ja/zh i18n sacred SHA 정리)**: baseline.json 갱신 + ja/zh root.pnl sync. 별도 sacred 영역 처리. 1 라운드.
+**Option D (P1-I-1 ja/zh G6 collision 1,304건 정리)**: identical 461 자동 안전 + divergent 843 자연어 우세 채택. N-79 정책 검토 후 진행. 2-3 라운드.
 
-**Option E (PHASE 3-J 팀 채팅 / PHASE 5-P 15국 i18n)**: 신규 대형 기능. 4-6 라운드.
+**Option E (P2-J 팀 채팅 / P2-K PM-Core 잔여 / P2-L SSE)**: 신규 대형 기능. 4-6 라운드 각.
 
-**권장 1순위**: **Option A** (dist swap + 검증). 173차 4 commit 효과를 운영에서 확인 후 다음 결정.
+**권장 1순위**: **Option A** (P1-F-5/F-6). 174차 P1-G/G2 패턴 확장. cc 자율 + 즉시 효과 + 사용자 시각 검증 부담 감소.
 
-### 9. memory 파일 갱신 권장 (174차 cc)
+### 9. memory 파일 갱신 권장 (175차 cc)
 
-| 파일 | 173차 갱신 권고 |
+| 파일 | 174차 갱신 권고 |
 |---|---|
-| `MEMORY.md` (index) | **U-173-A/B/C/D 추가 권장** |
-| `feedback_browser_verify_always.md` | 173차 누적 (운영 페이지 직접 시각 검증 패턴 확립) |
-| `feedback_pm_operational_rules.md` | U-173-A/B/C/D 추가 권장 |
-| `feedback_credentials_handling.md` | 173차 ops 0회 사용 — 회전 권고 누적 유효 |
-| `project_n152f_consolidated.md` | 173차 신규 (Paddle 7원칙 보강 + i18n raw key 패턴 + sub-tab white-on-white 패턴) |
-| `reference_ops_host.md` | docs/P0_PADDLE_OPS_PLAYBOOK.md 신규 reference 추가 권장 |
+| `MEMORY.md` (index) | **U-174-A/B/C/D 추가 권장** (174차 feedback_174_browser_fix_principle.md 신규) |
+| `feedback_174_browser_fix_principle.md` | **신규 (174차에 사용자 명시 4 원칙)** |
+| `feedback_browser_verify_always.md` | 174차 누적 (puppeteer 자율 검증 실제 진행) |
+| `feedback_pm_operational_rules.md` | U-174-A/B/C/D 추가 권장 |
+| `feedback_credentials_handling.md` | 174차 ops 0회 사용 — 회전 권고 누적 유효 |
+| `project_n152f_consolidated.md` | 174차 신규 (i18n raw key 패턴 + styles.css gradient hijack 패턴 + cc 자율 audit 도구) |
+| `reference_ops_host.md` | _tmp_174_browser_audit.cjs 도구 reference 추가 권장 |
 
-### 10. 173차 종합 상태 표 (174차 즉시 참조)
+### 10. 174차 종합 상태 표 (175차 즉시 참조)
 
-| 영역 | 173차 진입 | 173차 종료 |
+| 영역 | 174차 진입 | 174차 종료 |
 |---|:-:|:-:|
-| 운영 dist | 172p19 (`index-GaIE36f4.js`) | ⚠️ **172p19 유지** (173차 dist swap 안 함) |
-| 매출 차단 | 50% (priceId/clientToken 둘 다 없음) | 50% (Paddle 7원칙 보강 완료, 값 적용 대기) |
-| PricingPublic cycle | binary monthly/annual | ✅ **4-cycle (1/3/6/12개월) + autoCheckout 수신** |
-| Paddle webhook 환불 처리 | audit log 만 (사기 위험) | ✅ **full/chargeback → user plan 'demo' downgrade** |
-| Paddle priceId 매핑 | .env 4종만 | ✅ **plan_period_pricing 5-tier lookup** |
-| 5 public 페이지 영어 정합 | 부분 | ✅ **Card-only + 4 cycle + retry + chargeback** |
-| docs Paddle playbook | 없음 | ✅ **docs/P0_PADDLE_OPS_PLAYBOOK.md 신규** |
-| /dashboard KPI grid | 6/9 column 강제 wrap | ✅ **auto-fit minmax** |
-| /marketing legend wrapper | width:10/height:10 결함 | ✅ **marker + label 분리** |
-| /marketing active sub-tab | white-on-white | ✅ **mkt-sub-tab-btn + data-active CSS** |
-| /pnl i18n raw key | 100+ 노출 | ✅ **13언어 root.pnl 보강** |
-| /rollup active sub-tab | red outline (white-on-white) | ✅ **dyn-sub-tab-btn + dynamic color CSS** |
-| credentials 회전 | 172차 누적 ~37회 | 173차 0회 사용 (회전 권고 유효) |
+| 운영 dist | 172p19 (`index-GaIE36f4.js`) | ✅ **afc9fb42d push 후 CI 자동 진행** |
+| 매출 차단 | 50% (Paddle 값 대기) | 50% (동일, 사용자 작업 대기) |
+| GdprBanner i18n raw key | `.cookieAcceptAll`/`.cookieSettings` 노출 | ✅ **정확 namespace + fallback** |
+| OnboardingTour i18n raw key | `onboarding.tour.*` 전체 노출 | ✅ **ko/en 정식 namespace 신규** |
+| HelpCenter Runtime Error | "_pageError is not defined" | ✅ **ErrorFallback 함수 정상화** |
+| styles.css gradient 버튼 hijack | 모든 페이지 흰-on-흰 | ✅ **:not(button):not(a) 셀렉터 narrow** |
+| Attribution 10 sub-tab wrap | 좁은 화면 wrap | ✅ **nowrap + horizontal scroll** |
+| JourneyBuilder sub-tab 보호 | className 없음 | ✅ **dyn-sub-tab-btn + data-active** |
+| ja/zh root.pnl 영어 fallback | 보류 (173차 인계) | ✅ **+105/+91 + sacred SHA 갱신** |
+| ja/zh dashGuide/dashTabs collision 4건 | 보류 | ✅ **해소** |
+| ja/zh G6 collision 잔여 | 미인지 | ⚠️ **1,304건 식별 (175차+ 라운드)** |
+| 14언어 wrong-language | 미진단 | ⚠️ **16,835건 식별 (175차+ 트랙)** |
+| 운영 audit 도구 | 없음 | ✅ **_tmp_174_browser_audit.cjs** |
+| cc 자율 브라우저 검증 | 인증 게이트 차단 | ✅ **VITE_DEMO_MODE + local_admin_ 우회 확립** |
+| credentials 회전 | 173차 0회 사용 | 174차 0회 사용 (회전 권고 누적) |
 
 ---
 
-**173차 commit hash (push 대기)**:
-- `d8dc5374f` `e25105c67` `e21dad85b` `19cabf3f8`
+**174차 commit hash (모두 push 완료)**:
+- `e38e8648f` `334dc9d47` (CI 트리거)
+- `0efe7106c` (P1-F)
+- `366efc157` (Option D)
+- `1ec7eb46b` (P1-G)
+- `afc9fb42d` (P1-G2)
 
-**다음 첫 작업 권장**: Option A (push 사용자 명시 승인 → CI 자동 deploy → cc playwright 재검증).
+**다음 첫 작업 권장**: Option A (P1-F-5/F-6 admin/connectors/hero card children invisible fix, cc 자율).
+
+**미커밋 미처리 변경**:
+- `tools/resolver_consumer_manifest_v2.json` — i18n key generator 자동 재생성물 (175차 정리 가능)
+- `_tmp_174_browser_audit.cjs` + `audit_174/*.png` — audit 도구 + screenshots (175차 재사용 가치)
+- `.playwright-mcp/`, `_tmp_inspect_ko_pnl.cjs`, `_tmp_verify_174_pnl.cjs` — 작업 잔여물 (정리 가능)
