@@ -1801,6 +1801,10 @@ return function (App $app): void {
     $register('GET', '/v424/health');
     $register('GET', '/api/v424/health');
 
+    // ── V424 system metrics (176차 — DashSystem 시스템 서브탭 실측) ──
+    $register('GET', '/v424/system/metrics');
+    $register('GET', '/api/v424/system/metrics');
+
     // ── V424 admin plans (169차 사용자 발견 issue) ──
     $register('GET',    '/v424/admin/plans');
     $register('PUT',    '/v424/admin/plans/{id}');

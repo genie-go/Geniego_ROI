@@ -59,7 +59,7 @@ final class SystemMetrics
 
         $payload = [
             'timestamp' => date('c'),
-            'env' => Db::env(),
+            'env' => method_exists(Db::class, 'env') ? Db::env() : 'unknown',
             'response_time_ms' => round((microtime(true) - $start) * 1000, 2),
             'modules' => $modules,
             'summary' => [
