@@ -1,11 +1,11 @@
 {
-  "version": "176",
-  "updated": "2026-05-28",
+  "version": "177",
+  "updated": "2026-05-29",
   "sacred_sha": {
-    "ja.js": "f3351634c3e93478e160538517c6b58ac2b558001e80eb275b3ea90c515145fe",
-    "zh.js": "a8bcc4746d42653687dcaec7ad492c0ed0694a304fb93841833235b22a7561fd"
+    "ja.js": "026c771bd48fb9df0db656d73886ef9c1998af0d54c16c1d93869af8810b3c4c",
+    "zh.js": "c15aef634ffbc6ac03e29549d1b2d1845b8a55c684bc3aad2edb6ffd151981c5"
   },
-  "ko_leaf_count": 31494,
+  "ko_leaf_count": 31554,
   "leaf_tolerance_pct": 5,
-  "_note": "Updated 176차 PM8 S8 — DataSchema 165 missing ds.* keys 한국어 자연어 + 14 lang 영어 fallback append-only. DataSchema ds.* missing 165 → 0 (DB 필드/메트릭/파이프라인/규칙 도메인 일괄). S8 long-tail 3 페이지(Recon/DataSchema/AIRecommendTab) 종결. 기존 자연어 ja/zh 값 절대 변경 없음. ko.js leaf 31329 → 31494 (Δ+165)."
+  "_note": "Updated 177차 §4.E TOP 1+2 본체 + U-177-A/B 정합 — ApiKeys.jsx 재설계 (ak namespace, ChannelCreds 7 endpoint wire-up) + Topbar ProfileEditModal 강화 (profileExt namespace, 운영/데모 분기 명확화) + SmartConnect.jsx wire-up (sc namespace, dead 부활 대비) + vite.config proxy bypass fix (SPA route /api-keys 보호). ja/zh sacred 정책 유지 — 신규 namespace 영어 fallback append-only. ko.js leaf 31494 → 31554 (Δ+60: ak ~52 + sc 5 + profileExt 6)."
 }
