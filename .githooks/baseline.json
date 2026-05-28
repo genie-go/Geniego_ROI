@@ -2,10 +2,10 @@
   "version": "176",
   "updated": "2026-05-28",
   "sacred_sha": {
-    "ja.js": "53b2276187b55ebadb708e8b65b1b7998cee955adaa7778b6cbbe80162acd6c1",
-    "zh.js": "0731bf9b143dbc6962b19e9427270d2c307fca3c83a9dcb1f4f1910a0075fcf2"
+    "ja.js": "13cdb28c18763dd54e6d93073c628c65d27341218ba4303568033e2a16fee311",
+    "zh.js": "24cea8d89680e7b5caa935dca65dc862ae68b155856d007be41d947188078969"
   },
-  "ko_leaf_count": 31296,
+  "ko_leaf_count": 31329,
   "leaf_tolerance_pct": 5,
-  "_note": "Updated 176차 PM8 S8 — Reconciliation 26 missing recon.* keys 한국어 자연어 + 14 lang 영어 fallback append-only. recon namespace missing 26 → 0 (170+ keys 보강 누적). 기존 자연어 ja/zh 값 절대 변경 없음. ko.js leaf 31270 → 31296 (Δ+26)."
+  "_note": "Updated 176차 PM8 S8 — AIRecommendTab gAiRec 33 missing keys 한국어 자연어 + 14 lang 영어 fallback append-only. AIRecommendTab raw key missing 34 → 1 (동적 channel_ prefix 잔존, 무해). 기존 자연어 ja/zh 값 절대 변경 없음. ko.js leaf 31296 → 31329 (Δ+33)."
 }
