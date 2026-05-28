@@ -2,10 +2,10 @@
   "version": "177",
   "updated": "2026-05-29",
   "sacred_sha": {
-    "ja.js": "026c771bd48fb9df0db656d73886ef9c1998af0d54c16c1d93869af8810b3c4c",
-    "zh.js": "c15aef634ffbc6ac03e29549d1b2d1845b8a55c684bc3aad2edb6ffd151981c5"
+    "ja.js": "57592d8c461f3448efc67ed395192c3fec5fa8b95c1fbbd8b2701bdbd5b74f9f",
+    "zh.js": "dc31ee10e3d1f9bcfca618a3c399cae527875fecae69a96c03fb5128bb81bf42"
   },
-  "ko_leaf_count": 31554,
+  "ko_leaf_count": 31592,
   "leaf_tolerance_pct": 5,
-  "_note": "Updated 177차 §4.E TOP 1+2 본체 + U-177-A/B 정합 — ApiKeys.jsx 재설계 (ak namespace, ChannelCreds 7 endpoint wire-up) + Topbar ProfileEditModal 강화 (profileExt namespace, 운영/데모 분기 명확화) + SmartConnect.jsx wire-up (sc namespace, dead 부활 대비) + vite.config proxy bypass fix (SPA route /api-keys 보호). ja/zh sacred 정책 유지 — 신규 namespace 영어 fallback append-only. ko.js leaf 31494 → 31554 (Δ+60: ak ~52 + sc 5 + profileExt 6)."
+  "_note": "Updated 177차 PM-Core step 2-5 — Tasks.php enrich (listByProject N+1 회피 bulk JOIN + get 단일 enrich, assignees/comments/attachments/deps 양방향) + PMTaskDetail.jsx + PMGanttView.jsx 2 신규 page + App.jsx 2 lazy + 2 Route + pmExt namespace 38 leaf × 15 lang (ko 자연어 + 14 EN fallback). Dependencies.php cycle DFS + Gantt.php 169차 CPM 본체 이미 완성 확인. ja/zh sacred 정책 유지. ko.js leaf 31554 → 31592 (Δ+38: pmExt.task 20 + pmExt.gantt 18)."
 }

@@ -70,6 +70,8 @@ const PlanPricing = lazy(() => import("./pages/PlanPricing.jsx"));
 const PMOverview = lazy(() => import("./pages/PMOverview.jsx"));
 const PMProjectDetail = lazy(() => import("./pages/PMProjectDetail.jsx"));
 const PMTaskBoard = lazy(() => import("./pages/PMTaskBoard.jsx"));
+const PMTaskDetail = lazy(() => import("./pages/PMTaskDetail.jsx"));
+const PMGanttView = lazy(() => import("./pages/PMGanttView.jsx"));
 const CampaignManager = lazy(() => import("./pages/CampaignManager.jsx"));
 const ContentCalendar = lazy(() => import("./pages/ContentCalendar.jsx"));
 const BudgetPlanner = lazy(() => import("./pages/BudgetPlanner.jsx"));
@@ -325,6 +327,8 @@ function AppLayout() {
                       <Route path="/pm" element={<PMOverview />} />
                       <Route path="/pm/projects/:id" element={<PMProjectDetail />} />
                       <Route path="/pm/projects/:id/board" element={<PMTaskBoard />} />
+                      <Route path="/pm/projects/:id/gantt" element={<PMGanttView />} />
+                      <Route path="/pm/tasks/:id" element={<PMTaskDetail />} />
                       <Route path="/alert-policies" element={<Navigate to="/alert-automation" replace />} />
                       <Route path="/attribution" element={<Attribution />} />
                       <Route path="/graph-score" element={<GraphScore />} />

@@ -55,17 +55,46 @@ final class Tasks extends Shared
         return self::json($resp, ['id' => $id, 'ok' => true], 201);
     }
 
-    /** GET /v425/pm/tasks/{id} */
+    /** GET /v425/pm/tasks/{id} — task + assignees + counts + dependencies */
     public static function get(Request $req, Response $resp, array $args): Response
     {
         $g = self::gate($req, $resp, 'viewer');
         if (isset($g['error'])) return $g['error'];
         $id = (string)($args['id'] ?? '');
         if (!self::validId($id)) return self::json($resp, ['error' => 'invalid_id'], 422);
+
         $stmt = $g['pdo']->prepare('SELECT * FROM pm_tasks WHERE id = ? AND tenant_id = ?');
         $stmt->execute([$id, $g['tenant']]);
         $row = $stmt->fetch(\PDO::FETCH_ASSOC);
         if (!$row) return self::json($resp, ['error' => 'not_found'], 404);
+
+        // 177차 enrich — assignees / counts / dependencies (단일 task)
+        $stmt = $g['pdo']->prepare('SELECT user_id FROM pm_task_assignees WHERE tenant_id = ? AND task_id = ?');
+        $stmt->execute([$g['tenant'], $id]);
+        $row['assignees'] = array_column($stmt->fetchAll(\PDO::FETCH_ASSOC), 'user_id');
+
+        $stmt = $g['pdo']->prepare('SELECT COUNT(*) FROM pm_task_comments WHERE tenant_id = ? AND task_id = ?');
+        $stmt->execute([$g['tenant'], $id]);
+        $row['comment_count'] = (int)$stmt->fetchColumn();
+
+        $stmt = $g['pdo']->prepare('SELECT COUNT(*) FROM pm_attachments WHERE tenant_id = ? AND task_id = ?');
+        $stmt->execute([$g['tenant'], $id]);
+        $row['attachment_count'] = (int)$stmt->fetchColumn();
+
+        $stmt = $g['pdo']->prepare(
+            'SELECT predecessor_id, dep_type, lag_days FROM pm_task_dependencies
+             WHERE tenant_id = ? AND successor_id = ?'
+        );
+        $stmt->execute([$g['tenant'], $id]);
+        $row['predecessors'] = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+        $stmt = $g['pdo']->prepare(
+            'SELECT successor_id, dep_type, lag_days FROM pm_task_dependencies
+             WHERE tenant_id = ? AND predecessor_id = ?'
+        );
+        $stmt->execute([$g['tenant'], $id]);
+        $row['successors'] = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
         return self::json($resp, $row);
     }
 
@@ -122,7 +151,7 @@ final class Tasks extends Shared
         return self::json($resp, ['ok' => true]);
     }
 
-    /** GET /v425/pm/projects/{id}/tasks — project 의 task list (위계 보존) */
+    /** GET /v425/pm/projects/{id}/tasks — task list (위계 + assignees + counts + deps preload) */
     public static function listByProject(Request $req, Response $resp, array $args): Response
     {
         $g = self::gate($req, $resp, 'viewer');
@@ -130,6 +159,7 @@ final class Tasks extends Shared
         $projectId = (string)($args['id'] ?? '');
         if (!self::validId($projectId)) return self::json($resp, ['error' => 'invalid_id'], 422);
         [$limit, $offset] = self::clampLimit($req);
+
         $stmt = $g['pdo']->prepare(
             'SELECT * FROM pm_tasks
              WHERE tenant_id = ? AND project_id = ? AND archived_at IS NULL
@@ -138,6 +168,65 @@ final class Tasks extends Shared
         );
         $stmt->execute([$g['tenant'], $projectId]);
         $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-        return self::json($resp, ['items' => $rows]);
+        if (!$rows) return self::json($resp, ['items' => [], 'total' => 0]);
+
+        // 177차 enrich — bulk JOIN (N+1 회피)
+        $ids = array_column($rows, 'id');
+        $place = implode(',', array_fill(0, count($ids), '?'));
+
+        $stmt = $g['pdo']->prepare(
+            "SELECT task_id, user_id FROM pm_task_assignees
+             WHERE tenant_id = ? AND task_id IN ($place)"
+        );
+        $stmt->execute(array_merge([$g['tenant']], $ids));
+        $assigneesByTask = [];
+        foreach ($stmt->fetchAll(\PDO::FETCH_ASSOC) as $r) {
+            $assigneesByTask[$r['task_id']][] = $r['user_id'];
+        }
+
+        $stmt = $g['pdo']->prepare(
+            "SELECT task_id, COUNT(*) AS cnt FROM pm_task_comments
+             WHERE tenant_id = ? AND task_id IN ($place) GROUP BY task_id"
+        );
+        $stmt->execute(array_merge([$g['tenant']], $ids));
+        $commentCount = [];
+        foreach ($stmt->fetchAll(\PDO::FETCH_ASSOC) as $r) {
+            $commentCount[$r['task_id']] = (int)$r['cnt'];
+        }
+
+        $stmt = $g['pdo']->prepare(
+            "SELECT task_id, COUNT(*) AS cnt FROM pm_attachments
+             WHERE tenant_id = ? AND task_id IN ($place) GROUP BY task_id"
+        );
+        $stmt->execute(array_merge([$g['tenant']], $ids));
+        $attachmentCount = [];
+        foreach ($stmt->fetchAll(\PDO::FETCH_ASSOC) as $r) {
+            $attachmentCount[$r['task_id']] = (int)$r['cnt'];
+        }
+
+        $stmt = $g['pdo']->prepare(
+            "SELECT predecessor_id, successor_id, dep_type, lag_days
+             FROM pm_task_dependencies
+             WHERE tenant_id = ?
+               AND (predecessor_id IN ($place) OR successor_id IN ($place))"
+        );
+        $stmt->execute(array_merge([$g['tenant']], $ids, $ids));
+        $depsBy = [];
+        foreach ($stmt->fetchAll(\PDO::FETCH_ASSOC) as $r) {
+            $depsBy[$r['successor_id']]['predecessors'][] = $r;
+            $depsBy[$r['predecessor_id']]['successors'][] = $r;
+        }
+
+        foreach ($rows as &$t) {
+            $tid = $t['id'];
+            $t['assignees']        = $assigneesByTask[$tid] ?? [];
+            $t['comment_count']    = $commentCount[$tid]    ?? 0;
+            $t['attachment_count'] = $attachmentCount[$tid] ?? 0;
+            $t['predecessors']     = $depsBy[$tid]['predecessors'] ?? [];
+            $t['successors']       = $depsBy[$tid]['successors']   ?? [];
+        }
+        unset($t);
+
+        return self::json($resp, ['items' => $rows, 'total' => count($rows)]);
     }
 }
