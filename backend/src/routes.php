@@ -460,6 +460,18 @@ return function (App $app): void {
         'GET /v424/system/metrics'     => 'Genie\\Handlers\\SystemMetrics::metrics',
         'GET /api/v424/system/metrics' => 'Genie\\Handlers\\SystemMetrics::metrics',
 
+        // ── v424 attribution/marketing 실 API (176차 PM7) — mock 제거용 ──
+        'GET /v424/attribution/touches'      => 'Genie\\Handlers\\AttributionMetrics::touches',
+        'GET /api/v424/attribution/touches'  => 'Genie\\Handlers\\AttributionMetrics::touches',
+        'GET /v424/attribution/journeys'     => 'Genie\\Handlers\\AttributionMetrics::journeys',
+        'GET /api/v424/attribution/journeys' => 'Genie\\Handlers\\AttributionMetrics::journeys',
+        'GET /v424/attribution/time-series'     => 'Genie\\Handlers\\AttributionMetrics::timeSeries',
+        'GET /api/v424/attribution/time-series' => 'Genie\\Handlers\\AttributionMetrics::timeSeries',
+        'GET /v424/attribution/channels'     => 'Genie\\Handlers\\AttributionMetrics::channels',
+        'GET /api/v424/attribution/channels' => 'Genie\\Handlers\\AttributionMetrics::channels',
+        'GET /v424/marketing/daily-trends'     => 'Genie\\Handlers\\AttributionMetrics::dailyTrends',
+        'GET /api/v424/marketing/daily-trends' => 'Genie\\Handlers\\AttributionMetrics::dailyTrends',
+
         // ── v424 admin plans (169차 사용자 발견 issue fix — 플랜별 구독요금 설정) ──
         'GET /v424/admin/plans'                         => 'Genie\\Handlers\\AdminPlans::list',
         'PUT /v424/admin/plans/{id}'                    => 'Genie\\Handlers\\AdminPlans::upsert',
@@ -1804,6 +1816,18 @@ return function (App $app): void {
     // ── V424 system metrics (176차 — DashSystem 시스템 서브탭 실측) ──
     $register('GET', '/v424/system/metrics');
     $register('GET', '/api/v424/system/metrics');
+
+    // ── V424 attribution/marketing 실 API (176차 PM7) ──
+    $register('GET', '/v424/attribution/touches');
+    $register('GET', '/api/v424/attribution/touches');
+    $register('GET', '/v424/attribution/journeys');
+    $register('GET', '/api/v424/attribution/journeys');
+    $register('GET', '/v424/attribution/time-series');
+    $register('GET', '/api/v424/attribution/time-series');
+    $register('GET', '/v424/attribution/channels');
+    $register('GET', '/api/v424/attribution/channels');
+    $register('GET', '/v424/marketing/daily-trends');
+    $register('GET', '/api/v424/marketing/daily-trends');
 
     // ── V424 admin plans (169차 사용자 발견 issue) ──
     $register('GET',    '/v424/admin/plans');

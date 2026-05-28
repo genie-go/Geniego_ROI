@@ -9,6 +9,7 @@ import { useGlobalData } from '../context/GlobalDataContext.jsx';
 import { DEMO_DAILY_TRENDS } from '../data/demoSeedData.js';
 import { useSecurityGuard } from '../security/SecurityGuard.js';
 import { useConnectorSync } from '../context/ConnectorSyncContext.jsx';
+import { getJsonAuth } from '../services/apiClient.js';
 const AiDesignEngine = React.lazy(() => import('../components/AiDesignEngine.jsx'));
 
 /* ─── BroadcastChannel Cross-Tab Sync ─── */
@@ -90,7 +91,8 @@ const TREND_METRIC_MAP = {
 const CORE_CHART_METRICS = ['spend', 'impressions', 'clicks', 'ctr', 'roas'];
 
 /** Generate daily trend data for ALL requested metrics using existing campaign data pipeline */
-const generateTrendData = (campaigns, startDate, endDate, metric1, metric2, isDemoMode) => {
+/** 176차 PM7: production 분기에서 prodTrends (실 backend daily-trends fetch 결과) 우선 사용 */
+const generateTrendData = (campaigns, startDate, endDate, metric1, metric2, isDemoMode, prodTrends) => {
     const data = [];
     const sTime = new Date(startDate).getTime();
     const eTime = new Date(endDate).getTime();
@@ -104,6 +106,10 @@ const generateTrendData = (campaigns, startDate, endDate, metric1, metric2, isDe
     const trendMap = {};
     if (isDemoMode && Array.isArray(DEMO_DAILY_TRENDS)) {
         DEMO_DAILY_TRENDS.forEach(tr => { trendMap[tr.date] = tr; });
+    }
+    // 176차 PM7: production prodTrends (실 backend) 가 있으면 trendMap 채움 — mock 의존 0
+    if (!isDemoMode && Array.isArray(prodTrends) && prodTrends.length > 0) {
+        prodTrends.forEach(tr => { trendMap[tr.date] = tr; });
     }
     const seed = (n) => Math.abs(Math.sin(n * 127.1 + 311.7) * 43758.5453) % 1;
 
@@ -138,8 +144,11 @@ const generateTrendData = (campaigns, startDate, endDate, metric1, metric2, isDe
                 const noise = (seed(i * 7 + mId.charCodeAt(0) * 13) - 0.5) * 0.25;
                 const ramp = 1 + (i / days) * 0.12;
                 val = (total / days) * (1 + wave + noise) * wf * ramp;
+            } else if (!isDemoMode && tr) {
+                // 176차 PM7: production 실 backend trend point — 실 데이터 직접 사용
+                val = tr[tf] !== undefined ? Number(tr[tf]) : (total / days);
             } else {
-                // Production: If no real backend API provides points, generate a flat average line for now.
+                // Production fallback (실 backend 미공급 + 데이터 없음): flat avg
                 val = total / days;
             }
             point[mId] = (md?.isRate || md?.isMultiplier) ? parseFloat(Math.max(0, val).toFixed(2)) : Math.round(Math.max(0, val));
@@ -198,8 +207,21 @@ function AmazonOverviewTab() {
     }, [startDate, endDate, sharedCampaigns]);
 
     const { isDemoMode } = useAuth();
+    // 176차 PM7: production daily-trends 실 backend fetch (mock 의존 제거)
+    const [prodTrends, setProdTrends] = useState([]);
+    useEffect(() => {
+        if (isDemoMode) return;
+        const sTime = new Date(startDate).getTime();
+        const eTime = new Date(endDate).getTime();
+        const days = Math.max(1, Math.round((eTime - sTime) / 86400000) + 1);
+        let mounted = true;
+        getJsonAuth(`/v424/marketing/daily-trends?days=${days}`)
+            .then(d => { if (mounted && d && Array.isArray(d.trends)) setProdTrends(d.trends); })
+            .catch(() => { if (mounted) setProdTrends([]); });
+        return () => { mounted = false; };
+    }, [isDemoMode, startDate, endDate]);
     // Trend chart dynamic data calculation synced to selected date range
-    const chartData = useMemo(() => generateTrendData(allValidCampaigns, startDate, endDate, primaryMetricId, secondaryMetricId, isDemoMode), [allValidCampaigns, startDate, endDate, primaryMetricId, secondaryMetricId, isDemoMode]);
+    const chartData = useMemo(() => generateTrendData(allValidCampaigns, startDate, endDate, primaryMetricId, secondaryMetricId, isDemoMode, prodTrends), [allValidCampaigns, startDate, endDate, primaryMetricId, secondaryMetricId, isDemoMode, prodTrends]);
     
     const formatValue = (val, mDef) => {
         if (!mDef) return val;

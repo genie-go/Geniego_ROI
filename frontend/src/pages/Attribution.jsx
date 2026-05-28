@@ -2,6 +2,7 @@ import React, { useState, useMemo, useCallback, useEffect, useRef, memo } from "
 import { useGlobalData } from '../context/GlobalDataContext.jsx';
 import AIRecommendBanner from '../components/AIRecommendBanner.jsx';
 import { useI18n, useT } from '../i18n/index.js';
+import { getJsonAuth } from '../services/apiClient.js';
 import {
   computeShapleyExact, computeSynergy,
   bayesianMMM, incrementalUplift, markovAttribution,
@@ -1198,7 +1199,7 @@ export default function Attribution() {
     }
   }, []);
 
-  /* ── Real-time data sync via GlobalDataContext ── */
+  /* ── Real-time data sync via GlobalDataContext + 176차 PM7 실 backend fetch ── */
   useEffect(() => {
     let changed = false;
     if (attributionData && attributionData.length > 0) {
@@ -1216,6 +1217,29 @@ export default function Attribution() {
         TS_DATA = { spends, revenue: AdCampaigns[0]?.weeklyRevenue || [] };
         changed = true;
       }
+    }
+    /* ── 176차 PM7: production 환경 실 backend fetch (mock 의존 제거) ── */
+    /* 🛡️ GUARD: _IS_DEMO_ENV=false 일 때 + DB 데이터 있을 때만 사용 */
+    if (!_IS_DEMO_ENV && _JOURNEYS.length === 0) {
+      (async () => {
+        try {
+          const [jRes, tsRes] = await Promise.all([
+            getJsonAuth('/v424/attribution/journeys').catch(() => null),
+            getJsonAuth('/v424/attribution/time-series').catch(() => null),
+          ]);
+          if (jRes && Array.isArray(jRes.journeys) && jRes.journeys.length > 0) {
+            _JOURNEYS = jRes.journeys.map(j => ({ path: j.path || [], revenue: 0 }));
+          }
+          if (tsRes && tsRes.spends && Object.keys(tsRes.spends).length > 0) {
+            const spends = {};
+            Object.entries(tsRes.spends).forEach(([ch, arr]) => {
+              spends[ch] = (arr || []).map(p => p.spend || 0);
+            });
+            TS_DATA = { spends, revenue: [] };
+          }
+          setDataReady(true);
+        } catch (_e) { /* 빈 데이터 — EmptyState 노출 */ }
+      })();
     }
     /* ── Demo ONLY fallback: upgrade with channelBudgets-based data ── */
     /* 🛡️ GUARD: This block ONLY executes in demo environment */
