@@ -26496,4 +26496,35 @@ export default {
     recentTouches: "Recent Touches (real backend)",
   },
 
+
+  // 176차 PM8 S8: Reconciliation 26 keys 영어 fallback (last-key-wins, append-only)
+  recon: {
+    statusOpen: "Open",
+    statusInvestigating: "Investigating",
+    statusResolved: "Resolved",
+    statusWaived: "Waived",
+    processing: "Processing",
+    countUnit: "items",
+    reconFailed: "Reconciliation Failed",
+    startDate: "Start Date",
+    endDate: "End Date",
+    reconRunBtn: "Run Reconciliation",
+    totalOrders: "Total Orders",
+    matched: "Matched",
+    mismatch: "Mismatch",
+    commissionDiff: "Commission Diff",
+    settlementDiff: "Settlement Diff",
+    period: "Period",
+    orderId: "Order ID",
+    guideTitle: "Reconciliation Guide",
+    guideSub: "Procedure for verifying settlement data",
+    guideStepsTitle: "Verification Steps",
+    guideRolesTitle: "Roles",
+    guideTipsTitle: "Operational Tips",
+    pageTitle: "Reconciliation",
+    settled: "Settled",
+    pending: "Pending",
+    adDeduction: "Ad Deduction",
+  },
+
 };

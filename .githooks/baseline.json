@@ -2,10 +2,10 @@
   "version": "176",
   "updated": "2026-05-28",
   "sacred_sha": {
-    "ja.js": "890ef4d9b60d9cfe9dd8c3353a5f6915baa7cdb62a35d3f1f8d4461ca1f7ea26",
-    "zh.js": "ad7bce452abd13bc5598b6cced274332ca2829ba35e93dc07237244be7a87a2b"
+    "ja.js": "53b2276187b55ebadb708e8b65b1b7998cee955adaa7778b6cbbe80162acd6c1",
+    "zh.js": "0731bf9b143dbc6962b19e9427270d2c307fca3c83a9dcb1f4f1910a0075fcf2"
   },
-  "ko_leaf_count": 31270,
+  "ko_leaf_count": 31296,
   "leaf_tolerance_pct": 5,
-  "_note": "Updated 176차 PM8 S6-P1 — attrData 4 keys (liveChannelPerf/channel/spend/recentTouches) × 14 lang append-only. Attribution.jsx 에 /v424/attribution/channels + /touches endpoint UI wire-up (이미 신설된 endpoint 의 미사용 영역 활용). 기존 자연어 ja/zh 값 절대 변경 없음. ko.js leaf 31266 → 31270 (Δ+4)."
+  "_note": "Updated 176차 PM8 S8 — Reconciliation 26 missing recon.* keys 한국어 자연어 + 14 lang 영어 fallback append-only. recon namespace missing 26 → 0 (170+ keys 보강 누적). 기존 자연어 ja/zh 값 절대 변경 없음. ko.js leaf 31270 → 31296 (Δ+26)."
 }
