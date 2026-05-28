@@ -392,15 +392,15 @@ export default function Sidebar() {
   const { unreadAlertCount, activeCampaignCount } = useGlobalData();
   const { favs, toggle: toggleFav } = useFavorites();
 
-  // 모든 메뉴 아이템 flat 목록 (최근방문용)
+  // 모든 메뉴 아이템 flat 목록 (최근방문용) — labelKey는 navT로 변환 (gNav.* 포함)
   const allMenuItems = React.useMemo(() => {
     const menu = isAdmin ? [...MEMBER_MENU, ...ADMIN_MENU] : MEMBER_MENU;
     return menu.flatMap(s => s.items.map(item => ({
       to: item.to,
-      label: item.label ?? item.labelKey ?? item.to,
+      label: item.label ?? (item.labelKey ? navT(item.labelKey, item.labelKey.split('.').pop()) : item.to),
       icon: item.icon,
     })));
-  }, [isAdmin]);
+  }, [isAdmin, navT]);
   const recents = useRecentVisits(allMenuItems, 5);
 
   const location = useLocation();
