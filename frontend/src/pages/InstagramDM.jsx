@@ -57,7 +57,7 @@ export default function InstagramDM() {
     const [testResult, setTestResult] = useState(null);
     const [rules, setRules] = useState(AUTO_REPLY_RULES);
     const [newRule, setNewRule] = useState({ keyword: '', reply: '' });
-    /* isDemo permanently disabled */
+    const isDemo = false; /* isDemo permanently disabled */
 
     useEffect(() => {
         getJson('/api/instagram/settings').then(d => {

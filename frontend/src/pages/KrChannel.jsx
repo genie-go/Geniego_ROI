@@ -52,6 +52,7 @@ const TicketStatus = ({ t, onPatch }) => {
 /* Mock data permanently removed — KrChannel uses live API only */
 
 function ChannelsTab() {
+    const t = useT();
     const [channels, setChannels] = useState([]);
     const [isMock, setIsMock] = useState(false);
     useEffect(() => {
@@ -90,6 +91,7 @@ function ChannelsTab() {
 
 // ── Tab: Fee Rules ────────────────────────────────────────────────────────────
 function FeeRulesTab() {
+    const t = useT();
     const [channels, setChannels] = useState([]);
     const [sel, setSel] = useState("");
     const [rules, setRules] = useState([]);

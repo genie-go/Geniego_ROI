@@ -1014,7 +1014,7 @@ const PerfGuideTab = memo(function PerfGuideTab() {
 export default function PerformanceHub() {
     const { t } = useI18n();
     const { fmt } = useCurrency();
-    const { addAlert } = useGlobalData();
+    const { addAlert, creators: ctxCreators = [] } = useGlobalData();
     const { connectedChannels = {}, connectedCount = 0 } = useConnectorSync?.() || {};
     const [tab, setTab] = useState("performance");
     const [threats, setThreats] = useState([]);
@@ -1022,7 +1022,11 @@ export default function PerformanceHub() {
     const bcRef = useRef(null);
     const pollingRef = useRef(null);
 
-    const expiredSoon = CREATORS.filter(c => daysLeft(c.rightsExpiry) <= 90).length;
+    const expiredSoon = useMemo(() => (ctxCreators || []).filter(c => {
+        const ms = c?.contract?.whitelistExpiry;
+        if (!Number.isFinite(ms)) return false;
+        return ms / 86400000 <= 90;
+    }).length, [ctxCreators]);
 
     /* ── BroadcastChannel: Cross-tab Sync ── */
     useEffect(() => {

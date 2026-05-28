@@ -3,6 +3,7 @@ import { useAuth } from "../auth/AuthContext";
 import PlanGate from "../components/PlanGate.jsx";
 import { useGlobalData } from "../context/GlobalDataContext.jsx";
 import { getJson } from '../services/apiClient.js';
+import { useI18n } from '../i18n';
 
 const C = {
     bg: "var(--bg)", surface: "var(--surface)", card: "var(--bg-card, rgba(255,255,255,0.95))",
@@ -25,7 +26,8 @@ function StatCard({ icon, label, value, color, sub }) {
 }
 
 /* ─── Campaign Tab */
-function CampaignsTab({ campaigns, is }) {
+function CampaignsTab({ campaigns, isDemo = false }) {
+    const { t } = useI18n();
     const { kakaoCampaignsLinked } = useGlobalData();
     const linkedLine = isDemo ? [] : kakaoCampaignsLinked.filter(c => c.type === "line");
 
@@ -149,7 +151,8 @@ function SettingsTab({ settings }) {
 /* ─── LINE Channel 내용 */
 function LINEChannelContent() {
     const { token } = useAuth();
-    /* isDemo permanently disabled */
+    const { t } = useI18n();
+    const isDemo = false; /* isDemo permanently disabled */
     const { kakaoCampaignsLinked, createKakaoCampaignFromSegment, crmSegments } = useGlobalData();
 
     const [tab, setTab] = useState("campaigns");
@@ -229,7 +232,6 @@ function LINEChannelContent() {
 
 /* ─── 메인 */
 export default function LINEChannel() {
-  const t = useT();
     return (
         <PlanGate feature="line_channel">
             <LINEChannelContent />
@@ -237,12 +239,8 @@ export default function LINEChannel() {
     );
 }
 
-import { useI18n } from '../i18n/index.js';
-
 /* Mocked defaults for removed DataLayer */
 const _LINE_CAMPAIGNS = [];
 const _LINE_TEMPLATES = [];
 const _LINE_STATS = {};
 const _LINE_SETTINGS = {};
-
-import { useT } from '../i18n/index.js';
