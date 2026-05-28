@@ -4912,6 +4912,22 @@ export default {
     "guideStep10Desc": "공급망 데이터는 가격 최적화, WMS 관리자 등 다른 모듈과 실시간 연동되어 통합적인 의사결정을 지원합니다.",
 
     abTimeline: 'A/B 타임라인',
+
+    // 176차 PM8b — SupplyChain.jsx 코드 재명명 후 신규 14 keys (121차 자산 활용 5 + cc 추천 9, 사용자 확정)
+    "kpiLines": "공급 라인",
+    "kpiSuppliers": "공급사",
+    "kpiHighRisk": "고위험",
+    "kpiAvgLead": "평균 리드타임",
+    "kpiTotalCost": "총 비용",
+    "kpiOnTime": "정시 납기율",
+    "labelSku": "SKU",
+    "tabPOTitle": "발주 관리",
+    "poStatusDraft": "임시 저장",
+    "poStatusPending": "승인 대기",
+    "poStatusApproved": "승인 완료",
+    "poStatusShipped": "출하 완료",
+    "poStatusReceived": "입고 완료",
+    "poStatusCancelled": "취소",
   },
 
   "returnsPortal": {
