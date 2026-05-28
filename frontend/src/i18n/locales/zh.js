@@ -18238,7 +18238,13 @@ export default {
     item_CRM: "CRM 仪表板",
     item_WMS: "WMS 库存管理",
     item_AI: "AI 营销",
-    item_: "菜单项"
+    item_: "菜单项",
+    recommendTitle: "基于Salesforce/HubSpot案例的方案权限自动推荐",
+    targetObj: "权限对象:",
+    saveBtn: "覆盖矩阵(部署)",
+    permRead: "阅览(Read)",
+    permCreate: "创建(Create)",
+    permUpdate: "更新(Update)"
     },
   "adminCoupon": {
     "tabTitle": "免费优惠券管理",

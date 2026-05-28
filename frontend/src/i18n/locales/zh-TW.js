@@ -16195,10 +16195,18 @@ export default {
       catAds: "廣告通路分析",
       catCRM: "顧客/CRM",
       catComm: "電商與物流",
+      catDash: "主頁儀表板",
+      catAI: "AI自動化&規則引擎",
       item_CRM: "CRM 儀表板",
       item_WMS: "WMS 庫存管理",
       item_AI: "AI 行銷",
-      item_: "選單項目"
+      item_: "選單項目",
+      recommendTitle: "基於Salesforce/HubSpot案例的方案權限自動推薦",
+      targetObj: "權限對象:",
+      saveBtn: "覆寫矩陣(部署)",
+      permRead: "閱覽(Read)",
+      permCreate: "建立(Create)",
+      permUpdate: "更新(Update)"
     },
   mobileNav: {
       home: "首頁",

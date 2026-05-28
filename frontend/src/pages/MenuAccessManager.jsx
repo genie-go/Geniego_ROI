@@ -136,7 +136,7 @@ export default function MenuAccessManager() {
                                         const p = permissions[item] || { read: false, create: false, update: false };
                                         return (
                                             <div key={item} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', background: 'var(--surface)', borderRadius: 6, border: '1px solid rgba(255,255,255,0.03)' }}>
-                                                <div style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>{t(`menuAccess.item_${item}`) || item}</div>
+                                                <div style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>{(() => { const k = `menuAccess.item_${item}`; const v = t(k); return v && v !== k ? v : item; })()}</div>
                                                 <div style={{ display: 'flex', gap: 20 }}>
                                                     <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 11, color: p.read ? '#38bdf8' : '#64748b' }}>
                                                         <input type="checkbox" checked={p.read} onChange={() => togglePerm(item, 'read')} style={{ accentColor: '#38bdf8' }} />

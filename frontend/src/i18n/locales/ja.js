@@ -16500,7 +16500,13 @@ export default {
     item_CRM: "CRMダッシュボード",
     item_WMS: "WMS在庫管理",
     item_AI: "AIマーケティング",
-    item_: "メニュー項目"
+    item_: "メニュー項目",
+    recommendTitle: "Salesforce/HubSpot事例に基づくプラン権限自動推奨",
+    targetObj: "権限対象:",
+    saveBtn: "マトリクス上書き(配信)",
+    permRead: "閲覧(Read)",
+    permCreate: "作成(Create)",
+    permUpdate: "更新(Update)"
     },
   "reviews": {
     "positive": "ポジティブ",

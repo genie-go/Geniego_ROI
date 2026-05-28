@@ -43746,15 +43746,23 @@ export default {
     guideRoleTicket: "불일치 티켓 상태를 관리합니다(미처리→조사 중→해결/면제).",
   },
 
-  // [176차 PM2] menuAccess 동적 키 prefix (Sidebar 동적 메뉴 + admin 페이지)
+  // [176차 PM2/PM3] menuAccess 동적 키 prefix (Sidebar 동적 메뉴 + admin 페이지)
   menuAccess: {
     catAds: "광고 및 채널 분석",
     catCRM: "고객/CRM",
     catComm: "커머스 및 물류",
+    catDash: "홈 대시보드",
+    catAI: "AI 자동화 & 룰 엔진",
     item_CRM: "CRM 대시보드",
     item_WMS: "WMS 재고관리",
     item_AI: "AI 마케팅",
-    item_: "메뉴 항목", // 동적 키 fallback (item_xxx 미정의)
+    item_: "메뉴 항목",
+    recommendTitle: "타사 (Salesforce, HubSpot) 사례 기반 플랜 권한 자동 추천",
+    targetObj: "권한 대상:",
+    saveBtn: "매트릭스 덮어쓰기 (배포)",
+    permRead: "열람조회 (Read)",
+    permCreate: "개체생성 (Create)",
+    permUpdate: "수정승인 (Update)",
   },
 
 };

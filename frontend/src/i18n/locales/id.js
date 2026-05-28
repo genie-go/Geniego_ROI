@@ -20504,10 +20504,18 @@ export default {
       catAds: "Ad & Channel Analytics",
       catCRM: "Customer/CRM",
       catComm: "Commerce & Logistics",
+      catDash: "Home Dashboard",
+      catAI: "AI Automation & Rule Engine",
       item_CRM: "CRM Dashboard",
       item_WMS: "WMS Inventory",
       item_AI: "AI Marketing",
-      item_: "Menu Item"
+      item_: "Menu Item",
+      recommendTitle: "Plan permission auto-recommend based on Salesforce/HubSpot patterns",
+      targetObj: "Permission Target:",
+      saveBtn: "Overwrite Matrix (Deploy)",
+      permRead: "Read",
+      permCreate: "Create",
+      permUpdate: "Update"
     },
   adminCoupon: {
       tabTitle: "Manajemen Kupon Gratis",
