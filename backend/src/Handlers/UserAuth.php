@@ -483,6 +483,62 @@ final class UserAuth
     }
 
     // ─────────────────────────────────────────────────────────────
+    // PATCH /auth/profile  (175차 S3.2)
+    // Body: { name, phone?, company? }
+    // 사용자 프로필 업데이트 (Topbar 프로필 모달에서 호출)
+    // ─────────────────────────────────────────────────────────────
+    public static function profile(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
+    {
+        $token = self::extractToken($req);
+        if (!$token) {
+            return self::json($res, ['ok' => false, 'error' => '인증 토큰이 없습니다.'], 401);
+        }
+        $user = self::userByToken($token);
+        if (!$user) {
+            return self::json($res, ['ok' => false, 'error' => '세션이 만료되었습니다.'], 401);
+        }
+
+        $body = (array)($req->getParsedBody() ?? []);
+        if (empty($body)) {
+            $raw = (string)$req->getBody();
+            $decoded = json_decode($raw, true);
+            if (is_array($decoded)) $body = $decoded;
+        }
+
+        $name    = trim((string)($body['name']    ?? ''));
+        $phone   = trim((string)($body['phone']   ?? ''));
+        $company = trim((string)($body['company'] ?? ''));
+
+        if ($name === '') {
+            return self::json($res, ['ok' => false, 'error' => '이름은 필수입니다.'], 422);
+        }
+        if (mb_strlen($name) > 100 || mb_strlen($phone) > 50 || mb_strlen($company) > 200) {
+            return self::json($res, ['ok' => false, 'error' => '입력값이 너무 깁니다.'], 422);
+        }
+
+        $id = $user['id'] ?? $user['idx'] ?? 0;
+        $pdo = Db::pdo();
+
+        try {
+            $pdo->prepare('UPDATE app_user SET name = ?, phone = ?, company = ? WHERE id = ?')
+                ->execute([$name, $phone, $company, $id]);
+        } catch (\Throwable $e) {
+            // phone / company 컬럼이 없으면 name 만 업데이트 (스키마 호환)
+            try {
+                $pdo->prepare('UPDATE app_user SET name = ? WHERE id = ?')->execute([$name, $id]);
+            } catch (\Throwable $e2) {
+                return self::json($res, ['ok' => false, 'error' => '프로필 업데이트 실패: ' . $e2->getMessage()], 500);
+            }
+        }
+
+        $updated = self::userByToken($token);
+        return self::json($res, [
+            'ok'   => true,
+            'user' => $updated,
+        ]);
+    }
+
+    // ─────────────────────────────────────────────────────────────
     // POST /auth/logout
     // ─────────────────────────────────────────────────────────────
     public static function logout(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface

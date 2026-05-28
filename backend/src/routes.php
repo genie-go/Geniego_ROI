@@ -579,6 +579,7 @@ return function (App $app): void {
         'POST /auth/register' => 'Genie\\Handlers\\UserAuth::register',
         'POST /auth/login'    => 'Genie\\Handlers\\UserAuth::login',
         'GET /auth/me'        => 'Genie\\Handlers\\UserAuth::me',
+        'PATCH /auth/profile' => 'Genie\\Handlers\\UserAuth::profile', // 175차 S3.2
         'POST /auth/logout'   => 'Genie\\Handlers\\UserAuth::logout',
         'POST /auth/upgrade'  => 'Genie\\Handlers\\UserAuth::upgrade',
         'GET /auth/subscription'      => 'Genie\\Handlers\\UserAuth::subscription',
@@ -685,6 +686,9 @@ return function (App $app): void {
         'GET /v423/creds/summary'      => 'Genie\\Handlers\\ChannelCreds::summary',
         'DELETE /v423/creds/{id}'      => 'Genie\\Handlers\\ChannelCreds::delete',
         'POST /v423/creds/{id}/test'   => 'Genie\\Handlers\\ChannelCreds::test',
+        // 175차 S3.1 — SmartConnect channel test handler (라우트는 등록됐으나 custom 매핑 누락)
+        'POST /v423/connectors/{channel}/test' => 'Genie\\Handlers\\ChannelCreds::channelTest',
+        'POST /v423/connectors/apply'  => 'Genie\\Handlers\\ChannelCreds::apply',
 
         // ── v423 Real Channel API Connectors (Meta / Google / Naver / Coupang) ─
         'GET /v423/connectors/meta/insights'    => 'Genie\\Handlers\\Connectors::metaInsights',
@@ -706,6 +710,9 @@ return function (App $app): void {
 
         // ── Ad Performance (Multi-Team Analysis) ───────────────────────────
         'GET /api/v1/ad-performance/summary'        => 'Genie\\Controllers\\PerformanceController::getSummary',
+        // 175차 S3.3 — Meta 광고 campaign 데이터 (AccountPerformance.jsx)
+        'GET /performance/meta-ads'                 => 'Genie\\Handlers\\AdPerformance::metaAds',
+        'GET /api/performance/meta-ads'             => 'Genie\\Handlers\\AdPerformance::metaAds',
 
 
         // ── V424 AI Creative Store (서버 저장 + 중복 방지) ─────────────────
@@ -1351,6 +1358,7 @@ return function (App $app): void {
     $register('POST', '/auth/register');
     $register('POST', '/auth/login');
     $register('GET',  '/auth/me');
+    $register('PATCH', '/auth/profile'); // 175차 S3.2
     $register('POST', '/auth/logout');
     $register('POST', '/auth/upgrade');
     $register('GET',  '/auth/subscription');
@@ -1757,6 +1765,9 @@ return function (App $app): void {
     $register('POST', '/v422/ai/campaign-recommend');
     $register('POST',   '/api/performance', ['Genie\\Controllers\\PerformanceController', 'ingestMetrics']);
     $register('GET',    '/api/performance/recommendations', ['Genie\\Controllers\\PerformanceController', 'getRecommendations']);
+    // 175차 S3.3 — Meta 광고
+    $register('GET',    '/performance/meta-ads');
+    $register('GET',    '/api/performance/meta-ads');
 
     // ── V424 Creative Store ──
     $register('GET', '/api/creatives');

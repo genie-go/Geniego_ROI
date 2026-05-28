@@ -107,5 +107,71 @@ class AdPerformance {
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
+    // ─────────────────────────────────────────────────────────────
+    // GET /api/performance/meta-ads  (175차 S3.3 — Slim handler)
+    // Frontend: AccountPerformance.jsx 의 Meta 광고 campaign 데이터
+    // Response: { ok, campaigns: [{ id, name, status, spend, roas, impressions, clicks, ctr, conv, budget, adsets, history }] }
+    // ─────────────────────────────────────────────────────────────
+    public static function metaAds(
+        \Psr\Http\Message\ServerRequestInterface $req,
+        \Psr\Http\Message\ResponseInterface $res
+    ): \Psr\Http\Message\ResponseInterface {
+        $tenant = $req->getAttribute('auth_tenant')
+                  ?: $req->getHeaderLine('X-Tenant-Id')
+                  ?: 'demo';
+
+        $payload = ['ok' => true, 'campaigns' => []];
+
+        try {
+            $pdo = \Genie\Db::pdo();
+            // performance_metrics 가 있고 channel='meta' 데이터가 있으면 campaign 단위 집계
+            $stmt = $pdo->prepare(
+                "SELECT
+                   COALESCE(campaign_id, account || '_' || team) AS id,
+                   COALESCE(campaign_name, account, team)        AS name,
+                   COALESCE(status, 'active')                     AS status,
+                   SUM(spend)                                     AS spend,
+                   SUM(revenue)                                   AS revenue,
+                   SUM(impressions)                               AS impressions,
+                   SUM(clicks)                                    AS clicks,
+                   SUM(conversions)                               AS conv
+                 FROM performance_metrics
+                 WHERE tenant_id = ? AND LOWER(channel) IN ('meta','meta_ads','facebook','instagram')
+                 GROUP BY id, name, status
+                 ORDER BY spend DESC
+                 LIMIT 50"
+            );
+            $stmt->execute([$tenant]);
+            $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+            foreach ($rows as $r) {
+                $spend = (float)($r['spend'] ?? 0);
+                $rev   = (float)($r['revenue'] ?? 0);
+                $imp   = (int)($r['impressions'] ?? 0);
+                $clk   = (int)($r['clicks'] ?? 0);
+                $payload['campaigns'][] = [
+                    'id'          => (string)($r['id'] ?? ''),
+                    'name'        => (string)($r['name'] ?? ''),
+                    'status'      => (string)($r['status'] ?? 'active'),
+                    'objective'   => 'Conversion',
+                    'spend'       => $spend,
+                    'roas'        => $spend > 0 ? round($rev / $spend, 2) : 0,
+                    'impressions' => $imp,
+                    'clicks'      => $clk,
+                    'ctr'         => $imp > 0 ? round($clk * 100 / $imp, 2) : 0,
+                    'conv'        => (int)($r['conv'] ?? 0),
+                    'budget'      => $spend > 0 ? (int)($spend * 1.3) : 0,
+                    'adsets'      => [],
+                    'history'     => [],
+                ];
+            }
+        } catch (\Throwable $e) {
+            // 테이블 미존재 / 권한 등 — 빈 결과로 응답 (프론트 demo fallback 작동)
+            $payload['note'] = 'no data: ' . substr($e->getMessage(), 0, 80);
+        }
+
+        $res->getBody()->write(json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+        return $res->withHeader('Content-Type', 'application/json');
+    }
+
 }
 ?>
