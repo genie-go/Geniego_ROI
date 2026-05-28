@@ -1,10 +1,10 @@
-# 178차 세션 인계서 (NEXT_SESSION.md) — **177차 종료: §4.E TOP 1+2 본체 + n152f PM-Core step 1-6 + 2차 운영 swap**
+# 178차 세션 인계서 (NEXT_SESSION.md) — **177차 종료: §4.E TOP 1+2 본체 + n152f PM-Core step 1-6 + 운영·데모 동시 swap + U-177-D 신규**
 
 > **작성일**: 2026-05-29 (사용자 명시 승인 후)
-> **이전 세션**: 177차 (10 commit, 2회 운영 swap)
+> **이전 세션**: 177차 (10 commit, 운영 2회 swap + 데모 1회 swap)
 > **다음 세션**: 178차
 > **저장 위치**: repo root `NEXT_SESSION.md`
-> **종결 방식**: push 완료. 운영 dist 2회 swap (CIi6waAx 최종). cc puppeteer 9/9 PASS.
+> **종결 방식**: push 완료. 운영 `CIi6waAx` + 데모 `CMcUqXQ7` 최종. cc puppeteer 9/9 (운영) + 9/9 (데모) PASS.
 
 ---
 
@@ -14,8 +14,10 @@
 
 | 영역 | 상태 | 비고 |
 |---|:-:|---|
-| 운영 frontend dist | ✅ `index-CIi6waAx.js` | 177차 5 commit (`211b0e80a`) 최종 swap. Last-Modified 5/29 08:14 KST. |
+| 운영 frontend dist | ✅ `index-CIi6waAx.js` | 177차 5 commit (`211b0e80a`) 최종 swap. Last-Modified 5/29 08:14 KST. path `/home/wwwroot/roi.geniego.com/frontend/dist`. |
+| **데모 frontend dist** | ✅ **`index-CMcUqXQ7.js`** | **U-177-D 동반 swap**. `VITE_DEMO_MODE=true` build (운영과 다른 hash 로 격리 확인). path `/home/wwwroot/roidemo.geniego.com/frontend/dist` (typo 도메인, memory `reference_nginx_sw_typo.md` 정합). Last-Modified 5/29 08:29 KST. |
 | 운영 nginx config | ✅ `/api` regex `^/api(/\|$)` 적용 | 177차 fix — SPA route `/api-keys` 가 backend proxy 되던 문제 해소. `.bak.177` 백업 운영 보존. |
+| **데모 nginx config** | ✅ `/api` regex 동일 fix + v420~v425 추가 | 데모도 운영 동일 패턴 적용. `.bak.177` 데모 보존. |
 | baseline.json | ✅ v177, ko_leaf 31592 | ja/zh sacred SHA `57592d8c…` / `dc31ee10…` |
 | §4.E TOP 1 본체 (ApiKeys.jsx) | ✅ **완료** | 108 → 580+ lines 재설계, 7 endpoint wire-up |
 | §4.E TOP 2 강화 (PATCH /auth/profile) | ✅ **완료** | Topbar.jsx 기존 wire-up 발견 + silent fallback 제거 강화 |
@@ -81,12 +83,24 @@ App.jsx 의 backward-compat redirect 로 dead. 그러나 `simulateScan/AutoLink/
 | 5 | pmExt.task 20 leaf + pmExt.gantt 18 leaf = 38 leaf × 15 lang (ko 자연어 + 14 EN fallback) |
 | 6 | 운영 swap: pscp + chown www:www + nginx -t + reload. hash `CHIw-UMB` → `CIi6waAx`. 6 페이지 회귀 6/6 + PM 3 페이지 3/3 PASS |
 
-#### 3.6 운영 swap 2회 (177차 누적)
+#### 3.6 운영 swap 2회 + 데모 swap 1회 (177차 누적)
 
-| 순서 | commit 범위 | hash | Last-Modified |
-|:-:|---|---|---|
-| 1차 | 176차 5 + 177차 §4.E TOP 1+2 + vite proxy 4 | `index-CHIw-UMB.js` | 5/29 07:49 KST |
-| 2차 | 177차 PM-Core step 2-5 | **`index-CIi6waAx.js`** | 5/29 08:14 KST |
+| 순서 | 환경 | commit 범위 | hash | Last-Modified |
+|:-:|:-:|---|---|---|
+| 1차 | 운영 | 176차 5 + 177차 §4.E TOP 1+2 + vite proxy 4 | `index-CHIw-UMB.js` | 5/29 07:49 KST |
+| 2차 | 운영 | 177차 PM-Core step 2-5 | **`index-CIi6waAx.js`** | 5/29 08:14 KST |
+| 3차 | **데모** | U-177-D 동반 swap (전체 5 commit 누적) | **`index-CMcUqXQ7.js`** | 5/29 08:29 KST |
+
+#### 3.7 데모 swap (U-177-D 신규 정책 정합)
+
+사용자 명시 (2회 강조): "운영에 초고도화·초엔터프라이즈급 업로드 시 데모도 동일 수준 동시 업로드 의무" + "데모 mock 데이터 절대 운영 유입 금지 (절대적)".
+
+- 데모 build: `.env.demo` 적용 → `VITE_DEMO_MODE=true` → `_IS_DEMO_ENV=true` 활성
+- 데모 hash `CMcUqXQ7` ≠ 운영 hash `CIi6waAx` (빌드 인자 격리 확인)
+- 데모 path `/home/wwwroot/roidemo.geniego.com/...` ≠ 운영 path `/home/wwwroot/roi.geniego.com/...` (파일 cross 0)
+- 데모 banner UI 표시: "⚠️ 데모 모드 — 운영 DB 에 저장되지 않습니다"
+- 데모 좌하단 "Production Login/Sign Up" 별도 진입점 (데모 → 운영 명시적 로그인 의무)
+- 검증: 6 페이지 회귀 6/6 + ApiKeys (demoBanner+emptyState true) + PM 3/3 = 10/10 PASS
 
 ---
 
@@ -136,9 +150,10 @@ App.jsx 의 backward-compat redirect 로 dead. 그러나 `simulateScan/AutoLink/
 
 기존 U-161-A ~ U-176-A 유지. **177차 신규**:
 
-- **U-177-A** (데모-운영 격리): 운영 코드 경로에 mock 누수 항시 점검 + 발견 시 격리 + 신규 작업 시 `_IS_DEMO_ENV` guard 의무 + 초엔터프라이즈+SaaS 수준 강제. memory `feedback_177_demo_prod_isolation.md`.
+- **U-177-A** (데모-운영 격리, **절대적**): 운영 코드 경로에 mock 누수 항시 점검 + 발견 시 격리 + 신규 작업 시 `_IS_DEMO_ENV` guard 의무 + 초엔터프라이즈+SaaS 수준 강제. **사용자 2회 강조 — 단일 violation 시 즉시 작업 정지 + root cause 보고 + 격리 트랜잭션 + 다음 차수 이월 금지**. memory `feedback_177_demo_prod_isolation.md`.
 - **U-177-B** (미적용 작업물 전수 분석): 차수 진입 첫 30분 안에 미적용 결과물 카탈로그 + 우선순위 + SaaS급 이상 반영. memory `feedback_177_unapplied_works_audit.md`.
 - **U-177-C** (credential 보관): 사용자 명시 보관 요청 자격증명은 `reference_session_credentials.md` 에 저장. 사용자 "삭제" 명시 시까지 유지. chat 응답·commit·log 노출 절대 금지.
+- **U-177-D** (운영·데모 동등 swap 의무): 운영 dist swap 시 데모도 동일 차수 동반 swap 의무. UI/기능 동등성 보장 + 데이터 격리 별도 유지. memory `feedback_177_demo_prod_parity.md`. 부분 swap (운영만/데모만) 금지.
 
 ---
 
@@ -202,11 +217,12 @@ App.jsx 의 backward-compat redirect 로 dead. 그러나 `simulateScan/AutoLink/
 1. ⚠️ 본 인계서 §1~§4 인지 명시 (특히 §4.E TOP 5 + n152f PM-Core 50% 진척 정합)
 2. U-prefix 누적 인지 — 특히 **U-177-A/B/C** (격리 + 카탈로그 + credential 보관)
 3. **credential 보관 정책 인지** — reference 메모리 확인 + 응답·commit 노출 회피 의무
-4. cc 자율 검증 도구:
-   - `_tmp_176_s6p1_b4_verify.cjs` (6 페이지 회귀, 177차도 6/6 PASS)
+4. **U-177-D 정합** — 운영 swap 시 데모도 의무 동반. 부분 swap 금지. 데모 build = `.env.demo` 또는 `VITE_DEMO_MODE=true` 인자 적용.
+5. cc 자율 검증 도구 (운영/데모 양쪽 AUDIT_BASE 지정 가능):
+   - `_tmp_176_s6p1_b4_verify.cjs` (6 페이지 회귀)
    - `_tmp_177_apikeys_verify.cjs` (ApiKeys 페이지)
    - `_tmp_177_pm_verify.cjs` (PM 3 페이지)
-5. push 시 사용자 명시 승인 필요 (CI inert 라 자동 deploy 없음, 그러나 정책 유지)
+6. push 시 사용자 명시 승인 필요 (CI inert 라 자동 deploy 없음, 그러나 정책 유지)
 
 ---
 
@@ -239,7 +255,9 @@ App.jsx 의 backward-compat redirect 로 dead. 그러나 `simulateScan/AutoLink/
 | 영역 | 177차 진입 | 177차 종료 |
 |---|:-:|:-:|
 | 운영 frontend dist | C5vhTq9j (175차 baseline) | **CIi6waAx (177차 PM-Core)** |
+| **데모 frontend dist** | C5vhTq9j (175차, swap 미진행) | **CMcUqXQ7 (177차 demo build)** |
 | 운영 nginx /api regex | `^/api(.*)$` (SPA route proxy 위험) | `^/api(/\|$)` (보호) |
+| 데모 nginx /api regex | `^/api(.*)$` (위험) | `^/api(/\|$)` (보호) + v420~v425 등록 |
 | §4.E TOP 1 (connectors/test) | ❌ frontend 미연결 | ✅ ApiKeys.jsx 본체 wire-up |
 | §4.E TOP 2 (auth/profile) | ⚠️ silent fallback 위험 | ✅ 운영/데모 분기 명확화 |
 | n152f PM-Core | ⚠️ 30% (skeleton) | ✅ **50%** (Tasks enrich + 2 page + 38 i18n) |
