@@ -103,12 +103,10 @@ const Onboarding = lazy(() => import("./pages/Onboarding.jsx"));
 const InstagramDM = lazy(() => import("./pages/InstagramDM.jsx"));
 const LicenseActivation = lazy(() => import("./pages/LicenseActivation.jsx"));
 const TeamWorkspace = lazy(() => import('./pages/TeamWorkspace.jsx'));
-const CommerceUnifiedSearch = lazy(() => import('./pages/CommerceUnifiedSearch.jsx'));
 const AIMarketingHub = lazy(() => import('./pages/AIMarketingHub.jsx'));
 const FeedbackCenter = lazy(() => import('./pages/FeedbackCenter.jsx'));
-const SmartConnect = lazy(() => import('./pages/SmartConnect.jsx'));
+// 175차 S4 — dead lazy imports 제거 (SmartConnect/AsiaLogistics 컴포넌트는 어디에도 렌더링되지 않음; Route는 Navigate redirect 만)
 const DemandForecast = lazy(() => import('./pages/DemandForecast.jsx'));
-const AsiaLogistics = lazy(() => import('./pages/AsiaLogistics.jsx'));
 const ReturnsPortal = lazy(() => import('./pages/ReturnsPortal.jsx'));
 const SupplyChain = lazy(() => import('./pages/SupplyChain.jsx'));
 const SupplierPortal = lazy(() => import('./pages/SupplierPortal.jsx'));
