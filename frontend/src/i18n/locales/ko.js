@@ -43926,6 +43926,59 @@ export default {
     rankChange: "순위 변동",
   },
 
+  // 176차 PM8-Total B2 — WmsManager 페이지 hardcoded 영문 fallback
+  wmsPage: {
+    invoiceTitle: "상업 송장",
+    descGoods: "품목 설명",
+    hsCode: "HS 코드",
+    origin: "원산지",
+    unitPrice: "단가",
+    amount: "금액",
+    total: "합계",
+    productName: "상품명",
+    namePh: "홍길동",
+  },
+  // 176차 PM8-Total B2 — UserManagement 페이지 hardcoded 영문 fallback
+  userMgmtPage: {
+    period: "기간",
+    paddlePriceId: "Paddle 가격 ID",
+    pricingSettings: "가격 설정",
+    sortOrder: "정렬 순서",
+    paymentEvent: "결제 이벤트",
+  },
+
+  // 176차 PM8-Total B3 — AlertPolicies 페이지 hardcoded 영문 fallback
+  alertPoliciesPage: {
+    runEvaluate: "평가 실행",
+    name: "이름",
+    window: "시간 윈도우",
+    dimension: "차원",
+    severity: "심각도",
+    lookback: "조회 기간",
+    afterCount: "N회 후",
+    escalationChannel: "에스컬레이션 채널",
+    mention: "멘션",
+    actionType: "액션 유형",
+    slackWebhookUrl: "Slack 웹훅 URL",
+    emailAddress: "이메일 주소",
+    enabled: "활성화",
+    notifySlack: "Slack 알림",
+    useThreads: "스레드 사용",
+    escalation: "에스컬레이션",
+    enableWriteback: "라이트백 활성화",
+    requiresApproval: "승인 필요",
+  },
+
+  // 176차 PM8-Total B3 — PgConfig 페이지 hardcoded 영문 fallback
+  pgConfigPage: {
+    provider: "결제 제공자",
+    environment: "환경",
+    currency: "통화",
+    allowedMethods: "허용 결제 수단",
+    clientToken: "클라이언트 토큰",
+    webhookEndpoint: "웹훅 엔드포인트",
+  },
+
   // 176차 PM8-Total B1 — AIPrediction 페이지 hardcoded 영문 fallback
   aiPredictPage: {
     customerAnalysisDetail: "AI 고객 분석 상세",

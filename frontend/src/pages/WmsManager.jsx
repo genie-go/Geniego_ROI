@@ -143,7 +143,7 @@ const WarehouseTab = memo(function WarehouseTab({ showForm, setShowForm, showPer
                         <Input label={t("wms.whAreaLabel")} value={f.area} onChange={v => setF("area", v)} type="number" placeholder="2000" />
                         <Select label={t("wms.whTempLabel")} value={f.temp} onChange={v => setF("temp", v)} opts={temps} />
                         <Select label={t("wms.whTypeLabel")} value={f.type} onChange={v => setF("type", v)} opts={types} />
-                        <Input label={t("wms.whManagerLabel")} value={f.manager} onChange={v => setF("manager", v)} placeholder="John Doe" />
+                        <Input label={t("wms.whManagerLabel")} value={f.manager} onChange={v => setF("manager", v)} placeholder={t('wmsPage.namePh', '홍길동')} />
                     </div>
                     <div style={{ display: "flex", gap: 8, marginTop: 14, flexWrap: "wrap" }}>
                         <Btn onClick={save} color="#22c55e">{t("wms.whSaveBtn")}</Btn>
@@ -1677,7 +1677,7 @@ const SupplierTab = memo(function SupplierTab() {
                         <Input label={t("wms.supCodeLabel")} value={form.code} onChange={v=>setForm(f=>({...f,code:v}))} placeholder={t("wms.supCodePh")} />
                         <Select label={t("wms.supTypeLabel")} value={form.type} onChange={v=>setForm(f=>({...f,type:v}))} opts={TYPES} />
                         <Input label={t("wms.supCountryLabel")} value={form.country} onChange={v=>setForm(f=>({...f,country:v}))} placeholder="KR, CN, JP..." />
-                        <Input label={t("wms.supContactLabel")} value={form.contact} onChange={v=>setForm(f=>({...f,contact:v}))} placeholder="John Doe" />
+                        <Input label={t("wms.supContactLabel")} value={form.contact} onChange={v=>setForm(f=>({...f,contact:v}))} placeholder={t('wmsPage.namePh', '홍길동')} />
                         <Input label={t("wms.supPhoneLabel")} value={form.phone} onChange={v=>setForm(f=>({...f,phone:v}))} placeholder="02-1234-5678" />
                         <Input label={t("wms.supEmailLabel")} value={form.email} onChange={v=>setForm(f=>({...f,email:v}))} placeholder="contact@company.com" />
                         <Select label={t("wms.supPayLabel")} value={form.payTerms} onChange={v=>setForm(f=>({...f,payTerms:v}))} opts={PAY_TERMS} />
@@ -1786,7 +1786,7 @@ const InventoryAuditTab = memo(function InventoryAuditTab({ inventory }) {
     const printAuditSheet = () => {
         const rows = filtered.map(i => `<tr><td>${i.sku}</td><td>${i.name}</td><td style="text-align:center">${i.bookQty}</td><td style="text-align:center;color:${i.diff===null?'#000':i.diff===0?'green':i.diff>0?'blue':'red'}">${i.countedQty===''?'—':i.countedQty}</td><td style="text-align:center;color:${i.diff===null?'#000':i.diff===0?'green':i.diff>0?'blue':'red'}">${i.diff===null?'—':i.diff>0?'+'+i.diff:i.diff}</td></tr>`).join('');
         const w = window.open('','_blank');
-        w.document.write(`<!DOCTYPE html><html><head><title>${t('wms.auditTitle')} - ${auditDate}</title><style>body{font-family:sans-serif;font-size:10pt;margin:20px}h2{text-align:center}table{width:100%;border-collapse:collapse}td,th{border:1px solid #ccc;padding:6px 8px;font-size:9pt}.pass{color:green}.plus{color:blue}.minus{color:red}</style></head><body><h2>📋 ${t('wms.auditTitle')} (${auditDate})</h2><table><tr><th>SKU</th><th>Product Name</th><th>${t('wms.auditColBook')}</th><th>${t('wms.auditColInput')}</th><th>${t('wms.auditColDiff')}</th></tr>${rows}<tr style="background:#f5f5f5;font-weight:bold"><td colspan="4">${t('wms.auditTotalDiff')}</td><td style="text-align:center;color:${hasDiscrepancy?'red':'green'}">${hasDiscrepancy?'±'+totalDiff:t('wms.auditNoDiff')}</td></tr></table></body></html>`);
+        w.document.write(`<!DOCTYPE html><html><head><title>${t('wms.auditTitle')} - ${auditDate}</title><style>body{font-family:sans-serif;font-size:10pt;margin:20px}h2{text-align:center}table{width:100%;border-collapse:collapse}td,th{border:1px solid #ccc;padding:6px 8px;font-size:9pt}.pass{color:green}.plus{color:blue}.minus{color:red}</style></head><body><h2>📋 ${t('wms.auditTitle')} (${auditDate})</h2><table><tr><th>SKU</th><th>${t('wmsPage.productName', '상품명')}</th><th>${t('wms.auditColBook')}</th><th>${t('wms.auditColInput')}</th><th>${t('wms.auditColDiff')}</th></tr>${rows}<tr style="background:#f5f5f5;font-weight:bold"><td colspan="4">${t('wms.auditTotalDiff')}</td><td style="text-align:center;color:${hasDiscrepancy?'red':'green'}">${hasDiscrepancy?'±'+totalDiff:t('wms.auditNoDiff')}</td></tr></table></body></html>`);
         w.document.close(); w.print();
     };
 

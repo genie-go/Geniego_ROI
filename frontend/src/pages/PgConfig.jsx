@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { getJsonAuth } from "../services/apiClient.js";
+import { useT } from "../i18n/index.js";
 
 /**
  * PgConfig — 결제 게이트웨이 관리자 콘솔.
@@ -198,17 +199,18 @@ function PgConfig() {
 }
 
 function TabPaddle({ stats }) {
+  const t = useT();
   const env = stats?.env || NA;
   const tokenOk = stats?.integration_status === 'configured';
   return (
     <>
       <div style={{ fontSize: 14, fontWeight: 800, marginBottom: 14 }}>Paddle Billing v2 통합</div>
-      <ConfigRow label="Provider" value={stats?.provider || 'Paddle (MoR)'} />
-      <ConfigRow label="Environment" value={env} />
-      <ConfigRow label="Currency" value="USD (단일 정책 — 168차 N-152-F-billing)" />
-      <ConfigRow label="Allowed Methods" value="card 전용 (Toss/PayPal/Apple Pay/Google Pay 차단)" />
-      <ConfigRow label="Client Token" value={tokenOk ? '✅ configured (PADDLE_CLIENT_TOKEN env)' : '⚠ not configured'} />
-      <ConfigRow label="Webhook Endpoint" value="POST /v423/paddle/webhook" />
+      <ConfigRow label={t('pgConfigPage.provider', '결제 제공자')} value={stats?.provider || 'Paddle (MoR)'} />
+      <ConfigRow label={t('pgConfigPage.environment', '환경')} value={env} />
+      <ConfigRow label={t('pgConfigPage.currency', '통화')} value="USD (단일 정책 — 168차 N-152-F-billing)" />
+      <ConfigRow label={t('pgConfigPage.allowedMethods', '허용 결제 수단')} value="card 전용 (Toss/PayPal/Apple Pay/Google Pay 차단)" />
+      <ConfigRow label={t('pgConfigPage.clientToken', '클라이언트 토큰')} value={tokenOk ? '✅ configured (PADDLE_CLIENT_TOKEN env)' : '⚠ not configured'} />
+      <ConfigRow label={t('pgConfigPage.webhookEndpoint', '웹훅 엔드포인트')} value="POST /v423/paddle/webhook" />
       <ConfigRow label="MoR (Merchant of Record)" value="Paddle.com — VAT/GST/환불 위임" />
       <div style={{ marginTop: 18, padding: '12px 14px', borderRadius: 10, background: 'rgba(99,102,241,0.06)', border: '1px solid rgba(99,102,241,0.18)', fontSize: 11, color: 'var(--text-3)' }}>
         <strong style={{ color: 'var(--text-2)' }}>가격 source of truth:</strong>{' '}

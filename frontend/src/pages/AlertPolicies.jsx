@@ -241,14 +241,14 @@ export default function AlertPolicies() {
               + New
             </button>
             <button className="btn" onClick={save} disabled={busy}>
-              Save
+              {t('save', '저장')}
             </button>
             <button className="btn" onClick={runEvaluate} disabled={busy}>
-              Run Evaluate
+              {t('alertPoliciesPage.runEvaluate', '평가 실행')}
             </button>
             {draft.id ? (
               <button className="btn danger" onClick={() => del(draft.id)} disabled={busy}>
-                Delete
+                {t('delete', '삭제')}
               </button>
             ) : null}
           </div>
@@ -286,11 +286,11 @@ export default function AlertPolicies() {
             <Card title="Basics">
               <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr 1fr 1fr", gap: 10 }}>
                 <div>
-                  <div className="sub">Name</div>
+                  <div className="sub">{t("alertPoliciesPage.name", "이름")}</div>
                   <Input value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} />
                 </div>
                 <div>
-                  <div className="sub">Window</div>
+                  <div className="sub">{t("alertPoliciesPage.window", "시간 윈도우")}</div>
                   <Select
                     value={draft.window}
                     onChange={(v) => setDraft({ ...draft, window: v })}
@@ -301,7 +301,7 @@ export default function AlertPolicies() {
                   />
                 </div>
                 <div>
-                  <div className="sub">Dimension</div>
+                  <div className="sub">{t("alertPoliciesPage.dimension", "차원")}</div>
                   <Select
                     value={draft.dimension}
                     onChange={(v) => setDraft({ ...draft, dimension: v })}
@@ -314,7 +314,7 @@ export default function AlertPolicies() {
                   />
                 </div>
                 <div>
-                  <div className="sub">Severity</div>
+                  <div className="sub">{t("alertPoliciesPage.severity", "심각도")}</div>
                   <Select
                     value={draft.severity}
                     onChange={(v) => setDraft({ ...draft, severity: v })}
@@ -328,8 +328,8 @@ export default function AlertPolicies() {
               </div>
 
               <div style={{ marginTop: 12, display: "flex", gap: 14, alignItems: "center", flexWrap: "wrap" }}>
-                <Toggle checked={draft.enabled} onChange={(v) => setDraft({ ...draft, enabled: v })} label="Enabled" />
-                <div className="sub">Lookback</div>
+                <Toggle checked={draft.enabled} onChange={(v) => setDraft({ ...draft, enabled: v })} label={t("alertPoliciesPage.enabled", "활성화")} />
+                <div className="sub">{t("alertPoliciesPage.lookback", "조회 기간")}</div>
                 <Input type="number" value={draft.lookback} onChange={(e) => setDraft({ ...draft, lookback: Number(e.target.value) })} style={{ width: 120 }} />
               </div>
 
@@ -385,12 +385,12 @@ export default function AlertPolicies() {
                 <Toggle
                   checked={draft.slack?.notify}
                   onChange={(v) => setDraft({ ...draft, slack: { ...draft.slack, notify: v } })}
-                  label="Notify Slack"
+                  label={t("alertPoliciesPage.notifySlack", "Slack 알림")}
                 />
                 <Toggle
                   checked={draft.slack?.use_threads}
                   onChange={(v) => setDraft({ ...draft, slack: { ...draft.slack, use_threads: v } })}
-                  label="Use Threads"
+                  label={t("alertPoliciesPage.useThreads", "스레드 사용")}
                 />
                 <div>
                   <div className="sub">Snooze (minutes)</div>
@@ -421,10 +421,10 @@ export default function AlertPolicies() {
                         slack: { ...draft.slack, escalation: { ...(draft.slack?.escalation || {}), enabled: v } },
                       })
                     }
-                    label="Escalation"
+                    label={t("alertPoliciesPage.escalation", "에스컬레이션")}
                   />
                   <div style={{ width: 180 }}>
-                    <div className="sub">After count</div>
+                    <div className="sub">{t("alertPoliciesPage.afterCount", "N회 후")}</div>
                     <Input
                       type="number"
                       value={draft.slack?.escalation?.after_hits ?? 3}
@@ -437,7 +437,7 @@ export default function AlertPolicies() {
                     />
                   </div>
                   <div style={{ width: 220 }}>
-                    <div className="sub">Escalation channel</div>
+                    <div className="sub">{t("alertPoliciesPage.escalationChannel", "에스컬레이션 채널")}</div>
                     <Input
                       value={draft.slack?.escalation?.channel || ""}
                       onChange={(e) =>
@@ -450,7 +450,7 @@ export default function AlertPolicies() {
                     />
                   </div>
                   <div style={{ width: 220 }}>
-                    <div className="sub">Mention</div>
+                    <div className="sub">{t("alertPoliciesPage.mention", "멘션")}</div>
                     <Input
                       value={draft.slack?.escalation?.mention || ""}
                       onChange={(e) =>
@@ -471,10 +471,10 @@ export default function AlertPolicies() {
                 <Toggle
                   checked={draft.writeback?.enabled}
                   onChange={(v) => setDraft({ ...draft, writeback: { ...draft.writeback, enabled: v } })}
-                  label="Enable Write-back"
+                  label={t("alertPoliciesPage.enableWriteback", "라이트백 활성화")}
                 />
                 <div>
-                  <div className="sub">Action type</div>
+                  <div className="sub">{t("alertPoliciesPage.actionType", "액션 유형")}</div>
                   <Select
                     value={draft.writeback?.action_type || "raise_ticket"}
                     onChange={(v) => setDraft({ ...draft, writeback: { ...draft.writeback, action_type: v } })}
@@ -489,7 +489,7 @@ export default function AlertPolicies() {
                 <Toggle
                   checked={draft.writeback?.requires_approval}
                   onChange={(v) => setDraft({ ...draft, writeback: { ...draft.writeback, requires_approval: v } })}
-                  label="Requires approval"
+                  label={t("alertPoliciesPage.requiresApproval", "승인 필요")}
                 />
               </div>
               <div className="sub" style={{ marginTop: 10 }}>
@@ -501,7 +501,7 @@ export default function AlertPolicies() {
             <Card title="🧪 Notification Test Send" subtitle={t('auto.5ugkrf', 'Slack 웹훅 또는 Email로 즉시 Test Send')}>
               <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 10, alignItems: "end", marginBottom: 12 }}>
                 <div>
-                  <div className="sub">Slack Webhook URL</div>
+                  <div className="sub">{t("alertPoliciesPage.slackWebhookUrl", "Slack 웹훅 URL")}</div>
                   <Input
                     value={testWebhook}
                     onChange={(e) => setTestWebhook(e.target.value)}
@@ -514,7 +514,7 @@ export default function AlertPolicies() {
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 10, alignItems: "end" }}>
                 <div>
-                  <div className="sub">Email Address</div>
+                  <div className="sub">{t("alertPoliciesPage.emailAddress", "이메일 주소")}</div>
                   <Input
                     type="email"
                     value={testEmail}

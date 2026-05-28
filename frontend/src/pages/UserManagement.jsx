@@ -344,7 +344,7 @@ function PlanPricesTab() {
                         </select>
                     </div>
                     <div>
-                        <label style={css.label}>Period</label>
+                        <label style={css.label}>{t('userMgmtPage.period', '기간')}</label>
                         <select style={css.input} value={form.period_months} onChange={e => setForm(p => ({ ...p, period_months: +e.target.value }))}>
                             {PERIODS.map(p => <option key={p.months} value={p.months}>{p.label}</option>)}
                         </select>
@@ -366,7 +366,7 @@ function PlanPricesTab() {
                         <input style={css.input} value={form.label_en} onChange={e => setForm(p => ({ ...p, label_en: e.target.value }))} />
                     </div>
                     <div>
-                        <label style={css.label}>Paddle Price ID</label>
+                        <label style={css.label}>{t('userMgmtPage.paddlePriceId', 'Paddle 가격 ID')}</label>
                         <input style={css.input} value={form.paddle_price_id} onChange={e => setForm(p => ({ ...p, paddle_price_id: e.target.value }))} placeholder="pri_01xxx..." />
                     </div>
                     <div>
@@ -378,7 +378,7 @@ function PlanPricesTab() {
                     </div>
                 </div>
                 <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-                    <button style={css.btn("primary")} onClick={save}>Save</button>
+                    <button style={css.btn("primary")} onClick={save}>{t('save', '저장')}</button>
                     {msg && <span style={{ fontSize: 12, color: msg.startsWith("✅") ? "#22c55e" : "#ef4444" }}>{msg}</span>}
                 </div>
             </div>
@@ -389,7 +389,7 @@ function PlanPricesTab() {
                     <div key={g.plan} style={{ ...css.card, marginBottom: 14 }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
                             <span style={css.badge(g.plan)}>{g.plan}</span>
-                            <span style={{ fontWeight: 700, fontSize: 13 }}>Pricing Settings</span>
+                            <span style={{ fontWeight: 700, fontSize: 13 }}>{t('userMgmtPage.pricingSettings', '가격 설정')}</span>
                         </div>
                         {g.rows.length === 0 ? (
                             <div style={{ fontSize: 12, color: "var(--text-3)" }}>Register된 Pricing None</div>
@@ -410,7 +410,7 @@ function PlanPricesTab() {
                                             <td style={css.td}>
                                                 <div style={{ display: "flex", gap: 6 }}>
                                                     <button style={{ ...css.btn(), padding: "3px 10px", fontSize: 11 }} onClick={() => editRow(r)}>편집</button>
-                                                    <button style={{ ...css.btn("danger"), padding: "3px 10px", fontSize: 11 }} onClick={() => del(r.plan_key, r.period_months)}>Delete</button>
+                                                    <button style={{ ...css.btn("danger"), padding: "3px 10px", fontSize: 11 }} onClick={() => del(r.plan_key, r.period_months)}>{t('delete', '삭제')}</button>
                                                 </div>
                                             </td>
                                         </tr>
@@ -470,7 +470,7 @@ function RolesTab() {
                             <input style={css.input} value={form.role_key} onChange={e => setForm(f => ({ ...f, role_key: e.target.value.replace(/[^a-z0-9_]/g, "") }))} placeholder="e.g. marketing_mgr" />
                         </div>
                         <div>
-                            <label style={css.label}>Sort Order</label>
+                            <label style={css.label}>{t('userMgmtPage.sortOrder', '정렬 순서')}</label>
                             <input type="number" style={css.input} value={form.sort_order} onChange={e => setForm(f => ({ ...f, sort_order: +e.target.value }))} />
                         </div>
                     </div>
@@ -499,7 +499,7 @@ function RolesTab() {
                             <option value={1}>활성</option>
                             <option value={0}>비활성</option>
                         </select>
-                        <button style={css.btn("primary")} onClick={save}>Save</button>
+                        <button style={css.btn("primary")} onClick={save}>{t('save', '저장')}</button>
                         {msg && <span style={{ fontSize: 12, color: msg.startsWith("✅") ? "#22c55e" : "#ef4444" }}>{msg}</span>}
                     </div>
                 </div>
@@ -523,7 +523,7 @@ function RolesTab() {
                                     </div>
                                     <div style={{ display: "flex", gap: 6 }}>
                                         <button style={{ ...css.btn(), padding: "3px 10px", fontSize: 11 }} onClick={() => editRole(r)}>편집</button>
-                                        <button style={{ ...css.btn("danger"), padding: "3px 10px", fontSize: 11 }} onClick={() => del(r.role_key)}>Delete</button>
+                                        <button style={{ ...css.btn("danger"), padding: "3px 10px", fontSize: 11 }} onClick={() => del(r.role_key)}>{t('delete', '삭제')}</button>
                                     </div>
                                 </div>
                             </div>
@@ -584,7 +584,7 @@ function BillingTab() {
 
                 {/* Events */}
                 <div style={{ ...css.card, padding: 0, overflow: "hidden" }}>
-                    <div style={{ padding: "14px 18px", fontWeight: 700, fontSize: 13, borderBottom: "1px solid rgba(255,255,255,0.06)" }}>Payment Event</div>
+                    <div style={{ padding: "14px 18px", fontWeight: 700, fontSize: 13, borderBottom: "1px solid rgba(255,255,255,0.06)" }}>{t('userMgmtPage.paymentEvent', '결제 이벤트')}</div>
                     <table style={{ width: "100%", borderCollapse: "collapse" }}>
                         <thead><tr>{["Event", "발생시각", "처리상태"].map(h => <th key={h} style={css.th}>{h}</th>)}</tr></thead>
                         <tbody>
