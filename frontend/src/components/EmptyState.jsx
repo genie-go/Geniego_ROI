@@ -125,13 +125,18 @@ export default function EmptyState({ onCreateClick, onTemplateClick }) {
             }}>
                 <button
                     onClick={onCreateClick}
+                    className="jb-empty-create-btn"
+                    data-jb-action="create"
                     style={{
                         padding: '12px 28px',
                         borderRadius: 12,
                         border: 'none',
                         cursor: 'pointer',
                         background: 'linear-gradient(135deg, #4f8ef7, #06b6d4)',
+                        backgroundImage: 'linear-gradient(135deg, #4f8ef7, #06b6d4)',
+                        backgroundColor: '#4f8ef7',
                         color: '#fff',
+                        WebkitTextFillColor: '#fff',
                         fontWeight: 800,
                         fontSize: 14,
                         boxShadow: '0 4px 16px rgba(79,142,247,0.3)',
@@ -150,13 +155,17 @@ export default function EmptyState({ onCreateClick, onTemplateClick }) {
                 </button>
                 <button
                     onClick={() => onTemplateClick?.(null)}
+                    className="jb-empty-template-btn"
+                    data-jb-action="template"
                     style={{
                         padding: '12px 28px',
                         borderRadius: 12,
                         border: '2px solid #4f8ef7',
                         cursor: 'pointer',
                         background: 'rgba(79,142,247,0.06)',
+                        backgroundColor: 'rgba(79,142,247,0.06)',
                         color: '#4f8ef7',
+                        WebkitTextFillColor: '#4f8ef7',
                         fontWeight: 800,
                         fontSize: 14,
                         transition: 'all 0.2s',

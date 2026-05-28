@@ -3332,10 +3332,14 @@ body:not([data-theme]) .sidebar-footer {
   color: #1a202c;
 }
 
-/* ── 7E. Fix hero gradient bg used as page-hero inline styles ── */
-/* Matches any inline style with linear-gradient background in content area */
-[data-theme="arctic_white"] .container>div:last-child [style*="linear-gradient"][style*="background"],
-[data-theme="pearl_office"] .container>div:last-child [style*="linear-gradient"][style*="background"] {
+/* ── 7E. Fix hero gradient bg used as page-hero inline styles ──
+   174차 P1-G2 fix: :not(button):not(a) 추가 — gradient 버튼/링크의 white-on-white
+   결함 해소. hero/카드 div 의 gradient 배경 light-theme white 변환은 유지.
+   원인: 광범위 [style*="linear-gradient"] 매처가 EmptyState 등 모든 gradient
+   버튼을 hijack → 흰 배경 + 흰 글자 invisible. 영향 페이지: JourneyBuilder,
+   Connectors, MappingRegistry, Admin, HelpCenter, AI* 등 다수. */
+[data-theme="arctic_white"] .container>div:last-child :not(button):not(a)[style*="linear-gradient"][style*="background"],
+[data-theme="pearl_office"] .container>div:last-child :not(button):not(a)[style*="linear-gradient"][style*="background"] {
   background: var(--bg-card, rgba(255, 255, 255, 0.95)) !important;
   border-color: var(--border) !important;
 }
