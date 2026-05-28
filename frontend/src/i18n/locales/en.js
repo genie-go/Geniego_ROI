@@ -3940,7 +3940,9 @@ export default {
         ready: "Ready",
         cancelled: "Cancelled"
       },
-      pageTitle: "🏭 WMS Warehouse & Logistics"
+      pageTitle: "🏭 WMS Warehouse & Logistics",
+      tabGuide: "Guide",
+      tabGuideDesc: "WMS guide"
     },
   email: {
       title: "Email Marketing",
@@ -4006,7 +4008,14 @@ export default {
       abNew: "Ab New",
       abCancel: "Cancel",
       setSmtp: "Set Smtp",
-      setSaveBtn: "Set Save Btn"
+      setSaveBtn: "Set Save Btn",
+      goHub: "Go to Hub",
+      noChannels: "No channels connected",
+      liveSyncStatus: "Live sync",
+      syncNow: "Sync Now",
+      tabAnalytics: "Analytics",
+      tabCreative: "Creative",
+      tabGuide: "Guide"
     },
   kakao: {
       title: "Email Marketing",
@@ -4113,7 +4122,8 @@ export default {
       schedDate: "Send Date/Time",
       schedSet: "Set Schedule",
       delConfirm: "Delete this campaign?",
-      btnDel: "Delete"
+      btnDel: "Delete",
+      tabGuide: "Guide"
     },
   root_pageTitle_graphScore: "Graph Score",
   root_pageTitle_channelKpi: "Channel KPI",
@@ -12687,7 +12697,15 @@ export default {
       noRecents: "No recent visits.",
       pinned: "Pinned",
       quickAccess: "Quick Access",
-      addFav: "Add to favorites"
+      addFav: "Add to favorites",
+      channel_OwnMall: "Own Mall",
+      channel_11Street: "11Street",
+      channel_KakaoShopping: "Kakao Shopping",
+      channel_NaverShopping: "Naver Shopping",
+      channel_Rakuten: "Rakuten",
+      channel_Coupang: "Coupang",
+      channel_Gmarket: "Gmarket",
+      channel_Amazon: "Amazon"
     },
   performance: {
       account: "Account",
@@ -12713,7 +12731,41 @@ export default {
       tabChannels: "チャンネル",
       tabCreatives: "クリエイティブ",
       title: "パフォーマンス ハブ",
-      topProducts: "人気の製品"
+      topProducts: "人気の製品",
+      pageTitle: "Performance Hub",
+      pageSub: "Unified ROI · Settlement · Creator · SKU · Cohort · ESG",
+      realtimeSync: "Live sync",
+      securityNormal: "Security OK",
+      badgeSecurity: "Secure",
+      descPerformance: "Unified performance analysis",
+      channelPerfDetail: "Channel detail",
+      sortOrders: "By Orders",
+      sortRevenue: "By Revenue",
+      totalAvg: "Overall Avg",
+      tabPerformance: "Performance",
+      tabSettlement: "Settlement",
+      tabCreator: "Creator",
+      tabSkuProfit: "SKU Profit",
+      tabCohort: "Cohort",
+      tabEsg: "ESG",
+      tabGuide: "Guide",
+      teamSpecificTotal: "Team Total",
+      adAttributedRevenue: "Ad-attributed Revenue",
+      conversionFunnel: "Conversion Funnel",
+      totalImpressions: "Total Impressions",
+      totalRevenue: "Total Revenue",
+      descSettlement: "Settlement details",
+      descCreator: "Creator performance",
+      descSkuProfit: "SKU P&L",
+      descCohort: "Cohort retention",
+      descEsg: "ESG metrics",
+      descGuide: "Full guide",
+      guideTabSettleDesc: "Settlement guide",
+      guideTabCreatorDesc: "Creator guide",
+      guideTabSkuDesc: "SKU guide",
+      guideTabCohortDesc: "Cohort guide",
+      guideTabEsgDesc: "ESG guide",
+      guideTabGuideDesc: "Guide page"
     },
   fixedPerf: "Fixed+Performance",
   expired: "Expired",
@@ -12826,7 +12878,19 @@ export default {
       digital_label: "💻 Digital & Apps",
       digital_route: "SaaS, apps, digital content",
       sports_label: "⚽ Sports & Leisure",
-      sports_route: "Sports and leisure goods sales"
+      sports_route: "Sports and leisure goods sales",
+      tax_label: "Tax/Accounting",
+      tax_route: "/finance/tax",
+      etc_service_label: "Other Services",
+      etc_service_route: "/etc/service",
+      finance_label: "Finance",
+      finance_route: "/finance",
+      insurance_label: "Insurance",
+      insurance_route: "/insurance",
+      medical_label: "Medical",
+      medical_route: "/medical",
+      legal_label: "Legal",
+      legal_route: "/legal"
     },
   attrData: {
       title: "📈 Marketing Attribution — Realtime ML Engine v3.0",
@@ -13754,7 +13818,8 @@ export default {
       kpiTitle: "📊 Key KPI",
       campaignTitle: "📣 Campaign Performance",
       creatorTitle: "🤝 Creator Performance",
-      skuTitle: "📦 SKU Analysis"
+      skuTitle: "📦 SKU Analysis",
+      guideTitle: "Audit Guide"
     },
   settlements: {
       pageTitle: "Channel Settlement Management",
@@ -13817,7 +13882,9 @@ export default {
       detailFeeRate: "Fee Rate",
       detailItem: "Item",
       detailValue: "Amount",
-      detailKRW: "KRW Equiv."
+      detailKRW: "KRW Equiv.",
+      tabGuide: "Guide",
+      importBtn: "Import"
     },
   dataTrust: {
       ModeBadge: "🎭  Simulation Mode",
@@ -14271,7 +14338,38 @@ export default {
       approveRegisterStep: "Approve & Register",
       guideStep: "Step",
       guideTip: "Tip",
-      guideTips: "Tips"
+      guideTips: "Tips",
+      crossSyncActive: "Cross-channel sync active",
+      kpiAllProducts: "All Products",
+      kpiSyncDone: "Synced",
+      kpiChangeDetected: "Changes Detected",
+      kpiErrorProduct: "Errors",
+      allChannel: "All Channels",
+      allStatus: "All Status",
+      statusWarning: "Warning",
+      productCount: "Products",
+      statusNormal: "Normal",
+      statusError: "Error",
+      excelTemplate: "Excel Template",
+      excelExport: "Excel Export",
+      excelImport: "Excel Import",
+      csvExport: "CSV Export",
+      csvImport: "CSV Import",
+      colImage: "Image",
+      colProductName: "Product",
+      colCategory: "Category",
+      colMargin: "Margin",
+      colProductCost: "Cost",
+      colChannels: "Channels",
+      colPurchaseCost: "Purchase Cost",
+      colStatus: "Status",
+      colUnit: "Unit",
+      prevPage: "Previous",
+      nextPage: "Next",
+      colSpec: "Spec",
+      colSalePrice: "Price",
+      colStock: "Stock",
+      colSync: "Sync"
     },
   performanceHub: {
       pageTitle: "📊 Performance Hub",
@@ -14453,7 +14551,8 @@ export default {
       score: "Score",
       connections: "Connections",
       influence: "Influence Index",
-      noData: "No data"
+      noData: "No data",
+      tabGuide: "Guide"
     },
   rollup: {
       title: "Rollup Aggregate Layer",
@@ -15136,7 +15235,9 @@ export default {
       guideTabsTitle: "Tabs",
       guideTipsTitle: "Tips",
       guideStep: "Step",
-      guideTip: "Tip"
+      guideTip: "Tip",
+      liveSyncMsg: "Live sync",
+      tabGuide: "Guide"
     },
   journey: {
       pageTitle: "Customer Journey Builder",
@@ -15485,7 +15586,20 @@ export default {
       copied: "✓ Copied to clipboard",
       escalated: "🚨 Escalated to CS team",
       escalationTitle: "CS Escalation Complete",
-      escalationBody: "Review #{{id}} has been assigned to the CS team."
+      escalationBody: "Review #{{id}} has been assigned to the CS team.",
+      heroTitle: "Reviews & UGC",
+      heroDesc: "Customer reviews & UGC unified management",
+      tabDashboard: "Dashboard",
+      tabFeed: "Feed",
+      tabTrend: "Trends",
+      tabSettings: "Settings",
+      tabGuide: "Guide",
+      liveSyncMsg: "Live sync (5s)",
+      kpiTotalSub2: "Total",
+      kpiAvgRatingSub2: "Avg Rating",
+      unitItems: "items",
+      inProgress: "In progress",
+      noData: "No data"
     },
   campaignMgr: {
       pageTitle: "Campaign Manager",
@@ -26203,7 +26317,31 @@ export default {
     "catOps": "Operations",
     "catData": "Data",
     "catAdmin": "Admin",
-    "catFin": "Finance"
+    "catFin": "Finance",
+    exportCSV: "Export CSV",
+    tabGuideDesc: "Schema guide",
+    heroDesc: "Standard event schema for sales/ad/analytics channels",
+    badgeMetrics: "Metrics",
+    badgeAlertRules: "Alert Rules",
+    badgePlatforms: "Platforms",
+    tabSchema: "Event Schema",
+    tabPipeline: "Pipeline",
+    tabMetrics: "Metrics Catalog",
+    tabAlerts: "Alert Rules",
+    badgeTotalFields: "Total Fields",
+    tabSchemaDesc: "Schema definitions",
+    tabPipelineDesc: "Pipeline flow",
+    tabMetricsDesc: "Metric definitions",
+    tabAlertsDesc: "Alert rules",
+    adEvents: "Ad Events",
+    marketOrders: "Marketplace Orders",
+    ugcInfluencer: "UGC/Influencer",
+    adDesc: "Standard ad data events",
+    fields: "Fields",
+    secAudienceTarget: "Audience Target",
+    secPerfMetrics: "Performance Metrics",
+    platforms: "Platforms",
+    secCampaignHierarchy: "Campaign Hierarchy"
     },
   sms: {
     noChannels: "No SMS channels connected.",
@@ -26217,7 +26355,29 @@ export default {
     "tabUpload": "Upload",
     "tabRecon": "Reconcile",
     "tabReports": "Reports",
-    "tabTickets": "Tickets"
+    "tabTickets": "Tickets",
+    goHub: "Go to Hub",
+    syncNow: "Sync Now",
+    heroDesc: "SMS marketing unified",
+    kpiSent: "Sent",
+    kpiSuccess: "Success",
+    kpiFailed: "Failed",
+    tabCompose: "Compose",
+    tabBroadcast: "Broadcast",
+    tabTemplates: "Templates",
+    sent: "Sent",
+    send: "Send",
+    tabCampaigns: "Campaigns",
+    tabHistory: "History",
+    tabStats: "Stats",
+    tabSettings: "Settings",
+    composeTitle: "Compose",
+    type: "Type",
+    charCount: "Character Count",
+    capacity: "Capacity",
+    messageContent: "Message",
+    recipientNumber: "Recipient",
+    smsCostInfo: "SMS cost info"
     },
   contentCal: {
     liveSyncMsg: "Live sync active",
@@ -26228,5 +26388,16 @@ export default {
     "tabCohort": "Cohort",
     "tabAccountPerformance": "Account Performance"
     },
+
+  // [176차 i18n fill] root-level user/attributes (ko.js master sync)
+  user: {
+    menu: {
+      title: "Menu"
+    }
+  },
+  attributes: {
+    color: "Color",
+    material: "Material"
+  },
 
 };
