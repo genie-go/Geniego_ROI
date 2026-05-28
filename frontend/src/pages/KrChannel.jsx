@@ -68,7 +68,7 @@ function ChannelsTab() {
                     {t('krChannel.apiDisconnected', 'API 연결 대기 중')}
                 </div>
             )}
-            <h3 style={{ marginTop: 0, fontSize: 14 }}>🇰🇷 Channel 마스터리스트</h3>
+            <h3 style={{ marginTop: 0, fontSize: 14 }}>{t('krChannel.channelMaster', '🇰🇷 채널 마스터리스트')}</h3>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 12 }}>
                 {channels.map((ch) => (
                     <div key={ch.channel_key} className="card" style={{ borderLeft: `3px solid ${chColor(ch.channel_key)}` }}>
@@ -139,39 +139,39 @@ function FeeRulesTab() {
     return (
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
             <div>
-                <h4 style={{ marginTop: 0, fontSize: 13 }}>Commission 규칙 Register</h4>
+                <h4 style={{ marginTop: 0, fontSize: 13 }}>{t('krChannel.commissionReg', '수수료 규칙 등록')}</h4>
                 <div style={{ marginBottom: 10 }}>
-                    <label style={{ fontSize: 11, color: "#7c8fa8" }}>Channel Select</label>
+                    <label style={{ fontSize: 11, color: "#7c8fa8" }}>{t('krChannel.channelSelect', '채널 선택')}</label>
                     <select value={form.channel_key} onChange={(e) => { setForm((f) => ({ ...f, channel_key: e.target.value })); if (e.target.value) loadRules(e.target.value); }} style={{ display: "block", width: "100%", background: "#0f172a", border: "1px solid #1c2842", borderRadius: 6, color: '#fff', padding: "5px 8px", fontSize: 12, marginTop: 3 }}>
-                        <option value="">-- Select --</option>
+                        <option value="">{t('krChannel.selectPlaceholder', '-- 선택 --')}</option>
                         {channels.map((c) => <option key={c.channel_key} value={c.channel_key}>{c.display_name} ({c.channel_key})</option>)}
                     </select>
                 </div>
                 <div style={{ display: "grid", gap: 7, marginBottom: 10 }}>
-                    <Inp label="Category (* = All)" k="category" ph="electronics" />
+                    <Inp label={t('krChannel.categoryAll', '카테고리 (* = 전체)')} k="category" ph="electronics" />
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 7 }}>
-                        <Inp label="Platform Commission율 (예: 0.109)" k="platform_fee_rate" ph="0.109" />
-                        <Inp label="Ad Spend율" k="ad_fee_rate" ph="0.03" />
+                        <Inp label={`${t('krChannel.platformFeeRate', '플랫폼 수수료율')} (예: 0.109)`} k="platform_fee_rate" ph="0.109" />
+                        <Inp label={t('krChannel.adSpendRate', '광고비율')} k="ad_fee_rate" ph="0.03" />
                     </div>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 7 }}>
-                        <Inp label={t('krChannel.shippingLabel', 'Basic 배송비')} k="shipping_standard" ph="3000" />
-                        <Inp label={t('krChannel.returnFeeLabel', 'Basic 반품비')} k="return_fee_standard" ph="5000" />
+                        <Inp label={t('krChannel.shippingFee', '기본 배송비 (₩)')} k="shipping_standard" ph="3000" />
+                        <Inp label={t('krChannel.returnFee', '기본 반품비 (₩)')} k="return_fee_standard" ph="5000" />
                     </div>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 7 }}>
-                        <Inp label="부가세율" k="vat_rate" ph="0.10" />
-                        <Inp label="Apply Start일" k="effective_from" ph="2024-01-01" />
+                        <Inp label={t('krChannel.vatRateLabel', '부가세율')} k="vat_rate" ph="0.10" />
+                        <Inp label={t('krChannel.effectiveDate', '적용 시작일')} k="effective_from" ph="2024-01-01" />
                     </div>
-                    <Inp label="노트" k="note" ph="2024년 Coupang Basic Commission" />
+                    <Inp label={t('krChannel.note', '노트')} k="note" ph="2024년 쿠팡 기본 수수료" />
                 </div>
                 <button className="btn" onClick={save} disabled={!form.channel_key} style={{ width: "100%" }}>
-                    + Commission 규칙 Save
+                    {t('krChannel.saveCommission', '+ 수수료 규칙 저장')}
                 </button>
                 {msg && <div style={{ marginTop: 8, fontSize: 12, color: "#22c55e" }}>{msg}</div>}
             </div>
 
             <div>
                 <h4 style={{ marginTop: 0, fontSize: 13 }}>
-                    {sel ? `${sel} Commission 규칙 이력` : "Channel을 Select하면 이력이 표시됩니다"}
+                    {sel ? `${sel} ${t('krChannel.commissionHistory', '수수료 규칙 이력')}` : t('krChannel.selectChannelHint', '채널을 선택하면 이력이 표시됩니다')}
                 </h4>
                 {rules.map((r, i) => (
                     <div key={i} style={{ padding: "8px 10px", background: "#0f172a", borderRadius: 6, marginBottom: 6, fontSize: 11 }}>
@@ -188,7 +188,7 @@ function FeeRulesTab() {
                         {r.note && <div style={{ color: "#64748b", marginTop: 3 }}>{r.note}</div>}
                     </div>
                 ))}
-                {sel && !rules.length && <div className="sub" style={{ fontSize: 12 }}>Register된 Commission 규칙 None</div>}
+                {sel && !rules.length && <div className="sub" style={{ fontSize: 12 }}>{t('krChannel.noRules', '등록된 수수료 규칙 없음')}</div>}
             </div>
         </div>
     );
@@ -482,24 +482,24 @@ function ReconTab() {
 }
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
-const TABS = [
-    { id: "channels", label: "🇰🇷 Channel List" },
-    { id: "fees", label: "📋 Commission 규칙" },
-    { id: "ingest", label: "📥 정산 재처리" },
-    { id: "summary", label: "📊 Channel Aggregate" },
-    { id: "recon", label: "🔍 정산 대사" },
-];
-
+// 176차 PM8c: hardcoded label → ko.js root.krChannel i18n key 호출 (사용자 이전 차수 자산 활용)
 export default function KrChannel() {
   const t = useT();
+  const TABS = React.useMemo(() => [
+    { id: "channels", label: t('krChannel.tabChannels', '🇰🇷 채널 목록') },
+    { id: "fees", label: t('krChannel.tabFees', '📋 수수료 규칙') },
+    { id: "ingest", label: t('krChannel.tabIngest', '📥 정산 재처리') },
+    { id: "summary", label: t('krChannel.tabSummary', '📊 채널 종합') },
+    { id: "recon", label: t('krChannel.tabRecon', '🔍 정산 대사') },
+  ], [t]);
     const [tab, setTab] = useState("channels");
 
     return (
         <div>
             <div style={{ marginBottom: 16 }}>
-                <h2 style={{ margin: "0 0 4px 0", fontSize: 18 }}>🇰🇷 한국 Channel 정산 허브</h2>
+                <h2 style={{ margin: "0 0 4px 0", fontSize: 18 }}>{t('krChannel.pageTitle', '🇰🇷 한국 채널 정산 허브')}</h2>
                 <div className="sub">
-                    Coupang · Naver · 11Street · Gmarket · 옥션 · Kakao선물하기 · Lotte ON · WeMakePrice · 티몬 — 정산 표준화 · Commission Management · 대사 (v419)
+                    {t('krChannel.pageSub', 'Coupang · Naver · 11번가 · Gmarket · 옥션 · 카카오선물하기 · 롯데ON · 위메프 · 티몬 — 정산 표준화 · 수수료 관리 · 대사 (v419)')}
                 </div>
             </div>
 
