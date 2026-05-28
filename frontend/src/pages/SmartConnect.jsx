@@ -1,8 +1,23 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useNotification } from "../context/NotificationContext.jsx";
+import { getJsonAuth, postJson } from "../services/apiClient.js";
 
 import { useI18n } from '../i18n';
+
+/* ═══════════════════════════════════════════════════════════════════
+   177차 §4.E TOP 1 + U-177-A: 데모-운영 완벽 격리
+   • Production (roi.genie-go.com): 실 backend /v423/creds + /v423/connectors wire-up
+   • Demo (roidemo / VITE_DEMO_MODE): simulate*** (디자인 시뮬레이션)
+   • 절대 cross-contaminate 금지
+   ═══════════════════════════════════════════════════════════════════ */
+const _IS_DEMO_ENV = (() => {
+  try {
+    const host = typeof window !== 'undefined' ? window.location.hostname : '';
+    return host.includes('roidemo') || host.includes('demo') ||
+           (typeof import.meta !== 'undefined' && import.meta.env?.VITE_DEMO_MODE === 'true');
+  } catch { return false; }
+})();
 
 /* ─── Channel Master Data ────────────────────────────────────────────────────── */
 const CHANNELS = [
@@ -117,7 +132,7 @@ const CHANNELS = [
 /* ─── Auto 획득 가능 여부에 따른 분류 헬퍼 ────────────────────────────────── */
 const STATUS = { unscanned:"unscanned", found:"found", missing:"missing", applying:"applying", applied:"applied", registered:"registered" };
 
-/* ─── 시뮬레이션 스캔 함Count ────────────────────────────────────────────────── */
+/* ─── 시뮬레이션 스캔 함Count (DEMO ONLY) ───────────────────────────────── */
 async function simulateScan(channelKey, savedKeys) {
   await new Promise(r => setTimeout(r, 400 + Math.random() * 800));
   const hasSaved = savedKeys.includes(channelKey);
@@ -128,16 +143,71 @@ async function simulateScan(channelKey, savedKeys) {
   return { status: "missing" };
 }
 
-/* ─── Auto Sync 시뮬레이션 ────────────────────────────────────────────────── */
+/* ─── Auto Sync 시뮬레이션 (DEMO ONLY) ──────────────────────────────────── */
 async function simulateAutoLink(channelKey) {
   await new Promise(r => setTimeout(r, 600 + Math.random() * 600));
   return { ok: true, message: "Auto Sync 및 Run Done", capabilities: CHANNELS.find(c=>c.key===channelKey)?.capabilities || [] };
 }
 
-/* ─── Issue 신청 시뮬레이션 ────────────────────────────────────────────────── */
+/* ─── Issue 신청 시뮬레이션 (DEMO ONLY) ─────────────────────────────────── */
 async function simulateApply(channelKey) {
   await new Promise(r => setTimeout(r, 800));
   return { ok: true, ticketId: `APPLY-${Date.now().toString(36).toUpperCase()}` };
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   177차 PRODUCTION wire-up — 실 backend 호출 (U-177-A 정합)
+   ═══════════════════════════════════════════════════════════════════ */
+
+/** GET /v423/creds/scan?channel={channelKey} — DB의 등록 키 조회 */
+async function realScan(channelKey) {
+  try {
+    const r = await getJsonAuth(`/v423/creds/scan?channel=${encodeURIComponent(channelKey)}`);
+    if (!r?.ok) return { status: "missing" };
+    if ((r.keyCount || 0) === 0) return { status: "missing" };
+    const allOk = (r.keys || []).every(k => k.test_status === 'ok');
+    return {
+      status: allOk ? "registered" : "found",
+      keyPreview: r.keyPreview || `db_••••••••`,
+    };
+  } catch (e) {
+    return { status: "missing", error: String(e?.message || e) };
+  }
+}
+
+/** POST /v423/connectors/{channel}/test — 등록 키로 채널 ping */
+async function realConnect(channelKey) {
+  try {
+    const r = await postJson(`/v423/connectors/${encodeURIComponent(channelKey)}/test`, {});
+    return {
+      ok: !!r?.ok,
+      message: r?.message || (r?.ok ? 'Channel ping OK' : 'Channel ping failed'),
+      live: !!r?.live,
+      tested_at: r?.tested_at || null,
+      capabilities: CHANNELS.find(c => c.key === channelKey)?.capabilities || [],
+    };
+  } catch (e) {
+    return { ok: false, message: String(e?.message || e), capabilities: [] };
+  }
+}
+
+/** POST /v423/connectors/apply — 키 발급 신청 (티켓 발행) */
+async function realApply(channelKey, memberInfo = {}) {
+  try {
+    const body = {
+      channel: channelKey,
+      member_name:  memberInfo.name    || '',
+      member_email: memberInfo.email   || '',
+      business_number: memberInfo.businessNumber || '',
+      phone:    memberInfo.phone   || '',
+      company:  memberInfo.company || '',
+      requested_at: new Date().toISOString(),
+    };
+    const r = await postJson(`/v423/connectors/apply`, body);
+    return { ok: !!r?.ok, ticketId: r?.ticket_id || r?.ticketId || `APPLY-${Date.now().toString(36).toUpperCase()}` };
+  } catch (e) {
+    return { ok: false, ticketId: null, error: String(e?.message || e) };
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -194,16 +264,18 @@ export default function SmartConnect() {
   const upd = useCallback((key, patch) =>
     setChannelStates(prev => ({ ...prev, [key]: { ...prev[key], ...patch } })), []);
 
-  /* All 스캔 */
+  /* All 스캔 — _IS_DEMO_ENV 분기 (177차 §4.E TOP 1) */
   const handleScanAll = useCallback(async () => {
     setScanning(true);
     setScanProgress(0);
-    const savedKeys = []; // 실제로는 API에서 creds Loading
+    const savedKeys = []; // demo only
 
     for (let i = 0; i < CHANNELS.length; i++) {
       const ch = CHANNELS[i];
       upd(ch.key, { status: "scanning" });
-      const result = await simulateScan(ch.key, savedKeys);
+      const result = _IS_DEMO_ENV
+        ? await simulateScan(ch.key, savedKeys)
+        : await realScan(ch.key);
       upd(ch.key, result);
       setScanProgress(Math.round(((i + 1) / CHANNELS.length) * 100));
     }
@@ -215,26 +287,34 @@ export default function SmartConnect() {
     pushNotification({
       type: "connector",
       title: t('sc.scanNotif','API Key Scan Complete'),
-      body: `${CHANNELS.length}개 Channel Analysis Done — ${found}개 키 감지`,
+      body: t('sc.scanNotifBody', { total: CHANNELS.length, found, defaultValue: `${CHANNELS.length} channels analyzed — ${found} keys detected` }),
       link: "/smart-connect",
     });
-  }, [channelStates, upd, pushNotification]);
+  }, [channelStates, upd, pushNotification, t]);
 
-  /* Auto Sync Run */
+  /* Auto Sync Run — _IS_DEMO_ENV 분기 (177차 §4.E TOP 1) */
   const handleAutoLink = useCallback(async (channelKey) => {
     setLinking(prev => ({ ...prev, [channelKey]: true }));
-    const result = await simulateAutoLink(channelKey);
-    upd(channelKey, { linked: true, linkResult: result });
+    const result = _IS_DEMO_ENV
+      ? await simulateAutoLink(channelKey)
+      : await realConnect(channelKey);
+    upd(channelKey, { linked: !!result.ok, linkResult: result });
     setLinking(prev => ({ ...prev, [channelKey]: false }));
 
     const ch = CHANNELS.find(c => c.key === channelKey);
     pushNotification({
       type: "connector",
-      title: `${ch?.name} Auto Sync Done`,
-      body: `${result.capabilities?.join(", ")} Feature이 Activate되었습니다.`,
+      title: result.ok
+        ? t('sc.autoSyncOk',  { ch: ch?.name, defaultValue: `${ch?.name} Auto Sync Done` })
+        : t('sc.autoSyncFail',{ ch: ch?.name, defaultValue: `${ch?.name} connection failed` }),
+      body: result.ok
+        ? (result.capabilities?.length
+            ? t('sc.capabilitiesActivated', { caps: result.capabilities.join(", "), defaultValue: `${result.capabilities.join(", ")} activated` })
+            : (result.message || ''))
+        : (result.message || t('sc.autoSyncFailHint','Check API key registration')),
       link: "/api-keys",
     });
-  }, [upd, pushNotification]);
+  }, [upd, pushNotification, t]);
 
   /* 일괄 Auto Sync */
   const handleAutoLinkAll = useCallback(async () => {
@@ -244,7 +324,7 @@ export default function SmartConnect() {
     }
   }, [channelStates, handleAutoLink]);
 
-  /* Issue 신청 */
+  /* Issue 신청 — _IS_DEMO_ENV 분기 (177차 §4.E TOP 1) */
   const handleApply = useCallback(async (channelKey) => {
     const ch = CHANNELS.find(c => c.key === channelKey);
     if (!ch) return;
@@ -254,8 +334,14 @@ export default function SmartConnect() {
     }
     setApplying(prev => ({ ...prev, [channelKey]: true }));
     upd(channelKey, { status: STATUS.applying });
-    const res = await simulateApply(channelKey);
-    upd(channelKey, { status: STATUS.applied, ticketId: res.ticketId });
+    const res = _IS_DEMO_ENV
+      ? await simulateApply(channelKey)
+      : await realApply(channelKey);
+    upd(channelKey, {
+      status: res.ok ? STATUS.applied : STATUS.missing,
+      ticketId: res.ticketId,
+      applyError: res.ok ? null : (res.error || res.message || null),
+    });
     setApplying(prev => ({ ...prev, [channelKey]: false }));
 
     pushNotification({
