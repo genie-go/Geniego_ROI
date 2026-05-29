@@ -2,10 +2,10 @@
   "version": "179",
   "updated": "2026-05-29",
   "sacred_sha": {
-    "ja.js": "f0906ac5963cf56757934ee45c91c362df435cabbd28be525db17b627c1d42f0",
-    "zh.js": "45c3244f8a3aa365bd915f02f1cb7ba658e9b559303f06dcc0ebdd61f34eaf0c"
+    "ja.js": "85256ee170fc68190837358478fc13b22e76856d3d411daf164f47e138b7686a",
+    "zh.js": "428133b41cbc7c9a0f88cf1b427a39401f7c62992c6081e2b7f97c661a02573e"
   },
   "ko_leaf_count": 31521,
   "leaf_tolerance_pct": 5,
-  "_note": "179차 batch10(중복 ns 병합) — 15 로케일 전 중복 최상위 ns 병합: 최대(풀번역) 블록 유지+stub 고유키 이식+stub 삭제. 이전 차수 완성 번역이 last-wins stub에 가려진 shadowing 버그 수정. 숨겨진 번역 ≈17,950키 복구(ko +4,297 leaf, 0 손실). koMiss 1481→418, 중복 ns 0. wms 2→578, reviews 13→508, audit 1→148 등. acorn ko_leaf 31829→31521(Δ308<tol). ja/zh SHA 갱신."
+  "_note": "179차 번역batch1 — 병합 후 노출된 otherMiss 중 Sms(60)/Reviews(34)/WebPopup(11)/Perf(5)/Settlements(2)=111키 14언어 네이티브 번역 주입(ko 무변경). otherMiss 440→328. CatalogSync(190)+Wms 잔여. ja/zh SHA 갱신, ko_leaf 31521 유지."
 }
