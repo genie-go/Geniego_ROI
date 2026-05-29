@@ -72,6 +72,10 @@ const PMProjectDetail = lazy(() => import("./pages/PMProjectDetail.jsx"));
 const PMTaskBoard = lazy(() => import("./pages/PMTaskBoard.jsx"));
 const PMTaskDetail = lazy(() => import("./pages/PMTaskDetail.jsx"));
 const PMGanttView = lazy(() => import("./pages/PMGanttView.jsx"));
+const PMTaskTable = lazy(() => import("./pages/PMTaskTable.jsx"));
+const PMMilestones = lazy(() => import("./pages/PMMilestones.jsx"));
+const PMActivity = lazy(() => import("./pages/PMActivity.jsx"));
+const PMSettings = lazy(() => import("./pages/PMSettings.jsx"));
 const CampaignManager = lazy(() => import("./pages/CampaignManager.jsx"));
 const ContentCalendar = lazy(() => import("./pages/ContentCalendar.jsx"));
 const BudgetPlanner = lazy(() => import("./pages/BudgetPlanner.jsx"));
@@ -328,6 +332,10 @@ function AppLayout() {
                       <Route path="/pm/projects/:id" element={<PMProjectDetail />} />
                       <Route path="/pm/projects/:id/board" element={<PMTaskBoard />} />
                       <Route path="/pm/projects/:id/gantt" element={<PMGanttView />} />
+                      <Route path="/pm/projects/:id/tasks" element={<PMTaskTable />} />
+                      <Route path="/pm/projects/:id/milestones" element={<PMMilestones />} />
+                      <Route path="/pm/projects/:id/activity" element={<PMActivity />} />
+                      <Route path="/pm/projects/:id/settings" element={<PMSettings />} />
                       <Route path="/pm/tasks/:id" element={<PMTaskDetail />} />
                       <Route path="/alert-policies" element={<Navigate to="/alert-automation" replace />} />
                       <Route path="/attribution" element={<Attribution />} />

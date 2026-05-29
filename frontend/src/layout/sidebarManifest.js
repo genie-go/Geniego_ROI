@@ -102,6 +102,13 @@ export const MEMBER_MENU = [
       { to: "/onboarding",        icon: "🗺️", labelKey: "gNav.onboardingLabel",      menuKey: "automation||onboarding" },
     ],
   },
+  /* 프로젝트 관리 (PM-Core) */
+  {
+    key: "pm", icon: "🗂️", labelKey: "gNav.pmGroup",
+    items: [
+      { to: "/pm", icon: "🗂️", labelKey: "gNav.pmOverviewLabel", menuKey: "ops" },
+    ],
+  },
   /* 데이터 & 연동 (통합) */
   {
     key: "data", icon: "🔌", labelKey: "gNav.data",

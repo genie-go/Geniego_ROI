@@ -1,11 +1,11 @@
 {
-  "version": "177",
+  "version": "178",
   "updated": "2026-05-29",
   "sacred_sha": {
-    "ja.js": "57592d8c461f3448efc67ed395192c3fec5fa8b95c1fbbd8b2701bdbd5b74f9f",
-    "zh.js": "dc31ee10e3d1f9bcfca618a3c399cae527875fecae69a96c03fb5128bb81bf42"
+    "ja.js": "8c7762f60162341603f2e630ea860ccdb3e12e54d4c097a21467659e1c54f1ea",
+    "zh.js": "1a91007de4baf56bda9986732a55bcbc8e418708601097d88429a5e3cab89197"
   },
-  "ko_leaf_count": 31592,
+  "ko_leaf_count": 31716,
   "leaf_tolerance_pct": 5,
-  "_note": "Updated 177차 PM-Core step 2-5 — Tasks.php enrich (listByProject N+1 회피 bulk JOIN + get 단일 enrich, assignees/comments/attachments/deps 양방향) + PMTaskDetail.jsx + PMGanttView.jsx 2 신규 page + App.jsx 2 lazy + 2 Route + pmExt namespace 38 leaf × 15 lang (ko 자연어 + 14 EN fallback). Dependencies.php cycle DFS + Gantt.php 169차 CPM 본체 이미 완성 확인. ja/zh sacred 정책 유지. ko.js leaf 31554 → 31592 (Δ+38: pmExt.task 20 + pmExt.gantt 18)."
+  "_note": "Updated 178차 PM-Core 잔여 4 page — PMTaskTable/PMMilestones/PMActivity/PMSettings + App.jsx 4 lazy + 4 Route + PMProjectDetail 탭 작업·설정 + sidebarManifest 프로젝트 관리 그룹 노출. i18n 15 lang: gNav 2 + pm.tab 6 + pmExt.{table/ms/activity/settings/demoBanner} (ko 자연어 U-178-A 워크플로우 + 14 EN fallback). pmExt 기존 …→... 정합. ja/zh sacred SHA 의도적 갱신 (PM 키 추가). ko.js leaf 31592 → 31716 (Δ+124). G6 gAiRec collision pre-existing only (신규 키 0건)."
 }
