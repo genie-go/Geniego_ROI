@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext.jsx';
 import { useT } from '../i18n/index.js';
+import { usePmEventStream } from '../services/pmEventStream.js';
 
 /**
  * PMTaskTable — project 의 task 목록 테이블 뷰 (board 의 대안).
@@ -43,9 +44,10 @@ export default function PMTaskTable() {
   const [sortKey, setSortKey] = useState('position_idx');
   const [sortDir, setSortDir] = useState('asc');
 
-  const fetchTasks = useCallback(async () => {
+  const fetchTasks = useCallback(async ({ silent = false } = {}) => {
     if (!token || !projectId) return;
-    setLoading(true); setError(null);
+    if (!silent) setLoading(true);
+    setError(null);
     try {
       const res = await fetch(
         `${base}/api/v425/pm/projects/${encodeURIComponent(projectId)}/tasks?limit=500`,
@@ -63,6 +65,10 @@ export default function PMTaskTable() {
   }, [token, projectId, base, t]);
 
   useEffect(() => { fetchTasks(); }, [fetchTasks]);
+
+  // 라이브 SSE — task create/update/delete 이벤트 도착 시 목록 자동 갱신 (179차 라이브 확대)
+  const liveEnabled = !error && !!token && !!projectId;
+  const { status: liveStatus } = usePmEventStream(projectId, () => { fetchTasks({ silent: true }); }, { enabled: liveEnabled });
 
   const kpi = useMemo(() => {
     const total = rows.length;
@@ -123,6 +129,7 @@ export default function PMTaskTable() {
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20, flexWrap: 'wrap' }}>
         <h2 style={{ margin: 0, flex: 1 }}>📋 {t('pmExt.table.title', 'Tasks')}</h2>
+        <LiveBadge status={liveStatus} t={t} />
         <div style={{ display: 'flex', gap: 4, marginRight: 8 }}>
           <Link to={`/pm/projects/${encodeURIComponent(projectId)}/board`} style={tabBtn}>{t('pm.tab.board', 'Board')}</Link>
           <Link to={`/pm/projects/${encodeURIComponent(projectId)}/gantt`} style={tabBtn}>{t('pm.tab.gantt', 'Gantt')}</Link>
@@ -249,6 +256,20 @@ function KPI({ label, value, color }) {
       <div style={{ fontSize: 24, fontWeight: 800, color }}>{value}</div>
       <div style={{ fontSize: 11, color: 'var(--text-3,#94a3b8)', marginTop: 2 }}>{label}</div>
     </div>
+  );
+}
+
+// 179차 — SSE 실시간 상태 배지. i18n 키는 178차 승인 pmExt.activity.* 재사용 (신규 키 없음).
+function LiveBadge({ status, t }) {
+  return (
+    <span title={status} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11,
+      color: status === 'open' ? '#22c55e' : 'var(--text-3,#94a3b8)' }}>
+      <span style={{ width: 8, height: 8, borderRadius: '50%',
+        background: status === 'open' ? '#22c55e' : (status === 'reconnecting' ? '#f59e0b' : '#64748b') }} />
+      {status === 'open' ? t('pmExt.activity.live', 'Live')
+        : status === 'reconnecting' ? t('pmExt.activity.reconnecting', 'Reconnecting…')
+        : t('pmExt.activity.offline', 'Offline')}
+    </span>
   );
 }
 

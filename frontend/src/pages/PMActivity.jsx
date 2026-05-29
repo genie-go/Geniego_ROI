@@ -28,9 +28,10 @@ export default function PMActivity() {
   const [entityFilter, setEntityFilter] = useState('all');
   const [actionFilter, setActionFilter] = useState('all');
 
-  const fetchRows = useCallback(async () => {
+  const fetchRows = useCallback(async ({ silent = false } = {}) => {
     if (!token) return;
-    setLoading(true); setError(null); setForbidden(false);
+    if (!silent) setLoading(true);
+    setError(null); setForbidden(false);
     try {
       const res = await fetch(`${base}/api/v425/pm/audit?limit=200`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -50,7 +51,7 @@ export default function PMActivity() {
 
   // 라이브 SSE — 신규 audit 이벤트 도착 시 목록 자동 갱신 (forbidden/error 상태에서는 비활성)
   const liveEnabled = !forbidden && !error && !!token;
-  const { status: liveStatus } = usePmEventStream(projectId, () => { fetchRows(); }, { enabled: liveEnabled });
+  const { status: liveStatus } = usePmEventStream(projectId, () => { fetchRows({ silent: true }); }, { enabled: liveEnabled });
 
   const view = useMemo(() => rows.filter(r =>
     (entityFilter === 'all' || r.entity_type === entityFilter) &&

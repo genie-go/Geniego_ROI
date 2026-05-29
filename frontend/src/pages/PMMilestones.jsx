@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext.jsx';
 import { useT } from '../i18n/index.js';
+import { usePmEventStream } from '../services/pmEventStream.js';
 
 /**
  * PMMilestones — project 마일스톤 관리.
@@ -37,9 +38,10 @@ export default function PMMilestones() {
 
   const show = (msg) => { setToast(msg); setTimeout(() => setToast(null), 2600); };
 
-  const fetchRows = useCallback(async () => {
+  const fetchRows = useCallback(async ({ silent = false } = {}) => {
     if (!token || !projectId) return;
-    setLoading(true); setError(null);
+    if (!silent) setLoading(true);
+    setError(null);
     try {
       const res = await fetch(
         `${base}/api/v425/pm/milestones?project_id=${encodeURIComponent(projectId)}`,
@@ -56,6 +58,10 @@ export default function PMMilestones() {
   }, [token, projectId, base]);
 
   useEffect(() => { fetchRows(); }, [fetchRows]);
+
+  // 라이브 SSE — milestone create/update/delete 이벤트 도착 시 목록 자동 갱신 (179차 라이브 확대)
+  const liveEnabled = !error && !!token && !!projectId;
+  const { status: liveStatus } = usePmEventStream(projectId, () => { fetchRows({ silent: true }); }, { enabled: liveEnabled });
 
   const today = new Date().toISOString().slice(0, 10);
   const kpi = useMemo(() => ({
@@ -147,6 +153,7 @@ export default function PMMilestones() {
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20, flexWrap: 'wrap' }}>
         <h2 style={{ margin: 0, flex: 1 }}>🚩 {t('pmExt.ms.title', 'Milestones')}</h2>
+        <LiveBadge status={liveStatus} t={t} />
         <button
           onClick={() => setShowForm(s => !s)}
           disabled={_IS_DEMO_ENV}
@@ -248,6 +255,20 @@ function KPI({ label, value, color }) {
       <div style={{ fontSize: 24, fontWeight: 800, color }}>{value}</div>
       <div style={{ fontSize: 11, color: 'var(--text-3,#94a3b8)', marginTop: 2 }}>{label}</div>
     </div>
+  );
+}
+
+// 179차 — SSE 실시간 상태 배지. i18n 키는 178차 승인 pmExt.activity.* 재사용 (신규 키 없음).
+function LiveBadge({ status, t }) {
+  return (
+    <span title={status} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11,
+      color: status === 'open' ? '#22c55e' : 'var(--text-3,#94a3b8)' }}>
+      <span style={{ width: 8, height: 8, borderRadius: '50%',
+        background: status === 'open' ? '#22c55e' : (status === 'reconnecting' ? '#f59e0b' : '#64748b') }} />
+      {status === 'open' ? t('pmExt.activity.live', 'Live')
+        : status === 'reconnecting' ? t('pmExt.activity.reconnecting', 'Reconnecting…')
+        : t('pmExt.activity.offline', 'Offline')}
+    </span>
   );
 }
 
