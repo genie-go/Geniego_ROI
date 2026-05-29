@@ -246,7 +246,8 @@ function PlanPricing() {
   };
 
   useEffect(() => { fetchPlans(); }, [fetchPlans]);
-  useEffect(() => { if (outerTab === 'permissions') fetchMenuAccess(); }, [outerTab, fetchMenuAccess]);
+  // 172차→179차: 메뉴 접근은 'plan' 탭의 플랜별 "제공 메뉴·기능" 편집기에서도 필요 → 항상 로드
+  useEffect(() => { fetchMenuAccess(); }, [fetchMenuAccess]);
   useEffect(() => { if (outerTab === 'plan') fetchPeriodPricing(); }, [outerTab, fetchPeriodPricing]);
   // 172차 Task #22 — sync 데이터는 양쪽 탭에서 필요 (가격 탭 표시 + 권한 탭 저장 후 갱신)
   useEffect(() => { fetchMenuPricingSync(); }, [fetchMenuPricingSync]);
@@ -352,46 +353,45 @@ function PlanPricing() {
    * 2) PUT /v424/admin/plans/{id}/period-pricing — 모든 기간 가격 (DELETE+INSERT, plan_config legacy 동기화)
    * 두 호출 모두 성공해야 alert. 중간 실패 시 명시. atomic 은 backend 측 transaction 으로 보장.
    */
+  /** core — 플랜 정의 + 기간별 가격 PUT 2개만 (alert/fetch 없음, 호출자가 관리) */
+  const _savePlanCore = async (plan) => {
+    await requestJsonAuth(`/v424/admin/plans/${encodeURIComponent(plan.plan_id)}`, 'PUT', {
+      name: plan.name,
+      description: plan.description,
+      price_usd: plan.price_usd ?? null,
+      price_annual_usd: plan.price_annual_usd ?? null,
+      price_id_monthly: plan.price_id_monthly ?? '',
+      price_id_annual: plan.price_id_annual ?? '',
+      discount_pct: plan.discount_pct ?? 20,
+      features: plan.features || [],
+      limits: plan.limits || {},
+      display_order: plan.display_order || 0,
+      is_active: plan.is_active !== false,
+      is_custom_quote: !!plan.is_custom_quote,
+      is_recommended: !!plan.is_recommended,
+    });
+    const ppForPlan = periodPricing[plan.plan_id] || {};
+    const periodsPayload = {};
+    for (const m of Object.keys(ppForPlan).map(Number).filter(Number.isFinite)) {
+      const cfg = ppForPlan[m] || {};
+      periodsPayload[m] = {
+        price_usd: cfg.price_usd ?? null,
+        discount_pct: cfg.discount_pct ?? 0,
+        paddle_price_id: cfg.paddle_price_id ?? '',
+        is_active: cfg.is_active !== false,
+      };
+    }
+    await requestJsonAuth(
+      `/v424/admin/plans/${encodeURIComponent(plan.plan_id)}/period-pricing`,
+      'PUT', { periods: periodsPayload },
+    );
+  };
+
   const savePlan = async (plan) => {
     if (!plan.plan_id) return;
     setSaving(plan.plan_id);
     try {
-      // 1) plan 정의 저장 (가격 필드는 backend 가 step 2 후 plan_period_pricing 으로 덮어쓰지만,
-      //    is_recommended/is_active/is_custom_quote 등 정책 필드는 본 단계에서 확정)
-      await requestJsonAuth(`/v424/admin/plans/${encodeURIComponent(plan.plan_id)}`, 'PUT', {
-        name: plan.name,
-        description: plan.description,
-        // 172차: Enterprise(맞춤견적) 도 admin 견적가 입력 가능 (NULL 강제 제거)
-        price_usd: plan.price_usd ?? null,
-        price_annual_usd: plan.price_annual_usd ?? null,
-        price_id_monthly: plan.price_id_monthly ?? '',
-        price_id_annual: plan.price_id_annual ?? '',
-        discount_pct: plan.discount_pct ?? 20,
-        features: plan.features || [],
-        limits: plan.limits || {},
-        display_order: plan.display_order || 0,
-        is_active: plan.is_active !== false,
-        is_custom_quote: !!plan.is_custom_quote,
-        is_recommended: !!plan.is_recommended,
-      });
-
-      // 2) 기간별 가격 저장 — 172차: Enterprise 도 admin 견적가 등록 가능
-      const ppForPlan = periodPricing[plan.plan_id] || {};
-      const periodsPayload = {};
-      for (const m of Object.keys(ppForPlan).map(Number).filter(Number.isFinite)) {
-        const cfg = ppForPlan[m] || {};
-        periodsPayload[m] = {
-          price_usd: cfg.price_usd ?? null,
-          discount_pct: cfg.discount_pct ?? 0,
-          paddle_price_id: cfg.paddle_price_id ?? '',
-          is_active: cfg.is_active !== false,
-        };
-      }
-      await requestJsonAuth(
-        `/v424/admin/plans/${encodeURIComponent(plan.plan_id)}/period-pricing`,
-        'PUT', { periods: periodsPayload },
-      );
-
+      await _savePlanCore(plan);
       await fetchPlans();
       await fetchPeriodPricing();
       publishMenuAccessSync({ plan_id: plan.plan_id, source: 'plan_save' });
@@ -400,6 +400,60 @@ function PlanPricing() {
       alert(`저장 실패: ${e?.message || e}`);
     } finally {
       setSaving(null);
+    }
+  };
+
+  /** 단일 플랜 메뉴 접근 저장 (플랜 중심 통합 워크스페이스 STEP3 전용) */
+  const saveOnePlanAccess = async (planId) => {
+    const menusForPlan = {};
+    menus.forEach(m => {
+      const key = m.menu_key || m.id;
+      menusForPlan[key] = access[planId]?.[key] ? 1 : 0;
+    });
+    await requestJsonAuth(`/v424/admin/plans/${encodeURIComponent(planId)}/menu-access`, 'PUT', { menus: menusForPlan });
+  };
+
+  /**
+   * savePlanFull — 179차 플랜 중심 통합 저장.
+   * 한 번의 [💾 이 플랜 저장] 으로 ① 플랜 정의 ② 기간별 가격 ③ 제공 메뉴·기능 권한을 모두 반영.
+   * 모든 user sidebar 가 즉시 갱신되도록 동기화 이벤트 발행(게이팅 누락 방지 — item5).
+   */
+  const savePlanFull = async (plan) => {
+    if (!plan?.plan_id) return;
+    setSaving(plan.plan_id);
+    try {
+      await _savePlanCore(plan);          // 정의 + 기간별 가격
+      await saveOnePlanAccess(plan.plan_id); // 제공 메뉴·기능
+      await Promise.all([fetchPlans(), fetchPeriodPricing(), fetchMenuAccess()]);
+      publishMenuAccessSync({ plan_id: plan.plan_id, source: 'plan_full_save' });
+      alert(`✅ ${plan.name} 저장 완료 — 요금·제공 메뉴·기능이 모든 user sidebar 에 즉시 반영됩니다`);
+    } catch (e) {
+      alert(`저장 실패: ${e?.message || e}`);
+    } finally {
+      setSaving(null);
+    }
+  };
+
+  /** 새 플랜 추가 — admin 이 plan_id/이름 입력 후 빈 플랜 생성 */
+  const addNewPlan = async () => {
+    const planId = window.prompt('새 플랜 ID (영문 소문자, 예: business)');
+    if (!planId) return;
+    const id = String(planId).trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
+    if (!id) { alert('유효한 plan ID 를 입력하세요 (영문/숫자)'); return; }
+    if (plans.some(p => p.plan_id === id)) { alert(`'${id}' 플랜이 이미 존재합니다`); return; }
+    const name = window.prompt('플랜 표시 이름 (예: Business)', id.charAt(0).toUpperCase() + id.slice(1)) || id;
+    try {
+      await requestJsonAuth(`/v424/admin/plans/${encodeURIComponent(id)}`, 'PUT', {
+        name, description: '', price_usd: 0, price_annual_usd: 0,
+        features: [], limits: { warehouses: -1, channels: -1, users: -1 },
+        display_order: plans.length, is_active: true, is_custom_quote: false, is_recommended: false,
+      });
+      await fetchPlans();
+      setActivePlanIdx(plans.length); // 새 플랜 선택
+      publishMenuAccessSync({ plan_id: id, source: 'plan_add' });
+      alert(`✅ '${name}' 플랜이 추가되었습니다. 이제 요금과 제공 메뉴·기능을 설정하세요.`);
+    } catch (e) {
+      alert(`플랜 추가 실패: ${e?.message || e}`);
     }
   };
 
@@ -486,13 +540,34 @@ function PlanPricing() {
         }}>⚠ 플랜 조회 실패 — {error}</div>
       )}
 
-      {/* outer tab: plan | permissions */}
+      {/* 179차 — 관리자 설정 순서 가이드 (무엇을 먼저 할지 명확화) */}
+      {outerTab === 'plan' && (
+        <div style={{
+          display: 'flex', gap: 10, marginBottom: 14, padding: '12px 16px', borderRadius: 12, flexWrap: 'wrap',
+          background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.20)',
+        }}>
+          <span style={{ fontSize: 13, fontWeight: 800, color: '#93c5fd', whiteSpace: 'nowrap' }}>📌 설정 순서</span>
+          {[
+            { n: '①', t: '플랜 선택 또는 ＋추가' },
+            { n: '②', t: '구독 요금 설정 (USD)' },
+            { n: '③', t: '이 플랜이 제공할 메뉴·기능 선택' },
+            { n: '④', t: '💾 이 플랜 저장 → 모든 사용자 즉시 반영' },
+          ].map((s, i) => (
+            <span key={i} style={{ fontSize: 13, color: 'var(--text-2)', display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+              <span style={{ fontWeight: 900, color: '#fde047' }}>{s.n}</span>{s.t}
+              {i < 3 && <span style={{ color: 'var(--text-3)', margin: '0 2px' }}>→</span>}
+            </span>
+          ))}
+        </div>
+      )}
+
+      {/* outer tab */}
       <div style={{
         display: 'flex', gap: 0, marginBottom: 16, borderBottom: '1px solid rgba(255,255,255,0.08)',
       }}>
         {[
-          { id: 'plan',        label: '💰 플랜 & 요금 (정의 + 기간별 가격 통합)' },
-          { id: 'permissions', label: '🔐 메뉴 접근 권한' },
+          { id: 'plan',        label: '💰 플랜별 설정 (요금 + 제공 메뉴·기능)' },
+          { id: 'permissions', label: '🔐 전체 플랜 권한 매트릭스 (고급)' },
           { id: 'coupons',     label: '🎟️ 쿠폰 관리' },
         ].map(tb => {
           const active = outerTab === tb.id;
@@ -550,32 +625,47 @@ function PlanPricing() {
 
       {outerTab === 'plan' && !loading && plans.length > 0 && (
         <>
-          {/* 플랜 선택 탭 — 172차 p4 선명 컬러 */}
+          {/* ① 플랜 선택 — 카드로 한눈에 (가격 + 제공 메뉴 수 + ⭐추천) + ＋추가 */}
+          <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--text-3)', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 8 }}>
+            ① 플랜 선택
+          </div>
           <div style={{
-            display: 'flex', gap: 6, marginBottom: 16, padding: 5, borderRadius: 12,
-            background: 'rgba(0,0,0,0.35)', border: '1px solid rgba(255,255,255,0.08)',
+            display: 'flex', gap: 8, marginBottom: 18, flexWrap: 'wrap',
           }}>
             {plans.map((p, i) => {
               const sel = activePlanIdx === i;
+              const onCount = Object.values(access[p.plan_id] || {}).filter(Boolean).length;
+              const m1 = periodPricing[p.plan_id]?.[1]?.price_usd ?? p.price_usd;
+              const priceLabel = p.is_custom_quote ? '맞춤 견적'
+                : (m1 != null && m1 !== '' ? `$${m1}/월` : '미설정');
               return (
               <button key={p.plan_id} onClick={() => setActivePlanIdx(i)} style={{
-                flex: 1, padding: '12px 18px', borderRadius: 9, border: 'none', cursor: 'pointer',
-                fontWeight: sel ? 900 : 700, fontSize: 14,
-                // 활성: 찐한 파랑 + 선명 노랑 텍스트, 비활성: 어두운 배경 + 밝은 텍스트
+                flex: '1 1 180px', minWidth: 180, padding: '14px 16px', borderRadius: 12, border: 'none', cursor: 'pointer',
+                textAlign: 'left',
                 background: sel ? '#1e3a8a' : 'rgba(255,255,255,0.04)',
                 color: sel ? '#fde047' : 'var(--text-2)',
-                boxShadow: sel ? '0 0 0 2px #fde047 inset' : 'none',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                boxShadow: sel ? '0 0 0 2px #fde047 inset' : '0 0 0 1px rgba(255,255,255,0.06) inset',
                 transition: 'all 150ms',
               }}>
-                {(p.is_recommended === true || p.is_recommended === 1) && <span style={{ fontSize: 11 }}>⭐</span>}
-                {p.name || p.plan_id}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 15, fontWeight: sel ? 900 : 800 }}>
+                  {(p.is_recommended === true || p.is_recommended === 1) && <span style={{ fontSize: 12 }}>⭐</span>}
+                  {p.name || p.plan_id}
+                  {p.is_active === false && <span style={{ fontSize: 10, color: '#f87171', fontWeight: 700 }}>(비활성)</span>}
+                </div>
+                <div style={{ fontSize: 13, fontWeight: 800, marginTop: 6, color: sel ? '#fff' : 'var(--text-1)' }}>{priceLabel}</div>
+                <div style={{ fontSize: 11, marginTop: 2, opacity: 0.8 }}>제공 메뉴 {onCount}개</div>
               </button>
               );
             })}
+            <button onClick={addNewPlan} style={{
+              flex: '0 0 auto', minWidth: 120, padding: '14px 16px', borderRadius: 12, cursor: 'pointer',
+              border: '1px dashed rgba(34,197,94,0.4)', background: 'rgba(34,197,94,0.06)',
+              color: '#22c55e', fontSize: 14, fontWeight: 800,
+            }}>＋ 새 플랜 추가</button>
           </div>
 
-          {plan && (
+          {plan && (<>
+            {/* ②③ 플랜 정의 & 구독 요금 */}
             <div style={{
               display: 'grid', gridTemplateColumns: '1fr 1.4fr', gap: 18, alignItems: 'start',
             }}>
@@ -630,22 +720,15 @@ function PlanPricing() {
                   </label>
                 </div>
 
-                {/* 통합 저장 + 비활성화 */}
+                {/* 플랜 비활성화 (저장은 하단 통합 버튼으로 일원화) */}
                 <div style={{ display: 'flex', gap: 10, marginTop: 18, padding: '14px 0 0', borderTop: '1px solid rgba(255,255,255,0.06)', alignItems: 'center', flexWrap: 'wrap' }}>
-                  <div style={{ fontSize: 12, color: 'var(--text-3)', flex: '0 1 auto' }}>
-                    💡 저장 시 플랜 정의 + 모든 기간별 가격이 함께 반영됩니다
+                  <div style={{ fontSize: 12, color: 'var(--text-3)', flex: 1 }}>
+                    💡 정의·요금·제공 메뉴를 모두 설정한 뒤 아래 <strong style={{ color: '#22c55e' }}>이 플랜 저장</strong> 한 번으로 반영됩니다
                   </div>
-                  <div style={{ flex: 1 }} />
                   <button onClick={() => archivePlan(plan)} style={{
                     padding: '9px 14px', borderRadius: 9, border: '1px solid rgba(248,113,113,0.25)',
                     background: 'rgba(248,113,113,0.06)', color: '#f87171', fontSize: 13, fontWeight: 700, cursor: 'pointer',
-                  }}>비활성화</button>
-                  <button onClick={() => savePlan(plan)} disabled={saving === plan.plan_id} style={{
-                    padding: '10px 24px', borderRadius: 9, border: 'none',
-                    background: 'linear-gradient(135deg,#16a34a,#22c55e)',
-                    color: '#fff', fontSize: 14, fontWeight: 800, cursor: 'pointer',
-                    opacity: saving === plan.plan_id ? 0.6 : 1,
-                  }}>{saving === plan.plan_id ? '저장 중…' : '💾 통합 저장 (플랜 + 기간별 가격)'}</button>
+                  }}>플랜 비활성화</button>
                 </div>
               </div>
 
@@ -666,7 +749,38 @@ function PlanPricing() {
                 </div>
               </div>
             </div>
-          )}
+
+            {/* ③ 이 플랜이 제공하는 메뉴 & 기능 (제공 서비스 범위) */}
+            <div style={{ marginTop: 18 }}>
+              <PlanMenuAccessEditor
+                plan={plan}
+                menus={menus}
+                planAcc={access[plan.plan_id] || {}}
+                setMenuAccess={setMenuAccess}
+                setMenuAccessBulk={setMenuAccessBulk}
+                togglePlanAll={togglePlanAll}
+                menuScores={menuPricingSync?.menuScores || {}}
+                monthlyPrice={periodPricing[plan.plan_id]?.[1]?.price_usd ?? plan.price_usd}
+              />
+            </div>
+
+            {/* ④ 통합 저장 — 요금 + 제공 메뉴·기능 한 번에 */}
+            <div style={{
+              display: 'flex', justifyContent: 'flex-end', gap: 14, alignItems: 'center',
+              marginTop: 18, padding: '16px 18px', borderRadius: 12,
+              background: 'rgba(34,197,94,0.06)', border: '1px solid rgba(34,197,94,0.18)', flexWrap: 'wrap',
+            }}>
+              <span style={{ fontSize: 13, color: 'var(--text-2)', flex: 1, minWidth: 200 }}>
+                ④ 저장하면 <strong>요금 · 제공 메뉴 · 기능</strong>이 모든 사용자 sidebar 에 <strong style={{ color: '#22c55e' }}>즉시 반영</strong>됩니다 (회원가입·결제 가격과도 동기화)
+              </span>
+              <button onClick={() => savePlanFull(plan)} disabled={saving === plan.plan_id} style={{
+                padding: '14px 32px', borderRadius: 12, border: 'none',
+                background: 'linear-gradient(135deg,#16a34a,#22c55e)', color: '#fff',
+                fontSize: 15, fontWeight: 900, cursor: 'pointer', whiteSpace: 'nowrap',
+                opacity: saving === plan.plan_id ? 0.6 : 1,
+              }}>{saving === plan.plan_id ? '저장 중…' : `💾 ${plan.name || '이 플랜'} 저장`}</button>
+            </div>
+          </>)}
         </>
       )}
     </div>
@@ -679,6 +793,171 @@ function Field({ label, children }) {
       <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-3)', marginBottom: 4 }}>{label}</div>
       {children}
     </label>
+  );
+}
+
+/**
+ * 요금($/월) → 추천 메뉴 tier 매핑.
+ * 관리자가 자율 입력한 월 요금에 따라 어떤 카테고리(core/standard/premium/enterprise)까지
+ * 제공할지 자동 산출. 임계값은 구버전 요금표(Growth $49 / Pro $99 / Enterprise $299) 기준.
+ */
+function tiersForPrice(priceUsd, isCustomQuote) {
+  if (isCustomQuote) return { tiers: ['core', 'standard', 'premium', 'enterprise'], label: '맞춤 견적 — 전체 제공' };
+  const p = Number(priceUsd);
+  if (!Number.isFinite(p) || p <= 0) return null;
+  if (p < 30)   return { tiers: ['core'], label: 'Starter급 — 핵심 기능' };
+  if (p < 80)   return { tiers: ['core', 'standard'], label: 'Growth급 — 핵심 + 표준' };
+  if (p < 200)  return { tiers: ['core', 'standard', 'premium'], label: 'Pro급 — 핵심 + 표준 + 프리미엄' };
+  return { tiers: ['core', 'standard', 'premium', 'enterprise'], label: 'Enterprise급 — 전체 기능' };
+}
+
+/**
+ * PlanMenuAccessEditor — 179차 플랜 중심 워크스페이스 STEP③.
+ * 선택 플랜이 "어떤 메뉴·기능(서비스)을 제공하는지" 섹션별 체크리스트로 쉽게 설정.
+ * + 관리자 입력 요금($/월) 기반 실시간 메뉴 자동추천 (카테고리 tier 매핑).
+ * 기존 access 상태/핸들러 재사용 → 저장은 상위 savePlanFull 이 일괄 처리.
+ */
+function PlanMenuAccessEditor({ plan, menus, planAcc, setMenuAccess, setMenuAccessBulk, togglePlanAll, menuScores = {}, monthlyPrice }) {
+  const t = useT();
+  const sections = useMemo(() => [...MEMBER_MENU, ...ADMIN_MENU], []);
+  const dbMenuKeys = useMemo(() => new Set(menus.map(m => m.menu_key || m.id)), [menus]);
+  const isOn = (mk) => !!planAcc[mk];
+  const catOf = (mk) => menuScores[mk]?.category || 'standard'; // 미점수 메뉴는 standard 로 간주
+  const sectionGroups = (section) => {
+    const seen = new Map();
+    for (const it of section.items || []) {
+      if (!it.menuKey) continue;
+      if (!seen.has(it.menuKey)) seen.set(it.menuKey, { menuKey: it.menuKey, items: [] });
+      seen.get(it.menuKey).items.push(it);
+    }
+    return [...seen.values()];
+  };
+  const labelOf = (grp) => MENU_KEY_LABEL[grp.menuKey] || t(grp.items[0]?.labelKey, grp.items[0]?.labelKey) || grp.menuKey;
+  const totalOn = Object.values(planAcc).filter(Boolean).length;
+
+  // 모든 저장가능 menuKey (manifest ∩ DB, dedup)
+  const allKeys = useMemo(() => {
+    const s = new Set();
+    for (const sec of sections) for (const it of (sec.items || [])) {
+      if (it.menuKey && dbMenuKeys.has(it.menuKey)) s.add(it.menuKey);
+    }
+    return [...s];
+  }, [sections, dbMenuKeys]);
+
+  // 요금 기반 추천 — 실시간 (monthlyPrice prop 변경 시 재계산)
+  const reco = tiersForPrice(monthlyPrice, plan.is_custom_quote);
+  const recommendedKeys = useMemo(() => {
+    if (!reco) return null;
+    const ts = new Set(reco.tiers);
+    return allKeys.filter(k => ts.has(catOf(k)));
+  }, [reco && reco.tiers.join(','), allKeys, menuScores]);
+  const recoSet = useMemo(() => new Set(recommendedKeys || []), [recommendedKeys]);
+
+  const applyRecommend = () => {
+    if (!recommendedKeys) return;
+    const recoArr = recommendedKeys;
+    const offArr = allKeys.filter(k => !recoSet.has(k));
+    setMenuAccessBulk(plan.plan_id, recoArr, true);
+    setMenuAccessBulk(plan.plan_id, offArr, false);
+  };
+
+  return (
+    <div style={{ borderRadius: 14, padding: '18px 20px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 12, flexWrap: 'wrap' }}>
+        <div>
+          <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--text-3)', letterSpacing: 1, textTransform: 'uppercase' }}>
+            ③ 이 플랜이 제공하는 메뉴 &amp; 기능
+          </div>
+          <div style={{ fontSize: 12.5, color: 'var(--text-3)', marginTop: 3 }}>
+            체크한 항목만 <strong style={{ color: 'var(--text-2)' }}>{plan.name || plan.plan_id}</strong> 사용자 sidebar 에 표시 · 현재 <strong style={{ color: '#22c55e' }}>{totalOn}개</strong> 제공
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button onClick={() => togglePlanAll(plan.plan_id, true)} style={{
+            padding: '9px 14px', borderRadius: 8, background: 'rgba(34,197,94,0.12)', color: '#22c55e',
+            border: '1px solid rgba(34,197,94,0.3)', fontSize: 13, fontWeight: 700, cursor: 'pointer',
+          }}>✓ 전체 허용</button>
+          <button onClick={() => togglePlanAll(plan.plan_id, false)} style={{
+            padding: '9px 14px', borderRadius: 8, background: 'rgba(248,113,113,0.10)', color: '#f87171',
+            border: '1px solid rgba(248,113,113,0.3)', fontSize: 13, fontWeight: 700, cursor: 'pointer',
+          }}>✗ 전체 해제</button>
+        </div>
+      </div>
+
+      {/* 요금 기반 실시간 추천 배너 */}
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14, padding: '12px 16px', borderRadius: 10, flexWrap: 'wrap',
+        background: reco ? 'rgba(250,204,21,0.08)' : 'rgba(255,255,255,0.03)',
+        border: reco ? '1px solid rgba(250,204,21,0.25)' : '1px dashed rgba(255,255,255,0.12)',
+      }}>
+        <span style={{ fontSize: 18 }}>💡</span>
+        {reco ? (
+          <>
+            <div style={{ flex: 1, minWidth: 220, fontSize: 13, color: 'var(--text-2)' }}>
+              입력한 요금 <strong style={{ color: '#fde047' }}>${monthlyPrice}/월</strong> → <strong>{reco.label}</strong> · 권장 <strong style={{ color: '#22c55e' }}>{recommendedKeys.length}개</strong> 메뉴
+            </div>
+            <button onClick={applyRecommend} style={{
+              padding: '9px 18px', borderRadius: 9, border: 'none',
+              background: 'linear-gradient(135deg,#eab308,#facc15)', color: '#1a1a1a',
+              fontSize: 13, fontWeight: 800, cursor: 'pointer', whiteSpace: 'nowrap',
+            }}>요금 기준 추천 적용</button>
+          </>
+        ) : (
+          <div style={{ flex: 1, fontSize: 13, color: 'var(--text-3)' }}>
+            ② 구독 요금(USD)을 입력하면, 요금에 맞는 메뉴 구성을 자동으로 추천합니다.
+          </div>
+        )}
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 12 }}>
+        {sections.map(section => {
+          const groups = sectionGroups(section);
+          if (!groups.length) return null;
+          const keys = groups.filter(g => dbMenuKeys.has(g.menuKey)).map(g => g.menuKey);
+          const onCnt = groups.filter(g => isOn(g.menuKey)).length;
+          const sectionLabel = t(section.labelKey, section.labelKey.split('.').pop());
+          return (
+            <div key={section.key} style={{
+              borderRadius: 10, padding: '12px 14px',
+              background: 'rgba(0,0,0,0.18)', border: '1px solid rgba(255,255,255,0.05)',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
+                <span style={{ fontSize: 14 }}>{section.icon}</span>
+                <span style={{ fontSize: 13.5, fontWeight: 800, color: 'var(--text-1)', flex: 1 }}>{sectionLabel}</span>
+                <span style={{ fontSize: 11, color: onCnt === groups.length ? '#22c55e' : 'var(--text-3)', fontWeight: 700 }}>{onCnt}/{groups.length}</span>
+                <button onClick={() => setMenuAccessBulk(plan.plan_id, keys, true)} title="섹션 전체 허용" style={{
+                  padding: '2px 8px', borderRadius: 6, border: '1px solid rgba(34,197,94,0.25)',
+                  background: 'transparent', color: '#22c55e', fontSize: 11, fontWeight: 700, cursor: 'pointer',
+                }}>＋</button>
+                <button onClick={() => setMenuAccessBulk(plan.plan_id, keys, false)} title="섹션 전체 해제" style={{
+                  padding: '2px 8px', borderRadius: 6, border: '1px solid rgba(248,113,113,0.25)',
+                  background: 'transparent', color: '#f87171', fontSize: 11, fontWeight: 700, cursor: 'pointer',
+                }}>－</button>
+              </div>
+              {groups.map(g => {
+                const on = isOn(g.menuKey);
+                const saveable = dbMenuKeys.has(g.menuKey);
+                const recommended = recoSet.has(g.menuKey);
+                return (
+                  <label key={g.menuKey} style={{
+                    display: 'flex', alignItems: 'center', gap: 8, padding: '6px 8px', borderRadius: 7,
+                    cursor: saveable ? 'pointer' : 'not-allowed', opacity: saveable ? 1 : 0.45,
+                    background: on ? 'rgba(34,197,94,0.08)' : 'transparent',
+                  }}>
+                    <input type="checkbox" checked={on} disabled={!saveable}
+                      onChange={e => setMenuAccess(plan.plan_id, g.menuKey, e.target.checked)} />
+                    <span style={{ fontSize: 13, color: on ? 'var(--text-1)' : 'var(--text-2)', flex: 1 }}>{labelOf(g)}</span>
+                    {recommended && !on && <span title="요금 기준 권장" style={{ fontSize: 11 }}>💡</span>}
+                    {g.items.length > 1 && <span style={{ fontSize: 10, color: 'var(--text-3)' }}>{g.items.length}p</span>}
+                    {!saveable && <span style={{ fontSize: 9, color: 'var(--text-3)' }}>읽기전용</span>}
+                  </label>
+                );
+              })}
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 
@@ -784,7 +1063,7 @@ function ServiceDescriptionCard() {
  */
 function MenuPricingSyncPanel({ sync, onApply, applying }) {
   const [roundTo, setRoundTo] = useState('nearest-9');
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false); // 179차: 고급 자동추천 — 기본 접힘(혼란 감소)
   // 172차 P1-I — 가중치 편집 모드
   const [editMode, setEditMode] = useState(false);
   const [editedScores, setEditedScores] = useState({}); // { menu_key: { weight_usd, category, ai_premium_pct } }
