@@ -12,6 +12,30 @@ import { useNavigate } from "react-router-dom";
 const APIF = (path, opts = {}) =>
     fetch(`/api${path}`, { headers: { "Content-Type": "application/json", ...opts.headers }, ...opts }).then(r => r.json());
 
+// 179차 — 데모 환경: 가상 카카오 캠페인/템플릿(체험용). 판별은 정본(demoEnv) 사용.
+import { IS_DEMO as _IS_DEMO } from '../utils/demoEnv.js';
+const DEMO_KC_TEMPLATES = [
+  { id: 1, code: 'TPL_VIP_NOTI', name: 'VIP 전용 알림톡', status: 'approved', content: '[GenieGo] {고객명}님, VIP 전용 혜택이 도착했어요 🎁' },
+  { id: 2, code: 'TPL_SPRING',   name: '봄 프로모션 친구톡', status: 'approved', content: '봄맞이 최대 40% 할인! 지금 확인하기 🌸' },
+  { id: 3, code: 'TPL_CART',     name: '장바구니 리마인드', status: 'approved', content: '{고객명}님, 담아두신 상품이 품절되기 전에 확인하세요!' },
+];
+const _TPL_LABEL = { alimtalk: '알림톡', friendtalk: '친구톡', bizboard: '비즈보드', marketing: '마케팅' };
+// 공유 kakaoCampaignsLinked({id,name,type,status,sent,estimatedReach,targetSegmentName,...}) → 테이블 표시 shape.
+// 원본 shape는 보존(LINEChannel/JourneyBuilder가 c.type 사용) — 표시 전용 파생.
+function mapKakaoForTable(list) {
+  return (Array.isArray(list) ? list : []).map(c => ({
+    id: c.id,
+    name: c.name,
+    status: c.status,
+    template_name: c.template_name || _TPL_LABEL[c.type] || c.type || '-',
+    template_code: c.template_code || c.type,
+    segment_name: c.segment_name || c.targetSegmentName || '-',
+    total: c.total ?? c.estimatedReach ?? c.sent ?? 0,
+    success: c.success ?? c.sent ?? 0,
+    failed: c.failed ?? Math.max(0, (c.estimatedReach ?? 0) - (c.sent ?? 0)),
+  }));
+}
+
 const C = {
     bg: "var(--bg)", surface: "var(--surface)", card: "var(--bg-card, rgba(255,255,255,0.95))",
     border: "var(--border)", accent: "#4f8ef7",
@@ -164,7 +188,10 @@ function TemplatesTab({ API }) {
     const [msg, setMsg] = useState("");
     const [testingCode, setTestingCode] = useState(null);
 
-    const load = () => API("/kakao/templates").then(r => r.ok && setTemplates(r.templates || [])).catch(() => {});
+    const load = () => {
+        if (_IS_DEMO) { setTemplates(DEMO_KC_TEMPLATES); return; }
+        API("/kakao/templates").then(r => r.ok && setTemplates(r.templates || [])).catch(() => {});
+    };
     useEffect(() => { load(); }, []);
 
     const save = async () => {
@@ -266,6 +293,8 @@ function TemplatesTab({ API }) {
 /* ─── Campaign Tab ─────────────────────────────────── */
 function CampaignsTab({ API, campaigns, setCampaigns, fmt }) {
     const { t } = useI18n();
+    // 데모: 공유 상태 read/write (생성·발송·삭제가 대시보드·CRM에 라이브 반영)
+    const { addKakaoCampaign, deleteKakaoCampaign, updateKakaoCampaign, crmSegments } = useGlobalData();
     const [templates, setTemplates] = useState([]);
     const [segments, setSegments] = useState([]);
     const [form, setForm] = useState({ name: "", template_code: "", segment_id: "" });
@@ -273,13 +302,35 @@ function CampaignsTab({ API, campaigns, setCampaigns, fmt }) {
     const [msg, setMsg] = useState("");
 
     const load = () => {
+        if (_IS_DEMO) {
+            // 데모: 캠페인은 부모가 공유 kakaoCampaignsLinked에서 라이브 파생 → 여기선 템플릿/세그먼트만 시드
+            setTemplates(DEMO_KC_TEMPLATES);
+            setSegments(Array.isArray(crmSegments) && crmSegments.length
+                ? crmSegments.map(s => ({ id: s.id, name: s.name }))
+                : [{ id: 'seg-vip', name: 'VIP 고객' }, { id: 'seg-loyal', name: '충성 고객' }, { id: 'seg-churn', name: '최근 이탈자' }, { id: 'seg-new', name: '신규 가입' }]);
+            return;
+        }
         API("/kakao/campaigns").then(r => r.ok && setCampaigns(r.campaigns || [])).catch(() => {});
         API("/kakao/templates").then(r => r.ok && setTemplates(r.templates || [])).catch(() => {});
         API("/crm/segments").then(r => r.ok && setSegments(r.segments || [])).catch(() => {});
     };
-    useEffect(() => { load(); }, []);
+    useEffect(() => { load(); }, [crmSegments]);
 
     const create = async () => {
+        if (_IS_DEMO) {
+            // 라이브 생성 → 공유 상태 갱신 → 대시보드/CRM 동시 반영
+            const tpl = templates.find(x => x.template_code === form.template_code || x.code === form.template_code);
+            const seg = segments.find(s => s.id === form.segment_id);
+            addKakaoCampaign({
+                name: form.name,
+                type: form.template_code && form.template_code.includes('FRIEND') ? 'friendtalk' : 'alimtalk',
+                template_name: tpl?.name, template_code: form.template_code,
+                targetSegmentId: seg?.id, targetSegmentName: seg?.name,
+                estimatedReach: seg ? 1000 : 0, status: 'draft',
+            });
+            setMsg(t('kakao.msgCampDone')); setForm({ name: "", template_code: "", segment_id: "" });
+            return;
+        }
         try {
             const r = await API("/kakao/campaigns", { method: "POST", body: JSON.stringify(form) });
             if (r.ok) { setMsg(t('kakao.msgCampDone')); setForm({ name: "", template_code: "", segment_id: "" }); load(); }
@@ -289,6 +340,15 @@ function CampaignsTab({ API, campaigns, setCampaigns, fmt }) {
 
     const send = async (id) => {
         if (!confirm(t('kakao.msgSendConfirm'))) return;
+        if (_IS_DEMO) {
+            // 라이브 발송 시뮬레이션 → status/sent 갱신 → 통계 카드 즉시 반영
+            const c = (campaigns || []).find(x => x.id === id);
+            const reach = c?.total || 1000;
+            const succ = Math.round(reach * 0.94);
+            updateKakaoCampaign(id, { status: 'sent', sent: succ, success: succ, failed: reach - succ, total: reach });
+            setMsg(`✅ ${t('kakao.msgSendSucc')} ${succ}, ${t('kakao.msgSendFail2')}${reach - succ})`);
+            return;
+        }
         setSending(id);
         try {
             const r = await API(`/kakao/campaigns/${id}/send`, { method: "POST" });
@@ -300,6 +360,7 @@ function CampaignsTab({ API, campaigns, setCampaigns, fmt }) {
 
     const delCamp = async (id) => {
         if (!confirm(t('kakao.delConfirm'))) return;
+        if (_IS_DEMO) { deleteKakaoCampaign(id); return; } // 라이브 삭제 → 공유 상태 반영
         await API(`/kakao/campaigns/${id}`, { method: "DELETE" }).catch(() => {}); load();
     };
 
@@ -445,7 +506,7 @@ function KakaoChannelContent() {
     const navigate = useNavigate();
     const fmt = useCurrencyFmt();
 
-    const { addAlert, broadcastUpdate } = useGlobalData();
+    const { addAlert, broadcastUpdate, kakaoCampaignsLinked, addKakaoCampaign, deleteKakaoCampaign, updateKakaoCampaign, crmSegments } = useGlobalData();
     const [secLocked, setSecLocked] = useState(false);
     useSecurityGuard({
         addAlert: useCallback((a) => {
@@ -476,7 +537,13 @@ function KakaoChannelContent() {
     }, [token]);
 
     const [tab, setTab] = useState("campaigns");
-    const [campaigns, setCampaigns] = useState([]);
+    const [campaignsLocal, setCampaignsLocal] = useState([]);
+    // 데모: 공유 kakaoCampaignsLinked에서 라이브 파생(대시보드·CRM과 동기화). 운영: API 로컬 상태.
+    const campaigns = useMemo(
+        () => _IS_DEMO ? mapKakaoForTable(kakaoCampaignsLinked) : campaignsLocal,
+        [kakaoCampaignsLinked, campaignsLocal]
+    );
+    const setCampaigns = setCampaignsLocal;
 
     const stats = useMemo(() => {
         const total = campaigns.length;

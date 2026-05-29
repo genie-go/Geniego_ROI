@@ -668,3 +668,58 @@ export const DEMO_KAKAO_CAMPAIGNS_EXTRA = [
   { id: 'KC-005', name: 'Lancôme VIP 톡채널 쿠폰', type: 'friendtalk', status: 'active', targetSegmentId: 'seg-luxury', targetSegmentName: 'Luxury 고객', estimatedReach: 892, sent: 845, open_rate: 72.8, click_rate: 28.6, createdAt: isoDate(1) },
   { id: 'KC-006', name: '신규가입 웰컴 플러스친구', type: 'alimtalk', status: 'draft', targetSegmentId: 'seg-new', targetSegmentName: '신규 가입자', estimatedReach: 2145, sent: 0, open_rate: 0, click_rate: 0, createdAt: isoDate(0) },
 ];
+
+/* ═══════════════════════════════════════════════════════
+   25. 콘텐츠 캘린더 이벤트 — 당월 분포 (체험용)
+═══════════════════════════════════════════════════════ */
+export const DEMO_CALENDAR_EVENTS = [
+  { id: 'CC-001', title: '🌸 봄 신상 릴스 #1', platform: 'instagram', date: isoDate(26), status: 'published', creator: '김민지', campaign: '봄 신상 런칭', views: 18420 },
+  { id: 'CC-002', title: 'YouTube 신제품 언박싱', platform: 'youtube',   date: isoDate(21), status: 'published', creator: '뷰티유튜버 소라', campaign: '봄 신상 런칭', views: 42300 },
+  { id: 'CC-003', title: '틱톡 챌린지 #봄메이크업', platform: 'tiktok',  date: isoDate(17), status: 'published', creator: '@beauty_jin', campaign: '봄 메이크업', views: 89200 },
+  { id: 'CC-004', title: '네이버 블로그 리뷰 포스팅', platform: 'naver',  date: isoDate(14), status: 'published', creator: '블로거 하늘', campaign: '제품 리뷰', views: 5210 },
+  { id: 'CC-005', title: '인스타 스토리 — VIP 세일', platform: 'instagram', date: isoDate(10), status: 'scheduled', creator: '운영팀', campaign: 'VIP 세일', views: 0 },
+  { id: 'CC-006', title: 'Facebook 캐러셀 광고', platform: 'facebook', date: isoDate(7),  status: 'review', creator: '마케팅팀', campaign: '리타게팅', views: 0 },
+  { id: 'CC-007', title: '릴스 #2 사용 후기', platform: 'instagram', date: isoDate(3),  status: 'scheduled', creator: '김민지', campaign: '사용 후기', views: 0 },
+  { id: 'CC-008', title: 'YouTube Shorts 튜토리얼', platform: 'youtube', date: isoDate(1),  status: 'draft', creator: '뷰티유튜버 소라', campaign: '튜토리얼', views: 0 },
+  { id: 'CC-009', title: '월말 타임세일 공지', platform: 'instagram', date: isoDate(-2), status: 'scheduled', creator: '운영팀', campaign: '타임세일', views: 0 },
+  { id: 'CC-010', title: '6월 뉴스레터 콘텐츠', platform: 'naver',     date: isoDate(-6), status: 'draft', creator: '콘텐츠팀', campaign: '뉴스레터', views: 0 },
+];
+
+/* ═══════════════════════════════════════════════════════
+   26. 그래프 스코어링 네트워크 — 인플루언서·크리에이티브·SKU·주문 (체험용)
+═══════════════════════════════════════════════════════ */
+export const DEMO_GRAPH = (() => {
+  const names = ['소라','민지','지훈','하늘','유나','준호','베리','다온'];
+  const inf = names.map((n, i) => ({ node_type: 'influencer', id: `INF-${i + 1}`, node_id: `INF-${i + 1}`, label: `${n} 크리에이터`, total_weight: 95 - i * 7, edge_count: 18 - i }));
+  const cre = Array.from({ length: 6 }, (_, i) => ({ node_type: 'creative', id: `CRV-${String(i + 1).padStart(3, '0')}`, node_id: `CRV-${String(i + 1).padStart(3, '0')}`, label: `크리에이티브 #${i + 1}`, total_weight: 80 - i * 9, edge_count: 12 - i }));
+  const skuIds = ['SKU-LIP-01', 'SKU-FND-02', 'SKU-SRM-03', 'SKU-CRM-04', 'SKU-MSK-05', 'SKU-CLN-06', 'SKU-EYE-07', 'SKU-SUN-08'];
+  const sku = skuIds.map((s, i) => ({ node_type: 'sku', id: s, node_id: s, label: s, total_weight: 88 - i * 6, edge_count: 15 - i }));
+  const nodes = [...inf, ...cre, ...sku];
+  const edges = [];
+  inf.forEach((f, i) => edges.push({ src_id: f.id, dst_id: cre[i % cre.length].id, edge_type: 'created', weight: +(0.6 + (i % 4) * 0.1).toFixed(2) }));
+  cre.forEach((c, i) => edges.push({ src_id: c.id, dst_id: sku[i % sku.length].id, edge_type: 'promotes', weight: +(0.5 + (i % 5) * 0.1).toFixed(2) }));
+  sku.forEach((s, i) => { edges.push({ src_id: s.id, dst_id: `ORD-${1000 + i}`, edge_type: 'converted', weight: +(0.7 + (i % 3) * 0.1).toFixed(2) }); edges.push({ src_id: s.id, dst_id: `ORD-${2000 + i}`, edge_type: 'converted', weight: +(0.4 + (i % 3) * 0.1).toFixed(2) }); });
+  inf.forEach((f, i) => edges.push({ src_id: f.id, dst_id: sku[(i + 2) % sku.length].id, edge_type: 'drove', weight: 0.5 }));
+  const summary = {
+    node_counts: [{ node_type: 'influencer', cnt: inf.length }, { node_type: 'creative', cnt: cre.length }, { node_type: 'sku', cnt: sku.length }, { node_type: 'order', cnt: 16 }],
+    total_edges: edges.length,
+    top_influencers: inf.slice(0, 5).map(f => ({ id: f.id, edge_count: f.edge_count, total_weight: f.total_weight })),
+    top_creatives: cre.slice(0, 5).map(c => ({ id: c.id, edge_count: c.edge_count, total_weight: c.total_weight })),
+    top_skus: sku.slice(0, 5).map(s => ({ id: s.id, edge_count: s.edge_count, total_weight: s.total_weight })),
+  };
+  return { nodes, edges, summary };
+})();
+
+// 결정적 가상 그래프 스코어 (id 기반 — 새로고침해도 동일 값)
+export function demoGraphScore(type, id) {
+  const seed = String(id || 'x').split('').reduce((a, c) => a + c.charCodeAt(0), 7);
+  const gs = 0.55 + (seed % 40) / 100;
+  const nSku = 3 + (seed % 5), nOrd = 8 + (seed % 12);
+  const skus = Array.from({ length: nSku }, (_, i) => `SKU-${String((seed + i) % 8 + 1).padStart(2, '0')}`);
+  const orders = Array.from({ length: nOrd }, (_, i) => `ORD-${1000 + (seed + i) % 60}`);
+  const paths = Array.from({ length: Math.min(nOrd, 10) }, (_, i) => ({
+    influencer: id, creative: `CRV-${String((seed + i) % 6 + 1).padStart(3, '0')}`,
+    sku: skus[i % skus.length], order: orders[i % orders.length], path_weight: +(0.3 + ((seed + i) % 7) / 10).toFixed(2),
+  }));
+  return { graph_score: +gs.toFixed(3), skus_reached: skus, orders_reached: orders, paths };
+}

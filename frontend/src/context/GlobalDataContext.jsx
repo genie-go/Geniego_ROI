@@ -20,7 +20,7 @@ import {
   DEMO_SNS_CAMPAIGNS, DEMO_AI_RECOMMENDATIONS, DEMO_CHANNEL_PRICES,
   DEMO_DAILY_TRENDS, DEMO_PRODUCTS, DEMO_CRM_CUSTOMER_HISTORY,
   DEMO_CREATORS, DEMO_UGC_REVIEWS, DEMO_CHANNEL_STATS, DEMO_NEG_KEYWORDS,
-  DEMO_KAKAO_CAMPAIGNS_EXTRA,
+  DEMO_KAKAO_CAMPAIGNS_EXTRA, DEMO_CALENDAR_EVENTS,
 } from '../data/demoSeedData.js';
 
 const GlobalDataContext = createContext(null);
@@ -28,12 +28,8 @@ const GlobalDataContext = createContext(null);
 /* ════════════════════════════════════════════════
    🎪 Demo Mode Detection & localStorage Persistence
 ════════════════════════════════════════════════ */
-const _isDemo = (() => {
-  try {
-    const host = typeof window !== 'undefined' ? window.location.hostname : '';
-    return host.includes('roidemo') || host.includes('demo') || (typeof import.meta !== 'undefined' && import.meta.env?.VITE_DEMO_MODE === 'true');
-  } catch { return false; }
-})();
+// 데모 판별은 정본(utils/demoEnv) 단일 소스 사용 — 운영 오염 방지 엄격 격리
+import { IS_DEMO as _isDemo } from '../utils/demoEnv.js';
 
 const DEMO_LS_PREFIX = 'geniego_demo_';
 const DEMO_SEED_VERSION = 'v17.0';  // ★ v17: 인플루언서/UGC/채널통계/부정키워드 시드 추가
@@ -134,8 +130,8 @@ const INIT_EMAIL_CAMPAIGNS_LINKED = loadDemoState('email_campaigns', DEMO_EMAIL_
 const INIT_EMAIL_TEMPLATES = [];
 const INIT_EMAIL_SETTINGS = { provider: 'mock' };
 
-// Kakao 캐름페인 Integration 상태
-const INIT_KAKAO_CAMPAIGNS_LINKED = loadDemoState('kakao_campaigns', DEMO_KAKAO_CAMPAIGNS);
+// Kakao 캠페인 Integration 상태 (179차: EXTRA 병합으로 6건 enrich — 신규 체험자 기준)
+const INIT_KAKAO_CAMPAIGNS_LINKED = loadDemoState('kakao_campaigns', [...DEMO_KAKAO_CAMPAIGNS, ...DEMO_KAKAO_CAMPAIGNS_EXTRA]);
 
 // 💳 결제 카드 (Ad Spend 자동집행용)
 const INIT_PAYMENT_CARDS = [];
@@ -209,7 +205,7 @@ export function GlobalDataProvider({ children }) {
     const [lotManagement, setLotManagement] = useState([]);           // Lot/유통기한 관리
     const [priceCalendar, setPriceCalendar] = useState([]);           // 프로모션 가격 캘린더
     const [asiaLogisticsData, setAsiaLogisticsData] = useState({});   // 아시아 물류 허브 데이터
-    const [sharedCalendarEvents, setSharedCalendarEvents] = useState([]); // 콘텐츠 캘린더 이벤트
+    const [sharedCalendarEvents, setSharedCalendarEvents] = useState(() => loadDemoState('calendar_events', DEMO_CALENDAR_EVENTS)); // 콘텐츠 캘린더 이벤트 (데모 시드)
     const [connectedChannels, setConnectedChannels] = useState(loadDemoState('connected_channels', DEMO_CONNECTED_CHANNELS));  // 연동 채널 목록
 
     // 🤝 [v13 NEW] 인플루언서 크리에이터 통합 상태
@@ -903,6 +899,19 @@ export function GlobalDataProvider({ children }) {
         setKakaoCampaignsLinked(prev => prev.map(c => c.id === id ? { ...c, ...patch } : c));
     }, []);
 
+    /** [179차] Kakao 캠페인 신규 추가 (KakaoChannel ↔ 전체 동기화) */
+    const addKakaoCampaign = useCallback((campaign) => {
+        const camp = { id: campaign.id || `KC-${Date.now()}`, type: 'alimtalk', status: 'draft', sent: 0, open_rate: 0, click_rate: 0, estimatedReach: 0, createdAt: new Date().toISOString(), ...campaign };
+        setKakaoCampaignsLinked(prev => [camp, ...prev]);
+        setAlerts(prev => [{ id: `AL-${Date.now()}`, type: 'success', msg: `💬 카카오 캠페인 생성: ${camp.name}`, time: '방금', read: false }, ...prev.slice(0, 49)]);
+        return camp;
+    }, []);
+
+    /** [179차] Kakao 캠페인 삭제 */
+    const deleteKakaoCampaign = useCallback((id) => {
+        setKakaoCampaignsLinked(prev => prev.filter(c => c.id !== id));
+    }, []);
+
     /** Journey Builder 트리거 Run → 이메일/Kakao 상태 자동 갱신 */
     const triggerJourneyAction = useCallback((triggerType, payload) => {
         const log = { id: `JT-${Date.now()}`, type: triggerType, payload, at: new Date().toISOString() };
@@ -966,6 +975,19 @@ export function GlobalDataProvider({ children }) {
     /** 웹팝업 진행 상황 업데이트 (WebPopup ↔ GlobalContext Integration) */
     const updateWebPopupStats = useCallback((popupId, stats) => {
         setWebPopupCampaigns(prev => prev.map(p => p.id === popupId ? { ...p, ...stats } : p));
+    }, []);
+
+    /** [179차] 웹팝업 신규 추가 (WebPopup ↔ 전체 동기화) */
+    const addWebPopup = useCallback((popup) => {
+        const p = { id: popup.id || `WP-${Date.now()}`, type: 'center_modal', status: 'active', impressions: 0, clicks: 0, conversions: 0, ctr: 0, cvr: 0, createdAt: new Date().toISOString(), ...popup };
+        setWebPopupCampaigns(prev => [p, ...prev]);
+        setAlerts(prev => [{ id: `AL-${Date.now()}`, type: 'success', msg: `🎯 웹팝업 생성: ${p.name}`, time: '방금', read: false }, ...prev.slice(0, 49)]);
+        return p;
+    }, []);
+
+    /** [179차] 웹팝업 삭제 */
+    const deleteWebPopup = useCallback((id) => {
+        setWebPopupCampaigns(prev => prev.filter(p => p.id !== id));
     }, []);
 
     /* ════════════════════════════════════════════════
@@ -1586,7 +1608,7 @@ export function GlobalDataProvider({ children }) {
         recordPurchaseToCRM,
         emailCampaignsLinked, updateEmailCampaign, addEmailCampaign,
         createEmailCampaignFromSegment,
-        kakaoCampaignsLinked, updateKakaoCampaign,
+        kakaoCampaignsLinked, updateKakaoCampaign, addKakaoCampaign, deleteKakaoCampaign,
         createKakaoCampaignFromSegment,
         journeyTriggers, triggerJourneyAction,
 
@@ -1597,7 +1619,7 @@ export function GlobalDataProvider({ children }) {
         // ── [v5 NEW] AI 예측 ↔ 전Channel Integration
         aiPredictions, aiModelMetrics, updateAIPredictions,
         triggerAIAutoAction,
-        webPopupCampaigns, updateWebPopupStats,
+        webPopupCampaigns, updateWebPopupStats, addWebPopup, deleteWebPopup,
 
         // ── [v7] 결제 카드
         paymentCards,

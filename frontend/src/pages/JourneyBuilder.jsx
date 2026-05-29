@@ -34,7 +34,15 @@ export default function JourneyBuilder() {
 
     const [tab, setTab] = useState('builder');
     const [journeys, setJourneys] = useState(() => {
-        try { const saved = localStorage.getItem('jb_journeys'); return saved ? JSON.parse(saved) : []; } catch { return []; }
+        try { const saved = localStorage.getItem('jb_journeys'); if (saved) return JSON.parse(saved); } catch {}
+        // 179차 데모: 가상 여정 시드 (실제처럼 체험 — 사용자 추가분은 jb_journeys에 누적 유지)
+        if (_isDemo) return [
+            { id: 'JRN-DEMO-1', name: '회원가입 환영 여정', trigger_type: 'signup', trigger_label: '회원가입', segment: '신규 가입 고객', channels: ['email', 'kakao'], delay: 'none', delay_label: '즉시', status: 'active', createdAt: '2026-05-20', executions: 12, entered: 1240, completed: 982 },
+            { id: 'JRN-DEMO-2', name: '장바구니 이탈 리마인더', trigger_type: 'abandon', trigger_label: '장바구니 이탈', segment: '최근 이탈자', channels: ['email', 'sms'], delay: '1h', delay_label: '1시간 후', status: 'active', createdAt: '2026-05-18', executions: 34, entered: 892, completed: 514 },
+            { id: 'JRN-DEMO-3', name: '구매 감사 메시지', trigger_type: 'purchase', trigger_label: '구매 완료', segment: '전체 구매자', channels: ['kakao'], delay: '30m', delay_label: '30분 후', status: 'active', createdAt: '2026-05-15', executions: 58, entered: 2310, completed: 2184 },
+            { id: 'JRN-DEMO-4', name: '휴면 고객 이탈 방지', trigger_type: 'churn', trigger_label: '이탈 위험', segment: '휴면 고객', channels: ['email', 'kakao'], delay: '1d', delay_label: '1일 후', status: 'draft', createdAt: '2026-05-25', executions: 0, entered: 0, completed: 0 },
+        ];
+        return [];
     });
     const [showCreate, setShowCreate] = useState(false);
     const [editId, setEditId] = useState(null);

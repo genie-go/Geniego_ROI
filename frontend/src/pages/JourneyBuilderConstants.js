@@ -1,9 +1,7 @@
 /* ── Enterprise Demo Isolation Guard ─────────────────────── */
-export const _isDemo = (() => {
-    if (typeof window === 'undefined') return false;
-    const h = window.location.hostname;
-    return h === 'demo.genie-go.com' || h === 'demo.geniego.com' || h.startsWith('demo');
-})();
+// 데모 판별은 정본(utils/demoEnv) 단일 소스 사용 — 운영 오염 방지 엄격 격리
+import { IS_DEMO } from '../utils/demoEnv.js';
+export const _isDemo = IS_DEMO;
 
 /* ── Enterprise Dynamic Locale Map ────────────────────── */
 export const LANG_LOCALE_MAP = {

@@ -110,7 +110,24 @@ export default function ApiKeys() {
     setLoadError(null);
     (async () => {
       if (_IS_DEMO_ENV) {
-        if (!cancelled) { setCreds([]); setSummary({}); setLoading(false); }
+        // 179차 — 데모 가상 자격증명(체험용, 운영 DB 무저장). 가상으로 API 연동된 상태로 표시해 실제처럼 체험.
+        const _d = (h) => new Date(Date.now() - h * 3600000).toISOString();
+        const DEMO_CREDS = [
+          { id: 'demo-coupang',     channel: 'coupang',          cred_type: 'api_key', is_active: 1, test_status: 'ok',    last_tested_at: _d(2) },
+          { id: 'demo-naver',       channel: 'naver_smartstore', cred_type: 'oauth',   is_active: 1, test_status: 'ok',    last_tested_at: _d(3) },
+          { id: 'demo-naversa',     channel: 'naver_sa',         cred_type: 'oauth',   is_active: 1, test_status: 'ok',    last_tested_at: _d(5) },
+          { id: 'demo-meta',        channel: 'meta_ads',         cred_type: 'oauth',   is_active: 1, test_status: 'ok',    last_tested_at: _d(1) },
+          { id: 'demo-google',      channel: 'google_ads',       cred_type: 'oauth',   is_active: 1, test_status: 'ok',    last_tested_at: _d(4) },
+          { id: 'demo-tiktok',      channel: 'tiktok_business',  cred_type: 'oauth',   is_active: 1, test_status: 'ok',    last_tested_at: _d(8) },
+          { id: 'demo-kakao',       channel: 'kakao_moment',     cred_type: 'api_key', is_active: 1, test_status: 'ok',    last_tested_at: _d(6) },
+          { id: 'demo-amazon',      channel: 'amazon_spapi',     cred_type: 'api_key', is_active: 1, test_status: 'ok',    last_tested_at: _d(12) },
+          { id: 'demo-ga4',         channel: 'google_analytics', cred_type: 'oauth',   is_active: 1, test_status: 'ok',    last_tested_at: _d(7) },
+          { id: 'demo-sendgrid',    channel: 'sendgrid',         cred_type: 'api_key', is_active: 1, test_status: 'ok',    last_tested_at: _d(9) },
+          { id: 'demo-11st',        channel: 'st11',             cred_type: 'api_key', is_active: 1, test_status: 'error', last_tested_at: _d(20) },
+        ];
+        const DEMO_SUMMARY = {};
+        DEMO_CREDS.forEach(c => { DEMO_SUMMARY[c.channel] = { keyCount: c.channel === 'meta_ads' ? 2 : 1, hasRequired: true, is_active: c.is_active, test_status: c.test_status }; });
+        if (!cancelled) { setCreds(DEMO_CREDS); setSummary(DEMO_SUMMARY); setLoading(false); }
         return;
       }
       try {

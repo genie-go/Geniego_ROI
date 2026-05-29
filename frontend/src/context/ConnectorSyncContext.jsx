@@ -32,6 +32,16 @@ const KNOWN_CHANNELS = [
 const getToken = () =>
   localStorage.getItem("genie_token") || localStorage.getItem("genie_auth_token") || "";
 
+// 179차 — 데모 환경: 가상으로 API 연동된 채널 상태(체험용). 판별은 정본(demoEnv) 사용.
+import { IS_DEMO as _IS_DEMO } from '../utils/demoEnv.js';
+const DEMO_CONNECTED = (() => {
+  const ok = ['coupang','naver_smartstore','naver_sa','meta_ads','google_ads','tiktok_business','kakao_moment','amazon_spapi','google_analytics','sendgrid'];
+  const st = {};
+  ok.forEach(ch => { st[ch] = { connected: true, keyCount: ch === 'meta_ads' ? 2 : 1, lastTest: new Date(), testStatus: 'ok' }; });
+  st['st11'] = { connected: true, keyCount: 1, lastTest: new Date(), testStatus: 'error' };
+  return st;
+})();
+
 async function fetchCredsSummary() {
   const token = getToken();
   try {
@@ -79,6 +89,13 @@ export function ConnectorSyncProvider({ children }) {
   /* DB에서 Channel 자격증명 요약 로드 */
   const refresh = useCallback(async () => {
     if (!token) return;
+    if (_IS_DEMO) {
+      // 데모: 가상 연동 상태 시드 (실제 API 호출 없이 연동된 것처럼 체험)
+      setConnectedChannels(DEMO_CONNECTED);
+      setLoading(false);
+      setLastRefresh(new Date());
+      return;
+    }
     setLoading(true);
     try {
       const data = await fetchCredsSummary();
@@ -119,7 +136,8 @@ export function ConnectorSyncProvider({ children }) {
       ...prev,
       [channelKey]: { ...prev[channelKey], testStatus: "testing" },
     }));
-    const result = await testChannelConn(channelKey);
+    // 데모: 가상 연결 테스트 — 실제 API 호출 없이 성공 시뮬레이션
+    const result = _IS_DEMO ? { ok: true, demo: true } : await testChannelConn(channelKey);
     const status = result.ok ? "ok" : "error";
     setConnectedChannels(prev => ({
       ...prev,

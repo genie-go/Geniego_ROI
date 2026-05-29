@@ -689,10 +689,16 @@ function PaidRegisterForm({ selectedPlan, onBack, onSwitch }) {
   const toggleChannel = (arr, setArr, key) =>
     setArr(prev => prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]);
 
+  // 운영 구독 가입 — 비밀번호 정책: 영문 대문자·소문자·숫자·특수문자 모두 포함 + 6자 이상 (은행·공공기관급)
   const validateStep1 = () => {
     if (!name.trim()) return t("auth.nameRequired");
     if (!email.trim()) return t("auth.emailRequired");
     if (password.length < 6) return t("auth.passwordTooShort");
+    const hasUpper = /[A-Z]/.test(password), hasLower = /[a-z]/.test(password);
+    const hasDigit = /[0-9]/.test(password), hasSpecial = /[^A-Za-z0-9]/.test(password);
+    if (!(hasUpper && hasLower && hasDigit && hasSpecial)) {
+      return t("auth.passwordPolicy", "비밀번호는 영문 대문자·소문자·숫자·특수문자를 모두 포함하고 6자 이상이어야 합니다.");
+    }
     if (password !== confirm) return t("auth.passwordMismatch");
     return null;
   };

@@ -2,6 +2,8 @@ import React, { useEffect, useState, useMemo, useCallback, useRef } from "react"
 import { useI18n } from "../i18n";
 import { useGlobalData } from "../context/GlobalDataContext.jsx";
 import { useCurrency } from "../contexts/CurrencyContext.jsx";
+// 179차 — 데모 환경: 가상 웹팝업 성과(체험용). 판별은 정본(demoEnv) 사용.
+import { IS_DEMO as _IS_DEMO } from "../utils/demoEnv.js";
 
 
 /* ══ Demo/Prod Data Isolation Guard ══ */
@@ -68,14 +70,23 @@ function Kpi({ label, value, sub, color = "#f97316", icon }) {
 }
 
 /* ══ Overview Tab ══ */
+const _POPUP_TRIGGER_LABEL = { center_modal: "Center Modal", slide_in: "Slide-in", exit_intent: "Exit Intent", bottom_bar: "Bottom Bar", top_banner: "Top Banner" };
+const _POPUP_STATUS_COLOR = { active: "#22c55e", scheduled: "#3b82f6", ended: "#9ca3af" };
 function OverviewTab({ t }) {
+  // 공유 webPopupCampaigns에서 읽기 → AI 자동액션·CRM 연동으로 생성된 팝업까지 라이브 반영(데모·운영 동기화)
+  const { webPopupCampaigns } = useGlobalData();
+  const rows = Array.isArray(webPopupCampaigns) ? webPopupCampaigns : [];
+  const totalViews = rows.reduce((s, p) => s + (p.impressions || 0), 0);
+  const totalConv = rows.reduce((s, p) => s + (p.conversions || 0), 0);
+  const active = rows.filter(p => p.status === "active").length;
+  const inactive = rows.length - active;
   return (
     <div style={{ display: "grid", gap: 16 }}>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))", gap: 14 }}>
-        <Kpi label={t("webPopup.statViews")} value={fmtK(0)} sub={t("webPopup.noData", "No data yet")} icon="👁️" />
-        <Kpi label={t("webPopup.statConv")} value="0" sub={t("webPopup.noData", "No data yet")} color="#22c55e" icon="🎯" />
-        <Kpi label={t("webPopup.active")} value="0" color="#3b82f6" icon="🟢" />
-        <Kpi label={t("webPopup.inactive")} value="0" color="#9ca3af" icon="⏸️" />
+        <Kpi label={t("webPopup.statViews")} value={fmtK(totalViews)} sub={rows.length ? `${rows.length} popups` : t("webPopup.noData", "No data yet")} icon="👁️" />
+        <Kpi label={t("webPopup.statConv")} value={fmtK(totalConv)} sub={totalViews ? `CVR ${((totalConv / totalViews) * 100).toFixed(1)}%` : t("webPopup.noData", "No data yet")} color="#22c55e" icon="🎯" />
+        <Kpi label={t("webPopup.active")} value={String(active)} color="#3b82f6" icon="🟢" />
+        <Kpi label={t("webPopup.inactive")} value={String(inactive)} color="#9ca3af" icon="⏸️" />
       </div>
       <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #e5e7eb", padding: 20 }}>
         <div style={{ fontWeight: 800, fontSize: 15, color: "#1f2937", marginBottom: 12 }}>📈 {t("webPopup.popupPerf")}</div>
@@ -88,7 +99,19 @@ function OverviewTab({ t }) {
             <th style={{ textAlign: "right", padding: 8 }}>{t("webPopup.colClicks")}</th>
             <th style={{ textAlign: "right", padding: 8 }}>{t("webPopup.colConv")}</th>
           </tr></thead>
-          <tbody><tr><td colSpan={6} style={{ padding: 40, textAlign: "center", color: "#9ca3af" }}>{t("webPopup.noData", "No popup data yet.")}</td></tr></tbody>
+          <tbody>
+            {rows.length === 0 && <tr><td colSpan={6} style={{ padding: 40, textAlign: "center", color: "#9ca3af" }}>{t("webPopup.noData", "No popup data yet.")}</td></tr>}
+            {rows.map(p => (
+              <tr key={p.id} style={{ borderBottom: "1px solid #f3f4f6" }}>
+                <td style={{ padding: 8, fontWeight: 600, color: "#1f2937" }}>{p.name}</td>
+                <td style={{ padding: 8, color: "#6b7280" }}>{_POPUP_TRIGGER_LABEL[p.type] || p.type}</td>
+                <td style={{ padding: 8 }}><span style={{ color: _POPUP_STATUS_COLOR[p.status] || "#6b7280", fontWeight: 700 }}>● {p.status}</span></td>
+                <td style={{ padding: 8, textAlign: "right" }}>{(p.impressions || 0).toLocaleString()}</td>
+                <td style={{ padding: 8, textAlign: "right" }}>{(p.clicks || 0).toLocaleString()}</td>
+                <td style={{ padding: 8, textAlign: "right", fontWeight: 700, color: "#22c55e" }}>{(p.conversions || 0).toLocaleString()}</td>
+              </tr>
+            ))}
+          </tbody>
         </table>
       </div>
     </div>
@@ -176,10 +199,16 @@ function ManageTab({ t }) {
   const [aiTopic, setAiTopic] = useState("");
   const [generating, setGenerating] = useState(false);
   const [saved, setSaved] = useState([]);
+  const { addWebPopup } = useGlobalData();
   const F=(k,v)=>setForm(p=>({...p,[k]:v}));
 
   const handleSave=()=>{
     if(!form.name){alert("Popup name required");return;}
+    // 공유 상태에 생성 → OverviewTab 성과·CRM 연동에 라이브 반영
+    const ptype = (layout==='bar-top'||layout==='bar-bottom') ? 'top_banner'
+      : (layout==='slide-bottom'||layout==='slide-right'||layout==='corner') ? 'slide_in'
+      : 'center_modal';
+    addWebPopup?.({ name:form.name, title:form.title||form.name, subtitle:form.subtitle, type:ptype, status:'active', template:tpl, trigger:form.trigger, btnText:form.cta, linkUrl:form.linkUrl });
     setSaved(p=>[...p,{...form,tpl,layout,id:Date.now()}]);
     setForm({name:"",title:"",cta:"",discount:20,body:"",trigger:"exit",linkUrl:"",email:"",subtitle:""});
   };

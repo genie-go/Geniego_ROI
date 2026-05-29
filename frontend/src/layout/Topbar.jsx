@@ -11,10 +11,8 @@ import { useCurrency } from "../contexts/CurrencyContext.jsx";
 import { useMobileSidebar } from "../context/MobileSidebarContext.jsx";
 import { sanitizeHtml } from "../utils/xssSanitizer.js";
 
-/* 데모 모드 감지 */
-const IS_DEMO = typeof window !== 'undefined'
-  ? (window.location.hostname.includes('roidemo') || window.location.hostname.includes('demo') || import.meta.env.VITE_DEMO_MODE === 'true')
-  : false;
+/* 데모 모드 감지 — 정본(demoEnv) 단일 소스 (운영 오염 방지 엄격 격리) */
+import { IS_DEMO } from "../utils/demoEnv.js";
 
 /* 테마 목록 */
 const THEMES = [
@@ -289,14 +287,30 @@ export default function Topbar() {
           </div>
         </div>
 
-        {/* 환경 배지 */}
+        {/* 환경 배지 — 데모: 클릭 시 체험 데이터 초기화 (누적 유지가 기본, 명시적 초기화 제공) */}
         {IS_DEMO && (
-          <span style={{
-            padding: '2px 10px', borderRadius: 99, fontSize: 9, fontWeight: 800,
-            background: 'rgba(251,146,60,0.12)', color: '#fb923c',
-            border: '1px solid rgba(251,146,60,0.3)',
-            flexShrink: 0,
-          }}>DEMO</span>
+          <button
+            onClick={() => {
+              if (!window.confirm('체험 중 만든 데이터(여정·캠페인·팝업 등)를 모두 초기화하고 기본 데모 상태로 되돌릴까요?\n\n구독 회원으로 전환하면 작업한 데이터가 영구 저장됩니다.')) return;
+              // 데모 누적 콘텐츠 키 제거 (인증·언어·테마는 보존 → 로그인 상태 유지)
+              // geniego_demo_* = GlobalDataContext 데모 상태, jb_journeys = 여정, genie_channel_creds = 데모 채널 creds
+              const CONTENT_RE = /^(geniego_demo_|jb_journeys|genie_channel_creds)/;
+              try {
+                Object.keys(localStorage).forEach(k => { if (CONTENT_RE.test(k)) localStorage.removeItem(k); });
+                localStorage.setItem('geniego_tour_completed', 'true');
+              } catch {}
+              window.location.reload();
+            }}
+            title="🔄 체험 데이터 초기화 · 구독 시 작업 데이터 영구 저장"
+            style={{
+              padding: '2px 10px', borderRadius: 99, fontSize: 9, fontWeight: 800,
+              background: 'rgba(251,146,60,0.12)', color: '#fb923c',
+              border: '1px solid rgba(251,146,60,0.3)', cursor: 'pointer',
+              flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 4,
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = 'rgba(251,146,60,0.22)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'rgba(251,146,60,0.12)'}
+          >🔄 DEMO</button>
         )}
       </div>
 
@@ -316,7 +330,6 @@ export default function Topbar() {
         {/* 🌐 다국어 선택 */}
         <div ref={langRef} style={{ position: 'relative' }}>
           <button
-            className="topbar-lang-btn"
             className="topbar-lang-btn"
             onClick={() => { setShowLang(!showLang); setShowTheme(false); setShowNotif(false); }}
             style={{

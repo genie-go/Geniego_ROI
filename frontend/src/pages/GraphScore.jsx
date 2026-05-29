@@ -4,6 +4,8 @@ import { useGlobalData } from '../context/GlobalDataContext.jsx';
 import { useConnectorSync } from '../context/ConnectorSyncContext.jsx';
 import { useSecurityGuard } from '../security/SecurityGuard.js';
 import { useNavigate } from 'react-router-dom';
+import { IS_DEMO as _IS_DEMO } from '../utils/demoEnv.js';
+import { DEMO_GRAPH, demoGraphScore } from '../data/demoSeedData.js';
 
 const API = "/api";
 
@@ -92,9 +94,13 @@ function WeightSettingsModal({ weights, onApply, onClose, t }) {
 
 /* ── Connected Channels Badge ───────────────────────────────────────────────── */
 function ConnectedChannelsBadge({ t }) {
-  const { connectedChannels = [], isConnected } = useConnectorSync();
+  const { connectedChannels = {} } = useConnectorSync();
   const navigate = useNavigate();
-  if (!connectedChannels.length) {
+  // connectedChannels는 { [key]: { connected, keyCount, ... } } 객체 → 연결된 채널 배열로 변환
+  const list = Object.entries(connectedChannels)
+    .filter(([, v]) => v && v.connected)
+    .map(([k]) => ({ key: k, platform: k }));
+  if (!list.length) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 10, background: 'rgba(234,179,8,0.08)', border: '1px solid rgba(234,179,8,0.2)', fontSize: 11 }}>
         <span>⚠️</span>
@@ -106,7 +112,7 @@ function ConnectedChannelsBadge({ t }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', padding: '6px 10px', borderRadius: 10, background: 'rgba(34,197,94,0.06)', border: '1px solid rgba(34,197,94,0.15)', fontSize: 10 }}>
       <span style={{ fontWeight: 700, color: '#22c55e', fontSize: 11 }}>🔗 {t('graphScore.connectedChannels')}:</span>
-      {connectedChannels.map(ch => (
+      {list.map(ch => (
         <span key={ch.key || ch.platform} style={{ background: 'rgba(34,197,94,0.12)', color: '#22c55e', border: '1px solid rgba(34,197,94,0.25)', borderRadius: 6, padding: '1px 7px', fontSize: 9, fontWeight: 700 }}>{ch.platform || ch.key}</span>
       ))}
     </div>
@@ -118,6 +124,7 @@ function SummaryTab({ weights }) {
   const t = useT();
   const [data, setData] = useState(null);
   const load = async () => {
+    if (_IS_DEMO) { setData(DEMO_GRAPH.summary); return; } // 데모: 가상 그래프 요약
     try { const d = await apiFetch(`${API}/v419/graph/summary`); setData(d || {}); }
     catch { setData({}); }
   };
@@ -178,6 +185,7 @@ function GraphBrowserTab({ onExport }) {
   const [filter, setFilter] = useState("");
 
   const load = async () => {
+    if (_IS_DEMO) { setEdges(DEMO_GRAPH.edges); return; } // 데모: 가상 그래프 엣지
     try { const d = await apiFetch(`${API}/v419/graph/edges`); setEdges(d.edges || []); }
     catch { setEdges([]); }
   };
@@ -236,6 +244,7 @@ function InfluencerScoreTab({ nodes, weights }) {
     const id = sel.trim();
     if (!id) return;
     setLoading(true);
+    if (_IS_DEMO) { setResult(demoGraphScore('influencer', id)); setLoading(false); return; }
     try { const r = await apiFetch(`${API}/v419/graph/score/influencer/${encodeURIComponent(id)}`); setResult(r); }
     catch { setResult(null); }
     finally { setLoading(false); }
@@ -297,6 +306,7 @@ function SkuScoreTab({ nodes, weights }) {
     const id = sel.trim();
     if (!id) return;
     setLoading(true);
+    if (_IS_DEMO) { setResult(demoGraphScore('sku', id)); setLoading(false); return; }
     try { const r = await apiFetch(`${API}/v419/graph/score/sku/${encodeURIComponent(id)}`); setResult(r); }
     catch { setResult(null); }
     finally { setLoading(false); }
@@ -358,6 +368,7 @@ function CreativeScoreTab({ nodes, weights }) {
     const id = sel.trim();
     if (!id) return;
     setLoading(true);
+    if (_IS_DEMO) { setResult(demoGraphScore('creative', id)); setLoading(false); return; }
     try { const r = await apiFetch(`${API}/v419/graph/score/creative/${encodeURIComponent(id)}`); setResult(r); }
     catch { setResult(null); }
     finally { setLoading(false); }
@@ -525,6 +536,7 @@ export default function GraphScore() {
   ], [t]);
 
   const loadNodes = useCallback(async () => {
+    if (_IS_DEMO) { setNodes(DEMO_GRAPH.nodes); return; } // 데모: 가상 그래프 노드
     try { const d = await apiFetch(`${API}/v419/graph/nodes`); setNodes(d.nodes || []); }
     catch { setNodes([]); }
   }, []);
