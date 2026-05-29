@@ -92,11 +92,40 @@ export default function Settlements() {
   const { locked } = useSecurityMonitor('settlements');
   const { broadcast, onMessage } = useSettleSync();
 
-  // Pull settlement data from GlobalDataContext if available, else empty
+  // 180차 동기화 교정: 공유 단일소스 gd.settlement(camelCase) → 페이지 행 스키마(snake_case) 파생 매핑.
+  // settlementStats / pnlStats 와 동일 데이터에서 파생 → 값 변동 시 정산·P&L·대시보드 동시 반영(검산 일치).
+  const CH_META = {
+    oliveyoung: { name: 'Olive Young', color: '#22c55e', icon: '🫒' },
+    coupang:    { name: 'Coupang',     color: '#C02525', icon: '🛒' },
+    naver:      { name: 'Naver',       color: '#03C75A', icon: '🟢' },
+    naver_smartstore: { name: 'Naver Smart Store', color: '#03C75A', icon: '🟢' },
+    kakao:      { name: 'Kakao',       color: '#FAE100', icon: '💬' },
+    amazon:     { name: 'Amazon',      color: '#FF9900', icon: '📦' },
+    shopify:    { name: 'Shopify',     color: '#96BF48', icon: '🛍' },
+    qoo10:      { name: 'Qoo10',       color: '#FF6B00', icon: '🟡' },
+    rakuten:    { name: 'Rakuten',     color: '#BF0000', icon: '🛒' },
+    gmarket:    { name: 'Gmarket',     color: '#00A862', icon: '🟩' },
+  };
+  const MONTH_END = { '01':'31','02':'28','03':'31','04':'30','05':'31','06':'30','07':'31','08':'31','09':'30','10':'31','11':'30','12':'31' };
+  const mapSettlement = (s) => {
+    const mm = (s.period || '').slice(5, 7);
+    const meta = CH_META[s.channel] || { name: s.channelName || s.channel, color: '#64748b', icon: '🏬' };
+    const refunds = s.refunds != null ? s.refunds : (s.returnFee || 0);
+    return {
+      id: s.id, channel: meta.name, channelId: s.channel, currency: s.currency || 'KRW',
+      period_start: s.period ? `${s.period}-01` : '', period_end: s.period ? `${s.period}-${MONTH_END[mm] || '28'}` : '',
+      gross_sales: s.grossSales || 0, platform_fee: s.platformFee || 0, ad_fee: s.adFee || 0,
+      payment_fee: s.paymentFee || 0, refunds, net_payout: s.netPayout || 0,
+      orders: s.orders || 0, fee_rate: s.grossSales ? Math.round((s.platformFee || 0) / s.grossSales * 1000) / 10 : 0,
+      status: s.status === 'settled' ? 'confirmed' : (s.status === 'confirmed' ? 'pending' : (s.status || 'pending')),
+      color: meta.color, icon: meta.icon,
+    };
+  };
   const liveRows = useMemo(() => {
-    if (gd?.settlements?.length) return gd.settlements;
+    const src = gd?.settlement;
+    if (Array.isArray(src) && src.length) return src.map(mapSettlement);
     return INIT_SETTLEMENTS;
-  }, [gd?.settlements]);
+  }, [gd?.settlement]);
   const [rows, setRows] = useState(liveRows);
   useEffect(() => { setRows(liveRows); }, [liveRows]);
 

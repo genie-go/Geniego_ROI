@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { tGet, tSet, tRemove } from '../utils/tenantStorage.js'; // 180차: 회원 격리
 import { useI18n } from '../i18n';
 import { useCurrency } from '../contexts/CurrencyContext.jsx';
 import { useAuth } from '../auth/AuthContext.jsx';
@@ -366,14 +367,14 @@ function JobsTab({ t, isDemo }) {
 function SettingsTab({ t }) {
   const { addAlert } = useGlobalData();
   const [cfg, setCfg] = useState(() => {
-    try { const s = localStorage.getItem('genie_writeback_cfg'); if (s) return JSON.parse(s); } catch (_) {}
+    try { const s = tGet('genie_writeback_cfg'); if (s) return JSON.parse(s); } catch (_) {}
     return { auto_retry: true, dry_run: false, approval_gate: true, webhook_notify: true, rate_limit: true, audit_log: true };
   });
 
   const toggle = (id) => {
     setCfg(prev => {
       const updated = { ...prev, [id]: !prev[id] };
-      try { localStorage.setItem('genie_writeback_cfg', JSON.stringify(updated)); } catch (_) {}
+      try { tSet('genie_writeback_cfg', JSON.stringify(updated)); } catch (_) {}
       addAlert?.({ type: 'info', msg: t('writebackPage.cfgChanged', 'Setting changed') + ': ' + id });
       return updated;
     });

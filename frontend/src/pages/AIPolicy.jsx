@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { tGet, tSet, tRemove } from '../utils/tenantStorage.js'; // 180차: 회원 격리
 import { useI18n } from '../i18n';
 import { useGlobalData } from '../context/GlobalDataContext.jsx';
 import { useAuth } from '../auth/AuthContext.jsx';
@@ -315,14 +316,14 @@ function ConfigTab() {
   const { t } = useI18n();
   const { addAlert } = useGlobalData();
   const [cfgState, setCfgState] = useState(() => {
-    try { const s = localStorage.getItem('genie_ai_policy_cfg'); if (s) return JSON.parse(s); } catch (_) {}
+    try { const s = tGet('genie_ai_policy_cfg'); if (s) return JSON.parse(s); } catch (_) {}
     return { budget_cap: true, roas_floor: true, bid_limit: false, freq_cap: true, creative_filter: false, approval_gate: true };
   });
 
   const toggleConfig = (id) => {
     setCfgState(prev => {
       const updated = { ...prev, [id]: !prev[id] };
-      try { localStorage.setItem('genie_ai_policy_cfg', JSON.stringify(updated)); } catch (_) {}
+      try { tSet('genie_ai_policy_cfg', JSON.stringify(updated)); } catch (_) {}
       addAlert?.({ type: 'info', msg: t('aiPolicy.cfgToggled', 'Config toggled') + ': ' + id });
       return updated;
     });

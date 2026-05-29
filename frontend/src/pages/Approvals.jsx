@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { tGet, tSet, tRemove } from '../utils/tenantStorage.js'; // 180차: 회원 격리
 import { useI18n } from '../i18n';
 import { useCurrency } from '../contexts/CurrencyContext.jsx';
 import { useAuth } from '../auth/AuthContext.jsx';
@@ -288,14 +289,14 @@ function AuditTab({ t }) {
 function SettingsTab({ t }) {
   const { addAlert } = useGlobalData();
   const [cfg, setCfg] = useState(() => {
-    try { const s = localStorage.getItem('genie_approval_cfg'); if (s) return JSON.parse(s); } catch (_) {}
+    try { const s = tGet('genie_approval_cfg'); if (s) return JSON.parse(s); } catch (_) {}
     return { auto_approve_low: true, require_2fa: false, slack_notify: true, email_notify: true, execution_delay: false, audit_log: true };
   });
 
   const toggle = (id) => {
     setCfg(prev => {
       const updated = { ...prev, [id]: !prev[id] };
-      try { localStorage.setItem('genie_approval_cfg', JSON.stringify(updated)); } catch (_) {}
+      try { tSet('genie_approval_cfg', JSON.stringify(updated)); } catch (_) {}
       addAlert?.({ type: 'info', msg: t('approvalsPage.cfgChanged', 'Setting changed') + ': ' + id });
       return updated;
     });

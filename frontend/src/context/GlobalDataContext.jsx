@@ -12,6 +12,7 @@
 import React, { createContext, useContext, useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { guardProductionState } from '../security/ContaminationGuard.js';
 import { getJsonAuth } from '../services/apiClient.js';
+import { tGet, tSet } from '../utils/tenantStorage.js'; // 180차: 회원(테넌트) 격리 영속
 import {
   DEMO_INVENTORY, DEMO_ORDERS, DEMO_INOUT, DEMO_BUDGETS,
   DEMO_SETTLEMENT, DEMO_CAMPAIGNS, DEMO_CRM_SEGMENTS,
@@ -227,7 +228,8 @@ export function GlobalDataProvider({ children }) {
     // 구조: { [sku]: { [channelId]: recommendedPrice } }
     const [catalogChannelPrices, setCatalogChannelPrices] = useState(() => {
         try {
-            const saved = localStorage.getItem('geniego_catalog_channel_prices');
+            // 180차: 테넌트 스코프 — 회원별 채널 판매가 분리(같은 플랜 타 회원 값 유입 차단)
+            const saved = tGet('geniego_catalog_channel_prices');
             if (saved) return JSON.parse(saved);
         } catch { /* ignore */ }
         return {};
@@ -391,7 +393,7 @@ export function GlobalDataProvider({ children }) {
         if (!sku) return;
         setCatalogChannelPrices(prev => {
             const updated = { ...prev, [sku]: { ...(prev[sku] || {}), ...channelPrices } };
-            try { localStorage.setItem('geniego_catalog_channel_prices', JSON.stringify(updated)); } catch { /* ignore */ }
+            try { tSet('geniego_catalog_channel_prices', JSON.stringify(updated)); } catch { /* ignore */ } // 180차: 테넌트 스코프
             return updated;
         });
         // inventory.price도 첫 번째 Channel가격으로 대표 동기화 (setInventory 직접 사용해 순환참조 방지)

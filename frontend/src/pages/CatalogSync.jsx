@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef, memo } from "react";
+import { tGet, tSet, tRemove } from '../utils/tenantStorage.js'; // 180차: 회원 격리
 import { useGlobalData } from '../context/GlobalDataContext';
 import { useConnectorSync } from '../context/ConnectorSyncContext';
 import { useI18n } from '../i18n/index.js';
@@ -1414,7 +1415,7 @@ const SchedulePanel = memo(function SchedulePanel({ t, addAlert }) {
         { id: '1d', label: t('catalogSync.schedFreqDaily') || '매일' },
     ];
     const [schedules, setSchedules] = useState(() => {
-        try { const s = localStorage.getItem('geniego_sync_schedules'); return s ? JSON.parse(s) : []; } catch { return []; }
+        try { const s = tGet('geniego_sync_schedules'); return s ? JSON.parse(s) : []; } catch { return []; }
     });
     const [freq, setFreq] = useState('6h');
     const [time, setTime] = useState('03:00');
@@ -1424,18 +1425,18 @@ const SchedulePanel = memo(function SchedulePanel({ t, addAlert }) {
         const newSch = { id: `SCH-${Date.now()}`, freq, time, enabled, createdAt: new Date().toLocaleString(LANG_LOCALE_MAP[lang] || 'ko-KR', { hour12: false }) };
         const updated = [...schedules, newSch];
         setSchedules(updated);
-        try { localStorage.setItem('geniego_sync_schedules', JSON.stringify(updated)); } catch { }
+        try { tSet('geniego_sync_schedules', JSON.stringify(updated)); } catch { }
         addAlert({ type: 'success', msg: t('catalogSync.alertScheduleSaved', { freq: FREQ_OPTIONS.find(f => f.id === freq)?.label, time }) });
     };
     const deleteSchedule = (id) => {
         const updated = schedules.filter(s => s.id !== id);
         setSchedules(updated);
-        try { localStorage.setItem('geniego_sync_schedules', JSON.stringify(updated)); } catch { }
+        try { tSet('geniego_sync_schedules', JSON.stringify(updated)); } catch { }
     };
     const toggleSchedule = (id) => {
         const updated = schedules.map(s => s.id === id ? { ...s, enabled: !s.enabled } : s);
         setSchedules(updated);
-        try { localStorage.setItem('geniego_sync_schedules', JSON.stringify(updated)); } catch { }
+        try { tSet('geniego_sync_schedules', JSON.stringify(updated)); } catch { }
     };
 
     return (
@@ -1895,7 +1896,7 @@ const CategoryMappingTab = memo(function CategoryMappingTab() {
 
     // Load custom categories from localStorage
     const [customCats, setCustomCats] = useState(() => {
-        try { return JSON.parse(localStorage.getItem('genie_catalog_custom_cats') || '[]'); } catch { return []; }
+        try { return JSON.parse(tGet('genie_catalog_custom_cats') || '[]'); } catch { return []; }
     });
 
     // Merge preset + custom categories
@@ -1908,7 +1909,7 @@ const CategoryMappingTab = memo(function CategoryMappingTab() {
     const [mappings, setMappings] = useState(() => {
         // Load saved mappings from localStorage
         try {
-            const saved = JSON.parse(localStorage.getItem('genie_catalog_mappings') || 'null');
+            const saved = JSON.parse(tGet('genie_catalog_mappings') || 'null');
             if (saved && Array.isArray(saved)) return saved;
         } catch { }
         return allCategories.map(c => ({
@@ -1925,12 +1926,12 @@ const CategoryMappingTab = memo(function CategoryMappingTab() {
 
     // Persist mappings to localStorage on change
     useEffect(() => {
-        localStorage.setItem('genie_catalog_mappings', JSON.stringify(mappings));
+        tSet('genie_catalog_mappings', JSON.stringify(mappings));
     }, [mappings]);
 
     // Persist custom categories to localStorage
     useEffect(() => {
-        localStorage.setItem('genie_catalog_custom_cats', JSON.stringify(customCats));
+        tSet('genie_catalog_custom_cats', JSON.stringify(customCats));
     }, [customCats]);
 
     // BroadcastChannel: sync categories across tabs
@@ -1984,7 +1985,7 @@ const CategoryMappingTab = memo(function CategoryMappingTab() {
     };
 
     const handleSave = () => {
-        localStorage.setItem('genie_catalog_mappings', JSON.stringify(mappings));
+        tSet('genie_catalog_mappings', JSON.stringify(mappings));
         broadcastUpdate(customCats, mappings);
         setToast(t('catalogSync.catMapSaved'));
         setTimeout(() => setToast(null), 3000);
