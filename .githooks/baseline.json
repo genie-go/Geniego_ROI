@@ -2,10 +2,10 @@
   "version": "179",
   "updated": "2026-05-29",
   "sacred_sha": {
-    "ja.js": "cb17c7f59e9118681f0bec58c06151f87aa7caaca556bc1e02262807c9c736f4",
-    "zh.js": "7b3f0c3b82dde43bacfef0c99ac93c5cacd4c7316abbb8b3035ab0a305b59e2f"
+    "ja.js": "ff25f623b51059eb1e7c92f3f4ce4255462508909e0a75288fa332b1ea24c096",
+    "zh.js": "c8e13ae2ece800775bb1e3555a30d7cfa90774c8dd9d457bad4179c7dc502ca9"
   },
-  "ko_leaf_count": 31660,
+  "ko_leaf_count": 31718,
   "leaf_tolerance_pct": 5,
-  "_note": "179차 koMiss batch2 — PerformanceHub 105 라벨 15언어(보안/KPI/퍼널/정산/크리에이터/SKU/코호트/ESG). ko_leaf 31555→31660. 잔여 회원 koMiss: InfluencerUGC 58/EmailMarketing 42/PriceOpt 24 + guide* 142(검토). ja/zh SHA 갱신."
+  "_note": "179차 koMiss batch3 — InfluencerUGC 58 라벨 15언어(정산/리뷰KPI/AI평가). ko_leaf 31660→31718. 잔여 회원 koMiss: EmailMarketing 42/PriceOpt 24 + guide* 142(검토). ja/zh SHA 갱신."
 }
