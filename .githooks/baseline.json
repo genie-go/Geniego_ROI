@@ -2,10 +2,10 @@
   "version": "179",
   "updated": "2026-05-29",
   "sacred_sha": {
-    "ja.js": "85256ee170fc68190837358478fc13b22e76856d3d411daf164f47e138b7686a",
-    "zh.js": "428133b41cbc7c9a0f88cf1b427a39401f7c62992c6081e2b7f97c661a02573e"
+    "ja.js": "94fc9f39352ce97668ee6a491244072fefc17df5efac4f1bd08ecf10b15d66a4",
+    "zh.js": "23b27b61d43f329eff3127c7b7291983905e2613154062f38c89ba4d73b6f6f3"
   },
   "ko_leaf_count": 31521,
   "leaf_tolerance_pct": 5,
-  "_note": "179차 번역batch1 — 병합 후 노출된 otherMiss 중 Sms(60)/Reviews(34)/WebPopup(11)/Perf(5)/Settlements(2)=111키 14언어 네이티브 번역 주입(ko 무변경). otherMiss 440→328. CatalogSync(190)+Wms 잔여. ja/zh SHA 갱신, ko_leaf 31521 유지."
+  "_note": "179차 번역batch2 — CatalogSync(catalogSync 190: Part A 95 + Part B 95) + WmsManager(wms 28: 기술용어 유지 + guide* 번역) 14언어 네이티브. otherMiss 328→108(잔여 18키=구조: ActionPresets nested stub 11/help resolver-blocked 4/operations vi obj 2/aiHub array 1 = 라벨 아님 → 실 번역가능 0). ko 무변경. ja/zh SHA 갱신, ko_leaf 31521 유지."
 }
