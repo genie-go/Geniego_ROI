@@ -2,10 +2,10 @@
   "version": "179",
   "updated": "2026-05-29",
   "sacred_sha": {
-    "ja.js": "ccdb632c656b02f3e9837482c34ebd9f47ff40629aec71f4c847a39eca741e94",
-    "zh.js": "8effff296c2c869f4ba1433e4235abf7747178918b2c4b354654df0819e9718a"
+    "ja.js": "2d7e9cb092b5d27ee24479e5692a50990929a908ac10e610b47fce9b04fdd840",
+    "zh.js": "25661801596beb40feba3e402deb7d3992ad3f3462ccf928a66faed2c22a6cb2"
   },
-  "ko_leaf_count": 31833,
+  "ko_leaf_count": 31871,
   "leaf_tolerance_pct": 5,
-  "_note": "179차 guide batch2 — DataProduct 10단계 운영 가이드 29키 15언어(사용자 ko 수정본 verbatim + 14언어 충실성 패치). 페이지 steps 6→10 확장. ko_leaf 31804→31833. 잔여 guide* 15페이지(Writeback/PnL 6단계 + 헤더형). ja/zh SHA 갱신."
+  "_note": "179차 guide batch3 — Writeback(writebackPage 21, 사용자 수정본 verbatim) + PnL(pnl 17, CC초안) 15언어. ko_leaf 31833→31871. 잔여 guide* 헤더형 13페이지 55키. ja/zh SHA 갱신."
 }
