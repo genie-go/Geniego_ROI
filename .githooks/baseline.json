@@ -2,10 +2,10 @@
   "version": "179",
   "updated": "2026-05-29",
   "sacred_sha": {
-    "ja.js": "07090377a9209f0f3e9d749272b73d5902a4f4b475b66e3f97261b11843df885",
-    "zh.js": "d19e5bed79dfc08ebe7e0442c3dd82499f3ee05450c48169193d6742af8f4364"
+    "ja.js": "49c1dac2d36017d7519395774af341fc1803828737d9a7edcf0fd882241bfca2",
+    "zh.js": "681a4934949ecd65fa34eade20488ada12bcf0676c92ba15bfed4f898b6c092b"
   },
   "ko_leaf_count": 31829,
   "leaf_tolerance_pct": 5,
-  "_note": "Updated 179차 전수점검 batch1 — OrderHub(orderHub) otherMiss 133키 14개 언어 전파 (ja 132+zh 133 전체 + 6키 12언어). ja/zh sacred SHA 갱신. ko 무변경(leaf 31829 유지). 신규 collision 0(조건부 주입). 직전: BudgetTracker/AccountPerformance/Attribution 가이드+본문 15개 언어 동기화."
+  "_note": "Updated 179차 전수점검 batch2 — OperationsHub(105)+InfluencerUGC(119,influencerUGC/security ns 생성)+AIPolicy(75,aiPolicy ns 생성) otherMiss 14개 언어 전파/생성. ja/zh sacred SHA 갱신. ko 무변경(leaf 31829). 조건부 주입 신규 collision 0. 직전 batch1=OrderHub."
 }
