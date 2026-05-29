@@ -2,10 +2,10 @@
   "version": "179",
   "updated": "2026-05-29",
   "sacred_sha": {
-    "ja.js": "49c1dac2d36017d7519395774af341fc1803828737d9a7edcf0fd882241bfca2",
-    "zh.js": "681a4934949ecd65fa34eade20488ada12bcf0676c92ba15bfed4f898b6c092b"
+    "ja.js": "2c81ac02a23e0f238699be52624709607b785317ff0b8748b0b0f09ff73e5eb1",
+    "zh.js": "439f46b358611131d03c88b2167f66db67e8bea33d545469cbc40a1e9f77266a"
   },
   "ko_leaf_count": 31829,
   "leaf_tolerance_pct": 5,
-  "_note": "Updated 179차 전수점검 batch2 — OperationsHub(105)+InfluencerUGC(119,influencerUGC/security ns 생성)+AIPolicy(75,aiPolicy ns 생성) otherMiss 14개 언어 전파/생성. ja/zh sacred SHA 갱신. ko 무변경(leaf 31829). 조건부 주입 신규 collision 0. 직전 batch1=OrderHub."
+  "_note": "Updated 179차 전수점검 batch3 — OmniChannel(73,omniChannel ns 생성)+MappingRegistry(66,mr ns 생성) otherMiss 14개 언어 생성. ja/zh sacred SHA 갱신. ko 무변경(leaf 31829). 조건부 주입 신규 collision 0. 누적 6페이지(batch1 OrderHub + batch2 3p + batch3 2p)."
 }
