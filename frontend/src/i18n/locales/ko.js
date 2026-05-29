@@ -5706,7 +5706,8 @@ export default {
     guideStepsTitle2: "단계별 상세 가이드",
     guideTabsTitle2: "메뉴별 기능 설명",
     guideTipsTitle2: "전문가 팁",
-    guideCautionTitle: "주의사항"
+    guideCautionTitle: "주의사항",
+    tabGuide: "이용 가이드",
   },
 
   "email": {
@@ -5845,7 +5846,8 @@ export default {
     "heroTitle": "이메일 마케팅",
     "tabAnalytics": "분석",
     "tabCreative": "크리에이티브",
-    "tabGuide": "가이드"
+    "tabGuide": "가이드",
+    goHub: "통합 허브로 이동",
     },
 
   "kakao": {
@@ -6058,8 +6060,9 @@ export default {
 
     "delConfirm": "이 캠페인을 삭제하시겠습니까?",
 
-    "btnDel": "삭제"
+    "btnDel": "삭제",
 
+    tabGuide: "이용 가이드",
   },
 
   "root_pageTitle_graphScore": "그래프 스코어",
@@ -13828,7 +13831,8 @@ export default {
     nodeType: "노드 유형",
     score: "점수",
     connections: "연결",
-    influence: "영향력 지수"
+    influence: "영향력 지수",
+    tabGuide: "이용 가이드",
   },
 
   "onboarding": {
@@ -16243,7 +16247,14 @@ export default {
     "catOps": "운영",
     "catData": "데이터",
     "catAdmin": "관리자",
-    "catFin": "재무"
+    "catFin": "재무",
+    catAds: "광고 및 채널 분석",
+    catCRM: "고객/CRM",
+    catComm: "커머스 및 물류",
+    item_CRM: "CRM 대시보드",
+    item_WMS: "WMS 재고관리",
+    item_AI: "AI 마케팅",
+    item_: "메뉴 항목",
     },
 
   "aiPredict": {
@@ -23446,8 +23457,10 @@ export default {
 
     "btnCancel": "취소",
 
-    "btnAuthorize": "인증하기"
+    "btnAuthorize": "인증하기",
 
+    crossSyncActive: "크로스 채널 동기화 활성",
+    excelImport: "엑셀 가져오기",
   },
 
   "alertAuto": {
@@ -23922,367 +23935,6 @@ export default {
 
   },
 
-  "ds": {
-
-    "heroDesc": "판매·광고·분석 채널의 API 키를 등록하고 연결 상태를 관리합니다.",
-
-    "secTitle": "보안 위협 감지",
-
-    "secCode": "해제 코드 입력",
-
-    "secUnlock": "잠금 해제",
-
-    "crossTabSync": "다른 탭에서 스키마 동기화됨",
-
-    "tabSchema": "이벤트 스키마",
-
-    "tabSchemaDesc": "표준 필드 사양",
-
-    "tabPipeline": "수집→정규화",
-
-    "tabPipelineDesc": "데이터 파이프라인",
-
-    "tabMetrics": "메트릭 카탈로그",
-
-    "tabMetricsDesc": "공식 / 임계값",
-
-    "tabAlerts": "추천/알림 규칙",
-
-    "tabAlertsDesc": "자동화 트리거",
-
-    "badgeTotalFields": "전체 이벤트 필드",
-
-    "badgeMetrics": "메트릭 정의",
-
-    "badgeAlertRules": "알림 규칙",
-
-    "badgePlatforms": "지원 플랫폼",
-
-    "adEvents": "광고 이벤트",
-
-    "adDesc": "캠페인·크리에이티브·키워드·오디언스 레벨 노출/클릭/전환 이벤트 표준 스키마",
-
-    "marketOrders": "마켓 주문/정산",
-
-    "marketDesc": "주문·반품·클레임·정산 상세 차감 항목을 포함하는 마켓 이벤트 표준 스키마",
-
-    "ugcInfluencer": "UGC/인플루언서",
-
-    "ugcDesc": "콘텐츠 활동·클릭·쿠폰·계약·권리/화이트리스팅 표준 스키마",
-
-    "thField": "필드",
-
-    "thType": "타입",
-
-    "thRequired": "필수",
-
-    "thDesc": "설명",
-
-    "thExample": "예시",
-
-    "thTags": "태그",
-
-    "fields": "필드",
-
-    "platforms": "플랫폼",
-
-    "secCampaignHierarchy": "캠페인 계층 구조",
-
-    "secAudienceTarget": "오디언스 타겟팅",
-
-    "secPerfMetrics": "성과 지표",
-
-    "secOrder": "주문",
-
-    "secSettlement": "정산 차감",
-
-    "secReturnClaim": "반품 및 클레임",
-
-    "secCreatorIdentity": "크리에이터 식별",
-
-    "secContract": "계약",
-
-    "secContentPerf": "콘텐츠 성과",
-
-    "fEventId": "이벤트 고유 UUID v4",
-
-    "fPlatform": "플랫폼 코드",
-
-    "fAccountId": "광고 계정 ID",
-
-    "fCampaignId": "캠페인 ID",
-
-    "fCampaignName": "캠페인명",
-
-    "fCampaignObj": "캠페인 목표",
-
-    "fAdsetId": "광고 세트/그룹 ID",
-
-    "fAdsetName": "광고 세트명",
-
-    "fAdId": "크리에이티브(광고) ID",
-
-    "fAdName": "크리에이티브명",
-
-    "fCreativeType": "크리에이티브 유형",
-
-    "fKeywordId": "검색 키워드 ID (SA 전용)",
-
-    "fKeywordText": "키워드 텍스트",
-
-    "fMatchType": "키워드 매치 유형",
-
-    "fAudienceId": "오디언스 세그먼트 ID",
-
-    "fAudienceType": "리타겟/LAL/관심사/키워드",
-
-    "fAgeMin": "최소 연령 타겟",
-
-    "fAgeMax": "최대 연령 타겟",
-
-    "fGender": "성별 타겟 (ALL/M/F)",
-
-    "fGeoCountry": "국가 코드 ISO 3166-1",
-
-    "fPlacement": "배치 (피드/릴스/검색…)",
-
-    "fDeviceType": "디바이스 유형",
-
-    "fEventDate": "이벤트 날짜 UTC",
-
-    "fImpressions": "노출 수",
-
-    "fClicks": "클릭 수",
-
-    "fSpend": "광고비 (플랫폼 통화)",
-
-    "fCurrency": "통화 코드 ISO 4217",
-
-    "fConversions": "전환(구매) 수",
-
-    "fConvValue": "전환 금액",
-
-    "fReach": "순도달 사용자 수",
-
-    "fFrequency": "평균 노출 빈도",
-
-    "fCtr": "클릭률 (clicks/impressions)",
-
-    "fCpc": "클릭당 비용",
-
-    "fRoas": "광고 수익률",
-
-    "fOrderId": "주문 고유 ID",
-
-    "fOrderDate": "주문 일시 UTC",
-
-    "fSku": "상품 SKU",
-
-    "fProductName": "상품명",
-
-    "fQuantity": "주문 수량",
-
-    "fSellPrice": "판매 단가",
-
-    "fGrossSales": "총 매출 (수량 × 단가)",
-
-    "fSettleId": "정산 ID",
-
-    "fPlatformFee": "플랫폼 수수료",
-
-    "fAdFee": "광고비 차감",
-
-    "fNetPayout": "실 정산 금액",
-
-    "fReturnId": "반품 ID",
-
-    "fOrigOrderId": "원 주문 ID",
-
-    "fReturnReason": "반품 사유 코드",
-
-    "fReturnStatus": "처리 상태",
-
-    "fRefundAmt": "환불 금액",
-
-    "fCreatorId": "내부 크리에이터 UUID",
-
-    "fHandle": "플랫폼 핸들 (@username)",
-
-    "fTier": "크리에이터 등급",
-
-    "fContractId": "계약 UUID",
-
-    "fContractType": "계약 유형 (flat/perf)",
-
-    "fContractStart": "계약 시작일",
-
-    "fContractEnd": "계약 종료일",
-
-    "fEsignStatus": "전자서명 상태",
-
-    "fContentId": "플랫폼 콘텐츠 ID",
-
-    "fContentType": "콘텐츠 유형",
-
-    "fViews": "조회 수",
-
-    "fLikes": "좋아요 수",
-
-    "fEngRate": "참여율",
-
-    "fAttribRevenue": "어트리뷰션 기여 매출",
-
-    "pipeCollect": "수집",
-
-    "pipeNormalize": "정규화",
-
-    "pipeMetricsCalc": "메트릭 계산",
-
-    "pipeRecommend": "추천/알림",
-
-    "pipeAdApi": "광고 API 수집",
-
-    "pipeAdApiDesc": "Meta Marketing API / Google Ads API / TikTok Business API — OAuth2 토큰 자동 갱신, 15분 주기",
-
-    "pipeMarketFile": "마켓 정산 파일 수집",
-
-    "pipeMarketFileDesc": "Coupang Wing / Naver SmartStore 정산 CSV 자동 다운로드 → S3 적재",
-
-    "pipeUgcCrawl": "UGC 콘텐츠 수집",
-
-    "pipeUgcCrawlDesc": "YouTube Data API / Instagram Graph API — 게시 후 1h·24h·7d·30d 스냅샷",
-
-    "pipeFieldMap": "필드 매핑 및 통화 변환",
-
-    "pipeFieldMapDesc": "플랫폼별 원본 필드 → 표준 스키마 매핑. 외화 → KRW 환율 일일 업데이트",
-
-    "pipeCreatorUnify": "크리에이터 ID 통합",
-
-    "pipeCreatorUnifyDesc": "이메일 해시 + 핸들 유사도 기반 중복 감지 → identity_group_id 할당",
-
-    "pipeDQ": "데이터 품질 검증",
-
-    "pipeDQDesc": "필수 필드 NULL 검사, 음수 금액 방어, ROAS 임계치 이상 감지, 중복 event_id 제거",
-
-    "pipeStreamAgg": "실시간 집계 (스트리밍)",
-
-    "pipeStreamAggDesc": "Kafka Streams: 1분 롤링 윈도우 ROAS, CTR 집계 → Redis 캐시 → 대시보드",
-
-    "pipeBatchAgg": "일일 배치 집계",
-
-    "pipeBatchAggDesc": "Airflow DAG 매일 04:00 KST: SKU × 채널 × 캠페인 P&L 계산 → Parquet → BigQuery",
-
-    "pipeDerivedMetrics": "파생 메트릭",
-
-    "pipeDerivedMetricsDesc": "ROAS · ACOS · CTR · CVR · 반품률 · 쿠폰률 · 정산률 · 크리에이터 ROI",
-
-    "pipeAnomalyAlert": "이상 알림",
-
-    "pipeAnomalyAlertDesc": "anomaly_score > 70 → Slack + 인앱 알림. 권리/화이트리스트 만료 D-30/D-7/D-0",
-
-    "pipeBudgetRealloc": "예산 재배분 추천",
-
-    "pipeBudgetReallocDesc": "ROAS 기반 예산 이동 시뮬레이션: Δ매출 예측 + 신뢰구간",
-
-    "flowPlatformApi": "플랫폼 API",
-
-    "flowKafkaS3": "Kafka/S3",
-
-    "flowNormalize": "정규화",
-
-    "flowBigQuery": "BigQuery",
-
-    "dataFlowSummary": "데이터 흐름 요약",
-
-    "domain": "도메인",
-
-    "metric": "메트릭",
-
-    "formula": "공식",
-
-    "unit": "단위",
-
-    "alertCondition": "알림 조건",
-
-    "definedMetrics": "정의된 메트릭",
-
-    "metricsCatalog": "메트릭 카탈로그",
-
-    "typeDerived": "파생",
-
-    "typeAggregate": "집계",
-
-    "metReturnRate": "반품률",
-
-    "metSettleRate": "정산률",
-
-    "metCommRate": "수수료율",
-
-    "metEngRate": "참여율",
-
-    "metCreatorROI": "크리에이터 ROI",
-
-    "metBlendedROAS": "통합 ROAS",
-
-    "metNetMargin": "순이익률",
-
-    "priority": "우선순위",
-
-    "triggerCondition": "트리거 조건",
-
-    "action": "실행 동작",
-
-    "channel": "채널",
-
-    "autoExec": "자동 실행",
-
-    "immediateAction": "즉시 조치",
-
-    "earlyWarning": "사전 경고",
-
-    "optimization": "최적화",
-
-    "alertRuleCatalog": "추천/알림 규칙 카탈로그",
-
-    "ruleROAS2": "ROAS < 2.0x (24시간 지속)",
-
-    "ruleROAS2Action": "캠페인 자동 일시중지 + 즉시 Slack 알림",
-
-    "ruleROAS3": "ROAS < 3.0x",
-
-    "ruleROAS3Action": "예산 재배분 추천 카드 생성",
-
-    "ruleReturn12": "반품률 > 12%",
-
-    "ruleReturn12Action": "상품 운영 조치 추천 + MD 이메일",
-
-    "ruleOverpay": "과지급 감지",
-
-    "ruleOverpayAction": "환수 워크플로우 트리거 + 담당자 이메일",
-
-    "ruleWhitelistD30": "화이트리스트 만료 D-30",
-
-    "ruleWhitelistD30Action": "크리에이터에게 갱신 요청 이메일",
-
-    "ruleWhitelistD7": "화이트리스트 만료 D-7",
-
-    "ruleWhitelistD7Action": "긴급 광고 게재 검토 인앱 배너",
-
-    "ruleWhitelistD0": "화이트리스트 D-0 만료",
-
-    "ruleWhitelistD0Action": "광고 자동 중지 + 🔴 인앱 경고",
-
-    "ruleCreatorROI10": "크리에이터 ROI < 10x",
-
-    "ruleCreatorROI10Action": "갱신 검토 추천",
-
-    "ruleHighViewLowOrder": "높은 조회수(20만+) & 낮은 주문(50건-)",
-
-    "ruleHighViewLowOrderAction": "콘텐츠/랜딩 최적화 추천",
-    "heroTitle": "데이터 스키마",
-    "exportJSON": "JSON 내보내기",
-    "tabGuide": "가이드"
-    },
 
   "pxl": {
 
@@ -25034,6 +24686,7 @@ export default {
     detailItem: '상세 항목',
     detailKRW: '상세 (원)',
     detailValue: '상세 값',
+    tabGuide: "이용 가이드",
   },
 
   "aiHub": {
@@ -32242,7 +31895,12 @@ export default {
     "channel_Shopify": "Shopify",
     "channel_TikTok": "TikTok",
     "channel_Meta": "Meta",
-    "channel_Google": "Google"
+    "channel_Google": "Google",
+    channel_OwnMall: "자사몰",
+    channel_11Street: "11번가",
+    channel_KakaoShopping: "카카오 쇼핑",
+    channel_Rakuten: "라쿠텐",
+    channel_Gmarket: "G마켓",
     },
 
   "creativeStudio": {
@@ -33274,7 +32932,8 @@ export default {
     "heroTitle": "SMS 마케팅",
     "tabAnalytics": "분석",
     "tabCreative": "크리에이티브",
-    "tabGuide": "가이드"
+    "tabGuide": "가이드",
+    goHub: "통합 허브로 이동",
     },
 
   "contentCal": {
@@ -34413,6 +34072,9 @@ export default {
     reviewFeedSub: '리뷰 피드 부제',
     reviewFeedTitle: '리뷰 피드',
     neutral: '중립',
+    liveSyncMsg: "🔄 실시간 동기화 중 (5초 주기)",
+    heroTitle: "리뷰 & UGC 통합 관리",
+    tabGuide: "이용 가이드",
   },
 
   "root_pageTitle_reviewsUgc": "리뷰 & UGC",
@@ -34568,7 +34230,9 @@ export default {
     guideStep: "단계",
     guideTip: "팁",
     noData: "팝업 데이터가 아직 없습니다.",
-    demoIsolation: "데모 환경 — 운영 데이터와 분리되어 있습니다"
+    demoIsolation: "데모 환경 — 운영 데이터와 분리되어 있습니다",
+    liveSyncMsg: "실시간 동기화 중",
+    tabGuide: "이용 가이드",
   },
 
   graph: {
@@ -34651,7 +34315,11 @@ export default {
     "education_label": "교육",
     "education_route": "/education",
     "realestate_label": "부동산",
-    "realestate_route": "/realestate"
+    "realestate_route": "/realestate",
+    tax_label: "세무/회계",
+    tax_route: "/finance/tax",
+    etc_service_label: "기타 서비스",
+    etc_service_route: "/etc/service",
     },
 
   "refresh": "새로고침",
@@ -42417,8 +42085,13 @@ export default {
 
     "qq3": "반품율이 위험한 SKU는 무엇인가요?",
 
-    "qq4": "비용 절감 우선순위는 무엇인가요?"
+    "qq4": "비용 절감 우선순위는 무엇인가요?",
 
+    realtimeGuardrails: "AI 실시간 가드레일",
+    actualData: "실제 데이터",
+    mlPrediction: "ML 예측",
+    copilotEngine: "AI 코파일럿 엔진",
+    enterpriseEngine: "엔터프라이즈 AI 엔진",
   },
 
   "CSV": "CSV",
@@ -43668,41 +43341,9 @@ export default {
     anomalyTitle: "⚠ 이상 현황",
     kpiTitle: "📊 주요 KPI",
     campaignTitle: "📣 캠페인 퍼포먼스",
-    creatorTitle: "🤝 크리에이터 퍼포먼스"
+    creatorTitle: "🤝 크리에이터 퍼포먼스",
+    guideTitle: "보안 감사 가이드",
   },
-  performance: {
-    account: "계정",
-    allAccounts: "모든 계정",
-    allTeams: "모든 팀",
-    team: "팀",
-    colCvr: "CVR%",
-    compareTo: "비교 대상",
-    kpiCvr: "CVR",
-    title: "성과 허브",
-    subtitle: "실시간 KPI 모니터링 · 이상 감지 · 크로스채널 분석",
-    tabChannels: "채널",
-    tabCreatives: "크리에이티브",
-    kpiRoas: "ROAS",
-    kpiCtr: "클릭률",
-    channelPerf: "채널 성과",
-    audienceInsights: "시청자 인사이트",
-    creativePerf: "크리에이티브 성과",
-    colChannel: "채널",
-    colRoas: "ROAS",
-    colConversions: "전환",
-    colCtr: "클릭률(%)",
-    topProducts: "인기 상품",
-    anomalyDetected: "이상이 감지되었습니다",
-    noAnomaly: "이상이 감지되지 않았습니다",
-    exportReport: "비교 리포트 내보내기",
-    "pageTitle": "성과 허브",
-    "realtimeSync": "실시간 동기화",
-    "securityNormal": "보안 정상",
-    "badgeSecurity": "보안 활성",
-    "descPerformance": "실시간 KPI 모니터링",
-    "tabPerformance": "성과",
-    "threatsDetected": "위협 감지됨"
-    },
   "attribution": {
     "alert": "알림",
     "critical": "치명적",
@@ -43944,68 +43585,10 @@ export default {
   },
 
   // [176차 PM4] 운영 71페이지 전수 audit 후 누락 namespace 일괄 보강
-  reviews: {
-    liveSyncMsg: "🔄 실시간 동기화 중 (5초 주기)",
-    heroTitle: "리뷰 & UGC 통합 관리",
-    heroDesc: "고객 리뷰와 사용자 생성 콘텐츠(UGC) 통합 관리",
-    tabDashboard: "대시보드",
-    tabFeed: "리뷰 피드",
-    tabTrend: "트렌드",
-    tabSettings: "설정",
-    tabGuide: "이용 가이드",
-    kpiTotalSub2: "전체 누적",
-    kpiAvgRatingSub2: "평균 평점",
-    unitItems: "건",
-    inProgress: "준비 중",
-    noData: "데이터 없음",
-  },
-  settlements: {
-    tabGuide: "이용 가이드",
-    importBtn: "📤 정산 가져오기",
-  },
-  audit: {
-    guideTitle: "보안 감사 가이드",
-  },
   user: {
     menu: {
       title: "사용자 메뉴",
     },
-  },
-  graphScore: {
-    tabGuide: "이용 가이드",
-  },
-  catalogSync: {
-    crossSyncActive: "크로스 채널 동기화 활성",
-    kpiAllProducts: "전체 상품",
-    kpiSyncDone: "동기화 완료",
-    kpiChangeDetected: "변경 감지",
-    kpiErrorProduct: "오류 상품",
-    allChannel: "전체 채널",
-    allStatus: "전체 상태",
-    statusWarning: "경고",
-    productCount: "상품 수",
-    statusNormal: "정상",
-    statusError: "오류",
-    excelTemplate: "엑셀 템플릿",
-    excelExport: "엑셀 내보내기",
-    excelImport: "엑셀 가져오기",
-    csvExport: "CSV 내보내기",
-    csvImport: "CSV 가져오기",
-    colImage: "이미지",
-    colProductName: "상품명",
-    colCategory: "카테고리",
-    colMargin: "마진",
-    colProductCost: "원가",
-    colChannels: "채널",
-    colPurchaseCost: "매입가",
-    colStatus: "상태",
-    colUnit: "단위",
-    prevPage: "이전 페이지",
-    nextPage: "다음 페이지",
-    colSpec: "사양",
-    colSalePrice: "판매가",
-    colStock: "재고",
-    colSync: "동기화",
   },
   performance: {
     pageTitle: "성과 허브",
@@ -44042,6 +43625,31 @@ export default {
     guideTabCohortDesc: "코호트 분석 가이드",
     guideTabEsgDesc: "ESG 지표 가이드",
     guideTabGuideDesc: "전체 가이드 페이지",
+    account: "계정",
+    allAccounts: "모든 계정",
+    allTeams: "모든 팀",
+    team: "팀",
+    colCvr: "CVR%",
+    compareTo: "비교 대상",
+    kpiCvr: "CVR",
+    title: "성과 허브",
+    subtitle: "실시간 KPI 모니터링 · 이상 감지 · 크로스채널 분석",
+    tabChannels: "채널",
+    tabCreatives: "크리에이티브",
+    kpiRoas: "ROAS",
+    kpiCtr: "클릭률",
+    channelPerf: "채널 성과",
+    audienceInsights: "시청자 인사이트",
+    creativePerf: "크리에이티브 성과",
+    colChannel: "채널",
+    colRoas: "ROAS",
+    colConversions: "전환",
+    colCtr: "클릭률(%)",
+    topProducts: "인기 상품",
+    anomalyDetected: "이상이 감지되었습니다",
+    noAnomaly: "이상이 감지되지 않았습니다",
+    exportReport: "비교 리포트 내보내기",
+    "threatsDetected": "위협 감지됨",
   },
   ds: {
     // 176차 PM8 S8: DataSchema 165 missing keys 보강 (DB 컬럼/메트릭/파이프라인/규칙 도메인)
@@ -44246,10 +43854,6 @@ export default {
     platforms: "플랫폼",
     secCampaignHierarchy: "캠페인 계층",
   },
-  wms: {
-    tabGuide: "이용 가이드",
-    tabGuideDesc: "WMS 사용 가이드",
-  },
 
   // 176차 PM8-Total B1 — DigitalShelf 페이지 hardcoded 영문 fallback
   digitalShelf: {
@@ -44348,13 +43952,6 @@ export default {
     apiIntegrationSettings: "API 연동 설정",
     delete: "삭제",
   },
-  aiInsightsPage: {
-    realtimeGuardrails: "AI 실시간 가드레일",
-    actualData: "실제 데이터",
-    mlPrediction: "ML 예측",
-    copilotEngine: "AI 코파일럿 엔진",
-    enterpriseEngine: "엔터프라이즈 AI 엔진",
-  },
 
   // 176차 PM8-Total B1 — AIPrediction 페이지 hardcoded 영문 fallback
   aiPredictPage: {
@@ -44370,128 +43967,12 @@ export default {
     frequency: "빈도",
     amount: "금액",
   },
-  email: {
-    goHub: "통합 허브로 이동",
-    noChannels: "연동된 채널 없음",
-    liveSyncStatus: "실시간 동기화 상태",
-    syncNow: "지금 동기화",
-    tabAnalytics: "분석",
-    tabCreative: "크리에이티브",
-    tabGuide: "이용 가이드",
-  },
-  kakao: {
-    tabGuide: "이용 가이드",
-  },
-  webPopup: {
-    liveSyncMsg: "실시간 동기화 중",
-    tabGuide: "이용 가이드",
-  },
-  sms: {
-    goHub: "통합 허브로 이동",
-    syncNow: "지금 동기화",
-    heroDesc: "SMS 마케팅 통합 관리",
-    kpiSent: "발송 수",
-    kpiSuccess: "성공",
-    kpiFailed: "실패",
-    tabCompose: "작성",
-    tabBroadcast: "브로드캐스트",
-    tabTemplates: "템플릿",
-    sent: "발송 완료",
-    send: "발송",
-    tabCampaigns: "캠페인",
-    tabHistory: "이력",
-    tabStats: "통계",
-    tabSettings: "설정",
-    composeTitle: "메시지 작성",
-    type: "유형",
-    charCount: "글자 수",
-    capacity: "용량",
-    messageContent: "메시지 내용",
-    recipientNumber: "수신자 번호",
-    smsCostInfo: "SMS 비용 안내",
-  },
   attributes: {
     color: "색상",
     material: "소재",
   },
-  gCat: {
-    tax_label: "세무/회계",
-    tax_route: "/finance/tax",
-    etc_service_label: "기타 서비스",
-    etc_service_route: "/etc/service",
-    finance_label: "금융",
-    finance_route: "/finance",
-    insurance_label: "보험",
-    insurance_route: "/insurance",
-    medical_label: "의료",
-    medical_route: "/medical",
-    legal_label: "법무",
-    legal_route: "/legal",
-  },
-  gAiRec: {
-    channel_OwnMall: "자사몰",
-    channel_11Street: "11번가",
-    channel_KakaoShopping: "카카오 쇼핑",
-    channel_NaverShopping: "네이버 쇼핑",
-    channel_Rakuten: "라쿠텐",
-    channel_Coupang: "쿠팡",
-    channel_Gmarket: "G마켓",
-    channel_Amazon: "아마존",
-    // 176차 PM8 S8: AIRecommendTab 33 missing keys 보강
-    title: "AI 추천 분석",
-    subtitle: "데이터 기반 채널 예산 추천",
-    salesInfo: "판매 정보",
-    catalogAuto: "카탈로그 자동",
-    skuCount: "SKU 수",
-    units: "개",
-    monthlyQty: "월간 판매량",
-    avgPrice: "평균 단가",
-    currencyWon: "원",
-    marginRate: "마진율",
-    goalRevenue: "목표 매출",
-    period: "기간",
-    monthly: "월간",
-    annual: "연간",
-    monthlyRecBudget: "월간 추천 예산",
-    annualRecBudget: "연간 추천 예산",
-    autoYear: "자동 연간",
-    expectedRoas: "예상 ROAS",
-    effectiveness: "효율성",
-    mainChannels: "주요 채널",
-    searchPlaceholder: "채널 검색",
-    aiAnalysis: "AI 분석",
-    recommend: "추천",
-    analysisProgress: "분석 진행률",
-    analyzingBest: "최적 조합 분석 중",
-    gatheringData: "데이터 수집 중",
-    deliveryDefault: "기본 배송 채널",
-    adDefault: "기본 광고 채널",
-    edit: "수정",
-    original: "원본",
-    reset: "초기화",
-    regen: "재생성",
-    savePng: "PNG 저장",
-    tip: "팁",
-  },
 
   // [176차 PM2/PM3] menuAccess 동적 키 prefix (Sidebar 동적 메뉴 + admin 페이지)
-  menuAccess: {
-    catAds: "광고 및 채널 분석",
-    catCRM: "고객/CRM",
-    catComm: "커머스 및 물류",
-    catDash: "홈 대시보드",
-    catAI: "AI 자동화 & 룰 엔진",
-    item_CRM: "CRM 대시보드",
-    item_WMS: "WMS 재고관리",
-    item_AI: "AI 마케팅",
-    item_: "메뉴 항목",
-    recommendTitle: "타사 (Salesforce, HubSpot) 사례 기반 플랜 권한 자동 추천",
-    targetObj: "권한 대상:",
-    saveBtn: "매트릭스 덮어쓰기 (배포)",
-    permRead: "열람조회 (Read)",
-    permCreate: "개체생성 (Create)",
-    permUpdate: "수정승인 (Update)",
-  },
 
 
   // 177차 PM 4.E TOP 1 본체: ApiKeys 재설계 ak namespace (last-key-wins)

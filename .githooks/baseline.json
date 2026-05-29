@@ -2,10 +2,10 @@
   "version": "179",
   "updated": "2026-05-29",
   "sacred_sha": {
-    "ja.js": "71bf3408518d5716fce8ec0312f39a67101cc438c6298a6a22dff246bcbe7fa3",
-    "zh.js": "3676c1e9c9241c849bd18d608e53a26778338a04a62eed38e6577062d66e62f9"
+    "ja.js": "f0906ac5963cf56757934ee45c91c362df435cabbd28be525db17b627c1d42f0",
+    "zh.js": "45c3244f8a3aa365bd915f02f1cb7ba658e9b559303f06dcc0ebdd61f34eaf0c"
   },
-  "ko_leaf_count": 31829,
+  "ko_leaf_count": 31521,
   "leaf_tolerance_pct": 5,
-  "_note": "Updated 179차 batch9(otherMiss 잔류 마무리) — clean 45키 14언어(common/approvalsPage/dataProduct/priceOpt/writebackPage/contentCal 26/auth/wmsPage/yearSuffix). help.* 사전 버그(2381421f00) 정리: en 영문 배열 정규화 + 9개 언어 문자열 제거→en 폴백. 전역 otherMiss 1054→~90(실 라벨 0). 잔류 19=구조(help resolver-blocked 4/ActionPresets nested stub 11/aiHub array+page fallback 1/operations vi obj 2/yearSuffix 빈값 1)=라벨 아님. ko 무변경."
+  "_note": "179차 batch10(중복 ns 병합) — 15 로케일 전 중복 최상위 ns 병합: 최대(풀번역) 블록 유지+stub 고유키 이식+stub 삭제. 이전 차수 완성 번역이 last-wins stub에 가려진 shadowing 버그 수정. 숨겨진 번역 ≈17,950키 복구(ko +4,297 leaf, 0 손실). koMiss 1481→418, 중복 ns 0. wms 2→578, reviews 13→508, audit 1→148 등. acorn ko_leaf 31829→31521(Δ308<tol). ja/zh SHA 갱신."
 }
