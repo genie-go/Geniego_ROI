@@ -2,10 +2,10 @@
   "version": "178",
   "updated": "2026-05-29",
   "sacred_sha": {
-    "ja.js": "8c7762f60162341603f2e630ea860ccdb3e12e54d4c097a21467659e1c54f1ea",
-    "zh.js": "1a91007de4baf56bda9986732a55bcbc8e418708601097d88429a5e3cab89197"
+    "ja.js": "cff64923ee0e3196fb9e31e337098a1c6acced2107b840bbac247c0c7803b5ab",
+    "zh.js": "a36bc7253eb71976d83995b690e9b79bef4b9bf4d3215855d056e22e5f87eaf8"
   },
-  "ko_leaf_count": 31716,
+  "ko_leaf_count": 31719,
   "leaf_tolerance_pct": 5,
-  "_note": "Updated 178차 PM-Core 잔여 4 page — PMTaskTable/PMMilestones/PMActivity/PMSettings + App.jsx 4 lazy + 4 Route + PMProjectDetail 탭 작업·설정 + sidebarManifest 프로젝트 관리 그룹 노출. i18n 15 lang: gNav 2 + pm.tab 6 + pmExt.{table/ms/activity/settings/demoBanner} (ko 자연어 U-178-A 워크플로우 + 14 EN fallback). pmExt 기존 …→... 정합. ja/zh sacred SHA 의도적 갱신 (PM 키 추가). ko.js leaf 31592 → 31716 (Δ+124). G6 gAiRec collision pre-existing only (신규 키 0건)."
+  "_note": "Updated 178차 Option B (Events SSE) — Events.php SSE long-loop 본체 (pm_audit_log 폴링 + project 스코프 + 25s heartbeat + 300s cap + Last-Event-ID 재개) + services/pmEventStream.js (EventSource 래퍼 + 자동재연결 + usePmEventStream 훅) + PMActivity 라이브 연동 (자동 refetch + 상태 배지 + diff_json 버그 fix) + pmExt.activity.{live/reconnecting/offline} 3 키 × 15 lang. ja/zh sacred SHA 갱신. ko.js leaf 31716 → 31719 (Δ+3). G6 gAiRec pre-existing only."
 }

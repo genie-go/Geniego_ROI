@@ -30122,6 +30122,9 @@ export default {
       empty: "No milestones yet. Add the first one to track delivery checkpoints.",
     },
     activity: {
+      live: "Live",
+      reconnecting: "Reconnecting...",
+      offline: "Offline",
       title: "Activity log",
       backToProject: "Project",
       loading: "Loading activity...",

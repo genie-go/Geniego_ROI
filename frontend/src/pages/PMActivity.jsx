@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext.jsx';
 import { useT } from '../i18n/index.js';
+import { usePmEventStream } from '../services/pmEventStream.js';
 
 /**
  * PMActivity — PM 감사 로그 (audit trail) 피드.
@@ -47,6 +48,10 @@ export default function PMActivity() {
 
   useEffect(() => { fetchRows(); }, [fetchRows]);
 
+  // 라이브 SSE — 신규 audit 이벤트 도착 시 목록 자동 갱신 (forbidden/error 상태에서는 비활성)
+  const liveEnabled = !forbidden && !error && !!token;
+  const { status: liveStatus } = usePmEventStream(projectId, () => { fetchRows(); }, { enabled: liveEnabled });
+
   const view = useMemo(() => rows.filter(r =>
     (entityFilter === 'all' || r.entity_type === entityFilter) &&
     (actionFilter === 'all' || r.action === actionFilter)
@@ -54,7 +59,8 @@ export default function PMActivity() {
 
   const entityTypes = useMemo(() => [...new Set(rows.map(r => r.entity_type).filter(Boolean))], [rows]);
 
-  const fmtDiff = (diff) => {
+  const fmtDiff = (row) => {
+    const diff = row?.diff_json ?? row?.diff;
     if (!diff) return null;
     try {
       const obj = typeof diff === 'string' ? JSON.parse(diff) : diff;
@@ -105,6 +111,14 @@ export default function PMActivity() {
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20, flexWrap: 'wrap' }}>
         <h2 style={{ margin: 0, flex: 1 }}>📜 {t('pmExt.activity.title', 'Activity log')}</h2>
+        <span title={liveStatus} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11,
+          color: liveStatus === 'open' ? '#22c55e' : 'var(--text-3,#94a3b8)' }}>
+          <span style={{ width: 8, height: 8, borderRadius: '50%',
+            background: liveStatus === 'open' ? '#22c55e' : (liveStatus === 'reconnecting' ? '#f59e0b' : '#64748b') }} />
+          {liveStatus === 'open' ? t('pmExt.activity.live', 'Live')
+            : liveStatus === 'reconnecting' ? t('pmExt.activity.reconnecting', 'Reconnecting…')
+            : t('pmExt.activity.offline', 'Offline')}
+        </span>
         <select value={entityFilter} onChange={e => setEntityFilter(e.target.value)}
           aria-label={t('pmExt.activity.filterEntity', 'Filter by entity')} style={selectInput}>
           <option value="all">{t('pmExt.activity.allEntities', 'All entities')}</option>
@@ -140,9 +154,9 @@ export default function PMActivity() {
                   {' '}<span style={{ color: 'var(--text-3,#94a3b8)' }}>{r.entity_type}</span>
                   {' '}<code style={{ fontSize: 11 }}>{r.entity_id}</code>
                 </div>
-                {fmtDiff(r.diff) && (
+                {fmtDiff(r) && (
                   <div style={{ fontSize: 11, color: 'var(--text-3,#94a3b8)', marginTop: 2 }}>
-                    {t('pmExt.activity.changed', 'changed')}: {fmtDiff(r.diff)}
+                    {t('pmExt.activity.changed', 'changed')}: {fmtDiff(r)}
                   </div>
                 )}
                 <div style={{ fontSize: 10, color: 'var(--text-3,#94a3b8)', marginTop: 4, fontFamily: 'monospace' }}>

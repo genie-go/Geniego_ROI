@@ -44523,6 +44523,9 @@ export default {
       empty: "아직 마일스톤이 없습니다. 첫 마일스톤을 추가해 납기 체크포인트를 관리하세요.",
     },
     activity: {
+      live: "실시간",
+      reconnecting: "재연결 중...",
+      offline: "오프라인",
       title: "활동 로그",
       backToProject: "프로젝트 목록",
       loading: "활동을 불러오는 중...",
