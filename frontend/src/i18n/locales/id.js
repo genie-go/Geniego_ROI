@@ -1,4 +1,12 @@
 export default {
+  "payment": {
+    "failTitle": "Pembayaran Gagal",
+    "failMessage": "Terjadi masalah saat memproses pembayaran. Silakan coba lagi.",
+    "tryAgain": "Coba Lagi",
+    "goToDashboard": "Ke Dasbor",
+    "contactSupport": "Hubungi Dukungan",
+    "failHelp": "Jika masalah berlanjut, silakan hubungi dukungan.",
+  },
   "wmsPage": {
     "namePh": "Budi Santoso",
     "productName": "Nama Produk",
@@ -115,6 +123,17 @@ export default {
     "tabDW": "Data Warehouse",
     "filterAll": "Semua",
     "filterDisconnected": "Terputus",
+    "heroTitle": "Konektor Saluran",
+    "grantedScopes": "Izin yang Diberikan",
+    "tokenExpiry": "Kedaluwarsa Token",
+    "oauthPrompt": "Autentikasi via OAuth untuk menghubungkan saluran ini dengan aman.",
+    "btnOAuthConnect": "Hubungkan via OAuth",
+    "oauthModalTitle": "Autentikasi OAuth",
+    "oauthModalSub": "Koneksi saluran aman",
+    "oauthModalDesc": "Izin berikut diminta untuk menghubungkan {{platform}}.",
+    "requestedPermissions": "Izin yang Diminta",
+    "btnCancel": "Batal",
+    "btnAuthorize": "Otorisasi",
   },
   "mr": {
     "pfEmptyTitle": "Belum ada platform terdaftar",
@@ -188,6 +207,7 @@ export default {
     "dedCatTax": "Pajak",
     "dedCatPromotion": "Promosi",
     "dedCatShipping": "Pengiriman",
+    "heroTitle": "Registri Pemetaan",
   },
   "security": {
     "hackDetected": "🚨 [Peringatan Keamanan] Terdeteksi upaya injeksi data abnormal (peretasan). IP Anda dicatat dan sesi dapat diblokir.",
@@ -417,6 +437,7 @@ export default {
       guideSecSettings: "Kontrol alur kerja persetujuan.",
     "tabGuide": "Panduan",
     "heroTitle": "Alur Persetujuan",
+    "status": "Status",
     },
   ruleEnginePage: {
       heroDesc: "Daftarkan dan kelola API Key.",
@@ -20908,6 +20929,9 @@ export default {
     "slackWebhookSub": "Masukkan URL Slack Webhook untuk menerima notifikasi otomatis saat kata kunci negatif melonjak.",
     "guideTabsTitle": "Keterangan Fungsi Tiap Tab",
     "close": "Tutup",
+    "aiReplyPositive": "Balasan AI untuk Ulasan Positif",
+    "aiReplyNeutral": "Balasan AI untuk Ulasan Netral",
+    "aiReplyNegative": "Balasan AI untuk Ulasan Negatif",
     },
   auth: {
       quickStart: "⚡ Mulai Cepat",
@@ -31249,7 +31273,14 @@ export default {
       tabAlerts: "🚨 Alerts",
       tabApis: "🔌 API状態",
       tabOverview: "📊 全体状況",
-      uptime: "稼働時間"
+      uptime: "稼働時間",
+    "kpiConnected": "Terhubung",
+    "kpiOk": "Normal",
+    "kpiWarn": "Peringatan",
+    "kpiError": "Kesalahan",
+    "requests": "Permintaan",
+    "elapsed": "Berlalu",
+    "processed": "Diproses",
     },
   userMgmt: {
       actions: "処理",
@@ -31979,6 +32010,11 @@ export default {
     "statsSentThisMonth": "Terkirim Bulan Ini",
     "statsSuccessRate": "Tingkat Keberhasilan",
     "statsBalance": "Sisa Anggaran",
+    "secLockTitle": "Peringatan Keamanan",
+    "secLockDesc": "Akses tidak normal terdeteksi",
+    "dismiss": "Tutup",
+    "exportCsv": "Ekspor CSV",
+    "noHistory": "Tidak ada riwayat kirim",
   },
   attributes: {
     color: "Color",

@@ -1,4 +1,12 @@
 export default {
+  "payment": {
+    "failTitle": "결제 실패",
+    "failMessage": "결제 처리 중 문제가 발생했습니다. 다시 시도해 주세요.",
+    "tryAgain": "다시 시도",
+    "goToDashboard": "대시보드로 이동",
+    "contactSupport": "고객 지원 문의",
+    "failHelp": "문제가 계속되면 고객 지원에 문의해 주세요.",
+  },
 
   "writebackPage": {
 
@@ -317,7 +325,8 @@ export default {
 
     "guideSecSettings": "자동 승인, 2FA, 알림, 실행 지연, 감사 로깅 등을 세밀하게 제어합니다.",
     "heroTitle": "승인 워크플로우",
-    "tabGuide": "가이드"
+    "tabGuide": "가이드",
+    "status": "상태",
     },
 
   ruleEnginePage: {
@@ -23931,8 +23940,19 @@ export default {
 
     "dwSyncDaily04": "매일 04:00",
 
-    "dwSyncWeekly": "매주 월요일"
+    "dwSyncWeekly": "매주 월요일",
 
+    "heroTitle": "채널 커넥터",
+    "grantedScopes": "허용된 권한",
+    "tokenExpiry": "토큰 만료",
+    "oauthPrompt": "이 채널에 안전하게 연결하려면 OAuth 인증을 진행하세요.",
+    "btnOAuthConnect": "OAuth로 연결",
+    "oauthModalTitle": "OAuth 인증",
+    "oauthModalSub": "안전한 채널 연결",
+    "oauthModalDesc": "{{platform}}에 연결하기 위해 다음 권한을 요청합니다.",
+    "requestedPermissions": "요청 권한",
+    "btnCancel": "취소",
+    "btnAuthorize": "인증 승인",
   },
 
 
@@ -24527,8 +24547,9 @@ export default {
 
     "secLockTitle": "보안 잠금 활성화",
 
-    "secLockDesc": "비정상적인 접근이 감지되어 30초간 잠겨 있습니다"
+    "secLockDesc": "비정상적인 접근이 감지되어 30초간 잠겨 있습니다",
 
+    "heroTitle": "매핑 레지스트리",
   },
 
   "settlements": {
@@ -32934,6 +32955,11 @@ export default {
     "tabCreative": "크리에이티브",
     "tabGuide": "가이드",
     goHub: "통합 허브로 이동",
+    "secLockTitle": "보안 경고",
+    "secLockDesc": "비정상 접근이 감지되었습니다",
+    "dismiss": "닫기",
+    "exportCsv": "CSV 내보내기",
+    "noHistory": "발송 이력이 없습니다",
     },
 
   "contentCal": {
@@ -34075,6 +34101,9 @@ export default {
     liveSyncMsg: "🔄 실시간 동기화 중 (5초 주기)",
     heroTitle: "리뷰 & UGC 통합 관리",
     tabGuide: "이용 가이드",
+    "aiReplyPositive": "긍정 리뷰 AI 답변",
+    "aiReplyNeutral": "중립 리뷰 AI 답변",
+    "aiReplyNegative": "부정 리뷰 AI 답변",
   },
 
   "root_pageTitle_reviewsUgc": "리뷰 & UGC",
@@ -41247,8 +41276,15 @@ export default {
 
     "response": "응답",
 
-    "availability": "가용성"
+    "availability": "가용성",
 
+    "kpiConnected": "연결됨",
+    "kpiOk": "정상",
+    "kpiWarn": "경고",
+    "kpiError": "오류",
+    "requests": "요청 수",
+    "elapsed": "경과 시간",
+    "processed": "처리됨",
   },
 
   "operations": {

@@ -1,4 +1,12 @@
 export default {
+  "payment": {
+    "failTitle": "فشل الدفع",
+    "failMessage": "حدثت مشكلة أثناء معالجة الدفع. يرجى المحاولة مرة أخرى.",
+    "tryAgain": "حاول مرة أخرى",
+    "goToDashboard": "الذهاب إلى لوحة التحكم",
+    "contactSupport": "الاتصال بالدعم",
+    "failHelp": "إذا استمرت المشكلة، يرجى الاتصال بالدعم.",
+  },
   "wmsPage": {
     "namePh": "محمد أحمد",
     "productName": "اسم المنتج",
@@ -115,6 +123,17 @@ export default {
     "tabDW": "مستودع البيانات",
     "filterAll": "الكل",
     "filterDisconnected": "غير متصل",
+    "heroTitle": "موصّلات القنوات",
+    "grantedScopes": "الصلاحيات الممنوحة",
+    "tokenExpiry": "انتهاء الرمز",
+    "oauthPrompt": "صادق عبر OAuth لربط هذه القناة بأمان.",
+    "btnOAuthConnect": "الربط عبر OAuth",
+    "oauthModalTitle": "مصادقة OAuth",
+    "oauthModalSub": "اتصال قناة آمن",
+    "oauthModalDesc": "الصلاحيات التالية مطلوبة لربط {{platform}}.",
+    "requestedPermissions": "الصلاحيات المطلوبة",
+    "btnCancel": "إلغاء",
+    "btnAuthorize": "تفويض",
   },
   "mr": {
     "pfEmptyTitle": "لا توجد منصات مسجلة",
@@ -188,6 +207,7 @@ export default {
     "dedCatTax": "الضريبة",
     "dedCatPromotion": "العرض الترويجي",
     "dedCatShipping": "الشحن",
+    "heroTitle": "سجل التعيين",
   },
   "security": {
     "hackDetected": "🚨 [تنبيه أمني] تم اكتشاف محاولة حقن بيانات غير طبيعية (اختراق). يتم تسجيل عنوان IP الخاص بك وقد يتم حظر الجلسة.",
@@ -6688,6 +6708,7 @@ export default {
       guideSecSettings: "Fine-tune approval workflow with auto-approve, 2FA, notifications, and more.",
     "tabGuide": "الدليل",
     "heroTitle": "سير عمل الموافقة",
+    "status": "الحالة",
     },
   mobile: {
       hello: "Hello,",
@@ -16230,7 +16251,14 @@ export default {
       status_error: "Error",
       service: "Service",
       response: "Response",
-      availability: "Availability"
+      availability: "Availability",
+    "kpiConnected": "متصل",
+    "kpiOk": "سليم",
+    "kpiWarn": "تحذير",
+    "kpiError": "خطأ",
+    "requests": "الطلبات",
+    "elapsed": "المنقضي",
+    "processed": "تمت المعالجة",
     },
   operations: {
       pageTitle: "⚡ Operations Hub",
@@ -16969,6 +16997,9 @@ export default {
     "slackWebhookSub": "أدخل رابط Slack Webhook لتلقّي تنبيهات تلقائية عند ارتفاع الكلمات السلبية.",
     "guideTabsTitle": "شرح وظائف كل علامة تبويب",
     "close": "إغلاق",
+    "aiReplyPositive": "رد الذكاء الاصطناعي للمراجعات الإيجابية",
+    "aiReplyNeutral": "رد الذكاء الاصطناعي للمراجعات المحايدة",
+    "aiReplyNegative": "رد الذكاء الاصطناعي للمراجعات السلبية",
     },
   campaignMgr: {
       pageTitle: "Campaign Manager",
@@ -26880,6 +26911,11 @@ export default {
     "statsSentThisMonth": "المُرسل هذا الشهر",
     "statsSuccessRate": "معدل النجاح",
     "statsBalance": "الميزانية المتبقية",
+    "secLockTitle": "تنبيه أمني",
+    "secLockDesc": "تم اكتشاف وصول غير طبيعي",
+    "dismiss": "إغلاق",
+    "exportCsv": "تصدير CSV",
+    "noHistory": "لا يوجد سجل إرسال",
   },
   attributes: {
     color: "Color",

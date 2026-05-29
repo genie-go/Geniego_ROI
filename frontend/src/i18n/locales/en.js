@@ -1,4 +1,12 @@
 export default {
+  "payment": {
+    "failTitle": "Payment Failed",
+    "failMessage": "A problem occurred while processing your payment. Please try again.",
+    "tryAgain": "Try Again",
+    "goToDashboard": "Go to Dashboard",
+    "contactSupport": "Contact Support",
+    "failHelp": "If the problem persists, please contact support.",
+  },
   "wmsPage": {
     "namePh": "John Doe",
     "productName": "Product Name",
@@ -115,6 +123,17 @@ export default {
     "tabDW": "Data Warehouse",
     "filterAll": "All",
     "filterDisconnected": "Disconnected",
+    "heroTitle": "Channel Connectors",
+    "grantedScopes": "Granted Scopes",
+    "tokenExpiry": "Token Expiry",
+    "oauthPrompt": "Authenticate via OAuth to securely connect this channel.",
+    "btnOAuthConnect": "Connect via OAuth",
+    "oauthModalTitle": "OAuth Authentication",
+    "oauthModalSub": "Secure channel connection",
+    "oauthModalDesc": "The following permissions are requested to connect {{platform}}.",
+    "requestedPermissions": "Requested Permissions",
+    "btnCancel": "Cancel",
+    "btnAuthorize": "Authorize",
   },
   "mr": {
     "pfEmptyTitle": "No platforms registered",
@@ -188,6 +207,7 @@ export default {
     "dedCatTax": "Tax",
     "dedCatPromotion": "Promotion",
     "dedCatShipping": "Shipping",
+    "heroTitle": "Mapping Registry",
   },
   "security": {
     "hackDetected": "🚨 [Security Alert] An abnormal data injection (hacking) attempt was detected. Your IP is logged and the session may be blocked.",
@@ -417,6 +437,7 @@ export default {
       guideSecSettings: "Fine-tune approval workflow with auto-approve, 2FA, notifications, and more.",
     "tabGuide": "Guide",
     "heroTitle": "Approval Workflow",
+    "status": "Status",
     },
   ruleEnginePage: {
       heroDesc: "Register API keys and manage connection status for sales, advertising, and analytics channels.",
@@ -15621,7 +15642,14 @@ export default {
       status_error: "Error",
       service: "Service",
       response: "Response",
-      availability: "Availability"
+      availability: "Availability",
+    "kpiConnected": "Connected",
+    "kpiOk": "OK",
+    "kpiWarn": "Warning",
+    "kpiError": "Error",
+    "requests": "Requests",
+    "elapsed": "Elapsed",
+    "processed": "Processed",
     },
   operations: {
       pageTitle: "⚡ Operations Hub",
@@ -16363,6 +16391,9 @@ export default {
     "slackWebhookSub": "Enter a Slack Webhook URL to receive auto-alerts when negative keywords spike.",
     "guideTabsTitle": "Tab Reference",
     "close": "Close",
+    "aiReplyPositive": "AI Reply for Positive Reviews",
+    "aiReplyNeutral": "AI Reply for Neutral Reviews",
+    "aiReplyNegative": "AI Reply for Negative Reviews",
     },
   campaignMgr: {
       pageTitle: "Campaign Manager",
@@ -27274,6 +27305,11 @@ export default {
     "statsSentThisMonth": "Sent This Month",
     "statsSuccessRate": "Success Rate",
     "statsBalance": "Budget Remaining",
+    "secLockTitle": "Security Alert",
+    "secLockDesc": "Abnormal access detected",
+    "dismiss": "Dismiss",
+    "exportCsv": "Export CSV",
+    "noHistory": "No send history",
     },
   contentCal: {
     liveSyncMsg: "Live sync active",

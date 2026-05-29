@@ -1,4 +1,12 @@
 export default {
+  "payment": {
+    "failTitle": "ชำระเงินล้มเหลว",
+    "failMessage": "เกิดปัญหาขณะประมวลผลการชำระเงิน โปรดลองอีกครั้ง",
+    "tryAgain": "ลองอีกครั้ง",
+    "goToDashboard": "ไปที่แดชบอร์ด",
+    "contactSupport": "ติดต่อฝ่ายสนับสนุน",
+    "failHelp": "หากปัญหายังคงอยู่ โปรดติดต่อฝ่ายสนับสนุน",
+  },
   "wmsPage": {
     "namePh": "สมชาย ใจดี",
     "productName": "ชื่อสินค้า",
@@ -115,6 +123,17 @@ export default {
     "tabDW": "คลังข้อมูล",
     "filterAll": "ทั้งหมด",
     "filterDisconnected": "ยังไม่เชื่อมต่อ",
+    "heroTitle": "ตัวเชื่อมต่อช่องทาง",
+    "grantedScopes": "สิทธิ์ที่อนุญาต",
+    "tokenExpiry": "โทเค็นหมดอายุ",
+    "oauthPrompt": "ยืนยันตัวตนผ่าน OAuth เพื่อเชื่อมต่อช่องทางนี้อย่างปลอดภัย",
+    "btnOAuthConnect": "เชื่อมต่อผ่าน OAuth",
+    "oauthModalTitle": "การยืนยันตัวตน OAuth",
+    "oauthModalSub": "การเชื่อมต่อช่องทางที่ปลอดภัย",
+    "oauthModalDesc": "ต้องการสิทธิ์ต่อไปนี้เพื่อเชื่อมต่อ {{platform}}",
+    "requestedPermissions": "สิทธิ์ที่ร้องขอ",
+    "btnCancel": "ยกเลิก",
+    "btnAuthorize": "อนุญาต",
   },
   "mr": {
     "pfEmptyTitle": "ไม่มีแพลตฟอร์มที่ลงทะเบียน",
@@ -188,6 +207,7 @@ export default {
     "dedCatTax": "ภาษี",
     "dedCatPromotion": "โปรโมชัน",
     "dedCatShipping": "การจัดส่ง",
+    "heroTitle": "รีจิสทรีการแมป",
   },
   "security": {
     "hackDetected": "🚨 [การแจ้งเตือนความปลอดภัย] ตรวจพบความพยายามฉีดข้อมูลผิดปกติ (แฮ็ก) IP ของคุณถูกบันทึกและเซสชันอาจถูกบล็อก",
@@ -417,6 +437,7 @@ export default {
       guideSecSettings: "ควบคุมเวิร์กโฟลว์การอนุมัติอย่างละเอียด",
     "tabGuide": "คู่มือ",
     "heroTitle": "เวิร์กโฟลว์การอนุมัติ",
+    "status": "สถานะ",
     },
   ruleEnginePage: {
       heroDesc: "ลงทะเบียนและจัดการ API Key",
@@ -20879,6 +20900,9 @@ export default {
     "slackWebhookSub": "ป้อน URL Slack Webhook เพื่อรับการแจ้งเตือนอัตโนมัติเมื่อคำเชิงลบพุ่งสูง",
     "guideTabsTitle": "คำอธิบายฟังก์ชันของแต่ละแท็บ",
     "close": "ปิด",
+    "aiReplyPositive": "AI ตอบรีวิวเชิงบวก",
+    "aiReplyNeutral": "AI ตอบรีวิวเป็นกลาง",
+    "aiReplyNegative": "AI ตอบรีวิวเชิงลบ",
     },
   auth: {
       quickStart: "⚡ เริ่มต้นอย่างรวดเร็ว",
@@ -31208,7 +31232,14 @@ export default {
       tabAlerts: "🚨 Alerts",
       tabApis: "🔌 API状態",
       tabOverview: "📊 全体状況",
-      uptime: "稼働時間"
+      uptime: "稼働時間",
+    "kpiConnected": "เชื่อมต่อแล้ว",
+    "kpiOk": "ปกติ",
+    "kpiWarn": "เตือน",
+    "kpiError": "ข้อผิดพลาด",
+    "requests": "คำขอ",
+    "elapsed": "เวลาที่ผ่านไป",
+    "processed": "ประมวลผลแล้ว",
     },
   userMgmt: {
       actions: "処理",
@@ -31937,6 +31968,11 @@ export default {
     "statsSentThisMonth": "ส่งเดือนนี้",
     "statsSuccessRate": "อัตราส่งสำเร็จ",
     "statsBalance": "งบคงเหลือ",
+    "secLockTitle": "แจ้งเตือนความปลอดภัย",
+    "secLockDesc": "ตรวจพบการเข้าถึงผิดปกติ",
+    "dismiss": "ปิด",
+    "exportCsv": "ส่งออก CSV",
+    "noHistory": "ไม่มีประวัติการส่ง",
   },
   attributes: {
     color: "Color",

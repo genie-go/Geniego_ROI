@@ -1,4 +1,12 @@
 export default {
+  "payment": {
+    "failTitle": "付款失敗",
+    "failMessage": "處理付款時發生問題，請重試。",
+    "tryAgain": "重試",
+    "goToDashboard": "前往儀表板",
+    "contactSupport": "聯絡客服",
+    "failHelp": "如果問題持續，請聯絡客服。",
+  },
   "wmsPage": {
     "namePh": "王小明",
     "productName": "商品名稱",
@@ -115,6 +123,17 @@ export default {
     "tabDW": "資料倉儲",
     "filterAll": "全部",
     "filterDisconnected": "未連接",
+    "heroTitle": "管道連接器",
+    "grantedScopes": "已授予權限",
+    "tokenExpiry": "權杖過期",
+    "oauthPrompt": "透過 OAuth 認證以安全連接此管道。",
+    "btnOAuthConnect": "透過 OAuth 連接",
+    "oauthModalTitle": "OAuth 認證",
+    "oauthModalSub": "安全管道連接",
+    "oauthModalDesc": "連接 {{platform}} 需要以下權限。",
+    "requestedPermissions": "請求的權限",
+    "btnCancel": "取消",
+    "btnAuthorize": "授權",
   },
   "mr": {
     "pfEmptyTitle": "無已註冊平台",
@@ -188,6 +207,7 @@ export default {
     "dedCatTax": "稅金",
     "dedCatPromotion": "促銷",
     "dedCatShipping": "配送",
+    "heroTitle": "對應註冊表",
   },
   "security": {
     "hackDetected": "🚨 [安全警報] 偵測到異常資料注入（駭客）嘗試。您的 IP 已被記錄，工作階段可能被封鎖。",
@@ -417,6 +437,7 @@ export default {
       guideSecSettings: "精細控制審批工作流程。",
     "tabGuide": "指南",
     "heroTitle": "審批工作流",
+    "status": "狀態",
     },
   ruleEnginePage: {
       heroDesc: "註冊API金鑰並管理連接狀態。",
@@ -18839,6 +18860,9 @@ export default {
     "slackWebhookSub": "輸入 Slack Webhook URL，在負面關鍵字激增時接收自動通知。",
     "guideTabsTitle": "各分頁功能說明",
     "close": "關閉",
+    "aiReplyPositive": "正面評論 AI 回覆",
+    "aiReplyNeutral": "中性評論 AI 回覆",
+    "aiReplyNegative": "負面評論 AI 回覆",
     },
   auth: {
       quickStart: "⚡ 快速入門",
@@ -29625,7 +29649,14 @@ export default {
       tabAlerts: "🚨 Alerts",
       tabApis: "🔌 API状態",
       tabOverview: "📊 全体状況",
-      uptime: "稼働時間"
+      uptime: "稼働時間",
+    "kpiConnected": "已連接",
+    "kpiOk": "正常",
+    "kpiWarn": "警告",
+    "kpiError": "錯誤",
+    "requests": "請求數",
+    "elapsed": "已用時間",
+    "processed": "已處理",
     },
   userMgmt: {
       actions: "処理",
@@ -30349,6 +30380,11 @@ export default {
     "statsSentThisMonth": "本月發送",
     "statsSuccessRate": "發送成功率",
     "statsBalance": "預算餘額",
+    "secLockTitle": "安全警告",
+    "secLockDesc": "偵測到異常存取",
+    "dismiss": "關閉",
+    "exportCsv": "匯出 CSV",
+    "noHistory": "無發送歷史",
   },
   attributes: {
     color: "Color",

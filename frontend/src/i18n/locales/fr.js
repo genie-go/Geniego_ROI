@@ -1,4 +1,12 @@
 export default {
+  "payment": {
+    "failTitle": "Échec du paiement",
+    "failMessage": "Un problème est survenu lors du traitement du paiement. Veuillez réessayer.",
+    "tryAgain": "Réessayer",
+    "goToDashboard": "Aller au tableau de bord",
+    "contactSupport": "Contacter le support",
+    "failHelp": "Si le problème persiste, contactez le support.",
+  },
   "wmsPage": {
     "namePh": "Jean Dupont",
     "productName": "Nom du produit",
@@ -115,6 +123,17 @@ export default {
     "tabDW": "Data Warehouse",
     "filterAll": "Tous",
     "filterDisconnected": "Déconnecté",
+    "heroTitle": "Connecteurs de canaux",
+    "grantedScopes": "Autorisations accordées",
+    "tokenExpiry": "Expiration du jeton",
+    "oauthPrompt": "Authentifiez-vous via OAuth pour connecter ce canal en toute sécurité.",
+    "btnOAuthConnect": "Connecter via OAuth",
+    "oauthModalTitle": "Authentification OAuth",
+    "oauthModalSub": "Connexion sécurisée du canal",
+    "oauthModalDesc": "Les autorisations suivantes sont demandées pour connecter {{platform}}.",
+    "requestedPermissions": "Autorisations demandées",
+    "btnCancel": "Annuler",
+    "btnAuthorize": "Autoriser",
   },
   "mr": {
     "pfEmptyTitle": "Aucune plateforme enregistrée",
@@ -188,6 +207,7 @@ export default {
     "dedCatTax": "Taxe",
     "dedCatPromotion": "Promotion",
     "dedCatShipping": "Expédition",
+    "heroTitle": "Registre de mappage",
   },
   "security": {
     "hackDetected": "🚨 [Alerte de sécurité] Une tentative anormale d’injection de données (piratage) a été détectée. Votre IP est enregistrée et la session peut être bloquée.",
@@ -417,6 +437,7 @@ export default {
       guideSecSettings: "Fine-tune approval workflow with auto-approve, 2FA, notifications, and more.",
     "tabGuide": "Guide",
     "heroTitle": "Flux d’approbation",
+    "status": "Statut",
     },
   ruleEnginePage: {
       heroDesc: "Register API keys and manage connection status for sales, advertising, and analytics channels.",
@@ -15500,7 +15521,14 @@ export default {
       status_error: "Error",
       service: "Service",
       response: "Response",
-      availability: "Availability"
+      availability: "Availability",
+    "kpiConnected": "Connecté",
+    "kpiOk": "OK",
+    "kpiWarn": "Avertissement",
+    "kpiError": "Erreur",
+    "requests": "Requêtes",
+    "elapsed": "Écoulé",
+    "processed": "Traité",
     },
   operations: {
       pageTitle: "⚡ Operations Hub",
@@ -16256,6 +16284,9 @@ export default {
     "slackWebhookSub": "Saisissez une URL de Webhook Slack pour recevoir des alertes automatiques en cas de pic de mots-clés négatifs.",
     "guideTabsTitle": "Présentation des fonctions par onglet",
     "close": "Fermer",
+    "aiReplyPositive": "Réponse IA aux avis positifs",
+    "aiReplyNeutral": "Réponse IA aux avis neutres",
+    "aiReplyNegative": "Réponse IA aux avis négatifs",
     },
   campaignMgr: {
       pageTitle: "Campaign Manager",
@@ -27204,6 +27235,11 @@ export default {
     "statsSentThisMonth": "Envoyé ce mois-ci",
     "statsSuccessRate": "Taux de réussite",
     "statsBalance": "Budget restant",
+    "secLockTitle": "Alerte de sécurité",
+    "secLockDesc": "Accès anormal détecté",
+    "dismiss": "Fermer",
+    "exportCsv": "Exporter CSV",
+    "noHistory": "Aucun historique d’envoi",
   },
   attributes: {
     color: "Color",

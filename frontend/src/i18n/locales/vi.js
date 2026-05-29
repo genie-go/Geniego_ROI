@@ -1,4 +1,12 @@
 export default {
+  "payment": {
+    "failTitle": "Thanh toán thất bại",
+    "failMessage": "Đã xảy ra sự cố khi xử lý thanh toán. Vui lòng thử lại.",
+    "tryAgain": "Thử lại",
+    "goToDashboard": "Đến bảng điều khiển",
+    "contactSupport": "Liên hệ hỗ trợ",
+    "failHelp": "Nếu sự cố tiếp diễn, vui lòng liên hệ hỗ trợ.",
+  },
   "wmsPage": {
     "namePh": "Nguyễn Văn A",
     "productName": "Tên sản phẩm",
@@ -115,6 +123,17 @@ export default {
     "tabDW": "Kho dữ liệu",
     "filterAll": "Tất cả",
     "filterDisconnected": "Chưa kết nối",
+    "heroTitle": "Trình kết nối kênh",
+    "grantedScopes": "Quyền đã cấp",
+    "tokenExpiry": "Hết hạn token",
+    "oauthPrompt": "Xác thực qua OAuth để kết nối kênh này an toàn.",
+    "btnOAuthConnect": "Kết nối qua OAuth",
+    "oauthModalTitle": "Xác thực OAuth",
+    "oauthModalSub": "Kết nối kênh an toàn",
+    "oauthModalDesc": "Các quyền sau được yêu cầu để kết nối {{platform}}.",
+    "requestedPermissions": "Quyền được yêu cầu",
+    "btnCancel": "Hủy",
+    "btnAuthorize": "Cấp quyền",
   },
   "mr": {
     "pfEmptyTitle": "Chưa có nền tảng nào được đăng ký",
@@ -188,6 +207,7 @@ export default {
     "dedCatTax": "Thuế",
     "dedCatPromotion": "Khuyến mãi",
     "dedCatShipping": "Vận chuyển",
+    "heroTitle": "Sổ đăng ký ánh xạ",
   },
   "security": {
     "hackDetected": "🚨 [Cảnh báo bảo mật] Đã phát hiện nỗ lực tiêm dữ liệu bất thường (hack). IP của bạn được ghi lại và phiên có thể bị chặn.",
@@ -417,6 +437,7 @@ export default {
       guideSecSettings: "Kiểm soát quy trình phê duyệt chi tiết.",
     "tabGuide": "Hướng dẫn",
     "heroTitle": "Quy trình phê duyệt",
+    "status": "Trạng thái",
     },
   ruleEnginePage: {
       heroDesc: "Đăng ký và quản lý API Key.",
@@ -17686,6 +17707,9 @@ export default {
     "slackWebhookSub": "Nhập URL Slack Webhook để nhận thông báo tự động khi từ khóa tiêu cực tăng đột biến.",
     "guideTabsTitle": "Mô tả chức năng từng tab",
     "close": "Đóng",
+    "aiReplyPositive": "AI trả lời đánh giá tích cực",
+    "aiReplyNeutral": "AI trả lời đánh giá trung lập",
+    "aiReplyNegative": "AI trả lời đánh giá tiêu cực",
     },
   gdpr: {
       bannerTitle: "Tùy chọn cookie",
@@ -28422,7 +28446,14 @@ export default {
       tabAlerts: "🚨 Alerts",
       tabApis: "🔌 API状態",
       tabOverview: "📊 全体状況",
-      uptime: "稼働時間"
+      uptime: "稼働時間",
+    "kpiConnected": "Đã kết nối",
+    "kpiOk": "Bình thường",
+    "kpiWarn": "Cảnh báo",
+    "kpiError": "Lỗi",
+    "requests": "Yêu cầu",
+    "elapsed": "Đã trôi qua",
+    "processed": "Đã xử lý",
     },
   userMgmt: {
       actions: "処理",
@@ -29032,6 +29063,11 @@ export default {
     "statsSentThisMonth": "Đã gửi tháng này",
     "statsSuccessRate": "Tỷ lệ thành công",
     "statsBalance": "Ngân sách còn lại",
+    "secLockTitle": "Cảnh báo bảo mật",
+    "secLockDesc": "Phát hiện truy cập bất thường",
+    "dismiss": "Đóng",
+    "exportCsv": "Xuất CSV",
+    "noHistory": "Không có lịch sử gửi",
   },
   attributes: {
     color: "Color",

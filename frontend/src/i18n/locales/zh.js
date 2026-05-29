@@ -1,4 +1,12 @@
 export default {
+  "payment": {
+    "failTitle": "支付失败",
+    "failMessage": "处理支付时出现问题，请重试。",
+    "tryAgain": "重试",
+    "goToDashboard": "前往仪表板",
+    "contactSupport": "联系客服",
+    "failHelp": "如果问题持续，请联系客服。",
+  },
   "wmsPage": {
     "namePh": "张三",
     "productName": "商品名称",
@@ -115,6 +123,17 @@ export default {
     "tabDW": "数据仓库",
     "filterAll": "全部",
     "filterDisconnected": "未连接",
+    "heroTitle": "渠道连接器",
+    "grantedScopes": "已授予权限",
+    "tokenExpiry": "令牌过期",
+    "oauthPrompt": "通过 OAuth 认证以安全连接此渠道。",
+    "btnOAuthConnect": "通过 OAuth 连接",
+    "oauthModalTitle": "OAuth 认证",
+    "oauthModalSub": "安全渠道连接",
+    "oauthModalDesc": "连接 {{platform}} 需要以下权限。",
+    "requestedPermissions": "请求的权限",
+    "btnCancel": "取消",
+    "btnAuthorize": "授权",
   },
   "mr": {
     "pfEmptyTitle": "无已注册平台",
@@ -188,6 +207,7 @@ export default {
     "dedCatTax": "税金",
     "dedCatPromotion": "促销",
     "dedCatShipping": "配送",
+    "heroTitle": "映射注册表",
   },
   "security": {
     "hackDetected": "🚨 [安全警报] 检测到异常数据注入（黑客）尝试。您的 IP 已被记录，会话可能被阻止。",
@@ -416,7 +436,8 @@ export default {
     "guideSecAudit": "按时间顺序追踪所有审批决定和执行记录。",
     "guideSecSettings": "精细控制自动审批、认证、通知和审计日志。",
     "heroTitle": "Approvals Workflow",
-    "tabGuide": "Guide"
+    "tabGuide": "Guide",
+    "status": "状态",
     },
   "ruleEnginePage": {
     "heroDesc": "注册API密钥并管理连接状态。",
@@ -17172,7 +17193,14 @@ export default {
     "status_error": "错误",
     "service": "服务",
     "response": "响应",
-    "availability": "可用性"
+    "availability": "可用性",
+    "kpiConnected": "已连接",
+    "kpiOk": "正常",
+    "kpiWarn": "警告",
+    "kpiError": "错误",
+    "requests": "请求数",
+    "elapsed": "已用时间",
+    "processed": "已处理",
   },
   "pricing": {
     "pageTitle": "💳 套餐与订阅",
@@ -18594,6 +18622,9 @@ export default {
     "slackWebhookSub": "输入 Slack Webhook URL，在负面关键词激增时接收自动通知。",
     "guideTabsTitle": "各标签页功能说明",
     "close": "关闭",
+    "aiReplyPositive": "正面评价 AI 回复",
+    "aiReplyNeutral": "中性评价 AI 回复",
+    "aiReplyNegative": "负面评价 AI 回复",
   },
   "auth": {
     "quickStart": "⚡ 快速入门",
@@ -20257,6 +20288,11 @@ export default {
     "statsSentThisMonth": "本月发送",
     "statsSuccessRate": "发送成功率",
     "statsBalance": "预算余额",
+    "secLockTitle": "安全警告",
+    "secLockDesc": "检测到异常访问",
+    "dismiss": "关闭",
+    "exportCsv": "导出 CSV",
+    "noHistory": "无发送历史",
   },
   attributes: {
     color: "Color",

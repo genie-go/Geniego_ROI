@@ -1,4 +1,12 @@
 export default {
+  "payment": {
+    "failTitle": "決済失敗",
+    "failMessage": "決済処理中に問題が発生しました。もう一度お試しください。",
+    "tryAgain": "再試行",
+    "goToDashboard": "ダッシュボードへ",
+    "contactSupport": "サポートに問い合わせ",
+    "failHelp": "問題が続く場合はサポートにお問い合わせください。",
+  },
   "wmsPage": {
     "namePh": "山田太郎",
     "productName": "商品名",
@@ -115,6 +123,17 @@ export default {
     "tabDW": "データウェアハウス",
     "filterAll": "すべて",
     "filterDisconnected": "未接続",
+    "heroTitle": "チャネルコネクター",
+    "grantedScopes": "許可された権限",
+    "tokenExpiry": "トークン有効期限",
+    "oauthPrompt": "このチャネルを安全に接続するにはOAuth認証を行ってください。",
+    "btnOAuthConnect": "OAuthで接続",
+    "oauthModalTitle": "OAuth認証",
+    "oauthModalSub": "安全なチャネル接続",
+    "oauthModalDesc": "{{platform}}に接続するため、次の権限を要求します。",
+    "requestedPermissions": "要求権限",
+    "btnCancel": "キャンセル",
+    "btnAuthorize": "承認",
   },
   "mr": {
     "pfEmptyTitle": "登録されたプラットフォームなし",
@@ -188,6 +207,7 @@ export default {
     "dedCatTax": "税金",
     "dedCatPromotion": "プロモーション",
     "dedCatShipping": "配送",
+    "heroTitle": "マッピングレジストリ",
   },
   "security": {
     "hackDetected": "🚨 [セキュリティ警告] 異常なデータ注入（ハッキング）の試みが検出されました。接続IPが記録され、セッションがブロックされる場合があります。",
@@ -416,7 +436,8 @@ export default {
     "guideSecAudit": "すべての承認決定と実行記録を時系列で追跡します。",
     "guideSecSettings": "自動承認、2FA、通知チャネル、実行遅延、監査ログなど承認ワークフロー全般を制御します。",
     "heroTitle": "Approvals Workflow",
-    "tabGuide": "Guide"
+    "tabGuide": "Guide",
+    "status": "ステータス",
     },
   "ruleEnginePage": {
     "heroDesc": "API キーを登録し接続状態を管理します。",
@@ -15472,7 +15493,14 @@ export default {
     "status_error": "エラー",
     "service": "サービス",
     "response": "応答",
-    "availability": "可用性"
+    "availability": "可用性",
+    "kpiConnected": "接続済み",
+    "kpiOk": "正常",
+    "kpiWarn": "警告",
+    "kpiError": "エラー",
+    "requests": "リクエスト数",
+    "elapsed": "経過時間",
+    "processed": "処理済み",
   },
   "operations": {
     "pageTitle": "⚡ オペレーションハブ",
@@ -17099,6 +17127,9 @@ export default {
     "slackWebhookSub": "ネガティブキーワード急増時に自動通知を受け取るSlack Webhook URLを入力してください。",
     "guideTabsTitle": "タブ別機能のご案内",
     "close": "閉じる",
+    "aiReplyPositive": "ポジティブレビューAI返信",
+    "aiReplyNeutral": "中立レビューAI返信",
+    "aiReplyNegative": "ネガティブレビューAI返信",
     },
   "gdpr": {
     "bannerTitle": "クッキー(Cookie)の設定",
@@ -24121,6 +24152,11 @@ export default {
     "statsSentThisMonth": "今月の送信",
     "statsSuccessRate": "送信成功率",
     "statsBalance": "予算残高",
+    "secLockTitle": "セキュリティ警告",
+    "secLockDesc": "異常なアクセスが検出されました",
+    "dismiss": "閉じる",
+    "exportCsv": "CSVエクスポート",
+    "noHistory": "送信履歴がありません",
   },
   attributes: {
     color: "Color",

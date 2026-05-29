@@ -1,4 +1,12 @@
 export default {
+  "payment": {
+    "failTitle": "Pagamento falhou",
+    "failMessage": "Ocorreu um problema ao processar o pagamento. Tente novamente.",
+    "tryAgain": "Tentar novamente",
+    "goToDashboard": "Ir para o painel",
+    "contactSupport": "Falar com o suporte",
+    "failHelp": "Se o problema persistir, entre em contato com o suporte.",
+  },
   "wmsPage": {
     "namePh": "João Silva",
     "productName": "Nome do produto",
@@ -115,6 +123,17 @@ export default {
     "tabDW": "Data Warehouse",
     "filterAll": "Todos",
     "filterDisconnected": "Desconectado",
+    "heroTitle": "Conectores de canal",
+    "grantedScopes": "Permissões concedidas",
+    "tokenExpiry": "Expiração do token",
+    "oauthPrompt": "Autentique-se via OAuth para conectar este canal com segurança.",
+    "btnOAuthConnect": "Conectar via OAuth",
+    "oauthModalTitle": "Autenticação OAuth",
+    "oauthModalSub": "Conexão de canal segura",
+    "oauthModalDesc": "As seguintes permissões são solicitadas para conectar {{platform}}.",
+    "requestedPermissions": "Permissões solicitadas",
+    "btnCancel": "Cancelar",
+    "btnAuthorize": "Autorizar",
   },
   "mr": {
     "pfEmptyTitle": "Nenhuma plataforma registrada",
@@ -188,6 +207,7 @@ export default {
     "dedCatTax": "Imposto",
     "dedCatPromotion": "Promoção",
     "dedCatShipping": "Envio",
+    "heroTitle": "Registro de mapeamento",
   },
   "security": {
     "hackDetected": "🚨 [Alerta de segurança] Foi detectada uma tentativa anormal de injeção de dados (hacking). Seu IP é registrado e a sessão pode ser bloqueada.",
@@ -6688,6 +6708,7 @@ export default {
       guideSecSettings: "Fine-tune approval workflow with auto-approve, 2FA, notifications, and more.",
     "tabGuide": "Guia",
     "heroTitle": "Fluxo de aprovação",
+    "status": "Status",
     },
   mobile: {
       hello: "Hello,",
@@ -16230,7 +16251,14 @@ export default {
       status_error: "Error",
       service: "Service",
       response: "Response",
-      availability: "Availability"
+      availability: "Availability",
+    "kpiConnected": "Conectado",
+    "kpiOk": "OK",
+    "kpiWarn": "Aviso",
+    "kpiError": "Erro",
+    "requests": "Solicitações",
+    "elapsed": "Decorrido",
+    "processed": "Processado",
     },
   operations: {
       pageTitle: "⚡ Operations Hub",
@@ -16969,6 +16997,9 @@ export default {
     "slackWebhookSub": "Insira uma URL de Webhook do Slack para receber alertas automáticos quando palavras-chave negativas aumentarem.",
     "guideTabsTitle": "Descrição das funções por aba",
     "close": "Fechar",
+    "aiReplyPositive": "Resposta de IA para avaliações positivas",
+    "aiReplyNeutral": "Resposta de IA para avaliações neutras",
+    "aiReplyNegative": "Resposta de IA para avaliações negativas",
     },
   campaignMgr: {
       pageTitle: "Campaign Manager",
@@ -26880,6 +26911,11 @@ export default {
     "statsSentThisMonth": "Enviado este mês",
     "statsSuccessRate": "Taxa de sucesso",
     "statsBalance": "Orçamento restante",
+    "secLockTitle": "Alerta de segurança",
+    "secLockDesc": "Acesso anormal detectado",
+    "dismiss": "Dispensar",
+    "exportCsv": "Exportar CSV",
+    "noHistory": "Sem histórico de envio",
   },
   attributes: {
     color: "Color",

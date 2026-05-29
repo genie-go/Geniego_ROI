@@ -1,4 +1,12 @@
 export default {
+  "payment": {
+    "failTitle": "Платёж не прошёл",
+    "failMessage": "При обработке платежа возникла проблема. Пожалуйста, попробуйте снова.",
+    "tryAgain": "Повторить",
+    "goToDashboard": "В панель управления",
+    "contactSupport": "Связаться с поддержкой",
+    "failHelp": "Если проблема сохраняется, обратитесь в поддержку.",
+  },
   "wmsPage": {
     "namePh": "Иван Иванов",
     "productName": "Название товара",
@@ -115,6 +123,17 @@ export default {
     "tabDW": "Хранилище данных",
     "filterAll": "Все",
     "filterDisconnected": "Отключено",
+    "heroTitle": "Коннекторы каналов",
+    "grantedScopes": "Предоставленные разрешения",
+    "tokenExpiry": "Срок действия токена",
+    "oauthPrompt": "Пройдите аутентификацию через OAuth для безопасного подключения канала.",
+    "btnOAuthConnect": "Подключить через OAuth",
+    "oauthModalTitle": "Аутентификация OAuth",
+    "oauthModalSub": "Безопасное подключение канала",
+    "oauthModalDesc": "Для подключения {{platform}} запрашиваются следующие разрешения.",
+    "requestedPermissions": "Запрашиваемые разрешения",
+    "btnCancel": "Отмена",
+    "btnAuthorize": "Авторизовать",
   },
   "mr": {
     "pfEmptyTitle": "Нет зарегистрированных платформ",
@@ -188,6 +207,7 @@ export default {
     "dedCatTax": "Налог",
     "dedCatPromotion": "Промоакция",
     "dedCatShipping": "Доставка",
+    "heroTitle": "Реестр сопоставлений",
   },
   "security": {
     "hackDetected": "🚨 [Оповещение безопасности] Обнаружена аномальная попытка инъекции данных (взлом). Ваш IP регистрируется, и сессия может быть заблокирована.",
@@ -6688,6 +6708,7 @@ export default {
       guideSecSettings: "Fine-tune approval workflow with auto-approve, 2FA, notifications, and more.",
     "tabGuide": "Руководство",
     "heroTitle": "Процесс одобрения",
+    "status": "Статус",
     },
   mobile: {
       hello: "Hello,",
@@ -16230,7 +16251,14 @@ export default {
       status_error: "Error",
       service: "Service",
       response: "Response",
-      availability: "Availability"
+      availability: "Availability",
+    "kpiConnected": "Подключено",
+    "kpiOk": "Норма",
+    "kpiWarn": "Предупреждение",
+    "kpiError": "Ошибка",
+    "requests": "Запросы",
+    "elapsed": "Прошло",
+    "processed": "Обработано",
     },
   operations: {
       pageTitle: "⚡ Operations Hub",
@@ -16969,6 +16997,9 @@ export default {
     "slackWebhookSub": "Введите URL Slack Webhook для автоматических оповещений при росте негативных ключевых слов.",
     "guideTabsTitle": "Описание функций по вкладкам",
     "close": "Закрыть",
+    "aiReplyPositive": "AI-ответ на позитивные отзывы",
+    "aiReplyNeutral": "AI-ответ на нейтральные отзывы",
+    "aiReplyNegative": "AI-ответ на негативные отзывы",
     },
   campaignMgr: {
       pageTitle: "Campaign Manager",
@@ -26880,6 +26911,11 @@ export default {
     "statsSentThisMonth": "Отправлено в этом месяце",
     "statsSuccessRate": "Процент успеха",
     "statsBalance": "Остаток бюджета",
+    "secLockTitle": "Предупреждение безопасности",
+    "secLockDesc": "Обнаружен аномальный доступ",
+    "dismiss": "Закрыть",
+    "exportCsv": "Экспорт CSV",
+    "noHistory": "Нет истории отправки",
   },
   attributes: {
     color: "Color",

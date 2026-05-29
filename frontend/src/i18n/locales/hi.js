@@ -1,4 +1,12 @@
 export default {
+  "payment": {
+    "failTitle": "भुगतान विफल",
+    "failMessage": "भुगतान संसाधित करते समय समस्या हुई। कृपया पुनः प्रयास करें।",
+    "tryAgain": "पुनः प्रयास करें",
+    "goToDashboard": "डैशबोर्ड पर जाएं",
+    "contactSupport": "सहायता से संपर्क करें",
+    "failHelp": "यदि समस्या बनी रहे, तो सहायता से संपर्क करें।",
+  },
   "wmsPage": {
     "namePh": "राम कुमार",
     "productName": "उत्पाद नाम",
@@ -115,6 +123,17 @@ export default {
     "tabDW": "डेटा वेयरहाउस",
     "filterAll": "सभी",
     "filterDisconnected": "अनकनेक्टेड",
+    "heroTitle": "चैनल कनेक्टर",
+    "grantedScopes": "प्रदत्त अनुमतियाँ",
+    "tokenExpiry": "टोकन समाप्ति",
+    "oauthPrompt": "इस चैनल को सुरक्षित रूप से जोड़ने हेतु OAuth से प्रमाणित करें।",
+    "btnOAuthConnect": "OAuth से जोड़ें",
+    "oauthModalTitle": "OAuth प्रमाणीकरण",
+    "oauthModalSub": "सुरक्षित चैनल कनेक्शन",
+    "oauthModalDesc": "{{platform}} जोड़ने हेतु निम्न अनुमतियाँ अनुरोधित हैं।",
+    "requestedPermissions": "अनुरोधित अनुमतियाँ",
+    "btnCancel": "रद्द करें",
+    "btnAuthorize": "अधिकृत करें",
   },
   "mr": {
     "pfEmptyTitle": "कोई प्लेटफॉर्म पंजीकृत नहीं",
@@ -188,6 +207,7 @@ export default {
     "dedCatTax": "कर",
     "dedCatPromotion": "प्रोमोशन",
     "dedCatShipping": "शिपिंग",
+    "heroTitle": "मैपिंग रजिस्ट्री",
   },
   "security": {
     "hackDetected": "🚨 [सुरक्षा अलर्ट] असामान्य डेटा इंजेक्शन (हैकिंग) प्रयास पाया गया। आपका IP लॉग किया गया है और सत्र अवरुद्ध हो सकता है।",
@@ -6688,6 +6708,7 @@ export default {
       guideSecSettings: "Fine-tune approval workflow with auto-approve, 2FA, notifications, and more.",
     "tabGuide": "गाइड",
     "heroTitle": "अनुमोदन वर्कफ़्लो",
+    "status": "स्थिति",
     },
   mobile: {
       hello: "Hello,",
@@ -16230,7 +16251,14 @@ export default {
       status_error: "Error",
       service: "Service",
       response: "Response",
-      availability: "Availability"
+      availability: "Availability",
+    "kpiConnected": "कनेक्टेड",
+    "kpiOk": "ठीक",
+    "kpiWarn": "चेतावनी",
+    "kpiError": "त्रुटि",
+    "requests": "अनुरोध",
+    "elapsed": "बीता समय",
+    "processed": "संसाधित",
     },
   operations: {
       pageTitle: "⚡ Operations Hub",
@@ -16969,6 +16997,9 @@ export default {
     "slackWebhookSub": "नकारात्मक कीवर्ड बढ़ने पर स्वतः अलर्ट हेतु Slack Webhook URL दर्ज करें।",
     "guideTabsTitle": "प्रत्येक टैब की कार्य-व्याख्या",
     "close": "बंद करें",
+    "aiReplyPositive": "सकारात्मक समीक्षा हेतु AI उत्तर",
+    "aiReplyNeutral": "तटस्थ समीक्षा हेतु AI उत्तर",
+    "aiReplyNegative": "नकारात्मक समीक्षा हेतु AI उत्तर",
     },
   campaignMgr: {
       pageTitle: "Campaign Manager",
@@ -26880,6 +26911,11 @@ export default {
     "statsSentThisMonth": "इस माह भेजा",
     "statsSuccessRate": "सफलता दर",
     "statsBalance": "शेष बजट",
+    "secLockTitle": "सुरक्षा चेतावनी",
+    "secLockDesc": "असामान्य पहुँच पाई गई",
+    "dismiss": "खारिज करें",
+    "exportCsv": "CSV निर्यात",
+    "noHistory": "कोई भेजने का इतिहास नहीं",
   },
   attributes: {
     color: "Color",

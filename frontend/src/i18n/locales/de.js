@@ -1,4 +1,12 @@
 export default {
+  "payment": {
+    "failTitle": "Zahlung fehlgeschlagen",
+    "failMessage": "Bei der Zahlungsabwicklung ist ein Problem aufgetreten. Bitte versuchen Sie es erneut.",
+    "tryAgain": "Erneut versuchen",
+    "goToDashboard": "Zum Dashboard",
+    "contactSupport": "Support kontaktieren",
+    "failHelp": "Falls das Problem weiterhin besteht, kontaktieren Sie den Support.",
+  },
   "wmsPage": {
     "namePh": "Max Mustermann",
     "productName": "Produktname",
@@ -115,6 +123,17 @@ export default {
     "tabDW": "Data Warehouse",
     "filterAll": "Alle",
     "filterDisconnected": "Getrennt",
+    "heroTitle": "Kanal-Konnektoren",
+    "grantedScopes": "Gewährte Berechtigungen",
+    "tokenExpiry": "Token-Ablauf",
+    "oauthPrompt": "Authentifizieren Sie sich über OAuth, um diesen Kanal sicher zu verbinden.",
+    "btnOAuthConnect": "Über OAuth verbinden",
+    "oauthModalTitle": "OAuth-Authentifizierung",
+    "oauthModalSub": "Sichere Kanalverbindung",
+    "oauthModalDesc": "Folgende Berechtigungen werden zum Verbinden von {{platform}} angefordert.",
+    "requestedPermissions": "Angeforderte Berechtigungen",
+    "btnCancel": "Abbrechen",
+    "btnAuthorize": "Autorisieren",
   },
   "mr": {
     "pfEmptyTitle": "Keine Plattformen registriert",
@@ -188,6 +207,7 @@ export default {
     "dedCatTax": "Steuer",
     "dedCatPromotion": "Promotion",
     "dedCatShipping": "Versand",
+    "heroTitle": "Mapping-Registry",
   },
   "security": {
     "hackDetected": "🚨 [Sicherheitswarnung] Ein abnormaler Datin-Injection-(Hacking-)Versuch wurde erkannt. Ihre IP wird protokolliert und die Sitzung kann blockiert werden.",
@@ -417,6 +437,7 @@ export default {
       guideSecSettings: "Genehmigungsworkflow fein abstimmen.",
     "tabGuide": "Leitfaden",
     "heroTitle": "Genehmigungs-Workflow",
+    "status": "Status",
     },
   ruleEnginePage: {
       heroDesc: "API-Schlüssel registrieren und verwalten.",
@@ -17673,7 +17694,14 @@ export default {
       status_error: "Fehler",
       service: "Dienst",
       response: "Antwort",
-      availability: "Verfügbarkeit"
+      availability: "Verfügbarkeit",
+    "kpiConnected": "Verbunden",
+    "kpiOk": "OK",
+    "kpiWarn": "Warnung",
+    "kpiError": "Fehler",
+    "requests": "Anfragen",
+    "elapsed": "Verstrichen",
+    "processed": "Verarbeitet",
     },
   operations: {
       pageTitle: "⚡ Betriebszentrum",
@@ -19424,6 +19452,9 @@ export default {
     "slackWebhookSub": "Geben Sie eine Slack-Webhook-URL ein, um bei einem Anstieg negativer Schlüsselwörter automatisch benachrichtigt zu werden.",
     "guideTabsTitle": "Tab-Referenz",
     "close": "Schließen",
+    "aiReplyPositive": "KI-Antwort für positive Bewertungen",
+    "aiReplyNeutral": "KI-Antwort für neutrale Bewertungen",
+    "aiReplyNegative": "KI-Antwort für negative Bewertungen",
     },
   auth: {
       quickStart: "⚡ Schnellstart",
@@ -29086,6 +29117,11 @@ export default {
     "statsSentThisMonth": "Diesen Monat gesendet",
     "statsSuccessRate": "Erfolgsrate",
     "statsBalance": "Budget verbleibend",
+    "secLockTitle": "Sicherheitswarnung",
+    "secLockDesc": "Ungewöhnlicher Zugriff erkannt",
+    "dismiss": "Schließen",
+    "exportCsv": "CSV exportieren",
+    "noHistory": "Kein Sendeverlauf",
   },
   attributes: {
     color: "Color",
