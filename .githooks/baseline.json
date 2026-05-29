@@ -2,10 +2,10 @@
   "version": "179",
   "updated": "2026-05-29",
   "sacred_sha": {
-    "ja.js": "e612105b4a3e295bfe6c4f974ca80bfc3c3c55325c83a76c7b5d1c07e9d8b01a",
-    "zh.js": "07ebf951648cd7abf129cb6f1a140479f17fdc0aabcd17db77fd95e807bdc314"
+    "ja.js": "7a68fa89ccdd33f0d3ac707f9a9537bc8fb6baa244062031a5cc38fd6797603c",
+    "zh.js": "823b7946298df26e9cc94d5c5ae519c07d1eed34db91d52b290449aa70116643"
   },
   "ko_leaf_count": 31829,
   "leaf_tolerance_pct": 5,
-  "_note": "Updated 179차 전수점검 batch4 — EventNorm(event_empty만, auto.* 정크 제외)+CRM(55,conn 9언어 depth-1 직속 삽입)+Connectors(54,conn ns 생성) otherMiss 14개 언어. ja/zh sacred SHA 갱신. ko 무변경(leaf 31829). depth-1 blockHasKey로 중첩 키 충돌 해결. 누적 9페이지(batch1~4)."
+  "_note": "Updated 179차 전수점검 batch5 — Audit(52,audit ns 13언어 생성)+AlertPolicies(18 실키 alertPoliciesPage 생성, auto.* 34 정크 제외) otherMiss 14개 언어. ja/zh sacred SHA 갱신. ko 무변경(leaf 31829). 누적 11페이지(batch1~5). 정크 auto.* 페이지는 실키만 처리."
 }
