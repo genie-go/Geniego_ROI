@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext.jsx';
 import { useT } from '../i18n/index.js';
+import { IS_DEMO } from '../utils/demoEnv';
 
 /**
  * PMSettings — project 메타 편집 + 아카이브.
@@ -10,13 +11,7 @@ import { useT } from '../i18n/index.js';
  * U-177-A: 데모 모드 write disabled + banner.
  */
 
-const _IS_DEMO_ENV = (() => {
-  try {
-    const host = typeof window !== 'undefined' ? window.location.hostname : '';
-    return host.includes('roidemo') || host.includes('demo') ||
-           (typeof import.meta !== 'undefined' && import.meta.env?.VITE_DEMO_MODE === 'true');
-  } catch { return false; }
-})();
+const _IS_DEMO_ENV = IS_DEMO; // 180차: broad includes('demo') 제거 → demoEnv 정본 격리
 
 const STATUSES = ['planning', 'active', 'on_hold', 'completed', 'archived'];
 const CURRENCIES = ['KRW', 'USD', 'JPY', 'EUR', 'CNY'];

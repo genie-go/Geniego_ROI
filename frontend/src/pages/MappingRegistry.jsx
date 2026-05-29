@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef } from "react";
+import { IS_DEMO } from '../utils/demoEnv';
 import { useNavigate } from "react-router-dom";
 import { useT } from '../i18n/index.js';
 import { DeductionTab, calcKPI, ROLLUP, DEF_PF, DEF_DED, Badge, iS, PC, getPL, getCats, useLS } from "./MappingRegistryParts.jsx";
@@ -7,11 +8,7 @@ import { useGlobalData } from '../context/GlobalDataContext.jsx';
 import useSecurityMonitor from '../hooks/useSecurityMonitor.js';
 
 /* ── Enterprise Demo Isolation Guard ─────────────────────── */
-const _isDemo = (() => {
-  if (typeof window === 'undefined') return false;
-  const h = window.location.hostname;
-  return h === 'demo.genie-go.com' || h === 'demo.geniego.com' || h.startsWith('demo');
-})();
+const _isDemo = IS_DEMO; // 180차: 자가가드(startsWith demo — roidemo.* 미매칭) → demoEnv 정본 격리
 
 /* ─── Cross-Tab Sync ─────────────────────────────────────────────── */
 const SYNC_CH = 'geniego_mr_sync';

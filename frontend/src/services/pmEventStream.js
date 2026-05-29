@@ -3,14 +3,9 @@
 // EventSource 는 커스텀 헤더 불가 → ?api_key=<token> 로 인증 (index.php 미들웨어 지원).
 // 자동 재연결 + Last-Event-ID 재개 + 300s cap(bye) 후 즉시 재연결.
 import { useEffect, useRef, useState } from 'react';
+import { IS_DEMO } from '../utils/demoEnv';
 
-const _IS_DEMO = (() => {
-  try {
-    const host = typeof window !== 'undefined' ? window.location.hostname : '';
-    return host.includes('roidemo') || host.includes('demo') ||
-           (typeof import.meta !== 'undefined' && import.meta.env?.VITE_DEMO_MODE === 'true');
-  } catch { return false; }
-})();
+const _IS_DEMO = IS_DEMO; // 180차: broad includes('demo') 제거 → demoEnv 정본 격리
 const TOKEN_KEY = _IS_DEMO ? 'demo_genie_token' : 'genie_token';
 
 function resolveToken() {

@@ -14,15 +14,10 @@
  */
 
 // ══════════════════════════════════════════════════════
-//  1. 환경 감지
+//  1. 환경 감지 — 180차: broad includes('demo') 제거 → demoEnv 정본 격리
 // ══════════════════════════════════════════════════════
-const _isDemo = (() => {
-  try {
-    const host = typeof window !== 'undefined' ? window.location.hostname : '';
-    return host.includes('roidemo') || host.includes('demo') ||
-           (typeof import.meta !== 'undefined' && import.meta.env?.VITE_DEMO_MODE === 'true');
-  } catch { return false; }
-})();
+import { IS_DEMO } from '../utils/demoEnv';
+const _isDemo = IS_DEMO;
 
 // ══════════════════════════════════════════════════════
 //  2. 오염 마커 패턴 (데모/목/가상 데이터 식별자)

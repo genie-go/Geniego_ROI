@@ -13,13 +13,10 @@ import {
 import { useSecurityGuard } from "../security/SecurityGuard.js";
 import { useCurrency } from '../contexts/CurrencyContext.jsx';
 import { useConnectorSync } from '../context/ConnectorSyncContext.jsx';
+import { IS_DEMO } from '../utils/demoEnv';
 
 /* ── Enterprise Demo Isolation Guard ─────────────────────── */
-const _isDemo = (() => {
-  if (typeof window === 'undefined') return false;
-  const h = window.location.hostname;
-  return h === 'demo.genie-go.com' || h === 'demo.geniego.com' || h.startsWith('demo');
-})();
+const _isDemo = IS_DEMO; // 180차: broad startsWith('demo') 제거 → demoEnv 정본 격리
 
 const fmt = v => new Intl.NumberFormat(navigator.language || 'ko-KR', { style: 'currency', currency: 'KRW', maximumFractionDigits: 0 }).format(v || 0);
 /* Dynamic currency formatter — updated by Attribution main via useCurrency */
@@ -189,13 +186,7 @@ function buildDemoCohorts() {
    • Demo (roidemo.genie-go.com):  Seeded with buildDemo*() for rich demo.
    • NEVER cross-contaminate. This is an absolute, non-negotiable rule.
    ═══════════════════════════════════════════════════════════════════ */
-const _IS_DEMO_ENV = (() => {
-  try {
-    const host = typeof window !== 'undefined' ? window.location.hostname : '';
-    return host.includes('roidemo') || host.includes('demo') ||
-           (typeof import.meta !== 'undefined' && import.meta.env?.VITE_DEMO_MODE === 'true');
-  } catch { return false; }
-})();
+const _IS_DEMO_ENV = IS_DEMO; // 180차: broad includes('demo') 제거 → demoEnv 정본 격리
 
 let _JOURNEYS = _IS_DEMO_ENV ? buildDemoJourneys(null) : [];
 let TS_DATA   = _IS_DEMO_ENV ? buildDemoTimeSeries(null) : { spends: {}, revenue: [] };

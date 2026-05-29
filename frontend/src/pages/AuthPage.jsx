@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { useT, useI18n, LANG_OPTIONS } from "../i18n";
 import { getJson } from '../services/apiClient.js';
+import { IS_DEMO } from '../utils/demoEnv';
 
 /* ── Enterprise Dynamic Locale Map ────────────────────── */
 const LANG_LOCALE_MAP = {
@@ -1187,7 +1188,7 @@ function AuthLanguageSelector() {
 /* ─── MAIN ──────────────────────────────────────────────────── */
 export default function AuthPage() {
   const currentHost = typeof window !== 'undefined' ? window.location.hostname : '';
-  const isDemoDomain = currentHost.includes('roidemo') || currentHost.includes('demo') || import.meta.env.VITE_DEMO_MODE === 'true';
+  const isDemoDomain = IS_DEMO; // 180차: broad includes('demo') 제거 → demoEnv 정본 격리
   const isLocalhost = currentHost === 'localhost' || currentHost === '127.0.0.1';
   const { user } = useAuth();
   const navigate = useNavigate();

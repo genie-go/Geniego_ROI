@@ -3,6 +3,7 @@ import{useI18n as _useI18n}from'../i18n/index.js';
 import{useCurrency}from'../contexts/CurrencyContext.jsx';
 import{useAuth}from'../auth/AuthContext';
 import RP from'./rpI18n.js';
+import { IS_DEMO } from '../utils/demoEnv';
 
 function useI18n(){const c=_useI18n();const lang=c.lang||'en';const ot=c.t;
 const t=(k,fb)=>{if(k&&k.startsWith('rp.')){const x=k.slice(3);const d=RP[lang]||RP.en||{};if(d[x]!==undefined)return d[x];}return ot(k,fb);};
@@ -233,7 +234,7 @@ export default function ReturnsPortal(){
 const tr=useTr();
 const{fmt}=useCurrency();
 const{user}=useAuth();
-const isDemo=user?.email?.includes('demo')||window.location.hostname.includes('demo');
+const isDemo=IS_DEMO; // 180차: email·host broad includes('demo') 제거 → demoEnv 정본 격리(운영 오염 0)
 const[tab,setTab]=useState('tabOverview');
 const[data]=useState(()=>isDemo?DEMO_RETURNS:[]);
 

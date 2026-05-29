@@ -9,15 +9,10 @@ import { useI18n } from '../i18n';
 import { useGlobalData } from '../context/GlobalDataContext';
 import { useNavigate } from 'react-router-dom';
 import { useCurrency } from '../contexts/CurrencyContext';
+import { IS_DEMO } from '../utils/demoEnv';
 
 /* ── Enterprise Demo Isolation Guard (unified with GlobalDataContext) ── */
-const _isDemo = (() => {
-  try {
-    const host = typeof window !== 'undefined' ? window.location.hostname : '';
-    return host.includes('roidemo') || host.includes('demo') ||
-           (typeof import.meta !== 'undefined' && import.meta.env?.VITE_DEMO_MODE === 'true');
-  } catch { return false; }
-})();
+const _isDemo = IS_DEMO; // 180차: broad includes('demo') 제거 → demoEnv 정본 격리
 
 /* ── i18n ─────────────────────────────────────────── */
 const _k=k=>'campMgr.'+k;

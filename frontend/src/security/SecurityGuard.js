@@ -422,11 +422,9 @@ function cleanupSession() {
 /* ══════════════════════════════════════════════════
    Token Environment Isolation
 ══════════════════════════════════════════════════ */
-const _isSecDemo = (() => {
-    if (typeof window === 'undefined') return false;
-    const h = window.location.hostname;
-    return h === 'demo.genie-go.com' || h === 'demo.geniego.com' || h.startsWith('demo');
-})();
+// 180차: startsWith('demo') 는 실 데모호스트 roidemo.* 미매칭 → 데모에서 운영 토큰키 오선택 버그. demoEnv 정본으로 교정.
+import { IS_DEMO } from '../utils/demoEnv';
+const _isSecDemo = IS_DEMO;
 
 export function getTokenKey() {
     return _isSecDemo ? 'geniego_demo_token' : 'genie_token';

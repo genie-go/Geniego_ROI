@@ -21,6 +21,7 @@ import { useGlobalData } from '../context/GlobalDataContext.jsx';
 import { useAuth } from '../auth/AuthContext.jsx';
 import { useSecurityGuard, sanitizeInput } from '../security/SecurityGuard.js';
 import { useConnectorSync } from '../context/ConnectorSyncContext.jsx';
+import { IS_DEMO } from '../utils/demoEnv';
 
 /* ─── BroadcastChannel Cross-Tab Sync ─── */
 const AP_SYNC_CH = 'geniego-acctperf-sync';
@@ -200,8 +201,8 @@ export default function AccountPerformance() {
         },
     ], []);
 
-    /* ─ Demo Mode Detection ─ */
-    const isDemoMode = typeof window !== 'undefined' && (window.location.hostname.includes('demo') || window.__DEMO_MODE__);
+    /* ─ Demo Mode Detection (180차: demoEnv 정본 격리, broad includes('demo')·__DEMO_MODE__ 제거) ─ */
+    const isDemoMode = IS_DEMO;
 
     const currentCampaigns = useMemo(() => {
         if (sharedCampaigns?.length > 0 && sharedCampaigns.some(c => c.adsets || c.adSets)) return sharedCampaigns;

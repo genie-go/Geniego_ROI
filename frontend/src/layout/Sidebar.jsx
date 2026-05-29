@@ -7,11 +7,10 @@ import { useGlobalData } from "../context/GlobalDataContext.jsx";
 import { useMobileSidebar } from "../context/MobileSidebarContext.jsx";
 import { useMenuVisibility } from "../context/MenuVisibilityContext.jsx";
 import { MEMBER_MENU, ADMIN_MENU, ADMIN_ONLY_MENU_KEYS } from './sidebarManifest.js';
+import { IS_DEMO } from '../utils/demoEnv';
 
-/* 데모 모드 감지 */
-const IS_DEMO_MODE = typeof window !== 'undefined'
-  ? (window.location.hostname.includes('roidemo') || window.location.hostname.includes('demo') || import.meta.env.VITE_DEMO_MODE === 'true')
-  : import.meta.env.VITE_DEMO_MODE === 'true';
+/* 데모 모드 감지 — 180차: broad includes('demo') 제거 → demoEnv 정본 격리 */
+const IS_DEMO_MODE = IS_DEMO;
 
 /* 즐겨찾기 */
 function useFavorites() {

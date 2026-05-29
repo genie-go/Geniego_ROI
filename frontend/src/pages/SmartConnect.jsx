@@ -4,6 +4,7 @@ import { useNotification } from "../context/NotificationContext.jsx";
 import { getJsonAuth, postJson } from "../services/apiClient.js";
 
 import { useI18n } from '../i18n';
+import { IS_DEMO } from '../utils/demoEnv';
 
 /* ═══════════════════════════════════════════════════════════════════
    177차 §4.E TOP 1 + U-177-A: 데모-운영 완벽 격리
@@ -11,13 +12,7 @@ import { useI18n } from '../i18n';
    • Demo (roidemo / VITE_DEMO_MODE): simulate*** (디자인 시뮬레이션)
    • 절대 cross-contaminate 금지
    ═══════════════════════════════════════════════════════════════════ */
-const _IS_DEMO_ENV = (() => {
-  try {
-    const host = typeof window !== 'undefined' ? window.location.hostname : '';
-    return host.includes('roidemo') || host.includes('demo') ||
-           (typeof import.meta !== 'undefined' && import.meta.env?.VITE_DEMO_MODE === 'true');
-  } catch { return false; }
-})();
+const _IS_DEMO_ENV = IS_DEMO; // 180차: broad includes('demo') 제거 → demoEnv 정본 격리
 
 /* ─── Channel Master Data ────────────────────────────────────────────────────── */
 const CHANNELS = [

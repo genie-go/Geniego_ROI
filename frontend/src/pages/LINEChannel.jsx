@@ -4,6 +4,21 @@ import PlanGate from "../components/PlanGate.jsx";
 import { useGlobalData } from "../context/GlobalDataContext.jsx";
 import { getJson } from '../services/apiClient.js';
 import { useI18n } from '../i18n';
+import { IS_DEMO } from '../utils/demoEnv';
+
+/* ─── 180차: 데모 가상데이터 (빈 데이터 0 — roidemo.* 에서 LINE 채널 전 탭 시드) ─── */
+const DEMO_LINE_STATS = { ok: true, total_followers: 12483, monthly_sent: 38500, avg_open_rate: 72.4, avg_click_rate: 18.9 };
+const DEMO_LINE_CAMPAIGNS = [
+  { id: "ln_d1", name: "新春セール告知", type: "marketing", template_name: "セール告知v2", status: "active", sent: 9820, opened: 7110, clicked: 1340 },
+  { id: "ln_d2", name: "配送完了通知", type: "transactional", template_name: "配送ステータス", status: "active", sent: 15240, opened: 13980, clicked: 2210 },
+  { id: "ln_d3", name: "リピート顧客クーポン", type: "marketing", template_name: "クーポン配布", status: "paused", sent: 5400, opened: 3720, clicked: 980 },
+];
+const DEMO_LINE_TEMPLATES = [
+  { id: "tpl_d1", name: "セール告知v2", type: "marketing", status: "approved", usage: 24 },
+  { id: "tpl_d2", name: "配送ステータス", type: "transactional", status: "approved", usage: 156 },
+  { id: "tpl_d3", name: "クーポン配布", type: "marketing", status: "approved", usage: 18 },
+];
+const DEMO_LINE_SETTINGS = { ok: true, channel_id: "@geniego_demo", connected: true, webhook: "https://roidemo.genie-go.com/api/line/webhook", plan: "Messaging API" };
 
 const C = {
     bg: "var(--bg)", surface: "var(--surface)", card: "var(--bg-card, rgba(255,255,255,0.95))",
@@ -29,12 +44,13 @@ function StatCard({ icon, label, value, color, sub }) {
 function CampaignsTab({ campaigns, isDemo = false }) {
     const { t } = useI18n();
     const { kakaoCampaignsLinked } = useGlobalData();
-    const linkedLine = isDemo ? [] : kakaoCampaignsLinked.filter(c => c.type === "line");
+    // 180차: 데모/운영 공통 — 공유 상태에서 line 타입 캠페인 라이브 파생(CRM·대시보드와 동기화)
+    const linkedLine = kakaoCampaignsLinked.filter(c => c.type === "line");
 
     return (
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             {/* CRM Integration Campaign (Paid) */}
-            {!isDemo && linkedLine.length > 0 && (
+            {linkedLine.length > 0 && (
                 <div style={{ background: C.lineLight, border: `1px solid ${C.line}40`, borderRadius: 12, padding: "14px 18px", marginBottom: 4 }}>
                     <div style={{ fontSize: 12, fontWeight: 700, color: C.line, marginBottom: 8 }}>🔗 CRM 세그먼트 Integration ({linkedLine.length}개)</div>
                     {linkedLine.map(c => (
@@ -152,7 +168,7 @@ function SettingsTab({ settings }) {
 function LINEChannelContent() {
     const { token } = useAuth();
     const { t } = useI18n();
-    const isDemo = false; /* isDemo permanently disabled */
+    const isDemo = IS_DEMO; /* 180차: demoEnv 정본 — 데모 가상데이터 활성(빈 데이터 0) */
     const { kakaoCampaignsLinked, createKakaoCampaignFromSegment, crmSegments } = useGlobalData();
 
     const [tab, setTab] = useState("campaigns");
@@ -168,7 +184,14 @@ function LINEChannelContent() {
     const [stats, setStats] = useState(null);
 
     useEffect(() => {
-        if (isDemo) return;
+        if (isDemo) {
+            // 데모: 가상데이터 시드 (운영 API 미호출 — 격리)
+            setCampaigns(DEMO_LINE_CAMPAIGNS);
+            setTemplates(DEMO_LINE_TEMPLATES);
+            setSettings(DEMO_LINE_SETTINGS);
+            setStats(DEMO_LINE_STATS);
+            return;
+        }
         getJson('/api/line/campaigns').then(r => r.campaigns && setCampaigns(r.campaigns)).catch(() => { });
         getJson('/api/line/templates').then(r => r.templates && setTemplates(r.templates)).catch(() => { });
         getJson('/api/line/settings').then(r => r.ok && setSettings(r)).catch(() => { });

@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext.jsx';
 import { useT } from '../i18n/index.js';
 import { usePmEventStream } from '../services/pmEventStream.js';
+import { IS_DEMO } from '../utils/demoEnv';
 
 /**
  * PMMilestones — project 마일스톤 관리.
@@ -11,13 +12,7 @@ import { usePmEventStream } from '../services/pmEventStream.js';
  * U-177-A: 데모 모드는 write disabled + banner.
  */
 
-const _IS_DEMO_ENV = (() => {
-  try {
-    const host = typeof window !== 'undefined' ? window.location.hostname : '';
-    return host.includes('roidemo') || host.includes('demo') ||
-           (typeof import.meta !== 'undefined' && import.meta.env?.VITE_DEMO_MODE === 'true');
-  } catch { return false; }
-})();
+const _IS_DEMO_ENV = IS_DEMO; // 180차: broad includes('demo') 제거 → demoEnv 정본 격리
 
 const STATUS_COLOR = { upcoming: '#4f8ef7', in_progress: '#f59e0b', achieved: '#22c55e', missed: '#ef4444' };
 const STATUSES = ['upcoming', 'in_progress', 'achieved', 'missed'];

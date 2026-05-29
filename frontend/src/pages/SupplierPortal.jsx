@@ -1,11 +1,8 @@
 import React, { useState } from "react";
+import { IS_DEMO } from '../utils/demoEnv';
 import { useI18n } from '../i18n';
 
-const _isDemo = (() => {
-  if (typeof window === 'undefined') return false;
-  const h = window.location.hostname;
-  return h === 'demo.genie-go.com' || h === 'demo.geniego.com' || h.startsWith('demo');
-})();
+const _isDemo = IS_DEMO; // 180차: 자가가드(startsWith demo — roidemo.* 미매칭) → demoEnv 정본 격리
 
 export default function SupplierPortal() {
   const { t } = useI18n();

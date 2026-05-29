@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useI18n } from '../i18n';
 import { getJsonAuth, postJson } from '../services/apiClient.js';
+import { IS_DEMO } from '../utils/demoEnv';
 
 /* ═══════════════════════════════════════════════════════════════════
    177차 §4.E TOP 1 본체 + U-177-A: ApiKeys.jsx 실제 ChannelCreds 관리 UI
@@ -8,13 +9,7 @@ import { getJsonAuth, postJson } from '../services/apiClient.js';
    • Demo: empty list + 시뮬레이션 fallback
    • 절대 cross-contaminate 금지 (운영 → demo 데이터 노출 X)
    ═══════════════════════════════════════════════════════════════════ */
-const _IS_DEMO_ENV = (() => {
-  try {
-    const host = typeof window !== 'undefined' ? window.location.hostname : '';
-    return host.includes('roidemo') || host.includes('demo') ||
-           (typeof import.meta !== 'undefined' && import.meta.env?.VITE_DEMO_MODE === 'true');
-  } catch { return false; }
-})();
+const _IS_DEMO_ENV = IS_DEMO; // 180차: broad includes('demo') 제거 → demoEnv 정본 격리
 
 /* 채널 마스터 — SmartConnect 와 동일 (단순화) */
 const CHANNELS = [

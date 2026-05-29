@@ -1,3 +1,4 @@
+import { IS_DEMO } from './demoEnv';
 /**
  * Enterprise Audit Trail Logger
  * ================================
@@ -10,11 +11,7 @@
 const MAX_ENTRIES = 500;
 const STORAGE_KEY = 'g_audit_trail';
 
-const _isDemo = (() => {
-  if (typeof window === 'undefined') return false;
-  const h = window.location.hostname;
-  return h === 'demo.genie-go.com' || h === 'demo.geniego.com' || h.startsWith('demo');
-})();
+const _isDemo = IS_DEMO; // 180차: 자가가드(startsWith demo — roidemo.* 미매칭) → demoEnv 정본 격리
 
 export function auditLog(action, detail = {}) {
   try {

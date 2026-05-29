@@ -2,6 +2,7 @@
  * SmsMarketing.jsx — Enterprise v13 (Fixed JSX + i18n + Arctic White)
  */
 import React,{useState,useEffect,useCallback,useMemo,useRef} from "react";
+import { IS_DEMO } from '../utils/demoEnv';
 import PlanGate from "../components/PlanGate.jsx";
 import {useGlobalData} from "../context/GlobalDataContext.jsx";
 import {useConnectorSync} from "../context/ConnectorSyncContext.jsx";
@@ -12,11 +13,7 @@ import CreativeStudioTab from "./CreativeStudioTab.jsx";
 import {useNavigate} from "react-router-dom";
 
 /* ── Enterprise Demo Isolation Guard ─────────────────────── */
-const _isDemo = (() => {
-  if (typeof window === 'undefined') return false;
-  const h = window.location.hostname;
-  return h === 'demo.genie-go.com' || h === 'demo.geniego.com' || h.startsWith('demo');
-})();
+const _isDemo = IS_DEMO; // 180차: 자가가드(startsWith demo — roidemo.* 미매칭) → demoEnv 정본 격리
 
 const API=import.meta.env.VITE_API_BASE||'';
 const apiFetch = async (path,opts={}) => {
