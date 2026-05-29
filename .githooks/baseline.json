@@ -2,10 +2,10 @@
   "version": "179",
   "updated": "2026-05-29",
   "sacred_sha": {
-    "ja.js": "cdd6f97029394d7a400d30e8f4706fbe1b5cfaa35e0db57305ed7b4410065e04",
-    "zh.js": "89fc5d0e8c34792ae02fb7fd9ad7e3eabc33585e0e9dffbad144a313baba3086"
+    "ja.js": "cb17c7f59e9118681f0bec58c06151f87aa7caaca556bc1e02262807c9c736f4",
+    "zh.js": "7b3f0c3b82dde43bacfef0c99ac93c5cacd4c7316abbb8b3035ab0a305b59e2f"
   },
-  "ko_leaf_count": 31555,
+  "ko_leaf_count": 31660,
   "leaf_tolerance_pct": 5,
-  "_note": "179차 koMiss batch1 — 회원 대상 flat 정적 라벨 34키 15언어(ko 초안 포함). payment/systemMonitor/conn/sms/reviews/approvalsPage/mr. admin 페이지는 한글전용(사용자 지시)이라 제외. guide* 142키·대형회원페이지(PerfHub/InfluencerUGC/Email/PriceOpt 230키) 잔여. ko_leaf 31521→31555, ja/zh SHA 갱신."
+  "_note": "179차 koMiss batch2 — PerformanceHub 105 라벨 15언어(보안/KPI/퍼널/정산/크리에이터/SKU/코호트/ESG). ko_leaf 31555→31660. 잔여 회원 koMiss: InfluencerUGC 58/EmailMarketing 42/PriceOpt 24 + guide* 142(검토). ja/zh SHA 갱신."
 }
