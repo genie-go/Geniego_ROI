@@ -2,10 +2,10 @@
   "version": "179",
   "updated": "2026-05-29",
   "sacred_sha": {
-    "ja.js": "db6f0de6fb983489c066e4ac863174116333a41cc8e1e157f106d69daa60ab3e",
-    "zh.js": "83b54feed2b72d3ec4a2e3636235fd5c47af64bdcaf0510c1833008bb84c21a4"
+    "ja.js": "07090377a9209f0f3e9d749272b73d5902a4f4b475b66e3f97261b11843df885",
+    "zh.js": "d19e5bed79dfc08ebe7e0442c3dd82499f3ee05450c48169193d6742af8f4364"
   },
   "ko_leaf_count": 31829,
   "leaf_tolerance_pct": 5,
-  "_note": "Updated 179차 다국어 — BudgetTracker/AccountPerformance/Attribution 가이드+본문 15개 언어 현지 자연어 동기화 (가이드 BT63+AP19+ATTR72, 본문 ATTR104+AP3). ja/zh sacred SHA 갱신 (일본어/중국어 네이티브 번역 추가 = 의도된 변경). ko.js leaf 31719 → 31829 (Δ+110). G6 신규 collision 0 (last-wins de-dup), 잔존은 기존 네임스페이스 충돌 → TRIAGE_SKIP."
+  "_note": "Updated 179차 전수점검 batch1 — OrderHub(orderHub) otherMiss 133키 14개 언어 전파 (ja 132+zh 133 전체 + 6키 12언어). ja/zh sacred SHA 갱신. ko 무변경(leaf 31829 유지). 신규 collision 0(조건부 주입). 직전: BudgetTracker/AccountPerformance/Attribution 가이드+본문 15개 언어 동기화."
 }

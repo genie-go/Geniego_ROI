@@ -2794,7 +2794,13 @@ export default {
       settleBridgeTitle: "Settlement Center",
       settleBridgeDesc: "Access detailed settlement management and reconciliation in the dedicated module.",
       settleBridgeBtnMgmt: "Settlement Mgmt",
-      settleBridgeBtnRecon: "Reconciliation"
+      settleBridgeBtnRecon: "Reconciliation",
+    "kpiTotalRevenue": "Общая выручка",
+    "kpiClaimRate": "Доля претензий",
+    "kpiDelivered": "Доставлено",
+    "processingStatus": "Статус обработки",
+    "channelBreakdown": "Заказы по каналам",
+    "settlementSummary": "Сводка по расчётам",
     },
   priceOpt: {
       pageTitle: "💡 Price Optimization Engine",

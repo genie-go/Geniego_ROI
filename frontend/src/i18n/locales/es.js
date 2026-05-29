@@ -2708,7 +2708,13 @@ export default {
       exportCsvSuccess: "CSV file downloaded ({count} rows)",
       exportCsvError: "An error occurred while exporting CSV",
       exportExcelSuccess: "Excel file downloaded ({count} rows)",
-      exportExcelError: "An error occurred while exporting Excel"
+      exportExcelError: "An error occurred while exporting Excel",
+    "kpiTotalRevenue": "Ingresos totales",
+    "kpiClaimRate": "Tasa de reclamaciones",
+    "kpiDelivered": "Entregado",
+    "processingStatus": "Estado de procesamiento",
+    "channelBreakdown": "Pedidos por canal",
+    "settlementSummary": "Resumen de liquidación",
     },
   dataProduct: {
       tabOverviewDesc: "Pipeline & coverage overview",

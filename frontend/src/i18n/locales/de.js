@@ -2708,7 +2708,13 @@ export default {
       statusReturned: "Returned",
       tabProcessing: "Processing",
       totalOrders: "Total Orders",
-      viewDetails: "View Details"
+      viewDetails: "View Details",
+    "kpiTotalRevenue": "Gesamtumsatz",
+    "kpiClaimRate": "Reklamationsquote",
+    "kpiDelivered": "Zugestellt",
+    "processingStatus": "Bearbeitungsstatus",
+    "channelBreakdown": "Bestellungen nach Kanal",
+    "settlementSummary": "Abrechnungsübersicht",
     },
   dataProduct: {
       tabOverviewDesc: "Pipeline & coverage overview",

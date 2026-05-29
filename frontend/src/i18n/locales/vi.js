@@ -2708,7 +2708,13 @@ export default {
       statusReturned: "Returned",
       subtitle: "Order management · Fulfillment tracking · Return processing",
       tabProcessing: "Processing",
-      viewDetails: "View Details"
+      viewDetails: "View Details",
+    "kpiTotalRevenue": "Tổng doanh thu",
+    "kpiClaimRate": "Tỷ lệ khiếu nại",
+    "kpiDelivered": "Đã giao",
+    "processingStatus": "Trạng thái xử lý",
+    "channelBreakdown": "Đơn hàng theo kênh",
+    "settlementSummary": "Tóm tắt quyết toán",
     },
   dataProduct: {
       tabOverviewDesc: "Pipeline & coverage overview",

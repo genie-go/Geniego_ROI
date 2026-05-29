@@ -18346,7 +18346,13 @@ export default {
       statusShipping: "Shipping",
       subtitle: "Order management · Fulfillment tracking · Return processing",
       tabProcessing: "Processing",
-      viewDetails: "View Details"
+      viewDetails: "View Details",
+    "kpiTotalRevenue": "Total Pendapatan",
+    "kpiClaimRate": "Tingkat Klaim",
+    "kpiDelivered": "Terkirim",
+    "processingStatus": "Status Pemrosesan",
+    "channelBreakdown": "Pesanan per Saluran",
+    "settlementSummary": "Ringkasan Penyelesaian",
     },
   dataProduct: {
       tabOverviewDesc: "Pipeline & coverage overview",

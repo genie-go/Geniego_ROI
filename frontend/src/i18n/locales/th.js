@@ -18317,7 +18317,13 @@ export default {
       statusShipping: "Shipping",
       subtitle: "Order management · Fulfillment tracking · Return processing",
       tabProcessing: "Processing",
-      viewDetails: "View Details"
+      viewDetails: "View Details",
+    "kpiTotalRevenue": "รายได้รวม",
+    "kpiClaimRate": "อัตราการเคลม",
+    "kpiDelivered": "จัดส่งแล้ว",
+    "processingStatus": "สถานะการดำเนินการ",
+    "channelBreakdown": "คำสั่งซื้อตามช่องทาง",
+    "settlementSummary": "สรุปการชำระบัญชี",
     },
   dataProduct: {
       tabOverviewDesc: "Pipeline & coverage overview",

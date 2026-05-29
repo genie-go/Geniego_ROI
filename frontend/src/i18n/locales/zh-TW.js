@@ -16882,7 +16882,13 @@ export default {
       statusShipping: "Shipping",
       subtitle: "Order management · Fulfillment tracking · Return processing",
       tabProcessing: "Processing",
-      viewDetails: "View Details"
+      viewDetails: "View Details",
+    "kpiTotalRevenue": "總營收",
+    "kpiClaimRate": "索賠率",
+    "kpiDelivered": "已送達",
+    "processingStatus": "處理狀況",
+    "channelBreakdown": "各管道訂單狀況",
+    "settlementSummary": "結算摘要",
     },
   dataProduct: {
       tabOverviewDesc: "Pipeline & coverage overview",
