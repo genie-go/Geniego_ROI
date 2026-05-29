@@ -1,11 +1,11 @@
 {
-  "version": "178",
+  "version": "179",
   "updated": "2026-05-29",
   "sacred_sha": {
-    "ja.js": "cff64923ee0e3196fb9e31e337098a1c6acced2107b840bbac247c0c7803b5ab",
-    "zh.js": "a36bc7253eb71976d83995b690e9b79bef4b9bf4d3215855d056e22e5f87eaf8"
+    "ja.js": "db6f0de6fb983489c066e4ac863174116333a41cc8e1e157f106d69daa60ab3e",
+    "zh.js": "83b54feed2b72d3ec4a2e3636235fd5c47af64bdcaf0510c1833008bb84c21a4"
   },
-  "ko_leaf_count": 31719,
+  "ko_leaf_count": 31829,
   "leaf_tolerance_pct": 5,
-  "_note": "Updated 178차 Option B (Events SSE) — Events.php SSE long-loop 본체 (pm_audit_log 폴링 + project 스코프 + 25s heartbeat + 300s cap + Last-Event-ID 재개) + services/pmEventStream.js (EventSource 래퍼 + 자동재연결 + usePmEventStream 훅) + PMActivity 라이브 연동 (자동 refetch + 상태 배지 + diff_json 버그 fix) + pmExt.activity.{live/reconnecting/offline} 3 키 × 15 lang. ja/zh sacred SHA 갱신. ko.js leaf 31716 → 31719 (Δ+3). G6 gAiRec pre-existing only."
+  "_note": "Updated 179차 다국어 — BudgetTracker/AccountPerformance/Attribution 가이드+본문 15개 언어 현지 자연어 동기화 (가이드 BT63+AP19+ATTR72, 본문 ATTR104+AP3). ja/zh sacred SHA 갱신 (일본어/중국어 네이티브 번역 추가 = 의도된 변경). ko.js leaf 31719 → 31829 (Δ+110). G6 신규 collision 0 (last-wins de-dup), 잔존은 기존 네임스페이스 충돌 → TRIAGE_SKIP."
 }
