@@ -84,6 +84,8 @@ function hydratePlanFromApi(p) {
     notIncluded: [],
     isCustomQuote: !!p.is_custom_quote,
     periods: periodsHydrated,
+    // 179차 — admin plan_menu_access 와 동기화: 이 플랜이 제공하는 메뉴·기능 수
+    menuAccessCount: Array.isArray(p.menuAccess) ? p.menuAccess.length : 0,
   };
 }
 
@@ -375,6 +377,18 @@ export default function PricingPublic() {
                                         style={{ width: "100%", padding: "14px 0", borderRadius: 12, border: "none", cursor: loading[plan.id] ? "default" : "pointer", fontWeight: 800, fontSize: 14, background: isPro ? "linear-gradient(135deg,#4f8ef7,#7c3aed)" : "rgba(255,255,255,0.06)", color: "#fff", marginBottom: 28, opacity: loading[plan.id] ? 0.6 : 1, transition: "all 200ms", boxShadow: isPro ? "0 0 30px rgba(79,142,247,0.2)" : "none" }}>
                                         {loading[plan.id] ? "Opening checkout…" : (plan.isCustomQuote || !monthlyPrice) ? "Contact Sales" : "Get Started"}
                                     </button>
+
+                                    {plan.menuAccessCount > 0 && (
+                                        <div style={{
+                                            display: "flex", alignItems: "center", gap: 8, marginBottom: 16, padding: "8px 12px",
+                                            borderRadius: 10, background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.2)",
+                                        }}>
+                                            <span style={{ fontSize: 14 }}>🧩</span>
+                                            <span style={{ fontSize: 12, color: "rgba(255,255,255,0.78)" }}>
+                                                <strong style={{ color: "#22c55e" }}>{plan.menuAccessCount}개</strong> 메뉴·기능 이용 가능
+                                            </span>
+                                        </div>
+                                    )}
 
                                     <div style={{ display: "grid", gap: 10 }}>
                                         {plan.features.map(f => (
