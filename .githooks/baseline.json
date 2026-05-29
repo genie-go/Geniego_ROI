@@ -2,10 +2,10 @@
   "version": "179",
   "updated": "2026-05-29",
   "sacred_sha": {
-    "ja.js": "ff25f623b51059eb1e7c92f3f4ce4255462508909e0a75288fa332b1ea24c096",
-    "zh.js": "c8e13ae2ece800775bb1e3555a30d7cfa90774c8dd9d457bad4179c7dc502ca9"
+    "ja.js": "d777037602fcd0fda1d808d656a550f48f835d6d20580e8bcb3a830415e511c8",
+    "zh.js": "8b0dfbcbf4f365359ae621566e02486070d5b094a0a79448af199131aa4a3ba6"
   },
-  "ko_leaf_count": 31718,
+  "ko_leaf_count": 31783,
   "leaf_tolerance_pct": 5,
-  "_note": "179차 koMiss batch3 — InfluencerUGC 58 라벨 15언어(정산/리뷰KPI/AI평가). ko_leaf 31660→31718. 잔여 회원 koMiss: EmailMarketing 42/PriceOpt 24 + guide* 142(검토). ja/zh SHA 갱신."
+  "_note": "179차 koMiss batch4 — EmailMarketing(email 42)+PriceOpt(priceOpt 23) 15언어. ko_leaf 31718→31783. 회원 koMiss 라벨 트랙 사실상 완료(누적 262키). 잔여: guide* 142(사용자 검토)+동적prefix/변수형 소수. ja/zh SHA 갱신."
 }
