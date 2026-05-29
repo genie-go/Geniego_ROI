@@ -1,4 +1,8 @@
 export default {
+  "wmsPage": {
+    "namePh": "João Silva",
+    "productName": "Nome do produto",
+  },
   "userMgmtPage": {
     "period": "Período",
     "paddlePriceId": "ID de preço do Paddle",
@@ -3272,7 +3276,9 @@ export default {
       feeGlobal: "Global & Regional Channels",
       feeTipTitle: "How fees affect pricing",
       feeTipDesc: "Channel fees are automatically deducted when calculating optimal prices. Higher fee channels require higher sale prices to maintain your target margin. The optimization engine factors in these fees for every recommendation.",
-      "": ""
+      "": "",
+    "labelChannel": "Canal",
+    "badgeChannelUnit": "canais conectados",
     },
   dataProduct: {
       pageTitle: "🗂 Data Product Specification",
@@ -3460,7 +3466,9 @@ export default {
       schemaUgcRights: "UGC usage rights status",
       schemaWhitelist: "Whitelist registration status",
       schemaBranded: "Branded content disclosure status",
-      schemaUgcImpressions: "UGC impressions/views"
+      schemaUgcImpressions: "UGC impressions/views",
+    "tabGuide": "Guia",
+    "heroTitle": "Produto de dados",
     },
   returnsPortal: {
       pageTitle: "🔌 Integration Hub",
@@ -6456,7 +6464,10 @@ export default {
       selectLoginType: "Selecionar tipo de login",
       selectLoginTypeDesc: "Escolha seu ambiente para continuar",
       adminBlockedInNormalLogin: "Contas admin devem usar o login admin. Clique no logo para acessar o login admin.",
-      ceoLabel: "代表者名"
+      ceoLabel: "代表者名",
+    "selectOption": "Selecionar",
+    "namePh": "João Silva",
+    "footerTagline": "Fluxo empresarial isolado",
     },
   writebackPage: {
       heroDesc: "Register API keys and manage connection status for sales, advertising, and analytics channels.",
@@ -6546,7 +6557,9 @@ export default {
       guideTabsTitle: "Tab Features",
       guideSecConsole: "Channel selection, SKU input, policy validation, category suggestion, payload editing, preview and execution.",
       guideSecJobs: "Track all writeback job statuses in real-time.",
-      guideSecSettings: "Configure auto-retry, dry run, approval gate, webhook, rate limiting, and audit logging."
+      guideSecSettings: "Configure auto-retry, dry run, approval gate, webhook, rate limiting, and audit logging.",
+    "tabGuide": "Guia",
+    "heroTitle": "Console de writeback",
     },
   approvalsPage: {
       heroDesc: "Register API keys and manage connection status for sales, advertising, and analytics channels.",
@@ -6615,7 +6628,9 @@ export default {
       guideTabsTitle: "Tab Features",
       guideSecQueue: "Displays real-time approval requests from AI Rule Engine and AI Policy.",
       guideSecAudit: "Track all approval decisions and execution records chronologically.",
-      guideSecSettings: "Fine-tune approval workflow with auto-approve, 2FA, notifications, and more."
+      guideSecSettings: "Fine-tune approval workflow with auto-approve, 2FA, notifications, and more.",
+    "tabGuide": "Guia",
+    "heroTitle": "Fluxo de aprovação",
     },
   mobile: {
       hello: "Hello,",
@@ -7061,7 +7076,8 @@ export default {
       noData: "데이터 없음",
       revenue: "Revenue",
       totalRevenue: "Total Revenue",
-      totalSpend: "Total Spend"
+      totalSpend: "Total Spend",
+    "period": "Período",
     },
   save: "Save",
   cancel: "Cancel",
@@ -26531,7 +26547,33 @@ export default {
     "tabUpload": "Upload",
     "tabRecon": "Reconcile",
     "tabReports": "Reports",
-    "tabTickets": "Tickets"
+    "tabTickets": "Tickets",
+    "filterAll": "Todos",
+    "noContent": "Ainda não há conteúdo. Comece com o botão + Adicionar conteúdo.",
+    "untitled": "Sem título",
+    "noChannelData": "Nenhum dado de canal conectado",
+    "noChannelDataSub": "Registre chaves de API no Hub de integração para ver análises de canais automaticamente.",
+    "registerTitle": "Adicionar conteúdo",
+    "fieldTitle": "Título",
+    "fieldCreator": "Criador",
+    "fieldCampaign": "Campanha",
+    "fieldDate": "Data",
+    "fieldPlatform": "Plataforma",
+    "fieldStatus": "Status",
+    "btnCancel": "Cancelar",
+    "btnSave": "Salvar",
+    "guideTabsTitle": "Descrição das funções por aba",
+    "tabCalendar": "Calendário",
+    "tabList": "Lista",
+    "tabAi": "Análise de IA",
+    "title": "Calendário de conteúdo",
+    "subtitle": "Agendamento de conteúdo · colaboração em equipe · publicação multicanal · análise de IA",
+    "btnRegister": "Adicionar conteúdo",
+    "statusLabel": "Status",
+    "btnPrev": "Anterior",
+    "btnNext": "Próximo",
+    "noEventsMonth": "Nenhum conteúdo agendado este mês.",
+    "yearSuffix": "",
     },
 
 

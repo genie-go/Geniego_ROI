@@ -1,4 +1,8 @@
 export default {
+  "wmsPage": {
+    "namePh": "Max Mustermann",
+    "productName": "Produktname",
+  },
   "userMgmtPage": {
     "period": "Zeitraum",
     "paddlePriceId": "Paddle-Preis-ID",
@@ -339,7 +343,9 @@ export default {
       guideTabsTitle: "Tab-Funktionen",
       guideSecConsole: "Kanalauswahl, SKU, Prüfung und Ausführung.",
       guideSecJobs: "Alle Aufträge in Echtzeit verfolgen.",
-      guideSecSettings: "Auto-Wiederholung, Testlauf und Genehmigung konfigurieren."
+      guideSecSettings: "Auto-Wiederholung, Testlauf und Genehmigung konfigurieren.",
+    "tabGuide": "Leitfaden",
+    "heroTitle": "Writeback-Konsole",
     },
   approvalsPage: {
       heroDesc: "API-Schlüssel registrieren und verwalten.",
@@ -408,7 +414,9 @@ export default {
       guideTabsTitle: "Tab-Funktionen",
       guideSecQueue: "Zeigt Genehmigungsanfragen in Echtzeit an.",
       guideSecAudit: "Alle Entscheidungen chronologisch verfolgen.",
-      guideSecSettings: "Genehmigungsworkflow fein abstimmen."
+      guideSecSettings: "Genehmigungsworkflow fein abstimmen.",
+    "tabGuide": "Leitfaden",
+    "heroTitle": "Genehmigungs-Workflow",
     },
   ruleEnginePage: {
       heroDesc: "API-Schlüssel registrieren und verwalten.",
@@ -3154,7 +3162,9 @@ export default {
       status: "Status",
       addProduct: "+ Produkt hinzufügen",
       viewLineage: "Herkunft anzeigen",
-      noProducts: "Keine Datenprodukte."
+      noProducts: "Keine Datenprodukte.",
+    "tabGuide": "Leitfaden",
+    "heroTitle": "Datenprodukt",
     },
   aiInsights: {
       heroDesc: "API-Schlüssel registrieren und verwalten.",
@@ -3454,7 +3464,9 @@ export default {
       colAlloc: "Zuteilung",
       colBudget: "Budget",
       colReturn: "Erw. Rendite",
-      colProfit: "Erw. Gewinn"
+      colProfit: "Erw. Gewinn",
+    "labelChannel": "Kanal",
+    "badgeChannelUnit": "Kanäle verbunden",
     },
   supplyChain: {
       pageTitle: "Lieferketten-Transparenz",
@@ -4913,7 +4925,8 @@ export default {
       comingSoon: "This feature is in development and coming soon.",
       comingSoonDesc: "This feature is in development.",
       comingSoonSub: "Available in the next update.",
-      comingSoonTitle: "近日公開"
+      comingSoonTitle: "近日公開",
+    "period": "Zeitraum",
     },
   loading: "Loading...",
   save: "Save",
@@ -5097,10 +5110,6 @@ export default {
       dataSource: "Data Basis",
       menuProvides: "Information this menu provides",
       menuCanDo: "What you can do with this menu",
-      menuDocs: "📖 Menu Documentation",
-      faqs: "❓ FAQ",
-      apiGuide: "🔧 API Guide",
-      roles: "👥 Role Guide",
       heroTitle: "Geniego-ROI Benutzerhandbuch"
     },
   topbar: {
@@ -19343,7 +19352,10 @@ export default {
       selectLoginType: "Anmeldetyp wählen",
       selectLoginTypeDesc: "Wählen Sie Ihre Umgebung aus",
       adminBlockedInNormalLogin: "Admin-Konten müssen die Admin-Anmeldung verwenden. Klicken Sie auf das Logo für den Admin-Login.",
-      ceoLabel: "代表者名"
+      ceoLabel: "代表者名",
+    "selectOption": "Auswählen",
+    "namePh": "Max Mustermann",
+    "footerTagline": "Isolierter Enterprise-Flow",
     },
   gdpr: {
       bannerTitle: "Cookie-Einstellungen",
@@ -28756,7 +28768,33 @@ export default {
     "tabUpload": "Upload",
     "tabRecon": "Reconcile",
     "tabReports": "Reports",
-    "tabTickets": "Tickets"
+    "tabTickets": "Tickets",
+    "filterAll": "Alle",
+    "noContent": "Noch keine Inhalte. Beginnen Sie mit der Schaltfläche „+ Inhalt hinzufügen\".",
+    "untitled": "Ohne Titel",
+    "noChannelData": "Keine verbundenen Kanaldaten",
+    "noChannelDataSub": "Registrieren Sie API-Schlüssel im Integrations-Hub, um Kanalanalysen automatisch anzuzeigen.",
+    "registerTitle": "Inhalt hinzufügen",
+    "fieldTitle": "Titel",
+    "fieldCreator": "Creator",
+    "fieldCampaign": "Kampagne",
+    "fieldDate": "Datum",
+    "fieldPlatform": "Plattform",
+    "fieldStatus": "Status",
+    "btnCancel": "Abbrechen",
+    "btnSave": "Speichern",
+    "guideTabsTitle": "Tab-Referenz",
+    "tabCalendar": "Kalender",
+    "tabList": "Liste",
+    "tabAi": "KI-Analyse",
+    "title": "Content-Kalender",
+    "subtitle": "Content-Planung · Teamzusammenarbeit · Multichannel-Publishing · KI-Analyse",
+    "btnRegister": "Inhalt hinzufügen",
+    "statusLabel": "Status",
+    "btnPrev": "Zurück",
+    "btnNext": "Weiter",
+    "noEventsMonth": "Diesen Monat sind keine Inhalte geplant.",
+    "yearSuffix": "",
     },
 
 

@@ -1,4 +1,8 @@
 export default {
+  "wmsPage": {
+    "namePh": "محمد أحمد",
+    "productName": "اسم المنتج",
+  },
   "userMgmtPage": {
     "period": "الفترة",
     "paddlePriceId": "معرّف سعر Paddle",
@@ -3273,7 +3277,9 @@ export default {
       feeGlobal: "Global & Regional Channels",
       feeTipTitle: "How fees affect pricing",
       feeTipDesc: "Channel fees are automatically deducted when calculating optimal prices. Higher fee channels require higher sale prices to maintain your target margin. The optimization engine factors in these fees for every recommendation.",
-      "": ""
+      "": "",
+    "labelChannel": "القناة",
+    "badgeChannelUnit": "قناة متصلة",
     },
   dataProduct: {
       pageTitle: "🗂 Data Product Specification",
@@ -3461,7 +3467,9 @@ export default {
       schemaUgcRights: "UGC usage rights status",
       schemaWhitelist: "Whitelist registration status",
       schemaBranded: "Branded content disclosure status",
-      schemaUgcImpressions: "UGC impressions/views"
+      schemaUgcImpressions: "UGC impressions/views",
+    "tabGuide": "الدليل",
+    "heroTitle": "منتج البيانات",
     },
   returnsPortal: {
       pageTitle: "🔌 Integration Hub",
@@ -6457,7 +6465,10 @@ export default {
       selectLoginType: "اختر نوع تسجيل الدخول",
       selectLoginTypeDesc: "اختر بيئتك للمتابعة",
       adminBlockedInNormalLogin: "يجب على حسابات المسؤول استخدام تسجيل دخول المسؤول. انقر على الشعار للوصول إلى تسجيل دخول المسؤول.",
-      ceoLabel: "代表者名"
+      ceoLabel: "代表者名",
+    "selectOption": "اختر",
+    "namePh": "محمد أحمد",
+    "footerTagline": "تدفق مؤسسي معزول",
     },
   writebackPage: {
       heroDesc: "Register API keys and manage connection status for sales, advertising, and analytics channels.",
@@ -6547,7 +6558,9 @@ export default {
       guideTabsTitle: "Tab Features",
       guideSecConsole: "Channel selection, SKU input, policy validation, category suggestion, payload editing, preview and execution.",
       guideSecJobs: "Track all writeback job statuses in real-time.",
-      guideSecSettings: "Configure auto-retry, dry run, approval gate, webhook, rate limiting, and audit logging."
+      guideSecSettings: "Configure auto-retry, dry run, approval gate, webhook, rate limiting, and audit logging.",
+    "tabGuide": "الدليل",
+    "heroTitle": "وحدة تحكم Writeback",
     },
   approvalsPage: {
       heroDesc: "Register API keys and manage connection status for sales, advertising, and analytics channels.",
@@ -6616,7 +6629,9 @@ export default {
       guideTabsTitle: "Tab Features",
       guideSecQueue: "Displays real-time approval requests from AI Rule Engine and AI Policy.",
       guideSecAudit: "Track all approval decisions and execution records chronologically.",
-      guideSecSettings: "Fine-tune approval workflow with auto-approve, 2FA, notifications, and more."
+      guideSecSettings: "Fine-tune approval workflow with auto-approve, 2FA, notifications, and more.",
+    "tabGuide": "الدليل",
+    "heroTitle": "سير عمل الموافقة",
     },
   mobile: {
       hello: "Hello,",
@@ -7062,7 +7077,8 @@ export default {
       noData: "데이터 없음",
       revenue: "Revenue",
       totalRevenue: "Total Revenue",
-      totalSpend: "Total Spend"
+      totalSpend: "Total Spend",
+    "period": "الفترة",
     },
   save: "Save",
   cancel: "Cancel",
@@ -26532,7 +26548,33 @@ export default {
     "tabUpload": "Upload",
     "tabRecon": "Reconcile",
     "tabReports": "Reports",
-    "tabTickets": "Tickets"
+    "tabTickets": "Tickets",
+    "filterAll": "الكل",
+    "noContent": "لا يوجد محتوى بعد. ابدأ بزر + إضافة محتوى.",
+    "untitled": "بدون عنوان",
+    "noChannelData": "لا توجد بيانات قنوات متصلة",
+    "noChannelDataSub": "سجّل مفاتيح API في مركز التكامل لعرض تحليلات القنوات تلقائيًا.",
+    "registerTitle": "إضافة محتوى",
+    "fieldTitle": "العنوان",
+    "fieldCreator": "المبدع",
+    "fieldCampaign": "الحملة",
+    "fieldDate": "التاريخ",
+    "fieldPlatform": "المنصة",
+    "fieldStatus": "الحالة",
+    "btnCancel": "إلغاء",
+    "btnSave": "حفظ",
+    "guideTabsTitle": "شرح وظائف كل علامة تبويب",
+    "tabCalendar": "التقويم",
+    "tabList": "القائمة",
+    "tabAi": "تحليل الذكاء الاصطناعي",
+    "title": "تقويم المحتوى",
+    "subtitle": "جدولة المحتوى · تعاون الفريق · النشر متعدد القنوات · تحليل الذكاء الاصطناعي",
+    "btnRegister": "إضافة محتوى",
+    "statusLabel": "الحالة",
+    "btnPrev": "السابق",
+    "btnNext": "التالي",
+    "noEventsMonth": "لا يوجد محتوى مجدول هذا الشهر.",
+    "yearSuffix": "",
     },
 
 

@@ -1,4 +1,8 @@
 export default {
+  "wmsPage": {
+    "namePh": "Juan Pérez",
+    "productName": "Nombre del producto",
+  },
   "userMgmtPage": {
     "period": "Período",
     "paddlePriceId": "ID de precio de Paddle",
@@ -339,7 +343,9 @@ export default {
       guideTabsTitle: "Tab Features",
       guideSecConsole: "Channel selection, SKU input, policy validation, category suggestion, payload editing, preview and execution.",
       guideSecJobs: "Track all writeback job statuses in real-time.",
-      guideSecSettings: "Configure auto-retry, dry run, approval gate, webhook, rate limiting, and audit logging."
+      guideSecSettings: "Configure auto-retry, dry run, approval gate, webhook, rate limiting, and audit logging.",
+    "tabGuide": "Guía",
+    "heroTitle": "Consola de writeback",
     },
   approvalsPage: {
       heroDesc: "Register API keys and manage connection status for sales, advertising, and analytics channels.",
@@ -408,7 +414,9 @@ export default {
       guideTabsTitle: "Tab Features",
       guideSecQueue: "Displays real-time approval requests from AI Rule Engine and AI Policy.",
       guideSecAudit: "Track all approval decisions and execution records chronologically.",
-      guideSecSettings: "Fine-tune approval workflow with auto-approve, 2FA, notifications, and more."
+      guideSecSettings: "Fine-tune approval workflow with auto-approve, 2FA, notifications, and more.",
+    "tabGuide": "Guía",
+    "heroTitle": "Flujo de aprobación",
     },
   ruleEnginePage: {
       heroDesc: "Register API keys and manage connection status for sales, advertising, and analytics channels.",
@@ -3154,7 +3162,9 @@ export default {
       status: "Status",
       addProduct: "+ Add Product",
       viewLineage: "View Lineage",
-      noProducts: "No data products registered."
+      noProducts: "No data products registered.",
+    "tabGuide": "Guía",
+    "heroTitle": "Producto de datos",
     },
   aiInsights: {
       heroDesc: "Register API keys and manage connection status for sales, advertising, and analytics channels.",
@@ -3454,7 +3464,9 @@ export default {
       colAlloc: "Allocation",
       colBudget: "Budget",
       colReturn: "Expected Return",
-      colProfit: "Expected Profit"
+      colProfit: "Expected Profit",
+    "labelChannel": "Canal",
+    "badgeChannelUnit": "canales conectados",
     },
   supplyChain: {
       pageTitle: "Supply Chain Visibility",
@@ -4931,7 +4943,8 @@ export default {
       filter: "Filter",
       revenue: "Revenue",
       totalRevenue: "Total Revenue",
-      totalSpend: "Total Spend"
+      totalSpend: "Total Spend",
+    "period": "Período",
     },
   loading: "Loading...",
   save: "💾 Save",
@@ -5115,10 +5128,6 @@ export default {
       dataSource: "Data Basis",
       menuProvides: "Information this menu provides",
       menuCanDo: "What you can do with this menu",
-      menuDocs: "📖 Menu Documentation",
-      faqs: "❓ FAQ",
-      apiGuide: "🔧 API Guide",
-      roles: "👥 Role Guide",
       heroTitle: "Geniego-ROI User Guide"
     },
   topbar: {
@@ -16421,7 +16430,10 @@ export default {
       selectLoginType: "Seleccionar tipo de acceso",
       selectLoginTypeDesc: "Elija su entorno para continuar",
       adminBlockedInNormalLogin: "Las cuentas admin deben usar el inicio de sesión admin. Haga clic en el logo para acceder al login admin.",
-      ceoLabel: "代表者名"
+      ceoLabel: "代表者名",
+    "selectOption": "Seleccionar",
+    "namePh": "Juan Pérez",
+    "footerTagline": "Flujo empresarial aislado",
     },
   helpPanel: {
       searchResult: "Search Result",
@@ -26872,7 +26884,33 @@ export default {
     "tabUpload": "Upload",
     "tabRecon": "Reconcile",
     "tabReports": "Reports",
-    "tabTickets": "Tickets"
+    "tabTickets": "Tickets",
+    "filterAll": "Todos",
+    "noContent": "Aún no hay contenido. Comience con el botón + Agregar contenido.",
+    "untitled": "Sin título",
+    "noChannelData": "No hay datos de canales conectados",
+    "noChannelDataSub": "Registre claves API en el Centro de integración para ver analíticas de canales automáticamente.",
+    "registerTitle": "Agregar contenido",
+    "fieldTitle": "Título",
+    "fieldCreator": "Creador",
+    "fieldCampaign": "Campaña",
+    "fieldDate": "Fecha",
+    "fieldPlatform": "Plataforma",
+    "fieldStatus": "Estado",
+    "btnCancel": "Cancelar",
+    "btnSave": "Guardar",
+    "guideTabsTitle": "Descripción de funciones por pestaña",
+    "tabCalendar": "Calendario",
+    "tabList": "Lista",
+    "tabAi": "Análisis de IA",
+    "title": "Calendario de contenido",
+    "subtitle": "Programación de contenido · colaboración en equipo · publicación multicanal · análisis de IA",
+    "btnRegister": "Agregar contenido",
+    "statusLabel": "Estado",
+    "btnPrev": "Anterior",
+    "btnNext": "Siguiente",
+    "noEventsMonth": "No hay contenido programado este mes.",
+    "yearSuffix": "",
     },
 
 

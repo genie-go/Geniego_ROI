@@ -1,4 +1,8 @@
 export default {
+  "wmsPage": {
+    "namePh": "张三",
+    "productName": "商品名称",
+  },
   "userMgmtPage": {
     "period": "周期",
     "paddlePriceId": "Paddle 价格 ID",
@@ -6397,7 +6401,8 @@ export default {
     "comingSoon": "此功能目前正在开发中，即将提供。",
     "comingSoonTitle": "即将推出",
     "comingSoonDesc": "此功能目前正在开发中。",
-    "comingSoonSub": "将在下次更新中提供。"
+    "comingSoonSub": "将在下次更新中提供。",
+    "period": "周期",
   },
   "loading": "Loading...",
   "save": "Save",
@@ -6581,10 +6586,6 @@ export default {
     "dataSource": "데이터 수집·정규화 출처",
     "menuProvides": "이 메뉴가 제공하는 정보",
     "menuCanDo": "이 메뉴로 할 수 있는 것",
-    "menuDocs": "📖 메뉴 문서",
-    "faqs": "❓ 자주 묻는 질문",
-    "apiGuide": "🔧 API 가이드",
-    "roles": "👥 역할별 가이드",
     "heroTitle": "Geniego-ROI 用户指南"
   },
   "topbar": {
@@ -16158,6 +16159,8 @@ export default {
     "feeGlobal": "글로벌 및 지역 채널",
     "feeTipTitle": "수수료가 가격에 미치는 영향",
     "feeTipDesc": "채널 수수료는 최적 가격 계산 시 자동으로 차감됩니다. 수수료가 높은 채널일수록 목표 마진을 유지하려면 더 높은 판매가가 필요합니다. 최적화 엔진은 모든 추천에 이 수수료를 반영합니다.",
+    "labelChannel": "渠道",
+    "badgeChannelUnit": "个渠道连接",
   },
   "reconciliation": {
     "pageTitle": "⚖️ 结算自动对账系统",
@@ -17519,6 +17522,8 @@ export default {
     "schemaWhitelist": "Whitelist registration status",
     "schemaBranded": "Branded content disclosure status",
     "schemaUgcImpressions": "UGC impressions/views",
+    "tabGuide": "指南",
+    "heroTitle": "数据产品",
   },
   "userMgmt": {
     "pageTitle": "👥 用户与权限管理",
@@ -19090,7 +19095,10 @@ export default {
         "loginEnvDesc": "请在下方输入邮箱和密码登录。",
         "selectLoginType": "选择登录类型",
         "selectLoginTypeDesc": "选择环境以继续",
-        "adminBlockedInNormalLogin": "管理员账号必须使用管理员登录。点击Logo访问管理员登录。"
+        "adminBlockedInNormalLogin": "管理员账号必须使用管理员登录。点击Logo访问管理员登录。",
+    "selectOption": "选择",
+    "namePh": "张三",
+    "footerTagline": "隔离的企业流程",
   },
   "gdpr": {
     "bannerTitle": "Cookie 偏好设置",
@@ -20515,6 +20523,32 @@ export default {
     liveSyncMsg: "Live sync active",
     tabGuide: "Guide",
     heroTitle: "Content Calendar",
+    "filterAll": "全部",
+    "noContent": "尚无内容。点击 + 添加内容按钮开始。",
+    "untitled": "无标题",
+    "noChannelData": "无已连接渠道数据",
+    "noChannelDataSub": "在集成中心注册 API 密钥后将自动显示渠道分析数据。",
+    "registerTitle": "添加内容",
+    "fieldTitle": "标题",
+    "fieldCreator": "创作者",
+    "fieldCampaign": "广告系列",
+    "fieldDate": "日期",
+    "fieldPlatform": "平台",
+    "fieldStatus": "状态",
+    "btnCancel": "取消",
+    "btnSave": "保存",
+    "guideTabsTitle": "各标签页功能说明",
+    "tabCalendar": "日历",
+    "tabList": "列表",
+    "tabAi": "AI 分析",
+    "title": "内容日历",
+    "subtitle": "内容排期 · 团队协作 · 多渠道发布 · AI 分析",
+    "btnRegister": "添加内容",
+    "statusLabel": "状态",
+    "btnPrev": "上一个",
+    "yearSuffix": "年",
+    "btnNext": "下一个",
+    "noEventsMonth": "本月没有排期的内容。",
   },
 
 

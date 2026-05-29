@@ -1,4 +1,8 @@
 export default {
+  "wmsPage": {
+    "namePh": "Nguyễn Văn A",
+    "productName": "Tên sản phẩm",
+  },
   "userMgmtPage": {
     "period": "Kỳ",
     "paddlePriceId": "Paddle Price ID",
@@ -339,7 +343,9 @@ export default {
       guideTabsTitle: "Tính năng tab",
       guideSecConsole: "Chọn kênh, nhập SKU, xác thực và thực hiện.",
       guideSecJobs: "Theo dõi trạng thái theo thời gian thực.",
-      guideSecSettings: "Cấu hình thử lại, thử nghiệm và phê duyệt."
+      guideSecSettings: "Cấu hình thử lại, thử nghiệm và phê duyệt.",
+    "tabGuide": "Hướng dẫn",
+    "heroTitle": "Bảng điều khiển Writeback",
     },
   approvalsPage: {
       heroDesc: "Đăng ký và quản lý API Key.",
@@ -408,7 +414,9 @@ export default {
       guideTabsTitle: "Tính năng các tab",
       guideSecQueue: "Hiển thị yêu cầu phê duyệt theo thời gian thực.",
       guideSecAudit: "Theo dõi mọi quyết định theo thứ tự thời gian.",
-      guideSecSettings: "Kiểm soát quy trình phê duyệt chi tiết."
+      guideSecSettings: "Kiểm soát quy trình phê duyệt chi tiết.",
+    "tabGuide": "Hướng dẫn",
+    "heroTitle": "Quy trình phê duyệt",
     },
   ruleEnginePage: {
       heroDesc: "Đăng ký và quản lý API Key.",
@@ -3154,7 +3162,9 @@ export default {
       status: "Status",
       addProduct: "+ Add Product",
       viewLineage: "View Lineage",
-      noProducts: "No data products registered."
+      noProducts: "No data products registered.",
+    "tabGuide": "Hướng dẫn",
+    "heroTitle": "Sản phẩm dữ liệu",
     },
   aiInsights: {
       heroDesc: "Đăng ký và quản lý API Key.",
@@ -3454,7 +3464,9 @@ export default {
       colAlloc: "Allocation",
       colBudget: "Budget",
       colReturn: "Expected Return",
-      colProfit: "Expected Profit"
+      colProfit: "Expected Profit",
+    "labelChannel": "Kênh",
+    "badgeChannelUnit": "kênh đã kết nối",
     },
   supplyChain: {
       pageTitle: "Minh bạch Chuỗi cung ứng",
@@ -6771,7 +6783,8 @@ export default {
       comingSoon: "This feature is in development and coming soon.",
       comingSoonDesc: "This feature is in development.",
       comingSoonSub: "Available in the next update.",
-      comingSoonTitle: "近日公開"
+      comingSoonTitle: "近日公開",
+    "period": "Kỳ",
     },
   loading: "Loading...",
   save: "💾 Save",
@@ -6955,10 +6968,6 @@ export default {
       dataSource: "Data Basis",
       menuProvides: "Information this menu provides",
       menuCanDo: "What you can do with this menu",
-      menuDocs: "📖 Menu Documentation",
-      faqs: "❓ FAQ",
-      apiGuide: "🔧 API Guide",
-      roles: "👥 Role Guide",
       title: "Hướng dẫn người dùng",
       hero: "Hướng dẫn sử dụng Genie ROI",
       search: "Tìm kiếm hướng dẫn...",
@@ -6966,7 +6975,6 @@ export default {
         menu: "📋 Hướng dẫn Menu",
         faq: "❓ Câu hỏi thường gặp",
         api: "🔌 API Guide",
-        roles: "👥 Vai trò & Quyền",
         release: "📣 Release Notes"
       },
       faq: {
@@ -13351,7 +13359,10 @@ export default {
       selectLoginType: "Chọn loại đăng nhập",
       selectLoginTypeDesc: "Chọn môi trường để tiếp tục",
       adminBlockedInNormalLogin: "Tài khoản admin phải sử dụng đăng nhập admin. Nhấp logo để truy cập đăng nhập admin.",
-      ceoLabel: "代表者名"
+      ceoLabel: "代表者名",
+    "selectOption": "Chọn",
+    "namePh": "Nguyễn Văn A",
+    "footerTagline": "Luồng doanh nghiệp tách biệt",
     },
   helpPanel: {
       searchResult: "Search Results",
@@ -28704,7 +28715,33 @@ export default {
     "tabCreator": "Creator",
     "tabSkuProfit": "SKU Profit",
     "tabCohort": "Cohort",
-    "tabAccountPerformance": "Account Performance"
+    "tabAccountPerformance": "Account Performance",
+    "filterAll": "Tất cả",
+    "noContent": "Chưa có nội dung. Bắt đầu bằng nút + Thêm nội dung.",
+    "untitled": "Không có tiêu đề",
+    "noChannelData": "Không có dữ liệu kênh đã kết nối",
+    "noChannelDataSub": "Đăng ký khóa API trong Trung tâm tích hợp để tự động hiển thị phân tích kênh.",
+    "registerTitle": "Thêm nội dung",
+    "fieldTitle": "Tiêu đề",
+    "fieldCreator": "Nhà sáng tạo",
+    "fieldCampaign": "Chiến dịch",
+    "fieldDate": "Ngày",
+    "fieldPlatform": "Nền tảng",
+    "fieldStatus": "Trạng thái",
+    "btnCancel": "Hủy",
+    "btnSave": "Lưu",
+    "guideTabsTitle": "Mô tả chức năng từng tab",
+    "tabCalendar": "Lịch",
+    "tabList": "Danh sách",
+    "tabAi": "Phân tích AI",
+    "title": "Lịch nội dung",
+    "subtitle": "Lên lịch nội dung · cộng tác nhóm · xuất bản đa kênh · phân tích AI",
+    "btnRegister": "Thêm nội dung",
+    "statusLabel": "Trạng thái",
+    "btnPrev": "Trước",
+    "btnNext": "Sau",
+    "noEventsMonth": "Không có nội dung nào được lên lịch trong tháng này.",
+    "yearSuffix": "",
     },
 
 

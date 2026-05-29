@@ -1,4 +1,8 @@
 export default {
+  "wmsPage": {
+    "namePh": "Budi Santoso",
+    "productName": "Nama Produk",
+  },
   "userMgmtPage": {
     "period": "Periode",
     "paddlePriceId": "Paddle Price ID",
@@ -339,7 +343,9 @@ export default {
       guideTabsTitle: "Fitur Tab",
       guideSecConsole: "Pilih saluran, masukkan SKU, validasi dan eksekusi.",
       guideSecJobs: "Lacak status pekerjaan real-time.",
-      guideSecSettings: "Konfigurasi coba ulang, uji coba, dan persetujuan."
+      guideSecSettings: "Konfigurasi coba ulang, uji coba, dan persetujuan.",
+    "tabGuide": "Panduan",
+    "heroTitle": "Konsol Writeback",
     },
   approvalsPage: {
       heroDesc: "Daftarkan dan kelola API Key.",
@@ -408,7 +414,9 @@ export default {
       guideTabsTitle: "Fitur Tab",
       guideSecQueue: "Menampilkan permintaan secara real-time.",
       guideSecAudit: "Melacak semua keputusan kronologis.",
-      guideSecSettings: "Kontrol alur kerja persetujuan."
+      guideSecSettings: "Kontrol alur kerja persetujuan.",
+    "tabGuide": "Panduan",
+    "heroTitle": "Alur Persetujuan",
     },
   ruleEnginePage: {
       heroDesc: "Daftarkan dan kelola API Key.",
@@ -5553,7 +5561,8 @@ export default {
       comingSoon: "This feature is in development and coming soon.",
       comingSoonDesc: "This feature is in development.",
       comingSoonSub: "Available in the next update.",
-      comingSoonTitle: "近日公開"
+      comingSoonTitle: "近日公開",
+    "period": "Periode",
     },
   loading: "Loading...",
   save: "Save",
@@ -5737,10 +5746,6 @@ export default {
       dataSource: "Data Basis",
       menuProvides: "Information this menu provides",
       menuCanDo: "What you can do with this menu",
-      menuDocs: "📖 Menu Documentation",
-      faqs: "❓ FAQ",
-      apiGuide: "🔧 API Guide",
-      roles: "👥 Role Guide",
       title: "Panduan Pengguna",
       hero: "Panduan Penggunaan Genie ROI",
       search: "Cari panduan...",
@@ -5748,7 +5753,6 @@ export default {
         menu: "📋 Panduan Menu",
         faq: "❓ FAQ",
         api: "🔌 API Guide",
-        roles: "👥 Peran & Izin",
         release: "📣 Release Notes"
       },
       faq: {
@@ -17647,7 +17651,9 @@ export default {
       colAlloc: "Allocation",
       colBudget: "Budget",
       colReturn: "Expected Return",
-      colProfit: "Expected Profit"
+      colProfit: "Expected Profit",
+    "labelChannel": "Saluran",
+    "badgeChannelUnit": "saluran terhubung",
     },
   tabs: {
       overview: "Ikhtisar",
@@ -18857,7 +18863,9 @@ export default {
       status: "Status",
       addProduct: "+ Add Product",
       viewLineage: "View Lineage",
-      noProducts: "No data products registered."
+      noProducts: "No data products registered.",
+    "tabGuide": "Panduan",
+    "heroTitle": "Produk Data",
     },
   audit: {
       pageDesc: "Semua acara sistem · Perubahan kebijakan · Tindakan pengguna",
@@ -21058,7 +21066,10 @@ export default {
       selectLoginType: "Pilih Jenis Login",
       selectLoginTypeDesc: "Pilih lingkungan untuk melanjutkan",
       adminBlockedInNormalLogin: "Akun admin harus menggunakan login admin. Klik logo untuk mengakses login admin.",
-      ceoLabel: "代表者名"
+      ceoLabel: "代表者名",
+    "selectOption": "Pilih",
+    "namePh": "Budi Santoso",
+    "footerTagline": "Alur enterprise terisolasi",
     },
   gdpr: {
       bannerTitle: "Preferensi Kue",
@@ -31640,7 +31651,33 @@ export default {
     "catOps": "Operations",
     "catData": "Data",
     "catAdmin": "Admin",
-    "catFin": "Finance"
+    "catFin": "Finance",
+    "filterAll": "Semua",
+    "noContent": "Belum ada konten. Mulai dengan tombol + Tambah Konten.",
+    "untitled": "Tanpa judul",
+    "noChannelData": "Tidak ada data saluran terhubung",
+    "noChannelDataSub": "Daftarkan kunci API di Hub Integrasi untuk menampilkan analitik saluran otomatis.",
+    "registerTitle": "Tambah Konten",
+    "fieldTitle": "Judul",
+    "fieldCreator": "Kreator",
+    "fieldCampaign": "Kampanye",
+    "fieldDate": "Tanggal",
+    "fieldPlatform": "Platform",
+    "fieldStatus": "Status",
+    "btnCancel": "Batal",
+    "btnSave": "Simpan",
+    "guideTabsTitle": "Keterangan Fungsi Tiap Tab",
+    "tabCalendar": "Kalender",
+    "tabList": "Daftar",
+    "tabAi": "Analisis AI",
+    "title": "Kalender Konten",
+    "subtitle": "Penjadwalan konten · kolaborasi tim · publikasi multi-saluran · analisis AI",
+    "btnRegister": "Tambah Konten",
+    "statusLabel": "Status",
+    "btnPrev": "Sebelumnya",
+    "btnNext": "Berikutnya",
+    "noEventsMonth": "Tidak ada konten terjadwal bulan ini.",
+    "yearSuffix": "",
     },
 
 

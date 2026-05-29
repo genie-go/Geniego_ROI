@@ -1,4 +1,8 @@
 export default {
+  "wmsPage": {
+    "namePh": "Иван Иванов",
+    "productName": "Название товара",
+  },
   "userMgmtPage": {
     "period": "Период",
     "paddlePriceId": "ID цены Paddle",
@@ -3272,7 +3276,9 @@ export default {
       feeGlobal: "Global & Regional Channels",
       feeTipTitle: "How fees affect pricing",
       feeTipDesc: "Channel fees are automatically deducted when calculating optimal prices. Higher fee channels require higher sale prices to maintain your target margin. The optimization engine factors in these fees for every recommendation.",
-      "": ""
+      "": "",
+    "labelChannel": "Канал",
+    "badgeChannelUnit": "каналов подключено",
     },
   dataProduct: {
       pageTitle: "🗂 Data Product Specification",
@@ -3460,7 +3466,9 @@ export default {
       schemaUgcRights: "UGC usage rights status",
       schemaWhitelist: "Whitelist registration status",
       schemaBranded: "Branded content disclosure status",
-      schemaUgcImpressions: "UGC impressions/views"
+      schemaUgcImpressions: "UGC impressions/views",
+    "tabGuide": "Руководство",
+    "heroTitle": "Дата-продукт",
     },
   returnsPortal: {
       pageTitle: "🔌 Integration Hub",
@@ -6456,7 +6464,10 @@ export default {
       selectLoginType: "Выберите тип входа",
       selectLoginTypeDesc: "Выберите среду для продолжения",
       adminBlockedInNormalLogin: "Учетные записи администратора должны использовать вход для администраторов. Нажмите на логотип для входа.",
-      ceoLabel: "代表者名"
+      ceoLabel: "代表者名",
+    "selectOption": "Выбрать",
+    "namePh": "Иван Иванов",
+    "footerTagline": "Изолированный корпоративный поток",
     },
   writebackPage: {
       heroDesc: "Register API keys and manage connection status for sales, advertising, and analytics channels.",
@@ -6546,7 +6557,9 @@ export default {
       guideTabsTitle: "Tab Features",
       guideSecConsole: "Channel selection, SKU input, policy validation, category suggestion, payload editing, preview and execution.",
       guideSecJobs: "Track all writeback job statuses in real-time.",
-      guideSecSettings: "Configure auto-retry, dry run, approval gate, webhook, rate limiting, and audit logging."
+      guideSecSettings: "Configure auto-retry, dry run, approval gate, webhook, rate limiting, and audit logging.",
+    "tabGuide": "Руководство",
+    "heroTitle": "Консоль обратной записи",
     },
   approvalsPage: {
       heroDesc: "Register API keys and manage connection status for sales, advertising, and analytics channels.",
@@ -6615,7 +6628,9 @@ export default {
       guideTabsTitle: "Tab Features",
       guideSecQueue: "Displays real-time approval requests from AI Rule Engine and AI Policy.",
       guideSecAudit: "Track all approval decisions and execution records chronologically.",
-      guideSecSettings: "Fine-tune approval workflow with auto-approve, 2FA, notifications, and more."
+      guideSecSettings: "Fine-tune approval workflow with auto-approve, 2FA, notifications, and more.",
+    "tabGuide": "Руководство",
+    "heroTitle": "Процесс одобрения",
     },
   mobile: {
       hello: "Hello,",
@@ -7061,7 +7076,8 @@ export default {
       noData: "데이터 없음",
       revenue: "Revenue",
       totalRevenue: "Total Revenue",
-      totalSpend: "Total Spend"
+      totalSpend: "Total Spend",
+    "period": "Период",
     },
   save: "Save",
   cancel: "Cancel",
@@ -26531,7 +26547,33 @@ export default {
     "tabUpload": "Upload",
     "tabRecon": "Reconcile",
     "tabReports": "Reports",
-    "tabTickets": "Tickets"
+    "tabTickets": "Tickets",
+    "filterAll": "Все",
+    "noContent": "Контента пока нет. Начните с кнопки + Добавить контент.",
+    "untitled": "Без названия",
+    "noChannelData": "Нет данных подключённых каналов",
+    "noChannelDataSub": "Зарегистрируйте API-ключи в Центре интеграций, чтобы автоматически видеть аналитику каналов.",
+    "registerTitle": "Добавить контент",
+    "fieldTitle": "Заголовок",
+    "fieldCreator": "Автор",
+    "fieldCampaign": "Кампания",
+    "fieldDate": "Дата",
+    "fieldPlatform": "Платформа",
+    "fieldStatus": "Статус",
+    "btnCancel": "Отмена",
+    "btnSave": "Сохранить",
+    "guideTabsTitle": "Описание функций по вкладкам",
+    "tabCalendar": "Календарь",
+    "tabList": "Список",
+    "tabAi": "AI-анализ",
+    "title": "Контент-календарь",
+    "subtitle": "Планирование контента · командная работа · мультиканальная публикация · AI-анализ",
+    "btnRegister": "Добавить контент",
+    "statusLabel": "Статус",
+    "btnPrev": "Назад",
+    "btnNext": "Вперёд",
+    "noEventsMonth": "В этом месяце контент не запланирован.",
+    "yearSuffix": "",
     },
 
 

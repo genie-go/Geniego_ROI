@@ -1,4 +1,8 @@
 export default {
+  "wmsPage": {
+    "namePh": "山田太郎",
+    "productName": "商品名",
+  },
   "userMgmtPage": {
     "period": "期間",
     "paddlePriceId": "Paddle価格ID",
@@ -4732,7 +4736,9 @@ export default {
     "colAlloc": "配分率",
     "colBudget": "予算",
     "colReturn": "予想収益",
-    "colProfit": "予想利益"
+    "colProfit": "予想利益",
+    "labelChannel": "チャネル",
+    "badgeChannelUnit": "チャネル連携",
   },
   "dataProduct": {
     "tabOverviewDesc": "Pipeline & coverage overview",
@@ -5730,7 +5736,8 @@ export default {
     "comingSoon": "この機能は現在開発中で、まもなく提供される予定です。",
     "comingSoonTitle": "近日公開",
     "comingSoonDesc": "この機能は現在開発中です。",
-    "comingSoonSub": "次のアップデートでご利用いただけます。"
+    "comingSoonSub": "次のアップデートでご利用いただけます。",
+    "period": "期間",
   },
   "loading": "Loading...",
   "save": "Save",
@@ -5914,10 +5921,6 @@ export default {
     "dataSource": "데이터 수집·정규화 출처",
     "menuProvides": "이 메뉴가 제공하는 정보",
     "menuCanDo": "이 메뉴로 할 수 있는 것",
-    "menuDocs": "📖 메뉴 문서",
-    "faqs": "❓ 자주 묻는 질문",
-    "apiGuide": "🔧 API 가이드",
-    "roles": "👥 역할별 가이드",
     "heroTitle": "Geniego-ROI ユーザーガイド"
   },
   "topbar": {
@@ -12135,7 +12138,10 @@ export default {
         "selectLoginType": "ログインタイプを選択",
         "selectLoginTypeDesc": "続行するには環境を選択してください",
         "adminBlockedInNormalLogin": "管理者アカウントは管理者専用ログインを使用してください。ロゴをクリックして管理者ログインにアクセスしてください。",
-    "ceoLabel": "代表者名"
+    "ceoLabel": "代表者名",
+    "selectOption": "選択",
+    "namePh": "山田太郎",
+    "footerTagline": "分離されたエンタープライズフロー",
   },
   "helpPanel": {
     "searchResult": "Search Results",
@@ -15656,6 +15662,8 @@ export default {
     "schemaWhitelist": "Whitelist registration status",
     "schemaBranded": "Branded content disclosure status",
     "schemaUgcImpressions": "UGC impressions/views",
+    "tabGuide": "ガイド",
+    "heroTitle": "データプロダクト",
   },
   "userMgmt": {
     "pageTitle": "👥 ユーザー・権限管理",
@@ -24377,6 +24385,32 @@ export default {
     liveSyncMsg: "Live sync active",
     tabGuide: "Guide",
     heroTitle: "Content Calendar",
+    "filterAll": "全て",
+    "noContent": "登録されたコンテンツがありません。+ コンテンツ登録ボタンで始めましょう。",
+    "untitled": "無題",
+    "noChannelData": "連携されたチャネルデータがありません",
+    "noChannelDataSub": "連携ハブでAPIキーを登録すると、チャネル分析データが自動的に表示されます。",
+    "registerTitle": "コンテンツ登録",
+    "fieldTitle": "タイトル",
+    "fieldCreator": "クリエイター",
+    "fieldCampaign": "キャンペーン",
+    "fieldDate": "日付",
+    "fieldPlatform": "プラットフォーム",
+    "fieldStatus": "ステータス",
+    "btnCancel": "キャンセル",
+    "btnSave": "保存",
+    "guideTabsTitle": "タブ別機能のご案内",
+    "tabCalendar": "カレンダー",
+    "tabList": "リスト",
+    "tabAi": "AI分析",
+    "title": "コンテンツカレンダー",
+    "subtitle": "コンテンツ日程管理 · チーム協業 · マルチチャネル配信 · AI分析",
+    "btnRegister": "コンテンツ登録",
+    "statusLabel": "ステータス",
+    "btnPrev": "前へ",
+    "yearSuffix": "年",
+    "btnNext": "次へ",
+    "noEventsMonth": "今月登録されたコンテンツがありません。",
   },
 
 

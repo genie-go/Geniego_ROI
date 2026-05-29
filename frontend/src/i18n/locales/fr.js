@@ -1,4 +1,8 @@
 export default {
+  "wmsPage": {
+    "namePh": "Jean Dupont",
+    "productName": "Nom du produit",
+  },
   "userMgmtPage": {
     "period": "Période",
     "paddlePriceId": "ID de prix Paddle",
@@ -339,7 +343,9 @@ export default {
       guideTabsTitle: "Tab Features",
       guideSecConsole: "Channel selection, SKU input, policy validation, category suggestion, payload editing, preview and execution.",
       guideSecJobs: "Track all writeback job statuses in real-time.",
-      guideSecSettings: "Configure auto-retry, dry run, approval gate, webhook, rate limiting, and audit logging."
+      guideSecSettings: "Configure auto-retry, dry run, approval gate, webhook, rate limiting, and audit logging.",
+    "tabGuide": "Guide",
+    "heroTitle": "Console de writeback",
     },
   approvalsPage: {
       heroDesc: "Register API keys and manage connection status for sales, advertising, and analytics channels.",
@@ -408,7 +414,9 @@ export default {
       guideTabsTitle: "Tab Features",
       guideSecQueue: "Displays real-time approval requests from AI Rule Engine and AI Policy.",
       guideSecAudit: "Track all approval decisions and execution records chronologically.",
-      guideSecSettings: "Fine-tune approval workflow with auto-approve, 2FA, notifications, and more."
+      guideSecSettings: "Fine-tune approval workflow with auto-approve, 2FA, notifications, and more.",
+    "tabGuide": "Guide",
+    "heroTitle": "Flux d’approbation",
     },
   ruleEnginePage: {
       heroDesc: "Register API keys and manage connection status for sales, advertising, and analytics channels.",
@@ -3154,7 +3162,9 @@ export default {
       status: "Status",
       addProduct: "+ Add Product",
       viewLineage: "View Lineage",
-      noProducts: "No data products registered."
+      noProducts: "No data products registered.",
+    "tabGuide": "Guide",
+    "heroTitle": "Produit de données",
     },
   aiInsights: {
       heroDesc: "Register API keys and manage connection status for sales, advertising, and analytics channels.",
@@ -3454,7 +3464,9 @@ export default {
       colAlloc: "Allocation",
       colBudget: "Budget",
       colReturn: "Expected Return",
-      colProfit: "Expected Profit"
+      colProfit: "Expected Profit",
+    "labelChannel": "Canal",
+    "badgeChannelUnit": "canaux connectés",
     },
   supplyChain: {
       pageTitle: "Supply Chain Visibility",
@@ -4931,7 +4943,8 @@ export default {
       filter: "Filter",
       revenue: "Revenue",
       totalRevenue: "Total Revenue",
-      totalSpend: "Total Spend"
+      totalSpend: "Total Spend",
+    "period": "Période",
     },
   loading: "Loading...",
   save: "💾 Save",
@@ -5115,10 +5128,6 @@ export default {
       dataSource: "Data Basis",
       menuProvides: "Information this menu provides",
       menuCanDo: "What you can do with this menu",
-      menuDocs: "📖 Menu Documentation",
-      faqs: "❓ FAQ",
-      apiGuide: "🔧 API Guide",
-      roles: "👥 Role Guide",
       heroTitle: "Geniego-ROI User Guide"
     },
   topbar: {
@@ -16421,7 +16430,10 @@ export default {
       selectLoginType: "Sélectionner le type de connexion",
       selectLoginTypeDesc: "Choisissez votre environnement pour continuer",
       adminBlockedInNormalLogin: "Les comptes admin doivent utiliser la connexion admin. Cliquez sur le logo pour accéder à la connexion admin.",
-      ceoLabel: "代表者名"
+      ceoLabel: "代表者名",
+    "selectOption": "Sélectionner",
+    "namePh": "Jean Dupont",
+    "footerTagline": "Flux entreprise isolé",
     },
   helpPanel: {
       searchResult: "Search Result",
@@ -26872,7 +26884,33 @@ export default {
     "tabUpload": "Upload",
     "tabRecon": "Reconcile",
     "tabReports": "Reports",
-    "tabTickets": "Tickets"
+    "tabTickets": "Tickets",
+    "filterAll": "Tous",
+    "noContent": "Aucun contenu pour le moment. Commencez avec le bouton + Ajouter du contenu.",
+    "untitled": "Sans titre",
+    "noChannelData": "Aucune donnée de canal connecté",
+    "noChannelDataSub": "Enregistrez des clés API dans le Hub d’intégration pour afficher automatiquement les analyses des canaux.",
+    "registerTitle": "Ajouter du contenu",
+    "fieldTitle": "Titre",
+    "fieldCreator": "Créateur",
+    "fieldCampaign": "Campagne",
+    "fieldDate": "Date",
+    "fieldPlatform": "Plateforme",
+    "fieldStatus": "Statut",
+    "btnCancel": "Annuler",
+    "btnSave": "Enregistrer",
+    "guideTabsTitle": "Présentation des fonctions par onglet",
+    "tabCalendar": "Calendrier",
+    "tabList": "Liste",
+    "tabAi": "Analyse IA",
+    "title": "Calendrier de contenu",
+    "subtitle": "Planification de contenu · collaboration d’équipe · publication multicanal · analyse IA",
+    "btnRegister": "Ajouter du contenu",
+    "statusLabel": "Statut",
+    "btnPrev": "Précédent",
+    "btnNext": "Suivant",
+    "noEventsMonth": "Aucun contenu programmé ce mois-ci.",
+    "yearSuffix": "",
     },
 
 

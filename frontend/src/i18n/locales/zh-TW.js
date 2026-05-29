@@ -1,4 +1,8 @@
 export default {
+  "wmsPage": {
+    "namePh": "王小明",
+    "productName": "商品名稱",
+  },
   "userMgmtPage": {
     "period": "週期",
     "paddlePriceId": "Paddle 價格 ID",
@@ -339,7 +343,9 @@ export default {
       guideTabsTitle: "分頁功能",
       guideSecConsole: "通路選擇、SKU輸入、驗證和執行。",
       guideSecJobs: "即時追蹤所有作業狀態。",
-      guideSecSettings: "設定自動重試、測試模式和審批關卡。"
+      guideSecSettings: "設定自動重試、測試模式和審批關卡。",
+    "tabGuide": "指南",
+    "heroTitle": "回寫主控台",
     },
   approvalsPage: {
       heroDesc: "註冊API金鑰並管理連接狀態。",
@@ -408,7 +414,9 @@ export default {
       guideTabsTitle: "分頁功能",
       guideSecQueue: "即時顯示審批請求。",
       guideSecAudit: "按時間順序追蹤所有決定。",
-      guideSecSettings: "精細控制審批工作流程。"
+      guideSecSettings: "精細控制審批工作流程。",
+    "tabGuide": "指南",
+    "heroTitle": "審批工作流",
     },
   ruleEnginePage: {
       heroDesc: "註冊API金鑰並管理連接狀態。",
@@ -6118,7 +6126,8 @@ export default {
       comingSoon: "This feature is in development and coming soon.",
       comingSoonDesc: "This feature is in development.",
       comingSoonSub: "Available in the next update.",
-      comingSoonTitle: "近日公開"
+      comingSoonTitle: "近日公開",
+    "period": "週期",
     },
   loading: "Loading...",
   save: "Save",
@@ -6302,10 +6311,6 @@ export default {
       dataSource: "Data Basis",
       menuProvides: "Information this menu provides",
       menuCanDo: "What you can do with this menu",
-      menuDocs: "📖 Menu Documentation",
-      faqs: "❓ FAQ",
-      apiGuide: "🔧 API Guide",
-      roles: "👥 Role Guide",
       title: "使用者指南",
       hero: "Genie ROI 使用手冊",
       search: "搜尋說明文件...",
@@ -6313,7 +6318,6 @@ export default {
         menu: "📋 功能說明",
         faq: "❓ 常見問題",
         api: "🔌 API指南",
-        roles: "👥 角色與權限",
         release: "📣 版本說明"
       },
       faq: {
@@ -16417,7 +16421,9 @@ export default {
       colAlloc: "Allocation",
       colBudget: "Budget",
       colReturn: "Expected Return",
-      colProfit: "Expected Profit"
+      colProfit: "Expected Profit",
+    "labelChannel": "管道",
+    "badgeChannelUnit": "個管道連接",
     },
   connectors: {
       title: "Connectors",
@@ -17396,7 +17402,9 @@ export default {
       status: "Status",
       addProduct: "+ Add Product",
       viewLineage: "View Lineage",
-      noProducts: "No data products registered."
+      noProducts: "No data products registered.",
+    "tabGuide": "指南",
+    "heroTitle": "資料產品",
     },
   audit: {
       pageDesc: "所有系統事件 · 政策變更 · 用戶操作 · 連接器同步",
@@ -19005,7 +19013,10 @@ export default {
       selectLoginType: "選擇登入類型",
       selectLoginTypeDesc: "選擇環境以繼續",
       adminBlockedInNormalLogin: "管理員帳號必須使用管理員登入。點擊Logo存取管理員登入。",
-      ceoLabel: "代表者名"
+      ceoLabel: "代表者名",
+    "selectOption": "選擇",
+    "namePh": "王小明",
+    "footerTagline": "隔離的企業流程",
     },
   gdpr: {
       bannerTitle: "Cookie 偏好設定",
@@ -30020,7 +30031,33 @@ export default {
     "tabUpload": "Upload",
     "tabRecon": "Reconcile",
     "tabReports": "Reports",
-    "tabTickets": "Tickets"
+    "tabTickets": "Tickets",
+    "filterAll": "全部",
+    "noContent": "尚無內容。點擊 + 新增內容按鈕開始。",
+    "untitled": "無標題",
+    "noChannelData": "無已連接管道資料",
+    "noChannelDataSub": "在整合中心註冊 API 金鑰後將自動顯示管道分析資料。",
+    "registerTitle": "新增內容",
+    "fieldTitle": "標題",
+    "fieldCreator": "創作者",
+    "fieldCampaign": "廣告活動",
+    "fieldDate": "日期",
+    "fieldPlatform": "平台",
+    "fieldStatus": "狀態",
+    "btnCancel": "取消",
+    "btnSave": "儲存",
+    "guideTabsTitle": "各分頁功能說明",
+    "tabCalendar": "日曆",
+    "tabList": "清單",
+    "tabAi": "AI 分析",
+    "title": "內容日曆",
+    "subtitle": "內容排程 · 團隊協作 · 多管道發布 · AI 分析",
+    "btnRegister": "新增內容",
+    "statusLabel": "狀態",
+    "btnPrev": "上一個",
+    "yearSuffix": "年",
+    "btnNext": "下一個",
+    "noEventsMonth": "本月沒有排程的內容。",
     },
 
 

@@ -1,4 +1,8 @@
 export default {
+  "wmsPage": {
+    "namePh": "राम कुमार",
+    "productName": "उत्पाद नाम",
+  },
   "userMgmtPage": {
     "period": "अवधि",
     "paddlePriceId": "Paddle मूल्य ID",
@@ -3272,7 +3276,9 @@ export default {
       feeGlobal: "Global & Regional Channels",
       feeTipTitle: "How fees affect pricing",
       feeTipDesc: "Channel fees are automatically deducted when calculating optimal prices. Higher fee channels require higher sale prices to maintain your target margin. The optimization engine factors in these fees for every recommendation.",
-      "": ""
+      "": "",
+    "labelChannel": "चैनल",
+    "badgeChannelUnit": "चैनल जुड़े",
     },
   dataProduct: {
       pageTitle: "🗂 Data Product Specification",
@@ -3460,7 +3466,9 @@ export default {
       schemaUgcRights: "UGC usage rights status",
       schemaWhitelist: "Whitelist registration status",
       schemaBranded: "Branded content disclosure status",
-      schemaUgcImpressions: "UGC impressions/views"
+      schemaUgcImpressions: "UGC impressions/views",
+    "tabGuide": "गाइड",
+    "heroTitle": "डेटा प्रोडक्ट",
     },
   returnsPortal: {
       pageTitle: "🔌 Integration Hub",
@@ -6456,7 +6464,10 @@ export default {
       selectLoginType: "लॉगिन प्रकार चुनें",
       selectLoginTypeDesc: "जारी रखने के लिए वातावरण चुनें",
       adminBlockedInNormalLogin: "एडमिन खातों को एडमिन लॉगिन का उपयोग करना होगा। एडमिन लॉगिन तक पहुंचने के लिए लोगो पर क्लिक करें।",
-      ceoLabel: "代表者名"
+      ceoLabel: "代表者名",
+    "selectOption": "चुनें",
+    "namePh": "राम कुमार",
+    "footerTagline": "पृथक एंटरप्राइज़ फ्लो",
     },
   writebackPage: {
       heroDesc: "Register API keys and manage connection status for sales, advertising, and analytics channels.",
@@ -6546,7 +6557,9 @@ export default {
       guideTabsTitle: "Tab Features",
       guideSecConsole: "Channel selection, SKU input, policy validation, category suggestion, payload editing, preview and execution.",
       guideSecJobs: "Track all writeback job statuses in real-time.",
-      guideSecSettings: "Configure auto-retry, dry run, approval gate, webhook, rate limiting, and audit logging."
+      guideSecSettings: "Configure auto-retry, dry run, approval gate, webhook, rate limiting, and audit logging.",
+    "tabGuide": "गाइड",
+    "heroTitle": "राइटबैक कंसोल",
     },
   approvalsPage: {
       heroDesc: "Register API keys and manage connection status for sales, advertising, and analytics channels.",
@@ -6615,7 +6628,9 @@ export default {
       guideTabsTitle: "Tab Features",
       guideSecQueue: "Displays real-time approval requests from AI Rule Engine and AI Policy.",
       guideSecAudit: "Track all approval decisions and execution records chronologically.",
-      guideSecSettings: "Fine-tune approval workflow with auto-approve, 2FA, notifications, and more."
+      guideSecSettings: "Fine-tune approval workflow with auto-approve, 2FA, notifications, and more.",
+    "tabGuide": "गाइड",
+    "heroTitle": "अनुमोदन वर्कफ़्लो",
     },
   mobile: {
       hello: "Hello,",
@@ -7061,7 +7076,8 @@ export default {
       noData: "데이터 없음",
       revenue: "Revenue",
       totalRevenue: "Total Revenue",
-      totalSpend: "Total Spend"
+      totalSpend: "Total Spend",
+    "period": "अवधि",
     },
   save: "Save",
   cancel: "Cancel",
@@ -26531,7 +26547,33 @@ export default {
     "tabUpload": "Upload",
     "tabRecon": "Reconcile",
     "tabReports": "Reports",
-    "tabTickets": "Tickets"
+    "tabTickets": "Tickets",
+    "filterAll": "सभी",
+    "noContent": "अभी कोई सामग्री नहीं। + सामग्री जोड़ें बटन से शुरू करें।",
+    "untitled": "शीर्षकहीन",
+    "noChannelData": "कोई जुड़ा चैनल डेटा नहीं",
+    "noChannelDataSub": "एकीकरण हब में API कुंजियाँ पंजीकृत करें, चैनल विश्लेषण स्वतः दिखेगा।",
+    "registerTitle": "सामग्री जोड़ें",
+    "fieldTitle": "शीर्षक",
+    "fieldCreator": "क्रिएटर",
+    "fieldCampaign": "अभियान",
+    "fieldDate": "तिथि",
+    "fieldPlatform": "प्लेटफॉर्म",
+    "fieldStatus": "स्थिति",
+    "btnCancel": "रद्द करें",
+    "btnSave": "सहेजें",
+    "guideTabsTitle": "प्रत्येक टैब की कार्य-व्याख्या",
+    "tabCalendar": "कैलेंडर",
+    "tabList": "सूची",
+    "tabAi": "AI विश्लेषण",
+    "title": "सामग्री कैलेंडर",
+    "subtitle": "सामग्री शेड्यूलिंग · टीम सहयोग · मल्टी-चैनल प्रकाशन · AI विश्लेषण",
+    "btnRegister": "सामग्री जोड़ें",
+    "statusLabel": "स्थिति",
+    "btnPrev": "पिछला",
+    "btnNext": "अगला",
+    "noEventsMonth": "इस माह कोई सामग्री निर्धारित नहीं।",
+    "yearSuffix": "",
     },
 
 

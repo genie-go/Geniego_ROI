@@ -1,4 +1,8 @@
 export default {
+  "wmsPage": {
+    "namePh": "สมชาย ใจดี",
+    "productName": "ชื่อสินค้า",
+  },
   "userMgmtPage": {
     "period": "ช่วงเวลา",
     "paddlePriceId": "Paddle Price ID",
@@ -339,7 +343,9 @@ export default {
       guideTabsTitle: "คำอธิบายรายละเอียดแต่ละแท็บ",
       guideSecConsole: "เลือกช่องทาง ใส่ SKU ตรวจสอบและดำเนินการ",
       guideSecJobs: "ติดตามสถานะงานเรียลไทม์",
-      guideSecSettings: "กำหนดค่าลองใหม่ ทดสอบ และอนุมัติ"
+      guideSecSettings: "กำหนดค่าลองใหม่ ทดสอบ และอนุมัติ",
+    "tabGuide": "คู่มือ",
+    "heroTitle": "คอนโซล Writeback",
     },
   approvalsPage: {
       heroDesc: "ลงทะเบียนและจัดการ API Key",
@@ -408,7 +414,9 @@ export default {
       guideTabsTitle: "คำอธิบายรายละเอียดแต่ละแท็บ",
       guideSecQueue: "แสดงคำขออนุมัติแบบเรียลไทม์",
       guideSecAudit: "ติดตามการตัดสินใจตามลำดับเวลา",
-      guideSecSettings: "ควบคุมเวิร์กโฟลว์การอนุมัติอย่างละเอียด"
+      guideSecSettings: "ควบคุมเวิร์กโฟลว์การอนุมัติอย่างละเอียด",
+    "tabGuide": "คู่มือ",
+    "heroTitle": "เวิร์กโฟลว์การอนุมัติ",
     },
   ruleEnginePage: {
       heroDesc: "ลงทะเบียนและจัดการ API Key",
@@ -5464,7 +5472,8 @@ export default {
       comingSoon: "This feature is in development and coming soon.",
       comingSoonDesc: "This feature is in development.",
       comingSoonSub: "Available in the next update.",
-      comingSoonTitle: "近日公開"
+      comingSoonTitle: "近日公開",
+    "period": "ช่วงเวลา",
     },
   loading: "Loading...",
   save: "Save",
@@ -5648,10 +5657,6 @@ export default {
       dataSource: "Data Basis",
       menuProvides: "Information this menu provides",
       menuCanDo: "What you can do with this menu",
-      menuDocs: "📖 Menu Documentation",
-      faqs: "❓ FAQ",
-      apiGuide: "🔧 API Guide",
-      roles: "👥 Role Guide",
       title: "คู่มือผู้ใช้",
       hero: "คู่มือการใช้งาน Genie ROI",
       search: "ค้นหาคู่มือ...",
@@ -5659,7 +5664,6 @@ export default {
         menu: "📋 คู่มือเมนู",
         faq: "❓ คำถามที่พบบ่อย",
         api: "🔌 API Guide",
-        roles: "👥 บทบาทและสิทธิ์",
         release: "📣 Release Notes"
       },
       faq: {
@@ -17579,7 +17583,9 @@ export default {
       colAlloc: "Allocation",
       colBudget: "Budget",
       colReturn: "Expected Return",
-      colProfit: "Expected Profit"
+      colProfit: "Expected Profit",
+    "labelChannel": "ช่องทาง",
+    "badgeChannelUnit": "ช่องทางที่เชื่อมต่อ",
     },
   tabs: {
       overview: "ภาพรวม",
@@ -18828,7 +18834,9 @@ export default {
       status: "Status",
       addProduct: "+ Add Product",
       viewLineage: "View Lineage",
-      noProducts: "No data products registered."
+      noProducts: "No data products registered.",
+    "tabGuide": "คู่มือ",
+    "heroTitle": "ผลิตภัณฑ์ข้อมูล",
     },
   audit: {
       pageDesc: "เหตุการณ์ระบบทั้งหมด · การเปลี่ยนแปลงนโยบาย · การดำเนินการของผู้ใช้",
@@ -21029,7 +21037,10 @@ export default {
       selectLoginType: "เลือกประเภทการเข้าสู่ระบบ",
       selectLoginTypeDesc: "เลือกสภาพแวดล้อมเพื่อดำเนินการต่อ",
       adminBlockedInNormalLogin: "บัญชีแอดมินต้องใช้การเข้าสู่ระบบแอดมิน คลิกโลโก้เพื่อเข้าสู่ระบบแอดมิน",
-      ceoLabel: "代表者名"
+      ceoLabel: "代表者名",
+    "selectOption": "เลือก",
+    "namePh": "สมชาย ใจดี",
+    "footerTagline": "โฟลว์องค์กรแบบแยกส่วน",
     },
   gdpr: {
       bannerTitle: "การตั้งค่าคุกกี้",
@@ -31598,7 +31609,33 @@ export default {
     "catOps": "Operations",
     "catData": "Data",
     "catAdmin": "Admin",
-    "catFin": "Finance"
+    "catFin": "Finance",
+    "filterAll": "ทั้งหมด",
+    "noContent": "ยังไม่มีเนื้อหา เริ่มด้วยปุ่ม + เพิ่มเนื้อหา",
+    "untitled": "ไม่มีชื่อ",
+    "noChannelData": "ไม่มีข้อมูลช่องทางที่เชื่อมต่อ",
+    "noChannelDataSub": "ลงทะเบียนคีย์ API ในศูนย์การเชื่อมต่อเพื่อแสดงข้อมูลวิเคราะห์ช่องทางอัตโนมัติ",
+    "registerTitle": "เพิ่มเนื้อหา",
+    "fieldTitle": "ชื่อเรื่อง",
+    "fieldCreator": "ครีเอเตอร์",
+    "fieldCampaign": "แคมเปญ",
+    "fieldDate": "วันที่",
+    "fieldPlatform": "แพลตฟอร์ม",
+    "fieldStatus": "สถานะ",
+    "btnCancel": "ยกเลิก",
+    "btnSave": "บันทึก",
+    "guideTabsTitle": "คำอธิบายฟังก์ชันของแต่ละแท็บ",
+    "tabCalendar": "ปฏิทิน",
+    "tabList": "รายการ",
+    "tabAi": "การวิเคราะห์ AI",
+    "title": "ปฏิทินเนื้อหา",
+    "subtitle": "การจัดตารางเนื้อหา · การทำงานร่วมกันของทีม · เผยแพร่หลายช่องทาง · การวิเคราะห์ AI",
+    "btnRegister": "เพิ่มเนื้อหา",
+    "statusLabel": "สถานะ",
+    "btnPrev": "ก่อนหน้า",
+    "btnNext": "ถัดไป",
+    "noEventsMonth": "ไม่มีเนื้อหาที่จัดตารางในเดือนนี้",
+    "yearSuffix": "",
     },
 
 

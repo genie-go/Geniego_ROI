@@ -2,10 +2,10 @@
   "version": "179",
   "updated": "2026-05-29",
   "sacred_sha": {
-    "ja.js": "bae55637867ee6f42e9968b58fc3273e808a9565aa0fc2cf33bf6e728c05bb14",
-    "zh.js": "8fb90e949deb1dc51fa384ba7ab30d31f4cdfd651f01355730cc3b5e5979fddf"
+    "ja.js": "71bf3408518d5716fce8ec0312f39a67101cc438c6298a6a22dff246bcbe7fa3",
+    "zh.js": "3676c1e9c9241c849bd18d608e53a26778338a04a62eed38e6577062d66e62f9"
   },
   "ko_leaf_count": 31829,
   "leaf_tolerance_pct": 5,
-  "_note": "Updated 179차 전수점검 batch8 — DataSchema(ds 23) + 소량 10페이지(aiPredictPage/wa/marketing/digitalShelf/pgConfigPage/userMgmtPage/dash/mr/help/aiHub) 14언어. 전역 otherMiss 1054→149. ja/zh SHA 갱신, ko 무변경. 누적 24페이지+. HelpCenter/aiHub 5키 잔류(ns 구조)."
+  "_note": "Updated 179차 batch9(otherMiss 잔류 마무리) — clean 45키 14언어(common/approvalsPage/dataProduct/priceOpt/writebackPage/contentCal 26/auth/wmsPage/yearSuffix). help.* 사전 버그(2381421f00) 정리: en 영문 배열 정규화 + 9개 언어 문자열 제거→en 폴백. 전역 otherMiss 1054→~90(실 라벨 0). 잔류 19=구조(help resolver-blocked 4/ActionPresets nested stub 11/aiHub array+page fallback 1/operations vi obj 2/yearSuffix 빈값 1)=라벨 아님. ko 무변경."
 }
