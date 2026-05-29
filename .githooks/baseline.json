@@ -2,10 +2,10 @@
   "version": "179",
   "updated": "2026-05-29",
   "sacred_sha": {
-    "ja.js": "59411f553a60355484e6bae4dfd40859d5e3441bbac695d77269033eb43f9af4",
-    "zh.js": "1099670a1a8d18a301436c00c4fb87b2f82a07dae68dbaabcfd13b9640f3c499"
+    "ja.js": "ccdb632c656b02f3e9837482c34ebd9f47ff40629aec71f4c847a39eca741e94",
+    "zh.js": "8effff296c2c869f4ba1433e4235abf7747178918b2c4b354654df0819e9718a"
   },
-  "ko_leaf_count": 31804,
+  "ko_leaf_count": 31833,
   "leaf_tolerance_pct": 5,
-  "_note": "179차 guide batch1 — Approvals 승인워크플로우 가이드 21키 15언어(6단계+5팁, CC 초안 사용자승인). ko_leaf 31783→31804. 잔여 guide* 16페이지 114키. ja/zh SHA 갱신."
+  "_note": "179차 guide batch2 — DataProduct 10단계 운영 가이드 29키 15언어(사용자 ko 수정본 verbatim + 14언어 충실성 패치). 페이지 steps 6→10 확장. ko_leaf 31804→31833. 잔여 guide* 15페이지(Writeback/PnL 6단계 + 헤더형). ja/zh SHA 갱신."
 }

@@ -173,6 +173,10 @@ function GuideTab({ t }) {
         { icon: '4️⃣', title: t('dataProduct.guideStep4Title'), desc: t('dataProduct.guideStep4Desc'), color: '#a855f7' },
         { icon: '5️⃣', title: t('dataProduct.guideStep5Title'), desc: t('dataProduct.guideStep5Desc'), color: '#f97316' },
         { icon: '6️⃣', title: t('dataProduct.guideStep6Title'), desc: t('dataProduct.guideStep6Desc'), color: '#06b6d4' },
+        { icon: '7️⃣', title: t('dataProduct.guideStep7Title'), desc: t('dataProduct.guideStep7Desc'), color: '#ec4899' },
+        { icon: '8️⃣', title: t('dataProduct.guideStep8Title'), desc: t('dataProduct.guideStep8Desc'), color: '#14b8a6' },
+        { icon: '9️⃣', title: t('dataProduct.guideStep9Title'), desc: t('dataProduct.guideStep9Desc'), color: '#f59e0b' },
+        { icon: '🔟', title: t('dataProduct.guideStep10Title'), desc: t('dataProduct.guideStep10Desc'), color: '#8b5cf6' },
     ];
     const sections = [
         { icon: '🔄', name: t('dataProduct.tabOverview'), desc: t('dataProduct.guideSecOverview') },
