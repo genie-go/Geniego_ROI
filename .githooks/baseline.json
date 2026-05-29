@@ -2,10 +2,10 @@
   "version": "179",
   "updated": "2026-05-29",
   "sacred_sha": {
-    "ja.js": "4d63ef0b64a54c84874eeaa58edcd5d905d30ed37d9a9aaf1c5bf2fb9685de3c",
-    "zh.js": "3a5554a645b3ef37170a5a4a6104b0844fb8a0e18495b9979a75d1c9840970c9"
+    "ja.js": "91eb5a2f7a20ac23c19d395f05bc935278fef91896c665cfe9399adfc8442c0d",
+    "zh.js": "3a9e10d02c99d5087a1c28c7e944891d86e24a4dfd9b285dec0c33039b41a05a"
   },
   "ko_leaf_count": 31829,
   "leaf_tolerance_pct": 5,
-  "_note": "Updated 179차 전수점검 batch6 — SmartConnect(sc) ko-only 42키 14언어 ns 생성. ja/zh sacred SHA 갱신. ko 무변경(leaf 31829). 누적 12페이지(batch1~6)."
+  "_note": "Updated 179차 전수점검 batch7 — Reconciliation(recon) ko-only 30키 14언어 ns 생성. ja/zh sacred SHA 갱신. ko 무변경(leaf 31829). 누적 13페이지(batch1~7)."
 }
