@@ -4858,6 +4858,10 @@ export default {
     "badgeRealtimeSync": "실시간 동기화",
     "badgeSecurityActive": "보안 활성",
     "secBannerDismiss": "닫기",
+    "guideTitle": "가격 최적화 가이드",
+    "guideSub": "원가·수수료·마진을 고려한 채널별 최적 판매가를 산출합니다.",
+    "guideStepsTitle": "단계별 사용법",
+    "guideTipsTitle": "전문가 팁",
   },
 
   "supplyChain": {
@@ -5993,6 +5997,11 @@ export default {
     "secLockTitle": "보안 경고",
     "secLockDesc": "비정상 접근이 감지되었습니다.",
     "dismiss": "확인",
+    "guideTitle": "이메일 마케팅 가이드",
+    "guideSub": "발신 설정·템플릿·세그먼트 캠페인·성과 분석을 단계별로 안내합니다.",
+    "guideStepsTitle": "단계별 사용법",
+    "guideTabsTitle": "탭별 기능 안내",
+    "guideTipsTitle": "전문가 팁",
     },
 
   "kakao": {
@@ -6208,6 +6217,10 @@ export default {
     "btnDel": "삭제",
 
     tabGuide: "이용 가이드",
+    "guideTitle": "카카오 채널 가이드",
+    "guideSub": "카카오 알림톡·친구톡 발송과 캠페인을 관리합니다.",
+    "guideStepsTitle": "단계별 사용법",
+    "guideTipsTitle": "전문가 팁",
   },
 
   "root_pageTitle_graphScore": "그래프 스코어",
@@ -13978,6 +13991,10 @@ export default {
     connections: "연결",
     influence: "영향력 지수",
     tabGuide: "이용 가이드",
+    "guideTitle": "그래프 스코어 가이드",
+    "guideSub": "고객·상품·채널 관계 그래프로 숨은 연결과 영향력을 분석합니다.",
+    "guideStepsTitle": "단계별 사용법",
+    "guideTipsTitle": "전문가 팁",
   },
 
   "onboarding": {
@@ -18704,8 +18721,10 @@ export default {
 
     "badge": "구독 요금제",
 
-    "heroTitle": "Geniego‑ROI 구독 요금제"
+    "heroTitle": "Geniego‑ROI 구독 요금제",
 
+    "guideTitle": "요금제 가이드",
+    "guideSub": "플랜별 제공 기능과 구독 요금을 비교하고 선택하는 방법을 안내합니다.",
   },
 
   "guideCustName": "고객 목록",
@@ -24844,6 +24863,11 @@ export default {
     detailKRW: '상세 (원)',
     detailValue: '상세 값',
     tabGuide: "이용 가이드",
+    "guideTitle": "정산·대사 가이드",
+    "guideSub": "채널별 정산 내역을 자동 대사하고 불일치를 즉시 포착합니다.",
+    "guideStepsTitle": "단계별 사용법",
+    "guideRolesTitle": "역할별 안내",
+    "guideTipsTitle": "전문가 팁",
   },
 
   "aiHub": {
@@ -33096,6 +33120,10 @@ export default {
     "dismiss": "닫기",
     "exportCsv": "CSV 내보내기",
     "noHistory": "발송 이력이 없습니다",
+    "guideTitle": "SMS 마케팅 가이드",
+    "guideSub": "발신번호 등록·템플릿·일괄 발송·캠페인을 단계별로 안내합니다.",
+    "guideStepsTitle": "단계별 사용법",
+    "guideTipsTitle": "전문가 팁",
     },
 
   "contentCal": {
@@ -33217,7 +33245,11 @@ export default {
     "guideGuideDesc": "콘텐츠 관리 워크플로우 안내",
     "liveSyncMsg": "실시간 동기화 활성",
     "tabGuide": "가이드",
-    "heroTitle": "콘텐츠 캘린더"
+    "heroTitle": "콘텐츠 캘린더",
+    "guideTitle": "콘텐츠 캘린더 가이드",
+    "guideSub": "콘텐츠 일정 관리·팀 협업·멀티채널 퍼블리싱을 안내합니다.",
+    "guideStepsTitle": "단계별 사용법",
+    "guideTipsTitle": "전문가 팁",
     },
 
   "reviews": {
@@ -34240,6 +34272,17 @@ export default {
     "aiReplyPositive": "긍정 리뷰 AI 답변",
     "aiReplyNeutral": "중립 리뷰 AI 답변",
     "aiReplyNegative": "부정 리뷰 AI 답변",
+    "guideTitle": "리뷰·UGC 관리 가이드",
+    "guideSub": "리뷰 수집·감성 분석·AI 답변·CS 에스컬레이션을 한곳에서 관리합니다.",
+    "guideStepsTitle": "단계별 사용법",
+    "guideTipsTitle": "전문가 팁",
+    "guideTip1": "부정 리뷰는 24시간 내 응대해 고객 이탈을 줄이세요.",
+    "guideTip2": "AI 답변 초안은 발송 전 톤과 사실관계를 검토하세요.",
+    "guideTip3": "부정 키워드 급증 시 자동 알림을 설정해 두세요.",
+    "guideTip4": "채널별 평점 추이를 주간 단위로 점검하세요.",
+    "guideTip5": "우수 리뷰는 마케팅 콘텐츠로 재활용하세요.",
+    "guideTip6": "반복되는 불만은 상품·운영 개선 신호로 활용하세요.",
+    "guideTip7": "CS 에스컬레이션 기준을 명확히 정의해 두세요.",
   },
 
   "root_pageTitle_reviewsUgc": "리뷰 & UGC",
@@ -41621,7 +41664,8 @@ export default {
     guideTipDesc: '프로모션과 AI 디자인을 함께 사용하면 효과가 더 좋습니다. 쿠폰 생성 후 AI 로 홍보 이미지를 생성하세요.',
     "heroTitle": "운영 허브",
     "tabCreative": "크리에이티브",
-    "guideTitle": "운영 가이드"
+    "guideTitle": "운영 가이드",
+    "guideSub": "주문·재고·배송·정산 운영 현황을 한곳에서 모니터링합니다.",
     },
 
   "report": {
@@ -41934,6 +41978,11 @@ export default {
     "aiRanking": "AI 랭킹",
     "aiRankingSub": "AI 종합 점수 순위",
     "aiScoreTitle": "AI 점수",
+    "guideTip1": "ROI 상위 크리에이터에 예산을 집중 배분하세요.",
+    "guideTip2": "조회수 대비 전환이 낮으면 콘텐츠 포맷을 점검하세요.",
+    "guideTip3": "계약 만료 임박 크리에이터는 미리 재계약을 검토하세요.",
+    "guideTip4": "AI 추천 수수료를 협상 기준선으로 활용하세요.",
+    "guideTip5": "콘텐츠 기여도가 높은 채널에 재투자하세요.",
   },
 
   "ui": {
@@ -43590,6 +43639,7 @@ export default {
     campaignTitle: "📣 캠페인 퍼포먼스",
     creatorTitle: "🤝 크리에이터 퍼포먼스",
     guideTitle: "보안 감사 가이드",
+    "guideSub": "모든 사용자의 접근·데이터 변경·삭제 이력을 추적하고 감사합니다.",
   },
   "attribution": {
     "alert": "알림",
@@ -44002,6 +44052,11 @@ export default {
     "esgEnergy": "에너지 사용",
     "esgPackaging": "친환경 포장",
     "esgRecycleRate": "재활용률",
+    "guideTabPerfDesc": "성과 허브의 종합 분석 기능을 안내합니다.",
+    "guideTitle": "성과 허브 가이드",
+    "guideSub": "매출·광고·인플루언서·정산·SKU 손익을 종합 분석합니다.",
+    "guideStepsTitle": "단계별 사용법",
+    "guideTipsTitle": "전문가 팁",
   },
   ds: {
     // 176차 PM8 S8: DataSchema 165 missing keys 보강 (DB 컬럼/메트릭/파이프라인/규칙 도메인)

@@ -2,10 +2,10 @@
   "version": "179",
   "updated": "2026-05-29",
   "sacred_sha": {
-    "ja.js": "2d7e9cb092b5d27ee24479e5692a50990929a908ac10e610b47fce9b04fdd840",
-    "zh.js": "25661801596beb40feba3e402deb7d3992ad3f3462ccf928a66faed2c22a6cb2"
+    "ja.js": "14e34f08b7d23300b3244cb0af7bed6f5bef3d122b0070a6caea3de338eb3350",
+    "zh.js": "b60be3adbbca5019a6621827e3513cde3ef1cee23e032354b4070b34e98ea02f"
   },
-  "ko_leaf_count": 31871,
+  "ko_leaf_count": 31926,
   "leaf_tolerance_pct": 5,
-  "_note": "179차 guide batch3 — Writeback(writebackPage 21, 사용자 수정본 verbatim) + PnL(pnl 17, CC초안) 15언어. ko_leaf 31833→31871. 잔여 guide* 헤더형 13페이지 55키. ja/zh SHA 갱신."
+  "_note": "179차 guide batch4(최종) — 헤더형 13페이지 55키 15언어(ReviewsUGC/EmailMarketing/Settlements/PerformanceHub/GraphScore/KakaoChannel/PriceOpt/SmsMarketing/ContentCalendar/Pricing/Audit/OperationsHub/InfluencerUGC). guide* 트랙 완료(잔여 7=동적prefix). ko_leaf 31871→31926. ja/zh SHA 갱신."
 }
