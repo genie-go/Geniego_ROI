@@ -146,7 +146,7 @@ export default function AlertPolicies() {
 
   async function save() {
     // ──  Guard ──────────────────────────────────────
-    if (isDemo) { setErr(t('auto.25smdq', '📌  Mode: Notification 정책 Save은 실제 Account에서만 가능합니다.')); return; }
+    if (isDemo) { setErr(t('auto.25smdq', '📌  모드: 알림 정책 저장은 실제 계정에서만 가능합니다.')); return; }
     setBusy(true);
     try {
       setErr(null);
@@ -167,7 +167,7 @@ export default function AlertPolicies() {
   async function del(id) {
     if (!id) return;
     // ──  Guard ──────────────────────────────────────
-    if (isDemo) { setErr(t('auto.gjra61', '📌  Mode: 정책 Delete는 실제 Account에서만 가능합니다.')); return; }
+    if (isDemo) { setErr(t('auto.gjra61', '📌  모드: 정책 삭제는 실제 계정에서만 가능합니다.')); return; }
     setBusy(true);
     try {
       await requestJsonAuth(`/v410/alert_policies/${id}`, "DELETE");
@@ -183,7 +183,7 @@ export default function AlertPolicies() {
 
   async function runEvaluate() {
     // ──  Guard ──────────────────────────────────────
-    if (isDemo) { setErr(t('auto.mi7ool', '📌  Mode: Notification 평가 Run은 실제 Account에서만 가능합니다.')); return; }
+    if (isDemo) { setErr(t('auto.mi7ool', '📌  모드: 알림 평가 실행은 실제 계정에서만 가능합니다.')); return; }
     setBusy(true);
     try {
       setErr(null);
@@ -199,9 +199,9 @@ export default function AlertPolicies() {
   // Slack / Email Test Send
   async function sendTestNotify(channel) {
     // ──  Guard ──────────────────────────────────────
-    if (isDemo) { setTestResult({ ok: false, detail: t('auto.e7chl6', '📌  Mode: Test Notification Send은 실제 Account에서만 가능합니다.'), channel }); return; }
+    if (isDemo) { setTestResult({ ok: false, detail: t('auto.e7chl6', '📌  모드: 테스트 알림 발송은 실제 계정에서만 가능합니다.'), channel }); return; }
     const target = channel === 'slack' ? testWebhook : testEmail;
-    if (!target.trim()) { alert(channel === 'slack' ? t('auto.2jw234', 'Slack 웹훅 URL을 입력하세요') : t('auto.swwa95', 'Email Address를 입력하세요')); return; }
+    if (!target.trim()) { alert(channel === 'slack' ? t('auto.2jw234', 'Slack 웹훅 URL을 입력하세요') : t('auto.swwa95', '이메일 주소를 입력하세요')); return; }
     setTestBusy(true); setTestResult(null);
     try {
       const data = await postJsonAuth('/api/v423/alerts/test-notify', { channel, target: target.trim(), policy_id: draft.id ?? 0 });
@@ -220,8 +220,8 @@ export default function AlertPolicies() {
       {/* Tab 바 */}
       <div style={{ display: "flex", gap: 4, borderBottom: "1px solid rgba(28,40,66,0.9)", paddingBottom: 0 }}>
         {[
-          { id: "policies", label: t('auto.mzr83u', '🚨 Notification 정책') },
-          { id: "presets", label: t('auto.gckxb4', '🧰 Action 프리셋') },
+          { id: "policies", label: t('auto.mzr83u', '🚨 알림 정책') },
+          { id: "presets", label: t('auto.gckxb4', '🧰 액션 프리셋') },
         ].map(t => (
           <button key={t.id} onClick={() => setMainTab(t.id)} style={{ padding: "11px 18px", fontSize: 12, fontWeight: 700, cursor: "pointer", background: "transparent", border: "none", outline: "none", borderBottom: mainTab === t.id ? "2px solid #4f8ef7" : "2px solid transparent", color: mainTab === t.id ? "#e2e8f0" : "#7c8fa8", marginBottom: -1 }}>{t.label}</button>
         ))}
@@ -233,7 +233,7 @@ export default function AlertPolicies() {
           <div>
             <h2 style={{ margin: 0 }}>🚨 Alert Policy Engine (V408)</h2>
             <div className="sub" style={{ marginTop: 6 }}>
-              {t('auto.8bh6tu', 'AND/OR 트리(드래그/in progress첩) + 스코프 Filter + Slack(스레드/스누즈/에스컬레이션) + Write-back Approval/감사 로그.')}
+              {t('auto.8bh6tu', 'AND/OR 트리(드래그/중첩) + 스코프 필터 + Slack(스레드/스누즈/에스컬레이션) + Write-back 승인/감사 로그.')}
             </div>
           </div>
           <div style={{ display: "flex", gap: 8 }}>
@@ -493,12 +493,12 @@ export default function AlertPolicies() {
                 />
               </div>
               <div className="sub" style={{ marginTop: 10 }}>
-                {t('auto.zh1qxk', 'Run 결과는 Action Center에서 Approval/Run/감사 로그로 Confirm할 Count 있습니다.')}
+                {t('auto.zh1qxk', '실행 결과는 Action Center에서 승인/실행/감사 로그로 확인할 수 있습니다.')}
               </div>
             </Card>
 
             {/* ── Notification Test Send ── */}
-            <Card title="🧪 Notification Test Send" subtitle={t('auto.5ugkrf', 'Slack 웹훅 또는 Email로 즉시 Test Send')}>
+            <Card title="🧪 Notification Test Send" subtitle={t('auto.5ugkrf', 'Slack 웹훅 또는 이메일로 즉시 테스트 발송')}>
               <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 10, alignItems: "end", marginBottom: 12 }}>
                 <div>
                   <div className="sub">{t("alertPoliciesPage.slackWebhookUrl", "Slack 웹훅 URL")}</div>
@@ -509,7 +509,7 @@ export default function AlertPolicies() {
                   />
                 </div>
                 <button className="btn" onClick={() => sendTestNotify('slack')} disabled={testBusy} style={{ whiteSpace: 'nowrap' }}>
-                  {testBusy ? 'Send in progress...' : '📤 Slack Test'}
+                  {testBusy ? '발송 중...' : '📤 Slack 테스트'}
                 </button>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 10, alignItems: "end" }}>
@@ -523,7 +523,7 @@ export default function AlertPolicies() {
                   />
                 </div>
                 <button className="btn" onClick={() => sendTestNotify('email')} disabled={testBusy} style={{ whiteSpace: 'nowrap' }}>
-                  {testBusy ? 'Send in progress...' : '📧 Email Test'}
+                  {testBusy ? '발송 중...' : '📧 이메일 테스트'}
                 </button>
               </div>
               {testResult && (
@@ -548,17 +548,17 @@ export default function AlertPolicies() {
       {mainTab === "presets" && (
         <div style={{ display: "grid", gap: 16 }}>
           <div style={{ padding: "12px 16px", borderRadius: 12, background: "rgba(99,102,241,0.06)", border: "1px solid rgba(99,102,241,0.2)" }}>
-            <div style={{ fontWeight: 800, fontSize: 13, marginBottom: 4 }}>{t('auto.w3od4h', '🧰 Action 프리셋 라이브러리')}</div>
-            <div style={{ fontSize: 11, color: "var(--text-3)" }}>{t('auto.bqxgxj', 'Notification 발생 시 Auto으로 Run할 Write-back Action 템플릿 모음')}</div>
+            <div style={{ fontWeight: 800, fontSize: 13, marginBottom: 4 }}>{t('auto.w3od4h', '🧰 액션 프리셋 라이브러리')}</div>
+            <div style={{ fontSize: 11, color: "var(--text-3)" }}>{t('auto.bqxgxj', '알림 발생 시 자동으로 실행할 Write-back 액션 템플릿 모음')}</div>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 12 }}>
             {[
-              { name: t('auto.qkkmnp', 'Campaign 일시정지'), icon: "⏸️", desc: t('auto.w5qgaw', 'ROAS 임계Value 이하 시 Meta/TikTok Campaign Auto 일시정지'), category: "Ad", color: "#f59e0b", uses: 24, lastUsed: t('auto.tb5fnf', '2Time 전') },
-              { name: t('auto.yxgb6h', 'Budget 30% 삭감'), icon: "💸", desc: t('auto.9plavm', 'ROAS < 1.0 Period 3일 이상 시 Ad Spend 30% Auto Decrease'), category: "Ad", color: "#ef4444", uses: 11, lastUsed: t('auto.tte7ij', '6Time 전') },
-              { name: t('auto.34an2u', 'Slack 즉시 Notification'), icon: "📤", desc: t('auto.hfcznv', '#ops-alerts Channel에 상황 Summary 즉시 Send'), category: "Notification", color: "#4f8ef7", uses: 87, lastUsed: t('auto.6odutv', '15분 전') },
-              { name: t('auto.ps1rbq', '지라 티켓 Create'), icon: "🎫", desc: t('auto.ga42ac', 'Critical Notification 발생 시 Jira 이슈 Auto Generate 및 Owner 할당'), category: t('auto.g490mm', '워크플로'), color: "#a855f7", uses: 33, lastUsed: t('auto.ea765n', '1일 전') },
-              { name: "Coupon Auto Send", icon: "🎁", desc: t('auto.qkwef8', '고가치 Customer 이탈 Forecast 시 10% Coupon Auto Send (Kakao+Email)'), category: "CRM", color: "#22c55e", uses: 19, lastUsed: t('auto.3ck4pc', '3Time 전') },
-              { name: t('auto.c3fs0f', 'Stock 발주 요청'), icon: "📦", desc: t('auto.nzwqg9', '30일 내 Stock 소진 Forecast 시 발주Team에 Email+Approval 요청'), category: t('auto.h53dub', '물류'), color: "#14d9b0", uses: 8, lastUsed: t('auto.h0jnqu', '2일 전') },
+              { name: t('auto.qkkmnp', '캠페인 일시정지'), icon: "⏸️", desc: t('auto.w5qgaw', 'ROAS 임계값 이하 시 Meta/TikTok 캠페인 자동 일시정지'), category: "Ad", color: "#f59e0b", uses: 24, lastUsed: t('auto.tb5fnf', '2시간 전') },
+              { name: t('auto.yxgb6h', '예산 30% 삭감'), icon: "💸", desc: t('auto.9plavm', 'ROAS < 1.0 기간 3일 이상 시 광고비 30% 자동 감소'), category: "Ad", color: "#ef4444", uses: 11, lastUsed: t('auto.tte7ij', '6시간 전') },
+              { name: t('auto.34an2u', 'Slack 즉시 알림'), icon: "📤", desc: t('auto.hfcznv', '#ops-alerts 채널에 상황 요약 즉시 발송'), category: "Notification", color: "#4f8ef7", uses: 87, lastUsed: t('auto.6odutv', '15분 전') },
+              { name: t('auto.ps1rbq', '지라 티켓 생성'), icon: "🎫", desc: t('auto.ga42ac', 'Critical 알림 발생 시 Jira 이슈 자동 생성 및 담당자 할당'), category: t('auto.g490mm', '워크플로'), color: "#a855f7", uses: 33, lastUsed: t('auto.ea765n', '1일 전') },
+              { name: "Coupon Auto Send", icon: "🎁", desc: t('auto.qkwef8', '고가치 고객 이탈 예측 시 10% 쿠폰 자동 발송 (Kakao+이메일)'), category: "CRM", color: "#22c55e", uses: 19, lastUsed: t('auto.3ck4pc', '3시간 전') },
+              { name: t('auto.c3fs0f', '재고 발주 요청'), icon: "📦", desc: t('auto.nzwqg9', '30일 내 재고 소진 예측 시 발주팀에 이메일+승인 요청'), category: t('auto.h53dub', '물류'), color: "#14d9b0", uses: 8, lastUsed: t('auto.h0jnqu', '2일 전') },
             ].map(p => (
               <div key={p.name} style={{ padding: "14px 16px", borderRadius: 12, background: "var(--card)", border: "1px solid var(--border)" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
@@ -583,7 +583,7 @@ export default function AlertPolicies() {
               </div>
             ))}
           </div>
-          <button style={{ padding: "10px 20px", borderRadius: 10, border: "none", background: "linear-gradient(135deg,#6366f1,#4f8ef7)", color: '#fff', fontWeight: 700, fontSize: 12, cursor: "pointer", width: "fit-content" }}>{t('auto.0ywsne', '+ 새 프리셋 Add')}</button>
+          <button style={{ padding: "10px 20px", borderRadius: 10, border: "none", background: "linear-gradient(135deg,#6366f1,#4f8ef7)", color: '#fff', fontWeight: 700, fontSize: 12, cursor: "pointer", width: "fit-content" }}>{t('auto.0ywsne', '+ 새 프리셋 추가')}</button>
         </div>
       )}
     </div>

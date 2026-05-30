@@ -30557,73 +30557,73 @@ export default {
 
     "dfumga": "→ 커넥터 Management로 Move",
 
-    "25smdq": "25smdq",
+    "25smdq": "📌  모드: 알림 정책 저장은 실제 계정에서만 가능합니다.",
 
-    "gjra61": "Gjra61",
+    "gjra61": "📌  모드: 정책 삭제는 실제 계정에서만 가능합니다.",
 
-    "mi7ool": "Mi7ool",
+    "mi7ool": "📌  모드: 알림 평가 실행은 실제 계정에서만 가능합니다.",
 
-    "e7chl6": "E7chl6",
+    "e7chl6": "📌  모드: 테스트 알림 발송은 실제 계정에서만 가능합니다.",
 
-    "2jw234": "2jw234",
+    "2jw234": "Slack 웹훅 URL을 입력하세요",
 
-    "swwa95": "Swwa95",
+    "swwa95": "이메일 주소를 입력하세요",
 
-    "mzr83u": "Mzr83u",
+    "mzr83u": "🚨 알림 정책",
 
-    "gckxb4": "Gckxb4",
+    "gckxb4": "🧰 액션 프리셋",
 
-    "8bh6tu": "8bh6tu",
+    "8bh6tu": "AND/OR 트리(드래그/중첩) + 스코프 필터 + Slack(스레드/스누즈/에스컬레이션) + Write-back 승인/감사 로그.",
 
-    "zh1qxk": "Zh1qxk",
+    "zh1qxk": "실행 결과는 Action Center에서 승인/실행/감사 로그로 확인할 수 있습니다.",
 
-    "5ugkrf": "5ugkrf",
+    "5ugkrf": "Slack 웹훅 또는 이메일로 즉시 테스트 발송",
 
-    "w3od4h": "W3od4h",
+    "w3od4h": "🧰 액션 프리셋 라이브러리",
 
-    "bqxgxj": "Bqxgxj",
+    "bqxgxj": "알림 발생 시 자동으로 실행할 Write-back 액션 템플릿 모음",
 
-    "qkkmnp": "Qkkmnp",
+    "qkkmnp": "캠페인 일시정지",
 
-    "w5qgaw": "W5qgaw",
+    "w5qgaw": "ROAS 임계값 이하 시 Meta/TikTok 캠페인 자동 일시정지",
 
-    "tb5fnf": "Tb5fnf",
+    "tb5fnf": "2시간 전",
 
-    "yxgb6h": "Yxgb6h",
+    "yxgb6h": "예산 30% 삭감",
 
-    "9plavm": "9plavm",
+    "9plavm": "ROAS < 1.0 기간 3일 이상 시 광고비 30% 자동 감소",
 
-    "tte7ij": "Tte7ij",
+    "tte7ij": "6시간 전",
 
-    "34an2u": "34an2u",
+    "34an2u": "Slack 즉시 알림",
 
-    "hfcznv": "Hfcznv",
+    "hfcznv": "#ops-alerts 채널에 상황 요약 즉시 발송",
 
-    "6odutv": "6odutv",
+    "6odutv": "15분 전",
 
-    "ps1rbq": "Ps1rbq",
+    "ps1rbq": "지라 티켓 생성",
 
-    "ga42ac": "Ga42ac",
+    "ga42ac": "Critical 알림 발생 시 Jira 이슈 자동 생성 및 담당자 할당",
 
-    "g490mm": "G490mm",
+    "g490mm": "워크플로",
 
-    "ea765n": "Ea765n",
+    "ea765n": "1일 전",
 
-    "qkwef8": "Qkwef8",
+    "qkwef8": "고가치 고객 이탈 예측 시 10% 쿠폰 자동 발송 (Kakao+이메일)",
 
-    "3ck4pc": "3ck4pc",
+    "3ck4pc": "3시간 전",
 
-    "c3fs0f": "C3fs0f",
+    "c3fs0f": "재고 발주 요청",
 
-    "nzwqg9": "Nzwqg9",
+    "nzwqg9": "30일 내 재고 소진 예측 시 발주팀에 이메일+승인 요청",
 
-    "h53dub": "H53dub",
+    "h53dub": "물류",
 
-    "h0jnqu": "H0jnqu",
+    "h0jnqu": "2일 전",
 
-    "eiyn3w": "Eiyn3w",
+    "eiyn3w": "편집",
 
-    "0ywsne": "0ywsne",
+    "0ywsne": "+ 새 프리셋 추가",
 
     "imx43v": "Imx43v",
 
@@ -30635,119 +30635,119 @@ export default {
 
     "4ndk1j": "4ndk1j",
 
-    "l36ov9": "L36ov9",
+    "l36ov9": "원본 페이로드 원형 보관 + 수신 메타",
 
-    "2it6i0": "2it6i0",
+    "2it6i0": "자동 증가 기본키",
 
-    "ra8479": "Ra8479",
+    "ra8479": "멀티테넌트 식별자",
 
-    "ejm0pv": "Ejm0pv",
+    "ejm0pv": "중복 방지 idempotency 키",
 
-    "wynyfz": "Wynyfz",
+    "wynyfz": "원본 JSON blob — 원본 불변 보관",
 
-    "xnh74m": "Xnh74m",
+    "xnh74m": "UTC ISO-8601 수신 시각",
 
-    "z8x5tf": "Z8x5tf",
+    "z8x5tf": "정규화 실패 시 오류 메시지",
 
-    "dtybkd": "Dtybkd",
+    "dtybkd": "단일 필드 체계로 정규화된 표준 이벤트",
 
-    "tsl7hq": "Tsl7hq",
+    "tsl7hq": "PK · Layer1 역참조 FK",
 
-    "bejuou": "Bejuou",
+    "bejuou": "━━ 광고 도메인 (Advertising) ━━",
 
-    "cfwn37": "Cfwn37",
+    "cfwn37": "캠페인 식별자 + 명",
 
-    "fdz98u": "Fdz98u",
+    "fdz98u": "광고세트 식별자 + 명",
 
-    "3x3snf": "3x3snf",
+    "3x3snf": "소재 ID · image|video|carousel|collection",
 
-    "9eok3n": "9eok3n",
+    "9eok3n": "키워드 · exact|phrase|broad",
 
-    "cq8w8h": "Cq8w8h",
+    "cq8w8h": "노출·클릭·지출",
 
-    "z8sx81": "Z8sx81",
+    "z8sx81": "전환·귀속 매출",
 
-    "a14086": "A14086",
+    "a14086": "━━ 마켓 도메인 (Market) ━━",
 
-    "74kh59": "74kh59",
+    "74kh59": "주문번호 · SKU · 상품명",
 
-    "xoo6im": "Xoo6im",
+    "xoo6im": "총매출 · 플랫폼수수료 · 광고비공제",
 
-    "o98iq1": "O98iq1",
+    "o98iq1": "공제 유형 및 금액",
 
-    "r45lkr": "R45lkr",
+    "r45lkr": "순정산금액 · 반품 여부",
 
-    "b1kvdo": "B1kvdo",
+    "b1kvdo": "━━ UGC / 인플루언서 도메인 ━━",
 
-    "5u3680": "5u3680",
+    "5u3680": "크리에이터 ID · @핸들",
 
-    "f3f04y": "F3f04y",
+    "f3f04y": "콘텐츠 ID · youtube|instagram|tiktok",
 
-    "knivsl": "Knivsl",
+    "knivsl": "1 = Branded Content Tag 포함",
 
-    "c6d6pj": "C6d6pj",
+    "c6d6pj": "━━ 공통 ━━",
 
-    "p4p4bc": "P4p4bc",
+    "p4p4bc": "KRW | USD | JPY ... · 지역코드",
 
-    "amsa9k": "Amsa9k",
+    "amsa9k": "규칙 버전 · 추가 파라미터 (확장)",
 
-    "a99eaj": "A99eaj",
+    "a99eaj": "🏗 스키마 정의",
 
-    "ze6yi8": "Ze6yi8",
+    "ze6yi8": "2단 테이블 구조",
 
-    "vvzm41": "Vvzm41",
+    "vvzm41": "원본 수집 뷰어",
 
-    "k2qk5x": "K2qk5x",
+    "k2qk5x": "⚡ 표준 이벤트",
 
-    "mqr1yb": "Mqr1yb",
+    "mqr1yb": "정규화 결과 테이블",
 
-    "dkrli8": "Dkrli8",
+    "dkrli8": "도메인별 집계",
 
-    "l2spnk": "L2spnk",
+    "l2spnk": "필드명",
 
-    "xfucnv": "Xfucnv",
+    "xfucnv": "타입",
 
-    "52g89l": "52g89l",
+    "52g89l": "📥  Raw 이벤트 시드",
 
-    "9ojkb5": "9ojkb5",
+    "9ojkb5": "⚡ 정규화 실행",
 
-    "451tyx": "451tyx",
+    "451tyx": "원본 Payload (미리보기 300자)",
 
-    "event_empty": "이벤트 없음",
+    "event_empty": "수집된 Raw 이벤트가 없습니다.  Raw 이벤트 시드를 클릭하세요.",
 
-    "pprh01": "Pprh01",
+    "pprh01": "도메인",
 
-    "7kne9i": "7kne9i",
+    "7kne9i": "정규화된 이벤트가 없습니다.",
 
-    "rytgjs": "Rytgjs",
+    "rytgjs": "정규화 완료",
 
-    "m8wl6v": "M8wl6v",
+    "m8wl6v": "표준 이벤트 총계",
 
-    "sn3xbe": "Sn3xbe",
+    "sn3xbe": "📥 Raw — 벤더별",
 
-    "5rbky2": "5rbky2",
+    "5rbky2": "⚡ 표준 — 도메인별",
 
-    "pw7qil": "Pw7qil",
+    "pw7qil": "🎬 UGC 권리/화이트리스트",
 
-    "bchlcp": "Bchlcp",
+    "bchlcp": "권리:",
 
-    "cox1g4": "Cox1g4",
+    "cox1g4": "📊 이벤트 유형별 분포",
 
-    "278rrt": "278rrt",
+    "278rrt": "오프라인 모드 — 목 데이터 표시 중",
 
-    "48uyea": "48uyea",
+    "48uyea": "오프라인 모드 — 목 데이터 표시 중",
 
-    "5n9f5p": "5n9f5p",
+    "5n9f5p": "정규화 실행 — 목 데이터 표시",
 
-    "6z1v6b": "6z1v6b",
+    "6z1v6b": "오프라인 모드",
 
-    "5uje4r": "5uje4r",
+    "5uje4r": "표준 이벤트 스키마",
 
-    "wdhsz1": "Wdhsz1",
+    "wdhsz1": "원본(RawVendorEvent) → 단일 표준(NormalizedActivityEvent) 2단 정규화 파이프라인",
 
-    "y7avh5": "Y7avh5",
+    "y7avh5": "6개 벤더 지원",
 
-    "mlfykp": "Mlfykp",
+    "mlfykp": "캠페인·정산·UGC 표준화",
 
     "a7fodt": "A7fodt",
 

@@ -876,7 +876,7 @@ const CreatorScoreModal = memo(function CreatorScoreModal({ creator, evalData, o
     const bd = result.breakdown || {};
     const contractCfg = { "flat+perf": "#4f8ef7", flat: "#22c55e", perf: "#a855f7" };
     const contractColor = contractCfg[result.fee_recommendation?.contract_type] || "#4f8ef7";
-    const renewColor = { '강력 갱신': "#22c55e", '갱신 권장': "#4f8ef7", '조건부 갱신': "#eab308", '재Review Required': "#f97316", 'End 권고': "#ef4444" };
+    const renewColor = { '강력 갱신': "#22c55e", '갱신 권장': "#4f8ef7", '조건부 갱신': "#eab308", '재검토 필요': "#f97316", '종료 권고': "#ef4444" };
     const rColor = renewColor[result.renewal_recommendation] || "#374151";
 
     return (
@@ -1024,7 +1024,7 @@ const AIEvalTab = memo(function AIEvalTab() {
     };
 
     const tierColor = { Nano: "#14d9b0", Micro: "#4f8ef7", Mid: "#a855f7", Macro: "#f97316" };
-    const renewColor = { '강력 갱신': "#22c55e", '갱신 권장': "#4f8ef7", '조건부 갱신': "#eab308", '재Review Required': "#f97316", 'End 권고': "#ef4444" };
+    const renewColor = { '강력 갱신': "#22c55e", '갱신 권장': "#4f8ef7", '조건부 갱신': "#eab308", '재검토 필요': "#f97316", '종료 권고': "#ef4444" };
 
     return (
         <div style={{ display: "grid", gap: 16 }}>
@@ -1166,7 +1166,7 @@ const AIEvalTab = memo(function AIEvalTab() {
                     )}
 
                     <div style={{ textAlign: "center" }}>
-                        <button onClick={runEval} disabled={loading} style={{ padding: "8px 20px", borderRadius: 10, border: "1px solid rgba(168,85,247,0.3)", background: "transparent", color: "#a855f7", cursor: "pointer", fontSize: 11, fontWeight: 700 }}>{t('influencerUGC.txt_AI재Analysi_46', '🔄 AI 재Analysis')}</button>
+                        <button onClick={runEval} disabled={loading} style={{ padding: "8px 20px", borderRadius: 10, border: "1px solid rgba(168,85,247,0.3)", background: "transparent", color: "#a855f7", cursor: "pointer", fontSize: 11, fontWeight: 700 }}>{t('influencerUGC.txt_AI재Analysi_46', '🔄 AI 재분석')}</button>
                     </div>
                 </>
             )}

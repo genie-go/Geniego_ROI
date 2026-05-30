@@ -234,7 +234,7 @@ const ShapleyTab = memo(function ShapleyTab() {
       ) : computing ? (
         <div style={{ textAlign: 'center', padding: 40, color: '#4f8ef7', fontSize: 14 }}>
           <div style={{ fontSize: 32, marginBottom: 12 }}>⚙️</div>
-          {t('attrData.shapleyInProgress', '2^n 정밀 Shapley 계산 in progress…')}
+          {t('attrData.shapleyInProgress', '2^n 정밀 Shapley 계산 중…')}
         </div>
       ) : results && (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
@@ -249,7 +249,7 @@ const ShapleyTab = memo(function ShapleyTab() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <span style={{ fontSize: 12, color, fontWeight: 800 }}>{CH_LABELS[r.ch] || r.ch}</span>
                       {isTop && <span style={{ fontSize: 9, padding: '2px 7px', borderRadius: 99, background: 'rgba(34,197,94,0.15)', color: '#4ade80', fontWeight: 700, border: '1px solid rgba(34,197,94,0.3)' }}>👑 {t('attrData.topOne', '#1')}</span>}
-                      {!r.positive && <Tag label={t('attrData.negativeCount', '음Count')} color="#ef4444" />}
+                      {!r.positive && <Tag label={t('attrData.negativeCount', '음수')} color="#ef4444" />}
                     </div>
                     <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
                       <span style={{ fontSize: 11, color: 'var(--text-3)' }}>{fmtC(Math.abs(Math.round(r.value)))}</span>
@@ -467,7 +467,7 @@ const MarkovTab = memo(function MarkovTab() {
       <div style={{ padding: '12px 16px', borderRadius: 12, background: 'rgba(6,182,212,0.07)', border: '1px solid rgba(6,182,212,0.2)', fontSize: 12, color: 'var(--text-2)', lineHeight: 1.7 }}>
         🔗 <strong style={{ color: '#06b6d4' }}>{t('attrData.tabMarkovLabel', 'Markov+Uplift')}</strong> — {t('attrData.explainMarkov')}
       </div>
-      {computing && <div style={{ textAlign: 'center', padding: 40, color: '#06b6d4' }}>{t('attrData.markovInProgress', 'Markov Chain + Double ML 계산 in progress…')}</div>}
+      {computing && <div style={{ textAlign: 'center', padding: 40, color: '#06b6d4' }}>{t('attrData.markovInProgress', 'Markov Chain + Double ML 계산 중…')}</div>}
       {markovRes && !computing && (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
           <div className="card card-glass">
@@ -706,7 +706,7 @@ const BayesianABTab = memo(function BayesianABTab() {
           </button>
         ))}
       </div>
-      {computing && <div style={{ textAlign: 'center', padding: 40, color: '#a855f7' }}>{t('attrData.thompsonInProgress', 'Thompson Sampling (5,000회) Run in progress…')}</div>}
+      {computing && <div style={{ textAlign: 'center', padding: 40, color: '#a855f7' }}>{t('attrData.thompsonInProgress', 'Thompson Sampling (5,000회) 실행 중…')}</div>}
       {analyzed && !computing && (
         <div className="card card-glass">
           <div style={{ fontWeight: 900, fontSize: 14, marginBottom: 4 }}>{test.name}</div>
@@ -917,7 +917,7 @@ const AnomalyTab = memo(function AnomalyTab() {
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, marginTop: 8 }}>
                 {[
-                  { l: t('attrData.currVal', '현재Value'), v: d.value.toFixed(1), c: color },
+                  { l: t('attrData.currVal', '현재값'), v: d.value.toFixed(1), c: color },
                   { l: t('attrData.baseline', '기준선'), v: d.baseline.toFixed(1), c: 'var(--text-3)' },
                   { l: 'Z-score', v: (d.zscore > 0 ? '+' : '') + d.zscore.toFixed(2), c: Math.abs(d.zscore) > 2 ? '#ef4444' : Math.abs(d.zscore) > 1.5 ? '#eab308' : '#22c55e' },
                 ].map(k => (
@@ -1002,7 +1002,7 @@ const ModelCompareTab = memo(function ModelCompareTab() {
     );
   }
 
-  // A-Score = 모델 간 표준편차가 낮을Count록 높은 점Count (일관성 기반)
+  // A-Score = 모델 간 표준편차가 낮을수록 높은 점수 (일관성 기반)
   const aScores = channels.map((ch, ci) => {
     const vals = models.map(m => m.values[ci]);
     const mean = vals.reduce((s, v) => s + v, 0) / vals.length;
