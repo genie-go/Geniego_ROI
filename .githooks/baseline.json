@@ -2,10 +2,10 @@
   "version": "183",
   "updated": "2026-05-30",
   "sacred_sha": {
-    "ja.js": "2fd41a37b63b0dc3cc143c541cfc082d3ff057a89815fe5e4b893eae9fa815e3",
-    "zh.js": "a6038490980eaa79ffa17965f16964beea5ff80ee556b2191e4a55315382bac6"
+    "ja.js": "fd37bce48228a5430254b2d48d8b762c612c6f0919f1ab55b6484838fab31a67",
+    "zh.js": "c170111b4371081a0b780d65496f9e54f54c0d845a7de8e771ff8fa4161b1515"
   },
   "ko_leaf_count": 32095,
   "leaf_tolerance_pct": 5,
-  "_note": "183차 — KakaoChannel kakao ns 34키 ja/zh 사용자 확정 번역(U-178-A) + ko 21키 정제. 데모 ja 스캔 ground-truth 기반."
+  "_note": "183차 — KakaoChannel kakao ns 73키 전체 ja/zh 사용자 확정 번역(U-178-A) + ko 정제. 데모 ja 스캔 ground-truth 기반. ja/zh kakao 한글 잔여 0."
 }

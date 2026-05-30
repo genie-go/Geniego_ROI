@@ -6119,7 +6119,7 @@ export default {
 
     "fName": "채널명",
 
-    "pName": "예: 우리매장 공식채널",
+    "pName": "예: 우리매장 공식 채널",
 
     "fId": "채널 ID",
 
@@ -6127,11 +6127,11 @@ export default {
 
     "fSender": "발신 프로필 키",
 
-    "pSender": "40자리 발신키",
+    "pSender": "발신 프로필 키 입력",
 
     "fApi": "REST API 키",
 
-    "pApi": "비즈니스 REST API Key",
+    "pApi": "비즈니스 REST API 키",
 
     "msgSaveDone": "✅ 설정이 저장되었습니다.",
 
@@ -6159,7 +6159,7 @@ export default {
 
     "fContent": "내용* (변수: #{name} 또는 {{name}})",
 
-    "pContent": "안녕하세요 {{name}}님,주문이 정상적으로 접수되었습니다.주문번호: #{order_no}",
+    "pContent": "안녕하세요 {{name}}님, 주문이 정상적으로 접수되었습니다. 주문번호: #{order_no}",
 
     "msgTplReq": "❌ 템플릿 코드, 템플릿명, 내용은 필수 입력 항목입니다.",
 
@@ -6175,9 +6175,9 @@ export default {
 
     "msgTestDone": "테스트 발송이 완료되었습니다.",
 
-    "lblContent": "내용:",
+    "lblContent": "내용",
 
-    "testBtn": "테스트",
+    "testBtn": "테스트 발송",
 
     "testBtnIng": "...",
 
@@ -6185,9 +6185,9 @@ export default {
 
     "btnDelConfirm": "삭제하시겠습니까?",
 
-    "lblCode": "코드:",
+    "lblCode": "코드",
 
-    "lblType": "타입:",
+    "lblType": "유형",
 
     "emptyTpl": "등록된 템플릿이 없습니다.",
 
@@ -6213,9 +6213,9 @@ export default {
 
     "msgSendSucc": "발송 완료 (성공:",
 
-    "msgSendMock": "[테스트] ",
+    "msgSendMock": "[테스트]",
 
-    "msgSendFail2": "실패: ",
+    "msgSendFail2": "실패:",
 
     "msgSendFailT": "❌ 발송에 실패했습니다.",
 
@@ -6257,7 +6257,7 @@ export default {
 
     "guideSetName": "채널 설정",
 
-    "guideSetDesc": "카카오 API Key, Sender Key 및 발송 모드를 설정합니다.",
+    "guideSetDesc": "카카오 API 키, 발신 프로필 키 및 발송 환경을 구성합니다.",
 
     "guideTabsTitle": "가이드 탭 제목",
 
