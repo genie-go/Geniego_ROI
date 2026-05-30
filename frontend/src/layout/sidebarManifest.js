@@ -132,6 +132,7 @@ export const MEMBER_MENU = [
   {
     key: "member_tools", icon: "👥", labelKey: "gNav.memberTools",
     items: [
+      { to: "/team-members",    icon: "🧑‍🤝‍🧑", labelKey: "gNav.memberComposeLabel", menuKey: "system||workspace" },
       { to: "/workspace",       icon: "👥", labelKey: "gNav.workspaceLabel",     menuKey: "system||workspace" },
       { to: "/operations",      icon: "⚡", labelKey: "gNav.operationsLabel",    menuKey: "system||operations" },
       { to: "/case-study",      icon: "🏆", labelKey: "gNav.caseStudyLabel",     menuKey: "system||case_study" },

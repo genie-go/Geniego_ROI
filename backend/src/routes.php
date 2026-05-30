@@ -596,6 +596,11 @@ return function (App $app): void {
         'POST /auth/login'    => 'Genie\\Handlers\\UserAuth::login',
         'GET /auth/me'        => 'Genie\\Handlers\\UserAuth::me',
         'PATCH /auth/profile' => 'Genie\\Handlers\\UserAuth::profile', // 175차 S3.2
+        // 180차 Phase2 멤버구성원 — 팀/팀원 하위계정(상위 owner tenant 종속)
+        'GET /auth/team/members'         => 'Genie\\Handlers\\UserAuth::listTeamMembers',
+        'POST /auth/team/members'        => 'Genie\\Handlers\\UserAuth::createTeamMember',
+        'PATCH /auth/team/members/{id}'  => 'Genie\\Handlers\\UserAuth::updateTeamMember',
+        'DELETE /auth/team/members/{id}' => 'Genie\\Handlers\\UserAuth::deleteTeamMember',
         'POST /auth/logout'   => 'Genie\\Handlers\\UserAuth::logout',
         'POST /auth/upgrade'  => 'Genie\\Handlers\\UserAuth::upgrade',
         'GET /auth/subscription'      => 'Genie\\Handlers\\UserAuth::subscription',
@@ -1375,6 +1380,11 @@ return function (App $app): void {
     $register('POST', '/auth/login');
     $register('GET',  '/auth/me');
     $register('PATCH', '/auth/profile'); // 175차 S3.2
+    // 180차 Phase2 멤버구성원 팀/팀원 하위계정
+    $register('GET',    '/auth/team/members');
+    $register('POST',   '/auth/team/members');
+    $register('PATCH',  '/auth/team/members/{id}');
+    $register('DELETE', '/auth/team/members/{id}');
     $register('POST', '/auth/logout');
     $register('POST', '/auth/upgrade');
     $register('GET',  '/auth/subscription');

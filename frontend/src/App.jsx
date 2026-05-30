@@ -109,6 +109,7 @@ const Onboarding = lazy(() => import("./pages/Onboarding.jsx"));
 const InstagramDM = lazy(() => import("./pages/InstagramDM.jsx"));
 const LicenseActivation = lazy(() => import("./pages/LicenseActivation.jsx"));
 const TeamWorkspace = lazy(() => import('./pages/TeamWorkspace.jsx'));
+const TeamMembers = lazy(() => import('./pages/TeamMembers.jsx')); // 180차 Phase2 멤버구성원
 const AIMarketingHub = lazy(() => import('./pages/AIMarketingHub.jsx'));
 const FeedbackCenter = lazy(() => import('./pages/FeedbackCenter.jsx'));
 // 175차 S4 — dead lazy imports 제거 (SmartConnect/AsiaLogistics 컴포넌트는 어디에도 렌더링되지 않음; Route는 Navigate redirect 만)
@@ -392,6 +393,7 @@ function AppLayout() {
                       <Route path="/instagram-dm" element={<InstagramDM />} />
                       <Route path="/license" element={<LicenseActivation />} />
                       <Route path="/workspace" element={<TeamWorkspace />} />
+                      <Route path="/team-members" element={<TeamMembers />} />
                       <Route path="/commerce-search" element={<Navigate to="/omni-channel" replace />} />
                       <Route path="/ai-marketing-hub" element={<Navigate to="/auto-marketing" replace />} />
                       <Route path="/feedback" element={<FeedbackCenter />} />

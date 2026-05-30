@@ -564,6 +564,188 @@ final class UserAuth
         return self::json($res, ['ok' => true, 'user' => $user]);
     }
 
+    // ═════════════════════════════════════════════════════════════
+    // 180차 Phase2 — 멤버구성원(팀/팀원 하위계정) 관리
+    //   하위계정은 상위 owner 의 tenant_id 를 상속 → 동일 회원 데이터 공유.
+    //   관리 권한: owner / manager (또는 admin). member 는 불가.
+    // ═════════════════════════════════════════════════════════════
+
+    /** 호출자(세션 토큰) 검증 + 팀관리 권한 확인. [caller, error?] */
+    private static function teamManager(ServerRequestInterface $req): array
+    {
+        $caller = self::userByToken((string)(self::extractToken($req) ?? ''));
+        if (!$caller) return [null, ['인증이 필요합니다.', 401]];
+        $role    = $caller['team_role'] ?? 'owner';
+        $isAdmin = (($caller['plan'] ?? '') === 'admin');
+        if (!$isAdmin && !in_array($role, ['owner', 'manager'], true)) {
+            return [null, ['팀원 관리 권한이 없습니다. (owner/manager 전용)', 403]];
+        }
+        return [$caller, null];
+    }
+
+    private static function callerTenant(array $caller): string
+    {
+        return (string)($caller['tenant_id'] ?? ('acct_' . (int)($caller['id'] ?? 0)));
+    }
+
+    // GET /auth/team/members — 같은 계정(tenant) 구성원 목록
+    public static function listTeamMembers(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
+    {
+        $pdo = Db::pdo();
+        self::ensureTenantColumns($pdo);
+        $caller = self::userByToken((string)(self::extractToken($req) ?? ''));
+        if (!$caller) return self::json($res, ['ok' => false, 'error' => '인증이 필요합니다.'], 401);
+        $tenantId = self::callerTenant($caller);
+        $rows = [];
+        try {
+            $st = $pdo->prepare(
+                "SELECT id, email, name, team_role, team_name, is_active, created_at, parent_user_id
+                   FROM app_user WHERE tenant_id = ?
+                  ORDER BY (CASE WHEN team_role = 'owner' THEN 0 ELSE 1 END), id ASC"
+            );
+            $st->execute([$tenantId]);
+            $rows = $st->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+        } catch (\Throwable $e) { /* 컬럼/테이블 이슈 — 빈 목록 */ }
+        return self::json($res, [
+            'ok' => true,
+            'tenant_id' => $tenantId,
+            'caller_role' => $caller['team_role'] ?? 'owner',
+            'members' => $rows,
+        ]);
+    }
+
+    // POST /auth/team/members — 팀원 하위계정 생성(ID/비번 발급)
+    public static function createTeamMember(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
+    {
+        $pdo = Db::pdo();
+        self::ensureTenantColumns($pdo);
+        [$caller, $err] = self::teamManager($req);
+        if ($err) return self::json($res, ['ok' => false, 'error' => $err[0]], $err[1]);
+
+        $tenantId = self::callerTenant($caller);
+        $ownerId  = (int)($caller['id'] ?? 0);
+        // 항상 최상위 owner 에 종속: manager 가 추가해도 parent 는 최상위 owner
+        $parentId = (($caller['team_role'] ?? '') === 'manager' && !empty($caller['parent_user_id']))
+            ? (int)$caller['parent_user_id'] : $ownerId;
+
+        $body = (array)($req->getParsedBody() ?? []);
+        if (empty($body)) { $d = json_decode((string)$req->getBody(), true); if (is_array($d)) $body = $d; }
+        $email    = strtolower(trim((string)($body['email'] ?? '')));
+        $password = (string)($body['password'] ?? '');
+        $name     = trim((string)($body['name'] ?? ''));
+        $memberRole = in_array(($body['team_role'] ?? ''), ['manager', 'member'], true) ? $body['team_role'] : 'member';
+        $teamName = trim((string)($body['team_name'] ?? ''));
+
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) return self::json($res, ['ok' => false, 'error' => '올바른 이메일 형식이 아닙니다.'], 422);
+        if (strlen($password) < 6) return self::json($res, ['ok' => false, 'error' => '비밀번호는 6자 이상이어야 합니다.'], 422);
+        if (strlen($name) < 1) return self::json($res, ['ok' => false, 'error' => '이름을 입력해 주세요.'], 422);
+
+        // 계정 중복검사(대소문자 무관)
+        $chk = $pdo->prepare('SELECT id FROM app_user WHERE LOWER(email) = ?');
+        $chk->execute([$email]);
+        if ($chk->fetchColumn()) return self::json($res, ['ok' => false, 'error' => '이미 가입된 이메일입니다.'], 409);
+
+        // 플랜은 상위 계정을 따름(종속)
+        $ownerPlan = $caller['plan'] ?? 'pro';
+        $now = self::now();
+        $hashed = password_hash($password, PASSWORD_DEFAULT);
+        try {
+            $pdo->prepare(
+                'INSERT INTO app_user(email,password_hash,name,plan,plans,company,is_active,created_at,tenant_id,parent_user_id,team_role,team_name)
+                 VALUES(?,?,?,?,?,?,1,?,?,?,?,?)'
+            )->execute([$email, $hashed, $name, $ownerPlan, $ownerPlan, $caller['company'] ?? null, $now, $tenantId, $parentId, $memberRole, $teamName ?: null]);
+            $newId = (int)$pdo->lastInsertId();
+        } catch (\Throwable $e) {
+            // password_hashs 스키마 폴백
+            try {
+                $pdo->prepare(
+                    'INSERT INTO app_user(email,password_hashs,name,plan,plans,company,is_active,created_at,tenant_id,parent_user_id,team_role,team_name)
+                     VALUES(?,?,?,?,?,?,1,?,?,?,?,?)'
+                )->execute([$email, $hashed, $name, $ownerPlan, $ownerPlan, $caller['company'] ?? null, $now, $tenantId, $parentId, $memberRole, $teamName ?: null]);
+                $newId = (int)$pdo->lastInsertId();
+            } catch (\Throwable $e2) {
+                return self::json($res, ['ok' => false, 'error' => '팀원 생성 오류: ' . $e2->getMessage()], 500);
+            }
+        }
+        return self::json($res, [
+            'ok' => true,
+            'member' => [
+                'id' => $newId, 'email' => $email, 'name' => $name,
+                'team_role' => $memberRole, 'team_name' => $teamName,
+                'is_active' => 1, 'created_at' => $now, 'parent_user_id' => $parentId,
+            ],
+        ], 201);
+    }
+
+    // PATCH /auth/team/members/{id} — 팀원 수정(이름/역할/팀명/활성/비번재설정)
+    public static function updateTeamMember(ServerRequestInterface $req, ResponseInterface $res, array $args = []): ResponseInterface
+    {
+        $pdo = Db::pdo();
+        self::ensureTenantColumns($pdo);
+        [$caller, $err] = self::teamManager($req);
+        if ($err) return self::json($res, ['ok' => false, 'error' => $err[0]], $err[1]);
+        $tenantId = self::callerTenant($caller);
+        $targetId = (int)($args['id'] ?? 0);
+
+        $t = $pdo->prepare('SELECT id, tenant_id, team_role FROM app_user WHERE id = ?');
+        $t->execute([$targetId]);
+        $target = $t->fetch(\PDO::FETCH_ASSOC);
+        if (!$target || (string)($target['tenant_id'] ?? '') !== $tenantId) {
+            return self::json($res, ['ok' => false, 'error' => '대상 계정을 찾을 수 없습니다.'], 404);
+        }
+        if (($target['team_role'] ?? '') === 'owner') {
+            return self::json($res, ['ok' => false, 'error' => 'owner 계정은 변경할 수 없습니다.'], 403);
+        }
+
+        $body = (array)($req->getParsedBody() ?? []);
+        if (empty($body)) { $d = json_decode((string)$req->getBody(), true); if (is_array($d)) $body = $d; }
+        $sets = []; $vals = [];
+        if (isset($body['name']) && trim((string)$body['name']) !== '') { $sets[] = 'name = ?'; $vals[] = trim((string)$body['name']); }
+        if (isset($body['team_role']) && in_array($body['team_role'], ['manager', 'member'], true)) { $sets[] = 'team_role = ?'; $vals[] = $body['team_role']; }
+        if (array_key_exists('team_name', $body)) { $sets[] = 'team_name = ?'; $vals[] = trim((string)$body['team_name']) ?: null; }
+        if (isset($body['is_active'])) { $sets[] = 'is_active = ?'; $vals[] = $body['is_active'] ? 1 : 0; }
+        if (isset($body['password']) && strlen((string)$body['password']) >= 6) {
+            $sets[] = 'password_hash = ?'; $vals[] = password_hash((string)$body['password'], PASSWORD_DEFAULT);
+            try { $pdo->prepare('UPDATE app_user SET password_hashs = NULL WHERE id = ?')->execute([$targetId]); } catch (\Throwable $e) {}
+        }
+        if (!$sets) return self::json($res, ['ok' => false, 'error' => '변경할 항목이 없습니다.'], 400);
+        $vals[] = $targetId;
+        try {
+            $pdo->prepare('UPDATE app_user SET ' . implode(', ', $sets) . ' WHERE id = ?')->execute($vals);
+        } catch (\Throwable $e) {
+            return self::json($res, ['ok' => false, 'error' => '수정 오류: ' . $e->getMessage()], 500);
+        }
+        return self::json($res, ['ok' => true, 'id' => $targetId]);
+    }
+
+    // DELETE /auth/team/members/{id} — 팀원 하위계정 비활성(소프트) + 세션 폐기
+    public static function deleteTeamMember(ServerRequestInterface $req, ResponseInterface $res, array $args = []): ResponseInterface
+    {
+        $pdo = Db::pdo();
+        self::ensureTenantColumns($pdo);
+        [$caller, $err] = self::teamManager($req);
+        if ($err) return self::json($res, ['ok' => false, 'error' => $err[0]], $err[1]);
+        $tenantId = self::callerTenant($caller);
+        $targetId = (int)($args['id'] ?? 0);
+
+        $t = $pdo->prepare('SELECT id, tenant_id, team_role FROM app_user WHERE id = ?');
+        $t->execute([$targetId]);
+        $target = $t->fetch(\PDO::FETCH_ASSOC);
+        if (!$target || (string)($target['tenant_id'] ?? '') !== $tenantId) {
+            return self::json($res, ['ok' => false, 'error' => '대상 계정을 찾을 수 없습니다.'], 404);
+        }
+        if (($target['team_role'] ?? '') === 'owner') {
+            return self::json($res, ['ok' => false, 'error' => 'owner 계정은 삭제할 수 없습니다.'], 403);
+        }
+        try {
+            $pdo->prepare('UPDATE app_user SET is_active = 0 WHERE id = ?')->execute([$targetId]);
+            $pdo->prepare('DELETE FROM user_session WHERE user_id = ?')->execute([$targetId]);
+        } catch (\Throwable $e) {
+            return self::json($res, ['ok' => false, 'error' => '삭제 오류: ' . $e->getMessage()], 500);
+        }
+        return self::json($res, ['ok' => true, 'id' => $targetId, 'deactivated' => true]);
+    }
+
     // ─────────────────────────────────────────────────────────────
     // PATCH /auth/profile  (175차 S3.2)
     // Body: { name, phone?, company? }
