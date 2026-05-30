@@ -1,6 +1,7 @@
 import React, { useEffect, createContext, useCallback, useContext, useRef, useState, useMemo } from "react";
 import { tChannelName } from '../utils/tenantStorage.js'; // 180차: 회원 격리 크로스탭
 import { planRank } from "./plans.js";
+import { menuAllowedByTier, isAdminOnlyMenu } from "./planMenuPolicy.js"; // 181차 플랜별 메뉴접근 초고도화
 
 
 export const AuthContext = createContext(null);
@@ -558,30 +559,28 @@ export function AuthProvider({ children }) {
      */
     const hasMenuAccess = useCallback((menuKey) => {
         if (!menuKey) return true;
-        // admin/enterprise 사용자: 항상 허용
-        if (["admin", "enterprise"].includes(userPlan)) return true;
+        // ── 최상위 admin: 모든 메뉴 허용 ──
+        if (userPlan === "admin") return true;
 
-        // ── 데모(/free) 사용자: admin 섹션만 차단, 나머지 전체 허용 ──
-        if (planRank(userPlan) === 0) {
-            const lk = (menuKey || "").toLowerCase();
-            // admin 전용 섹션만 차단 (플랫폼 관리자 페이지)
-            const isAdminSection =
-                lk.startsWith("admin||") ||
-                lk === "admin" ||
-                lk.startsWith("system||admin") ||
-                lk === "db_admin" ||
-                lk.startsWith("db_admin||") ||
-                lk === "user_mgmt" ||
-                lk.startsWith("user_mgmt||");
-            // admin 섹션이면 차단, 그 외 모두 허용 (가상 데이터로 열람 가능)
-            return !isAdminSection;
+        // ── 플랫폼 관리(admin 전용) 메뉴: admin 외 전원 차단 (enterprise 포함, 은행급 격리) ──
+        if (isAdminOnlyMenu(menuKey)) return false;
+
+        // ── enterprise: admin 전용 외 전체 허용 ──
+        if (userPlan === "enterprise") return true;
+
+        // ── 데모(/free) 사용자: admin 전용은 위에서 차단됨, 나머지 전체 허용(가상 데이터 열람) ──
+        if (planRank(userPlan) === 0) return true;
+
+        // ── 유료 사용자(starter/growth/pro) ──
+        // 1) 관리자(MenuAccessManager/PlanPricing)가 설정한 plan_menu_access 가 있으면 우선
+        if (planMenuAccess) {
+            const allowedKeys = planMenuAccess[userPlan] || planMenuAccess["free"];
+            if (Array.isArray(allowedKeys) && allowedKeys.length > 0) {
+                return allowedKeys.some(k => k === menuKey || menuKey.startsWith(k));
+            }
         }
-
-        // ── 유료 사용자(starter/growth/pro): planMenuAccess 기반 ──
-        if (!planMenuAccess) return true; // 아직 로드 안 됨 → 허용(graceful)
-        const allowedKeys = planMenuAccess[userPlan] || planMenuAccess["free"] || [];
-        if (allowedKeys.length === 0) return true; // 권한 설정 없으면 허용
-        return allowedKeys.some(k => k === menuKey || menuKey.startsWith(k));
+        // 2) 관리자 설정 부재 시: 정본 기본 등급으로 fail-secure 강제 (181차 — 기존 전체허용 해소)
+        return menuAllowedByTier(userPlan, menuKey);
     }, [userPlan, planMenuAccess]);
 
     return (

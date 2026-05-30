@@ -4,6 +4,7 @@ import { getJsonAuth, requestJsonAuth } from "../services/apiClient.js";
 import { useT } from "../i18n/index.js";
 import { MEMBER_MENU, ADMIN_MENU, buildMenuKeyIndex } from "../layout/sidebarManifest.js";
 import { MENU_KEY_LABEL, SUB_TABS_BY_PATH } from "../layout/sidebarMenuLabels.js";
+import { recommendMenuAccessByPrice } from "../auth/planMenuPolicy.js"; // 181차 요금 기반 메뉴접근 추천
 
 /**
  * 169차 P4 완벽 동기화 — admin 저장 후 user 측 sidebar 즉시 갱신.
@@ -316,6 +317,50 @@ function PlanPricing() {
   };
 
   /**
+   * 181차 — 요금 기반 메뉴접근 추천.
+   * 관리자가 등록한 플랜별 월 요금(starter/pro/enterprise) 차이에 비례해
+   * AI(정본 등급 가중) 가 메뉴 접근 권한을 누적 배분하고, 토글에 채워준다.
+   * (관리자는 채워진 토글을 자유 수정 후 [저장] 가능 — 즉시 적용 아님)
+   */
+  const priceOf = useCallback((planId) => {
+    const pp = periodPricing[planId] || {};
+    // 1개월 기준가 우선, 없으면 최소 기간의 가격
+    const m1 = pp[1]?.price_usd;
+    if (m1 != null && m1 !== '') return Number(m1) || 0;
+    const months = Object.keys(pp).map(Number).filter(n => !isNaN(n)).sort((a, b) => a - b);
+    for (const mo of months) { const v = pp[mo]?.price_usd; if (v != null && v !== '') return Number(v) || 0; }
+    return 0;
+  }, [periodPricing]);
+
+  const recommendMenuAccess = () => {
+    const prices = { starter: priceOf('starter'), pro: priceOf('pro'), enterprise: priceOf('enterprise') };
+    if (!prices.starter && !prices.pro && !prices.enterprise) {
+      alert('먼저 각 플랜의 월 구독 요금을 등록해 주세요. (요금 차이를 기준으로 메뉴 접근을 추천합니다)');
+      return;
+    }
+    const allKeys = menus.map(m => m.menu_key || m.id).filter(Boolean);
+    const rec = recommendMenuAccessByPrice(prices, allKeys);
+    setAccess(prev => {
+      const next = { ...prev };
+      for (const planId of ['starter', 'pro', 'enterprise']) {
+        const allow = new Set(rec[planId] || []);
+        const planAcc = {};
+        allKeys.forEach(k => { planAcc[k] = allow.has(k) ? 1 : 0; });
+        next[planId] = planAcc;
+      }
+      return next;
+    });
+    setAccessDirty(true);
+    alert(
+      `요금 기반 메뉴접근 추천 적용됨 (검토 후 [저장])\n` +
+      `· Starter $${prices.starter}/월 → ${rec.starter.length}개 메뉴\n` +
+      `· Pro $${prices.pro}/월 → ${rec.pro.length}개 메뉴\n` +
+      `· Enterprise $${prices.enterprise}/월 → ${rec.enterprise.length}개 메뉴\n` +
+      `(상위 플랜은 하위 메뉴 포함 · admin 전용 제외 · 토글 수정 가능)`
+    );
+  };
+
+  /**
    * updateField — 172차에서 plan_config 가격 필드는 plan_period_pricing 의 derived view 가 됨.
    * 본 함수는 plan_config 의 non-price 속성만 수정 (name/description/features/limits/flags/display_order).
    * 가격 자동 산출 로직은 updatePeriodField 가 담당.
@@ -594,6 +639,7 @@ function PlanPricing() {
           setMenuAccess={setMenuAccess} setMenuAccessBulk={setMenuAccessBulk}
           togglePlanAll={togglePlanAll}
           saveAllAccess={saveAllAccess} saving={saving === 'access'} dirty={accessDirty}
+          recommendMenuAccess={recommendMenuAccess}
         />
       )}
 
@@ -1628,7 +1674,7 @@ function CouponAdminPanel({ plans }) {
   );
 }
 
-function MenuAccessTree({ plans, menus, access, setMenuAccess, setMenuAccessBulk, togglePlanAll, saveAllAccess, saving, dirty }) {
+function MenuAccessTree({ plans, menus, access, setMenuAccess, setMenuAccessBulk, togglePlanAll, saveAllAccess, saving, dirty, recommendMenuAccess }) {
   const t = useT();
   const [activePlanIdx, setActivePlanIdx] = useState(0);
   const [collapsed, setCollapsed] = useState(() => new Set()); // 섹션 collapse 상태
@@ -1717,13 +1763,23 @@ function MenuAccessTree({ plans, menus, access, setMenuAccess, setMenuAccessBulk
         <div style={{ fontSize: 14, color: 'var(--text-3)', lineHeight: 1.6 }}>
           각 플랜의 사용자가 사이드바에서 볼 수 있는 메뉴를 결정합니다. 트리 구조: <strong>대메뉴(섹션) → 중메뉴(통합 그룹) → 하위 페이지 → 페이지 내 서브탭</strong>. ➕ <strong style={{ color:'#22c55e' }}>추가</strong> / ➖ <strong style={{ color:'#f87171' }}>제거</strong> 로 명시적 편집 후 우측 <strong>전체 저장</strong>.
         </div>
-        <button onClick={saveAllAccess} disabled={saving || !dirty} style={{
-          padding: '11px 26px', borderRadius: 10, border: 'none',
-          background: dirty ? 'linear-gradient(135deg,#16a34a,#22c55e)' : 'rgba(255,255,255,0.06)',
-          color: dirty ? '#fff' : '#94a3b8',
-          fontSize: 14, fontWeight: 800, cursor: dirty ? 'pointer' : 'default',
-          opacity: saving ? 0.6 : 1, whiteSpace: 'nowrap',
-        }}>{saving ? '저장 중…' : (dirty ? '💾 전체 저장 (모든 플랜)' : '✓ 저장됨')}</button>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+          {typeof recommendMenuAccess === 'function' && (
+            <button onClick={recommendMenuAccess} disabled={saving} title="등록된 플랜별 월 요금 차이에 비례해 AI가 메뉴 접근을 추천합니다 (수정 후 저장 가능)" style={{
+              padding: '11px 22px', borderRadius: 10, border: '1px solid rgba(168,85,247,0.45)',
+              background: 'linear-gradient(135deg,rgba(168,85,247,0.18),rgba(79,142,247,0.12))',
+              color: '#d8b4fe', fontSize: 14, fontWeight: 800, cursor: saving ? 'default' : 'pointer',
+              opacity: saving ? 0.6 : 1, whiteSpace: 'nowrap',
+            }}>🤖 요금 기반 메뉴접근 추천</button>
+          )}
+          <button onClick={saveAllAccess} disabled={saving || !dirty} style={{
+            padding: '11px 26px', borderRadius: 10, border: 'none',
+            background: dirty ? 'linear-gradient(135deg,#16a34a,#22c55e)' : 'rgba(255,255,255,0.06)',
+            color: dirty ? '#fff' : '#94a3b8',
+            fontSize: 14, fontWeight: 800, cursor: dirty ? 'pointer' : 'default',
+            opacity: saving ? 0.6 : 1, whiteSpace: 'nowrap',
+          }}>{saving ? '저장 중…' : (dirty ? '💾 전체 저장 (모든 플랜)' : '✓ 저장됨')}</button>
+        </div>
       </div>
 
       {/* 플랜 선택 탭 — 한 플랜씩 편집 */}

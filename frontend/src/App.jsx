@@ -1,5 +1,7 @@
 import React, { Suspense, lazy, Component } from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
+import PlanGate from "./components/PlanGate.jsx"; // 181차 플랜별 메뉴접근 라우트 가드
+import { pathToMenuKey, requiredPlanForMenu } from "./auth/planMenuPolicy.js";
 import Sidebar from "./layout/Sidebar.jsx";
 import MobileBottomNav from "./components/MobileBottomNav.jsx";
 import Topbar from "./layout/Topbar.jsx";
@@ -258,6 +260,22 @@ function RequireAuth({ children }) {
   return children;
 }
 
+/*
+ * 181차 플랜별 메뉴접근 라우트 가드 — URL 직접 접근(딥링크) 차단.
+ * 사이드바 숨김만으로는 우회 가능하던 허점을 보완: 현재 경로의 menuKey 를
+ * hasMenuAccess 로 판정해, 권한 미달이면 PlanGate 업그레이드 화면을 표시한다.
+ * (admin/enterprise/free 및 admin-only 정책은 hasMenuAccess 가 단일 출처)
+ */
+function MenuAccessGuard({ children }) {
+  const { hasMenuAccess } = useAuth();
+  const location = useLocation();
+  const menuKey = pathToMenuKey(location.pathname);
+  if (menuKey && typeof hasMenuAccess === "function" && !hasMenuAccess(menuKey)) {
+    return <PlanGate minPlan={requiredPlanForMenu(menuKey)} />;
+  }
+  return children;
+}
+
 function AppLayout() {
   useSecurityGuard({ enabled: true });
 
@@ -303,6 +321,7 @@ function AppLayout() {
               }}>
                 <ErrorBoundary>
                   <Suspense fallback={<Loader />}>
+                    <MenuAccessGuard>
                     <Routes>
                       <Route path="/" element={<Navigate to="/dashboard" replace />} />
                       <Route path="/register" element={<Navigate to="/login?tab=register" replace />} />
@@ -411,6 +430,7 @@ function AppLayout() {
                       <Route path="/case-study" element={<CaseStudy />} />
                       <Route path="*" element={<Navigate to="/dashboard" replace />} />
                     </Routes>
+                    </MenuAccessGuard>
                   </Suspense>
                 </ErrorBoundary>
               </div>
