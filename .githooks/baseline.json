@@ -2,10 +2,10 @@
   "version": "183",
   "updated": "2026-05-30",
   "sacred_sha": {
-    "ja.js": "86ea2c3dfbd73575e1a057085edad56704c2fccb7c0e40aa21872a4efe08e49f",
-    "zh.js": "d05fa9a0a2af6e2441d4bcfa207db61dec8e97dc60e8defbe9b4ceb0fed72da6"
+    "ja.js": "0c05317b6bfd47ee0cb89fe6b9f61c35d1190ec9603327b79601df98782df8d2",
+    "zh.js": "78cab151b78c3561d4fb7a812fdcce520b0595c8621235efd810adb9a6ce6829"
   },
   "ko_leaf_count": 32095,
   "leaf_tolerance_pct": 5,
-  "_note": "183차 — kakao(73)+email(60) ns 전체 ja/zh 사용자 확정 번역(U-178-A) + ko 정제. 데모 스캔 ground-truth. ja/zh kakao·email 한글 잔여 0."
+  "_note": "183차 — kakao(73)+email(60) UI 15개국 + marketing 이용가이드 15개국(62키, enterprise). 사용자 확정(U-178-A)."
 }
