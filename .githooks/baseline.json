@@ -2,10 +2,10 @@
   "version": "183",
   "updated": "2026-05-30",
   "sacred_sha": {
-    "ja.js": "16e2b90918202de8df4c7780aaf789754857cb32fc50dedd836e7aecc6256fac",
-    "zh.js": "2b47983f24c481fd3e636b5f689143b715cef67a6f16d5310afd65039207b205"
+    "ja.js": "299bb6744a6d746df0302e4c0aca775de6995170da73054ed96297b61371c0a9",
+    "zh.js": "fafbff78c43dc1049ee370be12043b226d9598cf59493d47eb3fa261d4fa055d"
   },
   "ko_leaf_count": 32095,
   "leaf_tolerance_pct": 5,
-  "_note": "183차 — kakao(73)+email(60) UI 15개국 + marketing 이용가이드 15개국(62키) + orderHub 이용가이드 15개국 전부(62키, enterprise). 사용자 확정(U-178-A)."
+  "_note": "183차 — kakao(73)+email(60) UI 15개국 + marketing/orderHub 이용가이드 15개국(62키) + catalogSync(상품등록센터) 이용가이드 15개국(60키, 이용대상섹션 생략). enterprise, 사용자 확정(U-178-A)."
 }
