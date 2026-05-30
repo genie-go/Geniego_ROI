@@ -30,9 +30,41 @@ final class DbAdmin
         return self::json($res, ['ok' => false, 'error' => $msg], $status);
     }
 
+    /**
+     * 183차 P0 보안: DbAdmin 전 작업 admin 강제.
+     * 이 핸들러는 실 DB(api_key/app_user/user_session 등 민감 테이블)에 직접 접근하므로
+     * admin 외 전면 차단한다. 허용 조건은 둘 중 하나:
+     *   1) api_key 미들웨어가 admin 역할(auth_role)로 통과시킨 요청
+     *   2) Bearer 세션토큰이 admin 회원(app_user.plan/plans='admin')인 요청
+     * 그 외(viewer/connector/analyst 키, 비admin 세션, 익명)는 403.
+     * 반환값: 차단 시 응답(ResponseInterface), 통과 시 null.
+     */
+    private static function requireAdmin(ServerRequestInterface $req, ResponseInterface $res): ?ResponseInterface
+    {
+        if ((string)$req->getAttribute('auth_role') === 'admin') return null;
+        $h = $req->getHeaderLine('Authorization');
+        if (preg_match('/^Bearer\s+(.+)$/i', $h, $m)) {
+            $token = trim($m[1]);
+            if ($token !== '') {
+                try {
+                    $pdo = Db::pdo();
+                    $st  = $pdo->prepare(
+                        "SELECT 1 FROM user_session s JOIN app_user u ON u.id = s.user_id
+                          WHERE s.token = ? AND s.expires_at > ? AND u.is_active = 1
+                            AND (u.plan = 'admin' OR u.plans = 'admin') LIMIT 1"
+                    );
+                    $st->execute([$token, gmdate('Y-m-d\TH:i:s\Z')]);
+                    if ($st->fetchColumn()) return null;
+                } catch (\Throwable $e) { /* fall through → 403 */ }
+            }
+        }
+        return self::err($res, 'Admin privileges required', 403);
+    }
+
     /** GET /v423/dbadmin/tables */
     public static function tables(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
     {
+        if ($deny = self::requireAdmin($req, $res)) return $deny;
         $pdo = Db::pdo();
 
         // 테이블 목록 + information_schema 에서 크기/행수 가져오기
@@ -72,6 +104,7 @@ final class DbAdmin
     /** GET /v423/dbadmin/tables/{table} — 컬럼 구조 + 인덱스 */
     public static function tableStructure(ServerRequestInterface $req, ResponseInterface $res, array $args): ResponseInterface
     {
+        if ($deny = self::requireAdmin($req, $res)) return $deny;
         $table = preg_replace('/[^a-zA-Z0-9_]/', '', $args['table'] ?? '');
         if (!$table) return self::err($res, 'Invalid table name');
 
@@ -103,6 +136,7 @@ final class DbAdmin
     /** GET /v423/dbadmin/tables/{table}/rows?page=1&limit=50&search=&order_by=id&order_dir=DESC */
     public static function tableRows(ServerRequestInterface $req, ResponseInterface $res, array $args): ResponseInterface
     {
+        if ($deny = self::requireAdmin($req, $res)) return $deny;
         $table = preg_replace('/[^a-zA-Z0-9_]/', '', $args['table'] ?? '');
         if (!$table) return self::err($res, 'Invalid table name');
 
@@ -171,6 +205,7 @@ final class DbAdmin
     /** POST /v423/dbadmin/query — SQL 실행 */
     public static function runQuery(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
     {
+        if ($deny = self::requireAdmin($req, $res)) return $deny;
         $body = (array)($req->getParsedBody() ?? []);
         $sql  = trim($body['sql'] ?? '');
 
@@ -228,6 +263,7 @@ final class DbAdmin
     /** POST /v423/dbadmin/tables/{table}/truncate */
     public static function truncateTable(ServerRequestInterface $req, ResponseInterface $res, array $args): ResponseInterface
     {
+        if ($deny = self::requireAdmin($req, $res)) return $deny;
         $table = preg_replace('/[^a-zA-Z0-9_]/', '', $args['table'] ?? '');
         if (!$table) return self::err($res, 'Invalid table name');
 
@@ -245,6 +281,7 @@ final class DbAdmin
     /** DELETE /v423/dbadmin/tables/{table}/rows/{id} */
     public static function deleteRow(ServerRequestInterface $req, ResponseInterface $res, array $args): ResponseInterface
     {
+        if ($deny = self::requireAdmin($req, $res)) return $deny;
         $table = preg_replace('/[^a-zA-Z0-9_]/', '', $args['table'] ?? '');
         $id    = (int)($args['id'] ?? 0);
         if (!$table || $id <= 0) return self::err($res, 'Invalid table or id');

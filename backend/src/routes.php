@@ -128,16 +128,9 @@ return function (App $app): void {
         'GET /api/customer-ai/integrated-summary'  => 'Genie\\Handlers\\CustomerAI::integratedSummary',
 
 
-        // ── 이메일 마케팅 확장 (A/B 테스트) ─────────────────────────────
-        'POST /api/email/campaigns/{id}/ab-test'   => 'Genie\\Handlers\\EmailMarketing::createAbTest',
-        'GET /api/email/campaigns/{id}/ab-result'  => 'Genie\\Handlers\\EmailMarketing::abTestResult',
-        'POST /api/email/campaigns/{id}/duplicate' => 'Genie\\Handlers\\EmailMarketing::duplicateCampaign',
-        'GET /api/email/analytics'                 => 'Genie\\Handlers\\EmailMarketing::analytics',
-
-        // ── 카카오 채널 확장 (친구톡 + SMS) ─────────────────────────────
-        'POST /api/kakao/friendtalk'               => 'Genie\\Handlers\\KakaoChannel::sendFriendtalk',
-        'POST /api/kakao/sms'                      => 'Genie\\Handlers\\KakaoChannel::sendSms',
-        'GET /api/kakao/analytics'                 => 'Genie\\Handlers\\KakaoChannel::analytics',
+        // ── 이메일/카카오 확장(A/B·중복·analytics·친구톡·SMS) — 183차 P0: 핸들러 미구현으로
+        //    호출 시 500 나던 죽은 매핑 7건 제거(활성 UI 미참조). 향후 기능화 시 핸들러와 함께 재등록.
+        //    (백로그: EmailMarketing A/B·duplicate·analytics, KakaoChannel friendtalk·sms·analytics)
 
         // webhooks / parsers (v402-v404)
         'POST /v402/influencer/settlements/parse' => 'Genie\\Handlers\\Webhooks::influencerSettlementParse',
@@ -1689,10 +1682,7 @@ return function (App $app): void {
     $register('POST',   '/api/email/campaigns/{id}/send');
     $register('GET',    '/api/email/campaigns/{id}/stats');
     $register('POST',   '/api/email/track/open');
-    $register('POST',   '/api/email/campaigns/{id}/ab-test');
-    $register('GET',    '/api/email/campaigns/{id}/ab-result');
-    $register('POST',   '/api/email/campaigns/{id}/duplicate');
-    $register('GET',    '/api/email/analytics');
+    // 183차 P0: email ab-test/ab-result/duplicate/analytics 죽은 매핑 제거(핸들러 미구현)
     // Kakao
     $register('GET',    '/api/kakao/settings');
     $register('PUT',    '/api/kakao/settings');
@@ -1706,9 +1696,7 @@ return function (App $app): void {
     $register('POST',   '/api/kakao/campaigns');
     $register('POST',   '/api/kakao/campaigns/{id}/send');
     $register('GET',    '/api/kakao/campaigns/{id}/stats');
-    $register('POST',   '/api/kakao/friendtalk');
-    $register('POST',   '/api/kakao/sms');
-    $register('GET',    '/api/kakao/analytics');
+    // 183차 P0: kakao friendtalk/sms/analytics 죽은 매핑 제거(핸들러 미구현)
     // 1st-Party Pixel Tracking
     $register('POST',   '/api/pixel/collect');
     $register('GET',    '/api/pixel/configs');

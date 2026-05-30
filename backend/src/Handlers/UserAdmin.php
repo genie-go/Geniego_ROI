@@ -1188,6 +1188,31 @@ final class UserAdmin
 
     // ── 무료 쿠폰 DB Migration (migrate()에 포함) ────────────────────────────
 
+    /**
+     * GET /v423/admin/migrate — DB 스키마 마이그레이션 트리거 (admin 패널 버튼).
+     * 183차 P0: 메서드 부재로 호출 시 500(Call to undefined method) 나던 것을 정상 구현.
+     * Db::pdo() 연결 시 Db.php 의 코어 마이그레이션이 idempotent 하게 실행되어 테이블이 보장된다.
+     * 프론트(UserManagement.jsx runMigrate)는 {ok, message} 또는 {ok:false, error} 를 기대.
+     */
+    public static function migrate(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
+    {
+        if (!self::requireAdmin($req)) {
+            return self::json($res, ['ok' => false, 'error' => 'admin 권한이 필요합니다.'], 403);
+        }
+        try {
+            $pdo    = Db::pdo(); // 연결 시 코어 스키마 마이그레이션 실행
+            $driver = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME);
+            if ($driver === 'mysql') {
+                $cnt = (int)$pdo->query("SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE()")->fetchColumn();
+            } else {
+                $cnt = (int)$pdo->query("SELECT COUNT(*) FROM sqlite_master WHERE type='table'")->fetchColumn();
+            }
+            return self::json($res, ['ok' => true, 'message' => "DB 스키마 마이그레이션 완료 ({$driver} · 테이블 {$cnt}개 보장)"]);
+        } catch (\Throwable $e) {
+            return self::json($res, ['ok' => false, 'error' => '마이그레이션 실패: ' . $e->getMessage()], 500);
+        }
+    }
+
     public static function migrateCoupons(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
     {
         $pdo    = Db::pdo();
