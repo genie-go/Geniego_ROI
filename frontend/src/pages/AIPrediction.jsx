@@ -1,7 +1,7 @@
 /**
  * AIPrediction.jsx — AI Forecast Analysis Hub v2
  * Actual API Integration: /api/customer-ai/* (: 시뮬레이션, Paid: 실DB)
- * GlobalDataContext Integration: CRM 세그먼트 → Email/Kakao/웹Popup Auto Action
+ * GlobalDataContext Integration: CRM 세그먼트 → Email/Kakao/웹팝업 자동 Action
  */
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
@@ -263,7 +263,7 @@ function CustomerDetailPanel({ customer, onClose, onAction }) {
                     <div style={{ fontSize: 11, color: C.muted, marginBottom: 4 }}>{t('aiPredictPage.aiAutoAction', 'AI 추천 자동 액션')}</div>
                     {[
                         { label: "📧 Email Create Campaign", action: c.risk_level === "high" ? "winback_campaign" : "nurture_campaign", channel: "email", color: C.accent },
-                        { label: "💬 Kakao Notification톡 Send", action: "winback_campaign", channel: "kakao", color: C.yellow },
+                        { label: "💬 Kakao 알림톡 발송", action: "winback_campaign", channel: "kakao", color: C.yellow },
                         { label: "🎯 Web Popup Integration", action: "web_popup", channel: "web_popup", color: C.green },
                         { label: "🗺️ Add to Journey", action: "nurture_campaign", channel: "journey", color: C.purple, nav: "/journey-builder" },
                     ].map(({ label, action, channel, color, nav }) => (
@@ -347,7 +347,7 @@ function AIPredictionInner() {
         addAlert({ type: "success", msg: `🤖 AI: ${riskLevel === "high" ? "Churn Risk" : "Medium Risk"} Customer Auto Create Campaign (Email + Kakao)` });
     };
 
-    // Filter링
+    // 필터링
     const filtered = customers.filter(c => {
         const matchSearch = !search || c.name?.includes(search) || c.email?.includes(search);
         const matchRisk = filterRisk === "all" || c.risk_level === filterRisk;
@@ -582,7 +582,7 @@ function AIPredictionInner() {
                     <div style={{ background: C.card, borderRadius: 14, padding: 20, border: `1px solid ${C.border}` }}>
                         <div style={{ fontWeight: 700, marginBottom: 14 }}>🏆 Top 10 Influential Customers</div>
                         <div style={{ display: "grid", gap: 8 }}>
-                            {["김민준 (Influencer Index 9.4)", "이Count연 (Influencer Index 8.9)", "박지훈 (Influencer Index 8.7)", "최예린 (Influencer Index 8.2)", "정태민 (Influencer Index 7.9)"].map((name, i) => (
+                            {["김민준 (Influencer Index 9.4)", "이수연 (Influencer Index 8.9)", "박지훈 (Influencer Index 8.7)", "최예린 (Influencer Index 8.2)", "정태민 (Influencer Index 7.9)"].map((name, i) => (
                                 <div key={name} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 12px", borderRadius: 8, background: C.surface }}>
                                     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                                         <span style={{ width: 22, height: 22, borderRadius: "50%", background: `${C.purple}25`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 900, color: C.purple }}>{i + 1}</span>

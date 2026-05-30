@@ -100,7 +100,7 @@ function StatsTab() {
                     {(data.by_plan || []).map(p => (
                         <div key={p.plan} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
                             <span style={css.badge(p.plan)}>{p.plan}</span>
-                            <div style={{ fontSize: 12, color: '#fff' }} >활성 <strong>{p.active}</strong> / All {p.total}</div>
+                            <div style={{ fontSize: 12, color: '#fff' }} >활성 <strong>{p.active}</strong> / 전체 {p.total}</div>
                             <div style={{ width: 80, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
                                 <div style={{ width: `${(p.active / p.total) * 100}%`, height: "100%", background: planColors[p.plan] || "#64748b" }} />
                             </div>
@@ -149,7 +149,7 @@ function MembersTab() {
 
     const patch = async (path, body, method = "PATCH") => {
         const d = await adminPost(token, path, body, method);
-        setMsg(d.message || (d.ok ? "✅ Save 완료" : `❌ ${d.error}`));
+        setMsg(d.message || (d.ok ? "✅ 저장 완료" : `❌ ${d.error}`));
         refetch();
         setTimeout(() => setMsg(""), 3000);
     };
@@ -249,7 +249,7 @@ function MembersTab() {
             <div style={{ display: "flex", gap: 8, justifyContent: "center", marginTop: 12 }}>
                 {page > 1 && <button style={css.btn()} onClick={() => setPage(p => p - 1)}>← Previous</button>}
                 <span style={{ fontSize: 12, color: "var(--text-3)", padding: "7px 10px" }}>
-                    {page} / {data?.pages || 1} · Total {data?.total || 0}명
+                    {page} / {data?.pages || 1} · 총 {data?.total || 0}명
                 </span>
                 {page < (data?.pages || 1) && <button style={css.btn()} onClick={() => setPage(p => p + 1)}>Next →</button>}
             </div>
@@ -312,13 +312,13 @@ function PlanPricesTab() {
 
     const save = async () => {
         const d = await adminPost(token, "v423/admin/plan-prices", form);
-        setMsg(d.ok ? "✅ Save 완료" : `❌ ${d.error}`);
+        setMsg(d.ok ? "✅ 저장 완료" : `❌ ${d.error}`);
         if (d.ok) refetch();
         setTimeout(() => setMsg(""), 3000);
     };
 
     const del = async (plan_key, period_months) => {
-        if (!confirm(`${plan_key} / ${period_months}개월 Pricing을 Delete할까요?`)) return;
+        if (!confirm(`${plan_key} / ${period_months}개월 요금을 삭제할까요?`)) return;
         const d = await adminDelete(token, `v423/admin/plan-prices/${plan_key}/${period_months}`);
         if (d.ok) refetch();
     };
@@ -392,7 +392,7 @@ function PlanPricesTab() {
                             <span style={{ fontWeight: 700, fontSize: 13 }}>{t('userMgmtPage.pricingSettings', '가격 설정')}</span>
                         </div>
                         {g.rows.length === 0 ? (
-                            <div style={{ fontSize: 12, color: "var(--text-3)" }}>Register된 Pricing None</div>
+                            <div style={{ fontSize: 12, color: "var(--text-3)" }}>등록된 요금 없음</div>
                         ) : (
                             <table style={{ width: "100%", borderCollapse: "collapse" }}>
                                 <thead>
@@ -405,7 +405,7 @@ function PlanPricesTab() {
                                             <td style={css.td}>{r.label_ko || r.label_en || "—"}</td>
                                             <td style={css.td}><strong style={{ color: "#22c55e" }}>${r.price_usd}</strong></td>
                                             <td style={css.td}>{r.discount_pct > 0 ? <span style={{ color: "#f59e0b" }}>-{r.discount_pct}%</span> : "—"}</td>
-                                            <td style={css.td}><span style={{ fontSize: 10, color: "var(--text-3)" }}>{r.paddle_price_id || "미Settings"}</span></td>
+                                            <td style={css.td}><span style={{ fontSize: 10, color: "var(--text-3)" }}>{r.paddle_price_id || "미설정"}</span></td>
                                             <td style={css.td}><span style={{ color: r.is_active ? "#22c55e" : "#ef4444", fontSize: 11, fontWeight: 700 }}>{r.is_active ? "활성" : "비활성"}</span></td>
                                             <td style={css.td}>
                                                 <div style={{ display: "flex", gap: 6 }}>
@@ -425,7 +425,7 @@ function PlanPricesTab() {
     );
 }
 
-/* ─── TAB: Permission(역할) Management ───────────────────────────────────────────────── */
+/* ─── TAB: 권한(역할) 관리 ───────────────────────────────────────────────── */
 function RolesTab() {
     const { token } = useAuth();
     const { data, loading, refetch } = useAdminApi("v423/admin/roles");
@@ -447,13 +447,13 @@ function RolesTab() {
 
     const save = async () => {
         const d = await adminPost(token, "v423/admin/roles", form);
-        setMsg(d.ok ? "✅ Save 완료" : `❌ ${d.error}`);
+        setMsg(d.ok ? "✅ 저장 완료" : `❌ ${d.error}`);
         if (d.ok) { refetch(); setForm({ role_key: "", name_ko: "", name_en: "", permissions: [], is_active: 1, sort_order: 0 }); }
         setTimeout(() => setMsg(""), 3000);
     };
 
     const del = async (role_key) => {
-        if (!confirm(`역할 '${role_key}'을 Delete할까요?`)) return;
+        if (!confirm(`역할 '${role_key}'을 삭제할까요?`)) return;
         await adminDelete(token, `v423/admin/roles/${role_key}`);
         refetch();
     };
@@ -463,7 +463,7 @@ function RolesTab() {
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
                 {/* Form */}
                 <div style={css.card}>
-                    <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 14 }}>역할 생성 / Edit</div>
+                    <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 14 }}>역할 생성 / 편집</div>
                     <div style={{ ...css.row, gridTemplateColumns: "1fr 1fr" }}>
                         <div>
                             <label style={css.label}>역할 키 (영문소문자_)</label>
@@ -485,7 +485,7 @@ function RolesTab() {
                         </div>
                     </div>
                     <div style={{ marginBottom: 12 }}>
-                        <label style={css.label}>Permission Settings (복Count Select)</label>
+                        <label style={css.label}>권한 설정 (복수 선택)</label>
                         <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 6 }}>
                             {ALL_PERMS.map(p => (
                                 <button key={p} onClick={() => togglePerm(p)} style={{ padding: "4px 12px", borderRadius: 20, border: "1px solid", fontSize: 11, fontWeight: 600, cursor: "pointer", background: form.permissions.includes(p) ? "rgba(79,142,247,0.2)" : "rgba(255,255,255,0.04)", borderColor: form.permissions.includes(p) ? "#4f8ef7" : "rgba(255,255,255,0.1)", color: form.permissions.includes(p) ? "#4f8ef7" : "rgba(255,255,255,0.5)" }}>
@@ -506,7 +506,7 @@ function RolesTab() {
 
                 {/* Role list */}
                 <div style={css.card}>
-                    <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 14 }}>Register된 역할</div>
+                    <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 14 }}>등록된 역할</div>
                     {loading ? <div style={{ color: "var(--text-3)", fontSize: 12 }}>로딩 중...</div> : (data?.roles || []).map(r => {
                         let perms = [];
                         try { perms = typeof r.permissions === "string" ? JSON.parse(r.permissions) : r.permissions; } catch { }
@@ -554,16 +554,16 @@ function BillingTab() {
                 {mrr.map(m => (
                     <div key={m.plan_name || "all"} style={{ ...css.card, flex: "1 1 160px", textAlign: "center", marginBottom: 0 }}>
                         <div style={{ fontSize: 22, fontWeight: 900, color: "#22c55e" }}>${parseFloat(m.mrr || 0).toLocaleString()}</div>
-                        <div style={{ fontSize: 10, color: "var(--text-3)", marginTop: 4 }}>{m.plan_name || "All"} MRR · {m.count}명</div>
+                        <div style={{ fontSize: 10, color: "var(--text-3)", marginTop: 4 }}>{m.plan_name || "전체"} MRR · {m.count}명</div>
                     </div>
                 ))}
-                {mrr.length === 0 && <div style={{ ...css.card, color: "var(--text-3)", fontSize: 12 }}>Paddle Subscription 데이터 없음 (webhook Count신 후 반영됨)</div>}
+                {mrr.length === 0 && <div style={{ ...css.card, color: "var(--text-3)", fontSize: 12 }}>Paddle 구독 데이터 없음 (webhook 수신 후 반영됨)</div>}
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
                 {/* Subscriptions */}
                 <div style={{ ...css.card, padding: 0, overflow: "hidden" }}>
-                    <div style={{ padding: "14px 18px", fontWeight: 700, fontSize: 13, borderBottom: "1px solid rgba(255,255,255,0.06)" }}>Subscription 현황</div>
+                    <div style={{ padding: "14px 18px", fontWeight: 700, fontSize: 13, borderBottom: "1px solid rgba(255,255,255,0.06)" }}>구독 현황</div>
                     <table style={{ width: "100%", borderCollapse: "collapse" }}>
                         <thead><tr>{["회원", "플랜", "Status", "Amount", "NextPayment"].map(h => <th key={h} style={css.th}>{h}</th>)}</tr></thead>
                         <tbody>
@@ -589,12 +589,12 @@ function BillingTab() {
                         <thead><tr>{["Event", "발생시각", "처리상태"].map(h => <th key={h} style={css.th}>{h}</th>)}</tr></thead>
                         <tbody>
                             {events.length === 0 ? (
-                                <tr><td colSpan={3} style={{ ...css.td, textAlign: "center", color: "var(--text-3)", padding: 20 }}>데이터 없음 (Paddle webhook Settings 후 Count신)</td></tr>
+                                <tr><td colSpan={3} style={{ ...css.td, textAlign: "center", color: "var(--text-3)", padding: 20 }}>데이터 없음 (Paddle webhook 설정 후 수신)</td></tr>
                             ) : events.map((e, i) => (
                                 <tr key={i}>
                                     <td style={css.td}><span style={{ fontSize: 11, color: e.event_type?.includes("failed") ? "#ef4444" : e.event_type?.includes("refunded") ? "#f59e0b" : "#22c55e" }}>{e.event_type}</span></td>
                                     <td style={css.td}><span style={{ fontSize: 10, color: 'var(--text-3)' }}>{e.occurred_at?.slice(0, 16)}</span></td>
-                                    <td style={css.td}><span style={{ fontSize: 10, color: e.processed ? "#22c55e" : "#f59e0b" }}>{e.processed ? "완료" : "처리상태in progress"}</span></td>
+                                    <td style={css.td}><span style={{ fontSize: 10, color: e.processed ? "#22c55e" : "#f59e0b" }}>{e.processed ? "완료" : "처리 중"}</span></td>
                                 </tr>
                             ))}
                         </tbody>
@@ -625,7 +625,7 @@ function AuditTab() {
                                 <td style={css.td}><span style={{ fontSize: 11, color: 'var(--text-2)' }}>{l.detail}</span></td>
                             </tr>
                         ))}
-                        {logs.length === 0 && <tr><td colSpan={4} style={{ ...css.td, textAlign: "center", color: "var(--text-3)", padding: 20 }}>감사 로그 None</td></tr>}
+                        {logs.length === 0 && <tr><td colSpan={4} style={{ ...css.td, textAlign: "center", color: "var(--text-3)", padding: 20 }}>감사 로그 없음</td></tr>}
                     </tbody>
                 </table>
             )}
@@ -673,7 +673,7 @@ export default function UserManagement() {
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
                 <div>
                     <h1 style={{ margin: 0, fontSize: 22, fontWeight: 900, color: '#fff' }}>⚙️ 통합 관리자 패널</h1>
-                    <p style={{ margin: "4px 0 0", fontSize: 12, color: "var(--text-3)" }}>회원 · Subscription Pricing · Permission · 회원 · 구독 요금제 · 권한 · 결제 통합 관리 | 로그인: {user.email}</p>
+                    <p style={{ margin: "4px 0 0", fontSize: 12, color: "var(--text-3)" }}>회원 · 구독 요금제 · 권한 · 결제 통합 관리 | 로그인: {user.email}</p>
                 </div>
                 <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
                     {migMsg && <span style={{ fontSize: 11, color: migMsg.startsWith("✅") ? "#22c55e" : "#ef4444" }}>{migMsg}</span>}
