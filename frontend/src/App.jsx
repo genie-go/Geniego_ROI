@@ -422,13 +422,31 @@ function AppLayout() {
 }
 
 
+/**
+ * 180차 멀티테넌트 격리 — GlobalDataProvider 를 tenant 로 key.
+ *   회원(계정) 전환 시 key 변경 → Provider 리마운트 → 이전 계정 인메모리 상태 완전 폐기(누출 차단).
+ *   같은 계정의 팀/팀원(동일 tenant_id) → 동일 key → 상태·데이터 공유(동일 회원 인식).
+ *   다른 계정(같은 플랜이라도 tenant_id 상이) → 다른 key → 완전 격리.
+ */
+function TenantScopedProviders({ children }) {
+  const { user } = useAuth();
+  const tenantKey = (user && (user.tenant_id || user.tenantId || user.company || (user.id != null ? 'u' + user.id : ''))) || 'anon';
+  return (
+    <GlobalDataProvider key={tenantKey}>
+      <MenuVisibilityProvider>
+        <ConnectorSyncProvider>
+          {children}
+        </ConnectorSyncProvider>
+      </MenuVisibilityProvider>
+    </GlobalDataProvider>
+  );
+}
+
 export default function App() {
   return (
     <AuthProvider>
       <ToastProvider>
-        <GlobalDataProvider>
-          <MenuVisibilityProvider>
-          <ConnectorSyncProvider>
+        <TenantScopedProviders>
             <Suspense fallback={<Loader />}>
               <Routes>
                 <Route path="/" element={<Landing />} />
@@ -446,9 +464,7 @@ export default function App() {
               </Routes>
             </Suspense>
             <NetworkStatus />
-          </ConnectorSyncProvider>
-          </MenuVisibilityProvider>
-        </GlobalDataProvider>
+        </TenantScopedProviders>
       </ToastProvider>
     </AuthProvider>
   );

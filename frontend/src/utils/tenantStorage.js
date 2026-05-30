@@ -14,14 +14,23 @@
  *   UI 프리퍼런스(theme/sidebar/lang/tour)는 디바이스 단위라 스코프 불요.
  */
 
+import { IS_DEMO } from './demoEnv';
+
 export function currentTenant() {
   try {
-    return (
-      localStorage.getItem('tenantId') ||
-      localStorage.getItem('X-Tenant-Id') ||
-      localStorage.getItem('x-tenant-id') ||
-      'anon'
-    );
+    // 데모: 단일 공유 샌드박스(체험자 공통). 운영 격리와 무관.
+    if (IS_DEMO) return 'demo';
+    // 운영: 명시 tenantId(로그인 시 영속) 우선
+    const explicit = localStorage.getItem('tenantId') || localStorage.getItem('X-Tenant-Id') || localStorage.getItem('x-tenant-id');
+    if (explicit) return explicit;
+    // 폴백: 저장된 user 객체의 tenant_id → company → id (백엔드 tenant_id 도입 전/유실 대비)
+    const raw = localStorage.getItem('genie_user') || localStorage.getItem('demo_genie_user');
+    if (raw) {
+      const u = JSON.parse(raw);
+      const t = u && (u.tenant_id || u.tenantId || u.company || (u.id != null ? 'u' + u.id : ''));
+      if (t) return String(t);
+    }
+    return 'anon';
   } catch {
     return 'anon';
   }

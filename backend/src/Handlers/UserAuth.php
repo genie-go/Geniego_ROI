@@ -91,11 +91,68 @@ final class UserAuth
         ]);
     }
 
+    /**
+     * 180차 멀티테넌트 신원 체계 — app_user 에 tenant/팀 컬럼 idempotent 보강.
+     *   tenant_id      : 계정(테넌트) 식별자. 격리 경계. owner = 'acct_<id>'.
+     *   parent_user_id : 하위(팀원) 계정의 상위 owner id. owner=NULL.
+     *   team_role      : 'owner' | 'manager' | 'member' (테넌트 내 RBAC).
+     *   team_name      : 팀 그룹명(선택).
+     * MySQL/SQLite 공통: 컬럼 존재 시 ALTER 예외 → 무시.
+     */
+    private static function ensureTenantColumns(\PDO $pdo): void
+    {
+        static $done = false;
+        if ($done) return;
+        $alters = [
+            "ALTER TABLE app_user ADD COLUMN tenant_id VARCHAR(100) NULL",
+            "ALTER TABLE app_user ADD COLUMN parent_user_id INTEGER NULL",
+            "ALTER TABLE app_user ADD COLUMN team_role VARCHAR(40) NULL",
+            "ALTER TABLE app_user ADD COLUMN team_name VARCHAR(100) NULL",
+        ];
+        foreach ($alters as $sql) {
+            try { $pdo->exec($sql); } catch (\Throwable $e) { /* 이미 존재 or 미지원 — 무시 */ }
+        }
+        $done = true;
+    }
+
+    /**
+     * 180차 — 사용자 행에서 tenant_id 해석(+필요 시 lazy 영속).
+     *   하위계정(parent_user_id 보유)은 상위 owner 의 tenant_id 를 그대로 따름(데이터 공유).
+     *   tenant_id 미설정 owner 는 'acct_<id>' 로 영속(기존 회원 마이그레이션).
+     */
+    private static function resolveTenantId(\PDO $pdo, array $user): string
+    {
+        $id  = (int)($user['id'] ?? $user['idx'] ?? 0);
+        $tid = trim((string)($user['tenant_id'] ?? ''));
+        if ($tid !== '') return $tid;
+
+        // 하위계정 → 상위 owner tenant 상속
+        $pid = (int)($user['parent_user_id'] ?? 0);
+        if ($pid > 0) {
+            try {
+                $st = $pdo->prepare('SELECT tenant_id FROM app_user WHERE id = ? LIMIT 1');
+                $st->execute([$pid]);
+                $ptid = trim((string)($st->fetchColumn() ?: ''));
+                if ($ptid === '') $ptid = 'acct_' . $pid;
+                try { $pdo->prepare('UPDATE app_user SET tenant_id = ? WHERE id = ?')->execute([$ptid, $id]); } catch (\Throwable $e) {}
+                return $ptid;
+            } catch (\Throwable $e) { /* fallthrough */ }
+        }
+
+        // owner → 자기 계정 기준 tenant 발급 + 영속
+        $tid = 'acct_' . $id;
+        if ($id > 0) {
+            try { $pdo->prepare('UPDATE app_user SET tenant_id = ? WHERE id = ?')->execute([$tid, $id]); } catch (\Throwable $e) {}
+        }
+        return $tid;
+    }
+
 
     /** 토큰으로 사용자 조회 (구독 정보 포함) */
     private static function userByToken(string $token): ?array
     {
         $pdo = Db::pdo();
+        self::ensureTenantColumns($pdo); // 180차: tenant/팀 컬럼 보강
         // subscription_expires_at, plans 컬럼 포함 조회 (없으면 null)
         try {
             $stmt = $pdo->prepare(
@@ -103,7 +160,8 @@ final class UserAuth
                         (CASE WHEN u.plan = \'admin\' OR u.plans = \'admin\' THEN \'admin\' ELSE COALESCE(u.plans, u.plan, \'demo\') END) AS plan,
                         u.company, u.created_at,
                         u.subscription_expires_at,
-                        u.subscription_cycle
+                        u.subscription_cycle,
+                        u.tenant_id, u.parent_user_id, u.team_role
                    FROM user_session s
                    JOIN app_user u ON u.id = s.user_id
                   WHERE s.token = ? AND s.expires_at > ? AND u.is_active = 1'
@@ -125,6 +183,10 @@ final class UserAuth
         }
 
         if (!$row) return null;
+        // 180차: tenant_id 해석/lazy 영속 → 응답에 항상 포함(프론트 격리 스코프 활성화)
+        $row['tenant_id'] = self::resolveTenantId($pdo, $row);
+        $row['parent_user_id'] = isset($row['parent_user_id']) ? (int)$row['parent_user_id'] : null;
+        $row['team_role'] = $row['team_role'] ?? ($row['parent_user_id'] ? 'member' : 'owner');
         return self::resolveActivePlan($row);
     }
 
@@ -188,7 +250,7 @@ final class UserAuth
         }
         $now  = self::now();
 
-        $email    = trim((string)($body['email'] ?? ''));
+        $email    = strtolower(trim((string)($body['email'] ?? ''))); // 180차: 이메일 정규화(대소문자 중복 방지)
         $password = (string)($body['password'] ?? '');
         $name     = trim((string)($body['name'] ?? ''));
         $company  = trim((string)($body['company'] ?? ''));
@@ -203,7 +265,9 @@ final class UserAuth
             return self::json($res, ['ok' => false, 'error' => '이름을 입력해 주세요.'], 422);
         }
 
-        $check = $pdo->prepare('SELECT id FROM app_user WHERE email = ?');
+        self::ensureTenantColumns($pdo); // 180차: tenant/팀 컬럼 보강
+        // 계정 중복 검사 — 대소문자 무관(SQLite 포함). 같은 이메일 다른 케이스 중복가입 차단.
+        $check = $pdo->prepare('SELECT id FROM app_user WHERE LOWER(email) = ?');
         $check->execute([$email]);
         if ($check->fetchColumn()) {
             return self::json($res, ['ok' => false, 'error' => '이미 가입된 이메일입니다.'], 409);
@@ -257,10 +321,19 @@ final class UserAuth
         // userId가 0이면 email로 재조회
         if (!$userId) {
             try {
-                $rr = $pdo->prepare('SELECT id FROM app_user WHERE email = ? LIMIT 1');
+                $rr = $pdo->prepare('SELECT id FROM app_user WHERE LOWER(email) = ? LIMIT 1');
                 $rr->execute([$email]);
                 $userId = (int)($rr->fetchColumn() ?: 0);
             } catch (\Throwable $e) {}
+        }
+
+        // 180차: 신규 가입자는 owner → tenant_id='acct_<id>' + team_role='owner' 영속
+        $tenantId = 'acct_' . $userId;
+        if ($userId > 0) {
+            try {
+                $pdo->prepare("UPDATE app_user SET tenant_id = ?, team_role = 'owner', parent_user_id = NULL WHERE id = ?")
+                    ->execute([$tenantId, $userId]);
+            } catch (\Throwable $e) { /* 컬럼 미존재 등 — 무시(런타임 backfill 로 보장) */ }
         }
         
         $token  = self::generateToken();
@@ -302,6 +375,9 @@ final class UserAuth
                 'company'                 => $company,
                 'subscription_status'     => $finalPlan === 'free' ? 'none' : 'active',
                 'subscription_expires_at' => $finalExpires,
+                'tenant_id'               => $tenantId, // 180차: 계정 격리 식별자
+                'parent_user_id'          => null,
+                'team_role'               => 'owner',
             ],
             'coupon' => $couponResult ? [
                 'issued'        => true,
@@ -330,7 +406,7 @@ final class UserAuth
             }
             $now = self::now();
 
-            $email    = trim((string)($body['email'] ?? ''));
+            $email    = strtolower(trim((string)($body['email'] ?? ''))); // 180차: 이메일 정규화(대소문자 중복/오인 방지)
             $password = (string)($body['password'] ?? '');
             $accessKey = trim((string)($body['access_key'] ?? $body['connection_key'] ?? $body['key'] ?? $body['code'] ?? ''));
             $loginType = trim((string)($body['login_type'] ?? ''));
@@ -339,7 +415,9 @@ final class UserAuth
                 return self::json($res, ['ok' => false, 'error' => '이메일과 비밀번호를 입력해주세요.'], 400);
             }
 
-            $stmt = $pdo->prepare('SELECT * FROM app_user WHERE email = ?');
+            self::ensureTenantColumns($pdo); // 180차: tenant/팀 컬럼 보강
+            // 대소문자 무관 조회(SQLite 포함) — 이메일 중복/계정 오인 방지
+            $stmt = $pdo->prepare('SELECT * FROM app_user WHERE LOWER(email) = ?');
             $stmt->execute([$email]);
             $user = $stmt->fetch(\PDO::FETCH_ASSOC);
 
@@ -448,6 +526,10 @@ final class UserAuth
                 'created_at'              => $user['created_at'] ?? null,
                 'subscription_expires_at' => $user['subscription_expires_at'] ?? null,
                 'subscription_cycle'      => $user['subscription_cycle'] ?? null,
+                // 180차 멀티테넌트: 계정 격리 식별자 + 팀 구조(하위계정은 owner tenant 공유)
+                'tenant_id'               => self::resolveTenantId($pdo, $user),
+                'parent_user_id'          => isset($user['parent_user_id']) ? (int)$user['parent_user_id'] : null,
+                'team_role'               => $user['team_role'] ?? (!empty($user['parent_user_id']) ? 'member' : 'owner'),
             ];
             $resolved = self::resolveActivePlan($rawUser);
 

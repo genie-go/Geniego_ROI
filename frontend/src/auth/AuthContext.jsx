@@ -143,7 +143,20 @@ export function AuthProvider({ children }) {
         setUser(usr);
         localStorage.setItem(TOKEN_KEY, tok);
         localStorage.setItem(USER_KEY, JSON.stringify(usr));
+        // 180차 멀티테넌트: 계정 식별자 영속 → tenantStorage 격리 스코프 + API X-Tenant-ID 활성화
+        try {
+            const tid = usr?.tenant_id || usr?.tenantId;
+            if (tid) localStorage.setItem('tenantId', String(tid));
+        } catch { /* ignore */ }
     }, []);
+
+    // 180차: user 변경(로그인/me 갱신) 시 tenantId 동기화 — 어떤 경로로 user 가 세팅돼도 격리 식별자 보장
+    useEffect(() => {
+        try {
+            const tid = user?.tenant_id || user?.tenantId;
+            if (tid) localStorage.setItem('tenantId', String(tid));
+        } catch { /* ignore */ }
+    }, [user]);
 
     /* ══════════════════════════════════════════════════════════════════
      * 앱 로드 시 /auth/me 호출 → 최신 plan/구독 상태 동기화
@@ -360,6 +373,7 @@ export function AuthProvider({ children }) {
         setToken(null); setUser(null);
         localStorage.removeItem(TOKEN_KEY);
         localStorage.removeItem(USER_KEY);
+        localStorage.removeItem('tenantId'); // 180차: 회원 전환 시 이전 계정 격리 식별자 제거(누출 차단)
     }, [token]);
 
     /* ── 구독 업그레이드 (Toss 결제 confirm 후 호출) ── */
