@@ -4,19 +4,19 @@ import { useCurrency } from '../contexts/CurrencyContext.jsx';
 // currency formatting via useCurrency fmt()
 
 const HUBS = [
-    { id: 'KR-ICN', country: '🇰🇷 Korea', city: 'Incheon', type: 'Main Hub', area: '12,000m²', carriers: ['CJKorea Delivery', 'Coupang로켓', '우체국'], customs: 'FTZ', status: 'active', skus: 2840, dailyOut: 1200, avgDays: 1.2, cost: 2800 },
+    { id: 'KR-ICN', country: '🇰🇷 Korea', city: '인천', type: '메인 허브', area: '12,000m²', carriers: ['CJKorea Delivery', 'Coupang로켓', '우체국'], customs: 'FTZ', status: 'active', skus: 2840, dailyOut: 1200, avgDays: 1.2, cost: 2800 },
     { id: 'JP-NRT', country: '🇯🇵 일본', city: '나리타', type: '서브 허브', area: '4,200m²', carriers: ['yamato', 'sagawa', 'Japan Post'], customs: 'AEO', status: 'active', skus: 890, dailyOut: 340, avgDays: 2.1, cost: 4200 },
     { id: 'SG-SIN', country: '🇸🇬 싱가포르', city: '싱가포르', type: '동남아 허브', area: '6,800m²', carriers: ['Ninja Van', 'J&T Express', 'Grab Express'], customs: 'GST-registered', status: 'active', skus: 1240, dailyOut: 580, avgDays: 3.2, cost: 3600 },
     { id: 'TH-BKK', country: '🇹🇭 태국', city: '방콕', type: '파트너 창고', area: '2,100m²', carriers: ['Kerry Express', 'Flash Express'], customs: 'BOI', status: 'active', skus: 420, dailyOut: 180, avgDays: 4.1, cost: 2400 },
     { id: 'MY-KUL', country: '🇲🇾 말레이시아', city: '쿠알라룸푸르', type: '파트너 창고', area: '1,800m²', carriers: ['Pos Laju', 'J&T Malaysia'], customs: '표준', status: 'expanding', skus: 320, dailyOut: 140, avgDays: 3.8, cost: 2200 },
-    { id: 'CN-SHA', country: '🇨🇳 in progress국', city: '상하이 보세구', type: '크로스보더 허브', area: '8,500m²', carriers: ['SF Express', 'YTO Express'], customs: 'CBEC', status: 'planning', skus: 0, dailyOut: 0, avgDays: 5.2, cost: 1800 },
+    { id: 'CN-SHA', country: '🇨🇳 중국', city: '상하이 보세구', type: '크로스보더 허브', area: '8,500m²', carriers: ['SF Express', 'YTO Express'], customs: 'CBEC', status: 'planning', skus: 0, dailyOut: 0, avgDays: 5.2, cost: 1800 },
 ];
 
 const ROUTE_MATRIX = [
-    { from: 'Incheon', to: '도쿄', mode: '항공', days: 1, cost: 3200, note: 'ANA Cargo 직항' },
-    { from: 'Incheon', to: '싱가포르', mode: '항공', days: 2, cost: 4800, note: 'SQ/KE 공동 운항' },
-    { from: 'Incheon', to: '방콕', mode: '항공', days: 2, cost: 3600, note: 'TG/KE 코드셰어' },
-    { from: 'Incheon', to: '쿠알라룸푸르', mode: '항공', days: 3, cost: 4200, note: 'MH/KE 직항' },
+    { from: '인천', to: '도쿄', mode: '항공', days: 1, cost: 3200, note: 'ANA Cargo 직항' },
+    { from: '인천', to: '싱가포르', mode: '항공', days: 2, cost: 4800, note: 'SQ/KE 공동 운항' },
+    { from: '인천', to: '방콕', mode: '항공', days: 2, cost: 3600, note: 'TG/KE 코드셰어' },
+    { from: '인천', to: '쿠알라룸푸르', mode: '항공', days: 3, cost: 4200, note: 'MH/KE 직항' },
     { from: '싱가포르', to: '방콕', mode: '육로', days: 3, cost: 1800, note: '트럭 운송' },
     { from: '싱가포르', to: '쿠알라룸푸르', mode: '육로', days: 1, cost: 900, note: '1일 트럭' },
     { from: '상하이', to: '도쿄', mode: '해운', days: 3, cost: 1200, note: '주 3회 정기편' },
@@ -24,7 +24,7 @@ const ROUTE_MATRIX = [
 ];
 
 const REGULATIONS = [
-    { country: '🇰🇷 Korea', threshold: '200달러', taxRate: '부가세 10%', note: 'FTA 혜택 다Count', platform: 'Coupang·Naver·11Street' },
+    { country: '🇰🇷 Korea', threshold: '200달러', taxRate: '부가세 10%', note: 'FTA 혜택 다수', platform: 'Coupang·Naver·11Street' },
     { country: '🇯🇵 일본', threshold: '1만엔', taxRate: '소비세 10%', note: 'AEO 인증 시 빠른 통관', platform: 'Amazon JP·Rakuten' },
     { country: '🇸🇬 싱가포르', threshold: 'S$400', taxRate: 'GST 9%', note: '2023년 GST 인상', platform: 'Shopee·Lazada' },
     { country: '🇹🇭 태국', threshold: '1,500밧', taxRate: 'VAT 7%', note: '이커머스 규제 강화', platform: 'Shopee·Lazada TH' },
@@ -74,17 +74,17 @@ export default function AsiaLogistics() {
     const [activeHub, setActiveHub] = useState(null);
     const [activeTab, setActiveTab] = useState('hubs');
 
-    // ─── Domestic 3PL 업체 Management state ───────────────────────────────────
+    // ─── 국내 3PL 업체 관리 state ───────────────────────────────────
     const [carriers3pl, setCarriers3pl] = useState([
-        { id: 1, name:'CJKorea Delivery', icon:'🇰🇷', color:'#f97316', apiStatus:'IntegrationDone', features:['로켓배송 호환','당일배송(서울)','냉장 풀필먼트'], daily:'4,200건', avgDays:'1.1일', cost:'KRW 2,800/건', coverage:'전국 86%', channels:['Coupang','Naver','Own Mall'] },
-        { id: 2, name:'한진택배', icon:'🔵', color:'#4f8ef7', apiStatus:'IntegrationDone', features:['반품 Auto회수','대형화물 특화','도서산간 배송'], daily:'2,800건', avgDays:'1.4일', cost:'KRW 2,600/건', coverage:'전국 92%', channels:['11Street','Gmarket','Own Mall'] },
-        { id: 3, name:'롯데택배', icon:'🔴', color:'#ef4444', apiStatus:'SettingsPending', features:['롯데마트 Integration','식품 냉동배송','주말배송 가능'], daily:'1,200건', avgDays:'1.8일', cost:'KRW 2,450/건', coverage:'전국 78%', channels:['롯데온','11Street'] },
+        { id: 1, name:'CJKorea Delivery', icon:'🇰🇷', color:'#f97316', apiStatus:'연동완료', features:['로켓배송 호환','당일배송(서울)','냉장 풀필먼트'], daily:'4,200건', avgDays:'1.1일', cost:'KRW 2,800/건', coverage:'전국 86%', channels:['Coupang','Naver','자사몰'] },
+        { id: 2, name:'한진택배', icon:'🔵', color:'#4f8ef7', apiStatus:'연동완료', features:['반품 자동회수','대형화물 특화','도서산간 배송'], daily:'2,800건', avgDays:'1.4일', cost:'KRW 2,600/건', coverage:'전국 92%', channels:['11Street','Gmarket','자사몰'] },
+        { id: 3, name:'롯데택배', icon:'🔴', color:'#ef4444', apiStatus:'설정대기', features:['롯데마트 연동','식품 냉동배송','주말배송 가능'], daily:'1,200건', avgDays:'1.8일', cost:'KRW 2,450/건', coverage:'전국 78%', channels:['롯데온','11Street'] },
     ]);
     const [showAddForm, setShowAddForm] = useState(false);
     const [newCarrier, setNewCarrier] = useState({ name:'', icon:'🚚', color:'#22c55e', apiKey:'', daily:'', avgDays:'', cost:'', coverage:'', channels:'' });
     const addCarrierMsg = (carrier) => {
         if (!carrier.name.trim()) return;
-        setCarriers3pl(prev => [...prev, { ...carrier, id: Date.now(), apiStatus:'SettingsPending', features:[], channels: carrier.channels ? carrier.channels.split(',').map(s=>s.trim()) : [] }]);
+        setCarriers3pl(prev => [...prev, { ...carrier, id: Date.now(), apiStatus:'설정대기', features:[], channels: carrier.channels ? carrier.channels.split(',').map(s=>s.trim()) : [] }]);
         setNewCarrier({ name:'', icon:'🚚', color:'#22c55e', apiKey:'', daily:'', avgDays:'', cost:'', coverage:'', channels:'' });
         setShowAddForm(false);
     };
@@ -95,7 +95,7 @@ export default function AsiaLogistics() {
     const avgCost = Math.round(HUBS.filter(h => h.status === 'active').reduce((s, h) => s + h.cost, 0) / HUBS.filter(h => h.status === 'active').length);
 
     const STATUS_COLOR = { active: '#22c55e', expanding: '#f97316', planning: '#4f8ef7' };
-    const STATUS_LABEL = { active: '운영in progress', expanding: '확장in progress', planning: 'Planin progress' };
+    const STATUS_LABEL = { active: '운영중', expanding: '확장중', planning: '계획중' };
 
     return (
         <div style={{ display: 'grid', gap: 20, padding: 4 }}>
@@ -106,18 +106,18 @@ export default function AsiaLogistics() {
                         <div className="hero-title" style={{ background: 'linear-gradient(135deg,#f97316,#ef4444,#a855f7)' }}>
                             🌏 Asia Logistics 네트워크
                         </div>
-                        <div className="hero-desc">Korea · 일본 · 동남아 특화 풀필먼트 허브, 루트 최적화, 관세·규제 Management</div>
+                        <div className="hero-desc">한국 · 일본 · 동남아 특화 풀필먼트 허브, 루트 최적화, 관세·규제 관리</div>
                         <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
-                            <span className="badge badge-green">{HUBS.filter(h=>h.status==='active').length}개 허브 운영in progress</span>
-                            <span className="badge badge-orange" style={{ background:'rgba(249,115,22,0.15)', color:'#f97316', border:'1px solid rgba(249,115,22,0.3)' }}>Total SKU {totalSkus.toLocaleString()}개</span>
+                            <span className="badge badge-green">{HUBS.filter(h=>h.status==='active').length}개 허브 운영중</span>
+                            <span className="badge badge-orange" style={{ background:'rgba(249,115,22,0.15)', color:'#f97316', border:'1px solid rgba(249,115,22,0.3)' }}>총 SKU {totalSkus.toLocaleString()}개</span>
                             <span className="badge badge-blue">일 출고 {totalDaily.toLocaleString()} items</span>
                         </div>
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 10, minWidth: 240 }}>
                         {[{ l:'운영 허브', v: HUBS.filter(h=>h.status==='active').length+'개', c:'#22c55e' },
-                          { l:'커버 Country', v: '6개국', c:'#4f8ef7' },
-                          { l:'일 Total 출고', v: totalDaily.toLocaleString()+'건', c:'#a855f7' },
-                          { l:'Average 배송비', v: fmt(avgCost)+'/kg', c:'#f97316' }].map(({l,v,c})=>(
+                          { l:'커버 국가', v: '6개국', c:'#4f8ef7' },
+                          { l:'일 총 출고', v: totalDaily.toLocaleString()+'건', c:'#a855f7' },
+                          { l:'평균 배송비', v: fmt(avgCost)+'/kg', c:'#f97316' }].map(({l,v,c})=>(
                             <div key={l} style={{ background: 'var(--surface)', borderRadius:10, padding:'10px 12px', border: '1px solid var(--border)' }}>
                                 <div style={{ fontSize:9, color:'var(--text-3)', fontWeight:700 }}>{l}</div>
                                 <div style={{ fontSize:18, fontWeight:900, color:c, marginTop:3 }}>{v}</div>
@@ -129,7 +129,7 @@ export default function AsiaLogistics() {
 
             {/* Tab */}
             <div style={{ display: 'flex', gap: 4, background: 'var(--surface)', borderRadius: 12, padding: 5, flexWrap: 'wrap' }}>
-                {[['hubs','🏭 허브 현황'],['routes','✈️ 루트 매트릭스'],['regulations','📋 관세·규제'],['fulfillment','📦 풀필먼트 Compare'],['domestic','🇰🇷 Domestic 3PL']].map(([id,lbl])=>(
+                {[['hubs','🏭 허브 현황'],['routes','✈️ 루트 매트릭스'],['regulations','📋 관세·규제'],['fulfillment','📦 풀필먼트 비교'],['domestic','🇰🇷 국내 3PL']].map(([id,lbl])=>(
                     <button key={id} onClick={() => setActiveTab(id)}
                         style={{ padding:'7px 16px', borderRadius:9, border:'none', cursor:'pointer', fontWeight:700, fontSize:11, background: activeTab===id?'linear-gradient(135deg,#f97316,#a855f7)':'transparent', color: activeTab===id?'#fff':'var(--text-3)', transition:'all 150ms' }}>
                         {lbl}
@@ -151,7 +151,7 @@ export default function AsiaLogistics() {
                                     <span style={{ fontSize:9, fontWeight:700, padding:'3px 8px', borderRadius:20, height:'fit-content', background:STATUS_COLOR[hub.status]+'18', color:STATUS_COLOR[hub.status] }}>{STATUS_LABEL[hub.status]}</span>
                                 </div>
                                 <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:10 }}>
-                                    {[['면적',hub.area],['SKUCount',hub.status==='active'?hub.skus.toLocaleString()+'개':'—'],['일출고',hub.status==='active'?hub.dailyOut.toLocaleString()+'건':'—'],['배송비',fmt(hub.cost)+'/kg']].map(([l,v])=>(
+                                    {[['면적',hub.area],['SKU 수',hub.status==='active'?hub.skus.toLocaleString()+'개':'—'],['일출고',hub.status==='active'?hub.dailyOut.toLocaleString()+'건':'—'],['배송비',fmt(hub.cost)+'/kg']].map(([l,v])=>(
                                         <div key={l} style={{ background: 'var(--surface)', borderRadius:8, padding:'7px 10px' }}>
                                             <div style={{ fontSize:9, color:'var(--text-3)', fontWeight:600 }}>{l}</div>
                                             <div style={{ fontSize:13, fontWeight:800, color: '#fff', marginTop:2 }}>{v}</div>
@@ -166,7 +166,7 @@ export default function AsiaLogistics() {
                                         </div>
                                         <div style={{ fontSize:10, marginTop:8, marginBottom:4 }}>🛃 통관 방식</div>
                                         <span style={{ fontSize:10, color:'#22c55e', fontWeight:700 }}>{hub.customs}</span>
-                                        <div style={{ fontSize:10, marginTop:8, marginBottom:4 }}>⏱ Average 배송일</div>
+                                        <div style={{ fontSize:10, marginTop:8, marginBottom:4 }}>⏱ 평균 배송일</div>
                                         <span style={{ fontSize:13, fontWeight:900, color:'#4f8ef7' }}>{hub.avgDays}일</span>
                                     </div>
                                 )}
@@ -199,9 +199,9 @@ export default function AsiaLogistics() {
 
             {activeTab === 'regulations' && (
                 <div className="card fade-up">
-                    <div style={{ fontWeight:800, fontSize:14, marginBottom:14 }}>📋 Countryper 관세·규제 현황</div>
+                    <div style={{ fontWeight:800, fontSize:14, marginBottom:14 }}>📋 국가별 관세·규제 현황</div>
                     <table className="table">
-                        <thead><tr><th>{t("asiaLogisticsPage.country", "국가")}</th><th>면세 한도</th><th>세율</th><th>특이사항</th><th>주요 Platform</th></tr></thead>
+                        <thead><tr><th>{t("asiaLogisticsPage.country", "국가")}</th><th>면세 한도</th><th>세율</th><th>특이사항</th><th>주요 플랫폼</th></tr></thead>
                         <tbody>
                             {REGULATIONS.map((r, i) => (
                                 <tr key={i}>
@@ -219,12 +219,12 @@ export default function AsiaLogistics() {
 
             {activeTab === 'fulfillment' && (
                 <div className="card fade-up">
-                    <div style={{ fontWeight:800, fontSize:14, marginBottom:14 }}>📦 풀필먼트 방식 Compare</div>
+                    <div style={{ fontWeight:800, fontSize:14, marginBottom:14 }}>📦 풀필먼트 방식 비교</div>
                     <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:14 }}>
                         {[
-                            { title:'자사 직영 허브', icon:'🏭', pros:['재고 완전 통제','브랜드 패키징','빠른 처리속도'], cons:['초기 투자 High','고정 운영비'], cost:'KRW 2,800-4,200/kg', recommend:'고회전 Product' },
-                            { title:'3PL 파트너', icon:'🤝', pros:['유연한 확장','고정비 None','현지 인력'], cons:['가시성 Limit','품질 편차'], cost:'KRW 1,800-3,200/kg', recommend:'진행장기 Test' },
-                            { title:'크로스보더 직배', icon:'✈️', pros:['재고 불필요','즉시 Start 가능','낮은 초기Cost'], cons:['배송 7-15일','통관 리스크'], cost:'KRW 800-1,500/kg', recommend:'신규 시장 Test' },
+                            { title:'자사 직영 허브', icon:'🏭', pros:['재고 완전 통제','브랜드 패키징','빠른 처리속도'], cons:['초기 투자 높음','고정 운영비'], cost:'KRW 2,800-4,200/kg', recommend:'고회전 상품' },
+                            { title:'3PL 파트너', icon:'🤝', pros:['유연한 확장','고정비 없음','현지 인력'], cons:['가시성 제한','품질 편차'], cost:'KRW 1,800-3,200/kg', recommend:'장기 진행 테스트' },
+                            { title:'크로스보더 직배', icon:'✈️', pros:['재고 불필요','즉시 시작 가능','낮은 초기 비용'], cons:['배송 7-15일','통관 리스크'], cost:'KRW 800-1,500/kg', recommend:'신규 시장 테스트' },
                         ].map(fc => (
                             <div key={fc.title} style={{ background: 'var(--surface)', borderRadius:14, padding:20, border: '1px solid var(--border)' }}>
                                 <div style={{ fontSize:28, marginBottom:10 }}>{fc.icon}</div>
@@ -248,28 +248,28 @@ export default function AsiaLogistics() {
                 <div className="fade-up" style={{ display:'grid', gap:14 }}>
                     <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
                         <div>
-                            <div style={{ fontWeight:800, fontSize:14 }}>🇰🇷 Domestic 3PL 업체 Management</div>
-                            <div style={{ fontSize:11, color:'var(--text-3)', marginTop:2 }}>CJKorea Delivery·한진택배·롯데택배 및 신규 3PL 파트너 API Integration 현황</div>
+                            <div style={{ fontWeight:800, fontSize:14 }}>🇰🇷 국내 3PL 업체 관리</div>
+                            <div style={{ fontSize:11, color:'var(--text-3)', marginTop:2 }}>CJKorea Delivery·한진택배·롯데택배 및 신규 3PL 파트너 API 연동 현황</div>
                         </div>
                         <button onClick={() => setShowAddForm(v => !v)} style={{ padding:'8px 16px', borderRadius:10, border:'none', background:'linear-gradient(135deg,#22c55e,#16a34a)', color: '#fff', fontWeight:700, fontSize:12, cursor:'pointer' }}>
-                            {showAddForm ? '✕ Close' : '+ 업체 Add'}
+                            {showAddForm ? '✕ 닫기' : '+ 업체 추가'}
                         </button>
                     </div>
 
-                    {/* 업체 Add 폼 */}
+                    {/* 업체 추가 폼 */}
                     {showAddForm && (
                         <div style={{ background:'rgba(34,197,94,0.04)', border:'1px solid rgba(34,197,94,0.2)', borderRadius:14, padding:18 }}>
-                            <div style={{ fontWeight:700, fontSize:13, marginBottom:14, color:'#22c55e' }}>➕ 새 3PL 업체 Add</div>
+                            <div style={{ fontWeight:700, fontSize:13, marginBottom:14, color:'#22c55e' }}>➕ 새 3PL 업체 추가</div>
                             <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:10 }}>
                                 {[
                                     ['업체명 *', 'name', 'text', 'CJKorea Delivery'],
-                                    ['Icon (이모지)', 'icon', 'text', '🚚'],
+                                    ['아이콘 (이모지)', 'icon', 'text', '🚚'],
                                     ['일 처리량', 'daily', 'text', '1,000건'],
-                                    ['Average배송일', 'avgDays', 'text', '1.5일'],
-                                    ['건당 Cost', 'cost', 'text', 'KRW 3,000/건'],
+                                    ['평균배송일', 'avgDays', 'text', '1.5일'],
+                                    ['건당 비용', 'cost', 'text', 'KRW 3,000/건'],
                                     ['커버리지', 'coverage', 'text', '전국 80%'],
                                     ['API Key', 'apiKey', 'password', 'API 키 입력'],
-                                    ['Integration Channel (쉼표 구분)', 'channels', 'text', 'Coupang, Naver'],
+                                    ['연동 채널 (쉼표 구분)', 'channels', 'text', 'Coupang, Naver'],
                                 ].map(([label, key, type, ph]) => (
                                     <div key={key}>
                                         <div style={{ fontSize:9, color:'var(--text-3)', fontWeight:700, marginBottom:4 }}>{label}</div>
@@ -280,12 +280,12 @@ export default function AsiaLogistics() {
                                 ))}
                             </div>
                             <button onClick={() => addCarrierMsg(newCarrier)} style={{ marginTop:14, padding:'9px 24px', borderRadius:10, border:'none', background:'linear-gradient(135deg,#4f8ef7,#6366f1)', color: '#fff', fontWeight:700, fontSize:12, cursor:'pointer' }}>
-                                업체 Register
+                                업체 등록
                             </button>
                         </div>
                     )}
 
-                    {/* 업체 Card List (state 기반) */}
+                    {/* 업체 카드 목록 (state 기반) */}
                     <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:14 }}>
                         {carriers3pl.map(c => (
                             <div key={c.id} style={{ background: 'var(--surface)', borderRadius:14, padding:18, border:`1px solid ${c.color}25`, position:'relative' }}>
@@ -293,10 +293,10 @@ export default function AsiaLogistics() {
                                     style={{ position:'absolute', top:10, right:10, width:22, height:22, borderRadius:'50%', border:'none', background:'rgba(239,68,68,0.15)', color:'#ef4444', cursor:'pointer', fontSize:12, display:'flex', alignItems:'center', justifyContent:'center' }}>×</button>
                                 <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12, paddingRight:28 }}>
                                     <div style={{ fontSize:16, fontWeight:900 }}>{c.icon} {c.name}</div>
-                                    <span style={{ fontSize:9, fontWeight:700, padding:'3px 8px', borderRadius:20, background: c.apiStatus==='IntegrationDone'?'rgba(34,197,94,0.15)':'rgba(249,115,22,0.15)', color: c.apiStatus==='IntegrationDone'?'#22c55e':'#f97316' }}>{c.apiStatus}</span>
+                                    <span style={{ fontSize:9, fontWeight:700, padding:'3px 8px', borderRadius:20, background: c.apiStatus==='연동완료'?'rgba(34,197,94,0.15)':'rgba(249,115,22,0.15)', color: c.apiStatus==='연동완료'?'#22c55e':'#f97316' }}>{c.apiStatus}</span>
                                 </div>
                                 <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:12 }}>
-                                    {[['일 처리',c.daily],['Average배송일',c.avgDays],['건당 Cost',c.cost],['커버리지',c.coverage]].map(([l,v]) => (
+                                    {[['일 처리',c.daily],['평균배송일',c.avgDays],['건당 비용',c.cost],['커버리지',c.coverage]].map(([l,v]) => (
                                         <div key={l} style={{ background: 'var(--surface)', borderRadius:8, padding:'8px 10px' }}>
                                             <div style={{ fontSize:9, color:'var(--text-3)', fontWeight:600 }}>{l}</div>
                                             <div style={{ fontSize:13, fontWeight:800, color:c.color, marginTop:2 }}>{v || '-'}</div>
@@ -305,7 +305,7 @@ export default function AsiaLogistics() {
                                 </div>
                                 {c.features?.length > 0 && (
                                     <>
-                                        <div style={{ fontSize:11, fontWeight:700, marginBottom:6, color:'var(--text-3)' }}>주요 Feature</div>
+                                        <div style={{ fontSize:11, fontWeight:700, marginBottom:6, color:'var(--text-3)' }}>주요 기능</div>
                                         {c.features.map(f => <div key={f} style={{ fontSize:11, color:'#22c55e', marginBottom:3 }}>✓ {f}</div>)}
                                     </>
                                 )}
@@ -314,9 +314,9 @@ export default function AsiaLogistics() {
                                         {c.channels.map(ch => <span key={ch} style={{ fontSize:9, padding:'2px 8px', borderRadius:20, background:'rgba(79,142,247,0.12)', color:'#7c9ef5', fontWeight:700 }}>{ch}</span>)}
                                     </div>
                                 )}
-                                {c.apiStatus === 'SettingsPending' && (
+                                {c.apiStatus === '설정대기' && (
                                     <button style={{ marginTop:12, width:'100%', padding:'8px', borderRadius:8, background:'linear-gradient(135deg,#f97316,#ef4444)', border:'none', color: '#fff', fontWeight:700, fontSize:11, cursor:'pointer' }}>
-                                        API Integration Settings
+                                        API 연동 설정
                                     </button>
                                 )}
                             </div>
@@ -324,7 +324,7 @@ export default function AsiaLogistics() {
                     </div>
 
                     <div style={{ padding:'12px 16px', borderRadius:10, background:'rgba(34,197,94,0.05)', border:'1px solid rgba(34,197,94,0.15)', fontSize:12, color:'var(--text-2)', lineHeight:1.7 }}>
-                        💡 <strong>Auto 라우팅 Integration</strong>: OrderHub Auto라우팅 엔진과 Connect하면 Orders 조건(지역·무게·Channel)에 따라 업체를 Auto 배정합니다.
+                        💡 <strong>자동 라우팅 연동</strong>: OrderHub 자동라우팅 엔진과 연결하면 주문 조건(지역·무게·채널)에 따라 업체를 자동 배정합니다.
                     </div>
                 </div>
             )}

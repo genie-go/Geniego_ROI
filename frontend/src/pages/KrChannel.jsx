@@ -121,7 +121,7 @@ function FeeRulesTab() {
             return_fee_standard: parseFloat(form.return_fee_standard) || 0,
             vat_rate: parseFloat(form.vat_rate) || 0.1,
         });
-        setMsg(d.ok ? "✅ Save됨 (id:" + d.id + ")" : "❌ " + d.error);
+        setMsg(d.ok ? "✅ 저장됨 (id:" + d.id + ")" : "❌ " + d.error);
         if (sel) loadRules(sel);
     };
 
@@ -177,8 +177,8 @@ function FeeRulesTab() {
                             <span style={{ color: "#64748b" }}>{r.effective_from}</span>
                         </div>
                         <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 4, color: "#94a3b8" }}>
-                            <span>Commission <b style={{ color: '#fff' }}>{PCT(r.platform_fee_rate * 100)}</b></span>
-                            <span>Ad <b style={{ color: '#fff' }}>{PCT(r.ad_fee_rate * 100)}</b></span>
+                            <span>수수료 <b style={{ color: '#fff' }}>{PCT(r.platform_fee_rate * 100)}</b></span>
+                            <span>광고 <b style={{ color: '#fff' }}>{PCT(r.ad_fee_rate * 100)}</b></span>
                             <span>배송 <b style={{ color: '#fff' }}>{KRW(r.shipping_standard)}</b></span>
                             <span>부가세 <b style={{ color: '#fff' }}>{PCT(r.vat_rate * 100)}</b></span>
                         </div>
@@ -236,12 +236,12 @@ function IngestTab() {
             try {
                 d = await postJson(`${API}/v419/kr/settle/ingest`, { channel_key: sel, lines });
             } catch {
-                setMsg({ type: "ok", text: `✅ [MOCK] ${lines.length}건 재Completed (${sel}) — 백엔드 API Disconnected` });
+                setMsg({ type: "ok", text: `✅ [MOCK] ${lines.length}건 재처리 완료 (${sel}) — 백엔드 API 미연결` });
                 return;
             }
             setMsg({
                 type: d.ok ? "ok" : "err",
-                text: d.ok ? `✅ ${d.inserted}건 재Completed (${sel})` : "❌ " + (d.error || JSON.stringify(d)),
+                text: d.ok ? `✅ ${d.inserted}건 재처리 완료 (${sel})` : "❌ " + (d.error || JSON.stringify(d)),
             });
         } catch (e) {
             setMsg({ type: "err", text: "❌ " + e.message });
@@ -262,7 +262,7 @@ function IngestTab() {
                 </button>
             </div>
             <div style={{ fontSize: 11, color: "#64748b", marginBottom: 6 }}>
-                <b style={{ color: "#94a3b8" }}>필Count 필드:</b> order_id, period_start, period_end, sku, product_name, qty, sell_price, gross_sales, platform_fee, ad_fee, shipping_fee, return_fee, vat, coupon_discount, point_discount, other_deductions, net_payout, currency
+                <b style={{ color: "#94a3b8" }}>필수 필드:</b> order_id, period_start, period_end, sku, product_name, qty, sell_price, gross_sales, platform_fee, ad_fee, shipping_fee, return_fee, vat, coupon_discount, point_discount, other_deductions, net_payout, currency
             </div>
             <textarea value={linesJson} onChange={(e) => setLinesJson(e.target.value)} rows={18}
                 style={{ width: "100%", background: "#0a0f1a", border: "1px solid #1c2842", borderRadius: 6, color: "#94d9a2", fontFamily: "monospace", fontSize: 11, padding: 10, boxSizing: "border-box" }} />
@@ -288,9 +288,9 @@ function SummaryTab() {
     useEffect(load, [load]);
 
     const cols = [
-        ["gross_sales", "RevenueAmount"], ["platform_fee", "Platform Commission"], ["ad_fee", "Ad Spend"],
-        ["shipping_fee", "배송비"], ["return_fee", "반품비"], ["coupon_discount", "Coupon할인"],
-        ["net_payout", "정산Amount"], ["effective_fee_rate_pct", "유효 Commission율"],
+        ["gross_sales", "매출액"], ["platform_fee", "플랫폼 수수료"], ["ad_fee", "광고비"],
+        ["shipping_fee", "배송비"], ["return_fee", "반품비"], ["coupon_discount", "쿠폰할인"],
+        ["net_payout", "정산액"], ["effective_fee_rate_pct", "유효 수수료율"],
     ];
 
     return (
@@ -300,13 +300,13 @@ function SummaryTab() {
                     <input key={k} type="date" value={v} onChange={(e) => s(e.target.value)}
                         style={{ background: "#0f172a", border: "1px solid #1c2842", borderRadius: 6, color: '#fff', padding: "5px 8px", fontSize: 12 }} />
                 ))}
-                <button className="btn" onClick={load}>Search</button>
+                <button className="btn" onClick={load}>조회</button>
             </div>
 
             {data && (
                 <>
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: 10, marginBottom: 16 }}>
-                        {[["gross_sales", "Total RevenueAmount", "#6366f1"], ["platform_fee", "Total Commission", "#ef4444"], ["net_payout", "Total 정산Amount", "#22c55e"]].map(([k, label, color]) => (
+                        {[["gross_sales", "총 매출액", "#6366f1"], ["platform_fee", "총 수수료", "#ef4444"], ["net_payout", "총 정산액", "#22c55e"]].map(([k, label, color]) => (
                             <div key={k} className="card" style={{ borderLeft: `3px solid ${color}` }}>
                                 <div style={{ fontSize: 10, color: "#7c8fa8" }}>{label}</div>
                                 <div style={{ fontSize: 18, fontWeight: 800, color }}>{KRW(data.totals?.[k])}</div>
@@ -318,8 +318,8 @@ function SummaryTab() {
                         <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 11 }}>
                             <thead>
                                 <tr style={{ borderBottom: "1px solid #1c2842", color: "#7c8fa8" }}>
-                                    <th style={{ padding: "5px 8px", textAlign: "left" }}>Channel</th>
-                                    <th style={{ padding: "5px 8px", textAlign: "right" }}>건Count</th>
+                                    <th style={{ padding: "5px 8px", textAlign: "left" }}>채널</th>
+                                    <th style={{ padding: "5px 8px", textAlign: "right" }}>건수</th>
                                     {cols.map(([k, label]) => <th key={k} style={{ padding: "5px 8px", textAlign: "right", fontWeight: 500, fontSize: 10 }}>{label}</th>)}
                                 </tr>
                             </thead>
@@ -342,7 +342,7 @@ function SummaryTab() {
                                 ))}
                                 {!data.channels?.length && (
                                     <tr><td colSpan={cols.length + 2} style={{ padding: 24, textAlign: "center", color: "#64748b" }}>
-                                        No data — 정산 재처리 Tab에서 데이터를 먼저 재처리하세요
+                                        데이터 없음 — 정산 재처리 탭에서 데이터를 먼저 재처리하세요
                                     </td></tr>
                                 )}
                             </tbody>
@@ -399,10 +399,10 @@ function ReconTab() {
     return (
         <div>
             <div className="card" style={{ marginBottom: 14 }}>
-                <h4 style={{ marginTop: 0, fontSize: 13 }}>대사 Run</h4>
+                <h4 style={{ marginTop: 0, fontSize: 13 }}>대사 실행</h4>
                 <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "flex-end" }}>
                     <div>
-                        <label style={{ fontSize: 11, color: "#7c8fa8", display: "block", marginBottom: 2 }}>Channel</label>
+                        <label style={{ fontSize: 11, color: "#7c8fa8", display: "block", marginBottom: 2 }}>채널</label>
                         <select value={form.channel_key} onChange={(e) => setForm((f) => ({ ...f, channel_key: e.target.value }))}
                             style={{ background: "#0f172a", border: "1px solid #1c2842", borderRadius: 6, color: '#fff', padding: "5px 10px", fontSize: 12 }}>
                             {channels.map((c) => <option key={c.channel_key} value={c.channel_key}>{c.display_name}</option>)}
@@ -411,14 +411,14 @@ function ReconTab() {
                     {["period_start", "period_end"].map((k) => (
                         <div key={k}>
                             <label style={{ fontSize: 11, color: "#7c8fa8", display: "block", marginBottom: 2 }}>
-                                {k === "period_start" ? "Start일" : "End Date"}
+                                {k === "period_start" ? "시작일" : "종료일"}
                             </label>
                             <input type="date" value={form[k]} onChange={(e) => setForm((f) => ({ ...f, [k]: e.target.value }))}
                                 style={{ background: "#0f172a", border: "1px solid #1c2842", borderRadius: 6, color: '#fff', padding: "5px 8px", fontSize: 12 }} />
                         </div>
                     ))}
                     <button className="btn" onClick={run} disabled={loading}>
-                        {loading ? "⏳ Run in progress…" : "🔍 대사 Run"}
+                        {loading ? "⏳ 실행 중…" : "🔍 대사 실행"}
                     </button>
                 </div>
             </div>
@@ -431,13 +431,13 @@ function ReconTab() {
                         {r.channel_key} · {r.period_start?.slice(0, 7)} · {r.status}
                     </button>
                 ))}
-                {!reports.length && <div className="sub" style={{ fontSize: 12 }}>대사 리포트 None</div>}
+                {!reports.length && <div className="sub" style={{ fontSize: 12 }}>대사 리포트 없음</div>}
             </div>
 
             {selReport && (
                 <div>
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))", gap: 10, marginBottom: 14 }}>
-                        {[["total_orders", "All", "#6366f1"], ["matched", "일치", "#22c55e"], ["mismatch", "불일치", "#ef4444"], ["missing_settlement", "정산 누락", "#f97316"], ["missing_order", "Orders 누락", "#eab308"]].map(([k, label, color]) => (
+                        {[["total_orders", "전체", "#6366f1"], ["matched", "일치", "#22c55e"], ["mismatch", "불일치", "#ef4444"], ["missing_settlement", "정산 누락", "#f97316"], ["missing_order", "주문 누락", "#eab308"]].map(([k, label, color]) => (
                             <div key={k} className="card" style={{ borderLeft: `3px solid ${color}` }}>
                                 <div style={{ fontSize: 10, color: "#7c8fa8" }}>{label}</div>
                                 <div style={{ fontSize: 20, fontWeight: 800, color }}>{selReport[k]}</div>
@@ -448,7 +448,7 @@ function ReconTab() {
                             <div style={{ fontSize: 18, fontWeight: 800, color: "#ef4444" }}>{KRW(selReport.net_diff)}</div>
                         </div>
                         <div className="card" style={{ borderLeft: "3px solid #f97316" }}>
-                            <div style={{ fontSize: 10, color: "#7c8fa8" }}>Commission 차이</div>
+                            <div style={{ fontSize: 10, color: "#7c8fa8" }}>수수료 차이</div>
                             <div style={{ fontSize: 18, fontWeight: 800, color: "#f97316" }}>{KRW(selReport.fee_diff)}</div>
                         </div>
                     </div>
@@ -471,7 +471,7 @@ function ReconTab() {
                                 </div>
                             ))}
                         </div>
-                    ) : <div className="sub" style={{ fontSize: 12 }}>✅ 티켓 None (차이 기준 미만)</div>}
+                    ) : <div className="sub" style={{ fontSize: 12 }}>✅ 티켓 없음 (차이 기준 미만)</div>}
                 </div>
             )}
         </div>
