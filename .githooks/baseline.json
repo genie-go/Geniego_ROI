@@ -2,10 +2,10 @@
   "version": "181",
   "updated": "2026-05-30",
   "sacred_sha": {
-    "ja.js": "8107dcd414ef5a265097da739c8264b936a671641416c1b31afa4b8011209ade",
-    "zh.js": "449ac6dce659f3f3d773f4607779169198185d9f0609aa62a83e390cc9cfee4d"
+    "ja.js": "ef3812331ed36cc1b564bcce8952bb3948e2ee576fb95d935c26c058e42dabb5",
+    "zh.js": "8463ea99c932cbeb7226154085a4dde2c0a826b8570dfff090a75ef0f157d27e"
   },
-  "ko_leaf_count": 32025,
+  "ko_leaf_count": 32090,
   "leaf_tolerance_pct": 5,
-  "_note": "181차 b — TeamMembers 41키 15개국(루트 신규 ns). ja/zh SHA·ko_leaf 갱신. 신규 키 collision 0."
+  "_note": "181차 c — DigitalShelf 자동번역 손상복구+i18n 65키 15개국+데모게이팅+런타임 t버그수정. ja/zh SHA·ko_leaf 갱신."
 }
