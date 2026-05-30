@@ -2,10 +2,10 @@
   "version": "181",
   "updated": "2026-05-30",
   "sacred_sha": {
-    "ja.js": "1d703bd0f48fe05b5b217486b0ebd8016d476a7444f80dcc43ab6fab1c80c95e",
-    "zh.js": "bc19936546898ca05d258130a7ad2eb53940436c8513ea6bd6dc9fc9f61602a5"
+    "ja.js": "8107dcd414ef5a265097da739c8264b936a671641416c1b31afa4b8011209ade",
+    "zh.js": "449ac6dce659f3f3d773f4607779169198185d9f0609aa62a83e390cc9cfee4d"
   },
-  "ko_leaf_count": 31984,
+  "ko_leaf_count": 32025,
   "leaf_tolerance_pct": 5,
-  "_note": "181차 체크포인트 — ReportBuilder(15키)+AIInsights(43키) 신규 i18n 15개국. ja/zh SHA 갱신, ko_leaf 31926→31984. 신규 키 collision 0건(zh 242건은 기존 ruleEnginePage.dash 중복·무관)."
+  "_note": "181차 b — TeamMembers 41키 15개국(루트 신규 ns). ja/zh SHA·ko_leaf 갱신. 신규 키 collision 0."
 }
