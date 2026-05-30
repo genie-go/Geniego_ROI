@@ -6,6 +6,9 @@ const base = import.meta.env.VITE_API_BASE || "";
 const IS_DEMO = import.meta.env.VITE_DEMO_MODE === 'true';
 const TOKEN_KEY = IS_DEMO ? "demo_genie_token" : "genie_token";
 
+/* 183차 Phase3: 읽기전용 멤버(team_role='member') 쓰기 차단 중앙 가드 */
+import { guardWrite } from "./writeGuard.js";
+
 export async function getJson(path) {
   const res = await fetch(`${base}${path}`);
   if (!res.ok) {
@@ -35,6 +38,7 @@ function defaultHeaders() {
 
 
 export async function postJson(path, body) {
+  guardWrite("POST", path);
   const res = await fetch(`${base}${path}`, {
     method: "POST",
     headers: defaultHeaders(),
@@ -70,6 +74,7 @@ export async function getJsonAuth(path) {
 
 
 export async function putText(path, rawBody) {
+  guardWrite("PUT", path);
   const res = await fetch(`${base}${path}`, {
     method: "PUT",
     headers: defaultHeaders(),
@@ -89,6 +94,7 @@ export async function putText(path, rawBody) {
 }
 
 export async function putJson(path, body) {
+  guardWrite("PUT", path);
   const res = await fetch(`${base}${path}`, {
     method: "PUT",
     headers: defaultHeaders(),
@@ -108,6 +114,7 @@ export async function putJson(path, body) {
 }
 
 export async function patchJson(path, body) {
+  guardWrite("PATCH", path);
   const res = await fetch(`${base}${path}`, {
     method: "PATCH",
     headers: defaultHeaders(),
@@ -132,6 +139,7 @@ export async function postJsonAuth(path, body, extraHeaders = {}) {
 }
 
 export async function requestJsonAuth(path, method, body, extraHeaders = {}) {
+  guardWrite(method, path);
   const res = await fetch(`${base}${path}`, {
     method,
     headers: { ...defaultHeaders(), ...extraHeaders },
@@ -169,6 +177,7 @@ export async function getJsonAuthAbortable(path, signal) {
 }
 
 export async function requestJsonAuthAbortable(path, method, body, signal) {
+  guardWrite(method, path);
   const res = await fetch(`${base}${path}`, {
     method,
     headers: defaultHeaders(),

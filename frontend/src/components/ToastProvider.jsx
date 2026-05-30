@@ -4,6 +4,7 @@
  * Global toast manager for success/error/warning/info messages
  */
 import React, { useState, useEffect, useCallback, createContext, useContext } from 'react';
+import { useI18n } from '../i18n/index.js'; // 183차 Phase3 RBAC 토스트 현지화
 
 const ToastContext = createContext(null);
 
@@ -34,6 +35,20 @@ export function ToastProvider({ children }) {
   const removeToast = useCallback((id) => {
     setToasts(prev => prev.filter(t => t.id !== id));
   }, []);
+
+  /* 183차 Phase3: 읽기전용 멤버(team_role='member') 쓰기 차단 시 경고 토스트.
+   * writeGuard.js 가 발행하는 window 'rbac-write-denied' 이벤트 수신.
+   * 메시지는 i18n 키(rbac.writeDenied) 우선, 미동기화 언어는 이벤트의 한글 fallback 사용. */
+  const { t } = useI18n();
+  useEffect(() => {
+    const onDenied = (e) => {
+      const fallback = e?.detail?.message
+        || '읽기 전용 멤버 계정입니다 — 이 작업은 관리자(owner) 또는 매니저만 수행할 수 있습니다.';
+      addToast(t('rbac.writeDenied', fallback), 'warning', 4500);
+    };
+    window.addEventListener('rbac-write-denied', onDenied);
+    return () => window.removeEventListener('rbac-write-denied', onDenied);
+  }, [addToast, t]);
 
   return (
     <ToastContext.Provider value={{ addToast, removeToast }}>

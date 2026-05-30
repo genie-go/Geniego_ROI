@@ -150,6 +150,16 @@ export default function TeamMembers() {
         </div>
       </div>
 
+      {/* 183차 Phase3: 읽기전용 멤버 안내 배너 */}
+      {!canManage && (
+        <div style={{ ...card, marginBottom: 18, borderColor: '#fde68a', background: 'rgba(245,158,11,0.08)', display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ fontSize: 18 }}>🔒</span>
+          <span style={{ fontSize: 13, color: 'var(--text-2,#475569)', fontWeight: 600 }}>
+            {t('teamMembers.readOnlyBanner', '읽기 전용 멤버 계정입니다 — 팀원 관리는 관리자(owner) 또는 매니저만 가능합니다.')}
+          </span>
+        </div>
+      )}
+
       {/* 등록 폼 */}
       {canManage && (
         <form onSubmit={onCreate} style={{ ...card, marginBottom: 18 }}>

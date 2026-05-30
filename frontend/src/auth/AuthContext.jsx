@@ -2,6 +2,7 @@ import React, { useEffect, createContext, useCallback, useContext, useRef, useSt
 import { tChannelName } from '../utils/tenantStorage.js'; // 180차: 회원 격리 크로스탭
 import { planRank } from "./plans.js";
 import { menuAllowedByTier, isAdminOnlyMenu } from "./planMenuPolicy.js"; // 181차 플랜별 메뉴접근 초고도화
+import { normalizeTeamRole, canWrite as canTeamRoleWrite, isReadOnlyRole } from "./teamRolePolicy.js"; // 183차 Phase3 팀역할 RBAC
 
 
 export const AuthContext = createContext(null);
@@ -512,6 +513,17 @@ export function AuthProvider({ children }) {
     const isFreeUser = userPlan === "free" && !hasRealKeys;    // 유료결제 전 무료가입 회원
     const isAdmin = userPlan === "admin" || IS_DEMO_MODE;
 
+    /* ── 183차 Phase3: 테넌트 내 팀 역할(team_role) RBAC ──
+     * owner > manager > member. admin/데모는 항상 전체 쓰기(우회).
+     * member 만 읽기 전용. 미지정 역할은 owner 로 정규화(기존 안정성 보존). */
+    const teamRole = normalizeTeamRole(user?.team_role);
+    const isReadOnlyMember = !isAdmin && isReadOnlyRole(user?.team_role);
+    /* canTeamWrite(action?) — UI 쓰기 버튼 게이팅용. admin/데모 우회 포함. */
+    const canTeamWrite = useCallback((action) => {
+        if (isAdmin) return true;
+        return canTeamRoleWrite(user?.team_role, action);
+    }, [isAdmin, user]);
+
     /* 기능별 접근 가능 여부 확인 헬퍼 */
     const canAccess = useCallback((feature) => {
         const featureRequirements = {
@@ -595,6 +607,7 @@ export function AuthProvider({ children }) {
             subscriptionExpiresAt, subscriptionDaysLeft,
             subscriptionStatus, isSubscriptionExpired,
             plan: userPlan,
+            teamRole, isReadOnlyMember, canTeamWrite, // 183차 Phase3 팀역할 RBAC
             planMenuAccess,
             reloadMenuAccess: () => { menuAccessLoadedRef.current = false; setPlanMenuAccess(null); loadMenuAccess(); },
         }}>
