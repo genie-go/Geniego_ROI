@@ -28160,6 +28160,11 @@ export default {
       guideDesc: "Hướng dẫn sử dụng"
     },
   sc: {
+    // 181차 SmartConnect 신규키
+    "issueRequestDone": "Đã gửi yêu cầu cấp {{ch}}",
+    "issueRequestBody": "Phiếu {{id}} — khóa sẽ được gửi qua email sau 1–3 ngày làm việc.",
+    "autoIssueOk": "Có thể cấp tự động",
+    "manualNeeded": "Cần lấy thủ công",
       heroTitle: "SmartConnect — API Key Automation Hub",
       heroDesc: "Automatically scan, detect, register, and integrate API keys for all your connected channels. Missing keys can be auto-requested.",
       scanning: "Scanning...",

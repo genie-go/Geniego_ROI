@@ -26959,6 +26959,11 @@ export default {
       strVeryStrong: "Very Strong"
     },
   sc: {
+    // 181차 SmartConnect 신규키
+    "issueRequestDone": "{{ch}} जारी करने का अनुरोध भेजा गया",
+    "issueRequestBody": "टिकट {{id}} — कुंजी 1–3 कार्यदिवसों में ईमेल द्वारा भेजी जाएगी।",
+    "autoIssueOk": "स्वतः जारी संभव",
+    "manualNeeded": "मैन्युअल प्राप्ति आवश्यक",
       heroTitle: "SmartConnect — API Key Automation Hub",
       heroDesc: "Automatically scan, detect, register, and integrate API keys for all your connected channels. Missing keys can be auto-requested.",
       scanning: "Scanning...",

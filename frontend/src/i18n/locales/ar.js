@@ -26959,6 +26959,11 @@ export default {
       strVeryStrong: "Very Strong"
     },
   sc: {
+    // 181차 SmartConnect 신규키
+    "issueRequestDone": "تم إرسال طلب إصدار {{ch}}",
+    "issueRequestBody": "التذكرة {{id}} — سيتم إرسال المفتاح عبر البريد الإلكتروني خلال 1–3 أيام عمل.",
+    "autoIssueOk": "الإصدار التلقائي متاح",
+    "manualNeeded": "يلزم الحصول يدويًا",
       heroTitle: "SmartConnect — API Key Automation Hub",
       heroDesc: "Automatically scan, detect, register, and integrate API keys for all your connected channels. Missing keys can be auto-requested.",
       scanning: "Scanning...",

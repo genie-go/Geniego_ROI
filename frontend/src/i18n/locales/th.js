@@ -30525,6 +30525,11 @@ export default {
       guideDesc: "คู่มือการใช้งาน"
     },
   sc: {
+    // 181차 SmartConnect 신규키
+    "issueRequestDone": "ส่งคำขอออก {{ch}} แล้ว",
+    "issueRequestBody": "ทิกเก็ต {{id}} — จะส่งคีย์ทางอีเมลภายใน 1–3 วันทำการ",
+    "autoIssueOk": "ออกอัตโนมัติได้",
+    "manualNeeded": "ต้องดำเนินการด้วยตนเอง",
       heroTitle: "SmartConnect — API Key Automation Hub",
       heroDesc: "Automatically scan, detect, register, and integrate API keys for all your connected channels. Missing keys can be auto-requested.",
       scanning: "Scanning...",

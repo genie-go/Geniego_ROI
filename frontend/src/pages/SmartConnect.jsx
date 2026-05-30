@@ -20,108 +20,108 @@ const CHANNELS = [
   { key:"meta_ads",       group:"global_ad",  name:"Meta Ads",          icon:"📘", color:"#1877F2",
     autoOAuth:true,  oauthUrl:"https://www.facebook.com/v12.0/dialog/oauth",
     issueUrl:"https://developers.facebook.com/apps/",
-    guide:"Business Manager → 앱 → 토큰 Create → access_token Copy",
-    autoAcquire: false, reason:"OAuth 2.0 User 동의 필요 (직접 로그인 필Count)",
-    capabilities:["ProductRegister","AdsAuto화","Conversion추적","잠Stock객"], },
+    guide:"Business Manager → 앱 → 토큰 생성 → access_token 복사",
+    autoAcquire: false, reason:"OAuth 2.0 사용자 동의 필요 (직접 로그인 필수)",
+    capabilities:["상품 등록","광고 자동화","전환 추적","잠재고객"], },
 
   { key:"google_ads",     group:"global_ad",  name:"Google Ads",        icon:"🔵", color:"#4285F4",
     autoOAuth:true,  oauthUrl:"https://accounts.google.com/o/oauth2/auth",
     issueUrl:"https://console.cloud.google.com/apis/credentials",
-    guide:"Google Cloud Console → User 인증 Info → OAuth 2.0 클라이언트 ID Create",
-    autoAcquire: false, reason:"OAuth 2.0 User 동의 필요 (Google Account 로그인 필Count)",
-    capabilities:["SearchAds","쇼핑Ads","GA4Integration","Conversion추적"], },
+    guide:"Google Cloud Console → 사용자 인증 정보 → OAuth 2.0 클라이언트 ID 생성",
+    autoAcquire: false, reason:"OAuth 2.0 사용자 동의 필요 (Google 계정 로그인 필수)",
+    capabilities:["검색광고","쇼핑광고","GA4 연동","전환 추적"], },
 
   { key:"tiktok_business",group:"global_ad",  name:"TikTok Business",   icon:"🎶", color:"#010101",
     autoOAuth:true,  oauthUrl:"https://business-api.tiktok.com/open_api/v1.3/oauth2/authorize/",
     issueUrl:"https://ads.tiktok.com/marketing_api/apps/",
-    guide:"TikTok Marketing API → 앱 Create → Access Token Issue",
-    autoAcquire: false, reason:"OAuth 2.0 User 동의 필요",
-    capabilities:["틱톡Ads","숏폼Marketing","Conversion추적"], },
+    guide:"TikTok Marketing API → 앱 생성 → Access Token 발급",
+    autoAcquire: false, reason:"OAuth 2.0 사용자 동의 필요",
+    capabilities:["틱톡 광고","숏폼 마케팅","전환 추적"], },
 
   { key:"amazon_spapi",   group:"global_commerce", name:"Amazon SP-API", icon:"📦", color:"#FF9900",
     autoOAuth:true,  oauthUrl:"https://sellercentral.amazon.com/apps/authorize/consent",
     issueUrl:"https://developer-docs.amazon.com/sp-api/docs/registering-your-application",
-    guide:"Seller Central → 앱 Management → LWA credentials Issue",
-    autoAcquire: false, reason:"Amazon LWA OAuth + 개발자 Register 심사 필요",
-    capabilities:["ProductAutoRegister","OrdersInfoCount집","StockSync","AdsIntegration"], },
+    guide:"Seller Central → 앱 관리 → LWA credentials 발급",
+    autoAcquire: false, reason:"Amazon LWA OAuth + 개발자 등록 심사 필요",
+    capabilities:["상품 자동등록","주문정보 수집","재고 동기화","광고 연동"], },
 
   { key:"shopify",        group:"global_commerce", name:"Shopify",       icon:"🛍", color:"#96BF48",
     autoOAuth:true,  oauthUrl:"https://{store}.myshopify.com/admin/oauth/authorize",
     issueUrl:"https://partners.shopify.com/",
-    guide:"Shopify Partners → 앱 Create → Admin API Token Issue",
-    autoAcquire: false, reason:"스토어 도메인per OAuth 동의 필요",
-    capabilities:["ProductAutoRegister","OrdersManagement","CustomerCRM","StockSync"], },
+    guide:"Shopify Partners → 앱 생성 → Admin API Token 발급",
+    autoAcquire: false, reason:"스토어 도메인별 OAuth 동의 필요",
+    capabilities:["상품 자동등록","주문 관리","고객 CRM","재고 동기화"], },
 
   // Domestic
   { key:"coupang",        group:"domestic",   name:"Coupang Wing",          icon:"🛒", color:"#C02525",
     autoOAuth:false, oauthUrl:null,
     issueUrl:"https://wing.coupang.com/",
-    guide:"Coupang Wing → 판매자 Settings → API Integration → Access Key + Secret Key Issue",
-    autoAcquire: true, reason:"HMAC 방식 API Key — 판매자센터에서 직접 Copy 가능",
-    capabilities:["ProductAutoRegister","OrdersInfoCount집","정산Info","CoupangAds"], },
+    guide:"Coupang Wing → 판매자 설정 → API 연동 → Access Key + Secret Key 발급",
+    autoAcquire: true, reason:"HMAC 방식 API Key — 판매자센터에서 직접 복사 가능",
+    capabilities:["상품 자동등록","주문정보 수집","정산 정보","쿠팡 광고"], },
 
   { key:"naver_smartstore",group:"domestic",  name:"Naver 스마트스토어", icon:"🟢", color:"#03C75A",
     autoOAuth:false, oauthUrl:null,
     issueUrl:"https://apicenter.commerce.naver.com/",
-    guide:"커머스 API 센터 → 애플리케이션 Register → Client ID / Secret Issue",
-    autoAcquire: true, reason:"애플리케이션 Register 후 즉시 Issue 가능",
-    capabilities:["ProductAutoRegister","OrdersManagement","정산Info","리뷰Count집"], },
+    guide:"커머스 API 센터 → 애플리케이션 등록 → Client ID / Secret 발급",
+    autoAcquire: true, reason:"애플리케이션 등록 후 즉시 발급 가능",
+    capabilities:["상품 자동등록","주문 관리","정산 정보","리뷰 수집"], },
 
   { key:"naver_sa",       group:"domestic",   name:"Naver SearchAds(SA)", icon:"🟩", color:"#03C75A",
     autoOAuth:false, oauthUrl:null,
     issueUrl:"https://searchad.naver.com/",
-    guide:"SearchAds 시스템 → 도구 → API Management → API Key Issue",
-    autoAcquire: true, reason:"SearchAds Account에서 직접 Issue 가능",
-    capabilities:["SearchAdsAuto화","키워드Analysis","입찰Management"], },
+    guide:"검색광고 시스템 → 도구 → API 관리 → API Key 발급",
+    autoAcquire: true, reason:"검색광고 계정에서 직접 발급 가능",
+    capabilities:["검색광고 자동화","키워드 분석","입찰 관리"], },
 
   { key:"kakao_moment",   group:"domestic",   name:"Kakao 모먼트",       icon:"💛", color:"#FEE500",
     autoOAuth:true,  oauthUrl:"https://kauth.kakao.com/oauth/authorize",
     issueUrl:"https://developers.kakao.com/",
-    guide:"Kakao Developers → 앱 Create → Kakao 로그인 → 토큰 Issue",
+    guide:"Kakao Developers → 앱 생성 → Kakao 로그인 → 토큰 발급",
     autoAcquire: false, reason:"Kakao OAuth 로그인 필요",
-    capabilities:["KakaoAds","Notification톡","CustomerAnalysis"], },
+    capabilities:["카카오 광고","알림톡","고객 분석"], },
 
   { key:"st11",           group:"domestic",   name:"11Street",             icon:"🔶", color:"#FA3E2C",
     autoOAuth:false, oauthUrl:null,
     issueUrl:"https://openapi.11st.co.kr/",
-    guide:"11Street Open API {t('sc.apply','Apply')} → 심사 Approval 후 API Key Email Count신",
-    autoAcquire: true, reason:"신청 후 1~3 영업일 이내 Issue",
-    capabilities:["ProductAutoRegister","OrdersInfoCount집"], },
+    guide:"11Street Open API 신청 → 심사 승인 후 API Key 이메일 수신",
+    autoAcquire: true, reason:"신청 후 1~3 영업일 이내 발급",
+    capabilities:["상품 자동등록","주문정보 수집"], },
 
   { key:"gmarket",        group:"domestic",   name:"Gmarket / 옥션",        icon:"🟡", color:"#0099CC",
     autoOAuth:false, oauthUrl:null,
     issueUrl:"https://www.gmarketglobal.com/api",
-    guide:"Gmarket 파트너센터 → API 신청 → Approval 후 키 Issue",
-    autoAcquire: true, reason:"파트너 Register 후 Issue 가능",
-    capabilities:["ProductAutoRegister","OrdersManagement"], },
+    guide:"Gmarket 파트너센터 → API 신청 → 승인 후 키 발급",
+    autoAcquire: true, reason:"파트너 등록 후 발급 가능",
+    capabilities:["상품 자동등록","주문 관리"], },
 
   { key:"rakuten",        group:"global_commerce", name:"Rakuten(라쿠텐)", icon:"🛒", color:"#BF0000",
     autoOAuth:false, oauthUrl:null,
     issueUrl:"https://webservice.rakuten.co.jp/",
-    guide:"Rakuten Web Service → 어플리케이션 Register → Service Secret + License Key Issue",
-    autoAcquire: true, reason:"앱 Register 후 즉시 Issue 가능",
-    capabilities:["ProductAutoRegister","OrdersInfoCount집","MarketingIntegration"], },
+    guide:"Rakuten Web Service → 어플리케이션 등록 → Service Secret + License Key 발급",
+    autoAcquire: true, reason:"앱 등록 후 즉시 발급 가능",
+    capabilities:["상품 자동등록","주문정보 수집","마케팅 연동"], },
 
   { key:"qoo10",          group:"global_commerce", name:"Qoo10(큐텐)",     icon:"🟡", color:"#FF6B00",
     autoOAuth:false, oauthUrl:null,
     issueUrl:"https://api.qoo10.com/",
-    guide:"Qoo10 판매자센터 → API Settings → API Key Confirm",
-    autoAcquire: true, reason:"판매자 Register 후 판매자센터에서 Confirm 가능",
-    capabilities:["ProductAutoRegister","OrdersManagement"], },
+    guide:"Qoo10 판매자센터 → API 설정 → API Key 확인",
+    autoAcquire: true, reason:"판매자 등록 후 판매자센터에서 확인 가능",
+    capabilities:["상품 자동등록","주문 관리"], },
 
   { key:"google_analytics",group:"own_etc",  name:"Google Analytics 4", icon:"📊", color:"#E37400",
     autoOAuth:true,  oauthUrl:"https://accounts.google.com/o/oauth2/auth",
     issueUrl:"https://analytics.google.com/analytics/web/",
-    guide:"GA4 → Admin → Data Streams → Measurement Protocol API Secret Create",
-    autoAcquire: false, reason:"Google OAuth 로그인 후 Count동 Create 필요",
-    capabilities:["트래픽Analysis","Conversion추적","잠Stock객"], },
+    guide:"GA4 → 관리 → 데이터 스트림 → Measurement Protocol API Secret 생성",
+    autoAcquire: false, reason:"Google OAuth 로그인 후 수동 생성 필요",
+    capabilities:["트래픽 분석","전환 추적","잠재고객"], },
 
   { key:"slack",          group:"own_etc",   name:"Slack Webhook",      icon:"💬", color:"#4A154B",
     autoOAuth:true,  oauthUrl:"https://slack.com/oauth/v2/authorize",
     issueUrl:"https://api.slack.com/apps",
-    guide:"Slack API → Your Apps → Incoming Webhooks → Webhook URL Copy",
-    autoAcquire: true, reason:"앱 Create 후 즉시 URL 획득 가능",
-    capabilities:["NotificationAuto화","Event전송"], },
+    guide:"Slack API → Your Apps → Incoming Webhooks → Webhook URL 복사",
+    autoAcquire: true, reason:"앱 생성 후 즉시 URL 획득 가능",
+    capabilities:["알림 자동화","이벤트 전송"], },
 ];
 
 /* ─── Auto 획득 가능 여부에 따른 분류 헬퍼 ────────────────────────────────── */
@@ -141,7 +141,7 @@ async function simulateScan(channelKey, savedKeys) {
 /* ─── Auto Sync 시뮬레이션 (DEMO ONLY) ──────────────────────────────────── */
 async function simulateAutoLink(channelKey) {
   await new Promise(r => setTimeout(r, 600 + Math.random() * 600));
-  return { ok: true, message: "Auto Sync 및 Run Done", capabilities: CHANNELS.find(c=>c.key===channelKey)?.capabilities || [] };
+  return { ok: true, message: "자동 동기화 및 실행 완료", capabilities: CHANNELS.find(c=>c.key===channelKey)?.capabilities || [] };
 }
 
 /* ─── Issue 신청 시뮬레이션 (DEMO ONLY) ─────────────────────────────────── */
@@ -341,8 +341,8 @@ export default function SmartConnect() {
 
     pushNotification({
       type: "connector",
-      title: `${ch.name} Issue 신청 Done`,
-      body: `티켓 ${res.ticketId} — 1~3 영업일 후 Email로 키가 Send됩니다.`,
+      title: t('sc.issueRequestDone', '{{ch}} 발급 신청 완료', { ch: ch.name }),
+      body: t('sc.issueRequestBody', '티켓 {{id}} — 1~3 영업일 후 이메일로 키가 발송됩니다.', { id: res.ticketId }),
       link: "/smart-connect",
     });
   }, [upd, pushNotification]);
@@ -768,7 +768,7 @@ function DetailModal({ ch, state, isLinking, isApplying, onAutoLink, onApply, on
         {/* 이유 */}
         <div style={{ padding:"10px 12px", borderRadius:10, background:"rgba(234,179,8,0.05)", border:"1px solid rgba(234,179,8,0.15)", marginBottom:14 }}>
           <div style={{ fontSize:11, fontWeight:700, color:"#eab308", marginBottom:4 }}>
-            {ch.autoAcquire ? "✅ Auto Issue 가능" : "⚠ Count동 획득 필요"}
+            {ch.autoAcquire ? ('✅ ' + t('sc.autoIssueOk', '자동 발급 가능')) : ('⚠ ' + t('sc.manualNeeded', '수동 획득 필요'))}
           </div>
           <div style={{ fontSize:11, color:"var(--text-2)" }}>{ch.reason}</div>
         </div>

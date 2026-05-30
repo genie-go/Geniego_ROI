@@ -43377,7 +43377,11 @@ export default {
   },
 
   "sc": {
-
+    // 181차 SmartConnect 신규키
+    "issueRequestDone": "{{ch}} 발급 신청 완료",
+    "issueRequestBody": "티켓 {{id}} — 1~3 영업일 후 이메일로 키가 발송됩니다.",
+    "autoIssueOk": "자동 발급 가능",
+    "manualNeeded": "수동 획득 필요",
     "heroTitle": "SmartConnect — API 키 자동화 허브",
 
     "heroDesc": "가입된 모든 채널의 API 키를 자동으로 스캔·감지·등록·연동합니다. 키가 없는 채널은 자동으로 발급신청할 수 있습니다.",

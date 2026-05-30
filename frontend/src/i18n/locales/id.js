@@ -30554,6 +30554,11 @@ export default {
       guideDesc: "Panduan pengguna"
     },
   sc: {
+    // 181차 SmartConnect 신규키
+    "issueRequestDone": "Permintaan penerbitan {{ch}} dikirim",
+    "issueRequestBody": "Tiket {{id}} — kunci akan dikirim via email dalam 1–3 hari kerja.",
+    "autoIssueOk": "Penerbitan otomatis tersedia",
+    "manualNeeded": "Perlu perolehan manual",
       heroTitle: "SmartConnect — API Key Automation Hub",
       heroDesc: "Automatically scan, detect, register, and integrate API keys for all your connected channels. Missing keys can be auto-requested.",
       scanning: "Scanning...",

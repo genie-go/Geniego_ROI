@@ -25213,6 +25213,11 @@ export default {
 
   // 177차 PM 4.E TOP 1: SmartConnect wire-up 동반 sc 5 keys (last-key-wins)
   sc: {
+    // 181차 SmartConnect 신규키
+    "issueRequestDone": "{{ch}} 発行申請完了",
+    "issueRequestBody": "チケット {{id}} — 1〜3営業日後にメールでキーが送信されます。",
+    "autoIssueOk": "自動発行可能",
+    "manualNeeded": "手動取得が必要",
     scanNotifBody: "{{total}} channels analyzed — {{found}} keys detected",
     autoSyncOk: "{{ch}} Auto Sync Completed",
     autoSyncFail: "{{ch}} Connection Failed",

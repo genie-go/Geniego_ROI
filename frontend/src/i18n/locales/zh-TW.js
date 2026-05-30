@@ -28398,6 +28398,11 @@ export default {
       strVeryStrong: "Very Strong"
     },
   sc: {
+    // 181차 SmartConnect 신규키
+    "issueRequestDone": "{{ch}} 申請已提交",
+    "issueRequestBody": "工單 {{id}} — 1~3 個工作日後金鑰將透過電子郵件寄送。",
+    "autoIssueOk": "可自動簽發",
+    "manualNeeded": "需手動取得",
       heroTitle: "SmartConnect — API Key Automation Hub",
       heroDesc: "Automatically scan, detect, register, and integrate API keys for all your connected channels. Missing keys can be auto-requested.",
       scanning: "Scanning...",

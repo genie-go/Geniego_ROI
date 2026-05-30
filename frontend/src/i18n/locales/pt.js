@@ -26959,6 +26959,11 @@ export default {
       strVeryStrong: "Very Strong"
     },
   sc: {
+    // 181차 SmartConnect 신규키
+    "issueRequestDone": "Solicitação de emissão de {{ch}} enviada",
+    "issueRequestBody": "Ticket {{id}} — a chave será enviada por e-mail em 1–3 dias úteis.",
+    "autoIssueOk": "Emissão automática disponível",
+    "manualNeeded": "Requer obtenção manual",
       heroTitle: "SmartConnect — API Key Automation Hub",
       heroDesc: "Automatically scan, detect, register, and integrate API keys for all your connected channels. Missing keys can be auto-requested.",
       scanning: "Scanning...",

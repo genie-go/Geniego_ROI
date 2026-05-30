@@ -26959,6 +26959,11 @@ export default {
       strVeryStrong: "Very Strong"
     },
   sc: {
+    // 181차 SmartConnect 신규키
+    "issueRequestDone": "Запрос на выпуск {{ch}} отправлен",
+    "issueRequestBody": "Тикет {{id}} — ключ будет отправлен по эл. почте в течение 1–3 рабочих дней.",
+    "autoIssueOk": "Доступен автовыпуск",
+    "manualNeeded": "Требуется ручное получение",
       heroTitle: "SmartConnect — API Key Automation Hub",
       heroDesc: "Automatically scan, detect, register, and integrate API keys for all your connected channels. Missing keys can be auto-requested.",
       scanning: "Scanning...",

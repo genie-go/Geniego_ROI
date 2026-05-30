@@ -28688,6 +28688,11 @@ export default {
       strVeryStrong: "Very Strong"
     },
   sc: {
+    // 181차 SmartConnect 신규키
+    "issueRequestDone": "{{ch}} – Ausstellungsantrag eingereicht",
+    "issueRequestBody": "Ticket {{id}} — Schlüssel wird in 1–3 Werktagen per E-Mail gesendet.",
+    "autoIssueOk": "Automatische Ausstellung möglich",
+    "manualNeeded": "Manuelle Beschaffung erforderlich",
       heroTitle: "SmartConnect — API Key Automation Hub",
       heroDesc: "Automatically scan, detect, register, and integrate API keys for all your connected channels. Missing keys can be auto-requested.",
       scanning: "Scanning...",
