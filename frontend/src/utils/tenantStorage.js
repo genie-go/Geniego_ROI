@@ -40,6 +40,15 @@ export function tScopedKey(base) {
   return `${base}::t=${currentTenant()}`;
 }
 
+/**
+ * BroadcastChannel 이름을 tenant 로 스코프 — 같은 브라우저 다른 탭의 다른 회원과
+ * 크로스탭 메시지가 절대 교차하지 않도록 격리. 같은 tenant(본인/팀원 탭)는 동일 채널 → 동기화 유지.
+ * (컴포넌트/effect 레벨 생성에서만 사용 — 모듈 레벨은 payload tenant 가드 사용)
+ */
+export function tChannelName(base) {
+  return `${base}::t=${currentTenant()}`;
+}
+
 export function tGet(base) {
   try { return localStorage.getItem(tScopedKey(base)); } catch { return null; }
 }

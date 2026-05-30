@@ -1,4 +1,5 @@
 import { useI18n } from '../i18n';
+import { tChannelName } from '../utils/tenantStorage.js'; // 180차: 회원 격리 크로스탭
 import { IS_DEMO } from '../utils/demoEnv';
 import React, { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import PlanGate from "../components/PlanGate.jsx";
@@ -472,7 +473,7 @@ function CRMContent() {
   const bcRef = useRef(null);
   useEffect(() => {
     try {
-      bcRef.current = new BroadcastChannel('geniego_crm');
+      bcRef.current = new BroadcastChannel(tChannelName('geniego_crm'));
       bcRef.current.onmessage = (ev) => { if (ev.data?.type === 'CRM_REFRESH') {} };
     } catch {}
     return () => { try { bcRef.current?.close(); } catch {} };

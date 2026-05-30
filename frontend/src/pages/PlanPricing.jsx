@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { tChannelName } from '../utils/tenantStorage.js'; // 180차: 회원 격리 크로스탭
 import { getJsonAuth, requestJsonAuth } from "../services/apiClient.js";
 import { useT } from "../i18n/index.js";
 import { MEMBER_MENU, ADMIN_MENU, buildMenuKeyIndex } from "../layout/sidebarManifest.js";
@@ -255,7 +256,7 @@ function PlanPricing() {
   useEffect(() => {
     let bc;
     try {
-      bc = new BroadcastChannel('geniego_menu_access_sync');
+      bc = new BroadcastChannel(tChannelName('geniego_menu_access_sync'));
       bc.onmessage = (ev) => {
         if (ev?.data?.type === 'menu_access_updated') fetchMenuPricingSync();
       };
@@ -1096,7 +1097,7 @@ function MenuPricingSyncPanel({ sync, onApply, applying }) {
       setEditedScores({});
       setEditMode(false);
       // sync data refetch
-      try { new BroadcastChannel('geniego_menu_access_sync').postMessage({ type: 'menu_access_updated', source: 'weight_edit', ts: Date.now() }); } catch {}
+      try { new BroadcastChannel(tChannelName('geniego_menu_access_sync')).postMessage({ type: 'menu_access_updated', source: 'weight_edit', ts: Date.now() }); } catch {}
       alert(`${dirty.length}개 가중치 저장 완료. 권장가 자동 재계산.`);
     } catch (e) { alert(`저장 실패: ${e?.message || e}`); }
     finally { setSavingScores(false); }

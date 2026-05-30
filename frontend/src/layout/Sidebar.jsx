@@ -486,7 +486,7 @@ export default function Sidebar() {
         }}>
           {activeCampaignCount > 0 && (
             <span style={{ fontSize: 9, color: "#22c55e", fontWeight: 700 }}>
-              {(t('g.sidebarCampaignActive') || '🚀 {n} campaigns').replace('{n}', activeCampaignCount)}
+              {(t('g.sidebarCampaignActive') || '🚀 {n} campaigns').replace(/\{\{n\}\}|\{n\}/g, activeCampaignCount)}
             </span>
           )}
           {unreadAlertCount > 0 && (
@@ -494,7 +494,7 @@ export default function Sidebar() {
               onClick={() => navigate("/alert-policies")}
               style={{ fontSize: 9, color: "#f59e0b", fontWeight: 700, cursor: "pointer" }}
             >
-              {(t('g.sidebarAlertCount') || '🔔 {n} alerts').replace('{n}', unreadAlertCount)}
+              {(t('g.sidebarAlertCount') || '🔔 {n} alerts').replace(/\{\{n\}\}|\{n\}/g, unreadAlertCount)}
             </span>
           )}
         </div>

@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react';
+import { tChannelName } from '../utils/tenantStorage.js'; // 180차: 회원 격리 크로스탭
 import { useAuth } from '../auth/AuthContext.jsx';
 
 /**
@@ -128,7 +129,7 @@ export function MenuVisibilityProvider({ children }) {
   useEffect(() => {
     let bc;
     try {
-      bc = new BroadcastChannel('geniego_menu_visibility_sync');
+      bc = new BroadcastChannel(tChannelName('geniego_menu_visibility_sync'));
       bc.onmessage = (ev) => {
         if (ev?.data?.type === 'menu_visibility_updated') fetchGlobal();
       };

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { tChannelName } from '../utils/tenantStorage.js'; // 180차: 회원 격리 크로스탭
 import { useT } from '../i18n/index.js';
 import { useGlobalData } from '../context/GlobalDataContext.jsx';
 import { useConnectorSync } from '../context/ConnectorSyncContext.jsx';
@@ -505,7 +506,7 @@ export default function GraphScore() {
   const bcRef = useRef(null);
   useEffect(() => {
     try {
-      bcRef.current = new BroadcastChannel('geniego_graph_score');
+      bcRef.current = new BroadcastChannel(tChannelName('geniego_graph_score'));
       bcRef.current.onmessage = (ev) => {
         if (ev.data?.type === 'GRAPH_REFRESH') loadNodes();
       };

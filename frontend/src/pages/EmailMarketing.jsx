@@ -2,6 +2,7 @@
  * EmailMarketing.jsx — Enterprise v13 (Fixed JSX + i18n + Visibility)
  */
 import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { tChannelName } from '../utils/tenantStorage.js'; // 180차: 회원 격리 크로스탭
 import { useAuth } from "../auth/AuthContext";
 import PlanGate from "../components/PlanGate.jsx";
 import { useGlobalData } from "../context/GlobalDataContext.jsx";
@@ -441,7 +442,7 @@ function EmailMarketingContent() {
     const [secLocked,setSecLocked]=useState(false);
     useSecurityGuard({addAlert:useCallback((a)=>{if(typeof addAlert==='function')addAlert(a);if(a?.severity==='critical')setSecLocked(true);},[addAlert]),enabled:true});
     const bcRef=useRef(null);
-    useEffect(()=>{try{bcRef.current=new BroadcastChannel('geniego_email');bcRef.current.onmessage=()=>{};}catch{}return()=>{try{bcRef.current?.close();}catch{}};},[]);
+    useEffect(()=>{try{bcRef.current=new BroadcastChannel(tChannelName('geniego_email'));bcRef.current.onmessage=()=>{};}catch{}return()=>{try{bcRef.current?.close();}catch{}};},[]);
     const broadcastRefresh=useCallback(()=>{try{bcRef.current?.postMessage({type:'EMAIL_REFRESH',ts:Date.now()});}catch{}if(typeof broadcastUpdate==='function')broadcastUpdate('email',{refreshed:Date.now()});},[broadcastUpdate]);
     const [tab,setTab]=useState("campaigns");
     const TABS=[

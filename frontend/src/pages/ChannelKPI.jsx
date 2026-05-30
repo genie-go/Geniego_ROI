@@ -3,6 +3,7 @@
 //  9 tabs: Goals / Channel Roles / KPI Setup / SNS / Content / Community / Targets / Monitor·AI / Guide
 // ══════════════════════════════
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
+import { tChannelName } from '../utils/tenantStorage.js'; // 180차: 회원 격리 크로스탭
 import { useGlobalData } from '../context/GlobalDataContext.jsx';
 import { useNavigate } from 'react-router-dom';
 import { useCurrency } from '../contexts/CurrencyContext.jsx';
@@ -663,7 +664,7 @@ export default function ChannelKPI() {
     const bcRef = useRef(null);
     useEffect(() => {
         try {
-            bcRef.current = new BroadcastChannel('geniego-channelkpi-sync');
+            bcRef.current = new BroadcastChannel(tChannelName('geniego-channelkpi-sync'));
             bcRef.current.onmessage = (ev) => {
                 if (ev.data?.type === 'KPI_UPDATE' || ev.data?.type === 'CONNECTOR_UPDATE') {
                     window.dispatchEvent(new Event('geniego-refresh'));

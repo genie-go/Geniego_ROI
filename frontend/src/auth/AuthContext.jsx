@@ -1,4 +1,5 @@
 import React, { useEffect, createContext, useCallback, useContext, useRef, useState, useMemo } from "react";
+import { tChannelName } from '../utils/tenantStorage.js'; // 180차: 회원 격리 크로스탭
 import { planRank } from "./plans.js";
 
 
@@ -127,7 +128,7 @@ export function AuthProvider({ children }) {
         };
         let bc = null;
         try {
-            bc = new BroadcastChannel("geniego_menu_access_sync");
+            bc = new BroadcastChannel(tChannelName("geniego_menu_access_sync"));
             bc.onmessage = (e) => { if (e.data?.type === "menu_access_updated") reload(); };
         } catch { /* unsupported */ }
         const sameTabHandler = () => reload();

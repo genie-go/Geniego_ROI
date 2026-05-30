@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { tChannelName } from '../utils/tenantStorage.js'; // 180차: 회원 격리 크로스탭
 import { useAuth } from "../auth/AuthContext";
 import PlanGate from "../components/PlanGate.jsx";
 import { useGlobalData } from "../context/GlobalDataContext.jsx";
@@ -520,7 +521,7 @@ function KakaoChannelContent() {
     const bcRef = useRef(null);
     useEffect(() => {
         try {
-            bcRef.current = new BroadcastChannel('geniego_kakao');
+            bcRef.current = new BroadcastChannel(tChannelName('geniego_kakao'));
             bcRef.current.onmessage = () => {};
         } catch {}
         return () => { try { bcRef.current?.close(); } catch {} };

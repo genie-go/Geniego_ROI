@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useEffect, useCallback } from "react";
+import { tChannelName } from '../utils/tenantStorage.js'; // 180차: 회원 격리 크로스탭
 import { useAuth } from "../auth/AuthContext.jsx";
 import { useI18n as _useI18n } from "../i18n";
 import PO_DICT from './poI18n.js';
@@ -307,7 +308,7 @@ function ProductsTab({ token }) {
 
     /* ── BroadcastChannel: Listen for product updates from CatalogSync ── */
     useEffect(() => {
-        const bc = new BroadcastChannel('genie_product_sync');
+        const bc = new BroadcastChannel(tChannelName('genie_product_sync'));
         bc.onmessage = (e) => {
             if (e.data?.type === 'PRODUCT_UPDATE' && e.data.source !== 'priceOpt') {
                 load();
@@ -318,7 +319,7 @@ function ProductsTab({ token }) {
 
     const broadcastProductUpdate = () => {
         try {
-            const bc = new BroadcastChannel('genie_product_sync');
+            const bc = new BroadcastChannel(tChannelName('genie_product_sync'));
             bc.postMessage({ type: 'PRODUCT_UPDATE', source: 'priceOpt', ts: Date.now() });
             bc.close();
         } catch {}
@@ -1517,7 +1518,7 @@ export default function PriceOpt() {
 
     /* ── BroadcastChannel: Listen for price & promo updates from other tabs ── */
     useEffect(() => {
-        const bc = new BroadcastChannel('genie_price_opt_sync');
+        const bc = new BroadcastChannel(tChannelName('genie_price_opt_sync'));
         bc.onmessage = (e) => {
             if (e.data?.source === 'priceOpt') return;
             if (e.data?.type === 'PRICE_UPDATE' || e.data?.type === 'PROMO_UPDATE') {
@@ -1530,7 +1531,7 @@ export default function PriceOpt() {
 
     /* ── BroadcastChannel: Listen for connector hub changes ── */
     useEffect(() => {
-        const bc = new BroadcastChannel('genie_connector_sync');
+        const bc = new BroadcastChannel(tChannelName('genie_connector_sync'));
         bc.onmessage = (e) => {
             if (e.data?.type === 'CHANNEL_REGISTERED' || e.data?.type === 'CHANNEL_REMOVED') {
                 /* ConnectorSyncContext auto-refreshes, but we force tab re-render */

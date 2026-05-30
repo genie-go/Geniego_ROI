@@ -12,7 +12,7 @@
 import React, { createContext, useContext, useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { guardProductionState } from '../security/ContaminationGuard.js';
 import { getJsonAuth } from '../services/apiClient.js';
-import { tGet, tSet } from '../utils/tenantStorage.js'; // 180차: 회원(테넌트) 격리 영속
+import { tGet, tSet, currentTenant } from '../utils/tenantStorage.js'; // 180차: 회원(테넌트) 격리 영속
 import {
   DEMO_INVENTORY, DEMO_ORDERS, DEMO_INOUT, DEMO_BUDGETS,
   DEMO_SETTLEMENT, DEMO_CAMPAIGNS, DEMO_CRM_SEGMENTS,
@@ -80,11 +80,13 @@ try {
 
 function broadcastUpdate(type, payload) {
     try {
+        // 180차 회원 격리: 메시지에 발신 tenant 태그 → 다른 회원 탭은 수신 무시(크로스탭 누출 차단)
+        const tenant = currentTenant();
         if (_broadcastChannel) {
-            _broadcastChannel.postMessage({ type, payload, ts: Date.now() });
+            _broadcastChannel.postMessage({ type, payload, tenant, ts: Date.now() });
         } else {
             // Fallback: use localStorage events for cross-tab sync
-            localStorage.setItem('__geniego_sync__', JSON.stringify({ type, payload, ts: Date.now() }));
+            localStorage.setItem('__geniego_sync__', JSON.stringify({ type, payload, tenant, ts: Date.now() }));
             localStorage.removeItem('__geniego_sync__');
         }
     } catch { /* ignore broadcast errors */ }
@@ -329,7 +331,10 @@ export function GlobalDataProvider({ children }) {
     /* ── 🔄 BroadcastChannel Cross-Tab Listener ─────────────────── */
     useEffect(() => {
         const handleSync = (msg) => {
-            const { type, payload } = msg?.data || msg;
+            const data = msg?.data || msg;
+            // 180차 회원 격리: 다른 tenant(다른 회원 탭)의 브로드캐스트는 무시 → 데이터 유입 차단
+            if (data && data.tenant && data.tenant !== currentTenant()) return;
+            const { type, payload } = data;
             switch (type) {
                 case 'INVENTORY_UPDATE':  setInventory(payload); break;
                 case 'ORDERS_UPDATE':     setOrders(payload); break;

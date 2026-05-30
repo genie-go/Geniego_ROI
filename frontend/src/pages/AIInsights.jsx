@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo, memo } from "react";
+import { tChannelName } from '../utils/tenantStorage.js'; // 180차: 회원 격리 크로스탭
 import { useI18n } from '../i18n';
 import { useCurrency } from '../contexts/CurrencyContext.jsx';
 import { useGlobalData } from '../context/GlobalDataContext.jsx';
@@ -375,8 +376,8 @@ export default function AIInsights() {
 
     useEffect(() => {
         if (typeof BroadcastChannel === 'undefined') return;
-        const ch1 = new BroadcastChannel('genie_ai_sync');
-        const ch2 = new BroadcastChannel('genie_connector_sync');
+        const ch1 = new BroadcastChannel(tChannelName('genie_ai_sync'));
+        const ch2 = new BroadcastChannel(tChannelName('genie_connector_sync'));
         const handler = () => setSyncTick(p => p + 1);
         ch1.onmessage = handler; ch2.onmessage = handler;
         return () => { ch1.close(); ch2.close(); };

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { tGet, tSet, tRemove } from '../utils/tenantStorage.js'; // 180차: 회원 격리
+import { tGet, tSet, tRemove, tChannelName } from '../utils/tenantStorage.js'; // 180차: 회원 격리
 import { useI18n } from '../i18n';
 import { useGlobalData } from '../context/GlobalDataContext.jsx';
 import { useAuth } from '../auth/AuthContext.jsx';
@@ -379,7 +379,7 @@ export default function AIPolicy() {
   // BroadcastChannel — cross-tab sync
   useEffect(() => {
     try {
-      bcRef.current = new BroadcastChannel('genie_ai_policy_sync');
+      bcRef.current = new BroadcastChannel(tChannelName('genie_ai_policy_sync'));
       bcRef.current.onmessage = (e) => {
         const { type } = e.data || {};
         if (type === 'policy_created') {

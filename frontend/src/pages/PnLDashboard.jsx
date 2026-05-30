@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect, useCallback, useRef } from "react";
+import { tChannelName } from '../utils/tenantStorage.js'; // 180차: 회원 격리 크로스탭
 import { useGlobalData } from '../context/GlobalDataContext.jsx';
 import { useConnectorSync } from '../context/ConnectorSyncContext.jsx';
 import { useNavigate } from 'react-router-dom';
@@ -417,9 +418,9 @@ export default function PnLDashboard() {
     /* ── BroadcastChannel 3CH ── */
     useEffect(() => {
         if (typeof BroadcastChannel === 'undefined') return;
-        const ch1 = new BroadcastChannel('genie_pnl_sync');
-        const ch2 = new BroadcastChannel('genie_connector_sync');
-        const ch3 = new BroadcastChannel('genie_product_sync');
+        const ch1 = new BroadcastChannel(tChannelName('genie_pnl_sync'));
+        const ch2 = new BroadcastChannel(tChannelName('genie_connector_sync'));
+        const ch3 = new BroadcastChannel(tChannelName('genie_product_sync'));
         const handler = () => setSyncTick(p => p + 1);
         ch1.onmessage = handler;
         ch2.onmessage = (e) => { if (['CHANNEL_REGISTERED','CHANNEL_REMOVED'].includes(e.data?.type)) handler(); };

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { tChannelName } from '../utils/tenantStorage.js'; // 180차: 회원 격리 크로스탭
 import { useI18n } from '../i18n';
 import { useGlobalData } from '../context/GlobalDataContext.jsx';
 import { useConnectorSync } from '../context/ConnectorSyncContext.jsx';
@@ -511,7 +512,7 @@ export default function DataSchema() {
   // BroadcastChannel
   useEffect(() => {
     try {
-      bcRef.current = new BroadcastChannel('genie_dataschema_sync');
+      bcRef.current = new BroadcastChannel(tChannelName('genie_dataschema_sync'));
       bcRef.current.onmessage = (e) => {
         if (e.data?.type === 'schema_updated') addAlert?.({ type: 'info', msg: t('ds.crossTabSync') });
       };

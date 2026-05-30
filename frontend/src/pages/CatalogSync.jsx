@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef, memo } from "react";
-import { tGet, tSet, tRemove } from '../utils/tenantStorage.js'; // 180차: 회원 격리
+import { tGet, tSet, tRemove, tChannelName } from '../utils/tenantStorage.js'; // 180차: 회원 격리
 import { useGlobalData } from '../context/GlobalDataContext';
 import { useConnectorSync } from '../context/ConnectorSyncContext';
 import { useI18n } from '../i18n/index.js';
@@ -1936,7 +1936,7 @@ const CategoryMappingTab = memo(function CategoryMappingTab() {
 
     // BroadcastChannel: sync categories across tabs
     useEffect(() => {
-        const bc = new BroadcastChannel('genie_catalog_sync');
+        const bc = new BroadcastChannel(tChannelName('genie_catalog_sync'));
         bc.onmessage = (e) => {
             if (e.data?.type === 'CATEGORY_UPDATE') {
                 setCustomCats(e.data.customCats || []);
@@ -1948,7 +1948,7 @@ const CategoryMappingTab = memo(function CategoryMappingTab() {
 
     const broadcastUpdate = (newCustomCats, newMappings) => {
         try {
-            const bc = new BroadcastChannel('genie_catalog_sync');
+            const bc = new BroadcastChannel(tChannelName('genie_catalog_sync'));
             bc.postMessage({ type: 'CATEGORY_UPDATE', customCats: newCustomCats, mappings: newMappings });
             bc.close();
         } catch { }
@@ -2136,7 +2136,7 @@ export default function CatalogSync() {
     const addJob = useCallback(j => setJobs(prev => [...prev, j]), []);
 
     useEffect(() => {
-        const bc = new BroadcastChannel('genie_product_sync');
+        const bc = new BroadcastChannel(tChannelName('genie_product_sync'));
         bc.onmessage = (e) => {
             if (e.data?.type === 'PRODUCT_UPDATE' && e.data.source !== 'catalogSync') { }
         };
@@ -2145,7 +2145,7 @@ export default function CatalogSync() {
 
     const broadcastProducts = useCallback(() => {
         try {
-            const bc = new BroadcastChannel('genie_product_sync');
+            const bc = new BroadcastChannel(tChannelName('genie_product_sync'));
             bc.postMessage({ type: 'PRODUCT_UPDATE', source: 'catalogSync', ts: Date.now() });
             bc.close();
         } catch { }
