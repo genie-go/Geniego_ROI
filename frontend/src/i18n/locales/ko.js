@@ -5908,7 +5908,7 @@ export default {
 
     "title": "이메일 마케팅",
 
-    "subTitle": "템플릿 작성 · 세그먼트 타겟 발송 · CRM 자동 동기화",
+    "subTitle": "이메일 템플릿 제작 · 세그먼트 발송 · CRM 자동 연동",
 
     "tabCamp": "📊 캠페인",
 
@@ -5916,19 +5916,19 @@ export default {
 
     "tabAb": "🧪 A/B 테스트",
 
-    "tabEditor": "🎨 블록 빌더",
+    "tabEditor": "🎨 이메일 빌더",
 
     "tabTpl": "📝 템플릿",
 
     "tabSettings": "⚙️ 설정",
 
-    "cNew": "✉️ 새 캠페인",
+    "cNew": "✉️ 새 이메일 캠페인",
 
     "fName": "캠페인명*",
 
     "fTpl": "템플릿",
 
-    "fTarget": "대상 세그먼트 (미선택 시 전체)",
+    "fTarget": "대상 세그먼트 (미선택 시 전체 고객)",
 
     "optSel": "-- 선택 --",
 
@@ -5942,9 +5942,9 @@ export default {
 
     "colTpl": "템플릿",
 
-    "colTarget": "세그먼트",
+    "colTarget": "대상 세그먼트",
 
-    "colSent": "발송수",
+    "colSent": "발송 수",
 
     "colOpen": "오픈율",
 
@@ -5952,51 +5952,51 @@ export default {
 
     "colAction": "액션",
 
-    "emptyCamp": "진행중인 캠페인이 없습니다",
+    "emptyCamp": "진행 중인 캠페인이 없습니다.",
 
     "btnSend": "📤 발송",
 
     "btnSending": "발송 중...",
 
-    "msgSendConfirm": "발송하시겠습니까?",
+    "msgSendConfirm": "이메일을 발송하시겠습니까?",
 
     "msgSendSucc": "발송 완료 (성공:",
 
-    "msgSendFail": "실패: ",
+    "msgSendFail": "실패:",
 
-    "msgSendErr": "발송 실패",
+    "msgSendErr": "발송에 실패했습니다.",
 
-    "sSent": "전송완료",
+    "sSent": "발송 완료",
 
-    "sSched": "발송예정",
+    "sSched": "예약 발송",
 
     "sDraft": "초안",
 
-    "crmLinked": "🔗 CRM 세그먼트 연동 캠페인",
+    "crmLinked": "🔗 CRM 연동 캠페인",
 
-    "aiMode": "🤖 AI 이메일 생성 — 데모 모드",
+    "aiMode": "🤖 AI 이메일 생성 · 데모 모드",
 
-    "aiDesc": "Claude API Key 없이도 AI 이메일 샘플을 생성할 수 있습니다.",
+    "aiDesc": "Claude API 키 없이도 AI 이메일 샘플을 생성할 수 있습니다.",
 
-    "aiProd": "상품/서비스명",
+    "aiProd": "상품·서비스명",
 
-    "aiProdPh": "ex. 에어팟 프로",
+    "aiProdPh": "예: 에어팟 프로",
 
     "aiAud": "대상 고객",
 
-    "aiAudPh": "ex. VIP 고객",
+    "aiAudPh": "예: VIP 고객",
 
     "aiGoal": "캠페인 목표",
 
-    "aiGoalPh": "ex. 구매 전환",
+    "aiGoalPh": "예: 구매 전환",
 
     "aiTone": "톤 & 스타일",
 
-    "aiTonePh": "ex. 친근하고 전문적",
+    "aiTonePh": "예: 친근하고 전문적인 톤",
 
     "aiPromo": "프로모션 (선택)",
 
-    "aiPromoPh": "ex. 20% 할인",
+    "aiPromoPh": "예: 20% 할인",
 
     "btnAiCreate": "✨ AI 이메일 생성",
 
@@ -6016,15 +6016,15 @@ export default {
 
     "tfBody": "HTML 본문* (변수: {{name}} 사용 가능)",
 
-    "btnSave": "저장하기",
+    "btnSave": "저장",
 
     "btnTplSave": "템플릿 저장",
 
-    "btnEditSave": "수정 저장",
+    "btnEditSave": "수정 내용 저장",
 
     "abTitle": "🧪 이메일 A/B 테스트",
 
-    "abDesc": "제목·발신자·본문·CTA까지 완전한 A/B 비교 + 통계적 유의성 분석",
+    "abDesc": "제목, 발신자, 본문, CTA를 비교하고 통계적 유의성을 분석합니다.",
 
     "abNew": "+ 새 A/B 테스트",
 
