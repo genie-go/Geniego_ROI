@@ -6095,7 +6095,7 @@ export default {
 
     "title": "카카오 비즈니스",
 
-    "subTitle": "알림톡 템플릿 · 세그먼트 타겟 발송 · CRM 자동 동기화",
+    "subTitle": "알림톡 템플릿 관리 · 세그먼트 발송 · CRM 자동 연동",
 
     "tabCamp": "💬 캠페인",
 
@@ -6105,17 +6105,17 @@ export default {
 
     "setTit": "💬 카카오 비즈니스 채널 설정",
 
-    "setDesc": "카카오 알림톡을 사용하려면 카카오 비즈니스에서 채널을 개설하고 발신키를 발급받으세요.",
+    "setDesc": "카카오 알림톡을 사용하려면 카카오 비즈니스 채널을 개설하고 발신 프로필 키를 발급받아야 합니다.",
 
     "setMode": "발송 모드",
 
-    "btnMock": "🧪 테스트 (목)",
+    "btnMock": "🧪 테스트 모드",
 
     "btnLive": "📡 실제 발송",
 
-    "warnLive": "⚠️ 실제 발송 모드 — 카카오 API를 통해 실제 알림톡이 발송됩니다. 발신키가 필요합니다.",
+    "warnLive": "⚠️ 실제 발송 모드입니다. 카카오 API를 통해 실제 알림톡이 발송되며 발신 프로필 키가 필요합니다.",
 
-    "warnMock": "💡 테스트 모드 — 실제 발송 없이 시뮬레이션만 진행합니다. API 키 없이도 UI 테스트 가능합니다.",
+    "warnMock": "💡 테스트 모드입니다. 실제 발송 없이 시뮬레이션만 진행되며 API 키 없이도 화면 테스트가 가능합니다.",
 
     "fName": "채널명",
 
@@ -6125,7 +6125,7 @@ export default {
 
     "pId": "@handle",
 
-    "fSender": "발신키 (발신 프로필 키)",
+    "fSender": "발신 프로필 키",
 
     "pSender": "40자리 발신키",
 
@@ -6133,9 +6133,9 @@ export default {
 
     "pApi": "비즈니스 REST API Key",
 
-    "msgSaveDone": "✅ 설정이 저장되었습니다",
+    "msgSaveDone": "✅ 설정이 저장되었습니다.",
 
-    "msgSaveFail": "❌ 저장 실패: ",
+    "msgSaveFail": "❌ 저장에 실패했습니다:",
 
     "btnSave": "⚙️ 설정 저장",
 
@@ -6151,7 +6151,7 @@ export default {
 
     "pTplName": "주문 완료 안내",
 
-    "fMsgType": "메시지 타입",
+    "fMsgType": "메시지 유형",
 
     "optAt": "알림톡 (AT)",
 
@@ -6161,19 +6161,19 @@ export default {
 
     "pContent": "안녕하세요 {{name}}님,주문이 정상적으로 접수되었습니다.주문번호: #{order_no}",
 
-    "msgTplReq": "❌ 템플릿 코드, 이름, 내용 필수",
+    "msgTplReq": "❌ 템플릿 코드, 템플릿명, 내용은 필수 입력 항목입니다.",
 
     "btnTplSave": "템플릿 저장",
 
-    "testTit": "🧪 테스트 발송 번호",
+    "testTit": "🧪 테스트 발송",
 
     "pPhone": "010-0000-0000",
 
     "pCustName": "고객명",
 
-    "msgTestPhone": "전화번호를 입력하세요",
+    "msgTestPhone": "전화번호를 입력해 주세요.",
 
-    "msgTestDone": "발송 완료",
+    "msgTestDone": "테스트 발송이 완료되었습니다.",
 
     "lblContent": "내용:",
 
@@ -6189,7 +6189,7 @@ export default {
 
     "lblType": "타입:",
 
-    "emptyTpl": "등록된 템플릿 없음",
+    "emptyTpl": "등록된 템플릿이 없습니다.",
 
     "campNew": "💬 새 알림톡 캠페인",
 
@@ -6201,11 +6201,11 @@ export default {
 
     "fTarget": "대상 세그먼트",
 
-    "optAll": "모든 고객 (전화번호 보유)",
+    "optAll": "전화번호가 등록된 전체 고객",
 
     "unitCust": "명",
 
-    "msgCampDone": "✅ 캠페인 생성 완료",
+    "msgCampDone": "✅ 캠페인이 생성되었습니다.",
 
     "btnCampCreate": "캠페인 생성",
 
@@ -6217,7 +6217,7 @@ export default {
 
     "msgSendFail2": "실패: ",
 
-    "msgSendFailT": "❌ 발송 실패",
+    "msgSendFailT": "❌ 발송에 실패했습니다.",
 
     "campStat": "📊 캠페인 현황",
 
@@ -6225,9 +6225,9 @@ export default {
 
     "colTpl": "템플릿",
 
-    "colTarget": "세그먼트",
+    "colTarget": "대상 세그먼트",
 
-    "colSendCnt": "발송수",
+    "colSendCnt": "발송 수",
 
     "colSucc": "성공",
 
@@ -6243,9 +6243,9 @@ export default {
 
     "btnSending": "발송 중...",
 
-    "emptyCamp": "캠페인 없음",
+    "emptyCamp": "생성된 캠페인이 없습니다.",
 
-    "errGeneral": "오류가 발생했습니다",
+    "errGeneral": "오류가 발생했습니다.",
 
     "guideCampName": "캠페인 관리",
 

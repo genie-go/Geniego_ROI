@@ -1,11 +1,11 @@
 {
-  "version": "181",
+  "version": "183",
   "updated": "2026-05-30",
   "sacred_sha": {
-    "ja.js": "e5a574f895935acf80b7a167fbd31427a22c3fdf61b8de92f98a55dbff2126e7",
-    "zh.js": "7074f8d934029fbbdf6029dbeffb4954c6c661aca66f20fc66db6dc8f9c28fde"
+    "ja.js": "2fd41a37b63b0dc3cc143c541cfc082d3ff057a89815fe5e4b893eae9fa815e3",
+    "zh.js": "a6038490980eaa79ffa17965f16964beea5ff80ee556b2191e4a55315382bac6"
   },
   "ko_leaf_count": 32095,
   "leaf_tolerance_pct": 5,
-  "_note": "181차 e — MarketingIntelligence STD_KPIS 손상복구(cat/name/desc 정확한 한글)+riskLevel 15개국."
+  "_note": "183차 — KakaoChannel kakao ns 34키 ja/zh 사용자 확정 번역(U-178-A) + ko 21키 정제. 데모 ja 스캔 ground-truth 기반."
 }
