@@ -218,7 +218,7 @@ export default function WhatsApp() {
                         </div>
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                        {[{ l: 'Send', v: stats.sent || 142, c: '#25D366' }, { l: 'Count신Confirm', v: stats.delivered || 138, c: '#4f8ef7' }, { l: 'Read', v: stats.read || 95, c: '#a855f7' }, { l: 'Failed', v: stats.failed || 4, c: '#ef4444' }].map(k => (
+                        {[{ l: 'Send', v: stats.sent || 142, c: '#25D366' }, { l: 'Delivered', v: stats.delivered || 138, c: '#4f8ef7' }, { l: 'Read', v: stats.read || 95, c: '#a855f7' }, { l: 'Failed', v: stats.failed || 4, c: '#ef4444' }].map(k => (
                             <div key={k.l} style={{ padding: '8px 14px', borderRadius: 10, background: `${k.c}10`, border: `1px solid ${k.c}22`, textAlign: 'center' }}>
                                 <div style={{ fontSize: 18, fontWeight: 900, color: k.c }}>{k.v}</div>
                                 <div style={{ fontSize: 10, color: 'var(--text-3)' }}>{k.l}</div>

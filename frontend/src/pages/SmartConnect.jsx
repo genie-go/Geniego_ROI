@@ -127,7 +127,7 @@ const CHANNELS = [
 /* ─── Auto 획득 가능 여부에 따른 분류 헬퍼 ────────────────────────────────── */
 const STATUS = { unscanned:"unscanned", found:"found", missing:"missing", applying:"applying", applied:"applied", registered:"registered" };
 
-/* ─── 시뮬레이션 스캔 함Count (DEMO ONLY) ───────────────────────────────── */
+/* ─── 시뮬레이션 스캔 함수 (DEMO ONLY) ───────────────────────────────── */
 async function simulateScan(channelKey, savedKeys) {
   await new Promise(r => setTimeout(r, 400 + Math.random() * 800));
   const hasSaved = savedKeys.includes(channelKey);
@@ -390,7 +390,7 @@ export default function SmartConnect() {
           </div>
         </div>
 
-        {/* In Progress바 */}
+        {/* 진행바 */}
         {(scanning || scanProgress > 0) && (
           <div style={{ marginTop:14 }}>
             <div style={{ display:"flex", justifyContent:"space-between", fontSize:11, color:"var(--text-3)", marginBottom:4 }}>
@@ -535,7 +535,7 @@ function ChannelCard({ ch, state, isLinking, isApplying, onAutoLink, onApply, on
             <StatusPill status={state?.status} linked={state?.linked} />
             {ch.autoAcquire && (
               <span style={{ fontSize:9, fontWeight:700, padding:"1px 6px", borderRadius:99, background:"rgba(20,217,176,0.12)", color:"#14d9b0", border:"1px solid rgba(20,217,176,0.25)" }}>
-                🤖 AutoIssue 가능
+                🤖 자동발급 가능
               </span>
             )}
           </div>
@@ -595,7 +595,7 @@ function ChannelCard({ ch, state, isLinking, isApplying, onAutoLink, onApply, on
         )}
         {["applied","applying"].includes(state?.status) && (
           <div style={{ flex:2, padding:"7px 0", borderRadius:8, fontWeight:700, fontSize:11, background:"rgba(234,179,8,0.08)", border:"1px solid rgba(234,179,8,0.3)", color:"#eab308", textAlign:"center" }}>
-            📋 Issue 신청 Done
+            📋 발급 신청 완료
           </div>
         )}
         {["unscanned","scanning"].includes(state?.status) && (
@@ -663,11 +663,11 @@ function AutoGuidePanel() {
           <div>
             <div style={{ fontWeight:800, fontSize:13 }}>{t('sc.guideTitle','Channels Requiring Manual Setup')}</div>
             <div style={{ fontSize:11, color:"var(--text-3)", marginTop:2 }}>
-              {oauthChannels.length + manualChannels.length}개 Channel은 User 직접 동의/Issue이 필요합니다
+              {oauthChannels.length + manualChannels.length}개 채널은 사용자 직접 동의/발급이 필요합니다
             </div>
           </div>
         </div>
-        <span style={{ color:"var(--text-3)", fontSize:12 }}>{open ? "{t('sc.collapse','Collapse')}" : "{t('sc.expand','Expand')}"}</span>
+        <span style={{ color:"var(--text-3)", fontSize:12 }}>{open ? t('sc.collapse','접기') : t('sc.expand','펼치기')}</span>
       </div>
 
       {open && (
@@ -675,19 +675,19 @@ function AutoGuidePanel() {
           {/* OAuth 필요 */}
           <div style={{ padding:"12px 14px", borderRadius:10, background:"rgba(79,142,247,0.05)", border:"1px solid rgba(79,142,247,0.15)" }}>
             <div style={{ fontWeight:800, fontSize:12, color:"#4f8ef7", marginBottom:10 }}>
-              🔐 OAuth 2.0 로그인 필요 Channel ({oauthChannels.length}개)
+              🔐 OAuth 2.0 로그인 필요 채널 ({oauthChannels.length}개)
             </div>
             <div style={{ fontSize:11, color:"var(--text-2)", lineHeight:1.8, marginBottom:10 }}>
-              아래 Channel은 <b>User가 직접 해당 Platform에 로그인하여 Permission 동의</b>를 해야 합니다.<br/>
-              Geniego-ROI가 Auto으로 토큰을 가져올 Count 없는 이유: PersonalInfo보호법 및 각 Platform의 보안 정책상
-              서드파티가 User 자격증명을 직접 보관·전달하는 것이 금지되어 있습니다.
+              아래 채널은 <b>사용자가 직접 해당 플랫폼에 로그인하여 권한 동의</b>를 해야 합니다.<br/>
+              Geniego-ROI가 자동으로 토큰을 가져올 수 없는 이유: 개인정보보호법 및 각 플랫폼의 보안 정책상
+              서드파티가 사용자 자격증명을 직접 보관·전달하는 것이 금지되어 있습니다.
             </div>
             <div style={{ padding:"10px 12px", borderRadius:8, background:"rgba(79,142,247,0.06)", border:"1px solid rgba(79,142,247,0.12)", marginBottom:10 }}>
               <div style={{ fontSize:11, fontWeight:700, color:"#4f8ef7", marginBottom:6 }}>✅ 해결 방법</div>
               <ol style={{ fontSize:11, color:"var(--text-2)", lineHeight:2, margin:0, paddingLeft:16 }}>
-                <li>아래 Channel의 <b>"OAuth Connect" Button</b>을 Clicks → 새 창에서 해당 Platform 로그인</li>
-                <li>Permission 동의 Screen에서 <b>"Allow"</b> Clicks → Auto으로 Access Token Count신</li>
-                <li>Geniego-ROI가 Token을 암호화 Save하고 <b>Auto Sync Run</b></li>
+                <li>아래 채널의 <b>"OAuth 연결" 버튼</b>을 클릭 → 새 창에서 해당 플랫폼 로그인</li>
+                <li>권한 동의 화면에서 <b>"허용"</b> 클릭 → 자동으로 액세스 토큰 수신</li>
+                <li>Geniego-ROI가 토큰을 암호화 저장하고 <b>자동 동기화 실행</b></li>
               </ol>
             </div>
             <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))", gap:8 }}>
@@ -707,14 +707,14 @@ function AutoGuidePanel() {
             </div>
           </div>
 
-          {/* Count동 Issue 필요 */}
+          {/* 수동 발급 필요 */}
           <div style={{ padding:"12px 14px", borderRadius:10, background:"rgba(249,115,22,0.05)", border:"1px solid rgba(249,115,22,0.15)" }}>
             <div style={{ fontWeight:800, fontSize:12, color:"#f97316", marginBottom:10 }}>
-              📋 판매자센터 직접 Issue 필요 Channel ({manualChannels.length}개)
+              📋 판매자센터 직접 발급 필요 채널 ({manualChannels.length}개)
             </div>
             <div style={{ fontSize:11, color:"var(--text-2)", lineHeight:1.8, marginBottom:10 }}>
-              아래 Channel은 각 Platform의 <b>판매자센터/개발자센터에서 API 키를 직접 Copy</b>해야 합니다.<br/>
-              &quot;Issue 신청&quot; Button을 Clicks하면 Geniego-ROI가 신청을 대신 처리하고 키를 Email로 Count신합니다.
+              아래 채널은 각 플랫폼의 <b>판매자센터/개발자센터에서 API 키를 직접 복사</b>해야 합니다.<br/>
+              &quot;발급 신청&quot; 버튼을 클릭하면 Geniego-ROI가 신청을 대신 처리하고 키를 이메일로 수신합니다.
             </div>
             <div style={{ display:"grid", gap:6 }}>
               {manualChannels.slice(0, 6).map(ch => (
@@ -759,9 +759,9 @@ function DetailModal({ ch, state, isLinking, isApplying, onAutoLink, onApply, on
           <button onClick={onClose} style={{ background:"none", border:"none", color:"var(--text-3)", fontSize:20, cursor:"pointer" }}>✕</button>
         </div>
 
-        {/* Issue 가이드 */}
+        {/* 발급 가이드 */}
         <div style={{ padding:"12px 14px", borderRadius:10, background:"rgba(79,142,247,0.05)", border:"1px solid rgba(79,142,247,0.15)", marginBottom:14 }}>
-          <div style={{ fontSize:11, fontWeight:700, color:"#4f8ef7", marginBottom:6 }}>📖 Issue 방법</div>
+          <div style={{ fontSize:11, fontWeight:700, color:"#4f8ef7", marginBottom:6 }}>📖 발급 방법</div>
           <div style={{ fontSize:12, color:"var(--text-2)", lineHeight:1.7 }}>{ch.guide}</div>
         </div>
 
@@ -775,7 +775,7 @@ function DetailModal({ ch, state, isLinking, isApplying, onAutoLink, onApply, on
 
         {/* Feature Tag */}
         <div style={{ marginBottom:16 }}>
-          <div style={{ fontSize:11, fontWeight:700, color:"var(--text-3)", marginBottom:8 }}>Integration 시 Activate Feature</div>
+          <div style={{ fontSize:11, fontWeight:700, color:"var(--text-3)", marginBottom:8 }}>연동 시 활성화 기능</div>
           <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
             {ch.capabilities.map(cap => (
               <span key={cap} style={{ fontSize:10, padding:"4px 10px", borderRadius:99,
@@ -801,7 +801,7 @@ function DetailModal({ ch, state, isLinking, isApplying, onAutoLink, onApply, on
           {state?.status === "missing" && (
             <button onClick={() => { onApply(); onClose(); }} disabled={isApplying}
               style={{ flex:2, padding:"10px 0", borderRadius:10, fontSize:12, fontWeight:800, cursor:"pointer", border:"none", background:"linear-gradient(135deg,#f97316,#eab308)", color: '#fff' }}>
-              {ch.autoOAuth ? "🔐 OAuth Connect" : "📋 Issue 신청"}
+              {ch.autoOAuth ? "🔐 OAuth 연결" : "📋 발급 신청"}
             </button>
           )}
       </div>

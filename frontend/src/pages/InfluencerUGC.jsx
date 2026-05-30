@@ -243,7 +243,7 @@ const ContractTab = memo(function ContractTab() {
             <div className="card card-glass" style={{ padding: 20 }}>
                 <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 12 }}>📣 {t("influencerUGC.w_201", "Ad Conversion (Whitelisting) Window")}</div>
                 <div style={{ fontSize: 10, color:"#6b7280", marginBottom: 14 }}>
-                    {t('influencerUGC.txt_WhitelistA_4', 'Whitelist Allowed Period 내 Ad 집행 가능 Creator · Expired 전 적극 활용 권장')}
+                    {t('influencerUGC.txt_WhitelistA_4', '화이트리스트 허용 기간 내 광고 집행 가능 크리에이터 · 만료 전 적극 활용 권장')}
                 </div>
                 <div style={{ display: "grid", gap: 10 }}>
                     {CREATORS.filter(c => c.contract.whitelist && c.contract.whitelistExpiry).map(c => {
@@ -1160,7 +1160,7 @@ const AIEvalTab = memo(function AIEvalTab() {
                     {}
                     {evalResult.budget_optimization && (
                         <div style={{ padding: "14px 18px", borderRadius: 13, background: "linear-gradient(135deg,rgba(99,102,241,0.09),rgba(168,85,247,0.07))", border: "1px solid rgba(99,102,241,0.2)" }}>
-                            <div style={{ fontWeight: 800, fontSize: 13, color: "#6366f1", marginBottom: 6 }}>{t('influencerUGC.txt_Budget최적화제_45', '💰 Budget 최적화 제안')}</div>
+                            <div style={{ fontWeight: 800, fontSize: 13, color: "#6366f1", marginBottom: 6 }}>{t('influencerUGC.txt_Budget최적화제_45', '💰 예산 최적화 제안')}</div>
                             <div style={{ fontSize: 12, color:"#374151", lineHeight: 1.7 }}>{evalResult.budget_optimization}</div>
                         </div>
                     )}
