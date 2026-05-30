@@ -375,6 +375,12 @@ export function AuthProvider({ children }) {
         localStorage.removeItem(TOKEN_KEY);
         localStorage.removeItem(USER_KEY);
         localStorage.removeItem('tenantId'); // 180차: 회원 전환 시 이전 계정 격리 식별자 제거(누출 차단)
+        // 180차: 회원 sessionStorage(같은 탭 순차 로그인 누출 방지) 정리 — aihub_* 등 비즈니스 캐시
+        try {
+            Object.keys(sessionStorage).forEach(k => {
+                if (/^aihub_|^sc_auto_|^g_/.test(k)) sessionStorage.removeItem(k);
+            });
+        } catch { /* ignore */ }
     }, [token]);
 
     /* ── 구독 업그레이드 (Toss 결제 confirm 후 호출) ── */
