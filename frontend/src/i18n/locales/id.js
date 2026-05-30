@@ -20871,6 +20871,8 @@ export default {
       ModeBadge: "🎭 Mode Simulasi "
     },
   marketingIntel: {
+    // 181차 riskLevel
+    "riskLevel": "Tingkat risiko",
       pageTitle: "🧠 Marketing Intelligence",
       pageSub: "Funnel & conversion analysis · 20 standard KPI scoring · AI recommendations · Automation",
       badge4ch: "4 Channels",

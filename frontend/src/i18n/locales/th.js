@@ -20842,6 +20842,8 @@ export default {
       ModeBadge: "🎭 โหมดจำลองการสาธิต"
     },
   marketingIntel: {
+    // 181차 riskLevel
+    "riskLevel": "ระดับความเสี่ยง",
       pageTitle: "🧠 Marketing Intelligence",
       pageSub: "Funnel & conversion analysis · 20 standard KPI scoring · AI recommendations · Automation",
       badge4ch: "4 Channels",

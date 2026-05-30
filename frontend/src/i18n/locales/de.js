@@ -16420,6 +16420,8 @@ export default {
       ariaLabel: "Untere Navigation"
     },
   marketingIntel: {
+    // 181차 riskLevel
+    "riskLevel": "Risikostufe",
       pageTitle: "🧠 Marketing-Intelligenz",
       pageSub: "Funnel- & Konversionsanalyse · 20 Standard-KPI-Bewertung · KI-Empfehlungen · Automatisierung",
       badge4ch: "4 Kanäle",

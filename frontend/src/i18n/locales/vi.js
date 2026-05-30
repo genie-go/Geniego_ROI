@@ -17843,6 +17843,8 @@ export default {
       ModeBadge: "🎭 Chế độ mô phỏng "
     },
   marketingIntel: {
+    // 181차 riskLevel
+    "riskLevel": "Mức rủi ro",
       pageTitle: "🧠 Marketing Intelligence",
       pageSub: "Funnel & conversion analysis · 20 standard KPI scoring · AI recommendations · Automation",
       badge4ch: "4 Channels",

@@ -50,21 +50,21 @@ const FUNNEL = [];
 const INF_FUNNEL = [];
 
 const STD_KPIS = [
-    { id: "roas", cat: "Profit성", name: "ROAS (AdProfit률)", desc: "Ad Spend 대비 Revenue", weight: 12, calc: (d) => d.orders * d.revenuePer / d.spend, format: v => v.toFixed(2) + "x", target: 3.5 },
-    { id: "cvr", cat: "Conversion", name: "CVR (Conv. Rate)", desc: "Clicks → 구매 Conv. Rate", weight: 10, calc: (d) => (d.orders / d.clicks) * 100, format: v => v.toFixed(2) + "%", target: 8 },
-    { id: "cpa", cat: "Cost", name: "CPA (건당 획득비)", desc: "구매 1건당 Ad Spend", weight: 9, calc: (d) => d.spend / d.orders, format: v => v.toFixed(0), target: 12000, invert: true },
-    { id: "ctr", cat: "Impressions", name: "CTR (CTR)", desc: "Impressions 대비 CTR", weight: 8, calc: (d) => (d.clicks / d.imp) * 100, format: v => v.toFixed(3) + "%", target: 2 },
-    { id: "cpm", cat: "Cost", name: "CPM (1000Impressions Cost)", desc: "Impressions 단가", weight: 6, calc: (d) => (d.spend / d.imp) * 1000, format: v => v.toFixed(0), target: 30000, invert: true },
-    { id: "cpc", cat: "Cost", name: "CPC (Clicks당 Cost)", desc: "Clicks 단가", weight: 6, calc: (d) => d.spend / d.clicks, format: v => v.toFixed(0), target: 3000, invert: true },
-    { id: "aov", cat: "Profit성", name: "AOV (Average Orders가)", desc: "Orders당 Average Amount", weight: 7, calc: (d) => d.revenuePer, format: v => v.toFixed(0), target: 80000 },
-    { id: "cart_cvr", cat: "Conversion", name: "장바구니 Conv. Rate", desc: "장바구니 → 구매율", weight: 8, calc: (d) => (d.orders / d.cart) * 100, format: v => v.toFixed(1) + "%", target: 60 },
-    { id: "new_cust", cat: "신규", name: "신규Customer Rate", desc: "All 구매 in progress 신규 Customer", weight: 7, calc: (d) => d.newCustomerPct, format: v => v + "%", target: 30 },
-    { id: "mobile_cvr", cat: "디바이스", name: "모바일 Conversion Rate", desc: "모바일 기기 Conversion Weight", weight: 4, calc: (d) => d.mobileConvPct, format: v => v + "%", target: 55 },
-    { id: "imp_quality", cat: "Impressions", name: "Impressions 품질 지Count", desc: "유효 Impressions Rate 추정", weight: 5, calc: (d) => (d.clicks / d.imp) * 100 * 20, format: v => Math.min(100, v).toFixed(0) + "점", target: 80 },
-    { id: "budget_effic", cat: "Budget", name: "Budget 효율", desc: "지출 대비 Revenue / Budget", weight: 7, calc: (d) => Math.min(100, (d.orders * d.revenuePer / d.spend) * 25), format: v => v.toFixed(0) + "점", target: 80 },
-    { id: "reach_effic", cat: "도달", name: "도달 효율", desc: "Clicks → Impressions 퀄리티", weight: 5, calc: (d) => (d.cart / d.clicks) * 100, format: v => v.toFixed(2) + "%", target: 10 },
-    { id: "revenue_per_imp", cat: "Profit성", name: "Impressions당 Profit", desc: "인상당 기대 Revenue", weight: 5, calc: (d) => (d.orders * d.revenuePer / d.imp) * 1000, format: v => v.toFixed(1) + "/K", target: 0.5 },
-    { id: "inf_roi", cat: "인플루언서", name: "인플루언서 ROI", desc: "인플루언서 투자 대비 Revenue", weight: 5, calc: (d) => d.inf_roi || 0, format: v => v + "x", target: 50 },
+    { id: "roas", cat: "수익성", name: "ROAS (광고수익률)", desc: "광고비 대비 매출", weight: 12, calc: (d) => d.orders * d.revenuePer / d.spend, format: v => v.toFixed(2) + "x", target: 3.5 },
+    { id: "cvr", cat: "전환", name: "CVR (전환율)", desc: "클릭 → 구매 전환율", weight: 10, calc: (d) => (d.orders / d.clicks) * 100, format: v => v.toFixed(2) + "%", target: 8 },
+    { id: "cpa", cat: "비용", name: "CPA (건당 획득비)", desc: "구매 1건당 광고비", weight: 9, calc: (d) => d.spend / d.orders, format: v => v.toFixed(0), target: 12000, invert: true },
+    { id: "ctr", cat: "노출", name: "CTR (클릭률)", desc: "노출 대비 클릭률", weight: 8, calc: (d) => (d.clicks / d.imp) * 100, format: v => v.toFixed(3) + "%", target: 2 },
+    { id: "cpm", cat: "비용", name: "CPM (1000 노출당 비용)", desc: "노출 단가", weight: 6, calc: (d) => (d.spend / d.imp) * 1000, format: v => v.toFixed(0), target: 30000, invert: true },
+    { id: "cpc", cat: "비용", name: "CPC (클릭당 비용)", desc: "클릭 단가", weight: 6, calc: (d) => d.spend / d.clicks, format: v => v.toFixed(0), target: 3000, invert: true },
+    { id: "aov", cat: "수익성", name: "AOV (평균 주문가)", desc: "주문당 평균 금액", weight: 7, calc: (d) => d.revenuePer, format: v => v.toFixed(0), target: 80000 },
+    { id: "cart_cvr", cat: "전환", name: "장바구니 전환율", desc: "장바구니 → 구매율", weight: 8, calc: (d) => (d.orders / d.cart) * 100, format: v => v.toFixed(1) + "%", target: 60 },
+    { id: "new_cust", cat: "신규", name: "신규 고객 비율", desc: "전체 구매 중 신규 고객", weight: 7, calc: (d) => d.newCustomerPct, format: v => v + "%", target: 30 },
+    { id: "mobile_cvr", cat: "디바이스", name: "모바일 전환율", desc: "모바일 기기 전환 비중", weight: 4, calc: (d) => d.mobileConvPct, format: v => v + "%", target: 55 },
+    { id: "imp_quality", cat: "노출", name: "노출 품질 지수", desc: "유효 노출 비율 추정", weight: 5, calc: (d) => (d.clicks / d.imp) * 100 * 20, format: v => Math.min(100, v).toFixed(0) + "점", target: 80 },
+    { id: "budget_effic", cat: "예산", name: "예산 효율", desc: "지출 대비 매출 / 예산", weight: 7, calc: (d) => Math.min(100, (d.orders * d.revenuePer / d.spend) * 25), format: v => v.toFixed(0) + "점", target: 80 },
+    { id: "reach_effic", cat: "도달", name: "도달 효율", desc: "클릭 → 노출 품질", weight: 5, calc: (d) => (d.cart / d.clicks) * 100, format: v => v.toFixed(2) + "%", target: 10 },
+    { id: "revenue_per_imp", cat: "수익성", name: "노출당 수익", desc: "노출당 기대 매출", weight: 5, calc: (d) => (d.orders * d.revenuePer / d.imp) * 1000, format: v => v.toFixed(1) + "/K", target: 0.5 },
+    { id: "inf_roi", cat: "인플루언서", name: "인플루언서 ROI", desc: "인플루언서 투자 대비 매출", weight: 5, calc: (d) => d.inf_roi || 0, format: v => v + "x", target: 50 },
 ];
 
 const CONTRIB_DIMENSIONS_KEYS = [
@@ -469,7 +469,7 @@ function AutoTab({ t }) {
                                         <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 6 }}>
                                             <Tag label={sc.label} color={sc.color} />
                                             <Tag label={r.channel} color="#6366f1" />
-                                            <Tag label={`Risk도: ${r.risk}`} color={riskCol} />
+                                            <Tag label={`${t("marketingIntel.riskLevel", "위험도")}: ${r.risk}`} color={riskCol} />
                                         </div>
                                         <div style={{ fontWeight: 700, fontSize: 13, color: '#fff', marginBottom: 4 }}>{r.name}</div>
                                         <div style={{ fontSize: 11, color: "var(--text-3)" }}>

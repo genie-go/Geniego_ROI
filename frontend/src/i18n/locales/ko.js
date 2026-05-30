@@ -16200,6 +16200,8 @@ export default {
   },
 
   marketingIntel: {
+    // 181차 riskLevel
+    "riskLevel": "위험도",
     pageTitle: "🧠 마케팅 인텔리전스",
     pageSub: "유입·전환 분석 · 20개 표준 KPI 기여도 점수화 · AI 추천 · 자동화 승인 실행",
     badge4ch: "4 채널",

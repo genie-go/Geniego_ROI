@@ -2,10 +2,10 @@
   "version": "181",
   "updated": "2026-05-30",
   "sacred_sha": {
-    "ja.js": "b889c3442fa2072804468d01afadc2e6e3993b72cb8c5f33ca47afd21788dccf",
-    "zh.js": "92ab16ac08a1029d6ff94c634985a03b8207425d20e270c3292dc2da3d010f9e"
+    "ja.js": "e5a574f895935acf80b7a167fbd31427a22c3fdf61b8de92f98a55dbff2126e7",
+    "zh.js": "7074f8d934029fbbdf6029dbeffb4954c6c661aca66f20fc66db6dc8f9c28fde"
   },
-  "ko_leaf_count": 32094,
+  "ko_leaf_count": 32095,
   "leaf_tolerance_pct": 5,
-  "_note": "181차 d — SmartConnect 자동번역 손상복구(14채널 guide/reason/capabilities)+신규4키 15개국. ja/zh SHA·ko_leaf 갱신."
+  "_note": "181차 e — MarketingIntelligence STD_KPIS 손상복구(cat/name/desc 정확한 한글)+riskLevel 15개국."
 }

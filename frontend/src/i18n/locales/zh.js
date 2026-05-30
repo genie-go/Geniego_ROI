@@ -15922,6 +15922,8 @@ export default {
     "ariaLabel": "底部导航"
   },
   "marketingIntel": {
+    // 181차 riskLevel
+    "riskLevel": "风险等级",
     "pageTitle": "🧠 营销智能",
     "pageSub": "流量·转化分析 · 20项标准KPI贡献度评分 · AI推荐 · 自动化审批执行",
     "badge4ch": "4个渠道",

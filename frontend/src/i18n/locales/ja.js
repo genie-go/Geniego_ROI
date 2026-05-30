@@ -14434,6 +14434,8 @@ export default {
     "ariaLabel": "ボトムナビゲーション"
   },
   "marketingIntel": {
+    // 181차 riskLevel
+    "riskLevel": "リスクレベル",
     "pageTitle": "🧠 マーケティングインテリジェンス",
     "pageSub": "流入・転換分析 · 20項目KPI貢献度スコアリング · AI推薦 · 自動化承認実行",
     "badge4ch": "4チャンネル",
