@@ -2740,57 +2740,57 @@ export default {
 
     "carrierLogen": "로젠택배",
 
-    "guideTitle": "주문 센터 이용 가이드",
+    "guideTitle": "주문 센터(OrderHub) 이용 가이드",
 
-    "guideSub": "전 채널 주문 수집부터 클레임 처리, 배송 추적, 정산 관리, 국제 주문, B2B 도매, 자동 라우팅까지 주문 센터의 모든 기능을 최대한 활용하는 종합 가이드입니다.",
+    "guideSub": "전 채널의 주문을 한 곳에서 자동 수집하고 배송·클레임·정산·국제 물류·B2B 거래·자동 라우팅까지 통합 관리합니다. 처음 사용하는 분도 주문 수집부터 글로벌 운영까지 전체 업무를 단계별로 수행할 수 있습니다.",
 
-    "guideStepsTitle": "단계별 가이드",
+    "guideStepsTitle": "단계별 운영 가이드 (12단계)",
 
-    "guideTipsTitle": "전문가 팁",
+    "guideTipsTitle": "전문가 운영 팁",
 
     "tabGuide": "이용 가이드",
 
-    "guideStep1Title": "채널 연동 및 주문 자동 수집",
+    "guideStep1Title": "로그인 및 환경 확인",
 
-    "guideStep1Desc": "연동허브에서 Shopify, 쿠팡, 네이버, 아마존 등 판매 채널의 API 키를 등록하면 해당 채널의 신규 주문이 자동으로 수집됩니다.",
+    "guideStep1Desc": "주문 센터 접속 후 우측 상단에서 현재 작업 환경을 확인합니다.\n• 운영(Production): 실제 주문 데이터를 처리하는 환경\n• 데모(Demo): 교육 및 테스트용 환경\n처음 사용하는 경우 데모 환경에서 충분히 연습한 후 운영 환경으로 전환하십시오.",
 
-    "guideStep2Title": "주문 관리 및 상태 변경",
+    "guideStep2Title": "판매 채널 연동",
 
-    "guideStep2Desc": "주문 관리 탭에서 전체 주문을 채널별 상태별 기간별로 필터링하여 조회합니다.",
+    "guideStep2Desc": "연동 허브에서 판매 채널 API를 등록합니다.\n[필수 설정] API Key · Secret Key · Access Token · Store ID · 판매자 계정\n[연동 완료 후 자동 수행] 주문 수집 · 상품 정보 동기화 · 배송 상태 수집 · 클레임 상태 수집 · 정산 데이터 수집",
 
-    "guideStep3Title": "배송 등록 및 추적",
+    "guideStep3Title": "실시간 주문 피드 확인",
 
-    "guideStep3Desc": "주문 상세에서 택배사를 선택하고 운송장 번호를 입력하면 배송이 등록됩니다.",
+    "guideStep3Desc": "개요 화면에서 핵심 지표를 확인합니다.\n[주요 지표] 오늘 주문 수 · 오늘 매출 · 배송 대기 · 출고 완료 · 클레임/취소/반품/교환 건수\n[운영 현황] 연동 채널 수 · 활성 주문 수 · SLA 위험 주문 · 국제 주문 현황",
 
-    "guideStep4Title": "클레임/반품 처리",
+    "guideStep4Title": "주문 조회 및 필터",
 
-    "guideStep4Desc": "클레임/반품 탭에서 취소 반품 교환 환불 요청을 접수하고 처리 상태를 관리합니다.",
+    "guideStep4Desc": "주문 관리 화면에서 다양한 조건으로 검색합니다.\n[채널별] 쿠팡 · 스마트스토어 · Shopify · Amazon\n[상태별] 결제완료 · 상품준비 · 배송준비 · 배송중 · 배송완료 · 취소요청 · 반품요청\n[기간별] 오늘 · 어제 · 최근 7일 · 최근 30일 · 사용자 지정",
 
-    "guideStep5Title": "정산 관리",
+    "guideStep5Title": "주문 상태 변경 및 일괄 처리",
 
-    "guideStep5Desc": "정산 탭에서 채널별 총매출, 플랫폼 수수료, 광고비, 쿠폰 할인, 반품비를 확인하고 순정산액을 관리합니다.",
+    "guideStep5Desc": "주문 상태를 운영 프로세스에 맞게 변경합니다.\n[상태 흐름] 결제완료 → 상품준비 → 배송준비 → 배송중 → 배송완료\n[일괄 처리] 상태 변경 · 출고 처리 · 운송장 등록 · 송장 수정 · 주문 메모 추가 — 한 번에 수천 건 처리 가능",
 
-    "guideStep6Title": "국제 주문 및 통관 관리",
+    "guideStep6Title": "배송 등록 및 추적",
 
-    "guideStep6Desc": "국제 주문 탭에서 해외 채널의 주문을 관리합니다.",
+    "guideStep6Desc": "주문 상세에서 택배사 선택 · 운송장 입력 · 출고 등록을 수행합니다.\n[실시간 추적] 배송 상태 추적 · 배송 지연 감지 · 예외 배송 감지 · 고객 알림 발송",
 
-    "guideStep7Title": "B2B 도매 주문 관리",
+    "guideStep7Title": "클레임 및 반품 처리",
 
-    "guideStep7Desc": "B2B 도매 탭에서 대량 주문을 별도로 관리합니다.",
+    "guideStep7Desc": "클레임 탭에서 고객 요청을 처리합니다.\n[유형] 주문 취소 · 반품 · 교환 · 환불 · 배송 사고\n[프로세스] 접수 → 검토 → 승인 → 처리 → 완료",
 
-    "guideStep8Title": "자동 라우팅 엔진",
+    "guideStep8Title": "정산 관리",
 
-    "guideStep8Desc": "자동 라우팅 탭에서 조건별 자동 배송 라우팅 규칙을 생성 관리합니다.",
+    "guideStep8Desc": "정산 화면에서 채널별 수익성을 확인합니다.\n[항목] 총매출 · 실결제 금액 · 플랫폼 수수료 · PG 수수료 · 광고비 · 쿠폰 할인 · 반품 비용 · 배송비 · 물류비\n순정산액 = 총매출 − 수수료 − 광고비 − 할인비용 − 반품비용",
 
-    "guideTip1": "연동허브에서 채널 API 키를 등록하면 주문이 자동으로 수집됩니다.",
+    "guideTip1": "API 연동 완료 즉시 주문 자동 수집 상태를 확인하십시오.",
 
-    "guideTip2": "SLA 모니터링을 활성화하면 출고 지연 페널티를 방지할 수 있습니다.",
+    "guideTip2": "SLA 모니터링을 항상 활성화하십시오.",
 
-    "guideTip3": "일괄 처리 기능을 활용하면 대량 주문 처리 시간을 90% 이상 단축할 수 있습니다.",
+    "guideTip3": "일괄 처리 기능을 적극 활용하면 최대 90% 이상의 업무 시간을 절감할 수 있습니다.",
 
-    "guideTip4": "자동 라우팅 규칙을 설정하면 최적의 창고로 자동 배정됩니다.",
+    "guideTip4": "자동 라우팅을 활용하여 최적 창고를 자동 선택하십시오.",
 
-    "guideTip5": "국제 주문의 DDP/DDU 설정을 정확히 지정하면 관세 관련 고객 불만을 방지할 수 있습니다.",
+    "guideTip5": "국제 주문에서는 DDP/DDU 설정을 반드시 검증하십시오.",
 
     "noData": "데이터가 없습니다.",
 
@@ -3324,8 +3324,45 @@ export default {
 
     "exportExcelSuccess": "Excel 파일 {count}건이 다운로드되었습니다",
 
-    "exportExcelError": "Excel 내보내기 중 오류가 발생했습니다"
+    "exportExcelError": "Excel 내보내기 중 오류가 발생했습니다",
 
+        guideBeginnerBadge: "초보자 가이드",
+        guideTimeBadge: "예상 소요 시간 10분",
+        guideLangBadge: "15개 언어 지원",
+        guideAudienceTitle: "이용 대상",
+        guideAudienceDesc: "온라인 쇼핑몰 운영자 · 브랜드 관리자 · 물류 관리자 · CS 담당자 · 해외 판매 담당자 · B2B 영업 담당자 · 운영 관리자 · 시스템 관리자",
+        guideWhereToStart: "어디서 시작하나요?",
+        guideWhereToStartDesc: "1. 좌측 메뉴에서 커머스 → 주문 센터(OrderHub)로 이동합니다.\n2. 연동 허브에서 판매 채널 API를 연결합니다(스마트스토어·쿠팡·Shopify·Amazon·eBay·11번가·G마켓·옥션·카페24·자사몰 등).\n3. 개요 탭에서 실시간 주문 현황을 확인합니다.\n4. 주문 관리 탭에서 실제 주문을 처리합니다.\n5. 배송 등록 후 출고를 진행합니다.\n6. 정산 탭에서 수익 및 비용을 검토합니다.",
+        guidePhaseA: "Phase A. 시작 준비",
+        guidePhaseB: "Phase B. 주문 처리",
+        guidePhaseC: "Phase C. 클레임 및 정산",
+        guidePhaseD: "Phase D. 글로벌 및 B2B 확장",
+        guideStep9Title: "국제 주문 관리",
+        guideStep9Desc: "해외 판매 채널 주문을 통합 관리합니다.\n[기능] 해외 주문 수집 · 다국어 송장 · 국가별 운송사 · 통관 정보 관리\n[DDP] 판매자가 관세 부담 / [DDU] 구매자가 관세 부담",
+        guideStep10Title: "B2B 도매 주문",
+        guideStep10Desc: "대량 주문을 별도 관리합니다.\n[기능] 거래처 관리 · 단가 관리 · 계약 관리 · 대량 발주 · 납품 관리 · 세금계산서 관리",
+        guidePhaseE: "Phase E. 자동화 및 최적화",
+        guideStep11Title: "자동 라우팅 설정",
+        guideStep11Desc: "조건에 따라 최적 물류 거점을 자동 배정합니다.\n[조건] 지역 · 국가 · 재고 · 채널 · 상품군 · 배송 우선순위\n[효과] 배송 시간 단축 · 물류 비용 절감 · SLA 개선",
+        guideStep12Title: "SLA 모니터링",
+        guideStep12Desc: "SLA(Service Level Agreement)를 실시간 감시합니다.\n[감시 항목] 출고 지연 · 배송 지연 · 미처리 주문 · 장기 보류 주문\n[알림] 시스템 알림 · 이메일 · SMS · 메신저",
+        guideFaqTitle: "자주 묻는 질문",
+        guideFaq1Q: "채널을 연결하지 않아도 사용할 수 있나요?",
+        guideFaq1A: "화면 조회는 가능하지만 실제 주문 자동 수집 및 자동 처리는 채널 연동 후 가능합니다.",
+        guideFaq2Q: "주문이 자동 수집되지 않습니다.",
+        guideFaq2A: "연동 허브에서 API 상태와 인증 정보를 확인하십시오.",
+        guideFaq3Q: "대량 주문을 한 번에 처리할 수 있나요?",
+        guideFaq3A: "일괄 처리 기능을 사용하면 수천 건의 주문도 동시에 처리할 수 있습니다.",
+        guideFaq4Q: "정산 금액이 판매 채널과 다릅니다.",
+        guideFaq4A: "플랫폼 수수료, 광고비, 쿠폰 할인, 반품 비용이 반영된 순정산액 기준입니다.",
+        guideFaq5Q: "자동 라우팅은 어떻게 동작하나요?",
+        guideFaq5A: "설정된 규칙에 따라 가장 적합한 물류센터 또는 창고로 자동 배정됩니다.",
+        guideSecurityTitle: "보안 및 권한 관리",
+        guideSecurityDesc: "주문 센터는 엔터프라이즈 보안 정책을 지원합니다.\n역할 기반 권한 관리(RBAC) · SSO 로그인 · 2단계 인증(2FA) · IP 접근 제어 · 감사 로그 · 데이터 암호화 · API 접근 제어",
+        guideOpsTitle: "운영 권장 사항",
+        guideOpsDesc: "[일일 점검] 주문 수집 상태 · 출고 현황 · SLA 위험 주문 · 클레임 발생 현황\n[주간 점검] 채널 성과 분석 · 정산 검토 · 재고 연계 상태\n[월간 점검] 수익성 분석 · 물류 비용 분석 · 채널별 성장 분석",
+        guideReadyTitle: "준비 완료! 첫 멀티채널 주문을 통합 관리하세요",
+        guideReadyDesc: "이제 주문 센터(OrderHub)가 준비되었습니다. 판매 채널을 연결하고 실시간 주문 피드를 확인하며 주문 처리 → 배송 등록 → 정산 검토 → 자동화 설정까지 진행해 보세요. 주문 수집부터 글로벌 운영까지 모든 프로세스를 하나의 플랫폼에서 효율적으로 관리할 수 있습니다.",
   },
 
   "dataProduct": {
