@@ -1,11 +1,11 @@
 {
-  "version": "183",
-  "updated": "2026-05-30",
+  "version": "184",
+  "updated": "2026-06-01",
   "sacred_sha": {
-    "ja.js": "299bb6744a6d746df0302e4c0aca775de6995170da73054ed96297b61371c0a9",
-    "zh.js": "fafbff78c43dc1049ee370be12043b226d9598cf59493d47eb3fa261d4fa055d"
+    "ja.js": "09161260082ce0a5a9ce0fb462972105287589fc5eca3e2d72a25f76ed0c03d7",
+    "zh.js": "7d7425982b7978e326f94e529d7d0bad8fc9fc1cc4572c02ad74495e1016f4c3"
   },
-  "ko_leaf_count": 32095,
+  "ko_leaf_count": 32280,
   "leaf_tolerance_pct": 5,
-  "_note": "183차 — kakao(73)+email(60) UI 15개국 + marketing/orderHub 이용가이드 15개국(62키) + catalogSync(상품등록센터) 이용가이드 15개국(60키, 이용대상섹션 생략). enterprise, 사용자 확정(U-178-A)."
+  "_note": "184차 — CRM(고객관리) 이용가이드 enterprise 15개국(워크플로우 중심: 배우는내용+PhaseA~E 12스텝+팁8+FAQ6+보안+운영점검+CTA). ko/en 사용자 확정 SOT(U-178-A), 14개국 용어일관 번역. crm ns 내부 중첩 email/aiHub 보존(4-space 정확매칭)."
 }
