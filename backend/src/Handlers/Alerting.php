@@ -404,6 +404,8 @@ final class Alerting {
     private static function buildEmailHtml(array $policy, string $window, string $severity): string
     {
         $color = ['critical' => '#c0392b', 'high' => '#e67e22', 'medium' => '#f39c12', 'low' => '#2980b9'][$severity] ?? '#555';
+        // heredoc 내부는 복합식(삼항) 불가 → 발생시각을 미리 계산해 단순 변수로 보간
+        $occurredAt = !empty($_SERVER['REQUEST_TIME']) ? date('Y-m-d H:i:s') : gmdate('Y-m-d H:i:s');
         return <<<HTML
 <!DOCTYPE html>
 <html>
@@ -417,7 +419,7 @@ final class Alerting {
         <tr><td style="color:#666;padding:8px 0">정책명</td><td style="font-weight:bold">{$policy['name']}</td></tr>
         <tr><td style="color:#666;padding:8px 0">심각도</td><td><span style="background:{$color};color:white;padding:2px 8px;border-radius:4px">{$severity}</span></td></tr>
         <tr><td style="color:#666;padding:8px 0">집계 주기</td><td>{$window}</td></tr>
-        <tr><td style="color:#666;padding:8px 0">발생 시각</td><td>{$_SERVER['REQUEST_TIME'] ? date('Y-m-d H:i:s') : gmdate('Y-m-d H:i:s')}</td></tr>
+        <tr><td style="color:#666;padding:8px 0">발생 시각</td><td>{$occurredAt}</td></tr>
       </table>
       <div style="margin-top:24px">
         <a href="https://roi.genie-go.com/alert-policies" style="background:#667eea;color:white;padding:10px 20px;border-radius:6px;text-decoration:none">대응 화면 열기</a>
