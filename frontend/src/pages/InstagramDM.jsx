@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import PlanGate from "../components/PlanGate.jsx";
 import { getJson, postJson } from '../services/apiClient.js';
+import { IS_DEMO } from '../utils/demoEnv.js';
 
 /**
  * Instagram / Facebook DM 연동 관리 페이지
@@ -57,24 +58,25 @@ export default function InstagramDM() {
     const [testResult, setTestResult] = useState(null);
     const [rules, setRules] = useState(AUTO_REPLY_RULES);
     const [newRule, setNewRule] = useState({ keyword: '', reply: '' });
-    const isDemo = false; /* isDemo permanently disabled */
+    // 184차 격리: 데모에서만 가상 대화/메시지 시드. 운영(IS_DEMO=false)은 실 API 데이터만(목 데이터 유입 0).
+    const isDemo = IS_DEMO;
 
     useEffect(() => {
         getJson('/api/instagram/settings').then(d => {
             if (d.ok) {
                 setSettings(d);
-                setConversations((d.conversations || _CONVERSATIONS));
+                setConversations(d.conversations || (isDemo ? _CONVERSATIONS : []));
             }
         });
         getJson('/api/instagram/conversations').then(d => {
             if (d.ok && d.conversations?.length) setConversations(d.conversations);
-            else setConversations(_CONVERSATIONS);
+            else setConversations(isDemo ? _CONVERSATIONS : []);
         });
     }, []);
 
     useEffect(() => {
         if (selectedConv) {
-            const msgs = _MESSAGES[selectedConv.thread_id] || [];
+            const msgs = isDemo ? (_MESSAGES[selectedConv.thread_id] || []) : (selectedConv.messages || []);
             setMessages(msgs);
         }
     }, [selectedConv]);
