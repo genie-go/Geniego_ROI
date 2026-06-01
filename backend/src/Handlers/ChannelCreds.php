@@ -37,36 +37,62 @@ final class ChannelCreds
         $attr = $request->getAttribute('auth_tenant', '');
         if ($attr !== '') return (string)$attr;
 
-        // 2. Explicit header
-        $hdr = $request->getHeaderLine('X-Tenant-Id');
-        if ($hdr !== '') return $hdr;
-
-        // 3. Bearer token → look up user_session
-        [$tid, ] = self::resolveUserPlan($request);
-        if ($tid !== '') return $tid;
-
-        // 4. Session cookie
-        $cookies = $request->getCookieParams();
-        $token   = $cookies['genie_session'] ?? '';
-        if ($token !== '') {
-            try {
-                $pdo  = Db::pdo();
-                $now  = gmdate('Y-m-d\TH:i:s\Z');
-                $stmt = $pdo->prepare(
-                    'SELECT u.id FROM user_session s
-                       JOIN app_user u ON u.id = s.user_id
-                      WHERE s.token = ? AND s.expires_at > ? AND u.is_active = 1
-                      LIMIT 1'
-                );
-                $stmt->execute([$token, $now]);
-                $row = $stmt->fetch(\PDO::FETCH_ASSOC);
-                if ($row) return (string)$row['id'];
-            } catch (\Throwable $e) {
-                // fall through
-            }
-        }
+        // 184차 P0 보안: 무인증 X-Tenant-Id 원시 헤더 신뢰 제거.
+        // 이 라우트(/v423/creds)는 index.php public bypass 라 미들웨어 auth_tenant 가 없을 수 있는데,
+        // 과거엔 클라이언트가 보낸 X-Tenant-Id 헤더를 그대로 신뢰해 임의 테넌트의 채널 자격증명(Meta/
+        // Google/Coupang API키)을 무인증으로 조회·변조할 수 있었다(크로스테넌트 read/write 취약점).
+        // 이제 테넌트는 반드시 인증된 세션(Bearer 토큰 / genie_session 쿠키)의 tenant_id 로만 해석한다.
+        // 둘 다 없으면 'demo' 로 한정 → 공격자가 특정 실 테넌트를 표적할 수 없다.
+        $st = self::sessionTenant($request);
+        if ($st !== '') return $st;
 
         return 'demo';
+    }
+
+    /**
+     * 184차 P0: 인증된 세션(Bearer user_session 토큰 또는 genie_session 쿠키)에서
+     * 격리 테넌트 식별자(tenant_id, owner='acct_<id>')를 해석한다. UserAuth::resolveTenantId 와 동일 의미
+     * (하위계정은 상위 owner tenant 상속, 미설정 owner 는 'acct_<id>'). 인증 없으면 '' 반환.
+     * ※ resolveUserPlan() 의 [0]=app_user.id 와 달리 여기서는 격리 키(tenant_id)를 반환한다.
+     */
+    private static function sessionTenant(Request $request): string
+    {
+        $token = '';
+        $auth  = $request->getHeaderLine('Authorization');
+        if (strpos($auth, 'Bearer ') === 0) {
+            $t = substr($auth, 7);
+            if ($t !== '' && !str_starts_with($t, 'local_demo_')) $token = $t;
+        }
+        if ($token === '') {
+            $cookies = $request->getCookieParams();
+            $token   = $cookies['genie_session'] ?? '';
+        }
+        if ($token === '') return '';
+        try {
+            $pdo  = Db::pdo();
+            $now  = gmdate('Y-m-d\TH:i:s\Z');
+            $stmt = $pdo->prepare(
+                'SELECT u.id, u.tenant_id, u.parent_user_id FROM user_session s
+                   JOIN app_user u ON u.id = s.user_id
+                  WHERE s.token = ? AND s.expires_at > ? AND u.is_active = 1
+                  LIMIT 1'
+            );
+            $stmt->execute([$token, $now]);
+            $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+            if (!$row) return '';
+            $tid = trim((string)($row['tenant_id'] ?? ''));
+            if ($tid !== '') return $tid;
+            $pid = (int)($row['parent_user_id'] ?? 0);
+            if ($pid > 0) {
+                $ps = $pdo->prepare('SELECT tenant_id FROM app_user WHERE id = ? LIMIT 1');
+                $ps->execute([$pid]);
+                $ptid = trim((string)($ps->fetchColumn() ?: ''));
+                return $ptid !== '' ? $ptid : ('acct_' . $pid);
+            }
+            return 'acct_' . (int)$row['id'];
+        } catch (\Throwable $e) {
+            return '';
+        }
     }
 
     /**

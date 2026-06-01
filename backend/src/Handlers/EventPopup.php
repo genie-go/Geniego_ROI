@@ -62,6 +62,37 @@ class EventPopup
         return $response->withStatus($status)->withHeader('Content-Type', 'application/json');
     }
 
+    /**
+     * 184차 P0 보안: 팝업 관리(CRUD) admin 강제.
+     * 이 핸들러의 list/create/update/delete/toggle 은 로그인 직후 전 사용자에게 노출되는
+     * 팝업(title/body/CTA URL)을 직접 변조하므로 admin 외 전면 차단한다(저장형 XSS·피싱 배너
+     * 주입 벡터 차단). 라우트가 index.php public bypass(/v423/admin/*)에 포함돼 미들웨어를
+     * 우회하므로 핸들러 레벨에서 자체 검증한다(183차 DbAdmin 패턴 동일).
+     * 허용: ① auth_role attribute=admin ② Bearer 세션토큰이 admin 회원(app_user.plan/plans='admin').
+     * 통과 시 null, 차단 시 403 응답 반환.
+     */
+    private static function requireAdmin(Request $req, Response $res): ?Response
+    {
+        if ((string)$req->getAttribute('auth_role') === 'admin') return null;
+        $h = $req->getHeaderLine('Authorization');
+        if (preg_match('/^Bearer\s+(.+)$/i', $h, $m)) {
+            $token = trim($m[1]);
+            if ($token !== '') {
+                try {
+                    $pdo = \Genie\Db::pdo();
+                    $st  = $pdo->prepare(
+                        "SELECT 1 FROM user_session s JOIN app_user u ON u.id = s.user_id
+                          WHERE s.token = ? AND s.expires_at > ? AND u.is_active = 1
+                            AND (u.plan = 'admin' OR u.plans = 'admin') LIMIT 1"
+                    );
+                    $st->execute([$token, gmdate('Y-m-d\TH:i:s\Z')]);
+                    if ($st->fetchColumn()) return null;
+                } catch (\Throwable $e) { /* fall through → 403 */ }
+            }
+        }
+        return self::json($res, ['ok' => false, 'error' => 'Admin privileges required'], 403);
+    }
+
     /* ── 공개 활성 팝업 조회 (로그인 사용자용, 인증 불요) ─── */
     public static function listActive(Request $req, Response $res, array $args): Response
     {
@@ -86,6 +117,7 @@ class EventPopup
     /* ── 관리자: 전체 목록 ─── */
     public static function list(Request $req, Response $res, array $args): Response
     {
+        if ($deny = self::requireAdmin($req, $res)) return $deny;
         try {
             $pdo = self::db();
             $stmt = $pdo->query("SELECT * FROM event_popups ORDER BY id DESC");
@@ -98,6 +130,7 @@ class EventPopup
     /* ── 관리자: 생성 ─── */
     public static function create(Request $req, Response $res, array $args): Response
     {
+        if ($deny = self::requireAdmin($req, $res)) return $deny;
         try {
             $b = (array)$req->getParsedBody();
             $pdo = self::db();
@@ -131,6 +164,7 @@ class EventPopup
     /* ── 관리자: 수정 ─── */
     public static function update(Request $req, Response $res, array $args): Response
     {
+        if ($deny = self::requireAdmin($req, $res)) return $deny;
         try {
             $id = (int)($args['id'] ?? 0);
             $b  = (array)$req->getParsedBody();
@@ -167,6 +201,7 @@ class EventPopup
     /* ── 관리자: 삭제 ─── */
     public static function delete(Request $req, Response $res, array $args): Response
     {
+        if ($deny = self::requireAdmin($req, $res)) return $deny;
         try {
             $id = (int)($args['id'] ?? 0);
             self::db()->prepare("DELETE FROM event_popups WHERE id=:id")->execute([':id' => $id]);
@@ -179,6 +214,7 @@ class EventPopup
     /* ── 관리자: 활성화/비활성화 토글 ─── */
     public static function toggle(Request $req, Response $res, array $args): Response
     {
+        if ($deny = self::requireAdmin($req, $res)) return $deny;
         try {
             $id = (int)($args['id'] ?? 0);
             $pdo = self::db();
