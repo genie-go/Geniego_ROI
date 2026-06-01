@@ -21,6 +21,21 @@ const CHANNEL_COLORS = {
 };
 const chColor = (k) => CHANNEL_COLORS[k] || "#64748b";
 
+/* 184차 #3 — 데모 가상 채널 마스터 시드(빈상태 방지). 운영(_isDemo=false)은 실 API 데이터만 사용. */
+const DEMO_KR_CHANNELS = [
+    { channel_key: "coupang",   display_name: "쿠팡",            currency: "KRW", settlement_cycle: "주 1회(주정산)",  vat_rate: 0.10, note: "로켓배송은 별도 정산 주기 적용" },
+    { channel_key: "naver",     display_name: "네이버 스마트스토어", currency: "KRW", settlement_cycle: "구매확정+2영업일", vat_rate: 0.10, note: "네이버페이 연동 정산" },
+    { channel_key: "11st",      display_name: "11번가",          currency: "KRW", settlement_cycle: "월 2회(15/말)",   vat_rate: 0.10, note: "" },
+    { channel_key: "gmarket",   display_name: "G마켓",           currency: "KRW", settlement_cycle: "월 2회(익월 정산)", vat_rate: 0.10, note: "스마일배송 수수료 별도" },
+    { channel_key: "auction",   display_name: "옥션",            currency: "KRW", settlement_cycle: "월 2회",          vat_rate: 0.10, note: "" },
+    { channel_key: "kakaogift", display_name: "카카오 선물하기",   currency: "KRW", settlement_cycle: "월 1회",          vat_rate: 0.10, note: "선물 수신 확정 기준 정산" },
+    { channel_key: "lotteon",   display_name: "롯데온",          currency: "KRW", settlement_cycle: "월 2회",          vat_rate: 0.10, note: "" },
+    { channel_key: "wemef",     display_name: "위메프",          currency: "KRW", settlement_cycle: "월 1회",          vat_rate: 0.10, note: "" },
+    { channel_key: "tmon",      display_name: "티몬",            currency: "KRW", settlement_cycle: "월 1회",          vat_rate: 0.10, note: "" },
+];
+/** 채널 응답이 비었을 때의 폴백: 데모만 시드, 운영은 빈 배열(목 데이터 유입 0). */
+const krChannelsFallback = (d) => (d && d.channels && d.channels.length) ? d.channels : (_isDemo ? DEMO_KR_CHANNELS : []);
+
 const Badge = ({ label, color }) => (
     <span style={{ background: color + "22", color, border: `1px solid ${color}55`, borderRadius: 6, padding: "2px 8px", fontSize: 11, fontWeight: 700 }}>
         {label}
@@ -54,8 +69,8 @@ function ChannelsTab() {
     const [isMock, setIsMock] = useState(false);
     useEffect(() => {
         getJson(`${API}/v419/kr/channels`)
-            .then((d) => { setChannels(d.channels || []); setIsMock(false); })
-            .catch(() => { setChannels([]); setIsMock(true); });
+            .then((d) => { setChannels(krChannelsFallback(d)); setIsMock(false); })
+            .catch(() => { setChannels(_isDemo ? DEMO_KR_CHANNELS : []); setIsMock(!_isDemo); });
     }, []);
 
     return (
@@ -101,8 +116,8 @@ function FeeRulesTab() {
 
     useEffect(() => {
         getJson(`${API}/v419/kr/channels`)
-            .then((d) => setChannels(d.channels || []))
-            .catch(() => setChannels([]));
+            .then((d) => setChannels(krChannelsFallback(d)))
+            .catch(() => setChannels(_isDemo ? DEMO_KR_CHANNELS : []));
     }, []);
 
     const loadRules = (key) => {
@@ -218,8 +233,8 @@ function IngestTab() {
 
     useEffect(() => {
         getJson(`${API}/v419/kr/channels`)
-            .then((d) => setChannels(d.channels || []))
-            .catch(() => setChannels([]));
+            .then((d) => setChannels(krChannelsFallback(d)))
+            .catch(() => setChannels(_isDemo ? DEMO_KR_CHANNELS : []));
     }, []);
 
     const load = (key) => {
@@ -369,8 +384,8 @@ function ReconTab() {
 
     useEffect(() => {
         getJson(`${API}/v419/kr/channels`)
-            .then((d) => setChannels(d.channels || []))
-            .catch(() => setChannels([]));
+            .then((d) => setChannels(krChannelsFallback(d)))
+            .catch(() => setChannels(_isDemo ? DEMO_KR_CHANNELS : []));
         loadReports();
     }, []);
 

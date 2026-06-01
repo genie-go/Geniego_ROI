@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import PlanGate from "../components/PlanGate.jsx";
 
 import { useI18n } from '../i18n';
+import { IS_DEMO } from '../utils/demoEnv.js';
 const API = import.meta.env.VITE_API_BASE || '';
 const apiFetch = async (path, opts = {}) => {
     const token = localStorage.getItem('genie_token') || "";
@@ -14,6 +15,25 @@ const Tag = ({ label, color = '#4f8ef7' }) => (
 );
 
 const STATUS_COLOR = { connected: '#22c55e', ok: '#22c55e', demo: '#4f8ef7', error: '#ef4444', untested: '#eab308' };
+
+/* 184차 #3 — 데모 가상 시드(빈상태 방지). 운영(IS_DEMO=false)은 실 WhatsApp Business API 데이터만 사용. */
+const DEMO_WA_TEMPLATES = [
+    { name: 'order_confirmation', status: 'APPROVED', category: 'UTILITY',   language: 'ko', components: [{ type: 'BODY', text: '[{{1}}] 주문이 정상 접수되었습니다. 주문번호: {{2}}. 빠르게 준비해 발송해 드리겠습니다.' }] },
+    { name: 'shipping_started',   status: 'APPROVED', category: 'UTILITY',   language: 'ko', components: [{ type: 'BODY', text: '주문하신 상품이 발송되었습니다. 송장번호 {{1}} 로 배송 조회가 가능합니다.' }] },
+    { name: 'delivery_completed', status: 'APPROVED', category: 'UTILITY',   language: 'ko', components: [{ type: 'BODY', text: '상품이 안전하게 배송 완료되었습니다. 만족스러우셨다면 리뷰를 남겨주세요!' }] },
+    { name: 'cart_reminder',      status: 'APPROVED', category: 'MARKETING', language: 'ko', components: [{ type: 'BODY', text: '장바구니에 담아두신 상품이 기다리고 있어요. 지금 주문하시면 무료배송 혜택을 드립니다.' }] },
+    { name: 'restock_alert',      status: 'APPROVED', category: 'MARKETING', language: 'ko', components: [{ type: 'BODY', text: '품절되었던 {{1}} 상품이 재입고되었습니다. 인기 상품이니 서둘러 확인해 보세요.' }] },
+    { name: 'vip_coupon',         status: 'PENDING',  category: 'MARKETING', language: 'ko', components: [{ type: 'BODY', text: 'VIP 고객님께 드리는 단독 15% 할인 쿠폰이 발급되었습니다. 유효기간: {{1}}.' }] },
+];
+const DEMO_WA_MESSAGES = [
+    { recipient: '+821012345678', template_name: 'order_confirmation', status: 'read',      sent_at: '2026-05-31T14:22:00' },
+    { recipient: '+821087654321', template_name: 'shipping_started',   status: 'delivered', sent_at: '2026-05-31T11:05:00' },
+    { recipient: '+821055559999', template_name: 'cart_reminder',      status: 'read',      sent_at: '2026-05-30T18:40:00' },
+    { recipient: '+821033334444', template_name: 'delivery_completed', status: 'delivered', sent_at: '2026-05-30T09:15:00' },
+    { recipient: '+821022221111', template_name: 'restock_alert',      status: 'sent',      sent_at: '2026-05-29T20:02:00' },
+    { recipient: '+821077778888', template_name: 'cart_reminder',      status: 'failed',    sent_at: '2026-05-29T16:30:00' },
+];
+const DEMO_WA_STATS = { sent: 1240, delivered: 1198, read: 1056, failed: 12 };
 
 /* Auth Panel */
 function AuthPanel({ onSaved }) {
@@ -185,15 +205,15 @@ export default function WhatsApp() {
             apiFetch('/api/whatsapp/messages?limit=30'),
         ]);
         setSettings(s);
-        setTemplates(t.templates || []);
-        setMessages(m.messages || []);
+        setTemplates((t.templates && t.templates.length) ? t.templates : (IS_DEMO ? DEMO_WA_TEMPLATES : []));
+        setMessages((m.messages && m.messages.length) ? m.messages : (IS_DEMO ? DEMO_WA_MESSAGES : []));
         setLoading(false);
     }, []);
 
     useEffect(() => { loadData(); }, [loadData]);
 
     const cfg = settings?.settings || {};
-    const stats = settings?.stats || { sent: 0, delivered: 0, read: 0, failed: 0 };
+    const stats = settings?.stats || (IS_DEMO ? DEMO_WA_STATS : { sent: 0, delivered: 0, read: 0, failed: 0 });
     const plan = settings?.plan || '';
     const status = cfg.test_status || 'not_configured';
     const statusColor = STATUS_COLOR[status] || '#666';
