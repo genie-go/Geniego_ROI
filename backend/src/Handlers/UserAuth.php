@@ -588,6 +588,44 @@ final class UserAuth
         return (string)($caller['tenant_id'] ?? ('acct_' . (int)($caller['id'] ?? 0)));
     }
 
+    // ═════════════════════════════════════════════════════════════
+    // 184차 Phase3b — 서버측 team_role 쓰기 가드 (FE teamRolePolicy.js 정합 미러)
+    //   member = 읽기 전용(모든 쓰기 차단), manager = owner-only 외 허용, owner = 전체.
+    //   FE writeGuard 가 클라이언트에서 1차 차단하나, 직접 API 호출 우회를 서버에서 2차 차단(심층 방어).
+    //   fail-open(레거시): team_role 미설정/미인식은 owner 로 정규화(기존 단독 회원 안정성 보존).
+    // ═════════════════════════════════════════════════════════════
+    private const TEAM_OWNER_ONLY = ['billing', 'subscription', 'plan_change', 'account_delete', 'team_owner_change', 'api_keys'];
+
+    private static function normTeamRole($role): string
+    {
+        $r = strtolower(trim((string)$role));
+        return in_array($r, ['owner', 'manager', 'member'], true) ? $r : 'owner';
+    }
+
+    private static function teamCanWrite($role, ?string $action = null): bool
+    {
+        $r = self::normTeamRole($role);
+        if ($r === 'member') return false;
+        if ($r === 'manager') return $action ? !in_array($action, self::TEAM_OWNER_ONLY, true) : true;
+        return true; // owner
+    }
+
+    /** 세션 토큰 검증 + team_role 쓰기 권한 확인. 반환 [caller, error?]; error = [msg, status]. */
+    private static function requireTeamWrite(ServerRequestInterface $req, ?string $action = null): array
+    {
+        $caller = self::userByToken((string)(self::extractToken($req) ?? ''));
+        if (!$caller) return [null, ['인증이 필요합니다.', 401]];
+        if (($caller['plan'] ?? '') === 'admin') return [$caller, null]; // 플랫폼 admin 우회
+        $role = $caller['team_role'] ?? (!empty($caller['parent_user_id']) ? 'member' : 'owner');
+        if (!self::teamCanWrite($role, $action)) {
+            $msg = ($action !== null && in_array($action, self::TEAM_OWNER_ONLY, true))
+                ? '이 작업은 계정 소유자(owner)만 수행할 수 있습니다.'
+                : '읽기 전용 멤버는 쓰기 권한이 없습니다.';
+            return [null, [$msg, 403]];
+        }
+        return [$caller, null];
+    }
+
     // GET /auth/team/members — 같은 계정(tenant) 구성원 목록
     public static function listTeamMembers(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
     {
@@ -761,6 +799,11 @@ final class UserAuth
         if (!$user) {
             return self::json($res, ['ok' => false, 'error' => '세션이 만료되었습니다.'], 401);
         }
+        // 184차 Phase3b — 읽기 전용 멤버는 프로필 수정 차단 (FE writeGuard 정합, 심층 방어)
+        [, $rbacErr] = self::requireTeamWrite($req, null);
+        if ($rbacErr) {
+            return self::json($res, ['ok' => false, 'error' => $rbacErr[0]], $rbacErr[1]);
+        }
 
         $body = (array)($req->getParsedBody() ?? []);
         if (empty($body)) {
@@ -828,6 +871,11 @@ final class UserAuth
         $user = self::userByToken($token);
         if (!$user) {
             return self::json($res, ['ok' => false, 'error' => '세션이 만료되었습니다.'], 401);
+        }
+        // 184차 Phase3b — 구독/플랜 변경은 owner 전용 (FE teamRolePolicy 'subscription'/'plan_change' 정합)
+        [, $rbacErr] = self::requireTeamWrite($req, 'plan_change');
+        if ($rbacErr) {
+            return self::json($res, ['ok' => false, 'error' => $rbacErr[0]], $rbacErr[1]);
         }
 
         $body  = (array)($req->getParsedBody() ?? []);
@@ -1001,6 +1049,11 @@ final class UserAuth
         $user = self::userByToken($token);
         if (!$user) {
             return self::json($res, ['ok' => false, 'error' => '세션이 만료되었습니다.'], 401);
+        }
+        // 184차 Phase3b — 라이선스 활성화(플랜 변경)는 owner 전용 (FE teamRolePolicy 'plan_change' 정합)
+        [, $rbacErr] = self::requireTeamWrite($req, 'plan_change');
+        if ($rbacErr) {
+            return self::json($res, ['ok' => false, 'error' => $rbacErr[0]], $rbacErr[1]);
         }
 
         $body = (array)($req->getParsedBody() ?? []);
