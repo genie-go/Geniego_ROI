@@ -373,63 +373,79 @@ function SecurityLockModal({t,onDismiss}) {
 
 /* Guide Tab - 15 Steps */
 function GuideTab() {
+    // 184차 #5: enterprise 패턴 렌더러(CRM/OmniChannel/PriceOpt/Kakao 정본 동일, NS=email).
     const {t}=useI18n();
-    const STEPS=[
-        {n:'1',k:'guideStep1',c:'#4f8ef7'},{n:'2',k:'guideStep2',c:'#22c55e'},
-        {n:'3',k:'guideStep3',c:'#a78bfa'},{n:'4',k:'guideStep4',c:'#f97316'},
-        {n:'5',k:'guideStep5',c:'#06b6d4'},{n:'6',k:'guideStep6',c:'#f472b6'},
-        {n:'7',k:'guideStep7',c:'#8b5cf6'},{n:'8',k:'guideStep8',c:'#10b981'},
-        {n:'9',k:'guideStep9',c:'#f59e0b'},{n:'10',k:'guideStep10',c:'#ef4444'},
-        {n:'11',k:'guideStep11',c:'#3b82f6'},{n:'12',k:'guideStep12',c:'#14b8a6'},
-        {n:'13',k:'guideStep13',c:'#ec4899'},{n:'14',k:'guideStep14',c:'#6366f1'},
-        {n:'15',k:'guideStep15',c:'#84cc16'},
-    ];
-    const TABS_G=[
-        {icon:'🚀',k:'guideCamp',c:'#4f8ef7'},{icon:'📝',k:'guideTpl',c:'#a78bfa'},
-        {icon:'📊',k:'guideAnalytics',c:'#22c55e'},{icon:'🎨',k:'guideCreative',c:'#a855f7'},
-        {icon:'⚙️',k:'guideSet',c:'#f97316'},
-    ];
+    const g = (k) => { const v = t('email.' + k, ''); return (v && !String(v).includes('email.')) ? v : ''; };
+    const COLORS = ['#4f8ef7','#22c55e','#a855f7','#f59e0b','#06b6d4','#ec4899','#14b8a6','#ef4444','#8b5cf6','#10b981','#3b82f6','#e11d48'];
+    const ICONS = ['🔑','🪪','📝','✨','🎨','🎯','🛡️','🚀','🧪','⚙️','📈','🔐'];
+    const steps = [];
+    for (let i = 1; i <= 15; i++) { const title = g('guideStep' + i + 'Title'); if (title) steps.push({ title, desc: g('guideStep' + i + 'Desc'), phase: g('guideStep' + i + 'Phase'), icon: ICONS[(i - 1) % ICONS.length], color: COLORS[(i - 1) % COLORS.length], n: i }); }
+    const tips = []; for (let i = 1; i <= 10; i++) { const tip = g('guideTip' + i); if (tip) tips.push(tip); }
+    const faqs = []; for (let i = 1; i <= 8; i++) { const q = g('guideFaq' + i + 'Q'); if (q) faqs.push({ q, a: g('guideFaq' + i + 'A') }); }
+    const badges = [{ i: '🔰', k: 'guideBeginnerBadge', c: '#22c55e' }, { i: '⏱️', k: 'guideTimeBadge', c: '#4f8ef7' }, { i: '🌐', k: 'guideLangBadge', c: '#a855f7' }];
+    const card = { background: '#ffffff', border: '1px solid #e5e7eb', borderRadius: 16, padding: 20 };
+    const secTitle = { fontWeight: 900, fontSize: 15, color: '#1e293b', marginBottom: 12, WebkitTextFillColor: '#1e293b' };
+    const pre = { whiteSpace: 'pre-line', fontSize: 12.5, color: '#374151', lineHeight: 1.9, WebkitTextFillColor: '#374151' };
     return (
-        <div style={{ display:'flex', flexDirection:'column', gap:20 }}>
-            <div style={{ background:'rgba(79,142,247,0.06)', border:'1px solid rgba(79,142,247,0.18)', borderRadius:14, textAlign:'center', padding:32 }}>
-                <div style={{ fontSize:44 }}>📧</div>
-                <div style={{ fontWeight:900, fontSize:22, marginTop:8, color:'#1f2937' }}>{t('email.guideTitle')||'Email Marketing Guide'}</div>
-                <div style={{ fontSize:13, color:'#4b5563', marginTop:6, maxWidth:700, margin:'6px auto 0', lineHeight:1.7 }}>{t('email.guideSub')||'Step-by-step guide for email campaigns, templates, analytics, and channel settings.'}</div>
+        <div style={{ display: "grid", gap: 18 }}>
+            <div style={{ background: "linear-gradient(135deg,#eef2ff,#e0f2fe)", borderRadius: 16, border: "1px solid #c7d2fe", padding: "28px 24px", textAlign: "center" }}>
+                <div style={{ fontSize: 36, marginBottom: 8 }}>📧</div>
+                <div style={{ fontWeight: 900, fontSize: 22, color: "#1e293b", marginBottom: 6, letterSpacing: "-0.02em", WebkitTextFillColor: "#1e293b" }}>{t('email.guideTitle')}</div>
+                <div style={{ fontSize: 13, color: "#1e293b", lineHeight: 1.7, fontWeight: 600, maxWidth: 720, margin: '0 auto', WebkitTextFillColor: "#1e293b" }}>{t('email.guideSub')}</div>
+                {g('guideBeginnerBadge') && <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap', marginTop: 14 }}>
+                    {badges.map((b, i) => g(b.k) ? <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 99, background: `${b.c}18`, color: b.c, fontSize: 12, fontWeight: 800, WebkitTextFillColor: b.c }}>{b.i} {g(b.k)}</span> : null)}
+                </div>}
             </div>
-            <Card glow>
-                <div style={{ fontWeight:800, fontSize:17, marginBottom:16, color:'#1f2937' }}>{t('email.guideStepsTitle')||'Usage Steps'}</div>
-                <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))', gap:14 }}>
-                    {STEPS.map((s,i)=>(
-                        <div key={i} style={{ background:s.c+'0a', border:'1px solid '+s.c+'25', borderRadius:12, padding:16 }}>
-                            <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:6 }}>
-                                <span style={{ background:s.c, color:'#fff', borderRadius:'50%', width:28, height:28, display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, fontWeight:800 }}>{s.n}</span>
-                                <span style={{ fontWeight:700, fontSize:14, color:s.c }}>{t('email.'+s.k+'Title')||'Step '+s.n}</span>
-                            </div>
-                            <div style={{ fontSize:12, color:'#4b5563', lineHeight:1.7 }}>{t('email.'+s.k+'Desc')||''}</div>
-                        </div>
-                    ))}
-                </div>
-            </Card>
-            <Card glow>
-                <div style={{ fontWeight:800, fontSize:17, marginBottom:16, color:'#1f2937' }}>{t('email.guideTabsTitle')||'Tab Guide'}</div>
-                <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))', gap:12 }}>
-                    {TABS_G.map((tb,i)=>(
-                        <div key={i} style={{ display:'flex', gap:10, alignItems:'flex-start', padding:'10px 12px', background:'rgba(0,0,0,0.02)', borderRadius:10, border:'1px solid rgba(0,0,0,0.05)' }}>
-                            <span style={{ fontSize:20, flexShrink:0 }}>{tb.icon}</span>
+            {g('guideLearnTitle') ? <div style={{ ...card, background: 'rgba(79,142,247,0.04)', borderColor: 'rgba(79,142,247,0.2)' }}><div style={secTitle}>🎯 {g('guideLearnTitle')}</div><div style={pre}>{g('guideLearnDesc')}</div></div> : null}
+            {steps.length > 0 && <div style={card}>
+                {g('guideStepsTitle') ? <div style={secTitle}>🚀 {g('guideStepsTitle')}</div> : null}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+                    {steps.map((s) => (
+                        <div key={s.n} style={{ padding: "16px 18px", borderRadius: 14, background: s.color + "08", border: "1px solid " + s.color + "22", display: "flex", gap: 14, alignItems: "start" }}>
+                            <div style={{ width: 44, height: 44, borderRadius: 12, background: s.color + "15", border: "1px solid " + s.color + "33", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>{s.icon}</div>
                             <div>
-                                <div style={{ fontWeight:700, fontSize:12, color:tb.c }}>{t('email.'+tb.k+'Name')||''}</div>
-                                <div style={{ fontSize:10, color:'#6b7280', marginTop:2, lineHeight:1.6 }}>{t('email.'+tb.k+'Desc')||''}</div>
+                                {s.phase ? <div style={{ fontSize: 10, fontWeight: 800, color: s.color, marginBottom: 4, opacity: 0.85, WebkitTextFillColor: s.color }}>{s.phase}</div> : null}
+                                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                                    <span style={{ fontSize: 10, fontWeight: 900, color: s.color, background: s.color + "20", padding: "2px 8px", borderRadius: 20, WebkitTextFillColor: s.color }}>STEP {s.n}</span>
+                                    <span style={{ fontWeight: 800, fontSize: 14, color: s.color, WebkitTextFillColor: s.color }}>{s.title}</span>
+                                </div>
+                                <div style={{ fontSize: 12, color: "#374151", lineHeight: 1.8, whiteSpace: 'pre-line', WebkitTextFillColor: '#374151' }}>{s.desc}</div>
                             </div>
                         </div>
                     ))}
                 </div>
-            </Card>
-            <div style={{ background:'rgba(34,197,94,0.05)', border:'1px solid rgba(34,197,94,0.2)', borderRadius:14, padding:20 }}>
-                <div style={{ fontWeight:800, fontSize:17, marginBottom:12, color:'#1f2937' }}>💡 {t('email.guideTipsTitle')||'Expert Tips'}</div>
-                <ul style={{ margin:0, padding:'0 0 0 18px', fontSize:13, color:'#4b5563', lineHeight:2.2 }}>
-                    {[1,2,3,4,5,6,7].map(i=><li key={i}>{t('email.guideTip'+i)||''}</li>)}
-                </ul>
-            </div>
+            </div>}
+            {tips.length > 0 && (
+                <div style={{ ...card, background: "rgba(34,197,94,0.04)", borderColor: "rgba(34,197,94,0.25)" }}>
+                    <div style={secTitle}>💡 {t('email.guideTipsTitle')}</div>
+                    <div style={{ display: "grid", gap: 8 }}>
+                        {tips.map((tip, i) => (
+                            <div key={i} style={{ display: "flex", gap: 10, alignItems: "start", fontSize: 12.5, color: "#374151", lineHeight: 1.7, WebkitTextFillColor: '#374151' }}>
+                                <span style={{ color: "#22c55e", fontWeight: 900, WebkitTextFillColor: '#22c55e' }}>✓</span><span>{tip}</span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+            {faqs.length > 0 && (
+                <div style={card}>
+                    <div style={secTitle}>❓ {t('email.guideFaqTitle')}</div>
+                    <div style={{ display: "grid", gap: 12 }}>
+                        {faqs.map((f, i) => (
+                            <div key={i} style={{ borderBottom: i < faqs.length - 1 ? "1px solid #f1f5f9" : "none", paddingBottom: 10 }}>
+                                <div style={{ fontWeight: 800, fontSize: 13, color: "#1e293b", marginBottom: 4, WebkitTextFillColor: '#1e293b' }}>Q. {f.q}</div>
+                                <div style={{ fontSize: 12.5, color: "#475569", lineHeight: 1.7, WebkitTextFillColor: '#475569' }}>{f.a}</div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+            {g('guideSecurityTitle') ? <div style={{ ...card, background: 'rgba(239,68,68,0.04)', borderColor: 'rgba(239,68,68,0.2)' }}><div style={secTitle}>🔒 {g('guideSecurityTitle')}</div><div style={pre}>{g('guideSecurityDesc')}</div></div> : null}
+            {g('guideOpsTitle') ? <div style={card}><div style={secTitle}>🛠️ {g('guideOpsTitle')}</div><div style={pre}>{g('guideOpsDesc')}</div></div> : null}
+            {g('guideReadyTitle') ? <div style={{ background: "linear-gradient(135deg,#eef2ff,#e0f2fe)", borderRadius: 16, border: "1px solid #c7d2fe", padding: "24px", textAlign: "center" }}>
+                <div style={{ fontWeight: 900, fontSize: 17, color: "#1e293b", marginBottom: 8, WebkitTextFillColor: '#1e293b' }}>🎉 {g('guideReadyTitle')}</div>
+                <div style={{ fontSize: 12.5, color: "#1e293b", lineHeight: 1.8, fontWeight: 500, whiteSpace: 'pre-line', maxWidth: 720, margin: '0 auto', WebkitTextFillColor: '#1e293b' }}>{g('guideReadyDesc')}</div>
+            </div> : null}
         </div>
     );
 }
