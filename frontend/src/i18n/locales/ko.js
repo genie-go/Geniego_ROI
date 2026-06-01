@@ -42994,6 +42994,42 @@ export default {
   },
 
   "campMgr": {
+    "guideBeginnerBadge": "초보자도 쉽게 시작",
+    "guideTimeBadge": "약 15분",
+    "guideLangBadge": "15개 언어 지원",
+    "guideLearnTitle": "이 가이드로 할 수 있는 것",
+    "guideLearnDesc": "이 가이드를 완료하면 마케팅 목표에 맞춰 캠페인을 설계하고, 예산과 채널을 배분하여 여러 채널(이메일·카카오·광고 등)에서 동시에 캠페인을 실행할 수 있습니다.\n\n또한 A/B 테스트로 성과를 최적화하고, ROAS·전환·퍼널을 실시간으로 분석하며, 승인 워크플로우와 권한을 안전하게 관리할 수 있습니다.",
+    "guideStep1Phase": "Phase A · 시작 준비",
+    "guideStep2Phase": "Phase A · 시작 준비",
+    "guideStep3Phase": "Phase B · 캠페인 구성",
+    "guideStep4Phase": "Phase B · 캠페인 구성",
+    "guideStep5Phase": "Phase B · 캠페인 구성",
+    "guideStep6Phase": "Phase C · 타겟·실행",
+    "guideStep7Phase": "Phase C · 타겟·실행",
+    "guideStep8Phase": "Phase D · 최적화",
+    "guideStep9Phase": "Phase D · 최적화",
+    "guideStep10Phase": "Phase D · 최적화",
+    "guideStep11Phase": "Phase E · 분석·운영",
+    "guideStep12Phase": "Phase E · 분석·운영",
+    "guideFaqTitle": "자주 묻는 질문",
+    "guideFaq1Q": "여러 채널에서 동시에 캠페인을 실행할 수 있나요?",
+    "guideFaq1A": "예. 이메일·카카오·광고 등 연동된 채널에서 하나의 캠페인을 동시에 실행하고 통합 성과를 분석할 수 있습니다.",
+    "guideFaq2Q": "ROAS는 어떻게 계산되나요?",
+    "guideFaq2A": "캠페인으로 발생한 매출을 집행 예산으로 나누어 자동 산출되며, 대시보드에서 실시간으로 확인할 수 있습니다.",
+    "guideFaq3Q": "A/B 테스트의 승자는 어떻게 결정되나요?",
+    "guideFaq3A": "선택한 비교 지표(CTR·CVR)와 통계적 신뢰도를 기준으로 가장 성과가 높은 버전이 승자로 선정됩니다.",
+    "guideFaq4Q": "캠페인 예산은 실행 중에도 변경할 수 있나요?",
+    "guideFaq4A": "예. 성과 데이터를 기반으로 캠페인 실행 중에도 채널별 예산을 재배분할 수 있습니다.",
+    "guideFaq5Q": "캠페인 실행 권한은 누구에게 있나요?",
+    "guideFaq5A": "관리자가 허용한 역할만 실행·승인할 수 있으며 모든 변경 사항은 로그로 기록됩니다.",
+    "guideFaq6Q": "CRM 고객을 캠페인 대상으로 바로 사용할 수 있나요?",
+    "guideFaq6A": "예. CRM 세그먼트를 불러와 즉시 연결할 수 있으며 수신 동의 여부도 자동 검증됩니다.",
+    "guideSecurityTitle": "보안 및 개인정보 보호",
+    "guideSecurityDesc": "캠페인 데이터와 고객 정보는 엔터프라이즈급 보안 체계로 보호됩니다.\n\n보안 정책\n• 테넌트 단위 데이터 분리\n• 역할 기반 권한 관리(RBAC)\n• 승인 워크플로우\n• 접근 로그 기록\n• 저장 및 전송 구간 암호화\n• 최소 개인정보 수집",
+    "guideOpsTitle": "추천 운영 점검",
+    "guideOpsDesc": "안정적인 캠페인 운영을 위해 아래 항목을 정기적으로 점검하세요.\n\n일일 점검\n• 진행 중 캠페인 상태 확인\n• 예산 소진율 확인\n\n주간 점검\n• 채널별 ROAS 분석\n• A/B 테스트 결과 검토\n\n월간 점검\n• 캠페인 성과 종합 리뷰\n• 예산 배분 재조정\n• 실행 권한 점검",
+    "guideReadyTitle": "이제 시작할 준비가 되었습니다",
+    "guideReadyDesc": "목표를 설정하고 첫 멀티채널 캠페인을 실행해 보세요.\n\n추천 순서\n목표 설정 → 예산·채널 배분 → 캠페인 생성 → CRM 타겟팅 → 실행 → A/B 테스트 → 성과 분석\n\n캠페인 관리를 활용하면 여러 채널을 통합 운영하면서 데이터 기반으로 마케팅 성과를 지속적으로 향상시킬 수 있습니다.",
 
     "title": "캠페인 관리",
 
@@ -43153,57 +43189,57 @@ export default {
 
     "guideTitle": "캠페인 관리 이용 가이드",
 
-    "guideSub": "AI 마케팅 캠페인의 기획부터 최적화까지 전체 워크플로를 단계별로 안내합니다.",
+    "guideSub": "캠페인 목표 설정부터 예산·채널 배분, 크리에이티브 준비, CRM 타겟팅, A/B 테스트, 실시간 성과 분석까지 — 마케팅 캠페인 실행의 전 과정을 단계별로 안내합니다.",
 
-    "guideStepsTitle": "단계별 가이드",
+    "guideStepsTitle": "단계별 이용 가이드",
 
-    "guideStep1Title": "자동화 마케팅에서 캠페인 생성",
+    "guideStep1Title": "캠페인 목표 설정",
 
-    "guideStep1Desc": "자동화 전략 메뉴에서 AI 추천 또는 수동으로 캠페인을 생성합니다.",
+    "guideStep1Desc": "캠페인의 목표와 핵심 지표를 먼저 정의합니다.\n\n설정 항목\n• 캠페인 목표(인지·전환·재구매 등)\n• 핵심 KPI(ROAS·전환수·매출)\n• 캠페인 기간\n\n완료 결과\n명확한 목표와 측정 기준이 설정되어 성과를 객관적으로 평가할 수 있습니다.",
 
-    "guideStep2Title": "대시보드에서 전체 현황 파악",
+    "guideStep2Title": "예산 및 채널 배분",
 
-    "guideStep2Desc": "대시보드 탭에서 진행 중인 캠페인 수, 총 예산, 평균 ROAS를 확인합니다.",
+    "guideStep2Desc": "총 예산을 설정하고 채널별로 배분합니다.\n\n진행 방법\n• 총 캠페인 예산 설정\n• 채널별 예산 배분(이메일·카카오·광고 등)\n• 일/기간 예산 한도 설정\n\n완료 결과\n채널별 예산이 배분되어 효율적인 집행 기반이 마련됩니다.",
 
-    "guideStep3Title": "캠페인 목록에서 상세 관리",
+    "guideStep3Title": "캠페인 생성",
 
-    "guideStep3Desc": "캠페인 목록 탭에서 검색, 상태별 필터링으로 원하는 캠페인을 빠르게 찾습니다.",
+    "guideStep3Desc": "캠페인 기본 정보를 입력하여 생성합니다.\n\n입력 항목\n• 캠페인명\n• 기간\n• 대상 채널\n• 목표·예산 연결\n\n완료 결과\n실행 준비된 캠페인이 생성되어 목록에서 관리할 수 있습니다.",
 
-    "guideStep4Title": "캠페인 편집 및 예산 조정",
+    "guideStep4Title": "채널 연동 확인",
 
-    "guideStep4Desc": "캠페인 상세에서 편집 버튼을 클릭하여 캠페인명, 예산, 상태를 변경합니다.",
+    "guideStep4Desc": "캠페인에 사용할 발송·광고 채널의 연동 상태를 확인합니다.\n\n확인 항목\n• 이메일·카카오 채널 연동\n• 광고 채널 연결\n• 채널별 발송 권한\n\n완료 결과\n모든 채널이 정상 연동되어 멀티채널 동시 실행이 가능해집니다.",
 
-    "guideStep5Title": "캠페인 일시중지 및 재개",
+    "guideStep5Title": "크리에이티브·소재 준비",
 
-    "guideStep5Desc": "성과가 저조한 캠페인은 상세 모달에서 일시중지하고, 최적화 후 재개할 수 있습니다.",
+    "guideStep5Desc": "AI 크리에이티브로 채널별 광고·메시지 소재를 준비합니다.\n\n활용 기능\n• AI 문구·이미지 생성\n• 채널별 형식 최적화\n• 소재 버전 관리\n\n완료 결과\n각 채널에 최적화된 캠페인 소재가 준비됩니다.",
 
-    "guideStep6Title": "캠페인 복제로 빠른 변형 생성",
+    "guideStep6Title": "CRM 세그먼트 타겟팅",
 
-    "guideStep6Desc": "성과가 좋은 캠페인을 복제하여 새로운 변형을 빠르게 만들 수 있습니다.",
+    "guideStep6Desc": "CRM 고객 세그먼트를 캠페인 대상으로 연결합니다.\n\n활용 예시\n• VIP 고객\n• 재구매 가능 고객\n• 신규·휴면 고객\n\n완료 결과\n정교하게 타겟팅된 대상에게 캠페인이 전달됩니다.",
 
-    "guideStep7Title": "성과 분석 탭에서 심층 분석",
+    "guideStep7Title": "캠페인 승인 및 실행",
 
-    "guideStep7Desc": "성과 분석 탭에서 노출수, 클릭수, 전환수, ROAS를 분석합니다.",
+    "guideStep7Desc": "캠페인을 검토·승인하고 실행합니다.\n\n진행 흐름\n• 캠페인 검토\n• 승인(승인 대기 → 진행)\n• 즉시 실행 또는 예약 실행\n\n완료 결과\n승인된 캠페인이 채널 전반에 실행됩니다.",
 
-    "guideStep8Title": "퍼널 분석으로 전환 경로 파악",
+    "guideStep8Title": "A/B 테스트",
 
-    "guideStep8Desc": "노출 → 클릭 → 전환 퍼널에서 CTR, CVR를 분석합니다.",
+    "guideStep8Desc": "기준안과 변형안을 비교 테스트하여 성과를 극대화합니다.\n\n테스트 항목\n• 소재·문구\n• 발송·노출 시간\n• 비교 지표(CTR·CVR)\n\n완료 결과\n신뢰도 기반으로 승자 버전을 선별해 적용할 수 있습니다.",
 
-    "guideStep9Title": "A/B 테스트 생성 및 실행",
+    "guideStep9Title": "실시간 성과 모니터링",
 
-    "guideStep9Desc": "A/B 테스트 탭에서 기준안(A)과 변형안(B) 캠페인을 선택하여 비교합니다.",
+    "guideStep9Desc": "대시보드에서 캠페인 성과를 실시간으로 확인합니다.\n\n확인 항목\n• 노출·클릭·전환\n• ROAS\n• 예산 소진율\n\n완료 결과\n캠페인 상태를 즉시 파악하고 신속히 대응할 수 있습니다.",
 
-    "guideStep10Title": "A/B 테스트 결과 확인",
+    "guideStep10Title": "예산 최적화·재배분",
 
-    "guideStep10Desc": "각 테스트의 승자, 신뢰도, 통계적 유의성을 확인합니다.",
+    "guideStep10Desc": "성과 데이터를 기반으로 예산을 재배분합니다.\n\n진행 방법\n• 고성과 채널 예산 증액\n• 저성과 채널 예산 축소\n• 캠페인 간 예산 이동\n\n완료 결과\n예산이 성과 중심으로 최적화되어 ROAS가 개선됩니다.",
 
-    "guideStep11Title": "예산 배분 최적화",
+    "guideStep11Title": "성과 분석 및 리포트",
 
-    "guideStep11Desc": "캠페인 간 ROAS를 비교하여 예산을 재배분합니다.",
+    "guideStep11Desc": "캠페인 성과를 종합 분석하여 다음 전략을 수립합니다.\n\n분석 항목\n• 퍼널 분석\n• 채널별 성과\n• ROAS 순위\n• 캠페인별 비교\n\n완료 결과\n가장 효과적인 채널과 캠페인을 파악하여 지속적으로 개선할 수 있습니다.",
 
-    "guideStep12Title": "채널 분포 모니터링",
+    "guideStep12Title": "보안 및 권한 관리",
 
-    "guideStep12Desc": "다양한 광고 채널 간의 성과 비율을 분석합니다.",
+    "guideStep12Desc": "캠페인 데이터와 실행 권한을 안전하게 관리합니다.\n\n보안 기능\n• 테넌트 데이터 분리\n• 역할 기반 권한 관리(RBAC)\n• 승인 워크플로우\n• 접근 로그\n• 데이터 암호화\n\n완료 결과\n캠페인과 예산이 안전하게 통제되어 신뢰할 수 있는 운영이 가능합니다.",
 
     "guideStep13Title": "캠페인 라이프사이클 관리",
 
@@ -43235,23 +43271,23 @@ export default {
 
     "guideTabABTestDesc": "캠페인 변형 비교 A/B 테스트 생성, 실행, 결과 확인.",
 
-    "guideTipsTitle": "전문가 팁",
+    "guideTipsTitle": "전문가 운영 팁",
 
-    "guideTip1": "작은 예산으로 시작하여 ROAS 성과를 검증한 후 스케일업하세요.",
+    "guideTip1": "캠페인 목표와 KPI를 먼저 명확히 정의하세요.",
 
-    "guideTip2": "A/B 테스트를 활용하여 크리에이티브와 타겟팅을 지속적으로 최적화하세요.",
+    "guideTip2": "채널별 특성에 맞춰 예산을 배분하세요.",
 
-    "guideTip3": "채널을 다양화하여 리스크를 분산하고 최적의 미디어 믹스를 찾으세요.",
+    "guideTip3": "이메일·카카오·광고 채널을 연계해 멀티채널로 운영하세요.",
 
-    "guideTip4": "퍼널 지표를 매주 모니터링하여 이탈 포인트에 대응하세요.",
+    "guideTip4": "A/B 테스트로 소재와 발송 시간을 최적화하세요.",
 
-    "guideTip5": "복제 기능을 활용하여 성공한 캠페인의 변형을 빠르게 테스트하세요.",
+    "guideTip5": "초기 예산은 분산 집행 후 성과 기반으로 재배분하세요.",
 
-    "guideTip6": "런칭 전 명확한 KPI 목표를 설정하고 벤치마크와 비교 추적하세요.",
+    "guideTip6": "ROAS와 퍼널을 정기적으로 점검하세요.",
 
-    "guideTip7": "성과가 낮은 캠페인은 빠르게 일시중지하여 예산 낭비를 방지하세요.",
+    "guideTip7": "저성과 캠페인은 신속히 일시 중지하세요.",
 
-    "guideTip8": "시즌 트렌드와 시장 데이터를 활용하여 캠페인 타이밍을 최적화하세요.",
+    "guideTip8": "성과 데이터를 다음 캠페인 기획에 반영하세요.",
 
     "guideStartBtn": "캠페인 관리 시작하기"
 

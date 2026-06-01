@@ -122,6 +122,8 @@ export default function CampaignManager(){
     }, []);
 
     const tr=useCallback(key=>{const v=t(key);return v===key?(FB[key]||key):v;},[t]);
+    // 184차 #5: enterprise 가이드 헬퍼(campMgr.* 직접 해석, 빈값 폴백)
+    const g=useCallback(k=>{const v=t('campMgr.'+k);return (v&&v!=='campMgr.'+k)?v:'';},[t]);
     const campaigns=useMemo(()=>{let list=sharedCampaigns||[];if(filter!=='all')list=list.filter(c=>c.status===filter);if(search){const q=search.toLowerCase();list=list.filter(c=>c.name?.toLowerCase().includes(q)||c.id?.toLowerCase().includes(q));}return list;},[sharedCampaigns,filter,search]);
 
     const stats=useMemo(()=>{
@@ -384,52 +386,67 @@ export default function CampaignManager(){
             )}
 
             {/* ══ TAB: GUIDE ════════════════════════════════════════ */}
-            {tab==='guide'&&(
-                <div className="guide-section" style={{ display:'flex', flexDirection:'column', gap:20, minHeight:CONTENT_MIN, alignContent:'start', color:'#1e293b' }}>
-                    <div style={{ ...CARD, background:'linear-gradient(135deg,rgba(79,142,247,0.12),rgba(168,85,247,0.08))', border:'1px solid rgba(79,142,247,0.3)', textAlign:'center', padding:32, color:'#1e293b' }}>
-                        <div style={{ fontSize:44 }}>🎯</div>
-                        <div style={{ fontWeight:900, fontSize:22, color:'#1e293b', marginTop:8 }}>{tr(T.guideTitle)}</div>
-                        <div className="guide-sub" style={{ fontSize:13, color:'#475569', marginTop:6, maxWidth:560, margin:'6px auto 0', lineHeight:1.7 }}>{tr(T.guideSub)}</div>
-                        <button className="guide-cta" onClick={()=>setTab('overview')} style={{ marginTop:16, padding:'12px 28px', borderRadius:12, border:'none', cursor:'pointer', background:'linear-gradient(135deg,#4f8ef7,#a855f7)', color:'#1e293b', fontWeight:800, fontSize:14 }}>{tr(T.guideStartBtn)}</button>
+            {tab==='guide'&&(()=>{
+                // 184차 #5: enterprise 패턴 렌더러(CRM/OmniChannel/PriceOpt/Kakao/Email 정본 동일, NS=campMgr).
+                const COLORS=['#4f8ef7','#22c55e','#a855f7','#f59e0b','#f97316','#06b6d4','#ec4899','#14b8a6','#8b5cf6','#3b82f6','#10b981','#e11d48'];
+                const ICONS=['🎯','💰','📝','🔗','🎨','👥','🚀','🧪','📊','♻️','📈','🔐'];
+                const steps=[]; for(let i=1;i<=12;i++){const title=g('guideStep'+i+'Title'); if(title) steps.push({title,desc:g('guideStep'+i+'Desc'),phase:g('guideStep'+i+'Phase'),icon:ICONS[(i-1)%ICONS.length],color:COLORS[(i-1)%COLORS.length],n:i});}
+                const tips=[]; for(let i=1;i<=10;i++){const tip=g('guideTip'+i); if(tip) tips.push(tip);}
+                const faqs=[]; for(let i=1;i<=8;i++){const q=g('guideFaq'+i+'Q'); if(q) faqs.push({q,a:g('guideFaq'+i+'A')});}
+                const badges=[{i:'🔰',k:'guideBeginnerBadge',c:'#22c55e'},{i:'⏱️',k:'guideTimeBadge',c:'#4f8ef7'},{i:'🌐',k:'guideLangBadge',c:'#a855f7'}];
+                const card={background:'#ffffff',border:'1px solid #e5e7eb',borderRadius:16,padding:20};
+                const secTitle={fontWeight:900,fontSize:15,color:'#1e293b',marginBottom:12,WebkitTextFillColor:'#1e293b'};
+                const pre={whiteSpace:'pre-line',fontSize:12.5,color:'#374151',lineHeight:1.9,WebkitTextFillColor:'#374151'};
+                return (
+                <div className="guide-section" style={{ display:'grid', gap:18, minHeight:CONTENT_MIN, alignContent:'start', color:'#1e293b' }}>
+                    <div style={{ background:'linear-gradient(135deg,#eef2ff,#fae8ff)', borderRadius:16, border:'1px solid #e0d7ff', padding:'28px 24px', textAlign:'center' }}>
+                        <div style={{ fontSize:36, marginBottom:8 }}>🎯</div>
+                        <div style={{ fontWeight:900, fontSize:22, color:'#1e293b', marginBottom:6, letterSpacing:'-0.02em', WebkitTextFillColor:'#1e293b' }}>{tr(T.guideTitle)}</div>
+                        <div style={{ fontSize:13, color:'#1e293b', lineHeight:1.7, fontWeight:600, maxWidth:720, margin:'0 auto', WebkitTextFillColor:'#1e293b' }}>{tr(T.guideSub)}</div>
+                        {g('guideBeginnerBadge') && <div style={{ display:'flex', gap:8, justifyContent:'center', flexWrap:'wrap', marginTop:14 }}>
+                            {badges.map((b,i)=>g(b.k)?<span key={i} style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'5px 12px', borderRadius:99, background:`${b.c}18`, color:b.c, fontSize:12, fontWeight:800, WebkitTextFillColor:b.c }}>{b.i} {g(b.k)}</span>:null)}
+                        </div>}
                     </div>
-                    <div style={{ ...CARD, color:'#1e293b' }}>
-                        <div style={{ fontWeight:800, fontSize:17, color:'#1e293b', marginBottom:16 }}>📚 {tr(T.guideStepsTitle)}</div>
-                        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))', gap:14 }}>
-                            {[{n:'1️⃣',k:'guideStep1',c:'#4f8ef7'},{n:'2️⃣',k:'guideStep2',c:'#22c55e'},{n:'3️⃣',k:'guideStep3',c:'#a855f7'},{n:'4️⃣',k:'guideStep4',c:'#f59e0b'},{n:'5️⃣',k:'guideStep5',c:'#f97316'},{n:'6️⃣',k:'guideStep6',c:'#06b6d4'},{n:'7️⃣',k:'guideStep7',c:'#ec4899'},{n:'8️⃣',k:'guideStep8',c:'#14b8a6'},{n:'9️⃣',k:'guideStep9',c:'#8b5cf6'},{n:'🔟',k:'guideStep10',c:'#3b82f6'},{n:'⓫',k:'guideStep11',c:'#10b981'},{n:'⓬',k:'guideStep12',c:'#f43f5e'},{n:'⓭',k:'guideStep13',c:'#0ea5e9'},{n:'⓮',k:'guideStep14',c:'#d946ef'},{n:'⓯',k:'guideStep15',c:'#22c55e'}].map((s,i)=>(
-                                <div key={i} style={{ background:s.c+'0a', border:`1px solid ${s.c}25`, borderRadius:12, padding:16, color:'#1e293b' }}>
-                                    <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:6 }}>
-                                        <span style={{ fontSize:20 }}>{s.n}</span>
-                                        <span style={{ fontWeight:700, fontSize:14, color:s.c }}>{tr(T[s.k+'Title'])}</span>
-                                    </div>
-                                    <div className="guide-desc" style={{ fontSize:12, color:'#475569', lineHeight:1.7 }}>{tr(T[s.k+'Desc'])}</div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                    <div style={{ ...CARD, color:'#1e293b' }}>
-                        <div style={{ fontWeight:800, fontSize:17, color:'#1e293b', marginBottom:16 }}>{tr(T.guideTabsTitle)}</div>
-                        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(260px,1fr))', gap:12 }}>
-                            {[{icon:'📊',k:'guideTabOverview',c:'#4f8ef7'},{icon:'📋',k:'guideTabList',c:'#a855f7'},{icon:'📈',k:'guideTabAnalytics',c:'#22c55e'},{icon:'🧪',k:'guideTabABTest',c:'#f97316'}].map((tb,i)=>(
-                                <div key={i} style={{ display:'flex', gap:12, alignItems:'flex-start', padding:'12px 14px', background:'rgba(255,255,255,0.6)', borderRadius:10, border:'1px solid rgba(0,0,0,0.06)', color:'#1e293b' }}>
-                                    <span style={{ fontSize:22, flexShrink:0 }}>{tb.icon}</span>
+                    {g('guideLearnTitle')?<div style={{ ...card, background:'rgba(79,142,247,0.04)', borderColor:'rgba(79,142,247,0.2)' }}><div style={secTitle}>🎯 {g('guideLearnTitle')}</div><div style={pre}>{g('guideLearnDesc')}</div></div>:null}
+                    {steps.length>0 && <div style={card}>
+                        {g('guideStepsTitle')?<div style={secTitle}>🚀 {g('guideStepsTitle')}</div>:null}
+                        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14 }}>
+                            {steps.map((s)=>(
+                                <div key={s.n} style={{ padding:'16px 18px', borderRadius:14, background:s.color+'08', border:'1px solid '+s.color+'22', display:'flex', gap:14, alignItems:'start' }}>
+                                    <div style={{ width:44, height:44, borderRadius:12, background:s.color+'15', border:'1px solid '+s.color+'33', display:'flex', alignItems:'center', justifyContent:'center', fontSize:20, flexShrink:0 }}>{s.icon}</div>
                                     <div>
-                                        <div style={{ fontWeight:700, fontSize:13, color:tb.c }}>{tr(T[tb.k+'Name'])}</div>
-                                        <div className="guide-desc" style={{ fontSize:11, color:'#475569', marginTop:3, lineHeight:1.6 }}>{tr(T[tb.k+'Desc'])}</div>
+                                        {s.phase?<div style={{ fontSize:10, fontWeight:800, color:s.color, marginBottom:4, opacity:0.85, WebkitTextFillColor:s.color }}>{s.phase}</div>:null}
+                                        <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:4 }}>
+                                            <span style={{ fontSize:10, fontWeight:900, color:s.color, background:s.color+'20', padding:'2px 8px', borderRadius:20, WebkitTextFillColor:s.color }}>STEP {s.n}</span>
+                                            <span style={{ fontWeight:800, fontSize:14, color:s.color, WebkitTextFillColor:s.color }}>{s.title}</span>
+                                        </div>
+                                        <div style={{ fontSize:12, color:'#374151', lineHeight:1.8, whiteSpace:'pre-line', WebkitTextFillColor:'#374151' }}>{s.desc}</div>
                                     </div>
                                 </div>
                             ))}
                         </div>
-                    </div>
-                    <div style={{ ...CARD, background:'rgba(34,197,94,0.05)', border:'1px solid rgba(34,197,94,0.3)', color:'#1e293b' }}>
-                        <div style={{ fontWeight:800, fontSize:17, color:'#1e293b', marginBottom:12 }}>💡 {tr(T.guideTipsTitle)}</div>
-                        <ul className="guide-tip-list" style={{ margin:0, padding:'0 0 0 18px', fontSize:13, color:'#475569', lineHeight:2.2 }}>
-                            {['guideTip1','guideTip2','guideTip3','guideTip4','guideTip5','guideTip6','guideTip7','guideTip8'].map(k=>(
-                              <li key={k} style={{ color:'#475569' }}>{tr(T[k])}</li>
-                            ))}
-                        </ul>
-                    </div>
+                    </div>}
+                    {tips.length>0 && <div style={{ ...card, background:'rgba(34,197,94,0.04)', borderColor:'rgba(34,197,94,0.25)' }}>
+                        <div style={secTitle}>💡 {tr(T.guideTipsTitle)}</div>
+                        <div style={{ display:'grid', gap:8 }}>
+                            {tips.map((tip,i)=>(<div key={i} style={{ display:'flex', gap:10, alignItems:'start', fontSize:12.5, color:'#374151', lineHeight:1.7, WebkitTextFillColor:'#374151' }}><span style={{ color:'#22c55e', fontWeight:900, WebkitTextFillColor:'#22c55e' }}>✓</span><span>{tip}</span></div>))}
+                        </div>
+                    </div>}
+                    {faqs.length>0 && <div style={card}>
+                        <div style={secTitle}>❓ {g('guideFaqTitle')}</div>
+                        <div style={{ display:'grid', gap:12 }}>
+                            {faqs.map((f,i)=>(<div key={i} style={{ borderBottom:i<faqs.length-1?'1px solid #f1f5f9':'none', paddingBottom:10 }}><div style={{ fontWeight:800, fontSize:13, color:'#1e293b', marginBottom:4, WebkitTextFillColor:'#1e293b' }}>Q. {f.q}</div><div style={{ fontSize:12.5, color:'#475569', lineHeight:1.7, WebkitTextFillColor:'#475569' }}>{f.a}</div></div>))}
+                        </div>
+                    </div>}
+                    {g('guideSecurityTitle')?<div style={{ ...card, background:'rgba(239,68,68,0.04)', borderColor:'rgba(239,68,68,0.2)' }}><div style={secTitle}>🔒 {g('guideSecurityTitle')}</div><div style={pre}>{g('guideSecurityDesc')}</div></div>:null}
+                    {g('guideOpsTitle')?<div style={card}><div style={secTitle}>🛠️ {g('guideOpsTitle')}</div><div style={pre}>{g('guideOpsDesc')}</div></div>:null}
+                    {g('guideReadyTitle')?<div style={{ background:'linear-gradient(135deg,#eef2ff,#fae8ff)', borderRadius:16, border:'1px solid #e0d7ff', padding:'24px', textAlign:'center' }}>
+                        <div style={{ fontWeight:900, fontSize:17, color:'#1e293b', marginBottom:8, WebkitTextFillColor:'#1e293b' }}>🎉 {g('guideReadyTitle')}</div>
+                        <div style={{ fontSize:12.5, color:'#1e293b', lineHeight:1.8, fontWeight:500, whiteSpace:'pre-line', maxWidth:720, margin:'0 auto', WebkitTextFillColor:'#1e293b' }}>{g('guideReadyDesc')}</div>
+                    </div>:null}
                 </div>
-            )}
+                );
+            })()}
 
             </div>{/* end scrollable content */}
 
