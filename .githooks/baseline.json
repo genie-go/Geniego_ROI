@@ -2,10 +2,10 @@
   "version": "184",
   "updated": "2026-06-01",
   "sacred_sha": {
-    "ja.js": "ac789ad7e336b87a841c8c3570837d4dd61f0e7da28bc3395300cbefd2f30108",
-    "zh.js": "105d96284df46ff587db1e9484d02f588dcea1e47e3152131ea7840e85d79672"
+    "ja.js": "9050c9a6587136da74cace8ed08685f125fa17edee3a47df5b2eeb29b77d5141",
+    "zh.js": "cafa1687131c14c74327dfe770380af40ed638917a6831d2fa902339d7a3e627"
   },
-  "ko_leaf_count": 32412,
+  "ko_leaf_count": 32480,
   "leaf_tolerance_pct": 5,
-  "_note": "184차 — CRM + OmniChannel + PriceOpt(가격 최적화) 이용가이드 enterprise 15개국(워크플로우 중심: 배우는내용+PhaseA~E 12스텝+팁8+FAQ6+보안+운영점검+CTA). 사용자 확정 SOT(U-178-A). PriceOpt ja Step5~10은 CC 용어일관 번역(검수 대기). CRM ja 본문 사용자 확정본 반영."
+  "_note": "184차 — CRM + OmniChannel + PriceOpt + Kakao(카카오 채널) 이용가이드 enterprise 15개국(워크플로우 중심: 배우는내용+PhaseA~E 12스텝+팁8+FAQ6+보안+운영점검+CTA). 사용자 확정 SOT(U-178-A). PriceOpt ja Step5~10은 CC 용어일관 번역(검수 대기). CRM ja 본문 사용자 확정본 반영."
 }
