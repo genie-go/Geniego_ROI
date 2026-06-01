@@ -2,10 +2,10 @@
   "version": "184",
   "updated": "2026-06-01",
   "sacred_sha": {
-    "ja.js": "1b25dc9a313aa5e187b736089bf61a3b28899c35ff65fcc010c72208e8ea23ac",
-    "zh.js": "da2a3e7c0ca1d6e599d20c289aa0b0bf9f5d13ec581922e28b6b5d3b1f8908b3"
+    "ja.js": "cc0124c58a042e6521fe7812ac018b2b97d04dab90b4a76ac393514643adea30",
+    "zh.js": "e5015f4932a6ac8376fb3c38ee087832bab1f2dfc1260e9b27ca9ced0aa76b3e"
   },
   "ko_leaf_count": 32759,
   "leaf_tolerance_pct": 5,
-  "_note": "184차 — 가이드 TOP8 완료 + Phase3b BE RBAC + 고아정리 + ja/zh 코어UI 미번역 해소 1차(dash/g/pnl/performance/pmExt 491키 ja483치환·zh489치환+1삽입, 값=en인 키만 치환=기존번역 보존, 중복키 마지막매치). ko 무변경(ko_leaf 32759 유지). ja/zh 잔여 미번역 대형 ns(pages/crm/ruleEnginePage/wms/pricingDetail) 후속."
+  "_note": "184차 — 가이드 TOP8 + Phase3b BE RBAC + 고아정리 + ja/zh 미번역 해소(코어UI 491키 + live ns 1차 407키=ak/orderHub/dataProduct/ds). 값=en인 키만 치환=기존번역 보존, 중복키 마지막매치. ko 무변경(32759). pages ns는 ~2,080키 dead(삭제 MarketingIntelligence 등)로 번역 제외. ja/zh 잔여 live ns: wms(463)·crm(784)·ruleEnginePage(627) 등 후속."
 }
