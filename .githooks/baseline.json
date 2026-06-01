@@ -2,10 +2,10 @@
   "version": "185",
   "updated": "2026-06-02",
   "sacred_sha": {
-    "ja.js": "c779ba0063a35fd2986a588f8b900989b625bd49960272386706da28f1d1735e",
-    "zh.js": "386ac4df63d340a458d651b02c98c8941ef5ffaaffbddde7fcbe6c55469a9742"
+    "ja.js": "5df91af0c713bb1514e3c6a41c883756d29e95191534be12fe832a4b510022cb",
+    "zh.js": "ec3377f546ec065395028be7dd0ef3af5f716fb81ddecc94d4423b037486e442"
   },
   "ko_leaf_count": 32759,
   "leaf_tolerance_pct": 5,
-  "_note": "185차 — ja/zh live ns 미번역 해소: wms(창고관리) UI 463키(ja445/zh433) 한국어 SOT 기준 용어일관 번역. 값=en인 키만 치환=기존번역 보존, 중복키 마지막매치. ko 무변경(32759). pages ns는 ~2,080키 dead로 번역 제외. ja/zh 잔여 live ns: crm(784)·ruleEnginePage(627/430)·pricingDetail(184)·priceOpt(zh102)·marketing 등 후속."
+  "_note": "185차 — ja/zh live ns 미번역 해소: wms UI 463키 + 가이드자료누락 11개국143키 + crm/aiHub live 3키(crm.tabGuide/guideTabsTitle·aiHub.attribution). ★crm 'ja784' 중 783은 죽은 shadow중복(crm.aiHub.* 726+crm.email.* 57, 참조0=실제 최상위 aiHub/email 사용)→번역제외·purge대상. 값=en만 치환=기존보존. ko 무변경(32759). dead/shadow ns 제외: pages/ruleEnginePage/pricingDetail/crm.aiHub/crm.email."
 }

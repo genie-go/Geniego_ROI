@@ -19940,7 +19940,7 @@ export default {
     "colPhone": "电话",
     "colLtv": "LTV",
     "tDetail": "详情",
-    "guideTabsTitle": "Tab Features",
+    "guideTabsTitle": "标签功能",
     "email": {
             "aiSetSaved": "✅ 已保存",
             "tabSettings": "⚙️ 设置",
@@ -20100,7 +20100,7 @@ export default {
     "expected_rev": "예상 신규 매출",
     "no_ai_seg": "분석된 추천 세그먼트가 없습니다.",
     "rfm_loading": "RFM 분석 데이터를 불러오는 중입니다...",
-    "tabGuide": "Guide",
+    "tabGuide": "使用指南",
     "guideTitle": "CRM客户管理指南",
     "guideSub": "通过循序渐进的流程，学习如何收集客户数据、创建AI客户细分、开展营销活动以及自动化客户旅程。",
     "guideStepsTitle": "分步操作指南",
