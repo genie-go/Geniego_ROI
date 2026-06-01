@@ -1419,85 +1419,82 @@ function ChannelFeeTab() {
 
 /* ═══ Price Optimization Guide Tab (Enterprise v2) ════════════════════════ */
 function PriceOptGuideTab() {
+    // 184차 #5: enterprise 패턴 렌더러(CRM/OmniChannel 정본 동일, NS=priceOpt).
     const { t } = useI18n();
-    const STEPS = Array.from({ length: 10 }, (_, i) => ({
-        num: i + 1,
-        title: t(`priceOpt.guideStep${i + 1}Title`),
-        desc: t(`priceOpt.guideStep${i + 1}Desc`),
-    }));
-    const ICONS = ['📦', '🎯', '🧠', '🚀', '📊', '🔍', '⚡', '💰', '📅', '✅'];
-    const COLORS = ['#6366f1', '#22c55e', '#4f8ef7', '#f97316', '#a855f7', '#06b6d4', '#eab308', '#ef4444', '#ec4899', '#14b8a6'];
-    const TIPS = Array.from({ length: 5 }, (_, i) => t(`priceOpt.guideTip${i + 1}`));
-
-    const TAB_REF = [
-        { id: 'summary', icon: '📊', color: '#6366f1', desc: t('priceOpt.guideTabSummaryDesc') },
-        { id: 'products', icon: '📦', color: '#22c55e', desc: t('priceOpt.guideTabProductsDesc') },
-        { id: 'optimize', icon: '🎯', color: '#4f8ef7', desc: t('priceOpt.guideTabOptimizeDesc') },
-        { id: 'scenario', icon: '🧪', color: '#f97316', desc: t('priceOpt.guideTabScenarioDesc') },
-        { id: 'mix', icon: '🔀', color: '#a855f7', desc: t('priceOpt.guideTabMixDesc') },
-        { id: 'repricer', icon: '⚡', color: '#06b6d4', desc: t('priceOpt.guideTabRepricerDesc') },
-        { id: 'competitor', icon: '🔍', color: '#eab308', desc: t('priceOpt.guideTabCompetitorDesc') },
-        { id: 'calendar', icon: '📅', color: '#ec4899', desc: t('priceOpt.guideTabCalendarDesc') },
-        { id: 'channelFee', icon: '💰', color: '#ef4444', desc: t('priceOpt.guideTabFeeDesc') },
-        { id: 'guide', icon: '📖', color: '#14b8a6', desc: t('priceOpt.guideTabGuideDesc') },
-    ];
-
+    const g = (k) => { const v = t('priceOpt.' + k, ''); return (v && !String(v).includes('priceOpt.')) ? v : ''; };
+    const COLORS = ['#4f8ef7','#22c55e','#f59e0b','#a855f7','#6366f1','#ec4899','#14b8a6','#ef4444','#8b5cf6','#10b981','#3b82f6','#e11d48','#06b6d4','#0ea5e9','#f97316'];
+    const ICONS = ['📦','📈','🎯','🧪','🔀','💰','🔍','⚡','📅','🔄','📊','🛡️','📦','🔔','🚀'];
+    const steps = [];
+    for (let i = 1; i <= 15; i++) { const title = g('guideStep' + i + 'Title'); if (title) steps.push({ title, desc: g('guideStep' + i + 'Desc'), phase: g('guideStep' + i + 'Phase'), icon: ICONS[i - 1], color: COLORS[(i - 1) % COLORS.length], n: i }); }
+    const tips = []; for (let i = 1; i <= 10; i++) { const tip = g('guideTip' + i); if (tip) tips.push(tip); }
+    const faqs = []; for (let i = 1; i <= 8; i++) { const q = g('guideFaq' + i + 'Q'); if (q) faqs.push({ q, a: g('guideFaq' + i + 'A') }); }
+    const badges = [{ i: '🔰', k: 'guideBeginnerBadge', c: '#22c55e' }, { i: '⏱️', k: 'guideTimeBadge', c: '#4f8ef7' }, { i: '🌐', k: 'guideLangBadge', c: '#a855f7' }];
+    const card = { background: '#ffffff', border: '1px solid #e5e7eb', borderRadius: 16, padding: 20 };
+    const secTitle = { fontWeight: 900, fontSize: 15, color: '#1e293b', marginBottom: 12, WebkitTextFillColor: '#1e293b' };
+    const pre = { whiteSpace: 'pre-line', fontSize: 12.5, color: '#374151', lineHeight: 1.9, WebkitTextFillColor: '#374151' };
     return (
-        <div style={{ display: 'grid', gap: 24 }}>
-            {/* ── Header ── */}
-            <div>
-                <div style={{ fontSize: 22, fontWeight: 900, color: "#1e293b", marginBottom: 6 }}>📖 {t('priceOpt.guideTitle')}</div>
-                <div style={{ fontSize: 12, color: '#94a3b8', lineHeight: 1.6 }}>{t('priceOpt.guideSub')}</div>
+        <div style={{ display: "grid", gap: 18 }}>
+            <div style={{ background: "linear-gradient(135deg,#eef2ff,#fae8ff)", borderRadius: 16, border: "1px solid #e0d7ff", padding: "28px 24px", textAlign: "center" }}>
+                <div style={{ fontSize: 36, marginBottom: 8 }}>💲</div>
+                <div style={{ fontWeight: 900, fontSize: 22, color: "#1e293b", marginBottom: 6, letterSpacing: "-0.02em", WebkitTextFillColor: "#1e293b" }}>{t('priceOpt.guideTitle')}</div>
+                <div style={{ fontSize: 13, color: "#1e293b", lineHeight: 1.7, fontWeight: 600, maxWidth: 720, margin: '0 auto', WebkitTextFillColor: "#1e293b" }}>{t('priceOpt.guideSub')}</div>
+                {g('guideBeginnerBadge') && <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap', marginTop: 14 }}>
+                    {badges.map((b, i) => g(b.k) ? <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 99, background: `${b.c}18`, color: b.c, fontSize: 12, fontWeight: 800, WebkitTextFillColor: b.c }}>{b.i} {g(b.k)}</span> : null)}
+                </div>}
             </div>
-
-            {/* ── Steps Grid ── */}
-            <div>
-                <div style={{ fontSize: 15, fontWeight: 800, color: "#1e293b", marginBottom: 14 }}>{t('priceOpt.guideStepsTitle')}</div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 12 }}>
-                    {STEPS.map((s, i) => (
-                        <div key={i} style={{ display: 'flex', gap: 14, padding: '16px', borderRadius: 12, background: '#ffffff', border: `1px solid ${COLORS[i]}22`, transition: 'border-color 200ms, transform 200ms' }}
-                            onMouseEnter={e => { e.currentTarget.style.borderColor = COLORS[i] + '55'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-                            onMouseLeave={e => { e.currentTarget.style.borderColor = COLORS[i] + '22'; e.currentTarget.style.transform = 'translateY(0)'; }}>
-                            <div style={{ fontSize: 28, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 48, height: 48, borderRadius: 12, background: `${COLORS[i]}15` }}>{ICONS[i]}</div>
-                            <div style={{ flex: 1 }}>
-                                <div style={{ fontSize: 12, fontWeight: 800, color: COLORS[i], marginBottom: 4 }}>{s.num}. {s.title}</div>
-                                <div style={{ fontSize: 11, color: '#94a3b8', lineHeight: 1.5 }}>{s.desc}</div>
+            {g('guideLearnTitle') ? <div style={{ ...card, background: 'rgba(79,142,247,0.04)', borderColor: 'rgba(79,142,247,0.2)' }}><div style={secTitle}>🎯 {g('guideLearnTitle')}</div><div style={pre}>{g('guideLearnDesc')}</div></div> : null}
+            {g('guideAudienceTitle') ? <div style={card}><div style={secTitle}>👥 {g('guideAudienceTitle')}</div><div style={pre}>{g('guideAudienceDesc')}</div></div> : null}
+            {steps.length > 0 && <div style={card}>
+                {g('guideStepsTitle') ? <div style={secTitle}>🚀 {g('guideStepsTitle')}</div> : null}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+                    {steps.map((s) => (
+                        <div key={s.n} style={{ padding: "16px 18px", borderRadius: 14, background: s.color + "08", border: "1px solid " + s.color + "22", display: "flex", gap: 14, alignItems: "start" }}>
+                            <div style={{ width: 44, height: 44, borderRadius: 12, background: s.color + "15", border: "1px solid " + s.color + "33", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>{s.icon}</div>
+                            <div>
+                                {s.phase ? <div style={{ fontSize: 10, fontWeight: 800, color: s.color, marginBottom: 4, opacity: 0.85, WebkitTextFillColor: s.color }}>{s.phase}</div> : null}
+                                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                                    <span style={{ fontSize: 10, fontWeight: 900, color: s.color, background: s.color + "20", padding: "2px 8px", borderRadius: 20, WebkitTextFillColor: s.color }}>STEP {s.n}</span>
+                                    <span style={{ fontWeight: 800, fontSize: 14, color: s.color, WebkitTextFillColor: s.color }}>{s.title}</span>
+                                </div>
+                                <div style={{ fontSize: 12, color: "#374151", lineHeight: 1.8, whiteSpace: 'pre-line', WebkitTextFillColor: '#374151' }}>{s.desc}</div>
                             </div>
                         </div>
                     ))}
                 </div>
-            </div>
-
-            {/* ── Tab-by-Tab Reference Grid ── */}
-            <div>
-                <div style={{ fontSize: 15, fontWeight: 800, color: "#1e293b", marginBottom: 14 }}>📑 {t('priceOpt.guideTabsTitle')}</div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 10 }}>
-                    {TAB_REF.map(tb => (
-                        <div key={tb.id} style={{ display: 'flex', gap: 12, padding: '14px', borderRadius: 10, background: '#ffffff', border: `1px solid ${tb.color}18`, transition: 'border-color 200ms' }}
-                            onMouseEnter={e => e.currentTarget.style.borderColor = tb.color + '44'}
-                            onMouseLeave={e => e.currentTarget.style.borderColor = tb.color + '18'}>
-                            <div style={{ fontSize: 22, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 38, height: 38, borderRadius: 10, background: `${tb.color}12` }}>{tb.icon}</div>
-                            <div style={{ flex: 1 }}>
-                                <div style={{ fontSize: 11, fontWeight: 800, color: tb.color, marginBottom: 3 }}>{t(`priceOpt.tab${tb.id.charAt(0).toUpperCase() + tb.id.slice(1)}`) || tb.id}</div>
-                                <div style={{ fontSize: 10, color: '#7c8fa8', lineHeight: 1.5 }}>{tb.desc}</div>
+            </div>}
+            {tips.length > 0 && (
+                <div style={{ ...card, background: "rgba(34,197,94,0.04)", borderColor: "rgba(34,197,94,0.25)" }}>
+                    <div style={secTitle}>💡 {t('priceOpt.guideTipsTitle')}</div>
+                    <div style={{ display: "grid", gap: 8 }}>
+                        {tips.map((tip, i) => (
+                            <div key={i} style={{ display: "flex", gap: 10, padding: "10px 14px", borderRadius: 10, background: "#ffffff", border: "1px solid rgba(34,197,94,0.12)" }}>
+                                <span style={{ fontSize: 14, flexShrink: 0 }}>✅</span>
+                                <span style={{ fontSize: 12, color: "#374151", lineHeight: 1.6, WebkitTextFillColor: '#374151' }}>{tip}</span>
                             </div>
-                        </div>
-                    ))}
+                        ))}
+                    </div>
                 </div>
-            </div>
-
-            {/* ── Expert Tips ── */}
-            <div style={{ padding: '16px 20px', background: 'rgba(34,197,94,0.06)', border: '1px solid rgba(34,197,94,0.15)', borderRadius: 12 }}>
-                <div style={{ fontSize: 14, fontWeight: 800, color: '#22c55e', marginBottom: 10 }}>💡 {t('priceOpt.guideTipsTitle')}</div>
-                <div style={{ display: 'grid', gap: 6 }}>
-                    {TIPS.map((tip, i) => (
-                        <div key={i} style={{ display: 'flex', gap: 8, fontSize: 11, color: '#94a3b8', lineHeight: 1.5 }}>
-                            <span style={{ color: '#22c55e', fontWeight: 800, flexShrink: 0 }}>{i + 1}.</span>
-                            <span>{tip}</span>
-                        </div>
-                    ))}
+            )}
+            {faqs.length > 0 && (
+                <div style={card}>
+                    <div style={secTitle}>❓ {g('guideFaqTitle') || t('priceOpt.guideFaqTitle', '자주 묻는 질문')}</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                        {faqs.map((f, i) => (
+                            <div key={i} style={{ padding: '12px 14px', background: 'rgba(241,245,249,0.6)', borderRadius: 10, border: '1px solid #eef2f7' }}>
+                                <div style={{ fontWeight: 700, fontSize: 13, color: '#4f8ef7', marginBottom: 5, WebkitTextFillColor: '#4f8ef7' }}>Q. {f.q}</div>
+                                <div style={{ fontSize: 12, color: '#374151', lineHeight: 1.7, WebkitTextFillColor: '#374151' }}>A. {f.a}</div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
-            </div>
+            )}
+            {g('guideSecurityTitle') ? <div style={{ ...card, background: 'rgba(99,102,241,0.04)', borderColor: 'rgba(99,102,241,0.2)' }}><div style={secTitle}>🛡️ {g('guideSecurityTitle')}</div><div style={pre}>{g('guideSecurityDesc')}</div></div> : null}
+            {g('guideOpsTitle') ? <div style={card}><div style={secTitle}>🗓️ {g('guideOpsTitle')}</div><div style={pre}>{g('guideOpsDesc')}</div></div> : null}
+            {g('guideReadyTitle') ? <div style={{ background: 'linear-gradient(135deg,rgba(34,197,94,0.08),rgba(79,142,247,0.06))', border: '1px solid rgba(34,197,94,0.3)', borderRadius: 16, padding: 28, textAlign: 'center' }}>
+                <div style={{ fontSize: 32 }}>🎉</div>
+                <div style={{ fontWeight: 900, fontSize: 18, marginTop: 6, color: '#1e293b', WebkitTextFillColor: '#1e293b' }}>{g('guideReadyTitle')}</div>
+                <div style={{ fontSize: 13, color: '#374151', maxWidth: 640, margin: '8px auto 0', lineHeight: 1.7, WebkitTextFillColor: '#374151' }}>{g('guideReadyDesc')}</div>
+            </div> : null}
         </div>
     );
 }
