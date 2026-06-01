@@ -43294,6 +43294,42 @@ export default {
   },
 
   "jb": {
+    "guideBeginnerBadge": "초보자도 쉽게 시작",
+    "guideTimeBadge": "약 15분",
+    "guideLangBadge": "15개 언어 지원",
+    "guideLearnTitle": "이 가이드로 할 수 있는 것",
+    "guideLearnDesc": "이 가이드를 완료하면 회원가입, 구매, 이탈 등 고객 행동을 기반으로 자동화 여정을 설계할 수 있습니다.\n\n또한 이메일, 카카오톡, SMS, 푸시 알림 등 다양한 채널을 하나의 여정으로 연결하고, 조건 분기와 대기 시간을 활용하여 고객별 맞춤 시나리오를 운영할 수 있습니다.\n\n실행 결과를 분석하고 지속적으로 최적화하여 마케팅 성과를 향상시킬 수 있습니다.",
+    "guideStep1Phase": "Phase A · 시작 준비",
+    "guideStep2Phase": "Phase A · 시작 준비",
+    "guideStep3Phase": "Phase B · 여정 설계",
+    "guideStep4Phase": "Phase B · 여정 설계",
+    "guideStep5Phase": "Phase B · 여정 설계",
+    "guideStep6Phase": "Phase B · 여정 설계",
+    "guideStep7Phase": "Phase C · 검증 및 실행",
+    "guideStep8Phase": "Phase C · 검증 및 실행",
+    "guideStep9Phase": "Phase D · 운영 및 모니터링",
+    "guideStep10Phase": "Phase D · 운영 및 모니터링",
+    "guideStep11Phase": "Phase E · 최적화 및 보안",
+    "guideStep12Phase": "Phase E · 최적화 및 보안",
+    "guideFaqTitle": "자주 묻는 질문",
+    "guideFaq1Q": "여정은 언제 자동 시작되나요?",
+    "guideFaq1A": "설정된 트리거 조건이 충족되면 자동으로 시작됩니다.",
+    "guideFaq2Q": "여러 채널을 함께 사용할 수 있나요?",
+    "guideFaq2A": "예. 이메일, 카카오톡, SMS, 푸시 알림 등을 하나의 여정에서 함께 사용할 수 있습니다.",
+    "guideFaq3Q": "조건 분기는 어떻게 동작하나요?",
+    "guideFaq3A": "고객 행동과 조건 결과에 따라 자동으로 다른 경로가 실행됩니다.",
+    "guideFaq4Q": "실행 현황은 어디에서 확인하나요?",
+    "guideFaq4A": "실행 로그 화면에서 실시간으로 확인할 수 있습니다.",
+    "guideFaq5Q": "여정 생성 권한은 누가 가지나요?",
+    "guideFaq5A": "관리자가 부여한 권한을 가진 사용자만 생성 및 활성화할 수 있습니다.",
+    "guideFaq6Q": "CRM 고객 데이터를 바로 사용할 수 있나요?",
+    "guideFaq6A": "예. CRM 세그먼트를 연결하여 즉시 활용할 수 있습니다.",
+    "guideSecurityTitle": "보안 및 개인정보 보호",
+    "guideSecurityDesc": "고객 데이터와 자동화 실행 정보는 엔터프라이즈급 보안 정책으로 보호됩니다.\n\n• 테넌트 단위 데이터 분리\n• 역할 기반 접근 제어(RBAC)\n• 데이터 암호화\n• 접근 로그 감사\n• 수신 동의 이력 관리\n• 최소 권한 원칙 적용",
+    "guideOpsTitle": "추천 운영 점검",
+    "guideOpsDesc": "안정적인 운영을 위해 정기적으로 점검하세요.\n\n일일 점검\n• 활성 여정 상태\n• 오류 로그 확인\n\n주간 점검\n• 이탈 구간 분석\n• 채널 성과 검토\n\n월간 점검\n• 전체 성과 리뷰\n• 시나리오 최적화\n• 권한 정책 검토",
+    "guideReadyTitle": "이제 시작할 준비가 되었습니다",
+    "guideReadyDesc": "트리거를 설정하고 첫 번째 자동화 여정을 시작해 보세요.\n\n추천 순서\n트리거 설정 → 세그먼트 연결 → 여정 설계 → 채널 추가 → 미리보기 검증 → 활성화 → 성과 분석\n\n여정 빌더를 활용하면 고객 행동에 맞춰 자동화 마케팅을 실행하고 지속적으로 성과를 향상시킬 수 있습니다.",
 
     "title": "고객 여정 빌더",
 
@@ -43439,59 +43475,59 @@ export default {
 
     "resumeBtn": "▶ 재개",
 
-    "guideTitle": "📋 여정 빌더 완전 가이드",
+    "guideTitle": "여정 빌더 이용 가이드",
 
-    "guideSub": "시작부터 분석 마무리까지 단계별 안내.",
+    "guideSub": "트리거 설정부터 세그먼트 연결, 멀티채널 여정 설계, 조건 분기, 실행 모니터링, 성과 분석까지 마케팅 자동화 여정 구축의 전 과정을 단계별로 안내합니다.",
 
-    "guideStepsTitle": "시작부터 마무리까지 — 20단계",
+    "guideStepsTitle": "단계별 이용 가이드",
 
-    "guideStep1Title": "로그인 & 메뉴 진입",
+    "guideStep1Title": "여정 목표 및 트리거 설정",
 
-    "guideStep1Desc": "사이드바에서 여정 빌더를 선택합니다.",
+    "guideStep1Desc": "자동화 여정을 시작할 고객 행동과 캠페인 목표를 정의합니다.\n\n트리거 예시\n• 회원가입\n• 구매 완료\n• 장바구니 이탈\n• 휴면 진입\n• 세그먼트 진입\n• 수동 실행\n\n완료 결과\n고객 행동에 따라 자동으로 시작되는 여정이 설정됩니다.",
 
-    "guideStep2Title": "대시보드 확인",
+    "guideStep2Title": "대상 세그먼트 연결",
 
-    "guideStep2Desc": "전체, 활성, 실행, 완료율 KPI를 확인합니다.",
+    "guideStep2Desc": "CRM 고객 세그먼트를 여정 대상으로 연결합니다.\n\n활용 예시\n• 신규 가입 고객\n• VIP 고객\n• 휴면 고객\n• 재구매 가능 고객\n\n완료 결과\n조건에 맞는 고객이 자동으로 여정에 진입합니다.",
 
-    "guideStep3Title": "새 여정 생성",
+    "guideStep3Title": "여정 캔버스 구성",
 
-    "guideStep3Desc": "생성 버튼을 클릭하여 이름을 입력합니다.",
+    "guideStep3Desc": "드래그 앤 드롭 방식으로 고객 여정을 시각적으로 설계합니다.\n\n진행 방법\n• 트리거 배치\n• 액션 추가\n• 조건 추가\n• 노드 연결\n\n완료 결과\n고객 여정 흐름이 시각적으로 구성됩니다.",
 
-    "guideStep4Title": "트리거 선택",
+    "guideStep4Title": "채널 액션 추가",
 
-    "guideStep4Desc": "회원가입, 구매, 이탈 등 트리거를 선택합니다.",
+    "guideStep4Desc": "각 단계에서 실행할 메시지 채널을 추가합니다.\n\n지원 채널\n• 이메일\n• 카카오톡\n• SMS\n• 푸시 알림\n• LINE\n\n완료 결과\n각 단계별 고객 커뮤니케이션이 구성됩니다.",
 
-    "guideStep5Title": "CRM 세그먼트 연결",
+    "guideStep5Title": "대기 시간 설정",
 
-    "guideStep5Desc": "타겟 세그먼트를 지정합니다.",
+    "guideStep5Desc": "고객 행동에 맞춰 단계 간 실행 시간을 조정합니다.\n\n지연 옵션\n• 즉시 실행\n• 1시간 후\n• 1일 후\n• 3일 후\n• 7일 후\n\n완료 결과\n최적의 시점에 메시지가 자동 발송됩니다.",
 
-    "guideStep6Title": "채널 선택",
+    "guideStep6Title": "조건 분기 설정",
 
-    "guideStep6Desc": "이메일, 카카오, SMS, 푸시, LINE 중 선택합니다.",
+    "guideStep6Desc": "고객 반응에 따라 여정을 분기합니다.\n\n분기 예시\n• 이메일 열람 여부\n• 링크 클릭 여부\n• 구매 여부\n• 특정 조건 충족 여부\n\n완료 결과\n고객별 맞춤 여정이 자동 실행됩니다.",
 
-    "guideStep7Title": "대기 시간 설정",
+    "guideStep7Title": "여정 미리보기 검증",
 
-    "guideStep7Desc": "메시지 발송까지의 대기 시간을 설정합니다.",
+    "guideStep7Desc": "실행 전 전체 흐름을 점검합니다.\n\n검증 항목\n• 노드 연결 상태\n• 채널 설정\n• 조건 분기\n• 지연 로직\n\n완료 결과\n오류 없는 여정 구성이 완료됩니다.",
 
-    "guideStep8Title": "여정 저장",
+    "guideStep8Title": "여정 활성화",
 
-    "guideStep8Desc": "초안 상태로 저장됩니다.",
+    "guideStep8Desc": "검증된 여정을 활성화하여 자동 실행을 시작합니다.\n\n실행 과정\n• 초안 저장\n• 활성화\n• 트리거 감지\n• 자동 실행\n\n완료 결과\n고객 행동 발생 시 자동으로 여정이 실행됩니다.",
 
-    "guideStep9Title": "흐름 미리보기",
+    "guideStep9Title": "실행 로그 모니터링",
 
-    "guideStep9Desc": "트리거→대기→액션→종료 흐름도를 확인합니다.",
+    "guideStep9Desc": "여정 진행 상태를 실시간으로 확인합니다.\n\n확인 항목\n• 진입 수\n• 발송 수\n• 완료 수\n• 오류 로그\n\n완료 결과\n운영 현황을 즉시 파악할 수 있습니다.",
 
-    "guideStep10Title": "여정 실행",
+    "guideStep10Title": "성과 분석",
 
-    "guideStep10Desc": "활성화하여 자동 메시지를 발송합니다.",
+    "guideStep10Desc": "주요 지표를 분석하여 성과를 측정합니다.\n\n핵심 지표\n• 완료율\n• 오픈율\n• 클릭률\n• 전환율\n• 매출 기여도\n\n완료 결과\n효과적인 여정과 채널을 파악할 수 있습니다.",
 
-    "guideStep11Title": "상태 관리",
+    "guideStep11Title": "여정 최적화",
 
-    "guideStep11Desc": "일시 중지 또는 재개로 제어합니다.",
+    "guideStep11Desc": "성과 데이터를 기반으로 여정을 지속 개선합니다.\n\n개선 방법\n• 이탈 구간 개선\n• 분기 조건 조정\n• 콘텐츠 개선\n• A/B 테스트 적용\n\n완료 결과\n마케팅 성과가 지속적으로 향상됩니다.",
 
-    "guideStep12Title": "로그 확인",
+    "guideStep12Title": "보안 및 권한 관리",
 
-    "guideStep12Desc": "진입/완료 수, 매출 기여도를 확인합니다.",
+    "guideStep12Desc": "고객 정보와 자동화 데이터를 안전하게 보호합니다.\n\n보안 기능\n• 테넌트 분리\n• RBAC 권한 관리\n• 접근 로그 기록\n• 데이터 암호화\n• 수신 동의 검증\n\n완료 결과\n안전하고 신뢰할 수 있는 운영 환경이 유지됩니다.",
 
     "guideStep13Title": "분석 대시보드",
 
@@ -43527,23 +43563,23 @@ export default {
 
     "guideTabGuideDesc": "단계별 워크플로우 안내.",
 
-    "guideTipsTitle": "💡 운영 팁",
+    "guideTipsTitle": "전문가 운영 팁",
 
-    "guideTip1": "트리거별 대기 시간을 다르게 설정하세요.",
+    "guideTip1": "목표와 트리거를 먼저 명확하게 정의하세요.",
 
-    "guideTip2": "이메일+카카오 조합으로 전환율 2.3배.",
+    "guideTip2": "처음에는 단순한 여정부터 시작하세요.",
 
-    "guideTip3": "장바구니 이탈은 1시간 내 발송이 최적.",
+    "guideTip3": "멀티채널 전략으로 도달률을 높이세요.",
 
-    "guideTip4": "주간 완료율 추이를 확인하세요.",
+    "guideTip4": "과도한 메시지 발송을 피하세요.",
 
-    "guideTip5": "VIP 세그먼트에 프리미엄 오퍼를.",
+    "guideTip5": "분기 조건을 활용해 개인화를 강화하세요.",
 
-    "guideTip6": "복제로 A/B 테스트를 실행하세요.",
+    "guideTip6": "활성화 전 반드시 미리보기 검증을 수행하세요.",
 
-    "guideTip7": "매출 기여도로 고ROI 여정에 집중.",
+    "guideTip7": "실행 로그를 정기적으로 확인하세요.",
 
-    "guideTip8": "성과 낮은 여정을 정리하고 자원을 재배분하세요.",
+    "guideTip8": "성과 데이터를 기반으로 지속 개선하세요.",
 
     "guideTip9": "즉시 발송(대기 0)은 긴급 프로모션에 최적입니다.",
 

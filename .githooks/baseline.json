@@ -2,10 +2,10 @@
   "version": "184",
   "updated": "2026-06-01",
   "sacred_sha": {
-    "ja.js": "d52bc969b3ea2646fcce5b7f378922f17d591bf0b1dd41e95b4cf0c50a1e7adc",
-    "zh.js": "47b153f1b70bc9c61e94d931316e78ab82663770344beeb52be5ad733566266a"
+    "ja.js": "bfa427cebf949aeee534ab3773e4dbe36467dfdcfda0d0268cea1d1ba896f6a5",
+    "zh.js": "b99dfbc76d6b80f3cc82305a8d77c753fc74450c28a25c2db0a4f6bc9c59b7ba"
   },
-  "ko_leaf_count": 32584,
+  "ko_leaf_count": 32620,
   "leaf_tolerance_pct": 5,
-  "_note": "184차 — CRM + OmniChannel + PriceOpt + Kakao + Email + CampaignMgr(캠페인 관리) 이용가이드 enterprise 15개국(워크플로우 중심: 배우는내용+PhaseA~E 12스텝+팁8+FAQ6+보안+운영점검+CTA). 사용자 확정 SOT(U-178-A). CampaignMgr는 campMgr ns·tr()/g() 헬퍼, 구버전 step13~15 잔존(루프 12 제한)."
+  "_note": "184차 — CRM + OmniChannel + PriceOpt + Kakao + Email + CampaignMgr + JourneyBuilder(여정 빌더) 이용가이드 enterprise 15개국(워크플로우 중심: 배우는내용+PhaseA~E 12스텝+팁8+FAQ6+보안+운영점검+CTA). 사용자 확정 SOT(U-178-A). CampaignMgr는 campMgr ns·tr()/g() 헬퍼, 구버전 step13~15 잔존(루프 12 제한)."
 }
