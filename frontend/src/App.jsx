@@ -359,8 +359,9 @@ function AppLayout() {
                       <Route path="/alert-automation" element={<Navigate to="/ai-rule-engine" replace />} />
                       <Route path="/event-norm" element={<Navigate to="/data-schema" replace />} />
                       {/* 168차 N-152-F USD/Paddle 단일 정책 — /pricing 과 /app-pricing 모두 PricingPublic 으로 통일 */}
+                      {/* 186차 버그수정: /app-pricing→/pricing redirect 시 최상위 공개 /pricing(SmartPricing, 앱 셸 밖)으로 튕겨 '초기화면 전환'처럼 보임. 앱 셸 안에서 직접 렌더. */}
                       <Route path="/pricing" element={<PricingPublic />} />
-                      <Route path="/app-pricing" element={<Navigate to="/pricing" replace />} />
+                      <Route path="/app-pricing" element={<PricingPublic />} />
                       <Route path="/data-product" element={<DataProduct />} />
                       <Route path="/db-admin" element={<DbAdmin />} />
                       <Route path="/rollup" element={<RollupDashboard />} />

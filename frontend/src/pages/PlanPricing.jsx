@@ -1896,9 +1896,14 @@ function CouponAdminPanel({ plans }) {
 
 function MenuAccessTree({ plans, menus, access, setMenuAccess, setMenuAccessBulk, togglePlanAll, saveAllAccess, saving, dirty, recommendMenuAccess }) {
   const t = useT();
+  // 186차 요청: 한 페이지에서 전 계층(대/중/하위/서브탭) 한눈에 — 기본 전체 펼침
+  const _allMenuKeys = () => { const s = new Set(); for (const sec of [...MEMBER_MENU, ...ADMIN_MENU]) for (const it of (sec.items || [])) if (it.menuKey) s.add(it.menuKey); return s; };
+  const _allLeafRoutes = () => { const s = new Set(); for (const sec of [...MEMBER_MENU, ...ADMIN_MENU]) for (const it of (sec.items || [])) if (it.to) s.add(it.to); return s; };
   const [collapsed, setCollapsed] = useState(() => new Set());
-  const [expandMenu, setExpandMenu] = useState(() => new Set()); // 중메뉴 → 하위메뉴 펼침
-  const [expandLeaf, setExpandLeaf] = useState(() => new Set()); // 하위메뉴 → 서브탭 펼침
+  const [expandMenu, setExpandMenu] = useState(_allMenuKeys);   // 중메뉴 → 하위메뉴 펼침 (기본 전체)
+  const [expandLeaf, setExpandLeaf] = useState(_allLeafRoutes); // 하위메뉴 → 서브탭 펼침 (기본 전체)
+  const expandAll = () => { setCollapsed(new Set()); setExpandMenu(_allMenuKeys()); setExpandLeaf(_allLeafRoutes()); };
+  const collapseAll = () => { const c = new Set(); for (const sec of [...MEMBER_MENU, ...ADMIN_MENU]) c.add(sec.key); setCollapsed(c); setExpandMenu(new Set()); setExpandLeaf(new Set()); };
   const [filter, setFilter] = useState('');
   const sections = useMemo(() => [...MEMBER_MENU, ...ADMIN_MENU], []);
   // 186차: 매트릭스는 sidebar manifest(sections) 기준 렌더. menu_tree(DB) 비어도 plan_menu_access 는 menu_key 로 저장되므로 전체 토글 허용.
@@ -1955,7 +1960,11 @@ function MenuAccessTree({ plans, menus, access, setMenuAccess, setMenuAccessBulk
       </div>
 
       {/* 검색 */}
-      <input type="text" value={filter} onChange={e => setFilter(e.target.value)} placeholder="🔍 메뉴 이름/경로/키 검색…" style={{ width: '100%', boxSizing: 'border-box', padding: '10px 14px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.2)', color: 'var(--text-1)', fontSize: 14, marginBottom: 14 }} />
+      <div style={{ display: 'flex', gap: 8, marginBottom: 14, alignItems: 'center', flexWrap: 'wrap' }}>
+        <input type="text" value={filter} onChange={e => setFilter(e.target.value)} placeholder="🔍 메뉴 이름/경로/키 검색…" style={{ flex: 1, minWidth: 200, boxSizing: 'border-box', padding: '10px 14px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.2)', color: 'var(--text-1)', fontSize: 14 }} />
+        <button onClick={expandAll} style={{ padding: '9px 14px', borderRadius: 8, border: '1px solid rgba(56,189,248,0.35)', background: 'rgba(56,189,248,0.12)', color: '#38bdf8', fontSize: 12, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>📂 전체 펼치기</button>
+        <button onClick={collapseAll} style={{ padding: '9px 14px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.04)', color: '#94a3b8', fontSize: 12, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>📁 전체 접기</button>
+      </div>
 
       {/* 비교 매트릭스 (메뉴 × 플랜) */}
       <div style={{ borderRadius: 14, border: '1px solid rgba(255,255,255,0.07)', overflow: 'auto', background: 'rgba(255,255,255,0.04)' }}>
