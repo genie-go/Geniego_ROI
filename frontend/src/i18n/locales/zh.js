@@ -5589,7 +5589,7 @@ export default {
     "regionDomUgc": "国内UGC",
     "regionGblUgc": "全球UGC",
     "naverBlog": "Naver博客",
-    "kakaoStory": "KakaoStory",
+    "kakaoStory": "Kakao Story",
     "youtubeKr": "YouTube KR",
     "instagramKr": "Instagram KR",
     "domainLabel": "领域",

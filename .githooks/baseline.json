@@ -1,11 +1,11 @@
 {
-  "version": "185",
+  "version": "186",
   "updated": "2026-06-02",
   "sacred_sha": {
-    "ja.js": "95704e01dd221bdcac7b7fcee81e992d76421540a86935e3c20082650db54815",
-    "zh.js": "932096c40a3cde479ac5f15ed8cf571a03636eb19108e4544804ad2c498be766"
+    "ja.js": "637c73cd6cd2a2d574607d1de584b5a218de9f7d56c0eeddeee3533cfe1f06f2",
+    "zh.js": "f71cc8aa8a8da44c6a3018ce83f791b9f64ce86e27584b505f2c24ef4343068f"
   },
   "ko_leaf_count": 32759,
   "leaf_tolerance_pct": 5,
-  "_note": "185차 — ja/zh LIVE 미번역 전수해소: wms UI 463 + 가이드누락11개국 143 + crm/aiHub 3 + live ns 459키(marketing/priceOpt/catalogSync/sms/recon/graph/pm/reviews/audit/auth 등, 현지자연어). ★진짜 LIVE 잔여 ja2/zh8=전부 글로벌 브랜드명(Coupang/Naver/Shopee/Instagram/YouTube/LINE 라틴유지=의도적). 값=en만 치환=기존보존. ko 무변경(32759). dead/shadow 제외: pages(2259)/crm.aiHub+email(783)/ruleEnginePage(627)/pricingDetail(184)=purge대상. priceOpt poI18n 로컬shadow는 헤드리스 검증필요."
+  "_note": "186차 — Phase1 i18n 잔여 미번역 전수해소: live ns 13개국 638 고유키 1,453건 현지자연어(워크플로우 22에이전트 병렬, 기능/메뉴명 현지화 포함). ja2/zh5/zh-TW15/de287/fr252/es142/pt149/ru37/vi115/id324/th80/ar26/hi19. 값=en만 치환=기존보존. ko 무변경(32759). ★잔여 value===en=정당한 브랜드명(Coupang/Naver/Kakao/Amazon US/Paddle Price ID)·기술ID(LOT ID/REST API Key)·차용어(독일어 Status/Name/Team=동일)로 의도적 영어유지. dead/shadow 제외(Phase2 purge대상): pages(2259)/crm.aiHub+email(783)/ruleEnginePage(627)/pricingDetail(184)."
 }

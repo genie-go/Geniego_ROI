@@ -16727,7 +16727,7 @@ export default {
       "trigger": "🎯 トリガー",
       "email": "✉️ メール",
       "kakao": "💬 カカオ",
-      "line": "💚 LINE",
+      "line": "LINE",
       "sms": "📱 SMS",
       "delay": "⏱ 待機",
       "condition": "🔀 条件分岐",
