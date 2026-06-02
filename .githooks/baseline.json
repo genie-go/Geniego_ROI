@@ -2,10 +2,10 @@
   "version": "185",
   "updated": "2026-06-02",
   "sacred_sha": {
-    "ja.js": "5df91af0c713bb1514e3c6a41c883756d29e95191534be12fe832a4b510022cb",
-    "zh.js": "ec3377f546ec065395028be7dd0ef3af5f716fb81ddecc94d4423b037486e442"
+    "ja.js": "95704e01dd221bdcac7b7fcee81e992d76421540a86935e3c20082650db54815",
+    "zh.js": "932096c40a3cde479ac5f15ed8cf571a03636eb19108e4544804ad2c498be766"
   },
   "ko_leaf_count": 32759,
   "leaf_tolerance_pct": 5,
-  "_note": "185차 — ja/zh live ns 미번역 해소: wms UI 463키 + 가이드자료누락 11개국143키 + crm/aiHub live 3키(crm.tabGuide/guideTabsTitle·aiHub.attribution). ★crm 'ja784' 중 783은 죽은 shadow중복(crm.aiHub.* 726+crm.email.* 57, 참조0=실제 최상위 aiHub/email 사용)→번역제외·purge대상. 값=en만 치환=기존보존. ko 무변경(32759). dead/shadow ns 제외: pages/ruleEnginePage/pricingDetail/crm.aiHub/crm.email."
+  "_note": "185차 — ja/zh LIVE 미번역 전수해소: wms UI 463 + 가이드누락11개국 143 + crm/aiHub 3 + live ns 459키(marketing/priceOpt/catalogSync/sms/recon/graph/pm/reviews/audit/auth 등, 현지자연어). ★진짜 LIVE 잔여 ja2/zh8=전부 글로벌 브랜드명(Coupang/Naver/Shopee/Instagram/YouTube/LINE 라틴유지=의도적). 값=en만 치환=기존보존. ko 무변경(32759). dead/shadow 제외: pages(2259)/crm.aiHub+email(783)/ruleEnginePage(627)/pricingDetail(184)=purge대상. priceOpt poI18n 로컬shadow는 헤드리스 검증필요."
 }
