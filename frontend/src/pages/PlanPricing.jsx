@@ -1936,7 +1936,8 @@ function MenuAccessTree({ plans, menus, access, setMenuAccess, setMenuAccessBulk
   // 계층 키 헬퍼 — 하위메뉴(=라우트 it.to) / 서브탭(=it.to::st.id)
   const subKeysOfLeaf = (it) => (SUB_TABS_BY_PATH[it.to] || []).map(st => `${it.to}::${st.id}`);
   const keysOfGroup = (g) => { const ks = [g.menuKey]; for (const it of g.items) { if (it.to) ks.push(it.to); ks.push(...subKeysOfLeaf(it)); } return ks; };
-  const groupHasChildren = (g) => g.items.length > 1 || g.items.some(it => subKeysOfLeaf(it).length > 0);
+  // 186차: 모든 중메뉴는 하위메뉴(페이지) 를 가지므로 항상 펼침 가능 (단일 페이지도 드릴다운 일관성)
+  const groupHasChildren = (g) => (g.items && g.items.length > 0);
   // 전체 menuKey 수 (manifest 기준, 중복 제거)
   const totalMenuKeys = useMemo(() => { const s = new Set(); for (const sec of sections) for (const it of sec.items) if (it.menuKey) s.add(it.menuKey); return s.size; }, [sections]);
   const planStats = plans.map(p => ({ on: Object.values(access[p.plan_id] || {}).filter(Boolean).length, total: totalMenuKeys }));
