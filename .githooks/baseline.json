@@ -2,10 +2,10 @@
   "version": "186",
   "updated": "2026-06-02",
   "sacred_sha": {
-    "ja.js": "637c73cd6cd2a2d574607d1de584b5a218de9f7d56c0eeddeee3533cfe1f06f2",
-    "zh.js": "f71cc8aa8a8da44c6a3018ce83f791b9f64ce86e27584b505f2c24ef4343068f"
+    "ja.js": "f339b626eb6dd65273cf2c1ad7fb8f38aa640120c212bd4f1b60d6f5104b6a92",
+    "zh.js": "3caeed0a16193116518e55795331452719ac1e422fc460a3d5e17b731bb9bef1"
   },
-  "ko_leaf_count": 32759,
+  "ko_leaf_count": 23103,
   "leaf_tolerance_pct": 5,
-  "_note": "186차 — Phase1 i18n 잔여 미번역 전수해소: live ns 13개국 638 고유키 1,453건 현지자연어(워크플로우 22에이전트 병렬, 기능/메뉴명 현지화 포함). ja2/zh5/zh-TW15/de287/fr252/es142/pt149/ru37/vi115/id324/th80/ar26/hi19. 값=en만 치환=기존보존. ko 무변경(32759). ★잔여 value===en=정당한 브랜드명(Coupang/Naver/Kakao/Amazon US/Paddle Price ID)·기술ID(LOT ID/REST API Key)·차용어(독일어 Status/Name/Team=동일)로 의도적 영어유지. dead/shadow 제외(Phase2 purge대상): pages(2259)/crm.aiHub+email(783)/ruleEnginePage(627)/pricingDetail(184)."
+  "_note": "186차 Phase2 — dead/shadow ns purge: 27개 top-level ns 삭제(ko 9,646 leaf, 전 파일 누계 79,192). ko 32759→23103(-9646). 삭제 ns=nav(3933,sidebarI18n.js 내장사전 대체)·ruleEnginePage(2262,AIRuleEngine.jsx 하드코딩스텁)·aiPredict(삭제페이지)·auto(AutoMarketing=marketing ns사용)·pricing(PlanPricing 로컬/하드코딩)·_marketing_1·marketingIntel·cmpVal·pricingDetail·super·campaignMgr·dt·channelKpi(ChannelKPI=channelKpiPage)·workspace·returnsPortal(rpI18n 로컬)·aiPolicy·menu·writeback(Writeback=writebackPage)·alertAuto·dashGuide·approvals(Approvals=approvalsPage)·sc·conn·gBudget·pxl·commerce·reconciliation. ★검증=정적 2검출기 일치(경로인식,pages_backup제외)+소유페이지 교차검증+런타임 16라우트 헤드리스(pageerror0·미해결키0). 잔여 dead 롱테일(<50 leaf,506ns/546leaf)은 간접접근 잔여리스크로 보류. i18n-locales 17.5MB→14.7MB(-16%). Phase1(186차 전반): live ns 13개국 1453건 현지화."
 }
