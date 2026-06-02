@@ -668,8 +668,11 @@ function PaidRegisterForm({ selectedPlan, onBack, onSwitch }) {
 
   // 172차 P0-B — 구독 cycle 선택 (1/3/6/12개월). 1 = 월간 default.
   const [cycleMonths, setCycleMonths] = useState(1);
-  // 선택 플랜의 periods (backend /auth/pricing/public-plans 의 periods 배열)
-  const [planPeriods, setPlanPeriods] = useState(null); // null=로딩, []=없음, [...]=있음
+  // 186차 — 계정수(seat) 선택 (1/10/무제한 등, admin 설정). 같은 플랜이라도 계정수별 요금.
+  const [seatTier, setSeatTier] = useState('1');
+  const [seatTiers, setSeatTiers] = useState([]);     // [{key,label,count,unlimited}]
+  const [seatPricing, setSeatPricing] = useState({}); // { seat_tier: [periods] }
+  const [basePeriods, setBasePeriods] = useState(null); // null=로딩, []=없음, [...]=있음
 
   useEffect(() => {
     fetch('/auth/pricing/public-plans')
@@ -677,10 +680,17 @@ function PaidRegisterForm({ selectedPlan, onBack, onSwitch }) {
       .then(d => {
         if (!d?.ok) return;
         const p = (d.plans || []).find(x => x.id === selectedPlan);
-        setPlanPeriods(Array.isArray(p?.periods) ? p.periods : []);
+        setBasePeriods(Array.isArray(p?.periods) ? p.periods : []);
+        setSeatPricing(p?.seatPricing && typeof p.seatPricing === 'object' ? p.seatPricing : {});
+        setSeatTiers(Array.isArray(p?.seatTiers) ? p.seatTiers : []);
       })
-      .catch(() => setPlanPeriods([]));
+      .catch(() => { setBasePeriods([]); });
   }, [selectedPlan]);
+
+  // 186차: 선택 계정수의 기간 가격 → CycleSelectorSection 으로 전달. 없으면 base(1계정) periods.
+  const planPeriods = (seatPricing[seatTier] && seatPricing[seatTier].length)
+    ? seatPricing[seatTier]
+    : basePeriods;
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -752,6 +762,8 @@ function PaidRegisterForm({ selectedPlan, onBack, onSwitch }) {
         // 172차 P0-B — 구독 cycle 정보 (backend app_user.subscription_cycle 저장 → 가입 후 Paddle Checkout)
         subscription_cycle: cycleMonths === 1 ? 'monthly' : cycleMonths === 12 ? 'annual' : `${cycleMonths}m`,
         cycle_months: cycleMonths,
+        // 186차 — 선택 계정수(seat) 티어
+        seat_tier: seatTier,
       };
       const result = await register(email, password, name, company, extraData);
       // 172차 P0-C.3 — 회원가입 후 즉시 쿠폰 redeem (token 발급된 상태)
@@ -771,7 +783,7 @@ function PaidRegisterForm({ selectedPlan, onBack, onSwitch }) {
       navigate("/pricing", {
         replace: true,
         state: {
-          autoCheckout: { planId: selectedPlan, cycleMonths },
+          autoCheckout: { planId: selectedPlan, cycleMonths, seatTier },
           couponAlert: manualCoupon?.ok ? manualCoupon : (result?.coupon || null),
         },
       });
@@ -904,6 +916,16 @@ function PaidRegisterForm({ selectedPlan, onBack, onSwitch }) {
           <SelectField label={t("auth.monthlyRevenueLabel")} value={monthlyRevenue} onChange={setMonthlyRevenue}
             options={["Under 100M", "100M-500M", "500M-2B", "2B-10B", "Over 10B"]} />
 
+          {/* 186차 — 계정수 선택 (같은 플랜, 계정수별 요금) */}
+          {seatTiers.length > 1 && (
+            <SeatSelectorSection
+              planCfg={PLAN_CFG}
+              seatTiers={seatTiers}
+              seatTier={seatTier}
+              setSeatTier={setSeatTier}
+            />
+          )}
+
           {/* 172차 P0-B — 구독 cycle 선택 (가입 후 Paddle Checkout 가격 결정) */}
           <CycleSelectorSection
             planCfg={PLAN_CFG}
@@ -1027,6 +1049,49 @@ function CycleSelectorSection({ planCfg, planPeriods, cycleMonths, setCycleMonth
         background: 'rgba(0,0,0,0.05)', fontSize: 11, color: 'var(--text-2)', lineHeight: 1.6,
       }}>
         💡 가입 즉시 결제가 진행됩니다. 카드 결제 (Paddle MoR) — VAT/GST 자동 처리. 30일 환불 보장.
+      </div>
+    </div>
+  );
+}
+
+/**
+ * 186차 — SeatSelectorSection
+ * 회원가입 시 계정수(seat) 선택. 같은 플랜이라도 계정수(1/10/무제한 등)별 요금이 다름.
+ * 선택 시 PaidRegisterForm 의 planPeriods 가 해당 계정수 가격으로 갱신 → 기간 가격 실시간 반영.
+ */
+function SeatSelectorSection({ planCfg, seatTiers, seatTier, setSeatTier }) {
+  const color = planCfg?.color || '#6366f1';
+  return (
+    <div style={{
+      padding: '14px 16px', borderRadius: 12,
+      background: `${color}0D`, border: `1.5px solid ${color}33`,
+    }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 10 }}>
+        <span style={{ fontSize: 14, fontWeight: 800, color }}>👥 계정수 선택</span>
+        <span style={{ fontSize: 11, color: 'var(--text-3)' }}>이용할 계정(좌석) 수를 선택하세요. 계정수에 따라 요금이 달라집니다.</span>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(seatTiers.length, 4)}, 1fr)`, gap: 8 }}>
+        {seatTiers.map(tier => {
+          const sel = tier.key === seatTier;
+          return (
+            <button
+              key={tier.key}
+              type="button"
+              onClick={() => setSeatTier(tier.key)}
+              style={{
+                padding: '12px 10px', borderRadius: 10,
+                background: sel ? '#1e3a8a' : 'rgba(255,255,255,0.04)',
+                color: sel ? '#fde047' : 'var(--text-2)',
+                border: sel ? '2px solid #fde047' : '1.5px solid rgba(99,102,241,0.18)',
+                cursor: 'pointer', textAlign: 'center', fontWeight: sel ? 900 : 600,
+                transition: 'all 150ms',
+              }}
+            >
+              <div style={{ fontSize: 18, marginBottom: 2 }}>{tier.unlimited ? '♾' : '👤'}</div>
+              <div style={{ fontSize: 13, fontWeight: 800 }}>{tier.unlimited ? '무제한' : `${tier.count}계정`}</div>
+            </button>
+          );
+        })}
       </div>
     </div>
   );

@@ -50,20 +50,20 @@ function publishMenuAccessSync(payload) {
 const SEED_PLANS = [
   {
     plan_id: 'starter', name: 'Starter', display_order: 10, is_active: true, is_custom_quote: false,
-    description: '소규모 팀 · 단일 채널 운영',
-    features: ['판매 채널 3개', '창고(WMS) 1개', '마케팅 분석', '팀 멤버 2명', 'API 호출 월 10,000건', '이메일 지원 (48시간 내)'],
-    limits: { warehouses: 1, channels: 3, users: 2 },
+    description: '소규모 팀 · 계정 수 기반',
+    features: ['무제한 판매 채널', '무제한 창고(WMS)', '마케팅 분석', '계정 수 선택 (1/10/무제한)', 'API 호출 월 10,000건', '이메일 지원 (48시간 내)'],
+    limits: { warehouses: -1, channels: -1, users: -1 },
   },
   {
     plan_id: 'pro', name: 'Pro', display_order: 20, is_active: true, is_custom_quote: false, is_recommended: 1,
-    description: '성장 브랜드 · 멀티채널 운영',
-    features: ['무제한 판매 채널', '무제한 창고', 'AI 마케팅 인텔리전스', '인플루언서 평가', '상업 송장 자동 생성', '팀 멤버 10명', 'API 호출 월 500,000건', '우선 지원 (8시간 내)'],
-    limits: { warehouses: -1, channels: -1, users: 10 },
+    description: '성장 브랜드 · 계정 수 기반',
+    features: ['무제한 판매 채널', '무제한 창고', 'AI 마케팅 인텔리전스', '인플루언서 평가', '상업 송장 자동 생성', '계정 수 선택 (1/10/무제한)', 'API 호출 월 500,000건', '우선 지원 (8시간 내)'],
+    limits: { warehouses: -1, channels: -1, users: -1 },
   },
   {
     plan_id: 'enterprise', name: 'Enterprise', display_order: 30, is_active: true, is_custom_quote: true,
     description: '대규모 운영 · 맞춤 통합',
-    features: ['Pro 플랜 전체 기능', '맞춤 AI 모델 학습', '전담 계정 매니저', '99.9% 가용성 SLA', '무제한 팀 멤버', '무제한 API 호출', '맞춤 통합 & 웹훅', '온프레미스 배포 옵션'],
+    features: ['Pro 플랜 전체 기능', '무제한 판매 채널', '무제한 창고', '맞춤 AI 모델 학습', '전담 계정 매니저', '99.9% 가용성 SLA', '계정 수 무제한', '무제한 API 호출', '맞춤 통합 & 웹훅'],
     limits: { warehouses: -1, channels: -1, users: -1 },
   },
 ];
@@ -124,14 +124,19 @@ function PlanPricing() {
   // 172차 Task #22 초고도화 — 메뉴 권한 ↔ 가격 자동 산출
   const [menuPricingSync, setMenuPricingSync] = useState(null); // { menuScores, plans:[{plan_id, recommendedMonthly, currentMonthly, delta, suggestedTier, categoryBreakdown, ...}], totals }
   const [pricingSyncApplying, setPricingSyncApplying] = useState(null);
+  // 186차: 관리자 세션 유실(401) 감지 → 재로그인 안내
+  const [authLost, setAuthLost] = useState(false);
 
   const fetchPlans = useCallback(async () => {
     setLoading(true); setError(null);
     try {
       const data = await getJsonAuth('/v424/admin/plans');
       setPlans(Array.isArray(data?.plans) ? data.plans : []);
+      setAuthLost(false);
     } catch (e) {
-      setError(String(e?.message || e));
+      const msg = String(e?.message || e);
+      if (/HTTP 401|AUTH_REQUIRED|SESSION_EXPIRED|인증이 필요|세션이 만료/.test(msg)) setAuthLost(true);
+      setError(msg);
       setPlans([]);
     } finally {
       setLoading(false);
@@ -598,6 +603,36 @@ function PlanPricing() {
 
   const plan = plans[activePlanIdx];
 
+  // 186차: 관리자 세션 유실 시 — raw 401 에러배너 대신 명확한 재로그인 안내
+  if (authLost) {
+    const relogin = () => {
+      try {
+        ['genie_token', 'demo_genie_token', 'genie_user', 'demo_genie_user'].forEach(k => localStorage.removeItem(k));
+      } catch {}
+      window.location.href = '/login';
+    };
+    return (
+      <div style={{ padding: '60px 24px', minHeight: '100%', color: 'var(--text-1)', display: 'flex', justifyContent: 'center', alignItems: 'flex-start' }}>
+        <div style={{
+          maxWidth: 460, width: '100%', textAlign: 'center', padding: '36px 32px', borderRadius: 16,
+          background: 'rgba(239,68,68,0.05)', border: '1px solid rgba(239,68,68,0.22)',
+        }}>
+          <div style={{ fontSize: 40, marginBottom: 14 }}>🔐</div>
+          <div style={{ fontSize: 18, fontWeight: 800, marginBottom: 8 }}>관리자 재로그인이 필요합니다</div>
+          <div style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.7, marginBottom: 22 }}>
+            관리자 세션이 만료되었거나 로그인되지 않았습니다.<br />
+            로그인 화면에서 <strong>로고를 클릭</strong> → 접속 코드 입력 후 관리자 계정으로 다시 로그인해 주세요.
+          </div>
+          <button onClick={relogin} style={{
+            padding: '12px 28px', borderRadius: 10, border: 'none',
+            background: 'linear-gradient(135deg,#ef4444,#dc2626)', color: '#fff',
+            fontSize: 14, fontWeight: 800, cursor: 'pointer',
+          }}>🔐 관리자 로그인으로 이동</button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div style={{ padding: '18px 24px', minHeight: '100%', color: 'var(--text-1)' }}>
       <div style={{
@@ -672,7 +707,7 @@ function PlanPricing() {
       }}>
         {[
           { id: 'plan',        label: '💰 플랜별 설정 (요금 + 제공 메뉴·기능)' },
-          { id: 'permissions', label: '🔐 전체 플랜 권한 매트릭스 (고급)' },
+          { id: 'permissions', label: '🔐 메뉴 접근 권한 (전 플랜 비교)' },
           { id: 'coupons',     label: '🎟️ 쿠폰 관리' },
         ].map(tb => {
           const active = outerTab === tb.id;
@@ -929,7 +964,13 @@ function tiersForPrice(priceUsd, isCustomQuote) {
 function PlanMenuAccessEditor({ plan, menus, planAcc, setMenuAccess, setMenuAccessBulk, togglePlanAll, menuScores = {}, monthlyPrice }) {
   const t = useT();
   const sections = useMemo(() => [...MEMBER_MENU, ...ADMIN_MENU], []);
-  const dbMenuKeys = useMemo(() => new Set(menus.map(m => m.menu_key || m.id)), [menus]);
+  // 186차: menu_tree(DB) 비어도 plan_menu_access 는 menu_key 로 저장 → menu_tree 비면 manifest 전체 키 허용
+  const dbMenuKeys = useMemo(() => {
+    if (menus.length) return new Set(menus.map(m => m.menu_key || m.id));
+    const s = new Set();
+    for (const sec of [...MEMBER_MENU, ...ADMIN_MENU]) for (const it of (sec.items || [])) if (it.menuKey) s.add(it.menuKey);
+    return s;
+  }, [menus]);
   const isOn = (mk) => !!planAcc[mk];
   const catOf = (mk) => menuScores[mk]?.category || 'standard'; // 미점수 메뉴는 standard 로 간주
   const sectionGroups = (section) => {
@@ -1738,431 +1779,130 @@ function CouponAdminPanel({ plans }) {
 
 function MenuAccessTree({ plans, menus, access, setMenuAccess, setMenuAccessBulk, togglePlanAll, saveAllAccess, saving, dirty, recommendMenuAccess }) {
   const t = useT();
-  const [activePlanIdx, setActivePlanIdx] = useState(0);
-  const [collapsed, setCollapsed] = useState(() => new Set()); // 섹션 collapse 상태
-  const [filter, setFilter] = useState(''); // leaf 검색 필터
-
-  // SSOT: sidebar manifest. menu_tree DB row (menus) 와 교집합 검증.
+  const [collapsed, setCollapsed] = useState(() => new Set());
+  const [filter, setFilter] = useState('');
   const sections = useMemo(() => [...MEMBER_MENU, ...ADMIN_MENU], []);
-  const menuKeyIndex = useMemo(() => buildMenuKeyIndex(), []);
-  // backend menu_tree 에 등록된 menu_key 집합 — 저장 가능 여부 판정 (manifest 만 있고 DB 미등록인 키는 read-only)
-  const dbMenuKeys = useMemo(() => new Set(menus.map(m => m.menu_key || m.id)), [menus]);
+  // 186차: 매트릭스는 sidebar manifest(sections) 기준 렌더. menu_tree(DB) 비어도 plan_menu_access 는 menu_key 로 저장되므로 전체 토글 허용.
 
   if (!plans.length) {
-    return (
-      <div style={{
-        padding: 40, borderRadius: 14, textAlign: 'center',
-        background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)',
-        color: 'var(--text-3)', fontSize: 14,
-      }}>플랜이 없습니다. 먼저 "요금·상세" 탭에서 플랜을 등록하세요.</div>
-    );
-  }
-  if (!menus.length) {
-    return (
-      <div style={{
-        padding: 40, borderRadius: 14, textAlign: 'center',
-        background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)',
-        color: 'var(--text-3)', fontSize: 14,
-      }}>menu_tree 가 비어 있습니다. 169차 P1 seed migration 적용 필요.</div>
-    );
+    return (<div style={{ padding: 40, borderRadius: 14, textAlign: 'center', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', color: 'var(--text-3)', fontSize: 14 }}>플랜이 없습니다. 먼저 "💰 플랜별 설정" 탭에서 플랜을 등록하세요.</div>);
   }
 
-  const activePlan = plans[activePlanIdx] || plans[0];
-  const planAcc = access[activePlan.plan_id] || {};
-  const isOn = (mk) => !!planAcc[mk];
-
-  // 섹션 단위 메타: 섹션 내 unique menuKey 들, 활성화 갯수, 전체 갯수
-  const sectionMeta = (section) => {
-    const groups = []; // [{ menuKey, items: [item, ...] }] — 순서 보존
-    const seen = new Map();
+  // section → unique menuKey groups (순서 보존)
+  const groupsOf = (section) => {
+    const seen = new Map(); const groups = [];
     for (const it of section.items) {
       if (!it.menuKey) continue;
-      if (!seen.has(it.menuKey)) {
-        const grp = { menuKey: it.menuKey, items: [] };
-        seen.set(it.menuKey, grp);
-        groups.push(grp);
-      }
+      if (!seen.has(it.menuKey)) { const g = { menuKey: it.menuKey, items: [] }; seen.set(it.menuKey, g); groups.push(g); }
       seen.get(it.menuKey).items.push(it);
     }
-    const totalKeys = groups.length;
-    const onKeys = groups.filter(g => isOn(g.menuKey)).length;
-    return { groups, totalKeys, onKeys };
+    return groups;
   };
-
-  const toggleCollapse = (key) => {
-    setCollapsed(prev => {
-      const next = new Set(prev);
-      if (next.has(key)) next.delete(key); else next.add(key);
-      return next;
-    });
-  };
-
-  // 검색어 일치 — i18n 라벨 + 경로 + menuKey 모두 매칭
   const matchesFilter = (item) => {
     if (!filter.trim()) return true;
     const q = filter.trim().toLowerCase();
-    const label = (t(item.labelKey, item.labelKey) || '').toLowerCase();
+    const label = (MENU_KEY_LABEL[item.menuKey]?.title || t(item.labelKey, item.labelKey) || '').toLowerCase();
     return label.includes(q) || (item.to || '').toLowerCase().includes(q) || (item.menuKey || '').toLowerCase().includes(q);
   };
-
-  // 우측 패널용 — 현재 활성 menuKey 목록 + 영향 페이지 갯수
-  const enabledKeys = Object.keys(planAcc).filter(k => planAcc[k]);
-  const totalLeafImpact = enabledKeys.reduce((sum, k) => sum + (menuKeyIndex.get(k)?.length || 0), 0);
-
-  // 전 플랜 통계 (플랜 선택 탭 배지용)
-  const planStats = plans.map(p => {
-    const acc = access[p.plan_id] || {};
-    const onCount = Object.values(acc).filter(Boolean).length;
-    return { onCount, total: dbMenuKeys.size };
-  });
+  const isOn = (planId, mk) => !!(access[planId] || {})[mk];
+  const toggleCollapse = (key) => setCollapsed(prev => { const n = new Set(prev); if (n.has(key)) n.delete(key); else n.add(key); return n; });
+  // 전체 menuKey 수 (manifest 기준, 중복 제거)
+  const totalMenuKeys = useMemo(() => { const s = new Set(); for (const sec of sections) for (const it of sec.items) if (it.menuKey) s.add(it.menuKey); return s.size; }, [sections]);
+  const planStats = plans.map(p => ({ on: Object.values(access[p.plan_id] || {}).filter(Boolean).length, total: totalMenuKeys }));
+  const cellPad = { padding: '7px 8px', borderBottom: '1px solid rgba(255,255,255,0.05)' };
 
   return (
     <div>
-      {/* 헤더: 안내 + 전체 저장 */}
-      <div style={{
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14, gap: 14, flexWrap: 'wrap',
-      }}>
-        <div style={{ fontSize: 14, color: 'var(--text-3)', lineHeight: 1.6 }}>
-          각 플랜의 사용자가 사이드바에서 볼 수 있는 메뉴를 결정합니다. 트리 구조: <strong>대메뉴(섹션) → 중메뉴(통합 그룹) → 하위 페이지 → 페이지 내 서브탭</strong>. ➕ <strong style={{ color:'#22c55e' }}>추가</strong> / ➖ <strong style={{ color:'#f87171' }}>제거</strong> 로 명시적 편집 후 우측 <strong>전체 저장</strong>.
+      {/* 헤더 + 액션 */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14, marginBottom: 14, flexWrap: 'wrap' }}>
+        <div style={{ flex: 1, minWidth: 280 }}>
+          <div style={{ fontSize: 15, fontWeight: 800, marginBottom: 4 }}>🔐 플랜별 메뉴 접근 권한 — 한눈에 비교·편집</div>
+          <div style={{ fontSize: 13, color: 'var(--text-3)', lineHeight: 1.6 }}>
+            행 = 제공 서비스(메뉴), 열 = 플랜. 한 페이지에서 각 플랜이 어떤 서비스를 제공하는지 비교하며 체크박스로 선택하세요. 편집 후 <strong>전체 저장</strong>.
+          </div>
         </div>
         <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
           {typeof recommendMenuAccess === 'function' && (
-            <button onClick={recommendMenuAccess} disabled={saving} title="등록된 플랜별 월 요금 차이에 비례해 AI가 메뉴 접근을 추천합니다 (수정 후 저장 가능)" style={{
-              padding: '11px 22px', borderRadius: 10, border: '1px solid rgba(168,85,247,0.45)',
-              background: 'linear-gradient(135deg,rgba(168,85,247,0.18),rgba(79,142,247,0.12))',
-              color: '#d8b4fe', fontSize: 14, fontWeight: 800, cursor: saving ? 'default' : 'pointer',
-              opacity: saving ? 0.6 : 1, whiteSpace: 'nowrap',
-            }}>🤖 요금 기반 메뉴접근 추천</button>
+            <button onClick={recommendMenuAccess} disabled={saving} title="플랜별 월 요금 차이에 비례해 AI가 메뉴 접근을 추천" style={{ padding: '11px 20px', borderRadius: 10, border: '1px solid rgba(168,85,247,0.45)', background: 'linear-gradient(135deg,rgba(168,85,247,0.18),rgba(79,142,247,0.12))', color: '#d8b4fe', fontSize: 14, fontWeight: 800, cursor: saving ? 'default' : 'pointer', opacity: saving ? 0.6 : 1, whiteSpace: 'nowrap' }}>🤖 요금 기반 추천</button>
           )}
-          <button onClick={saveAllAccess} disabled={saving || !dirty} style={{
-            padding: '11px 26px', borderRadius: 10, border: 'none',
-            background: dirty ? 'linear-gradient(135deg,#16a34a,#22c55e)' : 'rgba(255,255,255,0.06)',
-            color: dirty ? '#fff' : '#94a3b8',
-            fontSize: 14, fontWeight: 800, cursor: dirty ? 'pointer' : 'default',
-            opacity: saving ? 0.6 : 1, whiteSpace: 'nowrap',
-          }}>{saving ? '저장 중…' : (dirty ? '💾 전체 저장 (모든 플랜)' : '✓ 저장됨')}</button>
+          <button onClick={saveAllAccess} disabled={saving || !dirty} style={{ padding: '11px 24px', borderRadius: 10, border: 'none', background: dirty ? 'linear-gradient(135deg,#16a34a,#22c55e)' : 'rgba(255,255,255,0.06)', color: dirty ? '#fff' : '#94a3b8', fontSize: 14, fontWeight: 800, cursor: dirty ? 'pointer' : 'default', opacity: saving ? 0.6 : 1, whiteSpace: 'nowrap' }}>{saving ? '저장 중…' : (dirty ? '💾 전체 저장' : '✓ 저장됨')}</button>
         </div>
       </div>
 
-      {/* 플랜 선택 탭 — 한 플랜씩 편집 */}
-      <div style={{
-        display: 'flex', gap: 6, marginBottom: 14, padding: 5, borderRadius: 12,
-        background: 'rgba(0,0,0,0.35)', border: '1px solid rgba(255,255,255,0.08)', flexWrap: 'wrap',
-      }}>
-        {plans.map((p, i) => {
-          const sel = activePlanIdx === i;
-          return (
-          <button key={p.plan_id} onClick={() => setActivePlanIdx(i)} style={{
-            flex: 1, minWidth: 160, padding: '12px 18px', borderRadius: 9, border: 'none', cursor: 'pointer',
-            fontWeight: sel ? 900 : 700, fontSize: 14,
-            // 172차 p4 — 찐한 파랑 + 노랑 텍스트, 미선택은 어두운 회색 + 밝은 텍스트
-            background: sel ? '#1e3a8a' : 'rgba(255,255,255,0.04)',
-            color: sel ? '#fde047' : 'var(--text-2)',
-            boxShadow: sel ? '0 0 0 2px #fde047 inset' : 'none',
-            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
-            transition: 'all 150ms',
-          }}>
-            <span>{p.name || p.plan_id}</span>
-            <span style={{ fontSize: 12, opacity: sel ? 0.9 : 0.7 }}>
-              {planStats[i].onCount} / {planStats[i].total} 활성
-            </span>
-          </button>
-          );
-        })}
-      </div>
+      {/* 검색 */}
+      <input type="text" value={filter} onChange={e => setFilter(e.target.value)} placeholder="🔍 메뉴 이름/경로/키 검색…" style={{ width: '100%', boxSizing: 'border-box', padding: '10px 14px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.2)', color: 'var(--text-1)', fontSize: 14, marginBottom: 14 }} />
 
-      {/* 검색 + 활성 플랜 컨트롤 */}
-      <div style={{ display: 'flex', gap: 10, marginBottom: 14, alignItems: 'center', flexWrap: 'wrap' }}>
-        <input
-          type="text" value={filter} onChange={e => setFilter(e.target.value)}
-          placeholder="🔍 메뉴 이름/경로/키 검색…"
-          style={{
-            flex: 1, minWidth: 240, padding: '10px 14px', borderRadius: 8,
-            border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.2)',
-            color: 'var(--text-1)', fontSize: 14,
-          }}
-        />
-        <button onClick={() => togglePlanAll(activePlan.plan_id, true)} style={{
-          padding: '10px 16px', borderRadius: 8,
-          background: 'rgba(34,197,94,0.12)', color: '#22c55e',
-          border: '1px solid rgba(34,197,94,0.3)', fontSize: 14, fontWeight: 700, cursor: 'pointer',
-        }}>✓ {activePlan.name} 전체 추가</button>
-        <button onClick={() => togglePlanAll(activePlan.plan_id, false)} style={{
-          padding: '10px 16px', borderRadius: 8,
-          background: 'rgba(248,113,113,0.10)', color: '#f87171',
-          border: '1px solid rgba(248,113,113,0.3)', fontSize: 14, fontWeight: 700, cursor: 'pointer',
-        }}>✗ {activePlan.name} 전체 제거</button>
-      </div>
-
-      {/* 2-pane 본체 — 좌: 트리, 우: 선택 요약 */}
-      <div style={{ display: 'grid', gridTemplateColumns: '2.2fr 1fr', gap: 18, alignItems: 'start' }}>
-        {/* 좌측 — 전체 메뉴 트리 (대메뉴 → 중메뉴 → 하위 페이지 → 서브탭, 4단계) */}
-        <div style={{
-          borderRadius: 14, padding: '16px 20px',
-          background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)',
-        }}>
-          <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--text-3)', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 12 }}>
-            전체 메뉴 트리 — {activePlan.name}
-          </div>
-          {sections.map(section => {
-            const meta = sectionMeta(section);
-            const visibleGroups = meta.groups.filter(g => g.items.some(matchesFilter));
-            if (filter.trim() && visibleGroups.length === 0) return null;
-            const isCollapsed = collapsed.has(section.key);
-            const allOn = meta.onKeys === meta.totalKeys && meta.totalKeys > 0;
-            const allOff = meta.onKeys === 0;
-            const sectionLabel = t(section.labelKey, section.labelKey.split('.').pop());
-            return (
-              <div key={section.key} style={{
-                marginBottom: 12, borderRadius: 10,
-                background: 'rgba(0,0,0,0.18)', border: '1px solid rgba(255,255,255,0.04)',
-              }}>
-                {/* 대메뉴 헤더 (Level 1) — collapse + 섹션 일괄 토글 */}
-                <div style={{
-                  display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px',
-                  cursor: 'pointer', borderBottom: isCollapsed ? 'none' : '1px solid rgba(255,255,255,0.04)',
-                  flexWrap: 'wrap',
-                }} onClick={() => toggleCollapse(section.key)}>
-                  <span style={{ width: 12, color: 'var(--text-3)', fontSize: 12 }}>{isCollapsed ? '▶' : '▼'}</span>
-                  <span style={{ fontSize: 16 }}>{section.icon}</span>
-                  <span style={{
-                    padding: '2px 8px', borderRadius: 8, fontSize: 11, fontWeight: 800,
-                    background: 'rgba(99,102,241,0.15)', color: '#a5b4fc', letterSpacing: 0.5,
-                  }}>대메뉴</span>
-                  <span style={{ fontSize: 15, fontWeight: 800, color: 'var(--text-1)' }}>{sectionLabel}</span>
-                  <span style={{
-                    padding: '2px 10px', borderRadius: 10, fontSize: 12, fontWeight: 800,
-                    background: allOn ? 'rgba(34,197,94,0.18)' : (allOff ? 'rgba(248,113,113,0.10)' : 'rgba(251,146,60,0.18)'),
-                    color: allOn ? '#22c55e' : (allOff ? '#f87171' : '#fb923c'),
-                  }}>
-                    {allOn ? '전체 포함' : (allOff ? '전체 제외' : `부분 ${meta.onKeys}/${meta.totalKeys}`)}
-                  </span>
-                  <div style={{ flex: 1 }} />
-                  <button onClick={e => { e.stopPropagation(); setMenuAccessBulk(activePlan.plan_id, meta.groups.map(g => g.menuKey), true); }} style={{
-                    padding: '5px 12px', borderRadius: 6,
-                    background: 'rgba(34,197,94,0.12)', color: '#22c55e',
-                    border: '1px solid rgba(34,197,94,0.28)', fontSize: 12, fontWeight: 700, cursor: 'pointer',
-                  }}>➕ 섹션 추가</button>
-                  <button onClick={e => { e.stopPropagation(); setMenuAccessBulk(activePlan.plan_id, meta.groups.map(g => g.menuKey), false); }} style={{
-                    padding: '5px 12px', borderRadius: 6,
-                    background: 'rgba(248,113,113,0.10)', color: '#f87171',
-                    border: '1px solid rgba(248,113,113,0.28)', fontSize: 12, fontWeight: 700, cursor: 'pointer',
-                  }}>➖ 섹션 제거</button>
-                </div>
-
-                {/* 중메뉴 (Level 2 — menuKey 그룹) */}
-                {!isCollapsed && (
-                  <div style={{ padding: '8px 12px 12px 30px' }}>
-                    {visibleGroups.map(group => {
-                      const on = isOn(group.menuKey);
-                      const inDb = dbMenuKeys.has(group.menuKey);
-                      const items = group.items.filter(matchesFilter);
-                      const shareCount = group.items.length;
-                      const groupLabel = MENU_KEY_LABEL[group.menuKey];
+      {/* 비교 매트릭스 (메뉴 × 플랜) */}
+      <div style={{ borderRadius: 14, border: '1px solid rgba(255,255,255,0.07)', overflow: 'auto', background: 'rgba(255,255,255,0.02)' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, minWidth: 520 }}>
+          <thead>
+            <tr style={{ background: 'rgba(0,0,0,0.3)' }}>
+              <th style={{ ...cellPad, textAlign: 'left', position: 'sticky', left: 0, background: '#0f172a', minWidth: 240, zIndex: 1 }}>제공 서비스 (메뉴)</th>
+              {plans.map((p, i) => (
+                <th key={p.plan_id} style={{ ...cellPad, textAlign: 'center', minWidth: 100 }}>
+                  <div style={{ fontWeight: 800, color: '#fde047' }}>{p.name || p.plan_id}</div>
+                  <div style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 1 }}>{planStats[i].on}/{planStats[i].total} 활성</div>
+                  <div style={{ display: 'flex', gap: 3, justifyContent: 'center', marginTop: 4 }}>
+                    <button onClick={() => togglePlanAll(p.plan_id, true)} title="이 플랜 전체 추가" style={{ padding: '1px 6px', borderRadius: 4, fontSize: 10, fontWeight: 700, border: '1px solid rgba(34,197,94,0.3)', background: 'rgba(34,197,94,0.12)', color: '#22c55e', cursor: 'pointer' }}>✓전체</button>
+                    <button onClick={() => togglePlanAll(p.plan_id, false)} title="이 플랜 전체 제거" style={{ padding: '1px 6px', borderRadius: 4, fontSize: 10, fontWeight: 700, border: '1px solid rgba(248,113,113,0.3)', background: 'rgba(248,113,113,0.1)', color: '#f87171', cursor: 'pointer' }}>✗전체</button>
+                  </div>
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {sections.map(section => {
+              const groups = groupsOf(section).filter(g => g.items.some(matchesFilter));
+              if (filter.trim() && groups.length === 0) return null;
+              const isCol = collapsed.has(section.key);
+              const sectionLabel = t(section.labelKey, section.labelKey.split('.').pop());
+              const allKeys = groups.map(g => g.menuKey);
+              return (
+                <React.Fragment key={section.key}>
+                  {/* 섹션(대메뉴) 헤더 행 — 플랜별 섹션 일괄 토글 */}
+                  <tr style={{ background: 'rgba(99,102,241,0.08)' }}>
+                    <td style={{ ...cellPad, position: 'sticky', left: 0, background: '#162033', cursor: 'pointer', fontWeight: 800 }} onClick={() => toggleCollapse(section.key)}>
+                      <span style={{ color: 'var(--text-3)', marginRight: 6 }}>{isCol ? '▶' : '▼'}</span>
+                      <span style={{ marginRight: 6 }}>{section.icon}</span>{sectionLabel}
+                    </td>
+                    {plans.map(p => {
+                      const onCnt = allKeys.filter(k => isOn(p.plan_id, k)).length;
+                      const all = onCnt === allKeys.length && allKeys.length > 0;
                       return (
-                        <div key={group.menuKey} style={{
-                          marginTop: 10, padding: '10px 12px', borderRadius: 8,
-                          background: on ? 'rgba(34,197,94,0.05)' : 'rgba(248,113,113,0.03)',
-                          border: `1px solid ${on ? 'rgba(34,197,94,0.22)' : 'rgba(255,255,255,0.05)'}`,
-                          opacity: inDb ? 1 : 0.55,
-                        }}>
-                          {/* 중메뉴 헤더 */}
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, flexWrap: 'wrap' }}>
-                            <span style={{
-                              fontSize: 16, color: on ? '#22c55e' : '#f87171', width: 18, textAlign: 'center',
-                            }}>{on ? '✓' : '✗'}</span>
-                            <span style={{
-                              padding: '2px 7px', borderRadius: 8, fontSize: 10, fontWeight: 800,
-                              background: 'rgba(34,197,94,0.15)', color: '#22c55e', letterSpacing: 0.5,
-                            }}>중메뉴</span>
-                            <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--text-1)' }}>
-                              {groupLabel?.title || group.menuKey}
-                            </span>
-                            <code style={{
-                              fontSize: 11, fontFamily: 'monospace', color: 'var(--text-3)',
-                              padding: '1px 5px', borderRadius: 3, background: 'rgba(0,0,0,0.3)',
-                            }}>{group.menuKey}</code>
-                            {shareCount > 1 && (
-                              <span style={{
-                                padding: '2px 8px', borderRadius: 10, fontSize: 11, fontWeight: 800,
-                                background: 'rgba(99,102,241,0.15)', color: '#a5b4fc',
-                              }}>🔗 {shareCount}개 페이지 함께 제어</span>
-                            )}
-                            {!inDb && (
-                              <span style={{
-                                padding: '2px 8px', borderRadius: 10, fontSize: 11, fontWeight: 800,
-                                background: 'rgba(251,146,60,0.15)', color: '#fb923c',
-                              }}>⚠ menu_tree 미등록</span>
-                            )}
-                            <div style={{ flex: 1 }} />
-                            <button
-                              onClick={() => setMenuAccess(activePlan.plan_id, group.menuKey, true)}
-                              disabled={!inDb || on}
-                              style={{
-                                padding: '5px 12px', borderRadius: 6,
-                                background: on ? 'rgba(255,255,255,0.04)' : 'rgba(34,197,94,0.15)',
-                                color: on ? '#94a3b8' : '#22c55e',
-                                border: `1px solid ${on ? 'rgba(255,255,255,0.06)' : 'rgba(34,197,94,0.32)'}`,
-                                fontSize: 13, fontWeight: 700, cursor: (!inDb || on) ? 'default' : 'pointer',
-                                opacity: (!inDb || on) ? 0.55 : 1,
-                              }}
-                              title="이 메뉴(및 연결된 모든 페이지)를 플랜에 추가"
-                            >➕ 추가</button>
-                            <button
-                              onClick={() => setMenuAccess(activePlan.plan_id, group.menuKey, false)}
-                              disabled={!inDb || !on}
-                              style={{
-                                padding: '5px 12px', borderRadius: 6,
-                                background: !on ? 'rgba(255,255,255,0.04)' : 'rgba(248,113,113,0.12)',
-                                color: !on ? '#94a3b8' : '#f87171',
-                                border: `1px solid ${!on ? 'rgba(255,255,255,0.06)' : 'rgba(248,113,113,0.32)'}`,
-                                fontSize: 13, fontWeight: 700, cursor: (!inDb || !on) ? 'default' : 'pointer',
-                                opacity: (!inDb || !on) ? 0.55 : 1,
-                              }}
-                              title="이 메뉴(및 연결된 모든 페이지)를 플랜에서 제거"
-                            >➖ 제거</button>
-                          </div>
-                          {groupLabel?.desc && (
-                            <div style={{ fontSize: 13, color: 'var(--text-3)', marginLeft: 26, marginBottom: 8, lineHeight: 1.6 }}>
-                              {groupLabel.desc}
-                            </div>
-                          )}
-                          {/* 하위메뉴 (Level 3 — leaf 페이지) + 서브탭 (Level 4) */}
-                          <div style={{ display: 'grid', gap: 4, paddingLeft: 26 }}>
-                            {items.map(it => {
-                              const leafLabel = t(it.labelKey, it.labelKey.split('.').pop());
-                              const subTabs = SUB_TABS_BY_PATH[it.to] || [];
-                              return (
-                                <div key={it.to} style={{
-                                  padding: '6px 8px', borderRadius: 6,
-                                  background: 'rgba(0,0,0,0.15)',
-                                  border: '1px solid rgba(255,255,255,0.03)',
-                                }}>
-                                  {/* 하위메뉴 (leaf 페이지) */}
-                                  <div style={{
-                                    display: 'flex', alignItems: 'center', gap: 8, fontSize: 13,
-                                    color: on ? '#cbd5e1' : '#94a3b8',
-                                  }}>
-                                    <span style={{ width: 14, textAlign: 'center', opacity: 0.6 }}>{it.icon}</span>
-                                    <span style={{
-                                      padding: '1px 6px', borderRadius: 6, fontSize: 10, fontWeight: 800,
-                                      background: 'rgba(251,191,36,0.15)', color: '#fbbf24', letterSpacing: 0.3,
-                                    }}>하위</span>
-                                    <span style={{ minWidth: 140, fontWeight: 700 }}>{leafLabel}</span>
-                                    <code style={{ fontSize: 11, color: 'var(--text-3)', fontFamily: 'monospace' }}>{it.to}</code>
-                                    {subTabs.length > 0 && (
-                                      <span style={{
-                                        padding: '1px 6px', borderRadius: 8, fontSize: 10, fontWeight: 700,
-                                        background: 'rgba(168,85,247,0.12)', color: '#c084fc',
-                                      }}>📑 서브탭 {subTabs.length}</span>
-                                    )}
-                                  </div>
-                                  {/* 서브탭 (Level 4) — 페이지 내부 탭 개별 토글 */}
-                                  {subTabs.length > 0 && (
-                                    <div style={{
-                                      marginTop: 6, paddingLeft: 22, display: 'flex', flexWrap: 'wrap', gap: 6,
-                                    }}>
-                                      {subTabs.map(st => {
-                                        const subKey = `${it.to}::${st.id}`; // sub-tab access key
-                                        const subOn = !!planAcc[subKey];
-                                        return (
-                                          <button
-                                            key={st.id}
-                                            onClick={() => setMenuAccess(activePlan.plan_id, subKey, !subOn)}
-                                            style={{
-                                              padding: '4px 10px', borderRadius: 14, fontSize: 12, fontWeight: 700,
-                                              border: subOn ? '1px solid rgba(168,85,247,0.45)' : '1px solid rgba(255,255,255,0.08)',
-                                              background: subOn ? 'rgba(168,85,247,0.18)' : 'rgba(0,0,0,0.25)',
-                                              color: subOn ? '#c084fc' : '#94a3b8',
-                                              cursor: 'pointer',
-                                              display: 'inline-flex', alignItems: 'center', gap: 4,
-                                            }}
-                                            title={`${st.label} (${subKey})`}
-                                          >
-                                            <span>{subOn ? '✓' : '○'}</span>
-                                            <span>{st.label}</span>
-                                          </button>
-                                        );
-                                      })}
-                                    </div>
-                                  )}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
+                        <td key={p.plan_id} style={{ ...cellPad, textAlign: 'center' }}>
+                          <button onClick={() => setMenuAccessBulk(p.plan_id, allKeys, !all)} title={all ? '섹션 전체 제거' : '섹션 전체 추가'} style={{ padding: '2px 7px', borderRadius: 5, fontSize: 10, fontWeight: 800, cursor: 'pointer', border: '1px solid rgba(255,255,255,0.12)', background: all ? 'rgba(34,197,94,0.16)' : (onCnt ? 'rgba(251,146,60,0.14)' : 'rgba(255,255,255,0.04)'), color: all ? '#22c55e' : (onCnt ? '#fb923c' : 'var(--text-3)') }}>{onCnt}/{allKeys.length}</button>
+                        </td>
                       );
                     })}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-
-        {/* 우측 — 선택 요약 */}
-        <div style={{
-          position: 'sticky', top: 16, borderRadius: 14, padding: '20px 22px',
-          background: 'rgba(99,102,241,0.08)',
-          border: '1px solid rgba(99,102,241,0.22)',
-        }}>
-          <div style={{ fontSize: 13, fontWeight: 800, color: '#a5b4fc', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 12 }}>
-            선택 요약 — {activePlan.name}
-          </div>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 4 }}>
-            <span style={{ fontSize: 32, fontWeight: 900, color: '#22c55e' }}>{enabledKeys.length}</span>
-            <span style={{ fontSize: 14, color: 'var(--text-3)' }}>/ {dbMenuKeys.size} 메뉴 활성</span>
-          </div>
-          <div style={{ fontSize: 14, color: 'var(--text-3)', marginBottom: 16 }}>
-            영향받는 페이지 <strong style={{ color: 'var(--text-2)' }}>{totalLeafImpact}개</strong>
-          </div>
-          <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 12, marginBottom: 8, fontSize: 13, fontWeight: 700, color: 'var(--text-3)' }}>
-            ✓ 포함된 메뉴 ({enabledKeys.length})
-          </div>
-          <div style={{ maxHeight: 320, overflowY: 'auto', display: 'grid', gap: 5 }}>
-            {enabledKeys.length === 0 && (
-              <div style={{ fontSize: 13, color: 'var(--text-3)', padding: '8px 0', fontStyle: 'italic' }}>
-                선택된 메뉴 없음
-              </div>
-            )}
-            {enabledKeys.map(k => {
-              const leafs = menuKeyIndex.get(k) || [];
-              // sub-tab 키 (xxx::yyy 형식) 와 일반 menuKey 분리
-              const isSubTab = k.includes('::');
-              const koLabel = MENU_KEY_LABEL[k]?.title;
-              return (
-                <div key={k} style={{
-                  display: 'flex', alignItems: 'center', gap: 6,
-                  padding: '6px 10px', borderRadius: 6,
-                  background: isSubTab ? 'rgba(168,85,247,0.06)' : 'rgba(34,197,94,0.06)',
-                  fontSize: 13,
-                }}>
-                  <span style={{ color: isSubTab ? '#c084fc' : '#22c55e' }}>{isSubTab ? '📑' : '✓'}</span>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {koLabel || k}
-                    </div>
-                    {(koLabel || leafs.length > 1) && (
-                      <div style={{ fontSize: 11, color: 'var(--text-3)', fontFamily: 'monospace', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {k}{leafs.length > 1 && ` · ${leafs.length}개 페이지`}
-                      </div>
-                    )}
-                  </div>
-                  <button onClick={() => setMenuAccess(activePlan.plan_id, k, false)} style={{
-                    padding: '2px 8px', borderRadius: 4, fontSize: 12,
-                    background: 'rgba(248,113,113,0.10)', color: '#f87171',
-                    border: '1px solid rgba(248,113,113,0.25)', cursor: 'pointer',
-                  }} title="제거">×</button>
-                </div>
+                  </tr>
+                  {/* 메뉴(중메뉴) 행 — 플랜별 체크박스 */}
+                  {!isCol && groups.map(g => {
+                    const lbl = MENU_KEY_LABEL[g.menuKey];
+                    const title = lbl?.title || t(g.items[0]?.labelKey, g.menuKey);
+                    const desc = lbl?.desc;
+                    const saveable = true; // 186차: plan_menu_access 는 menu_key 로 저장 — 전체 토글 허용
+                    return (
+                      <tr key={g.menuKey}>
+                        <td style={{ ...cellPad, position: 'sticky', left: 0, background: '#0b1220', paddingLeft: 26 }}>
+                          <div style={{ fontWeight: 600, color: 'var(--text-1)' }}>{title}</div>
+                          {desc && <div style={{ fontSize: 10, color: 'var(--text-3)', lineHeight: 1.4, marginTop: 1, maxWidth: 380 }}>{desc}</div>}
+                        </td>
+                        {plans.map(p => (
+                          <td key={p.plan_id} style={{ ...cellPad, textAlign: 'center' }}>
+                            <input type="checkbox" checked={isOn(p.plan_id, g.menuKey)} disabled={!saveable} onChange={e => setMenuAccess(p.plan_id, g.menuKey, e.target.checked)} style={{ width: 17, height: 17, cursor: saveable ? 'pointer' : 'not-allowed' }} />
+                          </td>
+                        ))}
+                      </tr>
+                    );
+                  })}
+                </React.Fragment>
               );
             })}
-          </div>
-          <div style={{ marginTop: 14, padding: '10px 14px', borderRadius: 8, background: 'rgba(0,0,0,0.2)', fontSize: 12, color: 'var(--text-3)', lineHeight: 1.65 }}>
-            💡 <strong>중메뉴 토글</strong> = 동일 menuKey 를 공유하는 모든 하위 페이지가 일괄 노출/숨김.<br/>
-            예: <code style={{ color: 'var(--text-2)' }}>marketing</code> 1개 토글 → 자동마케팅·CRM·캠페인 등 17개 페이지 동시 제어.<br/>
-            <strong style={{ color: '#c084fc' }}>📑 서브탭</strong> 은 페이지 내 개별 탭 권한 (향후 단계 적용 예정).
-          </div>
-        </div>
+          </tbody>
+        </table>
+      </div>
+      <div style={{ marginTop: 12, padding: '10px 14px', borderRadius: 8, background: 'rgba(0,0,0,0.2)', fontSize: 12, color: 'var(--text-3)', lineHeight: 1.65 }}>
+        💡 한 행(중메뉴) 토글 = 동일 menuKey 를 공유하는 모든 하위 페이지 일괄 노출/숨김. 섹션 헤더의 <strong>n/m</strong> 버튼으로 섹션 전체를 플랜별 일괄 토글. 편집 후 <strong>💾 전체 저장</strong>.
       </div>
     </div>
   );
