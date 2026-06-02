@@ -959,6 +959,11 @@ function PlanPricing() {
               />
             </div>
 
+            {/* 186차 — 구독자에게 보일 '제공 서비스 상세' (admin 미리보기, 구버전 참고) */}
+            <div style={{ marginTop: 18 }}>
+              <AdminPlanServiceDetail plan={plan} planAcc={access[plan.plan_id] || {}} />
+            </div>
+
             {/* ④ 통합 저장 — 요금 + 제공 메뉴·기능 한 번에 */}
             <div style={{
               display: 'flex', justifyContent: 'flex-end', gap: 14, alignItems: 'center',
@@ -1158,6 +1163,62 @@ function PlanMenuAccessEditor({ plan, menus, planAcc, setMenuAccess, setMenuAcce
           );
         })}
       </div>
+    </div>
+  );
+}
+
+/**
+ * 186차 — AdminPlanServiceDetail
+ * admin plan 탭에서 '이 플랜 구독자가 받을 제공 서비스 상세'를 미리보기(구버전 참고).
+ * planAcc(메뉴 접근) → MENU_KEY_LABEL 설명 + plan.features.
+ */
+function AdminPlanServiceDetail({ plan, planAcc }) {
+  const [open, setOpen] = useState(false);
+  const services = [];
+  const seen = new Set();
+  for (const k of Object.keys(planAcc || {})) {
+    if (!planAcc[k]) continue;
+    const lbl = MENU_KEY_LABEL[k];
+    if (lbl && lbl.title && !seen.has(lbl.title)) { seen.add(lbl.title); services.push(lbl); }
+  }
+  const featList = (plan.features || []).map(f => (typeof f === 'string' ? f : (f?.text || ''))).filter(Boolean);
+  return (
+    <div style={{ borderRadius: 12, background: 'rgba(34,197,94,0.06)', border: '1px solid rgba(34,197,94,0.22)', overflow: 'hidden' }}>
+      <button onClick={() => setOpen(o => !o)} style={{ width: '100%', padding: '11px 16px', display: 'flex', alignItems: 'center', gap: 10, background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left', color: 'var(--text-1)' }}>
+        <span style={{ fontSize: 18 }}>📖</span>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 14, fontWeight: 800 }}>{plan.name || plan.plan_id} 플랜 — 제공 서비스 상세 (구독자 안내 미리보기)</div>
+          <div style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 1 }}>이 플랜 구독자가 받을 서비스 {services.length}개 · 구버전식 상세 설명</div>
+        </div>
+        <span style={{ color: 'var(--text-3)', fontSize: 12 }}>{open ? '▼ 접기' : '▶ 펼치기'}</span>
+      </button>
+      {open && (
+        <div style={{ padding: '0 16px 14px' }}>
+          {featList.length > 0 && (
+            <div style={{ marginBottom: 10 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#86efac', marginBottom: 5 }}>✨ 핵심 혜택</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px,1fr))', gap: 6 }}>
+                {featList.map((f, i) => (<div key={i} style={{ fontSize: 12, color: 'var(--text-1)', display: 'flex', gap: 6 }}><span style={{ color: '#22c55e' }}>✓</span><span>{f}</span></div>))}
+              </div>
+            </div>
+          )}
+          {services.length > 0 ? (
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#86efac', marginBottom: 5 }}>🧩 이용 가능 서비스 ({services.length})</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px,1fr))', gap: 7, maxHeight: 320, overflowY: 'auto', paddingRight: 4 }}>
+                {services.map((s, i) => (
+                  <div key={i} style={{ padding: '8px 10px', borderRadius: 8, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-1)' }}>{s.title}</div>
+                    {s.desc && <div style={{ fontSize: 11, color: 'var(--text-3)', lineHeight: 1.5, marginTop: 2 }}>{s.desc}</div>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div style={{ fontSize: 12, color: 'var(--text-3)', fontStyle: 'italic', padding: '6px 0' }}>아직 제공 서비스(메뉴 접근)가 선택되지 않았습니다. 위 ③ 또는 🔐 메뉴 접근 권한 탭에서 선택 후 저장하세요.</div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -1892,11 +1953,11 @@ function MenuAccessTree({ plans, menus, access, setMenuAccess, setMenuAccessBulk
       <input type="text" value={filter} onChange={e => setFilter(e.target.value)} placeholder="🔍 메뉴 이름/경로/키 검색…" style={{ width: '100%', boxSizing: 'border-box', padding: '10px 14px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.2)', color: 'var(--text-1)', fontSize: 14, marginBottom: 14 }} />
 
       {/* 비교 매트릭스 (메뉴 × 플랜) */}
-      <div style={{ borderRadius: 14, border: '1px solid rgba(255,255,255,0.07)', overflow: 'auto', background: 'rgba(255,255,255,0.02)' }}>
+      <div style={{ borderRadius: 14, border: '1px solid rgba(255,255,255,0.07)', overflow: 'auto', background: 'rgba(255,255,255,0.04)' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, minWidth: 520 }}>
           <thead>
             <tr style={{ background: 'rgba(0,0,0,0.3)' }}>
-              <th style={{ ...cellPad, textAlign: 'left', position: 'sticky', left: 0, background: '#0f172a', minWidth: 240, zIndex: 1, color: '#e2e8f0' }}>제공 서비스 (메뉴)</th>
+              <th style={{ ...cellPad, textAlign: 'left', position: 'sticky', left: 0, background: '#334155', minWidth: 240, zIndex: 1, color: '#e2e8f0' }}>제공 서비스 (메뉴)</th>
               {plans.map((p, i) => (
                 <th key={p.plan_id} style={{ ...cellPad, textAlign: 'center', minWidth: 100 }}>
                   <div style={{ fontWeight: 800, color: '#fde047' }}>{p.name || p.plan_id}</div>
@@ -1920,7 +1981,7 @@ function MenuAccessTree({ plans, menus, access, setMenuAccess, setMenuAccessBulk
                 <React.Fragment key={section.key}>
                   {/* 대메뉴(섹션) — 체크박스 = 섹션 전체(하위 모두 포함) */}
                   <tr style={{ background: 'rgba(99,102,241,0.10)' }}>
-                    <td style={{ ...cellPad, position: 'sticky', left: 0, background: '#162033', cursor: 'pointer', fontWeight: 800, color: '#f1f5f9' }} onClick={() => toggleCollapse(section.key)}>
+                    <td style={{ ...cellPad, position: 'sticky', left: 0, background: '#2c3a52', cursor: 'pointer', fontWeight: 800, color: '#f1f5f9' }} onClick={() => toggleCollapse(section.key)}>
                       <span style={{ color: '#94a3b8', marginRight: 6 }}>{isCol ? '▶' : '▼'}</span>
                       <span style={{ marginRight: 6 }}>{section.icon}</span>{sectionLabel}
                       <span style={{ fontSize: 9, color: '#64748b', marginLeft: 6, fontWeight: 700 }}>대메뉴</span>
@@ -1946,7 +2007,7 @@ function MenuAccessTree({ plans, menus, access, setMenuAccess, setMenuAccessBulk
                       <React.Fragment key={g.menuKey}>
                         {/* 중메뉴 — 체크박스 = 중메뉴 + 하위 전체 */}
                         <tr>
-                          <td style={{ ...cellPad, position: 'sticky', left: 0, background: '#0b1220', paddingLeft: 20 }}>
+                          <td style={{ ...cellPad, position: 'sticky', left: 0, background: '#222f44', paddingLeft: 20 }}>
                             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6 }}>
                               {hasChildren
                                 ? <span onClick={() => toggleExpandMenu(g.menuKey)} style={{ cursor: 'pointer', color: '#94a3b8', fontSize: 11, width: 12, userSelect: 'none' }}>{menuExp ? '▾' : '▸'}</span>
@@ -1971,7 +2032,7 @@ function MenuAccessTree({ plans, menus, access, setMenuAccess, setMenuAccessBulk
                           return (
                             <React.Fragment key={it.to}>
                               <tr>
-                                <td style={{ ...cellPad, position: 'sticky', left: 0, background: '#0a101e', paddingLeft: 44 }}>
+                                <td style={{ ...cellPad, position: 'sticky', left: 0, background: '#1c2840', paddingLeft: 44 }}>
                                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                                     {subs.length > 0
                                       ? <span onClick={() => toggleExpandLeaf(it.to)} style={{ cursor: 'pointer', color: '#94a3b8', fontSize: 11, width: 12, userSelect: 'none' }}>{leafExp ? '▾' : '▸'}</span>
@@ -1992,7 +2053,7 @@ function MenuAccessTree({ plans, menus, access, setMenuAccess, setMenuAccessBulk
                                 const sk = `${it.to}::${st.id}`;
                                 return (
                                   <tr key={sk}>
-                                    <td style={{ ...cellPad, position: 'sticky', left: 0, background: '#080d18', paddingLeft: 66 }}>
+                                    <td style={{ ...cellPad, position: 'sticky', left: 0, background: '#18222f', paddingLeft: 66 }}>
                                       <span style={{ fontSize: 11, color: '#a5b4fc' }}>📑 {st.label || st.id}</span>
                                       <span style={{ fontSize: 9, color: '#64748b', marginLeft: 4 }}>서브탭</span>
                                     </td>

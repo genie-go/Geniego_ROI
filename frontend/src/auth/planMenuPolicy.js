@@ -102,36 +102,32 @@ export function menuAllowedByTier(userPlan, menuKey) {
  * @returns {{starter:string[], pro:string[], enterprise:string[]}}
  */
 export function recommendMenuAccessByPrice(prices, menuKeys) {
-  const ADV_ORDER = { free: 0, starter: 1, growth: 2, pro: 3, enterprise: 4, admin: 9 };
+  // 186차 재설계: 가격 비례 'count'가 아니라 **메뉴 등급(MENU_MIN_PLAN) tier 기반**으로 추천 →
+  // 가격이 같거나 미등록이어도 플랜별로 항상 차별화(구버전식 tier 모델).
+  //  · 플랜을 가격 오름차순으로 정렬 → 낮은가격=하위 tier(starter), 중간=pro, 최고가=enterprise
+  //  · 동가/미등록은 플랜 id 순서(starter<pro<enterprise)로 tie-break
+  //  · 각 플랜은 "자신의 tier 이하 등급" 메뉴를 모두 제공(누적 단조 — 상위 플랜 ⊇ 하위 플랜)
+  const ADV = { free: 0, starter: 1, growth: 2, pro: 3, enterprise: 4, admin: 9 };
   const gateable = (menuKeys || []).filter(k => k && !isAdminOnlyMenu(k));
-  // 기본 등급(고급도) 오름차순 — 기초 메뉴가 앞, 고급 메뉴가 뒤
-  const ranked = [...gateable].sort(
-    (a, b) => (ADV_ORDER[requiredPlanForMenu(a)] ?? 2) - (ADV_ORDER[requiredPlanForMenu(b)] ?? 2)
-  );
-  const N = ranked.length;
-  const BASE = 0.25; // 최저 보장 비율 — 유료 플랜이 비지 않도록(빈 플랜 방지)
+  const idOrder = { starter: 0, pro: 1, enterprise: 2 };
   const entries = [
     ['starter', Math.max(0, Number(prices?.starter) || 0)],
     ['pro', Math.max(0, Number(prices?.pro) || 0)],
     ['enterprise', Math.max(0, Number(prices?.enterprise) || 0)],
   ];
-  const top = Math.max(...entries.map(([, v]) => v), 1); // 최고가 기준 정규화(0 방어)
-  // 가격 오름차순 → 누적 단조 보장 (최고가 플랜 = 전체)
-  const byPrice = [...entries].sort((a, b) => a[1] - b[1]);
-  const countMap = {};
-  let prev = 0;
-  byPrice.forEach(([id, price], i) => {
-    const isTop = i === byPrice.length - 1;
-    const frac = isTop ? 1 : BASE + (1 - BASE) * (price / top);
-    let cnt = N > 0 ? Math.min(N, Math.max(prev, Math.round(N * frac))) : 0;
-    if (N > 0) cnt = Math.max(cnt, 1);
-    countMap[id] = cnt;
-    prev = cnt;
-  });
+  // 가격 오름차순(동가 시 id 순서) → 순위별 tier 부여
+  entries.sort((a, b) => (a[1] - b[1]) || (idOrder[a[0]] - idOrder[b[0]]));
+  const tierByRank = ['starter', 'pro', 'enterprise'];
+  const planTier = {};
+  entries.forEach(([id], i) => { planTier[id] = tierByRank[i] || 'enterprise'; });
+  const menusUpToTier = (tier) => {
+    const maxRank = ADV[tier] ?? 1;
+    return gateable.filter(k => (ADV[requiredPlanForMenu(k)] ?? ADV[DEFAULT_MIN_PLAN] ?? 3) <= maxRank);
+  };
   return {
-    starter: ranked.slice(0, countMap.starter || 0),
-    pro: ranked.slice(0, countMap.pro || 0),
-    enterprise: ranked.slice(0, countMap.enterprise || 0),
+    starter: menusUpToTier(planTier.starter),
+    pro: menusUpToTier(planTier.pro),
+    enterprise: menusUpToTier(planTier.enterprise),
   };
 }
 
