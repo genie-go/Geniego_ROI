@@ -358,8 +358,14 @@ function PlanPricing() {
 
   const togglePlanAll = (planId, value) => {
     setAccess(prev => {
+      // 186차: menu_tree(비어있을 수 있음) 대신 sidebar manifest 전 계층 키 기준 전체 토글
       const planAcc = {};
-      menus.forEach(m => { planAcc[m.menu_key || m.id] = value ? 1 : 0; });
+      for (const sec of [...MEMBER_MENU, ...ADMIN_MENU]) for (const it of (sec.items || [])) {
+        if (!it.menuKey) continue;
+        planAcc[it.menuKey] = value ? 1 : 0;
+        if (it.to) planAcc[it.to] = value ? 1 : 0;
+        (SUB_TABS_BY_PATH[it.to] || []).forEach(st => { planAcc[`${it.to}::${st.id}`] = value ? 1 : 0; });
+      }
       return { ...prev, [planId]: planAcc };
     });
     setAccessDirty(true);
@@ -369,16 +375,16 @@ function PlanPricing() {
     setSaving('access');
     try {
       for (const p of plans) {
+        // 186차 sync 버그 수정: menu_tree(DB, 비어있을 수 있음)가 아닌 실제 선택 상태(access)를 저장.
+        // → 요금 기반 추천/체크박스로 설정한 모든 키(대/중/하위/서브탭)가 그대로 반영됨.
+        const acc = access[p.plan_id] || {};
         const menusForPlan = {};
-        menus.forEach(m => {
-          const key = m.menu_key || m.id;
-          menusForPlan[key] = access[p.plan_id]?.[key] ? 1 : 0;
-        });
+        for (const key of Object.keys(acc)) menusForPlan[key] = acc[key] ? 1 : 0;
         await requestJsonAuth(`/v424/admin/plans/${encodeURIComponent(p.plan_id)}/menu-access`, 'PUT', { menus: menusForPlan });
       }
       await fetchMenuAccess();
       publishMenuAccessSync({ source: 'menu_access_bulk' });
-      alert('메뉴 접근 권한 저장 완료 — 모든 user sidebar 자동 갱신');
+      alert('메뉴 접근 권한 저장 완료 — 요금 기반 추천 포함 모든 user sidebar 자동 갱신');
     } catch (e) {
       alert(`저장 실패: ${e?.message || e}`);
     } finally {
@@ -542,11 +548,10 @@ function PlanPricing() {
 
   /** 단일 플랜 메뉴 접근 저장 (플랜 중심 통합 워크스페이스 STEP3 전용) */
   const saveOnePlanAccess = async (planId) => {
+    // 186차 sync 버그 수정: 빈 menu_tree 대신 실제 선택 상태(access)를 저장
+    const acc = access[planId] || {};
     const menusForPlan = {};
-    menus.forEach(m => {
-      const key = m.menu_key || m.id;
-      menusForPlan[key] = access[planId]?.[key] ? 1 : 0;
-    });
+    for (const key of Object.keys(acc)) menusForPlan[key] = acc[key] ? 1 : 0;
     await requestJsonAuth(`/v424/admin/plans/${encodeURIComponent(planId)}/menu-access`, 'PUT', { menus: menusForPlan });
   };
 
@@ -1928,7 +1933,7 @@ function MenuAccessTree({ plans, menus, access, setMenuAccess, setMenuAccessBulk
                                 ? <span onClick={() => toggleExpandMenu(g.menuKey)} style={{ cursor: 'pointer', color: '#94a3b8', fontSize: 11, width: 12, userSelect: 'none' }}>{menuExp ? '▾' : '▸'}</span>
                                 : <span style={{ width: 12 }} />}
                               <div>
-                                <div style={{ fontWeight: 700, color: '#e2e8f0' }}>{title} <span style={{ fontSize: 9, color: '#64748b', fontWeight: 600 }}>중메뉴{g.items.length > 1 ? ` · ${g.items.length}p` : ''}</span></div>
+                                <div onClick={hasChildren ? () => toggleExpandMenu(g.menuKey) : undefined} style={{ fontWeight: 700, color: '#e2e8f0', cursor: hasChildren ? 'pointer' : 'default' }}>{title} <span style={{ fontSize: 9, color: '#64748b', fontWeight: 600 }}>중메뉴{g.items.length > 1 ? ` · ${g.items.length}p` : ''}{hasChildren ? (menuExp ? ' ▾' : ' ▸ 클릭') : ''}</span></div>
                                 {desc && <div style={{ fontSize: 10, color: '#94a3b8', lineHeight: 1.4, marginTop: 1, maxWidth: 350 }}>{desc}</div>}
                               </div>
                             </div>
@@ -1952,7 +1957,7 @@ function MenuAccessTree({ plans, menus, access, setMenuAccess, setMenuAccessBulk
                                     {subs.length > 0
                                       ? <span onClick={() => toggleExpandLeaf(it.to)} style={{ cursor: 'pointer', color: '#94a3b8', fontSize: 11, width: 12, userSelect: 'none' }}>{leafExp ? '▾' : '▸'}</span>
                                       : <span style={{ width: 12 }} />}
-                                    <span style={{ fontSize: 12, color: '#cbd5e1', fontWeight: 600 }}>{it.icon} {gNavLabel(it.labelKey) || t(it.labelKey, it.labelKey.split('.').pop())}</span>
+                                    <span onClick={subs.length > 0 ? () => toggleExpandLeaf(it.to) : undefined} style={{ fontSize: 12, color: '#cbd5e1', fontWeight: 600, cursor: subs.length > 0 ? 'pointer' : 'default' }}>{it.icon} {gNavLabel(it.labelKey) || t(it.labelKey, it.labelKey.split('.').pop())}{subs.length > 0 ? (leafExp ? ' ▾' : ` ▸ 서브탭 ${subs.length}`) : ''}</span>
                                     <span style={{ fontSize: 9, color: '#64748b' }}>하위</span>
                                     <code style={{ fontSize: 9, color: '#64748b' }}>{it.to}</code>
                                   </div>
@@ -2016,7 +2021,13 @@ function PeriodPricingPanel({ plan, periodPricing, updatePeriodField, addPeriod,
   const seat = seatTiers.some(t => t.key === activeSeat) ? activeSeat : (seatTiers[0]?.key || BASE_SEAT);
   const planSeats = periodPricing[plan.plan_id] || {};
   const pp = planSeats[seat] || {};
-  const sortedMonths = Object.keys(pp).map(Number).filter(Number.isFinite).sort((a, b) => a - b);
+  // 186차 요청: 기간(개월)은 전 계정수(seat) 공통 — 어느 seat 에 추가했든 모든 계정수 탭에 표시.
+  // 전 seat 의 기간 합집합을 표시(가격만 seat 별 개별, 없으면 빈 입력).
+  const sortedMonths = (() => {
+    const s = new Set();
+    for (const sk of Object.keys(planSeats)) for (const mk of Object.keys(planSeats[sk] || {})) { const n = Number(mk); if (Number.isFinite(n)) s.add(n); }
+    return [...s].sort((a, b) => a - b);
+  })();
   const activeTier = seatTiers.find(t => t.key === seat);
 
   const inputS = {

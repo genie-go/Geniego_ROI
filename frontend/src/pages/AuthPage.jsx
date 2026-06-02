@@ -4,6 +4,7 @@ import { useAuth } from "../auth/AuthContext.jsx";
 import { useT, useI18n, LANG_OPTIONS } from "../i18n";
 import { getJson } from '../services/apiClient.js';
 import { IS_DEMO } from '../utils/demoEnv';
+import { MENU_KEY_LABEL } from '../layout/sidebarMenuLabels.js'; // 186차: 플랜 제공서비스 상세 설명
 
 /* ── Enterprise Dynamic Locale Map ────────────────────── */
 const LANG_LOCALE_MAP = {
@@ -673,6 +674,10 @@ function PaidRegisterForm({ selectedPlan, onBack, onSwitch }) {
   const [seatTiers, setSeatTiers] = useState([]);     // [{key,label,count,unlimited}]
   const [seatPricing, setSeatPricing] = useState({}); // { seat_tier: [periods] }
   const [basePeriods, setBasePeriods] = useState(null); // null=로딩, []=없음, [...]=있음
+  // 186차: 구버전 상세 설명서 — 이 플랜이 제공하는 서비스(menuAccess) + 기능목록
+  const [planMenuAccess, setPlanMenuAccess] = useState([]);
+  const [planFeatures, setPlanFeatures] = useState([]);
+  const [planDesc, setPlanDesc] = useState('');
 
   useEffect(() => {
     fetch('/auth/pricing/public-plans')
@@ -683,6 +688,9 @@ function PaidRegisterForm({ selectedPlan, onBack, onSwitch }) {
         setBasePeriods(Array.isArray(p?.periods) ? p.periods : []);
         setSeatPricing(p?.seatPricing && typeof p.seatPricing === 'object' ? p.seatPricing : {});
         setSeatTiers(Array.isArray(p?.seatTiers) ? p.seatTiers : []);
+        setPlanMenuAccess(Array.isArray(p?.menuAccess) ? p.menuAccess : []);
+        setPlanFeatures(Array.isArray(p?.features) ? p.features : []);
+        setPlanDesc(p?.description || '');
       })
       .catch(() => { setBasePeriods([]); });
   }, [selectedPlan]);
@@ -916,6 +924,9 @@ function PaidRegisterForm({ selectedPlan, onBack, onSwitch }) {
           <SelectField label={t("auth.monthlyRevenueLabel")} value={monthlyRevenue} onChange={setMonthlyRevenue}
             options={["Under 100M", "100M-500M", "500M-2B", "2B-10B", "Over 10B"]} />
 
+          {/* 186차 — 구버전 상세 설명서: 이 플랜이 제공하는 서비스 상세 (구독 판단용) */}
+          <PlanServiceDetail planCfg={PLAN_CFG} menuAccess={planMenuAccess} features={planFeatures} description={planDesc} />
+
           {/* 186차 — 계정수 선택 (같은 플랜, 계정수별 요금) */}
           {seatTiers.length > 1 && (
             <SeatSelectorSection
@@ -1093,6 +1104,56 @@ function SeatSelectorSection({ planCfg, seatTiers, seatTier, setSeatTier }) {
           );
         })}
       </div>
+    </div>
+  );
+}
+
+/**
+ * 186차 — PlanServiceDetail
+ * 구버전 참고: 구독 회원이 해당 플랜으로 어떤 서비스를 제공받는지 상세 안내.
+ * admin 이 설정한 menuAccess(제공 서비스) + features(기능) 를 상세 설명과 함께 표시 → 구독 판단 자료.
+ */
+function PlanServiceDetail({ planCfg, menuAccess = [], features = [], description = '' }) {
+  const color = planCfg?.color || '#6366f1';
+  // menuAccess(menu_key) → { title, desc } (MENU_KEY_LABEL). 의미있는(설명 있는) 메뉴만, 중복 제거.
+  const services = [];
+  const seen = new Set();
+  for (const k of menuAccess) {
+    const lbl = MENU_KEY_LABEL[k];
+    if (lbl && lbl.title && !seen.has(lbl.title)) { seen.add(lbl.title); services.push(lbl); }
+  }
+  const featList = (features || []).map(f => (typeof f === 'string' ? f : (f?.text || ''))).filter(Boolean);
+  return (
+    <div style={{ padding: '16px 18px', borderRadius: 12, background: `${color}0A`, border: `1.5px solid ${color}33` }}>
+      <div style={{ fontSize: 14, fontWeight: 800, color, marginBottom: 6 }}>📖 {planCfg?.label || '플랜'} 상세 안내 — 제공 서비스</div>
+      {description && <div style={{ fontSize: 12, color: 'var(--text-2)', lineHeight: 1.6, marginBottom: 10 }}>{description}</div>}
+      {featList.length > 0 && (
+        <div style={{ marginBottom: services.length ? 12 : 0 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', marginBottom: 5 }}>✨ 핵심 혜택</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 6 }}>
+            {featList.map((f, i) => (
+              <div key={i} style={{ fontSize: 12, color: 'var(--text-1)', display: 'flex', gap: 6, alignItems: 'flex-start' }}>
+                <span style={{ color: '#22c55e' }}>✓</span><span>{f}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      {services.length > 0 ? (
+        <div>
+          <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', marginBottom: 5 }}>🧩 이용 가능 서비스 ({services.length})</div>
+          <div style={{ display: 'grid', gap: 7, maxHeight: 280, overflowY: 'auto', paddingRight: 4 }}>
+            {services.map((s, i) => (
+              <div key={i} style={{ padding: '8px 10px', borderRadius: 8, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-1)' }}>{s.title}</div>
+                {s.desc && <div style={{ fontSize: 11, color: 'var(--text-3)', lineHeight: 1.5, marginTop: 2 }}>{s.desc}</div>}
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <div style={{ fontSize: 11, color: 'var(--text-3)', fontStyle: 'italic' }}>제공 서비스 상세는 관리자 설정 후 표시됩니다.</div>
+      )}
     </div>
   );
 }
