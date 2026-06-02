@@ -275,6 +275,25 @@ function PlanPricing() {
     setNewPeriodInput('');
   };
 
+  /** 186차: 맞춤견적 해제 시 — 기간이 없으면 기본 기간(1/3/6/12개월)을 전 계정수에 자동 생성 (Starter/Pro 와 동일하게 요금 입력 가능) */
+  const autoGenDefaultPeriods = (planId) => {
+    const DEFAULT_GEN = [1, 3, 6, 12];
+    setPeriodPricing(prev => {
+      const planSeats = { ...(prev[planId] || {}) };
+      const hasAny = Object.values(planSeats).some(sp => Object.keys(sp || {}).length > 0);
+      if (hasAny) return prev; // 이미 등록된 기간이 있으면 보존
+      const tiers = (seatTiers.length ? seatTiers : DEFAULT_SEAT_TIERS).map(t => t.key);
+      for (const seat of tiers) {
+        const pp = { ...(planSeats[seat] || {}) };
+        for (const m of DEFAULT_GEN) {
+          pp[m] = { price_usd: null, discount_pct: ({ 3: 5, 6: 10, 12: 20 }[m] || 0), paddle_price_id: '', is_active: true };
+        }
+        planSeats[seat] = pp;
+      }
+      return { ...prev, [planId]: planSeats };
+    });
+  };
+
   /** 기간 제거 — 모든 계정수 티어에서 일괄 제거 */
   const removePeriod = (planId, _seat, months) => {
     if (!window.confirm(`${months}개월 기간을 모든 계정수에서 제거하시겠습니까? (저장 시 적용)`)) return;
@@ -883,7 +902,7 @@ function PlanPricing() {
 
                 <div style={{ display: 'flex', gap: 14, marginTop: 18, flexWrap: 'wrap' }}>
                   <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--text-3)' }}>
-                    <input type="checkbox" checked={plan.is_custom_quote || false} onChange={e => updateField(activePlanIdx, { is_custom_quote: e.target.checked })} /> 맞춤 견적 (Enterprise)
+                    <input type="checkbox" checked={plan.is_custom_quote || false} onChange={e => { const checked = e.target.checked; updateField(activePlanIdx, { is_custom_quote: checked }); if (!checked) autoGenDefaultPeriods(plan.plan_id); }} /> 맞춤 견적 (Enterprise)
                   </label>
                   <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--text-3)' }}>
                     <input type="checkbox" checked={plan.is_active !== false} onChange={e => updateField(activePlanIdx, { is_active: e.target.checked })} /> 활성
