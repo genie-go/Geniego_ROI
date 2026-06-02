@@ -31,6 +31,7 @@ final class AdminPlans
         $stmt = $pdo->query(
             'SELECT plan_id, name, description, price_usd, price_annual_usd,
                     price_id_monthly, price_id_annual, features_json, limits_json,
+                    seat_tiers_json,
                     display_order, is_active, is_custom_quote,
                     IFNULL(is_recommended, 0) AS is_recommended,
                     IFNULL(discount_pct, 20) AS discount_pct,
@@ -256,7 +257,7 @@ final class AdminPlans
         $stmt = $pdo->query(
             'SELECT plan_id, name, description, price_usd, price_annual_usd,
                     price_id_monthly, price_id_annual, features_json, limits_json,
-                    display_order, is_custom_quote
+                    display_order, is_custom_quote, seat_tiers_json
              FROM plan_config WHERE is_active = 1
              ORDER BY display_order, plan_id'
         );
@@ -268,34 +269,41 @@ final class AdminPlans
             $accessByPlan[$r['plan_id']][] = $r['menu_key'];
         }
 
-        // 172차 P0-B — periods (회원가입 cycle 선택용) 동봉
-        // graceful: 테이블 미존재 시 빈 배열 (옛 backend 호환)
-        $periodsByPlan = [];
+        // 172차 P0-B — periods (회원가입 cycle 선택용) / 186차 — seat(계정수) 차원 동봉
+        // graceful: 테이블/컬럼 미존재 시 빈 배열 (옛 backend 호환)
+        $periodsByPlan = [];      // legacy: base seat('1') periods (하위호환)
+        $seatPricingByPlan = [];  // 186차: [plan][seat_tier][] = period cfg
         try {
             $check = $pdo->query("SHOW TABLES LIKE 'plan_period_pricing'")->fetch();
             if ($check) {
+                $hasSeat = (bool)$pdo->query("SHOW COLUMNS FROM plan_period_pricing LIKE 'seat_tier'")->fetch();
+                $cols = $hasSeat ? 'plan_id, seat_tier, period_months, price_usd, discount_pct, paddle_price_id, is_active'
+                                 : 'plan_id, period_months, price_usd, discount_pct, paddle_price_id, is_active';
                 $ppStmt = $pdo->query(
-                    'SELECT plan_id, period_months, price_usd, discount_pct, paddle_price_id, is_active
-                     FROM plan_period_pricing WHERE is_active = 1
-                     ORDER BY plan_id, period_months'
+                    "SELECT $cols FROM plan_period_pricing WHERE is_active = 1 ORDER BY plan_id, period_months"
                 );
                 foreach ($ppStmt->fetchAll(\PDO::FETCH_ASSOC) as $r) {
                     $months = (int)$r['period_months'];
                     $price  = $r['price_usd'] !== null ? (float)$r['price_usd'] : null;
-                    $periodsByPlan[$r['plan_id']][] = [
+                    $seat   = $hasSeat ? (string)($r['seat_tier'] ?? '1') : '1';
+                    $entry = [
                         'period_months'   => $months,
                         'price_usd'       => $price,                                        // 월 환산
                         'discount_pct'    => (int)$r['discount_pct'],
                         'total_charge'    => $price !== null ? round($price * $months, 2) : null,  // 총 결제액
                         'paddle_price_id' => (string)($r['paddle_price_id'] ?? ''),
                     ];
+                    $seatPricingByPlan[$r['plan_id']][$seat][] = $entry;
+                    if ($seat === '1') $periodsByPlan[$r['plan_id']][] = $entry;
                 }
             }
         } catch (\Throwable $e) { /* graceful */ }
 
-        $plans = array_map(static function ($row) use ($accessByPlan, $periodsByPlan) {
+        $plans = array_map(static function ($row) use ($accessByPlan, $periodsByPlan, $seatPricingByPlan) {
             $features = json_decode((string)($row['features_json'] ?? '[]'), true) ?: [];
             $limits   = json_decode((string)($row['limits_json']   ?? '{}'), true) ?: [];
+            $seatTiers = json_decode((string)($row['seat_tiers_json'] ?? ''), true);
+            if (!is_array($seatTiers) || !$seatTiers) $seatTiers = self::defaultSeatTiers();
             return [
                 'id'               => $row['plan_id'],
                 'name'             => $row['name'],
@@ -308,7 +316,9 @@ final class AdminPlans
                 'limits'           => $limits,
                 'is_custom_quote'  => (bool)$row['is_custom_quote'],
                 'menuAccess'       => $accessByPlan[$row['plan_id']] ?? [],
-                'periods'          => $periodsByPlan[$row['plan_id']] ?? [],  // 172차 P0-B 신규
+                'periods'          => $periodsByPlan[$row['plan_id']] ?? [],  // 172차 P0-B (base seat '1')
+                'seatTiers'        => $seatTiers,                              // 186차 계정수 티어
+                'seatPricing'      => $seatPricingByPlan[$row['plan_id']] ?? [], // 186차 계정수별 가격
             ];
         }, $rows);
 
@@ -404,20 +414,22 @@ final class AdminPlans
         if ($gate !== null) return $gate;
         $pdo = Db::pdo();
         $plans = $pdo->query(
-            "SELECT plan_id, name, display_order, is_custom_quote
+            "SELECT plan_id, name, display_order, is_custom_quote, seat_tiers_json
              FROM plan_config WHERE is_active = 1 ORDER BY display_order"
         )->fetchAll(\PDO::FETCH_ASSOC);
 
+        // 186차: 계정수(seat) 차원 추가 — pricing[plan][seat_tier][months]
         $rows = $pdo->query(
-            "SELECT plan_id, period_months, price_usd, discount_pct,
+            "SELECT plan_id, seat_tier, period_months, price_usd, discount_pct,
                     paddle_price_id, is_active, display_order, updated_by, updated_at
-             FROM plan_period_pricing ORDER BY plan_id, period_months"
+             FROM plan_period_pricing ORDER BY plan_id, seat_tier, period_months"
         )->fetchAll(\PDO::FETCH_ASSOC);
 
-        // group by plan_id
+        // group by plan_id → seat_tier → months
         $byPlan = [];
         foreach ($rows as $r) {
-            $byPlan[$r['plan_id']][(int)$r['period_months']] = [
+            $seat = (string)($r['seat_tier'] ?? '1');
+            $byPlan[$r['plan_id']][$seat][(int)$r['period_months']] = [
                 'price_usd'       => $r['price_usd'] !== null ? (float)$r['price_usd'] : null,
                 'discount_pct'    => (int)$r['discount_pct'],
                 'paddle_price_id' => (string)$r['paddle_price_id'],
@@ -428,7 +440,27 @@ final class AdminPlans
                     : null,
             ];
         }
-        return self::json($res, ['ok' => true, 'plans' => $plans, 'pricing' => $byPlan]);
+        // seat_tiers per plan (plan_config.seat_tiers_json → fallback 기본 1/10/무제한)
+        $seatTiersByPlan = [];
+        foreach ($plans as &$pl) {
+            $st = json_decode((string)($pl['seat_tiers_json'] ?? ''), true);
+            if (!is_array($st) || !$st) $st = self::defaultSeatTiers();
+            $seatTiersByPlan[$pl['plan_id']] = $st;
+            $pl['seat_tiers'] = $st;
+            unset($pl['seat_tiers_json']);
+        }
+        unset($pl);
+        return self::json($res, ['ok' => true, 'plans' => $plans, 'pricing' => $byPlan, 'seatTiers' => $seatTiersByPlan]);
+    }
+
+    /** 186차: 기본 계정수 티어 (1계정 / 10계정 / 무제한) — admin 자유 편집 */
+    private static function defaultSeatTiers(): array
+    {
+        return [
+            ['key' => '1',         'label' => '1계정',  'count' => 1,  'unlimited' => false],
+            ['key' => '10',        'label' => '10계정', 'count' => 10, 'unlimited' => false],
+            ['key' => 'unlimited', 'label' => '무제한', 'count' => 0,  'unlimited' => true],
+        ];
     }
 
     /**
@@ -456,63 +488,80 @@ final class AdminPlans
             return self::json($res, ['error' => 'invalid_plan_id'], 422);
         }
         $body    = (array)$req->getParsedBody();
-        $periods = isset($body['periods']) && is_array($body['periods']) ? $body['periods'] : [];
         $actor   = substr((string)($req->getAttribute('auth_key') ?? 'admin'), 0, 64);
 
-        // 입력 정규화: month → cfg, 유효 범위(1~60) 외 제거
-        $clean = [];
-        foreach ($periods as $months => $cfg) {
-            $m = (int)$months;
-            if ($m <= 0 || $m > 60) continue;
-            if (!is_array($cfg)) continue;
-            $clean[$m] = [
-                'price_usd'       => self::numOrNull($cfg['price_usd'] ?? null),
-                'discount_pct'    => max(0, min(100, (int)($cfg['discount_pct'] ?? 0))),
-                'paddle_price_id' => (string)($cfg['paddle_price_id'] ?? ''),
-                'is_active'       => (int)!empty($cfg['is_active'] ?? true),
-                'display_order'   => (int)($cfg['display_order'] ?? (10 + $m)),
-            ];
+        // 186차: seat 차원 입력. 신규 { seatPricing: { seat_tier: { months: cfg } } }
+        //          legacy { periods: { months: cfg } } → seat_tier '1' 로 호환.
+        $seatPricing = isset($body['seatPricing']) && is_array($body['seatPricing']) ? $body['seatPricing'] : null;
+        if ($seatPricing === null) {
+            $legacy = isset($body['periods']) && is_array($body['periods']) ? $body['periods'] : [];
+            $seatPricing = ['1' => $legacy];
+        }
+        // seatTiers 정의 (admin 자유 편집) — 없으면 기존 유지(미변경)
+        $seatTiers = isset($body['seatTiers']) && is_array($body['seatTiers']) ? $body['seatTiers'] : null;
+
+        // 입력 정규화: seat_tier → month → cfg, 유효 범위(1~60) 외 제거
+        $clean = []; // [seat_tier][months] = cfg
+        foreach ($seatPricing as $seat => $periods) {
+            $seatKey = preg_replace('/[^a-zA-Z0-9_-]/', '', (string)$seat);
+            if ($seatKey === '' || strlen($seatKey) > 16) continue;
+            if (!is_array($periods)) continue;
+            foreach ($periods as $months => $cfg) {
+                $m = (int)$months;
+                if ($m <= 0 || $m > 60) continue;
+                if (!is_array($cfg)) continue;
+                $clean[$seatKey][$m] = [
+                    'price_usd'       => self::numOrNull($cfg['price_usd'] ?? null),
+                    'discount_pct'    => max(0, min(100, (int)($cfg['discount_pct'] ?? 0))),
+                    'paddle_price_id' => (string)($cfg['paddle_price_id'] ?? ''),
+                    'is_active'       => (int)!empty($cfg['is_active'] ?? true),
+                    'display_order'   => (int)($cfg['display_order'] ?? (10 + $m)),
+                ];
+            }
         }
 
         $pdo = Db::pdo();
         $pdo->beginTransaction();
         try {
-            // 1) 본 플랜의 기존 row 전체 제거 → 누락 기간은 자연스럽게 삭제됨
+            // 1) 본 플랜의 기존 row 전체 제거 → 누락 (seat,기간) 은 자연스럽게 삭제됨
             $pdo->prepare('DELETE FROM plan_period_pricing WHERE plan_id = ?')->execute([$planId]);
 
-            // 2) 신규 row INSERT
+            // 2) 신규 row INSERT (seat_tier 포함)
+            $cnt = 0;
             if ($clean) {
                 $ins = $pdo->prepare(
                     'INSERT INTO plan_period_pricing
-                       (plan_id, period_months, price_usd, discount_pct, paddle_price_id, is_active, display_order, updated_by)
-                     VALUES (?,?,?,?,?,?,?,?)'
+                       (plan_id, seat_tier, period_months, price_usd, discount_pct, paddle_price_id, is_active, display_order, updated_by)
+                     VALUES (?,?,?,?,?,?,?,?,?)'
                 );
-                foreach ($clean as $m => $cfg) {
-                    $ins->execute([
-                        $planId, $m, $cfg['price_usd'], $cfg['discount_pct'],
-                        $cfg['paddle_price_id'], $cfg['is_active'], $cfg['display_order'], $actor,
-                    ]);
+                foreach ($clean as $seat => $periods) {
+                    foreach ($periods as $m => $cfg) {
+                        $ins->execute([
+                            $planId, $seat, $m, $cfg['price_usd'], $cfg['discount_pct'],
+                            $cfg['paddle_price_id'], $cfg['is_active'], $cfg['display_order'], $actor,
+                        ]);
+                        $cnt++;
+                    }
                 }
             }
 
-            // 3) plan_config 동기화 (1m/12m → legacy 컬럼)
-            $cfg1  = $clean[1]  ?? null;
-            $cfg12 = $clean[12] ?? null;
-            $syncFields = [
-                'price_usd = ?',
-                'price_annual_usd = ?',
-                'price_id_monthly = ?',
-                'price_id_annual = ?',
-            ];
+            // 3) plan_config 동기화 — legacy 컬럼은 최소 계정수 티어('1' 우선, 없으면 첫 티어) 1m/12m 기준
+            $baseSeat = isset($clean['1']) ? '1' : (array_key_first($clean) ?: '1');
+            $base = $clean[$baseSeat] ?? [];
+            $cfg1  = $base[1]  ?? null;
+            $cfg12 = $base[12] ?? null;
+            $syncFields = ['price_usd = ?', 'price_annual_usd = ?', 'price_id_monthly = ?', 'price_id_annual = ?'];
             $syncParams = [
                 $cfg1  ? $cfg1['price_usd']        : null,
                 $cfg12 ? $cfg12['price_usd']       : null,
                 $cfg1  ? $cfg1['paddle_price_id']  : '',
                 $cfg12 ? $cfg12['paddle_price_id'] : '',
             ];
-            if ($cfg12) {
-                $syncFields[] = 'discount_pct = ?';
-                $syncParams[] = $cfg12['discount_pct'];
+            if ($cfg12) { $syncFields[] = 'discount_pct = ?'; $syncParams[] = $cfg12['discount_pct']; }
+            // seat_tiers_json 갱신 (제공된 경우)
+            if ($seatTiers !== null) {
+                $syncFields[] = 'seat_tiers_json = ?';
+                $syncParams[] = json_encode(array_values($seatTiers), JSON_UNESCAPED_UNICODE);
             }
             $syncParams[] = $planId;
             $pdo->prepare(
@@ -524,14 +573,16 @@ final class AdminPlans
             $pdo->rollBack();
             return self::json($res, ['error' => 'save_failed', 'detail' => $e->getMessage()], 500);
         }
-        return self::json($res, ['ok' => true, 'plan_id' => $planId, 'count' => count($clean)]);
+        return self::json($res, ['ok' => true, 'plan_id' => $planId, 'count' => $cnt]);
     }
 
     private static function hydrate(array $row): array
     {
         $row['features'] = json_decode((string)($row['features_json'] ?? '[]'), true) ?: [];
         $row['limits']   = json_decode((string)($row['limits_json']   ?? '{}'), true) ?: [];
-        unset($row['features_json'], $row['limits_json']);
+        $seatTiers = json_decode((string)($row['seat_tiers_json'] ?? ''), true);
+        $row['seat_tiers'] = (is_array($seatTiers) && $seatTiers) ? $seatTiers : self::defaultSeatTiers();
+        unset($row['features_json'], $row['limits_json'], $row['seat_tiers_json']);
         return $row;
     }
 

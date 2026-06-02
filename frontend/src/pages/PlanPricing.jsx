@@ -71,6 +71,21 @@ const SEED_PLANS = [
 /** 기간 라벨 — 1/3/6/12/24/36 명칭 + 그 외 단순 N개월. admin 이 자유 추가/제거 가능 (1~60개월). */
 const NAMED_PERIODS = { 1: '월간', 3: '분기', 6: '반기', 12: '연간', 24: '2년', 36: '3년' };
 
+/** 186차: 기본 계정수(seat) 티어 — 1계정 / 10계정 / 무제한. admin 이 자유 추가/삭제/편집. */
+const DEFAULT_SEAT_TIERS = [
+  { key: '1',         label: '1계정',  count: 1,  unlimited: false },
+  { key: '10',        label: '10계정', count: 10, unlimited: false },
+  { key: 'unlimited', label: '무제한', count: 0,  unlimited: true },
+];
+const BASE_SEAT = '1'; // legacy 동기화 기준 seat (최소 계정수)
+/** periodPricing[plan] 에서 base seat 의 기간맵 반환 (하위호환 — 미리보기/추천가용) */
+function basePeriods(planPP) {
+  if (!planPP || typeof planPP !== 'object') return {};
+  if (planPP[BASE_SEAT]) return planPP[BASE_SEAT];
+  const first = Object.keys(planPP)[0];
+  return first ? (planPP[first] || {}) : {};
+}
+
 // MENU_KEY_LABEL + SUB_TABS_BY_PATH 는 ../layout/sidebarMenuLabels.js 에서 import (SSOT).
 // AdminMenuManager 와 공유.
 
@@ -102,8 +117,10 @@ function PlanPricing() {
   const [access, setAccess] = useState({});
   const [accessDirty, setAccessDirty] = useState(false);
   // 기간별 가격 (admin 자유 추가/제거, 1~60개월) — backend plan_period_pricing 매핑
-  const [periodPricing, setPeriodPricing] = useState({}); // { plan_id: { months: { price_usd, discount_pct, paddle_price_id, is_active } } }
+  const [periodPricing, setPeriodPricing] = useState({}); // 186차: { plan_id: { seat_tier: { months: { price_usd, discount_pct, paddle_price_id, is_active } } } }
   const [newPeriodInput, setNewPeriodInput] = useState(''); // "기간 추가" input 상태
+  // 186차: 계정수(seat) 티어 — 전역(모든 플랜 공통), admin 자유 편집
+  const [seatTiers, setSeatTiers] = useState(DEFAULT_SEAT_TIERS);
   // 172차 Task #22 초고도화 — 메뉴 권한 ↔ 가격 자동 산출
   const [menuPricingSync, setMenuPricingSync] = useState(null); // { menuScores, plans:[{plan_id, recommendedMonthly, currentMonthly, delta, suggestedTier, categoryBreakdown, ...}], totals }
   const [pricingSyncApplying, setPricingSyncApplying] = useState(null);
@@ -137,6 +154,10 @@ function PlanPricing() {
     try {
       const data = await getJsonAuth('/v424/admin/plans-period-pricing');
       setPeriodPricing(data?.pricing && typeof data.pricing === 'object' ? data.pricing : {});
+      // 186차: 전역 계정수 티어 — 첫 플랜 기준(모든 플랜 공통 관리). 없으면 기본 1/10/무제한.
+      const stMap = data?.seatTiers && typeof data.seatTiers === 'object' ? data.seatTiers : {};
+      const firstTiers = Object.values(stMap).find(arr => Array.isArray(arr) && arr.length);
+      if (firstTiers) setSeatTiers(firstTiers);
     } catch (e) {
       setError(String(e?.message || e));
     }
@@ -176,13 +197,14 @@ function PlanPricing() {
    *  - 특정 m 의 discount_pct 변경 시 → 그 m 의 price_usd 만 재계산
    *  - admin 이 임의 기간 price_usd 직접 입력 시 그 값 유지 (override)
    */
-  const updatePeriodField = (planId, months, patch) => {
+  const updatePeriodField = (planId, seat, months, patch) => {
     setPeriodPricing(prev => {
-      const planPP = { ...(prev[planId] || {}) };
+      const planSeats = { ...(prev[planId] || {}) };
+      const planPP = { ...(planSeats[seat] || {}) };
       const cur = { ...(planPP[months] || {}) };
       const next = { ...cur, ...patch };
       planPP[months] = next;
-      // 1m price_usd 변경 → 모든 다른 기간 자동 산출
+      // 1m price_usd 변경 → 이 seat 의 모든 다른 기간 자동 산출
       if (months === 1 && patch.price_usd !== undefined) {
         const base = Number(next.price_usd) || 0;
         if (base > 0) {
@@ -204,26 +226,26 @@ function PlanPricing() {
           planPP[months] = { ...next, price_usd: +(base * (1 - d / 100)).toFixed(2) };
         }
       }
-      return { ...prev, [planId]: planPP };
+      planSeats[seat] = planPP;
+      return { ...prev, [planId]: planSeats };
     });
   };
 
-  /** 기간 추가 — admin 이 N개월 (1-60) 자유 입력 */
-  const addPeriod = (planId, months) => {
+  /** 기간 추가 — admin 이 N개월 (1-60) 자유 입력 (해당 seat 티어에) */
+  const addPeriod = (planId, seat, months) => {
     const m = Number(months);
     if (!Number.isFinite(m) || m < 1 || m > 60) {
       alert('기간은 1~60개월 범위로 입력하세요');
       return;
     }
     setPeriodPricing(prev => {
-      const planPP = { ...(prev[planId] || {}) };
+      const planSeats = { ...(prev[planId] || {}) };
+      const planPP = { ...(planSeats[seat] || {}) };
       if (planPP[m]) {
         alert(`${m}개월은 이미 등록되어 있습니다`);
         return prev;
       }
-      // 1m 가격이 있으면 자동 산출, 없으면 빈 값
       const base = Number(planPP[1]?.price_usd) || 0;
-      // 추천 할인율: 3/6/12/24/36 명시값, 그 외는 단순 (m-1)*1.5% 비율 (0~30 clamp)
       const recommendedDiscount = { 3: 5, 6: 10, 12: 20, 24: 30, 36: 40 }[m]
         ?? Math.max(0, Math.min(30, (m - 1) * 2));
       planPP[m] = {
@@ -232,18 +254,49 @@ function PlanPricing() {
         paddle_price_id: '',
         is_active: true,
       };
-      return { ...prev, [planId]: planPP };
+      planSeats[seat] = planPP;
+      return { ...prev, [planId]: planSeats };
     });
     setNewPeriodInput('');
   };
 
-  /** 기간 제거 */
-  const removePeriod = (planId, months) => {
+  /** 기간 제거 (해당 seat 티어) */
+  const removePeriod = (planId, seat, months) => {
     if (!window.confirm(`${months}개월 기간을 제거하시겠습니까? (저장 시 적용)`)) return;
     setPeriodPricing(prev => {
-      const planPP = { ...(prev[planId] || {}) };
+      const planSeats = { ...(prev[planId] || {}) };
+      const planPP = { ...(planSeats[seat] || {}) };
       delete planPP[months];
-      return { ...prev, [planId]: planPP };
+      planSeats[seat] = planPP;
+      return { ...prev, [planId]: planSeats };
+    });
+  };
+
+  /** 186차: 계정수 티어 추가 (전역) */
+  const addSeatTier = (count, unlimited) => {
+    setSeatTiers(prev => {
+      const key = unlimited ? 'unlimited' : String(count);
+      if (prev.some(t => t.key === key)) { alert('이미 존재하는 계정수 티어입니다'); return prev; }
+      const tier = unlimited
+        ? { key: 'unlimited', label: '무제한', count: 0, unlimited: true }
+        : { key, label: `${count}계정`, count: Number(count), unlimited: false };
+      const next = [...prev, tier];
+      // 정렬: unlimited 는 항상 마지막, 나머지는 count 오름차순
+      next.sort((a, b) => (a.unlimited ? 1 : b.unlimited ? -1 : a.count - b.count));
+      return next;
+    });
+  };
+  /** 186차: 계정수 티어 삭제 (전역) — 해당 seat 의 모든 플랜 가격도 제거 */
+  const removeSeatTier = (key) => {
+    if (key === BASE_SEAT) { alert('기준 계정수(1계정) 티어는 삭제할 수 없습니다'); return; }
+    if (!window.confirm('이 계정수 티어를 삭제하시겠습니까? (저장 시 해당 계정수 가격도 제거)')) return;
+    setSeatTiers(prev => prev.filter(t => t.key !== key));
+    setPeriodPricing(prev => {
+      const next = {};
+      for (const [pid, seats] of Object.entries(prev)) {
+        const ns = { ...seats }; delete ns[key]; next[pid] = ns;
+      }
+      return next;
     });
   };
 
@@ -323,7 +376,7 @@ function PlanPricing() {
    * (관리자는 채워진 토글을 자유 수정 후 [저장] 가능 — 즉시 적용 아님)
    */
   const priceOf = useCallback((planId) => {
-    const pp = periodPricing[planId] || {};
+    const pp = basePeriods(periodPricing[planId]); // 186차: base seat 기준
     // 1개월 기준가 우선, 없으면 최소 기간의 가격
     const m1 = pp[1]?.price_usd;
     if (m1 != null && m1 !== '') return Number(m1) || 0;
@@ -416,20 +469,26 @@ function PlanPricing() {
       is_custom_quote: !!plan.is_custom_quote,
       is_recommended: !!plan.is_recommended,
     });
-    const ppForPlan = periodPricing[plan.plan_id] || {};
-    const periodsPayload = {};
-    for (const m of Object.keys(ppForPlan).map(Number).filter(Number.isFinite)) {
-      const cfg = ppForPlan[m] || {};
-      periodsPayload[m] = {
-        price_usd: cfg.price_usd ?? null,
-        discount_pct: cfg.discount_pct ?? 0,
-        paddle_price_id: cfg.paddle_price_id ?? '',
-        is_active: cfg.is_active !== false,
-      };
+    // 186차: seat 차원 payload — { seatPricing: { seat: { months: cfg } }, seatTiers: [...] }
+    const planSeats = periodPricing[plan.plan_id] || {};
+    const seatPricingPayload = {};
+    for (const seat of Object.keys(planSeats)) {
+      const ppForSeat = planSeats[seat] || {};
+      const periodsPayload = {};
+      for (const m of Object.keys(ppForSeat).map(Number).filter(Number.isFinite)) {
+        const cfg = ppForSeat[m] || {};
+        periodsPayload[m] = {
+          price_usd: cfg.price_usd ?? null,
+          discount_pct: cfg.discount_pct ?? 0,
+          paddle_price_id: cfg.paddle_price_id ?? '',
+          is_active: cfg.is_active !== false,
+        };
+      }
+      if (Object.keys(periodsPayload).length) seatPricingPayload[seat] = periodsPayload;
     }
     await requestJsonAuth(
       `/v424/admin/plans/${encodeURIComponent(plan.plan_id)}/period-pricing`,
-      'PUT', { periods: periodsPayload },
+      'PUT', { seatPricing: seatPricingPayload, seatTiers },
     );
   };
 
@@ -682,7 +741,7 @@ function PlanPricing() {
             {plans.map((p, i) => {
               const sel = activePlanIdx === i;
               const onCount = Object.values(access[p.plan_id] || {}).filter(Boolean).length;
-              const m1 = periodPricing[p.plan_id]?.[1]?.price_usd ?? p.price_usd;
+              const m1 = basePeriods(periodPricing[p.plan_id])?.[1]?.price_usd ?? p.price_usd;
               const priceLabel = p.is_custom_quote ? '맞춤 견적'
                 : (m1 != null && m1 !== '' ? `$${m1}/월` : '미설정');
               return (
@@ -789,10 +848,13 @@ function PlanPricing() {
                   removePeriod={removePeriod}
                   newPeriodInput={newPeriodInput}
                   setNewPeriodInput={setNewPeriodInput}
+                  seatTiers={seatTiers}
+                  addSeatTier={addSeatTier}
+                  removeSeatTier={removeSeatTier}
                 />
                 <div>
                   <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--text-3)', letterSpacing: 1, marginBottom: 10, textTransform: 'uppercase' }}>실시간 미리보기</div>
-                  <PreviewCard plan={plan} periods={periodPricing[plan.plan_id] || {}} />
+                  <PreviewCard plan={plan} periods={basePeriods(periodPricing[plan.plan_id])} />
                 </div>
               </div>
             </div>
@@ -807,7 +869,7 @@ function PlanPricing() {
                 setMenuAccessBulk={setMenuAccessBulk}
                 togglePlanAll={togglePlanAll}
                 menuScores={menuPricingSync?.menuScores || {}}
-                monthlyPrice={periodPricing[plan.plan_id]?.[1]?.price_usd ?? plan.price_usd}
+                monthlyPrice={basePeriods(periodPricing[plan.plan_id])?.[1]?.price_usd ?? plan.price_usd}
               />
             </div>
 
@@ -879,7 +941,7 @@ function PlanMenuAccessEditor({ plan, menus, planAcc, setMenuAccess, setMenuAcce
     }
     return [...seen.values()];
   };
-  const labelOf = (grp) => MENU_KEY_LABEL[grp.menuKey] || t(grp.items[0]?.labelKey, grp.items[0]?.labelKey) || grp.menuKey;
+  const labelOf = (grp) => MENU_KEY_LABEL[grp.menuKey]?.title || t(grp.items[0]?.labelKey, grp.items[0]?.labelKey) || grp.menuKey;
   const totalOn = Object.values(planAcc).filter(Boolean).length;
 
   // 모든 저장가능 menuKey (manifest ∩ DB, dedup)
@@ -2115,10 +2177,16 @@ function MenuAccessTree({ plans, menus, access, setMenuAccess, setMenuAccessBulk
  *   - 각 기간별 가격/할인/PaddleID/활성 개별 편집
  *   - 맞춤 견적 (Enterprise) 플랜은 가격 입력 비활성
  */
-function PeriodPricingPanel({ plan, periodPricing, updatePeriodField, addPeriod, removePeriod, newPeriodInput, setNewPeriodInput }) {
+function PeriodPricingPanel({ plan, periodPricing, updatePeriodField, addPeriod, removePeriod, newPeriodInput, setNewPeriodInput, seatTiers = DEFAULT_SEAT_TIERS, addSeatTier, removeSeatTier }) {
   const isCustom = plan.is_custom_quote;
-  const pp = periodPricing[plan.plan_id] || {};
+  // 186차: 계정수(seat) 차원 — 활성 seat 티어 선택 후 해당 기간 가격 편집
+  const [activeSeat, setActiveSeat] = useState(seatTiers[0]?.key || BASE_SEAT);
+  const [newSeatInput, setNewSeatInput] = useState('');
+  const seat = seatTiers.some(t => t.key === activeSeat) ? activeSeat : (seatTiers[0]?.key || BASE_SEAT);
+  const planSeats = periodPricing[plan.plan_id] || {};
+  const pp = planSeats[seat] || {};
   const sortedMonths = Object.keys(pp).map(Number).filter(Number.isFinite).sort((a, b) => a - b);
+  const activeTier = seatTiers.find(t => t.key === seat);
 
   const inputS = {
     width: '100%', padding: '6px 8px', borderRadius: 6,
@@ -2129,7 +2197,15 @@ function PeriodPricingPanel({ plan, periodPricing, updatePeriodField, addPeriod,
   const handleAddSubmit = (e) => {
     e?.preventDefault?.();
     if (!newPeriodInput) return;
-    addPeriod(plan.plan_id, newPeriodInput);
+    addPeriod(plan.plan_id, seat, newPeriodInput);
+  };
+  const handleAddSeat = (e) => {
+    e?.preventDefault?.();
+    const v = newSeatInput.trim();
+    if (!v) return;
+    if (/^(무제한|unlimited|∞)$/i.test(v)) { addSeatTier?.(0, true); }
+    else { const n = Number(v); if (!Number.isFinite(n) || n < 1) { alert('계정수는 1 이상 숫자 또는 "무제한"'); return; } addSeatTier?.(n, false); }
+    setNewSeatInput('');
   };
 
   return (
@@ -2139,7 +2215,7 @@ function PeriodPricingPanel({ plan, periodPricing, updatePeriodField, addPeriod,
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
         <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--text-3)', letterSpacing: 1, textTransform: 'uppercase' }}>
-          📅 기간별 구독 가격
+          📅 계정수별 · 기간별 구독 가격
         </div>
         <div style={{ flex: 1 }} />
         {isCustom && (
@@ -2147,6 +2223,45 @@ function PeriodPricingPanel({ plan, periodPricing, updatePeriodField, addPeriod,
             맞춤 견적 — 가격 입력 불필요
           </span>
         )}
+      </div>
+
+      {/* 186차: 계정수(seat) 티어 선택 + 관리 — 같은 플랜이라도 계정수별 요금 책정 */}
+      <div style={{ marginBottom: 12 }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', marginBottom: 6 }}>👥 계정수 (같은 플랜, 계정수별 요금)</div>
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+          {seatTiers.map(t => {
+            const on = t.key === seat;
+            return (
+              <span key={t.key} style={{ display: 'inline-flex', alignItems: 'center' }}>
+                <button onClick={() => setActiveSeat(t.key)} style={{
+                  padding: '6px 12px', borderRadius: on ? '8px 0 0 8px' : 8,
+                  border: on ? '1px solid #6366f1' : '1px solid rgba(255,255,255,0.12)',
+                  borderRight: (on && t.key !== BASE_SEAT) ? 'none' : undefined,
+                  background: on ? 'rgba(99,102,241,0.22)' : 'rgba(255,255,255,0.03)',
+                  color: on ? '#c7d2fe' : 'var(--text-2)', fontSize: 12, fontWeight: on ? 800 : 600, cursor: 'pointer',
+                }}>{t.unlimited ? '♾ 무제한' : `${t.count}계정`}</button>
+                {on && t.key !== BASE_SEAT && (
+                  <button onClick={() => removeSeatTier?.(t.key)} title="이 계정수 티어 삭제" style={{
+                    padding: '6px 8px', borderRadius: '0 8px 8px 0', border: '1px solid #6366f1', borderLeft: 'none',
+                    background: 'rgba(248,113,113,0.12)', color: '#f87171', fontSize: 12, fontWeight: 800, cursor: 'pointer',
+                  }}>×</button>
+                )}
+              </span>
+            );
+          })}
+          {/* 계정수 추가 */}
+          <form onSubmit={handleAddSeat} style={{ display: 'inline-flex', gap: 4, alignItems: 'center', marginLeft: 4 }}>
+            <input value={newSeatInput} onChange={e => setNewSeatInput(e.target.value)} placeholder="계정수 or 무제한"
+              style={{ ...inputS, width: 120, padding: '5px 8px' }} />
+            <button type="submit" style={{
+              padding: '6px 12px', borderRadius: 8, border: '1px dashed rgba(34,197,94,0.4)',
+              background: 'rgba(34,197,94,0.08)', color: '#22c55e', fontSize: 12, fontWeight: 800, cursor: 'pointer',
+            }}>＋ 계정수</button>
+          </form>
+        </div>
+        <div style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 6 }}>
+          현재 편집 중: <strong style={{ color: '#c7d2fe' }}>{activeTier ? (activeTier.unlimited ? '무제한 계정' : `${activeTier.count}계정`) : seat}</strong> — 아래 기간별 요금은 이 계정수에만 적용됩니다.
+        </div>
       </div>
 
       {/* 안내 */}
@@ -2236,7 +2351,7 @@ function PeriodPricingPanel({ plan, periodPricing, updatePeriodField, addPeriod,
                     {isBase ? (
                       <input type="number" step="0.01" min="0" disabled={false /* 172차: Enterprise 도 admin 견적가 입력 가능 */}
                         value={cfg.price_usd ?? ''}
-                        onChange={e => updatePeriodField(plan.plan_id, 1, { price_usd: e.target.value === '' ? null : Number(e.target.value) })}
+                        onChange={e => updatePeriodField(plan.plan_id, seat, 1, { price_usd: e.target.value === '' ? null : Number(e.target.value) })}
                         style={{ ...inputS, fontWeight: 700, color: '#22c55e' }}
                         placeholder="기준 월 요금" />
                     ) : (
@@ -2254,7 +2369,7 @@ function PeriodPricingPanel({ plan, periodPricing, updatePeriodField, addPeriod,
                   <td style={{ padding: '8px 6px' }}>
                     <input type="number" step="1" min="0" max="80" disabled={isBase /* 172차: 1m 은 SSOT (할인 0%), 그 외 Enterprise 포함 활성 */}
                       value={cfg.discount_pct ?? 0}
-                      onChange={e => updatePeriodField(plan.plan_id, months, { discount_pct: e.target.value === '' ? 0 : Number(e.target.value) })}
+                      onChange={e => updatePeriodField(plan.plan_id, seat, months, { discount_pct: e.target.value === '' ? 0 : Number(e.target.value) })}
                       style={{ ...inputS, opacity: isBase ? 0.4 : 1, textAlign: 'center' }}
                       title={isBase ? '기준 가격(1m)은 할인 없음' : `${months}개월 할인율 (%)`} />
                   </td>
@@ -2268,18 +2383,18 @@ function PeriodPricingPanel({ plan, periodPricing, updatePeriodField, addPeriod,
                   </td>
                   <td style={{ padding: '8px 6px' }}>
                     <input type="text" value={cfg.paddle_price_id ?? ''} placeholder="pri_xxxxxxxxxx"
-                      onChange={e => updatePeriodField(plan.plan_id, months, { paddle_price_id: e.target.value })}
+                      onChange={e => updatePeriodField(plan.plan_id, seat, months, { paddle_price_id: e.target.value })}
                       style={inputS} />
                   </td>
                   <td style={{ padding: '8px 6px', textAlign: 'center' }}>
                     <input type="checkbox" checked={cfg.is_active !== false}
-                      onChange={e => updatePeriodField(plan.plan_id, months, { is_active: e.target.checked })} />
+                      onChange={e => updatePeriodField(plan.plan_id, seat, months, { is_active: e.target.checked })} />
                   </td>
                   <td style={{ padding: '8px 6px', textAlign: 'center' }}>
                     {isBase ? (
                       <span style={{ fontSize: 10, color: 'var(--text-3)', fontStyle: 'italic' }}>기준</span>
                     ) : (
-                      <button onClick={() => removePeriod(plan.plan_id, months)} disabled={false /* 172차: Enterprise 도 admin 견적가 입력 가능 */} style={{
+                      <button onClick={() => removePeriod(plan.plan_id, seat, months)} disabled={false /* 172차: Enterprise 도 admin 견적가 입력 가능 */} style={{
                         padding: '3px 8px', borderRadius: 6,
                         background: 'rgba(248,113,113,0.10)', color: '#f87171',
                         border: '1px solid rgba(248,113,113,0.28)',
