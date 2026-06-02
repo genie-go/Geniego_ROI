@@ -683,19 +683,19 @@ function PlanPricing() {
       {/* 179차 — 관리자 설정 순서 가이드 (무엇을 먼저 할지 명확화) */}
       {outerTab === 'plan' && (
         <div style={{
-          display: 'flex', gap: 10, marginBottom: 14, padding: '12px 16px', borderRadius: 12, flexWrap: 'wrap',
+          display: 'flex', gap: 8, marginBottom: 12, padding: '7px 12px', borderRadius: 9, flexWrap: 'wrap', alignItems: 'center',
           background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.20)',
         }}>
-          <span style={{ fontSize: 13, fontWeight: 800, color: '#93c5fd', whiteSpace: 'nowrap' }}>📌 설정 순서</span>
+          <span style={{ fontSize: 12, fontWeight: 800, color: '#93c5fd', whiteSpace: 'nowrap' }}>📌 설정 순서</span>
           {[
             { n: '①', t: '플랜 선택 또는 ＋추가' },
             { n: '②', t: '구독 요금 설정 (USD)' },
-            { n: '③', t: '이 플랜이 제공할 메뉴·기능 선택' },
-            { n: '④', t: '💾 이 플랜 저장 → 모든 사용자 즉시 반영' },
+            { n: '③', t: '제공할 메뉴·기능 선택' },
+            { n: '④', t: '💾 저장 → 즉시 반영' },
           ].map((s, i) => (
-            <span key={i} style={{ fontSize: 13, color: 'var(--text-2)', display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+            <span key={i} style={{ fontSize: 12, color: '#cbd5e1', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
               <span style={{ fontWeight: 900, color: '#fde047' }}>{s.n}</span>{s.t}
-              {i < 3 && <span style={{ color: 'var(--text-3)', margin: '0 2px' }}>→</span>}
+              {i < 3 && <span style={{ color: '#64748b', margin: '0 1px' }}>→</span>}
             </span>
           ))}
         </div>
@@ -716,7 +716,7 @@ function PlanPricing() {
               padding: '13px 24px', border: 'none',
               // 활성: 찐한 파랑 배경 + 노랑 텍스트 (최대 가시성, 172차 p4)
               background: active ? '#1e3a8a' : 'transparent',
-              color: active ? '#fde047' : 'var(--text-3)',
+              color: active ? '#fde047' : '#cbd5e1',
               fontSize: 15, fontWeight: active ? 900 : 600, cursor: 'pointer',
               borderBottom: active ? '3px solid #fde047' : '3px solid transparent',
               borderRadius: active ? '8px 8px 0 0' : 0,
@@ -783,18 +783,18 @@ function PlanPricing() {
               <button key={p.plan_id} onClick={() => setActivePlanIdx(i)} style={{
                 flex: '1 1 180px', minWidth: 180, padding: '14px 16px', borderRadius: 12, border: 'none', cursor: 'pointer',
                 textAlign: 'left',
-                background: sel ? '#1e3a8a' : 'rgba(255,255,255,0.04)',
-                color: sel ? '#fde047' : 'var(--text-2)',
-                boxShadow: sel ? '0 0 0 2px #fde047 inset' : '0 0 0 1px rgba(255,255,255,0.06) inset',
+                background: sel ? '#1e3a8a' : 'rgba(255,255,255,0.06)',
+                color: sel ? '#fde047' : '#e2e8f0',
+                boxShadow: sel ? '0 0 0 2px #fde047 inset' : '0 0 0 1px rgba(255,255,255,0.10) inset',
                 transition: 'all 150ms',
               }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 15, fontWeight: sel ? 900 : 800 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 15, fontWeight: sel ? 900 : 800, color: sel ? '#fde047' : '#f1f5f9' }}>
                   {(p.is_recommended === true || p.is_recommended === 1) && <span style={{ fontSize: 12 }}>⭐</span>}
                   {p.name || p.plan_id}
                   {p.is_active === false && <span style={{ fontSize: 10, color: '#f87171', fontWeight: 700 }}>(비활성)</span>}
                 </div>
-                <div style={{ fontSize: 13, fontWeight: 800, marginTop: 6, color: sel ? '#fff' : 'var(--text-1)' }}>{priceLabel}</div>
-                <div style={{ fontSize: 11, marginTop: 2, opacity: 0.8 }}>제공 메뉴 {onCount}개</div>
+                <div style={{ fontSize: 13, fontWeight: 800, marginTop: 6, color: sel ? '#fff' : '#cbd5e1' }}>{priceLabel}</div>
+                <div style={{ fontSize: 11, marginTop: 2, color: sel ? '#e0e7ff' : '#94a3b8' }}>제공 메뉴 {onCount}개</div>
               </button>
               );
             })}
@@ -1837,7 +1837,7 @@ function MenuAccessTree({ plans, menus, access, setMenuAccess, setMenuAccessBulk
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, minWidth: 520 }}>
           <thead>
             <tr style={{ background: 'rgba(0,0,0,0.3)' }}>
-              <th style={{ ...cellPad, textAlign: 'left', position: 'sticky', left: 0, background: '#0f172a', minWidth: 240, zIndex: 1 }}>제공 서비스 (메뉴)</th>
+              <th style={{ ...cellPad, textAlign: 'left', position: 'sticky', left: 0, background: '#0f172a', minWidth: 240, zIndex: 1, color: '#e2e8f0' }}>제공 서비스 (메뉴)</th>
               {plans.map((p, i) => (
                 <th key={p.plan_id} style={{ ...cellPad, textAlign: 'center', minWidth: 100 }}>
                   <div style={{ fontWeight: 800, color: '#fde047' }}>{p.name || p.plan_id}</div>
@@ -1861,7 +1861,7 @@ function MenuAccessTree({ plans, menus, access, setMenuAccess, setMenuAccessBulk
                 <React.Fragment key={section.key}>
                   {/* 섹션(대메뉴) 헤더 행 — 플랜별 섹션 일괄 토글 */}
                   <tr style={{ background: 'rgba(99,102,241,0.08)' }}>
-                    <td style={{ ...cellPad, position: 'sticky', left: 0, background: '#162033', cursor: 'pointer', fontWeight: 800 }} onClick={() => toggleCollapse(section.key)}>
+                    <td style={{ ...cellPad, position: 'sticky', left: 0, background: '#162033', cursor: 'pointer', fontWeight: 800, color: '#f1f5f9' }} onClick={() => toggleCollapse(section.key)}>
                       <span style={{ color: 'var(--text-3)', marginRight: 6 }}>{isCol ? '▶' : '▼'}</span>
                       <span style={{ marginRight: 6 }}>{section.icon}</span>{sectionLabel}
                     </td>
@@ -1884,8 +1884,8 @@ function MenuAccessTree({ plans, menus, access, setMenuAccess, setMenuAccessBulk
                     return (
                       <tr key={g.menuKey}>
                         <td style={{ ...cellPad, position: 'sticky', left: 0, background: '#0b1220', paddingLeft: 26 }}>
-                          <div style={{ fontWeight: 600, color: 'var(--text-1)' }}>{title}</div>
-                          {desc && <div style={{ fontSize: 10, color: 'var(--text-3)', lineHeight: 1.4, marginTop: 1, maxWidth: 380 }}>{desc}</div>}
+                          <div style={{ fontWeight: 600, color: '#e2e8f0' }}>{title}</div>
+                          {desc && <div style={{ fontSize: 10, color: '#94a3b8', lineHeight: 1.4, marginTop: 1, maxWidth: 380 }}>{desc}</div>}
                         </td>
                         {plans.map(p => (
                           <td key={p.plan_id} style={{ ...cellPad, textAlign: 'center' }}>
