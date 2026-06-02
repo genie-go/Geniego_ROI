@@ -1896,14 +1896,15 @@ function CouponAdminPanel({ plans }) {
 
 function MenuAccessTree({ plans, menus, access, setMenuAccess, setMenuAccessBulk, togglePlanAll, saveAllAccess, saving, dirty, recommendMenuAccess }) {
   const t = useT();
-  // 186차 요청: 한 페이지에서 전 계층(대/중/하위/서브탭) 한눈에 — 기본 전체 펼침
+  // 186차 요청: 클릭 단계 펼침(아코디언) — 대메뉴 클릭→중메뉴, 중메뉴 클릭→하위메뉴, 하위메뉴 클릭→서브탭.
   const _allMenuKeys = () => { const s = new Set(); for (const sec of [...MEMBER_MENU, ...ADMIN_MENU]) for (const it of (sec.items || [])) if (it.menuKey) s.add(it.menuKey); return s; };
   const _allLeafRoutes = () => { const s = new Set(); for (const sec of [...MEMBER_MENU, ...ADMIN_MENU]) for (const it of (sec.items || [])) if (it.to) s.add(it.to); return s; };
-  const [collapsed, setCollapsed] = useState(() => new Set());
-  const [expandMenu, setExpandMenu] = useState(_allMenuKeys);   // 중메뉴 → 하위메뉴 펼침 (기본 전체)
-  const [expandLeaf, setExpandLeaf] = useState(_allLeafRoutes); // 하위메뉴 → 서브탭 펼침 (기본 전체)
+  const _allSectionKeys = () => { const c = new Set(); for (const sec of [...MEMBER_MENU, ...ADMIN_MENU]) c.add(sec.key); return c; };
+  const [collapsed, setCollapsed] = useState(_allSectionKeys); // 기본: 대메뉴만 보임(중메뉴 접힘)
+  const [expandMenu, setExpandMenu] = useState(() => new Set()); // 중메뉴 → 하위메뉴 (클릭 시 펼침)
+  const [expandLeaf, setExpandLeaf] = useState(() => new Set()); // 하위메뉴 → 서브탭 (클릭 시 펼침)
   const expandAll = () => { setCollapsed(new Set()); setExpandMenu(_allMenuKeys()); setExpandLeaf(_allLeafRoutes()); };
-  const collapseAll = () => { const c = new Set(); for (const sec of [...MEMBER_MENU, ...ADMIN_MENU]) c.add(sec.key); setCollapsed(c); setExpandMenu(new Set()); setExpandLeaf(new Set()); };
+  const collapseAll = () => { setCollapsed(_allSectionKeys()); setExpandMenu(new Set()); setExpandLeaf(new Set()); };
   const [filter, setFilter] = useState('');
   const sections = useMemo(() => [...MEMBER_MENU, ...ADMIN_MENU], []);
   // 186차: 매트릭스는 sidebar manifest(sections) 기준 렌더. menu_tree(DB) 비어도 plan_menu_access 는 menu_key 로 저장되므로 전체 토글 허용.
@@ -1967,11 +1968,11 @@ function MenuAccessTree({ plans, menus, access, setMenuAccess, setMenuAccessBulk
       </div>
 
       {/* 비교 매트릭스 (메뉴 × 플랜) */}
-      <div style={{ borderRadius: 14, border: '1px solid rgba(255,255,255,0.07)', overflow: 'auto', background: 'rgba(255,255,255,0.04)' }}>
+      <div style={{ borderRadius: 14, border: '1px solid rgba(255,255,255,0.07)', overflow: 'auto', background: 'rgba(255,255,255,0.07)' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, minWidth: 520 }}>
           <thead>
             <tr style={{ background: 'rgba(0,0,0,0.3)' }}>
-              <th style={{ ...cellPad, textAlign: 'left', position: 'sticky', left: 0, background: '#334155', minWidth: 240, zIndex: 1, color: '#e2e8f0' }}>제공 서비스 (메뉴)</th>
+              <th style={{ ...cellPad, textAlign: 'left', position: 'sticky', left: 0, background: '#475569', minWidth: 240, zIndex: 1, color: '#e2e8f0' }}>제공 서비스 (메뉴)</th>
               {plans.map((p, i) => (
                 <th key={p.plan_id} style={{ ...cellPad, textAlign: 'center', minWidth: 100 }}>
                   <div style={{ fontWeight: 800, color: '#fde047' }}>{p.name || p.plan_id}</div>
@@ -1995,10 +1996,14 @@ function MenuAccessTree({ plans, menus, access, setMenuAccess, setMenuAccessBulk
                 <React.Fragment key={section.key}>
                   {/* 대메뉴(섹션) — 체크박스 = 섹션 전체(하위 모두 포함) */}
                   <tr style={{ background: 'rgba(99,102,241,0.10)' }}>
-                    <td style={{ ...cellPad, position: 'sticky', left: 0, background: '#2c3a52', cursor: 'pointer', fontWeight: 800, color: '#f1f5f9' }} onClick={() => toggleCollapse(section.key)}>
-                      <span style={{ color: '#94a3b8', marginRight: 6 }}>{isCol ? '▶' : '▼'}</span>
-                      <span style={{ marginRight: 6 }}>{section.icon}</span>{sectionLabel}
-                      <span style={{ fontSize: 9, color: '#64748b', marginLeft: 6, fontWeight: 700 }}>대메뉴</span>
+                    <td style={{ ...cellPad, position: 'sticky', left: 0, background: '#3f5170', cursor: 'pointer', color: '#ffffff' }} onClick={() => toggleCollapse(section.key)}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ color: '#e2e8f0', fontSize: 13, width: 14 }}>{isCol ? '▶' : '▼'}</span>
+                        <span style={{ fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 6, background: '#4f46e5', color: '#fff', whiteSpace: 'nowrap' }}>대메뉴</span>
+                        <span style={{ fontSize: 15 }}>{section.icon}</span>
+                        <span style={{ fontWeight: 800, fontSize: 14, color: '#ffffff' }}>{sectionLabel}</span>
+                        <span style={{ fontSize: 10.5, color: '#c7d2fe', marginLeft: 2 }}>{isCol ? '▶ 클릭하면 중메뉴' : ''}</span>
+                      </div>
                     </td>
                     {plans.map(p => {
                       const onCnt = sectionKeys.filter(k => isOn(p.plan_id, k)).length;
@@ -2021,14 +2026,15 @@ function MenuAccessTree({ plans, menus, access, setMenuAccess, setMenuAccessBulk
                       <React.Fragment key={g.menuKey}>
                         {/* 중메뉴 — 체크박스 = 중메뉴 + 하위 전체 */}
                         <tr>
-                          <td style={{ ...cellPad, position: 'sticky', left: 0, background: '#222f44', paddingLeft: 20 }}>
-                            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6 }}>
+                          <td style={{ ...cellPad, position: 'sticky', left: 0, background: '#39465c', paddingLeft: 26 }}>
+                            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
                               {hasChildren
-                                ? <span onClick={() => toggleExpandMenu(g.menuKey)} style={{ cursor: 'pointer', color: '#94a3b8', fontSize: 11, width: 12, userSelect: 'none' }}>{menuExp ? '▾' : '▸'}</span>
-                                : <span style={{ width: 12 }} />}
+                                ? <span onClick={() => toggleExpandMenu(g.menuKey)} style={{ cursor: 'pointer', color: '#e2e8f0', fontSize: 12, width: 14, userSelect: 'none', marginTop: 1 }}>{menuExp ? '▼' : '▶'}</span>
+                                : <span style={{ width: 14 }} />}
+                              <span style={{ fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 6, background: '#7c3aed', color: '#fff', whiteSpace: 'nowrap', marginTop: 1 }}>중메뉴</span>
                               <div>
-                                <div onClick={hasChildren ? () => toggleExpandMenu(g.menuKey) : undefined} style={{ fontWeight: 700, color: '#e2e8f0', cursor: hasChildren ? 'pointer' : 'default' }}>{title} <span style={{ fontSize: 9, color: '#64748b', fontWeight: 600 }}>중메뉴{g.items.length > 1 ? ` · ${g.items.length}p` : ''}{hasChildren ? (menuExp ? ' ▾' : ' ▸ 클릭') : ''}</span></div>
-                                {desc && <div style={{ fontSize: 10, color: '#94a3b8', lineHeight: 1.4, marginTop: 1, maxWidth: 350 }}>{desc}</div>}
+                                <div onClick={hasChildren ? () => toggleExpandMenu(g.menuKey) : undefined} style={{ fontWeight: 700, color: '#ffffff', fontSize: 13, cursor: hasChildren ? 'pointer' : 'default' }}>{title}{hasChildren && <span style={{ fontSize: 10.5, color: '#c4b5fd', marginLeft: 6, fontWeight: 700 }}>{menuExp ? '▼ 하위 접기' : `▶ 하위메뉴 ${g.items.length}개`}</span>}</div>
+                                {desc && <div style={{ fontSize: 10.5, color: '#cbd5e1', lineHeight: 1.45, marginTop: 2, maxWidth: 340 }}>{desc}</div>}
                               </div>
                             </div>
                           </td>
@@ -2046,14 +2052,13 @@ function MenuAccessTree({ plans, menus, access, setMenuAccess, setMenuAccessBulk
                           return (
                             <React.Fragment key={it.to}>
                               <tr>
-                                <td style={{ ...cellPad, position: 'sticky', left: 0, background: '#1c2840', paddingLeft: 44 }}>
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                                <td style={{ ...cellPad, position: 'sticky', left: 0, background: '#313d52', paddingLeft: 52 }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                                     {subs.length > 0
-                                      ? <span onClick={() => toggleExpandLeaf(it.to)} style={{ cursor: 'pointer', color: '#94a3b8', fontSize: 11, width: 12, userSelect: 'none' }}>{leafExp ? '▾' : '▸'}</span>
-                                      : <span style={{ width: 12 }} />}
-                                    <span onClick={subs.length > 0 ? () => toggleExpandLeaf(it.to) : undefined} style={{ fontSize: 12, color: '#cbd5e1', fontWeight: 600, cursor: subs.length > 0 ? 'pointer' : 'default' }}>{it.icon} {gNavLabel(it.labelKey) || t(it.labelKey, it.labelKey.split('.').pop())}{subs.length > 0 ? (leafExp ? ' ▾' : ` ▸ 서브탭 ${subs.length}`) : ''}</span>
-                                    <span style={{ fontSize: 9, color: '#64748b' }}>하위</span>
-                                    <code style={{ fontSize: 9, color: '#64748b' }}>{it.to}</code>
+                                      ? <span onClick={() => toggleExpandLeaf(it.to)} style={{ cursor: 'pointer', color: '#e2e8f0', fontSize: 12, width: 14, userSelect: 'none' }}>{leafExp ? '▼' : '▶'}</span>
+                                      : <span style={{ width: 14 }} />}
+                                    <span style={{ fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 6, background: '#0891b2', color: '#fff', whiteSpace: 'nowrap' }}>하위메뉴</span>
+                                    <span onClick={subs.length > 0 ? () => toggleExpandLeaf(it.to) : undefined} style={{ fontSize: 12.5, color: '#ffffff', fontWeight: 600, cursor: subs.length > 0 ? 'pointer' : 'default' }}>{it.icon} {gNavLabel(it.labelKey) || t(it.labelKey, it.labelKey.split('.').pop())}{subs.length > 0 && <span style={{ color: '#fcd34d', marginLeft: 4, fontWeight: 700 }}>{leafExp ? '▼ 서브탭 접기' : `▶ 서브탭 ${subs.length}개`}</span>}</span>
                                   </div>
                                 </td>
                                 {plans.map(p => (
@@ -2067,9 +2072,12 @@ function MenuAccessTree({ plans, menus, access, setMenuAccess, setMenuAccessBulk
                                 const sk = `${it.to}::${st.id}`;
                                 return (
                                   <tr key={sk}>
-                                    <td style={{ ...cellPad, position: 'sticky', left: 0, background: '#18222f', paddingLeft: 66 }}>
-                                      <span style={{ fontSize: 11, color: '#a5b4fc' }}>📑 {st.label || st.id}</span>
-                                      <span style={{ fontSize: 9, color: '#64748b', marginLeft: 4 }}>서브탭</span>
+                                    <td style={{ ...cellPad, position: 'sticky', left: 0, background: '#2a3547', paddingLeft: 80 }}>
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                        <span style={{ width: 14 }} />
+                                        <span style={{ fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 6, background: '#d97706', color: '#fff', whiteSpace: 'nowrap' }}>서브탭</span>
+                                        <span style={{ fontSize: 12.5, color: '#ffffff', fontWeight: 600 }}>📑 {st.label || st.id}</span>
+                                      </div>
                                     </td>
                                     {plans.map(p => (
                                       <td key={p.plan_id} style={{ ...cellPad, textAlign: 'center' }}>
