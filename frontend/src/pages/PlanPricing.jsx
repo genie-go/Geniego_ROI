@@ -4,7 +4,13 @@ import { getJsonAuth, requestJsonAuth } from "../services/apiClient.js";
 import { useT } from "../i18n/index.js";
 import { MEMBER_MENU, ADMIN_MENU, buildMenuKeyIndex } from "../layout/sidebarManifest.js";
 import { MENU_KEY_LABEL, SUB_TABS_BY_PATH } from "../layout/sidebarMenuLabels.js";
+import SIDEBAR_DICT from "../layout/sidebarI18n.js"; // 186차: gNav.* 라벨 한글 해석 (하위메뉴 라벨)
 import { recommendMenuAccessByPrice } from "../auth/planMenuPolicy.js"; // 181차 요금 기반 메뉴접근 추천
+/** gNav.* labelKey → 한글 라벨 (sidebarI18n 우선) */
+function gNavLabel(labelKey) {
+  if (labelKey && labelKey.startsWith('gNav.')) { const d = SIDEBAR_DICT.ko || {}; const v = d[labelKey.slice(5)]; if (v) return v; }
+  return null;
+}
 
 /**
  * 169차 P4 완벽 동기화 — admin 저장 후 user 측 sidebar 즉시 갱신.
@@ -1780,6 +1786,8 @@ function CouponAdminPanel({ plans }) {
 function MenuAccessTree({ plans, menus, access, setMenuAccess, setMenuAccessBulk, togglePlanAll, saveAllAccess, saving, dirty, recommendMenuAccess }) {
   const t = useT();
   const [collapsed, setCollapsed] = useState(() => new Set());
+  const [expandMenu, setExpandMenu] = useState(() => new Set()); // 중메뉴 → 하위메뉴 펼침
+  const [expandLeaf, setExpandLeaf] = useState(() => new Set()); // 하위메뉴 → 서브탭 펼침
   const [filter, setFilter] = useState('');
   const sections = useMemo(() => [...MEMBER_MENU, ...ADMIN_MENU], []);
   // 186차: 매트릭스는 sidebar manifest(sections) 기준 렌더. menu_tree(DB) 비어도 plan_menu_access 는 menu_key 로 저장되므로 전체 토글 허용.
@@ -1806,6 +1814,12 @@ function MenuAccessTree({ plans, menus, access, setMenuAccess, setMenuAccessBulk
   };
   const isOn = (planId, mk) => !!(access[planId] || {})[mk];
   const toggleCollapse = (key) => setCollapsed(prev => { const n = new Set(prev); if (n.has(key)) n.delete(key); else n.add(key); return n; });
+  const toggleExpandMenu = (key) => setExpandMenu(prev => { const n = new Set(prev); if (n.has(key)) n.delete(key); else n.add(key); return n; });
+  const toggleExpandLeaf = (key) => setExpandLeaf(prev => { const n = new Set(prev); if (n.has(key)) n.delete(key); else n.add(key); return n; });
+  // 계층 키 헬퍼 — 하위메뉴(=라우트 it.to) / 서브탭(=it.to::st.id)
+  const subKeysOfLeaf = (it) => (SUB_TABS_BY_PATH[it.to] || []).map(st => `${it.to}::${st.id}`);
+  const keysOfGroup = (g) => { const ks = [g.menuKey]; for (const it of g.items) { if (it.to) ks.push(it.to); ks.push(...subKeysOfLeaf(it)); } return ks; };
+  const groupHasChildren = (g) => g.items.length > 1 || g.items.some(it => subKeysOfLeaf(it).length > 0);
   // 전체 menuKey 수 (manifest 기준, 중복 제거)
   const totalMenuKeys = useMemo(() => { const s = new Set(); for (const sec of sections) for (const it of sec.items) if (it.menuKey) s.add(it.menuKey); return s.size; }, [sections]);
   const planStats = plans.map(p => ({ on: Object.values(access[p.plan_id] || {}).filter(Boolean).length, total: totalMenuKeys }));
@@ -1856,43 +1870,99 @@ function MenuAccessTree({ plans, menus, access, setMenuAccess, setMenuAccessBulk
               if (filter.trim() && groups.length === 0) return null;
               const isCol = collapsed.has(section.key);
               const sectionLabel = t(section.labelKey, section.labelKey.split('.').pop());
-              const allKeys = groups.map(g => g.menuKey);
+              const sectionKeys = groups.flatMap(keysOfGroup);
               return (
                 <React.Fragment key={section.key}>
-                  {/* 섹션(대메뉴) 헤더 행 — 플랜별 섹션 일괄 토글 */}
-                  <tr style={{ background: 'rgba(99,102,241,0.08)' }}>
+                  {/* 대메뉴(섹션) — 체크박스 = 섹션 전체(하위 모두 포함) */}
+                  <tr style={{ background: 'rgba(99,102,241,0.10)' }}>
                     <td style={{ ...cellPad, position: 'sticky', left: 0, background: '#162033', cursor: 'pointer', fontWeight: 800, color: '#f1f5f9' }} onClick={() => toggleCollapse(section.key)}>
-                      <span style={{ color: 'var(--text-3)', marginRight: 6 }}>{isCol ? '▶' : '▼'}</span>
+                      <span style={{ color: '#94a3b8', marginRight: 6 }}>{isCol ? '▶' : '▼'}</span>
                       <span style={{ marginRight: 6 }}>{section.icon}</span>{sectionLabel}
+                      <span style={{ fontSize: 9, color: '#64748b', marginLeft: 6, fontWeight: 700 }}>대메뉴</span>
                     </td>
                     {plans.map(p => {
-                      const onCnt = allKeys.filter(k => isOn(p.plan_id, k)).length;
-                      const all = onCnt === allKeys.length && allKeys.length > 0;
+                      const onCnt = sectionKeys.filter(k => isOn(p.plan_id, k)).length;
+                      const all = onCnt === sectionKeys.length && sectionKeys.length > 0;
                       return (
                         <td key={p.plan_id} style={{ ...cellPad, textAlign: 'center' }}>
-                          <button onClick={() => setMenuAccessBulk(p.plan_id, allKeys, !all)} title={all ? '섹션 전체 제거' : '섹션 전체 추가'} style={{ padding: '2px 7px', borderRadius: 5, fontSize: 10, fontWeight: 800, cursor: 'pointer', border: '1px solid rgba(255,255,255,0.12)', background: all ? 'rgba(34,197,94,0.16)' : (onCnt ? 'rgba(251,146,60,0.14)' : 'rgba(255,255,255,0.04)'), color: all ? '#22c55e' : (onCnt ? '#fb923c' : 'var(--text-3)') }}>{onCnt}/{allKeys.length}</button>
+                          <input type="checkbox" checked={all} ref={el => { if (el) el.indeterminate = onCnt > 0 && !all; }} onChange={e => setMenuAccessBulk(p.plan_id, sectionKeys, e.target.checked)} title="이 대메뉴(섹션) 전체 선택/해제" style={{ width: 17, height: 17, cursor: 'pointer' }} />
                         </td>
                       );
                     })}
                   </tr>
-                  {/* 메뉴(중메뉴) 행 — 플랜별 체크박스 */}
                   {!isCol && groups.map(g => {
                     const lbl = MENU_KEY_LABEL[g.menuKey];
                     const title = lbl?.title || t(g.items[0]?.labelKey, g.menuKey);
                     const desc = lbl?.desc;
-                    const saveable = true; // 186차: plan_menu_access 는 menu_key 로 저장 — 전체 토글 허용
+                    const hasChildren = groupHasChildren(g);
+                    const menuExp = expandMenu.has(g.menuKey);
+                    const gKeys = keysOfGroup(g);
                     return (
-                      <tr key={g.menuKey}>
-                        <td style={{ ...cellPad, position: 'sticky', left: 0, background: '#0b1220', paddingLeft: 26 }}>
-                          <div style={{ fontWeight: 600, color: '#e2e8f0' }}>{title}</div>
-                          {desc && <div style={{ fontSize: 10, color: '#94a3b8', lineHeight: 1.4, marginTop: 1, maxWidth: 380 }}>{desc}</div>}
-                        </td>
-                        {plans.map(p => (
-                          <td key={p.plan_id} style={{ ...cellPad, textAlign: 'center' }}>
-                            <input type="checkbox" checked={isOn(p.plan_id, g.menuKey)} disabled={!saveable} onChange={e => setMenuAccess(p.plan_id, g.menuKey, e.target.checked)} style={{ width: 17, height: 17, cursor: saveable ? 'pointer' : 'not-allowed' }} />
+                      <React.Fragment key={g.menuKey}>
+                        {/* 중메뉴 — 체크박스 = 중메뉴 + 하위 전체 */}
+                        <tr>
+                          <td style={{ ...cellPad, position: 'sticky', left: 0, background: '#0b1220', paddingLeft: 20 }}>
+                            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6 }}>
+                              {hasChildren
+                                ? <span onClick={() => toggleExpandMenu(g.menuKey)} style={{ cursor: 'pointer', color: '#94a3b8', fontSize: 11, width: 12, userSelect: 'none' }}>{menuExp ? '▾' : '▸'}</span>
+                                : <span style={{ width: 12 }} />}
+                              <div>
+                                <div style={{ fontWeight: 700, color: '#e2e8f0' }}>{title} <span style={{ fontSize: 9, color: '#64748b', fontWeight: 600 }}>중메뉴{g.items.length > 1 ? ` · ${g.items.length}p` : ''}</span></div>
+                                {desc && <div style={{ fontSize: 10, color: '#94a3b8', lineHeight: 1.4, marginTop: 1, maxWidth: 350 }}>{desc}</div>}
+                              </div>
+                            </div>
                           </td>
-                        ))}
-                      </tr>
+                          {plans.map(p => (
+                            <td key={p.plan_id} style={{ ...cellPad, textAlign: 'center' }}>
+                              <input type="checkbox" checked={isOn(p.plan_id, g.menuKey)} onChange={e => setMenuAccessBulk(p.plan_id, gKeys, e.target.checked)} title="중메뉴(+하위메뉴·서브탭) 선택/해제" style={{ width: 17, height: 17, cursor: 'pointer' }} />
+                            </td>
+                          ))}
+                        </tr>
+                        {/* 하위메뉴 (leaf 페이지) */}
+                        {!isCol && menuExp && g.items.map(it => {
+                          const subs = SUB_TABS_BY_PATH[it.to] || [];
+                          const leafExp = expandLeaf.has(it.to);
+                          const lKeys = [it.to, ...subKeysOfLeaf(it)];
+                          return (
+                            <React.Fragment key={it.to}>
+                              <tr>
+                                <td style={{ ...cellPad, position: 'sticky', left: 0, background: '#0a101e', paddingLeft: 44 }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                                    {subs.length > 0
+                                      ? <span onClick={() => toggleExpandLeaf(it.to)} style={{ cursor: 'pointer', color: '#94a3b8', fontSize: 11, width: 12, userSelect: 'none' }}>{leafExp ? '▾' : '▸'}</span>
+                                      : <span style={{ width: 12 }} />}
+                                    <span style={{ fontSize: 12, color: '#cbd5e1', fontWeight: 600 }}>{it.icon} {gNavLabel(it.labelKey) || t(it.labelKey, it.labelKey.split('.').pop())}</span>
+                                    <span style={{ fontSize: 9, color: '#64748b' }}>하위</span>
+                                    <code style={{ fontSize: 9, color: '#64748b' }}>{it.to}</code>
+                                  </div>
+                                </td>
+                                {plans.map(p => (
+                                  <td key={p.plan_id} style={{ ...cellPad, textAlign: 'center' }}>
+                                    <input type="checkbox" checked={isOn(p.plan_id, it.to)} onChange={e => setMenuAccessBulk(p.plan_id, lKeys, e.target.checked)} title="하위메뉴(+서브탭) 선택/해제" style={{ width: 15, height: 15, cursor: 'pointer' }} />
+                                  </td>
+                                ))}
+                              </tr>
+                              {/* 서브탭 */}
+                              {leafExp && subs.map(st => {
+                                const sk = `${it.to}::${st.id}`;
+                                return (
+                                  <tr key={sk}>
+                                    <td style={{ ...cellPad, position: 'sticky', left: 0, background: '#080d18', paddingLeft: 66 }}>
+                                      <span style={{ fontSize: 11, color: '#a5b4fc' }}>📑 {st.label || st.id}</span>
+                                      <span style={{ fontSize: 9, color: '#64748b', marginLeft: 4 }}>서브탭</span>
+                                    </td>
+                                    {plans.map(p => (
+                                      <td key={p.plan_id} style={{ ...cellPad, textAlign: 'center' }}>
+                                        <input type="checkbox" checked={isOn(p.plan_id, sk)} onChange={e => setMenuAccess(p.plan_id, sk, e.target.checked)} title="서브탭 선택/해제" style={{ width: 14, height: 14, cursor: 'pointer' }} />
+                                      </td>
+                                    ))}
+                                  </tr>
+                                );
+                              })}
+                            </React.Fragment>
+                          );
+                        })}
+                      </React.Fragment>
                     );
                   })}
                 </React.Fragment>
