@@ -243,42 +243,48 @@ function PlanPricing() {
   };
 
   /** 기간 추가 — admin 이 N개월 (1-60) 자유 입력 (해당 seat 티어에) */
-  const addPeriod = (planId, seat, months) => {
+  // 186차 요청: 기간 추가 한 번 → 모든 계정수(seat) 티어에 일괄 적용
+  const addPeriod = (planId, _seat, months) => {
     const m = Number(months);
     if (!Number.isFinite(m) || m < 1 || m > 60) {
       alert('기간은 1~60개월 범위로 입력하세요');
       return;
     }
+    const tiers = (seatTiers.length ? seatTiers : DEFAULT_SEAT_TIERS).map(t => t.key);
+    const recommendedDiscount = { 3: 5, 6: 10, 12: 20, 24: 30, 36: 40 }[m]
+      ?? Math.max(0, Math.min(30, (m - 1) * 2));
     setPeriodPricing(prev => {
       const planSeats = { ...(prev[planId] || {}) };
-      const planPP = { ...(planSeats[seat] || {}) };
-      if (planPP[m]) {
-        alert(`${m}개월은 이미 등록되어 있습니다`);
-        return prev;
+      const baseTier = planSeats[BASE_SEAT] || planSeats[tiers[0]] || {};
+      if (baseTier[m]) { alert(`${m}개월은 이미 등록되어 있습니다`); return prev; }
+      for (const seat of tiers) {
+        const planPP = { ...(planSeats[seat] || {}) };
+        if (!planPP[m]) {
+          const base = Number(planPP[1]?.price_usd) || 0;
+          planPP[m] = {
+            price_usd: base > 0 ? +(base * (1 - recommendedDiscount / 100)).toFixed(2) : null,
+            discount_pct: recommendedDiscount,
+            paddle_price_id: '',
+            is_active: true,
+          };
+        }
+        planSeats[seat] = planPP;
       }
-      const base = Number(planPP[1]?.price_usd) || 0;
-      const recommendedDiscount = { 3: 5, 6: 10, 12: 20, 24: 30, 36: 40 }[m]
-        ?? Math.max(0, Math.min(30, (m - 1) * 2));
-      planPP[m] = {
-        price_usd: base > 0 ? +(base * (1 - recommendedDiscount / 100)).toFixed(2) : null,
-        discount_pct: recommendedDiscount,
-        paddle_price_id: '',
-        is_active: true,
-      };
-      planSeats[seat] = planPP;
       return { ...prev, [planId]: planSeats };
     });
     setNewPeriodInput('');
   };
 
-  /** 기간 제거 (해당 seat 티어) */
-  const removePeriod = (planId, seat, months) => {
-    if (!window.confirm(`${months}개월 기간을 제거하시겠습니까? (저장 시 적용)`)) return;
+  /** 기간 제거 — 모든 계정수 티어에서 일괄 제거 */
+  const removePeriod = (planId, _seat, months) => {
+    if (!window.confirm(`${months}개월 기간을 모든 계정수에서 제거하시겠습니까? (저장 시 적용)`)) return;
     setPeriodPricing(prev => {
       const planSeats = { ...(prev[planId] || {}) };
-      const planPP = { ...(planSeats[seat] || {}) };
-      delete planPP[months];
-      planSeats[seat] = planPP;
+      for (const seat of Object.keys(planSeats)) {
+        const planPP = { ...(planSeats[seat] || {}) };
+        delete planPP[months];
+        planSeats[seat] = planPP;
+      }
       return { ...prev, [planId]: planSeats };
     });
   };
@@ -396,31 +402,46 @@ function PlanPricing() {
     return 0;
   }, [periodPricing]);
 
+  // 186차: menuKey → 그 메뉴의 모든 계층 키(menuKey + 하위메뉴 라우트 + 서브탭) — 추천 cascade용
+  const expandMenuKeyAllLevels = useCallback((mk) => {
+    const keys = [mk];
+    for (const sec of [...MEMBER_MENU, ...ADMIN_MENU]) for (const it of (sec.items || [])) {
+      if (it.menuKey === mk) {
+        if (it.to) keys.push(it.to);
+        (SUB_TABS_BY_PATH[it.to] || []).forEach(st => keys.push(`${it.to}::${st.id}`));
+      }
+    }
+    return keys;
+  }, []);
+
   const recommendMenuAccess = () => {
+    // 요청: 1개월 요금 + 1계정(base seat) 기준으로 플랜 비교 → 메뉴접근 추천. 계정수와 무관하게 플랜별 동일 적용.
     const prices = { starter: priceOf('starter'), pro: priceOf('pro'), enterprise: priceOf('enterprise') };
     if (!prices.starter && !prices.pro && !prices.enterprise) {
-      alert('먼저 각 플랜의 월 구독 요금을 등록해 주세요. (요금 차이를 기준으로 메뉴 접근을 추천합니다)');
+      alert('먼저 각 플랜의 1개월(월간) 구독 요금을 등록해 주세요.\n등록된 요금(1개월·1계정 기준)을 비교 평가해 메뉴 접근을 추천합니다.');
       return;
     }
-    const allKeys = menus.map(m => m.menu_key || m.id).filter(Boolean);
-    const rec = recommendMenuAccessByPrice(prices, allKeys);
+    // 추천 대상 menuKey = 사이드바 manifest 의 회원 메뉴(MEMBER_MENU) — admin 전용 제외
+    const memberMenuKeys = [...new Set(MEMBER_MENU.flatMap(s => (s.items || []).map(it => it.menuKey).filter(Boolean)))];
+    const rec = recommendMenuAccessByPrice(prices, memberMenuKeys);
     setAccess(prev => {
       const next = { ...prev };
       for (const planId of ['starter', 'pro', 'enterprise']) {
-        const allow = new Set(rec[planId] || []);
+        const allowMenuKeys = rec[planId] || [];
         const planAcc = {};
-        allKeys.forEach(k => { planAcc[k] = allow.has(k) ? 1 : 0; });
-        next[planId] = planAcc;
+        // 추천된 menuKey + 그 하위메뉴·서브탭 까지 cascade ON (계층 일관성)
+        for (const mk of allowMenuKeys) for (const k of expandMenuKeyAllLevels(mk)) planAcc[k] = 1;
+        next[planId] = planAcc; // 계정수 무관 — 플랜별 동일 적용
       }
       return next;
     });
     setAccessDirty(true);
     alert(
-      `요금 기반 메뉴접근 추천 적용됨 (검토 후 [저장])\n` +
+      `요금 기반 메뉴접근 추천 적용됨 — 1개월·1계정 요금 기준 (검토 후 [저장])\n` +
       `· Starter $${prices.starter}/월 → ${rec.starter.length}개 메뉴\n` +
       `· Pro $${prices.pro}/월 → ${rec.pro.length}개 메뉴\n` +
       `· Enterprise $${prices.enterprise}/월 → ${rec.enterprise.length}개 메뉴\n` +
-      `(상위 플랜은 하위 메뉴 포함 · admin 전용 제외 · 토글 수정 가능)`
+      `(상위 플랜은 하위 포함 · 계정수 무관 동일 적용 · 대/중/하위/서브탭 토글 수정 가능)`
     );
   };
 
