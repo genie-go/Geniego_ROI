@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import PlanServiceGuide from "../../components/PlanServiceGuide.jsx"; // 186차: 플랜 제공서비스 상세 안내(초고도화)
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import PublicLayout from "../../layout/PublicLayout.jsx";
 
@@ -458,6 +459,19 @@ export default function PricingPublic() {
                             </table>
                         </div>
                     )}
+
+                    {/* 186차 — 플랜별 제공 서비스 상세 안내 (초고도화, 구버전 기반) */}
+                    <div style={{ marginTop: 72, maxWidth: 980, marginLeft: "auto", marginRight: "auto", textAlign: "left" }}>
+                        <div style={{ textAlign: "center", marginBottom: 24 }}>
+                            <h2 style={{ fontSize: 26, fontWeight: 900, color: "#fff", letterSpacing: -0.5 }}>플랜별 제공 서비스 상세 안내</h2>
+                            <p style={{ fontSize: 13, color: "#94a3b8", marginTop: 8 }}>각 플랜을 구독하면 어떤 서비스를 제공받는지 자세히 확인하세요.</p>
+                        </div>
+                        <div style={{ display: "grid", gap: 14 }}>
+                            {plans.map(pl => (
+                                <PlanServiceGuide key={pl.id} planId={pl.id} defaultOpen={false} />
+                            ))}
+                        </div>
+                    </div>
 
                     {/* FAQ */}
                     <div style={{ marginTop: 80, maxWidth: 720, marginLeft: "auto", marginRight: "auto", textAlign: "left" }}>

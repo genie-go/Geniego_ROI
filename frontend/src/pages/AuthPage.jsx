@@ -5,6 +5,7 @@ import { useT, useI18n, LANG_OPTIONS } from "../i18n";
 import { getJson } from '../services/apiClient.js';
 import { IS_DEMO } from '../utils/demoEnv';
 import { MENU_KEY_LABEL } from '../layout/sidebarMenuLabels.js'; // 186차: 플랜 제공서비스 상세 설명
+import PlanServiceGuide from '../components/PlanServiceGuide.jsx'; // 186차: 플랜 상세 안내(초고도화)
 
 /* ── Enterprise Dynamic Locale Map ────────────────────── */
 const LANG_LOCALE_MAP = {
@@ -924,7 +925,8 @@ function PaidRegisterForm({ selectedPlan, onBack, onSwitch }) {
           <SelectField label={t("auth.monthlyRevenueLabel")} value={monthlyRevenue} onChange={setMonthlyRevenue}
             options={["Under 100M", "100M-500M", "500M-2B", "2B-10B", "Over 10B"]} />
 
-          {/* 186차 — 구버전 상세 설명서: 이 플랜이 제공하는 서비스 상세 (구독 판단용) */}
+          {/* 186차 — 플랜 상세 안내서(초고도화, 구버전 기반) + 실제 제공 서비스(admin 설정 반영) */}
+          <PlanServiceGuide planId={selectedPlan} defaultOpen={true} />
           <PlanServiceDetail planCfg={PLAN_CFG} menuAccess={planMenuAccess} features={planFeatures} description={planDesc} />
 
           {/* 186차 — 계정수 선택 (같은 플랜, 계정수별 요금) */}

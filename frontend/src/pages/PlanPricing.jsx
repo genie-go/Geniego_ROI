@@ -5,6 +5,7 @@ import { useT } from "../i18n/index.js";
 import { MEMBER_MENU, ADMIN_MENU, buildMenuKeyIndex } from "../layout/sidebarManifest.js";
 import { MENU_KEY_LABEL, SUB_TABS_BY_PATH } from "../layout/sidebarMenuLabels.js";
 import SIDEBAR_DICT from "../layout/sidebarI18n.js"; // 186차: gNav.* 라벨 한글 해석 (하위메뉴 라벨)
+import PlanServiceGuide from "../components/PlanServiceGuide.jsx"; // 186차: 플랜 제공서비스 상세 안내(초고도화)
 import { recommendMenuAccessByPrice } from "../auth/planMenuPolicy.js"; // 181차 요금 기반 메뉴접근 추천
 /** gNav.* labelKey → 한글 라벨 (sidebarI18n 우선) */
 function gNavLabel(labelKey) {
@@ -959,8 +960,12 @@ function PlanPricing() {
               />
             </div>
 
-            {/* 186차 — 구독자에게 보일 '제공 서비스 상세' (admin 미리보기, 구버전 참고) */}
+            {/* 186차 — 구독자에게 보일 '제공 서비스 상세 안내' (초고도화, 구버전 PLAN_RECOMMEND_REASON 기반) */}
             <div style={{ marginTop: 18 }}>
+              <PlanServiceGuide planId={plan.plan_id} defaultOpen={false} />
+            </div>
+            {/* 실제 선택된 메뉴접근 기반 제공 서비스 (admin 설정 반영 미리보기) */}
+            <div style={{ marginTop: 12 }}>
               <AdminPlanServiceDetail plan={plan} planAcc={access[plan.plan_id] || {}} />
             </div>
 
