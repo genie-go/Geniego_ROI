@@ -25,16 +25,16 @@ const ALL_PERMS = [
 const css = {
     card: { background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: "20px 24px", marginBottom: 16 },
     badge: (plan) => ({ display: "inline-block", padding: "2px 10px", borderRadius: 20, fontSize: 10, fontWeight: 700, background: (PLAN_COLORS[plan] || "#64748b") + "22", color: PLAN_COLORS[plan] || "#64748b", textTransform: "uppercase", letterSpacing: 0.5 }),
-    input: { width: "100%", padding: "8px 12px", borderRadius: 8, border: '1px solid var(--border)', background: 'var(--surface)', color: "#e8eaf6", fontSize: 12, boxSizing: "border-box" },
+    input: { width: "100%", padding: "8px 12px", borderRadius: 8, border: '1px solid var(--border)', background: 'var(--surface)', color: "#0f172a", fontSize: 12, boxSizing: "border-box" },
     btn: (variant = "primary") => ({
         padding: "7px 16px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 12, fontWeight: 700,
-        background: variant === "primary" ? "linear-gradient(135deg,#4f8ef7,#6366f1)" : variant === "danger" ? "rgba(239,68,68,0.15)" : "rgba(255,255,255,0.07)",
+        background: variant === "primary" ? "linear-gradient(135deg,#4f8ef7,#6366f1)" : variant === "danger" ? "rgba(239,68,68,0.15)" : "#e2e8f0",
         color: variant === "danger" ? "#ef4444" : "#fff",
     }),
     label: { display: "block", fontSize: 10, color: 'var(--text-3)', marginBottom: 4, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5 },
     row: { display: "grid", gap: 12, marginBottom: 12 },
-    th: { fontSize: 10, color: "var(--text-3)", fontWeight: 700, padding: "8px 10px", textAlign: "left", textTransform: "uppercase", letterSpacing: 0.5, borderBottom: "1px solid rgba(255,255,255,0.06)" },
-    td: { fontSize: 12, color: '#fff', padding: "10px 10px", borderBottom: "1px solid rgba(255,255,255,0.04)", verticalAlign: "middle" },
+    th: { fontSize: 10, color: "var(--text-3)", fontWeight: 700, padding: "8px 10px", textAlign: "left", textTransform: "uppercase", letterSpacing: 0.5, borderBottom: "1px solid #e8edf3" },
+    td: { fontSize: 12, color: '#1e293b', padding: "10px 10px", borderBottom: "1px solid #eef2f7", verticalAlign: "middle" },
 };
 
 function useAdminApi(path, deps = []) {
@@ -101,7 +101,7 @@ function StatsTab() {
                         <div key={p.plan} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
                             <span style={css.badge(p.plan)}>{p.plan}</span>
                             <div style={{ fontSize: 12, color: '#fff' }} >활성 <strong>{p.active}</strong> / 전체 {p.total}</div>
-                            <div style={{ width: 80, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
+                            <div style={{ width: 80, height: 4, borderRadius: 2, background: "#e8edf3", overflow: "hidden" }}>
                                 <div style={{ width: `${(p.active / p.total) * 100}%`, height: "100%", background: planColors[p.plan] || "#64748b" }} />
                             </div>
                         </div>
@@ -488,7 +488,7 @@ function RolesTab() {
                         <label style={css.label}>권한 설정 (복수 선택)</label>
                         <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 6 }}>
                             {ALL_PERMS.map(p => (
-                                <button key={p} onClick={() => togglePerm(p)} style={{ padding: "4px 12px", borderRadius: 20, border: "1px solid", fontSize: 11, fontWeight: 600, cursor: "pointer", background: form.permissions.includes(p) ? "rgba(79,142,247,0.2)" : "rgba(255,255,255,0.04)", borderColor: form.permissions.includes(p) ? "#4f8ef7" : "rgba(255,255,255,0.1)", color: form.permissions.includes(p) ? "#4f8ef7" : "rgba(255,255,255,0.5)" }}>
+                                <button key={p} onClick={() => togglePerm(p)} style={{ padding: "4px 12px", borderRadius: 20, border: "1px solid", fontSize: 11, fontWeight: 600, cursor: "pointer", background: form.permissions.includes(p) ? "rgba(79,142,247,0.2)" : "#eef2f7", borderColor: form.permissions.includes(p) ? "#4f8ef7" : "rgba(255,255,255,0.1)", color: form.permissions.includes(p) ? "#4f8ef7" : "#64748b" }}>
                                     {p}
                                 </button>
                             ))}
@@ -563,7 +563,7 @@ function BillingTab() {
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
                 {/* Subscriptions */}
                 <div style={{ ...css.card, padding: 0, overflow: "hidden" }}>
-                    <div style={{ padding: "14px 18px", fontWeight: 700, fontSize: 13, borderBottom: "1px solid rgba(255,255,255,0.06)" }}>구독 현황</div>
+                    <div style={{ padding: "14px 18px", fontWeight: 700, fontSize: 13, borderBottom: "1px solid #e8edf3" }}>구독 현황</div>
                     <table style={{ width: "100%", borderCollapse: "collapse" }}>
                         <thead><tr>{["회원", "플랜", "Status", "Amount", "NextPayment"].map(h => <th key={h} style={css.th}>{h}</th>)}</tr></thead>
                         <tbody>
@@ -584,7 +584,7 @@ function BillingTab() {
 
                 {/* Events */}
                 <div style={{ ...css.card, padding: 0, overflow: "hidden" }}>
-                    <div style={{ padding: "14px 18px", fontWeight: 700, fontSize: 13, borderBottom: "1px solid rgba(255,255,255,0.06)" }}>{t('userMgmtPage.paymentEvent', '결제 이벤트')}</div>
+                    <div style={{ padding: "14px 18px", fontWeight: 700, fontSize: 13, borderBottom: "1px solid #e8edf3" }}>{t('userMgmtPage.paymentEvent', '결제 이벤트')}</div>
                     <table style={{ width: "100%", borderCollapse: "collapse" }}>
                         <thead><tr>{["Event", "발생시각", "처리상태"].map(h => <th key={h} style={css.th}>{h}</th>)}</tr></thead>
                         <tbody>
@@ -668,7 +668,7 @@ export default function UserManagement() {
     };
 
     return (
-        <div style={{ minHeight: "100vh", background: "#0a0c14", color: "#e8eaf6", fontFamily: "'Inter', 'Segoe UI', sans-serif", padding: "24px 28px" }}>
+        <div style={{ minHeight: "100vh", background: "#f8fafc", color: "#0f172a", fontFamily: "'Inter', 'Segoe UI', sans-serif", padding: "24px 28px" }}>
             {/* Header */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
                 <div>
@@ -682,9 +682,9 @@ export default function UserManagement() {
             </div>
 
             {/* Tabs */}
-            <div style={{ display: "flex", gap: 4, marginBottom: 20, borderBottom: "1px solid rgba(255,255,255,0.07)", paddingBottom: 0 }}>
+            <div style={{ display: "flex", gap: 4, marginBottom: 20, borderBottom: "1px solid #e2e8f0", paddingBottom: 0 }}>
                 {TABS.map(t => (
-                    <button key={t.id} onClick={() => setTab(t.id)} style={{ padding: "8px 18px", borderRadius: "8px 8px 0 0", border: "none", cursor: "pointer", fontSize: 12, fontWeight: 700, background: tab === t.id ? "rgba(79,142,247,0.12)" : "transparent", color: tab === t.id ? "#4f8ef7" : "rgba(255,255,255,0.5)", borderBottom: tab === t.id ? "2px solid #4f8ef7" : "2px solid transparent", transition: "all 150ms" }}>
+                    <button key={t.id} onClick={() => setTab(t.id)} style={{ padding: "8px 18px", borderRadius: "8px 8px 0 0", border: "none", cursor: "pointer", fontSize: 12, fontWeight: 700, background: tab === t.id ? "rgba(79,142,247,0.12)" : "transparent", color: tab === t.id ? "#4f8ef7" : "#64748b", borderBottom: tab === t.id ? "2px solid #4f8ef7" : "2px solid transparent", transition: "all 150ms" }}>
                         {t.label}
                     </button>
                 ))}

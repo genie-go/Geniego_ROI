@@ -10555,6 +10555,7 @@ export default {
       platformEnvLabel: "Platform Environment",
       planPricingLabel: "Plan Pricing",
       siteIntroLabel: "Company & Team",
+      memberMgmtLabel: "Members",
       menuTreeLabel: "Menu Tree Admin",
       dbSchemaLabel: "DB Schema",
       paymentPgLabel: "Payment PG Config",

@@ -20946,6 +20946,7 @@ export default {
       writeback: "데이터 Writeback",
       planPricingLabel: "플랜별 구독요금",
       siteIntroLabel: "회사소개 관리",
+      memberMgmtLabel: "회원 관리",
       menuTreeLabel: "메뉴 트리 관리",
       platformEnvLabel: "플랫폼 환경",
       dbSchemaLabel: "DB 스키마",

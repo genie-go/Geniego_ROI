@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { tChannelName } from '../utils/tenantStorage.js'; // 180차: 회원 격리 크로스탭
 import { getJsonAuth, requestJsonAuth } from "../services/apiClient.js";
 import { useT } from "../i18n/index.js";
@@ -133,18 +133,30 @@ function PlanPricing() {
   const [pricingSyncApplying, setPricingSyncApplying] = useState(null);
   // 186차: 관리자 세션 유실(401) 감지 → 재로그인 안내
   const [authLost, setAuthLost] = useState(false);
+  // 187차: 일시적 401(세션은 유효한데 순간 거부)에 재로그인 강요하지 않도록 재시도 가드.
+  const authRetryRef = useRef(0);
 
   const fetchPlans = useCallback(async () => {
     setLoading(true); setError(null);
     try {
       const data = await getJsonAuth('/v424/admin/plans');
       setPlans(Array.isArray(data?.plans) ? data.plans : []);
-      setAuthLost(false);
+      setAuthLost(false); authRetryRef.current = 0;
     } catch (e) {
       const msg = String(e?.message || e);
-      if (/HTTP 401|AUTH_REQUIRED|SESSION_EXPIRED|인증이 필요|세션이 만료/.test(msg)) setAuthLost(true);
-      setError(msg);
-      setPlans([]);
+      const is401 = /HTTP 401|AUTH_REQUIRED|SESSION_EXPIRED|인증이 필요|세션이 만료/.test(msg);
+      if (is401) {
+        let tok = null; try { tok = localStorage.getItem('genie_token'); } catch {}
+        // 187차: 토큰이 있으면 세션은 살아있을 가능성 → 일시적 401로 보고 자동 재시도(최대 4회).
+        //   토큰 자체가 없을 때만(진짜 로그아웃) 재로그인 안내.
+        if (tok && authRetryRef.current < 4) {
+          authRetryRef.current++;
+          setTimeout(() => fetchPlans(), 700);
+          return; // 기존 plans 유지(화면 깜빡임/재로그인 방지)
+        }
+        if (!tok) { setAuthLost(true); setPlans([]); }
+        else { setError('일시적 인증 오류 — 잠시 후 다시 시도해 주세요'); }
+      } else { setError(msg); setPlans([]); }
     } finally {
       setLoading(false);
     }
