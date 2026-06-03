@@ -476,6 +476,23 @@ return function (App $app): void {
         'PUT /v424/admin/plans/{id}/period-pricing'     => 'Genie\\Handlers\\AdminPlans::periodPricingUpsert',
         'GET /api/v424/admin/plans-period-pricing'      => 'Genie\\Handlers\\AdminPlans::periodPricingAll',
         'PUT /api/v424/admin/plans/{id}/period-pricing' => 'Genie\\Handlers\\AdminPlans::periodPricingUpsert',
+        // 187차 Phase2 — 회사소개/연혁/운영진 (SiteIntro). 공개=/auth/site/intro, admin=/v424/admin/site/*
+        'GET /auth/site/intro'                  => 'Genie\\Handlers\\SiteIntro::publicIntro',
+        'GET /api/auth/site/intro'              => 'Genie\\Handlers\\SiteIntro::publicIntro',
+        'GET /v424/admin/site/intro'            => 'Genie\\Handlers\\SiteIntro::adminGet',
+        'PUT /v424/admin/site/company'          => 'Genie\\Handlers\\SiteIntro::saveCompany',
+        'PUT /v424/admin/site/visibility'       => 'Genie\\Handlers\\SiteIntro::saveVisibility',
+        'POST /v424/admin/site/team'            => 'Genie\\Handlers\\SiteIntro::teamSave',
+        'DELETE /v424/admin/site/team/{id}'     => 'Genie\\Handlers\\SiteIntro::teamDelete',
+        'POST /v424/admin/site/history'         => 'Genie\\Handlers\\SiteIntro::historySave',
+        'DELETE /v424/admin/site/history/{id}'  => 'Genie\\Handlers\\SiteIntro::historyDelete',
+        'GET /api/v424/admin/site/intro'           => 'Genie\\Handlers\\SiteIntro::adminGet',
+        'PUT /api/v424/admin/site/company'         => 'Genie\\Handlers\\SiteIntro::saveCompany',
+        'PUT /api/v424/admin/site/visibility'      => 'Genie\\Handlers\\SiteIntro::saveVisibility',
+        'POST /api/v424/admin/site/team'           => 'Genie\\Handlers\\SiteIntro::teamSave',
+        'DELETE /api/v424/admin/site/team/{id}'    => 'Genie\\Handlers\\SiteIntro::teamDelete',
+        'POST /api/v424/admin/site/history'        => 'Genie\\Handlers\\SiteIntro::historySave',
+        'DELETE /api/v424/admin/site/history/{id}' => 'Genie\\Handlers\\SiteIntro::historyDelete',
         // 172차 P0-C — 쿠폰 사용 (user)
         'POST /auth/coupon/redeem'      => 'Genie\\Handlers\\CouponRedeem::redeem',
         'GET /auth/coupon/preview'      => 'Genie\\Handlers\\CouponRedeem::preview',
@@ -1411,6 +1428,24 @@ return function (App $app): void {
     // ── 공개 구독요금 조회 (인증 불요 — 가입 화면용) ─────────────────
     $register('GET',    '/auth/pricing/public-plans');
     $register('GET',    '/api/auth/pricing/public-plans');
+
+    // ── 187차 Phase2 — SiteIntro (회사소개/연혁/운영진) ───────────────
+    $register('GET',    '/auth/site/intro');
+    $register('GET',    '/api/auth/site/intro');
+    $register('GET',    '/v424/admin/site/intro');
+    $register('PUT',    '/v424/admin/site/company');
+    $register('PUT',    '/v424/admin/site/visibility');
+    $register('POST',   '/v424/admin/site/team');
+    $register('DELETE', '/v424/admin/site/team/{id}');
+    $register('POST',   '/v424/admin/site/history');
+    $register('DELETE', '/v424/admin/site/history/{id}');
+    $register('GET',    '/api/v424/admin/site/intro');
+    $register('PUT',    '/api/v424/admin/site/company');
+    $register('PUT',    '/api/v424/admin/site/visibility');
+    $register('POST',   '/api/v424/admin/site/team');
+    $register('DELETE', '/api/v424/admin/site/team/{id}');
+    $register('POST',   '/api/v424/admin/site/history');
+    $register('DELETE', '/api/v424/admin/site/history/{id}');
 
     // ── Subscription Packages ────────────────────────────────────────
     $register('GET',    '/auth/pricing/packages');

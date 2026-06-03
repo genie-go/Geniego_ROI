@@ -1,4 +1,183 @@
 export default {
+  appPricing: {
+    "accountsLabel": "Nombre de comptes",
+    "periodHeader": "Cycle de facturation",
+    "nMonths": "{{n}} mois",
+    "hero": {
+      "badge": "Une tarification simple et transparente",
+      "title": "Une tarification qui évolue avec votre croissance",
+      "subtitle": "Aucuns frais cachés. Modifiez ou résiliez à tout moment.",
+      "guarantee": "Garantie de remboursement intégral sous 30 jours"
+    },
+    "cardOnly": "Paiement par carte uniquement",
+    "custom": "Forfait sur mesure",
+    "unlimited": "Illimité",
+    "selected": "Forfait sélectionné",
+    "perMonth": "par mois",
+    "save": "Économisez jusqu'à {{pct}} %",
+    "billedEvery": "Facturé d'avance tous les {{months}} mois ({{total}})",
+    "menuAccess": "{{count}} menus et fonctionnalités inclus",
+    "cycle": {
+      "monthly": "Mensuel",
+      "quarterly": "Trimestriel",
+      "semiAnnual": "Semestriel",
+      "annual": "Annuel",
+      "note": "Plus l'engagement est long, plus la remise est importante. Tous les forfaits sont facturés d'avance via Paddle."
+    },
+    "banner": {
+      "success": "✅ Paiement reçu. Votre compte est en cours d'activation — un e-mail de confirmation arrive.",
+      "coupon": "🎉 Coupon de réduction appliqué.",
+      "couponFree": "🎉 Accès gratuit accordé."
+    },
+    "btn": {
+      "start": "Commencer gratuitement",
+      "contact": "Contacter le commercial",
+      "opening": "Préparation du paiement…"
+    },
+    "tag": {
+      "pro": "Le plus choisi",
+      "enterprise": "Solution sur mesure"
+    },
+    "plans": {
+      "starter": {
+        "name": "Starter",
+        "desc": "Pour les petites équipes et les entreprises en démarrage.",
+        "features": [
+          "3 canaux de vente",
+          "1 entrepôt (WMS)",
+          "Tableau de bord d'analyse marketing",
+          "Jusqu'à 2 membres d'équipe",
+          "10 000 appels API / mois",
+          "Support par e-mail (sous 48 h)"
+        ],
+        "notIncluded": [
+          "IA Intelligence",
+          "Analyse d'influenceurs",
+          "Factures d'exportation"
+        ]
+      },
+      "pro": {
+        "name": "Pro",
+        "desc": "Pour les opérations multicanales et les marques en croissance.",
+        "features": [
+          "Canaux de vente illimités",
+          "Entrepôts illimités (WMS)",
+          "AI Marketing Intelligence",
+          "Moteur d'analyse d'influenceurs",
+          "Génération automatique de factures commerciales",
+          "Jusqu'à 10 membres d'équipe",
+          "500 000 appels API / mois",
+          "Support prioritaire (sous 8 h)"
+        ],
+        "notIncluded": [
+          "Modèles d'IA personnalisés",
+          "Responsable de la réussite client dédié"
+        ]
+      },
+      "enterprise": {
+        "name": "Enterprise",
+        "desc": "Pour les opérations à grande échelle nécessitant une solution sur mesure.",
+        "features": [
+          "Tout ce qui est inclus dans Pro",
+          "Entraînement de modèles d'IA personnalisés",
+          "Responsable de la réussite client dédié",
+          "Garantie de disponibilité SLA 99,9 %",
+          "Membres d'équipe illimités",
+          "Appels API illimités",
+          "Intégrations et webhooks personnalisés",
+          "Support de déploiement On-Premise"
+        ],
+        "notIncluded": []
+      }
+    },
+    "trust": {
+      "secure": {
+        "title": "Paiements sécurisés",
+        "desc": "Certifié PCI DSS Level 1 via Paddle"
+      },
+      "refund": {
+        "title": "Remboursement intégral 30 jours",
+        "desc": "Remboursement intégral, sans condition"
+      },
+      "global": {
+        "title": "Facturation mondiale",
+        "desc": "Plus de 100 devises avec gestion automatique de la TVA"
+      }
+    },
+    "comparison": {
+      "view": "Voir le comparatif",
+      "hide": "Masquer le comparatif",
+      "label": "Comparatif complet des fonctionnalités par forfait",
+      "feature": "Fonctionnalité",
+      "row": {
+        "channels": "Canaux de vente",
+        "wms": "Entrepôts (WMS)",
+        "members": "Membres d'équipe",
+        "api": "Appels API / mois",
+        "aiMkt": "AI Marketing Intelligence",
+        "influencer": "Analyse d'influenceurs",
+        "customAi": "Modèles d'IA personnalisés",
+        "manager": "Responsable de la réussite client dédié",
+        "sla": "Garantie SLA",
+        "support": "Délai de réponse du support"
+      }
+    },
+    "guide": {
+      "title": "Services fournis par forfait",
+      "subtitle": "Comparez en un coup d'œil les fonctionnalités et services de chaque forfait.",
+      "cardSuffix": "forfait — services fournis",
+      "recommended": "Recommandé",
+      "collapse": "Réduire",
+      "expand": "Développer"
+    },
+    "faq": {
+      "title": "Foire aux questions",
+      "cancel": {
+        "q": "Puis-je résilier à tout moment ?",
+        "a": "Oui — résiliez à tout moment depuis les paramètres de votre compte. Votre accès se poursuit jusqu'à la fin du cycle de facturation en cours. Aucuns frais de résiliation."
+      },
+      "payment": {
+        "q": "Quels moyens de paiement sont acceptés ?",
+        "a": "Cartes de crédit et de débit uniquement (Visa, Mastercard, American Express et autres grands réseaux) via Paddle.com, notre Merchant of Record. Paddle gère la conformité TVA/GST/taxes de vente dans le monde entier et facture en USD."
+      },
+      "cycles": {
+        "q": "Quels cycles de facturation sont disponibles ?",
+        "a": "Quatre cycles : mensuel, trimestriel, semestriel et annuel. Plus le cycle est long, plus la remise est importante. Tous les cycles se renouvellent automatiquement à l'intervalle choisi."
+      },
+      "trial": {
+        "q": "Existe-t-il un essai gratuit ?",
+        "a": "Chaque nouveau compte démarre avec un forfait Démo gratuit, sans carte. Explorez la plateforme à votre rythme, puis passez à un forfait supérieur lorsque vous êtes prêt — avec notre garantie de remboursement intégral sous 30 jours."
+      },
+      "longCycle": {
+        "q": "Comment fonctionne la facturation des cycles plus longs ?",
+        "a": "Les forfaits trimestriel, semestriel et annuel sont facturés une seule fois d'avance pour tout le cycle. Le tarif mensuel effectif est indiqué à côté de chaque option. Vous pouvez changer de cycle ou de forfait à tout moment ; les changements prennent effet au prochain renouvellement."
+      },
+      "tax": {
+        "q": "Des taxes seront-elles ajoutées à ma facture ?",
+        "a": "Paddle gère toute la conformité TVA/GST/taxes de vente dans le monde. Les taxes applicables sont calculées et affichées au paiement selon votre emplacement, et votre facture inclut un détail des taxes."
+      },
+      "failed": {
+        "q": "Que se passe-t-il si mon paiement échoue ?",
+        "a": "Paddle réessaie automatiquement les paiements par carte échoués selon un calendrier fixe (généralement jours 1, 3, 5, 7), avec une notification par e-mail à chaque tentative. Si toutes échouent, votre forfait est suspendu (et non résilié) et peut être repris à tout moment sous 90 jours."
+      },
+      "refund": {
+        "q": "Comment fonctionnent les remboursements ?",
+        "a": "Les nouveaux abonnés bénéficient d'un remboursement intégral sous 30 jours, sans condition. Les remboursements sont effectués sur la même carte et votre compte est automatiquement rétrogradé au forfait Démo. Consultez notre politique de remboursement pour plus de détails."
+      }
+    },
+    "legal": {
+      "agree": "En achetant, vous acceptez nos",
+      "terms": "Conditions d'utilisation",
+      "and": "et notre",
+      "privacy": "Politique de confidentialité",
+      "usd": "Tous les prix sont en USD.",
+      "tax": "Des taxes peuvent s'appliquer selon votre emplacement. Propulsé par Paddle.com (Merchant of Record)."
+    },
+    "alert": {
+      "noCycle": "La tarification sur {{months}} mois pour {{name}} n'est pas encore configurée. Veuillez choisir un autre cycle ou contacter support@genie-go.com.",
+      "checkoutError": "Impossible d'ouvrir le paiement. Veuillez réessayer ou contacter support@genie-go.com."
+    }
+  },
   // 181차 TeamMembers i18n (신규 루트 namespace)
   teamMembers: {
     "title": "Membres de l'équipe",

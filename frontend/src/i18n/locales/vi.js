@@ -1,4 +1,183 @@
 export default {
+  appPricing: {
+    "accountsLabel": "Số tài khoản",
+    "periodHeader": "Chu kỳ thanh toán",
+    "nMonths": "{{n}} tháng",
+    "hero": {
+      "badge": "Bảng giá đơn giản, minh bạch",
+      "title": "Bảng giá mở rộng theo đà tăng trưởng của bạn",
+      "subtitle": "Không phí ẩn. Thay đổi hoặc hủy bất cứ lúc nào.",
+      "guarantee": "Đảm bảo hoàn tiền đầy đủ trong 30 ngày"
+    },
+    "cardOnly": "Chỉ thanh toán bằng thẻ",
+    "custom": "Gói tùy chỉnh",
+    "unlimited": "Không giới hạn",
+    "selected": "Gói đã chọn",
+    "perMonth": "mỗi tháng",
+    "save": "Tiết kiệm tới {{pct}}%",
+    "billedEvery": "Thanh toán trước mỗi {{months}} tháng ({{total}})",
+    "menuAccess": "Cung cấp {{count}} menu & tính năng",
+    "cycle": {
+      "monthly": "Hàng tháng",
+      "quarterly": "Hàng quý",
+      "semiAnnual": "Nửa năm",
+      "annual": "Hàng năm",
+      "note": "Chu kỳ càng dài, ưu đãi càng lớn. Tất cả các gói được thanh toán trước qua Paddle."
+    },
+    "banner": {
+      "success": "✅ Đã nhận thanh toán. Tài khoản của bạn đang được kích hoạt — email xác nhận đang được gửi đi.",
+      "coupon": "🎉 Đã áp dụng mã giảm giá.",
+      "couponFree": "🎉 Đã cấp quyền sử dụng miễn phí."
+    },
+    "btn": {
+      "start": "Bắt đầu miễn phí",
+      "contact": "Liên hệ tư vấn",
+      "opening": "Đang chuẩn bị trang thanh toán…"
+    },
+    "tag": {
+      "pro": "Gói được chọn nhiều nhất",
+      "enterprise": "Giải pháp doanh nghiệp"
+    },
+    "plans": {
+      "starter": {
+        "name": "Starter",
+        "desc": "Dành cho nhóm nhỏ và doanh nghiệp giai đoạn đầu.",
+        "features": [
+          "3 kênh bán hàng",
+          "1 kho (WMS)",
+          "Bảng điều khiển phân tích marketing",
+          "Tối đa 2 thành viên",
+          "10.000 lượt gọi API / tháng",
+          "Hỗ trợ qua email (trong 48 giờ)"
+        ],
+        "notIncluded": [
+          "AI Intelligence",
+          "Phân tích influencer",
+          "Hóa đơn xuất khẩu"
+        ]
+      },
+      "pro": {
+        "name": "Pro",
+        "desc": "Dành cho vận hành đa kênh và thương hiệu giai đoạn tăng trưởng.",
+        "features": [
+          "Kênh bán hàng không giới hạn",
+          "Kho không giới hạn (WMS)",
+          "AI Marketing Intelligence",
+          "Công cụ phân tích influencer",
+          "Tự động tạo hóa đơn thương mại",
+          "Tối đa 10 thành viên",
+          "500.000 lượt gọi API / tháng",
+          "Hỗ trợ ưu tiên (trong 8 giờ)"
+        ],
+        "notIncluded": [
+          "Mô hình AI tùy chỉnh",
+          "Quản lý thành công khách hàng riêng"
+        ]
+      },
+      "enterprise": {
+        "name": "Enterprise",
+        "desc": "Dành cho vận hành quy mô lớn cần xây dựng tùy chỉnh.",
+        "features": [
+          "Mọi tính năng của Pro",
+          "Huấn luyện mô hình AI tùy chỉnh",
+          "Quản lý thành công khách hàng riêng",
+          "Đảm bảo SLA uptime 99,9%",
+          "Thành viên không giới hạn",
+          "Lượt gọi API không giới hạn",
+          "Tích hợp & Webhook tùy chỉnh",
+          "Hỗ trợ triển khai On-Premise"
+        ],
+        "notIncluded": []
+      }
+    },
+    "trust": {
+      "secure": {
+        "title": "Thanh toán an toàn",
+        "desc": "Chứng nhận PCI DSS Level 1 qua Paddle"
+      },
+      "refund": {
+        "title": "Hoàn tiền đầy đủ 30 ngày",
+        "desc": "Hoàn tiền đầy đủ, không cần lý do"
+      },
+      "global": {
+        "title": "Thanh toán toàn cầu",
+        "desc": "Hơn 100 loại tiền tệ, tự động xử lý VAT"
+      }
+    },
+    "comparison": {
+      "view": "Xem so sánh",
+      "hide": "Ẩn so sánh",
+      "label": "So sánh đầy đủ tính năng theo gói",
+      "feature": "Tính năng",
+      "row": {
+        "channels": "Kênh bán hàng",
+        "wms": "Kho (WMS)",
+        "members": "Số thành viên",
+        "api": "Lượt gọi API / tháng",
+        "aiMkt": "AI Marketing Intelligence",
+        "influencer": "Phân tích influencer",
+        "customAi": "Mô hình AI tùy chỉnh",
+        "manager": "Quản lý thành công khách hàng riêng",
+        "sla": "Đảm bảo SLA",
+        "support": "Thời gian phản hồi hỗ trợ"
+      }
+    },
+    "guide": {
+      "title": "Dịch vụ cung cấp theo từng gói",
+      "subtitle": "So sánh nhanh các tính năng và dịch vụ mà mỗi gói cung cấp.",
+      "cardSuffix": "gói — dịch vụ cung cấp",
+      "recommended": "Đề xuất",
+      "collapse": "Thu gọn",
+      "expand": "Mở rộng"
+    },
+    "faq": {
+      "title": "Câu hỏi thường gặp",
+      "cancel": {
+        "q": "Tôi có thể hủy bất cứ lúc nào không?",
+        "a": "Có — bạn có thể hủy bất cứ lúc nào trong phần cài đặt tài khoản. Quyền truy cập vẫn tiếp tục đến hết chu kỳ thanh toán hiện tại và không có phí hủy."
+      },
+      "payment": {
+        "q": "Chấp nhận những phương thức thanh toán nào?",
+        "a": "Chỉ thẻ tín dụng và thẻ ghi nợ (Visa, Mastercard, American Express và các mạng lưới lớn khác) qua Paddle.com — Merchant of Record của chúng tôi. Paddle xử lý tuân thủ VAT/GST/thuế bán hàng trên toàn cầu và tính phí bằng USD."
+      },
+      "cycles": {
+        "q": "Có những chu kỳ thanh toán nào?",
+        "a": "Bốn chu kỳ: hàng tháng, hàng quý, nửa năm và hàng năm. Chu kỳ dài hơn mở khóa ưu đãi lớn hơn. Tất cả các chu kỳ tự động gia hạn theo khoảng thời gian đã chọn."
+      },
+      "trial": {
+        "q": "Có dùng thử miễn phí không?",
+        "a": "Mọi tài khoản mới đều bắt đầu với gói Demo miễn phí, không cần thẻ. Khám phá nền tảng theo nhịp độ của bạn rồi nâng cấp khi sẵn sàng — được bảo đảm bằng chính sách hoàn tiền đầy đủ trong 30 ngày."
+      },
+      "longCycle": {
+        "q": "Việc thanh toán cho chu kỳ dài hơn hoạt động thế nào?",
+        "a": "Các gói hàng quý, nửa năm và hàng năm được thanh toán trước một lần cho toàn bộ chu kỳ. Mức phí tháng thực tế được hiển thị bên cạnh mỗi tùy chọn chu kỳ. Bạn có thể đổi chu kỳ hoặc gói bất cứ lúc nào; thay đổi có hiệu lực ở lần gia hạn tiếp theo."
+      },
+      "tax": {
+        "q": "Hóa đơn của tôi có bị tính thêm thuế không?",
+        "a": "Paddle xử lý toàn bộ tuân thủ VAT/GST/thuế bán hàng trên toàn cầu. Thuế áp dụng được tính và hiển thị khi thanh toán dựa trên vị trí của bạn, và hóa đơn sẽ bao gồm bảng phân tích thuế chi tiết."
+      },
+      "failed": {
+        "q": "Điều gì xảy ra nếu thanh toán thất bại?",
+        "a": "Paddle tự động thử lại các khoản thanh toán thẻ thất bại theo lịch cố định (thường là ngày 1, 3, 5, 7), kèm thông báo email mỗi lần. Nếu tất cả đều thất bại, gói của bạn bị tạm dừng (không bị hủy) và có thể tiếp tục bất cứ lúc nào trong vòng 90 ngày."
+      },
+      "refund": {
+        "q": "Hoàn tiền hoạt động thế nào?",
+        "a": "Người đăng ký lần đầu được hoàn tiền đầy đủ trong vòng 30 ngày, không cần lý do. Tiền được hoàn về chính thẻ đó và tài khoản tự động hạ xuống gói Demo. Xem Chính sách hoàn tiền để biết chi tiết."
+      }
+    },
+    "legal": {
+      "agree": "Khi mua, bạn đồng ý với",
+      "terms": "Điều khoản dịch vụ",
+      "and": "và",
+      "privacy": "Chính sách bảo mật",
+      "usd": "Tất cả giá tính bằng USD.",
+      "tax": "Thuế có thể áp dụng tùy theo vị trí của bạn. Được cung cấp bởi Paddle.com (Merchant of Record)."
+    },
+    "alert": {
+      "noCycle": "Mức giá {{months}} tháng cho gói {{name}} chưa được cấu hình. Vui lòng chọn chu kỳ khác hoặc liên hệ support@genie-go.com.",
+      "checkoutError": "Không thể mở trang thanh toán. Vui lòng thử lại hoặc liên hệ support@genie-go.com."
+    }
+  },
   // 181차 TeamMembers i18n (신규 루트 namespace)
   teamMembers: {
     "title": "Thành viên nhóm",

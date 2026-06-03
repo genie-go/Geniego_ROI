@@ -1955,7 +1955,7 @@ function MenuAccessTree({ plans, menus, access, setMenuAccess, setMenuAccessBulk
         </div>
         <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
           {typeof recommendMenuAccess === 'function' && (
-            <button onClick={recommendMenuAccess} disabled={saving} title="플랜별 월 요금 차이에 비례해 AI가 메뉴 접근을 추천" style={{ padding: '11px 20px', borderRadius: 10, border: '1px solid rgba(168,85,247,0.45)', background: 'linear-gradient(135deg,rgba(168,85,247,0.18),rgba(79,142,247,0.12))', color: '#d8b4fe', fontSize: 14, fontWeight: 800, cursor: saving ? 'default' : 'pointer', opacity: saving ? 0.6 : 1, whiteSpace: 'nowrap' }}>🤖 요금 기반 추천</button>
+            <button onClick={recommendMenuAccess} disabled={saving} title="플랜별 월 요금 차이에 비례해 AI가 메뉴 접근을 추천" style={{ padding: '11px 20px', borderRadius: 10, border: '1px solid rgba(168,85,247,0.45)', background: 'rgba(168,85,247,0.14)', color: '#6b21a8', fontSize: 14, fontWeight: 800, cursor: saving ? 'default' : 'pointer', opacity: saving ? 0.6 : 1, whiteSpace: 'nowrap' }}>🤖 요금 기반 추천</button>
           )}
           <button onClick={saveAllAccess} disabled={saving || !dirty} style={{ padding: '11px 24px', borderRadius: 10, border: 'none', background: dirty ? 'linear-gradient(135deg,#16a34a,#22c55e)' : 'rgba(255,255,255,0.06)', color: dirty ? '#fff' : '#94a3b8', fontSize: 14, fontWeight: 800, cursor: dirty ? 'pointer' : 'default', opacity: saving ? 0.6 : 1, whiteSpace: 'nowrap' }}>{saving ? '저장 중…' : (dirty ? '💾 전체 저장' : '✓ 저장됨')}</button>
         </div>
@@ -1964,19 +1964,20 @@ function MenuAccessTree({ plans, menus, access, setMenuAccess, setMenuAccessBulk
       {/* 검색 */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 14, alignItems: 'center', flexWrap: 'wrap' }}>
         <input type="text" value={filter} onChange={e => setFilter(e.target.value)} placeholder="🔍 메뉴 이름/경로/키 검색…" style={{ flex: 1, minWidth: 200, boxSizing: 'border-box', padding: '10px 14px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.2)', color: 'var(--text-1)', fontSize: 14 }} />
-        <button onClick={expandAll} style={{ padding: '9px 14px', borderRadius: 8, border: '1px solid rgba(56,189,248,0.35)', background: 'rgba(56,189,248,0.12)', color: '#38bdf8', fontSize: 12, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>📂 전체 펼치기</button>
+        <button onClick={expandAll} style={{ padding: '9px 14px', borderRadius: 8, border: '1px solid rgba(56,189,248,0.45)', background: 'rgba(56,189,248,0.14)', color: '#0369a1', fontSize: 12, fontWeight: 800, cursor: 'pointer', whiteSpace: 'nowrap' }}>📂 전체 펼치기</button>
         <button onClick={collapseAll} style={{ padding: '9px 14px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.04)', color: '#94a3b8', fontSize: 12, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>📁 전체 접기</button>
       </div>
 
-      {/* 비교 매트릭스 (메뉴 × 플랜) */}
-      <div style={{ borderRadius: 14, border: '1px solid rgba(255,255,255,0.07)', overflow: 'auto', background: 'rgba(255,255,255,0.07)' }}>
+      {/* 비교 매트릭스 (메뉴 × 플랜) — 187차: id=genie-plan-pricing(어두운 셀 흰글자 override 앵커) + 패널 단색 다크 */}
+      <div id="genie-plan-pricing" style={{ borderRadius: 14, border: '1px solid rgba(148,163,184,0.25)', overflow: 'auto', background: '#243044' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, minWidth: 520 }}>
           <thead>
-            <tr style={{ background: 'rgba(0,0,0,0.3)' }}>
-              <th style={{ ...cellPad, textAlign: 'left', position: 'sticky', left: 0, background: '#475569', minWidth: 240, zIndex: 1, color: '#e2e8f0' }}>제공 서비스 (메뉴)</th>
+            <tr style={{ background: '#eef2f7' }}>
+              {/* 187차 — thead 는 글로벌 규칙이 th 배경을 밝게 강제 → 어두운 글자로(흰글자 금지). 본문 셀만 흰글자. */}
+              <th style={{ ...cellPad, textAlign: 'left', position: 'sticky', left: 0, background: '#eef2f7', minWidth: 240, zIndex: 1, color: '#1e293b', fontWeight: 800 }}>제공 서비스 (메뉴)</th>
               {plans.map((p, i) => (
                 <th key={p.plan_id} style={{ ...cellPad, textAlign: 'center', minWidth: 100 }}>
-                  <div style={{ fontWeight: 800, color: '#fde047' }}>{p.name || p.plan_id}</div>
+                  <div style={{ fontWeight: 900, color: '#0f172a' }}>{p.name || p.plan_id}</div>
                   <div style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 1 }}>{planStats[i].on}/{planStats[i].total} 활성</div>
                   <div style={{ display: 'flex', gap: 3, justifyContent: 'center', marginTop: 4 }}>
                     <button onClick={() => togglePlanAll(p.plan_id, true)} title="이 플랜 전체 추가" style={{ padding: '1px 6px', borderRadius: 4, fontSize: 10, fontWeight: 700, border: '1px solid rgba(34,197,94,0.3)', background: 'rgba(34,197,94,0.12)', color: '#22c55e', cursor: 'pointer' }}>✓전체</button>
@@ -1997,7 +1998,7 @@ function MenuAccessTree({ plans, menus, access, setMenuAccess, setMenuAccessBulk
                 <React.Fragment key={section.key}>
                   {/* 대메뉴(섹션) — 체크박스 = 섹션 전체(하위 모두 포함) */}
                   <tr style={{ background: 'rgba(99,102,241,0.10)' }}>
-                    <td style={{ ...cellPad, position: 'sticky', left: 0, background: '#3f5170', cursor: 'pointer', color: '#ffffff' }} onClick={() => toggleCollapse(section.key)}>
+                    <td data-gp="onColor" style={{ ...cellPad, position: 'sticky', left: 0, background: '#3f5170', cursor: 'pointer', color: '#ffffff' }} onClick={() => toggleCollapse(section.key)}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                         <span style={{ color: '#e2e8f0', fontSize: 13, width: 14 }}>{isCol ? '▶' : '▼'}</span>
                         <span style={{ fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 6, background: '#4f46e5', color: '#fff', whiteSpace: 'nowrap' }}>대메뉴</span>
@@ -2027,7 +2028,7 @@ function MenuAccessTree({ plans, menus, access, setMenuAccess, setMenuAccessBulk
                       <React.Fragment key={g.menuKey}>
                         {/* 중메뉴 — 체크박스 = 중메뉴 + 하위 전체 */}
                         <tr>
-                          <td style={{ ...cellPad, position: 'sticky', left: 0, background: '#39465c', paddingLeft: 26 }}>
+                          <td data-gp="onColor" style={{ ...cellPad, position: 'sticky', left: 0, background: '#39465c', paddingLeft: 26 }}>
                             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
                               {hasChildren
                                 ? <span onClick={() => toggleExpandMenu(g.menuKey)} style={{ cursor: 'pointer', color: '#e2e8f0', fontSize: 12, width: 14, userSelect: 'none', marginTop: 1 }}>{menuExp ? '▼' : '▶'}</span>
@@ -2053,7 +2054,7 @@ function MenuAccessTree({ plans, menus, access, setMenuAccess, setMenuAccessBulk
                           return (
                             <React.Fragment key={it.to}>
                               <tr>
-                                <td style={{ ...cellPad, position: 'sticky', left: 0, background: '#313d52', paddingLeft: 52 }}>
+                                <td data-gp="onColor" style={{ ...cellPad, position: 'sticky', left: 0, background: '#313d52', paddingLeft: 52 }}>
                                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                                     {subs.length > 0
                                       ? <span onClick={() => toggleExpandLeaf(it.to)} style={{ cursor: 'pointer', color: '#e2e8f0', fontSize: 12, width: 14, userSelect: 'none' }}>{leafExp ? '▼' : '▶'}</span>
@@ -2073,7 +2074,7 @@ function MenuAccessTree({ plans, menus, access, setMenuAccess, setMenuAccessBulk
                                 const sk = `${it.to}::${st.id}`;
                                 return (
                                   <tr key={sk}>
-                                    <td style={{ ...cellPad, position: 'sticky', left: 0, background: '#2a3547', paddingLeft: 80 }}>
+                                    <td data-gp="onColor" style={{ ...cellPad, position: 'sticky', left: 0, background: '#2a3547', paddingLeft: 80 }}>
                                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                                         <span style={{ width: 14 }} />
                                         <span style={{ fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 6, background: '#d97706', color: '#fff', whiteSpace: 'nowrap' }}>서브탭</span>

@@ -1,4 +1,183 @@
 export default {
+  appPricing: {
+    "accountsLabel": "帳戶數量",
+    "periodHeader": "計費週期",
+    "nMonths": "{{n}}個月",
+    "hero": {
+      "badge": "簡潔透明的定價方案",
+      "title": "隨業務成長而擴展的定價方案",
+      "subtitle": "沒有隱藏費用，隨時可變更或取消。",
+      "guarantee": "30天全額退款保證"
+    },
+    "cardOnly": "僅支援卡片付款",
+    "custom": "客製方案",
+    "unlimited": "無限",
+    "selected": "已選方案",
+    "perMonth": "每月",
+    "save": "最高省{{pct}}%",
+    "billedEvery": "每{{months}}個月預付一次（{{total}}）",
+    "menuAccess": "提供{{count}}項選單與功能",
+    "cycle": {
+      "monthly": "月付",
+      "quarterly": "季付",
+      "semiAnnual": "半年付",
+      "annual": "年付",
+      "note": "訂閱週期越長，可享的折扣越大。所有費用均透過 Paddle 預付。"
+    },
+    "banner": {
+      "success": "✅ 付款已完成，正在啟用您的帳戶，確認郵件即將寄出。",
+      "coupon": "🎉 折扣券已套用。",
+      "couponFree": "🎉 已授予免費使用權限。"
+    },
+    "btn": {
+      "start": "免費開始",
+      "contact": "預約諮詢",
+      "opening": "正在準備結帳頁面…"
+    },
+    "tag": {
+      "pro": "最多人選擇的方案",
+      "enterprise": "企業客製建置"
+    },
+    "plans": {
+      "starter": {
+        "name": "入門版",
+        "desc": "適合小型團隊與初創業務。",
+        "features": [
+          "3個銷售通路",
+          "1個倉庫（WMS）",
+          "行銷分析儀表板",
+          "最多2名團隊成員",
+          "每月10,000次API呼叫",
+          "電子郵件支援（48小時內）"
+        ],
+        "notIncluded": [
+          "AI智慧",
+          "網紅分析",
+          "出口發票"
+        ]
+      },
+      "pro": {
+        "name": "專業版",
+        "desc": "適合多通路營運與成長階段的品牌。",
+        "features": [
+          "無限銷售通路",
+          "無限倉庫（WMS）",
+          "AI行銷智慧",
+          "網紅分析引擎",
+          "商業發票自動產生",
+          "最多10名團隊成員",
+          "每月500,000次API呼叫",
+          "優先支援（8小時內）"
+        ],
+        "notIncluded": [
+          "客製AI模型",
+          "專屬客戶成功經理"
+        ]
+      },
+      "enterprise": {
+        "name": "企業版",
+        "desc": "適合需要大規模營運與客製建置的企業。",
+        "features": [
+          "包含專業版所有功能",
+          "客製AI模型訓練",
+          "專屬客戶成功經理",
+          "SLA 99.9%可用性保證",
+          "無限團隊成員",
+          "無限API呼叫",
+          "客製整合與Webhook",
+          "地端部署支援"
+        ],
+        "notIncluded": []
+      }
+    },
+    "trust": {
+      "secure": {
+        "title": "安全付款",
+        "desc": "透過 Paddle 取得 PCI DSS Level 1 認證"
+      },
+      "refund": {
+        "title": "30天全額退款",
+        "desc": "無條件全額退款"
+      },
+      "global": {
+        "title": "全球付款支援",
+        "desc": "支援100多種貨幣並自動處理增值稅"
+      }
+    },
+    "comparison": {
+      "view": "查看比較",
+      "hide": "收合比較",
+      "label": "各方案完整功能比較",
+      "feature": "功能",
+      "row": {
+        "channels": "銷售通路",
+        "wms": "倉庫（WMS）",
+        "members": "團隊成員數",
+        "api": "每月API呼叫",
+        "aiMkt": "AI行銷智慧",
+        "influencer": "網紅分析",
+        "customAi": "客製AI模型",
+        "manager": "專屬客戶成功經理",
+        "sla": "SLA保證",
+        "support": "支援回應時間"
+      }
+    },
+    "guide": {
+      "title": "各方案提供的服務說明",
+      "subtitle": "一目了然地比較各方案提供的功能與服務。",
+      "cardSuffix": "方案 — 提供的服務",
+      "recommended": "推薦",
+      "collapse": "收合",
+      "expand": "展開"
+    },
+    "faq": {
+      "title": "常見問題",
+      "cancel": {
+        "q": "可以隨時取消嗎？",
+        "a": "可以——您可隨時在帳戶設定中取消。在目前計費週期結束前仍可繼續使用，且不收取任何取消費用。"
+      },
+      "payment": {
+        "q": "支援哪些付款方式？",
+        "a": "僅支援信用卡與簽帳金融卡（Visa、Mastercard、American Express 等主流卡別），透過我們的銷售方（Merchant of Record）Paddle.com 處理。Paddle 負責全球 VAT/GST/銷售稅合規，並以 USD 計費。"
+      },
+      "cycles": {
+        "q": "有哪些計費週期可選？",
+        "a": "提供月付、季付、半年付與年付四種週期。週期越長折扣越大；所有週期均依所選間隔自動續訂。"
+      },
+      "trial": {
+        "q": "有免費試用嗎？",
+        "a": "每個新帳戶都從免費的示範方案開始，無需綁定卡片。您可依自己的步調體驗，準備好後再升級——並享有30天全額退款保證。"
+      },
+      "longCycle": {
+        "q": "較長週期如何計費？",
+        "a": "季付、半年付與年付方案於週期開始時一次預付全額。實際月費顯示於每個週期選項旁。您可隨時變更週期或方案，變更將於下次續訂時生效。"
+      },
+      "tax": {
+        "q": "帳單會加收稅費嗎？",
+        "a": "Paddle 負責處理全球所有 VAT/GST/銷售稅合規。結帳時會依您的所在地計算並顯示相應稅費，發票中包含詳細的稅費明細。"
+      },
+      "failed": {
+        "q": "如果付款失敗會怎樣？",
+        "a": "Paddle 會依固定排程（通常為第1、3、5、7天）自動重試失敗的卡片付款，每次重試都會寄送郵件通知。若全部重試失敗，方案將暫停（而非取消），並可於90天內隨時恢復。"
+      },
+      "refund": {
+        "q": "退款如何辦理？",
+        "a": "首次訂閱者可在30天內無條件獲得全額退款。退款將退回至同一張卡，帳戶會自動降級為示範方案。詳情請參閱退款政策。"
+      }
+    },
+    "legal": {
+      "agree": "購買即表示您同意我們的",
+      "terms": "服務條款",
+      "and": "與",
+      "privacy": "隱私權政策",
+      "usd": "所有價格均以 USD 計價。",
+      "tax": "依您所在地區可能產生稅費。由 Paddle.com（銷售方）提供支援。"
+    },
+    "alert": {
+      "noCycle": "{{name}}方案的{{months}}個月定價尚未設定。請選擇其他週期，或聯絡 support@genie-go.com。",
+      "checkoutError": "無法開啟結帳頁面。請重試或聯絡 support@genie-go.com。"
+    }
+  },
   // 181차 TeamMembers i18n (신규 루트 namespace)
   teamMembers: {
     "title": "成員管理",

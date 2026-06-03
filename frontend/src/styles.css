@@ -7034,3 +7034,18 @@ button.cs-inactive-tab {
 }
 
 /* 174차: CI deploy 재트리거 — 173차 4 commit 운영 반영 강제 (empty commit 은 paths-ignore 충돌로 미트리거) */
+
+
+/* ═══════════ 187차 /app-pricing(#genie-pricing-root) 가독성 보정 ═══════════
+   글로벌 라이트테마(arctic_white/pearl_office) override 가 inline color 를 회색/흰색으로 강제
+   (React 가 hex 를 rgb() 로 직렬화 → [style*="background: #hex"] 보존규칙 미매치)하는 것을 복원.
+   글로벌 규칙은 [data-theme] .container [style*=..][style*=..] = specificity (0,5,1) 까지 올라가므로
+   ID 셀렉터(1,1,0)로 확실히 이긴다(ID tier > class tier). */
+#genie-pricing-root [data-gp="onColor"], #genie-plan-pricing [data-gp="onColor"],
+#genie-pricing-root [data-gp="onColor"] *, #genie-plan-pricing [data-gp="onColor"] * { color:#ffffff !important; }
+#genie-pricing-root [data-gp="brandText"] { color:#1d4ed8 !important; }
+#genie-pricing-root [data-gp="darkText"], #genie-plan-pricing [data-gp="darkText"] { color:#1e293b !important; }
+/* 187차 — admin 메뉴접근 매트릭스(어두운 셀): 밝은테마 catch-all 이 흰글자를 어둡게 강제 → 흰글자 복원 */
+/* 187차 — hover 시 `[data-theme] tr:hover td{background:#f8f9fc!important}` 가 어두운 셀을 밝게 바꿔
+   흰글자가 흰배경 위로 사라지는 것 방지. ID specificity(1,2,2) 로 글로벌(0,2,2) 을 이겨 어두운 배경 유지. */
+#genie-plan-pricing tr:hover td[data-gp="onColor"] { background:#4a5a78 !important; }

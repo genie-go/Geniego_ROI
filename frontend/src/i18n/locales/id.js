@@ -1,4 +1,183 @@
 export default {
+  appPricing: {
+    "accountsLabel": "Jumlah akun",
+    "periodHeader": "Siklus penagihan",
+    "nMonths": "{{n}} bulan",
+    "hero": {
+      "badge": "Harga yang sederhana dan transparan",
+      "title": "Harga yang berskala seiring pertumbuhan Anda",
+      "subtitle": "Tanpa biaya tersembunyi. Ubah atau batalkan kapan saja.",
+      "guarantee": "Jaminan uang kembali penuh 30 hari"
+    },
+    "cardOnly": "Hanya pembayaran kartu",
+    "custom": "Paket khusus",
+    "unlimited": "Tak terbatas",
+    "selected": "Paket terpilih",
+    "perMonth": "per bulan",
+    "save": "Hemat hingga {{pct}}%",
+    "billedEvery": "Ditagih di muka setiap {{months}} bulan ({{total}})",
+    "menuAccess": "{{count}} menu & fitur tersedia",
+    "cycle": {
+      "monthly": "Bulanan",
+      "quarterly": "Triwulan",
+      "semiAnnual": "Setengah tahun",
+      "annual": "Tahunan",
+      "note": "Semakin panjang periode, semakin besar diskonnya. Semua paket ditagih di muka melalui Paddle."
+    },
+    "banner": {
+      "success": "✅ Pembayaran diterima. Akun Anda sedang diaktifkan — email konfirmasi sedang dikirim.",
+      "coupon": "🎉 Kupon diskon diterapkan.",
+      "couponFree": "🎉 Akses gratis telah diberikan."
+    },
+    "btn": {
+      "start": "Mulai gratis",
+      "contact": "Hubungi sales",
+      "opening": "Menyiapkan checkout…"
+    },
+    "tag": {
+      "pro": "Paling banyak dipilih",
+      "enterprise": "Solusi khusus perusahaan"
+    },
+    "plans": {
+      "starter": {
+        "name": "Starter",
+        "desc": "Untuk tim kecil dan bisnis tahap awal.",
+        "features": [
+          "3 kanal penjualan",
+          "1 gudang (WMS)",
+          "Dasbor analitik pemasaran",
+          "Maksimal 2 anggota tim",
+          "10.000 panggilan API / bulan",
+          "Dukungan email (dalam 48 jam)"
+        ],
+        "notIncluded": [
+          "AI Intelligence",
+          "Analitik influencer",
+          "Faktur ekspor"
+        ]
+      },
+      "pro": {
+        "name": "Pro",
+        "desc": "Untuk operasi multikanal dan merek tahap pertumbuhan.",
+        "features": [
+          "Kanal penjualan tak terbatas",
+          "Gudang tak terbatas (WMS)",
+          "AI Marketing Intelligence",
+          "Mesin analitik influencer",
+          "Pembuatan faktur komersial otomatis",
+          "Maksimal 10 anggota tim",
+          "500.000 panggilan API / bulan",
+          "Dukungan prioritas (dalam 8 jam)"
+        ],
+        "notIncluded": [
+          "Model AI khusus",
+          "Manajer kesuksesan pelanggan khusus"
+        ]
+      },
+      "enterprise": {
+        "name": "Enterprise",
+        "desc": "Untuk operasi skala besar yang memerlukan pembangunan khusus.",
+        "features": [
+          "Semua di Pro",
+          "Pelatihan model AI khusus",
+          "Manajer kesuksesan pelanggan khusus",
+          "Jaminan SLA uptime 99,9%",
+          "Anggota tim tak terbatas",
+          "Panggilan API tak terbatas",
+          "Integrasi & Webhook khusus",
+          "Dukungan deployment On-Premise"
+        ],
+        "notIncluded": []
+      }
+    },
+    "trust": {
+      "secure": {
+        "title": "Pembayaran aman",
+        "desc": "Bersertifikat PCI DSS Level 1 melalui Paddle"
+      },
+      "refund": {
+        "title": "Pengembalian penuh 30 hari",
+        "desc": "Pengembalian penuh, tanpa pertanyaan"
+      },
+      "global": {
+        "title": "Penagihan global",
+        "desc": "100+ mata uang dengan penanganan PPN otomatis"
+      }
+    },
+    "comparison": {
+      "view": "Lihat perbandingan",
+      "hide": "Sembunyikan perbandingan",
+      "label": "Perbandingan fitur lengkap per paket",
+      "feature": "Fitur",
+      "row": {
+        "channels": "Kanal penjualan",
+        "wms": "Gudang (WMS)",
+        "members": "Anggota tim",
+        "api": "Panggilan API / bulan",
+        "aiMkt": "AI Marketing Intelligence",
+        "influencer": "Analitik influencer",
+        "customAi": "Model AI khusus",
+        "manager": "Manajer kesuksesan pelanggan khusus",
+        "sla": "Jaminan SLA",
+        "support": "Waktu respons dukungan"
+      }
+    },
+    "guide": {
+      "title": "Layanan yang disediakan tiap paket",
+      "subtitle": "Bandingkan fitur dan layanan yang disediakan setiap paket secara sekilas.",
+      "cardSuffix": "paket — layanan yang disediakan",
+      "recommended": "Direkomendasikan",
+      "collapse": "Tutup",
+      "expand": "Buka"
+    },
+    "faq": {
+      "title": "Pertanyaan yang Sering Diajukan",
+      "cancel": {
+        "q": "Bisakah saya membatalkan kapan saja?",
+        "a": "Ya — batalkan kapan saja dari pengaturan akun. Akses Anda berlanjut hingga akhir siklus penagihan saat ini. Tanpa biaya pembatalan."
+      },
+      "payment": {
+        "q": "Metode pembayaran apa yang diterima?",
+        "a": "Hanya kartu kredit dan debit (Visa, Mastercard, American Express, dan jaringan besar lainnya) melalui Paddle.com — Merchant of Record kami. Paddle menangani kepatuhan VAT/GST/pajak penjualan secara global dan menagih dalam USD."
+      },
+      "cycles": {
+        "q": "Siklus penagihan apa saja yang tersedia?",
+        "a": "Empat siklus: bulanan, triwulan, setengah tahun, dan tahunan. Siklus lebih panjang membuka diskon lebih besar. Semua siklus diperpanjang otomatis pada interval yang dipilih."
+      },
+      "trial": {
+        "q": "Apakah ada uji coba gratis?",
+        "a": "Setiap akun baru dimulai dengan paket Demo gratis tanpa kartu. Jelajahi platform sesuai ritme Anda, lalu tingkatkan saat siap — didukung jaminan uang kembali penuh 30 hari."
+      },
+      "longCycle": {
+        "q": "Bagaimana penagihan untuk siklus yang lebih panjang?",
+        "a": "Paket triwulan, setengah tahun, dan tahunan ditagih sekali di muka untuk seluruh siklus. Tarif bulanan efektif ditampilkan di samping setiap opsi siklus. Anda dapat mengganti siklus atau paket kapan saja; perubahan berlaku pada perpanjangan berikutnya."
+      },
+      "tax": {
+        "q": "Apakah pajak akan ditambahkan ke tagihan saya?",
+        "a": "Paddle menangani seluruh kepatuhan VAT/GST/pajak penjualan secara global. Pajak yang berlaku dihitung dan ditampilkan saat checkout berdasarkan lokasi Anda, dan faktur Anda menyertakan rincian pajak."
+      },
+      "failed": {
+        "q": "Apa yang terjadi jika pembayaran saya gagal?",
+        "a": "Paddle otomatis mencoba ulang pembayaran kartu yang gagal sesuai jadwal tetap (biasanya hari 1, 3, 5, 7), dengan notifikasi email setiap kali. Jika semua gagal, paket Anda dijeda (bukan dibatalkan) dan dapat dilanjutkan kapan saja dalam 90 hari."
+      },
+      "refund": {
+        "q": "Bagaimana pengembalian dana bekerja?",
+        "a": "Pelanggan pertama kali mendapat pengembalian penuh dalam 30 hari, tanpa pertanyaan. Dana dikembalikan ke kartu yang sama dan akun otomatis diturunkan ke paket Demo. Lihat Kebijakan Pengembalian untuk detail lengkap."
+      }
+    },
+    "legal": {
+      "agree": "Dengan membeli, Anda menyetujui",
+      "terms": "Ketentuan Layanan",
+      "and": "dan",
+      "privacy": "Kebijakan Privasi",
+      "usd": "Semua harga dalam USD.",
+      "tax": "Pajak dapat berlaku tergantung lokasi Anda. Didukung oleh Paddle.com (Merchant of Record)."
+    },
+    "alert": {
+      "noCycle": "Harga {{months}} bulan untuk paket {{name}} belum dikonfigurasi. Silakan pilih siklus lain atau hubungi support@genie-go.com.",
+      "checkoutError": "Tidak dapat membuka checkout. Silakan coba lagi atau hubungi support@genie-go.com."
+    }
+  },
   // 181차 TeamMembers i18n (신규 루트 namespace)
   teamMembers: {
     "title": "Anggota Tim",

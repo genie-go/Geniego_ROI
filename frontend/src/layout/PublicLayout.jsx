@@ -1,24 +1,34 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-
-const NAV = [
-    { to: "/", label: "Home" },
-    { to: "/pricing", label: "Pricing" },
-    { to: "/terms", label: "Terms" },
-    { to: "/privacy", label: "Privacy" },
-    { to: "/refund", label: "Refund" },
-];
+import { st, siteLang } from "../pages/public/siteI18n.js";
 
 export default function PublicLayout({ children }) {
     const { pathname } = useLocation();
     const [scrolled, setScrolled] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
+    // 187차 Phase2 — 회사소개/운영진 메뉴 (admin 숨기기 visibility 연동, 15개국 라벨)
+    const [vis, setVis] = useState({ about: false, team: false });
+    const [lang, setLang] = useState(siteLang());
 
     useEffect(() => {
         const onScroll = () => setScrolled(window.scrollY > 30);
         window.addEventListener("scroll", onScroll, { passive: true });
-        return () => window.removeEventListener("scroll", onScroll);
+        const onL = (e) => { if (e?.detail?.lang) setLang(e.detail.lang); };
+        window.addEventListener("genie-lang-change", onL);
+        const base = import.meta.env.VITE_API_BASE || "";
+        fetch(`${base}/auth/site/intro`).then(r => r.json()).then(d => { if (d?.visibility) setVis(d.visibility); }).catch(() => {});
+        return () => { window.removeEventListener("scroll", onScroll); window.removeEventListener("genie-lang-change", onL); };
     }, []);
+
+    const NAV = [
+        { to: "/", label: "Home" },
+        ...(vis.about ? [{ to: "/about", label: st("navAbout", lang) }] : []),
+        ...(vis.team ? [{ to: "/team", label: st("navTeam", lang) }] : []),
+        { to: "/pricing", label: "Pricing" },
+        { to: "/terms", label: "Terms" },
+        { to: "/privacy", label: "Privacy" },
+        { to: "/refund", label: "Refund" },
+    ];
 
     return (
         <div style={{ minHeight: "100vh", background: "#050810", color: "#e2e8f8", fontFamily: "'Inter','Segoe UI',system-ui,sans-serif" }}>

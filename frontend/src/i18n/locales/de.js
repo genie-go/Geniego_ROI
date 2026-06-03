@@ -1,4 +1,183 @@
 export default {
+  appPricing: {
+    "accountsLabel": "Anzahl der Konten",
+    "periodHeader": "Abrechnungszeitraum",
+    "nMonths": "{{n}} Monate",
+    "hero": {
+      "badge": "Einfache, transparente Preise",
+      "title": "Preise, die mit Ihrem Wachstum skalieren",
+      "subtitle": "Keine versteckten Kosten. Jederzeit änder- oder kündbar.",
+      "guarantee": "30 Tage volle Geld-zurück-Garantie"
+    },
+    "cardOnly": "Nur Kartenzahlung",
+    "custom": "Individueller Plan",
+    "unlimited": "Unbegrenzt",
+    "selected": "Ausgewählter Plan",
+    "perMonth": "pro Monat",
+    "save": "Bis zu {{pct}}% sparen",
+    "billedEvery": "Alle {{months}} Monate im Voraus berechnet ({{total}})",
+    "menuAccess": "{{count}} Menüs & Funktionen enthalten",
+    "cycle": {
+      "monthly": "Monatlich",
+      "quarterly": "Vierteljährlich",
+      "semiAnnual": "Halbjährlich",
+      "annual": "Jährlich",
+      "note": "Je länger die Laufzeit, desto größer der Rabatt. Alle Pläne werden im Voraus über Paddle abgerechnet."
+    },
+    "banner": {
+      "success": "✅ Zahlung erhalten. Ihr Konto wird aktiviert – eine Bestätigungs-E-Mail ist unterwegs.",
+      "coupon": "🎉 Rabattgutschein angewendet.",
+      "couponFree": "🎉 Kostenloser Zugang wurde gewährt."
+    },
+    "btn": {
+      "start": "Kostenlos starten",
+      "contact": "Vertrieb kontaktieren",
+      "opening": "Checkout wird vorbereitet…"
+    },
+    "tag": {
+      "pro": "Am häufigsten gewählt",
+      "enterprise": "Individuelle Lösung"
+    },
+    "plans": {
+      "starter": {
+        "name": "Starter",
+        "desc": "Für kleine Teams und Unternehmen in der Frühphase.",
+        "features": [
+          "3 Vertriebskanäle",
+          "1 Lager (WMS)",
+          "Marketing-Analyse-Dashboard",
+          "Bis zu 2 Teammitglieder",
+          "10.000 API-Aufrufe / Monat",
+          "E-Mail-Support (innerhalb von 48 Std.)"
+        ],
+        "notIncluded": [
+          "KI-Intelligenz",
+          "Influencer-Analyse",
+          "Exportrechnungen"
+        ]
+      },
+      "pro": {
+        "name": "Pro",
+        "desc": "Für Multichannel-Betrieb und Marken in der Wachstumsphase.",
+        "features": [
+          "Unbegrenzte Vertriebskanäle",
+          "Unbegrenzte Lager (WMS)",
+          "KI-Marketing-Intelligence",
+          "Influencer-Analyse-Engine",
+          "Automatische Handelsrechnungen",
+          "Bis zu 10 Teammitglieder",
+          "500.000 API-Aufrufe / Monat",
+          "Priorisierter Support (innerhalb von 8 Std.)"
+        ],
+        "notIncluded": [
+          "Individuelle KI-Modelle",
+          "Dedizierter Customer-Success-Manager"
+        ]
+      },
+      "enterprise": {
+        "name": "Enterprise",
+        "desc": "Für Großbetriebe mit Bedarf an einer individuellen Lösung.",
+        "features": [
+          "Alles aus Pro",
+          "Individuelles KI-Modelltraining",
+          "Dedizierter Customer-Success-Manager",
+          "SLA 99,9 % Verfügbarkeitsgarantie",
+          "Unbegrenzte Teammitglieder",
+          "Unbegrenzte API-Aufrufe",
+          "Individuelle Integrationen & Webhooks",
+          "On-Premise-Bereitstellungssupport"
+        ],
+        "notIncluded": []
+      }
+    },
+    "trust": {
+      "secure": {
+        "title": "Sichere Zahlungen",
+        "desc": "PCI DSS Level 1 zertifiziert über Paddle"
+      },
+      "refund": {
+        "title": "30 Tage volle Rückerstattung",
+        "desc": "Volle Rückerstattung, ohne Nachfragen"
+      },
+      "global": {
+        "title": "Globale Abrechnung",
+        "desc": "100+ Währungen mit automatischer MwSt.-Abwicklung"
+      }
+    },
+    "comparison": {
+      "view": "Vergleich anzeigen",
+      "hide": "Vergleich ausblenden",
+      "label": "Vollständiger Funktionsvergleich nach Plan",
+      "feature": "Funktion",
+      "row": {
+        "channels": "Vertriebskanäle",
+        "wms": "Lager (WMS)",
+        "members": "Teammitglieder",
+        "api": "API-Aufrufe / Monat",
+        "aiMkt": "KI-Marketing-Intelligence",
+        "influencer": "Influencer-Analyse",
+        "customAi": "Individuelle KI-Modelle",
+        "manager": "Dedizierter Customer-Success-Manager",
+        "sla": "SLA-Garantie",
+        "support": "Support-Reaktionszeit"
+      }
+    },
+    "guide": {
+      "title": "Leistungen je Plan",
+      "subtitle": "Vergleichen Sie die Funktionen und Leistungen jedes Plans auf einen Blick.",
+      "cardSuffix": "Plan – enthaltene Leistungen",
+      "recommended": "Empfohlen",
+      "collapse": "Einklappen",
+      "expand": "Ausklappen"
+    },
+    "faq": {
+      "title": "Häufig gestellte Fragen",
+      "cancel": {
+        "q": "Kann ich jederzeit kündigen?",
+        "a": "Ja – Sie können jederzeit in den Kontoeinstellungen kündigen. Ihr Zugang bleibt bis zum Ende des aktuellen Abrechnungszeitraums bestehen. Es fallen keine Kündigungsgebühren an."
+      },
+      "payment": {
+        "q": "Welche Zahlungsmethoden werden akzeptiert?",
+        "a": "Nur Kredit- und Debitkarten (Visa, Mastercard, American Express und andere große Netzwerke) über Paddle.com – unseren Merchant of Record. Paddle übernimmt weltweit die VAT/GST/Umsatzsteuer-Compliance und rechnet in USD ab."
+      },
+      "cycles": {
+        "q": "Welche Abrechnungszeiträume sind verfügbar?",
+        "a": "Vier Zeiträume: monatlich, vierteljährlich, halbjährlich und jährlich. Längere Zeiträume bieten größere Rabatte. Alle Zeiträume verlängern sich automatisch im gewählten Intervall."
+      },
+      "trial": {
+        "q": "Gibt es eine kostenlose Testversion?",
+        "a": "Jedes neue Konto startet mit einem kostenlosen Demo-Plan ohne Karte. Erkunden Sie die Plattform in Ihrem Tempo und upgraden Sie, wenn Sie bereit sind – mit unserer 30-tägigen vollen Geld-zurück-Garantie."
+      },
+      "longCycle": {
+        "q": "Wie funktioniert die Abrechnung bei längeren Zeiträumen?",
+        "a": "Viertel-, halb- und jährliche Pläne werden einmalig im Voraus für den gesamten Zeitraum berechnet. Der effektive Monatspreis wird neben jeder Option angezeigt. Sie können Zeiträume oder Pläne jederzeit wechseln; Änderungen werden zur nächsten Verlängerung wirksam."
+      },
+      "tax": {
+        "q": "Werden Steuern zu meiner Rechnung hinzugefügt?",
+        "a": "Paddle übernimmt weltweit die gesamte VAT/GST/Umsatzsteuer-Compliance. Die anfallenden Steuern werden beim Checkout anhand Ihres Standorts berechnet und angezeigt; Ihre Rechnung enthält eine detaillierte Steueraufschlüsselung."
+      },
+      "failed": {
+        "q": "Was passiert, wenn meine Zahlung fehlschlägt?",
+        "a": "Paddle wiederholt fehlgeschlagene Kartenzahlungen automatisch nach einem festen Zeitplan (typischerweise Tag 1, 3, 5, 7) und benachrichtigt Sie bei jedem Versuch per E-Mail. Schlagen alle Versuche fehl, wird Ihr Plan pausiert (nicht gekündigt) und kann innerhalb von 90 Tagen jederzeit fortgesetzt werden."
+      },
+      "refund": {
+        "q": "Wie funktionieren Rückerstattungen?",
+        "a": "Erstabonnenten erhalten innerhalb von 30 Tagen eine volle Rückerstattung, ohne Nachfragen. Rückerstattungen erfolgen auf dieselbe Karte und Ihr Konto wird automatisch auf den Demo-Plan herabgestuft. Details finden Sie in unserer Rückerstattungsrichtlinie."
+      }
+    },
+    "legal": {
+      "agree": "Mit dem Kauf stimmen Sie unseren",
+      "terms": "Nutzungsbedingungen",
+      "and": "und der",
+      "privacy": "Datenschutzrichtlinie",
+      "usd": "Alle Preise in USD.",
+      "tax": "Je nach Standort können Steuern anfallen. Bereitgestellt durch Paddle.com (Merchant of Record)."
+    },
+    "alert": {
+      "noCycle": "Die {{months}}-Monats-Preise für {{name}} sind noch nicht konfiguriert. Bitte wählen Sie einen anderen Zeitraum oder kontaktieren Sie support@genie-go.com.",
+      "checkoutError": "Checkout konnte nicht geöffnet werden. Bitte versuchen Sie es erneut oder kontaktieren Sie support@genie-go.com."
+    }
+  },
   // 181차 TeamMembers i18n (신규 루트 namespace)
   teamMembers: {
     "title": "Teammitglieder",

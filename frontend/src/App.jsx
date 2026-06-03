@@ -117,6 +117,9 @@ import { useSecurityGuard, injectCSPMeta } from "./security/SecurityGuard.js";
 
 /* Public Pages (no auth required) */
 const Landing = lazy(() => import("./pages/public/Landing.jsx"));
+const CompanyIntro = lazy(() => import("./pages/public/CompanyIntro.jsx"));
+const TeamIntro = lazy(() => import("./pages/public/TeamIntro.jsx"));
+const SiteIntroAdmin = lazy(() => import("./pages/SiteIntroAdmin.jsx"));
 const PricingPublic = lazy(() => import("./pages/public/PricingPublic.jsx"));
 const Terms = lazy(() => import("./pages/public/Terms.jsx"));
 const Privacy = lazy(() => import("./pages/public/Privacy.jsx"));
@@ -331,6 +334,7 @@ function AppLayout() {
                       <Route path="/admin" element={<Admin />} />
                       <Route path="/admin/menu-tree" element={<AdminMenuManager />} />
                       <Route path="/admin/plan-pricing" element={<PlanPricing />} />
+                      <Route path="/admin/site-intro" element={<SiteIntroAdmin />} />
                       <Route path="/me/menu" element={<UserMenuPreferences />} />
                       <Route path="/pm" element={<PMOverview />} />
                       <Route path="/pm/projects/:id" element={<PMProjectDetail />} />
@@ -457,6 +461,8 @@ export default function App() {
             <Suspense fallback={<Loader />}>
               <Routes>
                 <Route path="/" element={<Landing />} />
+                <Route path="/about" element={<CompanyIntro />} />
+                <Route path="/team" element={<TeamIntro />} />
                 <Route path="/pricing" element={<SmartPricing />} />
                 <Route path="/terms" element={<Terms />} />
                 <Route path="/privacy" element={<Privacy />} />

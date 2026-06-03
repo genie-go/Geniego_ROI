@@ -1,4 +1,183 @@
 export default {
+  appPricing: {
+    "accountsLabel": "Número de contas",
+    "periodHeader": "Ciclo de cobrança",
+    "nMonths": "{{n}} meses",
+    "hero": {
+      "badge": "Preços simples e transparentes",
+      "title": "Preços que escalam com o seu crescimento",
+      "subtitle": "Sem taxas ocultas. Altere ou cancele quando quiser.",
+      "guarantee": "Garantia de reembolso total de 30 dias"
+    },
+    "cardOnly": "Apenas pagamento com cartão",
+    "custom": "Plano personalizado",
+    "unlimited": "Ilimitado",
+    "selected": "Plano selecionado",
+    "perMonth": "por mês",
+    "save": "Economize até {{pct}}%",
+    "billedEvery": "Cobrado antecipadamente a cada {{months}} meses ({{total}})",
+    "menuAccess": "{{count}} menus e recursos incluídos",
+    "cycle": {
+      "monthly": "Mensal",
+      "quarterly": "Trimestral",
+      "semiAnnual": "Semestral",
+      "annual": "Anual",
+      "note": "Quanto mais longo o ciclo, maior o desconto. Todos os planos são cobrados antecipadamente via Paddle."
+    },
+    "banner": {
+      "success": "✅ Pagamento recebido. Sua conta está sendo ativada — um e-mail de confirmação está a caminho.",
+      "coupon": "🎉 Cupom de desconto aplicado.",
+      "couponFree": "🎉 Acesso gratuito concedido."
+    },
+    "btn": {
+      "start": "Começar grátis",
+      "contact": "Falar com vendas",
+      "opening": "Preparando o checkout…"
+    },
+    "tag": {
+      "pro": "O mais escolhido",
+      "enterprise": "Solução sob medida"
+    },
+    "plans": {
+      "starter": {
+        "name": "Starter",
+        "desc": "Para equipes pequenas e negócios em fase inicial.",
+        "features": [
+          "3 canais de venda",
+          "1 armazém (WMS)",
+          "Painel de análise de marketing",
+          "Até 2 membros da equipe",
+          "10.000 chamadas de API / mês",
+          "Suporte por e-mail (em 48h)"
+        ],
+        "notIncluded": [
+          "IA Intelligence",
+          "Análise de influenciadores",
+          "Faturas de exportação"
+        ]
+      },
+      "pro": {
+        "name": "Pro",
+        "desc": "Para operações multicanal e marcas em crescimento.",
+        "features": [
+          "Canais de venda ilimitados",
+          "Armazéns ilimitados (WMS)",
+          "AI Marketing Intelligence",
+          "Motor de análise de influenciadores",
+          "Geração automática de faturas comerciais",
+          "Até 10 membros da equipe",
+          "500.000 chamadas de API / mês",
+          "Suporte prioritário (em 8h)"
+        ],
+        "notIncluded": [
+          "Modelos de IA personalizados",
+          "Gerente de sucesso do cliente dedicado"
+        ]
+      },
+      "enterprise": {
+        "name": "Enterprise",
+        "desc": "Para operações de grande escala que exigem uma solução sob medida.",
+        "features": [
+          "Tudo do Pro",
+          "Treinamento de modelos de IA personalizados",
+          "Gerente de sucesso do cliente dedicado",
+          "Garantia de uptime SLA 99,9%",
+          "Membros da equipe ilimitados",
+          "Chamadas de API ilimitadas",
+          "Integrações e webhooks personalizados",
+          "Suporte a implantação On-Premise"
+        ],
+        "notIncluded": []
+      }
+    },
+    "trust": {
+      "secure": {
+        "title": "Pagamentos seguros",
+        "desc": "Certificado PCI DSS Level 1 via Paddle"
+      },
+      "refund": {
+        "title": "Reembolso total de 30 dias",
+        "desc": "Reembolso total, sem perguntas"
+      },
+      "global": {
+        "title": "Cobrança global",
+        "desc": "Mais de 100 moedas com tratamento automático de IVA"
+      }
+    },
+    "comparison": {
+      "view": "Ver comparação",
+      "hide": "Ocultar comparação",
+      "label": "Comparação completa de recursos por plano",
+      "feature": "Recurso",
+      "row": {
+        "channels": "Canais de venda",
+        "wms": "Armazéns (WMS)",
+        "members": "Membros da equipe",
+        "api": "Chamadas de API / mês",
+        "aiMkt": "AI Marketing Intelligence",
+        "influencer": "Análise de influenciadores",
+        "customAi": "Modelos de IA personalizados",
+        "manager": "Gerente de sucesso do cliente dedicado",
+        "sla": "Garantia de SLA",
+        "support": "Tempo de resposta do suporte"
+      }
+    },
+    "guide": {
+      "title": "Serviços oferecidos por plano",
+      "subtitle": "Compare rapidamente os recursos e serviços que cada plano oferece.",
+      "cardSuffix": "plano — serviços oferecidos",
+      "recommended": "Recomendado",
+      "collapse": "Recolher",
+      "expand": "Expandir"
+    },
+    "faq": {
+      "title": "Perguntas frequentes",
+      "cancel": {
+        "q": "Posso cancelar quando quiser?",
+        "a": "Sim — cancele a qualquer momento nas configurações da conta. Seu acesso continua até o fim do ciclo de cobrança atual. Sem taxas de cancelamento."
+      },
+      "payment": {
+        "q": "Quais formas de pagamento são aceitas?",
+        "a": "Apenas cartões de crédito e débito (Visa, Mastercard, American Express e outras bandeiras principais) via Paddle.com — nosso Merchant of Record. A Paddle cuida da conformidade de IVA/GST/imposto sobre vendas globalmente e cobra em USD."
+      },
+      "cycles": {
+        "q": "Quais ciclos de cobrança estão disponíveis?",
+        "a": "Quatro ciclos: mensal, trimestral, semestral e anual. Ciclos mais longos desbloqueiam descontos maiores. Todos os ciclos renovam automaticamente no intervalo escolhido."
+      },
+      "trial": {
+        "q": "Existe um teste gratuito?",
+        "a": "Toda conta nova começa com um plano Demo gratuito, sem cartão. Explore a plataforma no seu ritmo e faça upgrade quando estiver pronto — com nossa garantia de reembolso total de 30 dias."
+      },
+      "longCycle": {
+        "q": "Como funciona a cobrança de ciclos mais longos?",
+        "a": "Os planos trimestral, semestral e anual são cobrados uma vez antecipadamente pelo ciclo completo. A taxa mensal efetiva é mostrada ao lado de cada opção de ciclo. Você pode trocar de ciclo ou plano a qualquer momento; as mudanças entram em vigor na próxima renovação."
+      },
+      "tax": {
+        "q": "Serão adicionados impostos à minha fatura?",
+        "a": "A Paddle cuida de toda a conformidade de IVA/GST/imposto sobre vendas globalmente. Os impostos aplicáveis são calculados e exibidos no checkout com base na sua localização, e sua fatura inclui um detalhamento dos impostos."
+      },
+      "failed": {
+        "q": "O que acontece se meu pagamento falhar?",
+        "a": "A Paddle tenta automaticamente novos débitos dos cartões que falharam em um cronograma fixo (normalmente nos dias 1, 3, 5, 7), com notificação por e-mail a cada tentativa. Se todas falharem, seu plano é pausado (não cancelado) e pode ser retomado a qualquer momento em até 90 dias."
+      },
+      "refund": {
+        "q": "Como funcionam os reembolsos?",
+        "a": "Assinantes de primeira viagem recebem reembolso total em até 30 dias, sem perguntas. Os reembolsos voltam para o mesmo cartão e sua conta é rebaixada automaticamente para o plano Demo. Consulte nossa Política de Reembolso para detalhes."
+      }
+    },
+    "legal": {
+      "agree": "Ao comprar, você concorda com nossos",
+      "terms": "Termos de Serviço",
+      "and": "e a",
+      "privacy": "Política de Privacidade",
+      "usd": "Todos os preços em USD.",
+      "tax": "Impostos podem ser aplicados dependendo da sua localização. Desenvolvido por Paddle.com (Merchant of Record)."
+    },
+    "alert": {
+      "noCycle": "O preço de {{months}} meses para {{name}} ainda não foi configurado. Escolha outro ciclo ou contate support@genie-go.com.",
+      "checkoutError": "Não foi possível abrir o checkout. Tente novamente ou contate support@genie-go.com."
+    }
+  },
   // 181차 TeamMembers i18n (신규 루트 namespace)
   teamMembers: {
     "title": "Membros da equipe",

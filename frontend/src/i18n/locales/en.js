@@ -1,4 +1,183 @@
 export default {
+  appPricing: {
+    "accountsLabel": "Number of accounts",
+    "periodHeader": "Billing period",
+    "nMonths": "{{n}} months",
+    "hero": {
+      "badge": "Simple, Transparent Pricing",
+      "title": "Pricing that scales with your growth",
+      "subtitle": "No hidden fees. Change or cancel anytime.",
+      "guarantee": "30-day full money-back guarantee"
+    },
+    "cardOnly": "Card payments only",
+    "custom": "Custom plan",
+    "unlimited": "Unlimited",
+    "selected": "Selected plan",
+    "perMonth": "per month",
+    "save": "Save up to {{pct}}%",
+    "billedEvery": "Billed every {{months}} months ({{total}})",
+    "menuAccess": "{{count}} menus & features included",
+    "cycle": {
+      "monthly": "Monthly",
+      "quarterly": "Quarterly",
+      "semiAnnual": "Semi-Annual",
+      "annual": "Annual",
+      "note": "The longer your commitment, the bigger your discount. All plans are billed upfront via Paddle."
+    },
+    "banner": {
+      "success": "✅ Payment received. Your account is being activated — a confirmation email is on the way.",
+      "coupon": "🎉 Discount coupon applied.",
+      "couponFree": "🎉 Free access has been granted."
+    },
+    "btn": {
+      "start": "Start for free",
+      "contact": "Talk to sales",
+      "opening": "Preparing checkout…"
+    },
+    "tag": {
+      "pro": "Most popular",
+      "enterprise": "Custom build"
+    },
+    "plans": {
+      "starter": {
+        "name": "Starter",
+        "desc": "For small teams and early-stage businesses.",
+        "features": [
+          "3 sales channels",
+          "1 warehouse (WMS)",
+          "Marketing analytics dashboard",
+          "Up to 2 team members",
+          "10,000 API calls / month",
+          "Email support (within 48h)"
+        ],
+        "notIncluded": [
+          "AI Intelligence",
+          "Influencer analytics",
+          "Export invoices"
+        ]
+      },
+      "pro": {
+        "name": "Pro",
+        "desc": "For multi-channel operations and growth-stage brands.",
+        "features": [
+          "Unlimited sales channels",
+          "Unlimited warehouses (WMS)",
+          "AI Marketing Intelligence",
+          "Influencer analytics engine",
+          "Commercial invoice auto-generation",
+          "Up to 10 team members",
+          "500,000 API calls / month",
+          "Priority support (within 8h)"
+        ],
+        "notIncluded": [
+          "Custom AI models",
+          "Dedicated customer success manager"
+        ]
+      },
+      "enterprise": {
+        "name": "Enterprise",
+        "desc": "For large-scale operations that need a custom build.",
+        "features": [
+          "Everything in Pro",
+          "Custom AI model training",
+          "Dedicated customer success manager",
+          "SLA 99.9% uptime guarantee",
+          "Unlimited team members",
+          "Unlimited API calls",
+          "Custom integrations & webhooks",
+          "On-premise deployment support"
+        ],
+        "notIncluded": []
+      }
+    },
+    "trust": {
+      "secure": {
+        "title": "Secure payments",
+        "desc": "PCI DSS Level 1 certified via Paddle"
+      },
+      "refund": {
+        "title": "30-day full refund",
+        "desc": "Full refund, no questions asked"
+      },
+      "global": {
+        "title": "Global billing",
+        "desc": "100+ currencies with automatic VAT handling"
+      }
+    },
+    "comparison": {
+      "view": "View comparison",
+      "hide": "Hide comparison",
+      "label": "Full feature comparison by plan",
+      "feature": "Feature",
+      "row": {
+        "channels": "Sales channels",
+        "wms": "Warehouses (WMS)",
+        "members": "Team members",
+        "api": "API calls / month",
+        "aiMkt": "AI Marketing Intelligence",
+        "influencer": "Influencer analytics",
+        "customAi": "Custom AI models",
+        "manager": "Dedicated customer success manager",
+        "sla": "SLA guarantee",
+        "support": "Support response time"
+      }
+    },
+    "guide": {
+      "title": "Services provided by each plan",
+      "subtitle": "Compare the features and services each plan provides at a glance.",
+      "cardSuffix": "plan — services provided",
+      "recommended": "Recommended",
+      "collapse": "Collapse",
+      "expand": "Expand"
+    },
+    "faq": {
+      "title": "Frequently Asked Questions",
+      "cancel": {
+        "q": "Can I cancel anytime?",
+        "a": "Yes — cancel any time from your account settings. Your access continues until the end of your current billing cycle. No cancellation fees."
+      },
+      "payment": {
+        "q": "What payment methods are accepted?",
+        "a": "Credit and debit cards only (Visa, Mastercard, American Express, and other major networks) via Paddle.com — our Merchant of Record. Paddle handles VAT/GST/sales-tax compliance globally and bills in USD."
+      },
+      "cycles": {
+        "q": "Which billing cycles are available?",
+        "a": "Four cycles: Monthly, Quarterly, Semi-Annual, and Annual. Longer cycles unlock larger discounts. All cycles renew automatically at the chosen interval."
+      },
+      "trial": {
+        "q": "Is there a free trial?",
+        "a": "Every new account starts on a free Demo plan with no card required. Explore at your own pace, then upgrade when ready — backed by our 30-day full money-back guarantee."
+      },
+      "longCycle": {
+        "q": "How does billing work for longer cycles?",
+        "a": "Quarterly, semi-annual, and annual plans are billed once upfront for the full cycle. The effective monthly rate is shown next to each cycle option. You can switch cycles or plans anytime; changes take effect at the next renewal."
+      },
+      "tax": {
+        "q": "Will taxes be added to my bill?",
+        "a": "Paddle handles all VAT/GST/sales-tax compliance globally. Applicable taxes are calculated and shown at checkout based on your location, and your invoice includes a detailed tax breakdown."
+      },
+      "failed": {
+        "q": "What happens if my payment fails?",
+        "a": "Paddle automatically retries failed card payments on a fixed schedule (typically days 1, 3, 5, 7), with an email notification at each retry. If all retries fail, your plan is paused (not cancelled) and can be resumed any time within 90 days."
+      },
+      "refund": {
+        "q": "How do refunds work?",
+        "a": "First-time subscribers get a full refund within 30 days, no questions asked. Refunds return to the same card and your account is automatically downgraded to the Demo plan. See our Refund Policy for full details."
+      }
+    },
+    "legal": {
+      "agree": "By purchasing, you agree to our",
+      "terms": "Terms of Service",
+      "and": "and",
+      "privacy": "Privacy Policy",
+      "usd": "All prices in USD.",
+      "tax": "Taxes may apply depending on your location. Powered by Paddle.com (Merchant of Record)."
+    },
+    "alert": {
+      "noCycle": "{{months}}-month pricing is not yet configured for {{name}}. Please choose a different cycle or contact support@genie-go.com.",
+      "checkoutError": "Unable to open checkout. Please try again or contact support@genie-go.com."
+    }
+  },
   // 181차 TeamMembers i18n (신규 루트 namespace)
   teamMembers: {
     "title": "Team Members",
@@ -10375,6 +10554,7 @@ export default {
       adminSystem: "System Admin",
       platformEnvLabel: "Platform Environment",
       planPricingLabel: "Plan Pricing",
+      siteIntroLabel: "Company & Team",
       menuTreeLabel: "Menu Tree Admin",
       dbSchemaLabel: "DB Schema",
       paymentPgLabel: "Payment PG Config",
