@@ -480,6 +480,14 @@ final class UserAuth
 
             // Membership type strict validation
             if (!$isMasterAuth && $loginType) {
+                // 188차 관리자 보안강화: admin 로그인은 서버 저장 접속키(access key) 검증 필요.
+                // (회전 가능 — 미설정 시 기본 'GENIEGO-ADMIN' 하위호환. break-glass(isMasterAuth)는 우회.)
+                if ($loginType === 'admin') {
+                    self::ensureAppSetting($pdo);
+                    if (!self::verifyAdminAccessKey($pdo, $accessKey)) {
+                        return self::json($res, ['ok' => false, 'error' => '관리자 접속키가 올바르지 않습니다.'], 403);
+                    }
+                }
                 $checkPlan = strtolower($user['plans'] ?? $user['plan'] ?? 'free');
                 $isDemoPlan = in_array($checkPlan, ['free', 'demo'], true);
                 $isAdmin = ($checkPlan === 'admin');
@@ -1206,5 +1214,208 @@ final class UserAuth
         }
 
         return self::json($res, ['ok' => true, 'licenses' => $rows]);
+    }
+
+    // ═════════════════════════════════════════════════════════════
+    // 188차+ 계정 자기관리: 비밀번호 변경 / 아이디(이메일) 찾기 / 비밀번호 재설정
+    //   POST /auth/change-password  (인증) 현재비번 검증 → 변경
+    //   POST /auth/find-id          (공개) 이름+전화 → 마스킹 이메일
+    //   POST /auth/forgot-password  (공개) 이메일+이름(+전화) 본인확인 → reset_token
+    //   POST /auth/reset-password   (공개) reset_token → 새 비밀번호
+    //   ※ 신뢰가능한 이메일 발송 인프라 부재(@mail best-effort) → 이메일 링크 대신 본인확인 기반.
+    // ═════════════════════════════════════════════════════════════
+    private static function readBody(ServerRequestInterface $req): array
+    {
+        $body = (array)($req->getParsedBody() ?? []);
+        if (empty($body)) { $d = json_decode((string)$req->getBody(), true); if (is_array($d)) $body = $d; }
+        return $body;
+    }
+
+    private static function maskEmail(string $email): string
+    {
+        $at = strpos($email, '@');
+        if ($at === false) return $email;
+        $local = substr($email, 0, $at);
+        $domain = substr($email, $at);
+        $len = max(1, mb_strlen($local));
+        $keep = min(2, max(1, $len - 1));
+        return mb_substr($local, 0, $keep) . str_repeat('*', max(2, $len - $keep)) . $domain;
+    }
+
+    private static function ensureResetSchema(\PDO $pdo): void
+    {
+        static $done = false;
+        if ($done) return;
+        $done = true;
+        try {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS password_reset (token VARCHAR(80) PRIMARY KEY, user_id INT NOT NULL, expires_at VARCHAR(32) NOT NULL, created_at VARCHAR(32) NOT NULL)");
+        } catch (\Throwable $e) { /* best-effort */ }
+    }
+
+    public static function changePassword(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
+    {
+        $token = (string)(self::extractToken($req) ?? '');
+        $user  = self::userByToken($token);
+        if (!$user) return self::json($res, ['ok' => false, 'error' => '인증이 필요합니다.'], 401);
+        $b   = self::readBody($req);
+        $cur = (string)($b['current_password'] ?? '');
+        $new = (string)($b['new_password'] ?? '');
+        if (mb_strlen($new) < 8) return self::json($res, ['ok' => false, 'error' => '새 비밀번호는 8자 이상이어야 합니다.'], 422);
+        $pdo = Db::pdo();
+        try {
+            $st = $pdo->prepare('SELECT password_hash, password_hashs, password FROM app_user WHERE id=?');
+            $st->execute([$user['id']]); $row = $st->fetch(\PDO::FETCH_ASSOC) ?: [];
+        } catch (\Throwable $e) {
+            $st = $pdo->prepare('SELECT password_hash FROM app_user WHERE id=?');
+            $st->execute([$user['id']]); $row = $st->fetch(\PDO::FETCH_ASSOC) ?: [];
+        }
+        $hash = $row['password_hashs'] ?? $row['password_hash'] ?? $row['password'] ?? '';
+        if ($hash === '' || !password_verify($cur, (string)$hash)) {
+            return self::json($res, ['ok' => false, 'error' => '현재 비밀번호가 올바르지 않습니다.'], 400);
+        }
+        if (password_verify($new, (string)$hash)) {
+            return self::json($res, ['ok' => false, 'error' => '새 비밀번호가 기존 비밀번호와 동일합니다.'], 400);
+        }
+        $pdo->prepare('UPDATE app_user SET password_hash=?, password_hashs=NULL WHERE id=?')
+            ->execute([password_hash($new, PASSWORD_DEFAULT), $user['id']]);
+        // 보안: 비번 변경 시 현재 세션을 제외한 다른 세션 무효화
+        try { $pdo->prepare('DELETE FROM user_session WHERE user_id=? AND token<>?')->execute([$user['id'], $token]); } catch (\Throwable $e) {}
+        return self::json($res, ['ok' => true, 'message' => '비밀번호가 변경되었습니다.']);
+    }
+
+    public static function findId(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
+    {
+        $b = self::readBody($req);
+        $name  = trim((string)($b['name'] ?? ''));
+        $phone = trim((string)($b['phone'] ?? ''));
+        if ($name === '' || $phone === '') return self::json($res, ['ok' => false, 'error' => '이름과 전화번호를 입력하세요.'], 422);
+        $pdo = Db::pdo();
+        try {
+            $st = $pdo->prepare('SELECT email, created_at FROM app_user WHERE name=? AND phone=? AND is_active=1 ORDER BY id LIMIT 5');
+            $st->execute([$name, $phone]); $rows = $st->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Throwable $e) { $rows = []; }
+        if (!$rows) return self::json($res, ['ok' => false, 'error' => '일치하는 계정을 찾을 수 없습니다.'], 404);
+        $out = array_map(fn($r) => ['email' => self::maskEmail((string)$r['email']), 'joined' => substr((string)($r['created_at'] ?? ''), 0, 10)], $rows);
+        return self::json($res, ['ok' => true, 'accounts' => $out]);
+    }
+
+    public static function forgotPassword(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
+    {
+        $b = self::readBody($req);
+        $email = trim(strtolower((string)($b['email'] ?? '')));
+        $name  = trim((string)($b['name'] ?? ''));
+        $phone = trim((string)($b['phone'] ?? ''));
+        if ($email === '' || $name === '') return self::json($res, ['ok' => false, 'error' => '이메일과 이름을 입력하세요.'], 422);
+        $pdo = Db::pdo(); self::ensureResetSchema($pdo);
+        try {
+            $st = $pdo->prepare('SELECT id, name, phone FROM app_user WHERE LOWER(email)=? AND is_active=1 LIMIT 1');
+            $st->execute([$email]); $u = $st->fetch(\PDO::FETCH_ASSOC);
+        } catch (\Throwable $e) {
+            $st = $pdo->prepare('SELECT id, name FROM app_user WHERE LOWER(email)=? AND is_active=1 LIMIT 1');
+            $st->execute([$email]); $u = $st->fetch(\PDO::FETCH_ASSOC);
+        }
+        $nameOk  = $u && (trim((string)($u['name'] ?? '')) === $name);
+        $dbPhone = trim((string)($u['phone'] ?? ''));
+        $phoneOk = ($dbPhone === '') ? true : ($phone === $dbPhone); // 계정에 전화 등록 시 일치 필요
+        if (!$u || !$nameOk || !$phoneOk) {
+            return self::json($res, ['ok' => false, 'error' => '본인확인 정보가 일치하지 않습니다. 이메일·이름·전화번호를 확인하세요.'], 400);
+        }
+        $rtok = self::generateToken();
+        $now  = self::now();
+        $exp  = gmdate('Y-m-d\TH:i:s\Z', time() + 900); // 15분
+        try { $pdo->prepare('DELETE FROM password_reset WHERE user_id=? OR expires_at<?')->execute([$u['id'], $now]); } catch (\Throwable $e) {}
+        $pdo->prepare('INSERT INTO password_reset(token,user_id,expires_at,created_at) VALUES(?,?,?,?)')->execute([$rtok, $u['id'], $exp, $now]);
+        return self::json($res, ['ok' => true, 'reset_token' => $rtok, 'message' => '본인확인이 완료되었습니다. 새 비밀번호를 설정하세요.']);
+    }
+
+    public static function resetPassword(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
+    {
+        $b   = self::readBody($req);
+        $tok = (string)($b['reset_token'] ?? '');
+        $new = (string)($b['new_password'] ?? '');
+        if ($tok === '') return self::json($res, ['ok' => false, 'error' => '재설정 토큰이 없습니다.'], 400);
+        if (mb_strlen($new) < 8) return self::json($res, ['ok' => false, 'error' => '새 비밀번호는 8자 이상이어야 합니다.'], 422);
+        $pdo = Db::pdo(); self::ensureResetSchema($pdo);
+        $now = self::now();
+        try { $pdo->prepare('DELETE FROM password_reset WHERE expires_at<?')->execute([$now]); } catch (\Throwable $e) {}
+        $st = $pdo->prepare('SELECT user_id FROM password_reset WHERE token=? AND expires_at>?');
+        $st->execute([$tok, $now]); $uid = $st->fetchColumn();
+        if (!$uid) return self::json($res, ['ok' => false, 'error' => '재설정 세션이 만료되었습니다. 다시 시도하세요.'], 401);
+        $pdo->prepare('UPDATE app_user SET password_hash=?, password_hashs=NULL WHERE id=?')->execute([password_hash($new, PASSWORD_DEFAULT), $uid]);
+        $pdo->prepare('DELETE FROM password_reset WHERE token=?')->execute([$tok]);
+        try { $pdo->prepare('DELETE FROM user_session WHERE user_id=?')->execute([$uid]); } catch (\Throwable $e) {} // 전 세션 무효화
+        return self::json($res, ['ok' => true, 'message' => '비밀번호가 재설정되었습니다. 새 비밀번호로 로그인하세요.']);
+    }
+
+    // ═════════════════════════════════════════════════════════════
+    // 188차 관리자 보안강화 — 접속키(access key) 서버 저장·검증·회전
+    //   POST /auth/admin/verify-access-key {access_key}            (공개) 게이트 검증
+    //   POST /auth/admin/access-key {current_password,new_access_key} (인증·admin) 접속키 변경
+    //   ※ 미설정 시 기본 'GENIEGO-ADMIN'(하위호환). 변경 후엔 해시 검증만 통과.
+    // ═════════════════════════════════════════════════════════════
+    private static function ensureAppSetting(\PDO $pdo): void
+    {
+        static $done = false;
+        if ($done) return;
+        $done = true;
+        try { $pdo->exec("CREATE TABLE IF NOT EXISTS app_setting (skey VARCHAR(64) PRIMARY KEY, svalue TEXT, updated_at VARCHAR(32))"); } catch (\Throwable $e) {}
+    }
+
+    private static function getAppSetting(\PDO $pdo, string $k): string
+    {
+        try {
+            $s = $pdo->prepare('SELECT svalue FROM app_setting WHERE skey=?');
+            $s->execute([$k]);
+            $v = $s->fetchColumn();
+            return $v === false ? '' : (string)$v;
+        } catch (\Throwable $e) { return ''; }
+    }
+
+    private static function verifyAdminAccessKey(\PDO $pdo, string $key): bool
+    {
+        $hash = self::getAppSetting($pdo, 'admin_access_key_hash');
+        if ($hash !== '') return password_verify($key, $hash); // 회전됨 → 엄격 검증
+        // 미회전(기본) 상태: 하위호환 — 기본값 'GENIEGO-ADMIN' 또는 빈 값 허용(구 프론트 무파손, 락아웃 방지).
+        // 관리자가 접속키를 한 번 변경하면 이후부터 엄격 검증된다.
+        return $key === '' || strcasecmp(trim($key), 'GENIEGO-ADMIN') === 0;
+    }
+
+    public static function verifyAdminKey(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
+    {
+        $b = self::readBody($req);
+        $key = trim((string)($b['access_key'] ?? $b['code'] ?? ''));
+        $pdo = Db::pdo(); self::ensureAppSetting($pdo);
+        if ($key === '' || !self::verifyAdminAccessKey($pdo, $key)) {
+            return self::json($res, ['ok' => false, 'error' => '접속키가 올바르지 않습니다.'], 403);
+        }
+        return self::json($res, ['ok' => true]);
+    }
+
+    public static function adminChangeAccessKey(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
+    {
+        $user = self::userByToken((string)(self::extractToken($req) ?? ''));
+        if (!$user) return self::json($res, ['ok' => false, 'error' => '인증이 필요합니다.'], 401);
+        if (($user['plan'] ?? '') !== 'admin') return self::json($res, ['ok' => false, 'error' => '관리자만 변경할 수 있습니다.'], 403);
+        $b = self::readBody($req);
+        $cur    = (string)($b['current_password'] ?? '');
+        $newKey = trim((string)($b['new_access_key'] ?? ''));
+        if (mb_strlen($newKey) < 6) return self::json($res, ['ok' => false, 'error' => '접속키는 6자 이상이어야 합니다.'], 422);
+        $pdo = Db::pdo();
+        $st = $pdo->prepare('SELECT password_hash, password_hashs FROM app_user WHERE id=?');
+        $st->execute([$user['id']]);
+        $row = $st->fetch(\PDO::FETCH_ASSOC) ?: [];
+        $hash = $row['password_hashs'] ?? $row['password_hash'] ?? '';
+        if ($hash === '' || !password_verify($cur, (string)$hash)) {
+            return self::json($res, ['ok' => false, 'error' => '현재 비밀번호가 올바르지 않습니다.'], 400);
+        }
+        self::ensureAppSetting($pdo);
+        $now = self::now();
+        $kh  = password_hash($newKey, PASSWORD_DEFAULT);
+        if (self::getAppSetting($pdo, 'admin_access_key_hash') !== '') {
+            $pdo->prepare('UPDATE app_setting SET svalue=?, updated_at=? WHERE skey=?')->execute([$kh, $now, 'admin_access_key_hash']);
+        } else {
+            $pdo->prepare('INSERT INTO app_setting(skey,svalue,updated_at) VALUES(?,?,?)')->execute(['admin_access_key_hash', $kh, $now]);
+        }
+        return self::json($res, ['ok' => true, 'message' => '관리자 접속키가 변경되었습니다.']);
     }
 }

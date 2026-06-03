@@ -606,6 +606,14 @@ return function (App $app): void {
         'POST /auth/login'    => 'Genie\\Handlers\\UserAuth::login',
         'GET /auth/me'        => 'Genie\\Handlers\\UserAuth::me',
         'PATCH /auth/profile' => 'Genie\\Handlers\\UserAuth::profile', // 175차 S3.2
+        // 188차 계정 자기관리 — 비밀번호 변경 / 아이디·비밀번호 찾기
+        'POST /auth/change-password' => 'Genie\\Handlers\\UserAuth::changePassword',
+        'POST /auth/find-id'         => 'Genie\\Handlers\\UserAuth::findId',
+        'POST /auth/forgot-password' => 'Genie\\Handlers\\UserAuth::forgotPassword',
+        'POST /auth/reset-password'  => 'Genie\\Handlers\\UserAuth::resetPassword',
+        // 188차 관리자 보안강화 — 접속키 검증/변경
+        'POST /auth/admin/verify-access-key' => 'Genie\\Handlers\\UserAuth::verifyAdminKey',
+        'POST /auth/admin/access-key'        => 'Genie\\Handlers\\UserAuth::adminChangeAccessKey',
         // 180차 Phase2 멤버구성원 — 팀/팀원 하위계정(상위 owner tenant 종속)
         'GET /auth/team/members'         => 'Genie\\Handlers\\UserAuth::listTeamMembers',
         'POST /auth/team/members'        => 'Genie\\Handlers\\UserAuth::createTeamMember',
@@ -1390,6 +1398,13 @@ return function (App $app): void {
     $register('POST', '/auth/login');
     $register('GET',  '/auth/me');
     $register('PATCH', '/auth/profile'); // 175차 S3.2
+    // 188차 계정 자기관리
+    $register('POST', '/auth/change-password');
+    $register('POST', '/auth/find-id');
+    $register('POST', '/auth/forgot-password');
+    $register('POST', '/auth/reset-password');
+    $register('POST', '/auth/admin/verify-access-key');
+    $register('POST', '/auth/admin/access-key');
     // 180차 Phase2 멤버구성원 팀/팀원 하위계정
     $register('GET',    '/auth/team/members');
     $register('POST',   '/auth/team/members');

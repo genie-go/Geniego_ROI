@@ -627,6 +627,11 @@ const ProfileEditModal = memo(function ProfileEditModal({ user, token, onClose }
   const [showCurPw, setShowCurPw] = useState(false);
   const [showNewPw, setShowNewPw] = useState(false);
 
+  // 188차 관리자 보안: 접속키 변경 (admin 전용)
+  const [akCurPw, setAkCurPw] = useState('');
+  const [akNew, setAkNew] = useState('');
+  const [akNew2, setAkNew2] = useState('');
+
   const showMsg = (text, type = 'ok') => { setMsg({ text, type }); setTimeout(() => setMsg({ text: '', type: '' }), 5000); };
 
   const pwStrength = (pw) => {
@@ -741,6 +746,24 @@ const ProfileEditModal = memo(function ProfileEditModal({ user, token, onClose }
     } finally { setSaving(false); }
   };
 
+  // 188차 관리자 보안: 접속키(access key) 변경 — 현재 비밀번호 검증 필요
+  const handleChangeAccessKey = async () => {
+    if (!akCurPw) { showMsg(t('profile.akCurPwRequired', '현재 비밀번호를 입력하세요.'), 'err'); return; }
+    if (akNew.trim().length < 6) { showMsg(t('profile.akMinLength', '접속키는 6자 이상이어야 합니다.'), 'err'); return; }
+    if (akNew !== akNew2) { showMsg(t('profile.akMismatch', '접속키가 일치하지 않습니다.'), 'err'); return; }
+    setSaving(true);
+    try {
+      const r = await fetch('/api/auth/admin/access-key', {
+        method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ current_password: akCurPw, new_access_key: akNew.trim() }),
+      });
+      const d = await r.json().catch(() => ({}));
+      if (r.ok && d.ok) { showMsg(t('profile.akChanged', '관리자 접속키가 변경되었습니다. 다음 로그인부터 적용됩니다.'), 'ok'); setAkCurPw(''); setAkNew(''); setAkNew2(''); }
+      else showMsg(d.error || t('profile.akChangeFail', '접속키 변경에 실패했습니다.'), 'err');
+    } catch { showMsg(t('profile.serverError', 'Server error. Try again.'), 'err'); }
+    finally { setSaving(false); }
+  };
+
   const inputStyle = {
     width: '100%', padding: '10px 12px', borderRadius: 10, fontSize: 13,
     border: '1px solid var(--border, rgba(99,140,255,0.2))',
@@ -772,6 +795,7 @@ const ProfileEditModal = memo(function ProfileEditModal({ user, token, onClose }
           {[
             { id: 'info', label: t('profile.tabInfo', '📋 Profile Info'), icon: '' },
             { id: 'password', label: t('profile.tabPassword', '🔐 Change Password'), icon: '' },
+            ...(user.plan === 'admin' ? [{ id: 'security', label: t('profile.tabAccessKey', '🛡️ 접속키'), icon: '' }] : []),
           ].map(t => (
             <button key={t.id} onClick={() => { setTab(t.id); setMsg({ text: '', type: '' }); }}
               style={{
@@ -958,6 +982,49 @@ const ProfileEditModal = memo(function ProfileEditModal({ user, token, onClose }
                 transition: 'all 200ms',
               }}
             >{saving ? t('profile.changingPw', 'Changing...') : t('profile.changePwBtn', '🔐 Change Password')}</button>
+          </div>
+        )}
+
+        {/* 188차 관리자 접속키 변경 탭 (admin 전용) */}
+        {tab === 'security' && user.plan === 'admin' && (
+          <div style={{ display: 'grid', gap: 16 }}>
+            <div style={{ padding: '12px 14px', borderRadius: 10, background: 'rgba(239,68,68,0.05)', border: '1px solid rgba(239,68,68,0.15)', fontSize: 12, color: 'var(--text-3, #94a3b8)', lineHeight: 1.7 }}>
+              🛡️ {t('profile.akGuide', '관리자 로그인 접속키를 변경합니다. 아이디(이메일)는 변경할 수 없습니다.')}<br />
+              <span style={{ fontSize: 11 }}>{t('profile.akGuide2', '변경 시 현재 비밀번호 확인이 필요하며, 다음 관리자 로그인부터 새 접속키가 적용됩니다.')}</span>
+            </div>
+            <div>
+              <label style={labelStyle}>{t('profile.emailLabel', 'Email (read-only)')}</label>
+              <input value={user.email || ''} disabled style={{ ...inputStyle, opacity: 0.6, cursor: 'not-allowed' }} />
+            </div>
+            <div>
+              <label style={labelStyle}>{t('profile.curPwLabel', 'Current Password *')}</label>
+              <input type="password" value={akCurPw} onChange={e => setAkCurPw(e.target.value)}
+                placeholder={t('profile.curPwPlaceholder', 'Enter current password')} style={inputStyle} autoComplete="current-password" />
+            </div>
+            <div>
+              <label style={labelStyle}>{t('profile.akNewLabel', '새 접속키 *')}</label>
+              <input type="password" value={akNew} onChange={e => setAkNew(e.target.value)}
+                placeholder={t('profile.akNewPh', '새 접속키 (6자 이상)')} style={inputStyle} autoComplete="new-password" />
+            </div>
+            <div>
+              <label style={labelStyle}>{t('profile.akConfirmLabel', '새 접속키 확인 *')}</label>
+              <input type="password" value={akNew2} onChange={e => setAkNew2(e.target.value)}
+                placeholder={t('profile.akConfirmPh', '새 접속키 재입력')} style={inputStyle} autoComplete="new-password" />
+              {akNew2 && akNew && (
+                <div style={{ marginTop: 6, fontSize: 11, fontWeight: 700, color: akNew === akNew2 ? '#22c55e' : '#ef4444' }}>
+                  {akNew === akNew2 ? `✅ ${t('profile.akMatch', '접속키가 일치합니다')}` : `❌ ${t('profile.akNoMatch', '접속키가 일치하지 않습니다')}`}
+                </div>
+              )}
+            </div>
+            <button onClick={handleChangeAccessKey} disabled={saving || !akCurPw || akNew.trim().length < 6 || akNew !== akNew2}
+              style={{
+                width: '100%', padding: '12px 0', borderRadius: 12, border: 'none',
+                cursor: (saving || !akCurPw || akNew.trim().length < 6 || akNew !== akNew2) ? 'not-allowed' : 'pointer',
+                background: (saving || !akCurPw || akNew.trim().length < 6 || akNew !== akNew2) ? 'rgba(239,68,68,0.15)' : 'linear-gradient(135deg,#ef4444,#dc2626)',
+                color: (saving || !akCurPw || akNew.trim().length < 6 || akNew !== akNew2) ? 'var(--text-3)' : '#fff',
+                fontSize: 14, fontWeight: 800, transition: 'all 200ms',
+              }}
+            >{saving ? t('profile.changingPw', 'Changing...') : t('profile.changeAkBtn', '🛡️ 접속키 변경')}</button>
           </div>
         )}
       </div>

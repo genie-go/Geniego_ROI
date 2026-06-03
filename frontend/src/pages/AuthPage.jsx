@@ -258,6 +258,120 @@ function Field({ label, type = "text", value, onChange, placeholder, required, a
   );
 }
 
+/* ─── 계정 복구: 아이디(이메일) 찾기 / 비밀번호 찾기·재설정 (188차) ───
+   신뢰가능한 이메일 발송 인프라 부재 → 본인확인(이메일+이름+전화) 기반 재설정. */
+function AccountRecovery({ t, initial = "findId", onClose }) {
+  const [view, setView] = useState(initial); // 'findId' | 'forgot' | 'reset' | 'done'
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
+  const [fName, setFName] = useState(""); const [fPhone, setFPhone] = useState("");
+  const [found, setFound] = useState(null);
+  const [gEmail, setGEmail] = useState(""); const [gName, setGName] = useState(""); const [gPhone, setGPhone] = useState("");
+  const [rtok, setRtok] = useState("");
+  const [np, setNp] = useState(""); const [np2, setNp2] = useState("");
+
+  const post = async (path, body) => {
+    try {
+      const r = await fetch("/api/auth" + path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      const d = await r.json().catch(() => ({}));
+      return { ok: r.ok && d.ok, d };
+    } catch { return { ok: false, d: { error: t("auth.networkError", "네트워크 오류. 다시 시도하세요.") } }; }
+  };
+  const doFindId = async () => {
+    setErr(""); if (!fName.trim() || !fPhone.trim()) { setErr(t("auth.findIdNeed", "이름과 전화번호를 입력하세요.")); return; }
+    setBusy(true); const { ok, d } = await post("/find-id", { name: fName.trim(), phone: fPhone.trim() }); setBusy(false);
+    if (ok) setFound(d.accounts || []); else setErr(d.error || t("auth.findIdFail", "일치하는 계정을 찾을 수 없습니다."));
+  };
+  const doForgot = async () => {
+    setErr(""); if (!gEmail.trim() || !gName.trim()) { setErr(t("auth.forgotNeed", "이메일과 이름을 입력하세요.")); return; }
+    setBusy(true); const { ok, d } = await post("/forgot-password", { email: gEmail.trim(), name: gName.trim(), phone: gPhone.trim() }); setBusy(false);
+    if (ok && d.reset_token) { setRtok(d.reset_token); setView("reset"); } else setErr(d.error || t("auth.forgotFail", "본인확인 정보가 일치하지 않습니다."));
+  };
+  const doReset = async () => {
+    setErr(""); if (np.length < 8) { setErr(t("auth.pwMin", "새 비밀번호는 8자 이상이어야 합니다.")); return; }
+    if (np !== np2) { setErr(t("auth.pwMismatch", "비밀번호가 일치하지 않습니다.")); return; }
+    setBusy(true); const { ok, d } = await post("/reset-password", { reset_token: rtok, new_password: np }); setBusy(false);
+    if (ok) setView("done"); else setErr(d.error || t("auth.resetFail", "재설정에 실패했습니다."));
+  };
+
+  const tabBtn = (v, label) => (
+    <button type="button" onClick={() => { setView(v); setErr(""); setFound(null); }}
+      style={{ flex: 1, padding: "9px 0", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 12, fontWeight: 800,
+        background: view === v ? "rgba(79,142,247,0.18)" : "transparent", color: view === v ? "#4f8ef7" : "#94a3b8" }}>{label}</button>
+  );
+  const submitBtn = (onClick, label) => (
+    <button type="button" onClick={onClick} disabled={busy}
+      style={{ padding: "11px 0", borderRadius: 10, border: "none", background: busy ? "#4f8ef766" : "linear-gradient(135deg,#4f8ef7,#4f8ef7cc)", color: "#fff", fontWeight: 800, fontSize: 13, cursor: busy ? "not-allowed" : "pointer" }}>
+      {busy ? "…" : label}</button>
+  );
+
+  return (
+    <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 4000, background: "rgba(2,6,23,0.7)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
+      <div onClick={e => e.stopPropagation()} style={{ width: "100%", maxWidth: 380, background: "#0f172a", border: "1px solid #1e293b", borderRadius: 16, padding: 22, boxShadow: "0 24px 70px rgba(0,0,0,0.5)" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+          <div style={{ fontWeight: 900, fontSize: 15, color: "#fff" }}>🔑 {t("auth.recoveryTitle", "계정 찾기")}</div>
+          <button type="button" onClick={onClose} style={{ background: "none", border: "none", color: "#64748b", fontSize: 20, cursor: "pointer", lineHeight: 1 }}>×</button>
+        </div>
+        {view !== "reset" && view !== "done" && (
+          <div style={{ display: "flex", gap: 4, marginBottom: 16, background: "rgba(255,255,255,0.03)", borderRadius: 10, padding: 4 }}>
+            {tabBtn("findId", t("auth.findIdLink", "아이디(이메일) 찾기"))}
+            {tabBtn("forgot", t("auth.forgotLink", "비밀번호 찾기"))}
+          </div>
+        )}
+        {err && <div style={{ padding: "8px 12px", borderRadius: 8, background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.3)", color: "#ef4444", fontSize: 11, marginBottom: 12 }}>{err}</div>}
+
+        {view === "findId" && (found === null ? (
+          <div style={{ display: "grid", gap: 14 }}>
+            <Field label={t("auth.nameLabel", "이름")} value={fName} onChange={setFName} placeholder={t("auth.namePh", "가입 시 이름")} required />
+            <Field label={t("auth.phoneLabel", "전화번호")} value={fPhone} onChange={setFPhone} placeholder="010-0000-0000" required />
+            <div style={{ fontSize: 10, color: "#64748b" }}>{t("auth.findIdHint", "가입 시 등록한 이름·전화번호로 이메일(아이디)을 찾습니다.")}</div>
+            {submitBtn(doFindId, t("auth.findIdBtn", "아이디 찾기"))}
+          </div>
+        ) : (
+          <div style={{ display: "grid", gap: 10 }}>
+            {found.length === 0 ? <div style={{ color: "#94a3b8", fontSize: 12 }}>{t("auth.findIdNone", "일치하는 계정이 없습니다.")}</div> :
+              found.map((a, i) => (
+                <div key={i} style={{ padding: "12px 14px", borderRadius: 10, background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.25)" }}>
+                  <div style={{ fontWeight: 800, fontSize: 14, color: "#22c55e" }}>{a.email}</div>
+                  {a.joined && <div style={{ fontSize: 10, color: "#64748b", marginTop: 2 }}>{t("auth.joinedAt", "가입일")}: {a.joined}</div>}
+                </div>
+              ))}
+            <button type="button" onClick={() => setFound(null)} style={{ padding: "10px 0", borderRadius: 10, border: "1px solid #334155", background: "transparent", color: "#94a3b8", fontWeight: 700, fontSize: 12, cursor: "pointer" }}>{t("auth.back", "← 다시")}</button>
+          </div>
+        ))}
+
+        {view === "forgot" && (
+          <div style={{ display: "grid", gap: 14 }}>
+            <Field label={t("auth.emailLabel", "이메일")} type="email" value={gEmail} onChange={setGEmail} placeholder="you@example.com" required />
+            <Field label={t("auth.nameLabel", "이름")} value={gName} onChange={setGName} placeholder={t("auth.namePh", "가입 시 이름")} required />
+            <Field label={t("auth.phoneLabel", "전화번호")} value={gPhone} onChange={setGPhone} placeholder={t("auth.phoneOptPh", "등록 시 전화번호(있으면)")} />
+            <div style={{ fontSize: 10, color: "#64748b" }}>{t("auth.forgotHint", "본인확인 후 새 비밀번호를 바로 설정합니다.")}</div>
+            {submitBtn(doForgot, t("auth.forgotBtn", "본인확인"))}
+          </div>
+        )}
+
+        {view === "reset" && (
+          <div style={{ display: "grid", gap: 14 }}>
+            <div style={{ padding: "8px 12px", borderRadius: 8, background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.25)", color: "#22c55e", fontSize: 11 }}>✅ {t("auth.verifyOk", "본인확인 완료. 새 비밀번호를 설정하세요.")}</div>
+            <Field label={t("auth.newPwLabel", "새 비밀번호")} type="password" value={np} onChange={setNp} placeholder="••••••••" required autoComplete="new-password" hint={t("auth.pwMinHint", "8자 이상")} />
+            <Field label={t("auth.newPwConfirm", "새 비밀번호 확인")} type="password" value={np2} onChange={setNp2} placeholder="••••••••" required autoComplete="new-password" />
+            {submitBtn(doReset, t("auth.resetBtn", "비밀번호 재설정"))}
+          </div>
+        )}
+
+        {view === "done" && (
+          <div style={{ display: "grid", gap: 16, textAlign: "center", padding: "10px 0" }}>
+            <div style={{ fontSize: 40 }}>✅</div>
+            <div style={{ color: "#fff", fontWeight: 700, fontSize: 14 }}>{t("auth.resetDone", "비밀번호가 재설정되었습니다.")}</div>
+            <div style={{ color: "#94a3b8", fontSize: 12 }}>{t("auth.resetDoneDesc", "새 비밀번호로 로그인하세요.")}</div>
+            {submitBtn(onClose, t("auth.goLogin", "로그인하기"))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function SelectField({ label, value, onChange, options, required }) {
   return (
     <div style={{ display: "grid", gap: 4 }}>
@@ -337,6 +451,7 @@ function LoginForm({ onSwitch, loginType = "production" }) {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [recovery, setRecovery] = useState(null); // 188차: null | 'findId' | 'forgot'
 
   /* 자동 로그아웃으로 리디렉트된 경우 감지 */
   const isIdleLogout = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("reason") === "idle";
@@ -387,6 +502,14 @@ function LoginForm({ onSwitch, loginType = "production" }) {
       <button type="submit" disabled={loading} style={{ padding: "12px 0", borderRadius: 10, border: "none", background: loading ? `${envColor}66` : `linear-gradient(135deg,${envColor},${envColor}cc)`, color: "#fff", fontWeight: 800, fontSize: 14, cursor: loading ? "not-allowed" : "pointer" }}>
         {loading ? t("auth.loggingIn") : `${envIcon} ${envLabel}`}
       </button>
+
+      {/* 188차: 아이디(이메일) 찾기 / 비밀번호 찾기 */}
+      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 12, marginTop: 2 }}>
+        <button type="button" onClick={() => setRecovery("findId")} style={{ background: "none", border: "none", color: "#94a3b8", fontSize: 11.5, fontWeight: 600, cursor: "pointer", padding: 0 }}>{t("auth.findIdLink", "아이디(이메일) 찾기")}</button>
+        <span style={{ color: "#334155", fontSize: 10 }}>|</span>
+        <button type="button" onClick={() => setRecovery("forgot")} style={{ background: "none", border: "none", color: "#94a3b8", fontSize: 11.5, fontWeight: 600, cursor: "pointer", padding: 0 }}>{t("auth.forgotLink", "비밀번호 찾기")}</button>
+      </div>
+      {recovery && <AccountRecovery t={t} initial={recovery} onClose={() => setRecovery(null)} />}
     </form>
   );
 }
@@ -1211,17 +1334,31 @@ function AdminLoginForm({ onBack }) {
   const [error, setError] = useState(null);
   const ADMIN_GATE = "GENIEGO-ADMIN";
 
-  const verifyKey = (e) => {
+  const verifyKey = async (e) => {
     e.preventDefault();
-    if (adminKey.trim().toUpperCase() !== ADMIN_GATE) { setError("접속 코드가 올바르지 않습니다."); return; }
-    setError(null); setStep(2);
+    setError(null); setLoading(true);
+    try {
+      // 188차: 서버 저장 접속키 검증(회전 가능). 미회전 시 기본 'GENIEGO-ADMIN'.
+      const r = await fetch("/api/auth/admin/verify-access-key", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ access_key: adminKey.trim() }),
+      });
+      const d = await r.json().catch(() => ({}));
+      if (r.ok && d.ok) { setStep(2); }
+      else setError(d.error || "접속 코드가 올바르지 않습니다.");
+    } catch {
+      // 서버 미응답(오프라인) — 하위호환 기본 게이트로 폴백
+      if (adminKey.trim().toUpperCase() === ADMIN_GATE) setStep(2);
+      else setError("접속 코드 확인에 실패했습니다. 다시 시도하세요.");
+    }
+    setLoading(false);
   };
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError(null); setLoading(true);
     try {
-      const user = await login(email, password, "admin");
+      const user = await login(email, password, "admin", adminKey.trim());
       if ((user.plans || user.plan) !== "admin") throw new Error("관리자 계정이 아닙니다. 관리자 전용 계정으로 로그인하세요.");
       navigate("/admin", { replace: true });
     } catch (err) { setError(err.message); }

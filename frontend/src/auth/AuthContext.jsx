@@ -285,13 +285,13 @@ export function AuthProvider({ children }) {
     ];
 
     /* ── 로그인 (실제 서버, 실패 시 로컬 폴백) ── */
-    const login = useCallback(async (email, password, loginType = "") => {
+    const login = useCallback(async (email, password, loginType = "", accessKey = "") => {
         setLoading(true);
         try {
             const r = await fetch(`${API}/auth/login`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email, password, login_type: loginType }),
+                body: JSON.stringify({ email, password, login_type: loginType, access_key: accessKey }),
             });
 
             // 서버 응답이 403 또는 HTML 응답(서버 미작동) → 로컬 폴백 시도

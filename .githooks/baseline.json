@@ -1,11 +1,11 @@
 {
-  "version": "186",
-  "updated": "2026-06-02",
+  "version": "188",
+  "updated": "2026-06-03",
   "sacred_sha": {
-    "ja.js": "432170197a72c4412679c56bb356872457f5ffeb0f633ca34e339e71fc34cdd0",
-    "zh.js": "7547009d465fe8c9672b096e026695b440faf90f32c35a9bee79729d9879a79e"
+    "ja.js": "164338ea36d6af7610bc33049f162b8577e7d2be8fab6acdd7d9ed27adeeb7ad",
+    "zh.js": "c2d497815ed7a95b2b0a47d3f32988d60628b14191f363f86b973dec7c693296"
   },
-  "ko_leaf_count": 23103,
+  "ko_leaf_count": 23226,
   "leaf_tolerance_pct": 5,
   "_note": "186차 Phase2 — dead/shadow ns purge: 27개 top-level ns 삭제(ko 9,646 leaf, 전 파일 누계 79,192). ko 32759→23103(-9646). 삭제 ns=nav(3933,sidebarI18n.js 내장사전 대체)·ruleEnginePage(2262,AIRuleEngine.jsx 하드코딩스텁)·aiPredict(삭제페이지)·auto(AutoMarketing=marketing ns사용)·pricing(PlanPricing 로컬/하드코딩)·_marketing_1·marketingIntel·cmpVal·pricingDetail·super·campaignMgr·dt·channelKpi(ChannelKPI=channelKpiPage)·workspace·returnsPortal(rpI18n 로컬)·aiPolicy·menu·writeback(Writeback=writebackPage)·alertAuto·dashGuide·approvals(Approvals=approvalsPage)·sc·conn·gBudget·pxl·commerce·reconciliation. ★검증=정적 2검출기 일치(경로인식,pages_backup제외)+소유페이지 교차검증+런타임 16라우트 헤드리스(pageerror0·미해결키0). 잔여 dead 롱테일(<50 leaf,506ns/546leaf)은 간접접근 잔여리스크로 보류. i18n-locales 17.5MB→14.7MB(-16%). Phase1(186차 전반): live ns 13개국 1453건 현지화."
 }
