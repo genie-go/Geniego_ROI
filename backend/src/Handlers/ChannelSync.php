@@ -427,7 +427,7 @@ final class ChannelSync
     }
 
     // ── eBay ─────────────────────────────────────────────────────────────
-    private static function ebayFetch(array $creds): array
+    private static function ebayFetch(array $creds, string $tenant = 'demo'): array
     {
         $token = $creds['oauth_token'] ?? $creds['access_token'] ?? '';
         if ($token) {
@@ -444,20 +444,28 @@ final class ChannelSync
                     'status'    => 'active',
                     'source'    => 'live',
                 ], $body['inventoryItems'] ?? []);
-                if (!empty($products)) return ['ok'=>true, 'products'=>$products, 'orders'=>self::buildDemoChannelOrders('ebay','eBay')];
+                if (!empty($products)) return ['ok'=>true, 'products'=>$products, 'orders'=>($tenant==='demo' ? self::buildDemoChannelOrders('ebay','eBay') : [])];
             }
         }
-        return ['ok'=>true, 'products'=>self::buildDemoChannelProducts('ebay','eBay'), 'orders'=>self::buildDemoChannelOrders('ebay','eBay'), 'note'=>'eBay Inventory API: OAuth token required for live sync.'];
+        // 188차 P0 보안: 데모 데이터의 운영 DB 유입 차단. 실 테넌트는 OAuth 토큰 미보유 시 빈 결과.
+        if ($tenant === 'demo') {
+            return ['ok'=>true, 'products'=>self::buildDemoChannelProducts('ebay','eBay'), 'orders'=>self::buildDemoChannelOrders('ebay','eBay'), 'note'=>'eBay Inventory API: OAuth token required for live sync.'];
+        }
+        return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>'eBay: OAuth 토큰 등록 시 실데이터가 동기화됩니다.'];
     }
 
     // ── TikTok Shop ──────────────────────────────────────────────────────
-    private static function tiktokFetch(array $creds): array
+    private static function tiktokFetch(array $creds, string $tenant = 'demo'): array
     {
+        // 188차 P0 보안: 데모 데이터의 운영 DB 유입 차단. 실 테넌트(데모 외)에는 가짜 상품/주문을 반환하지 않는다.
+        if ($tenant !== 'demo') {
+            return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>'TikTok Shop: 인증키 저장 완료 — 라이브 API 연동 시 실데이터가 동기화됩니다.'];
+        }
         return ['ok'=>true, 'products'=>self::buildDemoChannelProducts('tiktok','TikTok Shop'), 'orders'=>self::buildDemoChannelOrders('tiktok','TikTok Shop'), 'note'=>'TikTok Shop API: 인증키 저장. App Key+Secret 검증 완료.'];
     }
 
     // ── G마켓/11번가/기타 ─────────────────────────────────────────────────
-    private static function genericFetch(string $channel, array $creds): array
+    private static function genericFetch(string $channel, array $creds, string $tenant = 'demo'): array
     {
         $label = match($channel) {
             '11st'    => '11번가',
@@ -472,6 +480,15 @@ final class ChannelSync
             'yahoo_jp'=> 'Yahoo! Japan',
             default   => $channel,
         };
+        // 188차 P0 보안: 데모 데이터의 운영 DB 유입 차단. 실 테넌트(데모 외)에는 가짜 상품/주문을 반환하지 않는다.
+        if ($tenant !== 'demo') {
+            return [
+                'ok'       => true,
+                'products' => [],
+                'orders'   => [],
+                'note'     => "{$label}: 인증키 저장 완료 — 정산 CSV 업로드 또는 라이브 API 연동 시 실데이터가 표시됩니다.",
+            ];
+        }
         return [
             'ok'       => true,
             'products' => self::buildDemoChannelProducts($channel, $label),
@@ -495,19 +512,16 @@ final class ChannelSync
     }
 
     // ── 채널 dispatch ────────────────────────────────────────────────────
-    private static function fetchFromChannel(string $channel, array $creds, string $plan): array
+    private static function fetchFromChannel(string $channel, array $creds, string $plan, string $tenant = 'demo'): array
     {
-        if (false /*was demo*/) {
-            return ['ok'=>true, 'products'=>self::demoProducts($channel), 'orders'=>self::demoOrders($channel), 'source'=>'demo'];
-        }
         return match($channel) {
             'shopify'                      => self::shopifyFetch($creds),
             'amazon','amazon_spapi'        => self::amazonFetch($creds),
             'coupang'                      => self::coupangFetch($creds),
             'naver','naver_smartstore'     => self::naverFetch($creds),
-            'ebay'                         => self::ebayFetch($creds),
-            'tiktok','tiktok_shop'         => self::tiktokFetch($creds),
-            default                        => self::genericFetch($channel, $creds),
+            'ebay'                         => self::ebayFetch($creds, $tenant),
+            'tiktok','tiktok_shop'         => self::tiktokFetch($creds, $tenant),
+            default                        => self::genericFetch($channel, $creds, $tenant),
         };
     }
 
@@ -524,6 +538,9 @@ final class ChannelSync
             status=excluded.status,category=excluded.category,synced_at=excluded.synced_at");
         foreach ($products as $p) {
             if (!($p['channel_product_id'] ?? null)) continue;
+            // 188차 P0 보안: 데모 데이터의 운영 DB 유입 차단(전 채널 단일 chokepoint).
+            // 실 테넌트(데모 외)에는 demo-소스/DEMO- 접두 행을 절대 저장하지 않는다.
+            if ($tenant !== 'demo' && ((($p['source'] ?? '') === 'demo') || str_starts_with((string)$p['channel_product_id'], 'DEMO-'))) continue;
             $stmt->execute([
                 $tenant, $channel, $p['channel_product_id'],
                 $p['sku'] ?? null, $p['name'] ?? null,
@@ -554,6 +571,8 @@ final class ChannelSync
             status=excluded.status,carrier=excluded.carrier,tracking_no=excluded.tracking_no,synced_at=excluded.synced_at");
         foreach ($orders as $o) {
             if (!($o['channel_order_id'] ?? null)) continue;
+            // 188차 P0 보안: 데모 데이터의 운영 DB 유입 차단(전 채널 단일 chokepoint).
+            if ($tenant !== 'demo' && ((($o['source'] ?? '') === 'demo') || str_starts_with((string)$o['channel_order_id'], 'DEMO-'))) continue;
             $stmt->execute([
                 $tenant, $channel, $o['channel_order_id'],
                 $o['buyer_name'] ?? null, $o['buyer_email'] ?? null,
@@ -676,7 +695,7 @@ final class ChannelSync
 
         // 즉시 동기화 실행
         $creds = array_merge(['key_value'=>$keyValue,$keyName=>$keyValue], $extra, (array)json_decode($body['extra_json']??'{}',true));
-        $result = self::fetchFromChannel($channel, $creds, $plan);
+        $result = self::fetchFromChannel($channel, $creds, $plan, $tenant);
 
         $productCount = 0;
         $orderCount   = 0;
@@ -794,7 +813,7 @@ final class ChannelSync
         if (isset($creds['api_key'])) $creds['key_value'] = $creds['api_key'];
         if (isset($creds['access_token'])) $creds['key_value'] = $creds['access_token'];
 
-        $result = self::fetchFromChannel($channel, $creds, $plan);
+        $result = self::fetchFromChannel($channel, $creds, $plan, $tenant);
         $now    = gmdate('c');
         $pCount = self::saveProducts($pdo, $tenant, $channel, $result['products'] ?? []);
         $oCount = self::saveOrders($pdo, $tenant, $channel, $result['orders'] ?? []);
@@ -846,8 +865,8 @@ final class ChannelSync
             unset($r['variants_json'],$r['raw_json']);
         }
 
-        // pro인데 데이터 없으면 데모 반환
-        if (empty($rows)) {
+        // 188차 P0 보안: 운영(non-demo) 실 테넌트는 데이터가 없으면 '빈 상태'를 보여준다(가짜 데모 데이터 주입 금지).
+        if (empty($rows) && $tenant === 'demo') {
             $chs = $channel ? [$channel] : ['shopify','amazon','coupang','naver'];
             foreach ($chs as $ch) $rows = array_merge($rows, self::demoProducts($ch));
         }
@@ -887,7 +906,8 @@ final class ChannelSync
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
         foreach ($rows as &$r) unset($r['raw_json']);
 
-        if (empty($rows)) {
+        // 188차 P0 보안: 운영(non-demo) 실 테넌트는 데이터가 없으면 '빈 상태'를 보여준다(가짜 데모 데이터 주입 금지).
+        if (empty($rows) && $tenant === 'demo') {
             $chs = $channel ? [$channel] : ['shopify','amazon','coupang','naver'];
             foreach ($chs as $ch) $rows = array_merge($rows, self::demoOrders($ch));
         }

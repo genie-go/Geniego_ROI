@@ -165,8 +165,8 @@ function MembersTab() {
         <div>
             {/* Toolbar */}
             <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap", alignItems: "center" }}>
-                <input placeholder="Name/Email 검색..." value={q} onChange={e => { setQ(e.target.value); setPage(1) }} style={{ ...ss.input, width: 220 }} />
-                <select value={filterPlan} onChange={e => { setFilterPlan(e.target.value); setPage(1) }} style={{ ...ss.input, width: 130 }}>
+                <input placeholder="Name/Email 검색..." value={q} onChange={e => { setQ(e.target.value); setPage(1) }} style={{ ...css.input, width: 220 }} />
+                <select value={filterPlan} onChange={e => { setFilterPlan(e.target.value); setPage(1) }} style={{ ...css.input, width: 130 }}>
                     <option value="">모든 플랜</option>
                     {PLANS.map(p => <option key={p} value={p}>{p}</option>)}
                 </select>
@@ -305,6 +305,7 @@ function MembersTab() {
 
 /* ─── TAB: 구독 요금제 관리 ──────────────────────────────────────────────────── */
 function PlanPricesTab() {
+    const t = useT();
     const { token } = useAuth();
     const { data, loading, refetch } = useAdminApi("v423/admin/plan-prices");
     const [form, setForm] = useState({ plan_key: "pro", period_months: 1, price_usd: "", currency: "USD", discount_pct: 0, label_ko: "", label_en: "", paddle_price_id: "", is_active: 1 });
@@ -427,6 +428,7 @@ function PlanPricesTab() {
 
 /* ─── TAB: 권한(역할) 관리 ───────────────────────────────────────────────── */
 function RolesTab() {
+    const t = useT();
     const { token } = useAuth();
     const { data, loading, refetch } = useAdminApi("v423/admin/roles");
     const [form, setForm] = useState({ role_key: "", name_ko: "", name_en: "", permissions: [], is_active: 1, sort_order: 0 });
@@ -537,6 +539,7 @@ function RolesTab() {
 
 /* ─── TAB: 결제 내역 ──────────────────────────────────────────────────────── */
 function BillingTab() {
+    const t = useT();
     const { data, loading } = useAdminApi("v423/admin/billing");
 
     const STATUS_COLOR = { active: "#22c55e", cancelled: "#ef4444", payment_failed: "#f59e0b", trial: "#8b5cf6" };

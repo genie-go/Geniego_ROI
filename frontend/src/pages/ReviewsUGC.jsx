@@ -39,7 +39,7 @@ function useReviewsDataSync() {
         if (loaded.current) return;
         loaded.current = true;
         const BASE = import.meta.env.VITE_API_BASE || "";
-        const token = localStorage.getItem("g_token");
+        const token = localStorage.getItem("genie_token") || localStorage.getItem("demo_genie_token") || "";
         const headers = token ? { Authorization: `Bearer ${token}` } : {};
         Promise.allSettled([
             fetch(`${BASE}/api/v423/reviews/list`, { headers }).then(r => r.ok ? r.json() : null),

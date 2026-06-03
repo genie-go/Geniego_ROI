@@ -80,6 +80,7 @@ function AdMockup({ chId, headline, copy, color, size }) {
 
 
 function BudgetPanel({ result, customBudget, setCustomBudget, budgetEditing, setBudgetEditing, budgetInputVal, setBudgetInputVal }) {
+    const { t } = useI18n();  // 188차 P1: 범위밖 t 참조 크래시(흰화면) 수정
     const aiMonthly = result.total_monthly_budget
         || parseInt((result.monthly_budget || '').replace(/[^0-9]/g, '')) || 0;
     const activeBudget = customBudget !== null ? customBudget : aiMonthly;
@@ -131,6 +132,7 @@ function BudgetPanel({ result, customBudget, setCustomBudget, budgetEditing, set
 
 
 function ChannelBarCard({ ch, colors, icons }) {
+    const { t } = useI18n();  // 188차 P1: 범위밖 t 참조 크래시 수정
     const color = colors[ch.channel_id] || colors.default;
     const icon = icons[ch.channel_id] || '\uD83D\uDCE3';
     return (
@@ -155,6 +157,7 @@ function ChannelBarCard({ ch, colors, icons }) {
 }
 
 function ChannelAdCard({ ch, cr, color, icon, catLabel, regenLoad, onRegen, onDownload, onUpdate }) {
+    const { t } = useI18n();  // 188차 P1: 범위밖 t 참조 크래시 수정
     const size = ch.channel_id === 'youtube' ? 'banner'
         : (ch.channel_id === 'instagram' || ch.channel_id === 'tiktok') ? 'story' : 'feed';
     const W = size === 'story' ? 200 : size === 'banner' ? 420 : 300;

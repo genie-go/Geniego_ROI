@@ -70,8 +70,6 @@ $app->add(function (Request $request, $handler) {
         || strpos($path, '/api/v420/price/') === 0
         || strpos($path, '/v420/channel-mix/') === 0
         || strpos($path, '/api/v420/channel-mix/') === 0
-        || strpos($path, '/v422/ai/') === 0
-        || strpos($path, '/api/v422/ai/') === 0
         || strpos($path, '/v423/creds') === 0
         || strpos($path, '/api/v423/creds') === 0
         || strpos($path, '/v423/popups/') === 0
@@ -93,6 +91,42 @@ $app->add(function (Request $request, $handler) {
         || strpos($path, '/api/creatives') === 0
         || strpos($path, '/creatives') === 0
     ) {
+        return $handler->handle($request);
+    }
+
+    // 188차 P0 보안: /v422/ai/* (서버 공용 Claude API 키 = 우리 비용) 무인증 비용남용 차단.
+    // 과거엔 public bypass 라 누구나 인증 없이 호출해 Claude 비용을 소진할 수 있었다.
+    // 프론트는 세션 토큰(genie_token)으로 호출하므로 api_key 미들웨어로는 막을 수 없어(세션≠api_key),
+    // 여기서 'api_key OR 유효 user_session OR demo/local 토큰' 을 요구한다(익명 호출만 차단, 정상 흐름 보존).
+    if (strpos($path, '/v422/ai/') === 0 || strpos($path, '/api/v422/ai/') === 0) {
+        $bearer = '';
+        $ah = $request->getHeaderLine('Authorization');
+        if (strpos($ah, 'Bearer ') === 0) { $bearer = trim(substr($ah, 7)); }
+        if ($bearer === '') { $qp = $request->getQueryParams(); $bearer = (string)($qp['api_key'] ?? $qp['token'] ?? ''); }
+        $aiOk = false;
+        if ($bearer !== '') {
+            if (strncmp($bearer, 'demo', 4) === 0 || strncmp($bearer, 'local', 5) === 0) {
+                $aiOk = true; // 데모/로컬 세션 — 별도 비용 컨텍스트(데모 백엔드는 공용 키 미설정 시 fallback)
+            } else {
+                try {
+                    $pdoAi = Db::pdo();
+                    $sa = $pdoAi->prepare('SELECT 1 FROM api_key WHERE key_hash=? AND is_active=1 LIMIT 1');
+                    $sa->execute([hash('sha256', $bearer)]);
+                    if ($sa->fetchColumn()) { $aiOk = true; }
+                    if (!$aiOk) {
+                        $ss = $pdoAi->prepare('SELECT 1 FROM user_session WHERE token=? LIMIT 1');
+                        $ss->execute([$bearer]);
+                        if ($ss->fetchColumn()) { $aiOk = true; }
+                    }
+                } catch (\Throwable $eAi) { $aiOk = false; }
+            }
+        }
+        if (!$aiOk) {
+            $aiBody = json_encode(['ok' => false, 'error' => 'Unauthorized', 'detail' => 'AI endpoints require a valid session or API key'], JSON_UNESCAPED_UNICODE);
+            $aiResp = new \Slim\Psr7\Response();
+            $aiResp->getBody()->write($aiBody);
+            return $aiResp->withStatus(401)->withHeader('Content-Type', 'application/json');
+        }
         return $handler->handle($request);
     }
 
@@ -177,9 +211,12 @@ $app->add(function (Request $request, $handler) {
         ->withAttribute('auth_role',   $role)
         ->withAttribute('auth_tenant', (string)$keyRow['tenant_id']);
 
-    if ($request->getHeaderLine('X-Tenant-Id') === '') {
-        $request = $request->withHeader('X-Tenant-Id', (string)$keyRow['tenant_id']);
-    }
+    // 188차 P0 보안: 크로스테넌트 데이터 유출 차단.
+    // 과거엔 클라이언트가 X-Tenant-Id 헤더를 보내면 그대로 두어(if === '' 일 때만 주입),
+    // 인증된 api_key 보유자가 임의 테넌트 헤더를 위조해 타 테넌트의 데이터(OAuth 토큰·정산·api키 등)를
+    // 읽고/쓸 수 있었다. 이제 인증된 키의 tenant_id 로 '무조건' 덮어써 위조를 원천 차단한다.
+    // (api_key 는 단일 tenant_id 에 귀속되므로 다른 테넌트를 표적할 정당한 사유가 없다.)
+    $request = $request->withHeader('X-Tenant-Id', (string)$keyRow['tenant_id']);
 
     return $handler->handle($request);
 });

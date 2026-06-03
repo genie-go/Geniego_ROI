@@ -187,18 +187,20 @@ export function AuthProvider({ children }) {
                             let cached = null;
                             try { cached = JSON.parse(localStorage.getItem(USER_KEY) || "null"); } catch {}
 
-                            // 캐시된 plan이 admin인데 서버가 /free를 반환하는 경우 → 로컬 admin 우선 유지
+                            // 188차 P1 보안: 인증된 /auth/me 응답의 서버 plan 을 신뢰한다(다운그레이드/만료 즉시 반영).
+                            // 과거엔 planRank(server) >= planRank(cached) 조건일 때만 서버 plan 을 채택해, 관리자가
+                            // 강등하거나 구독이 만료돼도 상위 캐시 plan(메뉴·기능 권한)이 잔존하는 권한상승 버그가 있었다.
+                            // 전송 실패(401/5xx/빈응답)는 위에서 별도로 캐시 유지 처리하므로, 정상 응답은 서버를 신뢰한다.
                             const cachedPlan = cached?.plan || "";
-                            const serverPlan = d.user.plan || "";
-                            const useServerPlan = planRank(serverPlan) >= planRank(cachedPlan);
+                            const serverPlan = d.user.plan || cachedPlan;
 
-                            // 서버 user + 로컬 캐시 merge (plans, is_local 등 로컬 필드 보존)
+                            // 서버 user + 로컬 캐시 merge (id/email 등 로컬 필드 보존, plan·권한은 서버 신뢰)
                             const merged = {
                                 ...(cached || {}),
                                 ...d.user,
-                                plan: useServerPlan ? serverPlan : cachedPlan,
-                                plans: d.user.plans || cached?.plans || cachedPlan,
-                                subscription_status: useServerPlan ? (d.user.subscription_status || cachedPlan) : (cached?.subscription_status || cachedPlan),
+                                plan: serverPlan,
+                                plans: d.user.plans || serverPlan,
+                                subscription_status: d.user.subscription_status || serverPlan,
                             };
                             setUser(merged);
                             localStorage.setItem(USER_KEY, JSON.stringify(merged));

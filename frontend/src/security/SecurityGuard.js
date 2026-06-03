@@ -206,8 +206,8 @@ export async function secureFetch(url, options = {}) {
         };
     }
 
-    // Add auth token
-    const token = localStorage.getItem('g_token');
+    // Add auth token (188차 P1: 미설정 'g_token' → 정식 키 genie_token/demo_genie_token 으로 수정. writeback 무인증 실패 해소)
+    const token = localStorage.getItem('genie_token') || localStorage.getItem('demo_genie_token') || '';
     if (token) {
         options.headers = {
             ...options.headers,
@@ -309,7 +309,7 @@ export function useSecurityGuard({ addAlert, enabled = true } = {}) {
 
         // ── 4. Monitor localStorage tampering ──
         const handleStorage = (e) => {
-            if (e.key === 'g_token' && e.oldValue && !e.newValue) {
+            if ((e.key === 'genie_token' || e.key === 'demo_genie_token') && e.oldValue && !e.newValue) {
                 notify('warn', '⚠️ Auth token was cleared from another tab');
             }
             if (e.key?.startsWith('g_') && e.newValue && detectXSS(e.newValue)) {

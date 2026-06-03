@@ -22,7 +22,7 @@ const DEFAULT_WEIGHTS = { influencer: 1.0, creative: 1.0, sku: 1.0, order: 1.0 }
 
 /* ── Auth Token ─────────────────────────────────────────────────────────────── */
 function getAuthToken() {
-  try { return localStorage.getItem('g_token') || ''; } catch { return ''; }
+  try { return localStorage.getItem('genie_token') || localStorage.getItem('demo_genie_token') || ''; } catch { return ''; }
 }
 
 async function apiFetch(path) {

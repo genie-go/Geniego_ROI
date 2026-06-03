@@ -281,7 +281,7 @@ export function GlobalDataProvider({ children }) {
     // 토큰 있는 유료 User 전용; 데모는 시드 데이터 사용 (API 스킵)
     useEffect(() => {
         if (_isDemo) return; // ★ 데모 모드: 시드 데이터 유지, API 스킵
-        const token = localStorage.getItem('g_token');
+        const token = localStorage.getItem('genie_token') || localStorage.getItem('demo_genie_token') || '';
         if (!token) return;
         const BASE = import.meta.env.VITE_API_BASE || '';
         fetch(`${BASE}/api/channel-sync/inventory`, {
@@ -377,7 +377,7 @@ export function GlobalDataProvider({ children }) {
     /** 재고를 백엔드에 Save (유료 User 수동 조정 후 호출) */
     const syncInventoryToBackend = useCallback((inventoryList) => {
         if (_isDemo) return; // 절대 가상 데이터가 서버로 쓰여지지 않도록 강력 방어
-        const token = localStorage.getItem('g_token');
+        const token = localStorage.getItem('genie_token') || localStorage.getItem('demo_genie_token') || '';
         if (!token) return;
         const BASE = import.meta.env.VITE_API_BASE || '';
         fetch(`${BASE}/api/channel-sync/inventory`, {

@@ -2208,7 +2208,7 @@ export default function Landing() {
       <section style={{ position: "relative", padding: "150px 24px 70px", textAlign: "center", overflow: "hidden", background: "linear-gradient(180deg,#f8faff 0%,#ffffff 60%)" }}>
         <div style={{ position: "absolute", top: -120, left: "50%", transform: "translateX(-50%)", width: 980, height: 520, background: "radial-gradient(ellipse, rgba(79,70,229,0.10) 0%, rgba(124,58,237,0.06) 35%, transparent 70%)", pointerEvents: "none" }} />
         <div style={{ ...wrap, position: "relative" }} className="lpUp">
-          <div style={{ marginBottom: 30 }}><LogoOrbit size={186} /></div>
+          <div style={{ marginBottom: 30 }}><LogoOrbit size={186} lang={lang} /></div>
           <Badge color="#4f46e5">{tr("heroBadge")}</Badge>
           <h1 style={{ fontSize: "clamp(32px,5vw,58px)", fontWeight: 900, lineHeight: 1.12, letterSpacing: -1.5, margin: "0 0 22px", color: "#0f172a" }}>
             {tr("heroTitle").split(String.fromCharCode(10)).map((line, i) => (

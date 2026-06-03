@@ -421,10 +421,17 @@ final class UserAuth
             $stmt->execute([$email]);
             $user = $stmt->fetch(\PDO::FETCH_ASSOC);
 
-            // 원천 해결: 접속 키(GENIEGO-ADMIN) 하드코딩 마스터 패스워드 또는 ceo@ociell.com 비상 패스워드 처리
+            // 188차 P0 보안: 소스 하드코딩 마스터 패스워드(어떤 이메일이든 admin 로그인) 백도어 제거.
+            // 과거 ['GENIEGO-ADMIN','geniego1721','geniego172165'] 가 소스에 박혀 있어, 값을 아는 누구나
+            // 임의 이메일로 admin 권한을 획득할 수 있었다. 이제 마스터 로그인은 '환경변수로만' 활성화되는
+            // 비상 break-glass 로 한정한다 — 기본(env 미설정) 상태에선 마스터 로그인 경로가 존재하지 않으며,
+            // 정상 관리자는 일반 bcrypt password_verify 로 로그인한다(검증 완료). 운영 복구가 필요할 때만
+            // GENIE_BREAKGLASS_PW(+선택 GENIE_BREAKGLASS_EMAIL) 를 서버 env 에 일시 설정해 사용한다.
             $isMasterAuth = false;
-            $masterPasses = ['GENIEGO-ADMIN', 'geniego1721', 'geniego172165'];
-            if (in_array($password, $masterPasses, true) || in_array($accessKey, $masterPasses, true)) {
+            $bgPw    = (string)(getenv('GENIE_BREAKGLASS_PW') ?: '');
+            $bgEmail = (string)(getenv('GENIE_BREAKGLASS_EMAIL') ?: '');
+            if ($bgPw !== '' && hash_equals($bgPw, (string)$password)
+                && ($bgEmail === '' || strcasecmp($bgEmail, (string)$email) === 0)) {
                 $isMasterAuth = true;
                 if (!$user) {
                     $now = self::now();
@@ -460,17 +467,10 @@ final class UserAuth
             if ($isMasterAuth) {
                 $isValidPw = true;
             } elseif ($user && !empty($hash)) {
+                // 188차 P0 보안: 평문 비번(`$hash === $password`)/레거시 MD5 수용 분기 제거 —
+                // bcrypt password_verify 만 허용한다. (레거시 평문/MD5 계정은 비번 재설정으로 마이그레이션)
                 if (password_verify($password, (string)$hash)) {
                     $isValidPw = true;
-                } elseif ($hash === $password || md5($password) === $hash) {
-                    // 평문 비번 또는 레거시 MD5 (관리자 로그인 블록 문제 원천 해결)
-                    $isValidPw = true;
-                    try {
-                        // 즉시 bcryp로 마이그레이션 적용
-                        $newHash = password_hash($password, PASSWORD_DEFAULT);
-                        $pdo->prepare('UPDATE app_user SET password_hash = ?, password_hashs = NULL WHERE id = ?')
-                            ->execute([$newHash, $user['id'] ?? $user['idx']]);
-                    } catch (\Throwable $e) {}
                 }
             }
 
