@@ -614,6 +614,11 @@ return function (App $app): void {
         // 188차 관리자 보안강화 — 접속키 검증/변경
         'POST /auth/admin/verify-access-key' => 'Genie\\Handlers\\UserAuth::verifyAdminKey',
         'POST /auth/admin/access-key'        => 'Genie\\Handlers\\UserAuth::adminChangeAccessKey',
+        // 189차 MFA/2FA (TOTP) — 모두 세션 토큰 자체검증(핸들러 내부)
+        'GET /auth/mfa/status'   => 'Genie\\Handlers\\UserAuth::mfaStatus',
+        'POST /auth/mfa/setup'   => 'Genie\\Handlers\\UserAuth::mfaSetup',
+        'POST /auth/mfa/enable'  => 'Genie\\Handlers\\UserAuth::mfaEnable',
+        'POST /auth/mfa/disable' => 'Genie\\Handlers\\UserAuth::mfaDisable',
         // 180차 Phase2 멤버구성원 — 팀/팀원 하위계정(상위 owner tenant 종속)
         'GET /auth/team/members'         => 'Genie\\Handlers\\UserAuth::listTeamMembers',
         'POST /auth/team/members'        => 'Genie\\Handlers\\UserAuth::createTeamMember',
@@ -1405,6 +1410,11 @@ return function (App $app): void {
     $register('POST', '/auth/reset-password');
     $register('POST', '/auth/admin/verify-access-key');
     $register('POST', '/auth/admin/access-key');
+    // 189차 MFA/2FA (TOTP)
+    $register('GET',  '/auth/mfa/status');
+    $register('POST', '/auth/mfa/setup');
+    $register('POST', '/auth/mfa/enable');
+    $register('POST', '/auth/mfa/disable');
     // 180차 Phase2 멤버구성원 팀/팀원 하위계정
     $register('GET',    '/auth/team/members');
     $register('POST',   '/auth/team/members');

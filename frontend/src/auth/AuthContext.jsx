@@ -18,11 +18,36 @@ const TOKEN_KEY = KEY_PREFIX + "token";
 const USER_KEY = KEY_PREFIX + "user";
 const REAL_KEYS_FLAG = KEY_PREFIX + "has_real_keys";
 const AUTO_LOGOUT_KEY = KEY_PREFIX + "auto_logout_min";
+// 189차 자동 로그인(remember-me): 토큰은 호환성을 위해 localStorage 에 두되,
+//   영속 복원 여부는 REMEMBER_KEY(localStorage) + SESSION_ACTIVE_KEY(sessionStorage 센티넬)로 판별.
+//   - remember=1: 브라우저 재시작 후에도 자동 복원(영속)
+//   - remember=0: 같은 브라우징 세션(sessionStorage 유지)에서만 복원, 브라우저 종료 시 자동 로그인 안 함
+const REMEMBER_KEY = KEY_PREFIX + "remember";
+const SESSION_ACTIVE_KEY = KEY_PREFIX + "sess_active";
+
+/** 저장된 토큰을 현재 정책(remember/세션 센티넬)에 따라 자동 복원할지 결정. */
+function restorableToken() {
+    try {
+        const tok = localStorage.getItem(TOKEN_KEY);
+        if (!tok) return null;
+        const remember = localStorage.getItem(REMEMBER_KEY) === "1";
+        if (remember) {
+            try { sessionStorage.setItem(SESSION_ACTIVE_KEY, "1"); } catch {}
+            return tok;
+        }
+        // 비영속 세션: 동일 브라우징 세션에서만 복원(센티넬 존재 시)
+        if (sessionStorage.getItem(SESSION_ACTIVE_KEY) === "1") return tok;
+        return null; // 브라우저 재시작/새 세션 → 자동 로그인 차단
+    } catch { return null; }
+}
 
 export function AuthProvider({ children }) {
-    const [token, setToken] = useState(() => localStorage.getItem(TOKEN_KEY));
+    const [token, setToken] = useState(() => restorableToken());
     const [user, setUser] = useState(() => {
-        try { return JSON.parse(localStorage.getItem(USER_KEY) || "null"); } catch { return null; }
+        try {
+            if (!restorableToken()) return null; // 토큰 복원이 차단되면 user 도 복원하지 않음
+            return JSON.parse(localStorage.getItem(USER_KEY) || "null");
+        } catch { return null; }
     });
     const [loading, setLoading] = useState(false);
     // 실제 API 키 등록 여부 (채널 크레덴셜 저장 성공 시 true)
@@ -141,11 +166,20 @@ export function AuthProvider({ children }) {
         };
     }, [loadMenuAccess]);
 
-    const saveSession = useCallback((tok, usr) => {
+    const saveSession = useCallback((tok, usr, remember) => {
         setToken(tok);
         setUser(usr);
         localStorage.setItem(TOKEN_KEY, tok);
         localStorage.setItem(USER_KEY, JSON.stringify(usr));
+        // 189차 자동 로그인: remember 미지정(세션 중 갱신 저장)은 기존 영속 설정 유지.
+        //   admin 계정은 보안상 항상 비영속(브라우저 재시작 시 재인증 — 접속키 필수).
+        try {
+            let rememberFlag = remember;
+            if (rememberFlag === undefined) rememberFlag = localStorage.getItem(REMEMBER_KEY) === "1";
+            if ((usr?.plan === "admin") || (usr?.plans === "admin")) rememberFlag = false;
+            localStorage.setItem(REMEMBER_KEY, rememberFlag ? "1" : "0");
+            sessionStorage.setItem(SESSION_ACTIVE_KEY, "1"); // 현재 브라우징 세션 활성 표시
+        } catch { /* ignore */ }
         // 180차 멀티테넌트: 계정 식별자 영속 → tenantStorage 격리 스코프 + API X-Tenant-ID 활성화
         try {
             const tid = usr?.tenant_id || usr?.tenantId;
@@ -244,8 +278,11 @@ export function AuthProvider({ children }) {
         catch { throw new Error(`서버 응답 오류 (${r.status}): ${text.slice(0, 120)}`); }
     };
 
-    /* ── 로컬 전용 계정 정의 (서버 없을 때 폴백) ── */
-    const LOCAL_ACCOUNTS = [
+    /* ── 로컬 전용 계정 정의 (서버 없을 때 폴백) ──
+     * 189차 보안: 하드코딩 admin 자격증명이 프로덕션 번들에 노출되면 클라이언트측 백도어가 된다
+     * (188차에서 백엔드 마스터 패스워드 백도어를 제거한 것과 동일 취지). 개발 빌드에서만 활성화한다.
+     */
+    const LOCAL_ACCOUNTS = import.meta.env.DEV ? [
         {
             email: "admin@geniego.com",
             password: "admin1234!",
@@ -282,16 +319,16 @@ export function AuthProvider({ children }) {
             user: { id: 1, email: "ceo@ociell.com", name: "CEO Admin", plan: "admin",
                 company: "Geniego", subscription_status: "admin", subscription_expires_at: null, is_local: true },
         },
-    ];
+    ] : [];
 
     /* ── 로그인 (실제 서버, 실패 시 로컬 폴백) ── */
-    const login = useCallback(async (email, password, loginType = "", accessKey = "") => {
+    const login = useCallback(async (email, password, loginType = "", accessKey = "", otp = "", remember = false) => {
         setLoading(true);
         try {
             const r = await fetch(`${API}/auth/login`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email, password, login_type: loginType, access_key: accessKey }),
+                body: JSON.stringify({ email, password, login_type: loginType, access_key: accessKey, otp }),
             });
 
             // 서버 응답이 403 또는 HTML 응답(서버 미작동) → 로컬 폴백 시도
@@ -301,7 +338,7 @@ export function AuthProvider({ children }) {
                 const localMatch = LOCAL_ACCOUNTS.find(a => a.email === email.trim() && a.password === password);
                 if (localMatch) {
                     const token = "local_admin_" + Date.now();
-                    saveSession(token, localMatch.user);
+                    saveSession(token, localMatch.user, remember);
                     return localMatch.user;
                 }
                 const text = await r.text();
@@ -315,13 +352,20 @@ export function AuthProvider({ children }) {
                 const localMatch = LOCAL_ACCOUNTS.find(a => a.email === email.trim() && a.password === password);
                 if (localMatch) {
                     const token = "local_admin_" + Date.now();
-                    saveSession(token, localMatch.user);
+                    saveSession(token, localMatch.user, remember);
                     return localMatch.user;
                 }
             }
 
+            // 189차 MFA: 비밀번호는 맞으나 2단계 인증 코드 필요 → 호출측(AuthPage)에 OTP 입력 신호
+            if (!d.ok && d.mfa_required) {
+                const mfaErr = new Error(d.error || "2단계 인증 코드를 입력하세요.");
+                mfaErr.mfaRequired = true;
+                throw mfaErr;
+            }
+
             if (!d.ok) throw new Error(d.error || "로그인 실패");
-            saveSession(d.token, d.user);
+            saveSession(d.token, d.user, remember);
             return d.user;
 
         } catch (e) {
@@ -330,7 +374,7 @@ export function AuthProvider({ children }) {
                 const localMatch = LOCAL_ACCOUNTS.find(a => a.email === email.trim() && a.password === password);
                 if (localMatch) {
                     const token = "local_admin_" + Date.now();
-                    saveSession(token, localMatch.user);
+                    saveSession(token, localMatch.user, remember);
                     return localMatch.user;
                 }
             }
@@ -378,6 +422,8 @@ export function AuthProvider({ children }) {
         setToken(null); setUser(null);
         localStorage.removeItem(TOKEN_KEY);
         localStorage.removeItem(USER_KEY);
+        localStorage.removeItem(REMEMBER_KEY);            // 189차 자동 로그인 플래그 정리
+        try { sessionStorage.removeItem(SESSION_ACTIVE_KEY); } catch {}
         localStorage.removeItem('tenantId'); // 180차: 회원 전환 시 이전 계정 격리 식별자 제거(누출 차단)
         // 180차: 회원 sessionStorage(같은 탭 순차 로그인 누출 방지) 정리 — aihub_* 등 비즈니스 캐시
         try {

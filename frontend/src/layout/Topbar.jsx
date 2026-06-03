@@ -632,7 +632,26 @@ const ProfileEditModal = memo(function ProfileEditModal({ user, token, onClose }
   const [akNew, setAkNew] = useState('');
   const [akNew2, setAkNew2] = useState('');
 
+  // 189차 MFA/2FA (TOTP) — admin 제외(관리자는 별도 접속키 흐름)
+  const [mfaEnabled, setMfaEnabled] = useState(null);   // null=미조회, true/false
+  const [mfaRemaining, setMfaRemaining] = useState(0);
+  const [mfaSecret, setMfaSecret] = useState('');
+  const [mfaOtpauth, setMfaOtpauth] = useState('');
+  const [mfaCode, setMfaCode] = useState('');
+  const [mfaRecovery, setMfaRecovery] = useState(null); // null | string[]
+  const [mfaDisPw, setMfaDisPw] = useState('');
+
   const showMsg = (text, type = 'ok') => { setMsg({ text, type }); setTimeout(() => setMsg({ text: '', type: '' }), 5000); };
+
+  // 189차 비밀번호 정책: 8자 이상 + 영문 대/소문자·숫자·특수문자 중 3종 이상
+  const pwPolicyOk = (pw) => {
+    let c = 0;
+    if (/[a-z]/.test(pw)) c++;
+    if (/[A-Z]/.test(pw)) c++;
+    if (/[0-9]/.test(pw)) c++;
+    if (/[^A-Za-z0-9]/.test(pw)) c++;
+    return pw.length >= 8 && c >= 3;
+  };
 
   const pwStrength = (pw) => {
     if (!pw) return { label: '', color: '', pct: 0 };
@@ -717,6 +736,7 @@ const ProfileEditModal = memo(function ProfileEditModal({ user, token, onClose }
   const handleChangePassword = async () => {
     if (!curPw) { showMsg(t('profile.pwCurRequired', 'Please enter current password.'), 'err'); return; }
     if (newPw.length < 8) { showMsg(t('profile.pwMinLength', 'Password must be 8+ chars.'), 'err'); return; }
+    if (!pwPolicyOk(newPw)) { showMsg(t('profile.pwPolicy', '비밀번호는 8자 이상이며 영문 대/소문자·숫자·특수문자 중 3종 이상을 포함해야 합니다.'), 'err'); return; }
     if (newPw !== confirmPw) { showMsg(t('profile.pwMismatch', 'Passwords do not match.'), 'err'); return; }
     if (curPw === newPw) { showMsg(t('profile.pwSameAsCur', 'Must differ from current.'), 'err'); return; }
     setSaving(true);
@@ -764,6 +784,65 @@ const ProfileEditModal = memo(function ProfileEditModal({ user, token, onClose }
     finally { setSaving(false); }
   };
 
+  // 189차 MFA/2FA (TOTP) 핸들러 ──────────────────────────────────
+  const mfaAuthHeaders = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` };
+
+  const refreshMfaStatus = async () => {
+    try {
+      const r = await fetch('/api/auth/mfa/status', { headers: { Authorization: `Bearer ${token}` } });
+      const d = await r.json().catch(() => ({}));
+      if (r.ok && d.ok) { setMfaEnabled(!!d.enabled); setMfaRemaining(d.recovery_remaining || 0); }
+      else setMfaEnabled(false);
+    } catch { setMfaEnabled(false); }
+  };
+
+  const handleMfaSetup = async () => {
+    setSaving(true);
+    try {
+      const r = await fetch('/api/auth/mfa/setup', { method: 'POST', headers: mfaAuthHeaders, body: '{}' });
+      const d = await r.json().catch(() => ({}));
+      if (r.ok && d.ok) { setMfaSecret(d.secret || ''); setMfaOtpauth(d.otpauth_uri || ''); setMfaRecovery(null); setMfaCode(''); }
+      else showMsg(d.error || t('profile.mfaSetupFail', '2단계 인증 설정에 실패했습니다.'), 'err');
+    } catch { showMsg(t('profile.serverError', 'Server error. Try again.'), 'err'); }
+    finally { setSaving(false); }
+  };
+
+  const handleMfaEnable = async () => {
+    if (!/^\d{6}$/.test(mfaCode.trim())) { showMsg(t('profile.mfaCodeInvalid', '6자리 인증 코드를 입력하세요.'), 'err'); return; }
+    setSaving(true);
+    try {
+      const r = await fetch('/api/auth/mfa/enable', { method: 'POST', headers: mfaAuthHeaders, body: JSON.stringify({ code: mfaCode.trim() }) });
+      const d = await r.json().catch(() => ({}));
+      if (r.ok && d.ok) {
+        setMfaRecovery(d.recovery_codes || []); setMfaSecret(''); setMfaOtpauth(''); setMfaCode('');
+        showMsg(t('profile.mfaEnabled', '2단계 인증이 활성화되었습니다.'), 'ok');
+        refreshMfaStatus();
+      } else showMsg(d.error || t('profile.mfaEnableFail', '인증 코드가 올바르지 않습니다.'), 'err');
+    } catch { showMsg(t('profile.serverError', 'Server error. Try again.'), 'err'); }
+    finally { setSaving(false); }
+  };
+
+  const handleMfaDisable = async () => {
+    if (!mfaDisPw) { showMsg(t('profile.pwCurRequired', 'Please enter current password.'), 'err'); return; }
+    setSaving(true);
+    try {
+      const r = await fetch('/api/auth/mfa/disable', { method: 'POST', headers: mfaAuthHeaders, body: JSON.stringify({ current_password: mfaDisPw }) });
+      const d = await r.json().catch(() => ({}));
+      if (r.ok && d.ok) {
+        setMfaDisPw(''); setMfaRecovery(null);
+        showMsg(t('profile.mfaDisabled', '2단계 인증이 해제되었습니다.'), 'ok');
+        refreshMfaStatus();
+      } else showMsg(d.error || t('profile.mfaDisableFail', '해제에 실패했습니다.'), 'err');
+    } catch { showMsg(t('profile.serverError', 'Server error. Try again.'), 'err'); }
+    finally { setSaving(false); }
+  };
+
+  // MFA 탭 진입 시 상태 1회 조회
+  useEffect(() => {
+    if (tab === 'mfa' && mfaEnabled === null) refreshMfaStatus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab]);
+
   const inputStyle = {
     width: '100%', padding: '10px 12px', borderRadius: 10, fontSize: 13,
     border: '1px solid var(--border, rgba(99,140,255,0.2))',
@@ -795,7 +874,9 @@ const ProfileEditModal = memo(function ProfileEditModal({ user, token, onClose }
           {[
             { id: 'info', label: t('profile.tabInfo', '📋 Profile Info'), icon: '' },
             { id: 'password', label: t('profile.tabPassword', '🔐 Change Password'), icon: '' },
-            ...(user.plan === 'admin' ? [{ id: 'security', label: t('profile.tabAccessKey', '🛡️ 접속키'), icon: '' }] : []),
+            ...(user.plan === 'admin'
+              ? [{ id: 'security', label: t('profile.tabAccessKey', '🛡️ 접속키'), icon: '' }]
+              : [{ id: 'mfa', label: t('profile.tabMfa', '🔒 2단계 인증'), icon: '' }]),
           ].map(t => (
             <button key={t.id} onClick={() => { setTab(t.id); setMsg({ text: '', type: '' }); }}
               style={{
@@ -909,7 +990,7 @@ const ProfileEditModal = memo(function ProfileEditModal({ user, token, onClose }
             {/* 안내 */}
             <div style={{ padding: '12px 14px', borderRadius: 10, background: 'rgba(79,142,247,0.05)', border: '1px solid rgba(79,142,247,0.1)', fontSize: 12, color: 'var(--text-3, #94a3b8)', lineHeight: 1.7 }}>
               🔐 {t('profile.pwGuide', 'Current password verification is required.')}<br />
-              <span dangerouslySetInnerHTML={{ __html: sanitizeHtml(t('profile.pwGuide2', 'New password must be <strong>8+ characters</strong>.')) }} />
+              <span dangerouslySetInnerHTML={{ __html: sanitizeHtml(t('profile.pwGuide2', 'New password must be <strong>8+ characters</strong> with 3 of: upper/lower/number/symbol.')) }} />
             </div>
 
             {/* 현재 비밀번호 */}
@@ -971,17 +1052,22 @@ const ProfileEditModal = memo(function ProfileEditModal({ user, token, onClose }
             </div>
 
             {/* 변경 버튼 */}
-            <button onClick={handleChangePassword} disabled={saving || !curPw || newPw.length < 8 || newPw !== confirmPw}
+            {(() => {
+              const pwBad = saving || !curPw || !pwPolicyOk(newPw) || newPw !== confirmPw;
+              return (
+            <button onClick={handleChangePassword} disabled={pwBad}
               style={{
                 width: '100%', padding: '12px 0', borderRadius: 12, border: 'none',
-                cursor: (saving || !curPw || newPw.length < 8 || newPw !== confirmPw) ? 'not-allowed' : 'pointer',
-                background: (saving || !curPw || newPw.length < 8 || newPw !== confirmPw) ? 'rgba(168,85,247,0.15)' : 'linear-gradient(135deg,#a855f7,#7c3aed)',
-                color: (saving || !curPw || newPw.length < 8 || newPw !== confirmPw) ? 'var(--text-3)' : '#fff',
+                cursor: pwBad ? 'not-allowed' : 'pointer',
+                background: pwBad ? 'rgba(168,85,247,0.15)' : 'linear-gradient(135deg,#a855f7,#7c3aed)',
+                color: pwBad ? 'var(--text-3)' : '#fff',
                 fontSize: 14, fontWeight: 800,
-                boxShadow: (!saving && curPw && newPw.length >= 8 && newPw === confirmPw) ? '0 4px 16px rgba(168,85,247,0.3)' : 'none',
+                boxShadow: !pwBad ? '0 4px 16px rgba(168,85,247,0.3)' : 'none',
                 transition: 'all 200ms',
               }}
             >{saving ? t('profile.changingPw', 'Changing...') : t('profile.changePwBtn', '🔐 Change Password')}</button>
+              );
+            })()}
           </div>
         )}
 
@@ -1025,6 +1111,88 @@ const ProfileEditModal = memo(function ProfileEditModal({ user, token, onClose }
                 fontSize: 14, fontWeight: 800, transition: 'all 200ms',
               }}
             >{saving ? t('profile.changingPw', 'Changing...') : t('profile.changeAkBtn', '🛡️ 접속키 변경')}</button>
+          </div>
+        )}
+
+        {/* 189차 2단계 인증(MFA/TOTP) 탭 (일반/데모 회원) */}
+        {tab === 'mfa' && user.plan !== 'admin' && (
+          <div style={{ display: 'grid', gap: 16 }}>
+            <div style={{ padding: '12px 14px', borderRadius: 10, background: 'rgba(20,217,176,0.06)', border: '1px solid rgba(20,217,176,0.18)', fontSize: 12, color: 'var(--text-3, #94a3b8)', lineHeight: 1.7 }}>
+              🔒 {t('profile.mfaGuide', '인증 앱(Google Authenticator, Authy 등)으로 6자리 코드를 생성해 로그인 시 추가 인증합니다.')}<br />
+              <span style={{ fontSize: 11 }}>{t('profile.mfaGuide2', '활성화하면 다음 로그인부터 비밀번호와 함께 인증 코드를 입력해야 합니다.')}</span>
+            </div>
+
+            {/* 상태 표시 */}
+            {mfaEnabled === null && (
+              <div style={{ fontSize: 12, color: 'var(--text-3)', textAlign: 'center', padding: 8 }}>{t('profile.mfaLoading', '상태 확인 중...')}</div>
+            )}
+
+            {/* 활성화 상태 */}
+            {mfaEnabled === true && (
+              <>
+                <div style={{ padding: '14px', borderRadius: 12, background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.25)', display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span style={{ fontSize: 22 }}>✅</span>
+                  <div>
+                    <div style={{ fontWeight: 800, fontSize: 13, color: '#22c55e' }}>{t('profile.mfaOn', '2단계 인증 활성화됨')}</div>
+                    <div style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 2 }}>{t('profile.mfaRecoveryLeft', '남은 복구 코드')}: {mfaRemaining}</div>
+                  </div>
+                </div>
+                <div>
+                  <label style={labelStyle}>{t('profile.curPwLabel', 'Current Password *')}</label>
+                  <input type="password" value={mfaDisPw} onChange={e => setMfaDisPw(e.target.value)}
+                    placeholder={t('profile.mfaDisablePh', '해제하려면 현재 비밀번호 입력')} style={inputStyle} autoComplete="current-password" />
+                </div>
+                <button onClick={handleMfaDisable} disabled={saving || !mfaDisPw}
+                  style={{ width: '100%', padding: '12px 0', borderRadius: 12, border: 'none', cursor: (saving || !mfaDisPw) ? 'not-allowed' : 'pointer', background: (saving || !mfaDisPw) ? 'rgba(239,68,68,0.15)' : 'linear-gradient(135deg,#ef4444,#dc2626)', color: (saving || !mfaDisPw) ? 'var(--text-3)' : '#fff', fontSize: 14, fontWeight: 800 }}
+                >{saving ? t('profile.processing', '처리 중...') : t('profile.mfaDisableBtn', '🔓 2단계 인증 해제')}</button>
+              </>
+            )}
+
+            {/* 비활성화 상태 — 설정 시작 */}
+            {mfaEnabled === false && !mfaSecret && !mfaRecovery && (
+              <button onClick={handleMfaSetup} disabled={saving}
+                style={{ width: '100%', padding: '12px 0', borderRadius: 12, border: 'none', cursor: saving ? 'wait' : 'pointer', background: saving ? 'rgba(20,217,176,0.3)' : 'linear-gradient(135deg,#14d9b0,#0ea5a3)', color: '#fff', fontSize: 14, fontWeight: 800 }}
+              >{saving ? t('profile.processing', '처리 중...') : t('profile.mfaSetupBtn', '🔒 2단계 인증 설정 시작')}</button>
+            )}
+
+            {/* setup 진행 — 시크릿 표시 + 코드 확인 */}
+            {mfaSecret && (
+              <>
+                <div style={{ padding: '12px 14px', borderRadius: 10, background: 'rgba(79,142,247,0.05)', border: '1px solid rgba(79,142,247,0.12)', fontSize: 12, color: 'var(--text-3)', lineHeight: 1.7 }}>
+                  {t('profile.mfaStep1', '① 인증 앱에서 아래 키를 수동으로 추가하세요(또는 setup URI 사용).')}
+                </div>
+                <div>
+                  <label style={labelStyle}>{t('profile.mfaSecretLabel', '설정 키 (Setup Key)')}</label>
+                  <input value={mfaSecret} readOnly onFocus={e => e.target.select()} style={{ ...inputStyle, fontFamily: 'monospace', letterSpacing: 1 }} />
+                  <div style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 4, wordBreak: 'break-all' }}>{mfaOtpauth}</div>
+                </div>
+                <div>
+                  <label style={labelStyle}>{t('profile.mfaStep2', '② 인증 앱에 표시된 6자리 코드 입력 *')}</label>
+                  <input value={mfaCode} onChange={e => setMfaCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    placeholder="000000" inputMode="numeric" style={{ ...inputStyle, fontFamily: 'monospace', letterSpacing: 4, fontSize: 18, textAlign: 'center' }} autoComplete="one-time-code" />
+                </div>
+                <button onClick={handleMfaEnable} disabled={saving || !/^\d{6}$/.test(mfaCode)}
+                  style={{ width: '100%', padding: '12px 0', borderRadius: 12, border: 'none', cursor: (saving || !/^\d{6}$/.test(mfaCode)) ? 'not-allowed' : 'pointer', background: (saving || !/^\d{6}$/.test(mfaCode)) ? 'rgba(20,217,176,0.15)' : 'linear-gradient(135deg,#14d9b0,#0ea5a3)', color: (saving || !/^\d{6}$/.test(mfaCode)) ? 'var(--text-3)' : '#fff', fontSize: 14, fontWeight: 800 }}
+                >{saving ? t('profile.processing', '처리 중...') : t('profile.mfaEnableBtn', '✅ 활성화')}</button>
+              </>
+            )}
+
+            {/* 복구 코드 표시(1회) */}
+            {Array.isArray(mfaRecovery) && (
+              <div style={{ display: 'grid', gap: 10 }}>
+                <div style={{ padding: '12px 14px', borderRadius: 10, background: 'rgba(234,179,8,0.08)', border: '1px solid rgba(234,179,8,0.3)', fontSize: 12, color: '#fbbf24', lineHeight: 1.6 }}>
+                  ⚠️ {t('profile.mfaRecoveryWarn', '아래 복구 코드를 안전한 곳에 보관하세요. 인증 앱을 사용할 수 없을 때 1회씩 로그인에 사용할 수 있으며, 이 화면을 벗어나면 다시 표시되지 않습니다.')}
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                  {mfaRecovery.map((c, i) => (
+                    <div key={i} style={{ padding: '8px 10px', borderRadius: 8, background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border, rgba(99,140,255,0.15))', fontFamily: 'monospace', fontSize: 13, letterSpacing: 1, color: 'var(--text-1, #e2e8f0)', textAlign: 'center' }}>{c}</div>
+                  ))}
+                </div>
+                <button onClick={() => { try { navigator.clipboard.writeText(mfaRecovery.join('\n')); showMsg(t('profile.copied', '복사되었습니다.'), 'ok'); } catch {} }}
+                  style={{ padding: '10px 0', borderRadius: 10, border: '1px solid var(--border, rgba(99,140,255,0.2))', background: 'transparent', color: 'var(--text-2, #cbd5e1)', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}
+                >📋 {t('profile.mfaCopyCodes', '복구 코드 복사')}</button>
+              </div>
+            )}
           </div>
         )}
       </div>

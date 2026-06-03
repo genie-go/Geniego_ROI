@@ -239,7 +239,7 @@ function TermsAgreementSection({ agreeTerms, setAgreeTerms, agreePrivacy, setAgr
 }
 
 /* ─── Input Field ──────────────────────────────────────────── */
-function Field({ label, type = "text", value, onChange, placeholder, required, autoComplete, hint }) {
+function Field({ label, type = "text", value, onChange, placeholder, required, autoComplete, hint, disabled }) {
   return (
     <div style={{ display: "grid", gap: 4 }}>
       <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-2)" }}>
@@ -248,8 +248,8 @@ function Field({ label, type = "text", value, onChange, placeholder, required, a
       <input
         type={type} value={value}
         onChange={e => onChange(e.target.value)}
-        placeholder={placeholder} required={required} autoComplete={autoComplete}
-        style={{ padding: "10px 14px", borderRadius: 10, border: "1px solid var(--border)", background: "rgba(255,255,255,0.04)", color: '#fff', fontSize: 13, outline: "none", transition: "border-color 150ms", width: "100%", boxSizing: "border-box" }}
+        placeholder={placeholder} required={required} autoComplete={autoComplete} disabled={disabled}
+        style={{ padding: "10px 14px", borderRadius: 10, border: "1px solid var(--border)", background: disabled ? "rgba(255,255,255,0.02)" : "rgba(255,255,255,0.04)", color: disabled ? '#94a3b8' : '#fff', fontSize: 13, outline: "none", transition: "border-color 150ms", width: "100%", boxSizing: "border-box", cursor: disabled ? "not-allowed" : "text" }}
         onFocus={e => (e.target.style.borderColor = "#4f8ef7")}
         onBlur={e => (e.target.style.borderColor = "var(--border)")}
       />
@@ -452,6 +452,9 @@ function LoginForm({ onSwitch, loginType = "production" }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [recovery, setRecovery] = useState(null); // 188차: null | 'findId' | 'forgot'
+  const [mfaStep, setMfaStep] = useState(false);   // 189차: 2단계 인증 코드 입력 단계
+  const [otp, setOtp] = useState("");
+  const [remember, setRemember] = useState(false); // 189차: 자동 로그인(remember-me)
 
   /* 자동 로그아웃으로 리디렉트된 경우 감지 */
   const isIdleLogout = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("reason") === "idle";
@@ -465,13 +468,21 @@ function LoginForm({ onSwitch, loginType = "production" }) {
     e.preventDefault();
     setError(null); setLoading(true);
     try {
-      const user = await login(email, password, loginType);
+      const user = await login(email, password, loginType, "", otp, remember);
       /* ── admin 계정은 일반 로그인 차단 ── */
       if ((user.plans || user.plan) === 'admin') {
         throw new Error(t('auth.adminBlockedInNormalLogin'));
       }
       navigate("/dashboard", { replace: true });
-    } catch (err) { setError(err.message); }
+    } catch (err) {
+      if (err.mfaRequired) {
+        // 189차: 비밀번호 통과 → 2단계 인증 코드 입력 단계로 전환
+        setMfaStep(true);
+        setError(otp ? (err.message || t('auth.mfaInvalid', '인증 코드가 올바르지 않습니다.')) : null);
+      } else {
+        setError(err.message);
+      }
+    }
     setLoading(false);
   };
 
@@ -494,13 +505,34 @@ function LoginForm({ onSwitch, loginType = "production" }) {
         </div>
       )}
 
-      <Field label={t("auth.emailLabel")} type="email" value={email} onChange={setEmail} placeholder="you@example.com" required autoComplete="email" />
-      <Field label={t("auth.passwordLabel")} type="password" value={password} onChange={setPassword} placeholder="••••••••" required autoComplete="current-password" />
+      <Field label={t("auth.emailLabel")} type="email" value={email} onChange={setEmail} placeholder="you@example.com" required autoComplete="email" disabled={mfaStep} />
+      <Field label={t("auth.passwordLabel")} type="password" value={password} onChange={setPassword} placeholder="••••••••" required autoComplete="current-password" disabled={mfaStep} />
+
+      {/* 189차 MFA: 2단계 인증 코드 입력 단계 */}
+      {mfaStep && (
+        <div style={{ display: "grid", gap: 6 }}>
+          <div style={{ padding: "8px 12px", borderRadius: 8, background: "rgba(79,142,247,0.08)", border: "1px solid rgba(79,142,247,0.3)", color: "#4f8ef7", fontSize: 11, fontWeight: 600 }}>
+            🔐 {t('auth.mfaPrompt', '인증 앱의 6자리 코드 또는 복구 코드를 입력하세요.')}
+          </div>
+          <Field label={t('auth.mfaCodeLabel', '인증 코드')} type="text" value={otp} onChange={setOtp} placeholder="000000" autoComplete="one-time-code" />
+        </div>
+      )}
+
       {error && <div style={{ padding: "8px 12px", borderRadius: 8, background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.3)", color: "#ef4444", fontSize: 11 }}>{error}</div>}
 
-      <SSOButtonGroup t={t} />
+      {/* 189차 자동 로그인(remember-me) — 체크 시 브라우저 재시작 후에도 로그인 유지 */}
+      {!mfaStep && (
+        <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", userSelect: "none", fontSize: 12, color: "#94a3b8" }}>
+          <input type="checkbox" checked={remember} onChange={e => setRemember(e.target.checked)}
+            style={{ width: 16, height: 16, accentColor: envColor, cursor: "pointer" }} />
+          <span>{t('auth.rememberMe', '자동 로그인')}</span>
+          <span style={{ fontSize: 10, color: "#64748b" }}>· {t('auth.rememberMeHint', '공용 PC에서는 사용하지 마세요')}</span>
+        </label>
+      )}
+
+      {!mfaStep && <SSOButtonGroup t={t} />}
       <button type="submit" disabled={loading} style={{ padding: "12px 0", borderRadius: 10, border: "none", background: loading ? `${envColor}66` : `linear-gradient(135deg,${envColor},${envColor}cc)`, color: "#fff", fontWeight: 800, fontSize: 14, cursor: loading ? "not-allowed" : "pointer" }}>
-        {loading ? t("auth.loggingIn") : `${envIcon} ${envLabel}`}
+        {loading ? t("auth.loggingIn") : (mfaStep ? `🔐 ${t('auth.mfaVerify', '인증 후 로그인')}` : `${envIcon} ${envLabel}`)}
       </button>
 
       {/* 188차: 아이디(이메일) 찾기 / 비밀번호 찾기 */}
@@ -836,11 +868,12 @@ function PaidRegisterForm({ selectedPlan, onBack, onSwitch }) {
   const validateStep1 = () => {
     if (!name.trim()) return t("auth.nameRequired");
     if (!email.trim()) return t("auth.emailRequired");
-    if (password.length < 6) return t("auth.passwordTooShort");
+    if (password.length < 8) return t("auth.passwordTooShort", "비밀번호는 8자 이상이어야 합니다."); // 189차 정책 강화
     const hasUpper = /[A-Z]/.test(password), hasLower = /[a-z]/.test(password);
     const hasDigit = /[0-9]/.test(password), hasSpecial = /[^A-Za-z0-9]/.test(password);
-    if (!(hasUpper && hasLower && hasDigit && hasSpecial)) {
-      return t("auth.passwordPolicy", "비밀번호는 영문 대문자·소문자·숫자·특수문자를 모두 포함하고 6자 이상이어야 합니다.");
+    const classes = [hasUpper, hasLower, hasDigit, hasSpecial].filter(Boolean).length;
+    if (classes < 3) {
+      return t("auth.passwordPolicy", "비밀번호는 8자 이상이며 영문 대문자·소문자·숫자·특수문자 중 3종류 이상을 포함해야 합니다.");
     }
     if (password !== confirm) return t("auth.passwordMismatch");
     return null;

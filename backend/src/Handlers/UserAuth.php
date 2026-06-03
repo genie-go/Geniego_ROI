@@ -258,8 +258,8 @@ final class UserAuth
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             return self::json($res, ['ok' => false, 'error' => '올바른 이메일 형식이 아닙니다.'], 422);
         }
-        if (strlen($password) < 6) {
-            return self::json($res, ['ok' => false, 'error' => '비밀번호는 6자 이상이어야 합니다.'], 422);
+        if (($pwErr = self::passwordPolicyError($password)) !== null) { // 189차 비번정책 강화
+            return self::json($res, ['ok' => false, 'error' => $pwErr], 422);
         }
         if (strlen($name) < 1) {
             return self::json($res, ['ok' => false, 'error' => '이름을 입력해 주세요.'], 422);
@@ -416,6 +416,19 @@ final class UserAuth
             }
 
             self::ensureTenantColumns($pdo); // 180차: tenant/팀 컬럼 보강
+            self::ensureMfaSchema($pdo);     // 189차: MFA 컬럼 보강(mfa_secret/mfa_enabled)
+
+            // 189차 보안: 앱 레이어 로그인 rate-limit(무차별 대입 방어). email+IP 기준.
+            $rlIdent = $email . '|' . self::clientIp($req);
+            $rlRetry = self::rateLimitRetryAfter($pdo, $rlIdent);
+            if ($rlRetry !== null) {
+                return self::json($res, [
+                    'ok'          => false,
+                    'error'       => '로그인 시도가 너무 많습니다. 약 ' . ceil($rlRetry / 60) . '분 후 다시 시도하세요.',
+                    'retry_after' => $rlRetry,
+                ], 429);
+            }
+
             // 대소문자 무관 조회(SQLite 포함) — 이메일 중복/계정 오인 방지
             $stmt = $pdo->prepare('SELECT * FROM app_user WHERE LOWER(email) = ?');
             $stmt->execute([$email]);
@@ -475,6 +488,7 @@ final class UserAuth
             }
 
             if (!$user || !$isValidPw) {
+                self::rateLimitFail($pdo, $rlIdent); // 189차: 실패 카운트 증가
                 return self::json($res, ['ok' => false, 'error' => '이메일 또는 비밀번호가 올바르지 않습니다.'], 401);
             }
 
@@ -510,6 +524,23 @@ final class UserAuth
                     }
                 }
             }
+
+            // 189차 MFA 2단계 인증: 비밀번호 통과 후 MFA 활성 계정은 OTP(또는 복구코드) 추가 검증.
+            //   break-glass(isMasterAuth)는 비상 접근이므로 MFA 우회.
+            if (!$isMasterAuth && !empty($user['mfa_enabled'])) {
+                $otp = trim((string)($body['otp'] ?? $body['mfa_code'] ?? ''));
+                if ($otp === '') {
+                    return self::json($res, ['ok' => false, 'mfa_required' => true, 'error' => '2단계 인증 코드를 입력하세요.'], 401);
+                }
+                $mfaUid = (int)($user['id'] ?? $user['idx'] ?? 0);
+                if (!self::verifyTotp((string)($user['mfa_secret'] ?? ''), $otp)
+                    && !self::consumeRecoveryCode($pdo, $mfaUid, $otp)) {
+                    self::rateLimitFail($pdo, $rlIdent);
+                    return self::json($res, ['ok' => false, 'mfa_required' => true, 'error' => '인증 코드가 올바르지 않습니다.'], 401);
+                }
+            }
+
+            self::rateLimitClear($pdo, $rlIdent); // 189차: 로그인 성공 → 실패 카운터 클리어
 
             $token   = self::generateToken();
             $expires = gmdate('Y-m-d\TH:i:s\Z', time() + 30 * 24 * 3600);
@@ -1260,7 +1291,7 @@ final class UserAuth
         $b   = self::readBody($req);
         $cur = (string)($b['current_password'] ?? '');
         $new = (string)($b['new_password'] ?? '');
-        if (mb_strlen($new) < 8) return self::json($res, ['ok' => false, 'error' => '새 비밀번호는 8자 이상이어야 합니다.'], 422);
+        if (($pwErr = self::passwordPolicyError($new)) !== null) return self::json($res, ['ok' => false, 'error' => $pwErr], 422); // 189차 비번정책 강화
         $pdo = Db::pdo();
         try {
             $st = $pdo->prepare('SELECT password_hash, password_hashs, password FROM app_user WHERE id=?');
@@ -1334,7 +1365,7 @@ final class UserAuth
         $tok = (string)($b['reset_token'] ?? '');
         $new = (string)($b['new_password'] ?? '');
         if ($tok === '') return self::json($res, ['ok' => false, 'error' => '재설정 토큰이 없습니다.'], 400);
-        if (mb_strlen($new) < 8) return self::json($res, ['ok' => false, 'error' => '새 비밀번호는 8자 이상이어야 합니다.'], 422);
+        if (($pwErr = self::passwordPolicyError($new)) !== null) return self::json($res, ['ok' => false, 'error' => $pwErr], 422); // 189차 비번정책 강화
         $pdo = Db::pdo(); self::ensureResetSchema($pdo);
         $now = self::now();
         try { $pdo->prepare('DELETE FROM password_reset WHERE expires_at<?')->execute([$now]); } catch (\Throwable $e) {}
@@ -1417,5 +1448,344 @@ final class UserAuth
             $pdo->prepare('INSERT INTO app_setting(skey,svalue,updated_at) VALUES(?,?,?)')->execute(['admin_access_key_hash', $kh, $now]);
         }
         return self::json($res, ['ok' => true, 'message' => '관리자 접속키가 변경되었습니다.']);
+    }
+
+    // ═════════════════════════════════════════════════════════════
+    // 189차 보안 하드닝 — 비밀번호 정책 / 로그인 rate-limit / MFA(TOTP)
+    // ═════════════════════════════════════════════════════════════
+
+    /**
+     * 엔터프라이즈/은행급 비밀번호 정책 검증.
+     *   - 최소 8자(기존 6/8 혼재 → 통일·강화), 최대 200자
+     *   - 영문 대문자·소문자·숫자·특수문자 중 3종 이상
+     *   - 동일 문자 4회 이상 연속 / 흔하거나 추측하기 쉬운 비번 차단
+     * 위반 시 한글 사유 문자열, 통과 시 null.
+     * ※ SET 시점(가입/변경/재설정)에만 강제 — 로그인 검증엔 미적용하여
+     *    기존 약한 비번 계정의 락아웃을 방지한다(재설정으로 점진 마이그레이션).
+     */
+    private static function passwordPolicyError(string $pw): ?string
+    {
+        $len = mb_strlen($pw);
+        if ($len < 8) return '비밀번호는 8자 이상이어야 합니다.';
+        if ($len > 200) return '비밀번호가 너무 깁니다. (최대 200자)';
+        if (trim($pw) === '') return '비밀번호에 공백만 사용할 수 없습니다.';
+        $classes = 0;
+        if (preg_match('/[a-z]/', $pw)) $classes++;
+        if (preg_match('/[A-Z]/', $pw)) $classes++;
+        if (preg_match('/[0-9]/', $pw)) $classes++;
+        if (preg_match('/[^a-zA-Z0-9]/', $pw)) $classes++;
+        if ($classes < 3) return '비밀번호는 영문 대문자·소문자·숫자·특수문자 중 3종류 이상을 포함해야 합니다.';
+        if (preg_match('/(.)\1{3,}/u', $pw)) return '같은 문자를 4회 이상 연속해서 사용할 수 없습니다.';
+        $lower = strtolower($pw);
+        foreach ([
+            'password', '12345678', '123456789', '1234567890', 'qwerty', 'qwertyuiop',
+            'geniego', 'genie-go', 'geniego1721', 'admin1234', 'letmein', 'iloveyou',
+            'welcome1', 'changeme', 'passw0rd',
+        ] as $w) {
+            if ($lower === $w || strpos($lower, $w) !== false) {
+                return '너무 흔하거나 추측하기 쉬운 비밀번호입니다. 더 안전한 비밀번호를 사용하세요.';
+            }
+        }
+        return null;
+    }
+
+    // ── 로그인 rate-limit (앱 레이어 무차별 대입 방어) ─────────────
+    private static function ensureRateLimitSchema(\PDO $pdo): void
+    {
+        static $done = false;
+        if ($done) return;
+        $done = true;
+        try {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS login_attempt (ident VARCHAR(190) PRIMARY KEY, fail_count INT NOT NULL DEFAULT 0, first_at VARCHAR(32), last_at VARCHAR(32), locked_until VARCHAR(32))");
+        } catch (\Throwable $e) { /* best-effort */ }
+    }
+
+    private static function clientIp(ServerRequestInterface $req): string
+    {
+        $sp = $req->getServerParams();
+        $xff = (string)($sp['HTTP_X_FORWARDED_FOR'] ?? '');
+        if ($xff !== '') {
+            $parts = explode(',', $xff);
+            $ip = trim($parts[0]);
+            if ($ip !== '') return $ip;
+        }
+        return (string)($sp['HTTP_X_REAL_IP'] ?? $sp['REMOTE_ADDR'] ?? '0.0.0.0');
+    }
+
+    private const RL_THRESHOLD = 8;    // 윈도우 내 실패 허용 횟수
+    private const RL_WINDOW    = 900;  // 카운터 윈도우(초) = 15분
+    private const RL_LOCK      = 900;  // 잠금 지속(초) = 15분
+
+    /** 잠금 중이면 남은 초, 허용이면 null. DB 오류 시 fail-open. */
+    private static function rateLimitRetryAfter(\PDO $pdo, string $ident): ?int
+    {
+        self::ensureRateLimitSchema($pdo);
+        try {
+            $st = $pdo->prepare('SELECT locked_until FROM login_attempt WHERE ident=?');
+            $st->execute([$ident]);
+            $lu = (string)($st->fetchColumn() ?: '');
+            if ($lu !== '' && $lu > self::now()) {
+                $ra = strtotime($lu) - time();
+                return $ra > 0 ? $ra : 1;
+            }
+        } catch (\Throwable $e) { /* fail-open */ }
+        return null;
+    }
+
+    private static function rateLimitFail(\PDO $pdo, string $ident): void
+    {
+        self::ensureRateLimitSchema($pdo);
+        $now = self::now();
+        try {
+            $st = $pdo->prepare('SELECT fail_count, first_at FROM login_attempt WHERE ident=?');
+            $st->execute([$ident]);
+            $row = $st->fetch(\PDO::FETCH_ASSOC);
+            if (!$row) {
+                $pdo->prepare('INSERT INTO login_attempt(ident,fail_count,first_at,last_at) VALUES(?,1,?,?)')
+                    ->execute([$ident, $now, $now]);
+                return;
+            }
+            $firstAt = (string)($row['first_at'] ?? $now);
+            if (strtotime($firstAt) < time() - self::RL_WINDOW) {
+                // 윈도우 경과 → 카운터 리셋
+                $pdo->prepare('UPDATE login_attempt SET fail_count=1, first_at=?, last_at=?, locked_until=NULL WHERE ident=?')
+                    ->execute([$now, $now, $ident]);
+                return;
+            }
+            $cnt = (int)$row['fail_count'] + 1;
+            $lockedUntil = $cnt >= self::RL_THRESHOLD
+                ? gmdate('Y-m-d\TH:i:s\Z', time() + self::RL_LOCK)
+                : null;
+            $pdo->prepare('UPDATE login_attempt SET fail_count=?, last_at=?, locked_until=? WHERE ident=?')
+                ->execute([$cnt, $now, $lockedUntil, $ident]);
+        } catch (\Throwable $e) { /* best-effort */ }
+    }
+
+    private static function rateLimitClear(\PDO $pdo, string $ident): void
+    {
+        try { $pdo->prepare('DELETE FROM login_attempt WHERE ident=?')->execute([$ident]); } catch (\Throwable $e) {}
+    }
+
+    // ── MFA / 2FA (RFC 6238 TOTP, 외부 라이브러리 없이 구현) ────────
+    private static function ensureMfaSchema(\PDO $pdo): void
+    {
+        static $done = false;
+        if ($done) return;
+        $done = true;
+        foreach (['mfa_secret VARCHAR(64)', 'mfa_enabled TINYINT DEFAULT 0', 'mfa_enrolled_at VARCHAR(32)'] as $col) {
+            try { $pdo->exec("ALTER TABLE app_user ADD COLUMN $col"); } catch (\Throwable $e) { /* 이미 존재 */ }
+        }
+        try {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS mfa_recovery (user_id INT NOT NULL, code_hash VARCHAR(80) NOT NULL, used_at VARCHAR(32) NULL)");
+        } catch (\Throwable $e) {}
+    }
+
+    private static function base32Decode(string $b32): string
+    {
+        $map = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+        $b32 = strtoupper(preg_replace('/[^A-Za-z2-7]/', '', $b32));
+        $bits = '';
+        for ($i = 0, $n = strlen($b32); $i < $n; $i++) {
+            $bits .= str_pad(decbin(strpos($map, $b32[$i])), 5, '0', STR_PAD_LEFT);
+        }
+        $bytes = '';
+        for ($i = 0, $n = strlen($bits); $i + 8 <= $n; $i += 8) {
+            $bytes .= chr(bindec(substr($bits, $i, 8)));
+        }
+        return $bytes;
+    }
+
+    private static function base32Encode(string $bin): string
+    {
+        $map = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+        $bits = '';
+        for ($i = 0, $n = strlen($bin); $i < $n; $i++) {
+            $bits .= str_pad(decbin(ord($bin[$i])), 8, '0', STR_PAD_LEFT);
+        }
+        $out = '';
+        for ($i = 0, $n = strlen($bits); $i < $n; $i += 5) {
+            $out .= $map[bindec(str_pad(substr($bits, $i, 5), 5, '0', STR_PAD_RIGHT))];
+        }
+        return $out;
+    }
+
+    private static function totpAt(string $secretB32, int $counter): string
+    {
+        $key = self::base32Decode($secretB32);
+        if ($key === '') return '';
+        $bin  = "\0\0\0\0" . pack('N', $counter); // 8-byte big-endian counter
+        $hash = hash_hmac('sha1', $bin, $key, true);
+        $off  = ord($hash[19]) & 0x0f;
+        $part = ((ord($hash[$off]) & 0x7f) << 24)
+              | ((ord($hash[$off + 1]) & 0xff) << 16)
+              | ((ord($hash[$off + 2]) & 0xff) << 8)
+              | (ord($hash[$off + 3]) & 0xff);
+        return str_pad((string)($part % 1000000), 6, '0', STR_PAD_LEFT);
+    }
+
+    /** 현재 ±1 윈도우(±30초)에서 코드 일치 검증. */
+    private static function verifyTotp(string $secretB32, string $code): bool
+    {
+        $code = preg_replace('/\D/', '', (string)$code);
+        if ($secretB32 === '' || strlen($code) !== 6) return false;
+        $t = (int)floor(time() / 30);
+        for ($w = -1; $w <= 1; $w++) {
+            $cand = self::totpAt($secretB32, $t + $w);
+            if ($cand !== '' && hash_equals($cand, $code)) return true;
+        }
+        return false;
+    }
+
+    private static function genMfaSecret(): string
+    {
+        return self::base32Encode(random_bytes(20)); // 160-bit
+    }
+
+    private static function genRecoveryCodes(int $n = 8): array
+    {
+        $codes = [];
+        for ($i = 0; $i < $n; $i++) {
+            $raw = strtoupper(bin2hex(random_bytes(4))); // 8 hex
+            $codes[] = substr($raw, 0, 4) . '-' . substr($raw, 4, 4);
+        }
+        return $codes;
+    }
+
+    private static function recoveryHash(string $code): string
+    {
+        $norm = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', (string)$code));
+        return hash('sha256', $norm);
+    }
+
+    /** 복구 코드 1회 소모(일치+미사용 시 used 처리 후 true). */
+    private static function consumeRecoveryCode(\PDO $pdo, int $userId, string $code): bool
+    {
+        $code = preg_replace('/[^A-Za-z0-9]/', '', (string)$code);
+        if (strlen($code) < 8) return false;
+        self::ensureMfaSchema($pdo);
+        try {
+            $h = self::recoveryHash($code);
+            $st = $pdo->prepare('SELECT rowid FROM mfa_recovery WHERE user_id=? AND code_hash=? AND used_at IS NULL LIMIT 1');
+            try { $st->execute([$userId, $h]); } catch (\Throwable $e) {
+                // MySQL: rowid 없음 → code_hash 기준 업데이트로 대체
+                $upd = $pdo->prepare('UPDATE mfa_recovery SET used_at=? WHERE user_id=? AND code_hash=? AND used_at IS NULL');
+                $upd->execute([self::now(), $userId, $h]);
+                return $upd->rowCount() > 0;
+            }
+            if (!$st->fetchColumn()) return false;
+            $pdo->prepare('UPDATE mfa_recovery SET used_at=? WHERE user_id=? AND code_hash=? AND used_at IS NULL')
+                ->execute([self::now(), $userId, $h]);
+            return true;
+        } catch (\Throwable $e) { return false; }
+    }
+
+    /** GET /auth/mfa/status — 현재 사용자 MFA 활성 여부. */
+    public static function mfaStatus(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
+    {
+        $user = self::userByToken((string)(self::extractToken($req) ?? ''));
+        if (!$user) return self::json($res, ['ok' => false, 'error' => '인증이 필요합니다.'], 401);
+        $pdo = Db::pdo(); self::ensureMfaSchema($pdo);
+        $enabled = 0; $remaining = 0;
+        try {
+            $st = $pdo->prepare('SELECT mfa_enabled FROM app_user WHERE id=?');
+            $st->execute([$user['id']]);
+            $enabled = (int)($st->fetchColumn() ?: 0);
+        } catch (\Throwable $e) {}
+        if ($enabled) {
+            try {
+                $st = $pdo->prepare('SELECT COUNT(*) FROM mfa_recovery WHERE user_id=? AND used_at IS NULL');
+                $st->execute([$user['id']]);
+                $remaining = (int)$st->fetchColumn();
+            } catch (\Throwable $e) {}
+        }
+        return self::json($res, ['ok' => true, 'enabled' => $enabled === 1, 'recovery_remaining' => $remaining]);
+    }
+
+    /** POST /auth/mfa/setup — 새 시크릿 발급(아직 미활성). secret + otpauth URI 반환. */
+    public static function mfaSetup(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
+    {
+        $user = self::userByToken((string)(self::extractToken($req) ?? ''));
+        if (!$user) return self::json($res, ['ok' => false, 'error' => '인증이 필요합니다.'], 401);
+        $pdo = Db::pdo(); self::ensureMfaSchema($pdo);
+        try {
+            $st = $pdo->prepare('SELECT mfa_enabled FROM app_user WHERE id=?');
+            $st->execute([$user['id']]);
+            if ((int)($st->fetchColumn() ?: 0) === 1) {
+                return self::json($res, ['ok' => false, 'error' => '이미 2단계 인증이 활성화되어 있습니다.'], 409);
+            }
+        } catch (\Throwable $e) {}
+        $secret = self::genMfaSecret();
+        try {
+            $pdo->prepare('UPDATE app_user SET mfa_secret=?, mfa_enabled=0 WHERE id=?')->execute([$secret, $user['id']]);
+        } catch (\Throwable $e) {
+            return self::json($res, ['ok' => false, 'error' => 'MFA 설정 저장 중 오류가 발생했습니다.'], 500);
+        }
+        $issuer = 'GeniegoROI';
+        $label  = rawurlencode($issuer . ':' . (string)($user['email'] ?? 'user'));
+        $otpauth = "otpauth://totp/{$label}?secret={$secret}&issuer=" . rawurlencode($issuer) . "&algorithm=SHA1&digits=6&period=30";
+        return self::json($res, ['ok' => true, 'secret' => $secret, 'otpauth_uri' => $otpauth]);
+    }
+
+    /** POST /auth/mfa/enable {code} — 보류 시크릿을 코드로 검증 후 활성화. 복구코드 반환(1회). */
+    public static function mfaEnable(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
+    {
+        $user = self::userByToken((string)(self::extractToken($req) ?? ''));
+        if (!$user) return self::json($res, ['ok' => false, 'error' => '인증이 필요합니다.'], 401);
+        $pdo = Db::pdo(); self::ensureMfaSchema($pdo);
+        $b = self::readBody($req);
+        $code = (string)($b['code'] ?? $b['otp'] ?? '');
+        try {
+            $st = $pdo->prepare('SELECT mfa_secret, mfa_enabled FROM app_user WHERE id=?');
+            $st->execute([$user['id']]); $row = $st->fetch(\PDO::FETCH_ASSOC) ?: [];
+        } catch (\Throwable $e) { $row = []; }
+        $secret = (string)($row['mfa_secret'] ?? '');
+        if ((int)($row['mfa_enabled'] ?? 0) === 1) {
+            return self::json($res, ['ok' => false, 'error' => '이미 2단계 인증이 활성화되어 있습니다.'], 409);
+        }
+        if ($secret === '') {
+            return self::json($res, ['ok' => false, 'error' => '먼저 설정(setup)을 진행하세요.'], 400);
+        }
+        if (!self::verifyTotp($secret, $code)) {
+            return self::json($res, ['ok' => false, 'error' => '인증 코드가 올바르지 않습니다. 인증 앱의 6자리 코드를 확인하세요.'], 400);
+        }
+        // 복구 코드 생성·저장(해시)
+        $codes = self::genRecoveryCodes(8);
+        try {
+            $pdo->prepare('DELETE FROM mfa_recovery WHERE user_id=?')->execute([$user['id']]);
+            $ins = $pdo->prepare('INSERT INTO mfa_recovery(user_id,code_hash,used_at) VALUES(?,?,NULL)');
+            foreach ($codes as $c) $ins->execute([$user['id'], self::recoveryHash($c)]);
+        } catch (\Throwable $e) {}
+        try {
+            $pdo->prepare('UPDATE app_user SET mfa_enabled=1, mfa_enrolled_at=? WHERE id=?')->execute([self::now(), $user['id']]);
+        } catch (\Throwable $e) {
+            return self::json($res, ['ok' => false, 'error' => 'MFA 활성화 중 오류가 발생했습니다.'], 500);
+        }
+        return self::json($res, ['ok' => true, 'message' => '2단계 인증이 활성화되었습니다.', 'recovery_codes' => $codes]);
+    }
+
+    /** POST /auth/mfa/disable {current_password} — 비번 확인 후 MFA 해제. */
+    public static function mfaDisable(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
+    {
+        $user = self::userByToken((string)(self::extractToken($req) ?? ''));
+        if (!$user) return self::json($res, ['ok' => false, 'error' => '인증이 필요합니다.'], 401);
+        $pdo = Db::pdo(); self::ensureMfaSchema($pdo);
+        $b = self::readBody($req);
+        $cur = (string)($b['current_password'] ?? '');
+        try {
+            $st = $pdo->prepare('SELECT password_hash, password_hashs, password FROM app_user WHERE id=?');
+            $st->execute([$user['id']]); $row = $st->fetch(\PDO::FETCH_ASSOC) ?: [];
+        } catch (\Throwable $e) {
+            $st = $pdo->prepare('SELECT password_hash FROM app_user WHERE id=?');
+            $st->execute([$user['id']]); $row = $st->fetch(\PDO::FETCH_ASSOC) ?: [];
+        }
+        $hash = $row['password_hashs'] ?? $row['password_hash'] ?? $row['password'] ?? '';
+        if ($hash === '' || !password_verify($cur, (string)$hash)) {
+            return self::json($res, ['ok' => false, 'error' => '현재 비밀번호가 올바르지 않습니다.'], 400);
+        }
+        try {
+            $pdo->prepare('UPDATE app_user SET mfa_enabled=0, mfa_secret=NULL, mfa_enrolled_at=NULL WHERE id=?')->execute([$user['id']]);
+            $pdo->prepare('DELETE FROM mfa_recovery WHERE user_id=?')->execute([$user['id']]);
+        } catch (\Throwable $e) {}
+        return self::json($res, ['ok' => true, 'message' => '2단계 인증이 해제되었습니다.']);
     }
 }
