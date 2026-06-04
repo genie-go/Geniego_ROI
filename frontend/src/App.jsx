@@ -406,7 +406,9 @@ function AppLayout() {
                       <Route path="/commerce-search" element={<Navigate to="/omni-channel" replace />} />
                       <Route path="/ai-marketing-hub" element={<Navigate to="/auto-marketing" replace />} />
                       <Route path="/feedback" element={<FeedbackCenter />} />
-                      <Route path="/smart-connect" element={<Navigate to="/api-keys?tab=smart" replace />} />
+                      {/* 191차: /api-keys?tab=smart 이중 리다이렉트가 ?tab=smart 를 드롭(api-keys→integration-hub)
+                          + ApiKeys 에 'smart' 탭 부재(184차 SmartConnect 제거). → /integration-hub 직접 지정. */}
+                      <Route path="/smart-connect" element={<Navigate to="/integration-hub" replace />} />
                       <Route path="/data-trust" element={<DataTrustDashboard />} />
                       <Route path="/developer-hub" element={<DeveloperHub />} />
                       <Route path="/demand-forecast" element={<DemandForecast />} />
