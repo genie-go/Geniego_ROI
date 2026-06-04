@@ -536,9 +536,10 @@ final class Payment
             $pdo->exec("UPDATE pg_config SET is_active = 0");
 
             // 같은 provider가 있으면 업데이트, 없으면 INSERT
-            $exist = $pdo->prepare("SELECT id FROM pg_config WHERE provider = ?")->execute([$provider]);
-            $existRow = $pdo->prepare("SELECT id FROM pg_config WHERE provider = ?")->execute([$provider]) ? 
-                $pdo->query("SELECT id FROM pg_config WHERE provider = '{$provider}' LIMIT 1")->fetch() : null;
+            // 191차 보안: raw 보간 query("...'{$provider}'...") 제거 → prepared fetch(SQLi 표면 차단).
+            $existStmt = $pdo->prepare("SELECT id FROM pg_config WHERE provider = ? LIMIT 1");
+            $existStmt->execute([$provider]);
+            $existRow = $existStmt->fetch();
 
             if ($secretKey) {
                 if ($existRow && isset($existRow['id'])) {
@@ -642,9 +643,10 @@ final class Payment
 
             try {
                 // UPSERT: 있으면 업데이트, 없으면 삽입
-                $exist = $pdo->prepare("SELECT id FROM plan_pricing WHERE plan=? AND cycle=?")->execute([$plan, $cycle])
-                    ? $pdo->query("SELECT id FROM plan_pricing WHERE plan='{$plan}' AND cycle='{$cycle}' LIMIT 1")->fetch()
-                    : null;
+                // 191차 보안: raw 보간 query("...'{$plan}'...'{$cycle}'...") 제거 → prepared fetch(SQLi 표면 차단).
+                $existStmt = $pdo->prepare("SELECT id FROM plan_pricing WHERE plan=? AND cycle=? LIMIT 1");
+                $existStmt->execute([$plan, $cycle]);
+                $exist = $existStmt->fetch();
 
                 if ($exist && isset($exist['id'])) {
                     $pdo->prepare(
