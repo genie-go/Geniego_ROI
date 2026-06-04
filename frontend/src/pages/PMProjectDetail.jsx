@@ -55,14 +55,14 @@ export default function PMProjectDetail() {
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
   if (!id) {
-    return <div style={{ padding: 32 }}>프로젝트 ID 누락</div>;
+    return <div style={{ padding: 32 }}>{t('pm.detail.idMissing', '프로젝트 ID 누락')}</div>;
   }
 
   return (
     <div style={{ padding: 24, color: 'var(--text-1, #e5e7eb)' }}>
       <div style={{ marginBottom: 8 }}>
         <Link to="/pm" style={{ fontSize: 12, color: 'var(--text-3, #94a3b8)', textDecoration: 'none' }}>
-          ← {t('pm.detail.back') || '프로젝트 목록'}
+          ← {t('pm.detail.back', '프로젝트 목록')}
         </Link>
       </div>
 
@@ -73,7 +73,7 @@ export default function PMProjectDetail() {
         </div>
       )}
 
-      {loading && !project && <div>로딩 중…</div>}
+      {loading && !project && <div>{t('pm.common.loadingFull', '로딩 중…')}</div>}
 
       {project && (
         <>
@@ -94,27 +94,27 @@ export default function PMProjectDetail() {
           {/* KPI tile */}
           {kpi && (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12, marginBottom: 20 }}>
-              <KpiTile label={t('pm.kpi.total') || '전체'} value={kpi.total} color="#4f8ef7" />
-              <KpiTile label={t('pm.kpi.done') || '완료'} value={kpi.done} color="#a855f7" />
-              <KpiTile label={t('pm.kpi.active') || '진행'} value={kpi.active} color="#10b981" />
-              <KpiTile label={t('pm.kpi.overdue') || '지연'} value={kpi.overdue} color="#ef4444" />
-              <KpiTile label={t('pm.kpi.completionPct') || '완성도'}
+              <KpiTile label={t('pm.kpi.total', '전체')} value={kpi.total} color="#4f8ef7" />
+              <KpiTile label={t('pm.kpi.done', '완료')} value={kpi.done} color="#a855f7" />
+              <KpiTile label={t('pm.kpi.active', '진행')} value={kpi.active} color="#10b981" />
+              <KpiTile label={t('pm.kpi.overdue', '지연')} value={kpi.overdue} color="#ef4444" />
+              <KpiTile label={t('pm.kpi.completionPct', '완성도')}
                        value={`${kpi.completion_pct || 0}%`} color="#06b6d4" />
             </div>
           )}
 
           {/* 탭 */}
           <div style={{ display: 'flex', gap: 4, borderBottom: '1px solid var(--border, #1e293b)', marginBottom: 16 }}>
-            <TabLink to={`/pm/projects/${encodeURIComponent(id)}/board`} label={t('pm.tab.board') || '보드'} />
-            <TabLink to={`/pm/projects/${encodeURIComponent(id)}/tasks`} label={t('pm.tab.tasks') || '작업'} />
-            <TabLink to={`/pm/projects/${encodeURIComponent(id)}/gantt`} label={t('pm.tab.gantt') || 'Gantt'} />
-            <TabLink to={`/pm/projects/${encodeURIComponent(id)}/milestones`} label={t('pm.tab.milestones') || '마일스톤'} />
-            <TabLink to={`/pm/projects/${encodeURIComponent(id)}/activity`} label={t('pm.tab.activity') || '활동'} />
-            <TabLink to={`/pm/projects/${encodeURIComponent(id)}/settings`} label={t('pm.tab.settings') || '설정'} />
+            <TabLink to={`/pm/projects/${encodeURIComponent(id)}/board`} label={t('pm.tab.board', '보드')} />
+            <TabLink to={`/pm/projects/${encodeURIComponent(id)}/tasks`} label={t('pm.tab.tasks', '작업')} />
+            <TabLink to={`/pm/projects/${encodeURIComponent(id)}/gantt`} label={t('pm.tab.gantt', 'Gantt')} />
+            <TabLink to={`/pm/projects/${encodeURIComponent(id)}/milestones`} label={t('pm.tab.milestones', '마일스톤')} />
+            <TabLink to={`/pm/projects/${encodeURIComponent(id)}/activity`} label={t('pm.tab.activity', '활동')} />
+            <TabLink to={`/pm/projects/${encodeURIComponent(id)}/settings`} label={t('pm.tab.settings', '설정')} />
           </div>
 
           <div style={{ padding: 32, textAlign: 'center', opacity: 0.6, fontSize: 13 }}>
-            {t('pm.detail.placeholder') || '위 탭을 선택하여 진입하세요.'}
+            {t('pm.detail.placeholder', '위 탭을 선택하여 진입하세요.')}
           </div>
         </>
       )}

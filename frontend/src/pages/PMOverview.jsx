@@ -42,7 +42,7 @@ export default function PMOverview() {
   useEffect(() => { fetchList(); }, [fetchList]);
 
   const onCreate = useCallback(async () => {
-    const name = prompt(t('pm.overview.newProjectPrompt') || '새 프로젝트 이름?');
+    const name = prompt(t('pm.overview.newProjectPrompt', '새 프로젝트 이름?'));
     if (!name) return;
     setCreating(true);
     try {
@@ -62,7 +62,7 @@ export default function PMOverview() {
       await fetchList();
       if (j?.id) navigate(`/pm/projects/${encodeURIComponent(j.id)}`);
     } catch (e) {
-      alert(`생성 실패: ${e.message}`);
+      alert(`${t('pm.common.createFail', '생성 실패')}: ${e.message}`);
     } finally {
       setCreating(false);
     }
@@ -79,7 +79,7 @@ export default function PMOverview() {
   return (
     <div style={{ padding: 24, color: 'var(--text-1, #e5e7eb)' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 24 }}>
-        <h2 style={{ margin: 0 }}>{t('pm.overview.title') || '프로젝트 관리'}</h2>
+        <h2 style={{ margin: 0 }}>{t('pm.overview.title', '프로젝트 관리')}</h2>
         <button
           onClick={onCreate}
           disabled={creating}
@@ -87,7 +87,7 @@ export default function PMOverview() {
                    background: 'linear-gradient(135deg,#4f8ef7,#6366f1)',
                    color: '#fff', fontWeight: 700, cursor: 'pointer' }}
         >
-          {creating ? '생성 중…' : (t('pm.overview.newProject') || '+ 새 프로젝트')}
+          {creating ? t('pm.common.creating', '생성 중…') : t('pm.overview.newProject', '+ 새 프로젝트')}
         </button>
         <button
           onClick={fetchList}
@@ -95,16 +95,16 @@ export default function PMOverview() {
           style={{ padding: '8px 14px', borderRadius: 8, border: '1px solid var(--border, #334155)',
                    background: 'transparent', color: 'inherit', cursor: 'pointer' }}
         >
-          {loading ? '로딩…' : '새로고침'}
+          {loading ? t('pm.common.loading', '로딩…') : t('pm.common.refresh', '새로고침')}
         </button>
       </div>
 
       {/* KPI tile */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 20 }}>
-        <KpiTile label={t('pm.kpi.total') || '전체'} value={totals.total} color="#4f8ef7" />
-        <KpiTile label={t('pm.kpi.planning') || '계획'} value={totals.planning} color="#94a3b8" />
-        <KpiTile label={t('pm.kpi.active') || '진행'} value={totals.active} color="#10b981" />
-        <KpiTile label={t('pm.kpi.completed') || '완료'} value={totals.completed} color="#a855f7" />
+        <KpiTile label={t('pm.kpi.total', '전체')} value={totals.total} color="#4f8ef7" />
+        <KpiTile label={t('pm.kpi.planning', '계획')} value={totals.planning} color="#94a3b8" />
+        <KpiTile label={t('pm.kpi.active', '진행')} value={totals.active} color="#10b981" />
+        <KpiTile label={t('pm.kpi.completed', '완료')} value={totals.completed} color="#a855f7" />
       </div>
 
       {error && (
@@ -116,7 +116,7 @@ export default function PMOverview() {
 
       {!loading && !error && projects.length === 0 && (
         <div style={{ padding: 32, textAlign: 'center', opacity: 0.7 }}>
-          {t('pm.overview.empty') || '프로젝트가 없습니다. 우측 상단에서 새 프로젝트를 생성하세요.'}
+          {t('pm.overview.empty', '프로젝트가 없습니다. 우측 상단에서 새 프로젝트를 생성하세요.')}
         </div>
       )}
 

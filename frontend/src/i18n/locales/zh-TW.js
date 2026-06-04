@@ -25785,9 +25785,37 @@ export default {
       planning: "規劃中",
       active: "進行中",
       completed: "已完成",
+        done: '已完成',
+        overdue: '逾期',
+        completionPct: '完成度',
     },
     "descPerformance": "Real-time KPI monitoring",
-    "tabPerformance": "Performance"
+    "tabPerformance": "Performance",
+      board: {
+        back: '專案',
+        title: '任務看板',
+        newTask: '+ 新增任務',
+        newTaskPrompt: '新任務標題？',
+      },
+      detail: {
+        back: '專案清單',
+        placeholder: '請選擇上方分頁繼續。',
+        idMissing: '缺少專案 ID',
+      },
+      status: {
+        todo: '待辦',
+        in_progress: '進行中',
+        review: '審查',
+        done: '已完成',
+        blocked: '受阻',
+      },
+      common: {
+        loading: '載入中…',
+        refresh: '重新整理',
+        creating: '建立中…',
+        loadingFull: '載入中…',
+        createFail: '建立失敗',
+      },
     },
   contentCal: {
     liveSyncMsg: "即時同步已啟用",

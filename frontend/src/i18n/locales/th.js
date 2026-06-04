@@ -25754,9 +25754,37 @@ export default {
       planning: "กำลังวางแผน",
       active: "กำลังดำเนินการ",
       completed: "เสร็จสิ้น",
+        done: 'เสร็จสิ้น',
+        overdue: 'เกินกำหนด',
+        completionPct: 'ความคืบหน้า',
     },
     "heroTitle": "Email Marketing",
-    "tabGuide": "Guide"
+    "tabGuide": "Guide",
+      board: {
+        back: 'โปรเจกต์',
+        title: 'บอร์ดงาน',
+        newTask: '+ งานใหม่',
+        newTaskPrompt: 'ชื่องานใหม่?',
+      },
+      detail: {
+        back: 'รายการโปรเจกต์',
+        placeholder: 'เลือกแท็บด้านบนเพื่อดำเนินการต่อ',
+        idMissing: 'ไม่มีรหัสโปรเจกต์',
+      },
+      status: {
+        todo: 'ที่ต้องทำ',
+        in_progress: 'กำลังดำเนินการ',
+        review: 'ตรวจสอบ',
+        done: 'เสร็จสิ้น',
+        blocked: 'ติดขัด',
+      },
+      common: {
+        loading: 'กำลังโหลด…',
+        refresh: 'รีเฟรช',
+        creating: 'กำลังสร้าง…',
+        loadingFull: 'กำลังโหลด…',
+        createFail: 'สร้างไม่สำเร็จ',
+      },
     },
   contentCal: {
     liveSyncMsg: "เปิดใช้การซิงค์แบบเรียลไทม์",

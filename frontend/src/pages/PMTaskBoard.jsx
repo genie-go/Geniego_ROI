@@ -15,11 +15,11 @@ import { useT } from '../i18n/index.js';
  *  - PATCH /api/v425/pm/tasks/{id}  (status 변경)
  */
 const STATUS_COLUMNS = [
-  { key: 'todo', label: '할 일', color: '#94a3b8' },
-  { key: 'in_progress', label: '진행 중', color: '#3b82f6' },
-  { key: 'review', label: '검토', color: '#a855f7' },
-  { key: 'done', label: '완료', color: '#10b981' },
-  { key: 'blocked', label: '막힘', color: '#ef4444' },
+  { key: 'todo', labelKey: 'pm.status.todo', labelFb: '할 일', color: '#94a3b8' },
+  { key: 'in_progress', labelKey: 'pm.status.in_progress', labelFb: '진행 중', color: '#3b82f6' },
+  { key: 'review', labelKey: 'pm.status.review', labelFb: '검토', color: '#a855f7' },
+  { key: 'done', labelKey: 'pm.status.done', labelFb: '완료', color: '#10b981' },
+  { key: 'blocked', labelKey: 'pm.status.blocked', labelFb: '막힘', color: '#ef4444' },
 ];
 
 const PRIORITY_COLOR = {
@@ -60,7 +60,7 @@ export default function PMTaskBoard() {
   useEffect(() => { fetchTasks(); }, [fetchTasks]);
 
   const onCreate = useCallback(async () => {
-    const title = prompt('새 task 제목?');
+    const title = prompt(t('pm.board.newTaskPrompt', '새 작업 제목?'));
     if (!title) return;
     try {
       const res = await fetch(`${base}/api/v425/pm/tasks`, {
@@ -112,16 +112,16 @@ export default function PMTaskBoard() {
       <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 16 }}>
         <Link to={`/pm/projects/${encodeURIComponent(projectId)}`}
               style={{ fontSize: 12, color: 'var(--text-3, #94a3b8)', textDecoration: 'none' }}>
-          ← {t('pm.board.back') || '프로젝트'}
+          ← {t('pm.board.back', '프로젝트')}
         </Link>
-        <h3 style={{ margin: 0 }}>{t('pm.board.title') || 'Task Board'}</h3>
+        <h3 style={{ margin: 0 }}>{t('pm.board.title', '작업 보드')}</h3>
         <button
           onClick={onCreate}
           style={{ padding: '6px 12px', borderRadius: 8, border: 'none',
                    background: 'linear-gradient(135deg,#4f8ef7,#6366f1)',
                    color: '#fff', fontWeight: 700, cursor: 'pointer' }}
         >
-          + 새 task
+          {t('pm.board.newTask', '+ 새 작업')}
         </button>
         <button
           onClick={fetchTasks}
@@ -129,7 +129,7 @@ export default function PMTaskBoard() {
           style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid var(--border, #334155)',
                    background: 'transparent', color: 'inherit', cursor: 'pointer' }}
         >
-          {loading ? '로딩…' : '새로고침'}
+          {loading ? t('pm.common.loading', '로딩…') : t('pm.common.refresh', '새로고침')}
         </button>
       </div>
 
@@ -145,12 +145,12 @@ export default function PMTaskBoard() {
           <div key={col.key} style={{ background: 'var(--bg-2, #0f172a)', borderRadius: 12,
                                        border: '1px solid var(--border, #1e293b)', padding: 12 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-              <span style={{ fontWeight: 700, fontSize: 13, color: col.color }}>{col.label}</span>
+              <span style={{ fontWeight: 700, fontSize: 13, color: col.color }}>{t(col.labelKey, col.labelFb)}</span>
               <span style={{ fontSize: 11, color: 'var(--text-3, #94a3b8)' }}>{grouped[col.key].length}</span>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {grouped[col.key].map(task => (
-                <TaskCard key={task.id} task={task} onChangeStatus={onChangeStatus} />
+                <TaskCard key={task.id} task={task} onChangeStatus={onChangeStatus} t={t} />
               ))}
             </div>
           </div>
@@ -160,7 +160,7 @@ export default function PMTaskBoard() {
   );
 }
 
-function TaskCard({ task, onChangeStatus }) {
+function TaskCard({ task, onChangeStatus, t }) {
   return (
     <div style={{ padding: 10, borderRadius: 8, background: 'var(--bg-1, #1e293b)',
                   border: '1px solid var(--border, #334155)' }}>
@@ -186,7 +186,7 @@ function TaskCard({ task, onChangeStatus }) {
                  borderRadius: 4, background: 'var(--bg-2, #0f172a)',
                  color: 'inherit', border: '1px solid var(--border, #334155)' }}
       >
-        {STATUS_COLUMNS.map(c => <option key={c.key} value={c.key}>{c.label}</option>)}
+        {STATUS_COLUMNS.map(c => <option key={c.key} value={c.key}>{t(c.labelKey, c.labelFb)}</option>)}
       </select>
     </div>
   );

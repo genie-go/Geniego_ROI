@@ -23811,6 +23811,9 @@ export default {
       planning: "Planning",
       active: "Active",
       completed: "Completed",
+        done: 'Done',
+        overdue: 'Overdue',
+        completionPct: 'Completion',
     },
     "finance_label": "Finance",
     "finance_route": "/finance",
@@ -23823,7 +23826,32 @@ export default {
     "education_label": "Education",
     "education_route": "/education",
     "realestate_label": "Real Estate",
-    "realestate_route": "/realestate"
+    "realestate_route": "/realestate",
+      board: {
+        back: 'Project',
+        title: 'Task Board',
+        newTask: '+ New Task',
+        newTaskPrompt: 'New task title?',
+      },
+      detail: {
+        back: 'Projects',
+        placeholder: 'Select a tab above to continue.',
+        idMissing: 'Project ID missing',
+      },
+      status: {
+        todo: 'To Do',
+        in_progress: 'In Progress',
+        review: 'Review',
+        done: 'Done',
+        blocked: 'Blocked',
+      },
+      common: {
+        loading: 'Loading…',
+        refresh: 'Refresh',
+        creating: 'Creating…',
+        loadingFull: 'Loading…',
+        createFail: 'Create failed',
+      },
     },
   sms: {
     noChannels: "No SMS channels connected.",

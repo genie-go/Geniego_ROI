@@ -25671,6 +25671,9 @@ export default {
       planning: "Đang lập kế hoạch",
       active: "Đang triển khai",
       completed: "Hoàn thành",
+        done: 'Hoàn thành',
+        overdue: 'Quá hạn',
+        completionPct: 'Mức hoàn thành',
     },
     "finance_label": "Finance",
     "finance_route": "/finance",
@@ -25683,7 +25686,32 @@ export default {
     "education_label": "Education",
     "education_route": "/education",
     "realestate_label": "Real Estate",
-    "realestate_route": "/realestate"
+    "realestate_route": "/realestate",
+      board: {
+        back: 'Dự án',
+        title: 'Bảng công việc',
+        newTask: '+ Công việc mới',
+        newTaskPrompt: 'Tiêu đề công việc mới?',
+      },
+      detail: {
+        back: 'Danh sách dự án',
+        placeholder: 'Chọn một tab ở trên để tiếp tục.',
+        idMissing: 'Thiếu ID dự án',
+      },
+      status: {
+        todo: 'Cần làm',
+        in_progress: 'Đang thực hiện',
+        review: 'Đánh giá',
+        done: 'Hoàn thành',
+        blocked: 'Bị chặn',
+      },
+      common: {
+        loading: 'Đang tải…',
+        refresh: 'Làm mới',
+        creating: 'Đang tạo…',
+        loadingFull: 'Đang tải…',
+        createFail: 'Tạo thất bại',
+      },
     },
   contentCal: {
     liveSyncMsg: "Đồng bộ trực tiếp đang hoạt động",

@@ -32157,7 +32157,35 @@ export default {
       planning: "계획 중",
       active: "진행 중",
       completed: "완료",
+        done: '완료',
+        overdue: '지연',
+        completionPct: '완성도',
     },
+      board: {
+        back: '프로젝트',
+        title: '작업 보드',
+        newTask: '+ 새 작업',
+        newTaskPrompt: '새 작업 제목?',
+      },
+      detail: {
+        back: '프로젝트 목록',
+        placeholder: '위 탭을 선택하여 진입하세요.',
+        idMissing: '프로젝트 ID 누락',
+      },
+      status: {
+        todo: '할 일',
+        in_progress: '진행 중',
+        review: '검토',
+        done: '완료',
+        blocked: '막힘',
+      },
+      common: {
+        loading: '로딩…',
+        refresh: '새로고침',
+        creating: '생성 중…',
+        loadingFull: '로딩 중…',
+        createFail: '생성 실패',
+      },
   },
 
   // [176차 PM2] Reconciliation 페이지 root-level recon namespace

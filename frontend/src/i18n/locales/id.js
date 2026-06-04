@@ -25715,9 +25715,37 @@ export default {
       planning: "Perencanaan",
       active: "Berlangsung",
       completed: "Selesai",
+        done: 'Selesai',
+        overdue: 'Terlambat',
+        completionPct: 'Penyelesaian',
     },
     "heroTitle": "Email Marketing",
-    "tabGuide": "Guide"
+    "tabGuide": "Guide",
+      board: {
+        back: 'Proyek',
+        title: 'Papan Tugas',
+        newTask: '+ Tugas Baru',
+        newTaskPrompt: 'Judul tugas baru?',
+      },
+      detail: {
+        back: 'Daftar Proyek',
+        placeholder: 'Pilih tab di atas untuk melanjutkan.',
+        idMissing: 'ID proyek tidak ada',
+      },
+      status: {
+        todo: 'Akan Dikerjakan',
+        in_progress: 'Sedang Berjalan',
+        review: 'Tinjauan',
+        done: 'Selesai',
+        blocked: 'Terhambat',
+      },
+      common: {
+        loading: 'Memuat…',
+        refresh: 'Segarkan',
+        creating: 'Membuat…',
+        loadingFull: 'Memuat…',
+        createFail: 'Gagal membuat',
+      },
     },
   contentCal: {
     liveSyncMsg: "Sinkronisasi real-time aktif",
