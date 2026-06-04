@@ -111,10 +111,11 @@ final class GraphScore {
         $extra  = $body;
         foreach (['src_type','src_id','dst_type','dst_id','edge_weight','edge_label'] as $k) unset($extra[$k]);
 
-        // Auto-upsert nodes if they don't exist
+        // Auto-upsert nodes if they don't exist (191차: MySQL=INSERT IGNORE, SQLite=INSERT OR IGNORE)
+        $ins = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql' ? 'INSERT IGNORE' : 'INSERT OR IGNORE';
         foreach ([[$srcType, $srcId], [$dstType, $dstId]] as [$t, $nid]) {
             $pdo->prepare(
-                'INSERT OR IGNORE INTO graph_node(tenant_id,node_type,node_id,label,meta_json,created_at)
+                $ins . ' INTO graph_node(tenant_id,node_type,node_id,label,meta_json,created_at)
                  VALUES(?,?,?,?,?,?)'
             )->execute([$tenant, $t, $nid, $nid, '{}', gmdate('c')]);
         }

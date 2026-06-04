@@ -1442,25 +1442,26 @@ final class UserAdmin
             try {
                 if ($trigger === 'signup') {
                     // 최근 7일 신규 demo 가입자
+                    // 191차: SQLite전용 datetime('now') 가 MySQL 에서 함수오류→쿼리실패(catch)→대상0(쿠폰 무발급).
+                    //   PHP 바인드 컷오프로 방언안전화(7일 전).
                     $stmt = $pdo->prepare(
                         "SELECT id, email FROM app_user
                           WHERE plan IN ('pro' /*replaced demo*/,'free')
-                            AND (created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
-                              OR created_at >= datetime('now','-7 days'))
+                            AND created_at >= :cut
                           LIMIT 50"
                     );
-                    $stmt->execute();
+                    $stmt->execute([':cut' => gmdate('Y-m-d H:i:s', time() - 7 * 86400)]);
                     $targetUsers = $stmt->fetchAll(\PDO::FETCH_ASSOC);
                 } elseif ($trigger === 'upgrade') {
                     // 최근 30일 유료 전환 사용자 (demo→유료)
+                    // 191차: datetime('now') 방언오류 → PHP 바인드 컷오프(30일 전).
                     $stmt = $pdo->prepare(
                         "SELECT id, email FROM app_user
                           WHERE plan IN ('starter','growth','pro','enterprise')
-                            AND (created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
-                              OR created_at >= datetime('now','-30 days'))
+                            AND created_at >= :cut
                           LIMIT 50"
                     );
-                    $stmt->execute();
+                    $stmt->execute([':cut' => gmdate('Y-m-d H:i:s', time() - 30 * 86400)]);
                     $targetUsers = $stmt->fetchAll(\PDO::FETCH_ASSOC);
                 } elseif ($trigger === 'renewal') {
                     // paddle_subscriptions에서 갱신 예정 (30일 이내)

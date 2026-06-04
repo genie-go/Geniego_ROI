@@ -197,30 +197,20 @@ final class Attribution {
             }
         }
 
-        // 4. Deeplink match
+        // 4. Deeplink match — 191차: SQLite전용 `||` concat(MySQL=OR연산자) 제거. 접두 매칭을 PHP로 일원화(방언안전·정확).
         if ($deeplink !== '') {
-            $dlStmt = $pdo->prepare('SELECT channel, campaign FROM attribution_deeplink WHERE tenant_id=? AND ?  LIKE (template || \'%\')');
-            $dlStmt->execute([$tenant, $deeplink]);
-            $dlRow = $dlStmt->fetch(PDO::FETCH_ASSOC);
-            if ($dlRow) {
-                $score += 0.15;
-                $evidence['deeplink'] = ['matched' => true, 'score_contribution' => 0.15, 'url' => $deeplink, 'channel' => $dlRow['channel']];
-                $attributedChannel   = $attributedChannel ?? (string)$dlRow['channel'];
-            } else {
-                // prefix scan fallback
-                $dlAll = $pdo->prepare('SELECT template, channel, campaign FROM attribution_deeplink WHERE tenant_id=?');
-                $dlAll->execute([$tenant]);
-                foreach ($dlAll->fetchAll(PDO::FETCH_ASSOC) as $dl) {
-                    if (str_starts_with($deeplink, (string)$dl['template'])) {
-                        $score += 0.15;
-                        $evidence['deeplink'] = ['matched' => true, 'score_contribution' => 0.15, 'url' => $deeplink, 'channel' => $dl['channel']];
-                        $attributedChannel    = $attributedChannel ?? (string)$dl['channel'];
-                        break;
-                    }
+            $dlAll = $pdo->prepare('SELECT template, channel, campaign FROM attribution_deeplink WHERE tenant_id=?');
+            $dlAll->execute([$tenant]);
+            foreach ($dlAll->fetchAll(PDO::FETCH_ASSOC) as $dl) {
+                if (str_starts_with($deeplink, (string)$dl['template'])) {
+                    $score += 0.15;
+                    $evidence['deeplink'] = ['matched' => true, 'score_contribution' => 0.15, 'url' => $deeplink, 'channel' => $dl['channel']];
+                    $attributedChannel    = $attributedChannel ?? (string)$dl['channel'];
+                    break;
                 }
-                if (!isset($evidence['deeplink'])) {
-                    $evidence['deeplink'] = ['matched' => false, 'score_contribution' => 0.00, 'url' => $deeplink];
-                }
+            }
+            if (!isset($evidence['deeplink'])) {
+                $evidence['deeplink'] = ['matched' => false, 'score_contribution' => 0.00, 'url' => $deeplink];
             }
         }
 
