@@ -87,30 +87,30 @@ export default function AdStatusAnalysis() {
         if (hasCampaigns) {
             sharedCampaigns.forEach(c => {
                 totalSpend += c.spent || 0;
-                totalImpr += c.impressions || (c.spent > 0 ? (c.spent / 8000) * 1000 : 0);
+                totalImpr += c.impressions || (isDemo && c.spent > 0 ? (c.spent / 8000) * 1000 : 0);
                 totalClicks += c.clicks || 0;
                 totalConv += c.conv || 0;
                 totalRoas += c.roas || 0;
             });
         }
-        const avgRoas = sharedCampaigns?.length > 0 ? totalRoas / sharedCampaigns.length : 3.5;
+        // 191차 #6: 캠페인이 없을 때의 기본 ROAS 3.5 는 데모 미리보기 전용. 운영은 합성 KPI 금지(0).
+        const avgRoas = sharedCampaigns?.length > 0 ? totalRoas / sharedCampaigns.length : (isDemo ? 3.5 : 0);
 
         for (let i = 0; i < days; i++) {
             const d = new Date(sTime + i * 86400000);
             const dateStr = d.toISOString().slice(5, 10);
             const dow = d.getDay();
             
-            // Day-of-week effect: weekdays stronger, weekends weaker
-            const dowFactor = (dow === 0 || dow === 6) ? 0.65 + seed(i * 3) * 0.1 : 
-                              (dow === 1 || dow === 5) ? 0.95 + seed(i * 5) * 0.1 : 1.05 + seed(i * 7) * 0.1;
-            // Sinusoidal wave for weekly rhythm
-            const wave = Math.sin(i * 0.9 + 1.5) * 0.12;
-            // Random noise per day
-            const noise1 = (seed(i * 13 + 7) - 0.5) * 0.3;
-            const noise2 = (seed(i * 17 + 11) - 0.5) * 0.25;
-            const noise3 = (seed(i * 23 + 3) - 0.5) * 0.2;
-            // Growth ramp (later days slightly higher)
-            const ramp = 1 + (i / days) * 0.15;
+            // 191차 #6: 합성 일별 변동(요일효과·주기파동·랜덤노이즈·성장램프)은 데모 미리보기 전용.
+            //   운영은 실 총계의 결정적 균등분배만 노출 — 가짜 일별 변동/노이즈 주입 금지(188차/177차 운영-데모 분리).
+            const dowFactor = !isDemo ? 1
+                            : (dow === 0 || dow === 6) ? 0.65 + seed(i * 3) * 0.1
+                            : (dow === 1 || dow === 5) ? 0.95 + seed(i * 5) * 0.1 : 1.05 + seed(i * 7) * 0.1;
+            const wave   = isDemo ? Math.sin(i * 0.9 + 1.5) * 0.12 : 0;
+            const noise1 = isDemo ? (seed(i * 13 + 7) - 0.5) * 0.3  : 0;
+            const noise2 = isDemo ? (seed(i * 17 + 11) - 0.5) * 0.25 : 0;
+            const noise3 = isDemo ? (seed(i * 23 + 3) - 0.5) * 0.2  : 0;
+            const ramp   = isDemo ? 1 + (i / days) * 0.15 : 1;
 
             const daySpend = Math.round((totalSpend / days) * (1 + wave + noise1) * dowFactor * ramp);
             const dayImpr = Math.round((totalImpr / days) * (1 + wave * 0.8 + noise2) * dowFactor * ramp);
@@ -119,7 +119,7 @@ export default function AdStatusAnalysis() {
             const dayCtr = dayImpr > 0 ? ((dayClicks / dayImpr) * 100).toFixed(1) : '0.0';
             const dayCpc = dayClicks > 0 ? Math.round(daySpend / dayClicks) : 0;
             const dayCpm = dayImpr > 0 ? Math.round(daySpend / dayImpr * 1000) : 0;
-            const dayRoas = (avgRoas * (1 + (seed(i * 31) - 0.5) * 0.3)).toFixed(1);
+            const dayRoas = (avgRoas * (isDemo ? (1 + (seed(i * 31) - 0.5) * 0.3) : 1)).toFixed(1);
 
             data.push({ 
                 date: dateStr, 
@@ -135,7 +135,7 @@ export default function AdStatusAnalysis() {
             });
         }
         return data;
-    }, [sharedCampaigns, startDate, endDate]);
+    }, [sharedCampaigns, startDate, endDate, isDemo]);
 
     const HIERARCHY_DATA = useMemo(() => {
         if (!sharedCampaigns || sharedCampaigns.length === 0) return [];
