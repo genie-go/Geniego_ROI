@@ -110,6 +110,8 @@ $app->add(function (Request $request, $handler) {
         || strpos($path, '/api/kakao/') === 0    || strpos($path, '/kakao/') === 0
         || strpos($path, '/api/pixel/') === 0    || strpos($path, '/pixel/') === 0
         || strpos($path, '/api/journey/') === 0  || strpos($path, '/journey/') === 0
+        // 191차 채널 부활: SMS — 세션 self-auth(핸들러 requirePro + authedTenant 격리)
+        || strpos($path, '/api/sms/') === 0      || strpos($path, '/sms/') === 0
     ) {
         return $handler->handle($request);
     }

@@ -25,66 +25,52 @@ final class SmsMarketing
     // NHN Cloud Biz Message API endpoint
     private const NHN_API = 'https://api-sms.cloud.toast.com/sms/v3.0';
 
+    // 191차 부활: 세션 기반 plan/tenant(UserAuth). api_key 미들웨어 bypass(/sms,/api/sms) + requirePro 게이트.
+    private static function isMysql(\PDO $pdo): bool { return $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql'; }
+
     private static function plan(Request $req): string
     {
-        $auth = $req->getHeaderLine('Authorization');
-        if (preg_match('/Bearer\s+(\S+)/i', $auth, $m) && $m[1] !== 'demo-token') {
-            try {
-                $s = Db::pdo()->prepare('SELECT u.plan FROM user_session s JOIN app_user u ON u.id=s.user_id WHERE s.token=? LIMIT 1');
-                $s->execute([$m[1]]);
-                $r = $s->fetch(PDO::FETCH_ASSOC);
-                if ($r) return (string)$r['plan'];
-            } catch (\Throwable) {}
-        }
-        return 'demo';
+        $u = UserAuth::authedUser($req);
+        return $u['plan'] ?? 'demo';
     }
 
     private static function tenant(Request $req): string
     {
-        $auth = $req->getHeaderLine('Authorization');
-        if (preg_match('/Bearer\s+(\S+)/i', $auth, $m) && $m[1] !== 'demo-token') {
-            try {
-                $s = Db::pdo()->prepare('SELECT user_id FROM user_session WHERE token=? LIMIT 1');
-                $s->execute([$m[1]]);
-                $r = $s->fetch(PDO::FETCH_ASSOC);
-                if ($r) return (string)$r['user_id'];
-            } catch (\Throwable) {}
-        }
-        return 'demo';
+        $t = UserAuth::authedTenant($req);
+        return ($t !== null && $t !== '') ? $t : 'demo';
     }
 
     private static function ensureTables(): void
     {
         $pdo = Db::pdo();
-        $pdo->exec("CREATE TABLE IF NOT EXISTS sms_settings (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            tenant_id TEXT NOT NULL,
-            provider TEXT DEFAULT 'nhn',
-            app_key TEXT,
-            secret_key TEXT,
-            sender_no TEXT,
-            is_active INTEGER DEFAULT 1,
-            test_status TEXT DEFAULT 'untested',
-            updated_at TEXT,
-            UNIQUE(tenant_id)
-        )");
-        $pdo->exec("CREATE TABLE IF NOT EXISTS sms_messages (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            tenant_id TEXT NOT NULL,
-            msg_type TEXT DEFAULT 'SMS',
-            recipient TEXT NOT NULL,
-            body TEXT,
-            status TEXT DEFAULT 'pending',
-            msg_id TEXT,
-            error TEXT,
-            sent_at TEXT,
-            created_at TEXT
-        )");
+        if (self::isMysql($pdo)) {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS sms_settings (
+                id INT AUTO_INCREMENT PRIMARY KEY, tenant_id VARCHAR(100) NOT NULL,
+                provider VARCHAR(30) DEFAULT 'nhn', app_key VARCHAR(255), secret_key VARCHAR(255), sender_no VARCHAR(50),
+                is_active TINYINT DEFAULT 1, test_status VARCHAR(20) DEFAULT 'untested', updated_at VARCHAR(32),
+                UNIQUE KEY uq_sms_settings_tenant (tenant_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+            $pdo->exec("CREATE TABLE IF NOT EXISTS sms_messages (
+                id INT AUTO_INCREMENT PRIMARY KEY, tenant_id VARCHAR(100) NOT NULL, msg_type VARCHAR(10) DEFAULT 'SMS',
+                recipient VARCHAR(50) NOT NULL, body TEXT, status VARCHAR(20) DEFAULT 'pending', msg_id VARCHAR(100),
+                error TEXT, sent_at VARCHAR(32), created_at VARCHAR(32), KEY idx_sms_msg_tenant (tenant_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+        } else {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS sms_settings (
+                id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL, provider TEXT DEFAULT 'nhn',
+                app_key TEXT, secret_key TEXT, sender_no TEXT, is_active INTEGER DEFAULT 1,
+                test_status TEXT DEFAULT 'untested', updated_at TEXT, UNIQUE(tenant_id))");
+            $pdo->exec("CREATE TABLE IF NOT EXISTS sms_messages (
+                id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL, msg_type TEXT DEFAULT 'SMS',
+                recipient TEXT NOT NULL, body TEXT, status TEXT DEFAULT 'pending', msg_id TEXT, error TEXT,
+                sent_at TEXT, created_at TEXT)");
+        }
     }
 
     // POST /api/sms/settings
     public static function saveSettings(Request $req, Response $res, array $args): Response
     {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
         self::ensureTables();
         $pdo    = Db::pdo();
         $tenant = self::tenant($req);
@@ -103,11 +89,18 @@ final class SmsMarketing
         $testResult = self::testConnection($provider, $appKey, $secretKey);
         $now = gmdate('c');
 
-        $pdo->prepare("INSERT INTO sms_settings(tenant_id,provider,app_key,secret_key,sender_no,test_status,updated_at)
-            VALUES(?,?,?,?,?,?,?) ON CONFLICT(tenant_id) DO UPDATE SET
-            provider=excluded.provider,app_key=excluded.app_key,secret_key=excluded.secret_key,
-            sender_no=excluded.sender_no,test_status=excluded.test_status,updated_at=excluded.updated_at")
-            ->execute([$tenant,$provider,$appKey,$secretKey,$senderNo,$testResult['ok']?'ok':'error',$now]);
+        // 191차: SQLite `ON CONFLICT` → 드라이버별 upsert(MySQL=ON DUPLICATE KEY UPDATE).
+        $cols = "tenant_id,provider,app_key,secret_key,sender_no,test_status,updated_at";
+        $vals = [$tenant,$provider,$appKey,$secretKey,$senderNo,$testResult['ok']?'ok':'error',$now];
+        if (self::isMysql($pdo)) {
+            $pdo->prepare("INSERT INTO sms_settings($cols) VALUES(?,?,?,?,?,?,?)
+                ON DUPLICATE KEY UPDATE provider=VALUES(provider),app_key=VALUES(app_key),secret_key=VALUES(secret_key),
+                sender_no=VALUES(sender_no),test_status=VALUES(test_status),updated_at=VALUES(updated_at)")->execute($vals);
+        } else {
+            $pdo->prepare("INSERT INTO sms_settings($cols) VALUES(?,?,?,?,?,?,?)
+                ON CONFLICT(tenant_id) DO UPDATE SET provider=excluded.provider,app_key=excluded.app_key,
+                secret_key=excluded.secret_key,sender_no=excluded.sender_no,test_status=excluded.test_status,updated_at=excluded.updated_at")->execute($vals);
+        }
 
         return TemplateResponder::respond($res, [
             'ok'      => $testResult['ok'],
@@ -120,6 +113,7 @@ final class SmsMarketing
     // GET /api/sms/settings
     public static function getSettings(Request $req, Response $res, array $args): Response
     {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
         self::ensureTables();
         $pdo    = Db::pdo();
         $tenant = self::tenant($req);
@@ -135,7 +129,7 @@ final class SmsMarketing
         foreach ($s2->fetchAll(PDO::FETCH_ASSOC) as $r) {
             $stats[$r['status']] = (int)$r['cnt'];
         }
-        if (array_sum($stats) === 0) $stats = ['sent'=>324,'delivered'=>318,'failed'=>6];
+        // 191차: 빈 통계에 가짜값(324/318/6) 주입 제거 → 정직한 0(가짜 KPI 금지, 188차).
 
         return TemplateResponder::respond($res, ['ok'=>true, 'plan'=>$plan, 'settings'=>$row, 'stats'=>$stats]);
     }
@@ -143,6 +137,7 @@ final class SmsMarketing
     // POST /api/sms/send
     public static function send(Request $req, Response $res, array $args): Response
     {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
         self::ensureTables();
         $pdo    = Db::pdo();
         $tenant = self::tenant($req);
@@ -179,6 +174,7 @@ final class SmsMarketing
     // POST /api/sms/broadcast
     public static function broadcast(Request $req, Response $res, array $args): Response
     {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
         self::ensureTables();
         $pdo      = Db::pdo();
         $tenant   = self::tenant($req);
@@ -226,21 +222,24 @@ final class SmsMarketing
     // GET /api/sms/messages
     public static function messages(Request $req, Response $res, array $args): Response
     {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
         self::ensureTables();
         $pdo    = Db::pdo();
         $tenant = self::tenant($req);
         $limit  = max(1, min(100, (int)(($req->getQueryParams())['limit'] ?? 50)));
 
-        $stmt = $pdo->prepare("SELECT * FROM sms_messages WHERE tenant_id=? ORDER BY created_at DESC LIMIT ?");
-        $stmt->execute([$tenant, $limit]);
+        // 191차: MySQL PDO 는 LIMIT 바인드를 문자열로 처리해 구문오류(500). 검증된 정수라 인라인.
+        $stmt = $pdo->prepare("SELECT * FROM sms_messages WHERE tenant_id=? ORDER BY created_at DESC LIMIT $limit");
+        $stmt->execute([$tenant]);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        if (empty($rows)) $rows = self::demoMessages();
+        // 191차: 빈 결과에 demoMessages(rand 전화번호) 주입 제거 → 정직한 빈 상태(188차).
         return TemplateResponder::respond($res, ['ok'=>true,'messages'=>$rows]);
     }
 
     // GET /api/sms/stats
     public static function stats(Request $req, Response $res, array $args): Response
     {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
         self::ensureTables();
         $pdo    = Db::pdo();
         $tenant = self::tenant($req);
@@ -249,8 +248,9 @@ final class SmsMarketing
         $stmt->execute([$tenant]);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        return TemplateResponder::respond($res, ['ok'=>true, 'stats'=>$rows,
-            'monthly'=>['budget'=>500000,'spent'=>230000,'remaining'=>270000]]);
+        // 191차: 하드코딩 monthly 예산(가짜)은 데모 전용. 운영은 실데이터 없으면 null.
+        $monthly = self::plan($req) === 'demo' ? ['budget'=>500000,'spent'=>230000,'remaining'=>270000] : null;
+        return TemplateResponder::respond($res, ['ok'=>true, 'stats'=>$rows, 'monthly'=>$monthly]);
     }
 
     // ── NHN Cloud API 호출 ───────────────────────────────────────────────

@@ -199,12 +199,13 @@ return function (App $app): void {
         'POST /api/whatsapp/webhooks'             => 'Genie\\Handlers\\WhatsApp::webhook',
 
         // ── SMS Marketing (NHN Cloud bizMessage) ──────────────────────────
-        'GET /api/sms/settings'                   => 'Genie\\Handlers\\SmsMarketing::getSettings',
-        'POST /api/sms/settings'                  => 'Genie\\Handlers\\SmsMarketing::saveSettings',
-        'POST /api/sms/send'                      => 'Genie\\Handlers\\SmsMarketing::send',
-        'POST /api/sms/broadcast'                 => 'Genie\\Handlers\\SmsMarketing::broadcast',
-        'GET /api/sms/messages'                   => 'Genie\\Handlers\\SmsMarketing::messages',
-        'GET /api/sms/stats'                      => 'Genie\\Handlers\\SmsMarketing::stats',
+        // 191차 부활: /api strip(basePath) 정합 위해 /sms 로 등록(프론트 /api/sms 호출→strip→/sms 매칭). 세션 self-auth(bypass).
+        'GET /sms/settings'                       => 'Genie\\Handlers\\SmsMarketing::getSettings',
+        'POST /sms/settings'                      => 'Genie\\Handlers\\SmsMarketing::saveSettings',
+        'POST /sms/send'                          => 'Genie\\Handlers\\SmsMarketing::send',
+        'POST /sms/broadcast'                     => 'Genie\\Handlers\\SmsMarketing::broadcast',
+        'GET /sms/messages'                       => 'Genie\\Handlers\\SmsMarketing::messages',
+        'GET /sms/stats'                          => 'Genie\\Handlers\\SmsMarketing::stats',
 
         // ── GDPR / 개인정보 동의 관리 ─────────────────────────────────────
         'POST /api/gdpr/consent'                  => 'Genie\\Handlers\\GdprConsent::save',
@@ -1831,12 +1832,12 @@ return function (App $app): void {
     $register('GET',    '/api/whatsapp/messages');
     $register('POST',   '/api/whatsapp/webhooks');
     // SMS
-    $register('GET',    '/api/sms/settings');
-    $register('POST',   '/api/sms/settings');
-    $register('POST',   '/api/sms/send');
-    $register('POST',   '/api/sms/broadcast');
-    $register('GET',    '/api/sms/messages');
-    $register('GET',    '/api/sms/stats');
+    $register('GET',    '/sms/settings');
+    $register('POST',   '/sms/settings');
+    $register('POST',   '/sms/send');
+    $register('POST',   '/sms/broadcast');
+    $register('GET',    '/sms/messages');
+    $register('GET',    '/sms/stats');
     // GDPR
     $register('POST',   '/api/gdpr/consent');
     $register('GET',    '/api/gdpr/consent');
