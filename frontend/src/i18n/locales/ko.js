@@ -7438,6 +7438,13 @@ export default {
   },
 
 "auth": {
+    "rememberMe": "자동 로그인",
+    "rememberMeHint": "공용 PC에서는 사용하지 마세요",
+    "mfaPrompt": "인증 앱의 6자리 코드 또는 복구 코드를 입력하세요.",
+    "mfaCodeLabel": "인증 코드",
+    "mfaVerify": "인증 후 로그인",
+    "mfaInvalid": "인증 코드가 올바르지 않습니다.",
+    "passwordPolicy": "비밀번호는 8자 이상이며 영문 대문자·소문자·숫자·특수문자 중 3종류 이상을 포함해야 합니다.",
     "findIdLink": "아이디(이메일) 찾기",
     "forgotLink": "비밀번호 찾기",
     "recoveryTitle": "계정 찾기",
@@ -7628,7 +7635,7 @@ export default {
 
     "emailRequired": "이메일을 입력해주세요.",
 
-    "passwordTooShort": "비밀번호는 6자 이상이어야 합니다.",
+    "passwordTooShort": "비밀번호는 8자 이상이어야 합니다.",
 
     "companyRequired": "회사(브랜드)명을 입력해주세요.",
 
@@ -31611,6 +31618,30 @@ export default {
   },
 
   "profile": {
+    "tabMfa": "🔒 2단계 인증",
+    "mfaGuide": "인증 앱(Google Authenticator, Authy 등)으로 6자리 코드를 생성해 로그인 시 추가 인증합니다.",
+    "mfaGuide2": "활성화하면 다음 로그인부터 비밀번호와 함께 인증 코드를 입력해야 합니다.",
+    "mfaLoading": "상태 확인 중...",
+    "mfaOn": "2단계 인증 활성화됨",
+    "mfaRecoveryLeft": "남은 복구 코드",
+    "mfaDisablePh": "해제하려면 현재 비밀번호 입력",
+    "mfaDisableBtn": "🔓 2단계 인증 해제",
+    "processing": "처리 중...",
+    "mfaSetupBtn": "🔒 2단계 인증 설정 시작",
+    "mfaStep1": "① 인증 앱에서 아래 키를 수동으로 추가하세요(또는 setup URI 사용).",
+    "mfaSecretLabel": "설정 키 (Setup Key)",
+    "mfaStep2": "② 인증 앱에 표시된 6자리 코드 입력 *",
+    "mfaEnableBtn": "✅ 활성화",
+    "mfaRecoveryWarn": "아래 복구 코드를 안전한 곳에 보관하세요. 인증 앱을 사용할 수 없을 때 1회씩 로그인에 사용할 수 있으며, 이 화면을 벗어나면 다시 표시되지 않습니다.",
+    "mfaCopyCodes": "복구 코드 복사",
+    "copied": "복사되었습니다.",
+    "mfaSetupFail": "2단계 인증 설정에 실패했습니다.",
+    "mfaCodeInvalid": "6자리 인증 코드를 입력하세요.",
+    "mfaEnabled": "2단계 인증이 활성화되었습니다.",
+    "mfaEnableFail": "인증 코드가 올바르지 않습니다.",
+    "mfaDisabled": "2단계 인증이 해제되었습니다.",
+    "mfaDisableFail": "해제에 실패했습니다.",
+    "pwPolicy": "비밀번호는 8자 이상이며 영문 대/소문자·숫자·특수문자 중 3종 이상을 포함해야 합니다.",
 
     "title": "회원정보 관리",
 
