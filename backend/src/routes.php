@@ -64,10 +64,12 @@ return function (App $app): void {
         'POST /crm/customers'                  => 'Genie\\Handlers\\CRM::createCustomer',
         'GET /crm/customers/{id}'              => 'Genie\\Handlers\\CRM::getCustomer',
         'PUT /crm/customers/{id}'              => 'Genie\\Handlers\\CRM::updateCustomer',
+        'DELETE /crm/customers/{id}'           => 'Genie\\Handlers\\CRM::deleteCustomer',
         'POST /crm/activities'                 => 'Genie\\Handlers\\CRM::addActivity',
         'GET /crm/rfm'                         => 'Genie\\Handlers\\CRM::rfmAnalysis',
         'GET /crm/segments'                    => 'Genie\\Handlers\\CRM::listSegments',
         'POST /crm/segments'                   => 'Genie\\Handlers\\CRM::createSegment',
+        'DELETE /crm/segments/{id}'            => 'Genie\\Handlers\\CRM::deleteSegment',
         'POST /crm/segments/{id}/refresh'      => 'Genie\\Handlers\\CRM::refreshSegment',
         'GET /crm/stats'                       => 'Genie\\Handlers\\CRM::stats',
 
@@ -1757,10 +1759,12 @@ return function (App $app): void {
     $register('POST',   '/crm/customers');
     $register('GET',    '/crm/customers/{id}');
     $register('PUT',    '/crm/customers/{id}');
+    $register('DELETE', '/crm/customers/{id}');
     $register('POST',   '/crm/activities');
     $register('GET',    '/crm/rfm');
     $register('GET',    '/crm/segments');
     $register('POST',   '/crm/segments');
+    $register('DELETE', '/crm/segments/{id}');
     $register('POST',   '/crm/segments/{id}/refresh');
     $register('GET',    '/crm/stats');
     // Email Marketing

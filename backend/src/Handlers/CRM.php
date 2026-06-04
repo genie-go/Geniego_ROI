@@ -237,6 +237,23 @@ class CRM
         return self::jsonRes($res, ['ok'=>true]);
     }
 
+    /* ─── DELETE /crm/customers/{id} ─── 191차: 고객 삭제(테넌트 스코프 + 연관 cascade) ── */
+    public static function deleteCustomer(Request $req, Response $res, array $args): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $pdo = self::db();
+        $tenant = self::tenant($req);
+        $id = (int)$args['id'];
+        $chk = $pdo->prepare("SELECT id FROM crm_customers WHERE id=:id AND tenant_id=:t");
+        $chk->execute([':id'=>$id, ':t'=>$tenant]);
+        if (!$chk->fetch()) return self::jsonRes($res, ['ok'=>false,'error'=>'고객 없음'], 404);
+        $pdo->prepare("DELETE FROM crm_segment_members WHERE customer_id=:id AND tenant_id=:t")->execute([':id'=>$id, ':t'=>$tenant]);
+        $pdo->prepare("DELETE FROM crm_activities WHERE customer_id=:id AND tenant_id=:t")->execute([':id'=>$id, ':t'=>$tenant]);
+        $pdo->prepare("DELETE FROM crm_customers WHERE id=:id AND tenant_id=:t")->execute([':id'=>$id, ':t'=>$tenant]);
+        return self::jsonRes($res, ['ok'=>true]);
+    }
+
     /* ─── POST /crm/activities ──────────────────────────────────────── */
     public static function addActivity(Request $req, Response $res): Response
     {
@@ -351,6 +368,22 @@ class CRM
         return self::jsonRes($res, ['ok'=>true,'id'=>$sid,'member_count'=>$cnt]);
     }
 
+    /* ─── DELETE /crm/segments/{id} ─── 191차: 세그먼트 삭제(테넌트 스코프 + 멤버 cascade) ── */
+    public static function deleteSegment(Request $req, Response $res, array $args): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $pdo = self::db();
+        $tenant = self::tenant($req);
+        $id = (int)$args['id'];
+        $chk = $pdo->prepare("SELECT id FROM crm_segments WHERE id=:id AND tenant_id=:t");
+        $chk->execute([':id'=>$id, ':t'=>$tenant]);
+        if (!$chk->fetch()) return self::jsonRes($res, ['ok'=>false,'error'=>'세그먼트 없음'], 404);
+        $pdo->prepare("DELETE FROM crm_segment_members WHERE segment_id=:id AND tenant_id=:t")->execute([':id'=>$id, ':t'=>$tenant]);
+        $pdo->prepare("DELETE FROM crm_segments WHERE id=:id AND tenant_id=:t")->execute([':id'=>$id, ':t'=>$tenant]);
+        return self::jsonRes($res, ['ok'=>true]);
+    }
+
     /* ─── POST /crm/segments/{id}/refresh ───────────────────────────── */
     public static function refreshSegment(Request $req, Response $res, array $args): Response
     {
@@ -376,20 +409,37 @@ class CRM
         $pdo->prepare("DELETE FROM crm_segment_members WHERE segment_id=:id AND tenant_id=:t")
             ->execute([':id'=>$sid, ':t'=>$tenant]);
 
-        $where = ['tenant_id = ' . $pdo->quote($tenant)];
-        foreach ($rules as $rule) {
-            $field = preg_replace('/[^a-z_]/', '', strtolower($rule['field']??''));
-            $op    = match($rule['op']??'eq') { 'gte'=>'>=', 'lte'=>'<=', 'gt'=>'>', 'lt'=>'<', 'eq'=>'=', default=>'' };
-            if (!$op || !$field) continue;
-            $val = is_numeric($rule['value']) ? (float)$rule['value'] : $pdo->quote($rule['value']??'');
-            $where[] = "$field $op $val";
-        }
-        $whereStr = implode(' AND ', $where);
-        $sidQ = (int)$sid;
         $tQ = $pdo->quote($tenant);
+        // 191차: 멤버십 룰을 crm_activities(구매) 라이브 집계로 평가. ltv=SUM(amount), frequency=COUNT.
+        //   (c.rfm_f 컬럼은 addActivity 가 갱신하지 않아 stale → 라이브 freq 가 정확). grade 는 컬럼 직접.
+        //   알 수 없는 룰 필드는 무시하고 try/catch 로 세그먼트 생성 자체는 보호.
+        $conds = ["c.tenant_id = $tQ"];
+        foreach ($rules as $rule) {
+            $field = strtolower((string)($rule['field'] ?? ''));
+            $op    = match($rule['op'] ?? 'eq') { 'gte'=>'>=', 'lte'=>'<=', 'gt'=>'>', 'lt'=>'<', 'eq'=>'=', 'ne'=>'!=', default=>'' };
+            if (!$op) continue;
+            $expr = match($field) {
+                'ltv', 'monetary'              => 'COALESCE(a.ltv,0)',
+                'rfm_f', 'frequency', 'freq'   => 'COALESCE(a.freq,0)',
+                'grade'                        => 'c.grade',
+                default                        => '',
+            };
+            if ($expr === '') continue;
+            $raw = $rule['value'] ?? '';
+            $val = is_numeric($raw) ? (float)$raw : $pdo->quote((string)$raw);
+            $conds[] = "$expr $op $val";
+        }
+        $whereStr = implode(' AND ', $conds);
+        $sidQ = (int)$sid;
         $ignore = self::isMysql($pdo) ? 'IGNORE' : 'OR IGNORE';
-        $pdo->exec("INSERT {$ignore} INTO crm_segment_members (tenant_id, segment_id, customer_id)
-                    SELECT {$tQ}, {$sidQ}, id FROM crm_customers WHERE {$whereStr}");
+        try {
+            $pdo->exec("INSERT {$ignore} INTO crm_segment_members (tenant_id, segment_id, customer_id)
+                        SELECT {$tQ}, {$sidQ}, c.id FROM crm_customers c
+                        LEFT JOIN (SELECT customer_id, SUM(amount) AS ltv, COUNT(*) AS freq
+                                   FROM crm_activities WHERE type='purchase' AND tenant_id={$tQ} GROUP BY customer_id) a
+                          ON a.customer_id = c.id
+                        WHERE {$whereStr}");
+        } catch (\Throwable $e) { /* 룰 필드 오류 시 0 멤버 — 세그먼트 생성 자체는 성공(정직) */ }
 
         $cnt = $pdo->prepare("SELECT COUNT(*) FROM crm_segment_members WHERE segment_id=:id AND tenant_id=:t");
         $cnt->execute([':id'=>$sid, ':t'=>$tenant]);

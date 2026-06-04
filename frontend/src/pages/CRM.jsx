@@ -5,6 +5,7 @@ import React, { useState, useCallback, useMemo, useEffect, useRef } from "react"
 import PlanGate from "../components/PlanGate.jsx";
 import { useNavigate } from "react-router-dom";
 import { useGlobalData } from "../context/GlobalDataContext.jsx";
+import { crmApi } from "../services/crmApi.js"; // 191차 4단계: 운영 백엔드 실배선(/api/crm/*)
 import { useConnectorSync } from "../context/ConnectorSyncContext.jsx";
 import AIRecommendBanner from '../components/AIRecommendBanner.jsx';
 import { useSecurityGuard } from '../security/SecurityGuard.js';
@@ -286,19 +287,20 @@ function AISegmentsTab({ navigate, derivedCustomers }) {
 }
 
 /* ── Segments Tab ───────────────────────────────────────────────────────────── */
-function SegmentsTab({ crmSegments, setCrmSegments }) {
+function SegmentsTab({ segments, onSave, onDelete }) {
   const { t } = useI18n();
   const [form, setForm] = useState({ name: "", description: "", color: "#4f8ef7", rules: [] });
   const [msg, setMsg] = useState("");
   const addRule = () => setForm(f => ({ ...f, rules: [...f.rules, { field: "ltv", op: "gte", value: "" }] }));
   const removeRule = (i) => setForm(f => { const r = [...f.rules]; r.splice(i, 1); return { ...f, rules: r }; });
   const updateRule = (i, k, v) => setForm(f => { const r = [...f.rules]; r[i] = { ...r[i], [k]: v }; return { ...f, rules: r }; });
-  const save = () => {
-    setCrmSegments(prev => [...prev, { id: "seg_" + Date.now(), ...form, count: 0 }]);
+  const save = async () => {
+    await onSave(form); // 데모=로컬 append, 운영=crmApi.createSegment+reload
     setMsg(`✅ ${t('crm.btnSaving')}`);
     setForm({ name: "", description: "", color: "#4f8ef7", rules: [] });
     setTimeout(() => setMsg(""), 3000);
   };
+  const crmSegments = segments;
   return (
     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
       <div style={{ background: C.card, borderRadius: 14, padding: 20 }}>
@@ -333,7 +335,10 @@ function SegmentsTab({ crmSegments, setCrmSegments }) {
           <div key={s.id} style={{ background: C.card, borderRadius: 12, padding: "14px 18px", borderLeft: `4px solid ${s.color || "#4f8ef7"}` }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
               <div><div style={{ fontWeight: 700, fontSize: 11, color: C.muted, marginTop: 2 }} >{s.name}</div><div>{s.description}</div></div>
-              <div style={{ textAlign: "right", fontSize: 10, fontWeight: 800, color: C.muted }} ><div>{s.count}</div><div>{t('crm.segUnit')}</div></div>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div style={{ textAlign: "right", fontSize: 10, fontWeight: 800, color: C.muted }} ><div>{s.count}</div><div>{t('crm.segUnit')}</div></div>
+                <button onClick={() => { if (window.confirm(t('crm.deleteConfirm') || 'Delete?')) onDelete(s.id); }} style={{ background: "none", border: "none", color: C.red, cursor: "pointer", fontSize: 14 }}>🗑</button>
+              </div>
             </div>
           </div>
         ))}
@@ -542,7 +547,23 @@ function CRMContent() {
   }, [crmCustomerHistory]);
 
   const [manualCustomers, setManualCustomers] = useState([]);
-  const customers = useMemo(() => [...derivedCustomers, ...manualCustomers].sort((a, b) => b.ltv - a.ltv), [derivedCustomers, manualCustomers]);
+
+  /* ── 191차 4단계: 운영=백엔드(/api/crm/*) 실배선, 데모=주문이력 파생+로컬 유지 ── */
+  const [opCustomers, setOpCustomers] = useState([]);
+  const [opSegments, setOpSegments] = useState([]);
+  const [opRfm, setOpRfm] = useState([]);
+  const [opPanelActs, setOpPanelActs] = useState([]);
+  const mapCust = (r) => ({ id: r.id, name: r.name || '', email: r.email || '', phone: r.phone || '-', grade: r.grade || 'normal', ltv: Number(r.ltv || 0), purchase_count: Number(r.purchase_count || 0), last_purchase: (r.last_purchase || '').slice(0, 10), tags: Array.isArray(r.tags) ? r.tags : [] });
+  const reloadOpCustomers = useCallback(() => { crmApi.listCustomers().then(r => setOpCustomers((r.customers || []).map(mapCust))).catch(() => {}); }, []);
+  const reloadOpSegments = useCallback(() => { crmApi.listSegments().then(r => setOpSegments((r.segments || []).map(s => ({ ...s, count: Number(s.member_count || 0) })))).catch(() => {}); }, []);
+  const reloadOpRfm = useCallback(() => { crmApi.rfm().then(r => setOpRfm((r.customers || []).map(c => ({ id: c.id, name: c.name || '', email: c.email || '', phone: '-', grade: c.rfm_grade || 'normal', ltv: Number(c.monetary || 0), purchase_count: Number(c.frequency || 0), last_purchase: (c.last_purchase || '').slice(0, 10), tags: [] })))).catch(() => {}); }, []);
+  useEffect(() => { if (IS_DEMO) return; reloadOpCustomers(); reloadOpSegments(); reloadOpRfm(); }, [reloadOpCustomers, reloadOpSegments, reloadOpRfm]);
+
+  const customers = useMemo(() => (
+    IS_DEMO ? [...derivedCustomers, ...manualCustomers].sort((a, b) => b.ltv - a.ltv) : [...opCustomers].sort((a, b) => b.ltv - a.ltv)
+  ), [derivedCustomers, manualCustomers, opCustomers]);
+  const segments = IS_DEMO ? crmSegments : opSegments;
+  const rfmList = IS_DEMO ? customers : opRfm;
 
   const [tab, setTab] = useState("customers");
   const [selectedCustomer, setSelectedCustomer] = useState(null);
@@ -556,17 +577,44 @@ function CRMContent() {
   const totalPages = Math.max(1, Math.ceil(filteredCustomers.length / PER_PAGE));
   const pageCustomers = filteredCustomers.slice((page - 1) * PER_PAGE, page * PER_PAGE);
 
-  const saveCustomer = () => {
-    const payload = { ...form, id: form.email, ltv: 0, purchase_count: 0, tags: form.tags ? form.tags.split(",").map(tx => tx.trim()) : [] };
-    setManualCustomers(prev => [payload, ...prev]);
+  const saveCustomer = async () => {
+    const tags = form.tags ? form.tags.split(",").map(tx => tx.trim()).filter(Boolean) : [];
+    if (IS_DEMO) {
+      setManualCustomers(prev => [{ ...form, id: form.email, ltv: 0, purchase_count: 0, tags }, ...prev]);
+    } else {
+      try { await crmApi.createCustomer({ email: form.email, name: form.name, phone: form.phone, grade: form.grade, tags }); reloadOpCustomers(); }
+      catch (e) { addAlert?.({ type: 'error', msg: '고객 등록 실패: ' + (e?.message || '') }); return; }
+    }
     setShowForm(false); setForm({ email: "", name: "", phone: "", grade: "normal", tags: "" });
     broadcastRefresh();
   };
 
-  const deleteCustomer = (id) => {
-    setManualCustomers(prev => prev.filter(c => c.id !== id));
+  const deleteCustomer = async (id) => {
+    if (IS_DEMO) { setManualCustomers(prev => prev.filter(c => c.id !== id)); }
+    else { try { await crmApi.deleteCustomer(id); reloadOpCustomers(); reloadOpRfm(); } catch (e) { addAlert?.({ type: 'error', msg: '삭제 실패: ' + (e?.message || '') }); return; } }
     setSelectedCustomer(null);
     broadcastRefresh();
+  };
+
+  // 운영: 고객 선택 시 360°(getCustomer) 활동을 패널용으로 매핑(데모는 주문이력 사용)
+  const selectCustomer = (c) => {
+    setSelectedCustomer(c);
+    if (!IS_DEMO && c?.id != null) {
+      setOpPanelActs([]);
+      crmApi.getCustomer(c.id).then(r => {
+        setOpPanelActs((r.activities || []).filter(a => a.type === 'purchase' || a.amount).map(a => ({ ch: a.channel || 'Web', total: Number(a.amount || 0), at: (a.created_at || '').slice(0, 16) })));
+      }).catch(() => {});
+    }
+  };
+
+  // 세그먼트 저장/삭제(데모=로컬, 운영=백엔드)
+  const onSaveSegment = async (segForm) => {
+    if (IS_DEMO) { setCrmSegments(prev => [...prev, { id: "seg_" + Date.now(), ...segForm, count: 0 }]); }
+    else { try { await crmApi.createSegment(segForm); reloadOpSegments(); } catch (e) { addAlert?.({ type: 'error', msg: '세그먼트 생성 실패: ' + (e?.message || '') }); } }
+  };
+  const onDeleteSegment = async (id) => {
+    if (IS_DEMO) { setCrmSegments(prev => prev.filter(s => s.id !== id)); }
+    else { try { await crmApi.deleteSegment(id); reloadOpSegments(); } catch (e) { addAlert?.({ type: 'error', msg: '세그먼트 삭제 실패: ' + (e?.message || '') }); } }
   };
 
   const handleExportCsv = () => {
@@ -621,7 +669,7 @@ function CRMContent() {
         <StatCard icon="👥" label={t('crm.statTot')} value={displayStats.total.toLocaleString()} color={C.accent} />
         <StatCard icon="🔥" label={t('crm.statAct')} value={displayStats.active_30d.toLocaleString()} color={C.green} />
         <StatCard icon="💰" label={t('crm.statLtv')} value={fmt(displayStats.total_ltv)} color="#38bdf8" />
-        <StatCard icon="🏷" label={t('crm.statSeg')} value={crmSegments.length} color={C.yellow} />
+        <StatCard icon="🏷" label={t('crm.statSeg')} value={segments.length} color={C.yellow} />
       </div>
 
       {/* Tabs */}
@@ -683,7 +731,7 @@ function CRMContent() {
                 {pageCustomers.map((c, i) => {
                   const g = getRfmGrade(t)[c.grade] || getRfmGrade(t).normal;
                   return (
-                    <tr key={c.id} onClick={() => setSelectedCustomer(c)} style={{ borderTop: `1px solid ${C.border}`, cursor: "pointer", background: i % 2 ? "#f1f5f9" : "transparent", transition: "background 0.15s" }}
+                    <tr key={c.id} onClick={() => selectCustomer(c)} style={{ borderTop: `1px solid ${C.border}`, cursor: "pointer", background: i % 2 ? "#f1f5f9" : "transparent", transition: "background 0.15s" }}
                       onMouseEnter={e => e.currentTarget.style.background = "#f1f5f9"} onMouseLeave={e => e.currentTarget.style.background = i % 2 ? "#f1f5f9" : "transparent"}>
                       <td style={{ padding: "10px 16px", fontWeight: 600 }}>{c.name || "-"}</td>
                       <td style={{ padding: "10px 16px", color: C.muted }}>{c.email}</td>
@@ -711,15 +759,15 @@ function CRMContent() {
         </>
       )}
 
-      {tab === "segments" && <SegmentsTab crmSegments={crmSegments} setCrmSegments={setCrmSegments} />}
-      {tab === "rfm" && <RFMTab derivedCustomers={customers} />}
+      {tab === "segments" && <SegmentsTab segments={segments} onSave={onSaveSegment} onDelete={onDeleteSegment} />}
+      {tab === "rfm" && <RFMTab derivedCustomers={rfmList} />}
       {tab === "ai_segments" && <AISegmentsTab navigate={navigate} derivedCustomers={customers} />}
       {tab === "guide" && <GuideTab />}
 
       <CustomerPanel
         customer={selectedCustomer}
         onClose={() => setSelectedCustomer(null)}
-        crmCustomerHistory={crmCustomerHistory}
+        crmCustomerHistory={IS_DEMO ? crmCustomerHistory : (selectedCustomer ? { [selectedCustomer.id]: opPanelActs } : {})}
         onDelete={deleteCustomer}
         onSendEmail={c => navigate(`/email-marketing?prefill_email=${encodeURIComponent(c.email)}`)}
         onSendKakao={c => navigate(`/kakao-channel?prefill_phone=${encodeURIComponent(c.phone || "")}`)}
