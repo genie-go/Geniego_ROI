@@ -36,24 +36,12 @@ return function (App $app): void {
         'GET /v380/admin/connector-health' => 'Genie\\Handlers\\Risk::adminConnectorHealth',
         'GET /v380/admin/ingestion-runs' => 'Genie\\Handlers\\Risk::adminIngestionRuns',
         'GET /v380/admin/billing' => 'Genie\\Handlers\\Risk::adminBilling',
-        'GET /v382/connectors' => 'Genie\\Handlers\\V382::listConnectors',
-        'POST /v382/connectors/{connector}/configure' => 'Genie\\Handlers\\V382::configureConnector',
-        'POST /v382/connectors/{provider}/fetch' => 'Genie\\Handlers\\V382::fetchFromConnector',
-        'GET /v382/writeback/jobs' => 'Genie\\Handlers\\V382::listWritebackJobs',
-        'POST /v382/writeback/{channel}/{sku}/prepare' => 'Genie\\Handlers\\V382::writebackPrepare',
-        'POST /v382/writeback/{channel}/{sku}/execute' => 'Genie\\Handlers\\V382::writebackExecute',
-        'POST /v382/approvals' => 'Genie\\Handlers\\V382::approvalsCreate',
-        'POST /v382/approvals/{approval_id}/decide' => 'Genie\\Handlers\\V382::approvalsDecide',
-        'GET /v382/settlements' => 'Genie\\Handlers\\V382::listSettlements',
-        'POST /v382/settlements/import' => 'Genie\\Handlers\\V382::importSettlement',
-        'GET /v382/audit' => 'Genie\\Handlers\\V382::listAudit',
+        // 191차: 팬텀 핸들러 V382(클래스 부재) 매핑 11개 제거 → 404(기존 api_key hit 시 500 class-not-found).
+        //   /v382/products·/v382/sync 는 템플릿 백킹이라 유지($custom 엔트리 없음). 미구현 connectors/
+        //   writeback-engine/approvals/settlements/audit(프론트 Writeback/CatalogSync/Settlements 호출하나
+        //   세션토큰=401·api_key=500 으로 비기능) → 라우트·$register 동반 제거(아래 register 블록 참조).
 
-        // v386 connectors (Shopify/Meta/TikTok) + quickstart sync
-        'GET /v386/shopify/products' => 'Genie\\Handlers\\V386::shopifyProducts',
-        'GET /v386/shopify/orders' => 'Genie\\Handlers\\V386::shopifyOrders',
-        'GET /v386/meta/insights' => 'Genie\\Handlers\\V386::metaInsights',
-        'GET /v386/tiktok/report' => 'Genie\\Handlers\\V386::tiktokReport',
-        'POST /v386/sync/quickstart' => 'Genie\\Handlers\\V386::quickstartSync',
+        // 191차: 팬텀 핸들러 V386(클래스 부재) connectors 매핑 5개 제거 → 404(프론트 미사용·미구현).
 
         // v422 AI 마케팅 추천 (전체 카테고리 지원)
         'POST /v422/ai/campaign-search'      => 'Genie\\Handlers\\ClaudeAI::campaignSearch',
@@ -176,11 +164,8 @@ return function (App $app): void {
         'POST /v418/mappings/validation_rules' => 'Genie\\Handlers\\Mapping::createRule',
         'PUT /v418/mappings/validation_rules/{rule_id}' => 'Genie\\Handlers\\Mapping::updateRule',
         'DELETE /v418/mappings/validation_rules/{rule_id}' => 'Genie\\Handlers\\Mapping::deleteRule',
-        'POST /v418/events/ingest' => 'Genie\\Handlers\\V418::ingest',
-        'POST /v418/events/normalize' => 'Genie\\Handlers\\V418::normalize',
-        'POST /v418/rollups/compute' => 'Genie\\Handlers\\V418::rollupsCompute',
-        'POST /v418/rollups/persist' => 'Genie\\Handlers\\V418::rollupsPersist',
-        'GET /v418/ai/policies/suggest' => 'Genie\\Handlers\\V418::aiSuggestPolicies',
+        // 191차: 팬텀 핸들러 V418(클래스 부재) 매핑 5개(events/rollups/ai-policies) 제거 → 404.
+        //   동일 v418 prefix 의 Mapping/Insights/Alerting 라우트는 실 핸들러라 유지.
         // v418.1 - aggregated decisioning (ads + influencer + commerce; no PII)
         'POST /v4181/ingest/ad-insights' => 'Genie\\Handlers\\Decisioning::ingestAdInsights',
         'POST /v4181/ingest/influencer-insights' => 'Genie\\Handlers\\Decisioning::ingestInfluencerInsights',
@@ -878,20 +863,11 @@ return function (App $app): void {
     $register('GET', '/v380/admin/ingestion-runs');
     $register('GET', '/v380/admin/billing');
     $register('POST', '/v380/admin/seed');
-    $register('GET', '/v382/connectors');
-    $register('POST', '/v382/connectors/{connector}/configure');
-    $register('POST', '/v382/connectors/{provider}/fetch');
+    // 191차: 팬텀 V382 라우트 제거(connectors/writeback-engine/approvals/settlements/audit).
+    //   템플릿 백킹 /v382/sync·/v382/products 만 유지.
     $register('POST', '/v382/sync/{channel}/{source}/run');
     $register('POST', '/v382/products');
     $register('GET', '/v382/products');
-    $register('POST', '/v382/writeback/{channel}/{sku}/prepare');
-    $register('POST', '/v382/approvals');
-    $register('POST', '/v382/approvals/{approval_id}/decide');
-    $register('POST', '/v382/writeback/{channel}/{sku}/execute');
-    $register('GET', '/v382/writeback/jobs');
-    $register('POST', '/v382/settlements/import');
-    $register('GET', '/v382/settlements');
-    $register('GET', '/v382/audit');
     $register('GET', '/v384/ads/mappings');
     $register('POST', '/v384/ads/mappings');
     $register('POST', '/v384/budget/plan');
@@ -902,11 +878,7 @@ return function (App $app): void {
     $register('POST', '/v385/ingest/metrics');
     $register('GET', '/v385/recommendations/traffic-cost');
     $register('GET', '/v385/recommendations/budget-allocation');
-    $register('GET', '/v386/shopify/products');
-    $register('GET', '/v386/shopify/orders');
-    $register('GET', '/v386/meta/insights');
-    $register('GET', '/v386/tiktok/report');
-    $register('POST', '/v386/sync/quickstart');
+    // 191차: 팬텀 V386 라우트 5개 제거(클래스 부재·프론트 미사용).
     $register('GET', '/v387/recommendations/rule');
     $register('GET', '/v387/recommendations/goal');
     $register('GET', '/v387/recommendations/incrementality');
@@ -1307,10 +1279,7 @@ return function (App $app): void {
     $register('POST', '/v417/mappings');
     $register('PUT', '/v417/mappings/{mapping_id}');
     $register('DELETE', '/v417/mappings/{mapping_id}');
-    $register('POST', '/v418/events/ingest');
-    $register('POST', '/v418/events/normalize');
-    $register('POST', '/v418/rollups/compute');
-    $register('POST', '/v418/rollups/persist');
+    // 191차: 팬텀 V418 라우트 제거(events/ingest·normalize, rollups/compute·persist).
     $register('GET', '/v418/alert_policies');
     $register('POST', '/v418/alert_policies');
     $register('PUT', '/v418/alert_policies/{policy_id}');
@@ -1318,7 +1287,7 @@ return function (App $app): void {
     $register('POST', '/v418/alerts/evaluate');
     $register('GET', '/v418/alerts');
     $register('GET', '/v418/actions/presets');
-    $register('GET', '/v418/ai/policies/suggest');
+    // 191차: 팬텀 V418::aiSuggestPolicies 제거.
     $register('GET', '/v418/mappings');
     $register('POST', '/v418/mappings');
     $register('PUT', '/v418/mappings/{mapping_id}');
