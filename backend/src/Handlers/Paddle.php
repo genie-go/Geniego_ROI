@@ -795,9 +795,17 @@ class Paddle
      */
     private static function verifySignature(Request $req, string $rawBody): bool
     {
+        // 191차 보안(fail-closed): 명시적 dev 우회(PADDLE_SKIP_VERIFY=true)만 허용.
+        if (getenv('PADDLE_SKIP_VERIFY') === 'true') {
+            return true; // 명시적 dev 우회(운영 미설정)
+        }
+        // secret 미설정 시 과거엔 return true(fail-OPEN) → 무서명 위조 webhook 수용(구독 활성화 등
+        //   결제이벤트 위조 가능). 공개 webhook 라우트라 악용 표면 → fail-CLOSED 로 전환(거부).
+        //   Paddle 활성화 시 PADDLE_WEBHOOK_SECRET 필수(미설정=검증불가=거부가 정답).
         $secret = self::webhookSecret();
-        if (!$secret || getenv('PADDLE_SKIP_VERIFY') === 'true') {
-            return true; // Dev bypass
+        if (!$secret) {
+            error_log('[Paddle] PADDLE_WEBHOOK_SECRET 미설정 — 서명검증 불가로 webhook 거부(fail-closed)');
+            return false;
         }
 
         $header = $req->getHeaderLine('Paddle-Signature');
