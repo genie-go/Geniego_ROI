@@ -1,3 +1,72 @@
+# 190차 세션 인계서 — **189차 종료: 보안 하드닝 클러스터 + 전수감사 8스프린트 (15커밋 전부 운영/데모 배포·검증·push)**
+
+> **작성일**: 2026-06-04 (사용자 명시 승인 후)
+> **이전 세션**: 189차 (15 commit, 14 배포 사이클, master 동기화 완료)
+> **종결 상태**: `master == origin/master == c388ee20b1`. 미푸시·미배포 잔재 0. 워킹트리 추적변경 = `tools/resolver_consumer_manifest_v2.json`(188차부터의 빌드 산출물, 무관) 뿐.
+
+---
+
+## ⚠️ 190차 검수자 최우선 인지
+
+### 1. 189차 = "전수 분석 → 8스프린트 순차 실행" 세션
+사용자 "초엔터프라이즈/은행급 전수분석 후 수정·기능추가 순서대로" 요청. 5도메인 병렬 감사(보안/목데이터/스텁/프론트품질/SaaS갭) → 우선순위 Sprint → 순차 구현·배포·검증.
+**전 작업 상세는 메모리 `project_n189_security_hardening` + `project_n189_full_audit_backlog`(체크표시 동기화)에 보존.**
+
+### 2. 189차 커밋 일람 (15, 전부 push 완료)
+```
+c388ee20b1  Sprint3: NotifyEngine SMS 실발송 위임 + Kakao honest
+3faa761641  Sprint3: Webhooks HMAC-SHA256 서명검증(opt-in)
+289d2340c0  Sprint4: 인앱 알림센터 서버백킹
+5708d0e4c6  Sprint5: API키(devHub) 25키 15개국 i18n
+fc3f948cf5  Sprint4: API 키 관리(세션 CRUD + DeveloperHub UI)
+860af46e36  Sprint4: 세션/기기 관리
+20b34f1d37  Sprint5: 세션관리 신규키 15개국 i18n
+a2d27dcec9  Sprint4: 인증 감사로그(죽은 Audit.jsx 실기능화)
+3e576ccaca  Sprint3a: OrderHub 운영 필드매핑 + dead seed 제거
+9500005c9e  Sprint1: P0 크래시3 + P1 보안9
+708373710c  189 i18n 15개국
+a752546921  189 보안 하드닝(비번정책8자·rate-limit·MFA·자동로그인)
++ 2ce48016b7(188차 종결, 이미 push됨)
+```
+
+### 3. 현재 라이브 상태
+| 항목 | 상태 |
+|---|---|
+| 운영 frontend | `index-BIS9Z6T8.js` (알림센터 배포 시점, 이후 Webhook/NotifyEngine은 backend-only) |
+| 데모 frontend | `index-UtVlZXVX.js` |
+| baseline.json | version **189**, ko_leaf **23292**, ja/zh sacred SHA 갱신됨 |
+| 백엔드 백업 | 각 배포마다 `.bak.189[a-l]` 운영/데모 보존 |
+| ★배포후 영향 | **전 사용자 1회 재로그인**(자동로그인 재설계 — REMEMBER 플래그 없던 기존세션 자동복원 차단=의도된 정상) |
+
+### 4. 189차 완성 = 엔터프라이즈 계정·보안·플랫폼 스택 (전부 15개국 현지화, 누적 미동기화 i18n 0)
+🔐비번정책8자+3종 · 로그인/계정복구 rate-limit · 🔢MFA(TOTP·2단계·복구코드) · 🔑자동로그인+클라/서버 백도어제거 · 🧾인증 감사로그(9액션) · 💻세션/기기 관리 · 🗝️API키 관리(세션 CRUD+DeveloperHub) · 🔔알림센터 서버백킹 · 🛡️/v422 AI비용남용·CORS화이트리스트·에러trace제거·EventNorm 테넌트누출·헬스데모키·OrderHub운영버그·Webhook HMAC서명·NotifyEngine SMS위임.
+
+### 5. ★핵심 정정 (메모리 반영)
+- **CRM "P0 PII누출"은 오탐**: `CRM.php`가 미존재 `Db::get()` 사용 → **모든 호출 fatal 500 = 진짜 dead**(188차 메모리 옳음). 라이브 위험 0. 복원하려면 **반드시 tenant_id 격리 먼저**(crm_* 컬럼+전쿼리 바인딩+Db::get→pdo+프론트통합), 그 전엔 dead 유지.
+
+### 6. ★190차가 알아야 할 함정 (189차 학습)
+- **routes.php는 `$custom` 배열 추가만으론 미등록** → 별도 `$register('METHOD','/path')` 호출 필수(mfa·audit·sessions·api-keys·notifications 전부 둘 다 등록함). 신규 라우트 시 양쪽 필수.
+- **i18n depth-1 walker**: ①따옴표키(`"auth":`) 검사는 따옴표 문자열-진입 처리보다 **먼저** ②주석 스킵 ③중복 top-level키는 **마지막(런타임 승자)** ④**주입 후 ESM import로 안착 검증** ⑤네임스페이스가 **중첩(depth-2)에만** 있으면(예: devHub) t()가 못 읽으니 **top-level 신규 생성** 필요. baseline.json(ja/zh sha+ko_leaf) 갱신 + G6 pre-existing 충돌은 `TRIAGE_SKIP=1`.
+- **세션 인증 vs api_key**: `/auth/*`=세션토큰(userByToken), `/v4xx`·`/api/crm`·`/v421/keys`=api_key 미들웨어. 프론트는 세션토큰만 보유 → api_key 엔드포인트는 세션 래퍼 신설 필요(API키 관리가 이 패턴).
+- **PowerShell→plink 이스케이프**: `\"`·`2>/dev/null`·`\$(...)` 깨짐 → 복잡한 원격명령은 `.sh` 파일 작성 후 `plink -m` 사용.
+
+### 7. 남은 백로그 (우선순위, 메모리 `project_n189_full_audit_backlog` 체크표시 정본)
+| 항목 | 규모 | 비고 |
+|---|:-:|---|
+| **Alerting::evaluate 실구현** | L | `Alerting.php:157-196` 완전스텁(임계비교 없이 무조건 alert). 메트릭집계+조건트리비교+sendSlack/Email연결+cron. Sprint3 마지막 핵심 |
+| **PM page raw키 i18n** | M | `PMTaskBoard.jsx:115,117`/`PMProjectDetail.jsx:65,98-117` `t(key)\|\|fb` 안티패턴(엔진이 key 반환=truthy라 폴백 미발동, raw키 노출). pm.board/detail/kpi.* 부재 → 추가 또는 인라인폴백 전환. **가볍고 체감 큼=190차 권장 1순위** |
+| 이메일 발송 인프라 | L | raw mail()/mock_sent → PHPMailer+SMTP. 비번재설정 이메일·팀초대·스케줄리포트의 공통 의존성 |
+| CRM 복원+격리 | L | §5 — 격리 먼저 |
+| 기존 i18n갭 | L | marketing.ai*(AiDesignEngine 37키)·sidebar/topbar 공통UI(인라인폴백만, 13개국 영어고정) |
+| 기타 | - | AdStatusAnalysis 합성KPI 데모한정화·정산파서 스텁·구버전 라우트 414건 정리·GDPR export/삭제·팀초대 이메일·인보이스UI·온보딩 체크리스트 |
+
+### 8. 자격증명·배포
+- credentials = 메모리 `reference_session_credentials`(사용자 "삭제" 명시까지 유지). 평문 노출 금지.
+- 배포 = CI inert(시크릿 미등록) → **수동 plink/pscp 필수**. 운영 `roi.geniego.com` + 데모 `roidemo.geniego.com`, 백엔드 chown www:www+`systemctl reload php-fpm`, 프론트 tar 오버레이+nginx 설정 미변경. **모든 배포 사용자 승인 의무**.
+- 헤드리스 검증 = puppeteer(`headless:'new'`, `--ignore-certificate-errors`), api_key 엔드포인트는 세션 admin 로그인→키발급 e2e.
+
+---
+
 # 179차 세션 인계서 (NEXT_SESSION.md) — **178차 종료: PM-Core 4 page(Option A) + Events SSE(Option B) + 데모 backend 파리티 복구 + U-178-A 신규**
 
 > **작성일**: 2026-05-29 (사용자 명시 승인 후)
