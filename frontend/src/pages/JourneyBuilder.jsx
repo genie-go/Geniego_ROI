@@ -16,6 +16,7 @@ import React, { useState, useMemo, useCallback, useEffect, memo } from 'react';
 import { useI18n } from '../i18n';
 
 import { useGlobalData } from '../context/GlobalDataContext';
+import { journeyApi } from '../services/journeyApi.js'; // 191차 3단계: 운영 백엔드 실배선(/api/journey/*)
 import { useNavigate } from 'react-router-dom';
 import EmptyState from '../components/EmptyState';
 import { useToast } from '../components/ToastProvider';
@@ -67,6 +68,36 @@ export default function JourneyBuilder() {
 
     const persist = useCallback(list => { try { localStorage.setItem('jb_journeys', JSON.stringify(list)); } catch { } }, []);
 
+    // 191차 3단계: 운영=백엔드(/api/journey/*) 실배선, 데모=로컬 유지.
+    //   프론트 여정 모델(channels/delay/segment/executions)은 백엔드 trigger_config(JSON)에 라운드트립.
+    //   진입/완료(entered/completed)는 백엔드 stats_*(실 enrollment) — 가짜 주입 없이 0부터 실집계.
+    const mapFromBackend = (r) => {
+        let cfg = {};
+        try { cfg = typeof r.trigger_config === 'string' ? JSON.parse(r.trigger_config || '{}') : (r.trigger_config || {}); } catch {}
+        const tt = r.trigger_type || 'manual';
+        const dl = cfg.delay || 'none';
+        return {
+            id: r.id, name: r.name || '',
+            trigger_type: tt, trigger_label: trigLabel(tt),
+            segment: cfg.segment || r.description || '',
+            channels: Array.isArray(cfg.channels) && cfg.channels.length ? cfg.channels : ['email'],
+            delay: dl, delay_label: delayLabel(dl),
+            status: r.status || 'draft',
+            createdAt: (r.created_at || '').slice(0, 10),
+            executions: Number(cfg.executions || 0),
+            entered: Number(r.stats_entered || 0),
+            completed: Number(r.stats_completed || 0),
+        };
+    };
+    const toBackend = (j) => ({
+        name: j.name, description: j.segment || '',
+        trigger_type: j.trigger_type || 'manual',
+        trigger_config: { channels: j.channels || ['email'], delay: j.delay || 'none', segment: j.segment || '', executions: j.executions || 0 },
+    });
+    const reloadJourneys = () => { journeyApi.list().then(r => setJourneys((r.journeys || []).map(mapFromBackend))).catch(() => {}); };
+    // 운영: 마운트 1회 백엔드 로드(데모는 로컬 시드 유지). eslint deps 의도적 비움(1회 hydrate).
+    useEffect(() => { if (!_isDemo) reloadJourneys(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, []);
+
     useEffect(() => {
         const shown = localStorage.getItem('jb_onboarding_shown');
         if (!shown) setShowOnboarding(true);
@@ -96,7 +127,7 @@ export default function JourneyBuilder() {
     };
 
     /* ── Actions ──────────────────────────────────────── */
-    const handleSave = () => {
+    const handleSave = async () => {
         if (!form.name.trim()) { addToast('경로 이름을 입력해주세요.', 'error', 5000); return; }
         const journey = {
             id: editId || `JRN-${Date.now()}`,
@@ -113,9 +144,17 @@ export default function JourneyBuilder() {
             entered: editId ? (journeys.find(j => j.id === editId)?.entered || 0) : 0,
             completed: editId ? (journeys.find(j => j.id === editId)?.completed || 0) : 0,
         };
-        const next = editId ? journeys.map(j => j.id === editId ? journey : j) : [journey, ...journeys];
-        setJourneys(next);
-        persist(next);
+        if (_isDemo) {
+            const next = editId ? journeys.map(j => j.id === editId ? journey : j) : [journey, ...journeys];
+            setJourneys(next);
+            persist(next);
+        } else {
+            try {
+                if (editId) await journeyApi.update(editId, toBackend(journey)); // 수정 시 status 미전송 → 백엔드 상태 보존
+                else await journeyApi.create(toBackend(journey));
+                reloadJourneys();
+            } catch (e) { addToast('저장 실패: ' + (e?.message || ''), 'error', 5000); return; }
+        }
         setShowCreate(false);
         setEditId(null);
         setForm({ name: '', trigger_type: 'signup', segment: '', channels: ['email'], delay: 'none' });
@@ -128,31 +167,47 @@ export default function JourneyBuilder() {
         setShowCreate(true);
     };
 
-    const handleDelete = id => {
-        const next = journeys.filter(j => j.id !== id);
-        setJourneys(next);
-        persist(next);
+    const handleDelete = async id => {
+        if (_isDemo) {
+            const next = journeys.filter(j => j.id !== id);
+            setJourneys(next);
+            persist(next);
+        } else {
+            try { await journeyApi.remove(id); reloadJourneys(); }
+            catch (e) { addToast('삭제 실패: ' + (e?.message || ''), 'error', 5000); return; }
+        }
         setDeleteId(null);
         setDetailId(null);
         addToast('경로가 삭제되었습니다.', 'success', 3000);
     };
 
-    const handleDuplicate = j => {
+    const handleDuplicate = async j => {
         const copy = { ...j, id: `JRN-${Date.now()}`, name: `${j.name} ${tr(K.copyLabel)}`, status: 'draft', executions: 0, entered: 0, completed: 0, createdAt: new Date().toLocaleDateString(LANG_LOCALE_MAP[lang] || 'ko-KR') };
-        const next = [copy, ...journeys];
-        setJourneys(next);
-        persist(next);
+        if (_isDemo) {
+            const next = [copy, ...journeys];
+            setJourneys(next);
+            persist(next);
+        } else {
+            try { await journeyApi.create(toBackend(copy)); reloadJourneys(); }
+            catch (e) { addToast('복제 실패: ' + (e?.message || ''), 'error', 5000); return; }
+        }
         addToast('경로가 복제되었습니다.', 'success', 3000);
     };
 
-    const handleRun = j => {
-        // 191차: 실행 성과(진입/완료/매출)는 데모 시뮬레이션 전용. 운영은 가짜 KPI 주입 금지(0) —
-        //   실 성과는 백엔드 enroll/launch/stats 실배선(단계적) 후 journey_enrollments 에서 채워진다.
-        const entered = _isDemo ? Math.floor(Math.random() * 500) + 50 : 0;
-        const completed = _isDemo ? Math.floor(entered * (0.4 + Math.random() * 0.5)) : 0;
-        const emailsSent = j.channels.includes('email') ? (_isDemo ? Math.floor(entered * 0.9) : 0) : 0;
-        const kakaoSent = j.channels.includes('kakao') ? (_isDemo ? Math.floor(entered * 0.85) : 0) : 0;
-        const revenue = _isDemo ? Math.floor(completed * (8000 + Math.random() * 30000)) : 0;
+    const handleRun = async j => {
+        // 191차 3단계: 운영=실 활성화(launch). 진입/완료는 실 enrollment 기준(stats_*)이라 가짜 주입 없이
+        //   0부터 실집계되며, 활성화 후 reload 로 상태/성과를 백엔드에서 다시 가져온다.
+        if (!_isDemo) {
+            try { await journeyApi.launch(j.id); reloadJourneys(); addToast('경로가 활성화되었습니다.', 'success', 3000); }
+            catch (e) { addToast('실행 실패: ' + (e?.message || ''), 'error', 5000); }
+            return;
+        }
+        // 데모: 시뮬레이션(가상 성과 + 채널 액션 트리거)
+        const entered = Math.floor(Math.random() * 500) + 50;
+        const completed = Math.floor(entered * (0.4 + Math.random() * 0.5));
+        const emailsSent = j.channels.includes('email') ? Math.floor(entered * 0.9) : 0;
+        const kakaoSent = j.channels.includes('kakao') ? Math.floor(entered * 0.85) : 0;
+        const revenue = Math.floor(completed * (8000 + Math.random() * 30000));
         if (recordJourneyExecution) {
             recordJourneyExecution(j, { entered, completed, emailsSent, kakaoSent, revenue });
         }
@@ -170,11 +225,16 @@ export default function JourneyBuilder() {
         setDetailId(null);
     };
 
-    const toggleStatus = j => {
+    const toggleStatus = async j => {
         const nextStatus = j.status === 'active' ? 'paused' : j.status === 'paused' ? 'active' : j.status;
-        const next = journeys.map(x => x.id === j.id ? { ...x, status: nextStatus } : x);
-        setJourneys(next);
-        persist(next);
+        if (_isDemo) {
+            const next = journeys.map(x => x.id === j.id ? { ...x, status: nextStatus } : x);
+            setJourneys(next);
+            persist(next);
+        } else {
+            try { await journeyApi.update(j.id, { status: nextStatus }); reloadJourneys(); }
+            catch (e) { addToast('상태 변경 실패: ' + (e?.message || ''), 'error', 5000); return; }
+        }
         addToast(nextStatus === 'paused' ? '경로가 일시 중지되었습니다.' : '경로가 재개되었습니다.', 'info', 3000);
     };
 
