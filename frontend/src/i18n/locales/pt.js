@@ -4373,6 +4373,9 @@ export default {
     "selectOption": "Selecionar",
     "namePh": "João Silva",
     "footerTagline": "Fluxo empresarial isolado",
+      resetEmailSent: 'Enviamos um link de redefinição para o seu e-mail.',
+      resetEmailSentDesc: 'Verifique a sua caixa de entrada (e a pasta de spam) e clique no link para definir uma nova senha. O link é válido por 15 minutos.',
+      close: 'Fechar',
     },
   writebackPage: {
       heroDesc: "Registre as chaves de API dos canais de vendas, publicidade e análise e gerencie o status da conexão.",

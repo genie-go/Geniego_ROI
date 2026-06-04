@@ -260,14 +260,14 @@ function Field({ label, type = "text", value, onChange, placeholder, required, a
 
 /* ─── 계정 복구: 아이디(이메일) 찾기 / 비밀번호 찾기·재설정 (188차) ───
    신뢰가능한 이메일 발송 인프라 부재 → 본인확인(이메일+이름+전화) 기반 재설정. */
-function AccountRecovery({ t, initial = "findId", onClose }) {
-  const [view, setView] = useState(initial); // 'findId' | 'forgot' | 'reset' | 'done'
+function AccountRecovery({ t, initial = "findId", resetToken = "", onClose }) {
+  const [view, setView] = useState(initial); // 'findId' | 'forgot' | 'reset' | 'sent' | 'done'
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
   const [fName, setFName] = useState(""); const [fPhone, setFPhone] = useState("");
   const [found, setFound] = useState(null);
   const [gEmail, setGEmail] = useState(""); const [gName, setGName] = useState(""); const [gPhone, setGPhone] = useState("");
-  const [rtok, setRtok] = useState("");
+  const [rtok, setRtok] = useState(resetToken || ""); // 190차: 이메일 링크(?reset=)로 진입 시 토큰 프리필
   const [np, setNp] = useState(""); const [np2, setNp2] = useState("");
 
   const post = async (path, body) => {
@@ -285,7 +285,10 @@ function AccountRecovery({ t, initial = "findId", onClose }) {
   const doForgot = async () => {
     setErr(""); if (!gEmail.trim() || !gName.trim()) { setErr(t("auth.forgotNeed", "이메일과 이름을 입력하세요.")); return; }
     setBusy(true); const { ok, d } = await post("/forgot-password", { email: gEmail.trim(), name: gName.trim(), phone: gPhone.trim() }); setBusy(false);
-    if (ok && d.reset_token) { setRtok(d.reset_token); setView("reset"); } else setErr(d.error || t("auth.forgotFail", "본인확인 정보가 일치하지 않습니다."));
+    // 190차: 이메일 인프라 설정 시 링크 발송(email_sent) → 메일확인 안내. 미설정 시 토큰 인라인 폴백.
+    if (ok && d.email_sent) { setView("sent"); }
+    else if (ok && d.reset_token) { setRtok(d.reset_token); setView("reset"); }
+    else setErr(d.error || t("auth.forgotFail", "본인확인 정보가 일치하지 않습니다."));
   };
   const doReset = async () => {
     setErr(""); if (np.length < 8) { setErr(t("auth.pwMin", "새 비밀번호는 8자 이상이어야 합니다.")); return; }
@@ -312,7 +315,7 @@ function AccountRecovery({ t, initial = "findId", onClose }) {
           <div style={{ fontWeight: 900, fontSize: 15, color: "#fff" }}>🔑 {t("auth.recoveryTitle", "계정 찾기")}</div>
           <button type="button" onClick={onClose} style={{ background: "none", border: "none", color: "#64748b", fontSize: 20, cursor: "pointer", lineHeight: 1 }}>×</button>
         </div>
-        {view !== "reset" && view !== "done" && (
+        {view !== "reset" && view !== "done" && view !== "sent" && (
           <div style={{ display: "flex", gap: 4, marginBottom: 16, background: "rgba(255,255,255,0.03)", borderRadius: 10, padding: 4 }}>
             {tabBtn("findId", t("auth.findIdLink", "아이디(이메일) 찾기"))}
             {tabBtn("forgot", t("auth.forgotLink", "비밀번호 찾기"))}
@@ -356,6 +359,15 @@ function AccountRecovery({ t, initial = "findId", onClose }) {
             <Field label={t("auth.newPwLabel", "새 비밀번호")} type="password" value={np} onChange={setNp} placeholder="••••••••" required autoComplete="new-password" hint={t("auth.pwMinHint", "8자 이상")} />
             <Field label={t("auth.newPwConfirm", "새 비밀번호 확인")} type="password" value={np2} onChange={setNp2} placeholder="••••••••" required autoComplete="new-password" />
             {submitBtn(doReset, t("auth.resetBtn", "비밀번호 재설정"))}
+          </div>
+        )}
+
+        {view === "sent" && (
+          <div style={{ display: "grid", gap: 16, textAlign: "center", padding: "10px 0" }}>
+            <div style={{ fontSize: 40 }}>📧</div>
+            <div style={{ color: "#fff", fontWeight: 700, fontSize: 14 }}>{t("auth.resetEmailSent", "재설정 링크를 이메일로 보냈습니다.")}</div>
+            <div style={{ color: "#94a3b8", fontSize: 12 }}>{t("auth.resetEmailSentDesc", "메일함(스팸함 포함)을 확인하고 링크를 눌러 새 비밀번호를 설정하세요. 링크는 15분간 유효합니다.")}</div>
+            {submitBtn(onClose, t("auth.close", "닫기"))}
           </div>
         )}
 
@@ -452,7 +464,9 @@ function LoginForm({ onSwitch, loginType = "production" }) {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [recovery, setRecovery] = useState(null); // 188차: null | 'findId' | 'forgot'
+  // 190차: 이메일 재설정 링크(/login?reset=<token>)로 진입 시 재설정 모달 자동 오픈
+  const resetTokenFromUrl = typeof window !== "undefined" ? (new URLSearchParams(window.location.search).get("reset") || "") : "";
+  const [recovery, setRecovery] = useState(resetTokenFromUrl ? "reset" : null); // 188차: null | 'findId' | 'forgot' | (190차) 'reset'
   const [mfaStep, setMfaStep] = useState(false);   // 189차: 2단계 인증 코드 입력 단계
   const [otp, setOtp] = useState("");
   const [remember, setRemember] = useState(false); // 189차: 자동 로그인(remember-me)
@@ -542,7 +556,7 @@ function LoginForm({ onSwitch, loginType = "production" }) {
         <span style={{ color: "#334155", fontSize: 10 }}>|</span>
         <button type="button" onClick={() => setRecovery("forgot")} style={{ background: "none", border: "none", color: "#94a3b8", fontSize: 11.5, fontWeight: 600, cursor: "pointer", padding: 0 }}>{t("auth.forgotLink", "비밀번호 찾기")}</button>
       </div>
-      {recovery && <AccountRecovery t={t} initial={recovery} onClose={() => setRecovery(null)} />}
+      {recovery && <AccountRecovery t={t} initial={recovery} resetToken={resetTokenFromUrl} onClose={() => setRecovery(null)} />}
     </form>
   );
 }
@@ -1502,7 +1516,9 @@ export default function AuthPage() {
   const [mode, setMode] = useState(initialMode); // login | register | free | demo_free | paid | admin
   const [planType, setPlanType] = useState("free");
   const [selectedPaid, setSelectedPaid] = useState("pro");
-  const [loginType, setLoginType] = useState(null);
+  // 190차: 비번재설정 이메일 링크(?reset=)로 진입 시 로그인폼(STEP2)을 즉시 마운트 → 재설정 모달 자동 오픈
+  const hasResetParam = !!queryParams.get('reset');
+  const [loginType, setLoginType] = useState(hasResetParam ? (isDemoDomain ? 'demo' : 'production') : null);
 
   /* ─── AUTO-REDIRECT GUARD ───
    * Only redirect to dashboard if:

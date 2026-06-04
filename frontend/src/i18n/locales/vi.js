@@ -11624,6 +11624,9 @@ export default {
     "selectOption": "Chọn",
     "namePh": "Nguyễn Văn A",
     "footerTagline": "Luồng doanh nghiệp tách biệt",
+      resetEmailSent: 'Chúng tôi đã gửi liên kết đặt lại qua email cho bạn.',
+      resetEmailSentDesc: 'Kiểm tra hộp thư (kể cả thư rác) và nhấp vào liên kết để đặt mật khẩu mới. Liên kết có hiệu lực trong 15 phút.',
+      close: 'Đóng',
     },
   helpPanel: {
       searchResult: "Search Results",

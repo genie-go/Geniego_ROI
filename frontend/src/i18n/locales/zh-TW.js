@@ -14734,6 +14734,9 @@ export default {
     "selectOption": "選擇",
     "namePh": "王小明",
     "footerTagline": "隔離的企業流程",
+      resetEmailSent: '重設連結已寄至您的信箱。',
+      resetEmailSentDesc: '請查收郵件（包含垃圾郵件匣），點擊連結設定新密碼。連結15分鐘內有效。',
+      close: '關閉',
     },
   gdpr: {
       bannerTitle: "Cookie 偏好設定",

@@ -9685,6 +9685,9 @@ export default {
     "selectOption": "選択",
     "namePh": "山田太郎",
     "footerTagline": "分離されたエンタープライズフロー",
+      resetEmailSent: 'リセットリンクをメールで送信しました。',
+      resetEmailSentDesc: 'メール（迷惑メールフォルダを含む）を確認し、リンクをクリックして新しいパスワードを設定してください。リンクは15分間有効です。',
+      close: '閉じる',
   },
   "helpPanel": {
     "searchResult": "Search Results",

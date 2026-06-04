@@ -16483,6 +16483,9 @@ export default {
     "selectOption": "选择",
     "namePh": "张三",
     "footerTagline": "隔离的企业流程",
+      resetEmailSent: '重置链接已发送至您的邮箱。',
+      resetEmailSentDesc: '请查收邮件（包括垃圾邮件箱），点击链接设置新密码。链接15分钟内有效。',
+      close: '关闭',
   },
   "gdpr": {
     "bannerTitle": "Cookie 偏好设置",

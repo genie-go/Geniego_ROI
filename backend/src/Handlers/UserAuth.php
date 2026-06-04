@@ -1372,7 +1372,28 @@ final class UserAuth
         try { $pdo->prepare('DELETE FROM password_reset WHERE user_id=? OR expires_at<?')->execute([$u['id'], $now]); } catch (\Throwable $e) {}
         $pdo->prepare('INSERT INTO password_reset(token,user_id,expires_at,created_at) VALUES(?,?,?,?)')->execute([$rtok, $u['id'], $exp, $now]);
         self::audit($req, 'password_reset_request', '비밀번호 재설정 본인확인 통과: ' . $email, 'high', $u + ['email' => $email]);
-        return self::json($res, ['ok' => true, 'reset_token' => $rtok, 'message' => '본인확인이 완료되었습니다. 새 비밀번호를 설정하세요.']);
+
+        // 190차 Sprint4: 이메일 발송 인프라 — SMTP 설정 시 재설정 링크를 메일로 발송하고
+        //   응답에서 토큰을 제거(탈취위험 해소). 미설정 시 기존 본인확인 기반(토큰 반환) 폴백 유지(무회귀).
+        if (\Genie\Mailer::isConfigured($pdo)) {
+            $safeName = htmlspecialchars($name, ENT_QUOTES, 'UTF-8');
+            $link = 'https://roi.genie-go.com/login?reset=' . urlencode($rtok);
+            $body = \Genie\Mailer::wrapHtml(
+                '비밀번호 재설정 안내',
+                "<p>안녕하세요 {$safeName}님,</p>"
+                . "<p>비밀번호 재설정 요청을 접수했습니다. 아래 버튼을 눌러 새 비밀번호를 설정하세요.</p>"
+                . "<p style=\"color:#e67e22;font-weight:600\">이 링크는 15분간만 유효합니다.</p>"
+                . "<p style=\"color:#999;font-size:12px\">본인이 요청하지 않았다면 이 메일을 무시하세요. 비밀번호는 변경되지 않습니다.</p>",
+                '새 비밀번호 설정',
+                $link
+            );
+            $mr = \Genie\Mailer::send($email, '[Geniego-ROI] 비밀번호 재설정 안내', $body, ['pdo' => $pdo]);
+            if (!empty($mr['ok'])) {
+                return self::json($res, ['ok' => true, 'email_sent' => true, 'message' => '비밀번호 재설정 링크를 이메일로 보냈습니다. 메일함(스팸함 포함)을 확인하세요. (15분 유효)']);
+            }
+        }
+        // 폴백: 이메일 인프라 미설정/발송실패 → 본인확인 기반 인라인 재설정(토큰 반환)
+        return self::json($res, ['ok' => true, 'reset_token' => $rtok, 'email_sent' => false, 'message' => '본인확인이 완료되었습니다. 새 비밀번호를 설정하세요.']);
     }
 
     public static function resetPassword(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface

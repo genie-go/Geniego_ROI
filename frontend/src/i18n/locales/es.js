@@ -13596,6 +13596,9 @@ export default {
     "selectOption": "Seleccionar",
     "namePh": "Juan Pérez",
     "footerTagline": "Flujo empresarial aislado",
+      resetEmailSent: 'Te enviamos un enlace de restablecimiento por correo.',
+      resetEmailSentDesc: 'Revisa tu bandeja de entrada (y la carpeta de spam) y haz clic en el enlace para crear una nueva contraseña. El enlace es válido durante 15 minutos.',
+      close: 'Cerrar',
     },
   helpPanel: {
       searchResult: "Resultados de búsqueda",

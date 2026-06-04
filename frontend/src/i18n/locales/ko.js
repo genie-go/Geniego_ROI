@@ -7761,6 +7761,9 @@ export default {
         "adminBlockedInNormalLogin": "관리자 계정은 관리자 전용 로그인을 사용해야 합니다. 로고를 클릭하여 관리자 로그인에 접속하세요.",
 
     ceoLabel: '대표자',
+      resetEmailSent: '재설정 링크를 이메일로 보냈습니다.',
+      resetEmailSentDesc: '메일함(스팸함 포함)을 확인하고 링크를 눌러 새 비밀번호를 설정하세요. 링크는 15분간 유효합니다.',
+      close: '닫기',
   },
 
   "helpPanel": {

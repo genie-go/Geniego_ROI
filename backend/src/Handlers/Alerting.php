@@ -686,12 +686,9 @@ final class Alerting {
     private static function sendEmail(string $to, string $subject, string $html): bool
     {
         if ($to === '') return false;
-        $from = (string)(getenv('SMTP_FROM') ?: 'noreply@roi.genie-go.com');
-        $headers  = "From: Geniego-ROI <{$from}>\r\n";
-        $headers .= "Reply-To: {$from}\r\n";
-        $headers .= "MIME-Version: 1.0\r\n";
-        $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
-        return @mail($to, $subject, $html, $headers);
+        // 190차: 중앙 Mailer(SMTP/AUTH/STARTTLS) 위임. 미설정 시 정직한 실패(가짜 성공 금지).
+        $r = \Genie\Mailer::send($to, $subject, $html, ['pdo' => Db::pdo()]);
+        return (bool)($r['ok'] ?? false);
     }
 
     /**

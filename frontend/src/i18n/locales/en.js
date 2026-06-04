@@ -13815,6 +13815,9 @@ export default {
     "selectOption": "Select",
     "namePh": "John Doe",
     "footerTagline": "Isolated enterprise flow",
+      resetEmailSent: 'We\'ve emailed you a reset link.',
+      resetEmailSentDesc: 'Check your inbox (and spam folder) and click the link to set a new password. The link is valid for 15 minutes.',
+      close: 'Close',
     },
   helpPanel: {
       searchResult: "Search Result",

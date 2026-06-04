@@ -15174,6 +15174,9 @@ export default {
     "selectOption": "Pilih",
     "namePh": "Budi Santoso",
     "footerTagline": "Alur enterprise terisolasi",
+      resetEmailSent: 'Kami telah mengirimkan tautan reset ke email Anda.',
+      resetEmailSentDesc: 'Periksa kotak masuk (termasuk folder spam) dan klik tautan untuk menyetel kata sandi baru. Tautan berlaku selama 15 menit.',
+      close: 'Tutup',
     },
   gdpr: {
       bannerTitle: "Preferensi Kue",

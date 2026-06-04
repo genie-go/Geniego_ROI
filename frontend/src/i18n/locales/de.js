@@ -16366,6 +16366,9 @@ export default {
     "selectOption": "Auswählen",
     "namePh": "Max Mustermann",
     "footerTagline": "Isolierter Enterprise-Flow",
+      resetEmailSent: 'Wir haben Ihnen einen Link zum Zurücksetzen per E-Mail gesendet.',
+      resetEmailSentDesc: 'Prüfen Sie Ihren Posteingang (auch den Spam-Ordner) und klicken Sie auf den Link, um ein neues Passwort festzulegen. Der Link ist 15 Minuten gültig.',
+      close: 'Schließen',
     },
   gdpr: {
       bannerTitle: "Cookie-Einstellungen",

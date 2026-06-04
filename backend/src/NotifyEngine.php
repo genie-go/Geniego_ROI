@@ -65,12 +65,15 @@ final class NotifyEngine
 
             $body = self::emailHtml($name, $code, $plan, $months, $days, $expires);
 
-            $headers  = "MIME-Version: 1.0\r\n";
-            $headers .= "Content-type: text/html; charset=UTF-8\r\n";
-            $headers .= "From: Geniego ROI <noreply@genie-go.com>\r\n";
-            $headers .= "Reply-To: support@genie-go.com\r\n";
-
-            $sent = @mail($to, '=?UTF-8?B?' . base64_encode($subject) . '?=', $body, $headers);
+            // 190차: 중앙 Mailer(SMTP/AUTH/STARTTLS) 위임. 미설정 시 정직한 실패.
+            $pdo = null;
+            try { $pdo = \Genie\Db::pdo(); } catch (\Throwable $e) { $pdo = null; }
+            $r = \Genie\Mailer::send($to, $subject, $body, [
+                'pdo' => $pdo,
+                'from' => 'noreply@genie-go.com',
+                'from_name' => 'Geniego ROI',
+            ]);
+            $sent = (bool)($r['ok'] ?? false);
 
             // DB 로그 저장
             self::logNotification('email', $user, $coupon, $sent ? 'sent' : 'failed');
