@@ -291,6 +291,26 @@ final class SmsMarketing
         return ['ok'=>false,'error'=>$data['header']['resultMessage']??("HTTP {$code}")];
     }
 
+    /**
+     * 189차+ 플랫폼 발송 위임(NotifyEngine 등 시스템 알림용).
+     *   플랫폼 NHN 설정(env GENIE_NHN_APPKEY/SECRET/SENDER)이 있을 때만 실발송.
+     *   미설정 시 ['ok'=>false,'configured'=>false]로 honest 반환(가짜 발송 금지).
+     * @return array{ok:bool,configured:bool,error?:string,msg_id?:string}
+     */
+    public static function sendPlatform(string $to, string $body): array
+    {
+        $appKey = (string)(getenv('GENIE_NHN_APPKEY') ?: '');
+        $secret = (string)(getenv('GENIE_NHN_SECRET') ?: '');
+        $from   = (string)(getenv('GENIE_NHN_SENDER') ?: '');
+        $to     = preg_replace('/\D/', '', $to);
+        if ($appKey === '' || $secret === '' || $from === '' || strlen((string)$to) < 8) {
+            return ['ok' => false, 'configured' => ($appKey !== '' && $secret !== '' && $from !== '')];
+        }
+        $type = mb_strlen($body) > 90 ? 'LMS' : 'SMS';
+        $r = self::sendSms($appKey, $secret, $from, $to, $body, $type);
+        return ['ok' => (bool)($r['ok'] ?? false), 'configured' => true, 'error' => $r['error'] ?? null, 'msg_id' => $r['msg_id'] ?? null];
+    }
+
     private static function demoMessages(): array
     {
         $msgs = [];

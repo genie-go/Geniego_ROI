@@ -98,12 +98,15 @@ final class NotifyEngine
 
             $text = "[Geniego ROI] {$name}님, {$plan} {$months} 무료쿠폰 발급!\n쿠폰코드: {$code}\n앱에서 즉시 사용 가능합니다.";
 
-            // TODO: 실 SMS API 연동 (예: 알리고, 솔라피, 카카오비즈메시지)
-            // $result = self::callSmsApi($phone, $text);
-
-            self::logNotification('sms', $user, $coupon, 'queued', $text);
-
-            return ['ok' => true, 'channel' => 'sms', 'to' => $phone, 'note' => 'queued_for_sms_api'];
+            // 189차+ 실 발송 위임: 플랫폼 NHN(env) 설정 시 실제 SMS 발송, 미설정 시 honest 'queued'(가짜 발송 금지).
+            $send = \Genie\Handlers\SmsMarketing::sendPlatform((string)$phone, $text);
+            if (!($send['configured'] ?? false)) {
+                self::logNotification('sms', $user, $coupon, 'queued', $text);
+                return ['ok' => true, 'channel' => 'sms', 'to' => $phone, 'status' => 'queued', 'note' => 'sms_provider_unconfigured'];
+            }
+            $status = ($send['ok'] ?? false) ? 'sent' : 'failed';
+            self::logNotification('sms', $user, $coupon, $status, $text);
+            return ['ok' => (bool)($send['ok'] ?? false), 'channel' => 'sms', 'to' => $phone, 'status' => $status, 'msg_id' => $send['msg_id'] ?? null, 'error' => $send['error'] ?? null];
         } catch (\Throwable $e) {
             error_log('[NotifyEngine] sms error: ' . $e->getMessage());
             return ['ok' => false, 'channel' => 'sms', 'error' => $e->getMessage()];
@@ -125,12 +128,13 @@ final class NotifyEngine
 
             $message = "[Geniego ROI]\n{$name}님 안녕하세요!\n{$plan} {$months} 무료 이용권이 발급되었습니다.\n\n쿠폰번호: {$code}\n\n지금 바로 사용해보세요!\nhttps://roi.genie-go.com";
 
-            // TODO: 카카오 알림톡 API 연동 (비즈메시지 API)
-            // $result = self::callKakaoApi($user, $message, $code);
+            // 189차+ 카카오 알림톡은 사전 승인된 템플릿(template_code)+sender_key 가 필수라
+            //   쿠폰 자유문구를 ad-hoc 발송할 수 없다(알림톡 정책). 발송은 KakaoChannel(템플릿 기반)로
+            //   별도 처리하며, 여기서는 honest 'queued' 로 기록한다(가짜 'sent' 금지). 1차 채널은 email/SMS.
 
             self::logNotification('kakao', $user, $coupon, 'queued', $message);
 
-            return ['ok' => true, 'channel' => 'kakao', 'note' => 'queued_for_kakao_api'];
+            return ['ok' => true, 'channel' => 'kakao', 'status' => 'queued', 'note' => 'alimtalk_requires_registered_template'];
         } catch (\Throwable $e) {
             error_log('[NotifyEngine] kakao error: ' . $e->getMessage());
             return ['ok' => false, 'channel' => 'kakao', 'error' => $e->getMessage()];
