@@ -616,6 +616,9 @@ return function (App $app): void {
         'POST /auth/admin/access-key'        => 'Genie\\Handlers\\UserAuth::adminChangeAccessKey',
         // 189차+ 인증 감사로그
         'GET /auth/audit-logs'   => 'Genie\\Handlers\\UserAuth::auditLogs',
+        // 189차+ 세션/기기 관리
+        'GET /auth/sessions'              => 'Genie\\Handlers\\UserAuth::listSessions',
+        'POST /auth/sessions/revoke-others' => 'Genie\\Handlers\\UserAuth::revokeOtherSessions',
         // 189차 MFA/2FA (TOTP) — 모두 세션 토큰 자체검증(핸들러 내부)
         'GET /auth/mfa/status'   => 'Genie\\Handlers\\UserAuth::mfaStatus',
         'POST /auth/mfa/setup'   => 'Genie\\Handlers\\UserAuth::mfaSetup',
@@ -1414,6 +1417,9 @@ return function (App $app): void {
     $register('POST', '/auth/admin/access-key');
     // 189차+ 인증 감사로그
     $register('GET',  '/auth/audit-logs');
+    // 189차+ 세션/기기 관리
+    $register('GET',  '/auth/sessions');
+    $register('POST', '/auth/sessions/revoke-others');
     // 189차 MFA/2FA (TOTP)
     $register('GET',  '/auth/mfa/status');
     $register('POST', '/auth/mfa/setup');

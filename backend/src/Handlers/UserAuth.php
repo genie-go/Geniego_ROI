@@ -342,6 +342,7 @@ final class UserAuth
         try {
             $pdo->prepare('INSERT INTO user_session(user_id,token,expires_at,created_at) VALUES(?,?,?,?)')
                 ->execute([$userId, $token, $expires, $now]);
+            self::recordSessionMeta($pdo, $req, $token); // 189차+ 세션 ip/ua 메타 기록
         } catch (\Throwable $e) {
             return self::json($res, ['ok' => false, 'error' => '세션 생성 중 오류가 발생했습니다.'], 500);
         }
@@ -553,6 +554,7 @@ final class UserAuth
             $pdo->prepare('DELETE FROM user_session WHERE user_id = ? AND expires_at < ?')->execute([$userId, $now]);
             $pdo->prepare('INSERT INTO user_session(user_id,token,expires_at,created_at) VALUES(?,?,?,?)')
                 ->execute([$userId, $token, $expires, $now]);
+            self::recordSessionMeta($pdo, $req, $token); // 189차+ 세션 ip/ua 메타 기록
 
             $effectivePlan = $user['plans'] ?? $user['plan'] ?? 'free';
             if (($user['plan'] ?? '') === 'admin' || ($user['plans'] ?? '') === 'admin') {
@@ -1866,5 +1868,76 @@ final class UserAuth
             $rows = $st->fetchAll(\PDO::FETCH_ASSOC) ?: [];
         } catch (\Throwable $e) { $rows = []; }
         return self::json($res, ['ok' => true, 'logs' => $rows, 'count' => count($rows)]);
+    }
+
+    // ═════════════════════════════════════════════════════════════
+    // 189차+ 세션/기기 관리 (활성 세션 목록 + 다른 기기 로그아웃)
+    //   user_session 에 ip/ua/last_seen 메타 보강 후 본인 활성 세션 조회·폐기.
+    // ═════════════════════════════════════════════════════════════
+    private static function ensureSessionMeta(\PDO $pdo): void
+    {
+        static $done = false;
+        if ($done) return;
+        $done = true;
+        foreach (['ip VARCHAR(64)', 'ua VARCHAR(255)', 'last_seen VARCHAR(32)'] as $col) {
+            try { $pdo->exec("ALTER TABLE user_session ADD COLUMN $col"); } catch (\Throwable $e) { /* 이미 존재 */ }
+        }
+    }
+
+    /** 세션 생성 직후 ip/ua/last_seen 기록(best-effort). */
+    private static function recordSessionMeta(\PDO $pdo, ServerRequestInterface $req, string $token): void
+    {
+        try {
+            self::ensureSessionMeta($pdo);
+            $ua = substr((string)$req->getHeaderLine('User-Agent'), 0, 255);
+            $pdo->prepare('UPDATE user_session SET ip=?, ua=?, last_seen=? WHERE token=?')
+                ->execute([self::clientIp($req), $ua, self::now(), $token]);
+        } catch (\Throwable $e) { /* 무시 */ }
+    }
+
+    /** GET /auth/sessions — 본인 활성 세션 목록(토큰 마스킹, 현재 세션 표시). */
+    public static function listSessions(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
+    {
+        $token = (string)(self::extractToken($req) ?? '');
+        $user  = self::userByToken($token);
+        if (!$user) return self::json($res, ['ok' => false, 'error' => '인증이 필요합니다.'], 401);
+        $pdo = Db::pdo(); self::ensureSessionMeta($pdo);
+        $now = self::now();
+        try { $pdo->prepare('DELETE FROM user_session WHERE user_id=? AND expires_at < ?')->execute([(int)$user['id'], $now]); } catch (\Throwable $e) {}
+        try {
+            $st = $pdo->prepare('SELECT token, ip, ua, created_at, expires_at, last_seen FROM user_session WHERE user_id=? ORDER BY created_at DESC LIMIT 100');
+            $st->execute([(int)$user['id']]);
+            $rows = $st->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+        } catch (\Throwable $e) { $rows = []; }
+        $out = array_map(function ($r) use ($token) {
+            $tk = (string)($r['token'] ?? '');
+            return [
+                'id'         => substr(hash('sha256', $tk), 0, 12), // 안정 식별자(원토큰 비노출)
+                'current'    => hash_equals($tk, $token),
+                'ip'         => (string)($r['ip'] ?? ''),
+                'ua'         => (string)($r['ua'] ?? ''),
+                'created_at' => (string)($r['created_at'] ?? ''),
+                'last_seen'  => (string)($r['last_seen'] ?? $r['created_at'] ?? ''),
+                'expires_at' => (string)($r['expires_at'] ?? ''),
+            ];
+        }, $rows);
+        return self::json($res, ['ok' => true, 'sessions' => $out, 'count' => count($out)]);
+    }
+
+    /** POST /auth/sessions/revoke-others — 현재 세션 제외 전부 폐기. */
+    public static function revokeOtherSessions(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
+    {
+        $token = (string)(self::extractToken($req) ?? '');
+        $user  = self::userByToken($token);
+        if (!$user) return self::json($res, ['ok' => false, 'error' => '인증이 필요합니다.'], 401);
+        $pdo = Db::pdo();
+        $revoked = 0;
+        try {
+            $st = $pdo->prepare('DELETE FROM user_session WHERE user_id=? AND token<>?');
+            $st->execute([(int)$user['id'], $token]);
+            $revoked = $st->rowCount();
+        } catch (\Throwable $e) {}
+        self::audit($req, 'session_revoke_others', "다른 기기 로그아웃({$revoked}개 세션 폐기)", 'high', $user);
+        return self::json($res, ['ok' => true, 'revoked' => $revoked, 'message' => "다른 기기의 {$revoked}개 세션을 로그아웃했습니다."]);
     }
 }

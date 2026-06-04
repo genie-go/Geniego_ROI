@@ -641,6 +641,10 @@ const ProfileEditModal = memo(function ProfileEditModal({ user, token, onClose }
   const [mfaRecovery, setMfaRecovery] = useState(null); // null | string[]
   const [mfaDisPw, setMfaDisPw] = useState('');
 
+  // 189차+ 세션/기기 관리
+  const [sessions, setSessions] = useState(null); // null=미조회 | array
+  const [sessLoading, setSessLoading] = useState(false);
+
   const showMsg = (text, type = 'ok') => { setMsg({ text, type }); setTimeout(() => setMsg({ text: '', type: '' }), 5000); };
 
   // 189차 비밀번호 정책: 8자 이상 + 영문 대/소문자·숫자·특수문자 중 3종 이상
@@ -843,6 +847,34 @@ const ProfileEditModal = memo(function ProfileEditModal({ user, token, onClose }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab]);
 
+  // 189차+ 세션/기기 관리 핸들러
+  const fetchSessions = async () => {
+    setSessLoading(true);
+    try {
+      const r = await fetch('/api/auth/sessions', { headers: { Authorization: `Bearer ${token}` } });
+      const d = await r.json().catch(() => ({}));
+      setSessions(r.ok && d.ok ? (d.sessions || []) : []);
+    } catch { setSessions([]); }
+    finally { setSessLoading(false); }
+  };
+
+  const handleRevokeOthers = async () => {
+    setSaving(true);
+    try {
+      const r = await fetch('/api/auth/sessions/revoke-others', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: '{}' });
+      const d = await r.json().catch(() => ({}));
+      if (r.ok && d.ok) { showMsg(d.message || t('profile.sessRevoked', '다른 기기에서 로그아웃되었습니다.'), 'ok'); fetchSessions(); }
+      else showMsg(d.error || t('profile.sessRevokeFail', '로그아웃에 실패했습니다.'), 'err');
+    } catch { showMsg(t('profile.serverError', 'Server error. Try again.'), 'err'); }
+    finally { setSaving(false); }
+  };
+
+  // 세션 탭 진입 시 1회 조회
+  useEffect(() => {
+    if (tab === 'sessions' && sessions === null) fetchSessions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab]);
+
   const inputStyle = {
     width: '100%', padding: '10px 12px', borderRadius: 10, fontSize: 13,
     border: '1px solid var(--border, rgba(99,140,255,0.2))',
@@ -877,6 +909,7 @@ const ProfileEditModal = memo(function ProfileEditModal({ user, token, onClose }
             ...(user.plan === 'admin'
               ? [{ id: 'security', label: t('profile.tabAccessKey', '🛡️ 접속키'), icon: '' }]
               : [{ id: 'mfa', label: t('profile.tabMfa', '🔒 2단계 인증'), icon: '' }]),
+            { id: 'sessions', label: t('profile.tabSessions', '💻 세션/기기'), icon: '' },
           ].map(t => (
             <button key={t.id} onClick={() => { setTab(t.id); setMsg({ text: '', type: '' }); }}
               style={{
@@ -1192,6 +1225,42 @@ const ProfileEditModal = memo(function ProfileEditModal({ user, token, onClose }
                   style={{ padding: '10px 0', borderRadius: 10, border: '1px solid var(--border, rgba(99,140,255,0.2))', background: 'transparent', color: 'var(--text-2, #cbd5e1)', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}
                 >📋 {t('profile.mfaCopyCodes', '복구 코드 복사')}</button>
               </div>
+            )}
+          </div>
+        )}
+
+        {/* 189차+ 세션/기기 관리 탭 */}
+        {tab === 'sessions' && (
+          <div style={{ display: 'grid', gap: 14 }}>
+            <div style={{ padding: '12px 14px', borderRadius: 10, background: 'rgba(79,142,247,0.05)', border: '1px solid rgba(79,142,247,0.12)', fontSize: 12, color: 'var(--text-3, #94a3b8)', lineHeight: 1.7 }}>
+              💻 {t('profile.sessGuide', '현재 로그인된 기기·세션 목록입니다. 본인이 아닌 세션이 있으면 즉시 로그아웃하세요.')}
+            </div>
+
+            {sessLoading && <div style={{ fontSize: 12, color: 'var(--text-3)', textAlign: 'center', padding: 8 }}>{t('profile.sessLoading', '불러오는 중...')}</div>}
+
+            {Array.isArray(sessions) && sessions.length === 0 && !sessLoading && (
+              <div style={{ fontSize: 12, color: 'var(--text-3)', textAlign: 'center', padding: 8 }}>{t('profile.sessNone', '활성 세션이 없습니다.')}</div>
+            )}
+
+            {Array.isArray(sessions) && sessions.map((s) => (
+              <div key={s.id} style={{ padding: '12px 14px', borderRadius: 12, background: s.current ? 'rgba(34,197,94,0.06)' : 'rgba(255,255,255,0.03)', border: `1px solid ${s.current ? 'rgba(34,197,94,0.25)' : 'var(--border, rgba(99,140,255,0.15))'}` }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                  <span style={{ fontSize: 15 }}>{/Mobile|Android|iPhone|iPad/i.test(s.ua || '') ? '📱' : '🖥️'}</span>
+                  <span style={{ fontWeight: 800, fontSize: 12, color: 'var(--text-1, #e2e8f0)' }}>
+                    {(s.ua || '').replace(/\(.*?\)/g, '').split(' ').slice(0, 3).join(' ') || t('profile.sessUnknownDevice', '알 수 없는 기기')}
+                  </span>
+                  {s.current && <span style={{ padding: '1px 8px', borderRadius: 99, fontSize: 9, fontWeight: 800, background: 'rgba(34,197,94,0.15)', color: '#22c55e' }}>{t('profile.sessCurrent', '현재 기기')}</span>}
+                </div>
+                <div style={{ fontSize: 10.5, color: 'var(--text-3, #94a3b8)' }}>
+                  IP: {s.ip || '-'} · {t('profile.sessSince', '로그인')}: {(s.created_at || '').slice(0, 16).replace('T', ' ')}
+                </div>
+              </div>
+            ))}
+
+            {Array.isArray(sessions) && sessions.filter(s => !s.current).length > 0 && (
+              <button onClick={handleRevokeOthers} disabled={saving}
+                style={{ width: '100%', padding: '12px 0', borderRadius: 12, border: 'none', cursor: saving ? 'wait' : 'pointer', background: saving ? 'rgba(239,68,68,0.2)' : 'linear-gradient(135deg,#ef4444,#dc2626)', color: '#fff', fontSize: 14, fontWeight: 800 }}
+              >{saving ? t('profile.processing', '처리 중...') : `🚪 ${t('profile.sessRevokeOthers', '다른 모든 기기에서 로그아웃')}`}</button>
             )}
           </div>
         )}
