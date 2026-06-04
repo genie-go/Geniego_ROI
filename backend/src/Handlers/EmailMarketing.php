@@ -115,15 +115,22 @@ class EmailMarketing
         $exists = $exStmt->fetch();
         $now = self::now();
         if ($exists) {
-            $pdo->prepare("UPDATE email_settings SET provider=:prov, smtp_host=:host, smtp_port=:port,
-                smtp_user=:user, smtp_pass=:pass, from_email=:fe, from_name=:fn,
-                aws_region=:reg, aws_key=:akey, aws_secret=:asec, updated_at=:ua WHERE id=:id AND tenant_id=:t
-            ")->execute([
+            // 191차: GET 가 smtp_pass/aws_secret 을 마스킹(미반환)하므로, 빈 값이면 기존 비밀값을 보존
+            //   한다(미변경 저장 시 비밀번호 소실 방지). 비-빈 값일 때만 갱신.
+            $setPass = (isset($b['smtp_pass']) && $b['smtp_pass'] !== '') ? ', smtp_pass=:pass' : '';
+            $setSec  = (isset($b['aws_secret']) && $b['aws_secret'] !== '') ? ', aws_secret=:asec' : '';
+            $params = [
                 ':id'=>$exists['id'], ':t'=>$tenant, ':prov'=>$b['provider']??'smtp', ':host'=>$b['smtp_host']??'',
-                ':port'=>(int)($b['smtp_port']??587), ':user'=>$b['smtp_user']??'', ':pass'=>$b['smtp_pass']??'',
+                ':port'=>(int)($b['smtp_port']??587), ':user'=>$b['smtp_user']??'',
                 ':fe'=>$b['from_email']??'', ':fn'=>$b['from_name']??'',
-                ':reg'=>$b['aws_region']??'', ':akey'=>$b['aws_key']??'', ':asec'=>$b['aws_secret']??'', ':ua'=>$now,
-            ]);
+                ':reg'=>$b['aws_region']??'', ':akey'=>$b['aws_key']??'', ':ua'=>$now,
+            ];
+            if ($setPass !== '') $params[':pass'] = $b['smtp_pass'];
+            if ($setSec  !== '') $params[':asec'] = $b['aws_secret'];
+            $pdo->prepare("UPDATE email_settings SET provider=:prov, smtp_host=:host, smtp_port=:port,
+                smtp_user=:user, from_email=:fe, from_name=:fn,
+                aws_region=:reg, aws_key=:akey, updated_at=:ua{$setPass}{$setSec} WHERE id=:id AND tenant_id=:t
+            ")->execute($params);
         } else {
             $pdo->prepare("INSERT INTO email_settings (tenant_id, provider, smtp_host, smtp_port, smtp_user, smtp_pass, from_email, from_name, aws_region, aws_key, aws_secret, updated_at)
                 VALUES (:t, :prov, :host, :port, :user, :pass, :fe, :fn, :reg, :akey, :asec, :ua)
