@@ -1,7 +1,20 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from "react";
-
+import { IS_DEMO } from "../utils/demoEnv";
 
 const NotificationContext = createContext(null);
+
+/* 189차+ 알림센터 서버백킹 — 실 로그인(비데모) 사용자만 서버 동기화, 그 외 localStorage/seed 보존 */
+const _realToken = () => { try { return localStorage.getItem("genie_token") || ""; } catch { return ""; } };
+const _serverBacked = () => !IS_DEMO && !!_realToken();
+const _notifApi = async (path, opts = {}) => {
+  try {
+    const r = await fetch("/api/auth/notifications" + path, {
+      ...opts,
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${_realToken()}`, ...(opts.headers || {}) },
+    });
+    return await r.json().catch(() => ({}));
+  } catch { return {}; }
+};
 
 /* ─── Notification 유형 Settings ────────────────────────────────────────────────────────── */
 export const NOTIF_TYPES = {
@@ -96,6 +109,18 @@ export function NotificationProvider({ children }) {
     saveToStorage(notifications);
   }, [notifications]);
 
+  /* 189차+ 마운트 시 서버에서 알림 로드(실 로그인·비데모). 실패 시 로컬 유지. */
+  useEffect(() => {
+    if (!_serverBacked()) return;
+    let cancelled = false;
+    _notifApi("").then(d => {
+      if (!cancelled && d && d.ok && Array.isArray(d.notifications)) {
+        setNotifications(d.notifications);
+      }
+    });
+    return () => { cancelled = true; };
+  }, []);
+
   /* 새 Notification Add */
   const pushNotification = useCallback((item) => {
     const newItem = {
@@ -109,6 +134,11 @@ export function NotificationProvider({ children }) {
       saveToStorage(next);
       return next;
     });
+    // 서버 영속(기기 간 동기화) — best-effort, 서버 id 로 치환
+    if (_serverBacked()) {
+      _notifApi("", { method: "POST", body: JSON.stringify({ type: newItem.type || "system", title: newItem.title || "", body: newItem.body || "", link: newItem.link || "" }) })
+        .then(d => { if (d && d.ok && d.id) setNotifications(prev => prev.map(n => n.id === newItem.id ? { ...n, id: d.id } : n)); });
+    }
     // 토스트 표시
     setToast(newItem);
     if (toastTimer.current) clearTimeout(toastTimer.current);
@@ -118,21 +148,25 @@ export function NotificationProvider({ children }) {
   /* 읽음 처리 */
   const markRead = useCallback((id) => {
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+    if (_serverBacked()) _notifApi("/read", { method: "POST", body: JSON.stringify({ id }) });
   }, []);
 
   /* All 읽음 */
   const markAllRead = useCallback(() => {
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    if (_serverBacked()) _notifApi("/read", { method: "POST", body: "{}" });
   }, []);
 
   /* Delete */
   const removeNotification = useCallback((id) => {
     setNotifications(prev => prev.filter(n => n.id !== id));
+    if (_serverBacked()) _notifApi("/" + encodeURIComponent(id), { method: "DELETE" });
   }, []);
 
   /* All Delete */
   const clearAll = useCallback(() => {
     setNotifications([]);
+    if (_serverBacked()) _notifApi("/clear", { method: "POST", body: "{}" });
   }, []);
 
   const unreadCount = notifications.filter(n => !n.read).length;

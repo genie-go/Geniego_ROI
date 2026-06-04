@@ -624,6 +624,12 @@ return function (App $app): void {
         'POST /auth/api-keys'             => 'Genie\\Handlers\\UserAuth::apiKeysCreate',
         'DELETE /auth/api-keys/{id}'      => 'Genie\\Handlers\\UserAuth::apiKeysRevoke',
         'POST /auth/api-keys/{id}/rotate' => 'Genie\\Handlers\\UserAuth::apiKeysRotate',
+        // 189차+ 인앱 알림센터(서버백킹)
+        'GET /auth/notifications'         => 'Genie\\Handlers\\UserAuth::notifList',
+        'POST /auth/notifications'        => 'Genie\\Handlers\\UserAuth::notifCreate',
+        'POST /auth/notifications/read'   => 'Genie\\Handlers\\UserAuth::notifRead',
+        'POST /auth/notifications/clear'  => 'Genie\\Handlers\\UserAuth::notifClear',
+        'DELETE /auth/notifications/{id}' => 'Genie\\Handlers\\UserAuth::notifDelete',
         // 189차 MFA/2FA (TOTP) — 모두 세션 토큰 자체검증(핸들러 내부)
         'GET /auth/mfa/status'   => 'Genie\\Handlers\\UserAuth::mfaStatus',
         'POST /auth/mfa/setup'   => 'Genie\\Handlers\\UserAuth::mfaSetup',
@@ -1430,6 +1436,12 @@ return function (App $app): void {
     $register('POST',   '/auth/api-keys');
     $register('DELETE', '/auth/api-keys/{id}');
     $register('POST',   '/auth/api-keys/{id}/rotate');
+    // 189차+ 인앱 알림센터(서버백킹)
+    $register('GET',    '/auth/notifications');
+    $register('POST',   '/auth/notifications');
+    $register('POST',   '/auth/notifications/read');
+    $register('POST',   '/auth/notifications/clear');
+    $register('DELETE', '/auth/notifications/{id}');
     // 189차 MFA/2FA (TOTP)
     $register('GET',  '/auth/mfa/status');
     $register('POST', '/auth/mfa/setup');

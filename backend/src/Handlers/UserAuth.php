@@ -2032,4 +2032,116 @@ final class UserAuth
         self::audit($req, 'api_key_rotate', "API 키 회전 #{$id}→#{$newId}", 'high', $caller);
         return self::json($res, ['ok' => true, 'revoked_id' => $id, 'new_id' => $newId, 'api_key' => $raw, 'key_prefix' => $pfx, 'warning' => '이 키는 다시 표시되지 않습니다. 안전하게 보관하세요.']);
     }
+
+    // ═════════════════════════════════════════════════════════════
+    // 189차+ 인앱 알림센터 서버백킹 (기기 간 동기화)
+    //   기존 localStorage 전용 → user_notification 테이블. 본인 알림 CRUD.
+    // ═════════════════════════════════════════════════════════════
+    private static function ensureNotifSchema(\PDO $pdo): void
+    {
+        static $done = false;
+        if ($done) return;
+        $done = true;
+        try {
+            $driver = (string)$pdo->getAttribute(\PDO::ATTR_DRIVER_NAME);
+            $idCol = $driver === 'mysql' ? 'id INT AUTO_INCREMENT PRIMARY KEY' : 'id INTEGER PRIMARY KEY AUTOINCREMENT';
+            $pdo->exec("CREATE TABLE IF NOT EXISTS user_notification ($idCol, user_id INT, tenant_id VARCHAR(64), type VARCHAR(32), title TEXT, body TEXT, link VARCHAR(255), is_read TINYINT DEFAULT 0, created_at VARCHAR(32))");
+            $pdo->exec("CREATE INDEX IF NOT EXISTS idx_user_notif_uid ON user_notification(user_id)");
+        } catch (\Throwable $e) { /* best-effort */ }
+    }
+
+    /** 서버측 이벤트가 알림을 적재할 때 쓰는 헬퍼(best-effort). */
+    public static function notify(\PDO $pdo, int $userId, string $tenant, string $type, string $title, string $body = '', string $link = ''): void
+    {
+        try {
+            self::ensureNotifSchema($pdo);
+            $pdo->prepare('INSERT INTO user_notification(user_id,tenant_id,type,title,body,link,is_read,created_at) VALUES(?,?,?,?,?,?,0,?)')
+                ->execute([$userId, $tenant, $type, $title, $body, $link, self::now()]);
+        } catch (\Throwable $e) {}
+    }
+
+    private static function notifMap(array $r): array
+    {
+        return [
+            'id'   => (string)($r['id'] ?? ''),
+            'type' => (string)($r['type'] ?? 'system'),
+            'title'=> (string)($r['title'] ?? ''),
+            'body' => (string)($r['body'] ?? ''),
+            'link' => (string)($r['link'] ?? ''),
+            'time' => (string)($r['created_at'] ?? ''),
+            'read' => (int)($r['is_read'] ?? 0) === 1,
+        ];
+    }
+
+    /** GET /auth/notifications — 본인 알림(최신 100). */
+    public static function notifList(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
+    {
+        $user = self::userByToken((string)(self::extractToken($req) ?? ''));
+        if (!$user) return self::json($res, ['ok' => false, 'error' => '인증이 필요합니다.'], 401);
+        $pdo = Db::pdo(); self::ensureNotifSchema($pdo);
+        try {
+            $st = $pdo->prepare('SELECT id,type,title,body,link,is_read,created_at FROM user_notification WHERE user_id=? ORDER BY id DESC LIMIT 100');
+            $st->execute([(int)$user['id']]);
+            $rows = $st->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+        } catch (\Throwable $e) { $rows = []; }
+        $out = array_map([self::class, 'notifMap'], $rows);
+        $unread = 0; foreach ($out as $o) if (!$o['read']) $unread++;
+        return self::json($res, ['ok' => true, 'notifications' => $out, 'unread' => $unread]);
+    }
+
+    /** POST /auth/notifications {type,title,body?,link?} — 본인 알림 적재. */
+    public static function notifCreate(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
+    {
+        $user = self::userByToken((string)(self::extractToken($req) ?? ''));
+        if (!$user) return self::json($res, ['ok' => false, 'error' => '인증이 필요합니다.'], 401);
+        $pdo = Db::pdo(); self::ensureNotifSchema($pdo);
+        $b = self::readBody($req);
+        $title = trim((string)($b['title'] ?? ''));
+        if ($title === '') return self::json($res, ['ok' => false, 'error' => '제목이 필요합니다.'], 422);
+        $tenant = self::resolveTenantId($pdo, $user);
+        try {
+            $pdo->prepare('INSERT INTO user_notification(user_id,tenant_id,type,title,body,link,is_read,created_at) VALUES(?,?,?,?,?,?,0,?)')
+                ->execute([(int)$user['id'], $tenant, (string)($b['type'] ?? 'system'), $title, (string)($b['body'] ?? ''), (string)($b['link'] ?? ''), self::now()]);
+            $id = (int)$pdo->lastInsertId();
+        } catch (\Throwable $e) { return self::json($res, ['ok' => false, 'error' => '알림 저장 오류'], 500); }
+        return self::json($res, ['ok' => true, 'id' => (string)$id]);
+    }
+
+    /** POST /auth/notifications/read {id?} — id 지정 시 해당, 없으면 전체 읽음. */
+    public static function notifRead(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
+    {
+        $user = self::userByToken((string)(self::extractToken($req) ?? ''));
+        if (!$user) return self::json($res, ['ok' => false, 'error' => '인증이 필요합니다.'], 401);
+        $pdo = Db::pdo(); self::ensureNotifSchema($pdo);
+        $b = self::readBody($req);
+        $id = $b['id'] ?? null;
+        try {
+            if ($id !== null && $id !== '') {
+                $pdo->prepare('UPDATE user_notification SET is_read=1 WHERE user_id=? AND id=?')->execute([(int)$user['id'], (int)$id]);
+            } else {
+                $pdo->prepare('UPDATE user_notification SET is_read=1 WHERE user_id=?')->execute([(int)$user['id']]);
+            }
+        } catch (\Throwable $e) {}
+        return self::json($res, ['ok' => true]);
+    }
+
+    /** DELETE /auth/notifications/{id} — 1건 삭제. */
+    public static function notifDelete(ServerRequestInterface $req, ResponseInterface $res, array $args): ResponseInterface
+    {
+        $user = self::userByToken((string)(self::extractToken($req) ?? ''));
+        if (!$user) return self::json($res, ['ok' => false, 'error' => '인증이 필요합니다.'], 401);
+        $pdo = Db::pdo(); self::ensureNotifSchema($pdo);
+        try { $pdo->prepare('DELETE FROM user_notification WHERE user_id=? AND id=?')->execute([(int)$user['id'], (int)($args['id'] ?? 0)]); } catch (\Throwable $e) {}
+        return self::json($res, ['ok' => true]);
+    }
+
+    /** POST /auth/notifications/clear — 전체 삭제. */
+    public static function notifClear(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
+    {
+        $user = self::userByToken((string)(self::extractToken($req) ?? ''));
+        if (!$user) return self::json($res, ['ok' => false, 'error' => '인증이 필요합니다.'], 401);
+        $pdo = Db::pdo(); self::ensureNotifSchema($pdo);
+        try { $pdo->prepare('DELETE FROM user_notification WHERE user_id=?')->execute([(int)$user['id']]); } catch (\Throwable $e) {}
+        return self::json($res, ['ok' => true]);
+    }
 }
