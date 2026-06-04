@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import PlanGate from "../components/PlanGate.jsx";
-import { getJson, postJson } from '../services/apiClient.js';
+import { getJsonAuth, postJsonAuth } from '../services/apiClient.js'; // 191차: 세션 토큰 인증(채널 부활 — /api/instagram requirePro)
 import { IS_DEMO } from '../utils/demoEnv.js';
 
 /**
@@ -62,16 +62,14 @@ export default function InstagramDM() {
     const isDemo = IS_DEMO;
 
     useEffect(() => {
-        getJson('/api/instagram/settings').then(d => {
-            if (d.ok) {
-                setSettings(d);
-                setConversations(d.conversations || (isDemo ? _CONVERSATIONS : []));
-            }
-        });
-        getJson('/api/instagram/conversations').then(d => {
-            if (d.ok && d.conversations?.length) setConversations(d.conversations);
-            else setConversations(isDemo ? _CONVERSATIONS : []);
-        });
+        // 191차: 데모는 로컬 시드 사용(백엔드 호출 안 함). 운영은 세션 인증으로 /api/instagram 호출.
+        if (isDemo) { setConversations(_CONVERSATIONS); return; }
+        getJsonAuth('/api/instagram/settings').then(d => {
+            if (d.ok) setSettings(d);
+        }).catch(() => {});
+        getJsonAuth('/api/instagram/conversations').then(d => {
+            setConversations(d.ok && d.conversations?.length ? d.conversations : []);
+        }).catch(() => setConversations([]));
     }, []);
 
     useEffect(() => {
@@ -83,10 +81,10 @@ export default function InstagramDM() {
 
     const handleSaveSettings = async () => {
         setSending(true);
-        const r = await postJson('/api/instagram/settings', form);
+        const r = await postJsonAuth('/api/instagram/settings', form);
         setTestResult(r);
         setSending(false);
-        if (r.ok) getJson('/api/instagram/settings').then(d => d.ok && setSettings(d));
+        if (r.ok) getJsonAuth('/api/instagram/settings').then(d => d.ok && setSettings(d));
     };
 
     const handleSendReply = async () => {
@@ -94,7 +92,7 @@ export default function InstagramDM() {
         const newMsg = { id: Date.now(), from: '나', text: replyText, time: new Date().toLocaleTimeString('ko', { hour: '2-digit', minute: '2-digit' }), mine: true };
         setMessages(prev => [...prev, newMsg]);
         setReplyText('');
-        if (!isDemo) await postJson('/api/instagram/send', { recipient_id: selectedConv.sender_id, message: replyText, platform: selectedConv.platform });
+        if (!isDemo) await postJsonAuth('/api/instagram/send', { recipient_id: selectedConv.sender_id, message: replyText, platform: selectedConv.platform });
     };
 
     const handleBroadcast = async () => {

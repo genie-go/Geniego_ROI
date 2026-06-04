@@ -23,79 +23,63 @@ use Psr\Http\Message\ServerRequestInterface as Request;
  */
 final class WhatsApp
 {
+    // 191차 부활: 세션 plan/tenant(UserAuth) + bypass(/whatsapp) + requirePro. webhook 만 무인증(Meta).
+    private static function isMysql(\PDO $pdo): bool { return $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql'; }
+
     private static function plan(Request $req): string
     {
-        $auth = $req->getHeaderLine('Authorization');
-        if (preg_match('/Bearer\s+(\S+)/i', $auth, $m) && $m[1] !== 'demo-token') {
-            try {
-                $s = Db::pdo()->prepare('SELECT u.plan FROM user_session s JOIN app_user u ON u.id=s.user_id WHERE s.token=? LIMIT 1');
-                $s->execute([$m[1]]);
-                $r = $s->fetch(PDO::FETCH_ASSOC);
-                if ($r) return (string)$r['plan'];
-            } catch (\Throwable) {}
-        }
-        return 'demo';
+        $u = UserAuth::authedUser($req);
+        return $u['plan'] ?? 'demo';
     }
 
     private static function tenant(Request $req): string
     {
-        $auth = $req->getHeaderLine('Authorization');
-        if (preg_match('/Bearer\s+(\S+)/i', $auth, $m) && $m[1] !== 'demo-token') {
-            try {
-                $s = Db::pdo()->prepare('SELECT user_id FROM user_session WHERE token=? LIMIT 1');
-                $s->execute([$m[1]]);
-                $r = $s->fetch(PDO::FETCH_ASSOC);
-                if ($r) return (string)$r['user_id'];
-            } catch (\Throwable) {}
-        }
-        return 'demo';
+        $t = UserAuth::authedTenant($req);
+        return ($t !== null && $t !== '') ? $t : 'demo';
     }
 
     private static function ensureTables(): void
     {
         $pdo = Db::pdo();
-        $pdo->exec("CREATE TABLE IF NOT EXISTS whatsapp_settings (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            tenant_id TEXT NOT NULL,
-            phone_number_id TEXT,
-            access_token TEXT,
-            business_id TEXT,
-            webhook_verify_token TEXT,
-            is_active INTEGER DEFAULT 1,
-            test_status TEXT DEFAULT 'untested',
-            last_tested_at TEXT,
-            updated_at TEXT,
-            UNIQUE(tenant_id)
-        )");
-        $pdo->exec("CREATE TABLE IF NOT EXISTS whatsapp_messages (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            tenant_id TEXT NOT NULL,
-            wa_message_id TEXT,
-            recipient TEXT NOT NULL,
-            template_name TEXT,
-            body TEXT,
-            status TEXT DEFAULT 'pending',
-            error TEXT,
-            sent_at TEXT,
-            delivered_at TEXT,
-            read_at TEXT,
-            created_at TEXT
-        )");
-        $pdo->exec("CREATE TABLE IF NOT EXISTS whatsapp_templates (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            tenant_id TEXT NOT NULL,
-            name TEXT NOT NULL,
-            language TEXT DEFAULT 'ko',
-            category TEXT DEFAULT 'MARKETING',
-            components_json TEXT,
-            status TEXT DEFAULT 'APPROVED',
-            created_at TEXT
-        )");
+        if (self::isMysql($pdo)) {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS whatsapp_settings (
+                id INT AUTO_INCREMENT PRIMARY KEY, tenant_id VARCHAR(100) NOT NULL, phone_number_id VARCHAR(100),
+                access_token VARCHAR(512), business_id VARCHAR(100), webhook_verify_token VARCHAR(255),
+                is_active TINYINT DEFAULT 1, test_status VARCHAR(20) DEFAULT 'untested', last_tested_at VARCHAR(32),
+                updated_at VARCHAR(32), UNIQUE KEY uq_wa_settings_tenant (tenant_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+            $pdo->exec("CREATE TABLE IF NOT EXISTS whatsapp_messages (
+                id INT AUTO_INCREMENT PRIMARY KEY, tenant_id VARCHAR(100) NOT NULL, wa_message_id VARCHAR(120),
+                recipient VARCHAR(50) NOT NULL, template_name VARCHAR(120), body TEXT, status VARCHAR(20) DEFAULT 'pending',
+                error TEXT, sent_at VARCHAR(32), delivered_at VARCHAR(32), read_at VARCHAR(32), created_at VARCHAR(32),
+                KEY idx_wa_msg_tenant (tenant_id), KEY idx_wa_msg_waid (wa_message_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+            $pdo->exec("CREATE TABLE IF NOT EXISTS whatsapp_templates (
+                id INT AUTO_INCREMENT PRIMARY KEY, tenant_id VARCHAR(100) NOT NULL, name VARCHAR(200) NOT NULL,
+                language VARCHAR(10) DEFAULT 'ko', category VARCHAR(30) DEFAULT 'MARKETING', components_json TEXT,
+                status VARCHAR(20) DEFAULT 'APPROVED', created_at VARCHAR(32),
+                UNIQUE KEY uq_wa_tpl (tenant_id, name)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+        } else {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS whatsapp_settings (
+                id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL, phone_number_id TEXT, access_token TEXT,
+                business_id TEXT, webhook_verify_token TEXT, is_active INTEGER DEFAULT 1, test_status TEXT DEFAULT 'untested',
+                last_tested_at TEXT, updated_at TEXT, UNIQUE(tenant_id))");
+            $pdo->exec("CREATE TABLE IF NOT EXISTS whatsapp_messages (
+                id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL, wa_message_id TEXT, recipient TEXT NOT NULL,
+                template_name TEXT, body TEXT, status TEXT DEFAULT 'pending', error TEXT, sent_at TEXT, delivered_at TEXT,
+                read_at TEXT, created_at TEXT)");
+            $pdo->exec("CREATE TABLE IF NOT EXISTS whatsapp_templates (
+                id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL, name TEXT NOT NULL, language TEXT DEFAULT 'ko',
+                category TEXT DEFAULT 'MARKETING', components_json TEXT, status TEXT DEFAULT 'APPROVED', created_at TEXT,
+                UNIQUE(tenant_id, name))");
+        }
     }
 
     // POST /api/whatsapp/settings
     public static function saveSettings(Request $req, Response $res, array $args): Response
     {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
         self::ensureTables();
         $pdo    = Db::pdo();
         $tenant = self::tenant($req);
@@ -114,13 +98,18 @@ final class WhatsApp
         // 실제 연결 테스트
         $testResult = self::testConnection($phoneNumberId, $accessToken);
 
-        $pdo->prepare("INSERT INTO whatsapp_settings(tenant_id,phone_number_id,access_token,business_id,test_status,last_tested_at,updated_at)
-            VALUES(?,?,?,?,?,?,?) ON CONFLICT(tenant_id) DO UPDATE SET
-            phone_number_id=excluded.phone_number_id, access_token=excluded.access_token,
-            business_id=excluded.business_id, test_status=excluded.test_status,
-            last_tested_at=excluded.last_tested_at, updated_at=excluded.updated_at"
-        )->execute([$tenant, $phoneNumberId, $accessToken, $businessId,
-            $testResult['ok'] ? 'ok' : 'error', $now, $now]);
+        // 191차: ON CONFLICT → 드라이버별 upsert.
+        $cols = "tenant_id,phone_number_id,access_token,business_id,test_status,last_tested_at,updated_at";
+        $vals = [$tenant, $phoneNumberId, $accessToken, $businessId, $testResult['ok'] ? 'ok' : 'error', $now, $now];
+        if (self::isMysql($pdo)) {
+            $pdo->prepare("INSERT INTO whatsapp_settings($cols) VALUES(?,?,?,?,?,?,?)
+                ON DUPLICATE KEY UPDATE phone_number_id=VALUES(phone_number_id),access_token=VALUES(access_token),
+                business_id=VALUES(business_id),test_status=VALUES(test_status),last_tested_at=VALUES(last_tested_at),updated_at=VALUES(updated_at)")->execute($vals);
+        } else {
+            $pdo->prepare("INSERT INTO whatsapp_settings($cols) VALUES(?,?,?,?,?,?,?)
+                ON CONFLICT(tenant_id) DO UPDATE SET phone_number_id=excluded.phone_number_id,access_token=excluded.access_token,
+                business_id=excluded.business_id,test_status=excluded.test_status,last_tested_at=excluded.last_tested_at,updated_at=excluded.updated_at")->execute($vals);
+        }
 
         // 연결 성공 시 템플릿 자동 수집
         if ($testResult['ok']) {
@@ -138,6 +127,7 @@ final class WhatsApp
     // GET /api/whatsapp/settings
     public static function getSettings(Request $req, Response $res, array $args): Response
     {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
         self::ensureTables();
         $pdo    = Db::pdo();
         $tenant = self::tenant($req);
@@ -161,6 +151,7 @@ final class WhatsApp
     // POST /api/whatsapp/send
     public static function send(Request $req, Response $res, array $args): Response
     {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
         self::ensureTables();
         $pdo    = Db::pdo();
         $tenant = self::tenant($req);
@@ -201,6 +192,7 @@ final class WhatsApp
     // POST /api/whatsapp/broadcast
     public static function broadcast(Request $req, Response $res, array $args): Response
     {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
         self::ensureTables();
         $pdo      = Db::pdo();
         $tenant   = self::tenant($req);
@@ -221,11 +213,19 @@ final class WhatsApp
             $cfg = $s->fetch(PDO::FETCH_ASSOC);
         }
 
+        // 191차: 운영(비데모) 발신 설정 미존재 시 가짜 랜덤 'delivered' 기록 금지 → 명시적 차단(188차).
+        if ($plan !== 'demo' && !$cfg) {
+            return TemplateResponder::respond($res->withStatus(422), [
+                'ok' => false, 'error' => 'WhatsApp 발신 설정이 없습니다. 설정에서 인증키를 먼저 등록하세요.',
+                'sent' => 0, 'failed' => 0, 'total' => 0,
+            ]);
+        }
+
         foreach (array_slice($numbers, 0, 200) as $to) {
             $to = preg_replace('/\D/', '', (string)$to);
             if (strlen($to) < 8) continue;
-            if (false /*was demo*/ || !$cfg) {
-                $status = rand(0, 9) < 9 ? 'delivered' : 'failed';
+            if ($plan === 'demo') {
+                $status = rand(0, 9) < 9 ? 'delivered' : 'failed'; // 데모 시뮬레이션 한정
             } else {
                 $r = self::sendMessage($cfg['phone_number_id'], $cfg['access_token'], $to, $template, $text, []);
                 $status = $r['ok'] ? 'sent' : 'failed';
@@ -241,6 +241,7 @@ final class WhatsApp
     // GET /api/whatsapp/templates
     public static function templates(Request $req, Response $res, array $args): Response
     {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
         self::ensureTables();
         $pdo    = Db::pdo();
         $tenant = self::tenant($req);
@@ -250,7 +251,8 @@ final class WhatsApp
         $stmt->execute([$tenant]);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        if (empty($rows)) {
+        // 191차: 빈 템플릿 demoTemplates 주입은 데모 전용(운영은 정직한 빈 목록).
+        if (empty($rows) && $plan === 'demo') {
             $rows = self::demoTemplates();
         }
         foreach ($rows as &$r) {
@@ -263,20 +265,17 @@ final class WhatsApp
     // GET /api/whatsapp/messages
     public static function messages(Request $req, Response $res, array $args): Response
     {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
         self::ensureTables();
         $pdo    = Db::pdo();
         $tenant = self::tenant($req);
         $plan   = self::plan($req);
         $limit  = max(1, min(100, (int)(($req->getQueryParams())['limit'] ?? 50)));
 
-        if (false /*was demo*/) {
-            return TemplateResponder::respond($res, ['ok' => true, 'plan' => 'demo', 'messages' => self::demoMessages()]);
-        }
-
-        $stmt = $pdo->prepare("SELECT * FROM whatsapp_messages WHERE tenant_id=? ORDER BY created_at DESC LIMIT ?");
-        $stmt->execute([$tenant, $limit]);
+        // 191차: LIMIT 인라인(PDO 문자열바인드 500 해소) + 빈 결과 demoMessages(rand) 주입 제거(188차).
+        $stmt = $pdo->prepare("SELECT * FROM whatsapp_messages WHERE tenant_id=? ORDER BY created_at DESC LIMIT $limit");
+        $stmt->execute([$tenant]);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        if (empty($rows)) $rows = self::demoMessages();
         return TemplateResponder::respond($res, ['ok' => true, 'messages' => $rows]);
     }
 
@@ -357,9 +356,10 @@ final class WhatsApp
         if ($code !== 200) return;
         $data = json_decode((string)$raw, true) ?? [];
         $now  = gmdate('c');
+        // 191차: ON CONFLICT DO NOTHING(SQLite) → 드라이버별 무시삽입(MySQL=INSERT IGNORE). UNIQUE(tenant_id,name) dedup.
+        $ins  = self::isMysql($pdo) ? 'INSERT IGNORE' : 'INSERT OR IGNORE';
         foreach (($data['data'] ?? []) as $t) {
-            $pdo->prepare("INSERT INTO whatsapp_templates(tenant_id,name,language,category,components_json,status,created_at) VALUES(?,?,?,?,?,?,?)
-                ON CONFLICT DO NOTHING")
+            $pdo->prepare("$ins INTO whatsapp_templates(tenant_id,name,language,category,components_json,status,created_at) VALUES(?,?,?,?,?,?,?)")
                 ->execute([$tenant,$t['name'],$t['language'],$t['category'],json_encode($t['components']),$t['status'],$now]);
         }
     }

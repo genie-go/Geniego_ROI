@@ -190,13 +190,14 @@ return function (App $app): void {
         'GET /v4181/decisioning/segment/{gender}/{age}/{region}/affinity' => 'Genie\\Handlers\\Decisioning::segmentAffinity',
 
         // ── WhatsApp Business API ──────────────────────────────────────────
-        'GET /api/whatsapp/settings'              => 'Genie\\Handlers\\WhatsApp::getSettings',
-        'POST /api/whatsapp/settings'             => 'Genie\\Handlers\\WhatsApp::saveSettings',
-        'POST /api/whatsapp/send'                 => 'Genie\\Handlers\\WhatsApp::send',
-        'POST /api/whatsapp/broadcast'            => 'Genie\\Handlers\\WhatsApp::broadcast',
-        'GET /api/whatsapp/templates'             => 'Genie\\Handlers\\WhatsApp::templates',
-        'GET /api/whatsapp/messages'              => 'Genie\\Handlers\\WhatsApp::messages',
-        'POST /api/whatsapp/webhooks'             => 'Genie\\Handlers\\WhatsApp::webhook',
+        // 191차 부활: /api strip 정합 위해 /whatsapp 등록(세션 self-auth, webhook 만 무인증).
+        'GET /whatsapp/settings'                  => 'Genie\\Handlers\\WhatsApp::getSettings',
+        'POST /whatsapp/settings'                 => 'Genie\\Handlers\\WhatsApp::saveSettings',
+        'POST /whatsapp/send'                     => 'Genie\\Handlers\\WhatsApp::send',
+        'POST /whatsapp/broadcast'                => 'Genie\\Handlers\\WhatsApp::broadcast',
+        'GET /whatsapp/templates'                 => 'Genie\\Handlers\\WhatsApp::templates',
+        'GET /whatsapp/messages'                  => 'Genie\\Handlers\\WhatsApp::messages',
+        'POST /whatsapp/webhooks'                 => 'Genie\\Handlers\\WhatsApp::webhook',
 
         // ── SMS Marketing (NHN Cloud bizMessage) ──────────────────────────
         // 191차 부활: /api strip(basePath) 정합 위해 /sms 로 등록(프론트 /api/sms 호출→strip→/sms 매칭). 세션 self-auth(bypass).
@@ -221,12 +222,13 @@ return function (App $app): void {
         'POST /api/models/drift-check'            => 'Genie\\Handlers\\ModelMonitor::driftCheck',
 
         // ── Instagram / Facebook DM (Meta Messaging API) ──────────────────
-        'GET /api/instagram/settings'             => 'Genie\\Handlers\\InstagramDM::getSettings',
-        'POST /api/instagram/settings'            => 'Genie\\Handlers\\InstagramDM::saveSettings',
-        'GET /api/instagram/conversations'        => 'Genie\\Handlers\\InstagramDM::conversations',
-        'POST /api/instagram/send'                => 'Genie\\Handlers\\InstagramDM::send',
-        'GET /api/instagram/stats'                => 'Genie\\Handlers\\InstagramDM::stats',
-        'POST /api/instagram/webhooks'            => 'Genie\\Handlers\\InstagramDM::webhook',
+        // 191차 부활: /api strip 정합 위해 /instagram 등록(세션 self-auth, webhook 만 무인증).
+        'GET /instagram/settings'                 => 'Genie\\Handlers\\InstagramDM::getSettings',
+        'POST /instagram/settings'                => 'Genie\\Handlers\\InstagramDM::saveSettings',
+        'GET /instagram/conversations'            => 'Genie\\Handlers\\InstagramDM::conversations',
+        'POST /instagram/send'                    => 'Genie\\Handlers\\InstagramDM::send',
+        'GET /instagram/stats'                    => 'Genie\\Handlers\\InstagramDM::stats',
+        'POST /instagram/webhooks'                => 'Genie\\Handlers\\InstagramDM::webhook',
 
         // ── AI Content Generator (Claude API) ────────────────────────────
         'GET /api/ai/settings'                    => 'Genie\\Handlers\\AiGenerate::getSettings',
@@ -1824,13 +1826,13 @@ return function (App $app): void {
     $register('GET',    '/customer-ai/product-recommendations');
     $register('GET',    '/customer-ai/integrated-summary');
     // WhatsApp
-    $register('GET',    '/api/whatsapp/settings');
-    $register('POST',   '/api/whatsapp/settings');
-    $register('POST',   '/api/whatsapp/send');
-    $register('POST',   '/api/whatsapp/broadcast');
-    $register('GET',    '/api/whatsapp/templates');
-    $register('GET',    '/api/whatsapp/messages');
-    $register('POST',   '/api/whatsapp/webhooks');
+    $register('GET',    '/whatsapp/settings');
+    $register('POST',   '/whatsapp/settings');
+    $register('POST',   '/whatsapp/send');
+    $register('POST',   '/whatsapp/broadcast');
+    $register('GET',    '/whatsapp/templates');
+    $register('GET',    '/whatsapp/messages');
+    $register('POST',   '/whatsapp/webhooks');
     // SMS
     $register('GET',    '/sms/settings');
     $register('POST',   '/sms/settings');
@@ -1850,12 +1852,12 @@ return function (App $app): void {
     $register('GET',    '/api/models/drift-report');
     $register('POST',   '/api/models/drift-check');
     // Instagram DM
-    $register('GET',    '/api/instagram/settings');
-    $register('POST',   '/api/instagram/settings');
-    $register('GET',    '/api/instagram/conversations');
-    $register('POST',   '/api/instagram/send');
-    $register('GET',    '/api/instagram/stats');
-    $register('POST',   '/api/instagram/webhooks');
+    $register('GET',    '/instagram/settings');
+    $register('POST',   '/instagram/settings');
+    $register('GET',    '/instagram/conversations');
+    $register('POST',   '/instagram/send');
+    $register('GET',    '/instagram/stats');
+    $register('POST',   '/instagram/webhooks');
     // AI Generate
     $register('GET',    '/api/ai/settings');
     $register('POST',   '/api/ai/settings');
