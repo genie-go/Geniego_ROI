@@ -23864,6 +23864,16 @@ export default {
       guideDesc: "儀表板指南"
     },
   profile: {
+    "tabSessions": "💻 工作階段/裝置",
+    "sessGuide": "目前已登入的裝置與工作階段清單。若發現非本人的工作階段，請立即登出。",
+    "sessLoading": "載入中...",
+    "sessNone": "沒有作用中的工作階段。",
+    "sessUnknownDevice": "未知裝置",
+    "sessCurrent": "目前裝置",
+    "sessSince": "登入",
+    "sessRevoked": "已從其他裝置登出。",
+    "sessRevokeFail": "登出失敗。",
+    "sessRevokeOthers": "登出所有其他裝置",
     "tabMfa": "🔒 兩步驗證",
     "mfaGuide": "使用驗證應用程式(Google Authenticator、Authy 等)產生6位驗證碼，登入時進行額外驗證。",
     "mfaGuide2": "啟用後，從下次登入起需要同時輸入密碼和驗證碼。",

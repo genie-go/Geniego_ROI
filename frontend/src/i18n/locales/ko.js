@@ -31618,6 +31618,16 @@ export default {
   },
 
   "profile": {
+    "tabSessions": "💻 세션/기기",
+    "sessGuide": "현재 로그인된 기기·세션 목록입니다. 본인이 아닌 세션이 있으면 즉시 로그아웃하세요.",
+    "sessLoading": "불러오는 중...",
+    "sessNone": "활성 세션이 없습니다.",
+    "sessUnknownDevice": "알 수 없는 기기",
+    "sessCurrent": "현재 기기",
+    "sessSince": "로그인",
+    "sessRevoked": "다른 기기에서 로그아웃되었습니다.",
+    "sessRevokeFail": "로그아웃에 실패했습니다.",
+    "sessRevokeOthers": "다른 모든 기기에서 로그아웃",
     "tabMfa": "🔒 2단계 인증",
     "mfaGuide": "인증 앱(Google Authenticator, Authy 등)으로 6자리 코드를 생성해 로그인 시 추가 인증합니다.",
     "mfaGuide2": "활성화하면 다음 로그인부터 비밀번호와 함께 인증 코드를 입력해야 합니다.",

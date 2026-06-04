@@ -23478,6 +23478,16 @@ export default {
       guideDesc: "User Guide"
     },
   profile: {
+    "tabSessions": "💻 Sessions",
+    "sessGuide": "List of devices and sessions currently signed in. If you see a session that is not yours, sign it out immediately.",
+    "sessLoading": "Loading...",
+    "sessNone": "No active sessions.",
+    "sessUnknownDevice": "Unknown device",
+    "sessCurrent": "Current device",
+    "sessSince": "Signed in",
+    "sessRevoked": "Signed out from other devices.",
+    "sessRevokeFail": "Failed to sign out.",
+    "sessRevokeOthers": "Sign out of all other devices",
     "tabMfa": "🔒 Two-Factor Auth",
     "mfaGuide": "Use an authenticator app (Google Authenticator, Authy, etc.) to generate a 6-digit code for an extra layer at sign-in.",
     "mfaGuide2": "Once enabled, you must enter a verification code along with your password from the next sign-in.",

@@ -17661,6 +17661,16 @@ export default {
     "guideDesc": "仪表盘指南"
   },
   "profile": {
+    "tabSessions": "💻 会话/设备",
+    "sessGuide": "当前已登录的设备和会话列表。如发现非本人的会话，请立即退出登录。",
+    "sessLoading": "加载中...",
+    "sessNone": "没有活动会话。",
+    "sessUnknownDevice": "未知设备",
+    "sessCurrent": "当前设备",
+    "sessSince": "登录",
+    "sessRevoked": "已从其他设备退出登录。",
+    "sessRevokeFail": "退出登录失败。",
+    "sessRevokeOthers": "退出所有其他设备",
     "tabMfa": "🔒 两步验证",
     "mfaGuide": "使用身份验证应用(Google Authenticator、Authy 等)生成6位验证码，登录时进行额外验证。",
     "mfaGuide2": "启用后，从下次登录起需要同时输入密码和验证码。",

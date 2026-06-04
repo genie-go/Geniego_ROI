@@ -24994,6 +24994,16 @@ export default {
       guideDesc: "Benutzerhandbuch"
     },
   profile: {
+    "tabSessions": "💻 Sitzungen",
+    "sessGuide": "Liste der aktuell angemeldeten Geräte und Sitzungen. Wenn Sie eine fremde Sitzung sehen, melden Sie diese sofort ab.",
+    "sessLoading": "Wird geladen...",
+    "sessNone": "Keine aktiven Sitzungen.",
+    "sessUnknownDevice": "Unbekanntes Gerät",
+    "sessCurrent": "Aktuelles Gerät",
+    "sessSince": "Angemeldet",
+    "sessRevoked": "Von anderen Geräten abgemeldet.",
+    "sessRevokeFail": "Abmeldung fehlgeschlagen.",
+    "sessRevokeOthers": "Von allen anderen Geräten abmelden",
     "tabMfa": "🔒 Zwei-Faktor-Auth",
     "mfaGuide": "Verwenden Sie eine Authenticator-App (Google Authenticator, Authy usw.), um beim Anmelden einen 6-stelligen Code zu erzeugen.",
     "mfaGuide2": "Nach der Aktivierung müssen Sie ab der nächsten Anmeldung neben dem Passwort einen Bestätigungscode eingeben.",

@@ -25231,6 +25231,16 @@ export default {
       writeData: "Write Data"
     },
   profile: {
+    "tabSessions": "💻 Phiên/Thiết bị",
+    "sessGuide": "Danh sách thiết bị và phiên đang đăng nhập. Nếu thấy phiên không phải của bạn, hãy đăng xuất ngay.",
+    "sessLoading": "Đang tải...",
+    "sessNone": "Không có phiên hoạt động.",
+    "sessUnknownDevice": "Thiết bị không xác định",
+    "sessCurrent": "Thiết bị hiện tại",
+    "sessSince": "Đăng nhập",
+    "sessRevoked": "Đã đăng xuất khỏi các thiết bị khác.",
+    "sessRevokeFail": "Đăng xuất thất bại.",
+    "sessRevokeOthers": "Đăng xuất khỏi tất cả thiết bị khác",
     "tabMfa": "🔒 Xác thực 2 lớp",
     "mfaGuide": "Dùng ứng dụng xác thực (Google Authenticator, Authy, v.v.) để tạo mã 6 chữ số xác thực thêm khi đăng nhập.",
     "mfaGuide2": "Sau khi bật, từ lần đăng nhập sau bạn phải nhập mã xác minh cùng với mật khẩu.",

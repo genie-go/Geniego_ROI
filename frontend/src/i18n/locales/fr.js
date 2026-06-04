@@ -23197,6 +23197,16 @@ export default {
       apply: "Appliquer"
     },
   profile: {
+    "tabSessions": "💻 Sessions",
+    "sessGuide": "Liste des appareils et sessions actuellement connectés. Si vous voyez une session qui n'est pas la vôtre, déconnectez-la immédiatement.",
+    "sessLoading": "Chargement...",
+    "sessNone": "Aucune session active.",
+    "sessUnknownDevice": "Appareil inconnu",
+    "sessCurrent": "Appareil actuel",
+    "sessSince": "Connexion",
+    "sessRevoked": "Déconnecté des autres appareils.",
+    "sessRevokeFail": "Échec de la déconnexion.",
+    "sessRevokeOthers": "Se déconnecter de tous les autres appareils",
     "tabMfa": "🔒 Authentification à 2 facteurs",
     "mfaGuide": "Utilisez une application d'authentification (Google Authenticator, Authy, etc.) pour générer un code à 6 chiffres lors de la connexion.",
     "mfaGuide2": "Une fois activé, vous devrez saisir un code de vérification avec votre mot de passe dès la prochaine connexion.",

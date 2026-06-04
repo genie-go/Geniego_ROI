@@ -25065,6 +25065,16 @@ export default {
       writeData: "Write Data"
     },
   profile: {
+    "tabSessions": "💻 Sesi/Perangkat",
+    "sessGuide": "Daftar perangkat dan sesi yang sedang masuk. Jika ada sesi yang bukan milik Anda, segera keluarkan.",
+    "sessLoading": "Memuat...",
+    "sessNone": "Tidak ada sesi aktif.",
+    "sessUnknownDevice": "Perangkat tidak dikenal",
+    "sessCurrent": "Perangkat saat ini",
+    "sessSince": "Masuk",
+    "sessRevoked": "Telah keluar dari perangkat lain.",
+    "sessRevokeFail": "Gagal keluar.",
+    "sessRevokeOthers": "Keluar dari semua perangkat lain",
     "tabMfa": "🔒 Autentikasi 2 Faktor",
     "mfaGuide": "Gunakan aplikasi autentikator (Google Authenticator, Authy, dll.) untuk membuat kode 6 digit sebagai lapisan tambahan saat masuk.",
     "mfaGuide2": "Setelah diaktifkan, mulai masuk berikutnya Anda harus memasukkan kode verifikasi bersama kata sandi.",

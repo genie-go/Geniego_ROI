@@ -20372,6 +20372,16 @@ export default {
     "guideDesc": "使い方案内"
   },
   "profile": {
+    "tabSessions": "💻 セッション/端末",
+    "sessGuide": "現在ログイン中の端末・セッションの一覧です。心当たりのないセッションがあれば直ちにログアウトしてください。",
+    "sessLoading": "読み込み中...",
+    "sessNone": "アクティブなセッションはありません。",
+    "sessUnknownDevice": "不明な端末",
+    "sessCurrent": "現在の端末",
+    "sessSince": "ログイン",
+    "sessRevoked": "他の端末からログアウトしました。",
+    "sessRevokeFail": "ログアウトに失敗しました。",
+    "sessRevokeOthers": "他のすべての端末からログアウト",
     "tabMfa": "🔒 2段階認証",
     "mfaGuide": "認証アプリ(Google Authenticator、Authyなど)で6桁コードを生成し、ログイン時に追加認証します。",
     "mfaGuide2": "有効にすると、次回のログインからパスワードと共に認証コードの入力が必要になります。",

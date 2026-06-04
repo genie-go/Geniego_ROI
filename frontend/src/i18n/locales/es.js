@@ -23197,6 +23197,16 @@ export default {
       apply: "Aplicar"
     },
   profile: {
+    "tabSessions": "💻 Sesiones",
+    "sessGuide": "Lista de dispositivos y sesiones con sesión iniciada. Si ve una sesión que no es suya, ciérrela de inmediato.",
+    "sessLoading": "Cargando...",
+    "sessNone": "No hay sesiones activas.",
+    "sessUnknownDevice": "Dispositivo desconocido",
+    "sessCurrent": "Dispositivo actual",
+    "sessSince": "Inicio de sesión",
+    "sessRevoked": "Sesión cerrada en otros dispositivos.",
+    "sessRevokeFail": "No se pudo cerrar la sesión.",
+    "sessRevokeOthers": "Cerrar sesión en todos los demás dispositivos",
     "tabMfa": "🔒 Verificación en 2 pasos",
     "mfaGuide": "Use una app de autenticación (Google Authenticator, Authy, etc.) para generar un código de 6 dígitos al iniciar sesión.",
     "mfaGuide2": "Una vez activado, deberá introducir un código de verificación junto con su contraseña desde el próximo inicio de sesión.",
