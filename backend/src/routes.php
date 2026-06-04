@@ -1599,7 +1599,8 @@ return function (App $app): void {
             );
             $stmt->execute([$token, $now]);
             $admin = $stmt->fetch(\PDO::FETCH_ASSOC);
-            if (!$admin || !in_array($admin['plan'], ['admin', 'enterprise'], true)) {
+            // 192차 보안 P0: 라이선스 관리(발급/조회)는 admin 전용 — enterprise 자가발급·키열람 권한상승 차단.
+            if (!$admin || $admin['plan'] !== 'admin') {
                 return $json(['ok' => false, 'error' => '관리자 권한 필요'], 403);
             }
 
@@ -1681,7 +1682,8 @@ return function (App $app): void {
             );
             $stmt->execute([$token, $now]);
             $admin = $stmt->fetch(\PDO::FETCH_ASSOC);
-            if (!$admin || !in_array($admin['plan'], ['admin', 'enterprise'], true)) {
+            // 192차 보안 P0: 라이선스 관리(발급/조회)는 admin 전용 — enterprise 자가발급·키열람 권한상승 차단.
+            if (!$admin || $admin['plan'] !== 'admin') {
                 return $json(['ok' => false, 'error' => '관리자 권한 필요'], 403);
             }
 

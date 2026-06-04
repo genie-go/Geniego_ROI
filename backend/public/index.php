@@ -214,7 +214,9 @@ $app->add(function (Request $request, $handler) {
     if (!is_array($scopes)) { $scopes = []; }
 
     // admin:keys routes need admin:keys scope
-    if (strpos($path, '/v421/keys') === 0) {
+    // 192차 보안 P0: /api 별칭(/api/v421/keys)으로 접근 시 이 게이트가 우회되어 일반 write:* 키가
+    //   admin 키를 발급할 수 있던 권한상승 차단. bypass 리스트와 동일하게 /api 변형도 매칭한다.
+    if (strpos($path, '/v421/keys') === 0 || strpos($path, '/api/v421/keys') === 0) {
         if (!in_array('admin:keys', $scopes, true) && $rank < 3) {
             return $makeJson(403, ['error' => 'Forbidden', 'detail' => 'Scope admin:keys required']);
         }

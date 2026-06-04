@@ -249,6 +249,17 @@ function RequireAuth({ children }) {
 }
 
 /*
+ * 192차 로그아웃 버그 B 수정: "/" 는 공개 Landing(마케팅)이지만, 이미 로그인한
+ * 사용자가 로고/홈으로 "/" 에 가면 로그아웃된 것처럼 보이는 착시가 있었다.
+ * 로그인 세션이 살아있으면 대시보드로 리다이렉트하고, 비로그인 방문자에게만 Landing 노출.
+ */
+function HomeRoute() {
+  const { user } = useAuth();
+  if (user) return <Navigate to="/dashboard" replace />;
+  return <Landing />;
+}
+
+/*
  * 181차 플랜별 메뉴접근 라우트 가드 — URL 직접 접근(딥링크) 차단.
  * 사이드바 숨김만으로는 우회 가능하던 허점을 보완: 현재 경로의 menuKey 를
  * hasMenuAccess 로 판정해, 권한 미달이면 PlanGate 업그레이드 화면을 표시한다.
@@ -463,7 +474,7 @@ export default function App() {
         <TenantScopedProviders>
             <Suspense fallback={<Loader />}>
               <Routes>
-                <Route path="/" element={<Landing />} />
+                <Route path="/" element={<HomeRoute />} />
                 <Route path="/about" element={<CompanyIntro />} />
                 <Route path="/team" element={<TeamIntro />} />
                 <Route path="/pricing" element={<SmartPricing />} />

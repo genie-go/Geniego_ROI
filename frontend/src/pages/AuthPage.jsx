@@ -469,7 +469,7 @@ function LoginForm({ onSwitch, loginType = "production" }) {
   const [recovery, setRecovery] = useState(resetTokenFromUrl ? "reset" : null); // 188차: null | 'findId' | 'forgot' | (190차) 'reset'
   const [mfaStep, setMfaStep] = useState(false);   // 189차: 2단계 인증 코드 입력 단계
   const [otp, setOtp] = useState("");
-  const [remember, setRemember] = useState(false); // 189차: 자동 로그인(remember-me)
+  const [remember, setRemember] = useState(true); // 192차: 기본 영속세션(엔터프라이즈 SaaS) — 공용 PC에서만 체크 해제
 
   /* 자동 로그아웃으로 리디렉트된 경우 감지 */
   const isIdleLogout = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("reason") === "idle";

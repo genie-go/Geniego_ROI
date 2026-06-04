@@ -1550,8 +1550,10 @@ final class Payment
         $authHeader=$req->getHeaderLine('Authorization'); $token=null;
         if(preg_match('/^Bearer\s+(.+)$/i',$authHeader,$m)) $token=trim($m[1]);
         if(!$token) return false;
-        $demoKey=getenv('DEMO_ADMIN_KEY')?:'genie_live_demo_key_00000000';
-        if($token===$demoKey) return true;
+        // 192차 보안 P0: 공개 평문 데모 키 하드코딩 백도어 제거(188·189차 백도어 제거와 동일 취지).
+        //   DEMO_ADMIN_KEY 환경변수가 명시 설정된 경우에만 timing-safe 비교로 우회 허용.
+        $demoKey=getenv('DEMO_ADMIN_KEY');
+        if($demoKey && hash_equals($demoKey,$token)) return true;
         try {
             $pdo=Db::pdo(); $now=self::now();
             $stmt=$pdo->prepare('SELECT COALESCE(u.plans,u.plan,\'demo\') AS plan FROM user_session s JOIN app_user u ON u.id=s.user_id WHERE s.token=? AND s.expires_at>? AND u.is_active=1');

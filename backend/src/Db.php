@@ -773,10 +773,15 @@ final class Db
         if ($demoKeyCount === 0) {
             $now = gmdate('c');
             $pdo->prepare('INSERT INTO api_key(tenant_id,key_prefix,key_hash,name,role,scopes_json,is_active,created_at) VALUES(?,?,?,?,?,?,?,?)')
-                ->execute(['demo','genie_live_',$demoKeyHash,'Demo Admin Key','admin',json_encode(['read:*','write:*','admin:keys']),1,$now]);
+                ->execute(['demo','genie_live_',$demoKeyHash,'Demo Key','analyst',json_encode(['read:*','write:*']),1,$now]);
             $pdo->prepare('INSERT INTO api_key(tenant_id,key_prefix,key_hash,name,role,scopes_json,is_active,created_at) VALUES(?,?,?,?,?,?,?,?)')
                 ->execute(['demo','genie_read_',hash('sha256','genie_read_demo_key_11111111'),'Demo Analyst Key','analyst',json_encode(['read:*']),1,$now]);
         }
+        // 192cha security P0: downgrade any pre-seeded demo admin key (admin/admin:keys -> analyst). idempotent.
+        try {
+            $pdo->prepare("UPDATE api_key SET role='analyst', scopes_json=?, name='Demo Key' WHERE tenant_id='demo' AND key_hash=? AND role='admin'")
+                ->execute([json_encode(['read:*','write:*']), $demoKeyHash]);
+        } catch (\Throwable $e) { /* ignore on older schema */ }
 
         // ???? V423 2???ì? ?´ë²¤???¤í¤ë§?????????????????????????????????????????????????????????????????????????????
         // Layer 1: RawVendorEvent

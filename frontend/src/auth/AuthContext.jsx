@@ -30,14 +30,23 @@ function restorableToken() {
     try {
         const tok = localStorage.getItem(TOKEN_KEY);
         if (!tok) return null;
-        const remember = localStorage.getItem(REMEMBER_KEY) === "1";
-        if (remember) {
+        // 이미 활성 브라우징 세션(현재 탭) → 항상 복원
+        if (sessionStorage.getItem(SESSION_ACTIVE_KEY) === "1") return tok;
+        // 명시적 영속(자동 로그인 체크) → 복원
+        if (localStorage.getItem(REMEMBER_KEY) === "1") {
             try { sessionStorage.setItem(SESSION_ACTIVE_KEY, "1"); } catch {}
             return tok;
         }
-        // 비영속 세션: 동일 브라우징 세션에서만 복원(센티넬 존재 시)
-        if (sessionStorage.getItem(SESSION_ACTIVE_KEY) === "1") return tok;
-        return null; // 브라우저 재시작/새 세션 → 자동 로그인 차단
+        // admin 계정은 보안상 비영속: 새 브라우저 세션/새 탭에서 재인증(접속키) 요구.
+        let cachedPlan = "";
+        try { const u = JSON.parse(localStorage.getItem(USER_KEY) || "null"); cachedPlan = u?.plan || u?.plans || ""; } catch {}
+        if (cachedPlan === "admin") return null;
+        // 192차 로그아웃 버그 수정: 일반 사용자는 영속 세션이 기본(엔터프라이즈 SaaS).
+        //   새 탭/창·브라우저 재시작·홈("/") 이동에도 로그인 유지. 189차 비영속 기본값이
+        //   "로그아웃 안 했는데 로그아웃" 호소의 근본 원인이었음. 보안 제어는 명시적 로그아웃 +
+        //   idle 자동 로그아웃(autoLogoutMin)으로 수행한다.
+        try { sessionStorage.setItem(SESSION_ACTIVE_KEY, "1"); } catch {}
+        return tok;
     } catch { return null; }
 }
 
