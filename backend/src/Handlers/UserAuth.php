@@ -364,6 +364,8 @@ final class UserAuth
             if ($uRow) { $finalPlan = $uRow['plan'] ?? 'free'; $finalExpires = $uRow['subscription_expires_at'] ?? null; }
         } catch (\Throwable $e) {}
 
+        self::audit($req, 'register', '회원가입: ' . $email, 'low', ['id' => $userId, 'email' => $email, 'plan' => $finalPlan, 'tenant_id' => $tenantId]);
+
         return self::json($res, [
             'ok'    => true,
             'token' => $token,
@@ -489,6 +491,7 @@ final class UserAuth
 
             if (!$user || !$isValidPw) {
                 self::rateLimitFail($pdo, $rlIdent); // 189차: 실패 카운트 증가
+                self::audit($req, 'login_fail', '로그인 실패(이메일/비번 불일치): ' . $email, 'medium', $email);
                 return self::json($res, ['ok' => false, 'error' => '이메일 또는 비밀번호가 올바르지 않습니다.'], 401);
             }
 
@@ -541,6 +544,7 @@ final class UserAuth
             }
 
             self::rateLimitClear($pdo, $rlIdent); // 189차: 로그인 성공 → 실패 카운터 클리어
+            self::audit($req, 'login', '로그인 성공' . ($loginType ? " ({$loginType})" : ''), (($user['plan'] ?? '') === 'admin' || ($user['plans'] ?? '') === 'admin') ? 'high' : 'low', $user);
 
             $token   = self::generateToken();
             $expires = gmdate('Y-m-d\TH:i:s\Z', time() + 30 * 24 * 3600);
@@ -891,7 +895,9 @@ final class UserAuth
     {
         $token = self::extractToken($req);
         if ($token) {
+            $who = self::userByToken($token);
             Db::pdo()->prepare('DELETE FROM user_session WHERE token = ?')->execute([$token]);
+            if ($who) self::audit($req, 'logout', '로그아웃', 'low', $who);
         }
         return self::json($res, ['ok' => true]);
     }
@@ -1303,6 +1309,7 @@ final class UserAuth
             ->execute([password_hash($new, PASSWORD_DEFAULT), $user['id']]);
         // 보안: 비번 변경 시 현재 세션을 제외한 다른 세션 무효화
         try { $pdo->prepare('DELETE FROM user_session WHERE user_id=? AND token<>?')->execute([$user['id'], $token]); } catch (\Throwable $e) {}
+        self::audit($req, 'password_change', '비밀번호 변경', 'high', $user);
         return self::json($res, ['ok' => true, 'message' => '비밀번호가 변경되었습니다.']);
     }
 
@@ -1362,6 +1369,7 @@ final class UserAuth
         $exp  = gmdate('Y-m-d\TH:i:s\Z', time() + 900); // 15분
         try { $pdo->prepare('DELETE FROM password_reset WHERE user_id=? OR expires_at<?')->execute([$u['id'], $now]); } catch (\Throwable $e) {}
         $pdo->prepare('INSERT INTO password_reset(token,user_id,expires_at,created_at) VALUES(?,?,?,?)')->execute([$rtok, $u['id'], $exp, $now]);
+        self::audit($req, 'password_reset_request', '비밀번호 재설정 본인확인 통과: ' . $email, 'high', $u + ['email' => $email]);
         return self::json($res, ['ok' => true, 'reset_token' => $rtok, 'message' => '본인확인이 완료되었습니다. 새 비밀번호를 설정하세요.']);
     }
 
@@ -1382,6 +1390,7 @@ final class UserAuth
         $pdo->prepare('UPDATE app_user SET password_hash=?, password_hashs=NULL WHERE id=?')->execute([password_hash($new, PASSWORD_DEFAULT), $uid]);
         $pdo->prepare('DELETE FROM password_reset WHERE token=?')->execute([$tok]);
         try { $pdo->prepare('DELETE FROM user_session WHERE user_id=?')->execute([$uid]); } catch (\Throwable $e) {} // 전 세션 무효화
+        self::audit($req, 'password_reset', '비밀번호 재설정 완료', 'high', ['id' => (int)$uid]);
         return self::json($res, ['ok' => true, 'message' => '비밀번호가 재설정되었습니다. 새 비밀번호로 로그인하세요.']);
     }
 
@@ -1454,6 +1463,7 @@ final class UserAuth
         } else {
             $pdo->prepare('INSERT INTO app_setting(skey,svalue,updated_at) VALUES(?,?,?)')->execute(['admin_access_key_hash', $kh, $now]);
         }
+        self::audit($req, 'admin_access_key_change', '관리자 접속키 변경', 'high', $user);
         return self::json($res, ['ok' => true, 'message' => '관리자 접속키가 변경되었습니다.']);
     }
 
@@ -1767,6 +1777,7 @@ final class UserAuth
         } catch (\Throwable $e) {
             return self::json($res, ['ok' => false, 'error' => 'MFA 활성화 중 오류가 발생했습니다.'], 500);
         }
+        self::audit($req, 'mfa_enable', '2단계 인증 활성화', 'high', $user);
         return self::json($res, ['ok' => true, 'message' => '2단계 인증이 활성화되었습니다.', 'recovery_codes' => $codes]);
     }
 
@@ -1793,6 +1804,67 @@ final class UserAuth
             $pdo->prepare('UPDATE app_user SET mfa_enabled=0, mfa_secret=NULL, mfa_enrolled_at=NULL WHERE id=?')->execute([$user['id']]);
             $pdo->prepare('DELETE FROM mfa_recovery WHERE user_id=?')->execute([$user['id']]);
         } catch (\Throwable $e) {}
+        self::audit($req, 'mfa_disable', '2단계 인증 해제', 'high', $user);
         return self::json($res, ['ok' => true, 'message' => '2단계 인증이 해제되었습니다.']);
+    }
+
+    // ═════════════════════════════════════════════════════════════
+    // 189차+ 인증/관리자 행위 감사로그 (auth audit trail)
+    //   로그인/로그아웃/가입/비번변경·재설정/MFA/관리자 접속키 등 보안 이벤트를 append-only 기록.
+    //   Audit.jsx(GET /auth/audit-logs) 가 소비. best-effort(기록 실패가 호출 액션을 깨지 않음).
+    // ═════════════════════════════════════════════════════════════
+    private static function ensureAuditSchema(\PDO $pdo): void
+    {
+        static $done = false;
+        if ($done) return;
+        $done = true;
+        try {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS auth_audit_log (at VARCHAR(32), user_id INT NULL, actor VARCHAR(190), role VARCHAR(32), tenant_id VARCHAR(64), action VARCHAR(64), detail TEXT, ip VARCHAR(64), ua VARCHAR(255), risk VARCHAR(16))");
+            $pdo->exec("CREATE INDEX IF NOT EXISTS idx_auth_audit_at ON auth_audit_log(at)");
+        } catch (\Throwable $e) { /* best-effort */ }
+    }
+
+    /**
+     * 감사 이벤트 1건 기록. $who 는 user 배열(있으면 email/role/tenant/id 추출) 또는 이메일 문자열.
+     * risk: 'low'|'medium'|'high'. 실패해도 호출측 액션에 영향 없음.
+     */
+    private static function audit(ServerRequestInterface $req, string $action, string $detail, string $risk, $who = null): void
+    {
+        try {
+            $pdo = Db::pdo();
+            self::ensureAuditSchema($pdo);
+            $email = ''; $role = ''; $tenant = ''; $uid = null;
+            if (is_array($who)) {
+                $email  = (string)($who['email'] ?? '');
+                $role   = (string)($who['plan'] ?? $who['plans'] ?? '');
+                $tenant = (string)($who['tenant_id'] ?? '');
+                $uid    = isset($who['id']) ? (int)$who['id'] : (isset($who['idx']) ? (int)$who['idx'] : null);
+            } elseif (is_string($who)) {
+                $email = $who;
+            }
+            $ua = substr((string)$req->getHeaderLine('User-Agent'), 0, 255);
+            $pdo->prepare('INSERT INTO auth_audit_log(at,user_id,actor,role,tenant_id,action,detail,ip,ua,risk) VALUES(?,?,?,?,?,?,?,?,?,?)')
+                ->execute([self::now(), $uid, $email, $role, $tenant, $action, $detail, self::clientIp($req), $ua, $risk]);
+        } catch (\Throwable $e) { /* 기록 실패는 무시 */ }
+    }
+
+    /** GET /auth/audit-logs — admin=전체, 그 외=본인(user_id) 이벤트. */
+    public static function auditLogs(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
+    {
+        $user = self::userByToken((string)(self::extractToken($req) ?? ''));
+        if (!$user) return self::json($res, ['ok' => false, 'error' => '인증이 필요합니다.'], 401);
+        $pdo = Db::pdo(); self::ensureAuditSchema($pdo);
+        $isAdmin = (($user['plan'] ?? '') === 'admin') || (($user['plans'] ?? '') === 'admin');
+        try {
+            if ($isAdmin) {
+                $st = $pdo->prepare('SELECT at,actor,role,tenant_id,action,detail,ip,risk FROM auth_audit_log ORDER BY at DESC LIMIT 1000');
+                $st->execute();
+            } else {
+                $st = $pdo->prepare('SELECT at,actor,role,tenant_id,action,detail,ip,risk FROM auth_audit_log WHERE user_id=? OR actor=? ORDER BY at DESC LIMIT 500');
+                $st->execute([(int)($user['id'] ?? 0), (string)($user['email'] ?? '')]);
+            }
+            $rows = $st->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+        } catch (\Throwable $e) { $rows = []; }
+        return self::json($res, ['ok' => true, 'logs' => $rows, 'count' => count($rows)]);
     }
 }

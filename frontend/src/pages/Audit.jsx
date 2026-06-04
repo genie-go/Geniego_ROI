@@ -241,7 +241,7 @@ export default function Audit() {
     setLoading(true);
     fetch("/api/auth/audit-logs", {
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+        Authorization: `Bearer ${localStorage.getItem("genie_token") || localStorage.getItem("demo_genie_token") || ""}`,
         "Content-Type": "application/json",
       },
     })
