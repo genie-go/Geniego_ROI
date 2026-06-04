@@ -37,11 +37,12 @@ final class TemplateResponder {
             return $vars[$key] ?? null;
         }
         if (str_starts_with($s, '__CALL__:')) {
-            $fn = substr($s, 8);
-            // We only need isoformat-like timestamps for this repo.
-            if ($fn === 'isoformat') return gmdate('c');
-            if ($fn === 'utcnow' || $fn === 'now') return gmdate('c');
-            return gmdate('c');
+            $fn = substr($s, 9); // "__CALL__:" = 9자 (기존 8 오프셋은 ':' 포함 → isoformat 분기 dead 였음)
+            // 191차: 타임스탬프 함수만 실값. 그 외(validate_product·list_versions·get_current_template_text·
+            //   len 등)는 과거에 전부 default 로 timestamp 를 돌려줘 "타임스탬프를 결과로 위장"하는 가짜였음
+            //   → null(정직). 템플릿 폴백 라우트가 미구현 필드를 가짜 타임스탬프 대신 null 로 노출.
+            if ($fn === 'isoformat' || $fn === 'utcnow' || $fn === 'now') return gmdate('c');
+            return null;
         }
         if ($s === '__EXPR__') return null;
         if ($s === '__UNSUPPORTED__') return null;
