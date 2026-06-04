@@ -327,7 +327,7 @@ function OrderTab() {
 
     const filtered = useMemo(() => {
         let rows = memoizedOrders;
-        if (search) rows = rows.filter(r => r.id.includes(search) || r.sku.includes(search) || r.buyer.includes(search));
+        if (search) rows = rows.filter(r => (r.id || '').includes(search) || (r.sku || '').includes(search) || (r.buyer || '').includes(search));
         if (selCh !== "all") rows = rows.filter(r => r.channel === selCh);
         if (selSt !== "all") rows = rows.filter(r => r.status === selSt);
         return rows;

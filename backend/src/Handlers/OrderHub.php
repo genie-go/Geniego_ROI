@@ -126,14 +126,23 @@ final class OrderHub
             return self::json($resp, ['ok' => false, 'error' => 'db_error', 'message' => $e->getMessage()], 500);
         }
 
+        // 189차+ 운영버그: 프론트(OrderHub.jsx)가 o.ch/sku/price/carrier/trackingNo/at/wh 를 읽으나
+        //   기존 매핑이 이를 누락 → 운영 주문테이블 빈칸 + 검색 시 r.sku.includes TypeError. 필드 보강(안전 폴백).
         $items = array_map(fn($r) => [
-            'id' => (string)($r['id'] ?? $r['order_id'] ?? ''),
-            'buyer' => (string)($r['buyer'] ?? ''),
-            'channel' => (string)($r['channel'] ?? ''),
-            'name' => (string)($r['name'] ?? $r['product_name'] ?? ''),
-            'qty' => (int)($r['qty'] ?? $r['quantity'] ?? 0),
-            'total' => (float)($r['total'] ?? $r['total_price'] ?? 0),
-            'status' => (string)($r['status'] ?? ''),
+            'id'         => (string)($r['id'] ?? $r['order_id'] ?? ''),
+            'buyer'      => (string)($r['buyer'] ?? ''),
+            'channel'    => (string)($r['channel'] ?? $r['ch'] ?? ''),
+            'ch'         => (string)($r['channel'] ?? $r['ch'] ?? ''),
+            'sku'        => (string)($r['sku'] ?? $r['product_sku'] ?? ''),
+            'name'       => (string)($r['name'] ?? $r['product_name'] ?? ''),
+            'qty'        => (int)($r['qty'] ?? $r['quantity'] ?? 0),
+            'price'      => (float)($r['price'] ?? $r['unit_price'] ?? 0),
+            'total'      => (float)($r['total'] ?? $r['total_price'] ?? 0),
+            'status'     => (string)($r['status'] ?? ''),
+            'carrier'    => (string)($r['carrier'] ?? ''),
+            'trackingNo' => (string)($r['tracking_no'] ?? $r['trackingNo'] ?? ''),
+            'at'         => (string)($r['ordered_at'] ?? $r['created_at'] ?? $r['at'] ?? ''),
+            'wh'         => (string)($r['warehouse'] ?? $r['wh'] ?? ''),
         ], $rows);
 
         return self::json($resp, [
