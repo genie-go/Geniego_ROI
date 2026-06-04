@@ -385,6 +385,14 @@ final class Db
             created_at  VARCHAR(32) NOT NULL
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"));
 
+        // 190차 Sprint3: Alerting evaluate 실구현 — 멀티테넌트 스코핑 + dedup 보조 컬럼
+        //   (additive, 멱등: 이미 존재하면 try/catch 흡수. 레거시 NULL 행은 글로벌로 하위호환)
+        foreach ([
+            "ALTER TABLE alert_policy ADD COLUMN tenant_id VARCHAR(100) NULL",
+            "ALTER TABLE alert_instance ADD COLUMN tenant_id VARCHAR(100) NULL",
+            "ALTER TABLE alert_instance ADD COLUMN entity VARCHAR(255) NULL",
+        ] as $sql) { try { $pdo->exec($sql); } catch (\Throwable $e) {} }
+
         $pdo->exec(self::sql($pdo, "CREATE TABLE IF NOT EXISTS action_request (
             id            INT AUTO_INCREMENT PRIMARY KEY,
             policy_id     INT,
