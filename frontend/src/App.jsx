@@ -109,6 +109,7 @@ const AIRecommendTab = lazy(() => import('./pages/AIRecommendTab.jsx'));
 const CaseStudy = lazy(() => import('./pages/CaseStudy.jsx'));
 
 const DataTrustDashboard = lazy(() => import('./pages/DataTrustDashboard.jsx'));
+const PixelTracking = lazy(() => import('./pages/PixelTracking.jsx')); // 191차 복원: 190차 부활 백엔드 실배선
 const DeveloperHub = lazy(() => import('./pages/DeveloperHub.jsx'));
 import { GdprController } from "./components/GdprBanner.jsx";
 import EventPopupDisplay from "./components/EventPopupDisplay.jsx";
@@ -391,7 +392,7 @@ function AppLayout() {
                       <Route path="/email-marketing" element={<EmailMarketing />} />
                       <Route path="/kakao-channel" element={<KakaoChannel />} />
                       <Route path="/line-channel" element={<LINEChannel />} />
-                      <Route path="/pixel-tracking" element={<Navigate to="/data-trust" replace />} />
+                      <Route path="/pixel-tracking" element={<PixelTracking />} />
                       <Route path="/journey-builder" element={<JourneyBuilder />} />
                       <Route path="/ai-prediction" element={<Navigate to="/ai-insights" replace />} />
                       <Route path="/web-popup" element={<WebPopup />} />
