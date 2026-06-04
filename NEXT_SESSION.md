@@ -1,3 +1,68 @@
+# 191차 세션 인계서 — **190차 종료: 우선순위 순차 7대 항목 (7커밋 전부 운영/데모 배포·라이브검증·push)**
+
+> **작성일**: 2026-06-04 (사용자 명시 승인 후)
+> **이전 세션**: 190차 (7 commit, 다수 배포 사이클, master 동기화 완료)
+> **종결 상태**: `master == origin/master == 0abdd73873`. 미푸시·미배포 잔재 0. 워킹트리 추적변경 = `tools/resolver_consumer_manifest_v2.json`(188차부터의 빌드 산출물, 무관) 뿐.
+
+---
+
+## ⚠️ 191차 검수자 최우선 인지
+
+### 1. 190차 = "189차 백로그 우선순위 순차 실행" 세션
+사용자 "이어서 우선순위대로 계속" 요청. 189차 전수감사 백로그(메모리 `project_n189_full_audit_backlog`)를 우선순위대로 순차 구현·배포·검증. **전 작업 상세 = 메모리 `project_n190_alerting_pm_i18n`(①~⑦ 섹션).**
+
+### 2. 190차 커밋 일람 (7, 전부 push 완료)
+```
+0abdd73873  Sprint5: i18n갭 66키 15개국 현지화(AI디자인엔진·사이드바·상단바·접속키)
+f2047cb1ef  Sprint2-c: Kakao/Pixel/Journey 부활 + 멀티테넌트 격리 (dead 핸들러 정리 완료)
+1f8e27786b  Sprint2-b: EmailMarketing 부활 + 격리 + Mailer 연동
+ea1ab0e5c3  Sprint2: CRM/CustomerAI 부활 + 멀티테넌트 격리 (P0 cross-tenant 차단)
+851cbeab70  Sprint4: 이메일 발송 인프라(무의존 SmtpClient + 중앙 Mailer + 비번재설정 이메일)
+21de1502ee  Sprint3: Alerting::evaluate 실구현(임계평가+통지+cron)
+a1221a1bfd  Sprint5: PM page raw키 i18n(t(key)||fb 안티패턴 정본화 + 15개국)
+```
+
+### 3. 현재 라이브 상태
+| 항목 | 상태 |
+|---|---|
+| 운영 frontend | `index-DEw190HH.js` (i18n갭 배포 시점) |
+| 데모 frontend | `index-DSmphAEh.js` |
+| baseline.json | version **190**, ko_leaf **23381**, ja/zh sacred SHA 갱신됨 |
+| 백엔드 변경 | CRM/CustomerAI/EmailMarketing/Kakao/Pixel/Journey/UserAuth/Alerting/Db + SmtpClient/Mailer(신규) + bin/alerts_cron.php(신규). 각 배포 `.bak.190*` 보존 |
+| DB 스키마 | alert_policy/alert_instance tenant_id+entity 추가. crm_*/email_*/kakao_*/pixel_*/journey_* tenant_id(ensureTables 자동) |
+| cron | 운영/데모 crontab `alerts_cron.php` daily/weekly 등록됨 |
+| ★배포후 영향 | **백엔드 변경은 재로그인 불요**(189차 자동로그인 재설계 영향과 무관) |
+
+### 4. 190차 완성 = 마케팅 자동화 스택 전수 부활 + 실엔진/인프라 + 현지화
+**★dead 핸들러 6개 전수 부활(Db::get 잔존 0)**: CRM·CustomerAI·EmailMarketing·KakaoChannel·PixelTracking·JourneyBuilder. 멀티테넌트 격리(cross-tenant 누출 0, 라이브 e2e 검증) + SQLite→MySQL 이식 + Mailer 연동. · Alerting 실평가엔진(임계비교+통지+dedup+cron) · 무의존 이메일 인프라(SmtpClient+Mailer, 비번재설정 이메일) · PM raw키 + i18n갭 66키 15개국.
+
+### 5. ★191차가 알아야 할 핵심 패턴/함정 (190차 학습)
+- **dead 핸들러 부활 4층 패턴**(메모리 §④): ①`Db::get`→`Db::pdo`(get 미존재) ②**라우팅**: routes.php의 `/api/X`→`/X`(index.php가 `/api/` 요청에 `setBasePath('/api')` 적용해 /api strip → `/api/X` 등록 시 이중 /api 미스매치 404. auth·버전 라우트는 /api 없이 등록) ③**격리 먼저**: 전 엔드포인트 `requirePro` 게이트 + 테넌트=인증세션 `UserAuth::authedTenant($req)`(X-Tenant-Id 헤더 불신=188차 정합) + 전 테이블 tenant_id + 전 쿼리 스코핑 + cross-tenant 차단 ④**SQLite→MySQL 이식**: 원본 핸들러는 SQLite 전용(`datetime('now')`·`AUTOINCREMENT`·`datetime('now','-N days')`·`INSERT OR IGNORE`) → isMysql() driver감지 DDL + 날짜는 PHP 바인드(now()/cutoff()) + INSERT IGNORE 분기.
+- **★Db::get 전역 alias 금지**: 한 번에 다 살리면 무격리 부활=P0. 핸들러별로 db()를 pdo로 바꾸며 격리 동반.
+- **MySQL 8.0 예약어 `window`** → INSERT 컬럼 백틱 필수(SQLite는 bare 허용이라 격리테스트는 통과했었음 → 라이브 MySQL 테스트 필수).
+- **마이그레이션 락**: Db.php buildPdo는 `/tmp/genie_roi_v424_migrated_<db>.lock` 존재 시 migrate() skip → 기존서버 신규 ALTER 자동적용 안됨. 컬럼 수동 ALTER 선행(Alerting tenant_id가 사례). 단 핸들러 ensureTables는 매 호출 실행되므로 핸들러 자체 테이블은 자동 생성/ALTER됨.
+- **세션 시드 함정**: 미존재 테이블 DELETE를 mysql -e 다중문에 넣으면 첫 에러로 전체 중단 → 시드 실패. app_user/user_session 시드는 핸들러 테이블 DELETE와 분리.
+- **i18n**: feedback_178 워크플로우(CC제안→사용자 한글교정→교차검증→적용). acorn 주입기 네임스페이스 미존재 시 신규생성. baseline ko_leaf+ja/zh SHA 갱신. G6 pre-existing 충돌은 `TRIAGE_SKIP=1`.
+- **Pixel collect = 공개 비콘**: 세션 없음 → tenant=pixel_id→pixel_configs.tenant_id 도출(미등록=unknown). 관리 엔드포인트만 세션 tenant.
+
+### 6. 남은 백로그 (우선순위, 메모리 `project_n189_full_audit_backlog` + 190차 신규)
+| 항목 | 규모 | 비고 |
+|---|:-:|---|
+| **AdPerformance ingest 점검** | M | `performance_metrics` 운영/데모 **0행** — Alerting/AdPerformance/대시보드가 의존하는 광고 메트릭 적재 경로(커넥터 sync) 미가동 추정. 실데이터 기반 전환의 선행. **191차 권장 1순위** |
+| **SMTP env 설정 + 실발송 검증** | S | 이메일 인프라(SmtpClient/Mailer) 완성됐으나 SMTP 미설정(env `GENIE_SMTP_*` 또는 email_settings) → 현재 honest no-send. 사용자 SMTP 자격증명 필요 |
+| Alerting::evaluate 실가동 | S | 엔진/cron 완성. performance_metrics 적재 후 자연 발화 시작(AdPerformance ingest 의존) |
+| 구버전 라우트 414건 501/template 폴백 정리 | M | |
+| 정산파서 lines:[] 스텁 | M | Webhooks 서명검증은 189차 완료, 파서 본문 미구현 |
+| AdStatusAnalysis 합성KPI/기본ROAS3.5 데모한정화 | M | |
+| 잔여 i18n(타 페이지 인라인폴백) · GDPR export/삭제 · 팀초대 이메일(이메일 인프라 활용) · 스케줄리포트 · 인보이스UI | M~L | |
+
+### 7. 자격증명·배포
+- credentials = 메모리 `reference_session_credentials`(사용자 "삭제" 명시까지 유지). 평문 노출 금지.
+- 배포 = CI inert(시크릿 미등록) → **수동 plink/pscp 필수**. 운영 `roi.geniego.com`(DB geniego_roi) + 데모 `roidemo.geniego.com`(DB geniego_roi_demo, 물리분리). 백엔드 chown www:www + `systemctl reload php-fpm`, 프론트 tar 오버레이. ★**데모는 VITE_DEMO_MODE=true 별도 빌드**(다른 해시). **모든 배포 사용자 승인 의무**.
+- 복잡한 원격명령은 `.sh` 파일 작성 후 `plink -m` 사용(PowerShell→plink 이스케이프 깨짐). 격리 e2e 테스트=2테넌트 app_user+user_session 시드→HTTP curl→정리.
+
+---
+
 # 190차 세션 인계서 — **189차 종료: 보안 하드닝 클러스터 + 전수감사 8스프린트 (15커밋 전부 운영/데모 배포·검증·push)**
 
 > **작성일**: 2026-06-04 (사용자 명시 승인 후)
