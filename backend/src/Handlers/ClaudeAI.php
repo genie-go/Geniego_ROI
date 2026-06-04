@@ -36,6 +36,7 @@ final class ClaudeAI {
         if ($driver === 'sqlite') {
             $pdo->exec("CREATE TABLE IF NOT EXISTS ai_analyses (
                 id            INTEGER PRIMARY KEY AUTOINCREMENT,
+                tenant_id     TEXT    NOT NULL DEFAULT 'unknown',
                 context       TEXT    NOT NULL DEFAULT 'general',
                 question      TEXT    NOT NULL,
                 data_snapshot TEXT,
@@ -51,6 +52,7 @@ final class ClaudeAI {
         } else {
             $pdo->exec("CREATE TABLE IF NOT EXISTS ai_analyses (
                 id            INT AUTO_INCREMENT PRIMARY KEY,
+                tenant_id     VARCHAR(100)  NOT NULL DEFAULT 'unknown',
                 context       VARCHAR(64)   NOT NULL DEFAULT 'general',
                 question      TEXT          NOT NULL,
                 data_snapshot MEDIUMTEXT,
@@ -64,6 +66,16 @@ final class ClaudeAI {
                 created_at    VARCHAR(32)   NOT NULL
             )");
         }
+        // 191차 보안(P1): 기존 테이블에 tenant_id 보강(크로스테넌트 누출 차단). 이미 존재 시 무시.
+        try { $pdo->exec("ALTER TABLE ai_analyses ADD COLUMN tenant_id VARCHAR(100) NOT NULL DEFAULT 'unknown'"); } catch (\Throwable $e) {}
+    }
+
+    /** 191차: 인증 세션 테넌트(/v422/ai/* 는 세션/ api_key 혼용). 미식별 시 'unknown'. */
+    private static function tenant(Request $req): string
+    {
+        $t = UserAuth::authedTenant($req);
+        if ($t === null || $t === '') $t = (string)($req->getAttribute('auth_tenant') ?? '');
+        return $t !== '' ? $t : 'unknown';
     }
 
     /* ── Claude API 호출 ─────────────────────────────────────── */
@@ -318,9 +330,10 @@ PROMPT;
             }
 
             $stmt = $pdo->prepare("INSERT INTO ai_analyses
-                (context, question, data_snapshot, summary, bullets, recommendation, model, tokens_used, status, created_at)
-                VALUES (:ctx, :q, :snap, :sum, :bul, :rec, :model, :tok, 'ok', :now)");
+                (tenant_id, context, question, data_snapshot, summary, bullets, recommendation, model, tokens_used, status, created_at)
+                VALUES (:tenant, :ctx, :q, :snap, :sum, :bul, :rec, :model, :tok, 'ok', :now)");
             $stmt->execute([
+                ':tenant'=> self::tenant($req),
                 ':ctx'   => 'marketing_eval',
                 ':q'     => $question,
                 ':snap'  => json_encode($data, JSON_UNESCAPED_UNICODE),
@@ -377,9 +390,10 @@ PROMPT;
             }
 
             $stmt = $pdo->prepare("INSERT INTO ai_analyses
-                (context, question, data_snapshot, summary, bullets, recommendation, model, tokens_used, status, created_at)
-                VALUES (:ctx, :q, :snap, :sum, :bul, :rec, :model, :tok, 'ok', :now)");
+                (tenant_id, context, question, data_snapshot, summary, bullets, recommendation, model, tokens_used, status, created_at)
+                VALUES (:tenant, :ctx, :q, :snap, :sum, :bul, :rec, :model, :tok, 'ok', :now)");
             $stmt->execute([
+                ':tenant'=> self::tenant($req),
                 ':ctx'   => 'influencer_eval',
                 ':q'     => $question,
                 ':snap'  => json_encode($data, JSON_UNESCAPED_UNICODE),
@@ -441,9 +455,10 @@ PROMPT;
 
             // DB 저장
             $stmt = $pdo->prepare("INSERT INTO ai_analyses
-                (context, question, data_snapshot, summary, bullets, recommendation, model, tokens_used, status, created_at)
-                VALUES (:context, :question, :data_snap, :summary, :bullets, :rec, :model, :tokens, 'ok', :now)");
+                (tenant_id, context, question, data_snapshot, summary, bullets, recommendation, model, tokens_used, status, created_at)
+                VALUES (:tenant, :context, :question, :data_snap, :summary, :bullets, :rec, :model, :tokens, 'ok', :now)");
             $stmt->execute([
+                ':tenant'   => self::tenant($req),
                 ':context'  => $context,
                 ':question' => $question,
                 ':data_snap'=> json_encode($data, JSON_UNESCAPED_UNICODE),
@@ -471,9 +486,10 @@ PROMPT;
         } catch (\Throwable $e) {
             // 실패도 DB에 기록
             $stmt = $pdo->prepare("INSERT INTO ai_analyses
-                (context, question, data_snapshot, status, error_msg, model, tokens_used, created_at)
-                VALUES (:context, :question, :data_snap, 'error', :err, :model, 0, :now)");
+                (tenant_id, context, question, data_snapshot, status, error_msg, model, tokens_used, created_at)
+                VALUES (:tenant, :context, :question, :data_snap, 'error', :err, :model, 0, :now)");
             $stmt->execute([
+                ':tenant'   => self::tenant($req),
                 ':context'  => $context,
                 ':question' => $question,
                 ':data_snap'=> json_encode($data, JSON_UNESCAPED_UNICODE),
@@ -499,8 +515,11 @@ PROMPT;
         $limit   = max(1, min(50, (int)($q['limit'] ?? 20)));
         $context = trim($q['context'] ?? '');
 
-        $where  = $context ? "WHERE context = :ctx" : "";
-        $params = $context ? [':ctx' => $context] : [];
+        // 191차 보안(P1): 테넌트 스코핑 강제(크로스테넌트 AI분석/제출데이터 누출 차단).
+        $tenant = self::tenant($req);
+        $where  = "WHERE tenant_id = :tenant" . ($context ? " AND context = :ctx" : "");
+        $params = [':tenant' => $tenant];
+        if ($context) $params[':ctx'] = $context;
 
         $stmt = $pdo->prepare("SELECT id, context, question, summary, bullets, recommendation,
             model, tokens_used, status, error_msg, created_at
@@ -653,9 +672,10 @@ PROMPT;
             }
 
             $stmt = $pdo->prepare("INSERT INTO ai_analyses
-                (context, question, data_snapshot, summary, bullets, recommendation, model, tokens_used, status, created_at)
-                VALUES (:ctx, :q, :snap, :sum, :bul, :rec, :model, :tok, 'ok', :now)");
+                (tenant_id, context, question, data_snapshot, summary, bullets, recommendation, model, tokens_used, status, created_at)
+                VALUES (:tenant, :ctx, :q, :snap, :sum, :bul, :rec, :model, :tok, 'ok', :now)");
             $stmt->execute([
+                ':tenant'=> self::tenant($req),
                 ':ctx'   => 'channel_kpi_eval',
                 ':q'     => "채널 KPI {$period} 평가",
                 ':snap'  => json_encode($data, JSON_UNESCAPED_UNICODE),
@@ -758,9 +778,10 @@ PROMPT;
             unset($ch);
             $evalData['channels'] = $channels;
             $stmt = $pdo->prepare("INSERT INTO ai_analyses
-                (context, question, data_snapshot, summary, bullets, recommendation, model, tokens_used, status, created_at)
-                VALUES (:ctx, :q, :snap, :sum, :bul, :rec, :model, :tok, 'ok', :now)");
+                (tenant_id, context, question, data_snapshot, summary, bullets, recommendation, model, tokens_used, status, created_at)
+                VALUES (:tenant, :ctx, :q, :snap, :sum, :bul, :rec, :model, :tok, 'ok', :now)");
             $stmt->execute([
+                ':tenant'=> self::tenant($req),
                 ':ctx'   => 'campaign_recommend',
                 ':q'     => "{$svcType} 마케팅 채널 추천 (₩{$budget})",
                 ':snap'  => json_encode($data, JSON_UNESCAPED_UNICODE),
@@ -1078,10 +1099,11 @@ PROMPT;
                 self::migrate($pdo);
                 $now = gmdate('Y-m-d\TH:i:s\Z');
                 $stmt = $pdo->prepare(
-                    'INSERT INTO ai_analyses (context,question,data_snapshot,summary,bullets,recommendation,model,tokens_used,status,created_at)
-                     VALUES (:ctx,:q,:snap,:sum,:bul,:rec,:model,:tok,"ok",:now)'
+                    'INSERT INTO ai_analyses (tenant_id,context,question,data_snapshot,summary,bullets,recommendation,model,tokens_used,status,created_at)
+                     VALUES (:tenant,:ctx,:q,:snap,:sum,:bul,:rec,:model,:tok,"ok",:now)'
                 );
                 $stmt->execute([
+                    ':tenant'=> self::tenant($req),
                     ':ctx'   => 'campaign_search_' . $catId,
                     ':q'     => "{$svcType}: {$query}",
                     ':snap'  => json_encode($data, JSON_UNESCAPED_UNICODE),
