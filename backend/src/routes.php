@@ -61,6 +61,11 @@ return function (App $app): void {
         'POST /crm/segments/{id}/refresh'      => 'Genie\\Handlers\\CRM::refreshSegment',
         'GET /crm/stats'                       => 'Genie\\Handlers\\CRM::stats',
 
+        // ── 상품 카탈로그 writeback (192차: 일괄 등록/가격수정 실배선, dead-route 404 대체) ──
+        'POST /catalog/writeback/{channel}/{sku}' => 'Genie\\Handlers\\Catalog::writeback',
+        'POST /catalog/bulk-price'                => 'Genie\\Handlers\\Catalog::bulkPrice',
+        'GET /catalog/listings'                   => 'Genie\\Handlers\\Catalog::listings',
+
         // ── 이메일 마케팅 ────────────────────────────────────────────────
         'GET /email/settings'                  => 'Genie\\Handlers\\EmailMarketing::getSettings',
         'PUT /email/settings'                  => 'Genie\\Handlers\\EmailMarketing::saveSettings',
@@ -1755,6 +1760,11 @@ return function (App $app): void {
     $register('DELETE', '/crm/segments/{id}');
     $register('POST',   '/crm/segments/{id}/refresh');
     $register('GET',    '/crm/stats');
+
+    // 상품 카탈로그 writeback (192차)
+    $register('POST',   '/catalog/writeback/{channel}/{sku}');
+    $register('POST',   '/catalog/bulk-price');
+    $register('GET',    '/catalog/listings');
     // Email Marketing
     $register('GET',    '/email/settings');
     $register('PUT',    '/email/settings');

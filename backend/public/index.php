@@ -100,6 +100,9 @@ $app->add(function (Request $request, $handler) {
         //   핸들러가 requirePro 게이트 + authedTenant 로 격리. (admin 패널 세션 인증과 동일 패턴)
         || strpos($path, '/api/crm/') === 0
         || strpos($path, '/crm/') === 0
+        // 192차: 상품 카탈로그 writeback(일괄 등록/가격) — 세션 self-auth(requirePro)+테넌트 격리
+        || strpos($path, '/api/catalog/') === 0
+        || strpos($path, '/catalog/') === 0
         || strpos($path, '/api/customer-ai/') === 0
         || strpos($path, '/customer-ai/') === 0
         // 190차 Sprint2-b: EmailMarketing 부활 — 세션 기반(requirePro self-auth + 테넌트 격리)

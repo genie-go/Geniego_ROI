@@ -4,6 +4,7 @@ import { useGlobalData } from '../context/GlobalDataContext';
 import { useConnectorSync } from '../context/ConnectorSyncContext';
 import { useI18n } from '../i18n/index.js';
 import { CHANNEL_RATES, calcRecommendedPrice as calcRecPrice } from '../constants/channelRates.js';
+import { postJson } from '../services/apiClient.js'; // 192차: 상품 writeback/bulk-price 실배선
 
 /* ── Enterprise Dynamic Locale Map (module-scope, shared) ─────── */
 const LANG_LOCALE_MAP = {
@@ -284,9 +285,8 @@ const BulkRegisterModal = memo(function BulkRegisterModal({ selectedIds, product
 
         try {
 
-            // ── Paid 모드: /v382/writeback/{channel}/{sku}/execute 실제 호출 ──
-            const token = localStorage.getItem('genie_token');
-            const BASE = import.meta.env?.VITE_API_BASE ?? '';
+            // ── 192차: 실 백엔드 writeback (/api/catalog/writeback/{ch}/{sku}) — 테넌트격리 영속 ──
+            //   (구 /v382/writeback/.../execute 는 191차에 제거된 dead-route 404였음)
             const results = [];
             let hasError = false;
 
@@ -294,24 +294,16 @@ const BulkRegisterModal = memo(function BulkRegisterModal({ selectedIds, product
             for (const chId of selChs) {
                 for (const prod of selProds) {
                     try {
-                        const r = await fetch(`${BASE}/v382/writeback/${chId}/${prod.sku}/execute`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                ...(token ? { Authorization: `Bearer ${token}` } : {}),
-                            },
-                            body: JSON.stringify({
-                                price: recPrices[chId] ?? prod.price,
-                                name: prod.name,
-                                category: prod.category,
-                                inventory: prod.inventory,
-                                spec: prod.spec,
-                                action,
-                            }),
+                        const d = await postJson(`/api/catalog/writeback/${encodeURIComponent(chId)}/${encodeURIComponent(prod.sku)}`, {
+                            price: recPrices[chId] ?? prod.price,
+                            name: prod.name,
+                            category: prod.category,
+                            inventory: prod.inventory,
+                            spec: prod.spec,
+                            action,
                         });
-                        const d = await r.json().catch(() => ({}));
-                        results.push({ chId, sku: prod.sku, ok: r.ok || d.ok, status: d.status });
-                        if (!r.ok && !d.ok) hasError = true;
+                        results.push({ chId, sku: prod.sku, ok: !!d.ok, status: d.status });
+                        if (!d.ok) hasError = true;
                     } catch {
                         results.push({ chId, sku: prod.sku, ok: false, status: 'network_error' });
                         hasError = true;
@@ -613,15 +605,24 @@ const BulkPriceModal = memo(function BulkPriceModal({ selectedIds, products, onC
         return basePrice;
     };
 
-    const handleApply = () => {
+    const handleApply = async () => {
         if (!value) return;
         setRunning(true);
-        setTimeout(() => {
+        // 192차: 실 백엔드 일괄 가격수정(/api/catalog/bulk-price) — 등록 리스팅 가격 영속(테넌트격리).
+        //   (구 setTimeout 시뮬레이션 → 실제 반영 0 이던 결함 대체)
+        try {
+            const items = [];
+            selProds.forEach(p => {
+                const np = previewPrice(p.price);
+                [...selChs].forEach(ch => items.push({ channel: ch, sku: p.sku, price: np }));
+            });
+            if (items.length) { try { await postJson('/api/catalog/bulk-price', { items }); } catch { /* 로컬 동기화는 계속 */ } }
+        } finally {
             onApply(priceMode, parseFloat(value), [...selChs]);
             setRunning(false);
             setDone(true);
             setTimeout(onClose, 1200);
-        }, 800);
+        }
     };
 
     useEffect(() => {
