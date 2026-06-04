@@ -146,11 +146,13 @@ export default function JourneyBuilder() {
     };
 
     const handleRun = j => {
-        const entered = Math.floor(Math.random() * 500) + 50;
-        const completed = Math.floor(entered * (0.4 + Math.random() * 0.5));
-        const emailsSent = j.channels.includes('email') ? Math.floor(entered * 0.9) : 0;
-        const kakaoSent = j.channels.includes('kakao') ? Math.floor(entered * 0.85) : 0;
-        const revenue = Math.floor(completed * (8000 + Math.random() * 30000));
+        // 191차: 실행 성과(진입/완료/매출)는 데모 시뮬레이션 전용. 운영은 가짜 KPI 주입 금지(0) —
+        //   실 성과는 백엔드 enroll/launch/stats 실배선(단계적) 후 journey_enrollments 에서 채워진다.
+        const entered = _isDemo ? Math.floor(Math.random() * 500) + 50 : 0;
+        const completed = _isDemo ? Math.floor(entered * (0.4 + Math.random() * 0.5)) : 0;
+        const emailsSent = j.channels.includes('email') ? (_isDemo ? Math.floor(entered * 0.9) : 0) : 0;
+        const kakaoSent = j.channels.includes('kakao') ? (_isDemo ? Math.floor(entered * 0.85) : 0) : 0;
+        const revenue = _isDemo ? Math.floor(completed * (8000 + Math.random() * 30000)) : 0;
         if (recordJourneyExecution) {
             recordJourneyExecution(j, { entered, completed, emailsSent, kakaoSent, revenue });
         }

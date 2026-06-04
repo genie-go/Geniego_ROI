@@ -785,6 +785,7 @@ const InventoryTab = memo(function InventoryTab({ whs }) {
 /* ═══ TAB 4: Bundle Shipping Management ══════════════════════════ */
 const CombineTab = memo(function CombineTab() {
     const { t } = useI18n();
+    const { isDemo } = useAuth();
     const [list, setList] = useState(initCombined);
     const [newOrders, setNewOrders] = useState("");
     const [carrier, setCarrier] = useState("CJ Logistics");
@@ -803,7 +804,9 @@ const CombineTab = memo(function CombineTab() {
     };
 
     const approve = (id) => setList(p => p.map(c => c.id === id ? { ...c, status: "Approval", approvedAt: new Date().toISOString().slice(0, 19).replace("T", " ") } : c));
-    const complete = (id) => setList(p => p.map(c => c.id === id ? { ...c, status: "Done", tracking: "TRK" + Math.floor(Math.random() * 9000000000 + 1000000000) } : c));
+    // 191차: 운송장번호는 데모 시뮬레이션 전용. 운영은 가짜 송장번호 주입 금지 — 실 송장은
+    //   택배사 연동(미배선)에서 발급. 운영은 빈 값 유지(완료 처리만, 정직).
+    const complete = (id) => setList(p => p.map(c => c.id === id ? { ...c, status: "Done", tracking: isDemo ? ("TRK" + Math.floor(Math.random() * 9000000000 + 1000000000)) : "" } : c));
 
     return (
         <div style={{ display: "grid", gap: 14 }}>

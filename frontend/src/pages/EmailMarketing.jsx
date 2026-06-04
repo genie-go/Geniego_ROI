@@ -196,7 +196,7 @@ function TemplatesTab() {
 /* Campaigns Tab */
 function CampaignsTab() {
     const {t}=useI18n();
-    const {crmSegments,emailCampaignsLinked,addEmailCampaign,updateEmailCampaign,crmCustomerHistory,emailTemplates,addAlert,emailSettings}=useGlobalData();
+    const {crmSegments,emailCampaignsLinked,addEmailCampaign,updateEmailCampaign,crmCustomerHistory,emailTemplates,addAlert,emailSettings,isDemo}=useGlobalData();
     const [form,setForm]=useState({name:"",template_id:"",segment_id:""});
     const [sending,setSending]=useState(null);
     const [msg,setMsg]=useState("");
@@ -223,7 +223,10 @@ function CampaignsTab() {
         if(!confirm(t("email.msgSendConfirm")||"Send to all?"))return;
         setSending(c.id);
         setTimeout(()=>{
-            setSending(null);const openRate=Math.floor(Math.random()*25+15);const clickRate=Math.floor(openRate*0.3);
+            setSending(null);
+            // 191차: 오픈/클릭률은 데모 시뮬레이션 전용. 운영은 가짜 지표 주입 금지 — 발송 직후 오픈/클릭은
+            //   0에서 시작해 실제 추적(trackOpen)으로 누적된다(백엔드 실배선 단계적). 운영=정직한 0.
+            const openRate=isDemo?Math.floor(Math.random()*25+15):0;const clickRate=isDemo?Math.floor(openRate*0.3):0;
             updateEmailCampaign(c.id,{status:"sent",opened:Math.round(c.total_sent*openRate/100),clicked:Math.round(c.total_sent*clickRate/100),sentAt:new Date().toISOString()});
             addAlert({type:'success',msg:'Campaign "'+c.name+'" sent'});setMsg(t('email.msgSendDone')||'Sent!');setTimeout(()=>setMsg(""),3000);
         },1800);
