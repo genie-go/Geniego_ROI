@@ -619,6 +619,11 @@ return function (App $app): void {
         // 189차+ 세션/기기 관리
         'GET /auth/sessions'              => 'Genie\\Handlers\\UserAuth::listSessions',
         'POST /auth/sessions/revoke-others' => 'Genie\\Handlers\\UserAuth::revokeOtherSessions',
+        // 189차+ API 키 관리(세션 인증·소유자 전용)
+        'GET /auth/api-keys'              => 'Genie\\Handlers\\UserAuth::apiKeysList',
+        'POST /auth/api-keys'             => 'Genie\\Handlers\\UserAuth::apiKeysCreate',
+        'DELETE /auth/api-keys/{id}'      => 'Genie\\Handlers\\UserAuth::apiKeysRevoke',
+        'POST /auth/api-keys/{id}/rotate' => 'Genie\\Handlers\\UserAuth::apiKeysRotate',
         // 189차 MFA/2FA (TOTP) — 모두 세션 토큰 자체검증(핸들러 내부)
         'GET /auth/mfa/status'   => 'Genie\\Handlers\\UserAuth::mfaStatus',
         'POST /auth/mfa/setup'   => 'Genie\\Handlers\\UserAuth::mfaSetup',
@@ -1420,6 +1425,11 @@ return function (App $app): void {
     // 189차+ 세션/기기 관리
     $register('GET',  '/auth/sessions');
     $register('POST', '/auth/sessions/revoke-others');
+    // 189차+ API 키 관리(세션 인증·소유자 전용)
+    $register('GET',    '/auth/api-keys');
+    $register('POST',   '/auth/api-keys');
+    $register('DELETE', '/auth/api-keys/{id}');
+    $register('POST',   '/auth/api-keys/{id}/rotate');
     // 189차 MFA/2FA (TOTP)
     $register('GET',  '/auth/mfa/status');
     $register('POST', '/auth/mfa/setup');

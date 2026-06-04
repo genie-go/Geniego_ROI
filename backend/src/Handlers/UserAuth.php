@@ -1940,4 +1940,96 @@ final class UserAuth
         self::audit($req, 'session_revoke_others', "다른 기기 로그아웃({$revoked}개 세션 폐기)", 'high', $user);
         return self::json($res, ['ok' => true, 'revoked' => $revoked, 'message' => "다른 기기의 {$revoked}개 세션을 로그아웃했습니다."]);
     }
+
+    // ═════════════════════════════════════════════════════════════
+    // 189차+ API 키 관리 (세션 인증 — 소유자 전용)
+    //   /v421/keys 는 api_key 미들웨어 인증이라 세션토큰으로 호출 불가 → 세션 기반 래퍼 제공.
+    //   본인 tenant 의 api_key CRUD. 모든 작업 owner-only(requireTeamWrite('api_keys')).
+    // ═════════════════════════════════════════════════════════════
+    private static function apiKeyDefaultScopes(string $role): array
+    {
+        if ($role === 'admin')     return ['read:*', 'write:*', 'admin:keys'];
+        if ($role === 'analyst')   return ['read:*', 'write:attribution', 'write:mta'];
+        if ($role === 'connector') return ['read:*', 'write:ingest'];
+        return ['read:*'];
+    }
+
+    /** GET /auth/api-keys — 본인 tenant API 키 목록(해시 비노출). */
+    public static function apiKeysList(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
+    {
+        [$caller, $err] = self::requireTeamWrite($req, 'api_keys');
+        if ($err) return self::json($res, ['ok' => false, 'error' => $err[0]], $err[1]);
+        $pdo = Db::pdo();
+        $tenant = self::resolveTenantId($pdo, $caller);
+        try {
+            $st = $pdo->prepare('SELECT id, key_prefix, name, role, scopes_json, is_active, last_used_at, expires_at, created_at FROM api_key WHERE tenant_id=? ORDER BY created_at DESC LIMIT 200');
+            $st->execute([$tenant]);
+            $rows = $st->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+        } catch (\Throwable $e) { $rows = []; }
+        foreach ($rows as &$r) { $r['scopes'] = json_decode((string)($r['scopes_json'] ?? '[]'), true); unset($r['scopes_json']); }
+        return self::json($res, ['ok' => true, 'keys' => $rows]);
+    }
+
+    /** POST /auth/api-keys {name, role, expires_at?} — 키 생성(raw 1회 반환). */
+    public static function apiKeysCreate(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
+    {
+        [$caller, $err] = self::requireTeamWrite($req, 'api_keys');
+        if ($err) return self::json($res, ['ok' => false, 'error' => $err[0]], $err[1]);
+        $pdo = Db::pdo();
+        $tenant = self::resolveTenantId($pdo, $caller);
+        $b = self::readBody($req);
+        $name = trim((string)($b['name'] ?? ''));
+        if ($name === '') return self::json($res, ['ok' => false, 'error' => '키 이름을 입력하세요.'], 422);
+        $role = trim((string)($b['role'] ?? 'viewer'));
+        if (!in_array($role, ['viewer', 'connector', 'analyst', 'admin'], true)) $role = 'viewer';
+        $raw  = 'genie_key_' . bin2hex(random_bytes(16));
+        $pfx  = substr($raw, 0, 16);
+        $hash = hash('sha256', $raw);
+        $expires = trim((string)($b['expires_at'] ?? '')) ?: null;
+        try {
+            $pdo->prepare('INSERT INTO api_key(tenant_id,key_prefix,key_hash,name,role,scopes_json,is_active,expires_at,created_at) VALUES(?,?,?,?,?,?,?,?,?)')
+                ->execute([$tenant, $pfx, $hash, $name, $role, json_encode(self::apiKeyDefaultScopes($role)), 1, $expires, self::now()]);
+            $id = (int)$pdo->lastInsertId();
+        } catch (\Throwable $e) { return self::json($res, ['ok' => false, 'error' => '키 생성 중 오류가 발생했습니다.'], 500); }
+        self::audit($req, 'api_key_create', "API 키 생성: {$name} ({$role})", 'high', $caller);
+        return self::json($res, ['ok' => true, 'id' => $id, 'api_key' => $raw, 'key_prefix' => $pfx, 'role' => $role, 'warning' => '이 키는 다시 표시되지 않습니다. 안전하게 보관하세요.']);
+    }
+
+    /** DELETE /auth/api-keys/{id} — 키 폐기(soft, tenant 스코프). */
+    public static function apiKeysRevoke(ServerRequestInterface $req, ResponseInterface $res, array $args): ResponseInterface
+    {
+        [$caller, $err] = self::requireTeamWrite($req, 'api_keys');
+        if ($err) return self::json($res, ['ok' => false, 'error' => $err[0]], $err[1]);
+        $pdo = Db::pdo();
+        $tenant = self::resolveTenantId($pdo, $caller);
+        $id = (int)($args['id'] ?? 0);
+        $n = 0;
+        try { $st = $pdo->prepare('UPDATE api_key SET is_active=0 WHERE id=? AND tenant_id=?'); $st->execute([$id, $tenant]); $n = $st->rowCount(); } catch (\Throwable $e) {}
+        if ($n === 0) return self::json($res, ['ok' => false, 'error' => '키를 찾을 수 없습니다.'], 404);
+        self::audit($req, 'api_key_revoke', "API 키 폐기 #{$id}", 'high', $caller);
+        return self::json($res, ['ok' => true, 'revoked_id' => $id]);
+    }
+
+    /** POST /auth/api-keys/{id}/rotate — 폐기 후 동일 메타 신규키 발급(raw 1회). */
+    public static function apiKeysRotate(ServerRequestInterface $req, ResponseInterface $res, array $args): ResponseInterface
+    {
+        [$caller, $err] = self::requireTeamWrite($req, 'api_keys');
+        if ($err) return self::json($res, ['ok' => false, 'error' => $err[0]], $err[1]);
+        $pdo = Db::pdo();
+        $tenant = self::resolveTenantId($pdo, $caller);
+        $id = (int)($args['id'] ?? 0);
+        try { $old = $pdo->prepare('SELECT * FROM api_key WHERE id=? AND tenant_id=? AND is_active=1'); $old->execute([$id, $tenant]); $row = $old->fetch(\PDO::FETCH_ASSOC); } catch (\Throwable $e) { $row = null; }
+        if (!$row) return self::json($res, ['ok' => false, 'error' => '활성 키를 찾을 수 없습니다.'], 404);
+        $raw  = 'genie_key_' . bin2hex(random_bytes(16));
+        $pfx  = substr($raw, 0, 16);
+        $hash = hash('sha256', $raw);
+        try {
+            $pdo->prepare('UPDATE api_key SET is_active=0 WHERE id=?')->execute([$id]);
+            $pdo->prepare('INSERT INTO api_key(tenant_id,key_prefix,key_hash,name,role,scopes_json,is_active,expires_at,created_at) VALUES(?,?,?,?,?,?,?,?,?)')
+                ->execute([$tenant, $pfx, $hash, (string)$row['name'] . ' (rotated)', $row['role'], $row['scopes_json'], 1, $row['expires_at'], self::now()]);
+            $newId = (int)$pdo->lastInsertId();
+        } catch (\Throwable $e) { return self::json($res, ['ok' => false, 'error' => '키 회전 중 오류가 발생했습니다.'], 500); }
+        self::audit($req, 'api_key_rotate', "API 키 회전 #{$id}→#{$newId}", 'high', $caller);
+        return self::json($res, ['ok' => true, 'revoked_id' => $id, 'new_id' => $newId, 'api_key' => $raw, 'key_prefix' => $pfx, 'warning' => '이 키는 다시 표시되지 않습니다. 안전하게 보관하세요.']);
+    }
 }
