@@ -359,11 +359,11 @@ final class Rollup {
             ],
             'by_platform' => $platforms,
             'top_skus'    => $skus,
-            'alerts'      => [
-                ['type'=>'warn', 'msg'=>'SKU-C3 반품률 19.8% — 임계치 초과'],
-                ['type'=>'warn', 'msg'=>'TikTok ROAS 2.1x — 손익분기 미달'],
-                ['type'=>'info', 'msg'=>'SKU-E5 무선충전패드 ROAS 5.8x 최고 효율'],
-            ],
+            // 191차(188차 정합): 하드코딩 가짜 alerts(SKU-C3 반품률 19.8% 등 — 실존하지 않는 SKU·수치)
+            //   는 공개 /v423/rollup/summary 로 실 테넌트에 노출되던 합성데이터였음 → 제거.
+            //   Rollup 집계원(seed)이 비어있어 파생 가능한 실 alert 없음 → 정직한 빈 배열.
+            //   (집계원 복원 시 $skus/$platforms 의 반품률·ROAS 임계 위반에서 파생 권장.)
+            'alerts'      => [],
         ]);
     }
 }
