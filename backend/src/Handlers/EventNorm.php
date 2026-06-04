@@ -26,7 +26,11 @@ final class EventNorm
 
     private static function tenant(ServerRequestInterface $req): string
     {
-        return (string)($req->getAttribute('tenant_id', 'demo'));
+        // 189차+ 보안: 미들웨어는 'tenant_id' 속성을 설정하지 않음 → 기존 코드는 모든 요청이 'demo' 버킷으로
+        //   쓰기/읽기되어 테넌트 데이터 누출+오염. 인증이 주입한 'auth_tenant'(또는 X-Tenant-Id 헤더) 사용.
+        $t = (string)($req->getAttribute('auth_tenant') ?: '');
+        if ($t === '') $t = (string)($req->getHeaderLine('X-Tenant-Id') ?: '');
+        return $t !== '' ? $t : 'demo';
     }
 
     private static function now(): string { return gmdate('Y-m-d\TH:i:s\Z'); }
@@ -351,6 +355,10 @@ final class EventNorm
 
         // If body is empty → seed mock events
         if (empty($body) || empty($body['vendor'])) {
+            // 189차+ 보안: 빈 바디 가짜 이벤트 시드는 데모 테넌트 한정(운영 테넌트 오염 차단 — ChannelSync chokepoint 패턴).
+            if ($tenant !== 'demo') {
+                return self::json($res, ['ok' => true, 'seeded' => 0, 'msg' => 'No payload — nothing ingested.']);
+            }
             $inserted = 0;
             foreach (self::mockRawEvents() as $mock) {
                 $mock['tenant_id'] = $tenant;

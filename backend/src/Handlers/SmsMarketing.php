@@ -196,19 +196,28 @@ final class SmsMarketing
             $cfg = $s->fetch(PDO::FETCH_ASSOC);
         }
 
+        // 189차+ 신뢰성: 운영(비데모) 발신 설정 미존재 시 가짜 랜덤 'delivered' 기록 금지 → 명시적 차단.
+        if ($plan !== 'demo' && !$cfg) {
+            return TemplateResponder::respond($res->withStatus(422), [
+                'ok' => false,
+                'error' => 'SMS 발신 설정이 없습니다. 설정에서 발신번호·인증키를 먼저 등록하세요.',
+                'sent' => 0, 'failed' => 0, 'total' => 0,
+            ]);
+        }
+
         $sent = $failed = 0;
         foreach (array_slice($numbers, 0, 500) as $to) {
             $to = preg_replace('/\D/', '', (string)$to);
             if (strlen($to) < 8) continue;
-            if (false /*was demo*/ || !$cfg) {
-                $status = rand(0, 9) < 95 ? 'delivered' : 'failed';
+            if ($plan === 'demo') {
+                $status = rand(0, 9) < 95 ? 'delivered' : 'failed'; // 데모 시뮬레이션 한정
             } else {
                 $r = self::sendSms($cfg['app_key'],$cfg['secret_key'],$cfg['sender_no'],$to,$message,$type);
                 $status = $r['ok'] ? 'sent' : 'failed';
             }
             $pdo->prepare("INSERT INTO sms_messages(tenant_id,msg_type,recipient,body,status,sent_at,created_at) VALUES(?,?,?,?,?,?,?)")
                 ->execute([$tenant,$type,$to,$message,$status,$now,$now]);
-            $status==='failed'?$failed++:$sent++;
+            in_array($status, ['sent','delivered'], true) ? $sent++ : $failed++;
         }
 
         return TemplateResponder::respond($res, ['ok'=>true,'sent'=>$sent,'failed'=>$failed,'total'=>$sent+$failed]);

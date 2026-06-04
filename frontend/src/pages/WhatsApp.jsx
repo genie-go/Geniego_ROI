@@ -37,6 +37,7 @@ const DEMO_WA_STATS = { sent: 1240, delivered: 1198, read: 1056, failed: 12 };
 
 /* Auth Panel */
 function AuthPanel({ onSaved }) {
+    const { t } = useI18n(); // 크래시 수정: t 범위밖 ReferenceError 해소
     const [form, setForm] = useState({ phone_number_id: '', access_token: '', business_id: '' });
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState(null);

@@ -1156,17 +1156,9 @@ final class UserAuth
             }
         }
 
-        // 3) 내장 데모/테스트 키 (배포 전 테스트용)
-        if (!$valid) {
-            $builtinKeys = [
-                'GENIE-FULL-2026-ENTERPRISE',
-                'GENIE-PRO-UNLIMITED-KEY',
-                'ROI-PLATFORM-ALLCHANNEL',
-            ];
-            if (in_array(strtoupper($licenseKey), $builtinKeys, true)) {
-                $valid = true;
-            }
-        }
+        // 189차+ 보안: 소스 하드코딩 내장 라이선스 키(GENIE-FULL-2026-ENTERPRISE 등) 제거 —
+        //   깃 소스만 알면 누구나 enterprise 무료 활성화 가능했던 백도어. 이제 DB license_key 또는
+        //   env(GENIE_LICENSE_KEYS) 등록 키만 허용한다.
 
         if (!$valid) {
             return self::json($res, ['ok' => false, 'error' => '유효하지 않은 라이선스 키입니다.'], 422);
@@ -1314,8 +1306,21 @@ final class UserAuth
         return self::json($res, ['ok' => true, 'message' => '비밀번호가 변경되었습니다.']);
     }
 
+    // 189차+ 보안: 계정복구 엔드포인트(find-id/forgot/reset) IP 기준 throttle — 본인확인 정보 무차별 추측·계정 열거 방어.
+    //   모든 시도를 카운트(15분窓 8회 초과 시 잠금). null=허용, int=남은 잠금 초.
+    private static function recoveryThrottle(ServerRequestInterface $req): ?int
+    {
+        $pdo = Db::pdo();
+        $ident = 'recovery|' . self::clientIp($req);
+        $ra = self::rateLimitRetryAfter($pdo, $ident);
+        if ($ra !== null) return $ra;
+        self::rateLimitFail($pdo, $ident);
+        return null;
+    }
+
     public static function findId(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
     {
+        if (($ra = self::recoveryThrottle($req)) !== null) return self::json($res, ['ok' => false, 'error' => '시도가 너무 많습니다. 잠시 후 다시 시도하세요.', 'retry_after' => $ra], 429);
         $b = self::readBody($req);
         $name  = trim((string)($b['name'] ?? ''));
         $phone = trim((string)($b['phone'] ?? ''));
@@ -1332,6 +1337,7 @@ final class UserAuth
 
     public static function forgotPassword(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
     {
+        if (($ra = self::recoveryThrottle($req)) !== null) return self::json($res, ['ok' => false, 'error' => '시도가 너무 많습니다. 잠시 후 다시 시도하세요.', 'retry_after' => $ra], 429);
         $b = self::readBody($req);
         $email = trim(strtolower((string)($b['email'] ?? '')));
         $name  = trim((string)($b['name'] ?? ''));
@@ -1361,6 +1367,7 @@ final class UserAuth
 
     public static function resetPassword(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
     {
+        if (($ra = self::recoveryThrottle($req)) !== null) return self::json($res, ['ok' => false, 'error' => '시도가 너무 많습니다. 잠시 후 다시 시도하세요.', 'retry_after' => $ra], 429);
         $b   = self::readBody($req);
         $tok = (string)($b['reset_token'] ?? '');
         $new = (string)($b['new_password'] ?? '');

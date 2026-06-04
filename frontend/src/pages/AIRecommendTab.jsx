@@ -7,6 +7,8 @@ import { CAT_OPTIONS, PRODUCT_CATALOG, CAT_TO_PRODUCT } from './campaignConstant
 import { useI18n } from '../i18n/index.js';
 
 import { useT } from '../i18n/index.js';
+
+const API = '/api'; // 크래시 수정: fetch(`${API}/v422/ai/...`)(341/362/388) API 미정의 ReferenceError 해소
 const CHANNEL_COLORS = {
     google_search: '#34A853', naver_search: '#03c75a', meta: '#1877f2',
     instagram: '#E1306C', tiktok: '#EE1D52', youtube: '#FF0000',

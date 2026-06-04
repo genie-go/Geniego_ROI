@@ -34,21 +34,26 @@ if (strpos($requestUri, '/api/') === 0 || $requestUri === '/api') {
 }
 
 // ── CORS ─────────────────────────────────────────────────────────────────────
-$app->add(function (Request $request, $handler) {
-    if ($request->getMethod() === 'OPTIONS') {
-        $response = new \Slim\Psr7\Response();
-        return $response
-            ->withStatus(204)
-            ->withHeader('Access-Control-Allow-Origin', '*')
+// 189차+ 보안: 와일드카드 '*' 제거 → 허용 출처 화이트리스트(요청 Origin 반향, 미허용은 운영 도메인 폴백).
+$GENIE_ALLOWED_ORIGINS = [
+    'https://roi.genie-go.com', 'https://roidemo.genie-go.com',
+    'https://roi.geniego.com',  'https://roidemo.geniego.com',
+    'http://localhost:5173', 'http://localhost:4173', 'http://localhost:4180',
+];
+$app->add(function (Request $request, $handler) use ($GENIE_ALLOWED_ORIGINS) {
+    $origin = $request->getHeaderLine('Origin');
+    $allow  = in_array($origin, $GENIE_ALLOWED_ORIGINS, true) ? $origin : 'https://roi.genie-go.com';
+    $cors = function ($resp) use ($allow) {
+        return $resp
+            ->withHeader('Access-Control-Allow-Origin', $allow)
+            ->withHeader('Vary', 'Origin')
             ->withHeader('Access-Control-Allow-Headers', 'Content-Type, X-Tenant-Id, Authorization')
-            ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS')
-            ->withHeader('Access-Control-Max-Age', '3600');
+            ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+    };
+    if ($request->getMethod() === 'OPTIONS') {
+        return $cors((new \Slim\Psr7\Response())->withStatus(204))->withHeader('Access-Control-Max-Age', '3600');
     }
-    $response = $handler->handle($request);
-    return $response
-        ->withHeader('Access-Control-Allow-Origin', '*')
-        ->withHeader('Access-Control-Allow-Headers', 'Content-Type, X-Tenant-Id, Authorization')
-        ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+    return $cors($handler->handle($request));
 });
 
 // ── v421 API Key Auth + RBAC (inlined for PHP compatibility) ─────────────────
@@ -105,9 +110,9 @@ $app->add(function (Request $request, $handler) {
         if ($bearer === '') { $qp = $request->getQueryParams(); $bearer = (string)($qp['api_key'] ?? $qp['token'] ?? ''); }
         $aiOk = false;
         if ($bearer !== '') {
-            if (strncmp($bearer, 'demo', 4) === 0 || strncmp($bearer, 'local', 5) === 0) {
-                $aiOk = true; // 데모/로컬 세션 — 별도 비용 컨텍스트(데모 백엔드는 공용 키 미설정 시 fallback)
-            } else {
+            // 189차+ 보안: 'demo'/'local' 접두 자동승인 제거(누구나 `Bearer demoX`로 공용 AI 키 비용남용 가능했음).
+            //   실 데모 사용자는 데모 백엔드 user_session 에 토큰이 존재하므로 아래 세션 검증으로 정상 통과한다.
+            {
                 try {
                     $pdoAi = Db::pdo();
                     $sa = $pdoAi->prepare('SELECT 1 FROM api_key WHERE key_hash=? AND is_active=1 LIMIT 1');
@@ -163,7 +168,8 @@ $app->add(function (Request $request, $handler) {
         $stmt->execute([$keyHash]);
         $keyRow = $stmt->fetch(\PDO::FETCH_ASSOC);
     } catch (\Exception $ex) {
-        return $makeJson(401, ['error' => 'Unauthorized', 'detail' => 'Auth backend error: ' . $ex->getMessage()]);
+        error_log('[auth] key lookup error: ' . $ex->getMessage()); // 189차+ 보안: 상세는 로그만
+        return $makeJson(401, ['error' => 'Unauthorized', 'detail' => 'Authentication unavailable']);
     }
 
     if (!$keyRow) {
@@ -228,10 +234,7 @@ $app->get('/', function (Request $request, Response $response) {
         'status' => 'ok',
         'ts'     => gmdate('c'),
         'auth'   => 'API Key required for all routes (except / and /health)',
-        'demo_keys' => [
-            'admin'   => 'genie_live_demo_key_00000000',
-            'analyst' => 'genie_read_demo_key_11111111',
-        ],
+        // 189차+ 보안: 동작하는 데모 API 키 평문 노출 제거(무인증 / 응답이 키를 광고하던 결함).
     ];
     $response->getBody()->write(json_encode($payload, JSON_UNESCAPED_UNICODE));
     return $response->withHeader('Content-Type', 'application/json');
@@ -256,11 +259,13 @@ $errorMiddleware->setDefaultErrorHandler(function (
     if ($logErrors) {
         error_log('[Slim] ' . $exception->getMessage() . ' in ' . $exception->getFile() . ':' . $exception->getLine());
     }
+    // 189차+ 보안: 내부 경로·스택·예외 메시지 클라 노출 제거(정찰 보조 차단). 서버 로그(error_log)만 상세 보존.
+    //   4xx(HttpException)는 안전한 사유문구(Not found/Method not allowed 등)만 노출, 5xx 는 일반 메시지.
     $payload = [
         'ok'    => false,
-        'error' => '서버 오류가 발생했습니다.',
-        'detail' => $exception->getMessage(),
-        'trace' => $exception->getFile() . ':' . $exception->getLine(),
+        'error' => ($exception instanceof \Slim\Exception\HttpException)
+            ? $exception->getMessage()
+            : '서버 오류가 발생했습니다.',
     ];
     $response = $app->getResponseFactory()->createResponse();
     $response->getBody()->write(json_encode($payload, JSON_UNESCAPED_UNICODE));

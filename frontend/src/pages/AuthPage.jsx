@@ -373,6 +373,7 @@ function AccountRecovery({ t, initial = "findId", onClose }) {
 }
 
 function SelectField({ label, value, onChange, options, required }) {
+  const t = useT(); // 189차+ 크래시 수정: t 범위밖 ReferenceError(회원가입 폼) 해소
   return (
     <div style={{ display: "grid", gap: 4 }}>
       <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-2)" }}>
