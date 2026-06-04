@@ -517,6 +517,11 @@ PROMPT;
 
         // 191차 보안(P1): 테넌트 스코핑 강제(크로스테넌트 AI분석/제출데이터 누출 차단).
         $tenant = self::tenant($req);
+        // 192차 보안 P1: 테넌트 미식별('unknown') 시 공유 버킷 노출 차단 — 빈 결과 반환.
+        //   여러 미인증 사용자가 'unknown' 버킷을 상호 열람하던 누출 가능성 제거.
+        if ($tenant === 'unknown') {
+            return TemplateResponder::json($res, ['ok' => true, 'total' => 0, 'analyses' => []]);
+        }
         $where  = "WHERE tenant_id = :tenant" . ($context ? " AND context = :ctx" : "");
         $params = [':tenant' => $tenant];
         if ($context) $params[':ctx'] = $context;

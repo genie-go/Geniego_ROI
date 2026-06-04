@@ -283,9 +283,23 @@ final class WhatsApp
     public static function webhook(Request $req, Response $res, array $args): Response
     {
         $q = $req->getQueryParams();
-        // Meta webhook verification
-        if ($q['hub.mode'] ?? '' === 'subscribe') {
+        // Meta webhook verification (GET challenge) — 192차: 연산자 우선순위 버그 수정(괄호).
+        if (($q['hub.mode'] ?? '') === 'subscribe') {
+            $vt = getenv('META_VERIFY_TOKEN');
+            if ($vt && ($q['hub.verify_token'] ?? '') !== $vt) {
+                return TemplateResponder::respond($res->withStatus(403), ['ok' => false]);
+            }
             return TemplateResponder::respond($res, (int)($q['hub.challenge'] ?? 0));
+        }
+
+        // 192차 보안 P1: Meta 서명 검증(X-Hub-Signature-256). META_APP_SECRET 설정 시 위조 webhook 차단.
+        $appSecret = getenv('META_APP_SECRET');
+        if ($appSecret) {
+            $bs = $req->getBody(); $bs->rewind(); $raw = $bs->getContents();
+            $expected = 'sha256=' . hash_hmac('sha256', $raw, $appSecret);
+            if (!hash_equals($expected, $req->getHeaderLine('X-Hub-Signature-256'))) {
+                return TemplateResponder::respond($res->withStatus(403), ['ok' => false, 'error' => 'invalid signature']);
+            }
         }
 
         $body = (array)($req->getParsedBody() ?? []);

@@ -188,8 +188,20 @@ final class InstagramDM
     {
         $q = $req->getQueryParams();
         if (($q['hub.mode']??'') === 'subscribe') {
-            $body = (string)($req->getBody());
+            $vt = getenv('META_VERIFY_TOKEN');
+            if ($vt && ($q['hub.verify_token'] ?? '') !== $vt) {
+                return TemplateResponder::respond($res->withStatus(403), ['ok' => false]);
+            }
             return TemplateResponder::respond($res, (int)($q['hub.challenge']??0));
+        }
+        // 192차 보안 P1: Meta 서명 검증(X-Hub-Signature-256). META_APP_SECRET 설정 시 위조 DM 주입 차단.
+        $appSecret = getenv('META_APP_SECRET');
+        if ($appSecret) {
+            $bs = $req->getBody(); $bs->rewind(); $raw = $bs->getContents();
+            $expected = 'sha256=' . hash_hmac('sha256', $raw, $appSecret);
+            if (!hash_equals($expected, $req->getHeaderLine('X-Hub-Signature-256'))) {
+                return TemplateResponder::respond($res->withStatus(403), ['ok' => false, 'error' => 'invalid signature']);
+            }
         }
         // DM 수신 처리
         try {

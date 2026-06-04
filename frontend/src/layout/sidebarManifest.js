@@ -86,7 +86,7 @@ export const MEMBER_MENU = [
     key: "analytics", icon: "📊", labelKey: "gNav.analytics",
     items: [
       { to: "/performance",    icon: "📊", labelKey: "gNav.performanceHubLabel", menuKey: "analytics||performance_hub" },
-      { to: "/report-builder", icon: "📋", labelKey: "gNav.reportBuilderLabel", menuKey: "analytics||report_builder" },
+      // 192차: ReportBuilder 미구현(가짜 셸) — Sprint4 실구현 전까지 사이드바 숨김.
       { to: "/pnl",            icon: "🌊", labelKey: "gNav.pnlLabel",           menuKey: "analytics||pnl_analytics" },
       { to: "/ai-insights",    icon: "🤖", labelKey: "gNav.aiInsightsLabel",    menuKey: "analytics||ai_insights" },
       { to: "/data-product",   icon: "🗂️", labelKey: "gNav.dataProductLabel",   menuKey: "analytics||data_product" },

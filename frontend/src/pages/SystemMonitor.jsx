@@ -1,7 +1,24 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useI18n } from "../i18n";
+import { getJson } from "../services/apiClient.js";
 
 import { useT } from '../i18n/index.js';
+
+// 192차: 백엔드 실측 module status → 프론트 service 카드 매핑
+const STATUS_MAP = { ok: "ok", degraded: "warn", down: "error" };
+function mapModuleToService(m) {
+  return {
+    name: m.name || m.id,
+    icon: m.icon || "•",
+    status: STATUS_MAP[m.status] || "info",
+    latency: (typeof m.latency_ms === "number") ? Math.round(m.latency_ms) : null,
+    uptime: (typeof m.uptime === "number") ? m.uptime
+            : (typeof m.uptime_seconds === "number" ? Math.round(m.uptime_seconds / 86400 * 10) / 10 : null),
+    requests: (typeof m.rpm === "number") ? m.rpm : null,
+    note: m.detail ? Object.entries(m.detail).filter(([k]) => k !== "error").slice(0, 2)
+            .map(([k, v]) => `${k}: ${v}`).join(" · ") + (m.detail.error ? ` ⚠ ${m.detail.error}` : "") : "",
+  };
+}
 const Tag = ({ label, color = "#4f8ef7" }) => (
     <span style={{ fontSize: 9, fontWeight: 700, padding: "2px 8px", borderRadius: 99, background: color + "18", color, border: `1px solid ${color}33` }}>{label}</span>
 );
@@ -24,6 +41,14 @@ const ERROR_LOGS = [];
 
 const STATUS_COLOR = { ok: "#22c55e", warn: "#eab308", error: "#ef4444", info: "#4f8ef7" };
 // STATUS_LABEL will be generated dynamically using i18n
+
+function EmptyState({ msg }) {
+    return (
+        <div style={{ padding: "40px 16px", textAlign: "center", color: "var(--text-3)", fontSize: 13 }}>
+            {msg}
+        </div>
+    );
+}
 
 function Dot({ status }) {
     const c = STATUS_COLOR[status] || "#4f8ef7";
@@ -49,7 +74,7 @@ function ApiStatusTab({ services, statusLabel, t }) {
             <div style={{ display: "grid", gap: 8 }}>
                 {services.map(s => (
                     <div key={s.name} style={{
-                        padding: "12px 16px", borderRadius: 12, background: "rgba(9,15,30,0.6)",
+                        padding: "12px 16px", borderRadius: 12, background: "var(--surface-2, rgba(9,15,30,0.6))",
                         border: `1px solid ${STATUS_COLOR[s.status]}20`, borderLeft: `3px solid ${STATUS_COLOR[s.status]}`,
                         display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8
                     }}>
@@ -63,9 +88,9 @@ function ApiStatusTab({ services, statusLabel, t }) {
                         </div>
                         <div style={{ display: "flex", gap: 16 }}>
                             {[
-                                ["Latency", s.latency ? s.latency + "ms" : "—", s.latency > 500 ? "#eab308" : "var(--text-2)"],
-                                [t('systemMonitor.uptime', 'Uptime'), s.uptime + "%", s.uptime >= 99 ? "#22c55e" : s.uptime >= 97 ? "#eab308" : "#ef4444"],
-                                [t('systemMonitor.requests', 'Requests'), s.requests.toLocaleString(), "#4f8ef7"],
+                                ["Latency", (s.latency != null) ? s.latency + "ms" : "—", (s.latency != null && s.latency > 500) ? "#eab308" : "var(--text-2)"],
+                                [t('systemMonitor.uptime', 'Uptime'), (s.uptime != null) ? s.uptime + "%" : "—", (s.uptime == null) ? "var(--text-3)" : (s.uptime >= 99 ? "#22c55e" : s.uptime >= 97 ? "#eab308" : "#ef4444")],
+                                [t('systemMonitor.requests', 'Requests'), (s.requests != null) ? s.requests.toLocaleString() : "—", "#4f8ef7"],
                             ].map(([l, v, c]) => (
                                 <div key={l} style={{ textAlign: "center" }}>
                                     <div style={{ fontSize: 9, color: "var(--text-3)" }}>{l}</div>
@@ -123,7 +148,25 @@ export default function SystemMonitor() {
     const { t } = useI18n();
     const [tab, setTab] = useState("api");
     const [lastUpdate, setLastUpdate] = useState(new Date());
-    useEffect(() => { const t = setInterval(() => setLastUpdate(new Date()), 30000); return () => clearInterval(t); }, []);
+    const [services, setServices] = useState([]);
+    const [summary, setSummary] = useState(null);
+    const [loadErr, setLoadErr] = useState("");
+
+    // 192차: /v424/system/metrics 실측 데이터 로드(가상/목 데이터 제거)
+    const load = useCallback(async () => {
+        try {
+            const d = await getJson("/v424/system/metrics");
+            const mods = Array.isArray(d?.modules) ? d.modules : [];
+            setServices(mods.map(mapModuleToService));
+            setSummary(d?.summary || null);
+            setLoadErr("");
+        } catch (e) {
+            setLoadErr(String(e?.message || e));
+        }
+        setLastUpdate(new Date());
+    }, []);
+
+    useEffect(() => { load(); const iv = setInterval(load, 30000); return () => clearInterval(iv); }, [load]);
     const STATUS_LABEL = { ok: t("systemMonitor.status_ok") || "OK", warn: t("systemMonitor.status_warning") || "Warning", error: t("systemMonitor.status_error") || "Error" };
     const TABS = [
         { id: "api", label: `🔌 ${t("systemMonitor.tabApis") || "API Status"}` },
@@ -142,8 +185,9 @@ export default function SystemMonitor() {
                             <span style={{ marginLeft: 10, color: "#22c55e" }}>● {lastUpdate.toLocaleTimeString()}</span>
                         </div>
                     </div>
-                    <button className="btn-ghost" style={{ fontSize: 12 }}>🔄 {t("common.refresh") || "Refresh"}</button>
+                    <button className="btn-ghost" style={{ fontSize: 12 }} onClick={load}>🔄 {t("common.refresh") || "Refresh"}</button>
                 </div>
+                {loadErr && <div style={{ marginTop: 8, fontSize: 11, color: "#ef4444" }}>⚠ {t("systemMonitor.loadError", "지표 로드 실패")}: {loadErr}</div>}
             </div>
             <div className="card card-glass fade-up fade-up-1" style={{ padding: 0, overflow: "hidden" }}>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)" }}>
@@ -153,9 +197,15 @@ export default function SystemMonitor() {
                 </div>
             </div>
             <div className="card card-glass fade-up fade-up-2" style={{ padding: 20 }}>
-                {tab === "api" && <ApiStatusTab services={API_SERVICES} statusLabel={STATUS_LABEL} t={t} />}
-                {tab === "pipeline" && <PipelineTab jobs={PIPELINE_JOBS} t={t} />}
-                {tab === "logs" && <LogsTab logs={ERROR_LOGS} />}
+                {tab === "api" && (services.length > 0
+                    ? <ApiStatusTab services={services} statusLabel={STATUS_LABEL} t={t} />
+                    : <EmptyState msg={loadErr ? t("systemMonitor.loadError", "지표 로드 실패") : t("common.loading", "로딩 중…")} />)}
+                {tab === "pipeline" && (PIPELINE_JOBS.length > 0
+                    ? <PipelineTab jobs={PIPELINE_JOBS} t={t} />
+                    : <EmptyState msg={t("systemMonitor.noPipeline", "수집된 파이프라인 작업 데이터가 없습니다")} />)}
+                {tab === "logs" && (ERROR_LOGS.length > 0
+                    ? <LogsTab logs={ERROR_LOGS} />
+                    : <EmptyState msg={t("systemMonitor.noLogs", "수집된 오류 로그가 없습니다")} />)}
             </div>
         </div>
     );

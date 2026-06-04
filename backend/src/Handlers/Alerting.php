@@ -52,8 +52,9 @@ final class Alerting {
     public static function listPolicies(Request $request, Response $response, array $args): Response {
         $pdo = Db::pdo();
         $tenant = self::tenantOf($request);
-        // 테넌트 격리: 본인 테넌트 + 레거시 NULL/'' (테넌트 도입 전 정책) 하위호환 노출
-        $stmt = $pdo->prepare("SELECT * FROM alert_policy WHERE tenant_id = ? OR tenant_id IS NULL OR tenant_id = '' ORDER BY id DESC");
+        // 192차 보안 P1: 엄격한 테넌트 격리(레거시 NULL/'' 정책은 배포 시 demo로 backfill됨).
+        //   기존 OR tenant_id IS NULL 노출은 타 테넌트가 글로벌 정책을 열람/변조하는 크로스테넌트 결함이었음.
+        $stmt = $pdo->prepare("SELECT * FROM alert_policy WHERE tenant_id = ? ORDER BY id DESC");
         $stmt->execute([$tenant]);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $out = [];
@@ -140,8 +141,8 @@ final class Alerting {
         }
 
         $tenant = self::tenantOf($request);
-        // 테넌트 격리: 본인 테넌트 또는 레거시 NULL 정책만 수정 가능(수정 시 본인 테넌트로 귀속)
-        $pdo->prepare("UPDATE alert_policy SET name=?, is_enabled=?, dimension=?, severity=?, metric=?, operator=?, threshold=?, policy_json=?, notify_slack=?, slack_channel=?, slack_webhook_url=?, tenant_id=? WHERE id=? AND (tenant_id=? OR tenant_id IS NULL OR tenant_id='')")
+        // 192차 보안 P1: 본인 테넌트 정책만 수정 가능(크로스테넌트 변조 차단).
+        $pdo->prepare("UPDATE alert_policy SET name=?, is_enabled=?, dimension=?, severity=?, metric=?, operator=?, threshold=?, policy_json=?, notify_slack=?, slack_channel=?, slack_webhook_url=?, tenant_id=? WHERE id=? AND tenant_id=?")
             ->execute([
                 $name,
                 $enabled ? 1 : 0,
@@ -168,7 +169,8 @@ final class Alerting {
         $actor = self::actor($request);
         $id = (int)($args["policy_id"] ?? 0);
         $tenant = self::tenantOf($request);
-        $pdo->prepare("DELETE FROM alert_policy WHERE id=? AND (tenant_id=? OR tenant_id IS NULL OR tenant_id='')")
+        // 192차 보안 P1: 본인 테넌트 정책만 삭제 가능(크로스테넌트 삭제 차단).
+        $pdo->prepare("DELETE FROM alert_policy WHERE id=? AND tenant_id=?")
             ->execute([$id, $tenant]);
         self::audit($pdo, $actor, "policy_delete", ["policy_id"=>$id]);
         return TemplateResponder::respond($response, ["ok"=>true]);
@@ -207,8 +209,8 @@ final class Alerting {
         $tenant = ($tenant !== null && $tenant !== '') ? $tenant : 'demo';
         [$from, $to] = self::windowRange($pdo, $tenant, $window);
 
-        // 본인 테넌트 + 레거시 NULL 정책(테넌트 도입 전)
-        $stmt = $pdo->prepare("SELECT * FROM alert_policy WHERE is_enabled=1 AND (tenant_id=? OR tenant_id IS NULL OR tenant_id='') ORDER BY id DESC");
+        // 192차 보안 P1: 본인 테넌트 활성 정책만 평가(레거시 NULL은 demo로 backfill됨).
+        $stmt = $pdo->prepare("SELECT * FROM alert_policy WHERE is_enabled=1 AND tenant_id=? ORDER BY id DESC");
         $stmt->execute([$tenant]);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 

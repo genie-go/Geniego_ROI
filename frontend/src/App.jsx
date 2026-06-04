@@ -332,7 +332,8 @@ function AppLayout() {
                       <Route path="/digital-shelf" element={<DigitalShelf />} />
                       <Route path="/reviews-ugc" element={<ReviewsUGC />} />
                       <Route path="/influencer" element={<InfluencerUGC />} />
-                      <Route path="/reports" element={<Navigate to="/report-builder" replace />} />
+                      {/* 192차: ReportBuilder 미구현(가짜 셸) — Sprint4 실구현 전까지 대시보드로 리다이렉트 */}
+                      <Route path="/reports" element={<Navigate to="/dashboard" replace />} />
                       <Route path="/writeback" element={<Writeback />} />
                       <Route path="/approvals" element={<Approvals />} />
                       <Route path="/connectors" element={<Navigate to="/integration-hub" replace />} />
@@ -370,7 +371,7 @@ function AppLayout() {
                       <Route path="/pnl" element={<PnLDashboard />} />
                       <Route path="/data-schema" element={<DataSchema />} />
                       <Route path="/ai-insights" element={<AIInsights />} />
-                      <Route path="/report-builder" element={<ReportBuilder />} />
+                      <Route path="/report-builder" element={<Navigate to="/dashboard" replace />} />
                       <Route path="/integration-hub" element={<ApiKeys />} />
                       <Route path="/alert-automation" element={<Navigate to="/ai-rule-engine" replace />} />
                       <Route path="/event-norm" element={<Navigate to="/data-schema" replace />} />
