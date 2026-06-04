@@ -102,6 +102,9 @@ $app->add(function (Request $request, $handler) {
         || strpos($path, '/crm/') === 0
         || strpos($path, '/api/customer-ai/') === 0
         || strpos($path, '/customer-ai/') === 0
+        // 190차 Sprint2-b: EmailMarketing 부활 — 세션 기반(requirePro self-auth + 테넌트 격리)
+        || strpos($path, '/api/email/') === 0
+        || strpos($path, '/email/') === 0
     ) {
         return $handler->handle($request);
     }

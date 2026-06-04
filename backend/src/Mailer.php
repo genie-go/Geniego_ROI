@@ -19,7 +19,9 @@ use PDO;
 final class Mailer
 {
     /**
-     * @param array $opts pdo?:PDO, from?:string, from_name?:string
+     * @param array $opts pdo?:PDO, from?:string, from_name?:string, tenant?:string, config?:array
+     *   - tenant: 지정 시 email_settings(테넌트 캠페인 SMTP) 조회. 미지정=플랫폼 트랜잭션(env).
+     *   - config: SMTP 설정 직접 주입(host/port/user/pass/from/from_name) — DB/env 조회 생략.
      * @return array{ok:bool, mode:string, detail:string}
      */
     public static function send(string $to, string $subject, string $html, array $opts = []): array
@@ -29,8 +31,14 @@ final class Mailer
             return ['ok' => false, 'mode' => 'invalid', 'detail' => 'invalid recipient'];
         }
 
-        $pdo = $opts['pdo'] ?? null;
-        $cfg = self::resolveConfig($pdo instanceof PDO ? $pdo : null);
+        if (!empty($opts['config']) && is_array($opts['config'])) {
+            $cfg = array_merge(self::resolveConfig(null), $opts['config']);
+            if (($cfg['secure'] ?? '') === '') $cfg['secure'] = ((int)($cfg['port'] ?? 587) === 465) ? 'ssl' : 'tls';
+        } else {
+            $pdo = $opts['pdo'] ?? null;
+            $tenant = isset($opts['tenant']) ? (string)$opts['tenant'] : null;
+            $cfg = self::resolveConfig($pdo instanceof PDO ? $pdo : null, $tenant);
+        }
         if (!empty($opts['from']))      $cfg['from'] = (string)$opts['from'];
         if (!empty($opts['from_name'])) $cfg['from_name'] = (string)$opts['from_name'];
 
@@ -68,18 +76,23 @@ final class Mailer
         return self::truthy(getenv('GENIE_MAIL_USE_SENDMAIL'));
     }
 
-    /** DB(email_settings) > env 순으로 설정 해석. secret 은 반환하되 로깅 금지. */
-    public static function resolveConfig(?PDO $pdo): array
+    /**
+     * 설정 해석. $tenant 지정 시 해당 테넌트 email_settings(캠페인 SMTP), 미지정 시 env(플랫폼 트랜잭션).
+     * secret 은 반환하되 로깅 금지.
+     */
+    public static function resolveConfig(?PDO $pdo, ?string $tenant = null): array
     {
         $cfg = [
             'host' => '', 'port' => 587, 'user' => '', 'pass' => '',
             'from' => '', 'from_name' => 'Geniego-ROI', 'secure' => '', 'timeout' => 15,
         ];
 
-        // 1) DB email_settings (최신 행)
-        if ($pdo instanceof PDO) {
+        // 1) DB email_settings — 테넌트 지정 시에만(캠페인). 트랜잭션(tenant=null)은 env 전용.
+        if ($pdo instanceof PDO && $tenant !== null && $tenant !== '') {
             try {
-                $row = $pdo->query("SELECT * FROM email_settings ORDER BY id DESC LIMIT 1")->fetch(PDO::FETCH_ASSOC);
+                $st = $pdo->prepare("SELECT * FROM email_settings WHERE tenant_id=? ORDER BY id DESC LIMIT 1");
+                $st->execute([$tenant]);
+                $row = $st->fetch(PDO::FETCH_ASSOC);
                 if (is_array($row)) {
                     if (!empty($row['smtp_host']))  $cfg['host'] = (string)$row['smtp_host'];
                     if (!empty($row['smtp_port']))  $cfg['port'] = (int)$row['smtp_port'];

@@ -72,19 +72,19 @@ return function (App $app): void {
         'GET /crm/stats'                       => 'Genie\\Handlers\\CRM::stats',
 
         // ── 이메일 마케팅 ────────────────────────────────────────────────
-        'GET /api/email/settings'                  => 'Genie\\Handlers\\EmailMarketing::getSettings',
-        'PUT /api/email/settings'                  => 'Genie\\Handlers\\EmailMarketing::saveSettings',
-        'POST /api/email/settings'                 => 'Genie\\Handlers\\EmailMarketing::saveSettings',
-        'GET /api/email/templates'                 => 'Genie\\Handlers\\EmailMarketing::listTemplates',
-        'POST /api/email/templates'                => 'Genie\\Handlers\\EmailMarketing::createTemplate',
-        'GET /api/email/templates/{id}'            => 'Genie\\Handlers\\EmailMarketing::getTemplate',
-        'PUT /api/email/templates/{id}'            => 'Genie\\Handlers\\EmailMarketing::updateTemplate',
-        'DELETE /api/email/templates/{id}'         => 'Genie\\Handlers\\EmailMarketing::deleteTemplate',
-        'GET /api/email/campaigns'                 => 'Genie\\Handlers\\EmailMarketing::listCampaigns',
-        'POST /api/email/campaigns'                => 'Genie\\Handlers\\EmailMarketing::createCampaign',
-        'POST /api/email/campaigns/{id}/send'      => 'Genie\\Handlers\\EmailMarketing::sendCampaign',
-        'GET /api/email/campaigns/{id}/stats'      => 'Genie\\Handlers\\EmailMarketing::campaignStats',
-        'POST /api/email/track/open'               => 'Genie\\Handlers\\EmailMarketing::trackOpen',
+        'GET /email/settings'                  => 'Genie\\Handlers\\EmailMarketing::getSettings',
+        'PUT /email/settings'                  => 'Genie\\Handlers\\EmailMarketing::saveSettings',
+        'POST /email/settings'                 => 'Genie\\Handlers\\EmailMarketing::saveSettings',
+        'GET /email/templates'                 => 'Genie\\Handlers\\EmailMarketing::listTemplates',
+        'POST /email/templates'                => 'Genie\\Handlers\\EmailMarketing::createTemplate',
+        'GET /email/templates/{id}'            => 'Genie\\Handlers\\EmailMarketing::getTemplate',
+        'PUT /email/templates/{id}'            => 'Genie\\Handlers\\EmailMarketing::updateTemplate',
+        'DELETE /email/templates/{id}'         => 'Genie\\Handlers\\EmailMarketing::deleteTemplate',
+        'GET /email/campaigns'                 => 'Genie\\Handlers\\EmailMarketing::listCampaigns',
+        'POST /email/campaigns'                => 'Genie\\Handlers\\EmailMarketing::createCampaign',
+        'POST /email/campaigns/{id}/send'      => 'Genie\\Handlers\\EmailMarketing::sendCampaign',
+        'GET /email/campaigns/{id}/stats'      => 'Genie\\Handlers\\EmailMarketing::campaignStats',
+        'POST /email/track/open'               => 'Genie\\Handlers\\EmailMarketing::trackOpen',
 
         // ── 카카오 채널 (알림톡) ─────────────────────────────────────────
         'GET /api/kakao/settings'                  => 'Genie\\Handlers\\KakaoChannel::getSettings',
@@ -1761,19 +1761,19 @@ return function (App $app): void {
     $register('POST',   '/crm/segments/{id}/refresh');
     $register('GET',    '/crm/stats');
     // Email Marketing
-    $register('GET',    '/api/email/settings');
-    $register('PUT',    '/api/email/settings');
-    $register('POST',   '/api/email/settings');
-    $register('GET',    '/api/email/templates');
-    $register('POST',   '/api/email/templates');
-    $register('GET',    '/api/email/templates/{id}');
-    $register('PUT',    '/api/email/templates/{id}');
-    $register('DELETE', '/api/email/templates/{id}');
-    $register('GET',    '/api/email/campaigns');
-    $register('POST',   '/api/email/campaigns');
-    $register('POST',   '/api/email/campaigns/{id}/send');
-    $register('GET',    '/api/email/campaigns/{id}/stats');
-    $register('POST',   '/api/email/track/open');
+    $register('GET',    '/email/settings');
+    $register('PUT',    '/email/settings');
+    $register('POST',   '/email/settings');
+    $register('GET',    '/email/templates');
+    $register('POST',   '/email/templates');
+    $register('GET',    '/email/templates/{id}');
+    $register('PUT',    '/email/templates/{id}');
+    $register('DELETE', '/email/templates/{id}');
+    $register('GET',    '/email/campaigns');
+    $register('POST',   '/email/campaigns');
+    $register('POST',   '/email/campaigns/{id}/send');
+    $register('GET',    '/email/campaigns/{id}/stats');
+    $register('POST',   '/email/track/open');
     // 183차 P0: email ab-test/ab-result/duplicate/analytics 죽은 매핑 제거(핸들러 미구현)
     // Kakao
     $register('GET',    '/api/kakao/settings');
