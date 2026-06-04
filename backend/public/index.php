@@ -95,6 +95,13 @@ $app->add(function (Request $request, $handler) {
         // v424 Creative Store — JWT auth handled in handler
         || strpos($path, '/api/creatives') === 0
         || strpos($path, '/creatives') === 0
+        // 190차: CRM / CustomerAI — 세션 기반(UserAuth::requirePro 가 핸들러에서 self-auth + 테넌트 격리).
+        //   프론트는 api_key 가 아닌 세션 토큰(genie_token)으로 호출하므로 api_key 미들웨어를 bypass 하고
+        //   핸들러가 requirePro 게이트 + authedTenant 로 격리. (admin 패널 세션 인증과 동일 패턴)
+        || strpos($path, '/api/crm/') === 0
+        || strpos($path, '/crm/') === 0
+        || strpos($path, '/api/customer-ai/') === 0
+        || strpos($path, '/customer-ai/') === 0
     ) {
         return $handler->handle($request);
     }

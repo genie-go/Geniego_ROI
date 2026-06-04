@@ -22,7 +22,14 @@ use Genie\Db;
  */
 class CustomerAI
 {
-    private static function db(): \PDO { return Db::get(); }
+    private static function db(): \PDO { return Db::pdo(); }
+
+    /** 190차: 인증 세션 user 의 격리 테넌트(crm_* 공유 테이블 스코핑). requirePro 통과 후 호출. */
+    private static function tenant(Request $req): string
+    {
+        $t = UserAuth::authedTenant($req);
+        return ($t !== null && $t !== '') ? $t : 'demo';
+    }
 
     private static function json(Response $res, array $data, int $status = 200): Response
     {
@@ -212,8 +219,9 @@ class CustomerAI
 
         $p = $req->getQueryParams();
         $limit = min(500, max(10, (int)($p['limit'] ?? 100)));
+        $tenant = self::tenant($req);
 
-        $stmt = $pdo->query("
+        $stmt = $pdo->prepare("
             SELECT c.id, c.email, c.name, c.grade, c.ltv, c.rfm_score,
                    COALESCE(a.last_purchase_date, c.created_at) AS last_purchase_date,
                    COALESCE(a.purchase_count, 0) AS purchase_count,
@@ -226,12 +234,14 @@ class CustomerAI
                        COUNT(*) AS purchase_count,
                        SUM(amount) AS total_amount,
                        AVG(amount) AS avg_order_value
-                FROM crm_activities WHERE type='purchase'
+                FROM crm_activities WHERE type='purchase' AND tenant_id=:t
                 GROUP BY customer_id
             ) a ON a.customer_id = c.id
+            WHERE c.tenant_id=:t
             ORDER BY c.ltv DESC
             LIMIT 1000
         ");
+        $stmt->execute([':t'=>$tenant]);
         $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
         $result = [];
@@ -413,7 +423,8 @@ class CustomerAI
             return self::json($res, ['ok' => true, 'segments' => [], 'mode' => 'simulated']);
         }
 
-        $stats = $pdo->query("
+        $tenant = self::tenant($req);
+        $stStmt = $pdo->prepare("
             SELECT
                 CASE
                     WHEN ltv >= 1000000 THEN 'diamond'
@@ -427,9 +438,12 @@ class CustomerAI
                 COALESCE(SUM(ltv), 0) AS total_ltv,
                 COALESCE(MAX(ltv), 0) AS max_ltv
             FROM crm_customers
+            WHERE tenant_id=:t
             GROUP BY tier
             ORDER BY total_ltv DESC
-        ")->fetchAll(\PDO::FETCH_ASSOC);
+        ");
+        $stStmt->execute([':t'=>$tenant]);
+        $stats = $stStmt->fetchAll(\PDO::FETCH_ASSOC);
 
         $tierMeta = [
             'diamond' => ['label'=>'💎 다이아몬드','color'=>'#60a5fa','threshold'=>'₩1,000,000+','action'=>'VIP 전용 혜택 제공'],

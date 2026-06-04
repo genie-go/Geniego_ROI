@@ -60,16 +60,16 @@ return function (App $app): void {
         'POST /v422/ai/campaign-ad-creative' => 'Genie\\Handlers\\ClaudeAI::campaignAdCreative',
 
         // ── CRM (고객관계관리) ──────────────────────────────────────────
-        'GET /api/crm/customers'                   => 'Genie\\Handlers\\CRM::listCustomers',
-        'POST /api/crm/customers'                  => 'Genie\\Handlers\\CRM::createCustomer',
-        'GET /api/crm/customers/{id}'              => 'Genie\\Handlers\\CRM::getCustomer',
-        'PUT /api/crm/customers/{id}'              => 'Genie\\Handlers\\CRM::updateCustomer',
-        'POST /api/crm/activities'                 => 'Genie\\Handlers\\CRM::addActivity',
-        'GET /api/crm/rfm'                         => 'Genie\\Handlers\\CRM::rfmAnalysis',
-        'GET /api/crm/segments'                    => 'Genie\\Handlers\\CRM::listSegments',
-        'POST /api/crm/segments'                   => 'Genie\\Handlers\\CRM::createSegment',
-        'POST /api/crm/segments/{id}/refresh'      => 'Genie\\Handlers\\CRM::refreshSegment',
-        'GET /api/crm/stats'                       => 'Genie\\Handlers\\CRM::stats',
+        'GET /crm/customers'                   => 'Genie\\Handlers\\CRM::listCustomers',
+        'POST /crm/customers'                  => 'Genie\\Handlers\\CRM::createCustomer',
+        'GET /crm/customers/{id}'              => 'Genie\\Handlers\\CRM::getCustomer',
+        'PUT /crm/customers/{id}'              => 'Genie\\Handlers\\CRM::updateCustomer',
+        'POST /crm/activities'                 => 'Genie\\Handlers\\CRM::addActivity',
+        'GET /crm/rfm'                         => 'Genie\\Handlers\\CRM::rfmAnalysis',
+        'GET /crm/segments'                    => 'Genie\\Handlers\\CRM::listSegments',
+        'POST /crm/segments'                   => 'Genie\\Handlers\\CRM::createSegment',
+        'POST /crm/segments/{id}/refresh'      => 'Genie\\Handlers\\CRM::refreshSegment',
+        'GET /crm/stats'                       => 'Genie\\Handlers\\CRM::stats',
 
         // ── 이메일 마케팅 ────────────────────────────────────────────────
         'GET /api/email/settings'                  => 'Genie\\Handlers\\EmailMarketing::getSettings',
@@ -119,13 +119,13 @@ return function (App $app): void {
         'GET /api/journey/templates'               => 'Genie\\Handlers\\JourneyBuilder::listTemplates',
 
         // ── Customer AI (이탈 예측 + LTV + 구매확률 + 상품추천 + 모델성능) ────
-        'GET /api/customer-ai/churn-scores'        => 'Genie\\Handlers\\CustomerAI::churnScores',
-        'GET /api/customer-ai/ltv-segments'        => 'Genie\\Handlers\\CustomerAI::ltvSegments',
-        'POST /api/customer-ai/auto-action'        => 'Genie\\Handlers\\CustomerAI::autoAction',
-        'GET /api/customer-ai/next-best-action'    => 'Genie\\Handlers\\CustomerAI::nextBestAction',
-        'GET /api/customer-ai/model-performance'   => 'Genie\\Handlers\\CustomerAI::modelPerformance',
-        'GET /api/customer-ai/product-recommendations' => 'Genie\\Handlers\\CustomerAI::productRecommendations',
-        'GET /api/customer-ai/integrated-summary'  => 'Genie\\Handlers\\CustomerAI::integratedSummary',
+        'GET /customer-ai/churn-scores'        => 'Genie\\Handlers\\CustomerAI::churnScores',
+        'GET /customer-ai/ltv-segments'        => 'Genie\\Handlers\\CustomerAI::ltvSegments',
+        'POST /customer-ai/auto-action'        => 'Genie\\Handlers\\CustomerAI::autoAction',
+        'GET /customer-ai/next-best-action'    => 'Genie\\Handlers\\CustomerAI::nextBestAction',
+        'GET /customer-ai/model-performance'   => 'Genie\\Handlers\\CustomerAI::modelPerformance',
+        'GET /customer-ai/product-recommendations' => 'Genie\\Handlers\\CustomerAI::productRecommendations',
+        'GET /customer-ai/integrated-summary'  => 'Genie\\Handlers\\CustomerAI::integratedSummary',
 
 
         // ── 이메일/카카오 확장(A/B·중복·analytics·친구톡·SMS) — 183차 P0: 핸들러 미구현으로
@@ -1750,16 +1750,16 @@ return function (App $app): void {
 
     // ── /api/* 경로 등록 (CRM, Email, Kakao, Pixel, Journey, CustomerAI 등) ─
     // CRM
-    $register('GET',    '/api/crm/customers');
-    $register('POST',   '/api/crm/customers');
-    $register('GET',    '/api/crm/customers/{id}');
-    $register('PUT',    '/api/crm/customers/{id}');
-    $register('POST',   '/api/crm/activities');
-    $register('GET',    '/api/crm/rfm');
-    $register('GET',    '/api/crm/segments');
-    $register('POST',   '/api/crm/segments');
-    $register('POST',   '/api/crm/segments/{id}/refresh');
-    $register('GET',    '/api/crm/stats');
+    $register('GET',    '/crm/customers');
+    $register('POST',   '/crm/customers');
+    $register('GET',    '/crm/customers/{id}');
+    $register('PUT',    '/crm/customers/{id}');
+    $register('POST',   '/crm/activities');
+    $register('GET',    '/crm/rfm');
+    $register('GET',    '/crm/segments');
+    $register('POST',   '/crm/segments');
+    $register('POST',   '/crm/segments/{id}/refresh');
+    $register('GET',    '/crm/stats');
     // Email Marketing
     $register('GET',    '/api/email/settings');
     $register('PUT',    '/api/email/settings');
@@ -1806,13 +1806,13 @@ return function (App $app): void {
     $register('GET',    '/api/journey/journeys/{id}/stats');
     $register('GET',    '/api/journey/templates');
     // Customer AI
-    $register('GET',    '/api/customer-ai/churn-scores');
-    $register('GET',    '/api/customer-ai/ltv-segments');
-    $register('POST',   '/api/customer-ai/auto-action');
-    $register('GET',    '/api/customer-ai/next-best-action');
-    $register('GET',    '/api/customer-ai/model-performance');
-    $register('GET',    '/api/customer-ai/product-recommendations');
-    $register('GET',    '/api/customer-ai/integrated-summary');
+    $register('GET',    '/customer-ai/churn-scores');
+    $register('GET',    '/customer-ai/ltv-segments');
+    $register('POST',   '/customer-ai/auto-action');
+    $register('GET',    '/customer-ai/next-best-action');
+    $register('GET',    '/customer-ai/model-performance');
+    $register('GET',    '/customer-ai/product-recommendations');
+    $register('GET',    '/customer-ai/integrated-summary');
     // WhatsApp
     $register('GET',    '/api/whatsapp/settings');
     $register('POST',   '/api/whatsapp/settings');

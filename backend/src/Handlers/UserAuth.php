@@ -235,6 +235,27 @@ final class UserAuth
         return null; // 통과
     }
 
+    /**
+     * 190차: 세션 토큰에서 인증 사용자(tenant_id 포함)를 반환. 미인증 시 null.
+     *   CRM 등 세션 기반 핸들러가 테넌트 격리 스코프를 서버측에서 도출하는 정본 경로.
+     *   ★X-Tenant-Id 헤더(클라이언트 위조 가능, 188차 차단)가 아닌 인증 user 행의 tenant_id 사용.
+     */
+    public static function authedUser(ServerRequestInterface $req): ?array
+    {
+        $token = self::extractToken($req);
+        if (!$token) return null;
+        return self::userByToken($token);
+    }
+
+    /** 190차: 인증 사용자의 격리 테넌트 식별자. 미인증 시 null(호출측이 401 처리). */
+    public static function authedTenant(ServerRequestInterface $req): ?string
+    {
+        $u = self::authedUser($req);
+        if (!$u) return null;
+        $t = trim((string)($u['tenant_id'] ?? ''));
+        return $t !== '' ? $t : ('acct_' . (int)($u['id'] ?? 0));
+    }
+
     // ─────────────────────────────────────────────────────────────
     // POST /auth/register
     // Body: { email, password, name, company? }
