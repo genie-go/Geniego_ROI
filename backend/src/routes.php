@@ -99,6 +99,7 @@ return function (App $app): void {
         'POST /kakao/templates/{code}/test'    => 'Genie\\Handlers\\KakaoChannel::testSend',
         'GET /kakao/campaigns'                 => 'Genie\\Handlers\\KakaoChannel::listCampaigns',
         'POST /kakao/campaigns'                => 'Genie\\Handlers\\KakaoChannel::createCampaign',
+        'DELETE /kakao/campaigns/{id}'         => 'Genie\\Handlers\\KakaoChannel::deleteCampaign',
         'POST /kakao/campaigns/{id}/send'      => 'Genie\\Handlers\\KakaoChannel::sendCampaign',
         'GET /kakao/campaigns/{id}/stats'      => 'Genie\\Handlers\\KakaoChannel::campaignStats',
 
@@ -1793,6 +1794,7 @@ return function (App $app): void {
     $register('POST',   '/kakao/templates/{code}/test');
     $register('GET',    '/kakao/campaigns');
     $register('POST',   '/kakao/campaigns');
+    $register('DELETE', '/kakao/campaigns/{id}');
     $register('POST',   '/kakao/campaigns/{id}/send');
     $register('GET',    '/kakao/campaigns/{id}/stats');
     // 183차 P0: kakao friendtalk/sms/analytics 죽은 매핑 제거(핸들러 미구현)

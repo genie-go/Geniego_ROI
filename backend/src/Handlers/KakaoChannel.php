@@ -303,6 +303,22 @@ class KakaoChannel
         return self::jsonRes($res, ['ok'=>true,'campaign'=>$campaign,'by_status'=>$byStatus]);
     }
 
+    /* ─── DELETE /kakao/campaigns/{id} ─── 191차: 캠페인 삭제(테넌트 스코프 + 발송로그 cascade) ── */
+    public static function deleteCampaign(Request $req, Response $res, array $args): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $pdo = self::db();
+        $tenant = self::tenant($req);
+        $id = (int)$args['id'];
+        $chk = $pdo->prepare("SELECT id FROM kakao_campaigns WHERE id=:id AND tenant_id=:t");
+        $chk->execute([':id'=>$id, ':t'=>$tenant]);
+        if (!$chk->fetch()) return self::jsonRes($res, ['ok'=>false,'error'=>'캠페인 없음'], 404);
+        $pdo->prepare("DELETE FROM kakao_sends WHERE campaign_id=:id AND tenant_id=:t")->execute([':id'=>$id, ':t'=>$tenant]);
+        $pdo->prepare("DELETE FROM kakao_campaigns WHERE id=:id AND tenant_id=:t")->execute([':id'=>$id, ':t'=>$tenant]);
+        return self::jsonRes($res, ['ok'=>true]);
+    }
+
     /* ─── 카카오 API 호출 (비즈메시지 알림톡) ────────────────────── */
     private static function callKakaoAPI(array $cfg, string $phone, string $tplCode, string $content, array $buttons): array
     {
