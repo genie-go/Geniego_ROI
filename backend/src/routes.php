@@ -87,36 +87,36 @@ return function (App $app): void {
         'POST /email/track/open'               => 'Genie\\Handlers\\EmailMarketing::trackOpen',
 
         // ── 카카오 채널 (알림톡) ─────────────────────────────────────────
-        'GET /api/kakao/settings'                  => 'Genie\\Handlers\\KakaoChannel::getSettings',
-        'PUT /api/kakao/settings'                  => 'Genie\\Handlers\\KakaoChannel::saveSettings',
-        'POST /api/kakao/settings'                 => 'Genie\\Handlers\\KakaoChannel::saveSettings',
-        'GET /api/kakao/templates'                 => 'Genie\\Handlers\\KakaoChannel::listTemplates',
-        'POST /api/kakao/templates'                => 'Genie\\Handlers\\KakaoChannel::createTemplate',
-        'PUT /api/kakao/templates/{id}'            => 'Genie\\Handlers\\KakaoChannel::updateTemplate',
-        'DELETE /api/kakao/templates/{id}'         => 'Genie\\Handlers\\KakaoChannel::deleteTemplate',
-        'POST /api/kakao/templates/{code}/test'    => 'Genie\\Handlers\\KakaoChannel::testSend',
-        'GET /api/kakao/campaigns'                 => 'Genie\\Handlers\\KakaoChannel::listCampaigns',
-        'POST /api/kakao/campaigns'                => 'Genie\\Handlers\\KakaoChannel::createCampaign',
-        'POST /api/kakao/campaigns/{id}/send'      => 'Genie\\Handlers\\KakaoChannel::sendCampaign',
-        'GET /api/kakao/campaigns/{id}/stats'      => 'Genie\\Handlers\\KakaoChannel::campaignStats',
+        'GET /kakao/settings'                  => 'Genie\\Handlers\\KakaoChannel::getSettings',
+        'PUT /kakao/settings'                  => 'Genie\\Handlers\\KakaoChannel::saveSettings',
+        'POST /kakao/settings'                 => 'Genie\\Handlers\\KakaoChannel::saveSettings',
+        'GET /kakao/templates'                 => 'Genie\\Handlers\\KakaoChannel::listTemplates',
+        'POST /kakao/templates'                => 'Genie\\Handlers\\KakaoChannel::createTemplate',
+        'PUT /kakao/templates/{id}'            => 'Genie\\Handlers\\KakaoChannel::updateTemplate',
+        'DELETE /kakao/templates/{id}'         => 'Genie\\Handlers\\KakaoChannel::deleteTemplate',
+        'POST /kakao/templates/{code}/test'    => 'Genie\\Handlers\\KakaoChannel::testSend',
+        'GET /kakao/campaigns'                 => 'Genie\\Handlers\\KakaoChannel::listCampaigns',
+        'POST /kakao/campaigns'                => 'Genie\\Handlers\\KakaoChannel::createCampaign',
+        'POST /kakao/campaigns/{id}/send'      => 'Genie\\Handlers\\KakaoChannel::sendCampaign',
+        'GET /kakao/campaigns/{id}/stats'      => 'Genie\\Handlers\\KakaoChannel::campaignStats',
 
         // ── 1st-Party Pixel Tracking ───────────────────────────────────────
-        'POST /api/pixel/collect'                  => 'Genie\\Handlers\\PixelTracking::collect',
-        'GET /api/pixel/configs'                   => 'Genie\\Handlers\\PixelTracking::listConfigs',
-        'POST /api/pixel/configs'                  => 'Genie\\Handlers\\PixelTracking::createConfig',
-        'DELETE /api/pixel/configs/{id}'           => 'Genie\\Handlers\\PixelTracking::deleteConfig',
-        'GET /api/pixel/analytics'                 => 'Genie\\Handlers\\PixelTracking::analytics',
-        'GET /api/pixel/snippet/{pixel_id}'        => 'Genie\\Handlers\\PixelTracking::getSnippet',
+        'POST /pixel/collect'                  => 'Genie\\Handlers\\PixelTracking::collect',
+        'GET /pixel/configs'                   => 'Genie\\Handlers\\PixelTracking::listConfigs',
+        'POST /pixel/configs'                  => 'Genie\\Handlers\\PixelTracking::createConfig',
+        'DELETE /pixel/configs/{id}'           => 'Genie\\Handlers\\PixelTracking::deleteConfig',
+        'GET /pixel/analytics'                 => 'Genie\\Handlers\\PixelTracking::analytics',
+        'GET /pixel/snippet/{pixel_id}'        => 'Genie\\Handlers\\PixelTracking::getSnippet',
 
         // ── 고객 여정 빌더 ────────────────────────────────────────────────
-        'GET /api/journey/journeys'                => 'Genie\\Handlers\\JourneyBuilder::listJourneys',
-        'POST /api/journey/journeys'               => 'Genie\\Handlers\\JourneyBuilder::createJourney',
-        'PUT /api/journey/journeys/{id}'           => 'Genie\\Handlers\\JourneyBuilder::updateJourney',
-        'DELETE /api/journey/journeys/{id}'        => 'Genie\\Handlers\\JourneyBuilder::deleteJourney',
-        'POST /api/journey/journeys/{id}/enroll'   => 'Genie\\Handlers\\JourneyBuilder::enrollCustomer',
-        'POST /api/journey/journeys/{id}/launch'   => 'Genie\\Handlers\\JourneyBuilder::launchJourney',
-        'GET /api/journey/journeys/{id}/stats'     => 'Genie\\Handlers\\JourneyBuilder::journeyStats',
-        'GET /api/journey/templates'               => 'Genie\\Handlers\\JourneyBuilder::listTemplates',
+        'GET /journey/journeys'                => 'Genie\\Handlers\\JourneyBuilder::listJourneys',
+        'POST /journey/journeys'               => 'Genie\\Handlers\\JourneyBuilder::createJourney',
+        'PUT /journey/journeys/{id}'           => 'Genie\\Handlers\\JourneyBuilder::updateJourney',
+        'DELETE /journey/journeys/{id}'        => 'Genie\\Handlers\\JourneyBuilder::deleteJourney',
+        'POST /journey/journeys/{id}/enroll'   => 'Genie\\Handlers\\JourneyBuilder::enrollCustomer',
+        'POST /journey/journeys/{id}/launch'   => 'Genie\\Handlers\\JourneyBuilder::launchJourney',
+        'GET /journey/journeys/{id}/stats'     => 'Genie\\Handlers\\JourneyBuilder::journeyStats',
+        'GET /journey/templates'               => 'Genie\\Handlers\\JourneyBuilder::listTemplates',
 
         // ── Customer AI (이탈 예측 + LTV + 구매확률 + 상품추천 + 모델성능) ────
         'GET /customer-ai/churn-scores'        => 'Genie\\Handlers\\CustomerAI::churnScores',
@@ -1776,35 +1776,35 @@ return function (App $app): void {
     $register('POST',   '/email/track/open');
     // 183차 P0: email ab-test/ab-result/duplicate/analytics 죽은 매핑 제거(핸들러 미구현)
     // Kakao
-    $register('GET',    '/api/kakao/settings');
-    $register('PUT',    '/api/kakao/settings');
-    $register('POST',   '/api/kakao/settings');
-    $register('GET',    '/api/kakao/templates');
-    $register('POST',   '/api/kakao/templates');
-    $register('PUT',    '/api/kakao/templates/{id}');
-    $register('DELETE', '/api/kakao/templates/{id}');
-    $register('POST',   '/api/kakao/templates/{code}/test');
-    $register('GET',    '/api/kakao/campaigns');
-    $register('POST',   '/api/kakao/campaigns');
-    $register('POST',   '/api/kakao/campaigns/{id}/send');
-    $register('GET',    '/api/kakao/campaigns/{id}/stats');
+    $register('GET',    '/kakao/settings');
+    $register('PUT',    '/kakao/settings');
+    $register('POST',   '/kakao/settings');
+    $register('GET',    '/kakao/templates');
+    $register('POST',   '/kakao/templates');
+    $register('PUT',    '/kakao/templates/{id}');
+    $register('DELETE', '/kakao/templates/{id}');
+    $register('POST',   '/kakao/templates/{code}/test');
+    $register('GET',    '/kakao/campaigns');
+    $register('POST',   '/kakao/campaigns');
+    $register('POST',   '/kakao/campaigns/{id}/send');
+    $register('GET',    '/kakao/campaigns/{id}/stats');
     // 183차 P0: kakao friendtalk/sms/analytics 죽은 매핑 제거(핸들러 미구현)
     // 1st-Party Pixel Tracking
-    $register('POST',   '/api/pixel/collect');
-    $register('GET',    '/api/pixel/configs');
-    $register('POST',   '/api/pixel/configs');
-    $register('DELETE', '/api/pixel/configs/{id}');
-    $register('GET',    '/api/pixel/analytics');
-    $register('GET',    '/api/pixel/snippet/{pixel_id}');
+    $register('POST',   '/pixel/collect');
+    $register('GET',    '/pixel/configs');
+    $register('POST',   '/pixel/configs');
+    $register('DELETE', '/pixel/configs/{id}');
+    $register('GET',    '/pixel/analytics');
+    $register('GET',    '/pixel/snippet/{pixel_id}');
     // Journey Builder
-    $register('GET',    '/api/journey/journeys');
-    $register('POST',   '/api/journey/journeys');
-    $register('PUT',    '/api/journey/journeys/{id}');
-    $register('DELETE', '/api/journey/journeys/{id}');
-    $register('POST',   '/api/journey/journeys/{id}/enroll');
-    $register('POST',   '/api/journey/journeys/{id}/launch');
-    $register('GET',    '/api/journey/journeys/{id}/stats');
-    $register('GET',    '/api/journey/templates');
+    $register('GET',    '/journey/journeys');
+    $register('POST',   '/journey/journeys');
+    $register('PUT',    '/journey/journeys/{id}');
+    $register('DELETE', '/journey/journeys/{id}');
+    $register('POST',   '/journey/journeys/{id}/enroll');
+    $register('POST',   '/journey/journeys/{id}/launch');
+    $register('GET',    '/journey/journeys/{id}/stats');
+    $register('GET',    '/journey/templates');
     // Customer AI
     $register('GET',    '/customer-ai/churn-scores');
     $register('GET',    '/customer-ai/ltv-segments');

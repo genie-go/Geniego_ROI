@@ -105,6 +105,11 @@ $app->add(function (Request $request, $handler) {
         // 190차 Sprint2-b: EmailMarketing 부활 — 세션 기반(requirePro self-auth + 테넌트 격리)
         || strpos($path, '/api/email/') === 0
         || strpos($path, '/email/') === 0
+        // 190차 Sprint2-c: KakaoChannel/PixelTracking/JourneyBuilder 부활 — 세션 self-auth + 테넌트 격리.
+        //   (pixel/collect 는 공개 비콘 — 핸들러가 pixel_id→tenant 도출, requirePro 미적용)
+        || strpos($path, '/api/kakao/') === 0    || strpos($path, '/kakao/') === 0
+        || strpos($path, '/api/pixel/') === 0    || strpos($path, '/pixel/') === 0
+        || strpos($path, '/api/journey/') === 0  || strpos($path, '/journey/') === 0
     ) {
         return $handler->handle($request);
     }

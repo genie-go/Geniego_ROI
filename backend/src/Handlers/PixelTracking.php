@@ -7,21 +7,25 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Genie\Db;
 
 /**
- * 1st-Party Pixel Tracking — Geniego-ROI
+ * 1st-Party Pixel Tracking (190차 부활 + 멀티테넌트 격리 + MySQL/SQLite 이식).
  *
- * 경쟁사(Triple Whale, Northbeam) 수준 이상의 1st-party 픽셀 트래킹.
- * iOS 14+ 이후 광고 플랫폼 과소집계 문제를 서버사이드 이벤트로 보완.
- *
- * 기능:
- * - 픽셀 이벤트 수집 (page_view, add_to_cart, purchase, lead, ...)
- * - 세션 기반 퍼널 분석
- * - 채널 어트리뷰션 (UTM 기반 + 라스트터치/선형/포지션기반)
- * - CRM 자동 고객 프로파일 연동
- * - 광고 플랫폼 서버사이드 이벤트 포워딩 (Meta CAPI, TikTok Events)
+ * 189차까지 runtime-dead(Db::get). CRM 패턴 4층 부활.
+ * ★테넌트 도출이 2갈래:
+ *   - collect(공개 비콘, 세션 없음): tenant = pixel_id → pixel_configs.tenant_id (미등록=unknown)
+ *   - 관리(configs/analytics): tenant = 인증 세션 user.tenant_id
+ * pixel_* 3테이블 tenant_id + analytics 테넌트 스코프(타 테넌트 이벤트 비노출). /api/pixel public bypass.
  */
 class PixelTracking
 {
-    private static function db(): \PDO { return Db::get(); }
+    private static function db(): \PDO { return Db::pdo(); }
+    private static function isMysql(\PDO $pdo): bool { return $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql'; }
+    private static function now(): string { return gmdate('Y-m-d H:i:s'); }
+    private static function cutoff(int $days): string { return gmdate('Y-m-d H:i:s', time() - $days * 86400); }
+    private static function tenant(Request $req): string
+    {
+        $t = UserAuth::authedTenant($req);
+        return ($t !== null && $t !== '') ? $t : 'demo';
+    }
 
     private static function json(Response $res, array $data, int $status = 200): Response
     {
@@ -32,87 +36,46 @@ class PixelTracking
     private static function ensureTables(): void
     {
         $pdo = self::db();
-
-        // 픽셀 이벤트 저장소
-        $pdo->exec("
-            CREATE TABLE IF NOT EXISTS pixel_events (
-                id              INTEGER PRIMARY KEY AUTOINCREMENT,
-                event_id        TEXT NOT NULL UNIQUE,
-                pixel_id        TEXT NOT NULL,
-                event_name      TEXT NOT NULL,
-                session_id      TEXT,
-                user_id         TEXT,
-                email_hash      TEXT,
-                phone_hash      TEXT,
-                page_url        TEXT,
-                referrer        TEXT,
-                utm_source      TEXT,
-                utm_medium      TEXT,
-                utm_campaign    TEXT,
-                utm_content     TEXT,
-                utm_term        TEXT,
-                value           REAL DEFAULT 0,
-                currency        TEXT DEFAULT 'KRW',
-                product_ids     TEXT DEFAULT '[]',
-                custom_data     TEXT DEFAULT '{}',
-                ip_hash         TEXT,
-                user_agent      TEXT,
-                country         TEXT,
-                device_type     TEXT,
-                forwarded_meta  INTEGER DEFAULT 0,
-                forwarded_tiktok INTEGER DEFAULT 0,
-                created_at      TEXT DEFAULT (datetime('now'))
-            )
-        ");
-
-        // 픽셀 설정 (도메인별 픽셀)
-        $pdo->exec("
-            CREATE TABLE IF NOT EXISTS pixel_configs (
-                id              INTEGER PRIMARY KEY AUTOINCREMENT,
-                pixel_id        TEXT NOT NULL UNIQUE,
-                name            TEXT NOT NULL,
-                domain          TEXT,
-                meta_pixel_id   TEXT,
-                meta_api_token  TEXT,
-                tiktok_pixel_id TEXT,
-                tiktok_access_token TEXT,
-                ga4_measurement_id  TEXT,
-                ga4_api_secret      TEXT,
-                enabled         INTEGER DEFAULT 1,
-                created_at      TEXT DEFAULT (datetime('now')),
-                updated_at      TEXT DEFAULT (datetime('now'))
-            )
-        ");
-
-        // 세션 집계 (퍼널 분석용)
-        $pdo->exec("
-            CREATE TABLE IF NOT EXISTS pixel_sessions (
-                session_id      TEXT PRIMARY KEY,
-                pixel_id        TEXT,
-                first_event     TEXT,
-                last_event      TEXT,
-                page_views      INTEGER DEFAULT 0,
-                add_to_cart     INTEGER DEFAULT 0,
-                purchases       INTEGER DEFAULT 0,
-                total_revenue   REAL DEFAULT 0,
-                utm_source      TEXT,
-                utm_medium      TEXT,
-                utm_campaign    TEXT,
-                landing_page    TEXT,
-                duration_sec    INTEGER DEFAULT 0,
-                converted       INTEGER DEFAULT 0,
-                created_at      TEXT DEFAULT (datetime('now')),
-                updated_at      TEXT DEFAULT (datetime('now'))
-            )
-        ");
-
-        $pdo->exec("CREATE INDEX IF NOT EXISTS idx_pixel_events_pixel ON pixel_events(pixel_id)");
-        $pdo->exec("CREATE INDEX IF NOT EXISTS idx_pixel_events_name ON pixel_events(event_name)");
-        $pdo->exec("CREATE INDEX IF NOT EXISTS idx_pixel_events_session ON pixel_events(session_id)");
-        $pdo->exec("CREATE INDEX IF NOT EXISTS idx_pixel_events_created ON pixel_events(created_at)");
+        if (self::isMysql($pdo)) {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS pixel_events (
+                id INT AUTO_INCREMENT PRIMARY KEY, tenant_id VARCHAR(100) NOT NULL DEFAULT 'demo',
+                event_id VARCHAR(64) NOT NULL UNIQUE, pixel_id VARCHAR(64) NOT NULL, event_name VARCHAR(80) NOT NULL,
+                session_id VARCHAR(80), user_id VARCHAR(100), email_hash VARCHAR(72), phone_hash VARCHAR(72),
+                page_url TEXT, referrer TEXT, utm_source VARCHAR(120), utm_medium VARCHAR(120), utm_campaign VARCHAR(160),
+                utm_content VARCHAR(160), utm_term VARCHAR(160), value DOUBLE DEFAULT 0, currency VARCHAR(10) DEFAULT 'KRW',
+                product_ids TEXT, custom_data TEXT, ip_hash VARCHAR(72), user_agent VARCHAR(500), country VARCHAR(8),
+                device_type VARCHAR(20), forwarded_meta INT DEFAULT 0, forwarded_tiktok INT DEFAULT 0, created_at VARCHAR(32),
+                KEY idx_pixel_evt_tenant (tenant_id), KEY idx_pixel_evt_pixel (pixel_id), KEY idx_pixel_evt_name (event_name),
+                KEY idx_pixel_evt_created (created_at)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+            $pdo->exec("CREATE TABLE IF NOT EXISTS pixel_configs (
+                id INT AUTO_INCREMENT PRIMARY KEY, tenant_id VARCHAR(100) NOT NULL DEFAULT 'demo',
+                pixel_id VARCHAR(64) NOT NULL UNIQUE, name VARCHAR(255) NOT NULL, domain VARCHAR(255),
+                meta_pixel_id VARCHAR(64), meta_api_token VARCHAR(500), tiktok_pixel_id VARCHAR(64), tiktok_access_token VARCHAR(500),
+                ga4_measurement_id VARCHAR(64), ga4_api_secret VARCHAR(255), enabled INT DEFAULT 1,
+                created_at VARCHAR(32), updated_at VARCHAR(32), KEY idx_pixel_cfg_tenant (tenant_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+            $pdo->exec("CREATE TABLE IF NOT EXISTS pixel_sessions (
+                session_id VARCHAR(80) PRIMARY KEY, tenant_id VARCHAR(100) NOT NULL DEFAULT 'demo', pixel_id VARCHAR(64),
+                first_event VARCHAR(32), last_event VARCHAR(32), page_views INT DEFAULT 0, add_to_cart INT DEFAULT 0,
+                purchases INT DEFAULT 0, total_revenue DOUBLE DEFAULT 0, utm_source VARCHAR(120), utm_medium VARCHAR(120),
+                utm_campaign VARCHAR(160), landing_page TEXT, duration_sec INT DEFAULT 0, converted INT DEFAULT 0,
+                created_at VARCHAR(32), updated_at VARCHAR(32), KEY idx_pixel_sess_tenant (tenant_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+        } else {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS pixel_events (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', event_id TEXT NOT NULL UNIQUE, pixel_id TEXT NOT NULL, event_name TEXT NOT NULL, session_id TEXT, user_id TEXT, email_hash TEXT, phone_hash TEXT, page_url TEXT, referrer TEXT, utm_source TEXT, utm_medium TEXT, utm_campaign TEXT, utm_content TEXT, utm_term TEXT, value REAL DEFAULT 0, currency TEXT DEFAULT 'KRW', product_ids TEXT DEFAULT '[]', custom_data TEXT DEFAULT '{}', ip_hash TEXT, user_agent TEXT, country TEXT, device_type TEXT, forwarded_meta INTEGER DEFAULT 0, forwarded_tiktok INTEGER DEFAULT 0, created_at TEXT)");
+            $pdo->exec("CREATE TABLE IF NOT EXISTS pixel_configs (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', pixel_id TEXT NOT NULL UNIQUE, name TEXT NOT NULL, domain TEXT, meta_pixel_id TEXT, meta_api_token TEXT, tiktok_pixel_id TEXT, tiktok_access_token TEXT, ga4_measurement_id TEXT, ga4_api_secret TEXT, enabled INTEGER DEFAULT 1, created_at TEXT, updated_at TEXT)");
+            $pdo->exec("CREATE TABLE IF NOT EXISTS pixel_sessions (session_id TEXT PRIMARY KEY, tenant_id TEXT NOT NULL DEFAULT 'demo', pixel_id TEXT, first_event TEXT, last_event TEXT, page_views INTEGER DEFAULT 0, add_to_cart INTEGER DEFAULT 0, purchases INTEGER DEFAULT 0, total_revenue REAL DEFAULT 0, utm_source TEXT, utm_medium TEXT, utm_campaign TEXT, landing_page TEXT, duration_sec INTEGER DEFAULT 0, converted INTEGER DEFAULT 0, created_at TEXT, updated_at TEXT)");
+            $pdo->exec("CREATE INDEX IF NOT EXISTS idx_pixel_events_pixel ON pixel_events(pixel_id)");
+            $pdo->exec("CREATE INDEX IF NOT EXISTS idx_pixel_events_created ON pixel_events(created_at)");
+            $pdo->exec("CREATE INDEX IF NOT EXISTS idx_pixel_events_tenant ON pixel_events(tenant_id)");
+        }
+        foreach (['pixel_events','pixel_configs','pixel_sessions'] as $tbl) {
+            try { $pdo->exec("ALTER TABLE {$tbl} ADD COLUMN tenant_id VARCHAR(100) NOT NULL DEFAULT 'demo'"); } catch (\Throwable $e) {}
+        }
     }
 
-    /* ─── POST /api/pixel/collect ─── 픽셀 이벤트 수집 ─────────── */
+    /* ─── POST /pixel/collect ─── 픽셀 이벤트 수집 (공개 비콘) ─────────── */
     public static function collect(Request $req, Response $res): Response
     {
         self::ensureTables();
@@ -122,138 +85,85 @@ class PixelTracking
         $pixelId   = trim($b['pixel_id'] ?? '');
         $eventName = trim($b['event_name'] ?? 'page_view');
         $sessionId = trim($b['session_id'] ?? '');
+        if (!$pixelId) return self::json($res, ['ok' => false, 'error' => 'pixel_id 필수'], 400);
 
-        if (!$pixelId) {
-            return self::json($res, ['ok' => false, 'error' => 'pixel_id 필수'], 400);
-        }
+        // ★테넌트 = pixel_id 의 소유 config. 미등록 픽셀=unknown(어느 테넌트 analytics 에도 미노출).
+        $cfgStmt = $pdo->prepare("SELECT * FROM pixel_configs WHERE pixel_id=:pid LIMIT 1");
+        $cfgStmt->execute([':pid' => $pixelId]);
+        $config = $cfgStmt->fetch(\PDO::FETCH_ASSOC);
+        $tenant = $config['tenant_id'] ?? 'unknown';
 
         $eventId = 'evt_' . bin2hex(random_bytes(12));
-
-        // 이메일/폰 해시 (PII 보호)
         $emailHash = !empty($b['email']) ? hash('sha256', strtolower(trim($b['email']))) : null;
         $phoneHash = !empty($b['phone']) ? hash('sha256', preg_replace('/[^0-9]/', '', $b['phone'])) : null;
-
-        // IP 해시 (PII 보호)
         $ip = $_SERVER['REMOTE_ADDR'] ?? ($req->getHeaderLine('X-Forwarded-For') ?: '');
         $ipHash = $ip ? hash('sha256', $ip) : null;
-
-        // 디바이스 감지
         $ua = $req->getHeaderLine('User-Agent');
         $deviceType = 'desktop';
-        if (preg_match('/Mobile|Android|iPhone|iPad/i', $ua)) {
-            $deviceType = preg_match('/iPad/i', $ua) ? 'tablet' : 'mobile';
-        }
+        if (preg_match('/Mobile|Android|iPhone|iPad/i', $ua)) { $deviceType = preg_match('/iPad/i', $ua) ? 'tablet' : 'mobile'; }
 
-        $pdo->prepare("
-            INSERT OR IGNORE INTO pixel_events
-            (event_id, pixel_id, event_name, session_id, user_id, email_hash, phone_hash,
+        $ignore = self::isMysql($pdo) ? 'IGNORE' : 'OR IGNORE';
+        $pdo->prepare("INSERT {$ignore} INTO pixel_events
+            (tenant_id, event_id, pixel_id, event_name, session_id, user_id, email_hash, phone_hash,
              page_url, referrer, utm_source, utm_medium, utm_campaign, utm_content, utm_term,
              value, currency, product_ids, custom_data, ip_hash, user_agent, device_type, created_at)
-            VALUES
-            (:eid, :pid, :en, :sid, :uid, :eh, :ph,
-             :url, :ref, :us, :um, :uc, :uco, :ut,
-             :val, :cur, :prod, :cdata, :iph, :ua, :dev, datetime('now'))
+            VALUES (:t,:eid,:pid,:en,:sid,:uid,:eh,:ph,:url,:ref,:us,:um,:uc,:uco,:ut,:val,:cur,:prod,:cdata,:iph,:ua,:dev,:ca)
         ")->execute([
-            ':eid'   => $eventId,
-            ':pid'   => $pixelId,
-            ':en'    => $eventName,
-            ':sid'   => $sessionId ?: null,
-            ':uid'   => $b['user_id'] ?? null,
-            ':eh'    => $emailHash,
-            ':ph'    => $phoneHash,
-            ':url'   => $b['page_url'] ?? null,
-            ':ref'   => $b['referrer'] ?? null,
-            ':us'    => $b['utm_source'] ?? null,
-            ':um'    => $b['utm_medium'] ?? null,
-            ':uc'    => $b['utm_campaign'] ?? null,
-            ':uco'   => $b['utm_content'] ?? null,
-            ':ut'    => $b['utm_term'] ?? null,
-            ':val'   => (float)($b['value'] ?? 0),
-            ':cur'   => $b['currency'] ?? 'KRW',
-            ':prod'  => json_encode($b['product_ids'] ?? []),
-            ':cdata' => json_encode($b['custom_data'] ?? []),
-            ':iph'   => $ipHash,
-            ':ua'    => substr($ua, 0, 500),
-            ':dev'   => $deviceType,
+            ':t'=>$tenant, ':eid'=>$eventId, ':pid'=>$pixelId, ':en'=>$eventName, ':sid'=>$sessionId ?: null,
+            ':uid'=>$b['user_id'] ?? null, ':eh'=>$emailHash, ':ph'=>$phoneHash, ':url'=>$b['page_url'] ?? null,
+            ':ref'=>$b['referrer'] ?? null, ':us'=>$b['utm_source'] ?? null, ':um'=>$b['utm_medium'] ?? null,
+            ':uc'=>$b['utm_campaign'] ?? null, ':uco'=>$b['utm_content'] ?? null, ':ut'=>$b['utm_term'] ?? null,
+            ':val'=>(float)($b['value'] ?? 0), ':cur'=>$b['currency'] ?? 'KRW', ':prod'=>json_encode($b['product_ids'] ?? []),
+            ':cdata'=>json_encode($b['custom_data'] ?? []), ':iph'=>$ipHash, ':ua'=>substr($ua, 0, 500), ':dev'=>$deviceType, ':ca'=>self::now(),
         ]);
 
-        // 세션 업데이트
-        if ($sessionId) {
-            self::updateSession($pdo, $sessionId, $pixelId, $eventName, (float)($b['value'] ?? 0), $b);
-        }
+        if ($sessionId) { self::updateSession($pdo, $tenant, $sessionId, $pixelId, $eventName, (float)($b['value'] ?? 0), $b); }
+        if ($eventName === 'purchase' && $emailHash) { self::syncToCRM($pdo, $tenant, $eventName, (float)($b['value'] ?? 0), $eventId); }
 
-        // CRM 자동 연동 — 구매 이벤트 시 고객 활동 기록
-        if ($eventName === 'purchase' && $emailHash) {
-            self::syncToCRM($pdo, $emailHash, $eventName, (float)($b['value'] ?? 0), $eventId);
-        }
-
-        // 서버사이드 포워딩 (비동기 — 실패해도 응답은 성공)
-        $cfg = $pdo->prepare("SELECT * FROM pixel_configs WHERE pixel_id=:pid AND enabled=1");
-        $cfg->execute([':pid' => $pixelId]);
-        $config = $cfg->fetch(\PDO::FETCH_ASSOC);
-
-        if ($config) {
+        if ($config && (int)($config['enabled'] ?? 0) === 1) {
             self::forwardToMeta($pdo, $config, $eventId, $eventName, $emailHash, $phoneHash, $b, $deviceType);
             self::forwardToTikTok($pdo, $config, $eventId, $eventName, $emailHash, $b);
         }
-
         return self::json($res, ['ok' => true, 'event_id' => $eventId]);
     }
 
-    private static function updateSession(\PDO $pdo, string $sid, string $pixelId, string $eventName, float $value, array $b): void
+    private static function updateSession(\PDO $pdo, string $tenant, string $sid, string $pixelId, string $eventName, float $value, array $b): void
     {
         $exists = $pdo->prepare("SELECT session_id FROM pixel_sessions WHERE session_id=:sid");
         $exists->execute([':sid' => $sid]);
-
+        $now = self::now();
         if ($exists->fetch()) {
-            $pdo->prepare("
-                UPDATE pixel_sessions SET
-                    last_event = datetime('now'),
+            $pdo->prepare("UPDATE pixel_sessions SET last_event=:le,
                     page_views = page_views + CASE WHEN :en='page_view' THEN 1 ELSE 0 END,
-                    add_to_cart = add_to_cart + CASE WHEN :en='add_to_cart' THEN 1 ELSE 0 END,
-                    purchases = purchases + CASE WHEN :en='purchase' THEN 1 ELSE 0 END,
+                    add_to_cart = add_to_cart + CASE WHEN :en2='add_to_cart' THEN 1 ELSE 0 END,
+                    purchases = purchases + CASE WHEN :en3='purchase' THEN 1 ELSE 0 END,
                     total_revenue = total_revenue + :val,
-                    converted = CASE WHEN :en='purchase' THEN 1 ELSE converted END,
-                    updated_at = datetime('now')
+                    converted = CASE WHEN :en4='purchase' THEN 1 ELSE converted END, updated_at=:ua
                 WHERE session_id=:sid
-            ")->execute([':en' => $eventName, ':val' => $value, ':sid' => $sid]);
+            ")->execute([':le'=>$now, ':en'=>$eventName, ':en2'=>$eventName, ':en3'=>$eventName, ':en4'=>$eventName, ':val'=>$value, ':ua'=>$now, ':sid'=>$sid]);
         } else {
-            $pdo->prepare("
-                INSERT INTO pixel_sessions (session_id, pixel_id, first_event, last_event,
-                    page_views, add_to_cart, purchases, total_revenue,
-                    utm_source, utm_medium, utm_campaign, landing_page, converted)
-                VALUES (:sid, :pid, datetime('now'), datetime('now'),
-                    :pv, :atc, :pur, :val,
-                    :us, :um, :uc, :lp,
-                    CASE WHEN :en='purchase' THEN 1 ELSE 0 END)
+            $pdo->prepare("INSERT INTO pixel_sessions (session_id, tenant_id, pixel_id, first_event, last_event,
+                    page_views, add_to_cart, purchases, total_revenue, utm_source, utm_medium, utm_campaign, landing_page, converted, created_at, updated_at)
+                VALUES (:sid,:t,:pid,:fe,:le,:pv,:atc,:pur,:val,:us,:um,:uc,:lp,:cv,:ca,:ua)
             ")->execute([
-                ':sid' => $sid, ':pid' => $pixelId,
-                ':pv'  => $eventName === 'page_view' ? 1 : 0,
-                ':atc' => $eventName === 'add_to_cart' ? 1 : 0,
-                ':pur' => $eventName === 'purchase' ? 1 : 0,
-                ':val' => $value,
-                ':us'  => $b['utm_source'] ?? null,
-                ':um'  => $b['utm_medium'] ?? null,
-                ':uc'  => $b['utm_campaign'] ?? null,
-                ':lp'  => $b['page_url'] ?? null,
-                ':en'  => $eventName,
+                ':sid'=>$sid, ':t'=>$tenant, ':pid'=>$pixelId, ':fe'=>$now, ':le'=>$now,
+                ':pv'=>$eventName === 'page_view' ? 1 : 0, ':atc'=>$eventName === 'add_to_cart' ? 1 : 0, ':pur'=>$eventName === 'purchase' ? 1 : 0,
+                ':val'=>$value, ':us'=>$b['utm_source'] ?? null, ':um'=>$b['utm_medium'] ?? null, ':uc'=>$b['utm_campaign'] ?? null,
+                ':lp'=>$b['page_url'] ?? null, ':cv'=>$eventName === 'purchase' ? 1 : 0, ':ca'=>$now, ':ua'=>$now,
             ]);
         }
     }
 
-    private static function syncToCRM(\PDO $pdo, string $emailHash, string $eventName, float $value, string $eventId): void
+    private static function syncToCRM(\PDO $pdo, string $tenant, string $eventName, float $value, string $eventId): void
     {
-        // email_hash로 CRM 고객 찾기 (있으면 활동 기록)
+        // 픽셀 구매 이벤트를 해당 테넌트 CRM 활동으로 best-effort 기록(sha256 직접매칭 불가 → 테넌트 스코프 안전).
         try {
-            $cust = $pdo->prepare("SELECT id FROM crm_customers WHERE email LIKE :eh");
-            // SHA256 해시이므로 직접 매칭 불가 — 픽셀은 별도 연동 테이블 활용
-            $pdo->prepare("
-                INSERT OR IGNORE INTO crm_activities (customer_id, type, channel, amount, data)
-                SELECT id, :type, 'pixel', :amt, :data FROM crm_customers LIMIT 1
+            $ignore = self::isMysql($pdo) ? 'IGNORE' : 'OR IGNORE';
+            $pdo->prepare("INSERT {$ignore} INTO crm_activities (tenant_id, customer_id, type, channel, amount, data, created_at)
+                SELECT tenant_id, id, :type, 'pixel', :amt, :data, :ca FROM crm_customers WHERE tenant_id=:t LIMIT 1
             ")->execute([
                 ':type' => $eventName === 'purchase' ? 'purchase' : 'event',
-                ':amt'  => $value,
-                ':data' => json_encode(['source' => 'pixel', 'event_id' => $eventId]),
+                ':amt' => $value, ':data' => json_encode(['source' => 'pixel', 'event_id' => $eventId]), ':ca' => self::now(), ':t' => $tenant,
             ]);
         } catch (\Exception $e) { /* CRM 테이블 없으면 무시 */ }
     }
@@ -261,254 +171,123 @@ class PixelTracking
     private static function forwardToMeta(\PDO $pdo, array $cfg, string $eventId, string $eventName, ?string $emailHash, ?string $phoneHash, array $b, string $deviceType): void
     {
         if (empty($cfg['meta_pixel_id']) || empty($cfg['meta_api_token'])) return;
-
-        // Meta CAPI 이벤트명 매핑
-        $metaEventMap = [
-            'page_view' => 'PageView', 'view_content' => 'ViewContent',
-            'add_to_cart' => 'AddToCart', 'initiate_checkout' => 'InitiateCheckout',
-            'purchase' => 'Purchase', 'lead' => 'Lead', 'subscribe' => 'Subscribe',
-        ];
+        $metaEventMap = ['page_view'=>'PageView', 'view_content'=>'ViewContent', 'add_to_cart'=>'AddToCart', 'initiate_checkout'=>'InitiateCheckout', 'purchase'=>'Purchase', 'lead'=>'Lead', 'subscribe'=>'Subscribe'];
         $metaEvent = $metaEventMap[$eventName] ?? 'CustomEvent';
-
-        $payload = [
-            'data' => [[
-                'event_name'       => $metaEvent,
-                'event_time'       => time(),
-                'event_id'         => $eventId,
-                'event_source_url' => $b['page_url'] ?? '',
-                'action_source'    => 'website',
-                'user_data'        => array_filter([
-                    'em'          => $emailHash ? [$emailHash] : null,
-                    'ph'          => $phoneHash ? [$phoneHash] : null,
-                    'client_ip_address' => null,
-                    'client_user_agent' => $b['user_agent'] ?? '',
-                ]),
-                'custom_data'      => array_filter([
-                    'value'    => (float)($b['value'] ?? 0) ?: null,
-                    'currency' => $b['currency'] ?? 'KRW',
-                    'content_ids' => $b['product_ids'] ?? null,
-                ]),
-            ]],
-        ];
-
+        $payload = ['data' => [[
+            'event_name'=>$metaEvent, 'event_time'=>time(), 'event_id'=>$eventId, 'event_source_url'=>$b['page_url'] ?? '', 'action_source'=>'website',
+            'user_data'=>array_filter(['em'=>$emailHash ? [$emailHash] : null, 'ph'=>$phoneHash ? [$phoneHash] : null, 'client_ip_address'=>null, 'client_user_agent'=>$b['user_agent'] ?? '']),
+            'custom_data'=>array_filter(['value'=>(float)($b['value'] ?? 0) ?: null, 'currency'=>$b['currency'] ?? 'KRW', 'content_ids'=>$b['product_ids'] ?? null]),
+        ]]];
         try {
             $ch = curl_init("https://graph.facebook.com/v18.0/{$cfg['meta_pixel_id']}/events?access_token={$cfg['meta_api_token']}");
-            curl_setopt_array($ch, [
-                CURLOPT_POST => true,
-                CURLOPT_POSTFIELDS => json_encode($payload),
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_TIMEOUT => 5,
-                CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
-            ]);
-            curl_exec($ch);
-            curl_close($ch);
-            $pdo->exec("UPDATE pixel_events SET forwarded_meta=1 WHERE event_id='" . addslashes($eventId) . "'");
+            curl_setopt_array($ch, [CURLOPT_POST=>true, CURLOPT_POSTFIELDS=>json_encode($payload), CURLOPT_RETURNTRANSFER=>true, CURLOPT_TIMEOUT=>5, CURLOPT_HTTPHEADER=>['Content-Type: application/json']]);
+            curl_exec($ch); curl_close($ch);
+            $u = $pdo->prepare("UPDATE pixel_events SET forwarded_meta=1 WHERE event_id=:eid"); $u->execute([':eid'=>$eventId]);
         } catch (\Exception $e) {}
     }
 
     private static function forwardToTikTok(\PDO $pdo, array $cfg, string $eventId, string $eventName, ?string $emailHash, array $b): void
     {
         if (empty($cfg['tiktok_pixel_id']) || empty($cfg['tiktok_access_token'])) return;
-
-        $tiktokEventMap = [
-            'page_view' => 'PageView', 'view_content' => 'ViewContent',
-            'add_to_cart' => 'AddToCart', 'purchase' => 'CompletePayment',
-            'lead' => 'SubmitForm',
-        ];
+        $tiktokEventMap = ['page_view'=>'PageView', 'view_content'=>'ViewContent', 'add_to_cart'=>'AddToCart', 'purchase'=>'CompletePayment', 'lead'=>'SubmitForm'];
         $tiktokEvent = $tiktokEventMap[$eventName] ?? 'CustomEvent';
-
-        $payload = [
-            'pixel_code' => $cfg['tiktok_pixel_id'],
-            'event'      => $tiktokEvent,
-            'event_id'   => $eventId,
-            'timestamp'  => gmdate('Y-m-d\TH:i:s+00:00'),
-            'context'    => [
-                'page'    => ['url' => $b['page_url'] ?? ''],
-                'user'    => array_filter(['sha256_email' => $emailHash]),
-            ],
-            'properties' => array_filter([
-                'value'    => (float)($b['value'] ?? 0) ?: null,
-                'currency' => $b['currency'] ?? 'KRW',
-                'content_id' => !empty($b['product_ids']) ? $b['product_ids'][0] : null,
-            ]),
-        ];
-
+        $payload = ['pixel_code'=>$cfg['tiktok_pixel_id'], 'event'=>$tiktokEvent, 'event_id'=>$eventId, 'timestamp'=>gmdate('Y-m-d\TH:i:s+00:00'),
+            'context'=>['page'=>['url'=>$b['page_url'] ?? ''], 'user'=>array_filter(['sha256_email'=>$emailHash])],
+            'properties'=>array_filter(['value'=>(float)($b['value'] ?? 0) ?: null, 'currency'=>$b['currency'] ?? 'KRW', 'content_id'=>!empty($b['product_ids']) ? $b['product_ids'][0] : null])];
         try {
             $ch = curl_init('https://business-api.tiktok.com/open_api/v1.3/pixel/track/');
-            curl_setopt_array($ch, [
-                CURLOPT_POST => true,
-                CURLOPT_POSTFIELDS => json_encode($payload),
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_TIMEOUT => 5,
-                CURLOPT_HTTPHEADER => [
-                    'Content-Type: application/json',
-                    'Access-Token: ' . $cfg['tiktok_access_token'],
-                ],
-            ]);
-            curl_exec($ch);
-            curl_close($ch);
-            $pdo->exec("UPDATE pixel_events SET forwarded_tiktok=1 WHERE event_id='" . addslashes($eventId) . "'");
+            curl_setopt_array($ch, [CURLOPT_POST=>true, CURLOPT_POSTFIELDS=>json_encode($payload), CURLOPT_RETURNTRANSFER=>true, CURLOPT_TIMEOUT=>5, CURLOPT_HTTPHEADER=>['Content-Type: application/json', 'Access-Token: '.$cfg['tiktok_access_token']]]);
+            curl_exec($ch); curl_close($ch);
+            $u = $pdo->prepare("UPDATE pixel_events SET forwarded_tiktok=1 WHERE event_id=:eid"); $u->execute([':eid'=>$eventId]);
         } catch (\Exception $e) {}
     }
 
-    /* ─── GET /api/pixel/configs ─── 픽셀 설정 목록 ────────────── */
+    /* ─── GET /pixel/configs ─── 픽셀 설정 목록 ────────────── */
     public static function listConfigs(Request $req, Response $res): Response
     {
         if ($err = UserAuth::requirePro($req, $res)) return $err;
         self::ensureTables();
-        $rows = self::db()->query("SELECT id, pixel_id, name, domain, enabled, created_at FROM pixel_configs ORDER BY created_at DESC")->fetchAll(\PDO::FETCH_ASSOC);
-        return self::json($res, ['ok' => true, 'configs' => $rows]);
+        $tenant = self::tenant($req);
+        $st = self::db()->prepare("SELECT id, pixel_id, name, domain, enabled, created_at FROM pixel_configs WHERE tenant_id=? ORDER BY created_at DESC");
+        $st->execute([$tenant]);
+        return self::json($res, ['ok' => true, 'configs' => $st->fetchAll(\PDO::FETCH_ASSOC)]);
     }
 
-    /* ─── POST /api/pixel/configs ─── 픽셀 생성 ─────────────────── */
+    /* ─── POST /pixel/configs ─── 픽셀 생성 ─────────────────── */
     public static function createConfig(Request $req, Response $res): Response
     {
         if ($err = UserAuth::requirePro($req, $res)) return $err;
         self::ensureTables();
         $pdo = self::db();
+        $tenant = self::tenant($req);
         $b = (array)$req->getParsedBody();
         $pixelId = 'px_' . bin2hex(random_bytes(8));
-
-        $pdo->prepare("
-            INSERT INTO pixel_configs (pixel_id, name, domain, meta_pixel_id, meta_api_token, tiktok_pixel_id, tiktok_access_token, ga4_measurement_id, ga4_api_secret)
-            VALUES (:pid, :name, :dom, :mpid, :mapi, :tpid, :tapi, :ga4id, :ga4sec)
+        $now = self::now();
+        $pdo->prepare("INSERT INTO pixel_configs (tenant_id, pixel_id, name, domain, meta_pixel_id, meta_api_token, tiktok_pixel_id, tiktok_access_token, ga4_measurement_id, ga4_api_secret, created_at, updated_at)
+            VALUES (:t,:pid,:name,:dom,:mpid,:mapi,:tpid,:tapi,:ga4id,:ga4sec,:ca,:ua)
         ")->execute([
-            ':pid'    => $pixelId,
-            ':name'   => $b['name'] ?? '기본 픽셀',
-            ':dom'    => $b['domain'] ?? '',
-            ':mpid'   => $b['meta_pixel_id'] ?? '',
-            ':mapi'   => $b['meta_api_token'] ?? '',
-            ':tpid'   => $b['tiktok_pixel_id'] ?? '',
-            ':tapi'   => $b['tiktok_access_token'] ?? '',
-            ':ga4id'  => $b['ga4_measurement_id'] ?? '',
-            ':ga4sec' => $b['ga4_api_secret'] ?? '',
+            ':t'=>$tenant, ':pid'=>$pixelId, ':name'=>$b['name'] ?? '기본 픽셀', ':dom'=>$b['domain'] ?? '',
+            ':mpid'=>$b['meta_pixel_id'] ?? '', ':mapi'=>$b['meta_api_token'] ?? '', ':tpid'=>$b['tiktok_pixel_id'] ?? '',
+            ':tapi'=>$b['tiktok_access_token'] ?? '', ':ga4id'=>$b['ga4_measurement_id'] ?? '', ':ga4sec'=>$b['ga4_api_secret'] ?? '', ':ca'=>$now, ':ua'=>$now,
         ]);
-
         return self::json($res, ['ok' => true, 'pixel_id' => $pixelId]);
     }
 
-    /* ─── GET /api/pixel/analytics ─── 통합 분석 대시보드 ────────── */
+    /* ─── GET /pixel/analytics ─── 통합 분석 (테넌트 스코프) ────────── */
     public static function analytics(Request $req, Response $res): Response
     {
         if ($err = UserAuth::requirePro($req, $res)) return $err;
         self::ensureTables();
         $pdo = self::db();
+        $tenant = self::tenant($req);
         $p = $req->getQueryParams();
         $days  = max(1, min(90, (int)($p['days'] ?? 30)));
         $pixelId = $p['pixel_id'] ?? '';
+        $cut = self::cutoff($days);
 
-        $where = "created_at >= datetime('now', '-{$days} days')";
-        $bind  = [];
+        $where = "tenant_id=:t AND created_at >= :cut";
+        $bind  = [':t'=>$tenant, ':cut'=>$cut];
         if ($pixelId) { $where .= " AND pixel_id=:pid"; $bind[':pid'] = $pixelId; }
 
-        // 이벤트별 집계
-        $eventStats = $pdo->prepare("
-            SELECT event_name,
-                   COUNT(*) AS total,
-                   COUNT(DISTINCT session_id) AS unique_sessions,
-                   COALESCE(SUM(value), 0) AS total_value
-            FROM pixel_events
-            WHERE $where
-            GROUP BY event_name
-            ORDER BY total DESC
-        ");
-        $eventStats->execute($bind);
-        $events = $eventStats->fetchAll(\PDO::FETCH_ASSOC);
+        $run = function(string $sql) use ($pdo, $bind) { $s = $pdo->prepare($sql); $s->execute($bind); return $s; };
 
-        // 채널별 어트리뷰션
-        $channelStats = $pdo->prepare("
-            SELECT
-                COALESCE(utm_source, 'direct') AS source,
-                COALESCE(utm_medium, 'none') AS medium,
-                COUNT(*) AS sessions,
-                SUM(CASE WHEN event_name='purchase' THEN 1 ELSE 0 END) AS conversions,
-                COALESCE(SUM(CASE WHEN event_name='purchase' THEN value ELSE 0 END), 0) AS revenue
-            FROM pixel_events
-            WHERE $where
-            GROUP BY utm_source, utm_medium
-            ORDER BY revenue DESC
-            LIMIT 20
-        ");
-        $channelStats->execute($bind);
-        $channels = $channelStats->fetchAll(\PDO::FETCH_ASSOC);
+        $events = $run("SELECT event_name, COUNT(*) AS total, COUNT(DISTINCT session_id) AS unique_sessions, COALESCE(SUM(value),0) AS total_value FROM pixel_events WHERE $where GROUP BY event_name ORDER BY total DESC")->fetchAll(\PDO::FETCH_ASSOC);
+        $channels = $run("SELECT COALESCE(utm_source,'direct') AS source, COALESCE(utm_medium,'none') AS medium, COUNT(*) AS sessions, SUM(CASE WHEN event_name='purchase' THEN 1 ELSE 0 END) AS conversions, COALESCE(SUM(CASE WHEN event_name='purchase' THEN value ELSE 0 END),0) AS revenue FROM pixel_events WHERE $where GROUP BY utm_source, utm_medium ORDER BY revenue DESC LIMIT 20")->fetchAll(\PDO::FETCH_ASSOC);
 
-        // 퍼널 분석
-        $funnelData = [
-            'page_view'          => 0,
-            'view_content'       => 0,
-            'add_to_cart'        => 0,
-            'initiate_checkout'  => 0,
-            'purchase'           => 0,
-        ];
-        $funnelStmt = $pdo->prepare("
-            SELECT event_name, COUNT(*) AS cnt FROM pixel_events
-            WHERE $where AND event_name IN ('page_view','view_content','add_to_cart','initiate_checkout','purchase')
-            GROUP BY event_name
-        ");
-        $funnelStmt->execute($bind);
-        foreach ($funnelStmt->fetchAll(\PDO::FETCH_ASSOC) as $row) {
+        $funnelData = ['page_view'=>0,'view_content'=>0,'add_to_cart'=>0,'initiate_checkout'=>0,'purchase'=>0];
+        foreach ($run("SELECT event_name, COUNT(*) AS cnt FROM pixel_events WHERE $where AND event_name IN ('page_view','view_content','add_to_cart','initiate_checkout','purchase') GROUP BY event_name")->fetchAll(\PDO::FETCH_ASSOC) as $row) {
             $funnelData[$row['event_name']] = (int)$row['cnt'];
         }
+        $timeSeries = $run("SELECT DATE(created_at) AS dt, COUNT(*) AS events, SUM(CASE WHEN event_name='purchase' THEN 1 ELSE 0 END) AS purchases, COALESCE(SUM(CASE WHEN event_name='purchase' THEN value ELSE 0 END),0) AS revenue FROM pixel_events WHERE $where GROUP BY DATE(created_at) ORDER BY dt ASC")->fetchAll(\PDO::FETCH_ASSOC);
+        $devices = $run("SELECT device_type, COUNT(*) AS cnt FROM pixel_events WHERE $where GROUP BY device_type")->fetchAll(\PDO::FETCH_ASSOC);
+        $forwarding = $run("SELECT COALESCE(SUM(forwarded_meta),0) AS meta_forwarded, COALESCE(SUM(forwarded_tiktok),0) AS tiktok_forwarded, COUNT(*) AS total_events FROM pixel_events WHERE $where")->fetch(\PDO::FETCH_ASSOC);
 
-        // 시계열 (일별)
-        $timeStmt = $pdo->prepare("
-            SELECT date(created_at) AS dt,
-                   COUNT(*) AS events,
-                   SUM(CASE WHEN event_name='purchase' THEN 1 ELSE 0 END) AS purchases,
-                   COALESCE(SUM(CASE WHEN event_name='purchase' THEN value ELSE 0 END),0) AS revenue
-            FROM pixel_events
-            WHERE $where
-            GROUP BY date(created_at)
-            ORDER BY dt ASC
-        ");
-        $timeStmt->execute($bind);
-        $timeSeries = $timeStmt->fetchAll(\PDO::FETCH_ASSOC);
-
-        // 디바이스 분포
-        $deviceStmt = $pdo->prepare("
-            SELECT device_type, COUNT(*) AS cnt FROM pixel_events WHERE $where GROUP BY device_type
-        ");
-        $deviceStmt->execute($bind);
-        $devices = $deviceStmt->fetchAll(\PDO::FETCH_ASSOC);
-
-        // Meta/TikTok 포워딩 현황
-        $fwdStmt = $pdo->prepare("
-            SELECT
-                SUM(forwarded_meta) AS meta_forwarded,
-                SUM(forwarded_tiktok) AS tiktok_forwarded,
-                COUNT(*) AS total_events
-            FROM pixel_events WHERE $where
-        ");
-        $fwdStmt->execute($bind);
-        $forwarding = $fwdStmt->fetch(\PDO::FETCH_ASSOC);
-
-        return self::json($res, [
-            'ok'         => true,
-            'events'     => $events,
-            'channels'   => $channels,
-            'funnel'     => $funnelData,
-            'time_series'=> $timeSeries,
-            'devices'    => $devices,
-            'forwarding' => $forwarding,
-            'days'       => $days,
-        ]);
+        return self::json($res, ['ok'=>true, 'events'=>$events, 'channels'=>$channels, 'funnel'=>$funnelData, 'time_series'=>$timeSeries, 'devices'=>$devices, 'forwarding'=>$forwarding, 'days'=>$days]);
     }
 
-    /* ─── DELETE /api/pixel/configs/{id} ─── 픽셀 삭제 ──────────── */
+    /* ─── DELETE /pixel/configs/{id} ─── 픽셀 삭제 ──────────── */
     public static function deleteConfig(Request $req, Response $res, array $args): Response
     {
         if ($err = UserAuth::requirePro($req, $res)) return $err;
-        self::db()->prepare("DELETE FROM pixel_configs WHERE id=:id")->execute([':id' => (int)$args['id']]);
+        self::ensureTables();
+        $tenant = self::tenant($req);
+        self::db()->prepare("DELETE FROM pixel_configs WHERE id=:id AND tenant_id=:t")->execute([':id'=>(int)$args['id'], ':t'=>$tenant]);
         return self::json($res, ['ok' => true]);
     }
 
-    /* ─── GET /api/pixel/snippet/{pixel_id} ─── 스니펫 코드 생성 ── */
+    /* ─── GET /pixel/snippet/{pixel_id} ─── 스니펫 코드 생성 ── */
     public static function getSnippet(Request $req, Response $res, array $args): Response
     {
         if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $tenant = self::tenant($req);
+        // 본인 테넌트 소유 픽셀만 스니펫 발급
+        $own = self::db()->prepare("SELECT 1 FROM pixel_configs WHERE pixel_id=:pid AND tenant_id=:t LIMIT 1");
+        $own->execute([':pid'=>$args['pixel_id'], ':t'=>$tenant]);
+        if (!$own->fetchColumn()) return self::json($res, ['ok'=>false,'error'=>'픽셀 없음'], 404);
+
         $pixelId = addslashes($args['pixel_id']);
         $baseUrl = (isset($_SERVER['HTTPS']) ? 'https' : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? 'roi.genie-go.com');
-
         $snippet = <<<JS
 <!-- Geniego-ROI 1st-Party Pixel | pixel_id: {$pixelId} -->
 <script>
@@ -523,7 +302,6 @@ GeniePixel.track('page_view', {});
 </script>
 <!-- /Geniego-ROI Pixel -->
 JS;
-
         return self::json($res, ['ok' => true, 'snippet' => $snippet, 'pixel_id' => $pixelId]);
     }
 }
