@@ -167,7 +167,8 @@ final class Connectors
                 'mock' => false,
                 'note'         => 'Set env TIKTOK_ACCESS_TOKEN + TIKTOK_ADVERTISER_ID for real calls.',
                 'params'       => compact('startDate', 'endDate'),
-                'rows'         => self::tiktokMockRows($startDate, $endDate),
+                // 191차 188차원칙: 운영(non-demo)은 가짜 샘플 금지 → 빈 상태. 데모만 미리보기 샘플.
+                'rows'         => $tenant === 'demo' ? self::tiktokMockRows($startDate, $endDate) : [],
             ]);
         }
 
@@ -336,7 +337,7 @@ final class Connectors
                 'live'      => false,
                 'mock' => false,
                 'note'      => 'Set env AMAZON_CLIENT_ID + AMAZON_CLIENT_SECRET + AMAZON_REFRESH_TOKEN for real calls.',
-                'reports'   => self::amazonMockReports(),
+                'reports'   => $tenant === 'demo' ? self::amazonMockReports() : [],
             ]);
         }
 
@@ -428,7 +429,7 @@ final class Connectors
                 'live'  => false,
                 'mock' => false,
                 'note'  => 'Set AMAZON_CLIENT_ID, AMAZON_CLIENT_SECRET, AMAZON_REFRESH_TOKEN env vars.',
-                'orders' => self::amazonMockOrders(),
+                'orders' => $tenant === 'demo' ? self::amazonMockOrders() : [],
             ]);
         }
 
@@ -874,7 +875,7 @@ final class Connectors
                 'ok'   => true, 'provider' => 'naver_searchad',
                 'live' => false, 'mock' => false,
                 'note' => 'API 키를 등록하세요: NAVER_API_KEY, NAVER_API_SECRET, NAVER_CUSTOMER_ID',
-                'rows' => self::naverMockRows(),
+                'rows' => $tenant === 'demo' ? self::naverMockRows() : [],
             ]);
         }
 
@@ -946,7 +947,7 @@ final class Connectors
                 'ok'   => true, 'provider' => 'coupang',
                 'live' => false, 'mock' => false,
                 'note' => 'API 키를 등록하세요: COUPANG_ACCESS_KEY, COUPANG_SECRET_KEY, COUPANG_VENDOR_ID',
-                'orders' => self::coupangMockOrders(),
+                'orders' => $tenant === 'demo' ? self::coupangMockOrders() : [],
             ]);
         }
 
@@ -1079,5 +1080,296 @@ final class Connectors
             'connected_count' => $connectedCount,
             'providers'       => $all,
         ]);
+    }
+
+    // ════════════════════════════════════════════════════════════════════════════
+    //  191차 — 광고 메트릭 ingest 브릿지 (커넥터 라이브 fetch → performance_metrics 적재)
+    //  성격: AdPerformance/Alerting/대시보드가 의존하는 performance_metrics 테이블이
+    //        그동안 어떤 적재 경로도 없어 항상 0행이었다(운영/데모 모두 검증). 커넥터는
+    //        라이브 API 를 프록시할 뿐 결과를 저장하지 않았다. 이 브릿지가 연결된 광고
+    //        채널(meta/google/tiktok)을 fetch→정규화→멱등 upsert 하여 실데이터 전환의
+    //        선행 인프라를 완성한다. SMS/주문(amazon/coupang/naver order)은 광고 메트릭이
+    //        아니므로 제외(별도 ChannelSync 커머스 트랙).
+    // ════════════════════════════════════════════════════════════════════════════
+
+    /**
+     * 인증 세션 테넌트. api_key 미들웨어가 X-Tenant-Id 를 키의 tenant_id 로 강제
+     * 덮어쓰므로(188차) auth_tenant 속성/헤더 모두 위조 불가. 쓰기 경로라 명시적으로 사용.
+     */
+    private static function authTenant(Request $request): string
+    {
+        $t = (string)($request->getAttribute('auth_tenant') ?? '');
+        if ($t === '') $t = $request->getHeaderLine('X-Tenant-Id');
+        return $t !== '' ? $t : 'demo';
+    }
+
+    /**
+     * POST /v423/connectors/sync
+     * Body/Query: { start_date?, end_date?, channels?: "meta,google,tiktok" }
+     * 연결된 광고 채널을 라이브 fetch → 정규화 → performance_metrics 멱등 적재.
+     * 자격증명 없는 채널은 건너뛴다(기존 데이터 보존). 라이브 실패 채널도 보존(요약에 error).
+     */
+    public static function sync(Request $request, Response $response, array $args): Response
+    {
+        $tenant = self::authTenant($request);
+        $body   = (array)($request->getParsedBody() ?? []);
+        $q      = $request->getQueryParams();
+
+        $start = (string)($body['start_date'] ?? $q['start_date'] ?? date('Y-m-d', strtotime('-7 days')));
+        $end   = (string)($body['end_date']   ?? $q['end_date']   ?? date('Y-m-d'));
+
+        $want = (string)($body['channels'] ?? $q['channels'] ?? 'meta,google,tiktok');
+        $wantSet = array_filter(array_map('trim', explode(',', strtolower($want))));
+        $wantSet = $wantSet ?: ['meta', 'google', 'tiktok'];
+
+        $pdo = Db::pdo();
+        $summary  = [];
+        $totalRows = 0;
+
+        $fetchers = [
+            'meta'   => fn() => self::fetchMetaRows($tenant, $start, $end),
+            'google' => fn() => self::fetchGoogleRows($tenant, $start, $end),
+            'tiktok' => fn() => self::fetchTiktokRows($tenant, $start, $end),
+        ];
+
+        foreach ($fetchers as $ch => $fn) {
+            if (!in_array($ch, $wantSet, true)) continue;
+            try {
+                $res = $fn();
+            } catch (\Throwable $e) {
+                $summary[$ch] = ['status' => 'error', 'error' => substr($e->getMessage(), 0, 120)];
+                continue;
+            }
+            if (empty($res['hasCreds'])) {
+                $summary[$ch] = ['status' => 'skipped', 'reason' => 'no_credentials'];
+                continue;
+            }
+            if (empty($res['live'])) {
+                // 자격증명은 있으나 API 호출 실패 — 기존 데이터 보존, 적재 안 함
+                $summary[$ch] = ['status' => 'error', 'error' => $res['error'] ?? 'fetch_failed'];
+                continue;
+            }
+            $rows = $res['rows'] ?? [];
+            $persisted = self::persistMetricRows($pdo, $tenant, $ch, $rows, $start, $end);
+            $totalRows += $persisted;
+            $summary[$ch] = ['status' => 'ok', 'rows' => $persisted];
+        }
+
+        return TemplateResponder::respond($response, [
+            'ok'         => true,
+            'tenant_id'  => $tenant,
+            'window'     => compact('start', 'end'),
+            'persisted'  => $totalRows,
+            'channels'   => $summary,
+        ]);
+    }
+
+    /**
+     * performance_metrics 멱등 적재: (tenant,channel,date∈[start,end]) 기존 행 삭제 후 신규 삽입.
+     * 재동기화 시 중복 누적 없이 최신 스냅샷 유지. 테넌트 스코핑 강제.
+     */
+    private static function persistMetricRows(PDO $pdo, string $tenant, string $channel, array $rows, string $start, string $end): int
+    {
+        if (!$rows) {
+            // 라이브 성공했으나 0행이면 해당 구간을 비운다(채널 데이터 없음 = 빈 상태가 정직).
+            $del = $pdo->prepare('DELETE FROM performance_metrics WHERE tenant_id=? AND LOWER(channel)=? AND date BETWEEN ? AND ?');
+            $del->execute([$tenant, strtolower($channel), $start, $end]);
+            return 0;
+        }
+
+        $pdo->beginTransaction();
+        try {
+            $del = $pdo->prepare('DELETE FROM performance_metrics WHERE tenant_id=? AND LOWER(channel)=? AND date BETWEEN ? AND ?');
+            $del->execute([$tenant, strtolower($channel), $start, $end]);
+
+            $ins = $pdo->prepare(
+                'INSERT INTO performance_metrics
+                   (tenant_id, team, channel, account, date, impressions, clicks, spend, conversions, revenue, extra_json)
+                 VALUES (?,?,?,?,?,?,?,?,?,?,?)'
+            );
+            $n = 0;
+            foreach ($rows as $r) {
+                $date = (string)($r['date'] ?? '');
+                if ($date === '') continue;
+                // 적재는 동기화 구간으로 제한(API 가 범위 밖 날짜를 돌려줘도 격리).
+                if ($date < $start || $date > $end) continue;
+                $ins->execute([
+                    $tenant,
+                    (string)($r['team'] ?? ''),
+                    strtolower($channel),
+                    (string)($r['account'] ?? ''),
+                    $date,
+                    (int)($r['impressions'] ?? 0),
+                    (int)($r['clicks'] ?? 0),
+                    (float)($r['spend'] ?? 0),
+                    (int)($r['conversions'] ?? 0),
+                    (float)($r['revenue'] ?? 0),
+                    isset($r['extra']) ? json_encode($r['extra'], JSON_UNESCAPED_UNICODE) : null,
+                ]);
+                $n++;
+            }
+            $pdo->commit();
+            return $n;
+        } catch (\Throwable $e) {
+            if ($pdo->inTransaction()) $pdo->rollBack();
+            throw $e;
+        }
+    }
+
+    /** Meta 광고 일자별 인사이트 → 정규화 행. */
+    private static function fetchMetaRows(string $tenant, string $start, string $end): array
+    {
+        $accessToken = (string)(getenv('META_ACCESS_TOKEN')  ?: self::loadCred($tenant, 'meta_ads', 'access_token'));
+        $adAccountId = (string)(getenv('META_AD_ACCOUNT_ID') ?: self::loadCred($tenant, 'meta_ads', 'ad_account_id'));
+        if ($accessToken === '' || $adAccountId === '') {
+            return ['hasCreds' => false, 'live' => false, 'rows' => []];
+        }
+
+        $fields = 'campaign_name,impressions,clicks,spend,actions,action_values';
+        $params = http_build_query([
+            'time_range'     => json_encode(['since' => $start, 'until' => $end]),
+            'level'          => 'campaign',
+            'fields'         => $fields,
+            'time_increment' => 1,
+            'limit'          => 200,
+            'access_token'   => $accessToken,
+        ]);
+        $url = "https://graph.facebook.com/v19.0/act_{$adAccountId}/insights?{$params}";
+        [$code, $body, $err] = self::httpGet($url);
+
+        if ($err || $code >= 400 || isset($body['error'])) {
+            return ['hasCreds' => true, 'live' => false, 'error' => $err ?? ($body['error']['message'] ?? "meta http $code")];
+        }
+
+        $rows = [];
+        foreach (($body['data'] ?? []) as $r) {
+            [$conv, $rev] = self::metaConvValue($r['actions'] ?? [], $r['action_values'] ?? []);
+            $rows[] = [
+                'team'        => 'Meta',
+                'account'     => (string)($r['campaign_name'] ?? 'Meta Campaign'),
+                'date'        => (string)($r['date_start'] ?? $r['date_stop'] ?? ''),
+                'impressions' => (int)($r['impressions'] ?? 0),
+                'clicks'      => (int)($r['clicks'] ?? 0),
+                'spend'       => (float)($r['spend'] ?? 0),
+                'conversions' => $conv,
+                'revenue'     => $rev,
+            ];
+        }
+        return ['hasCreds' => true, 'live' => true, 'rows' => $rows];
+    }
+
+    /** Meta actions/action_values 배열에서 구매 전환수/매출 추출. */
+    private static function metaConvValue(array $actions, array $values): array
+    {
+        $purchaseTypes = ['purchase', 'omni_purchase', 'offsite_conversion.fb_pixel_purchase', 'onsite_web_purchase'];
+        $conv = 0; $rev = 0.0;
+        foreach ($actions as $a) {
+            if (in_array((string)($a['action_type'] ?? ''), $purchaseTypes, true)) $conv += (int)round((float)($a['value'] ?? 0));
+        }
+        foreach ($values as $v) {
+            if (in_array((string)($v['action_type'] ?? ''), $purchaseTypes, true)) $rev += (float)($v['value'] ?? 0);
+        }
+        return [$conv, $rev];
+    }
+
+    /** Google Ads 일자별 캠페인 메트릭 → 정규화 행. */
+    private static function fetchGoogleRows(string $tenant, string $start, string $end): array
+    {
+        $devToken    = (string)(getenv('GOOGLE_DEVELOPER_TOKEN') ?: self::loadCred($tenant, 'google_ads', 'developer_token'));
+        $accessToken = (string)(getenv('GOOGLE_ACCESS_TOKEN')    ?: self::loadCred($tenant, 'google_ads', 'access_token'));
+        $customerId  = str_replace('-', '', (string)(getenv('GOOGLE_CUSTOMER_ID') ?: self::loadCred($tenant, 'google_ads', 'customer_id')));
+        if ($devToken === '' || $accessToken === '' || $customerId === '') {
+            return ['hasCreds' => false, 'live' => false, 'rows' => []];
+        }
+
+        $gaql = "SELECT campaign.name, metrics.impressions, metrics.clicks, metrics.cost_micros,
+                        metrics.conversions, metrics.conversions_value, segments.date
+                 FROM campaign
+                 WHERE segments.date BETWEEN '$start' AND '$end' AND campaign.status != 'REMOVED'
+                 ORDER BY segments.date DESC LIMIT 500";
+        $url = "https://googleads.googleapis.com/v17/customers/{$customerId}/googleAds:searchStream";
+        [$code, $body, $err] = self::httpPost($url, ['query' => $gaql], [
+            'Authorization'   => "Bearer {$accessToken}",
+            'developer-token' => $devToken,
+            'Content-Type'    => 'application/json',
+        ]);
+
+        if ($err || $code >= 400) {
+            return ['hasCreds' => true, 'live' => false, 'error' => $err ?? "google http $code"];
+        }
+
+        $rows = [];
+        $results = $body[0]['results'] ?? $body['results'] ?? [];
+        foreach ($results as $r) {
+            $rows[] = [
+                'team'        => 'Google Ads',
+                'account'     => (string)($r['campaign']['name'] ?? 'Google Campaign'),
+                'date'        => (string)($r['segments']['date'] ?? ''),
+                'impressions' => (int)($r['metrics']['impressions'] ?? 0),
+                'clicks'      => (int)($r['metrics']['clicks'] ?? 0),
+                'spend'       => round((int)($r['metrics']['costMicros'] ?? 0) / 1_000_000, 2),
+                'conversions' => (int)round((float)($r['metrics']['conversions'] ?? 0)),
+                'revenue'     => round((float)($r['metrics']['conversionsValue'] ?? 0), 2),
+            ];
+        }
+        return ['hasCreds' => true, 'live' => true, 'rows' => $rows];
+    }
+
+    /** TikTok 광고 일자별 리포트 → 정규화 행. */
+    private static function fetchTiktokRows(string $tenant, string $start, string $end): array
+    {
+        $accessToken = (string)(getenv('TIKTOK_ACCESS_TOKEN') ?: '');
+        if ($accessToken === '') {
+            $tokenRow = self::loadToken($tenant, 'tiktok');
+            $accessToken = (string)($tokenRow['access_token'] ?? '');
+        }
+        $advertiserId = (string)(getenv('TIKTOK_ADVERTISER_ID') ?: self::loadCred($tenant, 'tiktok', 'advertiser_id'));
+        if ($advertiserId === '') {
+            $tokenRow = $tokenRow ?? self::loadToken($tenant, 'tiktok');
+            $meta = json_decode((string)($tokenRow['meta_json'] ?? '{}'), true);
+            $ids  = (array)($meta['advertiser_ids'] ?? []);
+            $advertiserId = (string)($ids[0] ?? '');
+        }
+        if ($accessToken === '' || $advertiserId === '') {
+            return ['hasCreds' => false, 'live' => false, 'rows' => []];
+        }
+
+        $payload = [
+            'advertiser_id' => $advertiserId,
+            'report_type'   => 'BASIC',
+            'dimensions'    => ['campaign_id', 'stat_time_day'],
+            'metrics'       => ['campaign_name', 'spend', 'clicks', 'impressions', 'conversion', 'total_purchase_value'],
+            'data_level'    => 'AUCTION_CAMPAIGN',
+            'start_date'    => $start,
+            'end_date'      => $end,
+            'page_size'     => 200,
+            'page'          => 1,
+        ];
+        [$code, $body, $err] = self::httpPost(
+            'https://business-api.tiktok.com/open_api/v1.3/report/integrated/get',
+            $payload,
+            ['Access-Token' => $accessToken, 'Content-Type' => 'application/json']
+        );
+
+        if ($err || $code >= 400 || (int)($body['code'] ?? -1) !== 0) {
+            return ['hasCreds' => true, 'live' => false, 'error' => $err ?? ($body['message'] ?? "tiktok http $code")];
+        }
+
+        $rows = [];
+        foreach (($body['data']['list'] ?? []) as $r) {
+            $dim = $r['dimensions'] ?? [];
+            $m   = $r['metrics'] ?? [];
+            $rows[] = [
+                'team'        => 'TikTok',
+                'account'     => (string)($m['campaign_name'] ?? $dim['campaign_id'] ?? 'TikTok Campaign'),
+                'date'        => substr((string)($dim['stat_time_day'] ?? ''), 0, 10),
+                'impressions' => (int)($m['impressions'] ?? 0),
+                'clicks'      => (int)($m['clicks'] ?? 0),
+                'spend'       => (float)($m['spend'] ?? 0),
+                'conversions' => (int)round((float)($m['conversion'] ?? 0)),
+                'revenue'     => (float)($m['total_purchase_value'] ?? 0),
+            ];
+        }
+        return ['hasCreds' => true, 'live' => true, 'rows' => $rows];
     }
 }

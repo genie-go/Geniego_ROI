@@ -124,20 +124,22 @@ class AdPerformance {
 
         try {
             $pdo = \Genie\Db::pdo();
-            // performance_metrics 가 있고 channel='meta' 데이터가 있으면 campaign 단위 집계
+            // 191차: performance_metrics 의 실존 컬럼(account/team/channel)만으로 campaign 단위 집계.
+            //   - 과거 버그: 존재하지 않는 campaign_id/campaign_name/status 컬럼 참조 + SQLite 전용 `||`
+            //     concat(MySQL 에선 OR 연산자) → 항상 예외→빈 결과로 폴백되어 실데이터가 노출되지 않았음.
+            //   - id/name 은 PHP 에서 account(없으면 team)로 구성하여 방언 비의존.
             $stmt = $pdo->prepare(
                 "SELECT
-                   COALESCE(campaign_id, account || '_' || team) AS id,
-                   COALESCE(campaign_name, account, team)        AS name,
-                   COALESCE(status, 'active')                     AS status,
-                   SUM(spend)                                     AS spend,
-                   SUM(revenue)                                   AS revenue,
-                   SUM(impressions)                               AS impressions,
-                   SUM(clicks)                                    AS clicks,
-                   SUM(conversions)                               AS conv
+                   account                  AS account,
+                   team                     AS team,
+                   SUM(spend)               AS spend,
+                   SUM(revenue)             AS revenue,
+                   SUM(impressions)         AS impressions,
+                   SUM(clicks)              AS clicks,
+                   SUM(conversions)         AS conv
                  FROM performance_metrics
                  WHERE tenant_id = ? AND LOWER(channel) IN ('meta','meta_ads','facebook','instagram')
-                 GROUP BY id, name, status
+                 GROUP BY account, team
                  ORDER BY spend DESC
                  LIMIT 50"
             );
@@ -148,10 +150,14 @@ class AdPerformance {
                 $rev   = (float)($r['revenue'] ?? 0);
                 $imp   = (int)($r['impressions'] ?? 0);
                 $clk   = (int)($r['clicks'] ?? 0);
+                $acct  = (string)($r['account'] ?? '');
+                $team  = (string)($r['team'] ?? '');
+                $name  = $acct !== '' ? $acct : ($team !== '' ? $team : 'campaign');
+                $id    = $acct !== '' ? $acct : $name;
                 $payload['campaigns'][] = [
-                    'id'          => (string)($r['id'] ?? ''),
-                    'name'        => (string)($r['name'] ?? ''),
-                    'status'      => (string)($r['status'] ?? 'active'),
+                    'id'          => $id,
+                    'name'        => $name,
+                    'status'      => 'active',
                     'objective'   => 'Conversion',
                     'spend'       => $spend,
                     'roas'        => $spend > 0 ? round($rev / $spend, 2) : 0,

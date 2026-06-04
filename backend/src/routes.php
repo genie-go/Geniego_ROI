@@ -756,6 +756,8 @@ return function (App $app): void {
         'GET /v423/connectors/naver/report'     => 'Genie\\Handlers\\Connectors::naverReport',
         'GET /v423/connectors/coupang/orders'   => 'Genie\\Handlers\\Connectors::coupangOrders',
         'GET /v423/connectors/status-all'       => 'Genie\\Handlers\\Connectors::statusAll',
+        // 191차 — 광고 메트릭 ingest 브릿지(연결 채널 라이브 fetch → performance_metrics 적재)
+        'POST /v423/connectors/sync'            => 'Genie\\Handlers\\Connectors::sync',
 
         // ── v423 Alert Notification Test ──────────────────────────────────────
         'POST /v423/alerts/test-notify'         => 'Genie\\Handlers\\Alerting::testNotify',
@@ -1562,6 +1564,7 @@ return function (App $app): void {
     $register('GET',  '/v423/connectors/naver/report');
     $register('GET',  '/v423/connectors/coupang/orders');
     $register('GET',  '/v423/connectors/status-all');
+    $register('POST', '/v423/connectors/sync');
 
     // ── v423 Channel Credential Management (API 키 저장/조회/테스트) ────
     // (이전에 여기에 있던 $app->get 라우트들은 위쪽의 $register로 통합되었습니다)
