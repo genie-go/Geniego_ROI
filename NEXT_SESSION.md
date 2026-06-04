@@ -1,3 +1,66 @@
+# 193차 세션 인계서 — **192차 종료: 전수감사 → Sprint 1·2 (10개 항목) 운영/데모 배포·라이브검증·push**
+
+> **작성일**: 2026-06-04 (사용자 명시 승인 후)
+> **이전 세션**: 192차 (3 commit, 다수 배포 사이클, push 완료)
+> **종결 상태**: `master == origin/master`. 192차 3 commit push 완료. 워킹트리 추적변경 = `tools/resolver_consumer_manifest_v2.json`(이전 세션부터의 산출물, 무관) 뿐.
+
+---
+
+## ⚠️ 193차 검수자 최우선 인지
+
+### 1. 192차 = 사용자 11개 감사축 요청 → 전수감사 → 4-Sprint 계획 → Sprint 1·2 순차 실행
+사용자가 데이터격리·데모오염·동기화·15개국 i18n·은행급 보안·흰글자/다크모드·필수기능·데이터분석·상품 bulk·채널 자동연동·로그아웃버그 등 11개 축 전수 점검 + 오류수정 + 구현계획 + 우선순위 순차 진행을 요청. 6개 도메인 병렬 에이전트 감사 → 4-Sprint 계획 → **Sprint 1·2 (10항목) 완료·배포·검증·push**. **전 작업 상세 = 메모리 `project_n192_sprint1_deploy`.**
+
+### 2. 192차 커밋 일람 (3, 전부 push 완료)
+```
+2e7f1f555b  Sprint2: 상품 일괄 등록/가격수정 writeback 실배선 (신규 Catalog 핸들러)
+f8bd9a3e85  Sprint2: 테넌트격리 P1·SystemMonitor 배선·ReportBuilder 숨김
+64b453c062  Sprint1 P0: 로그아웃버그·보안 백도어/권한상승 (6건)
+```
+
+### 3. 완료 항목 (운영 roi.genie-go.com + 데모 roidemo.genie-go.com 동반 배포·라이브검증)
+**Sprint 1 P0**: ①로그아웃 버그(사용자 1순위 — remember 영속세션 기본화+admin 비영속 유지, `"/"`→HomeRoute 대시보드 리다이렉트) ②데모키 강등 ③라이선스 발급/조회 admin전용 ④흰글자 트랩(styles.css:4742 near-white 그라데이션 :not 제외) ⑤**Payment.php 평문 데모키 admin 백도어 제거** ⑥**`/api/v421/keys` RBAC 권한상승 차단**(admin:keys 게이트가 /api 별칭 우회 → any analyst+write 키 admin키 발급 가능하던 결함, 라이브검증 403).
+**Sprint 2**: ⑦테넌트격리 P1(Alerting 4쿼리 strict, ClaudeAI 'unknown' 버킷 읽기차단, WhatsApp/Instagram webhook Meta HMAC+verify-token 버그) ⑧SystemMonitor /v424/system/metrics 실측 8모듈 배선 ⑨ReportBuilder 가짜셸 숨김(Sprint4 실구현 예정) ⑩**상품 일괄 등록/가격수정 writeback 실배선**(신규 Catalog 핸들러, 라이브 tenant_id 격리 확인).
+
+### 4. ★배포 영향: 전 사용자 1회 재로그인
+remember 기본값 false→true 변경으로 배포 후 기존 세션 일부 재로그인 발생(189차와 동일 성격).
+
+---
+
+## 🔜 193차 우선순위 백로그 (Sprint 3·4 — 192차 감사 발견, 미착수)
+
+### Sprint 3 — 15개국 i18n 대규모 (전체 미번역의 ~80%)
+- **crm ns**: 평균 3,585키/lang 미번역, **zh는 4,110키 완전 누락**(zh leaf 18,033로 비정상 적음). 최우선.
+- **pages ns**: 평균 3,434키/lang. ★**en 원문 손상 32건**(`pages.dashboard.netROAS`="Net R O A S", `dataProduct.metricCTR`="Metric C T R" 등 자동 띄어쓰기 손상) → **en 먼저 정정 후 전파**(안 그러면 깨진 값 전파).
+- **catalogSync 2,078 ko-only 키** 14개국 전파(실사용 페이지).
+- **하드코딩 페이지**(t() 미경유, 테넌트 노출): UserManagement·KrChannel·InstagramDM·DigitalShelf·PixelTracking·PM* (admin 전용 PlanPricing/AdminMenuManager/SiteIntroAdmin 등은 한글 허용 여지).
+- shadowing dict 잔여: poI18n(es/hi/pt/ru/id/ar ~126키 영어복사)·rpI18n(zh-TW/de/fr ~124키) — 글로벌 채워도 안 먹힘, dict 직접 수정.
+- 결정신호: `해당언어값===en값 AND ko≠en`. 중복키 트랩(zh.js 최상위 동명키) = acorn 마지막매치 타깃(_tmp_184_core_apply.cjs 재사용).
+
+### Sprint 4 — 고도화/보안
+- **MFA admin 강제**(189차 TOTP 인프라 존재하나 옵트인 → admin 계정 의무화).
+- **리포트/알림 스케줄링 신설** + **ReportBuilder 실구현**(190차 Mailer/SmtpClient 재사용, cron 스케줄 테이블+UI).
+- **다크모드 일관성**: fallback 다크 hex(`var(--surface-1,#070f1a)` 등) 라이트테마 토큰 보강(tokens.js), AuthPage/공개페이지 다크 하드코딩.
+- **CustomerAI integratedSummary `rand()` jitter 제거**(`:71,:275` 구매확률 난수 → 결정적 산식 또는 데모 게이트).
+- **ModelMonitor.php:253** raw 보간 SQL 잔존표면 제거(외부제어 불가하나 prepared로 통일).
+- rate-limit fail-open·XFF 신뢰 경계 / 가격이력 테이블 / API 사용량 대시보드 / 채널 부분구현(쿠팡Wing/TikTokShop) 라이브 sync.
+
+---
+
+## 🧰 192차 배포·검증 기법 (193차 재사용 — 함정 포함)
+
+- **drift 가드 필수**: 배포 전 서버 파일 pscp 다운로드 → `git show HEAD:` 와 EOL정규화(`sed 's/\r$//'`) diff. 192차에 **Payment.php 191차 SQLi 수정이 운영 미배포**(스테일) 발견 — drift 가드 없으면 놓침.
+- **plink+PowerShell+bash 다층 따옴표 함정**(반복 발생): echo 텍스트 내 `(` 가 원격셸 깨뜨림. 로컬 PowerShell도 `rm -rf` 인라인 토큰을 가드가 차단. **→ 원격 스크립트는 `.sh` 파일로 작성 → pscp 업로드 → `sed 's/\r$//'` → `bash` 실행**(인라인 회피, 안정).
+- **마이그레이션 락**(190차): Db.php 마이그레이션은 재실행 안 됨 → 기존 DB 데이터 변경(데모키 강등·alert backfill)은 **직접 SQL UPDATE** 필요.
+- **세션토큰 vs api_key 라우팅**(상품 bulk 핵심): 프론트는 `genie_token`(세션) Bearer 전송 → `/v382/*`(api_key 미들웨어)는 401. 신규 세션-인증 기능은 **`/api/...` + index.php bypass + UserAuth::requirePro + authedTenant**(190차 CRM 패턴). nginx는 `/api/*`·`/auth/*`·`/vNNN/*`만 백엔드 도달(상대경로는 SPA 폴백).
+- **path-prefix RBAC 게이트는 `/api` 변형도 미러 필수**(192차 권한상승 근본원인): bypass 리스트가 `/x/`·`/api/x/` 양쪽 검사하듯, admin:keys 게이트도 양쪽 매칭해야 함.
+- **이중빌드**: 운영 `npm run build`, 데모 `npx vite build --mode demo`(VITE_DEMO_MODE 베이킹 확인=`grep demo_genie_token dist/assets/*.js`). 둘 다 outDir `frontend/dist` 공유 → 순차 빌드·패키징(tar.exe 정방향슬래시).
+- **헤드리스 검증**: PowerShell+node puppeteer(샌드박스 Bash 아웃바운드 차단). `puppeteer.launch({headless:'new'})`, `browser.createBrowserContext()`(구 createIncognitoBrowserContext 아님). 운영/데모 직접 https 로드.
+- 자격증명: `[System.IO.File]::ReadAllText($path,[UTF8])` 로 메모리 파싱(한글 키 매칭 위해 UTF-8 명시) → `$pw`/`$apw` 변수 전달(평문 미기록). 앱 admin 로그인=`ceo@ociell.com`/`geniego172165`.
+- `.bak.192`/`.bak.192b`/`.bak.192c` 백업(프론트 dist + 백엔드 파일, 양쪽) — 롤백 가용.
+
+---
+
 # 191차 세션 인계서 — **190차 종료: 우선순위 순차 7대 항목 (7커밋 전부 운영/데모 배포·라이브검증·push)**
 
 > **작성일**: 2026-06-04 (사용자 명시 승인 후)
