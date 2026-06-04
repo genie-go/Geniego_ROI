@@ -2,8 +2,8 @@
   "version": "193",
   "updated": "2026-06-05",
   "sacred_sha": {
-    "ja.js": "266d39be874b715530d70ddf387c0fdf0297167da7500e3f7db9714cfff6c4a5",
-    "zh.js": "61995828f7a78a9174453a65574cd9e96b3dea03f7df97dddffb90c6764bc507"
+    "ja.js": "cbabfca1317f01f528ecba74a18eb9bac55119ace0afa153d87faf335aeee628",
+    "zh.js": "1fd76ccbd24e8a7120485b07141cac8506aef64c6075a01b7eb415df0bd3bf62"
   },
   "ko_leaf_count": 23381,
   "leaf_tolerance_pct": 5,
