@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "../auth/AuthContext";
 import PlanGate from "../components/PlanGate.jsx";
 import { useGlobalData } from "../context/GlobalDataContext.jsx";
-import { getJson } from '../services/apiClient.js';
+import { getJsonAuth } from '../services/apiClient.js'; // 191차: 세션 토큰 인증(LINE 백엔드 신설 — requirePro)
 import { useI18n } from '../i18n';
 import { IS_DEMO } from '../utils/demoEnv';
 
@@ -192,10 +192,11 @@ function LINEChannelContent() {
             setStats(DEMO_LINE_STATS);
             return;
         }
-        getJson('/api/line/campaigns').then(r => r.campaigns && setCampaigns(r.campaigns)).catch(() => { });
-        getJson('/api/line/templates').then(r => r.templates && setTemplates(r.templates)).catch(() => { });
-        getJson('/api/line/settings').then(r => r.ok && setSettings(r)).catch(() => { });
-        getJson('/api/line/stats').then(r => r.ok && setStats(r)).catch(() => { });
+        // 191차: 세션 인증(/api/line requirePro). getJson(무인증)→getJsonAuth.
+        getJsonAuth('/api/line/campaigns').then(r => r.campaigns && setCampaigns(r.campaigns)).catch(() => { });
+        getJsonAuth('/api/line/templates').then(r => r.templates && setTemplates(r.templates)).catch(() => { });
+        getJsonAuth('/api/line/settings').then(r => r.ok && setSettings(r)).catch(() => { });
+        getJsonAuth('/api/line/stats').then(r => r.ok && setStats(r)).catch(() => { });
     }, [isDemo, token]);
 
     return (

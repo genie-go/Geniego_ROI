@@ -230,6 +230,19 @@ return function (App $app): void {
         'GET /instagram/stats'                    => 'Genie\\Handlers\\InstagramDM::stats',
         'POST /instagram/webhooks'                => 'Genie\\Handlers\\InstagramDM::webhook',
 
+        // ── LINE Messaging API (191차 신설: 프론트 호출하나 백엔드 부재였음) ──
+        'GET /line/settings'                      => 'Genie\\Handlers\\Line::getSettings',
+        'POST /line/settings'                     => 'Genie\\Handlers\\Line::saveSettings',
+        'GET /line/templates'                     => 'Genie\\Handlers\\Line::listTemplates',
+        'POST /line/templates'                    => 'Genie\\Handlers\\Line::createTemplate',
+        'DELETE /line/templates/{id}'             => 'Genie\\Handlers\\Line::deleteTemplate',
+        'GET /line/campaigns'                     => 'Genie\\Handlers\\Line::listCampaigns',
+        'POST /line/campaigns'                    => 'Genie\\Handlers\\Line::createCampaign',
+        'POST /line/campaigns/{id}/send'          => 'Genie\\Handlers\\Line::sendCampaign',
+        'DELETE /line/campaigns/{id}'             => 'Genie\\Handlers\\Line::deleteCampaign',
+        'GET /line/stats'                         => 'Genie\\Handlers\\Line::stats',
+        'POST /line/webhooks'                     => 'Genie\\Handlers\\Line::webhook',
+
         // ── AI Content Generator (Claude API) ────────────────────────────
         'GET /api/ai/settings'                    => 'Genie\\Handlers\\AiGenerate::getSettings',
         'POST /api/ai/settings'                   => 'Genie\\Handlers\\AiGenerate::saveSettings',
@@ -1858,6 +1871,18 @@ return function (App $app): void {
     $register('POST',   '/instagram/send');
     $register('GET',    '/instagram/stats');
     $register('POST',   '/instagram/webhooks');
+    // ── LINE (191차 신설) ──
+    $register('GET',    '/line/settings');
+    $register('POST',   '/line/settings');
+    $register('GET',    '/line/templates');
+    $register('POST',   '/line/templates');
+    $register('DELETE', '/line/templates/{id}');
+    $register('GET',    '/line/campaigns');
+    $register('POST',   '/line/campaigns');
+    $register('POST',   '/line/campaigns/{id}/send');
+    $register('DELETE', '/line/campaigns/{id}');
+    $register('GET',    '/line/stats');
+    $register('POST',   '/line/webhooks');
     // AI Generate
     $register('GET',    '/api/ai/settings');
     $register('POST',   '/api/ai/settings');

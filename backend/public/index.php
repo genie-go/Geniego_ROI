@@ -114,6 +114,7 @@ $app->add(function (Request $request, $handler) {
         || strpos($path, '/api/sms/') === 0        || strpos($path, '/sms/') === 0
         || strpos($path, '/api/whatsapp/') === 0   || strpos($path, '/whatsapp/') === 0
         || strpos($path, '/api/instagram/') === 0  || strpos($path, '/instagram/') === 0
+        || strpos($path, '/api/line/') === 0       || strpos($path, '/line/') === 0
     ) {
         return $handler->handle($request);
     }
