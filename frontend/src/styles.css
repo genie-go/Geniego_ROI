@@ -2418,9 +2418,27 @@ body:not([data-theme]) .sidebar-footer {
 [data-theme="arctic_white"] .card,
 [data-theme="arctic_white"] .kpi-card,
 [data-theme="arctic_white"] .miniCard {
-  background: rgba(255, 255, 255, 0.92) !important;
-  border-color: rgba(79, 142, 247, 0.18) !important;
+  /* 196차 #1-A 심화 — 프리미엄 카드: 미세 수직 그라데이션 + 정제 보더 + 레이어드 소프트 섀도 */
+  background: linear-gradient(180deg, #ffffff 0%, #fbfcff 100%) !important;
+  border: 1px solid rgba(79, 142, 247, 0.14) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 10px 30px rgba(15, 23, 42, 0.055) !important;
   color: #0f1c3a;
+  transition: box-shadow 0.22s ease, transform 0.22s ease, border-color 0.22s ease;
+}
+[data-theme="arctic_white"] .card:hover,
+[data-theme="arctic_white"] .kpi-card:hover {
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.05), 0 18px 46px rgba(79, 142, 247, 0.13) !important;
+  border-color: rgba(79, 142, 247, 0.26) !important;
+  transform: translateY(-2px);
+}
+/* 196차 #1-A 심화 — 인라인 카드(서피스 토큰 배경)에 프리미엄 소프트 섀도 보강.
+   additive(!important 미사용)라 자체 인라인 섀도 보유 카드는 유지, 섀도 없던 카드만 고급화 → 레이아웃 무영향. */
+[data-theme="arctic_white"] .container > div:last-child [style*="var(--bg-card"],
+[data-theme="arctic_white"] .container > div:last-child [style*="var(--surface"],
+[data-theme="arctic_white"] .container > div:last-child [style*="background: #fff"],
+[data-theme="arctic_white"] .container > div:last-child [style*="background:#fff"] {
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.035), 0 8px 26px rgba(15, 23, 42, 0.05);
 }
 
 [data-theme="arctic_white"] .section-title,
