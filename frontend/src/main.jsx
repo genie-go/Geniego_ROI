@@ -76,11 +76,30 @@ class RootErrorBoundary extends Component {
   }
 }
 
+/* 196차 — 배포 중 stale 청크(삭제된 lazy 모듈) 로드 실패 자동복구.
+ * SPA 세션 중 새 배포가 나오면 옛 번들이 사라진 청크를 import 시도 → 실패가 error/
+ * unhandledrejection 으로 샘(ErrorBoundary 미도달) → 흰 화면·깨진 렌더·"t is not defined".
+ * 모든 경로에서 청크/모듈 로드 실패를 감지해 1회 자동 새로고침(no-cache index.html→최신 번들). */
+const CHUNK_RE = /Failed to fetch dynamically imported module|error loading dynamically imported module|Importing a module script failed|ChunkLoadError|Loading chunk \d+ failed|Unable to preload CSS/i;
+function recoverFromStaleChunk(msg) {
+  if (!CHUNK_RE.test(String(msg || ''))) return false;
+  if (sessionStorage.getItem('stale_chunk_reloaded')) return false; // 무한루프 방지(1회)
+  sessionStorage.setItem('stale_chunk_reloaded', '1');
+  try { window.location.reload(); } catch (e) { window.location.href = window.location.href; }
+  return true;
+}
+// 정상 부팅이 일정 시간 유지되면 플래그 해제(다음 배포 때 다시 1회 복구 가능)
+window.addEventListener('load', () => { setTimeout(() => { try { sessionStorage.removeItem('stale_chunk_reloaded'); } catch (e) {} }, 8000); });
+
 /* Global error handlers — 최후의 블랙스크린 방지 */
 window.addEventListener('error', (e) => {
+  const msg = e?.error?.message || e?.message || '';
+  if (recoverFromStaleChunk(msg)) return;
   console.error('[GlobalErrorHandler]', e.error || e.message);
 });
 window.addEventListener('unhandledrejection', (e) => {
+  const msg = e?.reason?.message || e?.reason || '';
+  if (recoverFromStaleChunk(msg)) return;
   console.error('[UnhandledPromiseRejection]', e.reason);
 });
 
