@@ -292,20 +292,10 @@ export function useSecurityGuard({ addAlert, enabled = true } = {}) {
         };
         window.addEventListener('message', handleMessage);
 
-        // ── 3. DevTools open detection (timing method) ──
-        let devtoolsAlerted = false;
-        const devtoolsCheck = setInterval(() => {
-            const threshold = 160;
-            if (window.outerWidth - window.innerWidth > threshold ||
-                window.outerHeight - window.innerHeight > threshold) {
-                if (!devtoolsAlerted) {
-                    devtoolsAlerted = true;
-                    notify('info', '🔧 DevTools opened — monitoring active');
-                }
-            } else {
-                devtoolsAlerted = false;
-            }
-        }, 5000);
+        // ── 3. DevTools open detection 제거 (196차) ──
+        //   창 크기 차이로 DevTools 를 추정해 "위협 감지" 알림을 띄우던 로직 제거.
+        //   정상 디버깅/개발 행위를 위협으로 오인 표시(g_sec_alerts)해 사용자 혼란 → no-op.
+        const devtoolsCheck = setInterval(() => { }, 600000);
 
         // ── 4. Monitor localStorage tampering ──
         const handleStorage = (e) => {

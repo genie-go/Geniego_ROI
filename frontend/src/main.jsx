@@ -94,11 +94,13 @@ function recoverFromStaleChunk(msg) {
 // 정상 부팅이 일정 시간 유지되면 플래그 해제(다음 배포 때 다시 1회 복구 가능)
 window.addEventListener('load', () => { setTimeout(() => { try { sessionStorage.removeItem('stale_chunk_reloaded'); } catch (e) {} }, 8000); });
 
-// 196차: 과거 잘못 기록된 stale-번들 에러 보안경보(거짓 "위협 감지": 청크/모듈 로드실패·ReferenceError) 정리.
+// 196차: 거짓 "위협 감지" 경보 정리 — ①stale 번들 에러(청크/모듈/ReferenceError) ②DevTools 열림
+//   모니터링(정상 디버깅을 위협으로 오인하던 알림). 실제 보안 이벤트는 보존.
+const FALSE_ALERT_RE = /Failed to fetch dynamically imported module|error loading dynamically imported module|Importing a module script failed|ChunkLoadError|Loading chunk \d+ failed|Unable to preload CSS|is not defined|ReferenceError|DevTools opened|monitoring active/i;
 try {
   const a = JSON.parse(localStorage.getItem('g_sec_alerts') || '[]');
   if (Array.isArray(a) && a.length) {
-    const cleaned = a.filter(x => !STALE_RE.test(String((x && x.message) || '')));
+    const cleaned = a.filter(x => !FALSE_ALERT_RE.test(String((x && x.message) || '')));
     if (cleaned.length !== a.length) localStorage.setItem('g_sec_alerts', JSON.stringify(cleaned));
   }
 } catch (e) {}
