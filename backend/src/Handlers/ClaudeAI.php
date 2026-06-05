@@ -67,6 +67,31 @@ final class ClaudeAI {
         return strlen($c['key']) > 10;
     }
 
+    /** 196차: AI 동영상 생성 API 설정(provider/key/model). app_setting videogen_*. */
+    private static function videoGenConfig(): array {
+        $provider = 'replicate'; $key = ''; $model = '';
+        $envK = getenv('VIDEOGEN_API_KEY');
+        if ($envK && strlen($envK) > 10) $key = $envK;
+        try {
+            $pdo = Db::pdo();
+            $p = $pdo->query("SELECT svalue FROM app_setting WHERE skey='videogen_provider'");
+            $pv = $p ? trim((string)($p->fetchColumn() ?: '')) : ''; if ($pv !== '') $provider = $pv;
+            $mm = $pdo->query("SELECT svalue FROM app_setting WHERE skey='videogen_model'");
+            $model = $mm ? trim((string)($mm->fetchColumn() ?: '')) : '';
+            if ($key === '') {
+                $k = $pdo->query("SELECT svalue FROM app_setting WHERE skey='videogen_api_key'");
+                $kv = $k ? (string)($k->fetchColumn() ?: '') : '';
+                if (strlen($kv) > 10) $key = $kv;
+            }
+        } catch (\Throwable $e) {}
+        return ['provider' => $provider, 'key' => $key, 'model' => $model];
+    }
+
+    public static function videoGenConfigured(): bool {
+        $c = self::videoGenConfig();
+        return strlen($c['key']) > 10;
+    }
+
     /* ── DB 스키마 자동 생성 ─────────────────────────────────── */
     private static function migrate(PDO $pdo): void {
         // MySQL 호환 스키마 (SQLite 시 AUTOINCREMENT → MySQL AUTO_INCREMENT)
@@ -1468,6 +1493,7 @@ PROMPT;
             $product = trim((string)($data['product_description'] ?? ''));
             $design  = is_array($data['design'] ?? null) ? $data['design'] : [];
             $feedback= trim((string)($data['feedback'] ?? ''));
+            $renderType = (string)($data['render_type'] ?? $design['render_type'] ?? 'svg'); // svg|animated|chart
             $channel = (string)($design['channel'] ?? 'meta');
             $ratio   = (string)($design['ratio'] ?? '1:1');
             // viewBox 규격
@@ -1479,6 +1505,17 @@ PROMPT;
                 'body'=>$design['body']??'','cta'=>$design['cta']??'','mood'=>$design['mood']??'','layout'=>$design['layout']??'',
             ], JSON_UNESCAPED_UNICODE);
             $fbLine = $feedback !== '' ? "수정 요청(반드시 반영): {$feedback}\n" : '';
+            $typeInstr = '';
+            if ($renderType === 'animated') {
+                $typeInstr = "[★애니메이션 모드 — 반드시 SMIL 애니메이션 포함]\n"
+                  . "- <animate>·<animateTransform>·<animateMotion> 으로 생동감을 부여하세요.\n"
+                  . "- 입장: 헤드라인 fade+slide-in(opacity 0→1, y 이동), CTA scale-in(begin 지연). 강조: 은은한 pulse/glow, 그라데이션 shimmer(animateTransform translate). 앰비언트: 장식 도형 회전/부유(repeatCount='indefinite').\n"
+                  . "- dur 1~3s, 자연스럽고 고급스럽게(과한 깜빡임 금지). SMIL이 SVG 내부에서 실제 동작해야 함.\n";
+            } elseif ($renderType === 'chart') {
+                $typeInstr = "[★그래프/차트 모드 — 데이터 시각화 광고]\n"
+                  . "- 막대/선/도넛/영역 차트를 SVG로 정밀하게(축·격자·레이블·범례, 막대/선/호 정확). 수치는 광고 맥락에 맞게 임팩트 있는 예시값.\n"
+                  . "- 헤드라인 + 핵심 지표(예: '매출 +247%')를 차트와 함께 배치. 차트 색은 팔레트 기반·고가독.\n";
+            }
             $systemPrompt = <<<PROMPT
 당신은 Apple·Nike·삼성·샤넬 광고를 디자인하는 세계 최정상 아트디렉터이자 SVG 마스터입니다.
 주어진 스펙으로 즉시 게재 가능한 럭셔리 브랜드급 광고 크리에이티브를 순수 SVG로 디자인합니다. 밋밋하거나 빈약한 결과는 절대 금지 — 초프리미엄 완성도를 목표로 합니다.
@@ -1495,8 +1532,8 @@ PROMPT;
 - viewBox="0 0 {$w} {$h}" (채널 규격 준수). <defs>에 gradient·filter 정의 후 재사용.
 - 텍스트는 배경 대비 반드시 가독. font-family 'Pretendard','Apple SD Gothic Neo','Noto Sans KR',sans-serif.
 - 외부 리소스(image href·외부폰트·script) 절대 금지. <script>·on*=·foreignObject 금지. 순수 벡터/텍스트만.
-- ★반드시 닫는 </svg> 까지 완결(전체 4500자 이내로 압축하되 품질 유지). 출력은 오직 <svg>...</svg> 코드만(설명·마크다운·코드펜스 금지).
-{$fbLine}
+- ★반드시 닫는 </svg> 까지 완결(전체 5000자 이내로 압축하되 품질 유지). 출력은 오직 <svg>...</svg> 코드만(설명·마크다운·코드펜스 금지).
+{$typeInstr}{$fbLine}
 PROMPT;
             $userMsg = "상품: {$product}\n디자인 스펙: {$specJson}\n팔레트: {$pal}\n\n이 광고의 완성 SVG를 디자인하세요. 닫는 </svg> 까지 반드시 완결하세요.";
 
@@ -1644,6 +1681,81 @@ PROMPT;
         if ($err) throw new \RuntimeException('curl: '.$err);
         if ($status !== 200) { $j = json_decode($raw, true); throw new \RuntimeException($j['errors'][0] ?? ('Stability error '.$status)); }
         return 'data:image/png;base64,' . base64_encode($raw);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    // 동영상 생성 (196차) — 비동기 job 생성 + 상태 폴링(영상은 수 분 소요).
+    // POST /v422/ai/campaign-ad-video        → {job_id, status:'processing'}
+    // GET  /v422/ai/campaign-ad-video-status → {status, video_url}
+    // Replicate prediction API(영상 모델). 관리자가 videogen_api_key 등록 시 활성.
+    // ─────────────────────────────────────────────────────────────────────
+    public static function campaignAdVideo(Request $req, Response $res): Response
+    {
+        @set_time_limit(40);
+        try {
+            $body = (array)($req->getParsedBody() ?? []);
+            if (empty($body)) { $d = json_decode((string)$req->getBody(), true); if (is_array($d)) $body = $d; }
+            $data = $body['data'] ?? $body;
+            $prompt = trim((string)($data['prompt'] ?? $data['video_prompt'] ?? $data['image_prompt'] ?? ''));
+            if ($prompt === '') {
+                $res->getBody()->write(json_encode(['ok'=>false,'error'=>'동영상 생성 프롬프트가 필요합니다.'], JSON_UNESCAPED_UNICODE));
+                return $res->withHeader('Content-Type','application/json')->withStatus(422);
+            }
+            $cfg = self::videoGenConfig();
+            if (strlen($cfg['key']) < 10) {
+                $res->getBody()->write(json_encode(['ok'=>false,'configured'=>false,'error'=>'AI 동영상 생성 API가 설정되지 않았습니다. 관리자 설정에서 동영상 생성 API 키를 등록하세요.'], JSON_UNESCAPED_UNICODE));
+                return $res->withHeader('Content-Type','application/json')->withStatus(200);
+            }
+            $fullPrompt = $prompt . ", cinematic advertising video, premium commercial, smooth camera motion, high quality";
+            // Replicate prediction 생성
+            $model = $cfg['model'] !== '' ? $cfg['model'] : 'minimax/video-01'; // 관리자 미지정 시 기본 모델
+            $payload = json_encode(['input'=>['prompt'=>mb_substr($fullPrompt,0,1400)]], JSON_UNESCAPED_UNICODE);
+            $url = (strpos($model, '/') !== false && strpos($model, ':') === false)
+                ? "https://api.replicate.com/v1/models/{$model}/predictions"   // owner/name → 최신 버전
+                : 'https://api.replicate.com/v1/predictions';
+            if ($url === 'https://api.replicate.com/v1/predictions') { $payload = json_encode(['version'=>$model,'input'=>['prompt'=>mb_substr($fullPrompt,0,1400)]], JSON_UNESCAPED_UNICODE); }
+            $ch = curl_init($url);
+            curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER=>true,CURLOPT_POST=>true,CURLOPT_POSTFIELDS=>$payload,CURLOPT_TIMEOUT=>30,CURLOPT_CONNECTTIMEOUT=>6,
+                CURLOPT_HTTPHEADER=>['Content-Type: application/json','Authorization: Bearer '.$cfg['key'],'Prefer: respond-async']]);
+            $raw = curl_exec($ch); $st = curl_getinfo($ch, CURLINFO_HTTP_CODE); $err = curl_error($ch); curl_close($ch);
+            if ($err) { $res->getBody()->write(json_encode(['ok'=>false,'error'=>'동영상 생성 요청 실패: '.$err], JSON_UNESCAPED_UNICODE)); return $res->withHeader('Content-Type','application/json')->withStatus(502); }
+            $j = json_decode($raw, true);
+            if (($st !== 200 && $st !== 201) || empty($j['id'])) {
+                $msg = $j['detail'] ?? $j['error'] ?? ('Replicate error '.$st);
+                $res->getBody()->write(json_encode(['ok'=>false,'error'=>'동영상 생성 실패: '.$msg], JSON_UNESCAPED_UNICODE));
+                return $res->withHeader('Content-Type','application/json')->withStatus(502);
+            }
+            $res->getBody()->write(json_encode(['ok'=>true,'job_id'=>$j['id'],'status'=>($j['status']??'processing')], JSON_UNESCAPED_UNICODE));
+            return $res->withHeader('Content-Type','application/json');
+        } catch (\Throwable $e) {
+            $res->getBody()->write(json_encode(['ok'=>false,'error'=>$e->getMessage()], JSON_UNESCAPED_UNICODE));
+            return $res->withHeader('Content-Type','application/json')->withStatus(500);
+        }
+    }
+
+    /** GET /v422/ai/campaign-ad-video-status?job_id=X — 동영상 생성 상태 폴링. */
+    public static function campaignAdVideoStatus(Request $req, Response $res): Response
+    {
+        try {
+            $jobId = trim((string)($req->getQueryParams()['job_id'] ?? ''));
+            if ($jobId === '') { $res->getBody()->write(json_encode(['ok'=>false,'error'=>'job_id가 필요합니다.'], JSON_UNESCAPED_UNICODE)); return $res->withHeader('Content-Type','application/json')->withStatus(422); }
+            $cfg = self::videoGenConfig();
+            if (strlen($cfg['key']) < 10) { $res->getBody()->write(json_encode(['ok'=>false,'configured'=>false], JSON_UNESCAPED_UNICODE)); return $res->withHeader('Content-Type','application/json'); }
+            $ch = curl_init('https://api.replicate.com/v1/predictions/'.rawurlencode($jobId));
+            curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER=>true,CURLOPT_TIMEOUT=>15,CURLOPT_CONNECTTIMEOUT=>6,
+                CURLOPT_HTTPHEADER=>['Authorization: Bearer '.$cfg['key']]]);
+            $raw = curl_exec($ch); $err = curl_error($ch); curl_close($ch);
+            if ($err) { $res->getBody()->write(json_encode(['ok'=>false,'error'=>$err], JSON_UNESCAPED_UNICODE)); return $res->withHeader('Content-Type','application/json')->withStatus(502); }
+            $j = json_decode($raw, true);
+            $status = (string)($j['status'] ?? 'unknown'); // starting|processing|succeeded|failed|canceled
+            $out = $j['output'] ?? null;
+            $videoUrl = is_array($out) ? (string)($out[0] ?? '') : (string)($out ?? '');
+            $res->getBody()->write(json_encode(['ok'=>true,'status'=>$status,'video_url'=>$videoUrl,'error'=>$j['error']??null], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+            return $res->withHeader('Content-Type','application/json');
+        } catch (\Throwable $e) {
+            $res->getBody()->write(json_encode(['ok'=>false,'error'=>$e->getMessage()], JSON_UNESCAPED_UNICODE));
+            return $res->withHeader('Content-Type','application/json')->withStatus(500);
+        }
     }
 
     /** 196차 — 승인 디자인 저장 테이블(테넌트 스코프). Phase 2 캠페인 자동실행이 소비. */

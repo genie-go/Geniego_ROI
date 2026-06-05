@@ -409,6 +409,8 @@ return function (App $app): void {
         'POST /v422/ai/campaign-ad-chat'      => 'Genie\\Handlers\\ClaudeAI::campaignAdChat',
         'POST /v422/ai/campaign-ad-render'    => 'Genie\\Handlers\\ClaudeAI::campaignAdRender',
         'POST /v422/ai/campaign-ad-image'     => 'Genie\\Handlers\\ClaudeAI::campaignAdImage',
+        'POST /v422/ai/campaign-ad-video'     => 'Genie\\Handlers\\ClaudeAI::campaignAdVideo',
+        'GET /v422/ai/campaign-ad-video-status' => 'Genie\\Handlers\\ClaudeAI::campaignAdVideoStatus',
         'POST /v422/ai/ad-design/save'        => 'Genie\\Handlers\\ClaudeAI::adDesignSave',
         'GET /v422/ai/ad-design/list'         => 'Genie\\Handlers\\ClaudeAI::adDesignList',
         'POST /v423/auto-campaign/launch'     => 'Genie\\Handlers\\AutoCampaign::launch',
@@ -651,6 +653,8 @@ return function (App $app): void {
         'POST /auth/admin/ai-key'            => 'Genie\\Handlers\\UserAuth::aiKeySave',
         'GET /auth/admin/img-key'            => 'Genie\\Handlers\\UserAuth::imgKeyGet',
         'POST /auth/admin/img-key'           => 'Genie\\Handlers\\UserAuth::imgKeySave',
+        'GET /auth/admin/video-key'          => 'Genie\\Handlers\\UserAuth::vidKeyGet',
+        'POST /auth/admin/video-key'         => 'Genie\\Handlers\\UserAuth::vidKeySave',
         // 189차+ 인증 감사로그
         'GET /auth/audit-logs'   => 'Genie\\Handlers\\UserAuth::auditLogs',
         // 189차+ 세션/기기 관리
@@ -1442,6 +1446,8 @@ return function (App $app): void {
     $register('POST', '/v422/ai/campaign-ad-chat');
     $register('POST', '/v422/ai/campaign-ad-render');
     $register('POST', '/v422/ai/campaign-ad-image');
+    $register('POST', '/v422/ai/campaign-ad-video');
+    $register('GET',  '/v422/ai/campaign-ad-video-status');
     $register('POST', '/v422/ai/ad-design/save');
     $register('GET',  '/v422/ai/ad-design/list');
     $register('POST', '/v423/auto-campaign/launch');
@@ -1469,6 +1475,8 @@ return function (App $app): void {
     $register('POST', '/auth/admin/ai-key');
     $register('GET',  '/auth/admin/img-key');
     $register('POST', '/auth/admin/img-key');
+    $register('GET',  '/auth/admin/video-key');
+    $register('POST', '/auth/admin/video-key');
     // 189차+ 인증 감사로그
     $register('GET',  '/auth/audit-logs');
     // 189차+ 세션/기기 관리

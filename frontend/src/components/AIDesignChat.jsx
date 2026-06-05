@@ -15,12 +15,17 @@ const RBOX = { '9:16': { w: 256, h: 455 }, '1:1': { w: 380, h: 380 }, '4:5': { w
 const CHLABEL = { tiktok: 'TikTok', meta: 'Meta', instagram: 'Instagram', kakao: 'Kakao', youtube: 'YouTube', popup: 'Web Popup' };
 
 const SUGGESTIONS = [
-  'GeniegoROI 회원가입 시 3개월 무료 이벤트를 럭셔리하게 인스타그램용으로 만들어줘',
-  '여름 세일 50% 할인 광고를 역동적인 틱톡 숏폼으로',
-  '신규 회원 환영 카카오 메시지 광고, 따뜻하고 친근하게',
+  'GeniegoROI 회원가입 3개월 무료 이벤트를 럭셔리하게 인스타그램용으로 (🎬 애니메이션으로)',
+  '매출 +247% 성장 그래프를 넣은 광고 (📊 그래프 모드)',
+  '여름 세일 50% 할인, 모델 인물 실사 비주얼로 (🖼️ 실사)',
+  '제품이 회전하는 시네마틱 광고 동영상 (🎥 동영상)',
 ];
 
-function Preview({ design, svg, image }) {
+function Preview({ design, svg, image, video }) {
+  const vbox = RBOX[design?.ratio] || RBOX['1:1'];
+  if (video) {
+    return <video src={video} autoPlay loop muted playsInline controls style={{ width: vbox.w, height: vbox.h, borderRadius: 16, objectFit: 'cover', boxShadow: '0 14px 42px rgba(15,23,42,0.28)', background: '#000' }} />;
+  }
   if (!design && !svg && !image) {
     return (
       <div style={{ width: 280, height: 280, borderRadius: 16, border: '2px dashed #cbd5e1', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, color: '#94a3b8' }}>
@@ -76,6 +81,9 @@ export default function AIDesignChat({ onApplied }) {
   const [svg, setSvg] = useState(null);
   const [image, setImage] = useState(null);      // 실사 이미지(data URI)
   const [imgGenerating, setImgGenerating] = useState(false);
+  const [mode, setMode] = useState('auto');      // auto|animated|chart|image|video
+  const [video, setVideo] = useState(null);      // 동영상 URL
+  const [videoStatus, setVideoStatus] = useState(null); // 진행 상태 텍스트
   const [busy, setBusy] = useState(false);
   const [rendering, setRendering] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -88,7 +96,7 @@ export default function AIDesignChat({ onApplied }) {
     const msg = (typeof text === 'string' ? text : input).trim();
     if (!msg || busy) return;
     const conv = [...messages, { role: 'user', content: msg }];
-    setMessages(conv); setInput(''); setBusy(true); setSvg(null); setImage(null); setSaveMsg(null);
+    setMessages(conv); setInput(''); setBusy(true); setSvg(null); setImage(null); setVideo(null); setVideoStatus(null); setSaveMsg(null);
     try {
       const r = await fetch(`${API}/v422/ai/campaign-ad-chat`, {
         method: 'POST', headers: auth(),
@@ -103,39 +111,72 @@ export default function AIDesignChat({ onApplied }) {
     setBusy(false);
   };
 
-  // 실사 이미지 생성(설정 시) → 합성. 미설정/실패 시 프리미엄 SVG.
-  const genVisual = async (dz) => {
+  // 모드별 생성: auto(실사 or 프리미엄SVG) | animated | chart | image | video
+  const genVisual = async (dz, m) => {
     const dd = dz || design;
+    const mm = m || mode;
     if (!dd) return;
-    if (dd.image_prompt) {
-      setImgGenerating(true);
-      try {
-        const r = await fetch(`${API}/v422/ai/campaign-ad-image`, { method: 'POST', headers: auth(), body: JSON.stringify({ prompt: dd.image_prompt, ratio: dd.ratio }) });
-        const j = await r.json();
-        if (j.ok && j.image) { setImage(j.image); setSvg(null); setImgGenerating(false); return; }
-      } catch {}
-      setImgGenerating(false);
+    if (mm === 'video') return genVideo(dd);
+    if (mm === 'image' || (mm === 'auto' && dd.image_prompt)) {
+      const ok = await genImage(dd);
+      if (ok) return;
+      if (mm === 'image') { setSaveMsg({ ok: false, text: '실사 이미지 생성이 아직 설정되지 않았어요(관리자 설정에서 이미지 API 키 등록). 프리미엄 벡터로 표시할게요.' }); }
     }
-    renderSvg(dd); // 실사 미설정/실패 → 벡터 프리미엄
+    renderSvg(dd, (mm === 'animated' || mm === 'chart') ? mm : 'svg');
   };
 
-  const renderSvg = async (dz) => {
+  const genImage = async (dd) => {
+    if (!dd?.image_prompt) return false;
+    setImgGenerating(true); setVideo(null); setVideoStatus(null);
+    try {
+      const r = await fetch(`${API}/v422/ai/campaign-ad-image`, { method: 'POST', headers: auth(), body: JSON.stringify({ prompt: dd.image_prompt, ratio: dd.ratio }) });
+      const j = await r.json();
+      if (j.ok && j.image) { setImage(j.image); setSvg(null); setImgGenerating(false); return true; }
+    } catch {}
+    setImgGenerating(false); return false;
+  };
+
+  const renderSvg = async (dz, renderType) => {
     const dd = dz || design;
     if (!dd) return;
-    setRendering(true);
+    setRendering(true); setVideo(null); setVideoStatus(null);
     try {
-      const r = await fetch(`${API}/v422/ai/campaign-ad-render`, { method: 'POST', headers: auth(), body: JSON.stringify({ product_description: dd.body || dd.headline || '', design: dd }) });
+      const r = await fetch(`${API}/v422/ai/campaign-ad-render`, { method: 'POST', headers: auth(), body: JSON.stringify({ product_description: dd.body || dd.headline || '', design: dd, render_type: renderType || 'svg' }) });
       const d = await r.json();
       if (d.ok && d.svg) { setSvg(d.svg); setImage(null); }
     } catch {}
     setRendering(false);
   };
 
+  const genVideo = async (dd) => {
+    setVideoStatus('동영상 생성 요청 중…'); setVideo(null); setSvg(null); setImage(null);
+    try {
+      const r = await fetch(`${API}/v422/ai/campaign-ad-video`, { method: 'POST', headers: auth(), body: JSON.stringify({ prompt: dd.image_prompt || dd.body || dd.headline || '', ratio: dd.ratio }) });
+      const j = await r.json();
+      if (j.configured === false) { setVideoStatus(null); setSaveMsg({ ok: false, text: '동영상 생성이 아직 설정되지 않았어요. 관리자 설정에서 동영상 API 키를 등록하세요.' }); return; }
+      if (!j.ok || !j.job_id) { setVideoStatus(null); setSaveMsg({ ok: false, text: j.error || '동영상 생성 실패' }); return; }
+      pollVideo(j.job_id, 0);
+    } catch { setVideoStatus(null); setSaveMsg({ ok: false, text: '동영상 생성 오류' }); }
+  };
+
+  const pollVideo = async (jobId, tries) => {
+    if (tries > 72) { setVideoStatus('시간이 초과되었어요. 다시 시도해 주세요.'); return; }
+    try {
+      const r = await fetch(`${API}/v422/ai/campaign-ad-video-status?job_id=${encodeURIComponent(jobId)}`, { headers: auth() });
+      const j = await r.json();
+      if (j.ok && j.status === 'succeeded' && j.video_url) { setVideo(j.video_url); setVideoStatus(null); return; }
+      if (j.status === 'failed' || j.status === 'canceled') { setVideoStatus('동영상 생성에 실패했어요. 다시 시도해 주세요.'); return; }
+      setVideoStatus(`🎥 동영상 생성 중… (${tries * 5}초 경과 · 보통 1~3분)`);
+      setTimeout(() => pollVideo(jobId, tries + 1), 5000);
+    } catch { setTimeout(() => pollVideo(jobId, tries + 1), 5000); }
+  };
+
   const save = async (status) => {
     if (!design) return;
     setSaving(true); setSaveMsg(null);
     try {
-      const r = await fetch(`${API}/v422/ai/ad-design/save`, { method: 'POST', headers: auth(), body: JSON.stringify({ product_description: design.body || design.headline || '', category: design.mood || '', design: { ...design, _image: image ? 1 : 0 }, svg: image || svg || '', status }) });
+      const visualType = video ? 'video' : (image ? 'image' : 'svg');
+      const r = await fetch(`${API}/v422/ai/ad-design/save`, { method: 'POST', headers: auth(), body: JSON.stringify({ product_description: design.body || design.headline || '', category: design.mood || '', design: { ...design, _visual: visualType }, svg: video || image || svg || '', status }) });
       const d = await r.json();
       setSaveMsg(d.ok ? { ok: true, text: d.message } : { ok: false, text: d.error || '저장 실패' });
       if (d.ok && status === 'approved' && onApplied) onApplied(d.id, design);
@@ -177,6 +218,13 @@ export default function AIDesignChat({ onApplied }) {
 
       {/* 미리보기 + 저장 */}
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, width: 470, maxWidth: '46vw', padding: 22, borderRadius: 16, border: '1px solid var(--border,#e2e8f0)', background: 'var(--bg-card,#fff)' }}>
+        {/* 생성 모드 */}
+        <div style={{ width: '100%', display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+          {[['auto', '✨ 자동'], ['animated', '🎬 애니메이션'], ['chart', '📊 그래프'], ['image', '🖼️ 실사'], ['video', '🎥 동영상']].map(([id, label]) => (
+            <button key={id} onClick={() => { setMode(id); if (design) genVisual(design, id); }}
+              style={{ padding: '6px 11px', borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 700, background: mode === id ? 'linear-gradient(135deg,#a855f7,#4f8ef7)' : 'rgba(99,102,241,0.07)', color: mode === id ? '#fff' : '#64748b' }}>{label}</button>
+          ))}
+        </div>
         {design && (
           <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontWeight: 800, fontSize: 13, color: '#1e293b' }}>{CHLABEL[design.channel] || design.channel || '광고'}</span>
@@ -184,7 +232,8 @@ export default function AIDesignChat({ onApplied }) {
           </div>
         )}
         {imgGenerating && <div style={{ fontSize: 11.5, color: '#a855f7', fontWeight: 700 }}>🖼️ 실사 이미지 생성 중… (10~20초)</div>}
-        <Preview design={design} svg={svg} image={image} />
+        {videoStatus && <div style={{ fontSize: 11.5, color: '#db2777', fontWeight: 700 }}>{videoStatus}</div>}
+        <Preview design={design} svg={svg} image={image} video={video} />
         {design && Array.isArray(design.hashtags) && design.hashtags.length > 0 && (
           <div style={{ width: '100%', display: 'flex', flexWrap: 'wrap', gap: 4 }}>
             {design.hashtags.slice(0, 4).map((h, k) => <span key={k} style={{ fontSize: 10, color: '#6366f1', fontWeight: 600 }}>{h}</span>)}

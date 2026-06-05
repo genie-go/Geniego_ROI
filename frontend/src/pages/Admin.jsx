@@ -206,6 +206,11 @@ function TabAiEngine() {
   const [imgKeySet, setImgKeySet] = useState(false);
   const [imgProvider, setImgProvider] = useState("openai");
   const [imgBusy, setImgBusy] = useState(false);
+  // AI 동영상 생성 API
+  const [vidKey, setVidKey] = useState("");
+  const [vidKeySet, setVidKeySet] = useState(false);
+  const [vidModel, setVidModel] = useState("");
+  const [vidBusy, setVidBusy] = useState(false);
   // SMTP
   const [smtp, setSmtp] = useState({ host: "", port: "587", user: "", pass: "", from: "", from_name: "Geniego-ROI", secure: "tls" });
   const [smtpSet, setSmtpSet] = useState(false);
@@ -228,8 +233,25 @@ function TabAiEngine() {
         const d = await r.json().catch(() => ({}));
         if (r.ok && d.ok) { setImgKeySet(!!d.key_set || !!d.configured); if (d.provider) setImgProvider(d.provider); }
       } catch {}
+      try {
+        const r = await fetch("/api/auth/admin/video-key", { headers: { Authorization: `Bearer ${ADMIN_TOKEN()}` } });
+        const d = await r.json().catch(() => ({}));
+        if (r.ok && d.ok) { setVidKeySet(!!d.key_set || !!d.configured); if (d.model) setVidModel(d.model); }
+      } catch {}
     })();
   }, []);
+
+  const saveVidKey = async () => {
+    if (!vidKey.trim()) { setMsg({ t: "err", m: "동영상 생성 API 키를 입력하세요." }); return; }
+    setVidBusy(true); setMsg(null);
+    try {
+      const r = await fetch("/api/auth/admin/video-key", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${ADMIN_TOKEN()}` }, body: JSON.stringify({ api_key: vidKey.trim(), provider: "replicate", model: vidModel.trim() }) });
+      const d = await r.json().catch(() => ({}));
+      if (r.ok && d.ok) { setMsg({ t: "ok", m: d.message || "동영상 생성 API가 저장되었습니다." }); setVidKey(""); setVidKeySet(true); }
+      else setMsg({ t: "err", m: d.error || "저장에 실패했습니다." });
+    } catch { setMsg({ t: "err", m: "서버 오류. 다시 시도하세요." }); }
+    setVidBusy(false);
+  };
 
   const saveImgKey = async () => {
     if (!imgKey.trim()) { setMsg({ t: "err", m: "이미지 생성 API 키를 입력하세요." }); return; }
@@ -327,6 +349,31 @@ function TabAiEngine() {
             background: imgBusy || !imgKey.trim() ? "rgba(236,72,153,0.2)" : "linear-gradient(135deg,#ec4899,#a855f7)",
             color: "#fff", fontSize: 14.5, fontWeight: 800 }}>
           {imgBusy ? "저장 중..." : "🖼️ 이미지 생성 API 저장 (전체 적용)"}
+        </button>
+      </div>
+
+      {/* AI 동영상 생성 API (Replicate 등) */}
+      <div style={{ borderRadius: 16, padding: "24px 26px", marginBottom: 20,
+        background: vidKeySet ? "rgba(34,197,94,0.06)" : "linear-gradient(135deg, rgba(6,182,212,0.10), rgba(79,142,247,0.07))",
+        border: `1.5px solid ${vidKeySet ? "rgba(34,197,94,0.3)" : "rgba(6,182,212,0.3)"}` }}>
+        <div style={{ fontSize: 17, fontWeight: 900, marginBottom: 6 }}>🎥 AI 동영상 생성 API</div>
+        <div style={{ fontSize: 13, lineHeight: 1.7, color: "var(--text-2)", marginBottom: 16 }}>
+          {vidKeySet
+            ? "✅ AI 동영상 생성이 활성화되어 있습니다. 대화형 AI 디자인의 '🎥 동영상' 모드로 광고 영상을 생성합니다."
+            : "⚠️ 미설정 — '🎥 동영상' 모드 사용 시 키 등록 안내가 표시됩니다. 동영상 생성 API 키를 등록하면 활성화됩니다."}
+          <br /><span style={{ fontSize: 11, color: "var(--text-3)" }}>※ Replicate(replicate.com) API 토큰. 영상 생성은 1~3분 소요. 플랫폼 전역 적용.</span>
+        </div>
+        <label style={{ ...lbl, marginTop: 0 }}>Replicate API 토큰</label>
+        <input type="password" value={vidKey} onChange={e => setVidKey(e.target.value)} autoComplete="new-password"
+          placeholder={vidKeySet ? "(변경 시에만 입력)" : "r8_..."} style={inp} />
+        <label style={lbl}>영상 모델 (선택 — 미입력 시 기본 모델)</label>
+        <input value={vidModel} onChange={e => setVidModel(e.target.value)} placeholder="예: minimax/video-01" style={inp} />
+        <button onClick={saveVidKey} disabled={vidBusy || !vidKey.trim()}
+          style={{ width: "100%", marginTop: 14, padding: "13px 0", borderRadius: 12, border: "none",
+            cursor: vidBusy || !vidKey.trim() ? "not-allowed" : "pointer",
+            background: vidBusy || !vidKey.trim() ? "rgba(6,182,212,0.2)" : "linear-gradient(135deg,#06b6d4,#4f8ef7)",
+            color: "#fff", fontSize: 14.5, fontWeight: 800 }}>
+          {vidBusy ? "저장 중..." : "🎥 동영상 생성 API 저장 (전체 적용)"}
         </button>
       </div>
 

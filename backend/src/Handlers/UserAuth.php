@@ -1683,6 +1683,41 @@ final class UserAuth
         return self::json($res, ['ok' => true, 'message' => '이미지 생성 API가 저장되었습니다. 대화형 AI 디자인에서 실사 이미지가 활성화됩니다.']);
     }
 
+    // ── 196차 — AI 동영상 생성 API(Replicate 등) 키 설정(관리자). ──
+    /** GET /auth/admin/video-key — 동영상 생성 API 설정 여부 + provider/model. */
+    public static function vidKeyGet(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
+    {
+        [$user, $err] = self::requireAdminUser($req);
+        if ($err) return self::json($res, ['ok' => false, 'error' => $err[0]], $err[1]);
+        $pdo = Db::pdo(); self::ensureAppSetting($pdo);
+        $set = self::getAppSetting($pdo, 'videogen_api_key') !== '';
+        $provider = self::getAppSetting($pdo, 'videogen_provider'); if ($provider === '') $provider = 'replicate';
+        $model = self::getAppSetting($pdo, 'videogen_model');
+        $configured = false; try { $configured = \Genie\Handlers\ClaudeAI::videoGenConfigured(); } catch (\Throwable $e) {}
+        return self::json($res, ['ok' => true, 'key_set' => $set, 'configured' => $configured, 'provider' => $provider, 'model' => $model]);
+    }
+
+    /** POST /auth/admin/video-key {api_key, provider, model} — 동영상 생성 API 설정. */
+    public static function vidKeySave(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
+    {
+        [$user, $err] = self::requireAdminUser($req);
+        if ($err) return self::json($res, ['ok' => false, 'error' => $err[0]], $err[1]);
+        $pdo = Db::pdo(); self::ensureAppSetting($pdo);
+        $b = self::readBody($req);
+        $provider = trim((string)($b['provider'] ?? 'replicate'));
+        self::setAppSetting($pdo, 'videogen_provider', $provider !== '' ? $provider : 'replicate');
+        if (isset($b['model'])) self::setAppSetting($pdo, 'videogen_model', trim((string)$b['model']));
+        $key = trim((string)($b['api_key'] ?? ''));
+        if ($key !== '') {
+            if (strlen($key) < 16) return self::json($res, ['ok' => false, 'error' => 'API 키 형식이 올바르지 않습니다.'], 422);
+            self::setAppSetting($pdo, 'videogen_api_key', $key);
+        } elseif (isset($b['clear']) && $b['clear']) {
+            self::setAppSetting($pdo, 'videogen_api_key', '');
+        }
+        self::audit($req, 'vidkey_config', 'AI 동영상 생성 API 키 설정', 'high', $user);
+        return self::json($res, ['ok' => true, 'message' => 'AI 동영상 생성 API가 저장되었습니다. 대화형 AI 디자인에서 동영상 생성이 활성화됩니다.']);
+    }
+
     // ═════════════════════════════════════════════════════════════
     // 189차 보안 하드닝 — 비밀번호 정책 / 로그인 rate-limit / MFA(TOTP)
     // ═════════════════════════════════════════════════════════════
