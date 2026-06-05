@@ -120,6 +120,38 @@ function ApiKeysPanel() {
             </button>
           </div>
 
+          {/* 193차 Sprint4 #6: API 사용량 대시보드(읽기전용·기존 last_used_at 클라이언트 집계) */}
+          {Array.isArray(keys) && keys.length > 0 && (() => {
+            const now = Date.now(), DAY = 86400000;
+            const active = keys.filter(k => k.is_active);
+            const used7 = active.filter(k => k.last_used_at && (now - new Date(k.last_used_at).getTime()) <= 7 * DAY);
+            const never = active.filter(k => !k.last_used_at);
+            const expSoon = active.filter(k => k.expires_at && (new Date(k.expires_at).getTime() - now) <= 30 * DAY && new Date(k.expires_at).getTime() >= now);
+            const lastUsed = active.map(k => k.last_used_at).filter(Boolean).sort().pop();
+            const cells = [
+              ['🔑', t('devHub.uTotal', '전체 키'), keys.length, '#4f8ef7'],
+              ['✅', t('devHub.uActive', '활성'), active.length, '#22c55e'],
+              ['⚡', t('devHub.uUsed7', '최근 7일 사용'), used7.length, '#a855f7'],
+              ['💤', t('devHub.uNever', '미사용'), never.length, '#94a3b8'],
+              ['⏳', t('devHub.uExpiring', '30일 내 만료'), expSoon.length, expSoon.length ? '#f59e0b' : '#94a3b8'],
+            ];
+            return (
+              <div style={{ ...card }}>
+                <div style={{ fontWeight: 800, fontSize: 12, color: '#475569', marginBottom: 10 }}>📊 {t('devHub.usageTitle', 'API 키 사용 현황')}</div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(110px,1fr))', gap: 10 }}>
+                  {cells.map(([ic, l, v, c]) => (
+                    <div key={l} style={{ textAlign: 'center', padding: '10px 6px', borderRadius: 10, background: 'rgba(0,0,0,0.02)' }}>
+                      <div style={{ fontSize: 18 }}>{ic}</div>
+                      <div style={{ fontSize: 20, fontWeight: 900, color: c }}>{v}</div>
+                      <div style={{ fontSize: 10, color: '#64748b', marginTop: 2 }}>{l}</div>
+                    </div>
+                  ))}
+                </div>
+                {lastUsed && <div style={{ fontSize: 10.5, color: '#94a3b8', marginTop: 8 }}>{t('devHub.uLastActivity', '최근 API 활동')}: {String(lastUsed).slice(0, 16).replace('T', ' ')} UTC</div>}
+              </div>
+            );
+          })()}
+
           {/* 키 목록 */}
           {loading && <div style={{ textAlign: "center", color: "#64748b", fontSize: 12, padding: 12 }}>{t('devHub.loading', '불러오는 중...')}</div>}
           {Array.isArray(keys) && keys.length === 0 && !loading && (
