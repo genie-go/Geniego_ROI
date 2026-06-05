@@ -3,6 +3,9 @@
 const S = {
     navAbout:   { ko:"회사소개", en:"About", ja:"会社概要", zh:"公司介绍", "zh-TW":"公司介紹", vi:"Giới thiệu", th:"เกี่ยวกับเรา", id:"Tentang", de:"Über uns", fr:"À propos", es:"Acerca de", pt:"Sobre", ru:"О нас", ar:"من نحن", hi:"कंपनी" },
     navTeam:    { ko:"운영진", en:"Leadership", ja:"経営陣", zh:"管理团队", "zh-TW":"管理團隊", vi:"Ban lãnh đạo", th:"ทีมผู้บริหาร", id:"Tim", de:"Team", fr:"Équipe", es:"Equipo", pt:"Equipe", ru:"Команда", ar:"الفريق", hi:"नेतृत्व" },
+    navProduct: { ko:"제품", en:"Product", ja:"製品", zh:"产品", "zh-TW":"產品", vi:"Sản phẩm", th:"ผลิตภัณฑ์", id:"Produk", de:"Produkt", fr:"Produit", es:"Producto", pt:"Produto", ru:"Продукт", ar:"المنتج", hi:"उत्पाद" },
+    navHow:     { ko:"3단계로 시작", en:"Get Started", ja:"3ステップで開始", zh:"三步开始", "zh-TW":"三步開始", vi:"Bắt đầu 3 bước", th:"เริ่มใน 3 ขั้นตอน", id:"Mulai 3 Langkah", de:"In 3 Schritten", fr:"Démarrer en 3 étapes", es:"Empezar en 3 pasos", pt:"Começar em 3 passos", ru:"Старт за 3 шага", ar:"ابدأ بـ 3 خطوات", hi:"3 चरणों में शुरू" },
+    navPricing: { ko:"요금제", en:"Pricing", ja:"料金プラン", zh:"定价", "zh-TW":"定價", vi:"Bảng giá", th:"ราคา", id:"Harga", de:"Preise", fr:"Tarifs", es:"Precios", pt:"Preços", ru:"Цены", ar:"الأسعار", hi:"मूल्य" },
     aboutTitle: { ko:"회사소개", en:"About Us", ja:"会社概要", zh:"关于我们", "zh-TW":"關於我們", vi:"Về chúng tôi", th:"เกี่ยวกับเรา", id:"Tentang Kami", de:"Über uns", fr:"À propos de nous", es:"Sobre nosotros", pt:"Sobre nós", ru:"О компании", ar:"من نحن", hi:"हमारे बारे में" },
     vision:     { ko:"비전", en:"Vision", ja:"ビジョン", zh:"愿景", "zh-TW":"願景", vi:"Tầm nhìn", th:"วิสัยทัศน์", id:"Visi", de:"Vision", fr:"Vision", es:"Visión", pt:"Visão", ru:"Видение", ar:"الرؤية", hi:"विज़न" },
     mission:    { ko:"미션", en:"Mission", ja:"ミッション", zh:"使命", "zh-TW":"使命", vi:"Sứ mệnh", th:"พันธกิจ", id:"Misi", de:"Mission", fr:"Mission", es:"Misión", pt:"Missão", ru:"Миссия", ar:"المهمة", hi:"मिशन" },

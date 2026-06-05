@@ -16,7 +16,7 @@ export default function PlanServiceGuide({ planId, compact = false, defaultOpen 
   const showBody = collapsible ? open : true;
   // 187차 — 밝은/다크 테마 토큰. light=true(앱 내부 요금페이지)는 찐한 텍스트.
   const c = light
-    ? { head: '#0f172a', tagline: '#64748b', collapse: '#64748b', sumBg: '#f8fafc', sumText: '#334155', secBg: '#ffffff', secBorder: '#e2e8f0', secTitle: '#0f172a', secDesc: '#475569' }
+    ? { head: '#0f172a', tagline: '#475569', collapse: '#475569', sumBg: '#eef2f7', sumText: '#1e293b', secBg: '#ffffff', secBorder: '#e2e8f0', secTitle: '#0f172a', secDesc: '#334155' }
     : { head: '#e2e8f0', tagline: '#94a3b8', collapse: '#94a3b8', sumBg: 'rgba(0,0,0,0.20)', sumText: '#cbd5e1', secBg: 'rgba(255,255,255,0.04)', secBorder: 'rgba(255,255,255,0.07)', secTitle: '#f1f5f9', secDesc: '#94a3b8' };
   return (
     <div style={{ borderRadius: 14, overflow: 'hidden', background: light ? `${color}08` : `${color}0A`, border: `1.5px solid ${color}33` }}>
@@ -36,7 +36,7 @@ export default function PlanServiceGuide({ planId, compact = false, defaultOpen 
       </button>
       {showBody && (
         <div style={{ padding: '0 16px 16px' }}>
-          <div style={{ fontSize: 12.5, color: c.sumText, lineHeight: 1.7, marginBottom: 14, padding: '11px 13px', borderRadius: 10, background: c.sumBg }}>{g.summary}</div>
+          <div style={{ fontSize: 12.5, fontWeight: light ? 500 : 400, color: c.sumText, lineHeight: 1.7, marginBottom: 14, padding: '11px 13px', borderRadius: 10, background: c.sumBg }}>{g.summary}</div>
           <div style={{ display: 'grid', gridTemplateColumns: compact ? '1fr' : 'repeat(auto-fill, minmax(300px,1fr))', gap: 8 }}>
             {g.sections.map((s, i) => {
               const m = PLAN_LEVEL_META[s.level] || PLAN_LEVEL_META.core;

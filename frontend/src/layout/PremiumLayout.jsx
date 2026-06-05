@@ -243,9 +243,11 @@ function PremiumHeader({ lang, setLang }) {
                     <span style={{ fontWeight: 900, fontSize: 17, color: "#0f172a", letterSpacing: -0.4 }}>Geniego<span style={{ color: "#4f46e5" }}>ROI</span></span>
                 </Link>
                 <nav style={{ display: "flex", alignItems: "center", gap: 2 }} className="gl-nav">
+                    <a href="/#product" style={navLink} onMouseEnter={e => hov(e, 1)} onMouseLeave={e => hov(e, 0)}>{st("navProduct", lang)}</a>
+                    <a href="/#how" style={navLink} onMouseEnter={e => hov(e, 1)} onMouseLeave={e => hov(e, 0)}>{st("navHow", lang)}</a>
                     {vis.about && <Link to="/about" style={navLink} onMouseEnter={e => hov(e, 1)} onMouseLeave={e => hov(e, 0)}>{st("navAbout", lang)}</Link>}
                     {vis.team && <Link to="/team" style={navLink} onMouseEnter={e => hov(e, 1)} onMouseLeave={e => hov(e, 0)}>{st("navTeam", lang)}</Link>}
-                    <Link to="/pricing" style={navLink} onMouseEnter={e => hov(e, 1)} onMouseLeave={e => hov(e, 0)}>Pricing</Link>
+                    <Link to="/pricing" style={navLink} onMouseEnter={e => hov(e, 1)} onMouseLeave={e => hov(e, 0)}>{st("navPricing", lang)}</Link>
                 </nav>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     <div ref={lref} style={{ position: "relative" }}>

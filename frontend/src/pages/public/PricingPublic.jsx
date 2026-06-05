@@ -683,7 +683,7 @@ export default function PricingPublic() {
                     <div style={{ display: "grid", gap: 14 }}>
                         {/* 187차 — 기본 펼침: 각 플랜 상세 서비스 설명서(9개 섹션) 즉시 노출(구버전 수준 상세). */}
                         {plans.map(pl => (
-                            <PlanServiceGuide key={pl.id} planId={pl.id} defaultOpen={true} light={isAppContext} />
+                            <PlanServiceGuide key={pl.id} planId={pl.id} defaultOpen={true} light={true} />
                         ))}
                     </div>
                 </div>
