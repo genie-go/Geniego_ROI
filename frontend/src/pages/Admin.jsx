@@ -201,6 +201,11 @@ function TabAiEngine() {
   const [aiKeySet, setAiKeySet] = useState(false);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState(null); // { t:'ok'|'err', m }
+  // 실사 이미지 생성 API
+  const [imgKey, setImgKey] = useState("");
+  const [imgKeySet, setImgKeySet] = useState(false);
+  const [imgProvider, setImgProvider] = useState("openai");
+  const [imgBusy, setImgBusy] = useState(false);
   // SMTP
   const [smtp, setSmtp] = useState({ host: "", port: "587", user: "", pass: "", from: "", from_name: "Geniego-ROI", secure: "tls" });
   const [smtpSet, setSmtpSet] = useState(false);
@@ -218,8 +223,25 @@ function TabAiEngine() {
         const d = await r.json().catch(() => ({}));
         if (r.ok && d.ok) { setSmtpSet(!!d.configured); if (d.smtp) setSmtp(s => ({ ...s, ...d.smtp, port: String(d.smtp.port ?? s.port), pass: "" })); }
       } catch {}
+      try {
+        const r = await fetch("/api/auth/admin/img-key", { headers: { Authorization: `Bearer ${ADMIN_TOKEN()}` } });
+        const d = await r.json().catch(() => ({}));
+        if (r.ok && d.ok) { setImgKeySet(!!d.key_set || !!d.configured); if (d.provider) setImgProvider(d.provider); }
+      } catch {}
     })();
   }, []);
+
+  const saveImgKey = async () => {
+    if (!imgKey.trim()) { setMsg({ t: "err", m: "이미지 생성 API 키를 입력하세요." }); return; }
+    setImgBusy(true); setMsg(null);
+    try {
+      const r = await fetch("/api/auth/admin/img-key", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${ADMIN_TOKEN()}` }, body: JSON.stringify({ api_key: imgKey.trim(), provider: imgProvider }) });
+      const d = await r.json().catch(() => ({}));
+      if (r.ok && d.ok) { setMsg({ t: "ok", m: d.message || "이미지 생성 API가 저장되었습니다." }); setImgKey(""); setImgKeySet(true); }
+      else setMsg({ t: "err", m: d.error || "저장에 실패했습니다." });
+    } catch { setMsg({ t: "err", m: "서버 오류. 다시 시도하세요." }); }
+    setImgBusy(false);
+  };
 
   const saveAiKey = async () => {
     if (!aiKey.trim()) { setMsg({ t: "err", m: "Anthropic API 키(sk-ant-...)를 입력하세요." }); return; }
@@ -277,6 +299,34 @@ function TabAiEngine() {
             background: busy || !aiKey.trim() ? "rgba(168,85,247,0.2)" : "linear-gradient(135deg,#a855f7,#4f8ef7)",
             color: "#fff", fontSize: 14.5, fontWeight: 800 }}>
           {busy ? "저장 중..." : "🤖 AI 키 저장 (전체 적용)"}
+        </button>
+      </div>
+
+      {/* 실사 이미지 생성 API (DALL·E / Stability) */}
+      <div style={{ borderRadius: 16, padding: "24px 26px", marginBottom: 20,
+        background: imgKeySet ? "rgba(34,197,94,0.06)" : "linear-gradient(135deg, rgba(236,72,153,0.10), rgba(168,85,247,0.07))",
+        border: `1.5px solid ${imgKeySet ? "rgba(34,197,94,0.3)" : "rgba(236,72,153,0.3)"}` }}>
+        <div style={{ fontSize: 17, fontWeight: 900, marginBottom: 6 }}>🖼️ 실사 이미지 생성 API</div>
+        <div style={{ fontSize: 13, lineHeight: 1.7, color: "var(--text-2)", marginBottom: 16 }}>
+          {imgKeySet
+            ? "✅ 실사 이미지 생성이 활성화되어 있습니다. 대화형 AI 디자인이 실사 비주얼을 생성해 매거진급 광고를 만듭니다."
+            : "⚠️ 미설정 — 현재는 벡터(SVG) 프리미엄 디자인으로 동작합니다. 이미지 생성 API 키를 등록하면 실사 비주얼이 활성화됩니다."}
+          <br /><span style={{ fontSize: 11, color: "var(--text-3)" }}>※ OpenAI(DALL·E 3) = platform.openai.com / Stability(SD) = platform.stability.ai 에서 발급. 플랫폼 전역 적용.</span>
+        </div>
+        <label style={{ ...lbl, marginTop: 0 }}>이미지 생성 제공자</label>
+        <select value={imgProvider} onChange={e => setImgProvider(e.target.value)} style={{ ...inp, cursor: "pointer" }}>
+          <option value="openai">OpenAI — DALL·E 3 (권장)</option>
+          <option value="stability">Stability AI — Stable Diffusion</option>
+        </select>
+        <label style={lbl}>API 키</label>
+        <input type="password" value={imgKey} onChange={e => setImgKey(e.target.value)} autoComplete="new-password"
+          placeholder={imgKeySet ? "(변경 시에만 입력)" : (imgProvider === "openai" ? "sk-..." : "sk-...")} style={inp} />
+        <button onClick={saveImgKey} disabled={imgBusy || !imgKey.trim()}
+          style={{ width: "100%", marginTop: 14, padding: "13px 0", borderRadius: 12, border: "none",
+            cursor: imgBusy || !imgKey.trim() ? "not-allowed" : "pointer",
+            background: imgBusy || !imgKey.trim() ? "rgba(236,72,153,0.2)" : "linear-gradient(135deg,#ec4899,#a855f7)",
+            color: "#fff", fontSize: 14.5, fontWeight: 800 }}>
+          {imgBusy ? "저장 중..." : "🖼️ 이미지 생성 API 저장 (전체 적용)"}
         </button>
       </div>
 

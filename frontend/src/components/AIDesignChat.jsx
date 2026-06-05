@@ -20,8 +20,8 @@ const SUGGESTIONS = [
   '신규 회원 환영 카카오 메시지 광고, 따뜻하고 친근하게',
 ];
 
-function Preview({ design, svg }) {
-  if (!design && !svg) {
+function Preview({ design, svg, image }) {
+  if (!design && !svg && !image) {
     return (
       <div style={{ width: 280, height: 280, borderRadius: 16, border: '2px dashed #cbd5e1', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, color: '#94a3b8' }}>
         <div style={{ fontSize: 40 }}>🎨</div>
@@ -30,6 +30,24 @@ function Preview({ design, svg }) {
     );
   }
   const box = RBOX[design?.ratio] || RBOX['1:1'];
+  // 실사 이미지 + 텍스트 오버레이(매거진급 광고 합성)
+  if (image) {
+    const pp = design?.palette || {};
+    return (
+      <div style={{ width: box.w, height: box.h, borderRadius: 16, overflow: 'hidden', position: 'relative', boxShadow: '0 14px 42px rgba(15,23,42,0.28)' }}>
+        <img src={image} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(8,12,24,0.85) 0%, rgba(8,12,24,0.12) 46%, rgba(8,12,24,0.5) 100%)' }} />
+        <div style={{ position: 'absolute', top: 18, left: 18, right: 18 }}>
+          <div style={{ fontSize: box.w > 250 ? 27 : 21, fontWeight: 900, color: '#fff', lineHeight: 1.14, wordBreak: 'keep-all', textShadow: '0 2px 14px rgba(0,0,0,0.55)' }}>{design?.headline}</div>
+          {design?.subheadline && <div style={{ fontSize: 13.5, color: '#fff', opacity: 0.94, marginTop: 7, textShadow: '0 1px 10px rgba(0,0,0,0.55)' }}>{design.subheadline}</div>}
+        </div>
+        <div style={{ position: 'absolute', bottom: 18, left: 18, right: 18 }}>
+          {design?.body && <div style={{ fontSize: 12, color: '#fff', opacity: 0.92, marginBottom: 11, lineHeight: 1.5, textShadow: '0 1px 10px rgba(0,0,0,0.6)' }}>{String(design.body).slice(0, 60)}</div>}
+          <div style={{ display: 'inline-block', padding: '10px 22px', borderRadius: 99, background: pp.accent || '#f4d03f', color: pp.bg || '#0a1a3f', fontWeight: 800, fontSize: 13.5, boxShadow: '0 6px 20px rgba(0,0,0,0.35)' }}>{design?.cta || '지금 보기'}</div>
+        </div>
+      </div>
+    );
+  }
   if (svg) {
     const html = svg.replace('<svg', '<svg width="100%" height="100%" preserveAspectRatio="xMidYMid slice"');
     return <div style={{ width: box.w, height: box.h, borderRadius: 16, overflow: 'hidden', boxShadow: '0 12px 38px rgba(15,23,42,0.24)', background: '#fff' }} dangerouslySetInnerHTML={{ __html: html }} />;
@@ -56,6 +74,8 @@ export default function AIDesignChat({ onApplied }) {
   const [input, setInput] = useState('');
   const [design, setDesign] = useState(null);
   const [svg, setSvg] = useState(null);
+  const [image, setImage] = useState(null);      // 실사 이미지(data URI)
+  const [imgGenerating, setImgGenerating] = useState(false);
   const [busy, setBusy] = useState(false);
   const [rendering, setRendering] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -68,7 +88,7 @@ export default function AIDesignChat({ onApplied }) {
     const msg = (typeof text === 'string' ? text : input).trim();
     if (!msg || busy) return;
     const conv = [...messages, { role: 'user', content: msg }];
-    setMessages(conv); setInput(''); setBusy(true); setSvg(null); setSaveMsg(null);
+    setMessages(conv); setInput(''); setBusy(true); setSvg(null); setImage(null); setSaveMsg(null);
     try {
       const r = await fetch(`${API}/v422/ai/campaign-ad-chat`, {
         method: 'POST', headers: auth(),
@@ -76,11 +96,27 @@ export default function AIDesignChat({ onApplied }) {
       });
       const d = await r.json();
       if (d.ok) {
-        setMessages(m => [...m, { role: 'assistant', content: d.reply || '디자인을 만들었어요! 고급 디자인으로 렌더링 중이에요 ✨' }]);
-        if (d.design) { setDesign(d.design); renderSvg(d.design); } // 초프리미엄 SVG 자동 렌더
+        setMessages(m => [...m, { role: 'assistant', content: d.reply || '디자인을 만들었어요! 고급 비주얼로 렌더링 중이에요 ✨' }]);
+        if (d.design) { setDesign(d.design); genVisual(d.design); } // 실사 이미지 or 프리미엄 SVG 자동
       } else setMessages(m => [...m, { role: 'assistant', content: d.error || 'AI 응답에 실패했어요. 다시 시도해 주세요.' }]);
     } catch { setMessages(m => [...m, { role: 'assistant', content: '서버 오류가 발생했어요. 다시 시도해 주세요.' }]); }
     setBusy(false);
+  };
+
+  // 실사 이미지 생성(설정 시) → 합성. 미설정/실패 시 프리미엄 SVG.
+  const genVisual = async (dz) => {
+    const dd = dz || design;
+    if (!dd) return;
+    if (dd.image_prompt) {
+      setImgGenerating(true);
+      try {
+        const r = await fetch(`${API}/v422/ai/campaign-ad-image`, { method: 'POST', headers: auth(), body: JSON.stringify({ prompt: dd.image_prompt, ratio: dd.ratio }) });
+        const j = await r.json();
+        if (j.ok && j.image) { setImage(j.image); setSvg(null); setImgGenerating(false); return; }
+      } catch {}
+      setImgGenerating(false);
+    }
+    renderSvg(dd); // 실사 미설정/실패 → 벡터 프리미엄
   };
 
   const renderSvg = async (dz) => {
@@ -90,7 +126,7 @@ export default function AIDesignChat({ onApplied }) {
     try {
       const r = await fetch(`${API}/v422/ai/campaign-ad-render`, { method: 'POST', headers: auth(), body: JSON.stringify({ product_description: dd.body || dd.headline || '', design: dd }) });
       const d = await r.json();
-      if (d.ok && d.svg) setSvg(d.svg);
+      if (d.ok && d.svg) { setSvg(d.svg); setImage(null); }
     } catch {}
     setRendering(false);
   };
@@ -99,7 +135,7 @@ export default function AIDesignChat({ onApplied }) {
     if (!design) return;
     setSaving(true); setSaveMsg(null);
     try {
-      const r = await fetch(`${API}/v422/ai/ad-design/save`, { method: 'POST', headers: auth(), body: JSON.stringify({ product_description: design.body || design.headline || '', category: design.mood || '', design, svg: svg || '', status }) });
+      const r = await fetch(`${API}/v422/ai/ad-design/save`, { method: 'POST', headers: auth(), body: JSON.stringify({ product_description: design.body || design.headline || '', category: design.mood || '', design: { ...design, _image: image ? 1 : 0 }, svg: image || svg || '', status }) });
       const d = await r.json();
       setSaveMsg(d.ok ? { ok: true, text: d.message } : { ok: false, text: d.error || '저장 실패' });
       if (d.ok && status === 'approved' && onApplied) onApplied(d.id, design);
@@ -147,7 +183,8 @@ export default function AIDesignChat({ onApplied }) {
             <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 6, background: 'rgba(99,102,241,0.1)', color: '#4f46e5', fontWeight: 700 }}>{design.format || ''} {design.ratio || ''}</span>
           </div>
         )}
-        <Preview design={design} svg={svg} />
+        {imgGenerating && <div style={{ fontSize: 11.5, color: '#a855f7', fontWeight: 700 }}>🖼️ 실사 이미지 생성 중… (10~20초)</div>}
+        <Preview design={design} svg={svg} image={image} />
         {design && Array.isArray(design.hashtags) && design.hashtags.length > 0 && (
           <div style={{ width: '100%', display: 'flex', flexWrap: 'wrap', gap: 4 }}>
             {design.hashtags.slice(0, 4).map((h, k) => <span key={k} style={{ fontSize: 10, color: '#6366f1', fontWeight: 600 }}>{h}</span>)}
@@ -155,9 +192,14 @@ export default function AIDesignChat({ onApplied }) {
         )}
         {design && (
           <>
-            <button onClick={renderSvg} disabled={rendering} style={{ width: '100%', padding: '10px 0', borderRadius: 10, border: '1px solid rgba(168,85,247,0.35)', cursor: rendering ? 'wait' : 'pointer', background: 'rgba(168,85,247,0.07)', color: '#a855f7', fontWeight: 700, fontSize: 12.5 }}>
-              {rendering ? '⏳ 정밀 디자인 중…' : '🎨 AI 정밀 디자인 (완성 SVG)'}
-            </button>
+            <div style={{ width: '100%', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+              <button onClick={() => genVisual(design)} disabled={imgGenerating} style={{ padding: '10px 0', borderRadius: 10, border: '1px solid rgba(236,72,153,0.35)', cursor: imgGenerating ? 'wait' : 'pointer', background: 'rgba(236,72,153,0.07)', color: '#db2777', fontWeight: 700, fontSize: 12 }}>
+                {imgGenerating ? '⏳ 생성 중…' : '🖼️ 실사 이미지 재생성'}
+              </button>
+              <button onClick={renderSvg} disabled={rendering} style={{ padding: '10px 0', borderRadius: 10, border: '1px solid rgba(168,85,247,0.35)', cursor: rendering ? 'wait' : 'pointer', background: 'rgba(168,85,247,0.07)', color: '#a855f7', fontWeight: 700, fontSize: 12 }}>
+                {rendering ? '⏳ 렌더 중…' : '🎨 벡터(SVG)'}
+              </button>
+            </div>
             <div style={{ width: '100%', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
               <button onClick={() => save('draft')} disabled={saving} style={{ padding: '10px 0', borderRadius: 10, border: '1px solid rgba(79,142,247,0.35)', cursor: saving ? 'wait' : 'pointer', background: 'rgba(79,142,247,0.07)', color: '#4f8ef7', fontWeight: 800, fontSize: 12.5 }}>📝 {t('aiChat.draft', '임시저장')}</button>
               <button onClick={() => save('approved')} disabled={saving} style={{ padding: '10px 0', borderRadius: 10, border: 'none', cursor: saving ? 'wait' : 'pointer', background: saving ? 'rgba(34,197,94,0.4)' : 'linear-gradient(135deg,#22c55e,#16a34a)', color: '#fff', fontWeight: 800, fontSize: 12.5 }}>✅ {t('aiChat.save', '저장')}</button>

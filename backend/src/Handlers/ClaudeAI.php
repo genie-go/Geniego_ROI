@@ -42,6 +42,31 @@ final class ClaudeAI {
         return strpos($k, 'MASKED_FOR_GITHUB') === false && strlen($k) > 10;
     }
 
+    /** 196차: 실사 이미지 생성 API 설정(provider + key). app_setting imggen_provider/imggen_api_key. */
+    private static function imgGenConfig(): array {
+        $provider = 'openai'; $key = '';
+        $envK = getenv('IMGGEN_API_KEY');
+        if ($envK && strlen($envK) > 10) $key = $envK;
+        try {
+            $pdo = Db::pdo();
+            $p = $pdo->query("SELECT svalue FROM app_setting WHERE skey='imggen_provider'");
+            $pv = $p ? trim((string)($p->fetchColumn() ?: '')) : '';
+            if ($pv !== '') $provider = $pv;
+            if ($key === '') {
+                $k = $pdo->query("SELECT svalue FROM app_setting WHERE skey='imggen_api_key'");
+                $kv = $k ? (string)($k->fetchColumn() ?: '') : '';
+                if (strlen($kv) > 10) $key = $kv;
+            }
+        } catch (\Throwable $e) {}
+        return ['provider' => $provider, 'key' => $key];
+    }
+
+    /** 실사 이미지 생성 API 설정 여부(UI 게이트용). */
+    public static function imgGenConfigured(): bool {
+        $c = self::imgGenConfig();
+        return strlen($c['key']) > 10;
+    }
+
     /* ── DB 스키마 자동 생성 ─────────────────────────────────── */
     private static function migrate(PDO $pdo): void {
         // MySQL 호환 스키마 (SQLite 시 AUTOINCREMENT → MySQL AUTO_INCREMENT)
@@ -1353,7 +1378,8 @@ PROMPT;
     "cta": "행동유도 버튼 문구",
     "hashtags": ["#태그1","#태그2"],
     "palette": {"bg":"#배경HEX","primary":"#주색HEX","accent":"#강조HEX","text":"#글자HEX(배경 대비 가독)"},
-    "layout": "요소 배치", "visual": "비주얼 연출 가이드 1문장", "mood": "톤(예: 럭셔리, 역동적, 미니멀)"
+    "layout": "요소 배치", "visual": "비주얼 연출 가이드 1문장", "mood": "톤(예: 럭셔리, 역동적, 미니멀)",
+    "image_prompt": "이 광고 배경에 어울리는 실사/일러스트 비주얼을 생성할 상세한 영문 이미지 생성 프롬프트(English). 광고 배경용·텍스트 없는 비주얼·고급 상업사진 느낌·오버레이 공간 확보. 예: 'luxury gold abstract background, premium soft gradient, cinematic light, minimal'"
   }
 }
 사용자가 수정만 요청하면 현재 디자인에서 해당 부분만 바꾸고 나머지는 유지하세요.
@@ -1538,6 +1564,86 @@ PROMPT;
           ."<rect x='{$bx}' y='{$by}' width='{$bw}' height='{$bh}' rx='".($bh/2)."' fill='{$ac}'/>"
           ."<text x='{$cx}' y='".($by+$bh*0.66)."' font-family='Pretendard,sans-serif' font-size='".intval($w*0.038)."' font-weight='700' fill='{$bg}' text-anchor='middle'>{$cta}</text>"
           ."</svg>";
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    // POST /v422/ai/campaign-ad-image  (196차 — 실사 이미지 생성: DALL·E 3 등)
+    // 이미지 생성 프롬프트 → 외부 이미지 생성 API → base64 이미지(광고 배경/비주얼).
+    // 관리자가 imggen_api_key 등록 시 활성(미설정 시 configured:false 안내).
+    // ─────────────────────────────────────────────────────────────────────
+    public static function campaignAdImage(Request $req, Response $res): Response
+    {
+        @set_time_limit(75);
+        try {
+            $body = (array)($req->getParsedBody() ?? []);
+            if (empty($body)) { $d = json_decode((string)$req->getBody(), true); if (is_array($d)) $body = $d; }
+            $data   = $body['data'] ?? $body;
+            $prompt = trim((string)($data['prompt'] ?? $data['image_prompt'] ?? ''));
+            $ratio  = (string)($data['ratio'] ?? '1:1');
+            if ($prompt === '') {
+                $res->getBody()->write(json_encode(['ok'=>false,'error'=>'이미지 생성 프롬프트가 필요합니다.'], JSON_UNESCAPED_UNICODE));
+                return $res->withHeader('Content-Type','application/json')->withStatus(422);
+            }
+            $cfg = self::imgGenConfig();
+            if (strlen($cfg['key']) < 10) {
+                $res->getBody()->write(json_encode(['ok'=>false,'configured'=>false,'error'=>'실사 이미지 생성 API가 설정되지 않았습니다. 관리자 설정에서 이미지 생성 API 키를 등록하세요.'], JSON_UNESCAPED_UNICODE));
+                return $res->withHeader('Content-Type','application/json')->withStatus(200);
+            }
+            // 텍스트 없는 광고 배경/비주얼로 유도(텍스트는 디자인에서 오버레이)
+            $fullPrompt = $prompt . ". Premium advertising background visual, high-end commercial photography, cinematic lighting, no text, no words, no letters, clean composition with empty space for overlay.";
+
+            try {
+                if ($cfg['provider'] === 'stability') {
+                    $img = self::imgGenStability($cfg['key'], $fullPrompt, $ratio);
+                } else {
+                    $img = self::imgGenOpenAI($cfg['key'], $fullPrompt, $ratio);
+                }
+            } catch (\Throwable $e) {
+                $res->getBody()->write(json_encode(['ok'=>false,'error'=>'이미지 생성 실패: '.$e->getMessage()], JSON_UNESCAPED_UNICODE));
+                return $res->withHeader('Content-Type','application/json')->withStatus(502);
+            }
+            $res->getBody()->write(json_encode(['ok'=>true,'image'=>$img,'provider'=>$cfg['provider']], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+            return $res->withHeader('Content-Type','application/json');
+        } catch (\Throwable $e) {
+            $res->getBody()->write(json_encode(['ok'=>false,'error'=>$e->getMessage()], JSON_UNESCAPED_UNICODE));
+            return $res->withHeader('Content-Type','application/json')->withStatus(500);
+        }
+    }
+
+    /** OpenAI DALL·E 3 → base64 data URI. */
+    private static function imgGenOpenAI(string $key, string $prompt, string $ratio): string
+    {
+        $size = ($ratio === '9:16' || $ratio === '4:5') ? '1024x1792' : (($ratio === '16:9') ? '1792x1024' : '1024x1024');
+        $payload = json_encode(['model'=>'dall-e-3','prompt'=>mb_substr($prompt,0,3900),'n'=>1,'size'=>$size,'quality'=>'hd','response_format'=>'b64_json'], JSON_UNESCAPED_UNICODE);
+        $ch = curl_init('https://api.openai.com/v1/images/generations');
+        curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER=>true,CURLOPT_POST=>true,CURLOPT_POSTFIELDS=>$payload,CURLOPT_TIMEOUT=>60,CURLOPT_CONNECTTIMEOUT=>6,
+            CURLOPT_HTTPHEADER=>['Content-Type: application/json','Authorization: Bearer '.$key]]);
+        $raw = curl_exec($ch); $status = curl_getinfo($ch, CURLINFO_HTTP_CODE); $err = curl_error($ch); curl_close($ch);
+        if ($err) throw new \RuntimeException('curl: '.$err);
+        $j = json_decode($raw, true);
+        if ($status !== 200 || empty($j['data'][0]['b64_json'])) {
+            throw new \RuntimeException(($j['error']['message'] ?? ('OpenAI error '.$status)));
+        }
+        return 'data:image/png;base64,' . $j['data'][0]['b64_json'];
+    }
+
+    /** Stability AI(Stable Diffusion) → base64 data URI. */
+    private static function imgGenStability(string $key, string $prompt, string $ratio): string
+    {
+        $ar = ($ratio === '9:16') ? '9:16' : (($ratio === '4:5') ? '4:5' : (($ratio === '16:9') ? '16:9' : '1:1'));
+        $boundary = '----geniego'.bin2hex(random_bytes(8));
+        $parts = '';
+        foreach (['prompt'=>mb_substr($prompt,0,1900),'aspect_ratio'=>$ar,'output_format'=>'png'] as $k=>$v) {
+            $parts .= "--{$boundary}\r\nContent-Disposition: form-data; name=\"{$k}\"\r\n\r\n{$v}\r\n";
+        }
+        $parts .= "--{$boundary}--\r\n";
+        $ch = curl_init('https://api.stability.ai/v2beta/stable-image/generate/core');
+        curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER=>true,CURLOPT_POST=>true,CURLOPT_POSTFIELDS=>$parts,CURLOPT_TIMEOUT=>60,CURLOPT_CONNECTTIMEOUT=>6,
+            CURLOPT_HTTPHEADER=>['Content-Type: multipart/form-data; boundary='.$boundary,'Authorization: Bearer '.$key,'Accept: image/*']]);
+        $raw = curl_exec($ch); $status = curl_getinfo($ch, CURLINFO_HTTP_CODE); $err = curl_error($ch); curl_close($ch);
+        if ($err) throw new \RuntimeException('curl: '.$err);
+        if ($status !== 200) { $j = json_decode($raw, true); throw new \RuntimeException($j['errors'][0] ?? ('Stability error '.$status)); }
+        return 'data:image/png;base64,' . base64_encode($raw);
     }
 
     /** 196차 — 승인 디자인 저장 테이블(테넌트 스코프). Phase 2 캠페인 자동실행이 소비. */

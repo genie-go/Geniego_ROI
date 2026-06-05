@@ -1649,6 +1649,40 @@ final class UserAuth
         return self::json($res, ['ok' => true, 'message' => 'AI API 키가 저장되었습니다. 실시간 AI 디자인·분석이 활성화됩니다.']);
     }
 
+    // ── 196차 — 실사 이미지 생성 API(DALL·E/Stability) 키 설정(관리자). ──
+    /** GET /auth/admin/img-key — 이미지 생성 API 설정 여부 + provider. */
+    public static function imgKeyGet(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
+    {
+        [$user, $err] = self::requireAdminUser($req);
+        if ($err) return self::json($res, ['ok' => false, 'error' => $err[0]], $err[1]);
+        $pdo = Db::pdo(); self::ensureAppSetting($pdo);
+        $set = self::getAppSetting($pdo, 'imggen_api_key') !== '';
+        $provider = self::getAppSetting($pdo, 'imggen_provider'); if ($provider === '') $provider = 'openai';
+        $configured = false; try { $configured = \Genie\Handlers\ClaudeAI::imgGenConfigured(); } catch (\Throwable $e) {}
+        return self::json($res, ['ok' => true, 'key_set' => $set, 'configured' => $configured, 'provider' => $provider]);
+    }
+
+    /** POST /auth/admin/img-key {api_key, provider} — 이미지 생성 API 키·provider 저장. */
+    public static function imgKeySave(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
+    {
+        [$user, $err] = self::requireAdminUser($req);
+        if ($err) return self::json($res, ['ok' => false, 'error' => $err[0]], $err[1]);
+        $pdo = Db::pdo(); self::ensureAppSetting($pdo);
+        $b = self::readBody($req);
+        $provider = trim((string)($b['provider'] ?? 'openai'));
+        if (!in_array($provider, ['openai', 'stability'], true)) $provider = 'openai';
+        self::setAppSetting($pdo, 'imggen_provider', $provider);
+        $key = trim((string)($b['api_key'] ?? ''));
+        if ($key !== '') {
+            if (strlen($key) < 16) return self::json($res, ['ok' => false, 'error' => 'API 키 형식이 올바르지 않습니다.'], 422);
+            self::setAppSetting($pdo, 'imggen_api_key', $key);
+        } elseif (isset($b['clear']) && $b['clear']) {
+            self::setAppSetting($pdo, 'imggen_api_key', '');
+        }
+        self::audit($req, 'imgkey_config', '이미지 생성 API 키 설정', 'high', $user);
+        return self::json($res, ['ok' => true, 'message' => '이미지 생성 API가 저장되었습니다. 대화형 AI 디자인에서 실사 이미지가 활성화됩니다.']);
+    }
+
     // ═════════════════════════════════════════════════════════════
     // 189차 보안 하드닝 — 비밀번호 정책 / 로그인 rate-limit / MFA(TOTP)
     // ═════════════════════════════════════════════════════════════
