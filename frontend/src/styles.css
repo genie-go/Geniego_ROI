@@ -2321,6 +2321,17 @@ body:not([data-theme]) .sidebar-footer {
   --bg: rgba(245, 247, 250, 0.97);
   --surface: rgba(255, 255, 255, 0.92);
   --border: rgba(79, 142, 247, 0.18);
+  /* 193차 Sprint4 다크모드 일관성: 컴포넌트가 쓰는 별칭 var 가 라이트테마에 미정의되어
+     dark hex fallback(var(--surface-1,#070f1a) 등)으로 흰 배경에 어둡게 노출되던 버그 수정.
+     (다크테마는 이 var 미정의→컴포넌트 dark fallback 유지되어 무영향) */
+  --surface-1: #ffffff;
+  --surface-2: #f8f9fc;
+  --surface2: #f8f9fc;
+  --bg-1: rgba(245, 247, 250, 0.97);
+  --bg-2: #eef2f7;
+  --bg-card: rgba(255, 255, 255, 0.95);
+  --card-bg: rgba(255, 255, 255, 0.95);
+  --topbar-bg: rgba(255, 255, 255, 0.92);
 }
 
 /* Sidebar section header buttons - dark text on light sidebar */
@@ -2353,6 +2364,15 @@ body:not([data-theme]) .sidebar-footer {
   --bg: rgba(248, 249, 252, 0.97);
   --surface: rgba(255, 255, 255, 0.95);
   --border: rgba(55, 65, 81, 0.12);
+  /* 193차 Sprint4 다크모드 일관성: 라이트테마 별칭 var 보강(dark hex fallback 노출 방지) */
+  --surface-1: #ffffff;
+  --surface-2: #f8f9fc;
+  --surface2: #f8f9fc;
+  --bg-1: rgba(248, 249, 252, 0.97);
+  --bg-2: #eef2f7;
+  --bg-card: rgba(255, 255, 255, 0.95);
+  --card-bg: rgba(255, 255, 255, 0.95);
+  --topbar-bg: rgba(255, 255, 255, 0.95);
 }
 
 [data-theme="pearl_office"] .sidebar button {
