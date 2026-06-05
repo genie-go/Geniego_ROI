@@ -81,8 +81,11 @@ class RootErrorBoundary extends Component {
  * unhandledrejection 으로 샘(ErrorBoundary 미도달) → 흰 화면·깨진 렌더·"t is not defined".
  * 모든 경로에서 청크/모듈 로드 실패를 감지해 1회 자동 새로고침(no-cache index.html→최신 번들). */
 const CHUNK_RE = /Failed to fetch dynamically imported module|error loading dynamically imported module|Importing a module script failed|ChunkLoadError|Loading chunk \d+ failed|Unable to preload CSS/i;
+// stale 번들 불일치는 2차로 미니파이 변수 미스매치(ReferenceError "x is not defined")로도 샌다.
+// → 이런 증상도 1회 자동복구·거짓경보 정리 대상에 포함(현재 빌드는 clean 검증됨).
+const STALE_RE = /Failed to fetch dynamically imported module|error loading dynamically imported module|Importing a module script failed|ChunkLoadError|Loading chunk \d+ failed|Unable to preload CSS|is not defined|ReferenceError/i;
 function recoverFromStaleChunk(msg) {
-  if (!CHUNK_RE.test(String(msg || ''))) return false;
+  if (!STALE_RE.test(String(msg || ''))) return false;
   if (sessionStorage.getItem('stale_chunk_reloaded')) return false; // 무한루프 방지(1회)
   sessionStorage.setItem('stale_chunk_reloaded', '1');
   try { window.location.reload(); } catch (e) { window.location.href = window.location.href; }
@@ -91,11 +94,11 @@ function recoverFromStaleChunk(msg) {
 // 정상 부팅이 일정 시간 유지되면 플래그 해제(다음 배포 때 다시 1회 복구 가능)
 window.addEventListener('load', () => { setTimeout(() => { try { sessionStorage.removeItem('stale_chunk_reloaded'); } catch (e) {} }, 8000); });
 
-// 196차: 과거 잘못 기록된 stale-청크 에러 보안경보(거짓 "위협 감지") 정리.
+// 196차: 과거 잘못 기록된 stale-번들 에러 보안경보(거짓 "위협 감지": 청크/모듈 로드실패·ReferenceError) 정리.
 try {
   const a = JSON.parse(localStorage.getItem('g_sec_alerts') || '[]');
   if (Array.isArray(a) && a.length) {
-    const cleaned = a.filter(x => !CHUNK_RE.test(String((x && x.message) || '')));
+    const cleaned = a.filter(x => !STALE_RE.test(String((x && x.message) || '')));
     if (cleaned.length !== a.length) localStorage.setItem('g_sec_alerts', JSON.stringify(cleaned));
   }
 } catch (e) {}

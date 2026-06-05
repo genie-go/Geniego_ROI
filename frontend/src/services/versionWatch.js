@@ -19,7 +19,7 @@ async function fetchBundleId() {
   } catch (e) { return null; }
 }
 
-export function startVersionWatch(intervalMs = 120000) {
+export function startVersionWatch(intervalMs = 60000) {
   if (typeof window === 'undefined' || started) return;
   started = true;
   fetchBundleId().then(id => { if (id) initialBundle = id; });

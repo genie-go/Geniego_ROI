@@ -152,7 +152,7 @@ class ErrorBoundary extends Component {
     // 196차: 배포 중 stale 청크/모듈 로드 실패는 "보안 위협"이 아니라 배포 산출물 → 보안 알림에
     //   기록하지 않고(거짓 위협경보 방지) 자동 새로고침으로 최신 번들 복구.
     const isChunkError = err?.name === 'ChunkLoadError'
-      || /Failed to fetch dynamically imported module|error loading dynamically imported module|Importing a module script failed|Loading chunk \d+ failed|Unable to preload CSS/i.test(String(err?.message || err));
+      || /Failed to fetch dynamically imported module|error loading dynamically imported module|Importing a module script failed|Loading chunk \d+ failed|Unable to preload CSS|is not defined|ReferenceError/i.test(String(err?.message || err));
     if (isChunkError) {
       if (!sessionStorage.getItem('chunk_reloaded')) {
         sessionStorage.setItem('chunk_reloaded', '1');
@@ -484,14 +484,28 @@ function VersionUpdateBanner() {
   const [show, setShow] = React.useState(false);
   const pending = React.useRef(false);
   const lastPath = React.useRef(location.pathname);
-  React.useEffect(() => {
-    startVersionWatch();
-    const off = onNewVersion(() => { pending.current = true; setShow(true); });
-    return off;
+  const timerRef = React.useRef(null);
+  // 196차: 사용자가 수동 새로고침하지 않아도 최신 변경이 자동 반영되도록 — 새 버전 감지 시
+  //   ①다음 화면 이동에 즉시 reload ②이동이 없어도 약간의 유예(6초) 후 자동 reload.
+  //   입력(input/textarea/select) 포커스 중이면 작업 보호를 위해 잠시 미루고 재시도.
+  const doReload = React.useCallback(() => {
+    const el = document.activeElement;
+    const typing = el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || el.isContentEditable);
+    if (typing) { timerRef.current = setTimeout(doReload, 4000); return; } // 입력 중이면 4초 뒤 재시도
+    window.location.reload();
   }, []);
   React.useEffect(() => {
+    startVersionWatch();
+    const off = onNewVersion(() => {
+      pending.current = true; setShow(true);
+      if (timerRef.current) clearTimeout(timerRef.current);
+      timerRef.current = setTimeout(doReload, 6000); // 자동 적용(새로고침 불요)
+    });
+    return () => { off && off(); if (timerRef.current) clearTimeout(timerRef.current); };
+  }, [doReload]);
+  React.useEffect(() => {
     if (pending.current && location.pathname !== lastPath.current) {
-      window.location.reload(); // 다음 화면 이동 시 자연스럽게 최신 반영
+      window.location.reload(); // 화면 이동 시 즉시 최신 반영
     }
     lastPath.current = location.pathname;
   }, [location.pathname]);
@@ -501,11 +515,11 @@ function VersionUpdateBanner() {
       display: "flex", alignItems: "center", gap: 12, padding: "11px 16px", borderRadius: 14,
       background: "rgba(15,23,42,0.94)", color: "#fff", boxShadow: "0 16px 48px rgba(15,23,42,0.4)",
       border: "1px solid rgba(255,255,255,0.12)", backdropFilter: "blur(12px)", fontSize: 13, fontWeight: 600 }}>
-      <span>✨ 새 버전이 배포되었습니다. 최신 내용으로 업데이트합니다.</span>
+      <span>✨ 최신 버전으로 자동 업데이트 중…</span>
       <button onClick={() => window.location.reload()}
         style={{ padding: "7px 16px", borderRadius: 10, border: "none", cursor: "pointer",
           background: "linear-gradient(135deg,#4f8ef7,#6366f1)", color: "#fff", fontWeight: 800, fontSize: 12.5 }}>
-        지금 새로고침
+        지금 적용
       </button>
     </div>
   );
