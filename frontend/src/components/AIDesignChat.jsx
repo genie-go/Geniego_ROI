@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { IS_DEMO } from '../utils/demoEnv';
 import { useI18n } from '../i18n';
+import { AI_DESIGN_SAMPLES, SAMPLE_CATEGORIES } from '../data/aiDesignSamples.js';
 
 /* 196차 — 대화형 AI 디자인. 사용자가 자유 자연어로 대화하며 광고 디자인을 생성·수정.
  * 좌: 채팅(요청·수정), 우: 실시간 디자인 미리보기 + AI 정밀 SVG + 임시저장/저장. 실 Claude AI. */
@@ -88,7 +89,18 @@ export default function AIDesignChat({ onApplied }) {
   const [rendering, setRendering] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState(null);
+  const [showGallery, setShowGallery] = useState(true);
+  const [galCat, setGalCat] = useState('static');
   const scrollRef = useRef(null);
+
+  const selectSample = (s) => {
+    setDesign(s.design); setSvg(s.svg); setImage(null); setVideo(null); setVideoStatus(null); setSaveMsg(null);
+    setMode(s.render_type === 'animated' ? 'animated' : s.render_type === 'chart' ? 'chart' : 'auto');
+    setMessages([
+      { role: 'assistant', content: `'${s.name}' 샘플을 불러왔어요. 오른쪽 미리보기를 확인하고, 자유롭게 수정 요청을 입력하세요. 예: "헤드라인을 우리 브랜드명으로", "색을 더 밝게", "CTA를 '무료 체험'으로"` },
+    ]);
+    setShowGallery(false);
+  };
 
   useEffect(() => { const el = scrollRef.current; if (el) el.scrollTop = el.scrollHeight; }, [messages, busy]);
 
@@ -187,7 +199,34 @@ export default function AIDesignChat({ onApplied }) {
   const inputStyle = { flex: 1, padding: '12px 14px', borderRadius: 12, border: '1px solid #cbd5e1', background: '#fff', color: '#0f172a', fontSize: 14, outline: 'none' };
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,0.8fr) auto', gap: 18, alignItems: 'start' }}>
+    <div style={{ display: 'grid', gap: 14 }}>
+      {/* 럭셔리 샘플 갤러리 */}
+      <div style={{ borderRadius: 16, border: '1px solid var(--border,#e2e8f0)', background: 'var(--bg-card,#fff)', overflow: 'hidden' }}>
+        <button onClick={() => setShowGallery(v => !v)} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '13px 18px', border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg, #eef2ff, #f5f3ff)', fontWeight: 900, fontSize: 14, color: '#1e293b' }}>
+          <span>🎨 {t('aiChat.gallery', '럭셔리 샘플 갤러리')} <span style={{ fontSize: 11, fontWeight: 600, color: '#64748b' }}>— 선택 → 대화로 수정 → 저장</span></span>
+          <span style={{ fontSize: 12, color: '#6366f1' }}>{showGallery ? '▲ 접기' : '▼ 펼치기'}</span>
+        </button>
+        {showGallery && (
+          <div style={{ padding: 16 }}>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
+              {SAMPLE_CATEGORIES.map(c => (
+                <button key={c.cat} onClick={() => setGalCat(c.cat)} style={{ padding: '7px 14px', borderRadius: 9, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 800, background: galCat === c.cat ? 'linear-gradient(135deg,#a855f7,#4f8ef7)' : 'rgba(99,102,241,0.07)', color: galCat === c.cat ? '#fff' : '#64748b' }}>{c.label}</button>
+              ))}
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(130px,1fr))', gap: 12 }}>
+              {AI_DESIGN_SAMPLES.filter(s => s.category === galCat).map(s => (
+                <button key={s.id} onClick={() => selectSample(s)} title={s.name} style={{ padding: 0, border: '1px solid rgba(0,0,0,0.08)', borderRadius: 12, overflow: 'hidden', cursor: 'pointer', background: '#fff' }}>
+                  <div style={{ width: '100%', aspectRatio: '1/1', overflow: 'hidden' }} dangerouslySetInnerHTML={{ __html: s.svg.replace('<svg', '<svg width="100%" height="100%" preserveAspectRatio="xMidYMid slice"') }} />
+                  <div style={{ padding: '6px 8px', fontSize: 10, fontWeight: 700, color: '#475569', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.name}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* 채팅 + 미리보기 */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,0.8fr) auto', gap: 18, alignItems: 'start' }}>
       {/* 채팅 */}
       <div style={{ display: 'flex', flexDirection: 'column', height: 610, borderRadius: 16, border: '1px solid var(--border,#e2e8f0)', background: 'var(--bg-card,#fff)', overflow: 'hidden' }}>
         <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border,#e2e8f0)', fontWeight: 900, fontSize: 14, color: '#1e293b', background: 'linear-gradient(135deg, #eef2ff, #f5f3ff)' }}>💬 {t('aiChat.title', '대화형 AI 디자인')}</div>
@@ -256,6 +295,7 @@ export default function AIDesignChat({ onApplied }) {
           </>
         )}
         {saveMsg && <div style={{ width: '100%', padding: '8px 11px', borderRadius: 9, fontSize: 11.5, fontWeight: 600, background: saveMsg.ok ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.08)', color: saveMsg.ok ? '#16a34a' : '#dc2626' }}>{saveMsg.text}</div>}
+      </div>
       </div>
     </div>
   );
