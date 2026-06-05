@@ -5,6 +5,7 @@ import { useGlobalData } from '../context/GlobalDataContext.jsx';
 import { useNavigate } from 'react-router-dom';
 import { useI18n } from '../i18n/index.js';
 import ApprovalModal from '../components/ApprovalModal.jsx';
+import AutoCampaignLaunch from '../components/AutoCampaignLaunch.jsx'; // 196차 Phase2 — AI디자인 연결+자동실행
 import { useSecurityGuard } from '../security/SecurityGuard.js';
 import { useCurrency } from '../contexts/CurrencyContext.jsx';
 import { useConnectorSync } from '../context/ConnectorSyncContext.jsx';
@@ -1112,6 +1113,14 @@ export default function AutoMarketing() {
                                         </button>
                                     </div>
                                 </div>
+
+                                {/* 196차 Phase2 — AI 디자인 연결 + 광고 자동 실행 */}
+                                <AutoCampaignLaunch
+                                    draft={draft}
+                                    category={PRODUCT_CATEGORIES.find(c => selCats[0] === c.id)?.label || ''}
+                                    campaignName={campaignName}
+                                    period={period}
+                                />
                             </>
                         )}
                     </div>
