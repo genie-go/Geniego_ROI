@@ -48,18 +48,20 @@ const AI_INSIGHTS = [
 ];
 
 /* ─── helpers ────────────────────────────────────────────────── */
-function TrendIcon({ t }) {
-  if (t === "up")   return <span style={{ color: "#22c55e", fontSize: 11, fontWeight: 700 }}>▲ 상승</span>;
-  if (t === "down") return <span style={{ color: "#ef4444", fontSize: 11, fontWeight: 700 }}>▼ 하락</span>;
-  return <span style={{ color: "#7c8fa8", fontSize: 11 }}>─ 유지</span>;
+function TrendIcon({ t: dir }) {
+  const t = useT();
+  if (dir === "up")   return <span style={{ color: "#22c55e", fontSize: 11, fontWeight: 700 }}>▲ {t('digitalShelf.trendUp', '상승')}</span>;
+  if (dir === "down") return <span style={{ color: "#ef4444", fontSize: 11, fontWeight: 700 }}>▼ {t('digitalShelf.trendDown', '하락')}</span>;
+  return <span style={{ color: "#7c8fa8", fontSize: 11 }}>─ {t('digitalShelf.trendFlat', '유지')}</span>;
 }
 
 function SoSBar({ brand, comp }) {
+  const t = useT();
   const other = Math.max(0, 100 - brand - comp);
   return (
     <div style={{ display: "flex", height: 6, borderRadius: 4, overflow: "hidden", minWidth: 100, gap: 1 }}>
-      <div style={{ width: `${brand}%`, background: "#4f8ef7" }} title={`자사 ${brand}%`} />
-      <div style={{ width: `${comp}%`, background: "#ef4444" }} title={`경쟁사 ${comp}%`} />
+      <div style={{ width: `${brand}%`, background: "#4f8ef7" }} title={`${t('digitalShelf.ownLabel', '자사')} ${brand}%`} />
+      <div style={{ width: `${comp}%`, background: "#ef4444" }} title={`${t('digitalShelf.compLabel', '경쟁사')} ${comp}%`} />
       <div style={{ width: `${other}%`, background: "rgba(255,255,255,0.07)" }} />
     </div>
   );
@@ -93,13 +95,13 @@ function AddKeywordModal({ onClose, onAdd }) {
       <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)", zIndex: 200 }} />
       <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%,-50%)", width: "min(440px,94vw)", background: "linear-gradient(180deg,var(--surface),#090f1e)", border: "1px solid rgba(79,142,247,0.3)", borderRadius: 20, padding: 28, zIndex: 201, boxShadow: "0 24px 64px rgba(0,0,0,0.7)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 20 }}>
-          <div style={{ fontWeight: 800, fontSize: 15 }}>🔍 키워드 Add</div>
+          <div style={{ fontWeight: 800, fontSize: 15 }}>🔍 {t('digitalShelf.addKeyword', '키워드 추가')}</div>
           <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-3)", fontSize: 18 }}>✕</button>
         </div>
         <div style={{ display: "grid", gap: 14 }}>
           <div>
-            <label className="input-label">키워드 *</label>
-            <input className="input" value={kw} onChange={e => setKw(e.target.value)} placeholder="예: Wireless Earbuds" />
+            <label className="input-label">{t('digitalShelf.keywordLabel', '키워드')} *</label>
+            <input className="input" value={kw} onChange={e => setKw(e.target.value)} placeholder={t('digitalShelf.keywordPh', '예: Wireless Earbuds')} />
           </div>
           <div>
             <label className="input-label">{t('digitalShelf.channel', '채널')}</label>
@@ -109,11 +111,11 @@ function AddKeywordModal({ onClose, onAdd }) {
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
             <div>
-              <label className="input-label">자사 SoS (%)</label>
+              <label className="input-label">{t('digitalShelf.ownSosLabel', '자사 SoS (%)')}</label>
               <input className="input" type="number" min="0" max="100" value={brandSos} onChange={e => setBrandSos(e.target.value)} />
             </div>
             <div>
-              <label className="input-label">경쟁사 SoS (%)</label>
+              <label className="input-label">{t('digitalShelf.compSosLabel', '경쟁사 SoS (%)')}</label>
               <input className="input" type="number" min="0" max="100" value={compSos} onChange={e => setCompSos(e.target.value)} />
             </div>
           </div>
@@ -447,7 +449,7 @@ export default function DigitalShelf() {
                     <tr key={kw.keyword + "_expand"}>
                       <td colSpan={11} style={{ padding: 0 }}>
                         <div style={{ padding: "12px 16px", background: "rgba(79,142,247,0.03)", borderTop: "1px solid rgba(99,140,255,0.1)" }}>
-                          <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-3)", marginBottom: 10 }}>📊 Channelper 상세</div>
+                          <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-3)", marginBottom: 10 }}>📊 {t('digitalShelf.channelDetail', '채널별 상세')}</div>
                           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
                             {Object.entries(kw.channels).map(([chId, data]) => {
                               const ch = CHANNELS.find(c => c.id === chId) || { name: chId, icon: "🛒", color: "#4f8ef7" };
@@ -480,13 +482,13 @@ export default function DigitalShelf() {
           </tbody>
         </table>
         {filtered.length === 0 && (
-          <div style={{ textAlign: "center", padding: 32, color: "var(--text-3)" }}>Search 결과 None</div>
+          <div style={{ textAlign: "center", padding: 32, color: "var(--text-3)" }}>{t('digitalShelf.noSearchResult', '검색 결과 없음')}</div>
         )}
       </div>
 
       {/* Channelper Rank 현황 */}
       <div className="card card-glass fade-up fade-up-4">
-        <div className="section-title" style={{ marginBottom: 12 }}>📡 Channelper 키워드 커버리지</div>
+        <div className="section-title" style={{ marginBottom: 12 }}>📡 {t('digitalShelf.channelKwCoverage', '채널별 키워드 커버리지')}</div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10 }}>
           {CHANNELS.map(ch => {
             const covered = KEYWORDS_INIT.filter(kw => kw.channels[ch.id]).length;
@@ -496,8 +498,8 @@ export default function DigitalShelf() {
                 <div style={{ fontWeight: 700, fontSize: 12, color: ch.color, marginBottom: 10 }}>{ch.icon} {ch.name}</div>
                 <div style={{ display: "grid", gap: 5 }}>
                   {[
-                    ["추적 키워드", covered + "개"],
-                    ["Top 3 키워드", top3 + "개"],
+                    [t('digitalShelf.trackedKw', '추적 키워드'), covered + t('digitalShelf.unitCount', '개')],
+                    [t('digitalShelf.top3Kw', 'Top 3 키워드'), top3 + t('digitalShelf.unitCount', '개')],
                   ].map(([l, v]) => (
                     <div key={l} style={{ display: "flex", justifyContent: "space-between", fontSize: 11 }}>
                       <span style={{ color: "var(--text-3)" }}>{l}</span>
@@ -518,7 +520,7 @@ export default function DigitalShelf() {
       {/* Top Product */}
       <div className="card card-glass fade-up fade-up-5">
         <div className="section-header">
-          <div className="section-title">🏆 Channel 내 TOP Product Rank</div>
+          <div className="section-title">🏆 {t('digitalShelf.topProductRank', '채널 내 TOP 상품 순위')}</div>
         </div>
         <div style={{ display: "grid", gap: 10 }}>
           {TOP_PRODUCTS.map((p, i) => {
@@ -541,7 +543,7 @@ export default function DigitalShelf() {
                     <div style={{ fontWeight: 700, color: "#fde047" }}>★ {p.rating}</div>
                   </div>
                   <div style={{ textAlign: "center" }}>
-                    <div style={{ color: "var(--text-3)", fontSize: 10 }}>리뷰</div>
+                    <div style={{ color: "var(--text-3)", fontSize: 10 }}>{t('digitalShelf.reviews', '리뷰')}</div>
                     <div style={{ fontWeight: 700 }}>{p.reviews.toLocaleString()}</div>
                   </div>
                   <div style={{ textAlign: "center" }}>
@@ -600,7 +602,7 @@ function ListingQualitySection() {
               </div>
               <div style={{ textAlign:'center' }}>
                 <div style={{ fontSize:28, fontWeight:900, color:scoreColor(score) }}>{score}</div>
-                <div style={{ fontSize:9, color:'var(--text-3)' }}>/ 100점</div>
+                <div style={{ fontSize:9, color:'var(--text-3)' }}>/ {t('digitalShelf.outOf100', '100점')}</div>
               </div>
             </div>
             <div style={{ display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:8, marginBottom:12 }}>
