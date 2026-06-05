@@ -89,9 +89,9 @@ function ChannelsTab() {
                             <Badge label={ch.channel_key} color={chColor(ch.channel_key)} />
                         </div>
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 4, fontSize: 11, color: "#94a3b8" }}>
-                            <span>화폐</span><span style={{ color: '#fff' }}>{ch.currency}</span>
-                            <span>정산 주기</span><span style={{ color: '#fff' }}>{ch.settlement_cycle}</span>
-                            <span>부가세</span><span style={{ color: '#fff' }}>{(ch.vat_rate * 100).toFixed(0)}%</span>
+                            <span>{t('krChannel.lblCurrency', '화폐')}</span><span style={{ color: '#fff' }}>{ch.currency}</span>
+                            <span>{t('krChannel.lblSettleCycle', '정산 주기')}</span><span style={{ color: '#fff' }}>{ch.settlement_cycle}</span>
+                            <span>{t('krChannel.lblVat', '부가세')}</span><span style={{ color: '#fff' }}>{(ch.vat_rate * 100).toFixed(0)}%</span>
                         </div>
                         {ch.note && (<div style={{ marginTop: 6, fontSize: 10, color: "#64748b", borderTop: "1px solid #1c2842", paddingTop: 4 }}>{ch.note}</div>)}
                     </div>
@@ -136,7 +136,7 @@ function FeeRulesTab() {
             return_fee_standard: parseFloat(form.return_fee_standard) || 0,
             vat_rate: parseFloat(form.vat_rate) || 0.1,
         });
-        setMsg(d.ok ? "✅ 저장됨 (id:" + d.id + ")" : "❌ " + d.error);
+        setMsg(d.ok ? t('krChannel.saved', '✅ 저장됨') + " (id:" + d.id + ")" : "❌ " + d.error);
         if (sel) loadRules(sel);
     };
 
@@ -192,10 +192,10 @@ function FeeRulesTab() {
                             <span style={{ color: "#64748b" }}>{r.effective_from}</span>
                         </div>
                         <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 4, color: "#94a3b8" }}>
-                            <span>수수료 <b style={{ color: '#fff' }}>{PCT(r.platform_fee_rate * 100)}</b></span>
-                            <span>광고 <b style={{ color: '#fff' }}>{PCT(r.ad_fee_rate * 100)}</b></span>
-                            <span>배송 <b style={{ color: '#fff' }}>{KRW(r.shipping_standard)}</b></span>
-                            <span>부가세 <b style={{ color: '#fff' }}>{PCT(r.vat_rate * 100)}</b></span>
+                            <span>{t('krChannel.feeShort', '수수료')} <b style={{ color: '#fff' }}>{PCT(r.platform_fee_rate * 100)}</b></span>
+                            <span>{t('krChannel.adShort', '광고')} <b style={{ color: '#fff' }}>{PCT(r.ad_fee_rate * 100)}</b></span>
+                            <span>{t('krChannel.shipShort', '배송')} <b style={{ color: '#fff' }}>{KRW(r.shipping_standard)}</b></span>
+                            <span>{t('krChannel.lblVat', '부가세')} <b style={{ color: '#fff' }}>{PCT(r.vat_rate * 100)}</b></span>
                         </div>
                         {r.note && <div style={{ color: "#64748b", marginTop: 3 }}>{r.note}</div>}
                     </div>
@@ -225,6 +225,7 @@ const _LINES = {
 };
 
 function IngestTab() {
+    const t = useT();
     const [channels, setChannels] = useState([]);
     const [sel, setSel] = useState("coupang");
     const [linesJson, setLinesJson] = useState(JSON.stringify(_LINES["coupang"], null, 2));
@@ -251,12 +252,12 @@ function IngestTab() {
             try {
                 d = await postJson(`${API}/v419/kr/settle/ingest`, { channel_key: sel, lines });
             } catch {
-                setMsg({ type: "ok", text: `✅ [MOCK] ${lines.length}건 재처리 완료 (${sel}) — 백엔드 API 미연결` });
+                setMsg({ type: "ok", text: t('krChannel.mockReprocessed', '✅ [MOCK] {{n}}건 재처리 완료 ({{ch}}) — 백엔드 API 미연결', { n: lines.length, ch: sel }) });
                 return;
             }
             setMsg({
                 type: d.ok ? "ok" : "err",
-                text: d.ok ? `✅ ${d.inserted}건 재처리 완료 (${sel})` : "❌ " + (d.error || JSON.stringify(d)),
+                text: d.ok ? t('krChannel.reprocessed', '✅ {{n}}건 재처리 완료 ({{ch}})', { n: d.inserted, ch: sel }) : "❌ " + (d.error || JSON.stringify(d)),
             });
         } catch (e) {
             setMsg({ type: "err", text: "❌ " + e.message });
@@ -265,19 +266,19 @@ function IngestTab() {
 
     return (
         <div>
-            <h4 style={{ marginTop: 0, fontSize: 13 }}>정산 라인 재처리 (표준 포맷)</h4>
+            <h4 style={{ marginTop: 0, fontSize: 13 }}>{t('krChannel.ingestTitle', '정산 라인 재처리 (표준 포맷)')}</h4>
             <div style={{ display: "flex", gap: 10, marginBottom: 10, flexWrap: "wrap" }}>
                 <select value={sel} onChange={(e) => load(e.target.value)}
                     style={{ background: "#0f172a", border: "1px solid #1c2842", borderRadius: 6, color: '#fff', padding: "5px 10px", fontSize: 12 }}>
                     {channels.map((c) => <option key={c.channel_key} value={c.channel_key}>{c.display_name}</option>)}
                 </select>
-                <button className="btn" onClick={() => load(sel)}>샘플 데이터 로드</button>
+                <button className="btn" onClick={() => load(sel)}>{t('krChannel.loadSample', '샘플 데이터 로드')}</button>
                 <button className="btn" onClick={ingest} disabled={loading} style={{ background: "#6366f1" }}>
-                    {loading ? "⏳" : "📥 정산 재처리"}
+                    {loading ? "⏳" : t('krChannel.reprocessBtn', '📥 정산 재처리')}
                 </button>
             </div>
             <div style={{ fontSize: 11, color: "#64748b", marginBottom: 6 }}>
-                <b style={{ color: "#94a3b8" }}>필수 필드:</b> order_id, period_start, period_end, sku, product_name, qty, sell_price, gross_sales, platform_fee, ad_fee, shipping_fee, return_fee, vat, coupon_discount, point_discount, other_deductions, net_payout, currency
+                <b style={{ color: "#94a3b8" }}>{t('krChannel.requiredFields', '필수 필드:')}</b> order_id, period_start, period_end, sku, product_name, qty, sell_price, gross_sales, platform_fee, ad_fee, shipping_fee, return_fee, vat, coupon_discount, point_discount, other_deductions, net_payout, currency
             </div>
             <textarea value={linesJson} onChange={(e) => setLinesJson(e.target.value)} rows={18}
                 style={{ width: "100%", background: "#0a0f1a", border: "1px solid #1c2842", borderRadius: 6, color: "#94d9a2", fontFamily: "monospace", fontSize: 11, padding: 10, boxSizing: "border-box" }} />
@@ -292,6 +293,7 @@ function IngestTab() {
 
 // ── Tab: Summary ──────────────────────────────────────────────────────────────
 function SummaryTab() {
+    const t = useT();
     const [data, setData] = useState(null);
     const [since, setSince] = useState(new Date().toISOString().slice(0, 8) + "01");
     const [until, setUntil] = useState(new Date().toISOString().slice(0, 10));
@@ -303,9 +305,9 @@ function SummaryTab() {
     useEffect(load, [load]);
 
     const cols = [
-        ["gross_sales", "매출액"], ["platform_fee", "플랫폼 수수료"], ["ad_fee", "광고비"],
-        ["shipping_fee", "배송비"], ["return_fee", "반품비"], ["coupon_discount", "쿠폰할인"],
-        ["net_payout", "정산액"], ["effective_fee_rate_pct", "유효 수수료율"],
+        ["gross_sales", t('krChannel.colGrossSales', '매출액')], ["platform_fee", t('krChannel.colPlatformFee', '플랫폼 수수료')], ["ad_fee", t('krChannel.colAdFee', '광고비')],
+        ["shipping_fee", t('krChannel.colShipFee', '배송비')], ["return_fee", t('krChannel.colReturnFee', '반품비')], ["coupon_discount", t('krChannel.colCoupon', '쿠폰할인')],
+        ["net_payout", t('krChannel.colNetPayout', '정산액')], ["effective_fee_rate_pct", t('krChannel.colEffRate', '유효 수수료율')],
     ];
 
     return (
@@ -315,13 +317,13 @@ function SummaryTab() {
                     <input key={k} type="date" value={v} onChange={(e) => s(e.target.value)}
                         style={{ background: "#0f172a", border: "1px solid #1c2842", borderRadius: 6, color: '#fff', padding: "5px 8px", fontSize: 12 }} />
                 ))}
-                <button className="btn" onClick={load}>조회</button>
+                <button className="btn" onClick={load}>{t('krChannel.search', '조회')}</button>
             </div>
 
             {data && (
                 <>
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: 10, marginBottom: 16 }}>
-                        {[["gross_sales", "총 매출액", "#6366f1"], ["platform_fee", "총 수수료", "#ef4444"], ["net_payout", "총 정산액", "#22c55e"]].map(([k, label, color]) => (
+                        {[["gross_sales", t('krChannel.totalGrossSales', '총 매출액'), "#6366f1"], ["platform_fee", t('krChannel.totalFee', '총 수수료'), "#ef4444"], ["net_payout", t('krChannel.totalNetPayout', '총 정산액'), "#22c55e"]].map(([k, label, color]) => (
                             <div key={k} className="card" style={{ borderLeft: `3px solid ${color}` }}>
                                 <div style={{ fontSize: 10, color: "#7c8fa8" }}>{label}</div>
                                 <div style={{ fontSize: 18, fontWeight: 800, color }}>{KRW(data.totals?.[k])}</div>
@@ -333,8 +335,8 @@ function SummaryTab() {
                         <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 11 }}>
                             <thead>
                                 <tr style={{ borderBottom: "1px solid #1c2842", color: "#7c8fa8" }}>
-                                    <th style={{ padding: "5px 8px", textAlign: "left" }}>채널</th>
-                                    <th style={{ padding: "5px 8px", textAlign: "right" }}>건수</th>
+                                    <th style={{ padding: "5px 8px", textAlign: "left" }}>{t('krChannel.colChannel', '채널')}</th>
+                                    <th style={{ padding: "5px 8px", textAlign: "right" }}>{t('krChannel.colCount', '건수')}</th>
                                     {cols.map(([k, label]) => <th key={k} style={{ padding: "5px 8px", textAlign: "right", fontWeight: 500, fontSize: 10 }}>{label}</th>)}
                                 </tr>
                             </thead>
@@ -357,7 +359,7 @@ function SummaryTab() {
                                 ))}
                                 {!data.channels?.length && (
                                     <tr><td colSpan={cols.length + 2} style={{ padding: 24, textAlign: "center", color: "#64748b" }}>
-                                        데이터 없음 — 정산 재처리 탭에서 데이터를 먼저 재처리하세요
+                                        {t('krChannel.noDataReprocess', '데이터 없음 — 정산 재처리 탭에서 데이터를 먼저 재처리하세요')}
                                     </td></tr>
                                 )}
                             </tbody>
@@ -372,6 +374,7 @@ function SummaryTab() {
 
 // ── Tab: Recon ────────────────────────────────────────────────────────────────
 function ReconTab() {
+    const t = useT();
     const [channels, setChannels] = useState([]);
     const [form, setForm] = useState({
         channel_key: "coupang",
@@ -414,10 +417,10 @@ function ReconTab() {
     return (
         <div>
             <div className="card" style={{ marginBottom: 14 }}>
-                <h4 style={{ marginTop: 0, fontSize: 13 }}>대사 실행</h4>
+                <h4 style={{ marginTop: 0, fontSize: 13 }}>{t('krChannel.reconRun', '대사 실행')}</h4>
                 <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "flex-end" }}>
                     <div>
-                        <label style={{ fontSize: 11, color: "#7c8fa8", display: "block", marginBottom: 2 }}>채널</label>
+                        <label style={{ fontSize: 11, color: "#7c8fa8", display: "block", marginBottom: 2 }}>{t('krChannel.colChannel', '채널')}</label>
                         <select value={form.channel_key} onChange={(e) => setForm((f) => ({ ...f, channel_key: e.target.value }))}
                             style={{ background: "#0f172a", border: "1px solid #1c2842", borderRadius: 6, color: '#fff', padding: "5px 10px", fontSize: 12 }}>
                             {channels.map((c) => <option key={c.channel_key} value={c.channel_key}>{c.display_name}</option>)}
@@ -426,14 +429,14 @@ function ReconTab() {
                     {["period_start", "period_end"].map((k) => (
                         <div key={k}>
                             <label style={{ fontSize: 11, color: "#7c8fa8", display: "block", marginBottom: 2 }}>
-                                {k === "period_start" ? "시작일" : "종료일"}
+                                {k === "period_start" ? t('krChannel.startDate', '시작일') : t('krChannel.endDate', '종료일')}
                             </label>
                             <input type="date" value={form[k]} onChange={(e) => setForm((f) => ({ ...f, [k]: e.target.value }))}
                                 style={{ background: "#0f172a", border: "1px solid #1c2842", borderRadius: 6, color: '#fff', padding: "5px 8px", fontSize: 12 }} />
                         </div>
                     ))}
                     <button className="btn" onClick={run} disabled={loading}>
-                        {loading ? "⏳ 실행 중…" : "🔍 대사 실행"}
+                        {loading ? t('krChannel.running', '⏳ 실행 중…') : t('krChannel.runReconBtn', '🔍 대사 실행')}
                     </button>
                 </div>
             </div>
@@ -446,47 +449,47 @@ function ReconTab() {
                         {r.channel_key} · {r.period_start?.slice(0, 7)} · {r.status}
                     </button>
                 ))}
-                {!reports.length && <div className="sub" style={{ fontSize: 12 }}>대사 리포트 없음</div>}
+                {!reports.length && <div className="sub" style={{ fontSize: 12 }}>{t('krChannel.noReports', '대사 리포트 없음')}</div>}
             </div>
 
             {selReport && (
                 <div>
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))", gap: 10, marginBottom: 14 }}>
-                        {[["total_orders", "전체", "#6366f1"], ["matched", "일치", "#22c55e"], ["mismatch", "불일치", "#ef4444"], ["missing_settlement", "정산 누락", "#f97316"], ["missing_order", "주문 누락", "#eab308"]].map(([k, label, color]) => (
+                        {[["total_orders", t('krChannel.reconTotal', '전체'), "#6366f1"], ["matched", t('krChannel.reconMatched', '일치'), "#22c55e"], ["mismatch", t('krChannel.reconMismatch', '불일치'), "#ef4444"], ["missing_settlement", t('krChannel.reconMissingSettle', '정산 누락'), "#f97316"], ["missing_order", t('krChannel.reconMissingOrder', '주문 누락'), "#eab308"]].map(([k, label, color]) => (
                             <div key={k} className="card" style={{ borderLeft: `3px solid ${color}` }}>
                                 <div style={{ fontSize: 10, color: "#7c8fa8" }}>{label}</div>
                                 <div style={{ fontSize: 20, fontWeight: 800, color }}>{selReport[k]}</div>
                             </div>
                         ))}
                         <div className="card" style={{ borderLeft: "3px solid #ef4444" }}>
-                            <div style={{ fontSize: 10, color: "#7c8fa8" }}>순액 차이</div>
+                            <div style={{ fontSize: 10, color: "#7c8fa8" }}>{t('krChannel.netDiff', '순액 차이')}</div>
                             <div style={{ fontSize: 18, fontWeight: 800, color: "#ef4444" }}>{KRW(selReport.net_diff)}</div>
                         </div>
                         <div className="card" style={{ borderLeft: "3px solid #f97316" }}>
-                            <div style={{ fontSize: 10, color: "#7c8fa8" }}>수수료 차이</div>
+                            <div style={{ fontSize: 10, color: "#7c8fa8" }}>{t('krChannel.feeDiff', '수수료 차이')}</div>
                             <div style={{ fontSize: 18, fontWeight: 800, color: "#f97316" }}>{KRW(selReport.fee_diff)}</div>
                         </div>
                     </div>
 
-                    <h4 style={{ fontSize: 13, marginBottom: 8 }}>차이 티켓 ({selReport.tickets?.length || 0}건)</h4>
+                    <h4 style={{ fontSize: 13, marginBottom: 8 }}>{t('krChannel.diffTickets', '차이 티켓')} ({selReport.tickets?.length || 0}{t('krChannel.countCases', '건')})</h4>
                     {selReport.tickets?.length ? (
                         <div style={{ display: "grid", gap: 8 }}>
-                            {selReport.tickets.map((t) => (
-                                <div key={t.id} style={{ padding: "10px 12px", background: "#0f172a", borderRadius: 8, border: "1px solid #1c2842" }}>
+                            {selReport.tickets.map((tk) => (
+                                <div key={tk.id} style={{ padding: "10px 12px", background: "#0f172a", borderRadius: 8, border: "1px solid #1c2842" }}>
                                     <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", marginBottom: 4 }}>
-                                        <Badge label={t.category} color={chColor(t.channel_key)} />
-                                        <Sev s={t.severity} />
-                                        <span style={{ fontFamily: "monospace", fontSize: 11, color: "#94a3b8" }}>{t.order_id || "?"}</span>
+                                        <Badge label={tk.category} color={chColor(tk.channel_key)} />
+                                        <Sev s={tk.severity} />
+                                        <span style={{ fontFamily: "monospace", fontSize: 11, color: "#94a3b8" }}>{tk.order_id || "?"}</span>
                                         <div style={{ flex: 1 }} />
-                                        <span style={{ color: "#ef4444", fontSize: 11, fontWeight: 700 }}>net △ {KRW(t.net_diff)}</span>
-                                        <span style={{ color: "#f97316", fontSize: 11, fontWeight: 700 }}>fee △ {KRW(t.fee_diff)}</span>
-                                        <TicketStatus t={t} onPatch={patchTicket} />
+                                        <span style={{ color: "#ef4444", fontSize: 11, fontWeight: 700 }}>net △ {KRW(tk.net_diff)}</span>
+                                        <span style={{ color: "#f97316", fontSize: 11, fontWeight: 700 }}>fee △ {KRW(tk.fee_diff)}</span>
+                                        <TicketStatus t={tk} onPatch={patchTicket} />
                                     </div>
-                                    <div style={{ fontSize: 11, color: "#94a3b8" }}>{t.title}</div>
+                                    <div style={{ fontSize: 11, color: "#94a3b8" }}>{tk.title}</div>
                                 </div>
                             ))}
                         </div>
-                    ) : <div className="sub" style={{ fontSize: 12 }}>✅ 티켓 없음 (차이 기준 미만)</div>}
+                    ) : <div className="sub" style={{ fontSize: 12 }}>{t('krChannel.noTickets', '✅ 티켓 없음 (차이 기준 미만)')}</div>}
                 </div>
             )}
         </div>

@@ -7434,116 +7434,94 @@ export default {
 
   },
 
-  "krChannel": {
-
+  krChannel: {
     "pageTitle": "🇰🇷 한국 채널 정산 허브",
-
     "pageSub": "Coupang · Naver · 11번가 · Gmarket · 옥션 · 카카오선물하기 · 롯데ON · 위메프 · 티몬 — 정산 표준화 · 수수료 관리 · 대사 (v419)",
-
     "tabChannels": "🇰🇷 채널 목록",
-
     "tabFees": "📋 수수료 규칙",
-
     "tabIngest": "📥 정산 재처리",
-
     "tabSummary": "📊 채널 종합",
-
     "tabRecon": "🔍 정산 대사",
-
     "channelMaster": "🇰🇷 채널 마스터리스트",
-
     "apiDisconnected": "API 연결 대기 중",
-
     "currency": "화폐",
-
     "settleCycle": "정산 주기",
-
     "vatRate": "부가세",
-
     "commissionReg": "수수료 규칙 등록",
-
     "channelSelect": "채널 선택",
-
     "selectPlaceholder": "-- 선택 --",
-
     "categoryAll": "카테고리 (* = 전체)",
-
     "platformFeeRate": "플랫폼 수수료율",
-
     "adSpendRate": "광고비율",
-
     "shippingFee": "기본 배송비 (₩)",
-
     "returnFee": "기본 반품비 (₩)",
-
     "vatRateLabel": "부가세율",
-
     "effectiveDate": "적용 시작일",
-
     "note": "노트",
-
     "saveCommission": "+ 수수료 규칙 저장",
-
     "commissionHistory": "수수료 규칙 이력",
-
     "selectChannelHint": "채널을 선택하면 이력이 표시됩니다",
-
     "noRules": "등록된 수수료 규칙 없음",
-
     "ingestTitle": "정산 라인 재처리 (표준 포맷)",
-
     "loadSample": "샘플 데이터 로드",
-
     "reprocess": "📥 정산 재처리",
-
     "search": "조회",
-
     "totalRevenue": "총 매출액",
-
     "totalCommission": "총 수수료",
-
     "totalSettlement": "총 정산액",
-
     "channel": "채널",
-
     "count": "건수",
-
     "noDataHint": "데이터 없음 — 정산 재처리 탭에서 데이터를 먼저 재처리하세요",
-
     "reconRun": "대사 실행",
-
     "startDate": "시작일",
-
     "endDate": "종료일",
-
     "running": "⏳ 실행 중…",
-
     "reconStart": "🔍 대사 실행",
-
     "noReports": "대사 리포트 없음",
-
     "all": "전체",
-
     "matched": "일치",
-
     "mismatched": "불일치",
-
     "missingSettle": "정산 누락",
-
     "missingOrder": "주문 누락",
-
     "netDiff": "순액 차이",
-
     "feeDiff": "수수료 차이",
-
     "tickets": "차이 티켓",
-
     "noTickets": "✅ 티켓 없음 (차이 기준 미만)",
-
     "shippingLabel": "Basic 배송비",
-
-    "returnFeeLabel": "Basic 반품비"
-
+    "returnFeeLabel": "Basic 반품비",
+    "lblCurrency": "화폐",
+    "lblSettleCycle": "정산 주기",
+    "lblVat": "부가세",
+    "saved": "✅ 저장됨",
+    "feeShort": "수수료",
+    "adShort": "광고",
+    "shipShort": "배송",
+    "mockReprocessed": "✅ [MOCK] {{n}}건 재처리 완료 ({{ch}}) — 백엔드 API 미연결",
+    "reprocessed": "✅ {{n}}건 재처리 완료 ({{ch}})",
+    "reprocessBtn": "📥 정산 재처리",
+    "requiredFields": "필수 필드:",
+    "colGrossSales": "매출액",
+    "colPlatformFee": "플랫폼 수수료",
+    "colAdFee": "광고비",
+    "colShipFee": "배송비",
+    "colReturnFee": "반품비",
+    "colCoupon": "쿠폰할인",
+    "colNetPayout": "정산액",
+    "colEffRate": "유효 수수료율",
+    "totalGrossSales": "총 매출액",
+    "totalFee": "총 수수료",
+    "totalNetPayout": "총 정산액",
+    "colChannel": "채널",
+    "colCount": "건수",
+    "noDataReprocess": "데이터 없음 — 정산 재처리 탭에서 데이터를 먼저 재처리하세요",
+    "runReconBtn": "🔍 대사 실행",
+    "reconTotal": "전체",
+    "reconMatched": "일치",
+    "reconMismatch": "불일치",
+    "reconMissingSettle": "정산 누락",
+    "reconMissingOrder": "주문 누락",
+    "diffTickets": "차이 티켓",
+    "countCases": "건"
   },
 
 "auth": {
