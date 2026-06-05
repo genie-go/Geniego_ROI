@@ -1569,14 +1569,24 @@ final class UserAuth
 
     private static function clientIp(ServerRequestInterface $req): string
     {
+        // 193차 Sprint4: XFF 스푸핑 rate-limit 우회 차단.
+        //   기존: 클라이언트가 위조 가능한 X-Forwarded-For 첫 홉을 신뢰 → 공격자가 IP 를 회전해
+        //   email|IP rate-limit 을 무력화(같은 계정 무제한 brute-force)할 수 있었다.
+        //   → 신뢰 프록시(nginx)가 설정하는 X-Real-IP 를 우선. nginx 가 proxy_set_header 로
+        //   덮어쓰므로 클라이언트가 위조 불가. 그 다음 REMOTE_ADDR(직접 연결 IP).
+        //   XFF 는 nginx 뒤가 아닌 예외 환경의 최후 폴백으로만, 그것도 마지막 홉(직전 프록시 추가)을 사용.
         $sp = $req->getServerParams();
+        $real = trim((string)($sp['HTTP_X_REAL_IP'] ?? ''));
+        if ($real !== '') return $real;
+        $remote = trim((string)($sp['REMOTE_ADDR'] ?? ''));
+        if ($remote !== '' && $remote !== '127.0.0.1' && $remote !== '::1') return $remote;
         $xff = (string)($sp['HTTP_X_FORWARDED_FOR'] ?? '');
         if ($xff !== '') {
-            $parts = explode(',', $xff);
-            $ip = trim($parts[0]);
-            if ($ip !== '') return $ip;
+            $parts = array_map('trim', explode(',', $xff));
+            $last = end($parts); // 첫 홉(클라이언트 제어) 대신 마지막 홉(직전 프록시 기록)
+            if ($last !== '') return $last;
         }
-        return (string)($sp['HTTP_X_REAL_IP'] ?? $sp['REMOTE_ADDR'] ?? '0.0.0.0');
+        return $remote !== '' ? $remote : '0.0.0.0';
     }
 
     private const RL_THRESHOLD = 8;    // 윈도우 내 실패 허용 횟수
