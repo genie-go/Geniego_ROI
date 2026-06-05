@@ -1,5 +1,9 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { getJson } from "../services/apiClient.js";
+import { IS_DEMO } from "../utils/demoEnv";
+
+// 196차 — 관리자 환경 콘솔에서 플랫폼 AI(Claude)·SMTP 키 등록(등록 즉시 전체 이용자 적용)
+const ADMIN_TOKEN = () => localStorage.getItem(IS_DEMO ? "demo_genie_token" : "genie_token") || localStorage.getItem("genie_token") || localStorage.getItem("demo_genie_token") || "";
 
 /**
  * AdminEnvironment — 플랫폼 환경 관리자 콘솔.
@@ -31,7 +35,7 @@ function Admin() {
 
   useEffect(() => { fetchHealth(); }, [fetchHealth]);
 
-  const tabs = ["개요", "운영 정책", "보안 정책", "백업 / 복구"];
+  const tabs = ["개요", "🤖 AI 엔진", "운영 정책", "보안 정책", "백업 / 복구"];
 
   const kpis = [
     { emoji: "👥", label: "총 사용자", val: health?.users?.total ?? "—" },
@@ -144,9 +148,10 @@ function Admin() {
         border: "1px solid rgba(255,255,255,0.07)",
       }}>
         {activeTab === 0 && <TabOverview health={health} />}
-        {activeTab === 1 && <TabOperationsPolicy />}
-        {activeTab === 2 && <TabSecurityPolicy />}
-        {activeTab === 3 && <TabBackupRestore />}
+        {activeTab === 1 && <TabAiEngine />}
+        {activeTab === 2 && <TabOperationsPolicy />}
+        {activeTab === 3 && <TabSecurityPolicy />}
+        {activeTab === 4 && <TabBackupRestore />}
       </div>
     </div>
   );
@@ -188,6 +193,119 @@ function SectionCard({ title, items }) {
         ))}
       </div>
     </div>
+  );
+}
+
+function TabAiEngine() {
+  const [aiKey, setAiKey] = useState("");
+  const [aiKeySet, setAiKeySet] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState(null); // { t:'ok'|'err', m }
+  // SMTP
+  const [smtp, setSmtp] = useState({ host: "", port: "587", user: "", pass: "", from: "", from_name: "Geniego-ROI", secure: "tls" });
+  const [smtpSet, setSmtpSet] = useState(false);
+  const [smtpBusy, setSmtpBusy] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const r = await fetch("/api/auth/admin/ai-key", { headers: { Authorization: `Bearer ${ADMIN_TOKEN()}` } });
+        const d = await r.json().catch(() => ({}));
+        if (r.ok && d.ok) setAiKeySet(!!d.key_set || !!d.configured);
+      } catch {}
+      try {
+        const r = await fetch("/api/auth/admin/smtp", { headers: { Authorization: `Bearer ${ADMIN_TOKEN()}` } });
+        const d = await r.json().catch(() => ({}));
+        if (r.ok && d.ok) { setSmtpSet(!!d.configured); if (d.smtp) setSmtp(s => ({ ...s, ...d.smtp, port: String(d.smtp.port ?? s.port), pass: "" })); }
+      } catch {}
+    })();
+  }, []);
+
+  const saveAiKey = async () => {
+    if (!aiKey.trim()) { setMsg({ t: "err", m: "Anthropic API 키(sk-ant-...)를 입력하세요." }); return; }
+    setBusy(true); setMsg(null);
+    try {
+      const r = await fetch("/api/auth/admin/ai-key", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${ADMIN_TOKEN()}` }, body: JSON.stringify({ api_key: aiKey.trim() }) });
+      const d = await r.json().catch(() => ({}));
+      if (r.ok && d.ok) { setMsg({ t: "ok", m: d.message || "AI API 키가 저장되었습니다. 전체 이용자에게 실시간 AI가 적용됩니다." }); setAiKey(""); setAiKeySet(true); }
+      else setMsg({ t: "err", m: d.error || "저장에 실패했습니다." });
+    } catch { setMsg({ t: "err", m: "서버 오류. 다시 시도하세요." }); }
+    setBusy(false);
+  };
+
+  const saveSmtp = async () => {
+    if (!smtp.host.trim() || !smtp.from.trim()) { setMsg({ t: "err", m: "SMTP 호스트와 발신 이메일은 필수입니다." }); return; }
+    setSmtpBusy(true); setMsg(null);
+    try {
+      const r = await fetch("/api/auth/admin/smtp", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${ADMIN_TOKEN()}` }, body: JSON.stringify(smtp) });
+      const d = await r.json().catch(() => ({}));
+      if (r.ok && d.ok) { setMsg({ t: "ok", m: d.message || "SMTP 설정이 저장되었습니다." }); setSmtpSet(true); }
+      else setMsg({ t: "err", m: d.error || "SMTP 저장 실패." });
+    } catch { setMsg({ t: "err", m: "서버 오류." }); }
+    setSmtpBusy(false);
+  };
+
+  const inp = { width: "100%", boxSizing: "border-box", padding: "11px 13px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.05)", color: "var(--text-1)", fontSize: 13, outline: "none" };
+  const lbl = { fontSize: 12, fontWeight: 700, color: "var(--text-2)", display: "block", marginBottom: 6, marginTop: 12 };
+
+  return (
+    <>
+      {msg && (
+        <div style={{ marginBottom: 18, padding: "11px 15px", borderRadius: 10, fontSize: 13, fontWeight: 600,
+          background: msg.t === "ok" ? "rgba(34,197,94,0.1)" : "rgba(248,113,113,0.08)",
+          border: `1px solid ${msg.t === "ok" ? "rgba(34,197,94,0.25)" : "rgba(248,113,113,0.25)"}`,
+          color: msg.t === "ok" ? "#4ade80" : "#f87171" }}>{msg.m}</div>
+      )}
+
+      {/* AI 엔진(Claude) 키 — 핵심 */}
+      <div style={{ borderRadius: 16, padding: "24px 26px", marginBottom: 20,
+        background: aiKeySet ? "rgba(34,197,94,0.06)" : "linear-gradient(135deg, rgba(168,85,247,0.12), rgba(79,142,247,0.08))",
+        border: `1.5px solid ${aiKeySet ? "rgba(34,197,94,0.3)" : "rgba(168,85,247,0.3)"}` }}>
+        <div style={{ fontSize: 17, fontWeight: 900, marginBottom: 6 }}>🤖 AI 엔진(Claude) API 키</div>
+        <div style={{ fontSize: 13, lineHeight: 1.7, color: "var(--text-2)", marginBottom: 16 }}>
+          {aiKeySet
+            ? "✅ AI 엔진이 활성화되어 있습니다. 전체 이용자가 실시간 AI 광고 디자인·분석을 사용합니다."
+            : "⚠️ AI 키 미설정 — 현재는 내장 템플릿으로 동작합니다. Anthropic API 키를 등록하면 전체 이용자에게 실시간 AI 디자인 생성이 활성화됩니다."}
+          <br /><span style={{ fontSize: 11, color: "var(--text-3)" }}>※ 플랫폼 전역 설정 — 여기 한 번 등록하면 모든 Tenant·이용자에 적용됩니다. (console.anthropic.com → API Keys 에서 발급)</span>
+        </div>
+        <label style={{ ...lbl, marginTop: 0 }}>Anthropic API 키</label>
+        <input type="password" value={aiKey} onChange={e => setAiKey(e.target.value)} autoComplete="new-password"
+          placeholder={aiKeySet ? "sk-ant-... (변경 시에만 입력)" : "sk-ant-api03-..."} style={inp} />
+        <button onClick={saveAiKey} disabled={busy || !aiKey.trim()}
+          style={{ width: "100%", marginTop: 14, padding: "13px 0", borderRadius: 12, border: "none",
+            cursor: busy || !aiKey.trim() ? "not-allowed" : "pointer",
+            background: busy || !aiKey.trim() ? "rgba(168,85,247,0.2)" : "linear-gradient(135deg,#a855f7,#4f8ef7)",
+            color: "#fff", fontSize: 14.5, fontWeight: 800 }}>
+          {busy ? "저장 중..." : "🤖 AI 키 저장 (전체 적용)"}
+        </button>
+      </div>
+
+      {/* SMTP — 부가(이메일 발송/2FA) */}
+      <div style={{ borderRadius: 16, padding: "22px 26px",
+        background: "rgba(255,255,255,0.03)", border: `1px solid ${smtpSet ? "rgba(34,197,94,0.25)" : "rgba(255,255,255,0.08)"}` }}>
+        <div style={{ fontSize: 15, fontWeight: 800, marginBottom: 6 }}>📧 이메일 발송(SMTP) 설정</div>
+        <div style={{ fontSize: 12, lineHeight: 1.7, color: "var(--text-3)", marginBottom: 12 }}>
+          {smtpSet ? "✅ SMTP 설정됨 — 이메일 OTP·비밀번호 재설정 발송에 사용됩니다." : "이메일 2단계 인증·비밀번호 재설정 메일 발송에 사용됩니다. 발신 이메일은 변경 가능합니다."}
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 12 }}>
+          <div><label style={lbl}>SMTP 호스트 *</label><input value={smtp.host} onChange={e => setSmtp(s => ({ ...s, host: e.target.value }))} placeholder="smtp.example.com" style={inp} /></div>
+          <div><label style={lbl}>포트</label><input value={smtp.port} onChange={e => setSmtp(s => ({ ...s, port: e.target.value }))} placeholder="587" style={inp} /></div>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <div><label style={lbl}>계정(사용자)</label><input value={smtp.user} onChange={e => setSmtp(s => ({ ...s, user: e.target.value }))} placeholder="user@example.com" style={inp} autoComplete="off" /></div>
+          <div><label style={lbl}>비밀번호</label><input type="password" value={smtp.pass} onChange={e => setSmtp(s => ({ ...s, pass: e.target.value }))} placeholder={smtpSet ? "(변경 시에만 입력)" : "앱 비밀번호"} style={inp} autoComplete="new-password" /></div>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <div><label style={lbl}>발신 이메일 *</label><input value={smtp.from} onChange={e => setSmtp(s => ({ ...s, from: e.target.value }))} placeholder="geniegoroi@ociell.com" style={inp} /></div>
+          <div><label style={lbl}>발신자 이름</label><input value={smtp.from_name} onChange={e => setSmtp(s => ({ ...s, from_name: e.target.value }))} placeholder="Geniego-ROI" style={inp} /></div>
+        </div>
+        <button onClick={saveSmtp} disabled={smtpBusy}
+          style={{ width: "100%", marginTop: 16, padding: "12px 0", borderRadius: 12, border: "none",
+            cursor: smtpBusy ? "not-allowed" : "pointer", background: smtpBusy ? "rgba(79,142,247,0.2)" : "linear-gradient(135deg,#4f8ef7,#06b6d4)", color: "#fff", fontSize: 14, fontWeight: 800 }}>
+          {smtpBusy ? "저장 중..." : "📧 SMTP 저장"}
+        </button>
+      </div>
+    </>
   );
 }
 
