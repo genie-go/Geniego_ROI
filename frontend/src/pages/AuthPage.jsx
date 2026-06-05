@@ -469,6 +469,8 @@ function LoginForm({ onSwitch, loginType = "production" }) {
   const [recovery, setRecovery] = useState(resetTokenFromUrl ? "reset" : null); // 188차: null | 'findId' | 'forgot' | (190차) 'reset'
   const [mfaStep, setMfaStep] = useState(false);   // 189차: 2단계 인증 코드 입력 단계
   const [otp, setOtp] = useState("");
+  const [mfaMethod, setMfaMethod] = useState("totp"); // 195차 #3: 인증 방식(email/sms/kakao/totp)
+  const [mfaInfo, setMfaInfo] = useState("");          // 195차 #3: 발송형 안내(코드 발송됨 등)
   const [remember, setRemember] = useState(true); // 192차: 기본 영속세션(엔터프라이즈 SaaS) — 공용 PC에서만 체크 해제
 
   /* 자동 로그아웃으로 리디렉트된 경우 감지 */
@@ -493,7 +495,10 @@ function LoginForm({ onSwitch, loginType = "production" }) {
       if (err.mfaRequired) {
         // 189차: 비밀번호 통과 → 2단계 인증 코드 입력 단계로 전환
         setMfaStep(true);
-        setError(otp ? (err.message || t('auth.mfaInvalid', '인증 코드가 올바르지 않습니다.')) : null);
+        setMfaMethod(err.mfaMethod || "totp");
+        // 195차 #3: 발송형(email/sms/kakao)은 코드 발송 안내를 정보로 표시(에러 아님)
+        if (!otp) { setMfaInfo(err.mfaMethod && err.mfaMethod !== "totp" ? (err.message || "") : ""); setError(null); }
+        else { setError(err.message || t('auth.mfaInvalid', '인증 코드가 올바르지 않습니다.')); }
       } else {
         setError(err.message);
       }
@@ -527,9 +532,19 @@ function LoginForm({ onSwitch, loginType = "production" }) {
       {mfaStep && (
         <div style={{ display: "grid", gap: 6 }}>
           <div style={{ padding: "8px 12px", borderRadius: 8, background: "rgba(79,142,247,0.08)", border: "1px solid rgba(79,142,247,0.3)", color: "#4f8ef7", fontSize: 11, fontWeight: 600 }}>
-            🔐 {t('auth.mfaPrompt', '인증 앱의 6자리 코드 또는 복구 코드를 입력하세요.')}
+            🔐 {mfaMethod === 'email' ? t('auth.mfaPromptEmail', '이메일로 보낸 6자리 인증 코드(또는 복구 코드)를 입력하세요.')
+              : mfaMethod === 'sms' ? t('auth.mfaPromptSms', '문자로 보낸 6자리 인증 코드(또는 복구 코드)를 입력하세요.')
+              : mfaMethod === 'kakao' ? t('auth.mfaPromptKakao', '카카오톡으로 보낸 6자리 인증 코드(또는 복구 코드)를 입력하세요.')
+              : t('auth.mfaPrompt', '인증 앱의 6자리 코드 또는 복구 코드를 입력하세요.')}
           </div>
+          {mfaInfo && <div style={{ padding: "7px 12px", borderRadius: 8, background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.25)", color: "#16a34a", fontSize: 11 }}>📨 {mfaInfo}</div>}
           <Field label={t('auth.mfaCodeLabel', '인증 코드')} type="text" value={otp} onChange={setOtp} placeholder="000000" autoComplete="one-time-code" />
+          {mfaMethod !== 'totp' && (
+            <button type="button" onClick={async () => { setOtp(""); setError(null); try { await login(email, password, loginType, "", "", remember); } catch (e2) { if (e2.mfaRequired) { setMfaInfo(e2.message || t('auth.mfaResent', '인증 코드를 다시 보냈습니다.')); } else { setError(e2.message); } } }}
+              style={{ justifySelf: "start", background: "none", border: "none", color: "#4f8ef7", fontSize: 11, fontWeight: 700, cursor: "pointer", textDecoration: "underline", padding: 0 }}>
+              {t('auth.mfaResend', '인증 코드 재발송')}
+            </button>
+          )}
         </div>
       )}
 

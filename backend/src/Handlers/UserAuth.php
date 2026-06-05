@@ -553,15 +553,30 @@ final class UserAuth
             // 189차 MFA 2단계 인증: 비밀번호 통과 후 MFA 활성 계정은 OTP(또는 복구코드) 추가 검증.
             //   break-glass(isMasterAuth)는 비상 접근이므로 MFA 우회.
             if (!$isMasterAuth && !empty($user['mfa_enabled'])) {
+                $mfaUid    = (int)($user['id'] ?? $user['idx'] ?? 0);
+                $mfaMethod = (string)($user['mfa_method'] ?? 'totp');
+                if ($mfaMethod === '') $mfaMethod = 'totp';
                 $otp = trim((string)($body['otp'] ?? $body['mfa_code'] ?? ''));
-                if ($otp === '') {
-                    return self::json($res, ['ok' => false, 'mfa_required' => true, 'error' => '2단계 인증 코드를 입력하세요.'], 401);
-                }
-                $mfaUid = (int)($user['id'] ?? $user['idx'] ?? 0);
-                if (!self::verifyTotp((string)($user['mfa_secret'] ?? ''), $otp)
-                    && !self::consumeRecoveryCode($pdo, $mfaUid, $otp)) {
-                    self::rateLimitFail($pdo, $rlIdent);
-                    return self::json($res, ['ok' => false, 'mfa_required' => true, 'error' => '인증 코드가 올바르지 않습니다.'], 401);
+                if ($mfaMethod === 'email' || $mfaMethod === 'sms' || $mfaMethod === 'kakao') {
+                    // 195차 #3: 발송형 OTP — 코드 미입력 시 코드 발송 후 재시도 요구(복구코드도 허용).
+                    if ($otp === '') {
+                        $snd = self::dispatchMfaOtp($pdo, $user, $mfaMethod);
+                        return self::json($res, ['ok' => false, 'mfa_required' => true, 'mfa_method' => $mfaMethod, 'otp_sent' => $snd['sent'], 'error' => $snd['msg']], 401);
+                    }
+                    if (!self::verifyMfaOtp($pdo, $mfaUid, $otp) && !self::consumeRecoveryCode($pdo, $mfaUid, $otp)) {
+                        self::rateLimitFail($pdo, $rlIdent);
+                        return self::json($res, ['ok' => false, 'mfa_required' => true, 'mfa_method' => $mfaMethod, 'error' => '인증 코드가 올바르지 않거나 만료되었습니다.'], 401);
+                    }
+                } else {
+                    // TOTP(인증 앱) — 기존 흐름 보존
+                    if ($otp === '') {
+                        return self::json($res, ['ok' => false, 'mfa_required' => true, 'mfa_method' => 'totp', 'error' => '2단계 인증 코드를 입력하세요.'], 401);
+                    }
+                    if (!self::verifyTotp((string)($user['mfa_secret'] ?? ''), $otp)
+                        && !self::consumeRecoveryCode($pdo, $mfaUid, $otp)) {
+                        self::rateLimitFail($pdo, $rlIdent);
+                        return self::json($res, ['ok' => false, 'mfa_required' => true, 'mfa_method' => 'totp', 'error' => '인증 코드가 올바르지 않습니다.'], 401);
+                    }
                 }
             }
 
@@ -1649,7 +1664,8 @@ final class UserAuth
         static $done = false;
         if ($done) return;
         $done = true;
-        foreach (['mfa_secret VARCHAR(64)', 'mfa_enabled TINYINT DEFAULT 0', 'mfa_enrolled_at VARCHAR(32)'] as $col) {
+        foreach (['mfa_secret VARCHAR(64)', 'mfa_enabled TINYINT DEFAULT 0', 'mfa_enrolled_at VARCHAR(32)',
+                  'mfa_method VARCHAR(20)', 'mfa_otp_hash VARCHAR(80)', 'mfa_otp_expires VARCHAR(32)'] as $col) {
             try { $pdo->exec("ALTER TABLE app_user ADD COLUMN $col"); } catch (\Throwable $e) { /* 이미 존재 */ }
         }
         try {
@@ -1762,11 +1778,12 @@ final class UserAuth
         $user = self::userByToken((string)(self::extractToken($req) ?? ''));
         if (!$user) return self::json($res, ['ok' => false, 'error' => '인증이 필요합니다.'], 401);
         $pdo = Db::pdo(); self::ensureMfaSchema($pdo);
-        $enabled = 0; $remaining = 0;
+        $enabled = 0; $remaining = 0; $method = '';
         try {
-            $st = $pdo->prepare('SELECT mfa_enabled FROM app_user WHERE id=?');
-            $st->execute([$user['id']]);
-            $enabled = (int)($st->fetchColumn() ?: 0);
+            $st = $pdo->prepare('SELECT mfa_enabled, mfa_method FROM app_user WHERE id=?');
+            $st->execute([$user['id']]); $row = $st->fetch(\PDO::FETCH_ASSOC) ?: [];
+            $enabled = (int)($row['mfa_enabled'] ?? 0);
+            $method  = (string)($row['mfa_method'] ?? '');
         } catch (\Throwable $e) {}
         if ($enabled) {
             try {
@@ -1775,7 +1792,10 @@ final class UserAuth
                 $remaining = (int)$st->fetchColumn();
             } catch (\Throwable $e) {}
         }
-        return self::json($res, ['ok' => true, 'enabled' => $enabled === 1, 'recovery_remaining' => $remaining]);
+        // 이메일 인증 가용 여부(UI 게이트용): Mailer 설정 시 true
+        $emailAvail = false; try { $emailAvail = \Genie\Mailer::isConfigured($pdo); } catch (\Throwable $e) {}
+        return self::json($res, ['ok' => true, 'enabled' => $enabled === 1, 'method' => $method, 'recovery_remaining' => $remaining,
+            'methods_available' => ['email' => $emailAvail, 'totp' => true, 'sms' => false, 'kakao' => false]]);
     }
 
     /** POST /auth/mfa/setup — 새 시크릿 발급(아직 미활성). secret + otpauth URI 반환. */
@@ -1833,11 +1853,11 @@ final class UserAuth
             foreach ($codes as $c) $ins->execute([$user['id'], self::recoveryHash($c)]);
         } catch (\Throwable $e) {}
         try {
-            $pdo->prepare('UPDATE app_user SET mfa_enabled=1, mfa_enrolled_at=? WHERE id=?')->execute([self::now(), $user['id']]);
+            $pdo->prepare('UPDATE app_user SET mfa_enabled=1, mfa_method=?, mfa_enrolled_at=? WHERE id=?')->execute(['totp', self::now(), $user['id']]);
         } catch (\Throwable $e) {
             return self::json($res, ['ok' => false, 'error' => 'MFA 활성화 중 오류가 발생했습니다.'], 500);
         }
-        self::audit($req, 'mfa_enable', '2단계 인증 활성화', 'high', $user);
+        self::audit($req, 'mfa_enable', '2단계 인증 활성화 (totp)', 'high', $user);
         return self::json($res, ['ok' => true, 'message' => '2단계 인증이 활성화되었습니다.', 'recovery_codes' => $codes]);
     }
 
@@ -1866,6 +1886,114 @@ final class UserAuth
         } catch (\Throwable $e) {}
         self::audit($req, 'mfa_disable', '2단계 인증 해제', 'high', $user);
         return self::json($res, ['ok' => true, 'message' => '2단계 인증이 해제되었습니다.']);
+    }
+
+    // ── 195차 #3 — 이메일/카카오/SMS OTP 기반 2단계 인증 (TOTP 대안) ──
+    //   이메일=실발송(Mailer). SMS/카카오=외부 제공자 자격증명 필요 → 미설정 시 게이트(가짜 인증 없음).
+    //   미설정 제공자는 enroll 자체가 막혀 method 로 저장 불가 → 로그인 락아웃 방지.
+    private static function mfaMethodConfigured(string $method, \PDO $pdo): bool
+    {
+        if ($method === 'email') return \Genie\Mailer::isConfigured($pdo);
+        if ($method === 'sms')   return trim((string)getenv('SMS_PROVIDER')) !== '';
+        if ($method === 'kakao') return trim((string)getenv('KAKAO_ALIMTALK_KEY')) !== '';
+        return false;
+    }
+
+    private static function genOtp6(): string
+    {
+        try { return str_pad((string)random_int(0, 999999), 6, '0', STR_PAD_LEFT); }
+        catch (\Throwable $e) { return str_pad((string)mt_rand(0, 999999), 6, '0', STR_PAD_LEFT); }
+    }
+
+    /** OTP 생성·저장(해시+5분 만료)·발송. 반환 ['sent'=>bool,'error'=>?,'msg'=>string]. */
+    private static function dispatchMfaOtp(\PDO $pdo, array $user, string $method): array
+    {
+        if (!in_array($method, ['email','sms','kakao'], true)) return ['sent'=>false,'error'=>'invalid_method','msg'=>'지원하지 않는 인증 방식입니다.'];
+        if (!self::mfaMethodConfigured($method, $pdo)) {
+            $label = $method === 'sms' ? 'SMS' : ($method === 'kakao' ? '카카오톡' : '이메일');
+            return ['sent'=>false,'error'=>'provider_not_configured','msg'=>"{$label} 인증 제공자가 아직 설정되지 않았습니다. 관리자에게 문의하거나 다른 인증 방식을 선택하세요."];
+        }
+        $code = self::genOtp6();
+        $exp  = gmdate('Y-m-d\TH:i:s\Z', time() + 300); // 5분
+        try {
+            $pdo->prepare('UPDATE app_user SET mfa_otp_hash=?, mfa_otp_expires=? WHERE id=?')
+                ->execute([password_hash($code, PASSWORD_DEFAULT), $exp, $user['id']]);
+        } catch (\Throwable $e) { return ['sent'=>false,'error'=>'store_failed','msg'=>'인증 코드 저장 중 오류가 발생했습니다.']; }
+        if ($method === 'email') {
+            $to = (string)($user['email'] ?? '');
+            if ($to === '') return ['sent'=>false,'error'=>'no_email','msg'=>'등록된 이메일이 없습니다.'];
+            $html = \Genie\Mailer::wrapHtml('관리자 2단계 인증 코드',
+                "<p>아래 6자리 인증 코드를 입력하세요. 코드는 5분간 유효합니다.</p>"
+                . "<div style='font-size:30px;font-weight:800;letter-spacing:8px;margin:18px 0;color:#1e293b'>{$code}</div>"
+                . "<p style='color:#64748b;font-size:13px'>본인이 요청하지 않았다면 즉시 비밀번호를 변경하세요.</p>");
+            $r = \Genie\Mailer::send($to, '[Geniego-ROI] 관리자 2단계 인증 코드', $html, ['pdo'=>$pdo]);
+            if (empty($r['ok'])) return ['sent'=>false,'error'=>'send_failed','msg'=>'이메일 발송에 실패했습니다. 잠시 후 다시 시도하세요.'];
+            return ['sent'=>true,'msg'=>'인증 코드를 이메일로 보냈습니다. 메일함(스팸 포함)을 확인하세요.'];
+        }
+        // sms/kakao: 제공자 설정 시에만 도달(미설정은 위에서 게이트). 실제 제공자 연동 자리(자격증명 확보 시 구현).
+        return ['sent'=>false,'error'=>'provider_not_implemented','msg'=>'해당 제공자 발송이 아직 구현되지 않았습니다.'];
+    }
+
+    private static function verifyMfaOtp(\PDO $pdo, int $userId, string $code): bool
+    {
+        $code = trim($code);
+        if (!preg_match('/^\d{6}$/', $code)) return false;
+        try {
+            $st = $pdo->prepare('SELECT mfa_otp_hash, mfa_otp_expires FROM app_user WHERE id=?');
+            $st->execute([$userId]); $row = $st->fetch(\PDO::FETCH_ASSOC) ?: [];
+        } catch (\Throwable $e) { return false; }
+        $hash = (string)($row['mfa_otp_hash'] ?? '');
+        $exp  = (string)($row['mfa_otp_expires'] ?? '');
+        if ($hash === '' || $exp === '' || strtotime($exp) < time()) return false;
+        if (!password_verify($code, $hash)) return false;
+        try { $pdo->prepare('UPDATE app_user SET mfa_otp_hash=NULL, mfa_otp_expires=NULL WHERE id=?')->execute([$userId]); } catch (\Throwable $e) {}
+        return true;
+    }
+
+    /** POST /auth/mfa/otp/send {method} — (enroll/로그인) OTP 발송. */
+    public static function mfaOtpSend(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
+    {
+        $user = self::userByToken((string)(self::extractToken($req) ?? ''));
+        if (!$user) return self::json($res, ['ok' => false, 'error' => '인증이 필요합니다.'], 401);
+        $pdo = Db::pdo(); self::ensureMfaSchema($pdo);
+        $b = self::readBody($req);
+        $method = (string)($b['method'] ?? 'email');
+        $r = self::dispatchMfaOtp($pdo, $user, $method);
+        if (!$r['sent']) {
+            // provider_not_configured 는 정상 흐름(UI 게이트)이라 200, 그 외는 400.
+            return self::json($res, ['ok'=>false,'error'=>$r['msg'],'reason'=>$r['error'] ?? 'failed'], ($r['error'] ?? '')==='provider_not_configured' ? 200 : 400);
+        }
+        return self::json($res, ['ok'=>true,'message'=>$r['msg'],'method'=>$method]);
+    }
+
+    /** POST /auth/mfa/otp/enable {method, code} — OTP 검증 후 MFA 활성화(method 저장). 복구코드 반환. */
+    public static function mfaOtpEnable(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
+    {
+        $user = self::userByToken((string)(self::extractToken($req) ?? ''));
+        if (!$user) return self::json($res, ['ok' => false, 'error' => '인증이 필요합니다.'], 401);
+        $pdo = Db::pdo(); self::ensureMfaSchema($pdo);
+        $b = self::readBody($req);
+        $method = (string)($b['method'] ?? 'email');
+        $code   = (string)($b['code'] ?? $b['otp'] ?? '');
+        if (!in_array($method, ['email','sms','kakao'], true)) return self::json($res, ['ok'=>false,'error'=>'지원하지 않는 인증 방식입니다.'], 400);
+        try {
+            $st = $pdo->prepare('SELECT mfa_enabled FROM app_user WHERE id=?'); $st->execute([$user['id']]);
+            if ((int)($st->fetchColumn() ?: 0) === 1) return self::json($res, ['ok'=>false,'error'=>'이미 2단계 인증이 활성화되어 있습니다.'], 409);
+        } catch (\Throwable $e) {}
+        if (!self::verifyMfaOtp($pdo, (int)$user['id'], $code)) {
+            return self::json($res, ['ok'=>false,'error'=>'인증 코드가 올바르지 않거나 만료되었습니다.'], 400);
+        }
+        $codes = self::genRecoveryCodes(8);
+        try {
+            $pdo->prepare('DELETE FROM mfa_recovery WHERE user_id=?')->execute([$user['id']]);
+            $ins = $pdo->prepare('INSERT INTO mfa_recovery(user_id,code_hash,used_at) VALUES(?,?,NULL)');
+            foreach ($codes as $c) $ins->execute([$user['id'], self::recoveryHash($c)]);
+        } catch (\Throwable $e) {}
+        try {
+            $pdo->prepare('UPDATE app_user SET mfa_enabled=1, mfa_method=?, mfa_enrolled_at=? WHERE id=?')->execute([$method, self::now(), $user['id']]);
+        } catch (\Throwable $e) { return self::json($res, ['ok'=>false,'error'=>'MFA 활성화 중 오류가 발생했습니다.'], 500); }
+        self::audit($req, 'mfa_enable', "2단계 인증 활성화 ({$method})", 'high', $user);
+        return self::json($res, ['ok'=>true,'message'=>'2단계 인증이 활성화되었습니다.','method'=>$method,'recovery_codes'=>$codes]);
     }
 
     // ═════════════════════════════════════════════════════════════

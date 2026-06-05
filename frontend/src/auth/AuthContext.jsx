@@ -370,6 +370,8 @@ export function AuthProvider({ children }) {
             if (!d.ok && d.mfa_required) {
                 const mfaErr = new Error(d.error || "2단계 인증 코드를 입력하세요.");
                 mfaErr.mfaRequired = true;
+                mfaErr.mfaMethod = d.mfa_method || "totp"; // 195차 #3: 인증 방식(email/sms/kakao/totp)
+                mfaErr.otpSent = !!d.otp_sent;
                 throw mfaErr;
             }
 

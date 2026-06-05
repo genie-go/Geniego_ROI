@@ -654,6 +654,8 @@ return function (App $app): void {
         'POST /auth/mfa/setup'   => 'Genie\\Handlers\\UserAuth::mfaSetup',
         'POST /auth/mfa/enable'  => 'Genie\\Handlers\\UserAuth::mfaEnable',
         'POST /auth/mfa/disable' => 'Genie\\Handlers\\UserAuth::mfaDisable',
+        'POST /auth/mfa/otp/send'   => 'Genie\\Handlers\\UserAuth::mfaOtpSend',
+        'POST /auth/mfa/otp/enable' => 'Genie\\Handlers\\UserAuth::mfaOtpEnable',
         // 180차 Phase2 멤버구성원 — 팀/팀원 하위계정(상위 owner tenant 종속)
         'GET /auth/team/members'         => 'Genie\\Handlers\\UserAuth::listTeamMembers',
         'POST /auth/team/members'        => 'Genie\\Handlers\\UserAuth::createTeamMember',
@@ -1452,6 +1454,8 @@ return function (App $app): void {
     $register('POST', '/auth/mfa/setup');
     $register('POST', '/auth/mfa/enable');
     $register('POST', '/auth/mfa/disable');
+    $register('POST', '/auth/mfa/otp/send');
+    $register('POST', '/auth/mfa/otp/enable');
     // 180차 Phase2 멤버구성원 팀/팀원 하위계정
     $register('GET',    '/auth/team/members');
     $register('POST',   '/auth/team/members');
