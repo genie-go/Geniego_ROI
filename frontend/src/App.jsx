@@ -149,7 +149,22 @@ class ErrorBoundary extends Component {
     this.setState({ errorInfo: info });
     console.error('[ErrorBoundary]', err, info);
 
-    // Report to security alert system
+    // 196차: 배포 중 stale 청크/모듈 로드 실패는 "보안 위협"이 아니라 배포 산출물 → 보안 알림에
+    //   기록하지 않고(거짓 위협경보 방지) 자동 새로고침으로 최신 번들 복구.
+    const isChunkError = err?.name === 'ChunkLoadError'
+      || /Failed to fetch dynamically imported module|error loading dynamically imported module|Importing a module script failed|Loading chunk \d+ failed|Unable to preload CSS/i.test(String(err?.message || err));
+    if (isChunkError) {
+      if (!sessionStorage.getItem('chunk_reloaded')) {
+        sessionStorage.setItem('chunk_reloaded', '1');
+        window.location.reload();
+      } else {
+        console.error('ChunkLoadError reload loop prevented.');
+        sessionStorage.removeItem('chunk_reloaded');
+      }
+      return;
+    }
+
+    // 실제 런타임 오류만 보안 알림 시스템에 기록
     try {
       const alerts = JSON.parse(localStorage.getItem('g_sec_alerts') || '[]');
       alerts.unshift({
@@ -161,17 +176,6 @@ class ErrorBoundary extends Component {
       });
       localStorage.setItem('g_sec_alerts', JSON.stringify(alerts.slice(0, 100)));
     } catch { }
-
-    const isChunkError = err.name === 'ChunkLoadError' || String(err).includes('Failed to fetch dynamically imported module');
-    if (isChunkError) {
-      if (!sessionStorage.getItem('chunk_reloaded')) {
-        sessionStorage.setItem('chunk_reloaded', '1');
-        window.location.reload();
-      } else {
-        console.error('ChunkLoadError reload loop prevented.');
-        sessionStorage.removeItem('chunk_reloaded');
-      }
-    }
   }
   render() {
     if (this.state.hasError) {

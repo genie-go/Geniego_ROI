@@ -91,6 +91,15 @@ function recoverFromStaleChunk(msg) {
 // 정상 부팅이 일정 시간 유지되면 플래그 해제(다음 배포 때 다시 1회 복구 가능)
 window.addEventListener('load', () => { setTimeout(() => { try { sessionStorage.removeItem('stale_chunk_reloaded'); } catch (e) {} }, 8000); });
 
+// 196차: 과거 잘못 기록된 stale-청크 에러 보안경보(거짓 "위협 감지") 정리.
+try {
+  const a = JSON.parse(localStorage.getItem('g_sec_alerts') || '[]');
+  if (Array.isArray(a) && a.length) {
+    const cleaned = a.filter(x => !CHUNK_RE.test(String((x && x.message) || '')));
+    if (cleaned.length !== a.length) localStorage.setItem('g_sec_alerts', JSON.stringify(cleaned));
+  }
+} catch (e) {}
+
 /* Global error handlers — 최후의 블랙스크린 방지 */
 window.addEventListener('error', (e) => {
   const msg = e?.error?.message || e?.message || '';
