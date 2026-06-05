@@ -43,6 +43,8 @@ export default function AutoCampaignLaunch({ draft, category, campaignName, peri
   const [campaigns, setCampaigns] = useState([]);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState(null);
+  const [optResult, setOptResult] = useState({}); // campaignId -> { optimized, decisions, metrics, reason }
+  const [optBusy, setOptBusy] = useState(null);    // campaignId being optimized
 
   const loadDesigns = useCallback(async () => {
     try {
@@ -85,6 +87,17 @@ export default function AutoCampaignLaunch({ draft, category, campaignName, peri
   const toggleStatus = async (c) => {
     const ns = c.status === 'active' ? 'paused' : 'active';
     try { await fetch(`${API}/v423/auto-campaign/status`, { method: 'POST', headers: auth(), body: JSON.stringify({ id: c.id, status: ns }) }); loadCampaigns(); } catch {}
+  };
+
+  const optimize = async (c) => {
+    setOptBusy(c.id);
+    try {
+      const r = await fetch(`${API}/v423/auto-campaign/optimize`, { method: 'POST', headers: auth(), body: JSON.stringify({ id: c.id }) });
+      const d = await r.json();
+      if (d.ok) { setOptResult(s => ({ ...s, [c.id]: d })); loadCampaigns(); }
+      else setOptResult(s => ({ ...s, [c.id]: { optimized: false, reason: d.error || '최적화 실패' } }));
+    } catch { setOptResult(s => ({ ...s, [c.id]: { optimized: false, reason: '서버 오류' } })); }
+    setOptBusy(null);
   };
 
   const execChip = (st) => {
@@ -159,6 +172,45 @@ export default function AutoCampaignLaunch({ draft, category, campaignName, peri
                         {CHLABEL[ch] || ch} {execChip(exec[ch])}
                       </span>
                     ))}
+                  </div>
+
+                  {/* Phase3 — 실시간 최적화 */}
+                  <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px dashed rgba(0,0,0,0.08)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
+                      <span style={{ fontSize: 12, fontWeight: 800, color: '#7c3aed' }}>⚡ {t('autoCamp.optTitle', '실시간 효과 최적화')}</span>
+                      <button onClick={() => optimize(c)} disabled={optBusy === c.id}
+                        style={{ padding: '6px 14px', borderRadius: 8, border: 'none', cursor: optBusy === c.id ? 'wait' : 'pointer', fontSize: 11, fontWeight: 700, background: optBusy === c.id ? 'rgba(124,58,237,0.4)' : 'linear-gradient(135deg,#a855f7,#7c3aed)', color: '#fff' }}>
+                        {optBusy === c.id ? `⏳ ${t('autoCamp.optimizing', '분석 중…')}` : `⚡ ${t('autoCamp.optimizeNow', '지금 최적화')}`}
+                      </button>
+                    </div>
+                    <div style={{ fontSize: 10.5, color: '#94a3b8', marginTop: 4, lineHeight: 1.5 }}>{t('autoCamp.optDesc', '최근 14일 성과(ROAS·CTR) 분석 → 최고 성과 채널로 예산 자동 재배분, 손해 채널 회수. (매시 자동 실행)')}</div>
+
+                    {optResult[c.id] && (
+                      optResult[c.id].optimized ? (
+                        <div style={{ marginTop: 10, display: 'grid', gap: 6 }}>
+                          {(optResult[c.id].decisions || []).length === 0 && (
+                            <div style={{ fontSize: 11, color: '#16a34a', fontWeight: 600 }}>✅ {t('autoCamp.optNoChange', '현재 배분이 최적입니다. 변경 없음.')}</div>
+                          )}
+                          {(optResult[c.id].decisions || []).map((d, k) => (
+                            <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, padding: '6px 10px', borderRadius: 8, background: d.action === 'pause' ? 'rgba(239,68,68,0.06)' : 'rgba(34,197,94,0.06)' }}>
+                              <span style={{ fontWeight: 800, color: d.action === 'pause' ? '#dc2626' : '#16a34a' }}>{d.action === 'pause' ? '⏸' : '▲'} {CHLABEL[d.channel] || d.channel}</span>
+                              <span style={{ color: '#475569' }}>{d.reason}</span>
+                              {d.action === 'realloc' && <span style={{ marginLeft: 'auto', fontWeight: 700, color: '#334155' }}>{fmt(d.old)} → {fmt(d.new)}</span>}
+                            </div>
+                          ))}
+                          {/* 채널별 성과 */}
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 2 }}>
+                            {Object.entries(optResult[c.id].metrics || {}).map(([ch, m]) => (
+                              <span key={ch} style={{ fontSize: 10, padding: '2px 8px', borderRadius: 6, background: 'rgba(79,142,247,0.07)', color: '#475569' }}>
+                                {CHLABEL[ch] || ch}: ROAS {m.roas}x · CTR {m.ctr}%{!m.has_data ? ` (${t('autoCamp.noData', '데이터 없음')})` : ''}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      ) : (
+                        <div style={{ marginTop: 8, fontSize: 11, color: '#d97706', padding: '8px 11px', borderRadius: 8, background: 'rgba(245,158,11,0.06)' }}>ℹ️ {optResult[c.id].reason}</div>
+                      )
+                    )}
                   </div>
                 </div>
               );

@@ -1313,6 +1313,82 @@ PROMPT;
         }
     }
 
+    // ─────────────────────────────────────────────────────────────────────
+    // POST /v422/ai/campaign-ad-chat  (196차 — 대화형 AI 디자인)
+    // 사용자가 자유 자연어로 대화하며 광고 디자인 생성·수정. messages[] + 현재 design →
+    // Claude 가 대화 응답(reply) + 업데이트된 design 스펙 반환.
+    // ─────────────────────────────────────────────────────────────────────
+    public static function campaignAdChat(Request $req, Response $res): Response
+    {
+        try {
+            $body = (array)($req->getParsedBody() ?? []);
+            if (empty($body)) { $d = json_decode((string)$req->getBody(), true); if (is_array($d)) $body = $d; }
+            $data = $body['data'] ?? $body;
+            $messages = is_array($data['messages'] ?? null) ? $data['messages'] : [];
+            $curDesign = is_array($data['design'] ?? null) ? $data['design'] : null;
+            if (empty($messages)) {
+                $res->getBody()->write(json_encode(['ok'=>false,'error'=>'메시지를 입력하세요.'], JSON_UNESCAPED_UNICODE));
+                return $res->withHeader('Content-Type','application/json')->withStatus(422);
+            }
+            // 대화 히스토리 텍스트화(최근 12턴)
+            $convo = '';
+            foreach (array_slice($messages, -12) as $m) {
+                $role = (($m['role'] ?? 'user') === 'assistant') ? 'AI' : '사용자';
+                $convo .= "{$role}: " . trim((string)($m['content'] ?? '')) . "\n";
+            }
+            $curJson = $curDesign ? json_encode($curDesign, JSON_UNESCAPED_UNICODE) : '없음(첫 생성)';
+            $systemPrompt = <<<PROMPT
+당신은 세계 최고의 퍼포먼스 광고 크리에이티브 디렉터입니다. 사용자와 자유롭게 대화하며 광고 디자인을 만들고 다듬습니다.
+대화 맥락과 사용자의 요청(생성/수정)을 반영해 광고 디자인을 업데이트하세요. GeniegoROI(마케팅 ROI 분석 SaaS 플랫폼) 자사 광고도 만들 수 있습니다.
+
+현재 디자인: {$curJson}
+
+반드시 아래 JSON만 출력(설명·마크다운·코드펜스 금지):
+{
+  "reply": "사용자에게 보여줄 대화 응답(한국어, 무엇을 만들었는지/어떻게 바꿨는지 친근하고 짧게 1~2문장)",
+  "design": {
+    "channel": "tiktok|meta|instagram|kakao|youtube|popup 중 추론(미지정 instagram)",
+    "format": "포맷명", "ratio": "9:16|1:1|4:5|16:9 중 하나",
+    "headline": "광고 헤드라인(16자 이내)", "subheadline": "보조문구", "body": "본문 카피(1~2문장)",
+    "cta": "행동유도 버튼 문구",
+    "hashtags": ["#태그1","#태그2"],
+    "palette": {"bg":"#배경HEX","primary":"#주색HEX","accent":"#강조HEX","text":"#글자HEX(배경 대비 가독)"},
+    "layout": "요소 배치", "visual": "비주얼 연출 가이드 1문장", "mood": "톤(예: 럭셔리, 역동적, 미니멀)"
+  }
+}
+사용자가 수정만 요청하면 현재 디자인에서 해당 부분만 바꾸고 나머지는 유지하세요.
+PROMPT;
+            $userMsg = "대화 내용:\n{$convo}\n위 대화를 바탕으로 광고 디자인을 생성/수정하고 JSON으로 응답하세요.";
+
+            $reply = null; $design = null; $dataSource = 'ai';
+            try {
+                $claude = self::callClaudeLong($systemPrompt, $userMsg, 30);
+                $clean = preg_replace('/```(?:json)?\s*([\s\S]*?)```/', '$1', $claude['text']);
+                $parsed = json_decode(trim($clean ?? $claude['text']), true);
+                if (is_array($parsed) && !empty($parsed['design'])) {
+                    $design = $parsed['design'];
+                    $reply = (string)($parsed['reply'] ?? '디자인을 업데이트했어요. 미리보기를 확인해 주세요!');
+                }
+            } catch (\Throwable $e) { $dataSource = 'fallback'; }
+
+            if (!is_array($design)) {
+                // 폴백: 마지막 사용자 메시지로 기본 디자인
+                $last = '';
+                foreach (array_reverse($messages) as $m) { if (($m['role'] ?? 'user') !== 'assistant') { $last = (string)($m['content'] ?? ''); break; } }
+                $fb = self::fallbackAdDesigns($last, '광고', ['instagram'], '');
+                $design = $curDesign ?: ($fb[0] ?? null);
+                $reply = 'AI 엔진이 일시적으로 응답하지 않아 기본 디자인을 적용했어요. 다시 시도하거나 수정 요청을 입력해 주세요.';
+                $dataSource = 'fallback';
+            }
+
+            $res->getBody()->write(json_encode(['ok'=>true,'reply'=>$reply,'design'=>$design,'data_source'=>$dataSource], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+            return $res->withHeader('Content-Type','application/json');
+        } catch (\Throwable $e) {
+            $res->getBody()->write(json_encode(['ok'=>false,'error'=>$e->getMessage()], JSON_UNESCAPED_UNICODE));
+            return $res->withHeader('Content-Type','application/json')->withStatus(500);
+        }
+    }
+
     /** Claude 실패 시 카테고리·채널 기반 구조화 디자인 폴백(항상 실사용 가능한 결과 보장). */
     private static function fallbackAdDesigns(string $product, string $category, array $channels, string $feedback): array
     {
@@ -1492,6 +1568,8 @@ PROMPT;
             if (empty($body)) { $d = json_decode((string)$req->getBody(), true); if (is_array($d)) $body = $d; }
             $data = $body['data'] ?? $body;
             $design = is_array($data['design'] ?? null) ? $data['design'] : [];
+            $status = (string)($data['status'] ?? 'approved');
+            if (!in_array($status, ['draft', 'approved'], true)) $status = 'approved';
             $pdo = Db::pdo(); self::migrateAdDesign($pdo);
             $now = gmdate('Y-m-d\TH:i:s\Z');
             $st = $pdo->prepare('INSERT INTO ad_design(tenant_id,category,product,channel,spec_json,svg,status,created_at) VALUES(?,?,?,?,?,?,?,?)');
@@ -1501,10 +1579,13 @@ PROMPT;
                 mb_substr((string)($data['product_description'] ?? ''),0,2000),
                 (string)($design['channel'] ?? ''),
                 json_encode($design, JSON_UNESCAPED_UNICODE),
-                (string)($data['svg'] ?? ''),
-                'approved', $now,
+                (string)($data['svg'] ?? $data['image'] ?? ''),
+                $status, $now,
             ]);
-            $res->getBody()->write(json_encode(['ok'=>true,'id'=>(int)$pdo->lastInsertId(),'message'=>'디자인이 적용(저장)되었습니다. 캠페인 자동화에서 활용할 수 있습니다.'], JSON_UNESCAPED_UNICODE));
+            $msg = $status === 'draft'
+                ? '임시저장되었습니다. 저장 디자인 목록에서 이어서 편집하거나 적용할 수 있습니다.'
+                : '디자인이 저장(적용)되었습니다. 캠페인 자동화에서 활용할 수 있습니다.';
+            $res->getBody()->write(json_encode(['ok'=>true,'id'=>(int)$pdo->lastInsertId(),'status'=>$status,'message'=>$msg], JSON_UNESCAPED_UNICODE));
             return $res->withHeader('Content-Type','application/json');
         } catch (\Throwable $e) {
             $res->getBody()->write(json_encode(['ok'=>false,'error'=>$e->getMessage()], JSON_UNESCAPED_UNICODE));

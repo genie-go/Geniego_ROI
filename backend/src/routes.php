@@ -406,12 +406,15 @@ return function (App $app): void {
         'POST /v422/ai/campaign-recommend'   => 'Genie\\Handlers\\ClaudeAI::campaignRecommend',
         'POST /v422/ai/campaign-ad-creative'  => 'Genie\\Handlers\\ClaudeAI::campaignAdCreative',
         'POST /v422/ai/campaign-ad-design'    => 'Genie\\Handlers\\ClaudeAI::campaignAdDesign',
+        'POST /v422/ai/campaign-ad-chat'      => 'Genie\\Handlers\\ClaudeAI::campaignAdChat',
         'POST /v422/ai/campaign-ad-render'    => 'Genie\\Handlers\\ClaudeAI::campaignAdRender',
         'POST /v422/ai/ad-design/save'        => 'Genie\\Handlers\\ClaudeAI::adDesignSave',
         'GET /v422/ai/ad-design/list'         => 'Genie\\Handlers\\ClaudeAI::adDesignList',
         'POST /v423/auto-campaign/launch'     => 'Genie\\Handlers\\AutoCampaign::launch',
         'GET /v423/auto-campaign/list'        => 'Genie\\Handlers\\AutoCampaign::list',
         'POST /v423/auto-campaign/status'     => 'Genie\\Handlers\\AutoCampaign::setStatus',
+        'POST /v423/auto-campaign/optimize'   => 'Genie\\Handlers\\AutoCampaign::optimize',
+        'GET /v423/auto-campaign/optimize-history' => 'Genie\\Handlers\\AutoCampaign::optimizeHistory',
         'POST /v422/ai/campaign-search'        => 'Genie\\Handlers\\ClaudeAI::campaignSearch',
 
         // ── v421 API Key Management (admin:keys scope) ─────────────────────────
@@ -1433,12 +1436,15 @@ return function (App $app): void {
     $register('POST', '/v422/ai/campaign-search');
     $register('POST', '/v422/ai/campaign-ad-creative');
     $register('POST', '/v422/ai/campaign-ad-design');
+    $register('POST', '/v422/ai/campaign-ad-chat');
     $register('POST', '/v422/ai/campaign-ad-render');
     $register('POST', '/v422/ai/ad-design/save');
     $register('GET',  '/v422/ai/ad-design/list');
     $register('POST', '/v423/auto-campaign/launch');
     $register('GET',  '/v423/auto-campaign/list');
     $register('POST', '/v423/auto-campaign/status');
+    $register('POST', '/v423/auto-campaign/optimize');
+    $register('GET',  '/v423/auto-campaign/optimize-history');
 
     // ── Auth ────────────────────────────────────────────────────────
     $register('POST', '/auth/register');

@@ -59,6 +59,22 @@ class AutoCampaign
                 updated_at VARCHAR(32)
             )" . ($isSqlite ? '' : ' ENGINE=InnoDB DEFAULT CHARSET=utf8mb4'));
         } catch (\Throwable $e) {}
+        // 196차 Phase3 — 실시간 최적화 결정 로그
+        try {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS optimization_log (
+                id $auto,
+                tenant_id VARCHAR(100) NOT NULL DEFAULT 'unknown',
+                campaign_id INT,
+                channel VARCHAR(40),
+                action VARCHAR(20),
+                old_alloc BIGINT DEFAULT 0,
+                new_alloc BIGINT DEFAULT 0,
+                roas VARCHAR(16),
+                ctr VARCHAR(16),
+                reason VARCHAR(255),
+                created_at VARCHAR(32) NOT NULL
+            )" . ($isSqlite ? '' : ' ENGINE=InnoDB DEFAULT CHARSET=utf8mb4'));
+        } catch (\Throwable $e) {}
     }
 
     /** 채널 API 자격증명 연결 여부(실제 집행 가능 판단). */
@@ -191,5 +207,152 @@ class AutoCampaign
         } catch (\Throwable $e) {
             return self::json($res, ['ok' => false, 'error' => $e->getMessage()], 500);
         }
+    }
+
+    // ───────────────────────────────────────────────────────────────────────
+    // Phase 3 — 실시간 효과 분석 기반 채널·예산 자동 최적화
+    // ───────────────────────────────────────────────────────────────────────
+
+    private const PAUSE_FLOOR = 1.0;   // ROAS < 1.0 (손해) → 예산 회수
+    private const OPT_WINDOW_DAYS = 14; // 최근 14일 성과 분석
+
+    /** 채널별 최근 성과 집계(채널명 대소문자 무시). */
+    private static function aggMetrics(PDO $pdo, string $tenant, string $channel): array
+    {
+        $since = gmdate('Y-m-d', time() - self::OPT_WINDOW_DAYS * 86400);
+        $r = [];
+        try {
+            $st = $pdo->prepare("SELECT COALESCE(SUM(impressions),0) imp, COALESCE(SUM(clicks),0) clk, COALESCE(SUM(spend),0) spend, COALESCE(SUM(conversions),0) conv, COALESCE(SUM(revenue),0) rev
+                FROM performance_metrics WHERE tenant_id=? AND LOWER(channel)=LOWER(?) AND date >= ?");
+            $st->execute([$tenant, $channel, $since]);
+            $r = $st->fetch(PDO::FETCH_ASSOC) ?: [];
+        } catch (\Throwable $e) { $r = []; }
+        $spend = (float)($r['spend'] ?? 0); $rev = (float)($r['rev'] ?? 0);
+        $imp = (int)($r['imp'] ?? 0); $clk = (int)($r['clk'] ?? 0);
+        return [
+            'spend' => round($spend), 'revenue' => round($rev), 'impressions' => $imp, 'clicks' => $clk,
+            'conversions' => (int)($r['conv'] ?? 0),
+            'roas' => $spend > 0 ? round($rev / $spend, 2) : 0,
+            'ctr'  => $imp > 0 ? round($clk / $imp * 100, 2) : 0,
+            'has_data' => ($spend > 0 || $imp > 0),
+        ];
+    }
+
+    /** 캠페인 1건 최적화: 성과 분석 → 예산 재배분 + 저성과 일시정지 + 결정 로그. 양 엔드포인트·cron 공용. */
+    public static function optimizeCampaign(PDO $pdo, array $camp): array
+    {
+        $tenant = (string)$camp['tenant_id'];
+        $channels = json_decode((string)($camp['channels'] ?? '[]'), true) ?: [];
+        $budget = (int)($camp['budget'] ?? 0);
+        $allocOld = json_decode((string)($camp['allocations'] ?? '[]'), true) ?: [];
+        $oldMap = [];
+        foreach ($allocOld as $a) { $oldMap[strtolower((string)($a['channel'] ?? ''))] = (float)($a['alloc'] ?? 0); }
+
+        $metrics = []; $anyData = false;
+        foreach ($channels as $ch) {
+            $m = self::aggMetrics($pdo, $tenant, $ch);
+            $metrics[$ch] = $m;
+            if ($m['has_data']) $anyData = true;
+        }
+        if (!$anyData) {
+            return ['optimized' => false, 'reason' => '성과 데이터가 아직 충분하지 않습니다. 채널 집행·데이터 수집 후 자동 최적화됩니다.', 'metrics' => $metrics];
+        }
+
+        // ROAS 기반 가중치. 손해(ROAS<1.0) 채널은 예산 회수(가중 0). 데이터 없으면 중립.
+        $weights = []; $decisions = [];
+        foreach ($channels as $ch) {
+            $m = $metrics[$ch];
+            if (!$m['has_data']) { $weights[$ch] = 0.5; continue; }
+            if ($m['roas'] < self::PAUSE_FLOOR && count($channels) > 1) {
+                $weights[$ch] = 0.0;
+                $decisions[] = ['channel' => $ch, 'action' => 'pause', 'old' => $oldMap[strtolower($ch)] ?? 0, 'new' => 0, 'roas' => $m['roas'], 'ctr' => $m['ctr'], 'reason' => "ROAS {$m['roas']} < 1.0 (손해) → 예산 회수·일시정지"];
+            } else {
+                $weights[$ch] = max(0.05, (float)$m['roas']);
+            }
+        }
+        $totalW = array_sum($weights) ?: 1;
+
+        $newAlloc = [];
+        foreach ($channels as $ch) {
+            $a = (int)(round($budget * $weights[$ch] / $totalW / 10000) * 10000);
+            $newAlloc[] = ['channel' => $ch, 'alloc' => $a, 'roas' => $metrics[$ch]['roas'], 'ctr' => $metrics[$ch]['ctr']];
+            $old = $oldMap[strtolower($ch)] ?? 0;
+            if ($weights[$ch] > 0 && abs($a - $old) >= 10000) {
+                $dir = $a > $old ? '증액' : '감액';
+                $decisions[] = ['channel' => $ch, 'action' => 'realloc', 'old' => (int)$old, 'new' => $a, 'roas' => $metrics[$ch]['roas'], 'ctr' => $metrics[$ch]['ctr'], 'reason' => "ROAS {$metrics[$ch]['roas']} (최고 성과) → 예산 {$dir}"];
+            }
+        }
+
+        $now = gmdate('Y-m-d\TH:i:s\Z');
+        try {
+            $pdo->prepare("UPDATE auto_campaign SET allocations=?, updated_at=? WHERE id=?")
+                ->execute([json_encode($newAlloc, JSON_UNESCAPED_UNICODE), $now, (int)$camp['id']]);
+        } catch (\Throwable $e) {}
+        // 결정 로그
+        foreach ($decisions as $d) {
+            try {
+                $pdo->prepare("INSERT INTO optimization_log(tenant_id,campaign_id,channel,action,old_alloc,new_alloc,roas,ctr,reason,created_at) VALUES(?,?,?,?,?,?,?,?,?,?)")
+                    ->execute([$tenant, (int)$camp['id'], $d['channel'], $d['action'], (int)($d['old'] ?? 0), (int)($d['new'] ?? 0), (string)($d['roas'] ?? ''), (string)($d['ctr'] ?? ''), mb_substr((string)$d['reason'], 0, 255), $now]);
+            } catch (\Throwable $e) {}
+        }
+        return ['optimized' => true, 'allocations' => $newAlloc, 'decisions' => $decisions, 'metrics' => $metrics];
+    }
+
+    /** POST /v423/auto-campaign/optimize — {id} 본 테넌트 캠페인 즉시 최적화. */
+    public static function optimize(Request $req, Response $res): Response
+    {
+        try {
+            $tenant = self::tenant($req);
+            if ($tenant === 'unknown') return self::json($res, ['ok' => false, 'error' => '로그인이 필요합니다.'], 401);
+            $d = self::body($req);
+            $id = (int)($d['id'] ?? 0);
+            if ($id <= 0) return self::json($res, ['ok' => false, 'error' => 'campaign id가 필요합니다.'], 422);
+            $pdo = Db::pdo();
+            self::migrate($pdo);
+            $st = $pdo->prepare("SELECT * FROM auto_campaign WHERE id=? AND tenant_id=?");
+            $st->execute([$id, $tenant]);
+            $camp = $st->fetch(PDO::FETCH_ASSOC);
+            if (!$camp) return self::json($res, ['ok' => false, 'error' => '캠페인을 찾을 수 없습니다.'], 404);
+            $r = self::optimizeCampaign($pdo, $camp);
+            return self::json($res, array_merge(['ok' => true, 'id' => $id], $r));
+        } catch (\Throwable $e) {
+            return self::json($res, ['ok' => false, 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    /** GET /v423/auto-campaign/optimize-history?id=X — 최적화 결정 이력(최신순). */
+    public static function optimizeHistory(Request $req, Response $res): Response
+    {
+        try {
+            $tenant = self::tenant($req);
+            $id = (int)($req->getQueryParams()['id'] ?? 0);
+            $pdo = Db::pdo();
+            self::migrate($pdo);
+            $rows = [];
+            if ($tenant !== 'unknown' && $id > 0) {
+                $st = $pdo->prepare("SELECT channel,action,old_alloc,new_alloc,roas,ctr,reason,created_at FROM optimization_log WHERE tenant_id=? AND campaign_id=? ORDER BY id DESC LIMIT 40");
+                $st->execute([$tenant, $id]);
+                $rows = $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
+            }
+            return self::json($res, ['ok' => true, 'history' => $rows]);
+        } catch (\Throwable $e) {
+            return self::json($res, ['ok' => false, 'error' => $e->getMessage(), 'history' => []]);
+        }
+    }
+
+    /** CLI(cron) — 전체 테넌트 active 캠페인 자동 최적화. 반환: 최적화된 캠페인 수. */
+    public static function optimizeAllCli(?PDO $pdo = null): int
+    {
+        if ($pdo === null) $pdo = Db::pdo();
+        self::migrate($pdo);
+        $n = 0;
+        try {
+            $rows = $pdo->query("SELECT * FROM auto_campaign WHERE status='active'")->fetchAll(PDO::FETCH_ASSOC) ?: [];
+            foreach ($rows as $camp) {
+                $r = self::optimizeCampaign($pdo, $camp);
+                if (!empty($r['optimized'])) $n++;
+            }
+        } catch (\Throwable $e) {}
+        return $n;
     }
 }

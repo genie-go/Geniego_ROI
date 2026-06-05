@@ -1,5 +1,10 @@
 import React, { useState, useCallback, useRef, useMemo } from "react";
 import { useI18n } from "../i18n/index.js";
+import { IS_DEMO } from "../utils/demoEnv";
+
+// 196차 — AiDesignEngine 디자인을 백엔드(ad_design)에 임시저장/저장 → 캠페인 자동화에서 활용
+const _adToken = () => localStorage.getItem(IS_DEMO ? "demo_genie_token" : "genie_token") || localStorage.getItem("genie_token") || localStorage.getItem("demo_genie_token") || "";
+const _adHeaders = () => { const t = _adToken(); return { "Content-Type": "application/json", ...(t ? { Authorization: `Bearer ${t}` } : {}) }; };
 
 /* ══════════════════════════════════════════════════════════
    AiDesignEngine — Enterprise AI Creative Marketing Generator
@@ -105,6 +110,8 @@ export default function AiDesignEngine({ defaultPlatform="popup" }) {
   const [history, setHistory] = useState([]);
   const [activeSection, setActiveSection] = useState("platform");
   const [dragOver, setDragOver] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveMsg, setSaveMsg] = useState(null); // { ok, text }
   const fileRef = useRef(null);
   /* Event Period / Schedule */
   const today = new Date().toISOString().slice(0,10);
@@ -135,6 +142,27 @@ export default function AiDesignEngine({ defaultPlatform="popup" }) {
       setGenerating(false);
     },1500);
   },[platform,theme,prompt,headline,subheadline,ctaText,interactiveType,popupTrigger,currentPlatform]);
+
+  // 196차 — 디자인 백엔드 저장(임시저장 draft / 저장 approved). 저장된 디자인은 캠페인 자동화에서 연결.
+  const saveDesign = useCallback(async (status)=>{
+    if(!result){ setSaveMsg({ok:false,text:"먼저 'Generate AI Creative'로 디자인을 생성하세요."}); return; }
+    setSaving(true); setSaveMsg(null);
+    try {
+      const th = THEMES.find(x=>x.id===result.theme);
+      const cols = th?.colors || ["#0f172a","#4f8ef7","#22d3ee"];
+      const design = {
+        channel: result.platform, format: result.platformLabel, ratio: result.ratio,
+        headline: result.headline, subheadline: result.subheadline, body: result.prompt, cta: result.ctaText,
+        mood: th?.label || result.theme,
+        palette: { bg: cols[0], primary: cols[1]||cols[0], accent: cols[2]||cols[1]||cols[0], text: "#ffffff" },
+      };
+      const r = await fetch("/api/v422/ai/ad-design/save", { method:"POST", headers:_adHeaders(),
+        body: JSON.stringify({ product_description: result.prompt||result.headline||"", category: th?.label||"", design, svg: result.dataUrl||"", status }) });
+      const d = await r.json().catch(()=>({}));
+      setSaveMsg(r.ok && d.ok ? { ok:true, text:d.message||"저장되었습니다." } : { ok:false, text:(d.error||"저장에 실패했습니다. 로그인 상태를 확인하세요.") });
+    } catch { setSaveMsg({ ok:false, text:"서버 오류. 다시 시도하세요." }); }
+    setSaving(false);
+  },[result]);
 
   const handleUpload = useCallback((file)=>{
     if(!file||file.size>5*1024*1024) return;
@@ -355,6 +383,20 @@ export default function AiDesignEngine({ defaultPlatform="popup" }) {
               <input ref={fileRef} type="file" accept="image/*" onChange={e=>handleUpload(e.target.files[0])} style={{display:"none"}} />
             </div>
           </div>
+
+          {/* 196차 — 임시저장 / 저장 (항상 표시; 생성 후 활성). 저장 디자인은 캠페인 자동화에 연결 */}
+          <div style={{display:"flex",gap:10,alignItems:"center"}}>
+            <button onClick={()=>saveDesign("draft")} disabled={saving||!result}
+              style={{flex:1,padding:"11px 0",borderRadius:10,border:"1px solid rgba(79,142,247,0.35)",cursor:(saving||!result)?"not-allowed":"pointer",background:result?"rgba(79,142,247,0.07)":"rgba(148,163,184,0.08)",color:result?"#4f8ef7":"#94a3b8",fontSize:13,fontWeight:800}}>
+              📝 {t("marketing.aiSaveDraft","임시저장")}
+            </button>
+            <button onClick={()=>saveDesign("approved")} disabled={saving||!result}
+              style={{flex:1,padding:"11px 0",borderRadius:10,border:"none",cursor:(saving||!result)?"not-allowed":"pointer",background:(saving||!result)?"rgba(34,197,94,0.25)":"linear-gradient(135deg,#22c55e,#16a34a)",color:"#fff",fontSize:13,fontWeight:800}}>
+              ✅ {t("marketing.aiSaveApply","저장 (캠페인에 활용)")}
+            </button>
+          </div>
+          {!result && <div style={{fontSize:11,color:"#94a3b8",marginTop:-2}}>ℹ️ {t("marketing.aiSaveHint","'Generate AI Creative'로 디자인을 생성하면 임시저장·저장이 활성화됩니다.")}</div>}
+          {saveMsg && <div style={{padding:"9px 13px",borderRadius:9,fontSize:12,fontWeight:600,background:saveMsg.ok?"rgba(34,197,94,0.1)":"rgba(239,68,68,0.08)",color:saveMsg.ok?"#16a34a":"#dc2626"}}>{saveMsg.text}</div>}
 
           {/* Result Preview */}
           {result && (

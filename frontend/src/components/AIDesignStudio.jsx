@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { IS_DEMO } from '../utils/demoEnv';
 import { useI18n } from '../i18n';
+import AIDesignChat from './AIDesignChat.jsx'; // 196차 — 대화형 AI 디자인
 
 /* 196차 — AI 디자인 스튜디오 (Phase 1)
  * 상품 설명 + 카테고리 + 채널 → 백엔드 Claude 가 채널별 광고 디자인 스펙 생성 →
@@ -27,6 +28,7 @@ const card = { background: 'var(--bg-card, #fff)', border: '1px solid var(--bord
 
 export default function AIDesignStudio({ onApplied }) {
   const { t } = useI18n();
+  const [mode, setMode] = useState('chat'); // 'chat' 대화형(기본) | 'form' 양식
   const [product, setProduct] = useState('');
   const [category, setCategory] = useState(CATEGORIES[0]);
   const [channels, setChannels] = useState(['tiktok', 'meta', 'instagram']);
@@ -98,6 +100,16 @@ export default function AIDesignStudio({ onApplied }) {
 
   return (
     <div style={{ display: 'grid', gap: 18 }}>
+      {/* 모드 토글: 대화형(기본) / 양식 */}
+      <div style={{ display: 'inline-flex', gap: 4, padding: 4, borderRadius: 12, background: 'rgba(99,102,241,0.06)', border: '1px solid rgba(99,102,241,0.15)', width: 'fit-content' }}>
+        {[['chat', '💬 ' + t('aiDesign.modeChat', '대화형')], ['form', '📝 ' + t('aiDesign.modeForm', '양식 입력')]].map(([id, label]) => (
+          <button key={id} onClick={() => setMode(id)} style={{ padding: '8px 18px', borderRadius: 9, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 800, background: mode === id ? 'linear-gradient(135deg,#a855f7,#4f8ef7)' : 'transparent', color: mode === id ? '#fff' : '#64748b' }}>{label}</button>
+        ))}
+      </div>
+
+      {mode === 'chat' && <AIDesignChat onApplied={onApplied} />}
+
+      {mode === 'form' && <>
       {/* 입력 패널 */}
       <div style={{ ...card, background: 'linear-gradient(135deg, #eef2ff 0%, #f5f3ff 100%)', borderColor: 'rgba(99,102,241,0.2)' }}>
         <div style={{ fontSize: 18, fontWeight: 900, color: '#1e293b', marginBottom: 4 }}>✨ {t('aiDesign.title', 'AI 광고 디자인 스튜디오')}</div>
@@ -188,6 +200,7 @@ export default function AIDesignStudio({ onApplied }) {
           </div>
         </>
       )}
+      </>}
     </div>
   );
 }
