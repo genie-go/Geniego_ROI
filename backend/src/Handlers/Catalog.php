@@ -55,6 +55,15 @@ class Catalog
                 UNIQUE KEY uq_catalog_listing (tenant_id, channel, sku),
                 KEY idx_catalog_tenant (tenant_id)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+            // 193차 Sprint4 #6: 가격이력 — 채널×SKU 가격 변경(old→new) 기록(테넌트 격리).
+            $pdo->exec("CREATE TABLE IF NOT EXISTS price_history (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                tenant_id VARCHAR(100) NOT NULL DEFAULT 'demo',
+                channel VARCHAR(100) NOT NULL, sku VARCHAR(190) NOT NULL,
+                old_price DOUBLE DEFAULT 0, new_price DOUBLE DEFAULT 0,
+                source VARCHAR(30) NOT NULL DEFAULT 'writeback', created_at VARCHAR(32),
+                KEY idx_ph_tenant (tenant_id), KEY idx_ph_sku (tenant_id, channel, sku)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
         } else {
             $pdo->exec("CREATE TABLE IF NOT EXISTS catalog_listing (
                 id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo',
@@ -64,7 +73,35 @@ class Catalog
                 channel_result TEXT, created_at TEXT, updated_at TEXT,
                 UNIQUE (tenant_id, channel, sku)
             )");
+            $pdo->exec("CREATE TABLE IF NOT EXISTS price_history (
+                id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo',
+                channel TEXT NOT NULL, sku TEXT NOT NULL,
+                old_price REAL DEFAULT 0, new_price REAL DEFAULT 0,
+                source TEXT NOT NULL DEFAULT 'writeback', created_at TEXT
+            )");
         }
+    }
+
+    /** 가격 변경(old≠new) 시에만 price_history 기록(테넌트 격리). best-effort. */
+    private static function recordPriceChange(\PDO $pdo, string $tenant, string $channel, string $sku, $old, $new, string $source): void
+    {
+        $o = (float)$old; $n = (float)$new;
+        if (abs($o - $n) < 0.000001) return; // 변경 없음
+        try {
+            $pdo->prepare("INSERT INTO price_history(tenant_id,channel,sku,old_price,new_price,source,created_at) VALUES(?,?,?,?,?,?,?)")
+                ->execute([$tenant, $channel, $sku, $o, $n, $source, self::now()]);
+        } catch (\Throwable $e) { /* best-effort */ }
+    }
+
+    /** 현재 등록가 조회(없으면 null). */
+    private static function currentPrice(\PDO $pdo, string $tenant, string $channel, string $sku): ?float
+    {
+        try {
+            $st = $pdo->prepare("SELECT price FROM catalog_listing WHERE tenant_id=? AND channel=? AND sku=? LIMIT 1");
+            $st->execute([$tenant, $channel, $sku]);
+            $v = $st->fetchColumn();
+            return $v === false ? null : (float)$v;
+        } catch (\Throwable $e) { return null; }
     }
 
     /** 채널 연결 여부 → 상태 결정 (테넌트 격리). */
@@ -93,14 +130,20 @@ class Catalog
                       price=excluded.price,inventory=excluded.inventory,spec=excluded.spec,action=excluded.action,
                       status=excluded.status,updated_at=excluded.updated_at";
         }
+        $oldPrice = self::currentPrice($pdo, $tenant, $channel, $sku); // 변경 전 등록가(없으면 null)
+        $newPrice = (float)($f['price'] ?? 0);
         $st = $pdo->prepare($sql);
         $st->execute([
             ':t' => $tenant, ':c' => $channel, ':s' => $sku,
             ':n' => (string)($f['name'] ?? ''), ':cat' => (string)($f['category'] ?? ''),
-            ':p' => (float)($f['price'] ?? 0), ':inv' => (int)($f['inventory'] ?? 0),
+            ':p' => $newPrice, ':inv' => (int)($f['inventory'] ?? 0),
             ':spec' => (string)($f['spec'] ?? ''), ':act' => (string)($f['action'] ?? 'register'),
             ':st' => $status, ':now' => $now, ':now2' => $now,
         ]);
+        // 기존 리스팅의 실제 가격 변경만 이력화(신규 등록은 변경 아님 → 제외).
+        if ($oldPrice !== null && array_key_exists('price', $f)) {
+            self::recordPriceChange($pdo, $tenant, $channel, $sku, $oldPrice, $newPrice, 'writeback');
+        }
     }
 
     /* POST /catalog/writeback/{channel}/{sku} — 단일 상품×채널 등록/수정 */
@@ -140,8 +183,12 @@ class Catalog
                 $ch = (string)($it['channel'] ?? '');
                 $sk = (string)($it['sku'] ?? '');
                 if ($ch === '' || $sk === '') continue;
-                $upd->execute([':p' => (float)($it['price'] ?? 0), ':now' => $now, ':t' => $tenant, ':c' => $ch, ':s' => $sk]);
-                $updated += $upd->rowCount();
+                $newP = (float)($it['price'] ?? 0);
+                $oldP = self::currentPrice($pdo, $tenant, $ch, $sk); // 변경 전 가격
+                $upd->execute([':p' => $newP, ':now' => $now, ':t' => $tenant, ':c' => $ch, ':s' => $sk]);
+                $n = $upd->rowCount();
+                $updated += $n;
+                if ($n > 0 && $oldP !== null) self::recordPriceChange($pdo, $tenant, $ch, $sk, $oldP, $newP, 'bulk');
             }
             $pdo->commit();
         } catch (\Throwable $e) {
@@ -162,5 +209,23 @@ class Catalog
                              FROM catalog_listing WHERE tenant_id=:t ORDER BY updated_at DESC LIMIT 1000");
         $st->execute([':t' => $tenant]);
         return self::jsonRes($res, ['ok' => true, 'listings' => $st->fetchAll(\PDO::FETCH_ASSOC)]);
+    }
+
+    /* GET /catalog/price-history?channel=&sku= — 테넌트 가격 변경 이력(최근순). 193차 Sprint4 #6 */
+    public static function priceHistory(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $pdo = self::db();
+        $tenant = self::tenant($req);
+        $q = $req->getQueryParams();
+        $where = ['tenant_id = :t']; $params = [':t' => $tenant];
+        if (!empty($q['channel'])) { $where[] = 'channel = :c'; $params[':c'] = (string)$q['channel']; }
+        if (!empty($q['sku']))     { $where[] = 'sku = :s';     $params[':s'] = (string)$q['sku']; }
+        $sql = "SELECT channel,sku,old_price,new_price,source,created_at FROM price_history
+                WHERE " . implode(' AND ', $where) . " ORDER BY id DESC LIMIT 500";
+        $st = $pdo->prepare($sql);
+        $st->execute($params);
+        return self::jsonRes($res, ['ok' => true, 'history' => $st->fetchAll(\PDO::FETCH_ASSOC)]);
     }
 }

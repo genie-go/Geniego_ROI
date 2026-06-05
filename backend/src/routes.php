@@ -65,6 +65,7 @@ return function (App $app): void {
         'POST /catalog/writeback/{channel}/{sku}' => 'Genie\\Handlers\\Catalog::writeback',
         'POST /catalog/bulk-price'                => 'Genie\\Handlers\\Catalog::bulkPrice',
         'GET /catalog/listings'                   => 'Genie\\Handlers\\Catalog::listings',
+        'GET /catalog/price-history'              => 'Genie\\Handlers\\Catalog::priceHistory', // 193차 Sprint4 #6
 
         // ── 이메일 마케팅 ────────────────────────────────────────────────
         'GET /email/settings'                  => 'Genie\\Handlers\\EmailMarketing::getSettings',
@@ -1774,6 +1775,7 @@ return function (App $app): void {
     $register('POST',   '/catalog/writeback/{channel}/{sku}');
     $register('POST',   '/catalog/bulk-price');
     $register('GET',    '/catalog/listings');
+    $register('GET',    '/catalog/price-history'); // 193차 Sprint4 #6
     // Email Marketing
     $register('GET',    '/email/settings');
     $register('PUT',    '/email/settings');
