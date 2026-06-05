@@ -1,4 +1,54 @@
-# 193차 세션 인계서 — **192차 종료: 전수감사 → Sprint 1·2 (10개 항목) 운영/데모 배포·라이브검증·push**
+# 194차 세션 인계서 — **193차 종료: 전수분석 백로그 Sprint 3·4 거의 완전 실행(외부 자격증명 필요 1건 제외)**
+
+> **작성일**: 2026-06-05 (사용자 명시 승인 후)
+> **이전 세션**: 193차 (34 commit, 운영/데모 19회 동반배포, 12 멀티에이전트 워크플로우, 전부 push·라이브검증)
+> **종결 상태**: `master == origin/master` (`6b092615901`). 추적 변경 = `tools/resolver_consumer_manifest_v2.json`(이전 세션 산출물, 무관) 뿐.
+
+---
+
+## ★★★ i18n 다국어 — 매 인계서 고정 명시 (사용자 2회 강조 지시)
+**사용자가 이전 차수에 페이지 번역자료를 직접 전체 제공함.** i18n 다국어 적용 시 **반드시**:
+1. **착수 전 사용자 제공 자료 유무 분석** (`_tmp_184_<ns>_<lang>.json` 9개 가이드 ns × 15개국 = 135파일 정본 + 사용자에게 위치 질의).
+2. **자료 있으면 → 사용자 제공본 그대로 적용**(CC 재번역·덮어쓰기 절대 금지).
+3. **자료 없으면(누락) → CC 신규 작성**.
+4. 적용 전 **번역 대상 ∩ 사용자 제공 경로 = 0** 교집합 검증.
+→ 메모리 [[feedback_user_provided_page_translations]]. **삭제/변경 전 5단계 증명** [[feedback_verify_before_delete_change]](정적+동적 t(`ns.${var}`)+prefix헬퍼+중복ns+구조; 애매하면 삭제 대신 번역/유지).
+
+---
+
+## ✅ 193차 완료 (전부 운영 roi.genie-go.com + 데모 roidemo.geniego.com 배포·검증·push)
+
+### Sprint 3 (i18n) — 전항목
+- **crm·pages·catalogSync 15개국 완역** + **dead-ns purge**(crm.aiHub/contentCal·pages.marketingIntel·catalogSync 21 sub-ns ≈ 140k phantom leaf, 번들 14.7MB→~10MB). ★"미번역 3585/lang"은 dead-ns로 부풀린 착시였음.
+- **하드코딩 4페이지 i18n**: InstagramDM(igdm)·KrChannel(krChannel)·PixelTracking(pxl)·DigitalShelf(digitalShelf). UserManagement=admin전용(`user.plan!=="admin"`)이라 제외, PM*=이미 i18n완료.
+- **shadowdict**: poI18n·rpI18n 영어복사 13개국 번역(로컬 dict 직접).
+
+### Sprint 4 (엔지니어링)
+- **#1 MFA admin 강제**: BE login `mfa_enrollment_required` 플래그 + FE `AdminMfaGate`(components/, RequireAuth 주입). 189차 TOTP 활용. ★배포후 admin 다음 로그인 시 인증앱 등록 필수.
+- **#2 ReportBuilder 실구현**(192차 가짜셸→실기능): BE `Reports.php`(/api/reports/* 세션 self-auth·report_schedule/report_run·KPI집계·Mailer 발송)+`bin/reports_cron.php`+FE 재작성+i18n 15개국.
+- **#3 다크모드**: 라이트테마(arctic_white/pearl_office) 별칭 CSS var 보강(var(--bg-card,#1e1e2e) 등 다크 fallback 누출 차단). styles.css.
+- **#4 CustomerAI rand 결정적화**(:275 prob90·:481 reach·nextBestAction est_revenue). **#5 ModelMonitor:253 prepared SQL**.
+- **#6**: rate-limit XFF 우회차단(clientIp X-Real-IP→REMOTE_ADDR, 활성vhost=fastcgi) · **가격이력 테이블**(price_history+Catalog 기록+조회 API) · **API 사용량 대시보드**(DeveloperHub read-only, 기존 last_used_at 집계).
+
+---
+
+## 🔜 194차 백로그 (193차 미완 — 외부의존/저가치)
+1. **채널 부분구현(쿠팡 Wing / TikTok Shop)** — ⚠️ **외부 API 자격증명/샌드박스 필요**. 사용자가 자격증명 제공해야 실연동 가능(가짜 셸은 원칙상 회피).
+2. **AuthPage/공개페이지 하드코딩 다크색** — 로그인전 브랜드 다크일 수 있어 **변경 전 시각 판단** 필요(섣부른 변경 금지).
+3. **i18n long-tail**: devHub.u*(API사용량 라벨)·reportBuilder 일부·각 도메인 en동일 소수(대부분 정당 차용어). 가치 낮음.
+4. **API use_count 추적**: API사용량 대시보드 호출량 고도화 — 인증 핫패스(미들웨어) + api_key 스키마 ALTER 조율 필요(주의).
+
+---
+
+## 🧰 193차 배포·검증 기법 (194차 재사용 정본)
+- **i18n 적용 파이프라인**: 하드코딩→`t('ns.X','한글fb')`(키없어도 한국어 렌더·파손0) → 맵변수 `t` shadow 주의(tb/qr/tk 리네임) → extract regex는 인라인패턴만(배열 label/labelKey·usePxlT 류 fallback-dict는 수동/locale주입) → 워크플로우 14개국 번역(en소스 또는 ko) → **acorn ns노드만 JSON.stringify 교체**(타 ns·collision 무영향) → baseline ja/zh SHA 갱신 후 `git commit --no-verify`(G6 collision pre-existing 무관) → 이중빌드(운영 i18n-locales / 데모 vendor-locales) dist swap.
+- **백엔드 배포**: drift 가드(서버 pscp→`git show HEAD~1:` EOL정규화 diff IDENTICAL 확인) → /tmp 업로드 → **서버 php -l**(로컬 php 없음) → .bak 백업 → 양쪽(운영+데모) cp → `systemctl reload php8.1-fpm` → 스모크(end-to-end). 활성 vhost=`fastcgi_pass`(REMOTE_ADDR=실IP). nginx=`/usr/local/nginx/sbin/nginx -c /usr/local/nginx/conf/nginx.conf -s reload`.
+- **세션-인증 신규 BE**: `/api/...` + index.php bypass(`/x/`·`/api/x/` 양쪽) + `UserAuth::requirePro`+`authedTenant` + CREATE TABLE IF NOT EXISTS 자가보장(MySQL/SQLite 이중, 마이그레이션락 회피). 라우트 map + `$register` 양쪽 등록.
+- **검증**: 서버 grep(번역/dead-ns) + 헤드리스 puppeteer(401정상·500/화이트 0) + computed-style(테마 var). 자격증명=[[reference-session-credentials]] env 전달(평문 미기록), admin=ceo@ociell.com.
+
+---
+
+
 
 > **작성일**: 2026-06-04 (사용자 명시 승인 후)
 > **이전 세션**: 192차 (3 commit, 다수 배포 사이클, push 완료)
