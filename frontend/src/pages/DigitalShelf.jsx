@@ -540,7 +540,7 @@ export default function DigitalShelf() {
                 <div style={{ display: "flex", gap: 16, fontSize: 12 }}>
                   <div style={{ textAlign: "center" }}>
                     <div style={{ color: "var(--text-3)", fontSize: 10 }}>{t('digitalShelf.rating', '평점')}</div>
-                    <div style={{ fontWeight: 700, color: "#fde047" }}>★ {p.rating}</div>
+                    <div style={{ fontWeight: 700, color: "#f59e0b" }}>★ {p.rating}</div>
                   </div>
                   <div style={{ textAlign: "center" }}>
                     <div style={{ color: "var(--text-3)", fontSize: 10 }}>{t('digitalShelf.reviews', '리뷰')}</div>
@@ -651,7 +651,7 @@ function ReviewAnalysisSection() {
               <div style={{ fontSize:11, color:'var(--text-3)', marginTop:2 }}>{r.sku} · {r.channel} · {t('digitalShelf.reviewCount', '리뷰')} {r.count.toLocaleString()}개</div>
             </div>
             <div style={{ textAlign:'center' }}>
-              <div style={{ fontSize:32, fontWeight:900, color:'#fde047' }}>★ {r.rating}</div>
+              <div style={{ fontSize:32, fontWeight:900, color:'#f59e0b' }}>★ {r.rating}</div>
               <div style={{ fontSize:10, color: r.responseRate < 70 ? '#f97316' : '#22c55e' }}>{t('digitalShelf.responseRate', '응답률')} {r.responseRate}%</div>
             </div>
           </div>
