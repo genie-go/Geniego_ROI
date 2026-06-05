@@ -250,7 +250,10 @@ final class ModelMonitor
                 ->execute(array_merge([$tenant], $m, [$now, $now]));
             $rows[] = array_combine(['tenant_id','name','type','version','status','accuracy','auc_roc','f1_score','training_samples','drift_score','drift_status'], array_merge([$tenant], $m));
         }
-        return $pdo->prepare("SELECT * FROM ml_models WHERE tenant_id=?")->execute([$tenant]) ? $pdo->query("SELECT * FROM ml_models WHERE tenant_id='$tenant'")->fetchAll(PDO::FETCH_ASSOC) : $rows;
+        // 193차 Sprint4: raw 보간 SQL(tenant_id='$tenant') 제거 → prepared 일원화(SQLi 표면 제거).
+        $sel = $pdo->prepare("SELECT * FROM ml_models WHERE tenant_id=?");
+        $sel->execute([$tenant]);
+        return $sel->fetchAll(PDO::FETCH_ASSOC) ?: $rows;
     }
 
     private static function demoMetricHistory(int $modelId): array

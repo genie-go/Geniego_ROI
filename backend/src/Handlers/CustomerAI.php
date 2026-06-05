@@ -272,7 +272,8 @@ class CustomerAI
             // 구매확률 예측 (Logistic Regression 근사)
             $logit = 2.5 - ($daysSincePurchase / 60) + ($purchaseCount * 0.3) + ($totalAmount / 500000);
             $prob30 = max(3, min(97, (int)round(100 / (1 + exp(-$logit)))));
-            $prob90 = min(99, $prob30 + rand(5, 20));
+            // 193차 Sprint4: rand() 지터 제거 — 90일 구매확률은 30일 대비 잔여 헤드룸의 일정비율 상향(결정적·안정).
+            $prob90 = min(99, $prob30 + max(5, (int)round((100 - $prob30) * 0.2)));
 
             // LTV 예측
             $avgCycle = $purchaseCount > 1 ? ($daysSincePurchase / $purchaseCount) : 90;
@@ -478,7 +479,7 @@ class CustomerAI
             'risk_level'     => $riskLevel,
             'channel'        => $channelPref,
             'segment_name'   => $segmentName,
-            'estimated_reach'=> $estimatedReach ?: rand(100, 2000),
+            'estimated_reach'=> (int)$estimatedReach, // 193차: rand 날조 제거 — 실 도달수 없으면 0(정직)
             'queued'         => true,
             'campaign_id'    => 'CAMP-' . strtoupper(substr(md5(uniqid()), 0, 8)),
             'scheduled_at'   => date('Y-m-d H:i:s', time() + 3600),
@@ -502,15 +503,15 @@ class CustomerAI
             ['rank'=>1,'action'=>'send_kakao_alimtalk','label'=>'카카오 알림톡 발송',
              'reason'=>'최근 30일 이메일 미반응, 카카오 채널 반응률 2.4배 높음',
              'expected_conversion'=>'12%','channel'=>'kakao','template'=>'재방문 유도 알림톡',
-             'est_revenue'=>rand(50000, 300000)],
+             'est_revenue'=>180000],
             ['rank'=>2,'action'=>'apply_product_recommendation','label'=>'개인화 상품 추천 이메일',
              'reason'=>'과거 구매 카테고리 기반 유사 상품 3개 추천 (협업 필터링)',
              'expected_conversion'=>'8%','channel'=>'email','template'=>'맞춤 상품 추천',
-             'est_revenue'=>rand(30000, 200000)],
+             'est_revenue'=>120000],
             ['rank'=>3,'action'=>'web_popup_trigger','label'=>'재방문 시 웹팝업 트리거',
              'reason'=>'이탈 의도 감지 시 즉시 팝업 제공, CVR 40% 개선 효과',
              'expected_conversion'=>'15%','channel'=>'web_popup','template'=>'슬라이드인 쿠폰',
-             'est_revenue'=>rand(20000, 150000)],
+             'est_revenue'=>90000],
         ];
 
         return self::json($res, [
