@@ -206,9 +206,9 @@ $app->add(function (Request $request, $handler) {
         return $makeJson(401, ['error' => 'Unauthorized', 'detail' => 'API key has expired']);
     }
 
-    // best-effort update last_used_at
+    // best-effort update last_used_at + use_count 증가(194차 #4: 호출량 추적, 동일 statement→핫패스 비용 무증가)
     try {
-        $pdo->prepare('UPDATE api_key SET last_used_at=? WHERE id=?')->execute([gmdate('c'), $keyRow['id']]);
+        $pdo->prepare('UPDATE api_key SET last_used_at=?, use_count=COALESCE(use_count,0)+1 WHERE id=?')->execute([gmdate('c'), $keyRow['id']]);
     } catch (\Exception $ex2) { /* non-fatal */ }
 
     // RBAC

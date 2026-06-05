@@ -728,10 +728,13 @@ final class Db
             scopes_json  MEDIUMTEXT,
             is_active    TINYINT(1) NOT NULL DEFAULT 1,
             last_used_at VARCHAR(32),
+            use_count    BIGINT NOT NULL DEFAULT 0,
             expires_at   VARCHAR(32),
             created_at   VARCHAR(32) NOT NULL
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"));
         self::idx($pdo,'CREATE INDEX idx_api_key_tenant ON api_key(tenant_id,is_active)');
+        // 194차 #4: API 호출량(use_count) 추적 — 레거시 테이블 멱등 ALTER(additive)
+        try { $pdo->exec("ALTER TABLE api_key ADD COLUMN use_count BIGINT NOT NULL DEFAULT 0"); } catch (\Throwable $e) {}
 
         // ???? V421 Connector Token Store ????????????????????????????????????????????????????????????????????????????????
         $pdo->exec(self::sql($pdo, "CREATE TABLE IF NOT EXISTS connector_token (

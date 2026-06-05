@@ -2019,12 +2019,22 @@ final class UserAuth
         if ($err) return self::json($res, ['ok' => false, 'error' => $err[0]], $err[1]);
         $pdo = Db::pdo();
         $tenant = self::resolveTenantId($pdo, $caller);
+        // 194차 #4: use_count(호출량) 포함. 레거시 DB(컬럼 미존재) 회귀 방지 — 실패 시 use_count 없이 폴백.
         try {
-            $st = $pdo->prepare('SELECT id, key_prefix, name, role, scopes_json, is_active, last_used_at, expires_at, created_at FROM api_key WHERE tenant_id=? ORDER BY created_at DESC LIMIT 200');
+            $st = $pdo->prepare('SELECT id, key_prefix, name, role, scopes_json, is_active, last_used_at, use_count, expires_at, created_at FROM api_key WHERE tenant_id=? ORDER BY created_at DESC LIMIT 200');
             $st->execute([$tenant]);
             $rows = $st->fetchAll(\PDO::FETCH_ASSOC) ?: [];
-        } catch (\Throwable $e) { $rows = []; }
-        foreach ($rows as &$r) { $r['scopes'] = json_decode((string)($r['scopes_json'] ?? '[]'), true); unset($r['scopes_json']); }
+        } catch (\Throwable $e) {
+            try {
+                $st = $pdo->prepare('SELECT id, key_prefix, name, role, scopes_json, is_active, last_used_at, expires_at, created_at FROM api_key WHERE tenant_id=? ORDER BY created_at DESC LIMIT 200');
+                $st->execute([$tenant]);
+                $rows = $st->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+            } catch (\Throwable $e2) { $rows = []; }
+        }
+        foreach ($rows as &$r) {
+            $r['scopes'] = json_decode((string)($r['scopes_json'] ?? '[]'), true); unset($r['scopes_json']);
+            $r['use_count'] = (int)($r['use_count'] ?? 0);
+        }
         return self::json($res, ['ok' => true, 'keys' => $rows]);
     }
 

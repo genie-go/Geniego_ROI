@@ -128,9 +128,11 @@ function ApiKeysPanel() {
             const never = active.filter(k => !k.last_used_at);
             const expSoon = active.filter(k => k.expires_at && (new Date(k.expires_at).getTime() - now) <= 30 * DAY && new Date(k.expires_at).getTime() >= now);
             const lastUsed = active.map(k => k.last_used_at).filter(Boolean).sort().pop();
+            const totalCalls = keys.reduce((s, k) => s + (Number(k.use_count) || 0), 0);
             const cells = [
               ['🔑', t('devHub.uTotal', '전체 키'), keys.length, '#4f8ef7'],
               ['✅', t('devHub.uActive', '활성'), active.length, '#22c55e'],
+              ['📡', t('devHub.uCalls', '총 호출수'), totalCalls.toLocaleString(), '#0ea5e9'],
               ['⚡', t('devHub.uUsed7', '최근 7일 사용'), used7.length, '#a855f7'],
               ['💤', t('devHub.uNever', '미사용'), never.length, '#94a3b8'],
               ['⏳', t('devHub.uExpiring', '30일 내 만료'), expSoon.length, expSoon.length ? '#f59e0b' : '#94a3b8'],
@@ -170,6 +172,7 @@ function ApiKeysPanel() {
                   {t('devHub.keyCreatedAt', '발급')}: {(k.created_at || '').slice(0, 10)}
                   {k.last_used_at && <> · {t('devHub.keyLastUsed', '마지막 사용')}: {(k.last_used_at || '').slice(0, 10)}</>}
                   {k.expires_at && <> · {t('devHub.keyExpires', '만료')}: {(k.expires_at || '').slice(0, 10)}</>}
+                  {' · '}{t('devHub.keyCalls', '호출')}: {(Number(k.use_count) || 0).toLocaleString()}{t('devHub.keyCallsUnit', '회')}
                 </div>
               </div>
               {!!k.is_active && (
