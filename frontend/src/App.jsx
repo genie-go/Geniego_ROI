@@ -373,7 +373,8 @@ function AppLayout() {
                       <Route path="/pnl" element={<PnLDashboard />} />
                       <Route path="/data-schema" element={<DataSchema />} />
                       <Route path="/ai-insights" element={<AIInsights />} />
-                      <Route path="/report-builder" element={<Navigate to="/dashboard" replace />} />
+                      {/* 193차 Sprint4: ReportBuilder 실구현 완료 → 리다이렉트 해제, 실제 페이지 복원 */}
+                      <Route path="/report-builder" element={<ReportBuilder />} />
                       <Route path="/integration-hub" element={<ApiKeys />} />
                       <Route path="/alert-automation" element={<Navigate to="/ai-rule-engine" replace />} />
                       <Route path="/event-norm" element={<Navigate to="/data-schema" replace />} />

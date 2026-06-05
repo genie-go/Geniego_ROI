@@ -123,6 +123,15 @@ return function (App $app): void {
         'GET /customer-ai/product-recommendations' => 'Genie\\Handlers\\CustomerAI::productRecommendations',
         'GET /customer-ai/integrated-summary'  => 'Genie\\Handlers\\CustomerAI::integratedSummary',
 
+        // ── Reports — 리포트 빌더 + 예약 발송 (193차 Sprint4 신규 실구현, 세션 self-auth) ──
+        'GET /reports/schedules'         => 'Genie\\Handlers\\Reports::listSchedules',
+        'POST /reports/schedules'        => 'Genie\\Handlers\\Reports::createSchedule',
+        'PATCH /reports/schedules/{id}'  => 'Genie\\Handlers\\Reports::updateSchedule',
+        'DELETE /reports/schedules/{id}' => 'Genie\\Handlers\\Reports::deleteSchedule',
+        'POST /reports/run/{id}'         => 'Genie\\Handlers\\Reports::runNow',
+        'GET /reports/preview'           => 'Genie\\Handlers\\Reports::preview',
+        'GET /reports/history'           => 'Genie\\Handlers\\Reports::history',
+
 
         // ── 이메일/카카오 확장(A/B·중복·analytics·친구톡·SMS) — 183차 P0: 핸들러 미구현으로
         //    호출 시 500 나던 죽은 매핑 7건 제거(활성 UI 미참조). 향후 기능화 시 핸들러와 함께 재등록.
@@ -1819,6 +1828,14 @@ return function (App $app): void {
     $register('GET',    '/customer-ai/model-performance');
     $register('GET',    '/customer-ai/product-recommendations');
     $register('GET',    '/customer-ai/integrated-summary');
+    // Reports — 리포트 빌더 + 예약 발송 (193차 Sprint4)
+    $register('GET',    '/reports/schedules');
+    $register('POST',   '/reports/schedules');
+    $register('PATCH',  '/reports/schedules/{id}');
+    $register('DELETE', '/reports/schedules/{id}');
+    $register('POST',   '/reports/run/{id}');
+    $register('GET',    '/reports/preview');
+    $register('GET',    '/reports/history');
     // WhatsApp
     $register('GET',    '/whatsapp/settings');
     $register('POST',   '/whatsapp/settings');

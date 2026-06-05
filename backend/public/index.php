@@ -105,6 +105,9 @@ $app->add(function (Request $request, $handler) {
         || strpos($path, '/catalog/') === 0
         || strpos($path, '/api/customer-ai/') === 0
         || strpos($path, '/customer-ai/') === 0
+        // 193차 Sprint4: Reports(리포트 빌더+예약발송) — 세션 self-auth(requirePro+테넌트 격리)
+        || strpos($path, '/api/reports/') === 0
+        || strpos($path, '/reports/') === 0
         // 190차 Sprint2-b: EmailMarketing 부활 — 세션 기반(requirePro self-auth + 테넌트 격리)
         || strpos($path, '/api/email/') === 0
         || strpos($path, '/email/') === 0

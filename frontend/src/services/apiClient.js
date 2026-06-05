@@ -133,6 +133,18 @@ export async function patchJson(path, body) {
   return await res.json();
 }
 
+export async function delJson(path) {
+  guardWrite("DELETE", path);
+  const res = await fetch(`${base}${path}`, { method: "DELETE", headers: defaultHeaders() });
+  if (!res.ok) {
+    let detail = "";
+    try { const j = await res.json(); detail = j?.detail ? JSON.stringify(j.detail) : JSON.stringify(j); }
+    catch (e) { try { detail = await res.text(); } catch { } }
+    throw new Error(`HTTP ${res.status} ${detail}`);
+  }
+  return await res.json();
+}
+
 
 export async function postJsonAuth(path, body, extraHeaders = {}) {
   return requestJsonAuth(path, "POST", body, extraHeaders);
