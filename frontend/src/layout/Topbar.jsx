@@ -632,6 +632,12 @@ const ProfileEditModal = memo(function ProfileEditModal({ user, token, onClose }
   const [akNew, setAkNew] = useState('');
   const [akNew2, setAkNew2] = useState('');
 
+  // 196차 #3 SMTP 설정 (admin 전용) — 이메일 OTP·비번재설정 발송 인프라
+  const [smtp, setSmtp] = useState({ host: '', port: 587, user: '', pass: '', pass_set: false, from: 'geniegoroi@ociell.com', from_name: 'Geniego-ROI', secure: 'tls' });
+  const [smtpConfigured, setSmtpConfigured] = useState(false);
+  const [smtpLoaded, setSmtpLoaded] = useState(false);
+  const [smtpTestTo, setSmtpTestTo] = useState('');
+
   // 189차 MFA/2FA (TOTP) — admin 제외(관리자는 별도 접속키 흐름)
   const [mfaEnabled, setMfaEnabled] = useState(null);   // null=미조회, true/false
   const [mfaRemaining, setMfaRemaining] = useState(0);
@@ -787,6 +793,43 @@ const ProfileEditModal = memo(function ProfileEditModal({ user, token, onClose }
     } catch { showMsg(t('profile.serverError', 'Server error. Try again.'), 'err'); }
     finally { setSaving(false); }
   };
+
+  // 196차 #3 SMTP 설정 핸들러 ──────────────────────────────────
+  const loadSmtp = async () => {
+    try {
+      const r = await fetch('/api/auth/admin/smtp', { headers: { Authorization: `Bearer ${token}` } });
+      const d = await r.json().catch(() => ({}));
+      if (r.ok && d.ok && d.smtp) { setSmtp(s => ({ ...s, ...d.smtp, pass: '' })); setSmtpConfigured(!!d.configured); }
+    } catch {}
+    finally { setSmtpLoaded(true); }
+  };
+  const handleSaveSmtp = async () => {
+    if (!smtp.host.trim()) { showMsg(t('profile.smtpHostRequired', 'SMTP 호스트를 입력하세요.'), 'err'); return; }
+    setSaving(true);
+    try {
+      const r = await fetch('/api/auth/admin/smtp', {
+        method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ host: smtp.host.trim(), port: Number(smtp.port) || 587, user: smtp.user.trim(), pass: smtp.pass, from: smtp.from.trim(), from_name: smtp.from_name.trim(), secure: smtp.secure }),
+      });
+      const d = await r.json().catch(() => ({}));
+      if (r.ok && d.ok) { showMsg(d.message || t('profile.smtpSaved', 'SMTP 설정이 저장되었습니다.'), 'ok'); setSmtp(s => ({ ...s, pass: '', pass_set: s.pass ? true : s.pass_set })); setSmtpConfigured(!!d.configured); }
+      else showMsg(d.error || t('profile.smtpSaveFail', 'SMTP 설정 저장에 실패했습니다.'), 'err');
+    } catch { showMsg(t('profile.serverError', 'Server error. Try again.'), 'err'); }
+    finally { setSaving(false); }
+  };
+  const handleTestSmtp = async () => {
+    setSaving(true);
+    try {
+      const r = await fetch('/api/auth/admin/smtp/test', {
+        method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ to: smtpTestTo.trim() || (user.email || '') }),
+      });
+      const d = await r.json().catch(() => ({}));
+      showMsg(d.ok ? (d.message || t('profile.smtpTestSent', '테스트 메일을 보냈습니다.')) : (d.error || t('profile.smtpTestFail', '테스트 메일 발송에 실패했습니다.')), d.ok ? 'ok' : 'err');
+    } catch { showMsg(t('profile.serverError', 'Server error. Try again.'), 'err'); }
+    finally { setSaving(false); }
+  };
+  useEffect(() => { if (tab === 'security' && user?.plan === 'admin' && !smtpLoaded) loadSmtp(); }, [tab]); // eslint-disable-line
 
   // 189차 MFA/2FA (TOTP) 핸들러 ──────────────────────────────────
   const mfaAuthHeaders = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` };
@@ -1144,6 +1187,69 @@ const ProfileEditModal = memo(function ProfileEditModal({ user, token, onClose }
                 fontSize: 14, fontWeight: 800, transition: 'all 200ms',
               }}
             >{saving ? t('profile.changingPw', 'Changing...') : t('profile.changeAkBtn', '🛡️ 접속키 변경')}</button>
+
+            {/* 196차 #3 — 이메일 발송(SMTP) 설정 : 2FA OTP·비번재설정 메일 인프라 */}
+            <div style={{ marginTop: 8, paddingTop: 18, borderTop: '1px solid var(--border, #e2e8f0)' }}>
+              <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--text-1, #0f172a)', marginBottom: 6 }}>📧 {t('profile.smtpTitle', '이메일 발송(SMTP) 설정')}</div>
+              <div style={{ padding: '10px 13px', borderRadius: 10, marginBottom: 14, fontSize: 12, lineHeight: 1.7,
+                background: smtpConfigured ? 'rgba(34,197,94,0.06)' : 'rgba(245,158,11,0.06)',
+                border: `1px solid ${smtpConfigured ? 'rgba(34,197,94,0.2)' : 'rgba(245,158,11,0.2)'}`, color: 'var(--text-3, #94a3b8)' }}>
+                {smtpConfigured ? `✅ ${t('profile.smtpOn', 'SMTP가 설정되어 이메일 발송이 가능합니다. 이메일 2단계 인증·비밀번호 재설정 메일이 발송됩니다.')}`
+                  : `⚠️ ${t('profile.smtpOff', 'SMTP 미설정 — 이메일 2단계 인증이 비활성입니다. SMTP 정보를 입력해 발송을 활성화하세요.')}`}
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 110px', gap: 10 }}>
+                <div>
+                  <label style={labelStyle}>{t('profile.smtpHost', 'SMTP 호스트')}</label>
+                  <input value={smtp.host} onChange={e => setSmtp(s => ({ ...s, host: e.target.value }))} placeholder="smtp.gmail.com" style={inputStyle} />
+                </div>
+                <div>
+                  <label style={labelStyle}>{t('profile.smtpPort', '포트')}</label>
+                  <input value={smtp.port} onChange={e => setSmtp(s => ({ ...s, port: e.target.value.replace(/\D/g, '') }))} placeholder="587" style={inputStyle} inputMode="numeric" />
+                </div>
+              </div>
+              <div style={{ marginTop: 10 }}>
+                <label style={labelStyle}>{t('profile.smtpUser', 'SMTP 사용자(계정)')}</label>
+                <input value={smtp.user} onChange={e => setSmtp(s => ({ ...s, user: e.target.value }))} placeholder="geniegoroi@ociell.com" style={inputStyle} autoComplete="off" />
+              </div>
+              <div style={{ marginTop: 10 }}>
+                <label style={labelStyle}>{t('profile.smtpPass', 'SMTP 비밀번호(앱 비밀번호)')}</label>
+                <input type="password" value={smtp.pass} onChange={e => setSmtp(s => ({ ...s, pass: e.target.value }))}
+                  placeholder={smtp.pass_set ? t('profile.smtpPassKeep', '●●●● (변경 시에만 입력)') : t('profile.smtpPassPh', 'SMTP/앱 비밀번호')} style={inputStyle} autoComplete="new-password" />
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 130px', gap: 10, marginTop: 10 }}>
+                <div>
+                  <label style={labelStyle}>{t('profile.smtpFrom', '발신 이메일')}</label>
+                  <input value={smtp.from} onChange={e => setSmtp(s => ({ ...s, from: e.target.value }))} placeholder="geniegoroi@ociell.com" style={inputStyle} />
+                </div>
+                <div>
+                  <label style={labelStyle}>{t('profile.smtpSecure', '보안')}</label>
+                  <select value={smtp.secure} onChange={e => setSmtp(s => ({ ...s, secure: e.target.value }))} style={{ ...inputStyle, cursor: 'pointer' }}>
+                    <option value="tls">STARTTLS</option>
+                    <option value="ssl">SSL</option>
+                    <option value="none">{t('profile.smtpNone', '없음')}</option>
+                  </select>
+                </div>
+              </div>
+              <div style={{ marginTop: 10 }}>
+                <label style={labelStyle}>{t('profile.smtpFromName', '발신자 이름')}</label>
+                <input value={smtp.from_name} onChange={e => setSmtp(s => ({ ...s, from_name: e.target.value }))} placeholder="Geniego-ROI" style={inputStyle} />
+              </div>
+              <button onClick={handleSaveSmtp} disabled={saving || !smtp.host.trim() || !smtp.from.trim()}
+                style={{ width: '100%', marginTop: 14, padding: '12px 0', borderRadius: 12, border: 'none',
+                  cursor: (saving || !smtp.host.trim() || !smtp.from.trim()) ? 'not-allowed' : 'pointer',
+                  background: (saving || !smtp.host.trim() || !smtp.from.trim()) ? 'rgba(79,142,247,0.15)' : 'linear-gradient(135deg,#4f8ef7,#6366f1)',
+                  color: (saving || !smtp.host.trim() || !smtp.from.trim()) ? 'var(--text-3)' : '#fff', fontSize: 14, fontWeight: 800 }}
+              >{saving ? t('profile.saving', '저장 중...') : `📧 ${t('profile.smtpSaveBtn', 'SMTP 설정 저장')}`}</button>
+              <div style={{ display: 'flex', gap: 8, marginTop: 10, alignItems: 'flex-end' }}>
+                <div style={{ flex: 1 }}>
+                  <label style={labelStyle}>{t('profile.smtpTestTo', '테스트 수신 이메일')}</label>
+                  <input value={smtpTestTo} onChange={e => setSmtpTestTo(e.target.value)} placeholder={user.email || 'you@example.com'} style={inputStyle} />
+                </div>
+                <button onClick={handleTestSmtp} disabled={saving || !smtpConfigured}
+                  style={{ padding: '11px 16px', borderRadius: 10, border: '1px solid rgba(79,142,247,0.3)', background: 'rgba(79,142,247,0.06)', color: smtpConfigured ? '#4f8ef7' : 'var(--text-3)', fontWeight: 700, fontSize: 12.5, cursor: (saving || !smtpConfigured) ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap' }}
+                >✉️ {t('profile.smtpTestBtn', '테스트 발송')}</button>
+              </div>
+            </div>
           </div>
         )}
 

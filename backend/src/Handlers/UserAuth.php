@@ -1483,6 +1483,19 @@ final class UserAuth
         } catch (\Throwable $e) { return ''; }
     }
 
+    private static function setAppSetting(\PDO $pdo, string $k, string $v): void
+    {
+        $now = self::now();
+        try {
+            $ex = $pdo->prepare('SELECT 1 FROM app_setting WHERE skey=?'); $ex->execute([$k]);
+            if ($ex->fetchColumn()) {
+                $pdo->prepare('UPDATE app_setting SET svalue=?, updated_at=? WHERE skey=?')->execute([$v, $now, $k]);
+            } else {
+                $pdo->prepare('INSERT INTO app_setting(skey,svalue,updated_at) VALUES(?,?,?)')->execute([$k, $v, $now]);
+            }
+        } catch (\Throwable $e) { /* best-effort */ }
+    }
+
     private static function verifyAdminAccessKey(\PDO $pdo, string $key): bool
     {
         $hash = self::getAppSetting($pdo, 'admin_access_key_hash');
@@ -1530,6 +1543,76 @@ final class UserAuth
         }
         self::audit($req, 'admin_access_key_change', '관리자 접속키 변경', 'high', $user);
         return self::json($res, ['ok' => true, 'message' => '관리자 접속키가 변경되었습니다.']);
+    }
+
+    // ── 196차 #3 — 플랫폼 SMTP 설정(관리자) : MFA OTP·비번재설정 메일 발송 인프라 ──
+    //   app_setting smtp_* 에 저장 → Mailer 가 tenant=null(플랫폼) 발송 시 우선 사용.
+    private static function requireAdminUser(ServerRequestInterface $req)
+    {
+        $user = self::userByToken((string)(self::extractToken($req) ?? ''));
+        if (!$user) return [null, ['인증이 필요합니다.', 401]];
+        if ((($user['plan'] ?? '') !== 'admin') && (($user['plans'] ?? '') !== 'admin')) return [null, ['관리자만 접근할 수 있습니다.', 403]];
+        return [$user, null];
+    }
+
+    /** GET /auth/admin/smtp — 현재 SMTP 설정(비밀번호 마스킹). */
+    public static function smtpGet(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
+    {
+        [$user, $err] = self::requireAdminUser($req);
+        if ($err) return self::json($res, ['ok' => false, 'error' => $err[0]], $err[1]);
+        $pdo = Db::pdo(); self::ensureAppSetting($pdo);
+        $g = fn($k) => self::getAppSetting($pdo, $k);
+        $pass = $g('smtp_pass');
+        $configured = false; try { $configured = \Genie\Mailer::isConfigured($pdo); } catch (\Throwable $e) {}
+        return self::json($res, ['ok' => true, 'smtp' => [
+            'host' => $g('smtp_host'),
+            'port' => $g('smtp_port') !== '' ? (int)$g('smtp_port') : 587,
+            'user' => $g('smtp_user'),
+            'pass_set' => $pass !== '',         // 비밀번호 자체는 미반환(설정 여부만)
+            'from' => $g('smtp_from') !== '' ? $g('smtp_from') : 'geniegoroi@ociell.com',
+            'from_name' => $g('smtp_from_name') !== '' ? $g('smtp_from_name') : 'Geniego-ROI',
+            'secure' => $g('smtp_secure') !== '' ? $g('smtp_secure') : 'tls',
+        ], 'configured' => $configured]);
+    }
+
+    /** POST /auth/admin/smtp — SMTP 설정 저장. pass 는 비워두면 기존 유지. */
+    public static function smtpSave(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
+    {
+        [$user, $err] = self::requireAdminUser($req);
+        if ($err) return self::json($res, ['ok' => false, 'error' => $err[0]], $err[1]);
+        $pdo = Db::pdo(); self::ensureAppSetting($pdo);
+        $b = self::readBody($req);
+        $host = trim((string)($b['host'] ?? ''));
+        $from = trim((string)($b['from'] ?? ''));
+        if ($host === '') return self::json($res, ['ok' => false, 'error' => 'SMTP 호스트를 입력하세요.'], 422);
+        if ($from === '' || !filter_var($from, FILTER_VALIDATE_EMAIL)) return self::json($res, ['ok' => false, 'error' => '발신 이메일 주소가 올바르지 않습니다.'], 422);
+        self::setAppSetting($pdo, 'smtp_host', $host);
+        self::setAppSetting($pdo, 'smtp_port', (string)((int)($b['port'] ?? 587)));
+        self::setAppSetting($pdo, 'smtp_user', trim((string)($b['user'] ?? '')));
+        if (isset($b['pass']) && (string)$b['pass'] !== '') self::setAppSetting($pdo, 'smtp_pass', (string)$b['pass']); // 빈값=기존 유지
+        self::setAppSetting($pdo, 'smtp_from', $from);
+        self::setAppSetting($pdo, 'smtp_from_name', trim((string)($b['from_name'] ?? 'Geniego-ROI')));
+        $secure = (string)($b['secure'] ?? 'tls');
+        self::setAppSetting($pdo, 'smtp_secure', in_array($secure, ['tls','ssl','none',''], true) ? $secure : 'tls');
+        self::audit($req, 'smtp_config', 'SMTP 설정 변경', 'high', $user);
+        $configured = false; try { $configured = \Genie\Mailer::isConfigured($pdo); } catch (\Throwable $e) {}
+        return self::json($res, ['ok' => true, 'message' => 'SMTP 설정이 저장되었습니다.', 'configured' => $configured]);
+    }
+
+    /** POST /auth/admin/smtp/test {to} — 테스트 메일 발송. */
+    public static function smtpTest(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
+    {
+        [$user, $err] = self::requireAdminUser($req);
+        if ($err) return self::json($res, ['ok' => false, 'error' => $err[0]], $err[1]);
+        $pdo = Db::pdo(); self::ensureAppSetting($pdo);
+        $b = self::readBody($req);
+        $to = trim((string)($b['to'] ?? ($user['email'] ?? '')));
+        if ($to === '' || !filter_var($to, FILTER_VALIDATE_EMAIL)) return self::json($res, ['ok' => false, 'error' => '수신 이메일 주소가 올바르지 않습니다.'], 422);
+        if (!\Genie\Mailer::isConfigured($pdo)) return self::json($res, ['ok' => false, 'error' => 'SMTP가 아직 설정되지 않았습니다. 먼저 설정을 저장하세요.'], 400);
+        $html = \Genie\Mailer::wrapHtml('SMTP 테스트 메일', '<p>Geniego-ROI SMTP 설정이 정상 동작합니다. 이 메일이 수신되면 이메일 발송 인프라가 준비되었습니다.</p>');
+        $r = \Genie\Mailer::send($to, '[Geniego-ROI] SMTP 테스트 메일', $html, ['pdo' => $pdo]);
+        if (empty($r['ok'])) return self::json($res, ['ok' => false, 'error' => '발송 실패: ' . (string)($r['error'] ?? '알 수 없는 오류')], 502);
+        return self::json($res, ['ok' => true, 'message' => "{$to} 로 테스트 메일을 보냈습니다. 메일함(스팸 포함)을 확인하세요."]);
     }
 
     // ═════════════════════════════════════════════════════════════

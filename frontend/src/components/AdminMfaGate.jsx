@@ -145,6 +145,11 @@ function MfaEnrollGate({ onDone }) {
           })}
         </div>
         {err && <div style={{ color: "#f87171", fontSize: 12, marginTop: 12 }}>{err}</div>}
+        {/* 196차: 발송 인프라(SMTP 등) 준비 전 강제 enroll 락아웃 방지 — 7일 유예 후 재안내 */}
+        <button type="button" onClick={() => { try { localStorage.setItem("genie_mfa_defer", String(Date.now() + 7 * 24 * 3600 * 1000)); } catch (e) {} onDone && onDone(); }}
+          style={{ width: "100%", marginTop: 18, background: "none", border: "none", color: "#94a3b8", fontSize: 12, cursor: "pointer", textDecoration: "underline" }}>
+          {t("mfaGate.deferLater", "나중에 설정하기 (7일 후 다시 안내)")}
+        </button>
       </div></div>
     );
   }
@@ -202,6 +207,11 @@ export default function AdminMfaGate({ children }) {
   useEffect(() => {
     let alive = true;
     if (!user || user.plan !== "admin" || !token) { setState("ok"); return; }
+    // 196차: '나중에 설정' 유예 기간 내면 게이트 건너뜀(발송 인프라 준비 전 락아웃 방지).
+    try {
+      const until = Number(localStorage.getItem("genie_mfa_defer") || 0);
+      if (until && Date.now() < until) { setState("ok"); return; }
+    } catch (e) {}
     fetch("/api/auth/mfa/status", { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.json()).catch(() => ({}))
       .then(d => { if (alive) setState(d && d.ok && d.enabled ? "ok" : "need"); });

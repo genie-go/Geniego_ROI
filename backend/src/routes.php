@@ -633,6 +633,9 @@ return function (App $app): void {
         // 188차 관리자 보안강화 — 접속키 검증/변경
         'POST /auth/admin/verify-access-key' => 'Genie\\Handlers\\UserAuth::verifyAdminKey',
         'POST /auth/admin/access-key'        => 'Genie\\Handlers\\UserAuth::adminChangeAccessKey',
+        'GET /auth/admin/smtp'               => 'Genie\\Handlers\\UserAuth::smtpGet',
+        'POST /auth/admin/smtp'              => 'Genie\\Handlers\\UserAuth::smtpSave',
+        'POST /auth/admin/smtp/test'         => 'Genie\\Handlers\\UserAuth::smtpTest',
         // 189차+ 인증 감사로그
         'GET /auth/audit-logs'   => 'Genie\\Handlers\\UserAuth::auditLogs',
         // 189차+ 세션/기기 관리
@@ -1433,6 +1436,9 @@ return function (App $app): void {
     $register('POST', '/auth/reset-password');
     $register('POST', '/auth/admin/verify-access-key');
     $register('POST', '/auth/admin/access-key');
+    $register('GET',  '/auth/admin/smtp');
+    $register('POST', '/auth/admin/smtp');
+    $register('POST', '/auth/admin/smtp/test');
     // 189차+ 인증 감사로그
     $register('GET',  '/auth/audit-logs');
     // 189차+ 세션/기기 관리

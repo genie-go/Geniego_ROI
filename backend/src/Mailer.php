@@ -104,6 +104,24 @@ final class Mailer
             } catch (\Throwable $e) { /* 테이블 부재 등 → env 폴백 */ }
         }
 
+        // 1.5) 196차 #3 — 플랫폼(tenant=null) 트랜잭션 SMTP는 관리자 설정(app_setting smtp_*) 우선.
+        //   관리자가 UI에서 저장한 SMTP 자격증명으로 MFA OTP·비번재설정 메일을 발송한다.
+        if ($pdo instanceof PDO && ($tenant === null || $tenant === '')) {
+            try {
+                $st = $pdo->query("SELECT skey, svalue FROM app_setting WHERE skey IN ('smtp_host','smtp_port','smtp_user','smtp_pass','smtp_from','smtp_from_name','smtp_secure')");
+                $rows = $st ? $st->fetchAll(PDO::FETCH_KEY_PAIR) : [];
+                if (is_array($rows)) {
+                    if (!empty($rows['smtp_host']))      $cfg['host'] = (string)$rows['smtp_host'];
+                    if (!empty($rows['smtp_port']))      $cfg['port'] = (int)$rows['smtp_port'];
+                    if (!empty($rows['smtp_user']))      $cfg['user'] = (string)$rows['smtp_user'];
+                    if (!empty($rows['smtp_pass']))      $cfg['pass'] = (string)$rows['smtp_pass'];
+                    if (!empty($rows['smtp_from']))      $cfg['from'] = (string)$rows['smtp_from'];
+                    if (!empty($rows['smtp_from_name'])) $cfg['from_name'] = (string)$rows['smtp_from_name'];
+                    if (!empty($rows['smtp_secure']))    $cfg['secure'] = (string)$rows['smtp_secure'];
+                }
+            } catch (\Throwable $e) { /* 테이블 부재 등 → env 폴백 */ }
+        }
+
         // 2) env 폴백 (DB 미설정 필드만 채움)
         $env = fn(string $k) => ($v = getenv($k)) !== false && $v !== '' ? $v : null;
         if ($cfg['host'] === '' && ($v = $env('GENIE_SMTP_HOST'))) $cfg['host'] = $v;
