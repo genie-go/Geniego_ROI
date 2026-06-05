@@ -11,7 +11,7 @@ const auth = () => {
   const t = localStorage.getItem(TOKEN_KEY) || localStorage.getItem('genie_token') || localStorage.getItem('demo_genie_token') || '';
   return { 'Content-Type': 'application/json', ...(t ? { Authorization: `Bearer ${t}` } : {}) };
 };
-const RBOX = { '9:16': { w: 200, h: 355 }, '1:1': { w: 280, h: 280 }, '4:5': { w: 260, h: 325 }, '16:9': { w: 340, h: 191 } };
+const RBOX = { '9:16': { w: 256, h: 455 }, '1:1': { w: 380, h: 380 }, '4:5': { w: 344, h: 430 }, '16:9': { w: 430, h: 242 } };
 const CHLABEL = { tiktok: 'TikTok', meta: 'Meta', instagram: 'Instagram', kakao: 'Kakao', youtube: 'YouTube', popup: 'Web Popup' };
 
 const SUGGESTIONS = [
@@ -109,9 +109,9 @@ export default function AIDesignChat({ onApplied }) {
   const inputStyle = { flex: 1, padding: '12px 14px', borderRadius: 12, border: '1px solid #cbd5e1', background: '#fff', color: '#0f172a', fontSize: 14, outline: 'none' };
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 18, alignItems: 'start' }}>
+    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,0.8fr) auto', gap: 18, alignItems: 'start' }}>
       {/* 채팅 */}
-      <div style={{ display: 'flex', flexDirection: 'column', height: 560, borderRadius: 16, border: '1px solid var(--border,#e2e8f0)', background: 'var(--bg-card,#fff)', overflow: 'hidden' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', height: 540, borderRadius: 16, border: '1px solid var(--border,#e2e8f0)', background: 'var(--bg-card,#fff)', overflow: 'hidden' }}>
         <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border,#e2e8f0)', fontWeight: 900, fontSize: 14, color: '#1e293b', background: 'linear-gradient(135deg, #eef2ff, #f5f3ff)' }}>💬 {t('aiChat.title', '대화형 AI 디자인')}</div>
         <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', padding: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
           {messages.map((m, i) => (
@@ -139,7 +139,7 @@ export default function AIDesignChat({ onApplied }) {
       </div>
 
       {/* 미리보기 + 저장 */}
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, width: 320, padding: 18, borderRadius: 16, border: '1px solid var(--border,#e2e8f0)', background: 'var(--bg-card,#fff)' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, width: 470, maxWidth: '46vw', padding: 22, borderRadius: 16, border: '1px solid var(--border,#e2e8f0)', background: 'var(--bg-card,#fff)' }}>
         {design && (
           <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontWeight: 800, fontSize: 13, color: '#1e293b' }}>{CHLABEL[design.channel] || design.channel || '광고'}</span>
