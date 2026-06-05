@@ -405,6 +405,10 @@ return function (App $app): void {
         'POST /v422/ai/channel-kpi-eval'     => 'Genie\\Handlers\\ClaudeAI::channelKpiEval',
         'POST /v422/ai/campaign-recommend'   => 'Genie\\Handlers\\ClaudeAI::campaignRecommend',
         'POST /v422/ai/campaign-ad-creative'  => 'Genie\\Handlers\\ClaudeAI::campaignAdCreative',
+        'POST /v422/ai/campaign-ad-design'    => 'Genie\\Handlers\\ClaudeAI::campaignAdDesign',
+        'POST /v422/ai/campaign-ad-render'    => 'Genie\\Handlers\\ClaudeAI::campaignAdRender',
+        'POST /v422/ai/ad-design/save'        => 'Genie\\Handlers\\ClaudeAI::adDesignSave',
+        'GET /v422/ai/ad-design/list'         => 'Genie\\Handlers\\ClaudeAI::adDesignList',
         'POST /v422/ai/campaign-search'        => 'Genie\\Handlers\\ClaudeAI::campaignSearch',
 
         // ── v421 API Key Management (admin:keys scope) ─────────────────────────
@@ -636,6 +640,8 @@ return function (App $app): void {
         'GET /auth/admin/smtp'               => 'Genie\\Handlers\\UserAuth::smtpGet',
         'POST /auth/admin/smtp'              => 'Genie\\Handlers\\UserAuth::smtpSave',
         'POST /auth/admin/smtp/test'         => 'Genie\\Handlers\\UserAuth::smtpTest',
+        'GET /auth/admin/ai-key'             => 'Genie\\Handlers\\UserAuth::aiKeyGet',
+        'POST /auth/admin/ai-key'            => 'Genie\\Handlers\\UserAuth::aiKeySave',
         // 189차+ 인증 감사로그
         'GET /auth/audit-logs'   => 'Genie\\Handlers\\UserAuth::auditLogs',
         // 189차+ 세션/기기 관리
@@ -1423,6 +1429,10 @@ return function (App $app): void {
     // ── v422 AI 마케팅 추천 (전체 카테고리) ─────────────────────────
     $register('POST', '/v422/ai/campaign-search');
     $register('POST', '/v422/ai/campaign-ad-creative');
+    $register('POST', '/v422/ai/campaign-ad-design');
+    $register('POST', '/v422/ai/campaign-ad-render');
+    $register('POST', '/v422/ai/ad-design/save');
+    $register('GET',  '/v422/ai/ad-design/list');
 
     // ── Auth ────────────────────────────────────────────────────────
     $register('POST', '/auth/register');
@@ -1439,6 +1449,8 @@ return function (App $app): void {
     $register('GET',  '/auth/admin/smtp');
     $register('POST', '/auth/admin/smtp');
     $register('POST', '/auth/admin/smtp/test');
+    $register('GET',  '/auth/admin/ai-key');
+    $register('POST', '/auth/admin/ai-key');
     // 189차+ 인증 감사로그
     $register('GET',  '/auth/audit-logs');
     // 189차+ 세션/기기 관리

@@ -1615,6 +1615,40 @@ final class UserAuth
         return self::json($res, ['ok' => true, 'message' => "{$to} 로 테스트 메일을 보냈습니다. 메일함(스팸 포함)을 확인하세요."]);
     }
 
+    // ── 196차 — 플랫폼 AI(Claude/Anthropic) API 키 설정(관리자). 실 AI 디자인·분석 활성화. ──
+    /** GET /auth/admin/ai-key — Claude 키 설정 여부(키 자체 미반환). */
+    public static function aiKeyGet(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
+    {
+        [$user, $err] = self::requireAdminUser($req);
+        if ($err) return self::json($res, ['ok' => false, 'error' => $err[0]], $err[1]);
+        $pdo = Db::pdo(); self::ensureAppSetting($pdo);
+        $set = self::getAppSetting($pdo, 'claude_api_key') !== '';
+        $configured = false; try { $configured = \Genie\Handlers\ClaudeAI::aiKeyConfigured(); } catch (\Throwable $e) {}
+        return self::json($res, ['ok' => true, 'key_set' => $set, 'configured' => $configured]);
+    }
+
+    /** POST /auth/admin/ai-key {api_key} — Claude(Anthropic) API 키 저장. */
+    public static function aiKeySave(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
+    {
+        [$user, $err] = self::requireAdminUser($req);
+        if ($err) return self::json($res, ['ok' => false, 'error' => $err[0]], $err[1]);
+        $pdo = Db::pdo(); self::ensureAppSetting($pdo);
+        $b = self::readBody($req);
+        $key = trim((string)($b['api_key'] ?? ''));
+        if ($key !== '') {
+            if (strncmp($key, 'sk-ant-', 7) !== 0 || strlen($key) < 20) {
+                return self::json($res, ['ok' => false, 'error' => 'Anthropic API 키 형식이 올바르지 않습니다(sk-ant-...).'], 422);
+            }
+            self::setAppSetting($pdo, 'claude_api_key', $key);
+        } elseif (isset($b['clear']) && $b['clear']) {
+            self::setAppSetting($pdo, 'claude_api_key', '');
+        } else {
+            return self::json($res, ['ok' => false, 'error' => 'API 키를 입력하세요.'], 422);
+        }
+        self::audit($req, 'ai_key_config', 'AI(Claude) API 키 설정', 'high', $user);
+        return self::json($res, ['ok' => true, 'message' => 'AI API 키가 저장되었습니다. 실시간 AI 디자인·분석이 활성화됩니다.']);
+    }
+
     // ═════════════════════════════════════════════════════════════
     // 189차 보안 하드닝 — 비밀번호 정책 / 로그인 rate-limit / MFA(TOTP)
     // ═════════════════════════════════════════════════════════════

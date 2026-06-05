@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { IS_DEMO } from '../utils/demoEnv';
 import { useI18n } from '../i18n';
+import AIDesignStudio from '../components/AIDesignStudio.jsx'; // 196차 — AI 광고 디자인 스튜디오
 
 const _isDemo = IS_DEMO; // 180차: 자가가드(startsWith demo — roidemo.* 미매칭) → demoEnv 정본 격리
 
@@ -141,7 +142,8 @@ export default function CreativeStudioTab({ sourcePage, onUseCampaign }) {
     </div>
   );
 
-  const renderCreateNew = () => (
+  const renderCreateNew = () => (<AIDesignStudio onApplied={() => {}} />);
+  const _renderCreateNewOld = () => (
     <div style={{ display:'grid', gap:16 }}>
       <div style={{ ...card, background:'linear-gradient(135deg,rgba(168,85,247,0.08),rgba(79,142,247,0.06))', borderColor:'rgba(168,85,247,0.25)', textAlign:'center', padding:40 }}>
         <div style={{ fontSize:48, marginBottom:12 }}>✨</div>

@@ -637,6 +637,9 @@ const ProfileEditModal = memo(function ProfileEditModal({ user, token, onClose }
   const [smtpConfigured, setSmtpConfigured] = useState(false);
   const [smtpLoaded, setSmtpLoaded] = useState(false);
   const [smtpTestTo, setSmtpTestTo] = useState('');
+  // 196차 AI(Claude) API 키 설정 (admin) — 실 AI 디자인·분석 활성화
+  const [aiKey, setAiKey] = useState('');
+  const [aiKeySet, setAiKeySet] = useState(false);
 
   // 189차 MFA/2FA (TOTP) — admin 제외(관리자는 별도 접속키 흐름)
   const [mfaEnabled, setMfaEnabled] = useState(null);   // null=미조회, true/false
@@ -829,7 +832,28 @@ const ProfileEditModal = memo(function ProfileEditModal({ user, token, onClose }
     } catch { showMsg(t('profile.serverError', 'Server error. Try again.'), 'err'); }
     finally { setSaving(false); }
   };
-  useEffect(() => { if (tab === 'security' && user?.plan === 'admin' && !smtpLoaded) loadSmtp(); }, [tab]); // eslint-disable-line
+  const loadAiKey = async () => {
+    try {
+      const r = await fetch('/api/auth/admin/ai-key', { headers: { Authorization: `Bearer ${token}` } });
+      const d = await r.json().catch(() => ({}));
+      if (r.ok && d.ok) setAiKeySet(!!d.key_set || !!d.configured);
+    } catch {}
+  };
+  const handleSaveAiKey = async () => {
+    if (!aiKey.trim()) { showMsg(t('profile.aiKeyRequired', 'Anthropic API 키(sk-ant-...)를 입력하세요.'), 'err'); return; }
+    setSaving(true);
+    try {
+      const r = await fetch('/api/auth/admin/ai-key', {
+        method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ api_key: aiKey.trim() }),
+      });
+      const d = await r.json().catch(() => ({}));
+      if (r.ok && d.ok) { showMsg(d.message || t('profile.aiKeySaved', 'AI API 키가 저장되었습니다.'), 'ok'); setAiKey(''); setAiKeySet(true); }
+      else showMsg(d.error || t('profile.aiKeySaveFail', 'AI 키 저장에 실패했습니다.'), 'err');
+    } catch { showMsg(t('profile.serverError', 'Server error. Try again.'), 'err'); }
+    finally { setSaving(false); }
+  };
+  useEffect(() => { if (tab === 'security' && user?.plan === 'admin' && !smtpLoaded) { loadSmtp(); loadAiKey(); } }, [tab]); // eslint-disable-line
 
   // 189차 MFA/2FA (TOTP) 핸들러 ──────────────────────────────────
   const mfaAuthHeaders = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` };
@@ -1249,6 +1273,25 @@ const ProfileEditModal = memo(function ProfileEditModal({ user, token, onClose }
                   style={{ padding: '11px 16px', borderRadius: 10, border: '1px solid rgba(79,142,247,0.3)', background: 'rgba(79,142,247,0.06)', color: smtpConfigured ? '#4f8ef7' : 'var(--text-3)', fontWeight: 700, fontSize: 12.5, cursor: (saving || !smtpConfigured) ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap' }}
                 >✉️ {t('profile.smtpTestBtn', '테스트 발송')}</button>
               </div>
+            </div>
+
+            {/* 196차 #AI — 플랫폼 AI(Claude) API 키 설정 : 실시간 AI 광고 디자인·분석 활성화 */}
+            <div style={{ marginTop: 8, paddingTop: 18, borderTop: '1px solid var(--border, #e2e8f0)' }}>
+              <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--text-1, #0f172a)', marginBottom: 6 }}>🤖 {t('profile.aiKeyTitle', 'AI 엔진(Claude) API 키')}</div>
+              <div style={{ padding: '10px 13px', borderRadius: 10, marginBottom: 12, fontSize: 12, lineHeight: 1.7,
+                background: aiKeySet ? 'rgba(34,197,94,0.06)' : 'rgba(245,158,11,0.06)',
+                border: `1px solid ${aiKeySet ? 'rgba(34,197,94,0.2)' : 'rgba(245,158,11,0.2)'}`, color: 'var(--text-3, #94a3b8)' }}>
+                {aiKeySet ? `✅ ${t('profile.aiKeyOn', 'AI 엔진이 활성화되어 실시간 AI 광고 디자인·분석을 사용합니다.')}`
+                  : `⚠️ ${t('profile.aiKeyOff', 'AI 키 미설정 — 현재는 내장 템플릿으로 동작합니다. Anthropic API 키를 입력하면 실시간 AI 디자인이 활성화됩니다.')}`}
+              </div>
+              <input type="password" value={aiKey} onChange={e => setAiKey(e.target.value)}
+                placeholder={aiKeySet ? t('profile.aiKeyKeep', 'sk-ant-... (변경 시에만 입력)') : 'sk-ant-api03-...'} style={inputStyle} autoComplete="new-password" />
+              <button onClick={handleSaveAiKey} disabled={saving || !aiKey.trim()}
+                style={{ width: '100%', marginTop: 12, padding: '12px 0', borderRadius: 12, border: 'none',
+                  cursor: (saving || !aiKey.trim()) ? 'not-allowed' : 'pointer',
+                  background: (saving || !aiKey.trim()) ? 'rgba(168,85,247,0.15)' : 'linear-gradient(135deg,#a855f7,#4f8ef7)',
+                  color: (saving || !aiKey.trim()) ? 'var(--text-3)' : '#fff', fontSize: 14, fontWeight: 800 }}
+              >{saving ? t('profile.saving', '저장 중...') : `🤖 ${t('profile.aiKeySaveBtn', 'AI 키 저장')}`}</button>
             </div>
           </div>
         )}

@@ -25,8 +25,21 @@ final class ClaudeAI {
     private static function apiKey(): string {
         $env = getenv('CLAUDE_API_KEY');
         if ($env && strlen($env) > 10) return $env;
-        // fallback: provided by user (store in env on prod)
+        // 196차: 관리자 설정(app_setting claude_api_key) — admin이 UI에서 Anthropic 키 등록 시 실 AI 활성.
+        try {
+            $pdo = Db::pdo();
+            $st  = $pdo->query("SELECT svalue FROM app_setting WHERE skey='claude_api_key'");
+            $v   = $st ? (string)($st->fetchColumn() ?: '') : '';
+            if (strlen($v) > 10) return $v;
+        } catch (\Throwable $e) {}
+        // fallback: 미설정(키 없으면 호출 401 → 내장 템플릿 폴백으로 항상 동작)
         return 'sk-ant-api03-***MASKED_FOR_GITHUB***';
+    }
+
+    /** 196차: 플랫폼 AI(Claude) 키 설정 여부(UI 게이트용). */
+    public static function aiKeyConfigured(): bool {
+        $k = self::apiKey();
+        return strpos($k, 'MASKED_FOR_GITHUB') === false && strlen($k) > 10;
     }
 
     /* ── DB 스키마 자동 생성 ─────────────────────────────────── */
@@ -1221,6 +1234,301 @@ PROMPT;
         } catch (\Throwable $e) {
             $res->getBody()->write(json_encode(['ok' => false, 'error' => $e->getMessage()], JSON_UNESCAPED_UNICODE));
             return $res->withHeader('Content-Type', 'application/json')->withStatus(500);
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    // POST /v422/ai/campaign-ad-design  (196차 — AI 디자인 스튜디오)
+    // 상품설명+카테고리+채널 → 채널별 완성 광고 디자인 스펙(카피·컬러팔레트·레이아웃·규격).
+    // feedback 전달 시 이전 디자인을 피드백 반영해 재생성(미리보기→수정→적용 워크플로우).
+    // ─────────────────────────────────────────────────────────────────────
+    public static function campaignAdDesign(Request $req, Response $res): Response
+    {
+        try {
+            $body = (array)($req->getParsedBody() ?? []);
+            if (empty($body)) { $d = json_decode((string)$req->getBody(), true); if (is_array($d)) $body = $d; }
+            $data     = $body['data'] ?? $body;
+            $product  = trim((string)($data['product_description'] ?? $data['product'] ?? ''));
+            $category = trim((string)($data['category'] ?? '일반'));
+            $channels = $data['channels'] ?? [];
+            $feedback = trim((string)($data['feedback'] ?? ''));
+            if (!is_array($channels) || empty($channels)) $channels = ['tiktok','meta','instagram','kakao','youtube'];
+            if ($product === '') {
+                $res->getBody()->write(json_encode(['ok'=>false,'error'=>'상품 설명을 입력하세요.'], JSON_UNESCAPED_UNICODE));
+                return $res->withHeader('Content-Type','application/json')->withStatus(422);
+            }
+            $chList = implode(', ', array_map('strval', $channels));
+            $fbLine = $feedback !== '' ? "수정 요청(이전 디자인을 이 피드백에 맞게 개선): {$feedback}\n" : '';
+            $systemPrompt = <<<PROMPT
+당신은 세계 최고 수준의 퍼포먼스 광고 크리에이티브 디렉터입니다. 상품 설명·카테고리·채널 특성에 맞춰 클릭률(CTR)과 전환을 극대화하는 채널별 광고 디자인을 설계합니다.
+
+카테고리: {$category}
+{$fbLine}
+채널 특성 가이드:
+- tiktok: 역동적 숏폼(9:16), 첫 3초 후킹, 트렌디·자막 중심
+- meta / instagram: 감각적 비주얼 피드(1:1 또는 4:5)·스토리(9:16), 브랜드 무드
+- youtube: 영상(16:9), 인트로 후킹+스토리텔링
+- kakao: 친근한 메시지형(1:1), 혜택·CTA 명확
+
+반드시 아래 JSON만 출력(설명·마크다운 금지):
+{
+  "designs": [
+    {
+      "channel": "tiktok|meta|instagram|kakao|youtube 중 하나",
+      "format": "포맷명(예: 숏폼 영상, 피드 이미지, 스토리, 카루셀, 인스트림 영상)",
+      "ratio": "9:16|1:1|4:5|16:9 중 하나",
+      "headline": "임팩트 헤드라인(공백 포함 16자 이내)",
+      "subheadline": "보조 문구(24자 이내)",
+      "body": "본문 카피(1~2문장, 혜택 중심)",
+      "cta": "행동유도 버튼 문구(예: 지금 구매, 무료 체험)",
+      "hashtags": ["#관련태그", "#카테고리태그"],
+      "palette": {"bg": "#배경HEX", "primary": "#주색HEX", "accent": "#강조HEX", "text": "#글자HEX(배경 대비 가독)"},
+      "layout": "요소 배치 설명(헤드라인/CTA 위치 등)",
+      "visual": "비주얼 디렉션(이미지·영상 연출 가이드 1문장)",
+      "mood": "톤(예: 역동적, 미니멀, 럭셔리, 따뜻한)"
+    }
+  ]
+}
+요청된 채널 각각에 대해 정확히 하나씩 생성하세요. palette 색상은 카테고리·무드에 어울리고 text는 bg 위에서 반드시 잘 보이게 하세요.
+PROMPT;
+            $userMsg = "상품 설명: {$product}\n\n대상 채널: {$chList}\n\n각 채널에 맞는 광고 디자인을 생성해 주세요.";
+
+            $result = null; $dataSource = 'ai';
+            try {
+                $claude = self::callClaudeLong($systemPrompt, $userMsg); // 다채널 디자인 생성 → 여유 타임아웃
+                $clean  = preg_replace('/```(?:json)?\s*([\s\S]*?)```/', '$1', $claude['text']);
+                $parsed = json_decode(trim($clean ?? $claude['text']), true);
+                if (is_array($parsed) && !empty($parsed['designs']) && is_array($parsed['designs'])) {
+                    $result = $parsed['designs'];
+                }
+            } catch (\Throwable $e) { $dataSource = 'fallback'; }
+
+            if (!is_array($result)) { $result = self::fallbackAdDesigns($product, $category, $channels, $feedback); $dataSource = 'fallback'; }
+
+            $res->getBody()->write(json_encode(['ok'=>true,'designs'=>$result,'data_source'=>$dataSource], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+            return $res->withHeader('Content-Type','application/json');
+        } catch (\Throwable $e) {
+            $res->getBody()->write(json_encode(['ok'=>false,'error'=>$e->getMessage()], JSON_UNESCAPED_UNICODE));
+            return $res->withHeader('Content-Type','application/json')->withStatus(500);
+        }
+    }
+
+    /** Claude 실패 시 카테고리·채널 기반 구조화 디자인 폴백(항상 실사용 가능한 결과 보장). */
+    private static function fallbackAdDesigns(string $product, string $category, array $channels, string $feedback): array
+    {
+        $palettes = [
+            ['bg'=>'#0f172a','primary'=>'#4f8ef7','accent'=>'#22d3ee','text'=>'#ffffff'],
+            ['bg'=>'#1a1030','primary'=>'#a855f7','accent'=>'#f472b6','text'=>'#ffffff'],
+            ['bg'=>'#fff7ed','primary'=>'#f97316','accent'=>'#ef4444','text'=>'#1e293b'],
+            ['bg'=>'#052e2b','primary'=>'#14d9b0','accent'=>'#22c55e','text'=>'#ffffff'],
+            ['bg'=>'#fef2f2','primary'=>'#e11d48','accent'=>'#fb7185','text'=>'#1e293b'],
+        ];
+        $meta = [
+            'tiktok'    => ['format'=>'숏폼 영상','ratio'=>'9:16','mood'=>'역동적'],
+            'meta'      => ['format'=>'피드 이미지','ratio'=>'1:1','mood'=>'감각적'],
+            'instagram' => ['format'=>'스토리','ratio'=>'9:16','mood'=>'트렌디'],
+            'kakao'     => ['format'=>'메시지 카드','ratio'=>'1:1','mood'=>'친근한'],
+            'youtube'   => ['format'=>'인스트림 영상','ratio'=>'16:9','mood'=>'스토리텔링'],
+        ];
+        $short = mb_substr($product, 0, 14);
+        $out = []; $i = 0;
+        foreach ($channels as $ch) {
+            $ch = (string)$ch; $m = $meta[$ch] ?? ['format'=>'이미지','ratio'=>'1:1','mood'=>'모던'];
+            $p = $palettes[$i % count($palettes)]; $i++;
+            $out[] = [
+                'channel'=>$ch, 'format'=>$m['format'], 'ratio'=>$m['ratio'],
+                'headline'=> $short !== '' ? $short : "{$category} 신상품",
+                'subheadline'=> "{$category} 베스트셀러",
+                'body'=> mb_substr($product, 0, 60),
+                'cta'=> $ch==='kakao' ? '혜택 받기' : '지금 구매',
+                'hashtags'=> ['#'.$category, '#'.$ch, '#추천'],
+                'palette'=> $p,
+                'layout'=> '상단 헤드라인 · 중앙 상품 비주얼 · 하단 CTA 버튼',
+                'visual'=> "{$category} 상품을 {$m['mood']} 무드로 강조한 비주얼",
+                'mood'=> $m['mood'],
+            ];
+        }
+        return $out;
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    // POST /v422/ai/campaign-ad-render  (196차 — AI가 실제 디자인된 SVG 광고 생성)
+    // 디자인 스펙 1건(채널) → Claude 가 완성 폴리시드 SVG 광고 크리에이티브 코드를 생성.
+    // 외부 이미지 API 없이도 벡터 기반 실 광고 디자인(미리보기·적용). 보안 sanitize 필수.
+    // ─────────────────────────────────────────────────────────────────────
+    public static function campaignAdRender(Request $req, Response $res): Response
+    {
+        try {
+            $body = (array)($req->getParsedBody() ?? []);
+            if (empty($body)) { $d = json_decode((string)$req->getBody(), true); if (is_array($d)) $body = $d; }
+            $data    = $body['data'] ?? $body;
+            $product = trim((string)($data['product_description'] ?? ''));
+            $design  = is_array($data['design'] ?? null) ? $data['design'] : [];
+            $feedback= trim((string)($data['feedback'] ?? ''));
+            $channel = (string)($design['channel'] ?? 'meta');
+            $ratio   = (string)($design['ratio'] ?? '1:1');
+            // viewBox 규격
+            $dims = ['9:16'=>[1080,1920],'1:1'=>[1080,1080],'4:5'=>[1080,1350],'16:9'=>[1920,1080]];
+            [$w,$h] = $dims[$ratio] ?? [1080,1080];
+            $pal = json_encode($design['palette'] ?? ['bg'=>'#0f172a','primary'=>'#4f8ef7','accent'=>'#22d3ee','text'=>'#ffffff'], JSON_UNESCAPED_UNICODE);
+            $specJson = json_encode([
+                'channel'=>$channel,'headline'=>$design['headline']??'','subheadline'=>$design['subheadline']??'',
+                'body'=>$design['body']??'','cta'=>$design['cta']??'','mood'=>$design['mood']??'','layout'=>$design['layout']??'',
+            ], JSON_UNESCAPED_UNICODE);
+            $fbLine = $feedback !== '' ? "수정 요청(반드시 반영): {$feedback}\n" : '';
+            $systemPrompt = <<<PROMPT
+당신은 세계 최고의 광고 그래픽 디자이너입니다. 주어진 디자인 스펙으로 즉시 게재 가능한 완성도의 광고 크리에이티브를 순수 SVG 코드로 디자인합니다.
+
+요구사항:
+- 출력은 오직 하나의 완전한 <svg>...</svg> 코드만 (설명·마크다운·코드펜스 금지).
+- viewBox="0 0 {$w} {$h}" (채널 규격).
+- 팔레트 색상 사용, 텍스트는 배경 대비 반드시 가독.
+- 구성: 배경(그라데이션/도형) + 헤드라인(대형, 굵게) + 서브헤드라인 + 본문 + CTA 버튼(둥근 사각형+문구) + 브랜드 영역. 무드에 맞는 장식 도형/패턴.
+- 전문 타이포그래피(font-family는 'Pretendard','Apple SD Gothic Neo','Noto Sans KR',sans-serif 사용), 적절한 위계.
+- 외부 리소스(image href, 외부 폰트, script) 절대 금지. <script>, on*=, foreignObject 사용 금지. 순수 벡터/텍스트만.
+{$fbLine}
+PROMPT;
+            $userMsg = "상품: {$product}\n디자인 스펙: {$specJson}\n팔레트: {$pal}\n\n이 광고의 완성 SVG를 디자인하세요.";
+
+            $svg = null; $dataSource = 'ai';
+            try {
+                $claude = self::callClaudeLong($systemPrompt, $userMsg);
+                $svg = self::extractSvg($claude['text']);
+            } catch (\Throwable $e) { $dataSource = 'fallback'; }
+            if (!$svg) { $svg = self::fallbackSvg($design, $w, $h); $dataSource = 'fallback'; }
+            $svg = self::sanitizeSvg($svg);
+
+            $res->getBody()->write(json_encode(['ok'=>true,'svg'=>$svg,'width'=>$w,'height'=>$h,'data_source'=>$dataSource], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+            return $res->withHeader('Content-Type','application/json');
+        } catch (\Throwable $e) {
+            $res->getBody()->write(json_encode(['ok'=>false,'error'=>$e->getMessage()], JSON_UNESCAPED_UNICODE));
+            return $res->withHeader('Content-Type','application/json')->withStatus(500);
+        }
+    }
+
+    /** SVG 생성은 토큰·시간이 더 필요 → max_tokens 상향 + 타임아웃 여유. */
+    private static function callClaudeLong(string $systemPrompt, string $userMsg): array {
+        $apiKey = self::apiKey();
+        $payload = json_encode(['model'=>self::MODEL,'max_tokens'=>8192,'system'=>$systemPrompt,'messages'=>[['role'=>'user','content'=>$userMsg]]], JSON_UNESCAPED_UNICODE);
+        $ch = curl_init(self::API_URL);
+        curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER=>true,CURLOPT_POST=>true,CURLOPT_POSTFIELDS=>$payload,CURLOPT_TIMEOUT=>22,CURLOPT_CONNECTTIMEOUT=>5,
+            CURLOPT_HTTPHEADER=>['Content-Type: application/json','x-api-key: '.$apiKey,'anthropic-version: 2023-06-01']]);
+        $raw = curl_exec($ch); $status = curl_getinfo($ch, CURLINFO_HTTP_CODE); $err = curl_error($ch); curl_close($ch);
+        if ($err) throw new \RuntimeException('curl error: '.$err);
+        $resp = json_decode($raw, true);
+        if ($status !== 200 || !isset($resp['content'][0]['text'])) throw new \RuntimeException('Claude error '.$status);
+        return ['text'=>$resp['content'][0]['text']];
+    }
+
+    private static function extractSvg(string $text): ?string {
+        if (preg_match('/<svg[\s\S]*<\/svg>/i', $text, $m)) return $m[0];
+        return null;
+    }
+
+    /** SVG 보안 정화: script/이벤트핸들러/외부참조/foreignObject 제거(XSS 차단). */
+    private static function sanitizeSvg(string $svg): string {
+        $svg = preg_replace('/<script[\s\S]*?<\/script>/i', '', $svg);
+        $svg = preg_replace('/<foreignObject[\s\S]*?<\/foreignObject>/i', '', $svg);
+        $svg = preg_replace('/\son[a-z]+\s*=\s*"[^"]*"/i', '', $svg);
+        $svg = preg_replace("/\son[a-z]+\s*=\s*'[^']*'/i", '', $svg);
+        // 외부 리소스(href/xlink:href 의 http/javascript) 제거
+        $svg = preg_replace('/(?:xlink:)?href\s*=\s*"(?:https?:|javascript:|data:text\/html)[^"]*"/i', '', $svg);
+        $svg = preg_replace('/<!ENTITY[\s\S]*?>/i', '', $svg);
+        return trim($svg);
+    }
+
+    private static function fallbackSvg(array $d, int $w, int $h): string {
+        $p = $d['palette'] ?? ['bg'=>'#0f172a','primary'=>'#4f8ef7','accent'=>'#22d3ee','text'=>'#ffffff'];
+        $bg=$p['bg']??'#0f172a'; $pr=$p['primary']??'#4f8ef7'; $ac=$p['accent']??'#22d3ee'; $tx=$p['text']??'#ffffff';
+        $head = htmlspecialchars(mb_substr((string)($d['headline']??'신상품 출시'),0,16), ENT_QUOTES);
+        $sub  = htmlspecialchars(mb_substr((string)($d['subheadline']??''),0,24), ENT_QUOTES);
+        $cta  = htmlspecialchars(mb_substr((string)($d['cta']??'지금 구매'),0,12), ENT_QUOTES);
+        $cx=$w/2; $hy=$h*0.42; $sy=$h*0.52; $by=$h*0.72; $fs=intval($w*0.085); $sfs=intval($w*0.04);
+        $bw=$w*0.5; $bx=$cx-$bw/2; $bh=$h*0.08;
+        return "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 {$w} {$h}'>"
+          ."<defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='{$bg}'/><stop offset='1' stop-color='{$pr}'/></linearGradient></defs>"
+          ."<rect width='{$w}' height='{$h}' fill='url(#g)'/>"
+          ."<circle cx='".($w*0.85)."' cy='".($h*0.18)."' r='".($w*0.22)."' fill='{$ac}' opacity='0.25'/>"
+          ."<text x='{$cx}' y='{$hy}' font-family='Pretendard,Apple SD Gothic Neo,Noto Sans KR,sans-serif' font-size='{$fs}' font-weight='800' fill='{$tx}' text-anchor='middle'>{$head}</text>"
+          ."<text x='{$cx}' y='{$sy}' font-family='Pretendard,sans-serif' font-size='{$sfs}' fill='{$tx}' opacity='0.85' text-anchor='middle'>{$sub}</text>"
+          ."<rect x='{$bx}' y='{$by}' width='{$bw}' height='{$bh}' rx='".($bh/2)."' fill='{$ac}'/>"
+          ."<text x='{$cx}' y='".($by+$bh*0.66)."' font-family='Pretendard,sans-serif' font-size='".intval($w*0.038)."' font-weight='700' fill='{$bg}' text-anchor='middle'>{$cta}</text>"
+          ."</svg>";
+    }
+
+    /** 196차 — 승인 디자인 저장 테이블(테넌트 스코프). Phase 2 캠페인 자동실행이 소비. */
+    private static function migrateAdDesign(PDO $pdo): void {
+        $isSqlite = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite';
+        $auto = $isSqlite ? 'INTEGER PRIMARY KEY AUTOINCREMENT' : 'INT AUTO_INCREMENT PRIMARY KEY';
+        $txt  = $isSqlite ? 'TEXT' : 'MEDIUMTEXT';
+        try {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS ad_design (
+                id $auto,
+                tenant_id VARCHAR(100) NOT NULL DEFAULT 'unknown',
+                category VARCHAR(120),
+                product TEXT,
+                channel VARCHAR(40),
+                spec_json $txt,
+                svg $txt,
+                status VARCHAR(20) NOT NULL DEFAULT 'approved',
+                created_at VARCHAR(32) NOT NULL
+            )" . ($isSqlite ? '' : ' ENGINE=InnoDB DEFAULT CHARSET=utf8mb4'));
+        } catch (\Throwable $e) {}
+    }
+
+    /** POST /v422/ai/ad-design/save — 미리보기 만족 시 '적용'(저장). 인증 테넌트 필요. */
+    public static function adDesignSave(Request $req, Response $res): Response
+    {
+        try {
+            $tenant = self::tenant($req);
+            if ($tenant === 'unknown') {
+                $res->getBody()->write(json_encode(['ok'=>false,'error'=>'로그인이 필요합니다.'], JSON_UNESCAPED_UNICODE));
+                return $res->withHeader('Content-Type','application/json')->withStatus(401);
+            }
+            $body = (array)($req->getParsedBody() ?? []);
+            if (empty($body)) { $d = json_decode((string)$req->getBody(), true); if (is_array($d)) $body = $d; }
+            $data = $body['data'] ?? $body;
+            $design = is_array($data['design'] ?? null) ? $data['design'] : [];
+            $pdo = Db::pdo(); self::migrateAdDesign($pdo);
+            $now = gmdate('Y-m-d\TH:i:s\Z');
+            $st = $pdo->prepare('INSERT INTO ad_design(tenant_id,category,product,channel,spec_json,svg,status,created_at) VALUES(?,?,?,?,?,?,?,?)');
+            $st->execute([
+                $tenant,
+                mb_substr((string)($data['category'] ?? ''),0,120),
+                mb_substr((string)($data['product_description'] ?? ''),0,2000),
+                (string)($design['channel'] ?? ''),
+                json_encode($design, JSON_UNESCAPED_UNICODE),
+                (string)($data['svg'] ?? ''),
+                'approved', $now,
+            ]);
+            $res->getBody()->write(json_encode(['ok'=>true,'id'=>(int)$pdo->lastInsertId(),'message'=>'디자인이 적용(저장)되었습니다. 캠페인 자동화에서 활용할 수 있습니다.'], JSON_UNESCAPED_UNICODE));
+            return $res->withHeader('Content-Type','application/json');
+        } catch (\Throwable $e) {
+            $res->getBody()->write(json_encode(['ok'=>false,'error'=>$e->getMessage()], JSON_UNESCAPED_UNICODE));
+            return $res->withHeader('Content-Type','application/json')->withStatus(500);
+        }
+    }
+
+    /** GET /v422/ai/ad-design/list — 본 테넌트 저장 디자인 목록(최신순). */
+    public static function adDesignList(Request $req, Response $res): Response
+    {
+        try {
+            $tenant = self::tenant($req);
+            $pdo = Db::pdo(); self::migrateAdDesign($pdo);
+            $rows = [];
+            if ($tenant !== 'unknown') {
+                $st = $pdo->prepare('SELECT id,category,product,channel,spec_json,svg,status,created_at FROM ad_design WHERE tenant_id=? ORDER BY id DESC LIMIT 60');
+                $st->execute([$tenant]);
+                foreach ($st->fetchAll(PDO::FETCH_ASSOC) ?: [] as $r) {
+                    $r['design'] = json_decode((string)($r['spec_json'] ?? '{}'), true); unset($r['spec_json']);
+                    $rows[] = $r;
+                }
+            }
+            $res->getBody()->write(json_encode(['ok'=>true,'designs'=>$rows], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+            return $res->withHeader('Content-Type','application/json');
+        } catch (\Throwable $e) {
+            $res->getBody()->write(json_encode(['ok'=>false,'error'=>$e->getMessage(),'designs'=>[]], JSON_UNESCAPED_UNICODE));
+            return $res->withHeader('Content-Type','application/json');
         }
     }
 
