@@ -4779,11 +4779,16 @@ body:not([data-theme]) .sidebar-footer {
 }
 
 /* ── 5D. GRADIENT BUTTONS — KEEP WHITE TEXT ──────────────────────── */
-/* These must come AFTER the catch-all rules above to win specificity */
-[data-theme="arctic_white"] .container>div:last-child [style*="background: linear-gradient"][style*="color"],
-[data-theme="arctic_white"] .container>div:last-child [style*="background:linear-gradient"][style*="color"],
-[data-theme="pearl_office"] .container>div:last-child [style*="background: linear-gradient"][style*="color"],
-[data-theme="pearl_office"] .container>div:last-child [style*="background:linear-gradient"][style*="color"] {
+/* These must come AFTER the catch-all rules above to win specificity.
+   196차: button/link 으로 스코프(div hero/카드는 3389가 흰배경化 → 어두운 텍스트 유지). */
+[data-theme="arctic_white"] .container>div:last-child button[style*="background: linear-gradient"][style*="color"],
+[data-theme="arctic_white"] .container>div:last-child button[style*="background:linear-gradient"][style*="color"],
+[data-theme="arctic_white"] .container>div:last-child a[style*="background: linear-gradient"][style*="color"],
+[data-theme="arctic_white"] .container>div:last-child a[style*="background:linear-gradient"][style*="color"],
+[data-theme="pearl_office"] .container>div:last-child button[style*="background: linear-gradient"][style*="color"],
+[data-theme="pearl_office"] .container>div:last-child button[style*="background:linear-gradient"][style*="color"],
+[data-theme="pearl_office"] .container>div:last-child a[style*="background: linear-gradient"][style*="color"],
+[data-theme="pearl_office"] .container>div:last-child a[style*="background:linear-gradient"][style*="color"] {
   color: #ffffff !important;
 }
 
@@ -4791,10 +4796,17 @@ body:not([data-theme]) .sidebar-footer {
    192차 흰글자 트랩 수정: near-white(밝은) 그라데이션 배경은 흰글자가 투명/안보임이 되므로
    제외한다(:not). near-white hex 시그니처는 어두운 브랜드 그라데이션(#4f8ef7,#6366f1 등)에는
    등장하지 않으므로 충돌 안전하다. 어두운 그라데이션 카드/버튼은 그대로 흰글자 유지. */
-[data-theme="arctic_white"] .container>div:last-child [style*="background: linear-gradient"]:not([style*="#fff"]):not([style*="#fef"]):not([style*="#f8fafc"]):not([style*="#f1f5f9"]):not([style*="#eff6ff"]):not([style*="#ecfeff"]):not([style*="#f0fdf4"]):not([style*="#fafafa"]):not([style*="#f5f3ff"]):not([style*="#fdf4ff"]):not([style*="#e0f2fe"]):not([style*="#f0f9ff"]) *,
-[data-theme="arctic_white"] .container>div:last-child [style*="background:linear-gradient"]:not([style*="#fff"]):not([style*="#fef"]):not([style*="#f8fafc"]):not([style*="#f1f5f9"]):not([style*="#eff6ff"]):not([style*="#ecfeff"]):not([style*="#f0fdf4"]):not([style*="#fafafa"]):not([style*="#f5f3ff"]):not([style*="#fdf4ff"]):not([style*="#e0f2fe"]):not([style*="#f0f9ff"]) *,
-[data-theme="pearl_office"] .container>div:last-child [style*="background: linear-gradient"]:not([style*="#fff"]):not([style*="#fef"]):not([style*="#f8fafc"]):not([style*="#f1f5f9"]):not([style*="#eff6ff"]):not([style*="#ecfeff"]):not([style*="#f0fdf4"]):not([style*="#fafafa"]):not([style*="#f5f3ff"]):not([style*="#fdf4ff"]):not([style*="#e0f2fe"]):not([style*="#f0f9ff"]) *,
-[data-theme="pearl_office"] .container>div:last-child [style*="background:linear-gradient"]:not([style*="#fff"]):not([style*="#fef"]):not([style*="#f8fafc"]):not([style*="#f1f5f9"]):not([style*="#eff6ff"]):not([style*="#ecfeff"]):not([style*="#f0fdf4"]):not([style*="#fafafa"]):not([style*="#f5f3ff"]):not([style*="#fdf4ff"]):not([style*="#e0f2fe"]):not([style*="#f0f9ff"]) * {
+/* 196차 흰on흰 전수수정: 규칙 3389가 non-button 그라데이션 div 배경을 흰색 강제하므로
+   그 div 의 자식 텍스트는 항상 어두워야 한다(흰on흰 방지). 따라서 자식 흰색강제는 gradient
+   배경을 유지하는 BUTTON/LINK 에만 적용한다(div hero/카드는 제외 → 본래 어두운 색 유지). */
+[data-theme="arctic_white"] .container>div:last-child button[style*="background: linear-gradient"] *,
+[data-theme="arctic_white"] .container>div:last-child button[style*="background:linear-gradient"] *,
+[data-theme="arctic_white"] .container>div:last-child a[style*="background: linear-gradient"] *,
+[data-theme="arctic_white"] .container>div:last-child a[style*="background:linear-gradient"] *,
+[data-theme="pearl_office"] .container>div:last-child button[style*="background: linear-gradient"] *,
+[data-theme="pearl_office"] .container>div:last-child button[style*="background:linear-gradient"] *,
+[data-theme="pearl_office"] .container>div:last-child a[style*="background: linear-gradient"] *,
+[data-theme="pearl_office"] .container>div:last-child a[style*="background:linear-gradient"] * {
   color: #ffffff !important;
 }
 

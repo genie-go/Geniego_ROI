@@ -68,7 +68,7 @@ export default function DashGuide() {
       {/* ── Hero Banner ──────────────────────────────────────────── */}
       <div style={{
         ...CARD,
-        background: 'linear-gradient(135deg, rgba(79,142,247,0.12), rgba(168,85,247,0.08))',
+        background: 'linear-gradient(135deg, #eff6ff 0%, #f5f3ff 100%)',
         borderColor: C.accent + '40', textAlign: 'center', padding: 32,
       }}>
         <div style={{ fontSize: 44 }}>📊</div>
@@ -187,7 +187,7 @@ export default function DashGuide() {
       {/* ── Ready to Start ───────────────────────────────────────── */}
       <div style={{
         ...CARD,
-        background: 'linear-gradient(135deg, rgba(34,197,94,0.08), rgba(79,142,247,0.06))',
+        background: 'linear-gradient(135deg, #f0fdf4 0%, #eff6ff 100%)',
         borderColor: C.green + '40', textAlign: 'center', padding: 32,
       }}>
         <div style={{ fontSize: 40 }}>🚀</div>
