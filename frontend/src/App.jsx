@@ -21,6 +21,7 @@ import OnboardingTour from "./components/OnboardingTour.jsx";
 import { initPerformanceMonitor } from "./utils/performanceMonitor.js";
 import CommandPalette from "./components/CommandPalette.jsx";
 import { initAuditTrail } from "./utils/auditTrail.js";
+import { startVersionWatch, onNewVersion } from "./services/versionWatch.js"; // 196차 #1-B 배포 감지 자동 업데이트
 
 // Initialize enterprise monitoring
 if (typeof window !== 'undefined') {
@@ -471,6 +472,41 @@ function TenantScopedProviders({ children }) {
   );
 }
 
+/* 196차 #1-B — 배포 감지 자동 업데이트 배너.
+ * 새 배포 감지 시: 다음 라우트 전환 때 자동 reload(작업 중단 최소화) + 즉시 새로고침 버튼.
+ * 사용자가 수동 새로고침 없이도 최신 변경(기능/수정)을 받게 한다. */
+function VersionUpdateBanner() {
+  const location = useLocation();
+  const [show, setShow] = React.useState(false);
+  const pending = React.useRef(false);
+  const lastPath = React.useRef(location.pathname);
+  React.useEffect(() => {
+    startVersionWatch();
+    const off = onNewVersion(() => { pending.current = true; setShow(true); });
+    return off;
+  }, []);
+  React.useEffect(() => {
+    if (pending.current && location.pathname !== lastPath.current) {
+      window.location.reload(); // 다음 화면 이동 시 자연스럽게 최신 반영
+    }
+    lastPath.current = location.pathname;
+  }, [location.pathname]);
+  if (!show) return null;
+  return (
+    <div style={{ position: "fixed", left: "50%", transform: "translateX(-50%)", bottom: 22, zIndex: 99999,
+      display: "flex", alignItems: "center", gap: 12, padding: "11px 16px", borderRadius: 14,
+      background: "rgba(15,23,42,0.94)", color: "#fff", boxShadow: "0 16px 48px rgba(15,23,42,0.4)",
+      border: "1px solid rgba(255,255,255,0.12)", backdropFilter: "blur(12px)", fontSize: 13, fontWeight: 600 }}>
+      <span>✨ 새 버전이 배포되었습니다. 최신 내용으로 업데이트합니다.</span>
+      <button onClick={() => window.location.reload()}
+        style={{ padding: "7px 16px", borderRadius: 10, border: "none", cursor: "pointer",
+          background: "linear-gradient(135deg,#4f8ef7,#6366f1)", color: "#fff", fontWeight: 800, fontSize: 12.5 }}>
+        지금 새로고침
+      </button>
+    </div>
+  );
+}
+
 export default function App() {
   return (
     <AuthProvider>
@@ -495,6 +531,7 @@ export default function App() {
               </Routes>
             </Suspense>
             <NetworkStatus />
+            <VersionUpdateBanner />
         </TenantScopedProviders>
       </ToastProvider>
     </AuthProvider>
