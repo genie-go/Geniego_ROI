@@ -76,18 +76,19 @@ export default function AIDesignChat({ onApplied }) {
       });
       const d = await r.json();
       if (d.ok) {
-        setMessages(m => [...m, { role: 'assistant', content: d.reply || '디자인을 업데이트했어요. 미리보기를 확인해 주세요!' }]);
-        if (d.design) setDesign(d.design);
+        setMessages(m => [...m, { role: 'assistant', content: d.reply || '디자인을 만들었어요! 고급 디자인으로 렌더링 중이에요 ✨' }]);
+        if (d.design) { setDesign(d.design); renderSvg(d.design); } // 초프리미엄 SVG 자동 렌더
       } else setMessages(m => [...m, { role: 'assistant', content: d.error || 'AI 응답에 실패했어요. 다시 시도해 주세요.' }]);
     } catch { setMessages(m => [...m, { role: 'assistant', content: '서버 오류가 발생했어요. 다시 시도해 주세요.' }]); }
     setBusy(false);
   };
 
-  const renderSvg = async () => {
-    if (!design) return;
+  const renderSvg = async (dz) => {
+    const dd = dz || design;
+    if (!dd) return;
     setRendering(true);
     try {
-      const r = await fetch(`${API}/v422/ai/campaign-ad-render`, { method: 'POST', headers: auth(), body: JSON.stringify({ product_description: design.body || design.headline || '', design }) });
+      const r = await fetch(`${API}/v422/ai/campaign-ad-render`, { method: 'POST', headers: auth(), body: JSON.stringify({ product_description: dd.body || dd.headline || '', design: dd }) });
       const d = await r.json();
       if (d.ok && d.svg) setSvg(d.svg);
     } catch {}
@@ -111,7 +112,7 @@ export default function AIDesignChat({ onApplied }) {
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,0.8fr) auto', gap: 18, alignItems: 'start' }}>
       {/* 채팅 */}
-      <div style={{ display: 'flex', flexDirection: 'column', height: 700, borderRadius: 16, border: '1px solid var(--border,#e2e8f0)', background: 'var(--bg-card,#fff)', overflow: 'hidden' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', height: 610, borderRadius: 16, border: '1px solid var(--border,#e2e8f0)', background: 'var(--bg-card,#fff)', overflow: 'hidden' }}>
         <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border,#e2e8f0)', fontWeight: 900, fontSize: 14, color: '#1e293b', background: 'linear-gradient(135deg, #eef2ff, #f5f3ff)' }}>💬 {t('aiChat.title', '대화형 AI 디자인')}</div>
         <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', padding: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
           {messages.map((m, i) => (

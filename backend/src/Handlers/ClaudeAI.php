@@ -1434,7 +1434,7 @@ PROMPT;
     // ─────────────────────────────────────────────────────────────────────
     public static function campaignAdRender(Request $req, Response $res): Response
     {
-        @set_time_limit(60); // SVG 생성 Claude 호출(최대 42초) 동안 PHP max_execution_time 초과 방지
+        @set_time_limit(75); // 프리미엄 SVG 생성 Claude 호출(최대 50초) 동안 PHP max_execution_time 초과 방지
         try {
             $body = (array)($req->getParsedBody() ?? []);
             if (empty($body)) { $d = json_decode((string)$req->getBody(), true); if (is_array($d)) $body = $d; }
@@ -1454,24 +1454,29 @@ PROMPT;
             ], JSON_UNESCAPED_UNICODE);
             $fbLine = $feedback !== '' ? "수정 요청(반드시 반영): {$feedback}\n" : '';
             $systemPrompt = <<<PROMPT
-당신은 세계 최고의 광고 그래픽 디자이너입니다. 주어진 디자인 스펙으로 즉시 게재 가능한 완성도의 광고 크리에이티브를 순수 SVG 코드로 디자인합니다.
+당신은 Apple·Nike·삼성·샤넬 광고를 디자인하는 세계 최정상 아트디렉터이자 SVG 마스터입니다.
+주어진 스펙으로 즉시 게재 가능한 럭셔리 브랜드급 광고 크리에이티브를 순수 SVG로 디자인합니다. 밋밋하거나 빈약한 결과는 절대 금지 — 초프리미엄 완성도를 목표로 합니다.
 
-요구사항:
-- 출력은 오직 하나의 완전한 <svg>...</svg> 코드만 (설명·마크다운·코드펜스 금지).
-- viewBox="0 0 {$w} {$h}" (채널 규격).
-- 팔레트 색상 사용, 텍스트는 배경 대비 반드시 가독.
-- 구성: 배경(그라데이션/도형) + 헤드라인(대형, 굵게) + 서브헤드라인 + 본문 + CTA 버튼(둥근 사각형+문구) + 브랜드 영역. 무드에 맞는 장식 도형/패턴.
-- 전문 타이포그래피(font-family는 'Pretendard','Apple SD Gothic Neo','Noto Sans KR',sans-serif 사용), 적절한 위계.
-- 외부 리소스(image href, 외부 폰트, script) 절대 금지. <script>, on*=, foreignObject 사용 금지. 순수 벡터/텍스트만.
-- ★중요: SVG는 반드시 닫는 </svg> 까지 완결할 것. 과도하게 복잡한 path 데이터는 피하고
-  도형(rect/circle/path)·그라데이션·텍스트 위주로 간결하게(전체 2500자 이내 권장).
+[디자인 품질 — 초프리미엄/SaaS 엔터프라이즈급]
+1. 깊이감: <defs>의 linearGradient·radialGradient 를 2~3개 이상 다층 사용. feGaussianBlur 필터로 부드러운 그림자·글로우. 반투명 도형 겹침으로 입체감.
+2. 레이아웃: 넉넉한 여백과 시각적 균형(황금비 감각). 명확한 위계 — 헤드라인(초대형, font-weight 800~900) > 서브헤드라인 > 본문 > CTA.
+3. 장식: 무드에 맞는 세련된 추상 요소(blob·원호·라인·기하 패턴·점선)를 배경에 은은하게 배치. 고급스럽고 과하지 않게.
+4. CTA: 입체적인 버튼(그라데이션 + 미세 그림자/하이라이트 + 둥근 모서리)으로 시선 집중.
+5. 타이포: 큰 폰트 크기 대비, 적절한 letter-spacing, 헤드라인에 포인트 컬러·굵기 강조.
+6. 색: 팔레트 기반 + 톤온톤/보색 악센트. 럭셔리=딥톤+골드/메탈릭, 역동=비비드 그라데이션.
+
+[기술 규칙]
+- viewBox="0 0 {$w} {$h}" (채널 규격 준수). <defs>에 gradient·filter 정의 후 재사용.
+- 텍스트는 배경 대비 반드시 가독. font-family 'Pretendard','Apple SD Gothic Neo','Noto Sans KR',sans-serif.
+- 외부 리소스(image href·외부폰트·script) 절대 금지. <script>·on*=·foreignObject 금지. 순수 벡터/텍스트만.
+- ★반드시 닫는 </svg> 까지 완결(전체 4500자 이내로 압축하되 품질 유지). 출력은 오직 <svg>...</svg> 코드만(설명·마크다운·코드펜스 금지).
 {$fbLine}
 PROMPT;
             $userMsg = "상품: {$product}\n디자인 스펙: {$specJson}\n팔레트: {$pal}\n\n이 광고의 완성 SVG를 디자인하세요. 닫는 </svg> 까지 반드시 완결하세요.";
 
             $svg = null; $dataSource = 'ai';
             try {
-                $claude = self::callClaudeLong($systemPrompt, $userMsg, 42); // SVG 생성은 시간 더 필요 → 42초
+                $claude = self::callClaudeLong($systemPrompt, $userMsg, 50); // 프리미엄 SVG 생성 → 50초
                 $svg = self::extractSvg($claude['text']);
             } catch (\Throwable $e) { $dataSource = 'fallback'; }
             if (!$svg) { $svg = self::fallbackSvg($design, $w, $h); $dataSource = 'fallback'; }
