@@ -599,10 +599,16 @@ final class UserAuth
             ];
             $resolved = self::resolveActivePlan($rawUser);
 
+            // Sprint4(193차) — admin MFA 의무화: admin 플랜이 2단계 인증 미설정이면 enrollment 강제 플래그.
+            //   세션은 발급(setup/enable API 호출에 세션 필요)하되, FE가 enrollment 게이트로 앱 차단.
+            //   break-glass(isMasterAuth) 비상 접근은 제외.
+            $mfaEnrollRequired = (!$isMasterAuth && $effectivePlan === 'admin' && empty($user['mfa_enabled']));
+
             return self::json($res, [
                 'ok'    => true,
                 'token' => $token,
                 'user'  => $resolved,
+                'mfa_enrollment_required' => $mfaEnrollRequired,
             ]);
         } catch (\Throwable $e) {
             error_log('[UserAuth::login] ' . $e->getMessage() . ' @ ' . $e->getFile() . ':' . $e->getLine());

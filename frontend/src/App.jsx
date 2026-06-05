@@ -7,6 +7,7 @@ import MobileBottomNav from "./components/MobileBottomNav.jsx";
 import Topbar from "./layout/Topbar.jsx";
 import { AuthProvider, useAuth } from "./auth/AuthContext.jsx";
 import AuthPage from "./pages/AuthPage.jsx";
+import AdminMfaGate from "./components/AdminMfaGate.jsx";
 import { GlobalDataProvider } from "./context/GlobalDataContext.jsx";
 import { CurrencyProvider } from "./contexts/CurrencyContext.jsx";
 import { MobileSidebarProvider } from "./context/MobileSidebarContext.jsx";
@@ -245,7 +246,8 @@ function RequireAuth({ children }) {
   const { user, loading } = useAuth();
   if (loading) return <FullLoader />;
   if (!user) return <Navigate to="/login" replace />;
-  return children;
+  // 193차 Sprint4: 관리자 MFA 의무화 — admin이 2단계 인증 미설정이면 enrollment 게이트로 차단.
+  return <AdminMfaGate>{children}</AdminMfaGate>;
 }
 
 /*
