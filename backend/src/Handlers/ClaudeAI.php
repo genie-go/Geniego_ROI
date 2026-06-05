@@ -1358,6 +1358,7 @@ PROMPT;
     // ─────────────────────────────────────────────────────────────────────
     public static function campaignAdRender(Request $req, Response $res): Response
     {
+        @set_time_limit(60); // SVG 생성 Claude 호출(최대 42초) 동안 PHP max_execution_time 초과 방지
         try {
             $body = (array)($req->getParsedBody() ?? []);
             if (empty($body)) { $d = json_decode((string)$req->getBody(), true); if (is_array($d)) $body = $d; }
@@ -1386,13 +1387,15 @@ PROMPT;
 - 구성: 배경(그라데이션/도형) + 헤드라인(대형, 굵게) + 서브헤드라인 + 본문 + CTA 버튼(둥근 사각형+문구) + 브랜드 영역. 무드에 맞는 장식 도형/패턴.
 - 전문 타이포그래피(font-family는 'Pretendard','Apple SD Gothic Neo','Noto Sans KR',sans-serif 사용), 적절한 위계.
 - 외부 리소스(image href, 외부 폰트, script) 절대 금지. <script>, on*=, foreignObject 사용 금지. 순수 벡터/텍스트만.
+- ★중요: SVG는 반드시 닫는 </svg> 까지 완결할 것. 과도하게 복잡한 path 데이터는 피하고
+  도형(rect/circle/path)·그라데이션·텍스트 위주로 간결하게(전체 2500자 이내 권장).
 {$fbLine}
 PROMPT;
-            $userMsg = "상품: {$product}\n디자인 스펙: {$specJson}\n팔레트: {$pal}\n\n이 광고의 완성 SVG를 디자인하세요.";
+            $userMsg = "상품: {$product}\n디자인 스펙: {$specJson}\n팔레트: {$pal}\n\n이 광고의 완성 SVG를 디자인하세요. 닫는 </svg> 까지 반드시 완결하세요.";
 
             $svg = null; $dataSource = 'ai';
             try {
-                $claude = self::callClaudeLong($systemPrompt, $userMsg);
+                $claude = self::callClaudeLong($systemPrompt, $userMsg, 42); // SVG 생성은 시간 더 필요 → 42초
                 $svg = self::extractSvg($claude['text']);
             } catch (\Throwable $e) { $dataSource = 'fallback'; }
             if (!$svg) { $svg = self::fallbackSvg($design, $w, $h); $dataSource = 'fallback'; }
@@ -1407,11 +1410,11 @@ PROMPT;
     }
 
     /** SVG 생성은 토큰·시간이 더 필요 → max_tokens 상향 + 타임아웃 여유. */
-    private static function callClaudeLong(string $systemPrompt, string $userMsg): array {
+    private static function callClaudeLong(string $systemPrompt, string $userMsg, int $timeout = 22): array {
         $apiKey = self::apiKey();
         $payload = json_encode(['model'=>self::MODEL,'max_tokens'=>8192,'system'=>$systemPrompt,'messages'=>[['role'=>'user','content'=>$userMsg]]], JSON_UNESCAPED_UNICODE);
         $ch = curl_init(self::API_URL);
-        curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER=>true,CURLOPT_POST=>true,CURLOPT_POSTFIELDS=>$payload,CURLOPT_TIMEOUT=>22,CURLOPT_CONNECTTIMEOUT=>5,
+        curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER=>true,CURLOPT_POST=>true,CURLOPT_POSTFIELDS=>$payload,CURLOPT_TIMEOUT=>$timeout,CURLOPT_CONNECTTIMEOUT=>6,
             CURLOPT_HTTPHEADER=>['Content-Type: application/json','x-api-key: '.$apiKey,'anthropic-version: 2023-06-01']]);
         $raw = curl_exec($ch); $status = curl_getinfo($ch, CURLINFO_HTTP_CODE); $err = curl_error($ch); curl_close($ch);
         if ($err) throw new \RuntimeException('curl error: '.$err);
