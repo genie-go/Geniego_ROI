@@ -179,12 +179,12 @@ function TermsModal({ open, onClose, category }) {
   if (!open) return null;
   return (
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-      <div onClick={e => e.stopPropagation()} style={{ background: 'var(--bg-2, #1a1f36)', borderRadius: 16, width: '100%', maxWidth: 600, maxHeight: '80vh', display: 'flex', flexDirection: 'column', border: '1px solid rgba(99,140,255,0.2)', boxShadow: '0 20px 60px rgba(0,0,0,0.5)' }}>
-        <div style={{ padding: '16px 20px', borderBottom: '1px solid rgba(99,140,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <h3 style={{ margin: 0, fontSize: 15, fontWeight: 800, color: '#fff' }}>📋 {content.title}</h3>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: 20, cursor: 'pointer', padding: '0 4px' }}>✕</button>
+      <div onClick={e => e.stopPropagation()} style={{ background: '#ffffff', borderRadius: 16, width: '100%', maxWidth: 600, maxHeight: '80vh', display: 'flex', flexDirection: 'column', border: '1px solid #e2e8f0', boxShadow: '0 20px 60px rgba(15,23,42,0.18)' }}>
+        <div style={{ padding: '16px 20px', borderBottom: '1px solid #eef2f7', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <h3 style={{ margin: 0, fontSize: 15, fontWeight: 800, color: '#0f172a' }}>📋 {content.title}</h3>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#64748b', fontSize: 20, cursor: 'pointer', padding: '0 4px' }}>✕</button>
         </div>
-        <div style={{ padding: '16px 20px', overflowY: 'auto', flex: 1, fontSize: 12, color: '#cbd5e1', lineHeight: 1.8, whiteSpace: 'pre-wrap' }}>
+        <div style={{ padding: '16px 20px', overflowY: 'auto', flex: 1, fontSize: 12, color: '#334155', lineHeight: 1.8, whiteSpace: 'pre-wrap' }}>
           {content.body}
         </div>
         <div style={{ padding: '12px 20px', borderTop: '1px solid rgba(99,140,255,0.1)', textAlign: 'right' }}>
@@ -218,7 +218,7 @@ function TermsAgreementSection({ agreeTerms, setAgreeTerms, agreePrivacy, setAgr
         <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', paddingBottom: 8, borderBottom: '1px solid rgba(99,140,255,0.1)' }}>
           <input type="checkbox" checked={agreeAll} onChange={e => handleAllToggle(e.target.checked)}
             style={{ accentColor: '#4f8ef7', width: 15, height: 15, flexShrink: 0 }} />
-          <span style={{ fontSize: 12, fontWeight: 800, color: '#fff' }}>{t('auth.agreeAllTerms')}</span>
+          <span style={{ fontSize: 12, fontWeight: 800, color: '#0f172a' }}>{t('auth.agreeAllTerms')}</span>
         </label>
         {items.map(({ key, val, set, label, required }) => (
           <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -300,7 +300,7 @@ function AccountRecovery({ t, initial = "findId", resetToken = "", onClose }) {
   const tabBtn = (v, label) => (
     <button type="button" onClick={() => { setView(v); setErr(""); setFound(null); }}
       style={{ flex: 1, padding: "9px 0", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 12, fontWeight: 800,
-        background: view === v ? "rgba(79,142,247,0.18)" : "transparent", color: view === v ? "#4f8ef7" : "#94a3b8" }}>{label}</button>
+        background: view === v ? "rgba(79,142,247,0.18)" : "transparent", color: view === v ? "#4f8ef7" : "#64748b" }}>{label}</button>
   );
   const submitBtn = (onClick, label) => (
     <button type="button" onClick={onClick} disabled={busy}
@@ -310,13 +310,13 @@ function AccountRecovery({ t, initial = "findId", resetToken = "", onClose }) {
 
   return (
     <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 4000, background: "rgba(2,6,23,0.7)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
-      <div onClick={e => e.stopPropagation()} style={{ width: "100%", maxWidth: 380, background: "#0f172a", border: "1px solid #1e293b", borderRadius: 16, padding: 22, boxShadow: "0 24px 70px rgba(0,0,0,0.5)" }}>
+      <div onClick={e => e.stopPropagation()} style={{ width: "100%", maxWidth: 380, background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: 16, padding: 22, boxShadow: "0 24px 70px rgba(15,23,42,0.18)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-          <div style={{ fontWeight: 900, fontSize: 15, color: "#fff" }}>🔑 {t("auth.recoveryTitle", "계정 찾기")}</div>
+          <div style={{ fontWeight: 900, fontSize: 15, color: "#0f172a" }}>🔑 {t("auth.recoveryTitle", "계정 찾기")}</div>
           <button type="button" onClick={onClose} style={{ background: "none", border: "none", color: "#64748b", fontSize: 20, cursor: "pointer", lineHeight: 1 }}>×</button>
         </div>
         {view !== "reset" && view !== "done" && view !== "sent" && (
-          <div style={{ display: "flex", gap: 4, marginBottom: 16, background: "rgba(255,255,255,0.03)", borderRadius: 10, padding: 4 }}>
+          <div style={{ display: "flex", gap: 4, marginBottom: 16, background: "#f1f5f9", borderRadius: 10, padding: 4 }}>
             {tabBtn("findId", t("auth.findIdLink", "아이디(이메일) 찾기"))}
             {tabBtn("forgot", t("auth.forgotLink", "비밀번호 찾기"))}
           </div>
@@ -332,14 +332,14 @@ function AccountRecovery({ t, initial = "findId", resetToken = "", onClose }) {
           </div>
         ) : (
           <div style={{ display: "grid", gap: 10 }}>
-            {found.length === 0 ? <div style={{ color: "#94a3b8", fontSize: 12 }}>{t("auth.findIdNone", "일치하는 계정이 없습니다.")}</div> :
+            {found.length === 0 ? <div style={{ color: "#64748b", fontSize: 12 }}>{t("auth.findIdNone", "일치하는 계정이 없습니다.")}</div> :
               found.map((a, i) => (
                 <div key={i} style={{ padding: "12px 14px", borderRadius: 10, background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.25)" }}>
                   <div style={{ fontWeight: 800, fontSize: 14, color: "#22c55e" }}>{a.email}</div>
                   {a.joined && <div style={{ fontSize: 10, color: "#64748b", marginTop: 2 }}>{t("auth.joinedAt", "가입일")}: {a.joined}</div>}
                 </div>
               ))}
-            <button type="button" onClick={() => setFound(null)} style={{ padding: "10px 0", borderRadius: 10, border: "1px solid #334155", background: "transparent", color: "#94a3b8", fontWeight: 700, fontSize: 12, cursor: "pointer" }}>{t("auth.back", "← 다시")}</button>
+            <button type="button" onClick={() => setFound(null)} style={{ padding: "10px 0", borderRadius: 10, border: "1px solid #cbd5e1", background: "transparent", color: "#64748b", fontWeight: 700, fontSize: 12, cursor: "pointer" }}>{t("auth.back", "← 다시")}</button>
           </div>
         ))}
 
@@ -365,8 +365,8 @@ function AccountRecovery({ t, initial = "findId", resetToken = "", onClose }) {
         {view === "sent" && (
           <div style={{ display: "grid", gap: 16, textAlign: "center", padding: "10px 0" }}>
             <div style={{ fontSize: 40 }}>📧</div>
-            <div style={{ color: "#fff", fontWeight: 700, fontSize: 14 }}>{t("auth.resetEmailSent", "재설정 링크를 이메일로 보냈습니다.")}</div>
-            <div style={{ color: "#94a3b8", fontSize: 12 }}>{t("auth.resetEmailSentDesc", "메일함(스팸함 포함)을 확인하고 링크를 눌러 새 비밀번호를 설정하세요. 링크는 15분간 유효합니다.")}</div>
+            <div style={{ color: "#0f172a", fontWeight: 700, fontSize: 14 }}>{t("auth.resetEmailSent", "재설정 링크를 이메일로 보냈습니다.")}</div>
+            <div style={{ color: "#64748b", fontSize: 12 }}>{t("auth.resetEmailSentDesc", "메일함(스팸함 포함)을 확인하고 링크를 눌러 새 비밀번호를 설정하세요. 링크는 15분간 유효합니다.")}</div>
             {submitBtn(onClose, t("auth.close", "닫기"))}
           </div>
         )}
@@ -374,8 +374,8 @@ function AccountRecovery({ t, initial = "findId", resetToken = "", onClose }) {
         {view === "done" && (
           <div style={{ display: "grid", gap: 16, textAlign: "center", padding: "10px 0" }}>
             <div style={{ fontSize: 40 }}>✅</div>
-            <div style={{ color: "#fff", fontWeight: 700, fontSize: 14 }}>{t("auth.resetDone", "비밀번호가 재설정되었습니다.")}</div>
-            <div style={{ color: "#94a3b8", fontSize: 12 }}>{t("auth.resetDoneDesc", "새 비밀번호로 로그인하세요.")}</div>
+            <div style={{ color: "#0f172a", fontWeight: 700, fontSize: 14 }}>{t("auth.resetDone", "비밀번호가 재설정되었습니다.")}</div>
+            <div style={{ color: "#64748b", fontSize: 12 }}>{t("auth.resetDoneDesc", "새 비밀번호로 로그인하세요.")}</div>
             {submitBtn(onClose, t("auth.goLogin", "로그인하기"))}
           </div>
         )}
@@ -392,7 +392,7 @@ function SelectField({ label, value, onChange, options, required }) {
         {label}{required && <span style={{ color: "#ef4444" }}> *</span>}
       </label>
       <select value={value} onChange={e => onChange(e.target.value)}
-        style={{ padding: "10px 14px", borderRadius: 10, border: "1px solid var(--border)", background: "rgba(20,30,50,0.9)", color: '#fff', fontSize: 13, outline: "none", cursor: "pointer", width: "100%", boxSizing: "border-box" }}>
+        style={{ padding: "10px 14px", borderRadius: 10, border: "1px solid var(--border)", background: "#ffffff", color: 'var(--text-1)', fontSize: 13, outline: "none", cursor: "pointer", width: "100%", boxSizing: "border-box" }}>
         <option value="">{t('auth.selectOption', '선택')}</option>
         {options.map(o => <option key={o} value={o}>{o}</option>)}
       </select>
@@ -440,13 +440,13 @@ function SSOButtonGroup({ t }) {
   return (
     <div style={{ marginTop: 4 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-        <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.08)' }} />
+        <div style={{ flex: 1, height: 1, background: 'rgba(15,23,42,0.1)' }} />
         <span style={{ fontSize: 10, color: 'var(--text-3)', fontWeight: 600 }}>{t('auth.orContinueWith') || 'Or continue with SSO'}</span>
-        <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.08)' }} />
+        <div style={{ flex: 1, height: 1, background: 'rgba(15,23,42,0.1)' }} />
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
         {providers.map(p => (
-          <button type="button" key={p.id} onClick={(e) => { e.preventDefault(); alert("Enterprise SSO Integration Ready! 🚀 (Demo)"); }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '10px 0', borderRadius: 8, border: '1px solid rgba(255,255,255,0.12)', background: p.bg, cursor: 'pointer', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', transition: 'transform 150ms' }} onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'} onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}>
+          <button type="button" key={p.id} onClick={(e) => { e.preventDefault(); alert("Enterprise SSO Integration Ready! 🚀 (Demo)"); }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '10px 0', borderRadius: 8, border: '1px solid rgba(15,23,42,0.12)', background: p.bg, cursor: 'pointer', boxShadow: '0 2px 4px rgba(15,23,42,0.08)', transition: 'transform 150ms' }} onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'} onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}>
             <img src={p.icon} alt={p.id} style={{ width: 18, height: 18, filter: p.filter || 'none' }} />
           </button>
         ))}
@@ -1207,7 +1207,7 @@ function CycleSelectorSection({ planCfg, planPeriods, cycleMonths, setCycleMonth
               onClick={() => setCycleMonths(c.months)}
               style={{
                 padding: '12px 10px', borderRadius: 10,
-                background: sel ? '#1e3a8a' : 'rgba(255,255,255,0.04)',
+                background: sel ? '#1e3a8a' : 'rgba(15,23,42,0.03)',
                 color: sel ? '#fde047' : 'var(--text-2)',
                 border: sel ? '2px solid #fde047' : '1.5px solid rgba(99,102,241,0.18)',
                 cursor: 'pointer', textAlign: 'center', fontWeight: sel ? 900 : 600,
@@ -1264,7 +1264,7 @@ function SeatSelectorSection({ planCfg, seatTiers, seatTier, setSeatTier }) {
               onClick={() => setSeatTier(tier.key)}
               style={{
                 padding: '12px 10px', borderRadius: 10,
-                background: sel ? '#1e3a8a' : 'rgba(255,255,255,0.04)',
+                background: sel ? '#1e3a8a' : 'rgba(15,23,42,0.03)',
                 color: sel ? '#fde047' : 'var(--text-2)',
                 border: sel ? '2px solid #fde047' : '1.5px solid rgba(99,102,241,0.18)',
                 cursor: 'pointer', textAlign: 'center', fontWeight: sel ? 900 : 600,
@@ -1317,7 +1317,7 @@ function PlanServiceDetail({ planCfg, menuAccess = [], features = [], descriptio
           <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', marginBottom: 5 }}>🧩 이용 가능 서비스 ({services.length})</div>
           <div style={{ display: 'grid', gap: 7, maxHeight: 280, overflowY: 'auto', paddingRight: 4 }}>
             {services.map((s, i) => (
-              <div key={i} style={{ padding: '8px 10px', borderRadius: 8, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}>
+              <div key={i} style={{ padding: '8px 10px', borderRadius: 8, background: 'rgba(15,23,42,0.03)', border: '1px solid #e2e8f0' }}>
                 <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-1)' }}>{s.title}</div>
                 {s.desc && <div style={{ fontSize: 11, color: 'var(--text-3)', lineHeight: 1.5, marginTop: 2 }}>{s.desc}</div>}
               </div>
@@ -1357,7 +1357,7 @@ function CouponCodeInput({ planCfg, onApplied }) {
         placeholder="GENIE-XXXXXXXXXX (선택사항)"
         style={{
           width: '100%', padding: '9px 12px', borderRadius: 7,
-          border: '1px solid rgba(168,85,247,0.25)', background: 'rgba(0,0,0,0.18)',
+          border: '1px solid rgba(168,85,247,0.25)', background: '#ffffff',
           color: 'var(--text-1)', fontSize: 13, fontFamily: 'monospace', letterSpacing: 0.5,
         }}
       />
@@ -1473,13 +1473,13 @@ function AuthLanguageSelector() {
       {open && (
         <>
           <div onClick={() => setOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 999 }} />
-          <div style={{ position: "absolute", top: "calc(100% + 6px)", right: 0, minWidth: 220, maxHeight: 400, overflowY: "auto", zIndex: 1000, background: "rgba(15,20,35,0.97)", backdropFilter: "blur(20px)", border: "1px solid rgba(99,140,255,0.15)", borderRadius: 14, padding: 6, boxShadow: "0 16px 48px rgba(0,0,0,0.5)" }}>
+          <div style={{ position: "absolute", top: "calc(100% + 6px)", right: 0, minWidth: 220, maxHeight: 400, overflowY: "auto", zIndex: 1000, background: "#ffffff", backdropFilter: "blur(20px)", border: "1px solid #e2e8f0", borderRadius: 14, padding: 6, boxShadow: "0 16px 48px rgba(15,23,42,0.18)" }}>
             <div style={{ padding: "6px 10px 8px", fontSize: 10, fontWeight: 700, color: "var(--text-3)", borderBottom: "1px solid rgba(99,140,255,0.08)", marginBottom: 4 }}>
               🌐 {t('auth.langSelectTitle') || 'Language'}
             </div>
             {LANG_OPTIONS.map(opt => (
               <button key={opt.code} onClick={() => { setLang(opt.code); setOpen(false); }} style={{ display: "flex", alignItems: "center", gap: 10, width: "100%", padding: "9px 12px", borderRadius: 9, border: "none", cursor: "pointer", background: lang === opt.code ? "rgba(79,142,247,0.12)" : "transparent", transition: "background 120ms" }}
-                onMouseEnter={e => { if (lang !== opt.code) e.currentTarget.style.background = "rgba(255,255,255,0.04)"; }}
+                onMouseEnter={e => { if (lang !== opt.code) e.currentTarget.style.background = "rgba(15,23,42,0.04)"; }}
                 onMouseLeave={e => { if (lang !== opt.code) e.currentTarget.style.background = "transparent"; }}
               >
                 <span style={{ fontSize: 18, width: 24, textAlign: "center" }}>{opt.flag}</span>
