@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useRef, useMemo } from "react";
 import { useI18n } from "../i18n/index.js";
 import { IS_DEMO } from "../utils/demoEnv";
+import AIDesignChat from "./AIDesignChat.jsx"; // 196차 — 대화형 AI 디자인(동일 메뉴 내 통합)
 
 // 196차 — AiDesignEngine 디자인을 백엔드(ad_design)에 임시저장/저장 → 캠페인 자동화에서 활용
 const _adToken = () => localStorage.getItem(IS_DEMO ? "demo_genie_token" : "genie_token") || localStorage.getItem("genie_token") || localStorage.getItem("demo_genie_token") || "";
@@ -112,6 +113,7 @@ export default function AiDesignEngine({ defaultPlatform="popup" }) {
   const [dragOver, setDragOver] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState(null); // { ok, text }
+  const [designMode, setDesignMode] = useState("chat"); // 'chat' 대화형(기본) | 'engine' 디자인엔진
   const fileRef = useRef(null);
   /* Event Period / Schedule */
   const today = new Date().toISOString().slice(0,10);
@@ -203,6 +205,16 @@ export default function AiDesignEngine({ defaultPlatform="popup" }) {
     <div style={{display:"flex",flexDirection:"column",gap:14}}>
       <canvas ref={canvasRef} style={{display:"none"}} />
 
+      {/* 196차 — 대화형 / 디자인엔진 모드 토글 */}
+      <div style={{display:"inline-flex",gap:4,padding:4,borderRadius:12,background:"rgba(99,102,241,0.06)",border:"1px solid rgba(99,102,241,0.15)",width:"fit-content"}}>
+        {[["chat","💬 대화형 AI 디자인"],["engine","🎨 디자인 엔진"]].map(([id,label])=>(
+          <button key={id} onClick={()=>setDesignMode(id)} style={{padding:"8px 16px",borderRadius:9,border:"none",cursor:"pointer",fontSize:12.5,fontWeight:800,background:designMode===id?"linear-gradient(135deg,#a855f7,#4f8ef7)":"transparent",color:designMode===id?"#fff":"#64748b"}}>{label}</button>
+        ))}
+      </div>
+
+      {designMode==="chat" && <AIDesignChat />}
+
+      {designMode==="engine" && (<>
       {/* Section Nav */}
       <div style={{display:"flex",gap:4,flexWrap:"wrap",padding:"6px 8px",background:"rgba(241,245,249,0.7)",borderRadius:12,border:"1px solid rgba(0,0,0,0.06)"}}>
         {SECTIONS.map(s=>(
@@ -459,6 +471,7 @@ export default function AiDesignEngine({ defaultPlatform="popup" }) {
           </div>
         </div>
       )}
+      </>)}
     </div>
   );
 }
