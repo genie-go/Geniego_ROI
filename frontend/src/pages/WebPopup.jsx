@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import { useI18n } from "../i18n";
+import { WP_GUIDE } from "./webPopupGuideI18n.js";
 import { useGlobalData } from "../context/GlobalDataContext.jsx";
 import { useCurrency } from "../contexts/CurrencyContext.jsx";
 // 179차 — 데모 환경: 가상 웹팝업 성과(체험용). 판별은 정본(demoEnv) 사용.
@@ -375,43 +376,46 @@ function SettingsTab({ t }) {
 
 
 /* ══ Guide Tab (Expanded 15-step) ══ */
-function GuideTab({ t }) {
-  const COLORS = ['#f97316','#22c55e','#3b82f6','#a855f7','#ec4899','#06b6d4','#f59e0b','#ef4444','#8b5cf6','#10b981','#f97316','#6366f1','#14b8a6','#e11d48','#0ea5e9'];
+function GuideTab() {
+  const { lang } = useI18n();
+  const G = WP_GUIDE[lang] || WP_GUIDE.en;
+  const g = (k) => G[k] || WP_GUIDE.en[k] || WP_GUIDE.ko[k] || '';
+  const COLORS = ['#f97316','#22c55e','#3b82f6','#a855f7','#ec4899','#06b6d4','#f59e0b','#ef4444'];
   const steps = [];
-  for (let i = 1; i <= 15; i++) { const title = t("webPopup.guideStep" + i + "Title", ""); if (title && !title.includes("webPopup.")) steps.push({ n: i, title, desc: t("webPopup.guideStep" + i + "Desc", ""), c: COLORS[i-1] }); }
+  for (let i = 1; i <= 8; i++) { const title = g("guideStep" + i + "Title"); if (title) steps.push({ n: i, title, desc: g("guideStep" + i + "Desc"), c: COLORS[i-1] }); }
   const tips = [];
-  for (let i = 1; i <= 10; i++) { const tip = t("webPopup.guideTip" + i, ""); if (tip && !tip.includes("webPopup.")) tips.push(tip); }
+  for (let i = 1; i <= 7; i++) { const tip = g("guideTip" + i); if (tip) tips.push(tip); }
   const tabFs = [{ n: "guideDashName", d: "guideDashDesc", icon: "📊" }, { n: "guideFeedName", d: "guideFeedDesc", icon: "🎨" }, { n: "guideTrendName", d: "guideTrendDesc", icon: "🔴" }, { n: "guideABName", d: "guideABDesc", icon: "🧪" }, { n: "guideAiDesignName", d: "guideAiDesignDesc", icon: "🤖" }, { n: "guideSettingsName", d: "guideSettingsDesc", icon: "⚙️" }, { n: "guideGuideName", d: "guideGuideDesc", icon: "📖" }];
   return (
     <div style={{ display: "grid", gap: 16 }}>
       <div style={{ background: "linear-gradient(135deg,#fff7ed,#fef3c7)", borderRadius: 16, padding: "28px 24px", textAlign: "center", border: "1px solid #fed7aa" }}>
         <div style={{ fontSize: 36, marginBottom: 8 }}>🎯</div>
-        <div style={{ fontSize: 18, fontWeight: 800, color: "#2563eb" }}>{t("webPopup.guideTitle")}</div>
-        <div style={{ fontSize: 13, color: "#374151", marginTop: 6 }}>{t("webPopup.guideSub")}</div>
+        <div style={{ fontSize: 18, fontWeight: 800, color: "#2563eb" }}>{g("guideTitle")}</div>
+        <div style={{ fontSize: 13, color: "#374151", marginTop: 6, maxWidth: 620, margin: "6px auto 0", lineHeight: 1.7 }}>{g("guideSub")}</div>
       </div>
       <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #e5e7eb", padding: 20 }}>
-        <div style={{ fontWeight: 800, fontSize: 15, color: "#1f2937", marginBottom: 16 }}>{t("webPopup.guideStepsTitle")}</div>
+        <div style={{ fontWeight: 800, fontSize: 15, color: "#1f2937", marginBottom: 16 }}>{g("guideStepsTitle")}</div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(280px,1fr))", gap: 12 }}>
           {steps.map(s => (<div key={s.n} style={{ display: "flex", gap: 12, padding: 14, background: s.c+'08', borderRadius: 12, border: '1px solid '+s.c+'20' }}>
             <span style={{ width: 28, height: 28, borderRadius: 99, background: s.c, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 800, flexShrink: 0 }}>{s.n}</span>
-            <div><div style={{ fontWeight: 700, fontSize: 12, color: "#6b7280", marginTop: 2, lineHeight: 1.6 }} >{s.title}</div><div>{s.desc}</div></div>
+            <div><div style={{ fontWeight: 700, fontSize: 13, color: s.c, lineHeight: 1.5 }}>{s.title}</div><div style={{ fontSize: 12, color: "#6b7280", marginTop: 2, lineHeight: 1.6 }}>{s.desc}</div></div>
           </div>))}
         </div>
       </div>
       <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #e5e7eb", padding: 20 }}>
-        <div style={{ fontWeight: 800, fontSize: 15, color: "#1f2937", marginBottom: 16 }}>{t("webPopup.guideTabsTitle")}</div>
+        <div style={{ fontWeight: 800, fontSize: 15, color: "#1f2937", marginBottom: 16 }}>{g("guideTabsTitle")}</div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(200px,1fr))", gap: 10 }}>
           {tabFs.map(tf => (<div key={tf.n} style={{ display: "flex", gap: 10, padding: 12, background: "#f9fafb", borderRadius: 10, alignItems: "flex-start" }}>
             <span style={{ fontSize: 18, flexShrink: 0 }}>{tf.icon}</span>
-            <div><div style={{ fontWeight: 700, fontSize: 13, color: "#f97316" }}>{t("webPopup." + tf.n)}</div>
-            <div style={{ fontSize: 11, color: "#6b7280", marginTop: 2, lineHeight: 1.5 }}>{t("webPopup." + tf.d)}</div></div>
+            <div><div style={{ fontWeight: 700, fontSize: 13, color: "#f97316" }}>{g(tf.n)}</div>
+            <div style={{ fontSize: 11, color: "#6b7280", marginTop: 2, lineHeight: 1.5 }}>{g(tf.d)}</div></div>
           </div>))}
         </div>
       </div>
       {tips.length > 0 && <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #e5e7eb", padding: 20, borderLeft: "4px solid #f97316" }}>
-        <div style={{ fontWeight: 800, fontSize: 15, color: "#1f2937", marginBottom: 12 }}>💡 {t("webPopup.guideTipsTitle")}</div>
+        <div style={{ fontWeight: 800, fontSize: 15, color: "#1f2937", marginBottom: 12 }}>💡 {g("guideTipsTitle")}</div>
         {tips.map((tip, i) => (<div key={i} style={{ display: "flex", gap: 8, padding: "8px 0", borderBottom: "1px solid #f3f4f6" }}>
-          <span style={{ color: "#374151", fontWeight: 800, fontSize: 13, lineHeight: 1.6 }} >💡</span><span>{tip}</span>
+          <span style={{ color: "#374151", fontWeight: 800, fontSize: 13, lineHeight: 1.6 }} >💡</span><span style={{ fontSize: 12.5, color: "#374151", lineHeight: 1.6 }}>{tip}</span>
         </div>))}
       </div>}
     </div>
