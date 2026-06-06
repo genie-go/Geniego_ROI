@@ -6,6 +6,8 @@ import { useAuth } from "../auth/AuthContext.jsx";
 import { useGlobalData } from '../context/GlobalDataContext.jsx';
 import { useConnectorSync } from '../context/ConnectorSyncContext.jsx';
 import { getJsonAuth } from '../services/apiClient.js';
+import { IS_DEMO } from '../utils/demoEnv.js';
+import { PERF_GUIDE } from './perfGuideI18n.js';
 
 /* ─── Security Engine ──────────────────────────────────────── */
 const SEC_PATTERNS = [
@@ -334,24 +336,57 @@ const SETTLE_CHANNELS = [
     { id: 'gmarket', name: 'G-Market', icon: '🔵', color: '#1A8CFF', currency: 'KRW', grossSales: 86000000, platformFee: 10320000, adFee: 5160000, paymentFee: 1720000, refund: 1290000, netPayout: 67510000 },
 ];
 
+const SETTLE_META = { naver:{name:'Naver Store',icon:'🟢',color:'#03CF5D'}, coupang:{name:'Coupang',icon:'🛒',color:'#F43E37'}, oliveyoung:{name:'Olive Young',icon:'💚',color:'#A4CA42'}, gmarket:{name:'G-Market',icon:'🔵',color:'#1A8CFF'}, amazon_jp:{name:'Amazon Japan',icon:'📦',color:'#FF9900'}, shopify:{name:'Shopify',icon:'🏪',color:'#96BF48'}, eleven:{name:'11번가',icon:'🟠',color:'#f97316'}, kakao:{name:'Kakao',icon:'💬',color:'#fbbf24'}, smartstore:{name:'SmartStore',icon:'🟢',color:'#03CF5D'} };
+
 const SettlementTab = memo(function SettlementTab() {
     const { t } = useI18n();
     const { fmt: fmtC } = useCurrency();
+    const { settlement = [] } = useGlobalData();   // 데모=시드, 운영=/api/v424/orderhub/settlements(테넌트 격리 실데이터)
     const [baseCur, setBaseCur] = useState("KRW");
 
     // Convert all to KRW for totals
     const toBase = useCallback((v, cur) => cur === "KRW" ? v : toKRW(v, cur), []);
 
-    const totals = useMemo(() => ({
-        grossSales: SETTLE_CHANNELS.reduce((s, c) => s + toBase(c.grossSales, c.currency), 0),
-        platformFee: SETTLE_CHANNELS.reduce((s, c) => s + toBase(c.platformFee, c.currency), 0),
-        adFee: SETTLE_CHANNELS.reduce((s, c) => s + toBase(c.adFee, c.currency), 0),
-        paymentFee: SETTLE_CHANNELS.reduce((s, c) => s + toBase(c.paymentFee, c.currency), 0),
-        refund: SETTLE_CHANNELS.reduce((s, c) => s + toBase(c.refund, c.currency), 0),
-        netPayout: SETTLE_CHANNELS.reduce((s, c) => s + toBase(c.netPayout, c.currency), 0),
-    }), [toBase]);
+    // 197차 데이터 격리(U-177-A): 데모=가상 SETTLE_CHANNELS, 운영=GlobalData.settlement(타 계정 불유입·테넌트 격리) 채널별 집계.
+    //   과거: SettlementTab이 하드코딩 SETTLE_CHANNELS만 사용 → 운영에도 가상 정산 수치 노출. 제거.
+    const channels = useMemo(() => {
+        if (IS_DEMO) return SETTLE_CHANNELS;
+        const by = {};
+        for (const s of (Array.isArray(settlement) ? settlement : [])) {
+            const k = s.channel || s.channelId || 'etc';
+            const m = SETTLE_META[k] || {};
+            if (!by[k]) by[k] = { id: k, name: s.channelName || m.name || k, icon: m.icon || '🏷️', color: m.color || '#64748b', currency: 'KRW', grossSales: 0, platformFee: 0, adFee: 0, paymentFee: 0, refund: 0, netPayout: 0 };
+            by[k].grossSales += Number(s.grossSales) || 0;
+            by[k].platformFee += Number(s.platformFee) || 0;
+            by[k].adFee += Number(s.adFee) || 0;
+            by[k].paymentFee += Number(s.couponDiscount ?? s.paymentFee) || 0;
+            by[k].refund += Number(s.returnFee ?? s.refund) || 0;
+            by[k].netPayout += Number(s.netPayout) || 0;
+        }
+        return Object.values(by);
+    }, [settlement]);
 
-    const netRate = useMemo(() => totals.netPayout / totals.grossSales, [totals]);
+    const totals = useMemo(() => ({
+        grossSales: channels.reduce((s, c) => s + toBase(c.grossSales, c.currency), 0),
+        platformFee: channels.reduce((s, c) => s + toBase(c.platformFee, c.currency), 0),
+        adFee: channels.reduce((s, c) => s + toBase(c.adFee, c.currency), 0),
+        paymentFee: channels.reduce((s, c) => s + toBase(c.paymentFee, c.currency), 0),
+        refund: channels.reduce((s, c) => s + toBase(c.refund, c.currency), 0),
+        netPayout: channels.reduce((s, c) => s + toBase(c.netPayout, c.currency), 0),
+    }), [toBase, channels]);
+
+    const netRate = useMemo(() => totals.grossSales ? totals.netPayout / totals.grossSales : 0, [totals]);
+
+    // 운영에서 실 정산 데이터가 없으면 정직한 빈 상태(가짜 수치 금지)
+    if (!IS_DEMO && !channels.length) {
+        return (
+            <div className="card card-glass" style={{ textAlign: 'center', padding: '48px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+                <div style={{ fontSize: 44, opacity: 0.85 }}>💳</div>
+                <div style={{ fontWeight: 800, fontSize: 15, color: '#fff' }}>{t('performance.settleEmptyTitle', '정산 데이터가 아직 없습니다')}</div>
+                <div style={{ fontSize: 12.5, color: 'var(--text-3)', maxWidth: 460, lineHeight: 1.7 }}>{t('performance.settleEmptyDesc', '주문·정산 채널을 연동하면 채널별 실제 정산 내역이 테넌트 단위로 안전하게 집계되어 여기에 표시됩니다.')}</div>
+            </div>
+        );
+    }
     const totalDeductions = useMemo(() => totals.platformFee + totals.adFee + totals.paymentFee + totals.refund, [totals]);
 
     // Deduction breakdown for pie-style display
@@ -364,7 +399,8 @@ const SettlementTab = memo(function SettlementTab() {
 
     return (
         <div style={{ display: "grid", gap: 18 }}>
-            {/* FX Rates */}
+            {/* FX Rates — 시장 환율(참고). 운영은 단일통화(KRW) 실데이터라 미표시(가상 환율 노출 방지) */}
+            {IS_DEMO && (
             <div className="card card-glass" style={{ padding: 16 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
                     <div style={{ fontWeight: 700, fontSize: 12 }}>{t('performance.liveFxRates')}</div>
@@ -386,6 +422,7 @@ const SettlementTab = memo(function SettlementTab() {
                     })}
                 </div>
             </div>
+            )}
 
             {/* KPIs */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 10 }}>
@@ -443,7 +480,7 @@ const SettlementTab = memo(function SettlementTab() {
                             </tr>
                         </thead>
                         <tbody>
-                            {SETTLE_CHANNELS.map(ch => {
+                            {channels.map(ch => {
                                 const kr = toBase(ch.netPayout, ch.currency);
                                 const rate = ch.netPayout / ch.grossSales;
                                 const fmt = v => ch.currency === "KRW" ? fmtC(v) : "$" + fmtM(v);
@@ -949,30 +986,32 @@ const ESGTab = memo(function ESGTab() {
 });
 
 const PerfGuideTab = memo(function PerfGuideTab() {
-    const { t } = useI18n();
-    const STEPS = Array.from({ length: 10 }, (_, i) => ({ num: i + 1, title: t(`performance.guideStep${i + 1}Title`), desc: t(`performance.guideStep${i + 1}Desc`) }));
-    const ICONS = ['📊', '🔍', '💳', '💱', '🤝', '📋', '📈', '👥', '🌿', '🔒'];
-    const COLORS = ['#a855f7', '#4f8ef7', '#22c55e', '#f97316', '#ec4899', '#eab308', '#14b8a6', '#6366f1', '#22c55e', '#ef4444'];
-    const TIPS = Array.from({ length: 5 }, (_, i) => t(`performance.guideTip${i + 1}`));
+    const { t, lang } = useI18n();
+    const G = PERF_GUIDE[lang] || PERF_GUIDE.en;
+    const g = (k) => G[k] || PERF_GUIDE.en[k] || PERF_GUIDE.ko[k] || '';
+    const STEPS = Array.from({ length: 8 }, (_, i) => ({ num: i + 1, title: g(`guideStep${i + 1}Title`), desc: g(`guideStep${i + 1}Desc`) }));
+    const ICONS = ['📊', '🔄', '💳', '💱', '🤝', '📈', '👥', '🌿'];
+    const COLORS = ['#a855f7', '#4f8ef7', '#22c55e', '#f97316', '#ec4899', '#eab308', '#14b8a6', '#6366f1'];
+    const TIPS = Array.from({ length: 5 }, (_, i) => g(`guideTip${i + 1}`));
 
     const TAB_REF = [
-        { icon: '📊', tab: t('performance.tabPerformance'), desc: t('performance.guideTabPerfDesc'), color: '#a855f7' },
-        { icon: '💳', tab: t('performance.tabSettlement'), desc: t('performance.guideTabSettleDesc'), color: '#22c55e' },
-        { icon: '🤝', tab: t('performance.tabCreator'), desc: t('performance.guideTabCreatorDesc'), color: '#ec4899' },
-        { icon: '📈', tab: t('performance.tabSkuProfit'), desc: t('performance.guideTabSkuDesc'), color: '#f97316' },
-        { icon: '👥', tab: t('performance.tabCohort'), desc: t('performance.guideTabCohortDesc'), color: '#6366f1' },
-        { icon: '🌿', tab: t('performance.tabEsg'), desc: t('performance.guideTabEsgDesc'), color: '#14b8a6' },
-        { icon: '📖', tab: t('performance.tabGuide'), desc: t('performance.guideTabGuideDesc'), color: '#64748b' },
+        { icon: '📊', tab: t('performance.tabPerformance'), desc: g('guideTabPerfDesc'), color: '#a855f7' },
+        { icon: '💳', tab: t('performance.tabSettlement'), desc: g('guideTabSettleDesc'), color: '#22c55e' },
+        { icon: '🤝', tab: t('performance.tabCreator'), desc: g('guideTabCreatorDesc'), color: '#ec4899' },
+        { icon: '📈', tab: t('performance.tabSkuProfit'), desc: g('guideTabSkuDesc'), color: '#f97316' },
+        { icon: '👥', tab: t('performance.tabCohort'), desc: g('guideTabCohortDesc'), color: '#6366f1' },
+        { icon: '🌿', tab: t('performance.tabEsg'), desc: g('guideTabEsgDesc'), color: '#14b8a6' },
+        { icon: '📖', tab: t('performance.tabGuide'), desc: g('guideTabGuideDesc'), color: '#64748b' },
     ];
 
     return (
         <div style={{ display: 'grid', gap: 24 }}>
             <div>
-                <div style={{ fontSize: 22, fontWeight: 900, color: '#fff', marginBottom: 6 }}>📖 {t('performance.guideTitle')}</div>
-                <div style={{ fontSize: 12, color: '#94a3b8', lineHeight: 1.6 }}>{t('performance.guideSub')}</div>
+                <div style={{ fontSize: 22, fontWeight: 900, color: '#fff', marginBottom: 6 }}>📖 {g('guideTitle')}</div>
+                <div style={{ fontSize: 12, color: '#94a3b8', lineHeight: 1.6 }}>{g('guideSub')}</div>
             </div>
             <div>
-                <div style={{ fontSize: 15, fontWeight: 800, color: '#fff', marginBottom: 14 }}>{t('performance.guideStepsTitle')}</div>
+                <div style={{ fontSize: 15, fontWeight: 800, color: '#fff', marginBottom: 14 }}>{g('guideStepsTitle')}</div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 12 }}>
                     {STEPS.map((s, i) => (
                         <div key={i} style={{ display: 'flex', gap: 14, padding: 16, borderRadius: 12, background: 'var(--surface)', border: `1px solid ${COLORS[i]}22`, transition: 'transform 150ms, border-color 150ms' }}
@@ -988,14 +1027,14 @@ const PerfGuideTab = memo(function PerfGuideTab() {
                 </div>
             </div>
             <div style={{ padding: '20px 24px', borderRadius: 14, background: 'rgba(234,179,8,0.05)', border: '1px solid rgba(234,179,8,0.15)' }}>
-                <div style={{ fontSize: 14, fontWeight: 800, color: '#eab308', marginBottom: 12 }}>💡 {t('performance.guideTipsTitle')}</div>
+                <div style={{ fontSize: 14, fontWeight: 800, color: '#eab308', marginBottom: 12 }}>💡 {g('guideTipsTitle')}</div>
                 <ol style={{ margin: 0, paddingLeft: 20 }}>
                     {TIPS.map((tip, i) => <li key={i} style={{ fontSize: 12, color: '#22c55e', lineHeight: 1.8, marginBottom: 4, fontWeight: 700 }} ><span>{i + 1}.</span> {tip}</li>)}
                 </ol>
             </div>
             {/* Tab Reference Grid */}
             <div>
-                <div style={{ fontSize: 15, fontWeight: 800, color: '#fff', marginBottom: 14 }}>📑 Tab Reference</div>
+                <div style={{ fontSize: 15, fontWeight: 800, color: '#fff', marginBottom: 14 }}>📑 {g('guideTabsTitle')}</div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 10 }}>
                     {TAB_REF.map((tr, i) => (
                         <div key={i} style={{ padding: '12px 14px', borderRadius: 10, background: 'var(--surface)', border: `1px solid ${tr.color}22`, display: 'flex', gap: 10, alignItems: 'flex-start' }}>
