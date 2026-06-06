@@ -1,3 +1,62 @@
+# 197차 세션 인계서 — **AI디자인 고도화 + React#321 + 이용가이드 15개국(11페이지) + 운영 목데이터 전수격리**
+
+> **작성일**: 2026-06-06 (사용자 명시 승인 후)
+> **이전 세션**: 195·196차(NEXT_SESSION 미기록, 메모리 `project_n195`/`project_n196` 참조) → 197차
+> **종결 상태**: `master == origin/master` (`689f4f4dac2`). 추적 변경 = `tools/resolver_consumer_manifest_v2.json`(세션 전 기존, 무관) 뿐. 임시파일 전부 정리.
+> **운영** roi.genie-go.com / **데모** roidemo.genie-go.com(경로 roidemo.geniego.com) 다수 동반 배포·라이브검증·push 완료.
+
+## ★ i18n 워크플로우 — 매 인계서 고정(아래 194차 섹션과 동일 규칙 유지)
+사용자 제공 가이드 자료(135파일, 9 ns) 재번역 금지 + 착수 전 유무분석 + 교집합0 검증. [[feedback_user_provided_page_translations]] [[feedback_178_i18n_translation_workflow]] [[feedback_verify_before_delete_change]].
+**197차 신규 정본 패턴**: 사용자 제공본 없는 신규 가이드는 **자립형 사전** `frontend/src/pages/xxxGuideI18n.js`(B헬퍼 + 15개국, 거대 ko.js(1MB) 무수정) + 컴포넌트 GuideTab을 `const{lang}=useI18n(); const g=k=>G[k]||en[k]||ko[k]||''`로 교체. DashGuide 선례. (CC 초안 = 사용자 검수 가능.)
+
+## ✅ 197차 완료 (전부 운영+데모 배포·라이브검증·push)
+
+### A. React #321 크래시 자동복구 (`47a6e67`)
+- **원인**: stale 번들 ↔ React 코어 버전불일치("Invalid hook call" #321). 앱 열어둔 채 다중배포 시 옛 코어청크+새 페이지청크 혼재. 깨끗한 헤드리스로 admin/일반×8탭 재현無=배포본 정상.
+- **수정**: `App.jsx` ErrorBoundary `isChunkError` + `main.jsx` `STALE_RE`/`FALSE_ALERT_RE` 정규식에 `Minified React error #(?:300|310|321)|Invalid hook call` 추가 → 1회 자동 새로고침 자가치유(무한루프 가드 유지). 캐시헤더 정상(index.html no-cache, 해시청크 immutable).
+
+### B. 대화형 AI 디자인 5종 고도화 (`47a6e67`/`9003d56`)
+- 참고 이미지 업로드(Claude 비전 멀티모달, 캔버스 1024px JPEG 다운스케일 → `reference_image`)
+- 전문가급 샘플 갤러리 **전면 재작성**(`aiDesignSamples.js` 에디토리얼: 워드마크/룰선·골드포일·글래스 메트릭+스파크라인·차트 영역+라인·추상 메시블롭) + **밝은배경 6팔레트** + **명도 적응 가시성**(`inkOn(bg)`=어두우면 흰글자/밝으면 짙은글자, CTA·글로우·비네트 적응) + **15개국 현지 카피**(`CONTENT_I18N` + `buildSamples(lang)`, 64샘플/언어)
+- **여러 컷 캐러셀**(cuts 1/3/4/5 → backend `designs[]` → `frames` + ‹dots› 넘기기)
+- **URL 분석**(붙여넣기 → backend `fetchUrlContext` ★SSRF가드(http/s만·사설/루프백/169.254.169.254 차단·gethostbynamel) + og:image→비전)
+- **저장버튼 가시성**(`AIDesignChat`: 럭셔리갤러리 기본접힘 `showGallery=false` + 채팅/미리보기 반응형 flex-wrap)
+- **백엔드** `ClaudeAI.php`: `callClaudeLong(...,array $images)` 멀티모달, `campaignAdChat` cuts/reference_url/reference_image, `fetchUrlContext`+`urlSafe`. 운영/데모 backend 배포(.bak_196aidesign + php-fpm reload). ★서버에 admin AI(Claude)키 설정됨(source=ai 확인).
+
+### C. 접속 국가 자동 현지화 — **이미 구현 확인(무변경)**
+`i18n/index.js`: `detectLang`(navigator.language)+`detectGeoLang`(ipapi.co COUNTRY_LANG_MAP 첫방문)+`setLang`(수동선택 영구저장·우선). 전역 `I18nProvider` 전페이지 적용.
+
+### D. 시스템현황 0ms — **오류 아님(분석만)**
+`SystemMetrics.php` 8 probe, ms=probe 실행 latency(176차 mock제거 실측). 0ms=1ms미만 인프로세스 연산. 라이브 7/8 ok. 유일 비정상 **APCu degraded=apcu 확장 미설치**(선택적 캐시, 앱 정상·RPM/uptime 카운터만 비활성). 후속(선택): 서버 apcu 설치 시 카운터 활성.
+
+### E. 운영 목데이터 격리 — 데이터 무결성·테넌트 격리 (U-177-A)
+- **크리에이티브 스튜디오**(`CreativeStudioTab` /auto-marketing): `_isDemo` import만·미사용 결함 → 운영=실저장소재 `getJsonAuth('/api/v422/ai/ad-design/list')`(테넌트격리)+빈상태·"—"·성과연동대기, 데모=mock. (`10e2eb2`)
+- **성과 정산**(`SettlementTab` /performance): 하드코딩 `SETTLE_CHANNELS`/`FX_RATES` → 운영=`GlobalData.settlement`(`/api/v424/orderhub/settlements` getJsonAuth=X-Tenant-Id **타계정 불유입**) 채널별 집계+빈상태, 데모=mock, FX위젯 데모한정. (`f47c0c3`)
+- **선제감사 3건**(`689f4f4`): **DigitalShelf TOP_PRODUCTS**(181차 게이팅 누락분)·**AmazonRisk 전체**(RISKS+하드코딩KPI)·**CatalogSync 채널재고 Math.random 조작** → IS_DEMO 게이트+빈상태/실 inventory.
+
+### F. 이용가이드 15개국 트랙 — **11페이지 자립형 사전 전환**
+- **사용자요청 7**: graph-score · sms-marketing(★템플릿탭 크래시 `style={{TN}}` 미선언 ReferenceError→`...BTN`) · content-calendar · influencer · reviews-ugc · web-popup · performance.
+- **선제감사 4**: settlements · reconciliation · data-schema · channel-kpi (`ns.guide*` 키 ko/en 미정의 → 원문키 노출, 영어 아님).
+- 각 6~8스텝+탭안내+전문가팁(실내용 작성)+탭명 "이용가이드" 15개국. 커밋 9575/8fbee/e3df/1de5/414cf/f47c/85e9/2bf46.
+
+### G. 배포/커밋 요약
+운영+데모 ~12회 동반 배포. 프론트 커밋 `47a6e67`→`689f4f4` 전부 push. 백엔드 ClaudeAI.php 운영/데모 배포. 재현용 QA계정(app_user `qa_%@geniego-qa.com`)·임시파일 전부 정리.
+
+## ★ 잔여 / 다음 차수
+- 15개국 가이드 카피 = **CC 초안**(사용자 검수·교정 가능 — 페이지·언어 지정 시 반영).
+- 경계 항목(기능 스텁, 표시형 오염 아님): InstagramDM `AUTO_REPLY_RULES`(편집가능 기본템플릿)·WmsManager 카메라 mock바코드(미구현 스캐너 스텁).
+- AI 디자인 실사 이미지/동영상 = admin AI키 + DALL·E/Stability/동영상 API키 설정 시 실작동(미설정 시 내장 벡터/시뮬 폴백).
+- SMTP = 서버 `app_setting smtp_*` 자격증명 입력 시 이메일 OTP 실작동(현재 TOTP만 실작동).
+
+## ★ 트랩/도구 (197차 학습)
+- **자립형 가이드 사전 패턴** = `xxxGuideI18n.js`(B헬퍼 + 15lang) + GuideTab `g(k)`. 신규 가이드 시 재사용. 거대 ko.js 무수정.
+- **i18n 감사법**: `node --input-type=module`로 `ko.js`/`en.js` import → 각 ns `guideStep1Title` 정의여부 체크(이미 사전전환한 페이지는 false-positive=정상).
+- **목데이터 감사법**: `grep Math.random` 전페이지 + 모듈 const배열(COLORS/TABS/STEPS/config 제외) → IS_DEMO 소비처 게이팅 확인. ★운영빌드 `IS_DEMO=false`라 `if(IS_DEMO)` mock은 **렌더 자체 불가**(결정적 증거). DataProduct PLATFORM_MAPPING=필드매핑 config(목 아님).
+- **헤드리스 admin 재현 3트랩** [[reference-headless-admin-repro-trap]]: ①admin 토큰 비영속(`localStorage.genie_remember='1'`+`sessionStorage.genie_sess_active='1'`) ②실admin MFA필수→신규계정 등록+DB `UPDATE app_user SET plan='admin'`(★테이블=app_user) ③plan위조는 `/auth/me`가 덮어씀(DB승격이 정답). ★신규QA 온보딩모달("환영합니다 1/5")이 인페이지 탭 클릭 방해 → `건너뛰기` 선클릭. 정산탭은 사이드바"재무 및 정산"/다수"정산" 텍스트로 자동클릭 불안정(코드 결정성으로 보완).
+- **이중빌드 배포**: 운영=`npm run build`, 데모=`$env:VITE_DEMO_MODE='true'; npm run build`. tar→pscp→서버 extract→chown www:www. 정적 배포는 nginx reload 불요(index.html no-cache).
+
+---
+
 # 194차 세션 인계서 — **193차 종료: 전수분석 백로그 Sprint 3·4 거의 완전 실행(외부 자격증명 필요 1건 제외)**
 
 > **작성일**: 2026-06-05 (사용자 명시 승인 후)
