@@ -1376,6 +1376,10 @@ PROMPT;
             $data = $body['data'] ?? $body;
             $messages = is_array($data['messages'] ?? null) ? $data['messages'] : [];
             $curDesign = is_array($data['design'] ?? null) ? $data['design'] : null;
+            // 196차++ 참고 이미지 업로드: data URI(이미지) → Claude 비전 멀티모달 참고 입력
+            $refImages = [];
+            $ref = trim((string)($data['reference_image'] ?? ''));
+            if ($ref !== '' && preg_match('#^data:image/(?:png|jpe?g|gif|webp);base64,#i', $ref)) $refImages[] = $ref;
             if (empty($messages)) {
                 $res->getBody()->write(json_encode(['ok'=>false,'error'=>'메시지를 입력하세요.'], JSON_UNESCAPED_UNICODE));
                 return $res->withHeader('Content-Type','application/json')->withStatus(422);
@@ -1387,38 +1391,70 @@ PROMPT;
                 $convo .= "{$role}: " . trim((string)($m['content'] ?? '')) . "\n";
             }
             $curJson = $curDesign ? json_encode($curDesign, JSON_UNESCAPED_UNICODE) : '없음(첫 생성)';
-            $systemPrompt = <<<PROMPT
-당신은 세계 최고의 퍼포먼스 광고 크리에이티브 디렉터입니다. 사용자와 자유롭게 대화하며 광고 디자인을 만들고 다듬습니다.
-대화 맥락과 사용자의 요청(생성/수정)을 반영해 광고 디자인을 업데이트하세요. GeniegoROI(마케팅 ROI 분석 SaaS 플랫폼) 자사 광고도 만들 수 있습니다.
 
-현재 디자인: {$curJson}
+            // 196차++ #4 여러 컷(캐러셀): cuts>1 → designs 배열(연속 컷) 요청
+            $cuts = (int)($data['cuts'] ?? 1); if ($cuts < 1) $cuts = 1; if ($cuts > 6) $cuts = 6;
+            // 196차++ #5 URL 참고: 붙여넣은 URL 서버 분석(SSRF 가드) → 콘텐츠 요약 + og:image 비전 반영
+            $urlCtx = '';
+            $refUrl = trim((string)($data['reference_url'] ?? ''));
+            if ($refUrl !== '') {
+                try {
+                    $uc = self::fetchUrlContext($refUrl);
+                    $urlCtx = (string)($uc['summary'] ?? '');
+                    if (!empty($uc['image']) && count($refImages) < 4) $refImages[] = $uc['image'];
+                } catch (\Throwable $e) { $urlCtx = ''; }
+            }
 
-반드시 아래 JSON만 출력(설명·마크다운·코드펜스 금지):
-{
-  "reply": "사용자에게 보여줄 대화 응답(한국어, 무엇을 만들었는지/어떻게 바꿨는지 친근하고 짧게 1~2문장)",
-  "design": {
-    "channel": "tiktok|meta|instagram|kakao|youtube|popup 중 추론(미지정 instagram)",
-    "format": "포맷명", "ratio": "9:16|1:1|4:5|16:9 중 하나",
-    "headline": "광고 헤드라인(16자 이내)", "subheadline": "보조문구", "body": "본문 카피(1~2문장)",
-    "cta": "행동유도 버튼 문구",
-    "hashtags": ["#태그1","#태그2"],
-    "palette": {"bg":"#배경HEX","primary":"#주색HEX","accent":"#강조HEX","text":"#글자HEX(배경 대비 가독)"},
-    "layout": "요소 배치", "visual": "비주얼 연출 가이드 1문장", "mood": "톤(예: 럭셔리, 역동적, 미니멀)",
-    "image_prompt": "이 광고 배경에 어울리는 실사/일러스트 비주얼을 생성할 상세한 영문 이미지 생성 프롬프트(English). 광고 배경용·텍스트 없는 비주얼·고급 상업사진 느낌·오버레이 공간 확보. 예: 'luxury gold abstract background, premium soft gradient, cinematic light, minimal'"
-  }
-}
-사용자가 수정만 요청하면 현재 디자인에서 해당 부분만 바꾸고 나머지는 유지하세요.
-PROMPT;
-            $userMsg = "대화 내용:\n{$convo}\n위 대화를 바탕으로 광고 디자인을 생성/수정하고 JSON으로 응답하세요.";
+            $designSchema = '  "design": {' . "\n"
+                . '    "channel": "tiktok|meta|instagram|kakao|youtube|popup 중 추론(미지정 instagram)",' . "\n"
+                . '    "format": "포맷명", "ratio": "9:16|1:1|4:5|16:9 중 하나",' . "\n"
+                . '    "headline": "광고 헤드라인(16자 이내)", "subheadline": "보조문구", "body": "본문 카피(1~2문장)",' . "\n"
+                . '    "cta": "행동유도 버튼 문구", "hashtags": ["#태그1","#태그2"],' . "\n"
+                . '    "palette": {"bg":"#배경HEX","primary":"#주색HEX","accent":"#강조HEX","text":"#글자HEX(배경 대비 가독)"},' . "\n"
+                . '    "layout": "요소 배치", "visual": "비주얼 연출 가이드 1문장", "mood": "톤(럭셔리/역동적/미니멀 등)",' . "\n"
+                . '    "image_prompt": "광고 배경 비주얼 생성용 상세 영문 프롬프트(텍스트 없는 고급 상업사진/추상 배경, 오버레이 공간 확보)"' . "\n"
+                . '  }';
+            if ($cuts > 1) {
+                $schemaBlock = "{\n  \"reply\": \"대화 응답(한국어 1~2문장)\",\n  \"designs\": [ 위 design 객체를 정확히 {$cuts}개 ]\n}";
+                $narrative = "designs 는 손가락으로 넘겨보는(스와이프) 캐러셀 광고의 연속 컷입니다. 서사 순서: ①후킹 표지 ②핵심 문제/혜택 ③증거·수치 ④기능/방법 ⑤신뢰/후기 ⑥강한 CTA (컷 수에 맞게 배분). 모든 컷은 channel·ratio·palette·브랜드 톤을 일관되게 유지하고, headline·subheadline·body·image_prompt 는 컷마다 다르게(서사 진행). 마지막 컷은 반드시 명확한 CTA.";
+            } else {
+                $schemaBlock = "{\n  \"reply\": \"대화 응답(한국어, 짧고 친근하게 1~2문장)\",\n{$designSchema}\n}";
+                $narrative = '사용자가 수정만 요청하면 현재 디자인에서 해당 부분만 바꾸고 나머지는 유지하세요.';
+            }
 
-            $reply = null; $design = null; $dataSource = 'ai';
+            $systemPrompt = "당신은 세계 최고의 퍼포먼스 광고 크리에이티브 디렉터입니다. 사용자와 자유롭게 대화하며 광고 디자인을 만들고 다듬습니다.\n"
+                . "대화 맥락과 사용자 요청(생성/수정)을 반영하세요. GeniegoROI(마케팅 ROI 분석 SaaS) 자사 광고도 가능합니다.\n\n"
+                . "현재 디자인: {$curJson}\n\n"
+                . ($cuts > 1 ? "위 design 객체 스키마:\n{$designSchema}\n\n" : '')
+                . "반드시 아래 JSON만 출력(설명·마크다운·코드펜스 금지):\n{$schemaBlock}\n\n{$narrative}";
+
+            if (!empty($refImages)) {
+                $systemPrompt .= "\n\n[참고 이미지 첨부됨] 이미지의 색감(팔레트)·구도·분위기·스타일·소재를 면밀히 분석해 palette·mood·image_prompt 에 적극 반영하세요. palette는 이미지 주조색에서 추출하고, reply에 무엇을 반영했는지 1문장 포함하세요.";
+            }
+            if ($urlCtx !== '') {
+                $systemPrompt .= "\n\n[참고 URL 분석 결과] 아래 URL 콘텐츠를 분석해 브랜드/제품 톤·핵심 메시지·색감·키워드를 디자인(headline·body·palette·image_prompt)에 반영하세요:\n{$urlCtx}";
+            }
+
+            $userMsg = "대화 내용:\n{$convo}\n위 대화를 바탕으로 광고 디자인을 생성/수정하고 JSON으로 응답하세요."
+                . ($cuts > 1 ? "\n이번엔 넘겨보는 캐러셀용으로 정확히 {$cuts}개의 연속 컷(designs 배열)을 만들어 주세요." : '')
+                . (!empty($refImages) ? "\n첨부된 참고 이미지의 스타일·색감·분위기를 반영하세요." : '')
+                . ($urlCtx !== '' ? "\n참고 URL의 내용·브랜드 톤을 반영하세요." : '');
+
+            $hasExtra = !empty($refImages) || $urlCtx !== '' || $cuts > 1;
+            $reply = null; $design = null; $frames = null; $dataSource = 'ai';
             try {
-                $claude = self::callClaudeLong($systemPrompt, $userMsg, 30);
+                $claude = self::callClaudeLong($systemPrompt, $userMsg, $hasExtra ? 50 : 30, $refImages);
                 $clean = preg_replace('/```(?:json)?\s*([\s\S]*?)```/', '$1', $claude['text']);
                 $parsed = json_decode(trim($clean ?? $claude['text']), true);
-                if (is_array($parsed) && !empty($parsed['design'])) {
-                    $design = $parsed['design'];
-                    $reply = (string)($parsed['reply'] ?? '디자인을 업데이트했어요. 미리보기를 확인해 주세요!');
+                if (is_array($parsed)) {
+                    if ($cuts > 1 && !empty($parsed['designs']) && is_array($parsed['designs'])) {
+                        $frames = array_values(array_filter($parsed['designs'], 'is_array'));
+                        $design = $frames[0] ?? null;
+                        $reply = (string)($parsed['reply'] ?? "{$cuts}컷 캐러셀을 만들었어요. 좌우로 넘겨보세요!");
+                    } elseif (!empty($parsed['design'])) {
+                        $design = $parsed['design'];
+                        $reply = (string)($parsed['reply'] ?? '디자인을 업데이트했어요. 미리보기를 확인해 주세요!');
+                    }
                 }
             } catch (\Throwable $e) { $dataSource = 'fallback'; }
 
@@ -1432,7 +1468,9 @@ PROMPT;
                 $dataSource = 'fallback';
             }
 
-            $res->getBody()->write(json_encode(['ok'=>true,'reply'=>$reply,'design'=>$design,'data_source'=>$dataSource], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+            $out = ['ok'=>true,'reply'=>$reply,'design'=>$design,'data_source'=>$dataSource];
+            if (is_array($frames) && count($frames) > 1) $out['frames'] = $frames;
+            $res->getBody()->write(json_encode($out, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
             return $res->withHeader('Content-Type','application/json');
         } catch (\Throwable $e) {
             $res->getBody()->write(json_encode(['ok'=>false,'error'=>$e->getMessage()], JSON_UNESCAPED_UNICODE));
@@ -1553,10 +1591,82 @@ PROMPT;
         }
     }
 
-    /** SVG 생성은 토큰·시간이 더 필요 → max_tokens 상향 + 타임아웃 여유. */
-    private static function callClaudeLong(string $systemPrompt, string $userMsg, int $timeout = 22): array {
+    /** 호스트 SSRF 안전성 검사 — http/https + 사설/루프백/링크로컬/메타데이터 IP 차단. */
+    private static function urlSafe(string $url): bool {
+        if (!preg_match('#^https?://#i', $url)) return false;
+        $host = strtolower((string)(parse_url($url, PHP_URL_HOST) ?? ''));
+        if ($host === '' || $host === 'localhost' || str_ends_with($host, '.localhost') || str_ends_with($host, '.internal') || str_ends_with($host, '.local')) return false;
+        // 호스트가 IP면 직접, 아니면 DNS 해석 후 사설/예약 대역 차단
+        $ips = [];
+        if (filter_var($host, FILTER_VALIDATE_IP)) $ips[] = $host;
+        else { $r = @gethostbynamel($host); if (is_array($r)) $ips = $r; }
+        foreach ($ips as $ip) {
+            if (!filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) return false;
+            if ($ip === '169.254.169.254') return false; // 클라우드 메타데이터
+        }
+        return !empty($ips);
+    }
+
+    /** 196차++ #5 URL 참고: 페이지를 서버에서 안전하게 가져와 제목/설명/헤딩/본문/og:image 추출. */
+    private static function fetchUrlContext(string $url): array {
+        $url = trim($url);
+        if (!self::urlSafe($url)) return ['summary' => '', 'image' => null];
+        $scheme = (string)(parse_url($url, PHP_URL_SCHEME) ?? 'https');
+        $host   = (string)(parse_url($url, PHP_URL_HOST) ?? '');
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true, CURLOPT_FOLLOWLOCATION => true, CURLOPT_MAXREDIRS => 3,
+            CURLOPT_TIMEOUT => 9, CURLOPT_CONNECTTIMEOUT => 5, CURLOPT_USERAGENT => 'Mozilla/5.0 (compatible; GeniegoROI-AIDesign/1.0)',
+            CURLOPT_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS, CURLOPT_REDIR_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS,
+        ]);
+        $html = curl_exec($ch); $status = curl_getinfo($ch, CURLINFO_HTTP_CODE); curl_close($ch);
+        if (!$html || $status >= 400) return ['summary' => '', 'image' => null];
+        $html = substr($html, 0, 600000);
+        $title = ''; $desc = ''; $og = ''; $heads = [];
+        if (preg_match('/<title[^>]*>(.*?)<\/title>/is', $html, $m)) $title = trim(html_entity_decode(strip_tags($m[1]), ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+        if (preg_match('/<meta[^>]+(?:name|property)=["\'](?:description|og:description)["\'][^>]*\bcontent=["\']([^"\']+)/i', $html, $m)) $desc = trim(html_entity_decode($m[1], ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+        if (preg_match('/<meta[^>]+property=["\']og:image["\'][^>]*\bcontent=["\']([^"\']+)/i', $html, $m)) $og = trim($m[1]);
+        if (preg_match_all('/<h[12][^>]*>(.*?)<\/h[12]>/is', $html, $mm)) { foreach (array_slice($mm[1], 0, 6) as $h) { $h = trim(html_entity_decode(strip_tags($h), ENT_QUOTES | ENT_HTML5, 'UTF-8')); if ($h !== '') $heads[] = mb_substr($h, 0, 80); } }
+        $text = preg_replace('/<(script|style|noscript)[^>]*>.*?<\/\1>/is', ' ', $html);
+        $text = trim(preg_replace('/\s+/', ' ', html_entity_decode(strip_tags((string)$text), ENT_QUOTES | ENT_HTML5, 'UTF-8')));
+        $text = mb_substr($text, 0, 1400);
+        $summary = "URL: {$url}\n제목: {$title}\n설명: {$desc}\n주요 헤딩: " . implode(' | ', $heads) . "\n본문 발췌: {$text}";
+        // og:image → data URI(비전 참고). 절대/프로토콜상대/루트상대 보정 + SSRF 재검사.
+        $imgUri = null;
+        if ($og !== '') {
+            if (strpos($og, '//') === 0) $og = $scheme . ':' . $og;
+            elseif (isset($og[0]) && $og[0] === '/') $og = $scheme . '://' . $host . $og;
+            if (self::urlSafe($og)) {
+                $ich = curl_init($og);
+                curl_setopt_array($ich, [CURLOPT_RETURNTRANSFER => true, CURLOPT_FOLLOWLOCATION => true, CURLOPT_MAXREDIRS => 2,
+                    CURLOPT_TIMEOUT => 8, CURLOPT_CONNECTTIMEOUT => 4, CURLOPT_USERAGENT => 'Mozilla/5.0 (compatible; GeniegoROI-AIDesign/1.0)',
+                    CURLOPT_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS, CURLOPT_REDIR_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS]);
+                $raw = curl_exec($ich); $ct = (string)curl_getinfo($ich, CURLINFO_CONTENT_TYPE); $ist = curl_getinfo($ich, CURLINFO_HTTP_CODE); curl_close($ich);
+                if ($raw && $ist < 400 && preg_match('#^image/(png|jpe?g|gif|webp)#i', $ct) && strlen($raw) < 4500000) {
+                    $mt = strtolower(trim(explode(';', $ct)[0])); if ($mt === 'image/jpg') $mt = 'image/jpeg';
+                    $imgUri = 'data:' . $mt . ';base64,' . base64_encode($raw);
+                }
+            }
+        }
+        return ['summary' => $summary, 'image' => $imgUri];
+    }
+
+    /** SVG 생성은 토큰·시간이 더 필요 → max_tokens 상향 + 타임아웃 여유.
+     *  $images: data URI(예: "data:image/png;base64,....") 배열 → Claude 비전 멀티모달 입력(참고 이미지). */
+    private static function callClaudeLong(string $systemPrompt, string $userMsg, int $timeout = 22, array $images = []): array {
         $apiKey = self::apiKey();
-        $payload = json_encode(['model'=>self::MODEL,'max_tokens'=>8192,'system'=>$systemPrompt,'messages'=>[['role'=>'user','content'=>$userMsg]]], JSON_UNESCAPED_UNICODE);
+        $content = $userMsg;
+        if (!empty($images)) {
+            $blocks = [];
+            foreach (array_slice($images, 0, 4) as $img) {
+                if (preg_match('#^data:(image/(?:png|jpeg|jpg|gif|webp));base64,(.+)$#is', (string)$img, $mm)) {
+                    $mt = strtolower($mm[1]) === 'image/jpg' ? 'image/jpeg' : strtolower($mm[1]);
+                    $blocks[] = ['type'=>'image','source'=>['type'=>'base64','media_type'=>$mt,'data'=>$mm[2]]];
+                }
+            }
+            if (!empty($blocks)) { $blocks[] = ['type'=>'text','text'=>$userMsg]; $content = $blocks; }
+        }
+        $payload = json_encode(['model'=>self::MODEL,'max_tokens'=>8192,'system'=>$systemPrompt,'messages'=>[['role'=>'user','content'=>$content]]], JSON_UNESCAPED_UNICODE);
         $ch = curl_init(self::API_URL);
         curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER=>true,CURLOPT_POST=>true,CURLOPT_POSTFIELDS=>$payload,CURLOPT_TIMEOUT=>$timeout,CURLOPT_CONNECTTIMEOUT=>6,
             CURLOPT_HTTPHEADER=>['Content-Type: application/json','x-api-key: '.$apiKey,'anthropic-version: 2023-06-01']]);

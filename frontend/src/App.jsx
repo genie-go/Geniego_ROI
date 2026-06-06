@@ -151,8 +151,11 @@ class ErrorBoundary extends Component {
 
     // 196차: 배포 중 stale 청크/모듈 로드 실패는 "보안 위협"이 아니라 배포 산출물 → 보안 알림에
     //   기록하지 않고(거짓 위협경보 방지) 자동 새로고침으로 최신 번들 복구.
+    // 196차++: stale 번들 ↔ React 코어 불일치는 "Invalid hook call"(Minified React error #321,
+    //   동족 #300/#310)로도 샌다 — 배포 중 옛 React 코어 청크 + 새 페이지 청크 혼재 시 발생.
+    //   이 또한 배포 산출물 불일치이므로 1회 자동 새로고침으로 일관된 최신 번들 복구(거짓 위협경보 X).
     const isChunkError = err?.name === 'ChunkLoadError'
-      || /Failed to fetch dynamically imported module|error loading dynamically imported module|Importing a module script failed|Loading chunk \d+ failed|Unable to preload CSS|is not defined|ReferenceError/i.test(String(err?.message || err));
+      || /Failed to fetch dynamically imported module|error loading dynamically imported module|Importing a module script failed|Loading chunk \d+ failed|Unable to preload CSS|is not defined|ReferenceError|Minified React error #(?:300|310|321)|Invalid hook call/i.test(String(err?.message || err));
     if (isChunkError) {
       if (!sessionStorage.getItem('chunk_reloaded')) {
         sessionStorage.setItem('chunk_reloaded', '1');

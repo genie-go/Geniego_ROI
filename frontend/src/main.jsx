@@ -83,7 +83,7 @@ class RootErrorBoundary extends Component {
 const CHUNK_RE = /Failed to fetch dynamically imported module|error loading dynamically imported module|Importing a module script failed|ChunkLoadError|Loading chunk \d+ failed|Unable to preload CSS/i;
 // stale 번들 불일치는 2차로 미니파이 변수 미스매치(ReferenceError "x is not defined")로도 샌다.
 // → 이런 증상도 1회 자동복구·거짓경보 정리 대상에 포함(현재 빌드는 clean 검증됨).
-const STALE_RE = /Failed to fetch dynamically imported module|error loading dynamically imported module|Importing a module script failed|ChunkLoadError|Loading chunk \d+ failed|Unable to preload CSS|is not defined|ReferenceError/i;
+const STALE_RE = /Failed to fetch dynamically imported module|error loading dynamically imported module|Importing a module script failed|ChunkLoadError|Loading chunk \d+ failed|Unable to preload CSS|is not defined|ReferenceError|Minified React error #(?:300|310|321)|Invalid hook call/i;
 function recoverFromStaleChunk(msg) {
   if (!STALE_RE.test(String(msg || ''))) return false;
   if (sessionStorage.getItem('stale_chunk_reloaded')) return false; // 무한루프 방지(1회)
@@ -96,7 +96,7 @@ window.addEventListener('load', () => { setTimeout(() => { try { sessionStorage.
 
 // 196차: 거짓 "위협 감지" 경보 정리 — ①stale 번들 에러(청크/모듈/ReferenceError) ②DevTools 열림
 //   모니터링(정상 디버깅을 위협으로 오인하던 알림). 실제 보안 이벤트는 보존.
-const FALSE_ALERT_RE = /Failed to fetch dynamically imported module|error loading dynamically imported module|Importing a module script failed|ChunkLoadError|Loading chunk \d+ failed|Unable to preload CSS|is not defined|ReferenceError|DevTools opened|monitoring active/i;
+const FALSE_ALERT_RE = /Failed to fetch dynamically imported module|error loading dynamically imported module|Importing a module script failed|ChunkLoadError|Loading chunk \d+ failed|Unable to preload CSS|is not defined|ReferenceError|Minified React error #(?:300|310|321)|Invalid hook call|DevTools opened|monitoring active/i;
 try {
   const a = JSON.parse(localStorage.getItem('g_sec_alerts') || '[]');
   if (Array.isArray(a) && a.length) {

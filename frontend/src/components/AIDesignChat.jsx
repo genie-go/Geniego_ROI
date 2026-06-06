@@ -17,9 +17,9 @@ const CHLABEL = { tiktok: 'TikTok', meta: 'Meta', instagram: 'Instagram', kakao:
 
 const SUGGESTIONS = [
   'GeniegoROI 회원가입 3개월 무료 이벤트를 럭셔리하게 인스타그램용으로 (🎬 애니메이션으로)',
-  '매출 +247% 성장 그래프를 넣은 광고 (📊 그래프 모드)',
+  '제품 소개를 넘겨보는 캐러셀 광고로 만들어줘 (🎞️ 위에서 컷 수 선택)',
   '여름 세일 50% 할인, 모델 인물 실사 비주얼로 (🖼️ 실사)',
-  '제품이 회전하는 시네마틱 광고 동영상 (🎥 동영상)',
+  'https://(제품/브랜드 URL) 이 페이지를 분석해서 그 톤으로 광고 만들어줘 (🔗 URL 참고)',
 ];
 
 function Preview({ design, svg, image, video }) {
@@ -76,7 +76,7 @@ function Preview({ design, svg, image, video }) {
 
 export default function AIDesignChat({ onApplied }) {
   const { t } = useI18n();
-  const [messages, setMessages] = useState([{ role: 'assistant', content: '안녕하세요! 만들고 싶은 광고를 자유롭게 설명해 주세요. 채널·문구·분위기·색감 등 무엇이든 좋아요. 만든 뒤에도 "더 밝게", "문구 바꿔줘"처럼 대화로 수정할 수 있어요. 😊' }]);
+  const [messages, setMessages] = useState([{ role: 'assistant', content: '안녕하세요! 만들고 싶은 광고를 자유롭게 설명해 주세요. 채널·문구·분위기·색감 등 무엇이든 좋아요. 📎 버튼으로 참고 이미지를 첨부하면 그 스타일·색감을 분석해 디자인에 반영해 드려요. 만든 뒤에도 "더 밝게", "문구 바꿔줘"처럼 대화로 수정할 수 있어요. 😊' }]);
   const [input, setInput] = useState('');
   const [design, setDesign] = useState(null);
   const [svg, setSvg] = useState(null);
@@ -91,9 +91,41 @@ export default function AIDesignChat({ onApplied }) {
   const [saveMsg, setSaveMsg] = useState(null);
   const [showGallery, setShowGallery] = useState(true);
   const [galCat, setGalCat] = useState('static');
+  const [refImage, setRefImage] = useState(null);   // 참고 이미지(data URI, 클라이언트 다운스케일)
+  const [cuts, setCuts] = useState(1);              // #4 여러 컷(캐러셀) 수
+  const [frames, setFrames] = useState(null);       // 캐러셀 프레임 배열(design[])
+  const [frameIdx, setFrameIdx] = useState(0);      // 현재 보는 컷
+  const fileRef = useRef(null);
   const scrollRef = useRef(null);
 
+  // 참고 이미지 업로드 → 최대 1024px JPEG로 다운스케일(전송량·비전 처리 최적화)
+  const onPickImage = (e) => {
+    const f = e.target.files && e.target.files[0]; if (e.target) e.target.value = '';
+    if (!f) return;
+    if (!/^image\//.test(f.type)) { setSaveMsg({ ok: false, text: '이미지 파일만 첨부할 수 있어요.' }); return; }
+    const rd = new FileReader();
+    rd.onload = () => {
+      const im = new Image();
+      im.onload = () => {
+        const max = 1024; let w = im.width, h = im.height;
+        if (w > max || h > max) { const s = Math.min(max / w, max / h); w = Math.round(w * s); h = Math.round(h * s); }
+        const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+        cv.getContext('2d').drawImage(im, 0, 0, w, h);
+        try { setRefImage(cv.toDataURL('image/jpeg', 0.85)); } catch { setRefImage(rd.result); }
+      };
+      im.onerror = () => setRefImage(rd.result);
+      im.src = rd.result;
+    };
+    rd.readAsDataURL(f);
+  };
+
+  const gotoFrame = (idx) => {
+    if (!frames || idx < 0 || idx >= frames.length) return;
+    setFrameIdx(idx); setDesign(frames[idx]); setSvg(null); setImage(null); setVideo(null); setVideoStatus(null);
+  };
+
   const selectSample = (s) => {
+    setFrames(null); setFrameIdx(0);
     setDesign(s.design); setSvg(s.svg); setImage(null); setVideo(null); setVideoStatus(null); setSaveMsg(null);
     setMode(s.render_type === 'animated' ? 'animated' : s.render_type === 'chart' ? 'chart' : 'auto');
     setMessages([
@@ -105,19 +137,27 @@ export default function AIDesignChat({ onApplied }) {
   useEffect(() => { const el = scrollRef.current; if (el) el.scrollTop = el.scrollHeight; }, [messages, busy]);
 
   const send = async (text) => {
-    const msg = (typeof text === 'string' ? text : input).trim();
+    const typed = (typeof text === 'string' ? text : input).trim();
+    const att = refImage;
+    const msg = typed || (att ? '첨부한 참고 이미지를 분석해서 이 스타일·색감·분위기로 광고를 만들어 줘.' : '');
     if (!msg || busy) return;
-    const conv = [...messages, { role: 'user', content: msg }];
-    setMessages(conv); setInput(''); setBusy(true); setSvg(null); setImage(null); setVideo(null); setVideoStatus(null); setSaveMsg(null);
+    const urlDetected = (typed.match(/https?:\/\/[^\s]+/i) || [])[0] || '';
+    const userEntry = { role: 'user', content: msg, ...(att ? { image: att } : {}) };
+    const conv = [...messages, userEntry];
+    setMessages(conv); setInput(''); setRefImage(null); setBusy(true); setSvg(null); setImage(null); setVideo(null); setVideoStatus(null); setSaveMsg(null);
     try {
       const r = await fetch(`${API}/v422/ai/campaign-ad-chat`, {
         method: 'POST', headers: auth(),
-        body: JSON.stringify({ messages: conv.map(m => ({ role: m.role, content: m.content })), design }),
+        body: JSON.stringify({ messages: conv.map(m => ({ role: m.role, content: m.content })), design, cuts, ...(att ? { reference_image: att } : {}), ...(urlDetected ? { reference_url: urlDetected } : {}) }),
       });
       const d = await r.json();
       if (d.ok) {
         setMessages(m => [...m, { role: 'assistant', content: d.reply || '디자인을 만들었어요! 고급 비주얼로 렌더링 중이에요 ✨' }]);
-        if (d.design) { setDesign(d.design); genVisual(d.design); } // 실사 이미지 or 프리미엄 SVG 자동
+        if (Array.isArray(d.frames) && d.frames.length > 1) {
+          setFrames(d.frames); setFrameIdx(0); setDesign(d.frames[0]); setSvg(null); setImage(null); // 캐러셀: 컷별 그라데이션 프리뷰(빠름)
+        } else if (d.design) {
+          setFrames(null); setFrameIdx(0); setDesign(d.design); genVisual(d.design); // 단일: 실사/프리미엄 SVG 자동
+        }
       } else setMessages(m => [...m, { role: 'assistant', content: d.error || 'AI 응답에 실패했어요. 다시 시도해 주세요.' }]);
     } catch { setMessages(m => [...m, { role: 'assistant', content: '서버 오류가 발생했어요. 다시 시도해 주세요.' }]); }
     setBusy(false);
@@ -187,8 +227,8 @@ export default function AIDesignChat({ onApplied }) {
     if (!design) return;
     setSaving(true); setSaveMsg(null);
     try {
-      const visualType = video ? 'video' : (image ? 'image' : 'svg');
-      const r = await fetch(`${API}/v422/ai/ad-design/save`, { method: 'POST', headers: auth(), body: JSON.stringify({ product_description: design.body || design.headline || '', category: design.mood || '', design: { ...design, _visual: visualType }, svg: video || image || svg || '', status }) });
+      const visualType = video ? 'video' : (image ? 'image' : (frames ? 'carousel' : 'svg'));
+      const r = await fetch(`${API}/v422/ai/ad-design/save`, { method: 'POST', headers: auth(), body: JSON.stringify({ product_description: design.body || design.headline || '', category: design.mood || '', design: { ...design, _visual: visualType, ...(frames && frames.length > 1 ? { _frames: frames, _cut: frames.length } : {}) }, svg: video || image || svg || '', status }) });
       const d = await r.json();
       setSaveMsg(d.ok ? { ok: true, text: d.message } : { ok: false, text: d.error || '저장 실패' });
       if (d.ok && status === 'approved' && onApplied) onApplied(d.id, design);
@@ -197,6 +237,7 @@ export default function AIDesignChat({ onApplied }) {
   };
 
   const inputStyle = { flex: 1, padding: '12px 14px', borderRadius: 12, border: '1px solid #cbd5e1', background: '#fff', color: '#0f172a', fontSize: 14, outline: 'none' };
+  const navBtn = (dis) => ({ width: 34, height: 34, borderRadius: '50%', border: '1px solid #cbd5e1', background: '#fff', color: dis ? '#cbd5e1' : '#4f46e5', fontSize: 20, cursor: dis ? 'not-allowed' : 'pointer', lineHeight: '30px', padding: 0 });
 
   return (
     <div style={{ display: 'grid', gap: 14 }}>
@@ -235,6 +276,7 @@ export default function AIDesignChat({ onApplied }) {
             <div key={i} style={{ alignSelf: m.role === 'user' ? 'flex-end' : 'flex-start', maxWidth: '82%', padding: '10px 14px', borderRadius: 14, fontSize: 13, lineHeight: 1.6,
               background: m.role === 'user' ? 'linear-gradient(135deg,#4f8ef7,#6366f1)' : 'rgba(99,102,241,0.07)',
               color: m.role === 'user' ? '#fff' : '#334155', borderBottomRightRadius: m.role === 'user' ? 4 : 14, borderBottomLeftRadius: m.role === 'user' ? 14 : 4 }}>
+              {m.image && <img src={m.image} alt="참고" style={{ display: 'block', maxWidth: 170, maxHeight: 170, borderRadius: 10, marginBottom: m.content ? 7 : 0, border: '1px solid rgba(255,255,255,0.35)' }} />}
               {m.content}
             </div>
           ))}
@@ -247,11 +289,26 @@ export default function AIDesignChat({ onApplied }) {
             </div>
           )}
         </div>
-        <div style={{ padding: 12, borderTop: '1px solid var(--border,#e2e8f0)', display: 'flex', gap: 8 }}>
-          <input value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}
-            placeholder={t('aiChat.placeholder', '만들거나 수정할 내용을 입력… (예: 색을 더 밝게)')} style={inputStyle} disabled={busy} />
-          <button onClick={() => send()} disabled={busy || !input.trim()}
-            style={{ padding: '0 20px', borderRadius: 12, border: 'none', cursor: busy || !input.trim() ? 'not-allowed' : 'pointer', background: busy || !input.trim() ? 'rgba(99,102,241,0.3)' : 'linear-gradient(135deg,#a855f7,#4f8ef7)', color: '#fff', fontWeight: 800, fontSize: 14 }}>↑</button>
+        <div style={{ padding: 12, borderTop: '1px solid var(--border,#e2e8f0)' }}>
+          {refImage && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 9 }}>
+              <div style={{ position: 'relative', flexShrink: 0 }}>
+                <img src={refImage} alt="참고" style={{ width: 56, height: 56, objectFit: 'cover', borderRadius: 10, border: '1px solid #cbd5e1' }} />
+                <button onClick={() => setRefImage(null)} title="참고 이미지 제거"
+                  style={{ position: 'absolute', top: -7, right: -7, width: 21, height: 21, borderRadius: '50%', border: '2px solid #fff', background: '#ef4444', color: '#fff', fontSize: 12, fontWeight: 800, lineHeight: '17px', cursor: 'pointer', padding: 0 }}>×</button>
+              </div>
+              <span style={{ fontSize: 11.5, color: '#64748b', fontWeight: 600, lineHeight: 1.5 }}>📎 {t('aiChat.refAttached', '참고 이미지 첨부됨 — AI가 이 스타일·색감을 참고해 디자인해요')}</span>
+            </div>
+          )}
+          <div style={{ display: 'flex', gap: 8 }}>
+            <input ref={fileRef} type="file" accept="image/*" onChange={onPickImage} style={{ display: 'none' }} />
+            <button onClick={() => fileRef.current && fileRef.current.click()} disabled={busy} title={t('aiChat.attachImage', '참고 이미지 업로드')}
+              style={{ flexShrink: 0, padding: '0 15px', borderRadius: 12, border: '1px solid #cbd5e1', background: refImage ? 'rgba(168,85,247,0.1)' : '#fff', color: refImage ? '#a855f7' : '#64748b', fontSize: 19, cursor: busy ? 'not-allowed' : 'pointer' }}>📎</button>
+            <input value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}
+              placeholder={refImage ? t('aiChat.placeholderRef', '참고 이미지로 만들 내용을 입력(비워도 됨)…') : t('aiChat.placeholder', '만들거나 수정할 내용을 입력… (예: 색을 더 밝게)')} style={inputStyle} disabled={busy} />
+            <button onClick={() => send()} disabled={busy || (!input.trim() && !refImage)}
+              style={{ flexShrink: 0, padding: '0 20px', borderRadius: 12, border: 'none', cursor: busy || (!input.trim() && !refImage) ? 'not-allowed' : 'pointer', background: busy || (!input.trim() && !refImage) ? 'rgba(99,102,241,0.3)' : 'linear-gradient(135deg,#a855f7,#4f8ef7)', color: '#fff', fontWeight: 800, fontSize: 14 }}>↑</button>
+          </div>
         </div>
       </div>
 
@@ -264,6 +321,15 @@ export default function AIDesignChat({ onApplied }) {
               style={{ padding: '6px 11px', borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 700, background: mode === id ? 'linear-gradient(135deg,#a855f7,#4f8ef7)' : 'rgba(99,102,241,0.07)', color: mode === id ? '#fff' : '#64748b' }}>{label}</button>
           ))}
         </div>
+        {/* #4 여러 컷(캐러셀) 수 선택 — 다음 생성부터 적용 */}
+        <div style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+          <span style={{ fontSize: 11, fontWeight: 800, color: '#64748b' }}>🎞️ {t('aiChat.cuts', '컷')}</span>
+          {[1, 3, 4, 5].map(n => (
+            <button key={n} onClick={() => setCuts(n)} title={n === 1 ? t('aiChat.single', '단일 광고') : `${n}${t('aiChat.cutCarousel', '컷 캐러셀(넘겨보기)')}`}
+              style={{ padding: '5px 12px', borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 700, background: cuts === n ? 'linear-gradient(135deg,#f59e0b,#ef4444)' : 'rgba(99,102,241,0.07)', color: cuts === n ? '#fff' : '#64748b' }}>{n === 1 ? t('aiChat.single', '단일') : n + t('aiChat.cutUnit', '컷')}</button>
+          ))}
+          {cuts > 1 && <span style={{ fontSize: 10.5, color: '#f59e0b', fontWeight: 600 }}>{t('aiChat.cutHint', `다음 생성부터 ${cuts}컷 캐러셀`).replace('{n}', cuts)}</span>}
+        </div>
         {design && (
           <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontWeight: 800, fontSize: 13, color: '#1e293b' }}>{CHLABEL[design.channel] || design.channel || '광고'}</span>
@@ -273,6 +339,20 @@ export default function AIDesignChat({ onApplied }) {
         {imgGenerating && <div style={{ fontSize: 11.5, color: '#a855f7', fontWeight: 700 }}>🖼️ 실사 이미지 생성 중… (10~20초)</div>}
         {videoStatus && <div style={{ fontSize: 11.5, color: '#db2777', fontWeight: 700 }}>{videoStatus}</div>}
         <Preview design={design} svg={svg} image={image} video={video} />
+        {/* #4 캐러셀 컷 넘기기 내비게이션 */}
+        {frames && frames.length > 1 && (
+          <div style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
+            <button onClick={() => gotoFrame(frameIdx - 1)} disabled={frameIdx === 0} style={navBtn(frameIdx === 0)}>‹</button>
+            <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+              {frames.map((_, i) => (
+                <button key={i} onClick={() => gotoFrame(i)} title={`${i + 1}컷`}
+                  style={{ width: i === frameIdx ? 22 : 8, height: 8, borderRadius: 99, border: 'none', cursor: 'pointer', padding: 0, background: i === frameIdx ? 'linear-gradient(135deg,#a855f7,#4f8ef7)' : 'rgba(99,102,241,0.25)', transition: 'all .2s' }} />
+              ))}
+            </div>
+            <button onClick={() => gotoFrame(frameIdx + 1)} disabled={frameIdx === frames.length - 1} style={navBtn(frameIdx === frames.length - 1)}>›</button>
+            <span style={{ fontSize: 11, fontWeight: 800, color: '#64748b', marginLeft: 2 }}>{frameIdx + 1}/{frames.length}{t('aiChat.cutUnit', '컷')}</span>
+          </div>
+        )}
         {design && Array.isArray(design.hashtags) && design.hashtags.length > 0 && (
           <div style={{ width: '100%', display: 'flex', flexWrap: 'wrap', gap: 4 }}>
             {design.hashtags.slice(0, 4).map((h, k) => <span key={k} style={{ fontSize: 10, color: '#6366f1', fontWeight: 600 }}>{h}</span>)}
