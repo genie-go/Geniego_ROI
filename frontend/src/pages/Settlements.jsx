@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo, useCallback, useRef } from "react"
 import { IS_DEMO } from '../utils/demoEnv';
 import { useNavigate } from "react-router-dom";
 import { useI18n } from "../i18n";
+import { SETTLE_GUIDE } from "./settlementsGuideI18n.js";
 import { useGlobalData } from '../context/GlobalDataContext.jsx';
 import useSecurityMonitor from '../hooks/useSecurityMonitor.js';
 import { useCurrency } from '../contexts/CurrencyContext.jsx';
@@ -86,7 +87,8 @@ function Toast({ msg, onClose }) {
 
 /* ─── Main ───────────────────────────────────────────────── */
 export default function Settlements() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
+  const sg = (k) => { const G = SETTLE_GUIDE[lang] || SETTLE_GUIDE.en; return G[k] || SETTLE_GUIDE.en[k] || SETTLE_GUIDE.ko[k] || ''; };  // 197차 자립형 가이드 사전
   const navigate = useNavigate();
   const gd = useGlobalData();
   const { locked } = useSecurityMonitor('settlements');
@@ -281,7 +283,7 @@ export default function Settlements() {
             📥 {t('settlements.csvDownload')}
           </button>
           <button className="btn-ghost" style={{ fontSize: 11, padding: "6px 14px" }} onClick={() => setShowGuide(!showGuide)}>
-            📖 {t('settlements.tabGuide')}
+            📖 {sg('tabGuide')}
           </button>
         </div>
       </div>
@@ -539,35 +541,35 @@ export default function Settlements() {
         <div className="card card-glass fade-up" style={{ borderColor: 'rgba(34,197,94,0.15)' }}>
           <div style={{ textAlign: 'center', padding: '24px 0 16px', background: 'linear-gradient(135deg,rgba(34,197,94,0.06),rgba(79,142,247,0.04))', borderRadius: 16, marginBottom: 20 }}>
             <div style={{ fontSize: 40, marginBottom: 8 }}>📋</div>
-            <h2 style={{ fontSize: 20, fontWeight: 900, margin: '0 0 6px' }}>{t('settlements.guideTitle')}</h2>
-            <p style={{ color: 'var(--text-3)', fontSize: 12 }}>{t('settlements.guideSub')}</p>
+            <h2 style={{ fontSize: 20, fontWeight: 900, margin: '0 0 6px' }}>{sg('guideTitle')}</h2>
+            <p style={{ color: 'var(--text-3)', fontSize: 12 }}>{sg('guideSub')}</p>
           </div>
-          <h3 style={{ fontSize: 15, fontWeight: 800, marginBottom: 14, color: '#22c55e' }}>📋 {t('settlements.guideStepsTitle')}</h3>
+          <h3 style={{ fontSize: 15, fontWeight: 800, marginBottom: 14, color: '#22c55e' }}>📋 {sg('guideStepsTitle')}</h3>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }}>
             {[1,2,3,4,5,6].map(i => (
               <div key={i} style={{ padding: 14, borderRadius: 12, background: 'rgba(34,197,94,0.03)', border: '1px solid rgba(34,197,94,0.08)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
                   <span style={{ width: 24, height: 24, borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 900, background: 'linear-gradient(135deg,#14d9b0,#4f8ef7)', color: '#fff' }}>{i}</span>
-                  <span style={{ fontWeight: 800, fontSize: 12, color: i<=2?'#14d9b0':i<=4?'#4f8ef7':'#a855f7' }}>{t(`settlements.guideStep${i}Title`)}</span>
+                  <span style={{ fontWeight: 800, fontSize: 12, color: i<=2?'#14d9b0':i<=4?'#4f8ef7':'#a855f7' }}>{sg(`guideStep${i}Title`)}</span>
                 </div>
-                <p style={{ fontSize: 11, color: 'var(--text-3)', lineHeight: 1.5, margin: 0 }}>{t(`settlements.guideStep${i}Desc`)}</p>
+                <p style={{ fontSize: 11, color: 'var(--text-3)', lineHeight: 1.5, margin: 0 }}>{sg(`guideStep${i}Desc`)}</p>
               </div>
             ))}
           </div>
-          <h3 style={{ fontSize: 15, fontWeight: 800, marginBottom: 14, color: '#4f8ef7' }}>🗂 {t('settlements.guideRolesTitle')}</h3>
+          <h3 style={{ fontSize: 15, fontWeight: 800, marginBottom: 14, color: '#4f8ef7' }}>🗂 {sg('guideRolesTitle')}</h3>
           <div style={{ display: 'grid', gap: 10, marginBottom: 20 }}>
             {[{k:'Fee',emoji:'💰',c:'#14d9b0'},{k:'Currency',emoji:'💱',c:'#4f8ef7'},{k:'Sync',emoji:'🔄',c:'#a855f7'}].map(r => (
               <div key={r.k} style={{ padding: '10px 14px', borderRadius: 10, background: `${r.c}08`, border: `1px solid ${r.c}15`, display: 'flex', alignItems: 'center', gap: 10 }}>
                 <span style={{ fontSize: 18 }}>{r.emoji}</span>
-                <span style={{ fontSize: 11, color: 'var(--text-3)' }}>{t(`settlements.guideRole${r.k}`)}</span>
+                <span style={{ fontSize: 11, color: 'var(--text-3)' }}>{sg(`guideRole${r.k}`)}</span>
               </div>
             ))}
           </div>
-          <h3 style={{ fontSize: 15, fontWeight: 800, marginBottom: 14, color: '#22c55e' }}>💡 {t('settlements.guideTipsTitle')}</h3>
+          <h3 style={{ fontSize: 15, fontWeight: 800, marginBottom: 14, color: '#22c55e' }}>💡 {sg('guideTipsTitle')}</h3>
           <div style={{ display: 'grid', gap: 8 }}>
             {[1,2,3,4,5].map(i => (
               <div key={i} style={{ padding: '8px 12px', borderRadius: 8, background: 'rgba(34,197,94,0.03)', border: '1px solid rgba(34,197,94,0.08)', fontSize: 11, color: 'var(--text-3)', display: 'flex', gap: 6, alignItems: 'center' }}>
-                <span style={{ color: '#14d9b0', fontWeight: 900 }}>Tip{i}</span> {t(`settlements.guideTip${i}`)}
+                <span style={{ color: '#14d9b0', fontWeight: 900 }}>Tip{i}</span> {sg(`guideTip${i}`)}
               </div>
             ))}
           </div>
