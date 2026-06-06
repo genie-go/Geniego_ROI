@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { tChannelName } from '../utils/tenantStorage.js'; // 180차: 회원 격리 크로스탭
-import { useT } from '../i18n/index.js';
+import { useT, useI18n } from '../i18n/index.js';
+import { GS_GUIDE } from './graphScoreGuideI18n.js';
 import { useGlobalData } from '../context/GlobalDataContext.jsx';
 import { useConnectorSync } from '../context/ConnectorSyncContext.jsx';
 import { useSecurityGuard } from '../security/SecurityGuard.js';
@@ -424,46 +425,48 @@ function CreativeScoreTab({ nodes, weights }) {
 
 /* ── Tab: Guide ────────────────────────────────────────────────────────────── */
 function GuideTab() {
-  const t = useT();
+  const { lang } = useI18n();
+  const G = GS_GUIDE[lang] || GS_GUIDE.en;
+  const g = (k) => G[k] || GS_GUIDE.en[k] || GS_GUIDE.ko[k] || '';
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
       <div style={{ background: 'linear-gradient(135deg,rgba(168,85,247,0.12),rgba(6,182,212,0.08))', border: '1px solid rgba(168,85,247,0.3)', borderRadius: 14, textAlign: 'center', padding: 32 }}>
         <div style={{ fontSize: 44 }}>🕸️</div>
-        <div style={{ fontWeight: 900, fontSize: 22, marginTop: 8 }}>{t('graphScore.guideTitle')}</div>
-        <div style={{ fontSize: 13, color: '#64748b', marginTop: 6, maxWidth: 700, margin: '6px auto 0', lineHeight: 1.7 }}>{t('graphScore.guideSub')}</div>
+        <div style={{ fontWeight: 900, fontSize: 22, marginTop: 8 }}>{g('guideTitle')}</div>
+        <div style={{ fontSize: 13, color: '#64748b', marginTop: 6, maxWidth: 700, margin: '6px auto 0', lineHeight: 1.7 }}>{g('guideSub')}</div>
       </div>
       <div style={{ padding: 20 }}>
-        <div style={{ fontWeight: 800, fontSize: 17, marginBottom: 16 }}>{t('graphScore.guideStepsTitle')}</div>
+        <div style={{ fontWeight: 800, fontSize: 17, marginBottom: 16 }}>{g('guideStepsTitle')}</div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(300px,1fr))', gap: 14 }}>
           {[{n:'1️⃣',k:'guideStep1',c:'#a855f7'},{n:'2️⃣',k:'guideStep2',c:'#06b6d4'},{n:'3️⃣',k:'guideStep3',c:'#f97316'},{n:'4️⃣',k:'guideStep4',c:'#22c55e'},{n:'5️⃣',k:'guideStep5',c:'#4f8ef7'},{n:'6️⃣',k:'guideStep6',c:'#f472b6'}].map((s,i) => (
             <div key={i} style={{ background: s.c+'0a', border: `1px solid ${s.c}25`, borderRadius: 12, padding: 16 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
                 <span style={{ fontSize: 20 }}>{s.n}</span>
-                <span style={{ fontWeight: 700, fontSize: 14, color: s.c }}>{t(`graphScore.${s.k}Title`)}</span>
+                <span style={{ fontWeight: 700, fontSize: 14, color: s.c }}>{g(`${s.k}Title`)}</span>
               </div>
-              <div style={{ fontSize: 12, color: '#64748b', lineHeight: 1.7 }}>{t(`graphScore.${s.k}Desc`)}</div>
+              <div style={{ fontSize: 12, color: '#64748b', lineHeight: 1.7 }}>{g(`${s.k}Desc`)}</div>
             </div>
           ))}
         </div>
       </div>
       <div style={{ padding: 20 }}>
-        <div style={{ fontWeight: 800, fontSize: 17, marginBottom: 16 }}>{t('graphScore.guideTabsTitle')}</div>
+        <div style={{ fontWeight: 800, fontSize: 17, marginBottom: 16 }}>{g('guideTabsTitle')}</div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(240px,1fr))', gap: 12 }}>
           {[{icon:'📊',k:'guideSummary',c:'#a855f7'},{icon:'🔍',k:'guideBrowser',c:'#06b6d4'},{icon:'🤝',k:'guideInfluencer',c:'#f97316'},{icon:'📦',k:'guideSku',c:'#22c55e'},{icon:'🎬',k:'guideCreative',c:'#f472b6'}].map((tb,i) => (
             <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '10px 12px', background: '#f8fafc', borderRadius: 10, border: '1px solid rgba(99,140,255,0.08)' }}>
               <span style={{ fontSize: 20, flexShrink: 0 }}>{tb.icon}</span>
               <div>
-                <div style={{ fontWeight: 700, fontSize: 12, color: tb.c }}>{t(`graphScore.${tb.k}Name`)}</div>
-                <div style={{ fontSize: 10, color: '#64748b', marginTop: 2, lineHeight: 1.6 }}>{t(`graphScore.${tb.k}Desc`)}</div>
+                <div style={{ fontWeight: 700, fontSize: 12, color: tb.c }}>{g(`${tb.k}Name`)}</div>
+                <div style={{ fontSize: 10, color: '#64748b', marginTop: 2, lineHeight: 1.6 }}>{g(`${tb.k}Desc`)}</div>
               </div>
             </div>
           ))}
         </div>
       </div>
       <div style={{ padding: 20, background: 'rgba(34,197,94,0.05)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: 14 }}>
-        <div style={{ fontWeight: 800, fontSize: 17, marginBottom: 12 }}>💡 {t('graphScore.guideTipsTitle')}</div>
+        <div style={{ fontWeight: 800, fontSize: 17, marginBottom: 12 }}>💡 {g('guideTipsTitle')}</div>
         <ul style={{ margin: 0, padding: '0 0 0 18px', fontSize: 13, color: '#64748b', lineHeight: 2.2 }}>
-          {[1,2,3,4,5].map(i => <li key={i}>{t(`graphScore.guideTip${i}`)}</li>)}
+          {[1,2,3,4,5].map(i => <li key={i}>{g(`guideTip${i}`)}</li>)}
         </ul>
       </div>
     </div>

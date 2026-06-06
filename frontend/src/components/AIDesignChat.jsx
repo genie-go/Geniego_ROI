@@ -91,7 +91,7 @@ export default function AIDesignChat({ onApplied }) {
   const [rendering, setRendering] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState(null);
-  const [showGallery, setShowGallery] = useState(true);
+  const [showGallery, setShowGallery] = useState(false); // 기본 접힘 — 채팅·미리보기·저장버튼을 바로 노출
   const [galCat, setGalCat] = useState('static');
   const [refImage, setRefImage] = useState(null);   // 참고 이미지(data URI, 클라이언트 다운스케일)
   const [cuts, setCuts] = useState(1);              // #4 여러 컷(캐러셀) 수
@@ -269,9 +269,9 @@ export default function AIDesignChat({ onApplied }) {
       </div>
 
       {/* 채팅 + 미리보기 */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,0.8fr) auto', gap: 18, alignItems: 'start' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 18, alignItems: 'flex-start' }}>
       {/* 채팅 */}
-      <div style={{ display: 'flex', flexDirection: 'column', height: 610, borderRadius: 16, border: '1px solid var(--border,#e2e8f0)', background: 'var(--bg-card,#fff)', overflow: 'hidden' }}>
+      <div style={{ flex: '1 1 420px', minWidth: 0, display: 'flex', flexDirection: 'column', height: 610, borderRadius: 16, border: '1px solid var(--border,#e2e8f0)', background: 'var(--bg-card,#fff)', overflow: 'hidden' }}>
         <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border,#e2e8f0)', fontWeight: 900, fontSize: 14, color: '#1e293b', background: 'linear-gradient(135deg, #eef2ff, #f5f3ff)' }}>💬 {t('aiChat.title', '대화형 AI 디자인')}</div>
         <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', padding: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
           {messages.map((m, i) => (
@@ -314,8 +314,8 @@ export default function AIDesignChat({ onApplied }) {
         </div>
       </div>
 
-      {/* 미리보기 + 저장 */}
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, width: 470, maxWidth: '46vw', padding: 22, borderRadius: 16, border: '1px solid var(--border,#e2e8f0)', background: 'var(--bg-card,#fff)' }}>
+      {/* 미리보기 + 저장 (반응형: 좁으면 채팅 아래로 wrap → 저장버튼 항상 노출) */}
+      <div style={{ flex: '1 1 440px', maxWidth: 560, minWidth: 300, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, padding: 22, borderRadius: 16, border: '1px solid var(--border,#e2e8f0)', background: 'var(--bg-card,#fff)' }}>
         {/* 생성 모드 */}
         <div style={{ width: '100%', display: 'flex', flexWrap: 'wrap', gap: 5 }}>
           {[['auto', '✨ 자동'], ['animated', '🎬 애니메이션'], ['chart', '📊 그래프'], ['image', '🖼️ 실사'], ['video', '🎥 동영상']].map(([id, label]) => (
