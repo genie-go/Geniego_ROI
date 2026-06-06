@@ -3,6 +3,7 @@ import React, { useEffect, useState, useMemo, useCallback, useRef } from "react"
 import { useNotification } from "../context/NotificationContext.jsx";
 import { useGlobalData } from "../context/GlobalDataContext.jsx";
 import { useI18n } from "../i18n";
+import { REV_GUIDE } from "./revGuideI18n.js";
 
 /* ══════════════════════════════════════════════════════════════════
    SECURITY — XSS/Injection guard
@@ -354,46 +355,48 @@ function SettingsTab({ t }) {
 /* ══════════════════════════════════════════════
    TAB 5: Guide (i18n 9-Language)
    ══════════════════════════════════════════════ */
-function ReviewsGuideTab({ t }) {
+function ReviewsGuideTab() {
+    const { lang } = useI18n();
+    const G = REV_GUIDE[lang] || REV_GUIDE.en;
+    const g = (k) => G[k] || REV_GUIDE.en[k] || REV_GUIDE.ko[k] || '';
+    const STEPS = [{n:'1',k:'guideStep1',c:'#6366f1'},{n:'2',k:'guideStep2',c:'#22c55e'},{n:'3',k:'guideStep3',c:'#a855f7'},{n:'4',k:'guideStep4',c:'#f97316'},{n:'5',k:'guideStep5',c:'#06b6d4'},{n:'6',k:'guideStep6',c:'#f472b6'},{n:'7',k:'guideStep7',c:'#6366f1'},{n:'8',k:'guideStep8',c:'#22c55e'}];
+    const TABS = [{icon:'📊',k:'guideDash',c:'#6366f1'},{icon:'💬',k:'guideFeed',c:'#22c55e'},{icon:'📈',k:'guideTrend',c:'#a855f7'},{icon:'⚙️',k:'guideSettings',c:'#f97316'},{icon:'📖',k:'guideGuide',c:'#f472b6'}];
     return (
         <div style={{ display: "grid", gap: 24, maxWidth: 820, margin: "0 auto", padding: "20px 0" }}>
             <div style={{ textAlign: "center", padding: "32px 20px", borderRadius: 16, background: "rgba(249,115,22,0.06)", border: "1px solid rgba(249,115,22,0.12)" }}>
                 <div style={{ fontSize: 40 }}>⭐</div>
-                <div style={{ fontWeight: 900, fontSize: 22, marginTop: 8, color: '#1f2937' }}>{t('reviews.guideTitle')}</div>
-                <div style={{ fontSize: 13, color: 'var(--text-3)', marginTop: 6, maxWidth: 600, margin: '6px auto 0', lineHeight: 1.7 }}>{t('reviews.guideSub')}</div>
+                <div style={{ fontWeight: 900, fontSize: 22, marginTop: 8, color: '#1f2937' }}>{g('guideTitle')}</div>
+                <div style={{ fontSize: 13, color: 'var(--text-3)', marginTop: 6, maxWidth: 600, margin: '6px auto 0', lineHeight: 1.7 }}>{g('guideSub')}</div>
             </div>
             <div style={{ background:'rgba(255,255,255,0.95)', border:'1px solid rgba(0,0,0,0.08)', borderRadius:14, padding:20 }}>
-                <div style={{ fontWeight: 800, fontSize: 17, marginBottom: 16, color: '#1f2937' }}>{t('reviews.guideStepsTitle')}</div>
+                <div style={{ fontWeight: 800, fontSize: 17, marginBottom: 16, color: '#1f2937' }}>{g('guideStepsTitle')}</div>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(260px,1fr))", gap: 12 }}>
-                    {[{n:'1',k:'guideStep1',c:'#6366f1'},{n:'2',k:'guideStep2',c:'#22c55e'},{n:'3',k:'guideStep3',c:'#a855f7'},{n:'4',k:'guideStep4',c:'#f97316'},{n:'5',k:'guideStep5',c:'#06b6d4'},{n:'6',k:'guideStep6',c:'#f472b6'},{n:'7',k:'guideStep7',c:'#6366f1'},{n:'8',k:'guideStep8',c:'#22c55e'},{n:'9',k:'guideStep9',c:'#a855f7'},{n:'10',k:'guideStep10',c:'#f97316'},{n:'11',k:'guideStep11',c:'#06b6d4'},{n:'12',k:'guideStep12',c:'#f472b6'},{n:'13',k:'guideStep13',c:'#6366f1'},{n:'14',k:'guideStep14',c:'#22c55e'},{n:'15',k:'guideStep15',c:'#a855f7'}].map((s,i) => (
+                    {STEPS.map((s,i) => (
                         <div key={i} style={{ padding: "14px 16px", borderRadius: 12, background: s.c + '0a', border: `1px solid ${s.c}20` }}>
-                            <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:6, fontSize:14, fontWeight:700, background:s.c, color:s.c, width:26, height:26, borderRadius:'50%', justifyContent:'center' }} ><span>{s.n}</span><span>{t(`reviews.${s.k}Title`)}</span></div>
-                            <div style={{ fontSize: 11, color: '#6b7280', marginTop: 6, lineHeight: 1.6 }}>{t(`reviews.${s.k}Desc`)}</div>
+                            <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:6 }}>
+                                <span style={{ flexShrink:0, fontSize:14, fontWeight:900, background:s.c, color:'#fff', width:26, height:26, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center' }}>{s.n}</span>
+                                <span style={{ fontWeight:700, fontSize:14, color:s.c }}>{g(`${s.k}Title`)}</span>
+                            </div>
+                            <div style={{ fontSize: 11, color: '#6b7280', marginTop: 6, lineHeight: 1.6 }}>{g(`${s.k}Desc`)}</div>
                         </div>
                     ))}
                 </div>
             </div>
             <div>
-                <div style={{ fontWeight: 800, fontSize: 17, marginBottom: 16, color: '#1f2937' }}>{t('reviews.guideTabsTitle')}</div>
+                <div style={{ fontWeight: 800, fontSize: 17, marginBottom: 16, color: '#1f2937' }}>{g('guideTabsTitle')}</div>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(180px,1fr))", gap: 10 }}>
-                    {[{icon:'📊',k:'guideDash',c:'#6366f1'},{icon:'💬',k:'guideFeed',c:'#22c55e'},{icon:'📈',k:'guideTrend',c:'#a855f7'},{icon:'⚙️',k:'guideSettings',c:'#f97316'},{icon:'📖',k:'guideGuide',c:'#f472b6'}].map((tb,i) => (
+                    {TABS.map((tb,i) => (
                         <div key={i} style={{ padding: "12px 14px", borderRadius: 10, background: tb.c + '08', border: `1px solid ${tb.c}15` }}>
-                            <div style={{ fontWeight: 700, fontSize: 13, color: tb.c }}>{tb.icon} {t(`reviews.${tb.k}Name`)}</div>
-                            <div style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 4 }}>{t(`reviews.${tb.k}Desc`)}</div>
+                            <div style={{ fontWeight: 700, fontSize: 13, color: tb.c }}>{tb.icon} {g(`${tb.k}Name`)}</div>
+                            <div style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 4 }}>{g(`${tb.k}Desc`)}</div>
                         </div>
                     ))}
                 </div>
             </div>
             <div>
-                <div style={{ fontWeight: 800, fontSize: 17, marginBottom: 12, color: '#1f2937' }}>💡 {t('reviews.guideTipsTitle')}</div>
+                <div style={{ fontWeight: 800, fontSize: 17, marginBottom: 12, color: '#1f2937' }}>💡 {g('guideTipsTitle')}</div>
                 <ul style={{ display: "grid", gap: 8, paddingLeft: 20, fontSize: 12, color: 'var(--text-3)', lineHeight: 1.7 }}>
-                    <li>{t('reviews.guideTip1')}</li>
-                    <li>{t('reviews.guideTip2')}</li>
-                    <li>{t('reviews.guideTip3')}</li>
-                    <li>{t('reviews.guideTip4')}</li>
-                    <li>{t('reviews.guideTip5')}</li>
-                    <li>{t('reviews.guideTip6')}</li>
-                    <li>{t('reviews.guideTip7')}</li>
+                    {[1,2,3,4,5,6,7].map(n => <li key={n}>{g('guideTip'+n)}</li>)}
                 </ul>
             </div>
         </div>

@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect, useCallback, useRef, memo } from "react";
 import { useI18n } from "../i18n/index.js";
+import { INF_GUIDE } from "./infGuideI18n.js";
 import InfluencerDemographics, { DEFAULT_GRAPHICS } from '../components/InfluencerDemographics.jsx';
 import { useCurrency } from '../contexts/CurrencyContext.jsx';
 import { useGlobalData } from '../context/GlobalDataContext.jsx';
@@ -627,51 +628,50 @@ const ROITab = memo(function ROITab() {
    TAB 7: Guide (i18n 9-Language)
 ══════════════════════════════════════════════════════════════════ */
 const InfluencerGuideTab = memo(function InfluencerGuideTab() {
-    const { t } = useI18n();
-    const SENTINEL_LABEL = { positive: t("influencer.positive","Positive"), neutral: t("influencer.neutral","Neutral"), negative: t("influencer.negative","Negative") };
+    const { lang } = useI18n();
+    const G = INF_GUIDE[lang] || INF_GUIDE.en;
+    const g = (k) => G[k] || INF_GUIDE.en[k] || INF_GUIDE.ko[k] || '';
+    const STEPS = [{n:'1',k:'guideStep1',c:'#6366f1'},{n:'2',k:'guideStep2',c:'#22c55e'},{n:'3',k:'guideStep3',c:'#a855f7'},{n:'4',k:'guideStep4',c:'#f97316'},{n:'5',k:'guideStep5',c:'#06b6d4'},{n:'6',k:'guideStep6',c:'#f472b6'},{n:'7',k:'guideStep7',c:'#6366f1'},{n:'8',k:'guideStep8',c:'#22c55e'}];
+    const TABS = [{icon:'🧑',k:'guideIdent',c:'#6366f1'},{icon:'📝',k:'guideContract',c:'#22c55e'},{icon:'💰',k:'guideSettle',c:'#a855f7'},{icon:'🏆',k:'guideRoi',c:'#f97316'},{icon:'⭐',k:'guideUgc',c:'#06b6d4'},{icon:'🤖',k:'guideAi',c:'#f472b6'},{icon:'📖',k:'guideGuide',c:'#22c55e'}];
     return (
         <div style={{ display: 'grid', gap: 18 }}>
             <div style={{ background: 'rgba(99,102,241,0.06)', border: '1px solid rgba(99,102,241,0.3)', borderRadius: 14, textAlign: 'center', padding: 32 }}>
                 <div style={{ fontSize: 44 }}>🤝</div>
-                <div style={{ fontWeight: 900, fontSize: 22, marginTop: 8, color:'#1f2937' }}>{t('influencer.guideTitle','Influencer & UGC Management Guide')}</div>
-                <div style={{ fontSize: 13, color:'#374151', fontWeight:600, marginTop: 6, maxWidth: 600, margin: '6px auto 0', lineHeight: 1.7 }}>{t('influencer.guideSub','Complete workflow from creator identity unification, contract management, settlement, ROI analysis, UGC reviews, to AI evaluation.')}</div>
+                <div style={{ fontWeight: 900, fontSize: 22, marginTop: 8, color:'#1f2937' }}>{g('guideTitle')}</div>
+                <div style={{ fontSize: 13, color:'#374151', fontWeight:600, marginTop: 6, maxWidth: 600, margin: '6px auto 0', lineHeight: 1.7 }}>{g('guideSub')}</div>
             </div>
             <div className="card card-glass" style={{ padding: 20 }}>
-                <div style={{ fontWeight: 800, fontSize: 17, marginBottom: 16, color:'#1f2937' }}>{t('influencer.guideStepsTitle','Influencer Management Steps')}</div>
+                <div style={{ fontWeight: 800, fontSize: 17, marginBottom: 16, color:'#1f2937' }}>{g('guideStepsTitle')}</div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(280px,1fr))', gap: 14 }}>
-                    {[{n:'1',k:'guideStep1',c:'#6366f1'},{n:'2',k:'guideStep2',c:'#22c55e'},{n:'3',k:'guideStep3',c:'#a855f7'},{n:'4',k:'guideStep4',c:'#f97316'},{n:'5',k:'guideStep5',c:'#06b6d4'},{n:'6',k:'guideStep6',c:'#f472b6'},{n:'7',k:'guideStep7',c:'#6366f1'},{n:'8',k:'guideStep8',c:'#22c55e'},{n:'9',k:'guideStep9',c:'#a855f7'},{n:'10',k:'guideStep10',c:'#f97316'},{n:'11',k:'guideStep11',c:'#06b6d4'},{n:'12',k:'guideStep12',c:'#f472b6'},{n:'13',k:'guideStep13',c:'#6366f1'},{n:'14',k:'guideStep14',c:'#22c55e'},{n:'15',k:'guideStep15',c:'#a855f7'}].map((s,i) => (
+                    {STEPS.map((s,i) => (
                         <div key={i} style={{ background: s.c+'0a', border: '1px solid '+s.c+'25', borderRadius: 12, padding: 16 }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
                                 <span style={{ fontSize: 14, fontWeight: 900, background: s.c, color: '#fff', width: 26, height: 26, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{s.n}</span>
-                                <span style={{ fontWeight: 700, fontSize: 14, color: s.c }}>{t(`influencer.${s.k}Title`)}</span>
+                                <span style={{ fontWeight: 700, fontSize: 14, color: s.c }}>{g(`${s.k}Title`)}</span>
                             </div>
-                            <div style={{ fontSize: 12, color:'#6b7280', lineHeight: 1.7 }}>{t(`influencer.${s.k}Desc`)}</div>
+                            <div style={{ fontSize: 12, color:'#6b7280', lineHeight: 1.7 }}>{g(`${s.k}Desc`)}</div>
                         </div>
                     ))}
                 </div>
             </div>
             <div className="card card-glass" style={{ padding: 20 }}>
-                <div style={{ fontWeight: 800, fontSize: 17, marginBottom: 16, color:'#1f2937' }}>{t('influencer.guideTabsTitle','Tab Features')}</div>
+                <div style={{ fontWeight: 800, fontSize: 17, marginBottom: 16, color:'#1f2937' }}>{g('guideTabsTitle')}</div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(200px,1fr))', gap: 12 }}>
-                    {[{icon:'🧑',k:'guideIdent',c:'#6366f1'},{icon:'📝',k:'guideContract',c:'#22c55e'},{icon:'💰',k:'guideSettle',c:'#a855f7'},{icon:'🏆',k:'guideRoi',c:'#f97316'},{icon:'⭐',k:'guideUgc',c:'#06b6d4'},{icon:'🤖',k:'guideAi',c:'#f472b6'},{icon:'📖',k:'guideGuide',c:'#22c55e'}].map((tb,i) => (
+                    {TABS.map((tb,i) => (
                         <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '10px 12px', background:'rgba(255,255,255,0.95)', borderRadius: 10, border: '1px solid rgba(99,140,255,0.08)' }}>
                             <span style={{ fontSize: 18, flexShrink: 0 }}>{tb.icon}</span>
                             <div>
-                                <div style={{ fontWeight: 700, fontSize: 12, color: tb.c }}>{t(`influencer.${tb.k}Name`)}</div>
-                                <div style={{ fontSize: 10, color:'#6b7280', marginTop: 2 }}>{t(`influencer.${tb.k}Desc`)}</div>
+                                <div style={{ fontWeight: 700, fontSize: 12, color: tb.c }}>{g(`${tb.k}Name`)}</div>
+                                <div style={{ fontSize: 10, color:'#6b7280', marginTop: 2 }}>{g(`${tb.k}Desc`)}</div>
                             </div>
                         </div>
                     ))}
                 </div>
             </div>
             <div style={{ background: 'rgba(34,197,94,0.05)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: 14, padding: 20 }}>
-                <div style={{ fontWeight: 800, fontSize: 17, marginBottom: 12, color:'#1f2937' }}>💡 {t('influencer.guideTipsTitle','Tips & Best Practices')}</div>
+                <div style={{ fontWeight: 800, fontSize: 17, marginBottom: 12, color:'#1f2937' }}>💡 {g('guideTipsTitle')}</div>
                 <ul style={{ margin: 0, padding: '0 0 0 18px', fontSize: 13, color:'#6b7280', lineHeight: 2.2 }}>
-                    <li>{t('influencer.guideTip1')}</li>
-                    <li>{t('influencer.guideTip2')}</li>
-                    <li>{t('influencer.guideTip3')}</li>
-                    <li>{t('influencer.guideTip4')}</li>
-                    <li>{t('influencer.guideTip5')}</li>
+                    {[1,2,3,4,5].map(n => <li key={n}>{g('guideTip'+n)}</li>)}
                 </ul>
             </div>
         </div>
