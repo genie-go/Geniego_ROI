@@ -7,7 +7,8 @@ import { tChannelName } from '../utils/tenantStorage.js'; // 180차: 회원 격�
 import { useGlobalData } from '../context/GlobalDataContext.jsx';
 import { useNavigate } from 'react-router-dom';
 import { useCurrency } from '../contexts/CurrencyContext.jsx';
-import { useT } from '../i18n/index.js';
+import { useT, useI18n } from '../i18n/index.js';
+import { CK_GUIDE } from './channelKpiGuideI18n.js';
 import { useSecurityGuard } from '../security/SecurityGuard.js';
 import { useConnectorSync } from '../context/ConnectorSyncContext.jsx';
 
@@ -642,6 +643,8 @@ function MonitoringTab({ goals, kpiTargets }) {
 
 export default function ChannelKPI() {
   const t = useT();
+  const { lang } = useI18n();
+  const ckg = (k) => { const G = CK_GUIDE[lang] || CK_GUIDE.en; return G[k] || CK_GUIDE.en[k] || CK_GUIDE.ko[k] || ''; };  // 197차 자립형 가이드 사전
     const TABS = [
     { id: 'goal', label: t('channelKpiPage.tabGoals') },
     { id: 'role', label: t('channelKpiPage.tabRoles') },
@@ -651,7 +654,7 @@ export default function ChannelKPI() {
     { id: 'community', label: t('channelKpiPage.tabCommunity') },
     { id: 'target', label: t('channelKpiPage.tabTargets') },
     { id: 'monitor', label: t('channelKpiPage.tabMonitor') },
-    { id: 'guide', label: t('channelKpiPage.tabGuide') },
+    { id: 'guide', label: `📖 ${ckg('tabGuide')}` },
 ];
 
   const { fmt } = useCurrency();
@@ -758,45 +761,45 @@ export default function ChannelKPI() {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 20, animation: 'fadeIn 0.3s' }}>
                         <div style={{ background: 'linear-gradient(135deg,rgba(79,142,247,0.10),rgba(168,85,247,0.06))', border: '1px solid rgba(79,142,247,0.20)', borderRadius: 16, textAlign: 'center', padding: 32 }}>
                             <div style={{ fontSize: 44 }}>📊</div>
-                            <div style={{ fontWeight: 900, fontSize: 22, marginTop: 8, color: '#1e40af' }}>{t('channelKpiPage.guideTitle')}</div>
-                            <div style={{ fontSize: 13, color: '#334155', WebkitTextFillColor: '#334155', marginTop: 6, maxWidth: 600, margin: '6px auto 0', lineHeight: 1.7 }}>{t('channelKpiPage.guideSub')}</div>
+                            <div style={{ fontWeight: 900, fontSize: 22, marginTop: 8, color: '#1e40af' }}>{ckg('guideTitle')}</div>
+                            <div style={{ fontSize: 13, color: '#334155', WebkitTextFillColor: '#334155', marginTop: 6, maxWidth: 600, margin: '6px auto 0', lineHeight: 1.7 }}>{ckg('guideSub')}</div>
                         </div>
                         <div style={{ background: 'rgba(255,255,255,0.95)', border: '1px solid rgba(0,0,0,0.06)', borderRadius: 16, padding: 20 }}>
-                            <div style={{ fontWeight: 800, fontSize: 17, marginBottom: 16, color: '#1e40af' }}>{t('channelKpiPage.guideStepsTitle')}</div>
+                            <div style={{ fontWeight: 800, fontSize: 17, marginBottom: 16, color: '#1e40af' }}>{ckg('guideStepsTitle')}</div>
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(280px,1fr))', gap: 14 }}>
                                 {[{n:'1️⃣',k:'guideStep1',c:'#2563eb'},{n:'2️⃣',k:'guideStep2',c:'#16a34a'},{n:'3️⃣',k:'guideStep3',c:'#7c3aed'},{n:'4️⃣',k:'guideStep4',c:'#d97706'},{n:'5️⃣',k:'guideStep5',c:'#ea580c'},{n:'6️⃣',k:'guideStep6',c:'#0891b2'}].map((s,i) => (
                                     <div key={i} style={{ background: s.c+'08', border: `1px solid ${s.c}22`, borderRadius: 12, padding: 16 }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
                                             <span style={{ fontSize: 20 }}>{s.n}</span>
-                                            <span style={{ fontWeight: 700, fontSize: 14, color: s.c }}>{t(`channelKpiPage.${s.k}Title`)}</span>
+                                            <span style={{ fontWeight: 700, fontSize: 14, color: s.c }}>{ckg(`${s.k}Title`)}</span>
                                         </div>
-                                        <div style={{ fontSize: 12, color: '#64748b', lineHeight: 1.7 }}>{t(`channelKpiPage.${s.k}Desc`)}</div>
+                                        <div style={{ fontSize: 12, color: '#64748b', lineHeight: 1.7 }}>{ckg(`${s.k}Desc`)}</div>
                                     </div>
                                 ))}
                             </div>
                         </div>
                         <div style={{ background: 'rgba(255,255,255,0.95)', border: '1px solid rgba(0,0,0,0.06)', borderRadius: 16, padding: 20 }}>
-                            <div style={{ fontWeight: 800, fontSize: 17, marginBottom: 16, color: '#1e40af' }}>{t('channelKpiPage.guideTabsTitle')}</div>
+                            <div style={{ fontWeight: 800, fontSize: 17, marginBottom: 16, color: '#1e40af' }}>{ckg('guideTabsTitle')}</div>
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(220px,1fr))', gap: 12 }}>
                                 {[{icon:'🎯',k:'guideGoal',c:'#2563eb'},{icon:'🔀',k:'guideRole',c:'#7c3aed'},{icon:'⚙️',k:'guideSetup',c:'#16a34a'},{icon:'📣',k:'guideSns',c:'#db2777'},{icon:'📝',k:'guideContent',c:'#ea580c'},{icon:'💬',k:'guideCommunity',c:'#ca8a04'},{icon:'🎯',k:'guideTarget',c:'#dc2626'},{icon:'🤖',k:'guideMonitor',c:'#0891b2'}].map((tb,i) => (
                                     <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '10px 12px', background: 'rgba(248,250,252,0.95)', borderRadius: 10, border: '1px solid rgba(0,0,0,0.05)' }}>
                                         <span style={{ fontSize: 20, flexShrink: 0 }}>{tb.icon}</span>
                                         <div>
-                                            <div style={{ fontWeight: 700, fontSize: 12, color: tb.c }}>{t(`channelKpiPage.${tb.k}Name`)}</div>
-                                            <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 2, lineHeight: 1.6 }}>{t(`channelKpiPage.${tb.k}Desc`)}</div>
+                                            <div style={{ fontWeight: 700, fontSize: 12, color: tb.c }}>{ckg(`${tb.k}Name`)}</div>
+                                            <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 2, lineHeight: 1.6 }}>{ckg(`${tb.k}Desc`)}</div>
                                         </div>
                                     </div>
                                 ))}
                             </div>
                         </div>
                         <div style={{ background: 'rgba(22,163,74,0.04)', border: '1px solid rgba(22,163,74,0.20)', borderRadius: 16, padding: 20 }}>
-                            <div style={{ fontWeight: 800, fontSize: 17, marginBottom: 12, color: '#1e40af' }}>💡 {t('channelKpiPage.guideTipsTitle')}</div>
+                            <div style={{ fontWeight: 800, fontSize: 17, marginBottom: 12, color: '#1e40af' }}>💡 {ckg('guideTipsTitle')}</div>
                             <ul style={{ margin: 0, padding: '0 0 0 18px', fontSize: 13, color: '#64748b', lineHeight: 2.2 }}>
-                                <li>{t('channelKpiPage.guideTip1')}</li>
-                                <li>{t('channelKpiPage.guideTip2')}</li>
-                                <li>{t('channelKpiPage.guideTip3')}</li>
-                                <li>{t('channelKpiPage.guideTip4')}</li>
-                                <li>{t('channelKpiPage.guideTip5')}</li>
+                                <li>{ckg('guideTip1')}</li>
+                                <li>{ckg('guideTip2')}</li>
+                                <li>{ckg('guideTip3')}</li>
+                                <li>{ckg('guideTip4')}</li>
+                                <li>{ckg('guideTip5')}</li>
                             </ul>
                         </div>
                     </div>

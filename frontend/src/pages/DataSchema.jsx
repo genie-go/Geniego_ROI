@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { tChannelName } from '../utils/tenantStorage.js'; // 180차: 회원 격리 크로스탭
 import { useI18n } from '../i18n';
+import { DS_GUIDE } from './dataSchemaGuideI18n.js';
 import { useGlobalData } from '../context/GlobalDataContext.jsx';
 import { useConnectorSync } from '../context/ConnectorSyncContext.jsx';
 
@@ -420,45 +421,48 @@ function AlertTab({ t }) {
 /* ═══════════════════════════════════════════════════
    GUIDE TAB — Enterprise Superium v6.0
    ═══════════════════════════════════════════════════ */
-function GuideTab({ t }) {
+function GuideTab() {
+  const { lang } = useI18n();
+  const G = DS_GUIDE[lang] || DS_GUIDE.en;
+  const g = (k) => G[k] || DS_GUIDE.en[k] || DS_GUIDE.ko[k] || '';
   return (
     <div style={{ display: 'grid', gap: 20 }}>
       <div style={{ background: 'linear-gradient(135deg,rgba(99,102,241,0.08),rgba(20,217,176,0.05))', padding: '32px 28px', borderRadius: 20, border: '1px solid rgba(99,102,241,0.12)', textAlign: 'center' }}>
         <div style={{ fontSize: 48, marginBottom: 12 }}>📋</div>
-        <h2 style={{ fontSize: 22, fontWeight: 900, marginBottom: 8 }}>{t('ds.guideTitle')}</h2>
-        <p style={{ color: 'var(--text-2)', fontSize: 13 }}>{t('ds.guideSub')}</p>
+        <h2 style={{ fontSize: 22, fontWeight: 900, marginBottom: 8 }}>{g('guideTitle')}</h2>
+        <p style={{ color: 'var(--text-2)', fontSize: 13 }}>{g('guideSub')}</p>
       </div>
       <div style={{ background: 'var(--bg-card)', borderRadius: 16, padding: 24, border: '1px solid rgba(99,102,241,0.1)' }}>
-        <h3 style={{ fontSize: 16, fontWeight: 800, marginBottom: 16, color: '#6366f1' }}>📋 {t('ds.guideStepsTitle')}</h3>
+        <h3 style={{ fontSize: 16, fontWeight: 800, marginBottom: 16, color: '#6366f1' }}>📋 {g('guideStepsTitle')}</h3>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
           {[1,2,3,4,5,6].map(i => (
             <div key={i} style={{ padding: 16, borderRadius: 14, background: 'rgba(99,102,241,0.04)', border: '1px solid rgba(99,102,241,0.08)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
                 <span style={{ width: 28, height: 28, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 900, background: 'linear-gradient(135deg,#6366f1,#14d9b0)', color: '#fff' }}>{i}</span>
-                <span style={{ fontWeight: 800, fontSize: 13, color: i<=2?'#6366f1':i<=4?'#22c55e':'#f97316' }}>{t(`ds.guideStep${i}Title`)}</span>
+                <span style={{ fontWeight: 800, fontSize: 13, color: i<=2?'#6366f1':i<=4?'#22c55e':'#f97316' }}>{g(`guideStep${i}Title`)}</span>
               </div>
-              <p style={{ fontSize: 12, color: 'var(--text-2)', lineHeight: 1.6, margin: 0 }}>{t(`ds.guideStep${i}Desc`)}</p>
+              <p style={{ fontSize: 12, color: 'var(--text-2)', lineHeight: 1.6, margin: 0 }}>{g(`guideStep${i}Desc`)}</p>
             </div>
           ))}
         </div>
       </div>
       <div style={{ background: 'var(--bg-card)', borderRadius: 16, padding: 24, border: '1px solid rgba(99,102,241,0.1)' }}>
-        <h3 style={{ fontSize: 16, fontWeight: 800, marginBottom: 16, color: '#14d9b0' }}>🗂 {t('ds.guideRolesTitle')}</h3>
+        <h3 style={{ fontSize: 16, fontWeight: 800, marginBottom: 16, color: '#14d9b0' }}>🗂 {g('guideRolesTitle')}</h3>
         <div style={{ display: 'grid', gap: 12 }}>
           {[{k:'Ad',emoji:'📣',c:'#f97316'},{k:'Market',emoji:'🏪',c:'#ef4444'},{k:'Ugc',emoji:'🤝',c:'#a855f7'}].map(r => (
             <div key={r.k} style={{ padding: '12px 16px', borderRadius: 12, background: `${r.c}08`, border: `1px solid ${r.c}22`, display: 'flex', alignItems: 'center', gap: 12 }}>
               <span style={{ fontSize: 20 }}>{r.emoji}</span>
-              <span style={{ fontSize: 12, color: 'var(--text-2)' }}>{t(`ds.guideSec${r.k}`)}</span>
+              <span style={{ fontSize: 12, color: 'var(--text-2)' }}>{g(`guideSec${r.k}`)}</span>
             </div>
           ))}
         </div>
       </div>
       <div style={{ background: 'var(--bg-card)', borderRadius: 16, padding: 24, border: '1px solid rgba(99,102,241,0.1)' }}>
-        <h3 style={{ fontSize: 16, fontWeight: 800, marginBottom: 16, color: '#22c55e' }}>💡 {t('ds.guideTipsTitle')}</h3>
+        <h3 style={{ fontSize: 16, fontWeight: 800, marginBottom: 16, color: '#22c55e' }}>💡 {g('guideTipsTitle')}</h3>
         <div style={{ display: 'grid', gap: 10 }}>
           {[1,2,3,4,5].map(i => (
             <div key={i} style={{ padding: '10px 14px', borderRadius: 10, background: 'rgba(34,197,94,0.04)', border: '1px solid rgba(34,197,94,0.1)', fontSize: 12, color: 'var(--text-2)', display: 'flex', gap: 8, alignItems: 'center' }}>
-              <span style={{ color: '#22c55e', fontWeight: 900 }}>Tip{i}</span> {t(`ds.guideTip${i}`)}
+              <span style={{ color: '#22c55e', fontWeight: 900 }}>Tip{i}</span> {g(`guideTip${i}`)}
             </div>
           ))}
         </div>
@@ -471,7 +475,8 @@ function GuideTab({ t }) {
    MAIN — Enterprise Superium v6.0
    ═══════════════════════════════════════════════════ */
 export default function DataSchema() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
+  const _dsg = DS_GUIDE[lang] || DS_GUIDE.en;
   const { addAlert, isDemo } = useGlobalData();
   const { locked, setLocked } = useSecurityGuard(addAlert);
   const { connectors } = useConnectorSync?.() || { connectors: [] };
@@ -529,7 +534,7 @@ export default function DataSchema() {
     { id: "pipeline", label: `🔄 ${t('ds.tabPipeline')}`, desc: t('ds.tabPipelineDesc') },
     { id: "metrics", label: `📐 ${t('ds.tabMetrics')}`, desc: t('ds.tabMetricsDesc') },
     { id: "alerts", label: `🚀 ${t('ds.tabAlerts')}`, desc: t('ds.tabAlertsDesc') },
-    { id: "guide", label: `📖 ${t('ds.tabGuide')}`, desc: t('ds.tabGuideDesc') },
+    { id: "guide", label: `📖 ${_dsg.tabGuide}`, desc: _dsg.tabGuideDesc },
   ];
 
   return (

@@ -3,6 +3,7 @@ import '../styles.css';
 import { useGlobalData } from '../context/GlobalDataContext.jsx';
 import { useNavigate } from 'react-router-dom';
 import { useI18n } from '../i18n';
+import { RECON_GUIDE } from './reconGuideI18n.js';
 import useSecurityMonitor from '../hooks/useSecurityMonitor.js';
 import { useCurrency } from '../contexts/CurrencyContext.jsx';
 
@@ -378,40 +379,43 @@ function TicketsTab({ t }) {
 
 
 /* ─── Guide Tab ───────────────────────────────────── */
-function GuideTab({ t }) {
+function GuideTab() {
+  const { lang } = useI18n();
+  const G = RECON_GUIDE[lang] || RECON_GUIDE.en;
+  const g = (k) => G[k] || RECON_GUIDE.en[k] || RECON_GUIDE.ko[k] || '';
   return (
     <div style={{ padding: 24 }}>
       <div style={{ textAlign: 'center', padding: '24px 0 16px', background: 'linear-gradient(135deg,rgba(139,92,246,0.06),rgba(79,142,247,0.04))', borderRadius: 16, marginBottom: 20 }}>
         <div style={{ fontSize: 40, marginBottom: 8 }}>⚖️</div>
-        <h2 style={{ fontSize: 20, fontWeight: 900, margin: '0 0 6px' }}>{t('recon.guideTitle')}</h2>
-        <p style={{ color: 'var(--text-secondary)', fontSize: 12 }}>{t('recon.guideSub')}</p>
+        <h2 style={{ fontSize: 20, fontWeight: 900, margin: '0 0 6px' }}>{g('guideTitle')}</h2>
+        <p style={{ color: 'var(--text-secondary)', fontSize: 12 }}>{g('guideSub')}</p>
       </div>
-      <h3 style={{ fontSize: 15, fontWeight: 800, marginBottom: 14, color: '#8b5cf6' }}>📋 {t('recon.guideStepsTitle')}</h3>
+      <h3 style={{ fontSize: 15, fontWeight: 800, marginBottom: 14, color: '#8b5cf6' }}>📋 {g('guideStepsTitle')}</h3>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }}>
         {[1,2,3,4,5,6].map(i => (
           <div key={i} style={{ padding: 14, borderRadius: 12, background: 'rgba(139,92,246,0.03)', border: '1px solid rgba(139,92,246,0.08)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
               <span style={{ width: 24, height: 24, borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 900, background: 'linear-gradient(135deg,#8b5cf6,#4f8ef7)', color: '#fff' }}>{i}</span>
-              <span style={{ fontWeight: 800, fontSize: 12, color: i<=2?'#8b5cf6':i<=4?'#4f8ef7':'#14d9b0' }}>{t(`recon.guideStep${i}Title`)}</span>
+              <span style={{ fontWeight: 800, fontSize: 12, color: i<=2?'#8b5cf6':i<=4?'#4f8ef7':'#14d9b0' }}>{g(`guideStep${i}Title`)}</span>
             </div>
-            <p style={{ fontSize: 11, color: 'var(--text-secondary)', lineHeight: 1.5, margin: 0 }}>{t(`recon.guideStep${i}Desc`)}</p>
+            <p style={{ fontSize: 11, color: 'var(--text-secondary)', lineHeight: 1.5, margin: 0 }}>{g(`guideStep${i}Desc`)}</p>
           </div>
         ))}
       </div>
-      <h3 style={{ fontSize: 15, fontWeight: 800, marginBottom: 14, color: '#4f8ef7' }}>🗂 {t('recon.guideRolesTitle')}</h3>
+      <h3 style={{ fontSize: 15, fontWeight: 800, marginBottom: 14, color: '#4f8ef7' }}>🗂 {g('guideRolesTitle')}</h3>
       <div style={{ display: 'grid', gap: 10, marginBottom: 20 }}>
         {[{k:'Upload',emoji:'📤',c:'#8b5cf6'},{k:'Recon',emoji:'⚖️',c:'#4f8ef7'},{k:'Ticket',emoji:'🎫',c:'#14d9b0'}].map(r => (
           <div key={r.k} style={{ padding: '10px 14px', borderRadius: 10, background: `${r.c}08`, border: `1px solid ${r.c}15`, display: 'flex', alignItems: 'center', gap: 10 }}>
             <span style={{ fontSize: 18 }}>{r.emoji}</span>
-            <span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{t(`recon.guideRole${r.k}`)}</span>
+            <span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{g(`guideRole${r.k}`)}</span>
           </div>
         ))}
       </div>
-      <h3 style={{ fontSize: 15, fontWeight: 800, marginBottom: 14, color: '#22c55e' }}>💡 {t('recon.guideTipsTitle')}</h3>
+      <h3 style={{ fontSize: 15, fontWeight: 800, marginBottom: 14, color: '#22c55e' }}>💡 {g('guideTipsTitle')}</h3>
       <div style={{ display: 'grid', gap: 8 }}>
         {[1,2,3,4,5].map(i => (
           <div key={i} style={{ padding: '8px 12px', borderRadius: 8, background: 'rgba(34,197,94,0.03)', border: '1px solid rgba(34,197,94,0.08)', fontSize: 11, color: 'var(--text-secondary)', display: 'flex', gap: 6, alignItems: 'center' }}>
-            <span style={{ color: '#8b5cf6', fontWeight: 900 }}>Tip{i}</span> {t(`recon.guideTip${i}`)}
+            <span style={{ color: '#8b5cf6', fontWeight: 900 }}>Tip{i}</span> {g(`guideTip${i}`)}
           </div>
         ))}
       </div>
@@ -422,7 +426,7 @@ function GuideTab({ t }) {
 /* ─── Main Component ─────────────────────────────── */
 export default function Reconciliation() {
   const { fmt: fmtC } = useCurrency();
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const navigate = useNavigate();
   const { settlementStats, updateSettlement, pnlStats, isDemo } = useGlobalData();
   const { locked } = useSecurityMonitor('reconciliation');
@@ -466,7 +470,7 @@ export default function Reconciliation() {
     { key: 'recon', label: `⚖️ ${t('recon.tabRecon')}` },
     { key: 'reports', label: `📋 ${t('recon.tabReports')}` },
     { key: 'tickets', label: `🎫 ${t('recon.tabTickets')}` },
-    { key: 'guide', label: `📖 ${t('recon.tabGuide')}` },
+    { key: 'guide', label: `📖 ${(RECON_GUIDE[lang]||RECON_GUIDE.en).tabGuide}` },
   ];
 
   if (locked) return (
