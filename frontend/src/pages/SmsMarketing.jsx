@@ -10,6 +10,7 @@ import {useI18n} from '../i18n';
 import {useSecurityGuard,sanitizeInput,detectXSS} from "../security/SecurityGuard.js";
 import AIRecommendBanner from '../components/AIRecommendBanner.jsx';
 import CreativeStudioTab from "./CreativeStudioTab.jsx";
+import {SMS_GUIDE} from "./smsGuideI18n.js";
 import {useNavigate} from "react-router-dom";
 
 /* ── Enterprise Demo Isolation Guard ─────────────────────── */
@@ -182,18 +183,18 @@ function TemplatesPanel({t,checkInput}){
                 </div>
                 <div style={{ display:'flex', gap:8 }}>
                     <input value={search} onChange={e=>setSearch(e.target.value)} placeholder={t('sms.tplSearch')||'Search...'} style={{ ...INPUT, width:180 }}/>
-                    <button onClick={()=>{setShowForm(!showForm);setEditId(null);setForm({name:'',category:'promotion',body:'',variables:''}) }} style={{ TN, fontSize:11, padding:'6px 14px' }}>+ {t('sms.tplNew')||'New'}</button>
+                    <button onClick={()=>{setShowForm(!showForm);setEditId(null);setForm({name:'',category:'promotion',body:'',variables:''}) }} style={{ ...BTN, fontSize:11, padding:'6px 14px' }}>+ {t('sms.tplNew')||'New'}</button>
                 </div>
             </div>
             {showForm&&(
                 <Card glow style={{ border:'1px solid '+C.accent+'44' }}>
                     <div style={{ fontWeight:900, fontSize:13, marginBottom:12, color:C.accent }}>{editId?'✏️ '+(t('sms.tplEdit')||'Edit'):'➕ '+(t('sms.tplCreate')||'Create')}</div>
                     <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
-                        <div><div style={{ fontSize:10, color:'#6b7280', marginBottom:4, fontWeight:600, ...INPUT }} >{t('sms.tplName')||'Name'}</div><input value={form.name} onChange={e=>setForm(p=>({...p,name:e.target.value}))}/></div>
-                        <div><div style={{ fontSize:10, color:'#6b7280', marginBottom:4, fontWeight:600, ...INPUT }} >{t('sms.tplCategory')||'Category'}</div><select value={form.category} onChange={e=>setForm(p=>({...p,category:e.target.value}))}>{CATS.map(c=><option key={c} value={c}>{t('sms.tplCat_'+c)||c}</option>)}</select></div>
+                        <div><div style={{ fontSize:10, color:'#6b7280', marginBottom:4, fontWeight:600 }}>{t('sms.tplName')||'Name'}</div><input value={form.name} onChange={e=>setForm(p=>({...p,name:e.target.value}))} style={INPUT}/></div>
+                        <div><div style={{ fontSize:10, color:'#6b7280', marginBottom:4, fontWeight:600 }}>{t('sms.tplCategory')||'Category'}</div><select value={form.category} onChange={e=>setForm(p=>({...p,category:e.target.value}))} style={INPUT}>{CATS.map(c=><option key={c} value={c}>{t('sms.tplCat_'+c)||c}</option>)}</select></div>
                     </div>
-                    <div style={{ marginTop:12, fontSize:10, color:'#6b7280', marginBottom:4, fontWeight:600, ...INPUT, resize:'vertical' }} ><div>{t('sms.tplBody')||'Body'}</div><textarea value={form.body} onChange={e=>setForm(p=>({...p,body:e.target.value}))} rows={4}/></div>
-                    <div style={{ marginTop:10, fontSize:10, color:'#6b7280', marginBottom:4, fontWeight:600, ...INPUT }} ><div>{t('sms.tplVars')||'Variables'}</div><input value={form.variables} onChange={e=>setForm(p=>({...p,variables:e.target.value}))} placeholder="#{name}, #{orderNo}"/></div>
+                    <div style={{ marginTop:12 }}><div style={{ fontSize:10, color:'#6b7280', marginBottom:4, fontWeight:600 }}>{t('sms.tplBody')||'Body'}</div><textarea value={form.body} onChange={e=>setForm(p=>({...p,body:e.target.value}))} rows={4} style={{ ...INPUT, resize:'vertical' }}/></div>
+                    <div style={{ marginTop:10 }}><div style={{ fontSize:10, color:'#6b7280', marginBottom:4, fontWeight:600 }}>{t('sms.tplVars')||'Variables'}</div><input value={form.variables} onChange={e=>setForm(p=>({...p,variables:e.target.value}))} placeholder="#{name}, #{orderNo}" style={INPUT}/></div>
                     <div style={{ display:'flex', gap:8, marginTop:14, justifyContent:'flex-end' }}>
                         <button onClick={()=>setShowForm(false)} style={{ padding:'7px 16px', borderRadius:8, border:'1px solid rgba(0,0,0,0.1)', background:'transparent', color:'#374151', fontSize:12, cursor:'pointer' }}>{t('sms.cancel')||'Cancel'}</button>
                         <button onClick={save} disabled={!form.name||!form.body} style={{ ...BTN, fontSize:12, padding:'7px 16px' }}>💾 {t('sms.save')||'Save'}</button>
@@ -305,14 +306,15 @@ function downloadSmsCsv(messages,t){
     const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='sms_history_'+new Date().toISOString().slice(0,10)+'.csv';a.click();
 }
 
-/* Guide Tab — 15+ steps detailed */
-function SmsGuideTab({t}){
+/* Guide Tab — 197차: 자립형 15개국 사전(SMS_GUIDE) 기반 8스텝 상세 가이드 + 전문가 팁 */
+function SmsGuideTab(){
+    const {lang}=useI18n();
+    const G=SMS_GUIDE[lang]||SMS_GUIDE.en;
+    const g=(k)=>G[k]||SMS_GUIDE.en[k]||SMS_GUIDE.ko[k]||'';
     const STEPS=[
         {n:'1',k:'guideStep1',c:C.accent},{n:'2',k:'guideStep2',c:C.green},{n:'3',k:'guideStep3',c:'#a78bfa'},
         {n:'4',k:'guideStep4',c:'#f97316'},{n:'5',k:'guideStep5',c:C.cyan},{n:'6',k:'guideStep6',c:'#f472b6'},
-        {n:'7',k:'guideStep7',c:C.accent},{n:'8',k:'guideStep8',c:C.green},{n:'9',k:'guideStep9',c:'#a78bfa'},
-        {n:'10',k:'guideStep10',c:'#f97316'},{n:'11',k:'guideStep11',c:C.cyan},{n:'12',k:'guideStep12',c:'#f472b6'},
-        {n:'13',k:'guideStep13',c:C.accent},{n:'14',k:'guideStep14',c:C.green},{n:'15',k:'guideStep15',c:'#a78bfa'},
+        {n:'7',k:'guideStep7',c:C.accent},{n:'8',k:'guideStep8',c:C.green},
     ];
     const TABS=[
         {icon:'✏️',k:'guideCompose',c:C.accent},{icon:'📡',k:'guideBroadcast',c:'#a78bfa'},
@@ -324,41 +326,41 @@ function SmsGuideTab({t}){
         <div style={{ display:'grid', gap:18 }}>
             <Card glow style={{ textAlign:'center', padding:32, background:'linear-gradient(135deg,rgba(79,142,247,0.06),rgba(167,139,250,0.04))' }}>
                 <div style={{ fontSize:44 }}>📱</div>
-                <div style={{ fontWeight:900, fontSize:22, marginTop:8, color:'#1f2937' }}>{t('sms.guideTitle')||'SMS Marketing Guide'}</div>
-                <div style={{ fontSize:13, color:'#374151', fontWeight:600, marginTop:6, maxWidth:600, margin:'6px auto 0', lineHeight:1.7 }}>{t('sms.guideSub')||'Step-by-step guide'}</div>
+                <div style={{ fontWeight:900, fontSize:22, marginTop:8, color:'#1f2937' }}>{g('guideTitle')}</div>
+                <div style={{ fontSize:13, color:'#374151', fontWeight:600, marginTop:6, maxWidth:600, margin:'6px auto 0', lineHeight:1.7 }}>{g('guideSub')}</div>
             </Card>
             <Card glow style={{ padding:20 }}>
-                <div style={{ fontWeight:800, fontSize:17, marginBottom:16, color:'#1f2937' }}>{t('sms.guideStepsTitle')||'Usage Steps'}</div>
+                <div style={{ fontWeight:800, fontSize:17, marginBottom:16, color:'#1f2937' }}>{g('guideStepsTitle')}</div>
                 <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))', gap:14 }}>
                     {STEPS.map((s,i)=>(
                         <div key={i} style={{ background:s.c+'0a', border:'1px solid '+s.c+'25', borderRadius:12, padding:16 }}>
                             <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:6 }}>
                                 <span style={{ fontSize:14, fontWeight:900, background:s.c, color:'#fff', width:26, height:26, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center' }}>{s.n}</span>
-                                <span style={{ fontWeight:700, fontSize:14, color:s.c }}>{t('sms.'+s.k+'Title')||'Step '+s.n}</span>
+                                <span style={{ fontWeight:700, fontSize:14, color:s.c }}>{g(s.k+'Title')}</span>
                             </div>
-                            <div style={{ fontSize:12, color:'#6b7280', lineHeight:1.7 }}>{t('sms.'+s.k+'Desc')||''}</div>
+                            <div style={{ fontSize:12, color:'#6b7280', lineHeight:1.7 }}>{g(s.k+'Desc')}</div>
                         </div>
                     ))}
                 </div>
             </Card>
             <Card glow style={{ padding:20 }}>
-                <div style={{ fontWeight:800, fontSize:17, marginBottom:16, color:'#1f2937' }}>{t('sms.guideTabsTitle')||'Tab Guide'}</div>
+                <div style={{ fontWeight:800, fontSize:17, marginBottom:16, color:'#1f2937' }}>{g('guideTabsTitle')}</div>
                 <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(180px,1fr))', gap:12 }}>
                     {TABS.map((tb,i)=>(
                         <div key={i} style={{ display:'flex', gap:10, alignItems:'flex-start', padding:'10px 12px', background:'rgba(0,0,0,0.02)', borderRadius:10, border:'1px solid rgba(0,0,0,0.05)' }}>
                             <span style={{ fontSize:18, flexShrink:0 }}>{tb.icon}</span>
                             <div>
-                                <div style={{ fontWeight:700, fontSize:12, color:tb.c }}>{t('sms.'+tb.k+'Name')||''}</div>
-                                <div style={{ fontSize:10, color:'#6b7280', marginTop:2 }}>{t('sms.'+tb.k+'Desc')||''}</div>
+                                <div style={{ fontWeight:700, fontSize:12, color:tb.c }}>{g(tb.k+'Name')}</div>
+                                <div style={{ fontSize:10, color:'#6b7280', marginTop:2 }}>{g(tb.k+'Desc')}</div>
                             </div>
                         </div>
                     ))}
                 </div>
             </Card>
             <div style={{ background:'rgba(34,197,94,0.05)', border:'1px solid rgba(34,197,94,0.3)', borderRadius:14, padding:20 }}>
-                <div style={{ fontWeight:800, fontSize:17, marginBottom:12, color:'#1f2937' }}>💡 {t('sms.guideTipsTitle')||'Expert Tips'}</div>
+                <div style={{ fontWeight:800, fontSize:17, marginBottom:12, color:'#1f2937' }}>💡 {g('guideTipsTitle')}</div>
                 <ul style={{ margin:0, padding:'0 0 0 18px', fontSize:13, color:'#4b5563', lineHeight:2.2 }}>
-                    {[1,2,3,4,5,6,7].map(n=>(<li key={n}>{t('sms.guideTip'+n)||''}</li>))}
+                    {[1,2,3,4,5,6,7].map(n=>(<li key={n}>{g('guideTip'+n)}</li>))}
                 </ul>
             </div>
         </div>
@@ -367,7 +369,7 @@ function SmsGuideTab({t}){
 
 /* Main Inner Component */
 function SmsMarketingInner(){
-    const{t}=useI18n();
+    const{t,lang}=useI18n();
     const[tab,setTab]=useState('compose');
     const[settings,setSettings]=useState(null);
     const[messages,setMessages]=useState([]);
@@ -396,8 +398,8 @@ function SmsMarketingInner(){
         {id:'stats',label:'📊 '+(t('sms.tabStats')||'Statistics')},
         {id:'creative',label:'🎨 '+(t('sms.tabCreative')||'Creative')},
         {id:'settings',label:'⚙️ '+(t('sms.tabSettings')||'Settings')},
-        {id:'guide',label:'📖 '+(t('sms.tabGuide')||'Guide')},
-    ],[t]);
+        {id:'guide',label:'📖 '+((SMS_GUIDE[lang]||SMS_GUIDE.en).tabGuide)},
+    ],[t,lang]);
 
     return(
         <div style={{ display:'flex', flexDirection:'column', height:'100%', overflow:'hidden' }}>
