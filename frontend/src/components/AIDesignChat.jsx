@@ -1,7 +1,7 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { IS_DEMO } from '../utils/demoEnv';
 import { useI18n } from '../i18n';
-import { AI_DESIGN_SAMPLES, SAMPLE_CATEGORIES } from '../data/aiDesignSamples.js';
+import { buildSamples, SAMPLE_CATEGORIES } from '../data/aiDesignSamples.js';
 
 /* 196차 — 대화형 AI 디자인. 사용자가 자유 자연어로 대화하며 광고 디자인을 생성·수정.
  * 좌: 채팅(요청·수정), 우: 실시간 디자인 미리보기 + AI 정밀 SVG + 임시저장/저장. 실 Claude AI. */
@@ -75,7 +75,9 @@ function Preview({ design, svg, image, video }) {
 }
 
 export default function AIDesignChat({ onApplied }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
+  const samples = useMemo(() => buildSamples(lang), [lang]);   // 접속 언어 기반 현지 자연어 샘플
+  const catLabel = (cat, fb) => t('aiChat.cat_' + cat, fb);   // 카테고리 라벨 현지화
   const [messages, setMessages] = useState([{ role: 'assistant', content: '안녕하세요! 만들고 싶은 광고를 자유롭게 설명해 주세요. 채널·문구·분위기·색감 등 무엇이든 좋아요. 📎 버튼으로 참고 이미지를 첨부하면 그 스타일·색감을 분석해 디자인에 반영해 드려요. 만든 뒤에도 "더 밝게", "문구 바꿔줘"처럼 대화로 수정할 수 있어요. 😊' }]);
   const [input, setInput] = useState('');
   const [design, setDesign] = useState(null);
@@ -251,11 +253,11 @@ export default function AIDesignChat({ onApplied }) {
           <div style={{ padding: 16 }}>
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
               {SAMPLE_CATEGORIES.map(c => (
-                <button key={c.cat} onClick={() => setGalCat(c.cat)} style={{ padding: '7px 14px', borderRadius: 9, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 800, background: galCat === c.cat ? 'linear-gradient(135deg,#a855f7,#4f8ef7)' : 'rgba(99,102,241,0.07)', color: galCat === c.cat ? '#fff' : '#64748b' }}>{c.label}</button>
+                <button key={c.cat} onClick={() => setGalCat(c.cat)} style={{ padding: '7px 14px', borderRadius: 9, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 800, background: galCat === c.cat ? 'linear-gradient(135deg,#a855f7,#4f8ef7)' : 'rgba(99,102,241,0.07)', color: galCat === c.cat ? '#fff' : '#64748b' }}>{catLabel(c.cat, c.label)}</button>
               ))}
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(130px,1fr))', gap: 12 }}>
-              {AI_DESIGN_SAMPLES.filter(s => s.category === galCat).map(s => (
+              {samples.filter(s => s.category === galCat).map(s => (
                 <button key={s.id} onClick={() => selectSample(s)} title={s.name} style={{ padding: 0, border: '1px solid rgba(0,0,0,0.08)', borderRadius: 12, overflow: 'hidden', cursor: 'pointer', background: '#fff' }}>
                   <div style={{ width: '100%', aspectRatio: '1/1', overflow: 'hidden' }} dangerouslySetInnerHTML={{ __html: s.svg.replace('<svg', '<svg width="100%" height="100%" preserveAspectRatio="xMidYMid slice"') }} />
                   <div style={{ padding: '6px 8px', fontSize: 10, fontWeight: 700, color: '#475569', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.name}</div>
