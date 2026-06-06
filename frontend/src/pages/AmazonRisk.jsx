@@ -1,5 +1,6 @@
 import React from "react";
 import { useT } from "../i18n/index.js";
+import { IS_DEMO } from "../utils/demoEnv.js";  // 197차 운영 목데이터 격리
 
 const RISKS = [
   { name: "Account Health Warning", severity: "high", sku: "ACC-001", channel: "Amazon", desc: "Account Health Score 85 → 72 (↓13)", time: "10 min ago" },
@@ -13,15 +14,18 @@ const COLOR = { high: "#ef4444", medium: "#eab308", low: "#4f8ef7" };
 
 export default function AmazonRisk() {
   const t = useT();
-  const high = RISKS.filter(r => r.severity === "high").length;
-  const medium = RISKS.filter(r => r.severity === "medium").length;
+  // 197차 운영 목데이터 격리(U-177-A): 데모=가상 리스크, 운영=실데이터 연동 전 빈 상태(가짜 알림·KPI 금지)
+  const risks = IS_DEMO ? RISKS : [];
+  const high = risks.filter(r => r.severity === "high").length;
+  const medium = risks.filter(r => r.severity === "medium").length;
+  const DASH = "—";
 
-  const METRICS = [
+  const METRICS = IS_DEMO ? [
     { l: "Account Health", v: 72, max: 100, unit: t("units.pts"), color: "#eab308" },
     { l: "Buy Box Rate", v: 84, max: 100, unit: "%", color: "#4f8ef7" },
     { l: t("amazonRisk.avgRating"), v: 4.1, max: 5, unit: "★", color: "#22c55e" },
     { l: t("amazonRisk.fbaStockRate"), v: 68, max: 100, unit: "%", color: "#a855f7" },
-  ];
+  ] : [];
 
   return (
     <div style={{ display: "grid", gap: 16 }}>
@@ -29,8 +33,8 @@ export default function AmazonRisk() {
         {[
           { l: t("amazonRisk.highRisk"), v: high.toString(), c: "#ef4444" },
           { l: t("amazonRisk.mediumRisk"), v: medium.toString(), c: "#eab308" },
-          { l: t("amazonRisk.accountScore"), v: `72${t("units.pts")}`, c: "#eab308" },
-          { l: t("amazonRisk.buyBox"), v: "84%", c: "#4f8ef7" },
+          { l: t("amazonRisk.accountScore"), v: IS_DEMO ? `72${t("units.pts")}` : DASH, c: "#eab308" },
+          { l: t("amazonRisk.buyBox"), v: IS_DEMO ? "84%" : DASH, c: "#4f8ef7" },
         ].map(({ l, v, c }, i) => (
           <div key={l} className="kpi-card card-hover fade-up" style={{ "--accent": c, animationDelay: `${i * 60}ms` }}>
             <div className="kpi-label">{l}</div>
@@ -46,7 +50,9 @@ export default function AmazonRisk() {
             <div className="section-title">{t("amazonRisk.riskAlerts")}</div>
           </div>
           <div style={{ display: "grid", gap: 10 }}>
-            {RISKS.map((r, i) => (
+            {risks.length === 0 ? (
+              <div style={{ textAlign: "center", padding: "24px 16px", color: "var(--text-3)", fontSize: 12 }}>{t("amazonRisk.empty", "Amazon 계정을 연동하면 계정 건강·리뷰·재고·정책 리스크가 실시간으로 감지되어 표시됩니다.")}</div>
+            ) : risks.map((r, i) => (
               <div key={i} className="card card-hover" style={{
                 padding: "12px 14px",
                 borderLeft: `3px solid ${COLOR[r.severity]}`, borderColor: `${COLOR[r.severity]}`
@@ -77,6 +83,7 @@ export default function AmazonRisk() {
         {/* Metric gauges */}
         <div className="card card-glass">
           <div className="section-title" style={{ marginBottom: 18 }}>{t("amazonRisk.keyMetrics")}</div>
+          {METRICS.length === 0 && <div style={{ textAlign: "center", padding: "20px 12px", color: "var(--text-3)", fontSize: 12 }}>{t("amazonRisk.metricsEmpty", "연동 후 핵심 지표가 표시됩니다.")}</div>}
           {METRICS.map(m => {
             const pct = (m.v / m.max) * 100;
             return (

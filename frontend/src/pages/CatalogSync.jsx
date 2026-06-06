@@ -1297,7 +1297,7 @@ const ProductDetail = memo(function ProductDetail({ product: p, onClose }) {
     const channelPrices = CHANNELS.filter(c => p.channels.includes(c.id)).map(c => ({
         ...c,
         price: p.price + (c.id === "amazon" ? 3000 : c.id === "coupang" ? -2000 : c.id === "11st" ? -1000 : 0),
-        stock: p.inventory - Math.floor(Math.random() * 20),
+        stock: p.inventory,  // 197차: 채널별 재고 난수 조작 제거 — 실 재고 표시(가짜 변동 금지)
         lastSync: p.lastSync,
     }));
 

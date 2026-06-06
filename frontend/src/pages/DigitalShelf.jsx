@@ -523,7 +523,9 @@ export default function DigitalShelf() {
           <div className="section-title">🏆 {t('digitalShelf.topProductRank', '채널 내 TOP 상품 순위')}</div>
         </div>
         <div style={{ display: "grid", gap: 10 }}>
-          {TOP_PRODUCTS.map((p, i) => {
+          {!IS_DEMO ? (
+            <div style={{ textAlign: "center", padding: "24px 16px", color: "var(--text-3)", fontSize: 12 }}>{t('digitalShelf.noTopProducts', '채널을 연동하면 채널 내 TOP 상품 순위가 집계되어 표시됩니다.')}</div>
+          ) : TOP_PRODUCTS.map((p, i) => {
             const diff = p.prev - p.rank;
             return (
               <div key={p.sku} style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 14px", background: i === 0 ? "rgba(34,197,94,0.05)" : "rgba(9,15,30,0.4)", borderRadius: 10, border: `1px solid ${i === 0 ? "rgba(34,197,94,0.2)" : "rgba(99,140,255,0.08)"}` }}>
