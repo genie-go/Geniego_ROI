@@ -3,6 +3,7 @@ import {useI18n} from '../i18n/index.js';
 import {useGlobalData} from '../context/GlobalDataContext';
 import {useSecurityGuard} from '../security/SecurityGuard.js';
 import MarketingAIPanel from '../components/MarketingAIPanel.jsx';
+import {CC_GUIDE} from './contentCalGuideI18n.js';
 
 const C={accent:"#4f8ef7",green:"#22c55e",red:"#ef4444",yellow:"#eab308",purple:"#a855f7",cyan:"#06b6d4"};
 const Tag=({label,color=C.accent})=>(<span style={{ fontSize:10, padding:'2px 8px', borderRadius:20, background:color+'18', color, border:'1px solid '+color+'33', fontWeight:700 }}>{label}</span>);
@@ -145,13 +146,13 @@ function ContentRegisterModal({onClose,onSave,t}){
 }
 
 function ContentCalGuideTab(){
-  const{t}=useI18n();
+  const{lang}=useI18n();
+  const G=CC_GUIDE[lang]||CC_GUIDE.en;
+  const g=(k)=>G[k]||CC_GUIDE.en[k]||CC_GUIDE.ko[k]||'';
   const STEPS=[
     {n:'1',k:'guideStep1',c:'#6366f1'},{n:'2',k:'guideStep2',c:'#22c55e'},{n:'3',k:'guideStep3',c:'#a855f7'},
     {n:'4',k:'guideStep4',c:'#f97316'},{n:'5',k:'guideStep5',c:'#06b6d4'},{n:'6',k:'guideStep6',c:'#f472b6'},
-    {n:'7',k:'guideStep7',c:'#6366f1'},{n:'8',k:'guideStep8',c:'#22c55e'},{n:'9',k:'guideStep9',c:'#a855f7'},
-    {n:'10',k:'guideStep10',c:'#f97316'},{n:'11',k:'guideStep11',c:'#06b6d4'},{n:'12',k:'guideStep12',c:'#f472b6'},
-    {n:'13',k:'guideStep13',c:'#6366f1'},{n:'14',k:'guideStep14',c:'#22c55e'},{n:'15',k:'guideStep15',c:'#a855f7'},
+    {n:'7',k:'guideStep7',c:'#6366f1'},{n:'8',k:'guideStep8',c:'#22c55e'},
   ];
   const TABS=[
     {icon:'📅',k:'guideCal',c:'#6366f1'},{icon:'📋',k:'guideList',c:'#22c55e'},
@@ -161,41 +162,41 @@ function ContentCalGuideTab(){
     <div style={{ display:'grid', gap:18 }}>
       <div style={{ background:'rgba(99,102,241,0.06)', border:'1px solid rgba(99,102,241,0.3)', borderRadius:14, textAlign:'center', padding:32 }}>
         <div style={{ fontSize:44 }}>📅</div>
-        <div style={{ fontWeight:900, fontSize:22, marginTop:8, color:'#1f2937' }}>{t('contentCal.guideTitle')}</div>
-        <div style={{ fontSize:13, color:'#374151', fontWeight:600, marginTop:6, maxWidth:600, margin:'6px auto 0', lineHeight:1.7 }}>{t('contentCal.guideSub')}</div>
+        <div style={{ fontWeight:900, fontSize:22, marginTop:8, color:'#1f2937' }}>{g('guideTitle')}</div>
+        <div style={{ fontSize:13, color:'#374151', fontWeight:600, marginTop:6, maxWidth:600, margin:'6px auto 0', lineHeight:1.7 }}>{g('guideSub')}</div>
       </div>
       <div style={{ background:'rgba(255,255,255,0.95)', border:'1px solid rgba(0,0,0,0.08)', borderRadius:14, padding:20 }}>
-        <div style={{ fontWeight:800, fontSize:17, marginBottom:16, color:'#1f2937' }}>{t('contentCal.guideStepsTitle')}</div>
+        <div style={{ fontWeight:800, fontSize:17, marginBottom:16, color:'#1f2937' }}>{g('guideStepsTitle')}</div>
         <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))', gap:14 }}>
           {STEPS.map((s,i)=>(
             <div key={i} style={{ background:s.c+'0a', border:'1px solid '+s.c+'25', borderRadius:12, padding:16 }}>
               <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:6 }}>
                 <span style={{ fontSize:14, fontWeight:900, background:s.c, color:'#fff', width:26, height:26, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center' }}>{s.n}</span>
-                <span style={{ fontWeight:700, fontSize:14, color:s.c }}>{t(`contentCal.${s.k}Title`)}</span>
+                <span style={{ fontWeight:700, fontSize:14, color:s.c }}>{g(`${s.k}Title`)}</span>
               </div>
-              <div style={{ fontSize:12, color:'#6b7280', lineHeight:1.7 }}>{t(`contentCal.${s.k}Desc`)}</div>
+              <div style={{ fontSize:12, color:'#6b7280', lineHeight:1.7 }}>{g(`${s.k}Desc`)}</div>
             </div>
           ))}
         </div>
       </div>
       <div style={{ background:'rgba(255,255,255,0.95)', border:'1px solid rgba(0,0,0,0.08)', borderRadius:14, padding:20 }}>
-        <div style={{ fontWeight:800, fontSize:17, marginBottom:16, color:'#1f2937' }}>{t('contentCal.guideTabsTitle')}</div>
+        <div style={{ fontWeight:800, fontSize:17, marginBottom:16, color:'#1f2937' }}>{g('guideTabsTitle')}</div>
         <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(200px,1fr))', gap:12 }}>
           {TABS.map((tb,i)=>(
             <div key={i} style={{ display:'flex', gap:10, alignItems:'flex-start', padding:'10px 12px', background:'rgba(255,255,255,0.95)', borderRadius:10, border:'1px solid rgba(0,0,0,0.06)' }}>
               <span style={{ fontSize:18, flexShrink:0 }}>{tb.icon}</span>
               <div>
-                <div style={{ fontWeight:700, fontSize:12, color:tb.c }}>{t(`contentCal.${tb.k}Name`)}</div>
-                <div style={{ fontSize:10, color:'#6b7280', marginTop:2 }}>{t(`contentCal.${tb.k}Desc`)}</div>
+                <div style={{ fontWeight:700, fontSize:12, color:tb.c }}>{g(`${tb.k}Name`)}</div>
+                <div style={{ fontSize:10, color:'#6b7280', marginTop:2 }}>{g(`${tb.k}Desc`)}</div>
               </div>
             </div>
           ))}
         </div>
       </div>
       <div style={{ background:'rgba(34,197,94,0.05)', border:'1px solid rgba(34,197,94,0.3)', borderRadius:14, padding:20 }}>
-        <div style={{ fontWeight:800, fontSize:17, marginBottom:12, color:'#1f2937' }}>💡 {t('contentCal.guideTipsTitle')}</div>
+        <div style={{ fontWeight:800, fontSize:17, marginBottom:12, color:'#1f2937' }}>💡 {g('guideTipsTitle')}</div>
         <ul style={{ margin:0, padding:'0 0 0 18px', fontSize:13, color:'#4b5563', lineHeight:2.2 }}>
-          {[1,2,3,4,5,6,7].map(n=>(<li key={n}>{t('contentCal.guideTip'+n)}</li>))}
+          {[1,2,3,4,5,6,7].map(n=>(<li key={n}>{g('guideTip'+n)}</li>))}
         </ul>
       </div>
     </div>
@@ -237,7 +238,7 @@ export default function ContentCalendar(){
   const [_pageError, _setPageError] = React.useState(null);
   const [_retryCount, _setRetryCount] = React.useState(0);
 
-  const{t}=useI18n();
+  const{t,lang}=useI18n();
   const { addAlert,sharedCalendarEvents,setSharedCalendarEvents,connectedChannels, isDemo } = useGlobalData();
   useContentCalendarSecurity(addAlert);
   const[tab,setTab]=useState("calendar");
@@ -260,8 +261,8 @@ export default function ContentCalendar(){
     {id:"calendar",label:`📅 ${t('contentCal.tabCalendar')}`},
     {id:"list",label:`📋 ${t('contentCal.tabList')}`},
     {id:"ai",label:`🤖 ${t('contentCal.tabAi')}`},
-    {id:"guide",label:`📖 ${t('contentCal.tabGuide')}`},
-  ],[t]);
+    {id:"guide",label:`📖 ${(CC_GUIDE[lang]||CC_GUIDE.en).tabGuide}`},
+  ],[t,lang]);
 
   return(
     <div style={{ display:'flex', flexDirection:'column', height:'100%', overflow:'hidden' }}>
