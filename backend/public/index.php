@@ -285,7 +285,7 @@ $errorMiddleware->setDefaultErrorHandler(function (
     bool $displayErrorDetails,
     bool $logErrors,
     bool $logErrorDetails
-) use ($app) {
+) use ($app, $GENIE_ALLOWED_ORIGINS) {
     $statusCode = 500;
     if ($exception instanceof \Slim\Exception\HttpException) {
         $statusCode = $exception->getCode();
@@ -303,10 +303,13 @@ $errorMiddleware->setDefaultErrorHandler(function (
     ];
     $response = $app->getResponseFactory()->createResponse();
     $response->getBody()->write(json_encode($payload, JSON_UNESCAPED_UNICODE));
+    // ★ 201차 P1: 에러 응답도 와일드카드(*) 대신 허용 origin 만 반영(메인 CORS 정책과 일치).
+    $eOrigin = $request->getHeaderLine('Origin');
+    $eAllow  = in_array($eOrigin, $GENIE_ALLOWED_ORIGINS, true) ? $eOrigin : 'https://roi.genie-go.com';
     return $response
         ->withStatus($statusCode)
         ->withHeader('Content-Type', 'application/json')
-        ->withHeader('Access-Control-Allow-Origin', '*');
+        ->withHeader('Access-Control-Allow-Origin', $eAllow);
 });
 
 $app->run();

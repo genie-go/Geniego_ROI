@@ -28,9 +28,47 @@ final class Payment
         return $res->withHeader('Content-Type', 'application/json')->withStatus($status);
     }
 
+    // ★ 201차 P1: 운영에서 env 미설정 시 테스트키로 조용히 폴백하면 실결제가 test 모드로 처리됨(매출 손실).
+    //   명시적 개발/스테이징(PG_ALLOW_TEST_KEYS=1)에서만 테스트키 허용, 운영은 fail-closed(빈 키 → 호출 실패).
+    private const TOSS_TEST_SK = 'test_sk_zXLkKEypNArWmo50nX3lmeaxYZ2M';
+    private const TOSS_TEST_CK = 'test_ck_D5GePWvyJnrK0W0k6q8gLzN97Eoq';
+
+    private static function allowTestKeys(): bool
+    {
+        return getenv('PG_ALLOW_TEST_KEYS') === '1';
+    }
+
     private static function tossSecretKey(): string
     {
-        return getenv('TOSS_SECRET_KEY') ?: 'test_sk_zXLkKEypNArWmo50nX3lmeaxYZ2M';
+        $k = getenv('TOSS_SECRET_KEY');
+        if ($k !== false && $k !== '') return $k;
+        return self::allowTestKeys() ? self::TOSS_TEST_SK : '';
+    }
+
+    /* ── PG 시크릿 암호화(저장 시 at-rest). PG_ENC_KEY 미설정 시 평문(기존 동작) — 키 설정 시 활성. ── */
+    private static function pgEncKey(): string
+    {
+        $k = getenv('PG_ENC_KEY');
+        return ($k !== false && $k !== '') ? hash('sha256', (string)$k, true) : '';
+    }
+    private static function encSecret(string $plain): string
+    {
+        $key = self::pgEncKey();
+        if ($key === '' || $plain === '') return $plain;          // 키 없으면 평문(레거시 호환)
+        $iv = random_bytes(16);
+        $ct = openssl_encrypt($plain, 'aes-256-cbc', $key, OPENSSL_RAW_DATA, $iv);
+        return $ct === false ? $plain : 'enc:v1:' . base64_encode($iv . $ct);
+    }
+    private static function decSecret(string $stored): string
+    {
+        if (strncmp($stored, 'enc:v1:', 7) !== 0) return $stored;  // 레거시 평문 그대로
+        $key = self::pgEncKey();
+        if ($key === '') return '';                                // 암호화됐는데 키 없음 → 빈
+        $raw = base64_decode(substr($stored, 7), true);
+        if ($raw === false || strlen($raw) < 17) return '';
+        $iv = substr($raw, 0, 16); $ct = substr($raw, 16);
+        $pt = openssl_decrypt($ct, 'aes-256-cbc', $key, OPENSSL_RAW_DATA, $iv);
+        return $pt === false ? '' : $pt;
     }
 
     private static function now(): string { return gmdate('Y-m-d\TH:i:s\Z'); }
@@ -411,15 +449,15 @@ final class Payment
                 return [
                     'provider'   => $row['provider'],
                     'client_key' => $row['client_key'],
-                    'secret_key' => $row['secret_key_enc'], // 평문 저장 (추후 암호화 강화 가능)
+                    'secret_key' => self::decSecret((string)$row['secret_key_enc']), // ★ at-rest 복호화
                     'is_test'    => (bool)$row['is_test'],
                 ];
             }
         } catch (\Throwable $e) { /* 테이블 없으면 폴백 */ }
 
-        // 환경변수 폴백
-        $sk = getenv('TOSS_SECRET_KEY') ?: 'test_sk_zXLkKEypNArWmo50nX3lmeaxYZ2M';
-        $ck = getenv('TOSS_CLIENT_KEY') ?: 'test_ck_D5GePWvyJnrK0W0k6q8gLzN97Eoq';
+        // 환경변수 폴백 — ★ 운영 fail-closed: env 미설정 + 테스트키 비허용 시 빈 키(조용한 test 모드 차단)
+        $sk = getenv('TOSS_SECRET_KEY') ?: (self::allowTestKeys() ? self::TOSS_TEST_SK : '');
+        $ck = getenv('TOSS_CLIENT_KEY') ?: (self::allowTestKeys() ? self::TOSS_TEST_CK : '');
         return [
             'provider'   => 'toss',
             'client_key' => $ck,
@@ -542,14 +580,15 @@ final class Payment
             $existRow = $existStmt->fetch();
 
             if ($secretKey) {
+                $secEnc = self::encSecret($secretKey); // ★ at-rest 암호화(PG_ENC_KEY 설정 시)
                 if ($existRow && isset($existRow['id'])) {
                     $pdo->prepare(
                         "UPDATE pg_config SET client_key=?, secret_key_enc=?, is_test=?, is_active=1, created_at=? WHERE provider=?"
-                    )->execute([$clientKey, $secretKey, $isTest ? 1 : 0, $now, $provider]);
+                    )->execute([$clientKey, $secEnc, $isTest ? 1 : 0, $now, $provider]);
                 } else {
                     $pdo->prepare(
                         "INSERT INTO pg_config(provider, client_key, secret_key_enc, is_test, is_active, created_at) VALUES(?,?,?,?,1,?)"
-                    )->execute([$provider, $clientKey, $secretKey, $isTest ? 1 : 0, $now]);
+                    )->execute([$provider, $clientKey, $secEnc, $isTest ? 1 : 0, $now]);
                 }
             } else {
                 // 시크릿 키 미입력 시 client_key와 is_test만 업데이트
