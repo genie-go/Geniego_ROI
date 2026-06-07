@@ -124,14 +124,27 @@ class AutoCampaign
             $pdo = Db::pdo();
             self::migrate($pdo);
 
-            // 채널별 실행 상태(정직): 자격증명 연결 시 active, 아니면 연결 대기
-            $exec = [];
-            $activeCount = 0;
+            // 채널별 실행 상태(정직). ★201차: 연결 채널은 AdAdapters 로 실제 캠페인을 PAUSED 생성.
+            //   - 자격증명 미연결 → pending_connection
+            //   - 연결됨 + 집행 게이트(AD_EXECUTION_ENABLED) OFF → ready(연결 완료, 집행 대기)
+            //   - 연결됨 + 게이트 ON → 매체에 PAUSED 캠페인 생성 시도 → active(external_id 저장) / connect_error
+            //   - Coupang 등 자동생성 미지원 → manual
+            $exec = []; $activeCount = 0; $dispatch = [];
+            $allocByCh = [];
+            foreach ($allocations as $a) { $allocByCh[(string)($a['channel'] ?? '')] = (int)($a['alloc'] ?? 0); }
             foreach ($channels as $ch) {
-                $connected = self::channelConnected($pdo, $tenant, $ch);
-                $exec[$ch] = $connected ? 'active' : 'pending_connection';
-                if ($connected) $activeCount++;
+                if (!self::channelConnected($pdo, $tenant, $ch)) { $exec[$ch] = 'pending_connection'; continue; }
+                $r = AdAdapters::createCampaign($pdo, $tenant, self::connectorKey($ch),
+                    ['name' => $name . ' · ' . $ch, 'budget' => $allocByCh[$ch] ?? 0, 'period' => $period]);
+                if (!empty($r['ok'])) { $exec[$ch] = 'active'; $dispatch[$ch] = (string)$r['external_id']; $activeCount++; }
+                elseif (($r['status'] ?? '') === 'execution_disabled') { $exec[$ch] = 'ready'; }
+                elseif (($r['status'] ?? '') === 'unsupported') { $exec[$ch] = 'manual'; }
+                elseif (($r['status'] ?? '') === 'no_credentials') { $exec[$ch] = 'pending_connection'; }
+                else { $exec[$ch] = 'connect_error'; }
             }
+            // 생성된 캠페인 external_id 를 allocations 에 병합(최적화 액추에이터가 사용).
+            foreach ($allocations as &$_a) { $cid = (string)($_a['channel'] ?? ''); if (isset($dispatch[$cid])) $_a['external_id'] = $dispatch[$cid]; }
+            unset($_a);
 
             // 연결된 AI 디자인 검증(본 테넌트 소유 + 존재만 통과)
             $validDesigns = [];
@@ -259,8 +272,14 @@ class AutoCampaign
         $channels = json_decode((string)($camp['channels'] ?? '[]'), true) ?: [];
         $budget = (int)($camp['budget'] ?? 0);
         $allocOld = json_decode((string)($camp['allocations'] ?? '[]'), true) ?: [];
-        $oldMap = [];
-        foreach ($allocOld as $a) { $oldMap[strtolower((string)($a['channel'] ?? ''))] = (float)($a['alloc'] ?? 0); }
+        $oldMap = []; $extIdMap = [];
+        foreach ($allocOld as $a) {
+            $ck = strtolower((string)($a['channel'] ?? ''));
+            $oldMap[$ck] = (float)($a['alloc'] ?? 0);
+            if (!empty($a['external_id'])) $extIdMap[$ck] = (string)$a['external_id'];
+        }
+        $period = (string)($camp['period'] ?? 'monthly');
+        $pdays = ['monthly' => 30, 'quarter' => 90, 'halfyear' => 180, 'annual' => 365][$period] ?? 30;
 
         $metrics = []; $anyData = false;
         foreach ($channels as $ch) {
@@ -289,7 +308,10 @@ class AutoCampaign
         $newAlloc = [];
         foreach ($channels as $ch) {
             $a = (int)(round($budget * $weights[$ch] / $totalW / 10000) * 10000);
-            $newAlloc[] = ['channel' => $ch, 'alloc' => $a, 'roas' => $metrics[$ch]['roas'], 'ctr' => $metrics[$ch]['ctr']];
+            $entry = ['channel' => $ch, 'alloc' => $a, 'roas' => $metrics[$ch]['roas'], 'ctr' => $metrics[$ch]['ctr']];
+            $ckLow = strtolower($ch);
+            if (isset($extIdMap[$ckLow])) $entry['external_id'] = $extIdMap[$ckLow]; // 액추에이터용 id 보존
+            $newAlloc[] = $entry;
             $old = $oldMap[strtolower($ch)] ?? 0;
             if ($weights[$ch] > 0 && abs($a - $old) >= 10000) {
                 $dir = $a > $old ? '증액' : '감액';
@@ -309,6 +331,23 @@ class AutoCampaign
                     ->execute([$tenant, (int)$camp['id'], $d['channel'], $d['action'], (int)($d['old'] ?? 0), (int)($d['new'] ?? 0), (string)($d['roas'] ?? ''), (string)($d['ctr'] ?? ''), mb_substr((string)$d['reason'], 0, 255), $now]);
             } catch (\Throwable $e) {}
         }
+        // ★201차 액추에이터: external_id 보유 채널은 매체에 실제 예산변경/정지 push(AD_EXECUTION_ENABLED ON 시).
+        //   게이트 OFF 또는 external_id 없으면 skip(DB 재배분만). 결과는 정직하게 actuated 표기.
+        foreach ($decisions as &$d) {
+            $ck = strtolower((string)($d['channel'] ?? ''));
+            $extId = $extIdMap[$ck] ?? '';
+            if ($extId === '') { $d['actuated'] = false; continue; }
+            $connKey = self::connectorKey((string)$d['channel']);
+            if (($d['action'] ?? '') === 'pause') {
+                $rr = AdAdapters::pause($pdo, $tenant, $connKey, $extId);
+            } else {
+                $daily = max(1000, (int)round(((int)($d['new'] ?? 0)) / max(1, $pdays) / 100) * 100);
+                $rr = AdAdapters::updateBudget($pdo, $tenant, $connKey, $extId, $daily);
+            }
+            $d['actuated'] = !empty($rr['ok']);
+        }
+        unset($d);
+
         return ['optimized' => true, 'allocations' => $newAlloc, 'decisions' => $decisions, 'metrics' => $metrics];
     }
 
