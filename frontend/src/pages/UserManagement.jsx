@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { useI18n } from '../i18n';
-import SubscriptionPricing from './SubscriptionPricing.jsx';
 
 import { useT } from '../i18n/index.js';
 const API = "/api";
@@ -11,13 +11,6 @@ const PLAN_COLORS = {
     growth: "#4f8ef7", pro: "#8b5cf6",
     enterprise: "#f59e0b", admin: "#ef4444",
 };
-const PERIODS = [
-    { months: 1, label: "Monthly (1개월)" },
-    { months: 3, label: "Quarter (3개월)" },
-    { months: 6, label: "Half-year (6개월)" },
-    { months: 12, label: "Annual (12개월)" },
-    { months: 24, label: "2년 (24개월)" },
-];
 const ALL_PERMS = [
     "read", "write", "marketing", "ops", "wms", "finance", "billing", "admin", "ai", "export",
 ];
@@ -147,6 +140,14 @@ function MembersTab() {
     const { data: rolesData } = useAdminApi("v423/admin/roles");
     const allRoles = rolesData?.roles || [];
 
+    // ★ 201차 통합: 플랜 목록을 PlanPricing(/admin/plan-pricing) 정본(v424/admin/plans)과 동기화.
+    //   판매 플랜(동적) + 시스템 플랜(free/demo/admin)을 합쳐 회원 배정에 사용 → 두 화면 플랜 집합 일치.
+    const { data: plansData } = useAdminApi("v424/admin/plans");
+    const planOptions = useMemo(() => {
+        const sellable = (plansData?.plans || []).map(p => p.plan_id).filter(Boolean);
+        return sellable.length ? [...new Set(["free", "demo", ...sellable, "admin"])] : PLANS;
+    }, [plansData]);
+
     const patch = async (path, body, method = "PATCH") => {
         const d = await adminPost(token, path, body, method);
         setMsg(d.message || (d.ok ? "✅ 저장 완료" : `❌ ${d.error}`));
@@ -168,7 +169,7 @@ function MembersTab() {
                 <input placeholder="Name/Email 검색..." value={q} onChange={e => { setQ(e.target.value); setPage(1) }} style={{ ...css.input, width: 220 }} />
                 <select value={filterPlan} onChange={e => { setFilterPlan(e.target.value); setPage(1) }} style={{ ...css.input, width: 130 }}>
                     <option value="">모든 플랜</option>
-                    {PLANS.map(p => <option key={p} value={p}>{p}</option>)}
+                    {planOptions.map(p => <option key={p} value={p}>{p}</option>)}
                 </select>
                 <button style={css.btn("primary")} onClick={() => setShow생성(true)}>+ 회원 추가</button>
                 {msg && <div style={{ fontSize: 12, color: msg.startsWith("✅") ? "#22c55e" : "#ef4444" }}>{msg}</div>}
@@ -192,7 +193,7 @@ function MembersTab() {
                         <div>
                             <label style={css.label}>plan</label>
                             <select style={css.input} value={createForm.plan} onChange={e => set생성Form(p => ({ ...p, plan: e.target.value }))}>
-                                {PLANS.map(p => <option key={p} value={p}>{p}</option>)}
+                                {planOptions.map(p => <option key={p} value={p}>{p}</option>)}
                             </select>
                         </div>
                     </div>
@@ -263,7 +264,7 @@ function MembersTab() {
                         <div>
                             <label style={css.label}>플랜 변경</label>
                             <select style={css.input} value={planEdit} onChange={e => setPlanEdit(e.target.value)}>
-                                {PLANS.map(p => <option key={p} value={p}>{p}</option>)}
+                                {planOptions.map(p => <option key={p} value={p}>{p}</option>)}
                             </select>
                             <button style={{ ...css.btn("primary"), marginTop: 8, width: "100%" }} onClick={() => patch(`v423/admin/users/${selected.id}/plan`, { plan: planEdit })}>
                                 플랜 변경 저장
@@ -298,129 +299,6 @@ function MembersTab() {
                         </div>
                     )}
                 </div>
-            )}
-        </div>
-    );
-}
-
-/* ─── TAB: 구독 요금제 관리 ──────────────────────────────────────────────────── */
-function PlanPricesTab() {
-    const t = useT();
-    const { token } = useAuth();
-    const { data, loading, refetch } = useAdminApi("v423/admin/plan-prices");
-    const [form, setForm] = useState({ plan_key: "pro", period_months: 1, price_usd: "", currency: "USD", discount_pct: 0, label_ko: "", label_en: "", paddle_price_id: "", is_active: 1 });
-    const [msg, setMsg] = useState("");
-
-    const save = async () => {
-        const d = await adminPost(token, "v423/admin/plan-prices", form);
-        setMsg(d.ok ? "✅ 저장 완료" : `❌ ${d.error}`);
-        if (d.ok) refetch();
-        setTimeout(() => setMsg(""), 3000);
-    };
-
-    const del = async (plan_key, period_months) => {
-        if (!confirm(`${plan_key} / ${period_months}개월 요금을 삭제할까요?`)) return;
-        const d = await adminDelete(token, `v423/admin/plan-prices/${plan_key}/${period_months}`);
-        if (d.ok) refetch();
-    };
-
-    const editRow = (row) => setForm({ ...row, is_active: row.is_active ? 1 : 0 });
-
-    const prices = data?.prices || [];
-    const groups = PLANS.filter(p => p !== "admin").map(pk => ({
-        plan: pk,
-        rows: prices.filter(r => r.plan_key === pk),
-    }));
-
-    return (
-        <div>
-            {/* Form */}
-            <div style={{ ...css.card, borderColor: "rgba(79,142,247,0.2)", marginBottom: 24 }}>
-                <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 14 }}>구독 요금제 등록 및 수정</div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 10, marginBottom: 10 }}>
-                    <div>
-                        <label style={css.label}>플랜</label>
-                        <select style={css.input} value={form.plan_key} onChange={e => setForm(p => ({ ...p, plan_key: e.target.value }))}>
-                            {PLANS.filter(p => p !== "admin").map(p => <option key={p} value={p}>{p}</option>)}
-                        </select>
-                    </div>
-                    <div>
-                        <label style={css.label}>{t('userMgmtPage.period', '기간')}</label>
-                        <select style={css.input} value={form.period_months} onChange={e => setForm(p => ({ ...p, period_months: +e.target.value }))}>
-                            {PERIODS.map(p => <option key={p.months} value={p.months}>{p.label}</option>)}
-                        </select>
-                    </div>
-                    <div>
-                        <label style={css.label}>Price (USD)</label>
-                        <input type="number" style={css.input} value={form.price_usd} onChange={e => setForm(p => ({ ...p, price_usd: e.target.value }))} />
-                    </div>
-                    <div>
-                        <label style={css.label}>할인율 (%)</label>
-                        <input type="number" style={css.input} value={form.discount_pct} onChange={e => setForm(p => ({ ...p, discount_pct: e.target.value }))} />
-                    </div>
-                    <div>
-                        <label style={css.label}>레이블 (한국어)</label>
-                        <input style={css.input} value={form.label_ko} onChange={e => setForm(p => ({ ...p, label_ko: e.target.value }))} />
-                    </div>
-                    <div>
-                        <label style={css.label}>레이블 (영어)</label>
-                        <input style={css.input} value={form.label_en} onChange={e => setForm(p => ({ ...p, label_en: e.target.value }))} />
-                    </div>
-                    <div>
-                        <label style={css.label}>{t('userMgmtPage.paddlePriceId', 'Paddle 가격 ID')}</label>
-                        <input style={css.input} value={form.paddle_price_id} onChange={e => setForm(p => ({ ...p, paddle_price_id: e.target.value }))} placeholder="pri_01xxx..." />
-                    </div>
-                    <div>
-                        <label style={css.label}>활성화</label>
-                        <select style={css.input} value={form.is_active} onChange={e => setForm(p => ({ ...p, is_active: +e.target.value }))}>
-                            <option value={1}>활성</option>
-                            <option value={0}>비활성</option>
-                        </select>
-                    </div>
-                </div>
-                <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-                    <button style={css.btn("primary")} onClick={save}>{t('save', '저장')}</button>
-                    {msg && <span style={{ fontSize: 12, color: msg.startsWith("✅") ? "#22c55e" : "#ef4444" }}>{msg}</span>}
-                </div>
-            </div>
-
-            {/* Price table */}
-            {loading ? <div style={{ color: "var(--text-3)", textAlign: "center", padding: 30 }}>로딩 중...</div> : (
-                groups.map(g => (
-                    <div key={g.plan} style={{ ...css.card, marginBottom: 14 }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
-                            <span style={css.badge(g.plan)}>{g.plan}</span>
-                            <span style={{ fontWeight: 700, fontSize: 13 }}>{t('userMgmtPage.pricingSettings', '가격 설정')}</span>
-                        </div>
-                        {g.rows.length === 0 ? (
-                            <div style={{ fontSize: 12, color: "var(--text-3)" }}>등록된 요금 없음</div>
-                        ) : (
-                            <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                                <thead>
-                                    <tr>{["Period", "레이블", "Price (USD)", "할인율", "Paddle ID", "Status", "Action"].map(h => <th key={h} style={css.th}>{h}</th>)}</tr>
-                                </thead>
-                                <tbody>
-                                    {g.rows.map(r => (
-                                        <tr key={r.period_months}>
-                                            <td style={css.td}>{PERIODS.find(p => p.months === r.period_months)?.label || `${r.period_months}개월`}</td>
-                                            <td style={css.td}>{r.label_ko || r.label_en || "—"}</td>
-                                            <td style={css.td}><strong style={{ color: "#22c55e" }}>${r.price_usd}</strong></td>
-                                            <td style={css.td}>{r.discount_pct > 0 ? <span style={{ color: "#f59e0b" }}>-{r.discount_pct}%</span> : "—"}</td>
-                                            <td style={css.td}><span style={{ fontSize: 10, color: "var(--text-3)" }}>{r.paddle_price_id || "미설정"}</span></td>
-                                            <td style={css.td}><span style={{ color: r.is_active ? "#22c55e" : "#ef4444", fontSize: 11, fontWeight: 700 }}>{r.is_active ? "활성" : "비활성"}</span></td>
-                                            <td style={css.td}>
-                                                <div style={{ display: "flex", gap: 6 }}>
-                                                    <button style={{ ...css.btn(), padding: "3px 10px", fontSize: 11 }} onClick={() => editRow(r)}>편집</button>
-                                                    <button style={{ ...css.btn("danger"), padding: "3px 10px", fontSize: 11 }} onClick={() => del(r.plan_key, r.period_months)}>{t('delete', '삭제')}</button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        )}
-                    </div>
-                ))
             )}
         </div>
     );
@@ -640,14 +518,14 @@ function AuditTab() {
 const TABS = [
     { id: "stats", label: "📊 대시보드" },
     { id: "members", label: "👥 회원 관리" },
-    { id: "tier", label: "💳 구독 요금제 관리" },
-    { id: "roles", label: "🔐 권한 관리" },
+    { id: "roles", label: "🔐 역할·권한(RBAC)" },
     { id: "billing", label: "💰 결제 내역" },
     { id: "audit", label: "📋 감사 로그" },
 ];
 
 export default function UserManagement() {
     const { user, token } = useAuth();
+    const navigate = useNavigate();
     const [tab, setTab] = useState("stats");
     const [mig완료, setMig완료] = useState(false);
     const [migMsg, setMigMsg] = useState("");
@@ -676,10 +554,12 @@ export default function UserManagement() {
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
                 <div>
                     <h1 style={{ margin: 0, fontSize: 22, fontWeight: 900, color: '#fff' }}>⚙️ 통합 관리자 패널</h1>
-                    <p style={{ margin: "4px 0 0", fontSize: 12, color: "var(--text-3)" }}>회원 · 구독 요금제 · 권한 · 결제 통합 관리 | 로그인: {user.email}</p>
+                    <p style={{ margin: "4px 0 0", fontSize: 12, color: "var(--text-3)" }}>회원 · 역할(RBAC) · 결제 · 감사 통합 관리 | 로그인: {user.email}</p>
                 </div>
                 <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
                     {migMsg && <span style={{ fontSize: 11, color: migMsg.startsWith("✅") ? "#22c55e" : "#ef4444" }}>{migMsg}</span>}
+                    {/* ★ 201차 통합: 요금제·플랜·쿠폰은 /admin/plan-pricing 단독 관리(정본). 중복 탭 제거 후 링크로 연결. */}
+                    <button style={{ ...css.btn(), fontSize: 11 }} onClick={() => navigate('/admin/plan-pricing')}>💳 요금제·플랜 설정 →</button>
                     {!mig완료 && <button style={{ ...css.btn(), fontSize: 11 }} onClick={runMigrate}>🔧 DB 마이그레이션</button>}
                 </div>
             </div>
@@ -696,7 +576,6 @@ export default function UserManagement() {
             {/* Tab content */}
             {tab === "stats" && <StatsTab />}
             {tab === "members" && <MembersTab />}
-            {tab === "tier" && <SubscriptionPricing />}
             {tab === "roles" && <RolesTab />}
             {tab === "billing" && <BillingTab />}
             {tab === "audit" && <AuditTab />}
