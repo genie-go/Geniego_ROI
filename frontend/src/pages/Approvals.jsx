@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { useSubtabPaintFix } from '../utils/subtabPaintFix';
 import { tGet, tSet, tRemove, tChannelName } from '../utils/tenantStorage.js'; // 180차: 회원 격리
 import { useI18n } from '../i18n';
 import { useCurrency } from '../contexts/CurrencyContext.jsx';
@@ -410,6 +411,7 @@ export default function Approvals() {
   const { isDemo } = useAuth();
   const { addAlert, alerts, activeRules, rulesFired } = useGlobalData();
   const [tab, setTab] = useState('queue');
+  useSubtabPaintFix(tab);
   const [requests, setRequests] = useState([]);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState('');
@@ -535,9 +537,9 @@ export default function Approvals() {
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: 2, background: 'var(--surface)', padding: '4px 4px 0', borderRadius: '12px 12px 0 0', border: '1px solid rgba(99,140,255,0.06)', borderBottom: 'none' }}>
+        <div className="gx-subtab-bar" style={{ display: 'flex', gap: 2, background: 'var(--surface)', padding: '4px 4px 0', borderRadius: '12px 12px 0 0', border: '1px solid rgba(99,140,255,0.06)', borderBottom: 'none' }}>
           {TABS.map(tb => (
-            <button key={tb.id} onClick={() => setTab(tb.id)} style={{
+            <button key={tb.id} className={tab === tb.id ? "gx-on" : ""} onClick={() => setTab(tb.id)} style={{
               flex: 1, padding: '10px 6px', border: 'none', cursor: 'pointer', textAlign: 'center', borderRadius: '8px 8px 0 0',
               background: tab === tb.id ? 'rgba(34,197,94,0.08)' : 'transparent',
               borderBottom: `2px solid ${tab === tb.id ? '#22c55e' : 'transparent'}`, transition: 'all 200ms' }}>

@@ -7125,3 +7125,38 @@ button.cs-inactive-tab {
 /* 187차 — hover 시 `[data-theme] tr:hover td{background:#f8f9fc!important}` 가 어두운 셀을 밝게 바꿔
    흰글자가 흰배경 위로 사라지는 것 방지. ID specificity(1,2,2) 로 글로벌(0,2,2) 을 이겨 어두운 배경 유지. */
 #genie-plan-pricing tr:hover td[data-gp="onColor"] { background:#4a5a78 !important; }
+
+/* ══════════════════════════════════════════════════════════════════════
+   통합 서브탭 (.gx-subtab-bar + .gx-subtab) — Performance / PnL / DataProduct
+   ① 높이 균형/축소: 탭 바를 고정 컴팩트 높이로 강제(flex-basis:auto 가
+      과대 계산되어 박스가 비정상적으로 높아지던 문제 차단) → 모든 탭 동일·컴팩트
+   ② 가시성: 밝은 테마(arctic_white/pearl_office)에서 활성 탭 글자가
+      레거시 흰글자 강제 규칙에 먹혀 안 보이던 문제를 어두운 글자로 복원.
+      다크 테마는 인라인 var(--text-1)(밝은 글자) 유지 — 미간섭.
+   ══════════════════════════════════════════════════════════════════════ */
+/* ★ 199차 핵심 교훈: 버튼에 display:flex 등 레이아웃을 강제하면(특히 투명 배경 비활성
+   탭) Chrome 초기 페인트가 글자를 건너뛰어 흰색처럼 안 보이는 페인트 무효화 버그 발생.
+   → 버튼 레이아웃은 건드리지 않고(원래 인라인 유지) "바"에서만 높이를 제어한다.
+   stretch 대신 center 로 버튼을 늘리지 않아 자연 높이 유지 = 페인트 정상.            */
+.gx-subtab-bar {
+  height: 58px !important;
+  min-height: 58px !important;
+  max-height: 58px !important;
+  flex: 0 0 auto !important;
+  align-items: center !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+}
+/* 밝은 테마 — 활성 탭 글자만 어둡게(레거시 흰글자 강제 격파). 비활성은 인라인
+   var(--text-2) 유지 → 정상 페인트(덮어쓰면 위 페인트 버그 재발). */
+[data-theme="arctic_white"] .container > div:last-child button.gx-on,
+[data-theme="arctic_white"] .container > div:last-child button.gx-on *,
+[data-theme="pearl_office"] .container > div:last-child button.gx-on,
+[data-theme="pearl_office"] .container > div:last-child button.gx-on *,
+[data-theme="arctic_white"] .card-glass button.gx-on,
+[data-theme="arctic_white"] .card-glass button.gx-on *,
+[data-theme="pearl_office"] .card-glass button.gx-on,
+[data-theme="pearl_office"] .card-glass button.gx-on * {
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+}

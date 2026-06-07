@@ -20,15 +20,15 @@ const secCheck = (v = '') => { for (const p of SEC_PATTERNS) { if (p.re.test(v))
 function SecurityOverlay({ threats, onDismiss, t }) {
     if (!threats.length) return null;
     return (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.9)', backdropFilter: 'blur(10px)', zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'fadeIn 0.2s ease-out' }}>
-            <div style={{ background: 'linear-gradient(145deg,#2a0a0a,#1a0000)', border: '1px solid rgba(239,68,68,0.5)', borderRadius: 24, padding: 32, maxWidth: 500, width: '90%', textAlign: 'center', boxShadow: '0 24px 64px rgba(239,68,68,0.2)' }}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.55)', backdropFilter: 'blur(8px)', zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'fadeIn 0.2s ease-out' }}>
+            <div style={{ background: '#ffffff', border: '1px solid rgba(239,68,68,0.4)', borderRadius: 24, padding: 32, maxWidth: 500, width: '90%', textAlign: 'center', boxShadow: '0 24px 64px rgba(239,68,68,0.18)' }}>
                 <div style={{ fontSize: 48, marginBottom: 12, animation: 'pulse 1.5s infinite' }}>🚨</div>
-                <div style={{ fontSize: 20, fontWeight: 900, color: '#ef4444', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 1 }}>{t('aiInsights.securityAlert', 'Security Threat Detected')}</div>
-                <div style={{ fontSize: 13, color: '#fca5a5', marginBottom: 24, lineHeight: 1.6 }}>{t('aiInsights.securityDesc', 'Malicious input pattern intercepted by AI Firewall.')}</div>
-                <div style={{ maxHeight: 150, overflowY: 'auto', background: 'rgba(239,68,68,0.1)', padding: 16, borderRadius: 12, border: '1px solid rgba(239,68,68,0.2)', marginBottom: 24 }}>
+                <div style={{ fontSize: 20, fontWeight: 900, color: '#dc2626', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 1 }}>{t('aiInsights.securityAlert', 'Security Threat Detected')}</div>
+                <div style={{ fontSize: 13, color: '#b91c1c', marginBottom: 24, lineHeight: 1.6 }}>{t('aiInsights.securityDesc', 'Malicious input pattern intercepted by AI Firewall.')}</div>
+                <div style={{ maxHeight: 150, overflowY: 'auto', background: 'rgba(239,68,68,0.06)', padding: 16, borderRadius: 12, border: '1px solid rgba(239,68,68,0.18)', marginBottom: 24 }}>
                     {threats.map((th, i) => (
-                        <div key={i} style={{ marginBottom: 8, fontSize: 12, color: '#fca5a5', textAlign: 'left', fontFamily: 'monospace' }}>
-                            <strong style={{ color: '#ef4444', background: 'rgba(239,68,68,0.2)', padding: '2px 6px', borderRadius: 4, marginRight: 8 }}>{th.type}</strong>
+                        <div key={i} style={{ marginBottom: 8, fontSize: 12, color: '#b91c1c', textAlign: 'left', fontFamily: 'monospace', wordBreak: 'break-all' }}>
+                            <strong style={{ color: '#dc2626', background: 'rgba(239,68,68,0.12)', padding: '2px 6px', borderRadius: 4, marginRight: 8 }}>{th.type}</strong>
                             {th.value.slice(0, 60)}…
                         </div>
                     ))}
@@ -41,9 +41,11 @@ function SecurityOverlay({ threats, onDismiss, t }) {
     );
 }
 
-/* ─── Constants ──────────────────── */
-const CARD = { borderRadius: 16, border: '1px solid rgba(168,85,247,0.15)', padding: 24, background: 'rgba(15,23,42,0.7)', backdropFilter: 'blur(16px)', boxShadow: '0 12px 32px rgba(0,0,0,0.15)' };
-const ACCENT = '#a855f7'; const BLUE = '#4f8ef7'; const GREEN = '#22c55e'; const RED = '#ef4444';
+/* ─── Constants (theme-aware: 글로벌 라이트/다크 테마 토큰을 따름) ──────────────────── */
+const CARD = { borderRadius: 16, border: '1px solid var(--border, #e5e7eb)', padding: 24, background: 'var(--surface, #ffffff)', boxShadow: '0 4px 16px rgba(15,23,42,0.06)' };
+const ACCENT = '#a855f7'; const BLUE = '#4f8ef7'; const GREEN = '#16a34a'; const RED = '#ef4444';
+const TXT1 = 'var(--text-1, #0f172a)'; const TXT2 = 'var(--text-2, #374151)'; const TXT3 = 'var(--text-3, #64748b)';
+const SURFACE2 = 'var(--surface-2, #f8fafc)'; const BORDER = 'var(--border, #e5e7eb)';
 
 /* ─── Channel Detection ─── */
 function useConnectedChannels() {
@@ -60,7 +62,7 @@ function useConnectedChannels() {
 /* ─── Insight Card ──────────────────── */
 const InsightCard = memo(function InsightCard({ icon, title, desc, severity = "info", actionBtn, t }) {
     const tr = t || ((k, f) => f);
-    const colors = { high: RED, mid: '#eab308', info: BLUE, good: GREEN };
+    const colors = { high: RED, mid: '#d97706', info: BLUE, good: GREEN };
     const col = colors[severity] || colors.info;
     const [executing, setExecuting] = useState(false);
 
@@ -70,12 +72,12 @@ const InsightCard = memo(function InsightCard({ icon, title, desc, severity = "i
     };
 
     return (
-        <div style={{ padding: '20px', borderRadius: 16, border: `1px solid ${col}30`, background: `linear-gradient(145deg, ${col}08, ${col}02)`, borderLeft: `4px solid ${col}`, boxShadow: `0 8px 24px ${col}08`, transition: 'transform 200ms', cursor: 'default' }} onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseLeave={e => e.currentTarget.style.transform = 'none'}>
+        <div style={{ padding: '20px', borderRadius: 16, border: `1px solid ${col}30`, background: `linear-gradient(145deg, ${col}0c, ${col}04)`, borderLeft: `4px solid ${col}`, boxShadow: `0 4px 16px ${col}10`, transition: 'transform 200ms', cursor: 'default', minWidth: 0 }} onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseLeave={e => e.currentTarget.style.transform = 'none'}>
             <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
-                <span style={{ fontSize: 26, background: `${col}15`, padding: 12, borderRadius: 12 }}>{icon}</span>
-                <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 800, fontSize: 14, color: col, marginBottom: 6, letterSpacing: 0.5 }}>{title}</div>
-                    <div style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6 }}>{desc}</div>
+                <span style={{ fontSize: 26, background: `${col}15`, padding: 12, borderRadius: 12, flexShrink: 0 }}>{icon}</span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 800, fontSize: 14, color: col, marginBottom: 6, letterSpacing: 0.3 }}>{title}</div>
+                    <div style={{ fontSize: 13, color: TXT2, lineHeight: 1.6, wordBreak: 'break-word' }}>{desc}</div>
                     {actionBtn && (
                         <div style={{ marginTop: 14, display: 'flex', justifyContent: 'flex-end' }}>
                             <button onClick={handleAction} disabled={executing} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 8, border: 'none', background: `linear-gradient(135deg, ${col}, ${col}dd)`, color: '#fff', fontWeight: 700, fontSize: 11, cursor: executing ? 'wait' : 'pointer', opacity: executing ? 0.7 : 1, transition: 'all 200ms', boxShadow: `0 4px 12px ${col}40` }}>
@@ -95,26 +97,26 @@ const ChatMsg = memo(function ChatMsg({ role, text, insight, loading, t }) {
     const isAI = role === 'ai';
     return (
         <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', justifyContent: isAI ? 'flex-start' : 'flex-end', animation: 'fadeInUp 0.3s ease-out' }}>
-            {isAI && <div style={{ width: 36, height: 36, borderRadius: 12, flexShrink: 0, background: 'linear-gradient(135deg,#a855f7,#4f8ef7)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, boxShadow: '0 8px 16px rgba(168,85,247,0.3)', border: '1px solid rgba(255,255,255,0.2)' }}>🤖</div>}
-            <div style={{ maxWidth: '80%', padding: '14px 18px', borderRadius: isAI ? '6px 18px 18px 18px' : '18px 6px 18px 18px', background: isAI ? 'rgba(15,23,42,0.8)' : 'linear-gradient(135deg,#4f8ef7,#3b82f6)', border: `1px solid ${isAI ? 'rgba(79,142,247,0.2)' : 'rgba(255,255,255,0.1)'}`, fontSize: 13, lineHeight: 1.7, color: isAI ? '#e2e8f0' : '#ffffff', boxShadow: '0 8px 24px rgba(0,0,0,0.1)' }}>
+            {isAI && <div style={{ width: 36, height: 36, borderRadius: 12, flexShrink: 0, background: 'linear-gradient(135deg,#a855f7,#4f8ef7)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, boxShadow: '0 8px 16px rgba(168,85,247,0.25)' }}>🤖</div>}
+            <div style={{ maxWidth: 'min(80%, 620px)', minWidth: 0, padding: '14px 18px', borderRadius: isAI ? '6px 18px 18px 18px' : '18px 6px 18px 18px', background: isAI ? SURFACE2 : 'linear-gradient(135deg,#4f8ef7,#3b82f6)', border: `1px solid ${isAI ? BORDER : 'rgba(255,255,255,0.1)'}`, fontSize: 13, lineHeight: 1.7, color: isAI ? TXT1 : '#ffffff', boxShadow: '0 4px 16px rgba(15,23,42,0.06)', wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
                 {loading ? (
-                    <div style={{ display: 'flex', gap: 6, alignItems: 'center', color: '#94a3b8' }}>
+                    <div style={{ display: 'flex', gap: 6, alignItems: 'center', color: TXT3 }}>
                         <span style={{ animation: 'pulse 1s infinite 0.4s' }} >●</span><span>●</span><span>●</span>
                         <span style={{ marginLeft: 8, fontSize: 12, fontWeight: 600 }}>{t('aiInsights.analyzing', 'AI Engine Architecting Insights...')}</span>
                     </div>
                 ) : (
                     <>
-                        <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(text.replace(/\n/g, '<br/>').replace(/\*\*(.*?)\*\*/g, '<strong style="color:#fff">$1</strong>')) }} />
-                        {insight?.bullets && <div style={{ marginTop: 12, display: 'flex', gap: 8, background: 'rgba(255,255,255,0.03)', padding: 12, borderRadius: 10, color: '#a855f7' }} >{insight.bullets.map((b, i) => <div key={i}><span>✦</span><span>{b}</span></div>)}</div>}
+                        <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(text.replace(/\n/g, '<br/>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')) }} />
+                        {insight?.bullets && insight.bullets.length > 0 && <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 6, background: 'rgba(168,85,247,0.06)', padding: 12, borderRadius: 10, color: isAI ? '#7c3aed' : '#ffffff' }} >{insight.bullets.map((b, i) => <div key={i} style={{ display: 'flex', gap: 8 }}><span>✦</span><span>{b}</span></div>)}</div>}
                         {insight?.recommendation && (
-                            <div style={{ marginTop: 12, padding: '10px 14px', borderRadius: 10, background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)', fontSize: 12, color: '#4ade80', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <div style={{ marginTop: 12, padding: '10px 14px', borderRadius: 10, background: 'rgba(22,163,74,0.08)', border: '1px solid rgba(22,163,74,0.25)', fontSize: 12, color: '#15803d', fontWeight: 600, display: 'flex', alignItems: 'flex-start', gap: 8 }}>
                                 💡 <span>{insight.recommendation}</span>
                             </div>
                         )}
                     </>
                 )}
             </div>
-            {!isAI && <div style={{ width: 36, height: 36, borderRadius: 12, flexShrink: 0, background: 'var(--surface-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, border: '1px solid var(--border)' }}>👤</div>}
+            {!isAI && <div style={{ width: 36, height: 36, borderRadius: 12, flexShrink: 0, background: SURFACE2, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, border: `1px solid ${BORDER}` }}>👤</div>}
         </div>
     );
 });
@@ -130,22 +132,22 @@ const InsightCardsTab = memo(function InsightCardsTab({ live, t, connectedChanne
 
     return (
         <div style={{ display: 'grid', gap: 18, animation: 'fadeIn 0.4s ease-out' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 20px', borderRadius: 12, background: 'linear-gradient(90deg, rgba(168,85,247,0.1), rgba(79,142,247,0.05))', border: '1px solid rgba(168,85,247,0.2)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap', padding: '12px 20px', borderRadius: 12, background: 'linear-gradient(90deg, rgba(168,85,247,0.08), rgba(79,142,247,0.04))', border: '1px solid rgba(168,85,247,0.18)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
                     <span style={{ fontSize: 18 }}>👁️‍🗨️</span>
-                    <span style={{ fontSize: 13, color: '#e2e8f0', fontWeight: 700 }}>{t("aiInsightsPage.realtimeGuardrails", "AI 실시간 가드레일")}</span>
+                    <span style={{ fontSize: 13, color: TXT1, fontWeight: 700 }}>{t("aiInsightsPage.realtimeGuardrails", "AI 실시간 가드레일")}</span>
                 </div>
                 {connectedChannels.length > 0 && (
                     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-                        <span style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8' }}>{t('aiInsights.connectedChannels', 'Sensors')}:</span>
+                        <span style={{ fontSize: 11, fontWeight: 700, color: TXT3 }}>{t('aiInsights.connectedChannels', 'Sensors')}:</span>
                         {connectedChannels.slice(0, 4).map(ch => (
-                            <span key={ch} style={{ fontSize: 10, padding: '3px 10px', borderRadius: 999, background: 'rgba(56,189,248,0.1)', color: '#38bdf8', fontWeight: 700, textTransform: 'capitalize', border: '1px solid rgba(56,189,248,0.3)' }}>{ch.replace(/_/g, ' ')}</span>
+                            <span key={ch} style={{ fontSize: 10, padding: '3px 10px', borderRadius: 999, background: 'rgba(2,132,199,0.08)', color: '#0369a1', fontWeight: 700, textTransform: 'capitalize', border: '1px solid rgba(2,132,199,0.25)' }}>{ch.replace(/_/g, ' ')}</span>
                         ))}
                     </div>
                 )}
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))', gap: 16 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16 }}>
                 {cards.map((c, i) => <InsightCard key={i} {...c} t={t} />)}
             </div>
         </div>
@@ -155,12 +157,11 @@ const InsightCardsTab = memo(function InsightCardsTab({ live, t, connectedChanne
 /* ═══════ TAB 2: Trend Summary & Predictions ═══════ */
 const TrendsTab = memo(function TrendsTab({ live, t, fmt }) {
     const KpiRow = ({ label, value, color, icon, trend }) => (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '14px 16px', background: 'rgba(255,255,255,0.02)', borderRadius: 12, border: '1px solid rgba(255,255,255,0.05)' }}>
-            <span style={{ fontSize: 20, width: 28, textAlign: 'center', background: color + '15', padding: 8, borderRadius: 10 }}>{icon}</span>
-            <div style={{ width: 150, fontSize: 12, color: 'var(--text-2)', fontWeight: 700 }}>{label}</div>
-            <div style={{ flex: 1 }} />
-            {trend && <div style={{ fontSize: 11, color: trend > 0 ? GREEN : RED, fontWeight: 800, marginRight: 12 }}>{trend > 0 ? '▲' : '▼'} {Math.abs(trend)}%</div>}
-            <div style={{ fontFamily: 'monospace', fontWeight: 800, fontSize: 16, color, letterSpacing: 0.5 }}>{value}</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 16px', background: SURFACE2, borderRadius: 12, border: `1px solid ${BORDER}` }}>
+            <span style={{ fontSize: 20, width: 28, textAlign: 'center', background: color + '15', padding: 8, borderRadius: 10, flexShrink: 0 }}>{icon}</span>
+            <div style={{ flex: 1, minWidth: 0, fontSize: 12, color: TXT2, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</div>
+            {trend ? <div style={{ fontSize: 11, color: trend > 0 ? GREEN : RED, fontWeight: 800, flexShrink: 0 }}>{trend > 0 ? '▲' : '▼'} {Math.abs(trend)}%</div> : null}
+            <div style={{ fontFamily: 'monospace', fontWeight: 800, fontSize: 16, color, letterSpacing: 0.3, flexShrink: 0 }}>{value}</div>
         </div>
     );
 
@@ -180,41 +181,41 @@ const TrendsTab = memo(function TrendsTab({ live, t, fmt }) {
     }, [live.roas]);
 
     return (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: 20, alignItems: 'start' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1.2fr)', gap: 20, alignItems: 'start' }}>
             <div style={CARD}>
-                <div style={{ fontSize: 15, fontWeight: 800, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ fontSize: 15, fontWeight: 800, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8, color: TXT1 }}>
                     <span style={{ color: BLUE }}>📊</span> {t('aiInsights.trendKpiTitle', 'Real-time Pulse')}
                 </div>
                 <div style={{ display: 'grid', gap: 10 }}>
                     <KpiRow icon="💰" label={t('aiInsights.trendRevenue', 'Gross Revenue')} value={fmt(live.grossRevenue)} color={BLUE} trend={12.4} />
                     <KpiRow icon="📈" label={t('aiInsights.blendedRoas', 'Blended ROAS')} value={(live.roas || 0).toFixed(2) + 'x'} color="#a855f7" trend={5.2} />
                     <KpiRow icon="🔥" label={t('aiInsights.trendProfit', 'Operating Profit')} value={fmt(live.operatingProfit)} color={live.operatingProfit >= 0 ? GREEN : RED} trend={-2.1} />
-                    <KpiRow icon="📣" label={t('aiInsights.trendAdSpend', 'Ad Spend')} value={fmt(live.adSpend)} color="#f97316" />
+                    <KpiRow icon="📣" label={t('aiInsights.trendAdSpend', 'Ad Spend')} value={fmt(live.adSpend)} color="#ea580c" />
                 </div>
             </div>
 
-            <div style={CARD}>
-                <div style={{ fontSize: 15, fontWeight: 800, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ ...CARD, minWidth: 0 }}>
+                <div style={{ fontSize: 15, fontWeight: 800, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8, color: TXT1 }}>
                     <span style={{ color: ACCENT }}>🔮</span> {t('aiInsights.forecastTitle', 'AI Predictive Forecast (ROAS)')}
                 </div>
                 <div style={{ width: '100%', height: 260 }}>
                     <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={FORECAST_DATA} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" vertical={false} />
-                            <XAxis dataKey="day" stroke="rgba(255,255,255,0.3)" fontSize={11} tickMargin={10} />
-                            <YAxis stroke="rgba(255,255,255,0.3)" fontSize={11} />
+                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(15,23,42,0.08)" vertical={false} />
+                            <XAxis dataKey="day" stroke="rgba(15,23,42,0.35)" fontSize={11} tickMargin={10} />
+                            <YAxis stroke="rgba(15,23,42,0.35)" fontSize={11} />
                             <RechartsTooltip
-                                contentStyle={{ background: 'rgba(15,23,42,0.9)', border: '1px solid rgba(99,140,255,0.3)', borderRadius: 8, boxShadow: '0 8px 24px rgba(0,0,0,0.5)' }}
-                                cursor={{ stroke: 'rgba(255,255,255,0.1)', strokeWidth: 2 }}
+                                contentStyle={{ background: '#ffffff', border: '1px solid rgba(99,140,255,0.25)', borderRadius: 8, boxShadow: '0 8px 24px rgba(15,23,42,0.12)', color: '#0f172a' }}
+                                cursor={{ stroke: 'rgba(15,23,42,0.12)', strokeWidth: 2 }}
                             />
                             <Line type="monotone" dataKey="roas" name="Actual ROAS" stroke="#4f8ef7" strokeWidth={3} dot={{ r: 4, fill: '#4f8ef7', strokeWidth: 2 }} activeDot={{ r: 8 }} />
                             <Line type="monotone" dataKey="pred" name="Predicted ROAS" stroke="#a855f7" strokeWidth={3} strokeDasharray="5 5" dot={{ r: 4, fill: '#a855f7', strokeWidth: 2 }} activeDot={{ r: 6 }} />
                         </LineChart>
                     </ResponsiveContainer>
                 </div>
-                <div style={{ fontSize: 11, color: '#94a3b8', textAlign: 'center', marginTop: 12, display: 'flex', justifyContent: 'center', gap: 16 }}>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: 6, width: 10, height: 3, background: '#4f8ef7' }} ><div /> {t('aiInsights.actualData', 'Actual Data')}</span>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: 6, width: 10, height: 3, borderTop: '2px dashed #a855f7' }} ><div /> {t('aiInsights.mlPrediction', 'ML Prediction')}</span>
+                <div style={{ fontSize: 11, color: TXT3, textAlign: 'center', marginTop: 12, display: 'flex', justifyContent: 'center', gap: 16 }}>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><span style={{ width: 14, height: 3, background: '#4f8ef7', borderRadius: 2 }} /> {t('aiInsights.actualData', 'Actual Data')}</span>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><span style={{ width: 14, height: 0, borderTop: '2px dashed #a855f7' }} /> {t('aiInsights.mlPrediction', 'ML Prediction')}</span>
                 </div>
             </div>
         </div>
@@ -266,14 +267,14 @@ const AIAssistantTab = memo(function AIAssistantTab({ t, safeguard }) {
     return (
         <div style={{ display: 'grid', gap: 16, height: '100%' }}>
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
-                <span style={{ fontSize: 11, color: '#94a3b8', fontWeight: 700, background: 'rgba(255,255,255,0.05)', padding: '6px 12px', borderRadius: 8 }}>{t('aiInsights.targetContext', 'Target Context')}:</span>
+                <span style={{ fontSize: 11, color: TXT3, fontWeight: 700, background: SURFACE2, padding: '6px 12px', borderRadius: 8, border: `1px solid ${BORDER}` }}>{t('aiInsights.targetContext', 'Target Context')}:</span>
                 {[['pnl', t('aiInsights.ctxPnl', 'Finance P&L')], ['roas', t('aiInsights.ctxRoas', 'ROAS Optimization')], ['returns', t('aiInsights.ctxReturns', 'Risk / Returns')]].map(([k, l]) => (
-                    <button key={k} onClick={() => setCtx(k)} style={{ padding: '6px 16px', borderRadius: 99, border: '1px solid', borderColor: ctx === k ? ACCENT : 'rgba(255,255,255,0.1)', background: ctx === k ? `${ACCENT}20` : 'transparent', color: ctx === k ? '#e9d5ff' : 'var(--text-3)', fontSize: 12, cursor: 'pointer', fontWeight: 700, transition: 'all 200ms' }}>{l}</button>
+                    <button key={k} onClick={() => setCtx(k)} style={{ padding: '6px 16px', borderRadius: 99, border: '1px solid', borderColor: ctx === k ? ACCENT : BORDER, background: ctx === k ? `${ACCENT}14` : 'transparent', color: ctx === k ? '#7c3aed' : TXT3, fontSize: 12, cursor: 'pointer', fontWeight: 700, transition: 'all 200ms' }}>{l}</button>
                 ))}
             </div>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 {quickQ.map((qq, i) => (
-                    <button key={i} onClick={() => sendMessage(qq.q, qq.ctx)} disabled={loading} style={{ padding: '8px 16px', borderRadius: 10, border: '1px solid rgba(99,140,255,0.3)', background: 'linear-gradient(180deg, rgba(99,140,255,0.1), rgba(99,140,255,0.02))', color: '#60a5fa', fontSize: 12, fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.5 : 1, transition: 'transform 100ms' }} onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.02)'} onMouseLeave={e => e.currentTarget.style.transform = 'none'}>{qq.q}</button>
+                    <button key={i} onClick={() => sendMessage(qq.q, qq.ctx)} disabled={loading} style={{ padding: '8px 16px', borderRadius: 10, border: '1px solid rgba(99,140,255,0.3)', background: 'linear-gradient(180deg, rgba(99,140,255,0.08), rgba(99,140,255,0.02))', color: '#2563eb', fontSize: 12, fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.5 : 1, transition: 'transform 100ms' }} onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.02)'} onMouseLeave={e => e.currentTarget.style.transform = 'none'}>{qq.q}</button>
                 ))}
             </div>
             <div style={{ ...CARD, flex: 1, minHeight: 400, padding: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
@@ -281,10 +282,10 @@ const AIAssistantTab = memo(function AIAssistantTab({ t, safeguard }) {
                     {messages.map((m, i) => <ChatMsg key={i} {...m} t={t} />)}
                     <div ref={bottomRef} />
                 </div>
-                <div style={{ padding: 16, background: 'rgba(0,0,0,0.2)', borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', gap: 12, alignItems: 'center' }}>
+                <div style={{ padding: 16, background: SURFACE2, borderTop: `1px solid ${BORDER}`, display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
                     <input value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && !loading && sendMessage()} placeholder={t('aiInsights.chatPlaceholder', "Enter a command (e.g. Rebalance performance-marketing budget)")} disabled={loading}
-                        style={{ flex: 1, padding: '14px 20px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(15,23,42,0.8)', color: '#fff', fontSize: 13, outline: 'none', transition: 'border-color 200ms' }} onFocus={e => e.currentTarget.style.borderColor = ACCENT} onBlur={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'} />
-                    <button onClick={() => sendMessage()} disabled={loading || !input.trim()} style={{ padding: '14px 28px', borderRadius: 12, border: 'none', background: loading ? '#475569' : `linear-gradient(135deg, ${ACCENT}, ${BLUE})`, color: '#fff', fontWeight: 800, fontSize: 13, cursor: loading ? 'not-allowed' : 'pointer', boxShadow: `0 8px 16px ${ACCENT}40`, transition: 'transform 150ms' }} onMouseEnter={e => !loading && (e.currentTarget.style.transform = 'scale(1.05)')} onMouseLeave={e => e.currentTarget.style.transform = 'none'}>
+                        style={{ flex: 1, minWidth: 200, padding: '14px 20px', borderRadius: 12, border: `1px solid ${BORDER}`, background: 'var(--surface, #ffffff)', color: TXT1, fontSize: 13, outline: 'none', transition: 'border-color 200ms' }} onFocus={e => e.currentTarget.style.borderColor = ACCENT} onBlur={e => e.currentTarget.style.borderColor = 'var(--border, #e5e7eb)'} />
+                    <button onClick={() => sendMessage()} disabled={loading || !input.trim()} style={{ padding: '14px 28px', borderRadius: 12, border: 'none', background: loading ? '#94a3b8' : `linear-gradient(135deg, ${ACCENT}, ${BLUE})`, color: '#fff', fontWeight: 800, fontSize: 13, cursor: loading ? 'not-allowed' : 'pointer', boxShadow: `0 8px 16px ${ACCENT}33`, transition: 'transform 150ms' }} onMouseEnter={e => !loading && (e.currentTarget.style.transform = 'scale(1.05)')} onMouseLeave={e => e.currentTarget.style.transform = 'none'}>
                         {loading ? t('aiInsights.processing', 'Processing...') : t('aiInsights.askAi', 'Ask AI')}
                     </button>
                 </div>
@@ -306,31 +307,31 @@ const HistoryTab = memo(function HistoryTab({ t }) {
         ]);
     }, []);
 
-    const ctxColor = { marketing: BLUE, pnl: GREEN, roas: '#f97316', returns: RED };
+    const ctxColor = { marketing: BLUE, pnl: GREEN, roas: '#ea580c', returns: RED };
     return (
         <div style={{ display: 'grid', gap: 16 }}>
-            <div style={{ ...CARD, padding: '16px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ fontSize: 16, fontWeight: 800, color: '#e2e8f0' }}>📋 {t('aiInsights.traceability', 'Insight Traceability')}</div>
-                <button style={{ fontSize: 12, padding: '8px 16px', borderRadius: 8, border: '1px solid rgba(168,85,247,0.3)', background: 'rgba(168,85,247,0.1)', color: '#d8b4fe', cursor: 'pointer', fontWeight: 700 }}>📥 {t('aiInsights.exportAuditCsv', 'Export Audit Log (CSV)')}</button>
+            <div style={{ ...CARD, padding: '16px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+                <div style={{ fontSize: 16, fontWeight: 800, color: TXT1 }}>📋 {t('aiInsights.traceability', 'Insight Traceability')}</div>
+                <button style={{ fontSize: 12, padding: '8px 16px', borderRadius: 8, border: '1px solid rgba(168,85,247,0.3)', background: 'rgba(168,85,247,0.08)', color: '#7c3aed', cursor: 'pointer', fontWeight: 700 }}>📥 {t('aiInsights.exportAuditCsv', 'Export Audit Log (CSV)')}</button>
             </div>
             {rows.length === 0 && (
-                <div style={{ ...CARD, padding: '48px 24px', textAlign: 'center', color: '#64748b' }}>
+                <div style={{ ...CARD, padding: '48px 24px', textAlign: 'center' }}>
                     <div style={{ fontSize: 32, marginBottom: 12 }}>🗂️</div>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: '#94a3b8' }}>{t('aiInsights.historyEmpty', 'No analysis history yet')}</div>
-                    <div style={{ fontSize: 12, marginTop: 6 }}>{t('aiInsights.historyEmptyDesc', 'Run an AI analysis from the AI Agency tab to build your traceability log.')}</div>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: TXT2 }}>{t('aiInsights.historyEmpty', 'No analysis history yet')}</div>
+                    <div style={{ fontSize: 12, marginTop: 6, color: TXT3 }}>{t('aiInsights.historyEmptyDesc', 'Run an AI analysis from the AI Agency tab to build your traceability log.')}</div>
                 </div>
             )}
             {rows.map(row => (
-                <div key={row.id} style={{ display: 'flex', gap: 20, padding: '20px 24px', borderRadius: 16, border: `1px solid ${(ctxColor[row.context] || BLUE)}22`, background: 'rgba(15,23,42,0.6)', borderLeft: `4px solid ${ctxColor[row.context] || BLUE}`, boxShadow: '0 8px 24px rgba(0,0,0,0.1)' }}>
-                    <div style={{ width: 140, flexShrink: 0, borderRight: '1px solid rgba(255,255,255,0.05)', paddingRight: 20 }}>
-                        <div style={{ fontSize: 11, fontWeight: 800, padding: '4px 10px', borderRadius: 6, background: (ctxColor[row.context] || BLUE) + '20', color: ctxColor[row.context] || BLUE, display: 'inline-block', marginBottom: 8, textTransform: 'uppercase' }}>{row.context}</div>
-                        <div style={{ fontSize: 11, color: '#64748b', marginBottom: 4 }}>{new Date(row.created_at).toLocaleDateString()}</div>
-                        <div style={{ fontSize: 10, color: '#475569', display: 'flex', alignItems: 'center', gap: 4 }}><span>🎟</span> {row.tokens_used} tok</div>
+                <div key={row.id} style={{ display: 'flex', gap: 20, padding: '20px 24px', borderRadius: 16, border: `1px solid ${(ctxColor[row.context] || BLUE)}22`, background: 'var(--surface, #ffffff)', borderLeft: `4px solid ${ctxColor[row.context] || BLUE}`, boxShadow: '0 4px 16px rgba(15,23,42,0.06)', flexWrap: 'wrap' }}>
+                    <div style={{ width: 140, flexShrink: 0, borderRight: `1px solid ${BORDER}`, paddingRight: 20 }}>
+                        <div style={{ fontSize: 11, fontWeight: 800, padding: '4px 10px', borderRadius: 6, background: (ctxColor[row.context] || BLUE) + '18', color: ctxColor[row.context] || BLUE, display: 'inline-block', marginBottom: 8, textTransform: 'uppercase' }}>{row.context}</div>
+                        <div style={{ fontSize: 11, color: TXT3, marginBottom: 4 }}>{new Date(row.created_at).toLocaleDateString()}</div>
+                        <div style={{ fontSize: 10, color: TXT3, display: 'flex', alignItems: 'center', gap: 4 }}><span>🎟</span> {row.tokens_used} tok</div>
                     </div>
-                    <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: 14, fontWeight: 800, marginBottom: 8, color: '#f8fafc' }}>{t('aiInsights.qPrefix', 'Q')}: {row.question}</div>
-                        <div style={{ fontSize: 13, color: '#cbd5e1', marginBottom: 12, lineHeight: 1.6 }}>{row.summary}</div>
-                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 12, padding: '6px 12px', borderRadius: 8, background: 'rgba(34,197,94,0.1)', color: '#4ade80', fontWeight: 700, border: '1px solid rgba(34,197,94,0.2)' }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 14, fontWeight: 800, marginBottom: 8, color: TXT1, wordBreak: 'break-word' }}>{t('aiInsights.qPrefix', 'Q')}: {row.question}</div>
+                        <div style={{ fontSize: 13, color: TXT2, marginBottom: 12, lineHeight: 1.6, wordBreak: 'break-word' }}>{row.summary}</div>
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 12, padding: '6px 12px', borderRadius: 8, background: 'rgba(22,163,74,0.08)', color: '#15803d', fontWeight: 700, border: '1px solid rgba(22,163,74,0.2)' }}>
                             💡 {t('aiInsights.actionTaken', 'Action Taken')}: {row.recommendation}
                         </div>
                     </div>
@@ -348,19 +349,19 @@ const GuideTab = memo(function GuideTab({ t }) {
         { icon: '🤖', name: t('aiInsights.tabAgency', 'AI Agency'), desc: t('aiInsights.guideAgencyDesc', 'Conversational interface for deep dive analysis and strategy execution.') },
     ];
     return (
-        <div style={{ display: 'grid', gap: 24, gridTemplateColumns: 'minmax(300px, 1fr) 2fr' }}>
-            <div style={{ ...CARD, background: `linear-gradient(145deg, ${ACCENT}15, transparent)`, borderColor: ACCENT + '40', textAlign: 'center', padding: 40 }}>
+        <div style={{ display: 'grid', gap: 24, gridTemplateColumns: 'minmax(280px, 1fr) minmax(0, 2fr)' }}>
+            <div style={{ ...CARD, background: `linear-gradient(145deg, ${ACCENT}12, var(--surface, #ffffff))`, borderColor: ACCENT + '30', textAlign: 'center', padding: 40 }}>
                 <div style={{ fontSize: 56, marginBottom: 16 }}>🧠</div>
-                <div style={{ fontWeight: 900, fontSize: 24, color: '#f8fafc', marginBottom: 8 }}>{t("aiInsightsPage.copilotEngine", "AI 코파일럿 엔진")}</div>
-                <div style={{ fontSize: 13, color: '#94a3b8', lineHeight: 1.6 }}>{t('aiInsights.copilotDesc', 'An enterprise-grade orchestration layer powered by deep learning. Automatically detects risks, forecasts constraints, and executes complex marketing adjustments at scale.')}</div>
+                <div style={{ fontWeight: 900, fontSize: 24, color: TXT1, marginBottom: 8 }}>{t("aiInsightsPage.copilotEngine", "AI 코파일럿 엔진")}</div>
+                <div style={{ fontSize: 13, color: TXT2, lineHeight: 1.6 }}>{t('aiInsights.copilotDesc', 'An enterprise-grade orchestration layer powered by deep learning. Automatically detects risks, forecasts constraints, and executes complex marketing adjustments at scale.')}</div>
             </div>
             <div style={{ display: 'grid', gap: 16 }}>
                 {sections.map((n, i) => (
                     <div key={i} style={{ ...CARD, padding: 24, display: 'flex', gap: 20, alignItems: 'center', transition: 'transform 200ms' }} onMouseEnter={e => e.currentTarget.style.transform = 'translateX(8px)'} onMouseLeave={e => e.currentTarget.style.transform = 'none'}>
-                        <div style={{ width: 56, height: 56, borderRadius: 16, background: `${BLUE}15`, color: BLUE, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28 }}>{n.icon}</div>
-                        <div>
-                            <div style={{ fontWeight: 800, fontSize: 16, color: '#f8fafc', marginBottom: 6 }}>{n.name}</div>
-                            <div style={{ fontSize: 13, color: '#94a3b8', lineHeight: 1.6 }}>{n.desc}</div>
+                        <div style={{ width: 56, height: 56, borderRadius: 16, background: `${BLUE}15`, color: BLUE, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, flexShrink: 0 }}>{n.icon}</div>
+                        <div style={{ minWidth: 0 }}>
+                            <div style={{ fontWeight: 800, fontSize: 16, color: TXT1, marginBottom: 6 }}>{n.name}</div>
+                            <div style={{ fontSize: 13, color: TXT2, lineHeight: 1.6 }}>{n.desc}</div>
                         </div>
                     </div>
                 ))}
@@ -419,55 +420,56 @@ export default function AIInsights() {
     ];
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', margin: '-14px -16px -20px', height: 'calc(100vh - 52px)', overflow: 'hidden', background: '#020617', fontFamily: "'Inter', sans-serif" }}>
+        <div style={{ display: 'flex', flexDirection: 'column', margin: '-14px -16px -20px', height: 'calc(100vh - 52px)', overflow: 'hidden', background: 'var(--bg, #f8fafc)', fontFamily: "'Inter', sans-serif" }}>
             <style>{`
                 @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.5; } }
                 @keyframes fadeInUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
                 @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
                 @keyframes spin { 100% { transform: rotate(360deg); } }
+                .aii-strong-fix strong { font-weight: 800; }
             `}</style>
 
             <SecurityOverlay threats={threats} onDismiss={() => setThreats([])} t={t} />
 
             <div style={{ flexShrink: 0, padding: '24px 32px 0', zIndex: 10 }}>
-                {/* Enterprise Hero Banner */}
-                <div style={{ position: 'relative', overflow: 'hidden', borderRadius: 24, background: 'linear-gradient(135deg, rgba(30,41,59,0.8), rgba(15,23,42,0.9))', border: '1px solid rgba(255,255,255,0.1)', marginBottom: 24, boxShadow: '0 24px 48px rgba(0,0,0,0.4)' }}>
-                    <div style={{ position: 'absolute', top: -100, right: -100, width: 300, height: 300, borderRadius: '50%', background: `radial-gradient(circle, ${ACCENT}30, transparent 70%)`, filter: 'blur(40px)', pointerEvents: 'none' }} />
-                    <div style={{ position: 'absolute', bottom: -50, left: 100, width: 250, height: 250, borderRadius: '50%', background: `radial-gradient(circle, ${BLUE}20, transparent 70%)`, filter: 'blur(30px)', pointerEvents: 'none' }} />
+                {/* Enterprise Hero Banner — 라이트 일관 */}
+                <div style={{ position: 'relative', overflow: 'hidden', borderRadius: 24, background: 'linear-gradient(135deg, #ffffff, var(--surface-2, #f8fafc))', border: `1px solid ${BORDER}`, marginBottom: 24, boxShadow: '0 8px 28px rgba(15,23,42,0.08)' }}>
+                    <div style={{ position: 'absolute', top: -100, right: -100, width: 300, height: 300, borderRadius: '50%', background: `radial-gradient(circle, ${ACCENT}1f, transparent 70%)`, filter: 'blur(40px)', pointerEvents: 'none' }} />
+                    <div style={{ position: 'absolute', bottom: -50, left: 100, width: 250, height: 250, borderRadius: '50%', background: `radial-gradient(circle, ${BLUE}14, transparent 70%)`, filter: 'blur(30px)', pointerEvents: 'none' }} />
 
                     <div style={{ position: 'relative', zIndex: 1, padding: 32, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 24 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-                            <div style={{ width: 72, height: 72, borderRadius: 20, background: `linear-gradient(135deg, ${ACCENT}, ${BLUE})`, display: 'flex', alignItems: 'center', justifyItems: 'center', fontSize: 36, boxShadow: `0 16px 32px ${ACCENT}40`, justifyContent: 'center' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 20, minWidth: 0 }}>
+                            <div style={{ width: 72, height: 72, borderRadius: 20, background: `linear-gradient(135deg, ${ACCENT}, ${BLUE})`, display: 'flex', alignItems: 'center', fontSize: 36, boxShadow: `0 16px 32px ${ACCENT}33`, justifyContent: 'center', flexShrink: 0 }}>
                                 🤖
                             </div>
-                            <div>
-                                <h1 style={{ margin: 0, fontSize: 28, fontWeight: 900, color: '#f8fafc', letterSpacing: -0.5 }}>{t("aiInsightsPage.enterpriseEngine", "엔터프라이즈 AI 엔진")}</h1>
-                                <p style={{ margin: '6px 0 0', fontSize: 14, color: '#94a3b8', maxWidth: 400, lineHeight: 1.5 }}>{t('aiInsights.heroSub', 'Autonomous orchestration, real-time predictive analytics, and automated decision-making.')}</p>
+                            <div style={{ minWidth: 0 }}>
+                                <h1 style={{ margin: 0, fontSize: 28, fontWeight: 900, color: TXT1, letterSpacing: -0.5 }}>{t("aiInsightsPage.enterpriseEngine", "엔터프라이즈 AI 엔진")}</h1>
+                                <p style={{ margin: '6px 0 0', fontSize: 14, color: TXT2, maxWidth: 460, lineHeight: 1.5 }}>{t('aiInsights.heroSub', 'Autonomous orchestration, real-time predictive analytics, and automated decision-making.')}</p>
                             </div>
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'flex-end' }}>
-                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 16px', borderRadius: 99, background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)', color: '#4ade80', fontSize: 12, fontWeight: 700 }}>
-                                <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#4ade80', animation: 'pulse 1.5s infinite' }} /> {t('aiInsights.modelActive', 'Model Active & Synchronized')}
+                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 16px', borderRadius: 99, background: 'rgba(22,163,74,0.08)', border: '1px solid rgba(22,163,74,0.25)', color: '#15803d', fontSize: 12, fontWeight: 700 }}>
+                                <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#16a34a', animation: 'pulse 1.5s infinite' }} /> {t('aiInsights.modelActive', 'Model Active & Synchronized')}
                             </div>
-                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 16px', borderRadius: 99, background: 'rgba(56,189,248,0.1)', border: '1px solid rgba(56,189,248,0.3)', color: '#38bdf8', fontSize: 12, fontWeight: 700 }}>
+                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 16px', borderRadius: 99, background: 'rgba(2,132,199,0.08)', border: '1px solid rgba(2,132,199,0.25)', color: '#0369a1', fontSize: 12, fontWeight: 700 }}>
                                 🔗 {connectedChannels.length || (IS_DEMO ? 12 : 0)} {t('aiInsights.channelsIntegrated', 'Channels Integrated')}
                             </div>
                         </div>
                     </div>
                 </div>
 
-                {/* Glassmorphism Tab Navigation */}
-                <div style={{ display: 'flex', gap: 4, background: 'rgba(30,41,59,0.5)', padding: 6, borderRadius: 16, border: '1px solid rgba(255,255,255,0.05)', backdropFilter: 'blur(10px)' }}>
+                {/* Tab Navigation — 라이트 */}
+                <div style={{ display: 'flex', gap: 4, background: SURFACE2, padding: 6, borderRadius: 16, border: `1px solid ${BORDER}`, flexWrap: 'wrap' }}>
                     {TABS.map(tb => (
                         <button key={tb.id} onClick={() => setTab(tb.id)} style={{
-                            flex: 1, padding: '12px', cursor: 'pointer', textAlign: 'center', borderRadius: 12,
-                            background: tab === tb.id ? `linear-gradient(180deg, ${ACCENT}30, ${ACCENT}10)` : 'transparent',
-                            color: tab === tb.id ? '#fff' : '#64748b', transition: 'all 200ms',
-                            boxShadow: tab === tb.id ? '0 4px 12px rgba(0,0,0,0.2)' : 'none',
-                            border: tab === tb.id ? `1px solid ${ACCENT}50` : '1px solid transparent'
+                            flex: '1 1 120px', padding: '12px', cursor: 'pointer', textAlign: 'center', borderRadius: 12,
+                            background: tab === tb.id ? `linear-gradient(180deg, ${ACCENT}1a, ${ACCENT}0a)` : 'transparent',
+                            color: tab === tb.id ? '#7c3aed' : TXT3, transition: 'all 200ms',
+                            boxShadow: tab === tb.id ? '0 4px 12px rgba(168,85,247,0.12)' : 'none',
+                            border: tab === tb.id ? `1px solid ${ACCENT}40` : '1px solid transparent'
                         }}>
                             <div style={{ fontSize: 14, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-                                <span style={{ opacity: tab === tb.id ? 1 : 0.5 }}>{tb.icon}</span> {tb.label}
+                                <span style={{ opacity: tab === tb.id ? 1 : 0.55 }}>{tb.icon}</span> {tb.label}
                             </div>
                         </button>
                     ))}
@@ -475,7 +477,7 @@ export default function AIInsights() {
             </div>
 
             {/* Tab Contents */}
-            <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '24px 32px', paddingBottom: 100 }}>
+            <div className="aii-strong-fix" style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '24px 32px', paddingBottom: 100 }}>
                 {tab === 'cards' && <InsightCardsTab live={live} t={t} connectedChannels={connectedChannels} />}
                 {tab === 'trends' && <TrendsTab live={live} t={t} fmt={fmt} />}
                 {tab === 'chat' && <AIAssistantTab t={t} safeguard={safeguard} />}

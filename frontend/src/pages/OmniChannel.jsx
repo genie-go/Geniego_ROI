@@ -263,9 +263,15 @@ function ProductsTab({ t }) {
 
     const load = React.useCallback(async () => {
         setLoading(true);
-        const data = await getJson(`/api/channel-sync/products?limit=100${channel ? '&channel=' + channel : ''}`);
-        setProducts(data.products || []);
-        setLoading(false);
+        try {
+            const data = await getJson(`/api/channel-sync/products?limit=100${channel ? '&channel=' + channel : ''}`);
+            setProducts(data.products || []);
+        } catch (e) {
+            console.warn('[OmniChannel] products load failed', e);
+            setProducts([]);
+        } finally {
+            setLoading(false);
+        }
     }, [channel]);
 
     React.useEffect(() => { load(); }, [load]);
@@ -348,9 +354,15 @@ function OrdersTab({ t }) {
         const qs = new URLSearchParams({ limit: '100' });
         if (channel) qs.set('channel', channel);
         if (statusFilter) qs.set('status', statusFilter);
-        const data = await getJson(`/api/channel-sync/orders?${qs}`);
-        setOrders(data.orders || []);
-        setLoading(false);
+        try {
+            const data = await getJson(`/api/channel-sync/orders?${qs}`);
+            setOrders(data.orders || []);
+        } catch (e) {
+            console.warn('[OmniChannel] orders load failed', e);
+            setOrders([]);
+        } finally {
+            setLoading(false);
+        }
     }, [channel, statusFilter, setOrders]);
 
     React.useEffect(() => { load(); }, [load]);
@@ -429,9 +441,15 @@ function InventoryTab({ t }) {
 
     const load = React.useCallback(async () => {
         setLoading(true);
-        const data = await getJson(`/api/channel-sync/inventory${channel ? '?channel=' + channel : ''}`);
-        setInv(data.inventory || []);
-        setLoading(false);
+        try {
+            const data = await getJson(`/api/channel-sync/inventory${channel ? '?channel=' + channel : ''}`);
+            setInv(data.inventory || []);
+        } catch (e) {
+            console.warn('[OmniChannel] inventory load failed', e);
+            setInv([]);
+        } finally {
+            setLoading(false);
+        }
     }, [channel]);
 
     React.useEffect(() => { load(); }, [load]);

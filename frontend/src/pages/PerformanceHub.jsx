@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef, memo } from "react";
+import { useSubtabPaintFix } from "../utils/subtabPaintFix";
 import { tChannelName } from '../utils/tenantStorage.js'; // 180차: 회원 격리 크로스탭
 import { useI18n } from "../i18n";
 import { useCurrency } from '../contexts/CurrencyContext.jsx';
@@ -1057,6 +1058,7 @@ export default function PerformanceHub() {
     const { addAlert, creators: ctxCreators = [] } = useGlobalData();
     const { connectedChannels = {}, connectedCount = 0 } = useConnectorSync?.() || {};
     const [tab, setTab] = useState("performance");
+    useSubtabPaintFix(tab);
     const [threats, setThreats] = useState([]);
     const [syncTick, setSyncTick] = useState(0);
     const bcRef = useRef(null);
@@ -1173,9 +1175,9 @@ export default function PerformanceHub() {
 
                 {/* Tab nav — sticky */}
                 <div className="card card-glass" style={{ padding: 0, overflow: "hidden", marginBottom: 0, borderRadius: "12px 12px 0 0" }}>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)" }}>
+                    <div className="gx-subtab-bar" style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)" }}>
                         {TABS.map(tb => (
-                            <button key={tb.id} onClick={() => setTab(tb.id)} style={{
+                            <button key={tb.id} className={tab === tb.id ? "gx-on" : ""} onClick={() => setTab(tb.id)} style={{
                                 padding: "14px 10px", border: "none", cursor: "pointer", textAlign: "left",
                                 background: tab === tb.id ? "rgba(168,85,247,0.1)" : "transparent",
                                 borderBottom: `2px solid ${tab === tb.id ? "#a855f7" : "transparent"}`,

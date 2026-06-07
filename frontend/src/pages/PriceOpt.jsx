@@ -129,6 +129,12 @@ function SummaryTab({ token }) {
         };
     }, [inventory, channelProductPrices]);
 
+    // 빈 상태 폴백: API 실패 + demoFallback 부재 시에도 무한 로딩 방지
+    const emptyState = useMemo(() => ({
+        products: 0, elasticity_pts: 0, recommendations: 0,
+        avg_margin: 0, avg_optimal_px: 0, by_channel: [], recent: [],
+    }), []);
+
     useEffect(() => {
         const ac = new AbortController();
         getJsonAuthAbortable(`/v420/price/summary`, ac.signal)
@@ -138,9 +144,12 @@ function SummaryTab({ token }) {
                 if ((!d.products || d.products === 0) && demoFallback) setData(demoFallback);
                 else setData(d);
             })
-            .catch(() => { if (demoFallback) setData(demoFallback); });
+            .catch(err => {
+                if (err?.name === 'AbortError') return;
+                setData(demoFallback || emptyState);
+            });
         return () => ac.abort();
-    }, [token, demoFallback]);
+    }, [token, demoFallback, emptyState]);
 
     const reload = () => {
         setData(null);
@@ -150,7 +159,7 @@ function SummaryTab({ token }) {
                 if ((!d.products || d.products === 0) && demoFallback) setData(demoFallback);
                 else setData(d);
             })
-            .catch(() => { if (demoFallback) setData(demoFallback); });
+            .catch(() => { setData(demoFallback || emptyState); });
     };
 
     if (!data) return <div className="sub" style={{ padding: 24 }}>{t("priceOpt.loading")}</div>;

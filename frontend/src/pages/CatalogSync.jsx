@@ -1677,7 +1677,7 @@ const PriceSyncTab = memo(function PriceSyncTab() {
 
     return (
         <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden", background: "#f8fafc" }}>
-            <div style={{ padding: "18px 24px 0", flexShrink: 0 }}>
+            <div style={{ padding: "18px 24px 24px", flex: 1, minHeight: 0, overflowY: "auto", display: "grid", gap: 16, alignContent: "start" }}>
                 {/* Global settings */}
                 <div style={{ background: "#ffffff", borderRadius: 14, border: "1px solid #e5e7eb", padding: 16 }}>
                     <div style={{ fontWeight: 700, fontSize: 12, color: "#6b7280", marginBottom: 12 }}>{t('catalogSync.tabPriceRules')}</div>

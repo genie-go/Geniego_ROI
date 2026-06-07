@@ -2332,7 +2332,7 @@ export default {
 
     },
     "heroTitle": "데이터 프로덕트",
-    "tabGuide": "가이드",
+    "tabGuide": "이용 가이드",
     "guideTitle": "데이터 프로덕트 운영 가이드",
     "guideSub": "데이터셋을 신뢰할 수 있는 데이터 프로덕트로 정의하고 게시·공유·운영하는 전 과정을 안내합니다.",
     "guideStepsTitle": "단계별 운영 가이드",
@@ -7087,6 +7087,25 @@ export default {
     "export": "내보내기",
 
     "channelsLinked": "개 채널 연동",
+
+    "pageTitle": "🚀 온보딩 가이드",
+    "pageSub": "단계별 플랫폼 설정과 역할별 시작 경로 안내",
+    "tabSteps": "📋 진행 단계",
+    "tabRoles": "🧭 역할별 경로",
+    "tabHelp": "❓ 도움말",
+    "kpiStepsDone": "완료 단계",
+    "kpiProgress": "진행률",
+    "kpiEstTime": "예상 소요",
+    "stepsTitle": "온보딩 단계",
+    "helpTitle": "도움이 필요하신가요?",
+    "helpDesc": "각 기능의 자세한 사용법은 이용 가이드에서 확인하거나, 우측 상단 도움말을 이용하세요.",
+    "stepDone": "완료",
+    "stepCurrent": "진행 중",
+    "roleMarketer": "마케터",
+    "roleCommerce": "커머스",
+    "roleFinance": "재무",
+    "roleOps": "운영",
+    "roleDev": "개발",
 
     "welcomeTitle": "Geniego-ROI에 오신 것을 환영합니다!",
 
@@ -20000,7 +20019,22 @@ export default {
 
     "modelAccuracy": "모델 정확도",
 
-    "noRules": "생성된 규칙이 없습니다."
+    "noRules": "생성된 규칙이 없습니다.",
+
+    "kpiActiveRules": "활성 규칙",
+    "kpiTriggeredToday": "오늘 트리거",
+    "kpiSuccessRate": "성공률",
+    "kpiAutoActions": "자동 실행",
+    "tabExecLog": "📜 실행 로그",
+    "execTime": "실행 시각",
+    "result": "결과",
+    "noLogs": "실행 로그가 없습니다.",
+    "createDesc": "조건(트리거)과 행동(액션)을 정의하면 AI가 규칙을 자동 실행·최적화합니다.",
+    "save": "저장",
+    "triggerPlaceholder": "예: ROAS < 2.0 이 3일 연속",
+    "actionPlaceholder": "예: 캠페인 예산 15% 증액",
+    "rulesEmptyHint": "운영 데이터가 연동되면 규칙이 여기에 표시됩니다.",
+    "samplesDemoOnly": "※ 샘플 데이터는 데모 환경에서만 표시됩니다."
 
   },
 
