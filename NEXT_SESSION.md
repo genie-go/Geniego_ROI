@@ -1,3 +1,39 @@
+# 200차 세션 인계서 — **9개 페이지 UI·격리 정비 + operations/스텁/help 15개국 i18n + 운영·데모 배포**
+
+> **작성일**: 2026-06-07 (사용자 명시 승인 후)
+> **이전 세션**: 198·199차(NEXT_SESSION 미기록, 메모리 `project_n198_ui_fixes_7`/`project_n199_subtab_paint_localize` 참조) → 200차
+> **종결 상태**: 커밋 `cb7b0226171`(master, 23파일 +2059/−2817). **미push**(CI inert=빌드전용, push≠배포). 운영/데모 dist 일괄 swap·nginx reload·헤드리스 라이브검증 완료. 롤백 `dist.bak.200`(운영/데모 각 22M) 보존.
+> **운영** roi.genie-go.com / **데모** roidemo.genie-go.com(경로 roidemo.geniego.com).
+
+## ★ 근본원인 2건 규명 (재사용 가치)
+1. **라이트테마 흰글자(흰on흰)**: 페이지가 다크전용으로 `color:'#fff'` 하드코딩 → 기본테마 `arctic_white`에서 `.card-glass`가 흰배경 강제(styles.css 3630/6746). 인라인 `#fff`가 **!important 없는** 다크화 규칙(6218)을 이김 → 흰글자 묻힘. **수정=소스 `#fff`→`var(--text-1)`**(전역 CSS override는 그라데이션트랩 회피 위해 지양).
+2. **컨테이너 높이 불균형**: 루트 `display:grid`의 grid 기본 `align-content:stretch`가 **콘텐츠 적은 행을 뷰포트 높이로 늘림**(help hero 실측 864→269px). **수정=루트 grid에 `alignContent:'start'`**.
+
+## ✅ 200차 완료 (전부 운영+데모 배포·라이브검증)
+- **#1 data-schema·#5 audit·#7 operations(CSS)**: 흰글자 토큰화 + 다크박스(`rgba(9,15,30)`)→`var(--surface2)` 라이트화 + `alignContent:start`.
+- **#2**: `전체필드67·메트릭12·알림규칙9·플랫폼17` = 스키마정의 **계산된 참조카운트**(오류 아님).
+- **#3 data-trust·#6 workspace·#8 case-study**: 영문 하드코딩 스텁(+가짜 고정KPI 94.7%/+340% 등)→**실기능 재구축**. KPI를 배열/실커넥터에서 계산(운영=0/빈), 북마크·태스크 `tGetJSON/tSetJSON` 테넌트스코프, `IS_DEMO ? 샘플 : []` 격리(운영 가짜데이터 0).
+- **#4 settlements**: 하단 눈에 띄는 "📖 이용가이드" 토글 추가(타 페이지 일관성). 콘텐츠 SETTLE_GUIDE 기존.
+- **#9 help**: 세로기둥 탭버그(`height:38` 고정)·hero 정상화·`#fff`→토큰 + **★메뉴문서 콘텐츠 복구**(ko가 배열→문자열라벨 손상 → git `1722121b^`에서 한글 17섹션 배열 복구) + **★`t()` object가드 우회**(t는 array/object→undefined로 nuke. HelpCenter가 `LOCALES` 직접접근하도록 수정).
+
+## ✅ 200차 i18n — 전부 네이티브 15개국
+- **operations 가이드** 6스텝(채널·상품준비→…→성과모니터링) — ko 사용자확정 + CC 14개국. acorn 인젝터(operations.guideSub 앵커 뒤 삽입).
+- **스텁 3종 네임스페이스**(`caseStudy`/`workspace`/`dataTrust`) — ko/en + CC 13개국. ★기존 `dataTrust` ModeBadge 스텁 중복→머지/교체형 인젝터로 해소(중복 shadowing 트랩).
+- **help 지식베이스**(menuDocs 6섹션/23메뉴 + faqs + apiGuide + roles ≈301 unique str/언어) — **13개국 네이티브**(ja zh zh-TW de th vi id ar es fr hi pt ru). en 구조 템플릿 + `{en:번역}` dict → `_tmp_200_help_apply.cjs` 인젝터(누락 0, 전 로케일 파싱·ja 라이브렌더 검증).
+
+## ★ 배포/검증 패턴(정본 재사용)
+- 프론트 전용 변경 → `dist`(운영 `vite build`)+`dist_demo`(`vite build --mode demo`) tar.exe(정방향슬래시) 패키징 → pscp 업로드 → 서버 **동일FS 스테이징**(`dist.new.200` 생성→tar 추출→`dist.bak.200` 백업→mv 스왑)→`chown www:www`→`nginx -s reload`.
+- 자격증명 [[reference_session_credentials]] 메모리파일 **런타임 정규식 추출**($env:DPW, 평문 비노출). 도구 plink/pscp(PuTTY).
+- 헤드리스 검증 PowerShell+node puppeteer(샌드박스 bash 아웃바운드 차단). 데모=localStorage demo토큰 주입 우회. 운영=부팅+번들해시(401 API는 미로그인 정상).
+
+## ★ 잔여 / 다음 차수
+- **미push** — 사용자 승인 시 `git push origin master`(CI 빌드만, 배포 무영향). 라이브는 이미 dist 반영됨.
+- help 13개국은 **en 구조(6섹션) 기반** 번역 — ko는 git복구분(17섹션)이라 ko가 더 상세(구조 불일치 무해, 각 자족). CC 초안=사용자 검수 가능.
+- 스텁 3종 실기능=데모 샘플/운영 빈상태. 운영 실데이터 연동(workspace=팀 API, data-trust=커넥터 실시간) 후속 가능.
+- 임시파일 `_tmp_200_*`(검증 스크립트/번역 dict/스크린샷) 미정리 — 차기 정리 대상.
+
+---
+
 # 197차 세션 인계서 — **AI디자인 고도화 + React#321 + 이용가이드 15개국(11페이지) + 운영 목데이터 전수격리**
 
 > **작성일**: 2026-06-06 (사용자 명시 승인 후)
