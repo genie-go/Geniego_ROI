@@ -144,7 +144,8 @@ final class Connectors
 
         $startDate    = (string)($q['start_date']    ?? date('Y-m-d', strtotime('-7 days')));
         $endDate      = (string)($q['end_date']      ?? date('Y-m-d'));
-        $advertiserId = (string)($q['advertiser_id'] ?? (getenv('TIKTOK_ADVERTISER_ID') ?: ''));
+        // ★ 201차: AdChannelConnect 가 'tiktok_business' 채널키로 저장 → DB 자격증명도 읽도록 폴백 추가.
+        $advertiserId = (string)($q['advertiser_id'] ?? (getenv('TIKTOK_ADVERTISER_ID') ?: self::loadCred($tenant, 'tiktok_business', 'advertiser_id')));
         $rawDims      = (string)($q['dimensions']    ?? 'STAT_TIME_DAY,PLACEMENT');
         $rawMetrics   = (string)($q['metrics']       ?? 'spend,clicks,impressions,reach,conversion,cost_per_conversion');
 
@@ -153,6 +154,9 @@ final class Connectors
         if ($accessToken === '') {
             $tokenRow = self::loadToken($tenant, 'tiktok');
             $accessToken = (string)($tokenRow['access_token'] ?? '');
+        }
+        if ($accessToken === '') {
+            $accessToken = (string)self::loadCred($tenant, 'tiktok_business', 'access_token');
         }
 
         $hasCreds = $accessToken !== '' && $advertiserId !== '';
@@ -869,9 +873,11 @@ final class Connectors
         $startDate = (string)($q['start_date'] ?? date('Ymd', strtotime('-7 days')));
         $endDate   = (string)($q['end_date']   ?? date('Ymd'));
 
-        $apiKey     = (string)(getenv('NAVER_API_KEY')     ?: self::loadCred($tenant, 'naver_searchad', 'api_key'));
-        $apiSecret  = (string)(getenv('NAVER_API_SECRET')  ?: self::loadCred($tenant, 'naver_searchad', 'api_secret'));
-        $customerId = (string)(getenv('NAVER_CUSTOMER_ID') ?: self::loadCred($tenant, 'naver_searchad', 'customer_id'));
+        // ★ 201차: 자격증명은 프론트(AutoMarketing/AdChannelConnect) 정본 채널키 'naver_sa' 로 저장됨.
+        //   기존 'naver_searchad' 조회는 불일치로 미독출 → 'naver_sa' 우선, 레거시 'naver_searchad' 폴백.
+        $apiKey     = (string)(getenv('NAVER_API_KEY')     ?: self::loadCred($tenant, 'naver_sa', 'api_key')     ?: self::loadCred($tenant, 'naver_searchad', 'api_key'));
+        $apiSecret  = (string)(getenv('NAVER_API_SECRET')  ?: self::loadCred($tenant, 'naver_sa', 'api_secret')  ?: self::loadCred($tenant, 'naver_searchad', 'api_secret'));
+        $customerId = (string)(getenv('NAVER_CUSTOMER_ID') ?: self::loadCred($tenant, 'naver_sa', 'customer_id') ?: self::loadCred($tenant, 'naver_searchad', 'customer_id'));
 
         if ($apiKey === '' || $apiSecret === '') {
             return TemplateResponder::respond($response, [
