@@ -129,24 +129,7 @@ class AutoCampaign
             //   - 연결됨 + 집행 게이트(AD_EXECUTION_ENABLED) OFF → ready(연결 완료, 집행 대기)
             //   - 연결됨 + 게이트 ON → 매체에 PAUSED 캠페인 생성 시도 → active(external_id 저장) / connect_error
             //   - Coupang 등 자동생성 미지원 → manual
-            $exec = []; $activeCount = 0; $dispatch = [];
-            $allocByCh = [];
-            foreach ($allocations as $a) { $allocByCh[(string)($a['channel'] ?? '')] = (int)($a['alloc'] ?? 0); }
-            foreach ($channels as $ch) {
-                if (!self::channelConnected($pdo, $tenant, $ch)) { $exec[$ch] = 'pending_connection'; continue; }
-                $r = AdAdapters::createCampaign($pdo, $tenant, self::connectorKey($ch),
-                    ['name' => $name . ' · ' . $ch, 'budget' => $allocByCh[$ch] ?? 0, 'period' => $period]);
-                if (!empty($r['ok'])) { $exec[$ch] = 'active'; $dispatch[$ch] = (string)$r['external_id']; $activeCount++; }
-                elseif (($r['status'] ?? '') === 'execution_disabled') { $exec[$ch] = 'ready'; }
-                elseif (($r['status'] ?? '') === 'unsupported') { $exec[$ch] = 'manual'; }
-                elseif (($r['status'] ?? '') === 'no_credentials') { $exec[$ch] = 'pending_connection'; }
-                else { $exec[$ch] = 'connect_error'; }
-            }
-            // 생성된 캠페인 external_id 를 allocations 에 병합(최적화 액추에이터가 사용).
-            foreach ($allocations as &$_a) { $cid = (string)($_a['channel'] ?? ''); if (isset($dispatch[$cid])) $_a['external_id'] = $dispatch[$cid]; }
-            unset($_a);
-
-            // 연결된 AI 디자인 검증(본 테넌트 소유 + 존재만 통과)
+            // 연결된 AI 디자인 검증(본 테넌트 소유 + 존재만 통과) — 딜리버리(ad) 크리에이티브 소스.
             $validDesigns = [];
             if (!empty($designIds)) {
                 $in = implode(',', array_fill(0, count($designIds), '?'));
@@ -156,6 +139,32 @@ class AutoCampaign
                     $validDesigns = array_map('intval', array_column($st->fetchAll(PDO::FETCH_ASSOC) ?: [], 'id'));
                 } catch (\Throwable $e) { $validDesigns = []; }
             }
+            $firstDesign = $validDesigns[0] ?? 0;
+            $landing = (string)($d['landing_url'] ?? '');   // 광고 랜딩 URL(미설정 시 어댑터가 기본값)
+
+            $exec = []; $activeCount = 0; $dispatch = []; $delivery = [];
+            $allocByCh = [];
+            foreach ($allocations as $a) { $allocByCh[(string)($a['channel'] ?? '')] = (int)($a['alloc'] ?? 0); }
+            foreach ($channels as $ch) {
+                if (!self::channelConnected($pdo, $tenant, $ch)) { $exec[$ch] = 'pending_connection'; continue; }
+                $connKey = self::connectorKey($ch);
+                $r = AdAdapters::createCampaign($pdo, $tenant, $connKey,
+                    ['name' => $name . ' · ' . $ch, 'budget' => $allocByCh[$ch] ?? 0, 'period' => $period]);
+                if (!empty($r['ok'])) {
+                    $exec[$ch] = 'active'; $dispatch[$ch] = (string)$r['external_id']; $activeCount++;
+                    // ★ 크리에이티브 레이어: 캠페인 하위 adset/adgroup + ad 생성(PAUSED).
+                    $daily = (int)round(($allocByCh[$ch] ?? 0) / max(1, (['monthly'=>30,'quarter'=>90,'halfyear'=>180,'annual'=>365][$period] ?? 30)));
+                    $dl = AdAdapters::buildDelivery($pdo, $tenant, $connKey, (string)$r['external_id'], $firstDesign, max(1000, $daily), $landing);
+                    $delivery[$ch] = ['ok' => !empty($dl['ok']), 'status' => $dl['status'] ?? ($dl['ok'] ? 'full' : 'failed'), 'note' => $dl['note'] ?? ($dl['error'] ?? '')];
+                }
+                elseif (($r['status'] ?? '') === 'execution_disabled') { $exec[$ch] = 'ready'; }
+                elseif (($r['status'] ?? '') === 'unsupported') { $exec[$ch] = 'manual'; }
+                elseif (($r['status'] ?? '') === 'no_credentials') { $exec[$ch] = 'pending_connection'; }
+                else { $exec[$ch] = 'connect_error'; }
+            }
+            // 생성된 캠페인 external_id 를 allocations 에 병합(최적화 액추에이터가 사용).
+            foreach ($allocations as &$_a) { $cid = (string)($_a['channel'] ?? ''); if (isset($dispatch[$cid])) $_a['external_id'] = $dispatch[$cid]; }
+            unset($_a);
 
             $now = gmdate('Y-m-d\TH:i:s\Z');
             $st = $pdo->prepare("INSERT INTO auto_campaign(tenant_id,name,category,budget,period,channels,allocations,design_ids,exec_status,est_roas,status,created_at,updated_at)
@@ -179,6 +188,7 @@ class AutoCampaign
                 'ok' => true,
                 'id' => $id,
                 'exec_status' => $exec,
+                'delivery' => $delivery,
                 'active_channels' => $activeCount,
                 'pending_channels' => $pendingCount,
                 'linked_designs' => count($validDesigns),

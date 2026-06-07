@@ -274,6 +274,159 @@ final class AdAdapters
         return ($code >= 200 && $code < 300) ? ['ok' => true] : ['ok' => false, 'error' => self::errMsg($res)];
     }
 
+    /* ════════════════════════ 크리에이티브/딜리버리 레이어 ════════════════════════ */
+
+    /** ad_design(AI 디자인) spec_json → 광고 카피 추출. svg 는 래스터화 필요(이미지 매체용). */
+    private static function loadDesign(PDO $pdo, string $tenant, int $designId): array
+    {
+        $out = ['headline' => 'GenieGo', 'copy' => '', 'subheadline' => '', 'cta' => 'LEARN_MORE', 'has_svg' => false];
+        if ($designId <= 0) return $out;
+        try {
+            $st = $pdo->prepare('SELECT spec_json, svg FROM ad_design WHERE tenant_id=? AND id=? LIMIT 1');
+            $st->execute([$tenant, $designId]);
+            $row = $st->fetch(PDO::FETCH_ASSOC);
+            if (!$row) return $out;
+            $spec = json_decode((string)($row['spec_json'] ?? '{}'), true) ?: [];
+            $out['headline']    = mb_substr((string)($spec['headline'] ?? $out['headline']), 0, 30);
+            $out['copy']        = mb_substr((string)($spec['copy'] ?? $spec['body'] ?? ''), 0, 90);
+            $out['subheadline'] = mb_substr((string)($spec['subheadline'] ?? ''), 0, 30);
+            $out['cta']         = (string)($spec['cta'] ?? 'LEARN_MORE');
+            $out['has_svg']     = !empty($row['svg']);
+        } catch (Throwable $e) {}
+        return $out;
+    }
+
+    /** 캠페인 하위 adset/adgroup + ad 생성(PAUSED). 매체별 딜리버리 완성 레이어. */
+    public static function buildDelivery(PDO $pdo, string $tenant, string $channel, string $campExtId, int $designId, int $daily, string $landing): array
+    {
+        if (!self::executionEnabled() || $campExtId === '') return ['ok' => false, 'status' => 'skipped'];
+        $d = self::loadDesign($pdo, $tenant, $designId);
+        if ($landing === '') $landing = 'https://roi.genie-go.com';
+        try {
+            switch ($channel) {
+                case 'google_ads':      return self::googleDeliver($pdo, $tenant, $campExtId, $d, $daily, $landing);
+                case 'naver_sa':        return self::naverDeliver($pdo, $tenant, $campExtId, $d, $daily, $landing);
+                case 'meta_ads':        return self::metaDeliver($pdo, $tenant, $campExtId, $d, $daily, $landing);
+                case 'tiktok_business': return self::tiktokDeliver($pdo, $tenant, $campExtId, $d, $daily);
+                default:                return ['ok' => false, 'status' => 'unsupported'];
+            }
+        } catch (Throwable $e) { return ['ok' => false, 'error' => $e->getMessage()]; }
+    }
+
+    /* ── Google: 광고그룹 + 반응형 검색광고(텍스트) — 완전 빌드 가능 ── */
+    private static function googleDeliver(PDO $pdo, string $tenant, string $campRes, array $d, int $daily, string $landing): array
+    {
+        $dev   = self::cred($pdo, $tenant, 'google_ads', 'developer_token');
+        $token = self::cred($pdo, $tenant, 'google_ads', 'access_token');
+        $cid   = preg_replace('/\D/', '', self::cred($pdo, $tenant, 'google_ads', 'customer_id'));
+        if ($dev === '' || $token === '' || $cid === '') return ['ok' => false, 'error' => 'no_credentials'];
+        $hdr = ['Authorization: Bearer ' . $token, 'developer-token: ' . $dev, 'Content-Type: application/json', 'login-customer-id: ' . $cid];
+        $base = "https://googleads.googleapis.com/" . self::GOOGLE_VER . "/customers/{$cid}";
+        // 1) 광고그룹
+        $agBody = json_encode(['operations' => [['create' => [
+            'name' => $d['headline'] . ' AG', 'campaign' => $campRes, 'status' => 'PAUSED',
+            'type' => 'SEARCH_STANDARD', 'cpcBidMicros' => (string)(max(100, (int)($daily / 50)) * 1000000),
+        ]]]]);
+        [$ac, $ar] = self::http('POST', "{$base}/adGroups:mutate", $hdr, $agBody);
+        $agRes = $ar['results'][0]['resourceName'] ?? '';
+        if ($agRes === '') return ['ok' => false, 'error' => 'adgroup: ' . (self::errMsg($ar) ?: ('HTTP ' . $ac))];
+        // 2) 반응형 검색광고(헤드라인 3+, 설명 2)
+        $h = array_values(array_filter([$d['headline'], $d['subheadline'] ?: ($d['headline'] . ' 지금'), 'GenieGo ROI']));
+        $desc = array_values(array_filter([$d['copy'] ?: '데이터 기반 마케팅 자동화', '최적 채널·예산으로 성과 극대화']));
+        $heads = array_map(fn($t) => ['text' => mb_substr($t, 0, 30)], array_slice($h, 0, 15));
+        while (count($heads) < 3) $heads[] = ['text' => 'GenieGo ' . (count($heads) + 1)];
+        $descs = array_map(fn($t) => ['text' => mb_substr($t, 0, 90)], array_slice($desc, 0, 4));
+        while (count($descs) < 2) $descs[] = ['text' => '지금 시작하세요'];
+        $adBody = json_encode(['operations' => [['create' => [
+            'adGroup' => $agRes, 'status' => 'PAUSED',
+            'ad' => ['finalUrls' => [$landing], 'responsiveSearchAd' => ['headlines' => $heads, 'descriptions' => $descs]],
+        ]]]]);
+        [$adc, $adr] = self::http('POST', "{$base}/adGroupAds:mutate", $hdr, $adBody);
+        $adRes = $adr['results'][0]['resourceName'] ?? '';
+        if ($adRes === '') return ['ok' => false, 'error' => 'ad: ' . (self::errMsg($adr) ?: ('HTTP ' . $adc))];
+        return ['ok' => true, 'adgroup_id' => $agRes, 'ad_id' => $adRes, 'note' => 'Google 광고그룹+RSA 생성(PAUSED)'];
+    }
+
+    /* ── Naver: 광고그룹 + 텍스트 광고. (비즈채널 ID 필요 — cred 'channel_id' 사용) ── */
+    private static function naverDeliver(PDO $pdo, string $tenant, string $campId, array $d, int $daily, string $landing): array
+    {
+        $chId = self::cred($pdo, $tenant, 'naver_sa', 'channel_id'); // 등록된 비즈채널(사이트) ID
+        if ($chId === '') return ['ok' => false, 'status' => 'needs_channel', 'note' => 'Naver 비즈채널(사이트) ID(channel_id) 등록 필요 — 광고그룹 생성 보류'];
+        // 1) 광고그룹
+        $agPath = '/ncc/adgroups';
+        $agHdr = self::naverHeaders($pdo, $tenant, 'POST', $agPath);
+        if ($agHdr === null) return ['ok' => false, 'error' => 'no_credentials'];
+        $agBody = json_encode(['nccCampaignId' => $campId, 'name' => mb_substr($d['headline'], 0, 30), 'pcChannelId' => $chId, 'mobileChannelId' => $chId, 'bidAmt' => max(70, (int)($daily / 100)), 'useDailyBudget' => false]);
+        [$ac, $ar] = self::http('POST', 'https://api.searchad.naver.com' . $agPath, $agHdr, $agBody);
+        $agId = $ar['nccAdgroupId'] ?? '';
+        if ($agId === '') return ['ok' => false, 'error' => 'adgroup: ' . (self::errMsg($ar) ?: ('HTTP ' . $ac))];
+        // 2) 텍스트 광고
+        $adPath = '/ncc/ads';
+        $adHdr = self::naverHeaders($pdo, $tenant, 'POST', $adPath);
+        $adBody = json_encode(['nccAdgroupId' => $agId, 'type' => 'TEXT_45', 'ad' => [
+            'headline' => mb_substr($d['headline'], 0, 15), 'description' => mb_substr($d['copy'] ?: $d['subheadline'] ?: 'GenieGo', 0, 45),
+            'pc' => ['final' => $landing], 'mobile' => ['final' => $landing],
+        ], 'userLock' => true]);
+        [$adc, $adr] = self::http('POST', 'https://api.searchad.naver.com' . $adPath, $adHdr, $adBody);
+        $adId = $adr['nccAdId'] ?? '';
+        if ($adId === '') return ['ok' => false, 'error' => 'ad: ' . (self::errMsg($adr) ?: ('HTTP ' . $adc))];
+        return ['ok' => true, 'adgroup_id' => $agId, 'ad_id' => $adId, 'note' => 'Naver 광고그룹+텍스트광고 생성(userLock)'];
+    }
+
+    /* ── Meta: 광고세트 + 광고. 이미지/페이지 필요(page_id cred + 래스터 이미지). ── */
+    private static function metaDeliver(PDO $pdo, string $tenant, string $campId, array $d, int $daily, string $landing): array
+    {
+        $token = self::cred($pdo, $tenant, 'meta_ads', 'access_token');
+        $acct  = self::cred($pdo, $tenant, 'meta_ads', 'ad_account_id');
+        $page  = self::cred($pdo, $tenant, 'meta_ads', 'page_id'); // 광고 게재용 Facebook 페이지 ID
+        if ($token === '' || $acct === '') return ['ok' => false, 'error' => 'no_credentials'];
+        if (strncmp($acct, 'act_', 4) !== 0) $acct = 'act_' . $acct;
+        $api = "https://graph.facebook.com/" . self::META_VER;
+        // 1) 광고세트(타깃 KR, 링크클릭 최적화, PAUSED)
+        $asBody = [
+            'name' => $d['headline'] . ' AdSet', 'campaign_id' => $campId, 'status' => 'PAUSED',
+            'billing_event' => 'IMPRESSIONS', 'optimization_goal' => 'LINK_CLICKS',
+            'bid_amount' => (string)max(100, (int)($daily / 100)),
+            'targeting' => json_encode(['geo_locations' => ['countries' => ['KR']]]),
+            'access_token' => $token,
+        ];
+        [$ac, $ar] = self::http('POST', "{$api}/{$acct}/adsets", ['Content-Type: application/x-www-form-urlencoded'], $asBody);
+        $asId = $ar['id'] ?? '';
+        if ($asId === '') return ['ok' => false, 'error' => 'adset: ' . (self::errMsg($ar) ?: ('HTTP ' . $ac))];
+        if ($page === '') return ['ok' => true, 'adset_id' => $asId, 'ad_id' => '', 'status' => 'partial',
+            'note' => 'Meta 광고세트 생성(PAUSED). 광고(ad) 생성은 page_id + 래스터 이미지(SVG 래스터화) 필요 — 자격증명에 page_id 추가 후 완성.'];
+        // 2) 크리에이티브 + 광고 (이미지 없이 링크 크리에이티브 — 이미지 래스터화는 후속)
+        $creative = json_encode(['object_story_spec' => ['page_id' => $page, 'link_data' => [
+            'message' => $d['copy'] ?: $d['headline'], 'link' => $landing, 'name' => $d['headline'], 'description' => $d['subheadline'],
+        ]]]);
+        [$cc, $cr] = self::http('POST', "{$api}/{$acct}/adcreatives", ['Content-Type: application/x-www-form-urlencoded'], ['name' => $d['headline'] . ' Creative', 'object_story_spec' => $creative, 'access_token' => $token]);
+        $crId = $cr['id'] ?? '';
+        if ($crId === '') return ['ok' => true, 'adset_id' => $asId, 'ad_id' => '', 'status' => 'partial', 'note' => 'Meta 광고세트 생성. 크리에이티브 실패(이미지 필요): ' . self::errMsg($cr)];
+        [$adc, $adr] = self::http('POST', "{$api}/{$acct}/ads", ['Content-Type: application/x-www-form-urlencoded'], ['name' => $d['headline'] . ' Ad', 'adset_id' => $asId, 'creative' => json_encode(['creative_id' => $crId]), 'status' => 'PAUSED', 'access_token' => $token]);
+        $adId = $adr['id'] ?? '';
+        if ($adId === '') return ['ok' => true, 'adset_id' => $asId, 'ad_id' => '', 'status' => 'partial', 'note' => 'Meta 광고세트+크리에이티브 생성. 광고 실패: ' . self::errMsg($adr)];
+        return ['ok' => true, 'adset_id' => $asId, 'ad_id' => $adId, 'note' => 'Meta 광고세트+광고 생성(PAUSED)'];
+    }
+
+    /* ── TikTok: 광고그룹 + 광고. 영상(video_id)·identity 필요. ── */
+    private static function tiktokDeliver(PDO $pdo, string $tenant, string $campId, array $d, int $daily): array
+    {
+        $token = self::cred($pdo, $tenant, 'tiktok_business', 'access_token');
+        $advId = self::cred($pdo, $tenant, 'tiktok_business', 'advertiser_id');
+        if ($token === '' || $advId === '') return ['ok' => false, 'error' => 'no_credentials'];
+        // 1) 광고그룹(예산·게재 KR, 정지)
+        $agBody = json_encode(['advertiser_id' => $advId, 'campaign_id' => $campId, 'adgroup_name' => $d['headline'] . ' AG',
+            'placement_type' => 'PLACEMENT_TYPE_AUTOMATIC', 'budget_mode' => 'BUDGET_MODE_DAY', 'budget' => $daily,
+            'optimization_goal' => 'CLICK', 'billing_event' => 'CPC', 'location_ids' => ['KR'], 'operation_status' => 'DISABLE',
+            'schedule_type' => 'SCHEDULE_FROM_NOW']);
+        [$ac, $ar] = self::http('POST', 'https://business-api.tiktok.com/open_api/v1.3/adgroup/create/', ['Access-Token: ' . $token, 'Content-Type: application/json'], $agBody);
+        $agId = $ar['data']['adgroup_id'] ?? '';
+        if ($agId === '') return ['ok' => false, 'error' => 'adgroup: ' . (($ar['message'] ?? '') ?: ('HTTP ' . $ac))];
+        // 2) 광고 — 영상 소재(video_id) + identity 필요. SVG 디자인은 영상 변환 필요 → 보류 정직 표기.
+        return ['ok' => true, 'adgroup_id' => $agId, 'ad_id' => '', 'status' => 'partial',
+            'note' => 'TikTok 광고그룹 생성(DISABLE). 광고(ad)는 영상 소재(video_id)+identity 업로드 필요 — 영상 소재 등록 후 완성.'];
+    }
+
     private static function errMsg($res): string
     {
         if (is_array($res)) {
