@@ -24,7 +24,7 @@ function Modal({title,onClose,children}) {
     <div onClick={onClose} style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.6)", backdropFilter:"blur(6px)", zIndex:300 }}/>
     <div style={{ position:"fixed", top:"50%", left:"50%", transform:"translate(-50%,-50%)", width:"min(680px,95vw)", maxHeight:"85vh", overflowY:"auto", background:"linear-gradient(180deg,var(--surface),#090f1e)", border:"1px solid rgba(99,140,255,0.2)", borderRadius:20, padding:28, zIndex:301, boxShadow:"0 24px 64px rgba(0,0,0,0.7)" }}>
       <div style={{ display:"flex", justifyContent:"space-between", marginBottom:20, alignItems:"center" }}>
-        <div style={{ fontWeight:800, fontSize:16, color: '#fff' }}>{title}</div>
+        <div style={{ fontWeight:800, fontSize:16, color: 'var(--text-1)' }}>{title}</div>
         <button onClick={onClose} style={{ background:"none", border:"none", cursor:"pointer", color:"var(--text-3)", fontSize:18 }}>{"\u2715"}</button>
       </div>
       {children}
@@ -389,7 +389,7 @@ function UsageGuide({t}) {
         <div style={{ background:"rgba(255,255,255,0.025)", border:"1px solid rgba(249,115,22,0.15)", borderRadius:16, padding:24 }}>
           <div style={{ textAlign:"center", marginBottom:20 }}>
             <div style={{ fontSize:40, marginBottom:8 }}>{"\u26a1"}</div>
-            <h2 style={{ fontSize:20, fontWeight:900, margin:"0 0 6px", color: '#fff' }}>{t("operations.guideTitle")}</h2>
+            <h2 style={{ fontSize:20, fontWeight:900, margin:"0 0 6px", color: 'var(--text-1)' }}>{t("operations.guideTitle")}</h2>
             <p style={{ color:'var(--text-3)', fontSize:12 }}>{t("operations.guideSub")}</p>
           </div>
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:20 }}>
@@ -458,7 +458,7 @@ export default function OperationsHub() {
   const [tab,setTab] = useState("promotions");
 
   return (
-    <div style={{ display:"grid", gap:16 }}>
+    <div style={{ display:"grid", gap:16, alignContent:"start" }}>
       <div className="hero fade-up" style={{ background:"linear-gradient(135deg,rgba(249,115,22,0.08),rgba(168,85,247,0.06))", borderColor:"rgba(249,115,22,0.15)" }}>
         <div className="hero-meta">
           <div className="hero-icon" style={{ background:"linear-gradient(135deg,rgba(249,115,22,0.25),rgba(168,85,247,0.15))" }}>{"\u26a1"}</div>

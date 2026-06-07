@@ -246,8 +246,8 @@ function SchemaTab({ t }) {
       <div style={{ fontSize: 12, color: "var(--text-2)", padding: "0 2px" }}>{s.desc}</div>
       {s.sections.map((sec, si) => (
         <div key={si} className="card card-glass" style={{ padding: 0, overflow: "hidden", borderLeft: `3px solid ${s.color}` }}>
-          <button onClick={() => setOpenSection(openSection === si ? null : si)} style={{ width: "100%", padding: "14px 18px", background: "none", border: "none", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", textAlign: "left", color: '#fff' }}>
-            <span style={{ fontWeight: 700, fontSize: 13, color: '#fff' }}>{sec.title}</span>
+          <button onClick={() => setOpenSection(openSection === si ? null : si)} style={{ width: "100%", padding: "14px 18px", background: "none", border: "none", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", textAlign: "left", color: 'var(--text-1)' }}>
+            <span style={{ fontWeight: 700, fontSize: 13, color: 'var(--text-1)' }}>{sec.title}</span>
             <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
               <span style={{ fontSize: 10, color: "var(--text-2)" }}>{sec.fields.length} {t('ds.fields')}</span>
               <span style={{ color: "var(--text-2)" }}>{openSection === si ? "▲" : "▼"}</span>
@@ -304,8 +304,8 @@ function PipelineTab({ t }) {
           <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 14, color: p.color }}>{p.icon} {p.step}</div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(280px,1fr))", gap: 12 }}>
             {p.items.map((item, ii) => (
-              <div key={ii} style={{ padding: "12px 14px", borderRadius: 10, background: "rgba(9,15,30,0.6)", border: "1px solid rgba(99,140,255,0.08)" }}>
-                <div style={{ fontWeight: 700, fontSize: 12, marginBottom: 5, color: '#fff' }}>{item.title}</div>
+              <div key={ii} style={{ padding: "12px 14px", borderRadius: 10, background: "var(--surface2, rgba(99,140,255,0.04))", border: "1px solid rgba(99,140,255,0.12)" }}>
+                <div style={{ fontWeight: 700, fontSize: 12, marginBottom: 5, color: 'var(--text-1)' }}>{item.title}</div>
                 <div style={{ fontSize: 11, color: "var(--text-2)", marginBottom: 8, lineHeight: 1.5 }}>{item.desc}</div>
                 <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>{item.tags.map(tg => <Tag key={tg} label={tg} color={p.color} />)}</div>
               </div>
@@ -314,7 +314,7 @@ function PipelineTab({ t }) {
         </div>
       ))}
       <div className="card card-glass" style={{ padding: 20 }}>
-        <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 14, color: '#fff' }}>🔄 {t('ds.dataFlowSummary')}</div>
+        <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 14, color: 'var(--text-1)' }}>🔄 {t('ds.dataFlowSummary')}</div>
         <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", fontSize: 11, fontWeight: 700 }}>
           {[
             [`📡 ${t('ds.flowPlatformApi')}`, "#4f8ef7"], ["→", null], [`⚙ ${t('ds.flowKafkaS3')}`, "#6366f1"], ["→", null],
@@ -344,7 +344,7 @@ function MetricsTab({ t }) {
         ))}
       </div>
       <div className="card card-glass" style={{ padding: 20 }}>
-        <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 14, color: '#fff' }}>📐 {t('ds.metricsCatalog')}</div>
+        <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 14, color: 'var(--text-1)' }}>📐 {t('ds.metricsCatalog')}</div>
         <div style={{ overflowX: "auto" }}>
           <table className="table">
             <thead><tr><th>{t('ds.domain')}</th><th>{t('ds.metric')}</th><th>{t('ds.formula')}</th><th>{t('ds.thType')}</th><th>{t('ds.unit')}</th><th>{t('ds.alertCondition')}</th></tr></thead>
@@ -352,7 +352,7 @@ function MetricsTab({ t }) {
               {METRICS.map((m, i) => (
                 <tr key={i}>
                   <td><Tag label={m.domain} color={DOMAIN_COLOR[m.domain]} /></td>
-                  <td style={{ fontWeight: 800, color: '#fff' }}>{m.name}</td>
+                  <td style={{ fontWeight: 800, color: 'var(--text-1)' }}>{m.name}</td>
                   <td><Code>{m.formula}</Code></td>
                   <td><Tag label={m.type} color={m.type === t('ds.typeDerived') ? "#6366f1" : "#14d9b0"} /></td>
                   <td style={{ fontFamily: "monospace", fontSize: 11, color: "var(--text-2)" }}>{m.unit}</td>
@@ -397,7 +397,7 @@ function AlertTab({ t }) {
         ))}
       </div>
       <div className="card card-glass" style={{ padding: 20 }}>
-        <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 14, color: '#fff' }}>📋 {t('ds.alertRuleCatalog')}</div>
+        <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 14, color: 'var(--text-1)' }}>📋 {t('ds.alertRuleCatalog')}</div>
         <div style={{ overflowX: "auto" }}>
           <table className="table" style={{ fontSize: 11 }}>
             <thead><tr><th>{t('ds.priority')}</th><th>{t('ds.triggerCondition')}</th><th>{t('ds.action')}</th><th>{t('ds.channel')}</th></tr></thead>
@@ -538,7 +538,7 @@ export default function DataSchema() {
   ];
 
   return (
-    <div style={{ display: "grid", gap: 16 }}>
+    <div style={{ display: "grid", gap: 16, alignContent: "start" }}>
       <SecurityOverlay reason={locked} onUnlock={() => setLocked(null)} t={t} />
       <div className="hero fade-up" style={{ background: "linear-gradient(135deg,rgba(99,102,241,0.07),rgba(20,217,176,0.04))", borderColor: "rgba(99,102,241,0.15)" }}>
         <div className="hero-meta">
@@ -565,7 +565,7 @@ export default function DataSchema() {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)" }}>
           {TABS.map(tb => (
             <button key={tb.id} onClick={() => setTab(tb.id)} style={{
-              padding: "14px 12px", border: "none", cursor: "pointer", textAlign: "left", color: '#fff',
+              padding: "14px 12px", border: "none", cursor: "pointer", textAlign: "left", color: 'var(--text-1)',
               background: tab === tb.id ? "rgba(99,102,241,0.1)" : "transparent",
               borderBottom: `2px solid ${tab === tb.id ? "#6366f1" : "transparent"}`, transition: "all 200ms" }}>
               <div style={{ fontSize: 13, fontWeight: 800, color: tab === tb.id ? "var(--text-1)" : "var(--text-2)" }}>{tb.label}</div>

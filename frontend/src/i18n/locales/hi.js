@@ -5372,632 +5372,10 @@ export default {
       dataSource: "Data Sources",
       menuProvides: "What this menu provides",
       menuCanDo: "What you can do",
-      menuDocs: [
-        {
-          section: "🏠 Home",
-          menus: [
-            {
-              icon: "⬡",
-              label: "Unified Dashboard",
-              path: "/dashboard",
-              desc: "The home screen showing sales, ads, inventory, and orders across all channels at a glance.",
-              how: [
-                "Displayed automatically after login.",
-                "Check top KPI cards (Revenue, Ad Spend, ROAS, Orders)",
-                "Channel performance table → identify problem channels",
-                "AI insight card → view auto-generated suggestions",
-                "Activity feed → real-time orders, alerts, settlements"
-              ],
-              roles: {
-                admin: "Monitor all KPIs and channel performance",
-                editor: "Check department performance",
-                viewer: "View only"
-              }
-            }
-          ]
-        },
-        {
-          section: "📣 Marketing & Ads",
-          menus: [
-            {
-              icon: "🚀",
-              label: "Marketing Automation AI",
-              path: "/auto-marketing",
-              desc: "AI auto-creates marketing strategies from monthly budget + product category.",
-              how: [
-                "Enter monthly budget",
-                "Select product category",
-                "Select ad channels",
-                "Click Generate AI Marketing Strategy",
-                "Preview budget allocation + estimated ROAS",
-                "Submit for Approval",
-                "Admin approves or rejects"
-              ],
-              roles: {
-                admin: "Approve/reject campaigns",
-                editor: "Create campaigns",
-                viewer: "View list only"
-              }
-            },
-            {
-              icon: "📣",
-              label: "Ad Analytics",
-              path: "/marketing",
-              desc: "Analyze ad spend, ROAS, CTR, CPC by channel and let AI suggest improvements.",
-              how: [
-                "Check top KPIs",
-                "Compare channels in table",
-                "Click AI analysis → suggestions",
-                "Check creator ROI in Influencer tab"
-              ],
-              roles: {
-                admin: "Manage all channel ads",
-                editor: "Edit ad settings",
-                viewer: "View only"
-              }
-            },
-            {
-              icon: "💰",
-              label: "Budget Planner",
-              path: "/budget-planner",
-              desc: "Plan ad budgets by channel and campaign, track real-time burn rates.",
-              how: [
-                "Set monthly total budget",
-                "Allocate budget per channel",
-                "Check burn rate",
-                "Download budget report"
-              ],
-              roles: {
-                admin: "Approve budgets",
-                editor: "Enter plans",
-                viewer: "View only"
-              }
-            },
-            {
-              icon: "🤝",
-              label: "Influencer Management",
-              path: "/influencer",
-              desc: "Evaluate ROI, conversions, and engagement per creator.",
-              how: [
-                "Check performance metrics",
-                "Click AI Evaluation",
-                "Check fee recommendations",
-                "Apply contract renewal"
-              ],
-              roles: {
-                admin: "Fee approval and contract management",
-                editor: "Enter creator data",
-                viewer: "View only"
-              }
-            },
-            {
-              icon: "🎯",
-              label: "Campaign Manager",
-              path: "/campaign-manager",
-              desc: "Unified management of ad campaign creation, editing, and status tracking.",
-              how: [
-                "Create campaign",
-                "Set goal and budget",
-                "Create ad sets per channel",
-                "Manage campaign status"
-              ],
-              roles: {
-                admin: "Approve campaigns",
-                editor: "Create and edit",
-                viewer: "View only"
-              }
-            },
-            {
-              icon: "📆",
-              label: "Content Calendar",
-              path: "/content-calendar",
-              desc: "Plan and manage SNS posts, ad creatives, and event schedules in calendar format.",
-              how: [
-                "Click a date in monthly calendar",
-                "Enter post title, channel, assignee, status",
-                "Drag and drop to reschedule",
-                "Check color-coded channels"
-              ],
-              roles: {
-                admin: "Final schedule approval",
-                editor: "Register and edit",
-                viewer: "View only"
-              }
-            },
-            {
-              icon: "🔗",
-              label: "Attribution Analysis",
-              path: "/attribution",
-              desc: "Analyze the contribution ratio of each channel to purchase conversions.",
-              how: [
-                "Select attribution model",
-                "Check channel contribution %",
-                "View attribution path visualization",
-                "Compare models"
-              ],
-              roles: {
-                admin: "Set models",
-                editor: "View and analyze",
-                viewer: "View only"
-              }
-            },
-            {
-              icon: "🤖",
-              label: "AI Marketing Hub",
-              path: "/ai-marketing-hub",
-              desc: "An integrated AI marketing analytics hub that auto-evaluates ad performance across Meta, Google, TikTok, Naver, and Kakao, and recommends budget reallocation and improvement strategies.",
-              how: [
-                "Check top KPIs (Ad Spend, ROAS, Conversions)",
-                "Review AI channel grade table (A~F scores)",
-                "Click 'Run AI Analysis' → strengths/weaknesses/actions per channel",
-                "Check budget reallocation recommendations"
-              ],
-              roles: {
-                admin: "Final budget decisions",
-                editor: "Run AI analysis and view results",
-                viewer: "View results only"
-              }
-            },
-            {
-              icon: "🧩",
-              label: "AI Recommend Engine",
-              path: "/ai-recommend",
-              desc: "An AI-powered recommendation engine that auto-generates personalized recommendations for products, content, and channels, and suggests optimal marketing strategies per channel.",
-              how: [
-                "Input category, budget, target",
-                "Click 'Run AI Recommendations'",
-                "Review recommended channels, products, content formats",
-                "Check recommendation rationale",
-                "Apply strategy to Campaign Manager"
-              ],
-              roles: {
-                admin: "Set recommendation policies",
-                editor: "Run AI recommendations and view results",
-                viewer: "View results only"
-              }
-            }
-          ]
-        },
-        {
-          section: "🛒 Commerce & Logistics",
-          menus: [
-            {
-              icon: "🌐",
-              label: "Multi-channel Commerce",
-              path: "/omni-channel",
-              desc: "Manage inventory, orders, and prices across Coupang, Naver SmartStore, 11St, Amazon from one place.",
-              how: [
-                "Check connection status",
-                "Inventory sync across channels",
-                "Bulk price change",
-                "Order processing"
-              ],
-              roles: {
-                admin: "Set channel connections",
-                editor: "Manage inventory/orders/prices",
-                viewer: "View only"
-              }
-            },
-            {
-              icon: "🏭",
-              label: "WMS Warehouse & Logistics",
-              path: "/wms-manager",
-              desc: "Unified management of warehouse receiving, shipping, inventory, picking/packing, returns.",
-              how: [
-                "Receiving: register receipt",
-                "Shipping: check picking list",
-                "Inventory: view by SKU",
-                "Stock adjustment after count"
-              ],
-              roles: {
-                admin: "Set inventory policies",
-                editor: "Process receiving/shipping",
-                viewer: "View only"
-              }
-            },
-            {
-              icon: "📦",
-              label: "Order Hub",
-              path: "/order-hub",
-              desc: "View and manage orders from all sales channels in one place.",
-              how: [
-                "Check unprocessed orders",
-                "Click order → view details",
-                "Update processing status",
-                "Handle returns/exchanges"
-              ],
-              roles: {
-                admin: "Set return policies",
-                editor: "Process orders",
-                viewer: "View only"
-              }
-            },
-            {
-              icon: "📂",
-              label: "Product Catalog",
-              path: "/catalog-sync",
-              desc: "Register product information and sync it across channels.",
-              how: [
-                "Register product",
-                "Enter name/category/cost/price/image",
-                "Set visibility per channel",
-                "Sync with Sync button"
-              ],
-              roles: {
-                admin: "Manage catalog policies",
-                editor: "Register and edit",
-                viewer: "View only"
-              }
-            }
-          ]
-        },
-        {
-          section: "📊 Analytics & Performance",
-          menus: [
-            {
-              icon: "📊",
-              label: "Performance Hub",
-              path: "/performance",
-              desc: "Comprehensive analysis of overall sales, ads, and influencer performance.",
-              how: [
-                "Select time filter",
-                "Compare KPI cards by channel",
-                "Request AI analysis",
-                "Download performance reports"
-              ],
-              roles: {
-                admin: "Full performance review",
-                editor: "Analyze data",
-                viewer: "View only"
-              }
-            },
-            {
-              icon: "🌊",
-              label: "P&L Analysis",
-              path: "/pnl",
-              desc: "Analyze net profit after deducting costs from channel sales.",
-              how: [
-                "Monthly P&L table",
-                "Compare margin rates by channel",
-                "Break down costs",
-                "Identify trends in graph"
-              ],
-              roles: {
-                admin: "Manage P&L data",
-                editor: "Enter cost data",
-                viewer: "View only"
-              }
-            },
-            {
-              icon: "🤖",
-              label: "AI Insights",
-              path: "/ai-insights",
-              desc: "Claude AI analyzes marketing, inventory, and channel data to provide actionable insights.",
-              how: [
-                "Enter a question",
-                "Select data context",
-                "Click Start AI Analysis",
-                "Check summary, insights, recommended actions",
-                "Review past insights"
-              ],
-              roles: {
-                admin: "Set AI analysis policies",
-                editor: "Ask AI questions",
-                viewer: "View results only"
-              }
-            },
-            {
-              icon: "📋",
-              label: "Report Builder",
-              path: "/report-builder",
-              desc: "Create custom reports and download as Excel/PDF.",
-              how: [
-                "Select report type",
-                "Set date range and filters",
-                "Click Generate Report",
-                "Download as Excel/PDF"
-              ],
-              roles: {
-                admin: "Set up report sharing",
-                editor: "Generate and download",
-                viewer: "View shared reports only"
-              }
-            }
-          ]
-        },
-        {
-          section: "🔌 Data & Integrations",
-          menus: [
-            {
-              icon: "🔌",
-              label: "Channel Connectors",
-              path: "/connectors",
-              desc: "Connect APIs for 30+ ad and sales channels including Meta, Google, Naver, Coupang, TikTok.",
-              how: [
-                "Click 'Connect' on channel card",
-                "Authenticate with API key or OAuth login",
-                "Run connection test",
-                "Set sync frequency (real-time/1hr/1day)"
-              ],
-              roles: {
-                admin: "Approve channel connections and manage API keys",
-                editor: "Set up channel connections",
-                viewer: "View connection status only"
-              }
-            },
-            {
-              icon: "🔑",
-              label: "API Keys",
-              path: "/api-keys",
-              desc: "Register and manage API authentication keys for external services like ad channels, AI, and logistics.",
-              how: [
-                "Click 'Add New API Key'",
-                "Select service (e.g., Meta Ads, Claude AI, Naver Ads)",
-                "Paste API key value",
-                "Set expiration date and save",
-                "Run connection test to verify"
-              ],
-              roles: {
-                admin: "Manage all API keys (add/delete/renew)",
-                editor: "Manage keys for assigned channels",
-                viewer: "View key list only"
-              }
-            }
-          ]
-        },
-        {
-          section: "⚙ System & Admin",
-          menus: [
-            {
-              icon: "👥",
-              label: "User Management",
-              path: "/user-management",
-              desc: "Add users and set role-based access permissions (Admin, Editor, Viewer, ).",
-              how: [
-                "Click 'Add User' → enter email and name",
-                "Select role: Admin/Editor/Viewer/",
-                "Save → invitation email sent automatically",
-                "Change permissions: click user → edit role",
-                "Deactivate: mark departed user as inactive"
-              ],
-              roles: {
-                admin: "Full user management rights (exclusive)",
-                editor: "Not available",
-                viewer: "Not available"
-              }
-            },
-            {
-              icon: "🧾",
-              label: "Audit Logs",
-              path: "/audit",
-              desc: "Track access, data changes, and deletion history for all users.",
-              how: [
-                "Filter by date, user, action type",
-                "Check suspicious activity logs",
-                "Export logs as CSV"
-              ],
-              roles: {
-                admin: "View and export all audit logs",
-                editor: "View own activity history only",
-                viewer: "Not available"
-              }
-            },
-            {
-              icon: "🖥️",
-              label: "System Monitor",
-              path: "/system-monitor",
-              desc: "Real-time monitoring of server status, API response times, and error rates.",
-              how: [
-                "Check server status (green=OK/yellow=warning/red=error)",
-                "View API response time trend graph",
-                "Set up alerts for errors"
-              ],
-              roles: {
-                admin: "Monitor entire system and take action",
-                editor: "View status only",
-                viewer: "View status only"
-              }
-            }
-          ]
-        }
-      ],
-      faqs: [
-        {
-          q: "How is the recommended selling price per channel calculated?",
-          a: "Formula: Product Cost ÷ (1 - Channel Commission - Tax Rate - Profit Margin). Adjusting the margin slider recalculates the price in real time."
-        },
-        {
-          q: "Can I set different prices per channel in bulk registration?",
-          a: "Yes. In Bulk Channel Register → Price Setting step, adjust the profit margin slider or directly input a price for each channel."
-        },
-        {
-          q: "Is admin approval required before channel registration?",
-          a: "Yes. You must check the admin approval checkbox in Step 3 before registration is executed."
-        },
-        {
-          q: "What should I do first after logging in?",
-          a: "① In the Channel Connectors menu, connect your ad and sales channels. ② In API Keys, register each channel's API key. ③ After 24 hours, check real data in the dashboard."
-        },
-        {
-          q: "How do I get an API key?",
-          a: "You can get one from each channel's business account → Settings → API or Developer tab. For Claude AI: console.anthropic.com → API Keys. For Meta: business.facebook.com → Settings → Apps."
-        },
-        {
-          q: "Is data updated in real time?",
-          a: "Ad data updates every 1 hour, and settlement data every 1 day automatically. For immediate updates, click the 'Refresh' button in each menu."
-        },
-        {
-          q: "What are the roles/permissions?",
-          a: "Admin: Access to all features. Editor: View + enter data, no system settings. Viewer: View only. : View sample data only (no real data)."
-        },
-        {
-          q: "What is ROAS?",
-          a: "ROAS = Return On Ad Spend. ROAS = Revenue ÷ Ad Spend. Example: ₩1M ad spend → ₩3M revenue = ROAS 3.0. Generally, ROAS above 2.0 is considered efficient."
-        },
-        {
-          q: "Does Marketing Automation AI actually run ad campaigns?",
-          a: "Currently, automation goes up to the 'strategy proposal' stage. After AI generates a strategy, the admin reviews and approves it, then manually runs it on the ad channel — or automatically if API is connected."
-        },
-        {
-          q: "How do I add a user?",
-          a: "In the User Management menu, click 'Add User'. Enter the email, name, and role, and an invitation email is sent automatically."
-        },
-        {
-          q: "Can I export data (Excel/CSV)?",
-          a: "Excel/CSV export buttons are available in major menus including Report Builder, Audit Logs, Order Hub, and P&L Dashboard."
-        }
-      ],
-      apiGuide: [
-        {
-          service: "Meta Ads (Facebook · Instagram)",
-          icon: "📘",
-          color: "#1877f2",
-          steps: [
-            "Go to business.facebook.com",
-            "Settings → Business Settings → System Users",
-            "Create system user → generate token",
-            "Grant ad account access, then copy token",
-            "Go to API Keys → Meta Ads → paste"
-          ]
-        },
-        {
-          service: "Google Ads",
-          icon: "🔍",
-          color: "#4285f4",
-          steps: [
-            "ads.google.com → Tools → API Center",
-            "Apply for developer token (approval takes 1-3 days)",
-            "Generate OAuth2 Client ID & Secret",
-            "Go to API Keys → Google Ads → enter"
-          ]
-        },
-        {
-          service: "Claude AI (Anthropic)",
-          icon: "🤖",
-          color: "#b87333",
-          steps: [
-            "Go to console.anthropic.com and log in",
-            "Click API Keys in the left menu",
-            "Click 'Create Key'",
-            "Enter key name → create → copy (hidden after this)",
-            "Go to API Keys → Claude AI → paste"
-          ]
-        },
-        {
-          service: "Naver Search Ads",
-          icon: "🟩",
-          color: "#03c75a",
-          steps: [
-            "searchad.naver.com → API Management",
-            "Customer Center → Apply for API Usage",
-            "Confirm API key + Secret key issued",
-            "Go to API Keys → Naver Ads → enter"
-          ]
-        },
-        {
-          service: "Coupang Partners API",
-          icon: "🛍",
-          color: "#ef4444",
-          steps: [
-            "wing.coupang.com → My Page → API Key Management",
-            "Copy API key and secret key",
-            "Go to API Keys → Coupang → paste"
-          ]
-        },
-        {
-          service: "TikTok for Business",
-          icon: "🎵",
-          color: "#010101",
-          steps: [
-            "ads.tiktok.com → Settings → Advertiser info",
-            "Apply for Business API Credential",
-            "Copy App ID and Access Token",
-            "Go to API Keys → TikTok → enter"
-          ]
-        }
-      ],
-      roles: [
-        {
-          role: "Admin",
-          icon: "👑",
-          color: "#f59e0b",
-          desc: "Full access to all features. Has system settings, user management, and approval rights.",
-          tasks: [
-            "✅ Add/delete/change user permissions",
-            "✅ Register/delete channel API keys",
-            "✅ Approve/reject marketing campaigns",
-            "✅ Set AI analysis policies",
-            "✅ Manage P&L and settlement data",
-            "✅ View audit logs",
-            "✅ Change system settings",
-            "✅ Set up automated report delivery"
-          ],
-          daily: [
-            "Check dashboard (every morning)",
-            "Review pending approvals",
-            "Check for alert policy anomalies",
-            "Weekly P&L review",
-            "Check API key expiration dates"
-          ]
-        },
-        {
-          role: "Editor",
-          icon: "✏️",
-          color: "#4f8ef7",
-          desc: "Can view and enter data, but cannot configure system settings or manage users.",
-          tasks: [
-            "✅ View dashboard and performance data",
-            "✅ Create ad campaigns and set strategies",
-            "✅ Process orders and update status",
-            "✅ Register/edit product catalog",
-            "✅ Request AI analysis",
-            "✅ Generate and download reports",
-            "❌ Cannot manage users",
-            "❌ Cannot configure system settings"
-          ],
-          daily: [
-            "Check ad performance by channel",
-            "Process orders (mark new orders as complete)",
-            "Monitor campaign budget burn rates",
-            "Weekly influencer performance check"
-          ]
-        },
-        {
-          role: "Viewer",
-          icon: "👁",
-          color: "#22c55e",
-          desc: "Can view all data, but cannot edit, delete, or approve.",
-          tasks: [
-            "✅ View dashboard, performance, P&L",
-            "✅ View orders and inventory status",
-            "✅ View reports",
-            "✅ View AI insights",
-            "❌ Cannot enter or edit data",
-            "❌ Cannot create campaigns",
-            "❌ Cannot process approvals"
-          ],
-          daily: [
-            "Check KPIs for executive reports",
-            "View revenue status by channel",
-            "View shared reports"
-          ]
-        },
-        {
-          role: "",
-          icon: "🟡",
-          color: "#eab308",
-          desc: "Experience the system with sample data only. Cannot view real data or change settings.",
-          tasks: [
-            "✅ Experience UI with sample data",
-            "✅ Check how features work",
-            "❌ Cannot view real data",
-            "❌ Cannot change any settings"
-          ],
-          daily: [
-            "Explore features before system adoption and team s"
-          ]
-        }
-      ]
+      "menuDocs": [{"section":"🏠 होम","menus":[{"icon":"⬡","label":"एकीकृत डैशबोर्ड","path":"/dashboard","desc":"होम स्क्रीन जो सभी चैनलों की बिक्री, विज्ञापन, इन्वेंटरी और ऑर्डर एक नज़र में दिखाती है।","how":["लॉगिन के बाद स्वतः प्रदर्शित होता है।","शीर्ष KPI कार्ड देखें (राजस्व, विज्ञापन खर्च, ROAS, ऑर्डर)","चैनल प्रदर्शन तालिका → समस्या वाले चैनल पहचानें","AI इनसाइट कार्ड → स्वतः उत्पन्न सुझाव देखें","गतिविधि फ़ीड → रीयल-टाइम ऑर्डर, अलर्ट, निपटान"],"roles":{"admin":"सभी KPI और चैनल प्रदर्शन की निगरानी करें","editor":"विभाग का प्रदर्शन देखें","viewer":"केवल देखें"}}]},{"section":"📣 मार्केटिंग और विज्ञापन","menus":[{"icon":"🚀","label":"मार्केटिंग ऑटोमेशन AI","path":"/auto-marketing","desc":"AI मासिक बजट + उत्पाद श्रेणी से स्वतः मार्केटिंग रणनीतियाँ बनाता है।","how":["मासिक बजट दर्ज करें","उत्पाद श्रेणी चुनें","विज्ञापन चैनल चुनें","«AI मार्केटिंग रणनीति बनाएं» पर क्लिक करें","बजट आवंटन + अनुमानित ROAS का पूर्वावलोकन करें","अनुमोदन हेतु जमा करें","व्यवस्थापक स्वीकृत या अस्वीकृत करता है"],"roles":{"admin":"अभियान स्वीकृत/अस्वीकृत करें","editor":"अभियान बनाएं","viewer":"केवल सूची देखें"}},{"icon":"📣","label":"विज्ञापन विश्लेषण","path":"/marketing","desc":"चैनल अनुसार विज्ञापन खर्च, ROAS, CTR, CPC का विश्लेषण करें और AI से सुधार सुझाव लें।","how":["शीर्ष KPI देखें","तालिका में चैनलों की तुलना करें","AI विश्लेषण पर क्लिक करें → सुझाव","इन्फ्लुएंसर टैब में क्रिएटर ROI देखें"],"roles":{"admin":"सभी चैनल विज्ञापन प्रबंधित करें","editor":"विज्ञापन सेटिंग संपादित करें","viewer":"केवल देखें"}},{"icon":"💰","label":"बजट प्लानर","path":"/budget-planner","desc":"चैनल और अभियान अनुसार विज्ञापन बजट की योजना बनाएं, रीयल-टाइम खर्च दर ट्रैक करें।","how":["मासिक कुल बजट निर्धारित करें","प्रति चैनल बजट आवंटित करें","खर्च दर देखें","बजट रिपोर्ट डाउनलोड करें"],"roles":{"admin":"बजट स्वीकृत करें","editor":"योजनाएँ दर्ज करें","viewer":"केवल देखें"}},{"icon":"🤝","label":"इन्फ्लुएंसर प्रबंधन","path":"/influencer","desc":"प्रति क्रिएटर ROI, रूपांतरण और सहभागिता का मूल्यांकन करें।","how":["प्रदर्शन मेट्रिक देखें","AI मूल्यांकन पर क्लिक करें","शुल्क अनुशंसाएँ देखें","अनुबंध नवीनीकरण लागू करें"],"roles":{"admin":"शुल्क अनुमोदन और अनुबंध प्रबंधन","editor":"क्रिएटर डेटा दर्ज करें","viewer":"केवल देखें"}},{"icon":"🎯","label":"अभियान प्रबंधक","path":"/campaign-manager","desc":"विज्ञापन अभियान निर्माण, संपादन और स्थिति ट्रैकिंग का एकीकृत प्रबंधन।","how":["अभियान बनाएं","लक्ष्य और बजट निर्धारित करें","प्रति चैनल विज्ञापन सेट बनाएं","अभियान स्थिति प्रबंधित करें"],"roles":{"admin":"अभियान स्वीकृत करें","editor":"बनाएं और संपादित करें","viewer":"केवल देखें"}},{"icon":"📆","label":"कंटेंट कैलेंडर","path":"/content-calendar","desc":"सोशल पोस्ट, विज्ञापन क्रिएटिव और इवेंट शेड्यूल को कैलेंडर रूप में योजनाबद्ध व प्रबंधित करें।","how":["मासिक कैलेंडर में किसी तिथि पर क्लिक करें","पोस्ट शीर्षक, चैनल, जिम्मेदार, स्थिति दर्ज करें","पुनर्निर्धारण हेतु खींचें और छोड़ें","रंग-कोडित चैनल देखें"],"roles":{"admin":"अंतिम शेड्यूल अनुमोदन","editor":"पंजीकृत करें और संपादित करें","viewer":"केवल देखें"}},{"icon":"🔗","label":"एट्रिब्यूशन विश्लेषण","path":"/attribution","desc":"खरीद रूपांतरण में प्रत्येक चैनल के योगदान अनुपात का विश्लेषण करें।","how":["एट्रिब्यूशन मॉडल चुनें","चैनल योगदान % देखें","एट्रिब्यूशन पथ विज़ुअलाइज़ेशन देखें","मॉडल की तुलना करें"],"roles":{"admin":"मॉडल सेट करें","editor":"देखें और विश्लेषण करें","viewer":"केवल देखें"}},{"icon":"🤖","label":"AI मार्केटिंग हब","path":"/ai-marketing-hub","desc":"एक एकीकृत AI मार्केटिंग एनालिटिक्स हब जो Meta, Google, TikTok, Naver और Kakao पर विज्ञापन प्रदर्शन का स्वतः मूल्यांकन करता है और बजट पुनःआवंटन व सुधार रणनीतियाँ अनुशंसित करता है।","how":["शीर्ष KPI देखें (विज्ञापन खर्च, ROAS, रूपांतरण)","AI चैनल ग्रेड तालिका देखें (A~F स्कोर)","«AI विश्लेषण चलाएं» पर क्लिक करें → प्रति चैनल ताकत/कमज़ोरी/कार्रवाई","बजट पुनःआवंटन अनुशंसाएँ देखें"],"roles":{"admin":"अंतिम बजट निर्णय","editor":"AI विश्लेषण चलाएं और परिणाम देखें","viewer":"केवल परिणाम देखें"}},{"icon":"🧩","label":"AI अनुशंसा इंजन","path":"/ai-recommend","desc":"AI-संचालित अनुशंसा इंजन जो उत्पादों, कंटेंट और चैनलों के लिए वैयक्तिकृत अनुशंसाएँ स्वतः बनाता है और प्रति चैनल इष्टतम मार्केटिंग रणनीति सुझाता है।","how":["श्रेणी, बजट, लक्ष्य दर्ज करें","«AI अनुशंसाएं चलाएं» पर क्लिक करें","अनुशंसित चैनल, उत्पाद, कंटेंट प्रारूप देखें","अनुशंसा का आधार देखें","रणनीति को अभियान प्रबंधक में लागू करें"],"roles":{"admin":"अनुशंसा नीतियाँ सेट करें","editor":"AI अनुशंसाएं चलाएं और परिणाम देखें","viewer":"केवल परिणाम देखें"}}]},{"section":"🛒 कॉमर्स और लॉजिस्टिक्स","menus":[{"icon":"🌐","label":"मल्टी-चैनल कॉमर्स","path":"/omni-channel","desc":"Coupang, Naver SmartStore, 11St, Amazon की इन्वेंटरी, ऑर्डर और कीमतें एक स्थान से प्रबंधित करें।","how":["कनेक्शन स्थिति देखें","चैनलों में इन्वेंटरी सिंक करें","थोक मूल्य परिवर्तन","ऑर्डर प्रसंस्करण"],"roles":{"admin":"चैनल कनेक्शन सेट करें","editor":"इन्वेंटरी/ऑर्डर/कीमतें प्रबंधित करें","viewer":"केवल देखें"}},{"icon":"🏭","label":"WMS वेयरहाउस और लॉजिस्टिक्स","path":"/wms-manager","desc":"वेयरहाउस प्राप्ति, शिपिंग, इन्वेंटरी, पिकिंग/पैकिंग, रिटर्न का एकीकृत प्रबंधन।","how":["प्राप्ति: प्राप्ति पंजीकृत करें","शिपिंग: पिकिंग सूची देखें","इन्वेंटरी: SKU अनुसार देखें","गणना के बाद स्टॉक समायोजन"],"roles":{"admin":"इन्वेंटरी नीतियाँ सेट करें","editor":"प्राप्ति/शिपिंग संसाधित करें","viewer":"केवल देखें"}},{"icon":"📦","label":"ऑर्डर हब","path":"/order-hub","desc":"सभी बिक्री चैनलों के ऑर्डर एक स्थान पर देखें व प्रबंधित करें।","how":["असंसाधित ऑर्डर देखें","ऑर्डर पर क्लिक करें → विवरण देखें","प्रसंस्करण स्थिति अपडेट करें","रिटर्न/एक्सचेंज संभालें"],"roles":{"admin":"रिटर्न नीतियाँ सेट करें","editor":"ऑर्डर संसाधित करें","viewer":"केवल देखें"}},{"icon":"📂","label":"उत्पाद कैटलॉग","path":"/catalog-sync","desc":"उत्पाद जानकारी पंजीकृत करें और चैनलों में सिंक करें।","how":["उत्पाद पंजीकृत करें","नाम/श्रेणी/लागत/कीमत/छवि दर्ज करें","प्रति चैनल दृश्यता सेट करें","सिंक बटन से सिंक करें"],"roles":{"admin":"कैटलॉग नीतियाँ प्रबंधित करें","editor":"पंजीकृत करें और संपादित करें","viewer":"केवल देखें"}}]},{"section":"📊 विश्लेषण और प्रदर्शन","menus":[{"icon":"📊","label":"प्रदर्शन हब","path":"/performance","desc":"समग्र बिक्री, विज्ञापन और इन्फ्लुएंसर प्रदर्शन का व्यापक विश्लेषण।","how":["समय फ़िल्टर चुनें","चैनल अनुसार KPI कार्ड की तुलना करें","AI विश्लेषण का अनुरोध करें","प्रदर्शन रिपोर्ट डाउनलोड करें"],"roles":{"admin":"पूर्ण प्रदर्शन समीक्षा","editor":"डेटा विश्लेषण करें","viewer":"केवल देखें"}},{"icon":"🌊","label":"लाभ-हानि विश्लेषण","path":"/pnl","desc":"चैनल बिक्री से लागत घटाकर शुद्ध लाभ का विश्लेषण करें।","how":["मासिक लाभ-हानि तालिका","चैनल अनुसार मार्जिन दर की तुलना करें","लागत का विभाजन करें","ग्राफ़ में रुझान पहचानें"],"roles":{"admin":"लाभ-हानि डेटा प्रबंधित करें","editor":"लागत डेटा दर्ज करें","viewer":"केवल देखें"}},{"icon":"🤖","label":"AI इनसाइट्स","path":"/ai-insights","desc":"Claude AI मार्केटिंग, इन्वेंटरी और चैनल डेटा का विश्लेषण कर कार्रवाई योग्य इनसाइट देता है।","how":["एक प्रश्न दर्ज करें","डेटा संदर्भ चुनें","«AI विश्लेषण शुरू करें» पर क्लिक करें","सारांश, इनसाइट, अनुशंसित कार्रवाइयाँ देखें","पिछली इनसाइट देखें"],"roles":{"admin":"AI विश्लेषण नीतियाँ सेट करें","editor":"AI से प्रश्न पूछें","viewer":"केवल परिणाम देखें"}},{"icon":"📋","label":"रिपोर्ट बिल्डर","path":"/report-builder","desc":"कस्टम रिपोर्ट बनाएं और Excel/PDF में डाउनलोड करें।","how":["रिपोर्ट प्रकार चुनें","तिथि सीमा और फ़िल्टर सेट करें","«रिपोर्ट बनाएं» पर क्लिक करें","Excel/PDF में डाउनलोड करें"],"roles":{"admin":"रिपोर्ट साझाकरण सेट करें","editor":"बनाएं और डाउनलोड करें","viewer":"केवल साझा रिपोर्ट देखें"}}]},{"section":"🔌 डेटा और इंटीग्रेशन","menus":[{"icon":"🔌","label":"चैनल कनेक्टर","path":"/connectors","desc":"Meta, Google, Naver, Coupang, TikTok सहित 30+ विज्ञापन व बिक्री चैनलों के API कनेक्ट करें।","how":["चैनल कार्ड पर «कनेक्ट» क्लिक करें","API कुंजी या OAuth लॉगिन से प्रमाणित करें","कनेक्शन परीक्षण चलाएं","सिंक आवृत्ति सेट करें (रीयल-टाइम/1 घंटा/1 दिन)"],"roles":{"admin":"चैनल कनेक्शन स्वीकृत करें और API कुंजियाँ प्रबंधित करें","editor":"चैनल कनेक्शन सेट करें","viewer":"केवल कनेक्शन स्थिति देखें"}},{"icon":"🔑","label":"API कुंजियाँ","path":"/api-keys","desc":"विज्ञापन चैनल, AI और लॉजिस्टिक्स जैसी बाहरी सेवाओं हेतु API प्रमाणन कुंजियाँ पंजीकृत व प्रबंधित करें।","how":["«नई API कुंजी जोड़ें» पर क्लिक करें","सेवा चुनें (जैसे Meta Ads, Claude AI, Naver Ads)","API कुंजी मान चिपकाएं","समाप्ति तिथि सेट करें और सहेजें","सत्यापन हेतु कनेक्शन परीक्षण चलाएं"],"roles":{"admin":"सभी API कुंजियाँ प्रबंधित करें (जोड़ें/हटाएं/नवीनीकृत करें)","editor":"निर्दिष्ट चैनलों की कुंजियाँ प्रबंधित करें","viewer":"केवल कुंजी सूची देखें"}}]},{"section":"⚙ सिस्टम और व्यवस्थापन","menus":[{"icon":"👥","label":"उपयोगकर्ता प्रबंधन","path":"/user-management","desc":"उपयोगकर्ता जोड़ें और भूमिका-आधारित पहुँच अनुमतियाँ सेट करें (व्यवस्थापक, संपादक, दर्शक)।","how":["«उपयोगकर्ता जोड़ें» क्लिक करें → ईमेल और नाम दर्ज करें","भूमिका चुनें: व्यवस्थापक/संपादक/दर्शक","सहेजें → आमंत्रण ईमेल स्वतः भेजा जाता है","अनुमतियाँ बदलें: उपयोगकर्ता पर क्लिक करें → भूमिका संपादित करें","निष्क्रिय करें: चले गए उपयोगकर्ता को निष्क्रिय चिह्नित करें"],"roles":{"admin":"पूर्ण उपयोगकर्ता प्रबंधन अधिकार (विशेष)","editor":"उपलब्ध नहीं","viewer":"उपलब्ध नहीं"}},{"icon":"🧾","label":"ऑडिट लॉग","path":"/audit","desc":"सभी उपयोगकर्ताओं हेतु पहुँच, डेटा परिवर्तन और विलोपन इतिहास ट्रैक करें।","how":["तिथि, उपयोगकर्ता, क्रिया प्रकार अनुसार फ़िल्टर करें","संदिग्ध गतिविधि लॉग देखें","लॉग को CSV में निर्यात करें"],"roles":{"admin":"सभी ऑडिट लॉग देखें व निर्यात करें","editor":"केवल अपना गतिविधि इतिहास देखें","viewer":"उपलब्ध नहीं"}},{"icon":"🖥️","label":"सिस्टम मॉनिटर","path":"/system-monitor","desc":"सर्वर स्थिति, API प्रतिक्रिया समय और त्रुटि दर की रीयल-टाइम निगरानी।","how":["सर्वर स्थिति देखें (हरा=ठीक/पीला=चेतावनी/लाल=त्रुटि)","API प्रतिक्रिया समय ट्रेंड ग्राफ़ देखें","त्रुटियों हेतु अलर्ट सेट करें"],"roles":{"admin":"पूरे सिस्टम की निगरानी करें और कार्रवाई करें","editor":"केवल स्थिति देखें","viewer":"केवल स्थिति देखें"}}]}],
+      "faqs": [{"q":"प्रति चैनल अनुशंसित विक्रय मूल्य कैसे परिकलित होता है?","a":"सूत्र: उत्पाद लागत ÷ (1 - चैनल कमीशन - कर दर - लाभ मार्जिन)। मार्जिन स्लाइडर समायोजित करने पर मूल्य रीयल-टाइम में पुनःगणना होती है।"},{"q":"क्या मैं थोक पंजीकरण में प्रति चैनल अलग कीमतें सेट कर सकता हूँ?","a":"हाँ। थोक चैनल पंजीकरण → मूल्य सेटिंग चरण में, लाभ मार्जिन स्लाइडर समायोजित करें या प्रत्येक चैनल हेतु सीधे मूल्य दर्ज करें।"},{"q":"क्या चैनल पंजीकरण से पहले व्यवस्थापक अनुमोदन आवश्यक है?","a":"हाँ। पंजीकरण निष्पादित होने से पहले आपको चरण 3 में व्यवस्थापक अनुमोदन चेकबॉक्स चिह्नित करना होगा।"},{"q":"लॉगिन के बाद मुझे पहले क्या करना चाहिए?","a":"① चैनल कनेक्टर मेनू में, अपने विज्ञापन व बिक्री चैनल कनेक्ट करें। ② API कुंजियों में, प्रत्येक चैनल की API कुंजी पंजीकृत करें। ③ 24 घंटे बाद, डैशबोर्ड में वास्तविक डेटा देखें।"},{"q":"मैं API कुंजी कैसे प्राप्त करूँ?","a":"आप इसे प्रत्येक चैनल के व्यावसायिक खाते → सेटिंग → API या Developer टैब से प्राप्त कर सकते हैं। Claude AI हेतु: console.anthropic.com → API Keys। Meta हेतु: business.facebook.com → सेटिंग → Apps।"},{"q":"क्या डेटा रीयल-टाइम में अपडेट होता है?","a":"विज्ञापन डेटा हर 1 घंटे और निपटान डेटा हर 1 दिन में स्वतः अपडेट होता है। तत्काल अपडेट हेतु, प्रत्येक मेनू में «रिफ्रेश» बटन क्लिक करें।"},{"q":"भूमिकाएँ/अनुमतियाँ क्या हैं?","a":"व्यवस्थापक: सभी सुविधाओं तक पहुँच। संपादक: देखें + डेटा दर्ज करें, सिस्टम सेटिंग नहीं। दर्शक: केवल देखें। डेमो: केवल नमूना डेटा देखें (वास्तविक डेटा नहीं)।"},{"q":"ROAS क्या है?","a":"ROAS = विज्ञापन खर्च पर प्रतिफल। ROAS = राजस्व ÷ विज्ञापन खर्च। उदाहरण: 10 लाख खर्च → 30 लाख राजस्व = ROAS 3.0। सामान्यतः 2.0 से अधिक ROAS कुशल माना जाता है।"},{"q":"क्या मार्केटिंग ऑटोमेशन AI वास्तव में विज्ञापन अभियान चलाता है?","a":"वर्तमान में, ऑटोमेशन «रणनीति प्रस्ताव» चरण तक है। AI द्वारा रणनीति बनाने के बाद, व्यवस्थापक समीक्षा कर अनुमोदित करता है, फिर इसे विज्ञापन चैनल पर मैन्युअल रूप से चलाता है — या API कनेक्ट होने पर स्वतः।"},{"q":"मैं उपयोगकर्ता कैसे जोड़ूँ?","a":"उपयोगकर्ता प्रबंधन मेनू में, «उपयोगकर्ता जोड़ें» क्लिक करें। ईमेल, नाम और भूमिका दर्ज करें, और आमंत्रण ईमेल स्वतः भेजा जाता है।"},{"q":"क्या मैं डेटा (Excel/CSV) निर्यात कर सकता हूँ?","a":"Excel/CSV निर्यात बटन प्रमुख मेनू में उपलब्ध हैं, जिनमें रिपोर्ट बिल्डर, ऑडिट लॉग, ऑर्डर हब और लाभ-हानि डैशबोर्ड शामिल हैं।"}],
+      "apiGuide": [{"icon":"📘","service":"Meta Ads (Facebook · Instagram)","steps":["business.facebook.com पर जाएं","सेटिंग → व्यवसाय सेटिंग → सिस्टम उपयोगकर्ता","सिस्टम उपयोगकर्ता बनाएं → टोकन उत्पन्न करें","विज्ञापन खाता पहुँच दें, फिर टोकन कॉपी करें","API कुंजियों → Meta Ads → चिपकाएं"],"color":"#1877f2"},{"icon":"🔍","service":"Google Ads","steps":["ads.google.com → टूल्स → API Center","डेवलपर टोकन हेतु आवेदन करें (अनुमोदन में 1-3 दिन)","OAuth2 Client ID और Secret उत्पन्न करें","API कुंजियों → Google Ads → दर्ज करें"],"color":"#4285f4"},{"icon":"🤖","service":"Claude AI (Anthropic)","steps":["console.anthropic.com पर जाएं और लॉगिन करें","बाएं मेनू में API Keys क्लिक करें","«Create Key» पर क्लिक करें","कुंजी नाम दर्ज करें → बनाएं → कॉपी करें (इसके बाद छिपा)","API कुंजियों → Claude AI → चिपकाएं"],"color":"#b87333"},{"icon":"🟩","service":"Naver Search Ads","steps":["searchad.naver.com → API प्रबंधन","ग्राहक केंद्र → API उपयोग हेतु आवेदन करें","API कुंजी + Secret कुंजी जारी होने की पुष्टि करें","API कुंजियों → Naver Ads → दर्ज करें"],"color":"#03c75a"},{"icon":"🛍","service":"Coupang Partners API","steps":["wing.coupang.com → मेरा पेज → API कुंजी प्रबंधन","API कुंजी और Secret कुंजी कॉपी करें","API कुंजियों → Coupang → चिपकाएं"],"color":"#ef4444"},{"icon":"🎵","service":"TikTok for Business","steps":["ads.tiktok.com → सेटिंग → विज्ञापनदाता जानकारी","Business API क्रेडेंशियल हेतु आवेदन करें","App ID और Access Token कॉपी करें","API कुंजियों → TikTok → दर्ज करें"],"color":"#010101"}],
+      "roles": [{"icon":"👑","role":"व्यवस्थापक","desc":"सभी सुविधाओं तक पूर्ण पहुँच। सिस्टम सेटिंग, उपयोगकर्ता प्रबंधन और अनुमोदन अधिकार हैं।","color":"#f59e0b","tasks":["✅ उपयोगकर्ता अनुमतियाँ जोड़ें/हटाएं/बदलें","✅ चैनल API कुंजियाँ पंजीकृत/हटाएं","✅ मार्केटिंग अभियान स्वीकृत/अस्वीकृत करें","✅ AI विश्लेषण नीतियाँ सेट करें","✅ लाभ-हानि और निपटान डेटा प्रबंधित करें","✅ ऑडिट लॉग देखें","✅ सिस्टम सेटिंग बदलें","✅ स्वचालित रिपोर्ट वितरण सेट करें"],"daily":["डैशबोर्ड देखें (हर सुबह)","लंबित अनुमोदन देखें","अलर्ट नीति विसंगतियाँ देखें","साप्ताहिक लाभ-हानि समीक्षा","API कुंजी समाप्ति तिथियाँ देखें"]},{"icon":"✏️","role":"संपादक","desc":"डेटा देख व दर्ज कर सकते हैं, पर सिस्टम सेटिंग कॉन्फ़िगर या उपयोगकर्ता प्रबंधित नहीं कर सकते।","color":"#4f8ef7","tasks":["✅ डैशबोर्ड और प्रदर्शन डेटा देखें","✅ विज्ञापन अभियान बनाएं और रणनीति सेट करें","✅ ऑर्डर संसाधित करें और स्थिति अपडेट करें","✅ उत्पाद कैटलॉग पंजीकृत/संपादित करें","✅ AI विश्लेषण का अनुरोध करें","✅ रिपोर्ट बनाएं और डाउनलोड करें","❌ उपयोगकर्ता प्रबंधित नहीं कर सकते","❌ सिस्टम सेटिंग कॉन्फ़िगर नहीं कर सकते"],"daily":["चैनल अनुसार विज्ञापन प्रदर्शन देखें","ऑर्डर संसाधित करें (नए ऑर्डर पूर्ण चिह्नित करें)","अभियान बजट खर्च दर की निगरानी करें","साप्ताहिक इन्फ्लुएंसर प्रदर्शन जाँच"]},{"icon":"👁","role":"दर्शक","desc":"सभी डेटा देख सकते हैं, पर संपादित, हटा या अनुमोदित नहीं कर सकते।","color":"#22c55e","tasks":["✅ डैशबोर्ड, प्रदर्शन, लाभ-हानि देखें","✅ ऑर्डर और इन्वेंटरी स्थिति देखें","✅ रिपोर्ट देखें","✅ AI इनसाइट देखें","❌ डेटा दर्ज या संपादित नहीं कर सकते","❌ अभियान नहीं बना सकते","❌ अनुमोदन संसाधित नहीं कर सकते"],"daily":["कार्यकारी रिपोर्ट हेतु KPI देखें","चैनल अनुसार राजस्व स्थिति देखें","साझा रिपोर्ट देखें"]},{"icon":"🟡","role":"","desc":"केवल नमूना डेटा के साथ सिस्टम का अनुभव करें। वास्तविक डेटा देख या सेटिंग बदल नहीं सकते।","color":"#eab308","tasks":["✅ नमूना डेटा के साथ UI अनुभव करें","✅ देखें कि सुविधाएँ कैसे काम करती हैं","❌ वास्तविक डेटा नहीं देख सकते","❌ कोई सेटिंग नहीं बदल सकते"],"daily":["सिस्टम अपनाने से पहले सुविधाएँ देखें · टीम डेमो"]}]
     },
   logout: "Logout",
   topbar: {
@@ -9532,11 +8910,38 @@ export default {
     "guideRolesTitle": "भूमिका अनुसार गाइड",
     "guideTipsTitle": "विशेषज्ञ सुझाव",
     },
-  dataTrust: {
-      ModeBadge: "🎭  Simulation Mode",
-      ModeTitle: " Mode · Sample data only",
-      ModeDesc: "Connect a live account to see real data"
-    },
+    "dataTrust": {
+    "heroTitle": "डेटा विश्वसनीयता",
+    "heroDesc": "डेटा गुणवत्ता स्कोर, वंशावली और अनुपालन एक स्थान पर प्रबंधित करें",
+    "tabScore": "विश्वसनीयता अवलोकन",
+    "tabLineage": "डेटा वंशावली",
+    "tabRules": "गुणवत्ता नियम",
+    "tabCompliance": "अनुपालन",
+    "kpiScore": "विश्वसनीयता स्कोर",
+    "kpiSources": "डेटा स्रोत",
+    "kpiConnected": "कनेक्टेड",
+    "kpiIssues": "समीक्षा आवश्यक",
+    "stConnected": "ठीक",
+    "stWarning": "समीक्षा",
+    "completeness": "पूर्णता",
+    "emptySources": "कोई कनेक्टेड डेटा स्रोत नहीं",
+    "emptyHint": "विश्वसनीयता गणना हेतु Integration Hub में चैनल कनेक्ट करें",
+    "flowSource": "डेटा स्रोत",
+    "flowNormalize": "सामान्यीकरण",
+    "flowMetrics": "मेट्रिक एकत्रीकरण",
+    "flowDashboard": "डैशबोर्ड",
+    "ruleFreshnessT": "डेटा ताज़गी < 24h",
+    "ruleCompletenessT": "फ़ील्ड पूर्णता ≥ 90%",
+    "ruleDupT": "शून्य डुप्लिकेट रिकॉर्ड",
+    "ruleSchemaT": "स्कीमा मेल",
+    "rNoData": "डेटा नहीं",
+    "rPass": "उत्तीर्ण",
+    "rFail": "उल्लंघन",
+    "compGdpr": "GDPR सहमति प्रबंधन",
+    "compPii": "PII संग्रह नहीं (केवल एकत्रित)",
+    "compRetention": "डेटा प्रतिधारण नीति",
+    "compAudit": "ऑडिट लॉग सक्रिय"
+  },
   developerHub: {
       ModeBadge: "🎭  Simulation Mode"
     },
@@ -11121,7 +10526,76 @@ export default {
     "heroTitle": "संचालन हब",
     "heroDesc": "एक ही स्क्रीन पर कूपन/प्रोमोशन और AI विज्ञापन मार्केटिंग डिज़ाइन प्रबंधित करें।",
     "guideSub": "ऑर्डर, इन्वेंटरी, शिपिंग व निपटान संचालन एक ही जगह मॉनिटर करें।",
+    "guideStep1Title": "चैनल और उत्पाद तैयार करें",
+    "guideStep1Desc": "प्रचार और विज्ञापन के लक्ष्य तय करने के लिए पहले बिक्री चैनल जोड़ें और उत्पाद पंजीकृत करें",
+    "guideStep2Title": "प्रमोशन / कूपन बनाएं",
+    "guideStep2Desc": "छूट दर, कूपन कोड और लक्ष्य चैनल निर्दिष्ट करके प्रमोशन बनाएं और ड्राफ्ट के रूप में सहेजें",
+    "guideStep3Title": "शर्तें और अवधि सेट करें",
+    "guideStep3Desc": "बजट खर्च को नियंत्रित करने के लिए न्यूनतम खरीद, उपयोग सीमा और आरंभ/समाप्ति तिथि सेट करें",
+    "guideStep4Title": "AI क्रिएटिव बनाएं",
+    "guideStep4Desc": "क्रिएटिव टैब में उत्पाद चित्र और टेक्स्ट दर्ज करके AI से प्रति चैनल विज्ञापन सामग्री तैयार करें",
+    "guideStep5Title": "लॉन्च और अनुमोदन",
+    "guideStep5Desc": "व्यवस्थापक की मंजूरी के बाद प्रमोशन सक्रिय करें और जुड़े चैनलों पर लागू करें",
+    "guideStep6Title": "निगरानी और अनुकूलन",
+    "guideStep6Desc": "उपयोग, रूपांतरण और ROAS देखें, फिर लाभप्रदता बढ़ाने के लिए छूट और सामग्री समायोजित करें",
     },
+  "workspace": {
+    "heroTitle": "टीम वर्कस्पेस",
+    "heroDesc": "अपनी टीम के साथ रीयल-टाइम सहयोग करें और काम प्रबंधित करें",
+    "tabActivity": "गतिविधि",
+    "tabMembers": "सदस्य",
+    "tabTasks": "कार्य",
+    "kpiMembers": "सदस्य",
+    "kpiOnline": "ऑनलाइन",
+    "kpiTasks": "कार्य",
+    "kpiDone": "पूर्ण",
+    "inviteHint": "सहयोग शुरू करने के लिए सदस्यों को आमंत्रित करें",
+    "emptyActivity": "कोई हालिया गतिविधि नहीं",
+    "emptyMembers": "अभी कोई सदस्य नहीं",
+    "emptyTasks": "अभी कोई कार्य नहीं",
+    "taskPlaceholder": "नया कार्य लिखें और Enter दबाएँ",
+    "addTask": "जोड़ें",
+    "role_owner": "स्वामी",
+    "role_manager": "प्रबंधक",
+    "role_member": "सदस्य",
+    "actCampaign": "ने अभियान बनाया",
+    "actReport": "ने रिपोर्ट प्रकाशित की",
+    "actComment": "ने टिप्पणी की",
+    "actApprove": "ने बजट स्वीकृत किया"
+  },
+  "caseStudy": {
+    "heroTitle": "सफलता की कहानियाँ",
+    "heroDesc": "वास्तविक ग्राहकों के ROI परिणाम और बेंचमार्क देखें",
+    "tabAll": "सभी केस",
+    "tabIndustry": "उद्योग अनुसार",
+    "tabRoi": "ROI अनुसार",
+    "tabBookmark": "बुकमार्क",
+    "kpiCases": "केस स्टडी",
+    "kpiIndustries": "उद्योग",
+    "kpiAvgRoi": "औसत ROI",
+    "kpiRating": "औसत रेटिंग",
+    "searchPlaceholder": "कंपनी या चैनल खोजें",
+    "months": " माह",
+    "rating": "रेटिंग",
+    "before": "पहले",
+    "after": "बाद में",
+    "revenue": "राजस्व",
+    "millionUnit": "M",
+    "empty": "अभी कोई सफलता कहानी नहीं",
+    "emptyBookmark": "कोई बुकमार्क किया केस नहीं",
+    "emptyDemoHint": "खोज हटाएँ या दूसरा टैब देखें",
+    "emptyProd": "डेटा एकत्र होने पर परिणाम यहाँ दिखेंगे",
+    "ind_beauty": "ब्यूटी",
+    "ind_fashion": "फैशन",
+    "ind_food": "खाद्य",
+    "ind_electronics": "इलेक्ट्रॉनिक्स",
+    "demoBeauty": "एक ब्यूटी ब्रांड ने चैनल-वार ROAS विश्लेषण को एकीकृत कर विज्ञापन बजट पुनः आवंटित किया और छह महीनों में ROI 3 गुना से अधिक बढ़ाया।",
+    "demoFashion": "एक फैशन ब्रांड ने शॉर्ट-फॉर्म चैनलों के इर्द-गिर्द अभियानों को पुनर्गठित किया और AI से क्रिएटिव अनुकूलित किए।",
+    "demoFood": "एक खाद्य ब्रांड ने निपटान और वापसी डेटा को सामान्यीकृत कर वास्तविक लाभ के आधार पर चैनलों को प्राथमिकता दी।",
+    "demoElec": "एक इलेक्ट्रॉनिक्स ब्रांड ने सर्च और मार्केटप्लेस विज्ञापनों को एकीकृत कर रूपांतरण मूल्य के आधार पर बोली अनुकूलित की।",
+    "demoBeauty2": "एक स्किनकेयर ब्रांड ने इन्फ्लुएंसर ROI को मात्रात्मक रूप से मापकर सहयोग संरचना पुनः डिज़ाइन की।",
+    "demoFashion2": "एक आउटरवियर ब्रांड ने डेटा आधारित मौसमी प्रोमोशन और कूपन चलाकर मार्जिन सुधारा।"
+  },
     sidebar: {
       campaignsRunning: "{{n}} campaigns running",
       alertsUnread: "{{n}} alerts",

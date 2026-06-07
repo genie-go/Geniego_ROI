@@ -168,7 +168,7 @@ function TimelineView({ logs, t }) {
                   {fmtTs(l.at)}
                 </span>
               </div>
-              <div style={{ fontSize: 12, color: '#fff', marginBottom: 3, lineHeight: 1.5 }}>{l.detail}</div>
+              <div style={{ fontSize: 12, color: 'var(--text-1)', marginBottom: 3, lineHeight: 1.5 }}>{l.detail}</div>
               <div style={{ display: "flex", gap: 12, fontSize: 10, color: "var(--text-3)" }}>
                 <span>{"\ud83d\udc64"} {l.actor}</span>
                 <span>{"\ud83d\udcc1"} {l.entity_type} #{l.entity_id}</span>
@@ -198,7 +198,7 @@ function UsageGuide({ t }) {
         <div style={{ background: "rgba(255,255,255,0.025)", border: "1px solid rgba(168,85,247,0.15)", borderRadius: 16, padding: 24, animation: "fadeUp 0.3s ease" }}>
           <div style={{ textAlign: "center", marginBottom: 20 }}>
             <div style={{ fontSize: 40, marginBottom: 8 }}>{"\ud83e\uddd0"}</div>
-            <h2 style={{ fontSize: 20, fontWeight: 900, margin: "0 0 6px", color: '#fff' }}>{t("audit.guideTitle")}</h2>
+            <h2 style={{ fontSize: 20, fontWeight: 900, margin: "0 0 6px", color: 'var(--text-1)' }}>{t("audit.guideTitle")}</h2>
             <p style={{ color: 'var(--text-3)', fontSize: 12 }}>{t("audit.guideSub")}</p>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 20 }}>
@@ -298,7 +298,7 @@ export default function Audit() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', margin: '-14px -16px -20px', height: 'calc(100vh - 52px)', overflow: 'hidden' }}>
       <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '16px', paddingBottom: 80 }}>
-    <div style={{ display: "grid", gap: 16 }}>
+    <div style={{ display: "grid", gap: 16, alignContent: "start" }}>
       {/* Security Alert Banner */}
       <SecurityBanner alerts={securityAlerts} t={t} />
 
@@ -374,7 +374,7 @@ export default function Audit() {
                   </span>
                   <span style={{ fontWeight: 700, color }}>{cnt}{t("audit.countUnit")}</span>
                 </div>
-                <div style={{ height: 4, background: "rgba(255,255,255,0.06)", borderRadius: 4 }}>
+                <div style={{ height: 4, background: "rgba(0,0,0,0.06)", borderRadius: 4 }}>
                   <div style={{ width: `${(cnt / (logs.length || 1)) * 100}%`, height: "100%", background: color, borderRadius: 4, transition: "width 0.5s" }} />
                 </div>
               </div>
@@ -393,8 +393,8 @@ export default function Audit() {
                 <div key={risk} onClick={() => setFilterRisk(filterRisk === risk ? "all" : risk)}
                   style={{
                     padding: "12px", borderRadius: 10, textAlign: "center", cursor: "pointer",
-                    background: filterRisk === risk ? cfg.bg : "rgba(9,15,30,0.6)",
-                    border: `1px solid ${filterRisk === risk ? cfg.color + "66" : "rgba(99,140,255,0.08)"}`,
+                    background: filterRisk === risk ? cfg.bg : "var(--surface2, rgba(99,140,255,0.04))",
+                    border: `1px solid ${filterRisk === risk ? cfg.color + "66" : "rgba(99,140,255,0.12)"}`,
                     transition: "all 150ms" }}>
                   <div style={{ fontSize: 22, fontWeight: 900, color: cfg.color }}>{cnt}</div>
                   <div style={{ fontSize: 10, color: cfg.color, fontWeight: 700, marginTop: 2 }}>{label}</div>

@@ -536,6 +536,14 @@ export default function Settlements() {
         </Drawer>
       )}
 
+      {/* Guide toggle — prominent bottom trigger (페이지 일관성) */}
+      <button
+        onClick={() => setShowGuide(v => !v)}
+        style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '8px auto 0', padding: '10px 24px', borderRadius: 12, border: '1px solid rgba(34,197,94,0.3)', background: 'rgba(34,197,94,0.06)', color: '#16a34a', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}
+      >
+        📖 {sg('tabGuide')} {showGuide ? '▲' : '▼'}
+      </button>
+
       {/* Guide Section */}
       {showGuide && (
         <div className="card card-glass fade-up" style={{ borderColor: 'rgba(34,197,94,0.15)' }}>

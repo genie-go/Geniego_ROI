@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useI18n } from "../i18n/index.js";
+import { useI18n, LOCALES } from "../i18n/index.js";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { sanitizeHtml } from "../utils/xssSanitizer.js";
 
@@ -64,10 +64,17 @@ export default function HelpCenter() {
         { id: "roles", label: t("help.tabRoles") },
     ], [t]);
 
-    const MENU_DOCS = useMemo(() => t("help.menuDocs"), [t]);
-    const FAQS = useMemo(() => t("help.faqs"), [t]);
-    const API_GUIDE = useMemo(() => t("help.apiGuide"), [t]);
-    const ROLES = useMemo(() => t("help.roles"), [t]);
+    /* 구조화 배열(menuDocs/faqs/apiGuide/roles)은 t()의 object 가드로 nuke 되므로
+       LOCALES 에서 직접 읽는다. 현지 콘텐츠 없으면 en 폴백. */
+    const rawHelp = (key) => {
+        const get = (loc) => loc?.help?.[key];
+        const v = get(LOCALES[lang]);
+        return Array.isArray(v) ? v : get(LOCALES.en);
+    };
+    const MENU_DOCS = useMemo(() => rawHelp("menuDocs"), [lang]);
+    const FAQS = useMemo(() => rawHelp("faqs"), [lang]);
+    const API_GUIDE = useMemo(() => rawHelp("apiGuide"), [lang]);
+    const ROLES = useMemo(() => rawHelp("roles"), [lang]);
 
     /* ── 실Time Search 결과 ──────────────────────────────────────── */
     const searchResults = useMemo(() => {
@@ -180,7 +187,7 @@ export default function HelpCenter() {
     };
 
     return (
-        <div style={{ display: "grid", gap: 18, maxWidth: 1000 }}>
+        <div style={{ display: "grid", gap: 18, maxWidth: 1000, alignContent: "start" }}>
             {/* ── [ 전용] 체험 안내 Banner ─────────────────────────── */}
             {isDemo && (
                 <div style={{ padding: "12px 18px", borderRadius: 12, background: "linear-gradient(135deg, rgba(234,179,8,0.08), rgba(249,115,22,0.06))", border: "1px solid rgba(234,179,8,0.3)", display: "flex", alignItems: "center", gap: 12 }}>
@@ -199,7 +206,7 @@ export default function HelpCenter() {
                 <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16 }}>
                     <div style={{ width: 56, height: 56, borderRadius: 16, background: "linear-gradient(135deg, #4f8ef7, #a855f7)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 26, boxShadow: "0 8px 24px rgba(79,142,247,0.35)" }}>📚</div>
                     <div>
-                        <div style={{ fontWeight: 900, fontSize: 22, color: '#fff' }}>
+                        <div style={{ fontWeight: 900, fontSize: 22, color: 'var(--text-1)' }}>
                             {t("help.heroTitle")}
                         </div>
                         <div style={{ fontSize: 12, color: "var(--text-3)", marginTop: 4 }}>
@@ -217,7 +224,7 @@ export default function HelpCenter() {
                         value={query}
                         onChange={e => setQuery(e.target.value)}
                         placeholder={t("help.searchPlaceholder")}
-                        style={{ width: "100%", padding: "13px 42px 13px 44px", borderRadius: 12, border: "1px solid rgba(79,142,247,0.3)", background: "rgba(255,255,255,0.06)", color: '#fff', fontSize: 14, outline: "none", boxSizing: "border-box", transition: "border-color 200ms" }}
+                        style={{ width: "100%", padding: "13px 42px 13px 44px", borderRadius: 12, border: "1px solid rgba(79,142,247,0.3)", background: "var(--surface2, rgba(79,142,247,0.04))", color: 'var(--text-1)', fontSize: 14, outline: "none", boxSizing: "border-box", transition: "border-color 200ms" }}
                         onFocus={e => e.target.style.borderColor = "rgba(79,142,247,0.7)"}
                         onBlur={e => e.target.style.borderColor = "rgba(79,142,247,0.3)"}
                     />
@@ -238,7 +245,7 @@ export default function HelpCenter() {
                     ].map(({ icon, v, d }) => (
                         <div key={v} style={{ padding: "10px 14px", borderRadius: 10, background: 'var(--surface)', border: "1px solid var(--border)" }}>
                             <div style={{ fontSize: 18, marginBottom: 4 }}>{icon}</div>
-                            <div style={{ fontWeight: 700, fontSize: 12, color: '#fff' }}>{v}</div>
+                            <div style={{ fontWeight: 700, fontSize: 12, color: 'var(--text-1)' }}>{v}</div>
                             <div style={{ fontSize: 10, color: "var(--text-3)", marginTop: 2 }}>{d}</div>
                         </div>
                     ))}
@@ -285,7 +292,7 @@ export default function HelpCenter() {
                                                 : (r.icon || "👥")}
                                 </span>
                                 <div style={{ flex: 1 }}>
-                                    <div style={{ fontWeight: 700, fontSize: 13, color: '#fff' }}>
+                                    <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--text-1)' }}>
                                         {r.type === "menu" && highlight(r.label, query)}
                                         {r.type === "faq" && highlight(r.q, query)}
                                         {r.type === "api" && highlight(r.service, query)}
@@ -317,9 +324,9 @@ export default function HelpCenter() {
             {!query && (
                 <>
                     {/* Tabs */}
-                    <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                    <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
                         {TABS.map(tb => (
-                            <button key={tb.id} onClick={() => setTab(tb.id)} style={{ padding: "9px 18px", borderRadius: 10, cursor: "pointer", fontWeight: 700, fontSize: 12, border: "none", background: tab === tb.id ? "linear-gradient(135deg,#4f8ef7,#a855f7)" : "var(--surface)", color: tab === tb.id ? "#fff" : "var(--text-2)", boxShadow: tab === tb.id ? "0 4px 14px rgba(79,142,247,0.3)" : "none", transition: "all 180ms" }}>
+                            <button key={tb.id} onClick={() => setTab(tb.id)} style={{ flex: "0 0 auto", height: 38, padding: "0 18px", borderRadius: 10, cursor: "pointer", fontWeight: 700, fontSize: 12, border: tab === tb.id ? "none" : "1px solid var(--border)", background: tab === tb.id ? "linear-gradient(135deg,#4f8ef7,#a855f7)" : "var(--surface)", color: tab === tb.id ? "#fff" : "var(--text-2)", boxShadow: tab === tb.id ? "0 4px 14px rgba(79,142,247,0.3)" : "none", transition: "all 180ms" }}>
                                 {tb.label}
                             </button>
                         ))}
@@ -330,7 +337,7 @@ export default function HelpCenter() {
                         <div style={{ display: "grid", gap: 14 }}>
                             {MENU_DOCS.map(section => (
                                 <div key={section.section} style={card}>
-                                    <div style={{ fontWeight: 800, fontSize: 15, color: '#fff', marginBottom: 12 }}>
+                                    <div style={{ fontWeight: 800, fontSize: 15, color: 'var(--text-1)', marginBottom: 12 }}>
                                         {section.section}
                                     </div>
                                     <div style={{ display: "grid", gap: 8 }}>
@@ -346,7 +353,7 @@ export default function HelpCenter() {
                                                 >
                                                     <span>{m.icon}</span>
                                                     <div style={{ flex: 1 }}>
-                                                        <div style={{ fontWeight: 700, fontSize: 13, color: '#fff' }}>{m.label}</div>
+                                                        <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--text-1)' }}>{m.label}</div>
                                                         <div style={{ fontSize: 11, color: "var(--text-3)", marginTop: 2 }}>{m.path}</div>
                                                     </div>
                                                     <span style={{ fontSize: 14, color: "var(--text-3)", transform: openMenu === m.path ? "rotate(90deg)" : "none", transition: "200ms" }}>▶</span>
@@ -460,7 +467,7 @@ export default function HelpCenter() {
                     {/* ══ TAB: Q&A ══ */}
                     {tab === "faq" && Array.isArray(FAQS) && (
                         <div style={card}>
-                            <div style={{ fontWeight: 800, fontSize: 16, color: '#fff', marginBottom: 16 }}>
+                            <div style={{ fontWeight: 800, fontSize: 16, color: 'var(--text-1)', marginBottom: 16 }}>
                                 {t("help.faqTitle")}
                             </div>
                             <div style={{ display: "grid", gap: 8 }}>
@@ -471,7 +478,7 @@ export default function HelpCenter() {
                                             style={{ width: "100%", padding: "14px 16px", background: faqOpen === i ? "rgba(79,142,247,0.06)" : "rgba(255,255,255,0.02)", border: "none", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: 10, fontSize: 14, color: "#4f8ef7", fontWeight: 800, flexShrink: 0 }}
                                         >
                                             <span>Q</span>
-                                            <span style={{ flex: 1, fontSize: 13, fontWeight: 600, color: '#fff' }}>{faq.q}</span>
+                                            <span style={{ flex: 1, fontSize: 13, fontWeight: 600, color: 'var(--text-1)' }}>{faq.q}</span>
                                             <span style={{ fontSize: 12, color: "var(--text-3)", transform: faqOpen === i ? "rotate(180deg)" : "none", transition: "200ms" }}>▼</span>
                                         </button>
                                         {faqOpen === i && (
@@ -490,7 +497,7 @@ export default function HelpCenter() {
                     {tab === "apikeys" && Array.isArray(API_GUIDE) && (
                         <div style={{ display: "grid", gap: 14 }}>
                             <div style={{ ...card, padding: "14px 18px" }}>
-                                <div style={{ fontWeight: 800, fontSize: 15, color: '#fff', marginBottom: 6 }}>{t("help.apiTitle")}</div>
+                                <div style={{ fontWeight: 800, fontSize: 15, color: 'var(--text-1)', marginBottom: 6 }}>{t("help.apiTitle")}</div>
                                 <div style={{ fontSize: 12, color: "var(--text-3)", lineHeight: 1.7 }}
                                     dangerouslySetInnerHTML={{ __html: sanitizeHtml(t("help.apiSubtitle")) }} />
                             </div>
@@ -498,7 +505,7 @@ export default function HelpCenter() {
                                 <div key={g.service} style={{ ...card, borderLeft: `3px solid ${g.color}` }}>
                                     <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
                                         <span style={{ fontSize: 24 }}>{g.icon}</span>
-                                        <div style={{ fontWeight: 800, fontSize: 14, color: '#fff' }}>{g.service}</div>
+                                        <div style={{ fontWeight: 800, fontSize: 14, color: 'var(--text-1)' }}>{g.service}</div>
                                     </div>
                                     <div style={{ display: "grid", gap: 8 }}>
                                         {g.steps.map((step, i) => (
