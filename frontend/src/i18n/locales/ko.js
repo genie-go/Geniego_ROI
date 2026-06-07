@@ -7101,11 +7101,6 @@ export default {
     "helpDesc": "각 기능의 자세한 사용법은 이용 가이드에서 확인하거나, 우측 상단 도움말을 이용하세요.",
     "stepDone": "완료",
     "stepCurrent": "진행 중",
-    "roleMarketer": "마케터",
-    "roleCommerce": "커머스",
-    "roleFinance": "재무",
-    "roleOps": "운영",
-    "roleDev": "개발",
 
     "welcomeTitle": "Geniego-ROI에 오신 것을 환영합니다!",
 
@@ -7149,9 +7144,7 @@ export default {
 
     "crossTabSync": "다른 탭에서 온보딩 동기화됨",
 
-    "pageTitle": "🚀 온보딩",
 
-    "pageSub": "맞춤형 시작 가이드",
 
     "roleMarketer": "마케터",
 
