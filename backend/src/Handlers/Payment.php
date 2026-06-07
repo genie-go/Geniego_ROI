@@ -481,7 +481,7 @@ final class Payment
             $pdo = Db::pdo();
             $now = self::now();
             $stmt = $pdo->prepare(
-                'SELECT COALESCE(u.plans,u.plan,\'demo\') AS plan FROM user_session s
+                'SELECT u.id, u.email, COALESCE(u.plans,u.plan,\'demo\') AS plan FROM user_session s
                    JOIN app_user u ON u.id = s.user_id
                   WHERE s.token = ? AND s.expires_at > ? AND u.is_active = 1'
             );
@@ -540,7 +540,7 @@ final class Payment
             $pdo = Db::pdo();
             $now = self::now();
             $stmt = $pdo->prepare(
-                'SELECT COALESCE(u.plans,u.plan,\'demo\') AS plan FROM user_session s
+                'SELECT u.id, u.email, COALESCE(u.plans,u.plan,\'demo\') AS plan FROM user_session s
                    JOIN app_user u ON u.id = s.user_id
                   WHERE s.token = ? AND s.expires_at > ? AND u.is_active = 1'
             );
@@ -596,6 +596,15 @@ final class Payment
                     "UPDATE pg_config SET client_key=?, is_test=?, is_active=1 WHERE provider=?"
                 )->execute([$clientKey, $isTest ? 1 : 0, $provider]);
             }
+            // ★ 201차 P1: 결제 게이트웨이 설정 변경 서버측 감사기록(시크릿 값은 절대 기록 안 함 — 메타만).
+            try {
+                $pdo->prepare("INSERT INTO paddle_audit_log (event_id, action, detail) VALUES (?,?,?)")
+                    ->execute([
+                        'admin#' . ($user['id'] ?? '?'),
+                        'admin:pg_config_save',
+                        "provider=$provider is_test=" . ($isTest ? 1 : 0) . " secret_changed=" . ($secretKey ? 1 : 0) . " by=" . ($user['email'] ?? '?'),
+                    ]);
+            } catch (\Throwable $e) { error_log('[Payment] PG audit error: ' . $e->getMessage()); }
         } catch (\Throwable $e) {
             return self::json($res, ['ok' => false, 'error' => 'DB 저장 실패: ' . $e->getMessage()], 500);
         }
