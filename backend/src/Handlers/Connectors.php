@@ -642,12 +642,15 @@ final class Connectors
     {
         try {
             $pdo  = Db::pdo();
+            // ★ 201차 P0(마케팅): channel_credential 실 컬럼은 channel/key_name/key_value.
+            //   기존 channel_key/cred_key/cred_value 는 존재하지 않아 항상 예외→'' 반환되어
+            //   UI 등록 광고 자격증명이 sync 브릿지에서 영구 미독출되던 버그 수정.
             $stmt = $pdo->prepare(
-                'SELECT cred_value FROM channel_credential WHERE tenant_id=? AND channel_key=? AND cred_key=? LIMIT 1'
+                'SELECT key_value FROM channel_credential WHERE tenant_id=? AND channel=? AND key_name=? AND is_active=1 LIMIT 1'
             );
             $stmt->execute([$tenant, $channelKey, $credKey]);
             $row = $stmt->fetch(PDO::FETCH_ASSOC);
-            return (string)($row['cred_value'] ?? '');
+            return (string)($row['key_value'] ?? '');
         } catch (\Throwable $e) {
             return '';
         }

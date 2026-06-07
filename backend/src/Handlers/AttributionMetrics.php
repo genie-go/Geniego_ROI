@@ -18,6 +18,11 @@ use Throwable;
  *   - 빈 데이터 시 빈 배열 (EmptyState UI)
  *   - DB 데이터 유입 시 자동 반영
  *
+ * ★ 201차 P0-1 보안수정: 모든 query 가 tenant_id 필터 없이 전 테넌트 데이터를 반환하던
+ *   교차테넌트 유출(authenticated viewer 도 전 사 광고비/매출/ROAS 열람) 차단.
+ *   - 모든 query 에 WHERE tenant_id = :t (prepared) 강제.
+ *   - tenant 미해결(빈/unknown) 시 빈 결과(유출 0).
+ *
  * Endpoints (v424):
  *   GET /v424/attribution/touches      — attribution_touch 채널 분포 + 최근 N건
  *   GET /v424/attribution/journeys     — 세션 단위 channel sequence 집계
@@ -31,25 +36,29 @@ final class AttributionMetrics
     public static function touches(Request $request, Response $response, array $args): Response
     {
         $start = microtime(true);
+        $t = self::tenant($request);
+        if ($t === '') return self::ok($response, ['by_channel' => [], 'recent' => [], 'total' => 0, 'response_time_ms' => self::elapsed($start)]);
         try {
             $pdo = Db::pdo();
-            $byChannel = self::query($pdo,
+            $byChannel = self::queryP($pdo,
                 'SELECT channel, COUNT(*) AS touches, COUNT(DISTINCT session_id) AS sessions '
-                . 'FROM attribution_touch WHERE channel IS NOT NULL '
-                . 'GROUP BY channel ORDER BY touches DESC LIMIT 20'
+                . 'FROM attribution_touch WHERE tenant_id = :t AND channel IS NOT NULL '
+                . 'GROUP BY channel ORDER BY touches DESC LIMIT 20',
+                [':t' => $t]
             );
-            $recent = self::query($pdo,
+            $recent = self::queryP($pdo,
                 'SELECT session_id, channel, utm_source, utm_medium, utm_campaign, touched_at '
-                . 'FROM attribution_touch ORDER BY id DESC LIMIT 100'
+                . 'FROM attribution_touch WHERE tenant_id = :t ORDER BY id DESC LIMIT 100',
+                [':t' => $t]
             );
             return self::ok($response, [
                 'by_channel' => $byChannel,
                 'recent' => $recent,
-                'total' => self::scalar($pdo, 'SELECT COUNT(*) FROM attribution_touch'),
+                'total' => self::scalarP($pdo, 'SELECT COUNT(*) FROM attribution_touch WHERE tenant_id = :t', [':t' => $t]),
                 'response_time_ms' => self::elapsed($start),
             ]);
         } catch (Throwable $e) {
-            return self::ok($response, ['error' => $e->getMessage(), 'by_channel' => [], 'recent' => [], 'total' => 0]);
+            return self::fail($response, $e, ['by_channel' => [], 'recent' => [], 'total' => 0]);
         }
     }
 
@@ -57,16 +66,18 @@ final class AttributionMetrics
     public static function journeys(Request $request, Response $response, array $args): Response
     {
         $start = microtime(true);
+        $t = self::tenant($request);
+        if ($t === '') return self::ok($response, ['journeys' => [], 'count' => 0, 'response_time_ms' => self::elapsed($start)]);
         try {
             $pdo = Db::pdo();
             // session 별 channel 순서 + revenue 집계 (attribution_result 와 join)
             $sql = 'SELECT t.session_id, GROUP_CONCAT(t.channel ORDER BY t.touched_at) AS path, '
                 . 'COUNT(*) AS touches, MAX(t.touched_at) AS last_touch '
                 . 'FROM attribution_touch t '
-                . 'WHERE t.channel IS NOT NULL AND t.session_id IS NOT NULL '
+                . 'WHERE t.tenant_id = :t AND t.channel IS NOT NULL AND t.session_id IS NOT NULL '
                 . 'GROUP BY t.session_id '
                 . 'ORDER BY last_touch DESC LIMIT 500';
-            $rows = self::query($pdo, $sql);
+            $rows = self::queryP($pdo, $sql, [':t' => $t]);
             // 응답 normalize — path를 array 로 분리
             $journeys = [];
             foreach ($rows as $r) {
@@ -83,7 +94,7 @@ final class AttributionMetrics
                 'response_time_ms' => self::elapsed($start),
             ]);
         } catch (Throwable $e) {
-            return self::ok($response, ['error' => $e->getMessage(), 'journeys' => [], 'count' => 0]);
+            return self::fail($response, $e, ['journeys' => [], 'count' => 0]);
         }
     }
 
@@ -91,6 +102,8 @@ final class AttributionMetrics
     public static function timeSeries(Request $request, Response $response, array $args): Response
     {
         $start = microtime(true);
+        $t = self::tenant($request);
+        if ($t === '') return self::ok($response, ['spends' => [], 'revenue' => [], 'channel_count' => 0, 'response_time_ms' => self::elapsed($start)]);
         try {
             $pdo = Db::pdo();
             // 최근 52주 (varchar date YYYY-MM-DD)
@@ -100,9 +113,10 @@ final class AttributionMetrics
                 . 'SUM(impressions) AS impressions, SUM(clicks) AS clicks, '
                 . 'SUM(conversions) AS conversions '
                 . 'FROM performance_metrics '
-                . "WHERE date >= DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 52 WEEK), '%Y-%m-%d') "
+                . 'WHERE tenant_id = :t '
+                . "AND date >= DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 52 WEEK), '%Y-%m-%d') "
                 . 'GROUP BY channel, week ORDER BY channel, week';
-            $rows = self::query($pdo, $sql);
+            $rows = self::queryP($pdo, $sql, [':t' => $t]);
             // group by channel
             $spends = []; $revenue = [];
             foreach ($rows as $r) {
@@ -117,7 +131,7 @@ final class AttributionMetrics
                 'response_time_ms' => self::elapsed($start),
             ]);
         } catch (Throwable $e) {
-            return self::ok($response, ['error' => $e->getMessage(), 'spends' => [], 'revenue' => []]);
+            return self::fail($response, $e, ['spends' => [], 'revenue' => []]);
         }
     }
 
@@ -125,15 +139,18 @@ final class AttributionMetrics
     public static function channels(Request $request, Response $response, array $args): Response
     {
         $start = microtime(true);
+        $t = self::tenant($request);
+        if ($t === '') return self::ok($response, ['channels' => [], 'count' => 0, 'response_time_ms' => self::elapsed($start)]);
         try {
             $pdo = Db::pdo();
-            $rows = self::query($pdo,
+            $rows = self::queryP($pdo,
                 'SELECT channel, '
                 . 'SUM(spend) AS spend, SUM(revenue) AS revenue, '
                 . 'SUM(impressions) AS impressions, SUM(clicks) AS clicks, '
                 . 'SUM(conversions) AS conversions, COUNT(DISTINCT date) AS days '
-                . 'FROM performance_metrics WHERE channel IS NOT NULL '
-                . 'GROUP BY channel ORDER BY spend DESC'
+                . 'FROM performance_metrics WHERE tenant_id = :t AND channel IS NOT NULL '
+                . 'GROUP BY channel ORDER BY spend DESC',
+                [':t' => $t]
             );
             // 파생 metrics
             $channels = [];
@@ -160,7 +177,7 @@ final class AttributionMetrics
                 'response_time_ms' => self::elapsed($start),
             ]);
         } catch (Throwable $e) {
-            return self::ok($response, ['error' => $e->getMessage(), 'channels' => [], 'count' => 0]);
+            return self::fail($response, $e, ['channels' => [], 'count' => 0]);
         }
     }
 
@@ -168,18 +185,22 @@ final class AttributionMetrics
     public static function dailyTrends(Request $request, Response $response, array $args): Response
     {
         $start = microtime(true);
+        $t = self::tenant($request);
+        if ($t === '') return self::ok($response, ['trends' => [], 'days' => 0, 'count' => 0, 'response_time_ms' => self::elapsed($start)]);
         try {
             $pdo = Db::pdo();
             $params = $request->getQueryParams();
             $days = max(1, min(365, (int)($params['days'] ?? 30)));
-            $rows = self::query($pdo,
+            $rows = self::queryP($pdo,
                 'SELECT date, '
                 . 'SUM(spend) AS adSpend, SUM(revenue) AS revenue, '
                 . 'SUM(impressions) AS visitors, SUM(clicks) AS orders, '
                 . 'SUM(conversions) AS newCustomers '
                 . 'FROM performance_metrics '
-                . "WHERE date >= DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL $days DAY), '%Y-%m-%d') "
-                . 'GROUP BY date ORDER BY date'
+                . 'WHERE tenant_id = :t '
+                . "AND date >= DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL $days DAY), '%Y-%m-%d') "
+                . 'GROUP BY date ORDER BY date',
+                [':t' => $t]
             );
             $trends = array_map(fn($r) => [
                 'date' => $r['date'],
@@ -200,22 +221,33 @@ final class AttributionMetrics
                 'response_time_ms' => self::elapsed($start),
             ]);
         } catch (Throwable $e) {
-            return self::ok($response, ['error' => $e->getMessage(), 'trends' => [], 'count' => 0]);
+            return self::fail($response, $e, ['trends' => [], 'count' => 0]);
         }
     }
 
     // ── helpers ───────────────────────────────────────────────────────
 
-    private static function query(PDO $pdo, string $sql): array
+    /** 인증 미들웨어가 주입한 tenant. 미해결 시 '' → 호출부에서 빈 결과(유출 차단). */
+    private static function tenant(Request $request): string
     {
-        $stmt = $pdo->query($sql);
-        return $stmt ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [];
+        $t = $request->getAttribute('auth_tenant');
+        if (!is_string($t) || $t === '') $t = $request->getHeaderLine('X-Tenant-Id');
+        $t = trim((string)$t);
+        return ($t === '' || strtolower($t) === 'unknown') ? '' : $t;
     }
 
-    private static function scalar(PDO $pdo, string $sql): int
+    private static function queryP(PDO $pdo, string $sql, array $params = []): array
     {
-        $stmt = $pdo->query($sql);
-        return $stmt ? (int)$stmt->fetchColumn() : 0;
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+    }
+
+    private static function scalarP(PDO $pdo, string $sql, array $params = []): int
+    {
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+        return (int)$stmt->fetchColumn();
     }
 
     private static function elapsed(float $start): float
@@ -226,5 +258,11 @@ final class AttributionMetrics
     private static function ok(Response $response, array $payload): Response
     {
         return TemplateResponder::respond($response->withStatus(200), $payload);
+    }
+
+    /** 인프라 오류는 500 으로 노출(관측성) — 단, 빈 데이터셋은 200 ok 유지. */
+    private static function fail(Response $response, Throwable $e, array $emptyShape): Response
+    {
+        return TemplateResponder::respond($response->withStatus(500), array_merge(['error' => $e->getMessage()], $emptyShape));
     }
 }

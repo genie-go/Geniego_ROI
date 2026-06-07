@@ -496,6 +496,11 @@ return function (App $app): void {
         'GET /api/v424/attribution/channels' => 'Genie\\Handlers\\AttributionMetrics::channels',
         'GET /v424/marketing/daily-trends'     => 'Genie\\Handlers\\AttributionMetrics::dailyTrends',
         'GET /api/v424/marketing/daily-trends' => 'Genie\\Handlers\\AttributionMetrics::dailyTrends',
+        // 201차 — 마케팅 자동화 채널 추천/예산배분(벤치마크 cold-start → 실측 warm 블렌드)
+        'POST /v424/marketing/auto-recommend'     => 'Genie\\Handlers\\AutoRecommend::recommend',
+        'POST /api/v424/marketing/auto-recommend' => 'Genie\\Handlers\\AutoRecommend::recommend',
+        'GET /v424/marketing/benchmarks'          => 'Genie\\Handlers\\AutoRecommend::benchmarks',
+        'GET /api/v424/marketing/benchmarks'      => 'Genie\\Handlers\\AutoRecommend::benchmarks',
 
         // ── v424 admin plans (169차 사용자 발견 issue fix — 플랜별 구독요금 설정) ──
         'GET /v424/admin/plans'                         => 'Genie\\Handlers\\AdminPlans::list',
@@ -2003,6 +2008,11 @@ return function (App $app): void {
     $register('GET', '/api/v424/attribution/channels');
     $register('GET', '/v424/marketing/daily-trends');
     $register('GET', '/api/v424/marketing/daily-trends');
+    // 201차 — 마케팅 자동화 추천/벤치마크 ($custom 등록 + $register 필수)
+    $register('POST', '/v424/marketing/auto-recommend');
+    $register('POST', '/api/v424/marketing/auto-recommend');
+    $register('GET', '/v424/marketing/benchmarks');
+    $register('GET', '/api/v424/marketing/benchmarks');
 
     // ── V424 admin plans (169차 사용자 발견 issue) ──
     $register('GET',    '/v424/admin/plans');

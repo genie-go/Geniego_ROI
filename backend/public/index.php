@@ -132,7 +132,10 @@ $app->add(function (Request $request, $handler) {
     // 196차 Phase2: /v423/auto-campaign/* 도 프론트 세션 토큰(genie_token) 으로 호출 → 동일 게이트
     //   (세션 OR api_key 허용, 익명만 차단). 테넌트는 핸들러가 세션에서 해석.
     if (strpos($path, '/v422/ai/') === 0 || strpos($path, '/api/v422/ai/') === 0
-        || strpos($path, '/v423/auto-campaign/') === 0 || strpos($path, '/api/v423/auto-campaign/') === 0) {
+        || strpos($path, '/v423/auto-campaign/') === 0 || strpos($path, '/api/v423/auto-campaign/') === 0
+        // 201차: 마케팅 자동화 추천/벤치마크 — 프론트 세션 토큰 호출(익명만 차단, 핸들러가 세션에서 테넌트 해석)
+        || strpos($path, '/v424/marketing/auto-recommend') === 0 || strpos($path, '/api/v424/marketing/auto-recommend') === 0
+        || strpos($path, '/v424/marketing/benchmarks') === 0 || strpos($path, '/api/v424/marketing/benchmarks') === 0) {
         $bearer = '';
         $ah = $request->getHeaderLine('Authorization');
         if (strpos($ah, 'Bearer ') === 0) { $bearer = trim(substr($ah, 7)); }

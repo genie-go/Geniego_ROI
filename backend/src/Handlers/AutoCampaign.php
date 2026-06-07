@@ -77,12 +77,26 @@ class AutoCampaign
         } catch (\Throwable $e) {}
     }
 
+    /** ★ 201차 P0(마케팅): AutoMarketing 채널 id → channel_credential.channel(커넥터 키) 정규화.
+     *  기존엔 'meta' 로 조회했으나 크레드 테이블은 'meta_ads' 로 저장 → 항상 미연결(pending_connection)
+     *  오표기되던 버그 수정. (AutoMarketing.jsx connectorKey 와 일치) */
+    private const CONNECTOR_KEY = [
+        'meta' => 'meta_ads', 'tiktok' => 'tiktok_business', 'google' => 'google_ads',
+        'naver' => 'naver_sa', 'kakao' => 'kakao_moment', 'coupang_ads' => 'coupang', 'coupang' => 'coupang',
+    ];
+
+    private static function connectorKey(string $channel): string
+    {
+        return self::CONNECTOR_KEY[$channel] ?? $channel;
+    }
+
     /** 채널 API 자격증명 연결 여부(실제 집행 가능 판단). */
     private static function channelConnected(PDO $pdo, string $tenant, string $channel): bool
     {
         try {
+            $ck = self::connectorKey($channel);
             $st = $pdo->prepare("SELECT 1 FROM channel_credential WHERE tenant_id=? AND channel=? AND is_active=1 LIMIT 1");
-            $st->execute([$tenant, $channel]);
+            $st->execute([$tenant, $ck]);
             return (bool)$st->fetchColumn();
         } catch (\Throwable $e) { return false; }
     }

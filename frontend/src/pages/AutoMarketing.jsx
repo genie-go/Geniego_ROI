@@ -434,8 +434,39 @@ export default function AutoMarketing() {
         if (!selCats.length || !selAds.length) { alert(t('marketing.alertSelectCatCh')); return; }
         setGenerating(true);
         try {
-            await new Promise(r => setTimeout(r, 1500));
-            const s = generateStrategy(effectiveBudget, selCats, selAds, PRODUCT_CATEGORIES, AD_CHANNELS);
+            let s = null;
+            // ★ 201차: 데이터 기반 추천(백엔드 벤치마크 cold-start → 테넌트 실측 warm 블렌드).
+            //   실패(오프라인/인증) 시 로컬 정적 전략으로 안전 폴백 → UX 무중단.
+            try {
+                const tok = localStorage.getItem('genie_token') || localStorage.getItem('demo_genie_token') || '';
+                const r = await fetch('/api/v424/marketing/auto-recommend', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tok}` },
+                    body: JSON.stringify({ budget: effectiveBudget, category: selCats[0], period, channels: selAds }),
+                });
+                const d = await r.json();
+                if (d && d.ok && Array.isArray(d.channels) && d.channels.length) {
+                    const allocations = d.channels.map(bc => {
+                        const ch = AD_CHANNELS.find(c => c.id === bc.channel);
+                        return ch ? {
+                            ch, alloc: bc.allocation, impressions: bc.est_impressions,
+                            clicks: bc.est_clicks, conversions: bc.est_conversions,
+                            roas: String(bc.expected_roas), source: bc.source,
+                        } : null;
+                    }).filter(Boolean);
+                    if (allocations.length) {
+                        s = {
+                            budget: effectiveBudget, allocations,
+                            totalImpressions: allocations.reduce((a, x) => a + x.impressions, 0),
+                            totalClicks: allocations.reduce((a, x) => a + x.clicks, 0),
+                            totalConversions: allocations.reduce((a, x) => a + x.conversions, 0),
+                            estimatedRoas: String(d.blended_roas ?? ''),
+                            recSource: d.source, rationale: d.rationale,
+                        };
+                    }
+                }
+            } catch (_) { /* 폴백 */ }
+            if (!s) s = generateStrategy(effectiveBudget, selCats, selAds, PRODUCT_CATEGORIES, AD_CHANNELS);
             setDraft(s);
             setTab('preview');
         } catch(e) {
@@ -444,7 +475,7 @@ export default function AutoMarketing() {
         } finally {
             setGenerating(false);
         }
-    }, [selCats, selAds, effectiveBudget, PRODUCT_CATEGORIES, AD_CHANNELS, t]);
+    }, [selCats, selAds, effectiveBudget, period, PRODUCT_CATEGORIES, AD_CHANNELS, t]);
 
 
     /* ─── Campaign 제출 전 Management자 Approval Modal 표시 ─── */
@@ -471,6 +502,21 @@ export default function AutoMarketing() {
             confirmColor: '#22c55e',
             onConfirm: () => {
                 const newStatus = 'pending';
+                // ★ 201차: 실 백엔드 영속화 + 채널 연결상태 추적(/v423/auto-campaign/launch).
+                //   연결된 채널은 집행 대기열로, 미연결은 'pending_connection'(정직). best-effort — UI 무중단.
+                try {
+                    const tok = localStorage.getItem('genie_token') || localStorage.getItem('demo_genie_token') || '';
+                    fetch('/api/v423/auto-campaign/launch', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tok}` },
+                        body: JSON.stringify({
+                            name, category: selCats[0] || '', budget: strategy.budget, period,
+                            channels: selAds,
+                            allocations: (strategy.allocations || []).map(a => ({ channel: a.ch?.id, alloc: a.alloc, roas: a.roas })),
+                            est_roas: String(strategy.estimatedRoas || ''),
+                        }),
+                    }).catch(() => {});
+                } catch (_) {}
                 const camp = {
                     id: mkId(), name, period, targetAudience, budget: strategy.budget,
                     categories: selCats.map(id => PRODUCT_CATEGORIES.find(c => c.id === id)),

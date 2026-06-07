@@ -5,6 +5,12 @@ use Psr\Http\Message\{ResponseInterface as Response, ServerRequestInterface as R
 /**
  * ReturnsPortal — 반품 자동화 포탈 Backend API
  * - SQLite: returns, returns_settings, returns_automation
+ *
+ * ★ 201차 P0-2 보안수정:
+ *   - (격리) 전 테넌트가 단일 returns.sqlite3 를 공유하며 tenant_id 필터가 전무 →
+ *     인증된 아무 키가 타 계정 반품 데이터를 R/W/D 하던 교차테넌트 유출 차단.
+ *     모든 테이블에 tenant_id 추가 + 전 query WHERE tenant_id=? 강제(멱등 마이그레이션 포함).
+ *   - (인젝션) toggleAutomation 의 "...WHERE id=$id"(요청 body 보간) → prepared statement.
  */
 class ReturnsPortal
 {
@@ -20,6 +26,7 @@ class ReturnsPortal
 
         $pdo->exec("CREATE TABLE IF NOT EXISTS returns (
             id          INTEGER PRIMARY KEY AUTOINCREMENT,
+            tenant_id   TEXT NOT NULL DEFAULT '',
             return_id   TEXT UNIQUE NOT NULL,
             order_id    TEXT NOT NULL DEFAULT '',
             sku         TEXT NOT NULL DEFAULT '',
@@ -36,23 +43,61 @@ class ReturnsPortal
             note        TEXT NOT NULL DEFAULT '',
             created_at  TEXT NOT NULL
         )");
+        self::ensureCol($pdo, 'returns', 'tenant_id', "TEXT NOT NULL DEFAULT ''");
 
+        // returns_settings — 테넌트별 (tenant_id,key) 유니크. 구 UNIQUE(key) 스키마면 재생성 마이그레이션.
         $pdo->exec("CREATE TABLE IF NOT EXISTS returns_settings (
-            id      INTEGER PRIMARY KEY AUTOINCREMENT,
-            key     TEXT UNIQUE NOT NULL,
-            value   TEXT NOT NULL DEFAULT ''
+            id        INTEGER PRIMARY KEY AUTOINCREMENT,
+            tenant_id TEXT NOT NULL DEFAULT '',
+            key       TEXT NOT NULL,
+            value     TEXT NOT NULL DEFAULT '',
+            UNIQUE(tenant_id, key)
         )");
+        if (!self::hasCol($pdo, 'returns_settings', 'tenant_id')) {
+            $pdo->exec("ALTER TABLE returns_settings RENAME TO returns_settings_old");
+            $pdo->exec("CREATE TABLE returns_settings (
+                id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT '',
+                key TEXT NOT NULL, value TEXT NOT NULL DEFAULT '', UNIQUE(tenant_id, key))");
+            $pdo->exec("INSERT INTO returns_settings (tenant_id,key,value) SELECT '', key, value FROM returns_settings_old");
+            $pdo->exec("DROP TABLE returns_settings_old");
+        }
 
         $pdo->exec("CREATE TABLE IF NOT EXISTS returns_automation (
-            id      INTEGER PRIMARY KEY AUTOINCREMENT,
-            label   TEXT NOT NULL,
-            enabled INTEGER NOT NULL DEFAULT 0
+            id        INTEGER PRIMARY KEY AUTOINCREMENT,
+            tenant_id TEXT NOT NULL DEFAULT '',
+            label     TEXT NOT NULL,
+            enabled   INTEGER NOT NULL DEFAULT 0
         )");
+        self::ensureCol($pdo, 'returns_automation', 'tenant_id', "TEXT NOT NULL DEFAULT ''");
 
         // No seed data — real user data only
 
         self::$db = $pdo;
         return $pdo;
+    }
+
+    private static function hasCol(\PDO $pdo, string $table, string $col): bool
+    {
+        foreach ($pdo->query("PRAGMA table_info(" . $table . ")")->fetchAll(\PDO::FETCH_ASSOC) as $c) {
+            if (($c['name'] ?? '') === $col) return true;
+        }
+        return false;
+    }
+
+    private static function ensureCol(\PDO $pdo, string $table, string $col, string $decl): void
+    {
+        if (!self::hasCol($pdo, $table, $col)) {
+            try { $pdo->exec("ALTER TABLE " . $table . " ADD COLUMN " . $col . " " . $decl); } catch (\Throwable $e) {}
+        }
+    }
+
+    /** 인증 미들웨어 주입 tenant. 미해결 시 '' → 호출부가 빈 결과/거부. */
+    private static function tenant(Request $request): string
+    {
+        $t = $request->getAttribute('auth_tenant');
+        if (!is_string($t) || $t === '') $t = $request->getHeaderLine('X-Tenant-Id');
+        $t = trim((string)$t);
+        return ($t === '' || strtolower($t) === 'unknown') ? '' : $t;
     }
 
     private static function json(Response $response, mixed $data, int $status = 200): Response
@@ -74,22 +119,29 @@ class ReturnsPortal
     /** GET /v420/returns/list */
     public static function list(Request $request, Response $response, array $args): Response
     {
+        $t = self::tenant($request);
+        if ($t === '') return self::json($response, ['ok' => true, 'returns' => []]);
         $db = self::db();
-        $rows = $db->query("SELECT * FROM returns ORDER BY id DESC")->fetchAll(\PDO::FETCH_ASSOC);
-        return self::json($response, ['ok' => true, 'returns' => $rows]);
+        $stmt = $db->prepare("SELECT * FROM returns WHERE tenant_id=? ORDER BY id DESC");
+        $stmt->execute([$t]);
+        return self::json($response, ['ok' => true, 'returns' => $stmt->fetchAll(\PDO::FETCH_ASSOC)]);
     }
 
     /** POST /v420/returns — create */
     public static function create(Request $request, Response $response, array $args): Response
     {
+        $t = self::tenant($request);
+        if ($t === '') return self::json($response, ['ok' => false, 'error' => 'tenant required'], 403);
         $db = self::db();
         $b = self::body($request);
-        $rid = 'RT-' . date('Y') . '-' . str_pad((int)$db->query("SELECT COUNT(*)+1 FROM returns")->fetchColumn(), 4, '0', STR_PAD_LEFT);
+        $cnt = $db->prepare("SELECT COUNT(*)+1 FROM returns WHERE tenant_id=?");
+        $cnt->execute([$t]);
+        $rid = 'RT-' . date('Y') . '-' . str_pad((int)$cnt->fetchColumn(), 4, '0', STR_PAD_LEFT);
         $now = gmdate('c');
-        $ins = $db->prepare("INSERT INTO returns (return_id, order_id, sku, name, channel, qty, reason, status, req_date, track_no, refund_amt, defective, wms_linked, note, created_at)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+        $ins = $db->prepare("INSERT INTO returns (tenant_id, return_id, order_id, sku, name, channel, qty, reason, status, req_date, track_no, refund_amt, defective, wms_linked, note, created_at)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
         $ins->execute([
-            $rid,
+            $t, $rid,
             $b['order_id'] ?? '', $b['sku'] ?? '', $b['name'] ?? '', $b['channel'] ?? '',
             (int)($b['qty'] ?? 1), $b['reason'] ?? '', 'pending',
             $b['req_date'] ?? date('Y-m-d'), $b['track_no'] ?? '',
@@ -102,44 +154,53 @@ class ReturnsPortal
     /** POST /v420/returns/{id}/status */
     public static function updateStatus(Request $request, Response $response, array $args): Response
     {
+        $t = self::tenant($request);
+        if ($t === '') return self::json($response, ['ok' => false, 'error' => 'tenant required'], 403);
         $db = self::db();
         $b = self::body($request);
-        $id = $args['id'];
+        $id = (int)$args['id'];
         $status = $b['status'] ?? 'pending';
         $allowed = ['pending','inspecting','approved','rejected','refunded','restocked'];
-        if (!in_array($status, $allowed)) return self::json($response, ['ok' => false, 'error' => 'Invalid status'], 400);
-        $db->prepare("UPDATE returns SET status=? WHERE id=?")->execute([$status, $id]);
+        if (!in_array($status, $allowed, true)) return self::json($response, ['ok' => false, 'error' => 'Invalid status'], 400);
+        $db->prepare("UPDATE returns SET status=? WHERE id=? AND tenant_id=?")->execute([$status, $id, $t]);
         return self::json($response, ['ok' => true]);
     }
 
     /** POST /v420/returns/{id}/wms-link */
     public static function wmsLink(Request $request, Response $response, array $args): Response
     {
+        $t = self::tenant($request);
+        if ($t === '') return self::json($response, ['ok' => false, 'error' => 'tenant required'], 403);
         $db = self::db();
-        $id = $args['id'];
-        $db->prepare("UPDATE returns SET wms_linked=1 WHERE id=?")->execute([$id]);
+        $id = (int)$args['id'];
+        $db->prepare("UPDATE returns SET wms_linked=1 WHERE id=? AND tenant_id=?")->execute([$id, $t]);
         return self::json($response, ['ok' => true]);
     }
 
     /** DELETE /v420/returns/{id} */
     public static function delete(Request $request, Response $response, array $args): Response
     {
+        $t = self::tenant($request);
+        if ($t === '') return self::json($response, ['ok' => false, 'error' => 'tenant required'], 403);
         $db = self::db();
-        $id = $args['id'];
-        $db->prepare("DELETE FROM returns WHERE id=?")->execute([$id]);
+        $id = (int)$args['id'];
+        $db->prepare("DELETE FROM returns WHERE id=? AND tenant_id=?")->execute([$id, $t]);
         return self::json($response, ['ok' => true]);
     }
 
     /** GET /v420/returns/summary */
     public static function summary(Request $request, Response $response, array $args): Response
     {
+        $t = self::tenant($request);
+        if ($t === '') return self::json($response, ['ok' => true, 'total' => 0, 'pending' => 0, 'defective' => 0, 'totalRefund' => 0, 'wmsLinked' => 0, 'refundRate' => 0]);
         $db = self::db();
-        $total = (int)$db->query("SELECT COUNT(*) FROM returns")->fetchColumn();
-        $pending = (int)$db->query("SELECT COUNT(*) FROM returns WHERE status='pending'")->fetchColumn();
-        $defective = (int)$db->query("SELECT COUNT(*) FROM returns WHERE defective=1")->fetchColumn();
-        $totalRefund = (float)$db->query("SELECT COALESCE(SUM(refund_amt),0) FROM returns")->fetchColumn();
-        $wmsLinked = (int)$db->query("SELECT COUNT(*) FROM returns WHERE wms_linked=1")->fetchColumn();
-        $processed = (int)$db->query("SELECT COUNT(*) FROM returns WHERE status IN ('refunded','restocked')")->fetchColumn();
+        $one = function (string $sql) use ($db, $t) { $s = $db->prepare($sql); $s->execute([$t]); return $s->fetchColumn(); };
+        $total = (int)$one("SELECT COUNT(*) FROM returns WHERE tenant_id=?");
+        $pending = (int)$one("SELECT COUNT(*) FROM returns WHERE tenant_id=? AND status='pending'");
+        $defective = (int)$one("SELECT COUNT(*) FROM returns WHERE tenant_id=? AND defective=1");
+        $totalRefund = (float)$one("SELECT COALESCE(SUM(refund_amt),0) FROM returns WHERE tenant_id=?");
+        $wmsLinked = (int)$one("SELECT COUNT(*) FROM returns WHERE tenant_id=? AND wms_linked=1");
+        $processed = (int)$one("SELECT COUNT(*) FROM returns WHERE tenant_id=? AND status IN ('refunded','restocked')");
         $refundRate = $total > 0 ? round($processed / $total * 100) : 0;
 
         return self::json($response, [
@@ -152,29 +213,40 @@ class ReturnsPortal
     /** GET /v420/returns/settings */
     public static function getSettings(Request $request, Response $response, array $args): Response
     {
+        $t = self::tenant($request);
+        if ($t === '') return self::json($response, ['ok' => true, 'settings' => new \stdClass(), 'automation' => []]);
         $db = self::db();
-        $rows = $db->query("SELECT key, value FROM returns_settings")->fetchAll(\PDO::FETCH_KEY_PAIR);
-        $auto = $db->query("SELECT * FROM returns_automation ORDER BY id")->fetchAll(\PDO::FETCH_ASSOC);
-        return self::json($response, ['ok' => true, 'settings' => $rows ?: new \stdClass(), 'automation' => $auto]);
+        $s = $db->prepare("SELECT key, value FROM returns_settings WHERE tenant_id=?");
+        $s->execute([$t]);
+        $rows = $s->fetchAll(\PDO::FETCH_KEY_PAIR);
+        $a = $db->prepare("SELECT * FROM returns_automation WHERE tenant_id=? ORDER BY id");
+        $a->execute([$t]);
+        return self::json($response, ['ok' => true, 'settings' => $rows ?: new \stdClass(), 'automation' => $a->fetchAll(\PDO::FETCH_ASSOC)]);
     }
 
     /** POST /v420/returns/settings */
     public static function saveSettings(Request $request, Response $response, array $args): Response
     {
+        $t = self::tenant($request);
+        if ($t === '') return self::json($response, ['ok' => false, 'error' => 'tenant required'], 403);
         $db = self::db();
         $b = self::body($request);
-        $ins = $db->prepare("INSERT OR REPLACE INTO returns_settings (key, value) VALUES (?,?)");
-        foreach ($b as $k => $v) { $ins->execute([$k, (string)$v]); }
+        $ins = $db->prepare("INSERT OR REPLACE INTO returns_settings (tenant_id, key, value) VALUES (?,?,?)");
+        foreach ($b as $k => $v) { $ins->execute([$t, (string)$k, (string)$v]); }
         return self::json($response, ['ok' => true]);
     }
 
     /** POST /v420/returns/automation/toggle */
     public static function toggleAutomation(Request $request, Response $response, array $args): Response
     {
+        $t = self::tenant($request);
+        if ($t === '') return self::json($response, ['ok' => false, 'error' => 'tenant required'], 403);
         $db = self::db();
         $b = self::body($request);
-        $id = $b['id'] ?? 0;
-        $db->exec("UPDATE returns_automation SET enabled = CASE WHEN enabled=1 THEN 0 ELSE 1 END WHERE id=$id");
+        $id = (int)($b['id'] ?? 0);
+        // ★ 인젝션 수정: 정수 캐스트 + prepared statement + tenant 스코프
+        $db->prepare("UPDATE returns_automation SET enabled = CASE WHEN enabled=1 THEN 0 ELSE 1 END WHERE id=? AND tenant_id=?")
+           ->execute([$id, $t]);
         return self::json($response, ['ok' => true]);
     }
 }

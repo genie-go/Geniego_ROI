@@ -326,7 +326,21 @@ class CustomerAI
     /* ─── GET /api/customer-ai/model-performance ─── 모델 성능 ───── */
     public static function modelPerformance(Request $req, Response $res): Response
     {
-        // 데모/유료 모두 제공 (데모는 시뮬레이션)
+        // ★ 201차 P0-3: 운영(실 테넌트)에 날조 모델지표 노출 금지. 데모 테넌트만 예시 지표.
+        if (self::tenant($req) !== 'demo') {
+            $samples = 0;
+            try {
+                $pdo = self::db(); $t = self::tenant($req);
+                $s = $pdo->prepare("SELECT COUNT(*) FROM crm_customers WHERE tenant_id=?");
+                $s->execute([$t]); $samples = (int)$s->fetchColumn();
+            } catch (\Throwable $e) {}
+            return self::json($res, [
+                'ok' => true, 'mode' => 'simulated', 'metrics' => null,
+                'training_samples' => $samples,
+                'note' => 'AI 모델 학습 데이터가 축적되면 실제 성능 지표가 표시됩니다.',
+            ]);
+        }
+        // 데모 전용: 예시 지표
         $metrics = [
             'churn_prediction' => [
                 'model' => 'RFM + Logistic Regression',
@@ -371,7 +385,7 @@ class CustomerAI
             'version' => 'v2.4.1',
         ];
 
-        return self::json($res, ['ok' => true, 'metrics' => $metrics]);
+        return self::json($res, ['ok' => true, 'metrics' => $metrics, 'mode' => 'demo']);
     }
 
     /* ─── GET /api/customer-ai/product-recommendations ─── 상품 추천 */
@@ -499,6 +513,12 @@ class CustomerAI
         $p = $req->getQueryParams();
         $customerId = (int)($p['customer_id'] ?? 0);
 
+        // ★ 201차 P0-3: 운영(실 테넌트)에 날조 액션/예상매출 노출 금지. 데모 테넌트만 예시.
+        if (self::tenant($req) !== 'demo') {
+            return self::json($res, ['ok' => true, 'customer_id' => $customerId, 'actions' => [], 'mode' => 'simulated',
+                'note' => '고객 행동 데이터가 축적되면 개인화 추천 액션이 표시됩니다.']);
+        }
+
         $actions = [
             ['rank'=>1,'action'=>'send_kakao_alimtalk','label'=>'카카오 알림톡 발송',
              'reason'=>'최근 30일 이메일 미반응, 카카오 채널 반응률 2.4배 높음',
@@ -524,7 +544,36 @@ class CustomerAI
     /* ─── GET /api/customer-ai/integrated-summary ─── 전체 연동 요약 */
     public static function integratedSummary(Request $req, Response $res): Response
     {
-        // 데모/유료 모두 제공
+        // ★ 201차 P0-3: 운영(실 테넌트)에 날조 KPI/연동상태 노출 금지. 실 데이터 집계 또는 정직 0.
+        if (self::tenant($req) !== 'demo') {
+            $t = self::tenant($req);
+            $cust = 0; $hasCrm = false; $hasEmail = false;
+            try {
+                $pdo = self::db();
+                $s = $pdo->prepare("SELECT COUNT(*) FROM crm_customers WHERE tenant_id=?");
+                $s->execute([$t]); $cust = (int)$s->fetchColumn(); $hasCrm = $cust > 0;
+            } catch (\Throwable $e) {}
+            return self::json($res, [
+                'ok' => true, 'mode' => 'simulated',
+                'kpis' => [
+                    'total_customers' => $cust, 'high_risk_count' => 0, 'high_ltv_count' => 0,
+                    'predicted_revenue_30d' => 0, 'avg_purchase_prob' => 0, 'avg_churn_score' => 0,
+                    'active_campaigns' => 0, 'active_popups' => 0, 'journey_enrollments' => 0,
+                ],
+                'integrations' => [
+                    'crm'       => ['connected' => $hasCrm, 'segments' => 0, 'auto_sync' => false],
+                    'email'     => ['connected' => false, 'campaigns' => 0, 'ab_tests' => 0],
+                    'kakao'     => ['connected' => false, 'campaigns' => 0, 'alimtalk' => false],
+                    'journey'   => ['connected' => false, 'active_journeys' => 0, 'enrollments' => 0],
+                    'web_popup' => ['connected' => false, 'active_popups' => 0, 'ctr' => 0],
+                    'inventory' => ['connected' => false, 'low_stock_alerts' => 0],
+                    'orders'    => ['connected' => false, 'pending_orders' => 0],
+                ],
+                'model_health' => ['status' => 'untrained', 'last_run' => null, 'accuracy' => null],
+                'note' => '데이터·연동이 축적되면 실제 통합 지표가 표시됩니다.',
+            ]);
+        }
+        // 데모 전용: 예시 데이터
         $data = [
             'ok' => true,
             'kpis' => [

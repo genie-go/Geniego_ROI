@@ -58,7 +58,10 @@ function PgConfig() {
     {
       emoji: integrationOk ? '✅' : '⚠',
       label: '연동 상태',
-      val: loading ? NA : (integrationOk ? '정상 (configured)' : 'PADDLE_CLIENT_TOKEN 미설정'),
+      // 201차: 긴 'PADDLE_CLIENT_TOKEN 미설정' 이 카드 폭을 넘어 이탈 → val 은 짧은 상태,
+      //        상세(env 키명)는 sub 줄로 이동 + val/sub 에 줄바꿈 허용(아래 렌더 overflowWrap).
+      val: loading ? NA : (integrationOk ? '정상' : '미설정'),
+      sub: loading ? null : (integrationOk ? 'configured' : 'PADDLE_CLIENT_TOKEN env'),
     },
     {
       emoji: '📊', label: '금월 거래',
@@ -158,12 +161,12 @@ function PgConfig() {
                 }}>LIVE</span>
               )}
             </div>
-            <div style={{ fontSize: 20, fontWeight: 800, lineHeight: 1.2 }}>{k.val}</div>
+            <div style={{ fontSize: 20, fontWeight: 800, lineHeight: 1.2, overflowWrap: 'anywhere', wordBreak: 'break-word' }}>{k.val}</div>
             <div style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 600, marginTop: 2 }}>
               {k.label}
             </div>
             {k.sub && (
-              <div style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 4, fontStyle: 'italic' }}>
+              <div style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 4, fontStyle: 'italic', overflowWrap: 'anywhere', wordBreak: 'break-word' }}>
                 {k.sub}
               </div>
             )}
