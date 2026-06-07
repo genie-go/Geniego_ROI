@@ -189,11 +189,55 @@ function ApiKeysPanel() {
   );
 }
 
+/* ─── 실제 API 레퍼런스(문서) — 운영 routes.php 기준 대표 엔드포인트 ─── */
+const API_REF = [
+  { group: 'Auth', color: '#4f8ef7', items: [
+    { m: 'POST',   p: '/auth/login',           dk: 'epLogin' },
+    { m: 'GET',    p: '/auth/me',              dk: 'epMe' },
+    { m: 'GET',    p: '/auth/api-keys',        dk: 'epKeysList' },
+    { m: 'POST',   p: '/auth/api-keys',        dk: 'epKeysCreate' },
+    { m: 'DELETE', p: '/auth/api-keys/{id}',   dk: 'epKeysRevoke' },
+  ]},
+  { group: 'Ingest', color: '#0ea5a3', items: [
+    { m: 'POST', p: '/v423/connectors/sync',  dk: 'epSync' },
+    { m: 'POST', p: '/v420/price/ingest',     dk: 'epPrice' },
+  ]},
+  { group: 'Analytics', color: '#a855f7', items: [
+    { m: 'GET', p: '/v423/rollup/summary',    dk: 'epRollup' },
+    { m: 'GET', p: '/v420/channel-mix',       dk: 'epChannelMix' },
+    { m: 'POST', p: '/v422/ai/recommend',     dk: 'epAi' },
+  ]},
+];
+const SDK_LIST = [
+  { id: 'curl', name: 'cURL', icon: '🖥️', code: "curl -H \"Authorization: Bearer $API_KEY\" \\\n  https://roi.genie-go.com/api/v423/rollup/summary" },
+  { id: 'js',   name: 'JavaScript', icon: '🟨', code: "const r = await fetch('/api/v423/rollup/summary', {\n  headers: { Authorization: `Bearer ${apiKey}` }\n});\nconst data = await r.json();" },
+  { id: 'py',   name: 'Python', icon: '🐍', code: "import requests\nr = requests.get(\n  'https://roi.genie-go.com/api/v423/rollup/summary',\n  headers={'Authorization': f'Bearer {api_key}'})\nprint(r.json())" },
+];
+const WEBHOOK_EVENTS = ['sync.completed', 'alert.triggered', 'report.exported', 'key.rotated', 'plan.changed'];
+
 export default function DeveloperHub() {
   const { t } = useI18n();
   const [activeTab, setActiveTab] = useState(0);
-  const tabs = [t('devHub.tabApiKeys', '🔑 API 키'), "API Reference", "SDKs", "Webhooks", "Sandbox"];
-  const kpis = [{ "emoji": "📡", "label": "API Endpoints", "val": 86 }, { "emoji": "📦", "label": "SDKs", "val": 5 }, { "emoji": "📖", "label": "Docs Pages", "val": 120 }, { "emoji": "🔑", "label": "Sandbox Keys", "val": 3 }];
+  const [keyCount, setKeyCount] = useState(null);
+  const [copied, setCopied] = useState('');
+
+  // 계정 동기화: 실제 발급된 API 키 수(소유자만 200, 그 외 403→0)
+  useEffect(() => {
+    api('/auth/api-keys').then(({ data }) => setKeyCount(Array.isArray(data.keys) ? data.keys.length : 0)).catch(() => setKeyCount(0));
+  }, []);
+
+  const endpointCount = API_REF.reduce((s, g) => s + g.items.length, 0);
+  const tabs = [t('devHub.tabApiKeys', '🔑 API 키'), t('devHub.tabRef', 'API 레퍼런스'), t('devHub.tabSdk', 'SDK'), t('devHub.tabWebhook', '웹훅'), t('devHub.tabSandbox', '샌드박스')];
+  const kpis = [
+    { emoji: '📡', label: t('devHub.kpiEndpoints', '문서화 엔드포인트'), val: endpointCount },
+    { emoji: '📦', label: t('devHub.kpiSdks', 'SDK 예제'), val: SDK_LIST.length },
+    { emoji: '🪝', label: t('devHub.kpiWebhooks', '웹훅 이벤트'), val: WEBHOOK_EVENTS.length },
+    { emoji: '🔑', label: t('devHub.kpiMyKeys', '내 API 키'), val: keyCount === null ? '…' : keyCount },
+  ];
+
+  const copy = (id, text) => { try { navigator.clipboard.writeText(text); setCopied(id); setTimeout(() => setCopied(''), 1500); } catch {} };
+  const codeBox = { fontFamily: 'monospace', fontSize: 12, whiteSpace: 'pre-wrap', wordBreak: 'break-all', background: '#0f172a', color: '#e2e8f0', borderRadius: 10, padding: '14px 16px', lineHeight: 1.6 };
+  const methodColor = { GET: '#22c55e', POST: '#4f8ef7', PUT: '#eab308', PATCH: '#a855f7', DELETE: '#ef4444' };
 
   return (
     <div style={{ padding: 24, minHeight: "100%", color: "var(--text-1, #1e293b)" }}>
@@ -205,17 +249,14 @@ export default function DeveloperHub() {
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
           <span style={{ fontSize: 32 }}>⚙️</span>
           <div>
-            <div style={{ fontSize: 22, fontWeight: 800, color: "var(--text-1, #1e293b)" }}>⚙️ Developer Hub</div>
-            <div style={{ fontSize: 13, color: "var(--text-3, #64748b)", marginTop: 2 }}>API documentation, SDKs, and developer tools</div>
+            <div style={{ fontSize: 22, fontWeight: 800, color: "var(--text-1, #1e293b)" }}>⚙️ {t('devHub.heroTitle', '개발자 허브')}</div>
+            <div style={{ fontSize: 13, color: "var(--text-3, #64748b)", marginTop: 2 }}>{t('devHub.heroDesc', 'API 키 관리, 엔드포인트 레퍼런스, SDK·웹훅 연동을 한곳에서')}</div>
           </div>
         </div>
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 14, marginBottom: 22 }}>
         {kpis.map((k, i) => (
-          <div key={i} style={{
-            borderRadius: 14, padding: "18px 20px",
-            background: "rgba(255,255,255,0.85)", border: "1px solid rgba(0,0,0,0.06)"
-          }}>
+          <div key={i} style={{ borderRadius: 14, padding: "18px 20px", background: "rgba(255,255,255,0.85)", border: "1px solid rgba(0,0,0,0.06)" }}>
             <div style={{ fontSize: 22, marginBottom: 6 }}>{k.emoji}</div>
             <div style={{ fontSize: 22, fontWeight: 800, color: "var(--text-1, #1e293b)" }}>{k.val}</div>
             <div style={{ fontSize: 11, color: "var(--text-3, #64748b)", fontWeight: 600, marginTop: 2 }}>{k.label}</div>
@@ -232,39 +273,137 @@ export default function DeveloperHub() {
           }}>{tab}</button>
         ))}
       </div>
-      <div style={{
-        borderRadius: 16, padding: "28px 32px", minHeight: 320,
-        background: "rgba(255,255,255,0.85)", border: "1px solid rgba(0,0,0,0.06)"
-      }}>
+      <div style={{ borderRadius: 16, padding: "28px 32px", minHeight: 320, background: "rgba(255,255,255,0.85)", border: "1px solid rgba(0,0,0,0.06)" }}>
         <div style={{ fontSize: 16, fontWeight: 800, color: "var(--text-1, #1e293b)", marginBottom: 16 }}>{tabs[activeTab]}</div>
 
-        {activeTab === 0 ? <ApiKeysPanel /> : (
-          <>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 12 }}>
-              {["Interactive API explorer", "Code samples in 6 languages", "Webhook tester", "Rate limit dashboard"].map((f, i) => (
-                <div key={i} style={{
-                  display: "flex", alignItems: "center", gap: 10, padding: "12px 16px",
-                  borderRadius: 10, background: "rgba(79,142,247,0.04)", border: "1px solid rgba(79,142,247,0.08)"
-                }}>
-                  <span style={{
-                    width: 28, height: 28, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center",
-                    background: "linear-gradient(135deg,#4f8ef7,#6366f1)", color: "#fff", fontSize: 12, fontWeight: 800
-                  }}>✓</span>
-                  <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-1, #1e293b)" }}>{f}</span>
+        {activeTab === 0 && <ApiKeysPanel />}
+
+        {/* TAB 1: API Reference */}
+        {activeTab === 1 && (
+          <div style={{ display: 'grid', gap: 18 }}>
+            <div style={{ fontSize: 12, color: '#64748b', lineHeight: 1.7 }}>
+              📡 {t('devHub.refIntro', '모든 요청은 Authorization: Bearer <API 키> 헤더가 필요합니다. 기준 URL은 https://roi.genie-go.com/api 입니다.')}
+            </div>
+            {API_REF.map(g => (
+              <div key={g.group}>
+                <div style={{ fontSize: 13, fontWeight: 800, color: g.color, marginBottom: 8 }}>{g.group}</div>
+                <div style={{ display: 'grid', gap: 6 }}>
+                  {g.items.map(ep => (
+                    <div key={ep.p} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 9, background: 'rgba(0,0,0,0.02)', border: '1px solid rgba(0,0,0,0.05)', flexWrap: 'wrap' }}>
+                      <span style={{ fontFamily: 'monospace', fontSize: 10, fontWeight: 800, color: '#fff', background: methodColor[ep.m] || '#64748b', padding: '2px 7px', borderRadius: 5, minWidth: 50, textAlign: 'center' }}>{ep.m}</span>
+                      <span style={{ fontFamily: 'monospace', fontSize: 12, color: '#1e293b' }}>{ep.p}</span>
+                      <span style={{ fontSize: 11, color: '#64748b', marginLeft: 'auto' }}>{t('devHub.' + ep.dk, '')}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* TAB 2: SDKs */}
+        {activeTab === 2 && (
+          <div style={{ display: 'grid', gap: 16 }}>
+            <div style={{ fontSize: 12, color: '#64748b', lineHeight: 1.7 }}>
+              📦 {t('devHub.sdkIntro', '아래 예제로 즉시 첫 호출을 시도할 수 있습니다. API 키는 “API 키” 탭에서 발급하세요.')}
+            </div>
+            {SDK_LIST.map(s => (
+              <div key={s.id} style={{ borderRadius: 12, border: '1px solid rgba(0,0,0,0.07)', overflow: 'hidden' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', background: 'rgba(0,0,0,0.02)' }}>
+                  <span style={{ fontSize: 16 }}>{s.icon}</span>
+                  <span style={{ fontWeight: 800, fontSize: 13, color: '#1e293b' }}>{s.name}</span>
+                  <button onClick={() => copy(s.id, s.code)} style={{ marginLeft: 'auto', padding: '4px 12px', borderRadius: 7, border: 'none', background: '#4f8ef7', color: '#fff', fontWeight: 700, fontSize: 11, cursor: 'pointer' }}>
+                    {copied === s.id ? `✓ ${t('devHub.copied', '복사됨')}` : t('devHub.copy', '복사')}
+                  </button>
+                </div>
+                <div style={codeBox}>{s.code}</div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* TAB 3: Webhooks */}
+        {activeTab === 3 && (
+          <div style={{ display: 'grid', gap: 16 }}>
+            <div style={{ fontSize: 12, color: '#64748b', lineHeight: 1.7 }}>
+              🪝 {t('devHub.webhookIntro', '이벤트 발생 시 등록한 URL로 서명된 POST 요청을 전송합니다. X-Genie-Signature 헤더(HMAC-SHA256)로 위변조를 검증하세요.')}
+            </div>
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 800, color: '#475569', marginBottom: 8 }}>{t('devHub.webhookEvents', '지원 이벤트')}</div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                {WEBHOOK_EVENTS.map(ev => (
+                  <span key={ev} style={{ fontFamily: 'monospace', fontSize: 11, padding: '4px 10px', borderRadius: 20, background: 'rgba(79,142,247,0.08)', border: '1px solid rgba(79,142,247,0.2)', color: '#2563eb' }}>{ev}</span>
+                ))}
+              </div>
+            </div>
+            <div style={codeBox}>{`POST {your_endpoint}\nX-Genie-Signature: sha256=...\nContent-Type: application/json\n\n{\n  "event": "sync.completed",\n  "tenant_id": "...",\n  "data": { ... }\n}`}</div>
+          </div>
+        )}
+
+        {/* TAB 4: Sandbox */}
+        {activeTab === 4 && (
+          <div style={{ display: 'grid', gap: 16 }}>
+            <div style={{ fontSize: 12, color: '#64748b', lineHeight: 1.7 }}>
+              🧪 {t('devHub.sandboxIntro', '실데이터를 건드리지 않고 통합을 검증하세요. “API 키” 탭에서 viewer(read) 역할 키를 발급하면 안전하게 읽기 호출만 테스트할 수 있습니다.')}
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
+              {[
+                ['1️⃣', t('devHub.sbStep1', 'viewer 역할로 API 키 발급')],
+                ['2️⃣', t('devHub.sbStep2', 'SDK 탭의 예제로 첫 호출 실행')],
+                ['3️⃣', t('devHub.sbStep3', '응답 200·데이터 형식 확인')],
+                ['4️⃣', t('devHub.sbStep4', '운영 연동 시 analyst+ 키로 교체')],
+              ].map(([n, txt]) => (
+                <div key={n} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', borderRadius: 10, background: 'rgba(79,142,247,0.04)', border: '1px solid rgba(79,142,247,0.08)' }}>
+                  <span style={{ fontSize: 18 }}>{n}</span>
+                  <span style={{ fontSize: 12.5, fontWeight: 600, color: '#1e293b' }}>{txt}</span>
                 </div>
               ))}
             </div>
-            <div style={{
-              marginTop: 24, padding: "16px 20px", borderRadius: 12,
-              background: "linear-gradient(135deg, rgba(34,197,94,0.06), rgba(16,185,129,0.04))",
-              border: "1px solid rgba(34,197,94,0.12)", display: "flex", alignItems: "center", gap: 10
-            }}>
-              <span style={{ fontSize: 18 }}>✅</span>
-              <span style={{ fontSize: 12, fontWeight: 700, color: "#16a34a" }}>System Operational</span>
-            </div>
-          </>
+            <button onClick={() => setActiveTab(0)} style={{ justifySelf: 'start', padding: '9px 18px', borderRadius: 9, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#4f8ef7,#6366f1)', color: '#fff', fontWeight: 700, fontSize: 12 }}>
+              🔑 {t('devHub.goIssueKey', 'API 키 발급하러 가기')}
+            </button>
+          </div>
         )}
       </div>
+
+      {/* Usage Guide */}
+      <DevHubGuide t={t} />
+    </div>
+  );
+}
+
+/* ─── 이용 가이드 ─── */
+function DevHubGuide({ t }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div style={{ marginTop: 18 }}>
+      <button onClick={() => setOpen(v => !v)} style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '0 auto 12px', padding: '10px 24px', borderRadius: 12, border: '1px solid rgba(79,142,247,0.3)', background: 'rgba(79,142,247,0.06)', color: '#4f8ef7', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+        📖 {t('devHub.guideTitle', '개발자 허브 이용 가이드')} {open ? '▲' : '▼'}
+      </button>
+      {open && (
+        <div style={{ background: 'rgba(255,255,255,0.7)', border: '1px solid rgba(79,142,247,0.15)', borderRadius: 16, padding: 24 }}>
+          <div style={{ textAlign: 'center', marginBottom: 18 }}>
+            <div style={{ fontSize: 36, marginBottom: 6 }}>⚙️</div>
+            <h2 style={{ fontSize: 19, fontWeight: 900, margin: '0 0 6px', color: '#1e293b' }}>{t('devHub.guideTitle', '개발자 허브 이용 가이드')}</h2>
+            <p style={{ color: '#64748b', fontSize: 12, margin: 0 }}>{t('devHub.guideSub', '초보자도 이 가이드만 보면 API 키 발급부터 첫 연동·웹훅까지 따라할 수 있습니다')}</p>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12, marginBottom: 18 }}>
+            {[1, 2, 3, 4, 5, 6].map(i => (
+              <div key={i} style={{ padding: 14, borderRadius: 12, background: 'rgba(79,142,247,0.04)', border: '1px solid rgba(79,142,247,0.1)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                  <span style={{ width: 24, height: 24, borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 900, background: 'linear-gradient(135deg,#4f8ef7,#6366f1)', color: '#fff' }}>{i}</span>
+                  <span style={{ fontWeight: 800, fontSize: 12, color: '#1e293b' }}>{t(`devHub.guideStep${i}Title`, '')}</span>
+                </div>
+                <p style={{ fontSize: 11, color: '#64748b', lineHeight: 1.6, margin: 0 }}>{t(`devHub.guideStep${i}Desc`, '')}</p>
+              </div>
+            ))}
+          </div>
+          <div style={{ padding: '14px 16px', borderRadius: 10, background: 'rgba(34,197,94,0.05)', border: '1px solid rgba(34,197,94,0.15)' }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#16a34a', marginBottom: 6 }}>💡 {t('devHub.guideTipTitle', '보안 팁')}</div>
+            <p style={{ fontSize: 11, color: '#64748b', lineHeight: 1.6, margin: 0 }}>{t('devHub.guideTipDesc', 'API 키는 발급 시 한 번만 표시됩니다. 노출되면 즉시 폐기·회전하고, 최소 권한(viewer/connector)으로 발급하세요.')}</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

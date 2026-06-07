@@ -49,6 +49,7 @@ export default function TeamWorkspace() {
   const toggleTask = (id) => setTasks(ts => ts.map(t => t.id === id ? { ...t, done: !t.done } : t));
   const delTask = (id) => setTasks(ts => ts.filter(t => t.id !== id));
 
+  const [showGuide, setShowGuide] = useState(false);
   const tabs = [tr('tabActivity', '활동 피드'), tr('tabMembers', '구성원'), tr('tabTasks', '태스크')];
   const kpis = [
     { emoji: '👤', label: tr('kpiMembers', '구성원'), val: members.length },
@@ -144,6 +145,37 @@ export default function TeamWorkspace() {
                 ))}
               </div>
             )}
+          </div>
+        )}
+      </div>
+
+      {/* Usage Guide */}
+      <div style={{ marginTop: 4 }}>
+        <button onClick={() => setShowGuide(v => !v)} style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '0 auto 12px', padding: '10px 24px', borderRadius: 12, border: '1px solid rgba(79,142,247,0.3)', background: 'rgba(79,142,247,0.06)', color: '#4f8ef7', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+          📖 {tr('guideTitle', '팀 워크스페이스 이용 가이드')} {showGuide ? '▲' : '▼'}
+        </button>
+        {showGuide && (
+          <div style={{ background: 'var(--surface2, rgba(255,255,255,0.025))', border: '1px solid rgba(79,142,247,0.15)', borderRadius: 16, padding: 24 }}>
+            <div style={{ textAlign: 'center', marginBottom: 18 }}>
+              <div style={{ fontSize: 36, marginBottom: 6 }}>👥</div>
+              <h2 style={{ fontSize: 19, fontWeight: 900, margin: '0 0 6px', color: 'var(--text-1)' }}>{tr('guideTitle', '팀 워크스페이스 이용 가이드')}</h2>
+              <p style={{ color: 'var(--text-3)', fontSize: 12, margin: 0 }}>{tr('guideSub', '초보자도 이 가이드만 보면 팀 협업과 업무 관리를 바로 시작할 수 있습니다')}</p>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12, marginBottom: 18 }}>
+              {[1, 2, 3, 4, 5, 6].map(i => (
+                <div key={i} style={{ padding: 14, borderRadius: 12, background: 'rgba(79,142,247,0.04)', border: '1px solid rgba(79,142,247,0.1)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                    <span style={{ width: 24, height: 24, borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 900, background: 'linear-gradient(135deg,#4f8ef7,#6366f1)', color: '#fff' }}>{i}</span>
+                    <span style={{ fontWeight: 800, fontSize: 12, color: 'var(--text-1)' }}>{tr(`guideStep${i}Title`, '')}</span>
+                  </div>
+                  <p style={{ fontSize: 11, color: 'var(--text-3)', lineHeight: 1.6, margin: 0 }}>{tr(`guideStep${i}Desc`, '')}</p>
+                </div>
+              ))}
+            </div>
+            <div style={{ padding: '14px 16px', borderRadius: 10, background: 'rgba(34,197,94,0.05)', border: '1px solid rgba(34,197,94,0.15)' }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: '#16a34a', marginBottom: 6 }}>💡 {tr('guideTipTitle', '협업 팁')}</div>
+              <p style={{ fontSize: 11, color: 'var(--text-3)', lineHeight: 1.6, margin: 0 }}>{tr('guideTipDesc', '태스크는 로그인한 계정(테넌트) 안에서만 공유·저장됩니다. 구성원을 초대해 역할(소유자/관리자/멤버)을 부여하면 권한에 맞게 협업할 수 있습니다.')}</p>
+            </div>
           </div>
         )}
       </div>

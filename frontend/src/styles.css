@@ -5509,7 +5509,12 @@ body:not([data-theme]) .sidebar-footer {
   color: #111827 !important;
 }
 
-[data-theme="arctic_white"] .container>div:last-child [style*="var(--text-2)"],
+/* ★ 201차 버그 수정: arctic_white 선택자가 `[style*="var(--text-2)"]` 로 오타나
+   인라인 var(--text-2) 를 쓴 모든 요소(비활성 탭 라벨 등)에 스크롤 컨테이너용
+   padding-bottom:120px 가 주입돼 컨테이너 박스가 과대 확장되던 문제.
+   원래 의도대로 .app-content-area>div(스크롤 래퍼)만 매칭하도록 정정.
+   (전역 .app-content-area>div 규칙과 동일 — 테마별 중복이나 무해) */
+[data-theme="arctic_white"] .app-content-area>div,
 [data-theme="pearl_office"] .app-content-area>div {
   flex: 1;
   min-height: 0;

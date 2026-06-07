@@ -29,6 +29,7 @@ export default function CaseStudy() {
   const [activeTab, setActiveTab] = useState(0);
   const [search, setSearch] = useState('');
   const [detail, setDetail] = useState(null);
+  const [showGuide, setShowGuide] = useState(false);
   const [bookmarks, setBookmarks] = useState(() => tGetJSON('case_bookmarks', []) || []);
 
   // ★ 격리: 데모만 샘플, 운영은 빈 배열(실데이터 연동 전까지 빈 상태)
@@ -194,6 +195,37 @@ export default function CaseStudy() {
           </div>
         </>
       )}
+
+      {/* Usage Guide */}
+      <div style={{ marginTop: 4 }}>
+        <button onClick={() => setShowGuide(v => !v)} style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '0 auto 12px', padding: '10px 24px', borderRadius: 12, border: '1px solid rgba(79,142,247,0.3)', background: 'rgba(79,142,247,0.06)', color: '#4f8ef7', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+          📖 {tr('guideTitle', '성공 사례 이용 가이드')} {showGuide ? '▲' : '▼'}
+        </button>
+        {showGuide && (
+          <div style={{ background: 'var(--surface2, rgba(255,255,255,0.025))', border: '1px solid rgba(79,142,247,0.15)', borderRadius: 16, padding: 24 }}>
+            <div style={{ textAlign: 'center', marginBottom: 18 }}>
+              <div style={{ fontSize: 36, marginBottom: 6 }}>📚</div>
+              <h2 style={{ fontSize: 19, fontWeight: 900, margin: '0 0 6px', color: 'var(--text-1)' }}>{tr('guideTitle', '성공 사례 이용 가이드')}</h2>
+              <p style={{ color: 'var(--text-3)', fontSize: 12, margin: 0 }}>{tr('guideSub', '초보자도 이 가이드만 보면 벤치마크 사례를 찾아 우리 전략에 적용할 수 있습니다')}</p>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12, marginBottom: 18 }}>
+              {[1, 2, 3, 4, 5, 6].map(i => (
+                <div key={i} style={{ padding: 14, borderRadius: 12, background: 'rgba(79,142,247,0.04)', border: '1px solid rgba(79,142,247,0.1)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                    <span style={{ width: 24, height: 24, borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 900, background: 'linear-gradient(135deg,#4f8ef7,#a855f7)', color: '#fff' }}>{i}</span>
+                    <span style={{ fontWeight: 800, fontSize: 12, color: 'var(--text-1)' }}>{tr(`guideStep${i}Title`, '')}</span>
+                  </div>
+                  <p style={{ fontSize: 11, color: 'var(--text-3)', lineHeight: 1.6, margin: 0 }}>{tr(`guideStep${i}Desc`, '')}</p>
+                </div>
+              ))}
+            </div>
+            <div style={{ padding: '14px 16px', borderRadius: 10, background: 'rgba(34,197,94,0.05)', border: '1px solid rgba(34,197,94,0.15)' }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: '#16a34a', marginBottom: 6 }}>💡 {tr('guideTipTitle', '활용 팁')}</div>
+              <p style={{ fontSize: 11, color: 'var(--text-3)', lineHeight: 1.6, margin: 0 }}>{tr('guideTipDesc', '업종·ROI 기준으로 우리와 비슷한 사례를 찾아 도입 전/후 지표를 비교하세요. 관심 사례는 ⭐ 북마크하면 계정 안에 저장됩니다.')}</p>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
