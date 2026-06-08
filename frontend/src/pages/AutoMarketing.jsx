@@ -252,6 +252,10 @@ export default function AutoMarketing() {
     const [campaignName, setCampaignName] = useState("");
     const [period, setPeriod] = useState("monthly");
     const [targetAudience, setTargetAudience] = useState("");
+    // Phase2: 다목표 최적화 제어(엔진 multi-objective-v2)
+    const [objective, setObjective] = useState("balanced"); // roas|cac|growth|balanced
+    const [minRoas, setMinRoas] = useState(0);               // 최소 ROAS 가드(0=미적용)
+    const [maxShare, setMaxShare] = useState(60);            // 단일 채널 최대 점유율(%)
     const [generating, setGenerating] = useState(false);
     const [draft, setDraft] = useState(null);
 
@@ -442,7 +446,11 @@ export default function AutoMarketing() {
                 const r = await fetch('/api/v424/marketing/auto-recommend', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tok}` },
-                    body: JSON.stringify({ budget: effectiveBudget, category: selCats[0], period, channels: selAds }),
+                    body: JSON.stringify({
+                        budget: effectiveBudget, category: selCats[0], period, channels: selAds,
+                        objective,                                  // Phase2: 다목표 선택
+                        guardrails: { min_roas: Number(minRoas) || 0, max_share: (Number(maxShare) || 60) / 100 },
+                    }),
                 });
                 const d = await r.json();
                 if (d && d.ok && Array.isArray(d.channels) && d.channels.length) {
@@ -452,6 +460,9 @@ export default function AutoMarketing() {
                             ch, alloc: bc.allocation, impressions: bc.est_impressions,
                             clicks: bc.est_clicks, conversions: bc.est_conversions,
                             roas: String(bc.expected_roas), source: bc.source,
+                            // Phase2: 다목표 엔진 근거 시각화용
+                            cac: bc.expected_cac, confidence: bc.confidence,
+                            exploration: bc.exploration, dailyPace: bc.daily_pace, channelRationale: bc.rationale,
                         } : null;
                     }).filter(Boolean);
                     if (allocations.length) {
@@ -461,6 +472,7 @@ export default function AutoMarketing() {
                             totalClicks: allocations.reduce((a, x) => a + x.clicks, 0),
                             totalConversions: allocations.reduce((a, x) => a + x.conversions, 0),
                             estimatedRoas: String(d.blended_roas ?? ''),
+                            blendedCac: d.blended_cac, objective: d.objective, engine: d.engine,
                             recSource: d.source, rationale: d.rationale,
                         };
                     }
@@ -475,7 +487,7 @@ export default function AutoMarketing() {
         } finally {
             setGenerating(false);
         }
-    }, [selCats, selAds, effectiveBudget, period, PRODUCT_CATEGORIES, AD_CHANNELS, t]);
+    }, [selCats, selAds, effectiveBudget, period, objective, minRoas, maxShare, PRODUCT_CATEGORIES, AD_CHANNELS, t]);
 
 
     /* ─── Campaign 제출 전 Management자 Approval Modal 표시 ─── */
@@ -825,6 +837,36 @@ export default function AutoMarketing() {
                         </div>
                     </div>
 
+                    {/* Phase2: 다목표 최적화 — 전략 목표 + 가드레일 (multi-objective-v2 엔진) */}
+                    <div style={cardStyle}>
+                        <div style={{ fontWeight: 700, fontSize: 13, color: "#a855f7", marginBottom: 4 }}>🎯 {t('marketing.objTitle', '최적화 목표')}</div>
+                        <div style={{ fontSize: 11, color: '#64748b', marginBottom: 12 }}>{t('marketing.objDesc', 'AI가 예산을 어떤 기준으로 배분할지 선택하세요. 채널별 실측이 쌓이면 자동 재학습됩니다.')}</div>
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(150px,1fr))", gap: 8, marginBottom: 14 }}>
+                            {[
+                                { k: 'balanced', icon: '⚖️', label: t('marketing.objBalanced', '균형 (ROAS·획득비용·성장)') },
+                                { k: 'roas', icon: '📈', label: t('marketing.objRoas', 'ROAS 극대화 (효율)') },
+                                { k: 'cac', icon: '💰', label: t('marketing.objCac', '획득비용 최소화 (CAC)') },
+                                { k: 'growth', icon: '🚀', label: t('marketing.objGrowth', '성장·전환량 극대화') },
+                            ].map(o => (
+                                <button key={o.k} onClick={() => setObjective(o.k)} style={{ textAlign: 'left', padding: "10px 12px", borderRadius: 10, cursor: "pointer", fontSize: 12, fontWeight: 700, background: objective === o.k ? "rgba(168,85,247,0.12)" : "rgba(168,85,247,0.04)", color: objective === o.k ? "#7c3aed" : "#475569", border: objective === o.k ? "2px solid #a855f7" : "1px solid rgba(168,85,247,0.18)" }}>
+                                    <span style={{ fontSize: 15, marginRight: 6 }}>{o.icon}</span>{o.label}
+                                </button>
+                            ))}
+                        </div>
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                            <div>
+                                {lbl(t('marketing.gMinRoas', '최소 ROAS 가드 (미만 채널 제외, 0=미적용)'))}
+                                <input style={inp} type="number" min="0" step="0.5" value={minRoas}
+                                    onChange={e => setMinRoas(e.target.value)} placeholder="0" />
+                            </div>
+                            <div>
+                                {lbl(t('marketing.gMaxShare', '단일 채널 최대 점유율 (%)'))}
+                                <input style={inp} type="number" min="20" max="100" step="5" value={maxShare}
+                                    onChange={e => setMaxShare(e.target.value)} placeholder="60" />
+                            </div>
+                        </div>
+                    </div>
+
                     {/* Product Category */}
                     <div style={cardStyle}>
                         <div style={{ fontWeight: 700, fontSize: 13, color: "#7c3aed", marginBottom: 14 }}>{t("marketing.categorySelect")}</div>
@@ -1093,6 +1135,7 @@ export default function AutoMarketing() {
                                         { label: t("marketing.kpiClicks"), value: strategy.totalClicks.toLocaleString(), icon: "👆", color: "#22c55e" },
                                         { label: t("marketing.kpiConversions"), value: strategy.totalConversions, icon: "🛒", color: "#f97316" },
                                         { label: t("marketing.kpiRoas"), value: strategy.estimatedRoas + "x", icon: "📈", color: "#fbbf24" },
+                                        ...(strategy.blendedCac ? [{ label: t('marketing.kpiCac', '평균 획득비용'), value: Number(strategy.blendedCac).toLocaleString() + t('marketing.wonUnit', '원'), icon: "💸", color: "#ef4444" }] : []),
                                     ].map(({ label, value, icon, color }) => (
                                         <div key={label} style={{ ...cardStyle, textAlign: "center" }}>
                                             <div style={{ fontSize: 22, marginBottom: 4 }}>{icon}</div>
@@ -1101,12 +1144,23 @@ export default function AutoMarketing() {
                                         </div>
                                     ))}
                                 </div>
+                                {/* Phase2: 엔진·목표·근거 배너 */}
+                                {(strategy.engine || strategy.rationale) && (
+                                    <div style={{ ...cardStyle, padding: "12px 16px", background: "rgba(168,85,247,0.05)", border: "1px solid rgba(168,85,247,0.18)" }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: strategy.rationale ? 6 : 0 }}>
+                                            {strategy.engine && <span style={{ padding: '2px 8px', borderRadius: 10, background: 'rgba(168,85,247,0.15)', color: '#7c3aed', fontSize: 10, fontWeight: 800 }}>🧠 {strategy.engine}</span>}
+                                            {strategy.objective && <span style={{ padding: '2px 8px', borderRadius: 10, background: 'rgba(79,142,247,0.12)', color: '#4f8ef7', fontSize: 10, fontWeight: 700 }}>{t('marketing.objTag', '목표')}: {strategy.objective}</span>}
+                                        </div>
+                                        {strategy.rationale && <div style={{ fontSize: 11, color: '#64748b', lineHeight: 1.6 }}>{strategy.rationale}</div>}
+                                    </div>
+                                )}
 
                                 {/* Channelper 배분 */}
                                 <div style={cardStyle}>
                                     <div style={{ fontWeight: 700, fontSize: 13, color: '#4f8ef7', marginBottom: 16 }}>{t("marketing.channelAlloc")}</div>
-                                    {strategy.allocations.map(({ ch, alloc, impressions, clicks, conversions, roas }) => {
+                                    {strategy.allocations.map(({ ch, alloc, impressions, clicks, conversions, roas, cac, confidence, exploration, dailyPace, channelRationale, source }) => {
                                         const pct = ((alloc / strategy.budget) * 100).toFixed(1);
+                                        const confPct = Math.round((Number(confidence) || 0) * 100);
                                         return (
 <div key={ch.id} style={{ marginBottom: 14, padding: "12px 14px", borderRadius: 10, background: "rgba(0,0,0,0.03)", border: `1px solid ${ch.color}33` }}>
                                                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
@@ -1138,8 +1192,31 @@ export default function AutoMarketing() {
                                                     <span>{t("marketing.statConversions")} <b style={{ color: '#475569' }}>{conversions}</b></span>
                                                     <span>ROAS <b style={{ color: "#22c55e" }}>{roas}x</b></span>
                                                 </div>
+                                                {/* Phase2: 다목표 엔진 근거(CAC·일예산·신뢰도·탐색) */}
+                                                {(cac != null || dailyPace != null || confidence != null) && (
+                                                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 4, fontSize: 10, color: '#64748b', marginTop: 4 }}>
+                                                        {cac != null && <span>{t('marketing.cacLabel', '획득비용')} <b style={{ color: '#475569' }}>{Number(cac).toLocaleString()}{t('marketing.wonUnit', '원')}</b></span>}
+                                                        {dailyPace != null && <span>{t('marketing.dailyPace', '일 예산')} <b style={{ color: '#475569' }}>{Number(dailyPace).toLocaleString()}</b></span>}
+                                                        {confidence != null && (
+                                                            <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                                                                {t('marketing.confLabel', '신뢰도')}
+                                                                <span style={{ flex: 1, height: 5, background: 'rgba(241,245,249,0.9)', borderRadius: 4, minWidth: 28 }}>
+                                                                    <span style={{ display: 'block', width: confPct + '%', height: '100%', background: confPct >= 60 ? '#22c55e' : (confPct > 0 ? '#f59e0b' : '#cbd5e1'), borderRadius: 4 }} />
+                                                                </span>
+                                                                <b style={{ color: '#475569' }}>{confPct}%</b>
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                )}
+                                                {(exploration || channelRationale) && (
+                                                    <div style={{ marginTop: 6, fontSize: 9.5, color: '#94a3b8', display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                                                        {exploration && <span style={{ padding: '1px 6px', borderRadius: 10, background: 'rgba(168,85,247,0.12)', color: '#7c3aed', fontWeight: 800 }}>🧭 {t('marketing.exploreBadge', '탐색')}</span>}
+                                                        {source && <span style={{ padding: '1px 6px', borderRadius: 10, background: source === 'measured' ? 'rgba(34,197,94,0.12)' : 'rgba(99,140,255,0.1)', color: source === 'measured' ? '#16a34a' : '#4f8ef7', fontWeight: 700 }}>{source === 'measured' ? t('marketing.srcMeasured', '실측') : (source === 'blended' ? t('marketing.srcBlended', '블렌드') : t('marketing.srcBenchmark', '벤치마크'))}</span>}
+                                                        {channelRationale && <span style={{ flex: 1, minWidth: 120 }}>{channelRationale}</span>}
+                                                    </div>
+                                                )}
                                             </div>
-                                        
+
 );
                                     })}
                                 </div>

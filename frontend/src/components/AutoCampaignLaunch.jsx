@@ -65,6 +65,15 @@ export default function AutoCampaignLaunch({ draft, category, campaignName, peri
   }, []);
   useEffect(() => { loadDesigns(); loadCampaigns(); }, [loadDesigns, loadCampaigns]);
 
+  // Phase2: 실시간 갱신 — cron(optimize_cron) 자동 재배분/정지 결과가 화면에 자동 반영되도록
+  //   30초 폴링(탭 visible 시에만, 백그라운드 절전). 캠페인이 있을 때만 동작.
+  useEffect(() => {
+    let timer = null;
+    const tick = () => { if (document.visibilityState === 'visible') loadCampaigns(); };
+    timer = setInterval(tick, 30000);
+    return () => { if (timer) clearInterval(timer); };
+  }, [loadCampaigns]);
+
   const toggleDesign = (id) => setSelDesigns(s => s.includes(id) ? s.filter(x => x !== id) : [...s, id]);
 
   const launch = async () => {
