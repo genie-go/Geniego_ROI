@@ -39,6 +39,8 @@ $GENIE_ALLOWED_ORIGINS = [
     'https://roi.genie-go.com', 'https://roidemo.genie-go.com',
     'https://roi.geniego.com',  'https://roidemo.geniego.com',
     'http://localhost:5173', 'http://localhost:4173', 'http://localhost:4180',
+    // 203차 Phase M1 — Capacitor 네이티브 앱(iOS capacitor://, Android https://localhost) WebView 출처
+    'capacitor://localhost', 'https://localhost', 'http://localhost', 'ionic://localhost',
 ];
 $app->add(function (Request $request, $handler) use ($GENIE_ALLOWED_ORIGINS) {
     $origin = $request->getHeaderLine('Origin');

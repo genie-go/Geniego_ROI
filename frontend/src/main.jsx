@@ -6,7 +6,9 @@ import { I18nProvider } from "./i18n/index.js";
 import { ThemeProvider } from "./theme/ThemeContext.jsx";
 import { NotificationProvider } from "./context/NotificationContext.jsx";
 import { initWebVitals } from "./utils/webVitals.js";
+import { initNative } from "./native/capacitorInit.js";
 import "./styles.css";
+import "./native/native.css";
 
 
 
@@ -121,6 +123,9 @@ window.addEventListener('unhandledrejection', (e) => {
 if (typeof window !== 'undefined') {
   initWebVitals();
 }
+
+/* Capacitor 네이티브 셸 초기화 (웹에서는 no-op) — Phase M1 */
+try { initNative(); } catch (e) { /* 웹/구버전 안전 */ }
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>

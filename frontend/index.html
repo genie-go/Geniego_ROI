@@ -162,8 +162,9 @@
         }, 1800);
       });
 
-      // ── Service Worker 등록 ──
-      if ('serviceWorker' in navigator) {
+      // ── Service Worker 등록 (네이티브 Capacitor 에서는 스킵 — 로컬 자산 직접 서빙, SW 충돌·stale 방지) ──
+      var _isNativeApp = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+      if ('serviceWorker' in navigator && !_isNativeApp) {
         window.addEventListener('load', () => {
           navigator.serviceWorker.register('/sw.js', { scope: '/' })
             .then(reg => console.log('[SW] Registered:', reg.scope))

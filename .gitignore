@@ -388,3 +388,10 @@ session159_dead_subtree_depth*_v*/*.json
 /_cc_verify_screenshot_*.png
 /dist_171*.tgz
 /dist_17*_*.tgz
+
+# 203차 Phase M1 — Capacitor: 빌드 산출 웹 자산(cap sync 가 매번 재생성) + 빌드 캐시 제외
+frontend/android/app/src/main/assets/public/
+frontend/android/app/src/main/assets/capacitor.config.json
+frontend/ios/App/App/public/
+frontend/ios/App/App/capacitor.config.json
+frontend/ios/App/Pods/

@@ -8,9 +8,21 @@
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint src --ext .js,.jsx",
-    "sync:tokens": "node scripts/sync-css-tokens.cjs"
+    "sync:tokens": "node scripts/sync-css-tokens.cjs",
+    "build:cap": "vite build --mode capacitor",
+    "cap:sync": "npm run build:cap && cap sync",
+    "cap:android": "npm run build:cap && cap sync android && cap open android",
+    "cap:ios": "npm run build:cap && cap sync ios && cap open ios"
   },
   "dependencies": {
+    "@capacitor/android": "^6.2.1",
+    "@capacitor/app": "^6.0.3",
+    "@capacitor/cli": "^6.2.1",
+    "@capacitor/core": "^6.2.1",
+    "@capacitor/ios": "^6.2.1",
+    "@capacitor/keyboard": "^6.0.4",
+    "@capacitor/splash-screen": "^6.0.4",
+    "@capacitor/status-bar": "^6.0.3",
     "d3-geo": "^3.1.1",
     "dompurify": "^3.0.9",
     "isomorphic-dompurify": "^2.9.0",

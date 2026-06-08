@@ -1,0 +1,32 @@
+/* Capacitor 네이티브 셸 폴리시 — .cap-native 스코프(웹 빌드/브라우저 무영향). Phase M1.
+   상태바 overlaysWebView=false + iOS contentInset=always 라 safe-area 는 대부분 네이티브가 처리.
+   여기서는 노치 상단바 보강 + 앱 느낌(탭 하이라이트·드래그 선택 제거)만 추가. */
+
+.cap-native {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 상단바: 일부 기기에서 상태바가 겹칠 때를 대비한 safe inset(없으면 0 → 무해) */
+.cap-native .topbar {
+  padding-top: calc(8px + env(safe-area-inset-top, 0px));
+}
+
+/* 바운스/오버스크롤 글로우 억제(앱 느낌) */
+.cap-native,
+.cap-native #root {
+  overscroll-behavior: none;
+}
+
+/* 입력 요소 외 텍스트 드래그 선택·길게눌러 메뉴 비활성(네이티브 앱 표준) */
+.cap-native :not(input):not(textarea):not([contenteditable="true"]) {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* 하단 네비/탭바 home-indicator inset 보강 */
+.cap-native .bottom-nav,
+.cap-native [data-bottom-nav],
+.cap-native .mobile-bottom-nav {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
