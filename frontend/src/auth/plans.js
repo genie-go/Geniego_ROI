@@ -109,9 +109,35 @@ export function planRank(plan) {
   return _PLAN_RANK[plan];
 }
 
+/* ──────────────────────────────────────────────────────────────────────── */
+/* 동적 표시명 레지스트리 (202차) — admin 이 plan_config.name 을 바꾸면 전파       */
+/* ──────────────────────────────────────────────────────────────────────── */
+/**
+ * plan_id → 표시명 동적 맵. AuthContext 가 public-plans 응답의 name 으로 주입한다.
+ * ★ 등급(_PLAN_RANK)·ID 는 불변(권한 비교 안전). 표시명만 동적으로 전파 →
+ *   관리자가 플랜명을 바꿔도 모든 화면 라벨이 즉시 일치하고, 기능/권한은 영향 없음.
+ *   (integrity 서명 대상이 아니므로 변조 감지와 무관)
+ */
+let _dynamicLabels = Object.create(null);
+
+/**
+ * 동적 표시명 주입. 잘못된 입력은 무시(fail-safe). 빈 값/공백은 등록 안 함.
+ * @param {Record<string,string>} map  { plan_id: 표시명 }
+ */
+export function setPlanLabels(map) {
+  if (!map || typeof map !== "object") return;
+  const next = Object.create(null);
+  for (const [k, v] of Object.entries(map)) {
+    if (typeof k === "string" && k && typeof v === "string" && v.trim()) {
+      next[k] = v.trim();
+    }
+  }
+  _dynamicLabels = next;
+}
+
 /**
  * Plan 의 사람-읽기 가능 라벨 반환
- * - 미정의 plan: 원본 문자열 노출 (디버깅 가시성)
+ * - 동적 표시명(admin 변경) 우선 → 정적 _PLAN_LABEL → 원본 문자열
  * - null/undefined: "Unknown"
  *
  * @param {string} plan
@@ -119,6 +145,7 @@ export function planRank(plan) {
  */
 export function planLabel(plan) {
   if (typeof plan !== "string" || !plan) return "Unknown";
+  if (_dynamicLabels[plan]) return _dynamicLabels[plan];   // admin 변경 표시명 우선(전파)
   if (plan in _PLAN_LABEL) return _PLAN_LABEL[plan];
   _logUnknown("planLabel", plan, "unknown_plan");
   return plan;

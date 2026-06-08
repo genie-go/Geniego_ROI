@@ -179,6 +179,32 @@ final class ChannelCreds
     }
 
     // ── POST /v423/creds ────────────────────────────────────────────────────
+    /**
+     * 플랜별 연동 가능 채널 수 한도. -1 = 무제한.
+     * 유료(starter 이상)/admin → 무제한. free/demo/'' → plan_config.limits.channels 우선,
+     * 미설정 시 기본 3(사방넷 무료 모델). 202차.
+     */
+    private static function channelLimitForPlan(PDO $pdo, string $plan): int
+    {
+        $plan = strtolower(trim($plan));
+        if (in_array($plan, ['starter', 'growth', 'pro', 'enterprise', 'admin'], true)) {
+            return -1; // 무제한
+        }
+        // free / demo / '' — plan_config 한도 우선
+        try {
+            $row = $pdo->prepare('SELECT limits_json FROM plan_config WHERE plan_id=? LIMIT 1');
+            $row->execute([$plan !== '' ? $plan : 'free']);
+            $lj = $row->fetchColumn();
+            if ($lj) {
+                $lim = json_decode((string)$lj, true);
+                if (is_array($lim) && isset($lim['channels']) && is_numeric($lim['channels'])) {
+                    return (int)$lim['channels']; // -1(무제한) 포함 admin 설정 존중
+                }
+            }
+        } catch (\Throwable $e) { /* plan_config 부재 → 기본값 */ }
+        return 3; // FREE_CHANNEL_LIMIT 기본
+    }
+
     public static function upsert(Request $request, Response $response, array $args): Response
     {
         // ── 주의: 데모 사용자도 API 키 등록 가능 ──────────────────────────────
@@ -207,6 +233,32 @@ final class ChannelCreds
 
         // Check if updating existing row (by id) or upserting by unique key
         $existingId = isset($body['id']) ? (int)$body['id'] : 0;
+
+        // ── Free 채널 수 제한 (202차: 사방넷 무료 모델 — 채널 N개 평생 무료) ────────
+        //   신규 distinct 채널 등록이 플랜 한도를 넘으면 차단(업그레이드 유도).
+        //   기존 채널의 키 추가/수정(예: meta_ads 의 ad_account_id 추가)은 허용(채널 수 불변).
+        //   ★ 실제 세션 사용자(userId 확인)에게만 적용 — api_key/프로그래매틱(세션 미해결,
+        //     userId='') 호출은 관리·유료 테넌트이므로 제한 제외(오작동 방지).
+        $channelLimit = self::channelLimitForPlan($pdo, $userPlan); // -1 = 무제한
+        if ($channelLimit >= 0 && $existingId <= 0 && $userId !== '' && $userId !== '0') {
+            try {
+                $cs = $pdo->prepare('SELECT DISTINCT channel FROM channel_credential WHERE tenant_id=? AND is_active=1');
+                $cs->execute([$tenant]);
+                $existingChannels = array_map(static fn($r) => $r['channel'], $cs->fetchAll(PDO::FETCH_ASSOC));
+            } catch (\Throwable $e) {
+                $existingChannels = [];
+            }
+            $isNewChannel = !in_array($channel, $existingChannels, true);
+            if ($isNewChannel && count($existingChannels) >= $channelLimit) {
+                return TemplateResponder::respond($response->withStatus(402), [
+                    'ok'      => false,
+                    'error'   => 'channel_limit_reached',
+                    'limit'   => $channelLimit,
+                    'current' => count($existingChannels),
+                    'message' => "현재 플랜은 판매·마케팅 채널을 {$channelLimit}개까지 무료로 연동할 수 있습니다. 더 많은 채널을 연동하려면 플랜을 업그레이드하세요.",
+                ]);
+            }
+        }
 
         if ($existingId > 0) {
             // Update existing by id
@@ -248,11 +300,12 @@ final class ChannelCreds
 
         $newId = (int)$pdo->lastInsertId();
 
-        // ── 데모/free 사용자: API 키 등록 시 plan=pro 자동 업그레이드 ──────────
-        // 키 등록 = 실사용 의사 표시 → 즉시 실사용 모드 전환
+        // ── 데모 사용자: API 키 등록 시 plan=pro 자동 업그레이드(실사용 체험 전환) ──
+        //   ★ 202차: free/'' 는 자동 업그레이드 제외 → "Free 채널 N개 평생 무료" 모델 유지.
+        //     (free 는 한도 내 채널을 무료로 계속 사용, 한도 초과 시에만 위에서 차단·업그레이드 유도)
         $modeActivated = false;
         $updatedUser   = null;
-        if (in_array($userPlan, ['demo', 'free', ''], true) && $userId !== '' && $userId !== '0') {
+        if (in_array($userPlan, ['demo'], true) && $userId !== '' && $userId !== '0') {
             $uid = (int)$userId;
             if ($uid > 0) {
                 try {

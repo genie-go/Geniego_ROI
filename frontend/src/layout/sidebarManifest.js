@@ -72,9 +72,9 @@ export const MEMBER_MENU = [
   {
     key: "commerce", icon: "🛒", labelKey: "gNav.commerceLabel",
     items: [
-      { to: "/omni-channel",    icon: "🌐", labelKey: "gNav.omniChannelLabel",      menuKey: "ops" },
-      { to: "/catalog-sync",    icon: "📂", labelKey: "gNav.catalogLabel",          menuKey: "ops" },
-      { to: "/order-hub",       icon: "📦", labelKey: "gNav.orderHubLabel",         menuKey: "ops" },
+      { to: "/omni-channel",    icon: "🌐", labelKey: "gNav.omniChannelLabel",      menuKey: "commerce_channel" },
+      { to: "/catalog-sync",    icon: "📂", labelKey: "gNav.catalogLabel",          menuKey: "commerce_channel" },
+      { to: "/order-hub",       icon: "📦", labelKey: "gNav.orderHubLabel",         menuKey: "commerce_channel" },
       { to: "/wms-manager",     icon: "🏭", labelKey: "gNav.wmsLabel",              menuKey: "ops" },
       { to: "/price-opt",       icon: "💡", labelKey: "gNav.priceOptLabel",         menuKey: "ops" },
       { to: "/supply-chain",    icon: "🔭", labelKey: "gNav.supplyChainLabel",      menuKey: "ops" },

@@ -1,6 +1,6 @@
 import React, { useEffect, createContext, useCallback, useContext, useRef, useState, useMemo } from "react";
 import { tChannelName } from '../utils/tenantStorage.js'; // 180차: 회원 격리 크로스탭
-import { planRank } from "./plans.js";
+import { planRank, setPlanLabels } from "./plans.js";
 import { menuAllowedByTier, isAdminOnlyMenu } from "./planMenuPolicy.js"; // 181차 플랜별 메뉴접근 초고도화
 import { normalizeTeamRole, canWrite as canTeamRoleWrite, isReadOnlyRole } from "./teamRolePolicy.js"; // 183차 Phase3 팀역할 RBAC
 
@@ -140,10 +140,13 @@ export function AuthProvider({ children }) {
             const d = await r.json();
             if (!d.ok || !d.plans) return;
             const map = {};
+            const labelMap = {};
             d.plans.forEach(p => {
                 map[p.id] = p.menuAccess || [];
+                if (p.id && p.name) labelMap[p.id] = p.name; // 202차: admin 변경 플랜명 전파
             });
             setPlanMenuAccess(map);
+            setPlanLabels(labelMap); // 동적 표시명 주입 → planLabel() 전역 일치
             menuAccessLoadedRef.current = true;
         } catch { /* silent */ }
     }, []);
@@ -647,6 +650,10 @@ export function AuthProvider({ children }) {
         if (planMenuAccess) {
             const allowedKeys = planMenuAccess[userPlan] || planMenuAccess["free"];
             if (Array.isArray(allowedKeys) && allowedKeys.length > 0) {
+                // 202차 하위호환: commerce_channel(옴니/카탈로그/주문)은 기존 coarse "ops" 에서
+                //   분리됨. admin 이 신규 추천을 재저장하기 전, ops 를 보유한 유료 플랜이 해당
+                //   메뉴 접근을 잃지 않도록 ops 보유 시 commerce_channel 도 허용(회귀 방지).
+                if (menuKey === "commerce_channel" && allowedKeys.includes("ops")) return true;
                 return allowedKeys.some(k => k === menuKey || menuKey.startsWith(k));
             }
         }

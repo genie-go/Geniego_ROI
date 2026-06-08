@@ -15,7 +15,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { useGlobalData } from "../context/GlobalDataContext.jsx";
-import { planRank, PLAN_LABEL } from "../auth/plans.js";
+import { planRank, planLabel } from "../auth/plans.js"; // 202차: 동적 표시명(admin 변경 전파)
 
 
 /* PLAN_RANK / PLAN_LABEL: ../auth/plans.js SSOT (152차 W2) */
@@ -117,12 +117,12 @@ export default function PlanGate({ children, feature, minPlan, fallback }) {
                 <div style={{ fontWeight: 900, fontSize: 20, marginBottom: 10 }}>
                     {isFreeUser
                         ? `${featureInfo ? featureInfo.icon + " " + featureInfo.label : "프리미엄 기능"}을 사용하려면 Upgrade가 필요합니다`
-                        : `${PLAN_LABEL[requiredPlan]} Plan 전용 기능입니다`}
+                        : `${planLabel(requiredPlan)} Plan 전용 기능입니다`}
                 </div>
                 <div style={{ fontSize: 13, color: "var(--text-2)", marginBottom: 8, lineHeight: 1.6 }}>
                     {isFreeUser
                         ? <>기능을 열람하고 실제 캠페인을 운영하려면 <strong style={{ color: "#c084fc" }}>유료 구독 또는 Free 쿠폰</strong>이 필요합니다.</>
-                        : <>{featureInfo ? featureInfo.label : "이 기능"}은 <strong style={{ color: "#4f8ef7" }}>{PLAN_LABEL[requiredPlan]} Plan 이상</strong>에서 이용 가능합니다.</>}
+                        : <>{featureInfo ? featureInfo.label : "이 기능"}은 <strong style={{ color: "#4f8ef7" }}>{planLabel(requiredPlan)} Plan 이상</strong>에서 이용 가능합니다.</>}
                 </div>
 
                 {/* 구독 만료 메시지 */}
@@ -144,7 +144,7 @@ export default function PlanGate({ children, feature, minPlan, fallback }) {
                     color: "var(--text-3)", marginBottom: 24,
                 }}>
                     현재 Plan: <strong style={{ color: plan === "pro" ? "#4f8ef7" : "var(--text-2)" }}>
-                        {isSubscriptionExpired ? "만료됨" : isFreeUser ? "Free" : PLAN_LABEL[plan] || plan}
+                        {isSubscriptionExpired ? "만료됨" : isFreeUser ? planLabel("free") : planLabel(plan)}
                     </strong>
                 </div>
 
@@ -186,7 +186,7 @@ export default function PlanGate({ children, feature, minPlan, fallback }) {
                         onMouseOver={e => (e.currentTarget.style.transform = "translateY(-1px)")}
                         onMouseOut={e => (e.currentTarget.style.transform = "none")}
                     >
-                        💎 지금 {PLAN_LABEL[requiredPlan] || "Pro"} Upgrade
+                        💎 지금 {planLabel(requiredPlan) || "Pro"} Upgrade
                     </button>
                     {isFreeUser && (
                         <button

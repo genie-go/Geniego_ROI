@@ -6,7 +6,7 @@ import { MEMBER_MENU, ADMIN_MENU, buildMenuKeyIndex } from "../layout/sidebarMan
 import { MENU_KEY_LABEL, SUB_TABS_BY_PATH } from "../layout/sidebarMenuLabels.js";
 import SIDEBAR_DICT from "../layout/sidebarI18n.js"; // 186차: gNav.* 라벨 한글 해석 (하위메뉴 라벨)
 import PlanServiceGuide from "../components/PlanServiceGuide.jsx"; // 186차: 플랜 제공서비스 상세 안내(초고도화)
-import { recommendMenuAccessByPrice } from "../auth/planMenuPolicy.js"; // 181차 요금 기반 메뉴접근 추천
+import { recommendMenuAccess as recommendMenuAccessRealistic } from "../auth/planMenuPolicy.js"; // 202차 전 플랜(Free포함) 경쟁사 벤치마크 추천
 /** gNav.* labelKey → 한글 라벨 (sidebarI18n 우선) */
 function gNavLabel(labelKey) {
   if (labelKey && labelKey.startsWith('gNav.')) { const d = SIDEBAR_DICT.ko || {}; const v = d[labelKey.slice(5)]; if (v) return v; }
@@ -55,6 +55,15 @@ function publishMenuAccessSync(payload) {
  * backend 가 plan_period_pricing 에서 자동 동기화 (legacy 컬럼은 derived view).
  */
 const SEED_PLANS = [
+  {
+    // 202차: Free 평생 무료 — 사방넷(Sabangnet) 무료 모델. 판매·마케팅 채널 N개 무료 연동.
+    //   channels 한도는 admin 이 limits.channels 에서 언제든 수정 가능(백엔드 가드가 동적 적용).
+    plan_id: 'free', name: 'Free', display_order: 5, is_active: true, is_custom_quote: false,
+    description: '평생 무료 · 판매 채널 3개 연동',
+    features: ['판매·마케팅 채널 3개 평생 무료', '상품·주문·재고 동기화', '기본 성과 대시보드', '커뮤니티 지원'],
+    limits: { warehouses: 1, channels: 3, users: 1 },
+    price_usd: 0, price_annual_usd: 0,
+  },
   {
     plan_id: 'starter', name: 'Starter', display_order: 10, is_active: true, is_custom_quote: false,
     description: '소규모 팀 · 계정 수 기반',
@@ -453,33 +462,42 @@ function PlanPricing() {
   }, []);
 
   const recommendMenuAccess = () => {
-    // 요청: 1개월 요금 + 1계정(base seat) 기준으로 플랜 비교 → 메뉴접근 추천. 계정수와 무관하게 플랜별 동일 적용.
-    const prices = { starter: priceOf('starter'), pro: priceOf('pro'), enterprise: priceOf('enterprise') };
-    if (!prices.starter && !prices.pro && !prices.enterprise) {
-      alert('먼저 각 플랜의 1개월(월간) 구독 요금을 등록해 주세요.\n등록된 요금(1개월·1계정 기준)을 비교 평가해 메뉴 접근을 추천합니다.');
+    // 202차 초고도화: 전 플랜(Free 포함)을 DB 등록 목록에서 동적으로 추천.
+    //  · 경쟁사 벤치마크(사방넷 무료/HubSpot/Salesforce/Shopify) 기반 등급별 메뉴 차별화.
+    //  · Free = 채널 연동·상품/주문(3채널 무료) + 기본 성과. 유료는 가격순 누적.
+    //  · 플랜명을 바꿔도 plan_id 불변이라 안전. 신규 플랜도 가격순 자동 배분.
+    const planList = (plans || [])
+      .filter(p => p.plan_id && p.plan_id !== 'admin' && p.plan_id !== 'demo')
+      .map(p => ({ id: p.plan_id, price: priceOf(p.plan_id) }));
+    if (planList.length === 0) {
+      alert('먼저 플랜을 등록해 주세요. 등록된 플랜·요금을 경쟁사 벤치마크와 비교해 메뉴 접근을 추천합니다.');
       return;
     }
-    // 추천 대상 menuKey = 사이드바 manifest 의 회원 메뉴(MEMBER_MENU) — admin 전용 제외
-    const memberMenuKeys = [...new Set(MEMBER_MENU.flatMap(s => (s.items || []).map(it => it.menuKey).filter(Boolean)))];
-    const rec = recommendMenuAccessByPrice(prices, memberMenuKeys);
+    const { tierOf, access: rec } = recommendMenuAccessRealistic(planList);
     setAccess(prev => {
       const next = { ...prev };
-      for (const planId of ['starter', 'pro', 'enterprise']) {
-        const allowMenuKeys = rec[planId] || [];
+      for (const planId of Object.keys(rec)) {
+        const allowMenuKeys = Object.keys(rec[planId] || {});
         const planAcc = {};
-        // 추천된 menuKey + 그 하위메뉴·서브탭 까지 cascade ON (계층 일관성)
+        // 추천된 coarse menuKey + 그 하위메뉴(라우트)·서브탭 까지 cascade ON (계층 일관성)
         for (const mk of allowMenuKeys) for (const k of expandMenuKeyAllLevels(mk)) planAcc[k] = 1;
         next[planId] = planAcc; // 계정수 무관 — 플랜별 동일 적용
       }
       return next;
     });
     setAccessDirty(true);
+    const lines = planList
+      .map(p => {
+        const cnt = Object.keys(rec[p.id] || {}).length;
+        const nm = (plans.find(pl => pl.plan_id === p.id)?.name) || p.id;
+        const tierTag = tierOf[p.id] ? ` [${tierOf[p.id]}]` : '';
+        return `· ${nm}${tierTag} $${p.price}/월 → ${cnt}개 메뉴그룹`;
+      })
+      .join('\n');
     alert(
-      `요금 기반 메뉴접근 추천 적용됨 — 1개월·1계정 요금 기준 (검토 후 [저장])\n` +
-      `· Starter $${prices.starter}/월 → ${rec.starter.length}개 메뉴\n` +
-      `· Pro $${prices.pro}/월 → ${rec.pro.length}개 메뉴\n` +
-      `· Enterprise $${prices.enterprise}/월 → ${rec.enterprise.length}개 메뉴\n` +
-      `(상위 플랜은 하위 포함 · 계정수 무관 동일 적용 · 대/중/하위/서브탭 토글 수정 가능)`
+      `경쟁사 벤치마크 기반 메뉴접근 추천 적용됨 — 1개월·1계정 요금 기준 (검토 후 [저장])\n` +
+      lines + `\n` +
+      `(Free=채널연동·상품/주문 3채널 무료 · 상위 플랜은 하위 포함 · 대/중/하위/서브탭 토글 수정 가능)`
     );
   };
 
@@ -905,11 +923,19 @@ function PlanPricing() {
                 <div style={{ marginTop: 18 }}>
                   <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)', marginBottom: 8 }}>한도 (Limits) · -1 = 무제한</div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
-                    {['warehouses', 'channels', 'users'].map(key => (
-                      <Field key={key} label={key}>
+                    {[
+                      { key: 'warehouses', label: '창고(WMS) 수' },
+                      { key: 'channels',   label: '판매·마케팅 채널 수' },
+                      { key: 'users',      label: '계정(사용자) 수' },
+                    ].map(({ key, label }) => (
+                      <Field key={key} label={label}>
                         <input type="number" value={plan.limits?.[key] ?? ''} onChange={e => updateLimit(activePlanIdx, key, e.target.value)} style={inputStyle} />
                       </Field>
                     ))}
+                  </div>
+                  <div style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 6, lineHeight: 1.6 }}>
+                    💡 <b>채널 수</b>는 이 플랜이 무료/유료로 연동할 수 있는 판매·마케팅 채널 개수입니다.
+                    <b>-1</b>은 무제한. 예: Free 플랜에 <b>3</b> 입력 시 “채널 3개 평생 무료”(사방넷 모델)로 즉시 적용됩니다. 언제든 수정 가능.
                   </div>
                 </div>
 
