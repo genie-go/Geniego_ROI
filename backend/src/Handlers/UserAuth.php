@@ -1644,7 +1644,8 @@ final class UserAuth
         self::setAppSetting($pdo, 'smtp_host', $host);
         self::setAppSetting($pdo, 'smtp_port', (string)((int)($b['port'] ?? 587)));
         self::setAppSetting($pdo, 'smtp_user', trim((string)($b['user'] ?? '')));
-        if (isset($b['pass']) && (string)$b['pass'] !== '') self::setAppSetting($pdo, 'smtp_pass', (string)$b['pass']); // 빈값=기존 유지
+        // 203차: SMTP 비밀번호 은행급 암호화 저장(AES-256-GCM). 빈값=기존 유지. (평문 저장 갭 해소)
+        if (isset($b['pass']) && (string)$b['pass'] !== '') self::setAppSetting($pdo, 'smtp_pass', \Genie\Crypto::encrypt((string)$b['pass']));
         self::setAppSetting($pdo, 'smtp_from', $from);
         self::setAppSetting($pdo, 'smtp_from_name', trim((string)($b['from_name'] ?? 'Geniego-ROI')));
         $secure = (string)($b['secure'] ?? 'tls');
