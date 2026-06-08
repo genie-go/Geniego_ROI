@@ -103,7 +103,20 @@ final class ChannelSync
     private static function ensureTables(): void
     {
         $pdo = Db::pdo();
-        $pdo->exec("CREATE TABLE IF NOT EXISTS channel_credential (
+        // 202차: SQLite 전용 DDL(AUTOINCREMENT/TEXT DEFAULT/UNIQUE(TEXT))은 MySQL 에서 실패한다.
+        //   MySQL 에서는 driver-aware 변환을 적용하고, 변환 후에도 실패하면 graceful 하게 무시한다
+        //   (커머스 테이블 부재 시 status/products/orders 는 빈 결과 — OmniChannel 마운트 에러 방지).
+        $isMy = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql';
+        $exec = static function (string $ddl) use ($pdo, $isMy): void {
+            if ($isMy) {
+                $ddl = str_replace('INTEGER PRIMARY KEY AUTOINCREMENT', 'INT AUTO_INCREMENT PRIMARY KEY', $ddl);
+                // UNIQUE 인덱스/조회에 쓰이는 키 컬럼은 VARCHAR 로(MySQL TEXT 키길이 오류 회피)
+                $ddl = preg_replace('/\b(tenant_id|channel|key_name|sku|warehouse|channel_product_id|channel_order_id|cred_type|test_status|sync_status|status)\s+TEXT\b/', '$1 VARCHAR(190)', $ddl);
+                $ddl = preg_replace("/\bVARCHAR\(190\) NOT NULL DEFAULT '([^']*)'/", "VARCHAR(190) NOT NULL DEFAULT '$1'", $ddl);
+            }
+            try { $pdo->exec($ddl); } catch (\Throwable $e) { error_log('[ChannelSync.ensureTables] ' . $e->getMessage()); }
+        };
+        $exec("CREATE TABLE IF NOT EXISTS channel_credential (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             tenant_id TEXT NOT NULL DEFAULT 'demo',
             channel TEXT NOT NULL,
@@ -122,7 +135,7 @@ final class ChannelSync
             created_at TEXT,
             UNIQUE(tenant_id, channel, key_name)
         )");
-        $pdo->exec("CREATE TABLE IF NOT EXISTS channel_products (
+        $exec("CREATE TABLE IF NOT EXISTS channel_products (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             tenant_id TEXT NOT NULL DEFAULT 'demo',
             channel TEXT NOT NULL,
@@ -141,7 +154,7 @@ final class ChannelSync
             synced_at TEXT,
             UNIQUE(tenant_id, channel, channel_product_id)
         )");
-        $pdo->exec("CREATE TABLE IF NOT EXISTS channel_orders (
+        $exec("CREATE TABLE IF NOT EXISTS channel_orders (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             tenant_id TEXT NOT NULL DEFAULT 'demo',
             channel TEXT NOT NULL,
@@ -164,7 +177,7 @@ final class ChannelSync
             synced_at TEXT,
             UNIQUE(tenant_id, channel, channel_order_id)
         )");
-        $pdo->exec("CREATE TABLE IF NOT EXISTS channel_inventory (
+        $exec("CREATE TABLE IF NOT EXISTS channel_inventory (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             tenant_id TEXT NOT NULL DEFAULT 'demo',
             channel TEXT NOT NULL,
@@ -176,6 +189,23 @@ final class ChannelSync
             synced_at TEXT,
             UNIQUE(tenant_id, channel, sku, warehouse)
         )");
+
+        // ★ 202차: channel_credential 은 ChannelCreds 가 먼저 생성할 수 있어(스키마 분기)
+        //   ChannelSync 가 쓰는 컬럼이 누락될 수 있다. 누락 컬럼을 idempotent ALTER 로 보강
+        //   (이미 있으면 예외 → 무시). status() 의 last_synced_at/sync_status SELECT 500 해소.
+        foreach ([
+            'last_synced_at TEXT',
+            "sync_status VARCHAR(190) DEFAULT 'none'",
+            'extra_json TEXT',
+            'last_tested_at TEXT',
+            "test_status VARCHAR(190) DEFAULT 'untested'",
+            'note TEXT',
+        ] as $colDef) {
+            try {
+                $col = $isMy ? $colDef : preg_replace("/\s+VARCHAR\(\d+\)/", ' TEXT', $colDef);
+                $pdo->exec("ALTER TABLE channel_credential ADD COLUMN {$col}");
+            } catch (\Throwable $e) { /* 이미 존재 */ }
+        }
     }
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -603,16 +633,21 @@ final class ChannelSync
         $creds->execute([$tenant]);
         $rows = $creds->fetchAll(PDO::FETCH_ASSOC);
 
-        $stats = $pdo->prepare("SELECT channel, COUNT(*) as product_cnt FROM channel_products WHERE tenant_id=? GROUP BY channel");
-        $stats->execute([$tenant]);
-        $productCounts = array_column($stats->fetchAll(PDO::FETCH_ASSOC), 'product_cnt', 'channel');
+        $productCounts = [];
+        try {
+            $stats = $pdo->prepare("SELECT channel, COUNT(*) as product_cnt FROM channel_products WHERE tenant_id=? GROUP BY channel");
+            $stats->execute([$tenant]);
+            $productCounts = array_column($stats->fetchAll(PDO::FETCH_ASSOC), 'product_cnt', 'channel');
+        } catch (\Throwable $e) { $productCounts = []; }
 
-        $ostats = $pdo->prepare("SELECT channel, COUNT(*) as order_cnt, SUM(total_price) as total_revenue FROM channel_orders WHERE tenant_id=? GROUP BY channel");
-        $ostats->execute([$tenant]);
         $orderStats = [];
-        foreach ($ostats->fetchAll(PDO::FETCH_ASSOC) as $r) {
-            $orderStats[$r['channel']] = ['cnt' => (int)$r['order_cnt'], 'revenue' => (float)$r['total_revenue']];
-        }
+        try {
+            $ostats = $pdo->prepare("SELECT channel, COUNT(*) as order_cnt, SUM(total_price) as total_revenue FROM channel_orders WHERE tenant_id=? GROUP BY channel");
+            $ostats->execute([$tenant]);
+            foreach ($ostats->fetchAll(PDO::FETCH_ASSOC) as $r) {
+                $orderStats[$r['channel']] = ['cnt' => (int)$r['order_cnt'], 'revenue' => (float)$r['total_revenue']];
+            }
+        } catch (\Throwable $e) { $orderStats = []; }
 
         // 채널 목록 (등록된 것 + 기본 지원 채널)
         $supportedChannels = [
@@ -687,13 +722,14 @@ final class ChannelSync
             key_value=CASE WHEN excluded.key_value='' THEN key_value ELSE excluded.key_value END,
             extra_json=excluded.extra_json,is_active=1,updated_at=excluded.updated_at");
 
-        // 메인 키
+        // 메인 키 — DB 저장은 암호화(은행급), 즉시 동기화는 평문 사용.
         $keyName  = trim((string)($body['key_name'] ?? 'api_key'));
         $keyValue = trim((string)($body['key_value'] ?? ''));
-        $stmt->execute([$tenant,$channel,$body['cred_type']??'api_key',$body['label']??$channel,$keyName,$keyValue,json_encode($extra),$now,$now]);
+        $keyValueEnc = $keyValue !== '' ? \Genie\Crypto::encrypt($keyValue) : '';
+        $stmt->execute([$tenant,$channel,$body['cred_type']??'api_key',$body['label']??$channel,$keyName,$keyValueEnc,json_encode($extra),$now,$now]);
         $credId = (int)$pdo->lastInsertId();
 
-        // 즉시 동기화 실행
+        // 즉시 동기화 실행 (평문)
         $creds = array_merge(['key_value'=>$keyValue,$keyName=>$keyValue], $extra, (array)json_decode($body['extra_json']??'{}',true));
         $result = self::fetchFromChannel($channel, $creds, $plan, $tenant);
 
@@ -805,9 +841,10 @@ final class ChannelSync
 
         $creds = [];
         foreach ($rows as $r) {
-            $creds[$r['key_name']] = $r['key_value'];
+            $kv = \Genie\Crypto::decrypt((string)($r['key_value'] ?? '')); // 202차 은행급 복호화
+            $creds[$r['key_name']] = $kv;
             if ($r['extra_json']) {
-                $creds = array_merge($creds, (array)json_decode($r['key_value']??'{}', true), (array)json_decode($r['extra_json'], true));
+                $creds = array_merge($creds, (array)json_decode($kv ?: '{}', true), (array)json_decode($r['extra_json'], true));
             }
         }
         if (isset($creds['api_key'])) $creds['key_value'] = $creds['api_key'];

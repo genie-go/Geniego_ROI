@@ -40,7 +40,7 @@ final class AdAdapters
         try {
             $st = $pdo->prepare('SELECT key_value FROM channel_credential WHERE tenant_id=? AND channel=? AND key_name=? AND is_active=1 LIMIT 1');
             $st->execute([$tenant, $channel, $keyName]);
-            return (string)($st->fetchColumn() ?: '');
+            return \Genie\Crypto::decrypt((string)($st->fetchColumn() ?: '')); // 202차 은행급 복호화
         } catch (Throwable $e) { return ''; }
     }
 

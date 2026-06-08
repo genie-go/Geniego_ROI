@@ -32,7 +32,7 @@ use Genie\Handlers\Connectors;
 
 $args       = array_slice($argv, 1);
 $days       = 7;
-$channels   = ['meta', 'google', 'tiktok'];
+$channels   = ['meta', 'google', 'tiktok', 'naver'];
 $onlyTenant = null;
 foreach ($args as $a) {
     if (preg_match('/^--days=(\d+)$/', $a, $m)) {

@@ -654,7 +654,7 @@ final class Connectors
             );
             $stmt->execute([$tenant, $channelKey, $credKey]);
             $row = $stmt->fetch(PDO::FETCH_ASSOC);
-            return (string)($row['key_value'] ?? '');
+            return \Genie\Crypto::decrypt((string)($row['key_value'] ?? '')); // 202차 은행급 복호화
         } catch (\Throwable $e) {
             return '';
         }
@@ -1091,9 +1091,9 @@ final class Connectors
         $start = (string)($body['start_date'] ?? $q['start_date'] ?? date('Y-m-d', strtotime('-7 days')));
         $end   = (string)($body['end_date']   ?? $q['end_date']   ?? date('Y-m-d'));
 
-        $want = (string)($body['channels'] ?? $q['channels'] ?? 'meta,google,tiktok');
+        $want = (string)($body['channels'] ?? $q['channels'] ?? 'meta,google,tiktok,naver');
         $wantSet = array_filter(array_map('trim', explode(',', strtolower($want))));
-        $wantSet = $wantSet ?: ['meta', 'google', 'tiktok'];
+        $wantSet = $wantSet ?: ['meta', 'google', 'tiktok', 'naver'];
 
         $result = self::runSync($tenant, $start, $end, $wantSet);
 
@@ -1118,6 +1118,7 @@ final class Connectors
             'meta'   => fn() => self::fetchMetaRows($tenant, $start, $end),
             'google' => fn() => self::fetchGoogleRows($tenant, $start, $end),
             'tiktok' => fn() => self::fetchTiktokRows($tenant, $start, $end),
+            'naver'  => fn() => self::fetchNaverRows($tenant, $start, $end),
         ];
 
         foreach ($fetchers as $ch => $fn) {
@@ -1162,7 +1163,7 @@ final class Connectors
             $stmt = $pdo->query(
                 "SELECT DISTINCT tenant_id FROM channel_credential
                   WHERE is_active=1
-                    AND channel IN ('meta_ads','google_ads','tiktok_business')
+                    AND channel IN ('meta_ads','google_ads','tiktok_business','naver_sa')
                     AND tenant_id IS NOT NULL AND tenant_id<>''"
             );
             $out = [];
@@ -1380,6 +1381,67 @@ final class Connectors
                 'conversions' => (int)round((float)($m['conversion'] ?? 0)),
                 'revenue'     => (float)($m['total_purchase_value'] ?? 0),
             ];
+        }
+        return ['hasCreds' => true, 'live' => true, 'rows' => $rows];
+    }
+
+    /** 네이버 검색광고 일자별 성과 → 정규화 행(202차 ingest 편입). 캠페인 id 조회 후 /stats 일별 집계. */
+    private static function fetchNaverRows(string $tenant, string $start, string $end): array
+    {
+        $apiKey     = (string)(getenv('NAVER_API_KEY')     ?: self::loadCred($tenant, 'naver_sa', 'api_key')     ?: self::loadCred($tenant, 'naver_searchad', 'api_key'));
+        $apiSecret  = (string)(getenv('NAVER_API_SECRET')  ?: self::loadCred($tenant, 'naver_sa', 'api_secret')  ?: self::loadCred($tenant, 'naver_searchad', 'api_secret'));
+        $customerId = (string)(getenv('NAVER_CUSTOMER_ID') ?: self::loadCred($tenant, 'naver_sa', 'customer_id') ?: self::loadCred($tenant, 'naver_searchad', 'customer_id'));
+        if ($apiKey === '' || $apiSecret === '' || $customerId === '') {
+            return ['hasCreds' => false, 'live' => false, 'rows' => []];
+        }
+        $sign = function (string $method, string $path) use ($apiSecret): array {
+            $ts = (string)(round(microtime(true) * 1000));
+            return [$ts, base64_encode(hash_hmac('sha256', "{$ts}.{$method}.{$path}", $apiSecret, true))];
+        };
+        $hdr = function (array $sg) use ($apiKey, $customerId): array {
+            return ['X-Timestamp' => $sg[0], 'X-API-KEY' => $apiKey, 'X-Customer' => $customerId, 'X-Signature' => $sg[1], 'Content-Type' => 'application/json; charset=UTF-8'];
+        };
+
+        // 1) 캠페인 id 목록
+        [$cCode, $cBody, $cErr] = self::httpGet('https://api.naver.com/ncc/campaigns', $hdr($sign('GET', '/ncc/campaigns')));
+        if ($cErr || $cCode >= 400) return ['hasCreds' => true, 'live' => false, 'error' => $cErr ?? "naver campaigns http {$cCode}"];
+        $ids = [];
+        foreach ((is_array($cBody) ? $cBody : []) as $c) { if (!empty($c['nccCampaignId'])) $ids[] = (string)$c['nccCampaignId']; }
+        if (empty($ids)) return ['hasCreds' => true, 'live' => true, 'rows' => []]; // 캠페인 없음 = 빈 적재(정직)
+
+        // 2) /stats 일별 성과(최대 100 id)
+        $ids = array_slice($ids, 0, 100);
+        $query = http_build_query([
+            'ids'       => implode(',', $ids),
+            'fields'    => json_encode(['impCnt', 'clkCnt', 'salesAmt', 'ccnt', 'convAmt']),
+            'timeRange' => json_encode(['since' => $start, 'until' => $end]),
+            'breakdown' => 'day',
+        ]);
+        [$sCode, $sBody, $sErr] = self::httpGet('https://api.naver.com/stats?' . $query, $hdr($sign('GET', '/stats')));
+        if ($sErr || $sCode >= 400) return ['hasCreds' => true, 'live' => false, 'error' => $sErr ?? "naver stats http {$sCode}"];
+
+        // 일별 집계(응답 포맷 방어적 파싱)
+        $byDay = [];
+        $data = $sBody['data'] ?? (is_array($sBody) ? $sBody : []);
+        foreach ((array)$data as $row) {
+            if (!is_array($row)) continue;
+            $day = '';
+            if (isset($row['dimension']) && is_array($row['dimension'])) $day = (string)($row['dimension']['day'] ?? $row['dimension']['statDt'] ?? '');
+            if ($day === '') $day = (string)($row['day'] ?? $row['statDt'] ?? (is_string($row['dimension'] ?? null) ? $row['dimension'] : ''));
+            $day = substr(str_replace(['.', '/'], '-', $day), 0, 10);
+            if ($day === '' || $day < $start || $day > $end) continue;
+            if (!isset($byDay[$day])) $byDay[$day] = ['imp' => 0, 'clk' => 0, 'spend' => 0.0, 'conv' => 0, 'rev' => 0.0];
+            $byDay[$day]['imp']   += (int)($row['impCnt'] ?? 0);
+            $byDay[$day]['clk']   += (int)($row['clkCnt'] ?? 0);
+            $byDay[$day]['spend'] += (float)($row['salesAmt'] ?? 0);
+            $byDay[$day]['conv']  += (int)round((float)($row['ccnt'] ?? 0));
+            $byDay[$day]['rev']   += (float)($row['convAmt'] ?? 0);
+        }
+        $rows = [];
+        foreach ($byDay as $day => $v) {
+            $rows[] = ['team' => 'Naver', 'account' => 'Naver SA', 'date' => $day,
+                'impressions' => $v['imp'], 'clicks' => $v['clk'], 'spend' => $v['spend'],
+                'conversions' => $v['conv'], 'revenue' => $v['rev']];
         }
         return ['hasCreds' => true, 'live' => true, 'rows' => $rows];
     }

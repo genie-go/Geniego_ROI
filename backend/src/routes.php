@@ -260,6 +260,17 @@ return function (App $app): void {
         'GET /api/channel-sync/orders'                    => 'Genie\\Handlers\\ChannelSync::orders',
         'GET /api/channel-sync/inventory'                 => 'Genie\\Handlers\\ChannelSync::inventory',
         'POST /api/channel-sync/webhooks/{channel}'       => 'Genie\\Handlers\\ChannelSync::webhook',
+        // 202차 항목2c: Apache Alias /api(setBasePath) 환경에서 /api 가 strip 되어 매칭되도록
+        //   no-/api 변형도 등록(OmniChannel/CatalogSync 가 /api/channel-sync/* 호출 → 404 해소).
+        'GET /channel-sync/status'                        => 'Genie\\Handlers\\ChannelSync::status',
+        'POST /channel-sync/credentials'                  => 'Genie\\Handlers\\ChannelSync::saveCredential',
+        'DELETE /channel-sync/credentials/{id}'           => 'Genie\\Handlers\\ChannelSync::deleteCredential',
+        'POST /channel-sync/{channel}/test'               => 'Genie\\Handlers\\ChannelSync::testChannel',
+        'POST /channel-sync/{channel}/sync'               => 'Genie\\Handlers\\ChannelSync::syncChannel',
+        'GET /channel-sync/products'                      => 'Genie\\Handlers\\ChannelSync::products',
+        'GET /channel-sync/orders'                        => 'Genie\\Handlers\\ChannelSync::orders',
+        'GET /channel-sync/inventory'                     => 'Genie\\Handlers\\ChannelSync::inventory',
+        'POST /channel-sync/webhooks/{channel}'           => 'Genie\\Handlers\\ChannelSync::webhook',
 
 
 // v418.1 additive marketing insights (aggregated-only, no PII)
@@ -1954,6 +1965,16 @@ return function (App $app): void {
     $register('GET',    '/api/channel-sync/orders');
     $register('GET',    '/api/channel-sync/inventory');
     $register('POST',   '/api/channel-sync/webhooks/{channel}');
+    // 202차 항목2c: no-/api 변형(basePath strip 환경)
+    $register('GET',    '/channel-sync/status');
+    $register('POST',   '/channel-sync/credentials');
+    $register('DELETE', '/channel-sync/credentials/{id}');
+    $register('POST',   '/channel-sync/{channel}/test');
+    $register('POST',   '/channel-sync/{channel}/sync');
+    $register('GET',    '/channel-sync/products');
+    $register('GET',    '/channel-sync/orders');
+    $register('GET',    '/channel-sync/inventory');
+    $register('POST',   '/channel-sync/webhooks/{channel}');
     $register('GET',    '/api/performance', ['Genie\\Controllers\\PerformanceController', 'getMetrics']);
     $register('POST', '/v422/ai/analyze');
     $register('GET', '/v422/ai/analyses');

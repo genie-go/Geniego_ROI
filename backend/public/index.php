@@ -121,6 +121,10 @@ $app->add(function (Request $request, $handler) {
         || strpos($path, '/api/whatsapp/') === 0   || strpos($path, '/whatsapp/') === 0
         || strpos($path, '/api/instagram/') === 0  || strpos($path, '/instagram/') === 0
         || strpos($path, '/api/line/') === 0       || strpos($path, '/line/') === 0
+        // 202차 항목2c: ChannelSync(커머스 채널 연동/동기화) — 세션 기반(ChannelSync::tenant=user_session,
+        //   미해결 시 demo 버킷). OmniChannel/CatalogSync 등이 세션토큰으로 호출 → api_key 401 해소.
+        //   webhook(/api/channel-sync/webhooks/*)은 핸들러가 무인증 수신 처리.
+        || strpos($path, '/api/channel-sync/') === 0 || strpos($path, '/channel-sync/') === 0
     ) {
         return $handler->handle($request);
     }

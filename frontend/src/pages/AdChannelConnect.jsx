@@ -66,7 +66,7 @@ const PLATFORMS = [
 // 저장 직후 자동 동기화 매핑 — 광고 성과 ingest 브릿지(/v423/connectors/sync)의
 // 단축 채널명. 자격증명을 등록하면 즉시 performance_metrics 적재가 트리거된다.
 // naver_sa/coupang 은 성과 ingest 대상이 아니므로(별도 트랙) 제외.
-const SYNC_CHANNEL = { meta_ads: 'meta', google_ads: 'google', tiktok_business: 'tiktok' };
+const SYNC_CHANNEL = { meta_ads: 'meta', google_ads: 'google', tiktok_business: 'tiktok', naver_sa: 'naver' };
 
 export default function AdChannelConnect() {
   const { t } = useI18n();

@@ -166,7 +166,7 @@ final class ChannelCreds
 
         // Mask key values
         foreach ($rows as &$r) {
-            $r['key_value_masked'] = $r['key_value'] !== null ? self::mask((string)$r['key_value']) : null;
+            $r['key_value_masked'] = $r['key_value'] !== null ? self::mask(\Genie\Crypto::decrypt((string)$r['key_value'])) : null;
             unset($r['key_value']);
         }
         unset($r);
@@ -221,6 +221,9 @@ final class ChannelCreds
         $keyName  = trim((string)($body['key_name']  ?? ''));
         $keyValue = trim((string)($body['key_value'] ?? ''));
         $note     = trim((string)($body['note']      ?? ''));
+
+        // ★ 202차 은행급: 비밀값은 AES-256-GCM 암호화 저장. 빈 값은 "미덮어씀"이므로 그대로 둠.
+        if ($keyValue !== '') $keyValue = \Genie\Crypto::encrypt($keyValue);
 
         if ($channel === '' || $keyName === '') {
             return TemplateResponder::respond(
@@ -392,7 +395,7 @@ final class ChannelCreds
 
         $channel  = (string)$cred['channel'];
         $keyName  = (string)$cred['key_name'];
-        $keyValue = (string)($cred['key_value'] ?? '');
+        $keyValue = \Genie\Crypto::decrypt((string)($cred['key_value'] ?? '')); // 복호화 후 실 ping
 
         [$success, $message] = self::pingChannel($channel, $keyName, $keyValue);
 
@@ -577,7 +580,7 @@ final class ChannelCreds
         $keyCount = count($rows);
         $keyPreview = '';
         if ($keyCount > 0 && !empty($rows[0]['key_value'])) {
-            $v = (string)$rows[0]['key_value'];
+            $v = \Genie\Crypto::decrypt((string)$rows[0]['key_value']);
             $keyPreview = 'db_' . mb_substr($v, 0, 4) . str_repeat('•', min(8, max(0, mb_strlen($v) - 4)));
         }
 
@@ -622,7 +625,7 @@ final class ChannelCreds
             ]);
         }
 
-        [$success, $message] = self::pingChannel($channel, (string)$cred['key_name'], (string)($cred['key_value'] ?? ''));
+        [$success, $message] = self::pingChannel($channel, (string)$cred['key_name'], \Genie\Crypto::decrypt((string)($cred['key_value'] ?? '')));
 
         // 테스트 결과 저장
         $now    = gmdate('c');
