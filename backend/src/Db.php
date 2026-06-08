@@ -493,8 +493,11 @@ final class Db
             spend DOUBLE NOT NULL DEFAULT 0,
             conversions INT NOT NULL DEFAULT 0,
             revenue DOUBLE NOT NULL DEFAULT 0,
+            campaign_ext_id VARCHAR(255) DEFAULT NULL,
             extra_json MEDIUMTEXT
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"));
+        // 202차 Phase3: 캠페인 단위 측정 입도 — 기존 배포 테이블에 campaign_ext_id 보강(idempotent).
+        try { $pdo->exec("ALTER TABLE performance_metrics ADD COLUMN campaign_ext_id VARCHAR(255) DEFAULT NULL"); } catch (\Throwable $e) { /* 이미 존재 */ }
         $pdo->exec(self::sql($pdo, "CREATE TABLE IF NOT EXISTS team_channel_mapping (
             id INT AUTO_INCREMENT PRIMARY KEY,
             tenant_id VARCHAR(100) NOT NULL,

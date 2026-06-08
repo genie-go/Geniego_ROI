@@ -253,17 +253,33 @@ class AutoCampaign
     private const PAUSE_FLOOR = 1.0;   // ROAS < 1.0 (손해) → 예산 회수
     private const OPT_WINDOW_DAYS = 14; // 최근 14일 성과 분석
 
-    /** 채널별 최근 성과 집계(채널명 대소문자 무시). */
-    private static function aggMetrics(PDO $pdo, string $tenant, string $channel): array
+    /**
+     * 채널별 최근 성과 집계(채널명 대소문자 무시).
+     * ★ 202차 Phase3: $externalId(캠페인 external_id) 제공 시 campaign_ext_id 로 필터 →
+     *   측정 입도를 액추에이션 입도(캠페인)와 일치(동일 채널 다중 캠페인 합산 오류 제거).
+     *   구 스키마(campaign_ext_id 컬럼 부재)는 채널 단위로 자동 폴백.
+     */
+    private static function aggMetrics(PDO $pdo, string $tenant, string $channel, string $externalId = ''): array
     {
         $since = gmdate('Y-m-d', time() - self::OPT_WINDOW_DAYS * 86400);
+        $cols = "COALESCE(SUM(impressions),0) imp, COALESCE(SUM(clicks),0) clk, COALESCE(SUM(spend),0) spend, COALESCE(SUM(conversions),0) conv, COALESCE(SUM(revenue),0) rev";
         $r = [];
-        try {
-            $st = $pdo->prepare("SELECT COALESCE(SUM(impressions),0) imp, COALESCE(SUM(clicks),0) clk, COALESCE(SUM(spend),0) spend, COALESCE(SUM(conversions),0) conv, COALESCE(SUM(revenue),0) rev
-                FROM performance_metrics WHERE tenant_id=? AND LOWER(channel)=LOWER(?) AND date >= ?");
-            $st->execute([$tenant, $channel, $since]);
-            $r = $st->fetch(PDO::FETCH_ASSOC) ?: [];
-        } catch (\Throwable $e) { $r = []; }
+        $fetched = false;
+        if ($externalId !== '') {
+            try {
+                $st = $pdo->prepare("SELECT $cols FROM performance_metrics WHERE tenant_id=? AND LOWER(channel)=LOWER(?) AND date >= ? AND campaign_ext_id = ?");
+                $st->execute([$tenant, $channel, $since, $externalId]);
+                $r = $st->fetch(PDO::FETCH_ASSOC) ?: [];
+                $fetched = true;
+            } catch (\Throwable $e) { $fetched = false; } // 컬럼 부재 → 채널 폴백
+        }
+        if (!$fetched) {
+            try {
+                $st = $pdo->prepare("SELECT $cols FROM performance_metrics WHERE tenant_id=? AND LOWER(channel)=LOWER(?) AND date >= ?");
+                $st->execute([$tenant, $channel, $since]);
+                $r = $st->fetch(PDO::FETCH_ASSOC) ?: [];
+            } catch (\Throwable $e) { $r = []; }
+        }
         $spend = (float)($r['spend'] ?? 0); $rev = (float)($r['rev'] ?? 0);
         $imp = (int)($r['imp'] ?? 0); $clk = (int)($r['clk'] ?? 0);
         return [
@@ -293,7 +309,9 @@ class AutoCampaign
 
         $metrics = []; $anyData = false;
         foreach ($channels as $ch) {
-            $m = self::aggMetrics($pdo, $tenant, $ch);
+            // Phase3: 이 캠페인의 채널별 external_id 로 측정 입도 일치(동일 채널 타 캠페인 성과 혼입 방지)
+            $extId = $extIdMap[strtolower($ch)] ?? '';
+            $m = self::aggMetrics($pdo, $tenant, $ch, $extId);
             $metrics[$ch] = $m;
             if ($m['has_data']) $anyData = true;
         }

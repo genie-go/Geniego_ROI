@@ -19,6 +19,12 @@ final class Crypto
     private const PREFIX = 'enc:v1:';
     private static ?string $key = null;
 
+    /** 레거시 파생 키(앱 부팅 초기·DB 미가용 시 사용했던 폴백). 이중키 복호화 호환용. */
+    private static function derivedKey(): string
+    {
+        return self::normalizeKey('genie-roi-cred-' . (getenv('GENIE_DB_NAME') ?: 'geniego_roi'));
+    }
+
     private static function key(): string
     {
         if (self::$key !== null) return self::$key;
@@ -26,25 +32,25 @@ final class Crypto
         if (is_string($env) && $env !== '') { return self::$key = self::normalizeKey($env); }
         try {
             $pdo = Db::pdo();
-            $pdo->exec("CREATE TABLE IF NOT EXISTS app_setting (k VARCHAR(120) PRIMARY KEY, v TEXT, updated_at VARCHAR(32))");
-            $s = $pdo->prepare("SELECT v FROM app_setting WHERE k='cred_enc_key' LIMIT 1");
-            $s->execute();
-            $v = $s->fetchColumn();
+            // 플랫폼 정본 app_setting 스키마(skey/svalue) 사용(196차 smtp 등과 공유).
+            $pdo->exec("CREATE TABLE IF NOT EXISTS app_setting (skey VARCHAR(64) PRIMARY KEY, svalue TEXT, updated_at VARCHAR(32))");
+            $sel = $pdo->prepare("SELECT svalue FROM app_setting WHERE skey='cred_enc_key' LIMIT 1");
+            $sel->execute();
+            $v = $sel->fetchColumn();
             if ($v) { return self::$key = self::normalizeKey((string)$v); }
             $gen = base64_encode(random_bytes(32));
             $driver = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME);
             if ($driver === 'mysql') {
-                $pdo->prepare("INSERT INTO app_setting(k,v,updated_at) VALUES('cred_enc_key',?,?) ON DUPLICATE KEY UPDATE v=v")->execute([$gen, gmdate('c')]);
+                $pdo->prepare("INSERT INTO app_setting(skey,svalue,updated_at) VALUES('cred_enc_key',?,?) ON DUPLICATE KEY UPDATE svalue=svalue")->execute([$gen, gmdate('c')]);
             } else {
-                $pdo->prepare("INSERT OR IGNORE INTO app_setting(k,v,updated_at) VALUES('cred_enc_key',?,?)")->execute([$gen, gmdate('c')]);
+                $pdo->prepare("INSERT OR IGNORE INTO app_setting(skey,svalue,updated_at) VALUES('cred_enc_key',?,?)")->execute([$gen, gmdate('c')]);
             }
-            // 재조회(경쟁 상황에서 타 프로세스가 먼저 넣었을 수 있음 → 항상 DB값 사용)
-            $s->execute();
-            $stored = (string)($s->fetchColumn() ?: $gen);
+            $sel->execute();
+            $stored = (string)($sel->fetchColumn() ?: $gen);
             return self::$key = self::normalizeKey($stored);
         } catch (\Throwable $e) {
             error_log('[Crypto] key fallback (derived): ' . $e->getMessage());
-            return self::$key = self::normalizeKey('genie-roi-cred-' . (getenv('GENIE_DB_NAME') ?: 'geniego_roi'));
+            return self::$key = self::derivedKey();
         }
     }
 
@@ -92,7 +98,11 @@ final class Crypto
             $iv = substr($raw, 0, 12);
             $tag = substr($raw, 12, 16);
             $ct = substr($raw, 28);
+            // 이중키: 현재 키(app_setting 랜덤) 우선, 실패 시 레거시 파생키(전환기 호환).
             $pt = openssl_decrypt($ct, 'aes-256-gcm', self::key(), OPENSSL_RAW_DATA, $iv, $tag);
+            if ($pt === false) {
+                $pt = openssl_decrypt($ct, 'aes-256-gcm', self::derivedKey(), OPENSSL_RAW_DATA, $iv, $tag);
+            }
             return $pt === false ? '' : $pt;
         } catch (\Throwable $e) {
             return '';

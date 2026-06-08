@@ -1176,6 +1176,25 @@ final class Connectors
         }
     }
 
+    /** performance_metrics 에 campaign_ext_id 컬럼이 있는지(요청당 1회 캐시). 구 스키마 폴백용. */
+    private static function perfHasCampaignCol(PDO $pdo): bool
+    {
+        static $cached = null;
+        if ($cached !== null) return $cached;
+        try {
+            if ($pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql') {
+                $q = $pdo->query("SHOW COLUMNS FROM performance_metrics LIKE 'campaign_ext_id'");
+                $cached = ($q && $q->fetch() !== false);
+            } else {
+                $cached = false;
+                foreach ($pdo->query("PRAGMA table_info(performance_metrics)")->fetchAll(PDO::FETCH_ASSOC) as $c) {
+                    if (($c['name'] ?? '') === 'campaign_ext_id') { $cached = true; break; }
+                }
+            }
+        } catch (\Throwable $e) { $cached = false; }
+        return $cached;
+    }
+
     /**
      * performance_metrics 멱등 적재: (tenant,channel,date∈[start,end]) 기존 행 삭제 후 신규 삽입.
      * 재동기화 시 중복 누적 없이 최신 스냅샷 유지. 테넌트 스코핑 강제.
@@ -1194,18 +1213,22 @@ final class Connectors
             $del = $pdo->prepare('DELETE FROM performance_metrics WHERE tenant_id=? AND LOWER(channel)=? AND date BETWEEN ? AND ?');
             $del->execute([$tenant, strtolower($channel), $start, $end]);
 
-            $ins = $pdo->prepare(
-                'INSERT INTO performance_metrics
-                   (tenant_id, team, channel, account, date, impressions, clicks, spend, conversions, revenue, extra_json)
-                 VALUES (?,?,?,?,?,?,?,?,?,?,?)'
-            );
+            // Phase3: campaign_ext_id 포함(측정↔액추에이션 입도 일치). 구 스키마(컬럼 부재) 폴백.
+            $hasCampCol = self::perfHasCampaignCol($pdo);
+            $ins = $hasCampCol
+                ? $pdo->prepare('INSERT INTO performance_metrics
+                       (tenant_id, team, channel, account, date, impressions, clicks, spend, conversions, revenue, campaign_ext_id, extra_json)
+                     VALUES (?,?,?,?,?,?,?,?,?,?,?,?)')
+                : $pdo->prepare('INSERT INTO performance_metrics
+                       (tenant_id, team, channel, account, date, impressions, clicks, spend, conversions, revenue, extra_json)
+                     VALUES (?,?,?,?,?,?,?,?,?,?,?)');
             $n = 0;
             foreach ($rows as $r) {
                 $date = (string)($r['date'] ?? '');
                 if ($date === '') continue;
                 // 적재는 동기화 구간으로 제한(API 가 범위 밖 날짜를 돌려줘도 격리).
                 if ($date < $start || $date > $end) continue;
-                $ins->execute([
+                $base = [
                     $tenant,
                     (string)($r['team'] ?? ''),
                     strtolower($channel),
@@ -1216,8 +1239,13 @@ final class Connectors
                     (float)($r['spend'] ?? 0),
                     (int)($r['conversions'] ?? 0),
                     (float)($r['revenue'] ?? 0),
-                    isset($r['extra']) ? json_encode($r['extra'], JSON_UNESCAPED_UNICODE) : null,
-                ]);
+                ];
+                $extra = isset($r['extra']) ? json_encode($r['extra'], JSON_UNESCAPED_UNICODE) : null;
+                if ($hasCampCol) {
+                    $base[] = ($r['campaign_ext_id'] ?? '') !== '' ? (string)$r['campaign_ext_id'] : null;
+                }
+                $base[] = $extra;
+                $ins->execute($base);
                 $n++;
             }
             $pdo->commit();
@@ -1237,7 +1265,7 @@ final class Connectors
             return ['hasCreds' => false, 'live' => false, 'rows' => []];
         }
 
-        $fields = 'campaign_name,impressions,clicks,spend,actions,action_values';
+        $fields = 'campaign_id,campaign_name,impressions,clicks,spend,actions,action_values';
         $params = http_build_query([
             'time_range'     => json_encode(['since' => $start, 'until' => $end]),
             'level'          => 'campaign',
@@ -1259,6 +1287,7 @@ final class Connectors
             $rows[] = [
                 'team'        => 'Meta',
                 'account'     => (string)($r['campaign_name'] ?? 'Meta Campaign'),
+                'campaign_ext_id' => (string)($r['campaign_id'] ?? ''),
                 'date'        => (string)($r['date_start'] ?? $r['date_stop'] ?? ''),
                 'impressions' => (int)($r['impressions'] ?? 0),
                 'clicks'      => (int)($r['clicks'] ?? 0),
@@ -1294,7 +1323,7 @@ final class Connectors
             return ['hasCreds' => false, 'live' => false, 'rows' => []];
         }
 
-        $gaql = "SELECT campaign.name, metrics.impressions, metrics.clicks, metrics.cost_micros,
+        $gaql = "SELECT campaign.name, campaign.resource_name, metrics.impressions, metrics.clicks, metrics.cost_micros,
                         metrics.conversions, metrics.conversions_value, segments.date
                  FROM campaign
                  WHERE segments.date BETWEEN '$start' AND '$end' AND campaign.status != 'REMOVED'
@@ -1316,6 +1345,7 @@ final class Connectors
             $rows[] = [
                 'team'        => 'Google Ads',
                 'account'     => (string)($r['campaign']['name'] ?? 'Google Campaign'),
+                'campaign_ext_id' => (string)($r['campaign']['resourceName'] ?? ''),
                 'date'        => (string)($r['segments']['date'] ?? ''),
                 'impressions' => (int)($r['metrics']['impressions'] ?? 0),
                 'clicks'      => (int)($r['metrics']['clicks'] ?? 0),
@@ -1374,6 +1404,7 @@ final class Connectors
             $rows[] = [
                 'team'        => 'TikTok',
                 'account'     => (string)($m['campaign_name'] ?? $dim['campaign_id'] ?? 'TikTok Campaign'),
+                'campaign_ext_id' => (string)($dim['campaign_id'] ?? ''),
                 'date'        => substr((string)($dim['stat_time_day'] ?? ''), 0, 10),
                 'impressions' => (int)($m['impressions'] ?? 0),
                 'clicks'      => (int)($m['clicks'] ?? 0),
