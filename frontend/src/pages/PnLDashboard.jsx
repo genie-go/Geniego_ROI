@@ -247,6 +247,51 @@ function ActionTab({ t }) {
     );
 }
 
+/* 손익예측 월별 바차트(매출·순이익) — 무의존 반응형 SVG-less flex 바. */
+function ForecastChart({ rows, fmt, t }) {
+    const max = Math.max(1, ...rows.map(r => r.revenue));
+    const hasData = rows.some(r => r.revenue > 0);
+    const Legend = ({ color, label }) => (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 10, color: 'var(--text-3)' }}>
+            <span style={{ width: 9, height: 9, borderRadius: 2, background: color }} />{label}
+        </span>
+    );
+    return (
+        <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, flexWrap: 'wrap', gap: 8 }}>
+                <div style={{ fontWeight: 700, fontSize: 13 }}>📊 {t('pnl.forecastChartTitle', '월별 매출·순이익 추이')}</div>
+                <div style={{ display: 'flex', gap: 12 }}>
+                    <Legend color={ACCENT} label={t('pnl.colRevenue')} />
+                    <Legend color={GREEN} label={t('pnl.colNetProfit')} />
+                </div>
+            </div>
+            {!hasData ? (
+                <div style={{ height: 140, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-3)', fontSize: 12, textAlign: 'center', lineHeight: 1.6 }}>
+                    {t('pnl.forecastChartEmpty', '채널 연동·매출 데이터가 들어오면 예측 그래프가 표시됩니다.')}
+                </div>
+            ) : (
+                <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, height: 150, padding: '4px 0' }}>
+                    {rows.map(r => {
+                        const rev = (r.revenue / max) * 100;
+                        const prof = (Math.max(0, r.netProfit) / max) * 100;
+                        const mc = Number(r.margin) >= 15 ? GREEN : Number(r.margin) >= 8 ? '#f59e0b' : RED;
+                        return (
+                            <div key={r.m} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, minWidth: 0 }}>
+                                <div style={{ width: '100%', height: 108, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', gap: 3 }}>
+                                    <div title={`${t('pnl.colRevenue')} ${fmt(r.revenue)}`} style={{ width: '40%', maxWidth: 26, height: `${rev}%`, minHeight: r.revenue > 0 ? 3 : 0, background: `linear-gradient(180deg, ${ACCENT}, ${ACCENT}88)`, borderRadius: '4px 4px 0 0', transition: 'height 300ms' }} />
+                                    <div title={`${t('pnl.colNetProfit')} ${fmt(r.netProfit)}`} style={{ width: '40%', maxWidth: 26, height: `${prof}%`, minHeight: r.netProfit > 0 ? 3 : 0, background: `linear-gradient(180deg, ${GREEN}, ${GREEN}88)`, borderRadius: '4px 4px 0 0', transition: 'height 300ms' }} />
+                                </div>
+                                <div style={{ fontSize: 10, color: 'var(--text-2)', fontWeight: 700 }}>+{r.m}M</div>
+                                <div style={{ fontSize: 9, color: mc, fontWeight: 700 }}>{r.margin}%</div>
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
+        </div>
+    );
+}
+
 /* ═══════ TAB 5: Forecast ═══════ */
 function ForecastTab({ live, t, fmt }) {
     const [growthRate, setGrowthRate] = useState(15);
@@ -285,7 +330,8 @@ function ForecastTab({ live, t, fmt }) {
                 <div style={{ fontWeight: 800, fontSize: 14 }}>🔮 {t('pnl.forecastTitle')}</div>
                 <div style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 2 }}>{t('pnl.forecastDesc')}</div>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 16 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(280px, 330px) minmax(0, 1fr)', gap: 16, alignItems: 'start' }}>
+                {/* 좌: 파라미터 설정 + 누적 요약 */}
                 <div style={{ padding: 16, borderRadius: 12, background: 'rgba(79,142,247,0.06)', border: '1px solid rgba(79,142,247,0.2)', display: 'grid', gap: 14 }}>
                     <div style={{ fontWeight: 700, fontSize: 13 }}>{t('pnl.paramSettings')}</div>
                     {slider('pnl.paramGrowth', growthRate, setGrowthRate, 0, 50)}
@@ -294,39 +340,65 @@ function ForecastTab({ live, t, fmt }) {
                     {slider('pnl.paramReturnRate', returnRatePct, setReturnRatePct, 2, 20)}
                     {slider('pnl.paramPeriod', months, setMonths, 3, 12, 'M')}
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 8 }}>
-                        <div style={{ textAlign: 'center', padding: 10, background: 'rgba(34,197,94,0.08)', borderRadius: 8 }}>
+                        <div style={{ textAlign: 'center', padding: 12, background: 'rgba(34,197,94,0.08)', borderRadius: 8 }}>
                             <div style={{ fontSize: 10, color: 'var(--text-3)' }}>{t('pnl.forecastRevenue')}</div>
-                            <div style={{ fontSize: 16, fontWeight: 900, color: GREEN }}>{fmt(totalFR)}</div>
+                            <div style={{ fontSize: 17, fontWeight: 900, color: GREEN }}>{fmt(totalFR)}</div>
                         </div>
-                        <div style={{ textAlign: 'center', padding: 10, background: 'rgba(79,142,247,0.08)', borderRadius: 8 }}>
+                        <div style={{ textAlign: 'center', padding: 12, background: 'rgba(79,142,247,0.08)', borderRadius: 8 }}>
                             <div style={{ fontSize: 10, color: 'var(--text-3)' }}>{t('pnl.forecastProfit')}</div>
-                            <div style={{ fontSize: 16, fontWeight: 900, color: totalFP > 0 ? ACCENT : RED }}>{fmt(totalFP)}</div>
+                            <div style={{ fontSize: 17, fontWeight: 900, color: totalFP > 0 ? ACCENT : RED }}>{fmt(totalFP)}</div>
                         </div>
                     </div>
+                    <div style={{ textAlign: 'center', padding: 10, background: 'rgba(255,255,255,0.03)', borderRadius: 8, border: '1px solid var(--border)' }}>
+                        <div style={{ fontSize: 10, color: 'var(--text-3)' }}>{t('pnl.forecastAvgMargin', '예측 평균 마진율')}</div>
+                        <div style={{ fontSize: 17, fontWeight: 900, color: totalFR > 0 && (totalFP / totalFR * 100) >= 8 ? GREEN : '#f59e0b' }}>{totalFR > 0 ? (totalFP / totalFR * 100).toFixed(1) : '0.0'}%</div>
+                    </div>
                 </div>
-                <div style={{ overflow: 'auto' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
-                        <thead>
-                            <tr style={{ background: 'rgba(79,142,247,0.08)' }}>
-                                {[t('pnl.colMonth'), t('pnl.colRevenue'), t('pnl.colAdSpend'), t('pnl.colFee'), t('pnl.colReturns'), t('pnl.colNetProfit'), t('pnl.colMargin')].map(h => (
-                                    <th key={h} style={{ padding: '8px 10px', textAlign: h === t('pnl.colMonth') ? 'left' : 'right', color: 'var(--text-3)', fontWeight: 700 }}>{h}</th>
-                                ))}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {forecastRows.map(r => (
-                                <tr key={r.m} style={{ borderBottom: '1px solid var(--border)' }}>
-                                    <td style={{ padding: '8px 10px', fontWeight: 700 }}>+{r.m}M</td>
-                                    <td style={{ padding: '8px 10px', textAlign: 'right', color: ACCENT, fontWeight: 700 }}>{fmt(r.revenue)}</td>
-                                    <td style={{ padding: '8px 10px', textAlign: 'right', color: '#f97316' }}>{fmt(r.adCost)}</td>
-                                    <td style={{ padding: '8px 10px', textAlign: 'right', color: RED }}>{fmt(r.fees)}</td>
-                                    <td style={{ padding: '8px 10px', textAlign: 'right', color: '#a855f7' }}>{fmt(r.returns)}</td>
-                                    <td style={{ padding: '8px 10px', textAlign: 'right', fontWeight: 800, color: r.netProfit >= 0 ? GREEN : RED }}>{fmt(r.netProfit)}</td>
-                                    <td style={{ padding: '8px 10px', textAlign: 'right', fontWeight: 700, color: Number(r.margin) >= 15 ? GREEN : Number(r.margin) >= 8 ? '#f59e0b' : RED }}>{r.margin}%</td>
+
+                {/* 우: 그래프 박스 + 리스트(표) 박스 — 화면 폭의 다수 차지 */}
+                <div style={{ display: 'grid', gap: 16, minWidth: 0 }}>
+                    {/* 그래프 박스 */}
+                    <div style={{ ...CARD, padding: 18 }}>
+                        <ForecastChart rows={forecastRows} fmt={fmt} t={t} />
+                    </div>
+
+                    {/* 리스트(표) 박스 — 더 크게, 가독성 향상 + 합계 행 */}
+                    <div style={{ ...CARD, padding: 18, overflow: 'auto' }}>
+                        <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 12 }}>📋 {t('pnl.forecastTableTitle', '월별 손익 예측 상세')}</div>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, minWidth: 560 }}>
+                            <thead>
+                                <tr style={{ background: 'rgba(79,142,247,0.1)' }}>
+                                    {[t('pnl.colMonth'), t('pnl.colRevenue'), t('pnl.colAdSpend'), t('pnl.colFee'), t('pnl.colReturns'), t('pnl.colNetProfit'), t('pnl.colMargin')].map(h => (
+                                        <th key={h} style={{ padding: '11px 14px', textAlign: h === t('pnl.colMonth') ? 'left' : 'right', color: 'var(--text-2)', fontWeight: 800, whiteSpace: 'nowrap', position: 'sticky', top: 0 }}>{h}</th>
+                                    ))}
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {forecastRows.map(r => (
+                                    <tr key={r.m} style={{ borderBottom: '1px solid var(--border)' }}>
+                                        <td style={{ padding: '11px 14px', fontWeight: 800 }}>+{r.m}M</td>
+                                        <td style={{ padding: '11px 14px', textAlign: 'right', color: ACCENT, fontWeight: 700 }}>{fmt(r.revenue)}</td>
+                                        <td style={{ padding: '11px 14px', textAlign: 'right', color: '#f97316' }}>{fmt(r.adCost)}</td>
+                                        <td style={{ padding: '11px 14px', textAlign: 'right', color: RED }}>{fmt(r.fees)}</td>
+                                        <td style={{ padding: '11px 14px', textAlign: 'right', color: '#a855f7' }}>{fmt(r.returns)}</td>
+                                        <td style={{ padding: '11px 14px', textAlign: 'right', fontWeight: 800, color: r.netProfit >= 0 ? GREEN : RED }}>{fmt(r.netProfit)}</td>
+                                        <td style={{ padding: '11px 14px', textAlign: 'right', fontWeight: 700, color: Number(r.margin) >= 15 ? GREEN : Number(r.margin) >= 8 ? '#f59e0b' : RED }}>{r.margin}%</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                            <tfoot>
+                                <tr style={{ borderTop: `2px solid ${ACCENT}40`, background: 'rgba(79,142,247,0.05)' }}>
+                                    <td style={{ padding: '11px 14px', fontWeight: 900 }}>{t('pnl.forecastTotal', '합계')}</td>
+                                    <td style={{ padding: '11px 14px', textAlign: 'right', color: ACCENT, fontWeight: 900 }}>{fmt(totalFR)}</td>
+                                    <td style={{ padding: '11px 14px', textAlign: 'right', color: '#f97316', fontWeight: 700 }}>{fmt(forecastRows.reduce((s, r) => s + r.adCost, 0))}</td>
+                                    <td style={{ padding: '11px 14px', textAlign: 'right', color: RED, fontWeight: 700 }}>{fmt(forecastRows.reduce((s, r) => s + r.fees, 0))}</td>
+                                    <td style={{ padding: '11px 14px', textAlign: 'right', color: '#a855f7', fontWeight: 700 }}>{fmt(forecastRows.reduce((s, r) => s + r.returns, 0))}</td>
+                                    <td style={{ padding: '11px 14px', textAlign: 'right', fontWeight: 900, color: totalFP >= 0 ? GREEN : RED }}>{fmt(totalFP)}</td>
+                                    <td style={{ padding: '11px 14px', textAlign: 'right', fontWeight: 900, color: totalFR > 0 && (totalFP / totalFR * 100) >= 8 ? GREEN : '#f59e0b' }}>{totalFR > 0 ? (totalFP / totalFR * 100).toFixed(1) : '0.0'}%</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
