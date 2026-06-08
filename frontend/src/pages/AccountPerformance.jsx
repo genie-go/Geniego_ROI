@@ -164,42 +164,41 @@ export default function AccountPerformance() {
     /* ─ Real-Time Sync ─ */
     const { sharedCampaigns } = useGlobalData();
 
-    /* ─ Demo Fallback Data ─ */
-    const DEMO_META_CAMPAIGNS = useMemo(() => [
-        { id: 'mc-1', name: 'L\'Oréal Korea — Spring Launch', status: 'active', account_team: 'Korea Team', objective: 'Conversion', spend: 28500000, roas: 4.2, impressions: 4800000, clicks: 142000, ctr: 2.96, conv: 3240, budget: 35000000,
-          adsets: [
-            { id: 'as-1a', name: 'Revitalift — Female 25-34', status: 'active', spend: 12000000, roas: 4.8, impressions: 2200000, clicks: 68000, ctr: 3.09, conv: 1680, ads: [{ id: 'ad-1a1', name: 'Serum Before/After — Carousel', status: 'active', spend: 7000000, roas: 5.2, impressions: 1400000, clicks: 42000, ctr: 3.0, conv: 1020 }, { id: 'ad-1a2', name: 'Night Routine — Video', status: 'active', spend: 5000000, roas: 4.3, impressions: 800000, clicks: 26000, ctr: 3.25, conv: 660 }] },
-            { id: 'as-1b', name: 'UV Protection — All Ages', status: 'active', spend: 16500000, roas: 3.8, impressions: 2600000, clicks: 74000, ctr: 2.85, conv: 1560, ads: [{ id: 'ad-1b1', name: 'SPF50+ Beach Test', status: 'active', spend: 9000000, roas: 4.0, impressions: 1500000, clicks: 44000, ctr: 2.93, conv: 920 }, { id: 'ad-1b2', name: 'Daily UV Defense', status: 'active', spend: 7500000, roas: 3.5, impressions: 1100000, clicks: 30000, ctr: 2.73, conv: 640 }] },
-          ],
-          history: Array.from({length:14},(_,i)=>({date:new Date(Date.now()-i*864e5).toISOString().slice(5,10), spend:Math.round(1800000+Math.random()*400000)})),
-        },
-        { id: 'mc-2', name: 'Lancôme Japan — Premium', status: 'active', account_team: 'Japan Team', objective: 'Awareness', spend: 18200000, roas: 3.1, impressions: 8200000, clicks: 198000, ctr: 2.41, conv: 1820, budget: 25000000,
-          adsets: [
-            { id: 'as-2a', name: 'Absolue — Luxury Audience', status: 'active', spend: 10200000, roas: 3.4, impressions: 4500000, clicks: 112000, ctr: 2.49, conv: 1050, ads: [{ id: 'ad-2a1', name: 'Gold Cream — Unboxing', status: 'active', spend: 6200000, roas: 3.6, impressions: 2800000, clicks: 68000, ctr: 2.43, conv: 620 }] },
-            { id: 'as-2b', name: 'Trésor — Fragrance', status: 'active', spend: 8000000, roas: 2.8, impressions: 3700000, clicks: 86000, ctr: 2.32, conv: 770, ads: [{ id: 'ad-2b1', name: 'Trésor Story', status: 'active', spend: 8000000, roas: 2.8, impressions: 3700000, clicks: 86000, ctr: 2.32, conv: 770 }] },
-          ],
-          history: Array.from({length:14},(_,i)=>({date:new Date(Date.now()-i*864e5).toISOString().slice(5,10), spend:Math.round(1200000+Math.random()*300000)})),
-        },
-        { id: 'mc-3', name: 'NYX USA — Gen Z TikTok', status: 'active', account_team: 'USA Team', objective: 'Consideration', spend: 15800000, roas: 3.5, impressions: 12000000, clicks: 380000, ctr: 3.17, conv: 2450, budget: 20000000,
-          adsets: [
-            { id: 'as-3a', name: 'Lip Challenge — 18-24', status: 'active', spend: 8500000, roas: 3.8, impressions: 7000000, clicks: 225000, ctr: 3.21, conv: 1420, ads: [{ id: 'ad-3a1', name: '#MyNYXLook Challenge', status: 'active', spend: 5000000, roas: 4.1, impressions: 4200000, clicks: 138000, ctr: 3.29, conv: 890 }, { id: 'ad-3a2', name: 'NYX x Influencer Collab', status: 'active', spend: 3500000, roas: 3.4, impressions: 2800000, clicks: 87000, ctr: 3.11, conv: 530 }] },
-            { id: 'as-3b', name: 'Eyeshadow Palette — 25-34', status: 'active', spend: 7300000, roas: 3.2, impressions: 5000000, clicks: 155000, ctr: 3.10, conv: 1030, ads: [{ id: 'ad-3b1', name: 'Smoky Eye Tutorial', status: 'active', spend: 7300000, roas: 3.2, impressions: 5000000, clicks: 155000, ctr: 3.10, conv: 1030 }] },
-          ],
-          history: Array.from({length:14},(_,i)=>({date:new Date(Date.now()-i*864e5).toISOString().slice(5,10), spend:Math.round(1000000+Math.random()*250000)})),
-        },
-        { id: 'mc-4', name: 'Garnier Europe — Sustainability', status: 'active', account_team: 'Europe Team', objective: 'Awareness', spend: 9200000, roas: 2.6, impressions: 6500000, clicks: 145000, ctr: 2.23, conv: 980, budget: 12000000,
-          adsets: [
-            { id: 'as-4a', name: 'Green Beauty — Eco Focus', status: 'active', spend: 9200000, roas: 2.6, impressions: 6500000, clicks: 145000, ctr: 2.23, conv: 980, ads: [{ id: 'ad-4a1', name: 'Eco-Refill Campaign', status: 'active', spend: 5000000, roas: 2.8, impressions: 3500000, clicks: 82000, ctr: 2.34, conv: 560 }, { id: 'ad-4a2', name: 'Green Labs Story', status: 'active', spend: 4200000, roas: 2.4, impressions: 3000000, clicks: 63000, ctr: 2.10, conv: 420 }] },
-          ],
-          history: Array.from({length:14},(_,i)=>({date:new Date(Date.now()-i*864e5).toISOString().slice(5,10), spend:Math.round(600000+Math.random()*150000)})),
-        },
-        { id: 'mc-5', name: 'Vichy Korea — Derma Solution', status: 'active', account_team: 'Korea Team', objective: 'Conversion', spend: 6800000, roas: 5.1, impressions: 1800000, clicks: 58000, ctr: 3.22, conv: 1240, budget: 8000000,
-          adsets: [
-            { id: 'as-5a', name: 'Minéral 89 — Sensitive Skin', status: 'active', spend: 6800000, roas: 5.1, impressions: 1800000, clicks: 58000, ctr: 3.22, conv: 1240, ads: [{ id: 'ad-5a1', name: 'Dermatologist Recommended', status: 'active', spend: 6800000, roas: 5.1, impressions: 1800000, clicks: 58000, ctr: 3.22, conv: 1240 }] },
-          ],
-          history: Array.from({length:14},(_,i)=>({date:new Date(Date.now()-i*864e5).toISOString().slice(5,10), spend:Math.round(450000+Math.random()*100000)})),
-        },
-    ], []);
+    /* ─ Demo 캠페인: 단일소스 sharedCampaigns(DEMO_CAMPAIGNS)에서 adset/ad 트리 파생 ─
+       204차 동기화: 과거 독립 하드코딩 DEMO_META_CAMPAIGNS(CampaignManager 와 다른 캠페인·Math.random)를 제거.
+       캠페인을 채널별 adset 으로 분할(예산 비례 spend/imp/clicks/conv), adset 당 1 ad. history 는 결정적(비랜덤).
+       → 광고성과 메뉴가 캠페인 관리 메뉴와 동일 캠페인·수치로 정합. */
+    const DEMO_META_CAMPAIGNS = useMemo(() => {
+        const src = (sharedCampaigns || []).filter(c => Number(c.spent || c.spend || 0) > 0);
+        const wave = (i) => 1 + 0.22 * Math.sin(i * 0.8 + 0.3);
+        return src.slice(0, 6).map((c, ci) => {
+            const spend = Number(c.spent || c.spend || 0);
+            const roas = Number(c.roas || 0);
+            const revenue = Number(c.revenue != null ? c.revenue : spend * roas);
+            const impressions = Number(c.impressions || 0);
+            const clicks = Number(c.clicks || 0);
+            const conv = Number(c.conv || c.conversions || 0);
+            const budget = Number(c.budget || Math.round(spend * 1.3));
+            const chans = (Array.isArray(c.channels) && c.channels.length) ? c.channels : [{ id: 'meta', name: 'Meta', budget: spend }];
+            const totB = chans.reduce((s, ch) => s + Number(ch.budget || 1), 0) || 1;
+            const adsets = chans.slice(0, 3).map((ch, ai) => {
+                const w = Number(ch.budget || 1) / totB;
+                const aSpend = Math.round(spend * w), aImp = Math.round(impressions * w), aClk = Math.round(clicks * w), aConv = Math.round(conv * w);
+                return {
+                    id: `as-${ci + 1}${ai}`, name: `${ch.name || ch.id} — ${ai === 0 ? '핵심 타겟' : '확장 타겟'}`, status: 'active',
+                    spend: aSpend, roas, impressions: aImp, clicks: aClk, ctr: aImp > 0 ? +(aClk / aImp * 100).toFixed(2) : 0, conv: aConv,
+                    ads: [{ id: `ad-${ci + 1}${ai}0`, name: `${c.name} — ${ch.name || ch.id} 소재`, status: 'active', spend: aSpend, roas, impressions: aImp, clicks: aClk, ctr: aImp > 0 ? +(aClk / aImp * 100).toFixed(2) : 0, conv: aConv }],
+                };
+            });
+            return {
+                id: c.id || `mc-${ci + 1}`, name: c.name, status: c.status || 'active',
+                account_team: ['Korea Team', 'Japan Team', 'USA Team', 'Europe Team'][ci % 4], objective: c.type || 'Conversion',
+                spend, roas, revenue, impressions, clicks, ctr: impressions > 0 ? +(clicks / impressions * 100).toFixed(2) : 0, conv, budget,
+                adsets,
+                history: Array.from({ length: 14 }, (_, i) => ({ date: new Date(Date.now() - i * 864e5).toISOString().slice(5, 10), spend: Math.round(spend / 14 * wave(i)) })),
+            };
+        });
+    }, [sharedCampaigns]);
 
     /* ─ Demo Mode Detection (180차: demoEnv 정본 격리, broad includes('demo')·__DEMO_MODE__ 제거) ─ */
     const isDemoMode = IS_DEMO;

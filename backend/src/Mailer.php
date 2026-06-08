@@ -97,7 +97,8 @@ final class Mailer
                     if (!empty($row['smtp_host']))  $cfg['host'] = (string)$row['smtp_host'];
                     if (!empty($row['smtp_port']))  $cfg['port'] = (int)$row['smtp_port'];
                     if (!empty($row['smtp_user']))  $cfg['user'] = (string)$row['smtp_user'];
-                    if (!empty($row['smtp_pass']))  $cfg['pass'] = (string)$row['smtp_pass'];
+                    // 204차 P1: 테넌트 smtp_pass 는 암호화 저장(Crypto). 평문 레거시는 passthrough(하위호환).
+                    if (!empty($row['smtp_pass']))  $cfg['pass'] = \Genie\Crypto::decrypt((string)$row['smtp_pass']);
                     if (!empty($row['from_email'])) $cfg['from'] = (string)$row['from_email'];
                     if (!empty($row['from_name']))  $cfg['from_name'] = (string)$row['from_name'];
                 }

@@ -29,7 +29,7 @@ final class ClaudeAI {
         try {
             $pdo = Db::pdo();
             $st  = $pdo->query("SELECT svalue FROM app_setting WHERE skey='claude_api_key'");
-            $v   = $st ? (string)($st->fetchColumn() ?: '') : '';
+            $v   = \Genie\Crypto::decrypt($st ? (string)($st->fetchColumn() ?: '') : ''); // 204차 P1: AES-256-GCM 복호화(평문 passthrough)
             if (strlen($v) > 10) return $v;
         } catch (\Throwable $e) {}
         // fallback: 미설정(키 없으면 호출 401 → 내장 템플릿 폴백으로 항상 동작)
@@ -54,7 +54,7 @@ final class ClaudeAI {
             if ($pv !== '') $provider = $pv;
             if ($key === '') {
                 $k = $pdo->query("SELECT svalue FROM app_setting WHERE skey='imggen_api_key'");
-                $kv = $k ? (string)($k->fetchColumn() ?: '') : '';
+                $kv = \Genie\Crypto::decrypt($k ? (string)($k->fetchColumn() ?: '') : ''); // 204차 P1: 복호화
                 if (strlen($kv) > 10) $key = $kv;
             }
         } catch (\Throwable $e) {}
@@ -80,7 +80,7 @@ final class ClaudeAI {
             $model = $mm ? trim((string)($mm->fetchColumn() ?: '')) : '';
             if ($key === '') {
                 $k = $pdo->query("SELECT svalue FROM app_setting WHERE skey='videogen_api_key'");
-                $kv = $k ? (string)($k->fetchColumn() ?: '') : '';
+                $kv = \Genie\Crypto::decrypt($k ? (string)($k->fetchColumn() ?: '') : ''); // 204차 P1: 복호화
                 if (strlen($kv) > 10) $key = $kv;
             }
         } catch (\Throwable $e) {}

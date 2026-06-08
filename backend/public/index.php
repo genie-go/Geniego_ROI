@@ -127,6 +127,10 @@ $app->add(function (Request $request, $handler) {
         //   미해결 시 demo 버킷). OmniChannel/CatalogSync 등이 세션토큰으로 호출 → api_key 401 해소.
         //   webhook(/api/channel-sync/webhooks/*)은 핸들러가 무인증 수신 처리.
         || strpos($path, '/api/channel-sync/') === 0 || strpos($path, '/channel-sync/') === 0
+        // 204차: GDPR 동의 배너(GdprBanner.jsx → /api/gdpr/consent) — 프론트가 세션 토큰(또는 익명)으로
+        //   호출하는데 api_key 미들웨어에 막혀 동의 저장이 401 로 깨져 있었다(컴플라이언스 기능 불능).
+        //   핸들러가 Bearer→user_session 으로 user 를 자체 해석(익명 허용)하므로 bypass 가 안전.
+        || strpos($path, '/api/gdpr/') === 0 || strpos($path, '/gdpr/') === 0
     ) {
         return $handler->handle($request);
     }

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useI18n } from '../i18n';
 import { useCurrency } from '../contexts/CurrencyContext.jsx';
 import { useGlobalData } from '../context/GlobalDataContext.jsx';
+import { deriveRollup } from './rollupDemoDerive.js';
 import PerformanceProfiler from '../components/PerformanceProfiler.jsx';
 
 // ══════════════════════════════════════════════════════════════════════
@@ -637,10 +638,13 @@ function EmptyState({ txt }) {
 // ── Tab: Summary ─────────────────────────────────────────
 function SummaryTab({ period, n, txt, fc }) {
   const [data, setData] = useState(null);
+  // 204차: 데모는 단일 소스(GlobalDataContext)에서 동기화 파생 — 타 메뉴와 정합(임의값 X). 운영은 백엔드 실집계.
+  const { isDemo, orders, channelBudgets, snsCampaigns, creators } = useGlobalData();
   const fetchData = useCallback(async () => {
+    if (isDemo) { setData(deriveRollup('summary', period, n, { orders, channelBudgets, snsCampaigns, creators })); return; }
     const result = await API(`/api/v423/rollup/summary?period=${period}&n=${n}`);
     setData(result);
-  }, [period, n]);
+  }, [period, n, isDemo, orders, channelBudgets, snsCampaigns, creators]);
 
   useEffect(() => { fetchData().catch(() => { }); }, [fetchData]);
 
@@ -713,12 +717,15 @@ function SummaryTab({ period, n, txt, fc }) {
 function SkuTab({ period, n, txt, fc }) {
   const [data, setData] = useState(null);
   const [selected, setSelected] = useState(null);
+  const { isDemo, orders } = useGlobalData();
 
   const fetchData = useCallback(async () => {
-    const result = await API(`/api/v423/rollup/sku?period=${period}&n=${n}`);
+    const result = isDemo
+      ? deriveRollup('sku', period, n, { orders })
+      : await API(`/api/v423/rollup/sku?period=${period}&n=${n}`);
     setData(result);
     if (result.rows?.[0]) setSelected(result.rows[0].sku_id);
-  }, [period, n]);
+  }, [period, n, isDemo, orders]);
 
   useEffect(() => { fetchData().catch(() => { }); }, [fetchData]);
 
@@ -776,12 +783,15 @@ function SkuTab({ period, n, txt, fc }) {
 function CampaignTab({ period, n, txt, fc }) {
   const [data, setData] = useState(null);
   const [selected, setSelected] = useState(null);
+  const { isDemo, snsCampaigns } = useGlobalData();
 
   const fetchData = useCallback(async () => {
-    const result = await API(`/api/v423/rollup/campaign?period=${period}&n=${n}`);
+    const result = isDemo
+      ? deriveRollup('campaign', period, n, { snsCampaigns })
+      : await API(`/api/v423/rollup/campaign?period=${period}&n=${n}`);
     setData(result);
     if (result.rows?.[0]) setSelected(result.rows[0].campaign_id);
-  }, [period, n]);
+  }, [period, n, isDemo, snsCampaigns]);
 
   useEffect(() => { fetchData().catch(() => { }); }, [fetchData]);
 
@@ -836,11 +846,13 @@ function CampaignTab({ period, n, txt, fc }) {
 // ── Tab: Creator ─────────────────────────────────────────
 function CreatorTab({ period, n, txt, fc }) {
   const [data, setData] = useState(null);
+  const { isDemo, creators } = useGlobalData();
 
   const fetchData = useCallback(async () => {
+    if (isDemo) { setData(deriveRollup('creator', period, n, { creators })); return; }
     const result = await API(`/api/v423/rollup/creator?period=${period}&n=${n}`);
     setData(result);
-  }, [period, n]);
+  }, [period, n, isDemo, creators]);
 
   useEffect(() => { fetchData().catch(() => { }); }, [fetchData]);
   if (!data) return <div style={{ color: '#64748b', padding: 32 }}>{txt('loading')}</div>;
@@ -875,11 +887,13 @@ function CreatorTab({ period, n, txt, fc }) {
 // ── Tab: Platform ────────────────────────────────────────
 function PlatformTab({ period, n, txt, fc }) {
   const [data, setData] = useState(null);
+  const { isDemo, channelBudgets } = useGlobalData();
 
   const fetchData = useCallback(async () => {
+    if (isDemo) { setData(deriveRollup('platform', period, n, { channelBudgets })); return; }
     const result = await API(`/api/v423/rollup/platform?period=${period}&n=${n}`);
     setData(result);
-  }, [period, n]);
+  }, [period, n, isDemo, channelBudgets]);
 
   useEffect(() => { fetchData().catch(() => { }); }, [fetchData]);
   if (!data) return <div style={{ color: '#64748b', padding: 32 }}>{txt('loading')}</div>;

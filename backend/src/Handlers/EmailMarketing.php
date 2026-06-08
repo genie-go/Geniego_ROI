@@ -125,8 +125,9 @@ class EmailMarketing
                 ':fe'=>$b['from_email']??'', ':fn'=>$b['from_name']??'',
                 ':reg'=>$b['aws_region']??'', ':akey'=>$b['aws_key']??'', ':ua'=>$now,
             ];
-            if ($setPass !== '') $params[':pass'] = $b['smtp_pass'];
-            if ($setSec  !== '') $params[':asec'] = $b['aws_secret'];
+            // 204차 P1: 테넌트 SMTP 비밀번호/AWS 시크릿 AES-256-GCM 암호화 저장(평문 갭 해소, Mailer 발송 시 복호화).
+            if ($setPass !== '') $params[':pass'] = \Genie\Crypto::encrypt((string)$b['smtp_pass']);
+            if ($setSec  !== '') $params[':asec'] = \Genie\Crypto::encrypt((string)$b['aws_secret']);
             $pdo->prepare("UPDATE email_settings SET provider=:prov, smtp_host=:host, smtp_port=:port,
                 smtp_user=:user, from_email=:fe, from_name=:fn,
                 aws_region=:reg, aws_key=:akey, updated_at=:ua{$setPass}{$setSec} WHERE id=:id AND tenant_id=:t
@@ -136,8 +137,8 @@ class EmailMarketing
                 VALUES (:t, :prov, :host, :port, :user, :pass, :fe, :fn, :reg, :akey, :asec, :ua)
             ")->execute([
                 ':t'=>$tenant, ':prov'=>$b['provider']??'smtp', ':host'=>$b['smtp_host']??'', ':port'=>(int)($b['smtp_port']??587),
-                ':user'=>$b['smtp_user']??'', ':pass'=>$b['smtp_pass']??'', ':fe'=>$b['from_email']??'', ':fn'=>$b['from_name']??'',
-                ':reg'=>$b['aws_region']??'', ':akey'=>$b['aws_key']??'', ':asec'=>$b['aws_secret']??'', ':ua'=>$now,
+                ':user'=>$b['smtp_user']??'', ':pass'=>\Genie\Crypto::encrypt((string)($b['smtp_pass']??'')), ':fe'=>$b['from_email']??'', ':fn'=>$b['from_name']??'',
+                ':reg'=>$b['aws_region']??'', ':akey'=>$b['aws_key']??'', ':asec'=>\Genie\Crypto::encrypt((string)($b['aws_secret']??'')), ':ua'=>$now,
             ]);
         }
         return self::jsonRes($res, ['ok'=>true]);
@@ -343,9 +344,18 @@ class EmailMarketing
         $pdo = self::db();
         $b = (array)$req->getParsedBody();
         $cid = (int)($b['campaign_id']??0); $uid = (int)($b['customer_id']??0);
-        $pdo->prepare("UPDATE email_sends SET opened_at=:oa, status='opened' WHERE campaign_id=:cid AND customer_id=:uid")
-            ->execute([':oa'=>self::now(), ':cid'=>$cid, ':uid'=>$uid]);
-        $pdo->prepare("UPDATE email_campaigns SET opened=opened+1 WHERE id=:cid")->execute([':cid'=>$cid]);
+        // 204차 P2: 공개 비콘이라 campaign_id/customer_id 가 추측가능 → 과거엔 누구나 타 테넌트 열람수를
+        //   부풀리고 반복 호출로 중복 카운트할 수 있었다. ① send 를 미오픈→오픈 전이할 때만 갱신(멱등),
+        //   ② campaign 카운터는 그 send 의 tenant 로만 증가(교차테넌트 오염 차단). 유효 (campaign,customer)
+        //   쌍이 실제 존재해야만 1회 반영된다.
+        $upd = $pdo->prepare("UPDATE email_sends SET opened_at=:oa, status='opened'
+            WHERE campaign_id=:cid AND customer_id=:uid AND (opened_at IS NULL OR status<>'opened')");
+        $upd->execute([':oa'=>self::now(), ':cid'=>$cid, ':uid'=>$uid]);
+        if ($upd->rowCount() > 0) {
+            $pdo->prepare("UPDATE email_campaigns SET opened=opened+1
+                WHERE id=:cid AND tenant_id=(SELECT tenant_id FROM email_sends WHERE campaign_id=:cid2 AND customer_id=:uid LIMIT 1)")
+                ->execute([':cid'=>$cid, ':cid2'=>$cid, ':uid'=>$uid]);
+        }
         $res->getBody()->write('{"ok":true}');
         return $res->withHeader('Content-Type','application/json');
     }

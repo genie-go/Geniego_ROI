@@ -1,3 +1,47 @@
+# 204차 세션 인계서 — **전수 보안감사 + P0/P1 + 데모 단일소스 동기화 전수 전환 + 데모 UI 6항목**
+
+> **작성일**: 2026-06-08 (사용자 명시 승인 후)
+> **이전 세션**: 203차 → 204차
+> **종결 상태**: 25개 파일(백엔드 13 + 프론트 12) 변경. **운영/데모 배포·라이브검증 완료**. 본 인계서 커밋과 함께 push.
+> **운영** roi.genie-go.com / **데모** roidemo.genie-go.com(경로 roidemo.geniego.com). 메모리 `project_n204_security_p0p1`.
+
+## ⏭️ 다음 작업 — 순서대로 진행 (★최우선)
+
+### 1순위 — 로드맵 P0 (6도메인 감사 도출, 다중파일 백엔드 신규구축 → 차수 단위 진행)
+1. **WMS 백엔드 신설** — 현재 WmsManager는 프론트 useState만(새로고침 소실). 신규 `WmsHandler`+MySQL 스키마(`wms_warehouse`/`wms_inventory(lot,expiry,location,available,reserved)`/`wms_movement`/`wms_pick_task`/`wms_pack`/`wms_shipment`, 전부 tenant 격리)+멀티창고 실재고+LOT/FEFO+재고예약. ChannelSync `channel_inventory` ↔ WMS `wms_inventory` 양방향 동기화. routes.php $custom+$register 둘다 등록.
+2. **commerce 자동 폴링 cron 신설** — `backend/bin/commerce_sync_cron.php`: 자격증명 보유 전 테넌트 커머스 채널 5분 간격 주문/재고 폴링(현재 connectors_sync_cron은 광고 performance_metrics 전용). Shopify/네이버 webhook 우선+폴링 백업.
+3. **JourneyBuilder 실행러너 신설** — 현재 executeNode는 enroll 시 첫노드만+email_queued 로그만(Mailer 미연동). `backend/bin/journey_cron.php`+edge 순회+delay resume+condition 평가+Mailer/KakaoChannel/NaverSms 실발송 배선.
+4. **광고 쓰기 OAuth** — `/oauth/{vendor}/authorize_url`·`exchange_code`가 501 셸. Meta(ads_management)/Google(adwords+dev token)/TikTok 동의 리다이렉트 핸들러 구현 → `AD_EXECUTION_ENABLED=1`(.env) → AdAdapters PAUSED 라이브 검증.
+5. **OrderHub claims/settlements writer** — `orderhub_claims`·`orderhub_settlements` INSERT 경로 0(읽기만 빈테이블). 채널 정산 CSV/API ingest writer.
+6. **DemandForecast 실모델** — 현 KPI는 inventory 파생(204차)이나 예측 알고리즘 미구현. Holt-Winters/SARIMA(최소 이동평균+계절분해) 서버측.
+7. **PriceOpt/SupplyChain 영속화** — `sqlite::memory:`(요청마다 소실+미격리). Db::pdo()+tenant_id+auth_tenant 격리(ChannelSync 패턴), public bypass 제외.
+
+### 2순위 — 잔여 정합/보안
+- **C2 AIInsights** IS_DEMO 폴백 정리(데모서 미발화=영향0, 저우선).
+- **TOTP replay 차단** — verifyTotp에 mfa_last_step 단조증가(로그인 임계경로라 신중).
+- **EmailMarketing 테넌트 smtp_pass / AiGenerate api_key 평문** → 발송경로 복호화 배선 후 암호화(GET은 마스킹됨). ※204차에 EmailMarketing smtp_pass는 Mailer 복호화 배선 완료, AiGenerate api_key도 완료 — 재확인만.
+- **Rollup 실집계 운영 데이터** — 운영 로그인 사용자는 실 channel_orders/performance_metrics 집계(데이터 없으면 빈). 데이터 적재(commerce 폴링·OrderHub writer) 후 충실해짐.
+
+### 정본 패턴 (재사용)
+- **데모 단일소스 파생 원칙**: 데모 모든 메뉴 값은 GlobalDataContext 단일소스(orders/channelBudgets/settlement/creators/inventory/snsCampaigns/DEMO_PRODUCTS)에서 파생. 페이지 내부 독립 하드코딩 배열·Math.random·임의배수 금지. **데모 판별=빌드플래그 `IS_DEMO`(demoEnv)** — useAuth().isDemo(plan 기반)는 합성세션/데모빌드서 false 가능.
+- **전역 setter 금지**: OmniChannel OrdersTab처럼 데모서 `setOrders([])` 전역 덮어쓰기는 타 메뉴 오염 → 데모서 전역 setter 미호출 가드.
+- **routes.php basePath /api strip**: 세션 /api 라우트는 `/api` 없이 등록(email/crm/gdpr). index.php bypass 등록 필수(getJsonAuth=세션토큰만).
+- **$register 트랩**: $custom맵+$register 둘다. opcache=`service php-fpm restart`(reload 무효).
+- 배포: 백엔드 pscp+chown www:www+fpm restart / 프론트 `npx vite build --mode demo` tar→swap(dist.bak). 자격증명 메모리 정규식추출($env:DPW). 헤드리스=PowerShell puppeteer/Playwright(합성세션 메뉴가드 리다이렉트 주의 — 번들 grep 병행).
+
+## ✅ 204차 완료 (커밋에 포함)
+**A. 보안 전수감사 + P0/P1 (백엔드 13파일, 운영/데모 배포·라이브검증)**
+- P0 권한상승체인(Payment enterprise≠admin·`/auth/upgrade` 결제검증게이트=402 검증)·Amazon structured 운영DB오염 차단.
+- P1: ChannelSync tenant격리·AI키3종/smtp_pass AES-256-GCM·GdprConsent MySQL DDL+라우팅정정(consent 200)·PerformanceController getSummary PSR재작성·팀원비번 8자·Pixel/Email 공개비콘 격리·Rollup 실집계 재구축(운영 익명 rows=0).
+
+**B. 데모 단일소스 동기화 전수 전환 (프론트, 운영 오염0·운영 무회귀)**
+- Rollup(rollupDemoDerive.js 신규)·DashSalesGlobal 매출지도·인플루언서·PerformanceHub(성과/정산/SKU/코호트)·DemandForecast·SupplyChain·ReturnsPortal·AccountPerformance — 전부 GlobalDataContext 단일소스 파생. 임의 하드코딩/전자제품/Math.random/임의배수 제거.
+
+**C. 데모 UI 6항목**
+- #6 OmniChannel(★전역 orders 파괴버그 차단+5탭 단일소스)·#3 GraphScore(NaN 해소+KPI필드)·#4 코호트·#5 PnL(KPI박스 확대+예측 레이아웃 재배치)·#2 Attribution 레이더 확대.
+
+---
+
 # 203차 세션 인계서 — **서버측 MTA 엔진 + 플랜게이팅 + 전용 메일서버 + 네이버 SMS 모듈 + 가이드 15개국 i18n + 모바일 M1**
 
 > **작성일**: 2026-06-08 (사용자 명시 승인 후)

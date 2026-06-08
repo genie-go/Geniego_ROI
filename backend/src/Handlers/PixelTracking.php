@@ -129,8 +129,9 @@ class PixelTracking
 
     private static function updateSession(\PDO $pdo, string $tenant, string $sid, string $pixelId, string $eventName, float $value, array $b): void
     {
-        $exists = $pdo->prepare("SELECT session_id FROM pixel_sessions WHERE session_id=:sid");
-        $exists->execute([':sid' => $sid]);
+        // 204차 P2: 세션 집계도 tenant_id 로 스코프(공개 비콘이라 session_id 추측 시 타 테넌트 카운터 오염 차단).
+        $exists = $pdo->prepare("SELECT session_id FROM pixel_sessions WHERE session_id=:sid AND tenant_id=:t");
+        $exists->execute([':sid' => $sid, ':t' => $tenant]);
         $now = self::now();
         if ($exists->fetch()) {
             $pdo->prepare("UPDATE pixel_sessions SET last_event=:le,
@@ -139,8 +140,8 @@ class PixelTracking
                     purchases = purchases + CASE WHEN :en3='purchase' THEN 1 ELSE 0 END,
                     total_revenue = total_revenue + :val,
                     converted = CASE WHEN :en4='purchase' THEN 1 ELSE converted END, updated_at=:ua
-                WHERE session_id=:sid
-            ")->execute([':le'=>$now, ':en'=>$eventName, ':en2'=>$eventName, ':en3'=>$eventName, ':en4'=>$eventName, ':val'=>$value, ':ua'=>$now, ':sid'=>$sid]);
+                WHERE session_id=:sid AND tenant_id=:t
+            ")->execute([':le'=>$now, ':en'=>$eventName, ':en2'=>$eventName, ':en3'=>$eventName, ':en4'=>$eventName, ':val'=>$value, ':ua'=>$now, ':sid'=>$sid, ':t'=>$tenant]);
         } else {
             $pdo->prepare("INSERT INTO pixel_sessions (session_id, tenant_id, pixel_id, first_event, last_event,
                     page_views, add_to_cart, purchases, total_revenue, utm_source, utm_medium, utm_campaign, landing_page, converted, created_at, updated_at)

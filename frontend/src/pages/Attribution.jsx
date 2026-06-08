@@ -1124,8 +1124,9 @@ const ModelCompareTab = memo(function ModelCompareTab() {
         {/* 레이더 Chart */}
         <div className="card card-glass">
           <div style={{ fontWeight: 900, fontSize: 13, marginBottom: 14 }}>{t("attrData.radarCompare", "🕸️ Channel 기여도 레이더 Compare")}</div>
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
-            <RadarChart data={displayModels} channels={channels} size={240} />
+          {/* 204차: 레이더 확대(240→300)+컨테이너 상하좌우 중앙 정렬 */}
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 320, padding: '8px 0', marginBottom: 12 }}>
+            <RadarChart data={displayModels} channels={channels} size={300} />
           </div>
           {/* 범례 */}
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center' }}>

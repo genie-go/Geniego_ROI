@@ -484,7 +484,7 @@ export const DEMO_CRM_CUSTOMER_HISTORY = {
 /* ═══════════════════════════════════════════════════════
    20. 인플루언서 크리에이터 — 8명 (L'Oréal KOL 포트폴리오)
 ═══════════════════════════════════════════════════════ */
-export const DEMO_CREATORS = [
+const DEMO_CREATORS_RAW = [
   {
     id: 'CR-001', name: '뷰티해나 (Hana)', tier: 'Macro',
     identities: [
@@ -608,6 +608,34 @@ export const DEMO_CREATORS = [
   },
 ];
 
+// ── 인플루언서 대시보드(DashInfluencer) 평탄 필드 보강 ───────────────────────
+//   DashInfluencer는 followers/likes/comments/saves/shares/purchases/revenue/engRate/
+//   platform/handle/grade/score(평가) 평탄 필드를 기대하나 원본은 중첩(stats/content/identities).
+//   중첩 필드는 보존(관리 페이지 InfluencerUGC용)하고 평탄 필드를 파생 주입해 둘 다 동작.
+const _PLAT_LABEL = { youtube: 'YouTube', instagram: 'Instagram', tiktok: 'TikTok' };
+const _TIER_FOLLOWERS = { Macro: 1850000, Mid: 540000, Micro: 185000, Nano: 47000 };
+function _enrichCreator(c) {
+  const primary = (c.identities && c.identities[0]) || {};
+  const platform = _PLAT_LABEL[primary.type] || 'Instagram';
+  const followers = _TIER_FOLLOWERS[c.tier] || 120000;
+  const eng = (c.stats && c.stats.engagement) || 0.05;
+  const revenue = (c.stats && c.stats.revenue) || 0;
+  const purchases = (c.stats && c.stats.orders) || 0;
+  const likes = Math.round(followers * eng * 0.82);
+  const comments = Math.round(followers * eng * 0.06);
+  const saves = Math.round(followers * eng * 0.12);
+  const shares = Math.round(followers * eng * 0.04);
+  // 평가 점수(0~99): 티어 + 참여율 + 매출규모 가중
+  const tierW = { Macro: 30, Mid: 22, Micro: 16, Nano: 10 }[c.tier] || 14;
+  const score = Math.min(99, Math.max(40, Math.round(tierW + eng * 580 + Math.log10(revenue + 1) * 4)));
+  const grade = score >= 85 ? 'S' : score >= 72 ? 'A' : score >= 58 ? 'B' : 'C';
+  return {
+    ...c, platform, handle: primary.handle || '', followers, revenue, purchases,
+    engRate: +(eng * 100).toFixed(1), likes, comments, saves, shares, score, grade,
+  };
+}
+export const DEMO_CREATORS = DEMO_CREATORS_RAW.map(_enrichCreator);
+
 /* ═══════════════════════════════════════════════════════
    21. UGC 리뷰 — 15건 (다양한 감성/채널/상품)
 ═══════════════════════════════════════════════════════ */
@@ -696,10 +724,13 @@ export const DEMO_GRAPH = (() => {
   const sku = skuIds.map((s, i) => ({ node_type: 'sku', id: s, node_id: s, label: s, total_weight: 88 - i * 6, edge_count: 15 - i }));
   const nodes = [...inf, ...cre, ...sku];
   const edges = [];
-  inf.forEach((f, i) => edges.push({ src_id: f.id, dst_id: cre[i % cre.length].id, edge_type: 'created', weight: +(0.6 + (i % 4) * 0.1).toFixed(2) }));
-  cre.forEach((c, i) => edges.push({ src_id: c.id, dst_id: sku[i % sku.length].id, edge_type: 'promotes', weight: +(0.5 + (i % 5) * 0.1).toFixed(2) }));
-  sku.forEach((s, i) => { edges.push({ src_id: s.id, dst_id: `ORD-${1000 + i}`, edge_type: 'converted', weight: +(0.7 + (i % 3) * 0.1).toFixed(2) }); edges.push({ src_id: s.id, dst_id: `ORD-${2000 + i}`, edge_type: 'converted', weight: +(0.4 + (i % 3) * 0.1).toFixed(2) }); });
-  inf.forEach((f, i) => edges.push({ src_id: f.id, dst_id: sku[(i + 2) % sku.length].id, edge_type: 'drove', weight: 0.5 }));
+  // 204차 fix: GraphBrowserTab 렌더러는 edge_weight/src_type/dst_type/edge_label 를 읽는다(백엔드 계약).
+  //   과거 시드는 weight 만 있어 parseFloat(undefined)=NaN 으로 가중치가 전부 NaN 표기됐다. 풀 스키마로 맞춤.
+  const _mkE = (src_id, src_type, dst_id, dst_type, edge_type, weight, edge_label) => ({ src_id, dst_id, src_type, dst_type, edge_type, weight, edge_weight: weight, edge_label });
+  inf.forEach((f, i) => edges.push(_mkE(f.id, 'influencer', cre[i % cre.length].id, 'creative', 'created', +(0.6 + (i % 4) * 0.1).toFixed(2), '제작')));
+  cre.forEach((c, i) => edges.push(_mkE(c.id, 'creative', sku[i % sku.length].id, 'sku', 'promotes', +(0.5 + (i % 5) * 0.1).toFixed(2), '홍보')));
+  sku.forEach((s, i) => { edges.push(_mkE(s.id, 'sku', `ORD-${1000 + i}`, 'order', 'converted', +(0.7 + (i % 3) * 0.1).toFixed(2), '전환')); edges.push(_mkE(s.id, 'sku', `ORD-${2000 + i}`, 'order', 'converted', +(0.4 + (i % 3) * 0.1).toFixed(2), '전환')); });
+  inf.forEach((f, i) => edges.push(_mkE(f.id, 'influencer', sku[(i + 2) % sku.length].id, 'sku', 'drove', 0.5, '유도')));
   const summary = {
     node_counts: [{ node_type: 'influencer', cnt: inf.length }, { node_type: 'creative', cnt: cre.length }, { node_type: 'sku', cnt: sku.length }, { node_type: 'order', cnt: 16 }],
     total_edges: edges.length,
@@ -721,5 +752,14 @@ export function demoGraphScore(type, id) {
     influencer: id, creative: `CRV-${String((seed + i) % 6 + 1).padStart(3, '0')}`,
     sku: skus[i % skus.length], order: orders[i % orders.length], path_weight: +(0.3 + ((seed + i) % 7) / 10).toFixed(2),
   }));
-  return { graph_score: +gs.toFixed(3), skus_reached: skus, orders_reached: orders, paths };
+  // 204차 fix: SkuScoreTab/CreativeScoreTab 이 읽는 KPI 필드(creatives_used/influencers_linked/skus_linked/
+  //   orders_linked/top_influencers)까지 결정적 파생 반환 — 과거엔 미반환으로 해당 탭 KPI 가 0/빈값이었다.
+  const nInf = 2 + (seed % 5), nCre = 2 + (seed % 4);
+  const influencers = Array.from({ length: nInf }, (_, i) => `INF-${(seed + i) % 8 + 1}`);
+  const creatives = Array.from({ length: nCre }, (_, i) => `CRV-${String((seed + i) % 6 + 1).padStart(3, '0')}`);
+  const top_influencers = influencers.map((iid, i) => ({ id: iid, weight: +(0.4 + ((seed + i) % 6) / 10).toFixed(2), orders: 5 + ((seed + i) % 20) }));
+  return {
+    graph_score: +gs.toFixed(3), skus_reached: skus, orders_reached: orders, paths,
+    skus_linked: skus, orders_linked: orders, influencers_linked: influencers, creatives_used: creatives, top_influencers,
+  };
 }

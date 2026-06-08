@@ -21,20 +21,40 @@ final class GdprConsent
 {
     private static function ensureTables(): void
     {
-        Db::pdo()->exec("CREATE TABLE IF NOT EXISTS gdpr_consents (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id TEXT,
-            session_id TEXT,
-            ip TEXT,
-            user_agent TEXT,
-            necessary INTEGER DEFAULT 1,
-            analytics INTEGER DEFAULT 0,
-            marketing INTEGER DEFAULT 0,
-            personalization INTEGER DEFAULT 0,
-            consented_at TEXT,
-            withdrawn_at TEXT,
-            is_active INTEGER DEFAULT 1
-        )");
+        // 204차 P1: SQLite 전용 DDL(INTEGER PK AUTOINCREMENT)이 MySQL 주backend 에서 throw → 전 /api/gdpr/* 500.
+        //   WhatsApp/CRM/Pixel/Kakao 패턴과 동일하게 드라이버 분기.
+        $pdo = Db::pdo();
+        if ($pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql') {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS gdpr_consents (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                user_id VARCHAR(64),
+                session_id VARCHAR(64),
+                ip VARCHAR(64),
+                user_agent TEXT,
+                necessary TINYINT DEFAULT 1,
+                analytics TINYINT DEFAULT 0,
+                marketing TINYINT DEFAULT 0,
+                personalization TINYINT DEFAULT 0,
+                consented_at VARCHAR(32),
+                withdrawn_at VARCHAR(32),
+                is_active TINYINT DEFAULT 1
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+        } else {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS gdpr_consents (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id TEXT,
+                session_id TEXT,
+                ip TEXT,
+                user_agent TEXT,
+                necessary INTEGER DEFAULT 1,
+                analytics INTEGER DEFAULT 0,
+                marketing INTEGER DEFAULT 0,
+                personalization INTEGER DEFAULT 0,
+                consented_at TEXT,
+                withdrawn_at TEXT,
+                is_active INTEGER DEFAULT 1
+            )");
+        }
     }
 
     private static function sessionId(Request $req): string

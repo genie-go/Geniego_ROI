@@ -817,7 +817,8 @@ final class UserAuth
         $teamName = trim((string)($body['team_name'] ?? ''));
 
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) return self::json($res, ['ok' => false, 'error' => '올바른 이메일 형식이 아닙니다.'], 422);
-        if (strlen($password) < 6) return self::json($res, ['ok' => false, 'error' => '비밀번호는 6자 이상이어야 합니다.'], 422);
+        // 204차 P1: 팀원 생성도 셀프가입/재설정과 동일한 은행급 비번정책 강제(8자+3종+사전차단). 정책 우회 경로 해소.
+        if (($pwErr = self::passwordPolicyError($password)) !== null) return self::json($res, ['ok' => false, 'error' => $pwErr], 422);
         if (strlen($name) < 1) return self::json($res, ['ok' => false, 'error' => '이름을 입력해 주세요.'], 422);
 
         // 계정 중복검사(대소문자 무관)
@@ -884,7 +885,9 @@ final class UserAuth
         if (isset($body['team_role']) && in_array($body['team_role'], ['manager', 'member'], true)) { $sets[] = 'team_role = ?'; $vals[] = $body['team_role']; }
         if (array_key_exists('team_name', $body)) { $sets[] = 'team_name = ?'; $vals[] = trim((string)$body['team_name']) ?: null; }
         if (isset($body['is_active'])) { $sets[] = 'is_active = ?'; $vals[] = $body['is_active'] ? 1 : 0; }
-        if (isset($body['password']) && strlen((string)$body['password']) >= 6) {
+        if (isset($body['password']) && (string)$body['password'] !== '') {
+            // 204차 P1: 팀원 비번 재설정도 은행급 정책 강제(8자+3종+사전차단).
+            if (($pwErr = self::passwordPolicyError((string)$body['password'])) !== null) return self::json($res, ['ok' => false, 'error' => $pwErr], 422);
             $sets[] = 'password_hash = ?'; $vals[] = password_hash((string)$body['password'], PASSWORD_DEFAULT);
             try { $pdo->prepare('UPDATE app_user SET password_hashs = NULL WHERE id = ?')->execute([$targetId]); } catch (\Throwable $e) {}
         }
@@ -1048,6 +1051,39 @@ final class UserAuth
 
         $id = $user['id'] ?? $user['idx'] ?? 0;
         $pdo = Db::pdo();
+
+        // ── 204차 P0: 결제 우회 자가-업그레이드 차단 ──────────────────────────
+        //   /auth/upgrade 는 결제 confirm(Payment::confirm = Toss API DONE 검증) 또는
+        //   PG 웹훅이 plan 을 부여한 뒤 "로컬 상태 동기화"용으로만 호출되는 경로다
+        //   (frontend PaymentSuccess.jsx: payment/confirm 성공 후 upgrade()).
+        //   따라서 demo(다운그레이드)는 항상 허용하되, 유료(pro/enterprise)는
+        //   검증된 결제 증거가 있어야만 부여한다. 증거 없으면 402.
+        if ($plan !== 'demo') {
+            $verified = false;
+            // (1) confirm()/PG 가 기록한 성공 결제 내역
+            try {
+                $chk = $pdo->prepare(
+                    "SELECT 1 FROM payment_history WHERE user_id=? AND plan=? AND status IN ('success','active','paid') LIMIT 1"
+                );
+                $chk->execute([$id, $plan]);
+                if ($chk->fetchColumn()) $verified = true;
+            } catch (\Throwable $e) { /* 테이블 부재 등 → 다음 단계 */ }
+            // (2) 이미 검증된 서버 플로우(웹훅 등)가 동일 유료플랜/admin 을 부여해 둔 경우
+            if (!$verified) {
+                try {
+                    $cur = $pdo->prepare("SELECT COALESCE(plans,plan,'demo') AS p FROM app_user WHERE id=?");
+                    $cur->execute([$id]);
+                    $curPlan = (string)$cur->fetchColumn();
+                    if ($curPlan === $plan || $curPlan === 'admin') $verified = true;
+                } catch (\Throwable $e) { /* ignore */ }
+            }
+            if (!$verified) {
+                return self::json($res, [
+                    'ok'    => false,
+                    'error' => '결제 확인이 필요합니다. 결제를 완료한 후 다시 시도해 주세요.',
+                ], 402);
+            }
+        }
 
         // subscription_expires_at, subscription_cycle 컬럼 업데이트 시도
         try {
@@ -1763,7 +1799,7 @@ final class UserAuth
             if (strncmp($key, 'sk-ant-', 7) !== 0 || strlen($key) < 20) {
                 return self::json($res, ['ok' => false, 'error' => 'Anthropic API 키 형식이 올바르지 않습니다(sk-ant-...).'], 422);
             }
-            self::setAppSetting($pdo, 'claude_api_key', $key);
+            self::setAppSetting($pdo, 'claude_api_key', \Genie\Crypto::encrypt($key)); // 204차 P1: 평문→AES-256-GCM
         } elseif (isset($b['clear']) && $b['clear']) {
             self::setAppSetting($pdo, 'claude_api_key', '');
         } else {
@@ -1799,7 +1835,7 @@ final class UserAuth
         $key = trim((string)($b['api_key'] ?? ''));
         if ($key !== '') {
             if (strlen($key) < 16) return self::json($res, ['ok' => false, 'error' => 'API 키 형식이 올바르지 않습니다.'], 422);
-            self::setAppSetting($pdo, 'imggen_api_key', $key);
+            self::setAppSetting($pdo, 'imggen_api_key', \Genie\Crypto::encrypt($key)); // 204차 P1: 평문→AES-256-GCM
         } elseif (isset($b['clear']) && $b['clear']) {
             self::setAppSetting($pdo, 'imggen_api_key', '');
         }
@@ -1834,7 +1870,7 @@ final class UserAuth
         $key = trim((string)($b['api_key'] ?? ''));
         if ($key !== '') {
             if (strlen($key) < 16) return self::json($res, ['ok' => false, 'error' => 'API 키 형식이 올바르지 않습니다.'], 422);
-            self::setAppSetting($pdo, 'videogen_api_key', $key);
+            self::setAppSetting($pdo, 'videogen_api_key', \Genie\Crypto::encrypt($key)); // 204차 P1: 평문→AES-256-GCM
         } elseif (isset($b['clear']) && $b['clear']) {
             self::setAppSetting($pdo, 'videogen_api_key', '');
         }

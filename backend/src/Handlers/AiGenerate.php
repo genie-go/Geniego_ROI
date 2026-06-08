@@ -54,25 +54,49 @@ final class AiGenerate
 
     private static function ensureTables(): void
     {
-        Db::pdo()->exec("CREATE TABLE IF NOT EXISTS ai_settings (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            tenant_id TEXT NOT NULL,
-            provider TEXT DEFAULT 'claude',
-            api_key TEXT,
-            model TEXT DEFAULT 'claude-3-5-haiku-20241022',
-            is_active INTEGER DEFAULT 1,
-            updated_at TEXT,
-            UNIQUE(tenant_id)
-        )");
-        Db::pdo()->exec("CREATE TABLE IF NOT EXISTS ai_generate_log (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            tenant_id TEXT NOT NULL,
-            type TEXT,
-            prompt TEXT,
-            result TEXT,
-            tokens_used INTEGER DEFAULT 0,
-            created_at TEXT
-        )");
+        // 204차 P1: SQLite 전용 DDL(INTEGER PK AUTOINCREMENT)이 MySQL 주backend 에서 throw → 전 /api/ai/* 500. 드라이버 분기.
+        $pdo = Db::pdo();
+        if ($pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql') {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS ai_settings (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                tenant_id VARCHAR(100) NOT NULL,
+                provider VARCHAR(32) DEFAULT 'claude',
+                api_key TEXT,
+                model VARCHAR(64) DEFAULT 'claude-3-5-haiku-20241022',
+                is_active TINYINT DEFAULT 1,
+                updated_at VARCHAR(32),
+                UNIQUE KEY uq_tenant (tenant_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+            $pdo->exec("CREATE TABLE IF NOT EXISTS ai_generate_log (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                tenant_id VARCHAR(100) NOT NULL,
+                type VARCHAR(32),
+                prompt TEXT,
+                result TEXT,
+                tokens_used INT DEFAULT 0,
+                created_at VARCHAR(32)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+        } else {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS ai_settings (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                tenant_id TEXT NOT NULL,
+                provider TEXT DEFAULT 'claude',
+                api_key TEXT,
+                model TEXT DEFAULT 'claude-3-5-haiku-20241022',
+                is_active INTEGER DEFAULT 1,
+                updated_at TEXT,
+                UNIQUE(tenant_id)
+            )");
+            $pdo->exec("CREATE TABLE IF NOT EXISTS ai_generate_log (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                tenant_id TEXT NOT NULL,
+                type TEXT,
+                prompt TEXT,
+                result TEXT,
+                tokens_used INTEGER DEFAULT 0,
+                created_at TEXT
+            )");
+        }
     }
 
     // GET /api/ai/settings
@@ -116,8 +140,9 @@ final class AiGenerate
         $testResult = self::testClaude($apiKey, $model);
         $now = gmdate('c');
 
+        // 204차 P1: 테넌트 AI(Claude) API 키 AES-256-GCM 암호화 저장(평문 갭 해소, 사용 시 복호화).
         $pdo->prepare("INSERT INTO ai_settings(tenant_id,provider,api_key,model,is_active,updated_at) VALUES(?,?,?,?,?,?) ON CONFLICT(tenant_id) DO UPDATE SET api_key=excluded.api_key,model=excluded.model,updated_at=excluded.updated_at")
-            ->execute([$tenant, 'claude', $apiKey, $model, 1, $now]);
+            ->execute([$tenant, 'claude', \Genie\Crypto::encrypt($apiKey), $model, 1, $now]);
 
         return TemplateResponder::respond($res, [
             'ok'      => $testResult['ok'],
@@ -158,7 +183,7 @@ final class AiGenerate
         }
 
         $prompt = self::buildEmailPrompt($product, $audience, $goal, $tone, $discount, $lang);
-        $result = self::callClaude($cfg['api_key'], $cfg['model'] ?? self::DEFAULT_MODEL, $prompt);
+        $result = self::callClaude(\Genie\Crypto::decrypt((string)$cfg['api_key']), $cfg['model'] ?? self::DEFAULT_MODEL, $prompt);
 
         if ($result['ok']) {
             $pdo->prepare("INSERT INTO ai_generate_log(tenant_id,type,prompt,result,tokens_used,created_at) VALUES(?,?,?,?,?,?)")
@@ -191,7 +216,7 @@ final class AiGenerate
 
         $prompt = "당신은 마케팅 데이터 분석가입니다. 다음 기준으로 고객 세그먼트를 정의하고 마케팅 전략을 제안하세요.\n기준: {$criteria}\n컨텍스트: {$context}\n\n다음 형식으로 JSON으로만 응답하세요:\n{\"name\":\"...\",\"description\":\"...\",\"size_estimate\":\"...\",\"ltv_estimate\":\"...\",\"recommended_channel\":\"...\",\"message_strategy\":\"...\",\"expected_cvr\":\"...\"}";
 
-        $result = self::callClaude($cfg['api_key'], $cfg['model'] ?? self::DEFAULT_MODEL, $prompt);
+        $result = self::callClaude(\Genie\Crypto::decrypt((string)$cfg['api_key']), $cfg['model'] ?? self::DEFAULT_MODEL, $prompt);
         $parsed = $result['ok'] ? json_decode((string)$result['content'], true) : null;
 
         return TemplateResponder::respond($res, ['ok' => $result['ok'], 'result' => $parsed ?? self::demoSegmentSamples()[0]]);
@@ -220,7 +245,7 @@ final class AiGenerate
         if (!$cfg) return TemplateResponder::respond($res, ['ok' => true, 'plan' => 'fallback', 'result' => self::demoAdCopySamples($product, $platform)]);
 
         $prompt = "당신은 광고 카피라이터입니다. {$platform} 플랫폼용 {$product} 광고 카피를 3가지 버전으로 작성하세요. 목표: {$goal}. JSON 배열로만 응답: [{\"headline\":\"...\",\"body\":\"...\",\"cta\":\"...\"}]";
-        $result = self::callClaude($cfg['api_key'], $cfg['model'] ?? self::DEFAULT_MODEL, $prompt);
+        $result = self::callClaude(\Genie\Crypto::decrypt((string)$cfg['api_key']), $cfg['model'] ?? self::DEFAULT_MODEL, $prompt);
         $parsed = $result['ok'] ? json_decode((string)$result['content'], true) : null;
 
         return TemplateResponder::respond($res, ['ok' => true, 'result' => $parsed ?? self::demoAdCopySamples($product, $platform)]);

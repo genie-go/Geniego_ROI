@@ -79,7 +79,7 @@ const KpiCard = ({ label, value, sub, color = ACCENT, icon, alert }) => (
             <div style={{ fontSize: 10, color: 'var(--text-3)', fontWeight: 700 }}>{label}</div>
             {icon && <span style={{ fontSize: 16, opacity: .8 }}>{icon}</span>}
         </div>
-        <div style={{ fontWeight: 900, fontSize: 20, color: alert ? RED : color, marginTop: 5 }}>{value}</div>
+        <div style={{ fontWeight: 900, fontSize: 18, color: alert ? RED : color, marginTop: 5, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{value}</div>
         {sub && <div style={{ fontSize: 10, color: alert ? RED : 'var(--text-3)', marginTop: 2 }}>{sub}</div>}
     </div>
 );
@@ -121,7 +121,7 @@ function OverviewTab({ live, t, fmt, dateRange }) {
                     ))}
                 </div>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: 10 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 10 }}>
                 <KpiCard label={t('pnl.kpiRevenue')} value={fmt(live.grossRevenue)} color={ACCENT} icon="💰" />
                 <KpiCard label={t('pnl.kpiAdSpend')} value={fmt(live.adSpend)} color="#f97316" icon="📣" sub={pct(live.adSpend, live.grossRevenue)} />
                 <KpiCard label={t('pnl.kpiPlatformFee')} value={fmt(live.platformFee)} color={RED} icon="🏪" sub={pct(live.platformFee, live.grossRevenue)} />
@@ -130,7 +130,7 @@ function OverviewTab({ live, t, fmt, dateRange }) {
                 <KpiCard label={t('pnl.kpiOperatingProfit')} value={fmt(live.operatingProfit)} color={live.operatingProfit >= 0 ? GREEN : RED} icon="📊"
                     sub={pct(live.operatingProfit, live.grossRevenue) + ' ' + t('pnl.margin')} alert={live.operatingProfit < 0} />
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: 10 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 10 }}>
                 <KpiCard label={t('pnl.kpiOrders')} value={(live.totalOrders || 0).toLocaleString() + ' ' + t('pnl.unitOrders')} color={ACCENT} icon="🛒" />
                 <KpiCard label={t('pnl.kpiReturns')} value={(live.totalReturns || 0) + ' ' + t('pnl.unitOrders')} color={live.returnRate > 0.12 ? RED : '#eab308'} icon="↩"
                     sub={pct(live.totalReturns, live.totalOrders) + ' ' + t('pnl.returnRate')} alert={live.returnRate > 0.12} />
@@ -216,7 +216,7 @@ function PnlUnitTab({ live, t, fmt, connectedChannels }) {
 function AnomalyTab({ t }) {
     return (
         <div style={{ display: 'grid', gap: 16 }}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: 10 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 10 }}>
                 <KpiCard label={t('pnl.anomRoasDown')} value={'0 ' + t('pnl.unitItems')} color={GREEN} icon="📉" />
                 <KpiCard label={t('pnl.anomReturnUp')} value={'0 ' + t('pnl.unitItems')} color={GREEN} icon="↩" />
                 <KpiCard label={t('pnl.anomCouponAbuse')} value={'0 ' + t('pnl.unitItems')} color={GREEN} icon="🏷" />
@@ -330,8 +330,10 @@ function ForecastTab({ live, t, fmt }) {
                 <div style={{ fontWeight: 800, fontSize: 14 }}>🔮 {t('pnl.forecastTitle')}</div>
                 <div style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 2 }}>{t('pnl.forecastDesc')}</div>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(280px, 330px) minmax(0, 1fr)', gap: 16, alignItems: 'start' }}>
-                {/* 좌: 파라미터 설정 + 누적 요약 */}
+            {/* 204차: 파라미터 박스 확대(좌)+월별추이 그래프를 파라미터 아래 배치, 표는 우측 — 그래프/숫자 박스 이탈 해소·균형 */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(330px, 400px) minmax(0, 1fr)', gap: 16, alignItems: 'start' }}>
+                {/* 좌: 파라미터 설정 + 누적 요약 + 월별 추이 그래프(파라미터 박스 아래) */}
+                <div style={{ display: 'grid', gap: 16, minWidth: 0 }}>
                 <div style={{ padding: 16, borderRadius: 12, background: 'rgba(79,142,247,0.06)', border: '1px solid rgba(79,142,247,0.2)', display: 'grid', gap: 14 }}>
                     <div style={{ fontWeight: 700, fontSize: 13 }}>{t('pnl.paramSettings')}</div>
                     {slider('pnl.paramGrowth', growthRate, setGrowthRate, 0, 50)}
@@ -355,15 +357,14 @@ function ForecastTab({ live, t, fmt }) {
                     </div>
                 </div>
 
-                {/* 우: 그래프 박스 + 리스트(표) 박스 — 화면 폭의 다수 차지 */}
-                <div style={{ display: 'grid', gap: 16, minWidth: 0 }}>
-                    {/* 그래프 박스 */}
+                    {/* 월별 매출·순이익 추이 그래프 — 파라미터 설정 박스 바로 아래 배치(균형) */}
                     <div style={{ ...CARD, padding: 18 }}>
                         <ForecastChart rows={forecastRows} fmt={fmt} t={t} />
                     </div>
+                </div>
 
-                    {/* 리스트(표) 박스 — 더 크게, 가독성 향상 + 합계 행 */}
-                    <div style={{ ...CARD, padding: 18, overflow: 'auto' }}>
+                {/* 우: 리스트(표) 박스 — 화면 폭의 다수 차지 */}
+                <div style={{ ...CARD, padding: 18, overflow: 'auto' }}>
                         <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 12 }}>📋 {t('pnl.forecastTableTitle', '월별 손익 예측 상세')}</div>
                         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, minWidth: 560 }}>
                             <thead>
@@ -399,7 +400,6 @@ function ForecastTab({ live, t, fmt }) {
                             </tfoot>
                         </table>
                     </div>
-                </div>
             </div>
         </div>
     );

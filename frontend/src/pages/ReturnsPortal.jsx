@@ -2,6 +2,7 @@ import React,{useState,useMemo,useCallback}from'react';
 import{useI18n as _useI18n}from'../i18n/index.js';
 import{useCurrency}from'../contexts/CurrencyContext.jsx';
 import{useAuth}from'../auth/AuthContext';
+import{useGlobalData}from'../context/GlobalDataContext.jsx';
 import RP from'./rpI18n.js';
 import { IS_DEMO } from '../utils/demoEnv';
 
@@ -15,28 +16,22 @@ const Card=({children,style={}})=><div style={{background:'#fff',borderRadius:12
 const Stat=({label,value,color='#6366f1',sub})=><Card><div style={{fontSize:10,color:'#7c8fa8',marginBottom:2}}>{label}</div><div style={{fontSize:22,fontWeight:800,color}}>{value}</div>{sub&&<div style={{fontSize:10,color:'#94a3b8',marginTop:2}}>{sub}</div>}</Card>;
 const Badge=({label,color})=><span style={{background:color+'22',color,border:'1px solid '+color+'55',borderRadius:6,padding:'2px 8px',fontSize:11,fontWeight:700}}>{label}</span>;
 
-const DEMO_RETURNS=[
-{id:'RT-2401',orderNo:'ORD-87231',product:'Premium Wireless Earbuds',customer:'김민수',channel:'coupang',reason:'defective',status:'pending',date:'2026-04-25',amount:89000,inspGrade:null,refundMethod:null},
-{id:'RT-2402',orderNo:'ORD-87455',product:'Organic Cotton T-Shirt L',customer:'이지현',channel:'naver',reason:'wrongItem',status:'approved',date:'2026-04-24',amount:35000,inspGrade:'A',refundMethod:'card'},
-{id:'RT-2403',orderNo:'ORD-87102',product:'Smart Watch Band Black',customer:'박준혁',channel:'11st',reason:'damaged',status:'refunded',date:'2026-04-23',amount:22000,inspGrade:'C',refundMethod:'bank'},
-{id:'RT-2404',orderNo:'ORD-87789',product:'Bamboo Phone Case',customer:'최서연',channel:'gmarket',reason:'notAsDesc',status:'restocked',date:'2026-04-22',amount:15000,inspGrade:'A',refundMethod:'original'},
-{id:'RT-2405',orderNo:'ORD-87333',product:'LED Desk Lamp Pro',customer:'정태우',channel:'kakaogift',reason:'changeOfMind',status:'pending',date:'2026-04-26',amount:67000,inspGrade:null,refundMethod:null},
-{id:'RT-2406',orderNo:'ORD-87600',product:'Protein Powder 1kg',customer:'한소희',channel:'lotteon',reason:'lateDelivery',status:'approved',date:'2026-04-21',amount:45000,inspGrade:'B',refundMethod:'card'},
-{id:'RT-2407',orderNo:'ORD-87801',product:'Bluetooth Speaker Mini',customer:'윤재호',channel:'coupang',reason:'defective',status:'disposed',date:'2026-04-20',amount:32000,inspGrade:'F',refundMethod:'bank'},
-];
-
+// 204차: 전자제품 DEMO_RETURNS 하드코딩 제거 — 데모 반품은 단일소스 orders(L'Oréal)에서 파생(ReturnsPortal 본체).
 const STATUS_COLORS={pending:'#f59e0b',approved:'#22c55e',rejected:'#ef4444',refunded:'#6366f1',restocked:'#06b6d4',disposed:'#94a3b8'};
 
-function OverviewTab({data,tr,fmt}){
+function OverviewTab({data,tr,fmt,orderCount=0}){
 const kpis=useMemo(()=>{const t=data.length,p=data.filter(d=>d.status==='pending').length,a=data.filter(d=>d.status==='approved').length,r=data.filter(d=>d.status==='refunded').length;return{t,p,a,r};},[data]);
+// 204차 동기화: 반품률=반품수/전체주문수(단일소스 orderCount, 과거 /50 임의분모), 평균처리일=상태별 가중 파생(과거 "3.2" 하드코딩).
+const rate=useMemo(()=>orderCount>0?((kpis.t/orderCount)*100).toFixed(1):'0',[kpis.t,orderCount]);
+const avgDays=useMemo(()=>{if(!data.length)return'0';const D={refunded:4.2,approved:2.1,pending:1.0,restocked:3.5,disposed:5.0};return(data.reduce((s,d)=>s+(D[d.status]||2),0)/data.length).toFixed(1);},[data]);
 return <div>
 <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(150px,1fr))',gap:12,marginBottom:20}}>
 <Stat label={tr('kpiTotal')} value={kpis.t} color="#6366f1"/>
 <Stat label={tr('kpiPending')} value={kpis.p} color="#f59e0b"/>
 <Stat label={tr('kpiApproved')} value={kpis.a} color="#22c55e"/>
 <Stat label={tr('kpiRefunded')} value={kpis.r} color="#6366f1"/>
-<Stat label={tr('kpiRate')} value={(kpis.t>0?((kpis.t/50)*100).toFixed(1):'0')+'%'} color="#ef4444"/>
-<Stat label={tr('kpiAvgDays')} value="3.2" color="#06b6d4" sub={tr('date')}/>
+<Stat label={tr('kpiRate')} value={rate+'%'} color="#ef4444"/>
+<Stat label={tr('kpiAvgDays')} value={avgDays} color="#06b6d4" sub={tr('date')}/>
 </div>
 <Card><div style={{fontSize:13,fontWeight:700,marginBottom:12,color:'#1e293b'}}>{tr('tabRequests')} - {tr('tabOverview')}</div>
 <table style={{width:'100%',borderCollapse:'collapse',fontSize:11}}>
@@ -235,8 +230,24 @@ const tr=useTr();
 const{fmt}=useCurrency();
 const{user}=useAuth();
 const isDemo=IS_DEMO; // 180차: email·host broad includes('demo') 제거 → demoEnv 정본 격리(운영 오염 0)
+const{orders=[]}=useGlobalData();
 const[tab,setTab]=useState('tabOverview');
-const[data]=useState(()=>isDemo?DEMO_RETURNS:[]);
+// 204차 동기화: 데모 반품을 단일소스(orders=L'Oréal 상품)에서 파생 — 과거 독립 하드코딩 DEMO_RETURNS(전자제품,
+//   타 메뉴 불일치)를 제거. 주문에서 결정적 선별 → 상품·채널·고객·금액이 주문/대시보드와 정합.
+const _RREASON=['defective','wrongItem','damaged','notAsDesc','changeOfMind','lateDelivery'];
+const _RSTATUS=['refunded','approved','pending','restocked','disposed','approved'];
+const _RGRADE=['A','B','C',null,'A','F'];
+const _RMETHOD=['card','bank','original',null,'card','bank'];
+const data=useMemo(()=>{
+  if(!isDemo) return [];
+  const src=Array.isArray(orders)?orders:[];
+  return src.filter((_,i)=>i%7===2||i%7===5).slice(0,14).map((o,i)=>({
+    id:`RT-${2401+i}`, orderNo:o.id, product:o.name, customer:(String(o.buyer||'').split(' ')[0]||o.buyer),
+    channel:o.ch, amount:o.total, reason:_RREASON[i%_RREASON.length], status:_RSTATUS[i%_RSTATUS.length],
+    date:String(o.at||'').slice(0,10), inspGrade:_RGRADE[i%_RGRADE.length], refundMethod:_RMETHOD[i%_RMETHOD.length],
+  }));
+},[isDemo,orders]);
+const orderCount=Array.isArray(orders)?orders.length:0;
 
 const titleStyle={fontSize:22,fontWeight:800,color:'#1e293b'};
 const subStyle={fontSize:13,color:'#64748b',marginTop:4};
@@ -261,7 +272,7 @@ return <div style={{display:'flex',flexDirection:'column',height:'100%',backgrou
 </div>
 {/* Content scroll */}
 <div style={{flex:1,overflowY:'auto',padding:'20px 28px 40px'}}>
-{tab==='tabOverview'&&<OverviewTab data={data} tr={tr} fmt={fmt}/>}
+{tab==='tabOverview'&&<OverviewTab data={data} tr={tr} fmt={fmt} orderCount={orderCount}/>}
 {tab==='tabRequests'&&<RequestsTab data={data} tr={tr} fmt={fmt}/>}
 {tab==='tabInspection'&&<InspectionTab data={data} tr={tr}/>}
 {tab==='tabRefunds'&&<RefundsTab data={data} tr={tr} fmt={fmt}/>}

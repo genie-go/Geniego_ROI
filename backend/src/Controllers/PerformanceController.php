@@ -31,24 +31,27 @@ class PerformanceController {
     }
 
     // GET /api/v1/ad-performance/summary
-    public static function getSummary(): void {
-        $pdo = Db::pdo();
-        // Determine tenant and plan from session/auth
-        // For simplicity in this demo environment, we'll try to get user from session
-        $auth = \Genie\Helpers\Auth::requireAuth(); $userId = $auth['tenant_id'];
-        $userPlan = $auth['plan'] ?? 'pro';
-
-        // In a real app, we'd use:
-        // $auth = Auth::requireAuth();
-        // $userId = $auth['tenant_id'];
-        // $userPlan = $auth['plan'];
-
-        $handler = new \Handlers\AdPerformance($pdo, $userId, $userPlan);
-        $filters = $_GET;
-        $summary = $handler->getSummary($filters);
-        
-        header('Content-Type: application/json');
-        echo json_encode($summary);
+    // 204차 P1: 레거시 비-PSR 핸들러(존재하지 않는 \Genie\Helpers\Auth::requireAuth + 잘못된
+    //   \Handlers\AdPerformance 네임스페이스 + void echo 반환)로 인해 항상 500 → PerformanceHub.jsx 가
+    //   빈 배열로 폴백(실데이터 영구 미노출)되던 갭. PSR 핸들러로 재작성. 테넌트는 AdPerformance::metaAds 와
+    //   동일하게 미들웨어 auth_tenant 우선 해석(위조 불가). 출력=배열(프론트 기대 형식).
+    public static function getSummary(
+        \Psr\Http\Message\ServerRequestInterface $req,
+        \Psr\Http\Message\ResponseInterface $res
+    ): \Psr\Http\Message\ResponseInterface {
+        $tenant = $req->getAttribute('auth_tenant')
+                  ?: $req->getHeaderLine('X-Tenant-Id')
+                  ?: 'demo';
+        $rows = [];
+        try {
+            $pdo = Db::pdo();
+            $handler = new \Genie\Handlers\AdPerformance($pdo, $tenant, 'pro');
+            $rows = $handler->getSummary((array)$req->getQueryParams());
+        } catch (\Throwable $e) {
+            $rows = [];
+        }
+        $res->getBody()->write(json_encode(array_values($rows)));
+        return $res->withHeader('Content-Type', 'application/json');
     }
 
     // POST /api/performance (ingest metrics)

@@ -45,14 +45,39 @@ final class ChannelSync
 
     private static function tenant(Request $req): string
     {
+        // 204차 P1: 격리키 정본화. 과거엔 user_session.user_id(원시 정수)를 테넌트로 반환해
+        //   ① 팀/하위계정이 owner 와 채널데이터를 공유하지 못하고(멤버 user_id 별 분리)
+        //   ② 타 도메인(CRM/Attribution 등 'acct_<id>')과 격리키 포맷이 어긋났다.
+        //   ChannelCreds::sessionTenant 와 동일하게 미들웨어 auth_tenant 속성 우선 +
+        //   인증세션의 tenant_id(하위계정=owner 상속, 미설정=acct_<id>)로 통일한다.
+        $attr = $req->getAttribute('auth_tenant', '');
+        if ($attr !== '' && $attr !== null) return (string)$attr;
+
         $auth = $req->getHeaderLine('Authorization');
-        if (preg_match('/Bearer\s+(\S+)/i', $auth, $m) && $m[1] !== 'demo-token') {
+        if (preg_match('/Bearer\s+(\S+)/i', $auth, $m)
+            && $m[1] !== 'demo-token' && !str_starts_with($m[1], 'demo') && !str_starts_with($m[1], 'local_demo_')) {
             try {
                 $pdo = Db::pdo();
-                $s = $pdo->prepare('SELECT user_id FROM user_session WHERE token=? LIMIT 1');
-                $s->execute([$m[1]]);
+                $now = gmdate('Y-m-d\TH:i:s\Z');
+                $s = $pdo->prepare(
+                    'SELECT u.id, u.tenant_id, u.parent_user_id FROM user_session s
+                       JOIN app_user u ON u.id = s.user_id
+                      WHERE s.token = ? AND s.expires_at > ? AND u.is_active = 1 LIMIT 1'
+                );
+                $s->execute([$m[1], $now]);
                 $r = $s->fetch(PDO::FETCH_ASSOC);
-                if ($r) return (string)$r['user_id'];
+                if ($r) {
+                    $tid = trim((string)($r['tenant_id'] ?? ''));
+                    if ($tid !== '') return $tid;
+                    $pid = (int)($r['parent_user_id'] ?? 0);
+                    if ($pid > 0) {
+                        $ps = $pdo->prepare('SELECT tenant_id FROM app_user WHERE id = ? LIMIT 1');
+                        $ps->execute([$pid]);
+                        $ptid = trim((string)($ps->fetchColumn() ?: ''));
+                        return $ptid !== '' ? $ptid : ('acct_' . $pid);
+                    }
+                    return 'acct_' . (int)$r['id'];
+                }
             } catch (\Throwable) {}
         }
         return 'demo';
@@ -340,8 +365,14 @@ final class ChannelSync
     }
 
     // ── Amazon SP-API ────────────────────────────────────────────────────
-    private static function amazonFetch(array $creds): array
+    private static function amazonFetch(array $creds, string $tenant = 'demo'): array
     {
+        // 204차 P0 보안: 188차 chokepoint 우회 차단. amazon 생성기는 source='structured' + 'B0AMDEMO'/주문번호
+        //   포맷이라 saveProducts/saveOrders 의 demo 필터(source==='demo'||'DEMO-' 접두)에 걸리지 않아
+        //   실 테넌트 운영 DB(channel_products/channel_orders)로 가짜 데이터가 적재되던 갭. ebay/tiktok 과 동일 게이트.
+        if ($tenant !== 'demo') {
+            return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>'Amazon SP-API: 인증키 저장 완료 — LWA OAuth 토큰 연동 시 실데이터가 동기화됩니다.'];
+        }
         // Amazon requires LWA OAuth + AWS SigV4 — return structured demo with real format
         $marketplace = $creds['marketplace_id'] ?? 'A1PA6795UKMFR9'; // Japan default
         return [
@@ -546,7 +577,7 @@ final class ChannelSync
     {
         return match($channel) {
             'shopify'                      => self::shopifyFetch($creds),
-            'amazon','amazon_spapi'        => self::amazonFetch($creds),
+            'amazon','amazon_spapi'        => self::amazonFetch($creds, $tenant),
             'coupang'                      => self::coupangFetch($creds),
             'naver','naver_smartstore'     => self::naverFetch($creds),
             'ebay'                         => self::ebayFetch($creds, $tenant),
@@ -570,7 +601,8 @@ final class ChannelSync
             if (!($p['channel_product_id'] ?? null)) continue;
             // 188차 P0 보안: 데모 데이터의 운영 DB 유입 차단(전 채널 단일 chokepoint).
             // 실 테넌트(데모 외)에는 demo-소스/DEMO- 접두 행을 절대 저장하지 않는다.
-            if ($tenant !== 'demo' && ((($p['source'] ?? '') === 'demo') || str_starts_with((string)$p['channel_product_id'], 'DEMO-'))) continue;
+            // 204차 P0: source='structured'(amazon 등 비실데이터 포맷)·B0AMDEMO 접두도 차단(우회 방어 강화).
+            if ($tenant !== 'demo' && (in_array(($p['source'] ?? ''), ['demo','structured'], true) || str_starts_with((string)$p['channel_product_id'], 'DEMO-') || str_starts_with((string)$p['channel_product_id'], 'B0AMDEMO'))) continue;
             $stmt->execute([
                 $tenant, $channel, $p['channel_product_id'],
                 $p['sku'] ?? null, $p['name'] ?? null,
@@ -602,7 +634,8 @@ final class ChannelSync
         foreach ($orders as $o) {
             if (!($o['channel_order_id'] ?? null)) continue;
             // 188차 P0 보안: 데모 데이터의 운영 DB 유입 차단(전 채널 단일 chokepoint).
-            if ($tenant !== 'demo' && ((($o['source'] ?? '') === 'demo') || str_starts_with((string)$o['channel_order_id'], 'DEMO-'))) continue;
+            // 204차 P0: source='structured'(amazon 등) 도 차단(우회 방어 강화).
+            if ($tenant !== 'demo' && (in_array(($o['source'] ?? ''), ['demo','structured'], true) || str_starts_with((string)$o['channel_order_id'], 'DEMO-'))) continue;
             $stmt->execute([
                 $tenant, $channel, $o['channel_order_id'],
                 $o['buyer_name'] ?? null, $o['buyer_email'] ?? null,

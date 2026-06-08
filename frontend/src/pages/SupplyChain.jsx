@@ -6,6 +6,7 @@ import{useSecurityGuard}from'../security/SecurityGuard.js';
 import{BarChart,Bar,XAxis,YAxis,CartesianGrid,Tooltip as RTooltip,ResponsiveContainer,PieChart,Pie,Cell,AreaChart,Area,Legend}from'recharts';
 import AIRecommendBanner from'../components/AIRecommendBanner.jsx';
 import SC_DICT from'./scI18n.js';
+import{DEMO_PRODUCTS}from'../data/demoSeedData.js';
 
 /* ── i18n helper ── */
 const T={
@@ -118,37 +119,28 @@ tabDescKeys.forEach(k=>{T['guideTab'+k+'Desc']=['supplyChain.guideTab'+k+'Desc',
 const useTr=()=>{const{t,lang}=useI18n();return useCallback((k)=>{const d=T[k];if(!d)return k;const loc=SC_DICT[lang]||SC_DICT.en||{};if(loc[k])return loc[k];return t(d[0],d[1]);},[t,lang]);};
 
 /* ── Demo Data ── */
-const DEMO_LINES=[
-{id:'L1',product:'Premium Wireless Earbuds',sku:'WE-2024-A',supplier:'Shenzhen Audio Co.',leadTime:14,risk:'normal',stages:[100,100,100,80,40,0],country:'CN'},
-{id:'L2',product:'Organic Cotton T-Shirt',sku:'CT-2024-B',supplier:'Vietnam Textile Ltd.',leadTime:21,risk:'high',stages:[100,100,60,20,0,0],country:'VN'},
-{id:'L3',product:'Smart Watch Band',sku:'SW-2024-C',supplier:'Korea Parts Inc.',leadTime:7,risk:'normal',stages:[100,100,100,100,100,60],country:'KR'},
-{id:'L4',product:'Bamboo Phone Case',sku:'BC-2024-D',supplier:'EcoMaterials Japan',leadTime:18,risk:'normal',stages:[100,100,100,100,70,30],country:'JP'},
-{id:'L5',product:'Protein Powder 1kg',sku:'PP-2024-E',supplier:'NZ Health Foods',leadTime:28,risk:'high',stages:[100,80,40,0,0,0],country:'NZ'},
-{id:'L6',product:'LED Desk Lamp',sku:'DL-2024-F',supplier:'Guangzhou Lighting',leadTime:12,risk:'normal',stages:[100,100,100,100,90,50],country:'CN'},
+// 204차 동기화: 전자제품 하드코딩 제거 → 단일소스 DEMO_PRODUCTS(L'Oréal 화장품)에서 상품·SKU 파생.
+//   공급망 고유속성(공급사/리드타임/단계/재고)은 단일소스에 없어 화장품 공급사 + 결정적(비랜덤) 값으로 부여.
+const _SC_SUP=[
+{name:"L'Oréal Korea 물류센터",country:'KR',cat:'Logistics',lead:5,delay:3,rel:97,ord:234},
+{name:'Cosmax 화성공장',country:'KR',cat:'OEM/ODM',lead:9,delay:5,rel:95,ord:156},
+{name:'Kolmar Korea',country:'KR',cat:'OEM/ODM',lead:11,delay:8,rel:93,ord:128},
+{name:"L'Oréal Paris 본사",country:'FR',cat:'Brand HQ',lead:21,delay:14,rel:90,ord:67},
+{name:'Shiseido OEM Japan',country:'JP',cat:'OEM/ODM',lead:14,delay:6,rel:92,ord:89},
+{name:'COSMAX China',country:'CN',cat:'OEM/ODM',lead:18,delay:10,rel:88,ord:112},
 ];
-const DEMO_SUPPLIERS=[
-{id:'S1',name:'Shenzhen Audio Co.',country:'CN',category:'Electronics',leadTime:14,delay:5,reliability:95,orders:128,contact:'wang@audio.cn'},
-{id:'S2',name:'Vietnam Textile Ltd.',country:'VN',category:'Apparel',leadTime:21,delay:18,reliability:82,orders:67,contact:'tran@textile.vn'},
-{id:'S3',name:'Korea Parts Inc.',country:'KR',category:'Components',leadTime:7,delay:3,reliability:97,orders:234,contact:'kim@parts.kr'},
-{id:'S4',name:'EcoMaterials Japan',country:'JP',category:'Materials',leadTime:18,delay:8,reliability:92,orders:89,contact:'tanaka@eco.jp'},
-{id:'S5',name:'NZ Health Foods',country:'NZ',category:'Food',leadTime:28,delay:22,reliability:78,orders:45,contact:'smith@nzhf.co.nz'},
-{id:'S6',name:'Guangzhou Lighting',country:'CN',category:'Electronics',leadTime:12,delay:4,reliability:96,orders:156,contact:'liu@gzlight.cn'},
-];
-const DEMO_INV=[
-{id:'I1',product:'Premium Wireless Earbuds',sku:'WE-2024-A',qty:2450,location:'Warehouse A',status:'normal',supplier:'Shenzhen Audio Co.',updated:'2026-04-27'},
-{id:'I2',product:'Organic Cotton T-Shirt',sku:'CT-2024-B',qty:820,location:'In Transit',status:'transit',supplier:'Vietnam Textile Ltd.',updated:'2026-04-26'},
-{id:'I3',product:'Smart Watch Band',sku:'SW-2024-C',qty:5200,location:'Warehouse B',status:'normal',supplier:'Korea Parts Inc.',updated:'2026-04-28'},
-{id:'I4',product:'Bamboo Phone Case',sku:'BC-2024-D',qty:1100,location:'Supplier',status:'supplier',supplier:'EcoMaterials Japan',updated:'2026-04-25'},
-{id:'I5',product:'Protein Powder 1kg',sku:'PP-2024-E',qty:340,location:'In Transit',status:'transit',supplier:'NZ Health Foods',updated:'2026-04-24'},
-{id:'I6',product:'LED Desk Lamp',sku:'DL-2024-F',qty:3800,location:'Warehouse A',status:'normal',supplier:'Guangzhou Lighting',updated:'2026-04-28'},
-];
-const DEMO_PO=[
-{id:'PO-001',supplier:'Shenzhen Audio Co.',product:'Premium Wireless Earbuds',qty:500,unitCost:12.5,status:'approved',date:'2026-04-20',notes:'Q2 restock'},
-{id:'PO-002',supplier:'Vietnam Textile Ltd.',product:'Organic Cotton T-Shirt',qty:2000,unitCost:4.8,status:'shipped',date:'2026-04-18',notes:'Summer collection'},
-{id:'PO-003',supplier:'Korea Parts Inc.',product:'Smart Watch Band',qty:1000,unitCost:3.2,status:'received',date:'2026-04-10',notes:'Monthly order'},
-{id:'PO-004',supplier:'NZ Health Foods',product:'Protein Powder 1kg',qty:800,unitCost:8.9,status:'pending',date:'2026-04-25',notes:'New flavor launch'},
-{id:'PO-005',supplier:'Guangzhou Lighting',product:'LED Desk Lamp',qty:600,unitCost:7.5,status:'draft',date:'2026-04-28',notes:'Office supplies'},
-];
+const _SC_SRC=(DEMO_PRODUCTS||[]).slice(0,6);
+const _SC_STAGES=[[100,100,100,80,40,0],[100,100,60,20,0,0],[100,100,100,100,100,60],[100,100,100,100,70,30],[100,80,40,0,0,0],[100,100,100,100,90,50]];
+const _SC_QTY=[2450,820,5200,1100,340,3800];
+const _SC_LOC=['Warehouse A','In Transit','Warehouse B','Supplier','In Transit','Warehouse A'];
+const _SC_INVST=['normal','transit','normal','supplier','transit','normal'];
+const _SC_POQTY=[500,2000,1000,800,600,400];
+const _SC_POST=['approved','shipped','received','pending','draft','approved'];
+const _SC_PONOTE=['Q2 보충 발주','신제품 입고','월간 정기 발주','런칭 물량','정기 발주','긴급 보충'];
+const DEMO_LINES=_SC_SRC.map((p,i)=>{const s=_SC_SUP[i%_SC_SUP.length];return{id:`L${i+1}`,product:p.name,sku:p.sku,supplier:s.name,leadTime:s.lead,risk:(i%5===1||i%5===4)?'high':'normal',stages:_SC_STAGES[i%_SC_STAGES.length],country:s.country};});
+const DEMO_SUPPLIERS=_SC_SUP.map((s,i)=>({id:`S${i+1}`,name:s.name,country:s.country,category:s.cat,leadTime:s.lead,delay:s.delay,reliability:s.rel,orders:s.ord,contact:`partner${i+1}@cosmetics-supply.com`}));
+const DEMO_INV=_SC_SRC.map((p,i)=>{const s=_SC_SUP[i%_SC_SUP.length];return{id:`I${i+1}`,product:p.name,sku:p.sku,qty:_SC_QTY[i%_SC_QTY.length],location:_SC_LOC[i%_SC_LOC.length],status:_SC_INVST[i%_SC_INVST.length],supplier:s.name,updated:'2026-04-28'};});
+const DEMO_PO=_SC_SRC.map((p,i)=>{const s=_SC_SUP[i%_SC_SUP.length];return{id:`PO-00${i+1}`,supplier:s.name,product:p.name,qty:_SC_POQTY[i%_SC_POQTY.length],unitCost:p.cost||10000,status:_SC_POST[i%_SC_POST.length],date:'2026-04-20',notes:_SC_PONOTE[i%_SC_PONOTE.length]};});
 const STAGES=['Order','Production','QC','Shipping','Transit','Received'];
 const PIE_COLORS=['#4f8ef7','#f97316','#22c55e','#a855f7','#ec4899','#eab308','#06b6d4'];
 const STATUS_CLR={normal:'#22c55e',transit:'#4f8ef7',supplier:'#f97316',high:'#ef4444'};

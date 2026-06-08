@@ -299,9 +299,54 @@ const LOC = {
 };
 
 // ─── Static map/geo config ──────────────────────────────────────────
-// ✅ Production: 국가별 데이터는 API 연동 후 GlobalDataContext에서 공급
-// Demo mock data는 완전 제거됨 — 운영 시스템 오염 방지
-const COUNTRIES = {};
+// ✅ Production: 국가별 데이터는 API 연동 후 GlobalDataContext에서 공급(빈 상태).
+// ✅ Demo: 체험자가 글로벌 매출 지도를 실제처럼 경험하도록 가상 국가매출 시드.
+//    VITE_DEMO_MODE 빌드에서만 주입 → 운영 번들은 {} 유지(목데이터 운영 오염 차단, U-177-A).
+const IS_DEMO = import.meta.env.VITE_DEMO_MODE === 'true';
+// iso = 숫자 ISO 3166-1(world-atlas geo.id), coords=[경도,위도], rev=KRW 기준.
+const DEMO_COUNTRIES = {
+  410: { name:'South Korea', flag:'🇰🇷', col:'#4f8ef7', coords:[127.77,35.9], rev:1820000000, growth:18.4, aov:84000, orders:21670,
+    channels:[{name:'Naver SmartStore',col:'#22c55e',pct:34,rev:618800000},{name:'Coupang',col:'#f59e0b',pct:28,rev:509600000},{name:'Kakao',col:'#fbbf24',pct:20,rev:364000000},{name:'D2C Shop',col:'#a855f7',pct:18,rev:327600000}],
+    topProducts:['Premium Serum','Vitamin C Ampoule','Hydra Cream'],
+    regions:[{name:'Seoul',pct:38,orders:8234,rev:691600000},{name:'Gyeonggi',pct:27,orders:5851,rev:491400000},{name:'Busan',pct:14,orders:3033,rev:254800000},{name:'Others',pct:21,orders:4552,rev:382200000}],
+    gender:{male:38,female:60,other:2}, age:[{label:'18-24',pct:22},{label:'25-34',pct:38},{label:'35-44',pct:24},{label:'45+',pct:16}] },
+  840: { name:'United States', flag:'🇺🇸', col:'#22c55e', coords:[-95.7,38.5], rev:2410000000, growth:24.1, aov:62000, orders:38870,
+    channels:[{name:'Amazon',col:'#f59e0b',pct:42,rev:1012200000},{name:'Shopify D2C',col:'#a855f7',pct:31,rev:747100000},{name:'Meta Shop',col:'#4f8ef7',pct:16,rev:385600000},{name:'TikTok Shop',col:'#ef4444',pct:11,rev:265100000}],
+    topProducts:['Hydra Cream','Retinol Night','Sunscreen SPF50'],
+    regions:[{name:'California',pct:29,orders:11272,rev:698900000},{name:'New York',pct:21,orders:8163,rev:506100000},{name:'Texas',pct:17,orders:6608,rev:409700000},{name:'Others',pct:33,orders:12827,rev:795300000}],
+    gender:{male:44,female:54,other:2}, age:[{label:'18-24',pct:19},{label:'25-34',pct:35},{label:'35-44',pct:27},{label:'45+',pct:19}] },
+  392: { name:'Japan', flag:'🇯🇵', col:'#ef4444', coords:[138.25,37.2], rev:1340000000, growth:12.7, aov:71000, orders:18870,
+    channels:[{name:'Rakuten',col:'#ef4444',pct:38,rev:509200000},{name:'Amazon JP',col:'#f59e0b',pct:30,rev:402000000},{name:'Yahoo! Shopping',col:'#a855f7',pct:18,rev:241200000},{name:'Qoo10',col:'#ec4899',pct:14,rev:187600000}],
+    topProducts:['Vitamin C Ampoule','Cushion Foundation','Lip Tint'],
+    regions:[{name:'Tokyo',pct:41,orders:7736,rev:549400000},{name:'Osaka',pct:23,orders:4340,rev:308200000},{name:'Nagoya',pct:13,orders:2453,rev:174200000},{name:'Others',pct:23,orders:4341,rev:308200000}],
+    gender:{male:35,female:63,other:2}, age:[{label:'18-24',pct:24},{label:'25-34',pct:36},{label:'35-44',pct:23},{label:'45+',pct:17}] },
+  156: { name:'China', flag:'🇨🇳', col:'#f59e0b', coords:[104.2,35.86], rev:1980000000, growth:31.5, aov:58000, orders:34140,
+    channels:[{name:'Tmall Global',col:'#ef4444',pct:44,rev:871200000},{name:'Douyin',col:'#000',pct:26,rev:514800000},{name:'JD Worldwide',col:'#dc2626',pct:18,rev:356400000},{name:'Xiaohongshu',col:'#ec4899',pct:12,rev:237600000}],
+    topProducts:['Premium Serum','Mask Pack 10ea','Cleansing Foam'],
+    regions:[{name:'Shanghai',pct:32,orders:10925,rev:633600000},{name:'Beijing',pct:24,orders:8194,rev:475200000},{name:'Guangdong',pct:21,orders:7169,rev:415800000},{name:'Others',pct:23,orders:7852,rev:455400000}],
+    gender:{male:31,female:67,other:2}, age:[{label:'18-24',pct:28},{label:'25-34',pct:40},{label:'35-44',pct:20},{label:'45+',pct:12}] },
+  276: { name:'Germany', flag:'🇩🇪', col:'#a855f7', coords:[10.45,51.16], rev:680000000, growth:15.2, aov:54000, orders:12590,
+    channels:[{name:'Amazon DE',col:'#f59e0b',pct:46,rev:312800000},{name:'Zalando',col:'#f97316',pct:24,rev:163200000},{name:'Shopify D2C',col:'#a855f7',pct:18,rev:122400000},{name:'OTTO',col:'#ef4444',pct:12,rev:81600000}],
+    topProducts:['Sunscreen SPF50','Retinol Night','Hydra Cream'],
+    regions:[{name:'Berlin',pct:28,orders:3525,rev:190400000},{name:'Munich',pct:24,orders:3022,rev:163200000},{name:'Hamburg',pct:19,orders:2392,rev:129200000},{name:'Others',pct:29,orders:3651,rev:197200000}],
+    gender:{male:41,female:57,other:2}, age:[{label:'18-24',pct:18},{label:'25-34',pct:33},{label:'35-44',pct:28},{label:'45+',pct:21}] },
+  826: { name:'United Kingdom', flag:'🇬🇧', col:'#ec4899', coords:[-2.43,53.37], rev:590000000, growth:19.8, aov:57000, orders:10350,
+    channels:[{name:'Amazon UK',col:'#f59e0b',pct:40,rev:236000000},{name:'Shopify D2C',col:'#a855f7',pct:28,rev:165200000},{name:'TikTok Shop',col:'#ef4444',pct:18,rev:106200000},{name:'ASOS',col:'#000',pct:14,rev:82600000}],
+    topProducts:['Lip Tint','Cushion Foundation','Vitamin C Ampoule'],
+    regions:[{name:'London',pct:44,orders:4554,rev:259600000},{name:'Manchester',pct:19,orders:1967,rev:112100000},{name:'Birmingham',pct:14,orders:1449,rev:82600000},{name:'Others',pct:23,orders:2380,rev:135700000}],
+    gender:{male:39,female:59,other:2}, age:[{label:'18-24',pct:23},{label:'25-34',pct:37},{label:'35-44',pct:24},{label:'45+',pct:16}] },
+  704: { name:'Vietnam', flag:'🇻🇳', col:'#14b8a6', coords:[108.27,14.06], rev:430000000, growth:42.3, aov:31000, orders:13870,
+    channels:[{name:'Shopee',col:'#f97316',pct:48,rev:206400000},{name:'TikTok Shop',col:'#ef4444',pct:30,rev:129000000},{name:'Lazada',col:'#2563eb',pct:14,rev:60200000},{name:'Tiki',col:'#1d4ed8',pct:8,rev:34400000}],
+    topProducts:['Sunscreen SPF50','Cleansing Foam','Mask Pack 10ea'],
+    regions:[{name:'Ho Chi Minh',pct:46,orders:6380,rev:197800000},{name:'Hanoi',pct:31,orders:4300,rev:133300000},{name:'Da Nang',pct:11,orders:1526,rev:47300000},{name:'Others',pct:12,orders:1664,rev:51600000}],
+    gender:{male:33,female:65,other:2}, age:[{label:'18-24',pct:34},{label:'25-34',pct:41},{label:'35-44',pct:17},{label:'45+',pct:8}] },
+  360: { name:'Indonesia', flag:'🇮🇩', col:'#f43f5e', coords:[113.92,-2.79], rev:380000000, growth:38.6, aov:27000, orders:14070,
+    channels:[{name:'Shopee',col:'#f97316',pct:50,rev:190000000},{name:'TikTok Shop',col:'#ef4444',pct:28,rev:106400000},{name:'Tokopedia',col:'#22c55e',pct:15,rev:57000000},{name:'Lazada',col:'#2563eb',pct:7,rev:26600000}],
+    topProducts:['Sunscreen SPF50','Cleansing Foam','Lip Tint'],
+    regions:[{name:'Jakarta',pct:48,orders:6754,rev:182400000},{name:'Surabaya',pct:22,orders:3095,rev:83600000},{name:'Bandung',pct:14,orders:1970,rev:53200000},{name:'Others',pct:16,orders:2251,rev:60800000}],
+    gender:{male:30,female:68,other:2}, age:[{label:'18-24',pct:37},{label:'25-34',pct:40},{label:'35-44',pct:16},{label:'45+',pct:7}] },
+};
+const COUNTRIES = IS_DEMO ? DEMO_COUNTRIES : {};
 const ALL = Object.entries(COUNTRIES).map(([iso, d]) => ({ iso: Number(iso), ...d }));
 const TOTAL = ALL.reduce((s, c) => s + c.rev, 0);
 const MAX_R = Math.max(...ALL.map(c => c.rev), 1);

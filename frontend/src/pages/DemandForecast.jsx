@@ -1,15 +1,29 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { IS_DEMO } from '../utils/demoEnv';
 import { useI18n } from '../i18n';
+import { useGlobalData } from '../context/GlobalDataContext.jsx';
 
 /* ── Enterprise Demo Isolation Guard ─── */
 const _isDemo = IS_DEMO; // 180차: 자가가드(startsWith demo — roidemo.* 미매칭) → demoEnv 정본 격리
 
 export default function DemandForecast() {
   const { t } = useI18n();
+  const { inventory = [], orders = [] } = useGlobalData();
   const [activeTab, setActiveTab] = useState(0);
   const tabs = ["Dashboard","SKU Forecast","Seasonality","Model Config"];
-  const kpis = [{"emoji":"🎯","label":"Accuracy","val":"96.2%"},{"emoji":"📦","label":"SKUs Tracked","val":1240},{"emoji":"📊","label":"Forecasts","val":48},{"emoji":"⏰","label":"Next Update","val":"2h"}];
+  // 204차 동기화: KPI를 단일소스(inventory/orders)에서 파생 — 과거 하드코딩(96.2%/1240, IS_DEMO 게이트 없어
+  //   운영에도 날조 노출)을 제거. 실 예측 모델은 미구현이므로 정확도 같은 날조 지표는 표시하지 않는다(정직).
+  const kpis = useMemo(() => {
+    const skuCount = Array.isArray(inventory) ? inventory.length : 0;
+    const trackedSkus = new Set((Array.isArray(orders) ? orders : []).map(o => o.sku).filter(Boolean));
+    const forecastable = trackedSkus.size || skuCount;
+    return [
+      { emoji: "📦", label: t('demandForecast.kpiSkus', 'SKUs Tracked'), val: skuCount },
+      { emoji: "📊", label: t('demandForecast.kpiForecasts', 'Forecastable SKUs'), val: forecastable },
+      { emoji: "🧾", label: t('demandForecast.kpiOrders', 'Order Signals'), val: Array.isArray(orders) ? orders.length : 0 },
+      { emoji: "⏰", label: t('demandForecast.kpiUpdate', 'Next Update'), val: skuCount > 0 ? "2h" : "—" },
+    ];
+  }, [inventory, orders, t]);
 
   return (
     <div style={{ padding: 24, minHeight: "100%", color: "var(--text-1, #1e293b)" }}>
@@ -22,8 +36,8 @@ export default function DemandForecast() {
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
           <span style={{ fontSize: 32 }}>📈</span>
           <div>
-            <div style={{ fontSize: 22, fontWeight: 800, color: "var(--text-1, #1e293b)" }}>📈 AI Demand Forecast</div>
-            <div style={{ fontSize: 13, color: "var(--text-3, #64748b)", marginTop: 2 }}>ML-powered demand prediction with 95%+ accuracy</div>
+            <div style={{ fontSize: 22, fontWeight: 800, color: "var(--text-1, #1e293b)" }}>📈 {t('demandForecast.title', 'AI 수요예측')}</div>
+            <div style={{ fontSize: 13, color: "var(--text-3, #64748b)", marginTop: 2 }}>{t('demandForecast.subtitle', '판매 신호(주문·재고) 기반 SKU 수요예측 — 채널 연동 데이터가 쌓일수록 정밀해집니다.')}</div>
           </div>
         </div>
       </div>

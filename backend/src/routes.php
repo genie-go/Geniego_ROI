@@ -209,10 +209,12 @@ return function (App $app): void {
         'GET /sms/stats'                          => 'Genie\\Handlers\\SmsMarketing::stats',
 
         // ── GDPR / 개인정보 동의 관리 ─────────────────────────────────────
-        'POST /api/gdpr/consent'                  => 'Genie\\Handlers\\GdprConsent::save',
-        'GET /api/gdpr/consent'                   => 'Genie\\Handlers\\GdprConsent::get',
-        'DELETE /api/gdpr/consent'                => 'Genie\\Handlers\\GdprConsent::withdraw',
-        'GET /api/gdpr/stats'                     => 'Genie\\Handlers\\GdprConsent::stats',
+        // 204차: /api 접두 없이 등록(basePath '/api' strip 후 매칭). 과거 '/api/gdpr/*' 등록은
+        //   strip 후 '/gdpr/*' 와 불일치하여 동의 저장이 404 였다(email/crm/channel-sync 와 동일 정정).
+        'POST /gdpr/consent'                      => 'Genie\\Handlers\\GdprConsent::save',
+        'GET /gdpr/consent'                       => 'Genie\\Handlers\\GdprConsent::get',
+        'DELETE /gdpr/consent'                    => 'Genie\\Handlers\\GdprConsent::withdraw',
+        'GET /gdpr/stats'                         => 'Genie\\Handlers\\GdprConsent::stats',
 
         // ── ML 모델 모니터 (드리프트 감지 + 자동 재학습) ─────────────────
         'GET /api/models'                         => 'Genie\\Handlers\\ModelMonitor::listModels',
@@ -1929,11 +1931,11 @@ return function (App $app): void {
     $register('POST',   '/sms/broadcast');
     $register('GET',    '/sms/messages');
     $register('GET',    '/sms/stats');
-    // GDPR
-    $register('POST',   '/api/gdpr/consent');
-    $register('GET',    '/api/gdpr/consent');
-    $register('DELETE', '/api/gdpr/consent');
-    $register('GET',    '/api/gdpr/stats');
+    // GDPR (204차: /api 접두 제거 — basePath strip 정합)
+    $register('POST',   '/gdpr/consent');
+    $register('GET',    '/gdpr/consent');
+    $register('DELETE', '/gdpr/consent');
+    $register('GET',    '/gdpr/stats');
     // ML Model Monitor
     $register('GET',    '/api/models');
     $register('GET',    '/api/models/{id}/metrics');

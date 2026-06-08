@@ -1053,7 +1053,7 @@ function ChannelMixTab({ token }) {
                 <div style={{ flex: 1 }}>
                     <label style={{ fontSize: 11, color: "#7c8fa8", display: "block", marginBottom: 2 }}>{t('priceOpt.totalBudget')}</label>
                     <input type="number" value={budget} onChange={e => setBudget(e.target.value)}
-                        style={{ width: "100%", background: "#f1f5f9", border: "1px solid #e2e8f0", borderRadius: 6, color: '#fff', padding: "7px 10px", fontSize: 13, boxSizing: "border-box" }} />
+                        style={{ width: "100%", background: "#f1f5f9", border: "1px solid #e2e8f0", borderRadius: 6, color: '#0f172a', padding: "7px 10px", fontSize: 13, boxSizing: "border-box" }} />
                 </div>
                 <button className="btn" onClick={run} disabled={loading} style={{ background: "#a855f7", height: 36 }}>
                     {loading ? "⏳" : "🎯 " + t("priceOpt.runChannelMix")}
@@ -1256,7 +1256,7 @@ function PriceCalendarTab({ token, priceCalendar, addPriceCalendarEvent }) {
                         <div key={key} style={{ display:'flex', flexDirection:'column', gap:4 }}>
                             <label style={{ fontSize:10, color:'var(--text-3)', fontWeight:600 }}>{lbl}</label>
                             <input value={form[key]} onChange={e => setForm(f=>({...f,[key]:e.target.value}))}
-                                style={{ padding:'7px 10px', borderRadius:8, background: '#ffffff', border: '1px solid #e2e8f0', color: '#fff', fontSize:12 }} />
+                                style={{ padding:'7px 10px', borderRadius:8, background: '#ffffff', border: '1px solid #e2e8f0', color: '#0f172a', fontSize:12 }} />
                         </div>
                     ))}
                 </div>

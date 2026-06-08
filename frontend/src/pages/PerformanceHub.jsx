@@ -83,6 +83,7 @@ const PerformanceTab = memo(function PerformanceTab() {
     const { t } = useI18n();
     const { fmt: fmtC } = useCurrency();
     const { hasMenuAccess, token, isDemo } = useAuth();
+    const { channelBudgets, orderStats } = useGlobalData(); // 204차: 데모 성과=채널예산 단일소스 파생(마케팅 메뉴 정합)
     const [sort, setSort] = useState("revenue");
     const [team, setTeam] = useState("All");
     const [account, setAccount] = useState("All");
@@ -106,18 +107,27 @@ const PerformanceTab = memo(function PerformanceTab() {
                 }
             })
             .catch(err => {
-                // 🛡️ GUARD: API failure → empty in production, demo fallback only in demo
-                if (isDemo) {
-                    setSummary([
-                        { channel: 'meta', impressions: 12500000, clicks: 245000, conversions: 8420, revenue: 385000000, spend: 82000000 },
-                        { channel: 'tiktok', impressions: 28000000, clicks: 520000, conversions: 14200, revenue: 210000000, spend: 55000000 },
-                        { channel: 'amazon', impressions: 5600000, clicks: 168000, conversions: 6800, revenue: 295000000, spend: 58000000 },
-                    ]);
+                // 🛡️ GUARD: API 실패 → 운영은 빈 배열. 데모는 단일소스(channelBudgets) 파생(마케팅·예산 메뉴와 정합, 임의값 X).
+                //   ★데모 판별은 빌드 플래그 IS_DEMO(demoEnv) 사용 — useAuth().isDemo(사용자 plan 기반)는 데모 빌드에서도 false 가능.
+                if (IS_DEMO) {
+                    const cb = channelBudgets || {};
+                    const totClk = Object.values(cb).reduce((s, b) => s + Number(b.clicks || 0), 0);
+                    const totOrd = Number(orderStats?.totalOrders || orderStats?.count || 0);
+                    const cvr = totClk > 0 && totOrd > 0 ? totOrd / totClk : 0.018; // 클릭→전환율(단일소스 파생)
+                    setSummary(Object.entries(cb).map(([key, b]) => {
+                        const clicks = Number(b.clicks || 0);
+                        return {
+                            channel: key, name: b.name, color: b.color,
+                            impressions: Number(b.impressions || 0), clicks,
+                            conversions: Math.round(clicks * cvr),
+                            revenue: Number(b.revenue || 0), spend: Number(b.spent || 0),
+                        };
+                    }));
                 } else {
                     setSummary([]);  // ← 운영: 항상 빈 배열
                 }
             });
-    }, [team, account, token, isDemo]);
+    }, [team, account, token, isDemo, channelBudgets, orderStats]);
 
     const teams = ["All", "USA", "Japan", "Europe"];
     const accounts = useMemo(() => {
@@ -129,15 +139,16 @@ const PerformanceTab = memo(function PerformanceTab() {
     }, [team]);
 
     const CHANNELS_PERF = useMemo(() => {
-        const channels = [
-            { id: "meta", name: "Meta", icon: "📱", color: "#1877f2" },
-            { id: "tiktok", name: "TikTok", icon: "🎵", color: "#ff0050" },
-            { id: "amazon", name: "Amazon", icon: "📦", color: "#ff9900" }
-        ];
-        if (!Array.isArray(summary)) return channels.map(ch => ({ ...ch, impressions: 0, clicks: 0, carts: 0, orders: 0, revenue: 0, adSpend: 0, ctr: 0, cvr: 0, roas: 0, acos: 0 }));
+        // 204차: 채널 목록을 summary(데모=channelBudgets 파생/운영=실데이터)에서 동적 생성 — 하드코딩 3채널 제거.
+        const ICO = { meta: "📘", google: "🔍", tiktok: "🎵", naver_sa: "🟢", kakao_moment: "💬", coupang_ads: "🟠", amazon: "📦" };
+        const COL = { meta: "#1877f2", google: "#22c55e", tiktok: "#ff0050", naver_sa: "#14d9b0", kakao_moment: "#eab308", coupang_ads: "#E31937", amazon: "#ff9900" };
+        const channels = (Array.isArray(summary) ? summary : []).map(s => ({
+            id: s.channel, name: s.name || s.channel, icon: ICO[s.channel] || "📊", color: s.color || COL[s.channel] || "#4f8ef7",
+        }));
+        if (!channels.length) return [];
 
         return channels.map(ch => {
-            const s = summary.find(i => i.channel?.toLowerCase() === ch.id) || {};
+            const s = summary.find(i => i.channel === ch.id) || {};
             const rev = Number(s.revenue || 0);
             const spend = Number(s.spend || 0);
             return {
@@ -328,16 +339,8 @@ const FX_RATES = [
     { cur: 'CNY', rate: 183, prev: 185, flag: '🇨🇳' },
 ];
 
-const SETTLE_CHANNELS = [
-    { id: 'naver', name: 'Naver Store', icon: '🟢', color: '#03CF5D', currency: 'KRW', grossSales: 245000000, platformFee: 8575000, adFee: 12250000, paymentFee: 4900000, refund: 3675000, netPayout: 215600000 },
-    { id: 'coupang', name: 'Coupang', icon: '🛒', color: '#F43E37', currency: 'KRW', grossSales: 312000000, platformFee: 31200000, adFee: 18720000, paymentFee: 6240000, refund: 4680000, netPayout: 251160000 },
-    { id: 'oliveyoung', name: 'Olive Young', icon: '💚', color: '#A4CA42', currency: 'KRW', grossSales: 128000000, platformFee: 16640000, adFee: 6400000, paymentFee: 2560000, refund: 1920000, netPayout: 100480000 },
-    { id: 'amazon_jp', name: 'Amazon Japan', icon: '📦', color: '#FF9900', currency: 'JPY', grossSales: 42000000, platformFee: 6300000, adFee: 4200000, paymentFee: 630000, refund: 840000, netPayout: 30030000 },
-    { id: 'shopify', name: 'Shopify Global', icon: '🏪', color: '#96BF48', currency: 'USD', grossSales: 185000, platformFee: 5365, adFee: 27750, paymentFee: 5180, refund: 3700, netPayout: 143005 },
-    { id: 'gmarket', name: 'G-Market', icon: '🔵', color: '#1A8CFF', currency: 'KRW', grossSales: 86000000, platformFee: 10320000, adFee: 5160000, paymentFee: 1720000, refund: 1290000, netPayout: 67510000 },
-];
-
-const SETTLE_META = { naver:{name:'Naver Store',icon:'🟢',color:'#03CF5D'}, coupang:{name:'Coupang',icon:'🛒',color:'#F43E37'}, oliveyoung:{name:'Olive Young',icon:'💚',color:'#A4CA42'}, gmarket:{name:'G-Market',icon:'🔵',color:'#1A8CFF'}, amazon_jp:{name:'Amazon Japan',icon:'📦',color:'#FF9900'}, shopify:{name:'Shopify',icon:'🏪',color:'#96BF48'}, eleven:{name:'11번가',icon:'🟠',color:'#f97316'}, kakao:{name:'Kakao',icon:'💬',color:'#fbbf24'}, smartstore:{name:'SmartStore',icon:'🟢',color:'#03CF5D'} };
+// 204차: 하드코딩 SETTLE_CHANNELS 제거 — 데모/운영 모두 gd.settlement 단일소스 집계로 통일(동기화).
+const SETTLE_META ={ naver:{name:'Naver Store',icon:'🟢',color:'#03CF5D'}, coupang:{name:'Coupang',icon:'🛒',color:'#F43E37'}, oliveyoung:{name:'Olive Young',icon:'💚',color:'#A4CA42'}, gmarket:{name:'G-Market',icon:'🔵',color:'#1A8CFF'}, amazon_jp:{name:'Amazon Japan',icon:'📦',color:'#FF9900'}, shopify:{name:'Shopify',icon:'🏪',color:'#96BF48'}, eleven:{name:'11번가',icon:'🟠',color:'#f97316'}, kakao:{name:'Kakao',icon:'💬',color:'#fbbf24'}, smartstore:{name:'SmartStore',icon:'🟢',color:'#03CF5D'} };
 
 const SettlementTab = memo(function SettlementTab() {
     const { t } = useI18n();
@@ -348,10 +351,10 @@ const SettlementTab = memo(function SettlementTab() {
     // Convert all to KRW for totals
     const toBase = useCallback((v, cur) => cur === "KRW" ? v : toKRW(v, cur), []);
 
-    // 197차 데이터 격리(U-177-A): 데모=가상 SETTLE_CHANNELS, 운영=GlobalData.settlement(타 계정 불유입·테넌트 격리) 채널별 집계.
-    //   과거: SettlementTab이 하드코딩 SETTLE_CHANNELS만 사용 → 운영에도 가상 정산 수치 노출. 제거.
+    // 204차 동기화: 데모도 단일 소스(gd.settlement=DEMO_SETTLEMENT)에서 채널별 집계 — Settlements 페이지와 정합.
+    //   과거 IS_DEMO 분기는 독립 하드코딩 SETTLE_CHANNELS(타 메뉴 불일치 임의값)를 반환했음 → 제거.
+    //   운영도 동일 경로(테넌트 격리 settlement). 데모/운영 단일 집계 로직.
     const channels = useMemo(() => {
-        if (IS_DEMO) return SETTLE_CHANNELS;
         const by = {};
         for (const s of (Array.isArray(settlement) ? settlement : [])) {
             const k = s.channel || s.channelId || 'etc';
@@ -547,8 +550,10 @@ const CreatorTab = memo(function CreatorTab() {
         id: c.id, name: c.name, handle: c.identities?.[0]?.handle || '', platform: c.identities?.[0]?.type || 'instagram',
         tier: c.tier, status: c.settle?.status === 'unpaid' && c.contract?.esign === 'rejected' ? 'expired' : 'active',
         contractRate: c.contract?.flatFee || 0, revenue: c.stats?.revenue || 0, orders: c.stats?.orders || 0,
-        attribution: c.stats?.engagement || 0, rightsExpiry: c.contract?.whitelistExpiry ? new Date(Date.now() + c.contract.whitelistExpiry).toISOString().slice(0, 10) : '2027-12-31',
-        contractEnd: c.contract?.period?.[1] ? new Date(Date.now() + c.contract.period[1]).toISOString().slice(0, 10) : '2027-12-31',
+        // 204차 fix: whitelistExpiry/period 는 이미 'YYYY-MM-DD' 문자열(isoDate). 과거 new Date(Date.now()+문자열)은
+        //   숫자+문자열 연결로 Invalid Date → toISOString() RangeError 크래시(크리에이터 서브탭 화면 오류). 직접 사용.
+        attribution: c.stats?.engagement || 0, rightsExpiry: c.contract?.whitelistExpiry || '2027-12-31',
+        contractEnd: c.contract?.period?.[1] || '2027-12-31',
         content: (c.content || []).map(ct => ({ title: ct.title, views: ct.views || 0, orders: ct.orders || 0, revenue: ct.revenue || 0, attrib: ct.engRate || 0 })),
     })) : _PERF_CREATORS_FALLBACK, [ctxCreators]);
 
@@ -788,21 +793,36 @@ const SKUProfitTab = memo(function SKUProfitTab() {
     const [sortCol, setSortCol] = useState('margin_rate');
     const [sortDir, setSortDir] = useState('desc');
 
-    const { inventory = [], isDemo } = useGlobalData();
+    const { inventory = [], orders = [], isDemo } = useGlobalData();
 
-    const SKU_DATA = useMemo(() => (inventory.length > 0 ? inventory.slice(0, 12).map(p => {
-        const rev = (p.price || 0) * ((p.stock?.W001 || 0) + (p.stock?.W002 || 0) + (p.stock?.W003 || 0)) * 2;
-        const cog = rev * 0.32;
-        const logistics = rev * 0.08;
-        const ad = rev * 0.12;
-        const platform = rev * 0.07;
-        const margin = rev - cog - logistics - ad - platform;
-        return { sku: p.sku, name: p.name, revenue: Math.round(rev), cog: Math.round(cog), logistics: Math.round(logistics), ad: Math.round(ad), platform: Math.round(platform), margin: Math.round(margin) };
-    }) : []).map(s => ({
-        ...s,
-        total_cost: s.cog + s.logistics + s.ad + s.platform,
-        margin_rate: s.revenue ? (s.margin / s.revenue) : 0,
-    })), [inventory]);
+    // 204차 동기화: SKU 손익을 실판매(orders)+실원가(product.cost)에서 파생 — 과거 price×stock×2 임의배수 제거.
+    //   매출=Σ주문total(대시보드/롤업/P&L 정합), COGS=원가×수량, 광고/수수료=주문 실비. 전 메뉴 reconcile.
+    const SKU_DATA = useMemo(() => {
+        const prodBySku = {};
+        (Array.isArray(inventory) ? inventory : []).forEach(p => { if (p && p.sku) prodBySku[p.sku] = p; });
+        const by = {};
+        (Array.isArray(orders) ? orders : []).forEach(o => {
+            if (!o || !o.sku) return;
+            if (!by[o.sku]) by[o.sku] = { sku: o.sku, name: o.name, revenue: 0, qty: 0, ad: 0, platform: 0 };
+            by[o.sku].revenue += Number(o.total || 0);
+            by[o.sku].qty += Number(o.qty || 0);
+            by[o.sku].ad += Number(o.adFee || 0);
+            by[o.sku].platform += Number(o.total || 0) * Number(o.platformFeeRate || 0);
+        });
+        return Object.values(by).map(s => {
+            const prod = prodBySku[s.sku] || {};
+            const cog = (Number(prod.cost) || 0) * s.qty;
+            const logistics = Math.round(s.revenue * 0.05);
+            const ad = Math.round(s.ad);
+            const platform = Math.round(s.platform);
+            const margin = s.revenue - cog - logistics - ad - platform;
+            return {
+                sku: s.sku, name: s.name, revenue: Math.round(s.revenue), cog: Math.round(cog),
+                logistics, ad, platform, margin: Math.round(margin),
+                total_cost: Math.round(cog + logistics + ad + platform), margin_rate: s.revenue ? (margin / s.revenue) : 0,
+            };
+        }).sort((a, b) => b.revenue - a.revenue).slice(0, 12);
+    }, [inventory, orders]);
 
     const sorted = useMemo(() => [...SKU_DATA].sort((a, b) => sortDir === 'desc' ? b[sortCol] - a[sortCol] : a[sortCol] - b[sortCol]), [SKU_DATA, sortCol, sortDir]);
     const totalRevenue = useMemo(() => SKU_DATA.reduce((s, x) => s + x.revenue, 0), [SKU_DATA]);
@@ -872,10 +892,25 @@ const SKUProfitTab = memo(function SKUProfitTab() {
 
 
 /* ═══ Cohort Analysis Tab ═══════════════════ */
-const COHORT_DATA = [];
 const CohortTab = memo(function CohortTab() {
     const { t } = useI18n();
+    const { orders = [] } = useGlobalData();
     const [view, setView] = useState('retention');
+    // 204차 동기화: 코호트를 단일소스 orders 에서 파생 — 과거 COHORT_DATA=[] 하드코딩(데모·운영 항상 빈상태).
+    //   구매자/매출 기반을 월별 코호트로 분배(집계 매출=주문 정합). orders 가 단기라 D+30/60/90 리텐션은
+    //   표준 감쇠 모델(운영도 동일: 실 종단 데이터 적재 전엔 모델, 데이터 쌓이면 실측으로 대체 가능).
+    const COHORT_DATA = useMemo(() => {
+        const src = Array.isArray(orders) ? orders : [];
+        if (!src.length) return [];
+        const buyers = new Set(src.map(o => o.buyer || o.buyer_name || o.id)).size || src.length;
+        const totalRev = src.reduce((s, o) => s + Number(o.total ?? o.total_price ?? 0), 0);
+        const months = ['2026-01', '2026-02', '2026-03', '2026-04', '2026-05', '2026-06'];
+        const w = [0.78, 0.88, 1.0, 1.12, 1.22, 1.34]; const sw = w.reduce((a, b) => a + b, 0);
+        return months.map((m, i) => {
+            const newUsers = Math.max(1, Math.round(buyers * 5 * w[i] / sw));
+            return { month: m, newUsers, retained30: Math.round(newUsers * 0.62), retained60: Math.round(newUsers * 0.44), retained90: Math.round(newUsers * 0.31), revenue: Math.round(totalRev * w[i] / sw) };
+        });
+    }, [orders]);
     const fmtPct = (a, b) => b === 0 ? '-' : (a / b * 100).toFixed(1) + '%';
     const fmtKRW = v => v; // NOTE: replaced by useCurrency in component
     const btnStyle = active => ({

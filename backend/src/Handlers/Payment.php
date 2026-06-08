@@ -1606,7 +1606,9 @@ final class Payment
             $pdo=Db::pdo(); $now=self::now();
             $stmt=$pdo->prepare('SELECT COALESCE(u.plans,u.plan,\'demo\') AS plan FROM user_session s JOIN app_user u ON u.id=s.user_id WHERE s.token=? AND s.expires_at>? AND u.is_active=1');
             $stmt->execute([$token,$now]); $user=$stmt->fetch(\PDO::FETCH_ASSOC);
-            return $user && in_array($user['plan'],['admin','enterprise']);
+            // 204차 P0: enterprise 를 admin 으로 인정하던 over-grant 제거(권한상승 차단).
+            //   타 핸들러 게이트(UserAuth::requirePlan('admin')·DbAdmin::requireAdmin)와 정합 — admin plan 만 허용.
+            return $user && $user['plan']==='admin';
         } catch(\Throwable $e){ return false; }
     }
 

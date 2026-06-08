@@ -9,6 +9,29 @@ import { useSecurityGuard, sanitizeInput, detectXSS } from '../security/Security
 import PlanGate from '../components/PlanGate.jsx';
 import { CHANNEL_RATES } from '../constants/channelRates.js';
 import { getJson, postJson } from '../services/apiClient.js';
+import { IS_DEMO } from '../utils/demoEnv';
+
+/* 204차 동기화: 데모는 GlobalDataContext 단일소스(orders/inventory)에서 채널현황을 파생 —
+   과거 5탭이 /api/channel-sync/* 를 호출해 데모서 빈값이었고, OrdersTab 은 전역 orders 를 []로 덮어써
+   Dashboard/PnL/Performance 까지 오염시켰다. WMS(같은 inventory)와도 정합. 운영은 기존 API 경로 유지. */
+function buildDemoOmniStatus(gd) {
+    const orders = Array.isArray(gd?.orders) ? gd.orders : [];
+    const inventory = Array.isArray(gd?.inventory) ? gd.inventory : [];
+    const byCh = {};
+    orders.forEach(o => { const c = o.ch || o.channel || 'etc'; if (!byCh[c]) byCh[c] = { n: 0, rev: 0 }; byCh[c].n++; byCh[c].rev += Number(o.total || o.total_price || 0); });
+    const prodByCh = {};
+    inventory.forEach(p => (p.channels || []).forEach(c => { prodByCh[c] = (prodByCh[c] || 0) + 1; }));
+    const ids = new Set([...Object.keys(byCh), ...Object.keys(prodByCh)]);
+    const channels = [...ids].map(id => {
+        const m = (typeof CHANNELS_MASTER !== 'undefined' ? CHANNELS_MASTER.find(x => x.id === id) : null) || {};
+        return { id, name: m.name || id, icon: m.icon, color: m.color, status: 'ok', product_count: prodByCh[id] || 0, order_count: byCh[id]?.n || 0, revenue: Math.round(byCh[id]?.rev || 0) };
+    });
+    return {
+        channels,
+        totals: { products: inventory.length, orders: orders.length, revenue: Math.round(orders.reduce((s, o) => s + Number(o.total || o.total_price || 0), 0)) },
+        plan: 'enterprise',
+    };
+}
 
 /* ══════════════════════════════════════════════════════════════════
    CONSTANTS & API
@@ -256,12 +279,24 @@ function ChannelTab({ channelStatus, onRefresh, plan, isDemo, t, csIsConnected }
 
 function ProductsTab({ t }) {
     const { fmt } = useCurrency();
+    const { inventory: ctxInv } = useGlobalData();
     const [products, setProducts] = React.useState([]);
     const [loading, setLoading] = React.useState(true);
     const [channel, setChannel] = React.useState('');
     const [search, setSearch] = React.useState('');
 
     const load = React.useCallback(async () => {
+        // 204차 동기화: 데모는 inventory(단일소스) 상품×채널 파생(API 미호출). 운영은 API.
+        if (IS_DEMO) {
+            const rows = [];
+            (Array.isArray(ctxInv) ? ctxInv : []).forEach(p => {
+                const total = p.stock ? Object.values(p.stock).reduce((s, v) => s + Number(v || 0), 0) : Number(p.qty ?? 0);
+                const chans = (p.channels && p.channels.length) ? p.channels : ['naver'];
+                chans.forEach(c => rows.push({ id: `${c}-${p.sku}`, channel: c, channel_product_id: `${String(c).toUpperCase()}-${p.sku}`, name: p.name, sku: p.sku, price: p.price, inventory: Math.round(total / chans.length), category: p.category, status: p.status || 'active' }));
+            });
+            setProducts(channel ? rows.filter(r => r.channel === channel) : rows);
+            setLoading(false); return;
+        }
         setLoading(true);
         try {
             const data = await getJson(`/api/channel-sync/products?limit=100${channel ? '&channel=' + channel : ''}`);
@@ -272,7 +307,7 @@ function ProductsTab({ t }) {
         } finally {
             setLoading(false);
         }
-    }, [channel]);
+    }, [channel, ctxInv]);
 
     React.useEffect(() => { load(); }, [load]);
 
@@ -350,6 +385,9 @@ function OrdersTab({ t }) {
     }, [STATUSES]);
 
     const load = React.useCallback(async () => {
+        // 204차 P0: 데모는 전역 orders(DEMO_ORDERS)를 절대 setOrders([])로 덮어쓰지 않는다(타 메뉴 오염 차단).
+        //   글로벌 orders 를 표시형으로 매핑만 한다. 운영만 API 호출.
+        if (IS_DEMO) { setLoading(false); return; }
         setLoading(true);
         const qs = new URLSearchParams({ limit: '100' });
         if (channel) qs.set('channel', channel);
@@ -367,6 +405,17 @@ function OrdersTab({ t }) {
 
     React.useEffect(() => { load(); }, [load]);
 
+    // 데모: 전역 orders(DEMO_ORDERS) → OmniChannel 표시 스키마로 매핑(상태=현지화 라벨, 채널/상태 필터 적용). 운영=API orders.
+    const _DEMO_ST = React.useMemo(() => ({ paid: STATUSES[0], confirmed: STATUSES[0], preparing: STATUSES[1], shipping: STATUSES[2], delivered: STATUSES[3], cancelled: STATUSES[4], canceled: STATUSES[4], returned: STATUSES[5] }), [STATUSES]);
+    const displayOrders = React.useMemo(() => {
+        if (!IS_DEMO) return orders;
+        return (Array.isArray(orders) ? orders : []).map(o => ({
+            id: o.id, channel: o.ch || o.channel, channel_order_id: o.id, buyer_name: String(o.buyer || '').split(' ')[0] || o.buyer,
+            product_name: o.name || o.product_name, qty: o.qty, total_price: o.total ?? o.total_price,
+            status: _DEMO_ST[o.status] || STATUSES[0], carrier: o.carrier, ordered_at: o.at || o.ordered_at,
+        })).filter(o => (!channel || o.channel === channel) && (!statusFilter || o.status === statusFilter));
+    }, [orders, channel, statusFilter, _DEMO_ST, STATUSES]);
+
     const handleStatusUpdate = React.useCallback(async (orderId, newStatus) => {
         if (isDemo) { alert(t('omniChannel.demoStatusMsg')); return; }
         await postJson(`/api/channel-sync/webhooks/${channel || 'shopify'}`, { order_id: orderId, status: newStatus, event: 'order_update' });
@@ -375,7 +424,7 @@ function OrdersTab({ t }) {
         load();
     }, [isDemo, t, channel, updateOrderStatus, addAlert, load]);
 
-    const summary = React.useMemo(() => STATUSES.map(s => ({ s, cnt: orders.filter(o => o.status === s).length })), [STATUSES, orders]);
+    const summary = React.useMemo(() => STATUSES.map(s => ({ s, cnt: displayOrders.filter(o => o.status === s).length })), [STATUSES, displayOrders]);
 
     return (
         <div style={{ display: 'grid', gap: 14 }}>
@@ -393,7 +442,7 @@ function OrdersTab({ t }) {
                     {CHANNELS_MASTER.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
                 <button style={{ padding: '7px 16px', borderRadius: 8, border: "none", background: "#2563eb", color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer" }} onClick={load}>{"🔄"} {t('omniChannel.btnRefresh')}</button>
-                <span style={{ fontSize: 11, color: '#6b7280', alignSelf: 'center' }}>{t('omniChannel.items').replace('{{n}}', orders.length)}</span>
+                <span style={{ fontSize: 11, color: '#6b7280', alignSelf: 'center' }}>{t('omniChannel.items').replace('{{n}}', displayOrders.length)}</span>
             </div>
             {loading ? <div style={{ textAlign: 'center', padding: 40, color: '#6b7280' }}>{"⏳"} {t('omniChannel.loading')}</div> : (
                 <div style={{ background: "#ffffff", borderRadius: 14, border: "1px solid #e5e7eb", padding: 20, overflowX: 'auto' }}>
@@ -403,8 +452,8 @@ function OrdersTab({ t }) {
                             <th>{t('omniChannel.colQuantity')}</th><th>{t('omniChannel.colAmount')}</th><th>{t('omniChannel.colStatus')}</th><th>{t('omniChannel.colCarrier')}</th><th>{t('omniChannel.colOrderDate')}</th>
                         </tr></thead>
                         <tbody>
-                            {orders.length === 0 && <tr><td colSpan={9} style={{ textAlign: 'center', color: '#6b7280', padding: 32 }}>{t('omniChannel.noData')}</td></tr>}
-                            {orders.map((o, i) => {
+                            {displayOrders.length === 0 && <tr><td colSpan={9} style={{ textAlign: 'center', color: '#6b7280', padding: 32 }}>{t('omniChannel.noData')}</td></tr>}
+                            {displayOrders.map((o, i) => {
                                 const ch = CHANNELS_MASTER.find(c => c.id === o.channel);
                                 const sc = STATUS_COLORS[o.status] || '#666';
                                 return (
@@ -440,6 +489,7 @@ function InventoryTab({ t }) {
     const [channel, setChannel] = React.useState('');
 
     const load = React.useCallback(async () => {
+        if (IS_DEMO) { setLoading(false); return; } // 데모: ctxInventory 단일소스 사용(API 미호출)
         setLoading(true);
         try {
             const data = await getJson(`/api/channel-sync/inventory${channel ? '?channel=' + channel : ''}`);
@@ -454,10 +504,16 @@ function InventoryTab({ t }) {
 
     React.useEffect(() => { load(); }, [load]);
 
+    // 204차 동기화: 데모는 ctxInventory(GlobalData=WMS와 동일 소스)를 omni 스키마로 매핑.
+    //   available=Σstock(WMS 합계와 정합), product_name=name, channel=대표채널. 운영은 API inventory.
     const mergedInv = React.useMemo(() => {
-        if (inv.length > 0) return inv;
-        return ctxInventory || [];
-    }, [inv, ctxInventory]);
+        if (!IS_DEMO) return inv.length > 0 ? inv : (ctxInventory || []);
+        const rows = (ctxInventory || []).map(p => {
+            const total = p.stock ? Object.values(p.stock).reduce((s, v) => s + Number(v || 0), 0) : Number(p.qty ?? p.available ?? 0);
+            return { channel: (p.channels && p.channels[0]) || 'naver', sku: p.sku, product_name: p.name, available: total, reserved: p.safeQty || 0, warehouse: 'W001', synced_at: null, status: p.status };
+        });
+        return channel ? rows.filter(r => r.channel === channel) : rows;
+    }, [inv, ctxInventory, channel]);
 
     return (
         <div style={{ display: 'grid', gap: 14 }}>
@@ -726,6 +782,7 @@ function OmniChannelInner() {
 
     const loadStatus = useCallback(async () => {
         setLoading(true);
+        if (IS_DEMO) { setStatus(buildDemoOmniStatus(globalData)); setLoading(false); return; } // 데모: 단일소스 파생(API 미호출)
         const data = await getJson('/api/channel-sync/status');
         /* Merge Integration Hub connectors into channel status */
         if (hubChannels.length > 0 && data?.channels) {
