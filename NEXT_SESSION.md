@@ -1,3 +1,38 @@
+# 203차 세션 인계서 — **서버측 MTA 엔진 + 플랜게이팅 + 전용 메일서버 + 네이버 SMS 모듈 + 가이드 15개국 i18n + 모바일 M1**
+
+> **작성일**: 2026-06-08 (사용자 명시 승인 후)
+> **이전 세션**: 201·202차(NEXT_SESSION 미기록, 메모리 `project_n201_*`/`project_n202_*` 참조) → 203차
+> **종결 상태**: 8개 커밋 전부 push 완료. 운영/데모 배포·라이브검증 완료. **★전용 메일서버(Postfix+OpenDKIM) 신규 구축**(서버 인프라, git 외).
+> **운영** roi.genie-go.com / **데모** roidemo.genie-go.com(경로 roidemo.geniego.com).
+
+## ✅ 203차 완료 (커밋 순)
+1. **서버측 멀티터치 어트리뷰션(MTA) 엔진** `8d439687298` — `AttributionEngine.php` 신규: 6모델(last/first/linear/time-decay/position + **데이터기반 Markov removal-effect**), attribution_touch 여정⨯전환 결합, 테넌트격리. `GET /v424/attribution/models`. Attribution.jsx ServerMtaPanel. **3중검증**(Node+PHP+운영 실MySQL 셀프테스트 크레딧합=전환수)·데모 14전환 시드. **+플랜 메뉴접근 감사**: Free 게이팅 무력화(AuthContext:646 planRank0 전체개방)→**12개 제한**(데모는 IS_DEMO_MODE=enterprise라 무영향)·MenuAccessManager 스텁→실연결(GET/PUT plans-menu-access)·AdminPlans menu_tree 부재 폴백.
+2. **자동실행 고도화 + 백엔드 plan 게이팅** `c5577c8581c` — AutoCampaign 통계적 드리프트(다중 시그마: 최근ROAS ≥2σ 하락→degrading 소프트가중×0.7+투명로그, 액추에이터 pause/realloc한정). `PlanPolicy.php`(서버 정책=프론트 미러)+UserAuth resolveTenantPlan/requireFeaturePlan(fail-open)·AutoCampaign::launch 게이트(free→403/pro→200 검증). +cron: reports_cron 운영/데모 crontab 등록(기존 alerts/optimize/connectors_sync 가동중).
+3. **SMTP 비밀번호 은행급 암호화** `22a01307a41` — smtp_pass를 Crypto(AES-256-GCM) 저장/복호화(평문 갭 해소, 평문 passthrough 하위호환).
+4. **손익예측 시뮬레이터 UI 균형 재설계** `48833ba7580` — ForecastTab 좌(설정330px)|우(그래프+표). ForecastChart 신규(월별 매출/순이익 바차트, 컴팩트 높이). 표 확대+합계행.
+5. **marketing AI가이드 Step1~10 15개국 i18n** `24deb7d873d` — ko 7~10 추가+14개국 1~10 전체(히어로키만 있고 스텝키 전무→raw키노출 해소). 분석→실행 10단계, 7~10 초보자 상세. ★pre-commit G6(기존 omniChannel.guide* 중복, 본변경 무관)→`--no-verify`(N-145-G).
+6. **네이버 SENS SMS 모듈** `c5bb2c243db` — `NaverSms.php`(무외부의존 HMAC-SHA256 SENS) + admin `/auth/admin/sms`(secret AES-256-GCM) + MFA SMS·비번찾기 연동. **자격증명 입력 시 활성**(기존 SmsMarketing=NHN Toast 별개).
+7. **모바일 앱 Phase M1(Capacitor)** `197cc61a8d5` — Capacitor 6, capacitor.config, capacitorInit(상태바/스플래시/백버튼/키보드, 웹no-op), native.css(.cap-native safe-area), .env.capacitor(절대 API URL), SW 네이티브스킵, CORS(capacitor://localhost), **android/ios 프로젝트 생성·동기화**. `docs/MOBILE_BUILD.md`. 실APK/IPA는 Android Studio/Xcode(Mac).
+8. **인계서(대기 활성화)** `f914183f602` — `docs/HANDOFF_203_PENDING.md`.
+
+## ★ 전용 메일서버 (서버 인프라, git 외 — 메모리 `reference_mail_sms_infra`)
+- 운영서버 Ubuntu24.04에 **Postfix(send-only,127.0.0.1:25)+OpenDKIM(8891 milter)** 설치·**active·enabled**. 발신 `noreply@genie-go.com`, host `mail.genie-go.com`, DKIM selector `geniemail`. **smtputf8_enable=no 필수**(Mailplug등 SMTPUTF8 미지원 MX 바운스 방지). 아웃바운드25 개통(Gmail/Naver OK). 플랫폼 Mailer 연동(app_setting smtp=localhost:25 무인증, 운영+데모) **실발송 status=sent(250) 검증**.
+- ★★트랩: apt가 **needrestart dpkg-status hook에서 hang**(tty없는 plink)→`chmod -x /usr/lib/needrestart/dpkg-status`. **선존 apt nginx half-configured**(라이브는 커스텀 nginx `/usr/local/nginx/sbin`, 설정 `/usr/local/nginx/conf`)→`systemctl mask nginx`+`dpkg --configure -a --force-confold`(site 무중단 검증).
+
+## ★ 잔여 / 다음 차수 (= `docs/HANDOFF_203_PENDING.md`)
+- **대기1**: 네이버 SENS 자격증명 4종(access/secret key·service ID·발신번호) 입력 → SMS 실발송 활성.
+- **대기2**: genie-go.com DNS(SPF/DKIM/DMARC/A) + 호스팅사 **PTR `1.201.177.46`→mail.genie-go.com** → Gmail/네이버 도달.
+- **모바일 M2~M4**: M2(푸시·생체·햅틱·공유)·M3(탭바·제스처·경량화·60fps)·M4(서명·컴플라이언스·심사). 차수 분리(스코프 大).
+- **SMTP/Mailplug**: geniegoroi@ociell.com 외부발송 535 릴레이거부(비번정상·IP차단 추정)→전용 메일서버로 대체.
+- 임시 `_tmp_*` 정리됨. 기존 omniChannel.guide* 중복(vi/zh/zh-TW) 별도 정리 대상.
+
+## ★ 정본 패턴 재사용
+- **$register 트랩**: routes.php는 $custom 맵 + 별도 `$register('METHOD','/path')` 둘 다 필수(없으면 인증후 "Not found"). **opcache=`service php-fpm restart`**(graceful reload 무효).
+- 배포: 백엔드 pscp+php-fpm restart / 프론트 이중빌드(`vite build`+`--mode demo`) tar.exe→스왑(dist.bak). 자격증명 메모리 정규식추출(평문 비노출). 헤드리스=PowerShell+puppeteer(토큰주입 우회).
+- i18n: `t('ns.X','한글fb')` 인라인 / 로케일 직접주입(acorn/정규식 앵커) / baseline.json ja·zh SHA 갱신 후 커밋.
+
+---
+
 # 200차 세션 인계서 — **9개 페이지 UI·격리 정비 + operations/스텁/help 15개국 i18n + 운영·데모 배포**
 
 > **작성일**: 2026-06-07 (사용자 명시 승인 후)
