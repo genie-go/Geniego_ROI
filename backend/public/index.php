@@ -147,9 +147,18 @@ $app->add(function (Request $request, $handler) {
             {
                 try {
                     $pdoAi = Db::pdo();
-                    $sa = $pdoAi->prepare('SELECT 1 FROM api_key WHERE key_hash=? AND is_active=1 LIMIT 1');
+                    // ★ 202차 P1(격리): api_key 인증 시 키의 tenant_id 를 auth_tenant 로 주입 + X-Tenant-Id 강제.
+                    //   기존엔 AI-게이트가 tenant 를 주입하지 않아, api_key 보유자가 핸들러의 raw X-Tenant-Id
+                    //   헤더 폴백(AutoRecommend)으로 타 테넌트 집계지표를 위조 열람할 수 있었다(메인 미들웨어 패턴 미러).
+                    $sa = $pdoAi->prepare('SELECT tenant_id FROM api_key WHERE key_hash=? AND is_active=1 LIMIT 1');
                     $sa->execute([hash('sha256', $bearer)]);
-                    if ($sa->fetchColumn()) { $aiOk = true; }
+                    $keyTenant = $sa->fetchColumn();
+                    if ($keyTenant !== false) {
+                        $aiOk = true;
+                        $request = $request
+                            ->withAttribute('auth_tenant', (string)$keyTenant)
+                            ->withHeader('X-Tenant-Id', (string)$keyTenant);
+                    }
                     if (!$aiOk) {
                         $ss = $pdoAi->prepare('SELECT 1 FROM user_session WHERE token=? LIMIT 1');
                         $ss->execute([$bearer]);

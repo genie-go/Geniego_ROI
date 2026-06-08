@@ -938,14 +938,17 @@ final class Db
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"));
         self::idx($pdo,'CREATE UNIQUE INDEX idx_pg_config_provider ON pg_config(provider)');
 
-        // Toss 테스트 키를 기본으로 삽입 (pg_config 비어있을 때만)
+        // Toss 테스트 키 placeholder 삽입 (pg_config 비어있을 때만).
+        // ★ 202차 보안(P1): is_active=0 으로 시드한다. 과거 is_active=1 은 운영 신규 배포 시
+        //   샌드박스(test_*) 키로 실결제가 라우팅될 위험이 있었다. 결제는 admin 이 실 키를
+        //   등록하고 명시적으로 활성화해야만 동작한다(자동 활성 금지 — 결제 공급자 원칙).
         $pgCount = 0;
         try { $pgCount = (int)$pdo->query('SELECT COUNT(*) FROM pg_config')->fetchColumn(); } catch (\Throwable $e) {}
         if ($pgCount === 0) {
             $pgNow = gmdate('c');
             try {
                 $pdo->prepare(
-                    "INSERT INTO pg_config(provider, client_key, secret_key_enc, is_test, is_active, created_at) VALUES(?,?,?,1,1,?)"
+                    "INSERT INTO pg_config(provider, client_key, secret_key_enc, is_test, is_active, created_at) VALUES(?,?,?,1,0,?)"
                 )->execute([
                     'toss',
                     'test_ck_D5GePWvyJnrK0W0k6q8gLzN97Eoq',
@@ -979,8 +982,10 @@ final class Db
             }
         }
 
+        // 데모(showcase) 전용 기본 계정. ★ 202차 보안(P1): 운영 env 에는 약한 기본 비밀번호
+        //   계정(demo1234/pro1234)을 시드하지 않는다(운영 신규 배포 노출 차단). 데모에서만 시드.
         $userCount = (int)$pdo->query('SELECT COUNT(*) FROM app_user')->fetchColumn();
-        if ($userCount === 0) {
+        if ($userCount === 0 && self::env() === 'demo') {
             $now  = gmdate('c');
             $stmt = $pdo->prepare(
                 'INSERT INTO app_user(email,password_hash,name,plan,company,is_active,created_at) VALUES(?,?,?,?,?,?,?)'

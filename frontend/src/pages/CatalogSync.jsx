@@ -1480,7 +1480,7 @@ const SchedulePanel = memo(function SchedulePanel({ t, addAlert }) {
 /* ─── Tab: Sync Run ─────────────────────────────────────────────────────────── */
 const SyncRunTab = memo(function SyncRunTab({ onJobCreated }) {
     const { t, lang } = useI18n();
-    const { addAlert } = useGlobalData();
+    const { addAlert, isDemo } = useGlobalData();
     const dynamicChannels = useDynamicChannels();
     const [mode, setMode] = useState("incremental"); // full | incremental
     const [selChs, setSelChs] = useState(new Set(["shopify", "coupang"]));
@@ -1503,25 +1503,54 @@ const SyncRunTab = memo(function SyncRunTab({ onJobCreated }) {
     const startSync = async () => {
         if (!selChs.size || !selScp.size) return;
         setRunning(true);
-        const jobId = `JOB-${String(Math.floor(Math.random() * 9000) + 1000)}`;
-        const job = { id: jobId, type: mode, scope: [...selScp], channels: [...selChs], status: "running", progress: 0, total: estimate, done: 0, errors: 0, startedAt: new Date().toLocaleTimeString(LANG_LOCALE_MAP[lang] || 'ko-KR'), duration: "—" };
-        setLiveJob(job);
-
-        let done = 0;
         const t0 = Date.now();
-        intervalRef.current = setInterval(() => {
-            const step = Math.floor(estimate * 0.04) + Math.floor(Math.random() * 20);
-            done = Math.min(estimate, done + step);
-            const prog = Math.round((done / estimate) * 100);
-            const errors = Math.floor(done * 0.003);
-            setLiveJob(j => ({ ...j, progress: prog, done, errors, duration: `${((Date.now() - t0) / 1000).toFixed(0)}s` }));
-            if (done >= estimate) {
-                clearInterval(intervalRef.current);
-                setLiveJob(j => ({ ...j, status: "done", progress: 100, done: estimate }));
-                onJobCreated({ ...job, status: "done", progress: 100, done: estimate, duration: `${((Date.now() - t0) / 1000).toFixed(0)}s` });
-                setRunning(false);
+        const channels = [...selChs];
+        const scope = [...selScp];
+
+        // ── 데모(showcase): 진행률 애니메이션 시뮬레이션 ──────────────────────────
+        if (isDemo) {
+            const jobId = `JOB-${String(Math.floor(Math.random() * 9000) + 1000)}`;
+            const job = { id: jobId, type: mode, scope, channels, status: "running", progress: 0, total: estimate, done: 0, errors: 0, startedAt: new Date().toLocaleTimeString(LANG_LOCALE_MAP[lang] || 'ko-KR'), duration: "—" };
+            setLiveJob(job);
+            let done = 0;
+            intervalRef.current = setInterval(() => {
+                const step = Math.floor(estimate * 0.04) + Math.floor(Math.random() * 20);
+                done = Math.min(estimate, done + step);
+                const prog = Math.round((done / estimate) * 100);
+                const errors = Math.floor(done * 0.003);
+                setLiveJob(j => ({ ...j, progress: prog, done, errors, duration: `${((Date.now() - t0) / 1000).toFixed(0)}s` }));
+                if (done >= estimate) {
+                    clearInterval(intervalRef.current);
+                    setLiveJob(j => ({ ...j, status: "done", progress: 100, done: estimate }));
+                    onJobCreated({ ...job, status: "done", progress: 100, done: estimate, duration: `${((Date.now() - t0) / 1000).toFixed(0)}s` });
+                    setRunning(false);
+                }
+            }, 300);
+            return;
+        }
+
+        // ── 운영: 채널별 실 동기화 API 호출. 가짜 진행률 없이 실측 결과(상품+주문 수)만 집계 ──
+        const jobId = `JOB-${t0.toString().slice(-7)}`;
+        const job = { id: jobId, type: mode, scope, channels, status: "running", progress: 0, total: channels.length, done: 0, errors: 0, startedAt: new Date().toLocaleTimeString(LANG_LOCALE_MAP[lang] || 'ko-KR'), duration: "—" };
+        setLiveJob(job);
+        let processed = 0, synced = 0, errors = 0, lastNote = null;
+        for (const ch of channels) {
+            try {
+                const r = await postJson(`/api/channel-sync/${encodeURIComponent(ch)}/sync`, { scope, mode });
+                if (r?.ok) synced += (Number(r.product_count) || 0) + (Number(r.order_count) || 0);
+                else errors += 1;
+                if (r?.note) lastNote = r.note;
+            } catch (e) {
+                errors += 1;
             }
-        }, 300);
+            processed += 1;
+            setLiveJob(j => ({ ...j, progress: Math.round((processed / channels.length) * 100), done: synced, errors, duration: `${((Date.now() - t0) / 1000).toFixed(0)}s` }));
+        }
+        const finalJob = { ...job, status: "done", progress: 100, done: synced, errors, duration: `${((Date.now() - t0) / 1000).toFixed(0)}s` };
+        setLiveJob(finalJob);
+        onJobCreated(finalJob);
+        if (lastNote && addAlert) addAlert({ type: 'info', msg: `${t('catalogSync.syncRun') || '동기화'}: ${lastNote}` });
+        setRunning(false);
     };
 
     useEffect(() => () => clearInterval(intervalRef.current), []);

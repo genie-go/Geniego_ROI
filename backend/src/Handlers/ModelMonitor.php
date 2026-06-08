@@ -68,10 +68,29 @@ final class ModelMonitor
         )");
     }
 
+    /**
+     * 테넌트 해석 — 위조 불가 권위 소스 우선.
+     *
+     * 1) api_key 미들웨어(index.php)가 주입한 auth_tenant 속성 / X-Tenant-Id 헤더.
+     *    미들웨어가 인증된 키의 tenant_id로 강제 덮어쓰므로 클라이언트 위조 불가.
+     * 2) 세션 토큰(genie_token) → user_session 서버측 도출.
+     * 3) 미인식 → 'demo' (특정 실 테넌트 표적화 불가, showcase 버킷).
+     *
+     * ★ 운영 테넌트가 'demo'로 폴백되어 가짜 ML 데이터가 운영 DB에
+     *   유입되던 결함(전수감사 P0)을 차단하기 위해 1) 권위 소스를 최우선 사용.
+     */
     private static function tenant(Request $req): string
     {
+        // 1) api_key 미들웨어 권위 tenant (위조 불가)
+        $attr = $req->getAttribute('auth_tenant');
+        if (is_string($attr) && $attr !== '' && $attr !== 'demo') return $attr;
+        $hdr = $req->getHeaderLine('X-Tenant-Id');
+        if ($hdr !== '' && strtolower($hdr) !== 'demo') return $hdr;
+
+        // 2) 세션 토큰 → user_session
         $auth = $req->getHeaderLine('Authorization');
-        if (preg_match('/Bearer\s+(\S+)/i', $auth, $m) && $m[1] !== 'demo-token') {
+        if (preg_match('/Bearer\s+(\S+)/i', $auth, $m)
+            && $m[1] !== 'demo-token' && strtolower($m[1]) !== 'demo') {
             try {
                 $s = Db::pdo()->prepare('SELECT user_id FROM user_session WHERE token=? LIMIT 1');
                 $s->execute([$m[1]]);
@@ -79,7 +98,19 @@ final class ModelMonitor
                 if ($r) return (string)$r['user_id'];
             } catch (\Throwable) {}
         }
+
+        // 3) 미인식 → demo
         return 'demo';
+    }
+
+    /**
+     * 데모(showcase) 테넌트 여부. 운영 테넌트는 false → 가짜데이터 시드/시뮬레이션
+     * 일체 차단. CustomerAI(201차 P0-3)·EventNorm(189차) 동일 패턴.
+     */
+    private static function isDemo(string $tenant): bool
+    {
+        $t = strtolower(trim($tenant));
+        return $t === '' || $t === 'demo' || $t === 'demo-token';
     }
 
     // GET /api/models
@@ -93,8 +124,8 @@ final class ModelMonitor
         $stmt->execute([$tenant]);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        if (empty($rows)) {
-            // 데모 초기화
+        if (empty($rows) && self::isDemo($tenant)) {
+            // 데모(showcase) 한정 초기화. 운영 테넌트는 빈 상태 유지(가짜 모델 시드 차단).
             $rows = self::seedDemoModels($pdo, $tenant);
         }
 
@@ -127,7 +158,7 @@ final class ModelMonitor
         $stmt->execute([$modelId, $tenant]);
         $history = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        if (empty($history)) {
+        if (empty($history) && self::isDemo($tenant)) {
             $history = self::demoMetricHistory($modelId);
         }
 
@@ -147,13 +178,33 @@ final class ModelMonitor
         $m = $pdo->prepare("SELECT accuracy FROM ml_models WHERE id=? AND tenant_id=?");
         $m->execute([$modelId, $tenant]);
         $model = $m->fetch(PDO::FETCH_ASSOC);
-        $oldAcc = $model ? (float)$model['accuracy'] : 0.0;
 
-        // 재학습 로그 생성
+        if (!$model) {
+            return TemplateResponder::respond($res, [
+                'ok'      => false,
+                'error'   => 'model_not_found',
+                'message' => '해당 모델을 찾을 수 없습니다.',
+            ]);
+        }
+        $oldAcc = (float)$model['accuracy'];
+
+        if (!self::isDemo($tenant)) {
+            // 운영: 실 재학습 파이프라인 미연결 상태에서 mt_rand 정확도 향상을
+            // DB에 쓰는 것은 데이터 날조이므로 금지. 요청만 큐잉하고 정직하게 반환.
+            $pdo->prepare("INSERT INTO ml_retrain_log(model_id,tenant_id,trigger_type,old_accuracy,status,started_at) VALUES(?,?,?,?,?,?)")
+                ->execute([$modelId, $tenant, 'manual', $oldAcc, 'queued', $now]);
+            return TemplateResponder::respond($res, [
+                'ok'       => true,
+                'model_id' => $modelId,
+                'status'   => 'queued',
+                'message'  => '재학습 요청이 큐에 등록되었습니다. 학습 파이프라인 연결 후 처리됩니다.',
+            ]);
+        }
+
+        // 데모(showcase): 재학습 시뮬레이션
         $pdo->prepare("INSERT INTO ml_retrain_log(model_id,tenant_id,trigger_type,old_accuracy,status,started_at) VALUES(?,?,?,?,?,?)")
             ->execute([$modelId, $tenant, 'manual', $oldAcc, 'running', $now]);
 
-        // 재학습 시뮬레이션: 약간 향상된 정확도
         $newAcc = min(0.999, $oldAcc + (mt_rand(5, 30) / 1000));
         $newDrift = max(0, (mt_rand(0, 50) / 1000)); // 재학습 후 드리프트 낮아짐
 
@@ -185,7 +236,7 @@ final class ModelMonitor
         $stmt->execute([$tenant]);
         $models = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        if (empty($models)) $models = self::demoDriftReport();
+        if (empty($models) && self::isDemo($tenant)) $models = self::demoDriftReport();
 
         return TemplateResponder::respond($res, [
             'ok'      => true,
@@ -209,9 +260,22 @@ final class ModelMonitor
         $stmt->execute([$tenant]);
         $models = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+        // 운영: 실 드리프트 계산 파이프라인 미연결 → mt_rand 점수 날조 금지.
+        // 실 예측 로그 기반 드리프트 계산이 도입되기 전까지 무변경(빈 결과 정직 반환).
+        if (!self::isDemo($tenant)) {
+            return TemplateResponder::respond($res, [
+                'ok'                => true,
+                'checked'           => count($models),
+                'retrain_triggered' => [],
+                'message'           => count($models) > 0
+                    ? '드리프트 계산 파이프라인 연결 후 자동 점검됩니다.'
+                    : '등록된 모델이 없습니다.',
+            ]);
+        }
+
+        // 데모(showcase): 드리프트 점수 시뮬레이션
         $retrainTriggered = [];
         foreach ($models as $m) {
-            // 새 드리프트 점수 시뮬레이션
             $newDrift = (float)$m['drift_score'] + (mt_rand(-20, 30) / 1000);
             $newDrift = max(0, min(0.5, $newDrift));
             $status   = $newDrift < 0.1 ? 'ok' : ($newDrift < 0.2 ? 'warning' : 'critical');

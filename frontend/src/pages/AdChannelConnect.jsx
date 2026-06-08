@@ -63,6 +63,11 @@ const PLATFORMS = [
   },
 ];
 
+// 저장 직후 자동 동기화 매핑 — 광고 성과 ingest 브릿지(/v423/connectors/sync)의
+// 단축 채널명. 자격증명을 등록하면 즉시 performance_metrics 적재가 트리거된다.
+// naver_sa/coupang 은 성과 ingest 대상이 아니므로(별도 트랙) 제외.
+const SYNC_CHANNEL = { meta_ads: 'meta', google_ads: 'google', tiktok_business: 'tiktok' };
+
 export default function AdChannelConnect() {
   const { t } = useI18n();
   const tr = (k, fb) => t(`adConn.${k}`, fb);
@@ -115,6 +120,27 @@ export default function AdChannelConnect() {
         setForms(f => ({ ...f, [p.id]: {} }));   // 저장 후 입력칸 비움(마스킹 표시는 목록 갱신으로)
         setMsg(m => ({ ...m, [p.id]: { text: `${saved}${tr('savedSuffix', '개 항목 저장 완료')}`, ok: true } }));
         await load();
+
+        // 저장 직후 자동 동기화 — 자격증명만 등록하면 즉시 성과 데이터가 적재되도록 트리거.
+        const syncCh = SYNC_CHANNEL[p.id];
+        if (syncCh) {
+          setMsg(m => ({ ...m, [p.id]: { text: tr('syncing', '연동 동기화 중...'), ok: true } }));
+          try {
+            const sr = await postJson('/v423/connectors/sync', { channels: syncCh });
+            const info = sr?.channels?.[syncCh] || {};
+            if (info.status === 'ok') {
+              setMsg(m => ({ ...m, [p.id]: { text: `${saved}${tr('savedSuffix', '개 항목 저장 완료')} · ${tr('syncOk', '성과 동기화 완료')} (${info.rows ?? 0}${tr('rowsSuffix', '행')})`, ok: true } }));
+            } else if (info.status === 'error') {
+              // 저장은 성공, 라이브 fetch 만 실패(토큰 권한/유효성) — 정직하게 안내.
+              setMsg(m => ({ ...m, [p.id]: { text: `${saved}${tr('savedSuffix', '개 항목 저장 완료')} · ${tr('syncFail', '동기화 대기(자격증명/권한 확인 필요)')}`, ok: true } }));
+            } else {
+              setMsg(m => ({ ...m, [p.id]: { text: `${saved}${tr('savedSuffix', '개 항목 저장 완료')}`, ok: true } }));
+            }
+          } catch (se) {
+            // 동기화 실패는 저장 성공을 무효화하지 않음(다음 cron 주기에 재시도).
+            setMsg(m => ({ ...m, [p.id]: { text: `${saved}${tr('savedSuffix', '개 항목 저장 완료')} · ${tr('syncRetry', '동기화는 곧 자동 재시도됩니다')}`, ok: true } }));
+          }
+        }
       }
     } catch (e) {
       setMsg(m => ({ ...m, [p.id]: { text: tr('saveFail', '저장 실패') + ': ' + (e?.message || ''), ok: false } }));

@@ -683,11 +683,12 @@ final class Connectors
         $adAccountId = (string)(getenv('META_AD_ACCOUNT_ID') ?: self::loadCred($tenant, 'meta_ads', 'ad_account_id'));
 
         if ($accessToken === '' || $adAccountId === '') {
+            // 자격증명 미설정 → 빈 상태(가짜 데이터 일체 미반환). 등록 시 라이브 fetch.
             return TemplateResponder::respond($response, [
                 'ok'       => true, 'provider' => 'meta',
                 'live'     => false, 'mock' => false,
                 'note'     => 'API 키를 등록하세요: META_ACCESS_TOKEN, META_AD_ACCOUNT_ID',
-                'rows'     => self::metaMockRows($startDate, $endDate),
+                'rows'     => [],
             ]);
         }
 
@@ -727,35 +728,6 @@ final class Connectors
         ]);
     }
 
-    private static function metaMockRows(string $start, string $end): array
-    {
-        $campaigns = [];
-        $rows = [];
-        $d = strtotime($start); $e = strtotime($end);
-        for ($ts = $d; $ts <= $e && count($rows) < 20; $ts += 86400) {
-            foreach ($campaigns as $c) {
-                $spend = round(rand(5000, 150000) / 100, 2);
-                $clicks = rand(80, 2000);
-                $impr = rand(5000, 80000);
-                $rows[] = [
-                    'campaign_name' => $c,
-                    'date_start'    => date('Y-m-d', $ts),
-                    'date_stop'     => date('Y-m-d', $ts),
-                    'spend'         => $spend,
-                    'impressions'   => $impr,
-                    'clicks'        => $clicks,
-                    'reach'         => (int)($impr * 0.7),
-                    'cpc'           => round($spend / max(1, $clicks), 2),
-                    'cpm'           => round($spend / max(1, $impr) * 1000, 2),
-                    'ctr'           => round($clicks / max(1, $impr) * 100, 2),
-                    'mock' => false,
-                ];
-                if (count($rows) >= 20) break;
-            }
-        }
-        return $rows;
-    }
-
     // ════════════════════════════════════════════════════════════════════════════
     //  Google Ads API (REST API v17)
     // ════════════════════════════════════════════════════════════════════════════
@@ -777,11 +749,12 @@ final class Connectors
         $customerId  = str_replace('-', '', $customerId); // "123-456-7890" → "1234567890"
 
         if ($devToken === '' || $accessToken === '' || $customerId === '') {
+            // 자격증명 미설정 → 빈 상태(가짜 데이터 일체 미반환). 등록 시 라이브 fetch.
             return TemplateResponder::respond($response, [
                 'ok'   => true, 'provider' => 'google_ads',
                 'live' => false, 'mock' => false,
                 'note' => 'API 키를 등록하세요: GOOGLE_DEVELOPER_TOKEN, GOOGLE_ACCESS_TOKEN, GOOGLE_CUSTOMER_ID',
-                'rows' => self::googleMockRows($startDate, $endDate),
+                'rows' => [],
             ]);
         }
 
@@ -834,27 +807,6 @@ final class Connectors
             'ok' => true, 'provider' => 'google_ads', 'live' => true,
             'rows' => $rows, 'params' => compact('startDate', 'endDate', 'customerId'),
         ]);
-    }
-
-    private static function googleMockRows(string $start, string $end): array
-    {
-        $campaigns = [];
-        $rows = []; $d = strtotime($start); $e = strtotime($end);
-        for ($ts = $d; $ts <= $e && count($rows) < 20; $ts += 86400) {
-            foreach ($campaigns as $c) {
-                $clicks = rand(50, 800); $impr = rand(2000, 30000);
-                $cost = round(rand(3000, 80000) / 100, 2);
-                $rows[] = [
-                    'campaign_name' => $c, 'date' => date('Y-m-d', $ts),
-                    'impressions' => $impr, 'clicks' => $clicks, 'cost_krw' => $cost,
-                    'ctr' => round($clicks / max(1, $impr) * 100, 2),
-                    'avg_cpc' => round($cost / max(1, $clicks), 2),
-                    'conversions' => rand(1, 40), 'mock' => false,
-                ];
-                if (count($rows) >= 20) break;
-            }
-        }
-        return $rows;
     }
 
     // ════════════════════════════════════════════════════════════════════════════
@@ -1042,19 +994,31 @@ final class Connectors
         }
 
         // channel_credential 테이블 (API 키 기반)
-        $credChannels = ['meta_ads', 'google_ads', 'naver_searchad', 'coupang'];
+        // ★ 실 컬럼은 channel(기존 channel_key 오타로 항상 예외→미연결 표시되던 버그 수정).
+        //   채널키는 프론트(AdChannelConnect) 정본 사용: tiktok_business / naver_sa.
+        //   레거시 별칭(naver_searchad)도 함께 카운트하여 과거 저장분 호환.
+        $credChannels = [
+            'meta_ads'        => ['meta_ads'],
+            'google_ads'      => ['google_ads'],
+            'tiktok_business' => ['tiktok_business'],
+            'naver_sa'        => ['naver_sa', 'naver_searchad'],
+            'coupang'         => ['coupang'],
+        ];
         $credStatus   = [];
-        foreach ($credChannels as $ch) {
+        foreach ($credChannels as $key => $aliases) {
+            $cnt = 0;
             try {
+                $ph    = implode(',', array_fill(0, count($aliases), '?'));
                 $stmt2 = $pdo->prepare(
-                    'SELECT COUNT(*) AS cnt FROM channel_credential WHERE tenant_id=? AND channel_key=?'
+                    "SELECT COUNT(*) AS cnt FROM channel_credential
+                      WHERE tenant_id=? AND is_active=1 AND channel IN ($ph)"
                 );
-                $stmt2->execute([$tenant, $ch]);
+                $stmt2->execute(array_merge([$tenant], $aliases));
                 $cnt = (int)($stmt2->fetch(PDO::FETCH_ASSOC)['cnt'] ?? 0);
             } catch (\Throwable $e) {
                 $cnt = 0;
             }
-            $credStatus[$ch] = [
+            $credStatus[$key] = [
                 'connected'  => $cnt > 0,
                 'method'     => 'api_key',
                 'key_count'  => $cnt,
@@ -1131,6 +1095,21 @@ final class Connectors
         $wantSet = array_filter(array_map('trim', explode(',', strtolower($want))));
         $wantSet = $wantSet ?: ['meta', 'google', 'tiktok'];
 
+        $result = self::runSync($tenant, $start, $end, $wantSet);
+
+        return TemplateResponder::respond($response, array_merge(['ok' => true], $result));
+    }
+
+    /**
+     * 동기화 코어 — HTTP 핸들러(sync)와 CLI cron(connectors_sync_cron.php) 공용.
+     * 연결된 광고 채널을 라이브 fetch → 정규화 → performance_metrics 멱등 적재.
+     * 자격증명 없는 채널은 건너뛴다(기존 데이터 보존). 라이브 실패 채널도 보존(요약에 error).
+     *
+     * @param string[] $wantSet 동기화 대상 단축 채널명(meta/google/tiktok)
+     * @return array{tenant_id:string,window:array,persisted:int,channels:array}
+     */
+    public static function runSync(string $tenant, string $start, string $end, array $wantSet): array
+    {
         $pdo = Db::pdo();
         $summary  = [];
         $totalRows = 0;
@@ -1164,13 +1143,36 @@ final class Connectors
             $summary[$ch] = ['status' => 'ok', 'rows' => $persisted];
         }
 
-        return TemplateResponder::respond($response, [
-            'ok'         => true,
+        return [
             'tenant_id'  => $tenant,
             'window'     => compact('start', 'end'),
             'persisted'  => $totalRows,
             'channels'   => $summary,
-        ]);
+        ];
+    }
+
+    /**
+     * 광고 자격증명을 보유한 테넌트 목록 — cron 팬아웃용.
+     * channel_credential 의 활성 광고 채널(meta_ads/google_ads/tiktok_business) 보유 테넌트.
+     */
+    public static function tenantsWithAdCreds(): array
+    {
+        $pdo = Db::pdo();
+        try {
+            $stmt = $pdo->query(
+                "SELECT DISTINCT tenant_id FROM channel_credential
+                  WHERE is_active=1
+                    AND channel IN ('meta_ads','google_ads','tiktok_business')
+                    AND tenant_id IS NOT NULL AND tenant_id<>''"
+            );
+            $out = [];
+            foreach ($stmt->fetchAll(PDO::FETCH_COLUMN) as $t) {
+                if ($t !== null && $t !== '') $out[] = (string)$t;
+            }
+            return $out;
+        } catch (\Throwable $e) {
+            return [];
+        }
     }
 
     /**

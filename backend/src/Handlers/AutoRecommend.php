@@ -64,9 +64,11 @@ final class AutoRecommend
             $st = UserAuth::authedTenant($req);
             if (is_string($st) && $st !== '' && strtolower($st) !== 'unknown') return $st;
         } catch (\Throwable $e) {}
+        // ★ 202차 P1(격리): raw X-Tenant-Id 헤더 폴백 제거. api_key 인증 시 AI-게이트(index.php)가
+        //   키의 tenant_id 를 auth_tenant 속성으로 주입(위조 불가)하므로 그 권위 소스만 신뢰한다.
+        //   (과거: 헤더 폴백으로 api_key 보유자가 타 테넌트 집계지표 위조 열람 가능했음.)
         $t = $req->getAttribute('auth_tenant');
-        if (!is_string($t) || $t === '') $t = $req->getHeaderLine('X-Tenant-Id');
-        $t = trim((string)$t);
+        $t = trim((string)(is_string($t) ? $t : ''));
         return ($t === '' || strtolower($t) === 'unknown') ? '' : $t;
     }
 
