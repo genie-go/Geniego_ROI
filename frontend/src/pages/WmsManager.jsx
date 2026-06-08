@@ -8,6 +8,7 @@ import { detectXSS, sanitizeInput } from '../security/SecurityGuard.js';
 
 import ApprovalModal from '../components/ApprovalModal.jsx';
 import { useCurrency } from '../contexts/CurrencyContext.jsx';
+import * as wmsApi from '../services/wmsApi.js';
 
 /* ── BroadcastChannel Cross-Tab Sync ──────────────── */
 const BC_WMS = 'geniego_wms_sync';
@@ -94,36 +95,50 @@ const WarehouseTab = memo(function WarehouseTab({ showForm, setShowForm, showPer
     const [editing, setEditing] = useState(false);
     const isMobile = useIsMobile();
 
+    /* ── 205차: 백엔드 영속화(/api/wms/warehouses). 새로고침 후에도 유지 ── */
+    const reloadWhs = useCallback(async () => {
+        try { const r = await wmsApi.listWarehouses(); if (Array.isArray(r?.warehouses)) setWhs(r.warehouses); } catch {}
+    }, []);
+    useEffect(() => { reloadWhs(); }, [reloadWhs]);
 
     const [permissions, setPermissions] = useState([]);
     const [permForm, setPermForm] = useState({ user: '', role: 'viewer', warehouses: [] });
+    const reloadPerms = useCallback(async () => {
+        try { const r = await wmsApi.listPermissions(); if (Array.isArray(r?.permissions)) setPermissions(r.permissions.map(p => ({ ...p, user: p.user_email }))); } catch {}
+    }, []);
+    useEffect(() => { reloadPerms(); }, [reloadPerms]);
     const ROLES = [
         { id: 'admin', label: t('wms.permRoleAdmin'), color: '#ef4444' },
         { id: 'manager', label: t('wms.permRoleManager'), color: '#f97316' },
         { id: 'operator', label: t('wms.permRoleOperator'), color: '#4f8ef7' },
         { id: 'viewer', label: t('wms.permRoleViewer'), color: '#22c55e' },
     ];
-    const addPermission = () => {
+    const addPermission = async () => {
         if (!permForm.user) return;
-        setPermissions(p => [...p, { ...permForm, id: 'P-' + Date.now().toString(36) }]);
+        try { await wmsApi.createPermission(permForm); await reloadPerms(); } catch (e) { alert(String(e?.message || e)); }
         setPermForm({ user: '', role: 'viewer', warehouses: [] });
     };
-    const removePermission = (id) => setPermissions(p => p.filter(x => x.id !== id));
+    const removePermission = async (id) => {
+        try { await wmsApi.deletePermission(id); await reloadPerms(); } catch (e) { alert(String(e?.message || e)); }
+    };
     const temps = [t("wms.whTempRoom"), t("wms.whTempCold"), t("wms.whTempFrozen"), t("wms.whTempCombi"), t("wms.whTempElec"), t("wms.whTempHazard")];
     const types = [t("wms.whTypeDirect"), t("wms.whType3PL"), t("wms.whTypeRent")];
 
     const reset = () => { setForm({ id: "", name: "", code: "", location: "", area: "", temp: "Room Temp", manager: "", phone: "", type: "Direct", active: true }); setEditing(false); };
-    const save = () => {
+    const save = async () => {
         if (!form.name || !form.code) return alert(t("wms.whNameRequired"));
-        if (editing) {
-            setWhs(p => p.map(w => w.id === form.id ? { ...form } : w));
-        } else {
-            setWhs(p => [...p, { ...form, id: "W" + String(p.length + 1).padStart(3, "0") }]);
-        }
+        try {
+            if (editing && form.id) await wmsApi.updateWarehouse(form.id, form);
+            else await wmsApi.createWarehouse(form);
+            await reloadWhs();
+        } catch (e) { return alert(String(e?.message || e)); }
         reset(); setShowForm(false);
     };
     const editWh = (w) => { setForm({ ...w }); setEditing(true); setShowForm(true); };
-    const toggleActive = (id) => setWhs(p => p.map(w => w.id === id ? { ...w, active: !w.active } : w));
+    const toggleActive = async (id) => {
+        const w = whs.find(x => x.id === id); if (!w) return;
+        try { await wmsApi.updateWarehouse(id, { ...w, active: !w.active }); await reloadWhs(); } catch (e) { alert(String(e?.message || e)); }
+    };
 
     const f = form;
     const setF = (k, v) => setForm(p => ({ ...p, [k]: v }));
@@ -251,6 +266,19 @@ const InOutTab = memo(function InOutTab({ whs }) {
     const { t } = useI18n();
     const { inOutHistory, registerInOut } = useGlobalData();
     const {isDemo} = useAuth();
+    /* ── 205차: 입출고 이력 백엔드 영속화(/api/wms/movements). 감사추적·새로고침 후 유지 ── */
+    const [beMoves, setBeMoves] = useState([]);
+    const reloadMoves = useCallback(async () => {
+        try {
+            const r = await wmsApi.listMovements(300);
+            if (Array.isArray(r?.movements)) setBeMoves(r.movements.map(m => ({
+                id: 'BE' + m.id, type: m.type, sku: m.sku, name: m.name, qty: Number(m.qty) || 0,
+                whId: m.wh_id, unit: Number(m.unit) || 0, memo: m.memo, ref: m.ref, reason: m.reason,
+                ts: m.created_at, by: '-',
+            })));
+        } catch {}
+    }, []);
+    useEffect(() => { reloadMoves(); }, [reloadMoves]);
     const [filter, setFilter] = useState('All');
     const [searchTxt, setSearchTxt] = useState('');
     const [form, setForm] = useState({ type: 'Inbound', whId: 'W001', destWhId: '', sku: '', name: '', qty: '', unit: '', memo: '', ref: '', reason: '' });
@@ -289,23 +317,27 @@ const InOutTab = memo(function InOutTab({ whs }) {
             return;
         }
         // ✅ GlobalDataContext.registerInOut() → Stock Auto Change + Notification
-        registerInOut({
+        const payload = {
             type: form.type,
             sku: form.sku,
             qty: Number(form.qty),
             whId: form.whId,
+            destWhId: form.destWhId,
             name: form.name,
             unit: Number(form.unit || 0),
             memo: form.memo,
             ref: form.ref,
             reason: form.reason,
             by: 'User',
-        });
+        };
+        registerInOut(payload);
+        // 205차: 백엔드 영속(감사추적). 실패해도 로컬 동작 유지
+        wmsApi.createMovement(payload).then(reloadMoves).catch(() => {});
         setForm({ type: 'Inbound', whId: 'W001', destWhId: '', sku: '', name: '', qty: '', unit: '', memo: '', ref: '', reason: '' });
         setShowForm(false);
     };
 
-    const filtered = inOutHistory.filter(r => {
+    const filtered = [...beMoves, ...inOutHistory].filter(r => {
         const q = searchTxt.trim().toLowerCase();
         const matchType = filter === 'All' || r.type === filter;
         const matchQ = !q || r.sku.toLowerCase().includes(q) || (r.name || '').toLowerCase().includes(q) || (r.ref || '').toLowerCase().includes(q);
@@ -869,15 +901,30 @@ const CarrierTab = memo(function CarrierTab() {
     const [testing, setTesting] = useState({});    // { [id]: 'loading'|'ok'|'fail' }
     const [apiInputs, setApiInputs] = useState({}); // inline API key input temporary value
 
+    /* ── 205차: 백엔드 영속화(/api/wms/carriers). api_key 는 서버 AES-256-GCM 저장·마스킹 반환 ── */
+    const reloadCarriers = useCallback(async () => {
+        try {
+            const r = await wmsApi.listCarriers();
+            if (Array.isArray(r?.carriers)) setCarriers(r.carriers.map(c => ({ ...c, trackUrl: c.trackUrl || c.track_url || '', apiKey: c.api_key || '' })));
+        } catch {}
+    }, []);
+    useEffect(() => { reloadCarriers(); }, [reloadCarriers]);
+
     const reset = () => { setForm({ id: "", name: "", code: "", type: "Domestic", country: "KR", trackUrl: "", apiKey: "", active: true }); setEditing(false); };
-    const save = () => {
+    const save = async () => {
         if (!form.name || !form.code) return alert(t('wms.carrNameRequired'));
-        if (editing) { setCarriers(p => p.map(c => c.id === form.id ? { ...form } : c)); }
-        else { setCarriers(p => [...p, { ...form, id: "C" + String(Date.now()).slice(-6) }]); }
+        try {
+            if (editing && form.id) await wmsApi.updateCarrier(form.id, form);
+            else await wmsApi.createCarrier(form);
+            await reloadCarriers();
+        } catch (e) { return alert(String(e?.message || e)); }
         reset(); setShowForm(false);
     };
     const editC = (c) => { setForm({ ...c }); setEditing(true); setShowForm(true); };
-    const toggleActive = (id) => setCarriers(p => p.map(c => c.id === id ? { ...c, active: !c.active } : c));
+    const toggleActive = async (id) => {
+        const c = carriers.find(x => x.id === id); if (!c) return;
+        try { await wmsApi.updateCarrier(id, { ...c, active: !c.active }); await reloadCarriers(); } catch (e) { alert(String(e?.message || e)); }
+    };
 
     // API Integration Test — /api/carrier-track endpoint
     const testApi = async (id) => {
@@ -885,8 +932,9 @@ const CarrierTab = memo(function CarrierTab() {
         const key = apiInputs[id] ?? carrier.apiKey;
         if (!key || key.trim() === '') { alert(t('wms.carrApiKeyRequired')); return; }
         setTesting(p => ({ ...p, [id]: 'loading' }));
-        // Save API key immediately
+        // Save API key immediately (로컬 + 백엔드 영속)
         setCarriers(p => p.map(c => c.id === id ? { ...c, apiKey: key } : c));
+        try { await wmsApi.updateCarrier(id, { ...carrier, apiKey: key }); } catch {}
 
         try {
             const token = localStorage.getItem('genie_token');
@@ -913,11 +961,13 @@ const CarrierTab = memo(function CarrierTab() {
         }
     };
 
-    const saveApiKey = (id) => {
+    const saveApiKey = async (id) => {
         const key = apiInputs[id];
         if (!key) return;
+        const carrier = carriers.find(c => c.id === id);
         setCarriers(p => p.map(c => c.id === id ? { ...c, apiKey: key } : c));
         setApiInputs(p => { const n = { ...p }; delete n[id]; return n; });
+        try { if (carrier) { await wmsApi.updateCarrier(id, { ...carrier, apiKey: key }); await reloadCarriers(); } } catch {}
     };
 
     const TYPE_COLORS = { "Domestic": "#22c55e", "IntlExpress": "#4f8ef7", "IntlPost": "#a855f7", "Freight": "#eab308", "SameDay": "#ef4444" };
@@ -1356,13 +1406,26 @@ const LotManagementTab = memo(function LotManagementTab({ lotManagement, registe
     const { t } = useI18n();
     const [form, setForm] = React.useState({ sku:'', name:'', lotNo:'', mfgDate:'', expiryDate:'', qty:0, wh:'W001' });
     const [saved, setSaved] = React.useState(false);
-    const Lots = [];
-    const allLots = [...Lots, ...lotManagement];
     const today = new Date();
+    /* ── 205차: 백엔드 영속화(/api/wms/lots, FEFO 정렬). 새로고침 후에도 유지 ── */
+    const [beLots, setBeLots] = React.useState([]);
+    const reloadLots = React.useCallback(async () => {
+        try {
+            const r = await wmsApi.listLots();
+            if (Array.isArray(r?.lots)) setBeLots(r.lots.map(l => ({
+                id: l.id, sku: l.sku, name: l.name, lotNo: l.lot_no, mfgDate: l.mfg_date,
+                expiryDate: l.expiry_date, qty: Number(l.qty) || 0, wh: l.wh_id,
+                daysLeft: l.expiry_date ? Math.ceil((new Date(l.expiry_date) - new Date()) / (86400000)) : 9999,
+            })));
+        } catch {}
+    }, []);
+    React.useEffect(() => { reloadLots(); }, [reloadLots]);
+    const allLots = [...beLots, ...lotManagement];
     const expiringSoon = allLots.filter(l => l.daysLeft <= 30);
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         const expiry = new Date(form.expiryDate);
         const daysLeft = Math.ceil((expiry - today) / (1000*60*60*24));
+        try { await wmsApi.createLot(form); await reloadLots(); } catch {}
         registerLot({ ...form, daysLeft });
         setSaved(true);
         setTimeout(() => { setSaved(false); setForm({ sku:'', name:'', lotNo:'', mfgDate:'', expiryDate:'', qty:0, wh:'W001' }); }, 2000);

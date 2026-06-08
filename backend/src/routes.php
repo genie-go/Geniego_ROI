@@ -115,6 +115,30 @@ return function (App $app): void {
         'GET /journey/journeys/{id}/stats'     => 'Genie\\Handlers\\JourneyBuilder::journeyStats',
         'GET /journey/templates'               => 'Genie\\Handlers\\JourneyBuilder::listTemplates',
 
+        // ── 창고 관리(WMS) 영속화 — 205차 신설(useState→백엔드) ────────────
+        'GET /wms/warehouses'                  => 'Genie\\Handlers\\Wms::listWarehouses',
+        'POST /wms/warehouses'                 => 'Genie\\Handlers\\Wms::saveWarehouse',
+        'PUT /wms/warehouses/{id}'             => 'Genie\\Handlers\\Wms::saveWarehouse',
+        'DELETE /wms/warehouses/{id}'          => 'Genie\\Handlers\\Wms::deleteWarehouse',
+        'GET /wms/carriers'                    => 'Genie\\Handlers\\Wms::listCarriers',
+        'POST /wms/carriers'                   => 'Genie\\Handlers\\Wms::saveCarrier',
+        'PUT /wms/carriers/{id}'               => 'Genie\\Handlers\\Wms::saveCarrier',
+        'DELETE /wms/carriers/{id}'            => 'Genie\\Handlers\\Wms::deleteCarrier',
+        'GET /wms/permissions'                 => 'Genie\\Handlers\\Wms::listPermissions',
+        'POST /wms/permissions'                => 'Genie\\Handlers\\Wms::savePermission',
+        'DELETE /wms/permissions/{id}'         => 'Genie\\Handlers\\Wms::deletePermission',
+        'GET /wms/movements'                   => 'Genie\\Handlers\\Wms::listMovements',
+        'POST /wms/movements'                  => 'Genie\\Handlers\\Wms::createMovement',
+        'GET /wms/picking'                     => 'Genie\\Handlers\\Wms::listPicking',
+        'POST /wms/picking'                    => 'Genie\\Handlers\\Wms::savePicking',
+        'PUT /wms/picking/{id}'                => 'Genie\\Handlers\\Wms::savePicking',
+        'GET /wms/supply-orders'               => 'Genie\\Handlers\\Wms::listSupplyOrders',
+        'POST /wms/supply-orders'              => 'Genie\\Handlers\\Wms::saveSupplyOrder',
+        'PUT /wms/supply-orders/{id}'          => 'Genie\\Handlers\\Wms::saveSupplyOrder',
+        'GET /wms/lots'                        => 'Genie\\Handlers\\Wms::listLots',
+        'POST /wms/lots'                       => 'Genie\\Handlers\\Wms::createLot',
+        'DELETE /wms/lots/{id}'                => 'Genie\\Handlers\\Wms::deleteLot',
+
         // ── Customer AI (이탈 예측 + LTV + 구매확률 + 상품추천 + 모델성능) ────
         'GET /customer-ai/churn-scores'        => 'Genie\\Handlers\\CustomerAI::churnScores',
         'GET /customer-ai/ltv-segments'        => 'Genie\\Handlers\\CustomerAI::ltvSegments',
@@ -1900,6 +1924,29 @@ return function (App $app): void {
     $register('POST',   '/journey/journeys/{id}/launch');
     $register('GET',    '/journey/journeys/{id}/stats');
     $register('GET',    '/journey/templates');
+    // 창고 관리(WMS) 영속화 — 205차
+    $register('GET',    '/wms/warehouses');
+    $register('POST',   '/wms/warehouses');
+    $register('PUT',    '/wms/warehouses/{id}');
+    $register('DELETE', '/wms/warehouses/{id}');
+    $register('GET',    '/wms/carriers');
+    $register('POST',   '/wms/carriers');
+    $register('PUT',    '/wms/carriers/{id}');
+    $register('DELETE', '/wms/carriers/{id}');
+    $register('GET',    '/wms/permissions');
+    $register('POST',   '/wms/permissions');
+    $register('DELETE', '/wms/permissions/{id}');
+    $register('GET',    '/wms/movements');
+    $register('POST',   '/wms/movements');
+    $register('GET',    '/wms/picking');
+    $register('POST',   '/wms/picking');
+    $register('PUT',    '/wms/picking/{id}');
+    $register('GET',    '/wms/supply-orders');
+    $register('POST',   '/wms/supply-orders');
+    $register('PUT',    '/wms/supply-orders/{id}');
+    $register('GET',    '/wms/lots');
+    $register('POST',   '/wms/lots');
+    $register('DELETE', '/wms/lots/{id}');
     // Customer AI
     $register('GET',    '/customer-ai/churn-scores');
     $register('GET',    '/customer-ai/ltv-segments');

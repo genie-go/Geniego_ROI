@@ -1,3 +1,47 @@
+# 205차 세션 인계서 — **WMS 백엔드 영속화 신설(P0 #1) + 운영/데모 배포·라이브검증**
+
+> **작성일**: 2026-06-08 (사용자 명시 승인 후)
+> **이전 세션**: 204차 → 205차
+> **종결 상태**: 백엔드 3파일(신규 `Wms.php` + `routes.php`/`index.php` 수정) + 프론트 2파일(신규 `wmsApi.js` + `WmsManager.jsx` 수정) = 5파일. **운영/데모 배포·라이브 e2e 검증 완료**. 본 인계서 커밋과 함께 push(사용자 승인).
+> **운영** roi.genie-go.com / **데모** roidemo.genie-go.com(경로 roidemo.geniego.com). 메모리 `project_n205_wms_backend`.
+
+## ✅ 205차 완료 — WMS 백엔드 영속화 (204차 로드맵 1순위 #1)
+
+**문제**: WmsManager.jsx 가 useState 만 사용 → 새로고침 시 창고·택배사·권한·입출고·LOT 전부 소실(P0). inventory 만 ChannelSync(`/api/channel-sync/inventory`)로 영속화돼 있었고 나머지는 백엔드 전무.
+
+**수정·배포·검증 완료**:
+- **신규 `backend/src/Handlers/Wms.php`** — 7개 엔터티 테넌트 격리 + MySQL/SQLite 드라이버 분기 + `ensureTables` 자동생성:
+  `wms_warehouses`(창고) / `wms_carriers`(택배사, api_key **AES-256-GCM**+마스킹반환) / `wms_permissions`(창고권한) / `wms_movements`(입출고 감사추적) / `wms_picking`(피킹) / `wms_supply_orders`(자동발주) / `wms_lots`(LOT/유통기한, **FEFO 정렬** `ORDER BY (expiry_date IS NULL), expiry_date ASC`). 인증=`UserAuth::requirePro`, 테넌트=`authedTenant`(위조 X-Tenant-Id 무시).
+- **`routes.php`** — 24개 라우트 `$custom` 맵 + `$register` **둘 다** 등록(★/api strip 트랩 대비 `/api` 없이 등록). **`index.php`** bypass에 `/api/wms/`·`/wms/` 추가(세션 self-auth 도달).
+- **신규 `frontend/src/services/wmsApi.js`** — `/api/wms/*` 클라이언트(getJsonAuth/requestJsonAuth). 데모/운영 분리는 백엔드(GENIE_ENV별 DB)+테넌트 격리로 처리(프론트 분기 불요).
+- **`WmsManager.jsx` 5개 탭 배선**(load on mount + persist on mutation): WarehouseTab(창고+권한) / CarrierTab(택배사, 키 마스킹·테스트저장) / LotManagementTab(LOT/FEFO) / InOutTab(입출고 이력=registerInOut+createMovement 병행). picking/supply-orders 백엔드는 구현됐으나 **프론트 미배선**(잔여, 아래 참조).
+- **배포**: 백엔드 운영/데모 pscp+lint+chown www:www+php-fpm restart(.bak.205 백업). 프론트 이중빌드(prod=`WmsManager-C9UXZcLt.js`, demo=`WmsManager-DxnUo-GD.js`) tar→dist swap(dist.bak.205).
+- **라이브 검증**: ①운영 무인증 401(404/500 아님=라우트 도달) ②**운영 인증 e2e**: 관리자 로그인→창고 생성(id=1·테이블 자동생성)→조회(영속 확인)→삭제 정리 **전부 PASS** ③서빙 번들에 `/api/wms`+전 서브경로(warehouses/carriers/lots/movements/permissions) 반영 ④데모 라우트 도달 401.
+
+## ⏭️ 다음 작업 — 순서대로 진행 (★최우선, 204차 로드맵 잔여 승계)
+
+### 1순위 — 로드맵 P0 (다중파일 백엔드 신규구축, 차수 단위)
+0. **WMS 잔여 배선(소규모)** — 백엔드 `wms_picking`/`wms_supply_orders` 는 구현 완료, 프론트 PickingListTab/ReceivingTab/ReplenishmentTab 이 GlobalDataContext(`pickingLists`/`supplyOrders` useState[])를 통해서만 동작 → wmsApi.listPicking/createPicking·listSupplyOrders/createSupplyOrder 로 load/persist 배선(WarehouseTab 패턴 재사용). + WMS `wms_inventory(lot/location/available/reserved)` 실재고 테이블·ChannelSync `channel_inventory` 양방향 동기화는 별도 증분.
+1. **commerce 자동 폴링 cron 신설** — `backend/bin/commerce_sync_cron.php`: 자격증명 보유 전 테넌트 커머스 채널 5분 간격 주문/재고 폴링(현 connectors_sync_cron은 광고 performance_metrics 전용). Shopify/네이버 webhook 우선+폴링 백업. ★OrderHub writer(#3)와 연계.
+2. **JourneyBuilder 실행러너 신설** — 현 executeNode는 enroll 시 첫노드만+email_queued 로그만(Mailer 미연동). `backend/bin/journey_cron.php`+edge 순회+delay resume+condition 평가+Mailer/KakaoChannel/NaverSms 실발송 배선.
+3. **OrderHub claims/settlements writer** — `orderhub_claims`·`orderhub_settlements` INSERT 경로 0(읽기만 빈테이블). 채널 정산 CSV/API ingest writer.
+4. **광고 쓰기 OAuth** — `/oauth/{vendor}/authorize_url`·`exchange_code` 501 셸. Meta(ads_management)/Google(adwords+dev token)/TikTok 동의 리다이렉트 → `AD_EXECUTION_ENABLED=1` → AdAdapters PAUSED 라이브 검증.
+5. **DemandForecast 실모델** — 현 KPI는 inventory 파생(204차)이나 예측 알고리즘 미구현. Holt-Winters/SARIMA(최소 이동평균+계절분해) 서버측.
+6. **PriceOpt/SupplyChain 영속화** — `sqlite::memory:`(요청마다 소실+미격리). Db::pdo()+tenant_id+auth_tenant 격리(ChannelSync 패턴), public bypass 제외.
+
+### 2순위 — 잔여 정합/보안
+- **C2 AIInsights** IS_DEMO 폴백 정리(데모서 미발화=영향0).
+- **TOTP replay 차단** — verifyTotp에 mfa_last_step 단조증가(로그인 임계경로라 신중).
+- **Rollup 실집계 운영 데이터** — 운영 사용자는 실 channel_orders/performance_metrics 집계(데이터 없으면 빈). 데이터 적재(commerce 폴링·OrderHub writer) 후 충실.
+
+### 정본 패턴 (205차 재확인)
+- **WMS 영속 패턴**: 탭 마운트 시 `wmsApi.listX()` → setState, 변경 시 `createX/updateX/deleteX` → reload. 데모/운영 분리는 **백엔드 GENIE_ENV별 DB + 테넌트 격리**(프론트 IS_DEMO 분기 불요 — 창고/택배사는 GlobalDataContext 단일소스 대상 아닌 독립 config 엔터티).
+- **★/api strip + bypass + $register 3종 세트**: ①routes.php `/api` 없이 등록 ②index.php bypass에 `/api/X/`·`/X/` 둘 다 ③$custom맵+$register 둘 다. 신규 핸들러 클래스는 **php-fpm restart**(opcache, reload 무효).
+- **drift 가드**: 서버 hash vs git HEAD 가 CRLF/LF 차이로 불일치할 수 있음 → PowerShell `>` 리다이렉트는 git 출력 UTF-16 손상(CLAUDE.md 트랩), **Bash로 byte diff**(sed CRLF 정규화 후) 재확인. 205차 routes/index = 내용 동일(드리프트0, 줄바꿈만).
+- 배포: 백엔드 pscp+chown www:www+fpm restart / 프론트 이중빌드(VITE_DEMO_MODE) tar→swap(dist.bak.205). 자격증명 메모리 정규식추출($env:SSHPW). 데모 경로=roidemo.geniego.com(URL은 하이픈 genie-go.com).
+
+---
+
 # 204차 세션 인계서 — **전수 보안감사 + P0/P1 + 데모 단일소스 동기화 전수 전환 + 데모 UI 6항목**
 
 > **작성일**: 2026-06-08 (사용자 명시 승인 후)
