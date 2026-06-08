@@ -501,6 +501,8 @@ return function (App $app): void {
         'POST /api/v424/marketing/auto-recommend' => 'Genie\\Handlers\\AutoRecommend::recommend',
         'GET /v424/marketing/benchmarks'          => 'Genie\\Handlers\\AutoRecommend::benchmarks',
         'GET /api/v424/marketing/benchmarks'      => 'Genie\\Handlers\\AutoRecommend::benchmarks',
+        'PUT /v424/marketing/benchmarks'          => 'Genie\\Handlers\\AutoRecommend::updateBenchmarks',
+        'PUT /api/v424/marketing/benchmarks'      => 'Genie\\Handlers\\AutoRecommend::updateBenchmarks',
 
         // ── v424 admin plans (169차 사용자 발견 issue fix — 플랜별 구독요금 설정) ──
         'GET /v424/admin/plans'                         => 'Genie\\Handlers\\AdminPlans::list',
@@ -2013,6 +2015,8 @@ return function (App $app): void {
     $register('POST', '/api/v424/marketing/auto-recommend');
     $register('GET', '/v424/marketing/benchmarks');
     $register('GET', '/api/v424/marketing/benchmarks');
+    $register('PUT', '/v424/marketing/benchmarks');
+    $register('PUT', '/api/v424/marketing/benchmarks');
 
     // ── V424 admin plans (169차 사용자 발견 issue) ──
     $register('GET',    '/v424/admin/plans');

@@ -301,14 +301,29 @@ class AutoCampaign
             return ['optimized' => false, 'reason' => '성과 데이터가 아직 충분하지 않습니다. 채널 집행·데이터 수집 후 자동 최적화됩니다.', 'metrics' => $metrics];
         }
 
-        // ROAS 기반 가중치. 손해(ROAS<1.0) 채널은 예산 회수(가중 0). 데이터 없으면 중립.
+        // ── 가드레일(캠페인별 설정 override, 202차 초고도화) ──────────────────────
+        //   min_roas: 이 미만이면 손실로 보고 회수(기본 1.0). zero_conv_spend_floor: 전환 0인데
+        //   이만큼 이상 지출하면 낭비로 보고 자동 정지(이상감지). max_daily: 채널 일예산 상한(과지출 가드).
+        $gr = json_decode((string)($camp['guardrails'] ?? '{}'), true) ?: [];
+        $minRoas = isset($gr['min_roas']) ? (float)$gr['min_roas'] : self::PAUSE_FLOOR;
+        $zeroConvFloor = isset($gr['zero_conv_spend_floor']) ? (float)$gr['zero_conv_spend_floor'] : 50000.0;
+        $maxDaily = isset($gr['max_daily']) && $gr['max_daily'] !== null ? (int)$gr['max_daily'] : 0; // 0=미적용
+
+        // ROAS 기반 가중치 + 이상감지(zero-conv 낭비/손실 채널 자동 회수). 데이터 없으면 중립.
         $weights = []; $decisions = [];
         foreach ($channels as $ch) {
             $m = $metrics[$ch];
             if (!$m['has_data']) { $weights[$ch] = 0.5; continue; }
-            if ($m['roas'] < self::PAUSE_FLOOR && count($channels) > 1) {
+            // ① 이상감지: 지출은 있는데 전환 0 (낭비) → 즉시 회수(다채널 시).
+            if ($m['conversions'] === 0 && $m['spend'] >= $zeroConvFloor && count($channels) > 1) {
                 $weights[$ch] = 0.0;
-                $decisions[] = ['channel' => $ch, 'action' => 'pause', 'old' => $oldMap[strtolower($ch)] ?? 0, 'new' => 0, 'roas' => $m['roas'], 'ctr' => $m['ctr'], 'reason' => "ROAS {$m['roas']} < 1.0 (손해) → 예산 회수·일시정지"];
+                $decisions[] = ['channel' => $ch, 'action' => 'pause', 'old' => $oldMap[strtolower($ch)] ?? 0, 'new' => 0, 'roas' => $m['roas'], 'ctr' => $m['ctr'], 'reason' => "이상감지: 지출 ₩" . number_format($m['spend']) . " 대비 전환 0건 (낭비) → 자동 회수·정지"];
+                continue;
+            }
+            // ② 손실 채널: ROAS < min_roas → 회수.
+            if ($m['roas'] < $minRoas && count($channels) > 1) {
+                $weights[$ch] = 0.0;
+                $decisions[] = ['channel' => $ch, 'action' => 'pause', 'old' => $oldMap[strtolower($ch)] ?? 0, 'new' => 0, 'roas' => $m['roas'], 'ctr' => $m['ctr'], 'reason' => "ROAS {$m['roas']} < {$minRoas} (손실) → 예산 회수·일시정지"];
             } else {
                 $weights[$ch] = max(0.05, (float)$m['roas']);
             }
@@ -352,6 +367,7 @@ class AutoCampaign
                 $rr = AdAdapters::pause($pdo, $tenant, $connKey, $extId);
             } else {
                 $daily = max(1000, (int)round(((int)($d['new'] ?? 0)) / max(1, $pdays) / 100) * 100);
+                if ($maxDaily > 0) $daily = min($daily, $maxDaily); // 일예산 상한 가드(과지출 차단)
                 $rr = AdAdapters::updateBudget($pdo, $tenant, $connKey, $extId, $daily);
             }
             $d['actuated'] = !empty($rr['ok']);

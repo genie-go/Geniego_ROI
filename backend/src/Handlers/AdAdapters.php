@@ -117,6 +117,7 @@ final class AdAdapters
         try {
             switch ($channel) {
                 case 'meta_ads':        return self::metaUpdateBudget($pdo, $tenant, $externalId, $newDaily);
+                case 'google_ads':      return self::googleUpdateBudget($pdo, $tenant, $externalId, $newDaily);
                 case 'tiktok_business': return self::tiktokUpdateBudget($pdo, $tenant, $externalId, $newDaily);
                 case 'naver_sa':        return self::naverUpdateBudget($pdo, $tenant, $externalId, $newDaily);
                 default:                return ['ok' => false, 'status' => 'unsupported'];
@@ -131,6 +132,7 @@ final class AdAdapters
         try {
             switch ($channel) {
                 case 'meta_ads':        return self::metaSetStatus($pdo, $tenant, $externalId, 'PAUSED');
+                case 'google_ads':      return self::googleSetStatus($pdo, $tenant, $externalId, 'PAUSED');
                 case 'tiktok_business': return self::tiktokSetStatus($pdo, $tenant, $externalId, 'DISABLE');
                 case 'naver_sa':        return self::naverSetLock($pdo, $tenant, $externalId, true);
                 default:                return ['ok' => false, 'status' => 'unsupported'];
@@ -198,6 +200,41 @@ final class AdAdapters
         $campRes = $cr['results'][0]['resourceName'] ?? '';
         if ($campRes === '') return self::fail('Google 캠페인 생성 실패: ' . (self::errMsg($cr) ?: ('HTTP ' . $cc)));
         return self::ok($campRes, 'paused', 'Google 캠페인 생성(PAUSED)');
+    }
+    /** Google 캠페인 상태 변경(최적화 액추에이터 — 일시정지/재개). extId = customers/{cid}/campaigns/{id}. */
+    private static function googleSetStatus(PDO $pdo, string $tenant, string $extId, string $status): array
+    {
+        $dev   = self::cred($pdo, $tenant, 'google_ads', 'developer_token');
+        $token = self::cred($pdo, $tenant, 'google_ads', 'access_token');
+        if ($dev === '' || $token === '' || $extId === '') return ['ok' => false, 'status' => 'no_credentials'];
+        if (!preg_match('#customers/(\d+)/#', $extId, $mm)) return ['ok' => false, 'error' => 'bad_external_id'];
+        $cid = $mm[1];
+        $hdr = ['Authorization: Bearer ' . $token, 'developer-token: ' . $dev, 'Content-Type: application/json', 'login-customer-id: ' . $cid];
+        $base = "https://googleads.googleapis.com/" . self::GOOGLE_VER . "/customers/{$cid}";
+        $body = json_encode(['operations' => [['update' => ['resourceName' => $extId, 'status' => $status], 'updateMask' => 'status']]]);
+        [$code, $res] = self::http('POST', "{$base}/campaigns:mutate", $hdr, $body);
+        return ($code >= 200 && $code < 300) ? ['ok' => true] : ['ok' => false, 'error' => self::errMsg($res)];
+    }
+    /** Google 캠페인 일예산 변경 — 캠페인의 campaignBudget 리소스를 조회 후 amountMicros 갱신. */
+    private static function googleUpdateBudget(PDO $pdo, string $tenant, string $extId, int $daily): array
+    {
+        $dev   = self::cred($pdo, $tenant, 'google_ads', 'developer_token');
+        $token = self::cred($pdo, $tenant, 'google_ads', 'access_token');
+        if ($dev === '' || $token === '' || $extId === '') return ['ok' => false, 'status' => 'no_credentials'];
+        if (!preg_match('#customers/(\d+)/#', $extId, $mm)) return ['ok' => false, 'error' => 'bad_external_id'];
+        $cid = $mm[1];
+        $hdr = ['Authorization: Bearer ' . $token, 'developer-token: ' . $dev, 'Content-Type: application/json', 'login-customer-id: ' . $cid];
+        $base = "https://googleads.googleapis.com/" . self::GOOGLE_VER . "/customers/{$cid}";
+        // 1) 캠페인의 campaign_budget 리소스명 조회(GAQL)
+        $gaql = "SELECT campaign.campaign_budget FROM campaign WHERE campaign.resource_name = '{$extId}'";
+        [$sc, $sr] = self::http('POST', "{$base}/googleAds:searchStream", $hdr, json_encode(['query' => $gaql]));
+        $budgetRes = $sr[0]['results'][0]['campaign']['campaignBudget']
+            ?? ($sr['results'][0]['campaign']['campaignBudget'] ?? '');
+        if ($budgetRes === '') return ['ok' => false, 'error' => 'budget_not_found'];
+        // 2) campaignBudget amountMicros 갱신
+        $body = json_encode(['operations' => [['update' => ['resourceName' => $budgetRes, 'amountMicros' => (string)((int)$daily * 1000000)], 'updateMask' => 'amount_micros']]]);
+        [$code, $res] = self::http('POST', "{$base}/campaignBudgets:mutate", $hdr, $body);
+        return ($code >= 200 && $code < 300) ? ['ok' => true] : ['ok' => false, 'error' => self::errMsg($res)];
     }
 
     /* ════════════════════════ TikTok ════════════════════════ */
