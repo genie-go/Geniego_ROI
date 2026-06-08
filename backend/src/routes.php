@@ -670,6 +670,10 @@ return function (App $app): void {
         'GET /auth/admin/smtp'               => 'Genie\\Handlers\\UserAuth::smtpGet',
         'POST /auth/admin/smtp'              => 'Genie\\Handlers\\UserAuth::smtpSave',
         'POST /auth/admin/smtp/test'         => 'Genie\\Handlers\\UserAuth::smtpTest',
+        // 203차 — 네이버 SENS SMS 설정(관리자)
+        'GET /auth/admin/sms'                => 'Genie\\Handlers\\UserAuth::smsGet',
+        'POST /auth/admin/sms'               => 'Genie\\Handlers\\UserAuth::smsSave',
+        'POST /auth/admin/sms/test'          => 'Genie\\Handlers\\UserAuth::smsTest',
         'GET /auth/admin/ai-key'             => 'Genie\\Handlers\\UserAuth::aiKeyGet',
         'POST /auth/admin/ai-key'            => 'Genie\\Handlers\\UserAuth::aiKeySave',
         'GET /auth/admin/img-key'            => 'Genie\\Handlers\\UserAuth::imgKeyGet',
@@ -1492,6 +1496,9 @@ return function (App $app): void {
     $register('GET',  '/auth/admin/smtp');
     $register('POST', '/auth/admin/smtp');
     $register('POST', '/auth/admin/smtp/test');
+    $register('GET',  '/auth/admin/sms');
+    $register('POST', '/auth/admin/sms');
+    $register('POST', '/auth/admin/sms/test');
     $register('GET',  '/auth/admin/ai-key');
     $register('POST', '/auth/admin/ai-key');
     $register('GET',  '/auth/admin/img-key');

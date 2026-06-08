@@ -1470,11 +1470,12 @@ final class UserAuth
         $pdo->prepare('INSERT INTO password_reset(token,user_id,expires_at,created_at) VALUES(?,?,?,?)')->execute([$rtok, $u['id'], $exp, $now]);
         self::audit($req, 'password_reset_request', '비밀번호 재설정 본인확인 통과: ' . $email, 'high', $u + ['email' => $email]);
 
-        // 190차 Sprint4: 이메일 발송 인프라 — SMTP 설정 시 재설정 링크를 메일로 발송하고
-        //   응답에서 토큰을 제거(탈취위험 해소). 미설정 시 기존 본인확인 기반(토큰 반환) 폴백 유지(무회귀).
+        // 190차+203차: 재설정 링크를 이메일(SMTP) + 문자(네이버 SENS) 로 발송하고 응답에서 토큰 제거.
+        //   둘 다 미설정/실패 시 기존 본인확인 기반(인라인 토큰) 폴백(무회귀).
+        $link = 'https://roi.genie-go.com/login?reset=' . urlencode($rtok);
+        $emailSent = false; $smsSent = false;
         if (\Genie\Mailer::isConfigured($pdo)) {
             $safeName = htmlspecialchars($name, ENT_QUOTES, 'UTF-8');
-            $link = 'https://roi.genie-go.com/login?reset=' . urlencode($rtok);
             $body = \Genie\Mailer::wrapHtml(
                 '비밀번호 재설정 안내',
                 "<p>안녕하세요 {$safeName}님,</p>"
@@ -1485,12 +1486,22 @@ final class UserAuth
                 $link
             );
             $mr = \Genie\Mailer::send($email, '[Geniego-ROI] 비밀번호 재설정 안내', $body, ['pdo' => $pdo]);
-            if (!empty($mr['ok'])) {
-                return self::json($res, ['ok' => true, 'email_sent' => true, 'message' => '비밀번호 재설정 링크를 이메일로 보냈습니다. 메일함(스팸함 포함)을 확인하세요. (15분 유효)']);
-            }
+            $emailSent = !empty($mr['ok']);
         }
-        // 폴백: 이메일 인프라 미설정/발송실패 → 본인확인 기반 인라인 재설정(토큰 반환)
-        return self::json($res, ['ok' => true, 'reset_token' => $rtok, 'email_sent' => false, 'message' => '본인확인이 완료되었습니다. 새 비밀번호를 설정하세요.']);
+        // 203차: SMS(네이버 SENS) — 계정에 전화 등록 + SMS 설정 시 재설정 링크 문자 발송.
+        if ($dbPhone !== '' && \Genie\NaverSms::isConfigured($pdo)) {
+            $sr = \Genie\NaverSms::sendPlatform($pdo, $dbPhone, "[GeniegoROI] 비밀번호 재설정 링크(15분 유효): {$link}");
+            $smsSent = !empty($sr['ok']);
+        }
+        if ($emailSent || $smsSent) {
+            $ch = [];
+            if ($emailSent) $ch[] = '이메일';
+            if ($smsSent)   $ch[] = '문자(SMS)';
+            return self::json($res, ['ok' => true, 'email_sent' => $emailSent, 'sms_sent' => $smsSent,
+                'message' => implode('·', $ch) . '(으)로 비밀번호 재설정 링크를 보냈습니다. (15분 유효)']);
+        }
+        // 폴백: 이메일·SMS 인프라 미설정/발송실패 → 본인확인 기반 인라인 재설정(토큰 반환)
+        return self::json($res, ['ok' => true, 'reset_token' => $rtok, 'email_sent' => false, 'sms_sent' => false, 'message' => '본인확인이 완료되었습니다. 새 비밀번호를 설정하세요.']);
     }
 
     public static function resetPassword(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
@@ -1669,6 +1680,63 @@ final class UserAuth
         $r = \Genie\Mailer::send($to, '[Geniego-ROI] SMTP 테스트 메일', $html, ['pdo' => $pdo]);
         if (empty($r['ok'])) return self::json($res, ['ok' => false, 'error' => '발송 실패: ' . (string)($r['error'] ?? '알 수 없는 오류')], 502);
         return self::json($res, ['ok' => true, 'message' => "{$to} 로 테스트 메일을 보냈습니다. 메일함(스팸 포함)을 확인하세요."]);
+    }
+
+    // ── 203차 — 네이버 SENS SMS 설정(관리자) : 비밀번호찾기·MFA OTP 문자 발송 ──
+    //   app_setting sms_* 에 저장(secret_key 는 Crypto 암호화) → NaverSms 가 플랫폼 발송 시 사용.
+    /** GET /auth/admin/sms — 현재 SMS(네이버 SENS) 설정(시크릿 마스킹). */
+    public static function smsGet(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
+    {
+        [$user, $err] = self::requireAdminUser($req);
+        if ($err) return self::json($res, ['ok' => false, 'error' => $err[0]], $err[1]);
+        $pdo = Db::pdo(); self::ensureAppSetting($pdo);
+        $g = fn($k) => self::getAppSetting($pdo, $k);
+        $configured = false; try { $configured = \Genie\NaverSms::isConfigured($pdo); } catch (\Throwable $e) {}
+        return self::json($res, ['ok' => true, 'sms' => [
+            'provider'   => 'naver',
+            'access_key' => $g('sms_access_key'),
+            'service_id' => $g('sms_service_id'),
+            'from'       => $g('sms_from'),
+            'secret_set' => $g('sms_secret_key') !== '',   // 시크릿 자체 미반환(설정 여부만)
+        ], 'configured' => $configured]);
+    }
+
+    /** POST /auth/admin/sms — SMS 설정 저장. secret_key 비우면 기존 유지(암호화 저장). */
+    public static function smsSave(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
+    {
+        [$user, $err] = self::requireAdminUser($req);
+        if ($err) return self::json($res, ['ok' => false, 'error' => $err[0]], $err[1]);
+        $pdo = Db::pdo(); self::ensureAppSetting($pdo);
+        $b = self::readBody($req);
+        $accessKey = trim((string)($b['access_key'] ?? ''));
+        $serviceId = trim((string)($b['service_id'] ?? ''));
+        $from      = preg_replace('/[^0-9]/', '', (string)($b['from'] ?? ''));
+        if ($accessKey === '' || $serviceId === '') return self::json($res, ['ok' => false, 'error' => 'Access Key 와 Service ID 를 입력하세요.'], 422);
+        if ($from === '') return self::json($res, ['ok' => false, 'error' => '발신번호를 입력하세요(네이버에 사전 등록된 번호).'], 422);
+        self::setAppSetting($pdo, 'sms_provider', 'naver');
+        self::setAppSetting($pdo, 'sms_access_key', $accessKey);
+        self::setAppSetting($pdo, 'sms_service_id', $serviceId);
+        self::setAppSetting($pdo, 'sms_from', $from);
+        // 203차: SENS secret key 은행급 암호화 저장(AES-256-GCM). 빈값=기존 유지.
+        if (isset($b['secret_key']) && (string)$b['secret_key'] !== '') self::setAppSetting($pdo, 'sms_secret_key', \Genie\Crypto::encrypt((string)$b['secret_key']));
+        self::audit($req, 'sms_config', '네이버 SMS 설정 변경', 'high', $user);
+        $configured = false; try { $configured = \Genie\NaverSms::isConfigured($pdo); } catch (\Throwable $e) {}
+        return self::json($res, ['ok' => true, 'message' => 'SMS 설정이 저장되었습니다.', 'configured' => $configured]);
+    }
+
+    /** POST /auth/admin/sms/test {to} — 테스트 SMS 발송. */
+    public static function smsTest(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
+    {
+        [$user, $err] = self::requireAdminUser($req);
+        if ($err) return self::json($res, ['ok' => false, 'error' => $err[0]], $err[1]);
+        $pdo = Db::pdo(); self::ensureAppSetting($pdo);
+        $b = self::readBody($req);
+        $to = preg_replace('/[^0-9]/', '', (string)($b['to'] ?? ''));
+        if ($to === '') return self::json($res, ['ok' => false, 'error' => '수신 휴대폰 번호를 입력하세요.'], 422);
+        if (!\Genie\NaverSms::isConfigured($pdo)) return self::json($res, ['ok' => false, 'error' => 'SMS가 아직 설정되지 않았습니다. 먼저 설정을 저장하세요.'], 400);
+        $r = \Genie\NaverSms::sendPlatform($pdo, $to, '[GeniegoROI] SMS 테스트 발송 — 설정이 정상 동작합니다.');
+        if (empty($r['ok'])) return self::json($res, ['ok' => false, 'error' => '발송 실패: ' . (string)($r['detail'] ?? '알 수 없는 오류')], 502);
+        return self::json($res, ['ok' => true, 'message' => "{$to} 로 테스트 SMS를 보냈습니다."]);
     }
 
     // ── 196차 — 플랫폼 AI(Claude/Anthropic) API 키 설정(관리자). 실 AI 디자인·분석 활성화. ──
@@ -2136,7 +2204,7 @@ final class UserAuth
     private static function mfaMethodConfigured(string $method, \PDO $pdo): bool
     {
         if ($method === 'email') return \Genie\Mailer::isConfigured($pdo);
-        if ($method === 'sms')   return trim((string)getenv('SMS_PROVIDER')) !== '';
+        if ($method === 'sms')   return \Genie\NaverSms::isConfigured($pdo);
         if ($method === 'kakao') return trim((string)getenv('KAKAO_ALIMTALK_KEY')) !== '';
         return false;
     }
@@ -2172,7 +2240,15 @@ final class UserAuth
             if (empty($r['ok'])) return ['sent'=>false,'error'=>'send_failed','msg'=>'이메일 발송에 실패했습니다. 잠시 후 다시 시도하세요.'];
             return ['sent'=>true,'msg'=>'인증 코드를 이메일로 보냈습니다. 메일함(스팸 포함)을 확인하세요.'];
         }
-        // sms/kakao: 제공자 설정 시에만 도달(미설정은 위에서 게이트). 실제 제공자 연동 자리(자격증명 확보 시 구현).
+        // 203차: SMS = 네이버 SENS 실발송(NaverSms). 미설정은 위 게이트에서 차단.
+        if ($method === 'sms') {
+            $to = preg_replace('/[^0-9]/', '', (string)($user['phone'] ?? $user['mobile'] ?? ''));
+            if ($to === '') return ['sent'=>false,'error'=>'no_phone','msg'=>'등록된 휴대폰 번호가 없습니다. 프로필에서 번호를 등록하세요.'];
+            $r = \Genie\NaverSms::sendPlatform($pdo, $to, "[GeniegoROI] 인증코드 {$code} — 5분 이내 입력하세요.");
+            if (empty($r['ok'])) return ['sent'=>false,'error'=>'send_failed','msg'=>'SMS 발송에 실패했습니다. 잠시 후 다시 시도하세요.'];
+            return ['sent'=>true,'msg'=>'인증 코드를 SMS로 보냈습니다. 휴대폰을 확인하세요.'];
+        }
+        // kakao: 제공자 설정 시에만 도달. 실제 연동 자리(자격증명 확보 시 구현).
         return ['sent'=>false,'error'=>'provider_not_implemented','msg'=>'해당 제공자 발송이 아직 구현되지 않았습니다.'];
     }
 
