@@ -989,6 +989,95 @@ const RadarChart = memo(function RadarChart({ data, channels, colors, size = 220
   );
 });
 
+/* ── 203차 서버측 데이터기반 멀티터치(MTA) 패널 ──────────────────────────
+   /v424/attribution/models 호출 — 서버가 1st-party 터치 여정에서 6개 모델
+   (라스트/퍼스트/선형/시간감쇠/U자형 + 데이터기반 Markov removal-effect)을
+   권위 있게 계산. 클라이언트 추정(MODEL_COMPARE_DATA)과 달리 실측·감사가능·테넌트 일관.
+   데모/운영 공통: 빈 결과(터치 미축적) 시 안내만. */
+const MTA_MODEL_META = [
+  { id: 'markov',         label: '데이터기반 (Markov)', color: '#22c55e', tag: '권위' },
+  { id: 'time_decay',     label: '시간감쇠',           color: '#6366f1' },
+  { id: 'position_based', label: 'U자형 (위치기반)',    color: '#4f8ef7' },
+  { id: 'linear',         label: '선형',               color: '#f59e0b' },
+  { id: 'last_touch',     label: '라스트터치',         color: '#ef4444' },
+  { id: 'first_touch',    label: '퍼스트터치',         color: '#a855f7' },
+];
+
+const ServerMtaPanel = memo(function ServerMtaPanel() {
+  const t = useT();
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let alive = true;
+    getJsonAuth('/v424/attribution/models?window=90')
+      .then(r => { if (alive) setData(r || null); })
+      .catch(() => { if (alive) setData(null); })
+      .finally(() => { if (alive) setLoading(false); });
+    return () => { alive = false; };
+  }, []);
+
+  const rows = (data && Array.isArray(data.channels)) ? data.channels : [];
+  const converted = Number(data?.converted || 0);
+
+  return (
+    <div className="card card-glass" style={{ borderColor: 'rgba(34,197,94,0.28)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 6 }}>
+        <span style={{ fontWeight: 900, fontSize: 13 }}>🧬 {t('attrData.serverMtaTitle', '서버 데이터기반 멀티터치 (권위)')}</span>
+        <Tag label={t('attrData.serverMtaBadge', '1st-party 실측')} color="#22c55e" />
+        {converted > 0 && <span style={{ fontSize: 11, color: 'var(--text-3)' }}>· {t('attrData.serverMtaConv', '전환')} {converted.toLocaleString()} · {t('attrData.serverMtaWindow', '최근')} {Number(data?.window_days || 90)}{t('attrData.serverMtaDays', '일')}</span>}
+      </div>
+      <div style={{ fontSize: 11, color: 'var(--text-3)', marginBottom: 12, lineHeight: 1.6 }}>
+        {t('attrData.serverMtaDesc', '서버가 attribution_touch 여정을 전환과 결합해 6개 모델을 계산합니다. Markov removal-effect(제거 효과)는 채널 부재 시 전환 손실을 측정하는 데이터기반(data-driven) 어트리뷰션입니다.')}
+      </div>
+      {loading ? (
+        <div style={{ padding: '24px 0', textAlign: 'center', color: 'var(--text-3)', fontSize: 12 }}>{t('attrData.serverMtaLoading', '서버 어트리뷰션 계산 중…')}</div>
+      ) : rows.length === 0 ? (
+        <div style={{ padding: '20px 0', textAlign: 'center', color: 'var(--text-3)', fontSize: 12 }}>
+          {t('attrData.serverMtaEmpty', '전환에 연결된 터치 여정이 아직 없습니다. 픽셀/터치 수집 + 전환 스코어링 후 자동 반영됩니다.')}
+        </div>
+      ) : (
+        <div style={{ overflowX: 'auto' }}>
+          <table className="table">
+            <thead>
+              <tr>
+                <th>{t('attrData.colChannel', 'Channel')}</th>
+                {MTA_MODEL_META.map(m => (
+                  <th key={m.id} style={{ color: m.color, whiteSpace: 'nowrap' }}>
+                    {m.tag ? `★ ${m.label}` : m.label}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map(row => {
+                const total = Math.max(0, converted);
+                return (
+                  <tr key={row.channel}>
+                    <td style={{ fontWeight: 800, textTransform: 'capitalize' }}>{CH_LABELS[row.channel] || row.channel}</td>
+                    {MTA_MODEL_META.map(m => {
+                      const v = Number(row[m.id] || 0);
+                      const pct = total > 0 ? (v / total * 100) : 0;
+                      return (
+                        <td key={m.id} style={{ color: m.tag ? m.color : 'var(--text-2)', fontWeight: m.tag ? 800 : 600, whiteSpace: 'nowrap' }}>
+                          {v.toFixed(2)} <span style={{ fontSize: 10, color: 'var(--text-3)' }}>({pct.toFixed(1)}%)</span>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+          <div style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 8 }}>
+            {t('attrData.serverMtaFoot', '값 = 모델별 채널 전환 크레딧(합 = 총 전환). ★ Markov = 데이터기반 권장 모델.')}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+});
+
 const ModelCompareTab = memo(function ModelCompareTab() {
   const t = useT();
   const { channels, models } = MODEL_COMPARE_DATA;
@@ -996,8 +1085,11 @@ const ModelCompareTab = memo(function ModelCompareTab() {
 
   if (_JOURNEYS.length === 0) {
     return (
-      <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-3)' }}>
-        {t('attrData.noTimeSeriesData', '기여도 산출에 필요한 시계열 데이터가 없습니다.')}
+      <div style={{ display: 'grid', gap: 16 }}>
+        <ServerMtaPanel />
+        <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-3)' }}>
+          {t('attrData.noTimeSeriesData', '기여도 산출에 필요한 시계열 데이터가 없습니다.')}
+        </div>
       </div>
     );
   }
@@ -1015,6 +1107,7 @@ const ModelCompareTab = memo(function ModelCompareTab() {
 
   return (
     <div style={{ display: 'grid', gap: 16 }}>
+      <ServerMtaPanel />
       <div style={{ padding: '12px 16px', borderRadius: 12, background: 'rgba(99,102,241,0.07)', border: '1px solid rgba(99,102,241,0.2)', fontSize: 12, color: 'var(--text-2)', lineHeight: 1.7 }}>
         🕸️ <strong style={{ color: '#6366f1' }}>A-Score</strong> — {t('attrData.compareDescText', '5가지 주요 어트리뷰션 모델 기여도를 레이더 차트로 비교하고, 결과 일치도를 기반으로 신뢰도(A-Score)를 산정합니다.')}
       </div>

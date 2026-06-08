@@ -1,167 +1,213 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useAuth } from '../auth/AuthContext.jsx';
 import { useI18n } from '../i18n/index.js';
+import { getJsonAuth, requestJsonAuth } from '../services/apiClient.js';
+import { MEMBER_MENU } from '../layout/sidebarManifest.js';
+import { requiredPlanForMenu, isAdminOnlyMenu, PLAN_TIER_RANK } from '../auth/planMenuPolicy.js';
 
-const SYSTEM_MENUS = [
-    { catKey: "menuAccess.catDash", catDef: "홈 대시보드", items: ["요약 대시보드", "실시간 모니터링", "알림 피드"] },
-    { catKey: "menuAccess.catAI", catDef: "AI 자동화 & 룰 엔진", items: ["통합 AI 캠페인 빌더", "캠페인 관리", "고객 여정 빌더", "신규 메뉴관리자 접근권한"] },
-    { catKey: "menuAccess.catAds", catDef: "광고/채널 분석", items: ["광고 성과 분석", "마케팅 인텔리전스", "어트리뷰션 분석", "채널 KPI 대시보드", "디지털 셀프"] },
-    { catKey: "menuAccess.catCRM", catDef: "고객 CRM & 메신저", items: ["CRM 세그먼트", "이메일 마케팅", "카카오 채널", "인스타그램 DM", "문자 발송"] },
-    { catKey: "menuAccess.catComm", catDef: "커머스 통합 & 물류", items: ["멀티 채널 관리", "주문 통합 허브", "WMS 창고 관리", "AI 가격 최적화"] }
-];
+/**
+ * 203차 재구축 — 플랜별 메뉴 접근 권한 관리(실 백엔드 연결).
+ *
+ * 기존: 하드코딩 라벨 + handleSave=alert(스텁, menuKey 불일치). 전수감사에서 "admin 이 UI 로
+ *   plan_menu_access 를 저장할 방법이 없음" 갭으로 발견됨.
+ * 본 버전:
+ *   - 행(메뉴): sidebarManifest 의 coarse menuKey(admin 전용 제외) — planMenuPolicy SSOT 와 동일.
+ *   - 열(플랜): GET /v424/admin/plans-menu-access 의 plan_config(free/starter/pro/enterprise…).
+ *   - 셀: plan_menu_access.enabled. 미설정 셀은 정책 tier 기본값(MENU_MIN_PLAN)으로 제안.
+ *   - 저장: PUT /v424/admin/plans/{id}/menu-access { menus: { menu_key: 0/1 } } (플랜별 bulk upsert).
+ *   - 저장 즉시 런타임 반영: AuthContext 가 /auth/pricing/public-plans 로 planMenuAccess 를 읽음.
+ */
 
-// SaaS Industry Standard Plan Recommendations (e.g. HubSpot, Salesforce models)
-const PLAN_PRESETS = {
-    free: {
-        name: "Free (Starter)", 
-        desc: "기본 조회 전용. 생성/수정 권한 제한.",
-        color: "#94a3b8",
-        perms: { read: ["요약 대시보드", "광고 성과 분석"], create: [], update: [] }
-    },
-    pro: {
-        name: "Pro (Professional)", 
-        desc: "일반 마케터 및 운영자. 조회 및 캠페인/CRM 등록 가능. (최상위 설정 불가)",
-        color: "#3b82f6",
-        perms: { 
-            read: ["요약 대시보드", "실시간 모니터링", "알림 피드", "통합 AI 캠페인 빌더", "캠페인 관리", "광고 성과 분석", "마케팅 인텔리전스", "어트리뷰션 분석", "CRM 세그먼트", "이메일 마케팅", "주문 통합 허브"], 
-            create: ["통합 AI 캠페인 빌더", "캠페인 관리", "이메일 마케팅"], 
-            update: ["캠페인 관리"] 
-        }
-    },
-    enterprise: {
-        name: "Enterprise (Admin)", 
-        desc: "최고 관리자 및 재무/개발 파트장. 시스템 전체 통제 및 권한 관리 부여.",
-        color: "#a855f7",
-        perms: { read: "ALL", create: "ALL", update: "ALL" }
+const PLAN_COLORS = { free: '#94a3b8', starter: '#22c55e', growth: '#06b6d4', pro: '#3b82f6', enterprise: '#a855f7' };
+
+function defaultByTier(planId, menuKey) {
+  const planRank = PLAN_TIER_RANK[planId];
+  if (planRank === undefined) return 0; // 알 수 없는 플랜은 보수적(차단)
+  const reqRank = PLAN_TIER_RANK[requiredPlanForMenu(menuKey)] ?? PLAN_TIER_RANK.pro ?? 3;
+  return planRank >= reqRank ? 1 : 0;
+}
+
+function buildMenuRows(t) {
+  const rows = [];
+  for (const sec of MEMBER_MENU) {
+    const seen = new Set();
+    const items = [];
+    for (const it of (sec.items || [])) {
+      const mk = it.menuKey;
+      if (!mk || isAdminOnlyMenu(mk) || seen.has(mk)) continue;
+      seen.add(mk);
+      const lbl = t(it.labelKey);
+      items.push({ menuKey: mk, label: (lbl && lbl !== it.labelKey) ? lbl : (it.labelKey || mk) });
     }
-};
+    if (items.length) {
+      const secLbl = t(sec.labelKey);
+      rows.push({ section: (secLbl && secLbl !== sec.labelKey) ? secLbl : (sec.labelKey || sec.key), items });
+    }
+  }
+  return rows;
+}
 
 export default function MenuAccessManager() {
-    const { t } = useI18n();
-    const {isDemo} = useAuth();
-    const [selectedTarget, setSelectedTarget] = useState('user_custom');
-    const [permissions, setPermissions] = useState({});
-    
-    useEffect(() => {
-        applyPreset("pro"); // Default Load
-    }, []);
+  const { t } = useI18n();
+  const { isDemoMode } = useAuth();
+  const [plans, setPlans] = useState([]);
+  const [access, setAccess] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState('');
+  const [msg, setMsg] = useState(null);
+  const rows = useMemo(() => buildMenuRows(t), [t]);
 
-    const applyPreset = (planKey) => {
-        const p = PLAN_PRESETS[planKey];
-        let initP = {};
-        SYSTEM_MENUS.forEach(sec => {
-            sec.items.forEach(item => {
-                if (p.perms.read === "ALL") {
-                    initP[item] = { read: true, create: true, update: true };
-                } else {
-                    initP[item] = {
-                        read: p.perms.read.includes(item),
-                        create: p.perms.create.includes(item),
-                        update: p.perms.update.includes(item)
-                    };
-                }
-            });
-        });
-        setPermissions(initP);
-        setSelectedTarget(planKey);
-    };
+  const seedAccess = useCallback((planList, dbAccess) => {
+    const acc = {};
+    for (const p of planList) {
+      const pid = p.plan_id;
+      acc[pid] = {};
+      const fromDb = (dbAccess && dbAccess[pid]) || null;
+      for (const sec of rows) for (const it of sec.items) {
+        acc[pid][it.menuKey] = (fromDb && (it.menuKey in fromDb))
+          ? (fromDb[it.menuKey] ? 1 : 0)
+          : defaultByTier(pid, it.menuKey);
+      }
+    }
+    return acc;
+  }, [rows]);
 
-    const togglePerm = (item, type) => {
-        if(isDemo) return;
-        setPermissions(prev => ({
-            ...prev,
-            [item]: { ...prev[item], [type]: !prev[item][type] }
-        }));
-    };
+  const load = useCallback(async () => {
+    setLoading(true); setMsg(null);
+    try {
+      const r = await getJsonAuth('/v424/admin/plans-menu-access');
+      const pl = (Array.isArray(r?.plans) ? r.plans : [])
+        .map(p => ({ plan_id: p.plan_id, name: p.name || p.plan_id }))
+        .filter(p => p.plan_id && p.plan_id !== 'admin' && p.plan_id !== 'demo');
+      setPlans(pl);
+      setAccess(seedAccess(pl, r?.access));
+    } catch (e) {
+      setMsg({ kind: 'err', text: (t('menuAccess.loadFail', '권한 매트릭스를 불러오지 못했습니다: ')) + (e?.message || '') });
+    } finally { setLoading(false); }
+  }, [seedAccess, t]);
 
-    const handleSave = () => {
-        if(isDemo) {
-            alert(t("marketing.Locker") || '데모 모드에서는 저장할 수 없습니다.');
-            return;
-        }
-        alert(t("marketing.memAccessSaved") || '권한 체계가 성공적으로 저장되었습니다.');
-    };
+  useEffect(() => { load(); }, [load]);
 
-    return (
-        <div style={{ padding: 24, paddingBottom: 60, minHeight: '100vh', background: '#0a101d', color: '#fff' }}>
-            <div style={{ marginBottom: 20 }}>
-                <h1 style={{ fontSize: 24, fontWeight: 900, marginBottom: 8 }}>{t("gNav.menuAccessManager") || "플랜별 / 역할별 제어 (Menu Access Roles)"}</h1>
-                <p style={{ color: '#94a3b8', fontSize: 13 }}>
-                    {t("menuAccess.desc") || "B2B SaaS 표준 모델을 기반으로 한 플랜(요금제) 및 직무(역할)별 권한 매트릭스를 제어하고 추천합니다."}
-                </p>
-            </div>
+  const toggle = (pid, mk) => {
+    if (isDemoMode) return;
+    setAccess(prev => ({ ...prev, [pid]: { ...prev[pid], [mk]: prev[pid]?.[mk] ? 0 : 1 } }));
+  };
 
-            {/* AI Recommendation Banner */}
-            <div style={{ marginBottom: 24, padding: "20px 24px", background: "linear-gradient(135deg, rgba(79,142,247,0.1), rgba(168,85,247,0.05))", border: "1px solid rgba(79,142,247,0.2)", borderRadius: 12 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-                    <span style={{ fontSize: 20 }}>✨</span>
-                    <h3 style={{ fontSize: 15, fontWeight: 800, color: '#fff' }}>{t("menuAccess.recommendTitle") || "타사 (Salesforce, HubSpot) 사례 기반 플랜 권한 자동 추천"}</h3>
-                </div>
-                <div style={{ display: 'flex', gap: 12 }}>
-                    {Object.entries(PLAN_PRESETS).map(([key, plan]) => (
-                        <div key={key} onClick={() => applyPreset(key)} style={{
-                            flex: 1, padding: 16, cursor: 'pointer', borderRadius: 8,
-                            background: selectedTarget === key ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.3)',
-                            border: `1px solid ${selectedTarget === key ? plan.color : 'rgba(255,255,255,0.05)'}`,
-                            transition: 'all 0.2s', position: 'relative'
-                        }}>
-                            {selectedTarget === key && <div style={{ position: 'absolute', top: -1, left: -1, right: -1, height: 3, background: plan.color, borderRadius: '4px 4px 0 0' }}/>}
-                            <div style={{ fontSize: 15, fontWeight: 800, color: selectedTarget === key ? '#fff' : '#94a3b8', marginBottom: 6 }}>{plan.name}</div>
-                            <div style={{ fontSize: 11, color: 'var(--text-3)' }}>{plan.desc}</div>
-                        </div>
-                    ))}
-                </div>
-            </div>
+  const applyPolicyDefaults = () => {
+    if (isDemoMode) return;
+    const acc = {};
+    for (const p of plans) {
+      acc[p.plan_id] = {};
+      for (const sec of rows) for (const it of sec.items) acc[p.plan_id][it.menuKey] = defaultByTier(p.plan_id, it.menuKey);
+    }
+    setAccess(acc);
+    setMsg({ kind: 'info', text: t('menuAccess.policyApplied', '정책 기본값(요금제 등급)으로 채웠습니다. "저장"을 눌러 반영하세요.') });
+  };
 
-            <div style={{ display: 'flex', gap: 20, position: 'relative' }}>
-                <div style={{ flex: 1, background: 'var(--surface)', borderRadius: 12, padding: 20, border: '1px solid var(--border)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, paddingBottom: 16, borderBottom: '1px solid var(--border)' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                            <span style={{ fontSize: 13, fontWeight: 700, color: '#94a3b8' }}>{t("menuAccess.targetObj") || "권한 대상:"}</span>
-                            <div style={{ padding: '6px 14px', background: 'rgba(79,142,247,0.15)', color: '#fff', borderRadius: 20, fontSize: 12, fontWeight: 800 }}>
-                                {PLAN_PRESETS[selectedTarget]?.name || "Custom Configuration"}
-                            </div>
-                        </div>
-                        <button onClick={handleSave} style={{ padding: '8px 18px', background: 'linear-gradient(135deg, #10b981, #059669)', border: 'none', color: '#fff', fontWeight: 800, borderRadius: 8, cursor: 'pointer' }}>💾 {t("menuAccess.saveBtn") || "매트릭스 덮어쓰기 (배포)"}</button>
-                    </div>
+  const savePlan = async (pid) => {
+    if (isDemoMode) { setMsg({ kind: 'err', text: t('marketing.Locker', '데모 모드에서는 저장할 수 없습니다.') }); return; }
+    setSaving(pid); setMsg(null);
+    try {
+      const r = await requestJsonAuth(`/v424/admin/plans/${pid}/menu-access`, 'PUT', { menus: access[pid] || {} });
+      if (r?.ok) setMsg({ kind: 'ok', text: `${pid} ${t('menuAccess.saved', '저장됨')} (${r.count ?? 0})` });
+      else setMsg({ kind: 'err', text: (t('menuAccess.saveFail', '저장 실패: ')) + (r?.error || r?.detail || '') });
+    } catch (e) {
+      setMsg({ kind: 'err', text: (t('menuAccess.saveFail', '저장 실패: ')) + (e?.message || '') });
+    } finally { setSaving(''); }
+  };
 
-                    <div style={{ display: 'grid', gap: 12 }}>
-                        {SYSTEM_MENUS.map((sec, idx) => (
-                            <div key={idx} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden' }}>
-                                <div style={{ background: 'rgba(79,142,247,0.08)', padding: '10px 16px', fontWeight: 900, color: '#fff', fontSize: 13 }}>
-                                    {t(sec.catKey) || sec.catDef}
-                                </div>
-                                <div style={{ padding: '12px 16px', display: 'grid', gap: 8 }}>
-                                    {sec.items.map(item => {
-                                        const p = permissions[item] || { read: false, create: false, update: false };
-                                        return (
-                                            <div key={item} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', background: 'var(--surface)', borderRadius: 6, border: '1px solid rgba(255,255,255,0.03)' }}>
-                                                <div style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>{(() => { const k = `menuAccess.item_${item}`; const v = t(k); return v && v !== k ? v : item; })()}</div>
-                                                <div style={{ display: 'flex', gap: 20 }}>
-                                                    <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 11, color: p.read ? '#38bdf8' : '#64748b' }}>
-                                                        <input type="checkbox" checked={p.read} onChange={() => togglePerm(item, 'read')} style={{ accentColor: '#38bdf8' }} />
-                                                        {t("menuAccess.permRead") || "열람조회 (Read)"}
-                                                    </label>
-                                                    <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 11, color: p.create ? '#10b981' : '#64748b' }}>
-                                                        <input type="checkbox" checked={p.create} onChange={() => togglePerm(item, 'create')} style={{ accentColor: '#10b981' }} disabled={!p.read} />
-                                                        {t("menuAccess.permCreate") || "개체생성 (Create)"}
-                                                    </label>
-                                                    <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 11, color: p.update ? '#f59e0b' : '#64748b' }}>
-                                                        <input type="checkbox" checked={p.update} onChange={() => togglePerm(item, 'update')} style={{ accentColor: '#f59e0b' }} disabled={!p.read} />
-                                                        {t("menuAccess.permUpdate") || "수정승인 (Update)"}
-                                                    </label>
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </div>
+  const saveAll = async () => {
+    if (isDemoMode) { setMsg({ kind: 'err', text: t('marketing.Locker', '데모 모드에서는 저장할 수 없습니다.') }); return; }
+    setSaving('__all__'); setMsg(null);
+    let ok = 0, fail = 0;
+    for (const p of plans) {
+      try {
+        const r = await requestJsonAuth(`/v424/admin/plans/${p.plan_id}/menu-access`, 'PUT', { menus: access[p.plan_id] || {} });
+        if (r?.ok) ok++; else fail++;
+      } catch { fail++; }
+    }
+    setSaving('');
+    setMsg({ kind: fail ? 'err' : 'ok', text: `${t('menuAccess.savedAll', '전체 저장')}: ${ok} ✓${fail ? ` / ${fail} ✗` : ''}` });
+  };
+
+  const planColor = (pid) => PLAN_COLORS[pid] || '#6366f1';
+  const msgColor = msg ? (msg.kind === 'ok' ? '#10b981' : msg.kind === 'err' ? '#ef4444' : '#3b82f6') : 'transparent';
+
+  return (
+    <div style={{ padding: 24, paddingBottom: 60, minHeight: '100vh', background: '#0a101d', color: '#fff' }}>
+      <div style={{ marginBottom: 16 }}>
+        <h1 style={{ fontSize: 24, fontWeight: 900, marginBottom: 8 }}>{t('gNav.menuAccessManager', '플랜별 메뉴 접근 권한')}</h1>
+        <p style={{ color: '#94a3b8', fontSize: 13 }}>
+          {t('menuAccess.descV2', '요금제(플랜)별로 어떤 메뉴를 노출할지 제어합니다. 저장 즉시 해당 플랜 사용자에게 반영됩니다(상위 메뉴는 업그레이드 유도).')}
+        </p>
+      </div>
+
+      <div style={{ display: 'flex', gap: 10, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center' }}>
+        <button onClick={applyPolicyDefaults} disabled={isDemoMode || loading}
+          style={{ padding: '8px 16px', background: 'rgba(99,102,241,0.18)', border: '1px solid rgba(99,102,241,0.4)', color: '#c7d2fe', fontWeight: 800, borderRadius: 8, cursor: isDemoMode ? 'not-allowed' : 'pointer', fontSize: 12 }}>
+          ✨ {t('menuAccess.applyPolicy', '정책 기본값 적용(요금제 등급)')}
+        </button>
+        <button onClick={saveAll} disabled={isDemoMode || loading || saving}
+          style={{ padding: '8px 18px', background: 'linear-gradient(135deg, #10b981, #059669)', border: 'none', color: '#fff', fontWeight: 800, borderRadius: 8, cursor: isDemoMode ? 'not-allowed' : 'pointer', fontSize: 12 }}>
+          💾 {saving === '__all__' ? t('menuAccess.saving', '저장 중…') : t('menuAccess.saveAll', '전체 저장(배포)')}
+        </button>
+        <button onClick={load} disabled={loading}
+          style={{ padding: '8px 14px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', color: '#cbd5e1', fontWeight: 700, borderRadius: 8, cursor: 'pointer', fontSize: 12 }}>
+          ↻ {t('menuAccess.reload', '새로고침')}
+        </button>
+        {isDemoMode && <span style={{ fontSize: 11, color: '#f59e0b' }}>🔒 {t('menuAccess.demoReadonly', '데모 모드: 읽기 전용')}</span>}
+        {msg && <span style={{ fontSize: 12, fontWeight: 700, color: msgColor }}>{msg.text}</span>}
+      </div>
+
+      {loading ? (
+        <div style={{ padding: '48px 0', textAlign: 'center', color: '#94a3b8' }}>{t('menuAccess.loading', '권한 매트릭스 불러오는 중…')}</div>
+      ) : (
+        <div style={{ background: 'var(--surface, #111827)', border: '1px solid var(--border, #1f2937)', borderRadius: 12, padding: 16, overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+            <thead>
+              <tr>
+                <th style={{ textAlign: 'left', padding: '10px 12px', position: 'sticky', left: 0, background: 'var(--surface, #111827)', minWidth: 220, color: '#e5e7eb' }}>{t('menuAccess.colMenu', '메뉴')}</th>
+                {plans.map(p => (
+                  <th key={p.plan_id} style={{ padding: '10px 8px', textAlign: 'center', minWidth: 120 }}>
+                    <div style={{ fontWeight: 900, color: planColor(p.plan_id), fontSize: 13 }}>{p.name}</div>
+                    <button onClick={() => savePlan(p.plan_id)} disabled={isDemoMode || !!saving}
+                      style={{ marginTop: 6, padding: '4px 10px', fontSize: 10, fontWeight: 800, borderRadius: 6, border: 'none', cursor: isDemoMode ? 'not-allowed' : 'pointer', background: saving === p.plan_id ? '#475569' : 'rgba(16,185,129,0.18)', color: '#6ee7b7' }}>
+                      {saving === p.plan_id ? '…' : `💾 ${t('menuAccess.saveBtn2', '저장')}`}
+                    </button>
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map(sec => (
+                <React.Fragment key={sec.section}>
+                  <tr>
+                    <td colSpan={plans.length + 1} style={{ padding: '10px 12px', background: 'rgba(99,102,241,0.08)', fontWeight: 900, color: '#a5b4fc', fontSize: 12, borderTop: '1px solid var(--border, #1f2937)' }}>{sec.section}</td>
+                  </tr>
+                  {sec.items.map(it => (
+                    <tr key={it.menuKey} style={{ borderTop: '1px solid rgba(255,255,255,0.04)' }}>
+                      <td style={{ padding: '8px 12px', position: 'sticky', left: 0, background: 'var(--surface, #111827)', color: '#e5e7eb' }}>
+                        {it.label}
+                        <span style={{ marginLeft: 8, fontSize: 9, color: '#64748b' }}>{it.menuKey} · ≥{requiredPlanForMenu(it.menuKey)}</span>
+                      </td>
+                      {plans.map(p => {
+                        const on = !!access[p.plan_id]?.[it.menuKey];
+                        return (
+                          <td key={p.plan_id} style={{ textAlign: 'center', padding: '8px' }}>
+                            <input type="checkbox" checked={on} disabled={isDemoMode}
+                              onChange={() => toggle(p.plan_id, it.menuKey)}
+                              style={{ width: 16, height: 16, accentColor: planColor(p.plan_id), cursor: isDemoMode ? 'not-allowed' : 'pointer' }} />
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                </React.Fragment>
+              ))}
+            </tbody>
+          </table>
         </div>
-    
-
-);
+      )}
+    </div>
+  );
 }

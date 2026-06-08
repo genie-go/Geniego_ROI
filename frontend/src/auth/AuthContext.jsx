@@ -642,10 +642,13 @@ export function AuthProvider({ children }) {
         // ── enterprise: admin 전용 외 전체 허용 ──
         if (userPlan === "enterprise") return true;
 
-        // ── 데모(/free) 사용자: admin 전용은 위에서 차단됨, 나머지 전체 허용(가상 데이터 열람) ──
-        if (planRank(userPlan) === 0) return true;
+        // ── 203차: 데모(체험) 환경은 데모 빌드(VITE_DEMO_MODE)에서 userPlan="enterprise" 로
+        //   강제되므로 위 enterprise 분기로 전체 미리보기를 유지한다(아래 흐름 미도달).
+        //   실(운영) Free 플랜 사용자는 더 이상 전체 개방하지 않고, 정책(MENU_MIN_PLAN: Free=핵심 12개)
+        //   대로 tier 게이팅한다(상위 메뉴는 PlanGate 업그레이드 유도 — 사방넷식 평생무료+업셀 분리).
+        //   ※ 기존 `planRank===0 → return true` 가 운영 Free 게이팅을 무력화하던 갭 해소(전수감사 발견).
 
-        // ── 유료 사용자(starter/growth/pro) ──
+        // ── Free 포함 유료/무료 사용자(free/starter/growth/pro) ──
         // 1) 관리자(MenuAccessManager/PlanPricing)가 설정한 plan_menu_access 가 있으면 우선
         if (planMenuAccess) {
             const allowedKeys = planMenuAccess[userPlan] || planMenuAccess["free"];

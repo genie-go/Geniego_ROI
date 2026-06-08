@@ -507,6 +507,9 @@ return function (App $app): void {
         'GET /api/v424/attribution/channels' => 'Genie\\Handlers\\AttributionMetrics::channels',
         'GET /v424/marketing/daily-trends'     => 'Genie\\Handlers\\AttributionMetrics::dailyTrends',
         'GET /api/v424/marketing/daily-trends' => 'Genie\\Handlers\\AttributionMetrics::dailyTrends',
+        // 203차 — 서버측 멀티터치 어트리뷰션(MTA) 엔진: 6모델(last/first/linear/time-decay/position/markov-removal-effect)
+        'GET /v424/attribution/models'     => 'Genie\\Handlers\\AttributionEngine::models',
+        'GET /api/v424/attribution/models' => 'Genie\\Handlers\\AttributionEngine::models',
         // 201차 — 마케팅 자동화 채널 추천/예산배분(벤치마크 cold-start → 실측 warm 블렌드)
         'POST /v424/marketing/auto-recommend'     => 'Genie\\Handlers\\AutoRecommend::recommend',
         'POST /api/v424/marketing/auto-recommend' => 'Genie\\Handlers\\AutoRecommend::recommend',
@@ -2031,6 +2034,9 @@ return function (App $app): void {
     $register('GET', '/api/v424/attribution/channels');
     $register('GET', '/v424/marketing/daily-trends');
     $register('GET', '/api/v424/marketing/daily-trends');
+    // 203차 — 서버측 멀티터치 어트리뷰션(MTA) 엔진 ($custom 등록 + $register 필수)
+    $register('GET', '/v424/attribution/models');
+    $register('GET', '/api/v424/attribution/models');
     // 201차 — 마케팅 자동화 추천/벤치마크 ($custom 등록 + $register 필수)
     $register('POST', '/v424/marketing/auto-recommend');
     $register('POST', '/api/v424/marketing/auto-recommend');

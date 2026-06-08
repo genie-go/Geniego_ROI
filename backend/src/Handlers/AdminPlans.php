@@ -346,13 +346,18 @@ final class AdminPlans
         $plans = $pdo->query(
             'SELECT plan_id, name, display_order FROM plan_config WHERE is_active=1 ORDER BY display_order, plan_id'
         )->fetchAll(\PDO::FETCH_ASSOC);
-        $menus = $pdo->query(
-            'SELECT id, label_key, route, menu_key, display_order
-             FROM menu_tree ORDER BY display_order, id'
-        )->fetchAll(\PDO::FETCH_ASSOC);
-        $rows = $pdo->query(
-            'SELECT plan_id, menu_key, enabled FROM plan_menu_access'
-        )->fetchAll(\PDO::FETCH_ASSOC);
+        // 203차: menu_tree 는 선택적(일부 환경/데모 DB 에 미존재) — 부재 시 빈 배열로 폴백(500 방지).
+        //   프론트(MenuAccessManager)는 sidebarManifest 의 menuKey 를 행 SSOT 로 사용하므로 menus 미사용.
+        $menus = [];
+        try {
+            $menus = $pdo->query(
+                'SELECT id, label_key, route, menu_key, display_order FROM menu_tree ORDER BY display_order, id'
+            )->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Throwable $e) { $menus = []; }
+        $rows = [];
+        try {
+            $rows = $pdo->query('SELECT plan_id, menu_key, enabled FROM plan_menu_access')->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Throwable $e) { $rows = []; }
         $access = [];
         foreach ($rows as $r) {
             $access[$r['plan_id']][$r['menu_key']] = (int)$r['enabled'];
