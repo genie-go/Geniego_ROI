@@ -107,6 +107,9 @@ class AutoCampaign
         try {
             $tenant = self::tenant($req);
             if ($tenant === 'unknown') return self::json($res, ['ok' => false, 'error' => '로그인이 필요합니다.'], 401);
+            // 203차 ⓒ: 서버측 plan 게이트(심층방어) — 자동 캠페인은 starter 이상. fail-open(레거시 무중단).
+            $gate = UserAuth::requireFeaturePlan($req, $res, 'auto_campaign');
+            if ($gate !== null) return $gate;
             $d = self::body($req);
 
             $name     = trim((string)($d['name'] ?? '')) ?: '자동 캠페인';
@@ -291,6 +294,50 @@ class AutoCampaign
         ];
     }
 
+    private const DRIFT_WINDOW_DAYS = 21;  // 드리프트 기준 기간(일)
+
+    /** 채널 일별 ROAS 시계열(window일). campaign_ext_id 있으면 캠페인 입도, 컬럼 부재 시 채널 폴백. */
+    private static function dailyRoas(PDO $pdo, string $tenant, string $channel, string $externalId, int $window): array
+    {
+        $since = gmdate('Y-m-d', time() - $window * 86400);
+        $sql = "SELECT date, SUM(spend) s, SUM(revenue) r FROM performance_metrics WHERE tenant_id=? AND LOWER(channel)=LOWER(?) AND date >= ?";
+        $params = [$tenant, $channel, $since];
+        if ($externalId !== '') { $sql .= " AND campaign_ext_id = ?"; $params[] = $externalId; }
+        $sql .= " GROUP BY date ORDER BY date";
+        try {
+            $st = $pdo->prepare($sql); $st->execute($params);
+            $series = [];
+            foreach ($st->fetchAll(PDO::FETCH_ASSOC) ?: [] as $row) {
+                $s = (float)$row['s'];
+                if ($s > 0) $series[] = (float)$row['r'] / $s;
+            }
+            return $series;
+        } catch (\Throwable $e) {
+            return $externalId !== '' ? self::dailyRoas($pdo, $tenant, $channel, '', $window) : [];
+        }
+    }
+
+    /** 통계적 성과 드리프트(다중 시그마): 최근 평균 ROAS 가 기준기간 대비 ≥2σ 하락 시 'degrading'.
+     *  하드 정지는 하지 않고(기존 ROAS/zero-conv 규칙 유지), 소프트 가중·투명성 신호로만 사용. */
+    public static function driftFromSeries(array $dailyRoas): array
+    {
+        $n = count($dailyRoas);
+        if ($n < 7) return ['drift' => 'insufficient', 'z' => 0.0, 'recent' => 0.0, 'baseline' => 0.0, 'cov' => 0.0, 'days' => $n];
+        $recentDays = max(1, min(3, intdiv($n, 3)));
+        $baseline = array_slice($dailyRoas, 0, $n - $recentDays);
+        $recent = array_slice($dailyRoas, $n - $recentDays);
+        $mean = array_sum($baseline) / count($baseline);
+        $var = 0.0; foreach ($baseline as $v) $var += ($v - $mean) ** 2;
+        $std = sqrt($var / count($baseline));
+        $recentMean = array_sum($recent) / count($recent);
+        $z = $std > 1e-9 ? ($recentMean - $mean) / $std : 0.0;
+        $cov = $mean > 1e-9 ? $std / $mean : 0.0;
+        $drift = 'stable';
+        if ($z <= -2.0) $drift = 'degrading';
+        elseif ($z >= 2.0) $drift = 'improving';
+        return ['drift' => $drift, 'z' => round($z, 2), 'recent' => round($recentMean, 2), 'baseline' => round($mean, 2), 'cov' => round($cov, 2), 'days' => $n];
+    }
+
     /** 캠페인 1건 최적화: 성과 분석 → 예산 재배분 + 저성과 일시정지 + 결정 로그. 양 엔드포인트·cron 공용. */
     public static function optimizeCampaign(PDO $pdo, array $camp): array
     {
@@ -312,6 +359,8 @@ class AutoCampaign
             // Phase3: 이 캠페인의 채널별 external_id 로 측정 입도 일치(동일 채널 타 캠페인 성과 혼입 방지)
             $extId = $extIdMap[strtolower($ch)] ?? '';
             $m = self::aggMetrics($pdo, $tenant, $ch, $extId);
+            // 203차 ⓑ: 통계적 성과 드리프트(다중 시그마) 신호 — 소프트 가중·투명성(하드정지 아님).
+            $m['drift'] = self::driftFromSeries(self::dailyRoas($pdo, $tenant, $ch, $extId, self::DRIFT_WINDOW_DAYS));
             $metrics[$ch] = $m;
             if ($m['has_data']) $anyData = true;
         }
@@ -343,7 +392,15 @@ class AutoCampaign
                 $weights[$ch] = 0.0;
                 $decisions[] = ['channel' => $ch, 'action' => 'pause', 'old' => $oldMap[strtolower($ch)] ?? 0, 'new' => 0, 'roas' => $m['roas'], 'ctr' => $m['ctr'], 'reason' => "ROAS {$m['roas']} < {$minRoas} (손실) → 예산 회수·일시정지"];
             } else {
-                $weights[$ch] = max(0.05, (float)$m['roas']);
+                $w = max(0.05, (float)$m['roas']);
+                // 203차 ⓑ: 드리프트 저하 채널은 소프트 패널티(하드정지 아님)로 비중 하향 + 투명 로그.
+                $dr = $m['drift'] ?? [];
+                if (($dr['drift'] ?? '') === 'degrading') {
+                    $w *= 0.7;
+                    $old0 = (int)($oldMap[strtolower($ch)] ?? 0);
+                    $decisions[] = ['channel' => $ch, 'action' => 'drift_warning', 'old' => $old0, 'new' => $old0, 'roas' => $m['roas'], 'ctr' => $m['ctr'], 'reason' => "성과 드리프트 감지: 최근 ROAS {$dr['recent']} vs 기준 {$dr['baseline']} (z={$dr['z']}σ, {$dr['days']}일) → 예산 비중 30% 하향"];
+                }
+                $weights[$ch] = $w;
             }
         }
         $totalW = array_sum($weights) ?: 1;
@@ -379,9 +436,11 @@ class AutoCampaign
         foreach ($decisions as &$d) {
             $ck = strtolower((string)($d['channel'] ?? ''));
             $extId = $extIdMap[$ck] ?? '';
-            if ($extId === '') { $d['actuated'] = false; continue; }
+            $act = (string)($d['action'] ?? '');
+            // 203차 ⓑ: 실제 매체 액추에이션은 pause/realloc 에 한정(drift_warning 등 정보성 결정은 로그만).
+            if ($extId === '' || !in_array($act, ['pause', 'realloc'], true)) { $d['actuated'] = false; continue; }
             $connKey = self::connectorKey((string)$d['channel']);
-            if (($d['action'] ?? '') === 'pause') {
+            if ($act === 'pause') {
                 $rr = AdAdapters::pause($pdo, $tenant, $connKey, $extId);
             } else {
                 $daily = max(1000, (int)round(((int)($d['new'] ?? 0)) / max(1, $pdays) / 100) * 100);

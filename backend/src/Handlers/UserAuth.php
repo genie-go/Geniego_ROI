@@ -29,6 +29,61 @@ final class UserAuth
         return bin2hex(random_bytes(32)); // 64-char hex
     }
 
+    /**
+     * 203차 ⓒ — 테넌트 owner 의 유효 플랜(만료 다운그레이드 반영). 해석 불가 시 null(fail-open).
+     * api_key 는 plan 을 갖지 않으므로 app_user(owner) 의 구독 등급으로 테넌트 plan 을 도출한다.
+     */
+    public static function resolveTenantPlan(\PDO $pdo, string $tenant): ?string
+    {
+        $tenant = trim($tenant);
+        if ($tenant === '' || strtolower($tenant) === 'unknown') return null;
+        try {
+            $st = $pdo->prepare("SELECT plan, subscription_expires_at FROM app_user WHERE tenant_id = ? AND (parent_user_id IS NULL OR team_role = 'owner') ORDER BY id LIMIT 1");
+            $st->execute([$tenant]);
+            $row = $st->fetch(\PDO::FETCH_ASSOC);
+            if (!$row) {
+                $st2 = $pdo->prepare("SELECT plan, subscription_expires_at FROM app_user WHERE tenant_id = ? ORDER BY id LIMIT 1");
+                $st2->execute([$tenant]);
+                $row = $st2->fetch(\PDO::FETCH_ASSOC);
+            }
+            if (!$row) return null;
+            $resolved = self::resolveActivePlan($row); // 만료 → free 다운그레이드 반영
+            return (string)($resolved['plan'] ?? $row['plan'] ?? 'free');
+        } catch (\Throwable $e) {
+            return null; // 스키마/쿼리 문제 → fail-open(레거시 무중단)
+        }
+    }
+
+    /**
+     * 203차 ⓒ — 상용 기능 plan 게이트(심층방어). 테넌트 plan < 요구 시 403, 충족/해석불가 시 null.
+     *  - 데이터 보안은 테넌트 격리+RBAC 가 담당. 본 가드는 "미구매 기능 직접호출 차단"(상용).
+     *  - fail-open: plan 해석 불가(app_user 부재 등) 또는 가드 자체 실패 시 통과(레거시 api_key 무중단).
+     *  - admin api_key role / admin·demo plan 은 통과.
+     * @param string $featureKey \Genie\PlanPolicy::FEATURE_MIN_PLAN 키
+     */
+    public static function requireFeaturePlan(ServerRequestInterface $req, ResponseInterface $res, string $featureKey, ?\PDO $pdo = null): ?ResponseInterface
+    {
+        try {
+            $pdo = $pdo ?? Db::pdo();
+            if (((string)($req->getAttribute('auth_role') ?? '')) === 'admin') return null;
+            $tenant = self::authedTenant($req);
+            if ($tenant === null || $tenant === '') $tenant = (string)($req->getAttribute('auth_tenant') ?? '');
+            $plan = self::resolveTenantPlan($pdo, (string)$tenant);
+            if ($plan === null || $plan === 'admin' || $plan === 'demo') return null; // fail-open / 관리·데모
+            if (\Genie\PlanPolicy::allows($plan, $featureKey)) return null;
+            $min = \Genie\PlanPolicy::minPlanFor($featureKey);
+            return self::json($res, [
+                'ok' => false,
+                'error' => "이 기능은 {$min} 플랜 이상에서 이용 가능합니다.",
+                'code' => 'PLAN_REQUIRED',
+                'currentPlan' => $plan,
+                'requiredPlan' => $min,
+            ], 403);
+        } catch (\Throwable $e) {
+            return null; // 가드 자체 실패 → fail-open
+        }
+    }
+
     private static function extractToken(ServerRequestInterface $req): ?string
     {
         $h = $req->getHeaderLine('Authorization');
