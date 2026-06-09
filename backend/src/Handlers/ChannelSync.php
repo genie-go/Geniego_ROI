@@ -689,9 +689,10 @@ final class ChannelSync
                 $o['event_type'] ?? 'order', json_encode($o), $now,
             ]);
             $count++;
-            // 신규 주문일 때만 실재고 차감(커머스→재고 동기화). 데모 제외.
-            if ($isNew && $tenant !== 'demo' && !empty($o['sku'])) {
-                self::decInventory($pdo, $tenant, $channel, (string)$o['sku'], (int)($o['qty'] ?? 1));
+            // 신규 주문일 때만 실재고 차감 + CRM 구매이력 기록(커머스→재고/CRM 동기화). 데모 제외.
+            if ($isNew && $tenant !== 'demo') {
+                if (!empty($o['sku'])) self::decInventory($pdo, $tenant, $channel, (string)$o['sku'], (int)($o['qty'] ?? 1));
+                self::recordCrmPurchase($pdo, $tenant, $channel, $o['buyer_email'] ?? '', $o['buyer_name'] ?? '', (float)($o['total_price'] ?? 0), (string)($o['sku'] ?? ''), (int)($o['qty'] ?? 1), (string)$o['channel_order_id']);
             }
         }
         return $count;
@@ -711,6 +712,62 @@ final class ChannelSync
             $pdo->prepare("UPDATE channel_inventory SET available=?, synced_at=? WHERE id=?")
                 ->execute([$newAvail, gmdate('c'), (int)$row['id']]);
         } catch (\Throwable $e) { error_log('[ChannelSync.decInventory] ' . $e->getMessage()); }
+    }
+
+    /** 208차 동기화: 취소/반품 시 channel_inventory.available 복원(단일 행, 기본창고 우선). */
+    private static function incInventory(PDO $pdo, string $tenant, string $channel, string $sku, int $qty): void
+    {
+        if ($sku === '' || $qty <= 0) return;
+        try {
+            $sel = $pdo->prepare("SELECT id FROM channel_inventory WHERE tenant_id=? AND channel=? AND sku=? ORDER BY (warehouse='default') DESC, id ASC LIMIT 1");
+            $sel->execute([$tenant, $channel, $sku]);
+            $id = $sel->fetchColumn();
+            if (!$id) return;
+            $pdo->prepare("UPDATE channel_inventory SET available=available+?, synced_at=? WHERE id=?")
+                ->execute([$qty, gmdate('c'), (int)$id]);
+        } catch (\Throwable $e) { error_log('[ChannelSync.incInventory] ' . $e->getMessage()); }
+    }
+
+    /**
+     * 208차 동기화 P1: 주문 발생 시 CRM 구매이력 자동 기록(수동 동기화 버튼 의존 제거).
+     *   crm_customers upsert(email 기준, LTV 누적) + crm_activities(type='purchase') 적재.
+     *   CustomerAI 의 churn/LTV/RFM 이 이 데이터에 의존 → 주문 흐름과 자동 연결.
+     *   이메일 없으면 CRM 매칭 불가로 skip. 테이블 부재/오류는 best-effort 무시(주문적재 비차단).
+     */
+    private static function recordCrmPurchase(PDO $pdo, string $tenant, string $channel, ?string $email, ?string $name, float $total, string $sku, int $qty, string $orderId): void
+    {
+        $email = trim((string)$email);
+        if ($email === '' || $tenant === 'demo') return;
+        $now = gmdate('Y-m-d H:i:s');
+        try {
+            $sel = $pdo->prepare("SELECT id FROM crm_customers WHERE tenant_id=? AND email=? LIMIT 1");
+            $sel->execute([$tenant, $email]);
+            $cid = $sel->fetchColumn();
+            if (!$cid) {
+                $pdo->prepare("INSERT INTO crm_customers(tenant_id,email,name,grade,ltv,created_at,updated_at) VALUES(?,?,?,'normal',?,?,?)")
+                    ->execute([$tenant, $email, (string)$name, $total, $now, $now]);
+                $cid = (int)$pdo->lastInsertId();
+            } else {
+                $pdo->prepare("UPDATE crm_customers SET ltv=ltv+?, name=COALESCE(NULLIF(name,''),?), updated_at=? WHERE id=?")
+                    ->execute([$total, (string)$name, $now, (int)$cid]);
+            }
+            $pdo->prepare("INSERT INTO crm_activities(tenant_id,customer_id,type,channel,amount,data,created_at) VALUES(?,?,'purchase',?,?,?,?)")
+                ->execute([$tenant, (int)$cid, $channel, $total, json_encode(['sku' => $sku, 'qty' => $qty, 'order_id' => $orderId], JSON_UNESCAPED_UNICODE), $now]);
+        } catch (\Throwable $e) { error_log('[ChannelSync.recordCrmPurchase] ' . $e->getMessage()); }
+    }
+
+    /** 208차 동기화 P0: 취소/반품 시 orderhub_claims 적재 → 정산 롤업 returnFee 자동반영. 멱등 id(채널+주문). */
+    private static function recordClaim(PDO $pdo, string $tenant, string $channel, string $orderId, string $type, float $orderTotal, string $reason, string $buyer, string $now): void
+    {
+        try {
+            $cid = 'CLM-' . $channel . '-' . $orderId; // 멱등 id(웹훅 재전송 중복 방지)
+            $chk = $pdo->prepare("SELECT 1 FROM orderhub_claims WHERE id=? AND tenant_id=? LIMIT 1");
+            $chk->execute([$cid, $tenant]);
+            if ($chk->fetchColumn()) return;
+            $fee = round($orderTotal * 0.02, 2); // 반품/취소 처리비 2%(정산 returnFee)
+            $pdo->prepare("INSERT INTO orderhub_claims(id,tenant_id,order_id,buyer,channel,type,reason,status,amount,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)")
+                ->execute([$cid, $tenant, $orderId, $buyer !== '' ? $buyer : null, $channel, $type, $reason !== '' ? $reason : null, 'accepted', $fee, $now, $now]);
+        } catch (\Throwable $e) { error_log('[ChannelSync.recordClaim] ' . $e->getMessage()); }
     }
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -1161,18 +1218,27 @@ final class ChannelSync
                 ->execute([(int)($body['quantity']??0), $now, $tenant, $channel, $body['sku']]);
         } elseif (in_array($eventType, ['order','order_update','cancel','return'], true) && !empty($body['order_id'])) {
             // MySQL/SQLite 호환 upsert (ON CONFLICT 미사용)
-            $sel = $pdo->prepare("SELECT id FROM channel_orders WHERE tenant_id=? AND channel=? AND channel_order_id=? LIMIT 1");
+            $sel = $pdo->prepare("SELECT sku, qty, total_price, event_type FROM channel_orders WHERE tenant_id=? AND channel=? AND channel_order_id=? LIMIT 1");
             $sel->execute([$tenant, $channel, $body['order_id']]);
-            if ($sel->fetchColumn()) {
-                $pdo->prepare("UPDATE channel_orders SET status=?, synced_at=? WHERE tenant_id=? AND channel=? AND channel_order_id=?")
-                    ->execute([$body['status']??'pending', $now, $tenant, $channel, $body['order_id']]);
+            $existing = $sel->fetch(PDO::FETCH_ASSOC);
+            if ($existing) {
+                $wasReturn = in_array((string)($existing['event_type'] ?? ''), ['cancel','return'], true);
+                $pdo->prepare("UPDATE channel_orders SET status=?, event_type=?, synced_at=? WHERE tenant_id=? AND channel=? AND channel_order_id=?")
+                    ->execute([$body['status']??'pending', $eventType, $now, $tenant, $channel, $body['order_id']]);
+                // 208차 동기화 P0: 취소/반품 전이(최초 1회) → 재고 복원 + claim 적재(정산 returnFee 자동반영).
+                if (in_array($eventType, ['cancel','return'], true) && !$wasReturn) {
+                    $sku = (string)($existing['sku'] ?? ''); $qty = (int)($existing['qty'] ?? 0);
+                    if ($sku !== '' && $qty > 0) self::incInventory($pdo, $tenant, $channel, $sku, $qty);
+                    self::recordClaim($pdo, $tenant, $channel, (string)$body['order_id'], $eventType, (float)($existing['total_price'] ?? 0), (string)($body['reason'] ?? ''), (string)($body['buyer_name'] ?? ''), $now);
+                }
             } else {
                 $pdo->prepare("INSERT INTO channel_orders(tenant_id,channel,channel_order_id,buyer_name,product_name,sku,qty,unit_price,total_price,status,ordered_at,event_type,synced_at)
                     VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)")
                     ->execute([$tenant,$channel,$body['order_id'],$body['buyer_name']??'',$body['product_name']??'',$body['sku']??null,(int)($body['qty']??1),(float)($body['price']??0),(float)($body['total']??0),$body['status']??'pending',$body['ordered_at']??$now,$eventType,$now]);
-                // 208차 동기화 P0: 신규 주문 webhook → 실재고 차감(주문→재고 동기화).
-                if (in_array($eventType, ['order','order_update'], true) && !empty($body['sku'])) {
-                    self::decInventory($pdo, $tenant, $channel, (string)$body['sku'], (int)($body['qty'] ?? 1));
+                // 208차 동기화 P0/P1: 신규 주문 webhook → 실재고 차감 + CRM 구매이력 기록.
+                if (in_array($eventType, ['order','order_update'], true)) {
+                    if (!empty($body['sku'])) self::decInventory($pdo, $tenant, $channel, (string)$body['sku'], (int)($body['qty'] ?? 1));
+                    self::recordCrmPurchase($pdo, $tenant, $channel, $body['buyer_email'] ?? '', $body['buyer_name'] ?? '', (float)($body['total'] ?? 0), (string)($body['sku'] ?? ''), (int)($body['qty'] ?? 1), (string)$body['order_id']);
                 }
             }
         }

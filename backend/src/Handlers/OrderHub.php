@@ -414,6 +414,7 @@ final class OrderHub
      */
     public static function rollupSettlementsCore(\PDO $pdo, string $tenant, string $period, float $feeRate, string $now): int
     {
+        self::ensureSettlementTables($pdo); // 208차: cron/신규 테넌트 대비 테이블 보장(없으면 생성, 있으면 no-op)
         $os = $pdo->prepare("SELECT channel, COUNT(*) AS cnt, COALESCE(SUM(total_price),0) AS gross
             FROM channel_orders WHERE tenant_id=? AND SUBSTR(ordered_at,1,7)=? GROUP BY channel");
         $os->execute([$tenant, $period]);
@@ -450,6 +451,21 @@ final class OrderHub
             ], $now);
         }
         return $rolled;
+    }
+
+    /** 208차: orderhub_settlements/claims 테이블 보장(cron 견고성). 이미 있으면 no-op. */
+    private static function ensureSettlementTables(\PDO $pdo): void
+    {
+        $isMy = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql';
+        try {
+            if ($isMy) {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS orderhub_settlements (id VARCHAR(190) PRIMARY KEY, tenant_id VARCHAR(190), period VARCHAR(20), channel VARCHAR(190), status VARCHAR(50), gross_sales DOUBLE DEFAULT 0, net_payout DOUBLE DEFAULT 0, platform_fee DOUBLE DEFAULT 0, ad_fee DOUBLE DEFAULT 0, coupon_discount DOUBLE DEFAULT 0, return_fee DOUBLE DEFAULT 0, orders_count INT DEFAULT 0, returns_count INT DEFAULT 0, created_at VARCHAR(40), updated_at VARCHAR(40), KEY idx_stl (tenant_id, period, channel)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+                $pdo->exec("CREATE TABLE IF NOT EXISTS orderhub_claims (id VARCHAR(190) PRIMARY KEY, tenant_id VARCHAR(190), order_id VARCHAR(190), buyer VARCHAR(190), channel VARCHAR(190), type VARCHAR(50), reason TEXT, status VARCHAR(50), amount DOUBLE DEFAULT 0, created_at VARCHAR(40), updated_at VARCHAR(40), KEY idx_clm (tenant_id, created_at)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+            } else {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS orderhub_settlements (id TEXT PRIMARY KEY, tenant_id TEXT, period TEXT, channel TEXT, status TEXT, gross_sales REAL DEFAULT 0, net_payout REAL DEFAULT 0, platform_fee REAL DEFAULT 0, ad_fee REAL DEFAULT 0, coupon_discount REAL DEFAULT 0, return_fee REAL DEFAULT 0, orders_count INTEGER DEFAULT 0, returns_count INTEGER DEFAULT 0, created_at TEXT, updated_at TEXT)");
+                $pdo->exec("CREATE TABLE IF NOT EXISTS orderhub_claims (id TEXT PRIMARY KEY, tenant_id TEXT, order_id TEXT, buyer TEXT, channel TEXT, type TEXT, reason TEXT, status TEXT, amount REAL DEFAULT 0, created_at TEXT, updated_at TEXT)");
+            }
+        } catch (\Throwable $e) {}
     }
 
     /** period+channel 유니크 기준 포터블 업서트(MySQL/SQLite 공용). @return int 1 */
