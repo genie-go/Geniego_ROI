@@ -211,26 +211,29 @@ function TermsAgreementSection({ agreeTerms, setAgreeTerms, agreePrivacy, setAgr
     { key: 'ecommerce', val: agreeEcommerce, set: setAgreeEcommerce, label: t('auth.ecommerceProtection'), required: true },
     { key: 'marketing', val: agreeMarketing, set: setAgreeMarketing, label: t('auth.marketingConsent'), required: false },
   ];
+  // 208차: 모바일 가시성 — 고대비(라이트 카드+진한 텍스트)·큰 터치영역(44px)·뚜렷한 [필수] 배지.
+  //   기존 11px·저대비(var(--text-2)/#94a3b8)·14px 체크박스가 모바일에서 약관 동의가 안 보여 가입 차단되던 문제 해소.
   return (
     <>
       <TermsModal open={!!modalCat} onClose={() => setModalCat(null)} category={modalCat} />
-      <div style={{ display: 'grid', gap: compact ? 6 : 8, padding: compact ? '10px 12px' : '12px 14px', borderRadius: 10, background: 'rgba(99,140,255,0.04)', border: '1px solid rgba(99,140,255,0.12)' }}>
-        <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', paddingBottom: 8, borderBottom: '1px solid rgba(99,140,255,0.1)' }}>
+      <div style={{ display: 'grid', gap: 8, padding: 14, borderRadius: 12, background: '#f8fafc', border: '1px solid #cbd5e1' }}>
+        <div style={{ fontSize: 12, fontWeight: 800, color: '#475569', marginBottom: 2 }}>📋 {t('auth.termsAgreeTitle', '약관 동의')}</div>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', padding: '11px 10px', borderRadius: 10, background: '#eff6ff', border: '1px solid #bfdbfe', minHeight: 44, boxSizing: 'border-box' }}>
           <input type="checkbox" checked={agreeAll} onChange={e => handleAllToggle(e.target.checked)}
-            style={{ accentColor: '#4f8ef7', width: 15, height: 15, flexShrink: 0 }} />
-          <span style={{ fontSize: 12, fontWeight: 800, color: '#0f172a' }}>{t('auth.agreeAllTerms')}</span>
+            style={{ accentColor: '#2563eb', width: 20, height: 20, flexShrink: 0 }} />
+          <span style={{ fontSize: 14, fontWeight: 800, color: '#0f172a' }}>{t('auth.agreeAllTerms')}</span>
         </label>
         {items.map(({ key, val, set, label, required }) => (
-          <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', flex: 1 }}>
+          <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 8, minHeight: 40 }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', flex: 1, padding: '4px 2px', minWidth: 0 }}>
               <input type="checkbox" checked={val} onChange={e => set(e.target.checked)}
-                style={{ accentColor: '#4f8ef7', width: 14, height: 14, flexShrink: 0 }} />
-              <span style={{ fontSize: 11, color: 'var(--text-2)' }}>
-                {required ? <span style={{ color: '#94a3b8', fontSize: 10, marginRight: 3 }} >[{t('auth.requiredTag')}]</span> : <span>[{t('auth.optionalTag')}]</span>}
+                style={{ accentColor: '#2563eb', width: 18, height: 18, flexShrink: 0 }} />
+              <span style={{ fontSize: 13, color: '#334155', fontWeight: 600, lineHeight: 1.4 }}>
+                <span style={{ display: 'inline-block', fontSize: 10, fontWeight: 800, padding: '1px 6px', borderRadius: 6, marginRight: 6, background: required ? '#fee2e2' : '#e2e8f0', color: required ? '#dc2626' : '#64748b' }}>{required ? t('auth.requiredTag') : t('auth.optionalTag')}</span>
                 {label}
               </span>
             </label>
-            <button type="button" onClick={() => setModalCat(key)} style={{ background: 'none', border: 'none', color: '#4f8ef7', fontSize: 10, cursor: 'pointer', whiteSpace: 'nowrap', textDecoration: 'underline' }}>{t('auth.viewTerms')}</button>
+            <button type="button" onClick={() => setModalCat(key)} style={{ background: '#fff', border: '1px solid #bfdbfe', color: '#2563eb', fontSize: 12, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap', borderRadius: 8, padding: '7px 11px', flexShrink: 0, minHeight: 36 }}>{t('auth.viewTerms')}</button>
           </div>
         ))}
       </div>
