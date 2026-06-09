@@ -1646,8 +1646,10 @@ export default function AuthPage() {
   const isRTL = currentLang === 'ar';
 
   return (
-    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(160deg, #E3E0F2 0%, #DDDAED 25%, #DDDAED 50%, #E0DDF0 75%, #E5E2F4 100%)", padding: "24px 16px", direction: isRTL ? 'rtl' : 'ltr' }}>
+    <div className="auth-shell" style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(160deg, #E3E0F2 0%, #DDDAED 25%, #DDDAED 50%, #E0DDF0 75%, #E5E2F4 100%)", padding: "24px 16px", direction: isRTL ? 'rtl' : 'ltr' }}>
       <style>{floatKeyframes}</style>
+      {/* 208차: 모바일 로그인 버튼이 폴드 밖으로 밀려 가입/로그인 불가하던 문제 — 상단정렬+로고축소로 화면 내 진입 */}
+      <style>{`@media (max-width:560px),(max-height:820px){.auth-shell{align-items:flex-start!important;padding-top:14px!important;padding-bottom:14px!important}.auth-logo{max-height:104px!important;width:130px!important}.auth-card{max-height:none!important}}`}</style>
       <div style={{ position: "fixed", inset: 0, overflow: "hidden", pointerEvents: "none" }}>
         <div style={{ position: "absolute", top: "-15%", right: "-10%", width: 500, height: 500, borderRadius: "50%", background: "radial-gradient(circle,rgba(79,142,247,0.08) 0%,transparent 70%)" }} />
         <div style={{ position: "absolute", bottom: "-15%", left: "-10%", width: 500, height: 500, borderRadius: "50%", background: "radial-gradient(circle,rgba(168,85,247,0.06) 0%,transparent 70%)" }} />
@@ -1660,7 +1662,7 @@ export default function AuthPage() {
 
         <div style={{ textAlign: "center", marginBottom: 24 }}>
           <div onClick={() => setMode("admin")} style={{ display: "inline-block", cursor: "pointer", animation: "genieLevitate 4s ease-in-out infinite", position: "relative", borderRadius: 32, overflow: "hidden" }}>
-            <img src="/logo_v5.png" alt="Geniego-ROI" style={{ width: 280, height: 'auto', maxHeight: 260, objectFit: "contain", display: "block", margin: "0 auto", borderRadius: 32, filter: "drop-shadow(0 8px 24px rgba(79,142,247,0.18))" }} />
+            <img className="auth-logo" src="/logo_v5.png" alt="Geniego-ROI" style={{ width: 280, height: 'auto', maxHeight: 260, objectFit: "contain", display: "block", margin: "0 auto", borderRadius: 32, filter: "drop-shadow(0 8px 24px rgba(79,142,247,0.18))" }} />
           </div>
           <div style={{ marginTop: 12, fontWeight: 900, fontSize: 18, letterSpacing: "1.5px", background: "linear-gradient(135deg, #4f8ef7 0%, #6366f1 30%, #a855f7 60%, #f59e0b 100%)", backgroundSize: "200% auto", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", animation: "shimmer 4s linear infinite", fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif", textTransform: "uppercase" }}>
             {t('auth.platformSlogan')}
@@ -1670,7 +1672,7 @@ export default function AuthPage() {
           </div>
         </div>
 
-        <div style={{ padding: "24px", borderRadius: 20, background: "rgba(255,255,255,0.85)", backdropFilter: "blur(20px)", border: "1px solid rgba(99,140,255,0.15)", boxShadow: "0 24px 64px rgba(0,0,0,0.08)", maxHeight: "80vh", overflowY: "auto", color: "#1e293b" }}>
+        <div className="auth-card" style={{ padding: "24px", borderRadius: 20, background: "rgba(255,255,255,0.85)", backdropFilter: "blur(20px)", border: "1px solid rgba(99,140,255,0.15)", boxShadow: "0 24px 64px rgba(0,0,0,0.08)", maxHeight: "80vh", overflowY: "auto", color: "#1e293b" }}>
 
           {/* ─── STEP 1: 환경 선택 (loginType이 null일 때) ─── */}
           {mode === "login" && !loginType && (
