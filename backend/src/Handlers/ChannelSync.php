@@ -83,6 +83,21 @@ final class ChannelSync
         return 'demo';
     }
 
+    /**
+     * 207차 후속 보안: 공개 bypass 엔드포인트(미들웨어 api_key 미적용)의 익명 접근 차단.
+     *  - 세션 토큰/데모 토큰(Authorization Bearer) 또는 미들웨어 auth_tenant 가 있으면 통과
+     *    (데모 토큰 → demo 버킷, 정상 / 운영 세션 → 실 tenant).
+     *  - 완전 익명(Authorization 헤더 없음)만 401 거부 → 익명의 demo 버킷 R/W·자격증명 저장 차단.
+     *  - 커머스 cron 은 HTTP 핸들러를 거치지 않고 직접 호출하므로 영향 없음.
+     */
+    private static function denyAnon(Request $req, Response $res): ?Response
+    {
+        $attr = $req->getAttribute('auth_tenant', '');
+        if ($attr !== '' && $attr !== null) return null;
+        if (preg_match('/Bearer\s+\S+/i', $req->getHeaderLine('Authorization'))) return null;
+        return TemplateResponder::respond($res->withStatus(401), ['ok' => false, 'error' => 'unauthorized']);
+    }
+
     // ── HTTP helper ──────────────────────────────────────────────────────
     private static function httpGet(string $url, array $headers = [], int $timeout = 15): array
     {
@@ -235,6 +250,24 @@ final class ChannelSync
                 $pdo->exec("ALTER TABLE channel_credential ADD COLUMN {$col}");
             } catch (\Throwable $e) { /* 이미 존재 */ }
         }
+    }
+
+    /**
+     * 207차 MySQL 호환: driver-aware upsert tail.
+     *  - MySQL : ON DUPLICATE KEY UPDATE col=VALUES(col)  (UNIQUE 인덱스 기반)
+     *  - SQLite: ON CONFLICT(conflictCols) DO UPDATE SET col=excluded.col
+     * 기존 'ON CONFLICT ... DO UPDATE'(SQLite 전용)는 운영 MySQL 에서 1064 문법오류로
+     * 커머스 동기화 영속(saveProducts/saveOrders/inventory/saveCredential)이 통째로 실패했다.
+     */
+    private static function upsertTail(PDO $pdo, string $conflictCols, array $setCols): string
+    {
+        $isMy = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql';
+        if ($isMy) {
+            $sets = implode(',', array_map(static fn($c) => "$c=VALUES($c)", $setCols));
+            return " ON DUPLICATE KEY UPDATE $sets";
+        }
+        $sets = implode(',', array_map(static fn($c) => "$c=excluded.$c", $setCols));
+        return " ON CONFLICT($conflictCols) DO UPDATE SET $sets";
     }
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -595,12 +628,11 @@ final class ChannelSync
     {
         $count = 0;
         $now   = gmdate('c');
-        $stmt  = $pdo->prepare("INSERT INTO channel_products 
+        $stmt  = $pdo->prepare("INSERT INTO channel_products
             (tenant_id,channel,channel_product_id,sku,name,price,compare_price,inventory,status,category,weight,variants_json,raw_json,synced_at)
-            VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-            ON CONFLICT(tenant_id,channel,channel_product_id) DO UPDATE SET
-            name=excluded.name,price=excluded.price,inventory=excluded.inventory,
-            status=excluded.status,category=excluded.category,synced_at=excluded.synced_at");
+            VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+            . self::upsertTail($pdo, 'tenant_id,channel,channel_product_id',
+                ['name','price','inventory','status','category','synced_at']));
         foreach ($products as $p) {
             if (!($p['channel_product_id'] ?? null)) continue;
             // 188차 P0 보안: 데모 데이터의 운영 DB 유입 차단(전 채널 단일 chokepoint).
@@ -617,7 +649,7 @@ final class ChannelSync
             ]);
             // 재고 테이블도 업데이트
             $inv = $pdo->prepare("INSERT INTO channel_inventory(tenant_id,channel,sku,product_name,available,synced_at)
-                VALUES(?,?,?,?,?,?) ON CONFLICT(tenant_id,channel,sku,warehouse) DO UPDATE SET available=excluded.available,synced_at=excluded.synced_at");
+                VALUES(?,?,?,?,?,?)" . self::upsertTail($pdo, 'tenant_id,channel,sku,warehouse', ['available','synced_at']));
             if ($p['sku'] ?? null) {
                 $inv->execute([$tenant,$channel,$p['sku'],$p['name'] ?? '',(int)($p['inventory'] ?? 0),$now]);
             }
@@ -632,9 +664,9 @@ final class ChannelSync
         $now   = gmdate('c');
         $stmt  = $pdo->prepare("INSERT INTO channel_orders
             (tenant_id,channel,channel_order_id,buyer_name,buyer_email,product_name,sku,qty,unit_price,total_price,status,carrier,tracking_no,addr,ordered_at,event_type,raw_json,synced_at)
-            VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-            ON CONFLICT(tenant_id,channel,channel_order_id) DO UPDATE SET
-            status=excluded.status,carrier=excluded.carrier,tracking_no=excluded.tracking_no,synced_at=excluded.synced_at");
+            VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+            . self::upsertTail($pdo, 'tenant_id,channel,channel_order_id',
+                ['status','carrier','tracking_no','synced_at']));
         foreach ($orders as $o) {
             if (!($o['channel_order_id'] ?? null)) continue;
             // 188차 P0 보안: 데모 데이터의 운영 DB 유입 차단(전 채널 단일 chokepoint).
@@ -661,6 +693,7 @@ final class ChannelSync
     // GET /api/channel-sync/status
     public static function status(Request $req, Response $res, array $args): Response
     {
+        if (($g = self::denyAnon($req, $res)) !== null) return $g;
         self::ensureTables();
         $pdo    = Db::pdo();
         $tenant = self::tenant($req);
@@ -737,6 +770,7 @@ final class ChannelSync
     // POST /api/channel-sync/credentials
     public static function saveCredential(Request $req, Response $res, array $args): Response
     {
+        if (($g = self::denyAnon($req, $res)) !== null) return $g;
         self::ensureTables();
         $pdo    = Db::pdo();
         $tenant = self::tenant($req);
@@ -752,12 +786,17 @@ final class ChannelSync
             if (!empty($body[$k])) $extra[$k] = $body[$k];
         }
 
-        // 자격증명 저장
+        // 자격증명 저장 — 207차 driver-aware upsert(빈 key_value 는 기존값 보존)
+        $isMy = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql';
+        $credTail = $isMy
+            ? " ON DUPLICATE KEY UPDATE
+                key_value=CASE WHEN VALUES(key_value)='' THEN key_value ELSE VALUES(key_value) END,
+                extra_json=VALUES(extra_json),is_active=1,updated_at=VALUES(updated_at)"
+            : " ON CONFLICT(tenant_id,channel,key_name) DO UPDATE SET
+                key_value=CASE WHEN excluded.key_value='' THEN key_value ELSE excluded.key_value END,
+                extra_json=excluded.extra_json,is_active=1,updated_at=excluded.updated_at";
         $stmt = $pdo->prepare("INSERT INTO channel_credential(tenant_id,channel,cred_type,label,key_name,key_value,extra_json,is_active,updated_at,created_at)
-            VALUES(?,?,?,?,?,?,?,1,?,?)
-            ON CONFLICT(tenant_id,channel,key_name) DO UPDATE SET
-            key_value=CASE WHEN excluded.key_value='' THEN key_value ELSE excluded.key_value END,
-            extra_json=excluded.extra_json,is_active=1,updated_at=excluded.updated_at");
+            VALUES(?,?,?,?,?,?,?,1,?,?)" . $credTail);
 
         // 메인 키 — DB 저장은 암호화(은행급), 즉시 동기화는 평문 사용.
         $keyName  = trim((string)($body['key_name'] ?? 'api_key'));
@@ -793,6 +832,7 @@ final class ChannelSync
     // DELETE /api/channel-sync/credentials/{id}
     public static function deleteCredential(Request $req, Response $res, array $args): Response
     {
+        if (($g = self::denyAnon($req, $res)) !== null) return $g;
         self::ensureTables();
         $pdo    = Db::pdo();
         $tenant = self::tenant($req);
@@ -808,6 +848,7 @@ final class ChannelSync
     // POST /api/channel-sync/{channel}/test
     public static function testChannel(Request $req, Response $res, array $args): Response
     {
+        if (($g = self::denyAnon($req, $res)) !== null) return $g;
         self::ensureTables();
         $pdo     = Db::pdo();
         $tenant  = self::tenant($req);
@@ -935,6 +976,7 @@ final class ChannelSync
     // POST /api/channel-sync/{channel}/sync
     public static function syncChannel(Request $req, Response $res, array $args): Response
     {
+        if (($g = self::denyAnon($req, $res)) !== null) return $g;
         $tenant  = self::tenant($req);
         $plan    = self::plan($req);
         $channel = (string)($args['channel'] ?? '');
@@ -955,6 +997,7 @@ final class ChannelSync
     // GET /api/channel-sync/products
     public static function products(Request $req, Response $res, array $args): Response
     {
+        if (($g = self::denyAnon($req, $res)) !== null) return $g;
         self::ensureTables();
         $pdo    = Db::pdo();
         $tenant = self::tenant($req);
@@ -997,6 +1040,7 @@ final class ChannelSync
     // GET /api/channel-sync/orders
     public static function orders(Request $req, Response $res, array $args): Response
     {
+        if (($g = self::denyAnon($req, $res)) !== null) return $g;
         self::ensureTables();
         $pdo    = Db::pdo();
         $tenant = self::tenant($req);
@@ -1038,6 +1082,7 @@ final class ChannelSync
     // GET /api/channel-sync/inventory
     public static function inventory(Request $req, Response $res, array $args): Response
     {
+        if (($g = self::denyAnon($req, $res)) !== null) return $g;
         self::ensureTables();
         $pdo    = Db::pdo();
         $tenant = self::tenant($req);
@@ -1069,20 +1114,74 @@ final class ChannelSync
         $body    = (array)($req->getParsedBody() ?? []);
         $now     = gmdate('c');
 
-        // 웹훅 이벤트 처리 (재고 차감, 주문 업데이트)
+        // 207차 보안(P0): 과거엔 본문 tenant_id 를 그대로 신뢰해 익명 공격자가 임의 테넌트의
+        //   channel_orders 에 주문을 INSERT/UPDATE 할 수 있었다(교차테넌트 쓰기 주입).
+        //   이제 테넌트는 '서버에 등록된 웹훅 토큰'에서만 도출한다. 토큰이 검증되지 않으면
+        //   어떤 쓰기도 하지 않고 no-op(accepted=false) — 주입 차단(fail-secure).
+        //   실 커머스 수집은 인증된 폴링 cron(commerce_sync_cron) 경로가 담당한다.
+        $token = trim($req->getHeaderLine('X-Webhook-Token'));
+        if ($token === '') { $token = trim((string)($req->getQueryParams()['token'] ?? '')); }
+        $tenant = self::tenantFromWebhookToken($pdo, $channel, $token);
+        if ($tenant === null) {
+            return TemplateResponder::respond($res, ['ok'=>true,'channel'=>$channel,'accepted'=>false,'reason'=>'unverified_webhook']);
+        }
+
+        // 웹훅 이벤트 처리 (재고 차감, 주문 업데이트) — 검증된 tenant 한정
         $eventType = $body['event'] ?? 'order';
-        $tenant    = $body['tenant_id'] ?? 'demo';
 
         if ($eventType === 'inventory_update' && !empty($body['sku'])) {
             $pdo->prepare("UPDATE channel_inventory SET available=?,synced_at=? WHERE tenant_id=? AND channel=? AND sku=?")
                 ->execute([(int)($body['quantity']??0), $now, $tenant, $channel, $body['sku']]);
         } elseif (in_array($eventType, ['order','order_update','cancel','return'], true) && !empty($body['order_id'])) {
-            $pdo->prepare("INSERT INTO channel_orders(tenant_id,channel,channel_order_id,buyer_name,product_name,qty,unit_price,total_price,status,ordered_at,event_type,synced_at)
-                VALUES(?,?,?,?,?,?,?,?,?,?,?,?)
-                ON CONFLICT(tenant_id,channel,channel_order_id) DO UPDATE SET status=excluded.status,synced_at=excluded.synced_at")
-                ->execute([$tenant,$channel,$body['order_id'],$body['buyer_name']??'',$body['product_name']??'',(int)($body['qty']??1),(float)($body['price']??0),(float)($body['total']??0),$body['status']??'pending',$body['ordered_at']??$now,$eventType,$now]);
+            // MySQL/SQLite 호환 upsert (ON CONFLICT 미사용)
+            $sel = $pdo->prepare("SELECT id FROM channel_orders WHERE tenant_id=? AND channel=? AND channel_order_id=? LIMIT 1");
+            $sel->execute([$tenant, $channel, $body['order_id']]);
+            if ($sel->fetchColumn()) {
+                $pdo->prepare("UPDATE channel_orders SET status=?, synced_at=? WHERE tenant_id=? AND channel=? AND channel_order_id=?")
+                    ->execute([$body['status']??'pending', $now, $tenant, $channel, $body['order_id']]);
+            } else {
+                $pdo->prepare("INSERT INTO channel_orders(tenant_id,channel,channel_order_id,buyer_name,product_name,qty,unit_price,total_price,status,ordered_at,event_type,synced_at)
+                    VALUES(?,?,?,?,?,?,?,?,?,?,?,?)")
+                    ->execute([$tenant,$channel,$body['order_id'],$body['buyer_name']??'',$body['product_name']??'',(int)($body['qty']??1),(float)($body['price']??0),(float)($body['total']??0),$body['status']??'pending',$body['ordered_at']??$now,$eventType,$now]);
+            }
         }
 
-        return TemplateResponder::respond($res, ['ok'=>true,'channel'=>$channel,'event'=>$eventType]);
+        return TemplateResponder::respond($res, ['ok'=>true,'channel'=>$channel,'event'=>$eventType,'accepted'=>true]);
+    }
+
+    /**
+     * 등록된 웹훅 토큰 → 테넌트 도출. 미등록/무효 토큰은 null(쓰기 거부).
+     * channel_webhook_token(tenant_id, channel, token UNIQUE) 에서 조회.
+     * (토큰 발급/등록 UI 는 후속 — 현재는 검증 게이트로 주입만 차단)
+     */
+    private static function tenantFromWebhookToken(\PDO $pdo, string $channel, string $token): ?string
+    {
+        if ($token === '' || strlen($token) < 16) return null;
+        try {
+            $isMy = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql';
+            if ($isMy) {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS channel_webhook_token (
+                    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                    tenant_id VARCHAR(190) NOT NULL,
+                    channel VARCHAR(64) NOT NULL,
+                    token VARCHAR(128) NOT NULL UNIQUE,
+                    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+            } else {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS channel_webhook_token (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    tenant_id TEXT NOT NULL,
+                    channel TEXT NOT NULL,
+                    token TEXT NOT NULL UNIQUE,
+                    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+                )");
+            }
+            $st = $pdo->prepare("SELECT tenant_id FROM channel_webhook_token WHERE token=? AND channel=? LIMIT 1");
+            $st->execute([$token, $channel]);
+            $t = $st->fetchColumn();
+            return ($t !== false && $t !== null) ? (string)$t : null;
+        } catch (\Throwable $e) {
+            return null;
+        }
     }
 }

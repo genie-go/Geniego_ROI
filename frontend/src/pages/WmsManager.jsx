@@ -646,10 +646,24 @@ const InventoryTab = memo(function InventoryTab({ whs }) {
         };
         reader.readAsText(file);
     };
+    // 207차 후속: CSV import 가 성공 토스트만 띄우던 무동작 셸 → 실제 재고 반영(adjustStock 단일소스 +
+    //   운영은 wmsApi.createMovement 감사 영속). SKU/수량/창고 컬럼은 다양한 헤더명을 관용 매핑.
     const executeImport = () => {
-        setImportStatus({ count: csvData.length, success: true });
+        let applied = 0;
+        (csvData || []).forEach(r => {
+            const sku = String(r.SKU || r.sku || r.Sku || r['상품코드'] || '').trim();
+            const qtyRaw = r.qty ?? r.Qty ?? r.quantity ?? r.Quantity ?? r['수량'] ?? r.available ?? r.stock ?? r.Stock ?? '';
+            const qty = parseInt(String(qtyRaw).replace(/[^0-9-]/g, ''), 10);
+            const wh = String(r.warehouse || r.wh || r.whId || r.WH || r['창고'] || 'W001').trim() || 'W001';
+            if (sku && !isNaN(qty)) {
+                adjustStock(sku, wh, qty);
+                applied++;
+                if (!IS_DEMO) { try { wmsApi.createMovement({ sku, name: r.name || r.product || r['상품명'] || '', qty, wh_id: wh, type: 'csv_import', reason: 'CSV 재고 등록' }); } catch {} }
+            }
+        });
+        setImportStatus({ count: applied, success: applied > 0 });
         setCsvData([]);
-        setTimeout(() => setShowImport(false), 2000);
+        setTimeout(() => setShowImport(false), 2500);
     };
 
     /* ── Export Functions ── */
@@ -1341,6 +1355,20 @@ const PickingListTab = memo(function PickingListTab({ pickingLists }) {
     });
     const [statusFilter, setStatusFilter] = React.useState('all');
     const [approval, setApproval] = React.useState(null); // { pk, onConfirm }
+    // 207차 후속: 운영 피킹리스트 생성 UI (wmsApi.createPicking). 데모는 주문에서 자동 생성.
+    const [pickForm, setPickForm] = React.useState({ orderRef:'', sku:'', name:'', qty:'', whId:'', carrier:'' });
+    const [pickSaving, setPickSaving] = React.useState(false);
+    const createPick = async (e) => {
+        e.preventDefault();
+        if (!pickForm.sku && !pickForm.orderRef) return;
+        setPickSaving(true);
+        try {
+            await wmsApi.createPicking({ orderRef: pickForm.orderRef, sku: pickForm.sku, name: pickForm.name, qty: Number(pickForm.qty)||0, whId: pickForm.whId, carrier: pickForm.carrier, status:'pending' });
+            await reload();
+            setPickForm({ orderRef:'', sku:'', name:'', qty:'', whId:'', carrier:'' });
+        } catch (err) { alert(String(err?.message||err)); }
+        setPickSaving(false);
+    };
 
     const filtered = statusFilter === 'all' ? list : list.filter(p => p.status === statusFilter);
     const STATUS_MAP = { pending:'#f97316', picked:'#4f8ef7', packed:'#22c55e', shipped:'#a855f7' };
@@ -1404,6 +1432,20 @@ const PickingListTab = memo(function PickingListTab({ pickingLists }) {
                     )}
                 </span>
             </div>
+
+            {/* 207차 후속: 피킹리스트 생성 폼 (운영) */}
+            {!IS_DEMO && (
+                <form onSubmit={createPick} style={{ display:'flex', flexWrap:'wrap', gap:8, alignItems:'flex-end', padding:'12px 14px', borderRadius:10, background:'rgba(79,142,247,0.05)', border:'1px solid rgba(79,142,247,0.18)' }}>
+                    <div style={{ fontWeight:800, fontSize:12, width:'100%', color:'#374151' }}>➕ {t('wms.pickCreateTitle','피킹리스트 생성')}</div>
+                    {[['orderRef',t('wms.pickColOrder')],['sku',t('wms.pickColSku')],['name',t('wms.pickColProduct')],['whId',t('wms.pickColWh')],['carrier','Carrier']].map(([k,ph])=>(
+                        <input key={k} value={pickForm[k]} onChange={e=>setPickForm(f=>({...f,[k]:e.target.value}))} placeholder={ph}
+                            style={{ padding:'7px 9px', borderRadius:7, border:'1px solid rgba(0,0,0,0.12)', fontSize:11, width: k==='name'?150:110, fontFamily:'inherit' }} />
+                    ))}
+                    <input type="number" min="0" value={pickForm.qty} onChange={e=>setPickForm(f=>({...f,qty:e.target.value}))} placeholder={t('wms.pickColQty')}
+                        style={{ padding:'7px 9px', borderRadius:7, border:'1px solid rgba(0,0,0,0.12)', fontSize:11, width:80, fontFamily:'inherit' }} />
+                    <button type="submit" disabled={pickSaving} style={{ padding:'8px 16px', borderRadius:7, border:'none', background:'#4f8ef7', color:'#fff', fontWeight:700, fontSize:11, cursor:pickSaving?'default':'pointer', opacity:pickSaving?0.6:1 }}>{t('wms.pickCreateBtn','생성')}</button>
+                </form>
+            )}
 
             <table style={{ width:'100%', borderCollapse:'collapse', fontSize:12 }}>
                 <thead><tr style={{ borderBottom:'1px solid rgba(99,140,255,0.15)' }}>

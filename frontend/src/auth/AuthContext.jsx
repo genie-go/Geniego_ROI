@@ -566,14 +566,24 @@ export function AuthProvider({ children }) {
     const isSubscriptionExpired = subscriptionStatus === "expired";
 
     /* 플랜 체크 (구독 만료 반영) */
-    /* 🎪 데모 모드: 서버 plan과 무관하게 enterprise 강제 적용 (DB 수정 없이 전체 메뉴 접근 보장) */
-    const userPlan = IS_DEMO_MODE ? "enterprise" : (isSubscriptionExpired ? "free" : (user?.plan ?? "free"));
+    /* 🎪 데모 모드: 서버 plan과 무관하게 enterprise 강제 적용 (DB 수정 없이 전체 메뉴 접근 보장)
+       ★207차: 단, admin(플랫폼 운영자) 계정은 데모에서도 'admin' 으로 보존한다.
+       기존엔 데모가 admin 계정마저 'enterprise'로 강제해, hasMenuAccess(userPlan==='admin'만 통과)가
+       관리자 메뉴를 막고 "Admin Plan 으로 업그레이드"(구매 불가 역할) 구독화면을 띄우던 버그. */
+    const _isAdminAccount = (user?.plan === "admin") || (user?.plans === "admin");
+    const userPlan = IS_DEMO_MODE
+        ? (_isAdminAccount ? "admin" : "enterprise")
+        : (isSubscriptionExpired ? "free" : (user?.plan ?? "free"));
     const isPro   = planRank(userPlan) >= 1;   // starter 이상
     const isPaid  = planRank(userPlan) >= 1;   // starter 이상 (= isPro alias)
     // isDemo: 체험용 데모는 무한 렌더링 방지를 위해 false 유지
     const isDemo  = false;
     const isFreeUser = userPlan === "free" && !hasRealKeys;    // 유료결제 전 무료가입 회원
-    const isAdmin = userPlan === "admin" || IS_DEMO_MODE;
+    // ★207차 보안: admin 권한은 '실제 admin 계정(userPlan==="admin")'만 부여.
+    //   기존 `|| IS_DEMO_MODE`는 모든 데모 회원을 admin 으로 만들어 사이드바 ADMIN_MENU·admin 기능이
+    //   데모 회원에게 노출되던 치명 갭. 요구사항: admin 계정은 데모·운영 양쪽 접근 가능(userPlan 보존으로
+    //   데모에서도 admin 유지), 데모회원·운영회원은 admin 절대 접근 불가.
+    const isAdmin = userPlan === "admin";
 
     /* ── 183차 Phase3: 테넌트 내 팀 역할(team_role) RBAC ──
      * owner > manager > member. admin/데모는 항상 전체 쓰기(우회).

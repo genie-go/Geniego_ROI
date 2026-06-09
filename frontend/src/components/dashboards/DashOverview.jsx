@@ -10,6 +10,7 @@ import { useGlobalData } from '../../context/GlobalDataContext.jsx';
 import { useCurrency } from '../../contexts/CurrencyContext.jsx';
 import { useSecurityGuard, getSecurityAlerts } from '../../security/SecurityGuard.js';
 import { Spark, DonutChart, Gauge, fmt, LineChart } from './ChartUtils.jsx';
+import { IS_DEMO } from '../../utils/demoEnv';
 
 // ── Style Constants ──────────────────────────────────────────────────────
 const G = 12;
@@ -492,7 +493,12 @@ export default function DashOverview({ ticker }) {
     adSpend: pnlStats?.adSpend || budgetStats?.totalSpent || 0,
     roas: pnlStats?.roas || budgetStats?.blendedRoas || 0,
     orders: orderStats?.count || 0,
-    convRate: orderStats?.count > 0 ? parseFloat(((orderStats.count / Math.max(1, orderStats.count * 4.5)) * 100).toFixed(2)) : 0,
+    // 207차 운영오염 수정: 기존 count/(count*4.5) = 항상 22.22% 자기상쇄 가짜값.
+    //   방문수/세션 단일소스가 없어 운영에선 전환율을 정직 산출 불가 → null('—' 표시).
+    //   데모는 주문수 기반 결정적 현실값(2.2~3.3%) 표시.
+    convRate: IS_DEMO
+      ? parseFloat((2.2 + ((orderStats?.count || 0) % 12) * 0.1).toFixed(2))
+      : null,
     avgOrder: orderStats?.count > 0 ? Math.round((pnlStats?.revenue || 0) / orderStats.count) : 0,
   }), [pnlStats, orderStats, budgetStats]);
 
@@ -529,7 +535,7 @@ export default function DashOverview({ ticker }) {
         <KpiCard icon="📢" label={t('dashboard.adSpend', '광고비')} value={fmtCurrency(base.adSpend, { compact: true })} sub={t('dashboard.adSpendSub', '전체 채널 합산')} change={0} color="#f97316" spark={sparks.spend} />
         <KpiCard icon="📈" label={t('dashboard.netROAS', 'Net ROAS')} value={base.roas.toFixed(2) + 'x'} sub={t('dashboard.netROASSub', '순수익 기준')} change={0} color="#22c55e" spark={sparks.roas} />
         <KpiCard icon="📦" label={t('dashboard.totalOrders', '총 주문')} value={base.orders.toLocaleString()} sub={t('dashboard.totalOrderSub', '오늘 기준')} change={0} color="#a855f7" spark={sparks.orders} />
-        <KpiCard icon="🎯" label={t('dashboard.convRateLbl', '전환율')} value={base.convRate.toFixed(2) + '%'} sub={t('dashboard.convRateSub', '평균 전환율')} change={0} color="#ec4899" spark={sparks.conv} />
+        <KpiCard icon="🎯" label={t('dashboard.convRateLbl', '전환율')} value={base.convRate == null ? '—' : base.convRate.toFixed(2) + '%'} sub={base.convRate == null ? t('dashboard.convRateNeedData', '방문 데이터 연동 필요') : t('dashboard.convRateSub', '평균 전환율')} change={0} color="#ec4899" spark={sparks.conv} />
         <KpiCard icon="🧾" label={t('dashboard.avgOrder', 'AOV')} value={fmtCurrency(base.avgOrder, { compact: true })} sub="AOV" change={0} color="#14d9b0" spark={sparks.aov} />
       </div>
 

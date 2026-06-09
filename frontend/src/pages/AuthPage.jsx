@@ -240,19 +240,32 @@ function TermsAgreementSection({ agreeTerms, setAgreeTerms, agreePrivacy, setAgr
 
 /* ─── Input Field ──────────────────────────────────────────── */
 function Field({ label, type = "text", value, onChange, placeholder, required, autoComplete, hint, disabled }) {
+  // 207차: 비밀번호 보이기/숨기기 토글 — 자동완성으로 채워진 잘못된 값 확인용(로그인 디버깅).
+  const isPw = type === "password";
+  const [reveal, setReveal] = useState(false);
+  const effType = isPw && reveal ? "text" : type;
   return (
     <div style={{ display: "grid", gap: 4 }}>
       <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-2)" }}>
         {label}{required && <span style={{ color: "#ef4444" }}> *</span>}
       </label>
-      <input
-        type={type} value={value}
-        onChange={e => onChange(e.target.value)}
-        placeholder={placeholder} required={required} autoComplete={autoComplete} disabled={disabled}
-        style={{ padding: "10px 14px", borderRadius: 10, border: "1px solid var(--border)", background: disabled ? "rgba(255,255,255,0.02)" : "rgba(255,255,255,0.04)", color: disabled ? '#94a3b8' : '#fff', fontSize: 13, outline: "none", transition: "border-color 150ms", width: "100%", boxSizing: "border-box", cursor: disabled ? "not-allowed" : "text" }}
-        onFocus={e => (e.target.style.borderColor = "#4f8ef7")}
-        onBlur={e => (e.target.style.borderColor = "var(--border)")}
-      />
+      <div style={{ position: "relative" }}>
+        <input
+          type={effType} value={value}
+          onChange={e => onChange(e.target.value)}
+          placeholder={placeholder} required={required} autoComplete={autoComplete} disabled={disabled}
+          style={{ padding: isPw ? "10px 44px 10px 14px" : "10px 14px", borderRadius: 10, border: "1px solid var(--border)", background: disabled ? "rgba(255,255,255,0.02)" : "rgba(255,255,255,0.04)", color: disabled ? '#94a3b8' : '#fff', fontSize: 13, outline: "none", transition: "border-color 150ms", width: "100%", boxSizing: "border-box", cursor: disabled ? "not-allowed" : "text" }}
+          onFocus={e => (e.target.style.borderColor = "#4f8ef7")}
+          onBlur={e => (e.target.style.borderColor = "var(--border)")}
+        />
+        {isPw && !disabled && (
+          <button type="button" tabIndex={-1} onClick={() => setReveal(v => !v)}
+            title={reveal ? "숨기기" : "보이기"}
+            style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", background: "transparent", border: "none", cursor: "pointer", fontSize: 15, padding: 4, lineHeight: 1, color: "#94a3b8" }}>
+            {reveal ? "🙈" : "👁️"}
+          </button>
+        )}
+      </div>
       {hint && <div style={{ fontSize: 10, color: "var(--text-3)", marginTop: 1 }}>{hint}</div>}
     </div>
   );
@@ -484,8 +497,18 @@ function LoginForm({ onSwitch, loginType = "production" }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null); setLoading(true);
+    // 207차: 자동완성 비동기화 방지 — 제출 시 DOM 실 입력값 우선(state-표시값 불일치 로그인 실패 차단).
+    let liveEmail = email, livePw = password;
     try {
-      const user = await login(email, password, loginType, "", otp, remember);
+      const form = e.currentTarget;
+      const ins = [...form.querySelectorAll('input')];
+      const emEl = ins.find(i => i.type === 'email') || ins[0];
+      const pwEl = ins.find(i => i.type === 'password') || ins.find(i => i.type === 'text');
+      if (emEl && emEl.value) liveEmail = emEl.value;
+      if (pwEl && pwEl.value) livePw = pwEl.value;
+    } catch (_) {}
+    try {
+      const user = await login(liveEmail.trim(), livePw, loginType, "", otp, remember);
       /* ── admin 계정은 일반 로그인 차단 ── */
       if ((user.plans || user.plan) === 'admin') {
         throw new Error(t('auth.adminBlockedInNormalLogin'));
@@ -1420,8 +1443,19 @@ function AdminLoginForm({ onBack }) {
   const handleLogin = async (e) => {
     e.preventDefault();
     setError(null); setLoading(true);
+    // 207차 핵심수정: 브라우저 자동완성이 input.value 만 채우고 React onChange 미발화 시
+    //   state(email/password)가 화면 표시값과 달라 로그인 실패하던 버그 → 제출 시 DOM 실값을 우선 사용.
+    let liveEmail = email, livePw = password;
     try {
-      const user = await login(email, password, "admin", adminKey.trim());
+      const form = e.currentTarget;
+      const ins = [...form.querySelectorAll('input')];
+      const emEl = ins.find(i => i.type === 'email') || ins[0];
+      const pwEl = ins.find(i => i.type === 'password') || ins.find(i => i.type === 'text') || ins[ins.length - 1];
+      if (emEl && emEl.value) liveEmail = emEl.value;
+      if (pwEl && pwEl.value) livePw = pwEl.value;
+    } catch (_) {}
+    try {
+      const user = await login(liveEmail.trim(), livePw, "admin", adminKey.trim());
       if ((user.plans || user.plan) !== "admin") throw new Error("관리자 계정이 아닙니다. 관리자 전용 계정으로 로그인하세요.");
       navigate("/admin", { replace: true });
     } catch (err) { setError(err.message); }
@@ -1441,8 +1475,12 @@ function AdminLoginForm({ onBack }) {
         <form onSubmit={verifyKey} style={{ display: "grid", gap: 12 }}>
           <div>
             <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#475569", marginBottom: 5 }}>접속 코드</label>
-            <input type="password" value={adminKey} onChange={e => setAdminKey(e.target.value)} placeholder="관리자 접속 코드를 입력하세요" required
-              style={{ width: "100%", boxSizing: "border-box", padding: "10px 14px", borderRadius: 10, border: "1px solid rgba(239,68,68,0.3)", background: "rgba(239,68,68,0.04)", color: "#1e293b", fontSize: 13, outline: "none" }} />
+            {/* 207차 로그인 버그 수정: type=password 면 브라우저 비밀번호 관리자가 저장된 사이트
+                비밀번호를 이 '접속 코드' 칸에 자동완성 → 접속키 검증 실패(로그인 차단)의 원인.
+                type=text + autoComplete=off 로 자동완성을 차단하고, 마스킹은 CSS(WebkitTextSecurity)로 유지. */}
+            <input type="text" name="genie_admin_gate" value={adminKey} onChange={e => setAdminKey(e.target.value)} placeholder="관리자 접속 코드를 입력하세요" required
+              autoComplete="off" autoCorrect="off" autoCapitalize="off" spellCheck={false} data-lpignore="true" data-form-type="other"
+              style={{ width: "100%", boxSizing: "border-box", padding: "10px 14px", borderRadius: 10, border: "1px solid rgba(239,68,68,0.3)", background: "rgba(239,68,68,0.04)", color: "#1e293b", fontSize: 13, outline: "none", WebkitTextSecurity: "disc", textSecurity: "disc" }} />
           </div>
           {error && <div style={{ padding: "8px 12px", borderRadius: 8, background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.3)", color: "#ef4444", fontSize: 11 }}>{error}</div>}
           <button type="submit" style={{ padding: "12px 0", borderRadius: 10, border: "none", background: "linear-gradient(135deg,#ef4444,#dc2626)", color: "#fff", fontWeight: 800, fontSize: 14, cursor: "pointer" }}>접속 코드 확인</button>
@@ -1450,8 +1488,10 @@ function AdminLoginForm({ onBack }) {
       ) : (
         <form onSubmit={handleLogin} style={{ display: "grid", gap: 12 }}>
           <div style={{ padding: "6px 12px", borderRadius: 8, background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.2)", fontSize: 11, color: "#22c55e" }}>✅ 접속 코드 인증 완료</div>
-          <Field label="관리자 이메일" type="email" value={email} onChange={setEmail} placeholder="admin@example.com" required autoComplete="email" />
-          <Field label="비밀번호" type="password" value={password} onChange={setPassword} placeholder="••••••••" required autoComplete="current-password" />
+          {/* 207차: 옛 admin 비밀번호가 자동완성으로 채워져 로그인 실패하던 문제 — 자동완성 차단(new-password/off).
+              데모 로그인 폼은 무영향. 👁️ 보이기 버튼으로 실제 입력값 확인 가능. */}
+          <Field label="관리자 이메일" type="email" value={email} onChange={setEmail} placeholder="admin@example.com" required autoComplete="off" />
+          <Field label="비밀번호" type="password" value={password} onChange={setPassword} placeholder="••••••••" required autoComplete="new-password" />
           {error && <div style={{ padding: "8px 12px", borderRadius: 8, background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.3)", color: "#ef4444", fontSize: 11 }}>{error}</div>}
           <button type="submit" disabled={loading} style={{ padding: "12px 0", borderRadius: 10, border: "none", background: loading ? "rgba(239,68,68,0.4)" : "linear-gradient(135deg,#ef4444,#dc2626)", color: "#fff", fontWeight: 800, fontSize: 14, cursor: loading ? "not-allowed" : "pointer" }}>
             {loading ? "로그인 중..." : "🔐 관리자 로그인"}

@@ -413,7 +413,7 @@ const SecurityPanel = React.memo(function SecurityPanel({ txt, secAlerts }) {
 });
 
 // ── AI Analysis Panel 
-const PanelAI = React.memo(function PanelAI({ txt }) {
+const PanelAI = React.memo(function PanelAI({ txt, creatorCount = 0 }) {
   const [status, setStatus] = useState('idle');
   const [result, setResult] = useState(null);
   const [history, setHistory] = useState(null);
@@ -444,11 +444,11 @@ const PanelAI = React.memo(function PanelAI({ txt }) {
     <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
       <div style={{ background:'linear-gradient(145deg,rgba(79,142,247,0.1),rgba(8,18,38,0.97))', border:'1px solid rgba(79,142,247,0.25)', borderRadius:13, padding:'14px 16px' }}>
         <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:10 }}>
-          <div style={{ fontSize:28 }}>?</div>
+          <div style={{ fontSize:28 }}>🧠</div>
           <div>
             <div style={{ fontSize:14, fontWeight:900, color:'#4f8ef7' }}>{txt('aiEngineTitle')}</div>
             <div style={{ fontSize:10, color: 'var(--text-3)' }}>
-              {txt('aiEngineDesc').replace('{count}', String(CREATORS.length)).replace('{model}', model || 'claude-3-5-sonnet')}
+              {txt('aiEngineDesc').replace('{count}', String(creatorCount)).replace('{model}', model || 'claude-3-5-sonnet')}
             </div>
           </div>
         </div>
@@ -526,7 +526,7 @@ const PanelAI = React.memo(function PanelAI({ txt }) {
 const EmptyPanel = React.memo(function EmptyPanel({ txt }) {
   return (
     <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', height:340, gap:12, color: 'var(--text-3)' }}>
-      <div style={{ width:80, height:80, borderRadius:'50%', background:'rgba(168,85,247,0.08)', border:'1px solid rgba(168,85,247,0.2)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:40 }}>?</div>
+      <div style={{ width:80, height:80, borderRadius:'50%', background:'rgba(168,85,247,0.08)', border:'1px solid rgba(168,85,247,0.2)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:40 }}>🧠</div>
       <div style={{ fontSize:14, fontWeight:700, color: 'var(--text-3)' }}>{txt('noCreators')}</div>
       <div style={{ fontSize:11, maxWidth:300, textAlign:'center', lineHeight:1.6 }}>{txt('selectCreator')}</div>
     </div>
@@ -610,18 +610,18 @@ export default function DashInfluencer() {
       {/* ── Real-time Status Badges ── */}
       <div style={{ display:'flex', gap:8, flexWrap:'wrap', padding:'4px 0' }}>
         <StatusBadge text={txt('liveInfluencer')} col="#a855f7" />
-        <StatusBadge ico="?" text={`${txt('orders')} ${(orderStats?.totalOrders||0).toLocaleString()}`} col="#22c55e" />
-        <StatusBadge ico="?" text={`${txt('opProfit')} ${fmtC(pnlStats?.operatingProfit||0)}`} col="#eab308" />
-        <StatusBadge ico="?" text={`${txt('adSpent')} ${fmtC(budgetStats?.totalSpent||0)}`} col="#f97316" />
+        <StatusBadge ico="📦" text={`${txt('orders')} ${(orderStats?.totalOrders||0).toLocaleString()}`} col="#22c55e" />
+        <StatusBadge ico="💰" text={`${txt('opProfit')} ${fmtC(pnlStats?.operatingProfit||0)}`} col="#eab308" />
+        <StatusBadge ico="📢" text={`${txt('adSpent')} ${fmtC(budgetStats?.totalSpent||0)}`} col="#f97316" />
         <StatusBadge ico="🛡️" text={secAlerts.length > 0 ? `${txt('threatsBlocked')} ${secAlerts.length}` : txt('secureConnection')} col={secAlerts.length > 0 ? '#f87171' : '#22c55e'} />
       </div>
 
       {/* ── KPI Summary 4-col ── */}
       <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:G }}>
-        <KPICard ico="?" label={txt('totalFollowers')} value={fmt(kpis.totalFol)} delta={0.0} col="#a855f7" />
-        <KPICard ico="?️" label={txt('avgEngRate')} value={`${kpis.avgEng}%`} delta={0.0} col="#ec4899" />
-        <KPICard ico="?" label={txt('creatorRevenue')} value={fmtC(kpis.totalRev)} delta={0.0} col="#22c55e" />
-        <KPICard ico="?" label={txt('totalPurchases')} value={fmt(kpis.totalPurch)} delta={0.0} col="#f97316" />
+        <KPICard ico="👥" label={txt('totalFollowers')} value={fmt(kpis.totalFol)} delta={0.0} col="#a855f7" />
+        <KPICard ico="💞" label={txt('avgEngRate')} value={`${kpis.avgEng}%`} delta={0.0} col="#ec4899" />
+        <KPICard ico="💰" label={txt('creatorRevenue')} value={fmtC(kpis.totalRev)} delta={0.0} col="#22c55e" />
+        <KPICard ico="🛒" label={txt('totalPurchases')} value={fmt(kpis.totalPurch)} delta={0.0} col="#f97316" />
       </div>
 
       {/* ── Section Tabs ── */}
@@ -634,7 +634,7 @@ export default function DashInfluencer() {
       {/* ── Content Panel ── */}
       <div style={{ borderRadius:14, padding:'14px 16px', background: 'var(--surface)', border:'1px solid rgba(79,142,247,0.1)', minHeight:400 }}>
         {tab === 'ai' ? (
-          <PanelAI txt={txt} />
+          <PanelAI txt={txt} creatorCount={creatorList.length} />
         ) : tab === 'report' ? (
           <SecurityPanel txt={txt} secAlerts={secAlerts} />
         ) : creatorList.length === 0 ? (

@@ -141,25 +141,25 @@ function SummaryTab({ token }) {
             .then(r => r.json())
             .then(d => {
                 // API가 200 OK지만 데이터가 비어있으면 데모 폴백 사용
-                if ((!d.products || d.products === 0) && demoFallback) setData(demoFallback);
+                if ((!d.products || d.products === 0)) setData(isDemo && demoFallback ? demoFallback : emptyState);
                 else setData(d);
             })
             .catch(err => {
                 if (err?.name === 'AbortError') return;
-                setData(demoFallback || emptyState);
+                setData(isDemo && demoFallback ? demoFallback : emptyState);
             });
         return () => ac.abort();
-    }, [token, demoFallback, emptyState]);
+    }, [token, demoFallback, emptyState, isDemo]);
 
     const reload = () => {
         setData(null);
         getJsonAuth(`/v420/price/summary`)
             .then(r => r.json())
             .then(d => {
-                if ((!d.products || d.products === 0) && demoFallback) setData(demoFallback);
+                if ((!d.products || d.products === 0)) setData(isDemo && demoFallback ? demoFallback : emptyState);
                 else setData(d);
             })
-            .catch(() => { setData(demoFallback || emptyState); });
+            .catch(() => { setData(isDemo && demoFallback ? demoFallback : emptyState); });
     };
 
     if (!data) return <div className="sub" style={{ padding: 24 }}>{t("priceOpt.loading")}</div>;

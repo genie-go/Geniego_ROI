@@ -310,20 +310,39 @@ function OrderTab() {
         confirmed: t('orderHub.statusConfirmed'),
     }), [t]);
 
+    // 207차 후속: 정산액(settlementAmt)을 고정 82% 휴리스틱 대신 채널별 실 정산 net 비율로 산출.
+    //   settlement(단일소스) 의 채널별 netPayout/grossSales 합계 비율을 적용 → P&L·정산 메뉴와 정합.
+    const netRatioByChannel = useMemo(() => {
+        const agg = {};
+        (settlement || []).forEach(s => {
+            const c = s.channel; if (!c) return;
+            agg[c] = agg[c] || { net: 0, gross: 0 };
+            agg[c].net += Number(s.netPayout) || 0;
+            agg[c].gross += Number(s.grossSales) || 0;
+        });
+        const ratio = {};
+        Object.entries(agg).forEach(([c, v]) => { if (v.gross > 0) ratio[c] = v.net / v.gross; });
+        return ratio;
+    }, [settlement]);
+
     const memoizedOrders = useMemo(() => {
         return orders.map(o => {
             const memoTag = orderMemos[o.id] || { tags: [], memo: '' };
             const hasClaim = claimHistory.some(c => c.orderId === o.id);
             const settled = settlement.some(s => s.channel === o.ch && s.status === 'settled');
+            const ratio = netRatioByChannel[o.ch];
             return {
                 id: o.id, channel: o.ch, sku: o.sku, name: o.name, qty: o.qty, price: o.price, total: o.total,
                 buyer: o.buyer, status: o.status || 'paid', carrier: o.carrier || null, trackingNo: o.trackingNo || null,
-                orderedAt: o.at || '', hasClaim, settled, settlementAmt: Math.round(o.total * 0.82),
+                orderedAt: o.at || '', hasClaim, settled,
+                // 채널 정산 데이터 있으면 실 net 비율, 없으면 추정(0.82) 폴백
+                settlementAmt: Math.round(o.total * (ratio != null ? ratio : 0.82)),
+                settlementEstimated: ratio == null,
                 slaViolated: slaViolations?.includes(o.id) || false, slaDeadline: '-',
                 tags: memoTag.tags || [], memo: memoTag.memo || '', wh: o.wh || 'W001'
             };
         });
-    }, [orders, claimHistory, settlement, orderMemos, slaViolations]);
+    }, [orders, claimHistory, settlement, orderMemos, slaViolations, netRatioByChannel]);
 
     const filtered = useMemo(() => {
         let rows = memoizedOrders;
@@ -793,7 +812,10 @@ function AutoRoutingTab() {
     const { t } = useI18n();
     const { fmt } = useCurrency();
     const { orders } = useGlobalData();
-    const [rules, setRules] = React.useState([]);
+    // 207차 후속: 라우팅 규칙 localStorage 영속(테넌트 스코프) — 새로고침 시 소실되던 것 해소.
+    const _RR_KEY = 'orderhub_routing_rules_' + ((typeof localStorage !== 'undefined' && localStorage.getItem('tenantId')) || 'demo');
+    const [rules, setRules] = React.useState(() => { try { const s = localStorage.getItem(_RR_KEY); return s ? JSON.parse(s) : []; } catch { return []; } });
+    React.useEffect(() => { try { localStorage.setItem(_RR_KEY, JSON.stringify(rules)); } catch {} }, [rules, _RR_KEY]);
     const [showForm, setShowForm] = React.useState(false);
     const [form, setForm] = React.useState({ name: '', condition: '', targetWh: '', priority: 5 });
     const [simResult, setSimResult] = React.useState(null);

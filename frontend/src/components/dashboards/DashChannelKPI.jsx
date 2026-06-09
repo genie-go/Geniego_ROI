@@ -4,6 +4,7 @@ import { useGlobalData } from '../../context/GlobalDataContext.jsx';
 import { useSecurityGuard } from '../../security/SecurityGuard.js';
 import { LineChart, Spark, fmt } from './ChartUtils.jsx';
 import { useCurrency } from '../../contexts/CurrencyContext.jsx';
+import { IS_DEMO } from '../../utils/demoEnv';
 
 // ══════════════════════════════════════════════════════════════════════
 //  📡 Channel KPI — Channel Intelligence with Drill-Down
@@ -144,31 +145,31 @@ export default function DashChannelKPI() {
             
             const pct = live.budget > 0 ? Math.min(100, Math.round((spend / live.budget) * 100)) : 0;
             
-            // Generate proportional distribution ONLY if there's real spend, otherwise NO DATA (0)
-            const seed = spend > 0 ? (spend / 1000) : 0;
-            const orders = Math.floor(rev / 25000); // Approximate 25K KRW per order
-            
-            // Formulaic generation based ONLY on live spend/orders (Zero spend = zeroes)
-            const gender = spend > 0 ? { m: 40 + (id.length % 10), f: 60 - (id.length % 10) } : { m: 0, f: 0 };
-            const age = spend > 0 ? [10, 25, 30, 20, 10, 5] : [0, 0, 0, 0, 0, 0];
-            const regions = spend > 0 ? [
+            // 207차 운영오염 차단: CTR/전환/CPC/성별·연령·지역·퍼널은 실데이터 소스가 없는
+            //   파생 추정치 → 운영(IS_DEMO=false)에선 노출 금지. 데모에서만 시드 형태로 표시.
+            //   (roas/spend/rev/pct/orders 는 실 채널예산에서 파생되므로 유지)
+            const demoMetric = IS_DEMO && spend > 0;
+            const orders = Math.floor(rev / 25000); // 채널 매출 기반 추정 주문수
+            const gender = demoMetric ? { m: 40 + (id.length % 10), f: 60 - (id.length % 10) } : { m: 0, f: 0 };
+            const age = demoMetric ? [10, 25, 30, 20, 10, 5] : [0, 0, 0, 0, 0, 0];
+            const regions = demoMetric ? [
                 { n: t('dash.regionSeoul', '서울'), p: 30 },
                 { n: t('dash.regionGyeonggi', '경기'), p: 25 },
                 { n: t('dash.regionBusan', '부산'), p: 15 },
                 { n: t('dash.regionIncheon', '인천'), p: 10 },
                 { n: t('dash.regionDaegu', '대구'), p: 5 },
             ] : [];
-            const funnel = spend > 0 ? [orders * 50, orders * 5, orders * 3, orders * 1.5, orders] : [0,0,0,0,0];
-            
+            const funnel = demoMetric ? [orders * 50, orders * 5, orders * 3, orders * 1.5, orders] : [0,0,0,0,0];
+
             return {
                 id,
                 ...meta,
                 roas: roas.toFixed(1),
                 spend,
                 rev,
-                ctr: spend > 0 ? (roas * 0.8).toFixed(1) : "0.0",
-                conv: spend > 0 ? (roas * 0.9).toFixed(1) : "0.0",
-                cpc: spend > 0 ? Math.floor(800 / roas) : 0,
+                ctr: demoMetric ? (roas * 0.8).toFixed(1) : "0.0",
+                conv: demoMetric ? (roas * 0.9).toFixed(1) : "0.0",
+                cpc: demoMetric ? Math.floor(800 / roas) : 0,
                 pct,
                 orders,
                 gender,

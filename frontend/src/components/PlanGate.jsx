@@ -78,6 +78,8 @@ export default function PlanGate({ children, feature, minPlan, fallback }) {
     const isAdminFeature = feature === "admin_panel" || requiredPlan === "admin";
 
     // admin 기능은 계속 차단, 나머지는 Plan 등급에 따라 허용
+    // (207차: 데모/운영 admin 계정의 admin 메뉴 접근은 AuthContext userPlan 보존으로 해결 —
+    //  hasMenuAccess 가 단일 출처. PlanGate 는 plan 등급 비교 유지.)
     const hasAccess = isAdminFeature
         ? planRank(plan) >= planRank("admin")
         : userRank >= requiredRank;

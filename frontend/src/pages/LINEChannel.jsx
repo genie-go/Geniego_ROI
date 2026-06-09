@@ -78,7 +78,7 @@ function CampaignsTab({ campaigns, isDemo = false }) {
                         </span>
                     </div>
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8 }}>
-                        {[["配信数", c.sent.toLocaleString()], ["開封率", `${c.open_rate}%`], ["クリック率", `${c.click_rate}%`]].map(([l, v]) => (
+                        {[["配信数", (c.sent || 0).toLocaleString()], ["開封率", `${c.sent ? (((c.opened || 0) / c.sent) * 100).toFixed(1) : (c.open_rate ?? 0)}%`], ["クリック率", `${c.sent ? (((c.clicked || 0) / c.sent) * 100).toFixed(1) : (c.click_rate ?? 0)}%`]].map(([l, v]) => (
                             <div key={l} style={{ background: 'var(--surface)', borderRadius: 8, padding: "10px 12px" }}>
                                 <div style={{ fontSize: 10, color: C.muted, marginBottom: 4 }}>{l}</div>
                                 <div style={{ fontWeight: 800, fontSize: 15 }}>{v}</div>

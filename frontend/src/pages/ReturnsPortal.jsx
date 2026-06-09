@@ -230,7 +230,7 @@ const tr=useTr();
 const{fmt}=useCurrency();
 const{user}=useAuth();
 const isDemo=IS_DEMO; // 180차: email·host broad includes('demo') 제거 → demoEnv 정본 격리(운영 오염 0)
-const{orders=[]}=useGlobalData();
+const{orders=[],claimHistory=[]}=useGlobalData();
 const[tab,setTab]=useState('tabOverview');
 // 204차 동기화: 데모 반품을 단일소스(orders=L'Oréal 상품)에서 파생 — 과거 독립 하드코딩 DEMO_RETURNS(전자제품,
 //   타 메뉴 불일치)를 제거. 주문에서 결정적 선별 → 상품·채널·고객·금액이 주문/대시보드와 정합.
@@ -239,15 +239,23 @@ const _RSTATUS=['refunded','approved','pending','restocked','disposed','approved
 const _RGRADE=['A','B','C',null,'A','F'];
 const _RMETHOD=['card','bank','original',null,'card','bank'];
 const data=useMemo(()=>{
-  if(!isDemo) return [];
-  const src=Array.isArray(orders)?orders:[];
-  return src.filter((_,i)=>i%7===2||i%7===5).slice(0,14).map((o,i)=>({
-    id:`RT-${2401+i}`, orderNo:o.id, product:o.name, customer:(String(o.buyer||'').split(' ')[0]||o.buyer),
-    channel:o.ch, amount:o.total, reason:_RREASON[i%_RREASON.length], status:_RSTATUS[i%_RSTATUS.length],
-    date:String(o.at||'').slice(0,10), inspGrade:_RGRADE[i%_RGRADE.length], refundMethod:_RMETHOD[i%_RMETHOD.length],
+  if(isDemo){
+    const src=Array.isArray(orders)?orders:[];
+    return src.filter((_,i)=>i%7===2||i%7===5).slice(0,14).map((o,i)=>({
+      id:`RT-${2401+i}`, orderNo:o.id, product:o.name, customer:(String(o.buyer||'').split(' ')[0]||o.buyer),
+      channel:o.ch, amount:o.total, reason:_RREASON[i%_RREASON.length], status:_RSTATUS[i%_RSTATUS.length],
+      date:String(o.at||'').slice(0,10), inspGrade:_RGRADE[i%_RGRADE.length], refundMethod:_RMETHOD[i%_RMETHOD.length],
+    }));
+  }
+  // 207차: 운영은 OrderHub 백엔드 적재 claimHistory(/api/v424/orderhub/claims) 를 소비 — 빈 화면 해소.
+  const src=Array.isArray(claimHistory)?claimHistory:[];
+  return src.map((c)=>({
+    id:c.id, orderNo:c.orderId||'', product:c.product||'', customer:(String(c.buyer||'').split(' ')[0]||c.buyer||''),
+    channel:c.channel||'', amount:Number(c.amount)||0, reason:c.reason||'', status:c.status||'pending',
+    date:String(c.createdAt||'').slice(0,10), inspGrade:c.inspGrade??null, refundMethod:c.refundMethod??null,
   }));
-},[isDemo,orders]);
-const orderCount=Array.isArray(orders)?orders.length:0;
+},[isDemo,orders,claimHistory]);
+const orderCount=isDemo?(Array.isArray(orders)?orders.length:0):(Array.isArray(claimHistory)?claimHistory.length:0);
 
 const titleStyle={fontSize:22,fontWeight:800,color:'#1e293b'};
 const subStyle={fontSize:13,color:'#64748b',marginTop:4};

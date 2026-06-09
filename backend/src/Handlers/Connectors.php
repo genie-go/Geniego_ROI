@@ -106,22 +106,39 @@ final class Connectors
     {
         $pdo  = Db::pdo();
         $now  = gmdate('c');
-        $pdo->prepare(
-            'INSERT INTO connector_token(tenant_id,provider,access_token,refresh_token,token_type,expires_at,scopes,meta_json,updated_at,created_at)
-             VALUES(?,?,?,?,?,?,?,?,?,?)
-             ON CONFLICT(tenant_id,provider) DO UPDATE SET
-               access_token=excluded.access_token, refresh_token=excluded.refresh_token,
-               expires_at=excluded.expires_at, meta_json=excluded.meta_json, updated_at=excluded.updated_at'
-        )->execute([
-            $tenant, $provider,
-            $data['access_token']  ?? null,
-            $data['refresh_token'] ?? null,
-            $data['token_type']    ?? 'Bearer',
-            $data['expires_at']    ?? null,
-            $data['scopes']        ?? null,
-            json_encode($data['meta'] ?? []),
-            $now, $now,
-        ]);
+        // 207차 MySQL 호환: connector_token 은 UNIQUE(tenant_id,provider) 제약이 없어
+        //   기존 'ON CONFLICT(tenant_id,provider)'(SQLite 전용·인덱스 의존)가 MySQL/SQLite 모두에서
+        //   OAuth 토큰 영속을 실패시켰다 → 포터블 SELECT-then-UPDATE/INSERT 로 교체.
+        $sel = $pdo->prepare('SELECT id FROM connector_token WHERE tenant_id=? AND provider=? LIMIT 1');
+        $sel->execute([$tenant, $provider]);
+        $id = $sel->fetchColumn();
+        if ($id) {
+            $pdo->prepare(
+                'UPDATE connector_token SET access_token=?, refresh_token=?, token_type=?, expires_at=?, scopes=?, meta_json=?, updated_at=? WHERE id=?'
+            )->execute([
+                $data['access_token']  ?? null,
+                $data['refresh_token'] ?? null,
+                $data['token_type']    ?? 'Bearer',
+                $data['expires_at']    ?? null,
+                $data['scopes']        ?? null,
+                json_encode($data['meta'] ?? []),
+                $now, $id,
+            ]);
+        } else {
+            $pdo->prepare(
+                'INSERT INTO connector_token(tenant_id,provider,access_token,refresh_token,token_type,expires_at,scopes,meta_json,updated_at,created_at)
+                 VALUES(?,?,?,?,?,?,?,?,?,?)'
+            )->execute([
+                $tenant, $provider,
+                $data['access_token']  ?? null,
+                $data['refresh_token'] ?? null,
+                $data['token_type']    ?? 'Bearer',
+                $data['expires_at']    ?? null,
+                $data['scopes']        ?? null,
+                json_encode($data['meta'] ?? []),
+                $now, $now,
+            ]);
+        }
     }
 
     // ════════════════════════════════════════════════════════════════════════════

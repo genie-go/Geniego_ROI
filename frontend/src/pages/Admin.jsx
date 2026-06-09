@@ -85,6 +85,41 @@ function Admin() {
         </div>
       </div>
 
+      {/* 207차: 관리자 환경 전환 — 운영/데모는 별도 시스템(별도 DB)이라, 접속 도메인의 데이터만 보인다.
+          관리자가 운영·데모 콘솔을 명확히 인지·전환하도록 스위처 제공. */}
+      <div style={{
+        display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap",
+        borderRadius: 14, padding: "14px 18px", marginBottom: 22,
+        background: IS_DEMO ? "rgba(251,146,60,0.08)" : "rgba(34,197,94,0.07)",
+        border: `1px solid ${IS_DEMO ? "rgba(251,146,60,0.35)" : "rgba(34,197,94,0.3)"}`,
+      }}>
+        <span style={{ fontSize: 22 }}>{IS_DEMO ? "🎪" : "🏢"}</span>
+        <div style={{ flex: 1, minWidth: 200 }}>
+          <div style={{ fontSize: 13, fontWeight: 800, color: IS_DEMO ? "#fb923c" : "#22c55e" }}>
+            현재 관리 환경: {IS_DEMO ? "🎪 데모 환경 (체험용 · 샌드박스)" : "🏢 운영 시스템 (실데이터)"}
+          </div>
+          <div style={{ fontSize: 11, color: "var(--text-3)", marginTop: 2 }}>
+            {IS_DEMO
+              ? "지금은 데모(체험) 데이터를 관리 중입니다. 실제 고객·매출을 관리하려면 운영 시스템으로 전환하세요."
+              : "실제 운영 데이터를 관리 중입니다. 체험/시연 데이터는 데모 환경에서 관리합니다."}
+          </div>
+        </div>
+        <a href="https://roi.genie-go.com/admin" style={{
+          padding: "9px 16px", borderRadius: 9, fontSize: 12, fontWeight: 800, textDecoration: "none",
+          background: !IS_DEMO ? "#22c55e" : "rgba(34,197,94,0.12)",
+          color: !IS_DEMO ? "#fff" : "#22c55e",
+          border: `1px solid ${!IS_DEMO ? "#22c55e" : "rgba(34,197,94,0.4)"}`,
+          cursor: "pointer", whiteSpace: "nowrap",
+        }}>🏢 운영 시스템 {!IS_DEMO ? "(현재)" : "보기"}</a>
+        <a href="https://roidemo.genie-go.com/admin" style={{
+          padding: "9px 16px", borderRadius: 9, fontSize: 12, fontWeight: 800, textDecoration: "none",
+          background: IS_DEMO ? "#fb923c" : "rgba(251,146,60,0.12)",
+          color: IS_DEMO ? "#fff" : "#fb923c",
+          border: `1px solid ${IS_DEMO ? "#fb923c" : "rgba(251,146,60,0.4)"}`,
+          cursor: "pointer", whiteSpace: "nowrap",
+        }}>🎪 데모 환경 {IS_DEMO ? "(현재)" : "보기"}</a>
+      </div>
+
       {error && (
         <div style={{
           marginBottom: 18,

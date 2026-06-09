@@ -8,6 +8,7 @@ import AIRecommendBanner from'../components/AIRecommendBanner.jsx';
 import SC_DICT from'./scI18n.js';
 import{DEMO_PRODUCTS}from'../data/demoSeedData.js';
 import{useGlobalData}from'../context/GlobalDataContext.jsx';
+import{listSupplyOrders,createSupplyOrder,updateSupplyOrder}from'../services/wmsApi.js';
 
 /* ── i18n helper ── */
 const T={
@@ -319,11 +320,30 @@ return(
 function POTab({tr,fmt}){
 const{isDemoMode}=useAuth();
 const{fmt:currFmt}=useCurrency();
-const pos=isDemoMode?DEMO_PO:[];
-const totalPO=pos.reduce((s,p)=>s+p.qty*p.unitCost,0);
-if(pos.length===0)return(<div className="card card-glass" style={{padding:60,textAlign:'center',color:'#1e293b'}}><div style={{fontSize:48,marginBottom:16}}>📋</div><div style={{fontSize:14,fontWeight:700,color:'#1e293b'}}>{tr('noData')}</div></div>);
+// 207차 후속: 운영은 WMS 발주(wms_supply_orders) 백엔드 영속 — 기존 빈 화면 해소.
+const[rows,setRows]=useState([]);
+const[form,setForm]=useState({sku:'',name:'',qty:'',supplier:'',eta:''});
+const[saving,setSaving]=useState(false);
+const reload=useCallback(()=>{if(isDemoMode)return;listSupplyOrders().then(d=>{const items=Array.isArray(d)?d:(d?.items||d?.supplyOrders||[]);setRows(items.map(o=>({id:o.id,supplier:o.supplier||'',product:o.name||o.sku||'',qty:Number(o.qty)||0,unitCost:0,status:o.status||'pending',date:String(o.eta||o.created_at||'').slice(0,10),notes:o.eta?('ETA '+String(o.eta).slice(0,10)):''})));}).catch(()=>setRows([]));},[isDemoMode]);
+useEffect(()=>{reload();},[reload]);
+const submitPO=async(e)=>{e.preventDefault();if(!form.name&&!form.sku)return;setSaving(true);try{await createSupplyOrder({sku:form.sku||'',name:form.name||form.sku,qty:Number(form.qty)||0,supplier:form.supplier||'',status:'pending',eta:form.eta||''});setForm({sku:'',name:'',qty:'',supplier:'',eta:''});reload();}catch(err){alert(tr('poCreateFail','발주 생성 실패')+': '+(err?.message||err));}setSaving(false);};
+const pos=isDemoMode?DEMO_PO:rows;
+const totalPO=pos.reduce((s,p)=>s+p.qty*(p.unitCost||0),0);
+const inpS={padding:'8px 10px',borderRadius:8,border:'1px solid rgba(0,0,0,0.12)',fontSize:12,color:'#1e293b',background:'#fff',fontFamily:'inherit'};
+const createForm=!isDemoMode&&(
+<form onSubmit={submitPO} className="card card-glass" style={{padding:'14px 18px',color:'#1e293b',display:'flex',flexWrap:'wrap',gap:10,alignItems:'flex-end'}}>
+<div style={{fontWeight:800,fontSize:13,width:'100%',marginBottom:2}}>➕ {tr('poCreateTitle','발주 생성')}</div>
+<input style={{...inpS,width:120}} placeholder="SKU" value={form.sku} onChange={e=>setForm(f=>({...f,sku:e.target.value}))}/>
+<input style={{...inpS,flex:1,minWidth:140}} placeholder={tr('productName')} value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))}/>
+<input style={{...inpS,width:90}} type="number" min="0" placeholder={tr('invQty')} value={form.qty} onChange={e=>setForm(f=>({...f,qty:e.target.value}))}/>
+<input style={{...inpS,width:140}} placeholder={tr('supplier')} value={form.supplier} onChange={e=>setForm(f=>({...f,supplier:e.target.value}))}/>
+<input style={{...inpS,width:140}} type="date" placeholder="ETA" value={form.eta} onChange={e=>setForm(f=>({...f,eta:e.target.value}))}/>
+<button type="submit" disabled={saving} style={{padding:'9px 18px',borderRadius:8,border:'none',background:'#4f8ef7',color:'#fff',fontWeight:700,fontSize:12,cursor:saving?'default':'pointer',opacity:saving?0.6:1}}>{tr('register')}</button>
+</form>);
+if(pos.length===0)return(<div style={{display:'flex',flexDirection:'column',gap:14}}>{createForm}<div className="card card-glass" style={{padding:60,textAlign:'center',color:'#1e293b'}}><div style={{fontSize:48,marginBottom:16}}>📋</div><div style={{fontSize:14,fontWeight:700,color:'#1e293b'}}>{tr('noData')}</div></div></div>);
 return(
 <div style={{display:'flex',flexDirection:'column',gap:16,animation:'fadeIn 0.4s'}}>
+{createForm}
 {/* PO Summary */}
 <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(200px,1fr))',gap:12}}>
 {[{l:tr('totalPO'),v:currFmt(totalPO),c:'#4f8ef7',i:'💰'},{l:tr('tabPO'),v:pos.length,c:'#22c55e',i:'📋'},{l:tr('poStatusApproved'),v:pos.filter(p=>p.status==='approved').length,c:'#22c55e',i:'✅'},{l:tr('poStatusPending'),v:pos.filter(p=>p.status==='pending').length,c:'#f59e0b',i:'⏳'}].map((k,i)=>(

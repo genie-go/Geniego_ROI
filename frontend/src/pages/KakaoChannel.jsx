@@ -393,6 +393,10 @@ function CampaignsTab({ API, campaigns, setCampaigns, fmt }) {
                         <div style={{ fontSize: 11, color: C.muted, marginBottom: 4 }}>{t('kakao.fTarget')}</div>
                         <select value={form.segment_id} onChange={e => setForm(f => ({ ...f, segment_id: e.target.value }))} style={INPUT}>
                             <option value="">{t('kakao.optAll')}</option>
+                            {/* 207차: CRM 세그먼트 선택 불가(옵션 미매핑) 버그 수정 — 세그먼트 목록 바인딩 */}
+                            {segments.map(s => (
+                                <option key={s.id} value={s.id}>{s.name}{s.count != null ? ` (${Number(s.count).toLocaleString()})` : ''}</option>
+                            ))}
                         </select>
                     </div>
                 </div>

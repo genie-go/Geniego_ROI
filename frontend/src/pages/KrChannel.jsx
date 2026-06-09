@@ -228,7 +228,8 @@ function IngestTab() {
     const t = useT();
     const [channels, setChannels] = useState([]);
     const [sel, setSel] = useState("coupang");
-    const [linesJson, setLinesJson] = useState(JSON.stringify(_LINES["coupang"], null, 2));
+    // 207차 운영오염 차단: 가짜 정산 샘플 prefill 은 데모 한정. 운영은 빈 입력에서 시작.
+    const [linesJson, setLinesJson] = useState(_isDemo ? JSON.stringify(_LINES["coupang"], null, 2) : "[]");
     const [msg, setMsg] = useState({ type: "", text: "" });
     const [loading, setLoading] = useState(false);
 
@@ -240,7 +241,7 @@ function IngestTab() {
 
     const load = (key) => {
         setSel(key);
-        setLinesJson(JSON.stringify(_LINES[key] || _LINES["coupang"], null, 2));
+        setLinesJson(_isDemo ? JSON.stringify(_LINES[key] || _LINES["coupang"], null, 2) : "[]");
     };
 
     const ingest = async () => {
@@ -251,8 +252,13 @@ function IngestTab() {
             let d;
             try {
                 d = await postJson(`${API}/v419/kr/settle/ingest`, { channel_key: sel, lines });
-            } catch {
-                setMsg({ type: "ok", text: t('krChannel.mockReprocessed', '✅ [MOCK] {{n}}건 재처리 완료 ({{ch}}) — 백엔드 API 미연결', { n: lines.length, ch: sel }) });
+            } catch (apiErr) {
+                // 207차: 운영에서 실패를 가짜 성공([MOCK])으로 표시하던 것 제거 → 정직한 에러.
+                if (_isDemo) {
+                    setMsg({ type: "ok", text: t('krChannel.mockReprocessed', '✅ [데모] {{n}}건 재처리 시뮬레이션 ({{ch}})', { n: lines.length, ch: sel }) });
+                } else {
+                    setMsg({ type: "err", text: "❌ " + t('krChannel.ingestFailed', '정산 적재 실패 — 채널 연동/권한을 확인하세요.') + (apiErr?.message ? ` (${apiErr.message})` : '') });
+                }
                 return;
             }
             setMsg({

@@ -83,6 +83,7 @@ function AuthPanel({ onSaved }) {
 
 /* Send Panel */
 function SendPanel({ templates }) {
+    const { t } = useI18n(); // 크래시 수정: t 범위밖 ReferenceError 해소
     const [form, setForm] = useState({ to: '', template: '', body: '' });
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState(null);
@@ -133,6 +134,7 @@ function SendPanel({ templates }) {
 
 /* Broadcast Panel */
 function BroadcastPanel({ templates }) {
+    const { t } = useI18n(); // 크래시 수정: t 범위밖 ReferenceError 해소
     const [numbers, setNumbers] = useState('');
     const [template, setTemplate] = useState('');
     const [loading, setLoading] = useState(false);

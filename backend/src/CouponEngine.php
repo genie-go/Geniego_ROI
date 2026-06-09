@@ -65,10 +65,26 @@ final class CouponEngine
             $durationDays = (int)$rule['duration_days'];
             $note         = "[auto:{$trigger}] " . ($rule['note'] ?? '');
 
+            // 4.5 현재 사용자 플랜·만료일 조회 — 연장(extend) + 다운그레이드 방지
+            //     (갱신/전환 보너스 쿠폰이 기존 유료 구독을 단축·강등하지 않도록)
+            $curPlan = $currentPlan; $curExpiry = null;
+            try {
+                $u = $pdo->prepare('SELECT plan, subscription_expires_at FROM app_user WHERE id = ? LIMIT 1');
+                $u->execute([$userId]);
+                if ($urow = $u->fetch(\PDO::FETCH_ASSOC)) {
+                    if (!empty($urow['plan'])) $curPlan = (string)$urow['plan'];
+                    $curExpiry = $urow['subscription_expires_at'] ?? null;
+                }
+            } catch (\Throwable $e) { /* 컬럼 부재 등 → 전달된 currentPlan 사용 */ }
+            // 만료일: 현재 만료일(미래)·now 중 더 늦은 시점 + duration → 항상 연장(단축 X)
+            $baseTs = ($curExpiry && strtotime((string)$curExpiry) > time()) ? strtotime((string)$curExpiry) : time();
+            // 적용 플랜: 룰 플랜 vs 현재 플랜 중 상위 — 보너스가 등급을 떨어뜨리지 않도록
+            $effectivePlan = (PlanPolicy::rank($plan) >= PlanPolicy::rank($curPlan)) ? $plan : $curPlan;
+
             // 5. free_coupons에 INSERT (이미 사용됨 상태로)
             $now      = gmdate('Y-m-d H:i:s');
             $driver   = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME);
-            $expiresAt = date('Y-m-d H:i:s', strtotime("+{$durationDays} days"));
+            $expiresAt = gmdate('Y-m-d H:i:s', $baseTs + $durationDays * 86400);
 
             if ($driver === 'mysql') {
                 $pdo->prepare("
@@ -97,25 +113,26 @@ final class CouponEngine
                         INSERT IGNORE INTO coupon_redemptions
                             (coupon_id, user_id, plan, expires_at, created_at)
                         VALUES (?,?,?,?,NOW())
-                    ")->execute([$couponId, $userId, $plan, $expiresAt]);
+                    ")->execute([$couponId, $userId, $effectivePlan, $expiresAt]);
                 } else {
                     $pdo->prepare("
                         INSERT OR IGNORE INTO coupon_redemptions
                             (coupon_id, user_id, plan, expires_at, created_at)
                         VALUES (?,?,?,?,datetime('now'))
-                    ")->execute([$couponId, $userId, $plan, $expiresAt]);
+                    ")->execute([$couponId, $userId, $effectivePlan, $expiresAt]);
                 }
             } catch (\Throwable $e) {
                 error_log('[CouponEngine] redemptions insert: ' . $e->getMessage());
             }
 
-            // 7. app_user 플랜 즉시 업데이트
-            self::applyPlanToUser($pdo, $userId, $email, $plan, $expiresAt);
+            // 7. app_user 플랜 즉시 업데이트 (다운그레이드 방지된 effectivePlan)
+            self::applyPlanToUser($pdo, $userId, $email, $effectivePlan, $expiresAt);
 
             return [
                 'ok'           => true,
                 'code'         => $code,
-                'plan'         => $plan,
+                'plan'         => $effectivePlan,
+                'coupon_plan'  => $plan,
                 'duration_days'=> $durationDays,
                 'expires_at'   => $expiresAt,
                 'trigger'      => $trigger,

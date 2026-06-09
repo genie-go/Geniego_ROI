@@ -93,7 +93,7 @@ export const DEMO_ORDERS = Array.from({ length: 60 }, (_, i) => {
   const p = DEMO_PRODUCTS[i % DEMO_PRODUCTS.length];
   const ch = DEMO_CHANNELS[i % DEMO_CHANNELS.length];
   const buyer = BUYERS[i % BUYERS.length];
-  const qty = 1 + Math.floor(Math.random() * 4);
+  const qty = 1 + (i % 4); // 207차 결정적화(Math.random 제거 — 주문총액·매출 재현성)
   const daysAgo = Math.floor(i / 4);
   const status = i < 5 ? 'paid' : i < 10 ? 'preparing' : i < 16 ? 'shipping' : i < 50 ? 'confirmed' : ORDER_STATUSES[i % ORDER_STATUSES.length];
   return {
@@ -127,7 +127,7 @@ for (let i = 0; i < 20; i++) {
     type: '입고',
     sku: p.sku,
     name: p.name,
-    qty: 50 + Math.floor(Math.random() * 150),
+    qty: 50 + ((i * 37) % 150), // 207차 결정적화
     wh: i % 3 === 0 ? 'W002' : i % 5 === 0 ? 'W003' : 'W001',
     at: ts(30 - i, 9, 0),
     by: '구매팀',
@@ -143,7 +143,7 @@ for (let i = 0; i < 15; i++) {
     type: '출고',
     sku: p.sku,
     name: p.name,
-    qty: 5 + Math.floor(Math.random() * 20),
+    qty: 5 + ((i * 13) % 20), // 207차 결정적화
     wh: 'W001',
     at: ts(15 - i, 14, 30),
     by: '쿠팡 주문',
@@ -159,7 +159,7 @@ for (let i = 0; i < 5; i++) {
     type: '반품입고',
     sku: p.sku,
     name: p.name,
-    qty: 1 + Math.floor(Math.random() * 3),
+    qty: 1 + (i % 3), // 207차 결정적화
     wh: 'W001',
     at: ts(7 - i, 11, 0),
     by: 'CS팀',
@@ -354,33 +354,41 @@ DEMO_PRODUCTS.forEach(p => {
 /* ═══════════════════════════════════════════════════════
    18. 일별 매출 트렌드 — 30일분
 ═══════════════════════════════════════════════════════ */
+// 207차 결정적화: Math.random 제거 — 새로고침/체험자마다 값이 변동(동기화 깨짐)하던 것을
+//   (일자 i + 필드 salt) 해시 기반 의사난수 [0,1) 로 재현 가능하게 고정.
+const _dr = (i, salt) => { const h = Math.sin((i + 1) * 12.9898 + salt * 78.233) * 43758.5453; return h - Math.floor(h); };
 export const DEMO_DAILY_TRENDS = Array.from({ length: 30 }, (_, i) => {
   const date = isoDate(29 - i);
   const dayOfWeek = new Date(date).getDay();
   const weekendFactor = (dayOfWeek === 0 || dayOfWeek === 6) ? 1.3 : 1.0;
   const trendFactor = 1 + (i / 30) * 0.15; // 점진적 성장 트렌드
-  const baseRevenue = 22000000;
   const baseOrders = 180;
+  // 207차 정합: revenue = orders × avgOrderValue 로 내부 일관성 확보(과거 독립 산출이라
+  //   revenue/orders ≠ AOV 였음). 채널 분해도 revenue 에 비례 배분해 합계 = revenue 보장.
+  const orders = Math.round(baseOrders * weekendFactor * trendFactor * (0.85 + _dr(i, 2) * 0.30));
+  const avgOrderValue = Math.round(42000 + _dr(i, 5) * 18000);
+  const revenue = orders * avgOrderValue;
+  const _chW = { naver: 0.22, coupang: 0.29, oliveyoung: 0.12, '11st': 0.10, gmarket: 0.09, kakao: 0.08, amazon_jp: 0.06, shopify_global: 0.04 };
   return {
     date,
-    revenue: Math.round(baseRevenue * weekendFactor * trendFactor * (0.85 + Math.random() * 0.30)),
-    orders: Math.round(baseOrders * weekendFactor * trendFactor * (0.85 + Math.random() * 0.30)),
-    visitors: Math.round(12000 * weekendFactor * (0.9 + Math.random() * 0.2)),
-    conversionRate: parseFloat((2.5 + Math.random() * 1.5).toFixed(2)),
-    avgOrderValue: Math.round(42000 + Math.random() * 18000),
-    adSpend: Math.round(3500000 * (0.8 + Math.random() * 0.4)),
-    roas: parseFloat((3.2 + Math.random() * 2.8).toFixed(2)),
-    newCustomers: Math.round(45 * weekendFactor * (0.8 + Math.random() * 0.4)),
-    returningCustomers: Math.round(135 * weekendFactor * (0.85 + Math.random() * 0.3)),
+    revenue,
+    orders,
+    visitors: Math.round(12000 * weekendFactor * (0.9 + _dr(i, 3) * 0.2)),
+    conversionRate: parseFloat((2.5 + _dr(i, 4) * 1.5).toFixed(2)),
+    avgOrderValue,
+    adSpend: Math.round(3500000 * (0.8 + _dr(i, 6) * 0.4)),
+    roas: parseFloat((3.2 + _dr(i, 7) * 2.8).toFixed(2)),
+    newCustomers: Math.round(45 * weekendFactor * (0.8 + _dr(i, 8) * 0.4)),
+    returningCustomers: Math.round(135 * weekendFactor * (0.85 + _dr(i, 9) * 0.3)),
     channelBreakdown: {
-      naver: Math.round(5500000 * weekendFactor * trendFactor * (0.8 + Math.random() * 0.4)),
-      coupang: Math.round(7200000 * weekendFactor * trendFactor * (0.8 + Math.random() * 0.4)),
-      oliveyoung: Math.round(3000000 * weekendFactor * trendFactor * (0.8 + Math.random() * 0.4)),
-      '11st': Math.round(1800000 * weekendFactor * trendFactor * (0.7 + Math.random() * 0.6)),
-      gmarket: Math.round(1400000 * weekendFactor * trendFactor * (0.7 + Math.random() * 0.6)),
-      kakao: Math.round(1000000 * weekendFactor * trendFactor * (0.7 + Math.random() * 0.6)),
-      amazon_jp: Math.round(600000 * weekendFactor * trendFactor * (0.6 + Math.random() * 0.8)),
-      shopify_global: Math.round(400000 * weekendFactor * trendFactor * (0.6 + Math.random() * 0.8)),
+      naver: Math.round(revenue * _chW.naver),
+      coupang: Math.round(revenue * _chW.coupang),
+      oliveyoung: Math.round(revenue * _chW.oliveyoung),
+      '11st': Math.round(revenue * _chW['11st']),
+      gmarket: Math.round(revenue * _chW.gmarket),
+      kakao: Math.round(revenue * _chW.kakao),
+      amazon_jp: Math.round(revenue * _chW.amazon_jp),
+      shopify_global: Math.round(revenue * _chW.shopify_global),
     },
   };
 });

@@ -318,11 +318,12 @@ export default function InstagramDM() {
                 <div className="card card-glass">
                     <div style={{ fontWeight: 900, fontSize: 13, marginBottom: 14 }}>{t('igdm.analyticsTitle', '📊 DM 성과 분석')}</div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 20 }}>
+                        {/* 207차 운영오염 차단: 분석 KPI 도 실 settings.stats 우선, 데모만 시드, 운영 미연동=— */}
                         {[
-                            { l: t('igdm.statTotalReceived', '총 수신 DM'), v: '2,847', c: '#4f8ef7', icon: '📨' },
-                            { l: t('igdm.statAvgResponse', '평균 응답 시간'), v: t('igdm.statAvgResponseV', '4.2분'), c: '#22c55e', icon: '⚡' },
-                            { l: t('igdm.statConversion', 'DM → 구매 전환'), v: '8.4%', c: '#f97316', icon: '🛒' },
-                            { l: t('igdm.statAutoReplyRate', '자동 응답률'), v: '67%', c: '#a855f7', icon: '🤖' },
+                            { l: t('igdm.statTotalReceived', '총 수신 DM'), v: (settings?.stats?.received != null ? Number(settings.stats.received).toLocaleString() : (isDemo ? '2,847' : '—')), c: '#4f8ef7', icon: '📨' },
+                            { l: t('igdm.statAvgResponse', '평균 응답 시간'), v: (settings?.stats?.avgResponse ?? (isDemo ? t('igdm.statAvgResponseV', '4.2분') : '—')), c: '#22c55e', icon: '⚡' },
+                            { l: t('igdm.statConversion', 'DM → 구매 전환'), v: (settings?.stats?.conversion ?? (isDemo ? '8.4%' : '—')), c: '#f97316', icon: '🛒' },
+                            { l: t('igdm.statAutoReplyRate', '자동 응답률'), v: (settings?.stats?.autoReplyRate ?? (isDemo ? '67%' : '—')), c: '#a855f7', icon: '🤖' },
                         ].map(k => (
                             <div key={k.l} style={{ padding: '16px', borderRadius: 14, background: `${k.c}08`, border: `1px solid ${k.c}22`, textAlign: 'center' }}>
                                 <div style={{ fontSize: 20, marginBottom: 4 }}>{k.icon}</div>
@@ -333,7 +334,7 @@ export default function InstagramDM() {
                     </div>
                     <div style={{ padding: '16px', borderRadius: 12, background: 'var(--surface)' }}>
                         <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 12 }}>{t('igdm.popularKeywords', '인기 키워드 TOP 5')}</div>
-                        {[{ k: '배송', cnt: 342, pct: 35 }, { k: '재고', cnt: 218, pct: 22 }, { k: '할인', cnt: 189, pct: 19 }, { k: '교환', cnt: 124, pct: 13 }, { k: '협업', cnt: 98, pct: 10 }].map(kw => (
+                        {(isDemo ? [{ k: '배송', cnt: 342, pct: 35 }, { k: '재고', cnt: 218, pct: 22 }, { k: '할인', cnt: 189, pct: 19 }, { k: '교환', cnt: 124, pct: 13 }, { k: '협업', cnt: 98, pct: 10 }] : (settings?.stats?.keywords ?? [])).map(kw => (
                             <div key={kw.k} style={{ marginBottom: 8 }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, marginBottom: 3 }}>
                                     <span>"{kw.k}"</span><span style={{ color: '#4f8ef7' }}>{t('igdm.countTimes', '{{n}}회', { n: kw.cnt })}</span>

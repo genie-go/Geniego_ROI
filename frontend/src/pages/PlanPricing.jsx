@@ -361,7 +361,8 @@ function PlanPricing() {
   useEffect(() => { fetchPlans(); }, [fetchPlans]);
   // 172차→179차: 메뉴 접근은 'plan' 탭의 플랜별 "제공 메뉴·기능" 편집기에서도 필요 → 항상 로드
   useEffect(() => { fetchMenuAccess(); }, [fetchMenuAccess]);
-  useEffect(() => { if (outerTab === 'plan') fetchPeriodPricing(); }, [outerTab, fetchPeriodPricing]);
+  // 'plan' 탭 표시 + 'permissions' 탭의 요금 기반 추천이 최신 1계정 가격을 쓰도록 둘 다 로드
+  useEffect(() => { if (outerTab === 'plan' || outerTab === 'permissions') fetchPeriodPricing(); }, [outerTab, fetchPeriodPricing]);
   // 172차 Task #22 — sync 데이터는 양쪽 탭에서 필요 (가격 탭 표시 + 권한 탭 저장 후 갱신)
   useEffect(() => { fetchMenuPricingSync(); }, [fetchMenuPricingSync]);
   // 메뉴 권한이 저장되면 sync 데이터 즉시 refetch (BroadcastChannel 이벤트)

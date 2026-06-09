@@ -145,10 +145,11 @@ function MfaEnrollGate({ onDone }) {
           })}
         </div>
         {err && <div style={{ color: "#f87171", fontSize: 12, marginTop: 12 }}>{err}</div>}
-        {/* 196차: 발송 인프라(SMTP 등) 준비 전 강제 enroll 락아웃 방지 — 7일 유예 후 재안내 */}
+        {/* 196차: 발송 인프라(SMTP 등) 준비 전 강제 enroll 락아웃 방지 — 7일 유예 후 재안내.
+            207차: 회색 밑줄 텍스트(하단 접힘)라 놓치기 쉬워 admin 진입이 막히던 것 → 명확한 버튼으로 부각. */}
         <button type="button" onClick={() => { try { localStorage.setItem("genie_mfa_defer", String(Date.now() + 7 * 24 * 3600 * 1000)); } catch (e) {} onDone && onDone(); }}
-          style={{ width: "100%", marginTop: 18, background: "none", border: "none", color: "#94a3b8", fontSize: 12, cursor: "pointer", textDecoration: "underline" }}>
-          {t("mfaGate.deferLater", "나중에 설정하기 (7일 후 다시 안내)")}
+          style={{ width: "100%", marginTop: 18, padding: "12px 0", borderRadius: 10, background: "rgba(79,142,247,0.12)", border: "1px solid rgba(79,142,247,0.4)", color: "#bfdbfe", fontSize: 13, fontWeight: 800, cursor: "pointer" }}>
+          {t("mfaGate.deferLater", "나중에 설정하기 — 지금 관리자 화면으로 들어가기")}
         </button>
       </div></div>
     );
