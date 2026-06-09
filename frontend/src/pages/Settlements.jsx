@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useI18n } from "../i18n";
 import { SETTLE_GUIDE } from "./settlementsGuideI18n.js";
 import { useGlobalData } from '../context/GlobalDataContext.jsx';
+import { postJsonAuth } from '../services/apiClient.js';
 import useSecurityMonitor from '../hooks/useSecurityMonitor.js';
 import { useCurrency } from '../contexts/CurrencyContext.jsx';
 
@@ -221,17 +222,15 @@ export default function Settlements() {
     setToast(t('settlements.csvSuccess'));
   };
 
-  /* Import */
+  /* Import(정산 재집계) — 208차: 죽은 /v382/settlements/import(404, 무인증) → /v424/orderhub 정산 롤업 재배선.
+     주문(channel_orders) 기준 당월 정산을 재집계. 데모는 시드 유지. 갱신은 GlobalData 폴링이 반영. */
   const doImport = async () => {
+    if (IS_DEMO) { setToast(t('settlements.importMock')); return; }
     setImportBusy(true);
     try {
-      const res = await fetch("/v382/settlements/import", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "import" }),
-      });
-      setToast(res.ok ? t('settlements.importSuccess') : `⚠ ` + res.status);
-    } catch { setToast(t('settlements.importMock')); }
+      const res = await postJsonAuth('/api/v424/orderhub/settlements/rollup', {});
+      setToast(res?.ok ? t('settlements.importSuccess') : `⚠ ${res?.error || res?.message || ''}`);
+    } catch (e) { setToast(`⚠ ${String(e?.message || e)}`); }
     finally { setImportBusy(false); }
   };
 
