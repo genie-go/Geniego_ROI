@@ -168,6 +168,11 @@ return function (App $app): void {
         'POST /v425/live/integrations'                 => 'Genie\\Handlers\\LiveCommerce::saveIntegration',
         'DELETE /v425/live/integrations/{channel}'     => 'Genie\\Handlers\\LiveCommerce::deleteIntegration',
         'GET /v425/live/stream'                        => 'Genie\\Handlers\\LiveCommerce::stream',
+        // 범용 OAuth 2.0 연결 프레임워크 — 208차 #2(활성화 준비)
+        'GET /v425/oauth/status'                       => 'Genie\\Handlers\\OAuth::status',
+        'GET /v425/oauth/{provider}/authorize'         => 'Genie\\Handlers\\OAuth::authorize',
+        'GET /v425/oauth/{provider}/callback'          => 'Genie\\Handlers\\OAuth::callback',
+        'POST /v425/admin/oauth/{provider}/config'     => 'Genie\\Handlers\\OAuth::saveConfig',
         // 멀티 송출 대상(RTMP) — 208차 #1
         'GET /v425/live/sessions/{id}/destinations'    => 'Genie\\Handlers\\LiveCommerce::listDestinations',
         'POST /v425/live/sessions/{id}/destinations'   => 'Genie\\Handlers\\LiveCommerce::saveDestination',
@@ -2018,6 +2023,10 @@ return function (App $app): void {
     $register('POST',   '/v425/live/integrations');
     $register('DELETE', '/v425/live/integrations/{channel}');
     $register('GET',    '/v425/live/stream');
+    $register('GET',    '/v425/oauth/status');
+    $register('GET',    '/v425/oauth/{provider}/authorize');
+    $register('GET',    '/v425/oauth/{provider}/callback');
+    $register('POST',   '/v425/admin/oauth/{provider}/config');
     $register('GET',    '/v425/live/sessions/{id}/destinations');
     $register('POST',   '/v425/live/sessions/{id}/destinations');
     $register('DELETE', '/v425/live/destinations/{id}');

@@ -128,6 +128,9 @@ $app->add(function (Request $request, $handler) {
         // 208차 라이브 커머스(/v425/live/*) — 프론트 세션 토큰 호출(api_key 아님). LiveCommerce::requirePro +
         //   authedTenant 격리. SSE stream 은 ?token= 로 인증(EventSource 헤더 불가). 미bypass 시 api_key 401.
         || strpos($path, '/api/v425/live/') === 0 || strpos($path, '/v425/live/') === 0
+        // 208차 #2 OAuth 프레임워크(/v425/oauth/*) — callback 은 provider 리다이렉트라 무인증(state→tenant),
+        //   authorize/status 는 세션 self-auth(OAuth::requirePro). api_key 미들웨어 bypass.
+        || strpos($path, '/api/v425/oauth/') === 0 || strpos($path, '/v425/oauth/') === 0
         // 191차 채널 부활: SMS/WhatsApp/Instagram — 세션 self-auth(핸들러 requirePro + authedTenant 격리, webhook 무인증)
         || strpos($path, '/api/sms/') === 0        || strpos($path, '/sms/') === 0
         || strpos($path, '/api/whatsapp/') === 0   || strpos($path, '/whatsapp/') === 0
