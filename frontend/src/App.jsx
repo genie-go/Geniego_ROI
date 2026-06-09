@@ -47,6 +47,7 @@ const GraphScore = lazy(() => import("./pages/GraphScore.jsx"));
 const KrChannel = lazy(() => import("./pages/KrChannel.jsx"));
 const PriceOpt = lazy(() => import("./pages/PriceOpt.jsx"));
 const CatalogSync = lazy(() => import("./pages/CatalogSync.jsx"));
+const LiveCommerce = lazy(() => import("./pages/LiveCommerce.jsx"));
 const OrderHub = lazy(() => import("./pages/OrderHub.jsx"));
 const OperationsHub = lazy(() => import("./pages/OperationsHub.jsx"));
 const PerformanceHub = lazy(() => import("./pages/PerformanceHub.jsx"));
@@ -375,6 +376,7 @@ function AppLayout() {
                       <Route path="/kr-channel" element={<KrChannel />} />
                       <Route path="/price-opt" element={<PriceOpt />} />
                       <Route path="/catalog-sync" element={<CatalogSync />} />
+                      <Route path="/live-commerce" element={<LiveCommerce />} />
                       <Route path="/order-hub" element={<OrderHub />} />
                       <Route path="/operations" element={<OperationsHub />} />
                       <Route path="/performance" element={<PerformanceHub />} />

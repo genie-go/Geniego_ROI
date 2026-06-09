@@ -125,6 +125,9 @@ $app->add(function (Request $request, $handler) {
         // 206차 PM-Core(/v425/pm/*) — 프론트가 세션 토큰으로 호출(api_key 아님). PM Shared::gate 가
         //   세션에서 테넌트 자체 해석(authedTenant)+tenant_id 격리. 미bypass 시 api_key 미들웨어 401.
         || strpos($path, '/api/v425/pm/') === 0  || strpos($path, '/v425/pm/') === 0
+        // 208차 라이브 커머스(/v425/live/*) — 프론트 세션 토큰 호출(api_key 아님). LiveCommerce::requirePro +
+        //   authedTenant 격리. SSE stream 은 ?token= 로 인증(EventSource 헤더 불가). 미bypass 시 api_key 401.
+        || strpos($path, '/api/v425/live/') === 0 || strpos($path, '/v425/live/') === 0
         // 191차 채널 부활: SMS/WhatsApp/Instagram — 세션 self-auth(핸들러 requirePro + authedTenant 격리, webhook 무인증)
         || strpos($path, '/api/sms/') === 0        || strpos($path, '/sms/') === 0
         || strpos($path, '/api/whatsapp/') === 0   || strpos($path, '/whatsapp/') === 0

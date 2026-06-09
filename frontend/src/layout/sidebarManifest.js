@@ -74,6 +74,7 @@ export const MEMBER_MENU = [
     items: [
       { to: "/omni-channel",    icon: "🌐", labelKey: "gNav.omniChannelLabel",      menuKey: "commerce_channel" },
       { to: "/catalog-sync",    icon: "📂", labelKey: "gNav.catalogLabel",          menuKey: "commerce_channel" },
+      { to: "/live-commerce",   icon: "🎬", labelKey: "gNav.liveCommerceLabel",     menuKey: "commerce_channel" },
       { to: "/order-hub",       icon: "📦", labelKey: "gNav.orderHubLabel",         menuKey: "commerce_channel" },
       { to: "/wms-manager",     icon: "🏭", labelKey: "gNav.wmsLabel",              menuKey: "ops" },
       { to: "/price-opt",       icon: "💡", labelKey: "gNav.priceOptLabel",         menuKey: "ops" },

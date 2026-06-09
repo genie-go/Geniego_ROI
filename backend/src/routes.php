@@ -144,6 +144,29 @@ return function (App $app): void {
         'POST /wms/lots'                       => 'Genie\\Handlers\\Wms::createLot',
         'DELETE /wms/lots/{id}'                => 'Genie\\Handlers\\Wms::deleteLot',
 
+        // ── 라이브 커머스(Live Commerce) — 208차 신설(세션/상품/구매/채팅/연동/SSE) ────
+        'GET /v425/live/sessions'                      => 'Genie\\Handlers\\LiveCommerce::listSessions',
+        'POST /v425/live/sessions'                     => 'Genie\\Handlers\\LiveCommerce::saveSession',
+        'PUT /v425/live/sessions/{id}'                 => 'Genie\\Handlers\\LiveCommerce::saveSession',
+        'DELETE /v425/live/sessions/{id}'              => 'Genie\\Handlers\\LiveCommerce::deleteSession',
+        'POST /v425/live/sessions/{id}/go-live'        => 'Genie\\Handlers\\LiveCommerce::goLive',
+        'POST /v425/live/sessions/{id}/end'            => 'Genie\\Handlers\\LiveCommerce::endSession',
+        'GET /v425/live/sessions/{id}/products'        => 'Genie\\Handlers\\LiveCommerce::listProducts',
+        'POST /v425/live/sessions/{id}/products'       => 'Genie\\Handlers\\LiveCommerce::saveProduct',
+        'DELETE /v425/live/products/{id}'              => 'Genie\\Handlers\\LiveCommerce::deleteProduct',
+        'POST /v425/live/products/{id}/feature'        => 'Genie\\Handlers\\LiveCommerce::featureProduct',
+        'GET /v425/live/sessions/{id}/orders'          => 'Genie\\Handlers\\LiveCommerce::listOrders',
+        'POST /v425/live/sessions/{id}/orders'         => 'Genie\\Handlers\\LiveCommerce::placeOrder',
+        'GET /v425/live/sessions/{id}/chat'            => 'Genie\\Handlers\\LiveCommerce::listChat',
+        'POST /v425/live/sessions/{id}/chat'           => 'Genie\\Handlers\\LiveCommerce::postChat',
+        'POST /v425/live/sessions/{id}/heartbeat'      => 'Genie\\Handlers\\LiveCommerce::heartbeat',
+        'GET /v425/live/sessions/{id}/stats'           => 'Genie\\Handlers\\LiveCommerce::stats',
+        'GET /v425/live/overview'                      => 'Genie\\Handlers\\LiveCommerce::overview',
+        'GET /v425/live/integrations'                  => 'Genie\\Handlers\\LiveCommerce::listIntegrations',
+        'POST /v425/live/integrations'                 => 'Genie\\Handlers\\LiveCommerce::saveIntegration',
+        'DELETE /v425/live/integrations/{channel}'     => 'Genie\\Handlers\\LiveCommerce::deleteIntegration',
+        'GET /v425/live/stream'                        => 'Genie\\Handlers\\LiveCommerce::stream',
+
         // ── Customer AI (이탈 예측 + LTV + 구매확률 + 상품추천 + 모델성능) ────
         'GET /customer-ai/churn-scores'        => 'Genie\\Handlers\\CustomerAI::churnScores',
         'GET /customer-ai/ltv-segments'        => 'Genie\\Handlers\\CustomerAI::ltvSegments',
@@ -1963,6 +1986,28 @@ return function (App $app): void {
     $register('GET',    '/wms/lots');
     $register('POST',   '/wms/lots');
     $register('DELETE', '/wms/lots/{id}');
+    // 라이브 커머스(Live Commerce) — 208차
+    $register('GET',    '/v425/live/sessions');
+    $register('POST',   '/v425/live/sessions');
+    $register('PUT',    '/v425/live/sessions/{id}');
+    $register('DELETE', '/v425/live/sessions/{id}');
+    $register('POST',   '/v425/live/sessions/{id}/go-live');
+    $register('POST',   '/v425/live/sessions/{id}/end');
+    $register('GET',    '/v425/live/sessions/{id}/products');
+    $register('POST',   '/v425/live/sessions/{id}/products');
+    $register('DELETE', '/v425/live/products/{id}');
+    $register('POST',   '/v425/live/products/{id}/feature');
+    $register('GET',    '/v425/live/sessions/{id}/orders');
+    $register('POST',   '/v425/live/sessions/{id}/orders');
+    $register('GET',    '/v425/live/sessions/{id}/chat');
+    $register('POST',   '/v425/live/sessions/{id}/chat');
+    $register('POST',   '/v425/live/sessions/{id}/heartbeat');
+    $register('GET',    '/v425/live/sessions/{id}/stats');
+    $register('GET',    '/v425/live/overview');
+    $register('GET',    '/v425/live/integrations');
+    $register('POST',   '/v425/live/integrations');
+    $register('DELETE', '/v425/live/integrations/{channel}');
+    $register('GET',    '/v425/live/stream');
     // Customer AI
     $register('GET',    '/customer-ai/churn-scores');
     $register('GET',    '/customer-ai/ltv-segments');

@@ -17,18 +17,93 @@ const CHANNELS = [
   { key: 'google_ads',       name: 'Google Ads',        icon: '🔵', color: '#4285F4', group: 'global_ad' },
   { key: 'tiktok_business',  name: 'TikTok Business',   icon: '🎶', color: '#010101', group: 'global_ad' },
   { key: 'amazon_spapi',     name: 'Amazon SP-API',     icon: '📦', color: '#FF9900', group: 'global_commerce' },
-  { key: 'shopify',          name: 'Shopify',           icon: '🛍', color: '#96BF48', group: 'global_commerce' },
+  { key: 'ebay',             name: 'eBay Seller Hub',   icon: '🛍️', color: '#E53238', group: 'global_commerce' },
+  { key: 'etsy',             name: 'Etsy',              icon: '🧶', color: '#F1641E', group: 'global_commerce' },
+  { key: 'walmart',          name: 'Walmart Marketplace',icon: '🏪', color: '#0071DC', group: 'global_commerce' },
+  { key: 'shopee',           name: 'Shopee',            icon: '🦐', color: '#EE4D2D', group: 'global_commerce' },
+  { key: 'lazada',           name: 'Lazada',            icon: '🛒', color: '#0F146D', group: 'global_commerce' },
   { key: 'rakuten',          name: 'Rakuten',           icon: '🛒', color: '#BF0000', group: 'global_commerce' },
   { key: 'qoo10',            name: 'Qoo10',             icon: '🟡', color: '#FF6B00', group: 'global_commerce' },
+  // ── 자사몰 플랫폼(D2C) ──
+  { key: 'shopify',          name: 'Shopify',           icon: '🛍', color: '#96BF48', group: 'd2c' },
+  { key: 'woocommerce',      name: 'WooCommerce',       icon: '🟣', color: '#96588A', group: 'd2c' },
+  { key: 'magento',          name: 'Magento (Adobe Commerce)', icon: '🟧', color: '#EE672F', group: 'd2c' },
+  { key: 'cafe24',           name: 'Cafe24',            icon: '☕', color: '#0078FF', group: 'd2c' },
+  { key: 'godomall',         name: '고도몰 (godomall)',  icon: '🏯', color: '#1C7ED6', group: 'd2c' },
+  // ── SNS 라이브 채널(라이브 커머스 멀티송출) ──
+  { key: 'youtube',          name: 'YouTube Live',      icon: '▶️', color: '#FF0000', group: 'sns_live' },
+  { key: 'instagram',        name: 'Instagram Live',    icon: '📷', color: '#E1306C', group: 'sns_live' },
+  { key: 'facebook',         name: 'Facebook Live',     icon: '👍', color: '#1877F2', group: 'sns_live' },
+  { key: 'twitch',           name: 'Twitch',            icon: '🎮', color: '#9146FF', group: 'sns_live' },
   { key: 'coupang',          name: 'Coupang Wing',      icon: '🛒', color: '#C02525', group: 'domestic' },
   { key: 'naver_smartstore', name: 'Naver Smart Store', icon: '🟢', color: '#03C75A', group: 'domestic' },
   { key: 'naver_sa',         name: 'Naver Search Ads',  icon: '🟩', color: '#03C75A', group: 'domestic' },
   { key: 'kakao_moment',     name: 'Kakao Moment',      icon: '💛', color: '#FEE500', group: 'domestic' },
-  { key: 'st11',             name: '11Street',          icon: '🔶', color: '#FA3E2C', group: 'domestic' },
-  { key: 'gmarket',          name: 'Gmarket',           icon: '🟡', color: '#0099CC', group: 'domestic' },
+  { key: 'st11',             name: '11Street (11번가)',  icon: '🔶', color: '#FA3E2C', group: 'domestic' },
+  { key: 'gmarket',          name: 'Gmarket (G마켓)',    icon: '🟡', color: '#0099CC', group: 'domestic' },
+  { key: 'auction',          name: 'Auction (옥션)',     icon: '🅰️', color: '#CC0000', group: 'domestic' },
+  // ── 물류 및 배송(OCL 당일배송) ──
+  { key: 'cj',               name: 'CJ대한통운',         icon: '🚛', color: '#7A3A96', group: 'logistics' },
+  { key: 'lotte',            name: '롯데글로벌로지스',   icon: '🚚', color: '#DA291C', group: 'logistics' },
+  { key: 'hanjin',           name: '한진택배',           icon: '📦', color: '#0067AC', group: 'logistics' },
+  { key: 'logen',            name: '로젠택배',           icon: '🚐', color: '#F37021', group: 'logistics' },
+  { key: 'ocl_sameday',      name: 'OCL 당일배송 ★',     icon: '⚡', color: '#16A34A', group: 'logistics' },
+  { key: 'fulfillment',      name: '풀필먼트(3PL)',      icon: '🏭', color: '#0891B2', group: 'logistics' },
   { key: 'google_analytics', name: 'Google Analytics 4',icon: '📊', color: '#E37400', group: 'own_etc' },
   { key: 'slack',            name: 'Slack Webhook',     icon: '💬', color: '#4A154B', group: 'own_etc' },
 ];
+
+/* 그룹 라벨/정렬 — 208차: 카테고리별 헤더로 가독성 초고도화 */
+const GROUP_LABELS = {
+  sns_live: 'SNS 라이브 채널', domestic: '국내 오픈마켓', global_commerce: '글로벌 마켓플레이스',
+  d2c: '자사몰 플랫폼 (D2C)', logistics: '물류 및 배송 (OCL 당일배송)', global_ad: '광고 매체', own_etc: '분석 · 기타',
+};
+const GROUP_ORDER = ['sns_live', 'domestic', 'global_commerce', 'd2c', 'logistics', 'global_ad', 'own_etc'];
+
+/* 채널별 구조화 자격증명 필드 — 208차: 채널마다 필요한 키(액세스토큰/광고계정/고객ID/광고주ID/Shop도메인 등) 안내 입력 */
+const CHANNEL_FIELDS = {
+  // SNS 라이브
+  youtube:   [{ k: 'api_key', label: 'API 키 / OAuth 토큰', secret: true }, { k: 'channel_id', label: '채널 ID' }],
+  instagram: [{ k: 'access_token', label: '액세스 토큰', secret: true }, { k: 'ig_user_id', label: 'IG 비즈니스 계정 ID' }],
+  facebook:  [{ k: 'access_token', label: '페이지 액세스 토큰', secret: true }, { k: 'page_id', label: '페이지 ID' }],
+  twitch:    [{ k: 'client_id', label: 'Client ID' }, { k: 'client_secret', label: 'Client Secret', secret: true }],
+  // 국내 오픈마켓
+  coupang:   [{ k: 'access_key', label: '액세스 키', secret: true }, { k: 'secret_key', label: '시크릿 키', secret: true }, { k: 'vendor_id', label: '벤더 ID' }],
+  naver_smartstore: [{ k: 'client_id', label: 'Client ID' }, { k: 'client_secret', label: 'Client Secret', secret: true }],
+  st11:      [{ k: 'api_key', label: '오픈API 키', secret: true }, { k: 'seller_id', label: '셀러 ID' }],
+  gmarket:   [{ k: 'api_key', label: 'API 키', secret: true }, { k: 'seller_id', label: '셀러 ID' }],
+  auction:   [{ k: 'api_key', label: 'API 키', secret: true }, { k: 'seller_id', label: '셀러 ID' }],
+  // 글로벌 마켓
+  amazon_spapi: [{ k: 'refresh_token', label: 'LWA Refresh Token', secret: true }, { k: 'client_id', label: 'Client ID' }, { k: 'client_secret', label: 'Client Secret', secret: true }, { k: 'seller_id', label: 'Seller ID' }],
+  ebay:      [{ k: 'access_token', label: 'OAuth 액세스 토큰', secret: true }],
+  etsy:      [{ k: 'api_key', label: 'API 키', secret: true }, { k: 'shop_id', label: 'Shop ID' }],
+  walmart:   [{ k: 'client_id', label: 'Client ID' }, { k: 'client_secret', label: 'Client Secret', secret: true }],
+  shopee:    [{ k: 'partner_id', label: 'Partner ID' }, { k: 'partner_key', label: 'Partner Key', secret: true }, { k: 'shop_id', label: 'Shop ID' }],
+  lazada:    [{ k: 'app_key', label: 'App Key' }, { k: 'app_secret', label: 'App Secret', secret: true }],
+  // 자사몰 D2C
+  shopify:   [{ k: 'shop_domain', label: 'Shop 도메인 (xxx.myshopify.com)' }, { k: 'access_token', label: 'Admin API 액세스 토큰', secret: true }],
+  woocommerce: [{ k: 'site_url', label: '사이트 URL' }, { k: 'consumer_key', label: 'Consumer Key', secret: true }, { k: 'consumer_secret', label: 'Consumer Secret', secret: true }],
+  magento:   [{ k: 'base_url', label: '스토어 URL' }, { k: 'access_token', label: 'Integration 토큰', secret: true }],
+  cafe24:    [{ k: 'mall_id', label: '몰 ID' }, { k: 'client_id', label: 'Client ID' }, { k: 'client_secret', label: 'Client Secret', secret: true }],
+  godomall:  [{ k: 'partner_key', label: '파트너 키', secret: true }, { k: 'api_key', label: 'API 키', secret: true }],
+  // 물류/배송
+  cj:          [{ k: 'api_key', label: 'API 키', secret: true }, { k: 'cust_code', label: '고객(계약) 코드' }],
+  lotte:       [{ k: 'api_key', label: 'API 키', secret: true }, { k: 'cust_code', label: '고객(계약) 코드' }],
+  hanjin:      [{ k: 'api_key', label: 'API 키', secret: true }, { k: 'cust_code', label: '고객(계약) 코드' }],
+  logen:       [{ k: 'api_key', label: 'API 키', secret: true }, { k: 'cust_code', label: '고객(계약) 코드' }],
+  ocl_sameday: [{ k: 'api_key', label: 'OCL API 키', secret: true }, { k: 'merchant_id', label: '머천트 ID' }, { k: 'region', label: '서비스 권역(예: 수도권)' }],
+  fulfillment: [{ k: 'api_key', label: '3PL API 키', secret: true }, { k: 'warehouse_id', label: '창고 ID' }],
+  // 광고 매체
+  meta_ads:  [{ k: 'access_token', label: '액세스 토큰', secret: true }, { k: 'ad_account_id', label: '광고 계정 ID (act_)' }],
+  google_ads: [{ k: 'developer_token', label: '개발자 토큰', secret: true }, { k: 'access_token', label: '액세스 토큰', secret: true }, { k: 'customer_id', label: '고객 ID (10자리)' }],
+  tiktok_business: [{ k: 'access_token', label: '액세스 토큰', secret: true }, { k: 'advertiser_id', label: '광고주 ID' }],
+  naver_sa:  [{ k: 'api_key', label: 'API 키', secret: true }, { k: 'api_secret', label: '비밀키', secret: true }, { k: 'customer_id', label: '고객 ID' }],
+  kakao_moment: [{ k: 'access_token', label: '액세스 토큰', secret: true }, { k: 'account_id', label: '광고계정 ID' }],
+  // 분석/기타
+  google_analytics: [{ k: 'measurement_id', label: '측정 ID (G-)' }, { k: 'api_secret', label: 'API Secret', secret: true }],
+  slack:     [{ k: 'webhook_url', label: 'Webhook URL', secret: true }],
+};
+const DEFAULT_FIELDS = [{ k: 'api_key', label: 'API 키 / 액세스 토큰', secret: true }];
 
 const STATUS_COLORS = {
   ok:    { bg: 'rgba(34,197,94,0.10)',  border: 'rgba(34,197,94,0.25)',  fg: '#16a34a' },
@@ -96,6 +171,7 @@ export default function ApiKeys() {
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [showApplyModal, setShowApplyModal] = useState(null); // channel object or null
+  const [showConnectModal, setShowConnectModal] = useState(null); // 208차: 채널 구조화 등록 모달
   const [testingId, setTestingId] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
 
@@ -173,6 +249,29 @@ export default function ApiKeys() {
       show('success', t('ak.saved','Credential saved'));
       reload();
       return true;
+    } catch (e) {
+      show('error', String(e?.message || e));
+      return false;
+    }
+  }, [show, t, reload]);
+
+  /* 208차: 채널 구조화 등록 — 필드별 다중 저장(AdChannelConnect 패턴). 입력한 값만 upsert. */
+  const handleConnectSave = useCallback(async (channelKey, channelName, values) => {
+    if (_IS_DEMO_ENV) {
+      show('info', t('ak.demoLocked','Demo mode — saving disabled'));
+      return false;
+    }
+    const entries = Object.entries(values).filter(([, v]) => String(v || '').trim() !== '');
+    if (entries.length === 0) { show('info', t('ak.noInput','입력된 값이 없습니다')); return false; }
+    try {
+      let saved = 0;
+      for (const [k, v] of entries) {
+        const r = await postJson('/v423/creds', { channel: channelKey, key_name: k, key_value: String(v).trim(), label: channelName, cred_type: 'api_key' });
+        if (r?.ok) saved++;
+      }
+      show('success', `${channelName}: ${saved}${t('ak.savedSuffix','개 항목 저장됨')}`);
+      reload();
+      return saved > 0;
     } catch (e) {
       show('error', String(e?.message || e));
       return false;
@@ -342,6 +441,7 @@ export default function ApiKeys() {
           creds={creds}
           loading={loading}
           onChannelTest={handleChannelTest}
+          onConnect={(ch) => setShowConnectModal(ch)}
           onApply={(ch) => setShowApplyModal(ch)}
           testingId={testingId}
           t={t}
@@ -432,6 +532,9 @@ export default function ApiKeys() {
       {showApplyModal && (
         <ApplyModal channel={showApplyModal} onClose={() => setShowApplyModal(null)} onSubmit={handleApplySubmit} t={t} />
       )}
+      {showConnectModal && (
+        <ConnectModal channel={showConnectModal} onClose={() => setShowConnectModal(null)} onSubmit={handleConnectSave} t={t} />
+      )}
 
       {/* Toast */}
       {toast && (
@@ -449,68 +552,72 @@ export default function ApiKeys() {
 /* ═══════════════════════════════════════════════════════════════════
    Tab: Overview — 채널별 등록 현황 + Quick actions
    ═══════════════════════════════════════════════════════════════════ */
-function OverviewTab({ channels, summary, creds, loading, onChannelTest, onApply, testingId, t }) {
+function OverviewTab({ channels, summary, creds, loading, onChannelTest, onConnect, onApply, testingId, t }) {
   if (loading) {
     return <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-3)' }}>{t('ak.loading','Loading…')}</div>;
   }
-  if (creds.length === 0 && Object.keys(summary).length === 0) {
+  // 208차: 자격증명 0건이어도 채널 등록 그리드를 항상 노출(운영에서 등록 화면이 안 보이던 버그 수정).
+  const totalKeys = creds.length;
+  // 그룹 정렬 — GROUP_ORDER 순, 미정의 그룹은 뒤로
+  const grouped = GROUP_ORDER.map(g => ({ g, items: channels.filter(c => c.group === g) }))
+    .concat([{ g: '_other', items: channels.filter(c => !GROUP_ORDER.includes(c.group)) }])
+    .filter(x => x.items.length > 0);
+
+  const renderCard = (ch) => {
+    const sum = summary[ch.key] || { keyCount: 0, hasRequired: false };
+    const live = sum.hasRequired;
+    const sc = STATUS_COLORS[live ? 'ok' : 'none'];
+    const busy = testingId === `ch_${ch.key}`;
     return (
-      <div style={{
-        padding: '48px 28px', textAlign: 'center', borderRadius: 16,
-        background: 'rgba(255,255,255,0.85)', border: '1px solid rgba(0,0,0,0.06)'
+      <div key={ch.key} style={{
+        borderRadius: 14, padding: 16,
+        background: 'rgba(255,255,255,0.85)', border: '1px solid rgba(0,0,0,0.06)',
+        borderLeft: `3px solid ${ch.color}`,
       }}>
-        <div style={{ fontSize: 40, marginBottom: 12 }} aria-hidden>🔑</div>
-        <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 6 }}>{t('ak.emptyTitle','No credentials registered yet')}</div>
-        <div style={{ fontSize: 12, color: 'var(--text-3)' }}>
-          {t('ak.emptyHint','Click "Add Key" above or apply for a new channel below')}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+          <span style={{ fontSize: 22 }} aria-hidden>{ch.icon}</span>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 13, fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ch.name}</div>
+            <div style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 2 }}>
+              {t('ak.keyCount', { count: sum.keyCount, defaultValue: `${sum.keyCount} key(s)` })}
+            </div>
+          </div>
+          <span style={{
+            fontSize: 9, padding: '2px 8px', borderRadius: 20,
+            background: sc.bg, color: sc.fg, border: `1px solid ${sc.border}`, fontWeight: 700
+          }}>{live ? t('ak.live','LIVE') : t('ak.empty','EMPTY')}</span>
+        </div>
+        <div style={{ display: 'flex', gap: 6 }}>
+          <button onClick={() => onConnect(ch)} aria-label={t('ak.connectBtn','Register credentials')} style={{
+            flex: 1.4, padding: '8px 12px', borderRadius: 8, border: 'none', cursor: 'pointer',
+            background: 'linear-gradient(135deg,#4f8ef7,#6366f1)', color: '#fff', fontSize: 11, fontWeight: 700,
+          }}>🔑 {live ? t('ak.manageBtn','관리') : t('ak.connectBtn','등록')}</button>
+          <button onClick={() => onChannelTest(ch.key)} disabled={busy || !live} aria-label={t('ak.testBtn','Ping test')} style={{
+            flex: 1, padding: '8px 10px', borderRadius: 8, border: '1px solid rgba(79,142,247,0.25)', cursor: (busy || !live) ? 'not-allowed' : 'pointer',
+            background: 'rgba(79,142,247,0.05)', color: 'var(--text-2)', fontSize: 11, fontWeight: 700, opacity: (busy || !live) ? 0.55 : 1,
+          }}>{busy ? `⏳` : `🔌 ${t('ak.testBtn','Test')}`}</button>
         </div>
       </div>
     );
-  }
+  };
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 14 }}>
-      {channels.map(ch => {
-        const sum = summary[ch.key] || { keyCount: 0, hasRequired: false };
-        const live = sum.hasRequired;
-        const sc = STATUS_COLORS[live ? 'ok' : 'none'];
-        const busy = testingId === `ch_${ch.key}`;
-        return (
-          <div key={ch.key} style={{
-            borderRadius: 14, padding: 18,
-            background: 'rgba(255,255,255,0.85)', border: '1px solid rgba(0,0,0,0.06)',
-            borderLeft: `3px solid ${ch.color}`,
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-              <span style={{ fontSize: 22 }} aria-hidden>{ch.icon}</span>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 13, fontWeight: 800 }}>{ch.name}</div>
-                <div style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 2 }}>
-                  {t('ak.keyCount', { count: sum.keyCount, defaultValue: `${sum.keyCount} key(s)` })}
-                </div>
-              </div>
-              <span style={{
-                fontSize: 9, padding: '2px 8px', borderRadius: 20,
-                background: sc.bg, color: sc.fg, border: `1px solid ${sc.border}`, fontWeight: 700
-              }}>{live ? t('ak.live','LIVE') : t('ak.empty','EMPTY')}</span>
-            </div>
-
-            <div style={{ display: 'flex', gap: 6 }}>
-              <button onClick={() => onChannelTest(ch.key)} disabled={busy || !live} aria-label={t('ak.testBtn','Ping test')} style={{
-                flex: 1, padding: '8px 12px', borderRadius: 8, border: 'none', cursor: (busy || !live) ? 'not-allowed' : 'pointer',
-                background: live ? 'linear-gradient(135deg,#4f8ef7,#6366f1)' : 'rgba(148,163,184,0.2)',
-                color: live ? '#fff' : 'var(--text-3)', fontSize: 11, fontWeight: 700,
-                opacity: busy ? 0.6 : 1
-              }}>{busy ? `⏳ ${t('ak.testing','Testing…')}` : `🔌 ${t('ak.testBtn','Test')}`}</button>
-              <button onClick={() => onApply(ch)} aria-label={t('ak.applyBtn','Apply for key')} style={{
-                flex: 1, padding: '8px 12px', borderRadius: 8, border: '1px solid rgba(79,142,247,0.25)',
-                cursor: 'pointer', background: 'rgba(79,142,247,0.05)', color: 'var(--text-2)',
-                fontSize: 11, fontWeight: 700
-              }}>📝 {t('ak.applyBtn','Apply')}</button>
-            </div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
+      {totalKeys === 0 && (
+        <div style={{ padding: '14px 18px', borderRadius: 12, background: 'rgba(79,142,247,0.06)', border: '1px solid rgba(79,142,247,0.18)', fontSize: 12, color: 'var(--text-2)' }}>
+          🔑 {t('ak.registerHint','아래 채널 카드의 [등록] 버튼으로 판매·광고·물류 채널의 자격증명(액세스 토큰/광고계정/고객ID/광고주ID 등)을 등록하세요. 등록 즉시 연동 현황·라이브 커머스에 반영됩니다.')}
+        </div>
+      )}
+      {grouped.map(({ g, items }) => (
+        <div key={g}>
+          <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--text-2)', marginBottom: 10, paddingLeft: 2 }}>
+            {GROUP_LABELS[g] || t('ak.groupOther','기타')} <span style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 600 }}>({items.length})</span>
           </div>
-        );
-      })}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 12 }}>
+            {items.map(renderCard)}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
@@ -719,6 +826,55 @@ function AddCredModal({ channels, onClose, onSubmit, t }) {
           <input type="text" value={form.note} onChange={e => setForm({ ...form, note: e.target.value })} style={fieldStyle} />
         </Field>
 
+        <div style={{ display: 'flex', gap: 8, marginTop: 18 }}>
+          <button onClick={onClose} style={{ flex: 1, ...btnGhost }}>{t('ak.cancel','Cancel')}</button>
+          <button onClick={submit} disabled={busy} style={{ flex: 1, ...btnPrimary, opacity: busy ? 0.6 : 1, cursor: busy ? 'not-allowed' : 'pointer' }}>
+            {busy ? `⏳ ${t('ak.saving','Saving…')}` : `💾 ${t('ak.save','Save')}`}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Modal: Connect — 채널별 구조화 자격증명 등록 (208차)
+   ═══════════════════════════════════════════════════════════════════ */
+function ConnectModal({ channel, onClose, onSubmit, t }) {
+  const fields = CHANNEL_FIELDS[channel.key] || DEFAULT_FIELDS;
+  const [vals, setVals] = useState({});
+  const [busy, setBusy] = useState(false);
+
+  const submit = async () => {
+    setBusy(true);
+    const ok = await onSubmit(channel.key, channel.name, vals);
+    setBusy(false);
+    if (ok) onClose();
+  };
+
+  return (
+    <div role="dialog" aria-modal="true" onClick={onClose} style={{
+      position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center',
+      background: 'rgba(9,5,20,0.85)', backdropFilter: 'blur(10px)'
+    }}>
+      <div onClick={e => e.stopPropagation()} style={{
+        maxWidth: 520, width: '90%', maxHeight: '88vh', overflowY: 'auto', padding: 28, borderRadius: 16,
+        background: 'var(--card-bg, #fff)', border: '1px solid rgba(0,0,0,0.1)'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+          <span style={{ fontSize: 28 }} aria-hidden>{channel.icon}</span>
+          <div style={{ fontSize: 18, fontWeight: 800 }}>{channel.name} {t('ak.connectTitle','연동 등록')}</div>
+        </div>
+        <div style={{ fontSize: 11, color: 'var(--text-3)', marginBottom: 18 }}>
+          {t('ak.connectSub','필요한 자격증명을 입력하세요. 값은 AES-256-GCM으로 암호화 저장되며 조회 시 마스킹됩니다. 입력한 항목만 저장됩니다.')}
+        </div>
+        {fields.map(f => (
+          <Field key={f.k} label={`${f.label}${f.secret ? ' 🔒' : ''}`}>
+            <input type={f.secret ? 'password' : 'text'} value={vals[f.k] || ''} autoComplete="new-password"
+              onChange={e => setVals(v => ({ ...v, [f.k]: e.target.value }))} style={fieldStyle}
+              placeholder={f.k} />
+          </Field>
+        ))}
         <div style={{ display: 'flex', gap: 8, marginTop: 18 }}>
           <button onClick={onClose} style={{ flex: 1, ...btnGhost }}>{t('ak.cancel','Cancel')}</button>
           <button onClick={submit} disabled={busy} style={{ flex: 1, ...btnPrimary, opacity: busy ? 0.6 : 1, cursor: busy ? 'not-allowed' : 'pointer' }}>
