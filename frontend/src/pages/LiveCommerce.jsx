@@ -237,37 +237,37 @@ export default function LiveCommerce() {
   useEffect(() => { reload(); }, [reload]);
 
   const TABS = [
-    { id: 'studio', label: '🎥 ' + t('live.tabStudio', '방송 스튜디오') },
-    { id: 'dashboard', label: '📡 ' + t('live.tabDashboard', '실시간 대시보드') },
-    { id: 'lineup', label: '🛍️ ' + t('live.tabLineup', '상품 편성') },
-    { id: 'sessions', label: '📅 ' + t('live.tabSessions', '방송 관리') },
-    { id: 'integrations', label: '🔌 ' + t('live.tabIntegrations', '연동 현황') },
-    { id: 'aihost', label: '🤖 ' + t('live.tabAiHost', 'AI 쇼호스트') },
-    { id: 'buyer', label: '🛒 ' + t('live.tabBuyer', '구매하기(시청자)') },
-    { id: 'guide', label: '📖 ' + t('live.tabGuide', '이용 가이드') },
+    { id: 'studio', label: '🎥 ' + t('liveCommerce.tabStudio', '방송 스튜디오') },
+    { id: 'dashboard', label: '📡 ' + t('liveCommerce.tabDashboard', '실시간 대시보드') },
+    { id: 'lineup', label: '🛍️ ' + t('liveCommerce.tabLineup', '상품 편성') },
+    { id: 'sessions', label: '📅 ' + t('liveCommerce.tabSessions', '방송 관리') },
+    { id: 'integrations', label: '🔌 ' + t('liveCommerce.tabIntegrations', '연동 현황') },
+    { id: 'aihost', label: '🤖 ' + t('liveCommerce.tabAiHost', 'AI 쇼호스트') },
+    { id: 'buyer', label: '🛒 ' + t('liveCommerce.tabBuyer', '구매하기(시청자)') },
+    { id: 'guide', label: '📖 ' + t('liveCommerce.tabGuide', '이용 가이드') },
   ];
 
   return (
     <div style={{ padding: '20px 24px', maxWidth: 1400, margin: '0 auto', color: C.text }}>
       {/* 헤더 */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', marginBottom: 6 }}>
-        <h1 style={{ fontSize: 24, fontWeight: 900, margin: 0 }}>🎬 {t('live.title', '라이브 커머스')}</h1>
+        <h1 style={{ fontSize: 24, fontWeight: 900, margin: 0 }}>🎬 {t('liveCommerce.title', '라이브 커머스')}</h1>
         {active?.status === 'live'
           ? <span style={{ background: C.live, color: '#fff', fontSize: 12, fontWeight: 800, padding: '3px 12px', borderRadius: 20, animation: 'pulse 1.5s infinite' }}>● LIVE</span>
           : <span style={{ background: '#f1f5f9', color: C.sub, fontSize: 12, fontWeight: 700, padding: '3px 12px', borderRadius: 20 }}>OFF AIR</span>}
         {IS_DEMO && <span style={{ background: '#ede9fe', color: C.accent, fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20 }}>DEMO</span>}
       </div>
-      <p style={{ color: C.sub, fontSize: 13, marginTop: 0 }}>{t('live.subtitle', '실시간 방송으로 판매·결제·물류·마케팅·분석을 하나로 연결하는 엔터프라이즈 라이브 커머스 허브')}</p>
+      <p style={{ color: C.sub, fontSize: 13, marginTop: 0 }}>{t('liveCommerce.subtitle', '실시간 방송으로 판매·결제·물류·마케팅·분석을 하나로 연결하는 엔터프라이즈 라이브 커머스 허브')}</p>
 
       {/* 세션 선택 */}
       <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', margin: '8px 0 14px' }}>
-        <span style={{ fontSize: 12, color: C.sub, fontWeight: 700 }}>{t('live.activeSession', '현재 방송')}:</span>
+        <span style={{ fontSize: 12, color: C.sub, fontWeight: 700 }}>{t('liveCommerce.activeSession', '현재 방송')}:</span>
         <select value={activeId || ''} onChange={e => setActiveId(Number(e.target.value) || null)}
           style={{ padding: '6px 12px', borderRadius: 8, border: `1px solid ${C.border}`, fontSize: 12, fontWeight: 700 }}>
-          {sessions.length === 0 && <option value="">{t('live.noSession', '방송 없음 — 방송 관리에서 생성')}</option>}
+          {sessions.length === 0 && <option value="">{t('liveCommerce.noSession', '방송 없음 — 방송 관리에서 생성')}</option>}
           {sessions.map(s => <option key={s.id} value={s.id}>{s.status === 'live' ? '🔴 ' : ''}{s.title}</option>)}
         </select>
-        <Btn small ghost onClick={reload}>↻ {t('live.refresh', '새로고침')}</Btn>
+        <Btn small ghost onClick={reload}>↻ {t('liveCommerce.refresh', '새로고침')}</Btn>
       </div>
 
       {/* 탭 바 */}
@@ -282,7 +282,7 @@ export default function LiveCommerce() {
       </div>
 
       {err && <Card style={{ borderColor: '#fecaca', background: '#fef2f2', color: '#b91c1c', marginBottom: 14 }}>⚠️ {err}</Card>}
-      {loading && <Card style={{ textAlign: 'center', color: C.sub }}>{t('live.loading', '불러오는 중...')}</Card>}
+      {loading && <Card style={{ textAlign: 'center', color: C.sub }}>{t('liveCommerce.loading', '불러오는 중...')}</Card>}
 
       {!loading && (
         <>
@@ -337,7 +337,7 @@ const StudioTab = memo(function StudioTab({ session, gd, money, t, onChanged }) 
       const all = await navigator.mediaDevices.enumerateDevices();
       setDevices(all.filter(d => d.kind === 'videoinput'));
     } catch (e) {
-      setCamErr(t('live.camError', '카메라/마이크 접근이 거부되었거나 장치를 찾을 수 없습니다. 브라우저 권한을 확인하세요.') + ' (' + (e?.name || e) + ')');
+      setCamErr(t('liveCommerce.camError', '카메라/마이크 접근이 거부되었거나 장치를 찾을 수 없습니다. 브라우저 권한을 확인하세요.') + ' (' + (e?.name || e) + ')');
       setCamOn(false);
     }
   }, [deviceId, t]);
@@ -363,7 +363,7 @@ const StudioTab = memo(function StudioTab({ session, gd, money, t, onChanged }) 
   const sendChat = async () => {
     const msg = chatInput.trim(); if (!msg || !sid) return;
     setChatInput('');
-    try { await liveApi.postChat(sid, { author: t('live.host', '호스트'), message: msg, kind: 'chat' }); } catch (e) { alert(String(e?.message || e)); }
+    try { await liveApi.postChat(sid, { author: t('liveCommerce.host', '호스트'), message: msg, kind: 'chat' }); } catch (e) { alert(String(e?.message || e)); }
   };
 
   if (!session) return <EmptySession t={t} />;
@@ -379,7 +379,7 @@ const StudioTab = memo(function StudioTab({ session, gd, money, t, onChanged }) 
             <video ref={videoRef} playsInline style={{ width: '100%', height: '100%', objectFit: 'cover', display: camOn ? 'block' : 'none' }} />
             {!camOn && <div style={{ color: '#94a3b8', textAlign: 'center' }}>
               <div style={{ fontSize: 44 }}>📷</div>
-              <div style={{ fontSize: 13, marginTop: 6 }}>{t('live.camOff', '카메라가 꺼져 있습니다')}</div>
+              <div style={{ fontSize: 13, marginTop: 6 }}>{t('liveCommerce.camOff', '카메라가 꺼져 있습니다')}</div>
             </div>}
             {isLive && <span style={{ position: 'absolute', top: 12, left: 12, background: C.live, color: '#fff', fontSize: 12, fontWeight: 800, padding: '3px 10px', borderRadius: 6 }}>● LIVE</span>}
             <span style={{ position: 'absolute', top: 12, right: 12, background: 'rgba(0,0,0,.55)', color: '#fff', fontSize: 12, fontWeight: 700, padding: '3px 10px', borderRadius: 6 }}>👁 {stats?.viewers ?? 0}</span>
@@ -391,7 +391,7 @@ const StudioTab = memo(function StudioTab({ session, gd, money, t, onChanged }) 
                 <div style={{ fontSize: 12, color: C.live, fontWeight: 800 }}>{money(featured.special_price || featured.price)}
                   {Number(featured.special_price) > 0 && Number(featured.special_price) < Number(featured.price) && <span style={{ color: C.sub, textDecoration: 'line-through', fontWeight: 500, marginLeft: 6 }}>{money(featured.price)}</span>}</div>
               </div>
-              <span style={{ fontSize: 11, color: C.sub }}>{t('live.stock', '재고')} {featured.stock}</span>
+              <span style={{ fontSize: 11, color: C.sub }}>{t('liveCommerce.stock', '재고')} {featured.stock}</span>
             </div>}
           </div>
         </Card>
@@ -399,15 +399,15 @@ const StudioTab = memo(function StudioTab({ session, gd, money, t, onChanged }) 
         {/* 카메라/방송 제어 */}
         <Card>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-            {!camOn ? <Btn color="#0891b2" onClick={startCam}>📷 {t('live.connectCam', '카메라 연결')}</Btn>
-              : <Btn color="#64748b" ghost onClick={stopCam}>⏹ {t('live.stopCam', '카메라 끄기')}</Btn>}
+            {!camOn ? <Btn color="#0891b2" onClick={startCam}>📷 {t('liveCommerce.connectCam', '카메라 연결')}</Btn>
+              : <Btn color="#64748b" ghost onClick={stopCam}>⏹ {t('liveCommerce.stopCam', '카메라 끄기')}</Btn>}
             {devices.length > 1 && <select value={deviceId} onChange={e => { setDeviceId(e.target.value); }} style={{ padding: '7px 10px', borderRadius: 8, border: `1px solid ${C.border}`, fontSize: 12 }}>
-              <option value="">{t('live.defaultCam', '기본 카메라')}</option>
+              <option value="">{t('liveCommerce.defaultCam', '기본 카메라')}</option>
               {devices.map(d => <option key={d.deviceId} value={d.deviceId}>{d.label || 'Camera'}</option>)}
             </select>}
             <div style={{ flex: 1 }} />
-            {!isLive ? <Btn color={C.live} onClick={doGoLive} disabled={busy}>🔴 {t('live.goLive', '방송 시작')}</Btn>
-              : <Btn color="#1e293b" onClick={doEnd} disabled={busy}>⏹ {t('live.endLive', '방송 종료')}</Btn>}
+            {!isLive ? <Btn color={C.live} onClick={doGoLive} disabled={busy}>🔴 {t('liveCommerce.goLive', '방송 시작')}</Btn>
+              : <Btn color="#1e293b" onClick={doEnd} disabled={busy}>⏹ {t('liveCommerce.endLive', '방송 종료')}</Btn>}
           </div>
           {camErr && <div style={{ color: '#b91c1c', fontSize: 12, marginTop: 8 }}>{camErr}</div>}
           {/* 멀티송출 대상(RTMP) 관리 */}
@@ -416,8 +416,8 @@ const StudioTab = memo(function StudioTab({ session, gd, money, t, onChanged }) 
 
         {/* 편성 상품 빠른 노출 */}
         <Card>
-          <SecTitle>{t('live.lineupQuick', '편성 상품 — 클릭하여 현재 노출')}</SecTitle>
-          {products.length === 0 ? <div style={{ color: C.sub, fontSize: 12 }}>{t('live.noProducts', '편성된 상품이 없습니다. [상품 편성] 탭에서 추가하세요.')}</div>
+          <SecTitle>{t('liveCommerce.lineupQuick', '편성 상품 — 클릭하여 현재 노출')}</SecTitle>
+          {products.length === 0 ? <div style={{ color: C.sub, fontSize: 12 }}>{t('liveCommerce.noProducts', '편성된 상품이 없습니다. [상품 편성] 탭에서 추가하세요.')}</div>
             : <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               {products.map(p => <button key={p.id} onClick={() => feature(p.id)} style={{
                 padding: '6px 10px', borderRadius: 9, cursor: 'pointer', fontSize: 12, fontWeight: 700, textAlign: 'left',
@@ -432,27 +432,27 @@ const StudioTab = memo(function StudioTab({ session, gd, money, t, onChanged }) 
       {/* 우: 실시간 채팅 + 통계 */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         <div style={{ display: 'flex', gap: 8 }}>
-          <Stat label={'👁 ' + t('live.viewers', '시청자')} value={stats?.viewers ?? 0} color="#0891b2" />
-          <Stat label={'🛒 ' + t('live.orders', '주문')} value={stats?.orders ?? 0} color={C.accent} />
+          <Stat label={'👁 ' + t('liveCommerce.viewers', '시청자')} value={stats?.viewers ?? 0} color="#0891b2" />
+          <Stat label={'🛒 ' + t('liveCommerce.orders', '주문')} value={stats?.orders ?? 0} color={C.accent} />
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
-          <Stat label={'💰 ' + t('live.revenue', '매출')} value={money(stats?.revenue || 0)} color="#16a34a" />
-          <Stat label={'❤️ ' + t('live.likes', '좋아요')} value={stats?.likes ?? 0} color={C.live} />
+          <Stat label={'💰 ' + t('liveCommerce.revenue', '매출')} value={money(stats?.revenue || 0)} color="#16a34a" />
+          <Stat label={'❤️ ' + t('liveCommerce.likes', '좋아요')} value={stats?.likes ?? 0} color={C.live} />
         </div>
         <Card style={{ display: 'flex', flexDirection: 'column', padding: 0, height: 420 }}>
           <div style={{ padding: '10px 14px', borderBottom: `1px solid ${C.border}`, fontWeight: 800, fontSize: 13, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            💬 {t('live.liveChat', '실시간 채팅')}
-            <span style={{ fontSize: 10, color: connected ? '#16a34a' : C.sub }}>{connected ? '● ' + t('live.realtime', '실시간') : '○ ' + t('live.polling', '폴링')}</span>
+            💬 {t('liveCommerce.liveChat', '실시간 채팅')}
+            <span style={{ fontSize: 10, color: connected ? '#16a34a' : C.sub }}>{connected ? '● ' + t('liveCommerce.realtime', '실시간') : '○ ' + t('liveCommerce.polling', '폴링')}</span>
           </div>
           <div style={{ flex: 1, overflowY: 'auto', padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {chat.length === 0 && <div style={{ color: C.sub, fontSize: 12, textAlign: 'center', marginTop: 20 }}>{t('live.chatEmpty', '아직 채팅이 없습니다')}</div>}
+            {chat.length === 0 && <div style={{ color: C.sub, fontSize: 12, textAlign: 'center', marginTop: 20 }}>{t('liveCommerce.chatEmpty', '아직 채팅이 없습니다')}</div>}
             {chat.map(m => <ChatLine key={m.id} m={m} money={money} />)}
             <div ref={chatEndRef} />
           </div>
           <div style={{ display: 'flex', gap: 6, padding: 10, borderTop: `1px solid ${C.border}` }}>
             <input value={chatInput} onChange={e => setChatInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && sendChat()}
-              placeholder={t('live.chatPlaceholder', '메시지 입력...')} style={{ flex: 1, padding: '8px 12px', borderRadius: 8, border: `1px solid ${C.border}`, fontSize: 12 }} />
-            <Btn small onClick={sendChat}>{t('live.send', '전송')}</Btn>
+              placeholder={t('liveCommerce.chatPlaceholder', '메시지 입력...')} style={{ flex: 1, padding: '8px 12px', borderRadius: 8, border: `1px solid ${C.border}`, fontSize: 12 }} />
+            <Btn small onClick={sendChat}>{t('liveCommerce.send', '전송')}</Btn>
           </div>
         </Card>
       </div>
@@ -481,10 +481,10 @@ const MulticastManager = memo(function MulticastManager({ session, live, t }) {
   return (
     <div style={{ marginTop: 12 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-        <div style={{ fontSize: 11, color: C.sub, fontWeight: 700 }}>📡 {t('live.multicastDest', '멀티 송출 대상 (RTMP)')}</div>
-        <Btn small ghost onClick={() => setAdding(a => !a)}>＋ {t('live.addDest', '대상 추가')}</Btn>
+        <div style={{ fontSize: 11, color: C.sub, fontWeight: 700 }}>📡 {t('liveCommerce.multicastDest', '멀티 송출 대상 (RTMP)')}</div>
+        <Btn small ghost onClick={() => setAdding(a => !a)}>＋ {t('liveCommerce.addDest', '대상 추가')}</Btn>
       </div>
-      {dests.length === 0 && !adding && <div style={{ fontSize: 11, color: C.sub }}>{t('live.noDest', '등록된 송출 대상이 없습니다. YouTube/Twitch/Facebook 등의 RTMP URL과 스트림 키를 추가하세요.')}</div>}
+      {dests.length === 0 && !adding && <div style={{ fontSize: 11, color: C.sub }}>{t('liveCommerce.noDest', '등록된 송출 대상이 없습니다. YouTube/Twitch/Facebook 등의 RTMP URL과 스트림 키를 추가하세요.')}</div>}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         {dests.map(d => {
           const m = channelMeta(d.channel);
@@ -493,9 +493,9 @@ const MulticastManager = memo(function MulticastManager({ session, live, t }) {
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 12, fontWeight: 700 }}>{d.label || m.name}
                 <span style={{ marginLeft: 6, fontSize: 9, fontWeight: 800, padding: '1px 6px', borderRadius: 10, background: d.status === 'live' ? '#fee2e2' : '#f1f5f9', color: d.status === 'live' ? '#ef4444' : C.sub }}>{d.status === 'live' ? '● LIVE' : 'IDLE'}</span></div>
-              <div style={{ fontSize: 10, color: C.sub, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{d.rtmp_url || '(RTMP URL 미설정)'} · {d.hasKey ? '🔑 ' + d.stream_key : t('live.noKey', '키 없음')}</div>
+              <div style={{ fontSize: 10, color: C.sub, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{d.rtmp_url || '(RTMP URL 미설정)'} · {d.hasKey ? '🔑 ' + d.stream_key : t('liveCommerce.noKey', '키 없음')}</div>
             </div>
-            <button onClick={() => toggle(d)} title={t('live.toggle', '활성/비활성')} style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: 16 }}>{d.enabled ? '🟢' : '⚪'}</button>
+            <button onClick={() => toggle(d)} title={t('liveCommerce.toggle', '활성/비활성')} style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: 16 }}>{d.enabled ? '🟢' : '⚪'}</button>
             <button onClick={() => del(d.id)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#ef4444' }}>🗑</button>
           </div>;
         })}
@@ -507,15 +507,15 @@ const MulticastManager = memo(function MulticastManager({ session, live, t }) {
         </div>
         <input value={form.rtmp_url} onChange={e => setForm(f => ({ ...f, rtmp_url: e.target.value }))} placeholder="RTMP URL (rtmp://...)"
           style={{ padding: '7px 10px', borderRadius: 7, border: `1px solid ${C.border}`, fontSize: 12 }} />
-        <input type="password" value={form.stream_key} onChange={e => setForm(f => ({ ...f, stream_key: e.target.value }))} placeholder={t('live.streamKey', '스트림 키')} autoComplete="new-password"
+        <input type="password" value={form.stream_key} onChange={e => setForm(f => ({ ...f, stream_key: e.target.value }))} placeholder={t('liveCommerce.streamKey', '스트림 키')} autoComplete="new-password"
           style={{ padding: '7px 10px', borderRadius: 7, border: `1px solid ${C.border}`, fontSize: 12 }} />
         <div style={{ display: 'flex', gap: 6 }}>
-          <Btn small onClick={save}>{t('live.save', '저장')}</Btn>
-          <Btn small ghost color="#64748b" onClick={() => setAdding(false)}>{t('live.cancel', '취소')}</Btn>
+          <Btn small onClick={save}>{t('liveCommerce.save', '저장')}</Btn>
+          <Btn small ghost color="#64748b" onClick={() => setAdding(false)}>{t('liveCommerce.cancel', '취소')}</Btn>
         </div>
       </div>}
       <div style={{ fontSize: 10, color: C.sub, marginTop: 6 }}>
-        {t('live.multicastDestHint', '방송 시작 시 활성(🟢) 대상이 LIVE로 전환됩니다. 실제 영상 송출은 미디어 서버(SRS/nginx-rtmp) 릴레이가 카메라 인제스트를 받아 각 RTMP로 팬아웃합니다. 스트림 키는 AES-256-GCM 암호화 저장됩니다.')}
+        {t('liveCommerce.multicastDestHint', '방송 시작 시 활성(🟢) 대상이 LIVE로 전환됩니다. 실제 영상 송출은 미디어 서버(SRS/nginx-rtmp) 릴레이가 카메라 인제스트를 받아 각 RTMP로 팬아웃합니다. 스트림 키는 AES-256-GCM 암호화 저장됩니다.')}
       </div>
     </div>
   );
@@ -531,7 +531,7 @@ function ChatLine({ m, money }) {
   </div>;
 }
 function SecTitle({ children }) { return <div style={{ fontSize: 13, fontWeight: 800, color: C.text, marginBottom: 10 }}>{children}</div>; }
-function EmptySession({ t }) { return <Card style={{ textAlign: 'center', color: C.sub, padding: 40 }}>{t('live.selectSession', '방송 세션을 선택하거나 [방송 관리] 탭에서 새 방송을 생성하세요.')}</Card>; }
+function EmptySession({ t }) { return <Card style={{ textAlign: 'center', color: C.sub, padding: 40 }}>{t('liveCommerce.selectSession', '방송 세션을 선택하거나 [방송 관리] 탭에서 새 방송을 생성하세요.')}</Card>; }
 
 /* ═══════════════ 탭 2: 실시간 대시보드 ═══════════════ */
 const DashboardTab = memo(function DashboardTab({ session, money, t }) {
@@ -548,37 +548,37 @@ const DashboardTab = memo(function DashboardTab({ session, money, t }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-        <Stat label={'👁 ' + t('live.viewers', '시청자')} value={stats?.viewers ?? 0} color="#0891b2" sub={t('live.peak', '최고') + ' ' + (stats?.peak_viewers ?? 0)} />
-        <Stat label={'🛒 ' + t('live.orders', '주문')} value={stats?.orders ?? 0} color={C.accent} sub={(stats?.units ?? 0) + ' ' + t('live.units', '개')} />
-        <Stat label={'💰 ' + t('live.revenue', '매출')} value={money(stats?.revenue || 0)} color="#16a34a" />
-        <Stat label={'🎯 ' + t('live.conversion', '전환율')} value={(stats?.conversion ?? 0) + '%'} color="#d97706" />
-        <Stat label={'🧾 ' + t('live.aov', '객단가')} value={money(stats?.aov || 0)} color="#7c3aed" />
-        <Stat label={'❤️ ' + t('live.likes', '좋아요')} value={stats?.likes ?? 0} color={C.live} sub={'💬 ' + (stats?.chat_count ?? 0)} />
+        <Stat label={'👁 ' + t('liveCommerce.viewers', '시청자')} value={stats?.viewers ?? 0} color="#0891b2" sub={t('liveCommerce.peak', '최고') + ' ' + (stats?.peak_viewers ?? 0)} />
+        <Stat label={'🛒 ' + t('liveCommerce.orders', '주문')} value={stats?.orders ?? 0} color={C.accent} sub={(stats?.units ?? 0) + ' ' + t('liveCommerce.units', '개')} />
+        <Stat label={'💰 ' + t('liveCommerce.revenue', '매출')} value={money(stats?.revenue || 0)} color="#16a34a" />
+        <Stat label={'🎯 ' + t('liveCommerce.conversion', '전환율')} value={(stats?.conversion ?? 0) + '%'} color="#d97706" />
+        <Stat label={'🧾 ' + t('liveCommerce.aov', '객단가')} value={money(stats?.aov || 0)} color="#7c3aed" />
+        <Stat label={'❤️ ' + t('liveCommerce.likes', '좋아요')} value={stats?.likes ?? 0} color={C.live} sub={'💬 ' + (stats?.chat_count ?? 0)} />
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(320px,1fr))', gap: 14 }}>
         <Card>
-          <SecTitle>🏆 {t('live.topProducts', '실시간 인기 상품 TOP 5')}</SecTitle>
+          <SecTitle>🏆 {t('liveCommerce.topProducts', '실시간 인기 상품 TOP 5')}</SecTitle>
           {(stats?.top_products?.length) ? stats.top_products.map((p, i) => (
             <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: `1px solid ${C.border}`, fontSize: 13 }}>
               <span><b style={{ color: C.accent }}>{i + 1}.</b> {p.name}</span>
               <span style={{ fontWeight: 700 }}>{money(p.rev)} <span style={{ color: C.sub, fontWeight: 500 }}>({p.units})</span></span>
             </div>
-          )) : <div style={{ color: C.sub, fontSize: 12 }}>{t('live.noSalesYet', '아직 판매가 없습니다')}</div>}
+          )) : <div style={{ color: C.sub, fontSize: 12 }}>{t('liveCommerce.noSalesYet', '아직 판매가 없습니다')}</div>}
         </Card>
         <Card>
-          <SecTitle>🧾 {t('live.recentOrders', '최근 주문')}</SecTitle>
+          <SecTitle>🧾 {t('liveCommerce.recentOrders', '최근 주문')}</SecTitle>
           <div style={{ maxHeight: 260, overflowY: 'auto' }}>
             {orders.length ? orders.slice(0, 30).map(o => (
               <div key={o.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', borderBottom: `1px solid ${C.border}`, fontSize: 12 }}>
                 <span>{o.buyer} · {o.name} ×{o.qty}</span>
                 <span style={{ fontWeight: 700, color: '#16a34a' }}>{money(o.total)}</span>
               </div>
-            )) : <div style={{ color: C.sub, fontSize: 12 }}>{t('live.noSalesYet', '아직 판매가 없습니다')}</div>}
+            )) : <div style={{ color: C.sub, fontSize: 12 }}>{t('liveCommerce.noSalesYet', '아직 판매가 없습니다')}</div>}
           </div>
         </Card>
       </div>
       <Card style={{ background: '#f8fafc', fontSize: 12, color: C.sub }}>
-        🔗 {t('live.syncNote', '이 KPI는 커머스/주문허브/정산·P&L/CRM/홈 대시보드/성과 리포트에 실시간 동기화됩니다. 구매 발생 시 재고가 자동 차감되고 OMS에 주문이 적재됩니다.')}
+        🔗 {t('liveCommerce.syncNote', '이 KPI는 커머스/주문허브/정산·P&L/CRM/홈 대시보드/성과 리포트에 실시간 동기화됩니다. 구매 발생 시 재고가 자동 차감되고 OMS에 주문이 적재됩니다.')}
       </Card>
     </div>
   );
@@ -602,7 +602,7 @@ const LineupTab = memo(function LineupTab({ session, gd, money, t }) {
     } catch (e) { alert(String(e?.message || e)); }
   };
   const addBlank = async () => {
-    const name = prompt(t('live.newProductName', '상품명을 입력하세요'));
+    const name = prompt(t('liveCommerce.newProductName', '상품명을 입력하세요'));
     if (!name || !sid) return;
     try { await liveApi.saveProduct(sid, { name, price: 0, special_price: 0, stock: 0, display_order: products.length }); await reload(); } catch (e) { alert(String(e?.message || e)); }
   };
@@ -617,18 +617,18 @@ const LineupTab = memo(function LineupTab({ session, gd, money, t }) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
       <Card>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-          <SecTitle>🛍️ {t('live.lineup', '편성 상품')} ({products.length})</SecTitle>
+          <SecTitle>🛍️ {t('liveCommerce.lineup', '편성 상품')} ({products.length})</SecTitle>
           <div style={{ display: 'flex', gap: 8 }}>
-            <Btn small color="#0891b2" onClick={() => setPicking(p => !p)}>📦 {t('live.fromInventory', '재고에서 추가')}</Btn>
-            <Btn small ghost onClick={addBlank}>＋ {t('live.addBlank', '직접 추가')}</Btn>
+            <Btn small color="#0891b2" onClick={() => setPicking(p => !p)}>📦 {t('liveCommerce.fromInventory', '재고에서 추가')}</Btn>
+            <Btn small ghost onClick={addBlank}>＋ {t('liveCommerce.addBlank', '직접 추가')}</Btn>
           </div>
         </div>
-        {products.length === 0 ? <div style={{ color: C.sub, fontSize: 13 }}>{t('live.noProducts', '편성된 상품이 없습니다.')}</div>
+        {products.length === 0 ? <div style={{ color: C.sub, fontSize: 13 }}>{t('liveCommerce.noProducts', '편성된 상품이 없습니다.')}</div>
           : <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
             <thead><tr style={{ color: C.sub, textAlign: 'left' }}>
-              <th style={{ padding: 6 }}>{t('live.product', '상품')}</th><th style={{ padding: 6 }}>{t('live.price', '정가')}</th>
-              <th style={{ padding: 6 }}>{t('live.specialPrice', '라이브 특가')}</th><th style={{ padding: 6 }}>{t('live.stock', '재고')}</th>
-              <th style={{ padding: 6 }}>{t('live.sold', '판매')}</th><th></th>
+              <th style={{ padding: 6 }}>{t('liveCommerce.product', '상품')}</th><th style={{ padding: 6 }}>{t('liveCommerce.price', '정가')}</th>
+              <th style={{ padding: 6 }}>{t('liveCommerce.specialPrice', '라이브 특가')}</th><th style={{ padding: 6 }}>{t('liveCommerce.stock', '재고')}</th>
+              <th style={{ padding: 6 }}>{t('liveCommerce.sold', '판매')}</th><th></th>
             </tr></thead>
             <tbody>{products.map(p => (
               <tr key={p.id} style={{ borderTop: `1px solid ${C.border}` }}>
@@ -643,8 +643,8 @@ const LineupTab = memo(function LineupTab({ session, gd, money, t }) {
           </table>}
       </Card>
       {picking && <Card>
-        <SecTitle>📦 {t('live.selectFromInventory', '재고에서 선택 — 클릭하여 편성(자동 15% 특가)')}</SecTitle>
-        {inventory.length === 0 ? <div style={{ color: C.sub, fontSize: 12 }}>{t('live.noInventory', '재고 데이터가 없습니다. WMS/카탈로그에서 상품을 등록하세요.')}</div>
+        <SecTitle>📦 {t('liveCommerce.selectFromInventory', '재고에서 선택 — 클릭하여 편성(자동 15% 특가)')}</SecTitle>
+        {inventory.length === 0 ? <div style={{ color: C.sub, fontSize: 12 }}>{t('liveCommerce.noInventory', '재고 데이터가 없습니다. WMS/카탈로그에서 상품을 등록하세요.')}</div>
           : <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             {inventory.slice(0, 60).map(item => (
               <button key={item.sku} onClick={() => addFromInventory(item)} style={{ padding: '6px 10px', borderRadius: 9, border: `1px solid ${C.border}`, background: '#fff', cursor: 'pointer', fontSize: 12, color: C.text }}>
@@ -673,50 +673,50 @@ const SessionsTab = memo(function SessionsTab({ sessions, setActiveId, reload, t
   const [editId, setEditId] = useState(null);
   const toggleCh = (id) => setForm(f => ({ ...f, channels: f.channels.includes(id) ? f.channels.filter(c => c !== id) : [...f.channels, id] }));
   const save = async () => {
-    if (!form.title.trim()) { alert(t('live.titleRequired', '제목을 입력하세요')); return; }
+    if (!form.title.trim()) { alert(t('liveCommerce.titleRequired', '제목을 입력하세요')); return; }
     try {
       if (editId) await liveApi.updateSession(editId, form); else await liveApi.saveSession(form);
       setForm({ title: '', host: '', description: '', scheduled_at: '', channels: [] }); setEditId(null); await reload();
     } catch (e) { alert(String(e?.message || e)); }
   };
   const edit = (s) => { setEditId(s.id); setForm({ title: s.title, host: s.host || '', description: s.description || '', scheduled_at: s.scheduled_at || '', channels: s.channels || [] }); };
-  const del = async (id) => { if (!confirm(t('live.confirmDelete', '이 방송을 삭제할까요? 편성·주문·채팅이 모두 삭제됩니다.'))) return; try { await liveApi.deleteSession(id); await reload(); } catch (e) { alert(String(e?.message || e)); } };
-  const STATUS = { scheduled: { l: t('live.scheduled', '예약됨'), c: '#0891b2' }, live: { l: 'LIVE', c: '#ef4444' }, ended: { l: t('live.ended', '종료'), c: '#64748b' } };
+  const del = async (id) => { if (!confirm(t('liveCommerce.confirmDelete', '이 방송을 삭제할까요? 편성·주문·채팅이 모두 삭제됩니다.'))) return; try { await liveApi.deleteSession(id); await reload(); } catch (e) { alert(String(e?.message || e)); } };
+  const STATUS = { scheduled: { l: t('liveCommerce.scheduled', '예약됨'), c: '#0891b2' }, live: { l: 'LIVE', c: '#ef4444' }, ended: { l: t('liveCommerce.ended', '종료'), c: '#64748b' } };
 
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 340px', gap: 16 }}>
       <Card>
-        <SecTitle>📅 {t('live.sessionList', '방송 목록')}</SecTitle>
-        {sessions.length === 0 ? <div style={{ color: C.sub, fontSize: 13 }}>{t('live.noSessionYet', '생성된 방송이 없습니다. 우측에서 새 방송을 만드세요.')}</div>
+        <SecTitle>📅 {t('liveCommerce.sessionList', '방송 목록')}</SecTitle>
+        {sessions.length === 0 ? <div style={{ color: C.sub, fontSize: 13 }}>{t('liveCommerce.noSessionYet', '생성된 방송이 없습니다. 우측에서 새 방송을 만드세요.')}</div>
           : sessions.map(s => (
             <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0', borderBottom: `1px solid ${C.border}` }}>
               <span style={{ background: (STATUS[s.status] || STATUS.ended).c + '18', color: (STATUS[s.status] || STATUS.ended).c, fontSize: 10, fontWeight: 800, padding: '3px 8px', borderRadius: 6, minWidth: 56, textAlign: 'center' }}>{(STATUS[s.status] || STATUS.ended).l}</span>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontWeight: 800, fontSize: 13 }}>{s.title}</div>
-                <div style={{ fontSize: 11, color: C.sub }}>{s.host || '—'} · {(s.channels || []).map(c => channelMeta(c).icon).join(' ') || t('live.noChannel', '송출채널 미지정')}{s.scheduled_at ? ' · ' + s.scheduled_at : ''}</div>
+                <div style={{ fontSize: 11, color: C.sub }}>{s.host || '—'} · {(s.channels || []).map(c => channelMeta(c).icon).join(' ') || t('liveCommerce.noChannel', '송출채널 미지정')}{s.scheduled_at ? ' · ' + s.scheduled_at : ''}</div>
               </div>
-              <Btn small ghost onClick={() => setActiveId(s.id)}>{t('live.select', '선택')}</Btn>
+              <Btn small ghost onClick={() => setActiveId(s.id)}>{t('liveCommerce.select', '선택')}</Btn>
               <Btn small ghost color="#64748b" onClick={() => edit(s)}>✏️</Btn>
               <button onClick={() => del(s.id)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#ef4444' }}>🗑</button>
             </div>
           ))}
       </Card>
       <Card>
-        <SecTitle>{editId ? '✏️ ' + t('live.editSession', '방송 수정') : '＋ ' + t('live.newSession', '새 방송')}</SecTitle>
+        <SecTitle>{editId ? '✏️ ' + t('liveCommerce.editSession', '방송 수정') : '＋ ' + t('liveCommerce.newSession', '새 방송')}</SecTitle>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <Field label={t('live.sessionTitle', '방송 제목')} value={form.title} onChange={v => setForm(f => ({ ...f, title: v }))} />
-          <Field label={t('live.host', '호스트/쇼호스트')} value={form.host} onChange={v => setForm(f => ({ ...f, host: v }))} />
-          <Field label={t('live.scheduledAt', '예약 일시')} value={form.scheduled_at} onChange={v => setForm(f => ({ ...f, scheduled_at: v }))} placeholder="2026-06-15 20:00" />
-          <Field label={t('live.description', '설명')} value={form.description} onChange={v => setForm(f => ({ ...f, description: v }))} />
+          <Field label={t('liveCommerce.sessionTitle', '방송 제목')} value={form.title} onChange={v => setForm(f => ({ ...f, title: v }))} />
+          <Field label={t('liveCommerce.host', '호스트/쇼호스트')} value={form.host} onChange={v => setForm(f => ({ ...f, host: v }))} />
+          <Field label={t('liveCommerce.scheduledAt', '예약 일시')} value={form.scheduled_at} onChange={v => setForm(f => ({ ...f, scheduled_at: v }))} placeholder="2026-06-15 20:00" />
+          <Field label={t('liveCommerce.description', '설명')} value={form.description} onChange={v => setForm(f => ({ ...f, description: v }))} />
           <div>
-            <div style={{ fontSize: 11, color: C.sub, fontWeight: 700, marginBottom: 6 }}>{t('live.multicast', '멀티 송출 채널')}</div>
+            <div style={{ fontSize: 11, color: C.sub, fontWeight: 700, marginBottom: 6 }}>{t('liveCommerce.multicast', '멀티 송출 채널')}</div>
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
               {SNS_CHANNELS.map(ch => <Pill key={ch.id} on={form.channels.includes(ch.id)} color={ch.color === '#000000' ? '#334155' : ch.color} onClick={() => toggleCh(ch.id)}>{ch.icon} {ch.name}</Pill>)}
             </div>
           </div>
           <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
-            <Btn onClick={save}>{editId ? t('live.update', '수정') : t('live.create', '생성')}</Btn>
-            {editId && <Btn ghost color="#64748b" onClick={() => { setEditId(null); setForm({ title: '', host: '', description: '', scheduled_at: '', channels: [] }); }}>{t('live.cancel', '취소')}</Btn>}
+            <Btn onClick={save}>{editId ? t('liveCommerce.update', '수정') : t('liveCommerce.create', '생성')}</Btn>
+            {editId && <Btn ghost color="#64748b" onClick={() => { setEditId(null); setForm({ title: '', host: '', description: '', scheduled_at: '', channels: [] }); }}>{t('liveCommerce.cancel', '취소')}</Btn>}
           </div>
         </div>
       </Card>
@@ -749,16 +749,16 @@ const IntegrationsTab = memo(function IntegrationsTab({ t }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
       <Card style={{ background: 'linear-gradient(135deg,#faf5ff,#eff6ff)' }}>
-        <div style={{ fontWeight: 800, fontSize: 14 }}>🔌 {t('live.connectStatus', '연동 현황')} — {t('live.salesChannels', '판매채널')} {connected}/{total} {t('live.connected', '연결됨')}</div>
+        <div style={{ fontWeight: 800, fontSize: 14 }}>🔌 {t('liveCommerce.connectStatus', '연동 현황')} — {t('liveCommerce.salesChannels', '판매채널')} {connected}/{total} {t('liveCommerce.connected', '연결됨')}</div>
         <div style={{ fontSize: 12, color: C.sub, marginTop: 6, lineHeight: 1.6 }}>
-          {t('live.consolidationHint', '채널·결제·물류·CRM 연동은 중복 운영하지 않고 기존 메뉴에서 단일 등록·관리합니다. 여기서는 연결 현황만 확인하고, 각 카드의 버튼으로 담당 메뉴에서 등록하세요. (자격증명은 AES-256-GCM 암호화 저장)')}
+          {t('liveCommerce.consolidationHint', '채널·결제·물류·CRM 연동은 중복 운영하지 않고 기존 메뉴에서 단일 등록·관리합니다. 여기서는 연결 현황만 확인하고, 각 카드의 버튼으로 담당 메뉴에서 등록하세요. (자격증명은 AES-256-GCM 암호화 저장)')}
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
-          <Btn small color="#6366f1" onClick={() => navigate('/integration-hub')}>🔗 {t('live.goIntegrationHub', '연동 허브')}</Btn>
-          <Btn small ghost onClick={() => navigate('/ad-channels')}>📢 {t('live.goAdChannels', '광고 매체 연동')}</Btn>
-          <Btn small ghost onClick={() => navigate('/wms-manager')}>🚚 {t('live.goWms', 'WMS(택배사)')}</Btn>
-          <Btn small ghost onClick={() => navigate('/pg-config')}>💳 {t('live.goPg', '결제 게이트웨이')}</Btn>
-          <Btn small ghost onClick={() => navigate('/crm')}>🤝 {t('live.goCrm', 'CRM')}</Btn>
+          <Btn small color="#6366f1" onClick={() => navigate('/integration-hub')}>🔗 {t('liveCommerce.goIntegrationHub', '연동 허브')}</Btn>
+          <Btn small ghost onClick={() => navigate('/ad-channels')}>📢 {t('liveCommerce.goAdChannels', '광고 매체 연동')}</Btn>
+          <Btn small ghost onClick={() => navigate('/wms-manager')}>🚚 {t('liveCommerce.goWms', 'WMS(택배사)')}</Btn>
+          <Btn small ghost onClick={() => navigate('/pg-config')}>💳 {t('liveCommerce.goPg', '결제 게이트웨이')}</Btn>
+          <Btn small ghost onClick={() => navigate('/crm')}>🤝 {t('liveCommerce.goCrm', 'CRM')}</Btn>
         </div>
       </Card>
       {INTEGRATION_GROUPS.map(g => {
@@ -767,8 +767,8 @@ const IntegrationsTab = memo(function IntegrationsTab({ t }) {
         return (
           <Card key={g.key}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8, marginBottom: 10 }}>
-              <SecTitle>{g.icon} {t('live.group_' + g.key, g.label)}</SecTitle>
-              <Btn small ghost color="#6366f1" onClick={() => navigate(tgt.route)}>{tgt.menu} {t('live.manageThere', '에서 등록')} →</Btn>
+              <SecTitle>{g.icon} {t('liveCommerce.group_' + g.key, g.label)}</SecTitle>
+              <Btn small ghost color="#6366f1" onClick={() => navigate(tgt.route)}>{tgt.menu} {t('liveCommerce.manageThere', '에서 등록')} →</Btn>
             </div>
             <div style={{ fontSize: 11, color: C.sub, marginBottom: 10 }}>{tgt.desc}</div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(210px,1fr))', gap: 10 }}>
@@ -780,9 +780,9 @@ const IntegrationsTab = memo(function IntegrationsTab({ t }) {
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontWeight: 800, fontSize: 12, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ch.name}</div>
                     <div style={{ fontSize: 10, color: on ? '#16a34a' : C.sub, fontWeight: 700 }}>
-                      {!tracked ? '↗ ' + t('live.manageInMenu', '담당 메뉴에서 관리')
-                        : on ? '● ' + t('live.connected', '연결됨')
-                        : '○ ' + t('live.disconnected', '미연결')}
+                      {!tracked ? '↗ ' + t('liveCommerce.manageInMenu', '담당 메뉴에서 관리')
+                        : on ? '● ' + t('liveCommerce.connected', '연결됨')
+                        : '○ ' + t('liveCommerce.disconnected', '미연결')}
                     </div>
                   </div>
                 </div>;
@@ -838,7 +838,7 @@ const AiHostTab = memo(function AiHostTab({ session, gd, t }) {
     try { const r = await aiAssist({ task: 'faq', text: q, product: productCtx }); setAns(r?.ok ? r.text : ('⚠️ ' + (r?.error || '응답 실패'))); }
     catch (e) { setAns('⚠️ ' + String(e?.message || e)); } finally { setFaqBusy(false); }
   };
-  const postAns = async () => { if (!ans || !sid) return; try { await liveApi.postChat(sid, { author: 'AI 호스트', message: ans, kind: 'chat' }); alert(t('live.posted', '채팅에 게시했습니다')); } catch (e) { alert(String(e?.message || e)); } };
+  const postAns = async () => { if (!ans || !sid) return; try { await liveApi.postChat(sid, { author: 'AI 호스트', message: ans, kind: 'chat' }); alert(t('liveCommerce.posted', '채팅에 게시했습니다')); } catch (e) { alert(String(e?.message || e)); } };
   // 4) 실시간 자막(음성인식)
   const recRef = useRef(null);
   const [listening, setListening] = useState(false);
@@ -846,7 +846,7 @@ const AiHostTab = memo(function AiHostTab({ session, gd, t }) {
   const [capLang, setCapLang] = useState('English'); const [caption, setCaption] = useState('');
   const startRec = () => {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SR) { alert(t('live.noSR', '이 브라우저는 음성 인식을 지원하지 않습니다(Chrome 권장).')); return; }
+    if (!SR) { alert(t('liveCommerce.noSR', '이 브라우저는 음성 인식을 지원하지 않습니다(Chrome 권장).')); return; }
     const r = new SR(); r.lang = 'ko-KR'; r.continuous = true; r.interimResults = true;
     r.onresult = (e) => { let txt = ''; for (let i = 0; i < e.results.length; i++) txt += e.results[i][0].transcript; setTranscript(txt); };
     r.onend = () => setListening(false);
@@ -858,7 +858,7 @@ const AiHostTab = memo(function AiHostTab({ session, gd, t }) {
     if (!transcript.trim()) return;
     try { const r = await aiAssist({ task: 'subtitle', text: transcript, lang: capLang }); setCaption(r?.ok ? r.text : ('⚠️ ' + (r?.error || ''))); } catch (e) { setCaption('⚠️ ' + String(e?.message || e)); }
   };
-  const sendCaption = async () => { const c = caption || transcript; if (!c || !sid) return; try { await liveApi.postChat(sid, { author: '자막', message: c, kind: 'system' }); alert(t('live.captionSent', '자막을 전송했습니다')); } catch (e) { alert(String(e?.message || e)); } };
+  const sendCaption = async () => { const c = caption || transcript; if (!c || !sid) return; try { await liveApi.postChat(sid, { author: '자막', message: c, kind: 'system' }); alert(t('liveCommerce.captionSent', '자막을 전송했습니다')); } catch (e) { alert(String(e?.message || e)); } };
 
   const box = { whiteSpace: 'pre-wrap', background: '#faf5ff', borderRadius: 10, padding: 12, marginTop: 10, fontSize: 13, lineHeight: 1.6, color: C.text };
   const inp = { padding: '9px 12px', borderRadius: 8, border: `1px solid ${C.border}`, fontSize: 13 };
@@ -867,49 +867,49 @@ const AiHostTab = memo(function AiHostTab({ session, gd, t }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
       <Card style={{ background: 'linear-gradient(135deg,#faf5ff,#eff6ff)', fontSize: 12, color: C.sub }}>
-        🤖 {t('live.aiHostLead', 'AI 쇼호스트·실시간 번역·자막·FAQ는 플랫폼 Claude로 즉시 작동합니다. AI 키 미설정 시 [연동 허브]에서 등록하면 활성화됩니다.')}
+        🤖 {t('liveCommerce.aiHostLead', 'AI 쇼호스트·실시간 번역·자막·FAQ는 플랫폼 Claude로 즉시 작동합니다. AI 키 미설정 시 [연동 허브]에서 등록하면 활성화됩니다.')}
       </Card>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(320px,1fr))', gap: 14 }}>
         {/* 쇼호스트 멘트 */}
         <Card>
-          <SecTitle>✨ {t('live.aiShowhost', '쇼호스트 멘트 / 상품 설명')}</SecTitle>
+          <SecTitle>✨ {t('liveCommerce.aiShowhost', '쇼호스트 멘트 / 상품 설명')}</SecTitle>
           <div style={{ display: 'flex', gap: 8 }}>
-            <input value={prodName} onChange={e => setProdName(e.target.value)} placeholder={featured ? featured.name : t('live.aiGenPlaceholder', '상품명 입력')} style={{ ...inp, flex: 1 }} />
-            <Btn color="#d97757" onClick={generate} disabled={genBusy}>{genBusy ? t('live.generating', '생성중') : t('live.generate', '생성')}</Btn>
+            <input value={prodName} onChange={e => setProdName(e.target.value)} placeholder={featured ? featured.name : t('liveCommerce.aiGenPlaceholder', '상품명 입력')} style={{ ...inp, flex: 1 }} />
+            <Btn color="#d97757" onClick={generate} disabled={genBusy}>{genBusy ? t('liveCommerce.generating', '생성중') : t('liveCommerce.generate', '생성')}</Btn>
           </div>
           {gen && <pre style={{ ...box, fontFamily: 'inherit' }}>{gen}</pre>}
         </Card>
         {/* 실시간 번역 */}
         <Card>
-          <SecTitle>🌐 {t('live.aiTranslate', '실시간 번역')}</SecTitle>
+          <SecTitle>🌐 {t('liveCommerce.aiTranslate', '실시간 번역')}</SecTitle>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <textarea value={src} onChange={e => setSrc(e.target.value)} rows={2} placeholder={t('live.translateSrc', '번역할 내용(한국어)')} style={{ ...inp, resize: 'vertical' }} />
+            <textarea value={src} onChange={e => setSrc(e.target.value)} rows={2} placeholder={t('liveCommerce.translateSrc', '번역할 내용(한국어)')} style={{ ...inp, resize: 'vertical' }} />
             <div style={{ display: 'flex', gap: 8 }}>
               <select value={lang} onChange={e => setLang(e.target.value)} style={{ ...sel, flex: 1 }}>{LANGS.map(l => <option key={l} value={l}>{l}</option>)}</select>
-              <Btn color="#0891b2" onClick={translate} disabled={trBusy}>{trBusy ? '...' : t('live.translateBtn', '번역')}</Btn>
+              <Btn color="#0891b2" onClick={translate} disabled={trBusy}>{trBusy ? '...' : t('liveCommerce.translateBtn', '번역')}</Btn>
             </div>
           </div>
           {tr && <div style={box}>{tr}</div>}
         </Card>
         {/* FAQ */}
         <Card>
-          <SecTitle>💬 {t('live.aiFaq', 'FAQ 자동 응답')}</SecTitle>
-          <div style={{ fontSize: 10, color: C.sub, marginBottom: 6 }}>{t('live.faqCtx', '현재 노출 상품')}: {featured?.name || '—'}</div>
+          <SecTitle>💬 {t('liveCommerce.aiFaq', 'FAQ 자동 응답')}</SecTitle>
+          <div style={{ fontSize: 10, color: C.sub, marginBottom: 6 }}>{t('liveCommerce.faqCtx', '현재 노출 상품')}: {featured?.name || '—'}</div>
           <div style={{ display: 'flex', gap: 8 }}>
-            <input value={q} onChange={e => setQ(e.target.value)} onKeyDown={e => e.key === 'Enter' && askFaq()} placeholder={t('live.faqQ', '시청자 질문(배송/사이즈/재고 등)')} style={{ ...inp, flex: 1 }} />
-            <Btn onClick={askFaq} disabled={faqBusy}>{faqBusy ? '...' : t('live.faqAsk', '응답')}</Btn>
+            <input value={q} onChange={e => setQ(e.target.value)} onKeyDown={e => e.key === 'Enter' && askFaq()} placeholder={t('liveCommerce.faqQ', '시청자 질문(배송/사이즈/재고 등)')} style={{ ...inp, flex: 1 }} />
+            <Btn onClick={askFaq} disabled={faqBusy}>{faqBusy ? '...' : t('liveCommerce.faqAsk', '응답')}</Btn>
           </div>
-          {ans && <><div style={box}>{ans}</div><div style={{ marginTop: 8 }}><Btn small color="#16a34a" onClick={postAns}>💬 {t('live.postChat', '채팅에 게시')}</Btn></div></>}
+          {ans && <><div style={box}>{ans}</div><div style={{ marginTop: 8 }}><Btn small color="#16a34a" onClick={postAns}>💬 {t('liveCommerce.postChat', '채팅에 게시')}</Btn></div></>}
         </Card>
         {/* 실시간 자막(음성인식) */}
         <Card>
-          <SecTitle>📝 {t('live.aiSubtitle', '실시간 자막 (음성인식)')}</SecTitle>
+          <SecTitle>📝 {t('liveCommerce.aiSubtitle', '실시간 자막 (음성인식)')}</SecTitle>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-            {!listening ? <Btn small color="#ef4444" onClick={startRec}>🎙️ {t('live.recStart', '인식 시작')}</Btn>
-              : <Btn small color="#64748b" onClick={stopRec}>⏹ {t('live.recStop', '중지')}</Btn>}
+            {!listening ? <Btn small color="#ef4444" onClick={startRec}>🎙️ {t('liveCommerce.recStart', '인식 시작')}</Btn>
+              : <Btn small color="#64748b" onClick={stopRec}>⏹ {t('liveCommerce.recStop', '중지')}</Btn>}
             <select value={capLang} onChange={e => setCapLang(e.target.value)} style={{ ...sel }}>{LANGS.map(l => <option key={l} value={l}>{l}</option>)}</select>
-            <Btn small ghost onClick={makeCaption}>{t('live.makeCaption', '자막 정리/번역')}</Btn>
-            <Btn small ghost color="#16a34a" onClick={sendCaption}>{t('live.sendCaption', '자막 전송')}</Btn>
+            <Btn small ghost onClick={makeCaption}>{t('liveCommerce.makeCaption', '자막 정리/번역')}</Btn>
+            <Btn small ghost color="#16a34a" onClick={sendCaption}>{t('liveCommerce.sendCaption', '자막 전송')}</Btn>
           </div>
           {transcript && <div style={{ ...box, background: '#f1f5f9' }}>{transcript}</div>}
           {caption && <div style={box}>{caption}</div>}
@@ -922,7 +922,7 @@ const AiHostTab = memo(function AiHostTab({ session, gd, t }) {
 /* ═══════════════ 탭 7: 구매하기 (시청자 뷰) ═══════════════ */
 const BuyerTab = memo(function BuyerTab({ session, gd, money, t }) {
   const [products, setProducts] = useState([]);
-  const [buyer, setBuyer] = useState(t('live.guest', '게스트') + Math.floor(Math.random() * 900 + 100));
+  const [buyer, setBuyer] = useState(t('liveCommerce.guest', '게스트') + Math.floor(Math.random() * 900 + 100));
   const [toast, setToast] = useState('');
   const { stats, chat, sendLike } = useLiveStream(session, true);
   const sid = session?.id;
@@ -939,14 +939,14 @@ const BuyerTab = memo(function BuyerTab({ session, gd, money, t }) {
       if (IS_DEMO) {
         try { gd?.placeOrder?.({ ch: 'live', sku: p.sku || p.name, name: p.name, buyer, qty, price: Number(p.special_price || p.price || 0), wh: 'W001', platformFeeRate: 0 }); } catch {}
       }
-      setToast(`✅ ${p.name} ${qty}${t('live.units', '개')} ${t('live.purchased', '구매 완료')} — ${money(r?.total || 0)}`);
+      setToast(`✅ ${p.name} ${qty}${t('liveCommerce.units', '개')} ${t('liveCommerce.purchased', '구매 완료')} — ${money(r?.total || 0)}`);
       setTimeout(() => setToast(''), 2600);
       await reload();
     } catch (e) { setToast('⚠️ ' + String(e?.message || e)); setTimeout(() => setToast(''), 2600); }
   };
   const commentOrder = async (p) => {
     if (!sid) return;
-    try { await liveApi.postChat(sid, { author: buyer, message: `${t('live.commentBuy', '구매')} ${p.name}!`, kind: 'chat' }); await buy(p, 1); } catch {}
+    try { await liveApi.postChat(sid, { author: buyer, message: `${t('liveCommerce.commentBuy', '구매')} ${p.name}!`, kind: 'chat' }); await buy(p, 1); } catch {}
   };
 
   if (!session) return <EmptySession t={t} />;
@@ -977,21 +977,21 @@ const BuyerTab = memo(function BuyerTab({ session, gd, money, t }) {
           <div style={{ fontWeight: 800, fontSize: 14 }}>{featured.name}</div>
           <div style={{ fontSize: 15, color: '#ef4444', fontWeight: 900 }}>{money(featured.special_price || featured.price)}
             {Number(featured.special_price) > 0 && Number(featured.special_price) < Number(featured.price) && <span style={{ color: C.sub, textDecoration: 'line-through', fontWeight: 500, fontSize: 12, marginLeft: 6 }}>{money(featured.price)}</span>}</div>
-          <div style={{ fontSize: 11, color: C.sub }}>{t('live.stock', '재고')} {featured.stock} · {t('live.sold', '판매')} {featured.sold || 0}</div>
+          <div style={{ fontSize: 11, color: C.sub }}>{t('liveCommerce.stock', '재고')} {featured.stock} · {t('liveCommerce.sold', '판매')} {featured.sold || 0}</div>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          <Btn color="#ef4444" onClick={() => buy(featured)}>🛒 {t('live.buyNow', '구매하기')}</Btn>
-          <Btn small ghost color="#ec4899" onClick={sendLike}>❤️ {t('live.like', '좋아요')}</Btn>
+          <Btn color="#ef4444" onClick={() => buy(featured)}>🛒 {t('liveCommerce.buyNow', '구매하기')}</Btn>
+          <Btn small ghost color="#ec4899" onClick={sendLike}>❤️ {t('liveCommerce.like', '좋아요')}</Btn>
         </div>
       </Card>}
 
       <Card>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-          <span style={{ fontSize: 11, color: C.sub }}>{t('live.buyerName', '시청자명')}</span>
+          <span style={{ fontSize: 11, color: C.sub }}>{t('liveCommerce.buyerName', '시청자명')}</span>
           <input value={buyer} onChange={e => setBuyer(e.target.value)} style={{ flex: 1, padding: '5px 10px', borderRadius: 7, border: `1px solid ${C.border}`, fontSize: 12 }} />
         </div>
-        <SecTitle>🛍️ {t('live.allProducts', '방송 상품 전체')}</SecTitle>
-        {products.length === 0 ? <div style={{ color: C.sub, fontSize: 12 }}>{t('live.noProducts', '편성된 상품이 없습니다.')}</div>
+        <SecTitle>🛍️ {t('liveCommerce.allProducts', '방송 상품 전체')}</SecTitle>
+        {products.length === 0 ? <div style={{ color: C.sub, fontSize: 12 }}>{t('liveCommerce.noProducts', '편성된 상품이 없습니다.')}</div>
           : products.map(p => (
             <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: `1px solid ${C.border}` }}>
               <span style={{ fontSize: 22 }}>{p.image || '🛍️'}</span>
@@ -999,8 +999,8 @@ const BuyerTab = memo(function BuyerTab({ session, gd, money, t }) {
                 <div style={{ fontWeight: 700, fontSize: 12 }}>{p.name}</div>
                 <div style={{ fontSize: 12, color: '#ef4444', fontWeight: 800 }}>{money(p.special_price || p.price)}</div>
               </div>
-              <Btn small color="#ef4444" onClick={() => buy(p)} disabled={Number(p.stock) <= 0}>{Number(p.stock) <= 0 ? t('live.soldOut', '품절') : t('live.buy', '구매')}</Btn>
-              <Btn small ghost onClick={() => commentOrder(p)}>💬 {t('live.commentOrder', '댓글주문')}</Btn>
+              <Btn small color="#ef4444" onClick={() => buy(p)} disabled={Number(p.stock) <= 0}>{Number(p.stock) <= 0 ? t('liveCommerce.soldOut', '품절') : t('liveCommerce.buy', '구매')}</Btn>
+              <Btn small ghost onClick={() => commentOrder(p)}>💬 {t('liveCommerce.commentOrder', '댓글주문')}</Btn>
             </div>
           ))}
       </Card>
@@ -1012,19 +1012,19 @@ const BuyerTab = memo(function BuyerTab({ session, gd, money, t }) {
 /* ═══════════════ 탭 8: 이용 가이드 ═══════════════ */
 const GuideTab = memo(function GuideTab({ t }) {
   const STEPS = [
-    { n: 1, icon: '📅', title: t('live.guide1', '방송 생성'), desc: t('live.guide1d', '[방송 관리]에서 제목·호스트·예약일시를 입력하고 멀티 송출 채널(YouTube/TikTok/Instagram/Facebook/Twitch)을 선택합니다.') },
-    { n: 2, icon: '🛍️', title: t('live.guide2', '상품 편성'), desc: t('live.guide2d', '[상품 편성]에서 WMS/카탈로그 재고를 불러와 라이브 특가·재고를 설정합니다. 재고는 판매 시 자동 차감됩니다.') },
-    { n: 3, icon: '🔌', title: t('live.guide3', '채널·결제·물류 연동'), desc: t('live.guide3d', '[채널 연동]에서 오픈마켓·글로벌마켓·자사몰·PG(토스/카카오페이 등)·택배(CJ/한진/OCL 당일배송)·CRM·AI를 연결합니다. 자격증명은 암호화 저장됩니다.') },
-    { n: 4, icon: '📷', title: t('live.guide4', '카메라 연결 & 방송 시작'), desc: t('live.guide4d', '[방송 스튜디오]에서 카메라를 연결하고 [방송 시작]을 누르면 라이브가 시작됩니다. 상품을 클릭해 화면에 노출합니다.') },
-    { n: 5, icon: '🛒', title: t('live.guide5', '실시간 판매 & 댓글주문'), desc: t('live.guide5d', '시청자는 [구매하기]에서 즉시 구매하거나 댓글로 주문합니다. 주문은 OMS·WMS·정산·CRM·대시보드에 실시간 동기화됩니다.') },
-    { n: 6, icon: '🚚', title: t('live.guide6', 'OCL 당일배송 처리'), desc: t('live.guide6d', '주문은 주문허브(OMS)로 모이고 WMS 피킹→OCL 당일배송 네트워크로 출고됩니다. 배송 상태가 자동 추적됩니다.') },
-    { n: 7, icon: '📊', title: t('live.guide7', '실시간 분석 & 리포트'), desc: t('live.guide7d', '[실시간 대시보드]에서 시청자·매출·전환율·인기상품을 모니터링하고, 종료 후 성과 리포트로 정산까지 연결됩니다.') },
+    { n: 1, icon: '📅', title: t('liveCommerce.guide1', '방송 생성'), desc: t('liveCommerce.guide1d', '[방송 관리]에서 제목·호스트·예약일시를 입력하고 멀티 송출 채널(YouTube/TikTok/Instagram/Facebook/Twitch)을 선택합니다.') },
+    { n: 2, icon: '🛍️', title: t('liveCommerce.guide2', '상품 편성'), desc: t('liveCommerce.guide2d', '[상품 편성]에서 WMS/카탈로그 재고를 불러와 라이브 특가·재고를 설정합니다. 재고는 판매 시 자동 차감됩니다.') },
+    { n: 3, icon: '🔌', title: t('liveCommerce.guide3', '채널·결제·물류 연동'), desc: t('liveCommerce.guide3d', '[채널 연동]에서 오픈마켓·글로벌마켓·자사몰·PG(토스/카카오페이 등)·택배(CJ/한진/OCL 당일배송)·CRM·AI를 연결합니다. 자격증명은 암호화 저장됩니다.') },
+    { n: 4, icon: '📷', title: t('liveCommerce.guide4', '카메라 연결 & 방송 시작'), desc: t('liveCommerce.guide4d', '[방송 스튜디오]에서 카메라를 연결하고 [방송 시작]을 누르면 라이브가 시작됩니다. 상품을 클릭해 화면에 노출합니다.') },
+    { n: 5, icon: '🛒', title: t('liveCommerce.guide5', '실시간 판매 & 댓글주문'), desc: t('liveCommerce.guide5d', '시청자는 [구매하기]에서 즉시 구매하거나 댓글로 주문합니다. 주문은 OMS·WMS·정산·CRM·대시보드에 실시간 동기화됩니다.') },
+    { n: 6, icon: '🚚', title: t('liveCommerce.guide6', 'OCL 당일배송 처리'), desc: t('liveCommerce.guide6d', '주문은 주문허브(OMS)로 모이고 WMS 피킹→OCL 당일배송 네트워크로 출고됩니다. 배송 상태가 자동 추적됩니다.') },
+    { n: 7, icon: '📊', title: t('liveCommerce.guide7', '실시간 분석 & 리포트'), desc: t('liveCommerce.guide7d', '[실시간 대시보드]에서 시청자·매출·전환율·인기상품을 모니터링하고, 종료 후 성과 리포트로 정산까지 연결됩니다.') },
   ];
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       <Card style={{ background: 'linear-gradient(135deg,#1e1b4b,#312e81)', color: '#fff' }}>
-        <div style={{ fontSize: 18, fontWeight: 900 }}>🎬 {t('live.guideTitle', '라이브 커머스 — 판매·결제·물류·마케팅·분석을 잇는 생태계')}</div>
-        <div style={{ fontSize: 13, opacity: 0.9, marginTop: 6 }}>{t('live.guideLead', 'Live Commerce Hub → 멀티 라이브 송출 → 상품·재고 통합 → 주문 통합(OMS) → WMS → 배송사 연동 → OCL 당일배송 → 고객 알림 → 매출 분석 BI')}</div>
+        <div style={{ fontSize: 18, fontWeight: 900 }}>🎬 {t('liveCommerce.guideTitle', '라이브 커머스 — 판매·결제·물류·마케팅·분석을 잇는 생태계')}</div>
+        <div style={{ fontSize: 13, opacity: 0.9, marginTop: 6 }}>{t('liveCommerce.guideLead', 'Live Commerce Hub → 멀티 라이브 송출 → 상품·재고 통합 → 주문 통합(OMS) → WMS → 배송사 연동 → OCL 당일배송 → 고객 알림 → 매출 분석 BI')}</div>
       </Card>
       {STEPS.map(s => (
         <Card key={s.n} style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
