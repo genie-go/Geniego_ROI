@@ -109,20 +109,20 @@ export default function AIImageGenerator({ onGenerate, onUpload, compact = false
     const canvasRef = useRef(null);
 
     const THEMES = useMemo(() => [
-        { id: "discount", label: t("journey.aiThemeDiscount") || "Discount", icon: "🎁", color: "#f97316" },
-        { id: "newsletter", label: t("journey.aiThemeNewsletter") || "Newsletter", icon: "✉️", color: "#4f8ef7" },
-        { id: "cart", label: t("journey.aiThemeCart") || "Cart Recovery", icon: "🛒", color: "#ef4444" },
-        { id: "welcome", label: t("journey.aiThemeWelcome") || "Welcome", icon: "👋", color: "#22c55e" },
-        { id: "flash", label: t("journey.aiThemeFlash") || "Flash Sale", icon: "⚡", color: "#eab308" },
-        { id: "season", label: t("journey.aiThemeSeason") || "Seasonal", icon: "🌿", color: "#a855f7" },
-        { id: "birthday", label: t("journey.aiThemeBirthday") || "Birthday", icon: "🎂", color: "#ec4899" },
+        { id: "discount", label: t("journey.aiThemeDiscount", "Discount"), icon: "🎁", color: "#f97316" },
+        { id: "newsletter", label: t("journey.aiThemeNewsletter", "Newsletter"), icon: "✉️", color: "#4f8ef7" },
+        { id: "cart", label: t("journey.aiThemeCart", "Cart Recovery"), icon: "🛒", color: "#ef4444" },
+        { id: "welcome", label: t("journey.aiThemeWelcome", "Welcome"), icon: "👋", color: "#22c55e" },
+        { id: "flash", label: t("journey.aiThemeFlash", "Flash Sale"), icon: "⚡", color: "#eab308" },
+        { id: "season", label: t("journey.aiThemeSeason", "Seasonal"), icon: "🌿", color: "#a855f7" },
+        { id: "birthday", label: t("journey.aiThemeBirthday", "Birthday"), icon: "🎂", color: "#ec4899" },
     ], [t]);
 
     const PLATFORMS = useMemo(() => [
-        { id: "popup", label: t("journey.platformPopup") || "Web Popup", icon: "🎯" },
+        { id: "popup", label: t("journey.platformPopup", "Web Popup"), icon: "🎯" },
         { id: "instagram", label: "Instagram", icon: "📸" },
         { id: "tiktok", label: "TikTok", icon: "🎵" },
-        { id: "kakao", label: t("journey.platformKakao") || "Kakao", icon: "💬" },
+        { id: "kakao", label: t("journey.platformKakao", "Kakao"), icon: "💬" },
         { id: "facebook", label: "Facebook", icon: "📣" },
     ], [t]);
 
@@ -182,7 +182,7 @@ export default function AIImageGenerator({ onGenerate, onUpload, compact = false
             {/* Theme Selector */}
             <div style={cardStyle}>
                 <div style={{ fontWeight: 800, fontSize: compact ? 12 : 14, marginBottom: compact ? 8 : 14 }}>
-                    🤖 {t("journey.aiDesignTitle") || "AI Design Generator"}
+                    🤖 {t("journey.aiDesignTitle", "AI Design Generator")}
                 </div>
 
                 {/* Platform Select */}
@@ -219,11 +219,11 @@ export default function AIImageGenerator({ onGenerate, onUpload, compact = false
                 {/* Prompts */}
                 <div style={{ display: "grid", gap: 6 }}>
                     <input value={prompt} onChange={e => setPrompt(e.target.value)}
-                        placeholder={t("journey.aiTopicPh") || "Title / Event / Content"}
+                        placeholder={t("journey.aiTopicPh", "Title / Event / Content")}
                         style={INPUT_STYLE} />
                     <div style={{ display: "flex", gap: 6 }}>
                         <input value={imagePrompt} onChange={e => setImagePrompt(e.target.value)}
-                            placeholder={t("journey.aiImagePh") || "AI image description (e.g. beach sunset with surfboard)"}
+                            placeholder={t("journey.aiImagePh", "AI image description (e.g. beach sunset with surfboard)")}
                             style={{ ...INPUT_STYLE, flex: 1, borderColor: "rgba(168,85,247,0.25)" }} />
                         <button onClick={generate} disabled={generating}
                             style={{
@@ -231,7 +231,7 @@ export default function AIImageGenerator({ onGenerate, onUpload, compact = false
                                 background: generating ? "rgba(107,114,128,0.3)" : "linear-gradient(135deg,#a855f7,#6366f1)",
                                 color: 'var(--text-1)', cursor: generating ? "wait" : "pointer", whiteSpace: "nowrap", minWidth: 120,
                             }}>
-                            {generating ? "⚙️ Generating..." : `🤖 ${t("journey.aiGenerate") || "Generate"}`}
+                            {generating ? "⚙️ Generating..." : `🤖 ${t("journey.aiGenerate", "Generate")}`}
                         </button>
                     </div>
                 </div>
@@ -241,7 +241,7 @@ export default function AIImageGenerator({ onGenerate, onUpload, compact = false
             {result && (
                 <div style={cardStyle}>
                     <div style={{ fontWeight: 700, fontSize: 12, marginBottom: 10, color: C.green }}>
-                        ✅ {t("journey.aiResultTitle") || "Generated Design"}
+                        ✅ {t("journey.aiResultTitle", "Generated Design")}
                     </div>
                     {result.dataUrl && (
                         <img src={result.dataUrl} alt="AI Generated" style={{
@@ -265,7 +265,7 @@ export default function AIImageGenerator({ onGenerate, onUpload, compact = false
             {/* Custom Upload */}
             <div style={cardStyle}>
                 <div style={{ fontWeight: 800, fontSize: compact ? 11 : 13, marginBottom: 8 }}>
-                    📤 {t("journey.uploadCustom") || "Upload Custom Image"}
+                    📤 {t("journey.uploadCustom", "Upload Custom Image")}
                 </div>
                 <div
                     onDragOver={e => { e.preventDefault(); setDragOver(true); }}
@@ -280,7 +280,7 @@ export default function AIImageGenerator({ onGenerate, onUpload, compact = false
                     }}>
                     <input ref={fileRef} type="file" accept="image/*" onChange={e => handleUpload(e.target.files[0])} style={{ display: "none" }} />
                     <div style={{ fontSize: 24, opacity: 0.4 }}>🖼</div>
-                    <div style={{ fontSize: 11, color: C.muted, marginTop: 4 }}>{t("journey.uploadDragDrop") || "Drag & drop or click to upload"}</div>
+                    <div style={{ fontSize: 11, color: C.muted, marginTop: 4 }}>{t("journey.uploadDragDrop", "Drag & drop or click to upload")}</div>
                     <div style={{ fontSize: 9, color: C.muted, opacity: 0.6, marginTop: 2 }}>PNG, JPG, GIF (max 5MB)</div>
                 </div>
             </div>

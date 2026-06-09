@@ -17,7 +17,7 @@ export default function UserMenuPreferences() {
   return (
     <div style={{ padding: 24, color: 'var(--text-1, #e5e7eb)' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 20 }}>
-        <h2 style={{ margin: 0 }}>{t('user.menu.title') || '내 메뉴 설정'}</h2>
+        <h2 style={{ margin: 0 }}>{t('user.menu.title', '내 메뉴 설정')}</h2>
         <button
           onClick={() => {
             if (confirm('개인 메뉴 설정을 모두 초기화합니까?')) resetUserPrefs();

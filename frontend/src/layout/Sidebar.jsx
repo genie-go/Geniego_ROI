@@ -75,7 +75,7 @@ function Upgradal({ menuLabel, onClose, t }) {
           {menuLabel} — {t('g.upgradalTitle')}
         </div>
         <div style={{ fontSize: 13, color: 'var(--text-3)', lineHeight: 1.7, marginBottom: 24 }}>
-          {(t('g.upgradalDesc') || '').split('\n').map((line, i) => (
+          {(t('g.upgradalDesc', '')).split('\n').map((line, i) => (
             <React.Fragment key={i}>{line}{i === 0 && <br/>}</React.Fragment>
           ))}
         </div>
@@ -486,7 +486,7 @@ export default function Sidebar() {
         }}>
           {activeCampaignCount > 0 && (
             <span style={{ fontSize: 9, color: "#22c55e", fontWeight: 700 }}>
-              {(t('g.sidebarCampaignActive') || '🚀 {n} campaigns').replace(/\{\{n\}\}|\{n\}/g, activeCampaignCount)}
+              {(t('g.sidebarCampaignActive', '🚀 {n} campaigns')).replace(/\{\{n\}\}|\{n\}/g, activeCampaignCount)}
             </span>
           )}
           {unreadAlertCount > 0 && (
@@ -494,7 +494,7 @@ export default function Sidebar() {
               onClick={() => navigate("/alert-policies")}
               style={{ fontSize: 9, color: "#f59e0b", fontWeight: 700, cursor: "pointer" }}
             >
-              {(t('g.sidebarAlertCount') || '🔔 {n} alerts').replace(/\{\{n\}\}|\{n\}/g, unreadAlertCount)}
+              {(t('g.sidebarAlertCount', '🔔 {n} alerts')).replace(/\{\{n\}\}|\{n\}/g, unreadAlertCount)}
             </span>
           )}
         </div>

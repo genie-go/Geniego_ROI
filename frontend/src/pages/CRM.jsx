@@ -337,7 +337,7 @@ function SegmentsTab({ segments, onSave, onDelete }) {
               <div><div style={{ fontWeight: 700, fontSize: 11, color: C.muted, marginTop: 2 }} >{s.name}</div><div>{s.description}</div></div>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <div style={{ textAlign: "right", fontSize: 10, fontWeight: 800, color: C.muted }} ><div>{s.count}</div><div>{t('crm.segUnit')}</div></div>
-                <button onClick={() => { if (window.confirm(t('crm.deleteConfirm') || 'Delete?')) onDelete(s.id); }} style={{ background: "none", border: "none", color: C.red, cursor: "pointer", fontSize: 14 }}>🗑</button>
+                <button onClick={() => { if (window.confirm(t('crm.deleteConfirm', 'Delete?'))) onDelete(s.id); }} style={{ background: "none", border: "none", color: C.red, cursor: "pointer", fontSize: 14 }}>🗑</button>
               </div>
             </div>
           </div>
@@ -723,7 +723,7 @@ function CRMContent() {
           <div style={{ background: C.card, borderRadius: 14, overflow: "hidden" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
               <thead><tr style={{ background: "#f1f5f9" }}>
-                {[t('crm.fName'), t('crm.colEmail'), t('crm.colPhone'), t('crm.colGrade'), t('crm.colLtv') || 'LTV', t('crm.colCnt'), t('crm.colLast'), ""].map((h, i) => (
+                {[t('crm.fName'), t('crm.colEmail'), t('crm.colPhone'), t('crm.colGrade'), t('crm.colLtv', 'LTV'), t('crm.colCnt'), t('crm.colLast'), ""].map((h, i) => (
                   <th key={i} style={{ padding: "12px 16px", textAlign: "left", color: C.muted, fontWeight: 600, fontSize: 12 }}>{h}</th>
                 ))}
               </tr></thead>

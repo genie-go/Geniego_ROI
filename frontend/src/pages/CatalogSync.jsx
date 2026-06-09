@@ -1409,11 +1409,11 @@ const ProductDetail = memo(function ProductDetail({ product: p, onClose }) {
 const SchedulePanel = memo(function SchedulePanel({ t, addAlert }) {
     const { lang } = useI18n();
     const FREQ_OPTIONS = [
-        { id: '30m', label: t('catalogSync.schedFreq30m') || '30분마다' },
-        { id: '1h', label: t('catalogSync.schedFreq1h') || '1시간마다' },
-        { id: '6h', label: t('catalogSync.schedFreq6h') || '6시간마다' },
-        { id: '12h', label: t('catalogSync.schedFreq12h') || '12시간마다' },
-        { id: '1d', label: t('catalogSync.schedFreqDaily') || '매일' },
+        { id: '30m', label: t('catalogSync.schedFreq30m', '30분마다') },
+        { id: '1h', label: t('catalogSync.schedFreq1h', '1시간마다') },
+        { id: '6h', label: t('catalogSync.schedFreq6h', '6시간마다') },
+        { id: '12h', label: t('catalogSync.schedFreq12h', '12시간마다') },
+        { id: '1d', label: t('catalogSync.schedFreqDaily', '매일') },
     ];
     const [schedules, setSchedules] = useState(() => {
         try { const s = tGet('geniego_sync_schedules'); return s ? JSON.parse(s) : []; } catch { return []; }
@@ -1444,7 +1444,7 @@ const SchedulePanel = memo(function SchedulePanel({ t, addAlert }) {
         <div style={{ background: "#ffffff", borderRadius: 14, border: '1px solid rgba(168,85,247,0.2)', padding: 16 }}>
             <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
                 <span style={{ fontSize: 18 }}>⏰</span>
-                {t('catalogSync.scheduleTitle') || '자동 동기화 스케줄'}
+                {t('catalogSync.scheduleTitle', '자동 동기화 스케줄')}
                 <span style={{ fontSize: 9, fontWeight: 700, padding: "2px 10px", borderRadius: 20, background: 'rgba(168,85,247,0.12)', color: '#a855f7', border: '1px solid rgba(168,85,247,0.3)' }}>{schedules.filter(s => s.enabled).length} {t('catalogSync.activeLabel')}</span>
             </div>
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center', marginBottom: 14 }}>
@@ -1454,10 +1454,10 @@ const SchedulePanel = memo(function SchedulePanel({ t, addAlert }) {
                 <input type="time" style={{ padding: '6px 10px', borderRadius: 8, border: "1px solid #e5e7eb", background: "#fff", color: "#1f2937", fontSize: 12, width: 100 }} value={time} onChange={e => setTime(e.target.value)} />
                 <label style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, cursor: 'pointer' }}>
                     <input type="checkbox" checked={enabled} onChange={e => setEnabled(e.target.checked)} />
-                    {t('catalogSync.schedEnabled') || '활성화'}
+                    {t('catalogSync.schedEnabled', '활성화')}
                 </label>
                 <button onClick={saveSchedule} style={{ padding: '7px 16px', borderRadius: 8, background: 'linear-gradient(135deg,#a855f7,#6366f1)', border: 'none', color: '#ffffff', fontWeight: 700, fontSize: 11, cursor: 'pointer' }}>
-                    {t('catalogSync.schedSaveBtn') || '스케줄 저장'}
+                    {t('catalogSync.schedSaveBtn', '스케줄 저장')}
                 </button>
             </div>
             {schedules.length > 0 && (
@@ -1549,7 +1549,7 @@ const SyncRunTab = memo(function SyncRunTab({ onJobCreated }) {
         const finalJob = { ...job, status: "done", progress: 100, done: synced, errors, duration: `${((Date.now() - t0) / 1000).toFixed(0)}s` };
         setLiveJob(finalJob);
         onJobCreated(finalJob);
-        if (lastNote && addAlert) addAlert({ type: 'info', msg: `${t('catalogSync.syncRun') || '동기화'}: ${lastNote}` });
+        if (lastNote && addAlert) addAlert({ type: 'info', msg: `${t('catalogSync.syncRun', '동기화')}: ${lastNote}` });
         setRunning(false);
     };
 
@@ -1734,7 +1734,7 @@ const PriceSyncTab = memo(function PriceSyncTab() {
                 <div style={{ background: "#ffffff", borderRadius: 14, border: "1px solid #e5e7eb", padding: 16 }}>
                     <div style={{ fontWeight: 700, fontSize: 12, color: "#6b7280", marginBottom: 6 }}>{t('catalogSync.channelMarkup')}</div>
                     <div style={{ fontSize: 10, color: '#6b7280', marginBottom: 12, lineHeight: 1.5 }}>
-                        💡 {t('catalogSync.commissionAutoApplyDesc') || '채널별 판매 수수료율과 세금은 CHANNEL_RATES 정책에서 자동 적용됩니다. 직접 수정도 가능합니다.'}
+                        💡 {t('catalogSync.commissionAutoApplyDesc', '채널별 판매 수수료율과 세금은 CHANNEL_RATES 정책에서 자동 적용됩니다. 직접 수정도 가능합니다.')}
                     </div>
                     <div style={{ overflowX: 'auto' }}>
                         <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
@@ -1742,8 +1742,8 @@ const PriceSyncTab = memo(function PriceSyncTab() {
                                 <tr>
                                     <th>{t('catalogSync.colChannels')}</th>
                                     <th>{t('catalogSync.enabled')}</th>
-                                    <th style={{ color: '#f59e0b' }}>{t('catalogSync.colCommission') || '수수료(%)'}</th>
-                                    <th style={{ color: '#6366f1' }}>{t('catalogSync.colVatTax') || 'VAT/세금(%)'}</th>
+                                    <th style={{ color: '#f59e0b' }}>{t('catalogSync.colCommission', '수수료(%)')}</th>
+                                    <th style={{ color: '#6366f1' }}>{t('catalogSync.colVatTax', 'VAT/세금(%)')}</th>
                                     <th>{t('catalogSync.channelMarkup')}</th>
                                     <th>{t('catalogSync.minMargin')}</th>
                                 </tr>
@@ -1787,8 +1787,8 @@ const PriceSyncTab = memo(function PriceSyncTab() {
                                 <thead><tr>
                                     <th>{t('catalogSync.colChannels')}</th>
                                     <th>{t('catalogSync.finalPrice')}</th>
-                                    <th style={{ color: '#f59e0b' }}>{t('catalogSync.colCommission') || '수수료'}</th>
-                                    <th style={{ color: '#6366f1' }}>{t('catalogSync.colVatTax') || 'VAT'}</th>
+                                    <th style={{ color: '#f59e0b' }}>{t('catalogSync.colCommission', '수수료')}</th>
+                                    <th style={{ color: '#6366f1' }}>{t('catalogSync.colVatTax', 'VAT')}</th>
                                     <th>{t('catalogSync.marginResult')}</th>
                                     <th>{t('catalogSync.minMargin')}</th>
                                 </tr></thead>

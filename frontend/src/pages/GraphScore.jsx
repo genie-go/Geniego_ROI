@@ -207,7 +207,7 @@ function GraphBrowserTab({ onExport }) {
     <div>
       <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
         <input className="input" placeholder={t("graphScore.phNodeIdFilter")} value={filter} onChange={e => setFilter(e.target.value)} style={{ flex: 1, minWidth: 200 }} />
-        <button className="btn" onClick={load}>↺ {t('refresh') || "Refresh"}</button>
+        <button className="btn" onClick={load}>↺ {t('refresh', "Refresh")}</button>
         <button className="btn" onClick={handleExportCsv} title={t('graphScore.exportCsv')}>📥 {t('graphScore.exportCsv')}</button>
       </div>
       <table className="table">

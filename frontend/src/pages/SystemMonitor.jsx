@@ -167,11 +167,11 @@ export default function SystemMonitor() {
     }, []);
 
     useEffect(() => { load(); const iv = setInterval(load, 30000); return () => clearInterval(iv); }, [load]);
-    const STATUS_LABEL = { ok: t("systemMonitor.status_ok") || "OK", warn: t("systemMonitor.status_warning") || "Warning", error: t("systemMonitor.status_error") || "Error" };
+    const STATUS_LABEL = { ok: t("systemMonitor.status_ok", "OK"), warn: t("systemMonitor.status_warning", "Warning"), error: t("systemMonitor.status_error", "Error") };
     const TABS = [
-        { id: "api", label: `🔌 ${t("systemMonitor.tabApis") || "API Status"}` },
-        { id: "pipeline", label: `🔄 ${t("common.pipeline") || "Pipeline"}` },
-        { id: "logs", label: `📋 ${t("common.errorLog") || "Error Log"}` },
+        { id: "api", label: `🔌 ${t("systemMonitor.tabApis", "API Status")}` },
+        { id: "pipeline", label: `🔄 ${t("common.pipeline", "Pipeline")}` },
+        { id: "logs", label: `📋 ${t("common.errorLog", "Error Log")}` },
     ];
 
     return (
@@ -179,13 +179,13 @@ export default function SystemMonitor() {
             <div className="card card-glass fade-up" style={{ padding: "18px 22px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <div>
-                        <div style={{ fontWeight: 900, fontSize: 22 }}>{t("systemMonitor.pageTitle") || "🖥️ System Monitor"}</div>
+                        <div style={{ fontWeight: 900, fontSize: 22 }}>{t("systemMonitor.pageTitle", "🖥️ System Monitor")}</div>
                         <div style={{ fontSize: 11, color: "var(--text-3)", marginTop: 4 }}>
-                            {t("systemMonitor.pageSub") || "API Status · Pipeline · Error Log"}
+                            {t("systemMonitor.pageSub", "API Status · Pipeline · Error Log")}
                             <span style={{ marginLeft: 10, color: "#22c55e" }}>● {lastUpdate.toLocaleTimeString()}</span>
                         </div>
                     </div>
-                    <button className="btn-ghost" style={{ fontSize: 12 }} onClick={load}>🔄 {t("common.refresh") || "Refresh"}</button>
+                    <button className="btn-ghost" style={{ fontSize: 12 }} onClick={load}>🔄 {t("common.refresh", "Refresh")}</button>
                 </div>
                 {loadErr && <div style={{ marginTop: 8, fontSize: 11, color: "#ef4444" }}>⚠ {t("systemMonitor.loadError", "지표 로드 실패")}: {loadErr}</div>}
             </div>

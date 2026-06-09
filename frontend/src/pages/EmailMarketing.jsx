@@ -68,7 +68,7 @@ function SettingsTab() {
         if(isDemo){
             setTimeout(()=>{
                 updateEmailSettings(localSet);setSaving(false);
-                setMsg(t('email.aiSetSaved')||'Settings saved');
+                setMsg(t('email.aiSetSaved', 'Settings saved'));
                 addAlert({type:'info',msg:'Email settings updated'});
                 setTimeout(()=>setMsg(""),3000);
             },400);
@@ -76,7 +76,7 @@ function SettingsTab() {
         }
         try{
             await emailApi.saveSettings(localSet); // 빈 smtp_pass/aws_secret 은 백엔드가 기존값 보존(미덮어쓰기)
-            setMsg(t('email.aiSetSaved')||'Settings saved');
+            setMsg(t('email.aiSetSaved', 'Settings saved'));
             addAlert({type:'info',msg:'Email settings updated'});
             setTimeout(()=>setMsg(""),3000);
         }catch(e){ addAlert({type:'error',msg:'설정 저장 실패: '+(e?.message||'')}); }
@@ -87,10 +87,10 @@ function SettingsTab() {
             <Card glow>
                 <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:22 }}>
                     <span style={{ fontSize:22 }}>📮</span>
-                    <div style={{ fontWeight:800, fontSize:16, color:'#1f2937' }}>{t('email.setTitle')||'Email Provider Settings'}</div>
+                    <div style={{ fontWeight:800, fontSize:16, color:'#1f2937' }}>{t('email.setTitle', 'Email Provider Settings')}</div>
                 </div>
                 <div style={{ marginBottom:20 }}>
-                    <div style={{ fontSize:12, color:'#6b7280', marginBottom:8, fontWeight:600, textTransform:"uppercase" }}>{t('email.lblProvider')||'Provider'}</div>
+                    <div style={{ fontSize:12, color:'#6b7280', marginBottom:8, fontWeight:600, textTransform:"uppercase" }}>{t('email.lblProvider', 'Provider')}</div>
                     <div style={{ display:"flex", gap:10 }}>
                         {[["smtp","SMTP"],["ses","AWS SES"]].map(([val,label])=>(
                             <button key={val} onClick={()=>setLocalSet(s=>({...s,provider:val}))} style={{ padding:"10px 20px", borderRadius:10, border:"none", cursor:"pointer", fontWeight:700, fontSize:13, background:localSet.provider===val?C.accent:'rgba(0,0,0,0.04)', color:localSet.provider===val?"#fff":"#374151" }}>{label}</button>
@@ -100,12 +100,12 @@ function SettingsTab() {
                 {localSet.provider==="smtp" && (
                     <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14 }}>
                         {[
-                            [t('email.lblSmtpHost')||"SMTP Host","smtp_host","smtp.gmail.com"],
-                            [t('email.lblSmtpPort')||"SMTP Port","smtp_port","587"],
-                            [t('email.lblSmtpUser')||"SMTP User","smtp_user","user@example.com"],
-                            [t('email.lblPassword')||"Password","smtp_pass","••••••••"],
-                            [t("email.fromEmail")||"From Email","from_email","noreply@yourdomain.com"],
-                            [t("email.fromName")||"From Name","from_name","Geniego-ROI"],
+                            [t('email.lblSmtpHost', "SMTP Host"),"smtp_host","smtp.gmail.com"],
+                            [t('email.lblSmtpPort', "SMTP Port"),"smtp_port","587"],
+                            [t('email.lblSmtpUser', "SMTP User"),"smtp_user","user@example.com"],
+                            [t('email.lblPassword', "Password"),"smtp_pass","••••••••"],
+                            [t("email.fromEmail", "From Email"),"from_email","noreply@yourdomain.com"],
+                            [t("email.fromName", "From Name"),"from_name","Geniego-ROI"],
                         ].map(([label,key,ph])=>(
                             <div key={key}>
                                 <div style={{ fontSize:11, color:'#6b7280', marginBottom:6, fontWeight:600 }}>{label}</div>
@@ -117,11 +117,11 @@ function SettingsTab() {
                 {localSet.provider==="ses" && (
                     <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14 }}>
                         {[
-                            [t("email.awsRegion")||'AWS Region',"aws_region","ap-northeast-2"],
+                            [t("email.awsRegion", 'AWS Region'),"aws_region","ap-northeast-2"],
                             ["Access Key ID","aws_key","AKIA..."],
                             ["Secret Access Key","aws_secret","••••••••"],
-                            [t("email.fromEmail")||"From Email","from_email","noreply@yourdomain.com"],
-                            [t("email.fromName")||"From Name","from_name","Geniego-ROI"],
+                            [t("email.fromEmail", "From Email"),"from_email","noreply@yourdomain.com"],
+                            [t("email.fromName", "From Name"),"from_name","Geniego-ROI"],
                         ].map(([label,key,ph])=>(
                             <div key={key} style={{ gridColumn:key==="aws_secret"?"span 2":undefined }}>
                                 <div style={{ fontSize:11, color:'#6b7280', marginBottom:6, fontWeight:600 }}>{label}</div>
@@ -132,7 +132,7 @@ function SettingsTab() {
                 )}
                 {msg && <div style={{ marginTop:16, fontSize:13, color:C.green, fontWeight:600 }}>✅ {msg}</div>}
                 <button onClick={save} disabled={saving} style={{ ...BTN, marginTop:20, opacity:saving?0.7:1, background:C.accent }}>
-                    {saving?"⏳ "+(t('email.saving')||"Saving..."):(t('email.setSaveBtn')||"💾 Save Settings")}
+                    {saving?"⏳ "+(t('email.saving', "Saving...")):(t('email.setSaveBtn', "💾 Save Settings"))}
                 </button>
             </Card>
         </div>
@@ -174,24 +174,24 @@ function TemplatesTab() {
                 reloadOp();
             }catch(e){ addAlert({type:'error',msg:'템플릿 저장 실패: '+(e?.message||'')}); return; }
         }
-        setMsg(t('email.saved')||'Saved');setEditId("new");setForm({name:"",subject:"",html_body:"",category:"general"});setTimeout(()=>setMsg(""),2500);
+        setMsg(t('email.saved', 'Saved'));setEditId("new");setForm({name:"",subject:"",html_body:"",category:"general"});setTimeout(()=>setMsg(""),2500);
     };
     const del=async(id)=>{
-        if(!confirm(t("email.msgDelConfirm")||"Delete?"))return;
+        if(!confirm(t("email.msgDelConfirm", "Delete?")))return;
         if(isDemo){ updateEmailTemplates(gdTemplates.filter(x=>x.id!==id)); addAlert({type:'warn',msg:'Template deleted'}); return; }
         try{ await emailApi.deleteTemplate(id); addAlert({type:'warn',msg:'Template deleted'}); reloadOp();
             if(editId===id){setEditId("new");setForm({name:"",subject:"",html_body:"",category:"general"});}
         }catch(e){ addAlert({type:'error',msg:'삭제 실패: '+(e?.message||'')}); }
     };
-    const CATS=[{id:"general",label:t('email.catGeneral')||"General",icon:"📋"},{id:"welcome",label:t('email.catWelcome')||"Welcome",icon:"👋"},{id:"promotion",label:t('email.catPromo')||"Promotion",icon:"🎯"},{id:"retention",label:t('email.catRetention')||"Retention",icon:"🔄"},{id:"transactional",label:t('email.catTxn')||"Transactional",icon:"🧾"}];
+    const CATS=[{id:"general",label:t('email.catGeneral', "General"),icon:"📋"},{id:"welcome",label:t('email.catWelcome', "Welcome"),icon:"👋"},{id:"promotion",label:t('email.catPromo', "Promotion"),icon:"🎯"},{id:"retention",label:t('email.catRetention', "Retention"),icon:"🔄"},{id:"transactional",label:t('email.catTxn', "Transactional"),icon:"🧾"}];
     return (
         <div style={{ display:"grid", gridTemplateColumns:"300px 1fr", gap:20 }}>
             <div>
                 <button onClick={()=>{setEditId("new");setForm({name:"",subject:"",html_body:"",category:"general"}); }} style={{ width:"100%", padding:"12px", borderRadius:12, border:"1px dashed "+C.accent, background:"none", color:C.accent, fontWeight:700, cursor:"pointer", marginBottom:14, fontSize:13 }}>
-                    ✨ {t("email.tplNew")||"New Template"}
+                    ✨ {t("email.tplNew", "New Template")}
                 </button>
                 <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
-                    {emailTemplates.length===0 && <div style={{ textAlign:"center", padding:24, color:'#6b7280', fontSize:12 }}>{t('email.noTemplates')||"No templates yet."}</div>}
+                    {emailTemplates.length===0 && <div style={{ textAlign:"center", padding:24, color:'#6b7280', fontSize:12 }}>{t('email.noTemplates', "No templates yet.")}</div>}
                     {emailTemplates.map(tx=>{
                         const cat=CATS.find(c=>c.id===tx.category);
                         return (
@@ -209,29 +209,29 @@ function TemplatesTab() {
             <Card glow>
                 <div style={{ fontWeight:800, marginBottom:18, fontSize:15, display:"flex", alignItems:"center", gap:8, color:'#1f2937' }}>
                     <span style={{ fontSize:18 }}>{editId==="new"?"✨":"✏️"}</span>
-                    {editId==="new"?(t("email.tplCreate")||"Create Template"):(t("email.tplEdit")||"Edit Template")}
+                    {editId==="new"?(t("email.tplCreate", "Create Template")):(t("email.tplEdit", "Edit Template"))}
                 </div>
                 <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14, marginBottom:14 }}>
                     <div>
-                        <div style={{ fontSize:11, color:'#6b7280', marginBottom:6, fontWeight:600 }}>{t('email.lblTplName')||"Template Name"}</div>
+                        <div style={{ fontSize:11, color:'#6b7280', marginBottom:6, fontWeight:600 }}>{t('email.lblTplName', "Template Name")}</div>
                         <SecureInput value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))} addAlert={addAlert}/>
                     </div>
                     <div>
-                        <div style={{ fontSize:11, color:'#6b7280', marginBottom:6, fontWeight:600 }}>{t('email.lblCategory')||"Category"}</div>
+                        <div style={{ fontSize:11, color:'#6b7280', marginBottom:6, fontWeight:600 }}>{t('email.lblCategory', "Category")}</div>
                         <select value={form.category} onChange={e=>setForm(f=>({...f,category:e.target.value}))} style={{ ...INPUT }}>{CATS.map(c=><option key={c.id} value={c.id}>{c.icon} {c.label}</option>)}</select>
                     </div>
                 </div>
                 <div style={{ marginBottom:14 }}>
-                    <div style={{ fontSize:11, color:'#6b7280', marginBottom:6, fontWeight:600 }}>{t('email.lblSubject')||"Subject Line"}</div>
-                    <SecureInput value={form.subject} onChange={e=>setForm(f=>({...f,subject:e.target.value}))} placeholder={t("email.subjPh")||"Enter subject..."} addAlert={addAlert}/>
+                    <div style={{ fontSize:11, color:'#6b7280', marginBottom:6, fontWeight:600 }}>{t('email.lblSubject', "Subject Line")}</div>
+                    <SecureInput value={form.subject} onChange={e=>setForm(f=>({...f,subject:e.target.value}))} placeholder={t("email.subjPh", "Enter subject...")} addAlert={addAlert}/>
                 </div>
                 <div style={{ marginBottom:14 }}>
-                    <div style={{ fontSize:11, color:'#6b7280', marginBottom:6, fontWeight:600 }}>{t("email.tfBody")||"HTML Body"}</div>
+                    <div style={{ fontSize:11, color:'#6b7280', marginBottom:6, fontWeight:600 }}>{t("email.tfBody", "HTML Body")}</div>
                     <textarea value={form.html_body} onChange={e=>{if(detectXSS(e.target.value)){addAlert({type:'error',msg:'XSS detected'});return;}setForm(f=>({...f,html_body:e.target.value}));}} rows={14} style={{ ...INPUT, resize:"vertical", fontFamily:"monospace", lineHeight:1.6, fontSize:12 }}/>
                 </div>
                 {msg && <div style={{ fontSize:12, color:C.green, marginTop:10, fontWeight:600 }}>✅ {msg}</div>}
                 <button onClick={save} disabled={!form.name||!form.subject||!form.html_body} style={{ ...BTN, marginTop:16, opacity:(!form.name||!form.subject||!form.html_body)?0.5:1, background:C.accent }}>
-                    {editId==="new"?(t("email.btnTplSave")||"💾 Save Template"):(t("email.btnEditSave")||"💾 Save Changes")}
+                    {editId==="new"?(t("email.btnTplSave", "💾 Save Template")):(t("email.btnEditSave", "💾 Save Changes"))}
                 </button>
             </Card>
         </div>
@@ -281,10 +281,10 @@ function CampaignsTab() {
             try{ await emailApi.createCampaign({name:sanitizeInput(form.name),template_id:form.template_id?Number(form.template_id):0,segment_id:form.segment_id?Number(form.segment_id):0}); await reloadCampaigns(); }
             catch(e){ addAlert({type:'error',msg:'캠페인 생성 실패: '+(e?.message||'')}); return; }
         }
-        setMsg(t('email.msgCampDone')||'Campaign created!');setForm({name:"",template_id:"",segment_id:""});setTimeout(()=>setMsg(""),3000);
+        setMsg(t('email.msgCampDone', 'Campaign created!'));setForm({name:"",template_id:"",segment_id:""});setTimeout(()=>setMsg(""),3000);
     };
     const send=async(c)=>{
-        if(!confirm(t("email.msgSendConfirm")||"Send to all?"))return;
+        if(!confirm(t("email.msgSendConfirm", "Send to all?")))return;
         setSending(c.id);
         if(isDemo){
             setTimeout(()=>{
@@ -293,7 +293,7 @@ function CampaignsTab() {
                 const _h=String(c.id||c.name||'').split('').reduce((a,ch)=>a+ch.charCodeAt(0),0);
                 const openRate=18+(_h%22);const clickRate=Math.round(openRate*0.3);
                 updateEmailCampaign(c.id,{status:"sent",opened:Math.round(c.total_sent*openRate/100),clicked:Math.round(c.total_sent*clickRate/100),sentAt:new Date().toISOString()});
-                addAlert({type:'success',msg:'Campaign "'+c.name+'" sent'});setMsg(t('email.msgSendDone')||'Sent!');setTimeout(()=>setMsg(""),3000);
+                addAlert({type:'success',msg:'Campaign "'+c.name+'" sent'});setMsg(t('email.msgSendDone', 'Sent!'));setTimeout(()=>setMsg(""),3000);
             },1800);
             return;
         }
@@ -304,7 +304,7 @@ function CampaignsTab() {
             await reloadCampaigns();
             const parts=[`발송 ${r.sent??0}`]; if(r.mock_sent)parts.push(`미설정 ${r.mock_sent}`); if(r.failed)parts.push(`실패 ${r.failed}`);
             addAlert({type:'success',msg:`"${c.name}" — ${parts.join(', ')} (대상 ${r.total??0})`});
-            setMsg(t('email.msgSendDone')||'Sent!');setTimeout(()=>setMsg(""),3000);
+            setMsg(t('email.msgSendDone', 'Sent!'));setTimeout(()=>setMsg(""),3000);
         }catch(e){ addAlert({type:'error',msg:'발송 실패: '+(e?.message||'')}); }
         finally{ setSending(null); }
     };
@@ -312,34 +312,34 @@ function CampaignsTab() {
     return (
         <div style={{ display:"flex", flexDirection:"column", gap:20 }}>
             <div style={{ display:"grid", gridTemplateColumns:"repeat(5,1fr)", gap:14 }}>
-                <KpiBadge icon="📧" label={t('email.kpiTotal')||"Campaigns"} value={kpi.total} color={C.accent}/>
-                <KpiBadge icon="✅" label={t('email.kpiSent')||"Sent"} value={kpi.sent} color={C.green}/>
-                <KpiBadge icon="📤" label={t('email.kpiEmails')||"Total Emails"} value={kpi.totalSent.toLocaleString()} color={C.purple}/>
-                <KpiBadge icon="👁️" label={t('email.kpiOpen')||"Avg Open%"} value={kpi.avgOpen+"%"} color={C.yellow}/>
-                <KpiBadge icon="🖱️" label={t('email.kpiClick')||"Avg Click%"} value={kpi.avgClick+"%"} color={C.cyan}/>
+                <KpiBadge icon="📧" label={t('email.kpiTotal', "Campaigns")} value={kpi.total} color={C.accent}/>
+                <KpiBadge icon="✅" label={t('email.kpiSent', "Sent")} value={kpi.sent} color={C.green}/>
+                <KpiBadge icon="📤" label={t('email.kpiEmails', "Total Emails")} value={kpi.totalSent.toLocaleString()} color={C.purple}/>
+                <KpiBadge icon="👁️" label={t('email.kpiOpen', "Avg Open%")} value={kpi.avgOpen+"%"} color={C.yellow}/>
+                <KpiBadge icon="🖱️" label={t('email.kpiClick', "Avg Click%")} value={kpi.avgClick+"%"} color={C.cyan}/>
             </div>
             <Card glow>
                 <div style={{ fontWeight:800, fontSize:15, marginBottom:16, display:"flex", alignItems:"center", gap:8, color:'#1f2937' }}>
-                    <span style={{ fontSize:18 }}>🚀</span>{t('email.cNew')||"New Campaign"}
+                    <span style={{ fontSize:18 }}>🚀</span>{t('email.cNew', "New Campaign")}
                 </div>
                 <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:14 }}>
-                    <div><div style={{ fontSize:11, color:'#6b7280', marginBottom:6, fontWeight:600 }}>{t('email.fName')||"Campaign Name*"}</div><SecureInput value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))} addAlert={addAlert}/></div>
-                    <div><div style={{ fontSize:11, color:'#6b7280', marginBottom:6, fontWeight:600, ...INPUT }} >{t('email.fTpl')||"Template"}</div><select value={form.template_id} onChange={e=>setForm(f=>({...f,template_id:e.target.value}))}><option value="">{t('email.optSel')||"-- Select --"}</option>{emailTemplates.map(tp=><option key={tp.id} value={tp.id}>{tp.name}</option>)}</select></div>
-                    <div><div style={{ fontSize:11, color:'#6b7280', marginBottom:6, fontWeight:600, ...INPUT }} >{t('email.fTarget')||"Target Segment"}</div><select value={form.segment_id} onChange={e=>setForm(f=>({...f,segment_id:String(e.target.value)}))}><option value="">{t('email.optAll')||"All"} ({totalCustomers})</option>{(crmSegments||[]).map(s=><option key={s.id} value={s.id}>{s.name} ({s.count})</option>)}</select></div>
+                    <div><div style={{ fontSize:11, color:'#6b7280', marginBottom:6, fontWeight:600 }}>{t('email.fName', "Campaign Name*")}</div><SecureInput value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))} addAlert={addAlert}/></div>
+                    <div><div style={{ fontSize:11, color:'#6b7280', marginBottom:6, fontWeight:600, ...INPUT }} >{t('email.fTpl', "Template")}</div><select value={form.template_id} onChange={e=>setForm(f=>({...f,template_id:e.target.value}))}><option value="">{t('email.optSel', "-- Select --")}</option>{emailTemplates.map(tp=><option key={tp.id} value={tp.id}>{tp.name}</option>)}</select></div>
+                    <div><div style={{ fontSize:11, color:'#6b7280', marginBottom:6, fontWeight:600, ...INPUT }} >{t('email.fTarget', "Target Segment")}</div><select value={form.segment_id} onChange={e=>setForm(f=>({...f,segment_id:String(e.target.value)}))}><option value="">{t('email.optAll', "All")} ({totalCustomers})</option>{(crmSegments||[]).map(s=><option key={s.id} value={s.id}>{s.name} ({s.count})</option>)}</select></div>
                 </div>
                 {msg && <div style={{ marginTop:12, fontSize:12, color:C.green, fontWeight:600 }}>✅ {msg}</div>}
                 <button onClick={create} disabled={!form.name} style={{ ...BTN, marginTop:16, opacity:!form.name?0.5:1, background:C.accent }}>
-                    {t("email.btnCreate")||"🚀 Create Campaign"}
+                    {t("email.btnCreate", "🚀 Create Campaign")}
                 </button>
             </Card>
             <Card style={{ padding:0, overflow:"hidden" }}>
                 <div style={{ padding:"16px 22px", fontWeight:800, fontSize:15, borderBottom:'1px solid rgba(0,0,0,0.06)', display:"flex", alignItems:"center", gap:8, color:'#1f2937' }}>
-                    <span style={{ fontSize:16 }}>📊</span>{t('email.cStat')||"Campaign Status"} ({emailCampaignsLinked.length})
+                    <span style={{ fontSize:16 }}>📊</span>{t('email.cStat', "Campaign Status")} ({emailCampaignsLinked.length})
                 </div>
                 <div style={{ overflowX:"auto" }}>
                     <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13 }}>
                         <thead><tr style={{ background:'rgba(0,0,0,0.02)' }}>
-                            {[t('email.colName')||"Name",t('email.colTpl')||"Template",t('email.colTarget')||"Segment",t('email.colSent')||"Sent",t('email.colOpen')||"Open%",t('email.colClick')||"Click%",t('email.colStatus')||"Status",t('email.colAction')||"Action"].map(h=>(
+                            {[t('email.colName', "Name"),t('email.colTpl', "Template"),t('email.colTarget', "Segment"),t('email.colSent', "Sent"),t('email.colOpen', "Open%"),t('email.colClick', "Click%"),t('email.colStatus', "Status"),t('email.colAction', "Action")].map(h=>(
                                 <th key={h} style={{ padding:"12px 16px", textAlign:"left", color:'#6b7280', fontWeight:600, fontSize:11, textTransform:"uppercase" }}>{h}</th>
                             ))}
                         </tr></thead>
@@ -356,10 +356,10 @@ function CampaignsTab() {
                                     <td style={{ padding:"12px 16px", color:openR>20?C.green:openR>10?C.yellow:'#6b7280', fontWeight:700 }} ><span>{openR}%</span></td>
                                     <td style={{ padding:"12px 16px", color:clickR>5?C.green:clickR>2?C.yellow:'#6b7280', fontWeight:700 }} ><span>{clickR}%</span></td>
                                     <td style={{ padding:"3px 10px", fontSize:11, fontWeight:700, color:st.color, display:"inline-flex", alignItems:"center", gap:4, background:st.color+'15', borderRadius:6 }} ><span>{st.icon} {st.label}</span></td>
-                                    <td style={{ padding:"8px 14px" }} >{c.status!=="sent" && (<button onClick={()=>send(c)} disabled={sending===c.id} style={{ padding:"6px 14px", borderRadius:8, border:"none", background:sending===c.id?'#94a3b8':C.green, color:"#fff", fontWeight:700, cursor:sending===c.id?"wait":"pointer", fontSize:12 }}>{sending===c.id?"⏳ "+(t('email.btnSending')||"Sending..."):"📤 "+(t('email.btnSend')||"Send")}</button>)}</td>
+                                    <td style={{ padding:"8px 14px" }} >{c.status!=="sent" && (<button onClick={()=>send(c)} disabled={sending===c.id} style={{ padding:"6px 14px", borderRadius:8, border:"none", background:sending===c.id?'#94a3b8':C.green, color:"#fff", fontWeight:700, cursor:sending===c.id?"wait":"pointer", fontSize:12 }}>{sending===c.id?"⏳ "+(t('email.btnSending', "Sending...")):"📤 "+(t('email.btnSend', "Send"))}</button>)}</td>
                                 </tr>);
                             })}
-                            {emailCampaignsLinked.length===0 && (<tr><td colSpan={8} style={{ padding:"48px 24px", textAlign:"center", color:'#6b7280', fontSize:13, marginBottom:8 }} ><div>📭</div><div>{t('email.emptyCamp')||"No campaigns yet."}</div></td></tr>)}
+                            {emailCampaignsLinked.length===0 && (<tr><td colSpan={8} style={{ padding:"48px 24px", textAlign:"center", color:'#6b7280', fontSize:13, marginBottom:8 }} ><div>📭</div><div>{t('email.emptyCamp', "No campaigns yet.")}</div></td></tr>)}
                         </tbody>
                     </table>
                 </div>
@@ -392,17 +392,17 @@ function AnalyticsTab() {
     return (
         <div style={{ display:"flex", flexDirection:"column", gap:20 }}>
             <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:14 }}>
-                <KpiBadge icon="📤" label={t('email.anTotalSent')||"Total Sent"} value={analytics.totalSent.toLocaleString()} color={C.accent}/>
-                <KpiBadge icon="👁️" label={t('email.anOpenRate')||"Open Rate"} value={overallOpen+"%"} color={C.green} sub={analytics.totalOpened.toLocaleString()+" opened"}/>
-                <KpiBadge icon="🖱️" label={t('email.anClickRate')||"Click Rate"} value={overallClick+"%"} color={C.yellow} sub={analytics.totalClicked.toLocaleString()+" clicks"}/>
-                <KpiBadge icon="📦" label={t('email.anDelivery')||"Delivery Rate"} value={deliveryRate+"%"} color={C.cyan} sub={analytics.totalFailed+" failed"}/>
+                <KpiBadge icon="📤" label={t('email.anTotalSent', "Total Sent")} value={analytics.totalSent.toLocaleString()} color={C.accent}/>
+                <KpiBadge icon="👁️" label={t('email.anOpenRate', "Open Rate")} value={overallOpen+"%"} color={C.green} sub={analytics.totalOpened.toLocaleString()+" opened"}/>
+                <KpiBadge icon="🖱️" label={t('email.anClickRate', "Click Rate")} value={overallClick+"%"} color={C.yellow} sub={analytics.totalClicked.toLocaleString()+" clicks"}/>
+                <KpiBadge icon="📦" label={t('email.anDelivery', "Delivery Rate")} value={deliveryRate+"%"} color={C.cyan} sub={analytics.totalFailed+" failed"}/>
             </div>
             <Card glow>
                 <div style={{ fontWeight:800, fontSize:15, marginBottom:18, display:"flex", alignItems:"center", gap:8, color:'#1f2937' }}>
-                    <span style={{ fontSize:16 }}>📊</span>{t('email.anSegPerf')||"Performance by Segment"}
+                    <span style={{ fontSize:16 }}>📊</span>{t('email.anSegPerf', "Performance by Segment")}
                 </div>
                 {Object.keys(analytics.bySegment).length===0?(
-                    <div style={{ textAlign:"center", padding:32, color:'#6b7280', fontSize:28, marginBottom:8 }} ><div>📉</div>{t('email.anNoData')||"No sent campaigns to analyze yet."}</div>
+                    <div style={{ textAlign:"center", padding:32, color:'#6b7280', fontSize:28, marginBottom:8 }} ><div>📉</div>{t('email.anNoData', "No sent campaigns to analyze yet.")}</div>
                 ):(
                     <div style={{ display:"grid", gap:10 }}>
                         {Object.entries(analytics.bySegment).map(([seg,data])=>{
@@ -411,10 +411,10 @@ function AnalyticsTab() {
                             return (
                                 <div key={seg} style={{ display:"grid", gridTemplateColumns:"200px repeat(4,1fr)", gap:16, padding:"14px 18px", borderRadius:12, background:'rgba(0,0,0,0.02)', border:'1px solid rgba(0,0,0,0.06)', alignItems:"center" }}>
                                     <div style={{ fontWeight:700, fontSize:13, color:'#1f2937' }}>{seg}</div>
-                                    <div style={{ textAlign:"center", fontSize:11, color:'#374151', fontWeight:700 }} ><div>{t('email.anCamps')||"Campaigns"}</div><div>{data.campaigns}</div></div>
-                                    <div style={{ textAlign:"center", fontSize:11, color:'#374151', fontWeight:700 }} ><div>{t('email.colSent')||"Sent"}</div><div>{data.sent.toLocaleString()}</div></div>
-                                    <div style={{ textAlign:"center", fontSize:11, color:Number(openP)>20?C.green:C.yellow, fontWeight:700 }} ><div>{t('email.colOpen')||"Open%"}</div><div>{openP}%</div></div>
-                                    <div style={{ textAlign:"center", fontSize:11, color:Number(clickP)>5?C.green:'#6b7280', fontWeight:700 }} ><div>{t('email.colClick')||"Click%"}</div><div>{clickP}%</div></div>
+                                    <div style={{ textAlign:"center", fontSize:11, color:'#374151', fontWeight:700 }} ><div>{t('email.anCamps', "Campaigns")}</div><div>{data.campaigns}</div></div>
+                                    <div style={{ textAlign:"center", fontSize:11, color:'#374151', fontWeight:700 }} ><div>{t('email.colSent', "Sent")}</div><div>{data.sent.toLocaleString()}</div></div>
+                                    <div style={{ textAlign:"center", fontSize:11, color:Number(openP)>20?C.green:C.yellow, fontWeight:700 }} ><div>{t('email.colOpen', "Open%")}</div><div>{openP}%</div></div>
+                                    <div style={{ textAlign:"center", fontSize:11, color:Number(clickP)>5?C.green:'#6b7280', fontWeight:700 }} ><div>{t('email.colClick', "Click%")}</div><div>{clickP}%</div></div>
                                 </div>
                             );
                         })}
@@ -433,12 +433,12 @@ function EmailChannelBadge({t}) {
     const emailCh=allCh.filter(ch=>['smtp','ses','mailgun','sendgrid','email'].some(e=>(ch.platform||ch.key||'').toLowerCase().includes(e)));
     if(!emailCh.length){
         return (<div style={{ display:'flex', alignItems:'center', gap:8, padding:'8px 12px', borderRadius:10, background:'rgba(234,179,8,0.08)', border:'1px solid rgba(234,179,8,0.2)', fontSize:11, marginBottom:14 }}>
-            <span>⚠️</span><span style={{ color:'#eab308', fontWeight:600 }}>{t('email.noChannels')||'No email channels connected.'}</span>
-            <button onClick={()=>navigate('/integration-hub')} style={{ marginLeft:'auto', padding:'4px 10px', borderRadius:6, border:'none', background:'#4f8ef7', color:'#fff', fontSize:10, fontWeight:700, cursor:'pointer' }}>{t('email.goHub')||'Go to Integration Hub'}</button>
+            <span>⚠️</span><span style={{ color:'#eab308', fontWeight:600 }}>{t('email.noChannels', 'No email channels connected.')}</span>
+            <button onClick={()=>navigate('/integration-hub')} style={{ marginLeft:'auto', padding:'4px 10px', borderRadius:6, border:'none', background:'#4f8ef7', color:'#fff', fontSize:10, fontWeight:700, cursor:'pointer' }}>{t('email.goHub', 'Go to Integration Hub')}</button>
         </div>);
     }
     return (<div style={{ display:'flex', alignItems:'center', gap:6, flexWrap:'wrap', padding:'6px 10px', borderRadius:10, background:'rgba(79,142,247,0.06)', border:'1px solid rgba(79,142,247,0.15)', fontSize:10, marginBottom:14 }}>
-        <span style={{ fontWeight:700, color:C.accent, fontSize:11 }}>🔗 {t('email.connectedChannels')||'Connected'}:</span>
+        <span style={{ fontWeight:700, color:C.accent, fontSize:11 }}>🔗 {t('email.connectedChannels', 'Connected')}:</span>
         {emailCh.map(ch=>(<span key={ch.key||ch.platform} style={{ background:C.accent+'15', color:C.accent, border:'1px solid '+C.accent+'25', borderRadius:6, padding:'1px 7px', fontSize:9, fontWeight:700 }}>{ch.platform||ch.key}</span>))}
     </div>);
 }
@@ -448,9 +448,9 @@ function SecurityLockModal({t,onDismiss}) {
     return (<div style={{ position:'fixed', inset:0, zIndex:9999, background:'rgba(0,0,0,0.7)', backdropFilter:'blur(6px)', display:'flex', alignItems:'center', justifyContent:'center' }}>
         <div style={{ background:'#1a0a0a', border:'1px solid rgba(239,68,68,0.5)', borderRadius:20, padding:32, maxWidth:380, textAlign:'center' }}>
             <div style={{ fontSize:48, marginBottom:12 }}>🛡️</div>
-            <div style={{ fontWeight:900, fontSize:18, color:'#ef4444', marginBottom:8 }}>{t('email.secLockTitle')||'Security Alert'}</div>
-            <div style={{ fontSize:13, color:'#9ca3af', lineHeight:1.7, marginBottom:20 }}>{t('email.secLockDesc')||'Abnormal access detected.'}</div>
-            <button onClick={onDismiss} style={{ padding:'9px 24px', borderRadius:10, border:'none', background:'#ef4444', color:'#fff', fontWeight:800, fontSize:13, cursor:'pointer' }}>{t('email.dismiss')||'Confirm'}</button>
+            <div style={{ fontWeight:900, fontSize:18, color:'#ef4444', marginBottom:8 }}>{t('email.secLockTitle', 'Security Alert')}</div>
+            <div style={{ fontSize:13, color:'#9ca3af', lineHeight:1.7, marginBottom:20 }}>{t('email.secLockDesc', 'Abnormal access detected.')}</div>
+            <button onClick={onDismiss} style={{ padding:'9px 24px', borderRadius:10, border:'none', background:'#ef4444', color:'#fff', fontWeight:800, fontSize:13, cursor:'pointer' }}>{t('email.dismiss', 'Confirm')}</button>
         </div>
     </div>);
 }
@@ -546,12 +546,12 @@ function EmailMarketingContent() {
     const broadcastRefresh=useCallback(()=>{try{bcRef.current?.postMessage({type:'EMAIL_REFRESH',ts:Date.now()});}catch{}if(typeof broadcastUpdate==='function')broadcastUpdate('email',{refreshed:Date.now()});},[broadcastUpdate]);
     const [tab,setTab]=useState("campaigns");
     const TABS=[
-        {id:"campaigns",label:t('email.tabCamp')||"Campaigns",icon:"🚀"},
-        {id:"templates",label:t('email.tabTpl')||"Templates",icon:"📝"},
-        {id:"analytics",label:t('email.tabAnalytics')||"Analytics",icon:"📊"},
-        {id:"creative",label:t('email.tabCreative')||"Creative",icon:"🎨"},
-        {id:"settings",label:t('email.tabSettings')||"Settings",icon:"⚙️"},
-        {id:"guide",label:t('email.tabGuide')||"Guide",icon:"📖"},
+        {id:"campaigns",label:t('email.tabCamp', "Campaigns"),icon:"🚀"},
+        {id:"templates",label:t('email.tabTpl', "Templates"),icon:"📝"},
+        {id:"analytics",label:t('email.tabAnalytics', "Analytics"),icon:"📊"},
+        {id:"creative",label:t('email.tabCreative', "Creative"),icon:"🎨"},
+        {id:"settings",label:t('email.tabSettings', "Settings"),icon:"⚙️"},
+        {id:"guide",label:t('email.tabGuide', "Guide"),icon:"📖"},
     ];
     return (
         <div style={{ padding:24, minHeight:"100%", color:'#1e293b' }}>
@@ -560,15 +560,15 @@ function EmailMarketingContent() {
             <EmailChannelBadge t={t}/>
             <div style={{ padding:'6px 12px', borderRadius:8, background:'rgba(79,142,247,0.04)', border:'1px solid rgba(79,142,247,0.12)', fontSize:10, color:'#4f8ef7', fontWeight:600, display:'flex', alignItems:'center', gap:6, marginBottom:14 }}>
                 <span style={{ width:6, height:6, borderRadius:'50%', background:'#22c55e', animation:'pulse 2s infinite' }}/>
-                {t('email.liveSyncStatus')||'Real-time cross-tab sync active'}
+                {t('email.liveSyncStatus', 'Real-time cross-tab sync active')}
             </div>
             <div style={{ borderRadius:16, background:'rgba(79,142,247,0.06)', border:'1px solid rgba(79,142,247,0.15)', padding:"22px 28px", marginBottom:20 }}>
                 <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
                     <div>
-                        <div style={{ fontSize:24, fontWeight:900, letterSpacing:-0.5, color:'#1f2937' }}>{t('email.title')||"📧 Email Marketing"}</div>
-                        <div style={{ fontSize:13, color:'#4b5563', marginTop:5 }}>{t('email.subTitle')||"Create powerful email campaigns with real-time sync"}</div>
+                        <div style={{ fontSize:24, fontWeight:900, letterSpacing:-0.5, color:'#1f2937' }}>{t('email.title', "📧 Email Marketing")}</div>
+                        <div style={{ fontSize:13, color:'#4b5563', marginTop:5 }}>{t('email.subTitle', "Create powerful email campaigns with real-time sync")}</div>
                     </div>
-                    <button onClick={broadcastRefresh} style={{ padding:'8px 14px', borderRadius:8, border:'1px solid rgba(0,0,0,0.1)', background:'rgba(255,255,255,0.9)', color:'#374151', fontWeight:700, fontSize:11, cursor:'pointer' }}>🔄 {t('email.syncNow')||'Sync Now'}</button>
+                    <button onClick={broadcastRefresh} style={{ padding:'8px 14px', borderRadius:8, border:'1px solid rgba(0,0,0,0.1)', background:'rgba(255,255,255,0.9)', color:'#374151', fontWeight:700, fontSize:11, cursor:'pointer' }}>🔄 {t('email.syncNow', 'Sync Now')}</button>
                 </div>
             </div>
             <div style={{ display:"flex", gap:8, marginBottom:22, flexWrap:"wrap" }}>

@@ -405,11 +405,11 @@ const MMMTab = memo(function MMMTab() {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
             <div style={{ textAlign: 'center', padding: 10, borderRadius: 10, background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)' }}>
               <div style={{ fontSize: 18, fontWeight: 900, color: '#22c55e' }}>{(totalRev / Math.max(totalSpend, 1)).toFixed(2)}x</div>
-              <div style={{ fontSize: 10, color: 'var(--text-3)' }}>{t("attrData.expectedBlendRoas") || "예상 블렌드 ROAS"}</div>
+              <div style={{ fontSize: 10, color: 'var(--text-3)' }}>{t("attrData.expectedBlendRoas", "예상 블렌드 ROAS")}</div>
             </div>
             <div style={{ textAlign: 'center', padding: 10, borderRadius: 10, background: 'rgba(79,142,247,0.08)', border: '1px solid rgba(79,142,247,0.2)' }}>
               <div style={{ fontSize: 16, fontWeight: 900, color: '#4f8ef7' }}>{fmtC(Math.round(totalRev))}</div>
-              <div style={{ fontSize: 10, color: 'var(--text-3)' }}>{t("attrData.expectedRev") || "예상 Revenue"}</div>
+              <div style={{ fontSize: 10, color: 'var(--text-3)' }}>{t("attrData.expectedRev", "예상 Revenue")}</div>
             </div>
           </div>
           {simResult.map(r => {

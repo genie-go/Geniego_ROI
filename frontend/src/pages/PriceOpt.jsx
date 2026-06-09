@@ -829,7 +829,7 @@ function OptimizeTab({ token }) {
                             })}
                         </select>
                     </div>
-                    {[["current_price", t("priceOpt.currentSalePrice") || "Current Price"], ["inventory", t("priceOpt.stockQty") || "Stock Qty"]].map(([k, label]) => (
+                    {[["current_price", t("priceOpt.currentSalePrice", "Current Price")], ["inventory", t("priceOpt.stockQty", "Stock Qty")]].map(([k, label]) => (
                         <div key={k}>
                             <label style={{ fontSize: 11, color: "#7c8fa8", display: "block", marginBottom: 2 }}>{label}</label>
                             <input type="number" value={form[k]} onChange={e => setForm(f => ({ ...f, [k]: e.target.value }))}
@@ -838,7 +838,7 @@ function OptimizeTab({ token }) {
                     ))}
                 </div>
                 <button className="btn" onClick={run} disabled={loading || !form.sku} style={{ background: "#6366f1" }}>
-                    {loading ? "⏳ " + (t("priceOpt.calculating") || "Calculating...") : "🧮 " + (t("priceOpt.calcOptimal") || "Optimize")}
+                    {loading ? "⏳ " + (t("priceOpt.calculating", "Calculating...")) : "🧮 " + (t("priceOpt.calcOptimal", "Optimize"))}
                 </button>
             </div>
 

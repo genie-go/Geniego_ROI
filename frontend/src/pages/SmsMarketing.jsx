@@ -44,7 +44,7 @@ function AuthPanel({t,onSaved}){
     const[form,setForm]=useState({provider:'nhn',app_key:'',secret_key:'',sender_no:''});
     const[loading,setLoading]=useState(false);
     const[result,setResult]=useState(null);
-    const PROVS=[{id:'nhn',name:'NHN Cloud',desc:t('sms.providerNhnDesc')||'Korea SMS gateway',color:C.accent},{id:'aligo',name:'Aligo',desc:t('sms.providerAligoDesc')||'Low-cost Korean SMS',color:C.green},{id:'coolsms',name:'CoolSMS',desc:t('sms.providerCoolDesc')||'Multi-channel SMS',color:C.purple}];
+    const PROVS=[{id:'nhn',name:'NHN Cloud',desc:t('sms.providerNhnDesc', 'Korea SMS gateway'),color:C.accent},{id:'aligo',name:'Aligo',desc:t('sms.providerAligoDesc', 'Low-cost Korean SMS'),color:C.green},{id:'coolsms',name:'CoolSMS',desc:t('sms.providerCoolDesc', 'Multi-channel SMS'),color:C.purple}];
     const save=async()=>{setLoading(true);setResult(null);const d=await apiFetch('/api/sms/settings',{method:'POST',body:JSON.stringify(form)});setResult(d);if(d.ok&&onSaved)onSaved();setLoading(false);};
     const prov=PROVS.find(p=>p.id===form.provider);
     return(
@@ -52,7 +52,7 @@ function AuthPanel({t,onSaved}){
             <Card glow>
                 <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:18 }}>
                     <span style={{ fontSize:22 }}>⚙️</span>
-                    <div style={{ fontWeight:800, fontSize:16, color:'#1f2937' }}>{t('sms.tabSettings')||'SMS Provider Settings'}</div>
+                    <div style={{ fontWeight:800, fontSize:16, color:'#1f2937' }}>{t('sms.tabSettings', 'SMS Provider Settings')}</div>
                 </div>
                 <div style={{ display:'flex', gap:8, flexWrap:'wrap', marginBottom:16 }}>
                     {PROVS.map(p=>(<button key={p.id} onClick={()=>setForm(f=>({...f,provider:p.id}))} style={{ padding:'8px 14px', borderRadius:10, cursor:'pointer', fontWeight:700, fontSize:11, background:form.provider===p.id?p.color:'rgba(0,0,0,0.04)', color:form.provider===p.id?'#fff':'#374151', border:'none' }}>
@@ -60,9 +60,9 @@ function AuthPanel({t,onSaved}){
                     </button>))}
                 </div>
                 <div style={{ padding:'16px 20px', borderRadius:14, background:(prov?.color||C.accent)+'06', border:'1px solid '+(prov?.color||C.accent)+'22' }}>
-                    <div style={{ fontWeight:900, fontSize:12, color:prov?.color||C.accent, marginBottom:12 }}>🔑 {prov?.name} {t('sms.apiKeySettings')||'API Key Settings'}</div>
+                    <div style={{ fontWeight:900, fontSize:12, color:prov?.color||C.accent, marginBottom:12 }}>🔑 {prov?.name} {t('sms.apiKeySettings', 'API Key Settings')}</div>
                     <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(200px,1fr))', gap:10, marginBottom:12 }}>
-                        {[{k:'app_key',l:'App Key / App ID',ph:'...'},{k:'secret_key',l:'Secret Key',ph:'...',secret:true},{k:'sender_no',l:t('sms.senderNumber')||'Sender Number',ph:'01012345678'}].map(f=>(
+                        {[{k:'app_key',l:'App Key / App ID',ph:'...'},{k:'secret_key',l:'Secret Key',ph:'...',secret:true},{k:'sender_no',l:t('sms.senderNumber', 'Sender Number'),ph:'01012345678'}].map(f=>(
                             <div key={f.k}>
                                 <div style={{ fontSize:10, color:'#6b7280', marginBottom:4, fontWeight:600 }}>{f.l}</div>
                                 <input type={f.secret?'password':'text'} placeholder={f.ph} value={form[f.k]} onChange={e=>setForm(p=>({...p,[f.k]:e.target.value}))} style={{ ...INPUT }}/>
@@ -70,10 +70,10 @@ function AuthPanel({t,onSaved}){
                         ))}
                     </div>
                     <button onClick={save} disabled={loading} style={{ ...BTN, background:prov?.color||C.accent }}>
-                        {loading?'⏳ '+(t('sms.connectTesting')||'Testing...'):'💾 '+(t('sms.saveAndTest')||'Save & Test')}
+                        {loading?'⏳ '+(t('sms.connectTesting', 'Testing...')):'💾 '+(t('sms.saveAndTest', 'Save & Test'))}
                     </button>
                     {result&&(<div style={{ marginTop:10, padding:'8px 12px', borderRadius:8, fontSize:12, background:result.ok?'rgba(34,197,94,0.08)':'rgba(239,68,68,0.08)', border:'1px solid '+(result.ok?'#22c55e':'#ef4444')+'33', color:result.ok?'#22c55e':'#ef4444' }}>
-                        {result.ok?'✓ '+(result.message||t('sms.connectSuccess')||'Connected'):'✗ '+(result.message||result.error)}
+                        {result.ok?'✓ '+(result.message||t('sms.connectSuccess', 'Connected')):'✗ '+(result.message||result.error)}
                     </div>)}
                 </div>
             </Card>
@@ -92,29 +92,29 @@ function ComposePanel({t,onSent,checkInput}){
     return(
         <Card glow>
             <div style={{ fontWeight:800, fontSize:15, marginBottom:14, display:'flex', alignItems:'center', gap:8, color:'#1f2937' }}>
-                <span style={{ fontSize:18 }}>✏️</span>{t('sms.composeTitle')||'Compose SMS'}
+                <span style={{ fontSize:18 }}>✏️</span>{t('sms.composeTitle', 'Compose SMS')}
             </div>
             <div style={{ display:'grid', gridTemplateColumns:'200px 1fr', gap:14, alignItems:'start' }}>
                 <div>
-                    <div style={{ fontSize:11, color:'#6b7280', marginBottom:6, fontWeight:600 }}>{t('sms.recipientNumber')||'Recipient'}</div>
+                    <div style={{ fontSize:11, color:'#6b7280', marginBottom:6, fontWeight:600 }}>{t('sms.recipientNumber', 'Recipient')}</div>
                     <input value={form.to} onChange={e=>setForm(p=>({...p,to:e.target.value}))} placeholder="01012345678" style={{ ...INPUT }}/>
                     <div style={{ marginTop:14, padding:10, borderRadius:10, background:'rgba(0,0,0,0.02)', fontSize:11, lineHeight:2 }}>
-                        <div style={{ display:'flex', justifyContent:'space-between', color:'#6b7280' }} ><span>{t('sms.type')||'Type'}</span><Tag label={msgType} color={msgType==='LMS'?C.purple:C.accent}/></div>
-                        <div style={{ display:'flex', justifyContent:'space-between', color:C.yellow, fontWeight:700 }} ><span>{t('sms.charCount')||'Characters'}</span><span>{form.message.length}{t('sms.charUnit')||'자'}</span></div>
-                        <div style={{ display:'flex', justifyContent:'space-between', color:'#374151' }} ><span>{t('sms.capacity')||'Size'}</span><span>{bytes}bytes</span></div>
+                        <div style={{ display:'flex', justifyContent:'space-between', color:'#6b7280' }} ><span>{t('sms.type', 'Type')}</span><Tag label={msgType} color={msgType==='LMS'?C.purple:C.accent}/></div>
+                        <div style={{ display:'flex', justifyContent:'space-between', color:C.yellow, fontWeight:700 }} ><span>{t('sms.charCount', 'Characters')}</span><span>{form.message.length}{t('sms.charUnit', '자')}</span></div>
+                        <div style={{ display:'flex', justifyContent:'space-between', color:'#374151' }} ><span>{t('sms.capacity', 'Size')}</span><span>{bytes}bytes</span></div>
                     </div>
                 </div>
                 <div>
-                    <div style={{ fontSize:11, color:'#6b7280', marginBottom:6, fontWeight:600 }}>{t('sms.messageContent')||'Message'}</div>
-                    <textarea value={form.message} onChange={e=>setForm(p=>({...p,message:e.target.value}))} placeholder={t('sms.messagePlaceholder')||'Enter message...'} rows={6} style={{ ...INPUT, resize:'vertical', lineHeight:1.6 }}/>
+                    <div style={{ fontSize:11, color:'#6b7280', marginBottom:6, fontWeight:600 }}>{t('sms.messageContent', 'Message')}</div>
+                    <textarea value={form.message} onChange={e=>setForm(p=>({...p,message:e.target.value}))} placeholder={t('sms.messagePlaceholder', 'Enter message...')} rows={6} style={{ ...INPUT, resize:'vertical', lineHeight:1.6 }}/>
                     <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginTop:8 }}>
-                        <div style={{ fontSize:10, color:'#6b7280' }}>{msgType==='SMS'?(t('sms.smsCostInfo')||'SMS: ~20 KRW/msg'):(t('sms.lmsCostInfo')||'LMS: ~50 KRW/msg')}</div>
+                        <div style={{ fontSize:10, color:'#6b7280' }}>{msgType==='SMS'?(t('sms.smsCostInfo', 'SMS: ~20 KRW/msg')):(t('sms.lmsCostInfo', 'LMS: ~50 KRW/msg'))}</div>
                         <button onClick={send} disabled={loading||!form.to||!form.message} style={{ ...BTN, opacity:(!form.to||!form.message)?0.5:1 }}>
-                            {loading?'⏳':'📤 '+(t('sms.send')||'Send')}
+                            {loading?'⏳':'📤 '+(t('sms.send', 'Send'))}
                         </button>
                     </div>
                     {result&&(<div style={{ marginTop:8, padding:8, borderRadius:8, fontSize:12, color:result.ok?C.green:C.red }}>
-                        {result.ok?'✓ '+(t('sms.sendComplete')||'Sent'):'✗ '+(result.error||t('sms.sendFailed')||'Failed')}
+                        {result.ok?'✓ '+(t('sms.sendComplete', 'Sent')):'✗ '+(result.error||t('sms.sendFailed', 'Failed'))}
                     </div>)}
                 </div>
             </div>
@@ -133,23 +133,23 @@ function BroadcastPanel({t,checkInput}){
     return(
         <Card glow>
             <div style={{ fontWeight:800, fontSize:15, marginBottom:14, display:'flex', alignItems:'center', gap:8, color:'#1f2937' }}>
-                <span style={{ fontSize:18 }}>📡</span>{t('sms.broadcastTitle')||'Bulk Broadcast'}
+                <span style={{ fontSize:18 }}>📡</span>{t('sms.broadcastTitle', 'Bulk Broadcast')}
             </div>
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14 }}>
                 <div>
-                    <div style={{ fontSize:11, color:'#6b7280', marginBottom:6, fontWeight:600 }}>{t('sms.numberList')||'Number List'}</div>
+                    <div style={{ fontSize:11, color:'#6b7280', marginBottom:6, fontWeight:600 }}>{t('sms.numberList', 'Number List')}</div>
                     <textarea value={numbers} onChange={e=>setNumbers(e.target.value)} placeholder={'01012345678\n01098765432\n...'} rows={10} style={{ ...INPUT, resize:'vertical', fontFamily:'monospace', fontSize:11 }}/>
-                    <div style={{ fontSize:10, color:'#6b7280', marginTop:4 }}>{count} {t('sms.numbersCount')||'numbers'}</div>
+                    <div style={{ fontSize:10, color:'#6b7280', marginTop:4 }}>{count} {t('sms.numbersCount', 'numbers')}</div>
                 </div>
                 <div>
-                    <div style={{ fontSize:11, color:'#6b7280', marginBottom:6, fontWeight:600 }}>{t('sms.messageContent')||'Message'}</div>
-                    <textarea value={message} onChange={e=>setMessage(e.target.value)} placeholder={t('sms.broadcastMsgPlaceholder')||'Enter broadcast message...'} rows={6} style={{ ...INPUT, resize:'vertical' }}/>
-                    <div style={{ fontSize:10, color:'#6b7280', marginTop:4 }}>{message.length}{t('sms.charUnit')||'자'} · {message.length>90?'LMS':'SMS'}</div>
+                    <div style={{ fontSize:11, color:'#6b7280', marginBottom:6, fontWeight:600 }}>{t('sms.messageContent', 'Message')}</div>
+                    <textarea value={message} onChange={e=>setMessage(e.target.value)} placeholder={t('sms.broadcastMsgPlaceholder', 'Enter broadcast message...')} rows={6} style={{ ...INPUT, resize:'vertical' }}/>
+                    <div style={{ fontSize:10, color:'#6b7280', marginTop:4 }}>{message.length}{t('sms.charUnit', '자')} · {message.length>90?'LMS':'SMS'}</div>
                     <button onClick={send} disabled={loading||!numbers.trim()||!message.trim()} style={{ ...BTN, marginTop:12, width:'100%', opacity:(!numbers.trim()||!message.trim())?0.5:1 }}>
-                        {loading?'⏳ '+(t('sms.sending')||'Sending...'):'📡 '+(t('sms.startBroadcast')||'Start Broadcast')}
+                        {loading?'⏳ '+(t('sms.sending', 'Sending...')):'📡 '+(t('sms.startBroadcast', 'Start Broadcast'))}
                     </button>
                     {result&&(<div style={{ marginTop:10, padding:10, borderRadius:8, fontSize:12, background:'rgba(34,197,94,0.08)', border:'1px solid rgba(34,197,94,0.2)', color:C.green, lineHeight:1.7 }}>
-                        ✓ {t('sms.done')||'Done'} — {t('sms.success')||'Success'}: {result.sent||0} · {t('sms.failed')||'Failed'}: {result.failed||0}
+                        ✓ {t('sms.done', 'Done')} — {t('sms.success', 'Success')}: {result.sent||0} · {t('sms.failed', 'Failed')}: {result.failed||0}
                     </div>)}
                 </div>
             </div>
@@ -178,31 +178,31 @@ function TemplatesPanel({t,checkInput}){
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:10 }}>
                 <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
                     {['all',...CATS].map(c=>(<button key={c} onClick={()=>setFilterCat(c)} style={{ padding:'5px 12px', borderRadius:8, border:'1px solid '+(filterCat===c?(catColors[c]||C.accent):'rgba(0,0,0,0.08)'), background:filterCat===c?(catColors[c]||C.accent)+'15':'transparent', color:filterCat===c?(catColors[c]||C.accent):'#6b7280', fontSize:11, fontWeight:700, cursor:'pointer' }}>
-                        {c==='all'?(t('sms.tplAll')||'All'):t('sms.tplCat_'+c)||c}
+                        {c==='all'?(t('sms.tplAll', 'All')):t('sms.tplCat_'+c)||c}
                     </button>))}
                 </div>
                 <div style={{ display:'flex', gap:8 }}>
-                    <input value={search} onChange={e=>setSearch(e.target.value)} placeholder={t('sms.tplSearch')||'Search...'} style={{ ...INPUT, width:180 }}/>
-                    <button onClick={()=>{setShowForm(!showForm);setEditId(null);setForm({name:'',category:'promotion',body:'',variables:''}) }} style={{ ...BTN, fontSize:11, padding:'6px 14px' }}>+ {t('sms.tplNew')||'New'}</button>
+                    <input value={search} onChange={e=>setSearch(e.target.value)} placeholder={t('sms.tplSearch', 'Search...')} style={{ ...INPUT, width:180 }}/>
+                    <button onClick={()=>{setShowForm(!showForm);setEditId(null);setForm({name:'',category:'promotion',body:'',variables:''}) }} style={{ ...BTN, fontSize:11, padding:'6px 14px' }}>+ {t('sms.tplNew', 'New')}</button>
                 </div>
             </div>
             {showForm&&(
                 <Card glow style={{ border:'1px solid '+C.accent+'44' }}>
-                    <div style={{ fontWeight:900, fontSize:13, marginBottom:12, color:C.accent }}>{editId?'✏️ '+(t('sms.tplEdit')||'Edit'):'➕ '+(t('sms.tplCreate')||'Create')}</div>
+                    <div style={{ fontWeight:900, fontSize:13, marginBottom:12, color:C.accent }}>{editId?'✏️ '+(t('sms.tplEdit', 'Edit')):'➕ '+(t('sms.tplCreate', 'Create'))}</div>
                     <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
-                        <div><div style={{ fontSize:10, color:'#6b7280', marginBottom:4, fontWeight:600 }}>{t('sms.tplName')||'Name'}</div><input value={form.name} onChange={e=>setForm(p=>({...p,name:e.target.value}))} style={INPUT}/></div>
-                        <div><div style={{ fontSize:10, color:'#6b7280', marginBottom:4, fontWeight:600 }}>{t('sms.tplCategory')||'Category'}</div><select value={form.category} onChange={e=>setForm(p=>({...p,category:e.target.value}))} style={INPUT}>{CATS.map(c=><option key={c} value={c}>{t('sms.tplCat_'+c)||c}</option>)}</select></div>
+                        <div><div style={{ fontSize:10, color:'#6b7280', marginBottom:4, fontWeight:600 }}>{t('sms.tplName', 'Name')}</div><input value={form.name} onChange={e=>setForm(p=>({...p,name:e.target.value}))} style={INPUT}/></div>
+                        <div><div style={{ fontSize:10, color:'#6b7280', marginBottom:4, fontWeight:600 }}>{t('sms.tplCategory', 'Category')}</div><select value={form.category} onChange={e=>setForm(p=>({...p,category:e.target.value}))} style={INPUT}>{CATS.map(c=><option key={c} value={c}>{t('sms.tplCat_'+c)||c}</option>)}</select></div>
                     </div>
-                    <div style={{ marginTop:12 }}><div style={{ fontSize:10, color:'#6b7280', marginBottom:4, fontWeight:600 }}>{t('sms.tplBody')||'Body'}</div><textarea value={form.body} onChange={e=>setForm(p=>({...p,body:e.target.value}))} rows={4} style={{ ...INPUT, resize:'vertical' }}/></div>
-                    <div style={{ marginTop:10 }}><div style={{ fontSize:10, color:'#6b7280', marginBottom:4, fontWeight:600 }}>{t('sms.tplVars')||'Variables'}</div><input value={form.variables} onChange={e=>setForm(p=>({...p,variables:e.target.value}))} placeholder="#{name}, #{orderNo}" style={INPUT}/></div>
+                    <div style={{ marginTop:12 }}><div style={{ fontSize:10, color:'#6b7280', marginBottom:4, fontWeight:600 }}>{t('sms.tplBody', 'Body')}</div><textarea value={form.body} onChange={e=>setForm(p=>({...p,body:e.target.value}))} rows={4} style={{ ...INPUT, resize:'vertical' }}/></div>
+                    <div style={{ marginTop:10 }}><div style={{ fontSize:10, color:'#6b7280', marginBottom:4, fontWeight:600 }}>{t('sms.tplVars', 'Variables')}</div><input value={form.variables} onChange={e=>setForm(p=>({...p,variables:e.target.value}))} placeholder="#{name}, #{orderNo}" style={INPUT}/></div>
                     <div style={{ display:'flex', gap:8, marginTop:14, justifyContent:'flex-end' }}>
-                        <button onClick={()=>setShowForm(false)} style={{ padding:'7px 16px', borderRadius:8, border:'1px solid rgba(0,0,0,0.1)', background:'transparent', color:'#374151', fontSize:12, cursor:'pointer' }}>{t('sms.cancel')||'Cancel'}</button>
-                        <button onClick={save} disabled={!form.name||!form.body} style={{ ...BTN, fontSize:12, padding:'7px 16px' }}>💾 {t('sms.save')||'Save'}</button>
+                        <button onClick={()=>setShowForm(false)} style={{ padding:'7px 16px', borderRadius:8, border:'1px solid rgba(0,0,0,0.1)', background:'transparent', color:'#374151', fontSize:12, cursor:'pointer' }}>{t('sms.cancel', 'Cancel')}</button>
+                        <button onClick={save} disabled={!form.name||!form.body} style={{ ...BTN, fontSize:12, padding:'7px 16px' }}>💾 {t('sms.save', 'Save')}</button>
                     </div>
                 </Card>
             )}
             {loading?(<div style={{ textAlign:'center', padding:40, color:'#6b7280' }}>⏳</div>):filtered.length===0?(
-                <Card style={{ textAlign:'center', padding:40, fontSize:13, marginBottom:10, color:'#6b7280' }} ><div>📝</div><div>{t('sms.tplEmpty')||'No templates'}</div></Card>
+                <Card style={{ textAlign:'center', padding:40, fontSize:13, marginBottom:10, color:'#6b7280' }} ><div>📝</div><div>{t('sms.tplEmpty', 'No templates')}</div></Card>
             ):(
                 <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(300px,1fr))', gap:12 }}>
                     {filtered.map(tp=>(
@@ -213,8 +213,8 @@ function TemplatesPanel({t,checkInput}){
                             </div>
                             <div style={{ fontSize:12, color:'#4b5563', lineHeight:1.6, marginBottom:10, maxHeight:60, overflow:'hidden' }}>{tp.body}</div>
                             <div style={{ display:'flex', gap:6, justifyContent:'flex-end' }}>
-                                <button onClick={()=>{setForm({name:tp.name,category:tp.category,body:tp.body,variables:(tp.variables||[]).join(', ')});setEditId(tp.id);setShowForm(true); }} style={{ padding:'4px 10px', borderRadius:6, border:'1px solid '+C.accent+'44', background:'transparent', color:C.accent, fontSize:10, fontWeight:700, cursor:'pointer' }}>✏️ {t('sms.edit')||'Edit'}</button>
-                                <button onClick={()=>del(tp.id)} style={{ padding:'4px 10px', borderRadius:6, border:'1px solid '+C.red+'44', background:'transparent', color:C.red, fontSize:10, fontWeight:700, cursor:'pointer' }}>🗑️ {t('sms.delete')||'Delete'}</button>
+                                <button onClick={()=>{setForm({name:tp.name,category:tp.category,body:tp.body,variables:(tp.variables||[]).join(', ')});setEditId(tp.id);setShowForm(true); }} style={{ padding:'4px 10px', borderRadius:6, border:'1px solid '+C.accent+'44', background:'transparent', color:C.accent, fontSize:10, fontWeight:700, cursor:'pointer' }}>✏️ {t('sms.edit', 'Edit')}</button>
+                                <button onClick={()=>del(tp.id)} style={{ padding:'4px 10px', borderRadius:6, border:'1px solid '+C.red+'44', background:'transparent', color:C.red, fontSize:10, fontWeight:700, cursor:'pointer' }}>🗑️ {t('sms.delete', 'Delete')}</button>
                             </div>
                         </Card>
                     ))}
@@ -240,29 +240,29 @@ function CampaignsPanel({t}){
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:10 }}>
                 <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
                     {['all',...STATUSES].map(s=>(<button key={s} onClick={()=>setFilterSt(s)} style={{ padding:'5px 12px', borderRadius:8, border:'1px solid '+(filterSt===s?(stColors[s]||C.accent):'rgba(0,0,0,0.08)'), background:filterSt===s?(stColors[s]||C.accent)+'15':'transparent', color:filterSt===s?(stColors[s]||C.accent):'#6b7280', fontSize:11, fontWeight:700, cursor:'pointer' }}>
-                        {s==='all'?(t('sms.campAll')||'All'):t('sms.campStatus_'+s)||s}
+                        {s==='all'?(t('sms.campAll', 'All')):t('sms.campStatus_'+s)||s}
                     </button>))}
                 </div>
-                <button onClick={()=>setShowForm(!showForm)} style={{ ...BTN, fontSize:11, padding:'6px 14px' }}>+ {t('sms.campNew')||'New Campaign'}</button>
+                <button onClick={()=>setShowForm(!showForm)} style={{ ...BTN, fontSize:11, padding:'6px 14px' }}>+ {t('sms.campNew', 'New Campaign')}</button>
             </div>
             {showForm&&(
                 <Card glow style={{ border:'1px solid '+C.accent+'44' }}>
-                    <div style={{ fontWeight:900, fontSize:13, marginBottom:12, color:C.accent }}>🚀 {t('sms.campCreate')||'Create Campaign'}</div>
+                    <div style={{ fontWeight:900, fontSize:13, marginBottom:12, color:C.accent }}>🚀 {t('sms.campCreate', 'Create Campaign')}</div>
                     <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
-                        <div><div style={{ fontSize:10, color:'#6b7280', marginBottom:4, fontWeight:600, ...INPUT }} >{t('sms.campName')||'Name'}</div><input value={form.name} onChange={e=>setForm(p=>({...p,name:e.target.value}))}/></div>
-                        <div><div style={{ fontSize:10, color:'#6b7280', marginBottom:4, fontWeight:600, ...INPUT }} >{t('sms.campTemplate')||'Template'}</div><select value={form.template_id} onChange={e=>setForm(p=>({...p,template_id:e.target.value}))}><option value="">{t('sms.campSelectTpl')||'Select'}</option>{tpls.map(tp=><option key={tp.id} value={tp.id}>{tp.name}</option>)}</select></div>
-                        <div><div style={{ fontSize:10, color:'#6b7280', marginBottom:4, fontWeight:600, ...INPUT }} >{t('sms.campSegment')||'Segment'}</div><input value={form.segment_id} onChange={e=>setForm(p=>({...p,segment_id:e.target.value}))}/></div>
-                        <div><div style={{ fontSize:10, color:'#6b7280', marginBottom:4, fontWeight:600, ...INPUT }} >{t('sms.campSchedule')||'Schedule'}</div><input type="datetime-local" value={form.scheduled_at} onChange={e=>setForm(p=>({...p,scheduled_at:e.target.value}))}/></div>
+                        <div><div style={{ fontSize:10, color:'#6b7280', marginBottom:4, fontWeight:600, ...INPUT }} >{t('sms.campName', 'Name')}</div><input value={form.name} onChange={e=>setForm(p=>({...p,name:e.target.value}))}/></div>
+                        <div><div style={{ fontSize:10, color:'#6b7280', marginBottom:4, fontWeight:600, ...INPUT }} >{t('sms.campTemplate', 'Template')}</div><select value={form.template_id} onChange={e=>setForm(p=>({...p,template_id:e.target.value}))}><option value="">{t('sms.campSelectTpl', 'Select')}</option>{tpls.map(tp=><option key={tp.id} value={tp.id}>{tp.name}</option>)}</select></div>
+                        <div><div style={{ fontSize:10, color:'#6b7280', marginBottom:4, fontWeight:600, ...INPUT }} >{t('sms.campSegment', 'Segment')}</div><input value={form.segment_id} onChange={e=>setForm(p=>({...p,segment_id:e.target.value}))}/></div>
+                        <div><div style={{ fontSize:10, color:'#6b7280', marginBottom:4, fontWeight:600, ...INPUT }} >{t('sms.campSchedule', 'Schedule')}</div><input type="datetime-local" value={form.scheduled_at} onChange={e=>setForm(p=>({...p,scheduled_at:e.target.value}))}/></div>
                     </div>
-                    <div style={{ marginTop:12, fontSize:10, color:'#6b7280', marginBottom:4, fontWeight:600, ...INPUT, resize:'vertical' }} ><div>{t('sms.campMessage')||'Message'}</div><textarea value={form.message} onChange={e=>setForm(p=>({...p,message:e.target.value}))} rows={3}/></div>
+                    <div style={{ marginTop:12, fontSize:10, color:'#6b7280', marginBottom:4, fontWeight:600, ...INPUT, resize:'vertical' }} ><div>{t('sms.campMessage', 'Message')}</div><textarea value={form.message} onChange={e=>setForm(p=>({...p,message:e.target.value}))} rows={3}/></div>
                     <div style={{ display:'flex', gap:8, marginTop:14, justifyContent:'flex-end' }}>
-                        <button onClick={()=>setShowForm(false)} style={{ padding:'7px 16px', borderRadius:8, border:'1px solid rgba(0,0,0,0.1)', background:'transparent', color:'#374151', fontSize:12, cursor:'pointer' }}>{t('sms.cancel')||'Cancel'}</button>
-                        <button onClick={create} disabled={!form.name} style={{ ...BTN, fontSize:12, padding:'7px 16px' }}>🚀 {t('sms.campCreateBtn')||'Create'}</button>
+                        <button onClick={()=>setShowForm(false)} style={{ padding:'7px 16px', borderRadius:8, border:'1px solid rgba(0,0,0,0.1)', background:'transparent', color:'#374151', fontSize:12, cursor:'pointer' }}>{t('sms.cancel', 'Cancel')}</button>
+                        <button onClick={create} disabled={!form.name} style={{ ...BTN, fontSize:12, padding:'7px 16px' }}>🚀 {t('sms.campCreateBtn', 'Create')}</button>
                     </div>
                 </Card>
             )}
             {loading?(<div style={{ textAlign:'center', padding:40, color:'#6b7280' }}>⏳</div>):filtered.length===0?(
-                <Card style={{ textAlign:'center', padding:40, fontSize:13, marginBottom:10, color:'#6b7280' }} ><div>🚀</div><div>{t('sms.campEmpty')||'No campaigns'}</div></Card>
+                <Card style={{ textAlign:'center', padding:40, fontSize:13, marginBottom:10, color:'#6b7280' }} ><div>🚀</div><div>{t('sms.campEmpty', 'No campaigns')}</div></Card>
             ):(
                 <div style={{ display:'grid', gap:10 }}>
                     {filtered.map(cp=>(
@@ -282,11 +282,11 @@ function CampaignsPanel({t}){
                             </div>
                             <div style={{ display:'flex', gap:6 }}>
                                 {cp.status==='draft'&&(<>
-                                    <button onClick={()=>action(cp.id,'schedule')} style={{ padding:'5px 10px', borderRadius:6, border:'1px solid '+C.accent+'44', background:'transparent', color:C.accent, fontSize:10, fontWeight:700, cursor:'pointer' }}>📅 {t('sms.campScheduleBtn')||'Schedule'}</button>
-                                    <button onClick={()=>action(cp.id,'send')} style={{ padding:'5px 10px', borderRadius:6, border:'none', background:C.green, color:'#fff', fontSize:10, fontWeight:700, cursor:'pointer' }}>📤 {t('sms.campSendNow')||'Send Now'}</button>
+                                    <button onClick={()=>action(cp.id,'schedule')} style={{ padding:'5px 10px', borderRadius:6, border:'1px solid '+C.accent+'44', background:'transparent', color:C.accent, fontSize:10, fontWeight:700, cursor:'pointer' }}>📅 {t('sms.campScheduleBtn', 'Schedule')}</button>
+                                    <button onClick={()=>action(cp.id,'send')} style={{ padding:'5px 10px', borderRadius:6, border:'none', background:C.green, color:'#fff', fontSize:10, fontWeight:700, cursor:'pointer' }}>📤 {t('sms.campSendNow', 'Send Now')}</button>
                                 </>)}
-                                {cp.status==='scheduled'&&(<button onClick={()=>action(cp.id,'pause')} style={{ padding:'5px 10px', borderRadius:6, border:'1px solid '+C.purple+'44', background:'transparent', color:C.purple, fontSize:10, fontWeight:700, cursor:'pointer' }}>⏸️ {t('sms.campPause')||'Pause'}</button>)}
-                                {cp.status==='paused'&&(<button onClick={()=>action(cp.id,'resume')} style={{ padding:'5px 10px', borderRadius:6, border:'1px solid '+C.accent+'44', background:'transparent', color:C.accent, fontSize:10, fontWeight:700, cursor:'pointer' }}>▶️ {t('sms.campResume')||'Resume'}</button>)}
+                                {cp.status==='scheduled'&&(<button onClick={()=>action(cp.id,'pause')} style={{ padding:'5px 10px', borderRadius:6, border:'1px solid '+C.purple+'44', background:'transparent', color:C.purple, fontSize:10, fontWeight:700, cursor:'pointer' }}>⏸️ {t('sms.campPause', 'Pause')}</button>)}
+                                {cp.status==='paused'&&(<button onClick={()=>action(cp.id,'resume')} style={{ padding:'5px 10px', borderRadius:6, border:'1px solid '+C.accent+'44', background:'transparent', color:C.accent, fontSize:10, fontWeight:700, cursor:'pointer' }}>▶️ {t('sms.campResume', 'Resume')}</button>)}
                             </div>
                         </Card>
                     ))}
@@ -299,7 +299,7 @@ function CampaignsPanel({t}){
 /* CSV Export */
 function downloadSmsCsv(messages,t){
     const esc=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
-    const h=[t('sms.type')||'Type',t('sms.recipientNumber')||'Recipient',t('sms.content')||'Content',t('sms.status')||'Status',t('sms.sendTime')||'Time'];
+    const h=[t('sms.type', 'Type'),t('sms.recipientNumber', 'Recipient'),t('sms.content', 'Content'),t('sms.status', 'Status'),t('sms.sendTime', 'Time')];
     const rows=messages.map(m=>[m.msg_type||'SMS',m.recipient,(m.body||'').slice(0,200),m.status,(m.sent_at||'').slice(0,16)]);
     const csv=[h.map(esc).join(','),...rows.map(r=>r.map(esc).join(','))].join('\n');
     const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8;'});
@@ -390,14 +390,14 @@ function SmsMarketingInner(){
     const stats=settings?.stats||{sent:0,delivered:0,failed:0};
 
     const TABS=useMemo(()=>[
-        {id:'compose',label:'✏️ '+(t('sms.tabCompose')||'Compose')},
-        {id:'broadcast',label:'📡 '+(t('sms.tabBroadcast')||'Broadcast')},
-        {id:'templates',label:'📋 '+(t('sms.tabTemplates')||'Templates')},
-        {id:'campaigns',label:'🚀 '+(t('sms.tabCampaigns')||'Campaigns')},
-        {id:'history',label:'📜 '+(t('sms.tabHistory')||'History')},
-        {id:'stats',label:'📊 '+(t('sms.tabStats')||'Statistics')},
-        {id:'creative',label:'🎨 '+(t('sms.tabCreative')||'Creative')},
-        {id:'settings',label:'⚙️ '+(t('sms.tabSettings')||'Settings')},
+        {id:'compose',label:'✏️ '+(t('sms.tabCompose', 'Compose'))},
+        {id:'broadcast',label:'📡 '+(t('sms.tabBroadcast', 'Broadcast'))},
+        {id:'templates',label:'📋 '+(t('sms.tabTemplates', 'Templates'))},
+        {id:'campaigns',label:'🚀 '+(t('sms.tabCampaigns', 'Campaigns'))},
+        {id:'history',label:'📜 '+(t('sms.tabHistory', 'History'))},
+        {id:'stats',label:'📊 '+(t('sms.tabStats', 'Statistics'))},
+        {id:'creative',label:'🎨 '+(t('sms.tabCreative', 'Creative'))},
+        {id:'settings',label:'⚙️ '+(t('sms.tabSettings', 'Settings'))},
         {id:'guide',label:'📖 '+((SMS_GUIDE[lang]||SMS_GUIDE.en).tabGuide)},
     ],[t,lang]);
 
@@ -407,9 +407,9 @@ function SmsMarketingInner(){
                 <div style={{ position:'fixed', inset:0, zIndex:9999, background:'rgba(0,0,0,0.7)', backdropFilter:'blur(6px)', display:'flex', alignItems:'center', justifyContent:'center' }}>
                     <div style={{ background:'#fff', border:'2px solid '+C.red, borderRadius:20, padding:32, maxWidth:380, textAlign:'center', boxShadow:'0 24px 64px rgba(239,68,68,0.2)' }}>
                         <div style={{ fontSize:48, marginBottom:12 }}>🛡️</div>
-                        <div style={{ fontWeight:900, fontSize:18, color:C.red, marginBottom:8 }}>{t('sms.secLockTitle')||'Security Alert'}</div>
-                        <div style={{ fontSize:13, color:'#6b7280', lineHeight:1.7, marginBottom:20 }}>{t('sms.secLockDesc')||'Abnormal access detected'}</div>
-                        <button onClick={()=>setSecLocked(false)} style={{ ...BTN, background:C.red }}>{t('sms.dismiss')||'Dismiss'}</button>
+                        <div style={{ fontWeight:900, fontSize:18, color:C.red, marginBottom:8 }}>{t('sms.secLockTitle', 'Security Alert')}</div>
+                        <div style={{ fontSize:13, color:'#6b7280', lineHeight:1.7, marginBottom:20 }}>{t('sms.secLockDesc', 'Abnormal access detected')}</div>
+                        <button onClick={()=>setSecLocked(false)} style={{ ...BTN, background:C.red }}>{t('sms.dismiss', 'Dismiss')}</button>
                     </div>
                 </div>
             )}
@@ -417,30 +417,30 @@ function SmsMarketingInner(){
             {/* Warning + Sync Bar */}
             {ihubChannels.length===0&&(
                 <div style={{ margin:'0 0 8px', padding:'10px 16px', borderRadius:10, background:'rgba(234,179,8,0.08)', border:'1px solid rgba(234,179,8,0.3)', display:'flex', justifyContent:'space-between', alignItems:'center', fontSize:12 }}>
-                    <span style={{ color:'#92400e' }}>⚠️ {t('sms.noChannels')||'No SMS channels connected'}</span>
-                    <button onClick={()=>navigate('/integration-hub')} style={{ padding:'5px 14px', borderRadius:8, border:'none', background:C.accent, color:'#fff', fontWeight:700, fontSize:11, cursor:'pointer' }}>{t('sms.goHub')||'Go to Hub'}</button>
+                    <span style={{ color:'#92400e' }}>⚠️ {t('sms.noChannels', 'No SMS channels connected')}</span>
+                    <button onClick={()=>navigate('/integration-hub')} style={{ padding:'5px 14px', borderRadius:8, border:'none', background:C.accent, color:'#fff', fontWeight:700, fontSize:11, cursor:'pointer' }}>{t('sms.goHub', 'Go to Hub')}</button>
                 </div>
             )}
             <div style={{ padding:'6px 12px', borderRadius:8, background:'rgba(79,142,247,0.04)', border:'1px solid rgba(79,142,247,0.12)', fontSize:10, color:C.accent, fontWeight:600, display:'flex', alignItems:'center', gap:6, marginBottom:8 }}>
                 <span style={{ width:6, height:6, borderRadius:'50%', background:C.green }}/>
-                {t('sms.liveSyncStatus')||'Real-time sync active'}
-                <button onClick={loadData} style={{ marginLeft:'auto', padding:'3px 10px', borderRadius:6, border:'1px solid '+C.accent+'33', background:'transparent', color:C.accent, fontSize:10, fontWeight:700, cursor:'pointer' }}>{t('sms.syncNow')||'Sync Now'}</button>
+                {t('sms.liveSyncStatus', 'Real-time sync active')}
+                <button onClick={loadData} style={{ marginLeft:'auto', padding:'3px 10px', borderRadius:6, border:'1px solid '+C.accent+'33', background:'transparent', color:C.accent, fontSize:10, fontWeight:700, cursor:'pointer' }}>{t('sms.syncNow', 'Sync Now')}</button>
             </div>
 
             {/* Hero */}
             <div style={{ borderRadius:16, background:'rgba(255,255,255,0.95)', border:'1px solid rgba(0,0,0,0.08)', padding:'22px 28px', marginBottom:12 }}>
                 <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', flexWrap:'wrap', gap:16 }}>
                     <div>
-                        <div style={{ fontSize:24, fontWeight:900, color:'#1f2937' }}>📱 {t('sms.heroTitle')||'SMS Marketing'}</div>
-                        <div style={{ fontSize:13, color:'#6b7280', marginTop:4 }}>{t('sms.heroDesc')||'Compose · Broadcast · Templates · Campaigns'}</div>
+                        <div style={{ fontSize:24, fontWeight:900, color:'#1f2937' }}>📱 {t('sms.heroTitle', 'SMS Marketing')}</div>
+                        <div style={{ fontSize:13, color:'#6b7280', marginTop:4 }}>{t('sms.heroDesc', 'Compose · Broadcast · Templates · Campaigns')}</div>
                         <div style={{ display:'flex', gap:8, marginTop:10, flexWrap:'wrap' }}>
-                            <Tag label={(t('sms.sent')||'Sent')+' '+(stats.sent||0).toLocaleString()} color={C.accent}/>
-                            {ihubChannels.length>0&&<Tag label={'🔗 '+ihubChannels.length+' '+(t('sms.ihubLinked')||'connected')} color={C.green}/>}
+                            <Tag label={(t('sms.sent', 'Sent'))+' '+(stats.sent||0).toLocaleString()} color={C.accent}/>
+                            {ihubChannels.length>0&&<Tag label={'🔗 '+ihubChannels.length+' '+(t('sms.ihubLinked', 'connected'))} color={C.green}/>}
                             <Tag label="🛡️ Security Active" color={C.cyan}/>
                         </div>
                     </div>
                     <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:10 }}>
-                        {[{l:t('sms.kpiSent')||'Sent',v:stats.sent||0,c:C.accent},{l:t('sms.kpiSuccess')||'Delivered',v:stats.delivered||0,c:C.green},{l:t('sms.kpiFailed')||'Failed',v:stats.failed||0,c:C.red}].map(k=>(
+                        {[{l:t('sms.kpiSent', 'Sent'),v:stats.sent||0,c:C.accent},{l:t('sms.kpiSuccess', 'Delivered'),v:stats.delivered||0,c:C.green},{l:t('sms.kpiFailed', 'Failed'),v:stats.failed||0,c:C.red}].map(k=>(
                             <div key={k.l} style={{ padding:'8px 14px', borderRadius:10, background:k.c+'10', border:'1px solid '+k.c+'22', textAlign:'center' }}>
                                 <div style={{ fontSize:18, fontWeight:900, color:k.c }}>{k.v}</div>
                                 <div style={{ fontSize:10, color:'#6b7280' }}>{k.l}</div>
@@ -466,16 +466,16 @@ function SmsMarketingInner(){
                 {tab==='history'&&(
                     <Card glow>
                         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:14 }}>
-                            <div style={{ fontWeight:800, fontSize:15, color:'#1f2937' }}>📜 {t('sms.historyTitle')||'Message History'}</div>
-                            {messages.length>0&&(<button onClick={()=>downloadSmsCsv(messages,t)} style={{ padding:'5px 12px', borderRadius:8, border:'1px solid '+C.accent+'44', background:'transparent', color:C.accent, fontSize:10, fontWeight:700, cursor:'pointer' }}>📥 {t('sms.exportCsv')||'CSV'}</button>)}
+                            <div style={{ fontWeight:800, fontSize:15, color:'#1f2937' }}>📜 {t('sms.historyTitle', 'Message History')}</div>
+                            {messages.length>0&&(<button onClick={()=>downloadSmsCsv(messages,t)} style={{ padding:'5px 12px', borderRadius:8, border:'1px solid '+C.accent+'44', background:'transparent', color:C.accent, fontSize:10, fontWeight:700, cursor:'pointer' }}>📥 {t('sms.exportCsv', 'CSV')}</button>)}
                         </div>
                         {messages.length===0?(
-                            <div style={{ textAlign:'center', padding:30, color:'#6b7280', fontSize:12 }}>{t('sms.noHistory')||'No messages yet'}</div>
+                            <div style={{ textAlign:'center', padding:30, color:'#6b7280', fontSize:12 }}>{t('sms.noHistory', 'No messages yet')}</div>
                         ):(
                             <div style={{ overflowX:'auto' }}>
                                 <table style={{ width:'100%', borderCollapse:'collapse', fontSize:12 }}>
                                     <thead><tr style={{ borderBottom:'2px solid rgba(0,0,0,0.08)' }}>
-                                        {[t('sms.type')||'Type',t('sms.recipientNumber')||'To',t('sms.content')||'Content',t('sms.status')||'Status',t('sms.sendTime')||'Time'].map(h=>(<th key={h} style={{ padding:'10px 12px', textAlign:'left', fontWeight:700, color:'#374151' }}>{h}</th>))}
+                                        {[t('sms.type', 'Type'),t('sms.recipientNumber', 'To'),t('sms.content', 'Content'),t('sms.status', 'Status'),t('sms.sendTime', 'Time')].map(h=>(<th key={h} style={{ padding:'10px 12px', textAlign:'left', fontWeight:700, color:'#374151' }}>{h}</th>))}
                                     </tr></thead>
                                     <tbody>{messages.map((m,i)=>{
                                         const sc={delivered:C.green,sent:C.accent,failed:C.red,pending:C.yellow}[m.status]||'#666';
@@ -494,7 +494,7 @@ function SmsMarketingInner(){
                 )}
                 {tab==='stats'&&(
                     <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:14 }}>
-                        {[{l:t('sms.statsSentThisMonth')||'Sent This Month',v:(stats.sent||0).toLocaleString(),c:C.accent},{l:t('sms.statsSuccessRate')||'Success Rate',v:(stats.sent>0?(stats.delivered/stats.sent*100).toFixed(1):'0.0')+'%',c:C.green},{l:t('sms.statsBalance')||'Balance',v:settings?.balance||'0',c:C.yellow}].map(k=>(
+                        {[{l:t('sms.statsSentThisMonth', 'Sent This Month'),v:(stats.sent||0).toLocaleString(),c:C.accent},{l:t('sms.statsSuccessRate', 'Success Rate'),v:(stats.sent>0?(stats.delivered/stats.sent*100).toFixed(1):'0.0')+'%',c:C.green},{l:t('sms.statsBalance', 'Balance'),v:settings?.balance||'0',c:C.yellow}].map(k=>(
                             <Card key={k.l} glow style={{ textAlign:'center' }}>
                                 <div style={{ fontSize:24, fontWeight:900, color:k.c }}>{k.v}</div>
                                 <div style={{ fontSize:12, color:'#6b7280', marginTop:4 }}>{k.l}</div>

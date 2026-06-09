@@ -457,7 +457,7 @@ function SSOButtonGroup({ t }) {
     <div style={{ marginTop: 4 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
         <div style={{ flex: 1, height: 1, background: 'rgba(15,23,42,0.1)' }} />
-        <span style={{ fontSize: 10, color: 'var(--text-3)', fontWeight: 600 }}>{t('auth.orContinueWith') || 'Or continue with SSO'}</span>
+        <span style={{ fontSize: 10, color: 'var(--text-3)', fontWeight: 600 }}>{t('auth.orContinueWith', 'Or continue with SSO')}</span>
         <div style={{ flex: 1, height: 1, background: 'rgba(15,23,42,0.1)' }} />
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
@@ -1533,7 +1533,7 @@ function AuthLanguageSelector() {
           <div onClick={() => setOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 999 }} />
           <div style={{ position: "absolute", top: "calc(100% + 6px)", right: 0, minWidth: 220, maxHeight: 400, overflowY: "auto", zIndex: 1000, background: "#ffffff", backdropFilter: "blur(20px)", border: "1px solid #e2e8f0", borderRadius: 14, padding: 6, boxShadow: "0 16px 48px rgba(15,23,42,0.18)" }}>
             <div style={{ padding: "6px 10px 8px", fontSize: 10, fontWeight: 700, color: "var(--text-3)", borderBottom: "1px solid rgba(99,140,255,0.08)", marginBottom: 4 }}>
-              🌐 {t('auth.langSelectTitle') || 'Language'}
+              🌐 {t('auth.langSelectTitle', 'Language')}
             </div>
             {LANG_OPTIONS.map(opt => (
               <button key={opt.code} onClick={() => { setLang(opt.code); setOpen(false); }} style={{ display: "flex", alignItems: "center", gap: 10, width: "100%", padding: "9px 12px", borderRadius: 9, border: "none", cursor: "pointer", background: lang === opt.code ? "rgba(79,142,247,0.12)" : "transparent", transition: "background 120ms" }}

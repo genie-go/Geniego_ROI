@@ -37,7 +37,7 @@ function ConsentPanel({ onSave, onClose }) {
         ...item,
         label: t(item.labelKey) || item.labelKey,
         desc: t(item.descKey) || item.descKey,
-        requiredLabel: t('gdpr.required') || 'Required',
+        requiredLabel: t('gdpr.required', 'Required'),
     }));
     const [choices, setChoices] = useState({ necessary: true, analytics: true, marketing: false, personalization: true });
 
@@ -192,36 +192,36 @@ export function GdprAdmin() {
 
             {/* 현재 동의 상태 */}
             <div className="card card-glass">
-                <div style={{ fontWeight: 900, fontSize: 13, marginBottom: 14 }}>🔒 {t('gdpr.currentConsentStatus') || 'Current Consent Status'}</div>
+                <div style={{ fontWeight: 900, fontSize: 13, marginBottom: 14 }}>🔒 {t('gdpr.currentConsentStatus', 'Current Consent Status')}</div>
                 {consent ? (
                     <div style={{ display: 'grid', gap: 8 }}>
                         {CONSENT_TYPES.map(item => (
                             <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', borderRadius: 8, background: 'var(--surface)' }}>
                                 <span style={{ fontSize: 12 }}>{item.icon} {item.label}</span>
-                                <span style={{ fontSize: 11, fontWeight: 700, color: consent[item.id] ? '#22c55e' : '#6b7280' }}>{consent[item.id] ? `✓ ${t('gdpr.consented') || 'Consented'}` : `✗ ${t('gdpr.notConsented') || 'Not Consented'}`}</span>
+                                <span style={{ fontSize: 11, fontWeight: 700, color: consent[item.id] ? '#22c55e' : '#6b7280' }}>{consent[item.id] ? `✓ ${t('gdpr.consented', 'Consented')}` : `✗ ${t('gdpr.notConsented', 'Not Consented')}`}</span>
                             </div>
                         ))}
                         <div style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 4 }}>
-                            {t('gdpr.consentDate') || 'Consent Date'}: {consent.timestamp ? new Date(consent.timestamp).toLocaleString() : (t('gdpr.unknown') || 'Unknown')}
+                            {t('gdpr.consentDate', 'Consent Date')}: {consent.timestamp ? new Date(consent.timestamp).toLocaleString() : (t('gdpr.unknown', 'Unknown'))}
                         </div>
                         <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-                            <button onClick={() => setShowPanel(true)} style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid rgba(79,142,247,0.3)', background: 'transparent', color: '#4f8ef7', fontSize: 11, cursor: 'pointer' }}>✏️ {t('gdpr.editSettings') || 'Edit Settings'}</button>
-                            <button onClick={handleWithdraw} style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid rgba(239,68,68,0.3)', background: 'transparent', color: '#ef4444', fontSize: 11, cursor: 'pointer' }}>🗑️ {t('gdpr.withdraw') || 'Withdraw Consent'}</button>
+                            <button onClick={() => setShowPanel(true)} style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid rgba(79,142,247,0.3)', background: 'transparent', color: '#4f8ef7', fontSize: 11, cursor: 'pointer' }}>✏️ {t('gdpr.editSettings', 'Edit Settings')}</button>
+                            <button onClick={handleWithdraw} style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid rgba(239,68,68,0.3)', background: 'transparent', color: '#ef4444', fontSize: 11, cursor: 'pointer' }}>🗑️ {t('gdpr.withdraw', 'Withdraw Consent')}</button>
                         </div>
                     </div>
                 ) : (
-                    <div style={{ fontSize: 12, color: 'var(--text-3)' }}>{t('gdpr.noConsentInfo') || 'No consent info.'} <button onClick={() => setShowPanel(true)} style={{ color: '#4f8ef7', background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700 }}>{t('gdpr.consentNow') || 'Consent Now →'}</button></div>
+                    <div style={{ fontSize: 12, color: 'var(--text-3)' }}>{t('gdpr.noConsentInfo', 'No consent info.')} <button onClick={() => setShowPanel(true)} style={{ color: '#4f8ef7', background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700 }}>{t('gdpr.consentNow', 'Consent Now →')}</button></div>
                 )}
             </div>
 
             {/* 플랫폼 통계 */}
             <div className="card card-glass">
-                <div style={{ fontWeight: 900, fontSize: 13, marginBottom: 14 }}>📊 {t('gdpr.platformStats') || 'Platform Consent Statistics'}</div>
+                <div style={{ fontWeight: 900, fontSize: 13, marginBottom: 14 }}>📊 {t('gdpr.platformStats', 'Platform Consent Statistics')}</div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginBottom: 14 }}>
                     {[
-                        { l: t('gdpr.totalVisitors') || 'Total Visitors', v: stats.total.toLocaleString(), c: '#4f8ef7' },
-                        { l: t('gdpr.consentRate') || 'Consent Rate', v: `${(stats.opted_in / stats.total * 100).toFixed(1)}%`, c: '#22c55e' },
-                        { l: t('gdpr.withdrawn') || 'Withdrawn', v: stats.withdrawn.toLocaleString(), c: '#ef4444' },
+                        { l: t('gdpr.totalVisitors', 'Total Visitors'), v: stats.total.toLocaleString(), c: '#4f8ef7' },
+                        { l: t('gdpr.consentRate', 'Consent Rate'), v: `${(stats.opted_in / stats.total * 100).toFixed(1)}%`, c: '#22c55e' },
+                        { l: t('gdpr.withdrawn', 'Withdrawn'), v: stats.withdrawn.toLocaleString(), c: '#ef4444' },
                     ].map(k => (
                         <div key={k.l} style={{ textAlign: 'center', padding: '10px', borderRadius: 10, background: `${k.c}08`, border: `1px solid ${k.c}22` }}>
                             <div style={{ fontSize: 18, fontWeight: 900, color: k.c }}>{k.v}</div>
@@ -231,8 +231,8 @@ export function GdprAdmin() {
                 </div>
                 <div style={{ display: 'grid', gap: 6 }}>
                     {[
-                        { l: t('gdpr.analytics') || 'Analytics Cookie Consent', v: stats.analytics, total: stats.total },
-                        { l: t('gdpr.marketing') || 'Marketing Cookie Consent', v: stats.marketing, total: stats.total },
+                        { l: t('gdpr.analytics', 'Analytics Cookie Consent'), v: stats.analytics, total: stats.total },
+                        { l: t('gdpr.marketing', 'Marketing Cookie Consent'), v: stats.marketing, total: stats.total },
                     ].map(r => (
                         <div key={r.l}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, marginBottom: 3 }}>

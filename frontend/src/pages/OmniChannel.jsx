@@ -333,8 +333,8 @@ function ProductsTab({ t }) {
                         <thead><tr>
                             <th>{t('omniChannel.colChannel')}</th><th>{t('omniChannel.colId')}</th><th>{t('omniChannel.colProductName')}</th><th>{t('omniChannel.colSku')}</th>
                             <th>{t('omniChannel.colSalePrice')}</th>
-                            <th style={{ color: '#f59e0b' }}>{t('omniChannel.colCommission') || t('catalogSync.colCommission') || 'Commission'}</th>
-                            <th style={{ color: '#6366f1' }}>{t('omniChannel.colVatTax') || t('catalogSync.colVatTax') || 'VAT'}</th>
+                            <th style={{ color: '#f59e0b' }}>{t('omniChannel.colCommission') || t('catalogSync.colCommission', 'Commission')}</th>
+                            <th style={{ color: '#6366f1' }}>{t('omniChannel.colVatTax') || t('catalogSync.colVatTax', 'VAT')}</th>
                             <th>{t('omniChannel.colStock')}</th><th>{t('omniChannel.colCategory')}</th><th>{t('omniChannel.colStatus')}</th>
                         </tr></thead>
                         <tbody>
@@ -595,7 +595,7 @@ function OverviewTab({ channelStatus, t }) {
                 <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
                     <thead><tr>
                         <th>{t('omniChannel.colChannel')}</th><th>{t('omniChannel.colType')}</th><th>{t('omniChannel.colStatus')}</th>
-                        <th style={{ color: '#f59e0b' }}>{t('omniChannel.colCommission') || 'Commission'}</th>
+                        <th style={{ color: '#f59e0b' }}>{t('omniChannel.colCommission', 'Commission')}</th>
                         <th>{t('omniChannel.colProduct')}</th><th>{t('omniChannel.colOrderNo')}</th><th>{t('omniChannel.colRevenue')}</th><th>{t('omniChannel.colRevenueShare')}</th>
                     </tr></thead>
                     <tbody>
