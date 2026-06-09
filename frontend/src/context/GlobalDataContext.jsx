@@ -326,6 +326,24 @@ export function GlobalDataProvider({ children }) {
         return () => { cancelled = true; };
     }, []);
 
+    // ── [208차 동기화 P1] 운영 홈/성과 대시보드 실시간성: orders/settlement/inventory 30초 주기 폴링.
+    //    기존엔 마운트 시 1회만 fetch → 신규 주문/정산 롤업이 새로고침 전까지 미반영이던 갭 해소.
+    useEffect(() => {
+        if (_isDemo) return;
+        const token = localStorage.getItem('genie_token') || localStorage.getItem('demo_genie_token') || '';
+        if (!token) return;
+        let cancelled = false;
+        const BASE = import.meta.env.VITE_API_BASE || '';
+        const poll = () => {
+            getJsonAuth('/api/v424/orderhub/orders?limit=200').then(r => { if (!cancelled && r?.ok && Array.isArray(r.items)) setOrders(r.items); }).catch(() => {});
+            getJsonAuth('/api/v424/orderhub/settlements?limit=200').then(r => { if (!cancelled && r?.ok && Array.isArray(r.items)) setSettlement(r.items); }).catch(() => {});
+            fetch(`${BASE}/api/channel-sync/inventory`, { headers: { Authorization: `Bearer ${token}` } })
+                .then(r => r.ok ? r.json() : null).then(d => { if (!cancelled && Array.isArray(d) && d.length > 0) setInventory(d); }).catch(() => {});
+        };
+        const iv = setInterval(poll, 30000); // 30초 주기(운영 전용)
+        return () => { cancelled = true; clearInterval(iv); };
+    }, []);
+
     // ── [DEMO v15] 데모 모드: 시드 데이터가 풍부하므로 Rollup API는 완전 삭제 처리 (운영 환경 오염 방지) ──
 
     /* ── 🔄 BroadcastChannel Cross-Tab Listener ─────────────────── */
