@@ -40,16 +40,12 @@ final class AiGenerate
 
     private static function tenant(Request $req): string
     {
-        $auth = $req->getHeaderLine('Authorization');
-        if (preg_match('/Bearer\s+(\S+)/i', $auth, $m) && $m[1] !== 'demo-token') {
-            try {
-                $s = Db::pdo()->prepare('SELECT user_id FROM user_session WHERE token=? LIMIT 1');
-                $s->execute([$m[1]]);
-                $r = $s->fetch(PDO::FETCH_ASSOC);
-                if ($r) return (string)$r['user_id'];
-            } catch (\Throwable) {}
-        }
-        return 'demo';
+        // 208차 검수(P1): raw user_id 격리키 → UserAuth::authedTenant(tenant_id/acct_<id>, 하위계정 인지)로 통일.
+        //   팀/하위계정이 동일 테넌트 AI 설정/로그를 공유하고, 타 도메인 격리키 포맷과 일치.
+        $attr = $req->getAttribute('auth_tenant');
+        if (is_string($attr) && $attr !== '' && $attr !== 'demo') return $attr;
+        $t = UserAuth::authedTenant($req);
+        return ($t !== null && $t !== '') ? $t : 'demo';
     }
 
     private static function ensureTables(): void

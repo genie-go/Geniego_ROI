@@ -84,23 +84,11 @@ final class ModelMonitor
         // 1) api_key 미들웨어 권위 tenant (위조 불가)
         $attr = $req->getAttribute('auth_tenant');
         if (is_string($attr) && $attr !== '' && $attr !== 'demo') return $attr;
-        $hdr = $req->getHeaderLine('X-Tenant-Id');
-        if ($hdr !== '' && strtolower($hdr) !== 'demo') return $hdr;
 
-        // 2) 세션 토큰 → user_session
-        $auth = $req->getHeaderLine('Authorization');
-        if (preg_match('/Bearer\s+(\S+)/i', $auth, $m)
-            && $m[1] !== 'demo-token' && strtolower($m[1]) !== 'demo') {
-            try {
-                $s = Db::pdo()->prepare('SELECT user_id FROM user_session WHERE token=? LIMIT 1');
-                $s->execute([$m[1]]);
-                $r = $s->fetch(PDO::FETCH_ASSOC);
-                if ($r) return (string)$r['user_id'];
-            } catch (\Throwable) {}
-        }
-
-        // 3) 미인식 → demo
-        return 'demo';
+        // 2) 208차 검수(P1): raw user_id 격리키 + 위조가능 X-Tenant-Id 헤더 신뢰 → UserAuth::authedTenant
+        //   (세션의 tenant_id/acct_<id>, 하위계정 인지)로 통일. 팀 공유 + 격리키 포맷 일치 + 헤더위조 차단.
+        $t = UserAuth::authedTenant($req);
+        return ($t !== null && $t !== '') ? $t : 'demo';
     }
 
     /**

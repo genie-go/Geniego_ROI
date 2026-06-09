@@ -94,7 +94,17 @@ final class ChannelSync
     {
         $attr = $req->getAttribute('auth_tenant', '');
         if ($attr !== '' && $attr !== null) return null;
-        if (preg_match('/Bearer\s+\S+/i', $req->getHeaderLine('Authorization'))) return null;
+        // 208차 검수(P1): 아무 Bearer 존재만으로 통과시키던 것을 → 실제 세션 해석 성공 시에만 통과.
+        //   junk/만료 Bearer 가 'demo' 버킷에 R/W·자격증명 저장하던 경로 차단(데모 토큰은 의도대로 허용).
+        if (preg_match('/Bearer\s+(\S+)/i', $req->getHeaderLine('Authorization'), $m)) {
+            $tok = $m[1];
+            if ($tok === 'demo-token' || str_starts_with($tok, 'demo') || str_starts_with($tok, 'local_demo_')) return null;
+            try {
+                $st = Db::pdo()->prepare('SELECT 1 FROM user_session s JOIN app_user u ON u.id=s.user_id WHERE s.token=? AND s.expires_at>? AND u.is_active=1 LIMIT 1');
+                $st->execute([$tok, gmdate('Y-m-d\TH:i:s\Z')]);
+                if ($st->fetchColumn()) return null;
+            } catch (\Throwable $e) {}
+        }
         return TemplateResponder::respond($res->withStatus(401), ['ok' => false, 'error' => 'unauthorized']);
     }
 
@@ -1101,8 +1111,8 @@ final class ChannelSync
         $sql = "SELECT * FROM channel_products WHERE tenant_id=?";
         $bind = [$tenant];
         if ($channel) { $sql .= " AND channel=?"; $bind[] = $channel; }
-        $sql .= " ORDER BY synced_at DESC LIMIT ?";
-        $bind[] = $limit;
+        // 208차 검수: LIMIT ? 바인딩이 MySQL 에서 문자열로 묶여 구문오류(500) 유발 → 검증된 int inline.
+        $sql .= " ORDER BY synced_at DESC LIMIT " . (int)$limit;
 
         $stmt = $pdo->prepare($sql);
         $stmt->execute($bind);
@@ -1146,9 +1156,7 @@ final class ChannelSync
         $bind = [$tenant];
         if ($channel) { $sql .= " AND channel=?"; $bind[] = $channel; }
         if ($status)  { $sql .= " AND status=?";  $bind[] = $status; }
-        $sql .= " ORDER BY ordered_at DESC LIMIT ?";
-        $bind[] = $limit;
-
+        $sql .= " ORDER BY ordered_at DESC LIMIT " . (int)$limit; // 208차: LIMIT 바인딩 500 수정
         $stmt = $pdo->prepare($sql);
         $stmt->execute($bind);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
