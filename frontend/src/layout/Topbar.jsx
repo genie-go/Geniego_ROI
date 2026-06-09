@@ -174,7 +174,7 @@ const NotificationDropdown = memo(function NotificationDropdown({ alerts, onDism
 
 export default function Topbar() {
   const { t, lang, setLang } = useI18n();
-  const { user, logout, token } = useAuth();
+  const { user, logout, token, isAdmin } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const { alerts = [], dismissAlert, markAlertRead, markAllRead, unreadAlertCount = 0 } = useGlobalData();
@@ -311,6 +311,30 @@ export default function Topbar() {
             onMouseEnter={e => e.currentTarget.style.background = 'rgba(251,146,60,0.22)'}
             onMouseLeave={e => e.currentTarget.style.background = 'rgba(251,146,60,0.12)'}
           >🔄 DEMO</button>
+        )}
+
+        {/* 207차: 관리자 전용 환경 전환 — 운영/데모는 별도 시스템(별도 DB). 어느 페이지에서나 전환 가능.
+            admin 계정만 노출(데모/운영 회원은 isAdmin=false 라 미표시). */}
+        {isAdmin && (
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+            <span style={{
+              padding: '2px 8px', borderRadius: 99, fontSize: 9, fontWeight: 800,
+              background: IS_DEMO ? 'rgba(251,146,60,0.15)' : 'rgba(34,197,94,0.15)',
+              color: IS_DEMO ? '#fb923c' : '#22c55e',
+              border: `1px solid ${IS_DEMO ? 'rgba(251,146,60,0.35)' : 'rgba(34,197,94,0.35)'}`,
+            }}>{IS_DEMO ? '🎪 데모 환경' : '🏢 운영 환경'}</span>
+            <a
+              href={IS_DEMO ? 'https://roi.genie-go.com/admin' : 'https://roidemo.genie-go.com/admin'}
+              title={IS_DEMO ? '운영 시스템(실데이터) 관리로 전환' : '데모(체험) 환경 관리로 전환'}
+              style={{
+                padding: '2px 10px', borderRadius: 99, fontSize: 9, fontWeight: 800, textDecoration: 'none',
+                background: IS_DEMO ? 'rgba(34,197,94,0.12)' : 'rgba(251,146,60,0.12)',
+                color: IS_DEMO ? '#22c55e' : '#fb923c',
+                border: `1px solid ${IS_DEMO ? 'rgba(34,197,94,0.35)' : 'rgba(251,146,60,0.35)'}`,
+                cursor: 'pointer', whiteSpace: 'nowrap',
+              }}
+            >{IS_DEMO ? '🏢 운영 전환 →' : '🎪 데모 전환 →'}</a>
+          </div>
         )}
       </div>
 
