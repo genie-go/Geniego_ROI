@@ -32,6 +32,13 @@ export const heartbeat      = (sid, body) => postJsonAuth(`${BASE}/sessions/${si
 export const getStats       = (sid) => getJsonAuth(`${BASE}/sessions/${sid}/stats`);
 export const getOverview    = () => getJsonAuth(`${BASE}/overview`);
 
+/* ── 멀티 송출 대상(RTMP) — 208차 #1 ── */
+export const listDestinations  = (sid) => getJsonAuth(`${BASE}/sessions/${sid}/destinations`);
+export const saveDestination   = (sid, body) => postJsonAuth(`${BASE}/sessions/${sid}/destinations`, body);
+export const deleteDestination = (id) => requestJsonAuth(`${BASE}/destinations/${id}`, 'DELETE');
+export const toggleDestination = (id) => postJsonAuth(`${BASE}/destinations/${id}/toggle`, {});
+export const multicast         = (sid, action) => postJsonAuth(`${BASE}/sessions/${sid}/multicast/${action}`, {});
+
 /* ── 연동 프레임워크 ── */
 export const listIntegrations = () => getJsonAuth(`${BASE}/integrations`);
 export const saveIntegration  = (body) => postJsonAuth(`${BASE}/integrations`, body);

@@ -111,6 +111,13 @@ class LiveCommerce
                 session_id INT NOT NULL, viewer_key VARCHAR(80), last_seen VARCHAR(32),
                 UNIQUE KEY uq_lc_pres (tenant_id, session_id, viewer_key), KEY idx_lc_pres (tenant_id, session_id)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+            $pdo->exec("CREATE TABLE IF NOT EXISTS live_destinations (
+                id INT AUTO_INCREMENT PRIMARY KEY, tenant_id VARCHAR(100) NOT NULL DEFAULT 'demo',
+                session_id INT NOT NULL, channel VARCHAR(80) NOT NULL, label VARCHAR(160),
+                rtmp_url VARCHAR(500), stream_key TEXT, enabled TINYINT(1) DEFAULT 1,
+                status VARCHAR(20) DEFAULT 'idle', last_status_at VARCHAR(32), created_at VARCHAR(32), updated_at VARCHAR(32),
+                KEY idx_lc_dest (tenant_id, session_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
         } else {
             $pdo->exec("CREATE TABLE IF NOT EXISTS live_sessions (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', title TEXT NOT NULL, description TEXT, host TEXT, cover_url TEXT, status TEXT NOT NULL DEFAULT 'scheduled', channels TEXT, scheduled_at TEXT, started_at TEXT, ended_at TEXT, viewer_count INTEGER DEFAULT 0, peak_viewers INTEGER DEFAULT 0, like_count INTEGER DEFAULT 0, created_at TEXT, updated_at TEXT)");
             $pdo->exec("CREATE TABLE IF NOT EXISTS live_products (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', session_id INTEGER NOT NULL, sku TEXT, name TEXT, image TEXT, price REAL DEFAULT 0, special_price REAL DEFAULT 0, stock REAL DEFAULT 0, sold REAL DEFAULT 0, featured INTEGER DEFAULT 0, display_order INTEGER DEFAULT 0, created_at TEXT, updated_at TEXT)");
@@ -118,6 +125,7 @@ class LiveCommerce
             $pdo->exec("CREATE TABLE IF NOT EXISTS live_chat (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', session_id INTEGER NOT NULL, author TEXT, message TEXT, kind TEXT DEFAULT 'chat', meta TEXT, created_at TEXT)");
             $pdo->exec("CREATE TABLE IF NOT EXISTS live_integrations (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', channel TEXT NOT NULL, category TEXT NOT NULL DEFAULT 'sns_live', status TEXT NOT NULL DEFAULT 'disconnected', config TEXT, secret TEXT, connected_at TEXT, created_at TEXT, updated_at TEXT)");
             $pdo->exec("CREATE TABLE IF NOT EXISTS live_presence (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', session_id INTEGER NOT NULL, viewer_key TEXT, last_seen TEXT)");
+            $pdo->exec("CREATE TABLE IF NOT EXISTS live_destinations (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', session_id INTEGER NOT NULL, channel TEXT NOT NULL, label TEXT, rtmp_url TEXT, stream_key TEXT, enabled INTEGER DEFAULT 1, status TEXT DEFAULT 'idle', last_status_at TEXT, created_at TEXT, updated_at TEXT)");
             try { $pdo->exec("CREATE UNIQUE INDEX IF NOT EXISTS uq_lc_int ON live_integrations(tenant_id, channel)"); } catch (\Throwable $e) {}
             try { $pdo->exec("CREATE UNIQUE INDEX IF NOT EXISTS uq_lc_pres ON live_presence(tenant_id, session_id, viewer_key)"); } catch (\Throwable $e) {}
         }
@@ -194,7 +202,7 @@ class LiveCommerce
         if ($err = UserAuth::requirePro($req, $res)) return $err;
         self::ensureTables();
         $t = self::tenant($req); $id = (int)$args['id']; $pdo = self::db();
-        foreach (['live_products', 'live_orders', 'live_chat', 'live_presence'] as $tbl) {
+        foreach (['live_products', 'live_orders', 'live_chat', 'live_presence', 'live_destinations'] as $tbl) {
             try { $st = $pdo->prepare("DELETE FROM {$tbl} WHERE session_id=:s AND tenant_id=:t"); $st->execute([':s' => $id, ':t' => $t]); } catch (\Throwable $e) {}
         }
         $st = $pdo->prepare("DELETE FROM live_sessions WHERE id=:id AND tenant_id=:t");
@@ -578,6 +586,108 @@ class LiveCommerce
         $st = self::db()->prepare("DELETE FROM live_integrations WHERE channel=:c AND tenant_id=:t");
         $st->execute([':c' => (string)$args['channel'], ':t' => self::tenant($req)]);
         return self::json($res, ['ok' => true, 'deleted' => $st->rowCount()]);
+    }
+
+    /* ════════════════ 멀티 송출 대상(RTMP Destinations) — 208차 #1 ════════════════ */
+    // 컨트롤 플레인: 세션별 송출 대상(채널·RTMP URL·스트림키 AES) 관리·활성화·상태.
+    //   실제 릴레이(브라우저 카메라→RTMP 팬아웃)는 미디어 서버(SRS/nginx-rtmp 등) 워커가 수행.
+    //   본 핸들러는 대상/상태를 영속화하고, 릴레이 워커가 읽어갈 페이로드(relayPlan)를 제공한다.
+
+    public static function listDestinations(Request $req, Response $res, array $args): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $st = self::db()->prepare("SELECT id,session_id,channel,label,rtmp_url,stream_key,enabled,status,last_status_at,updated_at FROM live_destinations WHERE tenant_id=:t AND session_id=:s ORDER BY id ASC");
+        $st->execute([':t' => self::tenant($req), ':s' => (int)$args['id']]);
+        $rows = $st->fetchAll(\PDO::FETCH_ASSOC);
+        foreach ($rows as &$r) {
+            $r['enabled'] = (bool)(int)($r['enabled'] ?? 1);
+            $plain = Crypto::decrypt((string)($r['stream_key'] ?? ''));
+            $r['hasKey'] = $plain !== '';
+            $r['stream_key'] = $plain !== '' ? (substr($plain, 0, 3) . str_repeat('•', max(0, min(12, strlen($plain) - 3)))) : '';
+        }
+        return self::json($res, ['ok' => true, 'destinations' => $rows]);
+    }
+
+    public static function saveDestination(Request $req, Response $res, array $args): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $t = self::tenant($req); $b = self::body($req); $now = self::now(); $pdo = self::db();
+        $sid = (int)($args['id'] ?? $b['session_id'] ?? 0);
+        $channel = trim((string)($b['channel'] ?? ''));
+        if ($sid <= 0 || $channel === '') return self::json($res, ['ok' => false, 'error' => '세션/채널이 필요합니다.'], 422);
+        $rawKey = (string)($b['stream_key'] ?? $b['streamKey'] ?? '');
+        $f = [
+            ':label' => (string)($b['label'] ?? $channel), ':url' => (string)($b['rtmp_url'] ?? $b['rtmpUrl'] ?? ''),
+            ':ch' => $channel, ':en' => !empty($b['enabled']) || !isset($b['enabled']) ? 1 : 0,
+        ];
+        $id = (int)($b['id'] ?? 0);
+        if ($id > 0) {
+            $f[':id'] = $id; $f[':t'] = $t; $f[':s'] = $sid; $f[':ua'] = $now;
+            if ($rawKey !== '' && strpos($rawKey, '•') === false) {
+                $f[':key'] = Crypto::encrypt($rawKey);
+                $st = $pdo->prepare("UPDATE live_destinations SET channel=:ch,label=:label,rtmp_url=:url,stream_key=:key,enabled=:en,updated_at=:ua WHERE id=:id AND tenant_id=:t AND session_id=:s");
+            } else {
+                $st = $pdo->prepare("UPDATE live_destinations SET channel=:ch,label=:label,rtmp_url=:url,enabled=:en,updated_at=:ua WHERE id=:id AND tenant_id=:t AND session_id=:s");
+            }
+            $st->execute($f);
+            return self::json($res, ['ok' => true, 'id' => $id]);
+        }
+        $f[':t'] = $t; $f[':s'] = $sid; $f[':key'] = $rawKey !== '' ? Crypto::encrypt($rawKey) : ''; $f[':ca'] = $now; $f[':ua'] = $now;
+        $st = $pdo->prepare("INSERT INTO live_destinations (tenant_id,session_id,channel,label,rtmp_url,stream_key,enabled,status,created_at,updated_at) VALUES (:t,:s,:ch,:label,:url,:key,:en,'idle',:ca,:ua)");
+        $st->execute($f);
+        return self::json($res, ['ok' => true, 'id' => (int)$pdo->lastInsertId()]);
+    }
+
+    public static function deleteDestination(Request $req, Response $res, array $args): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $st = self::db()->prepare("DELETE FROM live_destinations WHERE id=:id AND tenant_id=:t");
+        $st->execute([':id' => (int)$args['id'], ':t' => self::tenant($req)]);
+        return self::json($res, ['ok' => true, 'deleted' => $st->rowCount()]);
+    }
+
+    public static function toggleDestination(Request $req, Response $res, array $args): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $t = self::tenant($req); $id = (int)$args['id']; $pdo = self::db();
+        $row = $pdo->prepare("SELECT enabled FROM live_destinations WHERE id=:id AND tenant_id=:t");
+        $row->execute([':id' => $id, ':t' => $t]);
+        $cur = $row->fetchColumn();
+        if ($cur === false) return self::json($res, ['ok' => false, 'error' => '없음'], 404);
+        $new = (int)$cur ? 0 : 1;
+        $pdo->prepare("UPDATE live_destinations SET enabled=:e, updated_at=:u WHERE id=:id AND tenant_id=:t")
+            ->execute([':e' => $new, ':u' => self::now(), ':id' => $id, ':t' => $t]);
+        return self::json($res, ['ok' => true, 'id' => $id, 'enabled' => (bool)$new]);
+    }
+
+    /** POST /v425/live/sessions/{id}/multicast/{action} — start|stop. 활성 대상 status 전환 + relayPlan 반환. */
+    public static function multicast(Request $req, Response $res, array $args): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $t = self::tenant($req); $sid = (int)$args['id']; $action = (string)($args['action'] ?? 'start'); $now = self::now(); $pdo = self::db();
+        $start = $action !== 'stop';
+        $newStatus = $start ? 'live' : 'idle';
+        // 활성(enabled) 대상만 상태 전환
+        $pdo->prepare("UPDATE live_destinations SET status=:st, last_status_at=:u WHERE tenant_id=:t AND session_id=:s AND enabled=1")
+            ->execute([':st' => $newStatus, ':u' => $now, ':t' => $t, ':s' => $sid]);
+        if (!$start) {
+            $pdo->prepare("UPDATE live_destinations SET status='idle', last_status_at=:u WHERE tenant_id=:t AND session_id=:s")
+                ->execute([':u' => $now, ':t' => $t, ':s' => $sid]);
+        }
+        // 릴레이 워커용 페이로드(스트림키 평문은 워커 권한에서만; 여기선 대상 목록만 노출, 키는 hasKey로 표기)
+        $dst = $pdo->prepare("SELECT channel,label,rtmp_url,enabled,status,stream_key FROM live_destinations WHERE tenant_id=:t AND session_id=:s AND enabled=1");
+        $dst->execute([':t' => $t, ':s' => $sid]);
+        $plan = [];
+        foreach ($dst->fetchAll(\PDO::FETCH_ASSOC) as $d) {
+            $plan[] = ['channel' => $d['channel'], 'label' => $d['label'], 'rtmp_url' => $d['rtmp_url'], 'hasKey' => Crypto::decrypt((string)($d['stream_key'] ?? '')) !== '', 'status' => $newStatus];
+        }
+        return self::json($res, ['ok' => true, 'action' => $start ? 'start' : 'stop', 'session_id' => $sid, 'targets' => count($plan), 'relayPlan' => $plan,
+            'note' => '대상 상태가 전환되었습니다. 실제 송출은 미디어 서버(SRS/nginx-rtmp) 릴레이 워커가 relayPlan과 ingest 스트림을 받아 수행합니다.']);
     }
 
     /* ════════════════ 실시간 SSE 스트림 ════════════════ */

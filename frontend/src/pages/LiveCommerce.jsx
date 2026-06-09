@@ -352,12 +352,12 @@ const StudioTab = memo(function StudioTab({ session, gd, money, t, onChanged }) 
   const doGoLive = async () => {
     if (!sid) return;
     setBusy(true);
-    try { if (!camOn) await startCam(); await liveApi.goLive(sid); await onChanged(); } catch (e) { alert(String(e?.message || e)); } finally { setBusy(false); }
+    try { if (!camOn) await startCam(); await liveApi.goLive(sid); try { await liveApi.multicast(sid, 'start'); } catch {} await onChanged(); } catch (e) { alert(String(e?.message || e)); } finally { setBusy(false); }
   };
   const doEnd = async () => {
     if (!sid) return;
     setBusy(true);
-    try { await liveApi.endSession(sid); stopCam(); await onChanged(); } catch (e) { alert(String(e?.message || e)); } finally { setBusy(false); }
+    try { try { await liveApi.multicast(sid, 'stop'); } catch {} await liveApi.endSession(sid); stopCam(); await onChanged(); } catch (e) { alert(String(e?.message || e)); } finally { setBusy(false); }
   };
   const feature = async (pid) => { try { await liveApi.featureProduct(pid); await loadProducts(); } catch (e) { alert(String(e?.message || e)); } };
   const sendChat = async () => {
@@ -410,19 +410,8 @@ const StudioTab = memo(function StudioTab({ session, gd, money, t, onChanged }) 
               : <Btn color="#1e293b" onClick={doEnd} disabled={busy}>⏹ {t('live.endLive', '방송 종료')}</Btn>}
           </div>
           {camErr && <div style={{ color: '#b91c1c', fontSize: 12, marginTop: 8 }}>{camErr}</div>}
-          {/* 멀티송출 채널 */}
-          <div style={{ marginTop: 12 }}>
-            <div style={{ fontSize: 11, color: C.sub, fontWeight: 700, marginBottom: 6 }}>{t('live.multicast', '멀티 송출 채널')}</div>
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-              {SNS_CHANNELS.map(ch => {
-                const on = channels.includes(ch.id);
-                return <span key={ch.id} style={{ padding: '4px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700,
-                  border: `1px solid ${on ? ch.color : C.border}`, background: on ? ch.color + '14' : '#fff', color: on ? ch.color : C.sub, opacity: on ? 1 : 0.55 }}>
-                  {ch.icon} {ch.name} {on ? '✓' : ''}</span>;
-              })}
-            </div>
-            <div style={{ fontSize: 10, color: C.sub, marginTop: 6 }}>{t('live.multicastHint', '송출 채널은 [방송 관리]에서 세션별로 지정합니다. 실제 RTMP 송출은 [채널 연동]에서 자격증명 등록 후 활성화됩니다.')}</div>
-          </div>
+          {/* 멀티송출 대상(RTMP) 관리 */}
+          <MulticastManager session={session} live={isLive} t={t} />
         </Card>
 
         {/* 편성 상품 빠른 노출 */}
@@ -466,6 +455,67 @@ const StudioTab = memo(function StudioTab({ session, gd, money, t, onChanged }) 
             <Btn small onClick={sendChat}>{t('live.send', '전송')}</Btn>
           </div>
         </Card>
+      </div>
+    </div>
+  );
+});
+
+/* 멀티 송출 대상(RTMP) 관리 — 208차 #1. 세션별 송출 대상 등록/활성화/상태. */
+const MulticastManager = memo(function MulticastManager({ session, live, t }) {
+  const sid = session?.id;
+  const [dests, setDests] = useState([]);
+  const [adding, setAdding] = useState(false);
+  const [form, setForm] = useState({ channel: 'youtube', rtmp_url: '', stream_key: '' });
+  const load = useCallback(async () => { if (!sid) { setDests([]); return; } try { const r = await liveApi.listDestinations(sid); setDests(r?.destinations || []); } catch {} }, [sid]);
+  useEffect(() => { load(); }, [load]);
+
+  const presets = { youtube: 'rtmp://a.rtmp.youtube.com/live2', twitch: 'rtmp://live.twitch.tv/app', facebook: 'rtmps://live-api-s.facebook.com:443/rtmp', instagram: '', tiktok: '' };
+  const save = async () => {
+    if (!sid) return;
+    try { await liveApi.saveDestination(sid, { ...form, label: (channelMeta(form.channel).name) }); setForm({ channel: 'youtube', rtmp_url: '', stream_key: '' }); setAdding(false); await load(); }
+    catch (e) { alert(String(e?.message || e)); }
+  };
+  const toggle = async (d) => { try { await liveApi.toggleDestination(d.id); await load(); } catch (e) { alert(String(e?.message || e)); } };
+  const del = async (id) => { try { await liveApi.deleteDestination(id); await load(); } catch (e) { alert(String(e?.message || e)); } };
+
+  return (
+    <div style={{ marginTop: 12 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+        <div style={{ fontSize: 11, color: C.sub, fontWeight: 700 }}>📡 {t('live.multicastDest', '멀티 송출 대상 (RTMP)')}</div>
+        <Btn small ghost onClick={() => setAdding(a => !a)}>＋ {t('live.addDest', '대상 추가')}</Btn>
+      </div>
+      {dests.length === 0 && !adding && <div style={{ fontSize: 11, color: C.sub }}>{t('live.noDest', '등록된 송출 대상이 없습니다. YouTube/Twitch/Facebook 등의 RTMP URL과 스트림 키를 추가하세요.')}</div>}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        {dests.map(d => {
+          const m = channelMeta(d.channel);
+          return <div key={d.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', border: `1px solid ${C.border}`, borderRadius: 8, background: d.enabled ? '#fff' : '#f8fafc' }}>
+            <span style={{ fontSize: 16 }}>{m.icon}</span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 12, fontWeight: 700 }}>{d.label || m.name}
+                <span style={{ marginLeft: 6, fontSize: 9, fontWeight: 800, padding: '1px 6px', borderRadius: 10, background: d.status === 'live' ? '#fee2e2' : '#f1f5f9', color: d.status === 'live' ? '#ef4444' : C.sub }}>{d.status === 'live' ? '● LIVE' : 'IDLE'}</span></div>
+              <div style={{ fontSize: 10, color: C.sub, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{d.rtmp_url || '(RTMP URL 미설정)'} · {d.hasKey ? '🔑 ' + d.stream_key : t('live.noKey', '키 없음')}</div>
+            </div>
+            <button onClick={() => toggle(d)} title={t('live.toggle', '활성/비활성')} style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: 16 }}>{d.enabled ? '🟢' : '⚪'}</button>
+            <button onClick={() => del(d.id)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#ef4444' }}>🗑</button>
+          </div>;
+        })}
+      </div>
+      {adding && <div style={{ marginTop: 8, padding: 10, border: `1px dashed ${C.border}`, borderRadius: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          {SNS_CHANNELS.map(ch => <Pill key={ch.id} on={form.channel === ch.id} color={ch.color === '#000000' ? '#334155' : ch.color}
+            onClick={() => setForm(f => ({ ...f, channel: ch.id, rtmp_url: f.rtmp_url || presets[ch.id] || '' }))}>{ch.icon} {ch.name}</Pill>)}
+        </div>
+        <input value={form.rtmp_url} onChange={e => setForm(f => ({ ...f, rtmp_url: e.target.value }))} placeholder="RTMP URL (rtmp://...)"
+          style={{ padding: '7px 10px', borderRadius: 7, border: `1px solid ${C.border}`, fontSize: 12 }} />
+        <input type="password" value={form.stream_key} onChange={e => setForm(f => ({ ...f, stream_key: e.target.value }))} placeholder={t('live.streamKey', '스트림 키')} autoComplete="new-password"
+          style={{ padding: '7px 10px', borderRadius: 7, border: `1px solid ${C.border}`, fontSize: 12 }} />
+        <div style={{ display: 'flex', gap: 6 }}>
+          <Btn small onClick={save}>{t('live.save', '저장')}</Btn>
+          <Btn small ghost color="#64748b" onClick={() => setAdding(false)}>{t('live.cancel', '취소')}</Btn>
+        </div>
+      </div>}
+      <div style={{ fontSize: 10, color: C.sub, marginTop: 6 }}>
+        {t('live.multicastDestHint', '방송 시작 시 활성(🟢) 대상이 LIVE로 전환됩니다. 실제 영상 송출은 미디어 서버(SRS/nginx-rtmp) 릴레이가 카메라 인제스트를 받아 각 RTMP로 팬아웃합니다. 스트림 키는 AES-256-GCM 암호화 저장됩니다.')}
       </div>
     </div>
   );

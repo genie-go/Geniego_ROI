@@ -166,6 +166,12 @@ return function (App $app): void {
         'POST /v425/live/integrations'                 => 'Genie\\Handlers\\LiveCommerce::saveIntegration',
         'DELETE /v425/live/integrations/{channel}'     => 'Genie\\Handlers\\LiveCommerce::deleteIntegration',
         'GET /v425/live/stream'                        => 'Genie\\Handlers\\LiveCommerce::stream',
+        // 멀티 송출 대상(RTMP) — 208차 #1
+        'GET /v425/live/sessions/{id}/destinations'    => 'Genie\\Handlers\\LiveCommerce::listDestinations',
+        'POST /v425/live/sessions/{id}/destinations'   => 'Genie\\Handlers\\LiveCommerce::saveDestination',
+        'DELETE /v425/live/destinations/{id}'          => 'Genie\\Handlers\\LiveCommerce::deleteDestination',
+        'POST /v425/live/destinations/{id}/toggle'     => 'Genie\\Handlers\\LiveCommerce::toggleDestination',
+        'POST /v425/live/sessions/{id}/multicast/{action}' => 'Genie\\Handlers\\LiveCommerce::multicast',
 
         // ── Customer AI (이탈 예측 + LTV + 구매확률 + 상품추천 + 모델성능) ────
         'GET /customer-ai/churn-scores'        => 'Genie\\Handlers\\CustomerAI::churnScores',
@@ -2008,6 +2014,11 @@ return function (App $app): void {
     $register('POST',   '/v425/live/integrations');
     $register('DELETE', '/v425/live/integrations/{channel}');
     $register('GET',    '/v425/live/stream');
+    $register('GET',    '/v425/live/sessions/{id}/destinations');
+    $register('POST',   '/v425/live/sessions/{id}/destinations');
+    $register('DELETE', '/v425/live/destinations/{id}');
+    $register('POST',   '/v425/live/destinations/{id}/toggle');
+    $register('POST',   '/v425/live/sessions/{id}/multicast/{action}');
     // Customer AI
     $register('GET',    '/customer-ai/churn-scores');
     $register('GET',    '/customer-ai/ltv-segments');
