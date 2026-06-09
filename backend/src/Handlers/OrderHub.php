@@ -400,47 +400,56 @@ final class OrderHub
         $now = gmdate('Y-m-d H:i:s');
 
         try {
-            // 주문 집계
-            $os = $pdo->prepare("SELECT channel, COUNT(*) AS cnt, COALESCE(SUM(total_price),0) AS gross
-                FROM channel_orders WHERE tenant_id=? AND SUBSTR(ordered_at,1,7)=? GROUP BY channel");
-            $os->execute([$tenant, $period]);
-            $orders = $os->fetchAll(\PDO::FETCH_ASSOC);
-
-            // 클레임(반품/취소) 집계
-            $cs = $pdo->prepare("SELECT channel, COUNT(*) AS rcnt, COALESCE(SUM(amount),0) AS rfee
-                FROM orderhub_claims WHERE tenant_id=? AND SUBSTR(created_at,1,7)=? AND type IN ('return','cancel') GROUP BY channel");
-            $cs->execute([$tenant, $period]);
-            $claimsBy = [];
-            foreach ($cs->fetchAll(\PDO::FETCH_ASSOC) as $r) {
-                $claimsBy[(string)$r['channel']] = ['rcnt' => (int)$r['rcnt'], 'rfee' => (float)$r['rfee']];
-            }
-
-            $rolled = 0;
-            foreach ($orders as $o) {
-                $channel = (string)($o['channel'] ?? '');
-                if ($channel === '') continue;
-                $gross    = (float)$o['gross'];
-                $cnt      = (int)$o['cnt'];
-                $platform = round($gross * $feeRate, 2);
-                $returnFee = $claimsBy[$channel]['rfee'] ?? 0.0;
-                $returns   = $claimsBy[$channel]['rcnt'] ?? 0;
-                $net = round($gross - $platform - $returnFee, 2);
-                $rolled += self::upsertSettlement($pdo, $tenant, $period, $channel, [
-                    'status'          => 'estimated',
-                    'gross_sales'     => $gross,
-                    'net_payout'      => $net,
-                    'platform_fee'    => $platform,
-                    'ad_fee'          => 0.0,
-                    'coupon_discount' => 0.0,
-                    'return_fee'      => $returnFee,
-                    'orders_count'    => $cnt,
-                    'returns_count'   => $returns,
-                ], $now);
-            }
+            $rolled = self::rollupSettlementsCore($pdo, $tenant, $period, $feeRate, $now);
         } catch (\Throwable $e) {
             return self::json($resp, ['ok' => false, 'error' => 'db_error', 'message' => $e->getMessage()], 500);
         }
         return self::json($resp, ['ok' => true, 'period' => $period, 'fee_rate' => $feeRate, 'rolled' => $rolled, '_env' => Db::env(), '_isDemo' => $isDemo]);
+    }
+
+    /**
+     * 208차 동기화 P0: 정산 롤업 코어(핸들러+cron 공용). channel_orders/orderhub_claims → orderhub_settlements 집계.
+     * commerce_sync_cron 이 주문 폴링 후 자동 호출 → 운영 정산이 수동 호출 없이 자동 채워짐.
+     * @return int rolled count
+     */
+    public static function rollupSettlementsCore(\PDO $pdo, string $tenant, string $period, float $feeRate, string $now): int
+    {
+        $os = $pdo->prepare("SELECT channel, COUNT(*) AS cnt, COALESCE(SUM(total_price),0) AS gross
+            FROM channel_orders WHERE tenant_id=? AND SUBSTR(ordered_at,1,7)=? GROUP BY channel");
+        $os->execute([$tenant, $period]);
+        $orders = $os->fetchAll(\PDO::FETCH_ASSOC);
+
+        $cs = $pdo->prepare("SELECT channel, COUNT(*) AS rcnt, COALESCE(SUM(amount),0) AS rfee
+            FROM orderhub_claims WHERE tenant_id=? AND SUBSTR(created_at,1,7)=? AND type IN ('return','cancel') GROUP BY channel");
+        $cs->execute([$tenant, $period]);
+        $claimsBy = [];
+        foreach ($cs->fetchAll(\PDO::FETCH_ASSOC) as $r) {
+            $claimsBy[(string)$r['channel']] = ['rcnt' => (int)$r['rcnt'], 'rfee' => (float)$r['rfee']];
+        }
+
+        $rolled = 0;
+        foreach ($orders as $o) {
+            $channel = (string)($o['channel'] ?? '');
+            if ($channel === '') continue;
+            $gross    = (float)$o['gross'];
+            $cnt      = (int)$o['cnt'];
+            $platform = round($gross * $feeRate, 2);
+            $returnFee = $claimsBy[$channel]['rfee'] ?? 0.0;
+            $returns   = $claimsBy[$channel]['rcnt'] ?? 0;
+            $net = round($gross - $platform - $returnFee, 2);
+            $rolled += self::upsertSettlement($pdo, $tenant, $period, $channel, [
+                'status'          => 'estimated',
+                'gross_sales'     => $gross,
+                'net_payout'      => $net,
+                'platform_fee'    => $platform,
+                'ad_fee'          => 0.0,
+                'coupon_discount' => 0.0,
+                'return_fee'      => $returnFee,
+                'orders_count'    => $cnt,
+                'returns_count'   => $returns,
+            ], $now);
+        }
+        return $rolled;
     }
 
     /** period+channel 유니크 기준 포터블 업서트(MySQL/SQLite 공용). @return int 1 */

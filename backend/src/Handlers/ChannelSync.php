@@ -672,6 +672,13 @@ final class ChannelSync
             // 188차 P0 보안: 데모 데이터의 운영 DB 유입 차단(전 채널 단일 chokepoint).
             // 204차 P0: source='structured'(amazon 등) 도 차단(우회 방어 강화).
             if ($tenant !== 'demo' && (in_array(($o['source'] ?? ''), ['demo','structured'], true) || str_starts_with((string)$o['channel_order_id'], 'DEMO-'))) continue;
+            // 208차 동기화 P0: 신규 주문 판별(멱등) — 재동기화 시 중복 재고차감 방지.
+            $isNew = false;
+            try {
+                $chk = $pdo->prepare("SELECT 1 FROM channel_orders WHERE tenant_id=? AND channel=? AND channel_order_id=? LIMIT 1");
+                $chk->execute([$tenant, $channel, (string)$o['channel_order_id']]);
+                $isNew = !$chk->fetchColumn();
+            } catch (\Throwable $e) {}
             $stmt->execute([
                 $tenant, $channel, $o['channel_order_id'],
                 $o['buyer_name'] ?? null, $o['buyer_email'] ?? null,
@@ -682,8 +689,28 @@ final class ChannelSync
                 $o['event_type'] ?? 'order', json_encode($o), $now,
             ]);
             $count++;
+            // 신규 주문일 때만 실재고 차감(커머스→재고 동기화). 데모 제외.
+            if ($isNew && $tenant !== 'demo' && !empty($o['sku'])) {
+                self::decInventory($pdo, $tenant, $channel, (string)$o['sku'], (int)($o['qty'] ?? 1));
+            }
         }
         return $count;
+    }
+
+    /** 208차 동기화 P0: 주문 발생 시 channel_inventory.available 차감(단일 행, 음수방지, 기본창고 우선). */
+    private static function decInventory(PDO $pdo, string $tenant, string $channel, string $sku, int $qty): void
+    {
+        if ($sku === '' || $qty <= 0) return;
+        try {
+            $sel = $pdo->prepare("SELECT id, available FROM channel_inventory WHERE tenant_id=? AND channel=? AND sku=? ORDER BY (warehouse='default') DESC, id ASC LIMIT 1");
+            $sel->execute([$tenant, $channel, $sku]);
+            $row = $sel->fetch(PDO::FETCH_ASSOC);
+            if (!$row) return; // 미동기화 SKU → 차감 대상 없음
+            $avail = (int)$row['available'];
+            $newAvail = $avail >= $qty ? $avail - $qty : 0;
+            $pdo->prepare("UPDATE channel_inventory SET available=?, synced_at=? WHERE id=?")
+                ->execute([$newAvail, gmdate('c'), (int)$row['id']]);
+        } catch (\Throwable $e) { error_log('[ChannelSync.decInventory] ' . $e->getMessage()); }
     }
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -1140,9 +1167,13 @@ final class ChannelSync
                 $pdo->prepare("UPDATE channel_orders SET status=?, synced_at=? WHERE tenant_id=? AND channel=? AND channel_order_id=?")
                     ->execute([$body['status']??'pending', $now, $tenant, $channel, $body['order_id']]);
             } else {
-                $pdo->prepare("INSERT INTO channel_orders(tenant_id,channel,channel_order_id,buyer_name,product_name,qty,unit_price,total_price,status,ordered_at,event_type,synced_at)
-                    VALUES(?,?,?,?,?,?,?,?,?,?,?,?)")
-                    ->execute([$tenant,$channel,$body['order_id'],$body['buyer_name']??'',$body['product_name']??'',(int)($body['qty']??1),(float)($body['price']??0),(float)($body['total']??0),$body['status']??'pending',$body['ordered_at']??$now,$eventType,$now]);
+                $pdo->prepare("INSERT INTO channel_orders(tenant_id,channel,channel_order_id,buyer_name,product_name,sku,qty,unit_price,total_price,status,ordered_at,event_type,synced_at)
+                    VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)")
+                    ->execute([$tenant,$channel,$body['order_id'],$body['buyer_name']??'',$body['product_name']??'',$body['sku']??null,(int)($body['qty']??1),(float)($body['price']??0),(float)($body['total']??0),$body['status']??'pending',$body['ordered_at']??$now,$eventType,$now]);
+                // 208차 동기화 P0: 신규 주문 webhook → 실재고 차감(주문→재고 동기화).
+                if (in_array($eventType, ['order','order_update'], true) && !empty($body['sku'])) {
+                    self::decInventory($pdo, $tenant, $channel, (string)$body['sku'], (int)($body['qty'] ?? 1));
+                }
             }
         }
 

@@ -31,6 +31,7 @@ require __DIR__ . '/../vendor/autoload.php';
 
 use Genie\Db;
 use Genie\Handlers\ChannelSync;
+use Genie\Handlers\OrderHub;
 
 $args        = array_slice($argv, 1);
 $onlyTenant  = null;
@@ -85,6 +86,28 @@ try {
         }
     }
     echo "  → total products={$totalProducts} orders={$totalOrders} errors={$errors}\n";
+
+    // 208차 동기화 P0: 주문 폴링 후 테넌트별 정산 자동 롤업(수동 /settlements/rollup 의존 제거).
+    //   channel_orders → orderhub_settlements 당월 집계. 운영 정산/대시보드가 새로고침만으로 채워짐.
+    try {
+        $pdo = Db::pdo();
+        $period = gmdate('Y-m');
+        $tenantsDone = [];
+        $rolledTotal = 0;
+        foreach ($pairs as $p) {
+            $tenant = (string)($p['tenant_id'] ?? '');
+            if ($tenant === '' || isset($tenantsDone[$tenant])) continue;
+            $tenantsDone[$tenant] = true;
+            try {
+                $rolledTotal += OrderHub::rollupSettlementsCore($pdo, $tenant, $period, 0.10, gmdate('Y-m-d H:i:s'));
+            } catch (\Throwable $e) {
+                echo "  [settlement] {$tenant}: EXCEPTION " . $e->getMessage() . "\n";
+            }
+        }
+        echo "  → settlement rollup tenants=" . count($tenantsDone) . " rolled={$rolledTotal} period={$period}\n";
+    } catch (\Throwable $e) {
+        echo "  [settlement] rollup skipped: " . $e->getMessage() . "\n";
+    }
     exit(0);
 } catch (\Throwable $e) {
     fwrite(STDERR, "[commerce_sync_cron] FAILED: " . $e->getMessage() . "\n");
