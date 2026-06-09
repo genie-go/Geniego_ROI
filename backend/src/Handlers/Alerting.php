@@ -487,7 +487,11 @@ final class Alerting {
 
     public static function listAlerts(Request $request, Response $response, array $args): Response {
         $pdo = Db::pdo();
-        $rows = $pdo->query("SELECT * FROM alert_instance ORDER BY id DESC LIMIT 500")->fetchAll(PDO::FETCH_ASSOC);
+        // 208차 검수(P0): 테넌트 스코프 — 기존 무필터 SELECT 는 전 테넌트 알림(정책명/지표/임계치) 교차 노출.
+        $t = self::tenantOf($request);
+        $stmt = $pdo->prepare("SELECT * FROM alert_instance WHERE tenant_id=? ORDER BY id DESC LIMIT 500");
+        $stmt->execute([$t]);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $out = [];
         foreach ($rows as $r) {
             $payload = $r["payload_json"] ? json_decode($r["payload_json"], true) : [];
@@ -508,8 +512,10 @@ final class Alerting {
         $pdo = Db::pdo();
         $limit = (int)($request->getQueryParams()["limit"] ?? 500);
         if ($limit < 1) $limit = 500;
-        $stmt = $pdo->prepare("SELECT * FROM action_request ORDER BY id DESC LIMIT ?");
-        $stmt->bindValue(1, $limit, PDO::PARAM_INT);
+        // 208차 검수(P0): 테넌트 스코프 — action_request(라이트백 페이로드/캠페인ID/예산) 교차 노출 차단.
+        $stmt = $pdo->prepare("SELECT * FROM action_request WHERE tenant_id=? ORDER BY id DESC LIMIT ?");
+        $stmt->bindValue(1, self::tenantOf($request), PDO::PARAM_STR);
+        $stmt->bindValue(2, $limit, PDO::PARAM_INT);
         $stmt->execute();
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $out = [];
@@ -541,8 +547,10 @@ final class Alerting {
         if (!is_array($body)) $body = [];
         $decision = (string)($body["decision"] ?? "approve");
 
-        $row = $pdo->prepare("SELECT approvals_json, status FROM action_request WHERE id=?");
-        $row->execute([$id]);
+        // 208차 검수(P0 IDOR): 테넌트 소유 검증 — 타 테넌트 action_request 승인/거부 차단.
+        $tnt = self::tenantOf($request);
+        $row = $pdo->prepare("SELECT approvals_json, status FROM action_request WHERE id=? AND tenant_id=?");
+        $row->execute([$id, $tnt]);
         $r = $row->fetch(PDO::FETCH_ASSOC);
         if (!$r) {
             $response->getBody()->write(json_encode(["detail"=>"action_request not found"], JSON_UNESCAPED_UNICODE));
@@ -553,8 +561,8 @@ final class Alerting {
         $approvals[] = ["actor"=>$actor, "decision"=>$decision, "ts"=>gmdate('c')];
 
         $status = $decision === "approve" ? "approved" : "rejected";
-        $pdo->prepare("UPDATE action_request SET approvals_json=?, status=? WHERE id=?")
-            ->execute([json_encode($approvals, JSON_UNESCAPED_UNICODE), $status, $id]);
+        $pdo->prepare("UPDATE action_request SET approvals_json=?, status=? WHERE id=? AND tenant_id=?")
+            ->execute([json_encode($approvals, JSON_UNESCAPED_UNICODE), $status, $id, $tnt]);
 
         self::audit($pdo, $actor, "action_decide", ["id"=>$id, "decision"=>$decision]);
         return TemplateResponder::respond($response, ["ok"=>true, "id"=>$id, "status"=>$status]);
@@ -565,13 +573,26 @@ final class Alerting {
         $actor = self::actor($request);
         $id = (int)($args["id"] ?? 0);
 
-        $pdo->prepare("UPDATE action_request SET status=? WHERE id=?")->execute(["executed",$id]);
+        // 208차 검수(P0 IDOR): 테넌트 소유 검증 — 타 테넌트 액션 실행(라이트백) 차단.
+        $tnt = self::tenantOf($request);
+        $st = $pdo->prepare("UPDATE action_request SET status=? WHERE id=? AND tenant_id=?");
+        $st->execute(["executed",$id,$tnt]);
+        if ($st->rowCount() === 0) {
+            $response->getBody()->write(json_encode(["detail"=>"action_request not found"], JSON_UNESCAPED_UNICODE));
+            return $response->withStatus(404)->withHeader('Content-Type','application/json');
+        }
         self::audit($pdo, $actor, "action_execute", ["id"=>$id]);
 
         return TemplateResponder::respond($response, ["ok"=>true, "id"=>$id, "status"=>"executed"]);
     }
 
     public static function auditLogs(Request $request, Response $response, array $args): Response {
+        // 208차 검수(P1): audit_log 는 테넌트 컬럼이 없는 플랫폼 전역 로그(로그인/가입/플랜변경 등).
+        //   analyst+ 누구나 전 플랫폼 활동 추적을 읽던 것을 admin 전용으로 제한.
+        if (((string)($request->getAttribute('auth_role') ?? '')) !== 'admin') {
+            $response->getBody()->write(json_encode(["detail"=>"admin only"], JSON_UNESCAPED_UNICODE));
+            return $response->withStatus(403)->withHeader('Content-Type','application/json');
+        }
         $pdo = Db::pdo();
         $limit = (int)($request->getQueryParams()["limit"] ?? 800);
         if ($limit < 1) $limit = 800;

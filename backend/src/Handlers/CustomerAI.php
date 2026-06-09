@@ -395,6 +395,10 @@ class CustomerAI
         $customerId = (int)($p['customer_id'] ?? 0);
         $limit = min(10, max(3, (int)($p['limit'] ?? 5)));
 
+        // 208차 검수(P2): rand 합성 추천은 데모 전용 — 운영은 빈 결과(가짜 affinity/매출 유입 차단).
+        if (self::tenant($req) !== 'demo') {
+            return self::json($res, ['ok' => true, 'recommendations' => [], 'mode' => 'simulated']);
+        }
         // 데모 상품 풀
         $products = [];
 

@@ -98,7 +98,9 @@ function saveToStorage(items) {
 export function NotificationProvider({ children }) {
   const [notifications, setNotifications] = useState(() => {
     const stored = loadFromStorage();
-    return stored && stored.length > 0 ? stored : _NOTIFICATIONS;
+    if (stored && stored.length > 0) return stored;
+    // 208차 검수(P1): 가짜 알림 시드는 데모 전용 — 운영 신규 사용자에 가짜 Coupang/Rakuten/AI 알림 유입 차단.
+    return IS_DEMO ? _NOTIFICATIONS : [];
   });
 
   // 토스트 표시 상태 (최신 Notification 1건)

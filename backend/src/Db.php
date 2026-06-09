@@ -391,11 +391,13 @@ final class Db
             "ALTER TABLE alert_policy ADD COLUMN tenant_id VARCHAR(100) NULL",
             "ALTER TABLE alert_instance ADD COLUMN tenant_id VARCHAR(100) NULL",
             "ALTER TABLE alert_instance ADD COLUMN entity VARCHAR(255) NULL",
+            "ALTER TABLE action_request ADD COLUMN tenant_id VARCHAR(100) NULL", // 208차 검수: 테넌트 격리 컬럼
         ] as $sql) { try { $pdo->exec($sql); } catch (\Throwable $e) {} }
 
         $pdo->exec(self::sql($pdo, "CREATE TABLE IF NOT EXISTS action_request (
             id            INT AUTO_INCREMENT PRIMARY KEY,
             policy_id     INT,
+            tenant_id     VARCHAR(100) NULL,
             status        VARCHAR(50) NOT NULL,
             action_json   MEDIUMTEXT,
             approvals_json MEDIUMTEXT,
