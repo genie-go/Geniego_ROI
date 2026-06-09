@@ -99,6 +99,13 @@ class Wms
                 expiry_date VARCHAR(32), qty DOUBLE DEFAULT 0, wh_id VARCHAR(60), created_at VARCHAR(32),
                 KEY idx_wms_lot_tenant (tenant_id), KEY idx_wms_lot_exp (expiry_date)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+            // 208차 WMS↔재고 통합: 입출고가 유지하는 물리 창고 재고 집계(창고별·채널무관).
+            $pdo->exec("CREATE TABLE IF NOT EXISTS wms_stock (
+                id INT AUTO_INCREMENT PRIMARY KEY, tenant_id VARCHAR(100) NOT NULL DEFAULT 'demo',
+                sku VARCHAR(120) NOT NULL, wh_id VARCHAR(60) NOT NULL DEFAULT '', name VARCHAR(255),
+                on_hand DOUBLE DEFAULT 0, updated_at VARCHAR(32),
+                UNIQUE KEY uq_wms_stock (tenant_id, sku, wh_id), KEY idx_wms_stock_tenant (tenant_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
         } else {
             $pdo->exec("CREATE TABLE IF NOT EXISTS wms_warehouses (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', name TEXT NOT NULL, code TEXT, location TEXT, area TEXT, temp TEXT, manager TEXT, phone TEXT, type TEXT DEFAULT 'Direct', active INTEGER DEFAULT 1, created_at TEXT, updated_at TEXT)");
             $pdo->exec("CREATE TABLE IF NOT EXISTS wms_carriers (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', name TEXT NOT NULL, code TEXT, type TEXT DEFAULT 'Domestic', country TEXT, track_url TEXT, api_key TEXT, active INTEGER DEFAULT 1, created_at TEXT, updated_at TEXT)");
@@ -107,9 +114,11 @@ class Wms
             $pdo->exec("CREATE TABLE IF NOT EXISTS wms_picking (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', order_ref TEXT, sku TEXT, name TEXT, qty REAL DEFAULT 0, wh_id TEXT, carrier TEXT, status TEXT DEFAULT 'pending', created_at TEXT, updated_at TEXT)");
             $pdo->exec("CREATE TABLE IF NOT EXISTS wms_supply_orders (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', sku TEXT, name TEXT, qty REAL DEFAULT 0, supplier TEXT, wh_id TEXT, status TEXT DEFAULT 'pending', eta TEXT, created_at TEXT, updated_at TEXT)");
             $pdo->exec("CREATE TABLE IF NOT EXISTS wms_lots (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', sku TEXT, name TEXT, lot_no TEXT, mfg_date TEXT, expiry_date TEXT, qty REAL DEFAULT 0, wh_id TEXT, created_at TEXT)");
+            $pdo->exec("CREATE TABLE IF NOT EXISTS wms_stock (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', sku TEXT NOT NULL, wh_id TEXT NOT NULL DEFAULT '', name TEXT, on_hand REAL DEFAULT 0, updated_at TEXT)");
+            try { $pdo->exec("CREATE UNIQUE INDEX IF NOT EXISTS uq_wms_stock ON wms_stock(tenant_id, sku, wh_id)"); } catch (\Throwable $e) {}
         }
         // 기존 테이블 tenant_id 보강(무해 실패 무시)
-        foreach (['wms_warehouses','wms_carriers','wms_permissions','wms_movements','wms_picking','wms_supply_orders','wms_lots'] as $tbl) {
+        foreach (['wms_warehouses','wms_carriers','wms_permissions','wms_movements','wms_picking','wms_supply_orders','wms_lots','wms_stock'] as $tbl) {
             try { $pdo->exec("ALTER TABLE {$tbl} ADD COLUMN tenant_id VARCHAR(100) NOT NULL DEFAULT 'demo'"); } catch (\Throwable $e) {}
         }
     }
@@ -281,15 +290,76 @@ class Wms
         if ($err = UserAuth::requirePro($req, $res)) return $err;
         self::ensureTables();
         $t = self::tenant($req); $b = self::body($req); $pdo = self::db();
+        $type = (string)($b['type'] ?? 'Inbound');
+        $wh   = (string)($b['whId'] ?? $b['wh_id'] ?? '');
+        $dwh  = (string)($b['destWhId'] ?? $b['dest_wh_id'] ?? '');
+        $sku  = (string)($b['sku'] ?? '');
+        $name = (string)($b['name'] ?? '');
+        $qty  = (float)($b['qty'] ?? 0);
         $st = $pdo->prepare("INSERT INTO wms_movements (tenant_id,type,wh_id,dest_wh_id,sku,name,qty,unit,memo,ref,reason,created_at) VALUES (:t,:type,:wh,:dwh,:sku,:name,:qty,:unit,:memo,:ref,:reason,:ca)");
         $st->execute([
-            ':t' => $t, ':type' => (string)($b['type'] ?? 'Inbound'), ':wh' => (string)($b['whId'] ?? $b['wh_id'] ?? ''),
-            ':dwh' => (string)($b['destWhId'] ?? $b['dest_wh_id'] ?? ''), ':sku' => (string)($b['sku'] ?? ''),
-            ':name' => (string)($b['name'] ?? ''), ':qty' => (float)($b['qty'] ?? 0), ':unit' => (string)($b['unit'] ?? ''),
+            ':t' => $t, ':type' => $type, ':wh' => $wh, ':dwh' => $dwh, ':sku' => $sku,
+            ':name' => $name, ':qty' => $qty, ':unit' => (string)($b['unit'] ?? ''),
             ':memo' => (string)($b['memo'] ?? ''), ':ref' => (string)($b['ref'] ?? ''), ':reason' => (string)($b['reason'] ?? ''),
             ':ca' => self::now(),
         ]);
+        // 208차 WMS↔재고 통합: 입출고 type 에 따라 wms_stock(물리재고) 갱신.
+        self::applyMovementToStock($t, $type, $wh, $dwh, $sku, $name, $qty);
         return self::json($res, ['ok' => true, 'id' => (int)$pdo->lastInsertId()]);
+    }
+
+    /** 입출고 유형 → 물리재고 부호 적용(영문 IO_TYPES + 한글 데모 라벨 모두 지원). */
+    private static function applyMovementToStock(string $t, string $type, string $wh, string $dwh, string $sku, string $name, float $qty): void
+    {
+        if ($sku === '' || $qty == 0.0) return;
+        $tl = strtolower($type);
+        $isIn  = in_array($type, ['Inbound','ReturnsInbound'], true) || str_contains($type, '입고');
+        $isOut = in_array($type, ['Outbound','ReturnsOutbound','Disposal'], true) || (str_contains($type, '출고') && !str_contains($type, '입고')) || str_contains($type, '폐기');
+        if ($type === 'WarehouseTransfer' || str_contains($type, '이고') || str_contains($type, '이동')) {
+            self::adjustStock($t, $sku, $wh, $name, -abs($qty));
+            self::adjustStock($t, $sku, $dwh !== '' ? $dwh : $wh, $name, abs($qty));
+        } elseif ($type === 'StockAdj' || str_contains($type, '조정')) {
+            self::adjustStock($t, $sku, $wh, $name, $qty); // 조정은 부호 그대로(증감)
+        } elseif ($isIn) {
+            self::adjustStock($t, $sku, $wh, $name, abs($qty));
+        } elseif ($isOut) {
+            self::adjustStock($t, $sku, $wh, $name, -abs($qty));
+        }
+    }
+
+    /** wms_stock 단일 행 upsert(음수 방지). */
+    private static function adjustStock(string $t, string $sku, string $wh, string $name, float $delta): void
+    {
+        if ($sku === '') return;
+        try {
+            $pdo = self::db(); $now = self::now();
+            $sel = $pdo->prepare("SELECT id, on_hand FROM wms_stock WHERE tenant_id=? AND sku=? AND wh_id=? LIMIT 1");
+            $sel->execute([$t, $sku, $wh]);
+            $row = $sel->fetch(\PDO::FETCH_ASSOC);
+            if ($row) {
+                $newQty = max(0, (float)$row['on_hand'] + $delta);
+                $pdo->prepare("UPDATE wms_stock SET on_hand=?, name=COALESCE(NULLIF(name,''),?), updated_at=? WHERE id=?")
+                    ->execute([$newQty, $name, $now, (int)$row['id']]);
+            } else {
+                $pdo->prepare("INSERT INTO wms_stock (tenant_id,sku,wh_id,name,on_hand,updated_at) VALUES (?,?,?,?,?,?)")
+                    ->execute([$t, $sku, $wh, $name, max(0, $delta), $now]);
+            }
+        } catch (\Throwable $e) { error_log('[Wms.adjustStock] ' . $e->getMessage()); }
+    }
+
+    /** GET /wms/stock — 물리 창고 재고(입출고 파생). by_sku=1 이면 SKU별 합산. */
+    public static function listStock(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $t = self::tenant($req); $q = $req->getQueryParams();
+        if (!empty($q['by_sku'])) {
+            $st = self::db()->prepare("SELECT sku, MAX(name) name, SUM(on_hand) on_hand FROM wms_stock WHERE tenant_id=:t GROUP BY sku ORDER BY sku");
+        } else {
+            $st = self::db()->prepare("SELECT sku, wh_id, name, on_hand, updated_at FROM wms_stock WHERE tenant_id=:t ORDER BY sku, wh_id");
+        }
+        $st->execute([':t' => $t]);
+        return self::json($res, ['ok' => true, 'stock' => $st->fetchAll(\PDO::FETCH_ASSOC)]);
     }
 
     /* ════════════════ 피킹 리스트(Picking) ════════════════ */

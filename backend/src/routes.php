@@ -135,6 +135,7 @@ return function (App $app): void {
         'DELETE /wms/permissions/{id}'         => 'Genie\\Handlers\\Wms::deletePermission',
         'GET /wms/movements'                   => 'Genie\\Handlers\\Wms::listMovements',
         'POST /wms/movements'                  => 'Genie\\Handlers\\Wms::createMovement',
+        'GET /wms/stock'                       => 'Genie\\Handlers\\Wms::listStock',
         'GET /wms/picking'                     => 'Genie\\Handlers\\Wms::listPicking',
         'POST /wms/picking'                    => 'Genie\\Handlers\\Wms::savePicking',
         'PUT /wms/picking/{id}'                => 'Genie\\Handlers\\Wms::savePicking',
@@ -1985,6 +1986,7 @@ return function (App $app): void {
     $register('DELETE', '/wms/permissions/{id}');
     $register('GET',    '/wms/movements');
     $register('POST',   '/wms/movements');
+    $register('GET',    '/wms/stock');
     $register('GET',    '/wms/picking');
     $register('POST',   '/wms/picking');
     $register('PUT',    '/wms/picking/{id}');

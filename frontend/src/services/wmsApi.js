@@ -27,6 +27,9 @@ export const deletePermission = (id)      => requestJsonAuth(`${P}/permissions/$
 export const listMovements    = (limit=300) => getJsonAuth(`${P}/movements?limit=${limit}`);
 export const createMovement   = (b)       => requestJsonAuth(`${P}/movements`, 'POST', b);
 
+// 물리 창고 재고(입출고 파생) — 208차 WMS↔재고 통합
+export const listStock        = (bySku=false) => getJsonAuth(`${P}/stock${bySku ? '?by_sku=1' : ''}`);
+
 // 피킹 리스트
 export const listPicking      = ()        => getJsonAuth(`${P}/picking`);
 export const createPicking    = (b)       => requestJsonAuth(`${P}/picking`, 'POST', b);
