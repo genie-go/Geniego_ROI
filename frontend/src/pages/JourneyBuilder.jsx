@@ -203,11 +203,13 @@ export default function JourneyBuilder() {
             return;
         }
         // 데모: 시뮬레이션(가상 성과 + 채널 액션 트리거)
-        const entered = Math.floor(Math.random() * 500) + 50;
-        const completed = Math.floor(entered * (0.4 + Math.random() * 0.5));
+        // 206차: 결정적화(여정 id 해시) — random 제거, 여정별 일관 성과(새로고침·사용자 무관)
+        const _h = String(j.id || j.name || '').split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+        const entered = 80 + (_h % 420);
+        const completed = Math.floor(entered * (0.45 + (_h % 40) / 100));
         const emailsSent = j.channels.includes('email') ? Math.floor(entered * 0.9) : 0;
         const kakaoSent = j.channels.includes('kakao') ? Math.floor(entered * 0.85) : 0;
-        const revenue = Math.floor(completed * (8000 + Math.random() * 30000));
+        const revenue = Math.floor(completed * (10000 + (_h % 30) * 1000));
         if (recordJourneyExecution) {
             recordJourneyExecution(j, { entered, completed, emailsSent, kakaoSent, revenue });
         }

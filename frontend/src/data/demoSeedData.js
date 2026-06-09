@@ -47,7 +47,11 @@ export const DEMO_PRODUCTS = [
 /* ═══════════════════════════════════════════════════════
    2. 재고(Inventory) — 3개 창고
 ═══════════════════════════════════════════════════════ */
-export const DEMO_INVENTORY = DEMO_PRODUCTS.map(p => ({
+// 206차: 재고 stock 결정적화 — 기존 Math.random 은 첫 시드 시점/사용자별로 값이 달라
+//   "동기화된 일관 가상데이터" 원칙 위반(재고 단일소스 자체가 임의값). SKU 해시 기반 결정적
+//   파생으로 교체 → 새로고침·사용자 무관 동일값(전 메뉴 재고 표시 일관).
+const _invHash = (sku) => String(sku || '').split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+export const DEMO_INVENTORY = DEMO_PRODUCTS.map((p, i) => ({
   sku: p.sku,
   name: p.name,
   price: p.price,
@@ -55,11 +59,11 @@ export const DEMO_INVENTORY = DEMO_PRODUCTS.map(p => ({
   category: p.category,
   brand: p.brand,
   safeQty: p.price >= 100000 ? 15 : 30,
-  stock: {
-    W001: 50 + Math.floor(Math.random() * 200),  // 서울 본사 물류센터
-    W002: 30 + Math.floor(Math.random() * 100),  // 부산 물류센터
-    W003: 20 + Math.floor(Math.random() * 80),   // 인천 글로벌 허브
-  },
+  stock: (() => { const h = _invHash(p.sku) + i * 37; return {
+    W001: 60 + (h % 200),          // 서울 본사 물류센터
+    W002: 30 + ((h * 7) % 100),    // 부산 물류센터
+    W003: 20 + ((h * 13) % 80),    // 인천 글로벌 허브
+  }; })(),
   status: p.status,
   channels: p.channels,
   image: p.image,
@@ -183,7 +187,10 @@ export const DEMO_BUDGETS = {
 ═══════════════════════════════════════════════════════ */
 export const DEMO_SETTLEMENT = DEMO_CHANNELS.slice(0, 6).flatMap(ch => {
   return ['2026-02', '2026-03', '2026-04'].map((period, pi) => {
-    const gross = Math.round(ch.revenue * (0.28 + pi * 0.03) * (0.9 + Math.random() * 0.2));
+    // 206차: gross 결정적화(채널+기간 해시) — Math.random 은 정산총액→총매출(pnlStats.revenue)을
+    //   첫로드/사용자별로 변동시켜 동기화 일관성 위반. 결정적 파생으로 교체.
+    const _sh = String((ch.id || '') + period).split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+    const gross = Math.round(ch.revenue * (0.28 + pi * 0.03) * (0.9 + (_sh % 20) / 100));
     const pfee = Math.round(gross * (ch.id === 'oliveyoung' ? 0.30 : ch.id === 'coupang' ? 0.108 : 0.055));
     const adFee = Math.round(gross * 0.02);
     const returnFee = Math.round(gross * 0.015);

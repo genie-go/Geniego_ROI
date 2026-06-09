@@ -327,7 +327,7 @@ function CampaignsTab({ API, campaigns, setCampaigns, fmt }) {
                 type: form.template_code && form.template_code.includes('FRIEND') ? 'friendtalk' : 'alimtalk',
                 template_name: tpl?.name, template_code: form.template_code,
                 targetSegmentId: seg?.id, targetSegmentName: seg?.name,
-                estimatedReach: seg ? 1000 : 0, status: 'draft',
+                estimatedReach: seg?.count ?? 0, status: 'draft', // 206차: 1000 하드코딩→CRM 세그먼트 고객수 동기화
             });
             setMsg(t('kakao.msgCampDone')); setForm({ name: "", template_code: "", segment_id: "" });
             return;
@@ -344,7 +344,7 @@ function CampaignsTab({ API, campaigns, setCampaigns, fmt }) {
         if (_IS_DEMO) {
             // 라이브 발송 시뮬레이션 → status/sent 갱신 → 통계 카드 즉시 반영
             const c = (campaigns || []).find(x => x.id === id);
-            const reach = c?.total || 1000;
+            const reach = c?.total || c?.estimatedReach || 0; // 206차: 임의 1000 폴백 제거 → 세그먼트 대상수 기반
             const succ = Math.round(reach * 0.94);
             updateKakaoCampaign(id, { status: 'sent', sent: succ, success: succ, failed: reach - succ, total: reach });
             setMsg(`✅ ${t('kakao.msgSendSucc')} ${succ}, ${t('kakao.msgSendFail2')}${reach - succ})`);

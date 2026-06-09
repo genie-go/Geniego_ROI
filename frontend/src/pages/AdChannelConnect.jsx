@@ -168,7 +168,9 @@ export default function AdChannelConnect() {
         <div className="hero-meta">
           <div className="hero-icon" style={{ background: 'linear-gradient(135deg,rgba(249,115,22,0.25),rgba(168,85,247,0.15))' }}>🔗</div>
           <div>
-            <div className="hero-title" style={{ background: 'linear-gradient(135deg,#f97316,#a855f7)' }}>{tr('heroTitle', '광고 매체 자동집행 연동')}</div>
+            {/* 206차: 인라인 linear-gradient 배경 제거 — 라이트테마 전역규칙(styles.css 3389)이 gradient 인라인을
+                흰 카드박스+border로 강제 override해 padding 없는 좁은 박스가 제목을 아래로 자르던 문제. 일반 제목으로 통일. */}
+            <div className="hero-title">{tr('heroTitle', '광고 매체 자동집행 연동')}</div>
             <div className="hero-desc">{tr('heroDesc', '광고 매체 쓰기 권한 자격증명을 등록하면 마케팅 자동화(추천→집행→실시간 최적화)가 해당 매체에서 활성화됩니다.')}</div>
           </div>
         </div>

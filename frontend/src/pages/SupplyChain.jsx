@@ -7,6 +7,7 @@ import{BarChart,Bar,XAxis,YAxis,CartesianGrid,Tooltip as RTooltip,ResponsiveCont
 import AIRecommendBanner from'../components/AIRecommendBanner.jsx';
 import SC_DICT from'./scI18n.js';
 import{DEMO_PRODUCTS}from'../data/demoSeedData.js';
+import{useGlobalData}from'../context/GlobalDataContext.jsx';
 
 /* ── i18n helper ── */
 const T={
@@ -251,7 +252,10 @@ return(
    ══════════════════════════════════════════════════════════════ */
 function InventoryTab({tr,fmt}){
 const{isDemoMode}=useAuth();
-const inv=isDemoMode?DEMO_INV:[];
+// 206차: 재고 수량을 단일소스(GlobalDataContext.inventory)에서 파생 → 재고/WMS/대시보드 메뉴와 일관.
+//   공급사/위치/상태는 공급망 도메인 속성(단일소스 부재)이라 결정적 시드 유지.
+const{inventory:ctxInv}=useGlobalData();
+const inv=isDemoMode?DEMO_INV.map(r=>{const ci=(ctxInv||[]).find(x=>x.sku===r.sku);const total=ci&&ci.stock?Object.values(ci.stock).reduce((a,b)=>a+(Number(b)||0),0):r.qty;return{...r,qty:total};}):[];
 const totalQty=inv.reduce((s,x)=>s+x.qty,0);
 const transit=inv.filter(x=>x.status==='transit').reduce((s,x)=>s+x.qty,0);
 const warehouse=inv.filter(x=>x.status==='normal').reduce((s,x)=>s+x.qty,0);

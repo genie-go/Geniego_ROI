@@ -8,7 +8,11 @@ use Psr\Http\Message\ResponseInterface as Response;
 
 /**
  * v420 — Supply Chain Visibility
- * In-memory SQLite — lines, suppliers, risk rules, stage tracking
+ *
+ * 206차 #6: 기존 `sqlite::memory:`(요청마다 소실 + 테넌트 미격리)를 영속 SQLite 파일 +
+ *   전 테이블 tenant_id + 전 쿼리 테넌트 스코핑으로 전환(PriceOpt 와 동일 패턴).
+ *   영속: backend/data/supplychain.sqlite(운영/데모 디렉터리 분리로 파일 자동 분리).
+ *   격리: tenant = UserAuth::authedTenant(익명/데모→'demo').
  */
 class SupplyChain
 {
@@ -17,30 +21,43 @@ class SupplyChain
     private static function db(): \PDO
     {
         if (self::$db !== null) return self::$db;
-        $pdo = new \PDO('sqlite::memory:');
+
+        $dir = __DIR__ . '/../../data';
+        if (!is_dir($dir)) { @mkdir($dir, 0775, true); }
+        $pdo = new \PDO('sqlite:' . $dir . '/supplychain.sqlite');
         $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
         $pdo->exec("PRAGMA journal_mode=WAL");
+        $pdo->exec("PRAGMA busy_timeout=5000");
 
         $pdo->exec("CREATE TABLE IF NOT EXISTS sc_lines (
-            id INTEGER PRIMARY KEY AUTOINCREMENT, line_id TEXT UNIQUE, supplier TEXT,
-            sku TEXT, name TEXT, leadTime INTEGER DEFAULT 14, risk TEXT DEFAULT 'low',
-            delayRate REAL DEFAULT 0, totalCost REAL DEFAULT 0, created_at TEXT)");
+            id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo',
+            line_id TEXT, supplier TEXT, sku TEXT, name TEXT, leadTime INTEGER DEFAULT 14,
+            risk TEXT DEFAULT 'low', delayRate REAL DEFAULT 0, totalCost REAL DEFAULT 0, created_at TEXT,
+            UNIQUE(tenant_id, line_id))");
 
         $pdo->exec("CREATE TABLE IF NOT EXISTS sc_stages (
-            id INTEGER PRIMARY KEY AUTOINCREMENT, line_id TEXT NOT NULL, stage TEXT,
-            stageDate TEXT, done INTEGER DEFAULT 0, note TEXT, sort_order INTEGER DEFAULT 0)");
+            id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo',
+            line_id TEXT NOT NULL, stage TEXT, stageDate TEXT, done INTEGER DEFAULT 0,
+            note TEXT, sort_order INTEGER DEFAULT 0)");
 
         $pdo->exec("CREATE TABLE IF NOT EXISTS sc_suppliers (
-            id INTEGER PRIMARY KEY AUTOINCREMENT, sup_id TEXT UNIQUE, name TEXT,
-            country TEXT, category TEXT, leadTime INTEGER, delayRate REAL,
-            orderCount INTEGER DEFAULT 0, reliability REAL DEFAULT 95, contact TEXT, created_at TEXT)");
+            id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo',
+            sup_id TEXT, name TEXT, country TEXT, category TEXT, leadTime INTEGER, delayRate REAL,
+            orderCount INTEGER DEFAULT 0, reliability REAL DEFAULT 95, contact TEXT, created_at TEXT,
+            UNIQUE(tenant_id, sup_id))");
 
         $pdo->exec("CREATE TABLE IF NOT EXISTS sc_risk_rules (
-            id INTEGER PRIMARY KEY AUTOINCREMENT, rule TEXT, action TEXT,
-            active INTEGER DEFAULT 1, created_at TEXT)");
+            id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo',
+            rule TEXT, action TEXT, active INTEGER DEFAULT 1, created_at TEXT)");
 
         self::$db = $pdo;
         return $pdo;
+    }
+
+    private static function tenant(Request $request): string
+    {
+        $t = UserAuth::authedTenant($request);
+        return ($t !== null && $t !== '') ? $t : 'demo';
     }
 
     private static function json(Response $response, mixed $data, int $status = 200): Response
@@ -63,11 +80,12 @@ class SupplyChain
 
     public static function listLines(Request $request, Response $response, array $args): Response
     {
-        $db = self::db();
-        $lines = $db->query("SELECT * FROM sc_lines ORDER BY created_at DESC")->fetchAll(\PDO::FETCH_ASSOC);
+        $db = self::db(); $t = self::tenant($request);
+        $ls = $db->prepare("SELECT * FROM sc_lines WHERE tenant_id=? ORDER BY created_at DESC");
+        $ls->execute([$t]); $lines = $ls->fetchAll(\PDO::FETCH_ASSOC);
         foreach ($lines as &$l) {
-            $st = $db->prepare("SELECT * FROM sc_stages WHERE line_id=? ORDER BY sort_order");
-            $st->execute([$l['line_id']]);
+            $st = $db->prepare("SELECT * FROM sc_stages WHERE line_id=? AND tenant_id=? ORDER BY sort_order");
+            $st->execute([$l['line_id'], $t]);
             $l['stages'] = $st->fetchAll(\PDO::FETCH_ASSOC);
         }
         return self::json($response, ['ok'=>true,'lines'=>$lines]);
@@ -75,53 +93,54 @@ class SupplyChain
 
     public static function createLine(Request $request, Response $response, array $args): Response
     {
-        $db = self::db(); $b = self::body($request);
+        $db = self::db(); $t = self::tenant($request); $b = self::body($request);
         $lid = $b['line_id'] ?? ('SUP-' . str_pad((string)rand(1, 9999), 3, '0', STR_PAD_LEFT));
-        $db->prepare("INSERT OR REPLACE INTO sc_lines (line_id,supplier,sku,name,leadTime,risk,delayRate,totalCost,created_at) VALUES (?,?,?,?,?,?,?,?,?)")
-            ->execute([$lid,$b['supplier']??'',$b['sku']??'',$b['name']??'',(int)($b['leadTime']??14),$b['risk']??'low',(float)($b['delayRate']??0),(float)($b['totalCost']??0),gmdate('c')]);
-        // create default stages
+        $db->prepare("INSERT OR REPLACE INTO sc_lines (tenant_id,line_id,supplier,sku,name,leadTime,risk,delayRate,totalCost,created_at) VALUES (?,?,?,?,?,?,?,?,?,?)")
+            ->execute([$t,$lid,$b['supplier']??'',$b['sku']??'',$b['name']??'',(int)($b['leadTime']??14),$b['risk']??'low',(float)($b['delayRate']??0),(float)($b['totalCost']??0),gmdate('c')]);
+        // 재생성 시 기존 stage 정리(중복 방지)
+        $db->prepare("DELETE FROM sc_stages WHERE line_id=? AND tenant_id=?")->execute([$lid, $t]);
         $stages = $b['stages'] ?? [
             ['stage'=>'Purchase Order','done'=>0],['stage'=>'생산','done'=>0],
             ['stage'=>'선적','done'=>0],['stage'=>'통관','done'=>0],
             ['stage'=>'입고','done'=>0],['stage'=>'출고준비','done'=>0]
         ];
-        $ins = $db->prepare("INSERT INTO sc_stages (line_id,stage,stageDate,done,note,sort_order) VALUES (?,?,?,?,?,?)");
+        $ins = $db->prepare("INSERT INTO sc_stages (tenant_id,line_id,stage,stageDate,done,note,sort_order) VALUES (?,?,?,?,?,?,?)");
         foreach ($stages as $i => $s) {
-            $ins->execute([$lid,$s['stage']??'',$s['stageDate']??$s['date']??'',(int)($s['done']??0),$s['note']??'',$i]);
+            $ins->execute([$t,$lid,$s['stage']??'',$s['stageDate']??$s['date']??'',(int)($s['done']??0),$s['note']??'',$i]);
         }
         return self::json($response, ['ok'=>true,'line_id'=>$lid]);
     }
 
     public static function updateLine(Request $request, Response $response, array $args): Response
     {
-        $db = self::db(); $b = self::body($request); $id = (int)($args['id']??0);
-        $sets = []; $params = [':id'=>$id];
+        $db = self::db(); $t = self::tenant($request); $b = self::body($request); $id = (int)($args['id']??0);
+        $sets = []; $params = [':id'=>$id, ':t'=>$t];
         foreach (['supplier','sku','name','leadTime','risk','delayRate','totalCost'] as $f) {
             if (isset($b[$f])) { $sets[] = "$f=:$f"; $params[":$f"] = $b[$f]; }
         }
-        if (count($sets)) $db->prepare("UPDATE sc_lines SET ".implode(',',$sets)." WHERE id=:id")->execute($params);
+        if (count($sets)) $db->prepare("UPDATE sc_lines SET ".implode(',',$sets)." WHERE id=:id AND tenant_id=:t")->execute($params);
         return self::json($response, ['ok'=>true]);
     }
 
     public static function deleteLine(Request $request, Response $response, array $args): Response
     {
-        $db = self::db(); $id = (int)($args['id']??0);
-        $line = $db->prepare("SELECT line_id FROM sc_lines WHERE id=?"); $line->execute([$id]);
+        $db = self::db(); $t = self::tenant($request); $id = (int)($args['id']??0);
+        $line = $db->prepare("SELECT line_id FROM sc_lines WHERE id=? AND tenant_id=?"); $line->execute([$id, $t]);
         $r = $line->fetch(\PDO::FETCH_ASSOC);
-        if ($r) { $db->prepare("DELETE FROM sc_stages WHERE line_id=?")->execute([$r['line_id']]); }
-        $db->prepare("DELETE FROM sc_lines WHERE id=?")->execute([$id]);
+        if ($r) { $db->prepare("DELETE FROM sc_stages WHERE line_id=? AND tenant_id=?")->execute([$r['line_id'], $t]); }
+        $db->prepare("DELETE FROM sc_lines WHERE id=? AND tenant_id=?")->execute([$id, $t]);
         return self::json($response, ['ok'=>true]);
     }
 
     public static function updateStage(Request $request, Response $response, array $args): Response
     {
-        $db = self::db(); $b = self::body($request); $id = (int)($args['id']??0);
-        $line = $db->prepare("SELECT line_id FROM sc_lines WHERE id=?"); $line->execute([$id]);
+        $db = self::db(); $t = self::tenant($request); $b = self::body($request); $id = (int)($args['id']??0);
+        $line = $db->prepare("SELECT line_id FROM sc_lines WHERE id=? AND tenant_id=?"); $line->execute([$id, $t]);
         $r = $line->fetch(\PDO::FETCH_ASSOC);
         if (!$r) return self::json($response, ['ok'=>false,'error'=>'line not found'], 404);
         $stage = $b['stage']??''; $done = (int)($b['done']??1);
-        $db->prepare("UPDATE sc_stages SET done=?, note=?, stageDate=? WHERE line_id=? AND stage=?")
-            ->execute([$done,$b['note']??'',gmdate('Y-m-d'),$r['line_id'],$stage]);
+        $db->prepare("UPDATE sc_stages SET done=?, note=?, stageDate=? WHERE line_id=? AND stage=? AND tenant_id=?")
+            ->execute([$done,$b['note']??'',gmdate('Y-m-d'),$r['line_id'],$stage,$t]);
         return self::json($response, ['ok'=>true]);
     }
 
@@ -129,33 +148,36 @@ class SupplyChain
 
     public static function listSuppliers(Request $request, Response $response, array $args): Response
     {
-        $rows = self::db()->query("SELECT * FROM sc_suppliers ORDER BY name")->fetchAll(\PDO::FETCH_ASSOC);
-        return self::json($response, ['ok'=>true,'suppliers'=>$rows]);
+        $t = self::tenant($request);
+        $stmt = self::db()->prepare("SELECT * FROM sc_suppliers WHERE tenant_id=? ORDER BY name");
+        $stmt->execute([$t]);
+        return self::json($response, ['ok'=>true,'suppliers'=>$stmt->fetchAll(\PDO::FETCH_ASSOC)]);
     }
 
     public static function createSupplier(Request $request, Response $response, array $args): Response
     {
-        $db = self::db(); $b = self::body($request);
+        $db = self::db(); $t = self::tenant($request); $b = self::body($request);
         $sid = $b['sup_id'] ?? ('SUPL-'.str_pad((string)rand(1,999),3,'0',STR_PAD_LEFT));
-        $db->prepare("INSERT OR REPLACE INTO sc_suppliers (sup_id,name,country,category,leadTime,delayRate,orderCount,reliability,contact,created_at) VALUES (?,?,?,?,?,?,?,?,?,?)")
-            ->execute([$sid,$b['name']??'',$b['country']??'',$b['category']??'',(int)($b['leadTime']??14),(float)($b['delayRate']??0),(int)($b['orderCount']??0),(float)($b['reliability']??95),$b['contact']??'',gmdate('c')]);
+        $db->prepare("INSERT OR REPLACE INTO sc_suppliers (tenant_id,sup_id,name,country,category,leadTime,delayRate,orderCount,reliability,contact,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)")
+            ->execute([$t,$sid,$b['name']??'',$b['country']??'',$b['category']??'',(int)($b['leadTime']??14),(float)($b['delayRate']??0),(int)($b['orderCount']??0),(float)($b['reliability']??95),$b['contact']??'',gmdate('c')]);
         return self::json($response, ['ok'=>true,'sup_id'=>$sid]);
     }
 
     public static function updateSupplier(Request $request, Response $response, array $args): Response
     {
-        $db = self::db(); $b = self::body($request); $id = (int)($args['id']??0);
-        $sets = []; $params = [':id'=>$id];
+        $db = self::db(); $t = self::tenant($request); $b = self::body($request); $id = (int)($args['id']??0);
+        $sets = []; $params = [':id'=>$id, ':t'=>$t];
         foreach (['name','country','category','leadTime','delayRate','orderCount','reliability','contact'] as $f) {
             if (isset($b[$f])) { $sets[] = "$f=:$f"; $params[":$f"] = $b[$f]; }
         }
-        if (count($sets)) $db->prepare("UPDATE sc_suppliers SET ".implode(',',$sets)." WHERE id=:id")->execute($params);
+        if (count($sets)) $db->prepare("UPDATE sc_suppliers SET ".implode(',',$sets)." WHERE id=:id AND tenant_id=:t")->execute($params);
         return self::json($response, ['ok'=>true]);
     }
 
     public static function deleteSupplier(Request $request, Response $response, array $args): Response
     {
-        self::db()->prepare("DELETE FROM sc_suppliers WHERE id=?")->execute([(int)($args['id']??0)]);
+        $t = self::tenant($request);
+        self::db()->prepare("DELETE FROM sc_suppliers WHERE id=? AND tenant_id=?")->execute([(int)($args['id']??0), $t]);
         return self::json($response, ['ok'=>true]);
     }
 
@@ -163,22 +185,24 @@ class SupplyChain
 
     public static function listRiskRules(Request $request, Response $response, array $args): Response
     {
-        $rows = self::db()->query("SELECT * FROM sc_risk_rules ORDER BY id")->fetchAll(\PDO::FETCH_ASSOC);
-        return self::json($response, ['ok'=>true,'rules'=>$rows]);
+        $t = self::tenant($request);
+        $stmt = self::db()->prepare("SELECT * FROM sc_risk_rules WHERE tenant_id=? ORDER BY id");
+        $stmt->execute([$t]);
+        return self::json($response, ['ok'=>true,'rules'=>$stmt->fetchAll(\PDO::FETCH_ASSOC)]);
     }
 
     public static function createRiskRule(Request $request, Response $response, array $args): Response
     {
-        $db = self::db(); $b = self::body($request);
-        $db->prepare("INSERT INTO sc_risk_rules (rule,action,active,created_at) VALUES (?,?,1,?)")
-            ->execute([$b['rule']??'',$b['action']??'',gmdate('c')]);
+        $db = self::db(); $t = self::tenant($request); $b = self::body($request);
+        $db->prepare("INSERT INTO sc_risk_rules (tenant_id,rule,action,active,created_at) VALUES (?,?,?,1,?)")
+            ->execute([$t,$b['rule']??'',$b['action']??'',gmdate('c')]);
         return self::json($response, ['ok'=>true,'id'=>$db->lastInsertId()]);
     }
 
     public static function toggleRiskRule(Request $request, Response $response, array $args): Response
     {
-        $id = (int)($args['id']??0);
-        self::db()->prepare("UPDATE sc_risk_rules SET active = CASE WHEN active=1 THEN 0 ELSE 1 END WHERE id=?")->execute([$id]);
+        $t = self::tenant($request); $id = (int)($args['id']??0);
+        self::db()->prepare("UPDATE sc_risk_rules SET active = CASE WHEN active=1 THEN 0 ELSE 1 END WHERE id=? AND tenant_id=?")->execute([$id, $t]);
         return self::json($response, ['ok'=>true]);
     }
 
@@ -186,15 +210,16 @@ class SupplyChain
 
     public static function summary(Request $request, Response $response, array $args): Response
     {
-        $db = self::db();
-        $lines = (int)$db->query("SELECT COUNT(*) FROM sc_lines")->fetchColumn();
-        $suppliers = (int)$db->query("SELECT COUNT(*) FROM sc_suppliers")->fetchColumn();
-        $highRisk = (int)$db->query("SELECT COUNT(*) FROM sc_lines WHERE risk='high'")->fetchColumn();
-        $avgLead = $db->query("SELECT AVG(leadTime) FROM sc_lines")->fetchColumn();
-        $totalCost = $db->query("SELECT SUM(totalCost) FROM sc_lines")->fetchColumn();
+        $db = self::db(); $t = self::tenant($request);
+        $cnt = function(string $sql) use ($db, $t) { $s = $db->prepare($sql); $s->execute([$t]); return $s->fetchColumn(); };
+        $lines = (int)$cnt("SELECT COUNT(*) FROM sc_lines WHERE tenant_id=?");
+        $suppliers = (int)$cnt("SELECT COUNT(*) FROM sc_suppliers WHERE tenant_id=?");
+        $highRisk = (int)$cnt("SELECT COUNT(*) FROM sc_lines WHERE risk='high' AND tenant_id=?");
+        $avgLead = $cnt("SELECT AVG(leadTime) FROM sc_lines WHERE tenant_id=?");
+        $totalCost = $cnt("SELECT SUM(totalCost) FROM sc_lines WHERE tenant_id=?");
         return self::json($response, [
             'ok'=>true,'lines'=>$lines,'suppliers'=>$suppliers,'highRisk'=>$highRisk,
-            'avgLeadTime'=>$avgLead!==false?round((float)$avgLead,1):0,
+            'avgLeadTime'=>$avgLead!==false&&$avgLead!==null?round((float)$avgLead,1):0,
             'totalCost'=>(float)($totalCost??0)
         ]);
     }

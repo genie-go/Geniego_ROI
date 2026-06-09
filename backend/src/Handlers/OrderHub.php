@@ -266,4 +266,197 @@ final class OrderHub
             '_isDemo' => $isDemo,
         ]);
     }
+
+    /* ════════════════════════════════════════════════════════════════════
+     * 206차 #3 — claims/settlements 인제스트 라이터 (CSV/API)
+     *   기존엔 읽기 전용(빈 테이블). 채널 정산 데이터를 적재한다.
+     *   - POST orderhub/claims        : 반품/취소 클레임 인제스트(JSON 배열 또는 CSV)
+     *   - POST orderhub/settlements   : 정산 레코드 인제스트(period+channel upsert)
+     *   - POST orderhub/settlements/rollup : channel_orders 집계로 정산 파생
+     * ════════════════════════════════════════════════════════════════════ */
+
+    /** body 에서 레코드 배열 추출 — {items:[]} / 배열 / 단일객체 / {csv:"..."} 모두 수용. */
+    private static function extractItems(Request $req): array
+    {
+        $body = $req->getParsedBody();
+        if (is_array($body)) {
+            if (isset($body['items']) && is_array($body['items'])) return array_values($body['items']);
+            if (isset($body['csv']) && is_string($body['csv'])) return self::parseCsv($body['csv']);
+            if (array_is_list($body)) return $body;
+            if (!empty($body)) return [$body];
+        }
+        // raw CSV 본문(content-type: text/csv)
+        $raw = (string)$req->getBody();
+        if ($raw !== '' && str_contains($raw, ',')) {
+            $maybe = json_decode($raw, true);
+            if (is_array($maybe)) return array_is_list($maybe) ? $maybe : [$maybe];
+            return self::parseCsv($raw);
+        }
+        return [];
+    }
+
+    /** 헤더 행 기반 CSV → 연관배열 목록. */
+    private static function parseCsv(string $csv): array
+    {
+        $lines = preg_split('/\r\n|\r|\n/', trim($csv));
+        if (!$lines || count($lines) < 2) return [];
+        $header = array_map('trim', str_getcsv(array_shift($lines)));
+        $out = [];
+        foreach ($lines as $ln) {
+            if (trim($ln) === '') continue;
+            $cols = str_getcsv($ln);
+            $row = [];
+            foreach ($header as $i => $h) { $row[$h] = $cols[$i] ?? null; }
+            $out[] = $row;
+        }
+        return $out;
+    }
+
+    private static function genId(string $prefix, string $tenant): string
+    {
+        return $prefix . '_' . substr(md5($tenant), 0, 6) . '_' . str_replace('.', '', uniqid('', true));
+    }
+
+    public static function ingestClaims(Request $req, Response $resp): Response
+    {
+        $g = self::gate($req, $resp);
+        if (isset($g['error'])) return $g['error'];
+        [$tenant, $isDemo, $pdo] = [$g['tenant'], $g['isDemo'], $g['pdo']];
+
+        $items = self::extractItems($req);
+        $now = gmdate('Y-m-d H:i:s');
+        $ingested = 0; $skipped = 0;
+        try {
+            $upd = $pdo->prepare("UPDATE orderhub_claims SET buyer=?,channel=?,type=?,reason=?,status=?,amount=?,updated_at=? WHERE id=? AND tenant_id=?");
+            $ins = $pdo->prepare("INSERT INTO orderhub_claims (id,tenant_id,order_id,buyer,channel,type,reason,status,amount,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)");
+            foreach ($items as $it) {
+                $orderId = (string)($it['order_id'] ?? $it['orderId'] ?? '');
+                if ($orderId === '') { $skipped++; continue; }
+                $type = (string)($it['type'] ?? 'return');
+                if (!in_array($type, ['return','cancel','exchange'], true)) $type = 'return';
+                $buyer   = isset($it['buyer']) ? (string)$it['buyer'] : null;
+                $channel = isset($it['channel']) ? (string)$it['channel'] : null;
+                $reason  = isset($it['reason']) ? (string)$it['reason'] : null;
+                $status  = (string)($it['status'] ?? 'pending');
+                $amount  = (float)($it['amount'] ?? 0);
+                $id = (string)($it['id'] ?? '');
+                if ($id !== '' && $upd->execute([$buyer,$channel,$type,$reason,$status,$amount,$now,$id,$tenant]) && $upd->rowCount() > 0) {
+                    $ingested++; continue;
+                }
+                if ($id === '') $id = self::genId('clm', $tenant);
+                $ins->execute([$id,$tenant,$orderId,$buyer,$channel,$type,$reason,$status,$amount,$now,$now]);
+                $ingested++;
+            }
+        } catch (\Throwable $e) {
+            return self::json($resp, ['ok' => false, 'error' => 'db_error', 'message' => $e->getMessage()], 500);
+        }
+        return self::json($resp, ['ok' => true, 'ingested' => $ingested, 'skipped' => $skipped, '_env' => Db::env(), '_isDemo' => $isDemo]);
+    }
+
+    public static function ingestSettlements(Request $req, Response $resp): Response
+    {
+        $g = self::gate($req, $resp);
+        if (isset($g['error'])) return $g['error'];
+        [$tenant, $isDemo, $pdo] = [$g['tenant'], $g['isDemo'], $g['pdo']];
+
+        $items = self::extractItems($req);
+        $now = gmdate('Y-m-d H:i:s');
+        $ingested = 0; $skipped = 0;
+        try {
+            foreach ($items as $it) {
+                $period  = (string)($it['period'] ?? '');
+                $channel = (string)($it['channel'] ?? '');
+                if ($period === '' || $channel === '') { $skipped++; continue; }
+                $ingested += self::upsertSettlement($pdo, $tenant, $period, $channel, [
+                    'status'          => (string)($it['status'] ?? 'pending'),
+                    'gross_sales'     => (float)($it['gross_sales'] ?? $it['grossSales'] ?? 0),
+                    'net_payout'      => (float)($it['net_payout'] ?? $it['netPayout'] ?? 0),
+                    'platform_fee'    => (float)($it['platform_fee'] ?? $it['platformFee'] ?? 0),
+                    'ad_fee'          => (float)($it['ad_fee'] ?? $it['adFee'] ?? 0),
+                    'coupon_discount' => (float)($it['coupon_discount'] ?? $it['couponDiscount'] ?? 0),
+                    'return_fee'      => (float)($it['return_fee'] ?? $it['returnFee'] ?? 0),
+                    'orders_count'    => (int)($it['orders_count'] ?? $it['orders'] ?? 0),
+                    'returns_count'   => (int)($it['returns_count'] ?? $it['returns'] ?? 0),
+                ], $now);
+            }
+        } catch (\Throwable $e) {
+            return self::json($resp, ['ok' => false, 'error' => 'db_error', 'message' => $e->getMessage()], 500);
+        }
+        return self::json($resp, ['ok' => true, 'ingested' => $ingested, 'skipped' => $skipped, '_env' => Db::env(), '_isDemo' => $isDemo]);
+    }
+
+    /** channel_orders + orderhub_claims 집계로 정산 파생(plaform_fee 추정율 적용). */
+    public static function rollupSettlements(Request $req, Response $resp): Response
+    {
+        $g = self::gate($req, $resp);
+        if (isset($g['error'])) return $g['error'];
+        [$tenant, $isDemo, $pdo] = [$g['tenant'], $g['isDemo'], $g['pdo']];
+
+        $q = $req->getQueryParams();
+        $body = (array)($req->getParsedBody() ?? []);
+        $period = (string)($q['period'] ?? $body['period'] ?? gmdate('Y-m'));
+        if (!preg_match('/^\d{4}-\d{2}$/', $period)) $period = gmdate('Y-m');
+        $feeRate = (float)($q['fee_rate'] ?? $body['fee_rate'] ?? 0.10); // 기본 플랫폼 수수료 10%
+        $now = gmdate('Y-m-d H:i:s');
+
+        try {
+            // 주문 집계
+            $os = $pdo->prepare("SELECT channel, COUNT(*) AS cnt, COALESCE(SUM(total_price),0) AS gross
+                FROM channel_orders WHERE tenant_id=? AND SUBSTR(ordered_at,1,7)=? GROUP BY channel");
+            $os->execute([$tenant, $period]);
+            $orders = $os->fetchAll(\PDO::FETCH_ASSOC);
+
+            // 클레임(반품/취소) 집계
+            $cs = $pdo->prepare("SELECT channel, COUNT(*) AS rcnt, COALESCE(SUM(amount),0) AS rfee
+                FROM orderhub_claims WHERE tenant_id=? AND SUBSTR(created_at,1,7)=? AND type IN ('return','cancel') GROUP BY channel");
+            $cs->execute([$tenant, $period]);
+            $claimsBy = [];
+            foreach ($cs->fetchAll(\PDO::FETCH_ASSOC) as $r) {
+                $claimsBy[(string)$r['channel']] = ['rcnt' => (int)$r['rcnt'], 'rfee' => (float)$r['rfee']];
+            }
+
+            $rolled = 0;
+            foreach ($orders as $o) {
+                $channel = (string)($o['channel'] ?? '');
+                if ($channel === '') continue;
+                $gross    = (float)$o['gross'];
+                $cnt      = (int)$o['cnt'];
+                $platform = round($gross * $feeRate, 2);
+                $returnFee = $claimsBy[$channel]['rfee'] ?? 0.0;
+                $returns   = $claimsBy[$channel]['rcnt'] ?? 0;
+                $net = round($gross - $platform - $returnFee, 2);
+                $rolled += self::upsertSettlement($pdo, $tenant, $period, $channel, [
+                    'status'          => 'estimated',
+                    'gross_sales'     => $gross,
+                    'net_payout'      => $net,
+                    'platform_fee'    => $platform,
+                    'ad_fee'          => 0.0,
+                    'coupon_discount' => 0.0,
+                    'return_fee'      => $returnFee,
+                    'orders_count'    => $cnt,
+                    'returns_count'   => $returns,
+                ], $now);
+            }
+        } catch (\Throwable $e) {
+            return self::json($resp, ['ok' => false, 'error' => 'db_error', 'message' => $e->getMessage()], 500);
+        }
+        return self::json($resp, ['ok' => true, 'period' => $period, 'fee_rate' => $feeRate, 'rolled' => $rolled, '_env' => Db::env(), '_isDemo' => $isDemo]);
+    }
+
+    /** period+channel 유니크 기준 포터블 업서트(MySQL/SQLite 공용). @return int 1 */
+    private static function upsertSettlement(\PDO $pdo, string $tenant, string $period, string $channel, array $v, string $now): int
+    {
+        $sel = $pdo->prepare("SELECT id FROM orderhub_settlements WHERE tenant_id=? AND period=? AND channel=? LIMIT 1");
+        $sel->execute([$tenant, $period, $channel]);
+        $id = $sel->fetchColumn();
+        if ($id !== false && $id !== null) {
+            $pdo->prepare("UPDATE orderhub_settlements SET status=?,gross_sales=?,net_payout=?,platform_fee=?,ad_fee=?,coupon_discount=?,return_fee=?,orders_count=?,returns_count=?,updated_at=? WHERE id=?")
+                ->execute([$v['status'],$v['gross_sales'],$v['net_payout'],$v['platform_fee'],$v['ad_fee'],$v['coupon_discount'],$v['return_fee'],$v['orders_count'],$v['returns_count'],$now,$id]);
+        } else {
+            $newId = self::genId('stl', $tenant);
+            $pdo->prepare("INSERT INTO orderhub_settlements (id,tenant_id,period,channel,status,gross_sales,net_payout,platform_fee,ad_fee,coupon_discount,return_fee,orders_count,returns_count,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
+                ->execute([$newId,$tenant,$period,$channel,$v['status'],$v['gross_sales'],$v['net_payout'],$v['platform_fee'],$v['ad_fee'],$v['coupon_discount'],$v['return_fee'],$v['orders_count'],$v['returns_count'],$now,$now]);
+        }
+        return 1;
+    }
 }

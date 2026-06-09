@@ -153,7 +153,8 @@ function SettingsTab({ settings }) {
             </div>
             <div style={{ background: C.card, borderRadius: 14, padding: 20, border: `1px solid ${C.border}` }}>
                 <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 16 }}>📊 月次パフォーマンス</div>
-                {[["月間配信数", settings.monthly_sent?.toLocaleString() || "37,376"], ["平均開封率", "91.2%"], ["平均クリック率", "37.8%"]].map(([l, v]) => (
+                {/* 206차: 하드코딩 통계 IS_DEMO 게이트 — 운영(미연동)은 '—', 데모만 시드값 노출(목데이터 운영유입 차단) */}
+                {[["月間配信数", settings.monthly_sent?.toLocaleString() || (IS_DEMO ? "37,376" : "—")], ["平均開封率", IS_DEMO ? "91.2%" : "—"], ["平均クリック率", IS_DEMO ? "37.8%" : "—"]].map(([l, v]) => (
                     <div key={l} style={{ display: "flex", justifyContent: "space-between", padding: "10px 0", borderBottom: `1px solid rgba(255,255,255,0.05)` }}>
                         <span style={{ fontSize: 13, color: C.muted }}>{l}</span>
                         <span style={{ fontSize: 13, fontWeight: 700, color: C.line }}>{v}</span>
@@ -212,7 +213,7 @@ function LINEChannelContent() {
                     <div style={{ fontSize: 13, color: 'var(--text-2)', marginTop: 4 }}>メッセージ配信 · テンプレート管理 · 日本市場対応</div>
                 </div>
                 <div style={{ background: "rgba(0,0,0,0.3)", borderRadius: 12, padding: "10px 16px", textAlign: "center" }}>
-                    <div style={{ fontSize: 22, fontWeight: 800, color: C.line }}>{stats?.total_followers?.toLocaleString() || "12,483"}</div>
+                    <div style={{ fontSize: 22, fontWeight: 800, color: C.line }}>{stats?.total_followers?.toLocaleString() || (IS_DEMO ? "12,483" : "—")}</div>
                     <div style={{ fontSize: 11, color: 'var(--text-2)' }}>フォロワー数</div>
                 </div>
             </div>

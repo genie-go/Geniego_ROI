@@ -567,7 +567,17 @@ export default function DashInfluencer() {
   }, []);
 
   // ✅ Production-only: GlobalDataContext creators onlyntext ?리?이?만 ?용 (?모 ?백 ?음)
-  const creatorList = useMemo(() => (creators && creators.length > 0) ? creators : [], [creators]);
+  // 206차 #1: 인플루언서 매출 단일소스 일관화 — 크리에이터 시드 매출/구매를 총매출(pnlStats.revenue)의
+  //   일정 기여비중(22%)에 비례 스케일 → 총매출·글로벌매출과 항상 일관(가상데이터 변경 시 동반 갱신).
+  const INFLUENCER_SHARE = 0.22;
+  const creatorList = useMemo(() => {
+    const base = (creators && creators.length > 0) ? creators : [];
+    const seedRev = base.reduce((s, c) => s + (c.revenue || 0), 0);
+    const rev = pnlStats?.revenue || 0;
+    const sc = (seedRev > 0 && rev > 0) ? (rev * INFLUENCER_SHARE / seedRev) : 1;
+    if (sc === 1) return base;
+    return base.map(c => ({ ...c, revenue: Math.round((c.revenue || 0) * sc), purchases: Math.round((c.purchases || 0) * sc) }));
+  }, [creators, pnlStats]);
 
   // Real-time KPI aggregation (memoized)
   const kpis = useMemo(() => {

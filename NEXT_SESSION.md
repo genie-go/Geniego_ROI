@@ -1,3 +1,63 @@
+# 206차 세션 인계서 — **205 로드맵 백엔드 #0~#6 완결 + 데모 단일소스 동기화 전수 하드닝 + PM 401 수정 + UI 일관성**
+
+> **작성일**: 2026-06-09 (사용자 명시 승인 후)
+> **이전 세션**: 205차 → 206차
+> **종결 상태**: 백엔드 13파일(205 로드맵 #0~#6 + PM gate 세션 self-auth) + 프론트 26파일(데모 동기화·UI·운영오염 차단). **운영/데모 수동 배포·헤드리스 라이브검증 전건 완료(dist.bak.206d~206l 9회 swap)**. 본 인계서와 함께 커밋·push(사용자 승인). CI는 시크릿 미등록으로 빌드만(배포는 이미 수동 완료, push≠배포).
+> **운영** roi.genie-go.com / **데모** roidemo.genie-go.com(경로 roidemo.geniego.com). 메모리 `project_n205_wms_backend`(206차 추가 누적).
+
+## ✅ 206차 완료
+
+### A. 205 로드맵 백엔드 #0~#6 (다중파일 신규/수정 — 운영/데모 배포·검증·본 커밋 포함)
+- **#0 WMS 잔여 배선**: WmsManager ReceivingTab/PickingListTab/ReplenishmentTab → wmsApi(listSupplyOrders/updateSupplyOrder/listPicking/updatePicking/createSupplyOrder) 배선(IS_DEMO 게이트).
+- **#1 commerce 폴링 cron**: 신규 `backend/bin/commerce_sync_cron.php`(GENIE_ENV별, 운영서 demo 테넌트 skip) + `ChannelSync.php` syncTenantChannel/commerceTenantChannels 추출. ★DDL 루트수정: `TEXT DEFAULT ''`→`VARCHAR(190)`(MySQL 1101로 channel_orders 미생성이던 버그).
+- **#2 Journey 실행엔진**: `JourneyBuilder.php` advanceEnrollment(상태머신: 트리거/delay resume_at/condition 분기/email·kakao·sms 실발송) + 신규 `backend/bin/journey_cron.php` + `KakaoChannel.php` sendOne 추가.
+- **#3 OrderHub writer**: `OrderHub.php` ingestClaims/ingestSettlements/rollupSettlements + CSV파서.
+- **#5 DemandForecast 실모델**: 신규 `backend/src/Handlers/DemandForecast.php`(Holt-Winters/Holt/이동평균) + 프론트 `DemandForecast.jsx` /api/demand/* 배선. ★TZ 무한루프 버그 수정(gmmktime 정수루프)·index bypass.
+- **#6 PriceOpt/SupplyChain 영속화**: `:memory:`→영속 SQLite파일+tenant_id+UNIQUE(tenant,sku)+테넌트격리. PriceOpt 중복SKU 차단(200 {duplicate})·검색 + 프론트 PriceOpt.jsx 검색UI.
+- **계정 로그인 수정**: `UserAuth.php` 데모 백엔드 env-aware 게이트(데모회원 plan='pro' 로그인 403 해소).
+
+### B. PM 401 수정 (신규)
+- **/pm HTTP 401**: PMOverview가 세션토큰으로 `/api/v425/pm/projects` 호출하나 bypass 부재+gate가 api_key 속성만 의존 → 401. **`index.php` bypass에 `/api/v425/pm/`·`/v425/pm/` + `PM/Shared.php` gate 세션 self-auth(UserAuth::authedTenant, role=admin, tenant_id 격리)**. 검증 PM API 200.
+
+### C. 데모 단일소스 동기화 전수 하드닝 (사용자 지정 + 전수감사) — 전부 프론트, 운영/데모 dist swap·헤드리스 검증
+- **재고 결정적화**: demoSeedData `DEMO_INVENTORY.stock` Math.random→SKU해시(재고 단일소스 자체가 임의값이던 근본). **정산 결정적화**: `DEMO_SETTLEMENT` gross Math.random→채널+기간 해시(정산→총매출 pnlStats.revenue 비결정성).
+- **캠페인 채널 필드 통일(★연쇄버그)**: AutoMarketing 생성 캠페인 `adChannels`→`channels`(데모시드와 통일) + Marketing 종합현황 총지출/수수료 0(adChannels 오타)·BudgetTracker 채널집계 'other' 오분류 동시 해소.
+- **메트릭 결정적화**: EmailMarketing 오픈/클릭율·JourneyBuilder enrolled/완료/매출 Math.random→엔티티 id 해시.
+- **SupplyChain 재고**: 하드코딩 _SC_QTY→GlobalDataContext.inventory 합계 파생(메뉴간 일치).
+- **WMS 창고탭**: initInventory(빈)→GlobalDataContext.inventory 파생(창고별 재고 0→실값) + **데모 창고 시드 3개(W001/W002/W003=재고 키 일치)**(데모 백엔드 미시드로 빈화면이던 것 해소). 검증 재고 3061/1727/1033.
+- **운영 오염 차단(IS_DEMO 게이트)**: InstagramDM(142/8400)·WhatsApp(142/138/95/4)·LINEChannel(12,483 등)·DashCommerce 구매자 인구통계(72%/42·58 등 주문에 없는 필드) 하드코딩 폴백 → 운영=0/'—'/빈값.
+- **세그먼트 동기화**: KakaoChannel estimatedReach 1000 하드코딩→seg.count(CRM), 발송 reach 폴백 제거.
+- **InfluencerUGC ROI 통일**: AI평가탭 API cr.roi→ROI랭킹탭과 동일 로컬공식(두 탭 ROI 일치).
+
+### D. UI 일관성 (사용자 지정)
+- **차트 축 폰트**: ChartUtils SVG viewBox 확대로 11px가 화면 16~20px화 → `FONT.fontSize` 11→9(대시보드 마케팅/채널KPI 채널추이 등 전 차트).
+- **테이블/리스트 과대폰트**: AccountPerformance 트리구조(table fontSize13·캠페인명 weight800→700)·Attribution LTV/CAC(14/900→12/700)·CampaignManager 성과표(900/14→700/12).
+- **app-pricing 4플랜 한화면**: 3컬럼 제한→4컬럼+maxWidth 1280+패딩 축소(4카드 한 줄, 가로스크롤 없음).
+- **ad-channels 제목 잘림**: hero-title 인라인 linear-gradient가 라이트테마 전역규칙(styles.css 3389)에 흰박스화→인라인 그라데이션 제거.
+
+## ⏭️ 다음 작업 — 순서대로
+
+### 0순위 — ★추가 정밀검증 계속 (사용자 상시 지시)
+- 본 세션 패턴(단일소스 동기화 실패·운영오염 IS_DEMO 게이트·UI 일관성)으로 **잔여 데모 메뉴 전수 정밀검증 지속**. 미감사/약점 후보: 관리자(admin/*) 화면군, Profile/ApiKeys/TeamMembers 설정, HelpCenter/DeveloperHub/FeedbackCenter, Coupon/프로모션, ModelMonitor·SystemMonitor 상세, DataProduct 6종 실데이터 경로, OrderHub 클레임/정산 writer 연계 후 실집계.
+- 검증 정본: 데모 헤드리스(ociell@naver.com/kjlee119//, login_type:'demo')로 err=0 + 표시값이 단일소스 파생인지. 운영은 IS_DEMO=false로 0/빈/실데이터.
+
+### 1순위 — 로드맵 P0 잔여
+1. **광고 쓰기 OAuth(#4)** — `/oauth/{vendor}/authorize_url`·exchange_code 501 셸. Meta/Google/TikTok 동의 → AD_EXECUTION_ENABLED → AdAdapters 라이브(외부 자격증명=사용자 액션).
+2. **commerce 폴링 cron 서버 등록** — commerce_sync_cron.php·journey_cron.php crontab 등록(코드는 완료, 서버 스케줄 미등록).
+3. **OrderHub claims/settlements 실 ingest** — writer 구현됨, 채널 정산 CSV/API 실연동.
+4. **Rollup/Reconciliation 실집계** — 운영 데이터 적재(폴링·writer) 후 충실.
+
+### 2순위 — 보안/정합
+- TOTP replay 차단(mfa_last_step 단조증가), AIInsights IS_DEMO 폴백 정리.
+
+### 정본 패턴 (206차 추가)
+- **데모 동기화**: 표시 메트릭은 seed 엔티티(상품/캠페인/여정/세그먼트 id) 해시 기반 **결정적** 산출(Math.random 금지). 단일소스(GlobalDataContext) 파생 우선. 캠페인 채널 필드는 **`channels`**(adChannels 아님).
+- **운영 오염 차단**: 하드코딩 폴백(`|| 숫자`)은 **IS_DEMO 게이트**(`|| (IS_DEMO?시드:0)`). 백엔드 영속화 페이지는 데모 백엔드 미시드 시 IS_DEMO 폴백 시드 필요(키 정확 일치).
+- **UI**: 인라인 linear-gradient 배경은 라이트테마서 흰박스화(styles.css 3389) — 그라데이션 텍스트는 CSS 클래스로. ChartUtils SVG는 viewBox 확대라 fontSize 작게.
+- **세션 self-auth 트랩**: 신규 /vNNN 라우트가 프론트서 세션토큰으로 호출되면 ①index.php bypass(`/api/X/`·`/X/`) ②핸들러 gate에 UserAuth::authedTenant 폴백 둘 다 필요(api_key 미들웨어가 세션토큰 401).
+
+---
+
 # 205차 세션 인계서 — **WMS 백엔드 영속화 신설(P0 #1) + 운영/데모 배포·라이브검증**
 
 > **작성일**: 2026-06-08 (사용자 명시 승인 후)

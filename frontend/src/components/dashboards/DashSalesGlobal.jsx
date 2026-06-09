@@ -348,9 +348,18 @@ const DEMO_COUNTRIES = {
 };
 const COUNTRIES = IS_DEMO ? DEMO_COUNTRIES : {};
 const ALL = Object.entries(COUNTRIES).map(([iso, d]) => ({ iso: Number(iso), ...d }));
-const TOTAL = ALL.reduce((s, c) => s + c.rev, 0);
-const MAX_R = Math.max(...ALL.map(c => c.rev), 1);
-const markerR = r => 7 + (r / MAX_R) * 18;
+const SEED_TOTAL = ALL.reduce((s, c) => s + c.rev, 0);
+// 206차 #1: 글로벌 매출 단일소스 일관화 — 국가 시드 매출을 pnlStats.revenue(=총매출)에 비례 스케일.
+//   국가/채널/지역 매출·주문이 모두 같은 배율로 재산출되어 총매출과 항상 일치(비율 보존).
+function scaleCountries(scale) {
+  return ALL.map(c => ({
+    ...c,
+    rev: Math.round(c.rev * scale),
+    orders: Math.round((c.orders || 0) * scale),
+    channels: (c.channels || []).map(ch => ({ ...ch, rev: Math.round(ch.rev * scale) })),
+    regions: (c.regions || []).map(r => ({ ...r, rev: Math.round(r.rev * scale), orders: Math.round((r.orders || 0) * scale) })),
+  }));
+}
 const GEO_D = { fill: '#e2e8f0', stroke: '#cbd5e1', strokeWidth: 0.5, outline: 'none' };
 const mkSaleGeo = (col, sel) => ({
   fill: sel ? col : col + 'bb', stroke: sel ? '#fff' : col,
@@ -367,13 +376,13 @@ function Bar({ pct, col, h = 6 }) {
 }
 
 // ─── Country Rank List ──────────────────────────────────────────────
-function CountryRankList({ sorted, selIso, onSelect }) {
+function CountryRankList({ sorted, selIso, onSelect, total }) {
   const { fmt: fmtC } = useCurrency();
   if (sorted.length === 0) return null;
   return (
     <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
       {sorted.map((c, i) => {
-        const pct = TOTAL > 0 ? ((c.rev / TOTAL) * 100).toFixed(1) : '0';
+        const pct = total > 0 ? ((c.rev / total) * 100).toFixed(1) : '0';
         const isSel = selIso === c.iso;
         return (
           <div key={c.iso} onClick={() => onSelect(c.iso)} style={{
@@ -522,7 +531,7 @@ function GlobalSummaryPanel({ sorted, totalRev, channelBudgets, txt }) {
 }
 
 // ─── Country Detail Panel ───────────────────────────────────────────
-function CountryDetail({ c, txt }) {
+function CountryDetail({ c, txt, total }) {
   const { fmt: fmtC } = useCurrency();
   const [tab, setTab] = useState('overview');
 
@@ -534,7 +543,7 @@ function CountryDetail({ c, txt }) {
     </div>
   );
 
-  const pct = TOTAL > 0 ? ((c.rev / TOTAL) * 100).toFixed(1) : '0';
+  const pct = total > 0 ? ((c.rev / total) * 100).toFixed(1) : '0';
   const TABS = [
     { id:'overview', label:txt('countryOverview') },
     { id:'channel',  label:txt('countryChannel') },
@@ -716,18 +725,24 @@ export default function DashSalesGlobal() {
   // ✅ SecurityGuard — Enterprise real-time threat monitoring
   useSecurityGuard({ addAlert: useCallback((a) => { if (typeof addAlert === 'function') addAlert(a); }, [addAlert]), enabled: true });
 
-  const sorted = useMemo(() => [...ALL].sort((a, b) => b.rev - a.rev), []);
-  const selCountry = selIso ? COUNTRIES[selIso] : null;
-  const totalRev = TOTAL || pnlStats?.revenue || 0;
+  // 206차 #1: 총매출(pnlStats.revenue) 기준으로 국가 시드를 비례 스케일 → 글로벌/국가 매출이 총매출과 일관.
+  const scale = (SEED_TOTAL > 0 && (pnlStats?.revenue || 0) > 0) ? (pnlStats.revenue / SEED_TOTAL) : 1;
+  const scaledAll = useMemo(() => scaleCountries(scale), [scale]);
+  const scaledMap = useMemo(() => Object.fromEntries(scaledAll.map(c => [c.iso, c])), [scaledAll]);
+  const sorted = useMemo(() => [...scaledAll].sort((a, b) => b.rev - a.rev), [scaledAll]);
+  const selCountry = selIso ? scaledMap[selIso] : null;
+  const totalRev = sorted.reduce((s, c) => s + c.rev, 0);
+  const mMax = useMemo(() => Math.max(...scaledAll.map(c => c.rev), 1), [scaledAll]);
+  const markerR = (r) => 7 + (r / mMax) * 18;
 
   const handleMarker = useCallback((iso) => {
-    const c = COUNTRIES[iso];
+    const c = scaledMap[iso];
     if (!c) return;
     const isDesel = selIso === iso;
     setSelIso(isDesel ? null : iso);
     setCenter(c.coords);
     setZoom(isDesel ? 1 : 3);
-  }, [selIso]);
+  }, [selIso, scaledMap]);
 
   return (
     <div style={{ display:'grid', gap:GAP }}>
@@ -773,7 +788,7 @@ export default function DashSalesGlobal() {
                     );
                   })}
                 </Geographies>
-                {ALL.map(c => (
+                {scaledAll.map(c => (
                   <Marker key={c.iso} coordinates={c.coords} onClick={() => handleMarker(c.iso)}>
                     <circle r={markerR(c.rev)} fill={selIso===c.iso ? c.col : c.col+'88'} stroke={selIso===c.iso ? '#fff' : c.col} strokeWidth={selIso===c.iso ? 1.5 : 0.8} style={{ cursor:'pointer' }} />
                     <text textAnchor="middle" y={-markerR(c.rev)-3} fontSize={7} fill="rgba(0,0,0,0.6)" style={{ pointerEvents:'none' }}>{c.flag}</text>
@@ -793,14 +808,14 @@ export default function DashSalesGlobal() {
             <div style={{ fontSize:10, fontWeight:700, color:'var(--text-3, #6b7280)', marginBottom:8, textTransform:'uppercase', letterSpacing:0.8 }}>
               {txt('countryRevRank')}
             </div>
-            <CountryRankList sorted={sorted} selIso={selIso} onSelect={handleMarker} />
+            <CountryRankList sorted={sorted} selIso={selIso} onSelect={handleMarker} total={totalRev} />
           </div>
         </div>
 
         {/* Right: Detail Panel */}
         <div style={{ borderRadius:14, padding:'14px 16px', background: 'var(--surface)', border:'1px solid rgba(79,142,247,0.1)', minHeight:700, display:'flex', flexDirection:'column', gap:12 }}>
           {selCountry ? (
-            <CountryDetail c={selCountry} txt={txt} />
+            <CountryDetail c={selCountry} txt={txt} total={totalRev} />
           ) : (
             <GlobalSummaryPanel sorted={sorted} totalRev={totalRev} channelBudgets={channelBudgets} txt={txt} />
           )}

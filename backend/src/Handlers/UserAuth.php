@@ -595,7 +595,14 @@ final class UserAuth
                 }
 
                 // 2. Demo vs Production Full Separation
-                if (!$isAdmin) {
+                //   ★206차 근본수정: 데모 백엔드(geniego_roi_demo)는 모든 회원이 데모회원이다.
+                //   데모 체험은 enterprise 전기능 제공을 위해 plan='pro'를 부여하므로, plan∈{free,demo}만
+                //   데모회원으로 보던 기존 게이트는 데모회원 전원을 "운영 정식회원"으로 오판해 [데모 체험]
+                //   로그인을 차단했다(데모 DB 가입자 4명 전원 plan='pro'). 데모 백엔드에선 plan 기반
+                //   demo/production 분리 게이트를 우회한다(운영 백엔드 geniego_roi 에서는 기존대로 분리 유지).
+                $dbName = strtolower((string)(getenv('GENIE_DB_NAME') ?: getenv('GENIE_DEMO_DB_NAME') ?: ''));
+                $isDemoBackend = (\Genie\Db::env() === 'demo') || (strpos($dbName, 'demo') !== false);
+                if (!$isAdmin && !$isDemoBackend) {
                     if ($loginType === 'production' && $isDemoPlan) {
                         return self::json($res, ['ok' => false, 'error' => '무료 체험 회원은 [운영시스템 회원]으로 로그인할 수 없습니다. 상단의 [무료 데모 체험]을 선택하세요.'], 403);
                     }

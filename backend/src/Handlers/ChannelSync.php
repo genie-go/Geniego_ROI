@@ -137,7 +137,11 @@ final class ChannelSync
                 $ddl = str_replace('INTEGER PRIMARY KEY AUTOINCREMENT', 'INT AUTO_INCREMENT PRIMARY KEY', $ddl);
                 // UNIQUE 인덱스/조회에 쓰이는 키 컬럼은 VARCHAR 로(MySQL TEXT 키길이 오류 회피)
                 $ddl = preg_replace('/\b(tenant_id|channel|key_name|sku|warehouse|channel_product_id|channel_order_id|cred_type|test_status|sync_status|status)\s+TEXT\b/', '$1 VARCHAR(190)', $ddl);
-                $ddl = preg_replace("/\bVARCHAR\(190\) NOT NULL DEFAULT '([^']*)'/", "VARCHAR(190) NOT NULL DEFAULT '$1'", $ddl);
+                // ★206차 근본수정: MySQL 은 TEXT/BLOB 컬럼에 DEFAULT 를 허용하지 않는다(1101).
+                //   키 컬럼 외 잔여 `TEXT [NOT NULL] DEFAULT '...'`(예: event_type)도 VARCHAR(190) 로 변환.
+                //   기존엔 event_type TEXT DEFAULT 'order' 가 변환 누락→ channel_orders CREATE 자체가 실패해
+                //   운영 MySQL 에 테이블이 생성되지 않던 잠복 버그(주문 적재·정산 rollup 전제 차단).
+                $ddl = preg_replace("/\bTEXT(\s+NOT NULL)?\s+DEFAULT\s+'/", "VARCHAR(190)$1 DEFAULT '", $ddl);
             }
             try { $pdo->exec($ddl); } catch (\Throwable $e) { error_log('[ChannelSync.ensureTables] ' . $e->getMessage()); }
         };
@@ -858,18 +862,27 @@ final class ChannelSync
         ]);
     }
 
-    // POST /api/channel-sync/{channel}/sync
-    public static function syncChannel(Request $req, Response $res, array $args): Response
+    // ── 커머스 채널 화이트리스트(마케팅 채널 kakao/pixel 등 제외) ──────────
+    //   commerce_sync_cron.php 폴링 러너가 동기화 대상으로 삼는 채널 집합(206차 #1).
+    public const COMMERCE_CHANNELS = [
+        'shopify','amazon','amazon_spapi','coupang','naver','naver_smartstore',
+        'ebay','tiktok','tiktok_shop','rakuten','yahoo_jp','line','11st','gmarket','cafe24','lotteon',
+    ];
+
+    /**
+     * 재사용 동기화 코어 — HTTP 핸들러(syncChannel)와 CLI 폴링(commerce_sync_cron)이 공용.
+     *   저장된 자격증명 로드(복호화) → fetchFromChannel → saveProducts/saveOrders → 상태갱신.
+     *   데모 오염 차단은 saveProducts/saveOrders 의 단일 chokepoint(tenant!=='demo' 가드)가 처리.
+     * @return array{ok:bool,product_count:int,order_count:int,synced_at:string,note:?string,error:?string}
+     */
+    public static function syncTenantChannel(string $tenant, string $channel, string $plan = 'pro'): array
     {
         self::ensureTables();
-        $pdo     = Db::pdo();
-        $tenant  = self::tenant($req);
-        $plan    = self::plan($req);
-        $channel = (string)($args['channel'] ?? '');
+        $pdo = Db::pdo();
 
         // 저장된 자격증명 로드
         $stmt = $pdo->prepare("SELECT key_name,key_value,extra_json FROM channel_credential WHERE tenant_id=? AND channel=? AND is_active=1");
-        $stmt->execute([$tenant,$channel]);
+        $stmt->execute([$tenant, $channel]);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         $creds = [];
@@ -889,16 +902,53 @@ final class ChannelSync
         $oCount = self::saveOrders($pdo, $tenant, $channel, $result['orders'] ?? []);
 
         $pdo->prepare("UPDATE channel_credential SET last_synced_at=?,sync_status=? WHERE tenant_id=? AND channel=?")
-            ->execute([$now, $result['ok'] ? 'ok' : 'error', $tenant, $channel]);
+            ->execute([$now, ($result['ok'] ?? false) ? 'ok' : 'error', $tenant, $channel]);
 
-        return TemplateResponder::respond($res, [
-            'ok'            => $result['ok'],
-            'channel'       => $channel,
-            'plan'          => $plan,
+        return [
+            'ok'            => (bool)($result['ok'] ?? false),
             'product_count' => $pCount,
             'order_count'   => $oCount,
             'synced_at'     => $now,
             'note'          => $result['note'] ?? null,
+            'error'         => $result['error'] ?? null,
+        ];
+    }
+
+    /**
+     * 활성 커머스 자격증명을 보유한 (tenant_id, channel) 쌍 — 폴링 러너용.
+     *   Db::pdo() 는 GENIE_ENV 기반 env DB 에 연결되므로 현재 환경(운영/데모) 테넌트만 반환.
+     * @return list<array{tenant_id:string,channel:string}>
+     */
+    public static function commerceTenantChannels(): array
+    {
+        self::ensureTables();
+        $pdo   = Db::pdo();
+        $place = implode(',', array_fill(0, count(self::COMMERCE_CHANNELS), '?'));
+        $stmt  = $pdo->prepare(
+            "SELECT DISTINCT tenant_id, channel FROM channel_credential
+              WHERE is_active=1 AND channel IN ($place) ORDER BY tenant_id, channel"
+        );
+        $stmt->execute(self::COMMERCE_CHANNELS);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    // POST /api/channel-sync/{channel}/sync
+    public static function syncChannel(Request $req, Response $res, array $args): Response
+    {
+        $tenant  = self::tenant($req);
+        $plan    = self::plan($req);
+        $channel = (string)($args['channel'] ?? '');
+
+        $r = self::syncTenantChannel($tenant, $channel, $plan);
+
+        return TemplateResponder::respond($res, [
+            'ok'            => $r['ok'],
+            'channel'       => $channel,
+            'plan'          => $plan,
+            'product_count' => $r['product_count'],
+            'order_count'   => $r['order_count'],
+            'synced_at'     => $r['synced_at'],
+            'note'          => $r['note'] ?? null,
         ]);
     }
 

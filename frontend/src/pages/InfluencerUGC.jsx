@@ -1107,6 +1107,10 @@ const AIEvalTab = memo(function AIEvalTab() {
                                     .sort((a, b) => (b.score || 0) - (a.score || 0))
                                     .map((cr, rank) => {
                                         const orig = CREATORS.find(c => c.id === cr.id);
+                                        // 206차 #5: ROI 정의 통일 — ROI 랭킹 탭과 동일한 로컬 공식(revenue/비용)으로
+                                        //   산출해 두 탭에서 같은 크리에이터 ROI 값이 일치하도록(API cr.roi 정의 불일치 해소).
+                                        const _cost = orig ? ((orig.contract?.flatFee || 0) + (orig.stats?.revenue || 0) * (orig.contract?.perfRate || 0)) : 0;
+                                        const uroi = (orig && _cost > 0) ? (orig.stats.revenue / _cost) : (cr.roi != null ? cr.roi : null);
                                         const fc = cr.fee_recommendation;
                                         const rColor = renewColor[cr.renewal_recommendation] || "#6b7280";
                                         const rankIcon = rank === 0 ? "🥇" : rank === 1 ? "🥈" : rank === 2 ? "🥉" : `#${rank + 1}`;
@@ -1120,8 +1124,8 @@ const AIEvalTab = memo(function AIEvalTab() {
                                                 </td>
                                                 <td style={{ textAlign: "center" }}><AIGauge score={cr.score} size={36} /></td>
                                                 <td style={{ textAlign: "center" }}><AIGrade grade={cr.grade} /></td>
-                                                <td style={{ textAlign: "right", fontWeight: 700, color: cr.roi >= 50 ? "#22c55e" : cr.roi >= 10 ? "#4f8ef7" : "#eab308" }}>
-                                                    {cr.roi != null ? cr.roi.toFixed(1) + "x" : "—"}
+                                                <td style={{ textAlign: "right", fontWeight: 700, color: uroi >= 5 ? "#22c55e" : uroi >= 3 ? "#4f8ef7" : "#eab308" }}>
+                                                    {uroi != null ? uroi.toFixed(1) + "x" : "—"}
                                                 </td>
                                                 <td style={{ textAlign: "right" }}>{orig ? (orig.stats.orders / orig.stats.views * 100).toFixed(3) : "—"}%</td>
                                                 <td><span style={{ fontSize: 11, fontWeight: 700, color: rColor }}>{cr.renewal_recommendation || "—"}</span></td>

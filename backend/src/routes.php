@@ -115,6 +115,11 @@ return function (App $app): void {
         'GET /journey/journeys/{id}/stats'     => 'Genie\\Handlers\\JourneyBuilder::journeyStats',
         'GET /journey/templates'               => 'Genie\\Handlers\\JourneyBuilder::listTemplates',
 
+        // ── 수요예측 서버측 실모델 — 206차 #5(Holt-Winters/Holt/이동평균) ────
+        'GET /demand/summary'     => 'Genie\\Handlers\\DemandForecast::summary',
+        'GET /demand/forecast'    => 'Genie\\Handlers\\DemandForecast::forecastEndpoint',
+        'GET /demand/seasonality' => 'Genie\\Handlers\\DemandForecast::seasonality',
+
         // ── 창고 관리(WMS) 영속화 — 205차 신설(useState→백엔드) ────────────
         'GET /wms/warehouses'                  => 'Genie\\Handlers\\Wms::listWarehouses',
         'POST /wms/warehouses'                 => 'Genie\\Handlers\\Wms::saveWarehouse',
@@ -513,6 +518,13 @@ return function (App $app): void {
         'GET /api/v424/orderhub/orders'      => 'Genie\\Handlers\\OrderHub::orders',
         'GET /api/v424/orderhub/claims'      => 'Genie\\Handlers\\OrderHub::claims',
         'GET /api/v424/orderhub/settlements' => 'Genie\\Handlers\\OrderHub::settlements',
+        // 206차 #3: claims/settlements 인제스트 라이터(CSV/API) + 정산 롤업
+        'POST /v424/orderhub/claims'             => 'Genie\\Handlers\\OrderHub::ingestClaims',
+        'POST /v424/orderhub/settlements'        => 'Genie\\Handlers\\OrderHub::ingestSettlements',
+        'POST /v424/orderhub/settlements/rollup' => 'Genie\\Handlers\\OrderHub::rollupSettlements',
+        'POST /api/v424/orderhub/claims'             => 'Genie\\Handlers\\OrderHub::ingestClaims',
+        'POST /api/v424/orderhub/settlements'        => 'Genie\\Handlers\\OrderHub::ingestSettlements',
+        'POST /api/v424/orderhub/settlements/rollup' => 'Genie\\Handlers\\OrderHub::rollupSettlements',
 
         // ── v424 enterprise health endpoint (167차 5순위, U-166-E) ──
         'GET /v424/health'      => 'Genie\\Handlers\\Health::check',
@@ -1924,6 +1936,10 @@ return function (App $app): void {
     $register('POST',   '/journey/journeys/{id}/launch');
     $register('GET',    '/journey/journeys/{id}/stats');
     $register('GET',    '/journey/templates');
+    // 수요예측 서버측 실모델 — 206차 #5
+    $register('GET',    '/demand/summary');
+    $register('GET',    '/demand/forecast');
+    $register('GET',    '/demand/seasonality');
     // 창고 관리(WMS) 영속화 — 205차
     $register('GET',    '/wms/warehouses');
     $register('POST',   '/wms/warehouses');
@@ -2070,6 +2086,13 @@ return function (App $app): void {
     $register('GET', '/api/v424/orderhub/orders');
     $register('GET', '/api/v424/orderhub/claims');
     $register('GET', '/api/v424/orderhub/settlements');
+    // 206차 #3: OrderHub writer (claims/settlements ingest + rollup)
+    $register('POST', '/v424/orderhub/claims');
+    $register('POST', '/v424/orderhub/settlements');
+    $register('POST', '/v424/orderhub/settlements/rollup');
+    $register('POST', '/api/v424/orderhub/claims');
+    $register('POST', '/api/v424/orderhub/settlements');
+    $register('POST', '/api/v424/orderhub/settlements/rollup');
 
     // ── V424 enterprise health (167차 5순위) ──
     $register('GET', '/v424/health');

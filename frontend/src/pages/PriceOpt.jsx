@@ -257,6 +257,7 @@ function ProductsTab({ token }) {
     const [msg, setMsg] = useState("");
     const [uploading, setUploading] = useState(false);
     const [dragOver, setDragOver] = useState(false);
+    const [searchQuery, setSearchQuery] = useState(""); // 206차 #6: 등록 제품 검색
 
     // ★ inventory → PriceOpt products 변환 (데모 폴백)
     const inventoryProducts = useMemo(() => {
@@ -339,6 +340,13 @@ function ProductsTab({ token }) {
             .then(r => r.json()).then(d => setProducts(d.products || [])).catch(() => { });
 
     const save = async () => {
+        // 206차 #6: 클라이언트 사전 중복 검사 + 서버 중복 차단 알림.
+        const skuTrim = (form.sku || '').trim();
+        if (!skuTrim) { setMsg(`❌ ${t('priceOpt.skuRequired', 'SKU를 입력하세요')}`); return; }
+        if (products.some(p => (p.sku || '').toLowerCase() === skuTrim.toLowerCase())) {
+            setMsg(`❌ ${t('priceOpt.dupSku', 'SKU 중복')}: '${skuTrim}' ${t('priceOpt.dupSkuMsg', '은(는) 이미 등록되어 있습니다. 다른 SKU를 사용하거나 기존 제품을 수정하세요.')}`);
+            return;
+        }
         let d;
         try {
             d = await postJsonAuth(`/v420/price/products`, {
@@ -364,6 +372,10 @@ function ProductsTab({ token }) {
             });
         } catch (e) {
             d = { ok: false, error: e.message };
+        }
+        if (!d.ok && d.duplicate) {
+            setMsg(`\u274c ${t('priceOpt.dupSku', 'SKU \uc911\ubcf5')}: '${form.sku}' ${t('priceOpt.dupSkuMsg', '\uc740(\ub294) \uc774\ubbf8 \ub4f1\ub85d\ub418\uc5b4 \uc788\uc2b5\ub2c8\ub2e4. \ub2e4\ub978 SKU\ub97c \uc0ac\uc6a9\ud558\uac70\ub098 \uae30\uc874 \uc81c\ud488\uc744 \uc218\uc815\ud558\uc138\uc694.')}`);
+            return;
         }
         setMsg(d.ok ? `\u2705 ${t('priceOpt.excelUploadSuccess')}: ${form.sku}` : `\u274c ${d.error || JSON.stringify(d)}`);
         load();
@@ -442,6 +454,7 @@ function ProductsTab({ token }) {
                         qty_per_box: parseInt(row[13]) || 0,
                         boxes_per_pallet: parseInt(row[14]) || 0,
                         initial_stock: parseInt(row[15]) || 0,
+                        _replace: true, // 206차 #6: 엑셀 일괄 업로드는 기존 SKU 덮어쓰기 허용(중복차단 예외)
                     });
                     if (d.ok) successCount++; else failCount++;
                 } catch { failCount++; }
@@ -641,9 +654,23 @@ function ProductsTab({ token }) {
                 </div>
 
                 {/* ═══ Product List ═══ */}
+                {(() => { const q = searchQuery.trim().toLowerCase();
+                  const filteredProducts = q ? products.filter(p =>
+                    (p.sku || '').toLowerCase().includes(q) ||
+                    (p.product_name || '').toLowerCase().includes(q) ||
+                    (p.category || '').toLowerCase().includes(q)
+                  ) : products;
+                  return (
                 <div>
-                    <h4 style={{ marginTop: 0, fontSize: 13 }}>{t("priceOpt.regProducts")} ({products.length})</h4>
-                    {products.map((p, i) => (
+                    <h4 style={{ marginTop: 0, fontSize: 13 }}>{t("priceOpt.regProducts")} ({filteredProducts.length}{q ? `/${products.length}` : ''})</h4>
+                    {/* 206차 #6: 등록 제품 검색(SKU·상품명·카테고리) */}
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 10 }}>
+                        <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
+                            placeholder={t('priceOpt.searchPlaceholder', 'SKU · 상품명 · 카테고리 검색...')}
+                            style={{ flex: 1, background: '#fff', border: '1px solid #e2e8f0', borderRadius: 6, color: '#1e293b', padding: '7px 10px', fontSize: 12 }} />
+                        {searchQuery && <button onClick={() => setSearchQuery('')} style={{ padding: '7px 12px', borderRadius: 6, background: 'rgba(99,140,255,0.12)', border: 'none', color: '#4f8ef7', cursor: 'pointer', fontSize: 11, fontWeight: 700 }}>✕</button>}
+                    </div>
+                    {filteredProducts.map((p, i) => (
                         <div key={i} style={{ padding: "10px 12px", background: "#f1f5f9", borderRadius: 6, marginBottom: 6, fontSize: 11 }}>
                             <div style={{ display: "flex", gap: 10 }}>
                                 {p.product_image && (
@@ -672,8 +699,9 @@ function ProductsTab({ token }) {
                             )}
                         </div>
                     ))}
-                    {products.length === 0 && <div style={{ color: "#64748b", fontSize: 11, padding: 12 }}>{t("priceOpt.noProducts")}</div>}
+                    {filteredProducts.length === 0 && <div style={{ color: "#64748b", fontSize: 11, padding: 12 }}>{q ? `"${searchQuery}" ${t('priceOpt.noSearchResult', '검색 결과가 없습니다')}` : t("priceOpt.noProducts")}</div>}
                 </div>
+                  ); })()}
             </div>
         </div>
     );

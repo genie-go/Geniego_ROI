@@ -255,7 +255,7 @@ function AllocationTab({ campaigns, tr, fmt }) {
   const channelData = useMemo(() => {
     const map = {};
     campaigns.forEach(c => {
-      const chId = c.adChannels?.[0]?.id?.split('_')?.[0] || 'other';
+      const chId = c.channels?.[0]?.id?.split('_')?.[0] || 'other'; // 206차: adChannels(부재)→channels 정정(전 예산 'other' 오분류 해소)
       const key = CHANNEL_COLORS[chId] ? chId : 'other';
       if (!map[key]) map[key] = { ...CHANNEL_COLORS[key], budget: 0, spent: 0 };
       map[key].budget += (c.budget || c.spent || 0);

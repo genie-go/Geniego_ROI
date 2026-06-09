@@ -836,7 +836,7 @@ const LtvCacTab = memo(function LtvCacTab() {
                   <td style={{ textAlign:'center' }}>{r.customers}</td>
                   <td style={{ color:'#ef4444' }}>{fmtC(r.cac)}</td>
                   <td style={{ color:'#22c55e', fontWeight:700 }}>{fmtC(r.ltv)}</td>
-                  <td style={{ fontWeight:900, fontSize:14, color:r.ratio>=10?'#22c55e':r.ratio>=5?'#4f8ef7':'#eab308' }}>{r.ratio.toFixed(1)}x</td>
+                  <td style={{ fontWeight:700, fontSize:12, color:r.ratio>=10?'#22c55e':r.ratio>=5?'#4f8ef7':'#eab308' }}>{r.ratio.toFixed(1)}x</td>
                   <td style={{ color:'#a855f7', fontWeight:700 }}>{r.roas.toFixed(1)}x</td>
                   <td><Tag label={h.l} color={h.c}/></td>
                 </tr>

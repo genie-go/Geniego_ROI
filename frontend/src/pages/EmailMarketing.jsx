@@ -289,7 +289,9 @@ function CampaignsTab() {
         if(isDemo){
             setTimeout(()=>{
                 setSending(null);
-                const openRate=Math.floor(Math.random()*25+15);const clickRate=Math.floor(openRate*0.3);
+                // 206차: 오픈율/클릭율 결정적화(캠페인 id 해시) — random 제거, 캠페인별 일관값
+                const _h=String(c.id||c.name||'').split('').reduce((a,ch)=>a+ch.charCodeAt(0),0);
+                const openRate=18+(_h%22);const clickRate=Math.round(openRate*0.3);
                 updateEmailCampaign(c.id,{status:"sent",opened:Math.round(c.total_sent*openRate/100),clicked:Math.round(c.total_sent*clickRate/100),sentAt:new Date().toISOString()});
                 addAlert({type:'success',msg:'Campaign "'+c.name+'" sent'});setMsg(t('email.msgSendDone')||'Sent!');setTimeout(()=>setMsg(""),3000);
             },1800);

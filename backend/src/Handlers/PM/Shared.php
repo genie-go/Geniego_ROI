@@ -29,6 +29,14 @@ abstract class Shared
         $role   = (string)($req->getAttribute('auth_role') ?? '');
         $tenant = (string)($req->getAttribute('auth_tenant') ?? '');
 
+        // 206차: /api/v425/pm/* public bypass(세션 토큰 호출) 시 api_key 미들웨어 미경유로 auth_tenant 부재.
+        //   프론트(PMOverview 등)는 세션 토큰(genie_token)으로 호출 → 세션에서 테넌트 자체 해석(journey/wms 패턴).
+        //   세션 사용자는 자기 테넌트 PM 전권(admin) — 모든 쿼리 tenant_id 격리로 타 테넌트 접근 불가.
+        if ($tenant === '') {
+            $st = \Genie\Handlers\UserAuth::authedTenant($req);
+            if ($st !== null && $st !== '') { $tenant = $st; if ($role === '') $role = 'admin'; }
+        }
+
         if ($tenant === '') {
             return ['error' => self::json($resp, ['error' => 'tenant_required'], 401)];
         }

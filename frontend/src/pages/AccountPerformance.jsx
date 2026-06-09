@@ -192,7 +192,13 @@ export default function AccountPerformance() {
             });
             return {
                 id: c.id || `mc-${ci + 1}`, name: c.name, status: c.status || 'active',
-                account_team: ['Korea Team', 'Japan Team', 'USA Team', 'Europe Team'][ci % 4], objective: c.type || 'Conversion',
+                account_team: ['Korea Team', 'Japan Team', 'USA Team', 'Europe Team'][ci % 4],
+                // 206차 #4: 캠페인 type → 마케팅 퍼널 objective(인지/고려/전환) 매핑.
+                //   기존 objective=c.type(brand/performance 등)가 Awareness/Consideration/Conversion 3버킷과
+                //   미매칭 → 시각화 대시보드 카드·목표기반 차트가 전부 빈값이던 문제 해소.
+                objective: ({ brand:'Awareness', seasonal:'Awareness', influencer:'Awareness', launch:'Awareness',
+                    acquisition:'Consideration', channel_boost:'Consideration', discovery:'Consideration',
+                    performance:'Conversion', retargeting:'Conversion', conversion:'Conversion' }[c.type]) || 'Conversion',
                 spend, roas, revenue, impressions, clicks, ctr: impressions > 0 ? +(clicks / impressions * 100).toFixed(2) : 0, conv, budget,
                 adsets,
                 history: Array.from({ length: 14 }, (_, i) => ({ date: new Date(Date.now() - i * 864e5).toISOString().slice(5, 10), spend: Math.round(spend / 14 * wave(i)) })),
@@ -458,7 +464,7 @@ export default function AccountPerformance() {
                         <div style={{ fontSize: 11, color: '#7a90ad', marginTop: 4 }}>{t('acctPerf.hierarchyDesc', 'Click a row to drill down to micro-level metrics.')}</div>
                     </div>
                     <div style={{ overflowX: 'auto' }}>
-                        <table style={{ width: '100%', borderCollapse: 'collapse', margin: 0, minWidth: 1050 }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', margin: 0, minWidth: 1050, fontSize: 13 }}>
                             <thead style={{ background: '#f8fafc' }}>
                                 <tr>
                                     <th style={{ padding: '14px 16px 14px 24px', textAlign: 'left', minWidth: 260, fontSize: 12, fontWeight: 700, color: '#64748b' }}>{t('acctPerf.colStruct', 'Structure')}</th>
@@ -478,7 +484,7 @@ export default function AccountPerformance() {
                                 ) : ACTIVE_META_DATA.map(campaign => (
                                     <React.Fragment key={campaign.id}>
                                         <tr onClick={() => toggleCampaign(campaign.id)} style={{ cursor: 'pointer', background: expandedCampaigns[campaign.id] ? 'rgba(79,142,247,0.06)' : '#fff', borderBottom: '1px solid #f1f5f9', transition: 'background 0.2s' }}>
-                                            <td style={{ padding: '16px 24px', fontWeight: 800, color: '#1e293b', display: 'flex', alignItems: 'center', gap: 10 }}>
+                                            <td style={{ padding: '12px 24px', fontWeight: 700, fontSize: 13, color: '#1e293b', display: 'flex', alignItems: 'center', gap: 10 }}>
                                                 <span style={{ fontSize: 10, color: '#4f8ef7', transition: 'transform 0.2s', transform: expandedCampaigns[campaign.id] ? 'rotate(90deg)' : 'none' }}>▶</span>
                                                 📁 {campaign.name}
                                                 <span style={{ fontSize: 9, padding: '2px 6px', background: '#f1f5f9', borderRadius: 4, marginLeft: 6, color: '#64748b' }}>{campaign.objective}</span>

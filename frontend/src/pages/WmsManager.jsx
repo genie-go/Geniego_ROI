@@ -9,6 +9,7 @@ import { detectXSS, sanitizeInput } from '../security/SecurityGuard.js';
 import ApprovalModal from '../components/ApprovalModal.jsx';
 import { useCurrency } from '../contexts/CurrencyContext.jsx';
 import * as wmsApi from '../services/wmsApi.js';
+import { IS_DEMO } from '../utils/demoEnv.js';
 
 /* ── BroadcastChannel Cross-Tab Sync ──────────────── */
 const BC_WMS = 'geniego_wms_sync';
@@ -73,7 +74,14 @@ function Select({ label, value, onChange, opts }) {
 }
 
 /* ─── Initial Data ────────────────────────────── */
-const initWarehouses = [];
+// 206차: 데모 창고 시드 — 재고 단일소스(demoSeedData stock 키 W001/W002/W003)와 정확히 일치시켜
+//   WarehouseTab 재고 합계가 인벤토리/대시보드와 동기화되도록. 데모 백엔드 창고 미시드 시 폴백.
+const DEMO_WAREHOUSES = [
+    { id: 'W001', name: '서울 본사 물류센터', code: 'SEL-HQ', location: '서울 강남구', area: 3200, temp: 'Room Temp', manager: '김창고', phone: '02-1234-5678', type: 'Direct', active: true },
+    { id: 'W002', name: '부산 물류센터', code: 'BSN-01', location: '부산 강서구', area: 2100, temp: 'Room Temp', manager: '이물류', phone: '051-987-6543', type: 'Direct', active: true },
+    { id: 'W003', name: '인천 글로벌 허브', code: 'ICN-GH', location: '인천 중구', area: 4500, temp: 'Cold Chain', manager: '박글로벌', phone: '032-555-1212', type: '3PL', active: true },
+];
+const initWarehouses = IS_DEMO ? DEMO_WAREHOUSES : [];
 
 const initCarriers = [];
 
@@ -90,6 +98,9 @@ const CARRIER_TYPES = ["Domestic", "IntlExpress", "IntlPost", "Freight", "SameDa
 /* ═══ TAB 1: Warehouse Management ═══════════════════════════ */
 const WarehouseTab = memo(function WarehouseTab({ showForm, setShowForm, showPerms, setShowPerms }) {
     const { t } = useI18n();
+    // 206차: 창고별 재고 합계를 단일소스(GlobalDataContext.inventory)에서 파생 — 기존 initInventory(빈배열)로
+    //   항상 0이던 버그 + InventoryTab/대시보드/SupplyChain 재고와 불일치 해소(전 메뉴 재고 일관).
+    const { inventory: ctxInventory } = useGlobalData();
     const [whs, setWhs] = useState(initWarehouses);
     const [form, setForm] = useState({ id: "", name: "", code: "", location: "", area: "", temp: "Room Temp", manager: "", phone: "", type: "Direct", active: true });
     const [editing, setEditing] = useState(false);
@@ -97,7 +108,7 @@ const WarehouseTab = memo(function WarehouseTab({ showForm, setShowForm, showPer
 
     /* ── 205차: 백엔드 영속화(/api/wms/warehouses). 새로고침 후에도 유지 ── */
     const reloadWhs = useCallback(async () => {
-        try { const r = await wmsApi.listWarehouses(); if (Array.isArray(r?.warehouses)) setWhs(r.warehouses); } catch {}
+        try { const r = await wmsApi.listWarehouses(); if (Array.isArray(r?.warehouses) && r.warehouses.length) setWhs(r.warehouses); else if (IS_DEMO) setWhs(DEMO_WAREHOUSES); } catch { if (IS_DEMO) setWhs(DEMO_WAREHOUSES); }
     }, []);
     useEffect(() => { reloadWhs(); }, [reloadWhs]);
 
@@ -197,7 +208,7 @@ const WarehouseTab = memo(function WarehouseTab({ showForm, setShowForm, showPer
 
             <div style={{ display: "grid", gap: 10 }}>
                 {whs.map(w => {
-                    const totalStock = initInventory.reduce((s, p) => s + (p.stock[w.id] || 0), 0);
+                    const totalStock = (ctxInventory || []).reduce((s, p) => s + ((p.stock && p.stock[w.id]) || 0), 0);
                     return isMobile ? (
                         /* ── Mobile: Card Layout ── */
                         <div key={w.id} className="card card-glass" style={{ padding: "14px 16px", opacity: w.active ? 1 : 0.5 }}>
@@ -1244,10 +1255,29 @@ const ReceivingTab = memo(function ReceivingTab({ supplyOrders, updateSupplyOrde
     // currency formatting via useCurrency fmt()
     const STATUS_COLOR = { draft:'#64748b', confirmed:'#4f8ef7', in_transit:'#f97316', received:'#22c55e', partial:'#eab308' };
     const [form, setForm] = React.useState(null);
+    /* ── 205차: 운영=백엔드 영속(/api/wms/supply-orders), 데모=GlobalDataContext 단일소스 ── */
+    const [beOrders, setBeOrders] = React.useState([]);
+    const reload = React.useCallback(async () => {
+        if (IS_DEMO) return;
+        try {
+            const r = await wmsApi.listSupplyOrders();
+            if (Array.isArray(r?.supplyOrders)) setBeOrders(r.supplyOrders.map(o => ({
+                id: o.id, _be: true, sku: o.sku, name: o.name, qty: Number(o.qty) || 0,
+                supplier: o.supplier, status: o.status, eta: o.eta, wh: o.wh_id,
+                orderDate: (o.created_at || '').slice(0, 10), unitCost: 0, total: 0,
+            })));
+        } catch {}
+    }, []);
+    React.useEffect(() => { reload(); }, [reload]);
+    const rows = IS_DEMO ? supplyOrders : beOrders;
+    const confirmReceive = async (po) => {
+        if (po._be) { try { await wmsApi.updateSupplyOrder(po.id, { status: 'received', eta: po.eta || '' }); await reload(); } catch (e) { alert(String(e?.message || e)); } }
+        else { updateSupplyOrderStatus(po.id, 'received'); }
+    };
     return (
         <div style={{ display:'grid', gap:14 }}>
             <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:10 }}>
-                {[{ l:t('wms.recvAllPO'), v:supplyOrders.length, c:'#4f8ef7' }, { l:t('wms.recvInTransit'), v:supplyOrders.filter(p=>p.status==='in_transit').length, c:'#f97316' }, { l:t('wms.recvReceived'), v:supplyOrders.filter(p=>p.status==='received').length, c:'#22c55e' }, { l:t('wms.recvTotalAmt'), v:fmt(supplyOrders.reduce((s,p)=>s+(p.total||0),0)), c:'#a855f7' }].map(({l,v,c}) => (
+                {[{ l:t('wms.recvAllPO'), v:rows.length, c:'#4f8ef7' }, { l:t('wms.recvInTransit'), v:rows.filter(p=>p.status==='in_transit').length, c:'#f97316' }, { l:t('wms.recvReceived'), v:rows.filter(p=>p.status==='received').length, c:'#22c55e' }, { l:t('wms.recvTotalAmt'), v:fmt(rows.reduce((s,p)=>s+(p.total||0),0)), c:'#a855f7' }].map(({l,v,c}) => (
                     <div key={l} style={{ background: '#ffffff', border: '1px solid #e5e7eb', borderRadius:12, padding:'12px 14px' }}>
                         <div style={{ fontSize:10, color:'#6b7280', fontWeight:700 }}>{l}</div>
                         <div style={{ fontSize:20, fontWeight:900, color:c, marginTop:4 }}>{v}</div>
@@ -1259,8 +1289,8 @@ const ReceivingTab = memo(function ReceivingTab({ supplyOrders, updateSupplyOrde
                     {[t('wms.recvColPO'),t('wms.recvColSku'),t('wms.recvColProduct'),t('wms.recvColQty'),t('wms.recvColSupplier'),t('wms.recvColOrderDate'),t('wms.recvColEta'),t('wms.recvColUnit'),t('wms.recvColTotal'),t('wms.recvColStatus'),t('wms.recvColAction')].map(h=><th key={h} style={{ padding:'8px 4px', textAlign:'left', fontSize:10, color:'#6b7280', fontWeight:700 }}>{h}</th>)}
                 </tr></thead>
                 <tbody>
-                    {supplyOrders.map(po => (
-                        <tr key={po.id} style={{ borderBottom: '1px solid #e5e7eb' }}>
+                    {rows.map(po => (
+                        <tr key={po._be ? 'b'+po.id : po.id} style={{ borderBottom: '1px solid #e5e7eb' }}>
                             <td style={{ fontFamily:'monospace', fontSize:10, color:'#4f8ef7', padding:'8px 4px' }}>{po.id}</td>
                             <td style={{ fontFamily:'monospace', fontSize:10, padding:'8px 4px' }}>{po.sku}</td>
                             <td style={{ fontSize:11, padding:'8px 4px' }}>{po.name}</td>
@@ -1274,7 +1304,7 @@ const ReceivingTab = memo(function ReceivingTab({ supplyOrders, updateSupplyOrde
                             <td style={{ padding:'8px 4px' }}>
                                 {po.status !== 'received' && (
                                     <button style={{ fontSize:10, padding:'3px 10px', borderRadius:7, border:'none', cursor:'pointer', background:'linear-gradient(135deg,#22c55e,#16a34a)', color: '#1e293b', fontWeight:700 }}
-                                        onClick={() => updateSupplyOrderStatus(po.id, 'received')}>
+                                        onClick={() => confirmReceive(po)}>
                                         {t("wms.recvConfirmBtn")}
                                     </button>
                                 )}
@@ -1290,8 +1320,25 @@ const ReceivingTab = memo(function ReceivingTab({ supplyOrders, updateSupplyOrde
 /* ═══ Picking 리스트 Tab ══════════════════════════════ */
 const PickingListTab = memo(function PickingListTab({ pickingLists }) {
     const { t } = useI18n();
-    const _PICKS = [];
-    const [list, setList] = React.useState([...pickingLists, ..._PICKS]);
+    /* ── 205차: 운영=백엔드 영속(/api/wms/picking), 데모=GlobalDataContext 단일소스 ── */
+    const [bePicks, setBePicks] = React.useState([]);
+    const [localOverride, setLocalOverride] = React.useState({}); // 데모 컨텍스트 항목 상태 로컬 반영
+    const reload = React.useCallback(async () => {
+        if (IS_DEMO) return;
+        try {
+            const r = await wmsApi.listPicking();
+            if (Array.isArray(r?.picking)) setBePicks(r.picking.map(p => ({
+                id: p.id, _be: true, orderId: p.order_ref, sku: p.sku, name: p.name,
+                qty: Number(p.qty) || 0, wh: p.wh_id, carrier: p.carrier,
+                status: p.status, createdAt: (p.created_at || '').slice(0, 16),
+            })));
+        } catch {}
+    }, []);
+    React.useEffect(() => { reload(); }, [reload]);
+    const list = (IS_DEMO ? pickingLists : bePicks).map(p => {
+        const k = p._be ? 'b'+p.id : p.id;
+        return localOverride[k] ? { ...p, ...localOverride[k] } : p;
+    });
     const [statusFilter, setStatusFilter] = React.useState('all');
     const [approval, setApproval] = React.useState(null); // { pk, onConfirm }
 
@@ -1322,8 +1369,9 @@ const PickingListTab = memo(function PickingListTab({ pickingLists }) {
             requireNote: false,
             confirmText: t('wms.pickDispatchConfirm'),
             confirmColor: '#22c55e',
-            onConfirm: () => {
-                setList(prev => prev.map(p => p.id === pk.id ? { ...p, status: 'picked' } : p));
+            onConfirm: async () => {
+                if (pk._be) { try { await wmsApi.updatePicking(pk.id, { status: 'picked', carrier: pk.carrier || '' }); await reload(); } catch (e) { alert(String(e?.message || e)); } }
+                else { setLocalOverride(prev => ({ ...prev, [pk.id]: { status: 'picked' } })); }
                 setApproval(null);
             },
         });
@@ -1365,7 +1413,7 @@ const PickingListTab = memo(function PickingListTab({ pickingLists }) {
                 </tr></thead>
                 <tbody>
                     {filtered.map(pk => (
-                        <tr key={pk.id} style={{ borderBottom: '1px solid #e5e7eb', background: pk.status==='pending'?'rgba(249,115,22,0.03)':'' }}>
+                        <tr key={pk._be ? 'b'+pk.id : pk.id} style={{ borderBottom: '1px solid #e5e7eb', background: pk.status==='pending'?'rgba(249,115,22,0.03)':'' }}>
                             <td style={{ fontFamily:'monospace', fontSize:10, color:'#4f8ef7', padding:'8px 4px' }}>{pk.id}</td>
                             <td style={{ fontFamily:'monospace', fontSize:10, padding:'8px 4px' }}>{pk.orderId}</td>
                             <td style={{ fontFamily:'monospace', fontSize:10, padding:'8px 4px' }}>{pk.sku}</td>
@@ -1486,12 +1534,31 @@ const ReplenishmentTab = memo(function ReplenishmentTab({ supplyOrders, addSuppl
     const lowStock = inventory.filter(item => Object.values(item.stock).reduce((a,b)=>a+b,0) <= item.safeQty);
     const [form, setForm] = React.useState({ sku:'', name:'', qty:100, supplier:'', unitCost:0, eta:'' });
     const [saved, setSaved] = React.useState(false);
+    /* ── 205차: 운영=백엔드 영속(/api/wms/supply-orders), 데모=GlobalDataContext 단일소스 ── */
+    const [beOrders, setBeOrders] = React.useState([]);
+    const reload = React.useCallback(async () => {
+        if (IS_DEMO) return;
+        try {
+            const r = await wmsApi.listSupplyOrders();
+            if (Array.isArray(r?.supplyOrders)) setBeOrders(r.supplyOrders.map(o => ({
+                id: o.id, _be: true, sku: o.sku, name: o.name, qty: Number(o.qty) || 0,
+                supplier: o.supplier, status: o.status, eta: o.eta, wh: o.wh_id,
+                orderDate: (o.created_at || '').slice(0, 10), unitCost: 0, total: 0,
+            })));
+        } catch {}
+    }, []);
+    React.useEffect(() => { reload(); }, [reload]);
+    const rows = IS_DEMO ? supplyOrders : beOrders;
     const handleAutoFill = (item) => {
         const totalStock = Object.values(item.stock).reduce((a,b)=>a+b,0);
         const suggested = Math.max(item.safeQty * 3 - totalStock, 50);
         setForm({ sku:item.sku, name:item.name, qty:suggested, supplier:'', unitCost:item.cost, eta:'' });
     };
-    const handleSubmit = () => { addSupplyOrder(form); setSaved(true); setTimeout(()=>setSaved(false),2000); };
+    const handleSubmit = async () => {
+        if (IS_DEMO) { addSupplyOrder(form); }
+        else { try { await wmsApi.createSupplyOrder(form); await reload(); } catch (e) { alert(String(e?.message || e)); return; } }
+        setSaved(true); setTimeout(()=>setSaved(false),2000);
+    };
     return (
         <div style={{ display:'grid', gap:16 }}>
             {lowStock.length > 0 && (
@@ -1535,8 +1602,8 @@ const ReplenishmentTab = memo(function ReplenishmentTab({ supplyOrders, addSuppl
                         {[t('wms.replColPO'),t('wms.invColSku'),t('wms.invColProduct'),t('wms.replColQty'),t('wms.replColSupplier'),t('wms.replColOrderDate'),t('wms.replColEta'),t('wms.replColTotal'),t('wms.replColStatus')].map(h=><th key={h} style={{ padding:'8px 4px', textAlign:'left', fontSize:10, color:'#6b7280', fontWeight:700 }}>{h}</th>)}
                     </tr></thead>
                     <tbody>
-                        {supplyOrders.map(po => (
-                            <tr key={po.id} style={{ borderBottom: '1px solid #e5e7eb' }}>
+                        {rows.map(po => (
+                            <tr key={po._be ? 'b'+po.id : po.id} style={{ borderBottom: '1px solid #e5e7eb' }}>
                                 <td style={{ fontFamily:'monospace', fontSize:10, color:'#4f8ef7', padding:'8px 4px' }}>{po.id}</td>
                                 <td style={{ fontFamily:'monospace', fontSize:10, padding:'8px 4px' }}>{po.sku}</td>
                                 <td style={{ fontSize:11, padding:'8px 4px' }}>{po.name}</td>

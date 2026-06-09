@@ -532,7 +532,10 @@ export default function AutoMarketing() {
                 const camp = {
                     id: mkId(), name, period, targetAudience, budget: strategy.budget,
                     categories: selCats.map(id => PRODUCT_CATEGORIES.find(c => c.id === id)),
-                    adChannels: selAds.map(id => AD_CHANNELS.find(c => c.id === id)),
+                    // 206차: 필드명 통일 — 데모시드 캠페인은 channels 필드. 자동생성도 channels 로 맞춰
+                    //   Marketing/BudgetTracker 채널 집계가 'other' 오분류되던 동기화 실패 해소(adChannels 병행 유지).
+                    channels: selAds.map(id => AD_CHANNELS.find(c => c.id === id)).filter(Boolean),
+                    adChannels: selAds.map(id => AD_CHANNELS.find(c => c.id === id)).filter(Boolean),
                     salesChannels: activeSalesChannels,
                     allocations: strategy.allocations,
                     estimatedRoas: strategy.estimatedRoas,

@@ -339,4 +339,26 @@ class KakaoChannel
         curl_close($ch);
         return json_decode($resp ?: '{"code":"E999"}', true) ?: ['code'=>'E999'];
     }
+
+    /**
+     * 206차 #2 — 단건 알림톡 발송(여정 실행러너 kakao 노드용).
+     *   테넌트 kakao_settings 로드 → mode='live'+sender_key 면 실발송, 아니면 mock.
+     * @return array{ok:bool,mode:string,code?:string}
+     */
+    public static function sendOne(\PDO $pdo, string $tenant, string $phone, string $tplCode, string $content, array $buttons = []): array
+    {
+        $phone = preg_replace('/[^0-9]/', '', $phone);
+        if ($phone === '') return ['ok' => false, 'mode' => 'invalid'];
+        try {
+            $cs = $pdo->prepare("SELECT * FROM kakao_settings WHERE tenant_id=? ORDER BY id DESC LIMIT 1");
+            $cs->execute([$tenant]);
+            $cfg = $cs->fetch(\PDO::FETCH_ASSOC) ?: [];
+        } catch (\Throwable $e) { $cfg = []; }
+        $mode = $cfg['mode'] ?? 'mock';
+        if ($mode === 'live' && !empty($cfg['sender_key'])) {
+            $r = self::callKakaoAPI($cfg, $phone, $tplCode, $content, $buttons);
+            return ['ok' => (($r['code'] ?? 'E') === '0000'), 'mode' => 'live', 'code' => $r['code'] ?? 'E999'];
+        }
+        return ['ok' => true, 'mode' => 'mock'];
+    }
 }

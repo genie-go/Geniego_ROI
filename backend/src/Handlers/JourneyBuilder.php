@@ -60,6 +60,10 @@ class JourneyBuilder
         foreach (['journeys','journey_enrollments','journey_node_logs'] as $tbl) {
             try { $pdo->exec("ALTER TABLE {$tbl} ADD COLUMN tenant_id VARCHAR(100) NOT NULL DEFAULT 'demo'"); } catch (\Throwable $e) {}
         }
+        // 206차 #2: 실행러너 상태머신 컬럼(delay resume + cron 픽업).
+        foreach (['resume_at VARCHAR(32)', 'last_run_at VARCHAR(32)'] as $col) {
+            try { $pdo->exec("ALTER TABLE journey_enrollments ADD COLUMN {$col}"); } catch (\Throwable $e) {}
+        }
     }
 
     /* ─── GET /journey/journeys ─── 목록 ─────────────────────── */
@@ -172,8 +176,12 @@ class JourneyBuilder
         $enrollId = (int)$pdo->lastInsertId();
         $pdo->prepare("UPDATE journeys SET stats_entered=stats_entered+1 WHERE id=:id AND tenant_id=:t")->execute([':id'=>$jid, ':t'=>$tenant]);
 
-        $log = self::executeNode($pdo, $tenant, $enrollId, $jid, $startNode, $nodes);
-        return self::json($res, ['ok' => true, 'enrollment_id' => $enrollId, 'first_action' => $log]);
+        // 206차 #2: 등록 즉시 실행 엔진으로 첫 delay/완료까지 진행(엣지 순회·실발송).
+        $enr = ['id'=>$enrollId, 'journey_id'=>$jid, 'current_node'=>$startNode, 'status'=>'active',
+                'customer_id'=>(int)($b['customer_id'] ?? 0), 'session_id'=>$b['session_id'] ?? null,
+                'resume_at'=>null, 'revenue'=>0];
+        $run = self::advanceEnrollment($pdo, $tenant, $enr, $j);
+        return self::json($res, ['ok' => true, 'enrollment_id' => $enrollId, 'run' => $run]);
     }
 
     /* ─── POST /journey/journeys/{id}/launch ─── 여정 활성화 ── */
@@ -214,30 +222,239 @@ class JourneyBuilder
         return self::json($res, ['ok'=>true, 'journey'=>$j, 'by_status'=>$byStatus, 'node_stats'=>$nodes]);
     }
 
-    private static function executeNode(\PDO $pdo, string $tenant, int $enrollId, int $jid, string $nodeId, array $nodes): array
-    {
-        $node = null;
-        foreach ($nodes as $n) { if (($n['id'] ?? null) === $nodeId) { $node = $n; break; } }
-        if (!$node) return ['skipped' => true];
+    /* ════════════════════════════════════════════════════════════════════
+     * 206차 #2 — 여정 실행 엔진(상태머신)
+     *   enroll 즉시 + journey_cron.php 주기 호출. 엣지 순회 → 노드별 실행
+     *   (email=Mailer·kakao=KakaoChannel·sms=NaverSms 실발송, condition=분기,
+     *    delay=resume_at 설정 후 중단) → 다음 delay/완료까지 진행.
+     * ════════════════════════════════════════════════════════════════════ */
 
-        $result = ['node_id' => $nodeId, 'type' => $node['type']];
-        switch ($node['type']) {
-            case 'email':
-                $result['action'] = 'email_queued'; $result['template_id'] = $node['config']['template_id'] ?? null; break;
-            case 'kakao':
-                $result['action'] = 'kakao_queued'; $result['template_code'] = $node['config']['template_code'] ?? null; break;
-            case 'delay':
-                $result['action'] = 'waiting';
-                $result['resume_at'] = gmdate('Y-m-d H:i:s', strtotime("+{$node['config']['value']} {$node['config']['unit']}") ?: time()); break;
-            default:
-                $result['action'] = 'processed';
+    /** 주기 실행 진입점 — journey_cron.php 호출. resume 시각 도래한 waiting 등록건 진행. */
+    public static function runDue(?string $onlyTenant = null, int $limit = 300): array
+    {
+        self::ensureTables();
+        $pdo = self::db();
+        $now = self::now();
+        $sql = "SELECT e.*, j.nodes AS j_nodes, j.edges AS j_edges
+                  FROM journey_enrollments e
+                  JOIN journeys j ON j.id = e.journey_id AND j.tenant_id = e.tenant_id
+                 WHERE e.status = 'waiting' AND e.resume_at IS NOT NULL AND e.resume_at <= :now";
+        $bind = [':now' => $now];
+        if ($onlyTenant !== null && $onlyTenant !== '') { $sql .= " AND e.tenant_id = :t"; $bind[':t'] = $onlyTenant; }
+        $sql .= " ORDER BY e.id ASC LIMIT " . max(1, min(2000, $limit));
+        $st = $pdo->prepare($sql);
+        $st->execute($bind);
+        $rows = $st->fetchAll(\PDO::FETCH_ASSOC);
+
+        $processed = 0; $completed = 0; $waiting = 0;
+        foreach ($rows as $r) {
+            $journey = ['id' => (int)$r['journey_id'], 'nodes' => $r['j_nodes'], 'edges' => $r['j_edges']];
+            try {
+                $res = self::advanceEnrollment($pdo, (string)$r['tenant_id'], $r, $journey);
+                $processed++;
+                if (($res['status'] ?? '') === 'completed') $completed++;
+                elseif (($res['status'] ?? '') === 'waiting') $waiting++;
+            } catch (\Throwable $e) { /* 단일 등록건 실패가 전체 배치를 막지 않게 */ }
         }
-        $pdo->prepare("INSERT INTO journey_node_logs (tenant_id, enrollment_id, journey_id, node_id, node_type, action, result, executed_at)
-            VALUES (:t, :eid, :jid, :nid, :ntype, :action, :result, :ea)
-        ")->execute([
-            ':t'=>$tenant, ':eid'=>$enrollId, ':jid'=>$jid, ':nid'=>$nodeId, ':ntype'=>$node['type'], ':action'=>$result['action'] ?? 'unknown', ':result'=>json_encode($result), ':ea'=>self::now(),
-        ]);
-        return $result;
+        return ['ok' => true, 'scanned' => count($rows), 'processed' => $processed, 'completed' => $completed, 'waiting' => $waiting];
+    }
+
+    /** 단일 등록건을 다음 delay(중단) 또는 완료까지 진행. */
+    private static function advanceEnrollment(\PDO $pdo, string $tenant, array $enr, array $journey): array
+    {
+        $nodes = json_decode($journey['nodes'] ?? '[]', true) ?: [];
+        $edges = json_decode($journey['edges'] ?? '[]', true) ?: [];
+        $jid      = (int)($journey['id'] ?? $enr['journey_id'] ?? 0);
+        $enrollId = (int)$enr['id'];
+        $nodeId   = (string)($enr['current_node'] ?? '');
+        $status   = (string)($enr['status'] ?? 'active');
+        $now      = self::now();
+        $actions  = [];
+        $guard    = 0;
+
+        while ($nodeId !== '' && $guard++ < 100) {
+            $node = self::findNode($nodes, $nodeId);
+            if (!$node) { $nodeId = ''; break; }
+            $type = (string)($node['type'] ?? '');
+
+            // ── trigger: 통과 ──
+            if ($type === 'trigger') { $nodeId = self::nextNode($edges, $nodeId, null); continue; }
+
+            // ── delay: resume 도래면 통과, 아니면 대기 설정 후 중단 ──
+            if ($type === 'delay') {
+                $resumeAt = (string)($enr['resume_at'] ?? '');
+                if ($status === 'waiting' && $resumeAt !== '' && $resumeAt <= $now) {
+                    self::logNode($pdo, $tenant, $enrollId, $jid, $nodeId, 'delay', 'delay_resumed', ['resumed_at' => $now]);
+                    $status = 'active'; $enr['resume_at'] = null;
+                    $nodeId = self::nextNode($edges, $nodeId, null);
+                    continue;
+                }
+                $cfg  = (array)($node['config'] ?? []);
+                $val  = (int)($cfg['value'] ?? 1);
+                $unit = (string)($cfg['unit'] ?? 'days');
+                $resume = gmdate('Y-m-d H:i:s', strtotime("+{$val} {$unit}") ?: time());
+                $pdo->prepare("UPDATE journey_enrollments SET current_node=:n,status='waiting',resume_at=:r,last_run_at=:lr WHERE id=:id AND tenant_id=:t")
+                    ->execute([':n'=>$nodeId, ':r'=>$resume, ':lr'=>$now, ':id'=>$enrollId, ':t'=>$tenant]);
+                self::logNode($pdo, $tenant, $enrollId, $jid, $nodeId, 'delay', 'waiting', ['resume_at' => $resume]);
+                $actions[] = ['node'=>$nodeId, 'action'=>'waiting', 'resume_at'=>$resume];
+                return ['ok'=>true, 'status'=>'waiting', 'actions'=>$actions];
+            }
+
+            // ── condition: 분기 ──
+            if ($type === 'condition') {
+                $branch = self::evalCondition($pdo, $tenant, $enr, $node);
+                self::logNode($pdo, $tenant, $enrollId, $jid, $nodeId, 'condition', 'evaluated', ['branch' => $branch]);
+                $actions[] = ['node'=>$nodeId, 'action'=>'condition', 'branch'=>$branch];
+                $nodeId = self::nextNode($edges, $nodeId, $branch);
+                continue;
+            }
+
+            // ── 실행 노드(email/kakao/sms/action/...) ──
+            switch ($type) {
+                case 'email': $a = self::sendEmailNode($pdo, $tenant, $enr, $node); break;
+                case 'kakao': $a = self::sendKakaoNode($pdo, $tenant, $enr, $node); break;
+                case 'sms':   $a = self::sendSmsNode($pdo, $tenant, $enr, $node); break;
+                default:      $a = ['action' => 'processed']; break;
+            }
+            self::logNode($pdo, $tenant, $enrollId, $jid, $nodeId, $type, (string)($a['action'] ?? 'processed'), $a);
+            $actions[] = ['node'=>$nodeId] + $a;
+
+            $nodeId = self::nextNode($edges, $nodeId, null);
+            $pdo->prepare("UPDATE journey_enrollments SET current_node=:n,last_run_at=:lr WHERE id=:id AND tenant_id=:t")
+                ->execute([':n'=>$nodeId, ':lr'=>$now, ':id'=>$enrollId, ':t'=>$tenant]);
+        }
+
+        // 다음 노드 없음 → 완료
+        $pdo->prepare("UPDATE journey_enrollments SET status='completed', completed_at=:c, last_run_at=:c WHERE id=:id AND tenant_id=:t")
+            ->execute([':c'=>$now, ':id'=>$enrollId, ':t'=>$tenant]);
+        $pdo->prepare("UPDATE journeys SET stats_completed=stats_completed+1 WHERE id=:id AND tenant_id=:t")->execute([':id'=>$jid, ':t'=>$tenant]);
+        return ['ok'=>true, 'status'=>'completed', 'actions'=>$actions];
+    }
+
+    private static function findNode(array $nodes, string $id): ?array
+    {
+        foreach ($nodes as $n) { if (($n['id'] ?? null) === $id) return $n; }
+        return null;
+    }
+
+    /** 다음 노드 해석. $branch('true'/'false') 지정 시 조건 엣지(when/branch/label) 매칭. */
+    private static function nextNode(array $edges, string $fromId, ?string $branch): string
+    {
+        $cand = [];
+        foreach ($edges as $e) { if (($e['from'] ?? null) === $fromId) $cand[] = $e; }
+        if (!$cand) return '';
+        if ($branch !== null) {
+            $want = $branch === 'true' ? ['true','yes','y','1'] : ['false','no','n','0'];
+            foreach ($cand as $e) {
+                $w = $e['when'] ?? $e['branch'] ?? $e['condition'] ?? $e['label'] ?? null;
+                if ($w === null) continue;
+                $ws = is_bool($w) ? ($w ? 'true' : 'false') : strtolower((string)$w);
+                if (in_array($ws, $want, true)) return (string)($e['to'] ?? '');
+            }
+            // 라벨 없으면 위치 폴백: true→첫번째, false→두번째
+            $idx = $branch === 'true' ? 0 : (count($cand) > 1 ? 1 : 0);
+            return (string)($cand[$idx]['to'] ?? '');
+        }
+        return (string)($cand[0]['to'] ?? '');
+    }
+
+    /** 조건 평가 → 'true'/'false'. 고객 사실(grade/ltv) + 등록 revenue 기반, 미추적 신호는 보수적 false. */
+    private static function evalCondition(\PDO $pdo, string $tenant, array $enr, array $node): string
+    {
+        $cfg      = (array)($node['config'] ?? []);
+        $field    = (string)($cfg['field'] ?? '');
+        $op       = (string)($cfg['op'] ?? 'eq');
+        $expected = $cfg['value'] ?? null;
+        $cid      = (int)($enr['customer_id'] ?? 0);
+
+        $facts = ['revenue' => (float)($enr['revenue'] ?? 0)];
+        if ($cid > 0) {
+            try {
+                $c = $pdo->prepare("SELECT grade, ltv FROM crm_customers WHERE id=:id AND tenant_id=:t");
+                $c->execute([':id'=>$cid, ':t'=>$tenant]);
+                $row = $c->fetch(\PDO::FETCH_ASSOC) ?: [];
+                $facts['grade'] = $row['grade'] ?? null;
+                $facts['ltv']   = (float)($row['ltv'] ?? 0);
+            } catch (\Throwable $e) {}
+        }
+        $actual = $facts[$field] ?? null; // email_clicked 등 서버 미추적 신호 → null → 보수적 false
+        return self::compare($actual, $op, $expected) ? 'true' : 'false';
+    }
+
+    private static function compare($a, string $op, $b): bool
+    {
+        if ($a === null) return false;
+        return match ($op) {
+            'eq', '=='        => $a == $b,
+            'neq', '!='       => $a != $b,
+            'gt', '>'         => (float)$a >  (float)$b,
+            'gte', '>='       => (float)$a >= (float)$b,
+            'lt', '<'         => (float)$a <  (float)$b,
+            'lte', '<='       => (float)$a <= (float)$b,
+            'contains'        => str_contains((string)$a, (string)$b),
+            default           => $a == $b,
+        };
+    }
+
+    private static function contact(\PDO $pdo, string $tenant, int $cid): array
+    {
+        if ($cid <= 0) return [];
+        try {
+            $s = $pdo->prepare("SELECT email, phone, name FROM crm_customers WHERE id=:id AND tenant_id=:t");
+            $s->execute([':id'=>$cid, ':t'=>$tenant]);
+            return $s->fetch(\PDO::FETCH_ASSOC) ?: [];
+        } catch (\Throwable $e) { return []; }
+    }
+
+    private static function sendEmailNode(\PDO $pdo, string $tenant, array $enr, array $node): array
+    {
+        $c     = self::contact($pdo, $tenant, (int)($enr['customer_id'] ?? 0));
+        $email = trim((string)($c['email'] ?? ''));
+        if ($email === '') return ['action' => 'skipped', 'reason' => 'no_email'];
+        $cfg     = (array)($node['config'] ?? []);
+        $subject = (string)($cfg['subject'] ?? '') ?: (string)($node['label'] ?? '안내');
+        $html    = (string)($cfg['html'] ?? $cfg['body'] ?? '');
+        if ($html === '') {
+            $name = htmlspecialchars((string)($c['name'] ?? '고객'), ENT_QUOTES);
+            $html = \Genie\Mailer::wrapHtml($subject, "<p>{$name}님, " . htmlspecialchars($subject, ENT_QUOTES) . "</p>");
+        }
+        $r = \Genie\Mailer::send($email, $subject, $html, ['pdo' => $pdo, 'tenant' => $tenant]);
+        return ['action' => ($r['ok'] ?? false) ? 'email_sent' : 'email_failed', 'to' => $email, 'mode' => $r['mode'] ?? null];
+    }
+
+    private static function sendSmsNode(\PDO $pdo, string $tenant, array $enr, array $node): array
+    {
+        $c     = self::contact($pdo, $tenant, (int)($enr['customer_id'] ?? 0));
+        $phone = preg_replace('/[^0-9]/', '', (string)($c['phone'] ?? ''));
+        if ($phone === '') return ['action' => 'skipped', 'reason' => 'no_phone'];
+        $cfg     = (array)($node['config'] ?? []);
+        $content = (string)($cfg['content'] ?? $cfg['message'] ?? '') ?: (string)($node['label'] ?? '안내');
+        $r = \Genie\NaverSms::sendPlatform($pdo, $phone, $content);
+        return ['action' => ($r['ok'] ?? false) ? 'sms_sent' : ('sms_' . ($r['mode'] ?? 'failed')), 'to' => $phone];
+    }
+
+    private static function sendKakaoNode(\PDO $pdo, string $tenant, array $enr, array $node): array
+    {
+        $c     = self::contact($pdo, $tenant, (int)($enr['customer_id'] ?? 0));
+        $phone = preg_replace('/[^0-9]/', '', (string)($c['phone'] ?? ''));
+        if ($phone === '') return ['action' => 'skipped', 'reason' => 'no_phone'];
+        $cfg     = (array)($node['config'] ?? []);
+        $tplCode = (string)($cfg['template_code'] ?? '');
+        $content = (string)($cfg['content'] ?? '') ?: (string)($node['label'] ?? '안내');
+        $r = KakaoChannel::sendOne($pdo, $tenant, $phone, $tplCode, $content);
+        return ['action' => ($r['ok'] ?? false) ? 'kakao_sent' : ('kakao_' . ($r['mode'] ?? 'failed')), 'to' => $phone];
+    }
+
+    private static function logNode(\PDO $pdo, string $tenant, int $enrollId, int $jid, string $nodeId, string $type, string $action, array $result): void
+    {
+        try {
+            $pdo->prepare("INSERT INTO journey_node_logs (tenant_id, enrollment_id, journey_id, node_id, node_type, action, result, executed_at)
+                VALUES (:t, :eid, :jid, :nid, :ntype, :action, :result, :ea)")
+                ->execute([
+                    ':t'=>$tenant, ':eid'=>$enrollId, ':jid'=>$jid, ':nid'=>$nodeId, ':ntype'=>$type,
+                    ':action'=>$action, ':result'=>json_encode($result, JSON_UNESCAPED_UNICODE), ':ea'=>self::now(),
+                ]);
+        } catch (\Throwable $e) {}
     }
 
     /* ─── GET /journey/templates ─── 여정 템플릿(정적) ────────── */

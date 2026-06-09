@@ -4,6 +4,7 @@ import { useGlobalData } from '../../context/GlobalDataContext.jsx';
 import { useSecurityGuard } from '../../security/SecurityGuard.js';
 import { DonutChart, StackBar, fmt } from './ChartUtils.jsx';
 import { useCurrency } from '../../contexts/CurrencyContext.jsx';
+import { IS_DEMO } from '../../utils/demoEnv.js';
 
 // ══════════════════════════════════════════════════════════════════════
 //  🛒 DashCommerce — 커머스·정산 Platform Intelligence
@@ -472,14 +473,16 @@ export default function DashCommerce() {
         rev: pRev,
         avgOrd: hasData ? ((pRev / Math.max(1, pOrders)) / 1000).toFixed(1) : '0.0',
         ret: hasData ? (returnRate * 100).toFixed(1) : '0.0',
-        mobile: hasData ? 72 : 0,
-        peak: hasData ? '19:00' : '-',
-        gm: hasData ? 42 : 0,
-        gf: hasData ? 58 : 0,
-        age: hasData ? [15, 35, 25, 15, 10] : [0,0,0,0,0],
-        reg: hasData ? [['Seoul', 35], ['Gyeonggi', 25], ['Busan', 15]] : [],
-        cats: hasData ? [['Beauty', 55], ['Fashion', 25], ['Lifestyle', 20]] : [],
-        pay: hasData ? [['Card', 65], ['Mobile', 25], ['Transfer', 10]] : [],
+        // 206차: 인구통계(성별/연령/지역/결제/모바일)는 주문에 없는 필드라 파생 불가 → 데모 시드값.
+        //   기존 hasData 게이트만으로는 운영 실주문 시 가짜 인구통계 노출 → IS_DEMO 게이트 추가(운영=빈값).
+        mobile: (IS_DEMO && hasData) ? 72 : 0,
+        peak: (IS_DEMO && hasData) ? '19:00' : '-',
+        gm: (IS_DEMO && hasData) ? 42 : 0,
+        gf: (IS_DEMO && hasData) ? 58 : 0,
+        age: (IS_DEMO && hasData) ? [15, 35, 25, 15, 10] : [0,0,0,0,0],
+        reg: (IS_DEMO && hasData) ? [['Seoul', 35], ['Gyeonggi', 25], ['Busan', 15]] : [],
+        cats: (IS_DEMO && hasData) ? [['Beauty', 55], ['Fashion', 25], ['Lifestyle', 20]] : [],
+        pay: (IS_DEMO && hasData) ? [['Card', 65], ['Mobile', 25], ['Transfer', 10]] : [],
       };
     });
   }, [orders, totalOrd, totalRev, returnRate]);

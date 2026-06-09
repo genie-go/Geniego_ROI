@@ -120,9 +120,9 @@ export default function InstagramDM() {
                         <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
                             {[
                                 { l: t('igdm.kpiConnected', '연결됨'), v: settings?.settings?.length > 0 ? '✅' : isDemo ? '📌 ' : t('igdm.kpiNotConnected', '미연동'), c: settings?.ok ? '#22c55e' : '#6b7280' },
-                                { l: t('igdm.kpiReceived', '수신 DM'), v: (settings?.stats?.received || 142).toLocaleString(), c: '#a855f7' },
-                                { l: t('igdm.kpiSent', '발송'), v: (settings?.stats?.sent || 89).toLocaleString(), c: '#4f8ef7' },
-                                { l: t('igdm.kpiUnread', '미읽음'), v: settings?.stats?.unread || 12, c: '#ef4444' },
+                                { l: t('igdm.kpiReceived', '수신 DM'), v: (settings?.stats?.received ?? (isDemo ? 142 : 0)).toLocaleString(), c: '#a855f7' },
+                                { l: t('igdm.kpiSent', '발송'), v: (settings?.stats?.sent ?? (isDemo ? 89 : 0)).toLocaleString(), c: '#4f8ef7' },
+                                { l: t('igdm.kpiUnread', '미읽음'), v: settings?.stats?.unread ?? (isDemo ? 12 : 0), c: '#ef4444' },
                             ].map(k => (
                                 <div key={k.l} style={{ padding: '5px 14px', borderRadius: 20, background: `${k.c}12`, border: `1px solid ${k.c}30`, fontSize: 12 }}>
                                     <span style={{ color: 'var(--text-3)', marginRight: 4 }}>{k.l}</span>
@@ -230,9 +230,9 @@ export default function InstagramDM() {
                             <div style={{ fontSize: 11, color: 'var(--text-3)', marginBottom: 6 }}>{t('igdm.targetSelect', '대상 선택')}</div>
                             <div style={{ display: 'grid', gap: 8, marginBottom: 14 }}>
                                 {[
-                                    { l: t('igdm.targetAll', '전체 팔로워'), v: t('igdm.targetAllDesc', '모든 DM 수신 허용 팔로워'), cnt: 8400 },
-                                    { l: t('igdm.targetNoReply', '미응답 대화'), v: t('igdm.targetNoReplyDesc', '48시간 이상 미응답'), cnt: 23 },
-                                    { l: t('igdm.targetRecent', '최근 문의 고객'), v: t('igdm.targetRecentDesc', '최근 7일 문의'), cnt: 142 },
+                                    { l: t('igdm.targetAll', '전체 팔로워'), v: t('igdm.targetAllDesc', '모든 DM 수신 허용 팔로워'), cnt: isDemo ? 8400 : (settings?.stats?.followers ?? 0) },
+                                    { l: t('igdm.targetNoReply', '미응답 대화'), v: t('igdm.targetNoReplyDesc', '48시간 이상 미응답'), cnt: isDemo ? 23 : (settings?.stats?.unread ?? 0) },
+                                    { l: t('igdm.targetRecent', '최근 문의 고객'), v: t('igdm.targetRecentDesc', '최근 7일 문의'), cnt: isDemo ? 142 : (settings?.stats?.received ?? 0) },
                                 ].map(tg => (
                                     <label key={tg.l} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 10, background: 'var(--surface)', cursor: 'pointer' }}>
                                         <input type="radio" name="target" defaultChecked={tg.cnt === 142} />
@@ -255,11 +255,12 @@ export default function InstagramDM() {
                         </div>
                         <div>
                             <div style={{ fontSize: 11, color: 'var(--text-3)', marginBottom: 8 }}>{t('igdm.sendHistory', '📋 발송 내역')}</div>
-                            {[
+                            {/* 206차: 발송이력 하드코딩 IS_DEMO 게이트 — 운영은 빈 내역(목데이터 유입 차단) */}
+                            {(isDemo ? [
                                 { date: '2026-03-10', target: t('igdm.targetNoReply', '미응답 대화'), cnt: 18, status: t('igdm.statusDone', '완료') },
                                 { date: '2026-03-08', target: t('igdm.targetRecent', '최근 문의 고객'), cnt: 61, status: t('igdm.statusDone', '완료') },
                                 { date: '2026-03-05', target: t('igdm.targetAllShort', '전체'), cnt: 142, status: t('igdm.statusDone', '완료') },
-                            ].map((h, i) => (
+                            ] : []).map((h, i) => (
                                 <div key={i} style={{ padding: '10px 14px', borderRadius: 10, background: 'var(--surface)', marginBottom: 8 }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
                                         <span style={{ fontSize: 12, fontWeight: 700 }}>{h.target}</span>

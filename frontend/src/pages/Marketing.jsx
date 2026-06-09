@@ -341,7 +341,9 @@ function ChannelFeeTracker({ campaigns }) {
     const { t } = useI18n();
     const { fmt } = useCurrency();
     const { isConnected } = useConnectorSync();
-    const feeData = useMemo(() => Object.entries(CHANNEL_FEES).filter(([id]) => isConnected(id)).map(([id, info]) => { const cs = campaigns.filter(c => (c.adChannels?.[0]?.id || '').includes(id.split('_')[0])).reduce((s, c) => s + (c.spent || 0), 0); return { ...info, id, spend: cs, fee: cs * info.feeRate }; }), [campaigns, isConnected]);
+    // 206차: c.adChannels(존재하지 않는 필드)→c.channels 단일소스 정정. 캠페인의 모든 연동채널을
+    //   대상으로 매칭(첫 채널만 보던 누락도 해소) → 총지출액/예상수수료가 0이던 동기화 버그 수정.
+    const feeData = useMemo(() => Object.entries(CHANNEL_FEES).filter(([id]) => isConnected(id)).map(([id, info]) => { const pref = id.split('_')[0]; const cs = campaigns.filter(c => (c.channels || []).some(ch => String(ch.id || '').includes(pref))).reduce((s, c) => s + (c.spent || 0), 0); return { ...info, id, spend: cs, fee: cs * info.feeRate }; }), [campaigns, isConnected]);
     const totalFee = feeData.reduce((s, d) => s + d.fee, 0);
     if (feeData.length === 0) return <div style={{ color: '#94a3b8', fontSize: 12, textAlign: 'center', padding: 16 }}>{t('marketing.noConnectedChannels')}</div>;
     return (<div><div style={{ display: 'flex', gridTemplateColumns: 'repeat(auto-fill,minmax(200px,1fr))', gap: 10, marginBottom: 6, padding: '8px 14px', borderRadius: 8, background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.15)', justifyContent: 'flex-end', alignItems: 'center', fontSize: 12, fontWeight: 900, color: '#ef4444', marginTop: 2 }} >{feeData.map(ch => (<div key={ch.id}><div><span>{ch.icon} {ch.name}</span><span>{(ch.feeRate * 100).toFixed(1)}%</span></div><div>{t('marketing.metSpend')}: {fmt(ch.spend)}</div><div>{t('marketing.estimatedFee')}: {fmt(ch.fee)}</div></div>))}</div><div><span>{t('marketing.totalFee')}: {fmt(totalFee)}</span></div></div>);
@@ -374,7 +376,7 @@ function CreativeAnalysisTab() {
             const conv = c.conv || 0;
             return {
                 name: c.name,
-                channel: c.adChannels?.[0]?.id || 'meta',
+                channel: c.channels?.[0]?.id || 'meta',
                 spend: sp,
                 impressions: impr,
                 clicks: clicks,

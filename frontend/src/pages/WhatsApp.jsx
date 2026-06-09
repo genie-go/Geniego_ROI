@@ -239,7 +239,8 @@ export default function WhatsApp() {
                         </div>
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                        {[{ l: 'Send', v: stats.sent || 142, c: '#25D366' }, { l: 'Delivered', v: stats.delivered || 138, c: '#4f8ef7' }, { l: 'Read', v: stats.read || 95, c: '#a855f7' }, { l: 'Failed', v: stats.failed || 4, c: '#ef4444' }].map(k => (
+                        {/* 206차: 통계 폴백 IS_DEMO 게이트 — 운영(미연동)은 0(목데이터 유입 차단), 데모만 시드 */}
+                        {[{ l: 'Send', v: stats.sent || (IS_DEMO ? 142 : 0), c: '#25D366' }, { l: 'Delivered', v: stats.delivered || (IS_DEMO ? 138 : 0), c: '#4f8ef7' }, { l: 'Read', v: stats.read || (IS_DEMO ? 95 : 0), c: '#a855f7' }, { l: 'Failed', v: stats.failed || (IS_DEMO ? 4 : 0), c: '#ef4444' }].map(k => (
                             <div key={k.l} style={{ padding: '8px 14px', borderRadius: 10, background: `${k.c}10`, border: `1px solid ${k.c}22`, textAlign: 'center' }}>
                                 <div style={{ fontSize: 18, fontWeight: 900, color: k.c }}>{k.v}</div>
                                 <div style={{ fontSize: 10, color: 'var(--text-3)' }}>{k.l}</div>

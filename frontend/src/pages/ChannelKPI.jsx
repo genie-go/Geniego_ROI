@@ -376,16 +376,25 @@ function CommunityKpiTab({ globalOrderStats }) {
 /* ══════════════════════════════
    Tab 7: KPI Target Figures & Achievement
 ══════════════════════════════ */
-function KpiTargetTab({ kpiTargets, globalOrderStats, globalBudgetStats }) {
+function KpiTargetTab({ kpiTargets, globalOrderStats, globalBudgetStats, globalChannels, globalCampaigns }) {
   const t = useT();
     const { symbol: csym } = useCurrency();
-    // Using actual global stats instead of static zeros
+    // 206차 #5: 광고 퍼널 단일소스(캠페인 impr/clicks/conv — 내적 일관) 기반 정식 산출.
+    //   기존: CTR=count/spend·CVR=count/spend(단위 불일치)·CPC=0 하드코딩이라 무의미한 값.
+    //   캠페인 없으면 채널 예산(impressions/clicks) + 주문수로 폴백.
+    const camps = Array.isArray(globalCampaigns) ? globalCampaigns : [];
+    const chans = globalChannels ? Object.values(globalChannels) : [];
+    const sum = (arr, f) => arr.reduce((s, x) => s + (Number(f(x)) || 0), 0);
+    const impr = camps.length ? sum(camps, c => c.impressions) : sum(chans, c => c.impressions);
+    const clk  = camps.length ? sum(camps, c => c.clicks)      : sum(chans, c => c.clicks);
+    const conv = camps.length ? sum(camps, c => c.conv)        : (globalOrderStats?.count || 0);
+    const spend = globalBudgetStats?.totalSpent || sum(chans, c => c.spent);
     const ACTUALS = {
-        ctr: globalBudgetStats?.totalSpent > 0 ? (globalOrderStats?.count / globalBudgetStats.totalSpent * 100000).toFixed(1) : 0, 
-        convRate: globalOrderStats?.count > 0 ? (globalOrderStats.count / (globalBudgetStats.totalSpent > 0 ? globalBudgetStats.totalSpent : 1) * 100).toFixed(2) : 0, 
-        cpa: globalOrderStats?.count > 0 ? (globalBudgetStats.totalSpent / globalOrderStats.count).toFixed(0) : 0, 
-        roas: globalBudgetStats?.blendedRoas ? (globalBudgetStats.blendedRoas * 100).toFixed(0) : 0, 
-        cpc: 0,
+        ctr:      impr > 0 ? +(clk / impr * 100).toFixed(2) : 0,
+        convRate: clk  > 0 ? +(conv / clk * 100).toFixed(2) : 0,
+        cpa:      conv > 0 ? Math.round(spend / conv) : 0,
+        roas:     globalBudgetStats?.blendedRoas ? +(globalBudgetStats.blendedRoas * 100).toFixed(0) : 0,
+        cpc:      clk  > 0 ? Math.round(spend / clk) : 0,
     };
     const DEFAULTS = { ctr: 0, convRate: 0, cpa: 0, roas: 0, cpc: 0 };
     const ITEMS = [
@@ -659,7 +668,7 @@ export default function ChannelKPI() {
 
   const { fmt } = useCurrency();
     const navigate = useNavigate();
-    const { budgetStats, channelBudgets, pnlStats, orderStats, addAlert, isDemo } = useGlobalData();
+    const { budgetStats, channelBudgets, pnlStats, orderStats, sharedCampaigns, addAlert, isDemo } = useGlobalData();
     useSecurityGuard({ addAlert: useCallback((a) => { if (typeof addAlert === 'function') addAlert(a); }, [addAlert]), enabled: true, _src: 'ChannelKPI' });
     // ConnectorSync: auto-sync channels from Integration Hub
     try { useConnectorSync(); } catch(e) {}
@@ -755,7 +764,7 @@ export default function ChannelKPI() {
                 {tab === 'sns' && <SnsKpiTab globalChannels={channelBudgets} />}
                 {tab === 'content' && <ContentKpiTab globalOrderStats={orderStats} />}
                 {tab === 'community' && <CommunityKpiTab globalOrderStats={orderStats} />}
-                {tab === 'target' && <KpiTargetTab kpiTargets={kpiTargets} globalOrderStats={orderStats} globalBudgetStats={budgetStats} globalChannels={channelBudgets} />}
+                {tab === 'target' && <KpiTargetTab kpiTargets={kpiTargets} globalOrderStats={orderStats} globalBudgetStats={budgetStats} globalChannels={channelBudgets} globalCampaigns={sharedCampaigns} />}
                 {tab === 'monitor' && <MonitoringTab goals={goals} kpiTargets={kpiTargets} />}
                 {tab === 'guide' && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 20, animation: 'fadeIn 0.3s' }}>

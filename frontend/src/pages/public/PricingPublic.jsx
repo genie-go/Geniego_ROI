@@ -501,7 +501,8 @@ export default function PricingPublic() {
                 </p>
 
                 {/* Plan cards */}
-                <div style={{ display: "grid", gridTemplateColumns: `repeat(${Math.min(plans.length, 3)},1fr)`, gap: 16, maxWidth: 1040, margin: "0 auto" }}>
+                {/* 206차: 3컬럼 제한 → 최대 4컬럼(플랜 4개가 한 화면 한 줄에 모두 보이도록). 1fr 컬럼이 컨테이너 폭에 맞춰 축소되어 가로 스크롤 없음. */}
+                <div style={{ display: "grid", gridTemplateColumns: `repeat(${Math.min(plans.length, 4)},1fr)`, gap: 14, maxWidth: plans.length >= 4 ? 1280 : 1040, margin: "0 auto" }}>
                     {plans.map(rawPlan => {
                         const plan = localizePlan(rawPlan);
                         // 187차 — 선택한 계정수(seat)의 기간별 가격 사용(admin 매트릭스 동기화).
@@ -520,7 +521,7 @@ export default function PricingPublic() {
                                 onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelectedPlanId(plan.id); } }}
                                 aria-pressed={isSelected}
                                 style={{
-                                    padding: "36px 28px", borderRadius: 20, position: "relative", textAlign: "left", cursor: "pointer",
+                                    padding: plans.length >= 4 ? "26px 20px" : "36px 28px", borderRadius: 20, position: "relative", textAlign: "left", cursor: "pointer",
                                     background: isPro ? T.proCardBg : T.cardBg,
                                     border: isSelected ? `2px solid ${plan.color}` : (isPro ? `1px solid ${T.proCardBorder}` : `1px solid ${T.cardBorder}`),
                                     transform: isSelected ? "translateY(-4px)" : (isPro ? "scale(1.02)" : "none"),

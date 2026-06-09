@@ -47,15 +47,17 @@ export default function AdStatusAnalysis() {
     const { t } = useI18n();
     const { token } = useAuth();
     
+    // 206\ucc28 #3: \uadf8\ub798\ud504 \ubc15\uc2a4 \uc22b\uc790 \ucc9c\ub2e8\uc704 \ucf64\ub9c8 \uc77c\uad00\ud654(\ucd1d\ud074\ub9ad\uc218\u00b7\uc77c\uc77c\uc9c0\ucd9c\uc561 \ucf64\ub9c8 \ub204\ub77d \ud574\uc18c).
+    const nf = v => Number(Math.round(Number(v) || 0)).toLocaleString();
     const METRICS = useMemo(() => [
-        { id: 'impr', label: t("marketing.metricImpr"), color: '#a855f7', fmt: v => v >= 1000 ? (v/1000).toFixed(0)+'K' : v },
-        { id: 'reach', label: t("marketing.metricReach"), color: '#6366f1', fmt: v => v >= 1000 ? (v/1000).toFixed(0)+'K' : v },
-        { id: 'spend', label: t("marketing.metricSpend"), color: '#ef4444', fmt: v => '\u20a9'+(v >= 1000 ? (v/1000).toFixed(0)+'K' : v) },
-        { id: 'clicks', label: t("marketing.metricClicks"), color: '#3b82f6', fmt: v => v },
+        { id: 'impr', label: t("marketing.metricImpr"), color: '#a855f7', fmt: nf },
+        { id: 'reach', label: t("marketing.metricReach"), color: '#6366f1', fmt: nf },
+        { id: 'spend', label: t("marketing.metricSpend"), color: '#ef4444', fmt: v => '\u20a9'+nf(v) },
+        { id: 'clicks', label: t("marketing.metricClicks"), color: '#3b82f6', fmt: nf },
         { id: 'ctr', label: t("marketing.metricCtr") , color: '#14d9b0', fmt: v => v+'%' },
-        { id: 'cpc', label: t("marketing.metricCpc") , color: '#f59e0b', fmt: v => '\u20a9'+v },
-        { id: 'cpm', label: t("marketing.metricCpm") , color: '#8b5cf6', fmt: v => '\u20a9'+v },
-        { id: 'conv', label: t("marketing.metricConv"), color: '#22c55e', fmt: v => v },
+        { id: 'cpc', label: t("marketing.metricCpc") , color: '#f59e0b', fmt: v => '\u20a9'+nf(v) },
+        { id: 'cpm', label: t("marketing.metricCpm") , color: '#8b5cf6', fmt: v => '\u20a9'+nf(v) },
+        { id: 'conv', label: t("marketing.metricConv"), color: '#22c55e', fmt: nf },
         { id: 'roas', label: t("marketing.metricRoas") , color: '#ec4899', fmt: v => v+'%' }
     ], [t]);
     
