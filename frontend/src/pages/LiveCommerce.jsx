@@ -796,56 +796,125 @@ const IntegrationsTab = memo(function IntegrationsTab({ t }) {
 });
 
 /* ═══════════════ 탭 6: AI 쇼호스트 ═══════════════ */
-const AiHostTab = memo(function AiHostTab({ session, gd, t }) {
-  const FEATURES = [
-    { icon: '🎤', title: t('live.aiHost1', 'AI 쇼호스트'), desc: t('live.aiHost1d', 'AI 음성/아바타가 상품을 자동 소개하고 시청자 질문에 응답합니다.') },
-    { icon: '🌐', title: t('live.aiHost2', '실시간 번역'), desc: t('live.aiHost2d', '방송 음성·자막을 15개 언어로 실시간 번역해 글로벌 동시 송출합니다.') },
-    { icon: '📝', title: t('live.aiHost3', '자동 자막'), desc: t('live.aiHost3d', '음성을 인식해 자막을 자동 생성하고 다국어 캡션을 입힙니다.') },
-    { icon: '✨', title: t('live.aiHost4', '상품 설명 생성'), desc: t('live.aiHost4d', '편성 상품의 셀링포인트·카피를 AI가 자동 작성합니다.') },
-    { icon: '💬', title: t('live.aiHost5', 'FAQ 자동 응답'), desc: t('live.aiHost5d', '반복되는 질문(배송/사이즈/재고)에 AI가 즉시 채팅 응답합니다.') },
-  ];
-  const [gen, setGen] = useState('');
-  const [genBusy, setGenBusy] = useState(false);
-  const [prodName, setProdName] = useState('');
+// 서버 공용 Claude(/v422/ai/live-assist) 호출 — 외부 추가 자격증명 불요.
+async function aiAssist(body) {
+  const base = import.meta.env.VITE_API_BASE || '';
+  const token = localStorage.getItem('genie_token') || localStorage.getItem('demo_genie_token') || '';
+  const res = await fetch(`${base}/api/v422/ai/live-assist`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: token ? `Bearer ${token}` : '' },
+    body: JSON.stringify(body),
+  });
+  return res.json();
+}
+const LANGS = ['English', '日本語', '中文', '한국어', 'Español', 'Tiếng Việt', 'ไทย', 'Bahasa Indonesia'];
 
+const AiHostTab = memo(function AiHostTab({ session, gd, t }) {
+  const sid = session?.id;
+  const [products, setProducts] = useState([]);
+  useEffect(() => { if (!sid) return; liveApi.listProducts(sid).then(r => setProducts(r?.products || [])).catch(() => {}); }, [sid]);
+  const featured = products.find(p => p.featured) || products[0];
+  const productCtx = featured ? `${featured.name} / 가격 ${featured.special_price || featured.price}원 / 재고 ${featured.stock}` : '';
+
+  // 1) 쇼호스트 멘트
+  const [prodName, setProdName] = useState('');
+  const [gen, setGen] = useState(''); const [genBusy, setGenBusy] = useState(false);
   const generate = async () => {
-    const name = prodName.trim(); if (!name) return;
+    const name = (prodName.trim() || featured?.name || ''); if (!name) return;
     setGenBusy(true); setGen('');
-    try {
-      // 서버 공용 Claude(/v422/ai) 활용 — 세션 토큰 게이트. 실패 시 로컬 템플릿 폴백.
-      const base = import.meta.env.VITE_API_BASE || '';
-      const token = localStorage.getItem('genie_token') || localStorage.getItem('demo_genie_token') || '';
-      const res = await fetch(`${base}/api/v422/ai/campaign-search`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: token ? `Bearer ${token}` : '' },
-        body: JSON.stringify({ query: `라이브 커머스 방송용 "${name}" 상품의 매력적인 셀링포인트 3가지와 30초 소개 멘트를 작성해줘.` }),
-      });
-      if (res.ok) { const j = await res.json(); setGen(j?.answer || j?.result || j?.text || JSON.stringify(j).slice(0, 600)); }
-      else throw new Error('ai_unavailable');
-    } catch {
-      setGen(`✨ ${prodName} — AI 셀링포인트(예시)\n\n1️⃣ 지금 라이브에서만 만나는 단독 특가\n2️⃣ ${prodName}의 핵심 장점을 30초 안에 어필\n3️⃣ 재고 한정 — 댓글로 바로 주문 가능!\n\n※ [연동 허브]에서 OpenAI/Gemini/Claude 키를 등록하면 실시간 고품질 생성이 활성화됩니다.`);
-    } finally { setGenBusy(false); }
+    try { const r = await aiAssist({ task: 'describe', product: name }); setGen(r?.ok ? r.text : ('⚠️ ' + (r?.error || '생성 실패'))); }
+    catch (e) { setGen('⚠️ ' + String(e?.message || e)); } finally { setGenBusy(false); }
   };
+  // 2) 실시간 번역
+  const [src, setSrc] = useState(''); const [lang, setLang] = useState('English'); const [tr, setTr] = useState(''); const [trBusy, setTrBusy] = useState(false);
+  const translate = async () => {
+    if (!src.trim()) return; setTrBusy(true); setTr('');
+    try { const r = await aiAssist({ task: 'translate', text: src, lang }); setTr(r?.ok ? r.text : ('⚠️ ' + (r?.error || '번역 실패'))); }
+    catch (e) { setTr('⚠️ ' + String(e?.message || e)); } finally { setTrBusy(false); }
+  };
+  // 3) FAQ 자동 응답
+  const [q, setQ] = useState(''); const [ans, setAns] = useState(''); const [faqBusy, setFaqBusy] = useState(false);
+  const askFaq = async () => {
+    if (!q.trim()) return; setFaqBusy(true); setAns('');
+    try { const r = await aiAssist({ task: 'faq', text: q, product: productCtx }); setAns(r?.ok ? r.text : ('⚠️ ' + (r?.error || '응답 실패'))); }
+    catch (e) { setAns('⚠️ ' + String(e?.message || e)); } finally { setFaqBusy(false); }
+  };
+  const postAns = async () => { if (!ans || !sid) return; try { await liveApi.postChat(sid, { author: 'AI 호스트', message: ans, kind: 'chat' }); alert(t('live.posted', '채팅에 게시했습니다')); } catch (e) { alert(String(e?.message || e)); } };
+  // 4) 실시간 자막(음성인식)
+  const recRef = useRef(null);
+  const [listening, setListening] = useState(false);
+  const [transcript, setTranscript] = useState('');
+  const [capLang, setCapLang] = useState('English'); const [caption, setCaption] = useState('');
+  const startRec = () => {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) { alert(t('live.noSR', '이 브라우저는 음성 인식을 지원하지 않습니다(Chrome 권장).')); return; }
+    const r = new SR(); r.lang = 'ko-KR'; r.continuous = true; r.interimResults = true;
+    r.onresult = (e) => { let txt = ''; for (let i = 0; i < e.results.length; i++) txt += e.results[i][0].transcript; setTranscript(txt); };
+    r.onend = () => setListening(false);
+    r.start(); recRef.current = r; setListening(true);
+  };
+  const stopRec = () => { try { recRef.current?.stop(); } catch {} setListening(false); };
+  useEffect(() => () => { try { recRef.current?.stop(); } catch {} }, []);
+  const makeCaption = async () => {
+    if (!transcript.trim()) return;
+    try { const r = await aiAssist({ task: 'subtitle', text: transcript, lang: capLang }); setCaption(r?.ok ? r.text : ('⚠️ ' + (r?.error || ''))); } catch (e) { setCaption('⚠️ ' + String(e?.message || e)); }
+  };
+  const sendCaption = async () => { const c = caption || transcript; if (!c || !sid) return; try { await liveApi.postChat(sid, { author: '자막', message: c, kind: 'system' }); alert(t('live.captionSent', '자막을 전송했습니다')); } catch (e) { alert(String(e?.message || e)); } };
+
+  const box = { whiteSpace: 'pre-wrap', background: '#faf5ff', borderRadius: 10, padding: 12, marginTop: 10, fontSize: 13, lineHeight: 1.6, color: C.text };
+  const inp = { padding: '9px 12px', borderRadius: 8, border: `1px solid ${C.border}`, fontSize: 13 };
+  const sel = { ...inp, cursor: 'pointer' };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(240px,1fr))', gap: 12 }}>
-        {FEATURES.map((f, i) => (
-          <Card key={i}>
-            <div style={{ fontSize: 28 }}>{f.icon}</div>
-            <div style={{ fontWeight: 800, fontSize: 14, marginTop: 6 }}>{f.title}</div>
-            <div style={{ fontSize: 12, color: C.sub, marginTop: 4, lineHeight: 1.5 }}>{f.desc}</div>
-          </Card>
-        ))}
-      </div>
-      <Card>
-        <SecTitle>✨ {t('live.aiGen', 'AI 상품 설명 생성')}</SecTitle>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <input value={prodName} onChange={e => setProdName(e.target.value)} placeholder={t('live.aiGenPlaceholder', '상품명 입력 (예: 제주 감귤 5kg)')}
-            style={{ flex: 1, minWidth: 220, padding: '9px 12px', borderRadius: 8, border: `1px solid ${C.border}`, fontSize: 13 }} />
-          <Btn color="#d97757" onClick={generate} disabled={genBusy}>{genBusy ? t('live.generating', '생성 중...') : t('live.generate', '생성')}</Btn>
-        </div>
-        {gen && <pre style={{ whiteSpace: 'pre-wrap', background: '#faf5ff', borderRadius: 10, padding: 14, marginTop: 12, fontSize: 13, lineHeight: 1.6, color: C.text, fontFamily: 'inherit' }}>{gen}</pre>}
+      <Card style={{ background: 'linear-gradient(135deg,#faf5ff,#eff6ff)', fontSize: 12, color: C.sub }}>
+        🤖 {t('live.aiHostLead', 'AI 쇼호스트·실시간 번역·자막·FAQ는 플랫폼 Claude로 즉시 작동합니다. AI 키 미설정 시 [연동 허브]에서 등록하면 활성화됩니다.')}
       </Card>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(320px,1fr))', gap: 14 }}>
+        {/* 쇼호스트 멘트 */}
+        <Card>
+          <SecTitle>✨ {t('live.aiShowhost', '쇼호스트 멘트 / 상품 설명')}</SecTitle>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <input value={prodName} onChange={e => setProdName(e.target.value)} placeholder={featured ? featured.name : t('live.aiGenPlaceholder', '상품명 입력')} style={{ ...inp, flex: 1 }} />
+            <Btn color="#d97757" onClick={generate} disabled={genBusy}>{genBusy ? t('live.generating', '생성중') : t('live.generate', '생성')}</Btn>
+          </div>
+          {gen && <pre style={{ ...box, fontFamily: 'inherit' }}>{gen}</pre>}
+        </Card>
+        {/* 실시간 번역 */}
+        <Card>
+          <SecTitle>🌐 {t('live.aiTranslate', '실시간 번역')}</SecTitle>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <textarea value={src} onChange={e => setSrc(e.target.value)} rows={2} placeholder={t('live.translateSrc', '번역할 내용(한국어)')} style={{ ...inp, resize: 'vertical' }} />
+            <div style={{ display: 'flex', gap: 8 }}>
+              <select value={lang} onChange={e => setLang(e.target.value)} style={{ ...sel, flex: 1 }}>{LANGS.map(l => <option key={l} value={l}>{l}</option>)}</select>
+              <Btn color="#0891b2" onClick={translate} disabled={trBusy}>{trBusy ? '...' : t('live.translateBtn', '번역')}</Btn>
+            </div>
+          </div>
+          {tr && <div style={box}>{tr}</div>}
+        </Card>
+        {/* FAQ */}
+        <Card>
+          <SecTitle>💬 {t('live.aiFaq', 'FAQ 자동 응답')}</SecTitle>
+          <div style={{ fontSize: 10, color: C.sub, marginBottom: 6 }}>{t('live.faqCtx', '현재 노출 상품')}: {featured?.name || '—'}</div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <input value={q} onChange={e => setQ(e.target.value)} onKeyDown={e => e.key === 'Enter' && askFaq()} placeholder={t('live.faqQ', '시청자 질문(배송/사이즈/재고 등)')} style={{ ...inp, flex: 1 }} />
+            <Btn onClick={askFaq} disabled={faqBusy}>{faqBusy ? '...' : t('live.faqAsk', '응답')}</Btn>
+          </div>
+          {ans && <><div style={box}>{ans}</div><div style={{ marginTop: 8 }}><Btn small color="#16a34a" onClick={postAns}>💬 {t('live.postChat', '채팅에 게시')}</Btn></div></>}
+        </Card>
+        {/* 실시간 자막(음성인식) */}
+        <Card>
+          <SecTitle>📝 {t('live.aiSubtitle', '실시간 자막 (음성인식)')}</SecTitle>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+            {!listening ? <Btn small color="#ef4444" onClick={startRec}>🎙️ {t('live.recStart', '인식 시작')}</Btn>
+              : <Btn small color="#64748b" onClick={stopRec}>⏹ {t('live.recStop', '중지')}</Btn>}
+            <select value={capLang} onChange={e => setCapLang(e.target.value)} style={{ ...sel }}>{LANGS.map(l => <option key={l} value={l}>{l}</option>)}</select>
+            <Btn small ghost onClick={makeCaption}>{t('live.makeCaption', '자막 정리/번역')}</Btn>
+            <Btn small ghost color="#16a34a" onClick={sendCaption}>{t('live.sendCaption', '자막 전송')}</Btn>
+          </div>
+          {transcript && <div style={{ ...box, background: '#f1f5f9' }}>{transcript}</div>}
+          {caption && <div style={box}>{caption}</div>}
+        </Card>
+      </div>
     </div>
   );
 });

@@ -142,7 +142,7 @@ final class ClaudeAI {
     }
 
     /* ── Claude API 호출 ─────────────────────────────────────── */
-    private static function callClaude(string $systemPrompt, string $userMsg): array {
+    private static function callClaude(string $systemPrompt, string $userMsg, int $timeout = 8): array {
         $apiKey = self::apiKey();
         $payload = json_encode([
             'model'      => self::MODEL,
@@ -158,7 +158,7 @@ final class ClaudeAI {
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_POST           => true,
             CURLOPT_POSTFIELDS     => $payload,
-            CURLOPT_TIMEOUT        => 8,          // 8초 후 fast-fail → fallback
+            CURLOPT_TIMEOUT        => $timeout,   // 기본 8초 fast-fail(분석류 폴백). live-assist 는 길게 전달.
             CURLOPT_CONNECTTIMEOUT => 4,          // 연결 4초 이내
             CURLOPT_HTTPHEADER     => [
                 'Content-Type: application/json',
@@ -987,6 +987,58 @@ PROMPT;
     // 마케팅 채널 AI 추천 (전체 카테고리 + 상품 데이터 지원)
     // Body: { data: { query, service_type, service_route, category_id, products? } }
     // ─────────────────────────────────────────────────────────────────────
+    /**
+     * 208차 #6: 라이브 커머스 AI 어시스트(실시간 번역/자막/상품설명·쇼호스트/FAQ).
+     *   서버 공용 Claude 사용(외부 추가 자격증명 불요). 키 미설정 시 ok:false+안내(가짜응답 금지).
+     *   POST /v422/ai/live-assist  body: { task, text?, lang?, product? }
+     *   task = translate | subtitle | describe | showhost | faq
+     */
+    public static function liveAssist(Request $req, Response $res): Response
+    {
+        try {
+            $body = (array)($req->getParsedBody() ?? []);
+            if (empty($body)) { $d = json_decode((string)$req->getBody(), true); if (is_array($d)) $body = $d; }
+            $task    = trim((string)($body['task'] ?? ''));
+            $text    = trim((string)($body['text'] ?? ''));
+            $lang    = trim((string)($body['lang'] ?? '한국어'));
+            $product = trim((string)($body['product'] ?? ''));
+            if ($task === '') return self::liveJson($res, ['ok' => false, 'error' => 'task 가 필요합니다.'], 422);
+
+            if (!self::aiKeyConfigured()) {
+                return self::liveJson($res, ['ok' => false, 'ai' => false, 'error' => 'AI 키가 설정되지 않았습니다. [연동 허브]에서 OpenAI/Gemini/Claude 키를 등록하면 활성화됩니다.'], 200);
+            }
+            [$sys, $user] = self::livePrompt($task, $text, $lang, $product);
+            if (trim($user) === '') return self::liveJson($res, ['ok' => false, 'error' => '입력 내용이 필요합니다.'], 422);
+            $timeout = in_array($task, ['describe', 'showhost'], true) ? 24 : 12; // 멘트 생성은 길게, 번역/자막/FAQ는 12초
+            $r = self::callClaude($sys, $user, $timeout);
+            return self::liveJson($res, ['ok' => true, 'ai' => true, 'task' => $task, 'text' => trim((string)$r['text']), 'tokens' => (int)($r['tokens_output'] ?? 0)]);
+        } catch (\Throwable $e) {
+            return self::liveJson($res, ['ok' => false, 'error' => $e->getMessage()], 200);
+        }
+    }
+
+    private static function livePrompt(string $task, string $text, string $lang, string $product): array
+    {
+        switch ($task) {
+            case 'translate':
+                return ["You are a professional live-commerce interpreter. Translate the user's message into {$lang}. Output ONLY the translation — no preamble, notes, or quotation marks.", $text];
+            case 'subtitle':
+                return ["You convert raw live-broadcast speech into clean, concise on-screen subtitles written in {$lang}. Fix punctuation, drop filler words, keep it short. Output only the subtitle text.", $text];
+            case 'faq':
+                return ["당신은 라이브 커머스 고객 응대 AI입니다. 아래 상품 정보를 바탕으로 시청자 질문에 친절하고 간결하게(2~3문장) 답하세요. 정보가 없으면 솔직히 안내하고 과장/허위는 금지합니다.\n[상품 정보]\n" . ($product !== '' ? $product : '(상품 정보 없음)'), $text];
+            case 'describe':
+            case 'showhost':
+            default:
+                return ["당신은 라이브 커머스 전문 쇼호스트 카피라이터입니다. 주어진 상품에 대해 (1) 핵심 셀링포인트 3가지(각 1문장) (2) 라이브 소개 멘트(3~4문장) 를 한국어로 간결하고 신뢰감 있게 작성하세요. 군더더기·과장·허위 금지. 8초 내 완료되도록 짧게.", ($product !== '' ? $product : $text)];
+        }
+    }
+
+    private static function liveJson(Response $res, array $d, int $s = 200): Response
+    {
+        $res->getBody()->write(json_encode($d, JSON_UNESCAPED_UNICODE));
+        return $res->withHeader('Content-Type', 'application/json')->withStatus($s);
+    }
+
     public static function campaignSearch(Request $req, Response $res): Response
     {
         try {

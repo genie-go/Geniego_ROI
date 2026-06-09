@@ -45,6 +45,7 @@ return function (App $app): void {
 
         // v422 AI 마케팅 추천 (전체 카테고리 지원)
         'POST /v422/ai/campaign-search'      => 'Genie\\Handlers\\ClaudeAI::campaignSearch',
+        'POST /v422/ai/live-assist'          => 'Genie\\Handlers\\ClaudeAI::liveAssist',
         'POST /v422/ai/campaign-ad-creative' => 'Genie\\Handlers\\ClaudeAI::campaignAdCreative',
 
         // ── CRM (고객관계관리) ──────────────────────────────────────────
@@ -1533,6 +1534,7 @@ return function (App $app): void {
 
     // ── v422 AI 마케팅 추천 (전체 카테고리) ─────────────────────────
     $register('POST', '/v422/ai/campaign-search');
+    $register('POST', '/v422/ai/live-assist');
     $register('POST', '/v422/ai/campaign-ad-creative');
     $register('POST', '/v422/ai/campaign-ad-design');
     $register('POST', '/v422/ai/campaign-ad-chat');
