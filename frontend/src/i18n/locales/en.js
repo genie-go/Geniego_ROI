@@ -2642,7 +2642,6 @@ export default {
       trackSearchBtn: "🔍 Search",
       trackSearching: "Searching...",
       trackNumRequired: "Enter tracking number.",
-      tabGuideDesc: "How to use",
       guideStep9Title: "Track Deliveries & Manage Labels",
       guideStep9Desc: "Monitor shipment progress in real time, print or reissue labels, and confirm successful deliveries.",
       guideStep10Title: "Conduct Inventory Audits",
@@ -3851,11 +3850,6 @@ export default {
         helpDesc: "Find detailed usage for each feature in the User Guide, or use the Help menu at the top right.",
         stepDone: "Done",
         stepCurrent: "In progress",
-        roleMarketer: "Marketer",
-        roleCommerce: "Commerce",
-        roleFinance: "Finance",
-        roleOps: "Operations",
-        roleDev: "Developer",
         welcomeTitle: "Welcome to Geniego-ROI!",
         welcomeDesc: "Select your role to get a personalized 5-step path to your first insights in under 30 minutes.",
         estimatedTime: "Estimated: under 30 min per role",
@@ -8580,11 +8574,6 @@ export default {
     "guideStepsTitle": "Step-by-Step Usage",
     "guideRolesTitle": "Role Guide",
     "guideTipsTitle": "Expert Tips",
-    },
-  dataTrust: {
-      ModeBadge: "🎭  Simulation Mode",
-      ModeTitle: " Mode · Sample data only",
-      ModeDesc: "Connect a live account to see real data"
     },
   developerHub: {
       ModeBadge: "🎭  Simulation Mode"
