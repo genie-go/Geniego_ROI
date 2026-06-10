@@ -16,43 +16,65 @@ use Psr\Http\Message\ResponseInterface as Response;
  */
 class EventPopup
 {
+    /**
+     * 209차 P2: 기존엔 전용 PDO(new \PDO, $_ENV['DB_NAME'] ?? 'geniedb')로 나머지 앱과 다른 DB·
+     *   자격증명 네임스페이스에 연결했다. Db.php 는 .env 를 직접 파싱(PHP-FPM env 미의존)해
+     *   geniego_roi 에 연결하고 SQLite 로 폴백하지만, EventPopup 만 PHP-FPM $_ENV 의존 + 잘못된
+     *   기본 DB(geniedb) + SQLite 폴백 부재 → 환경에 따라 팝업 CRUD 가 엉뚱한 DB/500.
+     *   → 전사 표준인 Db::pdo() 로 통일(드라이버 무관, 폴백 포함).
+     */
     private static function db(): \PDO
     {
-        static $pdo = null;
-        if (!$pdo) {
-            $h = $_ENV['DB_HOST'] ?? 'localhost';
-            $d = $_ENV['DB_NAME'] ?? 'geniedb';
-            $u = $_ENV['DB_USER'] ?? 'root';
-            $p = $_ENV['DB_PASS'] ?? '';
-            $pdo = new \PDO("mysql:host={$h};dbname={$d};charset=utf8mb4", $u, $p, [
-                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-            ]);
-            self::migrate($pdo);
-        }
+        static $migrated = false;
+        $pdo = \Genie\Db::pdo();
+        if (!$migrated) { self::migrate($pdo); $migrated = true; }
         return $pdo;
     }
 
     private static function migrate(\PDO $pdo): void
     {
-        $pdo->exec("
-            CREATE TABLE IF NOT EXISTS event_popups (
-                id          INT AUTO_INCREMENT PRIMARY KEY,
-                title       VARCHAR(200) NOT NULL,
-                body        TEXT,
-                image_url   VARCHAR(500),
-                badge_text  VARCHAR(50),
-                badge_color VARCHAR(50)  DEFAULT 'rgba(79,142,247,0.2)',
-                cta_text    VARCHAR(100),
-                cta_url     VARCHAR(500),
-                cta_color   VARCHAR(200) DEFAULT 'linear-gradient(135deg,#4f8ef7,#6366f1)',
-                cta_new_tab TINYINT(1)   DEFAULT 0,
-                start_date  DATE         NOT NULL,
-                end_date    DATE         NOT NULL,
-                is_active   TINYINT(1)   DEFAULT 1,
-                width       INT          DEFAULT 520,
-                created_at  TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
-        ");
+        // 드라이버 분기 — MySQL 주backend / SQLite 폴백 모두 지원.
+        if ($pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql') {
+            $pdo->exec("
+                CREATE TABLE IF NOT EXISTS event_popups (
+                    id          INT AUTO_INCREMENT PRIMARY KEY,
+                    title       VARCHAR(200) NOT NULL,
+                    body        TEXT,
+                    image_url   VARCHAR(500),
+                    badge_text  VARCHAR(50),
+                    badge_color VARCHAR(50)  DEFAULT 'rgba(79,142,247,0.2)',
+                    cta_text    VARCHAR(100),
+                    cta_url     VARCHAR(500),
+                    cta_color   VARCHAR(200) DEFAULT 'linear-gradient(135deg,#4f8ef7,#6366f1)',
+                    cta_new_tab TINYINT(1)   DEFAULT 0,
+                    start_date  DATE         NOT NULL,
+                    end_date    DATE         NOT NULL,
+                    is_active   TINYINT(1)   DEFAULT 1,
+                    width       INT          DEFAULT 520,
+                    created_at  TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+            ");
+        } else {
+            $pdo->exec("
+                CREATE TABLE IF NOT EXISTS event_popups (
+                    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                    title       TEXT NOT NULL,
+                    body        TEXT,
+                    image_url   TEXT,
+                    badge_text  TEXT,
+                    badge_color TEXT DEFAULT 'rgba(79,142,247,0.2)',
+                    cta_text    TEXT,
+                    cta_url     TEXT,
+                    cta_color   TEXT DEFAULT 'linear-gradient(135deg,#4f8ef7,#6366f1)',
+                    cta_new_tab INTEGER DEFAULT 0,
+                    start_date  TEXT NOT NULL,
+                    end_date    TEXT NOT NULL,
+                    is_active   INTEGER DEFAULT 1,
+                    width       INTEGER DEFAULT 520,
+                    created_at  TEXT DEFAULT CURRENT_TIMESTAMP
+                )
+            ");
+        }
     }
 
     private static function json(Response $response, array $data, int $status = 200): Response
