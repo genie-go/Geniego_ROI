@@ -737,8 +737,17 @@ const InventoryTab = memo(function InventoryTab({ whs }) {
             setAdjForm(null);
             return;
         }
-        // ✅ GlobalDataContext.adjustStock() → Instant sync across app
-        adjustStock(adjForm.sku, adjForm.whId, adjForm.qty);
+        const newQty = Math.max(0, Number(adjForm.qty) || 0);
+        // 208차(A): wms_stock 단일진실 운영에서는 조정 절대값 → StockAdj 델타 movement 로 영속(wms_stock 반영).
+        if (!IS_DEMO && wmsStock && wmsStock.length > 0) {
+            const cur = (inventory.find(p => p.sku === adjForm.sku)?.stock?.[adjForm.whId]) || 0;
+            const delta = newQty - cur;
+            if (delta !== 0) { try { wmsApi.createMovement({ sku: adjForm.sku, name: adjForm.name || '', qty: delta, wh_id: adjForm.whId, type: 'StockAdj', reason: '재고 조정' }); } catch {} }
+            setWmsStock(prev => (prev || []).map(p => p.sku === adjForm.sku ? { ...p, stock: { ...p.stock, [adjForm.whId]: newQty } } : p)); // 낙관적 반영
+        } else {
+            // ✅ GlobalDataContext.adjustStock() → Instant sync across app (데모/폴백)
+            adjustStock(adjForm.sku, adjForm.whId, newQty);
+        }
         setAdjForm(null);
     };
 
