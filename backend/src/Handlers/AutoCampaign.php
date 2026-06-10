@@ -153,6 +153,9 @@ class AutoCampaign
             }
             $firstDesign = $validDesigns[0] ?? 0;
             $landing = (string)($d['landing_url'] ?? '');   // 광고 랜딩 URL(미설정 시 어댑터가 기본값)
+            // [현 차수] A/B 모드: 디자인(variant) 2+ 선택 시 같은 캠페인 하위에 동시 집행 → 승자 자동 선정.
+            $abMode = !empty($d['ab_mode']) && count($validDesigns) >= 2;
+            $abVariants = [];   // [channel => [variant,...]]
 
             $exec = []; $activeCount = 0; $dispatch = []; $delivery = [];
             $allocByCh = [];
@@ -166,8 +169,23 @@ class AutoCampaign
                     $exec[$ch] = 'active'; $dispatch[$ch] = (string)$r['external_id']; $activeCount++;
                     // ★ 크리에이티브 레이어: 캠페인 하위 adset/adgroup + ad 생성(PAUSED).
                     $daily = (int)round(($allocByCh[$ch] ?? 0) / max(1, (['monthly'=>30,'quarter'=>90,'halfyear'=>180,'annual'=>365][$period] ?? 30)));
-                    $dl = AdAdapters::buildDelivery($pdo, $tenant, $connKey, (string)$r['external_id'], $firstDesign, max(1000, $daily), $landing);
-                    $delivery[$ch] = ['ok' => !empty($dl['ok']), 'status' => $dl['status'] ?? ($dl['ok'] ? 'full' : 'failed'), 'note' => $dl['note'] ?? ($dl['error'] ?? '')];
+                    if ($abMode) {
+                        // ★ A/B: 선택 디자인(variant) 각각을 같은 캠페인 하위에 동시 집행 → ad_ext_id 수집.
+                        $vlist = []; $okCnt = 0;
+                        foreach ($validDesigns as $vi => $did) {
+                            $dl = AdAdapters::buildDelivery($pdo, $tenant, $connKey, (string)$r['external_id'], (int)$did, max(1000, $daily), $landing);
+                            if (!empty($dl['ok']) && ($dl['ad_id'] ?? '') !== '') {
+                                $vlist[] = ['design_id' => (int)$did, 'frame_idx' => 0, 'ad_ext_id' => (string)$dl['ad_id'], 'adset_ext_id' => (string)($dl['adset_id'] ?? ($dl['adgroup_id'] ?? '')), 'label' => 'Variant ' . ($vi + 1)];
+                                $okCnt++;
+                            }
+                        }
+                        if (!empty($vlist)) $abVariants[$ch] = $vlist;
+                        $delivery[$ch] = ['ok' => $okCnt > 0, 'status' => $okCnt >= 2 ? 'ab_running' : ($okCnt === 1 ? 'single' : 'failed'), 'note' => "A/B variant {$okCnt}개 집행"];
+                    } else {
+                        // 단일 크리에이티브(기존 흐름 보존).
+                        $dl = AdAdapters::buildDelivery($pdo, $tenant, $connKey, (string)$r['external_id'], $firstDesign, max(1000, $daily), $landing);
+                        $delivery[$ch] = ['ok' => !empty($dl['ok']), 'status' => $dl['status'] ?? ($dl['ok'] ? 'full' : 'failed'), 'note' => $dl['note'] ?? ($dl['error'] ?? '')];
+                    }
                 }
                 elseif (($r['status'] ?? '') === 'execution_disabled') { $exec[$ch] = 'ready'; }
                 elseif (($r['status'] ?? '') === 'unsupported') { $exec[$ch] = 'manual'; }
@@ -192,6 +210,15 @@ class AutoCampaign
             ]);
             $id = (int)$pdo->lastInsertId();
 
+            // ★ A/B 테스트 등록(variant 2+ 집행된 채널만). 승자선정은 optimizeCampaign(cron 매시)이 수행.
+            $abTests = [];
+            if ($abMode && !empty($abVariants)) {
+                foreach ($abVariants as $ch => $vlist) {
+                    try { $tid = AbTesting::createTest($pdo, $tenant, $id, $ch, $vlist); if ($tid > 0) $abTests[$ch] = $tid; }
+                    catch (\Throwable $e) {}
+                }
+            }
+
             $pendingCount = count($channels) - $activeCount;
             $msg = $activeCount > 0
                 ? "캠페인이 실행되었습니다. {$activeCount}개 채널 집행 시작" . ($pendingCount > 0 ? ", {$pendingCount}개 채널은 연결 대기" : "")
@@ -202,6 +229,7 @@ class AutoCampaign
                 'id' => $id,
                 'exec_status' => $exec,
                 'delivery' => $delivery,
+                'ab_tests' => $abTests,
                 'active_channels' => $activeCount,
                 'pending_channels' => $pendingCount,
                 'linked_designs' => count($validDesigns),
@@ -498,6 +526,18 @@ class AutoCampaign
             $d['actuated'] = !empty($rr['ok']);
         }
         unset($d);
+
+        // ★ [현 차수] A/B: 캠페인 variant 승자선정·패자 자동정지(데이터 충분 시). 결정 로그 병합.
+        try {
+            $abDec = AbTesting::evaluateAndSelect($pdo, $tenant, (int)$camp['id']);
+            foreach ($abDec as $ad) {
+                $decisions[] = $ad;
+                try {
+                    $pdo->prepare("INSERT INTO optimization_log(tenant_id,campaign_id,channel,action,old_alloc,new_alloc,roas,ctr,reason,created_at) VALUES(?,?,?,?,?,?,?,?,?,?)")
+                        ->execute([$tenant, (int)$camp['id'], (string)($ad['channel'] ?? ''), (string)($ad['action'] ?? 'ab'), 0, 0, (string)($ad['roas'] ?? ''), '', mb_substr((string)($ad['reason'] ?? ''), 0, 255), $now]);
+                } catch (\Throwable $e) {}
+            }
+        } catch (\Throwable $e) {}
 
         return ['optimized' => true, 'allocations' => $newAlloc, 'decisions' => $decisions, 'metrics' => $metrics];
     }

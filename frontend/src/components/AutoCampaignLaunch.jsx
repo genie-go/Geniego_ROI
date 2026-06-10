@@ -45,6 +45,8 @@ export default function AutoCampaignLaunch({ draft, category, campaignName, peri
   const [msg, setMsg] = useState(null);
   const [optResult, setOptResult] = useState({}); // campaignId -> { optimized, decisions, metrics, reason }
   const [optBusy, setOptBusy] = useState(null);    // campaignId being optimized
+  const [abMode, setAbMode] = useState(true);      // 크리에이티브 자동 A/B 테스트(디자인 2+ 시)
+  const [abTests, setAbTests] = useState({});      // campaignId -> [tests]
 
   const loadDesigns = useCallback(async () => {
     try {
@@ -63,16 +65,28 @@ export default function AutoCampaignLaunch({ draft, category, campaignName, peri
       if (d.ok && Array.isArray(d.campaigns)) setCampaigns(d.campaigns);
     } catch {}
   }, []);
-  useEffect(() => { loadDesigns(); loadCampaigns(); }, [loadDesigns, loadCampaigns]);
+  // 크리에이티브 A/B 테스트 상태(variant별 성과·승자) 로드.
+  const loadAbStatus = useCallback(async () => {
+    try {
+      const r = await fetch(`${API}/v423/auto-campaign/ab-status`, { headers: auth() });
+      const d = await r.json();
+      if (d.ok && Array.isArray(d.tests)) {
+        const by = {};
+        d.tests.forEach(tt => { (by[tt.campaign_id] = by[tt.campaign_id] || []).push(tt); });
+        setAbTests(by);
+      }
+    } catch {}
+  }, []);
+  useEffect(() => { loadDesigns(); loadCampaigns(); loadAbStatus(); }, [loadDesigns, loadCampaigns, loadAbStatus]);
 
-  // Phase2: 실시간 갱신 — cron(optimize_cron) 자동 재배분/정지 결과가 화면에 자동 반영되도록
+  // Phase2: 실시간 갱신 — cron(optimize_cron) 자동 재배분/정지·A/B 승자선정 결과가 화면에 자동 반영되도록
   //   30초 폴링(탭 visible 시에만, 백그라운드 절전). 캠페인이 있을 때만 동작.
   useEffect(() => {
     let timer = null;
-    const tick = () => { if (document.visibilityState === 'visible') loadCampaigns(); };
+    const tick = () => { if (document.visibilityState === 'visible') { loadCampaigns(); loadAbStatus(); } };
     timer = setInterval(tick, 30000);
     return () => { if (timer) clearInterval(timer); };
-  }, [loadCampaigns]);
+  }, [loadCampaigns, loadAbStatus]);
 
   const toggleDesign = (id) => setSelDesigns(s => s.includes(id) ? s.filter(x => x !== id) : [...s, id]);
 
@@ -84,10 +98,10 @@ export default function AutoCampaignLaunch({ draft, category, campaignName, peri
       const allocations = draft.allocations.map(a => ({ channel: a.ch?.id, label: a.ch?.label, alloc: a.alloc, roas: a.roas }));
       const r = await fetch(`${API}/v423/auto-campaign/launch`, {
         method: 'POST', headers: auth(),
-        body: JSON.stringify({ name: campaignName || `${category || '통합'} ${t('autoCamp.autoSuffix', '자동 캠페인')}`, category: category || '', budget: draft.budget, period: period || 'monthly', channels, allocations, est_roas: draft.estimatedRoas, design_ids: selDesigns }),
+        body: JSON.stringify({ name: campaignName || `${category || '통합'} ${t('autoCamp.autoSuffix', '자동 캠페인')}`, category: category || '', budget: draft.budget, period: period || 'monthly', channels, allocations, est_roas: draft.estimatedRoas, design_ids: selDesigns, ab_mode: abMode && selDesigns.length >= 2 }),
       });
       const d = await r.json();
-      if (d.ok) { setMsg({ t: 'ok', m: d.message }); loadCampaigns(); }
+      if (d.ok) { setMsg({ t: 'ok', m: d.message }); loadCampaigns(); loadAbStatus(); }
       else setMsg({ t: 'err', m: d.error || t('autoCamp.launchFail', '실행에 실패했습니다.') });
     } catch { setMsg({ t: 'err', m: t('autoCamp.serverErr', '서버 오류. 다시 시도하세요.') }); }
     setBusy(false);
@@ -147,6 +161,17 @@ export default function AutoCampaignLaunch({ draft, category, campaignName, peri
             <div style={{ padding: 12, borderRadius: 10, background: 'rgba(168,85,247,0.06)' }}><div style={{ fontSize: 10, color: '#64748b' }}>{t('autoCamp.channels', '채널')}</div><div style={{ fontSize: 16, fontWeight: 800, color: '#a855f7' }}>{draft.allocations.length}</div></div>
             <div style={{ padding: 12, borderRadius: 10, background: 'rgba(245,158,11,0.06)' }}><div style={{ fontSize: 10, color: '#64748b' }}>{t('autoCamp.linkedDesigns', '연결 디자인')}</div><div style={{ fontSize: 16, fontWeight: 800, color: '#f59e0b' }}>{selDesigns.length}</div></div>
           </div>
+          {selDesigns.length >= 2 && (
+            <label style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 12, padding: '10px 12px', borderRadius: 10, background: 'rgba(14,165,233,0.06)', border: '1px solid rgba(14,165,233,0.18)', cursor: 'pointer' }}>
+              <input type="checkbox" checked={abMode} onChange={e => setAbMode(e.target.checked)} style={{ marginTop: 2 }} />
+              <span>
+                <span style={{ fontSize: 12.5, fontWeight: 800, color: '#0369a1' }}>🧪 {t('autoCamp.abMode', '크리에이티브 자동 A/B 테스트')}</span>
+                <span style={{ display: 'block', fontSize: 11, color: '#64748b', marginTop: 2, lineHeight: 1.5 }}>
+                  {t('autoCamp.abModeDesc', '선택한 디자인')} {selDesigns.length}{t('autoCamp.abModeDesc2', '개를 동시 집행 → variant별 성과 측정 → 통계 승자 자동 선정 → 예산 집중·패자 자동 정지(매시 자동)')}
+                </span>
+              </span>
+            </label>
+          )}
           <button onClick={launch} disabled={busy}
             style={{ width: '100%', padding: '14px 0', borderRadius: 12, border: 'none', cursor: busy ? 'wait' : 'pointer', background: busy ? 'rgba(34,197,94,0.4)' : 'linear-gradient(135deg,#22c55e,#16a34a)', color: '#fff', fontWeight: 800, fontSize: 15 }}>
             {busy ? `⏳ ${t('autoCamp.launching', '실행 중…')}` : `🚀 ${t('autoCamp.launch', '광고 마케팅 자동 실행')}`}
@@ -221,6 +246,29 @@ export default function AutoCampaignLaunch({ draft, category, campaignName, peri
                       )
                     )}
                   </div>
+
+                  {/* 크리에이티브 A/B 테스트 — variant별 성과·승자 */}
+                  {(abTests[c.id] || []).length > 0 && (
+                    <div style={{ marginTop: 10, paddingTop: 10, borderTop: '1px dashed rgba(0,0,0,0.08)' }}>
+                      <div style={{ fontSize: 12, fontWeight: 800, color: '#0ea5e9' }}>🧪 {t('autoCamp.abTitle', '크리에이티브 A/B 테스트')}</div>
+                      {(abTests[c.id] || []).map(tst => (
+                        <div key={tst.id} style={{ marginTop: 6 }}>
+                          <div style={{ fontSize: 10.5, color: '#64748b', fontWeight: 600 }}>
+                            {CHLABEL[tst.channel] || tst.channel} · {tst.status === 'winner_selected' ? `🏆 ${t('autoCamp.abWinnerSel', '승자 선정 완료')}` : `⏳ ${t('autoCamp.abRunning', '테스트 진행중(통계 수집)')}`}
+                          </div>
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 4 }}>
+                            {(tst.variants || []).map(v => (
+                              <span key={v.id} style={{ fontSize: 10, padding: '3px 9px', borderRadius: 7, fontWeight: 600,
+                                background: v.status === 'winner' ? 'rgba(34,197,94,0.14)' : (v.status === 'paused' ? 'rgba(239,68,68,0.08)' : 'rgba(14,165,233,0.08)'),
+                                color: v.status === 'winner' ? '#16a34a' : (v.status === 'paused' ? '#dc2626' : '#0369a1') }}>
+                                {v.status === 'winner' ? '🏆 ' : (v.status === 'paused' ? '⏸ ' : '')}{v.label} · ROAS {v.roas}x · {Number(v.impressions || 0).toLocaleString()} {t('autoCamp.imp', '노출')}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               );
             })}

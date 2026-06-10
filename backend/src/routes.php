@@ -511,6 +511,7 @@ return function (App $app): void {
         'POST /v423/auto-campaign/status'     => 'Genie\\Handlers\\AutoCampaign::setStatus',
         'POST /v423/auto-campaign/optimize'   => 'Genie\\Handlers\\AutoCampaign::optimize',
         'GET /v423/auto-campaign/optimize-history' => 'Genie\\Handlers\\AutoCampaign::optimizeHistory',
+        'GET /v423/auto-campaign/ab-status'   => 'Genie\\Handlers\\AbTesting::status',
         'POST /v422/ai/campaign-search'        => 'Genie\\Handlers\\ClaudeAI::campaignSearch',
 
         // ── v421 API Key Management (admin:keys scope) ─────────────────────────
@@ -1570,6 +1571,7 @@ return function (App $app): void {
     $register('POST', '/v423/auto-campaign/status');
     $register('POST', '/v423/auto-campaign/optimize');
     $register('GET',  '/v423/auto-campaign/optimize-history');
+    $register('GET',  '/v423/auto-campaign/ab-status');
 
     // ── Auth ────────────────────────────────────────────────────────
     $register('POST', '/auth/register');

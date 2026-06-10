@@ -1212,6 +1212,25 @@ final class Connectors
         return $cached;
     }
 
+    /** [현 차수] A/B variant 성과 추적용 ad_ext_id 컬럼 존재 여부(멱등 감지). */
+    private static function perfHasAdCol(PDO $pdo): bool
+    {
+        static $cached = null;
+        if ($cached !== null) return $cached;
+        try {
+            if ($pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql') {
+                $q = $pdo->query("SHOW COLUMNS FROM performance_metrics LIKE 'ad_ext_id'");
+                $cached = ($q && $q->fetch() !== false);
+            } else {
+                $cached = false;
+                foreach ($pdo->query("PRAGMA table_info(performance_metrics)")->fetchAll(PDO::FETCH_ASSOC) as $c) {
+                    if (($c['name'] ?? '') === 'ad_ext_id') { $cached = true; break; }
+                }
+            }
+        } catch (\Throwable $e) { $cached = false; }
+        return $cached;
+    }
+
     /**
      * performance_metrics 멱등 적재: (tenant,channel,date∈[start,end]) 기존 행 삭제 후 신규 삽입.
      * 재동기화 시 중복 누적 없이 최신 스냅샷 유지. 테넌트 스코핑 강제.
@@ -1230,15 +1249,15 @@ final class Connectors
             $del = $pdo->prepare('DELETE FROM performance_metrics WHERE tenant_id=? AND LOWER(channel)=? AND date BETWEEN ? AND ?');
             $del->execute([$tenant, strtolower($channel), $start, $end]);
 
-            // Phase3: campaign_ext_id 포함(측정↔액추에이션 입도 일치). 구 스키마(컬럼 부재) 폴백.
+            // Phase3: campaign_ext_id 포함(측정↔액추에이션 입도 일치). [현 차수]: ad_ext_id(A/B variant 추적).
+            //   존재하는 선택 컬럼만 동적으로 INSERT(구 스키마 폴백 + 신규 컬럼 동시 지원).
             $hasCampCol = self::perfHasCampaignCol($pdo);
-            $ins = $hasCampCol
-                ? $pdo->prepare('INSERT INTO performance_metrics
-                       (tenant_id, team, channel, account, date, impressions, clicks, spend, conversions, revenue, campaign_ext_id, extra_json)
-                     VALUES (?,?,?,?,?,?,?,?,?,?,?,?)')
-                : $pdo->prepare('INSERT INTO performance_metrics
-                       (tenant_id, team, channel, account, date, impressions, clicks, spend, conversions, revenue, extra_json)
-                     VALUES (?,?,?,?,?,?,?,?,?,?,?)');
+            $hasAdCol   = self::perfHasAdCol($pdo);
+            $cols = ['tenant_id', 'team', 'channel', 'account', 'date', 'impressions', 'clicks', 'spend', 'conversions', 'revenue'];
+            if ($hasCampCol) $cols[] = 'campaign_ext_id';
+            if ($hasAdCol)   $cols[] = 'ad_ext_id';
+            $cols[] = 'extra_json';
+            $ins = $pdo->prepare('INSERT INTO performance_metrics (' . implode(',', $cols) . ') VALUES (' . implode(',', array_fill(0, count($cols), '?')) . ')');
             $n = 0;
             foreach ($rows as $r) {
                 $date = (string)($r['date'] ?? '');
@@ -1258,9 +1277,8 @@ final class Connectors
                     (float)($r['revenue'] ?? 0),
                 ];
                 $extra = isset($r['extra']) ? json_encode($r['extra'], JSON_UNESCAPED_UNICODE) : null;
-                if ($hasCampCol) {
-                    $base[] = ($r['campaign_ext_id'] ?? '') !== '' ? (string)$r['campaign_ext_id'] : null;
-                }
+                if ($hasCampCol) $base[] = ($r['campaign_ext_id'] ?? '') !== '' ? (string)$r['campaign_ext_id'] : null;
+                if ($hasAdCol)   $base[] = ($r['ad_ext_id'] ?? '') !== '' ? (string)$r['ad_ext_id'] : null;
                 $base[] = $extra;
                 $ins->execute($base);
                 $n++;
@@ -1282,13 +1300,15 @@ final class Connectors
             return ['hasCreds' => false, 'live' => false, 'rows' => []];
         }
 
-        $fields = 'campaign_id,campaign_name,impressions,clicks,spend,actions,action_values';
+        // [현 차수] A/B variant 추적: level=ad 로 ad_id/adset_id 까지 수집(행에 campaign_ext_id 도 유지 →
+        //   기존 캠페인 단위 집계는 그대로 동작, 추가로 variant(ad) 단위 성과 추적 가능).
+        $fields = 'campaign_id,campaign_name,adset_id,ad_id,impressions,clicks,spend,actions,action_values';
         $params = http_build_query([
             'time_range'     => json_encode(['since' => $start, 'until' => $end]),
-            'level'          => 'campaign',
+            'level'          => 'ad',
             'fields'         => $fields,
             'time_increment' => 1,
-            'limit'          => 200,
+            'limit'          => 500,
             'access_token'   => $accessToken,
         ]);
         $url = "https://graph.facebook.com/v19.0/act_{$adAccountId}/insights?{$params}";
@@ -1305,6 +1325,7 @@ final class Connectors
                 'team'        => 'Meta',
                 'account'     => (string)($r['campaign_name'] ?? 'Meta Campaign'),
                 'campaign_ext_id' => (string)($r['campaign_id'] ?? ''),
+                'ad_ext_id'   => (string)($r['ad_id'] ?? ''),
                 'date'        => (string)($r['date_start'] ?? $r['date_stop'] ?? ''),
                 'impressions' => (int)($r['impressions'] ?? 0),
                 'clicks'      => (int)($r['clicks'] ?? 0),
