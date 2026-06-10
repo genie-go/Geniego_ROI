@@ -54,32 +54,34 @@ function publishMenuAccessSync(payload) {
  * SEED 기본 플랜 정의. 172차에서 가격은 SEED_PERIODS 가 SSOT — plan_config.price_usd 등은
  * backend 가 plan_period_pricing 에서 자동 동기화 (legacy 컬럼은 derived view).
  */
+// [현 차수] 4단계 구조: Starter(무료)/Growth/Pro/Enterprise. plan_id 는 불변(게이팅 안정),
+//   표시명만 사용자 구성에 맞춤. 가격 0 = admin 이 직접 입력(구조 우선). 메뉴접근은 '요금 기반 추천' 버튼.
 const SEED_PLANS = [
   {
-    // 202차: Free 평생 무료 — 사방넷(Sabangnet) 무료 모델. 판매·마케팅 채널 N개 무료 연동.
-    //   channels 한도는 admin 이 limits.channels 에서 언제든 수정 가능(백엔드 가드가 동적 적용).
-    plan_id: 'free', name: 'Free', display_order: 5, is_active: true, is_custom_quote: false,
-    description: '평생 무료 · 판매 채널 3개 연동',
-    features: ['판매·마케팅 채널 3개 평생 무료', '상품·주문·재고 동기화', '기본 성과 대시보드', '커뮤니티 지원'],
+    // Starter(무료) — 사방넷 무료 모델. plan_id='free'(free-tier 로직 보존), 표시명만 "Starter".
+    plan_id: 'free', name: 'Starter', display_order: 10, is_active: true, is_custom_quote: false,
+    description: '무료 · 판매 채널 3개 연동',
+    features: ['판매·마케팅 채널 3개 무료', '상품·주문·재고 동기화', '기본 성과 대시보드', '커뮤니티 지원'],
     limits: { warehouses: 1, channels: 3, users: 1 },
     price_usd: 0, price_annual_usd: 0,
   },
   {
-    plan_id: 'starter', name: 'Starter', display_order: 10, is_active: true, is_custom_quote: false,
-    description: '소규모 팀 · 계정 수 기반',
-    features: ['무제한 판매 채널', '무제한 창고(WMS)', '마케팅 분석', '계정 수 선택 (1/10/무제한)', 'API 호출 월 10,000건', '이메일 지원 (48시간 내)'],
+    plan_id: 'growth', name: 'Growth', display_order: 20, is_active: true, is_custom_quote: false,
+    description: '성장 단계 셀러 · 마케팅 자동화',
+    features: ['판매·마케팅 채널 5개', '마케팅 자동화·채널 추천', '멀티터치 어트리뷰션 기초', 'P&L 분석', '계정 수 선택', '이메일 지원'],
+    limits: { warehouses: -1, channels: 5, users: -1 },
+    price_usd: 0, price_annual_usd: 0,
+  },
+  {
+    plan_id: 'pro', name: 'Pro', display_order: 30, is_active: true, is_custom_quote: false, is_recommended: 1,
+    description: '본격 커머스 운영 · 계정 수 기반',
+    features: ['무제한 판매 채널', '무제한 창고(WMS)', 'AI 마케팅 인텔리전스·A/B', '전채널 어트리뷰션', 'AI 디자인', '상업 송장 자동 생성', '계정 수 선택', '우선 지원 (8시간 내)'],
     limits: { warehouses: -1, channels: -1, users: -1 },
   },
   {
-    plan_id: 'pro', name: 'Pro', display_order: 20, is_active: true, is_custom_quote: false, is_recommended: 1,
-    description: '성장 브랜드 · 계정 수 기반',
-    features: ['무제한 판매 채널', '무제한 창고', 'AI 마케팅 인텔리전스', '인플루언서 평가', '상업 송장 자동 생성', '계정 수 선택 (1/10/무제한)', 'API 호출 월 500,000건', '우선 지원 (8시간 내)'],
-    limits: { warehouses: -1, channels: -1, users: -1 },
-  },
-  {
-    plan_id: 'enterprise', name: 'Enterprise', display_order: 30, is_active: true, is_custom_quote: true,
+    plan_id: 'enterprise', name: 'Enterprise', display_order: 40, is_active: true, is_custom_quote: true,
     description: '대규모 운영 · 맞춤 통합',
-    features: ['Pro 플랜 전체 기능', '무제한 판매 채널', '무제한 창고', '맞춤 AI 모델 학습', '전담 계정 매니저', '99.9% 가용성 SLA', '계정 수 무제한', '무제한 API 호출', '맞춤 통합 & 웹훅'],
+    features: ['Pro 플랜 전체 기능', '무제한 판매 채널·창고', '맞춤 AI 모델 학습', '전담 계정 매니저', '99.9% 가용성 SLA', '계정 수 무제한', '무제한 API 호출', '맞춤 통합 & 웹훅 · SSO'],
     limits: { warehouses: -1, channels: -1, users: -1 },
   },
 ];
@@ -1972,6 +1974,16 @@ function MenuAccessTree({ plans, menus, access, setMenuAccess, setMenuAccessBulk
   const toggleCollapse = (key) => setCollapsed(prev => { const n = new Set(prev); if (n.has(key)) n.delete(key); else n.add(key); return n; });
   const toggleExpandMenu = (key) => setExpandMenu(prev => { const n = new Set(prev); if (n.has(key)) n.delete(key); else n.add(key); return n; });
   const toggleExpandLeaf = (key) => setExpandLeaf(prev => { const n = new Set(prev); if (n.has(key)) n.delete(key); else n.add(key); return n; });
+  // [현 차수] 대메뉴 클릭 = 그 아래 전체 계층(중메뉴→하위메뉴→서브탭)을 한 번에 펼침/접음 → 한눈에 계층 비교.
+  const _secGroupKeys = (sec) => groupsOf(sec).map(g => g.menuKey);
+  const _secLeafRoutes = (sec) => groupsOf(sec).flatMap(g => g.items.map(it => it.to).filter(Boolean));
+  const toggleSection = (sec) => {
+    const willExpand = collapsed.has(sec.key);
+    setCollapsed(prev => { const n = new Set(prev); if (willExpand) n.delete(sec.key); else n.add(sec.key); return n; });
+    const gkeys = _secGroupKeys(sec); const lkeys = _secLeafRoutes(sec);
+    setExpandMenu(prev => { const n = new Set(prev); gkeys.forEach(k => willExpand ? n.add(k) : n.delete(k)); return n; });
+    setExpandLeaf(prev => { const n = new Set(prev); lkeys.forEach(k => willExpand ? n.add(k) : n.delete(k)); return n; });
+  };
   // 계층 키 헬퍼 — 하위메뉴(=라우트 it.to) / 서브탭(=it.to::st.id)
   const subKeysOfLeaf = (it) => (SUB_TABS_BY_PATH[it.to] || []).map(st => `${it.to}::${st.id}`);
   const keysOfGroup = (g) => { const ks = [g.menuKey]; for (const it of g.items) { if (it.to) ks.push(it.to); ks.push(...subKeysOfLeaf(it)); } return ks; };
@@ -2037,13 +2049,13 @@ function MenuAccessTree({ plans, menus, access, setMenuAccess, setMenuAccessBulk
                 <React.Fragment key={section.key}>
                   {/* 대메뉴(섹션) — 체크박스 = 섹션 전체(하위 모두 포함) */}
                   <tr style={{ background: 'rgba(99,102,241,0.10)' }}>
-                    <td data-gp="onColor" style={{ ...cellPad, position: 'sticky', left: 0, background: '#3f5170', cursor: 'pointer', color: '#ffffff' }} onClick={() => toggleCollapse(section.key)}>
+                    <td data-gp="onColor" style={{ ...cellPad, position: 'sticky', left: 0, background: '#3f5170', cursor: 'pointer', color: '#ffffff' }} onClick={() => toggleSection(section)}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                         <span style={{ color: '#e2e8f0', fontSize: 13, width: 14 }}>{isCol ? '▶' : '▼'}</span>
                         <span style={{ fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 6, background: '#4f46e5', color: '#fff', whiteSpace: 'nowrap' }}>대메뉴</span>
                         <span style={{ fontSize: 15 }}>{section.icon}</span>
                         <span style={{ fontWeight: 800, fontSize: 14, color: '#ffffff' }}>{sectionLabel}</span>
-                        <span style={{ fontSize: 10.5, color: '#c7d2fe', marginLeft: 2 }}>{isCol ? '▶ 클릭하면 중메뉴' : ''}</span>
+                        <span style={{ fontSize: 10.5, color: '#c7d2fe', marginLeft: 2 }}>{isCol ? '▶ 클릭하면 전체 계층(중·하위·서브탭) 펼침' : '▼ 전체 계층'}</span>
                       </div>
                     </td>
                     {plans.map(p => {
