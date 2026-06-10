@@ -99,6 +99,25 @@ class PixelTracking
         if ($config) foreach (['meta_api_token','tiktok_access_token','ga4_api_secret'] as $sk) { if (!empty($config[$sk])) $config[$sk] = self::dec((string)$config[$sk]); }
         $tenant = $config['tenant_id'] ?? 'unknown';
 
+        // 209차 P1: 익명 공개 비콘 오염 방어(pixel_id 는 사이트 스니펫에 공개 → 수집·위조 가능).
+        //   ① event_name 화이트리스트(임의 라벨 차단) ② value 음수·비현실 상한 클램프
+        //   ③ 등록 도메인(config.domain) 있으면 Origin/Referer host 일치 시에만 '신뢰' → 신뢰 외엔
+        //      매출집계·CRM 구매기록·매체 포워딩 차단(가짜 구매/매출 주입 무력화). 원시 이벤트는 기록(정직 분석).
+        $EVENTS = ['page_view','product_view','view_content','search','add_to_cart','add_to_wishlist','initiate_checkout','add_payment_info','purchase','lead','complete_registration','contact','subscribe','custom'];
+        if (!in_array($eventName, $EVENTS, true)) $eventName = 'custom';
+        $value = max(0.0, min((float)($b['value'] ?? 0), 1.0e9));
+        $trusted = true;
+        $cfgDomain = strtolower(trim((string)($config['domain'] ?? '')));
+        if ($config && $cfgDomain !== '') {
+            $orig = $req->getHeaderLine('Origin') ?: $req->getHeaderLine('Referer');
+            $reqHost = ($orig !== '' && preg_match('~^https?://([^/:]+)~i', $orig, $hm)) ? strtolower($hm[1]) : '';
+            $cfgHost = explode('/', preg_replace('~^https?://~i', '', $cfgDomain))[0];
+            $trusted = $reqHost !== '' && ($reqHost === $cfgHost || str_ends_with($reqHost, '.' . $cfgHost));
+        }
+        // 신뢰 외 비콘은 event='custom'·value=0 으로 중립화(가짜 구매/매출/전환 주입 전면 차단).
+        $effEvent = $trusted ? $eventName : 'custom';
+        $effValue = $trusted ? $value : 0.0;
+
         $eventId = 'evt_' . bin2hex(random_bytes(12));
         $emailHash = !empty($b['email']) ? hash('sha256', strtolower(trim($b['email']))) : null;
         $phoneHash = !empty($b['phone']) ? hash('sha256', preg_replace('/[^0-9]/', '', $b['phone'])) : null;
@@ -115,18 +134,18 @@ class PixelTracking
              value, currency, product_ids, custom_data, ip_hash, user_agent, device_type, created_at)
             VALUES (:t,:eid,:pid,:en,:sid,:uid,:eh,:ph,:url,:ref,:us,:um,:uc,:uco,:ut,:val,:cur,:prod,:cdata,:iph,:ua,:dev,:ca)
         ")->execute([
-            ':t'=>$tenant, ':eid'=>$eventId, ':pid'=>$pixelId, ':en'=>$eventName, ':sid'=>$sessionId ?: null,
+            ':t'=>$tenant, ':eid'=>$eventId, ':pid'=>$pixelId, ':en'=>$effEvent, ':sid'=>$sessionId ?: null,
             ':uid'=>$b['user_id'] ?? null, ':eh'=>$emailHash, ':ph'=>$phoneHash, ':url'=>$b['page_url'] ?? null,
             ':ref'=>$b['referrer'] ?? null, ':us'=>$b['utm_source'] ?? null, ':um'=>$b['utm_medium'] ?? null,
             ':uc'=>$b['utm_campaign'] ?? null, ':uco'=>$b['utm_content'] ?? null, ':ut'=>$b['utm_term'] ?? null,
-            ':val'=>(float)($b['value'] ?? 0), ':cur'=>$b['currency'] ?? 'KRW', ':prod'=>json_encode($b['product_ids'] ?? []),
+            ':val'=>$effValue, ':cur'=>$b['currency'] ?? 'KRW', ':prod'=>json_encode($b['product_ids'] ?? []),
             ':cdata'=>json_encode($b['custom_data'] ?? []), ':iph'=>$ipHash, ':ua'=>substr($ua, 0, 500), ':dev'=>$deviceType, ':ca'=>self::now(),
         ]);
 
-        if ($sessionId) { self::updateSession($pdo, $tenant, $sessionId, $pixelId, $eventName, (float)($b['value'] ?? 0), $b); }
-        if ($eventName === 'purchase' && $emailHash) { self::syncToCRM($pdo, $tenant, $eventName, (float)($b['value'] ?? 0), $eventId); }
+        if ($sessionId) { self::updateSession($pdo, $tenant, $sessionId, $pixelId, $effEvent, $effValue, $b); }
+        if ($trusted && $eventName === 'purchase' && $emailHash) { self::syncToCRM($pdo, $tenant, $eventName, $effValue, $eventId); }
 
-        if ($config && (int)($config['enabled'] ?? 0) === 1) {
+        if ($trusted && $config && (int)($config['enabled'] ?? 0) === 1) {
             self::forwardToMeta($pdo, $config, $eventId, $eventName, $emailHash, $phoneHash, $b, $deviceType);
             self::forwardToTikTok($pdo, $config, $eventId, $eventName, $emailHash, $b);
         }

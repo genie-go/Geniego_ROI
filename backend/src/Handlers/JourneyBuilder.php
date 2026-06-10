@@ -271,8 +271,16 @@ class JourneyBuilder
         $now      = self::now();
         $actions  = [];
         $guard    = 0;
+        $seen     = []; // 209차 P1: 순환 그래프 방지(실행노드 반복발송=이메일/SMS/Kakao 스팸·실비용 차단)
 
         while ($nodeId !== '' && $guard++ < 100) {
+            // 한 advance 패스 내 노드 재방문 = 순환(작성자 JSON에 acyclicity 검증 없음) → 중단.
+            //   delay 는 waiting 으로 early-return 하므로 정상 진행에서는 재방문 발생 안 함.
+            if (isset($seen[$nodeId])) {
+                self::logNode($pdo, $tenant, $enrollId, $jid, $nodeId, 'cycle', 'cycle_detected', ['node' => $nodeId]);
+                break;
+            }
+            $seen[$nodeId] = true;
             $node = self::findNode($nodes, $nodeId);
             if (!$node) { $nodeId = ''; break; }
             $type = (string)($node['type'] ?? '');
