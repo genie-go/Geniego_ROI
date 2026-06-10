@@ -49,6 +49,13 @@ const CHANNELS = [
   { key: 'logen',            name: '로젠택배',           icon: '🚐', color: '#F37021', group: 'logistics' },
   { key: 'ocl_sameday',      name: 'OCL 당일배송 ★',     icon: '⚡', color: '#16A34A', group: 'logistics' },
   { key: 'fulfillment',      name: '풀필먼트(3PL)',      icon: '🏭', color: '#0891B2', group: 'logistics' },
+  // ── 국제특송 (International Express) ──
+  { key: 'dhl',              name: 'DHL Express',        icon: '✈️', color: '#D40511', group: 'global_express' },
+  { key: 'fedex',            name: 'FedEx',              icon: '📮', color: '#4D148C', group: 'global_express' },
+  { key: 'ups',              name: 'UPS',                icon: '🟤', color: '#351C15', group: 'global_express' },
+  { key: 'ems',              name: 'EMS (우체국 국제특송)', icon: '📯', color: '#D80027', group: 'global_express' },
+  { key: 'tnt',              name: 'TNT Express',        icon: '🧡', color: '#FF6600', group: 'global_express' },
+  { key: 'cj_intl',          name: 'CJ대한통운 국제특송', icon: '🌐', color: '#7A3A96', group: 'global_express' },
   { key: 'google_analytics', name: 'Google Analytics 4',icon: '📊', color: '#E37400', group: 'own_etc' },
   { key: 'slack',            name: 'Slack Webhook',     icon: '💬', color: '#4A154B', group: 'own_etc' },
 ];
@@ -56,9 +63,12 @@ const CHANNELS = [
 /* 그룹 라벨/정렬 — 208차: 카테고리별 헤더로 가독성 초고도화 */
 const GROUP_LABELS = {
   sns_live: 'SNS 라이브 채널', domestic: '국내 오픈마켓', global_commerce: '글로벌 마켓플레이스',
-  d2c: '자사몰 플랫폼 (D2C)', logistics: '물류 및 배송 (OCL 당일배송)', global_ad: '광고 매체', own_etc: '분석 · 기타',
+  d2c: '자사몰 플랫폼 (D2C)', logistics: '물류 및 배송 (OCL 당일배송)', global_express: '국제특송 (International Express)',
+  global_ad: '광고 매체', own_etc: '분석 · 기타',
 };
-const GROUP_ORDER = ['sns_live', 'domestic', 'global_commerce', 'd2c', 'logistics', 'global_ad', 'own_etc'];
+const GROUP_ORDER = ['sns_live', 'domestic', 'global_commerce', 'd2c', 'logistics', 'global_express', 'global_ad', 'own_etc'];
+// 저장 직후 즉시 동기화 대상 그룹(커머스) — 자격증명 등록하면 바로 상품/주문 동기화
+const COMMERCE_SYNC_GROUPS = ['domestic', 'global_commerce', 'd2c'];
 
 /* 채널별 구조화 자격증명 필드 — 208차: 채널마다 필요한 키(액세스토큰/광고계정/고객ID/광고주ID/Shop도메인 등) 안내 입력 */
 const CHANNEL_FIELDS = {
@@ -80,6 +90,8 @@ const CHANNEL_FIELDS = {
   walmart:   [{ k: 'client_id', label: 'Client ID' }, { k: 'client_secret', label: 'Client Secret', secret: true }],
   shopee:    [{ k: 'partner_id', label: 'Partner ID' }, { k: 'partner_key', label: 'Partner Key', secret: true }, { k: 'shop_id', label: 'Shop ID' }],
   lazada:    [{ k: 'app_key', label: 'App Key' }, { k: 'app_secret', label: 'App Secret', secret: true }],
+  rakuten:   [{ k: 'service_secret', label: 'Service Secret', secret: true }, { k: 'license_key', label: 'License Key', secret: true }, { k: 'shop_url', label: 'Shop URL' }],
+  qoo10:     [{ k: 'api_key', label: 'QSM API 키', secret: true }, { k: 'seller_id', label: '셀러 ID' }],
   // 자사몰 D2C
   shopify:   [{ k: 'shop_domain', label: 'Shop 도메인 (xxx.myshopify.com)' }, { k: 'access_token', label: 'Admin API 액세스 토큰', secret: true }],
   woocommerce: [{ k: 'site_url', label: '사이트 URL' }, { k: 'consumer_key', label: 'Consumer Key', secret: true }, { k: 'consumer_secret', label: 'Consumer Secret', secret: true }],
@@ -93,6 +105,13 @@ const CHANNEL_FIELDS = {
   logen:       [{ k: 'api_key', label: 'API 키', secret: true }, { k: 'cust_code', label: '고객(계약) 코드' }],
   ocl_sameday: [{ k: 'api_key', label: 'OCL API 키', secret: true }, { k: 'merchant_id', label: '머천트 ID' }, { k: 'region', label: '서비스 권역(예: 수도권)' }],
   fulfillment: [{ k: 'api_key', label: '3PL API 키', secret: true }, { k: 'warehouse_id', label: '창고 ID' }],
+  // 국제특송
+  dhl:       [{ k: 'api_key', label: 'DHL API 키', secret: true }, { k: 'account_number', label: '계정 번호(Account)' }],
+  fedex:     [{ k: 'api_key', label: 'API 키', secret: true }, { k: 'api_secret', label: 'API Secret', secret: true }, { k: 'account_number', label: '계정 번호' }],
+  ups:       [{ k: 'client_id', label: 'Client ID' }, { k: 'client_secret', label: 'Client Secret', secret: true }, { k: 'account_number', label: '계정 번호' }],
+  ems:       [{ k: 'api_key', label: '우체국 API 키', secret: true }, { k: 'cust_code', label: '고객(계약) 코드' }],
+  tnt:       [{ k: 'api_key', label: 'API 키', secret: true }, { k: 'account_number', label: '계정 번호' }],
+  cj_intl:   [{ k: 'api_key', label: 'API 키', secret: true }, { k: 'cust_code', label: '고객(계약) 코드' }],
   // 광고 매체
   meta_ads:  [{ k: 'access_token', label: '액세스 토큰', secret: true }, { k: 'ad_account_id', label: '광고 계정 ID (act_)' }],
   google_ads: [{ k: 'developer_token', label: '개발자 토큰', secret: true }, { k: 'access_token', label: '액세스 토큰', secret: true }, { k: 'customer_id', label: '고객 ID (10자리)' }],
@@ -271,6 +290,20 @@ export default function ApiKeys() {
       }
       show('success', `${channelName}: ${saved}${t('ak.savedSuffix','개 항목 저장됨')}`);
       reload();
+      // 208차: 자격증명 등록 즉시 동기화 — 커머스 채널은 저장 직후 sync 트리거.
+      //   테넌트는 백엔드 세션(authedTenant)만 사용 → 타 테넌트 계정 유입 구조적 불가.
+      if (saved > 0) {
+        const ch = CHANNELS.find(c => c.key === channelKey);
+        if (ch && COMMERCE_SYNC_GROUPS.includes(ch.group)) {
+          try {
+            show('info', `${channelName} ${t('ak.syncing','동기화 중...')}`);
+            const sr = await postJson(`/api/channel-sync/${encodeURIComponent(channelKey)}/sync`, {});
+            if (sr?.ok) show('success', `${channelName} ${t('ak.syncDone','동기화 완료')} — ${t('ak.products','상품')} ${sr.product_count ?? 0} · ${t('ak.orders','주문')} ${sr.order_count ?? 0}`);
+            else show('info', `${channelName} ${t('ak.syncQueued','저장됨 — 동기화는 자동 폴링으로 반영됩니다')}`);
+            reload();
+          } catch { /* 저장 성공, 동기화는 cron 폴링이 백업 */ }
+        }
+      }
       return saved > 0;
     } catch (e) {
       show('error', String(e?.message || e));
