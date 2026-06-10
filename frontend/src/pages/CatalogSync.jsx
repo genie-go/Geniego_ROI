@@ -796,7 +796,15 @@ const CatalogTab = memo(function CatalogTab() {
         setTimeout(() => setToast(null), 3000);
     };
 
-    const handleBulkRegister = (action, channels, recPrices = {}) => {
+    const handleBulkRegister = async (action, channels, recPrices = {}) => {
+        // 209차 P1: 채널 등록가 백엔드 영속 items 사전 수집(setProducts updater 부작용 회피).
+        const persistItems = [];
+        if (action === "register") {
+            products.forEach(p => {
+                if (!selected.has(p.id)) return;
+                channels.forEach(ch => { if (recPrices[ch]) persistItems.push({ channel: ch, sku: p.sku, price: recPrices[ch] }); });
+            });
+        }
         setProducts(prev => prev.map(p => {
             if (!selected.has(p.id)) return p;
             const channelPrices = { ...(p.channelPrices || {}) };
@@ -824,6 +832,8 @@ const CatalogTab = memo(function CatalogTab() {
                 status: "ok",
             };
         }));
+        // 209차 P1: handleApply 와 동일하게 /api/catalog/bulk-price 영속(로컬 client-state 소실 방지·테넌트격리).
+        if (persistItems.length) { try { await postJson('/api/catalog/bulk-price', { items: persistItems }); } catch { /* 로컬 동기화는 계속 */ } }
         showToast(action === "register" ? t('catalogSync.registerDoneToast').replace('{{n}}', selected.size) : t('catalogSync.disconnectDoneToast').replace('{{n}}', selected.size));
         setSelected(new Set());
     };

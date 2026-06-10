@@ -779,6 +779,8 @@ function OptimizeTab({ token }) {
                 const channelKey = form.channel === '*' ? 'all' : form.channel;
                 updateCatalogChannelPrices?.(d.sku, { [channelKey]: d.optimal_price });
                 updateProductPrice?.(d.sku, d.optimal_price, channelKey === 'all' ? null : channelKey);
+                // 209차 P1: 최적가 백엔드 영속(client-state 만 → 새로고침/타기기 소실 해소·테넌트격리).
+                try { await postJsonAuth('/api/catalog/bulk-price', { items: [{ channel: channelKey, sku: d.sku, price: d.optimal_price }] }); } catch { /* 로컬 반영은 유지 */ }
             }
         } finally { setLoading(false); }
     };
