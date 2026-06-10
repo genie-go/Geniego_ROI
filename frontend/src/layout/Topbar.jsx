@@ -668,6 +668,14 @@ const ProfileEditModal = memo(function ProfileEditModal({ user, token, onClose }
   const [smtpConfigured, setSmtpConfigured] = useState(false);
   const [smtpLoaded, setSmtpLoaded] = useState(false);
   const [smtpTestTo, setSmtpTestTo] = useState('');
+  // 208차 #2 OAuth 앱 설정 (admin) — 각 사 client_id/secret 등록 시 OAuth 인가 연결 활성화
+  const OAUTH_PROVIDERS = [
+    { id: 'google', label: 'Google Ads' }, { id: 'meta', label: 'Meta (Facebook/IG)' },
+    { id: 'tiktok', label: 'TikTok' }, { id: 'kakao', label: 'Kakao' }, { id: 'naver', label: 'Naver' },
+  ];
+  const [oauthStatus, setOauthStatus] = useState({});
+  const [oauthForm, setOauthForm] = useState({});
+  const [oauthBusy, setOauthBusy] = useState('');
   // 196차 AI(Claude) API 키 설정 (admin) — 실 AI 디자인·분석 활성화
   const [aiKey, setAiKey] = useState('');
   const [aiKeySet, setAiKeySet] = useState(false);
@@ -884,7 +892,38 @@ const ProfileEditModal = memo(function ProfileEditModal({ user, token, onClose }
     } catch { showMsg(t('profile.serverError', 'Server error. Try again.'), 'err'); }
     finally { setSaving(false); }
   };
-  useEffect(() => { if (tab === 'security' && user?.plan === 'admin' && !smtpLoaded) { loadSmtp(); loadAiKey(); } }, [tab]); // eslint-disable-line
+  // 208차 #2 OAuth 핸들러 ──────────────────────────────────
+  const loadOAuthStatus = async () => {
+    try {
+      const r = await fetch('/api/v425/oauth/status', { headers: { Authorization: `Bearer ${token}` } });
+      const d = await r.json().catch(() => ({}));
+      if (r.ok && d.ok) setOauthStatus(d.providers || {});
+    } catch {}
+  };
+  const saveOAuthConfig = async (provider) => {
+    const f = oauthForm[provider] || {};
+    if (!(f.client_id || '').trim()) { showMsg(t('profile.oauthIdRequired', 'Client ID를 입력하세요.'), 'err'); return; }
+    setOauthBusy(provider);
+    try {
+      const r = await fetch(`/api/v425/admin/oauth/${provider}/config`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ client_id: (f.client_id || '').trim(), client_secret: (f.client_secret || '').trim() }),
+      });
+      const d = await r.json().catch(() => ({}));
+      if (r.ok && d.ok) { showMsg(t('profile.oauthSaved', 'OAuth 앱 설정이 저장되었습니다.'), 'ok'); setOauthForm(p => ({ ...p, [provider]: {} })); loadOAuthStatus(); }
+      else showMsg(d.error || t('profile.oauthSaveFail', 'OAuth 설정 저장에 실패했습니다.'), 'err');
+    } catch { showMsg(t('profile.serverError', 'Server error. Try again.'), 'err'); }
+    finally { setOauthBusy(''); }
+  };
+  const connectOAuth = async (provider) => {
+    try {
+      const r = await fetch(`/api/v425/oauth/${provider}/authorize`, { headers: { Authorization: `Bearer ${token}` } });
+      const d = await r.json().catch(() => ({}));
+      if (d.ok && d.authorize_url) window.location.href = d.authorize_url;
+      else showMsg(d.error || t('profile.oauthNotConfigured', '먼저 Client ID/Secret을 등록하세요.'), 'err');
+    } catch { showMsg(t('profile.serverError', 'Server error. Try again.'), 'err'); }
+  };
+  useEffect(() => { if (tab === 'security' && user?.plan === 'admin' && !smtpLoaded) { loadSmtp(); loadAiKey(); loadOAuthStatus(); } }, [tab]); // eslint-disable-line
 
   // 189차 MFA/2FA (TOTP) 핸들러 ──────────────────────────────────
   const mfaAuthHeaders = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` };
@@ -1321,6 +1360,31 @@ const ProfileEditModal = memo(function ProfileEditModal({ user, token, onClose }
                   style={{ padding: '11px 16px', borderRadius: 10, border: '1px solid rgba(79,142,247,0.3)', background: 'rgba(79,142,247,0.06)', color: smtpConfigured ? '#4f8ef7' : 'var(--text-3)', fontWeight: 700, fontSize: 12.5, cursor: (saving || !smtpConfigured) ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap' }}
                 >✉️ {t('profile.smtpTestBtn', '테스트 발송')}</button>
               </div>
+            </div>
+
+            {/* 208차 #2 OAuth 앱 연동 설정 (admin) */}
+            <div style={{ marginTop: 18, padding: 16, borderRadius: 12, background: 'rgba(99,102,241,0.05)', border: '1px solid rgba(99,102,241,0.2)' }}>
+              <div style={{ fontSize: 13, fontWeight: 800, marginBottom: 4 }}>🔗 {t('profile.oauthTitle', 'OAuth 앱 연동 설정')}</div>
+              <div style={{ fontSize: 11, color: 'var(--text-3)', marginBottom: 12, lineHeight: 1.6 }}>{t('profile.oauthDesc', '각 플랫폼 개발자 콘솔에서 발급한 Client ID/Secret을 등록하면 OAuth 인가 연결이 활성화됩니다.')}</div>
+              {OAUTH_PROVIDERS.map(p => {
+                const st = oauthStatus[p.id] || {};
+                const f = oauthForm[p.id] || {};
+                return (
+                  <div key={p.id} style={{ marginBottom: 10, padding: 10, borderRadius: 8, background: 'rgba(255,255,255,0.5)', border: '1px solid rgba(99,102,241,0.12)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                      <span style={{ fontWeight: 700, fontSize: 12.5 }}>{p.label}</span>
+                      <span style={{ fontSize: 10, padding: '2px 7px', borderRadius: 20, background: st.configured ? 'rgba(34,197,94,0.15)' : 'rgba(148,163,184,0.15)', color: st.configured ? '#16a34a' : '#94a3b8' }}>{st.configured ? t('profile.oauthConfigured', '설정됨') : t('profile.oauthUnset', '미설정')}</span>
+                      {st.connected && <span style={{ fontSize: 10, padding: '2px 7px', borderRadius: 20, background: 'rgba(79,142,247,0.15)', color: '#4f8ef7' }}>{t('profile.oauthConnected', '연결됨')}</span>}
+                    </div>
+                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                      <input value={f.client_id || ''} onChange={e => setOauthForm(o => ({ ...o, [p.id]: { ...o[p.id], client_id: e.target.value } }))} placeholder={st.configured ? '••• Client ID (변경 시 재입력)' : 'Client ID'} style={{ flex: '1 1 150px', padding: '7px 9px', borderRadius: 7, border: '1px solid rgba(99,102,241,0.2)', fontSize: 11.5 }} />
+                      <input type="password" value={f.client_secret || ''} onChange={e => setOauthForm(o => ({ ...o, [p.id]: { ...o[p.id], client_secret: e.target.value } }))} placeholder="Client Secret" style={{ flex: '1 1 150px', padding: '7px 9px', borderRadius: 7, border: '1px solid rgba(99,102,241,0.2)', fontSize: 11.5 }} />
+                      <button onClick={() => saveOAuthConfig(p.id)} disabled={oauthBusy === p.id} style={{ padding: '7px 12px', borderRadius: 7, border: 'none', background: 'linear-gradient(135deg,#6366f1,#4f8ef7)', color: '#fff', fontWeight: 700, fontSize: 11.5, cursor: 'pointer' }}>{oauthBusy === p.id ? '...' : t('profile.oauthSaveBtn', '저장')}</button>
+                      {st.configured && <button onClick={() => connectOAuth(p.id)} style={{ padding: '7px 12px', borderRadius: 7, border: '1px solid rgba(79,142,247,0.3)', background: 'rgba(79,142,247,0.06)', color: '#4f8ef7', fontWeight: 700, fontSize: 11.5, cursor: 'pointer' }}>{t('profile.oauthConnectBtn', '연결')}</button>}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
