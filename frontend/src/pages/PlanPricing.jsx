@@ -919,7 +919,6 @@ function PlanPricing() {
                       { key: 'channels',         label: '판매채널(쇼핑몰) 수' },
                       { key: 'orders_monthly',   label: '주문 수 (월)' },
                       { key: 'products',         label: '상품 DB 수' },
-                      { key: 'users',            label: '사용자 ID 수' },
                       { key: 'suppliers',        label: '매입처 ID 수' },
                       { key: 'logistics',        label: '물류처 ID 수' },
                       { key: 'warehouses',       label: '창고(WMS) 수' },
@@ -933,6 +932,7 @@ function PlanPricing() {
                   <div style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 6, lineHeight: 1.6 }}>
                     💡 각 플랜이 제공하는 자원 한도입니다. <b>-1</b> = 무제한. <b>판매채널(쇼핑몰) 수</b>는 연동 가능한 쇼핑몰 채널 개수(예: Free=3 → 3개 평생 무료, 사방넷 모델),
                     <b>주문 수(월)</b>·<b>상품 DB</b>·<b>이미지 호스팅(GB)</b> 등은 플랜별 제공량. 언제든 수정 가능.
+                    <br/><b>계정(사용자) 수</b>는 아래 <b>"계정수(seat)별 요금"</b>에서 계정수 티어로 관리합니다(추가·삭제 가능).
                   </div>
                 </div>
 
@@ -2243,15 +2243,15 @@ function PeriodPricingPanel({ plan, periodPricing, updatePeriodField, addPeriod,
             return (
               <span key={t.key} style={{ display: 'inline-flex', alignItems: 'center' }}>
                 <button onClick={() => setActiveSeat(t.key)} style={{
-                  padding: '6px 12px', borderRadius: on ? '8px 0 0 8px' : 8,
+                  padding: '6px 12px', borderRadius: t.key !== BASE_SEAT ? '8px 0 0 8px' : 8,
                   border: on ? '1px solid #6366f1' : '1px solid rgba(255,255,255,0.12)',
-                  borderRight: (on && t.key !== BASE_SEAT) ? 'none' : undefined,
+                  borderRight: (t.key !== BASE_SEAT) ? 'none' : undefined,
                   background: on ? 'rgba(99,102,241,0.22)' : 'rgba(255,255,255,0.03)',
                   color: on ? '#c7d2fe' : 'var(--text-2)', fontSize: 12, fontWeight: on ? 800 : 600, cursor: 'pointer',
                 }}>{t.unlimited ? '♾ 무제한' : `${t.count}계정`}</button>
-                {on && t.key !== BASE_SEAT && (
+                {t.key !== BASE_SEAT && (
                   <button onClick={() => removeSeatTier?.(t.key)} title="이 계정수 티어 삭제" style={{
-                    padding: '6px 8px', borderRadius: '0 8px 8px 0', border: '1px solid #6366f1', borderLeft: 'none',
+                    padding: '6px 8px', borderRadius: '0 8px 8px 0', border: on ? '1px solid #6366f1' : '1px solid rgba(255,255,255,0.12)', borderLeft: 'none',
                     background: 'rgba(248,113,113,0.12)', color: '#f87171', fontSize: 12, fontWeight: 800, cursor: 'pointer',
                   }}>×</button>
                 )}
