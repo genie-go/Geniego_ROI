@@ -1095,12 +1095,21 @@ final class ChannelSync
     {
         self::ensureTables();
         $pdo   = Db::pdo();
-        $place = implode(',', array_fill(0, count(self::COMMERCE_CHANNELS), '?'));
+        // [현 차수] 하드코딩 COMMERCE_CHANNELS + 채널 레지스트리(sync_kind='commerce') 동적 병합.
+        //   → admin 이 레지스트리에 커머스 채널을 추가하면 코드 수정 없이 cron 폴링 대상에 자동 합류.
+        $channels = self::COMMERCE_CHANNELS;
+        try {
+            $rs = $pdo->query("SELECT channel_key FROM channel_registry WHERE is_active=1 AND sync_kind='commerce'");
+            foreach ($rs->fetchAll(PDO::FETCH_COLUMN) as $ck) $channels[] = (string)$ck;
+        } catch (\Throwable $e) { /* 레지스트리 테이블 부재 시 하드코딩만 사용 */ }
+        $channels = array_values(array_unique(array_filter($channels)));
+        if (!$channels) return [];
+        $place = implode(',', array_fill(0, count($channels), '?'));
         $stmt  = $pdo->prepare(
             "SELECT DISTINCT tenant_id, channel FROM channel_credential
               WHERE is_active=1 AND channel IN ($place) ORDER BY tenant_id, channel"
         );
-        $stmt->execute(self::COMMERCE_CHANNELS);
+        $stmt->execute($channels);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
