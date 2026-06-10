@@ -55,6 +55,9 @@ final class SmsMarketing
                 recipient VARCHAR(50) NOT NULL, body TEXT, status VARCHAR(20) DEFAULT 'pending', msg_id VARCHAR(100),
                 error TEXT, sent_at VARCHAR(32), created_at VARCHAR(32), KEY idx_sms_msg_tenant (tenant_id)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+            // 209차 P1: Templates·Campaigns 영속(프론트 탭 백엔드 부재 해소)
+            $pdo->exec("CREATE TABLE IF NOT EXISTS sms_templates (id INT AUTO_INCREMENT PRIMARY KEY, tenant_id VARCHAR(100) NOT NULL, name VARCHAR(190), category VARCHAR(40) DEFAULT 'promotion', body TEXT, variables TEXT, created_at VARCHAR(32), updated_at VARCHAR(32), KEY idx_sms_tpl_tenant (tenant_id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+            $pdo->exec("CREATE TABLE IF NOT EXISTS sms_campaigns (id INT AUTO_INCREMENT PRIMARY KEY, tenant_id VARCHAR(100) NOT NULL, name VARCHAR(190), template_id VARCHAR(40), segment_id VARCHAR(40), scheduled_at VARCHAR(40), message TEXT, status VARCHAR(20) DEFAULT 'draft', sent_count INT DEFAULT 0, created_at VARCHAR(32), updated_at VARCHAR(32), KEY idx_sms_camp_tenant (tenant_id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
         } else {
             $pdo->exec("CREATE TABLE IF NOT EXISTS sms_settings (
                 id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL, provider TEXT DEFAULT 'nhn',
@@ -64,7 +67,109 @@ final class SmsMarketing
                 id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL, msg_type TEXT DEFAULT 'SMS',
                 recipient TEXT NOT NULL, body TEXT, status TEXT DEFAULT 'pending', msg_id TEXT, error TEXT,
                 sent_at TEXT, created_at TEXT)");
+            $pdo->exec("CREATE TABLE IF NOT EXISTS sms_templates (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL, name TEXT, category TEXT DEFAULT 'promotion', body TEXT, variables TEXT, created_at TEXT, updated_at TEXT)");
+            $pdo->exec("CREATE TABLE IF NOT EXISTS sms_campaigns (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL, name TEXT, template_id TEXT, segment_id TEXT, scheduled_at TEXT, message TEXT, status TEXT DEFAULT 'draft', sent_count INTEGER DEFAULT 0, created_at TEXT, updated_at TEXT)");
         }
+    }
+
+    /* ─────────── 209차 P1: SMS Templates CRUD (/api/sms/templates) ─────────── */
+    private static function bodyArr(Request $req): array {
+        $b = (array)($req->getParsedBody() ?? []);
+        if (!$b) { $d = json_decode((string)$req->getBody(), true); if (is_array($d)) $b = $d; }
+        return $b;
+    }
+    private static function varsToArr($v): array {
+        if (is_array($v)) return array_values(array_filter(array_map('trim', $v), fn($x)=>$x!==''));
+        $s = trim((string)$v);
+        if ($s === '') return [];
+        $j = json_decode($s, true);
+        if (is_array($j)) return array_values(array_filter(array_map('trim', $j), fn($x)=>$x!==''));
+        return array_values(array_filter(array_map('trim', explode(',', $s)), fn($x)=>$x!==''));
+    }
+
+    public static function listTemplates(Request $req, Response $res, array $args = []): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $st = Db::pdo()->prepare("SELECT id,name,category,body,variables,updated_at FROM sms_templates WHERE tenant_id=? ORDER BY id DESC");
+        $st->execute([self::tenant($req)]);
+        $rows = array_map(function($r){ $r['variables'] = self::varsToArr($r['variables'] ?? ''); return $r; }, $st->fetchAll(PDO::FETCH_ASSOC));
+        return TemplateResponder::respond($res, ['ok'=>true,'templates'=>$rows]);
+    }
+
+    public static function saveTemplate(Request $req, Response $res, array $args = []): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $pdo = Db::pdo(); $tenant = self::tenant($req); $b = self::bodyArr($req); $now = gmdate('c');
+        $name = trim((string)($b['name'] ?? ''));
+        if ($name === '') return TemplateResponder::respond($res->withStatus(422), ['ok'=>false,'error'=>'name required']);
+        $vars = json_encode(self::varsToArr($b['variables'] ?? []), JSON_UNESCAPED_UNICODE);
+        $pdo->prepare("INSERT INTO sms_templates(tenant_id,name,category,body,variables,created_at,updated_at) VALUES(?,?,?,?,?,?,?)")
+            ->execute([$tenant,$name,trim((string)($b['category'] ?? 'promotion')),(string)($b['body'] ?? ''),$vars,$now,$now]);
+        return TemplateResponder::respond($res, ['ok'=>true,'id'=>(int)$pdo->lastInsertId()]);
+    }
+
+    public static function updateTemplate(Request $req, Response $res, array $args = []): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $pdo = Db::pdo(); $tenant = self::tenant($req); $b = self::bodyArr($req);
+        $id = (int)($args['id'] ?? 0);
+        $vars = json_encode(self::varsToArr($b['variables'] ?? []), JSON_UNESCAPED_UNICODE);
+        $st = $pdo->prepare("UPDATE sms_templates SET name=?,category=?,body=?,variables=?,updated_at=? WHERE id=? AND tenant_id=?");
+        $st->execute([trim((string)($b['name'] ?? '')),trim((string)($b['category'] ?? 'promotion')),(string)($b['body'] ?? ''),$vars,gmdate('c'),$id,$tenant]);
+        if ($st->rowCount() === 0) return TemplateResponder::respond($res->withStatus(404), ['ok'=>false,'error'=>'not found']);
+        return TemplateResponder::respond($res, ['ok'=>true,'id'=>$id]);
+    }
+
+    public static function deleteTemplate(Request $req, Response $res, array $args = []): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $st = Db::pdo()->prepare("DELETE FROM sms_templates WHERE id=? AND tenant_id=?");
+        $st->execute([(int)($args['id'] ?? 0), self::tenant($req)]);
+        return TemplateResponder::respond($res, ['ok'=>true,'deleted'=>$st->rowCount()]);
+    }
+
+    /* ─────────── 209차 P1: SMS Campaigns (/api/sms/campaigns) ─────────── */
+    public static function listCampaigns(Request $req, Response $res, array $args = []): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $st = Db::pdo()->prepare("SELECT id,name,template_id,segment_id,scheduled_at,message,status,sent_count,updated_at FROM sms_campaigns WHERE tenant_id=? ORDER BY id DESC");
+        $st->execute([self::tenant($req)]);
+        return TemplateResponder::respond($res, ['ok'=>true,'campaigns'=>$st->fetchAll(PDO::FETCH_ASSOC)]);
+    }
+
+    public static function saveCampaign(Request $req, Response $res, array $args = []): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $pdo = Db::pdo(); $tenant = self::tenant($req); $b = self::bodyArr($req); $now = gmdate('c');
+        $name = trim((string)($b['name'] ?? ''));
+        if ($name === '') return TemplateResponder::respond($res->withStatus(422), ['ok'=>false,'error'=>'name required']);
+        $sched = trim((string)($b['scheduled_at'] ?? ''));
+        $status = $sched !== '' ? 'scheduled' : 'draft';
+        $pdo->prepare("INSERT INTO sms_campaigns(tenant_id,name,template_id,segment_id,scheduled_at,message,status,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?)")
+            ->execute([$tenant,$name,(string)($b['template_id'] ?? ''),(string)($b['segment_id'] ?? ''),$sched,(string)($b['message'] ?? ''),$status,$now,$now]);
+        return TemplateResponder::respond($res, ['ok'=>true,'id'=>(int)$pdo->lastInsertId(),'status'=>$status]);
+    }
+
+    public static function campaignAction(Request $req, Response $res, array $args = []): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $pdo = Db::pdo(); $tenant = self::tenant($req);
+        $id = (int)($args['id'] ?? 0);
+        $act = strtolower((string)($args['action'] ?? ''));
+        // 액션 → 상태 전이(소유 테넌트 한정). send=즉시발송 표시, pause/resume/cancel.
+        $map = ['send'=>'sent','pause'=>'paused','resume'=>'scheduled','cancel'=>'draft','start'=>'sent'];
+        if (!isset($map[$act])) return TemplateResponder::respond($res->withStatus(422), ['ok'=>false,'error'=>'unknown action']);
+        $st = $pdo->prepare("UPDATE sms_campaigns SET status=?, updated_at=? WHERE id=? AND tenant_id=?");
+        $st->execute([$map[$act], gmdate('c'), $id, $tenant]);
+        if ($st->rowCount() === 0) return TemplateResponder::respond($res->withStatus(404), ['ok'=>false,'error'=>'not found']);
+        return TemplateResponder::respond($res, ['ok'=>true,'id'=>$id,'status'=>$map[$act]]);
     }
 
     // POST /api/sms/settings

@@ -272,6 +272,14 @@ return function (App $app): void {
         'POST /sms/broadcast'                     => 'Genie\\Handlers\\SmsMarketing::broadcast',
         'GET /sms/messages'                       => 'Genie\\Handlers\\SmsMarketing::messages',
         'GET /sms/stats'                          => 'Genie\\Handlers\\SmsMarketing::stats',
+        // 209차 P1: Templates·Campaigns (프론트 탭 백엔드 부재 해소)
+        'GET /sms/templates'                      => 'Genie\\Handlers\\SmsMarketing::listTemplates',
+        'POST /sms/templates'                     => 'Genie\\Handlers\\SmsMarketing::saveTemplate',
+        'PUT /sms/templates/{id}'                 => 'Genie\\Handlers\\SmsMarketing::updateTemplate',
+        'DELETE /sms/templates/{id}'              => 'Genie\\Handlers\\SmsMarketing::deleteTemplate',
+        'GET /sms/campaigns'                      => 'Genie\\Handlers\\SmsMarketing::listCampaigns',
+        'POST /sms/campaigns'                     => 'Genie\\Handlers\\SmsMarketing::saveCampaign',
+        'POST /sms/campaigns/{id}/{action}'       => 'Genie\\Handlers\\SmsMarketing::campaignAction',
 
         // ── GDPR / 개인정보 동의 관리 ─────────────────────────────────────
         // 204차: /api 접두 없이 등록(basePath '/api' strip 후 매칭). 과거 '/api/gdpr/*' 등록은
@@ -2063,6 +2071,13 @@ return function (App $app): void {
     $register('POST',   '/sms/broadcast');
     $register('GET',    '/sms/messages');
     $register('GET',    '/sms/stats');
+    $register('GET',    '/sms/templates');
+    $register('POST',   '/sms/templates');
+    $register('PUT',    '/sms/templates/{id}');
+    $register('DELETE', '/sms/templates/{id}');
+    $register('GET',    '/sms/campaigns');
+    $register('POST',   '/sms/campaigns');
+    $register('POST',   '/sms/campaigns/{id}/{action}');
     // GDPR (204차: /api 접두 제거 — basePath strip 정합)
     $register('POST',   '/gdpr/consent');
     $register('GET',    '/gdpr/consent');
