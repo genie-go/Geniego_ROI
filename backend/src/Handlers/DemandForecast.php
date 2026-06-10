@@ -227,6 +227,55 @@ class DemandForecast
         ]);
     }
 
+    /* ─── POST /api/demand/auto-replenish ─── [현 차수] 수요예측 자동발주.
+       SKU별 reorder_point > 현재고(channel_inventory.available 합) → wms_supply_orders 'suggested' 자동 생성.
+       멱등(open 발주 있으면 skip). 데모/운영 GENIE_ENV DB 격리. cron 또는 프론트 버튼으로 호출. */
+    public static function autoReplenish(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        $tenant = self::tenant($req);
+        if ($tenant === 'demo' || $tenant === '') return self::json($res, ['ok' => true, 'created' => 0, 'note' => 'demo/anon skip']);
+        $pdo = self::db();
+        $b = (array)($req->getParsedBody() ?? []);
+        $lead    = max(1, min(60, (int)($b['lead'] ?? 7)));
+        $horizon = max(7, min(60, (int)($b['horizon'] ?? 14)));
+        $z = 1.65;
+        // wms_supply_orders 보장(driver-aware, IF NOT EXISTS 멱등)
+        $isMy = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql';
+        if ($isMy) {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS wms_supply_orders (id INT AUTO_INCREMENT PRIMARY KEY, tenant_id VARCHAR(100) NOT NULL DEFAULT 'demo', sku VARCHAR(120), name TEXT, qty DOUBLE DEFAULT 0, supplier VARCHAR(160), wh_id VARCHAR(60), status VARCHAR(30) DEFAULT 'pending', eta VARCHAR(32), created_at VARCHAR(32), updated_at VARCHAR(32), KEY idx_wso_tenant (tenant_id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+        } else {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS wms_supply_orders (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', sku TEXT, name TEXT, qty REAL DEFAULT 0, supplier TEXT, wh_id TEXT, status TEXT DEFAULT 'pending', eta TEXT, created_at TEXT, updated_at TEXT)");
+        }
+        // 현재 재고 맵(channel_inventory.available 합산)
+        $stockMap = [];
+        try {
+            $rs = $pdo->prepare("SELECT sku, SUM(available) av FROM channel_inventory WHERE tenant_id=? GROUP BY sku");
+            $rs->execute([$tenant]);
+            foreach ($rs->fetchAll(\PDO::FETCH_ASSOC) as $r) { if ($r['sku'] !== null && $r['sku'] !== '') $stockMap[(string)$r['sku']] = (float)$r['av']; }
+        } catch (\Throwable $e) {}
+        $all = self::loadSeries($tenant, 90, 200);
+        $created = []; $now = gmdate('Y-m-d H:i:s');
+        $chk = $pdo->prepare("SELECT 1 FROM wms_supply_orders WHERE tenant_id=? AND sku=? AND status IN ('suggested','pending','ordered') LIMIT 1");
+        $ins = $pdo->prepare("INSERT INTO wms_supply_orders (tenant_id,sku,name,qty,supplier,wh_id,status,eta,created_at,updated_at) VALUES (?,?,?,?,?,?,'suggested',?,?,?)");
+        foreach ($all as $sku => $info) {
+            $fc = self::forecast($info['series'], $horizon);
+            $avgDaily = $horizon ? array_sum($fc['forecast']) / $horizon : 0;
+            $safety   = round($z * $fc['sigma'] * sqrt($lead), 1);
+            $reorder  = round($avgDaily * $lead + $safety, 1);
+            if ($reorder <= 0) continue;
+            $stock = $stockMap[(string)$sku] ?? 0;
+            if ($stock >= $reorder) continue;                 // 충분 → skip
+            $chk->execute([$tenant, (string)$sku]);
+            if ($chk->fetchColumn()) continue;                 // open 발주 존재 → 멱등 skip
+            $orderQty = max(1, (int)ceil($reorder * 2 - $stock)); // 리오더포인트 2배까지 보충
+            $eta = gmdate('Y-m-d', time() + $lead * 86400);
+            $ins->execute([$tenant, (string)$sku, (string)$info['name'], $orderQty, '', '', $eta, $now, $now]);
+            $created[] = ['sku' => $sku, 'name' => $info['name'], 'qty' => $orderQty, 'reorder_point' => $reorder, 'stock' => $stock, 'eta' => $eta];
+        }
+        return self::json($res, ['ok' => true, 'created' => count($created), 'orders' => $created, '_env' => Db::env()]);
+    }
+
     /* ─── GET /api/demand/summary ─── */
     public static function summary(Request $req, Response $res): Response
     {

@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import { IS_DEMO } from '../utils/demoEnv';
 import { useI18n } from '../i18n';
 import { useGlobalData } from '../context/GlobalDataContext.jsx';
-import { getJsonAuth } from '../services/apiClient.js';
+import { getJsonAuth, postJson } from '../services/apiClient.js';
 
 /* ── Enterprise Demo Isolation Guard ─── */
 const _isDemo = IS_DEMO; // 180차: 자가가드(startsWith demo — roidemo.* 미매칭) → demoEnv 정본 격리
@@ -38,6 +38,20 @@ export default function DemandForecast() {
     })();
     return () => { alive = false; };
   }, []);
+
+  // [현 차수] 수요예측 자동발주 — 재고<재주문점 SKU에 wms_supply_orders 'suggested' 자동 생성.
+  const [replenishing, setReplenishing] = useState(false);
+  const [replenishMsg, setReplenishMsg] = useState(null);
+  const runAutoReplenish = async () => {
+    if (IS_DEMO) { setReplenishMsg('데모 모드 — 자동발주는 운영에서 실행됩니다.'); return; }
+    setReplenishing(true); setReplenishMsg(null);
+    try {
+      const r = await postJson('/api/demand/auto-replenish', { lead: 7, horizon: 14 });
+      if (r?.ok) setReplenishMsg(`자동발주 완료 — ${r.created}건의 발주 제안이 WMS 발주관리에 생성되었습니다${r.created === 0 ? ' (재고 충분 또는 진행중 발주 존재)' : ''}.`);
+      else setReplenishMsg('자동발주 실패 — 다시 시도하세요.');
+    } catch (e) { setReplenishMsg('자동발주 실패: ' + String(e?.message || e)); }
+    setReplenishing(false);
+  };
 
   // KPI: 서버 summary 우선, 데이터 없으면(데모/신규) inventory/orders 파생 폴백(날조 정확도 미표시)
   const kpis = useMemo(() => {
@@ -127,7 +141,14 @@ export default function DemandForecast() {
         {/* SKU Forecast */}
         {activeTab === 1 && (
           <>
-            <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 16 }}>SKU Forecast <span style={{ fontSize: 11, color: '#64748b', fontWeight: 600 }}>· {t('demandForecast.next14', '향후 14일')}</span></div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 8 }}>
+              <div style={{ fontSize: 16, fontWeight: 800 }}>SKU Forecast <span style={{ fontSize: 11, color: '#64748b', fontWeight: 600 }}>· {t('demandForecast.next14', '향후 14일')}</span></div>
+              <button onClick={runAutoReplenish} disabled={replenishing} title="재고가 재주문점 미만인 SKU에 발주 제안을 WMS 발주관리에 자동 생성"
+                style={{ padding: '8px 16px', borderRadius: 9, border: 'none', cursor: replenishing ? 'default' : 'pointer', background: 'linear-gradient(135deg,#16a34a,#22c55e)', color: '#fff', fontWeight: 800, fontSize: 12.5 }}>
+                {replenishing ? '발주 생성 중…' : '⚡ 자동발주 실행'}
+              </button>
+            </div>
+            {replenishMsg && <div style={{ marginBottom: 12, padding: '8px 12px', borderRadius: 8, background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)', color: '#15803d', fontSize: 12.5 }}>{replenishMsg}</div>}
             {forecast.length === 0 ? emptyState : (
               <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
