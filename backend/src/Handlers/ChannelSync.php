@@ -285,8 +285,8 @@ final class ChannelSync
     // ═══════════════════════════════════════════════════════════════════════
     private static function demoProducts(string $channel): array
     {
-        $names = [];
-        $skus = [];
+        $names = ['무선 블루투스 이어버드','기계식 게이밍 키보드','USB-C 65W 고속 충전기','4K 웹캠','무선 게이밍 마우스','30000mAh 보조배터리'];
+        $skus  = ['EARBUD-PRO','KEYB-MECH','CHRG-USBC65','CAM-4K','MOUSE-WL','PWR-30K'];
         $prices = [89000, 149000, 49000, 129000, 69000, 39000];
         $products = [];
         foreach (range(0, 5) as $i) {
@@ -312,7 +312,7 @@ final class ChannelSync
     {
         $statuses = ['배송중','배송완료','발주확인','출고대기','취소요청','반품접수'];
         $buyers   = ['김철수','이영희','박민준','홍길동','田中花子','John Smith'];
-        $products = [];
+        $products = ['무선 블루투스 이어버드','기계식 게이밍 키보드','USB-C 65W 고속 충전기','4K 웹캠','무선 게이밍 마우스','30000mAh 보조배터리'];
         $carriers = ['CJ대한통운','한진택배','FedEx','DHL','쿠팡로켓','롯데택배'];
         $orders   = [];
         foreach (range(0, 7) as $i) {
@@ -725,6 +725,122 @@ final class ChannelSync
         return hash_hmac('sha256', $message, $appSecret);
     }
 
+    // ── Rakuten RMS (일본) ───────────────────────────────────────────────
+    private static function rakutenFetch(array $creds, string $tenant = 'demo'): array
+    {
+        // 데모: 구조화 미리보기(chokepoint 가 운영 유입 차단).
+        if ($tenant === 'demo') {
+            return ['ok'=>true, 'products'=>self::buildDemoChannelProducts('rakuten','Rakuten'), 'orders'=>self::buildDemoChannelOrders('rakuten','Rakuten'), 'note'=>'demo preview'];
+        }
+        // [현 차수] Rakuten RMS RakutenPayOrder API 실연동 — ESA 인증(base64(serviceSecret:licenseKey)). (라이브 검증은 실 점포 계정 필요.)
+        $serviceSecret = trim((string)($creds['service_secret'] ?? ''));
+        $licenseKey    = trim((string)($creds['license_key'] ?? ''));
+        if ($serviceSecret === '' || $licenseKey === '') {
+            return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>'Rakuten: service_secret·license_key 입력 필요'];
+        }
+        $headers = ['Authorization' => 'ESA ' . base64_encode($serviceSecret . ':' . $licenseKey), 'Content-Type' => 'application/json; charset=utf-8'];
+        // 1) 주문번호 검색(최근 7일, dateType=1 주문일). JST(+09:00).
+        $searchBody = json_encode([
+            'dateType'      => 1,
+            'startDatetime' => gmdate('Y-m-d\T00:00:00+0900', time() - 7 * 86400),
+            'endDatetime'   => gmdate('Y-m-d\T23:59:59+0900', time()),
+            'PaginationRequestModel' => ['requestRecordsAmount' => 100, 'requestPage' => 1],
+        ], JSON_UNESCAPED_UNICODE);
+        [$sCode, $sBody] = self::httpPost('https://api.rms.rakuten.co.jp/es/2.0/order/searchOrder/', $headers, (string)$searchBody);
+        $orderNumbers = (array)($sBody['orderNumberList'] ?? []);
+        if ($sCode >= 400 || empty($orderNumbers)) {
+            return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>"Rakuten 주문 검색(code={$sCode}) — service_secret/license_key 또는 기간내 주문 확인"];
+        }
+        // 2) 주문 상세 조회.
+        $getBody = json_encode(['orderNumberList' => array_slice($orderNumbers, 0, 100), 'version' => 7], JSON_UNESCAPED_UNICODE);
+        [$gCode, $gBody] = self::httpPost('https://api.rms.rakuten.co.jp/es/2.0/order/getOrder/', $headers, (string)$getBody);
+        if ($gCode >= 400) {
+            return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>"Rakuten 주문 상세 실패(code={$gCode})"];
+        }
+        $orders = [];
+        foreach ((array)($gBody['OrderModelList'] ?? []) as $o) {
+            $oid = (string)($o['orderNumber'] ?? '');
+            if ($oid === '') continue;
+            $items = (array)($o['PackageModelList'][0]['ItemModelList'] ?? []);
+            $first = $items[0] ?? [];
+            $qty = 0; foreach ($items as $it) { $qty += (int)($it['units'] ?? 0); }
+            $orders[] = [
+                'channel_order_id' => $oid,
+                'buyer_name'  => trim((string)($o['OrdererModel']['lastName'] ?? '') . ' ' . (string)($o['OrdererModel']['firstName'] ?? '')),
+                'buyer_email' => (string)($o['OrdererModel']['emailAddress'] ?? ''),
+                'product_name'=> (string)($first['itemName'] ?? 'Rakuten Order'),
+                'sku'         => (string)($first['manageNumber'] ?? $first['itemNumber'] ?? ''),
+                'qty'         => $qty ?: count($items),
+                'unit_price'  => (float)($first['price'] ?? 0),
+                'total_price' => (float)($o['totalPrice'] ?? 0),
+                'status'      => 'rakuten-' . (string)($o['orderProgress'] ?? '100'),
+                'ordered_at'  => (string)($o['orderDatetime'] ?? gmdate('c')),
+                'source'      => 'rakuten_api',
+            ];
+        }
+        return ['ok'=>true, 'products'=>[], 'orders'=>$orders, 'note'=>count($orders) . ' Rakuten orders synced'];
+    }
+
+    // ── Cafe24 (D2C) ─────────────────────────────────────────────────────
+    private static function cafe24Fetch(array $creds, string $tenant = 'demo'): array
+    {
+        // 데모: 구조화 미리보기(chokepoint 가 운영 유입 차단).
+        if ($tenant === 'demo') {
+            return ['ok'=>true, 'products'=>self::buildDemoChannelProducts('cafe24','Cafe24'), 'orders'=>self::buildDemoChannelOrders('cafe24','Cafe24'), 'note'=>'demo preview'];
+        }
+        // [현 차수] Cafe24 Admin API 실연동 — OAuth2 refresh_token grant → orders. (라이브 검증은 실 몰 계정 필요.)
+        $mallId       = trim((string)($creds['mall_id'] ?? ''));
+        $clientId     = trim((string)($creds['client_id'] ?? ''));
+        $clientSecret = trim((string)($creds['client_secret'] ?? ''));
+        $refreshToken = trim((string)($creds['refresh_token'] ?? ''));
+        if ($mallId === '' || $clientId === '' || $clientSecret === '' || $refreshToken === '') {
+            return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>'Cafe24: mall_id·client_id·client_secret·refresh_token 입력 필요'];
+        }
+        $apiBase = "https://{$mallId}.cafe24api.com/api/v2";
+        // 1) refresh_token → access_token (Basic base64(client_id:client_secret)).
+        [$tCode, $tBody] = self::httpPost(
+            "{$apiBase}/oauth/token",
+            ['Authorization' => 'Basic ' . base64_encode($clientId . ':' . $clientSecret), 'Content-Type' => 'application/x-www-form-urlencoded'],
+            http_build_query(['grant_type' => 'refresh_token', 'refresh_token' => $refreshToken])
+        );
+        $accessToken = (string)($tBody['access_token'] ?? '');
+        if ($accessToken === '') {
+            return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>"Cafe24 토큰 발급 실패(code={$tCode}) — client_id/secret/refresh_token 확인"];
+        }
+        // 2) orders(최근 7일). embed=items 로 품목 동시조회.
+        $url = "{$apiBase}/admin/orders?start_date=" . gmdate('Y-m-d', time() - 7 * 86400) . '&end_date=' . gmdate('Y-m-d') . '&limit=50&embed=items';
+        [$oCode, $oBody] = self::httpGet($url, [
+            'Authorization' => "Bearer {$accessToken}",
+            'Content-Type' => 'application/json',
+            'X-Cafe24-Api-Version' => '2024-06-01',
+        ]);
+        if ($oCode >= 400 || !isset($oBody['orders'])) {
+            return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>"Cafe24 주문 조회 실패(code={$oCode}) — Admin API mall.read_order 권한 확인"];
+        }
+        $orders = [];
+        foreach ((array)($oBody['orders'] ?? []) as $o) {
+            $oid = (string)($o['order_id'] ?? '');
+            if ($oid === '') continue;
+            $items = (array)($o['items'] ?? []);
+            $first = $items[0] ?? [];
+            $qty = 0; foreach ($items as $it) { $qty += (int)($it['quantity'] ?? 0); }
+            $orders[] = [
+                'channel_order_id' => $oid,
+                'buyer_name'  => (string)($o['buyer']['name'] ?? $o['billing_name'] ?? ''),
+                'buyer_email' => (string)($o['buyer']['email'] ?? ''),
+                'product_name'=> (string)($first['product_name'] ?? 'Cafe24 Order'),
+                'sku'         => (string)($first['product_code'] ?? ''),
+                'qty'         => $qty ?: count($items),
+                'unit_price'  => (float)($first['product_price'] ?? 0),
+                'total_price' => (float)($o['payment_amount'] ?? $o['order_price_amount'] ?? 0),
+                'status'      => strtolower((string)($o['order_status'] ?? 'n00')),
+                'ordered_at'  => (string)($o['order_date'] ?? gmdate('c')),
+                'source'      => 'cafe24_api',
+            ];
+        }
+        return ['ok'=>true, 'products'=>[], 'orders'=>$orders, 'note'=>count($orders) . ' Cafe24 orders synced'];
+    }
+
     // ── G마켓/11번가/기타 ─────────────────────────────────────────────────
     private static function genericFetch(string $channel, array $creds, string $tenant = 'demo'): array
     {
@@ -782,6 +898,8 @@ final class ChannelSync
             'naver','naver_smartstore'     => self::naverFetch($creds),
             'ebay'                         => self::ebayFetch($creds, $tenant),
             'tiktok','tiktok_shop'         => self::tiktokFetch($creds, $tenant),
+            'rakuten'                      => self::rakutenFetch($creds, $tenant),
+            'cafe24'                       => self::cafe24Fetch($creds, $tenant),
             default                        => self::genericFetch($channel, $creds, $tenant),
         };
     }
