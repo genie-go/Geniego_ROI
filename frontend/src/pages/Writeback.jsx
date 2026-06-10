@@ -149,11 +149,11 @@ function ConsoleTab({ t, isDemo }) {
     setLoading(true); setErr(null); setPolicy(null); setCategorySuggestion(null); setPrepared(null);
     try {
       const product = productText.trim() ? JSON.parse(productText) : { sku, title: '', price: 0, currency: 'KRW' };
-      const pol = await postJson('/v401/writeback/policy_validate', { channel, product });
+      const pol = await postJson('/api/catalog/writeback/policy', { channel, product });
       setPolicy(pol);
-      const cat = await postJson('/v401/writeback/category/suggest', { channel, product });
+      const cat = await postJson('/api/catalog/writeback/category', { channel, product });
       setCategorySuggestion(cat);
-      const data = await postJson(`/v382/writeback/${channel}/${sku}/prepare?operation=publish`, {});
+      const data = await postJson(`/api/catalog/writeback/${encodeURIComponent(channel)}/${encodeURIComponent(sku)}/prepare?operation=publish`, { product });
       setPrepared(data);
       addAlert?.({ type: 'success', msg: `[Writeback] ${t('writebackPage.prepareSuccess', 'Prepare completed')}: ${channel}/${sku}` });
     } catch (e) { setErr(String(e)); }
@@ -166,12 +166,13 @@ function ConsoleTab({ t, isDemo }) {
     setLoading(true); setErr(null);
     try {
       if (prepared?.requires_approval) {
-        await postJson('/v382/approvals', { type: prepared.approval_type, channel, sku, payload: prepared.payload });
+        await postJson('/api/catalog/approvals', { type: prepared.approval_type, channel, sku, payload: prepared.payload });
         setErr(t('writebackPage.approvalCreated', 'Approval required. Go to Approvals to approve.'));
         setLoading(false); return;
       }
-      await postJson(`/v382/writeback/${channel}/${sku}/execute`, { idempotency_key: `${channel}:${sku}:publish`, operation: 'publish' });
-      addAlert?.({ type: 'success', msg: `[Writeback] ${t('writebackPage.executeSuccess', 'Executed')}: ${channel}/${sku}` });
+      const payload = prepared?.payload || (productText.trim() ? JSON.parse(productText) : { sku });
+      const r = await postJson(`/api/catalog/writeback/${encodeURIComponent(channel)}/${encodeURIComponent(sku)}`, { ...payload, operation: 'publish' });
+      addAlert?.({ type: 'success', msg: `[Writeback] ${t('writebackPage.executeSuccess', 'Executed')}: ${channel}/${sku} (${r?.status || 'ok'})` });
     } catch (e) { setErr(String(e)); }
     setLoading(false);
   }
@@ -182,7 +183,7 @@ function ConsoleTab({ t, isDemo }) {
     setLoading(true); setErr(null); setPreview(null);
     try {
       const product = JSON.parse(productText);
-      const out = await postJsonAuth('/v398/writeback/preview', { channel, product });
+      const out = await postJsonAuth('/api/catalog/writeback/preview', { channel, product });
       setPreview(out);
     } catch (e) { setErr(String(e)); }
     setLoading(false);
@@ -305,7 +306,7 @@ function JobsTab({ t, isDemo }) {
     if (isDemo) return;
     setLoading(true); setErr(null);
     try {
-      const data = await getJsonAuth('/v382/writeback/jobs');
+      const data = await getJsonAuth('/api/catalog/writeback/jobs');
       setJobs(Array.isArray(data) ? data : []);
     } catch (e) { setErr(String(e)); }
     setLoading(false);

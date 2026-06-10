@@ -67,6 +67,13 @@ return function (App $app): void {
         'POST /catalog/bulk-price'                => 'Genie\\Handlers\\Catalog::bulkPrice',
         'GET /catalog/listings'                   => 'Genie\\Handlers\\Catalog::listings',
         'GET /catalog/price-history'              => 'Genie\\Handlers\\Catalog::priceHistory', // 193차 Sprint4 #6
+        // [현 차수] Writeback Console 실배선 — 구 /v382/*(404)·/v401·/v398(api_key 401) 세션 기반 통합
+        'POST /catalog/writeback/policy'                  => 'Genie\\Handlers\\Catalog::policyValidate',
+        'POST /catalog/writeback/category'               => 'Genie\\Handlers\\Catalog::categorySuggest',
+        'POST /catalog/writeback/preview'                => 'Genie\\Handlers\\Catalog::preview',
+        'GET /catalog/writeback/jobs'                     => 'Genie\\Handlers\\Catalog::jobs',
+        'POST /catalog/writeback/{channel}/{sku}/prepare' => 'Genie\\Handlers\\Catalog::prepare',
+        'POST /catalog/approvals'                        => 'Genie\\Handlers\\Catalog::approvalCreate',
 
         // ── 이메일 마케팅 ────────────────────────────────────────────────
         'GET /email/settings'                  => 'Genie\\Handlers\\EmailMarketing::getSettings',
@@ -1935,6 +1942,13 @@ return function (App $app): void {
     $register('POST',   '/catalog/bulk-price');
     $register('GET',    '/catalog/listings');
     $register('GET',    '/catalog/price-history'); // 193차 Sprint4 #6
+    // [현 차수] Writeback Console 실배선 ($custom 맵 + $register 동반 필수)
+    $register('POST',   '/catalog/writeback/policy');
+    $register('POST',   '/catalog/writeback/category');
+    $register('POST',   '/catalog/writeback/preview');
+    $register('GET',    '/catalog/writeback/jobs');
+    $register('POST',   '/catalog/writeback/{channel}/{sku}/prepare');
+    $register('POST',   '/catalog/approvals');
     // Email Marketing
     $register('GET',    '/email/settings');
     $register('PUT',    '/email/settings');

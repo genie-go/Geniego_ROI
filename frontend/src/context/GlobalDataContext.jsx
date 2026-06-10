@@ -250,6 +250,36 @@ export function GlobalDataProvider({ children }) {
         };
     });
 
+    // [현 차수] Admin 가격 변경 → 인앱 PlanGate 실시간 반영. 기존엔 planPricing 이 localStorage 만 읽고
+    //   updatePlanPricing sender 가 0건이라 영구 stale 이었다. 공개 가격 API(plan_period_pricing SSOT)로
+    //   하이드레이션해 관리자가 /admin/plan-pricing 에서 바꾼 가격이 업그레이드 게이트에 반영되게 한다.
+    useEffect(() => {
+        let alive = true;
+        getJsonAuth('/api/auth/pricing/public-plans')
+            .then(d => {
+                if (!alive || !d?.ok || !Array.isArray(d.plans)) return;
+                const fmt = (n) => '$' + Number(n).toLocaleString('en-US', { maximumFractionDigits: 2 });
+                const next = {};
+                d.plans.forEach(p => {
+                    const periods = Array.isArray(p.periods) ? p.periods : [];
+                    const at = (m) => periods.find(x => Number(x.period_months) === m)?.price_usd;
+                    const mo = at(1) ?? p.price_usd;
+                    const qt = at(3);
+                    const yr = at(12) ?? p.price_annual_usd;
+                    if (mo == null && qt == null && yr == null) return;
+                    next[p.id] = {
+                        name: p.name,
+                        ...(mo != null ? { monthly: fmt(mo) } : {}),
+                        ...(qt != null ? { quarterly: fmt(qt) + '/월' } : {}),
+                        ...(yr != null ? { yearly: fmt(yr) + '/월' } : {}),
+                    };
+                });
+                if (Object.keys(next).length) setPlanPricing(prev => ({ ...prev, ...next }));
+            })
+            .catch(() => { /* 공개 API 실패 시 기본값 유지 */ });
+        return () => { alive = false; };
+    }, []);
+
     /* ════════════════════════════════════════════════
        🎪 [v15] Demo Sandbox — Auto-Save to localStorage
        사용자가 데이터를 변경할 때마다 자동 영속 저장.

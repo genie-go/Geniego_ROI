@@ -614,13 +614,15 @@ function PlanSelector({ planType, setPlanType, selectedPaid, setSelectedPaid }) 
       .then(d => {
         if (!d.ok) return;
         const prices = {};
+        // [현 차수] publicPlans(AdminPlans::publicPlans) 실응답 형식 사용. 기존엔 미존재 필드
+        //   (hasPricing/tiers/cycles)를 기대해 항상 조기 return → admin 가격 미표시·하드코딩 폴백 고정이었음.
+        //   실응답은 periods[](base seat '1', period_months 1/3/12) + price_usd(월 환산) 제공.
         (d.plans || []).forEach(p => {
-          if (!p.hasPricing || !p.tiers || p.tiers.length === 0) return;
-          // 1Account(acct==='1') 기준 Monthly Min Pricing 사용 — tiers[0]이 아닌 acct==='1'을 명시적으로 찾음
-          const firstTier = p.tiers.find(t => t.acct === "1") || p.tiers[0];
-          const monthly = firstTier?.cycles?.monthly;
-          if (monthly?.monthly_price > 0) {
-            prices[p.id] = "$" + Number(monthly.monthly_price).toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 }) + "/mo~";
+          const periods = Array.isArray(p.periods) ? p.periods : [];
+          const monthlyEntry = periods.find(x => Number(x.period_months) === 1);
+          const monthly = monthlyEntry?.price_usd ?? p.price_usd;
+          if (monthly != null && Number(monthly) > 0) {
+            prices[p.id] = "$" + Number(monthly).toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 }) + "/mo~";
           } else if (p.id === "enterprise") {
             prices[p.id] = "Contact Us";
           }
