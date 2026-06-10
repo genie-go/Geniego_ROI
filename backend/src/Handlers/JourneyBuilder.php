@@ -61,9 +61,11 @@ class JourneyBuilder
             try { $pdo->exec("ALTER TABLE {$tbl} ADD COLUMN tenant_id VARCHAR(100) NOT NULL DEFAULT 'demo'"); } catch (\Throwable $e) {}
         }
         // 206차 #2: 실행러너 상태머신 컬럼(delay resume + cron 픽업).
-        foreach (['resume_at VARCHAR(32)', 'last_run_at VARCHAR(32)'] as $col) {
+        foreach (['resume_at VARCHAR(32)', 'last_run_at VARCHAR(32)', 'converted INT DEFAULT 0'] as $col) {
             try { $pdo->exec("ALTER TABLE journey_enrollments ADD COLUMN {$col}"); } catch (\Throwable $e) {}
         }
+        // [현 차수] 전환 목표(goal) 집계 컬럼.
+        try { $pdo->exec("ALTER TABLE journeys ADD COLUMN stats_converted INT DEFAULT 0"); } catch (\Throwable $e) {}
     }
 
     /* ─── GET /journey/journeys ─── 목록 ─────────────────────── */
@@ -229,6 +231,44 @@ class JourneyBuilder
      *    delay=resume_at 설정 후 중단) → 다음 delay/완료까지 진행.
      * ════════════════════════════════════════════════════════════════════ */
 
+    /**
+     * [현 차수] 이벤트 기반 자동 진입 — 트리거 발화 시(회원가입/구매 등) 해당 트리거의 활성 여정에 고객 자동 등록.
+     *   타 핸들러에서 호출: CRM::createCustomer→'signup', 구매 적재→'purchase'. 중복 진입 차단 + 즉시 advance.
+     *   ★ 이것이 없으면 여정을 launch 해도 진입 멤버가 0이라 엔진이 실데이터로 가동되지 않는다(최대 갭 해소).
+     *   반환: 신규 등록된 여정 수. best-effort(예외 삼킴 — 호출측 트랜잭션 보호).
+     */
+    public static function enrollByTrigger(\PDO $pdo, string $tenant, string $triggerType, int $customerId, array $ctx = []): int
+    {
+        if ($customerId <= 0 || $triggerType === '' || $tenant === '') return 0;
+        try { self::ensureTables(); } catch (\Throwable $e) { return 0; }
+        $journeys = [];
+        try {
+            $st = $pdo->prepare("SELECT * FROM journeys WHERE tenant_id=:t AND status='active' AND trigger_type=:tt");
+            $st->execute([':t'=>$tenant, ':tt'=>$triggerType]);
+            $journeys = $st->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Throwable $e) { return 0; }
+        $n = 0;
+        foreach ($journeys as $j) {
+            try {
+                $dup = $pdo->prepare("SELECT 1 FROM journey_enrollments WHERE tenant_id=:t AND journey_id=:j AND customer_id=:c AND status IN ('active','waiting') LIMIT 1");
+                $dup->execute([':t'=>$tenant, ':j'=>(int)$j['id'], ':c'=>$customerId]);
+                if ($dup->fetchColumn()) continue; // 진행 중 등록 존재 → 재진입 차단
+                $nodes = json_decode($j['nodes'] ?? '[]', true) ?: [];
+                $start = $nodes[0]['id'] ?? 'trigger_1';
+                $now = self::now();
+                $rev = (float)($ctx['revenue'] ?? 0);
+                $pdo->prepare("INSERT INTO journey_enrollments (tenant_id, journey_id, customer_id, current_node, status, entered_at, revenue) VALUES (:t,:j,:c,:n,'active',:e,:rev)")
+                    ->execute([':t'=>$tenant, ':j'=>(int)$j['id'], ':c'=>$customerId, ':n'=>$start, ':e'=>$now, ':rev'=>$rev]);
+                $eid = (int)$pdo->lastInsertId();
+                $pdo->prepare("UPDATE journeys SET stats_entered=stats_entered+1 WHERE id=:id AND tenant_id=:t")->execute([':id'=>(int)$j['id'], ':t'=>$tenant]);
+                $enr = ['id'=>$eid, 'journey_id'=>(int)$j['id'], 'current_node'=>$start, 'status'=>'active', 'customer_id'=>$customerId, 'session_id'=>null, 'resume_at'=>null, 'revenue'=>$rev];
+                self::advanceEnrollment($pdo, $tenant, $enr, $j);
+                $n++;
+            } catch (\Throwable $e) { /* 단일 여정 실패 격리 */ }
+        }
+        return $n;
+    }
+
     /** 주기 실행 진입점 — journey_cron.php 호출. resume 시각 도래한 waiting 등록건 진행. */
     public static function runDue(?string $onlyTenant = null, int $limit = 300): array
     {
@@ -317,6 +357,27 @@ class JourneyBuilder
                 continue;
             }
 
+            // ── [현 차수] split: A/B 분기(가중치, 등록ID 결정적 분배 — 동일 고객 동일 분기·재현가능) ──
+            if ($type === 'split') {
+                $cfg = (array)($node['config'] ?? []);
+                $wA  = max(0, min(100, (int)($cfg['weight_a'] ?? 50)));
+                $pick = (($enrollId * 2654435761 + 1) % 100) < $wA ? 'a' : 'b';
+                self::logNode($pdo, $tenant, $enrollId, $jid, $nodeId, 'split', 'split', ['branch'=>$pick, 'weight_a'=>$wA]);
+                $actions[] = ['node'=>$nodeId, 'action'=>'split', 'branch'=>$pick];
+                $nodeId = self::nextNode($edges, $nodeId, $pick);
+                continue;
+            }
+
+            // ── [현 차수] goal: 전환 목표 도달 기록(여정·등록건 전환 카운트) ──
+            if ($type === 'goal') {
+                self::logNode($pdo, $tenant, $enrollId, $jid, $nodeId, 'goal', 'goal_reached', ['goal'=>(string)($node['label'] ?? 'goal')]);
+                try { $pdo->prepare("UPDATE journeys SET stats_converted=stats_converted+1 WHERE id=:id AND tenant_id=:t")->execute([':id'=>$jid, ':t'=>$tenant]); } catch (\Throwable $e) {}
+                try { $pdo->prepare("UPDATE journey_enrollments SET converted=1 WHERE id=:id AND tenant_id=:t")->execute([':id'=>$enrollId, ':t'=>$tenant]); } catch (\Throwable $e) {}
+                $actions[] = ['node'=>$nodeId, 'action'=>'goal_reached'];
+                $nodeId = self::nextNode($edges, $nodeId, null);
+                continue;
+            }
+
             // ── 실행 노드(email/kakao/sms/action/...) ──
             switch ($type) {
                 case 'email': $a = self::sendEmailNode($pdo, $tenant, $enr, $node); break;
@@ -352,15 +413,17 @@ class JourneyBuilder
         foreach ($edges as $e) { if (($e['from'] ?? null) === $fromId) $cand[] = $e; }
         if (!$cand) return '';
         if ($branch !== null) {
-            $want = $branch === 'true' ? ['true','yes','y','1'] : ['false','no','n','0'];
+            // [현 차수] true/false 외 임의 분기 라벨(split a/b 등)도 매칭.
+            $bl = strtolower((string)$branch);
+            $want = $bl === 'true' ? ['true','yes','y','1'] : ($bl === 'false' ? ['false','no','n','0'] : [$bl]);
             foreach ($cand as $e) {
                 $w = $e['when'] ?? $e['branch'] ?? $e['condition'] ?? $e['label'] ?? null;
                 if ($w === null) continue;
                 $ws = is_bool($w) ? ($w ? 'true' : 'false') : strtolower((string)$w);
                 if (in_array($ws, $want, true)) return (string)($e['to'] ?? '');
             }
-            // 라벨 없으면 위치 폴백: true→첫번째, false→두번째
-            $idx = $branch === 'true' ? 0 : (count($cand) > 1 ? 1 : 0);
+            // 라벨 없으면 위치 폴백: true/a→첫번째, false/b→두번째
+            $idx = in_array($bl, ['true','a','yes','1'], true) ? 0 : (count($cand) > 1 ? 1 : 0);
             return (string)($cand[$idx]['to'] ?? '');
         }
         return (string)($cand[0]['to'] ?? '');

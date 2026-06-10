@@ -184,7 +184,10 @@ class CRM
                 ':grade' => $b['grade'] ?? 'normal', ':tags' => json_encode($b['tags'] ?? []), ':memo' => $b['memo'] ?? '',
                 ':ca'    => $now, ':ua' => $now,
             ]);
-            return self::jsonRes($res, ['ok'=>true,'id'=>(int)$pdo->lastInsertId()]);
+            $newId = (int)$pdo->lastInsertId();
+            // [현 차수] 신규 고객 등록 → 'signup' 트리거 여정 자동 진입. best-effort(여정 미정의 시 무동작).
+            try { JourneyBuilder::enrollByTrigger($pdo, $tenant, 'signup', $newId); } catch (\Throwable $e) {}
+            return self::jsonRes($res, ['ok'=>true,'id'=>$newId]);
         } catch (\Exception $e) {
             return self::jsonRes($res, ['ok'=>false,'error'=>'이메일 중복 또는 오류'], 409);
         }

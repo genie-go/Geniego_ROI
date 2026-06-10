@@ -22,6 +22,7 @@ import EmptyState from '../components/EmptyState';
 import { useToast } from '../components/ToastProvider';
 import { _isDemo, LANG_LOCALE_MAP, K, FB, STS, TRIGGER_CFG, CH_COLORS, fmt, fmtW, CARD, INP, SEL, LBL, CONTENT_MIN } from './JourneyBuilderConstants';
 import { DonutChart, HBarChart, Backdrop, FlowPreview } from './JourneyBuilderCharts';
+import JourneyCanvas from './JourneyCanvas'; // [현 차수] 비주얼 플로우 캔버스(노드/엣지 그래프 편집)
 
 export default function JourneyBuilder() {
     const { t, lang } = useI18n();
@@ -49,6 +50,8 @@ export default function JourneyBuilder() {
     const [editId, setEditId] = useState(null);
     const [deleteId, setDeleteId] = useState(null);
     const [detailId, setDetailId] = useState(null);
+    const [canvasId, setCanvasId] = useState(null);       // [현 차수] 비주얼 캔버스 편집 중 여정 id
+    const [canvasSaving, setCanvasSaving] = useState(false);
     const [form, setForm] = useState({ name: '', trigger_type: 'signup', segment: '', channels: ['email'], delay: 'none' });
     const [showOnboarding, setShowOnboarding] = useState(false);
     const [isMobile, setIsMobile] = useState(window.matchMedia('(max-width: 768px)').matches);
@@ -87,6 +90,10 @@ export default function JourneyBuilder() {
             executions: Number(cfg.executions || 0),
             entered: Number(r.stats_entered || 0),
             completed: Number(r.stats_completed || 0),
+            converted: Number(r.stats_converted || 0),
+            // [현 차수] 비주얼 캔버스용 실 그래프(백엔드 실행엔진이 이 노드/엣지를 상태머신으로 실행).
+            nodes: Array.isArray(r.nodes) ? r.nodes : [],
+            edges: Array.isArray(r.edges) ? r.edges : [],
         };
     };
     const toBackend = (j) => ({
@@ -95,6 +102,21 @@ export default function JourneyBuilder() {
         trigger_config: { channels: j.channels || ['email'], delay: j.delay || 'none', segment: j.segment || '', executions: j.executions || 0 },
     });
     const reloadJourneys = () => { journeyApi.list().then(r => setJourneys((r.journeys || []).map(mapFromBackend))).catch(() => {}); };
+    // [현 차수] 비주얼 캔버스 저장 — 실 nodes/edges 그래프를 백엔드(updateJourney)로 영속(데모는 로컬).
+    const saveCanvas = useCallback(async (graph) => {
+        if (!canvasId) return;
+        setCanvasSaving(true);
+        try {
+            if (_isDemo) {
+                setJourneys(prev => { const next = prev.map(j => j.id === canvasId ? { ...j, nodes: graph.nodes, edges: graph.edges } : j); try { localStorage.setItem('jb_journeys', JSON.stringify(next)); } catch {} return next; });
+            } else {
+                await journeyApi.update(canvasId, { nodes: graph.nodes, edges: graph.edges });
+                setJourneys(prev => prev.map(j => j.id === canvasId ? { ...j, nodes: graph.nodes, edges: graph.edges } : j));
+            }
+            addToast('여정 플로우가 저장되었습니다.', 'success', 2500);
+        } catch { addToast('저장 실패 — 다시 시도하세요.', 'error', 3000); }
+        setCanvasSaving(false);
+    }, [canvasId, addToast]);
     // 운영: 마운트 1회 백엔드 로드(데모는 로컬 시드 유지). eslint deps 의도적 비움(1회 hydrate).
     useEffect(() => { if (!_isDemo) reloadJourneys(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, []);
 
@@ -324,7 +346,20 @@ export default function JourneyBuilder() {
             <div className="fade-up" style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: isMobile ? '10px 4px 20px' : '16px 8px 28px' }}>
 
                 {/* ══════ BUILDER ═══════════════════════════════ */}
-                {tab === 'builder' && (
+                {tab === 'builder' && canvasId && (() => {
+                    const cj = journeys.find(j => j.id === canvasId);
+                    return (
+                        <div style={{ ...CARD, minHeight: CONTENT_MIN }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12, flexWrap: 'wrap' }}>
+                                <button onClick={() => setCanvasId(null)} style={{ padding: '7px 14px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.12)', background: '#fff', color: '#475569', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>← 목록</button>
+                                <div style={{ fontWeight: 900, fontSize: 15, color: '#1e293b' }}>🗺️ {cj?.name || '여정'} — 비주얼 플로우 편집</div>
+                                <span style={{ fontSize: 11, color: '#94a3b8' }}>트리거 유형: {trigLabel(cj?.trigger_type)}</span>
+                            </div>
+                            <JourneyCanvas nodes={cj?.nodes} edges={cj?.edges} onSave={saveCanvas} saving={canvasSaving} />
+                        </div>
+                    );
+                })()}
+                {tab === 'builder' && !canvasId && (
                     <div style={{ display: 'grid', gap: 14, minHeight: CONTENT_MIN, alignContent: 'start' }}>
                         {/* KPI Row */}
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14 }}>
@@ -362,7 +397,10 @@ export default function JourneyBuilder() {
                                             <div style={{ fontSize: 20 }}>{TRIGGER_CFG[j.trigger_type]?.icon || '⚡'}</div>
                                             <div><div style={{ fontWeight: 800, fontSize: 14, color: '#1e293b' }}>{j.name}</div><div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2 }}>{trigLabel(j.trigger_type)} → {(j.channels || []).map(c => c.toUpperCase()).join(', ')}</div></div>
                                         </div>
-                                        <span style={{ padding: '3px 10px', borderRadius: 6, fontSize: 10, fontWeight: 700, background: cfg.bg, border: `1px solid ${cfg.border}`, color: cfg.color }}>{cfg.icon} {stsLabel(j.status)}</span>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }} onClick={e => e.stopPropagation()}>
+                                            <button onClick={() => setCanvasId(j.id)} style={{ padding: '4px 11px', borderRadius: 7, border: '1px solid rgba(79,142,247,0.4)', background: 'rgba(79,142,247,0.1)', color: '#2563eb', fontSize: 11, fontWeight: 800, cursor: 'pointer' }}>🗺️ 비주얼 편집</button>
+                                            <span style={{ padding: '3px 10px', borderRadius: 6, fontSize: 10, fontWeight: 700, background: cfg.bg, border: `1px solid ${cfg.border}`, color: cfg.color }}>{cfg.icon} {stsLabel(j.status)}</span>
+                                        </div>
                                     </div>
                                     <FlowPreview journey={j} tr={tr} />
                                 </div>

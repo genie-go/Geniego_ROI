@@ -763,6 +763,8 @@ final class ChannelSync
             }
             $pdo->prepare("INSERT INTO crm_activities(tenant_id,customer_id,type,channel,amount,data,created_at) VALUES(?,?,'purchase',?,?,?,?)")
                 ->execute([$tenant, (int)$cid, $channel, $total, json_encode(['sku' => $sku, 'qty' => $qty, 'order_id' => $orderId], JSON_UNESCAPED_UNICODE), $now]);
+            // [현 차수] 구매 이벤트 → 'purchase' 트리거 여정 자동 진입(전환 귀속 revenue 포함). best-effort.
+            try { JourneyBuilder::enrollByTrigger($pdo, $tenant, 'purchase', (int)$cid, ['revenue' => $total]); } catch (\Throwable $e) {}
         } catch (\Throwable $e) { error_log('[ChannelSync.recordCrmPurchase] ' . $e->getMessage()); }
     }
 
