@@ -8,6 +8,7 @@ import { useConnectorSync } from '../context/ConnectorSyncContext.jsx';
 import { useSecurityGuard, sanitizeInput, detectXSS } from '../security/SecurityGuard.js';
 import PlanGate from '../components/PlanGate.jsx';
 import { CHANNEL_RATES } from '../constants/channelRates.js';
+import { loadChannelRegistry, registryBySyncKind } from '../services/channelRegistry.js';
 import { getJson, postJson } from '../services/apiClient.js';
 import { IS_DEMO } from '../utils/demoEnv';
 
@@ -178,10 +179,28 @@ function ChannelAuthPanel({ ch, onSaved, isDemo, t }) {
     );
 }
 
+// 212차 #4: 레지스트리 SSOT — 마스터와 동일 채널의 별칭(ID 불일치) 키. 중복 카드 방지용 스킵셋.
+const REG_COMMERCE_ALIAS = new Set(['naver_smartstore', 'st11', 'auction']); // master: naver / 11st / gmarket(Auction 통합)
+
 function ChannelTab({ channelStatus, onRefresh, plan, isDemo, t, csIsConnected }) {
     const { fmt } = useCurrency();
     const [expanded, setExpanded] = React.useState({});
     const [syncing, setSyncing] = React.useState({});
+    // 212차 #4: 하드코딩 CHANNELS_MASTER 베이스 + 레지스트리 커머스 신규채널 additive merge(admin 추가 채널 동적 노출).
+    const [channelsMaster, setChannelsMaster] = React.useState(CHANNELS_MASTER);
+    React.useEffect(() => {
+        loadChannelRegistry().then((reg) => {
+            const have = new Set(CHANNELS_MASTER.map(c => c.id));
+            const extra = registryBySyncKind(reg, 'commerce')
+                .filter(c => !have.has(c.channel_key) && !REG_COMMERCE_ALIAS.has(c.channel_key))
+                .map(c => ({
+                    id: c.channel_key, name: c.name, icon: c.icon || '🔗', color: c.color || '#6366f1',
+                    type: 'Marketplace',
+                    fields: (c.fields || []).map(f => ({ key: f.k, label: f.label, ph: '...', secret: f.secret !== false })),
+                }));
+            if (extra.length) setChannelsMaster([...CHANNELS_MASTER, ...extra]);
+        });
+    }, []);
     const toggle = React.useCallback(id => setExpanded(e => ({ ...e, [id]: !e[id] })), []);
 
     const syncNow = React.useCallback(async (chId) => {
@@ -191,7 +210,7 @@ function ChannelTab({ channelStatus, onRefresh, plan, isDemo, t, csIsConnected }
         setSyncing(s => ({ ...s, [chId]: false }));
     }, [onRefresh]);
 
-    const grouped = React.useMemo(() => CHANNELS_MASTER.reduce((m, c) => { (m[c.type] || (m[c.type] = [])).push(c); return m; }, {}), []);
+    const grouped = React.useMemo(() => channelsMaster.reduce((m, c) => { (m[c.type] || (m[c.type] = [])).push(c); return m; }, {}), [channelsMaster]);
 
     const statusMap = React.useMemo(() => {
         const m = {};
@@ -214,13 +233,14 @@ function ChannelTab({ channelStatus, onRefresh, plan, isDemo, t, csIsConnected }
         Global: t('omniChannel.groupGlobal'),
         Japan: t('omniChannel.groupJapan'),
         Domestic: t('omniChannel.groupDomestic'),
+        Marketplace: t('omniChannel.groupMarketplace', '마켓플레이스'),
     }), [t]);
 
     return (
         <div style={{ display: 'grid', gap: 18 }}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12 }}>
                 {[
-                    { l: t('omniChannel.kpiAllChannel'), v: CHANNELS_MASTER.length, c: '#4f8ef7' },
+                    { l: t('omniChannel.kpiAllChannel'), v: channelsMaster.length, c: '#4f8ef7' },
                     { l: t('omniChannel.kpiIntegDone'), v: totalConnected, c: '#22c55e' },
                     { l: t('omniChannel.kpiProducts'), v: (channelStatus?.totals?.products || 0).toLocaleString(), c: '#a855f7' },
                     { l: t('omniChannel.kpiOrders'), v: (channelStatus?.totals?.orders || 0).toLocaleString(), c: '#eab308' },

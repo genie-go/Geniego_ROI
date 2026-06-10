@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useI18n } from '../i18n';
 import { getJsonAuth, postJson } from '../services/apiClient.js';
+import { loadChannelRegistry, registryBySyncKind } from '../services/channelRegistry.js';
 
 /* ═══════════════════════════════════════════════════════════════
    AdChannelConnect — 광고 매체 자동집행 연동 (201차)
@@ -77,6 +78,22 @@ export default function AdChannelConnect() {
   const [busy, setBusy] = useState('');
   const [msg, setMsg] = useState({});         // { channel: {text,ok} }
   const [showGuide, setShowGuide] = useState(false);
+  // 212차 #4: 레지스트리 SSOT additive merge — 하드코딩 PLATFORMS 베이스에 admin 추가 광고매체(sync_kind='ad') 동적 합류.
+  const [platforms, setPlatforms] = useState(PLATFORMS);
+  useEffect(() => {
+    loadChannelRegistry().then((reg) => {
+      const have = new Set(PLATFORMS.map(p => p.id));
+      const extra = registryBySyncKind(reg, 'ad')
+        .filter(c => !have.has(c.channel_key))
+        .map(c => ({
+          id: c.channel_key, name: c.name, icon: c.icon || '🔗', color: c.color || '#6366f1',
+          scope: '', helpKey: 'helpRegistryGeneric',
+          help: '자격증명을 입력하면 마케팅 자동화(추천→집행→최적화)가 이 매체에서 활성화됩니다.',
+          fields: (c.fields || []).map(f => ({ k: f.k, label: f.label, secret: f.secret !== false })),
+        }));
+      if (extra.length) setPlatforms([...PLATFORMS, ...extra]);
+    });
+  }, []);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -186,7 +203,7 @@ export default function AdChannelConnect() {
 
       {/* 매체별 카드 */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: 14 }}>
-        {PLATFORMS.map(p => {
+        {platforms.map(p => {
           const st = platformStatus(p);
           const f = forms[p.id] || {};
           const m = msg[p.id];

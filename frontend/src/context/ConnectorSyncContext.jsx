@@ -16,6 +16,7 @@ import React, {
   useState,
 } from "react";
 import { useAuth } from "../auth/AuthContext";
+import { loadChannelRegistry, registryBySyncKind } from "../services/channelRegistry.js";
 
 
 /* ─── Context ──────────────────────────────────────────────────────────────── */
@@ -82,6 +83,8 @@ export function ConnectorSyncProvider({ children }) {
 
   // connectedChannels: { [channelKey]: { connected: bool, keyCount: int, lastTest: Date|null, testStatus: 'ok'|'error'|null } }
   const [connectedChannels, setConnectedChannels] = useState({});
+  // 212차 #4: 레지스트리 SSOT additive merge — 하드코딩 KNOWN_CHANNELS 베이스에 admin 추가 채널을 동적 합류.
+  const [knownChannels, setKnownChannels] = useState(KNOWN_CHANNELS);
   const [loading, setLoading] = useState(false);
   const [lastRefresh, setLastRefresh] = useState(null);
   const refreshTimerRef = useRef(null);
@@ -116,6 +119,20 @@ export function ConnectorSyncProvider({ children }) {
       setLoading(false);
       setLastRefresh(new Date());
     }
+  }, [token]);
+
+  /* 레지스트리 SSOT 로드 → 자격증명 채널(ad/commerce/messaging) 키를 KNOWN_CHANNELS 에 additive merge */
+  useEffect(() => {
+    if (!token) return;
+    loadChannelRegistry().then((reg) => {
+      const regKeys = registryBySyncKind(reg, ['ad', 'commerce', 'messaging']).map((c) => c.channel_key);
+      if (!regKeys.length) return;
+      setKnownChannels((prev) => {
+        const merged = new Set(prev);
+        regKeys.forEach((k) => merged.add(k));
+        return merged.size === prev.length ? prev : Array.from(merged);
+      });
+    });
   }, [token]);
 
   /* 마운트 시 + 토큰 변경 시 자동 갱신 */
@@ -180,8 +197,8 @@ export function ConnectorSyncProvider({ children }) {
 
   /* 미연결 필수 Channel 목록 */
   const missingChannels = useMemo(
-    () => KNOWN_CHANNELS.filter(ch => !connectedChannels[ch]?.connected),
-    [connectedChannels]
+    () => knownChannels.filter(ch => !connectedChannels[ch]?.connected),
+    [connectedChannels, knownChannels]
   );
 
   const value = useMemo(() => ({
@@ -190,7 +207,7 @@ export function ConnectorSyncProvider({ children }) {
     lastRefresh,
     connectedCount,
     missingChannels,
-    totalChannels: KNOWN_CHANNELS.length,
+    totalChannels: knownChannels.length,
     refresh,
     testChannel,
     markChannelRegistered,
@@ -198,7 +215,7 @@ export function ConnectorSyncProvider({ children }) {
     /* 특정 Channel이 연결됐는지 빠른 체크 */
     isConnected: (ch) => connectedChannels[ch]?.connected ?? false,
   }), [
-    connectedChannels, loading, lastRefresh, connectedCount, missingChannels,
+    connectedChannels, loading, lastRefresh, connectedCount, missingChannels, knownChannels,
     refresh, testChannel, markChannelRegistered, markChannelDisconnected,
   ]);
 
