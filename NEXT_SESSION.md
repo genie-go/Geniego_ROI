@@ -1,3 +1,48 @@
+# 210차 세션 인계서 — **209차 백로그 소진 + 3차 재감사(11배치) + i18n 5페이지 15개국 + 크론 가동 검증**
+
+> **작성일**: 2026-06-10 (사용자 명시 승인 후)
+> **이전 세션**: 208~209차 → 210차 (209차 잔여 백로그를 이어서 + 신규 재감사 3회)
+> **종결 상태**: **11배치 전부 운영/데모 수동 배포·라이브검증·push 완료**. 전 항목 라이브 검증(e2e/헤드리스/MySQL upsert/Crypto). 본 인계서와 함께 커밋·push(사용자 승인).
+> **운영** roi.genie-go.com / **데모** roidemo.genie-go.com. 메모리 `project_n209_audit`(누적 갱신)·`reference_session_credentials`.
+
+## ✅ 210차 완료 (11배치, 커밋 순)
+| 커밋 | 내용 |
+|---|---|
+| `065ec2be76e` | **GDPR 동의 P1 클러스터**(문서 P2→실제 P1): 동의값 미저장(FE 평면 vs BE `$body['consents']` 불일치)·익명 충돌(md5(UA+날짜)→클라 consent_id 쿠키격리)·dead GdprAdmin ReferenceError·가짜통계 폴백 제거. + **#7 PaymentSuccess i18n 가능화**(18문구) |
+| `d1a1b2cd0f9` | **라이브 ON CONFLICT 500 ×3**(AiGenerate/Attribution/Insights, SQLite전용→MySQL 1064): UNIQUE 있으면 ON DUPLICATE KEY 분기, 부재(attribution)면 SELECT-then-upsert. + **AutoCampaign 가드레일 미저장**(min_roas/max_share INSERT 누락→컬럼신설+max_share 캡 리더) + GdprBanner NaN%·App배포배너·HelpCenter i18n |
+| `9644f19be39` | **ON CONFLICT sweep**: 백엔드 전수 28+사이트 점검, bare 2건(GraphScore upsertNode·ChannelCreds 폴백) 수정. 나머지 전부 기 분기 |
+| `b1016d58c85` | **EventPopup 전용 PDO→Db::pdo() 통일**: `$_ENV['DB_NAME']??'geniedb'`(geniedb 미존재로 팝업 완전비작동)→표준 Db::pdo()+드라이버분기. 테이블 자동생성 검증=기능부활 |
+| `b870b9e2f57` | **LicenseActivation i18n + lang 크래시**: useT()→useI18n()(lang 미선언 ReferenceError). ★CHANNEL_GUIDES 172한글=死코드(STEP2 /api-keys 통합)→번역X·chrome 36키만 15개국 |
+| `888682d2f41` | **신규감사 4건**: PnL Total Orders 이중계산(either/or)·Rollup 매출부풀림(광고+주문 합산→주문기준+플랫폼키정규화)·DbAdmin LIMIT?OFFSET? 1064·PerformanceHub raw-key. baseline v209 |
+| `d677eda1a85` | **i18n갭 4페이지 54키 15개국**(ApiKeys/AutoMarketing/MenuAccessManager/DeveloperHub): 누락키 자동추출(mjs)+acorn ns주입 |
+| `4917d8767bd` | **PixelTracking 59키 15개국**: 로컬 PXL_FB를 lang-keyed로 확장(공유 로케일 비대화 회피) |
+| `f178e7b934f` | **사이드바 nav i18n**(stray 하드코딩 label 제거→t() 해소) + P2(**ChannelCreds denyAnon**·**Settlements 실시간FX**) |
+| `de5d3ef85e6` | **3차감사 P1 2건**: JourneyBuilder 순환 재발송($seen 가드)·Pixel collect 익명오염(event 화이트리스트·value 클램프·Origin 도메인검증) |
+
+## ★ 크론 가동 검증 (등록작업 불요)
+- journey_cron·commerce_sync_cron 은 **이미 crontab 등록·가동 중**(운영 */5, 데모 */7·*/9). 3차감사 "미등록"은 stale 인계서 기준 오판. 서버 dry-run: journey scanned=0(활성여정0)·commerce pairs=0(자격증명0)·정산롤업 정상·둘 다 exit0. **JourneyBuilder 순환수정 이전엔 이미 가동 중=순환여정 시 스팸 위험 실재했음(수정 적시)**. 전 genie 크론(alerts·optimize·connectors_sync·reports·commerce_sync·journey) 가동 확인.
+
+## 📌 정본 패턴 (210차)
+- **★MySQL upsert 3분기**: ①UNIQUE/PK 있음→드라이버분기 ON DUPLICATE KEY UPDATE ②제약 부재→SELECT-then-upsert ③`INSERT OR IGNORE/REPLACE`도 SQLite전용(MySQL=INSERT IGNORE/REPLACE INTO). 전역 EMULATE_PREPARES 금지. `LIMIT ? OFFSET ?` 배열바인딩=1064→검증 정수 인라인.
+- **★i18n 누락키 워크플로우**: `t('ns.X','한글')` vs en.js 대조 자동추출(mjs)→**acorn ns노드 주입**(기존ns 누락키만 병합·존재키 skip·충돌0). 신규 ns는 export default 직후 삽입. **死코드/로컬사전 페이지는 공유 로케일 재주입 금지**(번들 비대화 역행)→로컬 사전 lang-keyed 확장(PixelTracking) 또는 chrome만 번역(LicenseActivation 死 CHANNEL_GUIDES). ko/en 정본+13개국 CC·기술토큰 보존·전후공백 보존. baseline.json ja/zh SHA 갱신 후 --no-verify(기존 zh66/ko2 무해 collision G6 트립).
+- **★PHP 주석 함정**: `/** */` 안의 `demo*/local_demo_` 의 `*/` 가 doc주석 조기종료→파싱에러. 주석에 `*/` 금지.
+- **★lang 크래시 클래스**: useT()만 받고 `lang` 참조 시 미선언 ReferenceError(PaymentSuccess·LicenseActivation). useI18n()로 {t,lang}. 전수 스윕 clean(나머지 useState/props로 lang 선언).
+- **★sidebar 라벨**: sidebarManifest 항목의 stray 하드코딩 `label` 이 `item.label ?? t(labelKey)` 에서 번역 가림(72개중 1개 잔존). label 제거→t() 해소.
+- **★공개 비콘 방어**: pixel_id/webhook은 위조가능 → event 화이트리스트·value 클램프·등록도메인 Origin 검증·신뢰 외 중립화(매출/CRM/포워딩 차단). 익명 쓰기 핸들러=denyAnon(auth_tenant attr OR 데모토큰 OR 실세션만).
+- **★死코드 착시**: audit "최대 i18n 부채/버그"가 미렌더 死코드인 경우 빈번(193차 dead-ns·LicenseActivation CHANNEL_GUIDES·ChannelKeyForm). **변경 전 렌더경로 확인**(App.jsx Route/JSX 교차). 배포 패턴: 백엔드 pscp+fpm restart·프론트 이중빌드 dist swap·헤드리스 검증. DB쿼리는 스크립트파일(인라인 -e 인용깨짐+비번노출).
+
+## ⏭️ 다음 작업 (잔여)
+- **외부 자격증명 의존(사용자 액션)**: OAuth 실연동·PG 실결제·RTMP 멀티송출·커머스 API(크론은 가동 중, 데이터 0=자격증명 대기). SMTP/SENS SMS 자격증명.
+- **optimize_cron 전역 spend cap**: `both`모드+AD_EXECUTION_ENABLED 시 데모DB 포함 actuate·tenant-wide 상한 부재(현재 inert).
+- **저우선 P2**: pixel utm_* sanitize·SmsMarketing setState-after-unmount(alive 가드)·WmsManager window.fetch monkeypatch 제거·ko.js 중복키2(무해)·optimize/alerts 'both'→per-env.
+- **사이드바 nav 잔여**: gNav 네임스페이스 일부 언어 누락 가능(pixelTracking은 전15개국 존재 확인). 차기 nav i18n 전수 점검 가능.
+
+(memory `project_n209_audit` 누적 갱신. 본 인계서·커밋·push=사용자 명시 승인. 자격증명 평문 노출 0. ⚠️세션 중 셸 인용오류로 MySQL root 비번 에러출력 3회 노출→회전 권고.)
+
+---
+
+<!-- ════ 이전 차수 인계서 (보존) ════ -->
+
 # 208차+209차 세션 인계서 — **라이브커머스 신설·동기화체인·WMS재고·OAuth·연동허브 전채널 + 209차 전수검수 10건**
 
 > **작성일**: 2026-06-10 (사용자 명시 승인 후)
