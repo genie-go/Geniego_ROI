@@ -56,6 +56,14 @@ const CHANNELS = [
   { key: 'ems',              name: 'EMS (우체국 국제특송)', icon: '📯', color: '#D80027', group: 'global_express' },
   { key: 'tnt',              name: 'TNT Express',        icon: '🧡', color: '#FF6600', group: 'global_express' },
   { key: 'cj_intl',          name: 'CJ대한통운 국제특송', icon: '🌐', color: '#7A3A96', group: 'global_express' },
+  // ── 결제 게이트웨이 (PG) — 내 커머스/라이브의 결제 수단 ──
+  { key: 'inicis',           name: 'KG이니시스',         icon: '💳', color: '#E2231A', group: 'payment' },
+  { key: 'toss',             name: '토스페이먼츠',       icon: '🟦', color: '#0064FF', group: 'payment' },
+  { key: 'kcp',              name: 'NHN KCP',            icon: '💳', color: '#00A0E9', group: 'payment' },
+  { key: 'kakaopay',         name: '카카오페이',         icon: '💛', color: '#FFCD00', group: 'payment' },
+  { key: 'naverpay',         name: '네이버페이',         icon: '🟢', color: '#03C75A', group: 'payment' },
+  { key: 'paypal',           name: 'PayPal',             icon: '🅿️', color: '#003087', group: 'payment' },
+  { key: 'stripe',           name: 'Stripe',             icon: '💜', color: '#635BFF', group: 'payment' },
   { key: 'google_analytics', name: 'Google Analytics 4',icon: '📊', color: '#E37400', group: 'own_etc' },
   { key: 'slack',            name: 'Slack Webhook',     icon: '💬', color: '#4A154B', group: 'own_etc' },
 ];
@@ -63,10 +71,10 @@ const CHANNELS = [
 /* 그룹 라벨/정렬 — 208차: 카테고리별 헤더로 가독성 초고도화 */
 const GROUP_LABELS = {
   sns_live: 'SNS 라이브 채널', domestic: '국내 오픈마켓', global_commerce: '글로벌 마켓플레이스',
-  d2c: '자사몰 플랫폼 (D2C)', logistics: '물류 및 배송 (OCL 당일배송)', global_express: '국제특송 (International Express)',
+  d2c: '자사몰 플랫폼 (D2C)', payment: '결제 게이트웨이 (PG)', logistics: '물류 및 배송 (OCL 당일배송)', global_express: '국제특송 (International Express)',
   global_ad: '광고 매체', own_etc: '분석 · 기타',
 };
-const GROUP_ORDER = ['sns_live', 'domestic', 'global_commerce', 'd2c', 'logistics', 'global_express', 'global_ad', 'own_etc'];
+const GROUP_ORDER = ['sns_live', 'domestic', 'global_commerce', 'd2c', 'payment', 'logistics', 'global_express', 'global_ad', 'own_etc'];
 // 저장 직후 즉시 동기화 대상 그룹(커머스) — 자격증명 등록하면 바로 상품/주문 동기화
 const COMMERCE_SYNC_GROUPS = ['domestic', 'global_commerce', 'd2c'];
 
@@ -112,6 +120,14 @@ const CHANNEL_FIELDS = {
   ems:       [{ k: 'api_key', label: '우체국 API 키', secret: true }, { k: 'cust_code', label: '고객(계약) 코드' }],
   tnt:       [{ k: 'api_key', label: 'API 키', secret: true }, { k: 'account_number', label: '계정 번호' }],
   cj_intl:   [{ k: 'api_key', label: 'API 키', secret: true }, { k: 'cust_code', label: '고객(계약) 코드' }],
+  // 결제 게이트웨이(PG)
+  inicis:    [{ k: 'mid', label: '상점 ID(MID)' }, { k: 'sign_key', label: '사인키(SignKey)', secret: true }, { k: 'api_key', label: 'API 키', secret: true }],
+  toss:      [{ k: 'client_key', label: '클라이언트 키' }, { k: 'secret_key', label: '시크릿 키', secret: true }],
+  kcp:       [{ k: 'site_cd', label: '사이트 코드' }, { k: 'site_key', label: '사이트 키', secret: true }],
+  kakaopay:  [{ k: 'cid', label: '가맹점 코드(CID)' }, { k: 'admin_key', label: 'Admin 키', secret: true }],
+  naverpay:  [{ k: 'client_id', label: 'Client ID' }, { k: 'client_secret', label: 'Client Secret', secret: true }, { k: 'chain_id', label: 'Chain ID' }],
+  paypal:    [{ k: 'client_id', label: 'Client ID' }, { k: 'client_secret', label: 'Secret', secret: true }],
+  stripe:    [{ k: 'publishable_key', label: 'Publishable Key' }, { k: 'secret_key', label: 'Secret Key', secret: true }],
   // 광고 매체
   meta_ads:  [{ k: 'access_token', label: '액세스 토큰', secret: true }, { k: 'ad_account_id', label: '광고 계정 ID (act_)' }],
   google_ads: [{ k: 'developer_token', label: '개발자 토큰', secret: true }, { k: 'access_token', label: '액세스 토큰', secret: true }, { k: 'customer_id', label: '고객 ID (10자리)' }],
