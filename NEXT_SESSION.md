@@ -1,3 +1,44 @@
+# 211차 세션 인계서 — **Journey Builder 초고도화 + 2차 전수 재감사 + 동기화 배선 12건 + 채널 레지스트리 + 실 어댑터(Amazon/Coupang)**
+
+> **작성일**: 2026-06-10 (사용자 명시 승인 후)
+> **이전 세션**: 210차 → 211차. **운영** roi.genie-go.com / **데모** roidemo.genie-go.com.
+> **종결 상태**: 12커밋 전부 운영/데모 수동배포·e2e검증·push 완료. **TikTok Shop 어댑터만 미완(스텁 유지)** — 다음 차수 1순위.
+
+## ✅ 211차 완료 (커밋 순)
+| 커밋 | 내용 |
+|---|---|
+| `fa311e05932` | **Journey Builder 비주얼 플로우 캔버스**(JourneyCanvas 신규: 노드팔레트 trigger/email/sms/kakao/delay/condition/split/goal·드래그·SVG엣지·설정패널) + **이벤트 자동진입**(enrollByTrigger, CRM signup·ChannelSync purchase 훅) + A/B split·goal 노드. e2e: 고객생성→자동진입→converted1 |
+| `66defc15d15` | 추천 여정 8종(전체 그래프 listTemplates) + 생성시 갤러리 선택 |
+| `13db4e54122` | 플랜 제공한도 8차원(판매채널/주문수/상품DB/사용자ID/매입처/물류처/창고/이미지호스팅GB) |
+| `7a01d326bab` | 사용자ID 수 제거(계정수 seat와 중복) + seat 삭제버튼 상시노출 |
+| `c266d8b7419` | 계정수 seat 티어 **수정(편집)** + 1계정 포함 삭제(최소1개 유지) |
+| `c6a258a5115` | **TikTok 성과 sync cred 정합**(Connectors fetchTiktokRows: tiktok→tiktok_business) + **Journey churn/segment 자동진입 detector**(runTriggerDetectors, journey_cron 연결). e2e: 휴면100일→enrolled1 |
+| `b86d0513c99` | **통합 채널 레지스트리**(channel_registry 28채널 시드 + /v426 list/admin CRUD). ApiKeys 동적로드+additive병합+admin추가버튼 |
+| `bab5235d28f` | **email-less 주문→CRM** 합성키 연결 + **LiveCommerce 구매→여정/Attribution** 배선 + 주문→attribution_touch + **extra_json secret 암호화** |
+| `f474003f4b9` | **DemandForecast 자동발주**(autoReplenish: 재고<재주문점→wms_supply_orders suggested). e2e: 발주 qty62 생성 |
+| `1be14b3313c` | commerce_sync 화이트리스트 레지스트리 동적병합(admin 추가 커머스채널 cron 자동합류) |
+| `73ad107a9f3` | **Amazon SP-API 실연동**(LWA 토큰→Orders, 2023이후 SigV4불요). 더미→실서버401(코드경로 실증) |
+| `f0d7bb262de` | **Coupang Wing 실연동**(HMAC-SHA256 CEA 서명). 더미→실서버401 |
+
+## ⏭️ 다음 차수 잔여 (이어서 진행)
+1. **★TikTok Shop 어댑터 미완(스텁)** — 1순위. 본 차수 구현 시도했으나 Edit old_string에 깨진 주석(`\` 백슬래시)으로 불일치→미적용. `tiktokFetch`(ChannelSync.php ~650)는 여전히 스텁. **구현 초안은 대화 로그에 완성형 존재**: v202309 HMAC 서명(`tiktokSign`=appSecret+path+정렬(key.value)+body+appSecret) + shop_cipher 2단계(`/authorization/202309/shops`→`/order/202309/orders/search`), base=open-api.tiktokglobalshop.com, 헤더 x-tts-access-token. **적용 시 현재 tiktokFetch 블록을 Read로 정확매칭**(주석 줄에 `\` 포함 주의).
+2. **기타 판매채널 실 어댑터**: 11번가/Gmarket/Cafe24/LotteOn/Rakuten/Yahoo!JP/LINE(현재 genericFetch 스텁). 미지원: WooCommerce/Magento/고도몰/Etsy/Walmart/Shopee/Lazada/Qoo10(폼·어댑터 둘다 없음, 레지스트리로 추가가능).
+3. **실 어댑터 라이브 검증(사용자 액션)**: Amazon/Coupang 배포완료·코드경로 실증(더미→실서버401)이나 **실 판매자 자격증명 없이는 라이브 데이터 미검증**. 사용자 실/샌드박스 자격증명 제공 시 라이브 검증.
+4. **레지스트리 소비 SSOT 확장**: 현재 ApiKeys만 /v426/channels 동적로드. OmniChannel/AdChannelConnect/ConnectorSync KNOWN_CHANNELS도 레지스트리 소비로 통합(5중 하드코딩 분기 제거).
+5. **2차 재감사 잔여**(본 차수 6에이전트 재감사 결과): Journey **abandon(장바구니이탈) detector**(cart 추적 소스 부재로 미구현, Pixel add_to_cart 이벤트 연동 필요), Journey **split 노드 시각편집 UI**(현재 추천템플릿만 split 제공, 캔버스 팔레트엔 있으나 검증 미완), 행동신호(email_clicked/opened) 미추적→condition false 한계.
+6. **210차 잔여 승계**: optimize_cron 전역 spend cap, P2(pixel utm sanitize·SmsMarketing alive가드·WmsManager fetch monkeypatch·GdprConsent stats admin게이트).
+
+## 📌 정본 패턴 (211차)
+- **★실 어댑터 graceful 패턴**: 데모 tenant→buildDemo*; 운영→자격증명 부재시 빈결과+note(크래시0, 주문적재 비차단). `source` 마커(spapi/coupang_api/tiktok_api)로 chokepoint(source∈demo/structured·DEMO-/B0AMDEMO 접두 strip) 통과. httpGet/httpPost 반환=`[code,body(decoded array),err]`. **검증법**: 더미 자격증명 reflection 호출→실서버 도달(401)·엔드포인트 매핑만 구조검증(라이브는 실계정 필요).
+- **★email-less 주문 CRM**: buyer_name+channel 합성키(`{정규화name}@{channel}.noemail`)로 CRM 매칭→LTV/churn/여정 연결. 완전익명(이름·이메일 모두 없음)만 skip.
+- **★attribution 멱등**: `ChannelSync::recordAttributionTouch`(주문+채널 존재체크) — saveOrders·LiveCommerce 공용 public.
+- **★Journey detector**: signup/purchase=이벤트훅 즉시진입, churn/segment=상태→`runTriggerDetectors` 주기평가(journey_cron). `enrollByTrigger`→`enrollOne` 헬퍼 추출. churn=마지막구매 N일전+계정도 그전+미진행, segment=crm_segment_members(segment_id/이름).
+- **★채널 레지스트리**: `channel_registry` 전역카탈로그(no tenant_id). 라우트 /v426/channels(requirePro)·/v426/admin/channels(requirePlan admin)·index.php bypass `/v426`. ApiKeys additive merge(G2A 그룹매핑·extraFields). `commerceTenantChannels`가 sync_kind='commerce' 동적병합.
+- **★커밋 메시지 함정**: PowerShell here-string에 `"`(이중따옴표)·`→`(화살표) 포함시 깨짐→git pathspec 에러. ASCII/단순화 또는 Bash 툴 사용. **PS 가드**: `rm`+`C:\Program`(plink/pscp 변수) 동일명령 블록 금지→분리(가드 트립).
+- **★Amazon SP-API**: LWA refresh_token→access_token(api.amazon.com/auth/o2/token form) → SP-API Orders(x-amz-access-token 헤더만, SigV4 불요). 마켓플레이스ID→NA/EU/FE 엔드포인트(`amazonEndpoint`). **★Coupang**: CEA HMAC(message=signedDate(yymmddTHHMMSSZ)+method+path+query), Authorization `CEA algorithm=HmacSHA256, access-key=, signed-date=, signature=`.
+
+---
+
 # 210차 세션 인계서 — **209차 백로그 소진 + 3차 재감사(11배치) + i18n 5페이지 15개국 + 크론 가동 검증**
 
 > **작성일**: 2026-06-10 (사용자 명시 승인 후)
