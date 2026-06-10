@@ -522,15 +522,52 @@ final class ChannelSync
     }
 
     // ── 쿠팡 Wing API ───────────────────────────────────────────────────
-    private static function coupangFetch(array $creds): array
+    private static function coupangFetch(array $creds, string $tenant = 'demo'): array
     {
-        // Coupang requires HMAC-SHA256 — return structured data
-        return [
-            'ok'       => true,
-            'products' => self::buildDemoChannelProducts('coupang', '쿠팡'),
-            'orders'   => self::buildDemoChannelOrders('coupang', '쿠팡'),
-            'note'     => '쿠팡 Wing API: 인증키 저장 완료. HMAC 서명 연동 준비됨. 정산 데이터는 CSV 업로드로 수집.',
-        ];
+        if ($tenant === 'demo') {
+            return ['ok'=>true, 'products'=>self::buildDemoChannelProducts('coupang', '쿠팡'), 'orders'=>self::buildDemoChannelOrders('coupang', '쿠팡'), 'note'=>'demo preview'];
+        }
+        // [현 차수] Coupang Wing Open API 실연동 — HMAC-SHA256(CEA) 서명. (라이브 검증은 실 벤더 계정 필요.)
+        $accessKey = trim((string)($creds['access_key'] ?? ''));
+        $secretKey = trim((string)($creds['secret_key'] ?? ''));
+        $vendorId  = trim((string)($creds['vendor_id'] ?? ''));
+        if ($accessKey === '' || $secretKey === '' || $vendorId === '') {
+            return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>'Coupang: access_key·secret_key·vendor_id 입력 필요'];
+        }
+        $host  = 'https://api-gateway.coupang.com';
+        $path  = "/v2/providers/openapi/apis/api/v4/vendors/{$vendorId}/ordersheets";
+        $from  = gmdate('Y-m-d', time() - 7 * 86400);
+        $to    = gmdate('Y-m-d');
+        $query = "createdAtFrom={$from}&createdAtTo={$to}&status=ACCEPT&maxPerPage=50";
+        // CEA HMAC: message = signedDate(yymmddTHHMMSSZ) + method + path + query
+        $datetime  = gmdate('ymd\THis\Z');
+        $signature = hash_hmac('sha256', $datetime . 'GET' . $path . $query, $secretKey);
+        $auth = "CEA algorithm=HmacSHA256, access-key={$accessKey}, signed-date={$datetime}, signature={$signature}";
+        [$code, $body] = self::httpGet($host . $path . '?' . $query, ['Authorization' => $auth, 'Content-Type' => 'application/json;charset=UTF-8']);
+        if ($code >= 400) {
+            return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>"Coupang 주문 조회 실패(code={$code}) — access_key/secret_key/vendor_id 확인"];
+        }
+        $orders = [];
+        foreach ((array)($body['data'] ?? []) as $os) {
+            $items = (array)($os['orderItems'] ?? []);
+            $first = $items[0] ?? [];
+            $total = 0; $qty = 0;
+            foreach ($items as $it) { $total += (float)($it['orderPrice'] ?? 0); $qty += (int)($it['shippingCount'] ?? 0); }
+            $orders[] = [
+                'channel_order_id' => (string)($os['orderId'] ?? ''),
+                'buyer_name'  => (string)($os['orderer']['name'] ?? ''),
+                'buyer_email' => (string)($os['orderer']['email'] ?? ''),
+                'product_name'=> (string)($first['vendorItemName'] ?? $first['sellerProductName'] ?? 'Coupang Order'),
+                'sku'         => (string)($first['sellerProductItemId'] ?? $first['vendorItemId'] ?? ''),
+                'qty'         => $qty ?: count($items),
+                'unit_price'  => 0,
+                'total_price' => $total,
+                'status'      => strtolower((string)($os['status'] ?? 'accept')),
+                'ordered_at'  => (string)($os['orderedAt'] ?? gmdate('c')),
+                'source'      => 'coupang_api',
+            ];
+        }
+        return ['ok'=>true, 'products'=>[], 'orders'=>$orders, 'note'=>count($orders) . ' Coupang orders synced'];
     }
 
     // ── 네이버 스마트스토어 ─────────────────────────────────────────────
@@ -672,7 +709,7 @@ final class ChannelSync
         return match($channel) {
             'shopify'                      => self::shopifyFetch($creds),
             'amazon','amazon_spapi'        => self::amazonFetch($creds, $tenant),
-            'coupang'                      => self::coupangFetch($creds),
+            'coupang'                      => self::coupangFetch($creds, $tenant),
             'naver','naver_smartstore'     => self::naverFetch($creds),
             'ebay'                         => self::ebayFetch($creds, $tenant),
             'tiktok','tiktok_shop'         => self::tiktokFetch($creds, $tenant),
