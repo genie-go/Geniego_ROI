@@ -703,6 +703,8 @@ final class ChannelSync
             if ($isNew && $tenant !== 'demo') {
                 if (!empty($o['sku'])) self::decInventory($pdo, $tenant, $channel, (string)$o['sku'], (int)($o['qty'] ?? 1));
                 self::recordCrmPurchase($pdo, $tenant, $channel, $o['buyer_email'] ?? '', $o['buyer_name'] ?? '', (float)($o['total_price'] ?? 0), (string)($o['sku'] ?? ''), (int)($o['qty'] ?? 1), (string)$o['channel_order_id']);
+                // [현 차수] 주문 → 어트리뷰션 채널 터치(귀속 분석 자동 반영).
+                self::recordAttributionTouch($pdo, $tenant, $channel, (string)$o['channel_order_id'], (float)($o['total_price'] ?? 0));
             }
         }
         return $count;
@@ -744,18 +746,44 @@ final class ChannelSync
      *   CustomerAI 의 churn/LTV/RFM 이 이 데이터에 의존 → 주문 흐름과 자동 연결.
      *   이메일 없으면 CRM 매칭 불가로 skip. 테이블 부재/오류는 best-effort 무시(주문적재 비차단).
      */
+    /** [현 차수] 외부 구매(LiveCommerce 등) → CRM/LTV/구매여정 연결 public 진입점. recordCrmPurchase 위임. */
+    public static function ingestPurchaseToCrm(PDO $pdo, string $tenant, string $channel, ?string $email, ?string $name, float $total, string $sku, int $qty, string $orderId): void
+    {
+        self::recordCrmPurchase($pdo, $tenant, $channel, $email, $name, $total, $sku, $qty, $orderId);
+    }
+
+    /** [현 차수] 주문 → 어트리뷰션 채널 터치(귀속 분석 반영). 멱등(주문+채널). 데모/테이블부재는 무동작. */
+    public static function recordAttributionTouch(PDO $pdo, string $tenant, string $channel, string $orderId, float $total): void
+    {
+        if ($tenant === 'demo' || $orderId === '') return;
+        try {
+            $chk = $pdo->prepare("SELECT 1 FROM attribution_touch WHERE tenant_id=? AND order_id=? AND channel=? LIMIT 1");
+            $chk->execute([$tenant, $orderId, $channel]);
+            if ($chk->fetchColumn()) return;
+            $pdo->prepare("INSERT INTO attribution_touch (tenant_id,order_id,channel,touched_at,extra_json) VALUES(?,?,?,?,?)")
+                ->execute([$tenant, $orderId, $channel, gmdate('c'), json_encode(['revenue' => $total, 'source' => 'order'], JSON_UNESCAPED_UNICODE)]);
+        } catch (\Throwable $e) { /* attribution_touch 미존재 시 best-effort */ }
+    }
+
     private static function recordCrmPurchase(PDO $pdo, string $tenant, string $channel, ?string $email, ?string $name, float $total, string $sku, int $qty, string $orderId): void
     {
         $email = trim((string)$email);
-        if ($email === '' || $tenant === 'demo') return;
+        $name  = trim((string)$name);
+        if ($tenant === 'demo') return;
+        // [현 차수] 이메일 없으면 buyer_name+channel 합성키로 CRM 연결(LTV/churn/여정 누락 방지). 완전 익명(이름·이메일 모두 없음)만 skip.
+        $matchEmail = $email;
+        if ($matchEmail === '') {
+            if ($name === '') return;
+            $matchEmail = strtolower(preg_replace('/[^\p{L}\p{N}]+/u', '', $name)) . '@' . $channel . '.noemail';
+        }
         $now = gmdate('Y-m-d H:i:s');
         try {
             $sel = $pdo->prepare("SELECT id FROM crm_customers WHERE tenant_id=? AND email=? LIMIT 1");
-            $sel->execute([$tenant, $email]);
+            $sel->execute([$tenant, $matchEmail]);
             $cid = $sel->fetchColumn();
             if (!$cid) {
                 $pdo->prepare("INSERT INTO crm_customers(tenant_id,email,name,grade,ltv,created_at,updated_at) VALUES(?,?,?,'normal',?,?,?)")
-                    ->execute([$tenant, $email, (string)$name, $total, $now, $now]);
+                    ->execute([$tenant, $matchEmail, (string)$name, $total, $now, $now]);
                 $cid = (int)$pdo->lastInsertId();
             } else {
                 $pdo->prepare("UPDATE crm_customers SET ltv=ltv+?, name=COALESCE(NULLIF(name,''),?), updated_at=? WHERE id=?")
@@ -881,6 +909,11 @@ final class ChannelSync
         foreach (['shop_domain','marketplace_id','store_id','refresh_token','client_id','client_secret'] as $k) {
             if (!empty($body[$k])) $extra[$k] = $body[$k];
         }
+        // [현 차수] 저장용 extra: secret 필드(refresh_token/client_secret) 은행급 암호화. 즉시 동기화는 평문 $extra 사용.
+        $extraStore = $extra;
+        foreach (['refresh_token','client_secret'] as $sk) {
+            if (!empty($extraStore[$sk])) $extraStore[$sk] = \Genie\Crypto::encrypt((string)$extraStore[$sk]);
+        }
 
         // 자격증명 저장 — 207차 driver-aware upsert(빈 key_value 는 기존값 보존)
         $isMy = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql';
@@ -898,7 +931,7 @@ final class ChannelSync
         $keyName  = trim((string)($body['key_name'] ?? 'api_key'));
         $keyValue = trim((string)($body['key_value'] ?? ''));
         $keyValueEnc = $keyValue !== '' ? \Genie\Crypto::encrypt($keyValue) : '';
-        $stmt->execute([$tenant,$channel,$body['cred_type']??'api_key',$body['label']??$channel,$keyName,$keyValueEnc,json_encode($extra),$now,$now]);
+        $stmt->execute([$tenant,$channel,$body['cred_type']??'api_key',$body['label']??$channel,$keyName,$keyValueEnc,json_encode($extraStore),$now,$now]);
         $credId = (int)$pdo->lastInsertId();
 
         // 즉시 동기화 실행 (평문)
@@ -1027,7 +1060,9 @@ final class ChannelSync
             $kv = \Genie\Crypto::decrypt((string)($r['key_value'] ?? '')); // 202차 은행급 복호화
             $creds[$r['key_name']] = $kv;
             if ($r['extra_json']) {
-                $creds = array_merge($creds, (array)json_decode($kv ?: '{}', true), (array)json_decode($r['extra_json'], true));
+                $ex = (array)json_decode($r['extra_json'], true);
+                foreach ($ex as $ek => $ev) { if (is_string($ev)) $ex[$ek] = \Genie\Crypto::decrypt($ev); } // [현 차수] 암호화된 secret 복호화(평문 passthrough)
+                $creds = array_merge($creds, (array)json_decode($kv ?: '{}', true), $ex);
             }
         }
         if (isset($creds['api_key'])) $creds['key_value'] = $creds['api_key'];

@@ -369,6 +369,12 @@ class LiveCommerce
             $om->execute([':t' => $t, ':ch' => 'live', ':oid' => 'LIVE-' . $sid . '-' . $orderId, ':buyer' => $buyer, ':sku' => $sku, ':name' => $name, ':qty' => $qty, ':price' => $price, ':total' => $total, ':oa' => $now, ':syn' => $now]);
         } catch (\Throwable $e) { error_log('[LiveCommerce.placeOrder] channel_orders mirror failed: ' . $e->getMessage()); }
 
+        // [현 차수] 라이브 구매 → CRM/LTV/구매여정('purchase' 트리거) 자동 연결(ChannelSync 경로와 동등).
+        //   email-less buyer 는 이름+채널 합성키로 CRM 매칭(ChannelSync.recordCrmPurchase). 데모는 내부에서 skip.
+        try { \Genie\Handlers\ChannelSync::ingestPurchaseToCrm($pdo, $t, 'live', null, $buyer, $total, $sku, (int)$qty, 'LIVE-' . $sid . '-' . $orderId); } catch (\Throwable $e) {}
+        // 어트리뷰션: 라이브 채널 전환 터치 기록(채널 귀속 분석 반영).
+        try { \Genie\Handlers\ChannelSync::recordAttributionTouch($pdo, $t, 'live', 'LIVE-' . $sid . '-' . $orderId, $total); } catch (\Throwable $e) {}
+
         return self::json($res, ['ok' => true, 'id' => $orderId, 'total' => $total, 'name' => $name, 'qty' => $qty]);
     }
 
