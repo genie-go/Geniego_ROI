@@ -128,7 +128,7 @@ export default {
     "tabAnalytics": "📊 분석",
     "tabSettings": "⚙️ 연동 설정"
   },
-  "devHub": {
+  "devHub": {"uTotal":"전체 키","uActive":"활성","uCalls":"총 호출수","uUsed7":"최근 7일 사용","uNever":"미사용","uExpiring":"30일 내 만료","usageTitle":"API 키 사용 현황","uLastActivity":"최근 API 활동","keyCalls":"호출","keyCallsUnit":"회",
     "heroTitle": "개발자 허브",
     "heroDesc": "API 키 관리, 엔드포인트 레퍼런스, SDK·웹훅 연동을 한곳에서",
     "tabRef": "API 레퍼런스",
@@ -8162,7 +8162,7 @@ export default {
   },
 
   
-  "menuAccess": {
+  "menuAccess": {"loadFail":"권한 매트릭스를 불러오지 못했습니다: ","policyApplied":"정책 기본값(요금제 등급)으로 채웠습니다. ","saveFail":"저장 실패: ","savedAll":"전체 저장","descV2":"요금제(플랜)별로 어떤 메뉴를 노출할지 제어합니다. 저장 즉시 해당 플랜 사용자에게 반영됩니다(상위 메뉴는 업그레이드 유도).","applyPolicy":"정책 기본값 적용(요금제 등급)","saving":"저장 중…","saveAll":"전체 저장(배포)","reload":"새로고침","demoReadonly":"데모 모드: 읽기 전용","loading":"권한 매트릭스 불러오는 중…","colMenu":"메뉴","saveBtn2":"저장",
 
     "title": "🔐 메뉴 접근 권한 매트릭스",
 
@@ -13177,7 +13177,7 @@ export default {
   },
 
   
-  marketing: {
+  marketing: {"objTitle":"최적화 목표","objDesc":"AI가 예산을 어떤 기준으로 배분할지 선택하세요. 채널별 실측이 쌓이면 자동 재학습됩니다.","objBalanced":"균형 (ROAS·획득비용·성장)","objRoas":"ROAS 극대화 (효율)","objCac":"획득비용 최소화 (CAC)","objGrowth":"성장·전환량 극대화","gMinRoas":"최소 ROAS 가드 (미만 채널 제외, 0=미적용)","gMaxShare":"단일 채널 최대 점유율 (%)","kpiCac":"평균 획득비용","wonUnit":"원","objTag":"목표","cacLabel":"획득비용","dailyPace":"일 예산","confLabel":"신뢰도","exploreBadge":"탐색","srcMeasured":"실측","srcBlended":"블렌드","srcBenchmark":"벤치마크",
     csTitle: "크리에이티브 스튜디오",
     csSubtitle: "다양한 플랫폼의 광고 소재를 디자인하고 관리합니다",
     csTabGallery: "갤러리",
@@ -23355,7 +23355,7 @@ export default {
 
 
   // 177차 PM 4.E TOP 1 본체: ApiKeys 재설계 ak namespace (last-key-wins)
-  ak: {
+  ak: {"noInput":"입력된 값이 없습니다","savedSuffix":"개 항목 저장됨","syncing":"동기화 중...","syncDone":"동기화 완료","products":"상품","orders":"주문","syncQueued":"저장됨 — 동기화는 자동 폴링으로 반영됩니다","manageBtn":"관리","connectBtn":"등록","registerHint":"아래 채널 카드의 [등록] 버튼으로 판매·광고·물류 채널의 자격증명(액세스 토큰/광고계정/고객ID/광고주ID 등)을 등록하세요. 등록 즉시 연동 현황·라이브 커머스에 반영됩니다.","groupOther":"기타","connectTitle":"연동 등록","connectSub":"필요한 자격증명을 입력하세요. 값은 AES-256-GCM으로 암호화 저장되며 조회 시 마스킹됩니다. 입력한 항목만 저장됩니다.",
     "tabGuide": "이용 가이드",
     "guideTitle": "연동 허브 이용 가이드",
     "guideSub": "외부 채널 및 마켓플레이스의 API 자격증명을 안전하게 등록·인증·테스트하고, 동기화 상태를 모니터링하며 정기적인 키 회전과 보안 정책을 운영하는 전 과정을 안내합니다.",

@@ -331,7 +331,7 @@ export default {
     "tabAnalytics": "📊 分析",
     "tabSettings": "⚙️ 集成设置"
   },
-  "devHub": {
+  "devHub": {"uTotal":"全部密钥","uActive":"活跃","uCalls":"总调用次数","uUsed7":"近7天使用","uNever":"未使用","uExpiring":"30天内到期","usageTitle":"API密钥使用情况","uLastActivity":"最近API活动","keyCalls":"调用","keyCallsUnit":"次",
     "heroTitle": "开发者中心",
     "heroDesc": "API 密钥管理、端点参考、SDK 与 Webhook 集成，集于一处",
     "tabRef": "API 参考",
@@ -1699,7 +1699,7 @@ export default {
     "etc_service_label": "Other Service",
     "etc_service_route": "/etc"
     },
-    "marketing": {
+    "marketing": {"objTitle":"优化目标","objDesc":"请选择AI分配预算的依据。随着各渠道实测数据的积累，将自动重新学习。","objBalanced":"均衡(ROAS·获客成本·增长)","objRoas":"ROAS最大化(效率)","objCac":"获客成本最小化(CAC)","objGrowth":"增长·转化量最大化","gMinRoas":"最低ROAS门槛(排除低于此值的渠道，0=不适用)","gMaxShare":"单一渠道最大占比(%)","kpiCac":"平均获客成本","wonUnit":"韩元","objTag":"目标","cacLabel":"获客成本","dailyPace":"日预算","confLabel":"置信度","exploreBadge":"探索","srcMeasured":"实测","srcBlended":"混合","srcBenchmark":"基准",
     "sidebarAlertCount": "13 Alerts",
     "sidebarLogout": "Exit  & Logout",
     "upgradalTitle": "Pro方案专用菜单",
@@ -11314,7 +11314,7 @@ export default {
     "anomalyDesc": "使用 Z-Score 进行实时通道性能监控",
     "modelCompareDesc": "在雷达图上比较 5 个归因模型"
   },
-  "menuAccess": {
+  "menuAccess": {"loadFail":"无法加载权限矩阵: ","policyApplied":"已使用策略默认值(套餐等级)填充。 ","saveFail":"保存失败: ","savedAll":"全部保存","descV2":"控制每个套餐(计划)显示哪些菜单。保存后立即对该套餐用户生效(上级菜单引导升级)。","applyPolicy":"应用策略默认值(套餐等级)","saving":"保存中…","saveAll":"全部保存(发布)","reload":"刷新","demoReadonly":"演示模式：只读","loading":"正在加载权限矩阵…","colMenu":"菜单","saveBtn2":"保存",
     "title": "🔐 菜单访问权限矩阵",
     "desc": "单击单元格可循环角色权限（✅ 允许 · 👁 只读 · 🔒 拒绝）",
     "save": "💾 保存",
@@ -14787,7 +14787,7 @@ export default {
 
 
   // 177차 PM 4.E TOP 1 본체: ApiKeys 재설계 ak namespace (last-key-wins, English fallback)
-  ak: {
+  ak: {"noInput":"未输入任何值","savedSuffix":"个项目已保存","syncing":"同步中...","syncDone":"同步完成","products":"商品","orders":"订单","syncQueued":"已保存 — 同步将通过自动轮询生效","manageBtn":"管理","connectBtn":"注册","registerHint":"通过下方渠道卡片的[注册]按钮，注册销售、广告、物流渠道的凭证(访问令牌/广告账户/客户ID/广告主ID等)。注册后立即反映到集成状态和直播电商。","groupOther":"其他","connectTitle":"集成注册","connectSub":"请输入所需凭证。值将使用AES-256-GCM加密存储，查看时会被掩码。仅保存您输入的项目。",
     "tabGuide": "使用指南",
     "guideTitle": "集成中心使用指南",
     "guideSub": "学习如何安全地注册、验证、测试和管理外部渠道及平台的 API 凭证，并通过同步监控、密钥轮换和企业级安全策略实现稳定高效的集成运营。",

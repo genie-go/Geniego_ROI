@@ -331,7 +331,7 @@ export default {
     "tabAnalytics": "📊 分析",
     "tabSettings": "⚙️ 整合設定"
   },
-  "devHub": {
+  "devHub": {"uTotal":"全部金鑰","uActive":"啟用","uCalls":"總呼叫次數","uUsed7":"近7天使用","uNever":"未使用","uExpiring":"30天內到期","usageTitle":"API金鑰使用狀況","uLastActivity":"最近API活動","keyCalls":"呼叫","keyCallsUnit":"次",
     "heroTitle": "開發者中心",
     "heroDesc": "API 金鑰管理、端點參考、SDK 與 Webhook 整合，集於一處",
     "tabRef": "API 參考",
@@ -1702,7 +1702,7 @@ export default {
       keyPlaceholder: "Paste your API key here",
       save: "Save"
     },
-    marketing: {
+    marketing: {"objTitle":"最佳化目標","objDesc":"請選擇AI分配預算的依據。隨著各通路實測資料的累積，將自動重新學習。","objBalanced":"均衡(ROAS·獲客成本·成長)","objRoas":"ROAS最大化(效率)","objCac":"獲客成本最小化(CAC)","objGrowth":"成長·轉換量最大化","gMinRoas":"最低ROAS門檻(排除低於此值的通路，0=不適用)","gMaxShare":"單一通路最大佔比(%)","kpiCac":"平均獲客成本","wonUnit":"韓元","objTag":"目標","cacLabel":"獲客成本","dailyPace":"日預算","confLabel":"信賴度","exploreBadge":"探索","srcMeasured":"實測","srcBlended":"混合","srcBenchmark":"基準",
       sidebarAlertCount: "🚨 {{n}}條警示",
       sidebarLogout: "登出",
       upgradalTitle: "Pro 方案專屬選單",
@@ -7619,7 +7619,7 @@ export default {
       oauthLogin: "OAuth Login",
       noConnectors: "No connectors available."
     },
-    menuAccess: {
+    menuAccess: {"loadFail":"無法載入權限矩陣: ","policyApplied":"已使用政策預設值(方案等級)填入。 ","saveFail":"儲存失敗: ","savedAll":"全部儲存","descV2":"控制每個方案(計畫)顯示哪些選單。儲存後立即對該方案使用者生效(上層選單引導升級)。","applyPolicy":"套用政策預設值(方案等級)","saving":"儲存中…","saveAll":"全部儲存(部署)","reload":"重新整理","demoReadonly":"示範模式：唯讀","loading":"正在載入權限矩陣…","colMenu":"選單","saveBtn2":"儲存",
       title: "🔐 功能存取控制矩陣",
       desc: "點擊格子切換角色存取狀態（✅允許 · 👁唯讀 · 🔒拒絕）",
       save: "💾 儲存",
@@ -15392,7 +15392,7 @@ export default {
 
 
   // 177차 PM 4.E TOP 1 본체: ApiKeys 재설계 ak namespace (last-key-wins, English fallback)
-  ak: {
+  ak: {"noInput":"未輸入任何值","savedSuffix":"個項目已儲存","syncing":"同步中...","syncDone":"同步完成","products":"商品","orders":"訂單","syncQueued":"已儲存 — 同步將透過自動輪詢生效","manageBtn":"管理","connectBtn":"註冊","registerHint":"透過下方通路卡片的[註冊]按鈕，註冊銷售、廣告、物流通路的憑證(存取權杖/廣告帳戶/客戶ID/廣告主ID等)。註冊後立即反映至整合狀態與直播電商。","groupOther":"其他","connectTitle":"整合註冊","connectSub":"請輸入所需憑證。值將以AES-256-GCM加密儲存，檢視時會被遮罩。僅儲存您輸入的項目。",
     "tabGuide": "使用指南",
     "guideTitle": "整合中心使用指南",
     "guideSub": "學習如何安全地註冊、驗證、測試與管理外部渠道及平台的 API 憑證，並透過同步監控、金鑰輪替與企業級安全政策，建立穩定且高效的整合環境。",

@@ -331,7 +331,7 @@ export default {
     "tabAnalytics": "📊 Análise",
     "tabSettings": "⚙️ Configurações de integração"
   },
-  "devHub": {
+  "devHub": {"uTotal":"Total de chaves","uActive":"Ativas","uCalls":"Total de chamadas","uUsed7":"Usadas nos últimos 7 dias","uNever":"Não usadas","uExpiring":"Expiram em 30 dias","usageTitle":"Uso de chaves API","uLastActivity":"Atividade de API recente","keyCalls":"chamadas","keyCallsUnit":"",
     "heroTitle": "Central do desenvolvedor",
     "heroDesc": "Chaves de API, referência de endpoints, SDK e webhooks num só lugar",
     "tabRef": "Referência da API",
@@ -918,7 +918,7 @@ export default {
     "u_109": "Classificação",
     "u_110": "Nível",
   },
-    marketing: {
+    marketing: {"objTitle":"Objetivo de otimização","objDesc":"Escolha como a IA distribui o orçamento. Ela se retreina automaticamente à medida que as medições por canal se acumulam.","objBalanced":"Equilibrado (ROAS · CAC · crescimento)","objRoas":"Maximizar ROAS (eficiência)","objCac":"Minimizar custo de aquisição (CAC)","objGrowth":"Maximizar crescimento e conversões","gMinRoas":"Limite mínimo de ROAS (excluir canais abaixo, 0 = desativado)","gMaxShare":"Participação máx. por canal (%)","kpiCac":"Custo médio de aquisição","wonUnit":"KRW","objTag":"Objetivo","cacLabel":"Custo aquis.","dailyPace":"Orçamento diário","confLabel":"Confiança","exploreBadge":"Explorar","srcMeasured":"Medido","srcBlended":"Combinado","srcBenchmark":"Referência",
       sidebarUpgrade: "Upgrade Account",
       sidebarAlertCount: "13 Alerts",
       sidebarLogout: "Exit  & Logout",
@@ -10845,7 +10845,7 @@ export default {
       anomalyDesc: "Real-time channel performance monitoring using Z-Score",
       modelCompareDesc: "Compare 5 Attribution models on a radar chart"
     },
-  menuAccess: {
+  menuAccess: {"loadFail":"Não foi possível carregar a matriz de permissões: ","policyApplied":"Preenchido com os padrões da política (nível do plano). ","saveFail":"Falha ao salvar: ","savedAll":"Salvar tudo","descV2":"Controle quais menus ficam visíveis por plano de preços. As alterações se aplicam instantaneamente aos usuários desse plano (menus superiores incentivam upgrade).","applyPolicy":"Aplicar padrões da política (nível do plano)","saving":"Salvando…","saveAll":"Salvar tudo (implantar)","reload":"Atualizar","demoReadonly":"Modo demo: somente leitura","loading":"Carregando matriz de permissões…","colMenu":"Menu","saveBtn2":"Salvar",
       title: "🔐 Matriz de permissões de acesso aos menus",
       desc: "Altere as permissões de acesso a menus e funcionalidades por papel com um clique (✅ Permitido · 👁 Somente leitura · 🔒 Bloqueado)",
       save: "💾 Salvar",
@@ -15073,7 +15073,7 @@ export default {
 
 
   // 177차 PM 4.E TOP 1 본체: ApiKeys 재설계 ak namespace (last-key-wins, English fallback)
-  ak: {
+  ak: {"noInput":"Nenhum valor inserido","savedSuffix":"itens salvos","syncing":"Sincronizando...","syncDone":"Sincronização concluída","products":"Produtos","orders":"Pedidos","syncQueued":"Salvo — a sincronização é aplicada via sondagem automática","manageBtn":"Gerenciar","connectBtn":"Registrar","registerHint":"Use o botão [Registrar] nos cartões de canal abaixo para registrar as credenciais (token de acesso / conta de anúncios / ID do cliente / ID do anunciante, etc.) dos canais de venda, anúncios e logística. As alterações são aplicadas instantaneamente ao status de integração e ao Live Commerce.","groupOther":"Outros","connectTitle":"Registrar integração","connectSub":"Insira as credenciais necessárias. Os valores são criptografados com AES-256-GCM e mascarados ao serem consultados. Apenas os campos preenchidos são salvos.",
     "tabGuide": "Guia",
     "guideTitle": "Guia da Central de Integrações",
     "guideSub": "Aprenda a registrar, autenticar, testar e gerenciar com segurança credenciais de API para canais externos e marketplaces, garantindo operações estáveis por meio de monitoramento de sincronização, rotação de credenciais e políticas de segurança corporativas.",

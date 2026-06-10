@@ -331,7 +331,7 @@ export default {
     "tabAnalytics": "📊 分析",
     "tabSettings": "⚙️ 連携設定"
   },
-  "devHub": {
+  "devHub": {"uTotal":"全キー","uActive":"有効","uCalls":"総呼び出し数","uUsed7":"直近7日間の使用","uNever":"未使用","uExpiring":"30日以内に失効","usageTitle":"APIキー使用状況","uLastActivity":"最近のAPIアクティビティ","keyCalls":"呼び出し","keyCallsUnit":"回",
     "heroTitle": "開発者ハブ",
     "heroDesc": "APIキー管理、エンドポイントリファレンス、SDK・Webhook連携を一元化",
     "tabRef": "APIリファレンス",
@@ -7093,7 +7093,7 @@ export default {
     "radarCompare": "🕸️ Channel Contribution Radar",
     "modelCompareTable": "📋 Channel Contribution by Model (%)"
   },
-  "marketing": {
+  "marketing": {"objTitle":"最適化目標","objDesc":"AIが予算を配分する基準を選択してください。チャネル別の実測が蓄積されると自動的に再学習します。","objBalanced":"バランス(ROAS・獲得コスト・成長)","objRoas":"ROAS最大化(効率)","objCac":"獲得コスト最小化(CAC)","objGrowth":"成長・コンバージョン最大化","gMinRoas":"最低ROASガード(未満チャネルを除外、0=無効)","gMaxShare":"単一チャネルの最大シェア(%)","kpiCac":"平均獲得コスト","wonUnit":"ウォン","objTag":"目標","cacLabel":"獲得コスト","dailyPace":"日次予算","confLabel":"信頼度","exploreBadge":"探索","srcMeasured":"実測","srcBlended":"ブレンド","srcBenchmark":"ベンチマーク",
     "csFeatAiCopy": "AIコピー生成",
     "csFeatBrandCheck": "ブランド一貫性チェック",
     "csFeatMultiFormat": "マルチフォーマット書き出し",
@@ -11379,7 +11379,7 @@ export default {
     "anomalyDesc": "Zスコアを用いたリアルタイムチャネルパフォーマンス監視",
     "modelCompareDesc": "レーダーチャートで5つのアトリビューションモデルを比較"
   },
-  "menuAccess": {
+  "menuAccess": {"loadFail":"権限マトリクスを読み込めませんでした: ","policyApplied":"ポリシー既定値(プラン等級)で補完しました。 ","saveFail":"保存に失敗しました: ","savedAll":"全体保存","descV2":"料金プランごとに表示するメニューを制御します。保存後すぐに該当プランのユーザーに反映されます(上位メニューはアップグレードを促します)。","applyPolicy":"ポリシー既定値を適用(プラン等級)","saving":"保存中…","saveAll":"全体保存(配信)","reload":"更新","demoReadonly":"デモモード:読み取り専用","loading":"権限マトリクスを読み込み中…","colMenu":"メニュー","saveBtn2":"保存",
     "title": "🔐 メニューアクセス権限マトリックス",
     "desc": "セルをクリックしてロール権限を切り替え (✅ 許可 · 👁 読み取り専用 · 🔒 拒否)",
     "save": "💾 保存",
@@ -14871,7 +14871,7 @@ export default {
   
 
   // 177차 PM 4.E TOP 1 본체: ApiKeys 재설계 ak namespace (last-key-wins, English fallback)
-  ak: {
+  ak: {"noInput":"入力された値がありません","savedSuffix":"件保存されました","syncing":"同期中...","syncDone":"同期完了","products":"商品","orders":"注文","syncQueued":"保存しました — 同期は自動ポーリングで反映されます","manageBtn":"管理","connectBtn":"登録","registerHint":"下のチャネルカードの[登録]ボタンから、販売・広告・物流チャネルの認証情報(アクセストークン/広告アカウント/顧客ID/広告主IDなど)を登録してください。登録後すぐに連携状況・ライブコマースに反映されます。","groupOther":"その他","connectTitle":"連携登録","connectSub":"必要な認証情報を入力してください。値はAES-256-GCMで暗号化保存され、表示時はマスクされます。入力した項目のみ保存されます。",
     "tabGuide": "利用ガイド",
     "guideTitle": "連携ハブ利用ガイド",
     "guideSub": "外部チャネルやマーケットプレイスのAPI認証情報を安全に登録・認証・テストし、同期状態の監視や定期的なキー更新、セキュリティポリシーの運用までを包括的にご案内します。",

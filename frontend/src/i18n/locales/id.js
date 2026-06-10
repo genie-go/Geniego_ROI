@@ -331,7 +331,7 @@ export default {
     "tabAnalytics": "📊 Analitik",
     "tabSettings": "⚙️ Pengaturan Integrasi"
   },
-  "devHub": {
+  "devHub": {"uTotal":"Total kunci","uActive":"Aktif","uCalls":"Total panggilan","uUsed7":"Digunakan dalam 7 hari terakhir","uNever":"Tidak terpakai","uExpiring":"Kedaluwarsa dalam 30 hari","usageTitle":"Penggunaan Kunci API","uLastActivity":"Aktivitas API terbaru","keyCalls":"panggilan","keyCallsUnit":"kali",
     "heroTitle": "Pusat Pengembang",
     "heroDesc": "Kunci API, referensi endpoint, integrasi SDK dan webhook dalam satu tempat",
     "tabRef": "Referensi API",
@@ -4352,7 +4352,7 @@ export default {
       keyPlaceholder: "Paste your API key here",
       save: "Save"
     },
-    marketing: {
+    marketing: {"objTitle":"Tujuan optimasi","objDesc":"Pilih dasar AI mengalokasikan anggaran. Sistem otomatis melatih ulang saat pengukuran per kanal terkumpul.","objBalanced":"Seimbang (ROAS · CAC · pertumbuhan)","objRoas":"Maksimalkan ROAS (efisiensi)","objCac":"Minimalkan biaya akuisisi (CAC)","objGrowth":"Maksimalkan pertumbuhan & konversi","gMinRoas":"Batas ROAS minimum (kecualikan kanal di bawahnya, 0 = nonaktif)","gMaxShare":"Pangsa maks per kanal (%)","kpiCac":"Rata-rata biaya akuisisi","wonUnit":"KRW","objTag":"Tujuan","cacLabel":"Biaya akuisisi","dailyPace":"Anggaran harian","confLabel":"Keyakinan","exploreBadge":"Eksplorasi","srcMeasured":"Terukur","srcBlended":"Campuran","srcBenchmark":"Tolok ukur",
       sidebarAlertCount: "🚨 {{n}} peringatan",
       sidebarCampaignActive: "🟢 {{n}} kampanye aktif",
       sidebarUpgrade: "Tingkatkan Akun",
@@ -9456,7 +9456,7 @@ export default {
   developerHub: {
       ModeBadge: "🎭 Mode Simulasi "
     },
-      menuAccess: {
+      menuAccess: {"loadFail":"Gagal memuat matriks akses: ","policyApplied":"Diisi dengan default kebijakan (tingkat paket). ","saveFail":"Gagal menyimpan: ","savedAll":"Simpan semua","descV2":"Kontrol menu mana yang terlihat per paket harga. Perubahan langsung diterapkan ke pengguna paket tersebut (menu lebih tinggi mendorong upgrade).","applyPolicy":"Terapkan default kebijakan (tingkat paket)","saving":"Menyimpan…","saveAll":"Simpan semua (terapkan)","reload":"Segarkan","demoReadonly":"Mode demo: hanya-baca","loading":"Memuat matriks akses…","colMenu":"Menu","saveBtn2":"Simpan",
       title: "🔐 Matriks Izin Akses Menu",
       desc: "Klik sel untuk memutar izin peran (✅ Izinkan · 👁 Hanya Baca · 🔒 Tolak)",
       save: "💾 Simpan",
@@ -15309,7 +15309,7 @@ export default {
 
 
   // 177차 PM 4.E TOP 1 본체: ApiKeys 재설계 ak namespace (last-key-wins, English fallback)
-  ak: {
+  ak: {"noInput":"Tidak ada nilai yang dimasukkan","savedSuffix":"item disimpan","syncing":"Menyinkronkan...","syncDone":"Sinkronisasi selesai","products":"Produk","orders":"Pesanan","syncQueued":"Disimpan — sinkronisasi diterapkan melalui polling otomatis","manageBtn":"Kelola","connectBtn":"Daftarkan","registerHint":"Gunakan tombol [Daftarkan] pada kartu kanal di bawah untuk mendaftarkan kredensial (access token / akun iklan / ID pelanggan / ID pengiklan, dll.) untuk kanal penjualan, iklan, dan logistik. Perubahan langsung diterapkan ke status integrasi dan Live Commerce.","groupOther":"Lainnya","connectTitle":"Daftarkan Integrasi","connectSub":"Masukkan kredensial yang diperlukan. Nilai dienkripsi dengan AES-256-GCM dan disamarkan saat dilihat. Hanya kolom yang Anda isi yang disimpan.",
     "tabGuide": "Panduan",
     "guideTitle": "Panduan Pusat Integrasi",
     "guideSub": "Pelajari cara mendaftarkan, mengautentikasi, menguji, dan mengelola kredensial API untuk saluran eksternal dan marketplace secara aman, sekaligus memastikan operasional yang stabil melalui pemantauan sinkronisasi, rotasi kredensial, dan kebijakan keamanan tingkat enterprise.",

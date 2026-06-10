@@ -331,7 +331,7 @@ export default {
     "tabAnalytics": "📊 Analyse",
     "tabSettings": "⚙️ Integrationseinstellungen"
   },
-  "devHub": {
+  "devHub": {"uTotal":"Schlüssel gesamt","uActive":"Aktiv","uCalls":"Aufrufe gesamt","uUsed7":"In den letzten 7 Tagen genutzt","uNever":"Ungenutzt","uExpiring":"Läuft in 30 Tagen ab","usageTitle":"API-Schlüssel-Nutzung","uLastActivity":"Letzte API-Aktivität","keyCalls":"Aufrufe","keyCallsUnit":"",
     "heroTitle": "Entwickler-Hub",
     "heroDesc": "API-Schlüssel, Endpunkt-Referenz, SDK- und Webhook-Integration an einem Ort",
     "tabRef": "API-Referenz",
@@ -7104,7 +7104,7 @@ export default {
       radarCompare: "🕸️ Channel Contribution Radar",
       modelCompareTable: "📋 Channel Contribution by Model (%)"
     },
-  marketing: {
+  marketing: {"objTitle":"Optimierungsziel","objDesc":"Wählen Sie, wie die KI das Budget verteilt. Sie trainiert automatisch neu, sobald sich kanalbezogene Messwerte ansammeln.","objBalanced":"Ausgewogen (ROAS · CAC · Wachstum)","objRoas":"ROAS maximieren (Effizienz)","objCac":"Akquisekosten minimieren (CAC)","objGrowth":"Wachstum & Conversions maximieren","gMinRoas":"Mindest-ROAS-Grenze (Kanäle darunter ausschließen, 0 = aus)","gMaxShare":"Max. Anteil pro Kanal (%)","kpiCac":"Ø Akquisekosten","wonUnit":"KRW","objTag":"Ziel","cacLabel":"Akquisekosten","dailyPace":"Tagesbudget","confLabel":"Konfidenz","exploreBadge":"Erkunden","srcMeasured":"Gemessen","srcBlended":"Gemischt","srcBenchmark":"Benchmark",
       sidebarCampaignActive: "🟢 {{n}} Kampagnen aktiv",
       sidebarUpgrade: "Konto upgraden",
       Badge: "Demo-Test läuft",
@@ -11150,7 +11150,7 @@ export default {
       anomalyDesc: "Überwachung der Kanalleistung in Echtzeit mit Z-Score",
       modelCompareDesc: "Vergleichen Sie 5 Attributionsmodelle in einem Radardiagramm"
     },
-  menuAccess: {
+  menuAccess: {"loadFail":"Berechtigungsmatrix konnte nicht geladen werden: ","policyApplied":"Mit Richtlinien-Standardwerten (Plan-Stufe) gefüllt. ","saveFail":"Speichern fehlgeschlagen: ","savedAll":"Alle speichern","descV2":"Steuern Sie, welche Menüs pro Tarif sichtbar sind. Änderungen werden sofort für Nutzer dieses Tarifs wirksam (höhere Menüs fordern zum Upgrade auf).","applyPolicy":"Richtlinien-Standardwerte anwenden (Plan-Stufe)","saving":"Speichern…","saveAll":"Alle speichern (bereitstellen)","reload":"Aktualisieren","demoReadonly":"Demo-Modus: schreibgeschützt","loading":"Berechtigungsmatrix wird geladen…","colMenu":"Menü","saveBtn2":"Speichern",
       title: "🔐 Menüzugriffsberechtigungsmatrix",
       desc: "Klicken Sie auf die Zellen, um die Rollenberechtigungen zu wechseln (✅ Zulassen · 👁 Schreibgeschützt · 🔒 Verweigern)",
       save: "💾 Speichern",
@@ -15089,7 +15089,7 @@ export default {
 
 
   // 177차 PM 4.E TOP 1 본체: ApiKeys 재설계 ak namespace (last-key-wins, English fallback)
-  ak: {
+  ak: {"noInput":"Kein Wert eingegeben","savedSuffix":"Einträge gespeichert","syncing":"Synchronisierung...","syncDone":"Synchronisierung abgeschlossen","products":"Produkte","orders":"Bestellungen","syncQueued":"Gespeichert — Synchronisierung erfolgt über automatisches Polling","manageBtn":"Verwalten","connectBtn":"Verbinden","registerHint":"Registrieren Sie über die Schaltfläche [Verbinden] auf den Kanalkarten unten die Zugangsdaten (Access-Token / Werbekonto / Kunden-ID / Werbetreibenden-ID usw.) für Vertriebs-, Werbe- und Logistikkanäle. Änderungen werden sofort im Integrationsstatus und in Live Commerce wirksam.","groupOther":"Sonstige","connectTitle":"Integration registrieren","connectSub":"Geben Sie die erforderlichen Zugangsdaten ein. Werte werden mit AES-256-GCM verschlüsselt gespeichert und beim Abruf maskiert. Nur eingegebene Felder werden gespeichert.",
     "tabGuide": "Anleitung",
     "guideTitle": "Integrations-Hub Benutzerhandbuch",
     "guideSub": "Erfahren Sie, wie Sie API-Zugangsdaten für externe Kanäle und Marktplätze sicher registrieren, authentifizieren, testen, überwachen und verwalten sowie durch regelmäßige Schlüsselrotation und Sicherheitsrichtlinien einen stabilen Betrieb gewährleisten.",

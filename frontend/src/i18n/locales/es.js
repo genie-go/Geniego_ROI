@@ -331,7 +331,7 @@ export default {
     "tabAnalytics": "📊 Análisis",
     "tabSettings": "⚙️ Configuración de integración"
   },
-  "devHub": {
+  "devHub": {"uTotal":"Claves totales","uActive":"Activas","uCalls":"Llamadas totales","uUsed7":"Usadas en los últimos 7 días","uNever":"Sin usar","uExpiring":"Caducan en 30 días","usageTitle":"Uso de claves API","uLastActivity":"Actividad API reciente","keyCalls":"llamadas","keyCallsUnit":"",
     "heroTitle": "Centro para desarrolladores",
     "heroDesc": "Claves API, referencia de endpoints, SDK y webhooks en un solo lugar",
     "tabRef": "Referencia API",
@@ -6649,7 +6649,7 @@ export default {
       keyPlaceholder: "Paste your API key here",
       save: "Save"
     },
-    marketing: {
+    marketing: {"objTitle":"Objetivo de optimización","objDesc":"Elige cómo distribuye el presupuesto la IA. Se reentrena automáticamente a medida que se acumulan mediciones por canal.","objBalanced":"Equilibrado (ROAS · CAC · crecimiento)","objRoas":"Maximizar ROAS (eficiencia)","objCac":"Minimizar coste de adquisición (CAC)","objGrowth":"Maximizar crecimiento y conversiones","gMinRoas":"Límite mínimo de ROAS (excluir canales por debajo, 0 = desactivado)","gMaxShare":"Cuota máx. por canal (%)","kpiCac":"Coste medio de adquisición","wonUnit":"KRW","objTag":"Objetivo","cacLabel":"Coste adq.","dailyPace":"Presupuesto diario","confLabel":"Confianza","exploreBadge":"Explorar","srcMeasured":"Medido","srcBlended":"Combinado","srcBenchmark":"Referencia",
       sidebarAlertCount: "🚨 {n} Alerts",
       sidebarCampaignActive: "🟢 {n} Campaigns Active",
       sidebarUpgrade: "Mejorar cuenta",
@@ -10530,7 +10530,7 @@ export default {
       anomalyDesc: "Real-time channel performance monitoring using Z-Score",
       modelCompareDesc: "Compare 5 Attribution models on a radar chart"
     },
-  menuAccess: {
+  menuAccess: {"loadFail":"No se pudo cargar la matriz de permisos: ","policyApplied":"Rellenado con los valores predeterminados de la política (nivel de plan). ","saveFail":"Error al guardar: ","savedAll":"Guardar todo","descV2":"Controla qué menús se muestran por plan de precios. Los cambios se aplican al instante a los usuarios de ese plan (los menús superiores invitan a mejorar).","applyPolicy":"Aplicar valores predeterminados de la política (nivel de plan)","saving":"Guardando…","saveAll":"Guardar todo (desplegar)","reload":"Actualizar","demoReadonly":"Modo demo: solo lectura","loading":"Cargando matriz de permisos…","colMenu":"Menú","saveBtn2":"Guardar",
       title: "🔐 Matriz de permisos de acceso a menús",
       desc: "Haz clic para cambiar los permisos de acceso a menús y funciones por rol (✅ Permitido · 👁 Solo lectura · 🔒 Bloqueado)",
       save: "💾 Guardar",
@@ -15087,7 +15087,7 @@ export default {
 
 
   // 177차 PM 4.E TOP 1 본체: ApiKeys 재설계 ak namespace (last-key-wins, English fallback)
-  ak: {
+  ak: {"noInput":"No se ha introducido ningún valor","savedSuffix":"elementos guardados","syncing":"Sincronizando...","syncDone":"Sincronización completa","products":"Productos","orders":"Pedidos","syncQueued":"Guardado: la sincronización se aplica mediante sondeo automático","manageBtn":"Gestionar","connectBtn":"Registrar","registerHint":"Usa el botón [Registrar] de las tarjetas de canal de abajo para registrar las credenciales (token de acceso / cuenta publicitaria / ID de cliente / ID de anunciante, etc.) de los canales de venta, publicidad y logística. Los cambios se aplican al instante al estado de integración y a Live Commerce.","groupOther":"Otros","connectTitle":"Registrar integración","connectSub":"Introduce las credenciales necesarias. Los valores se cifran con AES-256-GCM y se enmascaran al consultarlos. Solo se guardan los campos que introduzcas.",
     "tabGuide": "Guía",
     "guideTitle": "Guía del Centro de Integraciones",
     "guideSub": "Aprenda a registrar, autenticar, probar y administrar de forma segura credenciales API para canales externos y marketplaces, garantizando operaciones estables mediante monitoreo de sincronización, rotación de claves y políticas de seguridad empresariales.",

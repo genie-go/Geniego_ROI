@@ -331,7 +331,7 @@ export default {
     "tabAnalytics": "📊 التحليلات",
     "tabSettings": "⚙️ إعدادات التكامل"
   },
-  "devHub": {
+  "devHub": {"uTotal":"إجمالي المفاتيح","uActive":"نشط","uCalls":"إجمالي الاستدعاءات","uUsed7":"المستخدمة في آخر 7 أيام","uNever":"غير مستخدم","uExpiring":"تنتهي خلال 30 يومًا","usageTitle":"استخدام مفاتيح API","uLastActivity":"نشاط API الأخير","keyCalls":"استدعاء","keyCallsUnit":"مرة",
     "heroTitle": "مركز المطورين",
     "heroDesc": "مفاتيح API ومرجع النقاط وتكامل SDK وWebhook في مكان واحد",
     "tabRef": "مرجع API",
@@ -918,7 +918,7 @@ export default {
     "u_109": "المرتبة",
     "u_110": "الدرجة",
   },
-    marketing: {
+    marketing: {"objTitle":"هدف التحسين","objDesc":"اختر كيفية توزيع الذكاء الاصطناعي للميزانية. تتم إعادة التدريب تلقائيًا مع تراكم القياسات لكل قناة.","objBalanced":"متوازن (ROAS · CAC · النمو)","objRoas":"تعظيم ROAS (الكفاءة)","objCac":"تقليل تكلفة الاكتساب (CAC)","objGrowth":"تعظيم النمو والتحويلات","gMinRoas":"الحد الأدنى لـ ROAS (استبعاد القنوات الأقل، 0 = معطّل)","gMaxShare":"أقصى حصة لكل قناة (%)","kpiCac":"متوسط تكلفة الاكتساب","wonUnit":"وون","objTag":"الهدف","cacLabel":"تكلفة الاكتساب","dailyPace":"الميزانية اليومية","confLabel":"الثقة","exploreBadge":"استكشاف","srcMeasured":"مُقاس","srcBlended":"مدمج","srcBenchmark":"معياري",
       sidebarUpgrade: "Upgrade Account",
       sidebarAlertCount: "13 Alerts",
       sidebarLogout: "Exit  & Logout",
@@ -10845,7 +10845,7 @@ export default {
       anomalyDesc: "Real-time channel performance monitoring using Z-Score",
       modelCompareDesc: "Compare 5 Attribution models on a radar chart"
     },
-  menuAccess: {
+  menuAccess: {"loadFail":"تعذّر تحميل مصفوفة الصلاحيات: ","policyApplied":"تمت التعبئة بالقيم الافتراضية للسياسة (مستوى الباقة). ","saveFail":"فشل الحفظ: ","savedAll":"حفظ الكل","descV2":"تحكّم في القوائم الظاهرة لكل باقة. تُطبَّق التغييرات فورًا على مستخدمي تلك الباقة (القوائم الأعلى تحفّز على الترقية).","applyPolicy":"تطبيق القيم الافتراضية للسياسة (مستوى الباقة)","saving":"جارٍ الحفظ…","saveAll":"حفظ الكل (نشر)","reload":"تحديث","demoReadonly":"وضع العرض: للقراءة فقط","loading":"جارٍ تحميل مصفوفة الصلاحيات…","colMenu":"القائمة","saveBtn2":"حفظ",
       title: "🔐 مصفوفة صلاحيات الوصول إلى القوائم",
       desc: "انقر لتغيير صلاحيات الوصول إلى القوائم والوظائف حسب الدور (✅ مسموح · 👁 للقراءة فقط · 🔒 مقفل)",
       save: "💾 حفظ",
@@ -15073,7 +15073,7 @@ export default {
 
 
   // 177차 PM 4.E TOP 1 본체: ApiKeys 재설계 ak namespace (last-key-wins, English fallback)
-  ak: {
+  ak: {"noInput":"لم يتم إدخال أي قيمة","savedSuffix":"عنصر تم حفظه","syncing":"جارٍ المزامنة...","syncDone":"اكتملت المزامنة","products":"المنتجات","orders":"الطلبات","syncQueued":"تم الحفظ — تُطبَّق المزامنة عبر الاستقصاء التلقائي","manageBtn":"إدارة","connectBtn":"تسجيل","registerHint":"استخدم زر [تسجيل] على بطاقات القنوات أدناه لتسجيل بيانات الاعتماد (رمز الوصول / حساب الإعلانات / معرّف العميل / معرّف المعلن، إلخ) لقنوات المبيعات والإعلانات والخدمات اللوجستية. تُطبَّق التغييرات فورًا على حالة التكامل والتجارة المباشرة.","groupOther":"أخرى","connectTitle":"تسجيل التكامل","connectSub":"أدخل بيانات الاعتماد المطلوبة. تُشفَّر القيم باستخدام AES-256-GCM وتُخفى عند العرض. تُحفظ الحقول التي تدخلها فقط.",
     "tabGuide": "الدليل",
     "guideTitle": "دليل مركز التكامل",
     "guideSub": "تعرّف على كيفية تسجيل بيانات اعتماد واجهات برمجة التطبيقات (API) والتحقق منها واختبارها وإدارتها بأمان للقنوات والمنصات الخارجية، مع ضمان استقرار العمليات من خلال مراقبة المزامنة وتدوير المفاتيح وسياسات الأمان المؤسسية.",

@@ -198,7 +198,7 @@ export default {
     "tabAnalytics": "📊 Analytics",
     "tabSettings": "⚙️ Integration Settings"
   },
-  "devHub": {
+  "devHub": {"uTotal":"Total keys","uActive":"Active","uCalls":"Total calls","uUsed7":"Used in last 7 days","uNever":"Unused","uExpiring":"Expiring within 30 days","usageTitle":"API Key Usage","uLastActivity":"Recent API activity","keyCalls":"calls","keyCallsUnit":"",
     "heroTitle": "Developer Hub",
     "heroDesc": "API keys, endpoint reference, SDK and webhook integration — all in one place",
     "tabRef": "API Reference",
@@ -6296,7 +6296,7 @@ export default {
       keyPlaceholder: "Paste your API key here",
       save: "Save"
     },
-    marketing: {
+    marketing: {"objTitle":"Optimization goal","objDesc":"Choose how the AI allocates budget. It automatically retrains as per-channel measurements accumulate.","objBalanced":"Balanced (ROAS · CAC · growth)","objRoas":"Maximize ROAS (efficiency)","objCac":"Minimize acquisition cost (CAC)","objGrowth":"Maximize growth & conversions","gMinRoas":"Minimum ROAS guard (exclude channels below; 0 = off)","gMaxShare":"Max share per channel (%)","kpiCac":"Avg. acquisition cost","wonUnit":"KRW","objTag":"Goal","cacLabel":"Acq. cost","dailyPace":"Daily budget","confLabel":"Confidence","exploreBadge":"Explore","srcMeasured":"Measured","srcBlended":"Blended","srcBenchmark":"Benchmark",
       sidebarAlertCount: "🚨 {{n}} alerts",
       sidebarCampaignActive: "🟢 {{n}} campaigns active",
       sidebarUpgrade: "Upgrade",
@@ -10400,7 +10400,7 @@ export default {
       anomalyDesc: "Real-time channel performance monitoring using Z-Score",
       modelCompareDesc: "Compare 5 Attribution models on a radar chart"
     },
-  menuAccess: {
+  menuAccess: {"loadFail":"Failed to load the access matrix: ","policyApplied":"Filled with policy defaults (plan tier). ","saveFail":"Save failed: ","savedAll":"Save all","descV2":"Control which menus are visible per pricing plan. Changes apply instantly to users on that plan (higher menus prompt an upgrade).","applyPolicy":"Apply policy defaults (plan tier)","saving":"Saving…","saveAll":"Save all (deploy)","reload":"Refresh","demoReadonly":"Demo mode: read-only","loading":"Loading access matrix…","colMenu":"Menu","saveBtn2":"Save",
       title: "🔐 Menu Access Permission Matrix",
       desc: "Click cells to cycle role permissions (✅ Allow · 👁 Read-Only · 🔒 Deny)",
       save: "💾 Save",
@@ -14962,7 +14962,7 @@ export default {
 
 
   // 177차 PM 4.E TOP 1 본체: ApiKeys 재설계 ak namespace (last-key-wins, English fallback)
-  ak: {
+  ak: {"noInput":"No value entered","savedSuffix":"items saved","syncing":"Syncing...","syncDone":"Sync complete","products":"Products","orders":"Orders","syncQueued":"Saved — sync applies via automatic polling","manageBtn":"Manage","connectBtn":"Connect","registerHint":"Use the [Connect] button on each channel card below to register credentials (access token / ad account / customer ID / advertiser ID, etc.) for sales, ad, and logistics channels. Changes apply instantly to integration status and Live Commerce.","groupOther":"Other","connectTitle":"Register Integration","connectSub":"Enter the required credentials. Values are encrypted with AES-256-GCM and masked when viewed. Only the fields you enter are saved.",
     "tabGuide": "Guide",
     "guideTitle": "Integration Hub Guide",
     "guideSub": "Learn how to securely register, authenticate, test, monitor, and rotate API credentials for external channels and marketplaces while maintaining enterprise-grade security and operational reliability.",

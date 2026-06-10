@@ -331,7 +331,7 @@ export default {
     "tabAnalytics": "📊 Analyse",
     "tabSettings": "⚙️ Paramètres d'intégration"
   },
-  "devHub": {
+  "devHub": {"uTotal":"Clés totales","uActive":"Actives","uCalls":"Appels totaux","uUsed7":"Utilisées sur 7 derniers jours","uNever":"Inutilisées","uExpiring":"Expirent sous 30 jours","usageTitle":"Utilisation des clés API","uLastActivity":"Activité API récente","keyCalls":"appels","keyCallsUnit":"",
     "heroTitle": "Espace développeur",
     "heroDesc": "Clés API, référence des endpoints, SDK et webhooks au même endroit",
     "tabRef": "Référence API",
@@ -6649,7 +6649,7 @@ export default {
       keyPlaceholder: "Paste your API key here",
       save: "Save"
     },
-    marketing: {
+    marketing: {"objTitle":"Objectif d'optimisation","objDesc":"Choisissez comment l'IA répartit le budget. Elle se réentraîne automatiquement à mesure que les mesures par canal s'accumulent.","objBalanced":"Équilibré (ROAS · CAC · croissance)","objRoas":"Maximiser le ROAS (efficacité)","objCac":"Minimiser le coût d'acquisition (CAC)","objGrowth":"Maximiser la croissance et les conversions","gMinRoas":"Seuil ROAS minimum (exclure les canaux en dessous, 0 = désactivé)","gMaxShare":"Part max. par canal (%)","kpiCac":"Coût d'acquisition moyen","wonUnit":"KRW","objTag":"Objectif","cacLabel":"Coût d'acq.","dailyPace":"Budget quotidien","confLabel":"Confiance","exploreBadge":"Explorer","srcMeasured":"Mesuré","srcBlended":"Mixte","srcBenchmark":"Référence",
       sidebarAlertCount: "🚨 {n} Alerts",
       sidebarCampaignActive: "🟢 {n} Campaigns Active",
       sidebarUpgrade: "Mettre à niveau le compte",
@@ -10530,7 +10530,7 @@ export default {
       anomalyDesc: "Real-time channel performance monitoring using Z-Score",
       modelCompareDesc: "Compare 5 Attribution models on a radar chart"
     },
-  menuAccess: {
+  menuAccess: {"loadFail":"Impossible de charger la matrice des droits : ","policyApplied":"Rempli avec les valeurs par défaut de la politique (niveau d'offre). ","saveFail":"Échec de l'enregistrement : ","savedAll":"Tout enregistrer","descV2":"Contrôlez quels menus sont visibles par formule tarifaire. Les modifications s'appliquent immédiatement aux utilisateurs de cette formule (les menus supérieurs incitent à la mise à niveau).","applyPolicy":"Appliquer les valeurs par défaut de la politique (niveau d'offre)","saving":"Enregistrement…","saveAll":"Tout enregistrer (déployer)","reload":"Actualiser","demoReadonly":"Mode démo : lecture seule","loading":"Chargement de la matrice des droits…","colMenu":"Menu","saveBtn2":"Enregistrer",
       title: "🔐 Matrice des droits d'accès aux menus",
       desc: "Modifiez les droits d'accès aux menus et fonctionnalités par rôle d'un clic (✅ Autorisé · 👁 Lecture seule · 🔒 Verrouillé)",
       save: "💾 Enregistrer",
@@ -15087,7 +15087,7 @@ export default {
 
 
   // 177차 PM 4.E TOP 1 본체: ApiKeys 재설계 ak namespace (last-key-wins, English fallback)
-  ak: {
+  ak: {"noInput":"Aucune valeur saisie","savedSuffix":"éléments enregistrés","syncing":"Synchronisation...","syncDone":"Synchronisation terminée","products":"Produits","orders":"Commandes","syncQueued":"Enregistré — la synchronisation s'applique par interrogation automatique","manageBtn":"Gérer","connectBtn":"Enregistrer","registerHint":"Utilisez le bouton [Enregistrer] des cartes de canal ci-dessous pour enregistrer les identifiants (jeton d'accès / compte publicitaire / ID client / ID annonceur, etc.) des canaux de vente, de publicité et de logistique. Les modifications s'appliquent immédiatement à l'état d'intégration et au Live Commerce.","groupOther":"Autre","connectTitle":"Enregistrer l'intégration","connectSub":"Saisissez les identifiants requis. Les valeurs sont chiffrées en AES-256-GCM et masquées à la consultation. Seuls les champs saisis sont enregistrés.",
     "tabGuide": "Guide d'utilisation",
     "guideTitle": "Guide du Centre d’Intégration",
     "guideSub": "Découvrez comment enregistrer, authentifier, tester et gérer en toute sécurité les identifiants API des plateformes externes et marketplaces, tout en garantissant des opérations fiables grâce à la surveillance des synchronisations, à la rotation des clés et aux politiques de sécurité d’entreprise.",

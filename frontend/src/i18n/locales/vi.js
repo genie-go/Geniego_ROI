@@ -331,7 +331,7 @@ export default {
     "tabAnalytics": "📊 Phân tích",
     "tabSettings": "⚙️ Cài đặt tích hợp"
   },
-  "devHub": {
+  "devHub": {"uTotal":"Tổng khóa","uActive":"Hoạt động","uCalls":"Tổng lượt gọi","uUsed7":"Dùng trong 7 ngày qua","uNever":"Chưa dùng","uExpiring":"Hết hạn trong 30 ngày","usageTitle":"Mức sử dụng khóa API","uLastActivity":"Hoạt động API gần đây","keyCalls":"lượt gọi","keyCallsUnit":"lần",
     "heroTitle": "Trung tâm nhà phát triển",
     "heroDesc": "Khóa API, tham chiếu endpoint, tích hợp SDK và webhook tại một nơi",
     "tabRef": "Tham chiếu API",
@@ -9189,7 +9189,7 @@ export default {
       radarCompare: "🕸️ Channel Contribution Radar",
       modelCompareTable: "📋 Channel Contribution by Model (%)"
     },
-  marketing: {
+  marketing: {"objTitle":"Mục tiêu tối ưu","objDesc":"Chọn cách AI phân bổ ngân sách. Hệ thống tự động học lại khi dữ liệu đo lường theo kênh tích lũy.","objBalanced":"Cân bằng (ROAS · CAC · tăng trưởng)","objRoas":"Tối đa hóa ROAS (hiệu quả)","objCac":"Giảm thiểu chi phí thu hút (CAC)","objGrowth":"Tối đa hóa tăng trưởng & chuyển đổi","gMinRoas":"Ngưỡng ROAS tối thiểu (loại kênh thấp hơn, 0 = tắt)","gMaxShare":"Tỷ trọng tối đa mỗi kênh (%)","kpiCac":"Chi phí thu hút TB","wonUnit":"KRW","objTag":"Mục tiêu","cacLabel":"Chi phí thu hút","dailyPace":"Ngân sách ngày","confLabel":"Độ tin cậy","exploreBadge":"Khám phá","srcMeasured":"Đo thực","srcBlended":"Pha trộn","srcBenchmark":"Chuẩn",
       sidebarCampaignActive: "🟢 {{n}} chiến dịch hoạt động",
       sidebarUpgrade: "Nâng cấp",
       Badge: "Đang trải nghiệm demo",
@@ -12120,7 +12120,7 @@ export default {
   developerHub: {
       ModeBadge: "🎭 Chế độ mô phỏng "
     },
-      menuAccess: {
+      menuAccess: {"loadFail":"Không thể tải ma trận phân quyền: ","policyApplied":"Đã điền bằng giá trị mặc định theo chính sách (cấp gói). ","saveFail":"Lưu thất bại: ","savedAll":"Lưu tất cả","descV2":"Kiểm soát menu nào hiển thị theo từng gói. Lưu sẽ áp dụng ngay cho người dùng gói đó (menu cấp cao hơn sẽ gợi ý nâng cấp).","applyPolicy":"Áp dụng mặc định theo chính sách (cấp gói)","saving":"Đang lưu…","saveAll":"Lưu tất cả (triển khai)","reload":"Làm mới","demoReadonly":"Chế độ demo: chỉ đọc","loading":"Đang tải ma trận phân quyền…","colMenu":"Menu","saveBtn2":"Lưu",
       title: "🔐 Ma trận quyền truy cập menu",
       desc: "Nhấp vào các ô để xoay vòng các quyền của vai trò ( ✅ Cho phép · 👁 Chỉ đọc · 🔒 Từ chối)",
       save: "💾 Lưu",
@@ -16972,7 +16972,7 @@ export default {
 
 
   // 177차 PM 4.E TOP 1 본체: ApiKeys 재설계 ak namespace (last-key-wins, English fallback)
-  ak: {
+  ak: {"noInput":"Chưa nhập giá trị","savedSuffix":"mục đã lưu","syncing":"Đang đồng bộ...","syncDone":"Đồng bộ hoàn tất","products":"Sản phẩm","orders":"Đơn hàng","syncQueued":"Đã lưu — đồng bộ áp dụng qua thăm dò tự động","manageBtn":"Quản lý","connectBtn":"Đăng ký","registerHint":"Dùng nút [Đăng ký] trên thẻ kênh bên dưới để đăng ký thông tin xác thực (access token / tài khoản quảng cáo / ID khách hàng / ID nhà quảng cáo, v.v.) cho các kênh bán hàng, quảng cáo và logistics. Thay đổi được áp dụng ngay vào trạng thái tích hợp và Live Commerce.","groupOther":"Khác","connectTitle":"Đăng ký tích hợp","connectSub":"Nhập thông tin xác thực cần thiết. Giá trị được mã hóa bằng AES-256-GCM và bị che khi xem. Chỉ các trường bạn nhập mới được lưu.",
     "tabGuide": "Hướng dẫn",
     "guideTitle": "Hướng Dẫn Trung Tâm Tích Hợp",
     "guideSub": "Tìm hiểu cách đăng ký, xác thực, kiểm tra và quản lý thông tin xác thực API cho các kênh và nền tảng bên ngoài một cách an toàn, đồng thời đảm bảo vận hành ổn định thông qua giám sát đồng bộ hóa, xoay vòng khóa và các chính sách bảo mật cấp doanh nghiệp.",
