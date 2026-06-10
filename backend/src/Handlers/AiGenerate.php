@@ -137,8 +137,18 @@ final class AiGenerate
         $now = gmdate('c');
 
         // 204차 P1: 테넌트 AI(Claude) API 키 AES-256-GCM 암호화 저장(평문 갭 해소, 사용 시 복호화).
-        $pdo->prepare("INSERT INTO ai_settings(tenant_id,provider,api_key,model,is_active,updated_at) VALUES(?,?,?,?,?,?) ON CONFLICT(tenant_id) DO UPDATE SET api_key=excluded.api_key,model=excluded.model,updated_at=excluded.updated_at")
-            ->execute([$tenant, 'claude', \Genie\Crypto::encrypt($apiKey), $model, 1, $now]);
+        // 209차 P1: 기존 단일 `ON CONFLICT`(SQLite 전용)가 MySQL 주backend 에서 1064 구문오류 → 키 영속 500.
+        //   ai_settings 는 UNIQUE(tenant_id)/uq_tenant 보유 → 드라이버 분기(MySQL=ON DUPLICATE KEY UPDATE).
+        $vals = [$tenant, 'claude', \Genie\Crypto::encrypt($apiKey), $model, 1, $now];
+        if ($pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql') {
+            $pdo->prepare("INSERT INTO ai_settings(tenant_id,provider,api_key,model,is_active,updated_at) VALUES(?,?,?,?,?,?)
+                ON DUPLICATE KEY UPDATE api_key=VALUES(api_key),model=VALUES(model),updated_at=VALUES(updated_at)")
+                ->execute($vals);
+        } else {
+            $pdo->prepare("INSERT INTO ai_settings(tenant_id,provider,api_key,model,is_active,updated_at) VALUES(?,?,?,?,?,?)
+                ON CONFLICT(tenant_id) DO UPDATE SET api_key=excluded.api_key,model=excluded.model,updated_at=excluded.updated_at")
+                ->execute($vals);
+        }
 
         return TemplateResponder::respond($res, [
             'ok'      => $testResult['ok'],

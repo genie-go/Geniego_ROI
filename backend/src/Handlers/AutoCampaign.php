@@ -52,6 +52,7 @@ class AutoCampaign
                 channels $txt,
                 allocations $txt,
                 design_ids $txt,
+                guardrails $txt,
                 exec_status $txt,
                 est_roas VARCHAR(16),
                 status VARCHAR(20) NOT NULL DEFAULT 'active',
@@ -59,6 +60,9 @@ class AutoCampaign
                 updated_at VARCHAR(32)
             )" . ($isSqlite ? '' : ' ENGINE=InnoDB DEFAULT CHARSET=utf8mb4'));
         } catch (\Throwable $e) {}
+        // 209차 P1: guardrails 컬럼 신설(기존 테이블 멱등 ALTER) — FE가 보내던 min_roas/max_share 가
+        //   저장되지 않아 사용자 리스크설정이 매번 유실되던 버그(옵티마이저는 항상 기본값 사용).
+        try { $pdo->exec("ALTER TABLE auto_campaign ADD COLUMN guardrails $txt"); } catch (\Throwable $e) {}
         // 196차 Phase3 — 실시간 최적화 결정 로그
         try {
             $pdo->exec("CREATE TABLE IF NOT EXISTS optimization_log (
@@ -120,6 +124,8 @@ class AutoCampaign
             $allocations = is_array($d['allocations'] ?? null) ? $d['allocations'] : [];
             $designIds = is_array($d['design_ids'] ?? null) ? array_values(array_map('intval', $d['design_ids'])) : [];
             $estRoas  = (string)($d['est_roas'] ?? '');
+            // 209차 P1: 사용자 가드레일(min_roas·max_share 등) 영속 — 옵티마이저가 실제 사용.
+            $guardrails = is_array($d['guardrails'] ?? null) ? $d['guardrails'] : [];
 
             if ($budget <= 0) return self::json($res, ['ok' => false, 'error' => '예산을 입력하세요.'], 422);
             if (empty($channels)) return self::json($res, ['ok' => false, 'error' => '채널을 1개 이상 선택하세요.'], 422);
@@ -170,13 +176,14 @@ class AutoCampaign
             unset($_a);
 
             $now = gmdate('Y-m-d\TH:i:s\Z');
-            $st = $pdo->prepare("INSERT INTO auto_campaign(tenant_id,name,category,budget,period,channels,allocations,design_ids,exec_status,est_roas,status,created_at,updated_at)
-                VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)");
+            $st = $pdo->prepare("INSERT INTO auto_campaign(tenant_id,name,category,budget,period,channels,allocations,design_ids,guardrails,exec_status,est_roas,status,created_at,updated_at)
+                VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
             $st->execute([
                 $tenant, mb_substr($name, 0, 200), mb_substr($category, 0, 120), $budget, $period,
                 json_encode($channels, JSON_UNESCAPED_UNICODE),
                 json_encode($allocations, JSON_UNESCAPED_UNICODE),
                 json_encode($validDesigns),
+                json_encode($guardrails, JSON_UNESCAPED_UNICODE),
                 json_encode($exec, JSON_UNESCAPED_UNICODE),
                 $estRoas, 'active', $now, $now,
             ]);
@@ -375,6 +382,9 @@ class AutoCampaign
         $minRoas = isset($gr['min_roas']) ? (float)$gr['min_roas'] : self::PAUSE_FLOOR;
         $zeroConvFloor = isset($gr['zero_conv_spend_floor']) ? (float)$gr['zero_conv_spend_floor'] : 50000.0;
         $maxDaily = isset($gr['max_daily']) && $gr['max_daily'] !== null ? (int)$gr['max_daily'] : 0; // 0=미적용
+        // 209차 P1: max_share(채널당 예산 비중 상한, 0~1) — FE가 보내나 리더 부재로 무시되던 가드 활성화.
+        //   과집중 방지(한 채널에 예산 쏠림 차단). 0=미적용.
+        $maxShare = isset($gr['max_share']) && (float)$gr['max_share'] > 0 ? min(1.0, (float)$gr['max_share']) : 0.0;
 
         // ROAS 기반 가중치 + 이상감지(zero-conv 낭비/손실 채널 자동 회수). 데이터 없으면 중립.
         $weights = []; $decisions = [];
@@ -408,6 +418,8 @@ class AutoCampaign
         $newAlloc = [];
         foreach ($channels as $ch) {
             $a = (int)(round($budget * $weights[$ch] / $totalW / 10000) * 10000);
+            // 209차 P1: max_share 상한 적용(채널당 예산 비중 캡). 초과분은 미배분(과집중 방지 가드의 보수적 해석).
+            if ($maxShare > 0) { $cap = (int)(round($budget * $maxShare / 10000) * 10000); if ($a > $cap) $a = $cap; }
             $entry = ['channel' => $ch, 'alloc' => $a, 'roas' => $metrics[$ch]['roas'], 'ctr' => $metrics[$ch]['ctr']];
             $ckLow = strtolower($ch);
             if (isset($extIdMap[$ckLow])) $entry['external_id'] = $extIdMap[$ckLow]; // 액추에이터용 id 보존

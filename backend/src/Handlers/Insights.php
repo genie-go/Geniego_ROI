@@ -299,11 +299,18 @@ final class Insights {
         $rows = $data['rows'] ?? [];
         if (!is_array($rows)) $rows = [];
 
-        $stmt = $pdo->prepare('INSERT INTO creative_sku_map (source_platform, creative_id, product_sku, confidence, updated_at)
-            VALUES (:source_platform, :creative_id, :product_sku, :confidence, :updated_at)
-            ON CONFLICT(source_platform, creative_id, product_sku) DO UPDATE SET
-                confidence=excluded.confidence,
-                updated_at=excluded.updated_at;');
+        // 209차 P1: 기존 단일 `ON CONFLICT`(SQLite 전용)가 MySQL 에서 1064 → /v418 creative-sku-map 500.
+        //   creative_sku_map 은 PRIMARY KEY(source_platform,creative_id,product_sku) 보유 → 드라이버 분기.
+        $isMy = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql';
+        $stmt = $pdo->prepare($isMy
+            ? 'INSERT INTO creative_sku_map (source_platform, creative_id, product_sku, confidence, updated_at)
+               VALUES (:source_platform, :creative_id, :product_sku, :confidence, :updated_at)
+               ON DUPLICATE KEY UPDATE confidence=VALUES(confidence), updated_at=VALUES(updated_at)'
+            : 'INSERT INTO creative_sku_map (source_platform, creative_id, product_sku, confidence, updated_at)
+               VALUES (:source_platform, :creative_id, :product_sku, :confidence, :updated_at)
+               ON CONFLICT(source_platform, creative_id, product_sku) DO UPDATE SET
+                   confidence=excluded.confidence,
+                   updated_at=excluded.updated_at');
 
         $upserted = 0;
         foreach ($rows as $r) {

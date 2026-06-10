@@ -255,7 +255,7 @@ export function GdprAdmin() {
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginBottom: 14 }}>
                     {[
                         { l: t('gdpr.totalVisitors', 'Total Visitors'), v: stats.total.toLocaleString(), c: '#4f8ef7' },
-                        { l: t('gdpr.consentRate', 'Consent Rate'), v: `${(stats.opted_in / stats.total * 100).toFixed(1)}%`, c: '#22c55e' },
+                        { l: t('gdpr.consentRate', 'Consent Rate'), v: `${(stats.total ? stats.opted_in / stats.total * 100 : 0).toFixed(1)}%`, c: '#22c55e' },
                         { l: t('gdpr.withdrawn', 'Withdrawn'), v: stats.withdrawn.toLocaleString(), c: '#ef4444' },
                     ].map(k => (
                         <div key={k.l} style={{ textAlign: 'center', padding: '10px', borderRadius: 10, background: `${k.c}08`, border: `1px solid ${k.c}22` }}>
@@ -272,10 +272,10 @@ export function GdprAdmin() {
                         <div key={r.l}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, marginBottom: 3 }}>
                                 <span style={{ color: 'var(--text-3)' }}>{r.l}</span>
-                                <span style={{ fontWeight: 700, color: '#4f8ef7' }}>{(r.v / r.total * 100).toFixed(1)}%</span>
+                                <span style={{ fontWeight: 700, color: '#4f8ef7' }}>{(r.total ? r.v / r.total * 100 : 0).toFixed(1)}%</span>
                             </div>
                             <div style={{ height: 6, borderRadius: 6, background: 'var(--border)', overflow: 'hidden' }}>
-                                <div style={{ width: `${r.v / r.total * 100}%`, height: '100%', background: '#4f8ef7', borderRadius: 6 }} />
+                                <div style={{ width: `${r.total ? r.v / r.total * 100 : 0}%`, height: '100%', background: '#4f8ef7', borderRadius: 6 }} />
                             </div>
                         </div>
                     ))}

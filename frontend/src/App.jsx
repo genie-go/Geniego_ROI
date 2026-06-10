@@ -1,5 +1,6 @@
 import React, { Suspense, lazy, Component } from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { useT } from "./i18n/index.js";
 import PlanGate from "./components/PlanGate.jsx"; // 181차 플랜별 메뉴접근 라우트 가드
 import { pathToMenuKey, requiredPlanForMenu } from "./auth/planMenuPolicy.js";
 import Sidebar from "./layout/Sidebar.jsx";
@@ -487,6 +488,7 @@ function TenantScopedProviders({ children }) {
  * 새 배포 감지 시: 다음 라우트 전환 때 자동 reload(작업 중단 최소화) + 즉시 새로고침 버튼.
  * 사용자가 수동 새로고침 없이도 최신 변경(기능/수정)을 받게 한다. */
 function VersionUpdateBanner() {
+  const t = useT();
   const location = useLocation();
   const [show, setShow] = React.useState(false);
   const pending = React.useRef(false);
@@ -522,11 +524,11 @@ function VersionUpdateBanner() {
       display: "flex", alignItems: "center", gap: 12, padding: "11px 16px", borderRadius: 14,
       background: "rgba(15,23,42,0.94)", color: "#fff", boxShadow: "0 16px 48px rgba(15,23,42,0.4)",
       border: "1px solid rgba(255,255,255,0.12)", backdropFilter: "blur(12px)", fontSize: 13, fontWeight: 600 }}>
-      <span>✨ 최신 버전으로 자동 업데이트 중…</span>
+      <span>✨ {t('common.versionUpdating', '최신 버전으로 자동 업데이트 중…')}</span>
       <button onClick={() => window.location.reload()}
         style={{ padding: "7px 16px", borderRadius: 10, border: "none", cursor: "pointer",
           background: "linear-gradient(135deg,#4f8ef7,#6366f1)", color: "#fff", fontWeight: 800, fontSize: 12.5 }}>
-        지금 적용
+        {t('common.versionApplyNow', '지금 적용')}
       </button>
     </div>
   );

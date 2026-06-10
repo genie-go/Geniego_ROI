@@ -40,20 +40,19 @@ final class Attribution {
             return TemplateResponder::respond($response->withStatus(422), ['error' => 'code and channel required']);
         }
 
-        $stmt = $pdo->prepare(
-            'INSERT INTO attribution_coupon(tenant_id,code,channel,campaign,discount_type,note,created_at)
-             VALUES(?,?,?,?,?,?,?)
-             ON CONFLICT(tenant_id,code) DO UPDATE SET
-               channel=excluded.channel, campaign=excluded.campaign,
-               discount_type=excluded.discount_type, note=excluded.note'
-        );
-        $stmt->execute([
-            $tenant, $code, $channel,
-            $body['campaign'] ?? null,
-            $body['discount_type'] ?? null,
-            $body['note'] ?? null,
-            gmdate('c'),
-        ]);
+        // 209차 P1: 기존 `ON CONFLICT(tenant_id,code)`는 MySQL 에서 1064 구문오류 → /v419 쿠폰 생성 500.
+        //   게다가 attribution_coupon 에는 (tenant_id,code) UNIQUE 제약이 없어 SQLite·MySQL 모두 upsert 불가
+        //   → SELECT-then-upsert(207차 정본 패턴, UNIQUE 부재 시).
+        $existing = $pdo->prepare('SELECT id FROM attribution_coupon WHERE tenant_id=? AND code=? LIMIT 1');
+        $existing->execute([$tenant, $code]);
+        $row = $existing->fetch(PDO::FETCH_ASSOC);
+        if ($row) {
+            $pdo->prepare('UPDATE attribution_coupon SET channel=?, campaign=?, discount_type=?, note=? WHERE id=?')
+                ->execute([$channel, $body['campaign'] ?? null, $body['discount_type'] ?? null, $body['note'] ?? null, $row['id']]);
+        } else {
+            $pdo->prepare('INSERT INTO attribution_coupon(tenant_id,code,channel,campaign,discount_type,note,created_at) VALUES(?,?,?,?,?,?,?)')
+                ->execute([$tenant, $code, $channel, $body['campaign'] ?? null, $body['discount_type'] ?? null, $body['note'] ?? null, gmdate('c')]);
+        }
         return TemplateResponder::respond($response, ['ok' => true, 'code' => $code, 'channel' => $channel]);
     }
 
@@ -78,13 +77,17 @@ final class Attribution {
             return TemplateResponder::respond($response->withStatus(422), ['error' => 'template and channel required']);
         }
 
-        $stmt = $pdo->prepare(
-            'INSERT INTO attribution_deeplink(tenant_id,template,channel,campaign,note,created_at)
-             VALUES(?,?,?,?,?,?)
-             ON CONFLICT(tenant_id,template) DO UPDATE SET
-               channel=excluded.channel, campaign=excluded.campaign, note=excluded.note'
-        );
-        $stmt->execute([$tenant, $template, $channel, $body['campaign'] ?? null, $body['note'] ?? null, gmdate('c')]);
+        // 209차 P1: ON CONFLICT(tenant_id,template) MySQL 1064 + UNIQUE 제약 부재 → SELECT-then-upsert.
+        $existing = $pdo->prepare('SELECT id FROM attribution_deeplink WHERE tenant_id=? AND template=? LIMIT 1');
+        $existing->execute([$tenant, $template]);
+        $row = $existing->fetch(PDO::FETCH_ASSOC);
+        if ($row) {
+            $pdo->prepare('UPDATE attribution_deeplink SET channel=?, campaign=?, note=? WHERE id=?')
+                ->execute([$channel, $body['campaign'] ?? null, $body['note'] ?? null, $row['id']]);
+        } else {
+            $pdo->prepare('INSERT INTO attribution_deeplink(tenant_id,template,channel,campaign,note,created_at) VALUES(?,?,?,?,?,?)')
+                ->execute([$tenant, $template, $channel, $body['campaign'] ?? null, $body['note'] ?? null, gmdate('c')]);
+        }
         return TemplateResponder::respond($response, ['ok' => true, 'template' => $template, 'channel' => $channel]);
     }
 

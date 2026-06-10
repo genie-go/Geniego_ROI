@@ -193,10 +193,10 @@ export default function HelpCenter() {
                 <div style={{ padding: "12px 18px", borderRadius: 12, background: "linear-gradient(135deg, rgba(234,179,8,0.08), rgba(249,115,22,0.06))", border: "1px solid rgba(234,179,8,0.3)", display: "flex", alignItems: "center", gap: 12 }}>
                     <span style={{ fontSize: 20 }}>🎯</span>
                     <div>
-                        <div style={{ fontWeight: 700, fontSize: 13, color: "#eab308" }}>체험 모드 — 가상 샘플 데이터로 열람 중</div>
+                        <div style={{ fontWeight: 700, fontSize: 13, color: "#eab308" }}>{t('help.demoBannerTitle', '체험 모드 — 가상 샘플 데이터로 열람 중')}</div>
                         <div style={{ fontSize: 11, color: "var(--text-3)", marginTop: 2 }}>
-                            관리자(Admin) 페이지를 제외한 모든 메뉴를 자유롭게 열람할 수 있습니다.
-                            <span style={{ marginLeft: 6, color: "#4f8ef7", cursor: "pointer" }} onClick={() => navigate('/pricing')}>→ 유료 전환으로 실데이터 사용 시작</span>
+                            {t('help.demoBannerDesc', '관리자(Admin) 페이지를 제외한 모든 메뉴를 자유롭게 열람할 수 있습니다.')}
+                            <span style={{ marginLeft: 6, color: "#4f8ef7", cursor: "pointer" }} onClick={() => navigate('/pricing')}>{t('help.demoBannerCta', '→ 유료 전환으로 실데이터 사용 시작')}</span>
                         </div>
                     </div>
                 </div>
