@@ -210,6 +210,40 @@ export default function ApiKeys() {
   const [testingId, setTestingId] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
 
+  // [현 차수] 통합 채널 레지스트리(DB 동적) — 하드코딩에 없는 신규 채널을 등록 UI에 자동 노출.
+  const [regChannels, setRegChannels] = useState([]);
+  const [regFields, setRegFields] = useState({});
+  const loadRegistry = useCallback(() => {
+    getJsonAuth('/api/v426/channels').then(r => {
+      if (!r?.ok || !Array.isArray(r.channels)) return;
+      const G2A = { marketing: 'global_ad', sales: 'domestic', logistics: 'logistics', pg: 'payment', messaging: 'own_etc' };
+      const existing = new Set(CHANNELS.map(c => c.key));
+      const extra = [], ef = {};
+      for (const c of r.channels) {
+        if (Array.isArray(c.fields) && c.fields.length) ef[c.channel_key] = c.fields.map(f => ({ k: f.k, label: f.label, secret: f.secret !== false }));
+        if (!existing.has(c.channel_key)) extra.push({ key: c.channel_key, name: c.name, icon: c.icon || '🔗', color: c.color || '#6366f1', group: G2A[c.group_type] || 'own_etc' });
+      }
+      setRegChannels(extra); setRegFields(ef);
+    }).catch(() => {});
+  }, []);
+  useEffect(() => { loadRegistry(); }, [loadRegistry]);
+  const allChannels = useMemo(() => [...CHANNELS, ...regChannels], [regChannels]);
+  // admin 빠른 채널 추가(레지스트리 신규 등록 → 등록 UI 즉시 반영)
+  const addRegistryChannel = useCallback(async () => {
+    const key = window.prompt('새 채널 키(영문소문자/숫자/_) — 예: cafe24_global');
+    if (!key) return;
+    const name = window.prompt('채널 표시명 — 예: Cafe24 글로벌');
+    if (!name) return;
+    const group_type = window.prompt('그룹(sales/marketing/logistics/pg/messaging)', 'sales') || 'sales';
+    const fieldsRaw = window.prompt('자격증명 필드 키(쉼표구분) — 예: api_key,secret_key', 'api_key') || 'api_key';
+    const fields = fieldsRaw.split(',').map(s => s.trim()).filter(Boolean).map(k => ({ k, label: k, secret: true }));
+    try {
+      const r = await postJson('/api/v426/admin/channels', { channel_key: key, name, group_type, fields, sync_kind: group_type === 'sales' ? 'commerce' : (group_type === 'marketing' ? 'ad' : 'none'), is_active: 1 });
+      if (r?.ok) { show('success', `채널 추가됨: ${name}`); loadRegistry(); }
+      else show('error', r?.error || '추가 실패(관리자 권한 필요)');
+    } catch (e) { show('error', String(e?.message || e)); }
+  }, [show, loadRegistry]);
+
   /* 운영 - 실 backend load; demo - 빈 list */
   useEffect(() => {
     let cancelled = false;
@@ -483,9 +517,17 @@ export default function ApiKeys() {
       </div>
 
       {/* Content */}
+      {activeTab === 0 && !_IS_DEMO_ENV && (
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+          <button onClick={addRegistryChannel} title="관리자: 새 채널을 레지스트리에 추가 (코드 수정 불필요, 즉시 등록 UI 반영)"
+            style={{ padding: '6px 13px', borderRadius: 8, border: '1px solid rgba(99,102,241,0.4)', background: 'rgba(99,102,241,0.1)', color: '#6366f1', fontSize: 12, fontWeight: 800, cursor: 'pointer' }}>
+            + 채널 추가 (관리자)
+          </button>
+        </div>
+      )}
       {activeTab === 0 && (
         <OverviewTab
-          channels={CHANNELS}
+          channels={allChannels}
           summary={summary}
           creds={creds}
           loading={loading}
@@ -499,7 +541,7 @@ export default function ApiKeys() {
       {activeTab === 1 && (
         <ActiveKeysTab
           creds={creds}
-          channels={CHANNELS}
+          channels={allChannels}
           loading={loading}
           onTest={handleTest}
           onDelete={handleDelete}
@@ -576,13 +618,13 @@ export default function ApiKeys() {
 
       {/* Modals */}
       {showAddModal && (
-        <AddCredModal channels={CHANNELS} onClose={() => setShowAddModal(false)} onSubmit={handleSaveCred} t={t} />
+        <AddCredModal channels={allChannels} onClose={() => setShowAddModal(false)} onSubmit={handleSaveCred} t={t} />
       )}
       {showApplyModal && (
         <ApplyModal channel={showApplyModal} onClose={() => setShowApplyModal(null)} onSubmit={handleApplySubmit} t={t} />
       )}
       {showConnectModal && (
-        <ConnectModal channel={showConnectModal} onClose={() => setShowConnectModal(null)} onSubmit={handleConnectSave} t={t} />
+        <ConnectModal channel={showConnectModal} onClose={() => setShowConnectModal(null)} onSubmit={handleConnectSave} t={t} extraFields={regFields} />
       )}
 
       {/* Toast */}
@@ -889,8 +931,8 @@ function AddCredModal({ channels, onClose, onSubmit, t }) {
 /* ═══════════════════════════════════════════════════════════════════
    Modal: Connect — 채널별 구조화 자격증명 등록 (208차)
    ═══════════════════════════════════════════════════════════════════ */
-function ConnectModal({ channel, onClose, onSubmit, t }) {
-  const fields = CHANNEL_FIELDS[channel.key] || DEFAULT_FIELDS;
+function ConnectModal({ channel, onClose, onSubmit, t, extraFields = {} }) {
+  const fields = CHANNEL_FIELDS[channel.key] || extraFields[channel.key] || DEFAULT_FIELDS;
   const [vals, setVals] = useState({});
   const [busy, setBusy] = useState(false);
 

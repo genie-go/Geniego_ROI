@@ -354,6 +354,16 @@ return function (App $app): void {
         'GET /channel-sync/inventory'                     => 'Genie\\Handlers\\ChannelSync::inventory',
         'POST /channel-sync/webhooks/{channel}'           => 'Genie\\Handlers\\ChannelSync::webhook',
 
+        // [현 차수] 통합 채널 레지스트리(DB 동적) — 등록 UI 동적 로드 + admin CRUD
+        'GET /v426/channels'                   => 'Genie\\Handlers\\ChannelRegistry::listChannels',
+        'GET /api/v426/channels'               => 'Genie\\Handlers\\ChannelRegistry::listChannels',
+        'GET /v426/admin/channels'             => 'Genie\\Handlers\\ChannelRegistry::adminList',
+        'GET /api/v426/admin/channels'         => 'Genie\\Handlers\\ChannelRegistry::adminList',
+        'POST /v426/admin/channels'            => 'Genie\\Handlers\\ChannelRegistry::upsert',
+        'POST /api/v426/admin/channels'        => 'Genie\\Handlers\\ChannelRegistry::upsert',
+        'DELETE /v426/admin/channels/{key}'    => 'Genie\\Handlers\\ChannelRegistry::remove',
+        'DELETE /api/v426/admin/channels/{key}'=> 'Genie\\Handlers\\ChannelRegistry::remove',
+
 
 // v418.1 additive marketing insights (aggregated-only, no PII)
 'POST /v418/insights/audience-breakdowns' => 'Genie\\Handlers\\Insights::ingestAdAudience',
@@ -2150,6 +2160,11 @@ return function (App $app): void {
     $register('GET',    '/channel-sync/orders');
     $register('GET',    '/channel-sync/inventory');
     $register('POST',   '/channel-sync/webhooks/{channel}');
+    // [현 차수] 통합 채널 레지스트리
+    $register('GET',    '/v426/channels');        $register('GET',    '/api/v426/channels');
+    $register('GET',    '/v426/admin/channels');  $register('GET',    '/api/v426/admin/channels');
+    $register('POST',   '/v426/admin/channels');  $register('POST',   '/api/v426/admin/channels');
+    $register('DELETE', '/v426/admin/channels/{key}'); $register('DELETE', '/api/v426/admin/channels/{key}');
     $register('GET',    '/api/performance', ['Genie\\Controllers\\PerformanceController', 'getMetrics']);
     $register('POST', '/v422/ai/analyze');
     $register('GET', '/v422/ai/analyses');

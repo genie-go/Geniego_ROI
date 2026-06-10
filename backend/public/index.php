@@ -94,6 +94,11 @@ $app->add(function (Request $request, $handler) {
         || strpos($path, '/api/v424/admin/') === 0
         || strpos($path, '/v425/admin/') === 0
         || strpos($path, '/api/v425/admin/') === 0
+        // [현 차수] 통합 채널 레지스트리 — 세션 self-auth(listChannels=requirePro, admin=requirePlan('admin'))
+        || strpos($path, '/v426/channels') === 0
+        || strpos($path, '/api/v426/channels') === 0
+        || strpos($path, '/v426/admin/') === 0
+        || strpos($path, '/api/v426/admin/') === 0
         // v424 Creative Store — JWT auth handled in handler
         || strpos($path, '/api/creatives') === 0
         || strpos($path, '/creatives') === 0
