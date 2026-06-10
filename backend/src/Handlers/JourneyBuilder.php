@@ -274,18 +274,20 @@ class JourneyBuilder
     }
 
     /**
-     * [현 차수] 트리거 detector — churn(휴면)·segment(세그먼트 진입) 자동 진입. journey_cron 주기 호출.
-     *   signup/purchase 는 이벤트 훅(CRM/ChannelSync)으로 즉시 진입하나, churn/segment 는 "상태"라 주기 평가 필요.
+     * [현 차수] 트리거 detector — churn(휴면)·segment(세그먼트 진입)·abandon(장바구니 이탈) 자동 진입.
+     *   journey_cron 주기 호출. signup/purchase 는 이벤트 훅(CRM/ChannelSync)으로 즉시 진입하나,
+     *   churn/segment/abandon 은 "상태"라 주기 평가 필요.
      *   - churn: 마지막 구매가 trigger_config.churn_days(기본 60)일 이전 + 계정도 그 이전 생성 + 미진행 → 진입
      *   - segment: trigger_config.segment_id(또는 segment 이름) 의 crm_segment_members 중 미진행 → 진입
-     *   (abandon=장바구니 이탈은 cart 추적 소스 부재로 본 detector 범위 밖 — 별도 cart 이벤트 소스 필요.)
+     *   - abandon: [212차 #3] Pixel add_to_cart 이벤트(email_hash 로 CRM 고객 연결) 후 구매 없음 → 진입.
+     *       trigger_config.abandon_hours(기본 1, 최소 경과시간=구매 기회 부여) / abandon_lookback_days(기본 7, 최대 소급).
      */
     public static function runTriggerDetectors(?string $onlyTenant = null, int $perJourney = 200): array
     {
         try { self::ensureTables(); } catch (\Throwable $e) { return ['ok'=>false]; }
         $pdo = self::db();
         $enrolled = 0; $scanned = 0; $journeys = [];
-        $sql = "SELECT * FROM journeys WHERE status='active' AND trigger_type IN ('churn','segment')";
+        $sql = "SELECT * FROM journeys WHERE status='active' AND trigger_type IN ('churn','segment','abandon')";
         $bind = [];
         if ($onlyTenant !== null && $onlyTenant !== '') { $sql .= " AND tenant_id=:t"; $bind[':t'] = $onlyTenant; }
         try { $st = $pdo->prepare($sql); $st->execute($bind); $journeys = $st->fetchAll(\PDO::FETCH_ASSOC); }
@@ -307,6 +309,31 @@ class JourneyBuilder
                         LIMIT :lim");
                     $q->bindValue(':t', $tenant); $q->bindValue(':since', $since); $q->bindValue(':j', $jid, \PDO::PARAM_INT); $q->bindValue(':lim', $perJourney, \PDO::PARAM_INT);
                     $q->execute(); $cands = $q->fetchAll(\PDO::FETCH_COLUMN);
+                } elseif ($j['trigger_type'] === 'abandon') {
+                    // [212차 #3] 장바구니 이탈 — Pixel add_to_cart(email_hash) 후 미구매 고객 진입.
+                    //   ① 기간내 add_to_cart 의 email_hash 집합(이후 동일 hash purchase 이벤트 없음)
+                    //   ② 테넌트 고객 중 sha256(lower(email)) 가 이탈집합에 속하고 미진행 → 후보(driver-portable PHP 매칭)
+                    $hours        = max(1, (int)($cfg['abandon_hours'] ?? 1));
+                    $lookbackDays = max(1, (int)($cfg['abandon_lookback_days'] ?? 7));
+                    $ceil  = gmdate('Y-m-d H:i:s', time() - $hours * 3600);        // 최소 경과(구매 기회 부여)
+                    $floor = gmdate('Y-m-d H:i:s', time() - $lookbackDays * 86400); // 최대 소급
+                    $cartQ = $pdo->prepare("SELECT DISTINCT pe.email_hash FROM pixel_events pe
+                        WHERE pe.tenant_id=:t AND pe.event_name='add_to_cart' AND pe.email_hash IS NOT NULL AND pe.email_hash<>''
+                          AND pe.created_at BETWEEN :floor AND :ceil
+                          AND NOT EXISTS (SELECT 1 FROM pixel_events p2 WHERE p2.tenant_id=:t AND p2.email_hash=pe.email_hash AND p2.event_name='purchase' AND p2.created_at >= pe.created_at)
+                        LIMIT 2000");
+                    $cartQ->execute([':t'=>$tenant, ':floor'=>$floor, ':ceil'=>$ceil]);
+                    $abHashes = array_flip($cartQ->fetchAll(\PDO::FETCH_COLUMN));
+                    if ($abHashes) {
+                        $cq = $pdo->prepare("SELECT c.id, c.email FROM crm_customers c
+                            WHERE c.tenant_id=:t AND c.email IS NOT NULL AND c.email<>''
+                              AND NOT EXISTS (SELECT 1 FROM journey_enrollments e WHERE e.tenant_id=:t AND e.journey_id=:j AND e.customer_id=c.id AND e.status IN ('active','waiting'))");
+                        $cq->bindValue(':t', $tenant); $cq->bindValue(':j', $jid, \PDO::PARAM_INT); $cq->execute();
+                        while (count($cands) < $perJourney && ($row = $cq->fetch(\PDO::FETCH_ASSOC))) {
+                            $h = hash('sha256', strtolower(trim((string)$row['email'])));
+                            if (isset($abHashes[$h])) $cands[] = (int)$row['id'];
+                        }
+                    }
                 } else { // segment
                     $sid = (int)($cfg['segment_id'] ?? 0);
                     if ($sid <= 0 && !empty($cfg['segment'])) {
