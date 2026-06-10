@@ -62,27 +62,27 @@ const SEED_PLANS = [
     plan_id: 'free', name: 'Starter', display_order: 10, is_active: true, is_custom_quote: false,
     description: '무료 · 판매 채널 3개 연동',
     features: ['판매·마케팅 채널 3개 무료', '상품·주문·재고 동기화', '기본 성과 대시보드', '커뮤니티 지원'],
-    limits: { warehouses: 1, channels: 3, users: 1 },
+    limits: { channels: 3, orders_monthly: 500, products: 100, users: 1, suppliers: 3, logistics: 1, warehouses: 1, image_hosting_gb: 1 },
     price_usd: 0, price_annual_usd: 0,
   },
   {
     plan_id: 'growth', name: 'Growth', display_order: 20, is_active: true, is_custom_quote: false,
     description: '성장 단계 셀러 · 마케팅 자동화',
     features: ['판매·마케팅 채널 5개', '마케팅 자동화·채널 추천', '멀티터치 어트리뷰션 기초', 'P&L 분석', '계정 수 선택', '이메일 지원'],
-    limits: { warehouses: -1, channels: 5, users: -1 },
+    limits: { channels: 5, orders_monthly: 5000, products: 1000, users: 5, suppliers: 10, logistics: 3, warehouses: 2, image_hosting_gb: 10 },
     price_usd: 0, price_annual_usd: 0,
   },
   {
     plan_id: 'pro', name: 'Pro', display_order: 30, is_active: true, is_custom_quote: false, is_recommended: 1,
     description: '본격 커머스 운영 · 계정 수 기반',
     features: ['무제한 판매 채널', '무제한 창고(WMS)', 'AI 마케팅 인텔리전스·A/B', '전채널 어트리뷰션', 'AI 디자인', '상업 송장 자동 생성', '계정 수 선택', '우선 지원 (8시간 내)'],
-    limits: { warehouses: -1, channels: -1, users: -1 },
+    limits: { channels: -1, orders_monthly: 50000, products: 10000, users: -1, suppliers: -1, logistics: -1, warehouses: -1, image_hosting_gb: 50 },
   },
   {
     plan_id: 'enterprise', name: 'Enterprise', display_order: 40, is_active: true, is_custom_quote: true,
     description: '대규모 운영 · 맞춤 통합',
     features: ['Pro 플랜 전체 기능', '무제한 판매 채널·창고', '맞춤 AI 모델 학습', '전담 계정 매니저', '99.9% 가용성 SLA', '계정 수 무제한', '무제한 API 호출', '맞춤 통합 & 웹훅 · SSO'],
-    limits: { warehouses: -1, channels: -1, users: -1 },
+    limits: { channels: -1, orders_monthly: -1, products: -1, users: -1, suppliers: -1, logistics: -1, warehouses: -1, image_hosting_gb: -1 },
   },
 ];
 
@@ -640,7 +640,7 @@ function PlanPricing() {
     try {
       await requestJsonAuth(`/v424/admin/plans/${encodeURIComponent(id)}`, 'PUT', {
         name, description: '', price_usd: 0, price_annual_usd: 0,
-        features: [], limits: { warehouses: -1, channels: -1, users: -1 },
+        features: [], limits: { channels: -1, orders_monthly: -1, products: -1, users: -1, suppliers: -1, logistics: -1, warehouses: -1, image_hosting_gb: -1 },
         display_order: plans.length, is_active: true, is_custom_quote: false, is_recommended: false,
       });
       await fetchPlans();
@@ -913,12 +913,17 @@ function PlanPricing() {
                 </div>
 
                 <div style={{ marginTop: 18 }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)', marginBottom: 8 }}>한도 (Limits) · -1 = 무제한</div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)', marginBottom: 8 }}>제공 한도 (Limits) · -1 = 무제한</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 10 }}>
                     {[
-                      { key: 'warehouses', label: '창고(WMS) 수' },
-                      { key: 'channels',   label: '판매·마케팅 채널 수' },
-                      { key: 'users',      label: '계정(사용자) 수' },
+                      { key: 'channels',         label: '판매채널(쇼핑몰) 수' },
+                      { key: 'orders_monthly',   label: '주문 수 (월)' },
+                      { key: 'products',         label: '상품 DB 수' },
+                      { key: 'users',            label: '사용자 ID 수' },
+                      { key: 'suppliers',        label: '매입처 ID 수' },
+                      { key: 'logistics',        label: '물류처 ID 수' },
+                      { key: 'warehouses',       label: '창고(WMS) 수' },
+                      { key: 'image_hosting_gb', label: '이미지 호스팅 (GB)' },
                     ].map(({ key, label }) => (
                       <Field key={key} label={label}>
                         <input type="number" value={plan.limits?.[key] ?? ''} onChange={e => updateLimit(activePlanIdx, key, e.target.value)} style={inputStyle} />
@@ -926,8 +931,8 @@ function PlanPricing() {
                     ))}
                   </div>
                   <div style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 6, lineHeight: 1.6 }}>
-                    💡 <b>채널 수</b>는 이 플랜이 무료/유료로 연동할 수 있는 판매·마케팅 채널 개수입니다.
-                    <b>-1</b>은 무제한. 예: Free 플랜에 <b>3</b> 입력 시 “채널 3개 평생 무료”(사방넷 모델)로 즉시 적용됩니다. 언제든 수정 가능.
+                    💡 각 플랜이 제공하는 자원 한도입니다. <b>-1</b> = 무제한. <b>판매채널(쇼핑몰) 수</b>는 연동 가능한 쇼핑몰 채널 개수(예: Free=3 → 3개 평생 무료, 사방넷 모델),
+                    <b>주문 수(월)</b>·<b>상품 DB</b>·<b>이미지 호스팅(GB)</b> 등은 플랜별 제공량. 언제든 수정 가능.
                   </div>
                 </div>
 
