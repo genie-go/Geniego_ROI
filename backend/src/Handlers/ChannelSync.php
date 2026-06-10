@@ -414,20 +414,67 @@ final class ChannelSync
     // ── Amazon SP-API ────────────────────────────────────────────────────
     private static function amazonFetch(array $creds, string $tenant = 'demo'): array
     {
-        // 204차 P0 보안: 188차 chokepoint 우회 차단. amazon 생성기는 source='structured' + 'B0AMDEMO'/주문번호
-        //   포맷이라 saveProducts/saveOrders 의 demo 필터(source==='demo'||'DEMO-' 접두)에 걸리지 않아
-        //   실 테넌트 운영 DB(channel_products/channel_orders)로 가짜 데이터가 적재되던 갭. ebay/tiktok 과 동일 게이트.
-        if ($tenant !== 'demo') {
-            return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>'Amazon SP-API: 인증키 저장 완료 — LWA OAuth 토큰 연동 시 실데이터가 동기화됩니다.'];
+        // 데모: 구조화 미리보기(saveProducts/saveOrders chokepoint 가 운영 테넌트 유입 차단).
+        if ($tenant === 'demo') {
+            $marketplace = $creds['marketplace_id'] ?? 'A1PA6795UKMFR9';
+            return ['ok'=>true, 'products'=>self::amazonDemoProducts($marketplace), 'orders'=>self::amazonDemoOrders($marketplace), 'note'=>'demo preview'];
         }
-        // Amazon requires LWA OAuth + AWS SigV4 — return structured demo with real format
-        $marketplace = $creds['marketplace_id'] ?? 'A1PA6795UKMFR9'; // Japan default
-        return [
-            'ok'       => true,
-            'products' => self::amazonDemoProducts($marketplace),
-            'orders'   => self::amazonDemoOrders($marketplace),
-            'note'     => 'Amazon SP-API: credentials stored. Full sync requires LWA OAuth token refresh. Using structured data format.',
-        ];
+        // [현 차수] Amazon SP-API 실연동 — LWA access token 직접 사용(2023년 이후 SigV4 불필요).
+        //   자격증명: client_id, client_secret, refresh_token, marketplace_id. (라이브 검증은 실 판매자 계정 필요.)
+        $clientId      = trim((string)($creds['client_id'] ?? ''));
+        $clientSecret  = trim((string)($creds['client_secret'] ?? ''));
+        $refreshToken  = trim((string)($creds['refresh_token'] ?? $creds['key_value'] ?? ''));
+        $marketplaceId = trim((string)($creds['marketplace_id'] ?? 'ATVPDKIKX0DER'));
+        if ($clientId === '' || $clientSecret === '' || $refreshToken === '') {
+            return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>'Amazon SP-API: client_id·client_secret·refresh_token·marketplace_id 입력 필요'];
+        }
+        // 1) LWA refresh_token → access_token
+        [$tCode, $tBody] = self::httpPost(
+            'https://api.amazon.com/auth/o2/token',
+            ['Content-Type' => 'application/x-www-form-urlencoded'],
+            http_build_query(['grant_type'=>'refresh_token','refresh_token'=>$refreshToken,'client_id'=>$clientId,'client_secret'=>$clientSecret])
+        );
+        $accessToken = (string)($tBody['access_token'] ?? '');
+        if ($accessToken === '') {
+            return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>"Amazon LWA 토큰 발급 실패(code={$tCode}) — client_id/secret/refresh_token 확인"];
+        }
+        // 2) SP-API Orders(최근 30일). x-amz-access-token 헤더만으로 인증.
+        $host = self::amazonEndpoint($marketplaceId);
+        $createdAfter = gmdate('Y-m-d\TH:i:s\Z', time() - 30 * 86400);
+        $url = "https://{$host}/orders/v0/orders?MarketplaceIds=" . rawurlencode($marketplaceId) . "&CreatedAfter=" . rawurlencode($createdAfter);
+        [$oCode, $oBody] = self::httpGet($url, ['x-amz-access-token' => $accessToken, 'Accept' => 'application/json']);
+        if ($oCode >= 400 || !isset($oBody['payload'])) {
+            return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>"Amazon Orders 조회 실패(code={$oCode}) — SP-API 앱 Orders 권한 확인"];
+        }
+        $orders = [];
+        foreach ((array)($oBody['payload']['Orders'] ?? []) as $o) {
+            $oid = (string)($o['AmazonOrderId'] ?? '');
+            if ($oid === '') continue;
+            $orders[] = [
+                'channel_order_id' => $oid,
+                'buyer_name'  => (string)($o['BuyerInfo']['BuyerName'] ?? ''),
+                'buyer_email' => (string)($o['BuyerInfo']['BuyerEmail'] ?? ''),
+                'product_name'=> 'Amazon Order',
+                'sku'         => '',
+                'qty'         => (int)($o['NumberOfItemsShipped'] ?? 0) + (int)($o['NumberOfItemsUnshipped'] ?? 0),
+                'unit_price'  => 0,
+                'total_price' => (float)($o['OrderTotal']['Amount'] ?? 0),
+                'status'      => strtolower((string)($o['OrderStatus'] ?? 'pending')),
+                'ordered_at'  => (string)($o['PurchaseDate'] ?? gmdate('c')),
+                'source'      => 'spapi',
+            ];
+        }
+        return ['ok'=>true, 'products'=>[], 'orders'=>$orders, 'note'=>count($orders) . ' Amazon orders synced (SP-API)'];
+    }
+
+    /** Amazon 마켓플레이스 ID → SP-API 리전 엔드포인트(NA/EU/FE). */
+    private static function amazonEndpoint(string $mp): string
+    {
+        $fe = ['A1VC38T7YXB528','A39IBJ37TRP1C6','A19VAU5U5O7RUS']; // JP/AU/SG
+        $eu = ['A1F83G8C2ARO7P','A1PA6795UKMFR9','A13V1IB3VIYZZH','APJ6JRA9NG5V4','A1RKKUPIHCS9HS','A1805IZSGTT6HS','A2NODRKZP88ZB9','A1C3SOZRARQ6R3','ARBP9OOSHTCHU','A33AVAJ2PDY3EV','A17E79C6D8DWNP','A2VIGQ35RCS4UG','AMEN7PMS3EDWL']; // UK/DE/FR/IT/ES/NL/SE/PL/EG/TR/AE/SA/BE
+        if (in_array($mp, $fe, true)) return 'sellingpartnerapi-fe.amazon.com';
+        if (in_array($mp, $eu, true)) return 'sellingpartnerapi-eu.amazon.com';
+        return 'sellingpartnerapi-na.amazon.com'; // US/CA/MX/BR 기본
     }
 
     private static function amazonDemoProducts(string $marketplace): array
