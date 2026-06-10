@@ -58,7 +58,6 @@ const DataSchema = lazy(() => import("./pages/DataSchema.jsx"));
 const AIInsights = lazy(() => import("./pages/AIInsights.jsx"));
 const ReportBuilder = lazy(() => import("./pages/ReportBuilder.jsx"));
 const ApiKeys = lazy(() => import("./pages/ApiKeys.jsx"));
-const AdChannelConnect = lazy(() => import("./pages/AdChannelConnect.jsx"));
 const DataProduct = lazy(() => import("./pages/DataProduct.jsx"));
 const DbAdmin = lazy(() => import("./pages/DbAdmin.jsx"));
 const RollupDashboard = lazy(() => import("./pages/RollupDashboard.jsx"));
@@ -388,7 +387,8 @@ function AppLayout() {
                       {/* 193차 Sprint4: ReportBuilder 실구현 완료 → 리다이렉트 해제, 실제 페이지 복원 */}
                       <Route path="/report-builder" element={<ReportBuilder />} />
                       <Route path="/integration-hub" element={<ApiKeys />} />
-                      <Route path="/ad-channels" element={<AdChannelConnect />} />
+                      {/* 212차 #1: 광고매체 연동 중복 통합 — ad-channels 를 integration-hub 로 일원화(자동sync 흡수). */}
+                      <Route path="/ad-channels" element={<Navigate to="/integration-hub" replace />} />
                       <Route path="/alert-automation" element={<Navigate to="/ai-rule-engine" replace />} />
                       <Route path="/event-norm" element={<Navigate to="/data-schema" replace />} />
                       {/* 168차 N-152-F USD/Paddle 단일 정책 — /pricing 과 /app-pricing 모두 PricingPublic 으로 통일 */}

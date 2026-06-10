@@ -216,30 +216,36 @@ export default function ApiKeys() {
   const loadRegistry = useCallback(() => {
     getJsonAuth('/api/v426/channels').then(r => {
       if (!r?.ok || !Array.isArray(r.channels)) return;
+      // 212차 #6: group_type 이 이미 fine 카테고리(8종 프론트 그룹)면 그대로 사용(자동 정확분류),
+      //   아니면 coarse(sales/marketing/...) → fine 매핑. admin 추가 채널이 올바른 카테고리 섹션에 자동 배치.
       const G2A = { marketing: 'global_ad', sales: 'domestic', logistics: 'logistics', pg: 'payment', messaging: 'own_etc' };
+      const FINE = new Set(GROUP_ORDER); // sns_live/domestic/global_commerce/d2c/payment/logistics/global_express/global_ad/own_etc
       const existing = new Set(CHANNELS.map(c => c.key));
       const extra = [], ef = {};
       for (const c of r.channels) {
         if (Array.isArray(c.fields) && c.fields.length) ef[c.channel_key] = c.fields.map(f => ({ k: f.k, label: f.label, secret: f.secret !== false }));
-        if (!existing.has(c.channel_key)) extra.push({ key: c.channel_key, name: c.name, icon: c.icon || '🔗', color: c.color || '#6366f1', group: G2A[c.group_type] || 'own_etc' });
+        const grp = FINE.has(c.group_type) ? c.group_type : (G2A[c.group_type] || 'own_etc');
+        if (!existing.has(c.channel_key)) extra.push({ key: c.channel_key, name: c.name, icon: c.icon || '🔗', color: c.color || '#6366f1', group: grp });
       }
       setRegChannels(extra); setRegFields(ef);
     }).catch(() => {});
   }, []);
   useEffect(() => { loadRegistry(); }, [loadRegistry]);
   const allChannels = useMemo(() => [...CHANNELS, ...regChannels], [regChannels]);
-  // admin 빠른 채널 추가(레지스트리 신규 등록 → 등록 UI 즉시 반영)
-  const addRegistryChannel = useCallback(async () => {
-    const key = window.prompt('새 채널 키(영문소문자/숫자/_) — 예: cafe24_global');
-    if (!key) return;
-    const name = window.prompt('채널 표시명 — 예: Cafe24 글로벌');
-    if (!name) return;
-    const group_type = window.prompt('그룹(sales/marketing/logistics/pg/messaging)', 'sales') || 'sales';
-    const fieldsRaw = window.prompt('자격증명 필드 키(쉼표구분) — 예: api_key,secret_key', 'api_key') || 'api_key';
-    const fields = fieldsRaw.split(',').map(s => s.trim()).filter(Boolean).map(k => ({ k, label: k, secret: true }));
+  // 212차 #6: admin 채널 추가 — 카테고리(8종) 선택 모달. 선택 카테고리(fine group)를 레지스트리에 저장 →
+  //   loadRegistry pass-through 로 해당 카테고리 섹션에 자동 분류 노출. sync_kind 는 카테고리에서 추론.
+  const [showRegAdd, setShowRegAdd] = useState(false);
+  const submitRegistryChannel = useCallback(async (form) => {
+    const key = String(form.key || '').trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
+    const name = String(form.name || '').trim();
+    if (!key || !name) { show('error', '채널 키와 표시명을 입력하세요.'); return; }
+    const group = form.group || 'own_etc';
+    // 카테고리 → 동기화 종류 추론: 커머스(국내/글로벌/자사몰)=commerce, 광고=ad, 그 외=none
+    const sync_kind = ['domestic', 'global_commerce', 'd2c'].includes(group) ? 'commerce' : (group === 'global_ad' ? 'ad' : 'none');
+    const fields = String(form.fields || 'api_key').split(',').map(s => s.trim()).filter(Boolean).map(k => ({ k, label: k, secret: true }));
     try {
-      const r = await postJson('/api/v426/admin/channels', { channel_key: key, name, group_type, fields, sync_kind: group_type === 'sales' ? 'commerce' : (group_type === 'marketing' ? 'ad' : 'none'), is_active: 1 });
-      if (r?.ok) { show('success', `채널 추가됨: ${name}`); loadRegistry(); }
+      const r = await postJson('/api/v426/admin/channels', { channel_key: key, name, group_type: group, icon: form.icon || '🔗', color: form.color || '#6366f1', fields, sync_kind, is_active: 1 });
+      if (r?.ok) { show('success', `채널 추가됨: ${name} → ${GROUP_LABELS[group] || group}`); setShowRegAdd(false); loadRegistry(); }
       else show('error', r?.error || '추가 실패(관리자 권한 필요)');
     } catch (e) { show('error', String(e?.message || e)); }
   }, [show, loadRegistry]);
@@ -352,6 +358,17 @@ export default function ApiKeys() {
             else show('info', `${channelName} ${t('ak.syncQueued','저장됨 — 동기화는 자동 폴링으로 반영됩니다')}`);
             reload();
           } catch { /* 저장 성공, 동기화는 cron 폴링이 백업 */ }
+        }
+        // 212차 #1: 광고매체(AdChannelConnect 흡수) — 자격증명 등록 즉시 성과 ingest 트리거.
+        //   /v423/connectors/sync(meta/google/tiktok/naver) → performance_metrics 적재.
+        const AD_SYNC = { meta_ads: 'meta', google_ads: 'google', tiktok_business: 'tiktok', naver_sa: 'naver' };
+        if (AD_SYNC[channelKey]) {
+          try {
+            show('info', `${channelName} ${t('ak.syncing','동기화 중...')}`);
+            const ar = await postJson('/v423/connectors/sync', { channels: AD_SYNC[channelKey] });
+            show(ar?.ok ? 'success' : 'info', `${channelName} ${ar?.ok ? t('ak.syncDone','동기화 완료') : t('ak.syncQueued','저장됨 — 동기화는 자동 폴링으로 반영됩니다')}`);
+            reload();
+          } catch { /* 저장 성공, ingest 는 cron 폴링이 백업 */ }
         }
       }
       return saved > 0;
@@ -519,7 +536,7 @@ export default function ApiKeys() {
       {/* Content */}
       {activeTab === 0 && !_IS_DEMO_ENV && (
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
-          <button onClick={addRegistryChannel} title="관리자: 새 채널을 레지스트리에 추가 (코드 수정 불필요, 즉시 등록 UI 반영)"
+          <button onClick={() => setShowRegAdd(true)} title="관리자: 새 채널을 레지스트리에 추가 (코드 수정 불필요, 카테고리 자동 분류·즉시 등록 UI 반영)"
             style={{ padding: '6px 13px', borderRadius: 8, border: '1px solid rgba(99,102,241,0.4)', background: 'rgba(99,102,241,0.1)', color: '#6366f1', fontSize: 12, fontWeight: 800, cursor: 'pointer' }}>
             + 채널 추가 (관리자)
           </button>
@@ -625,6 +642,9 @@ export default function ApiKeys() {
       )}
       {showConnectModal && (
         <ConnectModal channel={showConnectModal} onClose={() => setShowConnectModal(null)} onSubmit={handleConnectSave} t={t} extraFields={regFields} />
+      )}
+      {showRegAdd && (
+        <RegistryAddModal onClose={() => setShowRegAdd(false)} onSubmit={submitRegistryChannel} />
       )}
 
       {/* Toast */}
@@ -922,6 +942,45 @@ function AddCredModal({ channels, onClose, onSubmit, t }) {
           <button onClick={submit} disabled={busy} style={{ flex: 1, ...btnPrimary, opacity: busy ? 0.6 : 1, cursor: busy ? 'not-allowed' : 'pointer' }}>
             {busy ? `⏳ ${t('ak.saving','Saving…')}` : `💾 ${t('ak.save','Save')}`}
           </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Modal: Registry Add — 212차 #6 관리자 채널 추가(카테고리 자동분류)
+   카테고리(8종) 선택 → 해당 섹션에 자동 배치. 코드 수정 없이 신규 채널 등록.
+   ═══════════════════════════════════════════════════════════════════ */
+function RegistryAddModal({ onClose, onSubmit }) {
+  const [form, setForm] = useState({ key: '', name: '', icon: '🔗', color: '#6366f1', group: 'domestic', fields: 'api_key' });
+  const [busy, setBusy] = useState(false);
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+  const submit = async () => { setBusy(true); await onSubmit(form); setBusy(false); };
+  const inp = { width: '100%', padding: '9px 12px', borderRadius: 9, border: '1px solid rgba(0,0,0,0.15)', fontSize: 13, outline: 'none', color: '#1e293b', background: '#fff', boxSizing: 'border-box' };
+  const lbl = { display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--text-3)', marginBottom: 4, marginTop: 10 };
+  return (
+    <div role="dialog" aria-modal="true" onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(9,5,20,0.85)', backdropFilter: 'blur(10px)' }}>
+      <div onClick={e => e.stopPropagation()} style={{ width: 'min(480px,92vw)', maxHeight: '88vh', overflowY: 'auto', background: '#fff', borderRadius: 16, padding: 22, boxShadow: '0 20px 60px rgba(0,0,0,0.4)' }}>
+        <div style={{ fontWeight: 900, fontSize: 16, color: '#1e293b', marginBottom: 4 }}>+ 채널 추가 (관리자)</div>
+        <div style={{ fontSize: 11.5, color: '#64748b', marginBottom: 8 }}>선택한 카테고리 섹션에 자동 분류되어 즉시 등록 UI 에 노출됩니다.</div>
+        <label style={lbl}>채널 키 (영문소문자/숫자/_)</label>
+        <input style={inp} value={form.key} onChange={e => set('key', e.target.value)} placeholder="예: cafe24_global" />
+        <label style={lbl}>표시명</label>
+        <input style={inp} value={form.name} onChange={e => set('name', e.target.value)} placeholder="예: Cafe24 글로벌" />
+        <label style={lbl}>카테고리</label>
+        <select style={inp} value={form.group} onChange={e => set('group', e.target.value)}>
+          {GROUP_ORDER.map(g => <option key={g} value={g}>{GROUP_LABELS[g]}</option>)}
+        </select>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <div style={{ flex: 1 }}><label style={lbl}>아이콘(이모지)</label><input style={inp} value={form.icon} onChange={e => set('icon', e.target.value)} placeholder="🔗" /></div>
+          <div style={{ flex: 1 }}><label style={lbl}>색상(hex)</label><input style={inp} value={form.color} onChange={e => set('color', e.target.value)} placeholder="#6366f1" /></div>
+        </div>
+        <label style={lbl}>자격증명 필드 키 (쉼표 구분)</label>
+        <input style={inp} value={form.fields} onChange={e => set('fields', e.target.value)} placeholder="예: api_key,secret_key" />
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 18 }}>
+          <button onClick={onClose} style={{ padding: '9px 16px', borderRadius: 9, border: '1px solid rgba(0,0,0,0.15)', background: '#fff', color: '#64748b', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>취소</button>
+          <button onClick={submit} disabled={busy} style={{ padding: '9px 18px', borderRadius: 9, border: 'none', background: 'linear-gradient(135deg,#6366f1,#4f8ef7)', color: '#fff', fontWeight: 800, fontSize: 13, cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.6 : 1 }}>{busy ? '추가 중...' : '추가'}</button>
         </div>
       </div>
     </div>
