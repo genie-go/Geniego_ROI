@@ -44,8 +44,9 @@ function downloadCSV(filename, headers, rows) {
 /* ─── Initial Data ──────── */
 const INIT_SETTLEMENTS = [];
 
-const FX = { KRW: 1, USD: 1330, JPY: 8.8, EUR: 1450 };
-const toKRW = (v, cur) => Math.round(v * (FX[cur] || 1));
+// 209차 P2: 하드코딩 환율(고정 stale) → CurrencyContext 실시간 rates 우선(아래 컴포넌트 내 toKRW).
+//   본 FX 는 rates 미가용 시 폴백만(근사). rates[cur]=cur-per-KRW 이므로 toKRW=v/rates[cur].
+const FX_FALLBACK = { KRW: 1, USD: 1330, JPY: 8.8, EUR: 1450 };
 const fmtCur = (v, cur) => {
   if (cur === "KRW") return v; // useCurrency handles formatting
   if (cur === "USD") return "$" + Number(v).toLocaleString("en-US", { minimumFractionDigits: 0 });
@@ -89,6 +90,9 @@ function Toast({ msg, onClose }) {
 /* ─── Main ───────────────────────────────────────────────── */
 export default function Settlements() {
   const { t, lang } = useI18n();
+  // 209차 P2: 실시간 FX(KRW base) 우선, 미가용 시 FX_FALLBACK 근사. rates[cur]=cur-per-KRW.
+  const { rates } = useCurrency();
+  const toKRW = (v, cur) => (rates && rates[cur]) ? Math.round(v / rates[cur]) : Math.round(v * (FX_FALLBACK[cur] || 1));
   const sg = (k) => { const G = SETTLE_GUIDE[lang] || SETTLE_GUIDE.en; return G[k] || SETTLE_GUIDE.en[k] || SETTLE_GUIDE.ko[k] || ''; };  // 197차 자립형 가이드 사전
   const navigate = useNavigate();
   const gd = useGlobalData();

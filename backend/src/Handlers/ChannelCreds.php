@@ -128,6 +128,28 @@ final class ChannelCreds
         return ['', 'demo'];
     }
 
+    /**
+     * 209차 P2: 완전 익명(Authorization 없음/junk Bearer) 거부 — 익명이 공유 'demo' 버킷에
+     *   자격증명을 R/W·삭제·연결테스트(외부호출)하던 경로 차단(ChannelSync.denyAnon 패턴).
+     *   데모 토큰(demo·local_demo_ 계열) 과 실제 세션은 의도대로 허용. api_key 미들웨어가 주입한
+     *   auth_tenant 가 있으면 통과(프로그래매틱/유료 테넌트).
+     */
+    private static function denyAnon(Request $req, Response $res): ?Response
+    {
+        $attr = $req->getAttribute('auth_tenant', '');
+        if ($attr !== '' && $attr !== null) return null;
+        if (preg_match('/Bearer\s+(\S+)/i', $req->getHeaderLine('Authorization'), $m)) {
+            $tok = $m[1];
+            if ($tok === 'demo-token' || str_starts_with($tok, 'demo') || str_starts_with($tok, 'local_demo_')) return null;
+            try {
+                $st = Db::pdo()->prepare('SELECT 1 FROM user_session s JOIN app_user u ON u.id=s.user_id WHERE s.token=? AND s.expires_at>? AND u.is_active=1 LIMIT 1');
+                $st->execute([$tok, gmdate('Y-m-d\TH:i:s\Z')]);
+                if ($st->fetchColumn()) return null;
+            } catch (\Throwable $e) {}
+        }
+        return TemplateResponder::respond($res->withStatus(401), ['ok' => false, 'error' => 'unauthorized']);
+    }
+
     /** Returns true if this request is from a demo/free-tier user */
     private static function isDemoRequest(Request $request): bool
     {
@@ -207,6 +229,7 @@ final class ChannelCreds
 
     public static function upsert(Request $request, Response $response, array $args): Response
     {
+        if ($deny = self::denyAnon($request, $response)) return $deny; // 209차 P2: 익명 demo버킷 쓰기 차단
         // ── 주의: 데모 사용자도 API 키 등록 가능 ──────────────────────────────
         // 데모→실사용 전환의 핵심 트리거: 키 등록 시 plan=pro 자동 업그레이드
         [$userId, $userPlan] = self::resolveUserPlan($request);
@@ -364,6 +387,7 @@ final class ChannelCreds
     // ── DELETE /v423/creds/{id} ─────────────────────────────────────────────
     public static function delete(Request $request, Response $response, array $args): Response
     {
+        if ($deny = self::denyAnon($request, $response)) return $deny; // 209차 P2
         $pdo    = Db::pdo();
         $tenant = self::tenantId($request);
         $id     = (int)($args['id'] ?? 0);
@@ -380,6 +404,7 @@ final class ChannelCreds
     // ── POST /v423/creds/{id}/test ─────────────────────────────────────────
     public static function test(Request $request, Response $response, array $args): Response
     {
+        if ($deny = self::denyAnon($request, $response)) return $deny; // 209차 P2: 익명 외부호출 차단
         $pdo    = Db::pdo();
         $tenant = self::tenantId($request);
         $id     = (int)($args['id'] ?? 0);

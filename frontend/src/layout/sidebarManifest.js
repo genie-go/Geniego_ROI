@@ -118,7 +118,7 @@ export const MEMBER_MENU = [
       { to: "/ad-channels",      icon: "📢", labelKey: "gNav.adChannelsLabel", menuKey: "data||integration_hub" },
       { to: "/data-schema",      icon: "📋", labelKey: "gNav.dataSchemaLabel",     menuKey: "data||data_schema" },
       { to: "/data-trust",       icon: "🔬", labelKey: "gNav.dataTrustLabel",      menuKey: "data||data_trust" },
-      { to: "/pixel-tracking",   icon: "🎯", labelKey: "gNav.pixelTracking", label: "픽셀 트래킹", menuKey: "data||data_trust" },
+      { to: "/pixel-tracking",   icon: "🎯", labelKey: "gNav.pixelTracking", menuKey: "data||data_trust" },
     ],
   },
   /* 재무 & 결산 */
