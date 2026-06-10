@@ -791,9 +791,8 @@ function PlanPricing() {
         display: 'flex', gap: 0, marginBottom: 16, borderBottom: '1px solid rgba(255,255,255,0.08)',
       }}>
         {[
-          { id: 'plan',        label: '💰 플랜별 설정 (요금 + 제공 메뉴·기능)' },
-          { id: 'permissions', label: '🔐 메뉴 접근 권한 (전 플랜 비교)' },
-          { id: 'coupons',     label: '🎟️ 쿠폰 관리' },
+          { id: 'plan',    label: '💰 플랜별 설정 (요금 + 제공 메뉴·기능 + 접근 권한)' },
+          { id: 'coupons', label: '🎟️ 쿠폰 관리' },
         ].map(tb => {
           const active = outerTab === tb.id;
           return (
@@ -811,16 +810,6 @@ function PlanPricing() {
           );
         })}
       </div>
-
-      {outerTab === 'permissions' && (
-        <MenuAccessTree
-          plans={plans} menus={menus} access={access}
-          setMenuAccess={setMenuAccess} setMenuAccessBulk={setMenuAccessBulk}
-          togglePlanAll={togglePlanAll}
-          saveAllAccess={saveAllAccess} saving={saving === 'access'} dirty={accessDirty}
-          recommendMenuAccess={recommendMenuAccess}
-        />
-      )}
 
       {outerTab === 'coupons' && <CouponAdminPanel plans={plans} />}
 
@@ -1028,6 +1017,22 @@ function PlanPricing() {
             </div>
           </>)}
         </>
+      )}
+
+      {/* [현 차수] ④ 메뉴 접근 권한 — 플랜별 설정(요금·기능) 아래로 통합. 요금과 메뉴를 한 화면에서 비교·편집. */}
+      {outerTab === 'plan' && !loading && plans.length > 0 && (
+        <div style={{ marginTop: 30, paddingTop: 24, borderTop: '2px dashed rgba(255,255,255,0.14)' }}>
+          <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--text-3)', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 12 }}>
+            ④ 플랜별 메뉴 접근 권한 — 요금과 함께 한눈에 설정
+          </div>
+          <MenuAccessTree
+            plans={plans} menus={menus} access={access}
+            setMenuAccess={setMenuAccess} setMenuAccessBulk={setMenuAccessBulk}
+            togglePlanAll={togglePlanAll}
+            saveAllAccess={saveAllAccess} saving={saving === 'access'} dirty={accessDirty}
+            recommendMenuAccess={recommendMenuAccess}
+          />
+        </div>
       )}
     </div>
   );
