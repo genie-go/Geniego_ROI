@@ -1941,9 +1941,11 @@ function MenuAccessTree({ plans, menus, access, setMenuAccess, setMenuAccessBulk
   const _allMenuKeys = () => { const s = new Set(); for (const sec of [...MEMBER_MENU, ...ADMIN_MENU]) for (const it of (sec.items || [])) if (it.menuKey) s.add(it.menuKey); return s; };
   const _allLeafRoutes = () => { const s = new Set(); for (const sec of [...MEMBER_MENU, ...ADMIN_MENU]) for (const it of (sec.items || [])) if (it.to) s.add(it.to); return s; };
   const _allSectionKeys = () => { const c = new Set(); for (const sec of [...MEMBER_MENU, ...ADMIN_MENU]) c.add(sec.key); return c; };
-  const [collapsed, setCollapsed] = useState(_allSectionKeys); // 기본: 대메뉴만 보임(중메뉴 접힘)
-  const [expandMenu, setExpandMenu] = useState(() => new Set()); // 중메뉴 → 하위메뉴 (클릭 시 펼침)
-  const [expandLeaf, setExpandLeaf] = useState(() => new Set()); // 하위메뉴 → 서브탭 (클릭 시 펼침)
+  // [현 차수] 기본 전체 펼침 — 대→중→하위→서브탭 전 계층을 한 화면에 단계적으로 표시(요청).
+  //   각 계층 행의 ▼/▶ 로 개별 접기·펼치기 가능, 상단 "전체 접기" 로 일괄 접기.
+  const [collapsed, setCollapsed] = useState(() => new Set());     // 비어있음 = 전 섹션 펼침
+  const [expandMenu, setExpandMenu] = useState(_allMenuKeys);      // 전 중메뉴 펼침
+  const [expandLeaf, setExpandLeaf] = useState(_allLeafRoutes);    // 전 하위메뉴 서브탭 펼침
   const expandAll = () => { setCollapsed(new Set()); setExpandMenu(_allMenuKeys()); setExpandLeaf(_allLeafRoutes()); };
   const collapseAll = () => { setCollapsed(_allSectionKeys()); setExpandMenu(new Set()); setExpandLeaf(new Set()); };
   const [filter, setFilter] = useState('');
