@@ -1235,8 +1235,8 @@ function CycleSelectorSection({ planCfg, planPeriods, cycleMonths, setCycleMonth
       border: `1.5px solid ${planCfg?.color || '#6366f1'}33`,
     }}>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 10 }}>
-        <span style={{ fontSize: 14, fontWeight: 800, color: planCfg?.color || '#6366f1' }}>📅 구독 기간 선택</span>
-        <span style={{ fontSize: 11, color: 'var(--text-3)' }}>가입 후 결제할 cycle 을 선택하세요. 연간 결제 시 최대 20% 할인.</span>
+        <span style={{ fontSize: 14, fontWeight: 800, color: planCfg?.color || '#6366f1' }}>📅 {t('auth.cycleSelectTitle','구독 기간 선택')}</span>
+        <span style={{ fontSize: 11, color: 'var(--text-3)' }}>{t('auth.cycleSelectDesc','가입 후 결제할 주기를 선택하세요. 연간 결제 시 최대 20% 할인.')}</span>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
         {cycles.map(c => {
@@ -1292,8 +1292,8 @@ function SeatSelectorSection({ planCfg, seatTiers, seatTier, setSeatTier }) {
       background: `${color}0D`, border: `1.5px solid ${color}33`,
     }}>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 10 }}>
-        <span style={{ fontSize: 14, fontWeight: 800, color }}>👥 계정수 선택</span>
-        <span style={{ fontSize: 11, color: 'var(--text-3)' }}>이용할 계정(좌석) 수를 선택하세요. 계정수에 따라 요금이 달라집니다.</span>
+        <span style={{ fontSize: 14, fontWeight: 800, color }}>👥 {t('auth.seatSelectTitle','계정수 선택')}</span>
+        <span style={{ fontSize: 11, color: 'var(--text-3)' }}>{t('auth.seatSelectDesc','이용할 계정(좌석) 수를 선택하세요. 계정수에 따라 요금이 달라집니다.')}</span>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(seatTiers.length, 4)}, 1fr)`, gap: 8 }}>
         {seatTiers.map(tier => {
@@ -1366,7 +1366,7 @@ function PlanServiceDetail({ planCfg, menuAccess = [], features = [], descriptio
           </div>
         </div>
       ) : (
-        <div style={{ fontSize: 11, color: 'var(--text-3)', fontStyle: 'italic' }}>제공 서비스 상세는 관리자 설정 후 표시됩니다.</div>
+        <div style={{ fontSize: 11, color: 'var(--text-3)', fontStyle: 'italic' }}>{t('auth.serviceDetailPending','제공 서비스 상세는 관리자 설정 후 표시됩니다.')}</div>
       )}
     </div>
   );
