@@ -199,7 +199,7 @@ const PerformanceTab = memo(function PerformanceTab() {
                     <select value={account} onChange={e => setAccount(e.target.value)} disabled={!isMultiTeamAllowed} style={{ background: 'var(--surface)', border: "1px solid var(--border)", borderRadius: 6, color: '#fff', fontSize: 11, padding: "4px 8px", cursor: isMultiTeamAllowed ? "pointer" : "not-allowed" }}>
                         {accounts.map(a_id => <option key={a_id} value={a_id}>{a_id === "All" ? t("performance.allAccounts") : a_id}</option>)}
                     </select>
-                    {!isMultiTeamAllowed && <span style={{ fontSize: 10, color: "var(--accent)" }}>🔒 {t(".upgradeLabel")}</span>}
+                    {!isMultiTeamAllowed && <span style={{ fontSize: 10, color: "var(--accent)" }}>🔒 {t("performance.upgradeLabel", "업그레이드")}</span>}
                 </div>
             </div>
 

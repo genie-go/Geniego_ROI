@@ -393,8 +393,11 @@ final class Rollup {
             $pm->execute([$tenant, substr($start,0,10)]);
             while ($r = $pm->fetch(\PDO::FETCH_ASSOC)) {
                 $bucket = self::bucketLabel((string)$r['date'], $period); if ($bucket==='' || !in_array($bucket,$dates,true)) continue;
-                $pf = (string)($r['channel'] ?? 'unknown'); $mk($by,$pf,$bucket);
-                $by[$pf][$bucket]['spend'] += (float)($r['spend'] ?? 0); $by[$pf][$bucket]['rev'] += (float)($r['revenue'] ?? 0);
+                // 209차: 플랫폼키 lowercase 정규화(채널주문 loop의 ucfirst 와 불일치해 naver/Naver 중복행
+                //   생기던 버그). 광고매출(revenue)은 주문매출과 별개 → rev 에 합산하지 않음(주석 의도대로
+                //   매출=주문 기준). 광고기여 revenue 는 ad_rev 로 분리 보관(필요 시 노출용).
+                $pf = strtolower((string)($r['channel'] ?? 'unknown')); $mk($by,$pf,$bucket);
+                $by[$pf][$bucket]['spend'] += (float)($r['spend'] ?? 0); $by[$pf][$bucket]['ad_rev'] = ($by[$pf][$bucket]['ad_rev'] ?? 0) + (float)($r['revenue'] ?? 0);
                 $by[$pf][$bucket]['imp'] += (int)($r['impressions'] ?? 0); $by[$pf][$bucket]['clk'] += (int)($r['clicks'] ?? 0);
             }
             // 채널 주문(판매 매출·주문수) — 광고매출과 별개. 매출은 주문 기준으로 보정.
@@ -402,7 +405,7 @@ final class Rollup {
             $co->execute([$tenant, $start]);
             while ($r = $co->fetch(\PDO::FETCH_ASSOC)) {
                 $bucket = self::bucketLabel((string)($r['ordered_at'] ?? ''), $period); if ($bucket==='' || !in_array($bucket,$dates,true)) continue;
-                $pf = ucfirst((string)($r['channel'] ?? 'unknown')); $mk($by,$pf,$bucket);
+                $pf = strtolower((string)($r['channel'] ?? 'unknown')); $mk($by,$pf,$bucket);
                 $by[$pf][$bucket]['ord'] += (int)($r['qty'] ?? 0); $by[$pf][$bucket]['rev'] += (float)($r['total_price'] ?? 0);
             }
             $rows = [];
@@ -426,7 +429,7 @@ final class Rollup {
     }
     private static function platformRowFromSeries(string $pf, string $color, array $series): array {
         $totS = array_sum(array_column($series, 'spend')); $totR = array_sum(array_column($series, 'revenue'));
-        return ['platform'=>$pf, 'color'=>$color, 'total_spend'=>$totS, 'total_revenue'=>$totR,
+        return ['platform'=>ucfirst($pf), 'color'=>$color, 'total_spend'=>$totS, 'total_revenue'=>$totR,
             'total_orders'=>array_sum(array_column($series, 'orders')), 'total_impressions'=>array_sum(array_column($series, 'impressions')),
             'total_clicks'=>array_sum(array_column($series, 'clicks')), 'avg_roas'=>$totS > 0 ? round($totR/$totS,2) : 0, 'series'=>$series];
     }

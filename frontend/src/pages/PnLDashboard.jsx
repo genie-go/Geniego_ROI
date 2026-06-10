@@ -528,7 +528,10 @@ export default function PnLDashboard() {
         grossProfit: pnlStats.grossProfit || 0, operatingProfit: pnlStats.operatingProfit || 0,
         netPayout: pnlStats.netPayout || 0, pendingPayout: settlementStats.pendingAmount || 0,
         roas: budgetStats.blendedRoas || 0,
-        totalOrders: (orderStats.count || 0) + (settlementStats.totalOrders || 0),
+        // 209차: 기존 orderStats.count + settlementStats.totalOrders 는 동일 주문을 이중계산
+        //   (정산 rollup orders_count 는 channel_orders 파생) → 2배 + 반품률 분모 과대 → 알림 억제.
+        //   매출과 동일하게 either/or(정산 우선, 없으면 주문수).
+        totalOrders: (settlementStats.totalOrders || 0) > 0 ? settlementStats.totalOrders : (orderStats.count || 0),
         totalReturns: settlementStats.totalReturns || 0, returnRate: settlementStats.returnRate || 0,
     };
 

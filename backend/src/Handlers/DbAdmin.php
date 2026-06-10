@@ -176,16 +176,15 @@ final class DbAdmin
             }
         }
 
-        $total = (int)$pdo->prepare("SELECT COUNT(*) FROM `{$table}`{$where}")
-                          ->execute($bind) ? 0 : 0;
         $cntStmt = $pdo->prepare("SELECT COUNT(*) FROM `{$table}`{$where}");
         $cntStmt->execute($bind);
         $total = (int)$cntStmt->fetchColumn();
 
-        $bind[] = $limit;
-        $bind[] = $offset;
+        // 209차 sweep: 기존 `LIMIT ? OFFSET ?` 배열바인딩은 MySQL emulated-prepares 에서 'N' 문자열로
+        //   바인딩돼 1064(LIMIT '50') → DbAdmin 행조회 500. $limit/$offset 은 위에서 (int) 클램프됨 →
+        //   검증된 정수 인라인(타 LIMIT 사이트와 동일 정본).
         $rowStmt = $pdo->prepare(
-            "SELECT * FROM `{$table}`{$where} ORDER BY `{$orderBy}` {$orderDir} LIMIT ? OFFSET ?"
+            "SELECT * FROM `{$table}`{$where} ORDER BY `{$orderBy}` {$orderDir} LIMIT " . (int)$limit . " OFFSET " . (int)$offset
         );
         $rowStmt->execute($bind);
         $rows = $rowStmt->fetchAll(\PDO::FETCH_ASSOC);
