@@ -616,9 +616,33 @@ const InventoryTab = memo(function InventoryTab({ whs }) {
     const { t } = useI18n();
     const { fmt } = useCurrency();
     // ✅ GlobalDataContext.inventory — Real-time sync on Inbound/Outbound register
-    const { inventory, adjustStock } = useGlobalData();
+    const { inventory: gdInventory, adjustStock } = useGlobalData();
     const {isDemo} = useAuth();
     const [adjForm, setAdjForm] = useState(null);
+    // 208차(A): WMS 재고 단일 진실 = wms_stock(입출고 파생 물리재고). 운영은 wms_stock 을 SKU별로
+    //   {sku,name,stock:{wh_id:on_hand}} 로 그룹핑해 표시(입출고가 즉시 반영). 데모/미존재 시 GlobalData 폴백.
+    const [wmsStock, setWmsStock] = useState(null);
+    useEffect(() => {
+        if (IS_DEMO) return;
+        let cancelled = false;
+        const load = () => wmsApi.listStock(false).then(res => {
+            if (cancelled || !res?.ok || !Array.isArray(res.stock)) return;
+            const bySku = {};
+            res.stock.forEach(r => {
+                const k = String(r.sku || '');
+                if (!k) return;
+                if (!bySku[k]) bySku[k] = { sku: k, name: r.name || k, stock: {}, safeQty: 0, cost: 0 };
+                const wh = String(r.wh_id || 'W001');
+                bySku[k].stock[wh] = (bySku[k].stock[wh] || 0) + Number(r.on_hand || 0);
+            });
+            setWmsStock(Object.values(bySku));
+        }).catch(() => {});
+        load();
+        const iv = setInterval(load, 30000); // 입출고 반영 주기 갱신
+        return () => { cancelled = true; clearInterval(iv); };
+    }, []);
+    // 운영에 wms_stock 데이터가 있으면 그것을 단일 진실로, 없으면 GlobalData(channel_inventory) 폴백.
+    const inventory = (!IS_DEMO && wmsStock && wmsStock.length > 0) ? wmsStock : gdInventory;
     const [searchQuery, setSearchQuery] = useState('');
     const [showLowOnly, setShowLowOnly] = useState(false);
     /* ── CSV Import Modal ── */
