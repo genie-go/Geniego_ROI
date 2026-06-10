@@ -348,13 +348,36 @@ function PlanPricing() {
   };
   /** 186차: 계정수 티어 삭제 (전역) — 해당 seat 의 모든 플랜 가격도 제거 */
   const removeSeatTier = (key) => {
-    if (key === BASE_SEAT) { alert('기준 계정수(1계정) 티어는 삭제할 수 없습니다'); return; }
+    // [현 차수] 1계정(base) 포함 모든 티어 삭제 가능. 단 최소 1개 티어는 유지(가격 기준 보존, basePeriods 첫 티어 폴백).
+    if (seatTiers.length <= 1) { alert('최소 1개의 계정수 티어는 유지해야 합니다'); return; }
     if (!window.confirm('이 계정수 티어를 삭제하시겠습니까? (저장 시 해당 계정수 가격도 제거)')) return;
     setSeatTiers(prev => prev.filter(t => t.key !== key));
     setPeriodPricing(prev => {
       const next = {};
       for (const [pid, seats] of Object.entries(prev)) {
         const ns = { ...seats }; delete ns[key]; next[pid] = ns;
+      }
+      return next;
+    });
+  };
+  /** [현 차수] 계정수 티어 수정 — 계정수(count)를 변경. 해당 seat 의 모든 플랜 가격을 새 키로 이전. */
+  const editSeatTier = (oldKey) => {
+    const cur = seatTiers.find(t => t.key === oldKey);
+    const input = window.prompt('계정수를 입력하세요 (숫자 또는 "무제한")', cur?.unlimited ? '무제한' : String(cur?.count ?? ''));
+    if (input === null) return;
+    const v = input.trim();
+    let newKey, tier;
+    if (/^(무제한|unlimited|∞)$/i.test(v)) { newKey = 'unlimited'; tier = { key: 'unlimited', label: '무제한', count: 0, unlimited: true }; }
+    else { const n = Number(v); if (!Number.isFinite(n) || n < 1) { alert('계정수는 1 이상 숫자 또는 "무제한"'); return; } newKey = String(n); tier = { key: newKey, label: `${n}계정`, count: n, unlimited: false }; }
+    if (newKey === oldKey) return;
+    if (seatTiers.some(t => t.key === newKey)) { alert('이미 존재하는 계정수 티어입니다'); return; }
+    setSeatTiers(prev => { const next = prev.map(t => t.key === oldKey ? tier : t); next.sort((a, b) => (a.unlimited ? 1 : b.unlimited ? -1 : a.count - b.count)); return next; });
+    setPeriodPricing(prev => {
+      const next = {};
+      for (const [pid, seats] of Object.entries(prev)) {
+        const ns = { ...seats };
+        if (ns[oldKey] !== undefined) { ns[newKey] = ns[oldKey]; delete ns[oldKey]; }
+        next[pid] = ns;
       }
       return next;
     });
@@ -973,6 +996,7 @@ function PlanPricing() {
                   seatTiers={seatTiers}
                   addSeatTier={addSeatTier}
                   removeSeatTier={removeSeatTier}
+                  editSeatTier={editSeatTier}
                 />
                 <div>
                   <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--text-3)', letterSpacing: 1, marginBottom: 10, textTransform: 'uppercase' }}>실시간 미리보기</div>
@@ -2180,7 +2204,7 @@ function MenuAccessTree({ plans, menus, access, setMenuAccess, setMenuAccessBulk
  *   - 각 기간별 가격/할인/PaddleID/활성 개별 편집
  *   - 맞춤 견적 (Enterprise) 플랜은 가격 입력 비활성
  */
-function PeriodPricingPanel({ plan, periodPricing, updatePeriodField, addPeriod, removePeriod, newPeriodInput, setNewPeriodInput, seatTiers = DEFAULT_SEAT_TIERS, addSeatTier, removeSeatTier }) {
+function PeriodPricingPanel({ plan, periodPricing, updatePeriodField, addPeriod, removePeriod, newPeriodInput, setNewPeriodInput, seatTiers = DEFAULT_SEAT_TIERS, addSeatTier, removeSeatTier, editSeatTier }) {
   const isCustom = plan.is_custom_quote;
   // 186차: 계정수(seat) 차원 — 활성 seat 티어 선택 후 해당 기간 가격 편집
   const [activeSeat, setActiveSeat] = useState(seatTiers[0]?.key || BASE_SEAT);
@@ -2243,18 +2267,19 @@ function PeriodPricingPanel({ plan, periodPricing, updatePeriodField, addPeriod,
             return (
               <span key={t.key} style={{ display: 'inline-flex', alignItems: 'center' }}>
                 <button onClick={() => setActiveSeat(t.key)} style={{
-                  padding: '6px 12px', borderRadius: t.key !== BASE_SEAT ? '8px 0 0 8px' : 8,
-                  border: on ? '1px solid #6366f1' : '1px solid rgba(255,255,255,0.12)',
-                  borderRight: (t.key !== BASE_SEAT) ? 'none' : undefined,
+                  padding: '6px 12px', borderRadius: '8px 0 0 8px',
+                  border: on ? '1px solid #6366f1' : '1px solid rgba(255,255,255,0.12)', borderRight: 'none',
                   background: on ? 'rgba(99,102,241,0.22)' : 'rgba(255,255,255,0.03)',
                   color: on ? '#c7d2fe' : 'var(--text-2)', fontSize: 12, fontWeight: on ? 800 : 600, cursor: 'pointer',
                 }}>{t.unlimited ? '♾ 무제한' : `${t.count}계정`}</button>
-                {t.key !== BASE_SEAT && (
-                  <button onClick={() => removeSeatTier?.(t.key)} title="이 계정수 티어 삭제" style={{
-                    padding: '6px 8px', borderRadius: '0 8px 8px 0', border: on ? '1px solid #6366f1' : '1px solid rgba(255,255,255,0.12)', borderLeft: 'none',
-                    background: 'rgba(248,113,113,0.12)', color: '#f87171', fontSize: 12, fontWeight: 800, cursor: 'pointer',
-                  }}>×</button>
-                )}
+                <button onClick={() => editSeatTier?.(t.key)} title="계정수 수정" style={{
+                  padding: '6px 7px', border: on ? '1px solid #6366f1' : '1px solid rgba(255,255,255,0.12)', borderLeft: 'none', borderRight: 'none',
+                  background: 'rgba(99,102,241,0.10)', color: '#a5b4fc', fontSize: 11, fontWeight: 800, cursor: 'pointer',
+                }}>✎</button>
+                <button onClick={() => removeSeatTier?.(t.key)} title="이 계정수 티어 삭제 (최소 1개 유지)" style={{
+                  padding: '6px 8px', borderRadius: '0 8px 8px 0', border: on ? '1px solid #6366f1' : '1px solid rgba(255,255,255,0.12)', borderLeft: 'none',
+                  background: 'rgba(248,113,113,0.12)', color: '#f87171', fontSize: 12, fontWeight: 800, cursor: 'pointer',
+                }}>×</button>
               </span>
             );
           })}
