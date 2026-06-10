@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useT } from "../i18n";
-import { postJsonAuth } from "../services/apiClient";
+import { postJsonAuth, getJsonAuth } from "../services/apiClient";
 
 /**
  * GDPR / PIPA (개인정보보호법) 동의 관리 배너
@@ -13,9 +13,26 @@ import { postJsonAuth } from "../services/apiClient";
 
 
 const COOKIE_KEY = 'g_gdpr_consent';
+const CID_KEY = 'g_gdpr_cid';
 const getCookie = name => document.cookie.split(';').find(c => c.trim().startsWith(name + '='))?.split('=')[1] || null;
 const setCookie = (name, value, days = 365) => { document.cookie = `${name}=${value};max-age=${days * 86400};path=/;SameSite=Lax`; };
 const removeCookie = name => { document.cookie = `${name}=;max-age=0;path=/`; };
+
+/**
+ * 익명 방문자 안정 식별자(consent_id) 발급·영속.
+ * 209차 P2: 백엔드가 동의기록을 session_id 로 식별하는데 기존엔 md5(UA+날짜)라 같은 브라우저·
+ *   같은 날짜의 다른 방문자가 충돌(상호 덮어쓰기). 클라가 1회 발급해 쿠키 영속하는 안정 id 로 격리.
+ */
+function getConsentId() {
+    let cid = getCookie(CID_KEY);
+    if (!cid) {
+        cid = (typeof crypto !== 'undefined' && crypto.randomUUID)
+            ? crypto.randomUUID().replace(/-/g, '')
+            : ('cid' + Math.random().toString(36).slice(2) + Date.now().toString(36));
+        setCookie(CID_KEY, cid, 365);
+    }
+    return cid;
+}
 
 const CONSENT_TYPES_BASE = [
     { id: 'necessary', labelKey: 'gdpr.necessary', descKey: 'gdpr.necessaryDesc', required: true, icon: '\uD83D\uDD12' },
@@ -26,7 +43,9 @@ const CONSENT_TYPES_BASE = [
 
 async function saveConsentToServer(consents) {
     try {
-        await postJsonAuth('/api/gdpr/consent', consents);
+        // 209차 P2: 백엔드 save()는 $body['consents']를 읽는데 기존엔 choices를 평면 전송 →
+        //   동의 선택값이 전혀 저장되지 않던 형태 불일치. { consents, consent_id }로 정정.
+        await postJsonAuth('/api/gdpr/consent', { consents, consent_id: getConsentId() });
     } catch (error) {
         console.error('Failed to save consent to server:', error);
     }
@@ -175,8 +194,24 @@ export function GdprController() {
 export function GdprAdmin() {
     const t = useT();
     const [showPanel, setShowPanel] = useState(false);
-    const [history, setHistory] = useState([]);
-    const [stats, setStats] = useState({ total: 3842, opted_in: 3241, analytics: 2890, marketing: 1902, withdrawn: 112 });
+    const [stats, setStats] = useState({ total: 0, opted_in: 0, analytics: 0, marketing: 0, withdrawn: 0 });
+
+    // 209차 P2: CONSENT_TYPES 는 ConsentPanel 지역 변수였음 → GdprAdmin 에서 참조 시 ReferenceError.
+    //   자체 정의(CONSENT_TYPES_BASE + t() 라벨)로 격리.
+    const CONSENT_TYPES = CONSENT_TYPES_BASE.map(item => ({
+        ...item,
+        label: t(item.labelKey) || item.labelKey,
+        desc: t(item.descKey) || item.descKey,
+    }));
+
+    // 209차 P2: 하드코딩 가짜 통계(3842 등) 제거 → 실집계 API(/api/gdpr/stats) fetch.
+    useEffect(() => {
+        let alive = true;
+        getJsonAuth('/api/gdpr/stats').then(r => {
+            if (alive && r?.stats) setStats(s => ({ ...s, ...r.stats }));
+        }).catch(() => {});
+        return () => { alive = false; };
+    }, []);
 
     const existing = getCookie(COOKIE_KEY);
     const consent = existing ? JSON.parse(decodeURIComponent(existing)) : null;

@@ -57,8 +57,31 @@ final class GdprConsent
         }
     }
 
+    /**
+     * 익명 방문자 안정 식별자.
+     * 209차 P2: 기존 md5(User-Agent + 날짜)는 같은 브라우저·같은 날짜의 서로 다른 익명
+     *   방문자가 동일 session_id 를 공유 → 동의기록 상호 덮어쓰기(저장 시 is_active=0)·오조회.
+     *   클라가 발급한 안정 consent_id(쿠키 영속)를 우선 사용해 방문자별 격리. 미발급 구버전
+     *   클라는 레거시 UA+날짜 해시로 폴백(하위호환).
+     */
     private static function sessionId(Request $req): string
     {
+        $cid  = '';
+        $body = (array)($req->getParsedBody() ?? []);
+        if (!empty($body['consent_id'])) {
+            $cid = (string)$body['consent_id'];
+        }
+        if ($cid === '') {
+            $cid = (string)($req->getQueryParams()['cid'] ?? '');
+        }
+        if ($cid === '') {
+            $cid = $req->getHeaderLine('X-Consent-Id');
+        }
+        $cid = preg_replace('/[^a-zA-Z0-9_-]/', '', $cid);
+        if ($cid !== '') {
+            return substr($cid, 0, 40);
+        }
+        // 레거시 폴백(consent_id 미발급 구버전 클라)
         return substr(md5($req->getHeaderLine('User-Agent') . gmdate('Y-m-d')), 0, 16);
     }
 
@@ -137,10 +160,12 @@ final class GdprConsent
         self::ensureTables();
         $pdo = Db::pdo();
 
-        $total     = (int)($pdo->query("SELECT COUNT(*) FROM gdpr_consents WHERE is_active=1")->fetchColumn() ?: 3842);
-        $analytics = (int)($pdo->query("SELECT COUNT(*) FROM gdpr_consents WHERE is_active=1 AND analytics=1")->fetchColumn() ?: 2890);
-        $marketing = (int)($pdo->query("SELECT COUNT(*) FROM gdpr_consents WHERE is_active=1 AND marketing=1")->fetchColumn() ?: 1902);
-        $withdrawn = (int)($pdo->query("SELECT COUNT(*) FROM gdpr_consents WHERE is_active=0 AND withdrawn_at IS NOT NULL")->fetchColumn() ?: 112);
+        // 209차 P2: 가짜 폴백(?: 3842 등) 제거 — COUNT(*)는 빈 테이블서 '0'(falsy)을 반환해
+        //   `?:`가 오히려 날조 통계를 노출하던 운영 오염. 실집계만(빈=0).
+        $total     = (int)$pdo->query("SELECT COUNT(*) FROM gdpr_consents WHERE is_active=1")->fetchColumn();
+        $analytics = (int)$pdo->query("SELECT COUNT(*) FROM gdpr_consents WHERE is_active=1 AND analytics=1")->fetchColumn();
+        $marketing = (int)$pdo->query("SELECT COUNT(*) FROM gdpr_consents WHERE is_active=1 AND marketing=1")->fetchColumn();
+        $withdrawn = (int)$pdo->query("SELECT COUNT(*) FROM gdpr_consents WHERE is_active=0 AND withdrawn_at IS NOT NULL")->fetchColumn();
 
         return TemplateResponder::respond($res, [
             'ok' => true,
