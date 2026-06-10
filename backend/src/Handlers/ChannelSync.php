@@ -649,11 +649,80 @@ final class ChannelSync
     // ── TikTok Shop ──────────────────────────────────────────────────────
     private static function tiktokFetch(array $creds, string $tenant = 'demo'): array
     {
-        // 188차 P0 보안: 데모 데이터의 운영 DB 유입 차단. 실 테넌트(데모 외)에는 가짜 상품/주문을 반환하지 않는다.
-        if ($tenant !== 'demo') {
-            return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>'TikTok Shop: 인증키 저장 완료 — 라이브 API 연동 시 실데이터가 동기화됩니다.'];
+        // 데모: 구조화 미리보기(saveProducts/saveOrders chokepoint 가 운영 테넌트 유입 차단).
+        if ($tenant === 'demo') {
+            return ['ok'=>true, 'products'=>self::buildDemoChannelProducts('tiktok','TikTok Shop'), 'orders'=>self::buildDemoChannelOrders('tiktok','TikTok Shop'), 'note'=>'demo preview'];
         }
-        return ['ok'=>true, 'products'=>self::buildDemoChannelProducts('tiktok','TikTok Shop'), 'orders'=>self::buildDemoChannelOrders('tiktok','TikTok Shop'), 'note'=>'TikTok Shop API: 인증키 저장. App Key+Secret 검증 완료.'];
+        // [현 차수] TikTok Shop Open API v202309 실연동 — HMAC-SHA256 서명 + shop_cipher 2단계.
+        //   자격증명: app_key, app_secret, access_token, (선택) shop_cipher. (라이브 검증은 실 판매자 계정 필요.)
+        $appKey      = trim((string)($creds['app_key'] ?? ''));
+        $appSecret   = trim((string)($creds['app_secret'] ?? $creds['secret_key'] ?? ''));
+        $accessToken = trim((string)($creds['access_token'] ?? $creds['key_value'] ?? ''));
+        $shopCipher  = trim((string)($creds['shop_cipher'] ?? ''));
+        if ($appKey === '' || $appSecret === '' || $accessToken === '') {
+            return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>'TikTok Shop: app_key·app_secret·access_token 입력 필요'];
+        }
+        $base = 'https://open-api.tiktokglobalshop.com';
+        // 1) shop_cipher 미입력 시 인가된 샵 목록에서 도출.
+        if ($shopCipher === '') {
+            $path = '/authorization/202309/shops';
+            $q = ['app_key' => $appKey, 'timestamp' => (string)time()];
+            $q['sign'] = self::tiktokSign($appSecret, $path, $q, '');
+            [$sCode, $sBody] = self::httpGet($base . $path . '?' . http_build_query($q), ['x-tts-access-token' => $accessToken, 'Content-Type' => 'application/json']);
+            if ($sCode >= 400 || (int)($sBody['code'] ?? -1) !== 0) {
+                return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>"TikTok Shop 샵 조회 실패(code={$sCode}) — app_key/app_secret/access_token 확인"];
+            }
+            $shops = (array)($sBody['data']['shops'] ?? []);
+            $shopCipher = (string)($shops[0]['cipher'] ?? '');
+            if ($shopCipher === '') {
+                return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>'TikTok Shop: 인가된 샵 없음 — 판매자 앱 인증 확인'];
+            }
+        }
+        // 2) 최근 7일 주문 검색(POST). query=서명대상(app_key/timestamp/shop_cipher/page_size), body=기간 필터.
+        $path = '/order/202309/orders/search';
+        $q = ['app_key' => $appKey, 'timestamp' => (string)time(), 'shop_cipher' => $shopCipher, 'page_size' => '50'];
+        $bodyJson = json_encode(['create_time_ge' => time() - 7 * 86400, 'create_time_lt' => time()], JSON_UNESCAPED_UNICODE);
+        $q['sign'] = self::tiktokSign($appSecret, $path, $q, (string)$bodyJson);
+        [$oCode, $oBody] = self::httpPost($base . $path . '?' . http_build_query($q), ['x-tts-access-token' => $accessToken, 'Content-Type' => 'application/json'], (string)$bodyJson);
+        if ($oCode >= 400 || (int)($oBody['code'] ?? -1) !== 0) {
+            return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>"TikTok Shop 주문 조회 실패(code={$oCode}) — 권한/shop_cipher 확인"];
+        }
+        $orders = [];
+        foreach ((array)($oBody['data']['orders'] ?? []) as $o) {
+            $oid = (string)($o['id'] ?? '');
+            if ($oid === '') continue;
+            $items = (array)($o['line_items'] ?? []);
+            $first = $items[0] ?? [];
+            $orders[] = [
+                'channel_order_id' => $oid,
+                'buyer_name'  => (string)($o['recipient_address']['name'] ?? ''),
+                'buyer_email' => (string)($o['buyer_email'] ?? ''),
+                'product_name'=> (string)($first['product_name'] ?? 'TikTok Shop Order'),
+                'sku'         => (string)($first['seller_sku'] ?? $first['sku_id'] ?? ''),
+                'qty'         => count($items),
+                'unit_price'  => 0,
+                'total_price' => (float)($o['payment']['total_amount'] ?? 0),
+                'status'      => strtolower((string)($o['status'] ?? 'unpaid')),
+                'ordered_at'  => isset($o['create_time']) ? gmdate('c', (int)$o['create_time']) : gmdate('c'),
+                'source'      => 'tiktok_api',
+            ];
+        }
+        return ['ok'=>true, 'products'=>[], 'orders'=>$orders, 'note'=>count($orders) . ' TikTok Shop orders synced'];
+    }
+
+    /** TikTok Shop Open API v202309 HMAC-SHA256 서명. message = appSecret + path + 정렬된 {key}{value} 연결 + body + appSecret. */
+    private static function tiktokSign(string $appSecret, string $path, array $params, string $body = ''): string
+    {
+        $filtered = [];
+        foreach ($params as $k => $v) {
+            if ($k === 'sign' || $k === 'access_token') continue; // sign·access_token 제외
+            $filtered[$k] = $v;
+        }
+        ksort($filtered); // key 알파벳 정렬
+        $concat = '';
+        foreach ($filtered as $k => $v) { $concat .= $k . $v; } // {key}{value} 연결
+        $message = $appSecret . $path . $concat . $body . $appSecret;
+        return hash_hmac('sha256', $message, $appSecret);
     }
 
     // ── G마켓/11번가/기타 ─────────────────────────────────────────────────
