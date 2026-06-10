@@ -87,7 +87,7 @@ final class InstagramDM
 
         // 191차: ON CONFLICT(tenant_id,platform) → 드라이버별 upsert.
         $cols = "tenant_id,platform,page_id,access_token,page_name,ig_username,test_status,updated_at";
-        $vals = [$tenant, $platform, $pageId, $token, $testResult['page_name'] ?? '', $testResult['ig_username'] ?? '', $testResult['ok'] ? 'ok' : 'error', $now];
+        $vals = [$tenant, $platform, $pageId, ($token === '' ? '' : \Genie\Crypto::encrypt($token)), $testResult['page_name'] ?? '', $testResult['ig_username'] ?? '', $testResult['ok'] ? 'ok' : 'error', $now]; // 209차 P1: secret-at-rest
         if (self::isMysql($pdo)) {
             $pdo->prepare("INSERT INTO instagram_settings($cols) VALUES(?,?,?,?,?,?,?,?)
                 ON DUPLICATE KEY UPDATE page_id=VALUES(page_id),access_token=VALUES(access_token),page_name=VALUES(page_name),ig_username=VALUES(ig_username),test_status=VALUES(test_status),updated_at=VALUES(updated_at)")->execute($vals);
@@ -165,6 +165,7 @@ final class InstagramDM
         $cfg ->execute([$tenant, $platform]);
         $settings = $cfg->fetch(PDO::FETCH_ASSOC);
         if (!$settings) return TemplateResponder::respond($res->withStatus(400), ['error' => 'Not configured']);
+        if (!empty($settings['access_token'])) $settings['access_token'] = \Genie\Crypto::decrypt((string)$settings['access_token']); // 209차 P1: secret-at-rest
 
         $result = self::sendDM($settings['page_id'], $settings['access_token'], $recipientId, $message, $platform);
         $pdo->prepare("INSERT INTO instagram_messages(tenant_id,platform,sender_id,message,direction,status,created_at) VALUES(?,?,?,?,?,?,?)")

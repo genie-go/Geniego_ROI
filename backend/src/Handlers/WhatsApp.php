@@ -100,7 +100,7 @@ final class WhatsApp
 
         // 191차: ON CONFLICT → 드라이버별 upsert.
         $cols = "tenant_id,phone_number_id,access_token,business_id,test_status,last_tested_at,updated_at";
-        $vals = [$tenant, $phoneNumberId, $accessToken, $businessId, $testResult['ok'] ? 'ok' : 'error', $now, $now];
+        $vals = [$tenant, $phoneNumberId, ($accessToken === '' ? '' : \Genie\Crypto::encrypt($accessToken)), $businessId, $testResult['ok'] ? 'ok' : 'error', $now, $now]; // 209차 P1: secret-at-rest
         if (self::isMysql($pdo)) {
             $pdo->prepare("INSERT INTO whatsapp_settings($cols) VALUES(?,?,?,?,?,?,?)
                 ON DUPLICATE KEY UPDATE phone_number_id=VALUES(phone_number_id),access_token=VALUES(access_token),
@@ -179,6 +179,7 @@ final class WhatsApp
         $settings->execute([$tenant]);
         $cfg = $settings->fetch(PDO::FETCH_ASSOC);
         if (!$cfg) return TemplateResponder::respond($res->withStatus(400), ['error' => 'WhatsApp not configured']);
+        if (!empty($cfg['access_token'])) $cfg['access_token'] = \Genie\Crypto::decrypt((string)$cfg['access_token']); // 209차 P1: secret-at-rest
 
         $result = self::sendMessage($cfg['phone_number_id'], $cfg['access_token'], $to, $templateName, $textBody, $params);
 
@@ -211,6 +212,7 @@ final class WhatsApp
             $s = $pdo->prepare("SELECT phone_number_id,access_token FROM whatsapp_settings WHERE tenant_id=? AND is_active=1");
             $s->execute([$tenant]);
             $cfg = $s->fetch(PDO::FETCH_ASSOC);
+            if ($cfg && !empty($cfg['access_token'])) $cfg['access_token'] = \Genie\Crypto::decrypt((string)$cfg['access_token']); // 209차 P1: secret-at-rest
         }
 
         // 191차: 운영(비데모) 발신 설정 미존재 시 가짜 랜덤 'delivered' 기록 금지 → 명시적 차단(188차).

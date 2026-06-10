@@ -91,7 +91,7 @@ final class SmsMarketing
 
         // 191차: SQLite `ON CONFLICT` → 드라이버별 upsert(MySQL=ON DUPLICATE KEY UPDATE).
         $cols = "tenant_id,provider,app_key,secret_key,sender_no,test_status,updated_at";
-        $vals = [$tenant,$provider,$appKey,$secretKey,$senderNo,$testResult['ok']?'ok':'error',$now];
+        $vals = [$tenant,$provider,$appKey,($secretKey === '' ? '' : \Genie\Crypto::encrypt($secretKey)),$senderNo,$testResult['ok']?'ok':'error',$now]; // 209차 P1: secret-at-rest
         if (self::isMysql($pdo)) {
             $pdo->prepare("INSERT INTO sms_settings($cols) VALUES(?,?,?,?,?,?,?)
                 ON DUPLICATE KEY UPDATE provider=VALUES(provider),app_key=VALUES(app_key),secret_key=VALUES(secret_key),
@@ -162,6 +162,7 @@ final class SmsMarketing
         $cfg->execute([$tenant]);
         $settings = $cfg->fetch(PDO::FETCH_ASSOC);
         if (!$settings) return TemplateResponder::respond($res->withStatus(400),['error'=>'SMS not configured']);
+        if (!empty($settings['secret_key'])) $settings['secret_key'] = \Genie\Crypto::decrypt((string)$settings['secret_key']); // 209차 P1: secret-at-rest
 
         $result = self::sendSms($settings['app_key'],$settings['secret_key'],$settings['sender_no'],$to,$message,$type);
 
@@ -190,6 +191,7 @@ final class SmsMarketing
             $s = $pdo->prepare("SELECT app_key,secret_key,sender_no FROM sms_settings WHERE tenant_id=? AND is_active=1");
             $s->execute([$tenant]);
             $cfg = $s->fetch(PDO::FETCH_ASSOC);
+            if ($cfg && !empty($cfg['secret_key'])) $cfg['secret_key'] = \Genie\Crypto::decrypt((string)$cfg['secret_key']); // 209차 P1: secret-at-rest
         }
 
         // 189차+ 신뢰성: 운영(비데모) 발신 설정 미존재 시 가짜 랜덤 'delivered' 기록 금지 → 명시적 차단.

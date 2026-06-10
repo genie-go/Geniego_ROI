@@ -33,6 +33,10 @@ class PixelTracking
         return $res->withHeader('Content-Type', 'application/json')->withStatus($status);
     }
 
+    /** 209차 P1: secret-at-rest. 빈값은 빈값, 평문 복호화는 passthrough(기존 평문행 하위호환). */
+    private static function enc(string $v): string { return $v === '' ? '' : \Genie\Crypto::encrypt($v); }
+    private static function dec(string $v): string { return $v === '' ? '' : \Genie\Crypto::decrypt($v); }
+
     private static function ensureTables(): void
     {
         $pdo = self::db();
@@ -91,6 +95,8 @@ class PixelTracking
         $cfgStmt = $pdo->prepare("SELECT * FROM pixel_configs WHERE pixel_id=:pid LIMIT 1");
         $cfgStmt->execute([':pid' => $pixelId]);
         $config = $cfgStmt->fetch(\PDO::FETCH_ASSOC);
+        // 209차 P1: secret-at-rest 복호화(서버 전송 API 토큰). 평문 행은 passthrough.
+        if ($config) foreach (['meta_api_token','tiktok_access_token','ga4_api_secret'] as $sk) { if (!empty($config[$sk])) $config[$sk] = self::dec((string)$config[$sk]); }
         $tenant = $config['tenant_id'] ?? 'unknown';
 
         $eventId = 'evt_' . bin2hex(random_bytes(12));
@@ -228,8 +234,8 @@ class PixelTracking
             VALUES (:t,:pid,:name,:dom,:mpid,:mapi,:tpid,:tapi,:ga4id,:ga4sec,:ca,:ua)
         ")->execute([
             ':t'=>$tenant, ':pid'=>$pixelId, ':name'=>$b['name'] ?? '기본 픽셀', ':dom'=>$b['domain'] ?? '',
-            ':mpid'=>$b['meta_pixel_id'] ?? '', ':mapi'=>$b['meta_api_token'] ?? '', ':tpid'=>$b['tiktok_pixel_id'] ?? '',
-            ':tapi'=>$b['tiktok_access_token'] ?? '', ':ga4id'=>$b['ga4_measurement_id'] ?? '', ':ga4sec'=>$b['ga4_api_secret'] ?? '', ':ca'=>$now, ':ua'=>$now,
+            ':mpid'=>$b['meta_pixel_id'] ?? '', ':mapi'=>self::enc($b['meta_api_token'] ?? ''), ':tpid'=>$b['tiktok_pixel_id'] ?? '',
+            ':tapi'=>self::enc($b['tiktok_access_token'] ?? ''), ':ga4id'=>$b['ga4_measurement_id'] ?? '', ':ga4sec'=>self::enc($b['ga4_api_secret'] ?? ''), ':ca'=>$now, ':ua'=>$now,
         ]);
         return self::json($res, ['ok' => true, 'pixel_id' => $pixelId]);
     }

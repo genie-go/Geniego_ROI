@@ -77,6 +77,7 @@ class KakaoChannel
         $st = self::db()->prepare("SELECT id, sender_key, channel_id, channel_name, mode, updated_at FROM kakao_settings WHERE tenant_id=? ORDER BY id DESC LIMIT 1");
         $st->execute([$tenant]);
         $row = $st->fetch(\PDO::FETCH_ASSOC);
+        if ($row && !empty($row['sender_key'])) $row['sender_key'] = \Genie\Crypto::decrypt((string)$row['sender_key']); // 209차 P1: secret-at-rest(소유자 본인 표시)
         return self::jsonRes($res, ['ok'=>true,'settings'=>$row ?: null]);
     }
 
@@ -93,12 +94,12 @@ class KakaoChannel
         $now = self::now();
         if ($exists) {
             $pdo->prepare("UPDATE kakao_settings SET sender_key=:sk, api_key=:ak, channel_id=:ci, channel_name=:cn, mode=:m, updated_at=:ua WHERE id=:id AND tenant_id=:t")->execute([
-                ':id'=>$exists['id'], ':t'=>$tenant, ':sk'=>$b['sender_key']??'', ':ak'=>$b['api_key']??'',
+                ':id'=>$exists['id'], ':t'=>$tenant, ':sk'=>(($b['sender_key']??'')==='' ? '' : \Genie\Crypto::encrypt($b['sender_key'])), ':ak'=>(($b['api_key']??'')==='' ? '' : \Genie\Crypto::encrypt($b['api_key'])), // 209차 P1: secret-at-rest
                 ':ci'=>$b['channel_id']??'', ':cn'=>$b['channel_name']??'', ':m'=>$b['mode']??'mock', ':ua'=>$now,
             ]);
         } else {
             $pdo->prepare("INSERT INTO kakao_settings (tenant_id, sender_key, api_key, channel_id, channel_name, mode, updated_at) VALUES (:t,:sk,:ak,:ci,:cn,:m,:ua)")->execute([
-                ':t'=>$tenant, ':sk'=>$b['sender_key']??'', ':ak'=>$b['api_key']??'',
+                ':t'=>$tenant, ':sk'=>(($b['sender_key']??'')==='' ? '' : \Genie\Crypto::encrypt($b['sender_key'])), ':ak'=>(($b['api_key']??'')==='' ? '' : \Genie\Crypto::encrypt($b['api_key'])), // 209차 P1: secret-at-rest
                 ':ci'=>$b['channel_id']??'', ':cn'=>$b['channel_name']??'', ':m'=>$b['mode']??'mock', ':ua'=>$now,
             ]);
         }
@@ -183,6 +184,7 @@ class KakaoChannel
         $cs = $pdo->prepare("SELECT * FROM kakao_settings WHERE tenant_id=? ORDER BY id DESC LIMIT 1");
         $cs->execute([$tenant]);
         $cfg = $cs->fetch(\PDO::FETCH_ASSOC);
+        if ($cfg) { foreach (['sender_key','api_key'] as $sk) { if (!empty($cfg[$sk])) $cfg[$sk] = \Genie\Crypto::decrypt((string)$cfg[$sk]); } } // 209차 P1: secret-at-rest
         $mode = $cfg['mode'] ?? 'mock';
 
         if ($mode === 'live' && !empty($cfg['sender_key']) && !empty($cfg['api_key'])) {
@@ -247,6 +249,7 @@ class KakaoChannel
         $cs = $pdo->prepare("SELECT * FROM kakao_settings WHERE tenant_id=? ORDER BY id DESC LIMIT 1");
         $cs->execute([$tenant]);
         $cfg = $cs->fetch(\PDO::FETCH_ASSOC);
+        if ($cfg) { foreach (['sender_key','api_key'] as $sk) { if (!empty($cfg[$sk])) $cfg[$sk] = \Genie\Crypto::decrypt((string)$cfg[$sk]); } } // 209차 P1: secret-at-rest
         $mode = $cfg['mode'] ?? 'mock';
 
         // 대상 고객 (★테넌트 스코프)
