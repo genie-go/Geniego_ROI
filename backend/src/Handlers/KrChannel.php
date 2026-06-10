@@ -290,16 +290,16 @@ final class KrChannel {
             $stmt = $pdo->prepare(
                 'SELECT * FROM kr_settlement_line WHERE tenant_id=? AND channel_key=?
                  AND DATE(period_start)>=? AND DATE(period_end)<=?
-                 ORDER BY ingested_at DESC LIMIT ?'
+                 ORDER BY ingested_at DESC LIMIT ' . max(1, (int)$limit) // 209차 P1: LIMIT ? MySQL 500 → int inline
             );
-            $stmt->execute([$tenant, $key, $since, $until, $limit]);
+            $stmt->execute([$tenant, $key, $since, $until]);
         } else {
             $stmt = $pdo->prepare(
                 'SELECT * FROM kr_settlement_line WHERE tenant_id=?
                  AND DATE(period_start)>=? AND DATE(period_end)<=?
-                 ORDER BY channel_key, ingested_at DESC LIMIT ?'
+                 ORDER BY channel_key, ingested_at DESC LIMIT ' . max(1, (int)$limit) // 209차 P1: LIMIT ? MySQL 500 → int inline
             );
-            $stmt->execute([$tenant, $since, $until, $limit]);
+            $stmt->execute([$tenant, $since, $until]);
         }
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
         foreach ($rows as &$r) {

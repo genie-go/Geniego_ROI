@@ -224,13 +224,12 @@ final class CouponAdmin
             $params[] = "%$q%"; $params[] = "%$q%"; $params[] = "%$q%";
         }
         $whereSql = $where ? ('WHERE ' . implode(' AND ', $where)) : '';
-        $params[] = $limit;
         $stmt = Db::pdo()->prepare(
             "SELECT id, code, plan, duration_days, max_uses, use_count,
                     issued_to_user_id, issued_to_email, note, is_revoked,
                     redeemed_at, redeemed_by_user_id, created_at
              FROM free_coupons $whereSql
-             ORDER BY id DESC LIMIT ?"
+             ORDER BY id DESC LIMIT " . max(1, (int)$limit) // 209차 P1: LIMIT ? MySQL 500 → int inline
         );
         $stmt->execute($params);
         $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);

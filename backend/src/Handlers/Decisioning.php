@@ -314,8 +314,8 @@ final class Decisioning {
                 WHERE tenant_id = ? AND date >= ? AND date <= ?
                 GROUP BY sku
                 ORDER BY revenue DESC
-                LIMIT ?");
-            $stmt2->execute([$tenant,$since,$until,$limit]);
+                LIMIT " . max(1, (int)$limit)); // 209차 P1: LIMIT ? MySQL 500 → int inline
+            $stmt2->execute([$tenant,$since,$until]);
             $rows2 = $stmt2->fetchAll(PDO::FETCH_ASSOC);
             foreach ($rows2 as $r) {
                 $aff[] = [

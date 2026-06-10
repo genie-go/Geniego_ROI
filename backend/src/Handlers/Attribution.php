@@ -264,9 +264,9 @@ final class Attribution {
 
         $stmt = $pdo->prepare(
             'SELECT * FROM attribution_result WHERE tenant_id=? AND DATE(created_at)>=? AND DATE(created_at)<=?
-             ORDER BY created_at DESC LIMIT ?'
+             ORDER BY created_at DESC LIMIT ' . max(1, (int)$limit) // 209차 P1: LIMIT ? 배열바인딩 MySQL 500 → 검증 int inline
         );
-        $stmt->execute([$tenant, $since, $until, $limit]);
+        $stmt->execute([$tenant, $since, $until]);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
         foreach ($rows as &$r) {
             $r['evidence'] = json_decode((string)($r['evidence_json'] ?? '{}'), true);

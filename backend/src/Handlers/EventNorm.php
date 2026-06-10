@@ -456,14 +456,11 @@ final class EventNorm
         $sql   = 'SELECT id,vendor,source_system,event_type,dedup_key,received_at,status,error_msg,normalized_event_id,'
                . 'SUBSTRING(raw_payload,1,300) AS raw_preview'
                . ' FROM raw_vendor_event WHERE ' . implode(' AND ', $where)
-               . ' ORDER BY id DESC LIMIT ?';
-        $bind[] = $limit;
+               . ' ORDER BY id DESC LIMIT ' . max(1, (int)$limit); // 209차 P1: LIMIT ? 배열바인딩 MySQL 500 → 검증 int inline
         $stmt = $pdo->prepare($sql);
         $stmt->execute($bind);
         $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-        $total = (int)$pdo->prepare('SELECT COUNT(*) FROM raw_vendor_event WHERE ' . implode(' AND ', array_slice($where, 0)))
-                          ->execute(array_slice($bind, 0, count($bind)-1)) ? 0 : 0;
-        // simple count
+        // 209차: 무의미 dead 라인(항상 0·아래서 재계산) 제거 — bind 슬라이스 의존 제거
         $cntStmt = $pdo->prepare('SELECT COUNT(*) FROM raw_vendor_event WHERE tenant_id=?');
         $cntStmt->execute([$tenant]); $total = (int)$cntStmt->fetchColumn();
         return self::json($res, ['ok' => true, 'total' => $total, 'rows' => $rows]);
@@ -489,8 +486,7 @@ final class EventNorm
              . 'creator_handle,ugc_content_id,ugc_rights_status,ugc_whitelist_status,ugc_branded_content,'
              . 'currency,region,normalized_at,normalizer_version'
              . ' FROM normalized_activity_event WHERE ' . implode(' AND ', $where)
-             . ' ORDER BY id DESC LIMIT ?';
-        $bind[] = $limit;
+             . ' ORDER BY id DESC LIMIT ' . max(1, (int)$limit); // 209차 P1: LIMIT ? 배열바인딩 MySQL 500 → 검증 int inline
         $stmt = $pdo->prepare($sql);
         $stmt->execute($bind);
         $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
