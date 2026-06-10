@@ -684,11 +684,17 @@ final class ChannelCreds
             try {
                 $now = gmdate('c');
                 $note = "apply:{$ticketId}|{$memberEmail}|{$requestedAt}";
-                $pdo->prepare(
-                    'INSERT INTO channel_credential(tenant_id,channel,cred_type,label,key_name,key_value,note,is_active,updated_at,created_at)
-                     VALUES(?,?,?,?,?,?,?,0,?,?)
-                     ON CONFLICT(tenant_id,channel,key_name) DO UPDATE SET note=excluded.note, updated_at=excluded.updated_at'
-                )->execute([$tenant, $channel, 'apply_ticket', '발급신청', '__apply__', $ticketId, $note, $now, $now]);
+                // 209차 sweep: bare ON CONFLICT(SQLite 전용)는 MySQL 1064 → 내부 catch 로 신청노트 무음 미기록.
+                //   channel_credential 은 UNIQUE(tenant_id,channel,key_name) 보유 → 드라이버 분기(L295 패턴).
+                $applySql = ($pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql')
+                    ? 'INSERT INTO channel_credential(tenant_id,channel,cred_type,label,key_name,key_value,note,is_active,updated_at,created_at)
+                       VALUES(?,?,?,?,?,?,?,0,?,?)
+                       ON DUPLICATE KEY UPDATE note=VALUES(note), updated_at=VALUES(updated_at)'
+                    : 'INSERT INTO channel_credential(tenant_id,channel,cred_type,label,key_name,key_value,note,is_active,updated_at,created_at)
+                       VALUES(?,?,?,?,?,?,?,0,?,?)
+                       ON CONFLICT(tenant_id,channel,key_name) DO UPDATE SET note=excluded.note, updated_at=excluded.updated_at';
+                $pdo->prepare($applySql)
+                    ->execute([$tenant, $channel, 'apply_ticket', '발급신청', '__apply__', $ticketId, $note, $now, $now]);
             } catch (\Throwable $e2) {
                 // 최후 폴백: 로그만 남김
                 error_log("[apply] tenant=$tenant channel=$channel ticket=$ticketId email=$memberEmail");

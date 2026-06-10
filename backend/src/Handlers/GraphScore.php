@@ -58,13 +58,21 @@ final class GraphScore {
         $extra = $body;
         foreach (['node_type', 'node_id', 'label'] as $k) unset($extra[$k]);
 
-        $stmt = $pdo->prepare(
-            'INSERT INTO graph_node(tenant_id,node_type,node_id,label,meta_json,created_at)
-             VALUES(?,?,?,?,?,?)
-             ON CONFLICT(tenant_id,node_type,node_id) DO UPDATE SET
-               label=excluded.label, meta_json=excluded.meta_json'
-        );
-        $stmt->execute([$tenant, $type, $id, $label !== '' ? $label : $id, json_encode($extra, JSON_UNESCAPED_UNICODE), gmdate('c')]);
+        // 209차 sweep: 기존 `ON CONFLICT(tenant_id,node_type,node_id)`는 MySQL 에서 1064 구문오류로
+        //   /graph upsertNode 500. graph_node 에는 (tenant_id,node_type,node_id) UNIQUE 제약이 없어
+        //   SQLite·MySQL 모두 upsert 불가 → SELECT-then-upsert(207차 정본).
+        $meta = json_encode($extra, JSON_UNESCAPED_UNICODE);
+        $lbl  = $label !== '' ? $label : $id;
+        $exist = $pdo->prepare('SELECT id FROM graph_node WHERE tenant_id=? AND node_type=? AND node_id=? LIMIT 1');
+        $exist->execute([$tenant, $type, $id]);
+        $row = $exist->fetch(\PDO::FETCH_ASSOC);
+        if ($row) {
+            $pdo->prepare('UPDATE graph_node SET label=?, meta_json=? WHERE id=?')
+                ->execute([$lbl, $meta, $row['id']]);
+        } else {
+            $pdo->prepare('INSERT INTO graph_node(tenant_id,node_type,node_id,label,meta_json,created_at) VALUES(?,?,?,?,?,?)')
+                ->execute([$tenant, $type, $id, $lbl, $meta, gmdate('c')]);
+        }
 
         return TemplateResponder::respond($response, ['ok' => true, 'node_type' => $type, 'node_id' => $id]);
     }
