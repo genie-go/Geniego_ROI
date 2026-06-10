@@ -56,6 +56,18 @@ final class AutoRecommend
         'pet'          => ['naver' => 1.2, 'coupang_ads' => 1.3, 'meta' => 1.1, 'kakao' => 1.1, 'google' => 1.0, 'tiktok' => 1.0],
         'digital'      => ['google' => 1.4, 'meta' => 1.1, 'naver' => 1.2, 'tiktok' => 1.0, 'kakao' => 0.9, 'coupang_ads' => 1.1],
         'sports'       => ['meta' => 1.2, 'tiktok' => 1.3, 'naver' => 1.1, 'google' => 1.0, 'coupang_ads' => 1.1, 'kakao' => 1.0],
+        // [현 차수] 프론트 17개 업종 전수 커버(이전엔 미정의→DEFAULT 균일 폴백, 차별화 무력).
+        'general'      => ['naver' => 1.2, 'coupang_ads' => 1.3, 'meta' => 1.1, 'google' => 1.0, 'kakao' => 1.0, 'tiktok' => 0.9],
+        'travel'       => ['meta' => 1.3, 'google' => 1.3, 'naver' => 1.2, 'tiktok' => 1.1, 'kakao' => 1.0, 'coupang_ads' => 0.7],
+        'platform'     => ['google' => 1.4, 'naver' => 1.2, 'meta' => 1.0, 'kakao' => 0.9, 'tiktok' => 0.8, 'coupang_ads' => 0.7],
+        'overseas_ship'=> ['google' => 1.3, 'naver' => 1.2, 'meta' => 1.2, 'kakao' => 1.0, 'tiktok' => 1.0, 'coupang_ads' => 0.8],
+        'overseas_buy' => ['meta' => 1.3, 'google' => 1.2, 'naver' => 1.2, 'tiktok' => 1.2, 'kakao' => 1.0, 'coupang_ads' => 0.9],
+        'finance'      => ['google' => 1.4, 'naver' => 1.3, 'kakao' => 1.2, 'meta' => 1.1, 'tiktok' => 0.8, 'coupang_ads' => 0.7],
+        'insurance'    => ['naver' => 1.4, 'google' => 1.3, 'kakao' => 1.2, 'meta' => 1.0, 'tiktok' => 0.7, 'coupang_ads' => 0.6],
+        'medical'      => ['naver' => 1.4, 'google' => 1.3, 'kakao' => 1.2, 'meta' => 1.0, 'tiktok' => 0.8, 'coupang_ads' => 0.6],
+        'tax'          => ['naver' => 1.4, 'google' => 1.3, 'kakao' => 1.1, 'meta' => 0.9, 'tiktok' => 0.7, 'coupang_ads' => 0.6],
+        'legal'        => ['naver' => 1.4, 'google' => 1.4, 'kakao' => 1.1, 'meta' => 0.9, 'tiktok' => 0.7, 'coupang_ads' => 0.6],
+        'etc_service'  => ['naver' => 1.2, 'google' => 1.2, 'meta' => 1.1, 'kakao' => 1.1, 'tiktok' => 1.0, 'coupang_ads' => 0.8],
         'DEFAULT'      => ['meta' => 1.0, 'google' => 1.0, 'tiktok' => 1.0, 'naver' => 1.0, 'kakao' => 1.0, 'coupang_ads' => 1.0],
     ];
 
@@ -197,6 +209,23 @@ final class AutoRecommend
     }
 
     /** POST /v424/marketing/auto-recommend */
+    /** [현 차수] 선택 카테고리들의 채널 적합도를 평균 블렌딩. 빈 입력은 DEFAULT(균일). */
+    private static function blendAffinity(array $categories): array
+    {
+        $chans = ['meta', 'google', 'tiktok', 'naver', 'kakao', 'coupang_ads'];
+        $cats = array_values(array_filter($categories, fn($c) => $c !== '' && $c !== 'DEFAULT'));
+        if (empty($cats)) return self::AFFINITY['DEFAULT'];
+        $sum = array_fill_keys($chans, 0.0); $n = 0;
+        foreach ($cats as $c) {
+            $row = self::AFFINITY[$c] ?? self::AFFINITY['DEFAULT'];
+            foreach ($chans as $ch) $sum[$ch] += (float)($row[$ch] ?? 1.0);
+            $n++;
+        }
+        if ($n === 0) return self::AFFINITY['DEFAULT'];
+        foreach ($chans as $ch) $sum[$ch] = round($sum[$ch] / $n, 3);
+        return $sum;
+    }
+
     public static function recommend(Request $req, Response $res): Response
     {
         $b = self::body($req);
@@ -220,7 +249,11 @@ final class AutoRecommend
 
         $tenant = self::tenant($req);
         $measured = self::measured($tenant, max(30, $days));      // 실측 성과(테넌트 스코프)
-        $aff = self::AFFINITY[$category] ?? self::AFFINITY['DEFAULT'];
+        // [현 차수] 다중 카테고리 지원 — 선택한 판매상품 카테고리 전체의 적합도를 블렌딩(평균).
+        //   (이전엔 selCats[0] 단일값만 반영해 다중선택이 무력했음.)
+        $categories = array_values(array_filter(array_map('strval', (array)($b['categories'] ?? []))));
+        if (empty($categories) && $category !== '' && $category !== 'DEFAULT') $categories = [$category];
+        $aff = self::blendAffinity($categories);
         $bench = self::loadBenchmarks();
         $only = array_filter(array_map('strval', (array)($b['channels'] ?? [])));
 

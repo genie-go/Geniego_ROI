@@ -447,7 +447,7 @@ export default function AutoMarketing() {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tok}` },
                     body: JSON.stringify({
-                        budget: effectiveBudget, category: selCats[0], period, channels: selAds,
+                        budget: effectiveBudget, category: selCats[0], categories: selCats, period, channels: selAds,
                         objective,                                  // Phase2: 다목표 선택
                         guardrails: { min_roas: Number(minRoas) || 0, max_share: (Number(maxShare) || 60) / 100 },
                     }),
@@ -522,7 +522,7 @@ export default function AutoMarketing() {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tok}` },
                         body: JSON.stringify({
-                            name, category: selCats[0] || '', budget: strategy.budget, period,
+                            name, category: selCats[0] || '', categories: selCats, budget: strategy.budget, period,
                             channels: selAds,
                             allocations: (strategy.allocations || []).map(a => ({ channel: a.ch?.id, alloc: a.alloc, roas: a.roas })),
                             est_roas: String(strategy.estimatedRoas || ''),

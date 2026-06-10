@@ -13,15 +13,16 @@ use Throwable;
  * AdChannelConnect 로 등록한 매체 자격증명(channel_credential, 테넌트 격리)을 사용해
  * 각 매체에 실제 캠페인을 생성/예산변경/일시정지한다. AutoCampaign(launch/optimize)에서 호출.
  *
- * ★★ 안전 설계(2중) — 검증 안 된 코드가 실제 광고비를 쓰지 않도록:
- *   1) 전역 게이트 AD_EXECUTION_ENABLED!=='1' 이면 어떤 매체 API 도 호출하지 않고
- *      {ok:false, status:'execution_disabled'} 반환(코드 배포만으로는 절대 집행 안 됨).
- *   2) 활성화돼도 모든 캠페인은 PAUSED/정지 상태로 생성 → 사용자가 매체 화면에서
- *      검토 후 직접 활성화하기 전까지 단 1원도 집행되지 않음.
+ * ★★ 안전 설계(SaaS 기본 활성 + 무지출 보장) — [현 차수]:
+ *   구독회원이 자격증명을 등록하고 실행하면 즉시 집행되도록 기본 활성화한다. 다만 실제
+ *   광고비가 의도치 않게 나가지 않도록 3중 안전장치를 둔다:
+ *   1) 자격증명 게이트: 각 어댑터는 해당 매체 자격증명이 없으면 no_credentials 반환(실 API 호출 안 함).
+ *   2) PAUSED 생성: 모든 캠페인은 PAUSED/정지 상태로만 생성 → 사용자가 매체 화면에서 검토 후
+ *      직접 활성화하기 전까지 단 1원도 집행되지 않음.
+ *   3) 긴급 킬스위치: AD_EXECUTION_DISABLED=1(또는 AD_EXECUTION_ENABLED=0)이면 전역 차단(사고 대응).
  *   - 모든 호출은 honest 결과(매체 에러 그대로) 반환. 무음 성공 금지.
  *
- * ★ 미검증 고지: 실 쓰기 OAuth 자격증명이 없어 라이브 API 응답을 검증하지 못함.
- *   문서 스펙 기준 구현이며, 자격증명 연결 후 라이브 검증 단계가 필요하다.
+ * ★ 미검증 고지: 실 쓰기 자격증명으로 라이브 검증 후 운영 권장. 문서 스펙 기준 구현.
  *   Coupang 광고 집행 생성 API 는 파트너 승인이 별도 필요 → 자동 생성 미지원(정직 표기).
  */
 final class AdAdapters
@@ -29,13 +30,38 @@ final class AdAdapters
     private const META_VER = 'v19.0';
     private const GOOGLE_VER = 'v16';
 
+    /** 집행 허용 여부. [현 차수] 기본 활성(자격증명+PAUSED 안전장치). 명시적 비활성/킬스위치만 차단. */
     public static function executionEnabled(): bool
     {
-        return getenv('AD_EXECUTION_ENABLED') === '1';
+        if (getenv('AD_EXECUTION_DISABLED') === '1') return false; // 긴급 킬스위치
+        if (getenv('AD_EXECUTION_ENABLED') === '0') return false;  // 명시적 비활성(레거시 보존)
+        return true; // 기본 활성 — 자격증명 미연결 시 어댑터가 no_credentials, 캠페인은 PAUSED 생성(무지출)
     }
 
-    /** channel_credential 에서 자격증명 1건 조회(테넌트 스코프). */
+    /** channel_credential 에서 자격증명 1건 조회(테넌트 스코프).
+     *  [현 차수] 채널·키 별칭 통합 — AdChannelConnect 수동등록('meta_ads'/'access_token')과
+     *  OAuth 콜백 저장('meta'/'oauth_access_token') 양 경로 모두에서 자격증명을 찾는다. */
     private static function cred(PDO $pdo, string $tenant, string $channel, string $keyName): string
+    {
+        static $chanAlias = [
+            'meta_ads'        => ['meta_ads', 'meta', 'facebook'],
+            'google_ads'      => ['google_ads', 'google'],
+            'tiktok_business' => ['tiktok_business', 'tiktok'],
+            'naver_sa'        => ['naver_sa', 'naver'],
+        ];
+        static $keyAlias = ['access_token' => ['access_token', 'oauth_access_token']];
+        $chans = $chanAlias[$channel] ?? [$channel];
+        $keys  = $keyAlias[$keyName] ?? [$keyName];
+        foreach ($chans as $c) {
+            foreach ($keys as $k) {
+                $v = self::credRaw($pdo, $tenant, $c, $k);
+                if ($v !== '') return $v;
+            }
+        }
+        return '';
+    }
+
+    private static function credRaw(PDO $pdo, string $tenant, string $channel, string $keyName): string
     {
         try {
             $st = $pdo->prepare('SELECT key_value FROM channel_credential WHERE tenant_id=? AND channel=? AND key_name=? AND is_active=1 LIMIT 1');

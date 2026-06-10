@@ -118,6 +118,9 @@ class AutoCampaign
 
             $name     = trim((string)($d['name'] ?? '')) ?: '자동 캠페인';
             $category = trim((string)($d['category'] ?? ''));
+            // [현 차수] 다중 카테고리 영속(선택 전체). category 컬럼에 콤마 결합(표시·참조용, 120자 절단).
+            $categoriesArr = is_array($d['categories'] ?? null) ? array_values(array_filter(array_map('strval', $d['categories']))) : [];
+            if (!empty($categoriesArr)) $category = implode(',', $categoriesArr);
             $budget   = (int)($d['budget'] ?? 0);
             $period   = trim((string)($d['period'] ?? 'monthly'));
             $channels = is_array($d['channels'] ?? null) ? array_values(array_filter(array_map('strval', $d['channels']))) : [];
@@ -301,6 +304,20 @@ class AutoCampaign
         ];
     }
 
+    /** [현 차수] 당월(1일~오늘) 누적 지출 — 캠페인의 external_id 들 기준(테넌트 스코프). 월 예산 페이싱·cap 용. */
+    private static function monthlySpentToDate(PDO $pdo, string $tenant, array $extIdMap): float
+    {
+        $extIds = array_values(array_filter(array_map('strval', $extIdMap)));
+        if (empty($extIds)) return 0.0; // 아직 매체 집행 전 → 소진 0
+        $monthStart = gmdate('Y-m-01');
+        try {
+            $in = implode(',', array_fill(0, count($extIds), '?'));
+            $st = $pdo->prepare("SELECT COALESCE(SUM(spend),0) FROM performance_metrics WHERE tenant_id=? AND date >= ? AND campaign_ext_id IN ($in)");
+            $st->execute(array_merge([$tenant, $monthStart], $extIds));
+            return (float)$st->fetchColumn();
+        } catch (\Throwable $e) { return 0.0; }
+    }
+
     private const DRIFT_WINDOW_DAYS = 21;  // 드리프트 기준 기간(일)
 
     /** 채널 일별 ROAS 시계열(window일). campaign_ext_id 있으면 캠페인 입도, 컬럼 부재 시 채널 폴백. */
@@ -386,10 +403,24 @@ class AutoCampaign
         //   과집중 방지(한 채널에 예산 쏠림 차단). 0=미적용.
         $maxShare = isset($gr['max_share']) && (float)$gr['max_share'] > 0 ? min(1.0, (float)$gr['max_share']) : 0.0;
 
+        // ── [현 차수] 1개월 예산 페이싱 + 전역 소진 cap (사용자 요구: 1개월 예산 내 지속 자동화) ──
+        //   누적 지출(당월)을 추적해 ① 잔여 예산을 잔여일수로 페이싱(과/저지출 방지) ② 월 예산 소진 시
+        //   전 채널 자동 정지(과지출 차단). monthly 외 기간은 비적용(0).
+        $daysInMonth = (int)gmdate('t'); $dayOfMonth = (int)gmdate('j');
+        $daysLeft = max(1, $daysInMonth - $dayOfMonth + 1);
+        $spentMTD = ($period === 'monthly') ? self::monthlySpentToDate($pdo, $tenant, $extIdMap) : 0.0;
+        $remaining = max(0, $budget - (int)round($spentMTD));
+        $budgetCapHit = ($period === 'monthly' && $budget > 0 && $spentMTD >= $budget);
+
         // ROAS 기반 가중치 + 이상감지(zero-conv 낭비/손실 채널 자동 회수). 데이터 없으면 중립.
         $weights = []; $decisions = [];
         foreach ($channels as $ch) {
             $m = $metrics[$ch];
+            if ($budgetCapHit) {  // 월 예산 전액 소진 → 전 채널 정지(과지출 차단)
+                $weights[$ch] = 0.0;
+                $decisions[] = ['channel' => $ch, 'action' => 'pause', 'old' => $oldMap[strtolower($ch)] ?? 0, 'new' => 0, 'roas' => $m['roas'], 'ctr' => $m['ctr'], 'reason' => "1개월 예산 소진(당월 지출 ₩" . number_format($spentMTD) . " / 예산 ₩" . number_format($budget) . ") → 전 채널 자동 정지"];
+                continue;
+            }
             if (!$m['has_data']) { $weights[$ch] = 0.5; continue; }
             // ① 이상감지: 지출은 있는데 전환 0 (낭비) → 즉시 회수(다채널 시).
             if ($m['conversions'] === 0 && $m['spend'] >= $zeroConvFloor && count($channels) > 1) {
@@ -456,6 +487,11 @@ class AutoCampaign
                 $rr = AdAdapters::pause($pdo, $tenant, $connKey, $extId);
             } else {
                 $daily = max(1000, (int)round(((int)($d['new'] ?? 0)) / max(1, $pdays) / 100) * 100);
+                // [현 차수] 월 예산 페이싱: 잔여 예산을 잔여일수로 균등 소진(과지출 방지).
+                if ($period === 'monthly' && $remaining > 0) {
+                    $pacedDaily = (int)round($remaining / $daysLeft / 100) * 100;
+                    if ($pacedDaily > 0) $daily = min($daily, max(1000, $pacedDaily));
+                }
                 if ($maxDaily > 0) $daily = min($daily, $maxDaily); // 일예산 상한 가드(과지출 차단)
                 $rr = AdAdapters::updateBudget($pdo, $tenant, $connKey, $extId, $daily);
             }
