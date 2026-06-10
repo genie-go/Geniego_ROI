@@ -383,7 +383,10 @@ function SmsMarketingInner(){
     let ihubChannels=[];
     try{const cs=useConnectorSync();ihubChannels=(cs?.connectors||[]).filter(c=>['nhn_cloud','nhn','aligo','coolsms','twilio'].includes(c.channel?.toLowerCase()));}catch(e){}
 
-    const loadData=useCallback(async()=>{if(checkRate())return;setLoading(true);const[s,m]=await Promise.all([apiFetch('/api/sms/settings'),apiFetch('/api/sms/messages?limit=30')]);setSettings(s);setMessages(m.messages||[]);setLoading(false);},[checkRate]);
+    // 212차 #6(P2): setState-after-unmount 방어 — await 도중/30초 폴링 직전 언마운트 시 setState 가드.
+    const aliveRef=useRef(true);
+    useEffect(()=>()=>{aliveRef.current=false;},[]);
+    const loadData=useCallback(async()=>{if(checkRate())return;setLoading(true);const[s,m]=await Promise.all([apiFetch('/api/sms/settings'),apiFetch('/api/sms/messages?limit=30')]);if(!aliveRef.current)return;setSettings(s);setMessages(m.messages||[]);setLoading(false);},[checkRate]);
     useEffect(()=>{loadData();},[loadData]);
     useEffect(()=>{const iv=setInterval(loadData,30000);return()=>clearInterval(iv);},[loadData]);
 

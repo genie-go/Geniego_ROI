@@ -25,22 +25,24 @@ use Genie\Handlers\AutoCampaign;
 
 $mode = $argv[1] ?? 'current';
 
-function runForDb($pdo, string $label): int {
-    $n = AutoCampaign::optimizeAllCli($pdo);
-    echo "=== {$label} === optimized campaigns = {$n}\n";
+// 212차 #6(P2): $allowActuate — 데모 DB 는 실 매체 예산변경/정지 push 금지(DB 재배분 시뮬레이션만).
+//   both 모드에서 데모 캠페인이 실 광고비를 건드리던 사고 경로 차단.
+function runForDb($pdo, string $label, bool $allowActuate = true): int {
+    $n = AutoCampaign::optimizeAllCli($pdo, $allowActuate);
+    echo "=== {$label} === optimized campaigns = {$n}" . ($allowActuate ? '' : ' (demo: no actuation)') . "\n";
     return $n;
 }
 
 try {
     if ($mode === 'both') {
-        runForDb(Db::pdoFor(false), 'Production');
-        runForDb(Db::pdoFor(true),  'Demo');
+        runForDb(Db::pdoFor(false), 'Production', true);
+        runForDb(Db::pdoFor(true),  'Demo',       false);
     } elseif ($mode === 'production') {
-        runForDb(Db::pdoFor(false), 'Production');
+        runForDb(Db::pdoFor(false), 'Production', true);
     } elseif ($mode === 'demo') {
-        runForDb(Db::pdoFor(true), 'Demo');
+        runForDb(Db::pdoFor(true), 'Demo', false);
     } else {
-        runForDb(Db::pdo(), 'Env=' . Db::env());
+        runForDb(Db::pdo(), 'Env=' . Db::env(), Db::env() !== 'demo');
     }
     exit(0);
 } catch (\Throwable $e) {

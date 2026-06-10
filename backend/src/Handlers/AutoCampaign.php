@@ -391,7 +391,22 @@ class AutoCampaign
     }
 
     /** 캠페인 1건 최적화: 성과 분석 → 예산 재배분 + 저성과 일시정지 + 결정 로그. 양 엔드포인트·cron 공용. */
-    public static function optimizeCampaign(PDO $pdo, array $camp): array
+    /** 테넌트 당월(1일~오늘) 전체 광고 지출 — 전 캠페인 합산(전역 spend cap 용). */
+    private static function tenantMonthlySpend(PDO $pdo, string $tenant): float
+    {
+        try {
+            $monthStart = gmdate('Y-m-01');
+            $st = $pdo->prepare("SELECT COALESCE(SUM(spend),0) FROM performance_metrics WHERE tenant_id=? AND date >= ?");
+            $st->execute([$tenant, $monthStart]);
+            return (float)$st->fetchColumn();
+        } catch (\Throwable $e) { return 0.0; }
+    }
+
+    /**
+     * @param bool $allowActuate 매체 실제 집행(예산변경/정지 push) 허용 여부. 데모 DB/env 는 false 로
+     *   호출해 실 광고비 변경을 절대 일으키지 않는다(DB 재배분 시뮬레이션만).
+     */
+    public static function optimizeCampaign(PDO $pdo, array $camp, bool $allowActuate = true): array
     {
         $tenant = (string)$camp['tenant_id'];
         $channels = json_decode((string)($camp['channels'] ?? '[]'), true) ?: [];
@@ -502,14 +517,19 @@ class AutoCampaign
                     ->execute([$tenant, (int)$camp['id'], $d['channel'], $d['action'], (int)($d['old'] ?? 0), (int)($d['new'] ?? 0), (string)($d['roas'] ?? ''), (string)($d['ctr'] ?? ''), mb_substr((string)$d['reason'], 0, 255), $now]);
             } catch (\Throwable $e) {}
         }
+        // 212차 #6(P2): 테넌트 전역 월 spend cap. env AD_TENANT_MONTHLY_CAP(KRW, 0=미적용) 이상이면
+        //   당월 전 캠페인 누적 광고비가 상한 도달 → 예산 '증액(realloc)' 매체 push 차단(정지·감액은 허용=안전쪽).
+        $tenantCap = (int)(getenv('AD_TENANT_MONTHLY_CAP') ?: 0);
+        $tenantCapHit = $tenantCap > 0 && self::tenantMonthlySpend($pdo, $tenant) >= $tenantCap;
         // ★201차 액추에이터: external_id 보유 채널은 매체에 실제 예산변경/정지 push(AD_EXECUTION_ENABLED ON 시).
-        //   게이트 OFF 또는 external_id 없으면 skip(DB 재배분만). 결과는 정직하게 actuated 표기.
+        //   게이트 OFF/external_id 없음/allowActuate=false(데모) 면 skip(DB 재배분만). 결과는 정직하게 actuated 표기.
         foreach ($decisions as &$d) {
             $ck = strtolower((string)($d['channel'] ?? ''));
             $extId = $extIdMap[$ck] ?? '';
             $act = (string)($d['action'] ?? '');
             // 203차 ⓑ: 실제 매체 액추에이션은 pause/realloc 에 한정(drift_warning 등 정보성 결정은 로그만).
-            if ($extId === '' || !in_array($act, ['pause', 'realloc'], true)) { $d['actuated'] = false; continue; }
+            //   212차: 데모(allowActuate=false)는 실집행 절대 금지.
+            if (!$allowActuate || $extId === '' || !in_array($act, ['pause', 'realloc'], true)) { $d['actuated'] = false; continue; }
             $connKey = self::connectorKey((string)$d['channel']);
             if ($act === 'pause') {
                 $rr = AdAdapters::pause($pdo, $tenant, $connKey, $extId);
@@ -521,6 +541,9 @@ class AutoCampaign
                     if ($pacedDaily > 0) $daily = min($daily, max(1000, $pacedDaily));
                 }
                 if ($maxDaily > 0) $daily = min($daily, $maxDaily); // 일예산 상한 가드(과지출 차단)
+                // 212차 #6: 전역 cap 도달 시 증액 push 스킵(현 일예산 유지). 감액은 위 분기로 통과(안전쪽).
+                $oldDaily = (int)round(((int)($d['old'] ?? 0)) / max(1, $pdays));
+                if ($tenantCapHit && $daily > $oldDaily) { $d['actuated'] = false; $d['cap_blocked'] = true; continue; }
                 $rr = AdAdapters::updateBudget($pdo, $tenant, $connKey, $extId, $daily);
             }
             $d['actuated'] = !empty($rr['ok']);
@@ -557,7 +580,8 @@ class AutoCampaign
             $st->execute([$id, $tenant]);
             $camp = $st->fetch(PDO::FETCH_ASSOC);
             if (!$camp) return self::json($res, ['ok' => false, 'error' => '캠페인을 찾을 수 없습니다.'], 404);
-            $r = self::optimizeCampaign($pdo, $camp);
+            // 212차 #6: 데모 env 는 실 매체 집행 금지(DB 재배분 시뮬레이션만).
+            $r = self::optimizeCampaign($pdo, $camp, Db::env() !== 'demo');
             return self::json($res, array_merge(['ok' => true, 'id' => $id], $r));
         } catch (\Throwable $e) {
             return self::json($res, ['ok' => false, 'error' => $e->getMessage()], 500);
@@ -584,8 +608,9 @@ class AutoCampaign
         }
     }
 
-    /** CLI(cron) — 전체 테넌트 active 캠페인 자동 최적화. 반환: 최적화된 캠페인 수. */
-    public static function optimizeAllCli(?PDO $pdo = null): int
+    /** CLI(cron) — 전체 테넌트 active 캠페인 자동 최적화. 반환: 최적화된 캠페인 수.
+     *  @param bool $allowActuate 데모 DB 는 false 로 호출(실 광고비 변경 금지, DB 재배분만). */
+    public static function optimizeAllCli(?PDO $pdo = null, bool $allowActuate = true): int
     {
         if ($pdo === null) $pdo = Db::pdo();
         self::migrate($pdo);
@@ -593,7 +618,7 @@ class AutoCampaign
         try {
             $rows = $pdo->query("SELECT * FROM auto_campaign WHERE status='active'")->fetchAll(PDO::FETCH_ASSOC) ?: [];
             foreach ($rows as $camp) {
-                $r = self::optimizeCampaign($pdo, $camp);
+                $r = self::optimizeCampaign($pdo, $camp, $allowActuate);
                 if (!empty($r['optimized'])) $n++;
             }
         } catch (\Throwable $e) {}

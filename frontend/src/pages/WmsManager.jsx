@@ -2428,24 +2428,28 @@ export default function WmsManager() {
             }
         };
         document.addEventListener('input', handler);
-        // Rate limiting: detect rapid API calls
+        // 212차 #6(P2): window.fetch 전역 몽키패치 제거(다중 마운트·복원순서 어긋남 시 전역 fetch 체인 손상 위험).
+        //   비침습 PerformanceObserver(resource 엔트리)로 네트워크 요청 수를 모니터링한다.
         let apiCallCount = 0;
+        let perfObs = null;
+        try {
+            perfObs = new PerformanceObserver((list) => {
+                for (const e of list.getEntries()) {
+                    if (e.initiatorType === 'fetch' || e.initiatorType === 'xmlhttprequest') apiCallCount++;
+                }
+            });
+            perfObs.observe({ type: 'resource', buffered: false });
+        } catch (e) { /* PerformanceObserver 미지원 → 모니터 비활성(안전) */ }
         const rateLimitTimer = setInterval(() => {
             if (apiCallCount > 50) {
                 setSecAlerts(prev => [{ id: Date.now().toString(36), time: new Date().toISOString(), type: 'Rate Limit', severity: 'warning', action: 'API Abuse', detail: `${apiCallCount} calls/min detected`, blocked: false }, ...prev].slice(0, 100));
             }
             apiCallCount = 0;
         }, 60000);
-        // Intercept fetch for monitoring
-        const origFetch = window.fetch;
-        window.fetch = function(...args) {
-            apiCallCount++;
-            return origFetch.apply(this, args);
-        };
         return () => {
             document.removeEventListener('input', handler);
             clearInterval(rateLimitTimer);
-            window.fetch = origFetch;
+            try { perfObs?.disconnect(); } catch (e) {}
         };
     }, [secCheck]);
 

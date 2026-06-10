@@ -127,6 +127,15 @@ class PixelTracking
         $deviceType = 'desktop';
         if (preg_match('/Mobile|Android|iPhone|iPad/i', $ua)) { $deviceType = preg_match('/iPad/i', $ua) ? 'tablet' : 'mobile'; }
 
+        // 212차 #6(P2): 공개 비콘 utm_*/url 저장형 XSS·길이남용 방어. prepared 로 SQLi 는 막히나
+        //   대시보드(Attribution/PriceOpt) 렌더 시 HTML 주입·과대길이 가능 → 태그·제어문자 제거 + 길이 캡.
+        $clean = static function ($v, int $max): ?string {
+            if ($v === null) return null;
+            $s = strip_tags((string)$v);                       // HTML 태그 제거
+            $s = preg_replace('/[\x00-\x1F\x7F]/u', '', $s);     // 제어문자 제거
+            $s = trim($s);
+            return $s === '' ? null : mb_substr($s, 0, $max);
+        };
         $ignore = self::isMysql($pdo) ? 'IGNORE' : 'OR IGNORE';
         $pdo->prepare("INSERT {$ignore} INTO pixel_events
             (tenant_id, event_id, pixel_id, event_name, session_id, user_id, email_hash, phone_hash,
@@ -135,9 +144,9 @@ class PixelTracking
             VALUES (:t,:eid,:pid,:en,:sid,:uid,:eh,:ph,:url,:ref,:us,:um,:uc,:uco,:ut,:val,:cur,:prod,:cdata,:iph,:ua,:dev,:ca)
         ")->execute([
             ':t'=>$tenant, ':eid'=>$eventId, ':pid'=>$pixelId, ':en'=>$effEvent, ':sid'=>$sessionId ?: null,
-            ':uid'=>$b['user_id'] ?? null, ':eh'=>$emailHash, ':ph'=>$phoneHash, ':url'=>$b['page_url'] ?? null,
-            ':ref'=>$b['referrer'] ?? null, ':us'=>$b['utm_source'] ?? null, ':um'=>$b['utm_medium'] ?? null,
-            ':uc'=>$b['utm_campaign'] ?? null, ':uco'=>$b['utm_content'] ?? null, ':ut'=>$b['utm_term'] ?? null,
+            ':uid'=>$clean($b['user_id'] ?? null, 120), ':eh'=>$emailHash, ':ph'=>$phoneHash, ':url'=>$clean($b['page_url'] ?? null, 500),
+            ':ref'=>$clean($b['referrer'] ?? null, 500), ':us'=>$clean($b['utm_source'] ?? null, 120), ':um'=>$clean($b['utm_medium'] ?? null, 120),
+            ':uc'=>$clean($b['utm_campaign'] ?? null, 160), ':uco'=>$clean($b['utm_content'] ?? null, 160), ':ut'=>$clean($b['utm_term'] ?? null, 160),
             ':val'=>$effValue, ':cur'=>$b['currency'] ?? 'KRW', ':prod'=>json_encode($b['product_ids'] ?? []),
             ':cdata'=>json_encode($b['custom_data'] ?? []), ':iph'=>$ipHash, ':ua'=>substr($ua, 0, 500), ':dev'=>$deviceType, ':ca'=>self::now(),
         ]);
@@ -174,8 +183,8 @@ class PixelTracking
             ")->execute([
                 ':sid'=>$sid, ':t'=>$tenant, ':pid'=>$pixelId, ':fe'=>$now, ':le'=>$now,
                 ':pv'=>$eventName === 'page_view' ? 1 : 0, ':atc'=>$eventName === 'add_to_cart' ? 1 : 0, ':pur'=>$eventName === 'purchase' ? 1 : 0,
-                ':val'=>$value, ':us'=>$b['utm_source'] ?? null, ':um'=>$b['utm_medium'] ?? null, ':uc'=>$b['utm_campaign'] ?? null,
-                ':lp'=>$b['page_url'] ?? null, ':cv'=>$eventName === 'purchase' ? 1 : 0, ':ca'=>$now, ':ua'=>$now,
+                ':val'=>$value, ':us'=>$clean($b['utm_source'] ?? null, 120), ':um'=>$clean($b['utm_medium'] ?? null, 120), ':uc'=>$clean($b['utm_campaign'] ?? null, 160),
+                ':lp'=>$clean($b['page_url'] ?? null, 500), ':cv'=>$eventName === 'purchase' ? 1 : 0, ':ca'=>$now, ':ua'=>$now,
             ]);
         }
     }

@@ -157,6 +157,9 @@ final class GdprConsent
     // GET /api/gdpr/stats
     public static function stats(Request $req, Response $res, array $args): Response
     {
+        // 212차 #6(P2): 플랫폼 전체 동의 집계는 admin 전용. /gdpr/* 는 동의배너용 public bypass 라
+        //   라우트 미들웨어 인증이 없으므로 핸들러에서 직접 세션 admin 게이트(GdprAdmin 만 호출, 토큰 전송).
+        if ($err = UserAuth::requirePlan($req, $res, 'admin')) return $err;
         self::ensureTables();
         $pdo = Db::pdo();
 
