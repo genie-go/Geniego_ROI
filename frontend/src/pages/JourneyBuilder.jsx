@@ -52,6 +52,8 @@ export default function JourneyBuilder() {
     const [detailId, setDetailId] = useState(null);
     const [canvasId, setCanvasId] = useState(null);       // [현 차수] 비주얼 캔버스 편집 중 여정 id
     const [canvasSaving, setCanvasSaving] = useState(false);
+    const [templates, setTemplates] = useState([]);       // [현 차수] 추천 여정 템플릿
+    const [showTemplates, setShowTemplates] = useState(false);
     const [form, setForm] = useState({ name: '', trigger_type: 'signup', segment: '', channels: ['email'], delay: 'none' });
     const [showOnboarding, setShowOnboarding] = useState(false);
     const [isMobile, setIsMobile] = useState(window.matchMedia('(max-width: 768px)').matches);
@@ -117,6 +119,32 @@ export default function JourneyBuilder() {
         } catch { addToast('저장 실패 — 다시 시도하세요.', 'error', 3000); }
         setCanvasSaving(false);
     }, [canvasId, addToast]);
+
+    // [현 차수] 추천 여정 갤러리 열기 + 템플릿 로드(전체 그래프).
+    const openTemplates = useCallback(async () => {
+        setShowTemplates(true);
+        try { const r = await journeyApi.templates(); if (r?.ok && Array.isArray(r.templates)) setTemplates(r.templates); } catch {}
+    }, []);
+    // 템플릿 선택 → 전체 그래프로 여정 생성 → 캔버스 편집 진입.
+    const createFromTemplate = useCallback(async (tpl) => {
+        const name = (tpl.name || '추천 여정').replace(/^\S+\s/, '') || tpl.name;
+        if (_isDemo) {
+            const id = 'JRN-' + Date.now().toString(36);
+            const j = { id, name, trigger_type: tpl.trigger_type, trigger_label: trigLabel(tpl.trigger_type), segment: '', channels: ['email'], delay: 'none', delay_label: '즉시', status: 'draft', createdAt: new Date().toISOString().slice(0, 10), executions: 0, entered: 0, completed: 0, converted: 0, nodes: tpl.nodes || [], edges: tpl.edges || [] };
+            setJourneys(prev => { const next = [j, ...prev]; try { localStorage.setItem('jb_journeys', JSON.stringify(next)); } catch {} return next; });
+            setShowTemplates(false); setCanvasId(id); setTab('builder');
+            addToast('추천 여정이 생성되었습니다. 캔버스에서 편집하세요.', 'success', 3000);
+            return;
+        }
+        try {
+            const r = await journeyApi.create({ name, trigger_type: tpl.trigger_type, nodes: tpl.nodes || [], edges: tpl.edges || [], trigger_config: {}, description: tpl.description || '' });
+            if (r?.ok && r.id) {
+                const lr = await journeyApi.list(); setJourneys((lr.journeys || []).map(mapFromBackend));
+                setShowTemplates(false); setCanvasId(r.id); setTab('builder');
+                addToast('추천 여정이 생성되었습니다. 캔버스에서 편집·활성화하세요.', 'success', 3000);
+            } else addToast('생성 실패 — 다시 시도하세요.', 'error', 3000);
+        } catch { addToast('생성 실패 — 다시 시도하세요.', 'error', 3000); }
+    }, [addToast, trigLabel, mapFromBackend]);
     // 운영: 마운트 1회 백엔드 로드(데모는 로컬 시드 유지). eslint deps 의도적 비움(1회 hydrate).
     useEffect(() => { if (!_isDemo) reloadJourneys(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, []);
 
@@ -383,7 +411,10 @@ export default function JourneyBuilder() {
                         <div style={CARD}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <div><div style={{ fontWeight: 800, fontSize: 15, color: '#334155' }}>🗺️ {tr(K.tabBuilder)}</div><div style={{ fontSize: 12, color: '#94a3b8', marginTop: 2 }}>{tr(K.sub)}</div></div>
-                                <button onClick={() => { setEditId(null); setForm({ name: '', trigger_type: 'signup', segment: '', channels: ['email'], delay: 'none' }); setShowCreate(true); }} style={{ padding: '10px 22px', borderRadius: 12, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#4f8ef7,#06b6d4)', color: '#fff', fontWeight: 800, fontSize: 13, boxShadow: '0 4px 16px rgba(79,142,247,0.3)' }}>+ {tr(K.createJourney)}</button>
+                                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                                    <button onClick={openTemplates} style={{ padding: '10px 18px', borderRadius: 12, border: '1px solid rgba(168,85,247,0.4)', cursor: 'pointer', background: 'rgba(168,85,247,0.1)', color: '#7c3aed', fontWeight: 800, fontSize: 13 }}>✨ 추천 여정으로 시작</button>
+                                    <button onClick={() => { setEditId(null); setForm({ name: '', trigger_type: 'signup', segment: '', channels: ['email'], delay: 'none' }); setShowCreate(true); }} style={{ padding: '10px 22px', borderRadius: 12, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#4f8ef7,#06b6d4)', color: '#fff', fontWeight: 800, fontSize: 13, boxShadow: '0 4px 16px rgba(79,142,247,0.3)' }}>+ {tr(K.createJourney)}</button>
+                                </div>
                             </div>
                         </div>
 
@@ -706,6 +737,37 @@ export default function JourneyBuilder() {
                 <div style={{ display: 'flex', gap: 8, marginTop: 24 }}>
                     <button onClick={handleSave} disabled={!form.name.trim()} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: 'none', cursor: form.name.trim() ? 'pointer' : 'default', background: form.name.trim() ? 'linear-gradient(135deg,#4f8ef7,#06b6d4)' : '#e2e8f0', color: form.name.trim() ? '#fff' : '#94a3b8', fontWeight: 800, fontSize: 13 }}>💾 {tr(K.save)}</button>
                     <button onClick={() => { setShowCreate(false); setEditId(null); }} style={{ padding: '10px 20px', borderRadius: 10, border: '1px solid rgba(0,0,0,0.1)', cursor: 'pointer', background: 'transparent', color: '#64748b', fontWeight: 700, fontSize: 12 }}>{tr(K.cancel)}</button>
+                </div>
+            </Backdrop>)}
+
+            {/* ══ [현 차수] 추천 여정 갤러리 ═══════════════════ */}
+            {showTemplates && (<Backdrop onClose={() => setShowTemplates(false)}>
+                <div style={{ maxWidth: 760, width: '92vw' }}>
+                    <div style={{ fontWeight: 900, fontSize: 18, color: '#1e293b', marginBottom: 4 }}>✨ 추천 여정 — 베스트 프랙티스로 시작</div>
+                    <div style={{ fontSize: 12.5, color: '#64748b', marginBottom: 16, lineHeight: 1.6 }}>검증된 여정 시나리오를 선택하면 전체 플로우(트리거→발송→대기→분기→목표)가 자동 생성되어 비주얼 캔버스에서 바로 편집·활성화할 수 있습니다.</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(330px, 1fr))', gap: 12, maxHeight: '62vh', overflowY: 'auto' }}>
+                        {templates.length === 0 && <div style={{ color: '#94a3b8', fontSize: 13, padding: 20 }}>템플릿 로딩 중…</div>}
+                        {templates.map(tpl => (
+                            <button key={tpl.id} onClick={() => createFromTemplate(tpl)} style={{ textAlign: 'left', padding: 16, borderRadius: 14, border: '1px solid rgba(99,140,255,0.18)', background: 'rgba(255,255,255,0.95)', cursor: 'pointer', transition: 'all 150ms' }}
+                                onMouseEnter={e => { e.currentTarget.style.borderColor = '#4f8ef7'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(79,142,247,0.18)'; }}
+                                onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(99,140,255,0.18)'; e.currentTarget.style.boxShadow = 'none'; }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                                    <div style={{ fontWeight: 800, fontSize: 14.5, color: '#1e293b' }}>{tpl.name}</div>
+                                    {tpl.category && <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 99, background: 'rgba(168,85,247,0.12)', color: '#7c3aed' }}>{tpl.category}</span>}
+                                </div>
+                                <div style={{ fontSize: 12, color: '#64748b', lineHeight: 1.55, marginBottom: 10, minHeight: 36 }}>{tpl.description}</div>
+                                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', fontSize: 10.5, color: '#94a3b8', fontWeight: 700 }}>
+                                    <span>⚡ {trigLabel(tpl.trigger_type)}</span>
+                                    <span>🔧 노드 {tpl.nodes_count}개</span>
+                                    {tpl.estimated_duration && <span>⏱ {tpl.estimated_duration}</span>}
+                                    {tpl.goal && <span>🎯 {tpl.goal}</span>}
+                                </div>
+                            </button>
+                        ))}
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 14 }}>
+                        <button onClick={() => setShowTemplates(false)} style={{ padding: '9px 18px', borderRadius: 10, border: '1px solid rgba(0,0,0,0.12)', background: '#fff', color: '#475569', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>닫기</button>
+                    </div>
                 </div>
             </Backdrop>)}
 

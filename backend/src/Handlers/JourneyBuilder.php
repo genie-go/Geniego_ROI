@@ -528,17 +528,57 @@ class JourneyBuilder
         } catch (\Throwable $e) {}
     }
 
-    /* ─── GET /journey/templates ─── 여정 템플릿(정적) ────────── */
+    /* ─── GET /journey/templates ─── [현 차수] 베스트프랙티스 여정 추천(전체 노드/엣지 그래프) ──
+       선택 시 그래프 그대로 생성 → 비주얼 캔버스에서 편집·실행. trigger_type 은 자동진입 트리거와 정합. */
     public static function listTemplates(Request $req, Response $res): Response
     {
         if ($err = UserAuth::requirePro($req, $res)) return $err;
+        $N = fn($id, $type, $label, $cfg, $x, $y) => ['id'=>$id, 'type'=>$type, 'label'=>$label, 'config'=>$cfg, 'x'=>$x, 'y'=>$y];
+        $E = function ($from, $to, $when = null) { $e = ['from'=>$from, 'to'=>$to]; if ($when !== null) $e['when'] = $when; return $e; };
+        $cx = 140;
         $templates = [
-            ['id'=>'welcome_series', 'name'=>'🎉 신규 가입 환영 시리즈', 'description'=>'가입 즉시 환영 이메일 → 3일 후 제품 소개 → 7일 후 첫 구매 쿠폰', 'trigger_type'=>'signup', 'estimated_duration'=>'7일', 'nodes_count'=>6],
-            ['id'=>'cart_abandonment', 'name'=>'🛒 장바구니 이탈 복구', 'description'=>'이탈 1시간 후 이메일 → 24시간 후 카카오 알림톡 → 3일 후 할인 쿠폰', 'trigger_type'=>'cart_abandoned', 'estimated_duration'=>'3일', 'nodes_count'=>5],
-            ['id'=>'win_back', 'name'=>'🔄 이탈 고객 재활성화', 'description'=>'90일 미구매 고객 → 개인화 이메일 → 7일 후 특별 혜택 카카오 발송', 'trigger_type'=>'churned', 'estimated_duration'=>'14일', 'nodes_count'=>4],
-            ['id'=>'vip_upgrade', 'name'=>'👑 VIP 전환 여정', 'description'=>'LTV 상위 20% 세그먼트 진입 → VIP 혜택 이메일 → 전용 카카오 채널 초대', 'trigger_type'=>'segment_entered', 'estimated_duration'=>'즉시', 'nodes_count'=>3],
-            ['id'=>'post_purchase', 'name'=>'✅ 구매 후 관리 시리즈', 'description'=>'구매 감사 → 배송 알림 → 7일 후 리뷰 요청 → 30일 후 재구매 제안', 'trigger_type'=>'purchase', 'estimated_duration'=>'30일', 'nodes_count'=>7],
+            ['id'=>'welcome_series', 'name'=>'🎉 신규 가입 환영 시리즈', 'category'=>'온보딩', 'goal'=>'첫 구매 전환',
+             'description'=>'가입 즉시 환영 → 1일 후 제품 소개 → 3일 후 구매 여부 분기(미구매 시 첫 구매 쿠폰)', 'trigger_type'=>'signup', 'estimated_duration'=>'4일',
+             'nodes'=>[$N('t1','trigger','가입 트리거',['type'=>'signup'],$cx,40), $N('e1','email','환영 이메일',['subject'=>'환영합니다! 🎉'],$cx,150), $N('d1','delay','1일 대기',['value'=>1,'unit'=>'days'],$cx,260), $N('e2','email','제품 소개',['subject'=>'이런 제품 어떠세요?'],$cx,370), $N('d2','delay','3일 대기',['value'=>3,'unit'=>'days'],$cx,480), $N('c1','condition','구매했나요?',['field'=>'revenue','op'=>'gt','value'=>0],$cx,590), $N('g1','goal','구매 전환',['label'=>'구매 전환'],$cx+150,700), $N('e3','email','첫 구매 쿠폰',['subject'=>'🎁 첫 구매 10% 쿠폰'],$cx-150,700)],
+             'edges'=>[$E('t1','e1'),$E('e1','d1'),$E('d1','e2'),$E('e2','d2'),$E('d2','c1'),$E('c1','g1','true'),$E('c1','e3','false'),$E('e3','g1')]],
+
+            ['id'=>'cart_abandonment', 'name'=>'🛒 장바구니 이탈 복구', 'category'=>'리타게팅', 'goal'=>'구매 완료',
+             'description'=>'이탈 1시간 후 이메일 → 1일 후 카카오 알림톡 → 3일 후 할인 쿠폰', 'trigger_type'=>'abandon', 'estimated_duration'=>'3일',
+             'nodes'=>[$N('t1','trigger','이탈 트리거',['type'=>'abandon'],$cx,40), $N('d1','delay','1시간 대기',['value'=>1,'unit'=>'hours'],$cx,150), $N('e1','email','장바구니 리마인더',['subject'=>'담아두신 상품이 기다려요'],$cx,260), $N('d2','delay','1일 대기',['value'=>1,'unit'=>'days'],$cx,370), $N('k1','kakao','카카오 알림톡',['content'=>'아직 망설이세요? 지금 구매 시 혜택!'],$cx,480), $N('d3','delay','3일 대기',['value'=>3,'unit'=>'days'],$cx,590), $N('e2','email','할인 쿠폰',['subject'=>'🎁 마지막 기회 15% 할인'],$cx,700), $N('g1','goal','구매 완료',['label'=>'구매 완료'],$cx,810)],
+             'edges'=>[$E('t1','d1'),$E('d1','e1'),$E('e1','d2'),$E('d2','k1'),$E('k1','d3'),$E('d3','e2'),$E('e2','g1')]],
+
+            ['id'=>'win_back', 'name'=>'🔄 이탈 고객 재활성화', 'category'=>'리텐션', 'goal'=>'재방문/재구매',
+             'description'=>'개인화 이메일 → 7일 후 재방문 분기(미방문 시 특별 혜택 카카오)', 'trigger_type'=>'churn', 'estimated_duration'=>'7일',
+             'nodes'=>[$N('t1','trigger','이탈 위험 트리거',['type'=>'churn'],$cx,40), $N('e1','email','개인화 리마인더',['subject'=>'오랜만이에요, 다시 만나요'],$cx,150), $N('d1','delay','7일 대기',['value'=>7,'unit'=>'days'],$cx,260), $N('c1','condition','재방문/재구매?',['field'=>'revenue','op'=>'gt','value'=>0],$cx,370), $N('g1','goal','재활성화',['label'=>'재활성화'],$cx+150,480), $N('k1','kakao','특별 혜택 카카오',['content'=>'당신만을 위한 특별 혜택'],$cx-150,480), $N('g2','goal','재활성화',['label'=>'재활성화'],$cx-150,590)],
+             'edges'=>[$E('t1','e1'),$E('e1','d1'),$E('d1','c1'),$E('c1','g1','true'),$E('c1','k1','false'),$E('k1','g2')]],
+
+            ['id'=>'vip_upgrade', 'name'=>'👑 VIP 전환 여정', 'category'=>'업셀', 'goal'=>'VIP 전환',
+             'description'=>'고가치 세그먼트 진입 → VIP 혜택 이메일 → 전용 카카오 채널 초대', 'trigger_type'=>'segment', 'estimated_duration'=>'즉시',
+             'nodes'=>[$N('t1','trigger','세그먼트 진입',['type'=>'segment'],$cx,40), $N('e1','email','VIP 혜택 안내',['subject'=>'👑 VIP 전용 혜택을 받으세요'],$cx,150), $N('k1','kakao','전용 채널 초대',['content'=>'VIP 전용 카카오 채널에 초대합니다'],$cx,260), $N('g1','goal','VIP 전환',['label'=>'VIP 전환'],$cx,370)],
+             'edges'=>[$E('t1','e1'),$E('e1','k1'),$E('k1','g1')]],
+
+            ['id'=>'post_purchase', 'name'=>'✅ 구매 후 관리 시리즈', 'category'=>'리텐션', 'goal'=>'재구매',
+             'description'=>'구매 감사 → 2일 후 배송 안내 → 7일 후 리뷰 요청 → 30일 후 재구매 제안', 'trigger_type'=>'purchase', 'estimated_duration'=>'30일',
+             'nodes'=>[$N('t1','trigger','구매 트리거',['type'=>'purchase'],$cx,40), $N('k1','kakao','구매 감사',['content'=>'구매 감사합니다! 🙏'],$cx,150), $N('d1','delay','2일 대기',['value'=>2,'unit'=>'days'],$cx,260), $N('e1','email','배송 안내',['subject'=>'상품이 출발했어요 📦'],$cx,370), $N('d2','delay','7일 대기',['value'=>7,'unit'=>'days'],$cx,480), $N('e2','email','리뷰 요청',['subject'=>'⭐ 리뷰 남기고 적립금 받기'],$cx,590), $N('d3','delay','30일 대기',['value'=>30,'unit'=>'days'],$cx,700), $N('e3','email','재구매 제안',['subject'=>'다시 필요하지 않으세요?'],$cx,810), $N('g1','goal','재구매',['label'=>'재구매'],$cx,920)],
+             'edges'=>[$E('t1','k1'),$E('k1','d1'),$E('d1','e1'),$E('e1','d2'),$E('d2','e2'),$E('e2','d3'),$E('d3','e3'),$E('e3','g1')]],
+
+            ['id'=>'review_request', 'name'=>'⭐ 구매 후 리뷰 요청', 'category'=>'UGC', 'goal'=>'리뷰 작성',
+             'description'=>'구매 7일 후 리뷰 요청 이메일(적립금 인센티브)', 'trigger_type'=>'purchase', 'estimated_duration'=>'7일',
+             'nodes'=>[$N('t1','trigger','구매 트리거',['type'=>'purchase'],$cx,40), $N('d1','delay','7일 대기',['value'=>7,'unit'=>'days'],$cx,150), $N('e1','email','리뷰 요청',['subject'=>'⭐ 리뷰 남기고 적립금 받기'],$cx,260), $N('g1','goal','리뷰 작성',['label'=>'리뷰 작성'],$cx,370)],
+             'edges'=>[$E('t1','d1'),$E('d1','e1'),$E('e1','g1')]],
+
+            ['id'=>'birthday_coupon', 'name'=>'🎂 생일 축하 쿠폰', 'category'=>'CRM', 'goal'=>'생일 구매',
+             'description'=>'생일 세그먼트 진입 → 카카오 생일 축하 + 전용 쿠폰', 'trigger_type'=>'segment', 'estimated_duration'=>'즉시',
+             'nodes'=>[$N('t1','trigger','생일 세그먼트',['type'=>'segment'],$cx,40), $N('k1','kakao','생일 축하 쿠폰',['content'=>'🎂 생일 축하합니다! 특별 쿠폰을 드려요'],$cx,150), $N('g1','goal','생일 구매',['label'=>'생일 구매'],$cx,260)],
+             'edges'=>[$E('t1','k1'),$E('k1','g1')]],
+
+            ['id'=>'ab_welcome', 'name'=>'🧪 환영 메시지 A/B 테스트', 'category'=>'실험', 'goal'=>'전환(승자)',
+             'description'=>'가입 후 A/B 50:50 분배(버전 A vs B 이메일) → 성과 비교로 승자 결정', 'trigger_type'=>'signup', 'estimated_duration'=>'즉시',
+             'nodes'=>[$N('t1','trigger','가입 트리거',['type'=>'signup'],$cx,40), $N('s1','split','A/B 50:50',['weight_a'=>50],$cx,150), $N('e1','email','버전 A',['subject'=>'[A] 환영합니다 — 혜택 중심'],$cx-150,270), $N('e2','email','버전 B',['subject'=>'[B] 환영합니다 — 스토리 중심'],$cx+150,270), $N('g1','goal','전환',['label'=>'전환'],$cx,390)],
+             'edges'=>[$E('t1','s1'),$E('s1','e1','a'),$E('s1','e2','b'),$E('e1','g1'),$E('e2','g1')]],
         ];
+        foreach ($templates as &$tpl) { $tpl['nodes_count'] = count($tpl['nodes']); }
+        unset($tpl);
         return self::json($res, ['ok' => true, 'templates' => $templates]);
     }
 }

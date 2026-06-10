@@ -11,4 +11,5 @@ export const journeyApi = {
   remove: (id)     => requestJsonAuth(`/api/journey/journeys/${id}`, "DELETE"),
   launch: (id)     => postJsonAuth(`/api/journey/journeys/${id}/launch`, {}),
   stats:  (id)     => getJsonAuth(`/api/journey/journeys/${id}/stats`),
+  templates: ()    => getJsonAuth("/api/journey/templates"), // [현 차수] 추천 여정 템플릿(전체 그래프)
 };
