@@ -13,7 +13,9 @@ import { postJson } from '../services/apiClient.js';
 const USD = (v) => "$" + Number(v).toLocaleString("en-US");
 
 export default function PaymentSuccess() {
-  const t = useT();
+  // 209차 P0: line 91 LANG_LOCALE_MAP[lang] 의 lang 미선언 → 결제성공 후 ReferenceError 크래시(흰화면).
+  //   useT() 만으론 lang 없음 → useI18n() 로 t+lang 동시 수신.
+  const { t, lang } = useI18n();
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
     const { token, user, upgrade, reloadMenuAccess } = useAuth();

@@ -88,18 +88,52 @@ final class Insights {
      *   ]
      * }
      */
+    /** 209차 P0: Insights 테넌트 격리. auth_tenant(미들웨어) → authedTenant(세션) → 'demo'. */
+    private static function tenant(Request $req): string {
+        $attr = $req->getAttribute('auth_tenant', '');
+        if (is_string($attr) && $attr !== '' && $attr !== 'demo') return $attr;
+        $t = UserAuth::authedTenant($req);
+        return ($t !== null && $t !== '') ? $t : 'demo';
+    }
+    /**
+     * 209차 P0: Insights 테이블 보장(tenant_id 포함, MySQL/SQLite 양립) + 과거 무격리 테이블 ALTER 보강.
+     * 기존 SQLite시대 코드(ensureTables 부재·ON CONFLICT)가 MySQL 운영에 테이블 미생성 → 휴면이었던 것을
+     * 테넌트 격리 스키마로 생성해 작동+격리 동시 확보.
+     */
+    private static function ensureTables(\PDO $pdo): void {
+        $isMy = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql';
+        try {
+            if ($isMy) {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS ad_audience_breakdowns (id BIGINT AUTO_INCREMENT PRIMARY KEY, tenant_id VARCHAR(100) NOT NULL DEFAULT 'demo', source_platform VARCHAR(64), account_id VARCHAR(128), campaign_id VARCHAR(128), adset_id VARCHAR(128), ad_id VARCHAR(128), creative_id VARCHAR(128), product_sku VARCHAR(128), event_date VARCHAR(20), region VARCHAR(64), gender VARCHAR(32), age_bucket VARCHAR(32), impressions BIGINT DEFAULT 0, clicks BIGINT DEFAULT 0, spend DOUBLE DEFAULT 0, conversions BIGINT DEFAULT 0, attributed_revenue DOUBLE DEFAULT 0, raw_json LONGTEXT, created_at VARCHAR(40), KEY idx_aab (tenant_id, event_date)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+                $pdo->exec("CREATE TABLE IF NOT EXISTS influencer_audience_breakdowns (id BIGINT AUTO_INCREMENT PRIMARY KEY, tenant_id VARCHAR(100) NOT NULL DEFAULT 'demo', platform VARCHAR(64), influencer_id VARCHAR(128), influencer_handle VARCHAR(190), event_date VARCHAR(20), region VARCHAR(64), gender VARCHAR(32), age_bucket VARCHAR(32), followers BIGINT DEFAULT 0, engaged_accounts BIGINT DEFAULT 0, impressions BIGINT DEFAULT 0, clicks BIGINT DEFAULT 0, raw_json LONGTEXT, created_at VARCHAR(40), KEY idx_iab (tenant_id, event_date)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+                $pdo->exec("CREATE TABLE IF NOT EXISTS commerce_product_daily (id BIGINT AUTO_INCREMENT PRIMARY KEY, tenant_id VARCHAR(100) NOT NULL DEFAULT 'demo', channel VARCHAR(64), store_id VARCHAR(128), product_sku VARCHAR(128), product_title VARCHAR(255), event_date VARCHAR(20), units_sold BIGINT DEFAULT 0, gross_revenue DOUBLE DEFAULT 0, refunds DOUBLE DEFAULT 0, net_revenue DOUBLE DEFAULT 0, sessions BIGINT DEFAULT 0, raw_json LONGTEXT, created_at VARCHAR(40), KEY idx_cpd (tenant_id, event_date)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+                $pdo->exec("CREATE TABLE IF NOT EXISTS creative_sku_map (source_platform VARCHAR(64) NOT NULL, creative_id VARCHAR(128) NOT NULL, product_sku VARCHAR(128) NOT NULL, confidence DOUBLE DEFAULT 0, updated_at VARCHAR(40), PRIMARY KEY (source_platform, creative_id, product_sku)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+            } else {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS ad_audience_breakdowns (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', source_platform TEXT, account_id TEXT, campaign_id TEXT, adset_id TEXT, ad_id TEXT, creative_id TEXT, product_sku TEXT, event_date TEXT, region TEXT, gender TEXT, age_bucket TEXT, impressions INTEGER DEFAULT 0, clicks INTEGER DEFAULT 0, spend REAL DEFAULT 0, conversions INTEGER DEFAULT 0, attributed_revenue REAL DEFAULT 0, raw_json TEXT, created_at TEXT)");
+                $pdo->exec("CREATE TABLE IF NOT EXISTS influencer_audience_breakdowns (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', platform TEXT, influencer_id TEXT, influencer_handle TEXT, event_date TEXT, region TEXT, gender TEXT, age_bucket TEXT, followers INTEGER DEFAULT 0, engaged_accounts INTEGER DEFAULT 0, impressions INTEGER DEFAULT 0, clicks INTEGER DEFAULT 0, raw_json TEXT, created_at TEXT)");
+                $pdo->exec("CREATE TABLE IF NOT EXISTS commerce_product_daily (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', channel TEXT, store_id TEXT, product_sku TEXT, product_title TEXT, event_date TEXT, units_sold INTEGER DEFAULT 0, gross_revenue REAL DEFAULT 0, refunds REAL DEFAULT 0, net_revenue REAL DEFAULT 0, sessions INTEGER DEFAULT 0, raw_json TEXT, created_at TEXT)");
+                $pdo->exec("CREATE TABLE IF NOT EXISTS creative_sku_map (source_platform TEXT NOT NULL, creative_id TEXT NOT NULL, product_sku TEXT NOT NULL, confidence REAL DEFAULT 0, updated_at TEXT, PRIMARY KEY (source_platform, creative_id, product_sku))");
+            }
+        } catch (\Throwable $e) {}
+        foreach (['ad_audience_breakdowns','influencer_audience_breakdowns','commerce_product_daily'] as $tbl) {
+            try { $pdo->exec("ALTER TABLE {$tbl} ADD COLUMN tenant_id VARCHAR(100) NOT NULL DEFAULT 'demo'"); } catch (\Throwable $e) {}
+        }
+    }
+
     public static function ingestAdAudience(Request $req, Response $res, array $args = []): Response {
         $pdo = Db::pdo();
+        self::ensureTables($pdo);
+        $tenant = self::tenant($req);
         $data = self::readJson($req);
         $rows = $data['rows'] ?? [];
         if (!is_array($rows)) $rows = [];
 
         $stmt = $pdo->prepare('INSERT INTO ad_audience_breakdowns (
-            source_platform, account_id, campaign_id, adset_id, ad_id, creative_id, product_sku,
+            tenant_id, source_platform, account_id, campaign_id, adset_id, ad_id, creative_id, product_sku,
             event_date, region, gender, age_bucket,
             impressions, clicks, spend, conversions, attributed_revenue, raw_json, created_at
         ) VALUES (
-            :source_platform, :account_id, :campaign_id, :adset_id, :ad_id, :creative_id, :product_sku,
+            :tenant_id, :source_platform, :account_id, :campaign_id, :adset_id, :ad_id, :creative_id, :product_sku,
             :event_date, :region, :gender, :age_bucket,
             :impressions, :clicks, :spend, :conversions, :attributed_revenue, :raw_json, :created_at
         );');
@@ -109,6 +143,7 @@ final class Insights {
             if (!is_array($r)) continue;
             $sp = self::normStr($r['source_platform'] ?? null) ?? 'unknown';
             $payload = [
+                ':tenant_id' => $tenant,
                 ':source_platform' => $sp,
                 ':account_id' => self::normStr($r['account_id'] ?? null),
                 ':campaign_id' => self::normStr($r['campaign_id'] ?? null),
@@ -149,15 +184,17 @@ final class Insights {
      */
     public static function ingestInfluencerAudience(Request $req, Response $res, array $args = []): Response {
         $pdo = Db::pdo();
+        self::ensureTables($pdo);
+        $tenant = self::tenant($req);
         $data = self::readJson($req);
         $rows = $data['rows'] ?? [];
         if (!is_array($rows)) $rows = [];
 
         $stmt = $pdo->prepare('INSERT INTO influencer_audience_breakdowns (
-            platform, influencer_id, influencer_handle, event_date, region, gender, age_bucket,
+            tenant_id, platform, influencer_id, influencer_handle, event_date, region, gender, age_bucket,
             followers, engaged_accounts, impressions, clicks, raw_json, created_at
         ) VALUES (
-            :platform, :influencer_id, :influencer_handle, :event_date, :region, :gender, :age_bucket,
+            :tenant_id, :platform, :influencer_id, :influencer_handle, :event_date, :region, :gender, :age_bucket,
             :followers, :engaged_accounts, :impressions, :clicks, :raw_json, :created_at
         );');
 
@@ -169,6 +206,7 @@ final class Insights {
             if ($influencerId === null) continue;
 
             $stmt->execute([
+                ':tenant_id' => $tenant,
                 ':platform' => $platform,
                 ':influencer_id' => $influencerId,
                 ':influencer_handle' => self::normStr($r['handle'] ?? $r['influencer_handle'] ?? null),
@@ -203,15 +241,17 @@ final class Insights {
      */
     public static function ingestCommerceDaily(Request $req, Response $res, array $args = []): Response {
         $pdo = Db::pdo();
+        self::ensureTables($pdo);
+        $tenant = self::tenant($req);
         $data = self::readJson($req);
         $rows = $data['rows'] ?? [];
         if (!is_array($rows)) $rows = [];
 
         $stmt = $pdo->prepare('INSERT INTO commerce_product_daily (
-            channel, store_id, product_sku, product_title, event_date,
+            tenant_id, channel, store_id, product_sku, product_title, event_date,
             units_sold, gross_revenue, refunds, net_revenue, sessions, raw_json, created_at
         ) VALUES (
-            :channel, :store_id, :product_sku, :product_title, :event_date,
+            :tenant_id, :channel, :store_id, :product_sku, :product_title, :event_date,
             :units_sold, :gross_revenue, :refunds, :net_revenue, :sessions, :raw_json, :created_at
         );');
 
@@ -223,6 +263,7 @@ final class Insights {
             if ($sku === null) continue;
 
             $stmt->execute([
+                ':tenant_id' => $tenant,
                 ':channel' => $channel,
                 ':store_id' => self::normStr($r['store_id'] ?? null),
                 ':product_sku' => $sku,
@@ -301,6 +342,8 @@ final class Insights {
      */
     public static function targetPerformance(Request $req, Response $res, array $args = []): Response {
         $pdo = Db::pdo();
+        self::ensureTables($pdo);
+        $tenant = self::tenant($req); // 209차 P0: 타테넌트 집계 혼입 차단
         $q = $req->getQueryParams();
 
         $start = self::normDate($q['start'] ?? null);
@@ -313,7 +356,7 @@ final class Insights {
         $limit = max(1, min(50, (int)($q['limit'] ?? 10)));
 
         $where = 'event_date BETWEEN :start AND :end';
-        $params = [':start' => $start, ':end' => $end];
+        $params = [':start' => $start, ':end' => $end, ':tenant' => $tenant];
         if ($region !== null) { $where .= ' AND region = :region'; $params[':region'] = $region; }
         if ($gender !== null) { $where .= ' AND gender = :gender'; $params[':gender'] = $gender; }
         if ($age !== null) { $where .= ' AND age_bucket = :age'; $params[':age'] = $age; }
@@ -330,13 +373,13 @@ WITH ad AS (
                 FROM ad_audience_breakdowns a
                 LEFT JOIN creative_sku_map m
                     ON m.source_platform = a.source_platform AND m.creative_id = a.creative_id
-                WHERE {$where}
+                WHERE {$where} AND a.tenant_id = :tenant
                 GROUP BY COALESCE(a.product_sku, m.product_sku)
             ),
             com AS (
                 SELECT product_sku, SUM(net_revenue) AS net_revenue, SUM(units_sold) AS units_sold
                 FROM commerce_product_daily
-                WHERE event_date BETWEEN :start AND :end
+                WHERE event_date BETWEEN :start AND :end AND tenant_id = :tenant
                 GROUP BY product_sku
             )
             SELECT
@@ -373,7 +416,7 @@ SQL;
             CASE WHEN SUM(impressions) > 0 THEN (CAST(SUM(clicks) AS REAL)/SUM(impressions)) ELSE NULL END AS ctr,
             CASE WHEN SUM(clicks) > 0 THEN (CAST(SUM(conversions) AS REAL)/SUM(clicks)) ELSE NULL END AS cvr
             FROM ad_audience_breakdowns
-            WHERE {$where} AND creative_id IS NOT NULL
+            WHERE {$where} AND creative_id IS NOT NULL AND tenant_id = :tenant
             GROUP BY source_platform, creative_id
             ORDER BY (SUM(conversions) * 1000000 + SUM(clicks)) DESC
             LIMIT :limit;";
@@ -385,7 +428,7 @@ SQL;
 
         // Best influencers whose audience matches the target (same target filters applied)
         $whereInf = 'event_date BETWEEN :start AND :end';
-        $paramsInf = [':start'=>$start, ':end'=>$end];
+        $paramsInf = [':start'=>$start, ':end'=>$end, ':tenant'=>$tenant];
         if ($region !== null) { $whereInf .= ' AND region = :region'; $paramsInf[':region'] = $region; }
         if ($gender !== null) { $whereInf .= ' AND gender = :gender'; $paramsInf[':gender'] = $gender; }
         if ($age !== null) { $whereInf .= ' AND age_bucket = :age'; $paramsInf[':age'] = $age; }
@@ -395,7 +438,7 @@ SQL;
             SUM(impressions) AS impressions, SUM(clicks) AS clicks,
             CASE WHEN SUM(followers) > 0 THEN (CAST(SUM(engaged_accounts) AS REAL)/SUM(followers)) ELSE NULL END AS engagement_rate
             FROM influencer_audience_breakdowns
-            WHERE {$whereInf}
+            WHERE {$whereInf} AND tenant_id = :tenant
             GROUP BY platform, influencer_id
             ORDER BY (SUM(engaged_accounts) * 1000000 + SUM(clicks)) DESC
             LIMIT :limit;";
