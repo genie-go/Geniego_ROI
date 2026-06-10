@@ -1398,12 +1398,14 @@ final class Connectors
     /** TikTok 광고 일자별 리포트 → 정규화 행. */
     private static function fetchTiktokRows(string $tenant, string $start, string $end): array
     {
-        $accessToken = (string)(getenv('TIKTOK_ACCESS_TOKEN') ?: '');
+        // [현 차수] AdChannelConnect 자격증명(channel_credential 'tiktok_business') 우선 조회. 기존엔 env+connector_token만
+        //   봐서 수동 등록 TikTok이 sync에서 no_credentials로 skip되던 버그(집행은 AdAdapters 별칭으로 동작하나 성과 미적재).
+        $accessToken = (string)(getenv('TIKTOK_ACCESS_TOKEN') ?: self::loadCred($tenant, 'tiktok_business', 'access_token'));
         if ($accessToken === '') {
             $tokenRow = self::loadToken($tenant, 'tiktok');
             $accessToken = (string)($tokenRow['access_token'] ?? '');
         }
-        $advertiserId = (string)(getenv('TIKTOK_ADVERTISER_ID') ?: self::loadCred($tenant, 'tiktok', 'advertiser_id'));
+        $advertiserId = (string)(getenv('TIKTOK_ADVERTISER_ID') ?: self::loadCred($tenant, 'tiktok_business', 'advertiser_id'));
         if ($advertiserId === '') {
             $tokenRow = $tokenRow ?? self::loadToken($tenant, 'tiktok');
             $meta = json_decode((string)($tokenRow['meta_json'] ?? '{}'), true);

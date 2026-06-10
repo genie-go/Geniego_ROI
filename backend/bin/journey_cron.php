@@ -40,8 +40,12 @@ foreach ($args as $a) {
 }
 
 try {
+    // [현 차수] ① churn(휴면)·segment(세그먼트 진입) 트리거 detector — 상태기반 자동 진입.
+    $d = JourneyBuilder::runTriggerDetectors($onlyTenant);
+    // ② resume 도래 waiting 등록건 진행.
     $r = JourneyBuilder::runDue($onlyTenant, $limit);
     echo "=== journey_cron env=" . Db::env()
+        . " detect_enrolled=" . (int)($d['enrolled'] ?? 0)
         . " scanned=" . (int)($r['scanned'] ?? 0)
         . " processed=" . (int)($r['processed'] ?? 0)
         . " completed=" . (int)($r['completed'] ?? 0)

@@ -248,25 +248,85 @@ class JourneyBuilder
             $journeys = $st->fetchAll(\PDO::FETCH_ASSOC);
         } catch (\Throwable $e) { return 0; }
         $n = 0;
-        foreach ($journeys as $j) {
-            try {
-                $dup = $pdo->prepare("SELECT 1 FROM journey_enrollments WHERE tenant_id=:t AND journey_id=:j AND customer_id=:c AND status IN ('active','waiting') LIMIT 1");
-                $dup->execute([':t'=>$tenant, ':j'=>(int)$j['id'], ':c'=>$customerId]);
-                if ($dup->fetchColumn()) continue; // 진행 중 등록 존재 → 재진입 차단
-                $nodes = json_decode($j['nodes'] ?? '[]', true) ?: [];
-                $start = $nodes[0]['id'] ?? 'trigger_1';
-                $now = self::now();
-                $rev = (float)($ctx['revenue'] ?? 0);
-                $pdo->prepare("INSERT INTO journey_enrollments (tenant_id, journey_id, customer_id, current_node, status, entered_at, revenue) VALUES (:t,:j,:c,:n,'active',:e,:rev)")
-                    ->execute([':t'=>$tenant, ':j'=>(int)$j['id'], ':c'=>$customerId, ':n'=>$start, ':e'=>$now, ':rev'=>$rev]);
-                $eid = (int)$pdo->lastInsertId();
-                $pdo->prepare("UPDATE journeys SET stats_entered=stats_entered+1 WHERE id=:id AND tenant_id=:t")->execute([':id'=>(int)$j['id'], ':t'=>$tenant]);
-                $enr = ['id'=>$eid, 'journey_id'=>(int)$j['id'], 'current_node'=>$start, 'status'=>'active', 'customer_id'=>$customerId, 'session_id'=>null, 'resume_at'=>null, 'revenue'=>$rev];
-                self::advanceEnrollment($pdo, $tenant, $enr, $j);
-                $n++;
-            } catch (\Throwable $e) { /* 단일 여정 실패 격리 */ }
-        }
+        foreach ($journeys as $j) { if (self::enrollOne($pdo, $tenant, $j, $customerId, $ctx)) $n++; }
         return $n;
+    }
+
+    /** 단일 고객을 단일 여정에 등록 + 즉시 advance. 진행중(active/waiting) 중복 차단. 반환: 신규등록 여부. */
+    private static function enrollOne(\PDO $pdo, string $tenant, array $j, int $customerId, array $ctx = []): bool
+    {
+        try {
+            $dup = $pdo->prepare("SELECT 1 FROM journey_enrollments WHERE tenant_id=:t AND journey_id=:j AND customer_id=:c AND status IN ('active','waiting') LIMIT 1");
+            $dup->execute([':t'=>$tenant, ':j'=>(int)$j['id'], ':c'=>$customerId]);
+            if ($dup->fetchColumn()) return false;
+            $nodes = json_decode($j['nodes'] ?? '[]', true) ?: [];
+            $start = $nodes[0]['id'] ?? 'trigger_1';
+            $now = self::now();
+            $rev = (float)($ctx['revenue'] ?? 0);
+            $pdo->prepare("INSERT INTO journey_enrollments (tenant_id, journey_id, customer_id, current_node, status, entered_at, revenue) VALUES (:t,:j,:c,:n,'active',:e,:rev)")
+                ->execute([':t'=>$tenant, ':j'=>(int)$j['id'], ':c'=>$customerId, ':n'=>$start, ':e'=>$now, ':rev'=>$rev]);
+            $eid = (int)$pdo->lastInsertId();
+            $pdo->prepare("UPDATE journeys SET stats_entered=stats_entered+1 WHERE id=:id AND tenant_id=:t")->execute([':id'=>(int)$j['id'], ':t'=>$tenant]);
+            $enr = ['id'=>$eid, 'journey_id'=>(int)$j['id'], 'current_node'=>$start, 'status'=>'active', 'customer_id'=>$customerId, 'session_id'=>null, 'resume_at'=>null, 'revenue'=>$rev];
+            self::advanceEnrollment($pdo, $tenant, $enr, $j);
+            return true;
+        } catch (\Throwable $e) { return false; }
+    }
+
+    /**
+     * [현 차수] 트리거 detector — churn(휴면)·segment(세그먼트 진입) 자동 진입. journey_cron 주기 호출.
+     *   signup/purchase 는 이벤트 훅(CRM/ChannelSync)으로 즉시 진입하나, churn/segment 는 "상태"라 주기 평가 필요.
+     *   - churn: 마지막 구매가 trigger_config.churn_days(기본 60)일 이전 + 계정도 그 이전 생성 + 미진행 → 진입
+     *   - segment: trigger_config.segment_id(또는 segment 이름) 의 crm_segment_members 중 미진행 → 진입
+     *   (abandon=장바구니 이탈은 cart 추적 소스 부재로 본 detector 범위 밖 — 별도 cart 이벤트 소스 필요.)
+     */
+    public static function runTriggerDetectors(?string $onlyTenant = null, int $perJourney = 200): array
+    {
+        try { self::ensureTables(); } catch (\Throwable $e) { return ['ok'=>false]; }
+        $pdo = self::db();
+        $enrolled = 0; $scanned = 0; $journeys = [];
+        $sql = "SELECT * FROM journeys WHERE status='active' AND trigger_type IN ('churn','segment')";
+        $bind = [];
+        if ($onlyTenant !== null && $onlyTenant !== '') { $sql .= " AND tenant_id=:t"; $bind[':t'] = $onlyTenant; }
+        try { $st = $pdo->prepare($sql); $st->execute($bind); $journeys = $st->fetchAll(\PDO::FETCH_ASSOC); }
+        catch (\Throwable $e) { return ['ok'=>false]; }
+
+        foreach ($journeys as $j) {
+            $tenant = (string)$j['tenant_id'];
+            $jid = (int)$j['id'];
+            $cfg = json_decode((string)($j['trigger_config'] ?? '{}'), true) ?: [];
+            $cands = [];
+            try {
+                if ($j['trigger_type'] === 'churn') {
+                    $days  = (int)($cfg['churn_days'] ?? 60);
+                    $since = gmdate('Y-m-d H:i:s', time() - max(1, $days) * 86400);
+                    $q = $pdo->prepare("SELECT c.id FROM crm_customers c
+                        WHERE c.tenant_id=:t AND c.created_at < :since
+                          AND NOT EXISTS (SELECT 1 FROM crm_activities a WHERE a.tenant_id=:t AND a.customer_id=c.id AND a.type='purchase' AND a.created_at >= :since)
+                          AND NOT EXISTS (SELECT 1 FROM journey_enrollments e WHERE e.tenant_id=:t AND e.journey_id=:j AND e.customer_id=c.id AND e.status IN ('active','waiting'))
+                        LIMIT :lim");
+                    $q->bindValue(':t', $tenant); $q->bindValue(':since', $since); $q->bindValue(':j', $jid, \PDO::PARAM_INT); $q->bindValue(':lim', $perJourney, \PDO::PARAM_INT);
+                    $q->execute(); $cands = $q->fetchAll(\PDO::FETCH_COLUMN);
+                } else { // segment
+                    $sid = (int)($cfg['segment_id'] ?? 0);
+                    if ($sid <= 0 && !empty($cfg['segment'])) {
+                        $sr = $pdo->prepare("SELECT id FROM crm_segments WHERE tenant_id=:t AND name=:n LIMIT 1");
+                        $sr->execute([':t'=>$tenant, ':n'=>(string)$cfg['segment']]);
+                        $sid = (int)($sr->fetchColumn() ?: 0);
+                    }
+                    if ($sid > 0) {
+                        $q = $pdo->prepare("SELECT sm.customer_id FROM crm_segment_members sm
+                            WHERE sm.tenant_id=:t AND sm.segment_id=:sid
+                              AND NOT EXISTS (SELECT 1 FROM journey_enrollments e WHERE e.tenant_id=:t AND e.journey_id=:j AND e.customer_id=sm.customer_id AND e.status IN ('active','waiting'))
+                            LIMIT :lim");
+                        $q->bindValue(':t', $tenant); $q->bindValue(':sid', $sid, \PDO::PARAM_INT); $q->bindValue(':j', $jid, \PDO::PARAM_INT); $q->bindValue(':lim', $perJourney, \PDO::PARAM_INT);
+                        $q->execute(); $cands = $q->fetchAll(\PDO::FETCH_COLUMN);
+                    }
+                }
+            } catch (\Throwable $e) { continue; }
+            foreach ($cands as $cid) { $scanned++; if (self::enrollOne($pdo, $tenant, $j, (int)$cid)) $enrolled++; }
+        }
+        return ['ok'=>true, 'journeys'=>count($journeys), 'scanned'=>$scanned, 'enrolled'=>$enrolled];
     }
 
     /** 주기 실행 진입점 — journey_cron.php 호출. resume 시각 도래한 waiting 등록건 진행. */
