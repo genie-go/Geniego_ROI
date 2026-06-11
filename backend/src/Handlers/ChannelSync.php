@@ -963,19 +963,25 @@ final class ChannelSync
             (tenant_id,channel,channel_order_id,buyer_name,buyer_email,product_name,sku,qty,unit_price,total_price,status,carrier,tracking_no,addr,ordered_at,event_type,raw_json,synced_at)
             VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
             . self::upsertTail($pdo, 'tenant_id,channel,channel_order_id',
-                ['status','carrier','tracking_no','synced_at']));
+                ['status','event_type','carrier','tracking_no','synced_at']));
         foreach ($orders as $o) {
             if (!($o['channel_order_id'] ?? null)) continue;
             // 188차 P0 보안: 데모 데이터의 운영 DB 유입 차단(전 채널 단일 chokepoint).
             // 204차 P0: source='structured'(amazon 등) 도 차단(우회 방어 강화).
             if ($tenant !== 'demo' && (in_array(($o['source'] ?? ''), ['demo','structured'], true) || str_starts_with((string)$o['channel_order_id'], 'DEMO-'))) continue;
-            // 208차 동기화 P0: 신규 주문 판별(멱등) — 재동기화 시 중복 재고차감 방지.
-            $isNew = false;
+            // 208차 멱등 + [현 차수 P0] 상태전이(취소/반품) 감지를 위해 기존 행 상태 사전 조회.
+            $existing = null;
             try {
-                $chk = $pdo->prepare("SELECT 1 FROM channel_orders WHERE tenant_id=? AND channel=? AND channel_order_id=? LIMIT 1");
+                $chk = $pdo->prepare("SELECT event_type, status, sku, qty, total_price FROM channel_orders WHERE tenant_id=? AND channel=? AND channel_order_id=? LIMIT 1");
                 $chk->execute([$tenant, $channel, (string)$o['channel_order_id']]);
-                $isNew = !$chk->fetchColumn();
+                $existing = $chk->fetch(PDO::FETCH_ASSOC) ?: null;
             } catch (\Throwable $e) {}
+            $isNew = ($existing === null);
+            // [현 차수 P0] 폴링 경로 취소/반품 처리(webhook 경로와 동등). 어댑터는 주로 status 로 표기.
+            $incCR = self::classifyCancelReturn((string)($o['status'] ?? ''), (string)($o['event_type'] ?? ''));
+            $wasCR = $existing ? (self::classifyCancelReturn((string)($existing['status'] ?? ''), (string)($existing['event_type'] ?? '')) !== null) : false;
+            // 저장 event_type: 취소/반품이면 분류값으로 정규화(다음 폴링 시 재전이 오판 방지·webhook 정합).
+            $evt = $incCR ?? ((string)($o['event_type'] ?? 'order'));
             $stmt->execute([
                 $tenant, $channel, $o['channel_order_id'],
                 $o['buyer_name'] ?? null, $o['buyer_email'] ?? null,
@@ -983,15 +989,29 @@ final class ChannelSync
                 (int)($o['qty'] ?? 1), (float)($o['unit_price'] ?? 0), (float)($o['total_price'] ?? 0),
                 $o['status'] ?? 'pending', $o['carrier'] ?? null, $o['tracking_no'] ?? null,
                 $o['addr'] ?? null, $o['ordered_at'] ?? $now,
-                $o['event_type'] ?? 'order', json_encode($o), $now,
+                $evt, json_encode($o), $now,
             ]);
             $count++;
-            // 신규 주문일 때만 실재고 차감 + CRM 구매이력 기록(커머스→재고/CRM 동기화). 데모 제외.
-            if ($isNew && $tenant !== 'demo') {
-                if (!empty($o['sku'])) self::decInventory($pdo, $tenant, $channel, (string)$o['sku'], (int)($o['qty'] ?? 1));
-                self::recordCrmPurchase($pdo, $tenant, $channel, $o['buyer_email'] ?? '', $o['buyer_name'] ?? '', (float)($o['total_price'] ?? 0), (string)($o['sku'] ?? ''), (int)($o['qty'] ?? 1), (string)$o['channel_order_id']);
-                // [현 차수] 주문 → 어트리뷰션 채널 터치(귀속 분석 자동 반영).
-                self::recordAttributionTouch($pdo, $tenant, $channel, (string)$o['channel_order_id'], (float)($o['total_price'] ?? 0));
+            if ($tenant === 'demo') continue;
+
+            if ($isNew) {
+                if ($incCR === null) {
+                    // 정상 신규 주문 → 실재고 차감 + CRM 구매이력 + 어트리뷰션 터치(커머스→재고/CRM/귀속 동기화).
+                    if (!empty($o['sku'])) self::decInventory($pdo, $tenant, $channel, (string)$o['sku'], (int)($o['qty'] ?? 1));
+                    self::recordCrmPurchase($pdo, $tenant, $channel, $o['buyer_email'] ?? '', $o['buyer_name'] ?? '', (float)($o['total_price'] ?? 0), (string)($o['sku'] ?? ''), (int)($o['qty'] ?? 1), (string)$o['channel_order_id']);
+                    self::recordAttributionTouch($pdo, $tenant, $channel, (string)$o['channel_order_id'], (float)($o['total_price'] ?? 0));
+                } else {
+                    // 최초 수집부터 취소/반품 → 재고차감/구매기록 없이 claim 만 적재(정산 정합, 미판매분 재고 미차감).
+                    self::recordClaim($pdo, $tenant, $channel, (string)$o['channel_order_id'], $incCR, (float)($o['total_price'] ?? 0), (string)($o['reason'] ?? ''), (string)($o['buyer_name'] ?? ''), $now);
+                }
+            } elseif ($incCR !== null && !$wasCR) {
+                // [현 차수 P0] 활성→취소/반품 전이(최초 1회) → 재고 복원 + claim 적재(정산 returnFee 자동반영). recordClaim 멱등.
+                $rsku = (string)($existing['sku'] ?? ($o['sku'] ?? ''));
+                $rqty = (int)($existing['qty'] ?? ($o['qty'] ?? 0));
+                if ($rsku !== '' && $rqty > 0) self::incInventory($pdo, $tenant, $channel, $rsku, $rqty);
+                $claimTotal = (float)($existing['total_price'] ?? 0);
+                if ($claimTotal <= 0) $claimTotal = (float)($o['total_price'] ?? 0);
+                self::recordClaim($pdo, $tenant, $channel, (string)$o['channel_order_id'], $incCR, $claimTotal, (string)($o['reason'] ?? ''), (string)($o['buyer_name'] ?? ''), $now);
             }
         }
         return $count;
@@ -1025,6 +1045,19 @@ final class ChannelSync
             $pdo->prepare("UPDATE channel_inventory SET available=available+?, synced_at=? WHERE id=?")
                 ->execute([$qty, gmdate('c'), (int)$id]);
         } catch (\Throwable $e) { error_log('[ChannelSync.incInventory] ' . $e->getMessage()); }
+    }
+
+    /**
+     * [현 차수 P0] 주문 상태/이벤트 → 취소/반품 분류. 폴링 어댑터는 취소/반품을 주로 status 로
+     *   표기한다(Amazon 'canceled', Shopify '취소완료'/'반품완료', event_type 은 대개 'order').
+     *   반품/환불을 취소보다 우선 판정. 매칭 없으면 null.
+     */
+    private static function classifyCancelReturn(string $status, string $eventType): ?string
+    {
+        $hay = $status . ' ' . $eventType;
+        if ($eventType === 'return' || preg_match('/return|refund|반품|환불/iu', $hay)) return 'return';
+        if ($eventType === 'cancel' || preg_match('/cancel|void|취소/iu', $hay))         return 'cancel';
+        return null;
     }
 
     /**
