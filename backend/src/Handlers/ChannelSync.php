@@ -1594,37 +1594,157 @@ final class ChannelSync
         return TemplateResponder::respond($res, ['ok'=>true,'channel'=>$channel,'event'=>$eventType,'accepted'=>true]);
     }
 
+    // ── 웹훅 토큰 발급/관리 ───────────────────────────────────────────────
+    // 실시간 주문/취소/반품 webhook 수신은 등록된 토큰 검증을 전제로 한다(위 webhook()).
+    // 토큰 발급 동선이 없으면 channel_webhook_token 이 비어 모든 webhook 이 no-op 였다.
+    // 이 3개 엔드포인트로 테넌트가 채널별 토큰을 발급/조회/폐기 → webhook URL 을 채널 콘솔에
+    // 등록하면 실시간 동기화가 활성화된다(폴링 cron 은 백업으로 유지).
+
+    /** channel_webhook_token 테이블 보장(+ 레거시 테이블 누락 컬럼 호환 추가) */
+    private static function ensureWebhookTokenTable(\PDO $pdo): void
+    {
+        $isMy = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql';
+        if ($isMy) {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS channel_webhook_token (
+                id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                tenant_id VARCHAR(190) NOT NULL,
+                channel VARCHAR(64) NOT NULL,
+                token VARCHAR(128) NOT NULL UNIQUE,
+                label VARCHAR(190) NULL,
+                last_used_at DATETIME NULL,
+                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                INDEX idx_cwt_tenant (tenant_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+        } else {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS channel_webhook_token (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                tenant_id TEXT NOT NULL,
+                channel TEXT NOT NULL,
+                token TEXT NOT NULL UNIQUE,
+                label TEXT,
+                last_used_at TEXT,
+                created_at TEXT NOT NULL DEFAULT (datetime('now'))
+            )");
+        }
+        // 레거시(label/last_used_at 미보유) 테이블 best-effort 마이그레이션.
+        foreach (['label','last_used_at'] as $col) {
+            $type = $isMy ? ($col === 'last_used_at' ? 'DATETIME NULL' : 'VARCHAR(190) NULL') : 'TEXT';
+            try { $pdo->exec("ALTER TABLE channel_webhook_token ADD COLUMN $col $type"); } catch (\Throwable $e) {}
+        }
+    }
+
+    /** 프록시 뒤에서도 정확한 공개 베이스 URL 도출(X-Forwarded-* 우선) */
+    private static function webhookBaseUrl(Request $req): string
+    {
+        $uri    = $req->getUri();
+        $scheme = $uri->getScheme() ?: 'https';
+        $host   = $uri->getHost();
+        $fwdH = trim($req->getHeaderLine('X-Forwarded-Host'));
+        if ($fwdH !== '') $host = trim(explode(',', $fwdH)[0]);
+        $fwdP = trim($req->getHeaderLine('X-Forwarded-Proto'));
+        if ($fwdP !== '') $scheme = trim(explode(',', $fwdP)[0]);
+        return $scheme . '://' . $host;
+    }
+
+    /** 채널별 webhook 수신 URL(토큰 쿼리 포함) */
+    private static function webhookUrlFor(Request $req, string $channel, string $token): string
+    {
+        return self::webhookBaseUrl($req) . '/api/channel-sync/webhooks/' . rawurlencode($channel) . '?token=' . $token;
+    }
+
+    // GET /api/channel-sync/webhook-tokens — 발급된 토큰 목록(소유 테넌트 한정)
+    public static function listWebhookTokens(Request $req, Response $res): Response
+    {
+        if (($g = self::denyAnon($req, $res)) !== null) return $g;
+        $pdo = Db::pdo();
+        self::ensureWebhookTokenTable($pdo);
+        $tenant = self::tenant($req);
+        $st = $pdo->prepare("SELECT id,channel,token,label,last_used_at,created_at FROM channel_webhook_token WHERE tenant_id=? ORDER BY id DESC");
+        $st->execute([$tenant]);
+        $rows = [];
+        foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $r) {
+            $tok = (string)$r['token'];
+            $rows[] = [
+                'id'           => (int)$r['id'],
+                'channel'      => $r['channel'],
+                'label'        => $r['label'],
+                'token_masked' => strlen($tok) > 12 ? substr($tok, 0, 6) . '…' . substr($tok, -4) : '••••',
+                'webhook_url'  => self::webhookUrlFor($req, (string)$r['channel'], $tok), // 소유자 한정(자기 시크릿)
+                'last_used_at' => $r['last_used_at'],
+                'created_at'   => $r['created_at'],
+            ];
+        }
+        return TemplateResponder::respond($res, [
+            'ok'       => true,
+            'tenant'   => $tenant,
+            'base_url' => self::webhookBaseUrl($req),
+            'tokens'   => $rows,
+        ]);
+    }
+
+    // POST /api/channel-sync/webhook-tokens — body {channel, label?} → 토큰 발급
+    public static function createWebhookToken(Request $req, Response $res): Response
+    {
+        if (($g = self::denyAnon($req, $res)) !== null) return $g;
+        $pdo    = Db::pdo();
+        $tenant = self::tenant($req);
+        // 데모는 발급 차단 — 데모 토큰으로 webhook 주입 시 demo 버킷 오염 방지.
+        if ($tenant === 'demo' || $tenant === '') {
+            return TemplateResponder::respond($res->withStatus(403), ['ok'=>false,'error'=>'demo_readonly','message'=>'데모 환경에서는 웹훅 토큰을 발급할 수 없습니다.']);
+        }
+        self::ensureWebhookTokenTable($pdo);
+        $body    = (array)($req->getParsedBody() ?? []);
+        $channel = trim((string)($body['channel'] ?? ''));
+        if ($channel === '') return TemplateResponder::respond($res->withStatus(422), ['ok'=>false,'error'=>'channel required']);
+        $label = trim((string)($body['label'] ?? ''));
+        $token = bin2hex(random_bytes(32)); // 64 hex — 추측 불가
+        $now   = gmdate('Y-m-d H:i:s');
+        $ins = $pdo->prepare("INSERT INTO channel_webhook_token(tenant_id,channel,token,label,created_at) VALUES(?,?,?,?,?)");
+        $ins->execute([$tenant, $channel, $token, $label !== '' ? $label : null, $now]);
+        $id = (int)$pdo->lastInsertId();
+        return TemplateResponder::respond($res->withStatus(201), [
+            'ok'          => true,
+            'id'          => $id,
+            'channel'     => $channel,
+            'label'       => $label !== '' ? $label : null,
+            'token'       => $token, // 발급 시 1회 전체 노출(소유자 복사용)
+            'webhook_url' => self::webhookUrlFor($req, $channel, $token),
+            'header_hint' => 'X-Webhook-Token: ' . $token,
+            'created_at'  => $now,
+        ]);
+    }
+
+    // DELETE /api/channel-sync/webhook-tokens/{id} — 폐기(테넌트 스코프)
+    public static function deleteWebhookToken(Request $req, Response $res, array $args): Response
+    {
+        if (($g = self::denyAnon($req, $res)) !== null) return $g;
+        $pdo    = Db::pdo();
+        self::ensureWebhookTokenTable($pdo);
+        $tenant = self::tenant($req);
+        $id     = (int)($args['id'] ?? 0);
+        if ($id <= 0) return TemplateResponder::respond($res->withStatus(422), ['ok'=>false,'error'=>'id required']);
+        // WHERE tenant_id=? — 타 테넌트 토큰 폐기 불가(격리)
+        $del = $pdo->prepare("DELETE FROM channel_webhook_token WHERE id=? AND tenant_id=?");
+        $del->execute([$id, $tenant]);
+        return TemplateResponder::respond($res, ['ok'=>true, 'deleted'=>(int)$del->rowCount()]);
+    }
+
     /**
      * 등록된 웹훅 토큰 → 테넌트 도출. 미등록/무효 토큰은 null(쓰기 거부).
      * channel_webhook_token(tenant_id, channel, token UNIQUE) 에서 조회.
-     * (토큰 발급/등록 UI 는 후속 — 현재는 검증 게이트로 주입만 차단)
      */
     private static function tenantFromWebhookToken(\PDO $pdo, string $channel, string $token): ?string
     {
         if ($token === '' || strlen($token) < 16) return null;
         try {
-            $isMy = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql';
-            if ($isMy) {
-                $pdo->exec("CREATE TABLE IF NOT EXISTS channel_webhook_token (
-                    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-                    tenant_id VARCHAR(190) NOT NULL,
-                    channel VARCHAR(64) NOT NULL,
-                    token VARCHAR(128) NOT NULL UNIQUE,
-                    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
-                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
-            } else {
-                $pdo->exec("CREATE TABLE IF NOT EXISTS channel_webhook_token (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    tenant_id TEXT NOT NULL,
-                    channel TEXT NOT NULL,
-                    token TEXT NOT NULL UNIQUE,
-                    created_at TEXT NOT NULL DEFAULT (datetime('now'))
-                )");
-            }
-            $st = $pdo->prepare("SELECT tenant_id FROM channel_webhook_token WHERE token=? AND channel=? LIMIT 1");
+            self::ensureWebhookTokenTable($pdo);
+            $st = $pdo->prepare("SELECT id,tenant_id FROM channel_webhook_token WHERE token=? AND channel=? LIMIT 1");
             $st->execute([$token, $channel]);
-            $t = $st->fetchColumn();
-            return ($t !== false && $t !== null) ? (string)$t : null;
+            $r = $st->fetch(PDO::FETCH_ASSOC);
+            if (!$r) return null;
+            // 사용 시각 갱신(베스트-에포트) — UI 의 '최근 수신' 표시용.
+            try { $pdo->prepare("UPDATE channel_webhook_token SET last_used_at=? WHERE id=?")->execute([gmdate('Y-m-d H:i:s'), (int)$r['id']]); } catch (\Throwable $e) {}
+            return (string)$r['tenant_id'];
         } catch (\Throwable $e) {
             return null;
         }

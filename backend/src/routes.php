@@ -360,6 +360,10 @@ return function (App $app): void {
         'GET /api/channel-sync/orders'                    => 'Genie\\Handlers\\ChannelSync::orders',
         'GET /api/channel-sync/inventory'                 => 'Genie\\Handlers\\ChannelSync::inventory',
         'POST /api/channel-sync/webhooks/{channel}'       => 'Genie\\Handlers\\ChannelSync::webhook',
+        // [현 차수 P0] 실시간 webhook 활성화 — 토큰 발급/조회/폐기(테넌트 격리)
+        'GET /api/channel-sync/webhook-tokens'            => 'Genie\\Handlers\\ChannelSync::listWebhookTokens',
+        'POST /api/channel-sync/webhook-tokens'           => 'Genie\\Handlers\\ChannelSync::createWebhookToken',
+        'DELETE /api/channel-sync/webhook-tokens/{id}'    => 'Genie\\Handlers\\ChannelSync::deleteWebhookToken',
         // 202차 항목2c: Apache Alias /api(setBasePath) 환경에서 /api 가 strip 되어 매칭되도록
         //   no-/api 변형도 등록(OmniChannel/CatalogSync 가 /api/channel-sync/* 호출 → 404 해소).
         'GET /channel-sync/status'                        => 'Genie\\Handlers\\ChannelSync::status',
@@ -371,6 +375,9 @@ return function (App $app): void {
         'GET /channel-sync/orders'                        => 'Genie\\Handlers\\ChannelSync::orders',
         'GET /channel-sync/inventory'                     => 'Genie\\Handlers\\ChannelSync::inventory',
         'POST /channel-sync/webhooks/{channel}'           => 'Genie\\Handlers\\ChannelSync::webhook',
+        'GET /channel-sync/webhook-tokens'                => 'Genie\\Handlers\\ChannelSync::listWebhookTokens',
+        'POST /channel-sync/webhook-tokens'               => 'Genie\\Handlers\\ChannelSync::createWebhookToken',
+        'DELETE /channel-sync/webhook-tokens/{id}'        => 'Genie\\Handlers\\ChannelSync::deleteWebhookToken',
 
         // [현 차수] 통합 채널 레지스트리(DB 동적) — 등록 UI 동적 로드 + admin CRUD
         'GET /v426/channels'                   => 'Genie\\Handlers\\ChannelRegistry::listChannels',
@@ -2221,6 +2228,9 @@ return function (App $app): void {
     $register('GET',    '/api/channel-sync/orders');
     $register('GET',    '/api/channel-sync/inventory');
     $register('POST',   '/api/channel-sync/webhooks/{channel}');
+    $register('GET',    '/api/channel-sync/webhook-tokens');
+    $register('POST',   '/api/channel-sync/webhook-tokens');
+    $register('DELETE', '/api/channel-sync/webhook-tokens/{id}');
     // 202차 항목2c: no-/api 변형(basePath strip 환경)
     $register('GET',    '/channel-sync/status');
     $register('POST',   '/channel-sync/credentials');
@@ -2231,6 +2241,9 @@ return function (App $app): void {
     $register('GET',    '/channel-sync/orders');
     $register('GET',    '/channel-sync/inventory');
     $register('POST',   '/channel-sync/webhooks/{channel}');
+    $register('GET',    '/channel-sync/webhook-tokens');
+    $register('POST',   '/channel-sync/webhook-tokens');
+    $register('DELETE', '/channel-sync/webhook-tokens/{id}');
     // [현 차수] 통합 채널 레지스트리
     $register('GET',    '/v426/channels');        $register('GET',    '/api/v426/channels');
     $register('GET',    '/v426/admin/channels');  $register('GET',    '/api/v426/admin/channels');

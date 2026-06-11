@@ -280,6 +280,7 @@ export default function ApiKeys() {
     t('ak.tabSettings','Settings'),
     t('ak.tabTracking','배송추적'),
     t('ak.tabPg','정산'),
+    t('ak.tabWebhook','실시간 Webhook'),
     t('ak.tabGuide','이용 가이드'),
   ];
 
@@ -704,7 +705,8 @@ export default function ApiKeys() {
       {activeTab === 3 && (<SettingsTab t={t} />)}
       {activeTab === 4 && (<TrackingTab t={t} show={show} />)}
       {activeTab === 5 && (<SettlementTab t={t} show={show} />)}
-      {activeTab === 6 && (() => {
+      {activeTab === 6 && (<WebhookTab t={t} show={show} />)}
+      {activeTab === 7 && (() => {
         // 184차 #5: enterprise 패턴 렌더러(CRM/OmniChannel/PriceOpt/Kakao/Email/CampaignMgr/JourneyBuilder 정본 동일, NS=ak).
         const g = (k) => { const v = t('ak.' + k, ''); return (v && !String(v).includes('ak.')) ? v : ''; };
         const COLORS = ['#4f8ef7','#22c55e','#a855f7','#f59e0b','#06b6d4','#ec4899','#14b8a6','#ef4444','#8b5cf6','#10b981','#3b82f6','#e11d48'];
@@ -793,6 +795,176 @@ export default function ApiKeys() {
     </div>
   );
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   Tab: 실시간 Webhook — 채널별 수신 토큰 발급/조회/폐기
+   webhook URL 을 채널 콘솔에 등록하면 주문/취소/반품이 실시간 동기화된다.
+   (백엔드: ChannelSync::listWebhookTokens/createWebhookToken/deleteWebhookToken)
+   ═══════════════════════════════════════════════════════════════════ */
+const WEBHOOK_CHANNELS = [
+  { id: 'shopify',     name: 'Shopify' },
+  { id: 'amazon',      name: 'Amazon SP-API' },
+  { id: 'coupang',     name: '쿠팡 Wing' },
+  { id: 'naver',       name: '네이버 스마트스토어' },
+  { id: 'ebay',        name: 'eBay' },
+  { id: 'tiktok_shop', name: 'TikTok Shop' },
+  { id: 'rakuten',     name: 'Rakuten' },
+  { id: 'cafe24',      name: 'Cafe24' },
+];
+
+function WebhookTab({ t, show }) {
+  const [tokens, setTokens]     = useState([]);
+  const [baseUrl, setBaseUrl]   = useState('');
+  const [loading, setLoading]   = useState(true);
+  const [channel, setChannel]   = useState('shopify');
+  const [label, setLabel]       = useState('');
+  const [creating, setCreating] = useState(false);
+  const [justCreated, setJustCreated] = useState(null); // 발급 직후 1회 전체 토큰 노출
+
+  const load = useCallback(() => {
+    setLoading(true);
+    getJsonAuth('/api/channel-sync/webhook-tokens')
+      .then(r => { if (r?.ok) { setTokens(r.tokens || []); setBaseUrl(r.base_url || ''); } })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+  useEffect(() => { load(); }, [load]);
+
+  const copy = (txt) => {
+    try { navigator.clipboard?.writeText(String(txt)); show('success', t('ak.whCopied', '클립보드에 복사되었습니다')); }
+    catch { show('error', t('ak.whCopyFail', '복사 실패 — 직접 선택해 복사하세요')); }
+  };
+
+  const create = async () => {
+    if (!channel) return;
+    setCreating(true);
+    try {
+      const r = await postJson('/api/channel-sync/webhook-tokens', { channel, label });
+      if (r?.ok) {
+        setJustCreated(r);
+        setLabel('');
+        show('success', t('ak.whCreated', '웹훅 토큰이 발급되었습니다'));
+        load();
+      } else {
+        show('error', r?.message || t('ak.whErr', '발급에 실패했습니다'));
+      }
+    } catch (e) {
+      const msg = String(e?.message || e);
+      show('error', msg.includes('403') ? t('ak.whDemoBlock', '데모 환경에서는 발급할 수 없습니다') : msg);
+    } finally { setCreating(false); }
+  };
+
+  const remove = async (id) => {
+    if (!window.confirm(t('ak.whDelConfirm', '이 웹훅 토큰을 폐기할까요? 해당 채널의 실시간 수신이 중단됩니다.'))) return;
+    try {
+      await delJson('/api/channel-sync/webhook-tokens/' + id);
+      if (justCreated?.id === id) setJustCreated(null);
+      show('success', t('ak.whDeleted', '폐기되었습니다'));
+      load();
+    } catch (e) { show('error', String(e?.message || e)); }
+  };
+
+  const card  = { background: 'var(--surface-1,#fff)', border: '1px solid var(--border,#e5e7eb)', borderRadius: 14, padding: 18 };
+  const input = { padding: '9px 11px', borderRadius: 9, border: '1px solid var(--border,#cbd5e1)', background: 'var(--surface-2,#fff)', color: 'var(--text-1,#0f172a)', fontSize: 13 };
+  const codeBox = { fontFamily: 'monospace', fontSize: 12, wordBreak: 'break-all', background: 'var(--surface-2,#f1f5f9)', border: '1px solid var(--border,#e2e8f0)', borderRadius: 8, padding: '8px 10px', color: 'var(--text-1,#0f172a)' };
+
+  return (
+    <div style={{ display: 'grid', gap: 16 }}>
+      {/* 안내 */}
+      <div style={{ ...card, background: 'linear-gradient(135deg,#eef2ff,#e0e7ff)', border: '1px solid #c7d2fe' }}>
+        <div style={{ fontWeight: 900, fontSize: 15, color: '#1e293b', WebkitTextFillColor: '#1e293b', marginBottom: 6 }}>
+          🔔 {t('ak.whTitle', '실시간 Webhook 수신')}
+        </div>
+        <div style={{ fontSize: 12.5, color: '#475569', WebkitTextFillColor: '#475569', lineHeight: 1.8 }}>
+          {t('ak.whIntro', '채널별 수신 토큰을 발급해 아래 Webhook URL 을 각 판매채널 콘솔(주문 알림/웹훅 설정)에 등록하세요. 등록하면 주문·취소·반품·재고 변경이 폴링 주기를 기다리지 않고 실시간으로 동기화됩니다. 토큰이 없으면 채널이 보낸 webhook 은 보안상 무시됩니다(주입 차단).')}
+        </div>
+      </div>
+
+      {/* 발급 폼 */}
+      <div style={card}>
+        <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 12, color: 'var(--text-1)' }}>{t('ak.whIssue', '토큰 발급')}</div>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'flex-end' }}>
+          <div style={{ display: 'grid', gap: 4 }}>
+            <label style={{ fontSize: 11, color: 'var(--text-2)' }}>{t('ak.whChannel', '채널')}</label>
+            <select value={channel} onChange={e => setChannel(e.target.value)} style={{ ...input, minWidth: 200 }}>
+              {WEBHOOK_CHANNELS.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+          </div>
+          <div style={{ display: 'grid', gap: 4, flex: 1, minWidth: 180 }}>
+            <label style={{ fontSize: 11, color: 'var(--text-2)' }}>{t('ak.whLabel', '메모(선택)')}</label>
+            <input value={label} onChange={e => setLabel(e.target.value)} placeholder={t('ak.whLabelPh', '예: 본 매장 운영용')} style={input} />
+          </div>
+          <button onClick={create} disabled={creating} style={{
+            padding: '10px 18px', borderRadius: 9, border: 'none', cursor: creating ? 'wait' : 'pointer',
+            background: 'linear-gradient(135deg,#4f8ef7,#6366f1)', color: '#fff', fontWeight: 800, fontSize: 13,
+          }}>{creating ? t('ak.whIssuing', '발급 중…') : t('ak.whIssueBtn', '+ 토큰 발급')}</button>
+        </div>
+
+        {/* 발급 직후 — 전체 토큰/URL 1회 노출 */}
+        {justCreated && (
+          <div style={{ marginTop: 14, padding: 14, borderRadius: 10, border: '1px dashed #22c55e', background: 'rgba(34,197,94,0.06)' }}>
+            <div style={{ fontSize: 12, fontWeight: 800, color: '#15803d', WebkitTextFillColor: '#15803d', marginBottom: 8 }}>
+              ✅ {t('ak.whNew', '발급 완료 — 아래 Webhook URL 을 채널 콘솔에 등록하세요')}
+            </div>
+            <div style={{ display: 'grid', gap: 8 }}>
+              <div>
+                <div style={{ fontSize: 11, color: 'var(--text-2)', marginBottom: 3 }}>Webhook URL</div>
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                  <div style={{ ...codeBox, flex: 1 }}>{justCreated.webhook_url}</div>
+                  <button onClick={() => copy(justCreated.webhook_url)} style={miniBtn}>{t('ak.whCopy', '복사')}</button>
+                </div>
+              </div>
+              <div>
+                <div style={{ fontSize: 11, color: 'var(--text-2)', marginBottom: 3 }}>{t('ak.whHeaderAlt', '또는 헤더 방식')}</div>
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                  <div style={{ ...codeBox, flex: 1 }}>{justCreated.header_hint}</div>
+                  <button onClick={() => copy(justCreated.header_hint)} style={miniBtn}>{t('ak.whCopy', '복사')}</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* 발급된 토큰 목록 */}
+      <div style={card}>
+        <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 12, color: 'var(--text-1)' }}>
+          {t('ak.whList', '발급된 토큰')} {tokens.length > 0 && <span style={{ color: 'var(--text-2)', fontWeight: 600 }}>({tokens.length})</span>}
+        </div>
+        {loading ? (
+          <div style={{ color: 'var(--text-2)', fontSize: 13, padding: 12 }}>{t('common.loading', '불러오는 중…')}</div>
+        ) : tokens.length === 0 ? (
+          <div style={{ color: 'var(--text-2)', fontSize: 13, padding: 16, textAlign: 'center' }}>{t('ak.whEmpty', '아직 발급된 웹훅 토큰이 없습니다.')}</div>
+        ) : (
+          <div style={{ display: 'grid', gap: 10 }}>
+            {tokens.map(tk => {
+              const chName = WEBHOOK_CHANNELS.find(c => c.id === tk.channel)?.name || tk.channel;
+              return (
+                <div key={tk.id} style={{ border: '1px solid var(--border,#e5e7eb)', borderRadius: 10, padding: 12 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                      <span style={{ fontWeight: 800, fontSize: 13, color: 'var(--text-1)' }}>{chName}</span>
+                      {tk.label && <span style={{ fontSize: 11, color: 'var(--text-2)' }}>· {tk.label}</span>}
+                      <span style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--text-2)' }}>{tk.token_masked}</span>
+                    </div>
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                      <span style={{ fontSize: 11, color: tk.last_used_at ? '#22c55e' : 'var(--text-3,#94a3b8)' }}>
+                        {tk.last_used_at ? `${t('ak.whLastUsed', '최근 수신')}: ${tk.last_used_at}` : t('ak.whNeverUsed', '수신 이력 없음')}
+                      </span>
+                      <button onClick={() => copy(tk.webhook_url)} style={miniBtn}>{t('ak.whCopyUrl', 'URL 복사')}</button>
+                      <button onClick={() => remove(tk.id)} style={{ ...miniBtn, color: '#ef4444', borderColor: '#fca5a5' }}>{t('ak.whRevoke', '폐기')}</button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+const miniBtn = { padding: '6px 12px', borderRadius: 8, border: '1px solid var(--border,#cbd5e1)', background: 'var(--surface-2,#fff)', color: 'var(--text-1,#334155)', fontSize: 12, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' };
 
 /* ═══════════════════════════════════════════════════════════════════
    Tab: 정산 — v427 PG 정산 실어댑터(Stripe·토스페이먼츠·PayPal)
