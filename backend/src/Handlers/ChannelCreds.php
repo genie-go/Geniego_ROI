@@ -326,6 +326,26 @@ final class ChannelCreds
 
         $newId = (int)$pdo->lastInsertId();
 
+        // ── [현 차수 P0] 자격증명 저장 직후 백엔드 자동 동기화 트리거 ───────────────
+        //   기존엔 프론트(ApiKeys.handleConnectSave)가 별도 POST 로만 sync 를 호출해,
+        //   프로그래매틱/단일폼/API 직접 등록 경로는 cron(최대 5분)까지 미동기화였다.
+        //   이제 저장 성공 시 백엔드가 채널 종류에 따라 1회 동기화를 직접 트리거(저장 경로 무관 대칭).
+        //   광고 채널 → Connectors::syncAdChannelOnSave(performance_metrics),
+        //   커머스 채널 → ChannelSync::syncTenantChannel(channel_orders/products).
+        //   데모/익명 테넌트는 skip(오염 차단). 실패는 무음 — 저장 성공이 우선(cron 백업).
+        $autoSync = null;
+        if ($tenant !== '' && $tenant !== 'demo') {
+            try {
+                if (Connectors::isAdChannel($channel)) {
+                    $autoSync = ['kind' => 'ad', 'result' => Connectors::syncAdChannelOnSave($tenant, $channel)];
+                } elseif (in_array($channel, ChannelSync::COMMERCE_CHANNELS, true)) {
+                    $autoSync = ['kind' => 'commerce', 'result' => ChannelSync::syncTenantChannel($tenant, $channel, $userPlan !== '' ? $userPlan : 'pro')];
+                }
+            } catch (\Throwable $e) {
+                error_log('[ChannelCreds::upsert] auto-sync failed: ' . $e->getMessage());
+            }
+        }
+
         // ── 데모 사용자: API 키 등록 시 plan=pro 자동 업그레이드(실사용 체험 전환) ──
         //   ★ 202차: free/'' 는 자동 업그레이드 제외 → "Free 채널 N개 평생 무료" 모델 유지.
         //     (free 는 한도 내 채널을 무료로 계속 사용, 한도 초과 시에만 위에서 차단·업그레이드 유도)
@@ -376,6 +396,7 @@ final class ChannelCreds
             'channel'        => $channel,
             'key_name'       => $keyName,
             'mode_activated' => $modeActivated,
+            'auto_sync'      => $autoSync, // [현 차수 P0] 저장 직후 백엔드 자동 동기화 결과(null=해당없음)
         ];
         if ($updatedUser !== null) {
             $resp['user'] = $updatedUser;
@@ -452,13 +473,33 @@ final class ChannelCreds
             in_array($channel, ['meta_ads', 'meta'], true) => self::pingMeta($keyValue),
             in_array($channel, ['tiktok', 'tiktok_business'], true) => self::pingTikTok($keyValue),
             in_array($channel, ['google_ads'], true) => self::pingGoogle($keyValue),
-            in_array($channel, ['amazon_spapi', 'amazon'], true) => [true, 'Amazon SP-API: credential stored (full OAuth test requires refresh flow)'],
+            in_array($channel, ['amazon_spapi', 'amazon'], true) => [true, 'Amazon SP-API: 자격증명 저장됨 — 동기화 시 실연동 검증(OAuth refresh)'],
             in_array($channel, ['shopify'], true) => self::pingShopify($keyValue),
-            in_array($channel, ['naver', 'naver_smartstore'], true) => [true, 'Naver: credential stored (API test requires additional params)'],
-            in_array($channel, ['coupang'], true) => [true, 'Coupang: credential stored (HMAC test requires additional params)'],
+            in_array($channel, ['naver', 'naver_smartstore'], true) => [true, 'Naver: 자격증명 저장됨 — 동기화 시 실연동 검증(OAuth+HMAC)'],
+            in_array($channel, ['coupang'], true) => [true, 'Coupang: 자격증명 저장됨 — 동기화 시 실연동 검증(HMAC)'],
             in_array($channel, ['kakao', 'kakao_moment'], true) => self::pingKakao($keyValue),
-            default => [true, "Channel [{$channel}] credential saved (no live test available)"],
+            // ★[현 차수 P0] 거짓양성 차단: 실 어댑터가 있는 채널만 'stored=ok', 미구현 stub 은 정직하게 not-connected.
+            //   과거 default=[true,...] 라 PG/물류/국제특송/genericFetch stub 채널이 "테스트 성공"으로 오표시됐다.
+            default => self::hasRealAdapter($channel)
+                ? [true, "[{$channel}] 자격증명 저장됨 — 동기화 시 실연동 검증됩니다."]
+                : [false, "[{$channel}] 전용 어댑터 연동 준비 중입니다. 자격증명은 저장됐으며, 정식 연동 후 자동 동기화됩니다."],
         };
+    }
+
+    /**
+     * ★[현 차수 P0] 실제 외부 API 어댑터(라이브 fetch/ingest)가 구현된 채널인지 판정.
+     *   미구현(stub/genericFetch) 채널이 연결 테스트에서 거짓 'ok'(성공)로 표시되는 것을 방지한다.
+     *   목록 동기화 기준: ChannelSync 전용 fetch 어댑터(shopify/amazon/coupang/naver/ebay/tiktok_shop/
+     *   rakuten/cafe24) + Connectors 광고 ingest(meta/google/tiktok/naver_sa) + 라이브 ping(kakao).
+     */
+    private static function hasRealAdapter(string $channel): bool
+    {
+        return in_array($channel, [
+            'meta_ads', 'meta', 'google_ads', 'tiktok', 'tiktok_business', 'tiktok_shop',
+            'naver_sa', 'kakao', 'kakao_moment',
+            'shopify', 'amazon', 'amazon_spapi', 'coupang', 'naver', 'naver_smartstore',
+            'ebay', 'rakuten', 'cafe24',
+        ], true);
     }
 
     private static function httpGet(string $url, array $headers = []): array
@@ -636,6 +677,7 @@ final class ChannelCreds
      */
     public static function channelTest(Request $request, Response $response, array $args): Response
     {
+        if ($deny = self::denyAnon($request, $response)) return $deny; // [현 차수] 익명 외부 ping 남용 차단(test/upsert 일관)
         $pdo     = Db::pdo();
         $tenant  = self::tenantId($request);
         $channel = trim((string)($args['channel'] ?? ''));
@@ -687,6 +729,7 @@ final class ChannelCreds
      */
     public static function apply(Request $request, Response $response, array $args): Response
     {
+        if ($deny = self::denyAnon($request, $response)) return $deny; // [현 차수] 익명 발급신청 티켓 스팸 차단
         $pdo    = Db::pdo();
         $tenant = self::tenantId($request);
         $body   = (array)($request->getParsedBody() ?? []);
@@ -698,22 +741,39 @@ final class ChannelCreds
         $phone           = trim((string)($body['phone']           ?? ''));
         $company         = trim((string)($body['company']         ?? ''));
         $requestedAt     = trim((string)($body['requested_at']    ?? gmdate('c')));
+        // [현 차수] 채널별 발급 필요 정보(계정/식별 등) — 신청 접수에 함께 보관·통지.
+        $extra           = is_array($body['extra'] ?? null) ? $body['extra'] : [];
+        $extraJson       = !empty($extra) ? json_encode($extra, JSON_UNESCAPED_UNICODE) : null;
 
         if ($channel === '') {
             return TemplateResponder::respond($response->withStatus(422), ['error' => 'channel required']);
+        }
+
+        // ── [현 차수] 데모 체험 모드 차단 ─────────────────────────────────────────────
+        //   체험 데모에서는 실제 발급 신청·티켓 기록·메일 통지를 하지 않는다(데모 오염/오발송 방지).
+        //   프론트(_IS_DEMO_ENV 차단)의 백엔드 정합 — 데모 테넌트는 신청 불가 메시지를 반환.
+        if ($tenant === 'demo') {
+            return TemplateResponder::respond($response, [
+                'ok'      => false,
+                'demo'    => true,
+                'channel' => $channel,
+                'message' => '체험 데모 모드에서는 API 키 발급 신청이 되지 않습니다. 실제 계정으로 로그인 후 신청해 주세요.',
+            ]);
         }
 
         $ticketId = 'APPLY-' . strtoupper(base_convert((string)time(), 10, 36)) . '-' . strtoupper(substr(bin2hex(random_bytes(3)), 0, 6));
 
         // connector_apply_log 테이블에 저장 (없으면 channel_credential의 note에 기록)
         try {
+            // [현 차수] 채널별 발급 정보 보관 컬럼 보장(idempotent — 이미 있으면 catch).
+            try { $pdo->exec("ALTER TABLE connector_apply_log ADD COLUMN extra_json TEXT"); } catch (\Throwable $e) {}
             $pdo->prepare(
                 'INSERT INTO connector_apply_log(tenant_id, channel, ticket_id, member_name, member_email,
-                 business_number, phone, company, status, requested_at, created_at)
-                 VALUES(?,?,?,?,?,?,?,?,?,?,?)'
+                 business_number, phone, company, status, requested_at, created_at, extra_json)
+                 VALUES(?,?,?,?,?,?,?,?,?,?,?,?)'
             )->execute([
                 $tenant, $channel, $ticketId, $memberName, $memberEmail,
-                $businessNumber, $phone, $company, 'pending', $requestedAt, gmdate('c'),
+                $businessNumber, $phone, $company, 'pending', $requestedAt, gmdate('c'), $extraJson,
             ]);
         } catch (\Throwable $e) {
             // 테이블이 없으면 channel_credential의 note에 신청 정보 기록
@@ -737,12 +797,56 @@ final class ChannelCreds
             }
         }
 
+        // ── [현 차수] 발급 신청을 실제로 전달 — 신청자 확인 메일 + 운영팀 알림 메일 ─────────────
+        //   ★외부 채널은 프로그래매틱 키 발급 API 가 없어 "채널에 자동 전송"은 불가(OAuth 채널만 자동발급).
+        //   따라서 발급 대행 접수(티켓)를 메일로 실제 통지해 처리 흐름을 보장한다(무음 기록 → 실처리).
+        //   Mailer 미설정 시 graceful skip(티켓은 이미 기록됨). 외부 발송 실패는 신청 성공에 영향 없음.
+        $notified = false;
+        try {
+            if (\Genie\Mailer::isConfigured($pdo)) {
+                $chName = strtoupper($channel);
+                // (1) 신청자 확인 메일
+                if ($memberEmail !== '' && filter_var($memberEmail, FILTER_VALIDATE_EMAIL)) {
+                    $nameSafe = htmlspecialchars($memberName !== '' ? $memberName : '고객', ENT_QUOTES);
+                    $html = \Genie\Mailer::wrapHtml(
+                        "{$chName} API 키 발급 신청 접수",
+                        "<p>{$nameSafe}님, <b>{$chName}</b> 채널 API 키 발급 신청이 접수되었습니다.</p>"
+                        . "<p>· 티켓 번호: <b>" . htmlspecialchars($ticketId, ENT_QUOTES) . "</b><br>· 처리 상태: 접수(pending)</p>"
+                        . "<p>발급이 완료되면 등록 즉시 자동으로 연동·동기화됩니다. 추가 정보가 필요하면 회신드리겠습니다.</p>"
+                    );
+                    \Genie\Mailer::send($memberEmail, "[GenieGo ROI] {$chName} API 키 발급 신청 접수 ({$ticketId})", $html, ['pdo' => $pdo, 'tenant' => $tenant]);
+                    $notified = true;
+                }
+                // (2) 운영팀 알림 메일 — APPLY_NOTIFY_EMAIL(env) 또는 app_setting(apply_notify_email)
+                $opsTo = (string)(getenv('APPLY_NOTIFY_EMAIL') ?: '');
+                if ($opsTo === '') {
+                    try { $os = $pdo->prepare("SELECT svalue FROM app_setting WHERE skey='apply_notify_email' LIMIT 1"); $os->execute(); $opsTo = (string)($os->fetchColumn() ?: ''); } catch (\Throwable $e) {}
+                }
+                if ($opsTo !== '' && filter_var($opsTo, FILTER_VALIDATE_EMAIL)) {
+                    $esc = fn($v) => htmlspecialchars((string)$v, ENT_QUOTES);
+                    // [현 차수] 채널별 발급 필요 정보(extra)를 운영팀 메일에 전부 포함 — 신청 접수 완결성.
+                    $extraHtml = '';
+                    foreach ($extra as $ek => $ev) { if ((string)$ev !== '') $extraHtml .= '<br>' . $esc($ek) . ': <b>' . $esc($ev) . '</b>'; }
+                    $ohtml = \Genie\Mailer::wrapHtml(
+                        "신규 API 키 발급 신청 ({$chName})",
+                        "<p>채널: <b>{$chName}</b><br>테넌트: {$esc($tenant)}<br>신청자: {$esc($memberName)} ({$esc($memberEmail)})<br>"
+                        . "회사: {$esc($company)}<br>사업자번호: {$esc($businessNumber)}<br>연락처: {$esc($phone)}<br>티켓: {$esc($ticketId)}"
+                        . ($extraHtml !== '' ? "</p><p><b>채널 발급 정보</b>{$extraHtml}" : '') . "</p>"
+                    );
+                    \Genie\Mailer::send($opsTo, "[발급신청] {$chName} - " . ($company !== '' ? $company : $tenant) . " ({$ticketId})", $ohtml, ['pdo' => $pdo]);
+                }
+            }
+        } catch (\Throwable $e) { error_log('[apply] mail notify failed: ' . $e->getMessage()); }
+
         return TemplateResponder::respond($response, [
             'ok'        => true,
             'ticket_id' => $ticketId,
             'channel'   => $channel,
             'status'    => 'pending',
-            'message'   => '발급신청이 접수되었습니다. 1~3 영업일 내 발급 후 자동 연동됩니다.',
+            'notified'  => $notified,
+            'message'   => $notified
+                ? "발급 신청이 접수되어 확인 메일을 보냈습니다 (티켓 {$ticketId}). 발급 후 등록 즉시 자동 연동됩니다."
+                : "발급 신청이 접수되었습니다 (티켓 {$ticketId}). 발급 후 등록 즉시 자동 연동됩니다.",
         ]);
     }
 }

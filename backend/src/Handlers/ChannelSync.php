@@ -571,7 +571,7 @@ final class ChannelSync
     }
 
     // ── 네이버 스마트스토어 ─────────────────────────────────────────────
-    private static function naverFetch(array $creds): array
+    private static function naverFetch(array $creds, string $tenant = 'demo'): array
     {
         $clientId     = $creds['client_id'] ?? '';
         $clientSecret = $creds['client_secret'] ?? '';
@@ -606,16 +606,21 @@ final class ChannelSync
                         'source'      => 'live',
                     ];
                 }
-                return ['ok'=>true, 'products'=>self::buildDemoChannelProducts('naver','네이버'), 'orders'=>$orders];
+                // 라이브 주문 + 상품(상품 API 미호출이라 데모는 데모상품, 운영은 빈배열 — 데모데이터 운영유입 차단).
+                return ['ok'=>true, 'products'=>($tenant==='demo' ? self::buildDemoChannelProducts('naver','네이버') : []), 'orders'=>$orders];
             }
         }
 
-        return [
-            'ok'       => true,
-            'products' => self::buildDemoChannelProducts('naver', '네이버'),
-            'orders'   => self::buildDemoChannelOrders('naver', '네이버'),
-            'note'     => '네이버 Commerce API: 인증키 저장. OAuth2 토큰 발급 시도 완료.',
-        ];
+        // 188차 P0 보안 정합(ebayFetch 패턴): 실 테넌트는 OAuth 실패/미보유 시 빈 결과(데모데이터 운영 유입 차단).
+        if ($tenant === 'demo') {
+            return [
+                'ok'       => true,
+                'products' => self::buildDemoChannelProducts('naver', '네이버'),
+                'orders'   => self::buildDemoChannelOrders('naver', '네이버'),
+                'note'     => '네이버 Commerce API: 데모 시뮬레이션.',
+            ];
+        }
+        return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>'네이버 Commerce API: Client ID/Secret 등록 시 실데이터가 동기화됩니다.'];
     }
 
     // ── eBay ─────────────────────────────────────────────────────────────
@@ -906,7 +911,7 @@ final class ChannelSync
             'shopify'                      => self::shopifyFetch($creds),
             'amazon','amazon_spapi'        => self::amazonFetch($creds, $tenant),
             'coupang'                      => self::coupangFetch($creds, $tenant),
-            'naver','naver_smartstore'     => self::naverFetch($creds),
+            'naver','naver_smartstore'     => self::naverFetch($creds, $tenant),
             'ebay'                         => self::ebayFetch($creds, $tenant),
             'tiktok','tiktok_shop'         => self::tiktokFetch($creds, $tenant),
             'rakuten'                      => self::rakutenFetch($creds, $tenant),

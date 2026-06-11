@@ -52,12 +52,12 @@ function AuthPanel({ onSaved }) {
 
     return (
         <div style={{ padding: '16px 20px', borderRadius: 14, background: 'rgba(0,180,0,0.04)', border: '1px solid rgba(0,180,0,0.15)' }}>
-            <div style={{ fontWeight: 900, fontSize: 12, color: '#25D366', marginBottom: 12 }}>🔑 WhatsApp Business API Auth Info</div>
+            <div style={{ fontWeight: 900, fontSize: 12, color: '#25D366', marginBottom: 12 }}>🔑 {t('wa.authInfo','WhatsApp Business API Auth Info')}</div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: 10, marginBottom: 12 }}>
                 {[
-                    { k: 'phone_number_id', l: 'Phone Number ID', ph: '123456789012345' },
-                    { k: 'access_token', l: 'Permanent Access Token', ph: 'EAA...', secret: true },
-                    { k: 'business_id', l: 'Business Account ID (Select)', ph: '987654321' },
+                    { k: 'phone_number_id', l: t('wa.fieldPhoneId','Phone Number ID'), ph: '123456789012345' },
+                    { k: 'access_token', l: t('wa.fieldAccessToken','Permanent Access Token'), ph: 'EAA...', secret: true },
+                    { k: 'business_id', l: t('wa.fieldBusinessId','Business Account ID (Select)'), ph: '987654321' },
                 ].map(f => (
                     <div key={f.k}>
                         <div style={{ fontSize: 10, color: 'var(--text-3)', marginBottom: 4, fontWeight: 600 }}>{f.l}</div>
@@ -69,12 +69,12 @@ function AuthPanel({ onSaved }) {
             <div style={{ display: 'flex', gap: 8 }}>
                 <button onClick={handleSave} disabled={loading}
                     style={{ padding: '7px 20px', borderRadius: 8, border: 'none', background: 'linear-gradient(135deg,#25D366,#128C7E)', color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
-                    {loading ? '⏳ Connect in progress…' : ('💾 ' + t('wa.saveConnect','Save + Test Connection'))}
+                    {loading ? ('⏳ ' + t('wa.connecting','Connecting…')) : ('💾 ' + t('wa.saveConnect','Save + Test Connection'))}
                 </button>
             </div>
             {result && (
                 <div style={{ marginTop: 10, padding: '8px 12px', borderRadius: 8, fontSize: 12, background: result.ok ? 'rgba(34,197,94,0.08)' : 'rgba(239,68,68,0.08)', border: `1px solid ${result.ok ? '#22c55e' : '#ef4444'}33`, color: result.ok ? '#22c55e' : '#ef4444' }}>
-                    {result.ok ? `✓ ${result.message || 'Connect Success'}` : `✗ ${result.message || result.error}`}
+                    {result.ok ? `✓ ${result.message || t('wa.connectSuccess','Connect Success')}` : `✗ ${result.message || result.error}`}
                 </div>
             )}
         </div>
@@ -121,11 +121,11 @@ function SendPanel({ templates }) {
             )}
             <button onClick={handleSend} disabled={loading}
                 style={{ padding: '8px 20px', borderRadius: 8, border: 'none', background: 'linear-gradient(135deg,#25D366,#128C7E)', color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
-                {loading ? '⏳ Sending…' : '📤 Send'}
+                {loading ? ('⏳ ' + t('wa.sending','Sending…')) : ('📤 ' + t('wa.send','Send'))}
             </button>
             {result && (
                 <div style={{ marginTop: 10, padding: '8px', borderRadius: 8, fontSize: 12, color: result.ok ? '#22c55e' : '#ef4444', background: result.ok ? 'rgba(34,197,94,0.08)' : 'rgba(239,68,68,0.08)' }}>
-                    {result.ok ? `✓ Send Done (ID: ${result.wa_message_id})` : `✗ ${result.error || 'Send Failed'}`}
+                    {result.ok ? `✓ ${t('wa.sendDoneId','Send Done (ID: {{id}})').replace('{{id}}', result.wa_message_id)}` : `✗ ${result.error || t('wa.sendFailed','Send Failed')}`}
                 </div>
             )}
         </div>
@@ -161,8 +161,8 @@ function BroadcastPanel({ templates }) {
                 <div>
                     <div style={{ fontSize: 10, color: 'var(--text-3)', marginBottom: 4 }}>{t('wa.template','Template')}</div>
                     <select value={template} onChange={e => setTemplate(e.target.value)} className="input" style={{ marginBottom: 10 }}>
-                        <option value="">Select…</option>
-                        {templates.map(t => <option key={t.name} value={t.name}>{t.name}</option>)}
+                        <option value="">{t('wa.selectPlaceholder','Select…')}</option>
+                        {templates.map(tpl => <option key={tpl.name} value={tpl.name}>{tpl.name}</option>)}
                     </select>
                     {template && templates.find(t => t.name === template) && (
                         <div style={{ padding: '10px', borderRadius: 8, background: 'rgba(37,211,102,0.06)', border: '1px solid rgba(37,211,102,0.15)', fontSize: 11, color: 'var(--text-2)' }}>
@@ -171,11 +171,11 @@ function BroadcastPanel({ templates }) {
                     )}
                     <button onClick={handleBroadcast} disabled={loading || !template || !numbers.trim()}
                         style={{ marginTop: 14, width: '100%', padding: '10px', borderRadius: 8, border: 'none', background: 'linear-gradient(135deg,#25D366,#128C7E)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
-                        {loading ? `⏳ Sending…` : `📡 일괄 Send Start`}
+                        {loading ? ('⏳ ' + t('wa.sending','Sending…')) : ('📡 ' + t('wa.broadcastStart','Start Broadcast'))}
                     </button>
                     {result && (
                         <div style={{ marginTop: 10, padding: '10px', borderRadius: 8, fontSize: 12, lineHeight: 1.6, background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)', color: '#22c55e' }}>
-                            ✓ Done: Success {result.sent}건 · Failed {result.failed}건
+                            ✓ {t('wa.broadcastResult','Done: Success {{sent}} · Failed {{failed}}').replace('{{sent}}', result.sent).replace('{{failed}}', result.failed)}
                         </div>
                     )}
                 </div>
@@ -235,16 +235,16 @@ export default function WhatsApp() {
                         </div>
                         <div className="hero-desc">{t('wa.heroDesc', 'Instant integration · Template messaging · Broadcast · Send history')}</div>
                         <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
-                            <Tag label={status === 'connected' || status === 'ok' ? '✓ Connected' : status === '' ? '🎮 ' : t('wa.notConnected','Not Connected')} color={statusColor} />
-                            {plan === 'pro' ? <Tag label="⚡ Pro 실Integration" color="#a855f7" /> : <Tag label="🎮  Mode" color="#4f8ef7" />}
-                            <Tag label={`Send ${(stats.sent || 0).toLocaleString()}건`} color="#25D366" />
+                            <Tag label={status === 'connected' || status === 'ok' ? ('✓ ' + t('wa.connected','Connected')) : status === '' ? '🎮 ' : t('wa.notConnected','Not Connected')} color={statusColor} />
+                            {plan === 'pro' ? <Tag label={'⚡ ' + t('wa.proIntegration','Pro Live Integration')} color="#a855f7" /> : <Tag label={'🎮 ' + t('wa.demoMode','Demo Mode')} color="#4f8ef7" />}
+                            <Tag label={t('wa.sendCount','Sent {{count}}').replace('{{count}}', (stats.sent || 0).toLocaleString())} color="#25D366" />
                         </div>
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                         {/* 206차: 통계 폴백 IS_DEMO 게이트 — 운영(미연동)은 0(목데이터 유입 차단), 데모만 시드 */}
-                        {[{ l: 'Send', v: stats.sent || (IS_DEMO ? 142 : 0), c: '#25D366' }, { l: 'Delivered', v: stats.delivered || (IS_DEMO ? 138 : 0), c: '#4f8ef7' }, { l: 'Read', v: stats.read || (IS_DEMO ? 95 : 0), c: '#a855f7' }, { l: 'Failed', v: stats.failed || (IS_DEMO ? 4 : 0), c: '#ef4444' }].map(k => (
-                            <div key={k.l} style={{ padding: '8px 14px', borderRadius: 10, background: `${k.c}10`, border: `1px solid ${k.c}22`, textAlign: 'center' }}>
-                                <div style={{ fontSize: 18, fontWeight: 900, color: k.c }}>{k.v}</div>
+                        {[{ l: t('wa.kpiSend','Send'), v: stats.sent || (IS_DEMO ? 142 : 0), c: '#25D366' }, { l: t('wa.kpiDelivered','Delivered'), v: stats.delivered || (IS_DEMO ? 138 : 0), c: '#4f8ef7' }, { l: t('wa.kpiRead','Read'), v: stats.read || (IS_DEMO ? 95 : 0), c: '#a855f7' }, { l: t('wa.kpiFailed','Failed'), v: stats.failed || (IS_DEMO ? 4 : 0), c: '#ef4444' }].map(k => (
+                            <div key={k.l} style={{ padding: '5px 12px', borderRadius: 10, background: `${k.c}10`, border: `1px solid ${k.c}22`, textAlign: 'center' }}>
+                                <div style={{ fontSize: 16, fontWeight: 900, color: k.c }}>{k.v}</div>
                                 <div style={{ fontSize: 10, color: 'var(--text-3)' }}>{k.l}</div>
                             </div>
                         ))}
@@ -252,9 +252,9 @@ export default function WhatsApp() {
                 </div>
             </div>
 
-            <div style={{ display: 'flex', gap: 4, padding: '5px', background: 'rgba(0,0,0,0.25)', borderRadius: 14, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: 4, padding: '4px', background: 'rgba(0,0,0,0.25)', borderRadius: 12, flexWrap: 'wrap' }}>
                 {TABS.map(t => (
-                    <button key={t.id} onClick={() => setTab(t.id)} style={{ padding: '7px 14px', borderRadius: 10, border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 11, flex: 1, minWidth: 80, background: tab === t.id ? 'linear-gradient(135deg,#25D366,#128C7E)' : 'transparent', color: tab === t.id ? '#fff' : 'var(--text-2)', transition: 'all 150ms' }}>
+                    <button key={t.id} onClick={() => setTab(t.id)} style={{ padding: '6px 12px', borderRadius: 9, border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 11, flex: 1, minWidth: 80, background: tab === t.id ? 'linear-gradient(135deg,#25D366,#128C7E)' : 'transparent', color: tab === t.id ? '#fff' : 'var(--text-2)', transition: 'all 150ms' }}>
                         {t.label}
                     </button>
                 ))}
@@ -263,20 +263,20 @@ export default function WhatsApp() {
             {tab === 'overview' && (
                 <div style={{ display: 'grid', gap: 14 }}>
                     {(status === 'not_configured' || status === 'untested') && (
-                        <div style={{ padding: '14px 18px', borderRadius: 12, background: 'rgba(37,211,102,0.06)', border: '1px solid rgba(37,211,102,0.2)', fontSize: 12, color: 'var(--text-2)' }}>
+                        <div style={{ padding: '10px 14px', borderRadius: 10, background: 'rgba(37,211,102,0.06)', border: '1px solid rgba(37,211,102,0.2)', fontSize: 12, color: 'var(--text-2)' }}>
                             💡 <strong style={{ color: '#25D366' }}>{t('wa.getStarted','Get Started:')}</strong> {t('wa.getStartedDesc','Enter Phone Number ID and Access Token from Meta Business Suite in Auth Settings.')}
                         </div>
                     )}
                     <div className="card card-glass">
-                        <div style={{ fontWeight: 900, fontSize: 13, marginBottom: 14 }}>📋 Approval된 템플릿 ({templates.length}개)</div>
+                        <div style={{ fontWeight: 900, fontSize: 13, marginBottom: 14 }}>📋 {t('wa.approvedTemplatesTitle','Approved Templates ({{count}})').replace('{{count}}', templates.length)}</div>
                         <div style={{ display: 'grid', gap: 8 }}>
-                            {templates.map(t => (
-                                <div key={t.name} style={{ padding: '10px 14px', borderRadius: 10, background: 'rgba(0,0,0,0.25)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
+                            {templates.map(tpl => (
+                                <div key={tpl.name} style={{ padding: '10px 14px', borderRadius: 10, background: 'rgba(0,0,0,0.25)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
                                     <div>
-                                        <div style={{ fontWeight: 700, fontSize: 12, color: '#25D366' }}>{t.name}</div>
-                                        <div style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 2 }}>{t.components?.[0]?.text?.slice(0, 60) || '템플릿 내용'}...</div>
+                                        <div style={{ fontWeight: 700, fontSize: 12, color: '#25D366' }}>{tpl.name}</div>
+                                        <div style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 2 }}>{tpl.components?.[0]?.text?.slice(0, 60) || t('wa.templateContent','Template Content')}...</div>
                                     </div>
-                                    <Tag label={t.category || 'MARKETING'} color="#25D366" />
+                                    <Tag label={tpl.category || 'MARKETING'} color="#25D366" />
                                 </div>
                             ))}
                         </div>
@@ -289,7 +289,7 @@ export default function WhatsApp() {
                 <div className="card card-glass">
                     <div style={{ fontWeight: 900, fontSize: 13, marginBottom: 14 }}>{t('wa.messageTemplates','Message Templates')}</div>
                     <table className="table">
-                        <thead><tr><th>{t("whatsappPage.name", "이름")}</th><th>{t("whatsappPage.language", "언어")}</th><th>{t("whatsappPage.category", "카테고리")}</th><th>Status</th><th>{t('wa.contentPreview','Content Preview')}</th></tr></thead>
+                        <thead><tr><th>{t("whatsappPage.name", "이름")}</th><th>{t("whatsappPage.language", "언어")}</th><th>{t("whatsappPage.category", "카테고리")}</th><th>{t('wa.colStatus','Status')}</th><th>{t('wa.contentPreview','Content Preview')}</th></tr></thead>
                         <tbody>
                             {templates.map(t => (
                                 <tr key={t.name}>
@@ -308,7 +308,7 @@ export default function WhatsApp() {
                 <div className="card card-glass">
                     <div style={{ fontWeight: 900, fontSize: 13, marginBottom: 14 }}>{t('wa.sendHistory','Send History')}</div>
                     <table className="table">
-                        <thead><tr><th>{t('wa.recipientNo','Recipient')}</th><th>템플릿</th><th>Status</th><th>{t('wa.sendTime','Sent At')}</th></tr></thead>
+                        <thead><tr><th>{t('wa.recipientNo','Recipient')}</th><th>{t('wa.colTemplate','Template')}</th><th>{t('wa.colStatus','Status')}</th><th>{t('wa.sendTime','Sent At')}</th></tr></thead>
                         <tbody>
                             {messages.map((m, i) => {
                                 const sc = { sent: '#4f8ef7', delivered: '#22c55e', read: '#a855f7', failed: '#ef4444' }[m.status] || '#666';

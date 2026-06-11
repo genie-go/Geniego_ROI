@@ -23,6 +23,11 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 final class Attribution {
 
     private static function tenantId(Request $request): string {
+        // [현 차수] 회귀 하드닝: 미들웨어가 주입한 auth_tenant 속성을 우선 신뢰(api_key 의 tenant_id, 위조불가).
+        //   현재는 api_key 미들웨어의 X-Tenant-Id 강제덮어쓰기(188차)로 헤더도 안전하나, 향후 이 라우트가
+        //   bypass 목록에 추가되면 raw 헤더는 위조 가능해진다 → auth_tenant 우선으로 크로스테넌트 위조 차단.
+        $attr = (string)($request->getAttribute('auth_tenant') ?? '');
+        if ($attr !== '') return $attr;
         $tid = $request->getHeaderLine('X-Tenant-Id');
         return $tid !== '' ? $tid : 'demo';
     }

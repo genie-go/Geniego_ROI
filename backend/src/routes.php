@@ -380,6 +380,24 @@ return function (App $app): void {
         'POST /api/v426/admin/channels'        => 'Genie\\Handlers\\ChannelRegistry::upsert',
         'DELETE /v426/admin/channels/{key}'    => 'Genie\\Handlers\\ChannelRegistry::remove',
         'DELETE /api/v426/admin/channels/{key}'=> 'Genie\\Handlers\\ChannelRegistry::remove',
+        // [현 차수] v427 Logistics 배송추적(물류/특송 실어댑터)
+        'GET /v427/logistics/carriers'         => 'Genie\\Handlers\\Logistics::carriers',
+        'GET /api/v427/logistics/carriers'     => 'Genie\\Handlers\\Logistics::carriers',
+        'GET /v427/logistics/shipments'        => 'Genie\\Handlers\\Logistics::shipments',
+        'GET /api/v427/logistics/shipments'    => 'Genie\\Handlers\\Logistics::shipments',
+        'POST /v427/logistics/track'           => 'Genie\\Handlers\\Logistics::track',
+        'POST /api/v427/logistics/track'       => 'Genie\\Handlers\\Logistics::track',
+        'POST /v427/logistics/refresh'         => 'Genie\\Handlers\\Logistics::refresh',
+        'POST /api/v427/logistics/refresh'     => 'Genie\\Handlers\\Logistics::refresh',
+        'DELETE /v427/logistics/shipments/{id}'    => 'Genie\\Handlers\\Logistics::remove',
+        'DELETE /api/v427/logistics/shipments/{id}'=> 'Genie\\Handlers\\Logistics::remove',
+        // [현 차수] v427 PG 정산(결제 게이트웨이 실어댑터)
+        'GET /v427/pg/providers'               => 'Genie\\Handlers\\PgSettlement::providers',
+        'GET /api/v427/pg/providers'           => 'Genie\\Handlers\\PgSettlement::providers',
+        'GET /v427/pg/settlements'             => 'Genie\\Handlers\\PgSettlement::settlements',
+        'GET /api/v427/pg/settlements'         => 'Genie\\Handlers\\PgSettlement::settlements',
+        'POST /v427/pg/sync'                   => 'Genie\\Handlers\\PgSettlement::sync',
+        'POST /api/v427/pg/sync'               => 'Genie\\Handlers\\PgSettlement::sync',
 
 
 // v418.1 additive marketing insights (aggregated-only, no PII)
@@ -2216,6 +2234,16 @@ return function (App $app): void {
     $register('GET',    '/v426/admin/channels');  $register('GET',    '/api/v426/admin/channels');
     $register('POST',   '/v426/admin/channels');  $register('POST',   '/api/v426/admin/channels');
     $register('DELETE', '/v426/admin/channels/{key}'); $register('DELETE', '/api/v426/admin/channels/{key}');
+    // [현 차수] v427 Logistics 배송추적
+    $register('GET',    '/v427/logistics/carriers');   $register('GET',    '/api/v427/logistics/carriers');
+    $register('GET',    '/v427/logistics/shipments');  $register('GET',    '/api/v427/logistics/shipments');
+    $register('POST',   '/v427/logistics/track');      $register('POST',   '/api/v427/logistics/track');
+    $register('POST',   '/v427/logistics/refresh');    $register('POST',   '/api/v427/logistics/refresh');
+    $register('DELETE', '/v427/logistics/shipments/{id}'); $register('DELETE', '/api/v427/logistics/shipments/{id}');
+    // [현 차수] v427 PG 정산
+    $register('GET',    '/v427/pg/providers');    $register('GET',    '/api/v427/pg/providers');
+    $register('GET',    '/v427/pg/settlements');  $register('GET',    '/api/v427/pg/settlements');
+    $register('POST',   '/v427/pg/sync');         $register('POST',   '/api/v427/pg/sync');
     $register('GET',    '/api/performance', ['Genie\\Controllers\\PerformanceController', 'getMetrics']);
     $register('POST', '/v422/ai/analyze');
     $register('GET', '/v422/ai/analyses');

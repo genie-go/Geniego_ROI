@@ -124,7 +124,7 @@ export default function InstagramDM() {
                                 { l: t('igdm.kpiSent', '발송'), v: (settings?.stats?.sent ?? (isDemo ? 89 : 0)).toLocaleString(), c: '#4f8ef7' },
                                 { l: t('igdm.kpiUnread', '미읽음'), v: settings?.stats?.unread ?? (isDemo ? 12 : 0), c: '#ef4444' },
                             ].map(k => (
-                                <div key={k.l} style={{ padding: '5px 14px', borderRadius: 20, background: `${k.c}12`, border: `1px solid ${k.c}30`, fontSize: 12 }}>
+                                <div key={k.l} style={{ padding: '4px 12px', borderRadius: 16, background: `${k.c}12`, border: `1px solid ${k.c}30`, fontSize: 12 }}>
                                     <span style={{ color: 'var(--text-3)', marginRight: 4 }}>{k.l}</span>
                                     <strong style={{ color: k.c }}>{k.v}</strong>
                                 </div>
@@ -140,9 +140,9 @@ export default function InstagramDM() {
             </div>
 
             {/* Tabs */}
-            <div style={{ display: 'flex', gap: 4, padding: '5px', background: 'rgba(0,0,0,0.25)', borderRadius: 14 }}>
+            <div style={{ display: 'flex', gap: 4, padding: '4px', background: 'rgba(0,0,0,0.25)', borderRadius: 12 }}>
                 {TABS.map(tb => (
-                    <button key={tb.id} onClick={() => setTab(tb.id)} style={{ padding: '7px 14px', borderRadius: 10, border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 11, flex: 1, background: tab === tb.id ? 'linear-gradient(135deg,#E1306C,#833AB4)' : 'transparent', color: tab === tb.id ? '#fff' : 'var(--text-2)', transition: 'all 150ms' }}>
+                    <button key={tb.id} onClick={() => setTab(tb.id)} style={{ padding: '6px 12px', borderRadius: 9, border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 11, flex: 1, background: tab === tb.id ? 'linear-gradient(135deg,#E1306C,#833AB4)' : 'transparent', color: tab === tb.id ? '#fff' : 'var(--text-2)', transition: 'all 150ms' }}>
                         {t(tb.labelKey, tb.label)}
                     </button>
                 ))}

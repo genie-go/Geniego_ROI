@@ -86,8 +86,10 @@ class ChannelRegistry
             // ── 메시징 ──
             ['kakao','Kakao 알림톡','messaging','💛','#fee500','messaging',[$ftext('sender_key','발신프로필 키'),$ftext('api_key','API 키')]],
             ['line','LINE','messaging','💚','#06c755','messaging',[$ftext('channel_secret','Channel Secret'),$ftext('access_token','액세스 토큰')]],
-            // ── 물류 ──
-            ['cj','CJ대한통운','logistics','🚚','#e3002b','none',[$ftext('client_id','Client ID',false),$ftext('client_secret','Client Secret')]],
+            // ── 물류(배송추적 실어댑터 v427) ──
+            ['cj','CJ대한통운','logistics','🚚','#e3002b','tracking',[$ftext('api_key','스마트택배 추적 API 키'),$ftext('cust_code','고객(계약) 코드',false)]],
+            ['epost','우체국택배','logistics','📮','#d80027','tracking',[$ftext('api_key','스마트택배 추적 API 키'),$ftext('cust_code','계약(고객) 코드',false)]],
+            ['smarttracker','스마트택배(통합 추적)','logistics','📦','#0ea5e9','tracking',[$ftext('api_key','스마트택배 t_key(전 택배사 통합)')]],
             ['fulfillment','3PL 풀필먼트','logistics','🏭','#6366f1','none',[$ftext('api_key','API 키'),$ftext('warehouse_code','창고 코드',false)]],
             // ── PG(결제) ──
             ['tosspayments','토스페이먼츠','pg','💳','#3182f6','none',[$ftext('secret_key','시크릿 키'),$ftext('client_key','클라이언트 키',false)]],

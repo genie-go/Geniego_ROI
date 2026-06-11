@@ -15,6 +15,64 @@ const pct = v => (Number(v) * 100).toFixed(1) + "%";
 const today = new Date();
 const daysLeft = d => Math.ceil((new Date(d) - today) / (864e5));
 
+/* ══════════════════════════════════════════════════════════════════
+   방어: creator 정규화
+   운영 모드에서 creators 는 백엔드(/v423/influencer/creators)가 반환하는
+   "사용자가 저장한 그대로의 JSON" — 중첩 필드(identities/contract/settle/
+   stats/content)가 누락된 객체가 한 건이라도 섞이면 다수 탭의 직접 접근
+   (c.identities.length, c.contract.esign, c.settle.status, c.content.map …)이
+   런타임 크래시(흰화면)를 일으킨다. 유입 직후 안전 기본값으로 정규화한다.
+   가짜데이터는 주입하지 않음 — 누락 필드만 빈/0 기본값으로 채운다.
+══════════════════════════════════════════════════════════════════ */
+function normalizeCreator(c) {
+    const o = c || {};
+    const ct = o.contract || {};
+    const st = o.settle || {};
+    const stat = o.stats || {};
+    return {
+        ...o,
+        id: o.id ?? '',
+        name: o.name ?? '',
+        tier: o.tier ?? '',
+        duplicateFlag: !!o.duplicateFlag,
+        identities: Array.isArray(o.identities) ? o.identities : [],
+        content: Array.isArray(o.content) ? o.content : [],
+        contract: {
+            type: ct.type ?? 'flat',
+            flatFee: Number(ct.flatFee) || 0,
+            perfRate: Number(ct.perfRate) || 0,
+            perfBase: ct.perfBase ?? 'none',
+            rights: typeof ct.rights === 'string' ? ct.rights : '',
+            period: Array.isArray(ct.period) ? ct.period : ['', ''],
+            whitelist: !!ct.whitelist,
+            whitelistExpiry: ct.whitelistExpiry ?? null,
+            esign: ct.esign ?? 'pending',
+        },
+        settle: {
+            status: st.status ?? 'unpaid',
+            paid: Number(st.paid) || 0,
+            period: st.period ?? '',
+            docs: Array.isArray(st.docs) ? st.docs : [],
+        },
+        stats: {
+            views: Number(stat.views) || 0,
+            orders: Number(stat.orders) || 0,
+            revenue: Number(stat.revenue) || 0,
+            adSpend: Number(stat.adSpend) || 0,
+            engagement: Number(stat.engagement) || 0,
+        },
+    };
+}
+
+/** 모든 탭이 공유하는 안전 정규화된 creators 훅 */
+function useSafeCreators() {
+    const { creators } = useGlobalData();
+    return useMemo(
+        () => (Array.isArray(creators) ? creators.map(normalizeCreator) : []),
+        [creators]
+    );
+}
+
 
 const Tag = memo(({ label, color = "#4f8ef7", bg }) => (
     <span style={{
@@ -47,14 +105,15 @@ const ESIGN_COL = { signed: "#22c55e", pending: "#eab308", rejected: "#ef4444" }
 
 const SENTIMENT_COLOR = { positive: "#22c55e", neutral: "#eab308", negative: "#ef4444" };
 const Stars = memo(function Stars({ n }) {
-    return <span style={{ color: "#fde047", letterSpacing: 1, fontSize: 12 }}>{"★".repeat(n)}{"☆".repeat(5 - n)}</span>;
+    const k = Math.max(0, Math.min(5, Math.round(Number(n) || 0)));
+    return <span style={{ color: "#fde047", letterSpacing: 1, fontSize: 12 }}>{"★".repeat(k)}{"☆".repeat(5 - k)}</span>;
 });
 
 /* ══════════════════════════════════════════════════════════════════
    TAB 1: Creator Identity Integration
 ══════════════════════════════════════════════════════════════════ */
 const IdentityTab = memo(function IdentityTab() {
-    const { creators: CREATORS = [], isDemo } = useGlobalData();
+    const CREATORS = useSafeCreators();
     const { t } = useI18n();
     const [sel, setSel] = useState(null);
     const [merge, setMerge] = useState([]);
@@ -139,7 +198,7 @@ const IdentityTab = memo(function IdentityTab() {
    TAB 2: Contract Management
 ══════════════════════════════════════════════════════════════════ */
 const ContractTab = memo(function ContractTab() {
-    const { creators: CREATORS = [] } = useGlobalData();
+    const CREATORS = useSafeCreators();
     const { t } = useI18n();
     const { fmt } = useCurrency();
     const [modal, setModal] = useState(null);
@@ -256,7 +315,7 @@ const ContractTab = memo(function ContractTab() {
                         return (
                             <div key={c.id}>
                                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5, fontSize: 11 }}>
-                                    <span style={{ fontWeight: 400, color:"#6b7280" }} >{c.name} <span>{c.identities[0].handle}</span></span>
+                                    <span style={{ fontWeight: 400, color:"#6b7280" }} >{c.name} <span>{c.identities[0]?.handle || ""}</span></span>
                                     <span style={{ color }}>
                                         {expired ? t("influencer.expired","Expired") : `${dl} ${t("influencer.daysLeft","days left")} · ${c.contract.whitelistExpiry}`}
                                     </span>
@@ -309,7 +368,7 @@ const ContractTab = memo(function ContractTab() {
    TAB 3: Settlement Management + Auto Verification
 ══════════════════════════════════════════════════════════════════ */
 const SettleTab = memo(function SettleTab() {
-    const { creators: CREATORS = [] } = useGlobalData();
+    const CREATORS = useSafeCreators();
     const { t } = useI18n();
     const { fmt } = useCurrency();
     const [modal, setModal] = useState(null);
@@ -480,7 +539,7 @@ const SettleTab = memo(function SettleTab() {
    TAB 4: ROI Ranking + Content Reuse
 ══════════════════════════════════════════════════════════════════ */
 const ROITab = memo(function ROITab() {
-    const { creators: CREATORS = [] } = useGlobalData();
+    const CREATORS = useSafeCreators();
     const { t } = useI18n();
     const { fmt } = useCurrency();
     const allContent = CREATORS.flatMap(c =>
@@ -488,7 +547,7 @@ const ROITab = memo(function ROITab() {
             ...ct, creatorId: c.id, creatorName: c.name, tier: c.tier,
             whitelist: c.contract.whitelist,
             wlExpiry: c.contract.whitelistExpiry,
-            roi: ct.revenue / (c.contract.flatFee / c.content.length + 1),
+            roi: ct.revenue / (c.contract.flatFee / (c.content.length || 1) + 1),
         }))
     );
 
@@ -693,7 +752,7 @@ const UGCTab = memo(function UGCTab() {
         return ugcReviews.filter(r => {
             if (channel !== "all" && r.channel !== channel) return false;
             if (sentiment !== "all" && r.sentiment !== sentiment) return false;
-            if (search && !r.text.includes(search) && !r.product.includes(search)) return false;
+            if (search && !(r.text || "").includes(search) && !(r.product || "").includes(search)) return false;
             return true;
         });
     }, [channel, sentiment, search]);
@@ -833,7 +892,7 @@ async function fetchInfluencerEval(CREATORS) {
             conversion_rate: c.stats.views > 0
                 ? parseFloat(((c.stats.orders / c.stats.views) * 100).toFixed(3))
                 : 0,
-            avg_eng_rate: parseFloat((c.content.reduce((s, v) => s + v.engRate, 0) / c.content.length).toFixed(3)),
+            avg_eng_rate: parseFloat((c.content.reduce((s, v) => s + (v.engRate || 0), 0) / (c.content.length || 1)).toFixed(3)),
             settle_status: c.settle.status,
             esign_status: c.contract.esign,
             content_count: c.content.length,
@@ -904,7 +963,7 @@ const CreatorScoreModal = memo(function CreatorScoreModal({ creator, evalData, o
                     {[
                         { label: 'ROI', score: bd.roi_score, max: 30, actual: creator.stats.adSpend > 0 ? (creator.stats.revenue / creator.stats.adSpend).toFixed(1) + "x" : "—" },
                         { label: 'Conversion', score: bd.conversion_score, max: 25, actual: (creator.stats.orders / creator.stats.views * 100).toFixed(3) + "%" },
-                        { label: "Engagement", score: bd.engagement_score, max: 20, actual: (creator.content.reduce((s, v) => s + v.engRate, 0) / creator.content.length * 100).toFixed(1) + "%" },
+                        { label: "Engagement", score: bd.engagement_score, max: 20, actual: (creator.content.reduce((s, v) => s + (v.engRate || 0), 0) / (creator.content.length || 1) * 100).toFixed(1) + "%" },
                         { label: 'Quality', score: bd.content_quality_score, max: 15, actual: creator.content.length + ' items' },
                         { label: 'Reliability', score: bd.reliability_score, max: 10, actual: creator.settle.status },
                     ].map(b => (
@@ -986,7 +1045,7 @@ const CreatorScoreModal = memo(function CreatorScoreModal({ creator, evalData, o
 });
 
 const Section = memo(function Section() {
-    const { creators: CREATORS = [] } = useGlobalData();
+    const CREATORS = useSafeCreators();
     const { t } = useI18n();
     const [SelId, setSelId] = useState(CREATORS[0]?.id);
     const Creator = CREATORS.find(c => c.id === SelId) || CREATORS[0];
@@ -1008,7 +1067,7 @@ const Section = memo(function Section() {
 });
 
 const AIEvalTab = memo(function AIEvalTab() {
-    const { creators: CREATORS = [] } = useGlobalData();
+    const CREATORS = useSafeCreators();
     const { t } = useI18n();
     const [evalResult, setEvalResult] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -1275,7 +1334,7 @@ function useInfluencerDataSync() {
 }
 
 export default function InfluencerUGC() {
-    const { creators: CREATORS = [], ugcReviews = [], channelStats = [], negKeywords = [] } = useGlobalData();
+    const CREATORS = useSafeCreators();
     const { t } = useI18n();
     const { alert: hackAlert, clearAlert: clearHack } = useInfluencerSecurity();
     const { fmt } = useCurrency();

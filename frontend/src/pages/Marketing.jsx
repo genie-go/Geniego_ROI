@@ -303,7 +303,7 @@ function AmazonOverviewTab() {
                             );
                         })}
                     </div>
-                    <div style={{ width: '100%', height: 420 }}>
+                    <div style={{ width: '100%', height: 480 }}>
                         <ResponsiveContainer width="100%" height="100%">
                             <ComposedChart data={chartData} margin={{ top: 10, right: 60, left: 10, bottom: 20 }}>
                                 <defs>

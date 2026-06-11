@@ -52,7 +52,7 @@ function CampaignsTab({ campaigns, isDemo = false }) {
             {/* CRM Integration Campaign (Paid) */}
             {linkedLine.length > 0 && (
                 <div style={{ background: C.lineLight, border: `1px solid ${C.line}40`, borderRadius: 12, padding: "14px 18px", marginBottom: 4 }}>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: C.line, marginBottom: 8 }}>🔗 CRM 세그먼트 Integration ({linkedLine.length}개)</div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: C.line, marginBottom: 8 }}>🔗 {t('line.crmIntegration','CRM Segment Integration')} ({linkedLine.length})</div>
                     {linkedLine.map(c => (
                         <div key={c.id} style={{ display: "flex", justifyContent: "space-between", padding: "7px 0", borderBottom: `1px solid rgba(255,255,255,0.05)` }}>
                             <span style={{ fontSize: 12 }}>{(t("Data." + c.name) !== "Data." + c.name ? t("Data." + c.name) : c.name)}</span>
@@ -68,17 +68,17 @@ function CampaignsTab({ campaigns, isDemo = false }) {
                             <div style={{ fontWeight: 700, fontSize: 14 }}>{(t("Data." + c.name) !== "Data." + c.name ? t("Data." + c.name) : c.name)}</div>
                             <div style={{ fontSize: 11, color: C.muted, marginTop: 2 }}>
                                 <span style={{ background: c.type === "transactional" ? "rgba(79,142,247,0.15)" : C.lineLight, color: c.type === "transactional" ? "#4f8ef7" : C.line, padding: "2px 8px", borderRadius: 10, fontWeight: 700 }}>
-                                    {c.type === "transactional" ? "🔔 トランザクション" : "📣 マーケティング"}
+                                    {c.type === "transactional" ? t('line.typeTransactional','🔔 Transactional') : t('line.typeMarketing','📣 Marketing')}
                                 </span>
                                 <span style={{ marginLeft: 8 }}>{c.template_name}</span>
                             </div>
                         </div>
                         <span style={{ fontSize: 11, padding: "4px 12px", borderRadius: 20, fontWeight: 700, background: c.status === "active" ? "rgba(34,197,94,0.15)" : "rgba(234,179,8,0.15)", color: c.status === "active" ? "#22c55e" : "#eab308" }}>
-                            {c.status === "active" ? "✅ 配信中" : "⏰ 予約済み"}
+                            {c.status === "active" ? t('line.statusActive','✅ Active') : t('line.statusScheduled','⏰ Scheduled')}
                         </span>
                     </div>
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8 }}>
-                        {[["配信数", (c.sent || 0).toLocaleString()], ["開封率", `${c.sent ? (((c.opened || 0) / c.sent) * 100).toFixed(1) : (c.open_rate ?? 0)}%`], ["クリック率", `${c.sent ? (((c.clicked || 0) / c.sent) * 100).toFixed(1) : (c.click_rate ?? 0)}%`]].map(([l, v]) => (
+                        {[[t('line.metricSent','Sent'), (c.sent || 0).toLocaleString()], [t('line.metricOpenRate','Open Rate'), `${c.sent ? (((c.opened || 0) / c.sent) * 100).toFixed(1) : (c.open_rate ?? 0)}%`], [t('line.metricClickRate','Click Rate'), `${c.sent ? (((c.clicked || 0) / c.sent) * 100).toFixed(1) : (c.click_rate ?? 0)}%`]].map(([l, v]) => (
                             <div key={l} style={{ background: 'var(--surface)', borderRadius: 8, padding: "10px 12px" }}>
                                 <div style={{ fontSize: 10, color: C.muted, marginBottom: 4 }}>{l}</div>
                                 <div style={{ fontWeight: 800, fontSize: 15 }}>{v}</div>
@@ -93,19 +93,20 @@ function CampaignsTab({ campaigns, isDemo = false }) {
 
 /* ─── 템플릿 Tab */
 function TemplatesTab({ templates }) {
+    const { t } = useI18n();
     const [selected, setSelected] = useState(null);
     return (
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                {templates.map(t => (
-                    <div key={t.id} onClick={() => setSelected(t)} style={{ background: selected?.id === t.id ? C.lineLight : C.card, border: `1px solid ${selected?.id === t.id ? C.line : C.border}`, borderRadius: 12, padding: "14px 18px", cursor: "pointer", transition: "all 0.2s" }}>
+                {templates.map(tpl => (
+                    <div key={tpl.id} onClick={() => setSelected(tpl)} style={{ background: selected?.id === tpl.id ? C.lineLight : C.card, border: `1px solid ${selected?.id === tpl.id ? C.line : C.border}`, borderRadius: 12, padding: "14px 18px", cursor: "pointer", transition: "all 0.2s" }}>
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                             <div>
-                                <div style={{ fontWeight: 700, fontSize: 13 }}>{t.name}</div>
-                                <div style={{ fontSize: 11, color: C.muted, marginTop: 2 }}>{t.category}</div>
+                                <div style={{ fontWeight: 700, fontSize: 13 }}>{tpl.name}</div>
+                                <div style={{ fontSize: 11, color: C.muted, marginTop: 2 }}>{tpl.category}</div>
                             </div>
-                            <span style={{ fontSize: 10, padding: "3px 10px", borderRadius: 20, fontWeight: 700, background: t.status === "approved" ? "rgba(34,197,94,0.15)" : "rgba(234,179,8,0.15)", color: t.status === "approved" ? "#22c55e" : "#eab308" }}>
-                                {t.status === "approved" ? "承認済み" : "審査中"}
+                            <span style={{ fontSize: 10, padding: "3px 10px", borderRadius: 20, fontWeight: 700, background: tpl.status === "approved" ? "rgba(34,197,94,0.15)" : "rgba(234,179,8,0.15)", color: tpl.status === "approved" ? "#22c55e" : "#eab308" }}>
+                                {tpl.status === "approved" ? t('line.statusApproved','Approved') : t('line.statusReviewing','Reviewing')}
                             </span>
                         </div>
                     </div>
@@ -115,16 +116,16 @@ function TemplatesTab({ templates }) {
             <div style={{ background: C.card, borderRadius: 14, padding: 20, border: `1px solid ${C.border}` }}>
                 {selected ? (
                     <div>
-                        <div style={{ fontWeight: 700, marginBottom: 12, color: C.line }}>📱 プレビュー: {selected.name}</div>
+                        <div style={{ fontWeight: 700, marginBottom: 12, color: C.line }}>📱 {t('line.preview','Preview')}: {selected.name}</div>
                         <div style={{ background: "#00b900", borderRadius: 16, padding: "14px 18px", maxWidth: 280 }}>
-                            <div style={{ fontSize: 11, color: '#fff', marginBottom: 8, fontWeight: 600 }}>LINE公式アカウント</div>
+                            <div style={{ fontSize: 11, color: '#fff', marginBottom: 8, fontWeight: 600 }}>{t('line.officialAccount','LINE Official Account')}</div>
                             <div style={{ background: "#fff", borderRadius: 10, padding: "12px 14px" }}>
                                 <div style={{ fontSize: 12, color: "#333", lineHeight: 1.7, whiteSpace: "pre-line" }}>{selected.preview}</div>
                             </div>
                         </div>
                     </div>
                 ) : (
-                    <div style={{ color: C.muted, textAlign: "center", padding: 40 }}>テンプレートを選択してください</div>
+                    <div style={{ color: C.muted, textAlign: "center", padding: 40 }}>{t('line.selectTemplate','Please select a template')}</div>
                 )}
             </div>
         </div>
@@ -133,17 +134,18 @@ function TemplatesTab({ templates }) {
 
 /* ─── Settings Tab */
 function SettingsTab({ settings }) {
+    const { t } = useI18n();
     const fields = [
         ["Channel ID", settings.channel_id],
         ["LINE ID", settings.line_id],
-        ["フォロワー数", `${settings.followers?.toLocaleString()}人`],
-        ["接続状態", settings.status === "connected" ? "✅ 接続済み" : "❌ 未接続"],
+        [t('line.followers','Followers'), `${settings.followers?.toLocaleString()}`],
+        [t('line.statusLabel','Connection Status'), settings.status === "connected" ? t('line.connected','✅ Connected') : t('line.disconnected','❌ Not Connected')],
         ["Channel Secret", settings.channel_secret?.replace(/./g, "•")],
     ];
     return (
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
             <div style={{ background: C.card, borderRadius: 14, padding: 20, border: `1px solid ${C.border}` }}>
-                <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 16, color: C.line }}>🔧 LINE チャンネル設定</div>
+                <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 16, color: C.line }}>🔧 {t('line.settingsTitle','LINE Channel Settings')}</div>
                 {fields.map(([l, v]) => (
                     <div key={l} style={{ display: "flex", justifyContent: "space-between", padding: "10px 0", borderBottom: `1px solid rgba(255,255,255,0.05)` }}>
                         <span style={{ fontSize: 13, color: C.muted }}>{l}</span>
@@ -152,9 +154,9 @@ function SettingsTab({ settings }) {
                 ))}
             </div>
             <div style={{ background: C.card, borderRadius: 14, padding: 20, border: `1px solid ${C.border}` }}>
-                <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 16 }}>📊 月次パフォーマンス</div>
+                <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 16 }}>📊 {t('line.monthlyPerf','Monthly Performance')}</div>
                 {/* 206차: 하드코딩 통계 IS_DEMO 게이트 — 운영(미연동)은 '—', 데모만 시드값 노출(목데이터 운영유입 차단) */}
-                {[["月間配信数", settings.monthly_sent?.toLocaleString() || (IS_DEMO ? "37,376" : "—")], ["平均開封率", IS_DEMO ? "91.2%" : "—"], ["平均クリック率", IS_DEMO ? "37.8%" : "—"]].map(([l, v]) => (
+                {[[t('line.monthlySent','Monthly Sent'), settings.monthly_sent?.toLocaleString() || (IS_DEMO ? "37,376" : "—")], [t('line.avgOpenRate','Avg Open Rate'), IS_DEMO ? "91.2%" : "—"], [t('line.avgClickRate','Avg Click Rate'), IS_DEMO ? "37.8%" : "—"]].map(([l, v]) => (
                     <div key={l} style={{ display: "flex", justifyContent: "space-between", padding: "10px 0", borderBottom: `1px solid rgba(255,255,255,0.05)` }}>
                         <span style={{ fontSize: 13, color: C.muted }}>{l}</span>
                         <span style={{ fontSize: 13, fontWeight: 700, color: C.line }}>{v}</span>
@@ -174,9 +176,9 @@ function LINEChannelContent() {
 
     const [tab, setTab] = useState("campaigns");
     const TABS = [
-        { id: "campaigns", label: "📊 キャンペーン" },
-        { id: "templates", label: "📝 テンプレート" },
-        { id: "settings", label: "⚙️ 設定" },
+        { id: "campaigns", label: t('line.tabCampaigns', '📊 Campaigns') },
+        { id: "templates", label: t('line.tabTemplates', '📝 Templates') },
+        { id: "settings", label: t('line.tabSettings', '⚙️ Settings') },
     ];
 
     const [campaigns, setCampaigns] = useState([]);
@@ -208,34 +210,34 @@ function LINEChannelContent() {
             <div style={{ borderRadius: 16, background: `linear-gradient(135deg, #004225, #00b900)`, border: `1px solid ${C.line}40`, padding: "22px 28px", marginBottom: 20, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div>
                     <div style={{ fontSize: 22, fontWeight: 800, display: "flex", alignItems: "center", gap: 10 }}>
-                        <span style={{ fontSize: 32 }}>💚</span> LINE チャンネル
+                        <span style={{ fontSize: 32 }}>💚</span> {t('line.title','LINE Channel')}
                     </div>
-                    <div style={{ fontSize: 13, color: 'var(--text-2)', marginTop: 4 }}>メッセージ配信 · テンプレート管理 · 日本市場対応</div>
+                    <div style={{ fontSize: 13, color: 'var(--text-2)', marginTop: 4 }}>{t('line.headerSub','Message broadcast · Template management · Japan market support')}</div>
                 </div>
                 <div style={{ background: "rgba(0,0,0,0.3)", borderRadius: 12, padding: "10px 16px", textAlign: "center" }}>
                     <div style={{ fontSize: 22, fontWeight: 800, color: C.line }}>{stats?.total_followers?.toLocaleString() || (IS_DEMO ? "12,483" : "—")}</div>
-                    <div style={{ fontSize: 11, color: 'var(--text-2)' }}>フォロワー数</div>
+                    <div style={{ fontSize: 11, color: 'var(--text-2)' }}>{t('line.followers','Followers')}</div>
                 </div>
             </div>
 
             {/* Statistics Card */}
             {stats && (
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14, marginBottom: 20 }}>
-                    <StatCard icon="👥" label="フォロワー" value={stats.total_followers?.toLocaleString()} color={C.line} />
-                    <StatCard icon="📤" label="月間配信数" value={stats.monthly_sent?.toLocaleString()} color="#4f8ef7" />
-                    <StatCard icon="👁" label="平均開封率" value={`${stats.avg_open_rate}%`} color="#22c55e" sub="業界平均67.8%比" />
-                    <StatCard icon="🖱" label="平均クリック率" value={`${stats.avg_click_rate}%`} color="#f59e0b" />
+                    <StatCard icon="👥" label={t('line.statFollowers','Followers')} value={stats.total_followers?.toLocaleString()} color={C.line} />
+                    <StatCard icon="📤" label={t('line.statMonthlySent','Monthly Sent')} value={stats.monthly_sent?.toLocaleString()} color="#4f8ef7" />
+                    <StatCard icon="👁" label={t('line.statOpenRate','Avg Open Rate')} value={`${stats.avg_open_rate}%`} color="#22c55e" sub={t('line.industryAvg','vs industry avg 67.8%')} />
+                    <StatCard icon="🖱" label={t('line.statClickRate','Avg Click Rate')} value={`${stats.avg_click_rate}%`} color="#f59e0b" />
                 </div>
             )}
 
             {/* CRM 세그먼트 Integration Button (도 사용 가능) */}
             <div style={{ background: C.card, borderRadius: 12, padding: "14px 18px", marginBottom: 16, border: `1px solid ${C.border}` }}>
-                <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 10, color: C.muted }}>🔗 CRM セグメント連携</div>
+                <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 10, color: C.muted }}>🔗 {t('line.crmLink','CRM Segment Link')}</div>
                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                     {crmSegments.map(s => (
-                        <button key={s.id} onClick={() => createKakaoCampaignFromSegment(s.id, `[LINE] ${(t("Data." + s.name) !== "Data." + s.name ? t("Data." + s.name) : s.name)}キャンペーン`)}
+                        <button key={s.id} onClick={() => createKakaoCampaignFromSegment(s.id, `[LINE] ${(t("Data." + s.name) !== "Data." + s.name ? t("Data." + s.name) : s.name)} ${t('line.campaignSuffix','Campaign')}`)}
                             style={{ fontSize: 11, padding: "5px 12px", borderRadius: 8, border: `1px solid ${C.line}40`, background: C.lineLight, color: C.line, cursor: "pointer", fontWeight: 700 }}>
-                            💚 {(t("Data." + s.name) !== "Data." + s.name ? t("Data." + s.name) : s.name)} ({s.count}名)
+                            💚 {(t("Data." + s.name) !== "Data." + s.name ? t("Data." + s.name) : s.name)} ({t('line.memberCount','{{count}} members').replace('{{count}}', s.count)})
                         </button>
                     ))}
                 </div>

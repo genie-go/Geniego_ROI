@@ -305,16 +305,42 @@ final class WhatsApp
         }
 
         $body = (array)($req->getParsedBody() ?? []);
-        // 상태 업데이트 처리
+        // 상태 업데이트 처리 — [현 차수] 테넌트 격리: webhook metadata.phone_number_id 로 소유 테넌트를
+        //   역매핑(whatsapp_settings, 평문)하고 UPDATE 에 tenant_id 스코프를 추가(방어심화). 전 entry/change 순회.
         try {
             $pdo = Db::pdo();
-            foreach (($body['entry'][0]['changes'][0]['value']['statuses'] ?? []) as $status) {
-                $pdo->prepare("UPDATE whatsapp_messages SET status=?,delivered_at=CASE WHEN ? IN ('delivered') THEN ? ELSE delivered_at END,read_at=CASE WHEN ? = 'read' THEN ? ELSE read_at END WHERE wa_message_id=?")
-                    ->execute([$status['status'], $status['status'], gmdate('c'), $status['status'], gmdate('c'), $status['id']]);
+            foreach (($body['entry'] ?? []) as $entry) {
+                foreach (($entry['changes'] ?? []) as $change) {
+                    $value  = (array)($change['value'] ?? []);
+                    $pnid   = (string)($value['metadata']['phone_number_id'] ?? '');
+                    $tenant = self::resolveTenantByPhone($pdo, $pnid);
+                    foreach (($value['statuses'] ?? []) as $status) {
+                        $now = gmdate('c');
+                        if ($tenant !== '') {
+                            $pdo->prepare("UPDATE whatsapp_messages SET status=?,delivered_at=CASE WHEN ? IN ('delivered') THEN ? ELSE delivered_at END,read_at=CASE WHEN ? = 'read' THEN ? ELSE read_at END WHERE wa_message_id=? AND tenant_id=?")
+                                ->execute([$status['status'], $status['status'], $now, $status['status'], $now, $status['id'], $tenant]);
+                        } else {
+                            // 미매핑(레거시/미등록) — wa_message_id 는 Meta 전역 고유라 충돌 없음(폴백 유지).
+                            $pdo->prepare("UPDATE whatsapp_messages SET status=?,delivered_at=CASE WHEN ? IN ('delivered') THEN ? ELSE delivered_at END,read_at=CASE WHEN ? = 'read' THEN ? ELSE read_at END WHERE wa_message_id=?")
+                                ->execute([$status['status'], $status['status'], $now, $status['status'], $now, $status['id']]);
+                        }
+                    }
+                }
             }
         } catch (\Throwable) {}
 
         return TemplateResponder::respond($res, ['ok' => true]);
+    }
+
+    /** [현 차수] webhook metadata.phone_number_id → 소유 테넌트 역매핑(whatsapp_settings, 평문). 미등록=''. */
+    private static function resolveTenantByPhone(PDO $pdo, string $phoneNumberId): string
+    {
+        if ($phoneNumberId === '') return '';
+        try {
+            $st = $pdo->prepare("SELECT tenant_id FROM whatsapp_settings WHERE phone_number_id=? LIMIT 1");
+            $st->execute([$phoneNumberId]);
+            return (string)($st->fetchColumn() ?: '');
+        } catch (\Throwable $e) { return ''; }
     }
 
     // ── 실 API 호출 ──────────────────────────────────────────────────────

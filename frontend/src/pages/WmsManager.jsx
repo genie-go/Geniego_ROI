@@ -297,6 +297,7 @@ const InOutTab = memo(function InOutTab({ whs }) {
     const [showForm, setShowForm] = useState(false);
     const [showScanner, setShowScanner] = useState(false);
     const [scanResult, setScanResult] = useState(null);
+    const [manualScan, setManualScan] = useState(''); // [현 차수] 운영 수동 바코드 입력(가짜 SKU 자동생성 차단)
     const videoRef = React.useRef(null);
 
     /* ── IO Type i18n label map (shared across filter/select/tag) ── */
@@ -307,15 +308,19 @@ const InOutTab = memo(function InOutTab({ whs }) {
     }), [t]);
 
     const startScan = async () => {
-        setShowScanner(true); setScanResult(null);
+        setShowScanner(true); setScanResult(null); setManualScan('');
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
             if (videoRef.current) { videoRef.current.srcObject = stream; videoRef.current.play(); }
-            setTimeout(() => {
-                const mockBarcode = 'SKU-' + Math.random().toString(36).substr(2, 8).toUpperCase();
-                setScanResult(mockBarcode);
-                stream.getTracks().forEach(tr => tr.stop());
-            }, 3000);
+            // [현 차수] 가짜 SKU 생성 차단: 데모만 시뮬레이션 바코드. 운영은 실 바코드 인식 라이브러리 미연동
+            //   상태이므로 가짜 SKU 를 자동 생성하지 않고, 카메라 미리보기 + 수동 입력(아래 필드)으로 정직 처리.
+            if (isDemo) {
+                setTimeout(() => {
+                    const mockBarcode = 'SKU-' + Math.random().toString(36).substr(2, 8).toUpperCase();
+                    setScanResult(mockBarcode);
+                    stream.getTracks().forEach(tr => tr.stop());
+                }, 3000);
+            }
         } catch { setScanResult('CAMERA_ERROR'); }
     };
     const stopScan = () => { setShowScanner(false); if (videoRef.current?.srcObject) videoRef.current.srcObject.getTracks().forEach(tr => tr.stop()); };
@@ -529,6 +534,22 @@ const InOutTab = memo(function InOutTab({ whs }) {
                         </div>
                         {!scanResult && <div style={{ position: 'absolute', bottom: 12, left: 0, right: 0, textAlign: 'center', fontSize: 11, color: '#1e293b', fontWeight: 700 }}>🔍 {t('wms.scanScanning')}</div>}
                     </div>
+                    {/* [현 차수] 운영: 가짜 SKU 자동생성 대신 스캔한 바코드/SKU 직접 입력(정직화). 데모는 자동 시뮬레이션. */}
+                    {!isDemo && !scanResult && (
+                        <div style={{ marginTop: 12 }}>
+                            <div style={{ fontSize: 11, color: '#64748b', marginBottom: 6 }}>{t('wms.scanManualHint', '카메라로 바코드를 확인한 뒤 코드를 직접 입력하세요.')}</div>
+                            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                                <input
+                                    value={manualScan}
+                                    onChange={e => setManualScan(e.target.value)}
+                                    onKeyDown={e => { if (e.key === 'Enter' && manualScan.trim()) setScanResult(manualScan.trim()); }}
+                                    placeholder={t('wms.scanManualPh', '스캔한 바코드 / SKU 입력')}
+                                    style={{ flex: 1, boxSizing: 'border-box', padding: '8px 10px', borderRadius: 9, background: 'rgba(79,142,247,0.07)', border: '1.5px solid rgba(79,142,247,0.25)', color: '#1f2937', fontSize: 12, outline: 'none', fontFamily: 'monospace' }}
+                                />
+                                <Btn onClick={() => { if (manualScan.trim()) setScanResult(manualScan.trim()); }} color="#4f8ef7" small>{t('wms.scanManualApply', '입력')}</Btn>
+                            </div>
+                        </div>
+                    )}
                     {scanResult && scanResult !== 'CAMERA_ERROR' && (
                         <div style={{ marginTop: 12, padding: '10px 14px', borderRadius: 10, background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)' }}>
                             <div style={{ fontSize: 12, fontWeight: 700, color: '#22c55e' }}>✅ {t('wms.scanDetected')}</div>

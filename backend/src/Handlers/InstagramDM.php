@@ -210,14 +210,31 @@ final class InstagramDM
             $data = (array)($req->getParsedBody()??[]);
             $now  = gmdate('c');
             foreach (($data['entry']??[]) as $entry) {
+                // [현 차수] 테넌트 격리: 수신 webhook 의 entry.id(page/IG 계정 ID)로 소유 테넌트를 역매핑한다.
+                //   과거엔 tenant_id='system' 고정 적재 → 소유 테넌트에 미노출(고아 메시지). 이제 instagram_settings
+                //   에 등록된 page_id/ig_account_id 로 소유 테넌트를 찾고, 미매핑이면 적재하지 않는다(오염 방지).
+                $pageId = (string)($entry['id'] ?? '');
+                $tenant = self::resolveTenantByPage($pdo, $pageId);
+                if ($tenant === '') { error_log("[InstagramDM.webhook] unmapped page_id={$pageId} — message skipped"); continue; }
                 foreach (($entry['messaging']??[]) as $msg) {
                     if (!isset($msg['message']['text'])) continue;
                     $pdo->prepare("INSERT INTO instagram_messages(tenant_id,platform,thread_id,sender_id,message,direction,status,created_at) VALUES(?,?,?,?,?,?,?,?)")
-                        ->execute(['system','instagram',$msg['sender']['id']??'',$msg['sender']['id']??'',$msg['message']['text'],'inbound','received',$now]);
+                        ->execute([$tenant,'instagram',$msg['sender']['id']??'',$msg['sender']['id']??'',$msg['message']['text'],'inbound','received',$now]);
                 }
             }
         } catch (\Throwable) {}
         return TemplateResponder::respond($res, ['ok' => true]);
+    }
+
+    /** [현 차수] 수신 webhook 의 page/IG 계정 ID → 소유 테넌트 역매핑(instagram_settings, 평문 page_id). 미등록=''. */
+    private static function resolveTenantByPage(PDO $pdo, string $pageId): string
+    {
+        if ($pageId === '') return '';
+        try {
+            $st = $pdo->prepare("SELECT tenant_id FROM instagram_settings WHERE page_id=? OR ig_account_id=? LIMIT 1");
+            $st->execute([$pageId, $pageId]);
+            return (string)($st->fetchColumn() ?: '');
+        } catch (\Throwable $e) { return ''; }
     }
 
     // ── Meta API 호출 ────────────────────────────────────────────────────────

@@ -31,6 +31,10 @@ final class Connectors
 
     private static function tenantId(Request $request): string
     {
+        // [현 차수] 회귀 하드닝: 미들웨어 주입 auth_tenant 우선(위조불가). bypass 추가 시 raw 헤더 위조 방지.
+        //   (쓰기 경로 sessionTenant():1123 은 이미 auth_tenant 우선 — 읽기 경로도 동일 정렬)
+        $attr = (string)($request->getAttribute('auth_tenant') ?? '');
+        if ($attr !== '') return $attr;
         $tid = $request->getHeaderLine('X-Tenant-Id');
         return $tid !== '' ? $tid : 'demo';
     }

@@ -79,6 +79,12 @@ $app->add(function (Request $request, $handler) {
         || strpos($path, '/api/v420/channel-mix/') === 0
         || strpos($path, '/v423/creds') === 0
         || strpos($path, '/api/v423/creds') === 0
+        // [현 차수] 발급 신청(connectors/apply)·채널 연결테스트(connectors/{ch}/test) — ChannelCreds 핸들러가
+        //   세션 self-auth(tenantId=user_session, denyAnon) + 테넌트 격리. 프론트가 세션 토큰으로 호출하므로
+        //   api_key 미들웨어에 막혀 401("발급 신청하기"·"Test" 버튼 불능)이었다. ★/v423/connectors/sync 와
+        //   meta/google insights 는 Connectors(raw X-Tenant-Id 헤더 의존)라 bypass 제외(307 강제 보호 유지).
+        || $path === '/v423/connectors/apply' || $path === '/api/v423/connectors/apply'
+        || preg_match('#^(/api)?/v423/connectors/[^/]+/test$#', $path)
         || strpos($path, '/v423/popups/') === 0
         || strpos($path, '/api/v423/popups/') === 0
         // Paddle Billing v2 — public (webhook is self-signed via HMAC, others are product catalog)
@@ -97,6 +103,11 @@ $app->add(function (Request $request, $handler) {
         // [현 차수] 통합 채널 레지스트리 — 세션 self-auth(listChannels=requirePro, admin=requirePlan('admin'))
         || strpos($path, '/v426/channels') === 0
         || strpos($path, '/api/v426/channels') === 0
+        // [현 차수] v427 Logistics 배송추적 / PG 정산 — 세션 self-auth(authedTenant, 익명→demo) + tenant_id 격리.
+        || strpos($path, '/v427/logistics/') === 0
+        || strpos($path, '/api/v427/logistics/') === 0
+        || strpos($path, '/v427/pg/') === 0
+        || strpos($path, '/api/v427/pg/') === 0
         || strpos($path, '/v426/admin/') === 0
         || strpos($path, '/api/v426/admin/') === 0
         // 212차 #3-B: 파트너 포털 — 파트너 토큰 자가인증(본사 api_key/세션과 분리, 핸들러가 partner_session 검증)
