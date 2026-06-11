@@ -107,17 +107,36 @@ final class Insights {
                 $pdo->exec("CREATE TABLE IF NOT EXISTS ad_audience_breakdowns (id BIGINT AUTO_INCREMENT PRIMARY KEY, tenant_id VARCHAR(100) NOT NULL DEFAULT 'demo', source_platform VARCHAR(64), account_id VARCHAR(128), campaign_id VARCHAR(128), adset_id VARCHAR(128), ad_id VARCHAR(128), creative_id VARCHAR(128), product_sku VARCHAR(128), event_date VARCHAR(20), region VARCHAR(64), gender VARCHAR(32), age_bucket VARCHAR(32), impressions BIGINT DEFAULT 0, clicks BIGINT DEFAULT 0, spend DOUBLE DEFAULT 0, conversions BIGINT DEFAULT 0, attributed_revenue DOUBLE DEFAULT 0, raw_json LONGTEXT, created_at VARCHAR(40), KEY idx_aab (tenant_id, event_date)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
                 $pdo->exec("CREATE TABLE IF NOT EXISTS influencer_audience_breakdowns (id BIGINT AUTO_INCREMENT PRIMARY KEY, tenant_id VARCHAR(100) NOT NULL DEFAULT 'demo', platform VARCHAR(64), influencer_id VARCHAR(128), influencer_handle VARCHAR(190), event_date VARCHAR(20), region VARCHAR(64), gender VARCHAR(32), age_bucket VARCHAR(32), followers BIGINT DEFAULT 0, engaged_accounts BIGINT DEFAULT 0, impressions BIGINT DEFAULT 0, clicks BIGINT DEFAULT 0, raw_json LONGTEXT, created_at VARCHAR(40), KEY idx_iab (tenant_id, event_date)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
                 $pdo->exec("CREATE TABLE IF NOT EXISTS commerce_product_daily (id BIGINT AUTO_INCREMENT PRIMARY KEY, tenant_id VARCHAR(100) NOT NULL DEFAULT 'demo', channel VARCHAR(64), store_id VARCHAR(128), product_sku VARCHAR(128), product_title VARCHAR(255), event_date VARCHAR(20), units_sold BIGINT DEFAULT 0, gross_revenue DOUBLE DEFAULT 0, refunds DOUBLE DEFAULT 0, net_revenue DOUBLE DEFAULT 0, sessions BIGINT DEFAULT 0, raw_json LONGTEXT, created_at VARCHAR(40), KEY idx_cpd (tenant_id, event_date)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
-                $pdo->exec("CREATE TABLE IF NOT EXISTS creative_sku_map (source_platform VARCHAR(64) NOT NULL, creative_id VARCHAR(128) NOT NULL, product_sku VARCHAR(128) NOT NULL, confidence DOUBLE DEFAULT 0, updated_at VARCHAR(40), PRIMARY KEY (source_platform, creative_id, product_sku)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+                $pdo->exec("CREATE TABLE IF NOT EXISTS creative_sku_map (tenant_id VARCHAR(100) NOT NULL DEFAULT 'demo', source_platform VARCHAR(64) NOT NULL, creative_id VARCHAR(128) NOT NULL, product_sku VARCHAR(128) NOT NULL, confidence DOUBLE DEFAULT 0, updated_at VARCHAR(40), PRIMARY KEY (tenant_id, source_platform, creative_id, product_sku)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
             } else {
                 $pdo->exec("CREATE TABLE IF NOT EXISTS ad_audience_breakdowns (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', source_platform TEXT, account_id TEXT, campaign_id TEXT, adset_id TEXT, ad_id TEXT, creative_id TEXT, product_sku TEXT, event_date TEXT, region TEXT, gender TEXT, age_bucket TEXT, impressions INTEGER DEFAULT 0, clicks INTEGER DEFAULT 0, spend REAL DEFAULT 0, conversions INTEGER DEFAULT 0, attributed_revenue REAL DEFAULT 0, raw_json TEXT, created_at TEXT)");
                 $pdo->exec("CREATE TABLE IF NOT EXISTS influencer_audience_breakdowns (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', platform TEXT, influencer_id TEXT, influencer_handle TEXT, event_date TEXT, region TEXT, gender TEXT, age_bucket TEXT, followers INTEGER DEFAULT 0, engaged_accounts INTEGER DEFAULT 0, impressions INTEGER DEFAULT 0, clicks INTEGER DEFAULT 0, raw_json TEXT, created_at TEXT)");
                 $pdo->exec("CREATE TABLE IF NOT EXISTS commerce_product_daily (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', channel TEXT, store_id TEXT, product_sku TEXT, product_title TEXT, event_date TEXT, units_sold INTEGER DEFAULT 0, gross_revenue REAL DEFAULT 0, refunds REAL DEFAULT 0, net_revenue REAL DEFAULT 0, sessions INTEGER DEFAULT 0, raw_json TEXT, created_at TEXT)");
-                $pdo->exec("CREATE TABLE IF NOT EXISTS creative_sku_map (source_platform TEXT NOT NULL, creative_id TEXT NOT NULL, product_sku TEXT NOT NULL, confidence REAL DEFAULT 0, updated_at TEXT, PRIMARY KEY (source_platform, creative_id, product_sku))");
+                $pdo->exec("CREATE TABLE IF NOT EXISTS creative_sku_map (tenant_id TEXT NOT NULL DEFAULT 'demo', source_platform TEXT NOT NULL, creative_id TEXT NOT NULL, product_sku TEXT NOT NULL, confidence REAL DEFAULT 0, updated_at TEXT, PRIMARY KEY (tenant_id, source_platform, creative_id, product_sku))");
             }
         } catch (\Throwable $e) {}
         foreach (['ad_audience_breakdowns','influencer_audience_breakdowns','commerce_product_daily'] as $tbl) {
             try { $pdo->exec("ALTER TABLE {$tbl} ADD COLUMN tenant_id VARCHAR(100) NOT NULL DEFAULT 'demo'"); } catch (\Throwable $e) {}
         }
+        // [현 차수 P1] creative_sku_map 테넌트 격리 — 과거 무격리(PK=sp,cid,sku) 테이블 마이그레이션.
+        //   creative_id 가 테넌트 간 충돌하면 타 테넌트 creative→SKU 매핑이 JOIN 으로 유입(라벨 오염).
+        //   tenant_id 컬럼 + PK 재구성. PK 변경 불가한 SQLite 는 rename→재생성→이관(기존행=demo).
+        try {
+            $hasTenant = true;
+            try { $pdo->query("SELECT tenant_id FROM creative_sku_map LIMIT 1"); }
+            catch (\Throwable $e) { $hasTenant = false; }
+            if (!$hasTenant) {
+                if ($pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql') {
+                    $pdo->exec("ALTER TABLE creative_sku_map ADD COLUMN tenant_id VARCHAR(100) NOT NULL DEFAULT 'demo'");
+                    try { $pdo->exec("ALTER TABLE creative_sku_map DROP PRIMARY KEY, ADD PRIMARY KEY (tenant_id, source_platform, creative_id, product_sku)"); } catch (\Throwable $e) {}
+                } else {
+                    $pdo->exec("ALTER TABLE creative_sku_map RENAME TO creative_sku_map_old");
+                    $pdo->exec("CREATE TABLE creative_sku_map (tenant_id TEXT NOT NULL DEFAULT 'demo', source_platform TEXT NOT NULL, creative_id TEXT NOT NULL, product_sku TEXT NOT NULL, confidence REAL DEFAULT 0, updated_at TEXT, PRIMARY KEY (tenant_id, source_platform, creative_id, product_sku))");
+                    $pdo->exec("INSERT INTO creative_sku_map (tenant_id, source_platform, creative_id, product_sku, confidence, updated_at) SELECT 'demo', source_platform, creative_id, product_sku, confidence, updated_at FROM creative_sku_map_old");
+                    $pdo->exec("DROP TABLE creative_sku_map_old");
+                }
+            }
+        } catch (\Throwable $e) { error_log('[Insights.migrate creative_sku_map] ' . $e->getMessage()); }
     }
 
     public static function ingestAdAudience(Request $req, Response $res, array $args = []): Response {
@@ -295,20 +314,22 @@ final class Insights {
      */
     public static function upsertCreativeSkuMap(Request $req, Response $res, array $args = []): Response {
         $pdo = Db::pdo();
+        self::ensureTables($pdo);
+        $tenant = self::tenant($req); // [현 차수 P1] 테넌트 격리 — 타 테넌트 매핑 덮어쓰기 차단
         $data = self::readJson($req);
         $rows = $data['rows'] ?? [];
         if (!is_array($rows)) $rows = [];
 
         // 209차 P1: 기존 단일 `ON CONFLICT`(SQLite 전용)가 MySQL 에서 1064 → /v418 creative-sku-map 500.
-        //   creative_sku_map 은 PRIMARY KEY(source_platform,creative_id,product_sku) 보유 → 드라이버 분기.
+        //   creative_sku_map PK=(tenant_id,source_platform,creative_id,product_sku) → 드라이버 분기.
         $isMy = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql';
         $stmt = $pdo->prepare($isMy
-            ? 'INSERT INTO creative_sku_map (source_platform, creative_id, product_sku, confidence, updated_at)
-               VALUES (:source_platform, :creative_id, :product_sku, :confidence, :updated_at)
+            ? 'INSERT INTO creative_sku_map (tenant_id, source_platform, creative_id, product_sku, confidence, updated_at)
+               VALUES (:tenant_id, :source_platform, :creative_id, :product_sku, :confidence, :updated_at)
                ON DUPLICATE KEY UPDATE confidence=VALUES(confidence), updated_at=VALUES(updated_at)'
-            : 'INSERT INTO creative_sku_map (source_platform, creative_id, product_sku, confidence, updated_at)
-               VALUES (:source_platform, :creative_id, :product_sku, :confidence, :updated_at)
-               ON CONFLICT(source_platform, creative_id, product_sku) DO UPDATE SET
+            : 'INSERT INTO creative_sku_map (tenant_id, source_platform, creative_id, product_sku, confidence, updated_at)
+               VALUES (:tenant_id, :source_platform, :creative_id, :product_sku, :confidence, :updated_at)
+               ON CONFLICT(tenant_id, source_platform, creative_id, product_sku) DO UPDATE SET
                    confidence=excluded.confidence,
                    updated_at=excluded.updated_at');
 
@@ -320,6 +341,7 @@ final class Insights {
             $sku = self::normStr($r['product_sku'] ?? null);
             if ($sp === null || $cid === null || $sku === null) continue;
             $stmt->execute([
+                ':tenant_id' => $tenant,
                 ':source_platform' => $sp,
                 ':creative_id' => $cid,
                 ':product_sku' => $sku,
@@ -379,7 +401,7 @@ WITH ad AS (
                     SUM(a.conversions) AS conversions
                 FROM ad_audience_breakdowns a
                 LEFT JOIN creative_sku_map m
-                    ON m.source_platform = a.source_platform AND m.creative_id = a.creative_id
+                    ON m.source_platform = a.source_platform AND m.creative_id = a.creative_id AND m.tenant_id = a.tenant_id
                 WHERE {$where} AND a.tenant_id = :tenant
                 GROUP BY COALESCE(a.product_sku, m.product_sku)
             ),
