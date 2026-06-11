@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback, useRef, memo } from "
 import { useGlobalData } from '../context/GlobalDataContext.jsx';
 import { useAuth } from '../auth/AuthContext.jsx';
 import { useNavigate } from 'react-router-dom';
+import { handlePlanLimit } from '../utils/planLimit.js';
 import { useI18n } from '../i18n';
 import { useConnectorSync } from '../context/ConnectorSyncContext.jsx';
 import { detectXSS, sanitizeInput } from '../security/SecurityGuard.js';
@@ -142,7 +143,7 @@ const WarehouseTab = memo(function WarehouseTab({ showForm, setShowForm, showPer
             if (editing && form.id) await wmsApi.updateWarehouse(form.id, form);
             else await wmsApi.createWarehouse(form);
             await reloadWhs();
-        } catch (e) { return alert(String(e?.message || e)); }
+        } catch (e) { if (handlePlanLimit(e)) return; return alert(String(e?.message || e)); }
         reset(); setShowForm(false);
     };
     const editWh = (w) => { setForm({ ...w }); setEditing(true); setShowForm(true); };
@@ -1823,6 +1824,82 @@ const BundleTab = memo(function BundleTab() {
     );
 });
 
+/* ═══ TAB: 파트너 계정(매입처/물류처/창고처 로그인 발급) — 212차 #3-B ══════════════ */
+const PARTNER_TYPE_LABEL = { supplier: '매입처', logistics: '물류처', warehouse: '창고처' };
+const PartnerAccountsTab = memo(function PartnerAccountsTab() {
+    const { t } = useI18n();
+    const [list, setList] = React.useState([]);
+    const [loading, setLoading] = React.useState(true);
+    const [form, setForm] = React.useState({ partner_type: 'supplier', partner_name: '', login_id: '', password: '', name: '' });
+    const [msg, setMsg] = React.useState(null);
+
+    const load = React.useCallback(async () => {
+        setLoading(true);
+        try { const r = await wmsApi.listPartners(); setList(Array.isArray(r?.partners) ? r.partners : []); } catch { setList([]); }
+        setLoading(false);
+    }, []);
+    React.useEffect(() => { load(); }, [load]);
+
+    const create = async () => {
+        setMsg(null);
+        if (!form.partner_name || !form.login_id || form.password.length < 8) { setMsg({ ok: false, text: '매입처/물류처/창고처명, 로그인 ID, 8자 이상 비밀번호를 입력하세요.' }); return; }
+        try {
+            const r = await wmsApi.createPartner(form);
+            if (r?.ok) { setMsg({ ok: true, text: '파트너 계정이 발급되었습니다.' }); setForm({ partner_type: 'supplier', partner_name: '', login_id: '', password: '', name: '' }); load(); }
+            else setMsg({ ok: false, text: r?.error || '발급 실패' });
+        } catch (e) { if (handlePlanLimit(e)) return; setMsg({ ok: false, text: String(e?.message || e) }); }
+    };
+    const toggle = async (p) => { try { await wmsApi.updatePartner(p.id, { active: p.active ? 0 : 1 }); load(); } catch (e) { alert(String(e?.message || e)); } };
+    const resetPw = async (p) => { const pw = window.prompt('새 비밀번호(8자 이상)'); if (!pw || pw.length < 8) return; try { await wmsApi.updatePartner(p.id, { password: pw }); alert('비밀번호가 재설정되었습니다.'); } catch (e) { alert(String(e?.message || e)); } };
+    const del = async (p) => { if (!window.confirm(`'${p.partner_name}' 파트너 계정을 삭제하시겠습니까?`)) return; try { await wmsApi.deletePartner(p.id); load(); } catch (e) { alert(String(e?.message || e)); } };
+
+    const inp = { width: '100%', boxSizing: 'border-box', padding: '8px 10px', borderRadius: 9, background: '#f0f5ff', border: '1.5px solid rgba(79,142,247,0.25)', color: '#1f2937', fontSize: 12, outline: 'none' };
+    return (
+        <div style={{ display: 'grid', gap: 16 }}>
+            <div className="card card-glass" style={{ padding: 18 }}>
+                <Sec>파트너 계정 발급 (플랜 한도 내)</Sec>
+                <div style={{ fontSize: 11.5, color: '#6b7280', marginBottom: 12 }}>매입처·물류처·창고처가 별도 ID로 <b>/partner</b> 포털에 접속해 공유된 본인 데이터(발주/출고/재고)만 열람·등록·수정합니다. 발급 수는 구독 플랜 한도(매입처/물류처/창고)를 따릅니다.</div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr)) auto', gap: 8, alignItems: 'end' }}>
+                    <div><label style={{ fontSize: 10, fontWeight: 700, color: '#6b7280' }}>유형</label>
+                        <select style={inp} value={form.partner_type} onChange={e => setForm(f => ({ ...f, partner_type: e.target.value }))}>
+                            <option value="supplier">매입처</option><option value="logistics">물류처</option><option value="warehouse">창고처</option>
+                        </select></div>
+                    <div><label style={{ fontSize: 10, fontWeight: 700, color: '#6b7280' }}>{form.partner_type === 'warehouse' ? '창고 ID(번호)' : '대상명'}</label>
+                        <input style={inp} value={form.partner_name} onChange={e => setForm(f => ({ ...f, partner_name: e.target.value }))} placeholder={form.partner_type === 'supplier' ? '발주 supplier 명과 일치' : form.partner_type === 'logistics' ? 'picking carrier 명과 일치' : '창고 ID'} /></div>
+                    <div><label style={{ fontSize: 10, fontWeight: 700, color: '#6b7280' }}>로그인 ID</label><input style={inp} value={form.login_id} onChange={e => setForm(f => ({ ...f, login_id: e.target.value }))} placeholder="partner_login" /></div>
+                    <div><label style={{ fontSize: 10, fontWeight: 700, color: '#6b7280' }}>비밀번호(8자+)</label><input type="password" style={inp} value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} /></div>
+                    <Btn onClick={create} color="#22c55e">발급</Btn>
+                </div>
+                {form.partner_type === 'warehouse' && <div style={{ fontSize: 10.5, color: '#94a3b8', marginTop: 6 }}>※ 창고처는 대상명에 해당 <b>창고 ID(번호)</b>를 입력하세요(창고 관리 탭의 ID). 그 창고의 재고·입출고만 보입니다.</div>}
+                {msg && <div style={{ marginTop: 10, fontSize: 12, color: msg.ok ? '#16a34a' : '#dc2626' }}>{msg.ok ? '✓ ' : '⚠ '}{msg.text}</div>}
+            </div>
+            <div className="card card-glass" style={{ padding: 18 }}>
+                <Sec>발급된 파트너 계정 ({list.length})</Sec>
+                {loading ? <div style={{ color: '#94a3b8', fontSize: 12 }}>불러오는 중...</div> : (
+                    <div style={{ display: 'grid', gap: 8 }}>
+                        {list.length === 0 && <div style={{ color: '#94a3b8', fontSize: 12 }}>발급된 파트너 계정이 없습니다.</div>}
+                        {list.map(p => (
+                            <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8, padding: '10px 14px', borderRadius: 10, border: '1px solid #e5e7eb', opacity: p.active ? 1 : 0.55 }}>
+                                <div style={{ fontSize: 12 }}>
+                                    <Tag label={PARTNER_TYPE_LABEL[p.partner_type] || p.partner_type} color="#6366f1" />
+                                    <span style={{ fontWeight: 800, marginLeft: 8 }}>{p.partner_name}</span>
+                                    <span style={{ color: '#6b7280', marginLeft: 8 }}>ID: {p.login_id}</span>
+                                    {p.last_login && <span style={{ color: '#94a3b8', marginLeft: 8, fontSize: 11 }}>최근접속 {(p.last_login || '').slice(0, 16)}</span>}
+                                </div>
+                                <div style={{ display: 'flex', gap: 6 }}>
+                                    <Btn onClick={() => toggle(p)} color={p.active ? '#ef4444' : '#22c55e'} small>{p.active ? '비활성' : '활성'}</Btn>
+                                    <Btn onClick={() => resetPw(p)} color="#6366f1" small>비번재설정</Btn>
+                                    <Btn onClick={() => del(p)} color="#94a3b8" small>삭제</Btn>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+});
+
 /* ═══ TAB 12: Supplier Management ══════════════ */
 const initSuppliers = [];
 
@@ -2381,6 +2458,7 @@ export default function WmsManager() {
         { id: "invoice", label: t("wms.tabInvoice"), desc: t("wms.tabInvoiceDesc") },
         { id: "bundle", label: t("wms.tabBundle"), desc: t("wms.tabBundleDesc") },
         { id: "supplier", label: t("wms.tabSupplier"), desc: t("wms.tabSupplierDesc") },
+        { id: "partners", label: t("wms.tabPartners", "파트너 계정"), desc: t("wms.tabPartnersDesc", "매입처·물류처·창고처 로그인 계정 발급 (플랜 한도 내)") },
         { id: "audit", label: t("wms.tabAudit"), desc: t("wms.tabAuditDesc") },
         { id: "guide", label: t("wms.tabGuide"), desc: t("wms.tabGuideDesc") },
     ];
@@ -2548,6 +2626,7 @@ export default function WmsManager() {
             {tab === "invoice" && <InvoiceTab />}
             {tab === "bundle" && <BundleTab />}
             {tab === "supplier" && <SupplierTab />}
+            {tab === "partners" && <PartnerAccountsTab />}
             {tab === "audit" && <InventoryAuditTab inventory={inventory} />}
             {tab === "guide" && <WmsGuideTab />}
             {showSecPanel && (

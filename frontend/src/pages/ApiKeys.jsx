@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useI18n } from '../i18n';
 import { getJsonAuth, postJson } from '../services/apiClient.js';
 import { IS_DEMO } from '../utils/demoEnv';
+import { handlePlanLimit } from '../utils/planLimit.js';
 
 /* ═══════════════════════════════════════════════════════════════════
    177차 §4.E TOP 1 본체 + U-177-A: ApiKeys.jsx 실제 ChannelCreds 관리 UI
@@ -373,6 +374,8 @@ export default function ApiKeys() {
       }
       return saved > 0;
     } catch (e) {
+      // 212차 #3: 채널 한도 초과(402) → 업그레이드 안내 모달.
+      if (handlePlanLimit(e)) return false;
       show('error', String(e?.message || e));
       return false;
     }

@@ -835,6 +835,14 @@ final class UserAuth
 
         // 플랜은 상위 계정을 따름(종속)
         $ownerPlan = $caller['plan'] ?? 'pro';
+        // 212차 #3: 하위계정(사용자) 수 플랜 한도 강제 — 총괄관리자 플랜 한도 내에서만 부여. 초과 시 402.
+        try {
+            $uc = $pdo->prepare('SELECT COUNT(*) FROM app_user WHERE tenant_id=? AND is_active=1');
+            $uc->execute([$tenantId]);
+            if ($lim = \Genie\PlanLimits::exceeded($pdo, (string)$ownerPlan, 'users', (int)$uc->fetchColumn())) {
+                return self::json($res, $lim, 402);
+            }
+        } catch (\Throwable $e) { /* 카운트 실패 시 통과(가용성 우선) */ }
         $now = self::now();
         $hashed = password_hash($password, PASSWORD_DEFAULT);
         try {

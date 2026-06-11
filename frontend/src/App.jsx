@@ -126,6 +126,7 @@ const CompanyIntro = lazy(() => import("./pages/public/CompanyIntro.jsx"));
 const TeamIntro = lazy(() => import("./pages/public/TeamIntro.jsx"));
 const SiteIntroAdmin = lazy(() => import("./pages/SiteIntroAdmin.jsx"));
 const PricingPublic = lazy(() => import("./pages/public/PricingPublic.jsx"));
+const PartnerPortal = lazy(() => import("./pages/PartnerPortal.jsx"));
 const Terms = lazy(() => import("./pages/public/Terms.jsx"));
 const Privacy = lazy(() => import("./pages/public/Privacy.jsx"));
 const Refund = lazy(() => import("./pages/public/Refund.jsx"));
@@ -550,6 +551,8 @@ export default function App() {
                 <Route path="/refund" element={<Refund />} />
                 <Route path="/pg-test" element={<PgTest />} />
                 <Route path="/login" element={<AuthPage />} />
+                {/* 212차 #3-B: 파트너(매입처/물류처/창고처) 전용 포털 — 본사 인증과 분리된 독립 페이지 */}
+                <Route path="/partner" element={<PartnerPortal />} />
                 <Route path="/*" element={
                   <RequireAuth>
                     <AppLayout />

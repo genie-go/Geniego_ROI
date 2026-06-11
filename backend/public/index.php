@@ -99,6 +99,9 @@ $app->add(function (Request $request, $handler) {
         || strpos($path, '/api/v426/channels') === 0
         || strpos($path, '/v426/admin/') === 0
         || strpos($path, '/api/v426/admin/') === 0
+        // 212차 #3-B: 파트너 포털 — 파트너 토큰 자가인증(본사 api_key/세션과 분리, 핸들러가 partner_session 검증)
+        || strpos($path, '/partner/') === 0
+        || strpos($path, '/api/partner/') === 0
         // v424 Creative Store — JWT auth handled in handler
         || strpos($path, '/api/creatives') === 0
         || strpos($path, '/creatives') === 0

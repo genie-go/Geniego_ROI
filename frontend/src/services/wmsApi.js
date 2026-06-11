@@ -45,6 +45,18 @@ export const listLots         = ()        => getJsonAuth(`${P}/lots`);
 export const createLot        = (b)       => requestJsonAuth(`${P}/lots`, 'POST', b);
 export const deleteLot        = (id)      => requestJsonAuth(`${P}/lots/${id}`, 'DELETE');
 
+// 212차 #3: 매입처(suppliers) registry
+export const listSuppliers    = ()        => getJsonAuth(`${P}/suppliers`);
+export const createSupplier   = (b)       => requestJsonAuth(`${P}/suppliers`, 'POST', b);
+export const updateSupplier   = (id, b)   => requestJsonAuth(`${P}/suppliers/${id}`, 'PUT', b);
+export const deleteSupplier   = (id)      => requestJsonAuth(`${P}/suppliers/${id}`, 'DELETE');
+
+// 212차 #3-B: 파트너 서브계정(매입처/물류처/창고처 로그인 발급) — /api/auth/partners
+export const listPartners     = ()        => getJsonAuth('/api/auth/partners');
+export const createPartner    = (b)       => requestJsonAuth('/api/auth/partners', 'POST', b);
+export const updatePartner    = (id, b)   => requestJsonAuth(`/api/auth/partners/${id}`, 'PUT', b);
+export const deletePartner    = (id)      => requestJsonAuth(`/api/auth/partners/${id}`, 'DELETE');
+
 export default {
   listWarehouses, createWarehouse, updateWarehouse, deleteWarehouse,
   listCarriers, createCarrier, updateCarrier, deleteCarrier,
@@ -53,4 +65,6 @@ export default {
   listPicking, createPicking, updatePicking,
   listSupplyOrders, createSupplyOrder, updateSupplyOrder,
   listLots, createLot, deleteLot,
+  listSuppliers, createSupplier, updateSupplier, deleteSupplier,
+  listPartners, createPartner, updatePartner, deletePartner,
 };

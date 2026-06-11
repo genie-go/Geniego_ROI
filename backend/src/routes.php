@@ -153,6 +153,22 @@ return function (App $app): void {
         'GET /wms/lots'                        => 'Genie\\Handlers\\Wms::listLots',
         'POST /wms/lots'                       => 'Genie\\Handlers\\Wms::createLot',
         'DELETE /wms/lots/{id}'                => 'Genie\\Handlers\\Wms::deleteLot',
+        // 212차 #3: 매입처(suppliers) registry
+        'GET /wms/suppliers'                   => 'Genie\\Handlers\\Wms::listSuppliers',
+        'POST /wms/suppliers'                  => 'Genie\\Handlers\\Wms::saveSupplier',
+        'PUT /wms/suppliers/{id}'              => 'Genie\\Handlers\\Wms::saveSupplier',
+        'DELETE /wms/suppliers/{id}'           => 'Genie\\Handlers\\Wms::deleteSupplier',
+        // 212차 #3-B: 파트너 서브계정 — 관리자(본사) 계정 발급
+        'GET /auth/partners'                   => 'Genie\\Handlers\\PartnerPortal::listAccounts',
+        'POST /auth/partners'                  => 'Genie\\Handlers\\PartnerPortal::createAccount',
+        'PUT /auth/partners/{id}'              => 'Genie\\Handlers\\PartnerPortal::updateAccount',
+        'DELETE /auth/partners/{id}'           => 'Genie\\Handlers\\PartnerPortal::deleteAccount',
+        // 212차 #3-B: 파트너 포털(파트너 토큰 자가인증)
+        'POST /partner/login'                  => 'Genie\\Handlers\\PartnerPortal::login',
+        'POST /partner/logout'                 => 'Genie\\Handlers\\PartnerPortal::logout',
+        'GET /partner/me'                      => 'Genie\\Handlers\\PartnerPortal::me',
+        'GET /partner/data'                    => 'Genie\\Handlers\\PartnerPortal::data',
+        'POST /partner/action'                 => 'Genie\\Handlers\\PartnerPortal::action',
 
         // ── 라이브 커머스(Live Commerce) — 208차 신설(세션/상품/구매/채팅/연동/SSE) ────
         'GET /v425/live/sessions'                      => 'Genie\\Handlers\\LiveCommerce::listSessions',
@@ -2037,6 +2053,21 @@ return function (App $app): void {
     $register('GET',    '/wms/lots');
     $register('POST',   '/wms/lots');
     $register('DELETE', '/wms/lots/{id}');
+    // 212차 #3: 매입처(suppliers) registry
+    $register('GET',    '/wms/suppliers');
+    $register('POST',   '/wms/suppliers');
+    $register('PUT',    '/wms/suppliers/{id}');
+    $register('DELETE', '/wms/suppliers/{id}');
+    // 212차 #3-B: 파트너 서브계정 — 관리자 발급 + 파트너 포털
+    $register('GET',    '/auth/partners');
+    $register('POST',   '/auth/partners');
+    $register('PUT',    '/auth/partners/{id}');
+    $register('DELETE', '/auth/partners/{id}');
+    $register('POST',   '/partner/login');
+    $register('POST',   '/partner/logout');
+    $register('GET',    '/partner/me');
+    $register('GET',    '/partner/data');
+    $register('POST',   '/partner/action');
     // 라이브 커머스(Live Commerce) — 208차
     $register('GET',    '/v425/live/sessions');
     $register('POST',   '/v425/live/sessions');

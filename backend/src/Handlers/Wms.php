@@ -106,6 +106,13 @@ class Wms
                 on_hand DOUBLE DEFAULT 0, updated_at VARCHAR(32),
                 UNIQUE KEY uq_wms_stock (tenant_id, sku, wh_id), KEY idx_wms_stock_tenant (tenant_id)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+            // 212차 #3: 매입처(공급자) registry — 발주 대상·파트너 계정 연결.
+            $pdo->exec("CREATE TABLE IF NOT EXISTS wms_suppliers (
+                id INT AUTO_INCREMENT PRIMARY KEY, tenant_id VARCHAR(100) NOT NULL DEFAULT 'demo',
+                name VARCHAR(200) NOT NULL, code VARCHAR(60), contact VARCHAR(120), phone VARCHAR(60),
+                email VARCHAR(190), memo TEXT, active TINYINT(1) DEFAULT 1,
+                created_at VARCHAR(32), updated_at VARCHAR(32), KEY idx_wms_sup_tenant (tenant_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
         } else {
             $pdo->exec("CREATE TABLE IF NOT EXISTS wms_warehouses (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', name TEXT NOT NULL, code TEXT, location TEXT, area TEXT, temp TEXT, manager TEXT, phone TEXT, type TEXT DEFAULT 'Direct', active INTEGER DEFAULT 1, created_at TEXT, updated_at TEXT)");
             $pdo->exec("CREATE TABLE IF NOT EXISTS wms_carriers (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', name TEXT NOT NULL, code TEXT, type TEXT DEFAULT 'Domestic', country TEXT, track_url TEXT, api_key TEXT, active INTEGER DEFAULT 1, created_at TEXT, updated_at TEXT)");
@@ -115,6 +122,7 @@ class Wms
             $pdo->exec("CREATE TABLE IF NOT EXISTS wms_supply_orders (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', sku TEXT, name TEXT, qty REAL DEFAULT 0, supplier TEXT, wh_id TEXT, status TEXT DEFAULT 'pending', eta TEXT, created_at TEXT, updated_at TEXT)");
             $pdo->exec("CREATE TABLE IF NOT EXISTS wms_lots (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', sku TEXT, name TEXT, lot_no TEXT, mfg_date TEXT, expiry_date TEXT, qty REAL DEFAULT 0, wh_id TEXT, created_at TEXT)");
             $pdo->exec("CREATE TABLE IF NOT EXISTS wms_stock (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', sku TEXT NOT NULL, wh_id TEXT NOT NULL DEFAULT '', name TEXT, on_hand REAL DEFAULT 0, updated_at TEXT)");
+            $pdo->exec("CREATE TABLE IF NOT EXISTS wms_suppliers (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', name TEXT NOT NULL, code TEXT, contact TEXT, phone TEXT, email TEXT, memo TEXT, active INTEGER DEFAULT 1, created_at TEXT, updated_at TEXT)");
             try { $pdo->exec("CREATE UNIQUE INDEX IF NOT EXISTS uq_wms_stock ON wms_stock(tenant_id, sku, wh_id)"); } catch (\Throwable $e) {}
         }
         // 기존 테이블 tenant_id 보강(무해 실패 무시)
@@ -158,6 +166,14 @@ class Wms
             if ($st->rowCount() === 0 && !self::exists('wms_warehouses', $id, $t)) return self::json($res, ['ok' => false, 'error' => '없음'], 404);
             return self::json($res, ['ok' => true, 'id' => $id]);
         }
+        // 212차 #3: 창고 수 플랜 한도 강제(신규 생성만). 초과 시 402 업그레이드 유도.
+        try {
+            $wc = $pdo->prepare("SELECT COUNT(*) FROM wms_warehouses WHERE tenant_id=?"); $wc->execute([$t]);
+            $plan = \Genie\PlanLimits::tenantPlan($pdo, $t);
+            if ($lim = \Genie\PlanLimits::exceeded($pdo, $plan, 'warehouses', (int)$wc->fetchColumn())) {
+                return self::json($res, $lim, 402);
+            }
+        } catch (\Throwable $e) { /* 카운트 실패 시 통과(가용성 우선) */ }
         $f[':t'] = $t; $f[':ca'] = $now; $f[':ua'] = $now;
         $st = $pdo->prepare("INSERT INTO wms_warehouses (tenant_id,name,code,location,area,temp,manager,phone,type,active,created_at,updated_at) VALUES (:t,:name,:code,:location,:area,:temp,:manager,:phone,:type,:active,:ca,:ua)");
         $st->execute($f);
@@ -221,6 +237,13 @@ class Wms
             if ($st->rowCount() === 0 && !self::exists('wms_carriers', $id, $t)) return self::json($res, ['ok' => false, 'error' => '없음'], 404);
             return self::json($res, ['ok' => true, 'id' => $id]);
         }
+        // 212차 #3: 물류처(택배사) 수 플랜 한도(신규 생성). 초과 시 402 업그레이드 유도.
+        try {
+            $cc = $pdo->prepare("SELECT COUNT(*) FROM wms_carriers WHERE tenant_id=?"); $cc->execute([$t]);
+            if ($lim = \Genie\PlanLimits::exceeded($pdo, \Genie\PlanLimits::tenantPlan($pdo, $t), 'logistics', (int)$cc->fetchColumn())) {
+                return self::json($res, $lim, 402);
+            }
+        } catch (\Throwable $e) { /* 가용성 우선 */ }
         $f[':api_key'] = $rawKey !== '' ? Crypto::encrypt($rawKey) : '';
         $f[':t'] = $t; $f[':ca'] = $now; $f[':ua'] = $now;
         $st = $pdo->prepare("INSERT INTO wms_carriers (tenant_id,name,code,type,country,track_url,api_key,active,created_at,updated_at) VALUES (:t,:name,:code,:type,:country,:track_url,:api_key,:active,:ca,:ua)");
@@ -233,6 +256,61 @@ class Wms
         if ($err = UserAuth::requirePro($req, $res)) return $err;
         self::ensureTables();
         $st = self::db()->prepare("DELETE FROM wms_carriers WHERE id=:id AND tenant_id=:t");
+        $st->execute([':id' => (int)$args['id'], ':t' => self::tenant($req)]);
+        return self::json($res, ['ok' => true, 'deleted' => $st->rowCount()]);
+    }
+
+    /* ════════════════ 매입처(Suppliers) — 212차 #3 ════════════════ */
+    public static function listSuppliers(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $st = self::db()->prepare("SELECT * FROM wms_suppliers WHERE tenant_id=:t ORDER BY id DESC");
+        $st->execute([':t' => self::tenant($req)]);
+        $rows = $st->fetchAll(\PDO::FETCH_ASSOC);
+        foreach ($rows as &$r) { $r['active'] = (bool)(int)($r['active'] ?? 1); }
+        return self::json($res, ['ok' => true, 'suppliers' => $rows]);
+    }
+
+    public static function saveSupplier(Request $req, Response $res, array $args = []): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $t = self::tenant($req); $b = self::body($req); $now = self::now();
+        $name = trim((string)($b['name'] ?? ''));
+        if ($name === '') return self::json($res, ['ok' => false, 'error' => '매입처명을 입력하세요.'], 422);
+        $pdo = self::db();
+        $f = [
+            ':name' => $name, ':code' => (string)($b['code'] ?? ''), ':contact' => (string)($b['contact'] ?? ''),
+            ':phone' => (string)($b['phone'] ?? ''), ':email' => (string)($b['email'] ?? ''),
+            ':memo' => (string)($b['memo'] ?? ''), ':active' => !empty($b['active']) ? 1 : 0,
+        ];
+        $id = (int)($args['id'] ?? $b['id'] ?? 0);
+        if ($id > 0) {
+            $f[':id'] = $id; $f[':t'] = $t; $f[':ua'] = $now;
+            $st = $pdo->prepare("UPDATE wms_suppliers SET name=:name,code=:code,contact=:contact,phone=:phone,email=:email,memo=:memo,active=:active,updated_at=:ua WHERE id=:id AND tenant_id=:t");
+            $st->execute($f);
+            if ($st->rowCount() === 0 && !self::exists('wms_suppliers', $id, $t)) return self::json($res, ['ok' => false, 'error' => '없음'], 404);
+            return self::json($res, ['ok' => true, 'id' => $id]);
+        }
+        // 212차 #3: 매입처 수 플랜 한도(신규 생성). 초과 시 402 업그레이드 유도.
+        try {
+            $sc = $pdo->prepare("SELECT COUNT(*) FROM wms_suppliers WHERE tenant_id=?"); $sc->execute([$t]);
+            if ($lim = \Genie\PlanLimits::exceeded($pdo, \Genie\PlanLimits::tenantPlan($pdo, $t), 'suppliers', (int)$sc->fetchColumn())) {
+                return self::json($res, $lim, 402);
+            }
+        } catch (\Throwable $e) { /* 가용성 우선 */ }
+        $f[':t'] = $t; $f[':ca'] = $now; $f[':ua'] = $now;
+        $st = $pdo->prepare("INSERT INTO wms_suppliers (tenant_id,name,code,contact,phone,email,memo,active,created_at,updated_at) VALUES (:t,:name,:code,:contact,:phone,:email,:memo,:active,:ca,:ua)");
+        $st->execute($f);
+        return self::json($res, ['ok' => true, 'id' => (int)$pdo->lastInsertId()]);
+    }
+
+    public static function deleteSupplier(Request $req, Response $res, array $args): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $st = self::db()->prepare("DELETE FROM wms_suppliers WHERE id=:id AND tenant_id=:t");
         $st->execute([':id' => (int)$args['id'], ':t' => self::tenant($req)]);
         return self::json($res, ['ok' => true, 'deleted' => $st->rowCount()]);
     }
@@ -289,23 +367,33 @@ class Wms
     {
         if ($err = UserAuth::requirePro($req, $res)) return $err;
         self::ensureTables();
-        $t = self::tenant($req); $b = self::body($req); $pdo = self::db();
-        $type = (string)($b['type'] ?? 'Inbound');
-        $wh   = (string)($b['whId'] ?? $b['wh_id'] ?? '');
-        $dwh  = (string)($b['destWhId'] ?? $b['dest_wh_id'] ?? '');
-        $sku  = (string)($b['sku'] ?? '');
-        $name = (string)($b['name'] ?? '');
-        $qty  = (float)($b['qty'] ?? 0);
-        $st = $pdo->prepare("INSERT INTO wms_movements (tenant_id,type,wh_id,dest_wh_id,sku,name,qty,unit,memo,ref,reason,created_at) VALUES (:t,:type,:wh,:dwh,:sku,:name,:qty,:unit,:memo,:ref,:reason,:ca)");
-        $st->execute([
-            ':t' => $t, ':type' => $type, ':wh' => $wh, ':dwh' => $dwh, ':sku' => $sku,
-            ':name' => $name, ':qty' => $qty, ':unit' => (string)($b['unit'] ?? ''),
-            ':memo' => (string)($b['memo'] ?? ''), ':ref' => (string)($b['ref'] ?? ''), ':reason' => (string)($b['reason'] ?? ''),
-            ':ca' => self::now(),
+        $t = self::tenant($req); $b = self::body($req);
+        $id = self::recordMovement($t, [
+            'type' => (string)($b['type'] ?? 'Inbound'), 'wh_id' => (string)($b['whId'] ?? $b['wh_id'] ?? ''),
+            'dest_wh_id' => (string)($b['destWhId'] ?? $b['dest_wh_id'] ?? ''), 'sku' => (string)($b['sku'] ?? ''),
+            'name' => (string)($b['name'] ?? ''), 'qty' => (float)($b['qty'] ?? 0), 'unit' => (string)($b['unit'] ?? ''),
+            'memo' => (string)($b['memo'] ?? ''), 'ref' => (string)($b['ref'] ?? ''), 'reason' => (string)($b['reason'] ?? ''),
         ]);
-        // 208차 WMS↔재고 통합: 입출고 type 에 따라 wms_stock(물리재고) 갱신.
+        return self::json($res, ['ok' => true, 'id' => $id]);
+    }
+
+    /**
+     * 212차 #3-B: 입출고 기록 단일 경로(본사 createMovement + 파트너 포털 창고/물류 공용).
+     *   이력(wms_movements) INSERT + 물리재고(wms_stock) 동기화를 한 곳에서 보장 → 택배출고·반품입고·
+     *   입출고 등 모든 행위가 본사 WMS·대시보드와 값 일체화. 반환: movement id.
+     */
+    public static function recordMovement(string $t, array $d): int
+    {
+        self::ensureTables();
+        $pdo = self::db(); $now = self::now();
+        $type = (string)($d['type'] ?? 'Inbound'); $wh = (string)($d['wh_id'] ?? '');
+        $dwh = (string)($d['dest_wh_id'] ?? ''); $sku = (string)($d['sku'] ?? '');
+        $name = (string)($d['name'] ?? ''); $qty = (float)($d['qty'] ?? 0);
+        $pdo->prepare("INSERT INTO wms_movements (tenant_id,type,wh_id,dest_wh_id,sku,name,qty,unit,memo,ref,reason,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)")
+            ->execute([$t, $type, $wh, $dwh, $sku, $name, $qty, (string)($d['unit'] ?? ''), (string)($d['memo'] ?? ''), (string)($d['ref'] ?? ''), (string)($d['reason'] ?? ''), $now]);
+        $id = (int)$pdo->lastInsertId();
         self::applyMovementToStock($t, $type, $wh, $dwh, $sku, $name, $qty);
-        return self::json($res, ['ok' => true, 'id' => (int)$pdo->lastInsertId()]);
+        return $id;
     }
 
     /** 입출고 유형 → 물리재고 부호 적용(영문 IO_TYPES + 한글 데모 라벨 모두 지원). */
