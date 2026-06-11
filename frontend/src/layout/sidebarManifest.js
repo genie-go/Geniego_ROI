@@ -62,6 +62,9 @@ export const MEMBER_MENU = [
       { to: "/kakao-channel",   icon: "💬", labelKey: "gNav.kakaoChannelLabel",    menuKey: "marketing" },
       { to: "/email-marketing", icon: "✉️", labelKey: "gNav.emailMarketingLabel",  menuKey: "marketing" },
       { to: "/sms-marketing",   icon: "📱", labelKey: "gNav.smsMarketingLabel",    menuKey: "marketing" },
+      { to: "/line-channel",    icon: "💚", labelKey: "gNav.lineChannelLabel",     menuKey: "marketing" },
+      { to: "/whatsapp",        icon: "🟢", labelKey: "gNav.whatsappLabel",        menuKey: "marketing" },
+      { to: "/instagram-dm",    icon: "📸", labelKey: "gNav.instagramDmLabel",     menuKey: "marketing" },
       { to: "/influencer",      icon: "🤝", labelKey: "gNav.influencerLabel",      menuKey: "marketing" },
       { to: "/content-calendar",icon: "📅", labelKey: "gNav.contentCalendarLabel", menuKey: "marketing" },
       { to: "/reviews-ugc",     icon: "⭐", labelKey: "gNav.reviewsUgcLabel",      menuKey: "marketing" },
@@ -159,6 +162,7 @@ export const ADMIN_MENU = [
       { to: "/admin/menu-tree",    icon: "🗂", labelKey: "gNav.menuTreeLabel",     menuKey: "system||menu_tree" },
       { to: "/db-admin",           icon: "🗄️", labelKey: "gNav.dbSchemaLabel",     menuKey: "system||db_admin" },
       { to: "/pg-config",          icon: "💳", labelKey: "gNav.paymentPgLabel",    menuKey: "system||pg_config" },
+      { to: "/system-monitor",     icon: "📡", labelKey: "gNav.systemMonitorLabel", menuKey: "system||system_monitor" },
     ],
   },
 ];
