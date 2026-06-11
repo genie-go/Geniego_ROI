@@ -9,6 +9,7 @@ import SC_DICT from'./scI18n.js';
 import{DEMO_PRODUCTS}from'../data/demoSeedData.js';
 import{useGlobalData}from'../context/GlobalDataContext.jsx';
 import{listSupplyOrders,createSupplyOrder,updateSupplyOrder}from'../services/wmsApi.js';
+import{getJsonAuth,requestJsonAuth}from'../services/apiClient.js';
 
 /* ── i18n helper ── */
 const T={
@@ -49,6 +50,8 @@ confirmDelete:['supplyChain.confirmDelete','Delete?'],
 normal:['supplyChain.normal','Normal'],
 highRisk:['supplyChain.highRisk','High Risk'],
 supplyRisk:['supplyChain.supplyRisk','Supply Risk'],
+lowReliability:['supplyChain.lowReliability','Low Reliability Suppliers'],
+riskMsgCopied:['supplyChain.riskMsgCopied','리스크 메시지가 클립보드에 복사되었습니다. Slack 등에 붙여넣으세요.'],
 contactSupplier:['supplyChain.contactSupplier','Contact Supplier'],
 altSupplierSearch:['supplyChain.altSupplierSearch','Search Alt Supplier'],
 slackNotify:['supplyChain.slackNotify','Slack Notify'],
@@ -198,18 +201,51 @@ return(
 /* ══════════════════════════════════════════════════════════════
    Tab 2: Suppliers
    ══════════════════════════════════════════════════════════════ */
+// 206차 영속: sc_suppliers(/v420/supply/suppliers) ↔ 테이블 필드 매핑(delayRate→delay, orderCount→orders).
+const _mapSup=(r)=>({id:r.id,name:r.name||'',country:r.country||'',category:r.category||'',leadTime:Number(r.leadTime)||0,delay:Number(r.delayRate)||0,reliability:Number(r.reliability)||0,orders:Number(r.orderCount)||0,contact:r.contact||''});
+const _emptySup=()=>({name:'',country:'KR',category:'',leadTime:14,delayRate:0,reliability:95,orderCount:0,contact:''});
 function SuppliersTab({tr,fmt}){
 const{isDemoMode}=useAuth();
-const suppliers=isDemoMode?DEMO_SUPPLIERS:[];
-if(suppliers.length===0)return(<div className="card card-glass" style={{padding:60,textAlign:'center',color:'#1e293b'}}><div style={{fontSize:48,marginBottom:16}}>🏭</div><div style={{fontSize:14,fontWeight:700,color:'#1e293b'}}>{tr('noData')}</div></div>);
+const[suppliers,setSuppliers]=useState(isDemoMode?DEMO_SUPPLIERS:[]);
+const[loading,setLoading]=useState(!isDemoMode);
+const[showAdd,setShowAdd]=useState(false);
+const[saving,setSaving]=useState(false);
+const[form,setForm]=useState(_emptySup());
+// 데모: 결정적 시드. 운영: 백엔드 영속(sc_suppliers, 테넌트 격리) 조회.
+const reload=useCallback(async()=>{
+if(isDemoMode){setSuppliers(DEMO_SUPPLIERS);setLoading(false);return;}
+setLoading(true);
+try{const r=await getJsonAuth('/v420/supply/suppliers');setSuppliers((r.suppliers||[]).map(_mapSup));}
+catch(e){setSuppliers([]);}
+finally{setLoading(false);}
+},[isDemoMode]);
+useEffect(()=>{reload();},[reload]);
+const submit=async()=>{
+if(!form.name.trim()||saving)return;
+setSaving(true);
+try{await requestJsonAuth('/v420/supply/suppliers','POST',{...form,leadTime:Number(form.leadTime)||0,delayRate:Number(form.delayRate)||0,reliability:Number(form.reliability)||0,orderCount:Number(form.orderCount)||0});
+setShowAdd(false);setForm(_emptySup());await reload();}
+catch(e){}finally{setSaving(false);}
+};
+const remove=async(id)=>{
+if(isDemoMode||!window.confirm(tr('confirmDelete')))return;
+try{await requestJsonAuth(`/v420/supply/suppliers/${id}`,'DELETE');await reload();}catch(e){}
+};
+const fld=(k,v)=>setForm(f=>({...f,[k]:v}));
+const inputSt={width:'100%',padding:'8px 10px',borderRadius:8,border:'1px solid #cbd5e1',fontSize:13,color:'#1e293b',background:'#fff'};
+if(loading)return(<div className="card card-glass" style={{padding:60,textAlign:'center',color:'#1e293b'}}><div style={{fontSize:48,marginBottom:16}}>🏭</div><div style={{fontSize:14,fontWeight:700,color:'#1e293b'}}>{tr('loading')}</div></div>);
 return(
 <div style={{display:'flex',flexDirection:'column',gap:16,animation:'fadeIn 0.4s'}}>
 <div className="card card-glass" style={{padding:0,overflow:'hidden',color:'#1e293b'}}>
-<div style={{padding:'14px 20px',fontWeight:800,fontSize:15,borderBottom:'1px solid rgba(0,0,0,0.06)',display:'flex',justifyContent:'space-between',alignItems:'center',color:'#1e293b'}}><span>🏭 {tr('tabSuppliers')}</span></div>
+<div style={{padding:'14px 20px',fontWeight:800,fontSize:15,borderBottom:'1px solid rgba(0,0,0,0.06)',display:'flex',justifyContent:'space-between',alignItems:'center',color:'#1e293b'}}><span>🏭 {tr('tabSuppliers')}</span>{!isDemoMode&&(<button onClick={()=>setShowAdd(true)} style={{padding:'7px 14px',borderRadius:8,border:'none',background:'#4f8ef7',color:'#fff',fontWeight:700,fontSize:12,cursor:'pointer'}}>+ {tr('addSupplier')}</button>)}</div>
+{suppliers.length===0?(
+<div style={{padding:50,textAlign:'center',color:'#94a3b8'}}><div style={{fontSize:40,marginBottom:12}}>🏭</div><div style={{fontSize:13,fontWeight:700}}>{tr('noData')}</div></div>
+):(
 <div style={{overflowX:'auto'}}>
 <table style={{width:'100%',borderCollapse:'collapse',fontSize:13}}>
 <thead style={{background:'rgba(241,245,249,0.7)'}}><tr>
 {[tr('supplier'),tr('country'),tr('category'),tr('leadTime'),tr('delayRate'),tr('reliability'),tr('orderCount'),tr('contact')].map((h,i)=>(<th key={i} style={{padding:'10px 14px',textAlign:i>2?'center':'left',fontWeight:700,fontSize:11,color:'#64748b',textTransform:'uppercase',letterSpacing:0.5}}>{h}</th>))}
+{!isDemoMode&&(<th style={{padding:'10px 14px'}}></th>)}
 </tr></thead>
 <tbody>
 {suppliers.map(s=>{
@@ -224,12 +260,15 @@ return(
 <td style={{textAlign:'center'}}><div style={{display:'inline-flex',alignItems:'center',gap:6}}><div style={{width:48,height:5,borderRadius:3,background:'rgba(0,0,0,0.06)'}}><div style={{width:s.reliability+'%',height:'100%',borderRadius:3,background:relClr,transition:'width 0.6s'}}/></div><span style={{fontSize:11,fontWeight:700,color:relClr}}>{s.reliability}%</span></div></td>
 <td style={{textAlign:'center',fontFamily:'monospace',color:'#475569'}}>{s.orders}</td>
 <td style={{textAlign:'center',fontSize:11,color:'#4f8ef7',fontWeight:600}}>{s.contact}</td>
+{!isDemoMode&&(<td style={{textAlign:'center'}}><button onClick={()=>remove(s.id)} title={tr('confirmDelete')} style={{border:'none',background:'transparent',cursor:'pointer',fontSize:14,opacity:0.6}}>🗑</button></td>)}
 </tr>);})}
 </tbody>
 </table>
 </div>
+)}
 </div>
 {/* Supplier Reliability Chart */}
+{suppliers.length>0&&(
 <div className="card card-glass" style={{padding:20,color:'#1e293b'}}>
 <div style={{fontWeight:800,fontSize:15,marginBottom:16,color:'#1e293b'}}>📊 {tr('reliability')}</div>
 <div style={{width:'100%',height:280}}>
@@ -245,6 +284,29 @@ return(
 </ResponsiveContainer>
 </div>
 </div>
+)}
+{/* Add Supplier Modal */}
+{showAdd&&(
+<div onClick={()=>setShowAdd(false)} style={{position:'fixed',inset:0,background:'rgba(15,23,42,0.45)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:1000,padding:20}}>
+<div onClick={e=>e.stopPropagation()} className="card" style={{background:'#fff',borderRadius:14,padding:24,width:'100%',maxWidth:460,color:'#1e293b',boxShadow:'0 12px 40px rgba(0,0,0,0.25)'}}>
+<div style={{fontWeight:800,fontSize:16,marginBottom:18}}>🏭 {tr('addSupplier')}</div>
+<div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
+<div style={{gridColumn:'1 / -1'}}><label style={{fontSize:11,fontWeight:700,color:'#64748b'}}>{tr('supplier')}</label><input value={form.name} onChange={e=>fld('name',e.target.value)} style={inputSt}/></div>
+<div><label style={{fontSize:11,fontWeight:700,color:'#64748b'}}>{tr('country')}</label><input value={form.country} onChange={e=>fld('country',e.target.value)} placeholder="KR" style={inputSt}/></div>
+<div><label style={{fontSize:11,fontWeight:700,color:'#64748b'}}>{tr('category')}</label><input value={form.category} onChange={e=>fld('category',e.target.value)} style={inputSt}/></div>
+<div><label style={{fontSize:11,fontWeight:700,color:'#64748b'}}>{tr('leadTime')} ({tr('days')})</label><input type="number" value={form.leadTime} onChange={e=>fld('leadTime',e.target.value)} style={inputSt}/></div>
+<div><label style={{fontSize:11,fontWeight:700,color:'#64748b'}}>{tr('delayRate')} (%)</label><input type="number" value={form.delayRate} onChange={e=>fld('delayRate',e.target.value)} style={inputSt}/></div>
+<div><label style={{fontSize:11,fontWeight:700,color:'#64748b'}}>{tr('reliability')} (%)</label><input type="number" value={form.reliability} onChange={e=>fld('reliability',e.target.value)} style={inputSt}/></div>
+<div><label style={{fontSize:11,fontWeight:700,color:'#64748b'}}>{tr('orderCount')}</label><input type="number" value={form.orderCount} onChange={e=>fld('orderCount',e.target.value)} style={inputSt}/></div>
+<div style={{gridColumn:'1 / -1'}}><label style={{fontSize:11,fontWeight:700,color:'#64748b'}}>{tr('contact')}</label><input value={form.contact} onChange={e=>fld('contact',e.target.value)} placeholder="partner@example.com" style={inputSt}/></div>
+</div>
+<div style={{display:'flex',gap:10,justifyContent:'flex-end',marginTop:20}}>
+<button onClick={()=>setShowAdd(false)} style={{padding:'9px 16px',borderRadius:8,border:'1px solid #cbd5e1',background:'#fff',color:'#475569',fontWeight:700,fontSize:13,cursor:'pointer'}}>{tr('cancel')}</button>
+<button onClick={submit} disabled={saving||!form.name.trim()} style={{padding:'9px 18px',borderRadius:8,border:'none',background:saving||!form.name.trim()?'#94a3b8':'#4f8ef7',color:'#fff',fontWeight:700,fontSize:13,cursor:saving||!form.name.trim()?'not-allowed':'pointer'}}>{tr('register')}</button>
+</div>
+</div>
+</div>
+)}
 </div>);
 }
 
@@ -463,8 +525,12 @@ return(
 <span style={{fontSize:10,fontWeight:700,padding:'3px 10px',borderRadius:20,background:'#ef444418',color:'#ef4444',border:'1px solid #ef444430'}}>{tr('highRisk')}</span>
 </div>
 <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
-{[{l:tr('contactSupplier'),c:'#4f8ef7',i:'📞'},{l:tr('altSupplierSearch'),c:'#a855f7',i:'🔍'},{l:tr('slackNotify'),c:'#22c55e',i:'💬'}].map((a,i)=>(
-<button key={i} style={{fontSize:11,fontWeight:700,padding:'6px 12px',borderRadius:8,border:'1px solid '+a.c+'30',background:a.c+'08',color:a.c,cursor:'pointer',display:'flex',alignItems:'center',gap:4}}><span>{a.i}</span>{a.l}</button>
+{[
+{l:tr('contactSupplier'),c:'#4f8ef7',i:'📞',act:()=>window.open('mailto:?subject='+encodeURIComponent('[공급 리스크] '+ln.supplier+' - '+ln.product),'_blank')},
+{l:tr('altSupplierSearch'),c:'#a855f7',i:'🔍',act:()=>window.open('https://www.google.com/search?q='+encodeURIComponent(ln.product+' alternative supplier '+ln.country),'_blank','noopener')},
+{l:tr('slackNotify'),c:'#22c55e',i:'💬',act:()=>{try{navigator.clipboard&&navigator.clipboard.writeText('[공급 리스크] '+ln.supplier+' / '+ln.product+' · '+tr('leadTime')+' '+ln.leadTime+tr('days'));}catch(e){}alert(tr('riskMsgCopied'));}},
+].map((a,i)=>(
+<button key={i} onClick={a.act} style={{fontSize:11,fontWeight:700,padding:'6px 12px',borderRadius:8,border:'1px solid '+a.c+'30',background:a.c+'08',color:a.c,cursor:'pointer',display:'flex',alignItems:'center',gap:4}}><span>{a.i}</span>{a.l}</button>
 ))}
 </div>
 </div>))}
@@ -473,7 +539,7 @@ return(
 {/* Low Reliability Suppliers */}
 {lowRel.length>0&&(
 <div className="card card-glass" style={{padding:20,borderLeft:'4px solid #f59e0b',color:'#1e293b'}}>
-<div style={{fontWeight:800,fontSize:15,marginBottom:14,color:'#f59e0b'}}>⚠️ Low Reliability Suppliers ({lowRel.length})</div>
+<div style={{fontWeight:800,fontSize:15,marginBottom:14,color:'#f59e0b'}}>⚠️ {tr('lowReliability')} ({lowRel.length})</div>
 <div style={{display:'flex',flexDirection:'column',gap:8}}>
 {lowRel.map(s=>(
 <div key={s.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 14px',borderRadius:8,background:'rgba(245,158,11,0.04)',border:'1px solid rgba(245,158,11,0.15)'}}>

@@ -931,6 +931,15 @@ return function (App $app): void {
         'GET /v423/creds/summary'      => 'Genie\\Handlers\\ChannelCreds::summary',
         'DELETE /v423/creds/{id}'      => 'Genie\\Handlers\\ChannelCreds::delete',
         'POST /v423/creds/{id}/test'   => 'Genie\\Handlers\\ChannelCreds::test',
+        // [현 차수] H4: InfluencerUGC 라이브 데이터 — 4 kind GET/POST(테넌트 격리 영속). 세션 self-auth.
+        'GET /v423/influencer/creators'       => 'Genie\\Handlers\\Influencer::creators',
+        'GET /v423/influencer/ugc-reviews'    => 'Genie\\Handlers\\Influencer::ugcReviews',
+        'GET /v423/influencer/channel-stats'  => 'Genie\\Handlers\\Influencer::channelStats',
+        'GET /v423/influencer/neg-keywords'   => 'Genie\\Handlers\\Influencer::negKeywords',
+        'POST /v423/influencer/creators'      => 'Genie\\Handlers\\Influencer::saveCreators',
+        'POST /v423/influencer/ugc-reviews'   => 'Genie\\Handlers\\Influencer::saveUgcReviews',
+        'POST /v423/influencer/channel-stats' => 'Genie\\Handlers\\Influencer::saveChannelStats',
+        'POST /v423/influencer/neg-keywords'  => 'Genie\\Handlers\\Influencer::saveNegKeywords',
         // 175차 S3.1 — SmartConnect channel test handler (라우트는 등록됐으나 custom 매핑 누락)
         'POST /v423/connectors/{channel}/test' => 'Genie\\Handlers\\ChannelCreds::channelTest',
         'POST /v423/connectors/apply'  => 'Genie\\Handlers\\ChannelCreds::apply',
@@ -1580,6 +1589,15 @@ return function (App $app): void {
     $register('GET',    '/v423/creds/summary');
     $register('DELETE', '/v423/creds/{id}');
     $register('POST',   '/v423/creds/{id}/test');
+    // [현 차수] H4: InfluencerUGC 라이브 데이터
+    $register('GET',    '/v423/influencer/creators');
+    $register('GET',    '/v423/influencer/ugc-reviews');
+    $register('GET',    '/v423/influencer/channel-stats');
+    $register('GET',    '/v423/influencer/neg-keywords');
+    $register('POST',   '/v423/influencer/creators');
+    $register('POST',   '/v423/influencer/ugc-reviews');
+    $register('POST',   '/v423/influencer/channel-stats');
+    $register('POST',   '/v423/influencer/neg-keywords');
 
     // ── v422 AI 마케팅 추천 (전체 카테고리) ─────────────────────────
     $register('POST', '/v422/ai/campaign-search');

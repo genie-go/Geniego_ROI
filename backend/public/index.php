@@ -152,6 +152,14 @@ $app->add(function (Request $request, $handler) {
         //   호출하는데 api_key 미들웨어에 막혀 동의 저장이 401 로 깨져 있었다(컴플라이언스 기능 불능).
         //   핸들러가 Bearer→user_session 으로 user 를 자체 해석(익명 허용)하므로 bypass 가 안전.
         || strpos($path, '/api/gdpr/') === 0 || strpos($path, '/gdpr/') === 0
+        // [현 차수] v420 SupplyChain Visibility(공급망: lines/suppliers/risk-rules/summary) — 세션 self-auth
+        //   (SupplyChain::tenant=UserAuth::authedTenant, 익명→demo 버킷)+tenant_id 격리. 라이트테마 재작성 때
+        //   프론트 배선이 드롭됐고, 미bypass라 세션토큰 호출이 api_key 미들웨어에 막혀(세션≠api_key) 운영에서
+        //   공급사/라인/리스크가 항상 빈 배열이었다. WMS/ChannelSync 와 동일 패턴으로 bypass.
+        || strpos($path, '/v420/supply/') === 0 || strpos($path, '/api/v420/supply/') === 0
+        // [현 차수] H4: InfluencerUGC 라이브 데이터(/v423/influencer/*) — 세션 self-auth(Influencer::requirePro
+        //   + authedTenant 격리). 프론트가 세션 토큰으로 호출하므로 api_key 미들웨어 bypass(미설정 시 401).
+        || strpos($path, '/v423/influencer/') === 0 || strpos($path, '/api/v423/influencer/') === 0
     ) {
         return $handler->handle($request);
     }

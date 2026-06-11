@@ -6,6 +6,7 @@ import { useCurrency } from '../contexts/CurrencyContext.jsx';
 import { useGlobalData } from '../context/GlobalDataContext.jsx';
 import { useSecurityGuard as useEnterpriseSecurity } from '../security/SecurityGuard.js';
 import { postJson, getJsonAuth } from '../services/apiClient.js';
+import { IS_DEMO } from '../utils/demoEnv';
 
 
 // currency formatting via useCurrency fmt()
@@ -1227,33 +1228,50 @@ function useInfluencerSecurity() {
    Ensures real-time sync across all modules (Dashboard, CRM, P&L, etc.)
 ══════════════════════════════════════════════════════════════════ */
 function useInfluencerDataSync() {
-    const { syncCreators, syncUgcReviews, syncChannelStats, syncNegKeywords, addAlert } = useGlobalData();
+    const { creators, ugcReviews, channelStats, negKeywords,
+            syncCreators, syncUgcReviews, syncChannelStats, syncNegKeywords } = useGlobalData();
     const loaded = useRef(false);
+    const ready = useRef(false); // GET 완료 전에는 autosave 금지(초기 빈배열이 백엔드를 덮어쓰는 race 방지)
 
     useEffect(() => {
         if (loaded.current) return;
         loaded.current = true;
-        // Fetch all influencer data endpoints in parallel
+        // [현 차수] H4: /v423/influencer/* (신설 백엔드) 에서 테넌트 영속 데이터 동기화.
         Promise.allSettled([
             getJsonAuth('/api/v423/influencer/creators'),
             getJsonAuth('/api/v423/influencer/ugc-reviews'),
             getJsonAuth('/api/v423/influencer/channel-stats'),
             getJsonAuth('/api/v423/influencer/neg-keywords'),
         ]).then(([creatorsRes, reviewsRes, statsRes, kwRes]) => {
-            if (creatorsRes.status === 'fulfilled' && Array.isArray(creatorsRes.value)) {
-                syncCreators(creatorsRes.value);
-            }
-            if (reviewsRes.status === 'fulfilled' && Array.isArray(reviewsRes.value)) {
-                syncUgcReviews(reviewsRes.value);
-            }
-            if (statsRes.status === 'fulfilled' && Array.isArray(statsRes.value)) {
-                syncChannelStats(statsRes.value);
-            }
-            if (kwRes.status === 'fulfilled' && Array.isArray(kwRes.value)) {
-                syncNegKeywords(kwRes.value);
-            }
-        }).catch(() => { /* Network error — uses existing context data */ });
-    }, [syncCreators, syncUgcReviews, syncChannelStats, syncNegKeywords, addAlert]);
+            if (creatorsRes.status === 'fulfilled' && Array.isArray(creatorsRes.value) && creatorsRes.value.length) syncCreators(creatorsRes.value);
+            if (reviewsRes.status === 'fulfilled' && Array.isArray(reviewsRes.value) && reviewsRes.value.length) syncUgcReviews(reviewsRes.value);
+            if (statsRes.status === 'fulfilled' && Array.isArray(statsRes.value) && statsRes.value.length) syncChannelStats(statsRes.value);
+            if (kwRes.status === 'fulfilled' && Array.isArray(kwRes.value) && kwRes.value.length) syncNegKeywords(kwRes.value);
+        }).catch(() => { /* Network error — uses existing context data */ })
+          .finally(() => { ready.current = true; });
+    }, [syncCreators, syncUgcReviews, syncChannelStats, syncNegKeywords]);
+
+    // [현 차수] H4: 운영 영속 — updateCreator 등 편집을 백엔드에 디바운스 저장(데모 제외, GET 완료 후).
+    useEffect(() => {
+        if (!ready.current || IS_DEMO) return;
+        const id = setTimeout(() => { postJson('/api/v423/influencer/creators', { items: creators }).catch(() => {}); }, 1200);
+        return () => clearTimeout(id);
+    }, [creators]);
+    useEffect(() => {
+        if (!ready.current || IS_DEMO) return;
+        const id = setTimeout(() => { postJson('/api/v423/influencer/ugc-reviews', { items: ugcReviews }).catch(() => {}); }, 1200);
+        return () => clearTimeout(id);
+    }, [ugcReviews]);
+    useEffect(() => {
+        if (!ready.current || IS_DEMO) return;
+        const id = setTimeout(() => { postJson('/api/v423/influencer/channel-stats', { items: channelStats }).catch(() => {}); }, 1200);
+        return () => clearTimeout(id);
+    }, [channelStats]);
+    useEffect(() => {
+        if (!ready.current || IS_DEMO) return;
+        const id = setTimeout(() => { postJson('/api/v423/influencer/neg-keywords', { items: negKeywords }).catch(() => {}); }, 1200);
+        return () => clearTimeout(id);
+    }, [negKeywords]);
 }
 
 export default function InfluencerUGC() {

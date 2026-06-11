@@ -1913,19 +1913,26 @@ const SupplierTab = memo(function SupplierTab() {
     const [search, setSearch] = React.useState('');
     const [selectedSup, setSelectedSup] = React.useState(null);
 
+    // [현 차수] H3: wms_suppliers 백엔드 영속 배선(기존 useState only → 새로고침 소실 해소).
+    //   백엔드 스키마(name/code/contact/phone/email/memo/active)에 부가필드는 memo(JSON)로 보관.
+    const toPayload = (f) => ({ name: f.name, code: f.code, contact: f.contact, phone: f.phone, email: f.email, active: f.active ? 1 : 0, memo: JSON.stringify({ type: f.type, country: f.country, payTerms: f.payTerms, leadDays: Number(f.leadDays) || 0, rating: Number(f.rating) || 5 }) });
+    const mapRow = (r) => { let ex = {}; try { ex = JSON.parse(r.memo || '{}'); } catch (e) {} return { id: r.id, name: r.name || '', code: r.code || '', contact: r.contact || '', phone: r.phone || '', email: r.email || '', active: r.active === false ? false : !!(r.active ?? 1), type: ex.type || 'Manufacturer', country: ex.country || 'KR', payTerms: ex.payTerms || 'Net 30', leadDays: ex.leadDays ?? 14, rating: ex.rating ?? 5, totalPO: 0, totalAmt: 0 }; };
+    const reloadSuppliers = React.useCallback(async () => { try { const r = await wmsApi.listSuppliers(); if (Array.isArray(r?.suppliers)) setSuppliers(r.suppliers.map(mapRow)); } catch (e) {} }, []);
+    React.useEffect(() => { reloadSuppliers(); }, [reloadSuppliers]);
+
     const TYPES = [t('wms.supTypeManuf'),t('wms.supTypeWholesale'),t('wms.supTypeOverseas'),t('wms.supType3PL'),t('wms.supTypeRawMat')];
     const PAY_TERMS = ['Cash','7D','30D','60D','30% prepaid','LC 60D'];
     const filtered = suppliers.filter(s => !search || s.name.includes(search) || s.code.includes(search) || s.contact.includes(search));
     const totalAmt = suppliers.reduce((s,p) => s + p.totalAmt, 0);
 
     const reset = () => setForm({ id:'', name:'', code:'', type:'Manufacturer', country:'KR', contact:'', phone:'', email:'', payTerms:'Net 30', leadDays:14, rating:5, active:true });
-    const save = () => {
+    const save = async () => {
         if (!form.name || !form.code) return alert(t('wms.supNameRequired'));
-        if (editing) {
-            setSuppliers(p => p.map(s => s.id === editing.id ? { ...s, ...form } : s));
-        } else {
-            setSuppliers(p => [...p, { ...form, id: 'SUP-' + String(p.length+1).padStart(3,'0'), totalPO:0, totalAmt:0 }]);
-        }
+        try {
+            if (editing && editing.id) await wmsApi.updateSupplier(editing.id, toPayload(form));
+            else await wmsApi.createSupplier(toPayload(form));
+            await reloadSuppliers();
+        } catch (e) { alert(String(e?.message || e)); return; }
         reset(); setShowForm(false); setEditing(null);
     };
     const editSup = s => { setForm({...s}); setEditing(s); setShowForm(true); };
@@ -1999,7 +2006,7 @@ const SupplierTab = memo(function SupplierTab() {
                             </div>
                             <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
                                 <Btn onClick={() => editSup(s)} color="#6366f1" small>{t('wms.supEditBtn')}</Btn>
-                                <Btn onClick={() => setSuppliers(p => p.map(q => q.id===s.id ? {...q,active:!q.active} : q))} color={s.active?'#ef4444':'#22c55e'} small>{s.active ? t('wms.supInactivate') : t('wms.supActivate')}</Btn>
+                                <Btn onClick={async () => { try { await wmsApi.updateSupplier(s.id, { ...toPayload(s), active: s.active?0:1 }); await reloadSuppliers(); } catch(e){ alert(String(e?.message||e)); } }} color={s.active?'#ef4444':'#22c55e'} small>{s.active ? t('wms.supInactivate') : t('wms.supActivate')}</Btn>
                                 <Btn onClick={() => setSelectedSup(s)} color="#f97316" small>{t('wms.supPoHistory')}</Btn>
                             </div>
                         </div>
