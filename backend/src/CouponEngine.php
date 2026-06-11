@@ -35,33 +35,35 @@ final class CouponEngine
         int    $userId,
         string $email,
         string $trigger,
-        string $currentPlan = 'free'
+        string $currentPlan = 'free',
+        string $planOverride = ''
     ): ?array {
         try {
             // 1. coupon_rules 테이블에서 활성 규칙 조회
             $rule = self::getActiveRule($pdo, $trigger);
             if (!$rule) return null;   // 해당 트리거 규칙 없음 or 비활성
 
-            // 2. upgrade/renewal 트리거의 경우 이미 유료 플랜이라면 skip
-            //    (signup은 항상 발급 — demo/free 대상)
+            // 2. upgrade 트리거의 경우 이미 유료 플랜이라면 skip
+            //    (signup은 항상 발급 — demo/free 대상. renewal 은 유료 갱신이므로 skip 안 함)
             if ($trigger === 'upgrade') {
-                $paidPlans = ['starter','growth','pro','enterprise'];
-                // 이미 더 높은 플랜이면 skip
-                // (단, 현재 free/demo인 경우만 발급)
                 if (!in_array($currentPlan, ['free','demo'], true)) {
                     // 이미 유료 → 쿠폰 스킵
                     return null;
                 }
             }
 
-            // 3. 이미 해당 트리거로 발급된 쿠폰이 있는지 확인 (중복 방지)
-            if (self::alreadyIssued($pdo, $userId, $trigger)) {
+            // 3. 이미 해당 트리거로 발급된 쿠폰이 있는지 확인 (중복 방지).
+            //    212차 #5: renewal 은 연 1회(yearly) 갱신 보너스이므로 300일 윈도우(재발급 허용),
+            //    signup/upgrade 는 1회 한정(0=영구 dedup).
+            $dedupWindow = ($trigger === 'renewal') ? 300 : 0;
+            if (self::alreadyIssued($pdo, $userId, $trigger, $dedupWindow)) {
                 return null;
             }
 
             // 4. 쿠폰 코드 생성
             $code         = 'GENIE-AUTO-' . strtoupper(bin2hex(random_bytes(4)));
-            $plan         = $rule['plan'];
+            // 212차 #5: planOverride 가 있으면 "사용자가 가입/구독한 해당 플랜" 3개월 무료로 발급.
+            $plan         = ($planOverride !== '') ? $planOverride : $rule['plan'];
             $durationDays = (int)$rule['duration_days'];
             $note         = "[auto:{$trigger}] " . ($rule['note'] ?? '');
 
@@ -164,8 +166,8 @@ final class CouponEngine
                 $pdo->exec("INSERT IGNORE INTO coupon_rules
                     (trigger_name,is_active,plan,duration_days,note) VALUES
                     ('signup',1,'starter',7,'신규가입 환영 쿠폰'),
-                    ('upgrade',0,'growth',14,'유료전환 감사 쿠폰'),
-                    ('renewal',0,'pro',30,'갱신 감사 쿠폰')");
+                    ('upgrade',1,'pro',90,'유료플랜 가입 3개월 무료'),
+                    ('renewal',1,'pro',90,'연간 구독 갱신 3개월 무료')");
             } else {
                 $pdo->exec("CREATE TABLE IF NOT EXISTS coupon_rules (
                     id           INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -180,11 +182,23 @@ final class CouponEngine
                 $pdo->exec("INSERT OR IGNORE INTO coupon_rules
                     (trigger_name,is_active,plan,duration_days,note) VALUES
                     ('signup',1,'starter',7,'신규가입 환영 쿠폰'),
-                    ('upgrade',0,'growth',14,'유료전환 감사 쿠폰'),
-                    ('renewal',0,'pro',30,'갱신 감사 쿠폰')");
+                    ('upgrade',1,'pro',90,'유료플랜 가입 3개월 무료'),
+                    ('renewal',1,'pro',90,'연간 구독 갱신 3개월 무료')");
             }
         } catch (\Throwable $e) {
             error_log('[CouponEngine] table init: ' . $e->getMessage());
+        }
+        // 212차 #5: free_coupons / coupon_redemptions 자동 보장(데모 등 미마이그레이션 DB 대응) — fire() 자급자족.
+        try {
+            if ($driver === 'mysql') {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS free_coupons (id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY, code VARCHAR(50) NOT NULL UNIQUE, plan VARCHAR(30) NOT NULL DEFAULT 'starter', duration_days INT NOT NULL DEFAULT 30, max_uses INT NOT NULL DEFAULT 1, use_count INT NOT NULL DEFAULT 0, issued_to_user_id BIGINT UNSIGNED NULL, issued_to_email VARCHAR(255) NULL, issued_by BIGINT UNSIGNED NOT NULL DEFAULT 0, note TEXT NULL, is_revoked TINYINT(1) NOT NULL DEFAULT 0, redeemed_at DATETIME NULL, redeemed_by_user_id BIGINT UNSIGNED NULL, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+                $pdo->exec("CREATE TABLE IF NOT EXISTS coupon_redemptions (id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY, coupon_id BIGINT UNSIGNED NOT NULL, user_id BIGINT UNSIGNED NOT NULL, plan VARCHAR(30) NOT NULL, expires_at DATETIME NOT NULL, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, UNIQUE KEY uq_coupon_user (coupon_id, user_id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+            } else {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS free_coupons (id INTEGER PRIMARY KEY AUTOINCREMENT, code TEXT NOT NULL UNIQUE, plan TEXT NOT NULL DEFAULT 'starter', duration_days INTEGER NOT NULL DEFAULT 30, max_uses INTEGER NOT NULL DEFAULT 1, use_count INTEGER NOT NULL DEFAULT 0, issued_to_user_id INTEGER NULL, issued_to_email TEXT NULL, issued_by INTEGER NOT NULL DEFAULT 0, note TEXT NULL, is_revoked INTEGER NOT NULL DEFAULT 0, redeemed_at TEXT NULL, redeemed_by_user_id INTEGER NULL, created_at TEXT NOT NULL DEFAULT (datetime('now')))");
+                $pdo->exec("CREATE TABLE IF NOT EXISTS coupon_redemptions (id INTEGER PRIMARY KEY AUTOINCREMENT, coupon_id INTEGER NOT NULL, user_id INTEGER NOT NULL, plan TEXT NOT NULL, expires_at TEXT NOT NULL, created_at TEXT NOT NULL DEFAULT (datetime('now')), UNIQUE(coupon_id, user_id))");
+            }
+        } catch (\Throwable $e) {
+            error_log('[CouponEngine] coupon table init: ' . $e->getMessage());
         }
         try {
             $stmt = $pdo->prepare(
@@ -198,17 +212,22 @@ final class CouponEngine
         }
     }
 
-    /** 같은 트리거로 이미 발급받은 쿠폰이 있는지 확인 */
-    private static function alreadyIssued(\PDO $pdo, int $userId, string $trigger): bool
+    /** 같은 트리거로 이미 발급받은 쿠폰이 있는지 확인. $withinDays>0 이면 그 기간 내 발급분만 중복으로 간주(연 1회 갱신 보너스용). */
+    private static function alreadyIssued(\PDO $pdo, int $userId, string $trigger, int $withinDays = 0): bool
     {
         try {
-            $stmt = $pdo->prepare(
-                "SELECT COUNT(*) FROM free_coupons
-                  WHERE issued_to_user_id = ?
-                    AND note LIKE ?
-                  LIMIT 1"
-            );
-            $stmt->execute([$userId, "[auto:{$trigger}]%"]);
+            if ($withinDays > 0) {
+                $since = gmdate('Y-m-d H:i:s', time() - $withinDays * 86400);
+                $stmt = $pdo->prepare(
+                    "SELECT COUNT(*) FROM free_coupons WHERE issued_to_user_id = ? AND note LIKE ? AND created_at >= ? LIMIT 1"
+                );
+                $stmt->execute([$userId, "[auto:{$trigger}]%", $since]);
+            } else {
+                $stmt = $pdo->prepare(
+                    "SELECT COUNT(*) FROM free_coupons WHERE issued_to_user_id = ? AND note LIKE ? LIMIT 1"
+                );
+                $stmt->execute([$userId, "[auto:{$trigger}]%"]);
+            }
             return (int)$stmt->fetchColumn() > 0;
         } catch (\Throwable $e) {
             return false;

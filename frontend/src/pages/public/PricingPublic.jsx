@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
-import PlanServiceGuide from "../../components/PlanServiceGuide.jsx"; // 186차: 플랜 제공서비스 상세 안내(초고도화)
+import { MEMBER_MENU } from "../../layout/sidebarManifest.js"; // 212차 #5: 메뉴접근→서비스명 동적 매핑
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import PremiumLayout from "../../layout/PremiumLayout.jsx";
 import { useT } from "../../i18n/index.js"; // 187차: i18n 배선(앱 내부 한국어 표기 버그 수정)
@@ -107,6 +107,7 @@ function hydratePlanFromApi(p) {
     seatTiers: Array.isArray(p.seatTiers) ? p.seatTiers : [],
     seatPricing: (p.seatPricing && typeof p.seatPricing === "object" && !Array.isArray(p.seatPricing)) ? p.seatPricing : {},
     menuAccessCount: Array.isArray(p.menuAccess) ? p.menuAccess.length : 0,
+    menuAccess: Array.isArray(p.menuAccess) ? p.menuAccess : [],
   };
 }
 
@@ -135,6 +136,142 @@ function periodsForSeat(plan, seatKey) {
 function limitDisplay(v, unlimitedLabel) {
   if (v === -1 || v === null || v === undefined || v === "unlimited") return unlimitedLabel;
   return String(v);
+}
+
+/** 212차 #5: 메뉴접근 키/경로 → labelKey 맵(sidebarManifest 기반). 플랜별 이용가능 서비스 동적 표기. */
+const MENU_LABEL_MAP = (() => {
+  const m = {};
+  try {
+    for (const g of (MEMBER_MENU || [])) {
+      if (g && g.key && g.labelKey) m[g.key] = g.labelKey;
+      for (const it of ((g && g.items) || [])) {
+        if (it.menuKey && it.labelKey && !m[it.menuKey]) m[it.menuKey] = it.labelKey;
+        if (it.to && it.labelKey) m[it.to] = it.labelKey;
+      }
+    }
+  } catch (e) { /* manifest 부재 시 빈 맵 */ }
+  return m;
+})();
+
+const GUIDE_LIMIT_ROWS = [
+  { k: 'channels', label: '판매·마케팅 채널' }, { k: 'orders_monthly', label: '월 주문 수' },
+  { k: 'products', label: '상품 DB' }, { k: 'suppliers', label: '매입처 ID' },
+  { k: 'logistics', label: '물류처 ID' }, { k: 'warehouses', label: '창고' },
+  { k: 'image_hosting_gb', label: '이미지 호스팅(GB)' },
+];
+
+/**
+ * 212차 #5: 플랜별 메뉴 접근 권한 — 읽기전용 비교표(가입회원 열람용).
+ *   admin(/admin/plan-pricing) 의 "플랜별 메뉴 접근 권한" 설정값(plan_menu_access)을 그대로 반영.
+ *   admin 이 권한 변경 시 public-plans 응답이 바뀌어 즉시 동기화(수정 불가·열람만).
+ */
+function PlanMenuAccessMatrix({ plans, t, light = true }) {
+  // MEMBER_MENU 를 그룹→고유 menuKey 행으로 정리(admin MenuAccessTree 구조와 정합).
+  const sections = [];
+  try {
+    for (const g of (MEMBER_MENU || [])) {
+      const rows = []; const seen = new Set();
+      for (const it of (g.items || [])) {
+        if (!it.menuKey || seen.has(it.menuKey)) continue;
+        seen.add(it.menuKey);
+        rows.push({ key: it.menuKey, label: t(it.labelKey, it.labelKey) });
+      }
+      if (rows.length) sections.push({ group: t(g.labelKey, g.labelKey), rows });
+    }
+  } catch (e) { /* manifest 부재 */ }
+  if (!sections.length || !plans.length) return null;
+  const accSets = plans.map(p => new Set(p.menuAccess || []));
+  const titleC = light ? '#0f172a' : '#eef0f6';
+  const subC = light ? '#64748b' : '#aeb4c6';
+  const th = { padding: '8px 10px', fontSize: 11.5, fontWeight: 800, color: titleC, borderBottom: '2px solid #e2e8f0', textAlign: 'center', whiteSpace: 'nowrap' };
+  const td = { padding: '7px 10px', fontSize: 12, color: subC, borderBottom: '1px solid #f1f5f9' };
+  return (
+    <div style={{ marginTop: 56, maxWidth: 980, marginLeft: 'auto', marginRight: 'auto' }}>
+      <div style={{ textAlign: 'center', marginBottom: 18 }}>
+        <h2 style={{ fontSize: 24, fontWeight: 900, color: titleC, letterSpacing: -0.5 }}>{t('appPricing.menuMatrix.title', '플랜별 메뉴 접근 권한')}</h2>
+        <p style={{ fontSize: 12.5, color: subC, marginTop: 6 }}>{t('appPricing.menuMatrix.subtitle', '각 플랜에서 이용 가능한 메뉴·서비스 (관리자 설정 실시간 반영)')}</p>
+      </div>
+      <div style={{ overflowX: 'auto', background: light ? '#fff' : 'rgba(255,255,255,0.04)', border: '1px solid #e6e8ef', borderRadius: 14 }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 560 }}>
+          <thead><tr><th style={{ ...th, textAlign: 'left' }}>{t('appPricing.menuMatrix.menu', '메뉴 / 서비스')}</th>{plans.map(p => <th key={p.id} style={th}>{p.name}</th>)}</tr></thead>
+          <tbody>
+            {sections.map((sec, si) => (
+              <React.Fragment key={si}>
+                <tr><td colSpan={plans.length + 1} style={{ ...td, fontWeight: 800, color: titleC, background: light ? '#f8fafc' : 'rgba(255,255,255,0.03)' }}>{sec.group}</td></tr>
+                {sec.rows.map((r, ri) => (
+                  <tr key={ri}>
+                    <td style={{ ...td, paddingLeft: 22 }}>{r.label}</td>
+                    {accSets.map((s, pi) => <td key={pi} style={{ ...td, textAlign: 'center' }}>{s.has(r.key) ? <span style={{ color: '#22c55e', fontWeight: 900 }}>✓</span> : <span style={{ color: '#cbd5e1' }}>—</span>}</td>)}
+                  </tr>
+                ))}
+              </React.Fragment>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * 212차 #5: 플랜별 제공 서비스 동적 안내 — plan_config(features·menuAccess·limits) 실데이터 기반.
+ *   admin 이 기능목록/메뉴접근권한/한도를 변경하면 public-plans 응답이 바뀌어 즉시 반영(재빌드 불요).
+ */
+function DynamicPlanGuide({ plan, t, light }) {
+  const [open, setOpen] = useState(true);
+  const color = plan.color || '#6366f1';
+  const unlimited = t('appPricing.unlimited', '무제한');
+  const features = Array.isArray(plan.features) ? plan.features : [];
+  // 이용 가능 서비스(메뉴) — menuAccess 키를 라벨로 매핑(중복 제거)
+  const services = []; const seen = new Set();
+  for (const key of (plan.menuAccess || [])) {
+    const lk = MENU_LABEL_MAP[key];
+    const label = lk ? t(lk, key) : String(key);
+    if (label && !seen.has(label)) { seen.add(label); services.push(label); }
+  }
+  const cardBg = light ? '#ffffff' : 'rgba(255,255,255,0.04)';
+  const bd = light ? '1px solid #e6e8ef' : '1px solid rgba(255,255,255,0.10)';
+  const titleC = light ? '#0f172a' : '#eef0f6';
+  const subC = light ? '#475569' : '#aeb4c6';
+  const chipBg = light ? `${color}12` : `${color}22`;
+  return (
+    <div style={{ background: cardBg, border: bd, borderRadius: 14, padding: '18px 20px', borderLeft: `4px solid ${color}` }}>
+      <button onClick={() => setOpen(o => !o)} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}>
+        <span style={{ fontWeight: 900, fontSize: 17, color }}>{plan.name}</span>
+        <span style={{ fontSize: 12, color: subC }}>{plan.desc} {open ? '▴' : '▾'}</span>
+      </button>
+      {open && (
+        <div style={{ marginTop: 14, display: 'grid', gap: 16 }}>
+          {features.length > 0 && (
+            <div>
+              <div style={{ fontSize: 12.5, fontWeight: 800, color: titleC, marginBottom: 8 }}>📋 {t('appPricing.guide.features', '제공 기능')}</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(240px,1fr))', gap: 6 }}>
+                {features.map((f, i) => <div key={i} style={{ fontSize: 12.5, color: subC }}><span style={{ color }}>✓</span> {f}</div>)}
+              </div>
+            </div>
+          )}
+          {services.length > 0 && (
+            <div>
+              <div style={{ fontSize: 12.5, fontWeight: 800, color: titleC, marginBottom: 8 }}>🧩 {t('appPricing.guide.services', '이용 가능 서비스/메뉴')} <span style={{ color: subC, fontWeight: 600 }}>({services.length})</span></div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                {services.map((s, i) => <span key={i} style={{ fontSize: 11.5, fontWeight: 700, padding: '3px 10px', borderRadius: 20, background: chipBg, color }}>{s}</span>)}
+              </div>
+            </div>
+          )}
+          <div>
+            <div style={{ fontSize: 12.5, fontWeight: 800, color: titleC, marginBottom: 8 }}>📊 {t('appPricing.guide.limits', '제공 한도')}</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))', gap: 6 }}>
+              {GUIDE_LIMIT_ROWS.map(row => (
+                <div key={row.k} style={{ fontSize: 12, color: subC, display: 'flex', justifyContent: 'space-between', borderBottom: light ? '1px solid #f1f5f9' : '1px solid rgba(255,255,255,0.06)', padding: '3px 0' }}>
+                  <span>{row.label}</span><span style={{ fontWeight: 800, color: titleC }}>{limitDisplay((plan.limits || {})[row.k], unlimited)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
 // 173차 — cycle 옵션 (1/3/6/12 개월). admin DB 의 period_months 와 정합 (fallback 용).
@@ -682,12 +819,16 @@ export default function PricingPublic() {
                         <p style={{ fontSize: 13, color: T.guideSub, marginTop: 8 }}>{t("appPricing.guide.subtitle", "See exactly which services each plan provides.")}</p>
                     </div>
                     <div style={{ display: "grid", gap: 14 }}>
-                        {/* 187차 — 기본 펼침: 각 플랜 상세 서비스 설명서(9개 섹션) 즉시 노출(구버전 수준 상세). */}
+                        {/* 212차 #5 — plan_config(features·menuAccess·limits) 실데이터 동적 안내.
+                            admin 이 기능목록/메뉴접근권한/한도 변경 시 즉시 반영(현재 4플랜 Starter/Growth/Pro/Enterprise). */}
                         {plans.map(pl => (
-                            <PlanServiceGuide key={pl.id} planId={pl.id} defaultOpen={true} light={true} />
+                            <DynamicPlanGuide key={pl.id} plan={pl} t={t} light={true} />
                         ))}
                     </div>
                 </div>
+
+                {/* 212차 #5 — 플랜별 메뉴 접근 권한 읽기전용 비교표(admin 설정 실시간 반영) */}
+                <PlanMenuAccessMatrix plans={plans} t={t} light={true} />
 
                 {/* FAQ */}
                 <div style={{ marginTop: 80, maxWidth: 720, marginLeft: "auto", marginRight: "auto", textAlign: "left" }}>

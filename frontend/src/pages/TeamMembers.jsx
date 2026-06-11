@@ -3,6 +3,8 @@ import { useAuth } from '../auth/AuthContext.jsx';
 import { useT } from '../i18n/index.js'; // 181차 다국어
 import { IS_DEMO } from '../utils/demoEnv';
 import { tGetJSON, tSetJSON } from '../utils/tenantStorage.js';
+import * as wmsApi from '../services/wmsApi.js'; // 212차 #5: 파트너(매입처/물류처/창고처) 계정
+import { handlePlanLimit } from '../utils/planLimit.js';
 
 /**
  * 멤버 구성원 — 팀/팀원 하위계정 관리 (180차 Phase2 · 181차 다국어).
@@ -237,7 +239,64 @@ export default function TeamMembers() {
         )}
       </div>
 
+      {canManage && !IS_DEMO && <PartnerSection t={t} flash={flash} input={input} />}
+
       {toast && <div style={{ position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', background: '#1e293b', color: '#fff', padding: '11px 22px', borderRadius: 10, fontSize: 13, fontWeight: 600, zIndex: 9999 }}>{toast}</div>}
+    </div>
+  );
+}
+
+/* 212차 #5: 파트너(매입처/물류처/창고처) 계정 — 멤버 구성원과 동일 화면에서 등록·관리.
+   별도 /partner 포털 로그인 ID 발급. 발급 수는 구독 플랜 한도(매입처/물류처/창고) 내. */
+const PT_LABEL = { supplier: '매입처', logistics: '물류처', warehouse: '창고처' };
+function PartnerSection({ t, flash, input }) {
+  const [list, setList] = useState([]);
+  const [form, setForm] = useState({ partner_type: 'supplier', partner_name: '', login_id: '', password: '' });
+  const [busy, setBusy] = useState(false);
+  const load = useCallback(async () => { try { const r = await wmsApi.listPartners(); setList(Array.isArray(r?.partners) ? r.partners : []); } catch { setList([]); } }, []);
+  useEffect(() => { load(); }, [load]);
+  const create = async () => {
+    if (!form.partner_name || !form.login_id || form.password.length < 8) { flash('대상명·로그인 ID·8자 이상 비밀번호를 입력하세요.'); return; }
+    setBusy(true);
+    try { const r = await wmsApi.createPartner(form); if (r?.ok) { flash('파트너 계정이 발급되었습니다.'); setForm({ partner_type: 'supplier', partner_name: '', login_id: '', password: '' }); load(); } else flash(r?.error || '발급 실패'); }
+    catch (e) { if (!handlePlanLimit(e)) flash(String(e?.message || e)); }
+    setBusy(false);
+  };
+  const toggle = async (p) => { try { await wmsApi.updatePartner(p.id, { active: p.active ? 0 : 1 }); load(); } catch (e) { flash(String(e?.message || e)); } };
+  const resetPw = async (p) => { const pw = window.prompt('새 비밀번호(8자 이상)'); if (!pw || pw.length < 8) return; try { await wmsApi.updatePartner(p.id, { password: pw }); flash('비밀번호 재설정 완료'); } catch (e) { flash(String(e?.message || e)); } };
+  const del = async (p) => { if (!window.confirm(`'${p.partner_name}' 파트너 계정을 삭제하시겠습니까?`)) return; try { await wmsApi.deletePartner(p.id); load(); } catch (e) { flash(String(e?.message || e)); } };
+  const inp = input || { padding: '9px 11px', borderRadius: 9, border: '1px solid #cbd5e1', fontSize: 13, outline: 'none' };
+  return (
+    <div style={{ marginTop: 28, background: 'var(--card,#fff)', border: '1px solid var(--border,#e2e8f0)', borderRadius: 14, padding: 20 }}>
+      <div style={{ fontSize: 16, fontWeight: 900, color: 'var(--text-1,#0f172a)', marginBottom: 4 }}>🤝 파트너 계정 (매입처 · 물류처 · 창고처)</div>
+      <div style={{ fontSize: 12, color: 'var(--text-3,#64748b)', marginBottom: 14 }}>파트너에게 별도 로그인 ID를 발급합니다. 파트너는 <b>/partner</b> 포털로 접속해 공유된 본인 데이터(발주/출고/재고)만 등록·열람합니다. 발급 수는 구독 플랜 한도를 따릅니다.</div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(140px,1fr)) auto', gap: 8, alignItems: 'end', marginBottom: 16 }}>
+        <div><label style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3,#64748b)' }}>유형</label>
+          <select value={form.partner_type} onChange={e => setForm(f => ({ ...f, partner_type: e.target.value }))} style={{ ...inp, width: '100%', boxSizing: 'border-box' }}>
+            <option value="supplier">매입처</option><option value="logistics">물류처</option><option value="warehouse">창고처</option>
+          </select></div>
+        <div><label style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3,#64748b)' }}>{form.partner_type === 'warehouse' ? '창고 ID(번호)' : '대상명'}</label>
+          <input value={form.partner_name} onChange={e => setForm(f => ({ ...f, partner_name: e.target.value }))} style={{ ...inp, width: '100%', boxSizing: 'border-box' }} placeholder={form.partner_type === 'supplier' ? '발주 매입처명' : form.partner_type === 'logistics' ? '택배사명' : '창고 ID'} /></div>
+        <div><label style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3,#64748b)' }}>로그인 ID</label><input value={form.login_id} onChange={e => setForm(f => ({ ...f, login_id: e.target.value }))} style={{ ...inp, width: '100%', boxSizing: 'border-box' }} placeholder="partner_id" /></div>
+        <div><label style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3,#64748b)' }}>비밀번호(8자+)</label><input type="password" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} style={{ ...inp, width: '100%', boxSizing: 'border-box' }} /></div>
+        <button onClick={create} disabled={busy} style={{ padding: '9px 16px', borderRadius: 9, border: 'none', background: '#22c55e', color: '#fff', fontWeight: 800, fontSize: 13, cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.6 : 1 }}>발급</button>
+      </div>
+      <div style={{ display: 'grid', gap: 7 }}>
+        {list.length === 0 && <div style={{ fontSize: 12, color: '#94a3b8' }}>발급된 파트너 계정이 없습니다.</div>}
+        {list.map(p => (
+          <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8, padding: '9px 13px', borderRadius: 10, border: '1px solid var(--border,#e5e7eb)', opacity: p.active ? 1 : 0.55 }}>
+            <div style={{ fontSize: 12.5 }}>
+              <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 12, background: '#6366f118', color: '#6366f1' }}>{PT_LABEL[p.partner_type] || p.partner_type}</span>
+              <b style={{ marginLeft: 8 }}>{p.partner_name}</b><span style={{ color: '#64748b', marginLeft: 8 }}>ID: {p.login_id}</span>
+            </div>
+            <div style={{ display: 'flex', gap: 6 }}>
+              <button onClick={() => toggle(p)} style={{ fontSize: 11, padding: '4px 9px', borderRadius: 7, border: '1px solid #cbd5e1', background: 'transparent', cursor: 'pointer', color: p.active ? '#ef4444' : '#16a34a' }}>{p.active ? '비활성' : '활성'}</button>
+              <button onClick={() => resetPw(p)} style={{ fontSize: 11, padding: '4px 9px', borderRadius: 7, border: '1px solid #cbd5e1', background: 'transparent', cursor: 'pointer', color: '#6366f1' }}>비번재설정</button>
+              <button onClick={() => del(p)} style={{ fontSize: 11, padding: '4px 9px', borderRadius: 7, border: '1px solid #fecaca', background: 'transparent', cursor: 'pointer', color: '#ef4444' }}>삭제</button>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

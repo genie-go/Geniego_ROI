@@ -1100,6 +1100,10 @@ final class UserAuth
             }
         }
 
+        // 212차 #5: 자동 무료쿠폰 발급용 — 업데이트 전 직전 플랜 캡처(유료전환 여부 판정).
+        $prevPlan = 'free';
+        try { $pp = $pdo->prepare("SELECT COALESCE(plans,plan,'free') FROM app_user WHERE id=?"); $pp->execute([$id]); $prevPlan = strtolower((string)($pp->fetchColumn() ?: 'free')); } catch (\Throwable $e) {}
+
         // subscription_expires_at, subscription_cycle 컬럼 업데이트 시도
         try {
             $pdo->prepare(
@@ -1112,6 +1116,29 @@ final class UserAuth
             } catch (\Throwable $e2) {
                 $pdo->prepare('UPDATE app_user SET plan = ? WHERE idx = ?')->execute([$plan, $id]);
             }
+        }
+
+        // 212차 #5: 자동 무료쿠폰 발급(silent fail — 결제/업그레이드 주기능 비차단).
+        //   ① 유료플랜 가입(free/demo → 유료) → 'upgrade' 트리거: 해당 플랜 3개월 무료 보너스.
+        //   ② 연간(12개월) 구독·갱신 → 'renewal' 트리거: 3개월 무료 보너스(연 1회).
+        //   coupon_rules(admin 편집: 무료기간 duration_days·활성) 기준, 쿠폰 플랜=가입한 플랜.
+        $autoCoupons = [];
+        if ($plan === 'pro' || $plan === 'enterprise') {
+            $email = (string)($user['email'] ?? '');
+            try {
+                if (in_array($prevPlan, ['free', 'demo', ''], true)) {
+                    $r = \Genie\CouponEngine::fire($pdo, (int)$id, $email, 'upgrade', $prevPlan, $plan);
+                    if ($r) $autoCoupons[] = $r;
+                }
+                if ($cycle === 'yearly') {
+                    $r2 = \Genie\CouponEngine::fire($pdo, (int)$id, $email, 'renewal', $plan, $plan);
+                    if ($r2) $autoCoupons[] = $r2;
+                }
+            } catch (\Throwable $e) { /* 쿠폰 실패는 업그레이드를 깨지 않음 */ }
+        }
+        // 보너스 적용으로 만료일이 연장됐을 수 있으니 최신 만료일 재조회
+        if ($autoCoupons) {
+            try { $ex = $pdo->prepare("SELECT subscription_expires_at FROM app_user WHERE id=?"); $ex->execute([$id]); $ne = $ex->fetchColumn(); if ($ne) $expiresAt = (string)$ne; } catch (\Throwable $e) {}
         }
 
         // 응답용 사용자 정보
@@ -1127,14 +1154,18 @@ final class UserAuth
             'yearly'    => '1년',
             default     => '1개월',
         };
-        $msg = false /*was demo*/
-            ? '데모 플랜으로 변경되었습니다.'
-            : "🎉 Pro 플랜 {$cycleLabel} 구독이 시작되었습니다! 만료일: {$expiresAt}";
+        $msg = "🎉 Pro 플랜 {$cycleLabel} 구독이 시작되었습니다! 만료일: {$expiresAt}";
+        // 212차 #5: 자동 무료 보너스 안내
+        if ($autoCoupons) {
+            $bonusDays = 0; foreach ($autoCoupons as $c) { $bonusDays += (int)($c['duration_days'] ?? 0); }
+            if ($bonusDays > 0) $msg .= " 🎁 추가 " . (int)round($bonusDays / 30) . "개월 무료 보너스가 자동 적용되었습니다!";
+        }
 
         return self::json($res, [
             'ok'   => true,
             'user' => $updatedUser,
             'msg'  => $msg,
+            'auto_coupons' => $autoCoupons,
         ]);
     }
 
