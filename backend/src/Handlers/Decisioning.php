@@ -12,7 +12,9 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 final class Decisioning {
 
     private static function tenantId(Request $request): string {
-        // Frontend usually sends X-Tenant-Id. Fallback to 'demo'.
+        // [현 차수] 하드닝: 미들웨어 주입 auth_tenant(키/세션 서버도출) 우선 — raw 헤더 신뢰 회귀 방지(ingest 위조 차단).
+        $auth = (string)($request->getAttribute('auth_tenant') ?? '');
+        if ($auth !== '') return $auth;
         $tid = $request->getHeaderLine('X-Tenant-Id');
         return $tid !== '' ? $tid : 'demo';
     }

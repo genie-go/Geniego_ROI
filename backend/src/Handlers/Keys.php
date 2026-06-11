@@ -24,6 +24,10 @@ final class Keys
 {
     private static function tenantId(Request $request): string
     {
+        // [현 차수] 하드닝: 미들웨어가 키/세션에서 서버도출해 주입한 auth_tenant 우선 — raw 헤더 신뢰 회귀 방지.
+        //   (API 키 발급/조회는 민감 — bypass 추가 시에도 교차테넌트 위조 차단.)
+        $auth = (string)($request->getAttribute('auth_tenant') ?? '');
+        if ($auth !== '') return $auth;
         $tid = $request->getHeaderLine('X-Tenant-Id');
         return $tid !== '' ? $tid : 'demo';
     }

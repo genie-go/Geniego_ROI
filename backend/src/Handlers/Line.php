@@ -101,7 +101,10 @@ final class Line
         $test = self::testConnection($token);
         $now = self::now();
         $cols = "tenant_id,channel_id,channel_secret,access_token,test_status,updated_at";
-        $vals = [$tenant, $channelId, $secret, $token, $test['ok'] ? 'ok' : 'error', $now];
+        // [현 차수] Low: secret-at-rest 암호화(AES-256-GCM) — 타 메시징 채널(Kakao/WhatsApp/IG/SMS)과 동일.
+        $secEnc = $secret !== '' ? \Genie\Crypto::encrypt($secret) : '';
+        $tokEnc = $token  !== '' ? \Genie\Crypto::encrypt($token)  : '';
+        $vals = [$tenant, $channelId, $secEnc, $tokEnc, $test['ok'] ? 'ok' : 'error', $now];
         if (self::isMysql($pdo)) {
             $pdo->prepare("INSERT INTO line_settings($cols) VALUES(?,?,?,?,?,?)
                 ON DUPLICATE KEY UPDATE channel_id=VALUES(channel_id),channel_secret=VALUES(channel_secret),
@@ -196,7 +199,7 @@ final class Line
                 'error' => 'LINE 채널 설정이 없습니다. 설정에서 Access Token 을 먼저 등록하세요.']);
         }
         // 실 브로드캐스트(텍스트). 템플릿 본문은 별도 단계로 확장 가능.
-        $r = self::broadcast($s['access_token'], '(LINE 캠페인 메시지)');
+        $r = self::broadcast(\Genie\Crypto::decrypt((string)$s['access_token']), '(LINE 캠페인 메시지)'); // [현 차수] Low: 복호화(평문 passthrough 하위호환)
         $pdo->prepare("UPDATE line_campaigns SET status='sent', sent_at=? WHERE id=? AND tenant_id=?")->execute([self::now(), $cid, $tenant]);
         return TemplateResponder::respond($res, ['ok' => $r['ok'], 'mode' => 'live', 'error' => $r['error'] ?? null]);
     }

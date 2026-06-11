@@ -21,6 +21,12 @@ class KakaoChannel
         $t = UserAuth::authedTenant($req);
         return ($t !== null && $t !== '') ? $t : 'demo';
     }
+    // [현 차수] M1: 발송 mock 정책용 plan(WhatsApp/SMS 와 동일) — 비-데모는 미설정 시 mock 적재 차단.
+    private static function plan(Request $req): string
+    {
+        $u = UserAuth::authedUser($req);
+        return $u['plan'] ?? 'demo';
+    }
     private static function jsonRes(Response $res, array $payload, int $status = 200): Response
     {
         $res->getBody()->write(json_encode($payload, JSON_UNESCAPED_UNICODE));
@@ -251,6 +257,16 @@ class KakaoChannel
         $cfg = $cs->fetch(\PDO::FETCH_ASSOC);
         if ($cfg) { foreach (['sender_key','api_key'] as $sk) { if (!empty($cfg[$sk])) $cfg[$sk] = \Genie\Crypto::decrypt((string)$cfg[$sk]); } } // 209차 P1: secret-at-rest
         $mode = $cfg['mode'] ?? 'mock';
+
+        // [현 차수] M1: 비-데모(유료) 플랜에서 자격증명 미설정(mode!=live) 시 mock_sent 를 운영 DB 에 적재하지
+        //   않고 명시적 차단(WhatsApp/SMS 와 동일 정책). 데모 플랜만 mock 시뮬레이션 허용(체험용).
+        if (self::plan($req) !== 'demo' && $mode !== 'live') {
+            return self::jsonRes($res, [
+                'ok' => false, 'error' => 'kakao_not_configured',
+                'message' => '카카오 알림톡 발신 설정(발신키)이 없습니다. 채널 설정에서 발신키를 등록하고 live 모드로 전환하세요.',
+                'total' => 0, 'success' => 0, 'failed' => 0,
+            ], 422);
+        }
 
         // 대상 고객 (★테넌트 스코프)
         $segId = (int)$campaign['segment_id'];

@@ -112,7 +112,8 @@ function CrmSyncButton({ order }) {
             const custRes = await apiClient.postJson('/api/crm/customers', { email: order.buyer, name: order.buyer.split('@')[0], phone: '' });
             const customerId = custRes.customer?.id || custRes.id;
             if (!customerId) { setStatus('error'); return; }
-            await apiClient.postJson(`/api/crm/customers/${customerId}/activities`, { type: 'purchase', channel: order.channel, amount: order.total, note: `${order.name} x${order.qty} | 주문번호: ${order.id}` });
+            // [현 차수] M4: 중첩경로(/customers/{id}/activities)는 백엔드 부재(404) → 평면 /crm/activities + body customer_id.
+            await apiClient.postJson(`/api/crm/activities`, { customer_id: customerId, type: 'purchase', channel: order.channel, amount: order.total, note: `${order.name} x${order.qty} | 주문번호: ${order.id}` });
             setStatus('done');
             setTimeout(() => setStatus(null), 3000);
         } catch { setStatus('error'); }

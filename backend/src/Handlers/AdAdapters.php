@@ -129,6 +129,7 @@ final class AdAdapters
                 case 'tiktok_business': return self::tiktokCreate($pdo, $tenant, $name, $daily);
                 case 'naver_sa':        return self::naverCreate($pdo, $tenant, $name, $daily);
                 case 'coupang':         return self::fail('Coupang 광고 집행 생성은 파트너 승인 API 가 별도 필요합니다. 수동 연동을 이용하세요.', 'unsupported');
+                case 'kakao_moment':    return self::fail('카카오모먼트 광고 집행 자동화는 준비 중입니다. 현재는 메타/구글/틱톡/네이버SA 채널을 이용하세요(카카오 알림톡 메시징은 정상 지원).', 'unsupported');
                 default:                return self::fail('지원하지 않는 채널: ' . $channel, 'unsupported');
             }
         } catch (Throwable $e) {

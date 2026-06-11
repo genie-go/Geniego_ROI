@@ -324,13 +324,15 @@ class EmailMarketing
         $byStatus = $sends->fetchAll(\PDO::FETCH_KEY_PAIR);
 
         $total = array_sum($byStatus);
-        $sent  = ($byStatus['sent']??0) + ($byStatus['mock_sent']??0);
+        // [현 차수] M2: mock_sent(SMTP 미설정 시뮬레이션)를 실 발송(sent)에 합산하지 않고 분리 표기 — KPI 정직.
+        $sent     = (int)($byStatus['sent']??0);
+        $mockSent = (int)($byStatus['mock_sent']??0);
         $open  = (int)($campaign['opened']??0);
         $click = (int)($campaign['clicked']??0);
 
         return self::jsonRes($res, [
             'ok'=>true,'campaign'=>$campaign,
-            'stats'=>['total'=>$total,'sent'=>$sent,'failed'=>$byStatus['failed']??0,
+            'stats'=>['total'=>$total,'sent'=>$sent,'mock_sent'=>$mockSent,'failed'=>$byStatus['failed']??0,
                       'open_rate'=>$total>0?round($open/$total*100,2):0,
                       'click_rate'=>$total>0?round($click/$total*100,2):0],
             'by_status'=>$byStatus,
