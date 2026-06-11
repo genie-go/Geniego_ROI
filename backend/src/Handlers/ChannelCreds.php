@@ -13,8 +13,8 @@ use Psr\Http\Message\ServerRequestInterface as Request;
  * v423 Channel Credential Management
  *
  * Stores external API keys / tokens for each marketing/commerce channel.
- * Key values are stored in plain text (masked on read) – no server-side encryption
- * as credentials are needed for real API calls.
+ * Key values are encrypted at rest (AES-256-GCM via Genie\Crypto, 202차+) and masked on read.
+ * Decryption (plaintext passthrough for legacy rows) happens just-in-time for real API calls.
  *
  * Routes:
  *   GET    /v423/creds              list all creds for tenant (values masked)
@@ -553,20 +553,31 @@ final class ChannelCreds
         $pdo    = Db::pdo();
         $tenant = self::tenantId($request);
 
-        // 채널별 등록된 키 개수 집계
-        $stmt = $pdo->prepare(
-            'SELECT channel, COUNT(*) as key_count FROM channel_credential
-             WHERE tenant_id=? AND is_active=1
-             GROUP BY channel'
-        );
+        // 채널별 등록된 키 개수 + 동기화 상태 집계 ([현 차수] H1: stub 채널 'pending' 노출)
+        $hasSync = false;
+        try { $hasSync = (bool)$pdo->query("SELECT sync_status FROM channel_credential LIMIT 1") !== false; } catch (\Throwable $e) { $hasSync = false; }
+        $sel = $hasSync
+            ? "SELECT channel, COUNT(*) as key_count,
+                      MAX(CASE WHEN sync_status='error' THEN 1 ELSE 0 END) as any_err,
+                      MAX(CASE WHEN sync_status='ok' THEN 1 ELSE 0 END) as any_ok,
+                      MAX(CASE WHEN sync_status='pending' THEN 1 ELSE 0 END) as any_pend
+               FROM channel_credential WHERE tenant_id=? AND is_active=1 GROUP BY channel"
+            : "SELECT channel, COUNT(*) as key_count, 0 as any_err, 0 as any_ok, 0 as any_pend
+               FROM channel_credential WHERE tenant_id=? AND is_active=1 GROUP BY channel";
+        $stmt = $pdo->prepare($sel);
         $stmt->execute([$tenant]);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         $channels = [];
         foreach ($rows as $r) {
+            // 우선순위: error > ok > pending > none. (ok 가 하나라도 있으면 실연동된 것으로 간주)
+            $ss = (int)($r['any_err'] ?? 0) ? 'error'
+                : ((int)($r['any_ok'] ?? 0) ? 'ok'
+                : ((int)($r['any_pend'] ?? 0) ? 'pending' : 'none'));
             $channels[(string)$r['channel']] = [
                 'keyCount'    => (int)$r['key_count'],
                 'hasRequired' => (int)$r['key_count'] > 0,
+                'syncStatus'  => $ss,
             ];
         }
 

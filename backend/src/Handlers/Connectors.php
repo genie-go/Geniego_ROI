@@ -659,21 +659,53 @@ final class Connectors
      * channel_credential 테이블에서 특정 채널의 자격증명 조회
      * ChannelCreds.php가 관리하는 테이블을 직접 참조
      */
+    // [현 차수] H2: OAuth 콜백은 channel=provider(meta/google/tiktok/naver), key_name=oauth_access_token 로 저장 →
+    //   페처의 정확매칭(meta_ads/access_token)으로는 영구 미독출이었다. 별칭 폴백으로 OAuth 자격증명도 ingest.
+    private const OAUTH_CHANNEL_ALIAS = ['meta_ads'=>'meta','google_ads'=>'google','tiktok_business'=>'tiktok','naver_sa'=>'naver'];
+    private const OAUTH_KEY_ALIAS     = ['access_token'=>'oauth_access_token','refresh_token'=>'oauth_refresh_token'];
+    // 저장 채널키 → runSync 단축 채널명(meta/google/tiktok/naver). OAuth provider명·정식 광고채널명 모두 포함.
+    private const AD_SHORT = [
+        'meta_ads'=>'meta','meta'=>'meta',
+        'google_ads'=>'google','google'=>'google',
+        'tiktok_business'=>'tiktok','tiktok'=>'tiktok',
+        'naver_sa'=>'naver','naver'=>'naver','naver_searchad'=>'naver',
+    ];
+
     private static function loadCred(string $tenant, string $channelKey, string $credKey): string
     {
         try {
             $pdo  = Db::pdo();
             // ★ 201차 P0(마케팅): channel_credential 실 컬럼은 channel/key_name/key_value.
-            //   기존 channel_key/cred_key/cred_value 는 존재하지 않아 항상 예외→'' 반환되어
-            //   UI 등록 광고 자격증명이 sync 브릿지에서 영구 미독출되던 버그 수정.
             $stmt = $pdo->prepare(
                 'SELECT key_value FROM channel_credential WHERE tenant_id=? AND channel=? AND key_name=? AND is_active=1 LIMIT 1'
             );
             $stmt->execute([$tenant, $channelKey, $credKey]);
             $row = $stmt->fetch(PDO::FETCH_ASSOC);
-            return \Genie\Crypto::decrypt((string)($row['key_value'] ?? '')); // 202차 은행급 복호화
+            $val = \Genie\Crypto::decrypt((string)($row['key_value'] ?? '')); // 202차 은행급 복호화
+            // [현 차수] H2: 정확매칭이 비면 OAuth 별칭(provider/oauth_access_token)으로 폴백 조회.
+            if ($val === '' && isset(self::OAUTH_CHANNEL_ALIAS[$channelKey])) {
+                $aliasKey = self::OAUTH_KEY_ALIAS[$credKey] ?? $credKey;
+                $stmt->execute([$tenant, self::OAUTH_CHANNEL_ALIAS[$channelKey], $aliasKey]);
+                $row2 = $stmt->fetch(PDO::FETCH_ASSOC);
+                $val = \Genie\Crypto::decrypt((string)($row2['key_value'] ?? ''));
+            }
+            return $val;
         } catch (\Throwable $e) {
             return '';
+        }
+    }
+
+    /** [현 차수] H2: 광고 채널 여부 + 저장 직후 1회 ingest 동기화(저장 경로 무관 대칭화). */
+    public static function isAdChannel(string $channelKey): bool { return isset(self::AD_SHORT[$channelKey]); }
+    public static function syncAdChannelOnSave(string $tenant, string $channelKey): array
+    {
+        $short = self::AD_SHORT[$channelKey] ?? '';
+        if ($short === '' || $tenant === '' || $tenant === 'demo') return ['skipped' => true];
+        try {
+            $end = date('Y-m-d'); $start = date('Y-m-d', strtotime('-7 days'));
+            return self::runSync($tenant, $start, $end, [$short]);
+        } catch (\Throwable $e) {
+            return ['error' => substr($e->getMessage(), 0, 120)]; // 저장 성공 우선 — 동기화 실패는 cron 백업
         }
     }
 

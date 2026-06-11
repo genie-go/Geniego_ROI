@@ -155,6 +155,9 @@ class OAuth
         try {
             self::saveCred($tenant, $provider, 'oauth_access_token', $access);
             if (!empty($token['refresh_token'])) self::saveCred($tenant, $provider, 'oauth_refresh_token', (string)$token['refresh_token']);
+            // [현 차수] H2: OAuth 연결 직후 성과 ingest 1회 트리거(저장→sync 대칭). 광고채널만.
+            //   광고계정 ID 등 잔여 자격증명이 폼으로 입력돼 있으면 즉시 적재, 아니면 cron/후속 폼저장 시 적재.
+            if (Connectors::isAdChannel($provider)) { Connectors::syncAdChannelOnSave($tenant, $provider); }
         } catch (\Throwable $e) {}
         return $res->withHeader('Location', $front . '?oauth=success&provider=' . $provider)->withStatus(302);
     }

@@ -845,25 +845,36 @@ final class ChannelSync
     private static function genericFetch(string $channel, array $creds, string $tenant = 'demo'): array
     {
         $label = match($channel) {
-            '11st'    => '11번가',
+            '11st','st11' => '11번가', // [현 차수] ApiKeys/레지스트리는 st11, 디스패치는 11st — 별칭 정합
             'gmarket' => 'G마켓',
             'auction' => '옥션',
             'lotteon' => '롯데온',
-            'wemef'   => '위메프',
+            'wemef','wemakeprice' => '위메프',
             'tmon'    => '티몬',
             'cafe24'  => 'Cafe24',
             'line'    => 'LINE Shopping',
             'rakuten' => 'Rakuten',
             'yahoo_jp'=> 'Yahoo! Japan',
+            'shopee'  => 'Shopee',
+            'lazada'  => 'Lazada',
+            'qoo10'   => 'Qoo10',
+            'woocommerce' => 'WooCommerce',
+            'etsy'    => 'Etsy',
+            'walmart' => 'Walmart',
+            'magento' => 'Magento',
+            'godomall'=> '고도몰',
             default   => $channel,
         };
         // 188차 P0 보안: 데모 데이터의 운영 DB 유입 차단. 실 테넌트(데모 외)에는 가짜 상품/주문을 반환하지 않는다.
+        // [현 차수] H1: 전용 실어댑터가 없는 stub 채널은 'pending'(연동 대기)으로 명시 — 저장만으로 "동기화 완료"
+        //   거짓양성을 막는다. 실데이터는 전용 어댑터 추가 또는 정산 CSV 업로드 시 표시된다.
         if ($tenant !== 'demo') {
             return [
                 'ok'       => true,
+                'pending'  => true,
                 'products' => [],
                 'orders'   => [],
-                'note'     => "{$label}: 인증키 저장 완료 — 정산 CSV 업로드 또는 라이브 API 연동 시 실데이터가 표시됩니다.",
+                'note'     => "{$label}: 자격증명 저장 완료 — 전용 어댑터 연동 준비 중입니다. 정산 CSV 업로드 또는 라이브 API 어댑터 추가 시 실데이터가 동기화됩니다.",
             ];
         }
         return [
@@ -1211,17 +1222,20 @@ final class ChannelSync
 
         $productCount = 0;
         $orderCount   = 0;
+        $pending = !empty($result['pending']); // [현 차수] H1: stub 채널 = 연동 대기(거짓 'ok' 방지)
         if ($result['ok']) {
             $productCount = self::saveProducts($pdo, $tenant, $channel, $result['products'] ?? []);
             $orderCount   = self::saveOrders($pdo, $tenant, $channel, $result['orders'] ?? []);
-            $pdo->prepare("UPDATE channel_credential SET last_synced_at=?,sync_status='ok',test_status='ok' WHERE id=?")->execute([$now,$credId]);
+            $syncStatus = $pending ? 'pending' : 'ok';
+            $pdo->prepare("UPDATE channel_credential SET last_synced_at=?,sync_status=?,test_status='ok' WHERE id=?")->execute([$now,$syncStatus,$credId]);
         }
 
         return TemplateResponder::respond($res, [
             'ok'            => true,
             'cred_id'       => $credId,
             'channel'       => $channel,
-            'synced'        => $result['ok'],
+            'synced'        => $result['ok'] && !$pending,
+            'pending'       => $pending,
             'product_count' => $productCount,
             'order_count'   => $orderCount,
             'plan'          => $plan,
@@ -1344,11 +1358,14 @@ final class ChannelSync
         $pCount = self::saveProducts($pdo, $tenant, $channel, $result['products'] ?? []);
         $oCount = self::saveOrders($pdo, $tenant, $channel, $result['orders'] ?? []);
 
+        $pending = !empty($result['pending']); // [현 차수] H1: stub 채널 연동 대기 표기
+        $newStatus = !($result['ok'] ?? false) ? 'error' : ($pending ? 'pending' : 'ok');
         $pdo->prepare("UPDATE channel_credential SET last_synced_at=?,sync_status=? WHERE tenant_id=? AND channel=?")
-            ->execute([$now, ($result['ok'] ?? false) ? 'ok' : 'error', $tenant, $channel]);
+            ->execute([$now, $newStatus, $tenant, $channel]);
 
         return [
             'ok'            => (bool)($result['ok'] ?? false),
+            'pending'       => $pending,
             'product_count' => $pCount,
             'order_count'   => $oCount,
             'synced_at'     => $now,
@@ -1398,6 +1415,7 @@ final class ChannelSync
             'ok'            => $r['ok'],
             'channel'       => $channel,
             'plan'          => $plan,
+            'pending'       => $r['pending'] ?? false,
             'product_count' => $r['product_count'],
             'order_count'   => $r['order_count'],
             'synced_at'     => $r['synced_at'],

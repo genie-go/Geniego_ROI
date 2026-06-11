@@ -3,6 +3,7 @@ import { useI18n } from '../i18n';
 import { getJsonAuth, postJson } from '../services/apiClient.js';
 import { IS_DEMO } from '../utils/demoEnv';
 import { handlePlanLimit } from '../utils/planLimit.js';
+import { useConnectorSync } from '../context/ConnectorSyncContext.jsx';
 
 /* ═══════════════════════════════════════════════════════════════════
    177차 §4.E TOP 1 본체 + U-177-A: ApiKeys.jsx 실제 ChannelCreds 관리 UI
@@ -188,6 +189,9 @@ function ErrorFallback({ error, onRetry, t }) {
 export default function ApiKeys() {
   const { t } = useI18n();
   const { toast, show } = useToast();
+  // 자격증명 저장/삭제 직후 전역 연결상태(connectedChannels)를 즉시 재조회 →
+  //   Dashboard/PriceOpt/OmniChannel 등이 5분 폴링을 기다리지 않고 바로 반영(stale 윈도우 제거).
+  const { refresh: refreshConnectorSync } = useConnectorSync();
 
   const [activeTab, setActiveTab] = useState(0);
   const tabs = [
@@ -324,12 +328,13 @@ export default function ApiKeys() {
       if (!r?.ok) throw new Error(r?.error || 'save failed');
       show('success', t('ak.saved','Credential saved'));
       reload();
+      refreshConnectorSync();
       return true;
     } catch (e) {
       show('error', String(e?.message || e));
       return false;
     }
-  }, [show, t, reload]);
+  }, [show, t, reload, refreshConnectorSync]);
 
   /* 208차: 채널 구조화 등록 — 필드별 다중 저장(AdChannelConnect 패턴). 입력한 값만 upsert. */
   const handleConnectSave = useCallback(async (channelKey, channelName, values) => {
@@ -355,7 +360,9 @@ export default function ApiKeys() {
           try {
             show('info', `${channelName} ${t('ak.syncing','동기화 중...')}`);
             const sr = await postJson(`/api/channel-sync/${encodeURIComponent(channelKey)}/sync`, {});
-            if (sr?.ok) show('success', `${channelName} ${t('ak.syncDone','동기화 완료')} — ${t('ak.products','상품')} ${sr.product_count ?? 0} · ${t('ak.orders','주문')} ${sr.order_count ?? 0}`);
+            // [현 차수] H1: stub(전용 어댑터 미지원) 채널은 "동기화 완료" 거짓양성 대신 "연동 준비중" 정직 표기.
+            if (sr?.pending) show('info', `${channelName} ${t('ak.syncPending','저장됨 — 전용 어댑터 연동 준비 중입니다 (정산 CSV 업로드 또는 어댑터 추가 시 동기화)')}`);
+            else if (sr?.ok) show('success', `${channelName} ${t('ak.syncDone','동기화 완료')} — ${t('ak.products','상품')} ${sr.product_count ?? 0} · ${t('ak.orders','주문')} ${sr.order_count ?? 0}`);
             else show('info', `${channelName} ${t('ak.syncQueued','저장됨 — 동기화는 자동 폴링으로 반영됩니다')}`);
             reload();
           } catch { /* 저장 성공, 동기화는 cron 폴링이 백업 */ }
@@ -371,6 +378,8 @@ export default function ApiKeys() {
             reload();
           } catch { /* 저장 성공, ingest 는 cron 폴링이 백업 */ }
         }
+        // 저장+동기화 후 전역 연결상태 즉시 재조회(타 페이지 stale 윈도우 제거).
+        refreshConnectorSync();
       }
       return saved > 0;
     } catch (e) {
@@ -379,7 +388,7 @@ export default function ApiKeys() {
       show('error', String(e?.message || e));
       return false;
     }
-  }, [show, t, reload]);
+  }, [show, t, reload, refreshConnectorSync]);
 
   // DELETE /v423/creds/{id}
   const handleDelete = useCallback(async (id) => {
@@ -396,12 +405,13 @@ export default function ApiKeys() {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       show('success', t('ak.deleted','Credential deleted'));
       reload();
+      refreshConnectorSync();
     } catch (e) {
       show('error', String(e?.message || e));
     } finally {
       setDeletingId(null);
     }
-  }, [show, t, reload]);
+  }, [show, t, reload, refreshConnectorSync]);
 
   // POST /v423/creds/{id}/test
   const handleTest = useCallback(async (id) => {
@@ -680,7 +690,9 @@ function OverviewTab({ channels, summary, creds, loading, onChannelTest, onConne
   const renderCard = (ch) => {
     const sum = summary[ch.key] || { keyCount: 0, hasRequired: false };
     const live = sum.hasRequired;
-    const sc = STATUS_COLORS[live ? 'ok' : 'none'];
+    // [현 차수] H1: 자격증명은 등록됐으나 전용 어댑터 미지원(stub) → 'pending'(준비중) 구분 표기.
+    const pending = live && sum.syncStatus === 'pending';
+    const sc = STATUS_COLORS[!live ? 'none' : (pending ? 'pending' : 'ok')];
     const busy = testingId === `ch_${ch.key}`;
     return (
       <div key={ch.key} style={{
@@ -699,7 +711,7 @@ function OverviewTab({ channels, summary, creds, loading, onChannelTest, onConne
           <span style={{
             fontSize: 9, padding: '2px 8px', borderRadius: 20,
             background: sc.bg, color: sc.fg, border: `1px solid ${sc.border}`, fontWeight: 700
-          }}>{live ? t('ak.live','LIVE') : t('ak.empty','EMPTY')}</span>
+          }}>{!live ? t('ak.empty','EMPTY') : (pending ? t('ak.pending','준비중') : t('ak.live','LIVE'))}</span>
         </div>
         <div style={{ display: 'flex', gap: 6 }}>
           <button onClick={() => onConnect(ch)} aria-label={t('ak.connectBtn','Register credentials')} style={{
