@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { MEMBER_MENU } from "../../layout/sidebarManifest.js"; // 212차 #5: 메뉴접근→서비스명 동적 매핑
+import { MENU_KEY_LABEL, SUB_TABS_BY_PATH } from "../../layout/sidebarMenuLabels.js"; // [현 차수] 메뉴 접근 권한 4단계 트리(중메뉴 라벨·서브탭) — admin 과 동일 SSOT
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import PremiumLayout from "../../layout/PremiumLayout.jsx";
-import { useT } from "../../i18n/index.js"; // 187차: i18n 배선(앱 내부 한국어 표기 버그 수정)
+import { useT, useI18n } from "../../i18n/index.js"; // 187차: i18n 배선(앱 내부 한국어 표기 버그 수정)
+import SIDEBAR_DICT from "../../layout/sidebarI18n.js"; // 212차 #5 핫픽스: gNav.* 라벨은 sidebarI18n 전용(전역 i18n 부재) → 사이드바와 동일 해석
 
 /**
  * 172차 PHASE 1-A — hardcoded PLANS 제거 → backend `/auth/pricing/public-plans` 기반 동적 fetch.
@@ -160,54 +162,207 @@ const GUIDE_LIMIT_ROWS = [
   { k: 'image_hosting_gb', label: '이미지 호스팅(GB)' },
 ];
 
+// [현 차수] 메뉴 접근 권한 매트릭스 라벨 — appPricing 네임스페이스가 로케일에 부재하여
+//   sidebarI18n 패턴(자기완결 다국어 dict)으로 15개국 직접 제공. 미지원 lang 은 en 폴백.
+const MM_I18N = {
+  ko: { title: "플랜별 메뉴 접근 권한", subtitle: "각 플랜에서 이용 가능한 메뉴·서비스 (관리자 설정 실시간 반영)", menu: "메뉴 / 서비스", full: "제공", partial: "일부", none: "미제공", readonly: "열람 전용", expandAll: "전체 펼치기", collapseAll: "전체 접기", active: "활성", lvSection: "대메뉴", lvGroup: "중메뉴", lvLeaf: "하위메뉴", lvSub: "서브탭", note: "열람 전용입니다. 대메뉴를 클릭하면 중메뉴·하위메뉴·서브탭까지 펼쳐 볼 수 있으며, 권한 변경은 관리자만 가능합니다." },
+  en: { title: "Menu Access by Plan", subtitle: "Menus & services available in each plan (reflects admin settings in real time)", menu: "Menu / Service", full: "Included", partial: "Partial", none: "Not included", readonly: "Read-only", expandAll: "Expand all", collapseAll: "Collapse all", active: "active", lvSection: "Section", lvGroup: "Group", lvLeaf: "Page", lvSub: "Sub-tab", note: "Read-only. Click a section to expand its groups, pages and sub-tabs. Access changes are admin-only." },
+  ja: { title: "プラン別メニューアクセス権限", subtitle: "各プランで利用可能なメニュー・サービス（管理者設定をリアルタイム反映）", menu: "メニュー / サービス", full: "提供", partial: "一部", none: "非提供", readonly: "閲覧専用", expandAll: "すべて展開", collapseAll: "すべて折りたたむ", active: "有効", lvSection: "大メニュー", lvGroup: "中メニュー", lvLeaf: "下位メニュー", lvSub: "サブタブ", note: "閲覧専用です。大メニューをクリックすると中メニュー・下位メニュー・サブタブまで展開でき、権限変更は管理者のみ可能です。" },
+  zh: { title: "各套餐菜单访问权限", subtitle: "各套餐可用的菜单·服务（实时反映管理员设置）", menu: "菜单 / 服务", full: "提供", partial: "部分", none: "未提供", readonly: "仅查看", expandAll: "全部展开", collapseAll: "全部收起", active: "启用", lvSection: "主菜单", lvGroup: "中菜单", lvLeaf: "子菜单", lvSub: "子标签", note: "仅查看。点击主菜单可展开中菜单·子菜单·子标签，权限变更仅限管理员。" },
+  "zh-TW": { title: "各方案選單存取權限", subtitle: "各方案可用的選單·服務（即時反映管理員設定）", menu: "選單 / 服務", full: "提供", partial: "部分", none: "未提供", readonly: "僅檢視", expandAll: "全部展開", collapseAll: "全部收合", active: "啟用", lvSection: "主選單", lvGroup: "中選單", lvLeaf: "子選單", lvSub: "子分頁", note: "僅檢視。點擊主選單可展開中選單·子選單·子分頁，權限變更僅限管理員。" },
+  de: { title: "Menüzugriff nach Plan", subtitle: "In jedem Plan verfügbare Menüs & Dienste (spiegelt Admin-Einstellungen in Echtzeit)", menu: "Menü / Dienst", full: "Enthalten", partial: "Teilweise", none: "Nicht enthalten", readonly: "Nur Ansicht", expandAll: "Alle aufklappen", collapseAll: "Alle zuklappen", active: "aktiv", lvSection: "Hauptmenü", lvGroup: "Gruppe", lvLeaf: "Seite", lvSub: "Unterregister", note: "Nur Ansicht. Klicken Sie auf ein Hauptmenü, um Gruppen, Seiten und Unterregister aufzuklappen. Änderungen nur durch Admins." },
+  fr: { title: "Accès aux menus par offre", subtitle: "Menus et services disponibles dans chaque offre (reflète les réglages admin en temps réel)", menu: "Menu / Service", full: "Inclus", partial: "Partiel", none: "Non inclus", readonly: "Lecture seule", expandAll: "Tout déplier", collapseAll: "Tout replier", active: "actif", lvSection: "Section", lvGroup: "Groupe", lvLeaf: "Page", lvSub: "Sous-onglet", note: "Lecture seule. Cliquez sur une section pour déplier groupes, pages et sous-onglets. Modifications réservées aux admins." },
+  es: { title: "Acceso a menús por plan", subtitle: "Menús y servicios disponibles en cada plan (refleja la configuración del admin en tiempo real)", menu: "Menú / Servicio", full: "Incluido", partial: "Parcial", none: "No incluido", readonly: "Solo lectura", expandAll: "Expandir todo", collapseAll: "Contraer todo", active: "activo", lvSection: "Sección", lvGroup: "Grupo", lvLeaf: "Página", lvSub: "Subpestaña", note: "Solo lectura. Haga clic en una sección para expandir grupos, páginas y subpestañas. Los cambios son solo para administradores." },
+  pt: { title: "Acesso a menus por plano", subtitle: "Menus e serviços disponíveis em cada plano (reflete as configurações do admin em tempo real)", menu: "Menu / Serviço", full: "Incluído", partial: "Parcial", none: "Não incluído", readonly: "Somente leitura", expandAll: "Expandir tudo", collapseAll: "Recolher tudo", active: "ativo", lvSection: "Seção", lvGroup: "Grupo", lvLeaf: "Página", lvSub: "Subaba", note: "Somente leitura. Clique numa seção para expandir grupos, páginas e subabas. Alterações apenas por administradores." },
+  ru: { title: "Доступ к меню по тарифу", subtitle: "Меню и сервисы, доступные в каждом тарифе (отражает настройки админа в реальном времени)", menu: "Меню / Сервис", full: "Включено", partial: "Частично", none: "Не включено", readonly: "Только просмотр", expandAll: "Развернуть всё", collapseAll: "Свернуть всё", active: "активно", lvSection: "Раздел", lvGroup: "Группа", lvLeaf: "Страница", lvSub: "Подвкладка", note: "Только просмотр. Нажмите на раздел, чтобы развернуть группы, страницы и подвкладки. Изменения доступны только администраторам." },
+  ar: { title: "صلاحيات الوصول للقوائم حسب الباقة", subtitle: "القوائم والخدمات المتاحة في كل باقة (تعكس إعدادات المسؤول فوريًا)", menu: "القائمة / الخدمة", full: "متاح", partial: "جزئي", none: "غير متاح", readonly: "للعرض فقط", expandAll: "توسيع الكل", collapseAll: "طي الكل", active: "مُفعّل", lvSection: "قائمة رئيسية", lvGroup: "مجموعة", lvLeaf: "صفحة", lvSub: "تبويب فرعي", note: "للعرض فقط. انقر على قائمة رئيسية لتوسيع المجموعات والصفحات والتبويبات الفرعية. التغييرات للمسؤولين فقط." },
+  hi: { title: "प्लान अनुसार मेन्यू एक्सेस", subtitle: "हर प्लान में उपलब्ध मेन्यू और सेवाएँ (एडमिन सेटिंग्स रीयल-टाइम में दर्शाता है)", menu: "मेन्यू / सेवा", full: "शामिल", partial: "आंशिक", none: "शामिल नहीं", readonly: "केवल पढ़ने योग्य", expandAll: "सभी विस्तृत करें", collapseAll: "सभी संक्षिप्त करें", active: "सक्रिय", lvSection: "मुख्य मेन्यू", lvGroup: "समूह", lvLeaf: "पृष्ठ", lvSub: "उप-टैब", note: "केवल पढ़ने योग्य। मुख्य मेन्यू पर क्लिक कर समूह, पृष्ठ और उप-टैब तक विस्तृत करें। बदलाव केवल एडमिन कर सकते हैं।" },
+  th: { title: "สิทธิ์เข้าถึงเมนูตามแพ็กเกจ", subtitle: "เมนูและบริการที่ใช้ได้ในแต่ละแพ็กเกจ (สะท้อนการตั้งค่าผู้ดูแลแบบเรียลไทม์)", menu: "เมนู / บริการ", full: "ให้บริการ", partial: "บางส่วน", none: "ไม่ให้บริการ", readonly: "อ่านอย่างเดียว", expandAll: "ขยายทั้งหมด", collapseAll: "ยุบทั้งหมด", active: "ใช้งาน", lvSection: "เมนูหลัก", lvGroup: "กลุ่ม", lvLeaf: "หน้า", lvSub: "แท็บย่อย", note: "อ่านอย่างเดียว คลิกเมนูหลักเพื่อขยายกลุ่ม หน้า และแท็บย่อย การเปลี่ยนสิทธิ์ทำได้เฉพาะผู้ดูแล" },
+  vi: { title: "Quyền truy cập menu theo gói", subtitle: "Menu & dịch vụ khả dụng trong mỗi gói (phản ánh cài đặt quản trị theo thời gian thực)", menu: "Menu / Dịch vụ", full: "Có", partial: "Một phần", none: "Không có", readonly: "Chỉ xem", expandAll: "Mở rộng tất cả", collapseAll: "Thu gọn tất cả", active: "hoạt động", lvSection: "Menu chính", lvGroup: "Nhóm", lvLeaf: "Trang", lvSub: "Tab phụ", note: "Chỉ xem. Nhấp vào menu chính để mở rộng nhóm, trang và tab phụ. Chỉ quản trị viên mới thay đổi được quyền." },
+  id: { title: "Akses Menu per Paket", subtitle: "Menu & layanan yang tersedia di tiap paket (mencerminkan pengaturan admin secara real-time)", menu: "Menu / Layanan", full: "Tersedia", partial: "Sebagian", none: "Tidak tersedia", readonly: "Hanya baca", expandAll: "Buka semua", collapseAll: "Tutup semua", active: "aktif", lvSection: "Menu utama", lvGroup: "Grup", lvLeaf: "Halaman", lvSub: "Subtab", note: "Hanya baca. Klik menu utama untuk membuka grup, halaman, dan subtab. Perubahan hanya oleh admin." },
+};
+
 /**
- * 212차 #5: 플랜별 메뉴 접근 권한 — 읽기전용 비교표(가입회원 열람용).
- *   admin(/admin/plan-pricing) 의 "플랜별 메뉴 접근 권한" 설정값(plan_menu_access)을 그대로 반영.
- *   admin 이 권한 변경 시 public-plans 응답이 바뀌어 즉시 동기화(수정 불가·열람만).
+ * [현 차수] 플랜별 메뉴 접근 권한 — admin "🔐 플랜별 메뉴 접근 권한" 트리와 동일한 4단계 계층
+ *   (대메뉴→중메뉴→하위메뉴→서브탭)을 **열람 전용**으로 미러링(가입/구독 회원용).
+ *   admin(/admin/plan-pricing) 설정값(plan_menu_access)을 public-plans 가 그대로 반영 → 실시간 동기화.
+ *   ★구독자는 수정·선택 일체 불가(체크박스 없음, ✓/— 표시만). 아코디언으로 단계별 접기·펼치기.
  */
-function PlanMenuAccessMatrix({ plans, t, light = true }) {
-  // MEMBER_MENU 를 그룹→고유 menuKey 행으로 정리(admin MenuAccessTree 구조와 정합).
-  const sections = [];
-  try {
-    for (const g of (MEMBER_MENU || [])) {
-      const rows = []; const seen = new Set();
-      for (const it of (g.items || [])) {
-        if (!it.menuKey || seen.has(it.menuKey)) continue;
-        seen.add(it.menuKey);
-        rows.push({ key: it.menuKey, label: t(it.labelKey, it.labelKey) });
-      }
-      if (rows.length) sections.push({ group: t(g.labelKey, g.labelKey), rows });
+function PlanMenuAccessMatrix({ plans, t, light = true, lang = 'ko' }) {
+  const L = MM_I18N[lang] || MM_I18N.en;
+  const sections = useMemo(() => (MEMBER_MENU || []), []);
+  // section → 고유 menuKey 그룹(중메뉴)
+  const groupsOf = (section) => {
+    const seen = new Map(); const groups = [];
+    for (const it of (section.items || [])) {
+      if (!it.menuKey) continue;
+      if (!seen.has(it.menuKey)) { const g = { menuKey: it.menuKey, items: [] }; seen.set(it.menuKey, g); groups.push(g); }
+      seen.get(it.menuKey).items.push(it);
     }
-  } catch (e) { /* manifest 부재 */ }
+    return groups;
+  };
+  const subKeysOfLeaf = (it) => (SUB_TABS_BY_PATH[it.to] || []).map(st => `${it.to}::${st.id}`);
+  const keysOfGroup = (g) => { const ks = [g.menuKey]; for (const it of g.items) { if (it.to) ks.push(it.to); ks.push(...subKeysOfLeaf(it)); } return ks; };
+  const allMenuKeys = () => { const s = new Set(); for (const sec of sections) for (const g of groupsOf(sec)) s.add(g.menuKey); return s; };
+  const allLeafRoutes = () => { const s = new Set(); for (const sec of sections) for (const it of (sec.items || [])) if (it.to) s.add(it.to); return s; };
+  const allSectionKeys = () => { const s = new Set(); for (const sec of sections) s.add(sec.key); return s; };
+  // 기본 전체 펼침
+  const [collapsed, setCollapsed] = useState(() => new Set());
+  const [expandMenu, setExpandMenu] = useState(allMenuKeys);
+  const [expandLeaf, setExpandLeaf] = useState(allLeafRoutes);
+  const expandAll = () => { setCollapsed(new Set()); setExpandMenu(allMenuKeys()); setExpandLeaf(allLeafRoutes()); };
+  const collapseAll = () => { setCollapsed(allSectionKeys()); setExpandMenu(new Set()); setExpandLeaf(new Set()); };
+  const toggleCollapse = (k) => setCollapsed(prev => { const n = new Set(prev); n.has(k) ? n.delete(k) : n.add(k); return n; });
+  const toggleExpandMenu = (k) => setExpandMenu(prev => { const n = new Set(prev); n.has(k) ? n.delete(k) : n.add(k); return n; });
+  const toggleExpandLeaf = (k) => setExpandLeaf(prev => { const n = new Set(prev); n.has(k) ? n.delete(k) : n.add(k); return n; });
+  // 대메뉴 클릭 = 그 아래 전체 계층 펼침/접음
+  const toggleSection = (sec) => {
+    const willExpand = collapsed.has(sec.key);
+    setCollapsed(prev => { const n = new Set(prev); willExpand ? n.delete(sec.key) : n.add(sec.key); return n; });
+    const gkeys = groupsOf(sec).map(g => g.menuKey);
+    const lkeys = groupsOf(sec).flatMap(g => g.items.map(it => it.to).filter(Boolean));
+    setExpandMenu(prev => { const n = new Set(prev); gkeys.forEach(k => willExpand ? n.add(k) : n.delete(k)); return n; });
+    setExpandLeaf(prev => { const n = new Set(prev); lkeys.forEach(k => willExpand ? n.add(k) : n.delete(k)); return n; });
+  };
   if (!sections.length || !plans.length) return null;
   const accSets = plans.map(p => new Set(p.menuAccess || []));
-  const titleC = light ? '#0f172a' : '#eef0f6';
-  const subC = light ? '#64748b' : '#aeb4c6';
-  const th = { padding: '8px 10px', fontSize: 11.5, fontWeight: 800, color: titleC, borderBottom: '2px solid #e2e8f0', textAlign: 'center', whiteSpace: 'nowrap' };
-  const td = { padding: '7px 10px', fontSize: 12, color: subC, borderBottom: '1px solid #f1f5f9' };
+  const onCnt = (pi, keys) => keys.reduce((n, k) => n + (accSets[pi].has(k) ? 1 : 0), 0);
+
+  const titleC = '#0f172a', subC = '#64748b';
+  // 열람 전용 표시기: 단일키(✓/—), 계층(coverage: 전체 ✓ / 일부 ◐n/m / 없음 —)
+  const indSingle = (pi, key) => accSets[pi].has(key)
+    ? <span style={{ color: '#16a34a', fontWeight: 900 }}>✓</span>
+    : <span style={{ color: '#cbd5e1' }}>—</span>;
+  const indCover = (pi, keys) => {
+    const on = onCnt(pi, keys), tot = keys.length;
+    if (tot === 0) return <span style={{ color: '#cbd5e1' }}>—</span>;
+    if (on === 0) return <span style={{ color: '#cbd5e1' }}>—</span>;
+    if (on === tot) return <span style={{ color: '#16a34a', fontWeight: 900 }}>✓</span>;
+    return <span style={{ color: '#d97706', fontWeight: 800, fontSize: 11 }}>◐{on}/{tot}</span>;
+  };
+  const pill = (label, bg) => <span style={{ fontSize: 9.5, fontWeight: 800, padding: '1px 7px', borderRadius: 6, background: bg, color: '#fff', whiteSpace: 'nowrap' }}>{label}</span>;
+  const cellPad = { padding: '7px 9px', borderBottom: '1px solid #eef2f7' };
+  const stickyL = (bg) => ({ position: 'sticky', left: 0, background: bg, zIndex: 1 });
+  const btnS = { padding: '8px 13px', borderRadius: 8, fontSize: 12, fontWeight: 800, cursor: 'pointer' };
+
   return (
     <div style={{ marginTop: 56, maxWidth: 980, marginLeft: 'auto', marginRight: 'auto' }}>
-      <div style={{ textAlign: 'center', marginBottom: 18 }}>
-        <h2 style={{ fontSize: 24, fontWeight: 900, color: titleC, letterSpacing: -0.5 }}>{t('appPricing.menuMatrix.title', '플랜별 메뉴 접근 권한')}</h2>
-        <p style={{ fontSize: 12.5, color: subC, marginTop: 6 }}>{t('appPricing.menuMatrix.subtitle', '각 플랜에서 이용 가능한 메뉴·서비스 (관리자 설정 실시간 반영)')}</p>
+      <div style={{ textAlign: 'center', marginBottom: 16 }}>
+        <h2 style={{ fontSize: 24, fontWeight: 900, color: titleC, letterSpacing: -0.5 }}>{L.title}</h2>
+        <p style={{ fontSize: 12.5, color: subC, marginTop: 6 }}>{L.subtitle}</p>
       </div>
-      <div style={{ overflowX: 'auto', background: light ? '#fff' : 'rgba(255,255,255,0.04)', border: '1px solid #e6e8ef', borderRadius: 14 }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 560 }}>
-          <thead><tr><th style={{ ...th, textAlign: 'left' }}>{t('appPricing.menuMatrix.menu', '메뉴 / 서비스')}</th>{plans.map(p => <th key={p.id} style={th}>{p.name}</th>)}</tr></thead>
+      {/* 펼치기/접기 (열람 전용) */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 12, alignItems: 'center', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+        <span style={{ fontSize: 11.5, color: subC, marginRight: 'auto', display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span style={{ color: '#16a34a', fontWeight: 900 }}>✓</span> {L.full}
+          <span style={{ color: '#d97706', fontWeight: 800 }}>◐</span> {L.partial}
+          <span style={{ color: '#cbd5e1' }}>—</span> {L.none} · 🔒 {L.readonly}
+        </span>
+        <button onClick={expandAll} style={{ ...btnS, border: '1px solid #bae6fd', background: '#f0f9ff', color: '#0369a1' }}>📂 {L.expandAll}</button>
+        <button onClick={collapseAll} style={{ ...btnS, border: '1px solid #e2e8f0', background: '#fff', color: '#64748b' }}>📁 {L.collapseAll}</button>
+      </div>
+      <div style={{ overflowX: 'auto', background: '#fff', border: '1px solid #e6e8ef', borderRadius: 14 }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, minWidth: 560 }}>
+          <thead>
+            <tr style={{ background: '#eef2f7' }}>
+              <th style={{ ...cellPad, ...stickyL('#eef2f7'), textAlign: 'left', minWidth: 240, color: '#1e293b', fontWeight: 800 }}>{L.menu}</th>
+              {plans.map((p, i) => (
+                <th key={p.id} style={{ ...cellPad, textAlign: 'center', minWidth: 92 }}>
+                  <div style={{ fontWeight: 900, color: '#0f172a' }}>{p.name}</div>
+                  <div style={{ fontSize: 10, color: subC, marginTop: 1 }}>{onCnt(i, [...allMenuKeys()])}/{allMenuKeys().size} {L.active}</div>
+                </th>
+              ))}
+            </tr>
+          </thead>
           <tbody>
-            {sections.map((sec, si) => (
-              <React.Fragment key={si}>
-                <tr><td colSpan={plans.length + 1} style={{ ...td, fontWeight: 800, color: titleC, background: light ? '#f8fafc' : 'rgba(255,255,255,0.03)' }}>{sec.group}</td></tr>
-                {sec.rows.map((r, ri) => (
-                  <tr key={ri}>
-                    <td style={{ ...td, paddingLeft: 22 }}>{r.label}</td>
-                    {accSets.map((s, pi) => <td key={pi} style={{ ...td, textAlign: 'center' }}>{s.has(r.key) ? <span style={{ color: '#22c55e', fontWeight: 900 }}>✓</span> : <span style={{ color: '#cbd5e1' }}>—</span>}</td>)}
+            {sections.map(section => {
+              const groups = groupsOf(section);
+              if (!groups.length) return null;
+              const isCol = collapsed.has(section.key);
+              const secLabel = t(section.labelKey, section.labelKey.split('.').pop());
+              const secKeys = groups.flatMap(keysOfGroup);
+              return (
+                <React.Fragment key={section.key}>
+                  {/* 대메뉴(섹션) */}
+                  <tr style={{ background: '#eaeef6' }}>
+                    <td style={{ ...cellPad, ...stickyL('#e4e9f4'), cursor: 'pointer' }} onClick={() => toggleSection(section)}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ color: '#475569', fontSize: 12, width: 13 }}>{isCol ? '▶' : '▼'}</span>
+                        {pill(L.lvSection, '#4f46e5')}
+                        <span style={{ fontSize: 14 }}>{section.icon}</span>
+                        <span style={{ fontWeight: 800, fontSize: 13.5, color: '#0f172a' }}>{secLabel}</span>
+                      </div>
+                    </td>
+                    {plans.map((p, pi) => <td key={p.id} style={{ ...cellPad, textAlign: 'center' }}>{indCover(pi, secKeys)}</td>)}
                   </tr>
-                ))}
-              </React.Fragment>
-            ))}
+                  {!isCol && groups.map(g => {
+                    const lbl = MENU_KEY_LABEL[g.menuKey];
+                    const title = lbl?.title || t(g.items[0]?.labelKey, g.menuKey);
+                    const menuExp = expandMenu.has(g.menuKey);
+                    const gKeys = keysOfGroup(g);
+                    return (
+                      <React.Fragment key={g.menuKey}>
+                        {/* 중메뉴 */}
+                        <tr>
+                          <td style={{ ...cellPad, ...stickyL('#f6f8fc'), paddingLeft: 24 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                              <span onClick={() => toggleExpandMenu(g.menuKey)} style={{ cursor: 'pointer', color: '#64748b', fontSize: 11, width: 13, userSelect: 'none' }}>{menuExp ? '▼' : '▶'}</span>
+                              {pill(L.lvGroup, '#7c3aed')}
+                              <span onClick={() => toggleExpandMenu(g.menuKey)} style={{ fontWeight: 700, color: '#1e293b', fontSize: 12.5, cursor: 'pointer' }}>{title}{g.items.length > 0 && <span style={{ fontSize: 10, color: '#a78bfa', marginLeft: 5, fontWeight: 700 }}>{menuExp ? '▼' : `▶ ${g.items.length}`}</span>}</span>
+                            </div>
+                          </td>
+                          {plans.map((p, pi) => <td key={p.id} style={{ ...cellPad, textAlign: 'center' }}>{indCover(pi, gKeys)}</td>)}
+                        </tr>
+                        {/* 하위메뉴(leaf) */}
+                        {menuExp && g.items.map(it => {
+                          const subs = SUB_TABS_BY_PATH[it.to] || [];
+                          const leafExp = expandLeaf.has(it.to);
+                          const lKeys = [it.to, ...subKeysOfLeaf(it)];
+                          const leafLabel = t(it.labelKey, it.labelKey.split('.').pop());
+                          return (
+                            <React.Fragment key={it.to}>
+                              <tr>
+                                <td style={{ ...cellPad, ...stickyL('#fff'), paddingLeft: 48 }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                                    {subs.length > 0
+                                      ? <span onClick={() => toggleExpandLeaf(it.to)} style={{ cursor: 'pointer', color: '#64748b', fontSize: 11, width: 13, userSelect: 'none' }}>{leafExp ? '▼' : '▶'}</span>
+                                      : <span style={{ width: 13 }} />}
+                                    {pill(L.lvLeaf, '#0891b2')}
+                                    <span onClick={subs.length > 0 ? () => toggleExpandLeaf(it.to) : undefined} style={{ fontSize: 12, color: '#334155', fontWeight: 600, cursor: subs.length > 0 ? 'pointer' : 'default' }}>{it.icon} {leafLabel}{subs.length > 0 && <span style={{ color: '#d97706', marginLeft: 4, fontWeight: 700 }}>{leafExp ? '▼' : `▶ ${subs.length}`}</span>}</span>
+                                  </div>
+                                </td>
+                                {plans.map((p, pi) => <td key={p.id} style={{ ...cellPad, textAlign: 'center' }}>{subs.length > 0 ? indCover(pi, lKeys) : indSingle(pi, it.to)}</td>)}
+                              </tr>
+                              {/* 서브탭 */}
+                              {leafExp && subs.map(st => {
+                                const sk = `${it.to}::${st.id}`;
+                                return (
+                                  <tr key={sk}>
+                                    <td style={{ ...cellPad, ...stickyL('#fff'), paddingLeft: 74 }}>
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                        <span style={{ width: 13 }} />
+                                        {pill(L.lvSub, '#d97706')}
+                                        <span style={{ fontSize: 12, color: '#475569', fontWeight: 600 }}>📑 {st.label || st.id}</span>
+                                      </div>
+                                    </td>
+                                    {plans.map((p, pi) => <td key={p.id} style={{ ...cellPad, textAlign: 'center' }}>{indSingle(pi, sk)}</td>)}
+                                  </tr>
+                                );
+                              })}
+                            </React.Fragment>
+                          );
+                        })}
+                      </React.Fragment>
+                    );
+                  })}
+                </React.Fragment>
+              );
+            })}
           </tbody>
         </table>
+      </div>
+      <div style={{ marginTop: 10, padding: '9px 13px', borderRadius: 8, background: '#f8fafc', border: '1px solid #eef2f7', fontSize: 11.5, color: subC, lineHeight: 1.6 }}>
+        🔒 {L.note}
       </div>
     </div>
   );
@@ -222,11 +377,18 @@ function DynamicPlanGuide({ plan, t, light }) {
   const color = plan.color || '#6366f1';
   const unlimited = t('appPricing.unlimited', '무제한');
   const features = Array.isArray(plan.features) ? plan.features : [];
-  // 이용 가능 서비스(메뉴) — menuAccess 키를 라벨로 매핑(중복 제거)
+  // 이용 가능 서비스(메뉴) — menuAccess 는 `/route` + `/route::subtab` + `section||item` 세분화 키
+  //   (운영은 플랜당 113~344개)라 raw 노출 시 구독자가 알아볼 수 없는 키 나열이 된다.
+  //   base 경로/메뉴키 → 사이드바 라벨로 매핑·중복제거하여 "이용 가능한 페이지/서비스" 깔끔한 목록으로 표기.
+  //   (subtab 접미 제거, __section:/__leaf: 내부키 및 미매핑 모호키는 숨김)
   const services = []; const seen = new Set();
-  for (const key of (plan.menuAccess || [])) {
-    const lk = MENU_LABEL_MAP[key];
-    const label = lk ? t(lk, key) : String(key);
+  for (const raw of (plan.menuAccess || [])) {
+    const key = String(raw || '');
+    if (!key || key.startsWith('__')) continue;
+    const base = key.split('::')[0];
+    const lk = MENU_LABEL_MAP[base] || MENU_LABEL_MAP[key];
+    if (!lk) continue;
+    const label = t(lk, base);
     if (label && !seen.has(label)) { seen.add(label); services.push(label); }
   }
   const cardBg = light ? '#ffffff' : 'rgba(255,255,255,0.04)';
@@ -397,6 +559,17 @@ function buildTheme(light) {
 
 export default function PricingPublic() {
     const t = useT();
+    const { lang } = useI18n();
+    // 212차 #5 핫픽스: gNav.* 메뉴 라벨은 sidebarI18n(D) 전용이라 전역 t() 로는 해석 불가(미스 시 raw 키 노출).
+    //   사이드바 navT 와 동일하게 SIDEBAR_DICT 우선 조회 후 전역 t() 폴백.
+    const navT = useCallback((key, fb) => {
+        if (key && typeof key === 'string' && key.startsWith('gNav.')) {
+            const loc = SIDEBAR_DICT[lang] || SIDEBAR_DICT.en || {};
+            const v = loc[key.slice(5)];
+            if (v) return v;
+        }
+        return t(key, fb);
+    }, [t, lang]);
     const location = useLocation();
     const navigate = useNavigate();
     // 187차 — /app-pricing(앱 내부 진입)은 밝은 테마. 공개 /pricing 은 다크 마케팅 유지.
@@ -822,13 +995,13 @@ export default function PricingPublic() {
                         {/* 212차 #5 — plan_config(features·menuAccess·limits) 실데이터 동적 안내.
                             admin 이 기능목록/메뉴접근권한/한도 변경 시 즉시 반영(현재 4플랜 Starter/Growth/Pro/Enterprise). */}
                         {plans.map(pl => (
-                            <DynamicPlanGuide key={pl.id} plan={pl} t={t} light={true} />
+                            <DynamicPlanGuide key={pl.id} plan={pl} t={navT} light={true} />
                         ))}
                     </div>
                 </div>
 
                 {/* 212차 #5 — 플랜별 메뉴 접근 권한 읽기전용 비교표(admin 설정 실시간 반영) */}
-                <PlanMenuAccessMatrix plans={plans} t={t} light={true} />
+                <PlanMenuAccessMatrix plans={plans} t={navT} light={true} lang={lang} />
 
                 {/* FAQ */}
                 <div style={{ marginTop: 80, maxWidth: 720, marginLeft: "auto", marginRight: "auto", textAlign: "left" }}>
