@@ -145,7 +145,28 @@ final class WhatsApp
             ]);
         }
 
-        return TemplateResponder::respond($res, ['ok' => true, 'plan' => $plan, 'settings' => $row ?: null]);
+        // [현차수] 동기화: 발송/일괄발송·webhook 상태업데이트가 Overview KPI 에 반영되도록 실 집계 stats 동봉.
+        //   (기존엔 stats 미반환 → 운영 Overview 가 항상 0. 가짜 금지 — whatsapp_messages 실집계.)
+        return TemplateResponder::respond($res, ['ok' => true, 'plan' => $plan, 'settings' => $row ?: null, 'stats' => self::aggStats($pdo, $tenant)]);
+    }
+
+    /** [현차수] whatsapp_messages 실집계 — sent/delivered/read/failed. 운영 미발송=0(가짜 금지). */
+    private static function aggStats(PDO $pdo, string $tenant): array
+    {
+        $out = ['sent' => 0, 'delivered' => 0, 'read' => 0, 'failed' => 0];
+        try {
+            $st = $pdo->prepare("SELECT status, COUNT(*) AS cnt FROM whatsapp_messages WHERE tenant_id=? GROUP BY status");
+            $st->execute([$tenant]);
+            foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $r) {
+                $s = (string)$r['status']; $c = (int)$r['cnt'];
+                if ($s === 'failed') { $out['failed'] += $c; continue; }
+                // sent 는 전체 발송 시도 누계(delivered/read 도 보낸 것). delivered/read 는 단계별 누계.
+                $out['sent'] += $c;
+                if ($s === 'delivered' || $s === 'read') $out['delivered'] += $c;
+                if ($s === 'read') $out['read'] += $c;
+            }
+        } catch (\Throwable $e) { /* 빈 집계 폴백 */ }
+        return $out;
     }
 
     // POST /api/whatsapp/send
@@ -294,14 +315,17 @@ final class WhatsApp
             return TemplateResponder::respond($res, (int)($q['hub.challenge'] ?? 0));
         }
 
-        // 192차 보안 P1: Meta 서명 검증(X-Hub-Signature-256). META_APP_SECRET 설정 시 위조 webhook 차단.
+        // [현 차수] 은행급 fail-closed: Meta 서명(X-Hub-Signature-256) 검증을 필수화. META_APP_SECRET 미설정 시
+        //   미검증 payload 를 처리하지 않는다(위조 webhook 으로 상태 변조 차단). 200 ok 반환으로 Meta 재시도 폭주만 회피.
         $appSecret = getenv('META_APP_SECRET');
-        if ($appSecret) {
-            $bs = $req->getBody(); $bs->rewind(); $raw = $bs->getContents();
-            $expected = 'sha256=' . hash_hmac('sha256', $raw, $appSecret);
-            if (!hash_equals($expected, $req->getHeaderLine('X-Hub-Signature-256'))) {
-                return TemplateResponder::respond($res->withStatus(403), ['ok' => false, 'error' => 'invalid signature']);
-            }
+        if (!$appSecret) {
+            error_log('[WhatsApp.webhook] META_APP_SECRET 미설정 — 미검증 webhook 처리 거부(fail-closed)');
+            return TemplateResponder::respond($res, ['ok' => true, 'skipped' => 'unverified']);
+        }
+        $bs = $req->getBody(); $bs->rewind(); $raw = $bs->getContents();
+        $expected = 'sha256=' . hash_hmac('sha256', $raw, $appSecret);
+        if (!hash_equals($expected, $req->getHeaderLine('X-Hub-Signature-256'))) {
+            return TemplateResponder::respond($res->withStatus(403), ['ok' => false, 'error' => 'invalid signature']);
         }
 
         $body = (array)($req->getParsedBody() ?? []);
@@ -316,14 +340,11 @@ final class WhatsApp
                     $tenant = self::resolveTenantByPhone($pdo, $pnid);
                     foreach (($value['statuses'] ?? []) as $status) {
                         $now = gmdate('c');
-                        if ($tenant !== '') {
-                            $pdo->prepare("UPDATE whatsapp_messages SET status=?,delivered_at=CASE WHEN ? IN ('delivered') THEN ? ELSE delivered_at END,read_at=CASE WHEN ? = 'read' THEN ? ELSE read_at END WHERE wa_message_id=? AND tenant_id=?")
-                                ->execute([$status['status'], $status['status'], $now, $status['status'], $now, $status['id'], $tenant]);
-                        } else {
-                            // 미매핑(레거시/미등록) — wa_message_id 는 Meta 전역 고유라 충돌 없음(폴백 유지).
-                            $pdo->prepare("UPDATE whatsapp_messages SET status=?,delivered_at=CASE WHEN ? IN ('delivered') THEN ? ELSE delivered_at END,read_at=CASE WHEN ? = 'read' THEN ? ELSE read_at END WHERE wa_message_id=?")
-                                ->execute([$status['status'], $status['status'], $now, $status['status'], $now, $status['id']]);
-                        }
+                        // [현 차수] 은행급 방어심화: tenant 미해결 시 전역 UPDATE 금지(교차테넌트 상태변조 벡터 제거).
+                        //   phone_number_id 가 whatsapp_settings 에 없으면 우리 소유 메시지가 아니므로 skip.
+                        if ($tenant === '') { error_log('[WhatsApp.webhook] unmapped phone_number_id=' . $pnid . ' — status skip'); continue; }
+                        $pdo->prepare("UPDATE whatsapp_messages SET status=?,delivered_at=CASE WHEN ? IN ('delivered') THEN ? ELSE delivered_at END,read_at=CASE WHEN ? = 'read' THEN ? ELSE read_at END WHERE wa_message_id=? AND tenant_id=?")
+                            ->execute([$status['status'], $status['status'], $now, $status['status'], $now, $status['id'], $tenant]);
                     }
                 }
             }

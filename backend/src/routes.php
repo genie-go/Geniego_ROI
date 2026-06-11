@@ -326,6 +326,7 @@ return function (App $app): void {
         'POST /instagram/settings'                => 'Genie\\Handlers\\InstagramDM::saveSettings',
         'GET /instagram/conversations'            => 'Genie\\Handlers\\InstagramDM::conversations',
         'POST /instagram/send'                    => 'Genie\\Handlers\\InstagramDM::send',
+        'POST /instagram/broadcast'               => 'Genie\\Handlers\\InstagramDM::broadcast', // [현차수] DM 단체발송 실배선
         'GET /instagram/stats'                    => 'Genie\\Handlers\\InstagramDM::stats',
         'POST /instagram/webhooks'                => 'Genie\\Handlers\\InstagramDM::webhook',
 
@@ -2189,6 +2190,7 @@ return function (App $app): void {
     $register('POST',   '/instagram/settings');
     $register('GET',    '/instagram/conversations');
     $register('POST',   '/instagram/send');
+    $register('POST',   '/instagram/broadcast'); // [현차수] DM 단체발송 실배선
     $register('GET',    '/instagram/stats');
     $register('POST',   '/instagram/webhooks');
     // ── LINE (191차 신설) ──

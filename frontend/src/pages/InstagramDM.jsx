@@ -91,17 +91,41 @@ export default function InstagramDM() {
         if (!replyText.trim() || !selectedConv) return;
         const newMsg = { id: Date.now(), from: '나', text: replyText, time: new Date().toLocaleTimeString('ko', { hour: '2-digit', minute: '2-digit' }), mine: true };
         setMessages(prev => [...prev, newMsg]);
+        const sentText = replyText;
         setReplyText('');
-        if (!isDemo) await postJsonAuth('/api/instagram/send', { recipient_id: selectedConv.sender_id, message: replyText, platform: selectedConv.platform });
+        if (!isDemo) {
+            await postJsonAuth('/api/instagram/send', { recipient_id: selectedConv.sender_id, message: sentText, platform: selectedConv.platform }).catch(() => {});
+            // [현차수] 발송 직후 통계 동기화(발송 KPI stale 해소)
+            getJsonAuth('/api/instagram/settings').then(d => d.ok && setSettings(d)).catch(() => {});
+        }
     };
 
     const handleBroadcast = async () => {
         if (!broadcastText.trim()) return;
         setSending(true);
-        await new Promise(r => setTimeout(r, 1500)); // 시뮬레이션
+        // [현차수] 시뮬레이션 제거 → 실 백엔드 단체발송(POST /api/instagram/broadcast).
+        //   데모는 운영 API 미호출(격리) — 로컬 안내만. 운영은 실 발송(24h 윈도우 inbound 대상)+이력/통계 동기화.
+        if (isDemo) {
+            await new Promise(r => setTimeout(r, 800));
+            setSending(false);
+            alert(t('igdm.broadcastSentAlert', '✅ {{n}}명에게 메시지를 발송했습니다.', { n: conversations.length }));
+            setBroadcastText('');
+            return;
+        }
+        try {
+            const r = await postJsonAuth('/api/instagram/broadcast', { message: broadcastText, platform: settings?.settings?.[0]?.platform || 'instagram' });
+            if (r.ok) {
+                alert(t('igdm.broadcastSentAlert', '✅ {{n}}명에게 메시지를 발송했습니다.', { n: r.sent ?? 0 }));
+                setBroadcastText('');
+                // 발송 직후 통계 동기화(KPI/분석 stale 해소)
+                getJsonAuth('/api/instagram/settings').then(d => d.ok && setSettings(d)).catch(() => {});
+            } else {
+                alert((r.error || t('igdm.broadcastFail', '발송에 실패했습니다.')));
+            }
+        } catch (e) {
+            alert(t('igdm.broadcastFail', '발송에 실패했습니다.'));
+        }
         setSending(false);
-        alert(t('igdm.broadcastSentAlert', '✅ {{n}}명에게 메시지를 발송했습니다.', { n: conversations.length }));
-        setBroadcastText('');
     };
 
     const iconColor = (p) => p === 'instagram' ? '#E1306C' : '#1877F2';

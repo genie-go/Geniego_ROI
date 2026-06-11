@@ -11752,14 +11752,11 @@ export default {
       chName_: "Ch Name_"
     },
   omniChannel: {
-    guideTitle: "渠道整合指南",
-    guideSub: "學習如何連接全球電商平台、網路商店與銷售渠道，自動收集商品、訂單與銷售資料，並在單一平台中集中管理。",
     guideBeginnerBadge: "適合新手",
     guideTimeBadge: "約 10 分鐘",
     guideLangBadge: "支援 14 種語言",
     guideLearnTitle: "您將學到什麼",
     guideLearnDesc: "完成本指南後，您將能夠連接銷售渠道、自動同步商品與訂單資料，並在統一平台中管理多渠道營運。",
-    guideStepsTitle: "逐步操作指南",
     guideStep1Phase: "Phase A · 開始準備",
     guideStep1Title: "選擇要連接的渠道",
     guideStep1Desc: "選擇您正在使用的銷售渠道進行整合。\n\n支援渠道範例\n\n• 全球平台\nShopify\nAmazon SP-API\neBay\nTikTok Shop\n\n• 日本平台\nRakuten\nYahoo! Shopping\nLINE Shopping\n\n• 韓國平台\nCoupang Wing\nNaver Smart Store\nGmarket\nAuction\nCafe24\nLotte ON\n\n操作步驟\n\n1. 進入【整合中心】。\n2. 選擇要連接的銷售渠道。\n3. 查看該渠道的連接需求與驗證方式。\n\n完成結果\n\n系統將顯示所選渠道的驗證設定頁面，準備開始連接。",
@@ -11796,7 +11793,6 @@ export default {
     guideStep12Phase: "Phase E · 營運與安全",
     guideStep12Title: "新增銷售渠道",
     guideStep12Desc: "依照相同流程持續擴展新的銷售渠道。\n\n可擴展渠道範例\n\n• 新全球電商平台\n• 新本地電商平台\n• 新國際銷售平台\n• 新訂單來源渠道\n\n建議流程\n\n1. 選擇渠道\n2. 輸入驗證資訊\n3. 測試連線\n4. 儲存並同步\n5. 驗證營運狀態\n\n完成結果\n\n持續擴展全渠道營運版圖。",
-    guideTipsTitle: "專家營運建議",
     guideTip1: "定期檢查全球平台 Token 的到期時間。",
     guideTip2: "儲存設定前務必執行連線測試。",
     guideTip3: "僅於平台重新簽發時更新密鑰。",

@@ -1125,8 +1125,12 @@ final class Connectors
     private static function authTenant(Request $request): string
     {
         $t = (string)($request->getAttribute('auth_tenant') ?? '');
-        if ($t === '') $t = $request->getHeaderLine('X-Tenant-Id');
-        return $t !== '' ? $t : 'demo';
+        if ($t !== '') return $t;
+        // 은행급 fail-closed(쓰기 경로): raw X-Tenant-Id(위조가능)를 performance_metrics 적재 테넌트로 신뢰하지 않는다.
+        //   /v423/connectors/sync 는 의도적으로 bypass 제외(api_key 미들웨어 경유)라 auth_tenant 가 항상 주입되나,
+        //   회귀 방어로 세션 자가인증 폴백, 미해결은 demo 격리버킷으로 귀결(교차테넌트 ingest 위조 차단).
+        $st = UserAuth::authedTenant($request);
+        return ($st !== null && $st !== '') ? $st : 'demo';
     }
 
     /**

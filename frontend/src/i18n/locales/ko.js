@@ -152,7 +152,6 @@ export default {
     "epAi": "AI 예산·전략 추천 결과를 요청합니다.",
     "sdkIntro": "아래 예제로 즉시 첫 호출을 시도할 수 있습니다. API 키는 ‘API 키’ 탭에서 발급하세요.",
     "copy": "복사",
-    "copied": "복사됨",
     "webhookIntro": "이벤트 발생 시 등록한 URL로 서명된 POST 요청을 전송합니다. X-Genie-Signature 헤더(HMAC-SHA256)로 위변조를 검증하세요.",
     "webhookEvents": "지원 이벤트",
     "sandboxIntro": "실데이터를 건드리지 않고 통합을 검증하세요. ‘API 키’ 탭에서 viewer(read) 역할 키를 발급하면 안전하게 읽기 호출만 테스트할 수 있습니다.",
@@ -9907,7 +9906,6 @@ export default {
 
     "excelExport": "Excel 내보내기",
 
-"excelImport": "Excel 가져오기",
 
     "csvExport": "CSV 내보내기",
 

@@ -5,6 +5,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import PremiumLayout from "../../layout/PremiumLayout.jsx";
 import { useT, useI18n } from "../../i18n/index.js"; // 187차: i18n 배선(앱 내부 한국어 표기 버그 수정)
 import SIDEBAR_DICT from "../../layout/sidebarI18n.js"; // 212차 #5 핫픽스: gNav.* 라벨은 sidebarI18n 전용(전역 i18n 부재) → 사이드바와 동일 해석
+import { useAuth } from "../../auth/AuthContext.jsx"; // 213차 결제 게이팅 #2: 로그인 사용자 전체정보 입력 게이트
 
 /**
  * 172차 PHASE 1-A — hardcoded PLANS 제거 → backend `/auth/pricing/public-plans` 기반 동적 fetch.
@@ -16,6 +17,18 @@ import SIDEBAR_DICT from "../../layout/sidebarI18n.js"; // 212차 #5 핫픽스: 
  *  ② 플랜 선택: 카드 클릭 선택 + 비-Pro 버튼 또렷하게 → 어떤 플랜이든 동등 선택.
  *  ③ 밝은 테마: /app-pricing(앱 내부)은 밝은 테마·찐한 텍스트. 공개 /pricing 은 다크 마케팅 유지.
  */
+// 213차 결제 게이팅 #2: 실운영(유료) 전환 전 필수 사업자 정보 완비 여부.
+//   user.profile(서버 정규화) 또는 평면 필드를 모두 본다. 하나라도 비면 '미완'.
+const LIVE_PROFILE_FIELDS = ["company", "business_number", "ceo_name", "phone", "address"];
+function profileIncomplete(user) {
+  if (!user) return true;
+  const p = user.profile || {};
+  return LIVE_PROFILE_FIELDS.some((f) => {
+    const v = (p[f] ?? user[f] ?? "").toString().trim();
+    return v === "";
+  });
+}
+
 const PLAN_UI_META = {
   starter:    { color: "#4f8ef7", tagAuto: null },
   pro:        { color: "#6366f1", tagAuto: "Most Popular" },
@@ -557,6 +570,89 @@ function buildTheme(light) {
     };
 }
 
+/* ─── 213차 결제 게이팅 #2: 실운영 전환용 전체정보 입력 모달 ───────────────────
+ *  데모/free 로그인 사용자가 유료 결제 진입 시, 회원가입 때 받지 않은 사업자 정보를
+ *  모두 입력해야만 결제(Paddle)로 진행. PATCH /auth/profile 로 영속(extra_data 병합) 후 재개.
+ *  백엔드(upgrade/activateLicense)에도 동일 게이트가 있어 프론트 우회 시에도 차단(정본).
+ */
+function ProfileGateModal({ user, token, plan, T, t, onCancel, onDone }) {
+  const p0 = user?.profile || {};
+  const [company, setCompany]   = useState(p0.company || user?.company || "");
+  const [ceoName, setCeoName]   = useState(p0.ceo_name || "");
+  const [bizNum, setBizNum]     = useState(p0.business_number || "");
+  const [phone, setPhone]       = useState(p0.phone || user?.phone || "");
+  const [address, setAddress]   = useState(p0.address || "");
+  const [bizType, setBizType]   = useState(p0.business_type || "");
+  const [country, setCountry]   = useState(p0.country || "대한민국");
+  const [busy, setBusy]         = useState(false);
+  const [err, setErr]           = useState(null);
+
+  const submit = async (e) => {
+    e.preventDefault();
+    setErr(null);
+    if (![company, ceoName, bizNum, phone, address].every(v => v.trim())) {
+      setErr(t("appPricing.gate.allRequired", "All fields are required to switch to a live (paid) account."));
+      return;
+    }
+    setBusy(true);
+    try {
+      const r = await fetch("/auth/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          name: user?.name || "", company: company.trim(), phone: phone.trim(),
+          ceo_name: ceoName.trim(), business_number: bizNum.trim(),
+          address: address.trim(), business_type: bizType.trim(), country: country.trim(),
+        }),
+      });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok || !d.ok) { setErr(d.error || t("appPricing.gate.saveFail", "Failed to save your information. Please try again.")); setBusy(false); return; }
+      setBusy(false);
+      onDone();
+    } catch (e2) {
+      setErr(t("appPricing.gate.saveFail", "Failed to save your information. Please try again."));
+      setBusy(false);
+    }
+  };
+
+  const lbl = { display: "block", textAlign: "left", fontSize: 12, fontWeight: 700, color: T.title, marginBottom: 4 };
+  const inp = { width: "100%", padding: "10px 12px", borderRadius: 8, border: `1px solid ${T.cardBorder || "rgba(15,23,42,0.15)"}`, fontSize: 13, boxSizing: "border-box", marginBottom: 10, background: "#fff", color: "#0f172a" };
+
+  return (
+    <div onClick={onCancel} style={{ position: "fixed", inset: 0, background: "rgba(15,23,42,0.55)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+      <form onClick={e => e.stopPropagation()} onSubmit={submit} style={{ width: "100%", maxWidth: 460, background: T.cardBg || "#fff", borderRadius: 16, padding: "26px 24px", boxShadow: "0 20px 60px rgba(0,0,0,0.3)", maxHeight: "90vh", overflowY: "auto" }}>
+        <div style={{ fontSize: 18, fontWeight: 900, color: T.title, marginBottom: 6 }}>
+          {t("appPricing.gate.title", "Complete your business profile")}
+        </div>
+        <div style={{ fontSize: 12.5, color: T.sub, lineHeight: 1.6, marginBottom: 16 }}>
+          {t("appPricing.gate.desc", "To switch from the demo/free experience to a live {{plan}} account, please provide your full business information. This is required before payment.", { plan: (plan?.name || plan?.id || "") })}
+        </div>
+        <label style={lbl}>{t("appPricing.gate.company", "Company name")} *</label>
+        <input style={inp} value={company} onChange={e => setCompany(e.target.value)} placeholder="Geniego Inc." />
+        <label style={lbl}>{t("appPricing.gate.ceo", "Representative (CEO)")} *</label>
+        <input style={inp} value={ceoName} onChange={e => setCeoName(e.target.value)} placeholder={t("appPricing.gate.ceoPh", "Full name")} />
+        <label style={lbl}>{t("appPricing.gate.bizNum", "Business registration number")} *</label>
+        <input style={inp} value={bizNum} onChange={e => setBizNum(e.target.value)} placeholder="000-00-00000" />
+        <label style={lbl}>{t("appPricing.gate.phone", "Contact number")} *</label>
+        <input style={inp} value={phone} onChange={e => setPhone(e.target.value)} placeholder="010-0000-0000" />
+        <label style={lbl}>{t("appPricing.gate.address", "Business address")} *</label>
+        <input style={inp} value={address} onChange={e => setAddress(e.target.value)} placeholder={t("appPricing.gate.addressPh", "Street, city, postal code")} />
+        <label style={lbl}>{t("appPricing.gate.bizType", "Business type")}</label>
+        <input style={inp} value={bizType} onChange={e => setBizType(e.target.value)} placeholder={t("appPricing.gate.bizTypePh", "e.g. E-commerce / Retail")} />
+        {err && <div style={{ padding: "8px 12px", borderRadius: 8, background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.3)", color: "#dc2626", fontSize: 12, marginBottom: 10, textAlign: "left" }}>{err}</div>}
+        <div style={{ display: "flex", gap: 10, marginTop: 6 }}>
+          <button type="button" onClick={onCancel} disabled={busy} style={{ flex: 1, padding: "11px 0", borderRadius: 9, border: `1px solid ${T.cardBorder || "rgba(15,23,42,0.15)"}`, background: "transparent", color: T.sub, fontWeight: 700, fontSize: 13, cursor: "pointer" }}>
+            {t("appPricing.gate.cancel", "Cancel")}
+          </button>
+          <button type="submit" disabled={busy} style={{ flex: 2, padding: "11px 0", borderRadius: 9, border: "none", background: busy ? "rgba(99,102,241,0.5)" : "linear-gradient(135deg,#6366f1,#a855f7)", color: "#fff", fontWeight: 800, fontSize: 13, cursor: busy ? "not-allowed" : "pointer" }}>
+            {busy ? t("appPricing.gate.saving", "Saving…") : t("appPricing.gate.continue", "Save & continue to payment")}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
 export default function PricingPublic() {
     const t = useT();
     const { lang } = useI18n();
@@ -591,6 +687,11 @@ export default function PricingPublic() {
     const [seatTier, setSeatTier] = useState("1");
     const autoCheckoutPending = useRef(null); // {planId, cycleMonths}
     const [couponBanner, setCouponBanner] = useState(null);
+    // 213차 결제 게이팅 #2: 로그인(데모/free) 사용자가 유료 결제 진입 전, 회원가입 시 받지 않은
+    //   전체 사업자 정보를 입력하도록 강제하는 인라인 모달.
+    const { user, token, isDemoMode } = useAuth();
+    const [profileGate, setProfileGate] = useState(null); // null | { plan, months, seat }
+    const pendingAfterProfile = useRef(null); // checkout 인자 보관(프로필 완료 후 재개)
 
     // 187차 — admin 동기화: 표시 콘텐츠(이름/설명/기능)는 admin API 가 source of truth.
     //   API features 있으면 그대로(완벽 동기화), 없을 때만(오프라인 fallback) i18n STD 사용.
@@ -696,6 +797,14 @@ export default function PricingPublic() {
             alert(t("appPricing.alert.noCycle", "{{months}}-month pricing not yet configured for {{name}}. Please choose a different cycle or contact support@genie-go.com.", { months, name: plan.name }));
             return;
         }
+        // ── 213차 결제 게이팅 #2: 데모/free 로그인 사용자 → 유료 결제 진입 전 전체정보 입력 강제 ──
+        //   데모 미리보기(isDemoMode)는 실제 결제가 일어나지 않으므로 게이트 생략(체험 유지).
+        //   로그인 + 비admin + 프로필 미완 시: 결제(Paddle) 진입을 보류하고 전체정보 모달을 띄운다.
+        if (!isDemoMode && token && user && user.plan !== "admin" && profileIncomplete(user)) {
+            pendingAfterProfile.current = { plan, months, seatKey };
+            setProfileGate({ plan, months, seat: seatKey });
+            return;
+        }
         setLoading(p => ({ ...p, [plan.id]: true }));
         try {
             if (!clientToken) throw new Error("Payment system not configured");
@@ -717,7 +826,17 @@ export default function PricingPublic() {
         } finally {
             setLoading(p => ({ ...p, [plan.id]: false }));
         }
-    }, [cycleMonths, seatTier, clientToken, isAppContext, t]);
+    }, [cycleMonths, seatTier, clientToken, isAppContext, t, user, token, isDemoMode]);
+
+    // 213차: 전체정보 입력 완료 → 보류했던 결제 재개.
+    const proceedAfterProfile = useCallback(() => {
+        const pend = pendingAfterProfile.current;
+        setProfileGate(null);
+        pendingAfterProfile.current = null;
+        if (pend?.plan) {
+            setTimeout(() => checkout(pend.plan, pend.months, pend.seatKey), 100);
+        }
+    }, [checkout]);
 
     useEffect(() => {
         if (!plansLoaded || !clientToken || !autoCheckoutPending.current) return;
@@ -731,6 +850,17 @@ export default function PricingPublic() {
 
     const inner = (
         <section style={{ padding: isAppContext ? "44px 28px 90px" : "48px 28px 100px", textAlign: "center", position: "relative" }}>
+            {profileGate && (
+                <ProfileGateModal
+                    user={user}
+                    token={token}
+                    plan={profileGate.plan}
+                    T={T}
+                    t={t}
+                    onCancel={() => { setProfileGate(null); pendingAfterProfile.current = null; }}
+                    onDone={proceedAfterProfile}
+                />
+            )}
             <div style={{ position: "absolute", top: 0, left: "50%", transform: "translateX(-50%)", width: 800, height: 300, borderRadius: "50%", background: T.glow, pointerEvents: "none" }} />
 
             <div className="pub-section pub-fadeUp" style={{ position: "relative", zIndex: 1 }}>

@@ -116,9 +116,13 @@ class AdPerformance {
         \Psr\Http\Message\ServerRequestInterface $req,
         \Psr\Http\Message\ResponseInterface $res
     ): \Psr\Http\Message\ResponseInterface {
-        $tenant = $req->getAttribute('auth_tenant')
-                  ?: $req->getHeaderLine('X-Tenant-Id')
-                  ?: 'demo';
+        // 은행급 fail-closed: auth_tenant(api_key 미들웨어 강제주입, 위조불가) 우선. raw X-Tenant-Id(위조가능)는
+        //   크로스테넌트 광고지표 열람 우회로가 될 수 있어 신뢰하지 않고 세션 자가인증 폴백→미해결은 demo 격리.
+        $tenant = (string)($req->getAttribute('auth_tenant') ?: '');
+        if ($tenant === '') {
+            $st = UserAuth::authedTenant($req);
+            $tenant = ($st !== null && $st !== '') ? $st : 'demo';
+        }
 
         $payload = ['ok' => true, 'campaigns' => []];
 

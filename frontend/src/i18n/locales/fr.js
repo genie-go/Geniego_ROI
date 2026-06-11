@@ -8797,14 +8797,11 @@ export default {
       cat_platform_desc: "SaaS/PaaS/IaaS platforms, enterprise software, API products, B2B solutions."
     },
       omniChannel: {
-    guideTitle: "Guide d’intégration des canaux",
-    guideSub: "Découvrez comment connecter des marketplaces mondiales, des boutiques en ligne et des plateformes e-commerce afin de collecter et gérer automatiquement les données produits, commandes et ventes depuis une plateforme unique.",
     guideBeginnerBadge: "Adapté aux débutants",
     guideTimeBadge: "Environ 10 minutes",
     guideLangBadge: "Compatible avec 14 langues",
     guideLearnTitle: "Ce que vous allez apprendre",
     guideLearnDesc: "À la fin de ce guide, vous serez capable de connecter des canaux de vente, synchroniser automatiquement les données produits et commandes, et gérer vos opérations multicanales depuis une plateforme centralisée.",
-    guideStepsTitle: "Guide étape par étape",
     guideStep1Phase: "Phase A · Prise en main",
     guideStep1Title: "Sélectionner les canaux à connecter",
     guideStep1Desc: "Choisissez les canaux de vente que vous souhaitez intégrer.\n\nCanaux pris en charge\n\n• Mondial\nShopify\nAmazon SP-API\neBay\nTikTok Shop\n\n• Japon\nRakuten\nYahoo! Shopping\nLINE Shopping\n\n• Corée\nCoupang Wing\nNaver Smart Store\nGmarket\nAuction\nCafe24\nLotte ON\n\nComment procéder\n\n1. Accédez au [Centre d’intégration].\n2. Sélectionnez le canal de vente à connecter.\n3. Consultez les exigences de connexion du canal choisi.\n\nRésultat\n\nLa page de configuration de l’authentification du canal sélectionné s’affiche et l’intégration peut commencer.",
@@ -8841,7 +8838,6 @@ export default {
     guideStep12Phase: "Phase E · Exploitation et sécurité",
     guideStep12Title: "Ajouter de nouveaux canaux",
     guideStep12Desc: "Développez votre activité en connectant de nouveaux canaux de vente à l’aide du même processus d’intégration.\n\nExemples\n\n• Nouvelles marketplaces mondiales\n• Nouvelles marketplaces locales\n• Nouvelles plateformes e-commerce internationales\n• Nouveaux canaux d’acquisition de commandes\n\nProcessus recommandé\n\n1. Sélectionner un canal\n2. Saisir les identifiants\n3. Tester la connexion\n4. Enregistrer et synchroniser\n5. Vérifier le bon fonctionnement\n\nRésultat\n\nVotre écosystème omnicanal peut continuer à se développer sans complexité supplémentaire.",
-    guideTipsTitle: "Bonnes pratiques",
     guideTip1: "Vérifiez régulièrement la date d’expiration des jetons des plateformes mondiales.",
     guideTip2: "Effectuez toujours un test de connexion avant d’enregistrer la configuration.",
     guideTip3: "Ne mettez à jour les clés secrètes qu’en cas de renouvellement par le fournisseur.",

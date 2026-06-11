@@ -44,14 +44,14 @@ const CHANNELS = [
   { key: 'st11',             name: '11Street (11번가)',  icon: '🔶', color: '#FA3E2C', group: 'domestic' },
   { key: 'gmarket',          name: 'Gmarket (G마켓)',    icon: '🟡', color: '#0099CC', group: 'domestic' },
   { key: 'auction',          name: 'Auction (옥션)',     icon: '🅰️', color: '#CC0000', group: 'domestic' },
-  // ── 물류 및 배송(OCL 당일배송) ──
+  // ── 물류 및 배송(지니고 당일배송) ──
   { key: 'cj',               name: 'CJ대한통운',         icon: '🚛', color: '#7A3A96', group: 'logistics' },
   { key: 'lotte',            name: '롯데글로벌로지스',   icon: '🚚', color: '#DA291C', group: 'logistics' },
   { key: 'hanjin',           name: '한진택배',           icon: '📦', color: '#0067AC', group: 'logistics' },
   { key: 'logen',            name: '로젠택배',           icon: '🚐', color: '#F37021', group: 'logistics' },
   { key: 'epost',            name: '우체국택배',         icon: '📮', color: '#D80027', group: 'logistics' },
   { key: 'smarttracker',     name: '스마트택배(통합 추적)', icon: '📦', color: '#0EA5E9', group: 'logistics' },
-  { key: 'ocl_sameday',      name: 'OCL 당일배송 ★',     icon: '⚡', color: '#16A34A', group: 'logistics' },
+  { key: 'ocl_sameday',      name: '지니고 당일배송 ★',  icon: '⚡', color: '#16A34A', group: 'logistics' },
   { key: 'fulfillment',      name: '풀필먼트(3PL)',      icon: '🏭', color: '#0891B2', group: 'logistics' },
   // ── 국제특송 (International Express) ──
   { key: 'dhl',              name: 'DHL Express',        icon: '✈️', color: '#D40511', group: 'global_express' },
@@ -75,7 +75,7 @@ const CHANNELS = [
 /* 그룹 라벨/정렬 — 208차: 카테고리별 헤더로 가독성 초고도화 */
 const GROUP_LABELS = {
   sns_live: 'SNS 라이브 채널', domestic: '국내 오픈마켓', global_commerce: '글로벌 마켓플레이스',
-  d2c: '자사몰 플랫폼 (D2C)', payment: '결제 게이트웨이 (PG)', logistics: '물류 및 배송 (OCL 당일배송)', global_express: '국제특송 (International Express)',
+  d2c: '자사몰 플랫폼 (D2C)', payment: '결제 게이트웨이 (PG)', logistics: '물류 및 배송 (지니고 당일배송)', global_express: '국제특송 (International Express)',
   global_ad: '광고 매체', own_etc: '분석 · 기타',
 };
 const GROUP_ORDER = ['sns_live', 'domestic', 'global_commerce', 'd2c', 'payment', 'logistics', 'global_express', 'global_ad', 'own_etc'];
@@ -117,7 +117,7 @@ const CHANNEL_FIELDS = {
   logen:       [{ k: 'api_key', label: '스마트택배 추적 API 키', secret: true }, { k: 'cust_code', label: '고객(계약) 코드' }],
   epost:       [{ k: 'api_key', label: '스마트택배 추적 API 키 (우체국택배)', secret: true }, { k: 'cust_code', label: '계약(고객) 코드' }],
   smarttracker:[{ k: 'api_key', label: '스마트택배 t_key (전 택배사 통합 추적)', secret: true }],
-  ocl_sameday: [{ k: 'api_key', label: 'OCL API 키', secret: true }, { k: 'merchant_id', label: '머천트 ID' }, { k: 'region', label: '서비스 권역(예: 수도권)' }],
+  ocl_sameday: [{ k: 'api_key', label: '지니고 당일배송 API 키', secret: true }, { k: 'merchant_id', label: '머천트 ID' }, { k: 'region', label: '서비스 권역(예: 수도권)' }],
   fulfillment: [{ k: 'api_key', label: '3PL API 키', secret: true }, { k: 'warehouse_id', label: '창고 ID' }],
   // 국제특송
   dhl:       [{ k: 'api_key', label: 'DHL API 키', secret: true }, { k: 'account_number', label: '계정 번호(Account)' }],

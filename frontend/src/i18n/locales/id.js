@@ -12318,14 +12318,11 @@ export default {
       chName_: "Ch Name_"
     },
   omniChannel: {
-    guideTitle: "Panduan Integrasi Saluran",
-    guideSub: "Pelajari cara menghubungkan marketplace global, toko online, dan platform e-commerce untuk mengumpulkan serta mengelola data produk, pesanan, dan penjualan secara otomatis dalam satu platform terpusat.",
     guideBeginnerBadge: "Mudah untuk Pemula",
     guideTimeBadge: "Sekitar 10 Menit",
     guideLangBadge: "Mendukung 14 Bahasa",
     guideLearnTitle: "Apa yang Akan Anda Pelajari",
     guideLearnDesc: "Setelah menyelesaikan panduan ini, Anda dapat menghubungkan saluran penjualan, menyinkronkan data produk dan pesanan secara otomatis, serta mengelola operasi multisaluran dari satu platform terpadu.",
-    guideStepsTitle: "Panduan Langkah demi Langkah",
     guideStep1Phase: "Phase A · Memulai",
     guideStep1Title: "Pilih saluran yang akan dihubungkan",
     guideStep1Desc: "Pilih saluran penjualan yang ingin Anda integrasikan.\n\nSaluran yang Didukung\n\n• Global\nShopify\nAmazon SP-API\neBay\nTikTok Shop\n\n• Jepang\nRakuten\nYahoo! Shopping\nLINE Shopping\n\n• Korea\nCoupang Wing\nNaver Smart Store\nGmarket\nAuction\nCafe24\nLotte ON\n\nCara Melakukan\n\n1. Buka [Pusat Integrasi].\n2. Pilih saluran penjualan yang ingin dihubungkan.\n3. Tinjau persyaratan koneksi untuk saluran yang dipilih.\n\nHasil\n\nHalaman konfigurasi autentikasi untuk saluran yang dipilih akan ditampilkan dan siap untuk proses integrasi.",
@@ -12362,7 +12359,6 @@ export default {
     guideStep12Phase: "Phase E · Operasional & Keamanan",
     guideStep12Title: "Menambahkan Saluran Baru",
     guideStep12Desc: "Perluas bisnis Anda dengan menghubungkan saluran penjualan baru menggunakan proses integrasi yang sama.\n\nContoh\n\n• Marketplace global baru\n• Marketplace lokal baru\n• Platform e-commerce internasional baru\n• Saluran akuisisi pesanan baru\n\nProses yang Direkomendasikan\n\n1. Pilih saluran\n2. Masukkan kredensial\n3. Uji koneksi\n4. Simpan dan sinkronkan\n5. Validasi operasional\n\nHasil\n\nEkosistem omnichannel Anda dapat terus berkembang tanpa meningkatkan kompleksitas operasional.",
-    guideTipsTitle: "Praktik Terbaik",
     guideTip1: "Periksa secara rutin tanggal kedaluwarsa token pada platform global.",
     guideTip2: "Selalu lakukan uji koneksi sebelum menyimpan konfigurasi.",
     guideTip3: "Perbarui kunci rahasia hanya ketika penyedia menerbitkan kredensial baru.",

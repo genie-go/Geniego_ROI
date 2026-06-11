@@ -174,6 +174,49 @@ final class InstagramDM
         return TemplateResponder::respond($res, ['ok' => $result['ok'], 'status' => $result['ok']?'sent':'failed', 'error' => $result['error']??null]);
     }
 
+    // POST /api/instagram/broadcast — [현차수] DM 단체 발송(프론트 시뮬레이션→실배선).
+    //   Meta 정책: 24시간 윈도우 내(고객이 먼저 DM 보낸) recipient 에게만 발송 가능.
+    //   대상: 최근 수신(inbound) 대화의 sender_id 집합. 발송 결과는 instagram_messages 에 적재→통계/이력 동기화.
+    public static function broadcast(Request $req, Response $res, array $args): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $pdo      = Db::pdo();
+        $tenant   = self::tenant($req);
+        $body     = (array)($req->getParsedBody() ?? []);
+        $message  = trim((string)($body['message'] ?? ''));
+        $platform = $body['platform'] ?? 'instagram';
+        $now      = gmdate('c');
+
+        if (!$message) return TemplateResponder::respond($res->withStatus(422), ['ok' => false, 'error' => 'message required']);
+
+        // 발신 설정(연결됨) 확인 — 미설정 시 가짜 발송 금지(honest).
+        $cfg = $pdo->prepare("SELECT page_id,access_token FROM instagram_settings WHERE tenant_id=? AND platform=? AND test_status='ok'");
+        $cfg->execute([$tenant, $platform]);
+        $settings = $cfg->fetch(PDO::FETCH_ASSOC);
+        if (!$settings) {
+            return TemplateResponder::respond($res->withStatus(422), ['ok' => false, 'mode' => 'unconfigured',
+                'sent' => 0, 'failed' => 0, 'total' => 0,
+                'error' => 'Instagram/Facebook 연동 설정이 없습니다. 설정에서 Page Access Token 을 먼저 등록하세요.']);
+        }
+        if (!empty($settings['access_token'])) $settings['access_token'] = \Genie\Crypto::decrypt((string)$settings['access_token']);
+
+        // 대상 수신자: 24h 윈도우 내 inbound 대화의 distinct sender_id(Meta 정책 준수).
+        $rcp = $pdo->prepare("SELECT DISTINCT sender_id FROM instagram_messages WHERE tenant_id=? AND platform=? AND direction='inbound' AND sender_id<>'' ORDER BY created_at DESC LIMIT 200");
+        $rcp->execute([$tenant, $platform]);
+        $recipients = array_column($rcp->fetchAll(PDO::FETCH_ASSOC), 'sender_id');
+
+        $sent = 0; $failed = 0;
+        foreach ($recipients as $rid) {
+            $r = self::sendDM($settings['page_id'], $settings['access_token'], (string)$rid, $message, $platform);
+            $pdo->prepare("INSERT INTO instagram_messages(tenant_id,platform,sender_id,message,direction,status,created_at) VALUES(?,?,?,?,?,?,?)")
+                ->execute([$tenant, $platform, $rid, $message, 'outbound', $r['ok'] ? 'sent' : 'failed', $now]);
+            $r['ok'] ? $sent++ : $failed++;
+        }
+
+        return TemplateResponder::respond($res, ['ok' => true, 'sent' => $sent, 'failed' => $failed, 'total' => $sent + $failed]);
+    }
+
     // GET /api/instagram/stats
     public static function stats(Request $req, Response $res, array $args): Response
     {
@@ -195,14 +238,17 @@ final class InstagramDM
             }
             return TemplateResponder::respond($res, (int)($q['hub.challenge']??0));
         }
-        // 192차 보안 P1: Meta 서명 검증(X-Hub-Signature-256). META_APP_SECRET 설정 시 위조 DM 주입 차단.
+        // [현 차수] 은행급 fail-closed: Meta 서명 검증 필수화. META_APP_SECRET 미설정 시 미검증 DM payload 미처리
+        //   (위조 inbound DM 주입 차단). 200 ok 로 Meta 재시도 폭주만 회피.
         $appSecret = getenv('META_APP_SECRET');
-        if ($appSecret) {
-            $bs = $req->getBody(); $bs->rewind(); $raw = $bs->getContents();
-            $expected = 'sha256=' . hash_hmac('sha256', $raw, $appSecret);
-            if (!hash_equals($expected, $req->getHeaderLine('X-Hub-Signature-256'))) {
-                return TemplateResponder::respond($res->withStatus(403), ['ok' => false, 'error' => 'invalid signature']);
-            }
+        if (!$appSecret) {
+            error_log('[InstagramDM.webhook] META_APP_SECRET 미설정 — 미검증 webhook 처리 거부(fail-closed)');
+            return TemplateResponder::respond($res, ['ok' => true, 'skipped' => 'unverified']);
+        }
+        $bs = $req->getBody(); $bs->rewind(); $raw = $bs->getContents();
+        $expected = 'sha256=' . hash_hmac('sha256', $raw, $appSecret);
+        if (!hash_equals($expected, $req->getHeaderLine('X-Hub-Signature-256'))) {
+            return TemplateResponder::respond($res->withStatus(403), ['ok' => false, 'error' => 'invalid signature']);
         }
         // DM 수신 처리
         try {

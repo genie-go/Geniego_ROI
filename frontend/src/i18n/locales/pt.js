@@ -9061,14 +9061,11 @@ export default {
       cat_platform_desc: "SaaS/PaaS/IaaS platforms, enterprise software, API products, B2B solutions."
     },
       omniChannel: {
-    guideTitle: "Guia de Integração de Canais",
-    guideSub: "Aprenda a conectar marketplaces globais, lojas virtuais e plataformas de comércio eletrônico para coletar e gerenciar automaticamente dados de produtos, pedidos e vendas em uma única plataforma.",
     guideBeginnerBadge: "Ideal para iniciantes",
     guideTimeBadge: "Cerca de 10 minutos",
     guideLangBadge: "Compatível com 14 idiomas",
     guideLearnTitle: "O que você aprenderá",
     guideLearnDesc: "Ao concluir este guia, você poderá conectar canais de vendas, sincronizar automaticamente dados de produtos e pedidos e gerenciar operações multicanal em uma plataforma unificada.",
-    guideStepsTitle: "Guia passo a passo",
     guideStep1Phase: "Phase A · Primeiros passos",
     guideStep1Title: "Selecionar canais para integração",
     guideStep1Desc: "Escolha os canais de vendas que deseja integrar.\n\nCanais compatíveis\n\n• Globais\nShopify\nAmazon SP-API\neBay\nTikTok Shop\n\n• Japão\nRakuten\nYahoo! Shopping\nLINE Shopping\n\n• Coreia\nCoupang Wing\nNaver Smart Store\nGmarket\nAuction\nCafe24\nLotte ON\n\nComo proceder\n\n1. Acesse a [Central de Integrações].\n2. Selecione o canal de vendas que deseja conectar.\n3. Revise os requisitos de conexão do canal escolhido.\n\nResultado\n\nA página de configuração de autenticação do canal selecionado será exibida e a integração estará pronta para começar.",
@@ -9105,7 +9102,6 @@ export default {
     guideStep12Phase: "Phase E · Operações e Segurança",
     guideStep12Title: "Adicionar novos canais",
     guideStep12Desc: "Expanda continuamente seus negócios conectando novos canais de vendas usando o mesmo processo de integração.\n\nExemplos\n\n• Novos marketplaces globais\n• Novos marketplaces locais\n• Novas plataformas internacionais de comércio eletrônico\n• Novos canais de aquisição de pedidos\n\nProcesso recomendado\n\n1. Selecionar canal\n2. Inserir credenciais\n3. Testar conexão\n4. Salvar e sincronizar\n5. Validar a operação\n\nResultado\n\nSeu ecossistema omnichannel pode continuar crescendo sem aumentar a complexidade operacional.",
-    guideTipsTitle: "Boas práticas",
     guideTip1: "Monitore regularmente as datas de expiração dos tokens das plataformas globais.",
     guideTip2: "Sempre execute um teste de conexão antes de salvar a configuração.",
     guideTip3: "Atualize chaves secretas apenas quando o provedor emitir novas credenciais.",

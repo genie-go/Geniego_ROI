@@ -44,6 +44,33 @@ final class AdminPlans
         return self::json($res, ['ok' => true, 'plans' => $plans]);
     }
 
+    /**
+     * [현 차수] 글로벌 상품설정(요금·메뉴접근) 운영↔데모 DB 동기화.
+     *   plan_config/plan_period_pricing/plan_menu_access 는 테넌트 무관 product config 이므로
+     *   admin 이 한쪽(운영)에서 저장하면 sibling DB(데모)에도 동일 반영해야 한다(데모가 admin 설정 미반영 문제 해소).
+     *   같은 MySQL 서버의 형제 스키마로 풀-테이블 미러(소량이라 저렴, 멱등). MySQL 전용·sibling 부재 시 무시.
+     */
+    private static function mirrorPlanTablesToSibling(\PDO $pdo): void
+    {
+        try {
+            if ($pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) !== 'mysql') return;
+            $cur = (string)$pdo->query('SELECT DATABASE()')->fetchColumn();
+            $sib = $cur === 'geniego_roi_demo' ? 'geniego_roi' : ($cur === 'geniego_roi' ? 'geniego_roi_demo' : '');
+            if ($sib === '') return;
+            $chk = $pdo->prepare("SELECT SCHEMA_NAME FROM information_schema.SCHEMATA WHERE SCHEMA_NAME=?");
+            $chk->execute([$sib]);
+            if (!$chk->fetchColumn()) return;
+            $pdo->exec("SET FOREIGN_KEY_CHECKS=0");
+            foreach (['plan_config', 'plan_period_pricing', 'plan_menu_access'] as $t) {
+                try {
+                    $pdo->exec("DELETE FROM `{$sib}`.`{$t}`");
+                    $pdo->exec("INSERT INTO `{$sib}`.`{$t}` SELECT * FROM `{$cur}`.`{$t}`");
+                } catch (\Throwable $e) { error_log("[AdminPlans.mirror:{$t}] " . $e->getMessage()); }
+            }
+            $pdo->exec("SET FOREIGN_KEY_CHECKS=1");
+        } catch (\Throwable $e) { error_log('[AdminPlans.mirror] ' . $e->getMessage()); }
+    }
+
     public static function upsert(Request $req, Response $res, array $args): Response
     {
         $gate = UserAuth::requirePlan($req, $res, 'admin');
@@ -97,6 +124,7 @@ final class AdminPlans
             (int)($body['discount_pct'] ?? 20),
             substr($actor, 0, 64),
         ]);
+        self::mirrorPlanTablesToSibling($pdo); // 데모 DB 동기화
         return self::json($res, ['ok' => true, 'plan_id' => $planId]);
     }
 
@@ -110,6 +138,7 @@ final class AdminPlans
         }
         $pdo = Db::pdo();
         $pdo->prepare('UPDATE plan_config SET is_active = 0 WHERE plan_id = ?')->execute([$planId]);
+        self::mirrorPlanTablesToSibling($pdo); // 데모 DB 동기화
         return self::json($res, ['ok' => true]);
     }
 
@@ -406,6 +435,7 @@ final class AdminPlans
             $pdo->rollBack();
             return self::json($res, ['error' => 'save_failed', 'detail' => $e->getMessage()], 500);
         }
+        self::mirrorPlanTablesToSibling($pdo); // 데모 DB 동기화(메뉴접근)
         return self::json($res, ['ok' => true, 'plan_id' => $planId, 'count' => count($menus)]);
     }
 
@@ -578,6 +608,7 @@ final class AdminPlans
             $pdo->rollBack();
             return self::json($res, ['error' => 'save_failed', 'detail' => $e->getMessage()], 500);
         }
+        self::mirrorPlanTablesToSibling($pdo); // 데모 DB 동기화(기간별 요금)
         return self::json($res, ['ok' => true, 'plan_id' => $planId, 'count' => $cnt]);
     }
 

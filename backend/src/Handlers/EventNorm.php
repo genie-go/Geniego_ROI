@@ -29,8 +29,12 @@ final class EventNorm
         // 189차+ 보안: 미들웨어는 'tenant_id' 속성을 설정하지 않음 → 기존 코드는 모든 요청이 'demo' 버킷으로
         //   쓰기/읽기되어 테넌트 데이터 누출+오염. 인증이 주입한 'auth_tenant'(또는 X-Tenant-Id 헤더) 사용.
         $t = (string)($req->getAttribute('auth_tenant') ?: '');
-        if ($t === '') $t = (string)($req->getHeaderLine('X-Tenant-Id') ?: '');
-        return $t !== '' ? $t : 'demo';
+        if ($t !== '') return $t;
+        // 은행급 fail-closed: raw X-Tenant-Id(클라이언트 위조 가능)를 raw/normalized 이벤트 적재 테넌트로 신뢰하지 않는다.
+        //   현재 /v423/events/* 는 api_key 미들웨어 경유(auth_tenant 강제주입)라 안전하나, 향후 bypass 추가 시
+        //   raw 헤더 노출로 교차테넌트 이벤트 위조가 가능 → 세션 자가인증 폴백, 미해결은 demo 격리버킷.
+        $st = UserAuth::authedTenant($req);
+        return ($st !== null && $st !== '') ? $st : 'demo';
     }
 
     private static function now(): string { return gmdate('Y-m-d\TH:i:s\Z'); }

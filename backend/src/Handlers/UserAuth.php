@@ -216,6 +216,7 @@ final class UserAuth
                         u.company, u.created_at,
                         u.subscription_expires_at,
                         u.subscription_cycle,
+                        u.phone, u.extra_data,
                         u.tenant_id, u.parent_user_id, u.team_role
                    FROM user_session s
                    JOIN app_user u ON u.id = s.user_id
@@ -242,6 +243,24 @@ final class UserAuth
         $row['tenant_id'] = self::resolveTenantId($pdo, $row);
         $row['parent_user_id'] = isset($row['parent_user_id']) ? (int)$row['parent_user_id'] : null;
         $row['team_role'] = $row['team_role'] ?? ($row['parent_user_id'] ? 'member' : 'owner');
+        // 213차 결제 게이팅 #2: 전체정보(사업자) 프로필을 프론트가 완비 여부 판정에 쓸 수 있도록 노출.
+        $profile = [];
+        if (!empty($row['extra_data']) && is_string($row['extra_data'])) {
+            $dec = json_decode($row['extra_data'], true);
+            if (is_array($dec)) $profile = $dec;
+        }
+        $row['phone']   = $row['phone'] ?? ($profile['phone'] ?? null);
+        $row['profile'] = [
+            'company'         => $row['company'] ?? '',
+            'business_number' => (string)($profile['business_number'] ?? ''),
+            'ceo_name'        => (string)($profile['ceo_name'] ?? ''),
+            'phone'           => (string)($row['phone'] ?? ''),
+            'address'         => (string)($profile['address'] ?? ''),
+            'business_type'   => (string)($profile['business_type'] ?? ''),
+            'country'         => (string)($profile['country'] ?? ''),
+            'website'         => (string)($profile['website'] ?? ''),
+        ];
+        unset($row['extra_data']); // 원본 JSON 은 응답에서 제거(profile 로 정규화 노출)
         return self::resolveActivePlan($row);
     }
 
@@ -351,7 +370,15 @@ final class UserAuth
 
         $hashedPw = password_hash($password, PASSWORD_DEFAULT);
         $userId = null;
-        $expiresAt = gmdate('Y-m-d\TH:i:s\Z', time() + 30 * 24 * 3600);
+
+        // ── 213차 결제 게이팅: 신규가입은 항상 free(평생무료)로 시작한다. ──────────────
+        //   기존엔 plan='pro'(+30일 만료)를 무조건 부여해, 유료 플랜을 선택한 사용자가
+        //   결제를 완료하지 않아도(체크아웃 이탈 포함) 30일간 Pro 기능을 무료로 쓸 수 있는
+        //   결제 우회 갭이 있었다. 이제 가입 시점에는 plan='free'(만료 없음)만 부여하고,
+        //   유료 플랜은 검증된 결제(Paddle webhook / Toss confirm) 경로에서만 활성화한다.
+        //   사용자가 가입 단계에서 선택한 유료 플랜은 "결제 대기(pending)" 의도로만 기록한다.
+        $signupPlan = 'free';
+        $expiresAt  = null; // free = 평생, 만료 없음
 
         // ── 추가 비즈니스 필드 파싱 ──────────────────────────────────
         $phone = trim((string)($body['phone'] ?? ''));
@@ -364,25 +391,30 @@ final class UserAuth
             $v = trim((string)($body[$fk] ?? ''));
             if ($v !== '') $extraFields[$fk] = $v;
         }
+        // 가입 단계에서 선택한 유료 플랜 의도(결제 전) — 활성 plan 이 아니라 메타로만 보관.
+        $requestedPlan = strtolower(trim((string)($body['plan'] ?? '')));
+        if (in_array($requestedPlan, ['starter','growth','pro','enterprise'], true)) {
+            $extraFields['pending_plan'] = $requestedPlan;
+        }
         $extraDataJson = !empty($extraFields) ? json_encode($extraFields, JSON_UNESCAPED_UNICODE) : null;
 
         try {
             $pdo->prepare(
                 'INSERT INTO app_user(email,password_hashs,name,plan,company,is_active,created_at,subscription_expires_at,phone,extra_data) VALUES(?,?,?,?,?,?,?,?,?,?)'
-            )->execute([$email, $hashedPw, $name, 'pro', $company ?: null, 1, $now, $expiresAt, $phone ?: null, $extraDataJson]);
+            )->execute([$email, $hashedPw, $name, $signupPlan, $company ?: null, 1, $now, $expiresAt, $phone ?: null, $extraDataJson]);
             $userId = (int)$pdo->lastInsertId();
         } catch (\Throwable $e) {
             try {
                 $pdo->prepare(
                     'INSERT INTO app_user(email,password_hash,name,plan,company,is_active,created_at,subscription_expires_at,phone,extra_data) VALUES(?,?,?,?,?,?,?,?,?,?)'
-                )->execute([$email, $hashedPw, $name, 'pro', $company ?: null, 1, $now, $expiresAt, $phone ?: null, $extraDataJson]);
+                )->execute([$email, $hashedPw, $name, $signupPlan, $company ?: null, 1, $now, $expiresAt, $phone ?: null, $extraDataJson]);
                 $userId = (int)$pdo->lastInsertId();
             } catch (\Throwable $e2) {
                 // 만약 phone/extra_data 컬럼이 없으면 fallback
                 try {
                     $pdo->prepare(
                         'INSERT INTO app_user(email,password_hash,name,plan,company,is_active,created_at) VALUES(?,?,?,?,?,?,?)'
-                    )->execute([$email, $hashedPw, $name, 'pro', $company ?: null, 1, $now]);
+                    )->execute([$email, $hashedPw, $name, $signupPlan, $company ?: null, 1, $now]);
                     $userId = (int)$pdo->lastInsertId();
                     try {
                         $pdo->prepare('UPDATE app_user SET subscription_expires_at=?, phone=?, extra_data=? WHERE id=?')
@@ -431,6 +463,21 @@ final class UserAuth
             }
         }
 
+        // ── 213차 결제 게이팅(정본): 가입 단계에서 결제 없이 유료 plan 활성 금지 ──────────────
+        //   signup 쿠폰 등 어떤 경로로든 가입 직후 plan 이 유료(free/demo 외)로 올라갔다면 환원한다.
+        //   유료 플랜(starter/growth/pro/enterprise)은 검증된 결제(Paddle webhook / Toss confirm)에서만
+        //   활성화되어야 한다(요구: "free 외 유료는 결제 완료해야 이용 가능"). free = 무료 체험(데모) 모델 유지.
+        if ($userId > 0) {
+            try {
+                $pc = strtolower((string)($pdo->query("SELECT COALESCE(plans,plan,'free') FROM app_user WHERE id={$userId} LIMIT 1")->fetchColumn() ?: 'free'));
+                if (!in_array($pc, ['free', 'demo', ''], true)) {
+                    $pdo->prepare("UPDATE app_user SET plan='free', subscription_expires_at=NULL WHERE id=?")->execute([$userId]);
+                    try { $pdo->prepare("UPDATE app_user SET plans='free' WHERE id=?")->execute([$userId]); } catch (\Throwable $e) {}
+                    error_log("[register] 결제미완 유료plan({$pc}) 환원→free uid={$userId}");
+                }
+            } catch (\Throwable $e) {}
+        }
+
         // 쿠폰 적용 후 최신 플랜 재조회
         $finalPlan = 'free'; $finalExpires = null;
         try {
@@ -457,6 +504,18 @@ final class UserAuth
                 'tenant_id'               => $tenantId, // 180차: 계정 격리 식별자
                 'parent_user_id'          => null,
                 'team_role'               => 'owner',
+                'phone'                   => $phone ?: '',
+                // 213차 결제 게이팅 #2: 가입 시 입력한 전체정보 → 프론트 결제게이트가 완비 판정에 사용.
+                'profile'                 => [
+                    'company'         => $company,
+                    'business_number' => (string)($extraFields['business_number'] ?? ''),
+                    'ceo_name'        => (string)($extraFields['ceo_name'] ?? ''),
+                    'phone'           => $phone,
+                    'address'         => (string)($extraFields['address'] ?? ''),
+                    'business_type'   => (string)($extraFields['business_type'] ?? ''),
+                    'country'         => (string)($extraFields['country'] ?? ''),
+                    'website'         => (string)($extraFields['website'] ?? ''),
+                ],
             ],
             'coupon' => $couponResult ? [
                 'issued'        => true,
@@ -775,6 +834,43 @@ final class UserAuth
         return [$caller, null];
     }
 
+    // ═════════════════════════════════════════════════════════════
+    // 213차 결제 게이팅 #2 — 데모/free → 실운영(유료) 전환 시 전체 프로필 입력 강제
+    //   데모/무료 가입은 이름/이메일만 받으므로, 유료 플랜 활성화(결제 전 단계 포함) 전에
+    //   사업자 정보(회사명/사업자등록번호/대표자/연락처/주소)를 모두 채웠는지 검증한다.
+    //   미완 시 422 + missing_fields 반환 → 프론트가 전체정보 폼을 띄운다.
+    //   누락 필드 목록을 반환([null]=완비, [배열]=누락).
+    // ═════════════════════════════════════════════════════════════
+    private static function liveProfileMissing(int $userId): array
+    {
+        if ($userId <= 0) return ['account'];
+        $pdo = Db::pdo();
+        $company = ''; $phone = ''; $extra = [];
+        try {
+            $st = $pdo->prepare('SELECT company, phone, extra_data FROM app_user WHERE id = ? LIMIT 1');
+            $st->execute([$userId]);
+            $row = $st->fetch(\PDO::FETCH_ASSOC) ?: [];
+            $company = trim((string)($row['company'] ?? ''));
+            $phone   = trim((string)($row['phone'] ?? ''));
+            $ed = $row['extra_data'] ?? null;
+            if (is_string($ed) && $ed !== '') {
+                $dec = json_decode($ed, true);
+                if (is_array($dec)) $extra = $dec;
+            }
+        } catch (\Throwable $e) {
+            // extra_data/phone 컬럼이 없는 매우 구버전 스키마 → 게이트 보류(레거시 안정성).
+            return [];
+        }
+        $get = function (string $k) use ($extra): string { return trim((string)($extra[$k] ?? '')); };
+        $missing = [];
+        if ($company === '')                 $missing[] = 'company';          // 회사명
+        if ($get('business_number') === '')  $missing[] = 'business_number';  // 사업자등록번호
+        if ($get('ceo_name') === '')         $missing[] = 'ceo_name';         // 대표자
+        if ($phone === '' && $get('phone') === '') $missing[] = 'phone';      // 연락처
+        if ($get('address') === '')          $missing[] = 'address';          // 주소
+        return $missing;
+    }
+
     // GET /auth/team/members — 같은 계정(tenant) 구성원 목록
     public static function listTeamMembers(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
     {
@@ -986,6 +1082,27 @@ final class UserAuth
         $id = $user['id'] ?? $user['idx'] ?? 0;
         $pdo = Db::pdo();
 
+        // 213차 결제 게이팅 #2: 데모/free → 실운영 전환용 전체 프로필 필드(extra_data) 병합 저장.
+        //   회원가입 시 받지 않은 사업자 정보(사업자등록번호/대표자/주소/국가 등)를 프로필에서
+        //   보완할 수 있도록, 기존 extra_data 와 병합(빈 값은 무시)한다.
+        $liveFields = ['ceo_name','business_type','business_number','country','zip_code','address','website'];
+        $hasLive = false; foreach ($liveFields as $f) { if (trim((string)($body[$f] ?? '')) !== '') { $hasLive = true; break; } }
+        if ($hasLive) {
+            try {
+                $cur = $pdo->prepare('SELECT extra_data FROM app_user WHERE id = ? LIMIT 1');
+                $cur->execute([$id]);
+                $curEd = (string)($cur->fetchColumn() ?: '');
+                $merged = [];
+                if ($curEd !== '') { $dec = json_decode($curEd, true); if (is_array($dec)) $merged = $dec; }
+                foreach ($liveFields as $f) {
+                    $v = trim((string)($body[$f] ?? ''));
+                    if ($v !== '') $merged[$f] = $v;
+                }
+                $pdo->prepare('UPDATE app_user SET extra_data = ? WHERE id = ?')
+                    ->execute([json_encode($merged, JSON_UNESCAPED_UNICODE), $id]);
+            } catch (\Throwable $e) { /* extra_data 컬럼 부재 등 → 무시(레거시 안정성) */ }
+        }
+
         try {
             $pdo->prepare('UPDATE app_user SET name = ?, phone = ?, company = ? WHERE id = ?')
                 ->execute([$name, $phone, $company, $id]);
@@ -1047,15 +1164,16 @@ final class UserAuth
             if (is_array($decoded)) $body = $decoded;
         }
 
-        $plan  = in_array($body['plan'] ?? 'pro', ['pro', 'demo', 'enterprise'], true)
+        // 213차: starter/growth 도 정식 유료 플랜 → 화이트리스트 확장(기존엔 'pro' 로 붕괴됨).
+        $plan  = in_array($body['plan'] ?? 'pro', ['starter', 'growth', 'pro', 'demo', 'enterprise'], true)
                  ? ($body['plan'] ?? 'pro') : 'pro';
         $cycle = in_array($body['cycle'] ?? 'monthly', ['monthly', 'quarterly', 'yearly'], true)
                  ? ($body['cycle'] ?? 'monthly') : 'monthly';
 
-        // 구독 만료일 계산
+        // 구독 만료일 계산 (213차: 모든 유료 플랜 대상)
         $now = self::now();
         $expiresAt = null;
-        if ($plan === 'pro' || $plan === 'enterprise') {
+        if ($plan !== 'demo') {
             $days = match ($cycle) {
                 'quarterly' => 90,
                 'yearly'    => 365,
@@ -1066,6 +1184,21 @@ final class UserAuth
 
         $id = $user['id'] ?? $user['idx'] ?? 0;
         $pdo = Db::pdo();
+
+        // ── 213차 결제 게이팅 #2: 데모/free → 실운영(유료) 전환 시 전체 프로필 입력 강제 ──
+        //   유료 플랜 활성화 전, 사업자 정보(회사명/사업자등록번호/대표자/연락처/주소) 완비 검증.
+        //   미완 시 422 + missing_fields → 프론트가 전체정보 입력 폼을 띄운다.
+        if ($plan !== 'demo') {
+            $missing = self::liveProfileMissing((int)$id);
+            if (!empty($missing)) {
+                return self::json($res, [
+                    'ok'             => false,
+                    'error'          => '실운영 전환을 위해 회사 정보를 모두 입력해 주세요. (회사명·사업자등록번호·대표자·연락처·주소)',
+                    'profile_incomplete' => true,
+                    'missing_fields' => $missing,
+                ], 422);
+            }
+        }
 
         // ── 204차 P0: 결제 우회 자가-업그레이드 차단 ──────────────────────────
         //   /auth/upgrade 는 결제 confirm(Payment::confirm = Toss API DONE 검증) 또는
@@ -1152,7 +1285,7 @@ final class UserAuth
             'plan'                    => $plan,
             'subscription_expires_at' => $expiresAt,
             'subscription_cycle'      => $plan !== 'demo' ? $cycle : null,
-            'subscription_status'     => $plan === 'pro' ? 'active' : 'none',
+            'subscription_status'     => $plan !== 'demo' ? 'active' : 'none', // 213차: 모든 유료 플랜 active
         ]);
 
         $cycleLabel = match ($cycle) {
@@ -1160,7 +1293,8 @@ final class UserAuth
             'yearly'    => '1년',
             default     => '1개월',
         };
-        $msg = "🎉 Pro 플랜 {$cycleLabel} 구독이 시작되었습니다! 만료일: {$expiresAt}";
+        $planLabel = ucfirst($plan);
+        $msg = "🎉 {$planLabel} 플랜 {$cycleLabel} 구독이 시작되었습니다! 만료일: {$expiresAt}";
         // 212차 #5: 자동 무료 보너스 안내
         if ($autoCoupons) {
             $bonusDays = 0; foreach ($autoCoupons as $c) { $bonusDays += (int)($c['duration_days'] ?? 0); }
@@ -1298,6 +1432,17 @@ final class UserAuth
         $licenseKey = trim((string)($body['license_key'] ?? ''));
         if (!$licenseKey) {
             return self::json($res, ['ok' => false, 'error' => '라이선스 키를 입력해주세요.'], 422);
+        }
+
+        // 213차 결제 게이팅 #2: 라이선스 기반 실운영(enterprise) 활성화도 전체 프로필 입력 강제.
+        $missingProf = self::liveProfileMissing((int)($user['id'] ?? 0));
+        if (!empty($missingProf)) {
+            return self::json($res, [
+                'ok'             => false,
+                'error'          => '실운영 전환을 위해 회사 정보를 모두 입력해 주세요. (회사명·사업자등록번호·대표자·연락처·주소)',
+                'profile_incomplete' => true,
+                'missing_fields' => $missingProf,
+            ], 422);
         }
 
         $pdo = Db::pdo();

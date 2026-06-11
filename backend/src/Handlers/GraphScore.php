@@ -34,8 +34,9 @@ final class GraphScore {
         // [현 차수] 회귀 하드닝: 미들웨어 주입 auth_tenant 우선(위조불가). bypass 추가 시 raw 헤더 위조 방지.
         $attr = (string)($request->getAttribute('auth_tenant') ?? '');
         if ($attr !== '') return $attr;
-        $tid = $request->getHeaderLine('X-Tenant-Id');
-        return $tid !== '' ? $tid : 'demo';
+        // 은행급 fail-closed: raw X-Tenant-Id(위조가능)는 노드/엣지 적재 테넌트로 신뢰하지 않는다. 세션 폴백→미해결은 demo 격리.
+        $t = UserAuth::authedTenant($request);
+        return ($t !== null && $t !== '') ? $t : 'demo';
     }
 
     // ── Node management ───────────────────────────────────────────────────

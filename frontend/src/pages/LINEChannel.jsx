@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "../auth/AuthContext";
 import PlanGate from "../components/PlanGate.jsx";
 import { useGlobalData } from "../context/GlobalDataContext.jsx";
-import { getJsonAuth } from '../services/apiClient.js'; // 191차: 세션 토큰 인증(LINE 백엔드 신설 — requirePro)
+import { getJsonAuth, postJsonAuth, requestJsonAuth } from '../services/apiClient.js'; // 191차: 세션 토큰 인증(LINE 백엔드 신설 — requirePro). [현차수] 쓰기액션(저장/생성/삭제) 배선.
 import { useI18n } from '../i18n';
 import { IS_DEMO } from '../utils/demoEnv';
 
@@ -40,15 +40,73 @@ function StatCard({ icon, label, value, color, sub }) {
     );
 }
 
-/* ─── Campaign Tab */
-function CampaignsTab({ campaigns, isDemo = false }) {
+/* ─── Campaign Tab — [현차수] 생성/발송/삭제 배선(액션→onChanged 재조회→stats 동기화). 데모는 읽기전용. */
+function CampaignsTab({ campaigns, templates = [], isDemo = false, onChanged }) {
     const { t } = useI18n();
     const { kakaoCampaignsLinked } = useGlobalData();
     // 180차: 데모/운영 공통 — 공유 상태에서 line 타입 캠페인 라이브 파생(CRM·대시보드와 동기화)
     const linkedLine = kakaoCampaignsLinked.filter(c => c.type === "line");
 
+    const [form, setForm] = useState({ name: '', type: 'marketing', template_id: '' });
+    const [busy, setBusy] = useState(false);
+    const [notice, setNotice] = useState(null);
+
+    const handleCreate = async () => {
+        if (!form.name.trim()) return;
+        setBusy(true); setNotice(null);
+        try { await postJsonAuth('/api/line/campaigns', { ...form, template_id: form.template_id ? Number(form.template_id) : 0 }); setForm({ name: '', type: 'marketing', template_id: '' }); onChanged && onChanged(); }
+        catch (e) { setNotice({ ok: false, msg: String(e.message || e) }); }
+        setBusy(false);
+    };
+    const handleSend = async (id) => {
+        setBusy(true); setNotice(null);
+        try { const r = await postJsonAuth(`/api/line/campaigns/${id}/send`, {}); setNotice({ ok: r.ok, msg: r.ok ? t('line.sendDone','Broadcast sent') : (r.error || t('line.sendFail','Send failed')) }); onChanged && onChanged(); }
+        catch (e) { setNotice({ ok: false, msg: String(e.message || e) }); }
+        setBusy(false);
+    };
+    const handleDelete = async (id) => {
+        setBusy(true); setNotice(null);
+        try { await requestJsonAuth(`/api/line/campaigns/${id}`, 'DELETE'); onChanged && onChanged(); }
+        catch (e) { setNotice({ ok: false, msg: String(e.message || e) }); }
+        setBusy(false);
+    };
+
     return (
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {/* [현차수] 새 캠페인 생성 — 운영 전용 */}
+            {!isDemo && (
+                <div style={{ background: C.card, border: `1px dashed ${C.line}40`, borderRadius: 12, padding: "14px 18px" }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: C.muted, marginBottom: 10 }}>+ {t('line.newCampaign','New Campaign')}</div>
+                    <div style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr 1fr auto", gap: 8, alignItems: "end" }}>
+                        <div>
+                            <div style={{ fontSize: 10, color: C.muted, marginBottom: 4 }}>{t('line.campaignName','Campaign name')}</div>
+                            <input value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} placeholder={t('line.campaignName','Campaign name')}
+                                style={{ width: '100%', padding: '7px 10px', borderRadius: 8, border: `1px solid ${C.border}`, background: 'var(--surface)', color: C.text, fontSize: 12, boxSizing: 'border-box' }} />
+                        </div>
+                        <div>
+                            <div style={{ fontSize: 10, color: C.muted, marginBottom: 4 }}>{t('line.type','Type')}</div>
+                            <select value={form.type} onChange={e => setForm(p => ({ ...p, type: e.target.value }))}
+                                style={{ width: '100%', padding: '7px 10px', borderRadius: 8, border: `1px solid ${C.border}`, background: 'var(--surface)', color: C.text, fontSize: 12, boxSizing: 'border-box' }}>
+                                <option value="marketing">{t('line.typeMarketing','📣 Marketing')}</option>
+                                <option value="transactional">{t('line.typeTransactional','🔔 Transactional')}</option>
+                            </select>
+                        </div>
+                        <div>
+                            <div style={{ fontSize: 10, color: C.muted, marginBottom: 4 }}>{t('line.template','Template')}</div>
+                            <select value={form.template_id} onChange={e => setForm(p => ({ ...p, template_id: e.target.value }))}
+                                style={{ width: '100%', padding: '7px 10px', borderRadius: 8, border: `1px solid ${C.border}`, background: 'var(--surface)', color: C.text, fontSize: 12, boxSizing: 'border-box' }}>
+                                <option value="">{t('line.noTemplate','None')}</option>
+                                {templates.map(tpl => <option key={tpl.id} value={tpl.id}>{tpl.name}</option>)}
+                            </select>
+                        </div>
+                        <button onClick={handleCreate} disabled={busy || !form.name.trim()}
+                            style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: C.line, color: '#000', fontSize: 12, fontWeight: 700, cursor: 'pointer', opacity: (busy || !form.name.trim()) ? 0.6 : 1 }}>
+                            {t('line.create','Create')}
+                        </button>
+                    </div>
+                    {notice && <div style={{ marginTop: 10, fontSize: 12, color: notice.ok ? C.green : C.red }}>{notice.ok ? '✓ ' : '✗ '}{notice.msg}</div>}
+                </div>
+            )}
             {/* CRM Integration Campaign (Paid) */}
             {linkedLine.length > 0 && (
                 <div style={{ background: C.lineLight, border: `1px solid ${C.line}40`, borderRadius: 12, padding: "14px 18px", marginBottom: 4 }}>
@@ -73,9 +131,26 @@ function CampaignsTab({ campaigns, isDemo = false }) {
                                 <span style={{ marginLeft: 8 }}>{c.template_name}</span>
                             </div>
                         </div>
-                        <span style={{ fontSize: 11, padding: "4px 12px", borderRadius: 20, fontWeight: 700, background: c.status === "active" ? "rgba(34,197,94,0.15)" : "rgba(234,179,8,0.15)", color: c.status === "active" ? "#22c55e" : "#eab308" }}>
-                            {c.status === "active" ? t('line.statusActive','✅ Active') : t('line.statusScheduled','⏰ Scheduled')}
-                        </span>
+                        <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                            <span style={{ fontSize: 11, padding: "4px 12px", borderRadius: 20, fontWeight: 700, background: (c.status === "active" || c.status === "sent") ? "rgba(34,197,94,0.15)" : "rgba(234,179,8,0.15)", color: (c.status === "active" || c.status === "sent") ? "#22c55e" : "#eab308" }}>
+                                {c.status === "sent" ? t('line.statusSent','📤 Sent') : c.status === "active" ? t('line.statusActive','✅ Active') : c.status === "draft" ? t('line.statusDraft','📝 Draft') : t('line.statusScheduled','⏰ Scheduled')}
+                            </span>
+                            {/* [현차수] 발송/삭제 액션 — 운영 전용. 발송→백엔드 broadcast→재조회로 stats 동기화. */}
+                            {!isDemo && c.id != null && (
+                                <>
+                                    {c.status !== "sent" && (
+                                        <button onClick={() => handleSend(c.id)} disabled={busy}
+                                            style={{ fontSize: 10, padding: "4px 10px", borderRadius: 8, border: 'none', background: C.line, color: '#000', cursor: 'pointer', fontWeight: 700 }}>
+                                            📤 {t('line.send','Send')}
+                                        </button>
+                                    )}
+                                    <button onClick={() => handleDelete(c.id)} disabled={busy}
+                                        style={{ fontSize: 10, padding: "4px 10px", borderRadius: 8, border: `1px solid ${C.red}40`, background: "rgba(248,113,113,0.08)", color: C.red, cursor: 'pointer', fontWeight: 700 }}>
+                                        🗑
+                                    </button>
+                                </>
+                            )}
+                        </div>
                     </div>
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8 }}>
                         {[[t('line.metricSent','Sent'), (c.sent || 0).toLocaleString()], [t('line.metricOpenRate','Open Rate'), `${c.sent ? (((c.opened || 0) / c.sent) * 100).toFixed(1) : (c.open_rate ?? 0)}%`], [t('line.metricClickRate','Click Rate'), `${c.sent ? (((c.clicked || 0) / c.sent) * 100).toFixed(1) : (c.click_rate ?? 0)}%`]].map(([l, v]) => (
@@ -91,10 +166,27 @@ function CampaignsTab({ campaigns, isDemo = false }) {
     );
 }
 
-/* ─── 템플릿 Tab */
-function TemplatesTab({ templates }) {
+/* ─── 템플릿 Tab — [현차수] 생성/삭제 배선(저장→onChanged 재조회). 데모는 읽기전용. */
+function TemplatesTab({ templates, isDemo = false, onChanged }) {
     const { t } = useI18n();
     const [selected, setSelected] = useState(null);
+    const [form, setForm] = useState({ name: '', type: 'marketing', content: '' });
+    const [busy, setBusy] = useState(false);
+
+    const handleCreate = async () => {
+        if (!form.name.trim()) return;
+        setBusy(true);
+        try { await postJsonAuth('/api/line/templates', form); setForm({ name: '', type: 'marketing', content: '' }); onChanged && onChanged(); }
+        catch (e) { /* swallow; UI stays */ }
+        setBusy(false);
+    };
+    const handleDelete = async (id) => {
+        setBusy(true);
+        try { await requestJsonAuth(`/api/line/templates/${id}`, 'DELETE'); if (selected?.id === id) setSelected(null); onChanged && onChanged(); }
+        catch (e) { /* swallow */ }
+        setBusy(false);
+    };
+
     return (
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -103,14 +195,43 @@ function TemplatesTab({ templates }) {
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                             <div>
                                 <div style={{ fontWeight: 700, fontSize: 13 }}>{tpl.name}</div>
-                                <div style={{ fontSize: 11, color: C.muted, marginTop: 2 }}>{tpl.category}</div>
+                                <div style={{ fontSize: 11, color: C.muted, marginTop: 2 }}>{tpl.category || tpl.type}</div>
                             </div>
-                            <span style={{ fontSize: 10, padding: "3px 10px", borderRadius: 20, fontWeight: 700, background: tpl.status === "approved" ? "rgba(34,197,94,0.15)" : "rgba(234,179,8,0.15)", color: tpl.status === "approved" ? "#22c55e" : "#eab308" }}>
-                                {tpl.status === "approved" ? t('line.statusApproved','Approved') : t('line.statusReviewing','Reviewing')}
-                            </span>
+                            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                                <span style={{ fontSize: 10, padding: "3px 10px", borderRadius: 20, fontWeight: 700, background: tpl.status === "approved" ? "rgba(34,197,94,0.15)" : "rgba(234,179,8,0.15)", color: tpl.status === "approved" ? "#22c55e" : "#eab308" }}>
+                                    {tpl.status === "approved" ? t('line.statusApproved','Approved') : t('line.statusReviewing','Reviewing')}
+                                </span>
+                                {!isDemo && (
+                                    <button onClick={(e) => { e.stopPropagation(); handleDelete(tpl.id); }} disabled={busy}
+                                        style={{ fontSize: 10, padding: "3px 8px", borderRadius: 8, border: `1px solid ${C.red}40`, background: "rgba(248,113,113,0.08)", color: C.red, cursor: "pointer", fontWeight: 700 }}>
+                                        🗑 {t('line.delete','Delete')}
+                                    </button>
+                                )}
+                            </div>
                         </div>
                     </div>
                 ))}
+                {templates.length === 0 && <div style={{ color: C.muted, fontSize: 12, padding: 12 }}>{t('line.noTemplates','No templates yet.')}</div>}
+
+                {/* [현차수] 새 템플릿 생성 — 운영 전용 */}
+                {!isDemo && (
+                    <div style={{ background: C.card, border: `1px dashed ${C.line}40`, borderRadius: 12, padding: "14px 18px" }}>
+                        <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, marginBottom: 8 }}>+ {t('line.newTemplate','New Template')}</div>
+                        <input placeholder={t('line.templateName','Template name')} value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
+                            style={{ width: '100%', padding: '7px 10px', borderRadius: 8, border: `1px solid ${C.border}`, background: 'var(--surface)', color: C.text, fontSize: 12, boxSizing: 'border-box', marginBottom: 8 }} />
+                        <select value={form.type} onChange={e => setForm(p => ({ ...p, type: e.target.value }))}
+                            style={{ width: '100%', padding: '7px 10px', borderRadius: 8, border: `1px solid ${C.border}`, background: 'var(--surface)', color: C.text, fontSize: 12, boxSizing: 'border-box', marginBottom: 8 }}>
+                            <option value="marketing">{t('line.typeMarketing','📣 Marketing')}</option>
+                            <option value="transactional">{t('line.typeTransactional','🔔 Transactional')}</option>
+                        </select>
+                        <textarea placeholder={t('line.templateContent','Message content…')} value={form.content} onChange={e => setForm(p => ({ ...p, content: e.target.value }))} rows={2}
+                            style={{ width: '100%', padding: '7px 10px', borderRadius: 8, border: `1px solid ${C.border}`, background: 'var(--surface)', color: C.text, fontSize: 12, boxSizing: 'border-box', marginBottom: 8, resize: 'vertical' }} />
+                        <button onClick={handleCreate} disabled={busy || !form.name.trim()}
+                            style={{ padding: '7px 16px', borderRadius: 8, border: 'none', background: C.line, color: '#000', fontSize: 12, fontWeight: 700, cursor: 'pointer', opacity: (busy || !form.name.trim()) ? 0.6 : 1 }}>
+                            {t('line.createTemplate','Create Template')}
+                        </button>
+                    </div>
+                )}
             </div>
             {/* Template Preview */}
             <div style={{ background: C.card, borderRadius: 14, padding: 20, border: `1px solid ${C.border}` }}>
@@ -120,7 +241,7 @@ function TemplatesTab({ templates }) {
                         <div style={{ background: "#00b900", borderRadius: 16, padding: "14px 18px", maxWidth: 280 }}>
                             <div style={{ fontSize: 11, color: '#fff', marginBottom: 8, fontWeight: 600 }}>{t('line.officialAccount','LINE Official Account')}</div>
                             <div style={{ background: "#fff", borderRadius: 10, padding: "12px 14px" }}>
-                                <div style={{ fontSize: 12, color: "#333", lineHeight: 1.7, whiteSpace: "pre-line" }}>{selected.preview}</div>
+                                <div style={{ fontSize: 12, color: "#333", lineHeight: 1.7, whiteSpace: "pre-line" }}>{selected.preview || selected.content || "—"}</div>
                             </div>
                         </div>
                     </div>
@@ -132,26 +253,72 @@ function TemplatesTab({ templates }) {
     );
 }
 
-/* ─── Settings Tab */
-function SettingsTab({ settings }) {
+/* ─── Settings Tab — [현차수] 자격증명 저장 폼 배선(저장→onSaved 전탭 재조회). 데모는 읽기전용. */
+function SettingsTab({ settings, isDemo = false, onSaved }) {
     const { t } = useI18n();
-    const fields = [
-        ["Channel ID", settings.channel_id],
-        ["LINE ID", settings.line_id],
-        [t('line.followers','Followers'), `${settings.followers?.toLocaleString()}`],
-        [t('line.statusLabel','Connection Status'), settings.status === "connected" ? t('line.connected','✅ Connected') : t('line.disconnected','❌ Not Connected')],
-        ["Channel Secret", settings.channel_secret?.replace(/./g, "•")],
-    ];
+    const [form, setForm] = useState({ channel_id: '', channel_secret: '', access_token: '' });
+    const [saving, setSaving] = useState(false);
+    const [result, setResult] = useState(null);
+
+    const connected = settings.connected || settings.status === "connected";
+
+    const handleSave = async () => {
+        if (!form.access_token.trim()) return;
+        setSaving(true); setResult(null);
+        try {
+            const r = await postJsonAuth('/api/line/settings', form);
+            setResult(r);
+            if (r.ok && onSaved) onSaved(); // 저장 직후 settings/templates/campaigns/stats 전탭 재조회(stale 해소)
+        } catch (e) {
+            setResult({ ok: false, message: String(e.message || e) });
+        }
+        setSaving(false);
+    };
+
     return (
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
             <div style={{ background: C.card, borderRadius: 14, padding: 20, border: `1px solid ${C.border}` }}>
                 <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 16, color: C.line }}>🔧 {t('line.settingsTitle','LINE Channel Settings')}</div>
-                {fields.map(([l, v]) => (
-                    <div key={l} style={{ display: "flex", justifyContent: "space-between", padding: "10px 0", borderBottom: `1px solid rgba(255,255,255,0.05)` }}>
-                        <span style={{ fontSize: 13, color: C.muted }}>{l}</span>
-                        <span style={{ fontSize: 13, fontWeight: 600 }}>{v}</span>
+                <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 0", borderBottom: `1px solid rgba(255,255,255,0.05)` }}>
+                    <span style={{ fontSize: 13, color: C.muted }}>Channel ID</span>
+                    <span style={{ fontSize: 13, fontWeight: 600 }}>{settings.channel_id || "—"}</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 0", borderBottom: `1px solid rgba(255,255,255,0.05)` }}>
+                    <span style={{ fontSize: 13, color: C.muted }}>{t('line.statusLabel','Connection Status')}</span>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: connected ? C.green : C.red }}>{connected ? t('line.connected','✅ Connected') : t('line.disconnected','❌ Not Connected')}</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 0", borderBottom: `1px solid rgba(255,255,255,0.05)` }}>
+                    <span style={{ fontSize: 13, color: C.muted }}>Webhook</span>
+                    <span style={{ fontSize: 11, fontWeight: 600, wordBreak: "break-all", maxWidth: 220, textAlign: "right" }}>{settings.webhook || "—"}</span>
+                </div>
+
+                {/* [현차수] 자격증명 등록 폼 — 운영(비데모)만. 데모는 읽기전용 시드. */}
+                {!isDemo && (
+                    <div style={{ marginTop: 18 }}>
+                        <div style={{ fontWeight: 700, fontSize: 12, color: C.muted, marginBottom: 10 }}>🔑 {t('line.credTitle','Channel Credentials')}</div>
+                        {[
+                            { k: 'channel_id', l: 'Channel ID', ph: '1234567890' },
+                            { k: 'channel_secret', l: 'Channel Secret', ph: '••••••••', secret: true },
+                            { k: 'access_token', l: t('line.accessToken','Access Token (Long-lived)'), ph: 'Bearer token…', secret: true },
+                        ].map(f => (
+                            <div key={f.k} style={{ marginBottom: 8 }}>
+                                <div style={{ fontSize: 10, color: C.muted, marginBottom: 4 }}>{f.l}</div>
+                                <input type={f.secret ? 'password' : 'text'} placeholder={f.ph} value={form[f.k]}
+                                    onChange={e => setForm(p => ({ ...p, [f.k]: e.target.value }))}
+                                    style={{ width: '100%', padding: '7px 10px', borderRadius: 8, border: `1px solid ${C.border}`, background: 'var(--surface)', color: C.text, fontSize: 12, boxSizing: 'border-box' }} />
+                            </div>
+                        ))}
+                        <button onClick={handleSave} disabled={saving || !form.access_token.trim()}
+                            style={{ marginTop: 6, padding: '8px 18px', borderRadius: 8, border: 'none', background: C.line, color: '#000', fontSize: 12, fontWeight: 700, cursor: saving ? 'not-allowed' : 'pointer', opacity: (saving || !form.access_token.trim()) ? 0.6 : 1 }}>
+                            {saving ? ('⏳ ' + t('line.connecting','Connecting…')) : ('💾 ' + t('line.saveConnect','Save + Test Connection'))}
+                        </button>
+                        {result && (
+                            <div style={{ marginTop: 10, padding: '8px 12px', borderRadius: 8, fontSize: 12, background: result.ok ? 'rgba(34,197,94,0.08)' : 'rgba(248,113,113,0.08)', color: result.ok ? C.green : C.red }}>
+                                {result.ok ? `✓ ${result.message || t('line.connectSuccess','Connected')}` : `✗ ${result.message || result.error}`}
+                            </div>
+                        )}
                     </div>
-                ))}
+                )}
             </div>
             <div style={{ background: C.card, borderRadius: 14, padding: 20, border: `1px solid ${C.border}` }}>
                 <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 16 }}>📊 {t('line.monthlyPerf','Monthly Performance')}</div>
@@ -186,9 +353,9 @@ function LINEChannelContent() {
     const [settings, setSettings] = useState({});
     const [stats, setStats] = useState(null);
 
-    useEffect(() => {
+    // [현차수] loadData 분리 — 자격증명 저장/템플릿·캠페인 생성·발송·삭제 직후 전탭 재조회(stale 해소).
+    const loadData = React.useCallback(() => {
         if (isDemo) {
-            // 데모: 가상데이터 시드 (운영 API 미호출 — 격리)
             setCampaigns(DEMO_LINE_CAMPAIGNS);
             setTemplates(DEMO_LINE_TEMPLATES);
             setSettings(DEMO_LINE_SETTINGS);
@@ -200,7 +367,9 @@ function LINEChannelContent() {
         getJsonAuth('/api/line/templates').then(r => r.templates && setTemplates(r.templates)).catch(() => { });
         getJsonAuth('/api/line/settings').then(r => r.ok && setSettings(r)).catch(() => { });
         getJsonAuth('/api/line/stats').then(r => r.ok && setStats(r)).catch(() => { });
-    }, [isDemo, token]);
+    }, [isDemo]);
+
+    useEffect(() => { loadData(); }, [loadData, token]);
 
     return (
         <div style={{ background: C.bg, minHeight: "100%", color: C.text }}>
@@ -250,9 +419,9 @@ function LINEChannelContent() {
                 ))}
             </div>
 
-            {tab === "campaigns" && <CampaignsTab campaigns={campaigns} isDemo={isDemo} />}
-            {tab === "templates" && <TemplatesTab templates={templates} />}
-            {tab === "settings" && <SettingsTab settings={settings} />}
+            {tab === "campaigns" && <CampaignsTab campaigns={campaigns} templates={templates} isDemo={isDemo} onChanged={loadData} />}
+            {tab === "templates" && <TemplatesTab templates={templates} isDemo={isDemo} onChanged={loadData} />}
+            {tab === "settings" && <SettingsTab settings={settings} isDemo={isDemo} onSaved={loadData} />}
         </div>
     );
 }

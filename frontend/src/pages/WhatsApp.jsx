@@ -82,7 +82,7 @@ function AuthPanel({ onSaved }) {
 }
 
 /* Send Panel */
-function SendPanel({ templates }) {
+function SendPanel({ templates, onSent }) {
     const { t } = useI18n(); // 크래시 수정: t 범위밖 ReferenceError 해소
     const [form, setForm] = useState({ to: '', template: '', body: '' });
     const [loading, setLoading] = useState(false);
@@ -93,6 +93,8 @@ function SendPanel({ templates }) {
         const data = await apiFetch('/api/whatsapp/send', { method: 'POST', body: JSON.stringify(form) });
         setResult(data);
         setLoading(false);
+        // [현차수] 발송 직후 이력/통계 동기화(History·Overview stale 해소)
+        if (data.ok && onSent) onSent();
     };
 
     return (
@@ -133,7 +135,7 @@ function SendPanel({ templates }) {
 }
 
 /* Broadcast Panel */
-function BroadcastPanel({ templates }) {
+function BroadcastPanel({ templates, onSent }) {
     const { t } = useI18n(); // 크래시 수정: t 범위밖 ReferenceError 해소
     const [numbers, setNumbers] = useState('');
     const [template, setTemplate] = useState('');
@@ -146,6 +148,8 @@ function BroadcastPanel({ templates }) {
         const data = await apiFetch('/api/whatsapp/broadcast', { method: 'POST', body: JSON.stringify({ numbers: ns, template }) });
         setResult(data);
         setLoading(false);
+        // [현차수] 일괄발송 직후 이력/통계 동기화(History·Overview stale 해소)
+        if (data.ok && onSent) onSent();
     };
 
     return (
@@ -283,8 +287,8 @@ export default function WhatsApp() {
                     </div>
                 </div>
             )}
-            {tab === 'send' && <SendPanel templates={templates} />}
-            {tab === 'broadcast' && <BroadcastPanel templates={templates} />}
+            {tab === 'send' && <SendPanel templates={templates} onSent={loadData} />}
+            {tab === 'broadcast' && <BroadcastPanel templates={templates} onSent={loadData} />}
             {tab === 'templates' && (
                 <div className="card card-glass">
                     <div style={{ fontWeight: 900, fontSize: 13, marginBottom: 14 }}>{t('wa.messageTemplates','Message Templates')}</div>

@@ -115,8 +115,12 @@ const Stars = memo(function Stars({ n }) {
 const IdentityTab = memo(function IdentityTab() {
     const CREATORS = useSafeCreators();
     const { t } = useI18n();
+    const { updateCreator } = useGlobalData(); // [현차수] 병합 액션 영속화
     const [sel, setSel] = useState(null);
     const [merge, setMerge] = useState([]);
+
+    // [현차수] 병합 — 중복 플래그를 해제하고 검토완료로 전이(영속·전탭 동기화). KPI(중복 의심)에 즉시 반영.
+    const mergeCreator = (c) => updateCreator(c.id, { duplicateFlag: false, mergedAt: new Date().toISOString() });
 
     const dups = CREATORS.filter(c => c.duplicateFlag);
 
@@ -152,7 +156,7 @@ const IdentityTab = memo(function IdentityTab() {
                                     {sel === c.id ? t("influencer.btnCollapse", "▲ 접기") : t("influencer.btnChannelDetails", "▼ 채널 정보")}
                                 </button>
                                 {c.duplicateFlag && (
-                                    <button className="btn-primary" style={{ fontSize: 10, padding: "3px 12px", background: "linear-gradient(135deg,#eab308,#f97316)" }}>🔗 {t("influencerUGC.w_301", "병합")}</button>
+                                    <button className="btn-primary" onClick={() => mergeCreator(c)} style={{ fontSize: 10, padding: "3px 12px", background: "linear-gradient(135deg,#eab308,#f97316)", cursor: "pointer" }}>🔗 {t("influencerUGC.w_301", "병합")}</button>
                                 )}
                             </div>
                         </div>
@@ -201,7 +205,24 @@ const ContractTab = memo(function ContractTab() {
     const CREATORS = useSafeCreators();
     const { t } = useI18n();
     const { fmt } = useCurrency();
+    const { updateCreator } = useGlobalData(); // [현차수] 계약 액션 영속화(updateCreator→useInfluencerDataSync 자동저장→전탭 동기화)
     const [modal, setModal] = useState(null);
+    const [pending, setPending] = useState(null); // 진행중 액션 표시용 creator.id
+
+    // [현차수] 서명 재요청 — e-Sign 상태를 'requested' 로 전이(영속·전탭 동기화). 백엔드 creators blob 에 저장됨.
+    const resendSignature = (c) => {
+        setPending(c.id);
+        updateCreator(c.id, { contract: { ...c.contract, esign: 'requested', esignRequestedAt: new Date().toISOString() } });
+        setTimeout(() => setPending(null), 1200);
+    };
+    // [현차수] 권리 갱신 — 화이트리스트 만료일을 1년 연장(영속·전탭 동기화).
+    const renewRights = (c) => {
+        setPending(c.id);
+        const base = new Date();
+        base.setFullYear(base.getFullYear() + 1);
+        updateCreator(c.id, { contract: { ...c.contract, whitelistExpiry: base.toISOString().slice(0, 10) } });
+        setTimeout(() => setPending(null), 1200);
+    };
 
     const esignPending = CREATORS.filter(c => c.contract.esign === "pending").length;
     const wlExpiringSoon = CREATORS.filter(c => c.contract.whitelist && daysLeft(c.contract.whitelistExpiry) <= 90 && daysLeft(c.contract.whitelistExpiry) >= 0).length;
@@ -221,13 +242,13 @@ const ContractTab = memo(function ContractTab() {
             {CREATORS.filter(c => c.contract.esign === "pending").map(c => (
                 <div key={c.id} style={{ padding: "9px 16px", borderRadius: 10, background: "rgba(234,179,8,0.07)", border: "1px solid rgba(234,179,8,0.2)", display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 11 }}>
                     <span>✍ <strong>{c.name}</strong> — — {t("influencerUGC.w_207", "e-Sign not completed yet (contract not effective)")}</span>
-                    <button className="btn-primary" style={{ fontSize: 10, padding: "4px 12px", background: "linear-gradient(135deg,#eab308,#f97316)" }}>{t("influencerUGC.u_7", "Resend Signature Request")}</button>
+                    <button className="btn-primary" disabled={pending === c.id} onClick={() => resendSignature(c)} style={{ fontSize: 10, padding: "4px 12px", background: "linear-gradient(135deg,#eab308,#f97316)", cursor: "pointer" }}>{pending === c.id ? t("influencer.sending","전송 중…") : t("influencerUGC.u_7", "Resend Signature Request")}</button>
                 </div>
             ))}
             {CREATORS.filter(c => c.contract.whitelist && daysLeft(c.contract.whitelistExpiry) < 0).map(c => (
                 <div key={c.id} style={{ padding: "9px 16px", borderRadius: 10, background: "rgba(239,68,68,0.07)", border: "1px solid rgba(239,68,68,0.2)", display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 11 }}>
                     <span>🚫 <strong>{c.name}</strong> — Whitelist Expired ({c.contract.whitelistExpiry}) · Stop ad execution immediately</span>
-                    <button className="btn-primary" style={{ fontSize: 10, padding: "4px 12px", background: "linear-gradient(135deg,#ef4444,#a855f7)" }}>{t("influencerUGC.u_9", "Renew Rights")}</button>
+                    <button className="btn-primary" disabled={pending === c.id} onClick={() => renewRights(c)} style={{ fontSize: 10, padding: "4px 12px", background: "linear-gradient(135deg,#ef4444,#a855f7)", cursor: "pointer" }}>{pending === c.id ? t("influencer.renewing","갱신 중…") : t("influencerUGC.u_9", "Renew Rights")}</button>
                 </div>
             ))}
 
@@ -371,11 +392,19 @@ const SettleTab = memo(function SettleTab() {
     const CREATORS = useSafeCreators();
     const { t } = useI18n();
     const { fmt } = useCurrency();
+    const { updateCreator } = useGlobalData(); // [현차수] 정산 액션 영속화(→전탭 동기화·이상건수 KPI 즉시 반영)
     const [modal, setModal] = useState(null);
 
     const anomalies = CREATORS.filter(c =>
         c.settle.status === "overpaid" || c.settle.status === "unpaid" || c.settle.status === "partial"
     );
+
+    // [현차수] 정산 처리 — 미지급/부분=계약액 지급 완료, 과지급=초과분 회수. settle.paid 를 계약액에 정합시키고 status='paid'.
+    //   영속(creators blob 저장)·이상건수/완료 KPI 즉시 동기화.
+    const resolveSettle = (c) => {
+        const due = c.contract.flatFee + (c.contract.perfRate > 0 ? (c.stats?.revenue || 0) * c.contract.perfRate : 0);
+        updateCreator(c.id, { settle: { ...c.settle, paid: due, status: 'paid', resolvedAt: new Date().toISOString() } });
+    };
 
     const STATUS_LABEL = { paid: t("influencer.stPaid","Done"), partial: t("influencer.stPartial","Partial"), unpaid: t("influencer.stUnpaid","Unpaid"), overpaid: t("influencer.stOverpaid","Overpaid") };
     const STATUS_COLOR = { paid: "#22c55e", partial: "#eab308", unpaid: "#ef4444", overpaid: "#a855f7" };
@@ -419,7 +448,7 @@ const SettleTab = memo(function SettleTab() {
                                 </span>
                             </span>
                         </div>
-                        <button className="btn-primary" style={{ fontSize: 10, padding: "4px 12px", background: isOver ? "linear-gradient(135deg,#a855f7,#6366f1)" : "linear-gradient(135deg,#ef4444,#f97316)" }}>
+                        <button className="btn-primary" onClick={() => resolveSettle(c)} style={{ fontSize: 10, padding: "4px 12px", cursor: "pointer", background: isOver ? "linear-gradient(135deg,#a855f7,#6366f1)" : "linear-gradient(135deg,#ef4444,#f97316)" }}>
                             {isOver ? t("influencer.recover","Recover") : t("influencer.payRemaining","Pay Remaining")}
                         </button>
                     </div>

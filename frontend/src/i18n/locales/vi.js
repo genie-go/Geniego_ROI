@@ -14568,14 +14568,11 @@ export default {
       chName_: "Ch Name_"
     },
   omniChannel: {
-    guideTitle: "Hướng Dẫn Tích Hợp Kênh Bán Hàng",
-    guideSub: "Tìm hiểu cách kết nối các sàn thương mại điện tử toàn cầu, cửa hàng trực tuyến và nền tảng thương mại để tự động thu thập và quản lý dữ liệu sản phẩm, đơn hàng và doanh thu trên một nền tảng duy nhất.",
     guideBeginnerBadge: "Phù hợp cho người mới bắt đầu",
     guideTimeBadge: "Khoảng 10 phút",
     guideLangBadge: "Hỗ trợ 14 ngôn ngữ",
     guideLearnTitle: "Bạn sẽ học được gì",
     guideLearnDesc: "Sau khi hoàn thành hướng dẫn này, bạn có thể kết nối các kênh bán hàng, tự động đồng bộ dữ liệu sản phẩm và đơn hàng, đồng thời quản lý hoạt động đa kênh trên một nền tảng thống nhất.",
-    guideStepsTitle: "Hướng dẫn từng bước",
     guideStep1Phase: "Phase A · Bắt đầu",
     guideStep1Title: "Chọn kênh cần kết nối",
     guideStep1Desc: "Chọn các kênh bán hàng mà bạn muốn tích hợp.\n\nCác kênh được hỗ trợ\n\n• Toàn cầu\nShopify\nAmazon SP-API\neBay\nTikTok Shop\n\n• Nhật Bản\nRakuten\nYahoo! Shopping\nLINE Shopping\n\n• Hàn Quốc\nCoupang Wing\nNaver Smart Store\nGmarket\nAuction\nCafe24\nLotte ON\n\nCách thực hiện\n\n1. Truy cập [Trung tâm Tích hợp].\n2. Chọn kênh bán hàng cần kết nối.\n3. Kiểm tra các yêu cầu kết nối của kênh đã chọn.\n\nKết quả\n\nTrang cấu hình xác thực của kênh được hiển thị và sẵn sàng để bắt đầu tích hợp.",
@@ -14612,7 +14609,6 @@ export default {
     guideStep12Phase: "Phase E · Vận hành và Bảo mật",
     guideStep12Title: "Thêm kênh bán hàng mới",
     guideStep12Desc: "Mở rộng hoạt động kinh doanh bằng cách kết nối thêm các kênh bán hàng mới theo cùng một quy trình tích hợp.\n\nVí dụ\n\n• Marketplace toàn cầu mới\n• Marketplace nội địa mới\n• Nền tảng thương mại điện tử quốc tế mới\n• Kênh tiếp nhận đơn hàng mới\n\nQuy trình đề xuất\n\n1. Chọn kênh\n2. Nhập thông tin xác thực\n3. Kiểm tra kết nối\n4. Lưu và đồng bộ\n5. Xác minh hoạt động\n\nKết quả\n\nHệ sinh thái bán hàng đa kênh của bạn có thể tiếp tục mở rộng mà không làm tăng độ phức tạp trong vận hành.",
-    guideTipsTitle: "Mẹo vận hành từ chuyên gia",
     guideTip1: "Thường xuyên kiểm tra thời hạn của token trên các nền tảng toàn cầu.",
     guideTip2: "Luôn thực hiện kiểm tra kết nối trước khi lưu cấu hình.",
     guideTip3: "Chỉ cập nhật khóa bí mật khi nhà cung cấp cấp phát khóa mới.",

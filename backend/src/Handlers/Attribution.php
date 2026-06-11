@@ -28,8 +28,9 @@ final class Attribution {
         //   bypass 목록에 추가되면 raw 헤더는 위조 가능해진다 → auth_tenant 우선으로 크로스테넌트 위조 차단.
         $attr = (string)($request->getAttribute('auth_tenant') ?? '');
         if ($attr !== '') return $attr;
-        $tid = $request->getHeaderLine('X-Tenant-Id');
-        return $tid !== '' ? $tid : 'demo';
+        // 은행급 fail-closed: raw X-Tenant-Id(위조가능)는 적재 테넌트로 신뢰하지 않는다. 세션 자가인증 폴백→미해결은 demo 격리.
+        $t = UserAuth::authedTenant($request);
+        return ($t !== null && $t !== '') ? $t : 'demo';
     }
 
     // ── Coupons ────────────────────────────────────────────────────────────

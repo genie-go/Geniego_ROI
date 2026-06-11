@@ -12,11 +12,15 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 final class Decisioning {
 
     private static function tenantId(Request $request): string {
-        // [현 차수] 하드닝: 미들웨어 주입 auth_tenant(키/세션 서버도출) 우선 — raw 헤더 신뢰 회귀 방지(ingest 위조 차단).
+        // 은행급 다층 하드닝: 미들웨어 주입 auth_tenant(api_key 의 tenant_id 강제주입, 위조불가) 만 신뢰.
+        //   raw X-Tenant-Id 헤더는 클라이언트 위조 가능 → ingest 적재 테넌트로 절대 신뢰하지 않는다.
+        //   (현재 라우트는 api_key 미들웨어 경유라 auth_tenant 가 항상 채워지나, 향후 bypass 추가 시
+        //    raw 헤더가 노출되면 교차테넌트 ingest 위조가 가능하므로 fail-closed 로 'demo' 격리버킷으로 귀결.)
         $auth = (string)($request->getAttribute('auth_tenant') ?? '');
         if ($auth !== '') return $auth;
-        $tid = $request->getHeaderLine('X-Tenant-Id');
-        return $tid !== '' ? $tid : 'demo';
+        // 세션 토큰 기반 자가인증 폴백(세션→tenant 서버도출, 위조불가). 미인증/미해결은 demo 격리.
+        $t = UserAuth::authedTenant($request);
+        return ($t !== null && $t !== '') ? $t : 'demo';
     }
 
     public static function ingestAdInsights(Request $request, Response $response, array $args): Response {
