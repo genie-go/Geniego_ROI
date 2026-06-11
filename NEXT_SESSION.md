@@ -1,3 +1,49 @@
+# 212차 세션 인계서 — **채널 실어댑터 3종 + 레지스트리 SSOT + P2 하드닝 + abandon detector + 사용자 6항목(연동허브 일원화·플랜한도·파트너 포털·무료쿠폰)**
+
+> **작성일**: 2026-06-11 (사용자 명시 승인 후)
+> **이전 세션**: 211차 → 212차. **운영** roi.genie-go.com / **데모** roidemo.genie-go.com.
+> **종결 상태**: 커밋 9개 전부 운영/데모 수동배포·검증(e2e/HTTP/DB)·push 완료. ★playwright(브라우저 MCP) **이번 세션 미연결** → UI 검증은 HTTP(청크200)+서버 e2e+DB 실측으로 대체(스크린샷 없음). 다음 세션 playwright 연결 시 브라우저 캡처 권장.
+
+## ✅ 212차 완료 (커밋 순)
+| 커밋 | 내용 |
+|---|---|
+| `bab65749276` | **TikTok Shop 어댑터**(ChannelSync v202309 HMAC `tiktokSign`+shop_cipher 2단계, open-api.tiktokglobalshop.com). 211차 1순위. 서버 라이브 더미 code=400 실증 |
+| `89cd8eddab4` | **Rakuten RMS**(ESA 인증, searchOrder→getOrder, code=401 실증)·**Cafe24**(OAuth2 refresh_token, mall_id 동적도메인) 실어댑터 + ★**데모 생성기 DivisionByZero 수정**(demoProducts/demoOrders 빈 시드배열=최초커밋부터 PHP8 fatal, coupang/ebay/tiktok 데모도 동반 안정화) |
+| `126f0504fc3` | **채널 레지스트리 SSOT 확장**(신규 `services/channelRegistry.js`, ConnectorSync/AdChannelConnect/OmniChannel additive merge, ID불일치 별칭 스킵) |
+| `a1545a2ed6e` | **210차 P2 하드닝 5건**: GdprConsent stats admin게이트·Pixel utm sanitize·AutoCampaign(데모 무actuate+테넌트 월 spend cap `AD_TENANT_MONTHLY_CAP`)·SmsMarketing aliveRef·WmsManager fetch몽키패치→PerformanceObserver |
+| `b566cb41e50` | **Journey abandon(장바구니이탈) detector** — Pixel add_to_cart(email_hash) 후 미구매 → enroll. 데모 e2e PASS(구매자 제외) |
+| `b2dcf6965f9` | **#1 광고매체 연동 일원화**(/ad-channels→/integration-hub redirect+자동sync 흡수) + **#6 채널추가 카테고리 자동분류**(RegistryAddModal 8카테고리 + G2A pass-through) |
+| `7bfeef59c3b` | **#3 플랜 한도 7차원 강제**(`PlanLimits` 신규, plan_config.limits admin제어) + **파트너 서브계정 포털**(`PartnerPortal.php` 신규: partner_account/partner_session 별도인증·/partner 독립페이지·유형별 최소권한) + 매입처 `wms_suppliers` registry + 관리자 발급UI + ★**완전 동기화 `Wms::recordMovement`**(택배출고/반품입고/입출고→재고+이력 일체화). 데모 e2e PASS |
+| `35004715a40` | **#5 무료쿠폰 자동발급**(CouponEngine upgrade() 배선·free_coupons 자동생성) + **app-pricing 동적화**(DynamicPlanGuide+PlanMenuAccessMatrix 읽기전용, plan_config 실데이터) |
+| `6397cb8d342` | **#5b 가입 기간별 차등 쿠폰**(3개월→0.5/6개월→1.5/1년→3개월, term_3mo/6mo/12mo 룰 admin편집, 유료기간 소진후 연장) |
+
+## ✅ 사용자 검수 항목(코드수정 불요)
+- **#2 /audit**: auth_audit_log 실 이벤트(고위험26=관리자26=admin 실로그인). 운영DB 실측 확인 — 목/가상 아님.
+- **#4 /developer-hub**: 실 api-keys+use_count 계산 — 목 아님.
+
+## ⏭️ 다음 차수 잔여 (이어서 진행)
+1. **잔여 채널 실 어댑터**(genericFetch 스텁): **11번가(st11, XML 응답)·Yahoo!JP(OAuth+XML)** = XML 파서 인프라 필요·엔드포인트 확신 부족으로 보류(fantasy 회피). **LINE** = 공개 셀러 주문 API 불확실. **ESM Plus(Gmarket/옥션/롯데온)** = 공개 API 부재. → 사용자 검증 스펙/자격증명 확보 후.
+2. **실 어댑터 라이브 데이터 검증**(Amazon/Coupang/TikTok/Rakuten/Cafe24): 코드경로 실증(더미→실서버 4xx) 완료, **실 판매자 자격증명 없이 라이브 데이터 미검증** — 사용자 실/샌드박스 자격증명 제공 시.
+3. **#4 OmniChannel 완전 통합 잔여**: `.find` 룩업(line~26·343)·`<option>` 드롭다운(323·442)이 여전히 모듈상수 CHANNELS_MASTER. 레지스트리 추가 채널이 연동카드엔 노출되나 연동후 테이블/드롭다운엔 폴백{}. 별칭 정규화 후 완전 통합.
+3. **파트너 포털 잔여**: WmsManager `SupplierTab`이 여전히 **in-memory(미영속)** — `/wms/suppliers` 백엔드(212차 신설)에 배선 필요. 매입처 registry CRUD UI 연결.
+4. **211차 2차 재감사 잔여**: Journey split 노드 시각편집 UI 검증·행동신호(email_clicked/opened) 미추적→condition false 한계.
+5. **209차 잔여**: SMS Templates/Campaigns 백엔드 부재(#5)·공개페이지 한글 하드코딩(#7)·P2.
+6. **운영 점검**: optimize_cron/journey_cron/connectors_sync_cron **crontab 등록 확인**(코드는 배포됨, 서버 crontab 등재 미확인). `AD_TENANT_MONTHLY_CAP`·`AD_EXECUTION_ENABLED` .env 정책(기본 미설정).
+7. **playwright 브라우저 검증**: 이번 세션 미연결 → 다음 세션 연결 후 파트너 포털(/partner)·app-pricing 동적가이드·쿠폰관리 화면 실 브라우저 캡처.
+
+## 📌 정본 패턴 (212차)
+- **★실 채널 어댑터 graceful**: 데모 tenant→buildDemo*; 운영→자격증명 부재시 빈결과+note(크래시0). source 마커(tiktok_api/rakuten_api/cafe24_api). 검증=더미 자격증명 reflection→실서버 4xx(서버는 CA번들 보유, 로컬은 code=0).
+- **★플랜 한도 강제**: `Genie\PlanLimits`(plan_config.limits_json, -1무제한, `tenantPlan()` 소유자플랜 해석). 자원 생성직전 `exceeded()` 402 + 프론트 `utils/planLimit.js handlePlanLimit`(postJson/requestJsonAuth 의 `HTTP 402 {json}` 파싱→업그레이드 /app-pricing 유도).
+- **★파트너 포털**: partner_account/partner_session 별도인증, /partner 공개 bypass(index.php), 유형별 스코프(supplier=supply_orders·logistics=picking·warehouse=stock/movements 본인것만). 일체화=`Wms::recordMovement` 단일경로(이력+재고).
+- **★쿠폰 자동발급**: `CouponEngine::fire($pdo,$uid,$email,$trigger,$curPlan,$planOverride,$durationOverride,$dedupDays)`. coupon_rules(admin편집 trigger/duration/active) + free_coupons/coupon_redemptions 자동생성(자급자족). 만료일 기준 연장(유료기간 뒤 무료). term_{3,6,12}mo 가입기간별.
+- **★신규 핸들러/클래스**: routes.php `$custom`맵+`$register` 둘다 + **php-fpm restart**(신규 라우트, reload 불충분) + composer dump-autoload(신규 PSR-4 클래스). 기존 핸들러 변경은 reload 충분.
+- **★CRLF 트랩**: 로컬 작업본 CRLF → pscp 전 `sed 's/\r$//'` LF 정규화 재업로드(서버 LF 관례·drift 정합).
+- **★drift 가드**: 배포전 서버파일 pscp 다운→`git hash-object` vs HEAD blob 비교.
+- **★coupon_rules 운영 빈테이블**: 운영 coupon_rules 비어있어 admin 화면 미표시였음→시드(INSERT IGNORE 6룰). getActiveRule 가 fire시 자동시드하나 overview는 SELECT만 → 선시드 필요.
+- **★admin 진입**: 로그인 로고클릭→접속코드 GENIEGO-ADMIN→ceo@ociell.com. /admin/plan-pricing '쿠폰 관리' 탭=term 룰 편집.
+
+---
+
 # 211차 세션 인계서 — **Journey Builder 초고도화 + 2차 전수 재감사 + 동기화 배선 12건 + 채널 레지스트리 + 실 어댑터(Amazon/Coupang)**
 
 > **작성일**: 2026-06-10 (사용자 명시 승인 후)
