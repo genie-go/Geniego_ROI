@@ -36,7 +36,9 @@ final class CouponEngine
         string $email,
         string $trigger,
         string $currentPlan = 'free',
-        string $planOverride = ''
+        string $planOverride = '',
+        int    $durationOverride = 0,
+        int    $dedupDays = -1
     ): ?array {
         try {
             // 1. coupon_rules 테이블에서 활성 규칙 조회
@@ -44,7 +46,7 @@ final class CouponEngine
             if (!$rule) return null;   // 해당 트리거 규칙 없음 or 비활성
 
             // 2. upgrade 트리거의 경우 이미 유료 플랜이라면 skip
-            //    (signup은 항상 발급 — demo/free 대상. renewal 은 유료 갱신이므로 skip 안 함)
+            //    (signup은 항상 발급 — demo/free 대상. renewal/term_* 은 유료 갱신이므로 skip 안 함)
             if ($trigger === 'upgrade') {
                 if (!in_array($currentPlan, ['free','demo'], true)) {
                     // 이미 유료 → 쿠폰 스킵
@@ -53,18 +55,18 @@ final class CouponEngine
             }
 
             // 3. 이미 해당 트리거로 발급된 쿠폰이 있는지 확인 (중복 방지).
-            //    212차 #5: renewal 은 연 1회(yearly) 갱신 보너스이므로 300일 윈도우(재발급 허용),
-            //    signup/upgrade 는 1회 한정(0=영구 dedup).
-            $dedupWindow = ($trigger === 'renewal') ? 300 : 0;
+            //    212차 #5: dedupDays 지정 시 그 윈도우(가입 기간 내 1회). renewal 기본 300일, 나머지 1회 한정.
+            $dedupWindow = ($dedupDays >= 0) ? $dedupDays : (($trigger === 'renewal') ? 300 : 0);
             if (self::alreadyIssued($pdo, $userId, $trigger, $dedupWindow)) {
                 return null;
             }
 
             // 4. 쿠폰 코드 생성
             $code         = 'GENIE-AUTO-' . strtoupper(bin2hex(random_bytes(4)));
-            // 212차 #5: planOverride 가 있으면 "사용자가 가입/구독한 해당 플랜" 3개월 무료로 발급.
+            // 212차 #5: planOverride 가 있으면 "사용자가 가입/구독한 해당 플랜"으로 발급.
             $plan         = ($planOverride !== '') ? $planOverride : $rule['plan'];
-            $durationDays = (int)$rule['duration_days'];
+            // 212차 #5b: durationOverride(가입 기간별 보너스 일수) 우선, 없으면 룰 기본.
+            $durationDays = $durationOverride > 0 ? $durationOverride : (int)$rule['duration_days'];
             $note         = "[auto:{$trigger}] " . ($rule['note'] ?? '');
 
             // 4.5 현재 사용자 플랜·만료일 조회 — 연장(extend) + 다운그레이드 방지
@@ -167,7 +169,10 @@ final class CouponEngine
                     (trigger_name,is_active,plan,duration_days,note) VALUES
                     ('signup',1,'starter',7,'신규가입 환영 쿠폰'),
                     ('upgrade',1,'pro',90,'유료플랜 가입 3개월 무료'),
-                    ('renewal',1,'pro',90,'연간 구독 갱신 3개월 무료')");
+                    ('renewal',1,'pro',90,'연간 구독 갱신 3개월 무료'),
+                    ('term_3mo',1,'pro',15,'3개월 가입 보너스 0.5개월 무료'),
+                    ('term_6mo',1,'pro',45,'6개월 가입 보너스 1.5개월 무료'),
+                    ('term_12mo',1,'pro',90,'1년 가입 보너스 3개월 무료')");
             } else {
                 $pdo->exec("CREATE TABLE IF NOT EXISTS coupon_rules (
                     id           INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -183,7 +188,10 @@ final class CouponEngine
                     (trigger_name,is_active,plan,duration_days,note) VALUES
                     ('signup',1,'starter',7,'신규가입 환영 쿠폰'),
                     ('upgrade',1,'pro',90,'유료플랜 가입 3개월 무료'),
-                    ('renewal',1,'pro',90,'연간 구독 갱신 3개월 무료')");
+                    ('renewal',1,'pro',90,'연간 구독 갱신 3개월 무료'),
+                    ('term_3mo',1,'pro',15,'3개월 가입 보너스 0.5개월 무료'),
+                    ('term_6mo',1,'pro',45,'6개월 가입 보너스 1.5개월 무료'),
+                    ('term_12mo',1,'pro',90,'1년 가입 보너스 3개월 무료')");
             }
         } catch (\Throwable $e) {
             error_log('[CouponEngine] table init: ' . $e->getMessage());

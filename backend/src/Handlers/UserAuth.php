@@ -1118,23 +1118,29 @@ final class UserAuth
             }
         }
 
-        // 212차 #5: 자동 무료쿠폰 발급(silent fail — 결제/업그레이드 주기능 비차단).
-        //   ① 유료플랜 가입(free/demo → 유료) → 'upgrade' 트리거: 해당 플랜 3개월 무료 보너스.
-        //   ② 연간(12개월) 구독·갱신 → 'renewal' 트리거: 3개월 무료 보너스(연 1회).
-        //   coupon_rules(admin 편집: 무료기간 duration_days·활성) 기준, 쿠폰 플랜=가입한 플랜.
+        // 212차 #5b: 자동 무료쿠폰 — 가입 기간별 보너스(유료기간 소진 후 자동 연장 적용, silent fail).
+        //   3개월 가입→0.5개월(15일) / 6개월→1.5개월(45일) / 1년→3개월(90일). 무료일수는 coupon_rules
+        //   (term_3mo/term_6mo/term_12mo) 에서 admin 편집. 쿠폰 플랜=가입한 플랜. CouponEngine 이 현재
+        //   만료일(유료기간 끝) 기준으로 연장 → "유료 개월수 소진 후" 무료 적용. 가입 기간당 1회.
         $autoCoupons = [];
         if ($plan === 'pro' || $plan === 'enterprise') {
             $email = (string)($user['email'] ?? '');
-            try {
-                if (in_array($prevPlan, ['free', 'demo', ''], true)) {
-                    $r = \Genie\CouponEngine::fire($pdo, (int)$id, $email, 'upgrade', $prevPlan, $plan);
+            // 가입 기간(개월) — 검증으로 덮인 $cycle 대신 원본 body 에서 산출(semiAnnual/6개월 포함).
+            $rawCycle = strtolower((string)($body['cycle'] ?? $cycle));
+            $paidMonths = (int)($body['period_months'] ?? $body['months'] ?? 0);
+            if ($paidMonths <= 0) {
+                $paidMonths = match ($rawCycle) {
+                    'quarterly' => 3, 'semiannual', 'semi_annual', 'halfyear' => 6,
+                    'yearly', 'annual' => 12, 'monthly' => 1, default => 0,
+                };
+            }
+            if (in_array($paidMonths, [3, 6, 12], true)) {
+                try {
+                    // 기간 윈도우(가입 기간 내 1회) — 신규/갱신 모두 기간당 보너스 1회.
+                    $r = \Genie\CouponEngine::fire($pdo, (int)$id, $email, "term_{$paidMonths}mo", $prevPlan, $plan, 0, $paidMonths * 30);
                     if ($r) $autoCoupons[] = $r;
-                }
-                if ($cycle === 'yearly') {
-                    $r2 = \Genie\CouponEngine::fire($pdo, (int)$id, $email, 'renewal', $plan, $plan);
-                    if ($r2) $autoCoupons[] = $r2;
-                }
-            } catch (\Throwable $e) { /* 쿠폰 실패는 업그레이드를 깨지 않음 */ }
+                } catch (\Throwable $e) { /* 쿠폰 실패는 업그레이드를 깨지 않음 */ }
+            }
         }
         // 보너스 적용으로 만료일이 연장됐을 수 있으니 최신 만료일 재조회
         if ($autoCoupons) {

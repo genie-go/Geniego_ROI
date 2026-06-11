@@ -1790,7 +1790,7 @@ function CouponAdminPanel({ plans }) {
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                 <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--text-1)' }}>
-                  {r.trigger_name === 'signup' ? '🌱 가입' : r.trigger_name === 'upgrade' ? '⬆️ 유료 전환' : '🔄 갱신'}
+                  {({ signup: '🌱 가입', upgrade: '⬆️ 유료 전환', renewal: '🔄 갱신', term_3mo: '🎁 3개월 가입 보너스', term_6mo: '🎁 6개월 가입 보너스', term_12mo: '🎁 1년 가입 보너스' })[r.trigger_name] || ('🎟️ ' + r.trigger_name)}
                 </span>
                 <div style={{ flex: 1 }} />
                 <label style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'var(--text-2)', cursor: 'pointer' }}>
