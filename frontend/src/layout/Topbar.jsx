@@ -3,6 +3,7 @@
 //  글로벌 검색 · 알림 · 테마 전환 · 통화 · 환경 배지 · 시계
 // ─────────────────────────────────────────────────────────────────────
 import React, { useState, useEffect, useCallback, useRef, memo } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useI18n } from "../i18n/index.js";
 import { useAuth } from "../auth/AuthContext.jsx";
@@ -1042,13 +1043,17 @@ const ProfileEditModal = memo(function ProfileEditModal({ user, token, onClose }
   const labelStyle = { fontSize: 11, fontWeight: 700, color: 'var(--text-3, #94a3b8)', marginBottom: 4, display: 'block' };
   const strength = pwStrength(newPw);
 
-  return (
+  // [현 차수] .topbar 의 transform:translateZ(0)(GPU 레이어)이 fixed 자손의 containing block 을
+  //   생성 → 모달이 헤더(~54px) 기준으로 배치돼 상단이 화면 위로 잘렸다. document.body 로 포털해
+  //   viewport 기준 fixed 복구(+overlay 스크롤로 긴 내용도 전체 노출).
+  return createPortal(
     <div onClick={e => { if (e.target === e.currentTarget) onClose(); }} style={{
-      position: 'fixed', inset: 0, zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center',
+      position: 'fixed', inset: 0, zIndex: 99999, display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
+      overflowY: 'auto', padding: '4vh 12px',
       background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)',
     }}>
       <div onClick={e => e.stopPropagation()} style={{
-        width: '92%', maxWidth: 480, maxHeight: '90vh', overflowY: 'auto',
+        width: '92%', maxWidth: 480, margin: 'auto', // 짧으면 중앙, 길면 상단정렬+overlay 스크롤(전체 노출)
         background: 'linear-gradient(180deg, var(--surface, #1e293b), var(--bg, #0f172a))',
         border: '1px solid var(--border, rgba(99,140,255,0.2))', borderRadius: 20,
         padding: '28px 24px', boxShadow: '0 24px 64px rgba(0,0,0,0.5)',
@@ -1536,7 +1541,8 @@ const ProfileEditModal = memo(function ProfileEditModal({ user, token, onClose }
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 });
 
