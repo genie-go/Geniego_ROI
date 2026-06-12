@@ -549,6 +549,8 @@ return function (App $app): void {
         'POST /v422/ai/marketing-eval'       => 'Genie\\Handlers\\ClaudeAI::marketingEval',
         'POST /v422/ai/influencer-eval'      => 'Genie\\Handlers\\ClaudeAI::influencerEval',
         'POST /v422/ai/channel-kpi-eval'     => 'Genie\\Handlers\\ClaudeAI::channelKpiEval',
+        'GET /v422/ai/channel-kpi-config'    => 'Genie\\Handlers\\ClaudeAI::getChannelKpiConfig',
+        'POST /v422/ai/channel-kpi-config'   => 'Genie\\Handlers\\ClaudeAI::saveChannelKpiConfig',
         'POST /v422/ai/campaign-recommend'   => 'Genie\\Handlers\\ClaudeAI::campaignRecommend',
         'POST /v422/ai/campaign-ad-creative'  => 'Genie\\Handlers\\ClaudeAI::campaignAdCreative',
         'POST /v422/ai/campaign-ad-design'    => 'Genie\\Handlers\\ClaudeAI::campaignAdDesign',
@@ -2265,6 +2267,8 @@ return function (App $app): void {
     $register('POST', '/v422/ai/marketing-eval');
     $register('POST', '/v422/ai/influencer-eval');
     $register('POST', '/v422/ai/channel-kpi-eval');
+    $register('GET',  '/v422/ai/channel-kpi-config');
+    $register('POST', '/v422/ai/channel-kpi-config');
     $register('POST', '/v422/ai/campaign-recommend');
     $register('POST',   '/api/performance', ['Genie\\Controllers\\PerformanceController', 'ingestMetrics']);
     $register('GET',    '/api/performance/recommendations', ['Genie\\Controllers\\PerformanceController', 'getRecommendations']);

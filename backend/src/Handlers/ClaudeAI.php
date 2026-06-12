@@ -2406,4 +2406,56 @@ PROMPT;
         return ['creatives' => $creatives, 'data_source' => 'fallback'];
     }
 
+    /* ── [현 차수] 채널 KPI 설정(목표·KPI 타깃) 테넌트별 영속 ──────────────────
+       ChannelKPI 페이지의 goals/kpiTargets 가 프론트 useState 로만 존재해 새로고침 시 소실됐다.
+       테넌트 스코프 저장/조회로 영속화(인증 Bearer → self::tenant 로 실 테넌트 해석). */
+    private static function ensureKpiConfigTable(\PDO $pdo): void
+    {
+        if ($pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql') {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS channel_kpi_config (tenant_id VARCHAR(100) NOT NULL PRIMARY KEY, config_json LONGTEXT, updated_at VARCHAR(40)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+        } else {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS channel_kpi_config (tenant_id TEXT NOT NULL PRIMARY KEY, config_json TEXT, updated_at TEXT)");
+        }
+    }
+
+    // GET /v422/ai/channel-kpi-config — 저장된 KPI 설정 조회(테넌트 스코프)
+    public static function getChannelKpiConfig(Request $req, Response $res, array $args = []): Response
+    {
+        $pdo = Db::pdo();
+        self::ensureKpiConfigTable($pdo);
+        $tenant = self::tenant($req);
+        $cfg = [];
+        try {
+            $st = $pdo->prepare("SELECT config_json FROM channel_kpi_config WHERE tenant_id=? LIMIT 1");
+            $st->execute([$tenant]);
+            $v = $st->fetchColumn();
+            if ($v) { $d = json_decode((string)$v, true); if (is_array($d)) $cfg = $d; }
+        } catch (\Throwable $e) {}
+        return TemplateResponder::respond($res, ['ok' => true, 'config' => $cfg]);
+    }
+
+    // POST /v422/ai/channel-kpi-config — KPI 설정 저장(테넌트 스코프). body: { config: {...} }
+    public static function saveChannelKpiConfig(Request $req, Response $res, array $args = []): Response
+    {
+        $pdo = Db::pdo();
+        self::ensureKpiConfigTable($pdo);
+        $tenant = self::tenant($req);
+        if ($tenant === 'unknown' || $tenant === '') {
+            return TemplateResponder::respond($res->withStatus(401), ['ok' => false, 'error' => 'unauthorized']);
+        }
+        $body   = (array)($req->getParsedBody() ?? []);
+        $config = $body['config'] ?? $body;
+        $json   = json_encode($config, JSON_UNESCAPED_UNICODE);
+        if ($json === false || strlen($json) > 100000) {
+            return TemplateResponder::respond($res->withStatus(413), ['ok' => false, 'error' => 'too_large']);
+        }
+        $now  = gmdate('c');
+        $isMy = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql';
+        $sql  = $isMy
+            ? "INSERT INTO channel_kpi_config(tenant_id,config_json,updated_at) VALUES(?,?,?) ON DUPLICATE KEY UPDATE config_json=VALUES(config_json), updated_at=VALUES(updated_at)"
+            : "INSERT INTO channel_kpi_config(tenant_id,config_json,updated_at) VALUES(?,?,?) ON CONFLICT(tenant_id) DO UPDATE SET config_json=excluded.config_json, updated_at=excluded.updated_at";
+        $pdo->prepare($sql)->execute([$tenant, $json, $now]);
+        return TemplateResponder::respond($res, ['ok' => true, 'saved' => true, 'updated_at' => $now]);
+    }
+
 }

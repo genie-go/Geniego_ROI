@@ -11,6 +11,7 @@ import { useT, useI18n } from '../i18n/index.js';
 import { CK_GUIDE } from './channelKpiGuideI18n.js';
 import { useSecurityGuard } from '../security/SecurityGuard.js';
 import { useConnectorSync } from '../context/ConnectorSyncContext.jsx';
+import { getJsonAuth, postJsonAuth } from '../services/apiClient.js';
 
 const API = '/api';
 
@@ -469,11 +470,8 @@ function MonitoringTab({ goals, kpiTargets }) {
             },
         };
         try {
-            const res = await fetch(`${API}/v423/ai/channel-kpi-eval`, {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                credentials: 'include', body: JSON.stringify(payload),
-            });
-            const data = await res.json();
+            // [현 차수] /v423→/v422 정정 + 인증 호출(세션 Bearer) — 과거 404·익명게이트로 평가가 작동 안 했다.
+            const data = await postJsonAuth(`${API}/v422/ai/channel-kpi-eval`, payload);
             if (!data.ok) throw new Error(data.error || 'AI analysis failed');
             setResult(data.result);
             setStatus('done');
@@ -485,8 +483,7 @@ function MonitoringTab({ goals, kpiTargets }) {
 
     const loadHistory = useCallback(async () => {
         try {
-            const r = await fetch(`${API}/v423/ai/analyses?context=channel_kpi_eval&limit=5`, { credentials: 'include' });
-            const d = await r.json();
+            const d = await getJsonAuth(`${API}/v422/ai/analyses?context=channel_kpi_eval&limit=5`);
             setHistory(d.analyses || []);
         } catch { setHistory([]); }
     }, []);
@@ -689,6 +686,26 @@ export default function ChannelKPI() {
     const [tab, setTab] = useState('goal');
     const [goals, setGoals] = useState({ awareness: true, traffic: true, conversion: false });
     const [kpiTargets, setKpiTargets] = useState({});
+
+    // [현 차수] KPI 설정(목표·타깃) 테넌트별 영속 — 마운트 로드 + 변경 디바운스 저장(새로고침 소실 방지).
+    const kpiCfgLoaded = useRef(false);
+    useEffect(() => {
+        let alive = true;
+        getJsonAuth(`${API}/v422/ai/channel-kpi-config`).then(r => {
+            if (!alive) return;
+            const c = r?.config || {};
+            if (c.goals && typeof c.goals === 'object') setGoals(g => ({ ...g, ...c.goals }));
+            if (c.kpiTargets && typeof c.kpiTargets === 'object') setKpiTargets(c.kpiTargets);
+        }).catch(() => {}).finally(() => { if (alive) kpiCfgLoaded.current = true; });
+        return () => { alive = false; };
+    }, []);
+    useEffect(() => {
+        if (!kpiCfgLoaded.current) return; // 초기 로드 완료 전 저장 방지(빈 상태 덮어쓰기 차단)
+        const id = setTimeout(() => {
+            postJsonAuth(`${API}/v422/ai/channel-kpi-config`, { config: { goals, kpiTargets } }).catch(() => {});
+        }, 800);
+        return () => clearTimeout(id);
+    }, [goals, kpiTargets]);
 
     return (
 <div style={{ display: 'flex', flexDirection: 'column', maxWidth: 1200, margin: '0 auto', width: '100%', height: 'calc(100vh - 54px)', overflow: 'hidden', color: '#1e293b', background: 'transparent' }}>
