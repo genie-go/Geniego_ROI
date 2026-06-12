@@ -396,7 +396,8 @@ final class OrderHub
         $body = (array)($req->getParsedBody() ?? []);
         $period = (string)($q['period'] ?? $body['period'] ?? gmdate('Y-m'));
         if (!preg_match('/^\d{4}-\d{2}$/', $period)) $period = gmdate('Y-m');
-        $feeRate = (float)($q['fee_rate'] ?? $body['fee_rate'] ?? 0.10); // 기본 플랫폼 수수료 10%
+        // [현 차수] fee_rate 명시 전달 시 전 채널 일괄 override, 미지정이면 null→채널별 실수수료 스케줄.
+        $feeRate = (isset($q['fee_rate']) || isset($body['fee_rate'])) ? (float)($q['fee_rate'] ?? $body['fee_rate']) : null;
         $now = gmdate('Y-m-d H:i:s');
 
         try {
@@ -404,7 +405,7 @@ final class OrderHub
         } catch (\Throwable $e) {
             return self::json($resp, ['ok' => false, 'error' => 'db_error', 'message' => $e->getMessage()], 500);
         }
-        return self::json($resp, ['ok' => true, 'period' => $period, 'fee_rate' => $feeRate, 'rolled' => $rolled, '_env' => Db::env(), '_isDemo' => $isDemo]);
+        return self::json($resp, ['ok' => true, 'period' => $period, 'fee_rate' => $feeRate ?? 'per-channel', 'rolled' => $rolled, '_env' => Db::env(), '_isDemo' => $isDemo]);
     }
 
     /**
@@ -412,7 +413,25 @@ final class OrderHub
      * commerce_sync_cron 이 주문 폴링 후 자동 호출 → 운영 정산이 수동 호출 없이 자동 채워짐.
      * @return int rolled count
      */
-    public static function rollupSettlementsCore(\PDO $pdo, string $tenant, string $period, float $feeRate, string $now): int
+    /** [현 차수] 채널별 판매 수수료율 — 프론트 channelRates.js(CHANNEL_RATES) 미러(SSOT 정합).
+     *   과거 전 채널 단일 10% 하드코딩 → 채널별 실수수료로 정산 추정 정확도 향상. 미등록=10% 폴백. */
+    public static function channelFeeRate(string $channel): float
+    {
+        static $rates = [
+            'coupang'=>0.11,'naver'=>0.05,'naver_smartstore'=>0.05,'11st'=>0.12,'gmarket'=>0.12,
+            'auction'=>0.12,'kakao_commerce'=>0.10,'cafe24'=>0.03,'wemakeprice'=>0.11,'interpark'=>0.09,
+            'lotteon'=>0.10,'own_mall'=>0.00,
+            'shopify'=>0.02,'amazon'=>0.15,'amazon_spapi'=>0.15,'ebay'=>0.13,'tiktok'=>0.08,'tiktok_shop'=>0.08,
+            'rakuten'=>0.08,'yahoo_jp'=>0.06,'line'=>0.05,
+            'lazada'=>0.04,'shopee'=>0.10,'qoo10'=>0.10,'zalando'=>0.20,'woocommerce'=>0.02,
+        ];
+        return $rates[strtolower(trim($channel))] ?? 0.10;
+    }
+
+    /**
+     * @param ?float $feeRate null=채널별 스케줄 적용(권장, cron), 값 전달 시 전 채널 일괄 override(HTTP fee_rate).
+     */
+    public static function rollupSettlementsCore(\PDO $pdo, string $tenant, string $period, ?float $feeRate, string $now): int
     {
         self::ensureSettlementTables($pdo); // 208차: cron/신규 테넌트 대비 테이블 보장(없으면 생성, 있으면 no-op)
         $os = $pdo->prepare("SELECT channel, COUNT(*) AS cnt, COALESCE(SUM(total_price),0) AS gross
@@ -429,12 +448,20 @@ final class OrderHub
         }
 
         $rolled = 0;
+        // [현 차수] 수동 ingest 된 실 정산은 추정으로 덮어쓰지 않도록 기존 status 사전조회.
+        $exStmt = $pdo->prepare("SELECT status FROM orderhub_settlements WHERE tenant_id=? AND period=? AND channel=? LIMIT 1");
         foreach ($orders as $o) {
             $channel = (string)($o['channel'] ?? '');
             if ($channel === '') continue;
+            // 실 정산(status!='estimated', 예: ingest 된 confirmed/pending)이 이미 있으면 추정 스킵(정합 보존).
+            $exStmt->execute([$tenant, $period, $channel]);
+            $exStatus = (string)($exStmt->fetchColumn() ?: '');
+            if ($exStatus !== '' && $exStatus !== 'estimated') continue;
             $gross    = (float)$o['gross'];
             $cnt      = (int)$o['cnt'];
-            $platform = round($gross * $feeRate, 2);
+            // [현 차수] null=채널별 실수수료 스케줄, 값=일괄 override.
+            $rate = ($feeRate !== null && $feeRate > 0) ? $feeRate : self::channelFeeRate($channel);
+            $platform = round($gross * $rate, 2);
             $returnFee = $claimsBy[$channel]['rfee'] ?? 0.0;
             $returns   = $claimsBy[$channel]['rcnt'] ?? 0;
             $net = round($gross - $platform - $returnFee, 2);

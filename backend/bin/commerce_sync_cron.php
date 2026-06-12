@@ -99,7 +99,7 @@ try {
             if ($tenant === '' || isset($tenantsDone[$tenant])) continue;
             $tenantsDone[$tenant] = true;
             try {
-                $rolledTotal += OrderHub::rollupSettlementsCore($pdo, $tenant, $period, 0.10, gmdate('Y-m-d H:i:s'));
+                $rolledTotal += OrderHub::rollupSettlementsCore($pdo, $tenant, $period, null, gmdate('Y-m-d H:i:s'));
             } catch (\Throwable $e) {
                 echo "  [settlement] {$tenant}: EXCEPTION " . $e->getMessage() . "\n";
             }
