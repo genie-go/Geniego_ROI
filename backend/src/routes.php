@@ -196,6 +196,7 @@ return function (App $app): void {
         'GET /v425/oauth/status'                       => 'Genie\\Handlers\\OAuth::status',
         'GET /v425/oauth/{provider}/authorize'         => 'Genie\\Handlers\\OAuth::authorize',
         'GET /v425/oauth/{provider}/callback'          => 'Genie\\Handlers\\OAuth::callback',
+        'POST /v425/oauth/{provider}/refresh'          => 'Genie\\Handlers\\OAuth::refresh',
         'POST /v425/admin/oauth/{provider}/config'     => 'Genie\\Handlers\\OAuth::saveConfig',
         // 멀티 송출 대상(RTMP) — 208차 #1
         'GET /v425/live/sessions/{id}/destinations'    => 'Genie\\Handlers\\LiveCommerce::listDestinations',
@@ -2139,6 +2140,7 @@ return function (App $app): void {
     $register('GET',    '/v425/oauth/status');
     $register('GET',    '/v425/oauth/{provider}/authorize');
     $register('GET',    '/v425/oauth/{provider}/callback');
+    $register('POST',   '/v425/oauth/{provider}/refresh');
     $register('POST',   '/v425/admin/oauth/{provider}/config');
     $register('GET',    '/v425/live/sessions/{id}/destinations');
     $register('POST',   '/v425/live/sessions/{id}/destinations');

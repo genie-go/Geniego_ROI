@@ -236,4 +236,100 @@ class OAuth
         parse_str((string)$raw, $parsed);
         return is_array($parsed) ? $parsed : [];
     }
+
+    // ── [현 차수] OAuth 토큰 갱신(refresh) ──────────────────────────────────
+    //   access token 은 만료된다(Google ~1h·TikTok ~24h·Meta ~60d). 과거엔 oauth_refresh_token 을
+    //   저장만 하고 갱신에 쓰지 않아, 만료 시 AdAdapters 집행이 401 로 실패했다(지속 자동집행 불가).
+    //   refreshCore 가 refresh_token grant 로 새 access token 을 발급·저장한다(핸들러+cron 공용).
+
+    /** 자격증명 값 복호화 로드(없으면 ''). */
+    private static function loadCred(string $tenant, string $channel, string $keyName): string
+    {
+        try {
+            $st = self::db()->prepare("SELECT key_value FROM channel_credential WHERE tenant_id=? AND channel=? AND key_name=? AND is_active=1 LIMIT 1");
+            $st->execute([$tenant, $channel, $keyName]);
+            $v = $st->fetchColumn();
+            return ($v !== false && $v !== null) ? Crypto::decrypt((string)$v) : '';
+        } catch (\Throwable $e) { return ''; }
+    }
+
+    /** provider 별 refresh grant 바디. meta 는 표준 refresh_token 미발급 → 현재 장수명 토큰 재교환(연장). */
+    private static function refreshBody(string $provider, array $cfg, string $refresh, string $current): array
+    {
+        if ($provider === 'meta' || $provider === 'facebook') {
+            return ['ok' => $current !== '', 'body' => http_build_query([
+                'grant_type' => 'fb_exchange_token',
+                'client_id' => $cfg['client_id'], 'client_secret' => $cfg['client_secret'],
+                'fb_exchange_token' => $current,
+            ])];
+        }
+        if ($provider === 'tiktok') {
+            return ['ok' => $refresh !== '', 'body' => http_build_query([
+                'client_key' => $cfg['client_id'], 'client_secret' => $cfg['client_secret'],
+                'grant_type' => 'refresh_token', 'refresh_token' => $refresh,
+            ])];
+        }
+        // google · naver · kakao (표준 refresh_token grant)
+        return ['ok' => $refresh !== '', 'body' => http_build_query([
+            'grant_type' => 'refresh_token',
+            'client_id' => $cfg['client_id'], 'client_secret' => $cfg['client_secret'],
+            'refresh_token' => $refresh,
+        ])];
+    }
+
+    /** 토큰 갱신 코어. @return array{ok:bool,...} */
+    public static function refreshCore(string $tenant, string $provider): array
+    {
+        $provider = strtolower($provider);
+        if (!isset(self::PROVIDERS[$provider])) return ['ok' => false, 'error' => 'unsupported_provider'];
+        self::ensureTables();
+        $cfg = self::config($provider);
+        if ($cfg['client_id'] === '' || $cfg['client_secret'] === '') return ['ok' => false, 'error' => 'not_configured'];
+        $refresh = self::loadCred($tenant, $provider, 'oauth_refresh_token');
+        $current = self::loadCred($tenant, $provider, 'oauth_access_token');
+        $rb = self::refreshBody($provider, $cfg, $refresh, $current);
+        if (!$rb['ok']) return ['ok' => false, 'error' => 'no_refresh_token'];
+        $resp = self::httpPost(self::PROVIDERS[$provider]['token'], $rb['body']);
+        $data = (isset($resp['data']) && is_array($resp['data'])) ? $resp['data'] : $resp; // TikTok 은 data 래핑
+        $access = (string)($data['access_token'] ?? '');
+        if ($access === '') {
+            error_log('[OAuth.refresh] ' . $provider . ' failed: ' . json_encode($resp));
+            return ['ok' => false, 'error' => 'refresh_failed', 'detail' => $data['error'] ?? $data['error_description'] ?? null];
+        }
+        self::saveCred($tenant, $provider, 'oauth_access_token', $access);
+        if (!empty($data['refresh_token'])) self::saveCred($tenant, $provider, 'oauth_refresh_token', (string)$data['refresh_token']);
+        $expiresIn = (int)($data['expires_in'] ?? 0);
+        if ($expiresIn > 0) self::saveCred($tenant, $provider, 'oauth_expires_at', gmdate('Y-m-d H:i:s', time() + $expiresIn));
+        // 갱신 직후 성과 ingest 1회(저장→sync 대칭, 광고채널 한정).
+        try { if (Connectors::isAdChannel($provider)) Connectors::syncAdChannelOnSave($tenant, $provider); } catch (\Throwable $e) {}
+        return ['ok' => true, 'provider' => $provider, 'expires_in' => $expiresIn ?: null];
+    }
+
+    /** POST /v425/oauth/{provider}/refresh — 토큰 갱신(세션 인증·테넌트 스코프). */
+    public static function refresh(Request $req, Response $res, array $args): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        $provider = strtolower((string)($args['provider'] ?? ''));
+        $tenant = UserAuth::authedTenant($req) ?: '';
+        if ($tenant === '' || $tenant === 'demo') return self::json($res, ['ok' => false, 'error' => 'unauthorized'], 401);
+        $r = self::refreshCore($tenant, $provider);
+        return self::json($res, $r, $r['ok'] ? 200 : 422);
+    }
+
+    /** cron 용: OAuth 토큰이 등록된 (tenant, provider) 쌍 열거(광고 자동집행 토큰 신선도 유지). */
+    public static function connectedOAuthPairs(): array
+    {
+        self::ensureTables();
+        try {
+            $st = self::db()->prepare("SELECT DISTINCT tenant_id, channel FROM channel_credential
+                WHERE key_name IN ('oauth_refresh_token','oauth_access_token') AND is_active=1");
+            $st->execute();
+            $out = [];
+            foreach ($st->fetchAll(\PDO::FETCH_ASSOC) as $r) {
+                $ch = strtolower((string)$r['channel']);
+                if (isset(self::PROVIDERS[$ch])) $out[] = ['tenant' => (string)$r['tenant_id'], 'provider' => $ch];
+            }
+            return $out;
+        } catch (\Throwable $e) { return []; }
+    }
 }
