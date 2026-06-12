@@ -1244,18 +1244,13 @@ return function (App $app): void {
     $register('GET', '/v402/influencer/settlements');
     $register('GET', '/v402/influencer/dashboard');
     $register('GET', '/v402/influencer/vendors');
-    $register('GET', '/v402/oauth/{vendor}/authorize_url');
-    $register('POST', '/v402/oauth/{vendor}/manual_token');
-    $register('POST', '/v402/oauth/{vendor}/refresh');
+    // [현 차수] 레거시 v402 OAuth 501 셸 제거 — 정본은 v425 OAuth(authorize/callback/refresh). 프론트 미참조.
     $register('GET', '/v402/influencer/contracts/template/{vendor}');
     $register('POST', '/v402/influencer/settlements/parse');
     $register('POST', '/v402/webhooks/{vendor}');
     $register('POST', '/v402/notify/slack/test');
     $register('GET', '/v403/influencer/vendors');
-    $register('GET', '/v403/oauth/{vendor}/authorize_url');
-    $register('POST', '/v403/oauth/{vendor}/exchange_code');
-    $register('POST', '/v403/oauth/{vendor}/manual_token');
-    $register('POST', '/v403/oauth/{vendor}/refresh');
+    // [현 차수] 레거시 v403 OAuth 501 셸 제거 — 정본은 v425 OAuth. 프론트 미참조.
     $register('GET', '/v403/influencer/contracts/template/{vendor}');
     $register('POST', '/v403/webhooks/{vendor}');
     $register('POST', '/v403/influencer/settlements/parse');
@@ -1299,10 +1294,7 @@ return function (App $app): void {
     $register('PUT', '/v403/recon/tickets/retry_schedule');
     $register('POST', '/v403/recon/tickets/retry_once');
     $register('GET', '/v404/influencer/vendors');
-    $register('GET', '/v404/oauth/{vendor}/authorize_url');
-    $register('POST', '/v404/oauth/{vendor}/exchange_code');
-    $register('POST', '/v404/oauth/{vendor}/manual_token');
-    $register('POST', '/v404/oauth/{vendor}/refresh');
+    // [현 차수] 레거시 v404 OAuth 501 셸 제거 — 정본은 v425 OAuth. 프론트 미참조.
     $register('GET', '/v404/influencer/contracts/template/{vendor}');
     $register('POST', '/v404/webhooks/{vendor}');
     $register('POST', '/v404/influencer/settlements/parse');

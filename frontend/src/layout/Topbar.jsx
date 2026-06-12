@@ -670,8 +670,11 @@ const ProfileEditModal = memo(function ProfileEditModal({ user, token, onClose }
   const [smtpTestTo, setSmtpTestTo] = useState('');
   // 208차 #2 OAuth 앱 설정 (admin) — 각 사 client_id/secret 등록 시 OAuth 인가 연결 활성화
   const OAUTH_PROVIDERS = [
-    { id: 'google', label: 'Google Ads' }, { id: 'meta', label: 'Meta (Facebook/IG)' },
-    { id: 'tiktok', label: 'TikTok' }, { id: 'kakao', label: 'Kakao' }, { id: 'naver', label: 'Naver' },
+    { id: 'google', label: 'Google Ads', console: 'https://console.cloud.google.com/apis/credentials' },
+    { id: 'meta', label: 'Meta (Facebook/IG)', console: 'https://developers.facebook.com/apps' },
+    { id: 'tiktok', label: 'TikTok', console: 'https://business-api.tiktok.com/portal' },
+    { id: 'kakao', label: 'Kakao', console: 'https://developers.kakao.com/console/app' },
+    { id: 'naver', label: 'Naver', console: 'https://developers.naver.com/apps/#/list' },
   ];
   const [oauthStatus, setOauthStatus] = useState({});
   const [oauthForm, setOauthForm] = useState({});
@@ -922,6 +925,24 @@ const ProfileEditModal = memo(function ProfileEditModal({ user, token, onClose }
       if (d.ok && d.authorize_url) window.location.href = d.authorize_url;
       else showMsg(d.error || t('profile.oauthNotConfigured', '먼저 Client ID/Secret을 등록하세요.'), 'err');
     } catch { showMsg(t('profile.serverError', 'Server error. Try again.'), 'err'); }
+  };
+  // [현 차수] OAuth access token 수동 갱신(만료 전 재발급). 자동 갱신 cron 과 별개의 즉시 갱신.
+  const refreshOAuthToken = async (provider) => {
+    setOauthBusy(provider);
+    try {
+      const r = await fetch(`/api/v425/oauth/${provider}/refresh`, { method: 'POST', headers: { Authorization: `Bearer ${token}` } });
+      const d = await r.json().catch(() => ({}));
+      if (r.ok && d.ok) { showMsg(t('profile.oauthRefreshed', '토큰이 갱신되었습니다.'), 'ok'); loadOAuthStatus(); }
+      else if (d.error === 'no_refresh_token') showMsg(t('profile.oauthNoRefresh', '먼저 [연결]로 OAuth 인가를 완료하세요.'), 'err');
+      else if (d.error === 'not_configured') showMsg(t('profile.oauthNotConfigured', '먼저 Client ID/Secret을 등록하세요.'), 'err');
+      else showMsg(d.error || t('profile.oauthRefreshFail', '토큰 갱신에 실패했습니다.'), 'err');
+    } catch { showMsg(t('profile.serverError', 'Server error. Try again.'), 'err'); }
+    finally { setOauthBusy(''); }
+  };
+  // [현 차수] redirect URI 복사(매체 콘솔 화이트리스트 등록용 — redirect_uri_mismatch 방지).
+  const copyOAuthText = (txt) => {
+    try { navigator.clipboard?.writeText(String(txt)); showMsg(t('profile.copied', '복사되었습니다.'), 'ok'); }
+    catch { showMsg(t('profile.copyFail', '복사 실패 — 직접 선택해 복사하세요.'), 'err'); }
   };
   useEffect(() => { if (tab === 'security' && user?.plan === 'admin' && !smtpLoaded) { loadSmtp(); loadAiKey(); loadOAuthStatus(); } }, [tab]); // eslint-disable-line
 
@@ -1376,11 +1397,19 @@ const ProfileEditModal = memo(function ProfileEditModal({ user, token, onClose }
                       <span style={{ fontSize: 10, padding: '2px 7px', borderRadius: 20, background: st.configured ? 'rgba(34,197,94,0.15)' : 'rgba(148,163,184,0.15)', color: st.configured ? '#16a34a' : '#94a3b8' }}>{st.configured ? t('profile.oauthConfigured', '설정됨') : t('profile.oauthUnset', '미설정')}</span>
                       {st.connected && <span style={{ fontSize: 10, padding: '2px 7px', borderRadius: 20, background: 'rgba(79,142,247,0.15)', color: '#4f8ef7' }}>{t('profile.oauthConnected', '연결됨')}</span>}
                     </div>
+                    {/* [현 차수] 매체 콘솔에 등록할 Redirect URI(복사) + 개발자 콘솔 링크 — redirect_uri_mismatch 방지 */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6, flexWrap: 'wrap' }}>
+                      <span style={{ fontSize: 10, color: 'var(--text-3)', whiteSpace: 'nowrap' }}>{t('profile.oauthRedirectUri', 'Redirect URI')}:</span>
+                      <code style={{ flex: '1 1 200px', fontSize: 10.5, fontFamily: 'monospace', background: 'rgba(99,102,241,0.06)', border: '1px solid rgba(99,102,241,0.15)', borderRadius: 6, padding: '4px 7px', color: 'var(--text-2)', wordBreak: 'break-all' }}>{`${window.location.origin}/api/v425/oauth/${p.id}/callback`}</code>
+                      <button onClick={() => copyOAuthText(`${window.location.origin}/api/v425/oauth/${p.id}/callback`)} style={{ padding: '4px 9px', borderRadius: 6, border: '1px solid rgba(99,102,241,0.25)', background: 'rgba(255,255,255,0.6)', color: '#6366f1', fontSize: 10.5, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>{t('profile.copyBtn', '복사')}</button>
+                      {p.console && <a href={p.console} target="_blank" rel="noreferrer" style={{ fontSize: 10.5, color: '#4f8ef7', textDecoration: 'none', whiteSpace: 'nowrap' }}>{t('profile.oauthConsole', '개발자 콘솔 ↗')}</a>}
+                    </div>
                     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                       <input value={f.client_id || ''} onChange={e => setOauthForm(o => ({ ...o, [p.id]: { ...o[p.id], client_id: e.target.value } }))} placeholder={st.configured ? '••• Client ID (변경 시 재입력)' : 'Client ID'} style={{ flex: '1 1 150px', padding: '7px 9px', borderRadius: 7, border: '1px solid rgba(99,102,241,0.2)', fontSize: 11.5 }} />
                       <input type="password" value={f.client_secret || ''} onChange={e => setOauthForm(o => ({ ...o, [p.id]: { ...o[p.id], client_secret: e.target.value } }))} placeholder="Client Secret" style={{ flex: '1 1 150px', padding: '7px 9px', borderRadius: 7, border: '1px solid rgba(99,102,241,0.2)', fontSize: 11.5 }} />
                       <button onClick={() => saveOAuthConfig(p.id)} disabled={oauthBusy === p.id} style={{ padding: '7px 12px', borderRadius: 7, border: 'none', background: 'linear-gradient(135deg,#6366f1,#4f8ef7)', color: '#fff', fontWeight: 700, fontSize: 11.5, cursor: 'pointer' }}>{oauthBusy === p.id ? '...' : t('profile.oauthSaveBtn', '저장')}</button>
                       {st.configured && <button onClick={() => connectOAuth(p.id)} style={{ padding: '7px 12px', borderRadius: 7, border: '1px solid rgba(79,142,247,0.3)', background: 'rgba(79,142,247,0.06)', color: '#4f8ef7', fontWeight: 700, fontSize: 11.5, cursor: 'pointer' }}>{t('profile.oauthConnectBtn', '연결')}</button>}
+                      {st.connected && <button onClick={() => refreshOAuthToken(p.id)} disabled={oauthBusy === p.id} style={{ padding: '7px 12px', borderRadius: 7, border: '1px solid rgba(34,197,94,0.3)', background: 'rgba(34,197,94,0.06)', color: '#16a34a', fontWeight: 700, fontSize: 11.5, cursor: 'pointer' }}>{t('profile.oauthRefreshBtn', '토큰 갱신')}</button>}
                     </div>
                   </div>
                 );
