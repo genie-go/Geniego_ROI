@@ -385,6 +385,36 @@ final class OrderHub
         return self::json($resp, ['ok' => true, 'ingested' => $ingested, 'skipped' => $skipped, '_env' => Db::env(), '_isDemo' => $isDemo]);
     }
 
+    /**
+     * [현 차수] 프로그래매틱 정산 적재(cron/ChannelSync 정산 자동풀 공용).
+     *   실 채널 정산 데이터를 status='confirmed'(기본)로 적재 → rollupSettlementsCore 의 "추정 미덮어쓰기"
+     *   보존 로직이 실 정산을 유지한다. ingestSettlements(HTTP)와 동일 필드 매핑.
+     * @return int 적재 건수
+     */
+    public static function ingestSettlementRows(\PDO $pdo, string $tenant, array $rows, string $defaultStatus = 'confirmed'): int
+    {
+        self::ensureSettlementTables($pdo);
+        $now = gmdate('Y-m-d H:i:s'); $n = 0;
+        foreach ($rows as $it) {
+            if (!is_array($it)) continue;
+            $period  = (string)($it['period'] ?? '');
+            $channel = (string)($it['channel'] ?? '');
+            if ($period === '' || $channel === '') continue;
+            $n += self::upsertSettlement($pdo, $tenant, $period, $channel, [
+                'status'          => (string)($it['status'] ?? $defaultStatus),
+                'gross_sales'     => (float)($it['gross_sales'] ?? $it['grossSales'] ?? 0),
+                'net_payout'      => (float)($it['net_payout'] ?? $it['netPayout'] ?? 0),
+                'platform_fee'    => (float)($it['platform_fee'] ?? $it['platformFee'] ?? 0),
+                'ad_fee'          => (float)($it['ad_fee'] ?? $it['adFee'] ?? 0),
+                'coupon_discount' => (float)($it['coupon_discount'] ?? $it['couponDiscount'] ?? 0),
+                'return_fee'      => (float)($it['return_fee'] ?? $it['returnFee'] ?? 0),
+                'orders_count'    => (int)($it['orders_count'] ?? $it['orders'] ?? 0),
+                'returns_count'   => (int)($it['returns_count'] ?? $it['returns'] ?? 0),
+            ], $now);
+        }
+        return $n;
+    }
+
     /** channel_orders + orderhub_claims 집계로 정산 파생(plaform_fee 추정율 적용). */
     public static function rollupSettlements(Request $req, Response $resp): Response
     {

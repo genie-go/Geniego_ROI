@@ -1395,6 +1395,8 @@ final class ChannelSync
         $now    = gmdate('c');
         $pCount = self::saveProducts($pdo, $tenant, $channel, $result['products'] ?? []);
         $oCount = self::saveOrders($pdo, $tenant, $channel, $result['orders'] ?? []);
+        // [현 차수] 정산 자동 풀(graceful) — 실 정산 API 어댑터 보유 채널은 confirmed 적재, 미구현은 무동작(pending).
+        try { self::syncSettlementsForTenant($pdo, $tenant, $channel, $creds, gmdate('Y-m')); } catch (\Throwable $e) {}
 
         $pending = !empty($result['pending']); // [현 차수] H1: stub 채널 연동 대기 표기
         $newStatus = !($result['ok'] ?? false) ? 'error' : ($pending ? 'pending' : 'ok');
@@ -1410,6 +1412,36 @@ final class ChannelSync
             'note'          => $result['note'] ?? null,
             'error'         => $result['error'] ?? null,
         ];
+    }
+
+    /**
+     * [현 차수] 채널 정산 자동 풀 — 프레임워크(graceful). 실 채널 정산 API(쿠팡 revenue-history·네이버 정산조회 등)
+     *   매핑은 채널별 case 로 추가한다(주문 어댑터 fetchFromChannel 과 동일 패턴, 기존 인증 재사용).
+     *   ★실 응답 필드 매핑은 라이브 셀러 계정 검증 후 구현(미구현 채널=pending, 추정 롤업/수동 ingest 사용).
+     *   반환: ['ok'=>bool,'settlements'=>list<array{period,channel,gross_sales,net_payout,platform_fee,...}>,'pending'=>bool,'note'=>string]
+     */
+    public static function fetchSettlements(string $channel, array $creds, string $tenant, string $period): array
+    {
+        if ($tenant === 'demo') return ['ok' => true, 'settlements' => [], 'pending' => true, 'note' => 'demo']; // 데모는 실 API 미호출
+        switch ($channel) {
+            // ── 채널별 실 정산 API 어댑터 추가 지점 ──────────────────────────────
+            //   예: case 'coupang' => return self::coupangSettlements($creds, $period);  // CEA HMAC 재사용
+            //       case 'naver':   return self::naverSettlements($creds, $period);    // OAuth2 재사용
+            //   각 어댑터는 [code,body]=self::httpGet(...) 호출→정산 필드 매핑→settlements 반환(라이브 검증 후).
+            default:
+                return ['ok' => true, 'settlements' => [], 'pending' => true,
+                        'note' => $channel . ' 정산 자동풀 어댑터 미구현 — 추정 롤업/수동 ingest 사용(실 셀러 자격증명 확보 후 어댑터 추가)'];
+        }
+    }
+
+    /** 정산 자동 풀 → orderhub_settlements 실 적재(confirmed). cron/syncTenantChannel 공용. @return int 적재 수 */
+    public static function syncSettlementsForTenant(\PDO $pdo, string $tenant, string $channel, array $creds, string $period): int
+    {
+        if ($tenant === 'demo') return 0;
+        $r = self::fetchSettlements($channel, $creds, $tenant, $period);
+        if (empty($r['ok']) || empty($r['settlements']) || !is_array($r['settlements'])) return 0;
+        // 실 정산 데이터 → status='confirmed' 적재(추정 롤업이 덮어쓰지 않아 보존됨 — OrderHub 보존 로직 정합).
+        return OrderHub::ingestSettlementRows($pdo, $tenant, $r['settlements'], 'confirmed');
     }
 
     /**
