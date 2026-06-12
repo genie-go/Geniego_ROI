@@ -42,8 +42,20 @@ final class ClaudeAI {
         return strpos($k, 'MASKED_FOR_GITHUB') === false && strlen($k) > 10;
     }
 
-    /** 196차: 실사 이미지 생성 API 설정(provider + key). app_setting imggen_provider/imggen_api_key. */
-    private static function imgGenConfig(): array {
+    /** 196차: 실사 이미지 생성 API 설정(provider + key). [현 차수] 구독회원별 BYO 우선 + app_setting 전역 폴백. */
+    private static function imgGenConfig(string $tenant = ''): array {
+        // [현 차수] ★구독회원별 BYO: ai_settings 테넌트 행에 imggen_* 가 있으면 그 키 사용(없으면 전역 폴백=기존동작, 무위험).
+        if ($tenant !== '' && $tenant !== 'demo') {
+            try {
+                $s = Db::pdo()->prepare("SELECT imggen_provider, imggen_key FROM ai_settings WHERE tenant_id=? LIMIT 1");
+                $s->execute([$tenant]);
+                $r = $s->fetch(\PDO::FETCH_ASSOC);
+                if ($r) {
+                    $k = \Genie\Crypto::decrypt((string)($r['imggen_key'] ?? ''));
+                    if (strlen($k) > 10) return ['provider' => (trim((string)($r['imggen_provider'] ?? '')) ?: 'openai'), 'key' => $k];
+                }
+            } catch (\Throwable $e) { /* 컬럼 미존재 등 → 전역 폴백 */ }
+        }
         $provider = 'openai'; $key = '';
         $envK = getenv('IMGGEN_API_KEY');
         if ($envK && strlen($envK) > 10) $key = $envK;
@@ -67,8 +79,20 @@ final class ClaudeAI {
         return strlen($c['key']) > 10;
     }
 
-    /** 196차: AI 동영상 생성 API 설정(provider/key/model). app_setting videogen_*. */
-    private static function videoGenConfig(): array {
+    /** 196차: AI 동영상 생성 API 설정(provider/key/model). [현 차수] 구독회원별 BYO 우선 + app_setting 전역 폴백. */
+    private static function videoGenConfig(string $tenant = ''): array {
+        // [현 차수] ★구독회원별 BYO: ai_settings 테넌트 행에 videogen_* 가 있으면 그 키 사용(없으면 전역 폴백).
+        if ($tenant !== '' && $tenant !== 'demo') {
+            try {
+                $s = Db::pdo()->prepare("SELECT videogen_provider, videogen_key, videogen_model FROM ai_settings WHERE tenant_id=? LIMIT 1");
+                $s->execute([$tenant]);
+                $r = $s->fetch(\PDO::FETCH_ASSOC);
+                if ($r) {
+                    $k = \Genie\Crypto::decrypt((string)($r['videogen_key'] ?? ''));
+                    if (strlen($k) > 10) return ['provider' => (trim((string)($r['videogen_provider'] ?? '')) ?: 'replicate'), 'key' => $k, 'model' => trim((string)($r['videogen_model'] ?? ''))];
+                }
+            } catch (\Throwable $e) { /* 컬럼 미존재 등 → 전역 폴백 */ }
+        }
         $provider = 'replicate'; $key = ''; $model = '';
         $envK = getenv('VIDEOGEN_API_KEY');
         if ($envK && strlen($envK) > 10) $key = $envK;
@@ -90,6 +114,77 @@ final class ClaudeAI {
     public static function videoGenConfigured(): bool {
         $c = self::videoGenConfig();
         return strlen($c['key']) > 10;
+    }
+
+    /** [현 차수] ai_settings 에 구독회원별 이미지/동영상 생성 API 컬럼 보강(멱등). */
+    private static function ensureCreativeApiCols(PDO $pdo): void {
+        try {
+            $isMy = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql';
+            if ($isMy) $pdo->exec("CREATE TABLE IF NOT EXISTS ai_settings (id INT AUTO_INCREMENT PRIMARY KEY, tenant_id VARCHAR(100) UNIQUE, provider VARCHAR(32) DEFAULT 'claude', api_key TEXT, model VARCHAR(64), is_active TINYINT(1) DEFAULT 1, updated_at VARCHAR(40))");
+            else $pdo->exec("CREATE TABLE IF NOT EXISTS ai_settings (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT UNIQUE, provider TEXT DEFAULT 'claude', api_key TEXT, model TEXT, is_active INTEGER DEFAULT 1, updated_at TEXT)");
+        } catch (\Throwable $e) {}
+        foreach (['imggen_provider VARCHAR(32)', 'imggen_key TEXT', 'videogen_provider VARCHAR(32)', 'videogen_key TEXT', 'videogen_model VARCHAR(64)'] as $col) {
+            try { $pdo->exec("ALTER TABLE ai_settings ADD COLUMN $col"); } catch (\Throwable $e) {}
+        }
+    }
+
+    /** GET /v422/ai/creative-api — 구독회원의 이미지/동영상 생성 API 설정 상태(키 마스킹, 세션 테넌트). */
+    public static function creativeApiGet(Request $req, Response $res): Response {
+        $tenant = self::tenant($req);
+        $out = ['ok' => true, 'tenant' => $tenant,
+            'img' => ['provider' => 'openai', 'configured' => false],
+            'video' => ['provider' => 'replicate', 'model' => '', 'configured' => false],
+            'global_img' => self::imgGenConfigured(), 'global_video' => self::videoGenConfigured()];
+        if ($tenant !== '' && $tenant !== 'unknown' && $tenant !== 'demo') {
+            try {
+                $s = Db::pdo()->prepare("SELECT imggen_provider, imggen_key, videogen_provider, videogen_key, videogen_model FROM ai_settings WHERE tenant_id=? LIMIT 1");
+                $s->execute([$tenant]);
+                if ($r = $s->fetch(\PDO::FETCH_ASSOC)) {
+                    $ik = \Genie\Crypto::decrypt((string)($r['imggen_key'] ?? ''));
+                    $vk = \Genie\Crypto::decrypt((string)($r['videogen_key'] ?? ''));
+                    $out['img'] = ['provider' => (trim((string)($r['imggen_provider'] ?? '')) ?: 'openai'), 'configured' => strlen($ik) > 10];
+                    $out['video'] = ['provider' => (trim((string)($r['videogen_provider'] ?? '')) ?: 'replicate'), 'model' => trim((string)($r['videogen_model'] ?? '')), 'configured' => strlen($vk) > 10];
+                }
+            } catch (\Throwable $e) {}
+        }
+        $res->getBody()->write(json_encode($out, JSON_UNESCAPED_UNICODE));
+        return $res->withHeader('Content-Type', 'application/json');
+    }
+
+    /** POST /v422/ai/creative-api — 구독회원의 이미지/동영상 생성 API 키 저장(AES 암호화, 세션 테넌트). */
+    public static function creativeApiSave(Request $req, Response $res): Response {
+        $tenant = self::tenant($req);
+        if ($tenant === '' || $tenant === 'unknown' || $tenant === 'demo') {
+            $res->getBody()->write(json_encode(['ok' => false, 'error' => '로그인된 구독회원만 저장할 수 있습니다(데모 제외).'], JSON_UNESCAPED_UNICODE));
+            return $res->withHeader('Content-Type', 'application/json')->withStatus(403);
+        }
+        $body = (array)($req->getParsedBody() ?? []);
+        if (empty($body)) { $d = json_decode((string)$req->getBody(), true); if (is_array($d)) $body = $d; }
+        $imgProvider = trim((string)($body['img_provider'] ?? ''));
+        $imgKey      = trim((string)($body['img_key'] ?? ''));
+        $vidProvider = trim((string)($body['video_provider'] ?? ''));
+        $vidKey      = trim((string)($body['video_key'] ?? ''));
+        $vidModel    = trim((string)($body['video_model'] ?? ''));
+        try {
+            $pdo = Db::pdo();
+            self::ensureCreativeApiCols($pdo);
+            $now = gmdate('c');
+            $ex = $pdo->prepare("SELECT 1 FROM ai_settings WHERE tenant_id=? LIMIT 1"); $ex->execute([$tenant]);
+            if (!$ex->fetchColumn()) $pdo->prepare("INSERT INTO ai_settings(tenant_id, is_active, updated_at) VALUES(?,?,?)")->execute([$tenant, 1, $now]);
+            $sets = []; $vals = [];
+            if ($imgProvider !== '') { $sets[] = 'imggen_provider=?'; $vals[] = $imgProvider; }
+            if ($imgKey !== '')      { $sets[] = 'imggen_key=?'; $vals[] = \Genie\Crypto::encrypt($imgKey); } // 키 입력시에만 덮어씀(마스킹 유지)
+            if ($vidProvider !== '') { $sets[] = 'videogen_provider=?'; $vals[] = $vidProvider; }
+            if ($vidKey !== '')      { $sets[] = 'videogen_key=?'; $vals[] = \Genie\Crypto::encrypt($vidKey); }
+            $sets[] = 'videogen_model=?'; $vals[] = $vidModel; // model 은 빈값(해제)도 허용
+            $sets[] = 'updated_at=?'; $vals[] = $now; $vals[] = $tenant;
+            $pdo->prepare("UPDATE ai_settings SET " . implode(',', $sets) . " WHERE tenant_id=?")->execute($vals);
+            $res->getBody()->write(json_encode(['ok' => true], JSON_UNESCAPED_UNICODE));
+            return $res->withHeader('Content-Type', 'application/json');
+        } catch (\Throwable $e) {
+            $res->getBody()->write(json_encode(['ok' => false, 'error' => $e->getMessage()], JSON_UNESCAPED_UNICODE));
+            return $res->withHeader('Content-Type', 'application/json')->withStatus(500);
+        }
     }
 
     /* ── DB 스키마 자동 생성 ─────────────────────────────────── */
@@ -1783,9 +1878,9 @@ PROMPT;
                 $res->getBody()->write(json_encode(['ok'=>false,'error'=>'이미지 생성 프롬프트가 필요합니다.'], JSON_UNESCAPED_UNICODE));
                 return $res->withHeader('Content-Type','application/json')->withStatus(422);
             }
-            $cfg = self::imgGenConfig();
+            $cfg = self::imgGenConfig(self::tenant($req));
             if (strlen($cfg['key']) < 10) {
-                $res->getBody()->write(json_encode(['ok'=>false,'configured'=>false,'error'=>'실사 이미지 생성 API가 설정되지 않았습니다. 관리자 설정에서 이미지 생성 API 키를 등록하세요.'], JSON_UNESCAPED_UNICODE));
+                $res->getBody()->write(json_encode(['ok'=>false,'configured'=>false,'error'=>'실사 이미지 생성 API가 설정되지 않았습니다. [AI 광고 디자인 > API 연동]에서 본인 이미지 생성 API 키를 등록하세요(관리자 전역 설정도 가능).'], JSON_UNESCAPED_UNICODE));
                 return $res->withHeader('Content-Type','application/json')->withStatus(200);
             }
             // 텍스트 없는 광고 배경/비주얼로 유도(텍스트는 디자인에서 오버레이)
@@ -1863,7 +1958,7 @@ PROMPT;
                 $res->getBody()->write(json_encode(['ok'=>false,'error'=>'동영상 생성 프롬프트가 필요합니다.'], JSON_UNESCAPED_UNICODE));
                 return $res->withHeader('Content-Type','application/json')->withStatus(422);
             }
-            $cfg = self::videoGenConfig();
+            $cfg = self::videoGenConfig(self::tenant($req));
             if (strlen($cfg['key']) < 10) {
                 $res->getBody()->write(json_encode(['ok'=>false,'configured'=>false,'error'=>'AI 동영상 생성 API가 설정되지 않았습니다. 관리자 설정에서 동영상 생성 API 키를 등록하세요.'], JSON_UNESCAPED_UNICODE));
                 return $res->withHeader('Content-Type','application/json')->withStatus(200);
@@ -1901,7 +1996,7 @@ PROMPT;
         try {
             $jobId = trim((string)($req->getQueryParams()['job_id'] ?? ''));
             if ($jobId === '') { $res->getBody()->write(json_encode(['ok'=>false,'error'=>'job_id가 필요합니다.'], JSON_UNESCAPED_UNICODE)); return $res->withHeader('Content-Type','application/json')->withStatus(422); }
-            $cfg = self::videoGenConfig();
+            $cfg = self::videoGenConfig(self::tenant($req));
             if (strlen($cfg['key']) < 10) { $res->getBody()->write(json_encode(['ok'=>false,'configured'=>false], JSON_UNESCAPED_UNICODE)); return $res->withHeader('Content-Type','application/json'); }
             $ch = curl_init('https://api.replicate.com/v1/predictions/'.rawurlencode($jobId));
             curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER=>true,CURLOPT_TIMEOUT=>15,CURLOPT_CONNECTTIMEOUT=>6,
@@ -2456,6 +2551,86 @@ PROMPT;
             : "INSERT INTO channel_kpi_config(tenant_id,config_json,updated_at) VALUES(?,?,?) ON CONFLICT(tenant_id) DO UPDATE SET config_json=excluded.config_json, updated_at=excluded.updated_at";
         $pdo->prepare($sql)->execute([$tenant, $json, $now]);
         return TemplateResponder::respond($res, ['ok' => true, 'saved' => true, 'updated_at' => $now]);
+    }
+
+    /* ───────────── [현 차수] ② 자연어 인사이트(AI 리포트) — MMM·성과 종합 ───────────── */
+
+    /** POST /v422/ai/marketing-insight — 광고·채널 분석 자연어 종합. 실데이터 기반, AI 미가용 시 결정적 폴백. */
+    public static function marketingInsight(Request $req, Response $res, array $args = []): Response {
+        $tenant = self::tenant($req);
+        if ($tenant === 'unknown') {
+            return TemplateResponder::respond($res->withStatus(401), ['ok' => false, 'error' => '로그인이 필요합니다.']);
+        }
+        try { $facts = self::gatherMarketingFacts(Db::pdo(), $tenant); }
+        catch (\Throwable $e) { $facts = ['window_days' => 60, 'channels' => [], 'totals' => ['spend' => 0, 'revenue' => 0, 'roas' => 0]]; }
+
+        if (empty($facts['channels'])) {
+            return TemplateResponder::respond($res, ['ok' => true, 'ai' => false, 'insight' => [
+                'summary' => '아직 분석할 성과 데이터가 충분하지 않습니다. 채널을 연동·집행하면 자동으로 인사이트가 생성됩니다.',
+                'bullets' => [], 'recommendation' => '광고 채널 연동 및 데이터 수집을 먼저 진행하세요.', 'risks' => [],
+            ], 'facts' => $facts]);
+        }
+        $system = '당신은 시니어 퍼포먼스 마케팅 애널리스트입니다. 주어진 실측 데이터만 근거로 한국어로 간결하고 실행가능한 인사이트를 작성합니다. 과장·추정·허위수치 금지. 반드시 JSON {"summary":"3-4문장","bullets":["핵심포인트", "..."],"recommendation":"우선 액션 1-2개","risks":["리스크", "..."]} 형식으로만 응답하세요.';
+        $userMsg = "광고주의 최근 " . (int)$facts['window_days'] . "일 실측 마케팅 데이터입니다:\n" . json_encode($facts, JSON_UNESCAPED_UNICODE) . "\n채널 효율·예산 배분·이상 신호를 종합해 경영진용 요약을 작성하세요.";
+        try {
+            $r = self::callClaude($system, $userMsg, 14);
+            $parsed = self::parseAnalysis($r['text']);
+            return TemplateResponder::respond($res, ['ok' => true, 'ai' => true, 'insight' => $parsed, 'facts' => $facts]);
+        } catch (\Throwable $e) {
+            return TemplateResponder::respond($res, ['ok' => true, 'ai' => false, 'insight' => self::deterministicInsight($facts), 'facts' => $facts, 'note' => 'AI 미가용 — 규칙 기반 요약(관리자 Claude 키 설정 시 서술형 AI 활성)']);
+        }
+    }
+
+    private static function insightIsDemo(): bool {
+        try { if (\Genie\Db::env() === 'demo') return true; } catch (\Throwable $e) {}
+        try { $d = strtolower((string)Db::pdo()->query('SELECT DATABASE()')->fetchColumn()); if ($d !== '' && strpos($d, 'demo') !== false) return true; } catch (\Throwable $e) {}
+        return false;
+    }
+
+    private static function gatherMarketingFacts(\PDO $pdo, string $tenant): array {
+        $window = 60;
+        if (self::insightIsDemo() || $tenant === 'demo' || str_starts_with($tenant, 'demo')) return self::demoFacts($window);
+        $since = gmdate('Y-m-d', time() - $window * 86400);
+        $st = $pdo->prepare("SELECT channel, SUM(spend) spend, SUM(revenue) revenue, SUM(conversions) conv FROM performance_metrics WHERE tenant_id=? AND date>=? AND channel IS NOT NULL AND channel<>'' GROUP BY channel ORDER BY spend DESC");
+        $st->execute([$tenant, $since]);
+        $rows = $st->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+        $channels = []; $ts = 0; $tr = 0; $tc = 0;
+        foreach ($rows as $r) {
+            $sp = (float)$r['spend']; $rv = (float)$r['revenue']; $cv = (float)$r['conv'];
+            if ($sp <= 0) continue;
+            $ts += $sp; $tr += $rv; $tc += $cv;
+            $channels[] = ['channel' => $r['channel'], 'spend' => round($sp), 'revenue' => round($rv), 'roas' => round($rv / $sp, 2), 'conversions' => (int)$cv, 'cpa' => $cv > 0 ? round($sp / $cv) : null];
+        }
+        $channels = array_slice($channels, 0, 8);
+        $best = null; $worst = null;
+        foreach ($channels as $c) { if ($best === null || $c['roas'] > $best['roas']) $best = $c; if ($worst === null || $c['roas'] < $worst['roas']) $worst = $c; }
+        return ['window_days' => $window, 'totals' => ['spend' => round($ts), 'revenue' => round($tr), 'roas' => $ts > 0 ? round($tr / $ts, 2) : 0, 'conversions' => (int)$tc], 'channels' => $channels, 'best_roas' => $best, 'worst_roas' => $worst];
+    }
+
+    private static function demoFacts(int $window): array {
+        $channels = [
+            ['channel' => 'naver_sa', 'spend' => 10800000, 'revenue' => 46440000, 'roas' => 4.3, 'conversions' => 540, 'cpa' => 20000],
+            ['channel' => 'google_ads', 'spend' => 18000000, 'revenue' => 70200000, 'roas' => 3.9, 'conversions' => 720, 'cpa' => 25000],
+            ['channel' => 'meta_ads', 'spend' => 15000000, 'revenue' => 51000000, 'roas' => 3.4, 'conversions' => 600, 'cpa' => 25000],
+            ['channel' => 'tiktok_business', 'spend' => 7200000, 'revenue' => 19440000, 'roas' => 2.7, 'conversions' => 240, 'cpa' => 30000],
+            ['channel' => 'kakao_moment', 'spend' => 5400000, 'revenue' => 12960000, 'roas' => 2.4, 'conversions' => 180, 'cpa' => 30000],
+        ];
+        $ts = 0; $tr = 0; $tc = 0; foreach ($channels as $c) { $ts += $c['spend']; $tr += $c['revenue']; $tc += $c['conversions']; }
+        return ['window_days' => $window, 'totals' => ['spend' => $ts, 'revenue' => $tr, 'roas' => round($tr / $ts, 2), 'conversions' => $tc], 'channels' => $channels, 'best_roas' => $channels[0], 'worst_roas' => $channels[4], 'anomaly_hint' => 'meta_ads ROAS 최근 급락(−3.6σ) 신호'];
+    }
+
+    private static function deterministicInsight(array $f): array {
+        $fmt = fn($n) => '₩' . number_format((int)$n);
+        $t = $f['totals']; $best = $f['best_roas'] ?? null; $worst = $f['worst_roas'] ?? null;
+        $summary = "최근 {$f['window_days']}일 총 광고비 {$fmt($t['spend'])}, 매출 {$fmt($t['revenue'])}, 종합 ROAS {$t['roas']}x. ";
+        if ($best) $summary .= "최고 효율은 {$best['channel']}(ROAS {$best['roas']}x), ";
+        if ($worst) $summary .= "최저는 {$worst['channel']}(ROAS {$worst['roas']}x) 입니다.";
+        $bullets = [];
+        foreach (array_slice($f['channels'], 0, 4) as $c) { $bullets[] = "{$c['channel']}: 광고비 {$fmt($c['spend'])} · ROAS {$c['roas']}x" . (!empty($c['cpa']) ? " · CPA {$fmt($c['cpa'])}" : ""); }
+        if (!empty($f['anomaly_hint'])) $bullets[] = "⚠ " . $f['anomaly_hint'];
+        $rec = $worst ? "{$worst['channel']} 등 저효율 채널 예산을 " . ($best ? $best['channel'] : '고효율 채널') . " 로 재배분 검토(MMM 최적화 참고)." : "고효율 채널 증액 여지를 MMM 최적화로 확인하세요.";
+        $risks = ($worst && $worst['roas'] < 1.5) ? ["{$worst['channel']} ROAS 1.5x 미만 — 손실 위험, 점검 필요"] : [];
+        return ['summary' => $summary, 'bullets' => $bullets, 'recommendation' => $rec, 'risks' => $risks];
     }
 
 }

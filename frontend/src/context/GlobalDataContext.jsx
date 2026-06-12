@@ -33,7 +33,7 @@ const GlobalDataContext = createContext(null);
 import { IS_DEMO as _isDemo } from '../utils/demoEnv.js';
 
 const DEMO_LS_PREFIX = 'geniego_demo_';
-const DEMO_SEED_VERSION = 'v17.0';  // ★ v17: 인플루언서/UGC/채널통계/부정키워드 시드 추가
+const DEMO_SEED_VERSION = 'v18.0';  // ★ v18: 단일소스 자동산출(주문→정산/채널매출/예산기여/캠페인) 일체화 + 런타임 변동 재파생 + 로그인시점 상대날짜 — 재방문 체험자 캐시 무효화
 
 // ★ 시드 버전 체크: 새 시드 배포 시 이전 localStorage 자동 초기화
 if (_isDemo && typeof window !== 'undefined') {
@@ -63,6 +63,62 @@ function saveDemoState(key, data) {
   try {
     localStorage.setItem(DEMO_LS_PREFIX + key, JSON.stringify(data));
   } catch { /* quota exceeded — ignore */ }
+}
+
+/* ════════════════════════════════════════════════
+   [현 차수] ★런타임 단일소스 자동산출 — 주문(거래원장)=총매출 유일 소스.
+   체험자가 주문을 추가/수정하면 정산(채널×월)·예산 기여매출이 즉시 재파생되어
+   전 메뉴(대시보드/글로벌/커머스/롤업/정산/성과/P&L)가 동일 매출로 일체화 유지.
+════════════════════════════════════════════════ */
+// [현 차수] ★취소상태 캐논 통일: 그동안 orderStats(=cancelled 포함)·정산/예산/pnlStats(=cancelled 미포함)·
+//   롤업(=별도 집합)이 취소 판정이 제각각이라, 런타임 주문취소 시 대시보드↔롤업 매출이 발산했다.
+//   단일 집합으로 모든 파생지점이 동일하게 취소주문을 매출에서 제외하도록 통일.
+const CANCELLED_STATUSES = new Set(['CancelDone', 'Cancel요청', 'cancelled', 'canceled']);
+function _isCancelled(s) { return CANCELLED_STATUSES.has(String(s || '')); }
+
+function _monthOf(o) {
+  return o.month || (o.atISO ? String(o.atISO).slice(0, 7) : (o.at ? (() => { try { return new Date(o.at).toISOString().slice(0, 7); } catch { return ''; } })() : ''));
+}
+/** 주문 → 정산 재집계(채널×월). 기존 행의 status(정산완료 등)는 보존. */
+function deriveSettlementFromOrders(orders, prev) {
+  const active = (orders || []).filter(o => o && !_isCancelled(o.status));
+  if (!active.length) return [];
+  const months = [...new Set(active.map(_monthOf).filter(Boolean))].sort();
+  const recent = months[months.length - 1];
+  const prevStatus = {}; (prev || []).forEach(s => { if (s && s.id) prevStatus[s.id] = s.status; });
+  const rows = [];
+  DEMO_CHANNELS.forEach(ch => {
+    months.forEach(period => {
+      const co = active.filter(o => o.ch === ch.id && _monthOf(o) === period);
+      if (!co.length) return;
+      const gross = co.reduce((s, o) => s + (Number(o.total) || 0), 0);
+      const pfee = Math.round(gross * (ch.id === 'oliveyoung' ? 0.30 : ch.id === 'coupang' ? 0.108 : 0.055));
+      const adFee = Math.round(gross * 0.02), returnFee = Math.round(gross * 0.015);
+      const id = `STL-${ch.id}-${period}`;
+      rows.push({
+        id, channel: ch.id, channelName: ch.name, period, grossSales: gross,
+        platformFee: pfee, adFee, returnFee, couponDiscount: Math.round(gross * 0.01),
+        netPayout: gross - pfee - adFee - returnFee, orders: co.length, returns: Math.round(co.length * 0.02),
+        status: prevStatus[id] || (period === recent ? 'confirmed' : 'settled'),
+      });
+    });
+  });
+  return rows;
+}
+/** 주문 총매출 → 광고채널 기여매출 비례 재파생(spent/budget 보존, roas 재계산). */
+function deriveBudgetRevenue(channelBudgets, orders) {
+  const keys = Object.keys(channelBudgets || {});
+  if (!keys.length) return channelBudgets;
+  const active = (orders || []).filter(o => o && !_isCancelled(o.status));
+  const totalRev = active.reduce((s, o) => s + (Number(o.total) || 0), 0);
+  const rawSum = keys.reduce((s, k) => s + (channelBudgets[k].revenue || 0), 0) || 1;
+  const next = {};
+  keys.forEach(k => {
+    const b = channelBudgets[k];
+    const rev = Math.round(totalRev * (b.revenue || 0) / rawSum);
+    next[k] = { ...b, revenue: rev, roas: b.spent > 0 ? +(rev / b.spent).toFixed(2) : 0 };
+  });
+  return next;
 }
 
 /* ════════════════════════════════════════════════
@@ -365,10 +421,32 @@ export function GlobalDataProvider({ children }) {
         let cancelled = false;
         const BASE = import.meta.env.VITE_API_BASE || '';
         const poll = () => {
-            getJsonAuth('/api/v424/orderhub/orders?limit=200').then(r => { if (!cancelled && r?.ok && Array.isArray(r.items)) setOrders(r.items); }).catch(() => {});
+            // [현 차수] 운영 주문 하이드레이션 한도 200→1000(API clampLimit 최대) 상향: 200건 초과 테넌트의
+            //   커머스/orderStats 과소집계 완화(대시보드 매출=정산기준이라 영향 없으나 주문기반 표시 정합 개선).
+            getJsonAuth('/api/v424/orderhub/orders?limit=1000').then(r => { if (!cancelled && r?.ok && Array.isArray(r.items)) setOrders(r.items); }).catch(() => {});
             getJsonAuth('/api/v424/orderhub/settlements?limit=200').then(r => { if (!cancelled && r?.ok && Array.isArray(r.items)) setSettlement(r.items); }).catch(() => {});
             fetch(`${BASE}/api/channel-sync/inventory`, { headers: { Authorization: `Bearer ${token}` } })
                 .then(r => r.ok ? r.json() : null).then(d => { if (!cancelled && Array.isArray(d) && d.length > 0) setInventory(d); }).catch(() => {});
+            // [현 차수] P0 운영 광고비/ROAS 하이드레이션: 그동안 운영에서 channelBudgets 가 끝까지 빈 객체라
+            //   홈/마케팅/P&L 의 광고비·ROAS·예산이 0 으로 표시되던 결함. performance_metrics 집계(rollup platform
+            //   = 광고채널별 spend/revenue/roas)를 channelBudgets 로 매핑해 budgetStats/pnlStats 에 반영.
+            //   실데이터 0행이면 setChannelBudgets 미호출 → 빈 상태 유지(가짜값 주입 없음).
+            getJsonAuth('/api/v423/rollup/platform?period=monthly&n=1').then(r => {
+                if (cancelled || !r?.ok || !Array.isArray(r.rows) || !r.rows.length) return;
+                const bud = {};
+                r.rows.forEach(p => {
+                    const key = String(p.platform || '').toLowerCase().trim();
+                    if (!key) return;
+                    const spent = Number(p.total_spend) || 0;
+                    bud[key] = {
+                        name: p.platform, spent, revenue: Number(p.total_revenue) || 0,
+                        roas: Number(p.avg_roas) || 0, budget: spent,
+                        impressions: Number(p.total_impressions) || 0, clicks: Number(p.total_clicks) || 0,
+                        color: p.color || '#4f8ef7',
+                    };
+                });
+                if (Object.keys(bud).length) setChannelBudgets(bud);
+            }).catch(() => {});
         };
         const iv = setInterval(poll, 30000); // 30초 주기(운영 전용)
         return () => { cancelled = true; clearInterval(iv); };
@@ -1461,7 +1539,7 @@ export function GlobalDataProvider({ children }) {
 
     // 📋 Orders 집계
     const orderStats = useMemo(() => {
-        const activeOrders = orders.filter(o => o.status !== 'CancelDone' && o.status !== 'Cancel요청' && o.status !== 'cancelled');
+        const activeOrders = orders.filter(o => !_isCancelled(o.status));
         const totalFees = activeOrders.reduce((s, o) => s + (o.fee || 0), 0);
         const totalPlatformFees = activeOrders.reduce((s, o) => s + (o.total * (o.platformFeeRate || 0)), 0);
         const count = activeOrders.length;
@@ -1474,7 +1552,7 @@ export function GlobalDataProvider({ children }) {
             pending: orders.filter(o => o.status === '발주Confirm' || o.status === 'paid').length,
             shipping: orders.filter(o => ['출고대기','배송중','preparing','shipping'].includes(o.status)).length,
             done: orders.filter(o => ['배송Done','delivered','confirmed','Done'].includes(o.status)).length,
-            cancelled: orders.filter(o => ['Cancel요청','CancelDone','cancelled'].includes(o.status)).length,
+            cancelled: orders.filter(o => _isCancelled(o.status)).length,
             // Content KPI — only populated in demo mode
             contentViews: _isDemo ? 245000 + count * 120 : 0,
             contentVisitors: _isDemo ? 82000 + count * 45 : 0,
@@ -1523,14 +1601,28 @@ export function GlobalDataProvider({ children }) {
         };
     }, [settlement]);
 
+    // [현 차수] ★런타임 자동산출 엔진(데모 전용): 주문 변동 → 정산·예산기여매출 즉시 재파생.
+    //   체험자가 주문을 등록/수정하면 정산(글로벌/P&L 소스)·성과(예산기여매출)가 주문에 동기화되어
+    //   전 메뉴가 동일 총매출로 일체화 유지. 운영(!_isDemo)은 API 소스이므로 미적용.
+    useEffect(() => {
+        if (!_isDemo) return;
+        setSettlement(prev => deriveSettlementFromOrders(orders, prev));
+        setChannelBudgets(prev => deriveBudgetRevenue(prev, orders));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [orders]);
+
     // 📊 통합 P&L (Orders+Ad Spend+정산+재고원가 자동집계) ✅ 모든 데이터 소스 통합
     const pnlStats = useMemo(() => {
-        const activeOrders = orders.filter(o => o.status !== 'CancelDone' && o.status !== 'Cancel요청');
+        const activeOrders = orders.filter(o => !_isCancelled(o.status));
 
-        // Revenue: Orders 기반 (정산 데이터가 있으면 정산 기준 우선)
+        // [현 차수] ★매출 단일소스 분기:
+        //   - 데모: 주문(거래원장)이 유일 소스. 런타임 엔진이 정산을 주문에서 재파생하므로 글로벌/정산/P&L 이
+        //     커머스/롤업과 항상 일치(체험자 주문 변동 즉시 전 메뉴 동기화).
+        //   - 운영: 기존 동작 100% 보존(정산 우선). 운영 주문 폴링은 limit=200 캡이라 200건 초과 시 주문합이
+        //     과소집계되는 반면, 정산은 채널×기간 집계라 더 완전 → 운영은 반드시 정산 우선 유지(오류 방지).
         const orderRevenue = activeOrders.reduce((s, o) => s + o.total, 0);
         const settlementRevenue = settlementStats.totalGross;
-        const revenue = settlementRevenue > 0 ? settlementRevenue : orderRevenue;
+        const revenue = _isDemo ? orderRevenue : (settlementRevenue > 0 ? settlementRevenue : orderRevenue);
 
         // Revenue원가 (COGS): Orders된 SKU 원가 × 수량
         const cogs = activeOrders.reduce((s, o) => {

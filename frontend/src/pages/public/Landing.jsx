@@ -508,6 +508,75 @@ const DICT15 = {
 };
 
 const DICT_RICH = {
+  "navData": {
+    "ko": "데이터 분석",
+    "en": "Analytics"
+  },
+  "daBadge": {
+    "ko": "데이터 분석 엔진",
+    "en": "Data Analytics Engine"
+  },
+  "daTitle": {
+    "ko": "당신의 데이터를 신뢰로 바꾸는 방법",
+    "en": "How we turn your data into trust"
+  },
+  "daDesc": {
+    "ko": "GeniegoROI는 흩어진 모든 커머스 데이터를 빠짐없이 수집하고, 검증된 분석 방법론으로 가공해, 원천까지 추적 가능한 신뢰할 수 있는 의사결정 자료로 제공합니다. 그리고 그 분석을 근거로 마케팅을 자동으로 전개합니다.",
+    "en": "GeniegoROI collects every piece of your scattered commerce data, processes it with proven analytics methodologies, and delivers trustworthy, fully traceable decision-making insights — then acts on that analysis to run your marketing automatically."
+  },
+  "da1t": { "ko": "수집", "en": "Collect" },
+  "da1d": {
+    "ko": "30개 이상 채널의 광고·매출·주문·재고·정산·고객 여정 데이터를 실시간으로 빠짐없이 수집합니다. OAuth 보안 연동과 자동 동기화로 누락 없는 정합성을 보장합니다.",
+    "en": "Collect ad, sales, order, inventory, settlement and customer-journey data from 30+ channels in real time — with secure OAuth connections and auto-sync ensuring nothing is missed."
+  },
+  "da2t": { "ko": "분석", "en": "Analyze" },
+  "da2d": {
+    "ko": "샤플리·마르코프·MMM 6모델 멀티터치 어트리뷰션, 코호트 리텐션, 수요예측, 채널 시너지까지 — 추정이 아닌 실데이터 기반의 검증된 방법론으로 분석합니다.",
+    "en": "Analyze with proven, data-driven methods — 6-model multi-touch attribution (Shapley, Markov, MMM), cohort retention, demand forecasting and channel synergy — never estimates."
+  },
+  "da3t": { "ko": "신뢰", "en": "Trust" },
+  "da3d": {
+    "ko": "모든 지표는 원천 데이터까지 추적할 수 있고, 산식이 투명하게 공개됩니다. 테넌트 격리와 은행급 암호화, PII 미저장 원칙으로 데이터를 안전하게 지킵니다.",
+    "en": "Every metric drills down to its source data with transparent formulas. Tenant isolation, bank-grade encryption and a no-PII-storage policy keep your data safe."
+  },
+  "da4t": { "ko": "실행", "en": "Act" },
+  "da4d": {
+    "ko": "분석 결과를 근거로 AI가 예산을 추천하고, 사람 승인 하에 광고를 자동 집행합니다. 월 예산 한도 내 안전한 페이싱으로 분석에서 실행까지 끊김이 없습니다.",
+    "en": "Act on the analysis: AI recommends budgets and runs ads automatically with human approval — safely paced within your monthly budget cap, from insight to execution without a gap."
+  },
+  "daDataTitle": {
+    "ko": "수집하고 분석하는 데이터",
+    "en": "The data we collect and analyze"
+  },
+  "daCat1": { "ko": "광고 성과", "en": "Ad Performance" },
+  "daCatD1": {
+    "ko": "노출·클릭·전환·광고비·ROAS·CPA를 매체별로",
+    "en": "Impressions, clicks, conversions, spend, ROAS, CPA by channel"
+  },
+  "daCat2": { "ko": "매출·주문", "en": "Sales & Orders" },
+  "daCatD2": {
+    "ko": "채널별 주문·매출·반품·쿠폰을 단일 원장으로",
+    "en": "Orders, revenue, returns and coupons unified into one ledger"
+  },
+  "daCat3": { "ko": "재고·SKU", "en": "Inventory & SKU" },
+  "daCatD3": {
+    "ko": "실시간 재고·SKU 회전·수요예측·안전재고",
+    "en": "Real-time stock, SKU turnover, demand forecasts, safety stock"
+  },
+  "daCat4": { "ko": "정산·수수료", "en": "Settlement & Fees" },
+  "daCatD4": {
+    "ko": "플랫폼 수수료·정산율·순수익을 자동 대사",
+    "en": "Platform fees, settlement rates and net payout auto-reconciled"
+  },
+  "daCat5": { "ko": "고객 여정", "en": "Customer Journey" },
+  "daCatD5": {
+    "ko": "유입 채널·터치포인트·전환 경로 (PII 미저장)",
+    "en": "Source channels, touchpoints and conversion paths (no PII stored)"
+  },
+  "daTr1": { "ko": "실데이터 기반 · 합성 데이터 0", "en": "Real data only — zero synthetic" },
+  "daTr2": { "ko": "원천 데이터까지 추적 가능", "en": "Traceable to source data" },
+  "daTr3": { "ko": "은행급 암호화 · 테넌트 격리", "en": "Bank-grade encryption & tenant isolation" },
+  "daTr4": { "ko": "PII 미저장 · 집계 전용", "en": "No PII stored — aggregate only" },
   "navProduct": {
     "ko": "제품",
     "en": "Product"
@@ -847,6 +916,189 @@ const DICT_RICH = {
 };
 
 const DICT_RICH_EXT = {
+ "navData": {
+  "ja": "データ分析", "zh": "数据分析", "zh-TW": "數據分析", "vi": "Phân tích", "th": "วิเคราะห์ข้อมูล",
+  "id": "Analitik", "de": "Analytik", "fr": "Analytique", "es": "Analítica", "pt": "Análise",
+  "ru": "Аналитика", "ar": "التحليلات", "hi": "एनालिटिक्स"
+ },
+ "daBadge": {
+  "ja": "データ分析エンジン", "zh": "数据分析引擎", "zh-TW": "數據分析引擎", "vi": "Công cụ phân tích dữ liệu",
+  "th": "เครื่องมือวิเคราะห์ข้อมูล", "id": "Mesin Analitik Data", "de": "Datenanalyse-Engine",
+  "fr": "Moteur d'analyse de données", "es": "Motor de análisis de datos", "pt": "Motor de análise de dados",
+  "ru": "Движок аналитики данных", "ar": "محرك تحليل البيانات", "hi": "डेटा एनालिटिक्स इंजन"
+ },
+ "daTitle": {
+  "ja": "あなたのデータを信頼に変える方法", "zh": "我们如何将您的数据转化为信任", "zh-TW": "我們如何將您的數據轉化為信任",
+  "vi": "Cách chúng tôi biến dữ liệu của bạn thành niềm tin", "th": "วิธีที่เราเปลี่ยนข้อมูลของคุณให้เป็นความเชื่อมั่น",
+  "id": "Cara kami mengubah data Anda menjadi kepercayaan", "de": "Wie wir Ihre Daten in Vertrauen verwandeln",
+  "fr": "Comment nous transformons vos données en confiance", "es": "Cómo convertimos sus datos en confianza",
+  "pt": "Como transformamos os seus dados em confiança", "ru": "Как мы превращаем ваши данные в доверие",
+  "ar": "كيف نحوّل بياناتك إلى ثقة", "hi": "हम आपके डेटा को भरोसे में कैसे बदलते हैं"
+ },
+ "daDesc": {
+  "ja": "GeniegoROIは、散在するすべてのコマースデータを漏れなく収集し、実証済みの分析手法で加工して、源泉まで追跡可能な信頼できる意思決定資料として提供します。そしてその分析を根拠に、マーケティングを自動で展開します。",
+  "zh": "GeniegoROI 完整收集您分散的所有电商数据，以经过验证的分析方法进行处理，提供可追溯至源头、值得信赖的决策依据，并据此自动开展营销。",
+  "zh-TW": "GeniegoROI 完整收集您分散的所有電商數據，以經過驗證的分析方法進行處理，提供可追溯至源頭、值得信賴的決策依據，並據此自動展開行銷。",
+  "vi": "GeniegoROI thu thập đầy đủ mọi dữ liệu thương mại phân tán của bạn, xử lý bằng các phương pháp phân tích đã được kiểm chứng và cung cấp thông tin ra quyết định đáng tin cậy, truy xuất được đến nguồn gốc — rồi dựa trên phân tích đó để tự động triển khai marketing.",
+  "th": "GeniegoROI รวบรวมข้อมูลคอมเมิร์ซที่กระจัดกระจายของคุณอย่างครบถ้วน ประมวลผลด้วยวิธีวิเคราะห์ที่ผ่านการพิสูจน์ และส่งมอบข้อมูลการตัดสินใจที่เชื่อถือได้และตรวจสอบย้อนกลับถึงต้นทางได้ จากนั้นดำเนินการตลาดโดยอัตโนมัติบนพื้นฐานของการวิเคราะห์นั้น",
+  "id": "GeniegoROI mengumpulkan seluruh data commerce Anda yang tersebar secara lengkap, mengolahnya dengan metodologi analitik teruji, dan menyajikan wawasan keputusan yang tepercaya serta dapat dilacak hingga ke sumbernya — lalu menjalankan pemasaran secara otomatis berdasarkan analisis tersebut.",
+  "de": "GeniegoROI erfasst lückenlos all Ihre verstreuten Commerce-Daten, verarbeitet sie mit bewährten Analysemethoden und liefert vertrauenswürdige, bis zur Quelle nachverfolgbare Entscheidungsgrundlagen — und setzt Ihr Marketing auf Basis dieser Analyse automatisch um.",
+  "fr": "GeniegoROI collecte l'intégralité de vos données commerce dispersées, les traite avec des méthodes d'analyse éprouvées et fournit des informations de décision fiables et traçables jusqu'à la source — puis déploie automatiquement votre marketing sur la base de cette analyse.",
+  "es": "GeniegoROI recopila por completo todos sus datos de comercio dispersos, los procesa con metodologías de análisis probadas y ofrece información de decisión fiable y rastreable hasta su origen, y luego ejecuta su marketing automáticamente a partir de ese análisis.",
+  "pt": "A GeniegoROI recolhe integralmente todos os seus dados de comércio dispersos, processa-os com metodologias de análise comprovadas e fornece informações de decisão fiáveis e rastreáveis até à origem — e depois executa o seu marketing automaticamente com base nessa análise.",
+  "ru": "GeniegoROI полностью собирает все ваши разрозненные коммерческие данные, обрабатывает их проверенными методами аналитики и предоставляет надёжные, прослеживаемые до источника данные для принятия решений — а затем на основе этого анализа автоматически ведёт маркетинг.",
+  "ar": "تجمع GeniegoROI كل بيانات التجارة المتناثرة لديك دون أي نقص، وتعالجها بمنهجيات تحليل مثبتة، وتقدّم رؤى قرار موثوقة يمكن تتبّعها حتى المصدر — ثم تنفّذ تسويقك تلقائيًا بناءً على ذلك التحليل.",
+  "hi": "GeniegoROI आपके बिखरे हुए सभी कॉमर्स डेटा को पूरी तरह एकत्र करता है, उसे सिद्ध विश्लेषण पद्धतियों से संसाधित करता है, और स्रोत तक पता लगाने योग्य भरोसेमंद निर्णय-जानकारी प्रदान करता है — फिर उसी विश्लेषण के आधार पर आपकी मार्केटिंग स्वतः चलाता है।"
+ },
+ "da1t": { "ja": "収集", "zh": "收集", "zh-TW": "收集", "vi": "Thu thập", "th": "รวบรวม", "id": "Kumpulkan", "de": "Erfassen", "fr": "Collecter", "es": "Recopilar", "pt": "Recolher", "ru": "Сбор", "ar": "الجمع", "hi": "संग्रह" },
+ "da1d": {
+  "ja": "30以上のチャネルの広告・売上・注文・在庫・精算・顧客ジャーニーデータをリアルタイムで漏れなく収集します。OAuthによる安全な連携と自動同期で、抜け漏れのない整合性を保証します。",
+  "zh": "实时完整收集 30+ 渠道的广告、销售、订单、库存、结算与客户旅程数据。通过 OAuth 安全连接与自动同步，确保数据零遗漏、完全一致。",
+  "zh-TW": "即時完整收集 30+ 渠道的廣告、銷售、訂單、庫存、結算與客戶旅程數據。透過 OAuth 安全連接與自動同步，確保數據零遺漏、完全一致。",
+  "vi": "Thu thập theo thời gian thực và đầy đủ dữ liệu quảng cáo, doanh số, đơn hàng, tồn kho, đối soát và hành trình khách hàng từ hơn 30 kênh. Kết nối OAuth an toàn và đồng bộ tự động đảm bảo tính nhất quán không thiếu sót.",
+  "th": "รวบรวมข้อมูลโฆษณา ยอดขาย คำสั่งซื้อ สต็อก การกระทบยอด และเส้นทางลูกค้าจากกว่า 30 ช่องทางแบบเรียลไทม์อย่างครบถ้วน ด้วยการเชื่อมต่อ OAuth ที่ปลอดภัยและการซิงค์อัตโนมัติเพื่อความถูกต้องครบถ้วน",
+  "id": "Kumpulkan data iklan, penjualan, pesanan, inventaris, rekonsiliasi, dan perjalanan pelanggan dari 30+ kanal secara real-time dan lengkap. Koneksi OAuth yang aman serta sinkronisasi otomatis menjamin konsistensi tanpa ada yang terlewat.",
+  "de": "Erfassen Sie Werbe-, Umsatz-, Bestell-, Bestands-, Abrechnungs- und Customer-Journey-Daten aus über 30 Kanälen lückenlos in Echtzeit. Sichere OAuth-Verbindungen und Auto-Sync gewährleisten konsistente Daten ohne Lücken.",
+  "fr": "Collectez en temps réel et sans omission les données publicitaires, de ventes, de commandes, de stock, de règlement et de parcours client de plus de 30 canaux. Les connexions OAuth sécurisées et la synchronisation automatique garantissent une cohérence sans faille.",
+  "es": "Recopile en tiempo real y sin omisiones los datos de publicidad, ventas, pedidos, inventario, liquidación y recorrido del cliente de más de 30 canales. Las conexiones OAuth seguras y la sincronización automática garantizan una coherencia completa.",
+  "pt": "Recolha em tempo real e sem falhas os dados de publicidade, vendas, encomendas, stock, liquidação e jornada do cliente de mais de 30 canais. Ligações OAuth seguras e sincronização automática garantem consistência total.",
+  "ru": "Собирайте данные о рекламе, продажах, заказах, запасах, взаиморасчётах и пути клиента из более чем 30 каналов в реальном времени и без пропусков. Безопасные OAuth-подключения и автосинхронизация обеспечивают полную целостность.",
+  "ar": "اجمع بيانات الإعلانات والمبيعات والطلبات والمخزون والتسويات ورحلة العميل من أكثر من 30 قناة في الوقت الفعلي ودون نقص. توفّر اتصالات OAuth الآمنة والمزامنة التلقائية اتساقًا كاملًا بلا ثغرات.",
+  "hi": "30+ चैनलों के विज्ञापन, बिक्री, ऑर्डर, इन्वेंटरी, सेटलमेंट और ग्राहक-यात्रा डेटा को रीयल-टाइम में पूरी तरह एकत्र करें। सुरक्षित OAuth कनेक्शन और ऑटो-सिंक बिना किसी चूक के संगति सुनिश्चित करते हैं।"
+ },
+ "da2t": { "ja": "分析", "zh": "分析", "zh-TW": "分析", "vi": "Phân tích", "th": "วิเคราะห์", "id": "Analisis", "de": "Analysieren", "fr": "Analyser", "es": "Analizar", "pt": "Analisar", "ru": "Анализ", "ar": "التحليل", "hi": "विश्लेषण" },
+ "da2d": {
+  "ja": "シャープレイ・マルコフ・MMMの6モデルマルチタッチアトリビューション、コホートリテンション、需要予測、チャネルシナジーまで——推定ではなく実データに基づく実証済みの手法で分析します。",
+  "zh": "从 Shapley、马尔可夫、MMM 等 6 模型多触点归因，到同期群留存、需求预测与渠道协同——全部基于真实数据、而非估算的成熟方法进行分析。",
+  "zh-TW": "從 Shapley、馬可夫、MMM 等 6 模型多觸點歸因，到同期群留存、需求預測與渠道協同——全部基於真實數據、而非估算的成熟方法進行分析。",
+  "vi": "Phân tích bằng các phương pháp đã được kiểm chứng và dựa trên dữ liệu thực — quy kết đa điểm chạm 6 mô hình (Shapley, Markov, MMM), giữ chân theo cohort, dự báo nhu cầu và cộng hưởng kênh — không phải ước lượng.",
+  "th": "วิเคราะห์ด้วยวิธีที่พิสูจน์แล้วและอิงข้อมูลจริง ตั้งแต่การระบุเครดิตหลายจุดสัมผัส 6 โมเดล (Shapley, Markov, MMM) การรักษาลูกค้าแบบ cohort การพยากรณ์อุปสงค์ ไปจนถึงการเสริมพลังระหว่างช่องทาง ไม่ใช่การประมาณการ",
+  "id": "Analisis dengan metode teruji berbasis data nyata — atribusi multi-sentuh 6 model (Shapley, Markov, MMM), retensi cohort, prakiraan permintaan, hingga sinergi kanal — bukan perkiraan.",
+  "de": "Analysieren Sie mit bewährten, datenbasierten Methoden — 6-Modell-Multi-Touch-Attribution (Shapley, Markov, MMM), Kohorten-Retention, Bedarfsprognose und Kanal-Synergie — niemals Schätzungen.",
+  "fr": "Analysez avec des méthodes éprouvées et basées sur des données réelles — attribution multi-touch à 6 modèles (Shapley, Markov, MMM), rétention par cohorte, prévision de la demande et synergie des canaux — jamais des estimations.",
+  "es": "Analice con métodos probados y basados en datos reales: atribución multitáctil de 6 modelos (Shapley, Markov, MMM), retención por cohortes, previsión de demanda y sinergia de canales, nunca estimaciones.",
+  "pt": "Analise com métodos comprovados e baseados em dados reais — atribuição multitoque de 6 modelos (Shapley, Markov, MMM), retenção por cohort, previsão de procura e sinergia de canais — nunca estimativas.",
+  "ru": "Анализируйте проверенными методами на реальных данных — мультитач-атрибуция из 6 моделей (Shapley, Марков, MMM), удержание по когортам, прогноз спроса и синергия каналов — никаких приблизительных оценок.",
+  "ar": "حلّل بأساليب مثبتة قائمة على بيانات حقيقية — إسناد متعدد اللمسات بستة نماذج (شابلي، ماركوف، MMM)، والاحتفاظ حسب المجموعات، والتنبؤ بالطلب، وتآزر القنوات — وليس مجرد تقديرات.",
+  "hi": "सिद्ध, वास्तविक-डेटा आधारित विधियों से विश्लेषण करें — 6-मॉडल मल्टी-टच एट्रिब्यूशन (Shapley, Markov, MMM), कोहोर्ट रिटेंशन, मांग पूर्वानुमान और चैनल सिनर्जी — अनुमान नहीं।"
+ },
+ "da3t": { "ja": "信頼", "zh": "信任", "zh-TW": "信任", "vi": "Tin cậy", "th": "ความเชื่อมั่น", "id": "Kepercayaan", "de": "Vertrauen", "fr": "Confiance", "es": "Confianza", "pt": "Confiança", "ru": "Доверие", "ar": "الثقة", "hi": "भरोसा" },
+ "da3d": {
+  "ja": "すべての指標は源泉データまで追跡でき、計算式も透明に公開されます。テナント分離と銀行級の暗号化、PII非保存の原則で、データを安全に守ります。",
+  "zh": "所有指标均可追溯至源头数据，计算公式透明公开。通过租户隔离、银行级加密与不存储 PII 的原则，安全守护您的数据。",
+  "zh-TW": "所有指標均可追溯至源頭數據，計算公式透明公開。透過租戶隔離、銀行級加密與不儲存 PII 的原則，安全守護您的數據。",
+  "vi": "Mọi chỉ số đều truy xuất được đến dữ liệu nguồn với công thức minh bạch. Cách ly tenant, mã hóa cấp ngân hàng và nguyên tắc không lưu PII bảo vệ dữ liệu của bạn an toàn.",
+  "th": "ทุกตัวชี้วัดสามารถตรวจสอบย้อนกลับถึงข้อมูลต้นทางได้พร้อมสูตรคำนวณที่โปร่งใส ด้วยการแยก tenant การเข้ารหัสระดับธนาคาร และหลักการไม่จัดเก็บ PII เพื่อปกป้องข้อมูลของคุณอย่างปลอดภัย",
+  "id": "Setiap metrik dapat ditelusuri hingga data sumbernya dengan rumus yang transparan. Isolasi tenant, enkripsi setara perbankan, dan prinsip tanpa penyimpanan PII menjaga data Anda tetap aman.",
+  "de": "Jede Kennzahl lässt sich bis zu den Quelldaten zurückverfolgen, mit transparenten Formeln. Mandantentrennung, Verschlüsselung auf Bankniveau und der Grundsatz, keine PII zu speichern, schützen Ihre Daten.",
+  "fr": "Chaque indicateur est traçable jusqu'aux données sources, avec des formules transparentes. L'isolation des locataires, le chiffrement de niveau bancaire et le principe de non-stockage des PII protègent vos données.",
+  "es": "Cada métrica es rastreable hasta sus datos de origen, con fórmulas transparentes. El aislamiento de inquilinos, el cifrado de nivel bancario y el principio de no almacenar PII protegen sus datos.",
+  "pt": "Cada métrica é rastreável até aos dados de origem, com fórmulas transparentes. O isolamento de inquilinos, a encriptação de nível bancário e o princípio de não armazenar PII protegem os seus dados.",
+  "ru": "Каждый показатель прослеживается до исходных данных с прозрачными формулами. Изоляция арендаторов, шифрование банковского уровня и принцип отказа от хранения PII надёжно защищают ваши данные.",
+  "ar": "كل مقياس يمكن تتبّعه حتى بيانات المصدر مع صيغ حسابية شفافة. عزل المستأجرين والتشفير بمستوى البنوك ومبدأ عدم تخزين البيانات الشخصية يحافظون على أمان بياناتك.",
+  "hi": "हर मीट्रिक पारदर्शी सूत्रों के साथ अपने स्रोत डेटा तक पता लगाने योग्य है। टेनेंट आइसोलेशन, बैंक-स्तरीय एन्क्रिप्शन और PII न संग्रहीत करने का सिद्धांत आपके डेटा को सुरक्षित रखते हैं।"
+ },
+ "da4t": { "ja": "実行", "zh": "执行", "zh-TW": "執行", "vi": "Thực thi", "th": "ดำเนินการ", "id": "Eksekusi", "de": "Handeln", "fr": "Agir", "es": "Actuar", "pt": "Agir", "ru": "Действие", "ar": "التنفيذ", "hi": "क्रियान्वयन" },
+ "da4d": {
+  "ja": "分析結果を根拠にAIが予算を提案し、人の承認のもとで広告を自動実行します。月予算の上限内で安全にペース配分し、分析から実行までシームレスにつなぎます。",
+  "zh": "AI 以分析结果为依据推荐预算，并在人工审批下自动投放广告。在月度预算上限内安全配速，让分析到执行无缝衔接。",
+  "zh-TW": "AI 以分析結果為依據推薦預算，並在人工審批下自動投放廣告。在月度預算上限內安全配速，讓分析到執行無縫銜接。",
+  "vi": "Dựa trên kết quả phân tích, AI đề xuất ngân sách và tự động chạy quảng cáo khi có sự phê duyệt của con người. Điều phối an toàn trong hạn mức ngân sách hằng tháng, liền mạch từ phân tích đến thực thi.",
+  "th": "AI แนะนำงบประมาณจากผลการวิเคราะห์ และรันโฆษณาอัตโนมัติภายใต้การอนุมัติของมนุษย์ จัดสรรอย่างปลอดภัยภายในเพดานงบรายเดือน เชื่อมจากการวิเคราะห์สู่การดำเนินการอย่างไร้รอยต่อ",
+  "id": "Berdasarkan hasil analisis, AI merekomendasikan anggaran dan menjalankan iklan secara otomatis dengan persetujuan manusia. Pacing aman dalam batas anggaran bulanan, mulus dari analisis hingga eksekusi.",
+  "de": "Auf Basis der Analyse empfiehlt die KI Budgets und schaltet Anzeigen automatisch nach menschlicher Freigabe — sicher getaktet innerhalb Ihres Monatsbudgets, nahtlos von der Analyse bis zur Umsetzung.",
+  "fr": "Sur la base de l'analyse, l'IA recommande des budgets et diffuse les publicités automatiquement après validation humaine — avec un rythme sécurisé dans la limite de votre budget mensuel, de l'analyse à l'exécution sans rupture.",
+  "es": "A partir del análisis, la IA recomienda presupuestos y ejecuta los anuncios automáticamente con aprobación humana, con un ritmo seguro dentro de su límite de presupuesto mensual, del análisis a la ejecución sin interrupciones.",
+  "pt": "Com base na análise, a IA recomenda orçamentos e executa anúncios automaticamente com aprovação humana — com ritmo seguro dentro do limite do orçamento mensal, da análise à execução sem interrupções.",
+  "ru": "На основе анализа ИИ рекомендует бюджеты и автоматически запускает рекламу после одобрения человеком — с безопасным распределением в пределах месячного лимита, без разрывов от анализа до исполнения.",
+  "ar": "استنادًا إلى نتائج التحليل، يوصي الذكاء الاصطناعي بالميزانيات ويشغّل الإعلانات تلقائيًا بموافقة بشرية — بوتيرة آمنة ضمن سقف ميزانيتك الشهرية، ومن التحليل إلى التنفيذ بلا انقطاع.",
+  "hi": "विश्लेषण के आधार पर AI बजट की सिफारिश करता है और मानव अनुमोदन के साथ विज्ञापन स्वतः चलाता है — मासिक बजट सीमा के भीतर सुरक्षित पेसिंग के साथ, विश्लेषण से क्रियान्वयन तक निर्बाध।"
+ },
+ "daDataTitle": {
+  "ja": "収集・分析するデータ", "zh": "我们收集与分析的数据", "zh-TW": "我們收集與分析的數據",
+  "vi": "Dữ liệu chúng tôi thu thập và phân tích", "th": "ข้อมูลที่เรารวบรวมและวิเคราะห์",
+  "id": "Data yang kami kumpulkan dan analisis", "de": "Daten, die wir erfassen und analysieren",
+  "fr": "Les données que nous collectons et analysons", "es": "Los datos que recopilamos y analizamos",
+  "pt": "Os dados que recolhemos e analisamos", "ru": "Данные, которые мы собираем и анализируем",
+  "ar": "البيانات التي نجمعها ونحلّلها", "hi": "जो डेटा हम एकत्र और विश्लेषण करते हैं"
+ },
+ "daCat1": { "ja": "広告パフォーマンス", "zh": "广告效果", "zh-TW": "廣告成效", "vi": "Hiệu suất quảng cáo", "th": "ประสิทธิภาพโฆษณา", "id": "Performa Iklan", "de": "Werbeleistung", "fr": "Performance publicitaire", "es": "Rendimiento publicitario", "pt": "Desempenho de anúncios", "ru": "Эффективность рекламы", "ar": "أداء الإعلانات", "hi": "विज्ञापन प्रदर्शन" },
+ "daCatD1": {
+  "ja": "媒体別の表示・クリック・コンバージョン・広告費・ROAS・CPA", "zh": "按媒体统计的展示、点击、转化、广告费、ROAS、CPA", "zh-TW": "依媒體統計的曝光、點擊、轉換、廣告費、ROAS、CPA",
+  "vi": "Hiển thị, nhấp, chuyển đổi, chi phí, ROAS, CPA theo từng kênh", "th": "การแสดงผล คลิก คอนเวอร์ชัน ค่าโฆษณา ROAS CPA แยกตามสื่อ",
+  "id": "Tayangan, klik, konversi, biaya, ROAS, CPA per media", "de": "Impressionen, Klicks, Conversions, Kosten, ROAS, CPA je Kanal",
+  "fr": "Impressions, clics, conversions, coûts, ROAS, CPA par média", "es": "Impresiones, clics, conversiones, coste, ROAS, CPA por medio",
+  "pt": "Impressões, cliques, conversões, custo, ROAS, CPA por canal", "ru": "Показы, клики, конверсии, расходы, ROAS, CPA по площадкам",
+  "ar": "مرّات الظهور والنقرات والتحويلات والإنفاق وROAS وCPA حسب الوسيط", "hi": "माध्यम-वार इम्प्रेशन, क्लिक, कन्वर्ज़न, खर्च, ROAS, CPA"
+ },
+ "daCat2": { "ja": "売上・注文", "zh": "销售与订单", "zh-TW": "銷售與訂單", "vi": "Doanh số & Đơn hàng", "th": "ยอดขายและคำสั่งซื้อ", "id": "Penjualan & Pesanan", "de": "Umsatz & Bestellungen", "fr": "Ventes et commandes", "es": "Ventas y pedidos", "pt": "Vendas e encomendas", "ru": "Продажи и заказы", "ar": "المبيعات والطلبات", "hi": "बिक्री और ऑर्डर" },
+ "daCatD2": {
+  "ja": "チャネル別の注文・売上・返品・クーポンを単一台帳に", "zh": "将各渠道的订单、销售、退货、优惠券汇入单一账本", "zh-TW": "將各渠道的訂單、銷售、退貨、優惠券彙入單一帳本",
+  "vi": "Đơn hàng, doanh số, trả hàng, phiếu giảm giá theo kênh trong một sổ cái duy nhất", "th": "รวมคำสั่งซื้อ ยอดขาย การคืนสินค้า คูปอง ของแต่ละช่องทางไว้ในบัญชีเดียว",
+  "id": "Pesanan, penjualan, retur, kupon per kanal dalam satu buku besar", "de": "Bestellungen, Umsatz, Retouren und Gutscheine je Kanal in einem Hauptbuch",
+  "fr": "Commandes, ventes, retours et coupons par canal dans un registre unique", "es": "Pedidos, ventas, devoluciones y cupones por canal en un único libro mayor",
+  "pt": "Encomendas, vendas, devoluções e cupões por canal num único livro", "ru": "Заказы, продажи, возвраты и купоны по каналам в едином реестре",
+  "ar": "الطلبات والمبيعات والمرتجعات والقسائم لكل قناة في دفتر واحد", "hi": "चैनल-वार ऑर्डर, बिक्री, रिटर्न और कूपन एक ही बहीखाते में"
+ },
+ "daCat3": { "ja": "在庫・SKU", "zh": "库存与 SKU", "zh-TW": "庫存與 SKU", "vi": "Tồn kho & SKU", "th": "สต็อกและ SKU", "id": "Inventaris & SKU", "de": "Bestand & SKU", "fr": "Stock et SKU", "es": "Inventario y SKU", "pt": "Stock e SKU", "ru": "Запасы и SKU", "ar": "المخزون وSKU", "hi": "इन्वेंटरी और SKU" },
+ "daCatD3": {
+  "ja": "リアルタイム在庫・SKU回転・需要予測・安全在庫", "zh": "实时库存、SKU 周转、需求预测、安全库存", "zh-TW": "即時庫存、SKU 週轉、需求預測、安全庫存",
+  "vi": "Tồn kho thời gian thực, vòng quay SKU, dự báo nhu cầu, tồn kho an toàn", "th": "สต็อกเรียลไทม์ การหมุนเวียน SKU การพยากรณ์อุปสงค์ สต็อกปลอดภัย",
+  "id": "Stok real-time, perputaran SKU, prakiraan permintaan, stok pengaman", "de": "Echtzeit-Bestand, SKU-Umschlag, Bedarfsprognose, Sicherheitsbestand",
+  "fr": "Stock en temps réel, rotation des SKU, prévision de la demande, stock de sécurité", "es": "Inventario en tiempo real, rotación de SKU, previsión de demanda, stock de seguridad",
+  "pt": "Stock em tempo real, rotação de SKU, previsão de procura, stock de segurança", "ru": "Запасы в реальном времени, оборот SKU, прогноз спроса, страховой запас",
+  "ar": "مخزون لحظي ودوران SKU وتنبؤ بالطلب ومخزون أمان", "hi": "रीयल-टाइम स्टॉक, SKU टर्नओवर, मांग पूर्वानुमान, सुरक्षा स्टॉक"
+ },
+ "daCat4": { "ja": "精算・手数料", "zh": "结算与手续费", "zh-TW": "結算與手續費", "vi": "Đối soát & Phí", "th": "การกระทบยอดและค่าธรรมเนียม", "id": "Rekonsiliasi & Biaya", "de": "Abrechnung & Gebühren", "fr": "Règlement et frais", "es": "Liquidación y comisiones", "pt": "Liquidação e taxas", "ru": "Взаиморасчёты и комиссии", "ar": "التسوية والرسوم", "hi": "सेटलमेंट और शुल्क" },
+ "daCatD4": {
+  "ja": "プラットフォーム手数料・精算率・純利益を自動照合", "zh": "自动对账平台手续费、结算率与净收益", "zh-TW": "自動對帳平台手續費、結算率與淨收益",
+  "vi": "Tự động đối soát phí nền tảng, tỷ lệ đối soát và lợi nhuận ròng", "th": "กระทบยอดอัตโนมัติของค่าธรรมเนียมแพลตฟอร์ม อัตราการกระทบยอด และกำไรสุทธิ",
+  "id": "Rekonsiliasi otomatis biaya platform, tingkat penyelesaian, dan laba bersih", "de": "Plattformgebühren, Abrechnungsquoten und Nettoertrag automatisch abgeglichen",
+  "fr": "Frais de plateforme, taux de règlement et bénéfice net rapprochés automatiquement", "es": "Comisiones de plataforma, tasas de liquidación y beneficio neto conciliados automáticamente",
+  "pt": "Taxas de plataforma, taxas de liquidação e lucro líquido reconciliados automaticamente", "ru": "Автосверка комиссий платформ, ставок взаиморасчётов и чистой прибыли",
+  "ar": "مطابقة تلقائية لرسوم المنصّات ونسب التسوية وصافي الربح", "hi": "प्लेटफ़ॉर्म शुल्क, सेटलमेंट दर और शुद्ध लाभ का स्वतः मिलान"
+ },
+ "daCat5": { "ja": "顧客ジャーニー", "zh": "客户旅程", "zh-TW": "客戶旅程", "vi": "Hành trình khách hàng", "th": "เส้นทางลูกค้า", "id": "Perjalanan Pelanggan", "de": "Customer Journey", "fr": "Parcours client", "es": "Recorrido del cliente", "pt": "Jornada do cliente", "ru": "Путь клиента", "ar": "رحلة العميل", "hi": "ग्राहक यात्रा" },
+ "daCatD5": {
+  "ja": "流入チャネル・タッチポイント・コンバージョン経路（PII非保存）", "zh": "来源渠道、触点、转化路径（不存储 PII）", "zh-TW": "來源渠道、觸點、轉換路徑（不儲存 PII）",
+  "vi": "Kênh nguồn, điểm chạm, lộ trình chuyển đổi (không lưu PII)", "th": "ช่องทางที่มา จุดสัมผัส เส้นทางคอนเวอร์ชัน (ไม่จัดเก็บ PII)",
+  "id": "Kanal sumber, titik sentuh, jalur konversi (tanpa simpan PII)", "de": "Quellkanäle, Touchpoints, Conversion-Pfade (keine PII-Speicherung)",
+  "fr": "Canaux d'acquisition, points de contact, parcours de conversion (sans stockage de PII)", "es": "Canales de origen, puntos de contacto, rutas de conversión (sin almacenar PII)",
+  "pt": "Canais de origem, pontos de contacto, percursos de conversão (sem armazenar PII)", "ru": "Каналы привлечения, точки касания, пути конверсии (без хранения PII)",
+  "ar": "قنوات المصدر ونقاط التماس ومسارات التحويل (دون تخزين بيانات شخصية)", "hi": "स्रोत चैनल, टचपॉइंट, कन्वर्ज़न पथ (PII संग्रहीत नहीं)"
+ },
+ "daTr1": {
+  "ja": "実データ基盤・合成データ0", "zh": "基于真实数据 · 零合成数据", "zh-TW": "基於真實數據 · 零合成數據",
+  "vi": "Chỉ dữ liệu thực · không dữ liệu tổng hợp", "th": "อิงข้อมูลจริง · ไม่มีข้อมูลสังเคราะห์",
+  "id": "Berbasis data nyata · nol data sintetis", "de": "Nur echte Daten · keine synthetischen",
+  "fr": "Données réelles uniquement · zéro synthétique", "es": "Solo datos reales · cero sintéticos",
+  "pt": "Apenas dados reais · zero sintéticos", "ru": "Только реальные данные · ноль синтетики",
+  "ar": "بيانات حقيقية فقط · صفر بيانات اصطناعية", "hi": "केवल वास्तविक डेटा · शून्य सिंथेटिक"
+ },
+ "daTr2": {
+  "ja": "源泉データまで追跡可能", "zh": "可追溯至源头数据", "zh-TW": "可追溯至源頭數據",
+  "vi": "Truy xuất đến dữ liệu nguồn", "th": "ตรวจสอบย้อนกลับถึงข้อมูลต้นทาง",
+  "id": "Dapat dilacak hingga data sumber", "de": "Bis zu den Quelldaten nachverfolgbar",
+  "fr": "Traçable jusqu'aux données sources", "es": "Rastreable hasta los datos de origen",
+  "pt": "Rastreável até aos dados de origem", "ru": "Прослеживается до исходных данных",
+  "ar": "قابل للتتبّع حتى بيانات المصدر", "hi": "स्रोत डेटा तक पता लगाने योग्य"
+ },
+ "daTr3": {
+  "ja": "銀行級暗号化・テナント分離", "zh": "银行级加密 · 租户隔离", "zh-TW": "銀行級加密 · 租戶隔離",
+  "vi": "Mã hóa cấp ngân hàng · cách ly tenant", "th": "เข้ารหัสระดับธนาคาร · แยก tenant",
+  "id": "Enkripsi setara bank · isolasi tenant", "de": "Verschlüsselung auf Bankniveau · Mandantentrennung",
+  "fr": "Chiffrement de niveau bancaire · isolation des locataires", "es": "Cifrado de nivel bancario · aislamiento de inquilinos",
+  "pt": "Encriptação de nível bancário · isolamento de inquilinos", "ru": "Шифрование банковского уровня · изоляция арендаторов",
+  "ar": "تشفير بمستوى البنوك · عزل المستأجرين", "hi": "बैंक-स्तरीय एन्क्रिप्शन · टेनेंट आइसोलेशन"
+ },
+ "daTr4": {
+  "ja": "PII非保存・集計専用", "zh": "不存储 PII · 仅聚合", "zh-TW": "不儲存 PII · 僅彙總",
+  "vi": "Không lưu PII · chỉ tổng hợp", "th": "ไม่จัดเก็บ PII · เฉพาะข้อมูลรวม",
+  "id": "Tanpa simpan PII · hanya agregat", "de": "Keine PII-Speicherung · nur Aggregate",
+  "fr": "Sans stockage de PII · agrégats uniquement", "es": "Sin almacenar PII · solo agregados",
+  "pt": "Sem armazenar PII · apenas agregados", "ru": "Без хранения PII · только агрегаты",
+  "ar": "دون تخزين بيانات شخصية · بيانات مجمّعة فقط", "hi": "PII संग्रहीत नहीं · केवल समग्र"
+ },
  "navProduct": {
   "ja": "製品",
   "zh": "产品",
@@ -2124,6 +2376,7 @@ function PremiumHeader({ lang, setLang }) {
         </Link>
         <nav style={{ display: "flex", alignItems: "center", gap: 2 }} className="lp-nav">
           <a href="#product" style={navLink} onMouseEnter={e=>e.target.style.background="#f1f5f9"} onMouseLeave={e=>e.target.style.background="transparent"}>{tr("navProduct")}</a>
+          <a href="#data" style={navLink} onMouseEnter={e=>e.target.style.background="#f1f5f9"} onMouseLeave={e=>e.target.style.background="transparent"}>{tr("navData")}</a>
           <a href="#how" style={navLink} onMouseEnter={e=>e.target.style.background="#f1f5f9"} onMouseLeave={e=>e.target.style.background="transparent"}>{tr("howBadge")}</a>
           {vis.about && <Link to="/about" style={navLink} onMouseEnter={e=>e.target.style.background="#f1f5f9"} onMouseLeave={e=>e.target.style.background="transparent"}>{st("navAbout", lang)}</Link>}
           {vis.team && <Link to="/team" style={navLink} onMouseEnter={e=>e.target.style.background="#f1f5f9"} onMouseLeave={e=>e.target.style.background="transparent"}>{st("navTeam", lang)}</Link>}
@@ -2188,6 +2441,14 @@ export default function Landing() {
     { name: "MinJi Lee", role: "Marketing Director, K-Style Fashion", text: tr("t3"), avatar: "ML" },
   ];
   const FAQS = [1,2,3,4].map(n => ({ q: tr("fq"+n+"q"), a: tr("fq"+n+"a") }));
+  const DA_STAGES = [
+    { icon: "📥", c1: "#06b6d4", c2: "#38bdf8", title: tr("da1t"), desc: tr("da1d") },
+    { icon: "🔬", c1: "#6366f1", c2: "#818cf8", title: tr("da2t"), desc: tr("da2d") },
+    { icon: "🛡️", c1: "#10b981", c2: "#34d399", title: tr("da3t"), desc: tr("da3d") },
+    { icon: "🚀", c1: "#f59e0b", c2: "#fbbf24", title: tr("da4t"), desc: tr("da4d") },
+  ];
+  const DA_CATS = [1,2,3,4,5].map((n,i) => ({ icon: ["📣","🛒","📦","🧾","🧭"][i], title: tr("daCat"+n), desc: tr("daCatD"+n) }));
+  const DA_TRUST = [ tr("daTr1"), tr("daTr2"), tr("daTr3"), tr("daTr4") ];
 
   const sectionPad = { padding: "84px 24px" };
   const wrap = { maxWidth: 1180, margin: "0 auto" };
@@ -2201,14 +2462,26 @@ export default function Landing() {
         .lp-card { transition: transform .28s cubic-bezier(.2,.7,.2,1), box-shadow .28s, border-color .28s; }
         .lp-card:hover { transform: translateY(-6px); box-shadow: 0 24px 60px rgba(15,23,42,0.12) !important; }
         @media (max-width: 860px){ .lp-nav,.lp-loginbtn,.lp-langlabel{ display:none !important; } }
+        @media (max-width: 980px){ .da-arrow{ display:none !important; } }
+        /* [현 차수] 모바일 상단 잘림 근본수정: fixed 헤더(66px)+노치 safe-area 를 확보한 히어로 상단 패딩.
+           + 로고 오빗 6도메인 애니메이션을 모바일에서도 잘리지 않게 스케일 정렬. */
+        @media (max-width: 768px){
+          .lp-hero{ padding: calc(92px + env(safe-area-inset-top,0px)) 16px 50px !important; }
+          .lp-orbit-wrap{ transform: scale(.8); transform-origin: top center; margin-bottom: 4px !important; }
+        }
+        @media (max-width: 420px){
+          .lp-hero{ padding: calc(86px + env(safe-area-inset-top,0px)) 14px 44px !important; }
+          .lp-orbit-wrap{ transform: scale(.7); }
+        }
       `}</style>
       <PremiumHeader lang={lang} setLang={setLang} />
 
       {/* ═══ HERO ═══ */}
-      <section style={{ position: "relative", padding: "150px 24px 70px", textAlign: "center", overflow: "hidden", background: "linear-gradient(180deg,#f8faff 0%,#ffffff 60%)" }}>
+      <section className="lp-hero" style={{ position: "relative", padding: "150px 24px 70px", textAlign: "center", overflow: "hidden", background: "linear-gradient(180deg,#f8faff 0%,#ffffff 60%)" }}>
         <div style={{ position: "absolute", top: -120, left: "50%", transform: "translateX(-50%)", width: 980, height: 520, background: "radial-gradient(ellipse, rgba(79,70,229,0.10) 0%, rgba(124,58,237,0.06) 35%, transparent 70%)", pointerEvents: "none" }} />
         <div style={{ ...wrap, position: "relative" }} className="lpUp">
-          <div style={{ marginBottom: 30 }}><LogoOrbit size={186} lang={lang} /></div>
+          {/* [현 차수] 로고 중심 6도메인(마케팅·AI자동화·정산·데이터분석·물류·커머스) 애니메이션 확대(186→240) */}
+          <div className="lp-orbit-wrap" style={{ marginBottom: 24 }}><LogoOrbit size={240} lang={lang} /></div>
           <Badge color="#4f46e5">{tr("heroBadge")}</Badge>
           <h1 style={{ fontSize: "clamp(32px,5vw,58px)", fontWeight: 900, lineHeight: 1.12, letterSpacing: -1.5, margin: "0 0 22px", color: "#0f172a" }}>
             {tr("heroTitle").split(String.fromCharCode(10)).map((line, i) => (
@@ -2247,6 +2520,54 @@ export default function Landing() {
           <Badge color="#7c3aed">{tr("problemBadge")}</Badge>
           <H2>{tr("problemTitle").split(String.fromCharCode(10)).map((l,i)=><span key={i} style={{display:"block"}}>{l}</span>)}</H2>
           <p style={{ fontSize: 16.5, color: "#475569", lineHeight: 1.9, marginTop: 18 }}>{tr("problemDesc")}</p>
+        </div>
+      </section>
+
+      {/* ═══ DATA ANALYTICS ENGINE (수집→분석→신뢰→실행) ═══ */}
+      <section id="data" style={{ padding: "88px 24px", background: "linear-gradient(180deg,#0b1224 0%,#111a33 100%)" }}>
+        <div style={wrap}>
+          <div style={{ textAlign: "center", marginBottom: 50 }}>
+            <Badge color="#38bdf8">{tr("daBadge")}</Badge>
+            <h2 style={{ fontSize: "clamp(26px,3.4vw,40px)", fontWeight: 900, color: "#fff", letterSpacing: -1, margin: "0 0 16px", lineHeight: 1.15 }}>{tr("daTitle")}</h2>
+            <p style={{ fontSize: 16, color: "#94a3b8", maxWidth: 760, margin: "0 auto", lineHeight: 1.85 }}>{tr("daDesc")}</p>
+          </div>
+
+          {/* 4-stage pipeline: Collect → Analyze → Trust → Act */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(238px,1fr))", gap: 18, marginBottom: 44 }}>
+            {DA_STAGES.map((s, i) => (
+              <div key={i} className="lp-card" style={{ position: "relative", padding: "30px 24px", borderRadius: 20, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.09)" }}>
+                <div style={{ width: 50, height: 50, borderRadius: 14, background: "linear-gradient(135deg," + s.c1 + "," + s.c2 + ")", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, marginBottom: 16, boxShadow: "0 10px 26px " + s.c1 + "55" }}>{s.icon}</div>
+                <div style={{ fontSize: 11.5, fontWeight: 800, color: s.c2, letterSpacing: 1.2, marginBottom: 6 }}>STEP {i+1}</div>
+                <div style={{ fontSize: 18, fontWeight: 900, color: "#fff", marginBottom: 10 }}>{s.title}</div>
+                <div style={{ fontSize: 13.5, color: "#94a3b8", lineHeight: 1.7 }}>{s.desc}</div>
+                {i < DA_STAGES.length - 1 && <div className="da-arrow" style={{ position: "absolute", right: -13, top: "50%", transform: "translateY(-50%)", zIndex: 2, color: "#64748b", fontSize: 22, fontWeight: 900 }}>→</div>}
+              </div>
+            ))}
+          </div>
+
+          {/* data categories collected & analyzed */}
+          <div style={{ borderRadius: 24, padding: "34px 30px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", marginBottom: 28 }}>
+            <div style={{ fontSize: 17, fontWeight: 900, color: "#fff", marginBottom: 22, textAlign: "center" }}>{tr("daDataTitle")}</div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(188px,1fr))", gap: 14 }}>
+              {DA_CATS.map((c, i) => (
+                <div key={i} style={{ padding: "18px 16px", borderRadius: 14, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                  <div style={{ fontSize: 22, marginBottom: 9 }}>{c.icon}</div>
+                  <div style={{ fontSize: 14.5, fontWeight: 800, color: "#e2e8f0", marginBottom: 6 }}>{c.title}</div>
+                  <div style={{ fontSize: 12.5, color: "#94a3b8", lineHeight: 1.6 }}>{c.desc}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* trust signals */}
+          <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
+            {DA_TRUST.map((tx, i) => (
+              <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, padding: "11px 18px", borderRadius: 99, background: "rgba(56,189,248,0.10)", border: "1px solid rgba(56,189,248,0.22)" }}>
+                <span style={{ color: "#38bdf8", fontWeight: 900 }}>✓</span>
+                <span style={{ fontSize: 13, fontWeight: 700, color: "#cbd5e1" }}>{tx}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 

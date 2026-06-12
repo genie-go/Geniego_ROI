@@ -10,6 +10,16 @@ import { useGlobalData } from '../context/GlobalDataContext';
 import { useNavigate } from 'react-router-dom';
 import { useCurrency } from '../contexts/CurrencyContext';
 import { IS_DEMO } from '../utils/demoEnv';
+import { useAuth } from '../auth/AuthContext'; // [현 차수] 플랜별 탭 노출
+import { tabAllowedByPlan } from '../auth/tabPlanPolicy.js';
+import CardRequiredBanner from '../components/CardRequiredBanner.jsx'; // 광고비 결제카드 미등록 안내
+import CardBillingGuide from '../components/CardBillingGuide.jsx'; // 이용가이드 내 결제카드 등록 설명
+import CrossLinkBar from '../components/CrossLinkBar.jsx';
+const BUDGET_LINKS = [
+  { to: '/auto-marketing', icon: '🚀', label: '마케팅 자동화' },
+  { to: '/campaign-manager', icon: '🎯', label: '캠페인 관리' },
+  { to: '/budget-tracker', icon: '💰', label: '예산 추적' },
+];
 
 /* ── Enterprise Demo Isolation Guard (unified with GlobalDataContext) ── */
 const _isDemo = IS_DEMO; // 180차: broad includes('demo') 제거 → demoEnv 정본 격리
@@ -100,6 +110,9 @@ export default function CampaignManager(){
     const{fmt}=useCurrency();
     const fmtW = useCallback((v) => fmt(v || 0), [fmt]);
     const{sharedCampaigns=[],updateCampaignStatus,updateCampaign,deleteCampaign,duplicateCampaign,addCampaign,abTestResults=[],addAbTestResult}=useGlobalData?.()||{};
+    const{user:_cu,isAdmin:_cIsAdmin}=useAuth(); // [현 차수] 구독플랜별 탭 노출
+    const _cPlan=(_cu&&(_cu.plans||_cu.plan))||'free';
+    const _cTabVisible=(id)=>(_isDemo||_cIsAdmin)?true:tabAllowedByPlan(_cPlan,'campaign',id);
     const[tab,setTab]=useState('overview');
     const[filter,setFilter]=useState('all');
     const[search,setSearch]=useState('');
@@ -193,7 +206,7 @@ export default function CampaignManager(){
                 {/* ── Sub-Tab Navigation (fixed, always visible) ── */}
                 <div className="sub-tab-nav" style={{ padding: '8px 14px', background: 'var(--bg, rgba(245,247,250,0.97))', borderBottom: '1px solid var(--border, rgba(99,140,255,0.1))', backdropFilter: 'blur(12px)' }}>
                     <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', background: 'var(--surface, rgba(241,245,249,0.7))', border: '1px solid var(--border, rgba(99,140,255,0.1))', borderRadius: 12, padding: '6px 8px' }}>
-                        {TABS.map(tb => {
+                        {TABS.filter(tb => _cTabVisible(tb.id)).map(tb => {
                             const active = tab === tb.id;
                             const c = TAB_CLR[tb.id];
                             const _theme = document.documentElement?.getAttribute?.('data-theme') || '';
@@ -212,6 +225,10 @@ export default function CampaignManager(){
 
             {/* ══════ SCROLLABLE CONTENT AREA ══════ */}
             <div className="fade-up" style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '16px 8px 28px' }}>
+
+            {/* 광고비 결제카드 미등록 안내 — 캠페인 실집행 전 카드 등록 유도 */}
+            <CardRequiredBanner compact />
+            <CrossLinkBar links={BUDGET_LINKS} note="광고 예산·캠페인" />
 
             {/* ══════ DASHBOARD ══════════════════════════════════ */}
             {tab === 'overview' && (
@@ -407,6 +424,8 @@ export default function CampaignManager(){
                             {badges.map((b,i)=>g(b.k)?<span key={i} style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'5px 12px', borderRadius:99, background:`${b.c}18`, color:b.c, fontSize:12, fontWeight:800, WebkitTextFillColor:b.c }}>{b.i} {g(b.k)}</span>:null)}
                         </div>}
                     </div>
+                    {/* 광고비 결제카드 등록 안내(필수 선행) */}
+                    <CardBillingGuide />
                     {g('guideLearnTitle')?<div style={{ ...card, background:'rgba(79,142,247,0.04)', borderColor:'rgba(79,142,247,0.2)' }}><div style={secTitle}>🎯 {g('guideLearnTitle')}</div><div style={pre}>{g('guideLearnDesc')}</div></div>:null}
                     {steps.length>0 && <div style={card}>
                         {g('guideStepsTitle')?<div style={secTitle}>🚀 {g('guideStepsTitle')}</div>:null}

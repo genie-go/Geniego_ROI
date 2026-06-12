@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { useT, useI18n, LANG_OPTIONS } from "../i18n";
+import { bt } from "../utils/billingI18n";
 import { getJson } from '../services/apiClient.js';
 import { IS_DEMO } from '../utils/demoEnv';
 import { MENU_KEY_LABEL } from '../layout/sidebarMenuLabels.js'; // 186차: 플랜 제공서비스 상세 설명
@@ -253,10 +254,15 @@ function Field({ label, type = "text", value, onChange, placeholder, required, a
         {label}{required && <span style={{ color: "#ef4444" }}> *</span>}
       </label>
       <div style={{ position: "relative" }}>
+        {/* [현 차수] ★모바일 로그인 실패 근본수정: 자격증명 입력에 자동대문자/자동교정/맞춤법 차단.
+            비번 "보이기"(type=text)·이메일 입력 시 모바일 키보드가 첫 글자 대문자화/자동교정 →
+            비밀번호 변형으로 "비번틀림" 발생하던 원인. inputMode 로 이메일 키보드 최적화. */}
         <input
           type={effType} value={value}
           onChange={e => onChange(e.target.value)}
           placeholder={placeholder} required={required} autoComplete={autoComplete} disabled={disabled}
+          autoCapitalize="none" autoCorrect="off" spellCheck={false}
+          inputMode={type === "email" ? "email" : undefined}
           style={{ padding: isPw ? "10px 44px 10px 14px" : "10px 14px", borderRadius: 10, border: "1px solid var(--border)", background: disabled ? "rgba(255,255,255,0.02)" : "rgba(255,255,255,0.04)", color: disabled ? '#94a3b8' : '#fff', fontSize: 13, outline: "none", transition: "border-color 150ms", width: "100%", boxSizing: "border-box", cursor: disabled ? "not-allowed" : "text" }}
           onFocus={e => (e.target.style.borderColor = "#4f8ef7")}
           onBlur={e => (e.target.style.borderColor = "var(--border)")}
@@ -605,6 +611,7 @@ function LoginForm({ onSwitch, loginType = "production" }) {
 /* ─── Plan Selector ────────────────────────────────────────── */
 function PlanSelector({ planType, setPlanType, selectedPaid, setSelectedPaid }) {
   const t = useT();
+  const { lang: trialLang } = useI18n();
   const [planPrices, setPlanPrices] = useState({});    // { growth: "$120/mo", pro: "$150/mo", ... }
   const [priceLoading, setPriceLoading] = useState(true);
 
@@ -719,6 +726,18 @@ function PlanSelector({ planType, setPlanType, selectedPaid, setSelectedPaid }) 
                   <div style={{ fontSize: 11, color: "#94a3b8", fontStyle: "italic", lineHeight: 1.6 }}>
                     {selectedPlanCfg.tagline}
                   </div>
+                </div>
+
+                {/* 20일 무료 체험 안내 — 가입 시 결제 없이 20일 무료 이용 후 결제 */}
+                <div style={{ padding: "12px 14px", borderRadius: 10, marginBottom: 10,
+                  background: "linear-gradient(135deg,rgba(34,197,94,0.12),rgba(16,185,129,0.06))",
+                  border: "1px solid rgba(34,197,94,0.35)" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 5 }}>
+                    <span style={{ fontSize: 15 }}>🎁</span>
+                    <span style={{ fontSize: 12.5, fontWeight: 900, color: "#16a34a" }}>{bt("trialTitle", trialLang)}</span>
+                    <span style={{ fontSize: 9, fontWeight: 800, color: "#16a34a", background: "rgba(34,197,94,0.16)", padding: "2px 7px", borderRadius: 99 }}>{bt("trialBadge", trialLang)}</span>
+                  </div>
+                  <div style={{ fontSize: 10.5, color: "#cbd5e1", lineHeight: 1.6 }}>{bt("trialDesc", trialLang)}</div>
                 </div>
 
                 {/* Target */}
@@ -1002,11 +1021,12 @@ function PaidRegisterForm({ selectedPlan, onBack, onSwitch }) {
           manualCoupon = await r.json();
         } catch (ce) { console.warn('coupon redeem fail:', ce?.message); }
       }
-      // 가입 완료 후 가격 페이지로 redirect (Paddle Checkout 진입). cycleMonths state 전달.
-      navigate("/pricing", {
+      // [현 차수] 20일 무료 체험: 가입 즉시 결제 강제(autoCheckout) 제거 — 선택 플랜을 20일간 무료로
+      //   이용한 뒤 결제하면 계속 이용. 체험 시작과 함께 대시보드로 진입(결제는 체험 중/종료 후 [요금제]).
+      navigate("/dashboard", {
         replace: true,
         state: {
-          autoCheckout: { planId: selectedPlan, cycleMonths, seatTier },
+          trialStarted: { planId: selectedPlan, days: 20 },
           couponAlert: manualCoupon?.ok ? manualCoupon : (result?.coupon || null),
         },
       });

@@ -1,3 +1,35 @@
+# 216차 세션 인계서 — **데모 단일소스 동기화 재설계 + 로그인 신뢰성 + 전수감사 P0/HIGH + 랜딩/온보딩/플랜게이팅/BYO광고API (운영·데모 다회 배포·라이브검증)**
+
+> **작성일**: 2026-06-12 (사용자 명시 승인 후) · **이전**: 215차 → 216차. 운영 roi.genie-go.com / 데모 roidemo.genie-go.com.
+> **종결 상태**: 프론트(운영/데모 이중빌드) + 백엔드(UserAuth/KrChannel/ClaudeAI/GraphScore/routes) **수동 dist swap 다회·헤드리스 라이브검증(PE:0)**. 커밋/push는 본 세션 말미 일괄 수행.
+> **주제**: 사용자 연속 요청 — ①데모 가상데이터 페이지간 불일치(6.2억 vs 1825만…) ②로그인 안됨(모바일/비번틀림/비활성) ③전수 정밀감사 ④랜딩 리디자인 ⑤AI 광고생성 ⑥온보딩 안내 ⑦플랜별 메뉴/탭 숨김.
+
+## ✅ 216차 완료 (배포·검증 완료, 본 세션 커밋)
+| 영역 | 내용 |
+|---|---|
+| **데모 단일소스 동기화 v18** | 분절(매출 4소스·광고비 2소스) 근본해소. 진실원천=주문(거래원장)+채널예산.spent만, 정산/채널매출/예산기여/ROAS/캠페인 **자동파생**. ★런타임엔진 `GlobalDataContext useEffect[orders]`(deriveSettlementFromOrders/deriveBudgetRevenue)=변동 시 전메뉴 동시반영. ★`pnlStats.revenue=_isDemo?주문:정산우선`(운영 동작 보존 필수, 운영 주문폴링 limit캡 때문). 로그인시점 상대날짜. DEMO_SEED_VERSION v17→v18. → [[project_demo_single_source_sync]] |
+| **로그인 신뢰성** | ★모바일 "비번틀림" 근본=비번 '보이기'(type=text) 시 모바일 자동대문자/자동교정 → AuthPage Field에 `autoCapitalize=none/autoCorrect=off/spellCheck=false/inputMode`. UserAuth 해시선택 빈문자열('') 방어. is_active=0(admin토글)은 데이터수정·구조정상 확인. integration-hub=세션 테넌트 self-service(admin 아님)+저장즉시 sync |
+| **전수감사 P0/HIGH** | 5도메인 병렬감사. 안전확인: 교차유출0·운영목데이터0·데모↔운영 물리분리(geniego_roi vs geniego_roi_demo)·cron 7러너 등록. 수정: ①운영 홈 광고비/ROAS=0 → 30초폴러에 rollup/platform→channelBudgets 하이드레이션(P0) ②Reviews/UGC 죽은 `/v423/reviews/*`→`/v423/influencer/*` ③GraphScore creative 404→scoreCreative 신설+라우트 ④tiktok_shop ApiKeys UI ⑤KrChannel raw X-Tenant-Id→authedTenant ⑥PgTest pg/status→/v427/pg/providers |
+| **랜딩 리디자인** | 로고 중심 6도메인 오빗 확대(186→240). 모바일 상단 잘림 근본수정(fixed헤더+safe-area 반응형 패딩) + PerformanceHub today=new Date() |
+| **BYO 광고생성 API** | ClaudeAI imgGenConfig/videoGenConfig($tenant)=ai_settings 테넌트 우선+전역폴백. GET/POST /v422/ai/creative-api(세션테넌트·AES). AIDesignStudio CreativeApiConnect 패널 |
+| **온보딩 가이드** | OnboardingGuide.jsx(app-content-area **밖** 렌더=flex:1 높이회귀 방지). ★순서 정밀분석 확정(카탈로그/WMS 마스터·Writeback): **상품등록→창고등록→입고→채널연동→동기화→결제수단→마케팅(7단계)**, GlobalData 파생 자동진행. 첫방문 환영+재방문+바로가기. **기본 접힘(2줄)+펼치기/접기** + **현재단계 애니메이션 강조**(onbPulse·"👉지금 먼저!"·글로우) |
+| **플랜 메뉴/탭 게이팅** | 사이드바 비접근 메뉴 **숨김**+빈섹션 숨김. /app-pricing·/pricing 전플랜 허용. 탭 `tabPlanPolicy.js`(fail-open)+`useVisibleTabs` **6페이지**(pnl/performance/marketing/journey/campaign/email — 고급탭만 growth/pro). → [[project_plan_gating_onboarding]] |
+
+## ⏭️ 다음 차수 잔여 (계속 진행)
+1. **[탭 게이팅 확장]** 나머지 다탭 페이지(Kakao/SMS/ReportBuilder/AIMarketingHub 등 starter접근+고급탭)에 `useVisibleTabs` 동일패턴+`TAB_MIN_PLAN` 정책 추가. ★메뉴 pro+ 게이팅 페이지(ops/WMS 등)는 불요. ★기본(첫)탭 절대 게이팅 금지.
+2. **[감사 P1/P2]** ①운영 매출 3경로 발산(정산 vs 주문limit캡 vs 롤업) ②cron 레포 버전관리(install_crontab.sh, 서버엔 등록됨) ③메시징 8채널 IntegrationHub 통합UI ④미게이트 데모시드 2건(Db.php/Risk.php, tenant='demo'=LOW) ⑤운영 COGS 0.
+3. **[사용자 액션]** ①BYO 이미지/동영상 생성 API 키 ②OAuth 앱 client_id/secret(215차 승계) ③채널 정산 실 API 매핑(215차 승계).
+4. **[215차 승계]** M6 실어댑터 상품수집·kakao_moment 실어댑터·dead 코드정리·고아페이지.
+
+## 📌 정본 패턴 (216차 추가)
+- **★OnboardingGuide는 `.app-content-area` 밖 렌더 필수** — 안에 두면 `.app-content-area>div{flex:1}`에 걸려 배너가 페이지와 높이 반반분할(박스높이 불균형 회귀). 재배치 금지.
+- **★탭 게이팅 fail-open**: 미등록탭·플랜미상·전부걸러짐 시 원본 노출. 패턴=`(_isDemo||isAdmin)?true:tabAllowedByPlan(plan,pageKey,id)`+`TABS.filter`. 기본탭 미게이팅.
+- **★pnlStats.revenue 운영 보존**: 데모만 주문단일소스, 운영은 정산우선(주문폴링 limit캡). 운영을 orderRevenue로 바꾸면 매출 과소.
+- **★헤드리스 토큰키**: 데모빌드=`demo_genie_token/user`, 운영빌드=`genie_token/user`. 틀리면 로그인화면. `local__` 접두=/auth/me 스킵.
+- **★온보딩 순서=마스터 모델**: Writeback·WMS 마스터재고 → 내부기반(상품→창고→입고) 먼저, 채널연동→동기화 나중.
+
+---
+
 # 215차 세션 인계서 — **전수 정밀 재감사(6도메인) + 채널 자동연동/동기화/오염차단 결함 9건 일괄 해소(운영/데모 다회 배포·라이브검증·push)**
 
 > **작성일**: 2026-06-12 (사용자 명시 승인 후)

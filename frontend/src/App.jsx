@@ -19,6 +19,7 @@ import { ToastProvider } from "./components/ToastProvider.jsx";
 import SessionExpiryWarning from "./components/SessionExpiryWarning.jsx";
 import KeyboardShortcuts from "./components/KeyboardShortcuts.jsx";
 import OnboardingTour from "./components/OnboardingTour.jsx";
+import OnboardingGuide from "./components/OnboardingGuide.jsx";
 import { initPerformanceMonitor } from "./utils/performanceMonitor.js";
 import CommandPalette from "./components/CommandPalette.jsx";
 import { initAuditTrail } from "./utils/auditTrail.js";
@@ -40,10 +41,12 @@ const ReviewsUGC = lazy(() => import("./pages/ReviewsUGC.jsx"));
 const Writeback = lazy(() => import("./pages/Writeback.jsx"));
 const Approvals = lazy(() => import("./pages/Approvals.jsx"));
 const Settlements = lazy(() => import("./pages/Settlements.jsx"));
+const PaymentMethods = lazy(() => import("./pages/PaymentMethods.jsx"));
 const Reconciliation = lazy(() => import("./pages/Reconciliation.jsx"));
 const Audit = lazy(() => import("./pages/Audit.jsx"));
 const Admin = lazy(() => import("./pages/Admin.jsx"));
 const Attribution = lazy(() => import("./pages/Attribution.jsx"));
+const MarketingMix = lazy(() => import("./pages/MarketingMix.jsx"));
 const GraphScore = lazy(() => import("./pages/GraphScore.jsx"));
 const KrChannel = lazy(() => import("./pages/KrChannel.jsx"));
 const PriceOpt = lazy(() => import("./pages/PriceOpt.jsx"));
@@ -278,9 +281,12 @@ function HomeRoute() {
  * hasMenuAccess 로 판정해, 권한 미달이면 PlanGate 업그레이드 화면을 표시한다.
  * (admin/enterprise/free 및 admin-only 정책은 hasMenuAccess 가 단일 출처)
  */
+// [현 차수] 구독플랜 변경/업그레이드 경로는 어떤 플랜이든 항상 접근 가능해야 함(차단 시 플랜 변경 불가).
+const ALWAYS_ACCESSIBLE_PATHS = new Set(["/app-pricing", "/pricing"]);
 function MenuAccessGuard({ children }) {
   const { hasMenuAccess } = useAuth();
   const location = useLocation();
+  if (ALWAYS_ACCESSIBLE_PATHS.has(location.pathname)) return children; // 요금제 보기/변경은 전 플랜 허용
   const menuKey = pathToMenuKey(location.pathname);
   if (menuKey && typeof hasMenuAccess === "function" && !hasMenuAccess(menuKey)) {
     return <PlanGate minPlan={requiredPlanForMenu(menuKey)} />;
@@ -323,6 +329,11 @@ function AppLayout() {
               scrollBehavior: 'smooth',
             }}>
 
+              {/* [현 차수] 구독회원 단계별 진행 안내 — ★app-content-area 밖(스크롤 래퍼 직속)에 배치.
+                  .app-content-area>div{flex:1} 규칙에 걸리면 배너가 페이지와 높이를 반씩 나눠 늘어나는
+                  레이아웃 회귀(전 페이지 박스 높이 불균형)가 발생하므로 바깥에 두어 자연 높이 유지. */}
+              <OnboardingGuide />
+
               <div className="app-content-area" style={{
                 flex: 1,
                 padding: 0,
@@ -353,6 +364,7 @@ function AppLayout() {
                       <Route path="/api-keys" element={<Navigate to="/integration-hub" replace />} />
                       <Route path="/settlements" element={<Settlements />} />
                       <Route path="/reconciliation" element={<Reconciliation />} />
+                      <Route path="/payment-methods" element={<PaymentMethods />} />
                       <Route path="/audit" element={<Audit />} />
                       <Route path="/ai-policy" element={<Navigate to="/ai-rule-engine" replace />} />
                       <Route path="/action-presets" element={<Navigate to="/ai-rule-engine" replace />} />
@@ -371,8 +383,9 @@ function AppLayout() {
                       <Route path="/pm/projects/:id/activity" element={<PMActivity />} />
                       <Route path="/pm/projects/:id/settings" element={<PMSettings />} />
                       <Route path="/pm/tasks/:id" element={<PMTaskDetail />} />
-                      <Route path="/alert-policies" element={<Navigate to="/alert-automation" replace />} />
+                      <Route path="/alert-policies" element={<Navigate to="/ai-rule-engine" replace />} />
                       <Route path="/attribution" element={<Attribution />} />
+                      <Route path="/marketing-mix" element={<MarketingMix />} />
                       <Route path="/graph-score" element={<GraphScore />} />
                       <Route path="/kr-channel" element={<KrChannel />} />
                       <Route path="/price-opt" element={<PriceOpt />} />

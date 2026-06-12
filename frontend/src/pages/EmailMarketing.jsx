@@ -4,6 +4,8 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { tChannelName } from '../utils/tenantStorage.js'; // 180차: 회원 격리 크로스탭
 import { useAuth } from "../auth/AuthContext";
+import { tabAllowedByPlan } from "../auth/tabPlanPolicy.js"; // [현 차수] 플랜별 탭 노출
+import { IS_DEMO as _IS_DEMO_EM } from "../utils/demoEnv";
 import PlanGate from "../components/PlanGate.jsx";
 import { useGlobalData } from "../context/GlobalDataContext.jsx";
 import { emailApi } from "../services/emailApi.js"; // 191차 2단계: 운영 백엔드 실배선(/email/*, /crm/segments)
@@ -544,6 +546,9 @@ function EmailMarketingContent() {
     const bcRef=useRef(null);
     useEffect(()=>{try{bcRef.current=new BroadcastChannel(tChannelName('geniego_email'));bcRef.current.onmessage=()=>{};}catch{}return()=>{try{bcRef.current?.close();}catch{}};},[]);
     const broadcastRefresh=useCallback(()=>{try{bcRef.current?.postMessage({type:'EMAIL_REFRESH',ts:Date.now()});}catch{}if(typeof broadcastUpdate==='function')broadcastUpdate('email',{refreshed:Date.now()});},[broadcastUpdate]);
+    const {user:_eu,isAdmin:_eIsAdmin}=useAuth(); // [현 차수] 구독플랜별 탭 노출
+    const _ePlan=(_eu&&(_eu.plans||_eu.plan))||'free';
+    const _eTabVisible=(id)=>(_IS_DEMO_EM||_eIsAdmin)?true:tabAllowedByPlan(_ePlan,'email',id);
     const [tab,setTab]=useState("campaigns");
     const TABS=[
         {id:"campaigns",label:t('email.tabCamp', "Campaigns"),icon:"🚀"},
@@ -572,7 +577,7 @@ function EmailMarketingContent() {
                 </div>
             </div>
             <div style={{ display:"flex", gap:8, marginBottom:22, flexWrap:"wrap" }}>
-                {TABS.map(Tb=>(
+                {TABS.filter(Tb=>_eTabVisible(Tb.id)).map(Tb=>(
                     <button key={Tb.id} onClick={()=>setTab(Tb.id)} style={{ padding:"10px 20px", borderRadius:12, border:"none", cursor:"pointer", background:tab===Tb.id?C.accent:'rgba(255,255,255,0.9)', color:tab===Tb.id?"#fff":"#374151", fontWeight:700, fontSize:13, display:"flex", alignItems:"center", gap:6, boxShadow:tab===Tb.id?'0 4px 16px '+C.accent+'33':'0 1px 3px rgba(0,0,0,0.06)' }}><span>{Tb.icon}</span> {Tb.label}</button>
                 ))}
             </div>

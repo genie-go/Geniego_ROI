@@ -14,6 +14,8 @@
  */
 import React, { useState, useMemo, useCallback, useEffect, memo } from 'react';
 import { useI18n } from '../i18n';
+import { useAuth } from '../auth/AuthContext'; // [현 차수] 플랜별 탭 노출
+import { tabAllowedByPlan } from '../auth/tabPlanPolicy.js';
 
 import { useGlobalData } from '../context/GlobalDataContext';
 import { journeyApi } from '../services/journeyApi.js'; // 191차 3단계: 운영 백엔드 실배선(/api/journey/*)
@@ -34,6 +36,9 @@ export default function JourneyBuilder() {
         crmSegments = [], emailCampaignsLinked = [], kakaoCampaignsLinked = [],
     } = useGlobalData?.() || {};
 
+    const { user: _ju, isAdmin: _jIsAdmin } = useAuth(); // [현 차수] 구독플랜별 탭 노출
+    const _jPlan = (_ju && (_ju.plans || _ju.plan)) || 'free';
+    const _jTabVisible = (id) => (_isDemo || _jIsAdmin) ? true : tabAllowedByPlan(_jPlan, 'journey', id);
     const [tab, setTab] = useState('builder');
     const [journeys, setJourneys] = useState(() => {
         try { const saved = localStorage.getItem('jb_journeys'); if (saved) return JSON.parse(saved); } catch {}
@@ -359,7 +364,7 @@ export default function JourneyBuilder() {
                 {/* ── Sub-Tab Navigation (fixed, always visible) ── */}
                 <div className="sub-tab-nav" style={{ padding: isMobile ? '6px 8px' : '8px 14px', background: 'rgba(245,247,250,0.97)', borderBottom: '1px solid rgba(0,0,0,0.06)', backdropFilter: 'blur(12px)' }}>
                     <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', background: 'rgba(241,245,249,0.7)', border: '1px solid rgba(0,0,0,0.06)', borderRadius: 12, padding: '6px 8px' }}>
-                        {TABS.map(tb => {
+                        {TABS.filter(tb => _jTabVisible(tb.id)).map(tb => {
                             const active = tab === tb.id;
                             const c = TAB_CLR[tb.id];
                             return (

@@ -335,7 +335,7 @@ function TossSection() {
         setLoading(true);
         addLog("info", "PG 설정 API 조회...");
         try {
-            const r = await fetch(`${API}/v423/pg/status`);
+            const r = await fetch(`${API}/v427/pg/providers`); /* [현 차수] 죽은 /v423/pg/status → 실제 등록된 /v427/pg/providers 교정 */
             const d = await r.json();
             addLog(d.ok ? "ok" : "warn", JSON.stringify(d, null, 2).slice(0, 500));
         } catch (e) {

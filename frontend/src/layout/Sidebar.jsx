@@ -157,18 +157,7 @@ function NavSection({ section, t, isOpen, onToggle, hasMenuAccess, isDemo, onLoc
     if (!itemIsVisible(item)) return null; // F2/F3: hidden item → 섹션 자체 비노출
     const label = item.label ?? t(item.labelKey, item.labelKey.split('.')[1]);
     const accessible = itemHasAccess(item);
-    if (!accessible) {
-      return (
-        <div
-          onClick={() => onLockClick && onLockClick(label)}
-          className="nav-item"
-          style={{ cursor: "pointer", opacity: 0.55 }}
-        >
-          <span className="nav-icon">🔒</span>
-          <span className="truncate">{label}</span>
-        </div>
-      );
-    }
+    if (!accessible) return null; // [현 차수] 비접근 메뉴 숨김 — 구독플랜에 주어진 메뉴만 노출(잠금표시 대신 숨김)
     const disabled = itemIsDisabled(item);
     if (disabled) {
       return (
@@ -189,6 +178,10 @@ function NavSection({ section, t, isOpen, onToggle, hasMenuAccess, isDemo, onLoc
       </NavLink>
     );
   }
+
+  // [현 차수] 다항목 섹션: 접근 가능한 항목만 노출, 하나도 없으면 섹션 통째 숨김(구독플랜 메뉴만 보이도록)
+  const _accessibleItems = section.items.filter(item => itemIsVisible(item) && itemHasAccess(item));
+  if (_accessibleItems.length === 0) return null;
 
   return (
     <div style={{ marginBottom: 2 }}>
@@ -219,7 +212,7 @@ function NavSection({ section, t, isOpen, onToggle, hasMenuAccess, isDemo, onLoc
         transition: "max-height 220ms cubic-bezier(.4,0,.2,1)",
       }}>
         <div style={{ paddingLeft: 10 }}>
-          {section.items.filter(itemIsVisible).map(item => {
+          {_accessibleItems.map(item => {
             const label = item.label ?? t(item.labelKey, item.labelKey.split('.')[1]);
             const accessible = itemHasAccess(item);
             if (!accessible) {
@@ -608,6 +601,21 @@ export default function Sidebar() {
               marginBottom: 6, transition: 'all 200ms',
             }}>
               {t('sidebar.loginProd', '🏢 Production Login / Sign Up')}
+            </a>
+          )}
+          {/* [현 차수] 운영 회원: 데모 체험 진입(새 탭) — 운영 세션 유지한 채 데모를 자유롭게 체험.
+              ★격리: target=_blank + rel=noopener 로 데모 탭이 운영 window 에 접근 불가. 데모는 별도
+              origin(roidemo)·별도 DB(geniego_roi_demo)·상대 API 라 목데이터가 운영에 유입될 경로 없음. */}
+          {!IS_DEMO_MODE && (
+            <a href="https://roidemo.genie-go.com/" target="_blank" rel="noopener noreferrer" style={{
+              display: 'block', width: '100%', padding: '6px 0', borderRadius: 7,
+              background: 'linear-gradient(135deg, rgba(251,146,60,0.12), rgba(245,158,11,0.08))',
+              border: '1px solid rgba(251,146,60,0.3)',
+              color: '#fb923c', fontSize: 9, fontWeight: 700,
+              textAlign: 'center', textDecoration: 'none',
+              marginBottom: 6, transition: 'all 200ms',
+            }}>
+              {t('sidebar.tryDemo', '🧪 데모 체험 (새 탭 · 운영 데이터 영향 없음)')}
             </a>
           )}
           <button onClick={handleLogout} style={{

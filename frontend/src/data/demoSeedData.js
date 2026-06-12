@@ -89,12 +89,17 @@ export const DEMO_CHANNELS = [
 const ORDER_STATUSES = ['paid', 'preparing', 'shipping', 'delivered', 'delivered', 'delivered', 'confirmed', 'confirmed', 'confirmed'];
 const BUYERS = ['김서연','이지우','박민준','최수아','정하윤','강도윤','조예린','윤시우','장서준','임지아','한유준','오서아','송지호','황수빈','전도현'];
 
-export const DEMO_ORDERS = Array.from({ length: 60 }, (_, i) => {
+// [현 차수] ★단일 캐논(Single Source of Truth): 주문(거래원장)을 "총매출"의 유일 진실원천으로 삼음.
+//   채널매출·정산 gross·예산 attributed revenue·ROAS 는 파일 하단 파생블록에서 이 주문에서 자동 산출.
+//   600건·수량 (1+i%4)*6*0.93(정수) → 총매출 ~375.7M·blended ROAS 3.5x(광고비 107.4M 기준).
+//   기간 ~100일 분산(daysAgo=i/6) → 정산 월별 버킷(3~6월) 자동 파생 가능. 결정적(Math.random 미사용).
+//   ※재고는 독립 시드(DEMO_INVENTORY)라 영향 없음.
+export const DEMO_ORDERS = Array.from({ length: 600 }, (_, i) => {
   const p = DEMO_PRODUCTS[i % DEMO_PRODUCTS.length];
   const ch = DEMO_CHANNELS[i % DEMO_CHANNELS.length];
   const buyer = BUYERS[i % BUYERS.length];
-  const qty = 1 + (i % 4); // 207차 결정적화(Math.random 제거 — 주문총액·매출 재현성)
-  const daysAgo = Math.floor(i / 4);
+  const qty = Math.max(6, Math.round((1 + (i % 4)) * 6 * 0.93)); // 207차 결정적화 + [현 차수] 캐논 매출(~376M) 정합
+  const daysAgo = Math.floor(i / 6); // [현 차수] ~100일 분산(정산 월버킷 파생용)
   const status = i < 5 ? 'paid' : i < 10 ? 'preparing' : i < 16 ? 'shipping' : i < 50 ? 'confirmed' : ORDER_STATUSES[i % ORDER_STATUSES.length];
   return {
     id: `ORD-${String(10000 + i).slice(1)}`,
@@ -108,6 +113,8 @@ export const DEMO_ORDERS = Array.from({ length: 60 }, (_, i) => {
     status,
     wh: i % 3 === 0 ? 'W002' : i % 5 === 0 ? 'W003' : 'W001',
     at: ts(daysAgo, 9 + (i % 12), (i * 7) % 60),
+    atISO: new Date(Date.now() - daysAgo * 86400000).toISOString(), // [현 차수] 정산 월버킷 파생용 결정적 ISO
+    month: isoDate(daysAgo).slice(0, 7), // YYYY-MM (정산 그룹핑 키)
     fee: Math.round(qty * p.price * 0.03),
     platformFeeRate: ch.id === 'coupang' ? 0.108 : ch.id === 'oliveyoung' ? 0.30 : 0.055,
     adFee: Math.round(qty * p.price * 0.02),
@@ -185,33 +192,41 @@ export const DEMO_BUDGETS = {
 /* ═══════════════════════════════════════════════════════
    7. 정산(Settlement) — 채널별 3개월
 ═══════════════════════════════════════════════════════ */
-export const DEMO_SETTLEMENT = DEMO_CHANNELS.slice(0, 6).flatMap(ch => {
-  return ['2026-02', '2026-03', '2026-04'].map((period, pi) => {
-    // 206차: gross 결정적화(채널+기간 해시) — Math.random 은 정산총액→총매출(pnlStats.revenue)을
-    //   첫로드/사용자별로 변동시켜 동기화 일관성 위반. 결정적 파생으로 교체.
-    const _sh = String((ch.id || '') + period).split('').reduce((a, c) => a + c.charCodeAt(0), 0);
-    const gross = Math.round(ch.revenue * (0.28 + pi * 0.03) * (0.9 + (_sh % 20) / 100));
-    const pfee = Math.round(gross * (ch.id === 'oliveyoung' ? 0.30 : ch.id === 'coupang' ? 0.108 : 0.055));
-    const adFee = Math.round(gross * 0.02);
-    const returnFee = Math.round(gross * 0.015);
-    const net = gross - pfee - adFee - returnFee;
-    return {
-      id: `STL-${ch.id}-${period}`,
-      channel: ch.id,
-      channelName: ch.name,
-      period,
-      grossSales: gross,
-      platformFee: pfee,
-      adFee,
-      returnFee,
-      couponDiscount: Math.round(gross * 0.01),
-      netPayout: net,
-      orders: Math.round(ch.orders * (0.28 + pi * 0.03)),
-      returns: Math.round(ch.orders * 0.02),
-      status: pi < 2 ? 'settled' : 'confirmed',
-    };
+export const DEMO_SETTLEMENT = (() => {
+  // [현 차수] ★단일소스 파생: 주문(거래원장)을 채널×월 그룹핑 → grossSales = Σ 주문.total.
+  //   정산총액(Σgross) = 총주문매출(전 채널) → Dashboard(정산기준 pnlStats.revenue) = Rollup(주문기준)
+  //   = P&L = Settlements 가 모두 동일 매출(~375.7M)로 일치. 더 이상 독립 하드코딩 아님(자동산출).
+  const active = DEMO_ORDERS.filter(o => o.status !== 'CancelDone' && o.status !== 'Cancel요청');
+  const months = [...new Set(active.map(o => o.month))].sort(); // 주문에서 실제 월 파생(3~6월)
+  const recent = months[months.length - 1];
+  const rows = [];
+  DEMO_CHANNELS.forEach(ch => {
+    months.forEach(period => {
+      const co = active.filter(o => o.ch === ch.id && o.month === period);
+      if (co.length === 0) return; // 해당 채널·월 주문 없으면 정산행 미생성
+      const gross = co.reduce((s, o) => s + o.total, 0);
+      const pfee = Math.round(gross * (ch.id === 'oliveyoung' ? 0.30 : ch.id === 'coupang' ? 0.108 : 0.055));
+      const adFee = Math.round(gross * 0.02);
+      const returnFee = Math.round(gross * 0.015);
+      rows.push({
+        id: `STL-${ch.id}-${period}`,
+        channel: ch.id,
+        channelName: ch.name,
+        period,
+        grossSales: gross,
+        platformFee: pfee,
+        adFee,
+        returnFee,
+        couponDiscount: Math.round(gross * 0.01),
+        netPayout: gross - pfee - adFee - returnFee,
+        orders: co.length,
+        returns: Math.round(co.length * 0.02),
+        status: period === recent ? 'confirmed' : 'settled',
+      });
+    });
   });
-});
+  return rows;
+})();
 
 /* ═══════════════════════════════════════════════════════
    8. 캠페인 — 12건
@@ -230,6 +245,51 @@ export const DEMO_CAMPAIGNS = [
   { id: 'CAMP-011', name: 'Lancôme 모니터 셀럽 콜라보', status: 'draft', type: 'influencer', budget: 20000000, spent: 0, impressions: 0, clicks: 0, reach: 0, conv: 0, roas: 0, channels: [{id:'meta',name:'Meta',budget:10000000},{id:'tiktok',name:'TikTok',budget:10000000}], estimatedRoas: 4.0, source: 'ai_hub', startDate: isoDate(-3), endDate: isoDate(-30), createdAt: isoDate(0) },
   { id: 'CAMP-012', name: 'YSL 럭셔리 배너 캠페인', status: 'active', type: 'brand', budget: 8000000, spent: 5200000, impressions: 1450000, clicks: 50750, reach: 1100000, conv: 1522, roas: 3.5, channels: [{id:'google',name:'Google',budget:4000000},{id:'meta',name:'Meta',budget:4000000}], estimatedRoas: 3.5, source: 'manual', startDate: isoDate(25), endDate: isoDate(-7), createdAt: isoDate(12) },
 ];
+
+/* ═══════════════════════════════════════════════════════
+   ★ 단일 캐논(Single Source of Truth) 자동 파생 블록
+   진실원천: ① DEMO_ORDERS(거래원장=총매출) ② DEMO_BUDGETS[].spent(광고비 107.4M)
+   아래 값들은 더 이상 독립 하드코딩이 아니라 두 원천에서 자동 산출 → 전 메뉴 수치 일치.
+   체험자가 주문/광고비를 변경하면(런타임 파생은 GlobalDataContext useMemo) 모든 메뉴가 동기화.
+═══════════════════════════════════════════════════════ */
+(() => {
+  const active = DEMO_ORDERS.filter(o => o.status !== 'CancelDone' && o.status !== 'Cancel요청');
+  const totalRev = active.reduce((s, o) => s + o.total, 0);
+
+  // (A) 채널별 매출·주문수 = 주문(거래원장) 집계 — 하드코딩 revenue/orders 덮어쓰기
+  DEMO_CHANNELS.forEach(ch => {
+    const co = active.filter(o => o.ch === ch.id);
+    ch.revenue = co.reduce((s, o) => s + o.total, 0);
+    ch.orders = co.length;
+  });
+
+  // (B) 광고채널 attributed revenue = 총주문매출을 기존 비중대로 배분 → Σ = 총매출, ROAS=rev/spent 재계산
+  //     (광고채널 meta/google… 은 판매채널과 별개 네임스페이스라 직접 주문매핑 불가 → 비중 기반 기여 모델)
+  const budKeys = Object.keys(DEMO_BUDGETS);
+  const rawRevSum = budKeys.reduce((s, k) => s + (DEMO_BUDGETS[k].revenue || 0), 0);
+  budKeys.forEach(k => {
+    const b = DEMO_BUDGETS[k];
+    b.revenue = rawRevSum > 0 ? Math.round(totalRev * b.revenue / rawRevSum) : 0;
+    b.roas = b.spent > 0 ? +(b.revenue / b.spent).toFixed(2) : 0;
+  });
+
+  // (C) 캠페인 spent = 채널예산(광고비 단일소스)을 비초안 캠페인에 채널할당 비례 배분 → Σ = 107.4M
+  //     (초안 draft 캠페인은 미집행=0 유지. BudgetTracker/Marketing Σspent = Dashboard 광고비 일치)
+  const eligible = DEMO_CAMPAIGNS.filter(c => c.status !== 'draft');
+  DEMO_CAMPAIGNS.forEach(c => { c.spent = 0; });
+  budKeys.forEach(chKey => {
+    const chSpent = DEMO_BUDGETS[chKey].spent || 0;
+    let sumAlloc = 0;
+    eligible.forEach(c => (c.channels || []).forEach(cc => { if (cc.id === chKey) sumAlloc += (cc.budget || 0); }));
+    if (sumAlloc <= 0) return;
+    eligible.forEach(c => (c.channels || []).forEach(cc => { if (cc.id === chKey) c.spent += chSpent * (cc.budget || 0) / sumAlloc; }));
+  });
+  DEMO_CAMPAIGNS.forEach(c => {
+    c.spent = Math.round(c.spent);
+    // budget ≥ spent 보정(이용률 ≤ ~78% 현실화) — 파생 spent 가 원 budget 초과 시 상향
+    if (c.spent > 0) c.budget = Math.max(c.budget || 0, Math.round(c.spent / 0.78));
+  });
+})();
 
 /* ═══════════════════════════════════════════════════════
    9. CRM 세그먼트 — 6개
@@ -261,11 +321,12 @@ export const DEMO_POPUPS = [
 export const DEMO_ALERTS = [
   { id: 'AL-SEED-001', type: 'success', msg: '🚀 데모 환경 초기화 완료 — Enterprise 전 기능 체험 가능', time: ts(0), read: false },
   { id: 'AL-SEED-002', type: 'info',    msg: '📦 쿠팡 신규 주문 12건 수신 — 자동 출고 처리 시작', time: ts(0, 9, 30), read: false },
-  { id: 'AL-SEED-003', type: 'success', msg: '✅ Meta Ads 캠페인 ROAS 5.6x 달성 — 목표 초과!', time: ts(0, 8, 0), read: false },
+  { id: 'AL-SEED-003', type: 'success', msg: `✅ Meta Ads 캠페인 ROAS ${DEMO_BUDGETS.meta.roas}x 달성 — 목표 대비 우수!`, time: ts(0, 8, 0), read: false }, // [현 차수] 파생 ROAS 참조(하드코딩 5.6x 제거)
   { id: 'AL-SEED-004', type: 'warn',    msg: '⚠️ [Garnier 미셀라 워터] 재고 부족 — 안전재고 이하', time: ts(1), read: false },
-  { id: 'AL-SEED-005', type: 'info',    msg: '💳 2026-03 정산 완료 — 순지급액 ₩487,200,000', time: ts(2), read: true },
+  // [현 차수] 정산 알림: 파생 정산(최근월 순지급액)·상대월 참조 → 하드코딩 ₩487,200,000/2026-03 제거(종합현황과 일치)
+  { id: 'AL-SEED-005', type: 'info',    msg: (() => { const rp = [...new Set(DEMO_SETTLEMENT.map(r => r.period))].sort().pop(); const np = DEMO_SETTLEMENT.filter(r => r.period === rp).reduce((s, r) => s + r.netPayout, 0); return `💳 ${rp} 정산 완료 — 순지급액 ₩${np.toLocaleString()}`; })(), time: ts(2), read: true },
   { id: 'AL-SEED-006', type: 'success', msg: '🌐 8개 채널 동기화 정상 — 마지막 동기화: 10분 전', time: ts(0, 10, 5), read: true },
-  { id: 'AL-SEED-007', type: 'info',    msg: '📊 AI 인사이트: TikTok 채널 ROAS 상승 추세 (3.2x → 3.5x)', time: ts(1, 14, 0), read: true },
+  { id: 'AL-SEED-007', type: 'info',    msg: `📊 AI 인사이트: TikTok 채널 ROAS ${DEMO_BUDGETS.tiktok.roas}x — 개선 여지 분석 중`, time: ts(1, 14, 0), read: true }, // [현 차수] 파생 ROAS 참조
   { id: 'AL-SEED-008', type: 'warn',    msg: '🔄 반품 접수 3건 — CS팀 확인 필요', time: ts(1, 11, 0), read: true },
   { id: 'AL-SEED-009', type: 'success', msg: '🎯 캠페인 "NYX 신제품 론칭" CTR 4.2% 달성', time: ts(2, 16, 0), read: true },
   { id: 'AL-SEED-010', type: 'info',    msg: '📋 발주서 PO-2003 입고 확정 — Revitalift 세럼 200개', time: ts(3, 9, 0), read: true },

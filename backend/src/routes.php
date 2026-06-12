@@ -407,6 +407,21 @@ return function (App $app): void {
         'GET /api/v427/pg/settlements'         => 'Genie\\Handlers\\PgSettlement::settlements',
         'POST /v427/pg/sync'                   => 'Genie\\Handlers\\PgSettlement::sync',
         'POST /api/v427/pg/sync'               => 'Genie\\Handlers\\PgSettlement::sync',
+        // [현 차수] v427 광고비 결제수단(관리형 지출 월렛) — 빌링키 등록·월예산 한도 청구
+        'GET /v427/billing/customer-key'           => 'Genie\\Handlers\\BillingMethod::customerKey',
+        'GET /api/v427/billing/customer-key'       => 'Genie\\Handlers\\BillingMethod::customerKey',
+        'GET /v427/billing/methods'                => 'Genie\\Handlers\\BillingMethod::methods',
+        'GET /api/v427/billing/methods'            => 'Genie\\Handlers\\BillingMethod::methods',
+        'POST /v427/billing/methods/issue'         => 'Genie\\Handlers\\BillingMethod::issue',
+        'POST /api/v427/billing/methods/issue'     => 'Genie\\Handlers\\BillingMethod::issue',
+        'POST /v427/billing/methods/{id}/default'  => 'Genie\\Handlers\\BillingMethod::setDefault',
+        'POST /api/v427/billing/methods/{id}/default' => 'Genie\\Handlers\\BillingMethod::setDefault',
+        'DELETE /v427/billing/methods/{id}'        => 'Genie\\Handlers\\BillingMethod::remove',
+        'DELETE /api/v427/billing/methods/{id}'    => 'Genie\\Handlers\\BillingMethod::remove',
+        'GET /v427/billing/budget-status'          => 'Genie\\Handlers\\BillingMethod::budgetStatus',
+        'GET /api/v427/billing/budget-status'      => 'Genie\\Handlers\\BillingMethod::budgetStatus',
+        'GET /v427/billing/ledger'                 => 'Genie\\Handlers\\BillingMethod::ledger',
+        'GET /api/v427/billing/ledger'             => 'Genie\\Handlers\\BillingMethod::ledger',
 
 
 // v418.1 additive marketing insights (aggregated-only, no PII)
@@ -472,6 +487,7 @@ return function (App $app): void {
         'POST /v419/graph/edges'                       => 'Genie\\Handlers\\GraphScore::upsertEdge',
         'GET /v419/graph/edges'                        => 'Genie\\Handlers\\GraphScore::listEdges',
         'GET /v419/graph/score/influencer/{id}'        => 'Genie\\Handlers\\GraphScore::scoreInfluencer',
+        'GET /v419/graph/score/creative/{id}'          => 'Genie\\Handlers\\GraphScore::scoreCreative',
         'GET /v419/graph/score/sku/{sku}'              => 'Genie\\Handlers\\GraphScore::scoreSku',
         'GET /v419/graph/score/order/{id}'             => 'Genie\\Handlers\\GraphScore::scoreOrder',
         'GET /v419/graph/summary'                      => 'Genie\\Handlers\\GraphScore::summary',
@@ -548,6 +564,8 @@ return function (App $app): void {
         'POST /v422/ai/analyze'              => 'Genie\\Handlers\\ClaudeAI::analyze',
         'GET /v422/ai/analyses'              => 'Genie\\Handlers\\ClaudeAI::analyses',
         'POST /v422/ai/marketing-eval'       => 'Genie\\Handlers\\ClaudeAI::marketingEval',
+        'POST /v422/ai/marketing-insight'    => 'Genie\\Handlers\\ClaudeAI::marketingInsight',
+        'POST /api/v422/ai/marketing-insight'=> 'Genie\\Handlers\\ClaudeAI::marketingInsight',
         'POST /v422/ai/influencer-eval'      => 'Genie\\Handlers\\ClaudeAI::influencerEval',
         'POST /v422/ai/channel-kpi-eval'     => 'Genie\\Handlers\\ClaudeAI::channelKpiEval',
         'GET /v422/ai/channel-kpi-config'    => 'Genie\\Handlers\\ClaudeAI::getChannelKpiConfig',
@@ -562,6 +580,8 @@ return function (App $app): void {
         'GET /v422/ai/campaign-ad-video-status' => 'Genie\\Handlers\\ClaudeAI::campaignAdVideoStatus',
         'POST /v422/ai/ad-design/save'        => 'Genie\\Handlers\\ClaudeAI::adDesignSave',
         'GET /v422/ai/ad-design/list'         => 'Genie\\Handlers\\ClaudeAI::adDesignList',
+        'GET /v422/ai/creative-api'           => 'Genie\\Handlers\\ClaudeAI::creativeApiGet',
+        'POST /v422/ai/creative-api'          => 'Genie\\Handlers\\ClaudeAI::creativeApiSave',
         'POST /v423/auto-campaign/launch'     => 'Genie\\Handlers\\AutoCampaign::launch',
         'GET /v423/auto-campaign/list'        => 'Genie\\Handlers\\AutoCampaign::list',
         'POST /v423/auto-campaign/status'     => 'Genie\\Handlers\\AutoCampaign::setStatus',
@@ -656,6 +676,14 @@ return function (App $app): void {
         // 203차 — 서버측 멀티터치 어트리뷰션(MTA) 엔진: 6모델(last/first/linear/time-decay/position/markov-removal-effect)
         'GET /v424/attribution/models'     => 'Genie\\Handlers\\AttributionEngine::models',
         'GET /api/v424/attribution/models' => 'Genie\\Handlers\\AttributionEngine::models',
+        // [현 차수] ② MMM(마케팅 믹스 모델) + 예측 예산 최적화
+        'GET /v424/mmm/model'         => 'Genie\\Handlers\\Mmm::model',
+        'GET /api/v424/mmm/model'     => 'Genie\\Handlers\\Mmm::model',
+        'POST /v424/mmm/optimize'     => 'Genie\\Handlers\\Mmm::optimize',
+        'POST /api/v424/mmm/optimize' => 'Genie\\Handlers\\Mmm::optimize',
+        // [현 차수] ② 이상감지(SPC)
+        'GET /v424/anomaly/scan'      => 'Genie\\Handlers\\AnomalyDetection::scan',
+        'GET /api/v424/anomaly/scan'  => 'Genie\\Handlers\\AnomalyDetection::scan',
         // 201차 — 마케팅 자동화 채널 추천/예산배분(벤치마크 cold-start → 실측 warm 블렌드)
         'POST /v424/marketing/auto-recommend'     => 'Genie\\Handlers\\AutoRecommend::recommend',
         'POST /api/v424/marketing/auto-recommend' => 'Genie\\Handlers\\AutoRecommend::recommend',
@@ -910,6 +938,7 @@ return function (App $app): void {
 
         // ── v423 User & Member Admin (admin plan only) ─────────────────────────
         'GET /v423/admin/users'                          => 'Genie\\Handlers\\UserAdmin::listUsers',
+        'GET /v423/admin/users-expiring'                 => 'Genie\\Handlers\\UserAdmin::expiringSoon', // [현 차수] 구독 만료 임박
         'POST /v423/admin/users'                         => 'Genie\\Handlers\\UserAdmin::createUser',
         'GET /v423/admin/users/{id}'                     => 'Genie\\Handlers\\UserAdmin::getUser',
         'PATCH /v423/admin/users/{id}/plan'              => 'Genie\\Handlers\\UserAdmin::updatePlan',
@@ -972,6 +1001,11 @@ return function (App $app): void {
         // 175차 S3.1 — SmartConnect channel test handler (라우트는 등록됐으나 custom 매핑 누락)
         'POST /v423/connectors/{channel}/test' => 'Genie\\Handlers\\ChannelCreds::channelTest',
         'POST /v423/connectors/apply'  => 'Genie\\Handlers\\ChannelCreds::apply',
+        // [현 차수] ③ 발급 신청 현황 조회 + 관리자 상태 갱신(발급완료 추적·통지)
+        'GET /v423/connectors/apply/list'              => 'Genie\\Handlers\\ChannelCreds::applyList',
+        'GET /api/v423/connectors/apply/list'          => 'Genie\\Handlers\\ChannelCreds::applyList',
+        'POST /v423/connectors/apply/{ticket}/status'      => 'Genie\\Handlers\\ChannelCreds::applyStatus',
+        'POST /api/v423/connectors/apply/{ticket}/status'  => 'Genie\\Handlers\\ChannelCreds::applyStatus',
 
         // ── v423 Real Channel API Connectors (Meta / Google / Naver / Coupang) ─
         'GET /v423/connectors/meta/insights'    => 'Genie\\Handlers\\Connectors::metaInsights',
@@ -1530,6 +1564,7 @@ return function (App $app): void {
     $register('POST', '/v419/graph/edges');
     $register('GET',  '/v419/graph/edges');
     $register('GET',  '/v419/graph/score/influencer/{id}');
+    $register('GET',  '/v419/graph/score/creative/{id}');
     $register('GET',  '/v419/graph/score/sku/{sku}');
     $register('GET',  '/v419/graph/score/order/{id}');
     $register('GET',  '/v419/graph/summary');
@@ -1632,6 +1667,8 @@ return function (App $app): void {
     $register('GET',  '/v422/ai/campaign-ad-video-status');
     $register('POST', '/v422/ai/ad-design/save');
     $register('GET',  '/v422/ai/ad-design/list');
+    $register('GET',  '/v422/ai/creative-api');
+    $register('POST', '/v422/ai/creative-api');
     $register('POST', '/v423/auto-campaign/launch');
     $register('GET',  '/v423/auto-campaign/list');
     $register('POST', '/v423/auto-campaign/status');
@@ -1766,6 +1803,7 @@ return function (App $app): void {
 
     // ── v423 User & Member Admin ─────────────────────────────────────
     $register('GET',    '/v423/admin/users');
+    $register('GET',    '/v423/admin/users-expiring');
     $register('POST',   '/v423/admin/users');
     $register('GET',    '/v423/admin/users/{id}');
     $register('PATCH',  '/v423/admin/users/{id}/plan');
@@ -1809,6 +1847,9 @@ return function (App $app): void {
     // SmartConnect: 채널 스캔 / 자동 연동 테스트 / 발급신청
     $register('POST', '/v423/connectors/{channel}/test');
     $register('POST', '/v423/connectors/apply');
+    // [현 차수] ③ 발급 신청 현황·상태 갱신
+    $register('GET',  '/v423/connectors/apply/list');          $register('GET',  '/api/v423/connectors/apply/list');
+    $register('POST', '/v423/connectors/apply/{ticket}/status'); $register('POST', '/api/v423/connectors/apply/{ticket}/status');
 
 
     // ── v423 Alert notifications ──────────────────────────────────────
@@ -2255,10 +2296,20 @@ return function (App $app): void {
     $register('GET',    '/v427/pg/providers');    $register('GET',    '/api/v427/pg/providers');
     $register('GET',    '/v427/pg/settlements');  $register('GET',    '/api/v427/pg/settlements');
     $register('POST',   '/v427/pg/sync');         $register('POST',   '/api/v427/pg/sync');
+
+    // [현 차수] v427 광고비 결제수단(관리형 지출 월렛)
+    $register('GET',    '/v427/billing/customer-key');      $register('GET',    '/api/v427/billing/customer-key');
+    $register('GET',    '/v427/billing/methods');           $register('GET',    '/api/v427/billing/methods');
+    $register('POST',   '/v427/billing/methods/issue');     $register('POST',   '/api/v427/billing/methods/issue');
+    $register('POST',   '/v427/billing/methods/{id}/default'); $register('POST', '/api/v427/billing/methods/{id}/default');
+    $register('DELETE', '/v427/billing/methods/{id}');      $register('DELETE', '/api/v427/billing/methods/{id}');
+    $register('GET',    '/v427/billing/budget-status');     $register('GET',    '/api/v427/billing/budget-status');
+    $register('GET',    '/v427/billing/ledger');            $register('GET',    '/api/v427/billing/ledger');
     $register('GET',    '/api/performance', ['Genie\\Controllers\\PerformanceController', 'getMetrics']);
     $register('POST', '/v422/ai/analyze');
     $register('GET', '/v422/ai/analyses');
     $register('POST', '/v422/ai/marketing-eval');
+    $register('POST', '/v422/ai/marketing-insight'); $register('POST', '/api/v422/ai/marketing-insight');
     $register('POST', '/v422/ai/influencer-eval');
     $register('POST', '/v422/ai/channel-kpi-eval');
     $register('GET',  '/v422/ai/channel-kpi-config');
@@ -2323,6 +2374,10 @@ return function (App $app): void {
     // 203차 — 서버측 멀티터치 어트리뷰션(MTA) 엔진 ($custom 등록 + $register 필수)
     $register('GET', '/v424/attribution/models');
     $register('GET', '/api/v424/attribution/models');
+    // [현 차수] ② MMM + 예측 예산 최적화
+    $register('GET',  '/v424/mmm/model');     $register('GET',  '/api/v424/mmm/model');
+    $register('POST', '/v424/mmm/optimize');  $register('POST', '/api/v424/mmm/optimize');
+    $register('GET',  '/v424/anomaly/scan');  $register('GET',  '/api/v424/anomaly/scan');
     // 201차 — 마케팅 자동화 추천/벤치마크 ($custom 등록 + $register 필수)
     $register('POST', '/v424/marketing/auto-recommend');
     $register('POST', '/api/v424/marketing/auto-recommend');

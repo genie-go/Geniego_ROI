@@ -245,6 +245,54 @@ final class GraphScore {
     }
 
     /**
+     * GET /v419/graph/score/creative/{id}
+     * [현 차수] 죽은 라우트 해소: 프론트 CreativeScoreTab 이 호출하던 미등록 엔드포인트 구현.
+     *   creative → sku → order 경로 가중치 전파(scoreInfluencer 미러). 실데이터 기반, 합성 없음.
+     */
+    public static function scoreCreative(Request $request, Response $response, array $args): Response {
+        $pdo    = Db::pdo();
+        $tenant = self::tenantId($request);
+        $cid    = (string)($args['id'] ?? '');
+
+        $paths = []; $totalW = 0.0; $skuSet = []; $orderSet = [];
+
+        // Hop 1: creative → sku
+        $h2 = $pdo->prepare('SELECT dst_id AS sku, SUM(edge_weight) AS w FROM graph_edge WHERE tenant_id=? AND src_type=\'creative\' AND src_id=? AND dst_type=\'sku\' GROUP BY dst_id');
+        $h2->execute([$tenant, $cid]);
+        foreach ($h2->fetchAll(PDO::FETCH_ASSOC) as $s) {
+            $sku = (string)$s['sku']; $sw = (float)$s['w'];
+            $skuSet[$sku] = ($skuSet[$sku] ?? 0.0) + $sw;
+            // Hop 2: sku → order
+            $h3 = $pdo->prepare('SELECT dst_id AS order_id, SUM(edge_weight) AS w FROM graph_edge WHERE tenant_id=? AND src_type=\'sku\' AND src_id=? AND dst_type=\'order\' GROUP BY dst_id');
+            $h3->execute([$tenant, $sku]);
+            foreach ($h3->fetchAll(PDO::FETCH_ASSOC) as $o) {
+                $oid = (string)$o['order_id']; $ow = $sw * (float)$o['w'];
+                $orderSet[$oid] = ($orderSet[$oid] ?? 0.0) + $ow; $totalW += $ow;
+                $paths[] = ['creative' => $cid, 'sku' => $sku, 'order' => $oid, 'path_weight' => round($ow, 4)];
+            }
+        }
+        // Direct: creative → order
+        $direct = $pdo->prepare('SELECT dst_id AS order_id, SUM(edge_weight) AS w FROM graph_edge WHERE tenant_id=? AND src_type=\'creative\' AND src_id=? AND dst_type=\'order\' GROUP BY dst_id');
+        $direct->execute([$tenant, $cid]);
+        foreach ($direct->fetchAll(PDO::FETCH_ASSOC) as $o) {
+            $oid = (string)$o['order_id']; $ow = (float)$o['w'];
+            $orderSet[$oid] = ($orderSet[$oid] ?? 0.0) + $ow; $totalW += $ow;
+            $paths[] = ['creative' => $cid, 'sku' => null, 'order' => $oid, 'path_weight' => round($ow, 4), 'note' => 'direct'];
+        }
+        $score = round(min(1.0, $totalW / max(1.0, count($orderSet) * 2.0)), 4);
+        return TemplateResponder::respond($response, [
+            'ok'             => true,
+            'creative_id'    => $cid,
+            'graph_score'    => $score,
+            'total_weight'   => round($totalW, 4),
+            'creatives_used' => count($skuSet) > 0 ? 1 : 0,
+            'skus_reached'   => array_map(fn($k, $v) => ['sku' => $k, 'weight' => round($v, 4)], array_keys($skuSet), $skuSet),
+            'orders_reached' => array_map(fn($k, $v) => ['order_id' => $k, 'weight' => round($v, 4)], array_keys($orderSet), $orderSet),
+            'paths'          => $paths,
+        ]);
+    }
+
+    /**
      * GET /v419/graph/score/sku/{sku}
      * Which influencers/creatives drive this SKU and with what weight?
      */

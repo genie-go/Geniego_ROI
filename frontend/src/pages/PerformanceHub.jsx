@@ -4,6 +4,8 @@ import { tChannelName } from '../utils/tenantStorage.js'; // 180차: 회원 격�
 import { useI18n } from "../i18n";
 import { useCurrency } from '../contexts/CurrencyContext.jsx';
 import { useAuth } from "../auth/AuthContext.jsx";
+import { tabAllowedByPlan } from "../auth/tabPlanPolicy.js"; // [현 차수] 플랜별 탭 노출
+import { IS_DEMO as _IS_DEMO_TAB } from "../utils/demoEnv";
 import { useGlobalData } from '../context/GlobalDataContext.jsx';
 import { useConnectorSync } from '../context/ConnectorSyncContext.jsx';
 import { getJsonAuth } from '../services/apiClient.js';
@@ -534,7 +536,7 @@ const _PERF_CREATORS_FALLBACK = [];  // ← 운영: 항상 빈 배열
 const TIER_COLOR = { Nano: "#14d9b0", Micro: "#4f8ef7", Mid: "#a855f7", Macro: "#f97316" };
 const PLATFORM_ICO = { youtube: "▶", instagram: "📸", tiktok: "🎵" };
 
-const today = new Date("2026-03-04");
+const today = new Date(); // [현 차수] 로그인 시점 기준(고정 2026-03-04 제거) — 실환경처럼 잔여일 계산
 const daysLeft = d => Math.ceil((new Date(d) - today) / (1000 * 60 * 60 * 24));
 
 const CreatorTab = memo(function CreatorTab() {
@@ -1092,6 +1094,9 @@ export default function PerformanceHub() {
     const { fmt } = useCurrency();
     const { addAlert, creators: ctxCreators = [] } = useGlobalData();
     const { connectedChannels = {}, connectedCount = 0 } = useConnectorSync?.() || {};
+    const { user: _tabUser, isAdmin: _tabIsAdmin } = useAuth(); // [현 차수] 구독플랜별 탭 노출
+    const _tabPlan = (_tabUser && (_tabUser.plans || _tabUser.plan)) || 'free';
+    const _tabVisible = (id) => (_IS_DEMO_TAB || _tabIsAdmin) ? true : tabAllowedByPlan(_tabPlan, 'performance', id);
     const [tab, setTab] = useState("performance");
     useSubtabPaintFix(tab);
     const [threats, setThreats] = useState([]);
@@ -1210,8 +1215,8 @@ export default function PerformanceHub() {
 
                 {/* Tab nav — sticky */}
                 <div className="card card-glass" style={{ padding: 0, overflow: "hidden", marginBottom: 0, borderRadius: "12px 12px 0 0" }}>
-                    <div className="gx-subtab-bar" style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)" }}>
-                        {TABS.map(tb => (
+                    <div className="gx-subtab-bar" style={{ display: "grid", gridTemplateColumns: `repeat(${TABS.filter(tb => _tabVisible(tb.id)).length || 7},1fr)` }}>
+                        {TABS.filter(tb => _tabVisible(tb.id)).map(tb => (
                             <button key={tb.id} className={tab === tb.id ? "gx-on" : ""} onClick={() => setTab(tb.id)} style={{
                                 padding: "14px 10px", border: "none", cursor: "pointer", textAlign: "left",
                                 background: tab === tb.id ? "rgba(168,85,247,0.1)" : "transparent",

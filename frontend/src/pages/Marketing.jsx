@@ -1,4 +1,6 @@
 import { useAuth } from '../auth/AuthContext';
+import { tabAllowedByPlan } from '../auth/tabPlanPolicy.js'; // [현 차수] 플랜별 탭 노출
+import { IS_DEMO as _IS_DEMO_MKT } from '../utils/demoEnv';
 import AdStatusAnalysis from './AdStatusAnalysis.jsx';
 import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useI18n } from "../i18n/index.js";
@@ -165,12 +167,16 @@ function AmazonOverviewTab() {
     const { fmt } = useCurrency();
     const { sharedCampaigns } = useGlobalData();
     
-    // Default dates: dynamic based on current month
+    // [현 차수] 기본 날짜 = 캠페인 활동 전체 기간(종합현황 일체화: 전 캠페인 spent 합 = Dashboard 광고비 107.4M).
+    //   헤더 "Campaign Active Period" 의미와 정합. 사용자는 date picker 로 기간을 좁힐 수 있음.
     const [startDate, setStartDate] = useState(() => {
-        const now = new Date();
-        return new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
+        const ds = (sharedCampaigns || []).map(c => c.startDate).filter(Boolean).sort();
+        return ds[0] || new Date(Date.now() - 75 * 86400000).toISOString().slice(0, 10);
     });
-    const [endDate, setEndDate] = useState(() => new Date().toISOString().slice(0, 10));
+    const [endDate, setEndDate] = useState(() => {
+        const de = (sharedCampaigns || []).map(c => c.endDate).filter(Boolean).sort();
+        return de[de.length - 1] || new Date().toISOString().slice(0, 10);
+    });
     
     // Multi-slots for KPI cards
     const [slots, setSlots] = useState(['spend', 'impressions', 'clicks', 'ctr', 'roas']);
@@ -696,6 +702,9 @@ export default function Marketing() {
 
   const { t } = useI18n();
   const { addAlert } = useGlobalData();
+  const { user: _mu, isAdmin: _mIsAdmin } = useAuth(); // [현 차수] 구독플랜별 탭 노출
+  const _mPlan = (_mu && (_mu.plans || _mu.plan)) || 'free';
+  const _mTabVisible = (id) => (_IS_DEMO_MKT || _mIsAdmin) ? true : tabAllowedByPlan(_mPlan, 'marketing', id);
   const [tab, setTab] = useState("overview");
 
   // SecurityGuard
@@ -742,7 +751,7 @@ export default function Marketing() {
         {/* ── Sub-Tab Navigation (fixed, always visible) ── */}
         <div className="sub-tab-nav" style={{ padding: '8px 14px', background: 'rgba(245,247,250,0.97)', borderBottom: '1px solid rgba(0,0,0,0.06)', backdropFilter: 'blur(12px)' }}>
           <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', background: 'rgba(241,245,249,0.7)', border: '1px solid rgba(0,0,0,0.06)', borderRadius: 12, padding: '6px 8px' }}>
-            {TABS.map(tb => {
+            {TABS.filter(tb => _mTabVisible(tb.id)).map(tb => {
               const active = tab === tb.id;
               return (
                 <button key={tb.id} data-active={active ? 'true' : 'false'} className="mkt-sub-tab-btn" onClick={() => { setTab(tb.id); broadcastMkt('MKT_TAB_CHANGE', tb.id); }} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '7px 14px', borderRadius: 9, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700, transition: 'all 0.2s cubic-bezier(.4,0,.2,1)', background: active ? 'linear-gradient(135deg,#4f8ef7,#6366f1)' : 'transparent', color: active ? '#ffffff' : '#475569', boxShadow: active ? '0 3px 14px rgba(79,142,247,0.3)' : 'none', transform: active ? 'translateY(-1px)' : 'none' }}><span>{tb.icon}</span> {tb.label}</button>

@@ -43,9 +43,11 @@ function useReviewsDataSync() {
         const token = localStorage.getItem("genie_token") || localStorage.getItem("demo_genie_token") || "";
         const headers = token ? { Authorization: `Bearer ${token}` } : {};
         Promise.allSettled([
-            fetch(`${BASE}/api/v423/reviews/list`, { headers }).then(r => r.ok ? r.json() : null),
-            fetch(`${BASE}/api/v423/reviews/channel-stats`, { headers }).then(r => r.ok ? r.json() : null),
-            fetch(`${BASE}/api/v423/reviews/neg-keywords`, { headers }).then(r => r.ok ? r.json() : null),
+            /* [현 차수] 죽은 라우트 정정: /v423/reviews/* 는 미등록(404) → 실제 등록된 /v423/influencer/* 로 교정.
+               (Influencer::read 가 bare 배열 반환 → 아래 Array.isArray 체크와 정합) 운영 리뷰/UGC 무데이터 해소. */
+            fetch(`${BASE}/api/v423/influencer/ugc-reviews`, { headers }).then(r => r.ok ? r.json() : null),
+            fetch(`${BASE}/api/v423/influencer/channel-stats`, { headers }).then(r => r.ok ? r.json() : null),
+            fetch(`${BASE}/api/v423/influencer/neg-keywords`, { headers }).then(r => r.ok ? r.json() : null),
         ]).then(([reviewsRes, statsRes, kwRes]) => {
             if (reviewsRes.status === "fulfilled" && Array.isArray(reviewsRes.value)) syncUgcReviews(reviewsRes.value);
             if (statsRes.status === "fulfilled" && Array.isArray(statsRes.value)) syncChannelStats(statsRes.value);

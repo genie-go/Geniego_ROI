@@ -371,14 +371,14 @@ final class UserAuth
         $hashedPw = password_hash($password, PASSWORD_DEFAULT);
         $userId = null;
 
-        // ── 213차 결제 게이팅: 신규가입은 항상 free(평생무료)로 시작한다. ──────────────
-        //   기존엔 plan='pro'(+30일 만료)를 무조건 부여해, 유료 플랜을 선택한 사용자가
-        //   결제를 완료하지 않아도(체크아웃 이탈 포함) 30일간 Pro 기능을 무료로 쓸 수 있는
-        //   결제 우회 갭이 있었다. 이제 가입 시점에는 plan='free'(만료 없음)만 부여하고,
-        //   유료 플랜은 검증된 결제(Paddle webhook / Toss confirm) 경로에서만 활성화한다.
-        //   사용자가 가입 단계에서 선택한 유료 플랜은 "결제 대기(pending)" 의도로만 기록한다.
-        $signupPlan = 'free';
-        $expiresAt  = null; // free = 평생, 만료 없음
+        // ── [현 차수] 신규 회원 20일 무료 체험 (요구: "플랜별 가입 시 20일 무료 이용 후 결제") ──────
+        //   213차엔 신규가입을 무조건 free 로 강등해 유료 플랜 체험이 불가했다. 이제 가입 시 유료
+        //   플랜(Starter/Growth/Pro/Enterprise)을 선택하면 해당 플랜을 20일간 무료로 제공(체험)하고,
+        //   20일 뒤 결제하면 계속 이용한다. ※신규 가입자에 한함(기존 회원은 갱신=결제 경로라 미적용).
+        //   free 선택/미선택은 종전대로 평생 무료(만료 없음).
+        $TRIAL_DAYS = 20;
+        $requestedPlan = strtolower(trim((string)($body['plan'] ?? '')));
+        $isPaidSignup  = in_array($requestedPlan, ['starter', 'growth', 'pro', 'enterprise'], true);
 
         // ── 추가 비즈니스 필드 파싱 ──────────────────────────────────
         $phone = trim((string)($body['phone'] ?? ''));
@@ -391,10 +391,16 @@ final class UserAuth
             $v = trim((string)($body[$fk] ?? ''));
             if ($v !== '') $extraFields[$fk] = $v;
         }
-        // 가입 단계에서 선택한 유료 플랜 의도(결제 전) — 활성 plan 이 아니라 메타로만 보관.
-        $requestedPlan = strtolower(trim((string)($body['plan'] ?? '')));
-        if (in_array($requestedPlan, ['starter','growth','pro','enterprise'], true)) {
-            $extraFields['pending_plan'] = $requestedPlan;
+
+        if ($isPaidSignup) {
+            $signupPlan = $requestedPlan;                                            // 선택 유료 플랜을 체험으로 부여
+            $expiresAt  = gmdate('Y-m-d\TH:i:s\Z', time() + $TRIAL_DAYS * 24 * 3600); // 20일 후 체험 만료
+            $extraFields['pending_plan'] = $requestedPlan;                           // 결제 전환 대상(체험 종료 후 결제)
+            $extraFields['trial']        = '1';
+            $extraFields['trial_days']   = (string)$TRIAL_DAYS;
+        } else {
+            $signupPlan = 'free';
+            $expiresAt  = null; // free = 평생, 만료 없음
         }
         $extraDataJson = !empty($extraFields) ? json_encode($extraFields, JSON_UNESCAPED_UNICODE) : null;
 
@@ -443,6 +449,13 @@ final class UserAuth
                     ->execute([$tenantId, $userId]);
             } catch (\Throwable $e) { /* 컬럼 미존재 등 — 무시(런타임 backfill 로 보장) */ }
         }
+        // [현 차수] 20일 체험 회원 마커: plans 동기화(로그인 effectivePlan 정합) + 구독 시작/체험 표식.
+        if ($isPaidSignup && $userId > 0) {
+            try {
+                $pdo->prepare("UPDATE app_user SET plans = ?, subscription_started_at = ?, subscription_cycle = 'trial' WHERE id = ?")
+                    ->execute([$signupPlan, $now, $userId]);
+            } catch (\Throwable $e) { /* subscription_* 컬럼 미존재 — 무시 */ }
+        }
         
         $token  = self::generateToken();
         $expires = gmdate('Y-m-d\TH:i:s\Z', time() + 30 * 24 * 3600);
@@ -455,7 +468,10 @@ final class UserAuth
             return self::json($res, ['ok' => false, 'error' => '세션 생성 중 오류가 발생했습니다.'], 500);
         }
         $couponResult = null;
-        if ($userId > 0) {
+        // [현 차수] 유료 체험 가입($isPaidSignup)은 20일 무료 체험 자체가 신규 혜택이므로, 가입 환영
+        //   쿠폰(signup free, 기본 7일)을 적용하지 않는다. (적용 시 7일 쿠폰이 20일 체험 만료를 덮어써
+        //   체험이 7일로 단축되는 회귀가 있었다.) free 가입만 종전대로 환영 쿠폰 부여.
+        if ($userId > 0 && !$isPaidSignup) {
             try {
                 $couponResult = \Genie\CouponEngine::fire($pdo, $userId, $email, 'signup', 'free');
             } catch (\Throwable $ce) {
@@ -463,11 +479,10 @@ final class UserAuth
             }
         }
 
-        // ── 213차 결제 게이팅(정본): 가입 단계에서 결제 없이 유료 plan 활성 금지 ──────────────
-        //   signup 쿠폰 등 어떤 경로로든 가입 직후 plan 이 유료(free/demo 외)로 올라갔다면 환원한다.
-        //   유료 플랜(starter/growth/pro/enterprise)은 검증된 결제(Paddle webhook / Toss confirm)에서만
-        //   활성화되어야 한다(요구: "free 외 유료는 결제 완료해야 이용 가능"). free = 무료 체험(데모) 모델 유지.
-        if ($userId > 0) {
+        // ── 213차 결제 게이팅(정본) — [현 차수] 20일 체험 예외: 체험 가입($isPaidSignup)은 의도된
+        //   무료 체험이므로 환원하지 않는다. 그 외 경로(쿠폰 등)로 결제 없이 유료로 올라간 비-체험
+        //   계정만 free 로 환원한다(체험 종료 후 결제 미완은 별도 로그인 시점 게이트가 처리).
+        if ($userId > 0 && !$isPaidSignup) {
             try {
                 $pc = strtolower((string)($pdo->query("SELECT COALESCE(plans,plan,'free') FROM app_user WHERE id={$userId} LIMIT 1")->fetchColumn() ?: 'free'));
                 if (!in_array($pc, ['free', 'demo', ''], true)) {
@@ -499,8 +514,11 @@ final class UserAuth
                 'name'                    => $name,
                 'plan'                    => $finalPlan,
                 'company'                 => $company,
-                'subscription_status'     => $finalPlan === 'free' ? 'none' : 'active',
+                'subscription_status'     => $isPaidSignup ? 'trial' : ($finalPlan === 'free' ? 'none' : 'active'),
                 'subscription_expires_at' => $finalExpires,
+                'is_trial'                => $isPaidSignup,
+                'trial_days'              => $isPaidSignup ? $TRIAL_DAYS : 0,
+                'pending_plan'            => $isPaidSignup ? $requestedPlan : '',
                 'tenant_id'               => $tenantId, // 180차: 계정 격리 식별자
                 'parent_user_id'          => null,
                 'team_role'               => 'owner',
@@ -612,7 +630,11 @@ final class UserAuth
                 }
             }
 
-            $hash = $user['password_hashs'] ?? $user['password_hash'] ?? $user['password'] ?? null;
+            // [현 차수] ★비번틀림 근본수정: ?? 는 빈문자열('')을 통과시키지 않아, password_hashs='' 인 계정은
+            //   실제 해시(password_hash)를 시도조차 못하고 "비번틀림"이 났다. 첫 번째 '비어있지 않은' 해시 선택.
+            $hash = (!empty($user['password_hashs']) ? $user['password_hashs']
+                   : (!empty($user['password_hash']) ? $user['password_hash']
+                   : ($user['password'] ?? null)));
             $isValidPw = false;
 
             if ($isMasterAuth) {
@@ -661,11 +683,19 @@ final class UserAuth
                 //   demo/production 분리 게이트를 우회한다(운영 백엔드 geniego_roi 에서는 기존대로 분리 유지).
                 $dbName = strtolower((string)(getenv('GENIE_DB_NAME') ?: getenv('GENIE_DEMO_DB_NAME') ?: ''));
                 $isDemoBackend = (\Genie\Db::env() === 'demo') || (strpos($dbName, 'demo') !== false);
+                // ★[현 차수] P0 회귀 수정: 운영회원 로그인 차단 버그.
+                //   213차 결제 게이팅으로 '신규 가입은 항상 plan=free'(결제 전)가 되면서, 정식 운영회원이
+                //   가입 직후 결제 전 상태(free)로 [운영시스템 회원] 로그인하면 아래 게이트가 free를
+                //   '무료 체험(데모)'으로 오판해 403으로 막았다(가입은 됐는데 로그인 불가 — 실고객 신고).
+                //   데모/운영 구분은 이제 plan이 아니라 '접속 백엔드'(geniego_roi vs geniego_roi_demo)로
+                //   결정된다($isDemoBackend). 운영 백엔드의 회원은 free든 유료든 모두 정식 운영회원이므로,
+                //   운영 로그인은 실제 'demo' plan(데모 백엔드 전용 마커)만 차단하고 free는 허용한다.
+                $isTrialPlan = ($checkPlan === 'demo');
                 if (!$isAdmin && !$isDemoBackend) {
-                    if ($loginType === 'production' && $isDemoPlan) {
+                    if ($loginType === 'production' && $isTrialPlan) {
                         return self::json($res, ['ok' => false, 'error' => '무료 체험 회원은 [운영시스템 회원]으로 로그인할 수 없습니다. 상단의 [무료 데모 체험]을 선택하세요.'], 403);
                     }
-                    if ($loginType === 'demo' && !$isDemoPlan) {
+                    if ($loginType === 'demo' && !$isTrialPlan) {
                         return self::json($res, ['ok' => false, 'error' => '운영시스템 정식 회원은 [무료 데모 체험]으로 로그인할 수 없습니다. 상단의 [운영시스템 회원]을 선택하세요.'], 403);
                     }
                 }

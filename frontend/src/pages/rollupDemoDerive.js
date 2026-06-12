@@ -17,10 +17,11 @@
 
 const _CH_NAME = { naver: '네이버', coupang: '쿠팡', oliveyoung: '올리브영', '11st': '11번가', gmarket: 'G마켓', kakao: '카카오', amazon_jp: 'Amazon JP', meta: 'Meta', google: 'Google', tiktok: 'TikTok' };
 
-// n개 기간 라벨(안정 기준 2026-03-05, 백엔드 dates()와 동일 의미)
+// n개 기간 라벨([현 차수] 로그인 시점 기준 — 고정 2026-03-05 제거, 실환경처럼 오늘 기준 추이)
 function _dates(period, n) {
   const out = [];
-  const base = new Date(Date.UTC(2026, 2, 5));
+  const _now = new Date();
+  const base = new Date(Date.UTC(_now.getUTCFullYear(), _now.getUTCMonth(), _now.getUTCDate()));
   for (let i = n - 1; i >= 0; i--) {
     const d = new Date(base.getTime());
     if (period === 'monthly') { d.setUTCMonth(d.getUTCMonth() - i); out.push(`${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`); }
@@ -48,12 +49,15 @@ function _spread(total, n) {
 function _round(x, p = 0) { const m = Math.pow(10, p); return Math.round((x + Number.EPSILON) * m) / m; }
 
 const _RETURN_STATUS = new Set(['returned', 'cancelled', 'refunded', 'canceled']);
+// [현 차수] 취소상태 캐논(GlobalDataContext 와 동일): 취소주문은 매출 집계에서 제외 → 롤업↔대시보드 일치.
+const _CANCEL_STATUS = new Set(['CancelDone', 'Cancel요청', 'cancelled', 'canceled']);
 
 // ── SKU: orders 집계 ────────────────────────────────────────────────────
 function _skuRows(orders, dates) {
   const by = {};
   (orders || []).forEach(o => {
     const sku = o.sku; if (!sku) return;
+    if (_CANCEL_STATUS.has(String(o.status || ''))) return; // 취소주문 매출 제외(대시보드 정합)
     if (!by[sku]) by[sku] = { name: o.name || sku, platform: _CH_NAME[o.ch] || o.ch || '', revenue: 0, orders: 0, spend: 0, returns: 0, units: 0, price: o.price || 0 };
     const r = by[sku];
     r.revenue += Number(o.total || 0);

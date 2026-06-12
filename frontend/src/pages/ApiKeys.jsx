@@ -18,6 +18,8 @@ const CHANNELS = [
   { key: 'meta_ads',         name: 'Meta Ads',          icon: '📘', color: '#1877F2', group: 'global_ad' },
   { key: 'google_ads',       name: 'Google Ads',        icon: '🔵', color: '#4285F4', group: 'global_ad' },
   { key: 'tiktok_business',  name: 'TikTok Business',   icon: '🎶', color: '#010101', group: 'global_ad' },
+  // [현 차수] tiktok_shop 실 어댑터(ChannelSync v202309 HMAC+shop_cipher)는 존재했으나 자격증명 등록 UI 진입점이 없었음 → 추가
+  { key: 'tiktok_shop',      name: 'TikTok Shop',       icon: '🛍️', color: '#FE2C55', group: 'global_commerce' },
   { key: 'amazon_spapi',     name: 'Amazon SP-API',     icon: '📦', color: '#FF9900', group: 'global_commerce' },
   { key: 'ebay',             name: 'eBay Seller Hub',   icon: '🛍️', color: '#E53238', group: 'global_commerce' },
   { key: 'etsy',             name: 'Etsy',              icon: '🧶', color: '#F1641E', group: 'global_commerce' },
@@ -293,6 +295,7 @@ export default function ApiKeys() {
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [showApplyModal, setShowApplyModal] = useState(null); // channel object or null
+  const [applyRefresh, setApplyRefresh] = useState(0); // [현 차수] ③ 발급 신청 현황 새로고침 키
   const [showConnectModal, setShowConnectModal] = useState(null); // 208차: 채널 구조화 등록 모달
   const [testingId, setTestingId] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
@@ -579,6 +582,7 @@ export default function ApiKeys() {
       // 발급 신청 접수(서버가 신청자 확인 메일 발송) — 백엔드 message 우선.
       show('success', r?.message || t('ak.applied', { ticket: r?.ticket_id || r?.ticketId || '', defaultValue: `발급 신청 접수됨 (티켓 ${r?.ticket_id || r?.ticketId || ''})` }));
       setShowApplyModal(null);
+      setApplyRefresh(k => k + 1); // ③ 발급 신청 현황 즉시 갱신
       return true;
     } catch (e) {
       show('error', String(e?.message || e));
@@ -688,6 +692,7 @@ export default function ApiKeys() {
           t={t}
         />
       )}
+      {activeTab === 0 && !_IS_DEMO_ENV && <ApplyStatusPanel refreshKey={applyRefresh} t={t} />}
       {activeTab === 1 && (
         <ActiveKeysTab
           creds={creds}
@@ -1164,6 +1169,49 @@ function TrackingTab({ t, show }) {
               </tbody>
             </table>
           )}
+      </div>
+    </div>
+  );
+}
+
+/* [현 차수] ③ 발급 신청 현황 — 신청한 API 키 발급 진행 상태(접수→처리중→완료/반려) 추적·표시.
+   발급 완료 시 '발급 완료' 배지 + 안내가 떠 "발급완료 정보를 받아올 수 있는지"를 충족한다.
+   자격증명 등록 시 백엔드가 해당 채널 신청을 자동 '완료' 처리한다. */
+function ApplyStatusPanel({ refreshKey, t }) {
+  const [applies, setApplies] = useState([]);
+  const [loaded, setLoaded] = useState(false);
+  const load = useCallback(() => {
+    getJsonAuth('/v423/connectors/apply/list')
+      .then(d => { setApplies(Array.isArray(d?.applies) ? d.applies : []); setLoaded(true); })
+      .catch(() => setLoaded(true));
+  }, []);
+  useEffect(() => { load(); }, [load, refreshKey]);
+  if (!loaded || applies.length === 0) return null;
+  const STAT = {
+    pending:    { label: t('ak.stPending', '접수 대기'),  c: '#f59e0b', bg: 'rgba(245,158,11,0.12)' },
+    processing: { label: t('ak.stProcessing', '처리 중'), c: '#3b82f6', bg: 'rgba(59,130,246,0.12)' },
+    completed:  { label: t('ak.stCompleted', '발급 완료'), c: '#22c55e', bg: 'rgba(34,197,94,0.12)' },
+    rejected:   { label: t('ak.stRejected', '반려'),      c: '#ef4444', bg: 'rgba(239,68,68,0.12)' },
+  };
+  return (
+    <div style={{ marginTop: 18, borderRadius: 14, border: '1px solid rgba(99,140,255,0.18)', background: 'rgba(255,255,255,0.6)', padding: '16px 18px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+        <div style={{ fontWeight: 800, fontSize: 14 }}>📨 {t('ak.applyStatusTitle', 'API 키 발급 신청 현황')}</div>
+        <button onClick={load} style={{ padding: '5px 12px', borderRadius: 8, border: '1px solid #e2e8f0', background: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>🔄 {t('ak.refresh', '새로고침')}</button>
+      </div>
+      <div style={{ display: 'grid', gap: 8 }}>
+        {applies.map((a, i) => {
+          const s = STAT[a.status] || STAT.pending;
+          return (
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', padding: '10px 14px', borderRadius: 10, background: '#f8fafc', border: '1px solid #eef2f7' }}>
+              <span style={{ fontSize: 13, fontWeight: 800, minWidth: 90 }}>{a.channel}</span>
+              <span style={{ fontSize: 11, color: '#64748b', fontFamily: 'monospace' }}>{a.ticket_id}</span>
+              <span style={{ marginLeft: 'auto', fontSize: 11, fontWeight: 800, color: s.c, background: s.bg, padding: '3px 10px', borderRadius: 99 }}>{s.label}</span>
+              <span style={{ fontSize: 11, color: '#94a3b8' }}>{a.completed_at ? String(a.completed_at).slice(0, 10) : (a.requested_at ? String(a.requested_at).slice(0, 10) : '')}</span>
+              {a.status === 'completed' && <span style={{ fontSize: 11, color: '#16a34a', width: '100%' }}>✅ {a.completed_note || t('ak.completeHint', '발급이 완료되었습니다. 발급된 키를 등록하면 즉시 자동 연동됩니다.')}</span>}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
