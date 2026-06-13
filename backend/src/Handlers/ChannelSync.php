@@ -2071,6 +2071,19 @@ final class ChannelSync
                     $sku = (string)($existing['sku'] ?? ''); $qty = (int)($existing['qty'] ?? 0);
                     if ($sku !== '' && $qty > 0) self::incInventory($pdo, $tenant, $channel, $sku, $qty);
                     self::recordClaim($pdo, $tenant, $channel, (string)$body['order_id'], $eventType, (float)($existing['total_price'] ?? 0), (string)($body['reason'] ?? ''), (string)($body['buyer_name'] ?? ''), $now);
+                    // [현 차수] 단방향 자동진입(webhook=범용 ingest 경로도 saveOrders 와 동등): 물리 창고 재고 복원
+                    //   (판매 차감분 대칭, 취소/반품 공통) + 반품이면 반품관리 포탈 멱등 진입.
+                    if ($sku !== '' && $qty > 0) {
+                        $oid = (string)$body['order_id'];
+                        $pname = (string)($body['product_name'] ?? '');
+                        Wms::reflectChannelRestock($tenant, $sku, $pname, (float)$qty, 'CHS-' . $channel . '-' . $oid, 'CHR-' . $channel . '-' . $oid);
+                        if ($eventType === 'return') {
+                            ReturnsPortal::ingestChannelReturn($tenant, [
+                                'order_id' => $oid, 'channel' => $channel, 'sku' => $sku, 'name' => $pname,
+                                'qty' => $qty, 'reason' => (string)($body['reason'] ?? ''), 'refund_amt' => (float)($existing['total_price'] ?? 0),
+                            ]);
+                        }
+                    }
                 }
             } else {
                 $pdo->prepare("INSERT INTO channel_orders(tenant_id,channel,channel_order_id,buyer_name,product_name,sku,qty,unit_price,total_price,status,ordered_at,event_type,synced_at)
@@ -2078,7 +2091,11 @@ final class ChannelSync
                     ->execute([$tenant,$channel,$body['order_id'],$body['buyer_name']??'',$body['product_name']??'',$body['sku']??null,(int)($body['qty']??1),(float)($body['price']??0),(float)($body['total']??0),$body['status']??'pending',$body['ordered_at']??$now,$eventType,$now]);
                 // 208차 동기화 P0/P1: 신규 주문 webhook → 실재고 차감 + CRM 구매이력 기록.
                 if (in_array($eventType, ['order','order_update'], true)) {
-                    if (!empty($body['sku'])) self::decInventory($pdo, $tenant, $channel, (string)$body['sku'], (int)($body['qty'] ?? 1));
+                    if (!empty($body['sku'])) {
+                        self::decInventory($pdo, $tenant, $channel, (string)$body['sku'], (int)($body['qty'] ?? 1));
+                        // [현 차수] 단방향 자동진입: 채널 판매를 물리 창고 재고에도 출고 반영(추적 SKU 한정·멱등·non-throw).
+                        Wms::reflectChannelSale($tenant, (string)$body['sku'], (string)($body['product_name'] ?? ''), (float)($body['qty'] ?? 1), 'CHS-' . $channel . '-' . (string)$body['order_id']);
+                    }
                     self::recordCrmPurchase($pdo, $tenant, $channel, $body['buyer_email'] ?? '', $body['buyer_name'] ?? '', (float)($body['total'] ?? 0), (string)($body['sku'] ?? ''), (int)($body['qty'] ?? 1), (string)$body['order_id']);
                 }
             }
