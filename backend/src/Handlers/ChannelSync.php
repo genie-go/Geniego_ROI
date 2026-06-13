@@ -260,6 +260,12 @@ final class ChannelSync
                 $pdo->exec("ALTER TABLE channel_credential ADD COLUMN {$col}");
             } catch (\Throwable $e) { /* 이미 존재 */ }
         }
+        // [현 차수] 데이터품질(운영 COGS): channel_inventory 에 원가(cost)·판매가(price) 컬럼 보강(idempotent).
+        //   채널 동기화는 셀러 원가를 제공하지 않으므로, 셀러가 입력한 원가를 영속해야 P&L COGS 가 0 이 아니게 된다.
+        foreach (['cost', 'price'] as $c) {
+            try { $pdo->exec("ALTER TABLE channel_inventory ADD COLUMN {$c} " . ($isMy ? 'DECIMAL(14,2) DEFAULT 0' : 'REAL DEFAULT 0')); }
+            catch (\Throwable $e) { /* 이미 존재 */ }
+        }
     }
 
     /**
@@ -1771,6 +1777,50 @@ final class ChannelSync
         $stmt = $pdo->prepare($sql);
         $stmt->execute($bind);
         return TemplateResponder::respond($res, ['ok'=>true,'plan'=>$plan,'inventory'=>$stmt->fetchAll(PDO::FETCH_ASSOC)]);
+    }
+
+    /**
+     * [현 차수] POST /api/channel-sync/inventory — 프론트 카탈로그 inventory(원가/판매가/재고) 영속.
+     *   ★데이터품질 핵심: 채널 동기화는 원가를 제공하지 않으므로 셀러 입력 원가를 여기서만 저장한다.
+     *   원가는 채널 무관(셀러 내부값) → channel='catalog' 행에 sku별 upsert + 동일 sku 타 채널 행에 원가/판매가 전파.
+     *   데모 차단(가상 데이터 운영 유입 0) · 테넌트 격리.
+     */
+    public static function saveInventory(Request $req, Response $res): Response
+    {
+        if (($g = self::denyAnon($req, $res)) !== null) return $g;
+        self::ensureTables();
+        $pdo    = Db::pdo();
+        $tenant = self::tenant($req);
+        if ($tenant === '' || $tenant === 'demo' || strncmp($tenant, 'demo', 4) === 0) {
+            return TemplateResponder::respond($res, ['ok'=>true, 'demo'=>true, 'saved'=>0]); // 데모 데이터 운영 유입 차단
+        }
+        $body = $req->getParsedBody();
+        if (!is_array($body)) { $body = json_decode((string)$req->getBody(), true) ?: []; }
+        $items = (isset($body['inventory']) && is_array($body['inventory'])) ? $body['inventory']
+               : (array_is_list($body) ? $body : []);
+        $now = gmdate('c');
+        $up = $pdo->prepare(
+            "INSERT INTO channel_inventory(tenant_id,channel,sku,product_name,available,cost,price,warehouse,synced_at)
+             VALUES(?, 'catalog', ?, ?, ?, ?, ?, 'default', ?)"
+            . self::upsertTail($pdo, 'tenant_id,channel,sku,warehouse', ['product_name','cost','price','synced_at'])
+        );
+        // 동일 sku 의 채널 동기화 행에도 원가/판매가 전파(읽기 시 어느 행을 잡아도 cost 보유).
+        $prop = $pdo->prepare("UPDATE channel_inventory SET cost=?, price=?, synced_at=? WHERE tenant_id=? AND sku=?");
+        $saved = 0;
+        foreach ($items as $it) {
+            if (!is_array($it)) continue;
+            $sku = trim((string)($it['sku'] ?? ''));
+            if ($sku === '') continue;
+            $cost  = (float)($it['cost'] ?? 0);
+            $price = (float)($it['price'] ?? 0);
+            $name  = (string)($it['name'] ?? $it['product_name'] ?? '');
+            $stockSum = 0;
+            if (isset($it['stock']) && is_array($it['stock'])) { foreach ($it['stock'] as $v) $stockSum += (int)$v; }
+            $up->execute([$tenant, $sku, $name, $stockSum, $cost, $price, $now]);
+            $prop->execute([$cost, $price, $now, $tenant, $sku]);
+            $saved++;
+        }
+        return TemplateResponder::respond($res, ['ok'=>true, 'saved'=>$saved]);
     }
 
     // POST /api/channel-sync/webhooks/{channel}

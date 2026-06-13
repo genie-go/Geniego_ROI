@@ -155,6 +155,27 @@ function broadcastUpdate(type, payload) {
 // 📦 재고 (WmsManager ↔ OmniChannel ↔ PnL ↔ Dashboard)
 const INIT_INVENTORY = loadDemoState('inventory', DEMO_INVENTORY);
 
+/* [현 차수] 데이터품질(운영 COGS): 백엔드 channel_inventory 행(채널×SKU×창고)을 SKU 단위 inventory
+   아이템으로 그룹핑한다. ★기존 로더는 `{ok,inventory:[...]}` 객체를 Array.isArray로만 검사해 항상
+   미적용(운영 재고 미로드 → COGS 0)이었다. 원가(cost)·판매가(price)를 포함해 P&L COGS 계산이 동작한다. */
+function buildInventoryFromRows(rows) {
+  if (!Array.isArray(rows)) return [];
+  const bySku = {};
+  for (const r of rows) {
+    const sku = r && r.sku; if (!sku) continue;
+    if (!bySku[sku]) bySku[sku] = { sku, name: r.product_name || sku, cost: 0, price: 0, safeQty: 30, status: 'active', stock: {}, channels: [] };
+    const it = bySku[sku];
+    const c = Number(r.cost) || 0, p = Number(r.price) || 0;
+    if (c > 0) it.cost = c;
+    if (p > 0) it.price = p;
+    if (r.product_name) it.name = r.product_name;
+    const wh = r.warehouse || 'default';
+    it.stock[wh] = (it.stock[wh] || 0) + (Number(r.available) || 0);
+    if (r.channel && r.channel !== 'catalog' && !it.channels.includes(r.channel)) it.channels.push(r.channel);
+  }
+  return Object.values(bySku);
+}
+
 // 📋 Orders (OmniChannel → 재고차감 → 정산 → P&L)
 const INIT_ORDERS = loadDemoState('orders', DEMO_ORDERS);
 
@@ -375,9 +396,10 @@ export function GlobalDataProvider({ children }) {
         })
             .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
             .then(data => {
-                if (Array.isArray(data) && data.length > 0) {
-                    setInventory(data);
-                }
+                // [현 차수] 백엔드는 {ok,inventory:[...]} 객체 반환 → rows 추출 후 SKU 그룹핑(원가 포함).
+                const rows = Array.isArray(data) ? data : (data && Array.isArray(data.inventory) ? data.inventory : []);
+                const built = buildInventoryFromRows(rows);
+                if (built.length > 0) setInventory(built);
             })
             .catch(() => { /* Error 시 INIT_INVENTORY 유지 */ });
     }, []); // 한 번만 Run
@@ -426,7 +448,12 @@ export function GlobalDataProvider({ children }) {
             getJsonAuth('/api/v424/orderhub/orders?limit=1000').then(r => { if (!cancelled && r?.ok && Array.isArray(r.items)) setOrders(r.items); }).catch(() => {});
             getJsonAuth('/api/v424/orderhub/settlements?limit=200').then(r => { if (!cancelled && r?.ok && Array.isArray(r.items)) setSettlement(r.items); }).catch(() => {});
             fetch(`${BASE}/api/channel-sync/inventory`, { headers: { Authorization: `Bearer ${token}` } })
-                .then(r => r.ok ? r.json() : null).then(d => { if (!cancelled && Array.isArray(d) && d.length > 0) setInventory(d); }).catch(() => {});
+                .then(r => r.ok ? r.json() : null).then(d => {
+                    if (cancelled || !d) return;
+                    const rows = Array.isArray(d) ? d : (Array.isArray(d.inventory) ? d.inventory : []);
+                    const built = buildInventoryFromRows(rows);
+                    if (built.length > 0) setInventory(built);
+                }).catch(() => {});
             // [현 차수] P0 운영 광고비/ROAS 하이드레이션: 그동안 운영에서 channelBudgets 가 끝까지 빈 객체라
             //   홈/마케팅/P&L 의 광고비·ROAS·예산이 0 으로 표시되던 결함. performance_metrics 집계(rollup platform
             //   = 광고채널별 spend/revenue/roas)를 channelBudgets 로 매핑해 budgetStats/pnlStats 에 반영.

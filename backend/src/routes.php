@@ -360,6 +360,7 @@ return function (App $app): void {
         'GET /api/channel-sync/products'                  => 'Genie\\Handlers\\ChannelSync::products',
         'GET /api/channel-sync/orders'                    => 'Genie\\Handlers\\ChannelSync::orders',
         'GET /api/channel-sync/inventory'                 => 'Genie\\Handlers\\ChannelSync::inventory',
+        'POST /api/channel-sync/inventory'                => 'Genie\\Handlers\\ChannelSync::saveInventory',
         'POST /api/channel-sync/webhooks/{channel}'       => 'Genie\\Handlers\\ChannelSync::webhook',
         // [현 차수 P0] 실시간 webhook 활성화 — 토큰 발급/조회/폐기(테넌트 격리)
         'GET /api/channel-sync/webhook-tokens'            => 'Genie\\Handlers\\ChannelSync::listWebhookTokens',
@@ -375,6 +376,7 @@ return function (App $app): void {
         'GET /channel-sync/products'                      => 'Genie\\Handlers\\ChannelSync::products',
         'GET /channel-sync/orders'                        => 'Genie\\Handlers\\ChannelSync::orders',
         'GET /channel-sync/inventory'                     => 'Genie\\Handlers\\ChannelSync::inventory',
+        'POST /channel-sync/inventory'                    => 'Genie\\Handlers\\ChannelSync::saveInventory',
         'POST /channel-sync/webhooks/{channel}'           => 'Genie\\Handlers\\ChannelSync::webhook',
         'GET /channel-sync/webhook-tokens'                => 'Genie\\Handlers\\ChannelSync::listWebhookTokens',
         'POST /channel-sync/webhook-tokens'               => 'Genie\\Handlers\\ChannelSync::createWebhookToken',
@@ -2264,6 +2266,7 @@ return function (App $app): void {
     $register('GET',    '/api/channel-sync/products');
     $register('GET',    '/api/channel-sync/orders');
     $register('GET',    '/api/channel-sync/inventory');
+    $register('POST',   '/api/channel-sync/inventory');
     $register('POST',   '/api/channel-sync/webhooks/{channel}');
     $register('GET',    '/api/channel-sync/webhook-tokens');
     $register('POST',   '/api/channel-sync/webhook-tokens');
@@ -2277,6 +2280,7 @@ return function (App $app): void {
     $register('GET',    '/channel-sync/products');
     $register('GET',    '/channel-sync/orders');
     $register('GET',    '/channel-sync/inventory');
+    $register('POST',   '/channel-sync/inventory');
     $register('POST',   '/channel-sync/webhooks/{channel}');
     $register('GET',    '/channel-sync/webhook-tokens');
     $register('POST',   '/channel-sync/webhook-tokens');
