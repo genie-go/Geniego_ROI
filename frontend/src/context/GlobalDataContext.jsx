@@ -1610,8 +1610,11 @@ export function GlobalDataProvider({ children }) {
 
     // 💳 정산 집계 (Reconciliation/KrChannel → P&L)
     const settlementStats = useMemo(() => {
+        // [현 차수] 정산상태 캐논 통일: deriveSettlementFromOrders는 'confirmed'(최근)/'settled'(과거)를 생성하고
+        //   백엔드는 'estimated'/'confirmed'/'settled'를 쓴다. 기존엔 pending을 status==='pending'로만 봐
+        //   'confirmed'가 settled·pending 어디에도 안 잡혀 pendingAmount가 항상 0이었음 → 'settled' 외는 모두 정산대기.
         const settled = settlement.filter(s => s.status === 'settled');
-        const pending = settlement.filter(s => s.status === 'pending');
+        const pending = settlement.filter(s => s.status !== 'settled');
         return {
             totalGross: settlement.reduce((s, r) => s + (r.grossSales || 0), 0),
             totalNetPayout: settlement.reduce((s, r) => s + (r.netPayout || 0), 0),
