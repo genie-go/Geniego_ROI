@@ -433,7 +433,11 @@ export default function DashCommerce() {
 
   // ── Derived computed data (100% real-time, zero mock) ──────────────
   const totalOrd = orderStats?.count || 0;
-  const totalRev = orderStats?.revenue || 0;
+  // [현 차수] 데이터품질(운영 매출 발산 통일): '총매출'은 플랫폼 캐논 매출(pnlStats.revenue)을 사용한다.
+  //   기존엔 orderStats.revenue(주문 폴링 limit 캡 영향)라, 정산우선의 DashOverview/DashSalesGlobal/P&L과
+  //   같은 '총매출'이 탭마다 다르게 표시(발산)됐다. canonical = pnlStats.revenue(데모=주문단일/운영=정산우선),
+  //   미가용 시에만 orderStats.revenue 폴백. (주문 '건수'는 별개 지표라 그대로 orderStats.count 유지.)
+  const totalRev = (pnlStats?.revenue != null && pnlStats.revenue > 0) ? pnlStats.revenue : (orderStats?.revenue || 0);
   const returnRate = settlementStats?.returnRate || 0;
   const reconRate = settlementStats?.totalOrders > 0
     ? ((settlementStats.settledAmount / Math.max(1, settlementStats.totalGross)) * 100).toFixed(1)
