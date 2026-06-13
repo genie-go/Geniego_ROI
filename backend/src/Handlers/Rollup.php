@@ -346,7 +346,7 @@ final class Rollup {
                 $series = [];
                 foreach ($dates as $d) {
                     $b = $buckets[$d] ?? ['spend'=>0,'rev'=>0,'ord'=>0,'imp'=>0,'clk'=>0];
-                    $series[] = self::platformSeriesPoint($d, round($b['spend'],2), round($b['rev'],2), $b['ord'], $b['imp'], $b['clk']);
+                    $series[] = self::platformSeriesPoint($d, round($b['spend'],2), round($b['rev'],2), $b['ord'], $b['imp'], $b['clk'], round($b['ad_rev'] ?? 0, 2));
                 }
                 $rows[] = self::platformRowFromSeries($pf, $palette[$ci++ % count($palette)], $series);
             }
@@ -354,15 +354,19 @@ final class Rollup {
         } catch (\Throwable $e) { return []; }
     }
 
-    private static function platformSeriesPoint(string $d, $s, $r, $o, $i, $c): array {
-        return ['date'=>$d, 'spend'=>$s, 'revenue'=>$r, 'orders'=>$o, 'impressions'=>$i, 'clicks'=>$c,
-            'roas'=>$s > 0 ? round($r/$s,2) : 0, 'ctr'=>$i > 0 ? round($c/$i*100,2) : 0, 'cpc'=>$c > 0 ? round($s/$c) : 0];
+    private static function platformSeriesPoint(string $d, $s, $r, $o, $i, $c, $ar = 0): array {
+        // [현 차수] ★ROAS 채널키 미스매치 수정: ROAS 분자=광고기여 전환매출(ad_rev=performance_metrics.revenue),
+        //   주문매출($r)이 아니다. 기존엔 광고비(meta/google)와 주문매출(coupang/naver)을 채널명으로 조인해
+        //   광고채널은 주문 0→ROAS 0, 판매채널은 광고비 0→ROAS 0 이었다. 진짜 ROAS = 광고기여매출/광고비.
+        return ['date'=>$d, 'spend'=>$s, 'revenue'=>$r, 'ad_rev'=>$ar, 'orders'=>$o, 'impressions'=>$i, 'clicks'=>$c,
+            'roas'=>$s > 0 ? round($ar/$s,2) : 0, 'ctr'=>$i > 0 ? round($c/$i*100,2) : 0, 'cpc'=>$c > 0 ? round($s/$c) : 0];
     }
     private static function platformRowFromSeries(string $pf, string $color, array $series): array {
         $totS = array_sum(array_column($series, 'spend')); $totR = array_sum(array_column($series, 'revenue'));
-        return ['platform'=>ucfirst($pf), 'color'=>$color, 'total_spend'=>$totS, 'total_revenue'=>$totR,
+        $totAr = array_sum(array_column($series, 'ad_rev'));
+        return ['platform'=>ucfirst($pf), 'color'=>$color, 'total_spend'=>$totS, 'total_revenue'=>$totR, 'total_ad_rev'=>$totAr,
             'total_orders'=>array_sum(array_column($series, 'orders')), 'total_impressions'=>array_sum(array_column($series, 'impressions')),
-            'total_clicks'=>array_sum(array_column($series, 'clicks')), 'avg_roas'=>$totS > 0 ? round($totR/$totS,2) : 0, 'series'=>$series];
+            'total_clicks'=>array_sum(array_column($series, 'clicks')), 'avg_roas'=>$totS > 0 ? round($totAr/$totS,2) : 0, 'series'=>$series];
     }
 
     /** dates 라벨의 가장 이른 시점 → 'YYYY-MM-DD…' 시작 경계. */

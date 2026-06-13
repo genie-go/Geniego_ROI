@@ -468,7 +468,9 @@ export function GlobalDataProvider({ children }) {
                     if (!key) return;
                     const spent = Number(p.total_spend) || 0;
                     bud[key] = {
-                        name: p.platform, spent, revenue: Number(p.total_revenue) || 0,
+                        // [현 차수] 광고예산 뷰의 revenue=광고기여매출(total_ad_rev, ROAS 분자와 일관). 주문매출
+                        //   (total_revenue)은 판매채널 매출이라 광고 ROAS 분자로 부적합(채널키 미스매치 ROAS=0 유발).
+                        name: p.platform, spent, revenue: Number(p.total_ad_rev != null ? p.total_ad_rev : p.total_revenue) || 0,
                         roas: Number(p.avg_roas) || 0, budget: spent,
                         impressions: Number(p.total_impressions) || 0, clicks: Number(p.total_clicks) || 0,
                         color: p.color || '#4f8ef7',
