@@ -37,6 +37,29 @@ class PixelTracking
     private static function enc(string $v): string { return $v === '' ? '' : \Genie\Crypto::encrypt($v); }
     private static function dec(string $v): string { return $v === '' ? '' : \Genie\Crypto::decrypt($v); }
 
+    /**
+     * [현 차수] 감사 P2: pixel_id HMAC 서명 — 공개 비콘 위조 차단.
+     * 형식: px_<rand16>_<hmac12>. 서명은 서버 cred 키(용도분리)로 생성 → 시크릿 없이는 유효 pixel_id 위조 불가.
+     * 효과: 무작위·열거·오타 pixel_id 가 수집 단계에서 거부(불명 테넌트 오염 행/불필요 DB조회 차단).
+     * (스니펫에 노출된 정당 pixel_id 재전송은 본질적으로 막을 수 없어 도메인 신뢰 게이트가 추가 방어.)
+     */
+    private static function genPixelId(): string
+    {
+        $base = 'px_' . bin2hex(random_bytes(8));
+        return $base . '_' . \Genie\Crypto::hmacTag($base, 'pixel', 12);
+    }
+
+    /** pixel_id 서명 검증(타이밍 안전). 레거시(태그 없는 px_<rand>)는 무효 처리(운영 config 0 → 영향 없음). */
+    private static function verifyPixelId(string $pixelId): bool
+    {
+        $parts = explode('_', $pixelId);
+        if (count($parts) < 3 || $parts[0] !== 'px') return false;
+        $tag = array_pop($parts);
+        $base = implode('_', $parts); // 'px_<rand>'
+        $expect = \Genie\Crypto::hmacTag($base, 'pixel', 12);
+        return hash_equals($expect, $tag);
+    }
+
     private static function ensureTables(): void
     {
         $pdo = self::db();
@@ -91,6 +114,9 @@ class PixelTracking
         $sessionId = trim($b['session_id'] ?? '');
         if (!$pixelId) return self::json($res, ['ok' => false, 'error' => 'pixel_id 필수'], 400);
 
+        // [현 차수] 감사 P2: HMAC 서명 검증 — 위조/열거된 pixel_id 를 DB 조회 전에 거부(오염·부하 차단).
+        if (!self::verifyPixelId($pixelId)) return self::json($res, ['ok' => false, 'error' => 'invalid pixel signature'], 403);
+
         // ★테넌트 = pixel_id 의 소유 config. 미등록 픽셀=unknown(어느 테넌트 analytics 에도 미노출).
         $cfgStmt = $pdo->prepare("SELECT * FROM pixel_configs WHERE pixel_id=:pid LIMIT 1");
         $cfgStmt->execute([':pid' => $pixelId]);
@@ -106,8 +132,11 @@ class PixelTracking
         $EVENTS = ['page_view','product_view','view_content','search','add_to_cart','add_to_wishlist','initiate_checkout','add_payment_info','purchase','lead','complete_registration','contact','subscribe','custom'];
         if (!in_array($eventName, $EVENTS, true)) $eventName = 'custom';
         $value = max(0.0, min((float)($b['value'] ?? 0), 1.0e9));
-        $trusted = true;
+        // [현 차수] 감사 P2(오염차단): 신뢰는 fail-closed. 등록 도메인이 설정된 경우에만 Origin/Referer 호스트
+        //   일치 시 신뢰. 도메인 미설정(빈값)은 기존엔 무조건 trusted=true 라 가짜 구매/매출(임의 value) 주입이
+        //   가능했다(매출 오염 통로). 이제 도메인 미설정 또는 미등록 픽셀은 비신뢰 → 매출/전환/포워딩 중립화.
         $cfgDomain = strtolower(trim((string)($config['domain'] ?? '')));
+        $trusted = false;
         if ($config && $cfgDomain !== '') {
             $orig = $req->getHeaderLine('Origin') ?: $req->getHeaderLine('Referer');
             $reqHost = ($orig !== '' && preg_match('~^https?://([^/:]+)~i', $orig, $hm)) ? strtolower($hm[1]) : '';
@@ -256,7 +285,7 @@ class PixelTracking
         $pdo = self::db();
         $tenant = self::tenant($req);
         $b = (array)$req->getParsedBody();
-        $pixelId = 'px_' . bin2hex(random_bytes(8));
+        $pixelId = self::genPixelId(); // [현 차수] HMAC 서명 pixel_id(위조 차단)
         $now = self::now();
         $pdo->prepare("INSERT INTO pixel_configs (tenant_id, pixel_id, name, domain, meta_pixel_id, meta_api_token, tiktok_pixel_id, tiktok_access_token, ga4_measurement_id, ga4_api_secret, created_at, updated_at)
             VALUES (:t,:pid,:name,:dom,:mpid,:mapi,:tpid,:tapi,:ga4id,:ga4sec,:ca,:ua)

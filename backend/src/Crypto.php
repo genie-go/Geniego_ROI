@@ -67,6 +67,20 @@ final class Crypto
         return is_string($v) && strncmp($v, self::PREFIX, strlen(self::PREFIX)) === 0;
     }
 
+    /**
+     * 공개 식별자(예: 1st-party pixel_id) 무결성 서명용 HMAC 태그.
+     * cred 키에서 용도분리(purpose) 파생 서브키를 써서 키 재사용을 피한다.
+     * 비밀(키)을 노출하지 않고, 위변조된 식별자를 서버측에서 거부하는 데 쓴다.
+     * 검증 시 반드시 hash_equals 로 비교(타이밍 공격 방어).
+     */
+    public static function hmacTag(string $data, string $purpose = 'general', int $len = 16): string
+    {
+        $subKey = hash_hmac('sha256', 'purpose:' . $purpose, self::key(), true);
+        $hex = hash_hmac('sha256', $data, $subKey);
+        $len = max(8, min(64, $len));
+        return substr($hex, 0, $len);
+    }
+
     /** 평문 → "enc:v1:..." (실패 시 평문 그대로 — decrypt 가 passthrough). */
     public static function encrypt(?string $plain): string
     {
