@@ -51,8 +51,15 @@ export default function OnboardingGuide() {
   const welcomedKey = 'genie_onb_welcomed_' + tenantKey();
   const expandKey = 'genie_onb_expanded_' + tenantKey();
   const [welcomed, setWelcomed] = useState(() => { try { return localStorage.getItem(welcomedKey) === '1'; } catch { return true; } });
-  // [현 차수] ★기본 접힘(2줄) — 안내박스가 너무 길게 늘어져 아래 페이지를 가리던 문제. 펼치기/접기 토글(상태 영속).
-  const [expanded, setExpanded] = useState(() => { try { return localStorage.getItem(expandKey) === '1'; } catch { return false; } });
+  // [현 차수] 기본 접힘(2줄)이되, ★첫 방문(미환영)은 자동 펼침 — 접속 즉시 전체 진행 순서를 인식하도록.
+  //   재방문자는 저장된 선호 유지(안내박스가 아래 페이지를 가리지 않도록).
+  const [expanded, setExpanded] = useState(() => {
+    try {
+      if (localStorage.getItem(expandKey) === '1') return true;
+      if (localStorage.getItem(welcomedKey) !== '1') return true; // 첫 방문 자동 펼침
+      return false;
+    } catch { return false; }
+  });
 
   const doneFlags = STEPS.map((s) => isDone(s, gd));
   const doneCount = doneFlags.filter(Boolean).length;
@@ -81,10 +88,20 @@ export default function OnboardingGuide() {
         @keyframes onbGlow{0%{box-shadow:0 0 0 0 rgba(124,58,237,0.55)}100%{box-shadow:0 0 0 10px rgba(124,58,237,0)}}
         @keyframes onbArrow{0%,100%{transform:translateX(0)}50%{transform:translateX(5px)}}
         @keyframes onbBlink{0%,100%{opacity:1}50%{opacity:0.5}}
-        .onb-cta{animation:onbPulse 1.5s ease-in-out infinite}
+        /* [현 차수] "지금 먼저!" 강조 대폭 강화 — 접속 즉시 시선 집중 */
+        @keyframes onbNow{0%,100%{transform:scale(1) rotate(-1deg)}50%{transform:scale(1.13) rotate(1deg)}}
+        @keyframes onbRing{0%{box-shadow:0 0 0 0 rgba(239,68,68,0.65),0 0 0 0 rgba(245,158,11,0.5)}100%{box-shadow:0 0 0 14px rgba(239,68,68,0),0 0 0 22px rgba(245,158,11,0)}}
+        @keyframes onbBarGlow{0%,100%{box-shadow:0 0 0 1px rgba(245,158,11,0.5),0 6px 20px rgba(239,68,68,0.18)}50%{box-shadow:0 0 0 2px rgba(245,158,11,0.9),0 10px 30px rgba(239,68,68,0.42)}}
+        @keyframes onbHand{0%,100%{transform:translateY(0) rotate(0)}25%{transform:translateY(-3px) rotate(-12deg)}75%{transform:translateY(-3px) rotate(12deg)}}
+        .onb-cta{animation:onbPulse 1.4s ease-in-out infinite}
         .onb-num{animation:onbGlow 1.6s ease-out infinite}
         .onb-arrow{display:inline-block;animation:onbArrow 1s ease-in-out infinite}
         .onb-now{animation:onbBlink 1.2s ease-in-out infinite}
+        /* 큰 "지금 먼저!" 배지 — 스케일+회전 펄스 + 확산 링 */
+        .onb-now-big{animation:onbNow 1s ease-in-out infinite,onbRing 1.5s ease-out infinite}
+        .onb-hand{display:inline-block;animation:onbHand 0.8s ease-in-out infinite;transform-origin:70% 70%}
+        /* 현재단계 CTA 바 전체 글로우 테두리 */
+        .onb-curbar{animation:onbBarGlow 1.6s ease-in-out infinite}
         .onb-row-cur{position:relative}
         .onb-row-cur::before{content:'';position:absolute;left:0;top:8px;bottom:8px;width:4px;border-radius:4px;background:linear-gradient(180deg,#4f46e5,#7c3aed);animation:onbBlink 1.2s ease-in-out infinite}
       `}</style>
@@ -107,11 +124,11 @@ export default function OnboardingGuide() {
         </div>
         {/* Line 2: 다음 단계(접힘일 때만) */}
         {!expanded && step && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 7, paddingLeft: 25 }}>
-            <span className="onb-now" style={{ flexShrink: 0, fontSize: 10, fontWeight: 900, padding: '3px 8px', borderRadius: 99, background: 'linear-gradient(135deg,#f59e0b,#ef4444)', color: '#fff' }}>👉 {t('onboard.doFirst', '지금 먼저!')}</span>
-            <span style={{ fontSize: 11, color: '#a5b4fc', fontWeight: 700, flexShrink: 0 }}>{firstIdx + 1}/{STEPS.length}</span>
-            <span style={{ flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: 800, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{step.icon} {t(`onboard.step.${step.id}.title`, step.title)}</span>
-            {!onStepPage && <button className="onb-cta" onClick={() => nav(step.route)} style={{ padding: '6px 14px', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#4f46e5,#7c3aed)', color: '#fff', fontWeight: 900, fontSize: 11.5, flexShrink: 0 }}>{t('onboard.shortcut', '바로가기')} <span className="onb-arrow">→</span></button>}
+          <div className="onb-curbar" style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 9, padding: '11px 13px', borderRadius: 12, background: 'linear-gradient(135deg,#fff7ed,#fef2f2)', border: '1px solid rgba(245,158,11,0.55)', flexWrap: 'wrap' }}>
+            <span className="onb-now-big" style={{ flexShrink: 0, fontSize: 14.5, fontWeight: 900, padding: '8px 15px', borderRadius: 99, background: 'linear-gradient(135deg,#f59e0b,#ef4444)', color: '#fff', whiteSpace: 'nowrap', letterSpacing: '0.3px' }}><span className="onb-hand">👉</span> {t('onboard.doFirst', '지금 먼저!')}</span>
+            <span style={{ fontSize: 12, color: '#b45309', fontWeight: 900, flexShrink: 0, padding: '4px 9px', borderRadius: 8, background: 'rgba(245,158,11,0.18)' }}>STEP {firstIdx + 1}/{STEPS.length}</span>
+            <span style={{ flex: 1, minWidth: 120, fontSize: 15, fontWeight: 900, color: '#0f172a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{step.icon} {t(`onboard.step.${step.id}.title`, step.title)}</span>
+            {!onStepPage && <button className="onb-cta" onClick={() => nav(step.route)} style={{ padding: '11px 22px', borderRadius: 10, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#4f46e5,#7c3aed)', color: '#fff', fontWeight: 900, fontSize: 14, flexShrink: 0, whiteSpace: 'nowrap' }}>{t('onboard.shortcut', '바로가기')} <span className="onb-arrow">→</span></button>}
           </div>
         )}
       </div>
@@ -136,10 +153,10 @@ export default function OnboardingGuide() {
                 color: d || cur ? '#fff' : '#64748b',
               }}>{d ? '✓' : i + 1}</span>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 13, fontWeight: 800, color: d ? '#16a34a' : cur && !d ? '#4f46e5' : '#0f172a' }}>
+                <div style={{ fontSize: cur && !d ? 15 : 13, fontWeight: cur && !d ? 900 : 800, color: d ? '#16a34a' : cur && !d ? '#4f46e5' : '#0f172a' }}>
                   {s.icon} {t(`onboard.step.${s.id}.title`, s.title)}
                   {d && <span style={{ fontSize: 10.5, color: '#16a34a', fontWeight: 700 }}> · {t('onboard.completed', '완료')}</span>}
-                  {cur && !d && <span className="onb-now" style={{ marginLeft: 7, fontSize: 9.5, fontWeight: 900, padding: '2px 8px', borderRadius: 99, background: 'linear-gradient(135deg,#f59e0b,#ef4444)', color: '#fff', verticalAlign: 'middle' }}>👉 {t('onboard.doNow', '지금 할 일')}</span>}
+                  {cur && !d && <span className="onb-now-big" style={{ marginLeft: 9, display: 'inline-block', fontSize: 12, fontWeight: 900, padding: '4px 12px', borderRadius: 99, background: 'linear-gradient(135deg,#f59e0b,#ef4444)', color: '#fff', verticalAlign: 'middle' }}><span className="onb-hand">👉</span> {t('onboard.doNow', '지금 할 일')}</span>}
                 </div>
                 {(cur || here) && !d && (
                   <div style={{ fontSize: 12, color: '#475569', lineHeight: 1.5, marginTop: 3 }}>
@@ -149,7 +166,7 @@ export default function OnboardingGuide() {
                 )}
               </div>
               {cur && !here && (
-                <span className="onb-cta" style={{ flexShrink: 0, alignSelf: 'center', padding: '7px 14px', borderRadius: 9, background: 'linear-gradient(135deg,#4f46e5,#7c3aed)', color: '#fff', fontWeight: 900, fontSize: 11.5 }}>{t('onboard.shortcut', '바로가기')} <span className="onb-arrow">→</span></span>
+                <span className="onb-cta" style={{ flexShrink: 0, alignSelf: 'center', padding: '10px 18px', borderRadius: 10, background: 'linear-gradient(135deg,#4f46e5,#7c3aed)', color: '#fff', fontWeight: 900, fontSize: 13.5, whiteSpace: 'nowrap' }}>{t('onboard.shortcut', '바로가기')} <span className="onb-arrow">→</span></span>
               )}
             </div>
           );

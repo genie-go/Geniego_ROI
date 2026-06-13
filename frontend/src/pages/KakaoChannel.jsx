@@ -8,6 +8,7 @@ import { useI18n } from '../i18n';
 import AIRecommendBanner from '../components/AIRecommendBanner.jsx';
 import { useSecurityGuard } from '../security/SecurityGuard.js';
 import CreativeStudioTab from "./CreativeStudioTab.jsx";
+import { useVisibleTabs } from "../auth/useVisibleTabs.js";
 import { useNavigate } from "react-router-dom";
 
 const APIF = (path, opts = {}) =>
@@ -582,13 +583,14 @@ function KakaoChannelContent() {
         return { total, sent, succ, fail };
     }, [campaigns]);
 
-    const TABS = [
+    // [차기] 구독플랜별 탭 게이팅 — 고급탭(creative)만 growth+. 첫탭(campaigns)·핵심탭은 전 플랜.
+    const TABS = useVisibleTabs('kakao', [
         { id: "campaigns", label: t('kakao.tabCamp') },
         { id: "templates", label: t('kakao.tabTpl') },
         { id: "creative", label: t('kakao.tabCreative') },
         { id: "settings", label: t('kakao.tabSet') },
         { id: "guide", label: t('kakao.tabGuide') },
-    ];
+    ]);
 
     return (
         <div style={{ background: C.bg, minHeight: "100%", color: C.text }}>

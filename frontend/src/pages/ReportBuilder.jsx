@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useT } from "../i18n/index.js";
 import { getJsonAuth, postJsonAuth, patchJson, delJson } from "../services/apiClient.js";
+import { useVisibleTabs } from "../auth/useVisibleTabs.js";
 
 /*
  * ReportBuilder — 리포트 빌더 + 예약 발송 (193차 Sprint4 실구현).
@@ -80,7 +81,8 @@ export default function ReportBuilder() {
   const remove = async (s) => { if (!window.confirm(t("reportBuilder.delConfirm", "이 예약 리포트를 삭제할까요?"))) return; try { await delJson(`/api/reports/schedules/${s.id}`); loadSchedules(); } catch (e) { flash(String(e.message).slice(0, 80)); } };
 
   const freqLabel = (f) => ({ daily: t("reportBuilder.daily", "매일"), weekly: t("reportBuilder.weekly", "매주"), monthly: t("reportBuilder.monthly", "매월") }[f] || f);
-  const TABS = [["preview", "📊 " + t("reportBuilder.tabPreview", "미리보기")], ["schedules", "📅 " + t("reportBuilder.tabSchedules", "예약 리포트")], ["history", "🕑 " + t("reportBuilder.tabHistory", "실행 이력")]];
+  // [차기] 구독플랜별 탭 게이팅 — 예약 자동발송(schedules)만 growth+. 첫탭(preview)·실행이력은 전 플랜.
+  const TABS = useVisibleTabs('report', [["preview", "📊 " + t("reportBuilder.tabPreview", "미리보기")], ["schedules", "📅 " + t("reportBuilder.tabSchedules", "예약 리포트")], ["history", "🕑 " + t("reportBuilder.tabHistory", "실행 이력")]], (pair) => pair[0]);
 
   return (
     <div style={{ padding: "8px 4px" }}>

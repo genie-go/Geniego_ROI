@@ -4,6 +4,7 @@
 import React,{useState,useEffect,useCallback,useMemo,useRef} from "react";
 import { IS_DEMO } from '../utils/demoEnv';
 import PlanGate from "../components/PlanGate.jsx";
+import { useVisibleTabs } from "../auth/useVisibleTabs.js";
 import {useGlobalData} from "../context/GlobalDataContext.jsx";
 import {useConnectorSync} from "../context/ConnectorSyncContext.jsx";
 import {useI18n} from '../i18n';
@@ -392,7 +393,7 @@ function SmsMarketingInner(){
 
     const stats=settings?.stats||{sent:0,delivered:0,failed:0};
 
-    const TABS=useMemo(()=>[
+    const _ALL_TABS=useMemo(()=>[
         {id:'compose',label:'✏️ '+(t('sms.tabCompose', 'Compose'))},
         {id:'broadcast',label:'📡 '+(t('sms.tabBroadcast', 'Broadcast'))},
         {id:'templates',label:'📋 '+(t('sms.tabTemplates', 'Templates'))},
@@ -403,6 +404,8 @@ function SmsMarketingInner(){
         {id:'settings',label:'⚙️ '+(t('sms.tabSettings', 'Settings'))},
         {id:'guide',label:'📖 '+((SMS_GUIDE[lang]||SMS_GUIDE.en).tabGuide)},
     ],[t,lang]);
+    // [차기] 구독플랜별 탭 게이팅 — 고급탭(stats/creative)만 growth+. 첫탭(compose)·핵심탭은 전 플랜.
+    const TABS=useVisibleTabs('sms', _ALL_TABS);
 
     return(
         <div style={{ display:'flex', flexDirection:'column', height:'100%', overflow:'hidden' }}>

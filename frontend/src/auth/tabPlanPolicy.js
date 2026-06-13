@@ -28,6 +28,13 @@ export const TAB_MIN_PLAN = Object.freeze({
   // 이메일 마케팅(EmailMarketing) — 성과분석·AI 크리에이티브는 상위(캠페인/템플릿/설정/가이드는 전 플랜)
   'email::analytics': 'growth',
   'email::creative': 'growth',
+  // [차기] 카카오 채널(KakaoChannel) — AI 크리에이티브는 상위(캠페인/템플릿/설정/가이드는 전 플랜)
+  'kakao::creative': 'growth',
+  // [차기] SMS 마케팅(SmsMarketing) — 통계·AI 크리에이티브는 상위(작성/방송/템플릿/캠페인/이력/설정/가이드는 전 플랜)
+  'sms::stats': 'growth',
+  'sms::creative': 'growth',
+  // [차기] 리포트 빌더(ReportBuilder) — 예약 자동발송은 상위(미리보기/실행이력은 전 플랜)
+  'report::schedules': 'growth',
 });
 
 /** 탭 노출 허용 여부. 미등록 탭/플랜 미상이면 true(노출, fail-open=기존 동작 보존). */
