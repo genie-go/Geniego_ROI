@@ -92,7 +92,8 @@ const LS_KEY     = "genie_roi_lang";
 const LS_GEO_KEY = "genie_roi_geo_done"; // IP 감지 완료 플래그
 
 // ── Step 1: navigator.language 기반 즉시 감지 (동기) ──────
-function detectLang() {
+//   [현 차수] export — 공개 랜딩(public/Landing.jsx)이 동일 초기 언어감지를 쓰도록(영어 하드코딩 제거).
+export function detectLang() {
     const saved = localStorage.getItem(LS_KEY);
     if (saved && LOCALES[saved]) return saved;
 

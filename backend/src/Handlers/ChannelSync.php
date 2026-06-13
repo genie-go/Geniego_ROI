@@ -1536,7 +1536,8 @@ final class ChannelSync
     //   commerce_sync_cron.php 폴링 러너가 동기화 대상으로 삼는 채널 집합(206차 #1).
     public const COMMERCE_CHANNELS = [
         'shopify','amazon','amazon_spapi','coupang','naver','naver_smartstore',
-        'ebay','tiktok','tiktok_shop','rakuten','yahoo_jp','line','11st','gmarket','cafe24','lotteon',
+        'ebay','tiktok','tiktok_shop','rakuten','yahoo_jp','line','11st','st11','gmarket','auction','cafe24','lotteon',
+        // [현 차수] ★st11(ApiKeys UI 저장키)·auction 누락 → 자격증명 저장 후 자동sync/cron 영구 누락이던 결함 해소.
     ];
 
     /**

@@ -94,7 +94,7 @@ class SupplyChain
     public static function createLine(Request $request, Response $response, array $args): Response
     {
         $db = self::db(); $t = self::tenant($request); $b = self::body($request);
-        $lid = $b['line_id'] ?? ('SUP-' . str_pad((string)rand(1, 9999), 3, '0', STR_PAD_LEFT));
+        $lid = $b['line_id'] ?? ('SUP-' . strtoupper(substr(uniqid('', true), -10))); // [현 차수] rand 충돌 → 시간기반 고유 ID
         $db->prepare("INSERT OR REPLACE INTO sc_lines (tenant_id,line_id,supplier,sku,name,leadTime,risk,delayRate,totalCost,created_at) VALUES (?,?,?,?,?,?,?,?,?,?)")
             ->execute([$t,$lid,$b['supplier']??'',$b['sku']??'',$b['name']??'',(int)($b['leadTime']??14),$b['risk']??'low',(float)($b['delayRate']??0),(float)($b['totalCost']??0),gmdate('c')]);
         // 재생성 시 기존 stage 정리(중복 방지)
@@ -157,7 +157,7 @@ class SupplyChain
     public static function createSupplier(Request $request, Response $response, array $args): Response
     {
         $db = self::db(); $t = self::tenant($request); $b = self::body($request);
-        $sid = $b['sup_id'] ?? ('SUPL-'.str_pad((string)rand(1,999),3,'0',STR_PAD_LEFT));
+        $sid = $b['sup_id'] ?? ('SUPL-'.strtoupper(substr(uniqid('', true), -10))); // [현 차수] rand 충돌 → 시간기반 고유 ID
         $db->prepare("INSERT OR REPLACE INTO sc_suppliers (tenant_id,sup_id,name,country,category,leadTime,delayRate,orderCount,reliability,contact,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)")
             ->execute([$t,$sid,$b['name']??'',$b['country']??'',$b['category']??'',(int)($b['leadTime']??14),(float)($b['delayRate']??0),(int)($b['orderCount']??0),(float)($b['reliability']??95),$b['contact']??'',gmdate('c')]);
         return self::json($response, ['ok'=>true,'sup_id'=>$sid]);

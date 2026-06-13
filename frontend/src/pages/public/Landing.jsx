@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { st } from "./siteI18n.js";
 import { LogoOrbit } from "../../layout/PremiumLayout.jsx";
+import { detectLang } from "../../i18n/index.js"; // [현 차수] navigator/저장 기반 초기 언어감지(영어 하드코딩 제거)
 
 /* ═══════════════════════════════════════════════════════════════════
    11-Language Dictionary — Landing Page Only
@@ -2412,7 +2413,9 @@ const H2 = ({ children }) => (
 );
 
 export default function Landing() {
-  const [lang, setLang] = React.useState(() => localStorage.getItem("genie_roi_lang") || localStorage.getItem("landing_lang") || "en");
+  // [현 차수] ★영어 하드코딩 폴백 제거 — 저장 언어 우선, 없으면 navigator 기반 detectLang(한국 브라우저→한국어).
+  //   geo-IP(접속국가) 감지는 글로벌 I18nProvider가 ipapi로 수행 후 'genie-lang-change' 이벤트로 갱신(아래 리스너).
+  const [lang, setLang] = React.useState(() => localStorage.getItem("genie_roi_lang") || localStorage.getItem("landing_lang") || detectLang());
   React.useEffect(() => {
     const onL = (e) => { if (e?.detail?.lang) setLang(e.detail.lang); };
     window.addEventListener("genie-lang-change", onL);

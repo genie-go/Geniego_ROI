@@ -57,10 +57,13 @@ final class Rollup {
 
     // Generate date/period labels
     private static function dates(string $period, int $n): array {
+        // [현 차수] ★base date 하드코딩(2026-03-05/2026) 제거 — 오늘 기준으로 버킷 생성. 기존엔 고정 기준이라
+        //   오늘 이후 입력된 운영 주문/광고 데이터가 dates 범위 밖으로 전량 제외(매출 0)되던 결함. (프론트 derive와 정합.)
         $result = [];
+        $now = time();
         switch ($period) {
             case 'monthly':
-                $baseYear = 2026; $baseMon = 3;
+                $baseYear = (int)gmdate('Y', $now); $baseMon = (int)gmdate('n', $now);
                 for ($i = $n - 1; $i >= 0; $i--) {
                     $totalMonths = ($baseYear * 12 + $baseMon - 1) - $i;
                     $y = intdiv($totalMonths, 12);
@@ -69,11 +72,11 @@ final class Rollup {
                 }
                 break;
             case 'yearly':
-                $baseY = 2026;
+                $baseY = (int)gmdate('Y', $now);
                 for ($i = $n - 1; $i >= 0; $i--) $result[] = (string)($baseY - $i);
                 break;
             case 'seasonal':
-                $baseYear = 2026; $baseQ = 1;
+                $baseYear = (int)gmdate('Y', $now); $baseQ = (int)ceil((int)gmdate('n', $now) / 3);
                 for ($i = $n - 1; $i >= 0; $i--) {
                     $totalQ = ($baseYear * 4 + $baseQ - 1) - $i;
                     $y = intdiv($totalQ, 4);
@@ -82,14 +85,14 @@ final class Rollup {
                 }
                 break;
             case 'weekly':
-                $base = strtotime('2026-03-05');
+                $base = $now;
                 for ($i = $n - 1; $i >= 0; $i--) {
                     $ts = $base - $i * 7 * 86400;
                     $result[] = gmdate('Y', $ts) . '-W' . str_pad((string)(int)gmdate('W', $ts), 2, '0', STR_PAD_LEFT);
                 }
                 break;
             default: // daily
-                $base = strtotime('2026-03-05');
+                $base = $now;
                 for ($i = $n - 1; $i >= 0; $i--) $result[] = gmdate('Y-m-d', $base - $i * 86400);
                 break;
         }

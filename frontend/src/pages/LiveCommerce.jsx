@@ -922,7 +922,8 @@ const AiHostTab = memo(function AiHostTab({ session, gd, t }) {
 /* ═══════════════ 탭 7: 구매하기 (시청자 뷰) ═══════════════ */
 const BuyerTab = memo(function BuyerTab({ session, gd, money, t }) {
   const [products, setProducts] = useState([]);
-  const [buyer, setBuyer] = useState(t('liveCommerce.guest', '게스트') + Math.floor(Math.random() * 900 + 100));
+  // [현 차수] 무작위 게스트 닉네임은 데모 전용(운영 주문에 가상 구매자명 유입 차단). 운영은 빈값→실 구매자명 대기.
+  const [buyer, setBuyer] = useState(IS_DEMO ? (t('liveCommerce.guest', '게스트') + Math.floor(Math.random() * 900 + 100)) : '');
   const [toast, setToast] = useState('');
   const { stats, chat, sendLike } = useLiveStream(session, true);
   const sid = session?.id;

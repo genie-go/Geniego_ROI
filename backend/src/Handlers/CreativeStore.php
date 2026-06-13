@@ -195,21 +195,21 @@ final class CreativeStore
         ]);
     }
 
-    /* ── userId 추출 (JWT 토큰 또는 기본값) ───────────────────── */
+    /* ── userId 추출 — 서버 user_session 토큰 실검증 ───────────────────── */
     private static function userId(Request $req): string
     {
-        // JWT에서 user_id 추출 시도
+        // [현 차수] ★보안(P1): 기존엔 Bearer JWT payload(sub/user_id/id)를 서명검증 없이 base64 디코드만 해
+        //   신뢰 → 누구나 임의 user_id 위조 가능했다. 본 플랫폼 토큰은 JWT가 아니라 불투명 user_session 토큰이므로
+        //   서버 user_session 조회로 실제 user_id 를 도출한다(위조 불가). 미인증/무효는 'default' 공유 풀 유지.
         $authHeader = $req->getHeaderLine('Authorization');
-        if ($authHeader && str_starts_with($authHeader, 'Bearer ')) {
-            $token = substr($authHeader, 7);
-            $parts = explode('.', $token);
-            if (count($parts) === 3) {
-                $payload = json_decode(base64_decode(strtr($parts[1], '-_', '+/')), true);
-                if (isset($payload['sub'])) return (string)$payload['sub'];
-                if (isset($payload['user_id'])) return (string)$payload['user_id'];
-                if (isset($payload['id'])) return (string)$payload['id'];
-            }
-        }
+        $token = (is_string($authHeader) && str_starts_with($authHeader, 'Bearer ')) ? trim(substr($authHeader, 7)) : '';
+        if ($token === '') return 'default';
+        try {
+            $st = Db::pdo()->prepare('SELECT user_id FROM user_session WHERE token = ? AND expires_at > ? LIMIT 1');
+            $st->execute([$token, gmdate('c')]);
+            $uid = $st->fetchColumn();
+            if ($uid !== false && $uid !== null && (string)$uid !== '') return (string)$uid;
+        } catch (\Throwable $e) { /* 스키마/연결 오류 → 공유 풀 폴백 */ }
         return 'default';
     }
 }
