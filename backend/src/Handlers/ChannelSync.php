@@ -1110,6 +1110,9 @@ final class ChannelSync
             foreach ($list as $o) {
                 $oid = (string)($o->ordNo ?? $o->OrdNo ?? $o->orderNo ?? '');
                 if ($oid === '') continue;
+                // [현 차수] 219#2: 실 상태 필드(클레임/배송상태) → 캐논 status/event_type(취소·반품 자동 감지).
+                $rawSt = (string)($o->ordStat ?? $o->ordStatNm ?? $o->dlvSttsNm ?? $o->dlvStatNm ?? $o->clmTypeNm ?? $o->claimType ?? '');
+                [$st, $evt] = self::openmarketStatus($rawSt);
                 $orders[] = [
                     'channel_order_id' => $oid,
                     'buyer_name'  => (string)($o->ordNm ?? $o->buyerNm ?? $o->ordrNm ?? ''),
@@ -1117,9 +1120,9 @@ final class ChannelSync
                     'sku'         => (string)($o->sellerPrdCd ?? $o->stockNo ?? ''),
                     'qty'         => (int)($o->ordQty ?? $o->orderQty ?? 1),
                     'total_price' => (float)($o->ordPrdAmt ?? $o->finalDscAmt ?? $o->ordAmt ?? 0),
-                    'status'      => '발주확인',
+                    'status'      => $st,
                     'ordered_at'  => (string)($o->ordDt ?? $o->orderDate ?? gmdate('c')),
-                    'event_type'  => 'order',
+                    'event_type'  => $evt,
                     'source'      => '11st_api',
                 ];
             }
@@ -1155,6 +1158,9 @@ final class ChannelSync
             $oid = (string)($o['orderNo'] ?? $o['orderId'] ?? '');
             if ($oid === '') continue;
             $first = (array)(($o['items'] ?? $o['orderItems'] ?? [])[0] ?? []);
+            // [현 차수] 219#2: 실 상태/클레임 필드 → 캐논 status/event_type(취소·반품 자동 감지).
+            $rawSt = (string)($o['orderStatusName'] ?? $o['orderStatus'] ?? $o['claimTypeName'] ?? $o['claimType'] ?? $o['claimStatus'] ?? $first['itemStatus'] ?? '');
+            [$st, $evt] = self::openmarketStatus($rawSt);
             $orders[] = [
                 'channel_order_id' => $oid,
                 'buyer_name'  => (string)($o['buyerName'] ?? $o['ordererName'] ?? ''),
@@ -1162,9 +1168,9 @@ final class ChannelSync
                 'sku'         => (string)($first['sellerItemCode'] ?? $first['itemNo'] ?? ''),
                 'qty'         => (int)($first['quantity'] ?? 1),
                 'total_price' => (float)($o['orderAmount'] ?? $o['paymentAmount'] ?? 0),
-                'status'      => '발주확인',
+                'status'      => $st,
                 'ordered_at'  => (string)($o['orderDate'] ?? gmdate('c')),
-                'event_type'  => 'order',
+                'event_type'  => $evt,
                 'source'      => 'esm_api',
             ];
         }
@@ -1197,6 +1203,9 @@ final class ChannelSync
             $oid = (string)($o['orderNo'] ?? $o['orderId'] ?? '');
             if ($oid === '') continue;
             $first = (array)(($o['orderItems'] ?? $o['items'] ?? [])[0] ?? []);
+            // [현 차수] 219#2: 실 상태/클레임 필드 → 캐논 status/event_type(취소·반품 자동 감지).
+            $rawSt = (string)($o['orderStatusName'] ?? $o['orderStatus'] ?? $o['claimTypeName'] ?? $o['claimType'] ?? $first['itemStatus'] ?? '');
+            [$st, $evt] = self::openmarketStatus($rawSt);
             $orders[] = [
                 'channel_order_id' => $oid,
                 'buyer_name'  => (string)($o['buyerName'] ?? $o['ordererNm'] ?? ''),
@@ -1204,9 +1213,9 @@ final class ChannelSync
                 'sku'         => (string)($first['sellerProductCode'] ?? $first['sku'] ?? ''),
                 'qty'         => (int)($first['orderQty'] ?? $first['quantity'] ?? 1),
                 'total_price' => (float)($o['paymentAmount'] ?? $o['orderAmount'] ?? 0),
-                'status'      => '발주확인',
+                'status'      => $st,
                 'ordered_at'  => (string)($o['orderDate'] ?? gmdate('c')),
-                'event_type'  => 'order',
+                'event_type'  => $evt,
                 'source'      => 'lotteon_api',
             ];
         }
@@ -1412,6 +1421,20 @@ final class ChannelSync
         if ($eventType === 'return' || preg_match('/return|refund|반품|환불/iu', $hay)) return 'return';
         if ($eventType === 'cancel' || preg_match('/cancel|void|취소/iu', $hay))         return 'cancel';
         return null;
+    }
+
+    /**
+     * [현 차수] 219 backlog #2: 오픈마켓 어댑터 status/event_type 하드코딩('발주확인'/'order') 해소.
+     *   실 API 주문의 상태 필드(취소/반품 포함)를 캐논 [status, event_type] 로 매핑한다. status 원문 유지
+     *   (있으면), event_type 은 classifyCancelReturn 으로 취소/반품/주문 판정 → saveOrders 전이 로직이
+     *   재고 복원·claim·반품포탈·정산을 자동 처리. 빈 상태면 기존 동작('발주확인'/order) 보존.
+     */
+    private static function openmarketStatus(string $rawStatus): array
+    {
+        $raw = trim($rawStatus);
+        $evt = self::classifyCancelReturn($raw, '') ?? 'order';
+        $status = $raw !== '' ? $raw : '발주확인';
+        return [$status, $evt];
     }
 
     /**
