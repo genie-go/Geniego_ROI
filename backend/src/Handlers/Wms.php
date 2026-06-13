@@ -368,12 +368,20 @@ class Wms
         if ($err = UserAuth::requirePro($req, $res)) return $err;
         self::ensureTables();
         $t = self::tenant($req); $b = self::body($req);
-        $id = self::recordMovement($t, [
-            'type' => (string)($b['type'] ?? 'Inbound'), 'wh_id' => (string)($b['whId'] ?? $b['wh_id'] ?? ''),
-            'dest_wh_id' => (string)($b['destWhId'] ?? $b['dest_wh_id'] ?? ''), 'sku' => (string)($b['sku'] ?? ''),
-            'name' => (string)($b['name'] ?? ''), 'qty' => (float)($b['qty'] ?? 0), 'unit' => (string)($b['unit'] ?? ''),
-            'memo' => (string)($b['memo'] ?? ''), 'ref' => (string)($b['ref'] ?? ''), 'reason' => (string)($b['reason'] ?? ''),
-        ]);
+        try {
+            $id = self::recordMovement($t, [
+                'type' => (string)($b['type'] ?? 'Inbound'), 'wh_id' => (string)($b['whId'] ?? $b['wh_id'] ?? ''),
+                'dest_wh_id' => (string)($b['destWhId'] ?? $b['dest_wh_id'] ?? ''), 'sku' => (string)($b['sku'] ?? ''),
+                'name' => (string)($b['name'] ?? ''), 'qty' => (float)($b['qty'] ?? 0), 'unit' => (string)($b['unit'] ?? ''),
+                'memo' => (string)($b['memo'] ?? ''), 'ref' => (string)($b['ref'] ?? ''), 'reason' => (string)($b['reason'] ?? ''),
+            ]);
+        } catch (\RuntimeException $e) {
+            // [현 차수] 감사 P1: 출고 재고부족 → 422(오버셀 거부 명시). 무음 0클램프 제거.
+            if (str_starts_with($e->getMessage(), 'insufficient_stock')) {
+                return self::json($res, ['ok' => false, 'error' => '재고 부족: 출고 수량이 가용 재고를 초과합니다.', 'code' => 'INSUFFICIENT_STOCK'], 422);
+            }
+            throw $e;
+        }
         return self::json($res, ['ok' => true, 'id' => $id]);
     }
 
@@ -389,11 +397,21 @@ class Wms
         $type = (string)($d['type'] ?? 'Inbound'); $wh = (string)($d['wh_id'] ?? '');
         $dwh = (string)($d['dest_wh_id'] ?? ''); $sku = (string)($d['sku'] ?? '');
         $name = (string)($d['name'] ?? ''); $qty = (float)($d['qty'] ?? 0);
-        $pdo->prepare("INSERT INTO wms_movements (tenant_id,type,wh_id,dest_wh_id,sku,name,qty,unit,memo,ref,reason,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)")
-            ->execute([$t, $type, $wh, $dwh, $sku, $name, $qty, (string)($d['unit'] ?? ''), (string)($d['memo'] ?? ''), (string)($d['ref'] ?? ''), (string)($d['reason'] ?? ''), $now]);
-        $id = (int)$pdo->lastInsertId();
-        self::applyMovementToStock($t, $type, $wh, $dwh, $sku, $name, $qty);
-        return $id;
+        // [현 차수] 감사 P1: 이력 INSERT + 물리재고 적용을 트랜잭션으로 원자화. 출고 재고부족(strict) 시
+        //   adjustStock 예외 → 롤백 → 이력만 남고 재고 미차감되는 불일치/오버셀 은폐 차단.
+        $ownTxn = !$pdo->inTransaction();
+        if ($ownTxn) $pdo->beginTransaction();
+        try {
+            $pdo->prepare("INSERT INTO wms_movements (tenant_id,type,wh_id,dest_wh_id,sku,name,qty,unit,memo,ref,reason,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)")
+                ->execute([$t, $type, $wh, $dwh, $sku, $name, $qty, (string)($d['unit'] ?? ''), (string)($d['memo'] ?? ''), (string)($d['ref'] ?? ''), (string)($d['reason'] ?? ''), $now]);
+            $id = (int)$pdo->lastInsertId();
+            self::applyMovementToStock($t, $type, $wh, $dwh, $sku, $name, $qty);
+            if ($ownTxn) $pdo->commit();
+            return $id;
+        } catch (\Throwable $e) {
+            if ($ownTxn && $pdo->inTransaction()) $pdo->rollBack();
+            throw $e;
+        }
     }
 
     /** 입출고 유형 → 물리재고 부호 적용(영문 IO_TYPES + 한글 데모 라벨 모두 지원). */
@@ -404,35 +422,50 @@ class Wms
         $isIn  = in_array($type, ['Inbound','ReturnsInbound'], true) || str_contains($type, '입고');
         $isOut = in_array($type, ['Outbound','ReturnsOutbound','Disposal'], true) || (str_contains($type, '출고') && !str_contains($type, '입고')) || str_contains($type, '폐기');
         if ($type === 'WarehouseTransfer' || str_contains($type, '이고') || str_contains($type, '이동')) {
-            self::adjustStock($t, $sku, $wh, $name, -abs($qty));
+            self::adjustStock($t, $sku, $wh, $name, -abs($qty), true); // 출고 leg=strict(재고부족 거부)
             self::adjustStock($t, $sku, $dwh !== '' ? $dwh : $wh, $name, abs($qty));
         } elseif ($type === 'StockAdj' || str_contains($type, '조정')) {
-            self::adjustStock($t, $sku, $wh, $name, $qty); // 조정은 부호 그대로(증감)
+            self::adjustStock($t, $sku, $wh, $name, $qty); // 조정은 부호 그대로(증감, 음수=0클램프)
         } elseif ($isIn) {
             self::adjustStock($t, $sku, $wh, $name, abs($qty));
         } elseif ($isOut) {
-            self::adjustStock($t, $sku, $wh, $name, -abs($qty));
+            self::adjustStock($t, $sku, $wh, $name, -abs($qty), true); // 실출고=strict(오버셀 거부)
         }
     }
 
-    /** wms_stock 단일 행 upsert(음수 방지). */
-    private static function adjustStock(string $t, string $sku, string $wh, string $name, float $delta): void
+    /**
+     * [현 차수] 감사 P1: wms_stock 증감.
+     * - 실출고(strictOut=true, Outbound/이고-출/폐기): 원자적 조건부 차감(WHERE on_hand>=need).
+     *   재고 부족 시 무음 0클램프 대신 예외 → 오버셀 차단 + 동시성 lost update 차단(조건부 1쿼리).
+     * - 입고/조정(strictOut=false): upsert(조정 음수는 0 클램프 — 수동 보정 허용).
+     * 예외는 호출측(recordMovement) 트랜잭션에서 롤백 → 이력/재고 원자성 보장.
+     * @throws \RuntimeException 'insufficient_stock:...' 출고 재고부족
+     */
+    private static function adjustStock(string $t, string $sku, string $wh, string $name, float $delta, bool $strictOut = false): void
     {
-        if ($sku === '') return;
-        try {
-            $pdo = self::db(); $now = self::now();
-            $sel = $pdo->prepare("SELECT id, on_hand FROM wms_stock WHERE tenant_id=? AND sku=? AND wh_id=? LIMIT 1");
-            $sel->execute([$t, $sku, $wh]);
-            $row = $sel->fetch(\PDO::FETCH_ASSOC);
-            if ($row) {
-                $newQty = max(0, (float)$row['on_hand'] + $delta);
-                $pdo->prepare("UPDATE wms_stock SET on_hand=?, name=COALESCE(NULLIF(name,''),?), updated_at=? WHERE id=?")
-                    ->execute([$newQty, $name, $now, (int)$row['id']]);
-            } else {
-                $pdo->prepare("INSERT INTO wms_stock (tenant_id,sku,wh_id,name,on_hand,updated_at) VALUES (?,?,?,?,?,?)")
-                    ->execute([$t, $sku, $wh, $name, max(0, $delta), $now]);
+        if ($sku === '' || $delta == 0.0) return;
+        $pdo = self::db(); $now = self::now();
+        if ($delta < 0 && $strictOut) {
+            $need = -$delta;
+            $upd = $pdo->prepare("UPDATE wms_stock SET on_hand = on_hand + ?, name=COALESCE(NULLIF(name,''),?), updated_at=? WHERE tenant_id=? AND sku=? AND wh_id=? AND on_hand >= ?");
+            $upd->execute([$delta, $name, $now, $t, $sku, $wh, $need]);
+            if ($upd->rowCount() === 0) {
+                throw new \RuntimeException("insufficient_stock:{$sku}@{$wh}"); // 행없음 또는 재고부족 → 출고 거부
             }
-        } catch (\Throwable $e) { error_log('[Wms.adjustStock] ' . $e->getMessage()); }
+            return;
+        }
+        // 입고/조정: read-modify-write(조정 음수는 0 클램프). recordMovement 트랜잭션 내 호출로 일관성 확보.
+        $sel = $pdo->prepare("SELECT id, on_hand FROM wms_stock WHERE tenant_id=? AND sku=? AND wh_id=? LIMIT 1");
+        $sel->execute([$t, $sku, $wh]);
+        $row = $sel->fetch(\PDO::FETCH_ASSOC);
+        if ($row) {
+            $newQty = max(0, (float)$row['on_hand'] + $delta);
+            $pdo->prepare("UPDATE wms_stock SET on_hand=?, name=COALESCE(NULLIF(name,''),?), updated_at=? WHERE id=?")
+                ->execute([$newQty, $name, $now, (int)$row['id']]);
+        } else {
+            $pdo->prepare("INSERT INTO wms_stock (tenant_id,sku,wh_id,name,on_hand,updated_at) VALUES (?,?,?,?,?,?)")
+                ->execute([$t, $sku, $wh, $name, max(0, $delta), $now]);
+        }
     }
 
     /** GET /wms/stock — 물리 창고 재고(입출고 파생). by_sku=1 이면 SKU별 합산. */

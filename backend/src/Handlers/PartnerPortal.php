@@ -271,12 +271,18 @@ class PartnerPortal
                     $pick = $sel->fetch(PDO::FETCH_ASSOC);
                     if (!$pick) return self::json($res, ['ok' => false, 'error' => '배정된 출고가 아닙니다.'], 403);
                     $wasShipped = ($pick['status'] ?? '') === 'shipped';
+                    // [현 차수] 감사 P1: 재고 차감을 status 변경 '앞'에 수행 → 재고부족 시 출고확정 자체를 막아
+                    //   'shipped 인데 미차감' 불일치 차단(중복출고 방지 guard 와 결합). 재고부족=422 명시.
+                    if ($status === 'shipped' && !$wasShipped) {
+                        try {
+                            Wms::recordMovement($t, ['type' => 'Outbound', 'wh_id' => (string)($pick['wh_id'] ?? ''), 'sku' => (string)($pick['sku'] ?? ''), 'name' => (string)($pick['name'] ?? ''), 'qty' => (float)($pick['qty'] ?? 0), 'ref' => (string)($pick['order_ref'] ?? ''), 'reason' => '택배출고(파트너)']);
+                        } catch (\RuntimeException $e) {
+                            if (str_starts_with($e->getMessage(), 'insufficient_stock')) return self::json($res, ['ok' => false, 'error' => '재고 부족으로 출고할 수 없습니다.', 'code' => 'INSUFFICIENT_STOCK'], 422);
+                            throw $e;
+                        }
+                    }
                     $st = $pdo->prepare("UPDATE wms_picking SET status=?, updated_at=? WHERE id=? AND tenant_id=? AND carrier=?");
                     $st->execute([$status, $now, $id, $t, $pname]);
-                    // 택배출고 확정 시 1회만 재고 차감 + 이력(중복출고 방지)
-                    if ($status === 'shipped' && !$wasShipped) {
-                        Wms::recordMovement($t, ['type' => 'Outbound', 'wh_id' => (string)($pick['wh_id'] ?? ''), 'sku' => (string)($pick['sku'] ?? ''), 'name' => (string)($pick['name'] ?? ''), 'qty' => (float)($pick['qty'] ?? 0), 'ref' => (string)($pick['order_ref'] ?? ''), 'reason' => '택배출고(파트너)']);
-                    }
                     return self::json($res, ['ok' => true]);
                 }
             } elseif ($type === 'warehouse') {
