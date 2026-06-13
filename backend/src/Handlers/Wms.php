@@ -415,31 +415,88 @@ class Wms
     }
 
     /**
-     * [현 차수] 보편 채널 동기화(단방향 자동진입): 채널 반품을 물리 창고 재고(wms_stock)에 반품입고로 반영한다.
-     *   - ref(채널 주문 식별자) 멱등: 재폴링/중복 호출 시 1회만 적용(이중 입고 방지).
-     *   - 입고(가산)만 수행 → 오버셀/재고부족 예외 없음(안전). 판매측 물리 차감은 기존 수동 WMS 워크플로우 보존.
-     *   - best-effort: 예외는 호출측(채널 동기화) 흐름을 깨지 않도록 흡수. 데모/빈 SKU 는 skip.
-     * @return bool 신규 반영 시 true.
+     * [현 차수] 보편 채널 동기화(단방향 자동진입): 채널 취소/반품 시 물리 창고 재고를 반품입고로 복원한다.
+     *   ★판매-복원 대칭 가드(허위 재고값 방지):
+     *   - restockRef 멱등: 같은 복원 ref 이미 있으면 skip(이중 입고 방지).
+     *   - 대응 판매 출고(saleRef Outbound)가 실제 있었을 때만 복원 → reflectChannelSale 로 차감된 분만 복원
+     *     (미추적 SKU/미차감 주문은 over-restock 안 함). 복원량=min(qty, 차감분).
+     *   - 입고(가산)만 수행 → 오버셀/예외 없음. best-effort(예외 흡수). 데모/빈 SKU skip.
+     * @return bool 신규 복원 시 true.
      */
-    public static function reflectChannelReturn(string $tenant, string $sku, string $name, float $qty, string $ref): bool
+    public static function reflectChannelRestock(string $tenant, string $sku, string $name, float $qty, string $saleRef, string $restockRef): bool
     {
         $tenant = trim($tenant);
         if ($tenant === '' || strtolower($tenant) === 'demo' || $sku === '' || $qty <= 0) return false;
         try {
             self::ensureTables();
             $pdo = self::db();
-            // 멱등: 같은 ref 의 반품입고가 이미 있으면 skip.
+            // 멱등: 같은 restockRef 의 반품입고가 이미 있으면 skip.
             $chk = $pdo->prepare("SELECT 1 FROM wms_movements WHERE tenant_id=? AND ref=? AND type=? LIMIT 1");
-            $chk->execute([$tenant, $ref, 'ReturnsInbound']);
+            $chk->execute([$tenant, $restockRef, 'ReturnsInbound']);
             if ($chk->fetchColumn()) return false;
+            // 대칭 가드: 대응 채널 판매 출고(saleRef)가 실제 있었을 때만 복원(미차감분 over-restock 방지).
+            $saleChk = $pdo->prepare("SELECT qty FROM wms_movements WHERE tenant_id=? AND ref=? AND type=? LIMIT 1");
+            $saleChk->execute([$tenant, $saleRef, 'Outbound']);
+            $soldQty = $saleChk->fetchColumn();
+            if ($soldQty === false) return false; // 판매 차감 이력 없음 → 복원 대상 아님
+            $restoreQty = min((float)$qty, (float)$soldQty); // 차감분 초과 복원 방지
+            if ($restoreQty <= 0) return false;
             $wh = self::primaryWarehouse($tenant);
             self::recordMovement($tenant, [
                 'type' => 'ReturnsInbound', 'wh_id' => $wh, 'sku' => $sku, 'name' => $name,
-                'qty' => $qty, 'ref' => $ref, 'reason' => 'channel_sync_return',
+                'qty' => $restoreQty, 'ref' => $restockRef, 'reason' => 'channel_sync_restock',
             ]);
             return true;
         } catch (\Throwable $e) {
-            error_log('[Wms.reflectChannelReturn] ' . $e->getMessage());
+            error_log('[Wms.reflectChannelRestock] ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * [현 차수] 보편 채널 동기화(단방향 자동진입): 채널 판매를 물리 창고 재고(wms_stock)에 출고로 반영한다.
+     *   ★안전 3중 가드:
+     *   ① ref(채널 주문 식별자) 멱등 — 재폴링/중복 호출 시 1회만 차감(이중 차감 방지).
+     *   ② 물리 추적 SKU 한정 — 해당 SKU 의 wms_stock 행이 기본창고에 있을 때만 차감(미추적 SKU/무-WMS
+     *      테넌트는 spurious 0행 생성 없이 skip → 수동 WMS 워크플로우/미사용 테넌트 무영향).
+     *   ③ non-throw — 가용분(min(qty,on_hand))만 차감해 strict 출고 예외 회피, 오버셀은 로그(은폐 아님).
+     *   best-effort: 예외는 호출측(채널 동기화) 흐름을 깨지 않도록 흡수.
+     * @return bool 신규 차감 시 true.
+     */
+    public static function reflectChannelSale(string $tenant, string $sku, string $name, float $qty, string $ref): bool
+    {
+        $tenant = trim($tenant);
+        if ($tenant === '' || strtolower($tenant) === 'demo' || $sku === '' || $qty <= 0) return false;
+        try {
+            self::ensureTables();
+            $pdo = self::db();
+            // ① 멱등: 같은 ref 의 채널판매 출고가 이미 있으면 skip.
+            $chk = $pdo->prepare("SELECT 1 FROM wms_movements WHERE tenant_id=? AND ref=? AND type=? LIMIT 1");
+            $chk->execute([$tenant, $ref, 'Outbound']);
+            if ($chk->fetchColumn()) return false;
+            $wh = self::primaryWarehouse($tenant);
+            // ② 물리 추적 SKU 한정: 기본창고에 재고 행이 있을 때만 차감(없으면 미추적 → skip).
+            $sel = $pdo->prepare("SELECT on_hand FROM wms_stock WHERE tenant_id=? AND sku=? AND wh_id=? LIMIT 1");
+            $sel->execute([$tenant, $sku, $wh]);
+            $row = $sel->fetch(\PDO::FETCH_ASSOC);
+            if ($row === false) return false; // 미추적 SKU → 물리 차감 대상 아님(채널재고만 차감 유지)
+            // ③ non-throw: 가용분만 차감(strict 출고 예외 회피). 오버셀은 경고 로그.
+            $onHand = (float)$row['on_hand'];
+            $deduct = min($qty, $onHand);
+            if ($deduct <= 0) {
+                error_log("[Wms.reflectChannelSale] oversell(stock 0) tenant=$tenant sku=$sku want=$qty");
+                return false; // 재고 0 → 변동 없음(이력 미생성, 다음 입고 후 폴링 시 차감 기회)
+            }
+            self::recordMovement($tenant, [
+                'type' => 'Outbound', 'wh_id' => $wh, 'sku' => $sku, 'name' => $name,
+                'qty' => $deduct, 'ref' => $ref, 'reason' => 'channel_sync_sale',
+            ]);
+            if ($deduct < $qty) {
+                error_log("[Wms.reflectChannelSale] partial(oversell) tenant=$tenant sku=$sku want=$qty avail=$onHand");
+            }
+            return true;
+        } catch (\Throwable $e) {
+            error_log('[Wms.reflectChannelSale] ' . $e->getMessage());
             return false;
         }
     }

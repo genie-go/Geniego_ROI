@@ -1323,7 +1323,12 @@ final class ChannelSync
             if ($isNew) {
                 if ($incCR === null) {
                     // 정상 신규 주문 → 실재고 차감 + CRM 구매이력 + 어트리뷰션 터치(커머스→재고/CRM/귀속 동기화).
-                    if (!empty($o['sku'])) self::decInventory($pdo, $tenant, $channel, (string)$o['sku'], (int)($o['qty'] ?? 1));
+                    if (!empty($o['sku'])) {
+                        self::decInventory($pdo, $tenant, $channel, (string)$o['sku'], (int)($o['qty'] ?? 1));
+                        // [현 차수] 단방향 자동진입: 채널 판매를 물리 창고 재고(wms_stock)에도 출고 반영
+                        //   (추적 SKU 한정·ref 멱등·non-throw·미추적/무-WMS 테넌트 무영향).
+                        Wms::reflectChannelSale($tenant, (string)$o['sku'], (string)($o['product_name'] ?? ''), (float)($o['qty'] ?? 1), 'CHS-' . $channel . '-' . (string)$o['channel_order_id']);
+                    }
                     self::recordCrmPurchase($pdo, $tenant, $channel, $o['buyer_email'] ?? '', $o['buyer_name'] ?? '', (float)($o['total_price'] ?? 0), (string)($o['sku'] ?? ''), (int)($o['qty'] ?? 1), (string)$o['channel_order_id']);
                     self::recordAttributionTouch($pdo, $tenant, $channel, (string)$o['channel_order_id'], (float)($o['total_price'] ?? 0));
                 } else {
@@ -1348,16 +1353,18 @@ final class ChannelSync
                 $claimTotal = (float)($existing['total_price'] ?? 0);
                 if ($claimTotal <= 0) $claimTotal = (float)($o['total_price'] ?? 0);
                 self::recordClaim($pdo, $tenant, $channel, (string)$o['channel_order_id'], $incCR, $claimTotal, (string)($o['reason'] ?? ''), (string)($o['buyer_name'] ?? ''), $now);
-                // [현 차수] 단방향 자동진입: 활성→반품 전이는 출고된 상품이 돌아온 것 → 반품관리 포탈 진입 +
-                //   물리 창고 재고 복원(WMS ReturnsInbound, ref 멱등·best-effort). 취소는 미출고분이라 물리복원 미수행.
-                if ($incCR === 'return' && $rsku !== '' && $rqty > 0) {
+                // [현 차수] 단방향 자동진입: 활성→취소/반품 전이 → 물리 창고 재고 복원(reflectChannelSale 차감분
+                //   대칭, 취소/반품 공통: 판매 차감했던 분만 1회 복원). 반품이면 반품관리 포탈에도 멱등 진입.
+                if ($rsku !== '' && $rqty > 0) {
                     $rname = (string)($o['product_name'] ?? '');
-                    ReturnsPortal::ingestChannelReturn($tenant, [
-                        'order_id' => (string)$o['channel_order_id'], 'channel' => $channel,
-                        'sku' => $rsku, 'name' => $rname, 'qty' => $rqty,
-                        'reason' => (string)($o['reason'] ?? ''), 'refund_amt' => $claimTotal,
-                    ]);
-                    Wms::reflectChannelReturn($tenant, $rsku, $rname, (float)$rqty, 'CHR-' . $channel . '-' . (string)$o['channel_order_id']);
+                    $oid = (string)$o['channel_order_id'];
+                    Wms::reflectChannelRestock($tenant, $rsku, $rname, (float)$rqty, 'CHS-' . $channel . '-' . $oid, 'CHR-' . $channel . '-' . $oid);
+                    if ($incCR === 'return') {
+                        ReturnsPortal::ingestChannelReturn($tenant, [
+                            'order_id' => $oid, 'channel' => $channel, 'sku' => $rsku, 'name' => $rname,
+                            'qty' => $rqty, 'reason' => (string)($o['reason'] ?? ''), 'refund_amt' => $claimTotal,
+                        ]);
+                    }
                 }
             }
         }
