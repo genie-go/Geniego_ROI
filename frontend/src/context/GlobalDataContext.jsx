@@ -73,7 +73,9 @@ function saveDemoState(key, data) {
 // [현 차수] ★취소상태 캐논 통일: 그동안 orderStats(=cancelled 포함)·정산/예산/pnlStats(=cancelled 미포함)·
 //   롤업(=별도 집합)이 취소 판정이 제각각이라, 런타임 주문취소 시 대시보드↔롤업 매출이 발산했다.
 //   단일 집합으로 모든 파생지점이 동일하게 취소주문을 매출에서 제외하도록 통일.
-const CANCELLED_STATUSES = new Set(['CancelDone', 'Cancel요청', 'cancelled', 'canceled']);
+// [현 차수] ★취소 캐논 통일(백엔드 Rollup CANCEL_TOKENS와 동일): 어댑터별 한글/영문 상태 전부 포함.
+//   기존엔 영문/CancelDone 토큰만이라 운영 채널주문의 한글상태('취소완료'/'취소요청')가 매출에서 미제외였음.
+const CANCELLED_STATUSES = new Set(['CancelDone', 'Cancel요청', 'cancelled', 'canceled', '취소완료', '취소요청', '취소접수', '취소', '주문취소']);
 function _isCancelled(s) { return CANCELLED_STATUSES.has(String(s || '')); }
 
 function _monthOf(o) {

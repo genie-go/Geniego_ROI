@@ -48,9 +48,10 @@ function _spread(total, n) {
 }
 function _round(x, p = 0) { const m = Math.pow(10, p); return Math.round((x + Number.EPSILON) * m) / m; }
 
-const _RETURN_STATUS = new Set(['returned', 'cancelled', 'refunded', 'canceled']);
-// [현 차수] 취소상태 캐논(GlobalDataContext 와 동일): 취소주문은 매출 집계에서 제외 → 롤업↔대시보드 일치.
-const _CANCEL_STATUS = new Set(['CancelDone', 'Cancel요청', 'cancelled', 'canceled']);
+// [현 차수] ★취소/반품 캐논 통일(백엔드 Rollup CANCEL_TOKENS/RETURN_TOKENS·GlobalDataContext와 동일).
+//   반품률=반품상태만(취소는 매출에서 먼저 제외). 한글/영문 어댑터 토큰 전부 포함 → 롤업↔대시보드↔백엔드 일치.
+const _RETURN_STATUS = new Set(['returned', 'refunded', '반품완료', '반품요청', '반품접수', '반품', '환불완료']);
+const _CANCEL_STATUS = new Set(['CancelDone', 'Cancel요청', 'cancelled', 'canceled', '취소완료', '취소요청', '취소접수', '취소', '주문취소']);
 
 // ── SKU: orders 집계 ────────────────────────────────────────────────────
 function _skuRows(orders, dates) {

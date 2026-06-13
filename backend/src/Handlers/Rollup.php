@@ -55,6 +55,18 @@ final class Rollup {
 
     private static function isDemo(string $tenant): bool { return $tenant === 'demo'; }
 
+    /* [현 차수] ★취소/반품 상태 캐논 통일 SSOT — 프론트(GlobalDataContext/rollupDemoDerive)와 동일 기준.
+       표준 신호 event_type('cancel'/'return') 우선 + 어댑터별 localized status 토큰(영문/한글) 폴백.
+       정합 규칙: 취소주문은 매출·주문수에서 제외(미실현 매출), 반품은 매출 포함하되 반품률만 카운트. */
+    private const CANCEL_TOKENS = ['CancelDone','Cancel요청','cancelled','canceled','취소완료','취소요청','취소접수','취소','주문취소'];
+    private const RETURN_TOKENS = ['returned','refunded','반품완료','반품요청','반품접수','반품','환불완료'];
+    private static function isCancel(string $event, string $status): bool {
+        return $event === 'cancel' || in_array($status, self::CANCEL_TOKENS, true);
+    }
+    private static function isReturn(string $event, string $status): bool {
+        return $event === 'return' || in_array($status, self::RETURN_TOKENS, true);
+    }
+
     // Generate date/period labels
     private static function dates(string $period, int $n): array {
         // [현 차수] ★base date 하드코딩(2026-03-05/2026) 제거 — 오늘 기준으로 버킷 생성. 기존엔 고정 기준이라
@@ -156,7 +168,9 @@ final class Rollup {
             $pdo = Db::pdo();
             $start = self::rangeStart($dates);
             $stmt = $pdo->prepare(
-                "SELECT sku, MAX(product_name) AS name, MAX(channel) AS channel, ordered_at, qty, total_price, status
+                // [현 차수] ★MAX() 집계함수 + GROUP BY 부재 → MySQL이 전체를 1행으로 암묵집계해 SKU 롤업이
+                //   0/1행만 반환하던 선재 버그. 행별 컬럼 직접 select(아래 루프가 sku 단위로 그룹핑).
+                "SELECT sku, product_name AS name, channel, ordered_at, qty, total_price, status, event_type
                    FROM channel_orders
                   WHERE tenant_id = ? AND sku IS NOT NULL AND sku <> '' AND ordered_at >= ?"
             );
@@ -169,9 +183,12 @@ final class Rollup {
                 if (!isset($by[$sku])) $by[$sku] = ['name'=>(string)($r['name'] ?? $sku), 'channel'=>(string)($r['channel'] ?? ''), 'buckets'=>[]];
                 if (!isset($by[$sku]['buckets'][$bucket])) $by[$sku]['buckets'][$bucket] = ['orders'=>0, 'revenue'=>0.0, 'returns'=>0];
                 $qty = (int)($r['qty'] ?? 0); $price = (float)($r['total_price'] ?? 0);
+                $ev = (string)($r['event_type'] ?? 'order'); $st = (string)($r['status'] ?? '');
+                // [현 차수] 취소주문은 매출·주문수에서 제외(프론트 대시보드 정합). 반품은 매출 포함·반품률만 카운트.
+                if (self::isCancel($ev, $st)) continue;
                 $by[$sku]['buckets'][$bucket]['orders'] += $qty;
                 $by[$sku]['buckets'][$bucket]['revenue'] += $price;
-                if (in_array((string)($r['status'] ?? ''), ['returned','cancelled','refunded'], true)) $by[$sku]['buckets'][$bucket]['returns'] += $qty;
+                if (self::isReturn($ev, $st)) $by[$sku]['buckets'][$bucket]['returns'] += $qty;
             }
             $rows = [];
             foreach ($by as $sku => $info) {
@@ -313,10 +330,12 @@ final class Rollup {
                 $by[$pf][$bucket]['imp'] += (int)($r['impressions'] ?? 0); $by[$pf][$bucket]['clk'] += (int)($r['clicks'] ?? 0);
             }
             // 채널 주문(판매 매출·주문수) — 광고매출과 별개. 매출은 주문 기준으로 보정.
-            $co = $pdo->prepare("SELECT channel, ordered_at, qty, total_price FROM channel_orders WHERE tenant_id = ? AND ordered_at >= ?");
+            $co = $pdo->prepare("SELECT channel, ordered_at, qty, total_price, status, event_type FROM channel_orders WHERE tenant_id = ? AND ordered_at >= ?");
             $co->execute([$tenant, $start]);
             while ($r = $co->fetch(\PDO::FETCH_ASSOC)) {
                 $bucket = self::bucketLabel((string)($r['ordered_at'] ?? ''), $period); if ($bucket==='' || !in_array($bucket,$dates,true)) continue;
+                // [현 차수] 취소주문은 채널 매출·주문수에서 제외(프론트/SKU 롤업 정합).
+                if (self::isCancel((string)($r['event_type'] ?? 'order'), (string)($r['status'] ?? ''))) continue;
                 $pf = strtolower((string)($r['channel'] ?? 'unknown')); $mk($by,$pf,$bucket);
                 $by[$pf][$bucket]['ord'] += (int)($r['qty'] ?? 0); $by[$pf][$bucket]['rev'] += (float)($r['total_price'] ?? 0);
             }
