@@ -342,7 +342,7 @@ final class ChannelCreds
             try {
                 if (Connectors::isAdChannel($channel)) {
                     $autoSync = ['kind' => 'ad', 'result' => Connectors::syncAdChannelOnSave($tenant, $channel)];
-                } elseif (in_array($channel, ChannelSync::COMMERCE_CHANNELS, true)) {
+                } elseif (ChannelSync::isCommerceChannel($channel)) { // [현 차수] 별칭 인식(silent break 방지)
                     $autoSync = ['kind' => 'commerce', 'result' => ChannelSync::syncTenantChannel($tenant, $channel, $userPlan !== '' ? $userPlan : 'pro')];
                 }
             } catch (\Throwable $e) {
@@ -498,13 +498,18 @@ final class ChannelCreds
      */
     private static function hasRealAdapter(string $channel): bool
     {
-        return in_array($channel, [
-            'meta_ads', 'meta', 'google_ads', 'tiktok', 'tiktok_business', 'tiktok_shop',
-            'naver_sa', 'kakao', 'kakao_moment',
+        // [현 차수] 별칭 인식(ChannelSync::normalizeChannelKey) — 동일 채널의 별칭 표기 누락으로 인한
+        //   "실어댑터 있는데 거짓 '준비중'" 오표기 방지. 원본키·canonical키 둘 다 화이트리스트와 대조.
+        $list = [
+            'meta_ads', 'meta', 'google_ads', 'google', 'tiktok', 'tiktok_business', 'tiktok_shop',
+            'naver_sa', 'naver_searchad', 'kakao', 'kakao_moment',
             'shopify', 'amazon', 'amazon_spapi', 'coupang', 'naver', 'naver_smartstore',
             'ebay', 'rakuten', 'cafe24',
-            '11st', 'st11', 'gmarket', 'auction', 'lotteon', // [현 차수] 국내 오픈마켓 4종 실어댑터
-        ], true);
+            '11st', 'st11', 'gmarket', 'auction', 'lotteon', // 국내 오픈마켓 4종 실어댑터
+        ];
+        if (in_array($channel, $list, true)) return true;
+        $c = ChannelSync::normalizeChannelKey($channel);
+        return $c !== $channel && in_array($c, $list, true);
     }
 
     private static function httpGet(string $url, array $headers = []): array

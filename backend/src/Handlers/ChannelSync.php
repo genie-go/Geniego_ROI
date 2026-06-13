@@ -1689,6 +1689,35 @@ final class ChannelSync
         // [현 차수] ★st11(ApiKeys UI 저장키)·auction 누락 → 자격증명 저장 후 자동sync/cron 영구 누락이던 결함 해소.
     ];
 
+    /* [현 차수] ★채널키 별칭 SSOT — 같은 채널의 여러 표기(UI 저장키 vs dispatch 키)를 canonical 로 통일.
+       그동안 COMMERCE_CHANNELS/hasRealAdapter/dispatch 6~8곳에 별칭을 각자 나열해, 한 곳 누락 시
+       자동sync가 조용히 끊기던 결함(st11/auction)이 반복됐다. 신규 채널/별칭은 여기 한 곳만 추가하면
+       모든 멤버십 체크(isCommerceChannel/hasRealAdapter)가 인식한다. (dispatch match 는 PHP 문법상 별도 유지.) */
+    public const CHANNEL_ALIASES = [
+        'amazon_spapi'     => 'amazon',
+        'naver_smartstore' => 'naver',
+        'tiktok_shop'      => 'tiktok',
+        'st11'             => '11st',
+        'naver_searchad'   => 'naver_sa',
+        'kakao'            => 'kakao_moment',
+        'meta'             => 'meta_ads',
+        'google'           => 'google_ads',
+    ];
+
+    /** 별칭 → canonical 채널키. 멤버십/매핑 체크 전 정규화에 사용. */
+    public static function normalizeChannelKey(string $channel): string
+    {
+        return self::CHANNEL_ALIASES[$channel] ?? $channel;
+    }
+
+    /** 커머스 채널 여부(별칭 인식) — 직접 in_array(COMMERCE_CHANNELS) 대신 사용해 별칭 누락 silent break 방지. */
+    public static function isCommerceChannel(string $channel): bool
+    {
+        if (in_array($channel, self::COMMERCE_CHANNELS, true)) return true;
+        $c = self::normalizeChannelKey($channel);
+        return $c !== $channel && in_array($c, self::COMMERCE_CHANNELS, true);
+    }
+
     /**
      * 재사용 동기화 코어 — HTTP 핸들러(syncChannel)와 CLI 폴링(commerce_sync_cron)이 공용.
      *   저장된 자격증명 로드(복호화) → fetchFromChannel → saveProducts/saveOrders → 상태갱신.
