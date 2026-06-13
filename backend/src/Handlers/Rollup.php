@@ -129,47 +129,6 @@ final class Rollup {
         }
     }
 
-    // ════════════════════════════════════════════════════════════════════════
-    //  데모 가상 시드 (demo 테넌트 한정 — 운영 오염 0)
-    // ════════════════════════════════════════════════════════════════════════
-    private static function demoSkus(): array {
-        return [
-            'LOR-REV-001' => ['name'=>'Revitalift Filler 세럼 30ml', 'platform'=>'Naver', 'price'=>38000, 'ord_base'=>62, 'rev_base'=>2356000, 'spend_base'=>520000, 'ret_base'=>4.2, 'ord_noise'=>6, 'rev_noise'=>240000, 'spend_noise'=>60000, 'ret_noise'=>0.6],
-            'LAN-ABS-001' => ['name'=>'Lancôme Absolue 크림 60ml', 'platform'=>'Amazon', 'price'=>182000, 'ord_base'=>28, 'rev_base'=>5096000, 'spend_base'=>880000, 'ret_base'=>2.8, 'ord_noise'=>4, 'rev_noise'=>520000, 'spend_noise'=>90000, 'ret_noise'=>0.4],
-            'LOR-UV-001'  => ['name'=>'UV Defender 선크림 SPF50', 'platform'=>'Coupang', 'price'=>24000, 'ord_base'=>95, 'rev_base'=>2280000, 'spend_base'=>410000, 'ret_base'=>3.1, 'ord_noise'=>10, 'rev_noise'=>260000, 'spend_noise'=>50000, 'ret_noise'=>0.5],
-            'NYX-LIP-001' => ['name'=>'NYX 소프트 매트 립크림', 'platform'=>'TikTok', 'price'=>15000, 'ord_base'=>120, 'rev_base'=>1800000, 'spend_base'=>360000, 'ret_base'=>5.4, 'ord_noise'=>14, 'rev_noise'=>220000, 'spend_noise'=>48000, 'ret_noise'=>0.7],
-            'VIC-MIN-001' => ['name'=>'Vichy Minéral 89 부스터', 'platform'=>'Naver', 'price'=>32000, 'ord_base'=>54, 'rev_base'=>1728000, 'spend_base'=>300000, 'ret_base'=>2.4, 'ord_noise'=>6, 'rev_noise'=>180000, 'spend_noise'=>36000, 'ret_noise'=>0.3],
-            'KER-SIL-001' => ['name'=>'Kérastase 실크 헤어오일', 'platform'=>'Amazon', 'price'=>56000, 'ord_base'=>33, 'rev_base'=>1848000, 'spend_base'=>340000, 'ret_base'=>3.6, 'ord_noise'=>5, 'rev_noise'=>200000, 'spend_noise'=>42000, 'ret_noise'=>0.5],
-            'LRP-EFF-001' => ['name'=>'La Roche-Posay 이펙라 세럼', 'platform'=>'Coupang', 'price'=>29000, 'ord_base'=>71, 'rev_base'=>2059000, 'spend_base'=>380000, 'ret_base'=>2.9, 'ord_noise'=>8, 'rev_noise'=>230000, 'spend_noise'=>44000, 'ret_noise'=>0.4],
-            'GAR-MIC-001' => ['name'=>'Garnier 미셀라 클렌징워터', 'platform'=>'TikTok', 'price'=>12000, 'ord_base'=>140, 'rev_base'=>1680000, 'spend_base'=>300000, 'ret_base'=>6.8, 'ord_noise'=>16, 'rev_noise'=>200000, 'spend_noise'=>40000, 'ret_noise'=>0.9],
-        ];
-    }
-    private static function demoCampaigns(): array {
-        return [
-            ['id'=>'CAMP-001', 'name'=>"L'Oréal 2026 Summer UV", 'platform'=>'Meta', 'spend_base'=>320000, 'imp_base'=>142000, 'clk_base'=>4250, 'conv_base'=>128, 'rev_base'=>1340000, 'spend_noise'=>40000, 'imp_noise'=>18000, 'clk_noise'=>520, 'conv_noise'=>18, 'rev_noise'=>180000],
-            ['id'=>'CAMP-002', 'name'=>'Revitalift 리뉴얼', 'platform'=>'Naver SA', 'spend_base'=>260000, 'imp_base'=>96000, 'clk_base'=>3120, 'conv_base'=>98, 'rev_base'=>1430000, 'spend_noise'=>32000, 'imp_noise'=>12000, 'clk_noise'=>380, 'conv_noise'=>14, 'rev_noise'=>160000],
-            ['id'=>'CAMP-003', 'name'=>'Lancôme 럭셔리 브랜딩', 'platform'=>'Google', 'spend_base'=>410000, 'imp_base'=>168000, 'clk_base'=>3680, 'conv_base'=>72, 'rev_base'=>2200000, 'spend_noise'=>48000, 'imp_noise'=>20000, 'clk_noise'=>440, 'conv_noise'=>10, 'rev_noise'=>240000],
-            ['id'=>'CAMP-004', 'name'=>'TikTok 바이럴 챌린지', 'platform'=>'TikTok', 'spend_base'=>180000, 'imp_base'=>890000, 'clk_base'=>21000, 'conv_base'=>210, 'rev_base'=>1260000, 'spend_noise'=>24000, 'imp_noise'=>120000, 'clk_noise'=>2800, 'conv_noise'=>28, 'rev_noise'=>150000],
-        ];
-    }
-    private static function demoCreators(): array {
-        return [
-            ['id'=>'CR-001', 'handle'=>'@BeautyHana', 'platform'=>'YouTube', 'tier'=>'Macro', 'followers'=>1850000, 'fee'=>8000000, 'views_base'=>2450000, 'clicks_base'=>73500, 'conv_base'=>1240, 'rev_base'=>89200000, 'views_noise'=>180000, 'clicks_noise'=>6000, 'conv_noise'=>120, 'rev_noise'=>8000000],
-            ['id'=>'CR-004', 'handle'=>'@LuxurySujin', 'platform'=>'YouTube', 'tier'=>'Macro', 'followers'=>1850000, 'fee'=>12000000, 'views_base'=>1850000, 'clicks_base'=>55000, 'conv_base'=>680, 'rev_base'=>206000000, 'views_noise'=>150000, 'clicks_noise'=>4500, 'conv_noise'=>60, 'rev_noise'=>18000000],
-            ['id'=>'CR-002', 'handle'=>'@minji_beauty', 'platform'=>'Instagram', 'tier'=>'Mid', 'followers'=>540000, 'fee'=>3000000, 'views_base'=>980000, 'clicks_base'=>29400, 'conv_base'=>580, 'rev_base'=>34800000, 'views_noise'=>80000, 'clicks_noise'=>2400, 'conv_noise'=>50, 'rev_noise'=>3200000],
-            ['id'=>'CR-005', 'handle'=>'@yena.beauty', 'platform'=>'TikTok', 'tier'=>'Mid', 'followers'=>540000, 'fee'=>2000000, 'views_base'=>1620000, 'clicks_base'=>48600, 'conv_base'=>380, 'rev_base'=>22800000, 'views_noise'=>130000, 'clicks_noise'=>4000, 'conv_noise'=>32, 'rev_noise'=>2400000],
-            ['id'=>'CR-007', 'handle'=>'@PharmSisBeauty', 'platform'=>'YouTube', 'tier'=>'Mid', 'followers'=>540000, 'fee'=>4000000, 'views_base'=>720000, 'clicks_base'=>21600, 'conv_base'=>510, 'rev_base'=>38200000, 'views_noise'=>60000, 'clicks_noise'=>1800, 'conv_noise'=>44, 'rev_noise'=>3400000],
-        ];
-    }
-    private static function demoPlatforms(): array {
-        return [
-            'Naver'   => ['color'=>'#22c55e', 'spend_b'=>820000, 'rev_b'=>4084000, 'ord_b'=>116, 'imp_b'=>238000, 'clk_b'=>7370, 'spend_n'=>90000, 'rev_n'=>440000, 'ord_n'=>12, 'imp_n'=>26000, 'clk_n'=>820],
-            'Coupang' => ['color'=>'#f59e0b', 'spend_b'=>790000, 'rev_b'=>4339000, 'ord_b'=>166, 'imp_b'=>196000, 'clk_b'=>6280, 'spend_n'=>86000, 'rev_n'=>470000, 'ord_n'=>18, 'imp_n'=>22000, 'clk_n'=>700],
-            'Amazon'  => ['color'=>'#ff9900', 'spend_b'=>1220000, 'rev_b'=>8944000, 'ord_b'=>78, 'imp_b'=>168000, 'clk_b'=>4620, 'spend_n'=>130000, 'rev_n'=>900000, 'ord_n'=>9, 'imp_n'=>18000, 'clk_n'=>520],
-            'TikTok'  => ['color'=>'#ff0050', 'spend_b'=>540000, 'rev_b'=>3060000, 'ord_b'=>140, 'imp_b'=>890000, 'clk_b'=>21000, 'spend_n'=>60000, 'rev_n'=>340000, 'ord_n'=>16, 'imp_n'=>120000, 'clk_n'=>2800],
-        ];
-    }
-
     // ── 1. SKU Rollup ──────────────────────────────────────────────────────
     public static function sku(Request $req, Response $res, array $args = []): Response {
         $q = $req->getQueryParams();
@@ -186,22 +145,6 @@ final class Rollup {
             'ok' => true, 'version' => 'v423', 'dimension' => 'sku',
             'period' => $period, 'n' => $n, 'dates' => $dates, 'rows' => $rows,
         ]);
-    }
-
-    private static function demoSkuRows(array $dates, float $scale): array {
-        $rows = [];
-        foreach (self::demoSkus() as $id => $s) {
-            $series = []; $cur_ord = $s['ord_base']; $cur_rev = $s['rev_base']; $cur_spe = $s['spend_base']; $cur_ret = $s['ret_base'];
-            foreach ($dates as $d) {
-                $cur_ord = max(1, (int)round($cur_ord + $s['ord_noise'] * $scale * (mt_rand(-100,100)/100)));
-                $cur_rev = max(0, round($cur_rev + $s['rev_noise'] * $scale * (mt_rand(-100,100)/100)));
-                $cur_spe = max(0, round($cur_spe + $s['spend_noise'] * $scale * (mt_rand(-100,100)/100)));
-                $cur_ret = max(0.5, min(40, round($cur_ret + $s['ret_noise'] * (mt_rand(-100,100)/100), 1)));
-                $series[] = ['date'=>$d, 'orders'=>$cur_ord, 'revenue'=>$cur_rev, 'spend'=>$cur_spe, 'net_payout'=>$cur_rev - $cur_spe, 'roas'=>$cur_spe > 0 ? round($cur_rev/$cur_spe,2) : 0, 'return_rate'=>$cur_ret];
-            }
-            $rows[] = self::skuRowFromSeries($id, $s['name'], $s['platform'], $s['price'], $series);
-        }
-        return $rows;
     }
 
     /** 실 테넌트: channel_orders 에서 SKU별 판매 집계(테넌트 격리). SKU 단위 광고비 부재 → spend/roas 0. */
@@ -268,23 +211,6 @@ final class Rollup {
             'ok' => true, 'version' => 'v423', 'dimension' => 'campaign',
             'period' => $period, 'n' => $n, 'dates' => $dates, 'rows' => $rows,
         ]);
-    }
-
-    private static function demoCampaignRows(array $dates, float $scale): array {
-        $rows = [];
-        foreach (self::demoCampaigns() as $c) {
-            $series = []; $cur_s=$c['spend_base']; $cur_i=$c['imp_base']; $cur_c=$c['clk_base']; $cur_v=$c['conv_base']; $cur_r=$c['rev_base'];
-            foreach ($dates as $d) {
-                $cur_s = max(0, round($cur_s + $c['spend_noise'] * $scale * (mt_rand(-100,100)/100)));
-                $cur_i = max(0, (int)round($cur_i + $c['imp_noise'] * $scale * (mt_rand(-100,100)/100)));
-                $cur_c = max(0, (int)round($cur_c + $c['clk_noise'] * $scale * (mt_rand(-100,100)/100)));
-                $cur_v = max(0, (int)round($cur_v + $c['conv_noise'] * $scale * (mt_rand(-100,100)/100)));
-                $cur_r = max(0, round($cur_r + $c['rev_noise'] * $scale * (mt_rand(-100,100)/100)));
-                $series[] = self::campaignSeriesPoint($d, $cur_s, $cur_i, $cur_c, $cur_v, $cur_r);
-            }
-            $rows[] = self::campaignRowFromSeries($c['id'], $c['name'], $c['platform'], $series);
-        }
-        return $rows;
     }
 
     /** 실 테넌트: performance_metrics 에서 campaign_ext_id(없으면 channel)별 집계. */
@@ -362,23 +288,6 @@ final class Rollup {
             'ok' => true, 'version' => 'v423', 'dimension' => 'platform',
             'period' => $period, 'n' => $n, 'dates' => $dates, 'rows' => $rows,
         ]);
-    }
-
-    private static function demoPlatformRows(array $dates, float $scale): array {
-        $rows = [];
-        foreach (self::demoPlatforms() as $pf => $p) {
-            $series = []; $cur_s=$p['spend_b']; $cur_r=$p['rev_b']; $cur_o=$p['ord_b']; $cur_i=$p['imp_b']; $cur_c=$p['clk_b'];
-            foreach ($dates as $d) {
-                $cur_s = max(0, round($cur_s + $p['spend_n'] * $scale * (mt_rand(-100,100)/100)));
-                $cur_r = max(0, round($cur_r + $p['rev_n'] * $scale * (mt_rand(-100,100)/100)));
-                $cur_o = max(0, (int)round($cur_o + $p['ord_n'] * $scale * (mt_rand(-100,100)/100)));
-                $cur_i = max(0, (int)round($cur_i + $p['imp_n'] * $scale * (mt_rand(-100,100)/100)));
-                $cur_c = max(0, (int)round($cur_c + $p['clk_n'] * $scale * (mt_rand(-100,100)/100)));
-                $series[] = self::platformSeriesPoint($d, $cur_s, $cur_r, $cur_o, $cur_i, $cur_c);
-            }
-            $rows[] = self::platformRowFromSeries($pf, $p['color'], $series);
-        }
-        return $rows;
     }
 
     /** 실 테넌트: performance_metrics(광고 spend/rev/imp/clk) + channel_orders(주문수) 를 채널별 결합. */
