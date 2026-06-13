@@ -93,6 +93,7 @@ class SupplyChain
 
     public static function createLine(Request $request, Response $response, array $args): Response
     {
+        if ($err = UserAuth::requirePro($request, $response)) return $err; // [현 차수] 감사 P1: 익명/무권한 쓰기 차단
         $db = self::db(); $t = self::tenant($request); $b = self::body($request);
         $lid = $b['line_id'] ?? ('SUP-' . strtoupper(substr(uniqid('', true), -10))); // [현 차수] rand 충돌 → 시간기반 고유 ID
         $db->prepare("INSERT OR REPLACE INTO sc_lines (tenant_id,line_id,supplier,sku,name,leadTime,risk,delayRate,totalCost,created_at) VALUES (?,?,?,?,?,?,?,?,?,?)")
@@ -113,6 +114,7 @@ class SupplyChain
 
     public static function updateLine(Request $request, Response $response, array $args): Response
     {
+        if ($err = UserAuth::requirePro($request, $response)) return $err; // [현 차수] 감사 P1
         $db = self::db(); $t = self::tenant($request); $b = self::body($request); $id = (int)($args['id']??0);
         $sets = []; $params = [':id'=>$id, ':t'=>$t];
         foreach (['supplier','sku','name','leadTime','risk','delayRate','totalCost'] as $f) {
@@ -124,6 +126,7 @@ class SupplyChain
 
     public static function deleteLine(Request $request, Response $response, array $args): Response
     {
+        if ($err = UserAuth::requirePro($request, $response)) return $err; // [현 차수] 감사 P1
         $db = self::db(); $t = self::tenant($request); $id = (int)($args['id']??0);
         $line = $db->prepare("SELECT line_id FROM sc_lines WHERE id=? AND tenant_id=?"); $line->execute([$id, $t]);
         $r = $line->fetch(\PDO::FETCH_ASSOC);
@@ -134,6 +137,7 @@ class SupplyChain
 
     public static function updateStage(Request $request, Response $response, array $args): Response
     {
+        if ($err = UserAuth::requirePro($request, $response)) return $err; // [현 차수] 감사 P1
         $db = self::db(); $t = self::tenant($request); $b = self::body($request); $id = (int)($args['id']??0);
         $line = $db->prepare("SELECT line_id FROM sc_lines WHERE id=? AND tenant_id=?"); $line->execute([$id, $t]);
         $r = $line->fetch(\PDO::FETCH_ASSOC);
@@ -156,6 +160,7 @@ class SupplyChain
 
     public static function createSupplier(Request $request, Response $response, array $args): Response
     {
+        if ($err = UserAuth::requirePro($request, $response)) return $err; // [현 차수] 감사 P1
         $db = self::db(); $t = self::tenant($request); $b = self::body($request);
         $sid = $b['sup_id'] ?? ('SUPL-'.strtoupper(substr(uniqid('', true), -10))); // [현 차수] rand 충돌 → 시간기반 고유 ID
         $db->prepare("INSERT OR REPLACE INTO sc_suppliers (tenant_id,sup_id,name,country,category,leadTime,delayRate,orderCount,reliability,contact,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)")
@@ -165,6 +170,7 @@ class SupplyChain
 
     public static function updateSupplier(Request $request, Response $response, array $args): Response
     {
+        if ($err = UserAuth::requirePro($request, $response)) return $err; // [현 차수] 감사 P1
         $db = self::db(); $t = self::tenant($request); $b = self::body($request); $id = (int)($args['id']??0);
         $sets = []; $params = [':id'=>$id, ':t'=>$t];
         foreach (['name','country','category','leadTime','delayRate','orderCount','reliability','contact'] as $f) {
@@ -176,6 +182,7 @@ class SupplyChain
 
     public static function deleteSupplier(Request $request, Response $response, array $args): Response
     {
+        if ($err = UserAuth::requirePro($request, $response)) return $err; // [현 차수] 감사 P1
         $t = self::tenant($request);
         self::db()->prepare("DELETE FROM sc_suppliers WHERE id=? AND tenant_id=?")->execute([(int)($args['id']??0), $t]);
         return self::json($response, ['ok'=>true]);
@@ -193,6 +200,7 @@ class SupplyChain
 
     public static function createRiskRule(Request $request, Response $response, array $args): Response
     {
+        if ($err = UserAuth::requirePro($request, $response)) return $err; // [현 차수] 감사 P1
         $db = self::db(); $t = self::tenant($request); $b = self::body($request);
         $db->prepare("INSERT INTO sc_risk_rules (tenant_id,rule,action,active,created_at) VALUES (?,?,?,1,?)")
             ->execute([$t,$b['rule']??'',$b['action']??'',gmdate('c')]);
@@ -201,6 +209,7 @@ class SupplyChain
 
     public static function toggleRiskRule(Request $request, Response $response, array $args): Response
     {
+        if ($err = UserAuth::requirePro($request, $response)) return $err; // [현 차수] 감사 P1
         $t = self::tenant($request); $id = (int)($args['id']??0);
         self::db()->prepare("UPDATE sc_risk_rules SET active = CASE WHEN active=1 THEN 0 ELSE 1 END WHERE id=? AND tenant_id=?")->execute([$id, $t]);
         return self::json($response, ['ok'=>true]);
