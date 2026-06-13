@@ -32,7 +32,9 @@ use Genie\Handlers\Connectors;
 
 $args       = array_slice($argv, 1);
 $days       = 7;
-$channels   = ['meta', 'google', 'tiktok', 'naver'];
+// [현 차수] 보편 채널 동기화: 하드코딩 4채널 → AD_SHORT SSOT 전체(kakao 등 신규 광고채널 자동 폴링).
+//   runSync 가 자격증명 없는 채널은 자동 skip 하므로 전체 전달이 안전(성과 누락→ROAS 허위 0 방지).
+$channels   = \Genie\Handlers\Connectors::adShortCodes();
 $onlyTenant = null;
 foreach ($args as $a) {
     if (preg_match('/^--days=(\d+)$/', $a, $m)) {

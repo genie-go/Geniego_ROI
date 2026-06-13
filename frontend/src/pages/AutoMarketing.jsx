@@ -17,6 +17,7 @@ const BUDGET_LINKS = [
 import { useSecurityGuard } from '../security/SecurityGuard.js';
 import { useCurrency } from '../contexts/CurrencyContext.jsx';
 import { useConnectorSync } from '../context/ConnectorSyncContext.jsx';
+import { channelMeta } from '../utils/channelMeta.js';
 
 /* ── Enterprise Dynamic Locale Map ────────────────────── */
 const LANG_LOCALE_MAP = {
@@ -274,12 +275,26 @@ export default function AutoMarketing() {
         tags: c.tagKeys.map(k => t(`marketing.${k}`)),
     })), [t]);
 
-    const AD_CHANNELS = useMemo(() => AD_CHANNELS_BASE.map(c => ({
-        ...c,
-        label: t(`marketing.ch_${c.id}`),
-        strength: [],
-        apiConnected: isConnected(c.connectorKey),
-    })), [t, connectedChannels]);
+    const AD_CHANNELS = useMemo(() => {
+        const base = AD_CHANNELS_BASE.map(c => ({
+            ...c,
+            label: t(`marketing.ch_${c.id}`),
+            strength: [],
+            apiConnected: isConnected(c.connectorKey),
+        }));
+        // [현 차수] 보편 채널 동기화: 하드코딩 베이스에 없는 "연결된 광고채널"을 추가해 신규 채널도
+        //   채널 선택·예산 배분에 노출(마케팅 자동화 누락 해소). 메타=channelMeta() 리졸버, 합리적 기본 파라미터.
+        const baseKeys = new Set(AD_CHANNELS_BASE.flatMap(c => [c.id, c.connectorKey]));
+        Object.entries(connectedChannels || {}).forEach(([key, st]) => {
+            if (!st?.connected || baseKeys.has(key)) return;
+            const meta = channelMeta(key);
+            base.push({
+                id: key, connectorKey: key, icon: meta.icon, color: meta.color,
+                cpm: 8000, minBudget: 100000, label: meta.name, strength: [], apiConnected: true, isExtra: true,
+            });
+        });
+        return base;
+    }, [t, connectedChannels]);
 
     const SALES_CHANNELS = useMemo(() => SALES_CHANNELS_BASE.map(c => {
         const connected = isConnected(c.connectorKey);
@@ -339,7 +354,8 @@ export default function AutoMarketing() {
     // ─────────────────────────────────────────────────────────────────────
     const computeRecommend = useCallback((cats, bgt) => {
         const budgetRec = getBudgetRecommend(bgt, t);
-        const budgetAllowed = budgetRec ? new Set(budgetRec.channels) : new Set(AD_CHANNELS_BASE.map(c => c.id));
+        // [현 차수] 보편 채널 동기화: 폴백 허용 채널을 union(AD_CHANNELS)으로 → 신규 연결 채널도 추천 후보 포함.
+        const budgetAllowed = budgetRec ? new Set(budgetRec.channels) : new Set(AD_CHANNELS.map(c => c.id));
 
         // Categoryper 유니온 (Order: 더 많은 Category에서 Recommend된 Channel 우선)
         const scoreMap = {};
@@ -351,8 +367,8 @@ export default function AutoMarketing() {
             });
         });
 
-        // Budget Allow Channel로 Filter 후 점Count 순 Sort
-        const affordable = AD_CHANNELS_BASE
+        // Budget Allow Channel로 Filter 후 점Count 순 Sort ([현 차수] union 사용 → 신규 채널 예산 적격 포함)
+        const affordable = AD_CHANNELS
             .filter(c => bgt >= c.minBudget)
             .map(c => c.id);
 
@@ -379,7 +395,7 @@ export default function AutoMarketing() {
             budgetTier: budgetRec?.tier || "",
             reason: buildReason(cats, budgetRec, t),
         };
-    }, [t]);
+    }, [t, AD_CHANNELS]);
 
     const buildReason = (cats, budgetRec, t) => {
         const catNames = cats.slice(0, 3).map(id => {

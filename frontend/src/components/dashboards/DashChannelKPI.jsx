@@ -6,6 +6,7 @@ import { LineChart, Spark, fmt } from './ChartUtils.jsx';
 import { useCurrency } from '../../contexts/CurrencyContext.jsx';
 import { IS_DEMO } from '../../utils/demoEnv';
 import { buildPeriodScope } from './dashPeriod.js';
+import { channelMeta, unionChannelKeys } from '../../utils/channelMeta.js';
 
 // ══════════════════════════════════════════════════════════════════════
 //  📡 Channel KPI — Channel Intelligence with Drill-Down
@@ -141,8 +142,13 @@ export default function DashChannelKPI({ period }) {
     const periodActive = scope.active;
 
     // Reconstruct channel metrics using 100% REAL global data formulas
+    // [현 차수] 보편 채널 동기화: 하드코딩 CH_META_DEFS(6개)만 순회하던 것 → 실데이터(channelBudgets)에
+    //   존재하는 모든 채널을 union 해 순회 → 신규 광고채널도 KPI 카드 자동 생성(데이터분석 누락 해소).
+    //   표시 메타는 channelMeta() 리졸버로 해석(미등록 채널도 안전한 기본값).
     const liveList = useMemo(() => {
-        return Object.entries(CH_META_DEFS).map(([id, meta]) => {
+        const ids = unionChannelKeys(CH_META_DEFS, channelBudgets);
+        return ids.map((id) => {
+            const meta = channelMeta(id);
             const live = channelBudgets[id] || { spent: 0, roas: 0.0, budget: 0 };
 
             const spend = (live.spent || 0) * (periodActive ? f : 1);  // [현 차수] 기간비례 스코프

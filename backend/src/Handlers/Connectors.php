@@ -702,6 +702,10 @@ final class Connectors
 
     /** [현 차수] H2: 광고 채널 여부 + 저장 직후 1회 ingest 동기화(저장 경로 무관 대칭화). */
     public static function isAdChannel(string $channelKey): bool { return isset(self::AD_SHORT[$channelKey]); }
+    /** [현 차수] 보편 채널 동기화: 지원되는 광고 채널 short 코드 전체(중복 제거). cron 이 하드코딩 목록 대신
+     *  이 SSOT 를 폴링 대상으로 써, 신규 광고채널(예: kakao)을 AD_SHORT 한 곳에만 추가하면 cron·저장직후·
+     *  isAdChannel 전부에 자동 전파된다(성과 누락→ROAS 허위 0 해소). */
+    public static function adShortCodes(): array { return array_values(array_unique(array_values(self::AD_SHORT))); }
     public static function syncAdChannelOnSave(string $tenant, string $channelKey): array
     {
         $short = self::AD_SHORT[$channelKey] ?? '';
