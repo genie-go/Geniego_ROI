@@ -279,6 +279,8 @@ export function GlobalDataProvider({ children }) {
     const [pickingLists, setPickingLists] = useState([]);             // WMS 피킹리스트
     const [packingSlips, setPackingSlips] = useState([]);             // WMS 패킹슬립
     const [claimHistory, setClaimHistory] = useState(_isDemo ? loadDemoState('claimHistory', []) : []);  // 클레임/반품 이력
+    // [현 차수] 운영 주문 통계 서버측 집계(limit 캡 과소집계 해소). 데모는 런타임 파생이라 null 유지.
+    const [orderStatsServer, setOrderStatsServer] = useState(null);
     const [digitalShelfData, setDigitalShelfData] = useState({});     // DigitalShelf SoS 데이터
     const [campaignOrderMap, setCampaignOrderMap] = useState({});     // 캠페인 ID → Orders 매핑
     const [orderMemos, setOrderMemos] = useState({});                 // Orders별 메모
@@ -415,6 +417,10 @@ export function GlobalDataProvider({ children }) {
         getJsonAuth('/api/v424/orderhub/orders?limit=200')
             .then(res => { if (!cancelled && res?.ok && Array.isArray(res.items)) setOrders(res.items); })
             .catch(() => { /* network/auth 실패 시 빈 배열 유지 */ });
+        // [현 차수] 주문 통계 서버집계(전체 행, limit 무관) → orderStats 과소집계 해소.
+        getJsonAuth('/api/v424/orderhub/orders/stats')
+            .then(res => { if (!cancelled && res?.ok) setOrderStatsServer(res); })
+            .catch(() => { /* 실패 시 클라 집계 폴백 */ });
         return () => { cancelled = true; };
     }, []);
 
@@ -448,6 +454,8 @@ export function GlobalDataProvider({ children }) {
             // [현 차수] 운영 주문 하이드레이션 한도 200→1000(API clampLimit 최대) 상향: 200건 초과 테넌트의
             //   커머스/orderStats 과소집계 완화(대시보드 매출=정산기준이라 영향 없으나 주문기반 표시 정합 개선).
             getJsonAuth('/api/v424/orderhub/orders?limit=1000').then(r => { if (!cancelled && r?.ok && Array.isArray(r.items)) setOrders(r.items); }).catch(() => {});
+            // [현 차수] 주문 통계 서버집계 갱신(1000건 초과 테넌트 정확 집계).
+            getJsonAuth('/api/v424/orderhub/orders/stats').then(r => { if (!cancelled && r?.ok) setOrderStatsServer(r); }).catch(() => {});
             getJsonAuth('/api/v424/orderhub/settlements?limit=200').then(r => { if (!cancelled && r?.ok && Array.isArray(r.items)) setSettlement(r.items); }).catch(() => {});
             fetch(`${BASE}/api/channel-sync/inventory`, { headers: { Authorization: `Bearer ${token}` } })
                 .then(r => r.ok ? r.json() : null).then(d => {
@@ -1573,17 +1581,21 @@ export function GlobalDataProvider({ children }) {
         const activeOrders = orders.filter(o => !_isCancelled(o.status));
         const totalFees = activeOrders.reduce((s, o) => s + (o.fee || 0), 0);
         const totalPlatformFees = activeOrders.reduce((s, o) => s + (o.total * (o.platformFeeRate || 0)), 0);
-        const count = activeOrders.length;
+        // [현 차수] 운영 limit 캡 과소집계 해소: 서버 집계값(전체 행 SQL)이 있으면 count/revenue/버킷을 그것으로
+        //   대체(주문 1000건 초과 테넌트 정확 집계). 클라 폴백(서버 미응답)은 기존 배열 집계 유지.
+        //   데모는 런타임 단일소스 파생이라 orderStatsServer=null → 클라 집계 유지.
+        const srv = (!_isDemo && orderStatsServer && orderStatsServer.ok) ? orderStatsServer : null;
+        const count = srv ? Number(srv.count) || 0 : activeOrders.length;
         return {
             count,
             totalOrders: count,            // ✅ 별칭 Add — 컴포넌트 호환용
-            revenue: activeOrders.reduce((s, o) => s + o.total, 0),
+            revenue: srv ? (Number(srv.revenue) || 0) : activeOrders.reduce((s, o) => s + o.total, 0),
             totalFees,
             totalPlatformFees,
-            pending: orders.filter(o => o.status === '발주Confirm' || o.status === 'paid').length,
-            shipping: orders.filter(o => ['출고대기','배송중','preparing','shipping'].includes(o.status)).length,
-            done: orders.filter(o => ['배송Done','delivered','confirmed','Done'].includes(o.status)).length,
-            cancelled: orders.filter(o => _isCancelled(o.status)).length,
+            pending: srv ? (Number(srv.pending) || 0) : orders.filter(o => o.status === '발주Confirm' || o.status === 'paid').length,
+            shipping: srv ? (Number(srv.shipping) || 0) : orders.filter(o => ['출고대기','배송중','preparing','shipping'].includes(o.status)).length,
+            done: srv ? (Number(srv.done) || 0) : orders.filter(o => ['배송Done','delivered','confirmed','Done'].includes(o.status)).length,
+            cancelled: srv ? (Number(srv.cancelled) || 0) : orders.filter(o => _isCancelled(o.status)).length,
             // Content KPI — only populated in demo mode
             contentViews: _isDemo ? 245000 + count * 120 : 0,
             contentVisitors: _isDemo ? 82000 + count * 45 : 0,
@@ -1595,7 +1607,7 @@ export function GlobalDataProvider({ children }) {
                 kakao: { views: 86000, comments: 2870, inquiries: 650, newMembers: 780 },
             } : null,
         };
-    }, [orders]);
+    }, [orders, orderStatsServer]);
 
     // 💰 Budget/Ad Spend 집계
     const budgetStats = useMemo(() => {
@@ -1652,9 +1664,13 @@ export function GlobalDataProvider({ children }) {
         // [현 차수] ★매출 단일소스 분기:
         //   - 데모: 주문(거래원장)이 유일 소스. 런타임 엔진이 정산을 주문에서 재파생하므로 글로벌/정산/P&L 이
         //     커머스/롤업과 항상 일치(체험자 주문 변동 즉시 전 메뉴 동기화).
-        //   - 운영: 기존 동작 100% 보존(정산 우선). 운영 주문 폴링은 limit=200 캡이라 200건 초과 시 주문합이
-        //     과소집계되는 반면, 정산은 채널×기간 집계라 더 완전 → 운영은 반드시 정산 우선 유지(오류 방지).
-        const orderRevenue = activeOrders.reduce((s, o) => s + o.total, 0);
+        //   - 운영: 기존 동작 100% 보존(정산 우선). 정산은 채널×기간 집계라 가장 완전 → 운영은 반드시 정산
+        //     우선 유지. 정산 미적재 시 폴백 매출도 서버집계(전체 행)로 전환해 limit 캡 과소집계를 해소.
+        // [현 차수] 운영 매출 폴백도 서버집계(orderStats.revenue, 전체 행) 우선 → 정산 미적재 테넌트의
+        //   limit 캡 과소집계 해소. 데모는 런타임 파생 주문합 그대로.
+        const orderRevenue = (!_isDemo && orderStatsServer && orderStatsServer.ok)
+            ? (Number(orderStatsServer.revenue) || 0)
+            : activeOrders.reduce((s, o) => s + o.total, 0);
         const settlementRevenue = settlementStats.totalGross;
         const revenue = _isDemo ? orderRevenue : (settlementRevenue > 0 ? settlementRevenue : orderRevenue);
 
@@ -1696,7 +1712,7 @@ export function GlobalDataProvider({ children }) {
             netMargin: revenue > 0 ? (netProfit / revenue * 100).toFixed(1) : '0',
             roas: adSpend > 0 ? budgetStats.blendedRoas : 0,
         };
-    }, [orders, inventory, budgetStats, settlementStats, orderStats]);
+    }, [orders, inventory, budgetStats, settlementStats, orderStats, orderStatsServer]);
 
     // Notification 집계
     const unreadAlertCount = useMemo(() => alerts.filter(a => !a.read).length, [alerts]);

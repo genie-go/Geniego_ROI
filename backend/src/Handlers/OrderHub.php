@@ -156,6 +156,79 @@ final class OrderHub
         ]);
     }
 
+    /**
+     * [현 차수] 주문 통계 서버측 집계 — limit 캡 과소집계 근본해소(감사 P2).
+     *
+     * 기존 프론트(GlobalDataContext.orderStats)는 /orderhub/orders?limit=1000 으로 받은
+     * 주문 배열을 클라이언트에서 집계 → 주문 1000건 초과 테넌트는 count/revenue/버킷이 과소집계됐다.
+     * 본 엔드포인트는 channel_orders 전체를 SQL 집계(LIMIT 없음)해 정확한 합계를 반환한다.
+     *
+     * 취소 판정은 Rollup::isCancel / 프론트 CANCELLED_STATUSES 와 동일한 캐논(event_type='cancel'
+     * 우선 + CANCEL_TOKENS)을 사용 → orderStats ↔ Rollup 발산 제거(218차 데이터일관성 정본 연장).
+     */
+    public static function ordersStats(Request $req, Response $resp): Response
+    {
+        $g = self::gate($req, $resp);
+        if (isset($g['error'])) return $g['error'];
+        [$tenant, $isDemo, $pdo] = [$g['tenant'], $g['isDemo'], $g['pdo']];
+
+        $q = $req->getQueryParams();
+        $channel = isset($q['channel']) ? (string)$q['channel'] : null;
+
+        // 캐논 토큰(Rollup CANCEL_TOKENS + 프론트 status 버킷과 동일)
+        $cancelTokens   = ['CancelDone','Cancel요청','cancelled','canceled','취소완료','취소요청','취소접수','취소','주문취소'];
+        $pendingTokens  = ['발주Confirm','paid'];
+        $shippingTokens = ['출고대기','배송중','preparing','shipping'];
+        $doneTokens     = ['배송Done','delivered','confirmed','Done'];
+
+        $base = ['tenant_id = ?'];
+        $baseArgs = [$tenant];
+        if ($channel !== null) { $base[] = 'channel = ?'; $baseArgs[] = $channel; }
+        $baseSql = implode(' AND ', $base);
+
+        $ph = fn(array $a) => implode(',', array_fill(0, count($a), '?'));
+        // event_type 우선 취소 판정 + status 토큰. NULL-safe(COALESCE): 프론트 _isCancelled(null)=false(활성)와
+        //   일치시켜 NULL status/event 행이 NOT 평가에서 NULL→제외되는 SQL 3value 함정 차단.
+        $cancelExpr = "(COALESCE(event_type,'order') = 'cancel' OR COALESCE(status,'') IN (" . $ph($cancelTokens) . "))";
+
+        try {
+            // 활성(취소 제외) 주문수 + 매출 합계 — 전체 행 SQL 집계
+            $stA = $pdo->prepare("SELECT COUNT(*) AS cnt, COALESCE(SUM(total_price),0) AS rev
+                FROM channel_orders WHERE $baseSql AND NOT $cancelExpr");
+            $stA->execute(array_merge($baseArgs, $cancelTokens));
+            $active = $stA->fetch(\PDO::FETCH_ASSOC) ?: ['cnt' => 0, 'rev' => 0];
+
+            // status 버킷 카운트(프론트 orderStats와 동일 토큰셋)
+            $bucket = function (array $tokens) use ($pdo, $baseSql, $baseArgs, $ph) {
+                $s = $pdo->prepare("SELECT COUNT(*) FROM channel_orders WHERE $baseSql AND status IN (" . $ph($tokens) . ")");
+                $s->execute(array_merge($baseArgs, $tokens));
+                return (int)$s->fetchColumn();
+            };
+            $pending  = $bucket($pendingTokens);
+            $shipping = $bucket($shippingTokens);
+            $done     = $bucket($doneTokens);
+
+            $stC = $pdo->prepare("SELECT COUNT(*) FROM channel_orders WHERE $baseSql AND $cancelExpr");
+            $stC->execute(array_merge($baseArgs, $cancelTokens));
+            $cancelled = (int)$stC->fetchColumn();
+        } catch (\Throwable $e) {
+            return self::json($resp, ['ok' => false, 'error' => 'db_error', 'message' => $e->getMessage()], 500);
+        }
+
+        return self::json($resp, [
+            'ok'        => true,
+            'count'     => (int)$active['cnt'],
+            'totalOrders' => (int)$active['cnt'],
+            'revenue'   => (float)$active['rev'],
+            'pending'   => $pending,
+            'shipping'  => $shipping,
+            'done'      => $done,
+            'cancelled' => $cancelled,
+            '_env'      => Db::env(),
+            '_isDemo'   => $isDemo,
+        ]);
+    }
+
     public static function claims(Request $req, Response $resp): Response
     {
         $g = self::gate($req, $resp);
