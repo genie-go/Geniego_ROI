@@ -140,9 +140,14 @@ const useTr = () => {
 };
 
 /* ─── Overview Tab ─── */
-function OverviewTab({ campaigns, tr, fmt }) {
-  const totalBudget = useMemo(() => campaigns.reduce((s, c) => s + (c.budget || c.spent || 0), 0), [campaigns]);
-  const totalSpent = useMemo(() => campaigns.reduce((s, c) => s + (c.spent || 0), 0), [campaigns]);
+function OverviewTab({ campaigns, budgetStats, tr, fmt }) {
+  // [현 차수] 데이터일관성(P0): 총 광고비/예산은 canonical budgetStats(채널예산=실 광고메트릭)을 우선 사용.
+  //   기존엔 sharedCampaigns 합산이라 P&L/홈(channelBudgets 기준)과 발산했다(운영 캠페인 부재 시 0 표시).
+  //   budgetStats가 비어있을 때만(채널예산 미하이드레이션) 캠페인 합산 폴백.
+  const campBudget = useMemo(() => campaigns.reduce((s, c) => s + (c.budget || c.spent || 0), 0), [campaigns]);
+  const campSpent = useMemo(() => campaigns.reduce((s, c) => s + (c.spent || 0), 0), [campaigns]);
+  const totalBudget = (budgetStats?.totalBudget > 0) ? budgetStats.totalBudget : campBudget;
+  const totalSpent = (budgetStats?.totalSpent > 0) ? budgetStats.totalSpent : campSpent;
   const remaining = totalBudget - totalSpent;
   const utilization = totalBudget > 0 ? (totalSpent / totalBudget * 100) : 0;
 
@@ -622,7 +627,7 @@ export default function BudgetTracker() {
 
   const { t } = useI18n();
   const { fmt } = useCurrency();
-  const { sharedCampaigns, addAlert } = useGlobalData();
+  const { sharedCampaigns, budgetStats, addAlert } = useGlobalData();
   const [tab, setTab] = useState('overview');
   const tr = useTr();
 
@@ -723,7 +728,7 @@ export default function BudgetTracker() {
       {/* ══════ Scrollable Content Area (flex:1 독립 스크롤) ══════ */}
       <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '16px 20px 40px' }}>
         <div style={{ maxWidth: 1400, margin: '0 auto' }}>
-          {tab === 'overview' && <OverviewTab campaigns={campaigns} tr={tr} fmt={fmt} />}
+          {tab === 'overview' && <OverviewTab campaigns={campaigns} budgetStats={budgetStats} tr={tr} fmt={fmt} />}
           {tab === 'allocation' && <AllocationTab campaigns={campaigns} tr={tr} fmt={fmt} />}
           {tab === 'burnrate' && <BurnRateTab campaigns={campaigns} tr={tr} fmt={fmt} />}
           {tab === 'alerts' && <AlertsTab campaigns={campaigns} tr={tr} fmt={fmt} />}

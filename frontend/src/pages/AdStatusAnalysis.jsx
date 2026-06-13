@@ -64,7 +64,7 @@ export default function AdStatusAnalysis() {
 
 
     // Unified Campaign Builder(GlobalData) 100% sync
-    const { sharedCampaigns, isDemo } = useGlobalData();
+    const { sharedCampaigns, budgetStats, isDemo } = useGlobalData();
     const [loading, setLoading] = useState(false);
 
     // Date range state
@@ -95,8 +95,14 @@ export default function AdStatusAnalysis() {
                 totalRoas += c.roas || 0;
             });
         }
-        // 191차 #6: 캠페인이 없을 때의 기본 ROAS 3.5 는 데모 미리보기 전용. 운영은 합성 KPI 금지(0).
-        const avgRoas = sharedCampaigns?.length > 0 ? totalRoas / sharedCampaigns.length : (isDemo ? 3.5 : 0);
+        // [현 차수] 데이터일관성(P0): 총 광고비는 canonical budgetStats(채널예산=실 광고메트릭)을 우선 사용해
+        //   P&L/홈/BudgetTracker와 일치시킨다(기존 sharedCampaigns 합산은 운영 캠페인 부재 시 0으로 발산).
+        if (budgetStats?.totalSpent > 0) totalSpend = budgetStats.totalSpent;
+        // 191차 #6: 캠페인 없을 때 기본 ROAS 3.5는 데모 전용. 운영은 0. ★ROAS는 지출가중 blendedRoas로 통일
+        //   (기존 단순평균 Σroas/n → canonical과 산식 불일치였음).
+        const avgRoas = (budgetStats?.totalSpent > 0)
+            ? budgetStats.blendedRoas
+            : (sharedCampaigns?.length > 0 ? totalRoas / sharedCampaigns.length : (isDemo ? 3.5 : 0));
 
         for (let i = 0; i < days; i++) {
             const d = new Date(sTime + i * 86400000);
@@ -137,7 +143,7 @@ export default function AdStatusAnalysis() {
             });
         }
         return data;
-    }, [sharedCampaigns, startDate, endDate, isDemo]);
+    }, [sharedCampaigns, budgetStats, startDate, endDate, isDemo]);
 
     const HIERARCHY_DATA = useMemo(() => {
         if (!sharedCampaigns || sharedCampaigns.length === 0) return [];
