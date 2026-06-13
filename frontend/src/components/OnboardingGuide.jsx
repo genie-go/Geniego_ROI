@@ -51,14 +51,11 @@ export default function OnboardingGuide() {
   const welcomedKey = 'genie_onb_welcomed_' + tenantKey();
   const expandKey = 'genie_onb_expanded_' + tenantKey();
   const [welcomed, setWelcomed] = useState(() => { try { return localStorage.getItem(welcomedKey) === '1'; } catch { return true; } });
-  // [현 차수] 기본 접힘(2줄)이되, ★첫 방문(미환영)은 자동 펼침 — 접속 즉시 전체 진행 순서를 인식하도록.
-  //   재방문자는 저장된 선호 유지(안내박스가 아래 페이지를 가리지 않도록).
+  // [현 차수] ★항상 기본 접힘(단일 1줄) — 안내 배너가 페이지 콘텐츠 높이를 잠식하지 않도록.
+  //   펼침은 사용자가 명시적으로 [펼치기]를 눌렀을 때만(absolute 오버레이로 표시 → 페이지 안 밀림).
+  //   (218차 '첫 방문 자동 펼침'이 전 페이지 컨테이너 높이를 압축하는 회귀를 유발해 제거.)
   const [expanded, setExpanded] = useState(() => {
-    try {
-      if (localStorage.getItem(expandKey) === '1') return true;
-      if (localStorage.getItem(welcomedKey) !== '1') return true; // 첫 방문 자동 펼침
-      return false;
-    } catch { return false; }
+    try { return localStorage.getItem(expandKey) === '1'; } catch { return false; }
   });
 
   const doneFlags = STEPS.map((s) => isDone(s, gd));
@@ -78,11 +75,8 @@ export default function OnboardingGuide() {
   const hBtn = { padding: '4px 10px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.25)', cursor: 'pointer', background: 'rgba(255,255,255,0.12)', color: '#fff', fontSize: 11, fontWeight: 800, flexShrink: 0 };
 
   return (
-    <div style={{
-      margin: '12px 16px 0', borderRadius: 14, overflow: 'hidden',
-      border: '1px solid rgba(124,58,237,0.35)', boxShadow: '0 8px 22px rgba(79,70,229,0.10)',
-    }}>
-      {/* [현 차수] ★현재 해야 할 단계를 뚜렷하게 강조 — 애니메이션(펄스 CTA·글로우 번호·화살표·"지금 먼저!" 배지) */}
+    <div style={{ position: 'relative', margin: '8px 16px 0', zIndex: 40 }}>
+      {/* [현 차수] ★단일 1줄 컴팩트 바 + 펼침 오버레이 — 페이지 콘텐츠 높이 잠식 방지(초엔터프라이즈 균형). */}
       <style>{`
         @keyframes onbPulse{0%,100%{transform:scale(1);box-shadow:0 4px 14px rgba(124,58,237,0.45)}50%{transform:scale(1.07);box-shadow:0 10px 28px rgba(124,58,237,0.75)}}
         @keyframes onbGlow{0%{box-shadow:0 0 0 0 rgba(124,58,237,0.55)}100%{box-shadow:0 0 0 10px rgba(124,58,237,0)}}
@@ -105,37 +99,31 @@ export default function OnboardingGuide() {
         .onb-row-cur{position:relative}
         .onb-row-cur::before{content:'';position:absolute;left:0;top:8px;bottom:8px;width:4px;border-radius:4px;background:linear-gradient(180deg,#4f46e5,#7c3aed);animation:onbBlink 1.2s ease-in-out infinite}
       `}</style>
-      {/* ── 컴팩트 헤더(항상 보임 · 접힘 시 최대 2줄) ── */}
-      <div style={{ padding: '10px 14px', background: 'linear-gradient(135deg,#0b1224,#1e1b4b)', color: '#fff' }}>
-        {/* Line 1: 타이틀 + 진행률 + 펼치기/접기 */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-          <span style={{ fontSize: 16, flexShrink: 0 }}>{allDone ? '🎉' : firstVisit ? '👋' : '🧭'}</span>
-          <div style={{ flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: 800, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {allDone ? t('onboard.allDoneTitle', '모든 시작 단계를 완료했습니다!')
-              : firstVisit ? t('onboard.welcomeTitle', 'GeniegoROI 시작 가이드 — 환영합니다 👋')
-              : t('onboard.guideTitle', 'GeniegoROI 시작 가이드')}
-          </div>
-          <span style={{ fontSize: 11, fontWeight: 900, color: '#c7d2fe', flexShrink: 0 }}>{doneCount}/{STEPS.length}</span>
-          <span style={{ width: 50, height: 5, borderRadius: 99, background: 'rgba(255,255,255,0.18)', overflow: 'hidden', flexShrink: 0 }}>
-            <span style={{ display: 'block', height: '100%', width: pct + '%', background: 'linear-gradient(90deg,#4f46e5,#7c3aed)', transition: 'width .3s' }} />
-          </span>
-          <button onClick={toggle} style={hBtn}>{expanded ? t('onboard.collapse', '접기') + ' ▴' : t('onboard.expand', '펼치기') + ' ▾'}</button>
-          {(allDone || !firstVisit) && <button onClick={markWelcomed} title={t('onboard.dismiss', '닫기')} style={{ ...hBtn, padding: '4px 8px' }}>×</button>}
-        </div>
-        {/* Line 2: 다음 단계(접힘일 때만) */}
-        {!expanded && step && (
-          <div className="onb-curbar" style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 9, padding: '11px 13px', borderRadius: 12, background: 'linear-gradient(135deg,#fff7ed,#fef2f2)', border: '1px solid rgba(245,158,11,0.55)', flexWrap: 'wrap' }}>
-            <span className="onb-now-big" style={{ flexShrink: 0, fontSize: 14.5, fontWeight: 900, padding: '8px 15px', borderRadius: 99, background: 'linear-gradient(135deg,#f59e0b,#ef4444)', color: '#fff', whiteSpace: 'nowrap', letterSpacing: '0.3px' }}><span className="onb-hand">👉</span> {t('onboard.doFirst', '지금 먼저!')}</span>
-            <span style={{ fontSize: 12, color: '#b45309', fontWeight: 900, flexShrink: 0, padding: '4px 9px', borderRadius: 8, background: 'rgba(245,158,11,0.18)' }}>STEP {firstIdx + 1}/{STEPS.length}</span>
-            <span style={{ flex: 1, minWidth: 120, fontSize: 15, fontWeight: 900, color: '#0f172a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{step.icon} {t(`onboard.step.${step.id}.title`, step.title)}</span>
-            {!onStepPage && <button className="onb-cta" onClick={() => nav(step.route)} style={{ padding: '11px 22px', borderRadius: 10, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#4f46e5,#7c3aed)', color: '#fff', fontWeight: 900, fontSize: 14, flexShrink: 0, whiteSpace: 'nowrap' }}>{t('onboard.shortcut', '바로가기')} <span className="onb-arrow">→</span></button>}
-          </div>
+      {/* ── 단일 1줄 컴팩트 바(항상 보임) — 현재 단계 강조 + 바로가기. 높이 ~46px 고정. ── */}
+      <div className={step && !onStepPage ? 'onb-curbar' : ''} style={{
+        display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 12,
+        background: 'linear-gradient(135deg,#0b1224,#1e1b4b)', color: '#fff',
+        border: '1px solid rgba(124,58,237,0.4)', overflow: 'hidden', whiteSpace: 'nowrap',
+      }}>
+        <span style={{ fontSize: 15, flexShrink: 0 }}>{allDone ? '🎉' : '🧭'}</span>
+        {step ? (<>
+          <span className="onb-now-big" style={{ flexShrink: 0, fontSize: 12.5, fontWeight: 900, padding: '5px 11px', borderRadius: 99, background: 'linear-gradient(135deg,#f59e0b,#ef4444)', color: '#fff' }}><span className="onb-hand">👉</span> {t('onboard.doFirst', '지금 먼저!')}</span>
+          <span style={{ flexShrink: 0, fontSize: 11, fontWeight: 900, color: '#fcd34d' }}>STEP {firstIdx + 1}/{STEPS.length}</span>
+          <span style={{ flex: 1, minWidth: 40, fontSize: 13.5, fontWeight: 800, overflow: 'hidden', textOverflow: 'ellipsis' }}>{step.icon} {t(`onboard.step.${step.id}.title`, step.title)}</span>
+          {!onStepPage
+            ? <button className="onb-cta" onClick={() => nav(step.route)} style={{ flexShrink: 0, padding: '7px 16px', borderRadius: 9, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#4f46e5,#7c3aed)', color: '#fff', fontWeight: 900, fontSize: 12.5 }}>{t('onboard.shortcut', '바로가기')} <span className="onb-arrow">→</span></button>
+            : <span style={{ flexShrink: 0, fontSize: 11, fontWeight: 800, color: '#86efac' }}>✓ {t('onboard.onThisPage', '진행 중')}</span>}
+        </>) : (
+          <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 800, overflow: 'hidden', textOverflow: 'ellipsis' }}>{allDone ? t('onboard.allDoneTitle', '모든 시작 단계를 완료했습니다!') : t('onboard.guideTitle', 'GeniegoROI 시작 가이드')}</span>
         )}
+        <span style={{ flexShrink: 0, fontSize: 11, fontWeight: 900, color: '#c7d2fe' }}>{doneCount}/{STEPS.length}</span>
+        <button onClick={toggle} style={hBtn}>{expanded ? t('onboard.collapse', '접기') + ' ▴' : t('onboard.expand', '펼치기') + ' ▾'}</button>
+        <button onClick={markWelcomed} title={t('onboard.dismiss', '닫기')} style={{ ...hBtn, padding: '4px 8px' }}>×</button>
       </div>
 
-      {/* ── 펼침: 전체 체크리스트 ── */}
+      {/* ── 펼침: 전체 체크리스트 — ★absolute 오버레이(페이지 콘텐츠를 밀지 않음, 위에 떠서 표시) ── */}
       {expanded && (
-      <div style={{ padding: '10px 12px', background: 'linear-gradient(135deg,#eef2ff,#f5f3ff)' }}>
+      <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, marginTop: 6, zIndex: 60, borderRadius: 14, boxShadow: '0 18px 44px rgba(15,23,42,0.34)', border: '1px solid rgba(124,58,237,0.35)', maxHeight: '72vh', overflowY: 'auto', padding: '10px 12px', background: 'linear-gradient(135deg,#eef2ff,#f5f3ff)' }}>
         {firstVisit && <div style={{ fontSize: 12, color: '#475569', lineHeight: 1.5, margin: '2px 6px 8px' }}>{t('onboard.welcomeDesc', '이용가이드를 보지 않아도 됩니다. 아래 순서대로만 진행하면 자동 설정이 완료됩니다.')}</div>}
         {STEPS.map((s, i) => {
           const d = doneFlags[i];
