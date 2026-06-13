@@ -1,3 +1,54 @@
+# 217~218차 세션 인계서 — **쿠폰/빌링/회원관리 고도화 + 전수 재감사(3도메인 병렬) + 데이터 일관성 정본화(매출/COGS/광고비/ROAS/취소반품/정산) + 채널 실어댑터·SSOT + 오염차단/보안 + 온보딩 레이아웃·geo언어 (16커밋 전부 운영·데모 배포·라이브검증·push)**
+
+> **작성일**: 2026-06-13 (사용자 명시 승인 후) · **이전**: 216차 → 217·218차. 운영 roi.genie-go.com / 데모 roidemo.genie-go.com.
+> **종결 상태**: 16커밋(217×1 + 218×15) **전부 운영/데모 수동 dist swap·백엔드 pscp+php-fpm restart·헤드리스 라이브검증·push 완료**. playwright MCP 미연결 → puppeteer(node) + 서버 reflection/HTTP/MySQL 라운드트립으로 검증.
+> **주제**: ①217차 미커밋 작업(쿠폰/빌링/월렛/MMM/회원관리/MFA) 이어받아 완결 ②사용자 연속 요청(온보딩 강조→레이아웃 회귀→geo언어→데이터 일관성 정밀감사→채널 전수). 3에이전트 병렬 전수감사 후 P0/P1 대거 해소.
+
+## ✅ 217~218차 완료 (커밋 순, 최신→과거)
+| 커밋 | 영역 | 내용 |
+|---|---|---|
+| `b57bf9a43ca` | 채널 | **채널키 별칭 SSOT**(CHANNEL_ALIASES+normalizeChannelKey+isCommerceChannel 별칭인식) — 6~8곳 중복 silent break 차단. dispatch match는 별도 |
+| `00298dd26e9` | 채널 | **국내 오픈마켓 4종 실어댑터**(11번가 11st XML·G마켓/옥션 ESM·롯데온). graceful 드롭인, hasRealAdapter/REAL_ADAPTER 등록 |
+| `0ed22f7b8cb` | 데이터 | **광고-매출 채널키 ROAS=0 해소**: ROAS 분자=ad_rev(performance_metrics.revenue), total_ad_rev 노출. budgetStats.blendedRoas=진짜 ROAS |
+| `4938f7f1c59` | 채널 | **Kakao Moment ingest 실배선**(거짓양성 해소): fetchKakaoRows+runSync/AD_SHORT/tenantsWithAdCreds/OAUTH_ALIAS |
+| `85fff63e744` | 오염 | **Db.php 데모DB 폴백 가드**(P0 인프라): demo명==운영명+'_demo'미접미→'_demo' 강제 |
+| `4aa162a3a5f` | 데이터 | **settlementStats pendingAmount=0 해소**: 'settled' 외(confirmed/estimated)=정산대기 |
+| `8ae78f66654` | 데이터 | **취소/반품 캐논 통일**(event_type+토큰셋) 백엔드↔프론트 + **SKU롤업 MAX/GROUP BY 선재버그**(운영 0행) |
+| `65704a28704` | 데이터 | **광고비/ROAS 발산 통일**: BudgetTracker/AdStatus가 sharedCampaigns→canonical budgetStats |
+| `ebd32265bec` | 복합 | 전수재감사 P0/P1: **랜딩 geo언어**(영어하드코딩→detectLang)·**롤업날짜 2026-03-05하드코딩**·st11/auction sync·CreativeStore JWT위조·LiveCommerce/SupplyChain 목데이터 |
+| `9c76a071b1a` | 데이터 | **매출 발산 통일**: DashCommerce orderStats→pnlStats.revenue(canonical) |
+| `ee67ec0c196` | 데이터 | **운영 COGS 0 근본수정**: inventory 로더(객체파싱+SKU그룹핑)·channel_inventory cost컬럼·saveInventory POST |
+| `99841dbd9b9` | UX | **온보딩 레이아웃 회귀**: 자동펼침제거→단일1줄바+absolute오버레이(콘텐츠 298→789px 복원) |
+| `b5dd2013b38` | 정리 | dead 합성코드 208줄(Rollup/CustomerAI 데모시드, 전이적 dead 증명) |
+| `cd8503a0ef5` | 채널/보안 | M6 상품수집 6종(Amazon FBA/Coupang/Naver/TikTok/Cafe24/Rakuten) + **데모↔운영 로그인 사이트혼동 안내**(crossEnvLoginHint) |
+| `f3275db997e` | UX | 온보딩 "지금먼저!" 강조 + 탭게이팅 +3(Kakao/SMS/ReportBuilder) |
+| `57003a5806d` | 기능 | 217차 쿠폰(기간현황·무료부여)·체험20일산입·광고비결제수단/관리형월렛·MMM/이상탐지·회원관리·MFA비차단 |
+
+## 📌 정본(canonical) — 신규 표시는 반드시 이걸 사용(발산 방지)
+- **매출 = `pnlStats.revenue`** (데모=주문단일/운영=정산우선). DashCommerce도 통일 완료.
+- **원가 = `inventory.cost`** (셀러 카탈로그 입력만 영속, 채널동기화는 원가 미제공→미입력시 0 정직).
+- **광고비 = `budgetStats.totalSpent`**(=Σ channelBudgets.spent). BudgetTracker/AdStatus 통일.
+- **ROAS = `budgetStats.blendedRoas`**(지출가중, 분자=ad_rev 진짜 ROAS). 단순평균·order_rev/spend 금지.
+- **취소/반품 = `event_type`('cancel'/'return') 우선 + CANCEL_TOKENS/RETURN_TOKENS**(영문+한글). 취소=매출제외, 반품=매출포함·반품률.
+- **정산상태 = 'settled'=완료, 그 외(confirmed/estimated/pending)=정산대기**.
+- **채널 추가 = CHANNEL_ALIASES(별칭) + fetchFromChannel dispatch + COMMERCE_CHANNELS + hasRealAdapter + ApiKeys(CHANNELS/CHANNEL_FIELDS/REAL_ADAPTER)**. 광고채널은 Connectors(fetchXxxRows+runSync+AD_SHORT+tenantsWithAdCreds+OAUTH_ALIAS).
+
+## ⏭️ 다음 차수 잔여
+1. **[사용자 액션]** 실 셀러/광고 자격증명 등록 → 어댑터 라이브 검증(11st XML·ESM/Lotte JSON·Kakao Moment 필드매핑은 다중후보 방어이나 실 응답 검증 필요). OAuth client_id/secret(215차 승계). 채널 정산 실 API 매핑.
+2. **[미래 과제]** 전체 SSOT-driven dispatch(채널 단일정의 테이블이 dispatch까지 구동, 현재 별칭 멤버십만 통합). ROAS true-정의는 운영 적용됨(ad_rev/spend).
+3. **[감사 잔여 P2]** 운영 주문 limit=1000 캡 과소집계(서버집계 권장)·Rollup LIMIT없는 메모리집계(SUM/GROUP BY 푸시다운)·Webhooks enforced 기본false·pixel_id HMAC.
+
+## 📌 정본 패턴(217~218 추가)
+- **★헤드리스 admin/회원 로그인**: /auth/login(64hex)→evaluateOnNewDocument로 localStorage(genie_token/user)+**genie_remember='1'** 주입 필수(admin 비영속 restorableToken). 데모키=demo_genie_*.
+- **★데모↔운영 DB 물리분리 정본**: 데모백엔드 .env `GENIE_DB_NAME=geniego_roi_demo`+`GENIE_DEMO_MODE=true`(env()='production'→pdoProd→geniego_roi_demo). 이제 pdoDemo 폴백가드 보유.
+- **★데모계정은 데모DB에만 존재** → 운영사이트 로그인시 401(crossEnvLoginHint가 "데모 사이트로 이동" 안내). 사용자 "반복 로그인 실패" 근본=잘못된 사이트.
+- **★Rollup realSkuRows MAX()+GROUP BY 부재 = MySQL 1행 암묵집계**(운영 SKU롤업 0행). 행별 직접 select 필수.
+- **★PowerShell `$(...)`는 단일따옴표 밖이면 로컬 평가** → 원격 curl/스크립트는 LF파일 pscp 후 bash 실행.
+- **★온보딩 배너 = 단일 1줄 + absolute 오버레이**(콘텐츠 높이 잠식 금지). 자동펼침 회귀 주의.
+- **★httpGet(ChannelSync)는 JSON 디코드** → XML(11st)은 httpGetRaw 별도.
+
+---
+
 # 216차 세션 인계서 — **데모 단일소스 동기화 재설계 + 로그인 신뢰성 + 전수감사 P0/HIGH + 랜딩/온보딩/플랜게이팅/BYO광고API (운영·데모 다회 배포·라이브검증)**
 
 > **작성일**: 2026-06-12 (사용자 명시 승인 후) · **이전**: 215차 → 216차. 운영 roi.genie-go.com / 데모 roidemo.genie-go.com.
