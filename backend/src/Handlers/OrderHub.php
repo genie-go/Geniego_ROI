@@ -545,6 +545,29 @@ final class OrderHub
         return $rates[strtolower(trim($channel))] ?? 0.10;
     }
 
+    /** [현 차수] 보편 채널 동기화: 테넌트가 admin 에서 설정한 채널별 수수료(kr_fee_rule 최신 유효 규칙)를
+     *  { channel_key(소문자) => rate(분수) } 맵으로 반환. 신규 채널도 admin 수수료 등록 시 정산 정확.
+     *  kr_fee_rule 테이블 부재/오류 시 빈 맵(정적 스케줄 폴백). 단위=분수(gross*rate, KrChannel 정합). */
+    private static function tenantFeeRates(\PDO $pdo, string $tenant): array
+    {
+        $map = [];
+        try {
+            $st = $pdo->prepare(
+                "SELECT channel_key, platform_fee_rate FROM kr_fee_rule
+                  WHERE tenant_id = ? AND id IN (
+                    SELECT MAX(id) FROM kr_fee_rule WHERE tenant_id = ? GROUP BY channel_key
+                  )"
+            );
+            $st->execute([$tenant, $tenant]);
+            foreach ($st->fetchAll(\PDO::FETCH_ASSOC) as $r) {
+                $rate = (float)($r['platform_fee_rate'] ?? 0);
+                $key  = strtolower(trim((string)($r['channel_key'] ?? '')));
+                if ($key !== '' && $rate > 0) $map[$key] = $rate;
+            }
+        } catch (\Throwable $e) { /* 테이블 부재 등 → 정적 폴백 */ }
+        return $map;
+    }
+
     /**
      * @param ?float $feeRate null=채널별 스케줄 적용(권장, cron), 값 전달 시 전 채널 일괄 override(HTTP fee_rate).
      */
@@ -569,6 +592,9 @@ final class OrderHub
         }
 
         $rolled = 0;
+        // [현 차수] 보편 채널 동기화: 테넌트가 admin 에서 설정한 채널별 수수료(kr_fee_rule 최신 유효)를 우선 적용.
+        //   신규 채널도 admin 이 수수료를 등록하면 정산이 정확히 반영(정적 맵 0.10 폴백 오계산 회피).
+        $krFees = self::tenantFeeRates($pdo, $tenant);
         // [현 차수] 수동 ingest 된 실 정산은 추정으로 덮어쓰지 않도록 기존 status 사전조회.
         $exStmt = $pdo->prepare("SELECT status FROM orderhub_settlements WHERE tenant_id=? AND period=? AND channel=? LIMIT 1");
         foreach ($orders as $o) {
@@ -580,8 +606,10 @@ final class OrderHub
             if ($exStatus !== '' && $exStatus !== 'estimated') continue;
             $gross    = (float)$o['gross'];
             $cnt      = (int)$o['cnt'];
-            // [현 차수] null=채널별 실수수료 스케줄, 값=일괄 override.
-            $rate = ($feeRate !== null && $feeRate > 0) ? $feeRate : self::channelFeeRate($channel);
+            // [현 차수] 수수료율 우선순위: ①HTTP 일괄 override ②테넌트 admin 설정(kr_fee_rule) ③채널별 정적 스케줄.
+            $rate = ($feeRate !== null && $feeRate > 0)
+                ? $feeRate
+                : ($krFees[strtolower($channel)] ?? self::channelFeeRate($channel));
             $platform = round($gross * $rate, 2);
             $returnFee = $claimsBy[$channel]['rfee'] ?? 0.0;
             $returns   = $claimsBy[$channel]['rcnt'] ?? 0;
