@@ -186,9 +186,11 @@ final class Rollup {
                 $ev = (string)($r['event_type'] ?? 'order'); $st = (string)($r['status'] ?? '');
                 // [현 차수] 취소주문은 매출·주문수에서 제외(프론트 대시보드 정합). 반품은 매출 포함·반품률만 카운트.
                 if (self::isCancel($ev, $st)) continue;
-                $by[$sku]['buckets'][$bucket]['orders'] += $qty;
+                // [현 차수] 감사 P1: 주문수=주문 건수(orderStats 캐논). orders/returns 모두 건수로 통일해
+                //   total_orders 과대·객단가 과소를 해소하고 return_rate(반품률)를 주문 기준으로 일관화.
+                $by[$sku]['buckets'][$bucket]['orders'] += 1;
                 $by[$sku]['buckets'][$bucket]['revenue'] += $price;
-                if (self::isReturn($ev, $st)) $by[$sku]['buckets'][$bucket]['returns'] += $qty;
+                if (self::isReturn($ev, $st)) $by[$sku]['buckets'][$bucket]['returns'] += 1;
             }
             $rows = [];
             foreach ($by as $sku => $info) {
@@ -337,7 +339,9 @@ final class Rollup {
                 // [현 차수] 취소주문은 채널 매출·주문수에서 제외(프론트/SKU 롤업 정합).
                 if (self::isCancel((string)($r['event_type'] ?? 'order'), (string)($r['status'] ?? ''))) continue;
                 $pf = strtolower((string)($r['channel'] ?? 'unknown')); $mk($by,$pf,$bucket);
-                $by[$pf][$bucket]['ord'] += (int)($r['qty'] ?? 0); $by[$pf][$bucket]['rev'] += (float)($r['total_price'] ?? 0);
+                // [현 차수] 감사 P1: 주문수=주문 건수(orderStats.count 캐논). 기존 qty 합산은 멀티수량 주문을
+                //   과대계상해 total_orders 과대·revenue_per_order(객단가) 과소를 유발했다.
+                $by[$pf][$bucket]['ord'] += 1; $by[$pf][$bucket]['rev'] += (float)($r['total_price'] ?? 0);
             }
             $rows = [];
             $palette = ['#22c55e','#f59e0b','#ff9900','#ff0050','#4f8ef7','#a855f7','#ec4899','#14b8a6'];
