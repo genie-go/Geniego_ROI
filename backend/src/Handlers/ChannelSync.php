@@ -1067,6 +1067,152 @@ final class ChannelSync
         ];
     }
 
+    /** [현 차수] 원시 본문(XML 등) GET — 국내 오픈마켓 XML API 대응(httpGet 은 JSON 디코드라 부적합). */
+    private static function httpGetRaw(string $url, array $headers = [], int $timeout = 15): array
+    {
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => $timeout,
+            CURLOPT_HTTPHEADER => array_map(fn($k, $v) => "$k: $v", array_keys($headers), array_values($headers)),
+            CURLOPT_SSL_VERIFYPEER => false, CURLOPT_USERAGENT => 'GeniegoROI/v423',
+        ]);
+        $raw  = curl_exec($ch);
+        $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $err  = curl_error($ch) ?: null;
+        curl_close($ch);
+        return [$code, ($err === null ? (string)$raw : ''), $err];
+    }
+
+    // ── 11번가(11st) Open API — XML ─────────────────────────────────────────
+    private static function elevenStFetch(array $creds, string $tenant = 'demo'): array
+    {
+        if ($tenant === 'demo') {
+            return ['ok'=>true, 'products'=>self::buildDemoChannelProducts('st11','11번가'), 'orders'=>self::buildDemoChannelOrders('st11','11번가'), 'note'=>'demo preview'];
+        }
+        // [현 차수] 11번가 셀러 Open API 실연동(graceful) — openapikey 헤더. 신규주문 목록(XML).
+        //   라이브 검증은 실 셀러 오픈API 키 필요(타 어댑터와 동일 드롭인).
+        $apiKey = trim((string)($creds['api_key'] ?? $creds['openapikey'] ?? $creds['key_value'] ?? ''));
+        if ($apiKey === '') {
+            return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>'11번가: 오픈API 키(api_key) 입력 필요'];
+        }
+        $from = gmdate('Ymd', time() - 7 * 86400) . '0000';
+        $to   = gmdate('YmdHis');
+        $url  = "http://api.11st.co.kr/rest/ordervice/orderList/202?dateFrom={$from}&dateTo={$to}";
+        [$code, $raw, $err] = self::httpGetRaw($url, ['openapikey' => $apiKey, 'Accept' => 'application/xml']);
+        if ($err || $code >= 400 || $raw === '') {
+            return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>"11번가 주문조회 실패(code={$code}) — 오픈API 키/권한 확인"];
+        }
+        $orders = [];
+        $xml = @simplexml_load_string($raw);
+        if ($xml !== false) {
+            // 11st 응답 래핑 편차 대응(order / orderList>order).
+            $list = isset($xml->order) ? $xml->order : (isset($xml->orderList->order) ? $xml->orderList->order : []);
+            foreach ($list as $o) {
+                $oid = (string)($o->ordNo ?? $o->OrdNo ?? $o->orderNo ?? '');
+                if ($oid === '') continue;
+                $orders[] = [
+                    'channel_order_id' => $oid,
+                    'buyer_name'  => (string)($o->ordNm ?? $o->buyerNm ?? $o->ordrNm ?? ''),
+                    'product_name'=> (string)($o->prdNm ?? $o->ordPrdName ?? $o->productName ?? '11번가 주문'),
+                    'sku'         => (string)($o->sellerPrdCd ?? $o->stockNo ?? ''),
+                    'qty'         => (int)($o->ordQty ?? $o->orderQty ?? 1),
+                    'total_price' => (float)($o->ordPrdAmt ?? $o->finalDscAmt ?? $o->ordAmt ?? 0),
+                    'status'      => '발주확인',
+                    'ordered_at'  => (string)($o->ordDt ?? $o->orderDate ?? gmdate('c')),
+                    'event_type'  => 'order',
+                    'source'      => '11st_api',
+                ];
+            }
+        }
+        return ['ok'=>true, 'products'=>[], 'orders'=>$orders, 'note'=>count($orders) . ' 11번가 주문 동기화 (11st OpenAPI)'];
+    }
+
+    // ── ESM (G마켓/옥션) — eBay Korea ESM 2.0 ───────────────────────────────
+    private static function esmFetch(string $channel, array $creds, string $tenant = 'demo'): array
+    {
+        $label = $channel === 'auction' ? '옥션' : 'G마켓';
+        if ($tenant === 'demo') {
+            return ['ok'=>true, 'products'=>self::buildDemoChannelProducts($channel,$label), 'orders'=>self::buildDemoChannelOrders($channel,$label), 'note'=>'demo preview'];
+        }
+        // [현 차수] G마켓/옥션은 eBay Korea ESM Plus 플랫폼 공용 — ESM 2.0 주문 API(graceful).
+        //   자격증명: api_key(ESM 인증), seller_id(판매자 ID). siteGubun=GMKT/IAC 로 채널 구분.
+        $apiKey   = trim((string)($creds['api_key'] ?? $creds['key_value'] ?? ''));
+        $sellerId = trim((string)($creds['seller_id'] ?? ''));
+        if ($apiKey === '' || $sellerId === '') {
+            return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>"{$label}: ESM api_key·seller_id 입력 필요"];
+        }
+        $site = $channel === 'auction' ? 'IAC' : 'GMKT';
+        $from = gmdate('Y-m-d', time() - 7 * 86400);
+        $to   = gmdate('Y-m-d');
+        $url  = "https://api.esmplus.com/order/v1/orders?siteGubun={$site}&sellerId=" . rawurlencode($sellerId)
+              . "&orderDateFrom={$from}&orderDateTo={$to}";
+        [$code, $body, $err] = self::httpGet($url, ['Authorization' => "Bearer {$apiKey}", 'Accept' => 'application/json']);
+        if ($err || $code >= 400) {
+            return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>"{$label} 주문조회 실패(code={$code}) — ESM api_key/seller_id/권한 확인"];
+        }
+        $orders = [];
+        foreach ((array)($body['orders'] ?? $body['data'] ?? []) as $o) {
+            $oid = (string)($o['orderNo'] ?? $o['orderId'] ?? '');
+            if ($oid === '') continue;
+            $first = (array)(($o['items'] ?? $o['orderItems'] ?? [])[0] ?? []);
+            $orders[] = [
+                'channel_order_id' => $oid,
+                'buyer_name'  => (string)($o['buyerName'] ?? $o['ordererName'] ?? ''),
+                'product_name'=> (string)($first['itemName'] ?? $first['productName'] ?? "{$label} 주문"),
+                'sku'         => (string)($first['sellerItemCode'] ?? $first['itemNo'] ?? ''),
+                'qty'         => (int)($first['quantity'] ?? 1),
+                'total_price' => (float)($o['orderAmount'] ?? $o['paymentAmount'] ?? 0),
+                'status'      => '발주확인',
+                'ordered_at'  => (string)($o['orderDate'] ?? gmdate('c')),
+                'event_type'  => 'order',
+                'source'      => 'esm_api',
+            ];
+        }
+        return ['ok'=>true, 'products'=>[], 'orders'=>$orders, 'note'=>count($orders) . " {$label} 주문 동기화 (ESM 2.0)"];
+    }
+
+    // ── 롯데온(Lotte ON) Seller API ─────────────────────────────────────────
+    private static function lotteonFetch(array $creds, string $tenant = 'demo'): array
+    {
+        if ($tenant === 'demo') {
+            return ['ok'=>true, 'products'=>self::buildDemoChannelProducts('lotteon','롯데온'), 'orders'=>self::buildDemoChannelOrders('lotteon','롯데온'), 'note'=>'demo preview'];
+        }
+        // [현 차수] 롯데온 셀러 API 실연동(graceful) — api_key(인증)+seller_id(파트너 ID).
+        $apiKey   = trim((string)($creds['api_key'] ?? $creds['key_value'] ?? ''));
+        $sellerId = trim((string)($creds['seller_id'] ?? ''));
+        if ($apiKey === '' || $sellerId === '') {
+            return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>'롯데온: api_key·seller_id 입력 필요'];
+        }
+        $from = gmdate('Ymd', time() - 7 * 86400);
+        $to   = gmdate('Ymd');
+        $url  = "https://openapi.lotteon.com/seller/v1/orders?startDate={$from}&endDate={$to}";
+        [$code, $body, $err] = self::httpGet($url, [
+            'Authorization' => "Bearer {$apiKey}", 'X-Seller-Id' => $sellerId, 'Accept' => 'application/json',
+        ]);
+        if ($err || $code >= 400) {
+            return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>"롯데온 주문조회 실패(code={$code}) — api_key/seller_id/권한 확인"];
+        }
+        $orders = [];
+        foreach ((array)($body['orders'] ?? $body['data'] ?? $body['orderList'] ?? []) as $o) {
+            $oid = (string)($o['orderNo'] ?? $o['orderId'] ?? '');
+            if ($oid === '') continue;
+            $first = (array)(($o['orderItems'] ?? $o['items'] ?? [])[0] ?? []);
+            $orders[] = [
+                'channel_order_id' => $oid,
+                'buyer_name'  => (string)($o['buyerName'] ?? $o['ordererNm'] ?? ''),
+                'product_name'=> (string)($first['productName'] ?? $first['prdNm'] ?? '롯데온 주문'),
+                'sku'         => (string)($first['sellerProductCode'] ?? $first['sku'] ?? ''),
+                'qty'         => (int)($first['orderQty'] ?? $first['quantity'] ?? 1),
+                'total_price' => (float)($o['paymentAmount'] ?? $o['orderAmount'] ?? 0),
+                'status'      => '발주확인',
+                'ordered_at'  => (string)($o['orderDate'] ?? gmdate('c')),
+                'event_type'  => 'order',
+                'source'      => 'lotteon_api',
+            ];
+        }
+        return ['ok'=>true, 'products'=>[], 'orders'=>$orders, 'note'=>count($orders) . ' 롯데온 주문 동기화 (Lotte ON API)'];
+    }
+
     private static function buildDemoChannelProducts(string $channel, string $label): array
     {
         $products = self::demoProducts($channel);
@@ -1093,6 +1239,9 @@ final class ChannelSync
             'tiktok','tiktok_shop'         => self::tiktokFetch($creds, $tenant),
             'rakuten'                      => self::rakutenFetch($creds, $tenant),
             'cafe24'                       => self::cafe24Fetch($creds, $tenant),
+            '11st','st11'                  => self::elevenStFetch($creds, $tenant),       // [현 차수] 11번가 실어댑터
+            'gmarket','auction'            => self::esmFetch($channel, $creds, $tenant),  // [현 차수] ESM(G마켓/옥션)
+            'lotteon'                      => self::lotteonFetch($creds, $tenant),         // [현 차수] 롯데온
             default                        => self::genericFetch($channel, $creds, $tenant),
         };
     }

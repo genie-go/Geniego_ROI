@@ -503,6 +503,7 @@ final class ChannelCreds
             'naver_sa', 'kakao', 'kakao_moment',
             'shopify', 'amazon', 'amazon_spapi', 'coupang', 'naver', 'naver_smartstore',
             'ebay', 'rakuten', 'cafe24',
+            '11st', 'st11', 'gmarket', 'auction', 'lotteon', // [현 차수] 국내 오픈마켓 4종 실어댑터
         ], true);
     }
 

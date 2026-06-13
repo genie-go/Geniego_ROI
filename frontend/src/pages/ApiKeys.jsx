@@ -168,6 +168,8 @@ const OAUTH_PROVIDER = {
 const REAL_ADAPTER = new Set([
   'meta_ads', 'google_ads', 'tiktok_business', 'naver_sa', 'kakao_moment',
   'shopify', 'amazon_spapi', 'coupang', 'naver_smartstore', 'ebay', 'rakuten', 'cafe24', 'tiktok_shop',
+  'st11', '11st', 'gmarket', 'auction', 'lotteon', // [현 차수] 국내 오픈마켓 4종 실어댑터(11번가 XML·ESM·롯데온)
+
   // [현 차수] v427 물류 배송추적 실어댑터(Logistics.php): 국내 택배(스마트택배 통합) + DHL.
   'epost', 'cj', 'lotte', 'hanjin', 'logen', 'smarttracker', 'dhl',
   // [현 차수] v427 PG 정산 실어댑터(PgSettlement.php): Stripe·토스페이먼츠·PayPal.
