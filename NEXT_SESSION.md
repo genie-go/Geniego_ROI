@@ -1,3 +1,42 @@
+# 219차 세션 인계서 — **감사 P2 잔여(주문 limit 캡·pixel HMAC) + 5도메인 병렬 전수감사 → P0/P1 일괄(정산 취소발산·매출발산·SupplyChain 보안·롤업 주문수·WMS 오버셀) (6커밋 전부 운영·데모 배포·라이브검증·push)**
+
+> **작성일**: 2026-06-13 (사용자 명시 승인 후) · **이전**: 217·218차 → 219차. 운영 roi.genie-go.com / 데모 roidemo.genie-go.com.
+> **종결 상태**: 6커밋 **전부 운영/데모 수동 dist swap·백엔드 pscp+php-fpm restart·라이브검증(reflection+HTTP e2e+MySQL)·push 완료**. playwright MCP 미연결 → puppeteer + 서버 reflection/HTTP/MySQL 라운드트립 검증.
+> **주제**: ①218차 인계서의 "감사 잔여 P2" 이어받아 처리(주문 limit 캡, pixel HMAC) ②사용자 요청으로 신규 5도메인 병렬 전수감사 → 발굴된 P0/P1 우선순위 처리. ★②Rollup 메모리집계 푸시다운은 주차 ISO/타임존 발산 위험으로 보류(사용자 합의), ③Webhooks enforced는 비영속 에코 스텁이라 default 플립 실익 0으로 보류.
+
+## ✅ 219차 완료 (커밋 순, 최신→과거)
+| 커밋 | 영역 | 내용 | 검증 |
+|---|---|---|---|
+| `a30ebb7c549` | WMS | **재고차감 원자화**: adjustStock strictOut(실출고 `UPDATE...WHERE on_hand>=need` 원자 차감, lost update·오버셀 거부, 무음 0클램프 제거)+recordMovement 트랜잭션(이력 롤백)+createMovement/PartnerPortal 422. PartnerPortal은 recordMovement를 status='shipped' 앞으로 이동(미차감 불일치 차단) | reflection: 입고5→출고4→오버셀출고4 거부+재고1·이력2 롤백 |
+| `7d44a4dbd63` | 데이터 | **롤업 주문수 단위**: realPlatformRows/realSkuRows `ord/orders/returns` qty합→**주문 건수**(orderStats.count 캐논). total_orders 과대·revenue_per_order(객단가) 과소 해소 | reflection: qty 2/3/5(=10) 3주문→total_orders=3 |
+| `1f1bd4abe53` | 보안 | **SupplyChain 인증게이트**: `/v420/supply/*` bypass인데 requirePro 전무→익명 쓰기 가능. 9개 write 메서드에 requirePro 추가(읽기는 테넌트스코프 유지) | 라이브: 익명 POST 401·읽기 200 |
+| `09d4e369a68` | 데이터 | **취소주문 매출 발산**(P0+P1): ★OrderHub::rollupSettlementsCore가 취소 미제외→정산 gross/순이익 과대(2에이전트 교차확인). cancelExclusion() SSOT 헬퍼+CANCEL_TOKENS const, ordersStats도 공유. OrderHub.jsx 총매출→orderStats.revenue, OmniChannel→isCancelledStatus(신설 export) | reflection: 취소5/5000 제외 정산 gross 정확 |
+| `d7c3a903d7c` | 보안 | **pixel_id HMAC**: 공개 비콘 위조차단. Crypto::hmacTag(용도분리 키), genPixelId(px_<rand>_<hmac12>), collect가 DB조회 전 verifyPixelId(403). 신뢰 fail-closed(도메인 미설정=비신뢰, 가짜 구매/매출 통로 제거) | reflection roundtrip+라이브: 위조403·유효200 |
+| `cd8d007eeea` | 데이터 | **주문 limit 캡 과소집계**: OrderHub::ordersStats 신규(전체 행 SQL 집계, LIMIT 무관, 취소 캐논 NULL-safe). 프론트 orderStatsServer 상태+폴러+orderStats/pnl 폴백 서버집계 전환 | MySQL 직접집계 완전일치(1280/128000) |
+
+## 📌 정본(canonical) — 219차 추가/강화
+- **취소 제외 = OrderHub::CANCEL_TOKENS const + cancelExclusion() 헬퍼**(event_type='cancel' OR status IN 토큰, NULL-safe COALESCE). ordersStats·rollupSettlementsCore 공유. 프론트 = `isCancelledStatus`(GlobalDataContext export).
+- **주문수 = 주문 건수**(Rollup ord/orders도 건수, qty합 금지). 객단가=총매출/주문건수.
+- **주문 집계 = 서버측 SQL**(OrderHub::ordersStats, GET /v424/orderhub/orders/stats). 클라 limit 캡 배열 재집계 금지(orderStats.revenue 사용).
+- **공개 비콘 = HMAC 서명 식별자**(pixel_id 위조차단) + 신뢰 fail-closed.
+- **재고 출고 = 원자적 조건부 차감**(`WHERE on_hand>=need`, 부족=422 거부, 무음 클램프 금지) + 이력 트랜잭션.
+
+## ⏭️ 다음 차수 잔여 (219차 감사 백로그)
+1. **[P1] PUT /v424/marketing/benchmarks 항상 403** — AI게이트(index.php)가 api_key 분기에서 auth_role/scopes 미주입 → updateBenchmarks admin 게이트가 항상 403(글로벌 벤치마크 갱신 기능불능). 수정=AI게이트 api_key 분기에 키 role/scopes 주입(민감 미들웨어, 신중).
+2. **[P1/사용자액션] 오픈마켓 4종(11번가/G마켓/옥션/롯데온) 취소/반품 상태 미매핑** — elevenStFetch/esmFetch/lotteonFetch가 status='발주확인' 하드코딩→classifyCancelReturn 미동작→재고복원/claim/정산 누락. 실 API 응답 필드(ordStatCd/orderStatus 등) 매핑 필요(실 자격증명 확보 후).
+3. **[P2 8건]** AttributionEngine X-Tenant-Id 폴백 제거(GraphScore/AutoRecommend 패턴)·AI게이트 세션분기 unknown버킷·채널키 naver/tiktok 플랫폼 분절(realPlatformRows normalizeChannelKey)·WMS 피킹 재고미차감(savePicking→movement)·wms_permissions 미강제·반품매출 데모(차감)/운영(포함) 불일치·날짜창 발산(롤업 기간뷰 라벨)·PerformanceHub 코호트 취소포함.
+4. **[검증필요 3]** OAuth callback redirect_uri Host 신뢰(nginx Host 고정 여부 확인)·webhook 채널 슬러그 vs 폴링키 멱등성(normalizeChannelKey 강제)·Paddle onSubscriptionActivated ON DUPLICATE(SQLite 폴백 시 무음 실패).
+5. **[신규발견]** `500 GET /v425/admin/menu-tree`(데모 admin 메뉴트리 에러) 근본원인 점검.
+
+## 📌 정본 패턴 (219차 추가)
+- **★검증 패턴 정본**: 로컬 PHP 부재 → 서버 lint(php -l). 인증불가/private 로직은 임시 테스트 테넌트(`_audit_*`) 데이터 적재 → `ReflectionMethod::setAccessible` 직접 호출 또는 임시 api_key INSERT→Bearer → 결과를 MySQL 직접집계와 대조 → **테스트 잔여물 전수 DELETE**. base64로 SQL/PHP/스크립트 전달(PowerShell 따옴표 트랩 회피).
+- **★전수감사 = 5도메인 병렬 에이전트**(보안/데이터/채널/마케팅/운영). 각 "추정금지·현행코드 검증·$custom맵 AND $register 둘 다 확인·demo게이트 오탐배제·file:line+시나리오". 2에이전트 교차확인 결함(정산 취소발산)이 최우선.
+- **★PowerShell bash 루프 트랩**: plink에 `for d in ...; do` 다단계 루프는 `\$d` 치환 실패로 깨짐 → 파일별 개별 명령 또는 base64 스크립트.
+- **★OrderHub/orderhub endpoint 인증**: /v424/orderhub/*는 api_key 인증(세션토큰 미해당, bypass 아님). 어드민 세션은 401 graceful(프론트 catch). 실 셀러는 api_key.
+- **★드리프트 가드**: 서버 파일은 CRLF, HEAD blob은 LF → `tr -d '\r' | md5sum` 으로 비교(내용 동일 확인). 콘텐츠 드리프트 0 확인 후 배포.
+
+---
+
 # 217~218차 세션 인계서 — **쿠폰/빌링/회원관리 고도화 + 전수 재감사(3도메인 병렬) + 데이터 일관성 정본화(매출/COGS/광고비/ROAS/취소반품/정산) + 채널 실어댑터·SSOT + 오염차단/보안 + 온보딩 레이아웃·geo언어 (16커밋 전부 운영·데모 배포·라이브검증·push)**
 
 > **작성일**: 2026-06-13 (사용자 명시 승인 후) · **이전**: 216차 → 217·218차. 운영 roi.genie-go.com / 데모 roidemo.genie-go.com.
