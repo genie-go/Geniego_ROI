@@ -58,9 +58,17 @@ final class Db
     private static function pdoDemo(): PDO
     {
         if (self::$pdoDemo instanceof PDO) return self::$pdoDemo;
-        // 방어선 4 (DB 물리 분리) 미적용 시 GENIE_DEMO_DB_NAME 미설정이면 운영 DB 와 동일 이름 fallback.
-        // 본 spec 적용 후에는 인프라 작업으로 별도 DB 명시 권장.
-        $dbname = getenv('GENIE_DEMO_DB_NAME') ?: (getenv('GENIE_DB_NAME') ?: 'geniego_roi');
+        $prodName = getenv('GENIE_DB_NAME') ?: 'geniego_roi';
+        $explicit = (string)(getenv('GENIE_DEMO_DB_NAME') ?: '');
+        $dbname = $explicit !== '' ? $explicit : $prodName;
+        // [현 차수] ★P0 오염차단 코드 가드(방어선 4 강제): GENIE_DEMO_DB_NAME 미설정 시 운영 DB명으로
+        //   폴백하면 데모 트래픽이 운영 DB(geniego_roi)를 직접 오염시킨다(환경변수 1줄 누락 = 운영 사고).
+        //   데모 DB명이 운영 DB명과 동일하고 '_demo' 접미가 없으면, 코드 레벨에서 '_demo' 를 강제해
+        //   물리 분리를 보장한다(운영명이 이미 '_demo'면 데모 백엔드이므로 그대로 사용).
+        if ($dbname === $prodName && substr($prodName, -5) !== '_demo') {
+            $dbname = $prodName . '_demo';
+            error_log("[Db] demo DB name fell back to prod DB ($prodName); forcing '$dbname' to prevent contamination. Set GENIE_DEMO_DB_NAME explicitly.");
+        }
         self::$pdoDemo = self::buildPdo($dbname);
         return self::$pdoDemo;
     }
