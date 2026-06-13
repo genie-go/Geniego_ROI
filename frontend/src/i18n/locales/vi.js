@@ -10331,6 +10331,8 @@ export default {
       dataTrust: "Niềm tin Dữ liệu",
       mappingRegistry: "Đăng ký Kết xuất",
       finance: "Tài chính",
+      marketingMixLabel: "Mô hình Marketing Mix",
+      paymentMethodsLabel: "Phương thức thanh toán",
       settlements: "Thanh toán",
       reconciliation: "Đối soát Tài chính",
       pricing: "Thanh toán",

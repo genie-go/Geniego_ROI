@@ -5598,6 +5598,8 @@ export default {
       automation: "Otomasi & Aturan AI",
       data: "Data & Pengumpulan",
       finance: "Keuangan & Penyelesaian",
+      marketingMixLabel: "Model Bauran Pemasaran",
+      paymentMethodsLabel: "Metode Pembayaran",
       memberTools: "Alat Anggota",
       adminSystem: "Admin Sistem",
       dashboard: "Dasbor",

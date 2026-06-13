@@ -71,17 +71,26 @@ final class CouponEngine
 
             // 4.5 현재 사용자 플랜·만료일 조회 — 연장(extend) + 다운그레이드 방지
             //     (갱신/전환 보너스 쿠폰이 기존 유료 구독을 단축·강등하지 않도록)
-            $curPlan = $currentPlan; $curExpiry = null;
+            $curPlan = $currentPlan; $curExpiry = null; $trialStartTs = null; $isTrial = false;
             try {
-                $u = $pdo->prepare('SELECT plan, subscription_expires_at FROM app_user WHERE id = ? LIMIT 1');
+                $u = $pdo->prepare('SELECT plan, subscription_expires_at, subscription_started_at, subscription_cycle FROM app_user WHERE id = ? LIMIT 1');
                 $u->execute([$userId]);
                 if ($urow = $u->fetch(\PDO::FETCH_ASSOC)) {
                     if (!empty($urow['plan'])) $curPlan = (string)$urow['plan'];
                     $curExpiry = $urow['subscription_expires_at'] ?? null;
+                    if (($urow['subscription_cycle'] ?? '') === 'trial' && !empty($urow['subscription_started_at'])) {
+                        $isTrial = true; $trialStartTs = strtotime((string)$urow['subscription_started_at']);
+                    }
                 }
             } catch (\Throwable $e) { /* 컬럼 부재 등 → 전달된 currentPlan 사용 */ }
-            // 만료일: 현재 만료일(미래)·now 중 더 늦은 시점 + duration → 항상 연장(단축 X)
-            $baseTs = ($curExpiry && strtotime((string)$curExpiry) > time()) ? strtotime((string)$curExpiry) : time();
+            // [현 차수] 20일 체험 산입: 체험(trial) 회원은 무료 기간을 '체험 시작일' 기준으로 계산해
+            //   이미 사용한 체험 일수를 전체 무료기간에 포함한다(요구: 3개월 무료 쿠폰에 20일 산입 →
+            //   잔여 무료 = 3개월 − 20일). 비-체험은 기존대로 현재 만료(미래)·now 중 늦은 시점 기준 연장(단축 X).
+            if ($isTrial && $trialStartTs) {
+                $baseTs = $trialStartTs;
+            } else {
+                $baseTs = ($curExpiry && strtotime((string)$curExpiry) > time()) ? strtotime((string)$curExpiry) : time();
+            }
             // 적용 플랜: 룰 플랜 vs 현재 플랜 중 상위 — 보너스가 등급을 떨어뜨리지 않도록
             $effectivePlan = (PlanPolicy::rank($plan) >= PlanPolicy::rank($curPlan)) ? $plan : $curPlan;
 
@@ -252,8 +261,10 @@ final class CouponEngine
     ): void {
         try {
             // subscription_expires_at 컬럼이 있는 경우
+            //   [현 차수] cycle='coupon' 로 전환 — 체험(trial) 마커를 해제해 다음 무료 부여 시
+            //   체험 시작일 재산입(이중 계산)을 방지한다.
             $pdo->prepare(
-                "UPDATE app_user SET plan = ?, plans = ?, subscription_expires_at = ?
+                "UPDATE app_user SET plan = ?, plans = ?, subscription_expires_at = ?, subscription_cycle = 'coupon'
                   WHERE id = ? OR email = ?"
             )->execute([$plan, $plan, $expiresAt, $userId, $email]);
         } catch (\Throwable $e) {

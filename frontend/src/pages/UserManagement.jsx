@@ -129,13 +129,35 @@ function MembersTab() {
     const [page, setPage] = useState(1);
     const [selected, setSelected] = useState(null);
     const [planEdit, setPlanEdit] = useState("");
+    const [grantMonths, setGrantMonths] = useState("0"); // 무료 부여 기간(개월). 0=무기한
     const [newPw, setNewPw] = useState("");
     const [createForm, set생성Form] = useState({ email: "", password: "", name: "", company: "", plan: "" });
     const [show생성, setShow생성] = useState(false);
     const [msg, setMsg] = useState("");
 
+    // 구독 상태 파생: 무료/데모/관리자 + 유료(체험/구독중/무기한/만료) — 만료일·cycle 기준
+    const subStatus = (u) => {
+        const plan = String(u.plan || "").toLowerCase();
+        if (plan === "free") return { label: "무료", color: "#64748b" };
+        if (plan === "demo") return { label: "데모체험", color: "#a855f7" };
+        if (plan === "admin") return { label: "관리자", color: "#ef4444" };
+        const expStr = u.subscription_expires_at;
+        const exp = expStr ? new Date(expStr) : null;
+        const now = new Date();
+        if (exp && exp < now) return { label: "만료", color: "#ef4444" };
+        if (!exp) return { label: "무기한", color: "#16a34a" };
+        const days = Math.max(0, Math.ceil((exp - now) / 86400000));
+        if ((u.subscription_cycle || "") === "trial") return { label: `체험 D-${days}`, color: "#f59e0b" };
+        if ((u.subscription_cycle || "") === "admin_grant") return { label: `무료부여 D-${days}`, color: "#0ea5e9" };
+        return { label: `구독중 D-${days}`, color: "#22c55e" };
+    };
+
     const qPath = `v423/admin/users?page=${page}&limit=20${q ? `&q=${encodeURIComponent(q)}` : ""}${filterPlan ? `&plan=${filterPlan}` : ""}`;
     const { data, loading, refetch } = useAdminApi(qPath, [page, q, filterPlan]);
+    // [현 차수] 구독 만료 임박(30일 이내) 회원 — 갱신권유·실시간 파악
+    const [expiringView, setExpiringView] = useState(false);
+    const { data: expData } = useAdminApi("v423/admin/users-expiring?days=30", []);
+    const expSummary = expData?.summary || { total: 0, expired: 0, within7: 0, within30: 0 };
 
     const { data: rolesData } = useAdminApi("v423/admin/roles");
     const allRoles = rolesData?.roles || [];
@@ -167,13 +189,80 @@ function MembersTab() {
             {/* Toolbar */}
             <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap", alignItems: "center" }}>
                 <input placeholder="Name/Email 검색..." value={q} onChange={e => { setQ(e.target.value); setPage(1) }} style={{ ...css.input, width: 220 }} />
-                <select value={filterPlan} onChange={e => { setFilterPlan(e.target.value); setPage(1) }} style={{ ...css.input, width: 130 }}>
-                    <option value="">모든 플랜</option>
-                    {planOptions.map(p => <option key={p} value={p}>{p}</option>)}
-                </select>
                 <button style={css.btn("primary")} onClick={() => setShow생성(true)}>+ 회원 추가</button>
                 {msg && <div style={{ fontSize: 12, color: msg.startsWith("✅") ? "#22c55e" : "#ef4444" }}>{msg}</div>}
             </div>
+
+            {/* 플랜별 구분 필터 탭 (전체/데모체험/Starter/Growth/Pro/Enterprise + 회원수) */}
+            <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
+                {(() => {
+                    const st = data?.stats || {};
+                    const sum = Object.values(st).reduce((a, b) => a + (Number(b) || 0), 0);
+                    const FILTERS = [
+                        { v: "", label: "전체", cnt: sum },
+                        { v: "demo", label: "데모체험", cnt: (Number(st.free) || 0) + (Number(st.demo) || 0) },
+                        { v: "starter", label: "Starter", cnt: Number(st.starter) || 0 },
+                        { v: "growth", label: "Growth", cnt: Number(st.growth) || 0 },
+                        { v: "pro", label: "Pro", cnt: Number(st.pro) || 0 },
+                        { v: "enterprise", label: "Enterprise", cnt: Number(st.enterprise) || 0 },
+                    ];
+                    return FILTERS.map(f => {
+                        const active = filterPlan === f.v;
+                        return (
+                            <button key={f.v || "all"} onClick={() => { setFilterPlan(f.v); setPage(1); }}
+                                style={{
+                                    padding: "7px 16px", borderRadius: 9, cursor: "pointer", fontSize: 12.5, fontWeight: 800,
+                                    border: active ? "2px solid #4f8ef7" : "1px solid rgba(99,140,255,0.2)",
+                                    background: active ? "rgba(79,142,247,0.14)" : "transparent",
+                                    color: active ? "#4f8ef7" : "var(--text-2)",
+                                }}>
+                                {f.label} <span style={{ opacity: 0.7, fontWeight: 600 }}>({f.cnt})</span>
+                            </button>
+                        );
+                    });
+                })()}
+            </div>
+
+            {/* [현 차수] 구독 만료 임박(30일) — 갱신권유·실시간 파악 */}
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16, flexWrap: "wrap", padding: "10px 14px", borderRadius: 12, background: expSummary.total > 0 ? "linear-gradient(135deg,rgba(245,158,11,0.1),rgba(239,68,68,0.06))" : "rgba(255,255,255,0.02)", border: "1px solid " + (expSummary.total > 0 ? "rgba(245,158,11,0.3)" : "rgba(255,255,255,0.08)") }}>
+                <span style={{ fontSize: 18 }}>⏰</span>
+                <div style={{ flex: 1, minWidth: 200 }}>
+                    <div style={{ fontSize: 13, fontWeight: 800, color: "var(--text-1)" }}>구독 만료 임박 (30일 이내) — 갱신권유 대상</div>
+                    <div style={{ fontSize: 11.5, color: "var(--text-3)", marginTop: 2 }}>
+                        총 <b style={{ color: "#f59e0b" }}>{expSummary.total}명</b> · 이미 만료 <b style={{ color: "#ef4444" }}>{expSummary.expired}</b> · 7일내 <b style={{ color: "#f97316" }}>{expSummary.within7}</b> · 30일내 <b style={{ color: "#eab308" }}>{expSummary.within30}</b>
+                    </div>
+                </div>
+                <button onClick={() => setExpiringView(v => !v)} style={{ padding: "8px 16px", borderRadius: 9, border: "none", cursor: "pointer", background: expiringView ? "#ef4444" : "linear-gradient(135deg,#f59e0b,#f97316)", color: "#fff", fontWeight: 800, fontSize: 12.5 }}>
+                    {expiringView ? "✕ 닫기" : "임박 회원 보기"}
+                </button>
+            </div>
+
+            {expiringView && (
+                <div style={{ ...css.card, padding: 0, overflow: "hidden", marginBottom: 16, borderColor: "rgba(245,158,11,0.3)" }}>
+                    <div style={{ padding: "10px 14px", fontWeight: 800, fontSize: 13, borderBottom: "1px solid rgba(255,255,255,0.06)" }}>⏰ 구독 만료 임박 회원 ({(expData?.users || []).length}명) — 갱신 권유</div>
+                    <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                        <thead><tr>{["회원", "플랜", "남은 일수", "구독 만료일", "연락처", "갱신 권유"].map(h => <th key={h} style={css.th}>{h}</th>)}</tr></thead>
+                        <tbody>
+                            {(expData?.users || []).length === 0 ? (
+                                <tr><td colSpan={6} style={{ ...css.td, textAlign: "center", color: "var(--text-3)", padding: 24 }}>30일 이내 만료 예정 회원이 없습니다.</td></tr>
+                            ) : (expData?.users || []).map(u => {
+                                const dl = u.days_left;
+                                const c = dl < 0 ? "#ef4444" : dl <= 7 ? "#f97316" : "#eab308";
+                                return (
+                                    <tr key={u.id} style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+                                        <td style={css.td}><div style={{ fontWeight: 700, color: "#fff" }}>{u.name}</div><div style={{ fontSize: 10, color: "var(--text-3)" }}>{u.email}</div></td>
+                                        <td style={css.td}><span style={css.badge(u.plan)}>{u.plan}</span></td>
+                                        <td style={css.td}><span style={{ fontSize: 12, fontWeight: 900, color: c }}>{dl < 0 ? `만료 ${-dl}일 경과` : `D-${dl}`}</span></td>
+                                        <td style={css.td}><span style={{ fontSize: 11, color: "var(--text-3)" }}>{u.subscription_expires_at ? String(u.subscription_expires_at).slice(0, 10) : "—"}</span></td>
+                                        <td style={css.td}><span style={{ fontSize: 11, color: "var(--text-3)" }}>{u.phone || "—"}</span></td>
+                                        <td style={css.td}>{u.email && <a href={`mailto:${u.email}?subject=${encodeURIComponent("[GeniegoROI] 구독 갱신 안내")}`} style={{ fontSize: 11, fontWeight: 700, color: "#4f8ef7", textDecoration: "none", padding: "4px 10px", borderRadius: 6, border: "1px solid rgba(79,142,247,0.3)" }}>✉ 갱신 안내</a>}</td>
+                                    </tr>
+                                );
+                            })}
+                        </tbody>
+                    </table>
+                </div>
+            )}
 
             {/* 생성 form */}
             {show생성 && (
@@ -209,14 +298,14 @@ function MembersTab() {
                 <table style={{ width: "100%", borderCollapse: "collapse" }}>
                     <thead>
                         <tr>
-                            {["ID", "Name/Email", "회사", "플랜", "Status", "Join Date", "마지막 로그인", "Action"].map(h => (
+                            {["ID", "Name/Email", "회사", "플랜", "구독상태", "구독만료", "쿠폰사용일", "활성", "가입일", "Action"].map(h => (
                                 <th key={h} style={css.th}>{h}</th>
                             ))}
                         </tr>
                     </thead>
                     <tbody>
                         {loading ? (
-                            <tr><td colSpan={8} style={{ ...css.td, textAlign: "center", color: "var(--text-3)", padding: 30 }}>로딩 중...</td></tr>
+                            <tr><td colSpan={10} style={{ ...css.td, textAlign: "center", color: "var(--text-3)", padding: 30 }}>로딩 중...</td></tr>
                         ) : (data?.users || []).map(u => (
                             <tr key={u.id} style={{ cursor: "pointer" }} onClick={() => { setSelected(selected?.id === u.id ? null : u); setPlanEdit(u.plan); }}>
                                 <td style={css.td}><span style={{ color: "var(--text-3)", fontSize: 11 }}>#{u.id}</span></td>
@@ -226,13 +315,15 @@ function MembersTab() {
                                 </td>
                                 <td style={css.td}><span style={{ fontSize: 11, color: 'var(--text-3)' }}>{u.company || "—"}</span></td>
                                 <td style={css.td}><span style={css.badge(u.plan)}>{u.plan}</span></td>
+                                <td style={css.td}>{(() => { const s = subStatus(u); return <span style={{ fontSize: 10.5, fontWeight: 800, padding: "2px 8px", borderRadius: 6, background: s.color + "22", color: s.color, whiteSpace: "nowrap" }}>{s.label}</span>; })()}</td>
+                                <td style={css.td}><span style={{ fontSize: 11, color: 'var(--text-3)' }}>{u.subscription_expires_at ? String(u.subscription_expires_at).slice(0, 10) : "—"}</span></td>
+                                <td style={css.td}><span style={{ fontSize: 11, color: 'var(--text-3)' }}>{u.coupon_used_at ? String(u.coupon_used_at).slice(0, 10) : "—"}</span></td>
                                 <td style={css.td}>
                                     <span style={{ fontSize: 10, fontWeight: 700, color: u.is_active ? "#22c55e" : "#ef4444" }}>
                                         {u.is_active ? "활성" : "비활성"}
                                     </span>
                                 </td>
                                 <td style={css.td}><span style={{ fontSize: 11, color: 'var(--text-3)' }}>{u.created_at?.slice(0, 10)}</span></td>
-                                <td style={css.td}><span style={{ fontSize: 11, color: 'var(--text-3)' }}>{u.last_login?.slice(0, 10) || "—"}</span></td>
                                 <td style={css.td}>
                                     <div style={{ display: "flex", gap: 6 }}>
                                         <button style={{ ...css.btn(), padding: "4px 10px", fontSize: 11 }} onClick={e => { e.stopPropagation(); patch(`v423/admin/users/${u.id}/active`, { active: !u.is_active }); }}>
@@ -260,15 +351,27 @@ function MembersTab() {
                 <div style={{ ...css.card, borderColor: "rgba(79,142,247,0.3)", marginTop: 16 }}>
                     <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 16 }}>회원 상세 — {selected.name} ({selected.email})</div>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
-                        {/* Plan change */}
+                        {/* Plan grant (결제 없이 무료 부여) */}
                         <div>
-                            <label style={css.label}>플랜 변경</label>
+                            <label style={css.label}>구독 플랜 부여 (결제 없이 무료)</label>
                             <select style={css.input} value={planEdit} onChange={e => setPlanEdit(e.target.value)}>
                                 {planOptions.map(p => <option key={p} value={p}>{p}</option>)}
                             </select>
-                            <button style={{ ...css.btn("primary"), marginTop: 8, width: "100%" }} onClick={() => patch(`v423/admin/users/${selected.id}/plan`, { plan: planEdit })}>
-                                플랜 변경 저장
+                            <select style={{ ...css.input, marginTop: 6 }} value={grantMonths} onChange={e => setGrantMonths(e.target.value)}
+                                title="유료 플랜 부여 기간 (무기한=평생 무료). 체험 중인 회원은 체험 시작일 기준으로 산입됩니다.">
+                                <option value="0">기간: 무기한(평생 무료)</option>
+                                <option value="1">기간: 1개월 무료</option>
+                                <option value="3">기간: 3개월 무료</option>
+                                <option value="6">기간: 6개월 무료</option>
+                                <option value="12">기간: 12개월 무료</option>
+                            </select>
+                            <button style={{ ...css.btn("primary"), marginTop: 8, width: "100%" }}
+                                onClick={() => patch(`v423/admin/users/${selected.id}/plan`, { plan: planEdit, months: parseInt(grantMonths) || 0 })}>
+                                플랜 무료 부여
                             </button>
+                            <div style={{ fontSize: 10.5, color: "var(--text-3)", marginTop: 6, lineHeight: 1.5 }}>
+                                Starter/Growth/Pro/Enterprise 선택 시 결제 없이 무료 부여됩니다. free/demo 선택 시 무료 회원으로 전환.
+                            </div>
                         </div>
                         {/* PW reset */}
                         <div>

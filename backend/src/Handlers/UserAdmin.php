@@ -55,9 +55,15 @@ final class UserAdmin
         $where = ['1=1'];
         $args  = [];
 
-        if (!empty($params['plan'])) {
-            $where[] = 'plan = ?';
-            $args[]  = $params['plan'];
+        if (!empty($params['plan']) && $params['plan'] !== 'all') {
+            // [현 차수] 회원관리 카테고리 필터: 데모체험(=결제 전 무료 free + 데모 demo), 그 외는 정확 매칭.
+            $pf = strtolower(trim((string)$params['plan']));
+            if ($pf === 'demo' || $pf === 'trial') {
+                $where[] = "plan IN ('free','demo')";
+            } else {
+                $where[] = 'plan = ?';
+                $args[]  = $pf;
+            }
         }
         if (isset($params['active']) && $params['active'] !== '') {
             $where[] = 'is_active = ?';
@@ -95,10 +101,14 @@ final class UserAdmin
 
         // Users
         $stmt = $pdo->prepare(
-            "SELECT u.id, u.email, u.name, u.plan, u.company, u.is_active, u.created_at,
+            "SELECT u.id, u.email, u.name, u.plan, COALESCE(u.plans, u.plan) AS plans, u.company, u.is_active, u.created_at,
                     u.phone, u.extra_data,
+                    COALESCE(u.subscription_started_at,'') AS subscription_started_at,
+                    COALESCE(u.subscription_expires_at,'')  AS subscription_expires_at,
+                    COALESCE(u.subscription_cycle,'')        AS subscription_cycle,
                     ps.status AS paddle_status, ps.plan_name AS paddle_plan,
                     ps.next_bill_date, ps.currency, ps.unit_price,
+                    (SELECT MAX(fc.redeemed_at) FROM free_coupons fc WHERE fc.redeemed_by_user_id = u.id) AS coupon_used_at,
                     (SELECT MAX(s.created_at) FROM user_session s WHERE s.user_id = u.id) AS last_login
                FROM app_user u
                LEFT JOIN paddle_subscriptions ps ON ps.user_email = u.email
@@ -129,6 +139,48 @@ final class UserAdmin
             'pages' => (int)ceil($total / $limit),
             'stats' => $stats,
         ]);
+    }
+
+    // ── GET /v423/admin/users-expiring?days=30 — 구독 만료 임박 회원(갱신권유 대상) ──────────
+    public static function expiringSoon(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
+    {
+        if (!self::requireAdmin($req)) {
+            return self::json($res, ['ok' => false, 'error' => 'Admin access required'], 403);
+        }
+        $params = $req->getQueryParams();
+        $days = max(1, min(365, (int)($params['days'] ?? 30)));
+        $pdo = Db::pdo();
+        // 유료 플랜 + 만료일 보유 회원 전부 로드 → PHP에서 일수 계산(만료일 포맷 혼재 'T..Z'/'공백' 대응).
+        $stmt = $pdo->prepare(
+            "SELECT u.id, u.email, u.name, COALESCE(u.plans, u.plan) AS plan, u.company, u.phone, u.is_active,
+                    u.created_at, COALESCE(u.subscription_started_at,'') AS subscription_started_at,
+                    u.subscription_expires_at, COALESCE(u.subscription_cycle,'') AS subscription_cycle
+               FROM app_user u
+              WHERE u.subscription_expires_at IS NOT NULL AND u.subscription_expires_at <> ''
+                AND COALESCE(u.plans, u.plan) IN ('starter','growth','pro','enterprise')
+                AND u.is_active = 1"
+        );
+        $stmt->execute();
+        $now = time();
+        $rows = [];
+        foreach ($stmt->fetchAll(\PDO::FETCH_ASSOC) as $r) {
+            $expTs = strtotime((string)$r['subscription_expires_at']);
+            if (!$expTs) continue;
+            $daysLeft = (int)floor(($expTs - $now) / 86400);
+            if ($daysLeft <= $days) { // 임박(만료 지난 것 = 음수도 포함)
+                $r['days_left'] = $daysLeft;
+                $r['expired'] = $daysLeft < 0;
+                $rows[] = $r;
+            }
+        }
+        usort($rows, fn($a, $b) => $a['days_left'] <=> $b['days_left']);
+        $summary = ['within_days' => $days, 'total' => count($rows), 'expired' => 0, 'within7' => 0, 'within30' => 0];
+        foreach ($rows as $r) {
+            if ($r['days_left'] < 0) $summary['expired']++;
+            elseif ($r['days_left'] <= 7) $summary['within7']++;
+            elseif ($r['days_left'] <= 30) $summary['within30']++;
+        }
+        return self::json($res, ['ok' => true, 'users' => $rows, 'summary' => $summary]);
     }
 
     // ── GET /v423/admin/users/{id} ────────────────────────────────────────────
@@ -183,30 +235,62 @@ final class UserAdmin
             $body = json_decode((string)$req->getBody(), true) ?? [];
         }
 
-        $validPlans = ['pro' /*replaced demo*/, 'starter', 'pro', 'enterprise', 'admin'];
-        $plan = $body['plan'] ?? '';
+        // [현 차수] 관리자 무료 플랜 부여: 결제 없이 특정 회원에게 구독 플랜을 부여한다.
+        //   Starter/Growth/Pro/Enterprise 모두 지원(기존엔 growth/free/demo 누락 + plans 미갱신 버그).
+        $validPlans = ['free', 'demo', 'starter', 'growth', 'pro', 'enterprise', 'admin'];
+        $plan = strtolower(trim((string)($body['plan'] ?? '')));
         if (!in_array($plan, $validPlans, true)) {
             return self::json($res, ['ok' => false, 'error' => 'Invalid plan. Valid: ' . implode(', ', $validPlans)], 422);
         }
+        // 무료 부여 기간(개월). 0/미지정 = 무기한(평생 무료). free/demo/admin 은 만료 개념 없음.
+        $months = max(0, min(120, (int)($body['months'] ?? 0)));
+        $isPaidPlan = in_array($plan, ['starter', 'growth', 'pro', 'enterprise'], true);
 
         $pdo = Db::pdo();
-        $stmt = $pdo->prepare("SELECT id, email, name, plan FROM app_user WHERE id = ?");
+        $stmt = $pdo->prepare("SELECT id, email, name, plan, COALESCE(subscription_started_at,'') AS subscription_started_at, COALESCE(subscription_cycle,'') AS subscription_cycle FROM app_user WHERE id = ?");
         $stmt->execute([$id]);
         $user = $stmt->fetch(\PDO::FETCH_ASSOC);
         if (!$user) return self::json($res, ['ok' => false, 'error' => 'User not found'], 404);
 
         $oldPlan = $user['plan'];
-        $pdo->prepare("UPDATE app_user SET plan = ? WHERE id = ?")->execute([$plan, $id]);
+        $now = self::now();
+        // [현 차수] 체험(trial) 회원이면 무료 부여 만료를 '체험 시작일' 기준으로 계산해 이미 쓴 체험일을 산입.
+        $wasTrial = (($user['subscription_cycle'] ?? '') === 'trial') && !empty($user['subscription_started_at']);
+        // plan + plans 동시 갱신(로그인 effectivePlan = plans ?? plan 정합). 결제 없이 관리자 부여.
+        if ($isPaidPlan) {
+            if ($wasTrial && $months > 0) {
+                $startedAt = (string)$user['subscription_started_at'];                         // 체험 시작일 보존(산입)
+                $expiresAt = gmdate('Y-m-d\TH:i:s\Z', strtotime($startedAt) + $months * 30 * 24 * 3600);
+            } else {
+                $startedAt = $now;
+                $expiresAt = $months > 0 ? gmdate('Y-m-d\TH:i:s\Z', time() + $months * 30 * 24 * 3600) : null; // null = 무기한
+            }
+            $cycle     = 'admin_grant'; // 관리자 무료 부여 마커(결제 구독과 구분)
+        } else {
+            $startedAt = ($plan === 'admin') ? $now : null;
+            $expiresAt = null; // free/demo/admin = 만료 없음
+            $cycle     = '';
+        }
+        try {
+            $pdo->prepare("UPDATE app_user SET plan = ?, plans = ?, subscription_started_at = ?, subscription_expires_at = ?, subscription_cycle = ? WHERE id = ?")
+                ->execute([$plan, $plan, $startedAt, $expiresAt, $cycle, $id]);
+        } catch (\Throwable $e) {
+            // subscription_* 컬럼 미존재 스키마 폴백 — plan/plans 만이라도 갱신
+            try { $pdo->prepare("UPDATE app_user SET plan = ?, plans = ? WHERE id = ?")->execute([$plan, $plan, $id]); }
+            catch (\Throwable $e2) { $pdo->prepare("UPDATE app_user SET plan = ? WHERE id = ?")->execute([$plan, $id]); }
+        }
 
-        // Audit log
-        self::auditLog($admin, "plan_change", "user#{$id} {$user['email']}: $oldPlan → $plan");
+        $grantDesc = $isPaidPlan ? (' (무료부여 ' . ($months > 0 ? "{$months}개월" : '무기한') . ')') : '';
+        self::auditLog($admin, "plan_grant", "user#{$id} {$user['email']}: $oldPlan → $plan" . $grantDesc);
 
         return self::json($res, [
-            'ok'      => true,
-            'user_id' => $id,
-            'old_plan'=> $oldPlan,
-            'new_plan'=> $plan,
-            'message' => "Plan updated: $oldPlan → $plan",
+            'ok'         => true,
+            'user_id'    => $id,
+            'old_plan'   => $oldPlan,
+            'new_plan'   => $plan,
+            'expires_at' => $expiresAt,
+            'granted_free' => $isPaidPlan,
+            'message'    => "플랜 변경: $oldPlan → $plan" . $grantDesc,
         ]);
     }
 

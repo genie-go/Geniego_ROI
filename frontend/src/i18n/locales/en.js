@@ -7539,6 +7539,8 @@ export default {
       automation: "Automation & AI Rules",
       data: "Data & Collection",
       finance: "Finance & Settlement",
+      marketingMixLabel: "Marketing Mix Model",
+      paymentMethodsLabel: "Payment Methods",
       memberTools: "Member Tools",
       adminSystem: "System Admin",
       platformEnvLabel: "Platform Environment",

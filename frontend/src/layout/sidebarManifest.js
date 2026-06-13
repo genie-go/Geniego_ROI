@@ -50,6 +50,7 @@ export const MEMBER_MENU = [
       { to: "/budget-tracker",          icon: "💰", labelKey: "gNav.budgetTrackerLabel",      menuKey: "marketing" },
       { to: "/account-performance",     icon: "🏢", labelKey: "gNav.accountPerformanceLabel", menuKey: "marketing" },
       { to: "/attribution",             icon: "🔗", labelKey: "gNav.attributionLabel",        menuKey: "marketing" },
+      { to: "/marketing-mix",           icon: "📐", labelKey: "gNav.marketingMixLabel",      menuKey: "marketing" },
       { to: "/channel-kpi",             icon: "📊", labelKey: "gNav.channelKpiLabel",         menuKey: "marketing" },
       { to: "/graph-score",             icon: "🕸️", labelKey: "gNav.graphScoreLabel",         menuKey: "marketing" },
     ],
@@ -129,7 +130,8 @@ export const MEMBER_MENU = [
     items: [
       { to: "/settlements",    icon: "📋", labelKey: "gNav.settlementsLabel",    menuKey: "billing" },
       { to: "/reconciliation", icon: "💰", labelKey: "gNav.reconciliationLabel", menuKey: "billing" },
-      { to: "/app-pricing",    icon: "💳", labelKey: "gNav.pricingLabel",        menuKey: "billing" },
+      { to: "/payment-methods",icon: "💳", labelKey: "gNav.paymentMethodsLabel", menuKey: "billing" },
+      { to: "/app-pricing",    icon: "🧾", labelKey: "gNav.pricingLabel",        menuKey: "billing" },
       { to: "/audit",          icon: "🧾", labelKey: "gNav.auditLogLabel",       menuKey: "billing" },
     ],
   },

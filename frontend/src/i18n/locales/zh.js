@@ -3001,6 +3001,8 @@ export default {
     "automation": "自动化·AI规则",
     "data": "数据·采集",
     "finance": "财务·结算",
+    "marketingMixLabel": "营销组合模型",
+    "paymentMethodsLabel": "支付方式",
     "memberTools": "成员工具",
     "adminSystem": "系统管理",
     "dashboard": "仪表盘",

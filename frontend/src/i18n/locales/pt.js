@@ -2232,6 +2232,8 @@ export default {
       dataTrust: "Data Trust Center",
       mappingRegistry: "Registro de mapeamentos",
       finance: "Finanças e liquidação",
+      marketingMixLabel: "Modelo de Mix de Marketing",
+      paymentMethodsLabel: "Métodos de pagamento",
       settlements: "Liquidações",
       reconciliation: "Conciliação",
       pricing: "Plans & Pricing",

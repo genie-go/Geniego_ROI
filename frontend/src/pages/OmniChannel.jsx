@@ -813,7 +813,9 @@ function OmniChannelInner() {
         }
         setStatus(data);
         setLoading(false);
-    }, [hubChannels]);
+        // [현 차수] globalData.orders 의존성 추가: 주문 변동(데모 placeOrder/운영 폴링) 시 채널별 매출/주문 표 재계산
+        //   (기존 [hubChannels]만이라 주문 변동 후 정체). 데모=buildDemoOmniStatus 재파생, 운영=status 재조회.
+    }, [hubChannels, globalData.orders]);
 
     useEffect(() => { loadStatus(); }, [loadStatus]);
 

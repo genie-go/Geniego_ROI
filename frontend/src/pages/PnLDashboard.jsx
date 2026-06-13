@@ -6,6 +6,8 @@ import { useConnectorSync } from '../context/ConnectorSyncContext.jsx';
 import { useNavigate } from 'react-router-dom';
 import { useI18n } from '../i18n';
 import { useCurrency } from '../contexts/CurrencyContext.jsx';
+import { useAuth } from '../auth/AuthContext.jsx'; // [현 차수] 플랜별 탭 노출
+import { tabAllowedByPlan } from '../auth/tabPlanPolicy.js';
 
 /* ─── Security Engine ──────────────────── */
 const SEC_PATTERNS = [
@@ -479,6 +481,9 @@ export default function PnLDashboard() {
     const { fmt } = useCurrency();
     const navigate = useNavigate();
     const { pnlStats, settlementStats, budgetStats, orderStats, totalInventoryValue, lowStockCount, addAlert, isDemo } = useGlobalData();
+    const { user, isAdmin } = useAuth(); // [현 차수] 구독플랜별 탭 노출(데모/관리자/Enterprise 전체)
+    const _plan = (user && (user.plans || user.plan)) || 'free';
+    const _tabVisible = (id) => (isDemo || isAdmin) ? true : tabAllowedByPlan(_plan, 'pnl', id);
 
     const [tab, setTab] = useState('overview');
     useSubtabPaintFix(tab);
@@ -614,7 +619,7 @@ export default function PnLDashboard() {
 
             {/* Tab Bar */}
             <div className="gx-subtab-bar" style={{ display: 'flex', gap: 2, background: 'var(--surface)', padding: '4px 4px 0', borderRadius: '12px 12px 0 0', border: '1px solid rgba(99,140,255,0.06)', borderBottom: 'none' }}>
-                {TABS.map(tb => (
+                {TABS.filter(tb => _tabVisible(tb.id)).map(tb => (
                     <button key={tb.id} className={tab === tb.id ? "gx-on" : ""} onClick={() => setTab(tb.id)} style={{
                         flex: 1, padding: '10px 8px', border: 'none', cursor: 'pointer', textAlign: 'center', borderRadius: '8px 8px 0 0',
                         background: tab === tb.id ? 'rgba(79,142,247,0.1)' : 'transparent',

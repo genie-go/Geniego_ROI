@@ -17,6 +17,7 @@ const overlay = {
   display: "flex", alignItems: "center", justifyContent: "center", padding: 20, overflowY: "auto",
 };
 const card = {
+  position: "relative",
   width: "min(520px,96vw)", background: "var(--surface,#0f1830)", border: "1px solid rgba(79,142,247,0.3)",
   borderRadius: 18, padding: 30, boxShadow: "0 24px 64px rgba(0,0,0,0.6)", color: "#e2e8f0",
 };
@@ -37,7 +38,7 @@ const METHODS = [
   { id: "totp",  icon: "🔑", labelKey: "mfaGate.mTotp",  label: "인증 앱(TOTP)", descKey: "mfaGate.mTotpDesc", desc: "Google Authenticator 등 인증 앱을 사용합니다." },
 ];
 
-function MfaEnrollGate({ onDone }) {
+function MfaEnrollGate({ onDone, onClose }) {
   const { token } = useAuth();
   const t = useT();
   const [stage, setStage] = useState("choose"); // choose | verify | done
@@ -123,9 +124,11 @@ function MfaEnrollGate({ onDone }) {
   if (stage === "choose") {
     return (
       <div style={overlay}><div style={card}>
-        <div style={{ fontSize: 20, fontWeight: 900, marginBottom: 6 }}>🔐 {t("mfaGate.title", "관리자 2단계 인증 필수 설정")}</div>
+        {onClose && <button type="button" onClick={onClose} aria-label="close"
+          style={{ position: "absolute", top: 14, right: 16, background: "none", border: "none", color: "#94a3b8", fontSize: 22, cursor: "pointer", lineHeight: 1 }}>×</button>}
+        <div style={{ fontSize: 20, fontWeight: 900, marginBottom: 6 }}>🔐 {t("mfaGate.title2", "관리자 2단계 인증 설정")}</div>
         <div style={{ fontSize: 13, color: "var(--text-3,#94a3b8)", lineHeight: 1.7, marginBottom: 18 }}>
-          {t("mfaGate.chooseDesc", "보안 정책에 따라 관리자 계정은 2단계 인증이 필수입니다. 인증 방식을 선택하세요.")}
+          {t("mfaGate.chooseDesc2", "관리자 계정 보안을 위해 2단계 인증 설정을 권장합니다. 인증 방식을 선택하세요.")}
         </div>
         <div style={{ display: "grid", gap: 10 }}>
           {METHODS.map(m => {
@@ -147,9 +150,9 @@ function MfaEnrollGate({ onDone }) {
         {err && <div style={{ color: "#f87171", fontSize: 12, marginTop: 12 }}>{err}</div>}
         {/* 196차: 발송 인프라(SMTP 등) 준비 전 강제 enroll 락아웃 방지 — 7일 유예 후 재안내.
             207차: 회색 밑줄 텍스트(하단 접힘)라 놓치기 쉬워 admin 진입이 막히던 것 → 명확한 버튼으로 부각. */}
-        <button type="button" onClick={() => { try { localStorage.setItem("genie_mfa_defer", String(Date.now() + 7 * 24 * 3600 * 1000)); } catch (e) {} onDone && onDone(); }}
+        <button type="button" onClick={() => { if (onClose) onClose(); else { try { localStorage.setItem("genie_mfa_defer", String(Date.now() + 7 * 24 * 3600 * 1000)); } catch (e) {} onDone && onDone(); } }}
           style={{ width: "100%", marginTop: 18, padding: "12px 0", borderRadius: 10, background: "rgba(79,142,247,0.12)", border: "1px solid rgba(79,142,247,0.4)", color: "#bfdbfe", fontSize: 13, fontWeight: 800, cursor: "pointer" }}>
-          {t("mfaGate.deferLater", "나중에 설정하기 — 지금 관리자 화면으로 들어가기")}
+          {t("mfaGate.deferLater2", "나중에 설정하기")}
         </button>
       </div></div>
     );
@@ -159,6 +162,8 @@ function MfaEnrollGate({ onDone }) {
   const mLabel = (METHODS.find(m => m.id === method) || {});
   return (
     <div style={overlay}><div style={card}>
+      {onClose && <button type="button" onClick={onClose} aria-label="close"
+        style={{ position: "absolute", top: 14, right: 16, background: "none", border: "none", color: "#94a3b8", fontSize: 22, cursor: "pointer", lineHeight: 1 }}>×</button>}
       <div style={{ fontSize: 20, fontWeight: 900, marginBottom: 6 }}>🔐 {t(mLabel.labelKey, mLabel.label || "2단계 인증")}</div>
       <button type="button" onClick={() => { setStage("choose"); setErr(""); setInfo(""); setMethod(""); setSecret(""); setCode(""); }}
         style={{ background: "none", border: "none", color: "#94a3b8", fontSize: 11, cursor: "pointer", padding: 0, marginBottom: 14 }}>← {t("mfaGate.changeMethod", "인증 방식 변경")}</button>
@@ -203,16 +208,14 @@ function MfaEnrollGate({ onDone }) {
 
 export default function AdminMfaGate({ children }) {
   const { user, token } = useAuth();
+  const t = useT();
   const [state, setState] = useState("checking"); // checking | ok | need
+  const [showEnroll, setShowEnroll] = useState(false);
+  const [bannerHidden, setBannerHidden] = useState(false);
 
   useEffect(() => {
     let alive = true;
     if (!user || user.plan !== "admin" || !token) { setState("ok"); return; }
-    // 196차: '나중에 설정' 유예 기간 내면 게이트 건너뜀(발송 인프라 준비 전 락아웃 방지).
-    try {
-      const until = Number(localStorage.getItem("genie_mfa_defer") || 0);
-      if (until && Date.now() < until) { setState("ok"); return; }
-    } catch (e) {}
     fetch("/api/auth/mfa/status", { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.json()).catch(() => ({}))
       .then(d => { if (alive) setState(d && d.ok && d.enabled ? "ok" : "need"); });
@@ -220,6 +223,35 @@ export default function AdminMfaGate({ children }) {
   }, [user, token]);
 
   if (state === "checking") return null;
-  if (state === "need") return <MfaEnrollGate onDone={() => setState("ok")} />;
-  return children;
+  if (state === "ok") return children;
+
+  // [현 차수] 비차단화: admin MFA 미설정이어도 전체화면으로 막지 않는다(plan-pricing 등 admin
+  //   화면이 주기적으로 사라지던 문제 해소). admin 화면은 그대로 노출하고, 상단에 보안 리마인더
+  //   배너 + (선택) 설정 모달만 제공한다. 설정 완료 시 게이트 통과.
+  return (
+    <>
+      {!bannerHidden && (
+        <div style={{
+          position: "sticky", top: 0, zIndex: 3500, display: "flex", alignItems: "center", gap: 12,
+          padding: "10px 18px", background: "linear-gradient(135deg,#1e293b,#0f172a)",
+          borderBottom: "1px solid rgba(79,142,247,0.35)", color: "#e2e8f0", flexWrap: "wrap",
+        }}>
+          <span style={{ fontSize: 16 }}>🔐</span>
+          <span style={{ fontSize: 12.5, fontWeight: 700, flex: 1, minWidth: 200 }}>
+            {t("mfaGate.reminderText", "관리자 계정 보안 강화를 위해 2단계 인증(MFA) 설정을 권장합니다. 지금 설정하면 더 안전하게 보호됩니다.")}
+          </span>
+          <button onClick={() => setShowEnroll(true)} style={{
+            padding: "7px 16px", borderRadius: 8, border: "none", cursor: "pointer",
+            background: "linear-gradient(135deg,#4f8ef7,#6366f1)", color: "#fff", fontWeight: 800, fontSize: 12, whiteSpace: "nowrap",
+          }}>{t("mfaGate.setupNow", "지금 설정")}</button>
+          <button onClick={() => setBannerHidden(true)} style={{
+            padding: "7px 12px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.18)", cursor: "pointer",
+            background: "transparent", color: "#94a3b8", fontWeight: 700, fontSize: 12, whiteSpace: "nowrap",
+          }}>{t("mfaGate.dismiss", "나중에")}</button>
+        </div>
+      )}
+      {children}
+      {showEnroll && <MfaEnrollGate onDone={() => { setShowEnroll(false); setState("ok"); }} onClose={() => setShowEnroll(false)} />}
+    </>
+  );
 }

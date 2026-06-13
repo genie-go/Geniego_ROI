@@ -156,10 +156,18 @@ function PlanPricing() {
     } catch (e) {
       const msg = String(e?.message || e);
       const is401 = /HTTP 401|AUTH_REQUIRED|SESSION_EXPIRED|인증이 필요|세션이 만료/.test(msg);
+      // [현 차수] 서버가 명시적으로 토큰 무효를 판정한 경우(SESSION_EXPIRED/AUTH_REQUIRED) =
+      //   localStorage 에 남은 '죽은 토큰'. 이때는 토큰이 있어도 무한 '일시적 오류'로 가두지 말고
+      //   재로그인(authLost) 으로 안내한다. (admin 이 만료 토큰으로 plan-pricing 에 영구 갇히던 버그 수정.)
+      const sessionDead = /SESSION_EXPIRED|AUTH_REQUIRED|세션이 만료|인증이 필요/.test(msg);
       if (is401) {
         let tok = null; try { tok = localStorage.getItem('genie_token'); } catch {}
-        // 187차: 토큰이 있으면 세션은 살아있을 가능성 → 일시적 401로 보고 자동 재시도(최대 4회).
-        //   토큰 자체가 없을 때만(진짜 로그아웃) 재로그인 안내.
+        if (sessionDead) {
+          // 진짜 일시적(네트워크 순단)일 수도 있으니 1회만 재시도 후, 지속되면 재로그인 안내.
+          if (authRetryRef.current < 1) { authRetryRef.current++; setTimeout(() => fetchPlans(), 700); return; }
+          setAuthLost(true); setPlans([]); return;
+        }
+        // 그 외 401(코드 없는 순간 거부)은 토큰이 있으면 일시적으로 보고 자동 재시도(최대 4회).
         if (tok && authRetryRef.current < 4) {
           authRetryRef.current++;
           setTimeout(() => fetchPlans(), 700);
@@ -1689,8 +1697,57 @@ function CouponAdminPanel({ plans }) {
     plan: 'starter', duration_days: 30, max_uses: 1, issued_to_email: '', note: '', quantity: 1,
   });
   const [issueResult, setIssueResult] = useState(null);
-  const [listFilter, setListFilter] = useState({ status: 'all', q: '' });
+  const [listFilter, setListFilter] = useState({ status: 'all', q: '', from: '', to: '', period: 'all' });
   const [listRows, setListRows] = useState([]);
+  const [listSummary, setListSummary] = useState(null); // [현 차수] 기간별 발급현황 요약
+  // [현 차수] 회원 검색·선택 + 결재없이 무료 부여
+  const [memberQ, setMemberQ] = useState('');
+  const [memberResults, setMemberResults] = useState([]);
+  const [memberSearching, setMemberSearching] = useState(false);
+  const [selMember, setSelMember] = useState(null);
+  const [grantPlan, setGrantPlan] = useState('pro');
+  const [grantMonths, setGrantMonths] = useState('0'); // 0=무기한
+  const [grantBusy, setGrantBusy] = useState(false);
+  const [grantMsg, setGrantMsg] = useState(null);
+
+  const searchMembers = useCallback(async (q) => {
+    const term = (q ?? '').trim();
+    if (term.length < 1) { setMemberResults([]); return; }
+    setMemberSearching(true);
+    try {
+      const d = await getJsonAuth(`/v423/admin/users?q=${encodeURIComponent(term)}&limit=10`);
+      setMemberResults(Array.isArray(d?.users) ? d.users : []);
+    } catch (e) { setMemberResults([]); }
+    finally { setMemberSearching(false); }
+  }, []);
+
+  const grantFreePlan = useCallback(async () => {
+    if (!selMember) return;
+    setGrantBusy(true); setGrantMsg(null);
+    try {
+      const months = parseInt(grantMonths) || 0;
+      const r = await requestJsonAuth(`/v423/admin/users/${selMember.id}/plan`, 'PATCH', { plan: grantPlan, months });
+      if (r?.ok) {
+        const dur = months > 0 ? `${months}개월` : '무기한(평생)';
+        setGrantMsg({ ok: true, text: `✅ ${selMember.email} → ${grantPlan} 무료 부여 완료 (${dur}, 결제 없음)` });
+        // 선택 회원 정보 갱신
+        setSelMember(m => m ? { ...m, plan: grantPlan } : m);
+      } else { setGrantMsg({ ok: false, text: `❌ ${r?.error || '부여 실패'}` }); }
+    } catch (e) { setGrantMsg({ ok: false, text: `❌ ${String(e?.message || e)}` }); }
+    finally { setGrantBusy(false); }
+  }, [selMember, grantPlan, grantMonths]);
+
+  // [현 차수] 기간별 발급현황 — 빠른 기간 버튼(오늘/7일/30일/이번달/전체) → from/to 계산
+  const applyPeriod = useCallback((p) => {
+    const fmt = (d) => d.toISOString().slice(0, 10);
+    const now = new Date();
+    let from = '', to = '';
+    if (p === 'today') { from = fmt(now); to = fmt(now); }
+    else if (p === '7d') { const d = new Date(now); d.setDate(d.getDate() - 6); from = fmt(d); to = fmt(now); }
+    else if (p === '30d') { const d = new Date(now); d.setDate(d.getDate() - 29); from = fmt(d); to = fmt(now); }
+    else if (p === 'month') { from = fmt(new Date(now.getFullYear(), now.getMonth(), 1)); to = fmt(now); }
+    setListFilter(f => ({ ...f, period: p, from, to }));
+  }, []);
 
   const planOptions = plans.length > 0
     ? plans.map(p => ({ id: p.plan_id, name: p.name }))
@@ -1709,9 +1766,13 @@ function CouponAdminPanel({ plans }) {
 
   const fetchList = useCallback(async () => {
     try {
-      const q = new URLSearchParams({ status: listFilter.status, q: listFilter.q, limit: '100' });
+      const params = { status: listFilter.status, q: listFilter.q, limit: '300' };
+      if (listFilter.from) params.from = listFilter.from;
+      if (listFilter.to) params.to = listFilter.to;
+      const q = new URLSearchParams(params);
       const d = await getJsonAuth(`/v424/admin/coupons/list?${q}`);
       setListRows(d?.coupons || []);
+      setListSummary(d?.summary || null);
     } catch {}
   }, [listFilter]);
 
@@ -1818,6 +1879,68 @@ function CouponAdminPanel({ plans }) {
         </div>
       </div>
 
+      {/* [현 차수] 회원 검색·선택 + 결재없이 무료 부여 (쿠폰 redeem 불필요, 즉시 적용) */}
+      <div style={{ padding: '14px 16px', borderRadius: 12, marginBottom: 14, background: 'rgba(79,70,229,0.06)', border: '1.5px solid rgba(79,70,229,0.28)' }}>
+        <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--text-1)', marginBottom: 4 }}>🎁 회원 직접 무료 부여 (결재 없이 즉시 적용)</div>
+        <div style={{ fontSize: 12, color: 'var(--text-3)', marginBottom: 12 }}>회원을 검색·선택한 뒤 구독 플랜을 결제 없이 무료로 부여합니다. 쿠폰 등록 절차 없이 즉시 반영됩니다. (체험 중인 회원은 체험 시작일 기준 산입)</div>
+        <div style={{ display: 'flex', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
+          <input value={memberQ} onChange={e => setMemberQ(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); searchMembers(memberQ); } }}
+            placeholder="회원 이메일 / 이름 / 회사 검색…" style={{ ...inputS, flex: 1, minWidth: 220 }} />
+          <button type="button" onClick={() => searchMembers(memberQ)} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: '#4f46e5', color: '#fff', fontSize: 13, fontWeight: 800, cursor: 'pointer' }}>
+            {memberSearching ? '검색 중…' : '🔍 회원 검색'}
+          </button>
+        </div>
+        {memberResults.length > 0 && !selMember && (
+          <div style={{ display: 'grid', gap: 6, marginBottom: 10, maxHeight: 220, overflowY: 'auto' }}>
+            {memberResults.map(m => (
+              <button key={m.id} type="button" onClick={() => { setSelMember(m); setIssueForm(f => ({ ...f, issued_to_email: m.email })); setGrantMsg(null); }}
+                style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', borderRadius: 8, border: '1px solid #e2e8f0', background: '#fff', cursor: 'pointer', textAlign: 'left' }}>
+                <span style={{ fontWeight: 700, fontSize: 13, color: '#1e293b' }}>{m.name || '(이름없음)'}</span>
+                <span style={{ fontSize: 11, color: '#64748b' }}>{m.email}</span>
+                <span style={{ marginLeft: 'auto', fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 99, background: 'rgba(99,102,241,0.12)', color: '#6366f1' }}>{m.plan}</span>
+              </button>
+            ))}
+          </div>
+        )}
+        {memberResults.length === 0 && memberQ && !memberSearching && !selMember && (
+          <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 10 }}>검색 결과가 없습니다.</div>
+        )}
+        {selMember && (
+          <div style={{ padding: '12px 14px', borderRadius: 10, background: '#fff', border: '1px solid #c7d2fe' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10, flexWrap: 'wrap' }}>
+              <span style={{ fontWeight: 800, fontSize: 13, color: '#1e293b' }}>{selMember.name}</span>
+              <span style={{ fontSize: 12, color: '#64748b' }}>{selMember.email}</span>
+              <span style={{ fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 99, background: 'rgba(99,102,241,0.12)', color: '#6366f1' }}>현재: {selMember.plan}</span>
+              <button type="button" onClick={() => { setSelMember(null); setGrantMsg(null); }} style={{ marginLeft: 'auto', fontSize: 11, color: '#94a3b8', background: 'none', border: 'none', cursor: 'pointer' }}>✕ 선택 해제</button>
+            </div>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'end', flexWrap: 'wrap' }}>
+              <div>
+                <div style={{ fontSize: 10, color: 'var(--text-3)', marginBottom: 2, fontWeight: 700 }}>부여 플랜</div>
+                <select value={grantPlan} onChange={e => setGrantPlan(e.target.value)} style={inputS}>
+                  {planOptions.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                  <option value="free">free (무료회원 전환)</option>
+                </select>
+              </div>
+              <div>
+                <div style={{ fontSize: 10, color: 'var(--text-3)', marginBottom: 2, fontWeight: 700 }}>무료 기간</div>
+                <select value={grantMonths} onChange={e => setGrantMonths(e.target.value)} style={inputS}>
+                  <option value="0">무기한(평생)</option>
+                  <option value="1">1개월</option>
+                  <option value="3">3개월</option>
+                  <option value="6">6개월</option>
+                  <option value="12">12개월</option>
+                </select>
+              </div>
+              <button type="button" onClick={grantFreePlan} disabled={grantBusy} style={{ padding: '10px 18px', borderRadius: 8, border: 'none', background: grantBusy ? '#cbd5e1' : 'linear-gradient(135deg,#4f46e5,#7c3aed)', color: '#fff', fontSize: 13, fontWeight: 900, cursor: grantBusy ? 'default' : 'pointer', height: 38 }}>
+                {grantBusy ? '처리 중…' : '🎁 결재없이 무료 부여'}
+              </button>
+              <span style={{ fontSize: 11, color: '#94a3b8' }}>또는 아래 쿠폰 발급에 이 회원 이메일이 자동 입력됩니다</span>
+            </div>
+            {grantMsg && <div style={{ marginTop: 10, fontSize: 12, fontWeight: 700, color: grantMsg.ok ? '#16a34a' : '#ef4444' }}>{grantMsg.text}</div>}
+          </div>
+        )}
+      </div>
+
       {/* ③ 수동 발급 폼 */}
       <form onSubmit={handleIssue} style={{
         padding: '14px 16px', borderRadius: 12,
@@ -1886,10 +2009,10 @@ function CouponAdminPanel({ plans }) {
         )}
       </form>
 
-      {/* ④ 발급 목록 */}
+      {/* ④ 발급 목록 — 기간별 발급현황·상태 */}
       <div style={{ padding: '14px 16px', borderRadius: 12, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12, flexWrap: 'wrap' }}>
-          <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--text-1)' }}>📋 발급 목록</div>
+          <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--text-1)' }}>📋 기간별 무료쿠폰 발급현황</div>
           <div style={{ display: 'flex', gap: 6 }}>
             {[
               { id: 'all',      label: '전체' },
@@ -1914,6 +2037,47 @@ function CouponAdminPanel({ plans }) {
             fontSize: 11, fontWeight: 700, cursor: 'pointer',
           }}>🔄 새로고침</button>
         </div>
+
+        {/* [현 차수] 기간 필터 + 발급현황 요약 */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
+          <span style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 700 }}>기간</span>
+          {[
+            { id: 'all', label: '전체' },
+            { id: 'today', label: '오늘' },
+            { id: '7d', label: '최근 7일' },
+            { id: '30d', label: '최근 30일' },
+            { id: 'month', label: '이번 달' },
+          ].map(p => (
+            <button key={p.id} type="button" onClick={() => applyPeriod(p.id)} style={{
+              padding: '4px 10px', borderRadius: 6, border: '1px solid rgba(255,255,255,0.1)',
+              background: listFilter.period === p.id ? '#0f766e' : 'transparent',
+              color: listFilter.period === p.id ? '#5eead4' : 'var(--text-2)',
+              fontSize: 11, fontWeight: 700, cursor: 'pointer',
+            }}>{p.label}</button>
+          ))}
+          <input type="date" value={listFilter.from} onChange={e => setListFilter(f => ({ ...f, from: e.target.value, period: 'custom' }))}
+            style={{ ...inputS, width: 140, padding: '5px 8px', fontSize: 11 }} />
+          <span style={{ fontSize: 11, color: 'var(--text-3)' }}>~</span>
+          <input type="date" value={listFilter.to} onChange={e => setListFilter(f => ({ ...f, to: e.target.value, period: 'custom' }))}
+            style={{ ...inputS, width: 140, padding: '5px 8px', fontSize: 11 }} />
+        </div>
+
+        {listSummary && (
+          <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+            {[
+              { label: '발급', value: listSummary.total, c: '#4f46e5' },
+              { label: '활성', value: listSummary.active, c: '#16a34a' },
+              { label: '사용완료', value: listSummary.redeemed, c: '#d97706' },
+              { label: '만료', value: listSummary.expired, c: '#64748b' },
+              { label: '취소', value: listSummary.revoked, c: '#dc2626' },
+            ].map(s => (
+              <div key={s.label} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '5px 12px', borderRadius: 8, background: s.c + '18', border: '1px solid ' + s.c + '33' }}>
+                <span style={{ fontSize: 11, color: 'var(--text-2)', fontWeight: 700 }}>{s.label}</span>
+                <span style={{ fontSize: 14, fontWeight: 900, color: s.c }}>{s.value}</span>
+              </div>
+            ))}
+          </div>
+        )}
         {listRows.length === 0 ? (
           <div style={{ padding: 20, textAlign: 'center', color: 'var(--text-3)', fontSize: 12, fontStyle: 'italic' }}>
             조건에 맞는 쿠폰 없음

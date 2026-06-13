@@ -2923,6 +2923,8 @@ export default {
       automation: "自動化·AI規則",
       data: "數據·採集",
       finance: "財務·結算",
+      marketingMixLabel: "行銷組合模型",
+      paymentMethodsLabel: "付款方式",
       memberTools: "成員工具",
       adminSystem: "系統管理",
       dashboard: "儀表板",

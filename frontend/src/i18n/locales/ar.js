@@ -2232,6 +2232,8 @@ export default {
       dataTrust: "Data Trust Center",
       mappingRegistry: "سجل التعيين",
       finance: "المالية والتسوية",
+      marketingMixLabel: "نموذج المزيج التسويقي",
+      paymentMethodsLabel: "طرق الدفع",
       settlements: "التسويات",
       reconciliation: "المطابقة",
       pricing: "Plans & Pricing",

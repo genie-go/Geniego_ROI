@@ -7456,6 +7456,8 @@ export default {
         dataTrust: "Datenvertrauenszentrum",
         mappingRegistry: "Mapping-Registry",
         finance: "Finanzen & Abrechnung",
+        marketingMixLabel: "Marketing-Mix-Modell",
+        paymentMethodsLabel: "Zahlungsmethoden",
         settlements: "Abrechnung",
         reconciliation: "Abgleich",
         pricing: "Tarife & Preise",

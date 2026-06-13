@@ -2232,6 +2232,8 @@ export default {
       dataTrust: "Data Trust Center",
       mappingRegistry: "मैपिंग रजिस्ट्री",
       finance: "वित्त एवं निपटान",
+      marketingMixLabel: "मार्केटिंग मिक्स मॉडल",
+      paymentMethodsLabel: "भुगतान के तरीके",
       settlements: "निपटान",
       reconciliation: "रिकंसिलिएशन",
       pricing: "Plans & Pricing",

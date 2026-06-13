@@ -1582,12 +1582,20 @@ final class Payment
 
     private static function applyCouponToUser(\PDO $pdo, int $userId, int $months, string $now): void
     {
-        $s=$pdo->prepare("SELECT subscription_expires_at,plan,plans FROM app_user WHERE id=?"); $s->execute([$userId]); $u=$s->fetch(\PDO::FETCH_ASSOC);
+        $s=$pdo->prepare("SELECT subscription_expires_at,subscription_started_at,subscription_cycle,plan,plans FROM app_user WHERE id=?"); $s->execute([$userId]); $u=$s->fetch(\PDO::FETCH_ASSOC);
         if(!$u) return;
-        $base=$u['subscription_expires_at']??$now; $baseTs=strtotime($base); if($baseTs<time()) $baseTs=time();
+        // [현 차수] 20일 체험 산입: 체험(trial) 회원은 무료기간을 '체험 시작일' 기준으로 계산해
+        //   이미 사용한 체험 일수를 전체 무료기간에 포함한다(3개월 무료 → 잔여 = 3개월 − 사용일).
+        $isTrial = (($u['subscription_cycle']??'')==='trial') && !empty($u['subscription_started_at']);
+        if ($isTrial) {
+            $baseTs = strtotime((string)$u['subscription_started_at']);
+        } else {
+            $base=$u['subscription_expires_at']??$now; $baseTs=strtotime($base); if($baseTs<time()) $baseTs=time();
+        }
         $newExp=gmdate('Y-m-d\TH:i:s\Z',strtotime("+{$months} months",$baseTs));
-        $plan=($u['plans']??$u['plan']??'pro'); if(false /*was demo*/) $plan='pro';
-        $pdo->prepare("UPDATE app_user SET subscription_expires_at=?,plans=?,plan=?,subscription_renewed_at=? WHERE id=?")->execute([$newExp,$plan,$plan,$now,$userId]);
+        $plan=($u['plans']??$u['plan']??'pro');
+        // cycle='coupon' 로 전환(체험 마커 해제 → 차기 무료부여 시 이중 산입 방지)
+        $pdo->prepare("UPDATE app_user SET subscription_expires_at=?,plans=?,plan=?,subscription_cycle='coupon',subscription_renewed_at=? WHERE id=?")->execute([$newExp,$plan,$plan,$now,$userId]);
     }
 
     // ── 관리자 인증 헬퍼 ──────────────────────────────────────────────────────

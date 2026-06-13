@@ -326,6 +326,10 @@ final class ChannelCreds
 
         $newId = (int)$pdo->lastInsertId();
 
+        // [현 차수] ③ 발급완료 신호: 이 채널의 발급 신청(pending/processing)이 있으면 자동 완료 처리.
+        //   사용자가 발급받은 키를 등록 = 발급 완료 → 신청 현황이 '완료'로 갱신된다.
+        self::markApplyCompleted($pdo, $tenant, $channel);
+
         // ── [현 차수 P0] 자격증명 저장 직후 백엔드 자동 동기화 트리거 ───────────────
         //   기존엔 프론트(ApiKeys.handleConnectSave)가 별도 POST 로만 sync 를 호출해,
         //   프로그래매틱/단일폼/API 직접 등록 경로는 cron(최대 5분)까지 미동기화였다.
@@ -848,5 +852,110 @@ final class ChannelCreds
                 ? "발급 신청이 접수되어 확인 메일을 보냈습니다 (티켓 {$ticketId}). 발급 후 등록 즉시 자동 연동됩니다."
                 : "발급 신청이 접수되었습니다 (티켓 {$ticketId}). 발급 후 등록 즉시 자동 연동됩니다.",
         ]);
+    }
+
+    /* ─────────────────── [현 차수] ③ 발급 신청 현황·완료 추적 ─────────────────── */
+
+    /** connector_apply_log 테이블/보조 컬럼(완료일·완료메모) 보장 — idempotent. */
+    private static function ensureApplyTable(\PDO $pdo): void
+    {
+        $isMy = (stripos((string)$pdo->getAttribute(\PDO::ATTR_DRIVER_NAME), 'mysql') !== false);
+        if ($isMy) {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS connector_apply_log (
+                id BIGINT AUTO_INCREMENT PRIMARY KEY, tenant_id VARCHAR(100), channel VARCHAR(60),
+                ticket_id VARCHAR(60), member_name VARCHAR(120), member_email VARCHAR(190),
+                business_number VARCHAR(60), phone VARCHAR(60), company VARCHAR(190),
+                status VARCHAR(20) DEFAULT 'pending', requested_at VARCHAR(40), created_at VARCHAR(40),
+                completed_at VARCHAR(40) NULL, completed_note VARCHAR(255) NULL, extra_json TEXT NULL,
+                INDEX idx_cal_tenant (tenant_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+        } else {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS connector_apply_log (
+                id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT, channel TEXT, ticket_id TEXT,
+                member_name TEXT, member_email TEXT, business_number TEXT, phone TEXT, company TEXT,
+                status TEXT DEFAULT 'pending', requested_at TEXT, created_at TEXT,
+                completed_at TEXT, completed_note TEXT, extra_json TEXT
+            )");
+        }
+        foreach (['completed_at' => 'VARCHAR(40)', 'completed_note' => 'VARCHAR(255)'] as $col => $type) {
+            try { $pdo->exec("ALTER TABLE connector_apply_log ADD COLUMN $col $type"); } catch (\Throwable $e) {}
+        }
+    }
+
+    /** GET /v423/connectors/apply/list — 본 테넌트 발급 신청 현황(상태 추적). 데모는 빈 목록. */
+    public static function applyList(Request $request, Response $response): Response
+    {
+        $tenant = self::tenantId($request);
+        if ($tenant === '' || $tenant === 'demo' || str_starts_with($tenant, 'demo')) {
+            return TemplateResponder::respond($response, ['ok' => true, 'demo' => true, 'applies' => []]);
+        }
+        try {
+            $pdo = Db::pdo();
+            self::ensureApplyTable($pdo);
+            $st = $pdo->prepare("SELECT channel, ticket_id, member_email, status, requested_at, completed_at, completed_note FROM connector_apply_log WHERE tenant_id=? ORDER BY id DESC LIMIT 100");
+            $st->execute([$tenant]);
+            return TemplateResponder::respond($response, ['ok' => true, 'applies' => $st->fetchAll(\PDO::FETCH_ASSOC) ?: []]);
+        } catch (\Throwable $e) {
+            return TemplateResponder::respond($response, ['ok' => true, 'applies' => []]);
+        }
+    }
+
+    /** POST /v423/connectors/apply/{ticket}/status — 관리자 발급 대행 처리 상태 갱신 + 신청자 통지. */
+    public static function applyStatus(Request $request, Response $response, array $args): Response
+    {
+        $gate = UserAuth::requirePlan($request, $response, 'admin'); // 관리자 전용
+        if ($gate !== null) return $gate;
+        $ticket = (string)($args['ticket'] ?? '');
+        $body = (array)($request->getParsedBody() ?? []);
+        if (empty($body)) { $d = json_decode((string)$request->getBody(), true); if (is_array($d)) $body = $d; }
+        $status = strtolower(trim((string)($body['status'] ?? '')));
+        $note   = mb_substr(trim((string)($body['note'] ?? '')), 0, 255);
+        if (!in_array($status, ['pending', 'processing', 'completed', 'rejected'], true)) {
+            return TemplateResponder::respond($response->withStatus(422), ['ok' => false, 'error' => 'invalid status']);
+        }
+        try {
+            $pdo = Db::pdo();
+            self::ensureApplyTable($pdo);
+            $row = $pdo->prepare("SELECT tenant_id, channel, member_email FROM connector_apply_log WHERE ticket_id=? LIMIT 1");
+            $row->execute([$ticket]);
+            $r = $row->fetch(\PDO::FETCH_ASSOC);
+            if (!$r) return TemplateResponder::respond($response->withStatus(404), ['ok' => false, 'error' => 'ticket not found']);
+            $completedAt = in_array($status, ['completed', 'rejected'], true) ? gmdate('c') : null;
+            $pdo->prepare("UPDATE connector_apply_log SET status=?, completed_at=?, completed_note=? WHERE ticket_id=?")
+                ->execute([$status, $completedAt, $note, $ticket]);
+            // 완료/거절 시 신청자 통지(발급완료 정보 수신).
+            $notified = false;
+            $email = (string)($r['member_email'] ?? '');
+            if ($email !== '' && filter_var($email, FILTER_VALIDATE_EMAIL) && in_array($status, ['completed', 'rejected'], true)) {
+                try {
+                    if (\Genie\Mailer::isConfigured($pdo)) {
+                        $chName = (string)$r['channel'];
+                        $isDone = ($status === 'completed');
+                        $subj = $isDone
+                            ? "[GenieGo ROI] {$chName} API 키 발급 완료 ({$ticket})"
+                            : "[GenieGo ROI] {$chName} API 키 발급 신청 안내 ({$ticket})";
+                        $noteHtml = $note !== '' ? "<p>안내: " . htmlspecialchars($note, ENT_QUOTES) . "</p>" : '';
+                        $bodyHtml = $isDone
+                            ? "<p>{$chName} 채널 API 키 발급이 <b>완료</b>되었습니다 (티켓 {$ticket}).</p><p>연동 허브에서 발급된 키를 등록하시면 즉시 자동으로 연동·동기화됩니다.</p>{$noteHtml}"
+                            : "<p>{$chName} 채널 API 키 발급 신청 건(티켓 {$ticket})에 대한 안내입니다.</p>{$noteHtml}";
+                        \Genie\Mailer::send($email, $subj, \Genie\Mailer::wrapHtml($subj, $bodyHtml), ['pdo' => $pdo, 'tenant' => (string)$r['tenant_id']]);
+                        $notified = true;
+                    }
+                } catch (\Throwable $e) {}
+            }
+            return TemplateResponder::respond($response, ['ok' => true, 'ticket' => $ticket, 'status' => $status, 'notified' => $notified]);
+        } catch (\Throwable $e) {
+            return TemplateResponder::respond($response->withStatus(500), ['ok' => false, 'error' => $e->getMessage()]);
+        }
+    }
+
+    /** 자격증명 등록 시 해당 채널의 pending/processing 발급 신청을 자동 완료(발급완료 신호). upsert 에서 호출. */
+    public static function markApplyCompleted(\PDO $pdo, string $tenant, string $channel): void
+    {
+        if ($tenant === '' || $tenant === 'demo' || str_starts_with($tenant, 'demo') || $channel === '') return;
+        try {
+            $st = $pdo->prepare("UPDATE connector_apply_log SET status='completed', completed_at=?, completed_note=? WHERE tenant_id=? AND channel=? AND status IN('pending','processing')");
+            $st->execute([gmdate('c'), '자격증명 등록으로 자동 완료', $tenant, $channel]);
+        } catch (\Throwable $e) { /* 테이블 미존재 등 — 무시 */ }
     }
 }

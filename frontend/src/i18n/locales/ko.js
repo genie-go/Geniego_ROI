@@ -14055,6 +14055,8 @@ export default {
       emailMarketing: "이메일 마케팅",
       feedback: "Feedback",
       finance: "재무 & 정산",
+      marketingMixLabel: "마케팅 믹스 모델",
+      paymentMethodsLabel: "결제수단",
       graphScore: "그래프 점수",
       help: "도움말 센터",
       home: "Home",

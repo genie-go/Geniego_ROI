@@ -6,6 +6,14 @@ import { useI18n } from '../i18n';
 import { RECON_GUIDE } from './reconGuideI18n.js';
 import useSecurityMonitor from '../hooks/useSecurityMonitor.js';
 import { useCurrency } from '../contexts/CurrencyContext.jsx';
+import CrossLinkBar from '../components/CrossLinkBar.jsx';
+
+// [현 차수] 정산 관련 화면 교차링크(비파괴 통합)
+const SETTLE_LINKS = [
+  { to: '/settlements', icon: '📋', label: '정산 현황' },
+  { to: '/reconciliation', icon: '💰', label: '정산 대사' },
+  { to: '/performance', icon: '📊', label: '성과·정산' },
+];
 
 /* ─── Cross-Tab Sync ──────────────────────────────────── */
 const RECON_SYNC_CH = 'geniego_recon_sync';
@@ -485,6 +493,7 @@ export default function Reconciliation() {
 
   return (
     <div style={{ padding: 24, maxWidth: 1100, margin: '0 auto' }}>
+      <CrossLinkBar links={SETTLE_LINKS} note="정산 관련 메뉴" />
       {/* Hero */}
       <div className="hero fade-up">
         <div className="hero-meta">

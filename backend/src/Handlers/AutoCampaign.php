@@ -521,6 +521,18 @@ class AutoCampaign
         //   당월 전 캠페인 누적 광고비가 상한 도달 → 예산 '증액(realloc)' 매체 push 차단(정지·감액은 허용=안전쪽).
         $tenantCap = (int)(getenv('AD_TENANT_MONTHLY_CAP') ?: 0);
         $tenantCapHit = $tenantCap > 0 && self::tenantMonthlySpend($pdo, $tenant) >= $tenantCap;
+        // [현 차수] 관리형 지출 월렛: 실 매체 집행 전 광고비 결제수단(카드) 필수.
+        //   미등록이면 실집행(매체 push) 보류 — 카드 없이 과금되는 일을 원천 차단. 데모/미연결 테넌트는 면제.
+        $isRealTenant = $tenant !== '' && $tenant !== 'demo' && $tenant !== 'unknown' && strncmp($tenant, 'demo', 4) !== 0;
+        if ($allowActuate && $isRealTenant && !BillingMethod::hasActiveMethod($pdo, $tenant)) {
+            $allowActuate = false;
+            $decisions[] = ['channel' => '—', 'action' => 'billing_required', 'old' => 0, 'new' => 0, 'roas' => '', 'ctr' => '',
+                'reason' => '광고비 결제수단(카드) 미등록 → 실집행 보류. [재무·정산 > 결제수단]에서 카드를 등록하면 월 예산 한도 내에서 자동 집행됩니다.'];
+            try {
+                $pdo->prepare("INSERT INTO optimization_log(tenant_id,campaign_id,channel,action,old_alloc,new_alloc,roas,ctr,reason,created_at) VALUES(?,?,?,?,?,?,?,?,?,?)")
+                    ->execute([$tenant, (int)$camp['id'], '—', 'billing_required', 0, 0, '', '', '광고비 결제수단 미등록 → 실집행 보류', $now]);
+            } catch (\Throwable $e) {}
+        }
         // ★201차 액추에이터: external_id 보유 채널은 매체에 실제 예산변경/정지 push(AD_EXECUTION_ENABLED ON 시).
         //   게이트 OFF/external_id 없음/allowActuate=false(데모) 면 skip(DB 재배분만). 결과는 정직하게 actuated 표기.
         foreach ($decisions as &$d) {
@@ -549,6 +561,17 @@ class AutoCampaign
             $d['actuated'] = !empty($rr['ok']);
         }
         unset($d);
+
+        // [현 차수] 관리형 지출 월렛 정산: 당월 실집행 광고비를 등록 카드로 청구하되, 누적 청구가
+        //   월 예산을 절대 넘지 않도록 캡(min(spend,budget) - 기청구분 만 신규 청구). monthly + 실집행 가능 + 실테넌트만.
+        //   Toss 빌링키 미설정 시 원장 pending(정직, 실청구 0). 절대 throw 안 함(집행 흐름 무중단).
+        if ($period === 'monthly' && $allowActuate && $isRealTenant && $budget > 0) {
+            $settle = BillingMethod::settleManagedSpend($pdo, $tenant, $spentMTD, $budget, (int)$camp['id']);
+            if (!empty($settle['charged'])) {
+                $decisions[] = ['channel' => '—', 'action' => 'charge', 'old' => 0, 'new' => (int)$settle['charged'], 'roas' => '', 'ctr' => '',
+                    'reason' => '광고비 카드 청구 ₩' . number_format((int)$settle['charged']) . ' (당월 누적 한도 ₩' . number_format($budget) . ' 내)'];
+            }
+        }
 
         // ★ [현 차수] A/B: 캠페인 variant 승자선정·패자 자동정지(데이터 충분 시). 결정 로그 병합.
         try {

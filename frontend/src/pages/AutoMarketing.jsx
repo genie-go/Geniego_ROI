@@ -6,6 +6,14 @@ import { useNavigate } from 'react-router-dom';
 import { useI18n } from '../i18n/index.js';
 import ApprovalModal from '../components/ApprovalModal.jsx';
 import AutoCampaignLaunch from '../components/AutoCampaignLaunch.jsx'; // 196차 Phase2 — AI디자인 연결+자동실행
+import CardRequiredBanner from '../components/CardRequiredBanner.jsx'; // 광고비 결제카드 미등록 안내+등록 바로가기
+import CardBillingGuide from '../components/CardBillingGuide.jsx'; // 이용가이드 내 결제카드 등록 설명
+import CrossLinkBar from '../components/CrossLinkBar.jsx';
+const BUDGET_LINKS = [
+  { to: '/auto-marketing', icon: '🚀', label: '마케팅 자동화' },
+  { to: '/campaign-manager', icon: '🎯', label: '캠페인 관리' },
+  { to: '/budget-tracker', icon: '💰', label: '예산 추적' },
+];
 import { useSecurityGuard } from '../security/SecurityGuard.js';
 import { useCurrency } from '../contexts/CurrencyContext.jsx';
 import { useConnectorSync } from '../context/ConnectorSyncContext.jsx';
@@ -684,6 +692,8 @@ export default function AutoMarketing() {
                         <div style={{ fontWeight:800, fontSize:16, marginBottom:10, color:'#1e293b' }}>🧭 {t('marketing.guideWhereToStart')}</div>
                         <div style={{ fontSize:13, color:'#475569', lineHeight:2, whiteSpace:'pre-line' }}>{t('marketing.guideWhereToStartDesc')}</div>
                     </div>
+                    {/* ── 광고비 결제카드 등록 안내(필수 선행) ── */}
+                    <CardBillingGuide />
                     {/* ── 단계별 운영 가이드 ── */}
                     <div style={cardStyle}>
                         <div style={{ fontWeight:800, fontSize:17, marginBottom:18, color:'#1e293b' }}>{t('marketing.guideStepsTitle')}</div>
@@ -805,6 +815,10 @@ export default function AutoMarketing() {
                         </div>
                         <button onClick={() => navigate('/campaign-manager')} style={{ padding: "8px 18px", borderRadius: 10, border: "none", cursor: "pointer", whiteSpace: "nowrap", background: "linear-gradient(135deg,#a855f7,#6366f1)", color: '#fff', fontWeight: 800, fontSize: 11 }}>🚀 {t('marketing.aiHubBtn')}</button>
                     </div>
+
+                    <CrossLinkBar links={BUDGET_LINKS} note="광고 예산·캠페인" />
+                    {/* 광고비 결제카드 미등록 안내 — 예산 설정 전 카드 등록 유도 */}
+                    <CardRequiredBanner />
 
                     {/* 월 Budget Settings */}
                     <div style={cardStyle}>

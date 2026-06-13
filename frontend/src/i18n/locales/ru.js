@@ -2232,6 +2232,8 @@ export default {
       dataTrust: "Data Trust Center",
       mappingRegistry: "Реестр сопоставлений",
       finance: "Финансы и расчёты",
+      marketingMixLabel: "Модель медиамикса",
+      paymentMethodsLabel: "Способы оплаты",
       settlements: "Расчёты",
       reconciliation: "Сверка",
       pricing: "Plans & Pricing",

@@ -83,7 +83,7 @@ $app->add(function (Request $request, $handler) {
         //   세션 self-auth(tenantId=user_session, denyAnon) + 테넌트 격리. 프론트가 세션 토큰으로 호출하므로
         //   api_key 미들웨어에 막혀 401("발급 신청하기"·"Test" 버튼 불능)이었다. ★/v423/connectors/sync 와
         //   meta/google insights 는 Connectors(raw X-Tenant-Id 헤더 의존)라 bypass 제외(307 강제 보호 유지).
-        || $path === '/v423/connectors/apply' || $path === '/api/v423/connectors/apply'
+        || strpos($path, '/v423/connectors/apply') === 0 || strpos($path, '/api/v423/connectors/apply') === 0  // [현 차수] apply + apply/list + apply/{ticket}/status (핸들러 자체 인증·관리자게이트)
         || preg_match('#^(/api)?/v423/connectors/[^/]+/test$#', $path)
         || strpos($path, '/v423/popups/') === 0
         || strpos($path, '/api/v423/popups/') === 0
@@ -185,7 +185,13 @@ $app->add(function (Request $request, $handler) {
         || strpos($path, '/v423/auto-campaign/') === 0 || strpos($path, '/api/v423/auto-campaign/') === 0
         // 201차: 마케팅 자동화 추천/벤치마크 — 프론트 세션 토큰 호출(익명만 차단, 핸들러가 세션에서 테넌트 해석)
         || strpos($path, '/v424/marketing/auto-recommend') === 0 || strpos($path, '/api/v424/marketing/auto-recommend') === 0
-        || strpos($path, '/v424/marketing/benchmarks') === 0 || strpos($path, '/api/v424/marketing/benchmarks') === 0) {
+        || strpos($path, '/v424/marketing/benchmarks') === 0 || strpos($path, '/api/v424/marketing/benchmarks') === 0
+        // [현 차수] ② MMM(마케팅 믹스 모델)·예산 최적화 — 프론트 세션 토큰 호출(익명만 차단, 핸들러가 세션 테넌트 해석)
+        || strpos($path, '/v424/mmm/') === 0 || strpos($path, '/api/v424/mmm/') === 0
+        || strpos($path, '/v424/anomaly/') === 0 || strpos($path, '/api/v424/anomaly/') === 0
+        // [현 차수] 광고비 결제수단(빌링키)·관리형 지출 월렛 — 프론트 세션 토큰 호출(익명만 차단,
+        //   핸들러가 세션에서 테넌트 해석·데모 차단). 결제 정보라 절대 anonymous 허용 금지.
+        || strpos($path, '/v427/billing/') === 0 || strpos($path, '/api/v427/billing/') === 0) {
         $bearer = '';
         $ah = $request->getHeaderLine('Authorization');
         if (strpos($ah, 'Bearer ') === 0) { $bearer = trim(substr($ah, 7)); }

@@ -5618,6 +5618,8 @@ export default {
       automation: "ระบบอัตโนมัติ·AI",
       data: "ข้อมูล·การเก็บรวบรวม",
       finance: "การเงิน·การชำระ",
+      marketingMixLabel: "โมเดล Marketing Mix",
+      paymentMethodsLabel: "วิธีชำระเงิน",
       memberTools: "เครื่องมือสมาชิก",
       adminSystem: "ผู้ดูแลระบบ",
       dashboard: "แดชบอร์ด",

@@ -6,6 +6,14 @@ import { SETTLE_GUIDE } from "./settlementsGuideI18n.js";
 import { useGlobalData } from '../context/GlobalDataContext.jsx';
 import { postJsonAuth } from '../services/apiClient.js';
 import useSecurityMonitor from '../hooks/useSecurityMonitor.js';
+import CrossLinkBar from '../components/CrossLinkBar.jsx';
+
+// [현 차수] 정산 관련 화면 교차링크(비파괴 통합) — 정산 현황/대사/성과+정산
+const SETTLE_LINKS = [
+  { to: '/settlements', icon: '📋', label: '정산 현황' },
+  { to: '/reconciliation', icon: '💰', label: '정산 대사' },
+  { to: '/performance', icon: '📊', label: '성과·정산' },
+];
 import { useCurrency } from '../contexts/CurrencyContext.jsx';
 
 /* ── Enterprise Demo Isolation Guard ─────────────────────── */
@@ -266,6 +274,7 @@ export default function Settlements() {
   return (
     <div style={{ display: "grid", gap: 16 }}>
       {toast && <Toast msg={toast} onClose={() => setToast(null)} />}
+      <CrossLinkBar links={SETTLE_LINKS} note="정산 관련 메뉴" />
 
       {/* Hero */}
       <div className="hero fade-up">

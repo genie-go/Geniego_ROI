@@ -7864,6 +7864,8 @@ export default {
       automation: "Automatisation et règles IA",
       data: "Données et collecte",
       finance: "Finance et règlement",
+      marketingMixLabel: "Modèle Marketing Mix",
+      paymentMethodsLabel: "Moyens de paiement",
       memberTools: "Outils par membre",
       adminSystem: "Administration système",
       dashboard: "Tableau de bord",

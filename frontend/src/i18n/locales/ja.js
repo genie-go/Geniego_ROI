@@ -11121,6 +11121,8 @@ export default {
     "reportBuilder": "レポートスタジオ",
     "dataProduct": "データプロダクト",
     "finance": "財務と決済",
+    "marketingMixLabel": "マーケティングミックス",
+    "paymentMethodsLabel": "決済手段",
     "reconciliation": "財務照合",
     "settlements": "決済履歴",
     "pricing": "料金プラン",

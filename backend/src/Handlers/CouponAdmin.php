@@ -215,10 +215,16 @@ final class CouponAdmin
         $q = trim((string)($qs['q'] ?? ''));
         $limit = max(1, min(500, (int)($qs['limit'] ?? 100)));
 
+        // [현 차수] 기간별 발급현황: created_at 날짜 범위(from/to, YYYY-MM-DD) 필터.
+        $from = trim((string)($qs['from'] ?? ''));
+        $to   = trim((string)($qs['to'] ?? ''));
+
         $where = []; $params = [];
         if ($status === 'active')   $where[] = 'is_revoked = 0 AND (redeemed_at IS NULL OR redeemed_at = 0)';
         if ($status === 'redeemed') $where[] = 'redeemed_at IS NOT NULL AND redeemed_at != 0';
         if ($status === 'revoked')  $where[] = 'is_revoked = 1';
+        if ($from !== '') { $where[] = 'created_at >= ?'; $params[] = $from . ' 00:00:00'; }
+        if ($to   !== '') { $where[] = 'created_at <= ?'; $params[] = $to . ' 23:59:59'; }
         if ($q !== '') {
             $where[] = '(code LIKE ? OR issued_to_email LIKE ? OR note LIKE ?)';
             $params[] = "%$q%"; $params[] = "%$q%"; $params[] = "%$q%";
@@ -233,7 +239,19 @@ final class CouponAdmin
         );
         $stmt->execute($params);
         $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-        return self::json($res, ['ok' => true, 'coupons' => $rows, 'count' => count($rows)]);
+
+        // [현 차수] 기간 요약: 발급/사용/취소/만료/활성 집계(선택 기간·필터 기준).
+        $now = time();
+        $summary = ['total' => count($rows), 'redeemed' => 0, 'revoked' => 0, 'expired' => 0, 'active' => 0];
+        foreach ($rows as $r) {
+            if ((int)$r['is_revoked'] === 1) { $summary['revoked']++; continue; }
+            if (!empty($r['redeemed_at']) && (string)$r['redeemed_at'] !== '0') { $summary['redeemed']++; continue; }
+            $createdTs = strtotime((string)($r['created_at'] ?? '')) ?: 0;
+            $expTs = $createdTs + ((int)($r['duration_days'] ?? 0)) * 86400;
+            if ($createdTs > 0 && $expTs < $now) $summary['expired']++;
+            else $summary['active']++;
+        }
+        return self::json($res, ['ok' => true, 'coupons' => $rows, 'count' => count($rows), 'summary' => $summary]);
     }
 
     /** POST /v424/admin/coupons/{code}/revoke */
