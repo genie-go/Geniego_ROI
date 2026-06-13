@@ -414,6 +414,49 @@ class Wms
         }
     }
 
+    /**
+     * [현 차수] 보편 채널 동기화(단방향 자동진입): 채널 반품을 물리 창고 재고(wms_stock)에 반품입고로 반영한다.
+     *   - ref(채널 주문 식별자) 멱등: 재폴링/중복 호출 시 1회만 적용(이중 입고 방지).
+     *   - 입고(가산)만 수행 → 오버셀/재고부족 예외 없음(안전). 판매측 물리 차감은 기존 수동 WMS 워크플로우 보존.
+     *   - best-effort: 예외는 호출측(채널 동기화) 흐름을 깨지 않도록 흡수. 데모/빈 SKU 는 skip.
+     * @return bool 신규 반영 시 true.
+     */
+    public static function reflectChannelReturn(string $tenant, string $sku, string $name, float $qty, string $ref): bool
+    {
+        $tenant = trim($tenant);
+        if ($tenant === '' || strtolower($tenant) === 'demo' || $sku === '' || $qty <= 0) return false;
+        try {
+            self::ensureTables();
+            $pdo = self::db();
+            // 멱등: 같은 ref 의 반품입고가 이미 있으면 skip.
+            $chk = $pdo->prepare("SELECT 1 FROM wms_movements WHERE tenant_id=? AND ref=? AND type=? LIMIT 1");
+            $chk->execute([$tenant, $ref, 'ReturnsInbound']);
+            if ($chk->fetchColumn()) return false;
+            $wh = self::primaryWarehouse($tenant);
+            self::recordMovement($tenant, [
+                'type' => 'ReturnsInbound', 'wh_id' => $wh, 'sku' => $sku, 'name' => $name,
+                'qty' => $qty, 'ref' => $ref, 'reason' => 'channel_sync_return',
+            ]);
+            return true;
+        } catch (\Throwable $e) {
+            error_log('[Wms.reflectChannelReturn] ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    /** 테넌트 기본(우선) 창고 wh_id. 활성 창고 중 최소 id, 없으면 'default'. */
+    private static function primaryWarehouse(string $tenant): string
+    {
+        try {
+            $pdo = self::db();
+            $st = $pdo->prepare("SELECT id FROM wms_warehouses WHERE tenant_id=? AND active=1 ORDER BY id ASC LIMIT 1");
+            $st->execute([$tenant]);
+            $id = $st->fetchColumn();
+            if ($id !== false && $id !== null && (string)$id !== '') return (string)$id;
+        } catch (\Throwable $e) { /* fallthrough */ }
+        return 'default';
+    }
+
     /** 입출고 유형 → 물리재고 부호 적용(영문 IO_TYPES + 한글 데모 라벨 모두 지원). */
     private static function applyMovementToStock(string $t, string $type, string $wh, string $dwh, string $sku, string $name, float $qty): void
     {

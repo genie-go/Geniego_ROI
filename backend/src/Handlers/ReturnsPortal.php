@@ -91,6 +91,42 @@ class ReturnsPortal
         }
     }
 
+    /**
+     * [현 차수] 보편 채널 동기화(단방향 자동진입): 채널 동기화가 감지한 반품(channel_orders event_type='return')을
+     * 반품관리 포탈(returns 테이블)에 멱등 자동 진입시킨다. 그동안 채널 반품과 반품 포탈이 분리돼 불일치였던
+     * 갭 해소. return_id='CR-{channel}-{order_id}' 로 멱등(재폴링/중복 호출 시 1건만). tenant 격리.
+     * @return bool 신규 생성 시 true, 이미 존재/거부 시 false (best-effort, 예외 비전파).
+     */
+    public static function ingestChannelReturn(string $tenant, array $r): bool
+    {
+        $tenant = trim($tenant);
+        if ($tenant === '' || strtolower($tenant) === 'demo' || strtolower($tenant) === 'unknown') return false;
+        try {
+            $pdo = self::db();
+            $orderId  = (string)($r['order_id'] ?? '');
+            $channel  = (string)($r['channel'] ?? '');
+            if ($orderId === '') return false;
+            $returnId = 'CR-' . $channel . '-' . $orderId;
+            $chk = $pdo->prepare("SELECT 1 FROM returns WHERE tenant_id=? AND return_id=? LIMIT 1");
+            $chk->execute([$tenant, $returnId]);
+            if ($chk->fetchColumn()) return false; // 멱등: 이미 진입됨
+            $now = gmdate('c');
+            $pdo->prepare(
+                "INSERT INTO returns (tenant_id,return_id,order_id,sku,name,channel,qty,reason,status,req_date,refund_amt,note,created_at)
+                 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)"
+            )->execute([
+                $tenant, $returnId, $orderId,
+                (string)($r['sku'] ?? ''), (string)($r['name'] ?? ''), $channel,
+                (int)($r['qty'] ?? 1), (string)($r['reason'] ?? '채널 반품'),
+                'pending', $now, (float)($r['refund_amt'] ?? 0), 'channel_sync', $now,
+            ]);
+            return true;
+        } catch (\Throwable $e) {
+            error_log('[ReturnsPortal.ingestChannelReturn] ' . $e->getMessage());
+            return false;
+        }
+    }
+
     /** 인증 미들웨어 주입 tenant. 미해결 시 '' → 호출부가 빈 결과/거부. */
     private static function tenant(Request $request): string
     {

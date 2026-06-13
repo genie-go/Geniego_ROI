@@ -1329,6 +1329,16 @@ final class ChannelSync
                 } else {
                     // 최초 수집부터 취소/반품 → 재고차감/구매기록 없이 claim 만 적재(정산 정합, 미판매분 재고 미차감).
                     self::recordClaim($pdo, $tenant, $channel, (string)$o['channel_order_id'], $incCR, (float)($o['total_price'] ?? 0), (string)($o['reason'] ?? ''), (string)($o['buyer_name'] ?? ''), $now);
+                    // [현 차수] 단방향 자동진입: 반품이면 반품관리 포탈에 멱등 자동 진입(반품관리 동기화).
+                    //   최초수집 반품은 원 출고를 추적하지 않았으므로 물리재고 복원은 미수행(이중복원 방지).
+                    if ($incCR === 'return') {
+                        ReturnsPortal::ingestChannelReturn($tenant, [
+                            'order_id' => (string)$o['channel_order_id'], 'channel' => $channel,
+                            'sku' => (string)($o['sku'] ?? ''), 'name' => (string)($o['product_name'] ?? ''),
+                            'qty' => (int)($o['qty'] ?? 1), 'reason' => (string)($o['reason'] ?? ''),
+                            'refund_amt' => (float)($o['total_price'] ?? 0),
+                        ]);
+                    }
                 }
             } elseif ($incCR !== null && !$wasCR) {
                 // [현 차수 P0] 활성→취소/반품 전이(최초 1회) → 재고 복원 + claim 적재(정산 returnFee 자동반영). recordClaim 멱등.
@@ -1338,6 +1348,17 @@ final class ChannelSync
                 $claimTotal = (float)($existing['total_price'] ?? 0);
                 if ($claimTotal <= 0) $claimTotal = (float)($o['total_price'] ?? 0);
                 self::recordClaim($pdo, $tenant, $channel, (string)$o['channel_order_id'], $incCR, $claimTotal, (string)($o['reason'] ?? ''), (string)($o['buyer_name'] ?? ''), $now);
+                // [현 차수] 단방향 자동진입: 활성→반품 전이는 출고된 상품이 돌아온 것 → 반품관리 포탈 진입 +
+                //   물리 창고 재고 복원(WMS ReturnsInbound, ref 멱등·best-effort). 취소는 미출고분이라 물리복원 미수행.
+                if ($incCR === 'return' && $rsku !== '' && $rqty > 0) {
+                    $rname = (string)($o['product_name'] ?? '');
+                    ReturnsPortal::ingestChannelReturn($tenant, [
+                        'order_id' => (string)$o['channel_order_id'], 'channel' => $channel,
+                        'sku' => $rsku, 'name' => $rname, 'qty' => $rqty,
+                        'reason' => (string)($o['reason'] ?? ''), 'refund_amt' => $claimTotal,
+                    ]);
+                    Wms::reflectChannelReturn($tenant, $rsku, $rname, (float)$rqty, 'CHR-' . $channel . '-' . (string)$o['channel_order_id']);
+                }
             }
         }
         return $count;
