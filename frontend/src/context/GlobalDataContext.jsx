@@ -77,6 +77,9 @@ function saveDemoState(key, data) {
 //   기존엔 영문/CancelDone 토큰만이라 운영 채널주문의 한글상태('취소완료'/'취소요청')가 매출에서 미제외였음.
 const CANCELLED_STATUSES = new Set(['CancelDone', 'Cancel요청', 'cancelled', 'canceled', '취소완료', '취소요청', '취소접수', '취소', '주문취소']);
 function _isCancelled(s) { return CANCELLED_STATUSES.has(String(s || '')); }
+// [현 차수] 감사 P1: 취소 판정 SSOT export — 페이지가 raw orders 를 재집계할 때 동일 캐논으로 취소를 제외해
+//   매출 발산을 막는다(OmniChannel 등). 내부 _isCancelled 와 동일.
+export function isCancelledStatus(s) { return _isCancelled(s); }
 
 function _monthOf(o) {
   return o.month || (o.atISO ? String(o.atISO).slice(0, 7) : (o.at ? (() => { try { return new Date(o.at).toISOString().slice(0, 7); } catch { return ''; } })() : ''));

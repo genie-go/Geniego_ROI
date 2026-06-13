@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import { useGlobalData } from '../context/GlobalDataContext.jsx';
+import { useGlobalData, isCancelledStatus } from '../context/GlobalDataContext.jsx';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext.jsx';
 import { useCurrency } from '../contexts/CurrencyContext.jsx';
@@ -16,7 +16,10 @@ import { IS_DEMO } from '../utils/demoEnv';
    과거 5탭이 /api/channel-sync/* 를 호출해 데모서 빈값이었고, OrdersTab 은 전역 orders 를 []로 덮어써
    Dashboard/PnL/Performance 까지 오염시켰다. WMS(같은 inventory)와도 정합. 운영은 기존 API 경로 유지. */
 function buildDemoOmniStatus(gd) {
-    const orders = Array.isArray(gd?.orders) ? gd.orders : [];
+    // [현 차수] 감사 P1: 취소주문 제외(정본 캐논)로 채널/총 매출 발산 차단. 기존 raw 전수 합산은 취소분 포함이라
+    //   데모 체험자가 주문 취소 시 OmniChannel 매출만 대시보드/P&L/롤업 대비 과대(런타임 단일소스 동기화 위반).
+    const allOrders = Array.isArray(gd?.orders) ? gd.orders : [];
+    const orders = allOrders.filter(o => !isCancelledStatus(o.status));
     const inventory = Array.isArray(gd?.inventory) ? gd.inventory : [];
     const byCh = {};
     orders.forEach(o => { const c = o.ch || o.channel || 'etc'; if (!byCh[c]) byCh[c] = { n: 0, rev: 0 }; byCh[c].n++; byCh[c].rev += Number(o.total || o.total_price || 0); });

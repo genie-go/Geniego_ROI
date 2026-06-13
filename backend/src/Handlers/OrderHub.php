@@ -76,6 +76,21 @@ final class OrderHub
     }
 
     /**
+     * [현 차수] 취소 캐논 SSOT(Rollup::CANCEL_TOKENS·프론트 CANCELLED_STATUSES와 동일).
+     * 매출/주문수 집계는 취소주문을 제외해야 정본(ordersStats·Rollup·대시보드)과 정합한다.
+     * 반품(RETURN_TOKENS)은 매출 포함(반품률·returnFee로만 반영) → 여기 제외 대상 아님.
+     */
+    private const CANCEL_TOKENS = ['CancelDone','Cancel요청','cancelled','canceled','취소완료','취소요청','취소접수','취소','주문취소'];
+
+    /** 취소주문 제외용 SQL 단편 + 바인드 파라미터(NULL-safe). @return array{0:string,1:array} */
+    private static function cancelExclusion(): array
+    {
+        $ph = implode(',', array_fill(0, count(self::CANCEL_TOKENS), '?'));
+        $sql = "(COALESCE(event_type,'order') = 'cancel' OR COALESCE(status,'') IN ($ph))";
+        return [$sql, self::CANCEL_TOKENS];
+    }
+
+    /**
      * 공통 진입 가드 — 모든 endpoint method 가 호출.
      * 반환: 정상 시 ['tenant','isDemo','pdo'], 실패 시 ['error' => Response].
      */
@@ -175,8 +190,7 @@ final class OrderHub
         $q = $req->getQueryParams();
         $channel = isset($q['channel']) ? (string)$q['channel'] : null;
 
-        // 캐논 토큰(Rollup CANCEL_TOKENS + 프론트 status 버킷과 동일)
-        $cancelTokens   = ['CancelDone','Cancel요청','cancelled','canceled','취소완료','취소요청','취소접수','취소','주문취소'];
+        // 캐논 토큰(취소=SSOT const, status 버킷=프론트 orderStats 동일)
         $pendingTokens  = ['발주Confirm','paid'];
         $shippingTokens = ['출고대기','배송중','preparing','shipping'];
         $doneTokens     = ['배송Done','delivered','confirmed','Done'];
@@ -187,9 +201,9 @@ final class OrderHub
         $baseSql = implode(' AND ', $base);
 
         $ph = fn(array $a) => implode(',', array_fill(0, count($a), '?'));
-        // event_type 우선 취소 판정 + status 토큰. NULL-safe(COALESCE): 프론트 _isCancelled(null)=false(활성)와
+        // event_type 우선 취소 판정 + status 토큰(SSOT). NULL-safe(COALESCE): 프론트 _isCancelled(null)=false(활성)와
         //   일치시켜 NULL status/event 행이 NOT 평가에서 NULL→제외되는 SQL 3value 함정 차단.
-        $cancelExpr = "(COALESCE(event_type,'order') = 'cancel' OR COALESCE(status,'') IN (" . $ph($cancelTokens) . "))";
+        [$cancelExpr, $cancelTokens] = self::cancelExclusion();
 
         try {
             // 활성(취소 제외) 주문수 + 매출 합계 — 전체 행 SQL 집계
@@ -537,9 +551,13 @@ final class OrderHub
     public static function rollupSettlementsCore(\PDO $pdo, string $tenant, string $period, ?float $feeRate, string $now): int
     {
         self::ensureSettlementTables($pdo); // 208차: cron/신규 테넌트 대비 테이블 보장(없으면 생성, 있으면 no-op)
+        // [현 차수] 감사 P0: 취소주문을 정산 gross/주문수에서 제외(ordersStats·Rollup 캐논과 정합).
+        //   기존엔 취소 필터가 없어 정산 gross_sales/net_payout 가 취소율만큼 과대 → 대시보드 매출과 발산하고
+        //   영업이익·순이익(pnlStats=정산우선)까지 오염됐다. 반품은 매출 포함 유지(claim returnFee 로 별도 차감).
+        [$cancelExpr, $cancelTokens] = self::cancelExclusion();
         $os = $pdo->prepare("SELECT channel, COUNT(*) AS cnt, COALESCE(SUM(total_price),0) AS gross
-            FROM channel_orders WHERE tenant_id=? AND SUBSTR(ordered_at,1,7)=? GROUP BY channel");
-        $os->execute([$tenant, $period]);
+            FROM channel_orders WHERE tenant_id=? AND SUBSTR(ordered_at,1,7)=? AND NOT $cancelExpr GROUP BY channel");
+        $os->execute(array_merge([$tenant, $period], $cancelTokens));
         $orders = $os->fetchAll(\PDO::FETCH_ASSOC);
 
         $cs = $pdo->prepare("SELECT channel, COUNT(*) AS rcnt, COALESCE(SUM(amount),0) AS rfee

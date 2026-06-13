@@ -202,8 +202,10 @@ function LiveIngestBar({ tab }) {
 function OrderHubOverviewTab() {
     const { t } = useI18n();
     const { fmt } = useCurrency();
-    const { orders, claimHistory, settlement } = useGlobalData();
-    const totalRevenue = useMemo(() => orders.reduce((s, o) => s + (o.total || o.price * o.qty || 0), 0), [orders]);
+    const { orders, claimHistory, settlement, orderStats } = useGlobalData();
+    // [현 차수] 감사 P1: 정본 매출 사용(취소 제외 + 운영 서버집계). 기존 raw orders 전수 합산은 취소주문을
+    //   포함하고 limit 캡(운영 1000)에 걸려 대시보드/P&L 매출과 발산했다.
+    const totalRevenue = orderStats.revenue;
     const totalFees = useMemo(() => settlement.reduce((s, r) => s + (r.platformFee || 0), 0), [settlement]);
     const claimRate = orders.length > 0 ? ((claimHistory.length / orders.length) * 100).toFixed(1) : '0.0';
     const shippedCount = orders.filter(o => o.status === 'shipping' || o.status === 'delivered').length;
