@@ -898,20 +898,40 @@ const CohortTab = memo(function CohortTab() {
     const { t } = useI18n();
     const { orders = [] } = useGlobalData();
     const [view, setView] = useState('retention');
-    // 204차 동기화: 코호트를 단일소스 orders 에서 파생 — 과거 COHORT_DATA=[] 하드코딩(데모·운영 항상 빈상태).
-    //   구매자/매출 기반을 월별 코호트로 분배(집계 매출=주문 정합). orders 가 단기라 D+30/60/90 리텐션은
-    //   표준 감쇠 모델(운영도 동일: 실 종단 데이터 적재 전엔 모델, 데이터 쌓이면 실측으로 대체 가능).
+    // [현 차수] 219 P2: 코호트를 단일소스 orders 에서 "실측" 파생 — 과거 하드코딩 월/가중치(0.78~1.34)+
+    //   고정 리텐션(62/44/31%) 모델값 제거. 구매자별 첫 구매월을 코호트로, 첫 구매 이후 D+30/60/90 창에서
+    //   실제 재구매한 구매자 수로 리텐션을 산출(누적). 매출=코호트 구매자의 실 주문 합. 구매자 식별 불가
+    //   주문은 코호트 제외(허위 리텐션 방지). 데이터 쌓일수록 정확.
     const COHORT_DATA = useMemo(() => {
         const src = Array.isArray(orders) ? orders : [];
         if (!src.length) return [];
-        const buyers = new Set(src.map(o => o.buyer || o.buyer_name || o.id)).size || src.length;
-        const totalRev = src.reduce((s, o) => s + Number(o.total ?? o.total_price ?? 0), 0);
-        const months = ['2026-01', '2026-02', '2026-03', '2026-04', '2026-05', '2026-06'];
-        const w = [0.78, 0.88, 1.0, 1.12, 1.22, 1.34]; const sw = w.reduce((a, b) => a + b, 0);
-        return months.map((m, i) => {
-            const newUsers = Math.max(1, Math.round(buyers * 5 * w[i] / sw));
-            return { month: m, newUsers, retained30: Math.round(newUsers * 0.62), retained60: Math.round(newUsers * 0.44), retained90: Math.round(newUsers * 0.31), revenue: Math.round(totalRev * w[i] / sw) };
+        const DAY = 86400000;
+        const dateOf = (o) => { const c = o.atISO || o.ordered_at || o.created_at || o.at || (o.month ? o.month + '-01' : null); if (!c) return null; const d = new Date(c); return isNaN(d.getTime()) ? null : d; };
+        const byBuyer = {};
+        src.forEach(o => {
+            const buyer = o.buyer || o.buyer_name; if (!buyer) return;          // 식별 불가 → 제외
+            const d = dateOf(o); if (!d) return;
+            (byBuyer[buyer] = byBuyer[buyer] || []).push({ d, rev: Number(o.total ?? o.total_price ?? 0) });
         });
+        const cohorts = {};
+        Object.values(byBuyer).forEach(list => {
+            list.sort((a, b) => a.d - b.d);
+            const first = list[0].d;
+            const m = `${first.getFullYear()}-${String(first.getMonth() + 1).padStart(2, '0')}`;
+            const c = cohorts[m] = cohorts[m] || { newUsers: 0, r30: 0, r60: 0, r90: 0, revenue: 0 };
+            c.newUsers++;
+            c.revenue += list.reduce((s, x) => s + x.rev, 0);
+            const repurch = list.slice(1);                                       // 첫 구매 이후 재구매
+            const within = (hi) => repurch.some(x => { const dd = (x.d - first) / DAY; return dd > 0 && dd <= hi; });
+            if (within(30)) c.r30++;
+            if (within(60)) c.r60++;                                             // 누적(D+60은 D+30 포함)
+            if (within(90)) c.r90++;
+        });
+        return Object.keys(cohorts).sort().map(m => ({
+            month: m, newUsers: cohorts[m].newUsers,
+            retained30: cohorts[m].r30, retained60: cohorts[m].r60, retained90: cohorts[m].r90,
+            revenue: Math.round(cohorts[m].revenue),
+        }));
     }, [orders]);
     const fmtPct = (a, b) => b === 0 ? '-' : (a / b * 100).toFixed(1) + '%';
     const fmtKRW = v => v; // NOTE: replaced by useCurrency in component

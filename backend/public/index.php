@@ -222,9 +222,21 @@ $app->add(function (Request $request, $handler) {
                             ->withHeader('X-Tenant-Id', (string)$keyRowAi['tenant_id']);
                     }
                     if (!$aiOk) {
-                        $ss = $pdoAi->prepare('SELECT 1 FROM user_session WHERE token=? LIMIT 1');
+                        // [현 차수] 219 P2(격리): 세션 인증도 테넌트를 도출·주입한다. 기존엔 토큰 존재만 확인하고
+                        //   auth_tenant 를 주입하지 않아, 핸들러가 raw X-Tenant-Id 헤더 폴백(위조 가능) 또는
+                        //   'unknown' 공유 버킷으로 떨어졌다. user_session→app_user.tenant_id 로 권위 주입.
+                        $ss = $pdoAi->prepare('SELECT u.tenant_id FROM user_session s JOIN app_user u ON u.id = s.user_id WHERE s.token = ? LIMIT 1');
                         $ss->execute([$bearer]);
-                        if ($ss->fetchColumn()) { $aiOk = true; }
+                        $sessTenant = $ss->fetchColumn();
+                        if ($sessTenant !== false) {
+                            $aiOk = true;
+                            $st = trim((string)$sessTenant);
+                            if ($st !== '') {
+                                $request = $request
+                                    ->withAttribute('auth_tenant', $st)
+                                    ->withHeader('X-Tenant-Id', $st);
+                            }
+                        }
                     }
                 } catch (\Throwable $eAi) { $aiOk = false; }
             }

@@ -428,12 +428,14 @@ final class AttributionEngine
         return $u === false ? 0 : $u;
     }
 
-    /** 인증 미들웨어가 주입한 tenant. 미해결 시 '' → 빈 결과(유출 차단). */
+    /** 인증 미들웨어가 주입한 tenant. 미해결 시 '' → 빈 결과(유출 차단).
+     *  [현 차수] 219 P2: raw X-Tenant-Id 헤더 폴백 제거 — 인증 키/세션이 주입한 auth_tenant 만 신뢰한다.
+     *  과거엔 auth_tenant 미해결 시 클라이언트 위조 가능한 raw 헤더로 폴백해 타 테넌트 어트리뷰션을
+     *  열람할 위험이 있었다(AutoRecommend/Connectors 의 안전 패턴과 정합). */
     private static function tenant(Request $request): string
     {
         $t = $request->getAttribute('auth_tenant');
-        if (!is_string($t) || $t === '') $t = $request->getHeaderLine('X-Tenant-Id');
-        $t = trim((string)$t);
+        $t = trim((string)(is_string($t) ? $t : ''));
         return ($t === '' || strtolower($t) === 'unknown') ? '' : $t;
     }
 

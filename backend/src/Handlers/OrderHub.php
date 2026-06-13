@@ -225,6 +225,12 @@ final class OrderHub
             $stC = $pdo->prepare("SELECT COUNT(*) FROM channel_orders WHERE $baseSql AND $cancelExpr");
             $stC->execute(array_merge($baseArgs, $cancelTokens));
             $cancelled = (int)$stC->fetchColumn();
+
+            // [현 차수] 219 P2(데모/운영 정합): 반품 건수 노출(반품은 매출 포함·건수만 별도, 데모 settlement.returns 정합).
+            $returnTokens = ['반품접수','반품완료','반품Done','반품입고','returned','return','refunded','환불완료'];
+            $stR = $pdo->prepare("SELECT COUNT(*) FROM channel_orders WHERE $baseSql AND (COALESCE(event_type,'')='return' OR status IN (" . $ph($returnTokens) . "))");
+            $stR->execute(array_merge($baseArgs, $returnTokens));
+            $returned = (int)$stR->fetchColumn();
         } catch (\Throwable $e) {
             return self::json($resp, ['ok' => false, 'error' => 'db_error', 'message' => $e->getMessage()], 500);
         }
@@ -238,6 +244,7 @@ final class OrderHub
             'shipping'  => $shipping,
             'done'      => $done,
             'cancelled' => $cancelled,
+            'returned'  => $returned,
             '_env'      => Db::env(),
             '_isDemo'   => $isDemo,
         ]);

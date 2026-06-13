@@ -363,11 +363,47 @@ class Wms
         return self::json($res, ['ok' => true, 'movements' => $st->fetchAll(\PDO::FETCH_ASSOC)]);
     }
 
+    /**
+     * [현 차수] 219 P2: wms_permissions 창고 접근 강제(백워드 호환). 그동안 권한표가 있어도 CRUD 가
+     *   전혀 검사하지 않아, 같은 테넌트 내 임의 사용자가 모든 창고 재고를 변동할 수 있었다.
+     *   ★안전 가드: ①테넌트에 권한행 0개 → 허용(미설정 보존) ②팀 owner → 전 창고 허용
+     *   ③api_key/세션 미해결 → 허용(인증은 requirePro, 격리는 tenant) ④WMS role='admin' → 전 창고
+     *   ⑤그 외: warehouses JSON 에 대상 창고 포함 시 허용, 미포함/권한행 없음 → 403. 가드 오류=비차단(가용성).
+     * @return ?Response 거부 시 403, 허용 시 null.
+     */
+    private static function guardWarehouse(Request $req, Response $res, string $whId): ?Response
+    {
+        try {
+            $t = self::tenant($req);
+            $pdo = self::db();
+            $cnt = $pdo->prepare("SELECT COUNT(*) FROM wms_permissions WHERE tenant_id=?");
+            $cnt->execute([$t]);
+            if ((int)$cnt->fetchColumn() === 0) return null;            // 권한 미설정 테넌트 → 강제 안 함
+            $u = UserAuth::authedUser($req);
+            if (!$u) return null;                                       // 세션 미해결(api_key 등)
+            if ((string)($u['team_role'] ?? 'owner') === 'owner') return null; // 팀 owner = 전 창고
+            $email = strtolower(trim((string)($u['email'] ?? '')));
+            if ($email === '') return null;
+            $pr = $pdo->prepare("SELECT role, warehouses FROM wms_permissions WHERE tenant_id=? AND LOWER(user_email)=? LIMIT 1");
+            $pr->execute([$t, $email]);
+            $row = $pr->fetch(\PDO::FETCH_ASSOC);
+            if (!$row) return self::json($res, ['ok'=>false, 'error'=>'WMS 접근 권한이 없습니다.', 'code'=>'WMS_FORBIDDEN'], 403);
+            if ((string)($row['role'] ?? '') === 'admin') return null;  // WMS admin = 전 창고
+            if ($whId === '') return null;                             // 창고 미지정 액션은 통과(read=tenant 격리)
+            $whs = json_decode((string)($row['warehouses'] ?? '[]'), true);
+            if (!is_array($whs)) $whs = [];
+            if (in_array($whId, $whs, true)) return null;
+            return self::json($res, ['ok'=>false, 'error'=>'해당 창고 접근 권한이 없습니다.', 'code'=>'WMS_WAREHOUSE_FORBIDDEN'], 403);
+        } catch (\Throwable $e) { return null; }                       // 가드 오류 → 비차단(격리는 tenant 가 처리)
+    }
+
     public static function createMovement(Request $req, Response $res): Response
     {
         if ($err = UserAuth::requirePro($req, $res)) return $err;
         self::ensureTables();
         $t = self::tenant($req); $b = self::body($req);
+        $whId = (string)($b['whId'] ?? $b['wh_id'] ?? '');
+        if ($err = self::guardWarehouse($req, $res, $whId)) return $err;   // [현 차수] 219 P2 창고 권한 강제
         try {
             $id = self::recordMovement($t, [
                 'type' => (string)($b['type'] ?? 'Inbound'), 'wh_id' => (string)($b['whId'] ?? $b['wh_id'] ?? ''),
@@ -601,11 +637,37 @@ class Wms
         $t = self::tenant($req); $b = self::body($req); $now = self::now(); $pdo = self::db();
         $id = (int)($args['id'] ?? $b['id'] ?? 0);
         if ($id > 0) {
+            $newStatus = (string)($b['status'] ?? 'pending');
+            // [현 차수] 219 P2: 피킹 status→shipped 전이 시 물리 재고 차감(기존엔 이력만 갱신, 재고 미차감 결함).
+            //   PartnerPortal shipped 경로와 동일 패턴. 멱등(PICK-{id} ref)·재고부족 시 422(출고 거부).
+            $sel = $pdo->prepare("SELECT sku, name, qty, wh_id, status FROM wms_picking WHERE id=? AND tenant_id=? LIMIT 1");
+            $sel->execute([$id, $t]);
+            $old = $sel->fetch(\PDO::FETCH_ASSOC);
+            if ($old && ($err = self::guardWarehouse($req, $res, (string)($old['wh_id'] ?? '')))) return $err; // 219 P2 창고 권한
+            if ($old && (string)($old['status'] ?? '') !== 'shipped' && $newStatus === 'shipped') {
+                $psku = (string)($old['sku'] ?? ''); $pqty = (float)($old['qty'] ?? 0); $pwh = (string)($old['wh_id'] ?? '');
+                if ($psku !== '' && $pqty > 0 && $pwh !== '') {
+                    $ref = 'PICK-' . $id;
+                    $dup = $pdo->prepare("SELECT 1 FROM wms_movements WHERE tenant_id=? AND ref=? AND type='Outbound' LIMIT 1");
+                    $dup->execute([$t, $ref]);
+                    if (!$dup->fetchColumn()) {
+                        try {
+                            self::recordMovement($t, ['type'=>'Outbound','wh_id'=>$pwh,'sku'=>$psku,'name'=>(string)($old['name'] ?? ''),'qty'=>$pqty,'ref'=>$ref,'reason'=>'피킹출고']);
+                        } catch (\RuntimeException $e) {
+                            if (str_starts_with($e->getMessage(), 'insufficient_stock')) {
+                                return self::json($res, ['ok' => false, 'error' => '재고 부족으로 출고할 수 없습니다.', 'code' => 'INSUFFICIENT_STOCK'], 422);
+                            }
+                            throw $e;
+                        }
+                    }
+                }
+            }
             $st = $pdo->prepare("UPDATE wms_picking SET status=:s,carrier=:c,updated_at=:ua WHERE id=:id AND tenant_id=:t");
-            $st->execute([':s' => (string)($b['status'] ?? 'pending'), ':c' => (string)($b['carrier'] ?? ''), ':ua' => $now, ':id' => $id, ':t' => $t]);
+            $st->execute([':s' => $newStatus, ':c' => (string)($b['carrier'] ?? ''), ':ua' => $now, ':id' => $id, ':t' => $t]);
             if ($st->rowCount() === 0 && !self::exists('wms_picking', $id, $t)) return self::json($res, ['ok' => false, 'error' => '없음'], 404);
             return self::json($res, ['ok' => true, 'id' => $id]);
         }
+        if ($err = self::guardWarehouse($req, $res, (string)($b['whId'] ?? $b['wh_id'] ?? ''))) return $err; // 219 P2 창고 권한
         $st = $pdo->prepare("INSERT INTO wms_picking (tenant_id,order_ref,sku,name,qty,wh_id,carrier,status,created_at,updated_at) VALUES (:t,:o,:sku,:name,:qty,:wh,:c,:s,:ca,:ua)");
         $st->execute([
             ':t' => $t, ':o' => (string)($b['orderRef'] ?? $b['order_ref'] ?? ''), ':sku' => (string)($b['sku'] ?? ''),
