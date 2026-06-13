@@ -665,7 +665,7 @@ final class Connectors
      */
     // [현 차수] H2: OAuth 콜백은 channel=provider(meta/google/tiktok/naver), key_name=oauth_access_token 로 저장 →
     //   페처의 정확매칭(meta_ads/access_token)으로는 영구 미독출이었다. 별칭 폴백으로 OAuth 자격증명도 ingest.
-    private const OAUTH_CHANNEL_ALIAS = ['meta_ads'=>'meta','google_ads'=>'google','tiktok_business'=>'tiktok','naver_sa'=>'naver'];
+    private const OAUTH_CHANNEL_ALIAS = ['meta_ads'=>'meta','google_ads'=>'google','tiktok_business'=>'tiktok','naver_sa'=>'naver','kakao_moment'=>'kakao'];
     private const OAUTH_KEY_ALIAS     = ['access_token'=>'oauth_access_token','refresh_token'=>'oauth_refresh_token'];
     // 저장 채널키 → runSync 단축 채널명(meta/google/tiktok/naver). OAuth provider명·정식 광고채널명 모두 포함.
     private const AD_SHORT = [
@@ -673,6 +673,7 @@ final class Connectors
         'google_ads'=>'google','google'=>'google',
         'tiktok_business'=>'tiktok','tiktok'=>'tiktok',
         'naver_sa'=>'naver','naver'=>'naver','naver_searchad'=>'naver',
+        'kakao_moment'=>'kakao','kakao'=>'kakao', // [현 차수] Kakao Moment 자동sync 배선(저장 직후+cron)
     ];
 
     private static function loadCred(string $tenant, string $channelKey, string $credKey): string
@@ -1176,6 +1177,7 @@ final class Connectors
             'google' => fn() => self::fetchGoogleRows($tenant, $start, $end),
             'tiktok' => fn() => self::fetchTiktokRows($tenant, $start, $end),
             'naver'  => fn() => self::fetchNaverRows($tenant, $start, $end),
+            'kakao'  => fn() => self::fetchKakaoRows($tenant, $start, $end), // [현 차수] Kakao Moment 실 ingest 배선
         ];
 
         foreach ($fetchers as $ch => $fn) {
@@ -1220,7 +1222,7 @@ final class Connectors
             $stmt = $pdo->query(
                 "SELECT DISTINCT tenant_id FROM channel_credential
                   WHERE is_active=1
-                    AND channel IN ('meta_ads','google_ads','tiktok_business','naver_sa')
+                    AND channel IN ('meta_ads','google_ads','tiktok_business','naver_sa','kakao_moment')
                     AND tenant_id IS NOT NULL AND tenant_id<>''"
             );
             $out = [];
@@ -1553,6 +1555,56 @@ final class Connectors
             $rows[] = ['team' => 'Naver', 'account' => 'Naver SA', 'date' => $day,
                 'impressions' => $v['imp'], 'clicks' => $v['clk'], 'spend' => $v['spend'],
                 'conversions' => $v['conv'], 'revenue' => $v['rev']];
+        }
+        return ['hasCreds' => true, 'live' => true, 'rows' => $rows];
+    }
+
+    /**
+     * [현 차수] Kakao Moment Open API v4 — 캠페인 일자별 성과 리포트 → performance_metrics 정규화.
+     *   거짓양성(hasRealAdapter엔 있으나 ingest 미배선) 해소: 자격증명(access_token+ad_account_id) 등록 시
+     *   실제 fetch 동작. 필드명은 다중 후보로 방어매핑(API 응답 편차 대응), 실패 시 graceful(error).
+     *   라이브 검증은 실 Kakao Moment 광고계정 필요(타 어댑터와 동일 graceful 드롭인).
+     */
+    private static function fetchKakaoRows(string $tenant, string $start, string $end): array
+    {
+        $accessToken = (string)(getenv('KAKAO_MOMENT_ACCESS_TOKEN')  ?: self::loadCred($tenant, 'kakao_moment', 'access_token'));
+        $adAccountId = (string)(getenv('KAKAO_MOMENT_AD_ACCOUNT_ID') ?: self::loadCred($tenant, 'kakao_moment', 'ad_account_id'));
+        if ($accessToken === '' || $adAccountId === '') {
+            return ['hasCreds' => false, 'live' => false, 'rows' => []];
+        }
+        // Kakao Moment 리포트: start/end=YYYYMMDD, 일자별(datePreset 대신 명시 기간), 캠페인 차원.
+        $params = http_build_query([
+            'start'        => str_replace('-', '', $start),
+            'end'          => str_replace('-', '', $end),
+            'metricsGroup' => 'BASIC',
+            'dimension'    => 'CAMPAIGN',
+        ]);
+        $url = "https://apis.moment.kakao.com/openapi/v4/campaigns/report?{$params}";
+        [$code, $body, $err] = self::httpGet($url, [
+            'Authorization' => "Bearer {$accessToken}",
+            'adAccountId'   => $adAccountId,
+            'Content-Type'  => 'application/json',
+        ]);
+        if ($err || $code >= 400) {
+            return ['hasCreds' => true, 'live' => false, 'error' => $err ?: "kakao http $code"];
+        }
+        $rows = [];
+        foreach ((array)($body['data'] ?? $body['report'] ?? []) as $r) {
+            $dim = (array)($r['dimension'] ?? $r['dimensions'] ?? []);
+            $m   = (array)($r['metric'] ?? $r['metrics'] ?? []);
+            $rawDate = (string)($r['start'] ?? $r['date'] ?? $dim['date'] ?? '');
+            $date = (strlen($rawDate) === 8) ? substr($rawDate,0,4).'-'.substr($rawDate,4,2).'-'.substr($rawDate,6,2) : substr($rawDate,0,10);
+            $rows[] = [
+                'team'            => 'Kakao',
+                'account'         => (string)($dim['campaignName'] ?? $dim['campaign'] ?? 'Kakao Moment'),
+                'campaign_ext_id' => (string)($dim['campaignId'] ?? $dim['campaign_id'] ?? ''),
+                'date'            => $date,
+                'impressions'     => (int)($m['imp'] ?? $m['impression'] ?? $m['impressions'] ?? 0),
+                'clicks'          => (int)($m['click'] ?? $m['clicks'] ?? 0),
+                'spend'           => (float)($m['cost'] ?? $m['spending'] ?? $m['spend'] ?? 0),
+                'conversions'     => (int)round((float)($m['convPurchaseCnt'] ?? $m['conversionPurchase'] ?? $m['conv'] ?? 0)),
+                'revenue'         => (float)($m['convPurchaseAmount'] ?? $m['conversionPurchaseAmount'] ?? $m['convValue'] ?? 0),
+            ];
         }
         return ['hasCreds' => true, 'live' => true, 'rows' => $rows];
     }
