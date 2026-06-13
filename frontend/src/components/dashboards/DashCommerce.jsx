@@ -5,6 +5,7 @@ import { useSecurityGuard } from '../../security/SecurityGuard.js';
 import { DonutChart, StackBar, fmt } from './ChartUtils.jsx';
 import { useCurrency } from '../../contexts/CurrencyContext.jsx';
 import { IS_DEMO } from '../../utils/demoEnv.js';
+import { buildPeriodScope, deriveOrderKpis } from './dashPeriod.js';
 
 // ══════════════════════════════════════════════════════════════════════
 //  🛒 DashCommerce — 커머스·정산 Platform Intelligence
@@ -416,7 +417,7 @@ function PlatDetail({ p, txt }) {
 // ══════════════════════════════════════════════════════════════════════
 //  Main Component
 // ══════════════════════════════════════════════════════════════════════
-export default function DashCommerce() {
+export default function DashCommerce({ period }) {
   const { fmt: fmtC } = useCurrency();
   const { t, lang: ctxLang } = useI18n();
   const lang = ctxLang || 'ko';
@@ -431,13 +432,18 @@ export default function DashCommerce() {
   // ✅ SecurityGuard — Enterprise real-time threat monitoring
   useSecurityGuard({ addAlert: useCallback((a) => { if (typeof addAlert === 'function') addAlert(a); }, [addAlert]), enabled: true });
 
+  // [현 차수] 기간 스코프: 선택 기간의 실주문(취소 제외)으로 주문수·매출·플랫폼 분해 재집계.
+  const scope = useMemo(() => buildPeriodScope(orders, period), [orders, period]);
+  const periodKpis = useMemo(() => deriveOrderKpis(scope.scoped), [scope.scoped]);
+  const scopedOrders = scope.scoped;
+
   // ── Derived computed data (100% real-time, zero mock) ──────────────
-  const totalOrd = orderStats?.count || 0;
+  const totalOrd = scope.active ? periodKpis.orders : (orderStats?.count || 0);
   // [현 차수] 데이터품질(운영 매출 발산 통일): '총매출'은 플랫폼 캐논 매출(pnlStats.revenue)을 사용한다.
-  //   기존엔 orderStats.revenue(주문 폴링 limit 캡 영향)라, 정산우선의 DashOverview/DashSalesGlobal/P&L과
-  //   같은 '총매출'이 탭마다 다르게 표시(발산)됐다. canonical = pnlStats.revenue(데모=주문단일/운영=정산우선),
-  //   미가용 시에만 orderStats.revenue 폴백. (주문 '건수'는 별개 지표라 그대로 orderStats.count 유지.)
-  const totalRev = (pnlStats?.revenue != null && pnlStats.revenue > 0) ? pnlStats.revenue : (orderStats?.revenue || 0);
+  //   기간 선택 시엔 그 기간 실주문 매출(periodKpis.revenue)을 우선해 기간 정합성을 보장한다.
+  const totalRev = scope.active
+    ? periodKpis.revenue
+    : ((pnlStats?.revenue != null && pnlStats.revenue > 0) ? pnlStats.revenue : (orderStats?.revenue || 0));
   const returnRate = settlementStats?.returnRate || 0;
   const reconRate = settlementStats?.totalOrders > 0
     ? ((settlementStats.settledAmount / Math.max(1, settlementStats.totalGross)) * 100).toFixed(1)
@@ -453,10 +459,10 @@ export default function DashCommerce() {
       }));
     }
 
-    // Group real orders by channel
+    // Group real orders by channel ([현 차수] 기간 필터된 주문 + ch 필드 폴백)
     const channelMap = {};
-    orders.forEach(o => {
-      const ch = (o.channel || o.platform || 'own').toLowerCase();
+    scopedOrders.forEach(o => {
+      const ch = (o.ch || o.channel || o.platform || 'own').toLowerCase();
       if (!channelMap[ch]) channelMap[ch] = { orders: 0, rev: 0 };
       if (o.status !== 'CancelDone' && o.status !== 'Cancel요청') {
         channelMap[ch].orders += 1;
@@ -489,7 +495,7 @@ export default function DashCommerce() {
         pay: (IS_DEMO && hasData) ? [['Card', 65], ['Mobile', 25], ['Transfer', 10]] : [],
       };
     });
-  }, [orders, totalOrd, totalRev, returnRate]);
+  }, [scopedOrders, totalOrd, totalRev, returnRate]);
 
   // Order funnel — derived from real totals
   const flowData = useMemo(() => [
@@ -499,23 +505,23 @@ export default function DashCommerce() {
     { l: txt('flowPurchase'), v: totalOrd, c: '#eab308' },
   ], [totalOrd, txt]);
 
-  // Recent orders — from real orders data
+  // Recent orders — from real orders data ([현 차수] 기간 필터 적용)
   const recentOrders = useMemo(() => {
-    if (!orders || orders.length === 0) return [];
-    return orders
+    if (!scopedOrders || scopedOrders.length === 0) return [];
+    return scopedOrders
       .filter(o => o.status !== 'CancelDone' && o.status !== 'Cancel요청')
       .slice(-5)
       .reverse()
       .map(o => ({
         id: o.orderId || o.id || `ORD-${Date.now()}`,
-        ch: o.channel || o.platform || '-',
-        prod: o.productName || o.sku || '-',
+        ch: o.ch || o.channel || o.platform || '-',
+        prod: o.productName || o.name || o.sku || '-',
         amt: o.total || 0,
         st: o.status || 'Pending',
         sc: o.status === '배송Done' ? '#22c55e' : o.status === '배송중' ? '#4f8ef7' : '#eab308',
         region: o.region || '-',
       }));
-  }, [orders]);
+  }, [scopedOrders]);
 
   const selPlat = platformData.find(p => p.id === sel);
 

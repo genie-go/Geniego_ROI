@@ -4,6 +4,7 @@ import { useI18n } from '../../i18n/index.js';
 import { fmt } from './ChartUtils.jsx';
 import { useCurrency } from '../../contexts/CurrencyContext.jsx';
 import { useSecurityGuard, getSecurityAlerts } from '../../security/SecurityGuard.js';
+import { buildPeriodScope, deriveOrderKpis } from './dashPeriod.js';
 
 // ══════════════════════════════════════════════════════════════════════
 //  🤝 DashInfluencer —AI·Influencer Super-Premium Enterprise Dashboard
@@ -536,7 +537,7 @@ const EmptyPanel = React.memo(function EmptyPanel({ txt }) {
 // ══════════════════════════════════════════════════════════════════════
 //  Main Component — Enterprise Super-Premium
 // ══════════════════════════════════════════════════════════════════════
-export default function DashInfluencer() {
+export default function DashInfluencer({ period }) {
   const { t, lang: ctxLang } = useI18n();
   const lang = ctxLang || 'ko';
   const txt = useCallback((k, fb) => LOC[lang]?.[k] || LOC.en?.[k] || t(`dash.${k}`, fb || k), [lang, t]);
@@ -546,7 +547,12 @@ export default function DashInfluencer() {
   const tabHandler = useCallback((id) => setTab(id), []);
 
   // ✅ GlobalDataContext — Single Source of Truth
-  const { pnlStats, orderStats, budgetStats, creators, addAlert } = useGlobalData();
+  const { pnlStats, orderStats, budgetStats, creators, orders, addAlert } = useGlobalData();
+
+  // [현 차수] 기간 스코프: 인플루언서 매출/구매를 선택 기간의 실주문 매출 기여비중으로 재산출.
+  const scope = useMemo(() => buildPeriodScope(orders, period), [orders, period]);
+  const periodKpis = useMemo(() => deriveOrderKpis(scope.scoped), [scope.scoped]);
+  const baseRev = scope.active ? periodKpis.revenue : (pnlStats?.revenue || 0);
 
   // ✅ SecurityGuard — Real-time threat monitoring with instant alerts
   const secStatus = useSecurityGuard({
@@ -573,11 +579,11 @@ export default function DashInfluencer() {
   const creatorList = useMemo(() => {
     const base = (creators && creators.length > 0) ? creators : [];
     const seedRev = base.reduce((s, c) => s + (c.revenue || 0), 0);
-    const rev = pnlStats?.revenue || 0;
+    const rev = baseRev || 0;   // [현 차수] 기간 선택 시 기간 실주문 매출 기준
     const sc = (seedRev > 0 && rev > 0) ? (rev * INFLUENCER_SHARE / seedRev) : 1;
     if (sc === 1) return base;
     return base.map(c => ({ ...c, revenue: Math.round((c.revenue || 0) * sc), purchases: Math.round((c.purchases || 0) * sc) }));
-  }, [creators, pnlStats]);
+  }, [creators, baseRev]);
 
   // Real-time KPI aggregation (memoized)
   const kpis = useMemo(() => {

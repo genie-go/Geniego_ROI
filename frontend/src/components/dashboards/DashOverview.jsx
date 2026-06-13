@@ -11,6 +11,7 @@ import { useCurrency } from '../../contexts/CurrencyContext.jsx';
 import { useSecurityGuard, getSecurityAlerts } from '../../security/SecurityGuard.js';
 import { Spark, DonutChart, Gauge, fmt, LineChart } from './ChartUtils.jsx';
 import { IS_DEMO } from '../../utils/demoEnv';
+import { buildPeriodScope, deriveOrderKpis } from './dashPeriod.js';
 
 // ── Style Constants ──────────────────────────────────────────────────────
 const G = 12;
@@ -466,7 +467,7 @@ function ModuleShortcuts({ t, navigate }) {
 // ═══════════════════════════════════════════════════════════════════════
 //  MAIN EXPORT — DashOverview
 // ═══════════════════════════════════════════════════════════════════════
-export default function DashOverview({ ticker }) {
+export default function DashOverview({ ticker, period }) {
   const { t } = useI18n();
   const navigate = useNavigate();
   const { fmt: fmtCurrency } = useCurrency();
@@ -474,9 +475,15 @@ export default function DashOverview({ ticker }) {
   // ── GlobalDataContext 실시간 연동 ──────────────────────────────
   const {
     pnlStats, orderStats, budgetStats, totalInventoryValue, totalInventoryQty,
-    lowStockCount, alerts, markAlertRead, addAlert, channelBudgets,
+    lowStockCount, alerts, markAlertRead, addAlert, channelBudgets, orders,
     activeCampaignCount, unreadAlertCount, settlement,
   } = useGlobalData();
+
+  // ── [현 차수] 기간(period) 스코프 ─────────────────────────────
+  const scope = useMemo(() => buildPeriodScope(orders, period), [orders, period]);
+  const periodKpis = useMemo(() => deriveOrderKpis(scope.scoped), [scope.scoped]);
+  const f = scope.factor;             // 광고 누적집계 스코프 계수
+  const periodActive = scope.active;
 
   // ── SecurityGuard 보안 감시 ────────────────────────────────────
   useSecurityGuard({ addAlert, enabled: true });
@@ -488,19 +495,24 @@ export default function DashOverview({ ticker }) {
   }, []);
 
   // ── 실시간 KPI (GlobalDataContext 단일 소스) ──────────────────
-  const base = useMemo(() => ({
-    grossRev: pnlStats?.revenue || 0,
-    adSpend: pnlStats?.adSpend || budgetStats?.totalSpent || 0,
-    roas: pnlStats?.roas || budgetStats?.blendedRoas || 0,
-    orders: orderStats?.count || 0,
-    // 207차 운영오염 수정: 기존 count/(count*4.5) = 항상 22.22% 자기상쇄 가짜값.
-    //   방문수/세션 단일소스가 없어 운영에선 전환율을 정직 산출 불가 → null('—' 표시).
-    //   데모는 주문수 기반 결정적 현실값(2.2~3.3%) 표시.
-    convRate: IS_DEMO
-      ? parseFloat((2.2 + ((orderStats?.count || 0) % 12) * 0.1).toFixed(2))
-      : null,
-    avgOrder: orderStats?.count > 0 ? Math.round((pnlStats?.revenue || 0) / orderStats.count) : 0,
-  }), [pnlStats, orderStats, budgetStats]);
+  const base = useMemo(() => {
+    // [현 차수] 기간 선택 시: 매출/주문수/객단가=실주문 재집계, 광고비=기간비례 계수.
+    const gross = periodActive ? periodKpis.revenue : (pnlStats?.revenue || 0);
+    const ord = periodActive ? periodKpis.orders : (orderStats?.count || 0);
+    const spend = (pnlStats?.adSpend || budgetStats?.totalSpent || 0) * (periodActive ? f : 1);
+    return {
+      grossRev: gross,
+      adSpend: spend,
+      roas: spend > 0 ? (gross / spend) : (pnlStats?.roas || budgetStats?.blendedRoas || 0),
+      orders: ord,
+      // 207차 운영오염 수정: 기존 count/(count*4.5) = 항상 22.22% 자기상쇄 가짜값.
+      //   방문수/세션 단일소스가 없어 운영에선 전환율을 정직 산출 불가 → null('—' 표시).
+      convRate: IS_DEMO
+        ? parseFloat((2.2 + (ord % 12) * 0.1).toFixed(2))
+        : null,
+      avgOrder: ord > 0 ? Math.round(gross / ord) : 0,
+    };
+  }, [pnlStats, orderStats, budgetStats, periodActive, periodKpis, f]);
 
   const sparks = useMemo(() => ({
     gross: seedSpark(base.grossRev, 22),
@@ -520,11 +532,12 @@ export default function DashOverview({ ticker }) {
     if (!entries.length) return [];
     return entries.map(([id, ch]) => ({
       name: ch.name || id,
-      rev: ch.revenue || Math.round((ch.spent || 0) * (ch.roas || 1)),
+      // [현 차수] 채널 매출=날짜 미보유 누적 → 기간비례 계수 f 스코프.
+      rev: (ch.revenue || Math.round((ch.spent || 0) * (ch.roas || 1))) * (periodActive ? f : 1),
       color: CC[id] || '#a855f7',
       icon: IC[id] || '📡',
     }));
-  }, [channelBudgets]);
+  }, [channelBudgets, periodActive, f]);
   const totalChannelRev = liveChannels.reduce((s, c) => s + c.rev, 0);
 
   return (

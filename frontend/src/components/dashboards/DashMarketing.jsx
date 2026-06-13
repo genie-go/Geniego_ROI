@@ -5,6 +5,7 @@ import { useSecurityGuard, getSecurityAlerts } from '../../security/SecurityGuar
 import { useCurrency } from '../../contexts/CurrencyContext.jsx';
 import { LineChart, BarChart, Spark, DonutChart } from './ChartUtils.jsx';
 import MarketingAIPanel from '../MarketingAIPanel.jsx';
+import { buildPeriodScope, deriveOrderKpis } from './dashPeriod.js';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    DashMarketing — 마케팅 퍼포먼스 엔터프라이즈 초고도화
@@ -223,7 +224,7 @@ function SummaryPanel({ channels, totalRev, totalSpend, avgROAS, t, currFmt }) {
 /* ═══════════════════════════════════════════════════════════════════════════
    메인 컴포넌트 — DashMarketing
    ═══════════════════════════════════════════════════════════════════════════ */
-export default function DashMarketing() {
+export default function DashMarketing({ period }) {
   const { t } = useI18n();
   const { fmt: currencyFmt } = useCurrency();
   const currFmt = useCallback((n) => currencyFmt(n, { compact: true }), [currencyFmt]);
@@ -233,9 +234,15 @@ export default function DashMarketing() {
 
   /* ── GlobalDataContext 실시간 연동 ─────────────────────────────────── */
   const {
-    channelBudgets, budgetStats, pnlStats, orderStats,
+    channelBudgets, budgetStats, pnlStats, orderStats, orders,
     alerts, unreadAlertCount,
   } = useGlobalData();
+
+  /* ── [현 차수] 기간(period) 스코프: 주문=실필터, 광고 누적집계=기간비례 계수 ─── */
+  const scope = useMemo(() => buildPeriodScope(orders, period), [orders, period]);
+  const periodKpis = useMemo(() => deriveOrderKpis(scope.scoped), [scope.scoped]);
+  const f = scope.factor;                 // 광고 누적집계 스코프 계수(0~1)
+  const periodActive = scope.active;      // 기간 선택 적용 여부
 
   /* ── SecurityGuard 보안 모니터링 ─────────────────────────────────── */
   const secStatus = useSecurityGuard();
@@ -259,8 +266,9 @@ export default function DashMarketing() {
 
     return entries.map(([id, data]) => {
       const meta = CHANNEL_META[id] || { icon: '📊', name: id, color: '#64748b' };
-      const spent = data.spent || data.spend || 0;
-      const revenue = data.revenue || (spent * (data.roas || 0)) || 0;
+      // [현 차수] 광고 집계는 날짜 미보유 → 기간비례 계수(f)로 가산지표만 스케일. 비율은 보존.
+      const spent = (data.spent || data.spend || 0) * f;
+      const revenue = (data.revenue || ((data.spent || data.spend || 0) * (data.roas || 0)) || 0) * f;
       const roas = data.roas || (spent > 0 ? revenue / spent : 0);
       return {
         id,
@@ -270,28 +278,29 @@ export default function DashMarketing() {
         spend: spent,
         revenue,
         roas,
-        clicks: data.clicks || 0,
-        impressions: data.impressions || 0,
+        clicks: (data.clicks || 0) * f,
+        impressions: (data.impressions || 0) * f,
         ctr: data.ctr || (data.impressions > 0 ? ((data.clicks || 0) / data.impressions * 100) : 0),
         convRate: data.convRate || data.conversionRate || 0,
-        conversions: data.conversions || 0,
-        cpc: data.cpc || (data.clicks > 0 ? spent / data.clicks : 0),
-        sessions: data.sessions || 0,
+        conversions: (data.conversions || 0) * f,
+        cpc: data.cpc || (data.clicks > 0 ? (data.spent || data.spend || 0) / data.clicks : 0),
+        sessions: (data.sessions || 0) * f,
         bounceRate: data.bounceRate || 0,
         avgSessionTime: data.avgSessionTime || 0,
-        purchases: data.purchases || 0,
-        signups: data.signups || 0,
-        cartAdds: data.cartAdds || 0,
+        purchases: (data.purchases || 0) * f,
+        signups: (data.signups || 0) * f,
+        cartAdds: (data.cartAdds || 0) * f,
         sparkData: data.sparkData || data.dailySpend || new Array(14).fill(0),
       };
     });
-  }, [channelBudgets]);
+  }, [channelBudgets, f]);
 
-  /* ── 종합 KPI (GlobalDataContext 우선, 채널 합산 fallback) ────────── */
-  const totalRev = budgetStats?.totalAdRevenue || pnlStats?.revenue || liveChannels.reduce((s, c) => s + c.revenue, 0);
-  const totalSpend = budgetStats?.totalSpent || pnlStats?.adSpend || liveChannels.reduce((s, c) => s + c.spend, 0);
+  /* ── 종합 KPI (기간 스코프: 광고 누적집계=계수 f, 매출=채널 합산도 이미 f 반영) ──── */
+  // 광고 매출/지출은 날짜 미보유 누적값 → 계수 f 적용. liveChannels 는 이미 f 반영됨.
+  const totalRev = (budgetStats?.totalAdRevenue || pnlStats?.revenue) ? ((budgetStats?.totalAdRevenue || pnlStats?.revenue) * f) : liveChannels.reduce((s, c) => s + c.revenue, 0);
+  const totalSpend = (budgetStats?.totalSpent || pnlStats?.adSpend) ? ((budgetStats?.totalSpent || pnlStats?.adSpend) * f) : liveChannels.reduce((s, c) => s + c.spend, 0);
   const avgROAS = totalSpend > 0
-    ? (budgetStats?.blendedRoas || totalRev / totalSpend).toFixed(2)
+    ? (budgetStats?.blendedRoas || totalRev / totalSpend).toFixed(2)   // ROAS=비율→기간 불변
     : '0.00';
   const totalClicks = liveChannels.reduce((s, c) => s + c.clicks, 0);
   const avgCTR = liveChannels.length > 0
@@ -300,28 +309,35 @@ export default function DashMarketing() {
   const avgConvRate = liveChannels.length > 0
     ? (liveChannels.reduce((s, c) => s + c.convRate, 0) / liveChannels.length).toFixed(1)
     : '0.0';
-  const totalOrders = orderStats?.count || 0;
+  // [현 차수] 주문수=기간 필터된 실주문 건수(취소 제외). 기간 미선택 시 누적 orderStats 폴백.
+  const totalOrders = periodActive ? periodKpis.orders : (orderStats?.count || 0);
 
-  /* ── 날짜 라벨 (최근 14일) ──────────────────────────────────────── */
+  /* ── 날짜 라벨 (선택 기간 일수 반영, 최대 30개 버킷) ──────────────── */
+  const dayCount = useMemo(() => {
+    const n = periodActive && scope.days > 0 ? scope.days : 14;
+    return Math.min(Math.max(n, 1), 30);
+  }, [periodActive, scope.days]);
   const days = useMemo(() => {
-    return Array.from({ length: 14 }, (_, i) => {
-      const d = new Date();
-      d.setDate(d.getDate() - (13 - i));
+    const end = (periodActive && period?.end instanceof Date) ? new Date(period.end) : new Date();
+    return Array.from({ length: dayCount }, (_, i) => {
+      const d = new Date(end);
+      d.setDate(d.getDate() - (dayCount - 1 - i));
       return `${d.getMonth() + 1}/${d.getDate()}`;
     });
-  }, []);
+  }, [dayCount, periodActive, period]);
 
   /* ── 트렌드 차트 데이터 ──────────────────────────────────────────── */
   const lineData = useMemo(() => {
     if (liveChannels.length === 0) return [];
-    return Array.from({ length: 14 }, (_, i) => {
+    return Array.from({ length: dayCount }, (_, i) => {
       const row = {};
       liveChannels.forEach(c => {
-        row[c.id] = c.sparkData?.[i] || Math.round((c.spend / 14) * (0.8 + Math.sin(i * 0.5) * 0.2));
+        // 일별 spend = 기간 채널 지출(c.spend, 이미 f 반영)을 dayCount 로 균등 분배 + 결정적 변동.
+        row[c.id] = c.sparkData?.[i] || Math.round((c.spend / dayCount) * (0.8 + Math.sin(i * 0.5) * 0.2));
       });
       return row;
     });
-  }, [liveChannels]);
+  }, [liveChannels, dayCount]);
 
   /* ── KPI 지표 카드 데이터 ─────────────────────────────────────────── */
   const metricsTop = useMemo(() => [

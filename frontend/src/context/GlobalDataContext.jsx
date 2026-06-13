@@ -77,6 +77,9 @@ function saveDemoState(key, data) {
 //   기존엔 영문/CancelDone 토큰만이라 운영 채널주문의 한글상태('취소완료'/'취소요청')가 매출에서 미제외였음.
 const CANCELLED_STATUSES = new Set(['CancelDone', 'Cancel요청', 'cancelled', 'canceled', '취소완료', '취소요청', '취소접수', '취소', '주문취소']);
 function _isCancelled(s) { return CANCELLED_STATUSES.has(String(s || '')); }
+// [현 차수] 반품 상태 판정(반품률·정산 returnFee 정확 집계용). 반품은 매출 포함·반품수만 카운트(백엔드 캐논 정합).
+const RETURN_STATUSES = new Set(['반품접수', '반품Done', '반품입고', '반품완료', 'returned', 'return', 'return_requested']);
+function _isReturn(s) { return RETURN_STATUSES.has(String(s || '')); }
 // [현 차수] 감사 P1: 취소 판정 SSOT export — 페이지가 raw orders 를 재집계할 때 동일 캐논으로 취소를 제외해
 //   매출 발산을 막는다(OmniChannel 등). 내부 _isCancelled 와 동일.
 export function isCancelledStatus(s) { return _isCancelled(s); }
@@ -91,19 +94,33 @@ function deriveSettlementFromOrders(orders, prev) {
   const months = [...new Set(active.map(_monthOf).filter(Boolean))].sort();
   const recent = months[months.length - 1];
   const prevStatus = {}; (prev || []).forEach(s => { if (s && s.id) prevStatus[s.id] = s.status; });
+  // [현 차수] 신규 채널 동기화: 하드코딩 DEMO_CHANNELS 가 아니라 "실주문에 등장한 모든 채널"을 순회한다.
+  //   → 신규 추가 판매채널(오픈마켓 등) 주문도 정산에 누락 없이 반영. 채널 메타/수수료율은 아래 우선순위로 해석.
+  const chMeta = {}; DEMO_CHANNELS.forEach(c => { chMeta[c.id] = c; });
+  const orderChannels = [...new Set(active.map(o => o.ch).filter(Boolean))];
   const rows = [];
-  DEMO_CHANNELS.forEach(ch => {
+  orderChannels.forEach(chId => {
+    const meta = chMeta[chId] || { id: chId, name: chId };
     months.forEach(period => {
-      const co = active.filter(o => o.ch === ch.id && _monthOf(o) === period);
+      const co = active.filter(o => o.ch === chId && _monthOf(o) === period);
       if (!co.length) return;
       const gross = co.reduce((s, o) => s + (Number(o.total) || 0), 0);
-      const pfee = Math.round(gross * (ch.id === 'oliveyoung' ? 0.30 : ch.id === 'coupang' ? 0.108 : 0.055));
-      const adFee = Math.round(gross * 0.02), returnFee = Math.round(gross * 0.015);
-      const id = `STL-${ch.id}-${period}`;
+      // 수수료율: ①주문에 기록된 platformFeeRate 평균(채널 실제율) ②채널 기본(올리브영0.30/쿠팡0.108/기타0.055).
+      const rateSamples = co.map(o => Number(o.platformFeeRate)).filter(r => r > 0);
+      const feeRate = rateSamples.length
+        ? (rateSamples.reduce((s, r) => s + r, 0) / rateSamples.length)
+        : (chId === 'oliveyoung' ? 0.30 : chId === 'coupang' ? 0.108 : 0.055);
+      const pfee = Math.round(gross * feeRate);
+      // 반품: 실제 반품 상태 주문 건수(가짜 0.02 추정 제거). returnFee=반품 주문 매출의 2% 처리비.
+      const returnedOrders = co.filter(o => _isReturn(o.status));
+      const returnCnt = returnedOrders.length;
+      const returnGross = returnedOrders.reduce((s, o) => s + (Number(o.total) || 0), 0);
+      const adFee = Math.round(gross * 0.02), returnFee = Math.round(returnGross * 0.02);
+      const id = `STL-${chId}-${period}`;
       rows.push({
-        id, channel: ch.id, channelName: ch.name, period, grossSales: gross,
+        id, channel: chId, channelName: meta.name || chId, period, grossSales: gross,
         platformFee: pfee, adFee, returnFee, couponDiscount: Math.round(gross * 0.01),
-        netPayout: gross - pfee - adFee - returnFee, orders: co.length, returns: Math.round(co.length * 0.02),
+        netPayout: gross - pfee - adFee - returnFee, orders: co.length, returns: returnCnt,
         status: prevStatus[id] || (period === recent ? 'confirmed' : 'settled'),
       });
     });

@@ -206,14 +206,20 @@ $app->add(function (Request $request, $handler) {
                     // ★ 202차 P1(격리): api_key 인증 시 키의 tenant_id 를 auth_tenant 로 주입 + X-Tenant-Id 강제.
                     //   기존엔 AI-게이트가 tenant 를 주입하지 않아, api_key 보유자가 핸들러의 raw X-Tenant-Id
                     //   헤더 폴백(AutoRecommend)으로 타 테넌트 집계지표를 위조 열람할 수 있었다(메인 미들웨어 패턴 미러).
-                    $sa = $pdoAi->prepare('SELECT tenant_id FROM api_key WHERE key_hash=? AND is_active=1 LIMIT 1');
+                    // 219차 잔여 P1: 기존엔 tenant_id 만 조회·주입해 auth_role/auth_key(scopes) 가 빠져 있었다.
+                    //   그 결과 AI-게이트 경유 라우트(예: PUT /v424/marketing/benchmarks)의 핸들러측 RBAC
+                    //   (auth_role=admin 또는 admin:keys/write:* 스코프)가 admin api_key 로도 항상 403 이었다.
+                    //   메인 api_key 미들웨어와 동일하게 전체 행을 조회해 auth_role/auth_key 까지 주입한다.
+                    $sa = $pdoAi->prepare('SELECT * FROM api_key WHERE key_hash=? AND is_active=1 LIMIT 1');
                     $sa->execute([hash('sha256', $bearer)]);
-                    $keyTenant = $sa->fetchColumn();
-                    if ($keyTenant !== false) {
+                    $keyRowAi = $sa->fetch(\PDO::FETCH_ASSOC);
+                    if ($keyRowAi) {
                         $aiOk = true;
                         $request = $request
-                            ->withAttribute('auth_tenant', (string)$keyTenant)
-                            ->withHeader('X-Tenant-Id', (string)$keyTenant);
+                            ->withAttribute('auth_tenant', (string)$keyRowAi['tenant_id'])
+                            ->withAttribute('auth_role',   isset($keyRowAi['role']) ? (string)$keyRowAi['role'] : 'viewer')
+                            ->withAttribute('auth_key',    $keyRowAi)
+                            ->withHeader('X-Tenant-Id', (string)$keyRowAi['tenant_id']);
                     }
                     if (!$aiOk) {
                         $ss = $pdoAi->prepare('SELECT 1 FROM user_session WHERE token=? LIMIT 1');

@@ -6,6 +6,7 @@ import {
     ComposableMap, Geographies, Geography, Marker, ZoomableGroup,
 } from 'react-simple-maps';
 import { fmt } from './ChartUtils.jsx';
+import { buildPeriodScope, deriveOrderKpis } from './dashPeriod.js';
 import { useCurrency } from '../../contexts/CurrencyContext.jsx';
 
 // ══════════════════════════════════════════════════════════════════════════
@@ -710,14 +711,14 @@ function CountryDetail({ c, txt, total }) {
 // ══════════════════════════════════════════════════════════════════════
 //  Main Component
 // ══════════════════════════════════════════════════════════════════════
-export default function DashSalesGlobal() {
+export default function DashSalesGlobal({ period }) {
   const { fmt: fmtC } = useCurrency();
   const [selIso, setSelIso] = useState(null);
   const [zoom, setZoom] = useState(1);
   const [center, setCenter] = useState([0, 20]);
 
   // ✅ GlobalDataContext — Single Source of Truth
-  const { pnlStats, orderStats, channelBudgets, addAlert } = useGlobalData();
+  const { pnlStats, orderStats, channelBudgets, orders, addAlert } = useGlobalData();
   const { t, lang: ctxLang } = useI18n();
   const lang = ctxLang || 'ko';
   const txt = useCallback((k, fb) => LOC[lang]?.[k] || LOC.en?.[k] || t(`dash.${k}`, fb || k), [lang, t]);
@@ -725,8 +726,13 @@ export default function DashSalesGlobal() {
   // ✅ SecurityGuard — Enterprise real-time threat monitoring
   useSecurityGuard({ addAlert: useCallback((a) => { if (typeof addAlert === 'function') addAlert(a); }, [addAlert]), enabled: true });
 
-  // 206차 #1: 총매출(pnlStats.revenue) 기준으로 국가 시드를 비례 스케일 → 글로벌/국가 매출이 총매출과 일관.
-  const scale = (SEED_TOTAL > 0 && (pnlStats?.revenue || 0) > 0) ? (pnlStats.revenue / SEED_TOTAL) : 1;
+  // [현 차수] 기간 스코프: 선택 기간의 실주문 매출(취소 제외)을 단일소스로 국가 시드를 스케일.
+  const scope = useMemo(() => buildPeriodScope(orders, period), [orders, period]);
+  const periodKpis = useMemo(() => deriveOrderKpis(scope.scoped), [scope.scoped]);
+  const baseRev = scope.active ? periodKpis.revenue : (pnlStats?.revenue || 0);
+
+  // 206차 #1: 총매출 기준으로 국가 시드를 비례 스케일 → 글로벌/국가 매출이 총매출과 일관(기간 반영).
+  const scale = (SEED_TOTAL > 0 && baseRev > 0) ? (baseRev / SEED_TOTAL) : 1;
   const scaledAll = useMemo(() => scaleCountries(scale), [scale]);
   const scaledMap = useMemo(() => Object.fromEntries(scaledAll.map(c => [c.iso, c])), [scaledAll]);
   const sorted = useMemo(() => [...scaledAll].sort((a, b) => b.rev - a.rev), [scaledAll]);

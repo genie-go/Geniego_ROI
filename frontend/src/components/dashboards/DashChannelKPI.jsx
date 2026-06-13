@@ -5,6 +5,7 @@ import { useSecurityGuard } from '../../security/SecurityGuard.js';
 import { LineChart, Spark, fmt } from './ChartUtils.jsx';
 import { useCurrency } from '../../contexts/CurrencyContext.jsx';
 import { IS_DEMO } from '../../utils/demoEnv';
+import { buildPeriodScope } from './dashPeriod.js';
 
 // ══════════════════════════════════════════════════════════════════════
 //  📡 Channel KPI — Channel Intelligence with Drill-Down
@@ -123,23 +124,28 @@ function DetailPanel({ c }) {
     );
 }
 
-export default function DashChannelKPI() {
+export default function DashChannelKPI({ period }) {
   const { fmt: fmtC } = useCurrency();
     const { t } = useI18n();
     const [sel, setSel] = useState(null);
 
     // ✅ Real-time GlobalDataContext connection
-    const { channelBudgets, budgetStats, pnlStats, orderStats, addAlert } = useGlobalData();
+    const { channelBudgets, budgetStats, pnlStats, orderStats, orders, addAlert } = useGlobalData();
 
     // ✅ SecurityGuard — Enterprise real-time threat monitoring
     useSecurityGuard({ addAlert: useCallback((a) => { if (typeof addAlert === 'function') addAlert(a); }, [addAlert]), enabled: true });
+
+    // [현 차수] 기간 스코프: 채널 지출=날짜 미보유 누적 → 기간비례 계수(f). 비율(ROAS/CTR/CVR)은 보존.
+    const scope = useMemo(() => buildPeriodScope(orders, period), [orders, period]);
+    const f = scope.factor;
+    const periodActive = scope.active;
 
     // Reconstruct channel metrics using 100% REAL global data formulas
     const liveList = useMemo(() => {
         return Object.entries(CH_META_DEFS).map(([id, meta]) => {
             const live = channelBudgets[id] || { spent: 0, roas: 0.0, budget: 0 };
-            
-            const spend = live.spent || 0;
+
+            const spend = (live.spent || 0) * (periodActive ? f : 1);  // [현 차수] 기간비례 스코프
             const roas = live.roas || 0;
             const rev = roas * spend;
             
@@ -178,9 +184,15 @@ export default function DashChannelKPI() {
                 funnel
             };
         });
-    }, [channelBudgets, t]);
+    }, [channelBudgets, t, f, periodActive]);
 
-    const DAYS = Array.from({ length: 14 }, (_, i) => { const d = new Date(); d.setDate(d.getDate() - (13 - i)); return `${d.getMonth() + 1}/${d.getDate()}`; });
+    // [현 차수] 추세 라벨도 선택 기간 일수 반영(최대 30 버킷).
+    const dayCount = Math.min(Math.max(periodActive && scope.days > 0 ? scope.days : 14, 1), 30);
+    const DAYS = Array.from({ length: dayCount }, (_, i) => {
+        const end = (periodActive && period?.end instanceof Date) ? new Date(period.end) : new Date();
+        const d = new Date(end); d.setDate(d.getDate() - (dayCount - 1 - i));
+        return `${d.getMonth() + 1}/${d.getDate()}`;
+    });
     
     // Dynamic chart data strictly bound to actual total revenue per channel across days (simulated trend from live value)
     const lineData = DAYS.map((d, i) => ({ 
