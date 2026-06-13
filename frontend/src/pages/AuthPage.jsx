@@ -486,6 +486,7 @@ function LoginForm({ onSwitch, loginType = "production" }) {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [wrongSite, setWrongSite] = useState(null); // [현 차수] 데모↔운영 사이트 혼동 안내({url,site})
   // 190차: 이메일 재설정 링크(/login?reset=<token>)로 진입 시 재설정 모달 자동 오픈
   const resetTokenFromUrl = typeof window !== "undefined" ? (new URLSearchParams(window.location.search).get("reset") || "") : "";
   const [recovery, setRecovery] = useState(resetTokenFromUrl ? "reset" : null); // 188차: null | 'findId' | 'forgot' | (190차) 'reset'
@@ -505,7 +506,7 @@ function LoginForm({ onSwitch, loginType = "production" }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(null); setLoading(true);
+    setError(null); setWrongSite(null); setLoading(true);
     // 207차: 자동완성 비동기화 방지 — 제출 시 DOM 실 입력값 우선(state-표시값 불일치 로그인 실패 차단).
     let liveEmail = email, livePw = password;
     try {
@@ -533,6 +534,7 @@ function LoginForm({ onSwitch, loginType = "production" }) {
         else { setError(err.message || t('auth.mfaInvalid', '인증 코드가 올바르지 않습니다.')); }
       } else {
         setError(err.message);
+        if (err.wrongSite && err.correctUrl) setWrongSite({ url: err.correctUrl, site: err.correctSite });
       }
     }
     setLoading(false);
@@ -580,7 +582,16 @@ function LoginForm({ onSwitch, loginType = "production" }) {
         </div>
       )}
 
-      {error && <div style={{ padding: "8px 12px", borderRadius: 8, background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.3)", color: "#ef4444", fontSize: 11 }}>{error}</div>}
+      {error && !wrongSite && <div style={{ padding: "8px 12px", borderRadius: 8, background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.3)", color: "#ef4444", fontSize: 11 }}>{error}</div>}
+      {/* [현 차수] 데모↔운영 사이트 혼동 안내 — 비번 오인 무한 재시도 차단. 올바른 사이트로 즉시 이동. */}
+      {wrongSite && (
+        <div style={{ padding: "12px 14px", borderRadius: 10, background: "rgba(245,158,11,0.1)", border: "1px solid rgba(245,158,11,0.45)", display: "grid", gap: 9 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: "#f59e0b", lineHeight: 1.6 }}>ℹ️ {error}</div>
+          <a href={wrongSite.url} style={{ display: "block", textAlign: "center", padding: "10px 0", borderRadius: 9, background: "linear-gradient(135deg,#f59e0b,#ef4444)", color: "#fff", fontWeight: 900, fontSize: 12.5, textDecoration: "none" }}>
+            {wrongSite.site === 'demo' ? t('auth.goDemoSite', '🎪 데모 체험 사이트로 이동') : t('auth.goProdSite', '🏢 운영 사이트로 이동')} →
+          </a>
+        </div>
+      )}
 
       {/* 189차 자동 로그인(remember-me) — 체크 시 브라우저 재시작 후에도 로그인 유지 */}
       {!mfaStep && (

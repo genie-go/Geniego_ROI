@@ -464,7 +464,33 @@ final class ChannelSync
                 'source'      => 'spapi',
             ];
         }
-        return ['ok'=>true, 'products'=>[], 'orders'=>$orders, 'note'=>count($orders) . ' Amazon orders synced (SP-API)'];
+        // [M6] 상품 수집 — FBA Inventory Summaries(sellerSku·asin·재고). FBA 판매자만 채워지며
+        //   FBM 전용/권한 미부여 시 graceful 빈배열(가짜데이터 0). 주문 흐름과 독립(실패해도 주문은 보존).
+        $products = self::amazonProducts($host, $accessToken, $marketplaceId);
+        return ['ok'=>true, 'products'=>$products, 'orders'=>$orders, 'note'=>count($orders) . ' Amazon orders + ' . count($products) . ' products synced (SP-API)'];
+    }
+
+    /** [M6] Amazon FBA Inventory Summaries → 상품 목록(sellerSku·asin·총재고). 실패 시 빈배열. */
+    private static function amazonProducts(string $host, string $accessToken, string $marketplaceId): array
+    {
+        $url = "https://{$host}/fba/inventory/v1/summaries?details=true&granularityType=Marketplace&granularityId="
+            . rawurlencode($marketplaceId) . "&marketplaceIds=" . rawurlencode($marketplaceId);
+        [$code, $body] = self::httpGet($url, ['x-amz-access-token' => $accessToken, 'Accept' => 'application/json']);
+        if ($code >= 400 || !isset($body['payload']['inventorySummaries'])) return [];
+        $products = [];
+        foreach ((array)($body['payload']['inventorySummaries'] ?? []) as $s) {
+            $sku = (string)($s['sellerSku'] ?? '');
+            if ($sku === '') continue;
+            $products[] = [
+                'channel_product_id' => (string)($s['asin'] ?? $sku),
+                'sku'       => $sku,
+                'name'      => (string)($s['productName'] ?? ''),
+                'inventory' => (int)($s['totalQuantity'] ?? 0),
+                'status'    => 'active',
+                'source'    => 'spapi',
+            ];
+        }
+        return $products;
     }
 
     /** Amazon 마켓플레이스 ID → SP-API 리전 엔드포인트(NA/EU/FE). */
@@ -567,7 +593,38 @@ final class ChannelSync
                 'source'      => 'coupang_api',
             ];
         }
-        return ['ok'=>true, 'products'=>[], 'orders'=>$orders, 'note'=>count($orders) . ' Coupang orders synced'];
+        // [M6] 상품 수집 — Coupang seller-products(동일 CEA HMAC 서명 재사용). 실패 시 빈배열.
+        $products = self::coupangProducts($host, $accessKey, $secretKey, $vendorId);
+        return ['ok'=>true, 'products'=>$products, 'orders'=>$orders, 'note'=>count($orders) . ' Coupang orders + ' . count($products) . ' products synced'];
+    }
+
+    /** [M6] Coupang 등록상품 목록(seller-products) → 상품 매핑. 주문과 동일 CEA HMAC 서명. 실패 시 빈배열. */
+    private static function coupangProducts(string $host, string $accessKey, string $secretKey, string $vendorId): array
+    {
+        $path  = '/v2/providers/seller_api/apis/api/v1/marketplace/seller-products';
+        $query = "vendorId={$vendorId}&maxPerPage=50";
+        $datetime  = gmdate('ymd\THis\Z');
+        $signature = hash_hmac('sha256', $datetime . 'GET' . $path . $query, $secretKey);
+        $auth = "CEA algorithm=HmacSHA256, access-key={$accessKey}, signed-date={$datetime}, signature={$signature}";
+        [$code, $body] = self::httpGet($host . $path . '?' . $query, ['Authorization' => $auth, 'Content-Type' => 'application/json;charset=UTF-8']);
+        if ($code >= 400) return [];
+        $products = [];
+        foreach ((array)($body['data'] ?? []) as $p) {
+            $pid = (string)($p['sellerProductId'] ?? '');
+            if ($pid === '') continue;
+            $item0 = (array)(($p['items'] ?? [])[0] ?? []);
+            $products[] = [
+                'channel_product_id' => $pid,
+                'sku'       => (string)($item0['externalVendorSku'] ?? $item0['vendorItemId'] ?? ''),
+                'name'      => (string)($p['sellerProductName'] ?? ''),
+                'price'     => (float)($item0['salePrice'] ?? 0),
+                'inventory' => (int)($item0['maximumBuyCount'] ?? 0),
+                'status'    => strtolower((string)($p['statusName'] ?? 'active')),
+                'category'  => (string)($p['displayCategoryCode'] ?? ''),
+                'source'    => 'coupang_api',
+            ];
+        }
+        return $products;
     }
 
     // ── 네이버 스마트스토어 ─────────────────────────────────────────────
@@ -606,8 +663,9 @@ final class ChannelSync
                         'source'      => 'live',
                     ];
                 }
-                // 라이브 주문 + 상품(상품 API 미호출이라 데모는 데모상품, 운영은 빈배열 — 데모데이터 운영유입 차단).
-                return ['ok'=>true, 'products'=>($tenant==='demo' ? self::buildDemoChannelProducts('naver','네이버') : []), 'orders'=>$orders];
+                // [M6] 상품 수집 — 네이버 커머스 products/search(동일 access_token 재사용). 데모는 데모상품, 운영은 실 API.
+                $products = ($tenant === 'demo') ? self::buildDemoChannelProducts('naver','네이버') : self::naverProducts($token);
+                return ['ok'=>true, 'products'=>$products, 'orders'=>$orders];
             }
         }
 
@@ -621,6 +679,33 @@ final class ChannelSync
             ];
         }
         return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>'네이버 Commerce API: Client ID/Secret 등록 시 실데이터가 동기화됩니다.'];
+    }
+
+    /** [M6] 네이버 커머스 products/search → 상품 매핑(SALE 상태 50건). 실패 시 빈배열. */
+    private static function naverProducts(string $token): array
+    {
+        [$code, $body] = self::httpPost(
+            'https://api.commerce.naver.com/external/v1/products/search',
+            ['Authorization' => "Bearer {$token}", 'Content-Type' => 'application/json'],
+            json_encode(['productStatusTypes' => ['SALE'], 'page' => 1, 'size' => 50], JSON_UNESCAPED_UNICODE)
+        );
+        if ($code !== 200) return [];
+        $products = [];
+        foreach ((array)($body['contents'] ?? []) as $c) {
+            $op = (array)($c['originProduct'] ?? $c);
+            $pid = (string)($c['originProductNo'] ?? $op['originProductNo'] ?? '');
+            if ($pid === '') continue;
+            $products[] = [
+                'channel_product_id' => $pid,
+                'sku'       => (string)($op['sellerManagementCode'] ?? ''),
+                'name'      => (string)($op['name'] ?? ''),
+                'price'     => (float)($op['salePrice'] ?? 0),
+                'inventory' => (int)($op['stockQuantity'] ?? 0),
+                'status'    => strtolower((string)($op['statusType'] ?? 'sale')),
+                'source'    => 'live',
+            ];
+        }
+        return $products;
     }
 
     // ── eBay ─────────────────────────────────────────────────────────────
@@ -712,7 +797,36 @@ final class ChannelSync
                 'source'      => 'tiktok_api',
             ];
         }
-        return ['ok'=>true, 'products'=>[], 'orders'=>$orders, 'note'=>count($orders) . ' TikTok Shop orders synced'];
+        // [M6] 상품 수집 — TikTok Shop products/search(동일 서명+shop_cipher 재사용). 실패 시 빈배열.
+        $products = self::tiktokProducts($base, $appKey, $appSecret, $accessToken, $shopCipher);
+        return ['ok'=>true, 'products'=>$products, 'orders'=>$orders, 'note'=>count($orders) . ' TikTok Shop orders + ' . count($products) . ' products synced'];
+    }
+
+    /** [M6] TikTok Shop products/search → 상품 매핑(첫 SKU 가격·재고). 주문과 동일 HMAC 서명. 실패 시 빈배열. */
+    private static function tiktokProducts(string $base, string $appKey, string $appSecret, string $accessToken, string $shopCipher): array
+    {
+        $path = '/product/202309/products/search';
+        $q = ['app_key' => $appKey, 'timestamp' => (string)time(), 'shop_cipher' => $shopCipher, 'page_size' => '50'];
+        $bodyJson = json_encode(['status' => 'ACTIVATE'], JSON_UNESCAPED_UNICODE);
+        $q['sign'] = self::tiktokSign($appSecret, $path, $q, (string)$bodyJson);
+        [$code, $body] = self::httpPost($base . $path . '?' . http_build_query($q), ['x-tts-access-token' => $accessToken, 'Content-Type' => 'application/json'], (string)$bodyJson);
+        if ($code >= 400 || (int)($body['code'] ?? -1) !== 0) return [];
+        $products = [];
+        foreach ((array)($body['data']['products'] ?? []) as $p) {
+            $pid = (string)($p['id'] ?? '');
+            if ($pid === '') continue;
+            $sku0 = (array)(($p['skus'] ?? [])[0] ?? []);
+            $products[] = [
+                'channel_product_id' => $pid,
+                'sku'       => (string)($sku0['seller_sku'] ?? $sku0['id'] ?? ''),
+                'name'      => (string)($p['title'] ?? ''),
+                'price'     => (float)($sku0['price']['sale_price'] ?? $sku0['price']['tax_exclusive_price'] ?? 0),
+                'inventory' => (int)(($sku0['inventory'][0]['quantity'] ?? 0)),
+                'status'    => strtolower((string)($p['status'] ?? 'activate')),
+                'source'    => 'tiktok_api',
+            ];
+        }
+        return $products;
     }
 
     /** TikTok Shop Open API v202309 HMAC-SHA256 서명. message = appSecret + path + 정렬된 {key}{value} 연결 + body + appSecret. */
@@ -783,7 +897,33 @@ final class ChannelSync
                 'source'      => 'rakuten_api',
             ];
         }
-        return ['ok'=>true, 'products'=>[], 'orders'=>$orders, 'note'=>count($orders) . ' Rakuten orders synced'];
+        // [M6] 상품 수집 — Rakuten RMS Item API 2.0(동일 ESA 인증 재사용). 실패 시 빈배열.
+        $products = self::rakutenProducts($headers);
+        return ['ok'=>true, 'products'=>$products, 'orders'=>$orders, 'note'=>count($orders) . ' Rakuten orders + ' . count($products) . ' products synced'];
+    }
+
+    /** [M6] Rakuten RMS items/search → 상품 매핑(manageNumber·title·standardPrice). 실패 시 빈배열. */
+    private static function rakutenProducts(array $headers): array
+    {
+        [$code, $body] = self::httpGet('https://api.rms.rakuten.co.jp/es/2.0/items/search?hits=50', $headers);
+        if ($code >= 400) return [];
+        $rows = (array)($body['items'] ?? $body['Items'] ?? []);
+        $products = [];
+        foreach ($rows as $row) {
+            $it = (array)($row['item'] ?? $row['Item'] ?? $row);
+            $mn = (string)($it['manageNumber'] ?? $it['itemNumber'] ?? '');
+            if ($mn === '') continue;
+            $products[] = [
+                'channel_product_id' => $mn,
+                'sku'       => $mn,
+                'name'      => (string)($it['title'] ?? $it['itemName'] ?? ''),
+                'price'     => (float)($it['standardPrice'] ?? $it['itemPrice'] ?? 0),
+                'inventory' => (int)($it['quantity'] ?? 0),
+                'status'    => 'active',
+                'source'    => 'rakuten_api',
+            ];
+        }
+        return $products;
     }
 
     // ── Cafe24 (D2C) ─────────────────────────────────────────────────────
@@ -843,7 +983,38 @@ final class ChannelSync
                 'source'      => 'cafe24_api',
             ];
         }
-        return ['ok'=>true, 'products'=>[], 'orders'=>$orders, 'note'=>count($orders) . ' Cafe24 orders synced'];
+        // [M6] 상품 수집 — Cafe24 admin/products(동일 access_token 재사용). 실패 시 빈배열.
+        $products = self::cafe24Products($apiBase, $accessToken);
+        return ['ok'=>true, 'products'=>$products, 'orders'=>$orders, 'note'=>count($orders) . ' Cafe24 orders + ' . count($products) . ' products synced'];
+    }
+
+    /** [M6] Cafe24 admin/products → 상품 매핑(product_no·product_code·price). 실패 시 빈배열. */
+    private static function cafe24Products(string $apiBase, string $accessToken): array
+    {
+        $url = "{$apiBase}/admin/products?limit=50&embed=variants";
+        [$code, $body] = self::httpGet($url, [
+            'Authorization' => "Bearer {$accessToken}",
+            'Content-Type' => 'application/json',
+            'X-Cafe24-Api-Version' => '2024-06-01',
+        ]);
+        if ($code >= 400 || !isset($body['products'])) return [];
+        $products = [];
+        foreach ((array)($body['products'] ?? []) as $p) {
+            $pno = (string)($p['product_no'] ?? '');
+            if ($pno === '') continue;
+            $variants = (array)($p['variants'] ?? []);
+            $inv = 0; foreach ($variants as $v) { $inv += (int)($v['quantity'] ?? 0); }
+            $products[] = [
+                'channel_product_id' => $pno,
+                'sku'       => (string)($p['product_code'] ?? ''),
+                'name'      => (string)($p['product_name'] ?? ''),
+                'price'     => (float)($p['price'] ?? 0),
+                'inventory' => $inv,
+                'status'    => ((string)($p['selling'] ?? 'T') === 'T') ? 'active' : 'inactive',
+                'source'    => 'cafe24_api',
+            ];
+        }
+        return $products;
     }
 
     // ── G마켓/11번가/기타 ─────────────────────────────────────────────────

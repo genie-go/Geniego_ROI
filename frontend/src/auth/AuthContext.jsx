@@ -378,7 +378,12 @@ export function AuthProvider({ children }) {
                 throw mfaErr;
             }
 
-            if (!d.ok) throw new Error(d.error || "로그인 실패");
+            if (!d.ok) {
+                const e = new Error(d.error || "로그인 실패");
+                // [현 차수] 데모↔운영 사이트 혼동: 올바른 사이트 안내(클릭 이동)를 호출측(AuthPage)에 전달.
+                if (d.wrong_site) { e.wrongSite = true; e.correctUrl = d.correct_url || ""; e.correctSite = d.correct_site || ""; }
+                throw e;
+            }
             saveSession(d.token, d.user, remember);
             return d.user;
 

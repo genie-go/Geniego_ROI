@@ -550,6 +550,32 @@ final class UserAuth
     // POST /auth/login
     // Body: { email, password }
     // ─────────────────────────────────────────────────────────────
+    /**
+     * [현 차수] 데모↔운영 사이트 혼동 진단. 현재 접속 DB(geniego_roi ↔ geniego_roi_demo)에 계정이 없을 때,
+     * 형제 환경 DB에 동일 이메일이 존재하면 올바른 사이트 안내를 반환한다(없으면 null).
+     * 두 DB는 동일 MySQL 인스턴스의 별개 스키마이며 앱 DB 유저가 교차조회 권한을 가진다(검증 완료).
+     */
+    private static function crossEnvLoginHint(\PDO $pdo, string $email): ?array
+    {
+        try {
+            $curDb = (string)$pdo->query('SELECT DATABASE()')->fetchColumn();
+            if ($curDb === '') return null;
+            $isDemo  = (strpos($curDb, 'demo') !== false);
+            $sibling = $isDemo ? preg_replace('/_demo$/', '', $curDb) : $curDb . '_demo';
+            // 안전: 식별자 화이트리스트 + 자기 자신/비정상 스키마 제외(SQL 인젝션 방지).
+            if ($sibling === $curDb || !preg_match('/^[A-Za-z0-9_]+$/', (string)$sibling)) return null;
+            $q = $pdo->prepare("SELECT COUNT(*) FROM `{$sibling}`.app_user WHERE LOWER(email) = ?");
+            $q->execute([$email]);
+            if ((int)$q->fetchColumn() <= 0) return null;
+            // 현재가 데모면 형제(운영) 계정 → 운영 사이트 안내. 현재가 운영이면 형제(데모) → 데모 사이트 안내.
+            return $isDemo
+                ? ['site' => 'production', 'url' => 'https://roi.genie-go.com',     'msg' => '이 이메일은 운영시스템 정식 계정입니다. 운영 사이트(roi.genie-go.com)에서 로그인하세요.']
+                : ['site' => 'demo',       'url' => 'https://roidemo.genie-go.com', 'msg' => '이 이메일은 데모 체험 계정입니다. 데모 체험 사이트(roidemo.genie-go.com)에서 로그인하세요.'];
+        } catch (\Throwable $e) {
+            return null; // 권한/스키마 부재 등 → 일반 401 폴백(무해)
+        }
+    }
+
     public static function login(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
     {
         try {
@@ -650,6 +676,20 @@ final class UserAuth
             if (!$user || !$isValidPw) {
                 self::rateLimitFail($pdo, $rlIdent); // 189차: 실패 카운트 증가
                 self::audit($req, 'login_fail', '로그인 실패(이메일/비번 불일치): ' . $email, 'medium', $email);
+                // [현 차수] ★데모↔운영 사이트 혼동 안내(반복 로그인 실패 근본 원인 차단):
+                //   데모회원은 geniego_roi_demo, 운영회원은 geniego_roi 로 DB가 물리 분리되어 있어,
+                //   데모 계정으로 운영 사이트(또는 반대)에 로그인하면 '계정 없음'→"비번 오류"로 표시되어
+                //   사용자는 비번이 틀린 줄 알고 무한 재시도한다. '현재 DB에 계정 없음'일 때 형제 환경 DB를
+                //   조회해 계정이 거기 있으면 올바른 사이트를 안내한다(비번 불일치는 진짜 비번문제이므로 제외).
+                if (!$user) {
+                    $cross = self::crossEnvLoginHint($pdo, $email);
+                    if ($cross !== null) {
+                        return self::json($res, [
+                            'ok' => false, 'error' => $cross['msg'],
+                            'wrong_site' => true, 'correct_site' => $cross['site'], 'correct_url' => $cross['url'],
+                        ], 401);
+                    }
+                }
                 return self::json($res, ['ok' => false, 'error' => '이메일 또는 비밀번호가 올바르지 않습니다.'], 401);
             }
 
