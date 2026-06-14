@@ -55,16 +55,16 @@ final class Rollup {
 
     private static function isDemo(string $tenant): bool { return $tenant === 'demo'; }
 
-    /* [현 차수] ★취소/반품 상태 캐논 통일 SSOT — 프론트(GlobalDataContext/rollupDemoDerive)와 동일 기준.
+    /* [현 차수] ★취소/반품 상태 캐논 통일 SSOT — OrderHub::CANCEL_TOKENS/RETURN_TOKENS 참조(드리프트 제거).
        표준 신호 event_type('cancel'/'return') 우선 + 어댑터별 localized status 토큰(영문/한글) 폴백.
-       정합 규칙: 취소주문은 매출·주문수에서 제외(미실현 매출), 반품은 매출 포함하되 반품률만 카운트. */
-    private const CANCEL_TOKENS = ['CancelDone','Cancel요청','cancelled','canceled','취소완료','취소요청','취소접수','취소','주문취소'];
-    private const RETURN_TOKENS = ['returned','refunded','반품완료','반품요청','반품접수','반품','환불완료'];
+       정합 규칙: 취소주문은 매출·주문수에서 제외(미실현 매출), 반품은 매출 포함하되 반품률만 카운트.
+       219 감사 하드닝: 기존 Rollup 자체 const 가 OrderHub 와 RETURN_TOKENS 드리프트(반품Done/입고/return 누락)
+       했던 것을 OrderHub SSOT 단일 참조로 통일. */
     private static function isCancel(string $event, string $status): bool {
-        return $event === 'cancel' || in_array($status, self::CANCEL_TOKENS, true);
+        return $event === 'cancel' || in_array($status, OrderHub::CANCEL_TOKENS, true);
     }
     private static function isReturn(string $event, string $status): bool {
-        return $event === 'return' || in_array($status, self::RETURN_TOKENS, true);
+        return $event === 'return' || in_array($status, OrderHub::RETURN_TOKENS, true);
     }
 
     // Generate date/period labels

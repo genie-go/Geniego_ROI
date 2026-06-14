@@ -76,11 +76,14 @@ final class OrderHub
     }
 
     /**
-     * [현 차수] 취소 캐논 SSOT(Rollup::CANCEL_TOKENS·프론트 CANCELLED_STATUSES와 동일).
+     * [현 차수] 취소/반품 캐논 SSOT(public) — Rollup·ChannelSync·프론트 CANCELLED_STATUSES 가 참조.
      * 매출/주문수 집계는 취소주문을 제외해야 정본(ordersStats·Rollup·대시보드)과 정합한다.
-     * 반품(RETURN_TOKENS)은 매출 포함(반품률·returnFee로만 반영) → 여기 제외 대상 아님.
+     * 반품(RETURN_TOKENS)은 매출 포함(반품률·returnFee로만 반영) → 취소 제외 대상 아님.
+     * ★219 감사 하드닝: RETURN_TOKENS 가 OrderHub/Rollup 에 따로 정의돼 드리프트(반품Done/반품입고/return/
+     *   반품요청 일부 누락)했던 것을 본 const 로 통합(union). 한 곳만 수정하면 전 집계가 정합.
      */
-    private const CANCEL_TOKENS = ['CancelDone','Cancel요청','cancelled','canceled','취소완료','취소요청','취소접수','취소','주문취소'];
+    public const CANCEL_TOKENS = ['CancelDone','Cancel요청','cancelled','canceled','취소완료','취소요청','취소접수','취소','주문취소'];
+    public const RETURN_TOKENS = ['returned','refunded','return','반품완료','반품요청','반품접수','반품','환불완료','반품Done','반품입고'];
 
     /** 취소주문 제외용 SQL 단편 + 바인드 파라미터(NULL-safe). @return array{0:string,1:array} */
     private static function cancelExclusion(): array
@@ -227,7 +230,8 @@ final class OrderHub
             $cancelled = (int)$stC->fetchColumn();
 
             // [현 차수] 219 P2(데모/운영 정합): 반품 건수 노출(반품은 매출 포함·건수만 별도, 데모 settlement.returns 정합).
-            $returnTokens = ['반품접수','반품완료','반품Done','반품입고','returned','return','refunded','환불완료'];
+            //   토큰=SSOT(self::RETURN_TOKENS) — 인라인 배열 제거(Rollup 과 드리프트 방지).
+            $returnTokens = self::RETURN_TOKENS;
             $stR = $pdo->prepare("SELECT COUNT(*) FROM channel_orders WHERE $baseSql AND (COALESCE(event_type,'')='return' OR status IN (" . $ph($returnTokens) . "))");
             $stR->execute(array_merge($baseArgs, $returnTokens));
             $returned = (int)$stR->fetchColumn();
