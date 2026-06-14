@@ -519,7 +519,7 @@ class Paddle
         $db->prepare("
             UPDATE paddle_subscriptions SET
                 price_id=?, product_id=?, plan_name=?, status=?,
-                billing_cycle=?, current_period_end=?, last_event_at=?, updated_at=NOW()
+                billing_cycle=?, current_period_end=?, last_event_at=?, updated_at=CURRENT_TIMESTAMP
             WHERE paddle_subscription_id=?
         ")->execute([
             $priceId, $prodId, $planName, $status,
@@ -543,7 +543,7 @@ class Paddle
 
         $db->prepare("
             UPDATE paddle_subscriptions SET
-                status='canceled', cancelled_at=?, last_event_at=?, updated_at=NOW()
+                status='canceled', cancelled_at=?, last_event_at=?, updated_at=CURRENT_TIMESTAMP
             WHERE paddle_subscription_id=?
         ")->execute([$at, $at, $subId]);
 
@@ -559,7 +559,7 @@ class Paddle
     {
         $subId = $d['id'] ?? '';
         $db->prepare("
-            UPDATE paddle_subscriptions SET status='paused', last_event_at=?, updated_at=NOW()
+            UPDATE paddle_subscriptions SET status='paused', last_event_at=?, updated_at=CURRENT_TIMESTAMP
             WHERE paddle_subscription_id=?
         ")->execute([$at, $subId]);
         self::auditLog($subId, 'subscription_paused', "at=$at");
@@ -576,7 +576,7 @@ class Paddle
         if ($subId) {
             $db->prepare("
                 UPDATE paddle_subscriptions SET
-                    status='active', current_period_end=?, last_event_at=?, updated_at=NOW()
+                    status='active', current_period_end=?, last_event_at=?, updated_at=CURRENT_TIMESTAMP
                 WHERE paddle_subscription_id=?
             ")->execute([$periodEnd, $at, $subId]);
         }
@@ -612,7 +612,7 @@ class Paddle
         $subId = $d['subscription_id'] ?? '';
         if ($subId) {
             $db->prepare("
-                UPDATE paddle_subscriptions SET status='past_due', last_event_at=?, updated_at=NOW()
+                UPDATE paddle_subscriptions SET status='past_due', last_event_at=?, updated_at=CURRENT_TIMESTAMP
                 WHERE paddle_subscription_id=?
             ")->execute([$at, $subId]);
         }
@@ -662,7 +662,7 @@ class Paddle
                 try {
                     $db->prepare("
                         UPDATE paddle_subscriptions SET
-                            status='refunded', last_event_at=?, updated_at=NOW()
+                            status='refunded', last_event_at=?, updated_at=CURRENT_TIMESTAMP
                         WHERE paddle_subscription_id=?
                     ")->execute([$at, $subId]);
                 } catch (\Throwable $e) { /* graceful */ }
