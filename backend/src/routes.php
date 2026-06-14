@@ -695,6 +695,9 @@ return function (App $app): void {
         'GET /api/v424/marketing/benchmarks'      => 'Genie\\Handlers\\AutoRecommend::benchmarks',
         'PUT /v424/marketing/benchmarks'          => 'Genie\\Handlers\\AutoRecommend::updateBenchmarks',
         'PUT /api/v424/marketing/benchmarks'      => 'Genie\\Handlers\\AutoRecommend::updateBenchmarks',
+        // [현 차수] 채널×objective 퍼널 집계(목적별 분류 근거) — 세션 토큰 호출(AI게이트).
+        'GET /v424/connectors/campaign-funnel'     => 'Genie\\Handlers\\Connectors::campaignFunnel',
+        'GET /api/v424/connectors/campaign-funnel' => 'Genie\\Handlers\\Connectors::campaignFunnel',
 
         // ── v424 admin plans (169차 사용자 발견 issue fix — 플랜별 구독요금 설정) ──
         'GET /v424/admin/plans'                         => 'Genie\\Handlers\\AdminPlans::list',
@@ -2393,6 +2396,8 @@ return function (App $app): void {
     $register('GET', '/api/v424/marketing/benchmarks');
     $register('PUT', '/v424/marketing/benchmarks');
     $register('PUT', '/api/v424/marketing/benchmarks');
+    $register('GET', '/v424/connectors/campaign-funnel');
+    $register('GET', '/api/v424/connectors/campaign-funnel');
 
     // ── V424 admin plans (169차 사용자 발견 issue) ──
     $register('GET',    '/v424/admin/plans');

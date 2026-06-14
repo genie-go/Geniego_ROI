@@ -6,6 +6,7 @@ import { useCurrency } from '../../contexts/CurrencyContext.jsx';
 import { LineChart, BarChart, Spark, DonutChart } from './ChartUtils.jsx';
 import MarketingAIPanel from '../MarketingAIPanel.jsx';
 import { buildPeriodScope, deriveOrderKpis } from './dashPeriod.js';
+import { classifyCampaigns } from '../../utils/adFunnel.js';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    DashMarketing — 마케팅 퍼포먼스 엔터프라이즈 초고도화
@@ -52,94 +53,134 @@ function MetRow({ l, v, col = 'var(--text-1, #111827)' }) {
   );
 }
 
-/* ── 채널 상세 패널 (5-Section Analysis) ─────────────────────────────── */
+/* ── 단계 헤더 — 섹션 제목 + "포함 objective·캠페인 수" 투명 표기 ───────── */
+function StageHeader({ title, stage, t }) {
+  const has = stage && stage.campaigns && stage.campaigns.length > 0;
+  const note = has
+    ? `${t('funnel.includes', '포함')}: ${stage.objectives.join(', ')} · ${stage.campaigns.length}${t('funnel.campaignsUnit', '개 캠페인')}`
+    : t('funnel.noneInStage', '이 목적의 캠페인 없음');
+  return (
+    <>
+      <div style={sectionTitle}>{title}</div>
+      <div style={{ fontSize: 9.5, color: 'var(--text-3)', margin: '2px 0 6px', lineHeight: 1.45 }}>{note}</div>
+    </>
+  );
+}
+
+/* ── 채널 상세 패널 (캠페인 목적 기반 퍼널 단계 분류) ─────────────────────
+   ★각 섹션은 해당 objective 단계 캠페인만 합산(전체 합산 기준 CPM/빈도 재계산).
+   ★캠페인 목적 데이터 없으면(운영 라이브 미적재 등) 채널 누적 폴백 + 안내 배너. */
 function ChannelDetailPanel({ channel, t, currFmt }) {
   if (!channel) return null;
   const c = channel;
-  const cpm = c.impressions > 0 ? Math.round(c.spend / c.impressions * 1000) : 0;
-  const reach = Math.round((c.impressions || 0) * 0.72);
-  const cpa = c.conversions > 0 ? Math.round(c.spend / c.conversions) : 0;
+  const cls = classifyCampaigns(c.campaigns, c.id);
+  const fb = !cls.hasData;                 // 캠페인 목적 데이터 없음 → 채널 누적 폴백
+  const tot = cls.total, aw = cls.byStage.awareness, en = cls.byStage.engagement, tr = cls.byStage.traffic, cv = cls.byStage.conversion;
+  // 폴백(채널 누적) 파생 — 기존 동작 보존.
+  const fbCpm = c.impressions > 0 ? Math.round(c.spend / c.impressions * 1000) : 0;
+  const fbReach = Math.round((c.impressions || 0) * 0.72);
+  const fbCpa = c.conversions > 0 ? Math.round(c.spend / c.conversions) : 0;
   const G = 14;
+  const headerKpis = fb
+    ? [['ROAS', (c.roas || 0).toFixed(2) + 'x'], ['CTR', (c.ctr || 0).toFixed(1) + '%'], [t('dash.convRate', 'Conv.'), (c.convRate || 0).toFixed(1) + '%'], [t('dash.cpc', 'CPC'), currFmt(c.cpc || 0)], [t('dash.adSpend', 'Spend'), currFmt(c.spend || 0)], [t('dash.rev', 'Rev'), currFmt(c.revenue || 0)]]
+    : [['ROAS', tot.roas.toFixed(2) + 'x'], ['CTR', tot.ctr.toFixed(1) + '%'], [t('dash.convRate', 'Conv.'), tot.cvr.toFixed(1) + '%'], [t('dash.cpc', 'CPC'), currFmt(Math.round(tot.cpc))], [t('dash.adSpend', 'Spend'), currFmt(tot.spend)], [t('dash.rev', 'Rev'), currFmt(tot.revenue)]];
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: G, maxHeight: '90vh', overflowY: 'auto' }}>
       {/* 채널 헤더 */}
       <div style={{ ...card, background: `linear-gradient(135deg,${c.color}18,rgba(6,11,20,0.98))`, border: `1px solid ${c.color}28` }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-          <div style={{
-            width: 30, height: 30, borderRadius: 9,
-            background: `linear-gradient(135deg,${c.color},${c.color}88)`,
-            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16,
-          }}>{c.icon}</div>
+          <div style={{ width: 30, height: 30, borderRadius: 9, background: `linear-gradient(135deg,${c.color},${c.color}88)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>{c.icon}</div>
           <div style={{ fontSize: 13, fontWeight: 900, color: c.color }}>
-            {c.name} — {t('dash.fiveSectionAnalysis', '5-Section Analysis')}
+            {c.name} — {t('funnel.byObjective', '목적별 퍼널 분석')}
           </div>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 6 }}>
-          {[
-            ['ROAS', (c.roas || 0).toFixed(2) + 'x'],
-            ['CTR', (c.ctr || 0).toFixed(1) + '%'],
-            [t('dash.convRate', 'Conv.'), (c.convRate || 0).toFixed(1) + '%'],
-            [t('dash.cpc', 'CPC'), currFmt(c.cpc || 0)],
-            [t('dash.adSpend', 'Spend'), currFmt(c.spend || 0)],
-            [t('dash.rev', 'Rev'), currFmt(c.revenue || 0)],
-          ].map(([l, v]) => (
+          {headerKpis.map(([l, v]) => (
             <div key={l} style={{ background: 'rgba(0,0,0,0.24)', borderRadius: 8, padding: '6px 8px' }}>
               <div style={sectionTitle}>{l}</div>
               <div style={{ fontSize: 12, fontWeight: 900, color: 'var(--text-1)' }}>{v}</div>
             </div>
           ))}
         </div>
+        {fb && (
+          <div style={{ marginTop: 8, fontSize: 9.5, color: '#f59e0b', lineHeight: 1.45 }}>
+            ⚠ {t('funnel.noObjectiveData', '캠페인 목적(objective) 데이터 미적재 — 채널 전체 합산을 표시합니다. 매체 연동·동기화 후 목적별 분류가 적용됩니다.')}
+          </div>
+        )}
       </div>
 
-      {/* 1. Reach & Awareness */}
+      {/* 1. 도달 및 인지 (awareness 목적 캠페인만) */}
       <div style={card}>
-        <div style={sectionTitle}>{t('dash.reachAwareness', '1. Reach & Awareness')}</div>
-        <MetRow l={t('dash.impressions', 'Impressions')} v={(c.impressions || 0).toLocaleString()} col={c.color} />
-        <MetRow l={t('dash.reach', 'Reach')} v={reach.toLocaleString()} col={c.color} />
-        <MetRow l={t('dash.frequency', 'Frequency')} v={reach > 0 ? ((c.impressions || 0) / reach).toFixed(2) + 'x' : '0x'} col={c.color} />
-        <MetRow l={t('dash.cpm', 'CPM')} v={currFmt(cpm)} col={c.color} />
-        <MetRow l={t('dash.adSpend', 'Ad Spend')} v={currFmt(c.spend || 0)} col={c.color} />
+        <StageHeader title={t('dash.reachAwareness', '1. 도달 및 인지')} stage={fb ? null : aw} t={t} />
+        {fb ? (<>
+          <MetRow l={t('dash.impressions', '노출')} v={(c.impressions || 0).toLocaleString()} col={c.color} />
+          <MetRow l={t('dash.reach', '도달')} v={fbReach.toLocaleString()} col={c.color} />
+          <MetRow l={t('dash.frequency', '빈도')} v={fbReach > 0 ? ((c.impressions || 0) / fbReach).toFixed(2) + 'x' : '0x'} col={c.color} />
+          <MetRow l={t('dash.cpm', 'CPM')} v={currFmt(fbCpm)} col={c.color} />
+          <MetRow l={t('dash.adSpend', '광고비')} v={currFmt(c.spend || 0)} col={c.color} />
+        </>) : (<>
+          <MetRow l={t('dash.impressions', '노출')} v={aw.impressions.toLocaleString()} col={c.color} />
+          <MetRow l={t('dash.reach', '도달')} v={aw.reach.toLocaleString()} col={c.color} />
+          <MetRow l={t('dash.frequency', '빈도')} v={aw.frequency.toFixed(2) + 'x'} col={c.color} />
+          <MetRow l={t('dash.cpm', 'CPM')} v={currFmt(Math.round(aw.cpm))} col={c.color} />
+          <MetRow l={t('dash.adSpend', '광고비')} v={currFmt(aw.spend)} col={c.color} />
+        </>)}
       </div>
 
-      {/* 2. Engagement */}
+      {/* 2. 참여 (engagement 목적 캠페인만) */}
       <div style={card}>
-        <div style={sectionTitle}>{t('dash.engagement2', '2. Engagement')}</div>
-        <MetRow l={t('dash.clicks', 'Clicks')} v={(c.clicks || 0).toLocaleString()} col="#22c55e" />
-        <MetRow l={t('dash.ctrLabel', 'CTR')} v={(c.ctr || 0).toFixed(1) + '%'} col="#22c55e" />
-        <MetRow l={t('dash.videoViews', 'Video Views')} v={Math.round((c.clicks || 0) * 2.4).toLocaleString()} col="#22c55e" />
-        <MetRow l={t('dash.avgViewTime', 'Avg View Time')} v={Math.round((c.avgSessionTime || 0) * 0.6) + 's'} col="#22c55e" />
+        <StageHeader title={t('dash.engagement2', '2. 참여')} stage={fb ? null : en} t={t} />
+        {fb ? (<>
+          <MetRow l={t('dash.clicks', '클릭')} v={(c.clicks || 0).toLocaleString()} col="#22c55e" />
+          <MetRow l={t('dash.ctrLabel', 'CTR')} v={(c.ctr || 0).toFixed(1) + '%'} col="#22c55e" />
+        </>) : (<>
+          <MetRow l={t('dash.impressions', '노출')} v={en.impressions.toLocaleString()} col="#22c55e" />
+          <MetRow l={t('dash.clicks', '클릭')} v={en.clicks.toLocaleString()} col="#22c55e" />
+          <MetRow l={t('dash.ctrLabel', 'CTR')} v={en.ctr.toFixed(1) + '%'} col="#22c55e" />
+          <MetRow l={t('dash.cpm', 'CPM')} v={currFmt(Math.round(en.cpm))} col="#22c55e" />
+          <MetRow l={t('dash.adSpend', '광고비')} v={currFmt(en.spend)} col="#22c55e" />
+        </>)}
       </div>
 
-      {/* 3. Traffic */}
+      {/* 3. 트래픽 (traffic 목적 캠페인만) */}
       <div style={card}>
-        <div style={sectionTitle}>{t('dash.traffic2', '3. Traffic')}</div>
-        <MetRow l={t('dash.cpc', 'CPC')} v={currFmt(c.cpc || 0)} col="#a855f7" />
-        <MetRow l={t('dash.sessions', 'Sessions')} v={(c.sessions || 0).toLocaleString()} col="#a855f7" />
-        <MetRow l={t('dash.bounceRate', 'Bounce Rate')} v={(c.bounceRate || 0).toFixed(1) + '%'} col="#a855f7" />
-        <MetRow l={t('dash.avgDuration', 'Avg Duration')} v={
-          Math.floor((c.avgSessionTime || 0) / 60) + 'm ' + ((c.avgSessionTime || 0) % 60) + 's'
-        } col="#a855f7" />
+        <StageHeader title={t('dash.traffic2', '3. 트래픽')} stage={fb ? null : tr} t={t} />
+        {fb ? (<>
+          <MetRow l={t('dash.cpc', 'CPC')} v={currFmt(c.cpc || 0)} col="#a855f7" />
+          <MetRow l={t('dash.clicks', '클릭')} v={(c.clicks || 0).toLocaleString()} col="#a855f7" />
+        </>) : (<>
+          <MetRow l={t('dash.clicks', '클릭')} v={tr.clicks.toLocaleString()} col="#a855f7" />
+          <MetRow l={t('dash.ctrLabel', 'CTR')} v={tr.ctr.toFixed(1) + '%'} col="#a855f7" />
+          <MetRow l={t('dash.cpc', 'CPC')} v={currFmt(Math.round(tr.cpc))} col="#a855f7" />
+          <MetRow l={t('dash.adSpend', '광고비')} v={currFmt(tr.spend)} col="#a855f7" />
+        </>)}
       </div>
 
-      {/* 4. Conversion */}
+      {/* 4. 전환 (conversion 목적 캠페인만) */}
       <div style={card}>
-        <div style={sectionTitle}>{t('dash.conv2', '4. Conversion')}</div>
-        <MetRow l={t('dash.convCount', 'Conversions')} v={(c.conversions || 0).toLocaleString()} col="#f97316" />
-        <MetRow l={t('dash.convRate', 'Conv. Rate')} v={(c.convRate || 0).toFixed(1) + '%'} col="#f97316" />
-        <MetRow l={t('dash.cpa', 'CPA')} v={currFmt(cpa)} col="#f97316" />
-        <MetRow l={t('dash.purchaseCount', 'Purchases')} v={(c.purchases || 0).toLocaleString()} col="#f97316" />
-        <MetRow l={t('dash.signups', 'Signups')} v={(c.signups || 0).toLocaleString()} col="#f97316" />
-        <MetRow l={t('dash.cartAdds', 'Cart Adds')} v={(c.cartAdds || 0).toLocaleString()} col="#f97316" />
+        <StageHeader title={t('dash.conv2', '4. 전환')} stage={fb ? null : cv} t={t} />
+        {fb ? (<>
+          <MetRow l={t('dash.convCount', '전환수')} v={(c.conversions || 0).toLocaleString()} col="#f97316" />
+          <MetRow l={t('dash.convRate', '전환율')} v={(c.convRate || 0).toFixed(1) + '%'} col="#f97316" />
+          <MetRow l={t('dash.cpa', 'CPA')} v={currFmt(fbCpa)} col="#f97316" />
+        </>) : (<>
+          <MetRow l={t('dash.convCount', '전환수')} v={cv.conversions.toLocaleString()} col="#f97316" />
+          <MetRow l={t('dash.convRate', '전환율(CVR)')} v={cv.cvr.toFixed(1) + '%'} col="#f97316" />
+          <MetRow l={t('dash.cpa', 'CPA')} v={currFmt(Math.round(cv.cpa))} col="#f97316" />
+          <MetRow l={t('dash.adSpend', '광고비')} v={currFmt(cv.spend)} col="#f97316" />
+          <MetRow l={t('dash.adRev', '광고매출')} v={currFmt(cv.revenue)} col="#f97316" />
+        </>)}
       </div>
 
-      {/* 5. Revenue & ROI */}
+      {/* 5. 매출 & ROI (전체 캠페인 합산) */}
       <div style={card}>
-        <div style={sectionTitle}>{t('dash.revRoi2', '5. Revenue & ROI')}</div>
-        <MetRow l={t('dash.adRev', 'Ad Revenue')} v={currFmt(c.revenue || 0)} col="#eab308" />
-        <MetRow l={t('dash.adSpend', 'Ad Spend')} v={currFmt(c.spend || 0)} col="#eab308" />
-        <MetRow l="ROAS" v={(c.roas || 0).toFixed(2) + 'x'} col="#eab308" />
-        <MetRow l={t('dash.netProfit', 'Net Profit')} v={currFmt((c.revenue || 0) - (c.spend || 0))} col="#eab308" />
+        <div style={sectionTitle}>{t('dash.revRoi2', '5. 매출 & ROI')}</div>
+        <div style={{ fontSize: 9.5, color: 'var(--text-3)', margin: '2px 0 6px' }}>{t('funnel.allCampaigns', '전체 캠페인 합산')}</div>
+        <MetRow l={t('dash.adRev', '광고매출')} v={currFmt(fb ? (c.revenue || 0) : tot.revenue)} col="#eab308" />
+        <MetRow l={t('dash.adSpend', '광고비')} v={currFmt(fb ? (c.spend || 0) : tot.spend)} col="#eab308" />
+        <MetRow l="ROAS" v={(fb ? (c.roas || 0) : tot.roas).toFixed(2) + 'x'} col="#eab308" />
+        <MetRow l={t('dash.netProfit', '순이익')} v={currFmt((fb ? (c.revenue || 0) : tot.revenue) - (fb ? (c.spend || 0) : tot.spend))} col="#eab308" />
       </div>
     </div>
   );
@@ -291,6 +332,12 @@ export default function DashMarketing({ period }) {
         signups: (data.signups || 0) * f,
         cartAdds: (data.cartAdds || 0) * f,
         sparkData: data.sparkData || data.dailySpend || new Array(14).fill(0),
+        // [현 차수] 캠페인 목적별 분해(기간계수 f 적용) — 채널 상세 패널이 objective→단계 분류에 사용.
+        campaigns: Array.isArray(data.campaigns) ? data.campaigns.map(cp => ({
+          name: cp.name, objective: cp.objective,
+          impressions: (cp.impressions || 0) * f, reach: (cp.reach || 0) * f, clicks: (cp.clicks || 0) * f,
+          spend: (cp.spend || 0) * f, conversions: (cp.conversions || 0) * f, revenue: (cp.revenue || 0) * f,
+        })) : [],
       };
     });
   }, [channelBudgets, f]);

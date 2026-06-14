@@ -506,6 +506,19 @@ export function GlobalDataProvider({ children }) {
                 });
                 if (Object.keys(bud).length) setChannelBudgets(bud);
             }).catch(() => {});
+            // [현 차수] 채널×objective 퍼널 집계 병합 → 채널 상세 패널이 목적별(도달인지/트래픽/전환) 분류.
+            //   objective 미적재(라이브 동기화 전)면 빈 결과 → 패널 채널누적 폴백(정직). 운영 전용.
+            getJsonAuth('/api/v424/connectors/campaign-funnel').then(r => {
+                if (cancelled || !r?.ok || !r.channels || !Object.keys(r.channels).length) return;
+                setChannelBudgets(prev => {
+                    const next = { ...prev };
+                    for (const [ch, camps] of Object.entries(r.channels)) {
+                        const k = String(ch).toLowerCase();
+                        if (next[k]) next[k] = { ...next[k], campaigns: camps };
+                    }
+                    return next;
+                });
+            }).catch(() => {});
         };
         const iv = setInterval(poll, 30000); // 30초 주기(운영 전용)
         return () => { cancelled = true; clearInterval(iv); };

@@ -706,6 +706,46 @@ final class Connectors
      *  이 SSOT 를 폴링 대상으로 써, 신규 광고채널(예: kakao)을 AD_SHORT 한 곳에만 추가하면 cron·저장직후·
      *  isAdChannel 전부에 자동 전파된다(성과 누락→ROAS 허위 0 해소). */
     public static function adShortCodes(): array { return array_values(array_unique(array_values(self::AD_SHORT))); }
+
+    /**
+     * [현 차수] GET /v424/connectors/campaign-funnel — 채널×objective 집계(목적별 퍼널 분류 근거).
+     *   performance_metrics 의 extra_json.objective/reach 를 JSON 추출해 채널별 objective 버킷으로 합산한다.
+     *   프론트(adFunnel.classifyCampaigns)가 objective→단계(도달인지/트래픽/전환) 분류 + 전체합산 CPM/빈도
+     *   재계산. objective 미적재(라이브 동기화 전)면 빈 결과 → 프론트는 채널 누적 폴백(정직 배너).
+     */
+    public static function campaignFunnel(Request $req, Response $res): Response
+    {
+        $tenant = self::tenantId($req);
+        $out = ['ok' => true, 'channels' => []];
+        if ($tenant === '' || $tenant === 'demo') return TemplateResponder::respond($res, $out);
+        try {
+            $pdo = Db::pdo();
+            $driver = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME);
+            $obj = $driver === 'mysql' ? "JSON_UNQUOTE(JSON_EXTRACT(extra_json,'$.objective'))" : "json_extract(extra_json,'$.objective')";
+            $rch = $driver === 'mysql' ? "JSON_EXTRACT(extra_json,'$.reach')" : "json_extract(extra_json,'$.reach')";
+            $sql = "SELECT LOWER(channel) AS ch, $obj AS objective,
+                           COALESCE(SUM(impressions),0) AS imp, COALESCE(SUM($rch),0) AS rch,
+                           COALESCE(SUM(clicks),0) AS clk, COALESCE(SUM(spend),0) AS spd,
+                           COALESCE(SUM(conversions),0) AS cnv, COALESCE(SUM(revenue),0) AS rev
+                      FROM performance_metrics
+                     WHERE tenant_id=? AND $obj IS NOT NULL AND $obj <> ''
+                     GROUP BY LOWER(channel), $obj";
+            $st = $pdo->prepare($sql);
+            $st->execute([$tenant]);
+            $byCh = [];
+            foreach ($st->fetchAll(\PDO::FETCH_ASSOC) as $r) {
+                $ch = (string)$r['ch'];
+                if (!isset($byCh[$ch])) $byCh[$ch] = [];
+                $byCh[$ch][] = [
+                    'objective' => (string)$r['objective'], 'name' => (string)$r['objective'],
+                    'impressions' => (int)$r['imp'], 'reach' => (int)$r['rch'], 'clicks' => (int)$r['clk'],
+                    'spend' => (float)$r['spd'], 'conversions' => (int)$r['cnv'], 'revenue' => (float)$r['rev'],
+                ];
+            }
+            $out['channels'] = $byCh;
+        } catch (\Throwable $e) { /* graceful: 빈 결과 → 프론트 폴백 */ }
+        return TemplateResponder::respond($res, $out);
+    }
     public static function syncAdChannelOnSave(string $tenant, string $channelKey): array
     {
         $short = self::AD_SHORT[$channelKey] ?? '';
@@ -1322,7 +1362,12 @@ final class Connectors
                     (int)($r['conversions'] ?? 0),
                     (float)($r['revenue'] ?? 0),
                 ];
-                $extra = isset($r['extra']) ? json_encode($r['extra'], JSON_UNESCAPED_UNICODE) : null;
+                // [현 차수] objective(캠페인 목적)·reach(도달)를 extra_json 에 적재(스키마 변경 없이) →
+                //   campaign-funnel 엔드포인트가 JSON 추출로 목적별 그룹·도달 합산.
+                $extraData = (array)($r['extra'] ?? []);
+                if (($r['objective'] ?? '') !== '') $extraData['objective'] = (string)$r['objective'];
+                if (isset($r['reach']))             $extraData['reach'] = (int)$r['reach'];
+                $extra = $extraData ? json_encode($extraData, JSON_UNESCAPED_UNICODE) : null;
                 if ($hasCampCol) $base[] = ($r['campaign_ext_id'] ?? '') !== '' ? (string)$r['campaign_ext_id'] : null;
                 if ($hasAdCol)   $base[] = ($r['ad_ext_id'] ?? '') !== '' ? (string)$r['ad_ext_id'] : null;
                 $base[] = $extra;
@@ -1348,7 +1393,8 @@ final class Connectors
 
         // [현 차수] A/B variant 추적: level=ad 로 ad_id/adset_id 까지 수집(행에 campaign_ext_id 도 유지 →
         //   기존 캠페인 단위 집계는 그대로 동작, 추가로 variant(ad) 단위 성과 추적 가능).
-        $fields = 'campaign_id,campaign_name,adset_id,ad_id,impressions,clicks,spend,actions,action_values';
+        // [현 차수] objective(캠페인 목적)·reach(도달) 수집 → 대시보드 목적별 퍼널 분류·빈도 산출 근거.
+        $fields = 'campaign_id,campaign_name,objective,adset_id,ad_id,impressions,reach,frequency,clicks,spend,actions,action_values';
         $params = http_build_query([
             'time_range'     => json_encode(['since' => $start, 'until' => $end]),
             'level'          => 'ad',
@@ -1372,6 +1418,8 @@ final class Connectors
                 'account'     => (string)($r['campaign_name'] ?? 'Meta Campaign'),
                 'campaign_ext_id' => (string)($r['campaign_id'] ?? ''),
                 'ad_ext_id'   => (string)($r['ad_id'] ?? ''),
+                'objective'   => (string)($r['objective'] ?? ''),
+                'reach'       => (int)($r['reach'] ?? 0),
                 'date'        => (string)($r['date_start'] ?? $r['date_stop'] ?? ''),
                 'impressions' => (int)($r['impressions'] ?? 0),
                 'clicks'      => (int)($r['clicks'] ?? 0),

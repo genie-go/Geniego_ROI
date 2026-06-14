@@ -5,6 +5,7 @@
  * 이 파일은 데모 모드(VITE_DEMO_MODE=true)에서만 사용됩니다.
  * 운영(production)에서는 절대 import되지 않습니다.
  */
+import { stageOf as _stageOf } from '../utils/adFunnel.js'; // [현 차수] 캠페인 목적→퍼널단계 SSOT
 
 const NOW = new Date().toLocaleString('ko-KR', { hour12: false });
 const TODAY = new Date().toISOString().slice(0, 10);
@@ -188,6 +189,59 @@ export const DEMO_BUDGETS = {
   kakao_moment: { name: 'Kakao Moment', budget: 15000000, spent: 10800000, revenue: 32500000, roas: 3.0, targetRoas: 2.5, icon: '💬', color: '#eab308', impressions: 6800000, clicks: 170000, reach: 4500000, engagement: 95000, videoViews: 1400000 },
   coupang_ads:  { name: 'Coupang Ads',  budget: 12000000, spent: 8900000,  revenue: 44500000, roas: 5.0, targetRoas: 4.5, icon: '🟠', color: '#E31937', impressions: 5200000, clicks: 156000, reach: 3800000, engagement: 42000, videoViews: 280000 },
 };
+
+/* ═══════════════════════════════════════════════════════
+   [현 차수] 광고 캠페인 목적(objective)별 분해 — 채널 누적 총계를 objective 캠페인으로 분배.
+   ★분류는 캠페인명이 아니라 plataforma objective 값 기준(adFunnel.stageOf SSOT).
+   ★impressions/clicks/spend/conversions/revenue 는 채널 총계에 정확 분배(Σ=채널총계, 카드 정합).
+   ★reach 는 캠페인별 impressions×목적별 도달비율(awareness 높음·conversion 낮음=리타게팅 빈도↑)로
+     파생 → 캠페인 빈도(노출/도달)가 항상 ≥1, 단계별 CPM/빈도를 "전체 합산 기준"으로 재계산 가능.
+═══════════════════════════════════════════════════════ */
+const _AD_CAMPAIGN_TEMPLATES = {
+  meta:         [{ name: 'Meta 도달', objective: 'REACH' }, { name: 'Meta 브랜드인지', objective: 'BRAND_AWARENESS' }, { name: 'Meta 트래픽', objective: 'TRAFFIC' }, { name: 'Meta 전환', objective: 'CONVERSIONS' }, { name: 'Meta 카탈로그판매', objective: 'OUTCOME_SALES' }],
+  google:       [{ name: 'Google 디스플레이', objective: 'DISPLAY' }, { name: 'Google 검색', objective: 'SEARCH' }, { name: 'Google P-Max', objective: 'PERFORMANCE_MAX' }, { name: 'Google 쇼핑', objective: 'SHOPPING' }],
+  tiktok:       [{ name: 'TikTok 도달', objective: 'REACH' }, { name: 'TikTok 동영상조회', objective: 'VIDEO_VIEWS' }, { name: 'TikTok 트래픽', objective: 'TRAFFIC' }, { name: 'TikTok 상품판매', objective: 'PRODUCT_SALES' }],
+  naver_sa:     [{ name: '네이버 브랜드검색', objective: 'BRAND_SEARCH' }, { name: '네이버 파워링크', objective: 'POWER_LINK' }, { name: '네이버 쇼핑검색', objective: 'SHOPPING_SEARCH' }],
+  kakao_moment: [{ name: '카카오 도달', objective: '도달' }, { name: '카카오 방문', objective: '방문' }, { name: '카카오 전환', objective: '전환' }],
+  coupang_ads:  [{ name: '쿠팡 트래픽', objective: '트래픽' }, { name: '쿠팡 전환', objective: '전환' }],
+};
+// 목적 단계별 분배 가중치(상대값) — awareness=도달·인지, conversion=전환.
+const _STAGE_W = {
+  impressions: { awareness: 3, engagement: 1, traffic: 2, conversion: 2, other: 1 },
+  clicks:      { awareness: 0.5, engagement: 1, traffic: 3, conversion: 2, other: 1 },
+  spend:       { awareness: 1.5, engagement: 0.8, traffic: 1.5, conversion: 2.5, other: 1 },
+  conversions: { awareness: 0.04, engagement: 0.1, traffic: 0.3, conversion: 1, other: 0.2 },
+  revenue:     { awareness: 0.04, engagement: 0.1, traffic: 0.25, conversion: 1, other: 0.2 },
+};
+// 목적 단계별 도달비율(reach/impressions): awareness 광범위(빈도 낮음), conversion 리타게팅(빈도 높음).
+const _REACH_RATIO = { awareness: 0.82, engagement: 0.74, traffic: 0.66, conversion: 0.55, other: 0.70 };
+function _distribute(total, weights) {
+  const t = Number(total) || 0; const sum = weights.reduce((a, b) => a + b, 0) || 1;
+  const out = weights.map(w => Math.round(t * w / sum));
+  out[out.length - 1] += t - out.reduce((a, b) => a + b, 0); // 잔차 흡수(Σ=total 보장)
+  return out;
+}
+function _buildCampaigns(ch, chId) {
+  const tpl = _AD_CAMPAIGN_TEMPLATES[chId];
+  if (!tpl) return [];
+  // DEMO_BUDGETS 필드 보정: spend=spent, conversions 부재→매출/객단가(45k) 파생.
+  const totals = {
+    impressions: Number(ch.impressions) || 0,
+    clicks:      Number(ch.clicks) || 0,
+    spend:       Number(ch.spent ?? ch.spend) || 0,
+    revenue:     Number(ch.revenue) || 0,
+    conversions: Math.round((Number(ch.revenue) || 0) / 45000),
+  };
+  const stages = tpl.map(c => _stageOf(c.objective));
+  const d = (metric) => _distribute(totals[metric], stages.map(st => _STAGE_W[metric][st] ?? 1));
+  const impr = d('impressions'), clk = d('clicks'), spd = d('spend'), cnv = d('conversions'), rev = d('revenue');
+  return tpl.map((c, i) => ({
+    name: c.name, objective: c.objective,
+    impressions: impr[i], clicks: clk[i], spend: spd[i], conversions: cnv[i], revenue: rev[i],
+    reach: Math.round(impr[i] * (_REACH_RATIO[stages[i]] ?? 0.7)),
+  }));
+}
+for (const [id, ch] of Object.entries(DEMO_BUDGETS)) { ch.campaigns = _buildCampaigns(ch, id); }
 
 /* ═══════════════════════════════════════════════════════
    7. 정산(Settlement) — 채널별 3개월
