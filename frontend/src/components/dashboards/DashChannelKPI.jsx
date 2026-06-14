@@ -6,7 +6,7 @@ import { LineChart, Spark, fmt } from './ChartUtils.jsx';
 import { useCurrency } from '../../contexts/CurrencyContext.jsx';
 import { IS_DEMO } from '../../utils/demoEnv';
 import { buildPeriodScope } from './dashPeriod.js';
-import { channelMeta, unionChannelKeys } from '../../utils/channelMeta.js';
+import { channelMeta } from '../../utils/channelMeta.js';
 
 // ══════════════════════════════════════════════════════════════════════
 //  📡 Channel KPI — Channel Intelligence with Drill-Down
@@ -142,11 +142,12 @@ export default function DashChannelKPI({ period }) {
     const periodActive = scope.active;
 
     // Reconstruct channel metrics using 100% REAL global data formulas
-    // [현 차수] 보편 채널 동기화: 하드코딩 CH_META_DEFS(6개)만 순회하던 것 → 실데이터(channelBudgets)에
-    //   존재하는 모든 채널을 union 해 순회 → 신규 광고채널도 KPI 카드 자동 생성(데이터분석 누락 해소).
-    //   표시 메타는 channelMeta() 리졸버로 해석(미등록 채널도 안전한 기본값).
+    // [현 차수] 0값 유령채널 해소: 하드코딩 CH_META_DEFS(meta/google/tiktok/coupang/naver/amazon) union 은
+    //   실데이터 키(naver_sa/kakao_moment/coupang_ads 등)와 불일치해 coupang/naver/amazon 이 0값 카드로
+    //   중복 노출됐다. ★실데이터(channelBudgets) 키만 순회 → 데이터 있는 채널만 표시(DashMarketing 채널카드와
+    //   일치). 신규 채널도 channelBudgets 에 들어오면 자동 표시. 표시 메타는 channelMeta() 리졸버.
     const liveList = useMemo(() => {
-        const ids = unionChannelKeys(CH_META_DEFS, channelBudgets);
+        const ids = Object.keys(channelBudgets || {});
         return ids.map((id) => {
             const meta = channelMeta(id);
             const live = channelBudgets[id] || { spent: 0, roas: 0.0, budget: 0 };
