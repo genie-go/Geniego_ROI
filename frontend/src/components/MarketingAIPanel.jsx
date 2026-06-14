@@ -24,6 +24,9 @@ const AIM_FB = {
     engineAi: '🤖 Genie AI 심층 분석', engineRule: '⚙ 규칙 기반 자동 분석',
     runBtn: '🚀 마케팅 성과 AI 심층 분석 런칭', running: '⏳ AI가 마케팅 데이터를 분석 중입니다... (15~30s)',
     historyBtn: '📜 분석 이력',
+    changeTitle: '📊 기간 대비 변화 & 이상 징후', anomalyTitle: '🚨 이상 징후',
+    mRevenue: '매출', mOrders: '주문수', mAov: '객단가', mReturn: '반품률', mConv: '전환',
+    vsPrev: '직전 {d}일 대비', noAnomaly: '✅ 직전 기간 대비 유의미한 이상 징후 없음', interpretation: '해석',
   },
   en: {
     title: 'AI Ad Performance Analysis',
@@ -37,6 +40,9 @@ const AIM_FB = {
     engineAi: '🤖 Genie AI deep analysis', engineRule: '⚙ Rule-based automatic analysis',
     runBtn: '🚀 Launch AI Marketing Deep Analysis', running: '⏳ AI is analyzing your marketing data... (15–30s)',
     historyBtn: '📜 Analysis history',
+    changeTitle: '📊 Period-over-Period Change & Anomalies', anomalyTitle: '🚨 Anomalies',
+    mRevenue: 'Revenue', mOrders: 'Orders', mAov: 'AOV', mReturn: 'Return rate', mConv: 'Conversions',
+    vsPrev: 'vs previous {d} days', noAnomaly: '✅ No significant anomalies vs the previous period', interpretation: 'Interpretation',
   },
 };
 
@@ -73,7 +79,7 @@ function ScoreBar({ label, v, max, col }) {
 }
 
 // ══════════════════════════════════════════════════════════════════════
-export default function MarketingAIPanel({ channels = {}, campaigns = [], style = {} }) {
+export default function MarketingAIPanel({ channels = {}, campaigns = [], comparison = null, style = {} }) {
     const { t, lang } = useI18n();
     const tx = useCallback((k, vars) => {
         let s = (AIM_FB[lang] && AIM_FB[lang][k]) || AIM_FB.en[k] || AIM_FB.ko[k] || k;
@@ -142,8 +148,10 @@ export default function MarketingAIPanel({ channels = {}, campaigns = [], style 
             period: c.startDate ? `${c.startDate} ~ ${c.endDate}` : '',
         }));
 
-        return { data: { channels: chArr, campaigns: campArr } };
-    }, [channels, campaigns]);
+        const payload = { channels: chArr, campaigns: campArr };
+        if (comparison && comparison.current && comparison.previous) payload.comparison = comparison;
+        return { data: payload };
+    }, [channels, campaigns, comparison]);
 
     const runAnalysis = useCallback(async () => {
         setStatus('loading'); setResult(null);
@@ -320,6 +328,56 @@ export default function MarketingAIPanel({ channels = {}, campaigns = [], style 
                             </div>
                         )}
                     </div>
+
+                    {/* [항목5] 기간 대비 변화 & 이상 징후 */}
+                    {(result.change_analysis || (result.anomalies && result.anomalies.length > 0)) && (() => {
+                        const ca = result.change_analysis || {};
+                        const SEV = { high: '#f87171', mid: '#fbbf24', info: '#4ade80' };
+                        const Delta = ({ label, v, pp }) => {
+                            const up = v > 0, flat = v === 0 || v == null;
+                            const col = flat ? 'var(--text-3)' : (up ? '#4ade80' : '#f87171');
+                            return (
+                                <div style={{ background: 'rgba(0,0,0,0.22)', borderRadius: 8, padding: '8px 10px', flex: '1 1 90px' }}>
+                                    <div style={{ fontSize: 9, color: 'var(--text-3)', textTransform: 'uppercase' }}>{label}</div>
+                                    <div style={{ fontSize: 13, fontWeight: 900, color: col }}>
+                                        {flat ? '—' : `${up ? '▲' : '▼'} ${Math.abs(v)}${pp ? '%p' : '%'}`}
+                                    </div>
+                                </div>
+                            );
+                        };
+                        return (
+                            <div style={CARD}>
+                                <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>{tx('changeTitle')}</div>
+                                {ca.period_days ? <div style={{ fontSize: 10, color: 'var(--text-3)', marginBottom: 10 }}>{tx('vsPrev', { d: ca.period_days })}</div> : null}
+                                {result.change_analysis && (
+                                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
+                                        <Delta label={tx('mRevenue')} v={ca.revenue_change_pct} />
+                                        <Delta label={tx('mOrders')} v={ca.orders_change_pct} />
+                                        <Delta label={tx('mAov')} v={ca.aov_change_pct} />
+                                        {ca.conversions_change_pct != null && <Delta label={tx('mConv')} v={ca.conversions_change_pct} />}
+                                        {ca.return_rate_change_pp != null && <Delta label={tx('mReturn')} v={ca.return_rate_change_pp} pp />}
+                                    </div>
+                                )}
+                                {ca.interpretation && (
+                                    <div style={{ padding: '10px 14px', borderRadius: 10, background: 'rgba(79,142,247,0.08)', borderLeft: '3px solid #4f8ef7', fontSize: 12.5, color: 'var(--text-1)', lineHeight: 1.6, marginBottom: (result.anomalies && result.anomalies.length) ? 12 : 0 }}>
+                                        💡 {tx('interpretation')}: {ca.interpretation}
+                                    </div>
+                                )}
+                                {result.anomalies && result.anomalies.length > 0 ? (
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                                        {result.anomalies.map((a, i) => (
+                                            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 8, background: `${SEV[a.severity] || '#94a3b8'}14`, border: `1px solid ${SEV[a.severity] || '#94a3b8'}33` }}>
+                                                <span style={{ fontSize: 10, fontWeight: 900, color: SEV[a.severity] || '#94a3b8', minWidth: 44 }}>{a.metric}</span>
+                                                <span style={{ fontSize: 11.5, color: 'var(--text-2)', lineHeight: 1.45 }}>{a.note}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (result.change_analysis && (
+                                    <div style={{ fontSize: 11.5, color: 'var(--text-3)' }}>{tx('noAnomaly')}</div>
+                                ))}
+                            </div>
+                        );
+                    })()}
 
                     {/* 종합 점수 */}
                     {result.overall_score !== undefined && (

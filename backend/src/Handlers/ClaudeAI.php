@@ -389,9 +389,28 @@ PROMPT;
       "rationale": "이유"
     }
   ],
+  "anomalies": [
+    {
+      "metric": "지표명(매출|주문수|객단가|반품률|전환 등)",
+      "severity": "high|mid|info",
+      "change": 숫자(변화율% 또는 %p),
+      "note": "이상 징후 설명 한 문장"
+    }
+  ],
+  "change_analysis": {
+    "period_days": 숫자,
+    "revenue_change_pct": 숫자,
+    "orders_change_pct": 숫자,
+    "aov_change_pct": 숫자,
+    "return_rate_change_pp": 숫자,
+    "interpretation": "직전 동일기간 대비 변화 원인 해석(매출=주문수×객단가 분해, ROAS 변화 동인)"
+  },
   "top_insight": "가장 중요한 단일 인사이트",
   "immediate_action": "즉시 실행해야 할 최우선 액션"
 }
+
+※ 입력 data 에 comparison(current/previous 기간 지표)이 있으면 반드시 anomalies 와 change_analysis 를
+  채우세요(직전 동일기간 대비 급변 지표 탐지 + 원인 해석). comparison 이 없으면 두 필드는 빈 배열/생략 가능.
 
 평가 기준:
 - ROAS 5.0x 이상: 최상급, 4.0x: 우수, 3.0x: 보통, 2.0x 미만: 개선 필요
@@ -566,12 +585,53 @@ PROMPT;
             ? "'{$worst['name']}' 채널 ROAS {$worst['_roas']}x — 소재 교체 또는 예산 축소를 우선 검토하세요."
             : ($reallocation ? "예산 재배분 추천에 따라 효율 채널 비중을 단계적으로 높이세요." : "현 전략을 유지하며 주간 추세를 모니터링하세요.");
 
+        // [항목5] 기간 대비 변화 & 이상 징후(주문 단일소스 — 날짜 보유 지표만 정직 비교).
+        $anomalies = []; $changeAnalysis = null;
+        $cmp = $data['comparison'] ?? null;
+        if (is_array($cmp) && isset($cmp['current']) && isset($cmp['previous'])) {
+            $cur = $cmp['current']; $prev = $cmp['previous'];
+            $pct = function ($c, $p) { return $p > 0 ? round(($c - $p) / $p * 100, 1) : ($c > 0 ? 100.0 : 0.0); };
+            $revD = $pct((float)($cur['revenue'] ?? 0),    (float)($prev['revenue'] ?? 0));
+            $ordD = $pct((float)($cur['orders'] ?? 0),     (float)($prev['orders'] ?? 0));
+            $aovD = $pct((float)($cur['aov'] ?? 0),        (float)($prev['aov'] ?? 0));
+            $retD = round((float)($cur['returnRate'] ?? 0) - (float)($prev['returnRate'] ?? 0), 1); // %p 차
+            $cnvD = $pct((float)($cur['conversions'] ?? $cur['orders'] ?? 0), (float)($prev['conversions'] ?? $prev['orders'] ?? 0));
+
+            $mk = function ($metric, $sev, $change, $note) { return ['metric'=>$metric,'severity'=>$sev,'change'=>$change,'note'=>$note]; };
+            if ($revD <= -15)      $anomalies[] = $mk('매출', 'high', $revD, "매출이 직전 기간 대비 {$revD}% 급감 — 즉시 원인 점검 필요");
+            elseif ($revD >= 30)   $anomalies[] = $mk('매출', 'info', $revD, "매출이 {$revD}% 급증 — 호조 요인 파악 후 확대");
+            if ($ordD <= -20)      $anomalies[] = $mk('주문수', 'high', $ordD, "주문수 {$ordD}% 감소 — 유입/전환 동선 점검");
+            if ($aovD <= -10)      $anomalies[] = $mk('객단가', 'mid', $aovD, "객단가 {$aovD}% 하락 — 할인 과다·상품믹스 변화 점검");
+            elseif ($aovD >= 15)   $anomalies[] = $mk('객단가', 'info', $aovD, "객단가 {$aovD}% 상승 — 업셀/번들 효과 가능");
+            if ($retD >= 2)        $anomalies[] = $mk('반품률', 'high', $retD, "반품률 +{$retD}%p 상승 — 품질/배송/오배송 점검");
+            if ($cnvD <= -20)      $anomalies[] = $mk('전환', 'mid', $cnvD, "전환 {$cnvD}% 감소 — 랜딩/오퍼 점검");
+
+            // 매출 변화 분해: 매출 = 주문수 × 객단가 → 주도 요인 식별
+            $driver = abs($ordD) >= abs($aovD)
+                ? "주문수 변화({$ordD}%)가 주도(객단가 {$aovD}%)"
+                : "객단가 변화({$aovD}%)가 주도(주문수 {$ordD}%)";
+            $dir = $revD > 0 ? '증가' : ($revD < 0 ? '감소' : '보합');
+            $changeAnalysis = [
+                'period_days'          => (int)($cmp['days'] ?? 0),
+                'revenue_change_pct'   => $revD,
+                'orders_change_pct'    => $ordD,
+                'aov_change_pct'       => $aovD,
+                'conversions_change_pct'=> $cnvD,
+                'return_rate_change_pp'=> $retD,
+                'interpretation'       => "직전 동일기간 대비 매출 {$revD}% {$dir} — {$driver}. (매출=주문수×객단가 분해)"
+                                          . ($retD >= 1 ? " 반품률 +{$retD}%p 동반 상승." : ""),
+                'note'                 => "주문 단일소스(날짜 보유) 기준 정확 비교. 광고 채널별 CTR/CPC/CVR 일별 변화는 매체 연동·시계열 적재 후 제공.",
+            ];
+        }
+
         return [
             'overall_score' => $overall, 'grade' => $gradeOf($overall),
             'summary' => $summary,
             'channels' => array_map(fn($c) => array_diff_key($c, ['_spend'=>1,'_roas'=>1]), $chOut),
             'campaigns' => $campOut,
             'budget_reallocation' => $reallocation,
+            'anomalies' => $anomalies,
+            'change_analysis' => $changeAnalysis,
             'top_insight' => $topInsight,
             'immediate_action' => $immediate,
             'engine' => 'rule-based',

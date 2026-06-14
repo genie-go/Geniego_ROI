@@ -5,7 +5,7 @@ import { useSecurityGuard, getSecurityAlerts } from '../../security/SecurityGuar
 import { useCurrency } from '../../contexts/CurrencyContext.jsx';
 import { LineChart, BarChart, Spark, DonutChart } from './ChartUtils.jsx';
 import MarketingAIPanel from '../MarketingAIPanel.jsx';
-import { buildPeriodScope, deriveOrderKpis } from './dashPeriod.js';
+import { buildPeriodScope, deriveOrderKpis, filterOrdersByPeriod, orderDate } from './dashPeriod.js';
 import { classifyCampaigns } from '../../utils/adFunnel.js';
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -359,6 +359,30 @@ export default function DashMarketing({ period }) {
       };
     })
   ), [liveChannels]);
+
+  /* ── [항목5] 기간 대비 변화·이상 징후용 비교 스냅샷 — 주문(날짜 보유) 단일소스 정확 비교 ──
+     현재 윈도우(선택 기간 OR 데이터 최신 30일) vs 직전 동일길이 윈도우. 광고 일별 시계열 부재라
+     주문 기반 지표(매출/주문수/객단가/반품률/전환)만 정직 비교. */
+  const comparison = useMemo(() => {
+    const DAY = 86400000;
+    let curStart, curEnd, days;
+    if (periodActive && period?.start && period?.end) {
+      curStart = period.start; curEnd = period.end; days = scope.days || 30;
+    } else {
+      const ts = (orders || []).map(orderDate).filter(Boolean).map(d => d.getTime());
+      if (!ts.length) return null;
+      const maxT = Math.max(...ts);
+      days = 30;
+      curEnd = new Date(maxT); curStart = new Date(maxT - (days - 1) * DAY);
+    }
+    const prevEnd = new Date(curStart.getTime() - 1);
+    const prevStart = new Date(curStart.getTime() - days * DAY);
+    const cur = deriveOrderKpis(filterOrdersByPeriod(orders, { start: curStart, end: curEnd }));
+    const prev = deriveOrderKpis(filterOrdersByPeriod(orders, { start: prevStart, end: prevEnd }));
+    if (cur.orders === 0 && prev.orders === 0) return null; // 비교할 주문 없음
+    const pack = k => ({ revenue: k.revenue, orders: k.orders, aov: k.aov, returnRate: k.returnRate, conversions: k.orders });
+    return { days, current: pack(cur), previous: pack(prev) };
+  }, [orders, period, periodActive, scope.days]);
 
   /* ── 종합 KPI (기간 스코프: 광고 누적집계=계수 f, 매출=채널 합산도 이미 f 반영) ──── */
   // 광고 매출/지출은 날짜 미보유 누적값 → 계수 f 적용. liveChannels 는 이미 f 반영됨.
@@ -760,6 +784,7 @@ export default function DashMarketing({ period }) {
         <MarketingAIPanel
           channels={liveChannels.reduce((acc, c) => { acc[c.id] = c; return acc; }, {})}
           campaigns={aiCampaigns}
+          comparison={comparison}
         />
       )}
     </div>
