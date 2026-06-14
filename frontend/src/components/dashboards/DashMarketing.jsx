@@ -3,7 +3,7 @@ import { useI18n } from '../../i18n';
 import { useGlobalData } from '../../context/GlobalDataContext.jsx';
 import { useSecurityGuard, getSecurityAlerts } from '../../security/SecurityGuard.js';
 import { useCurrency } from '../../contexts/CurrencyContext.jsx';
-import { LineChart, BarChart, Spark, DonutChart } from './ChartUtils.jsx';
+import { LineChart, BarChart, Spark, DonutChart, fmt } from './ChartUtils.jsx';
 import MarketingAIPanel from '../MarketingAIPanel.jsx';
 import { buildPeriodScope, deriveOrderKpis, filterOrdersByPeriod, orderDate } from './dashPeriod.js';
 import { classifyCampaigns } from '../../utils/adFunnel.js';
@@ -271,6 +271,7 @@ export default function DashMarketing({ period }) {
   const currFmt = useCallback((n) => currencyFmt(n, { compact: true }), [currencyFmt]);
   const [selected, setSelected] = useState(null);
   const [tab, setTab] = useState('channels');
+  const [mktMetric, setMktMetric] = useState('spend');   // [현 차수] 채널 트렌드 기준 지표
   const isMobile = useIsMobile();
 
   /* ── GlobalDataContext 실시간 연동 ─────────────────────────────────── */
@@ -415,18 +416,31 @@ export default function DashMarketing({ period }) {
     });
   }, [dayCount, periodActive, period]);
 
-  /* ── 트렌드 차트 데이터 ──────────────────────────────────────────── */
+  /* ── [현 차수] 채널 트렌드 — 사용자 선택 지표 기준(지표명·Y축 단위 동기화) ───────── */
+  const MKT_METRICS = [
+    { key: 'spend',       label: t('dash.mxSpend', '광고비'),     get: c => c.spend,       fmt: v => currFmt(v) },
+    { key: 'revenue',     label: t('dash.mxRevenue', '매출'),     get: c => c.revenue,     fmt: v => currFmt(v) },
+    { key: 'roas',        label: t('dash.mxRoas', 'ROAS'),        get: c => c.roas,        fmt: v => v.toFixed(2) + 'x' },
+    { key: 'impressions', label: t('dash.mxImpr', '노출수'),      get: c => c.impressions, fmt: v => fmt(v) + t('dash.unitTimes', '회') },
+    { key: 'clicks',      label: t('dash.mxClicks', '클릭수'),    get: c => c.clicks,      fmt: v => fmt(v) + t('dash.unitCount', '건') },
+    { key: 'ctr',         label: t('dash.mxCtr', 'CTR'),          get: c => c.ctr,         fmt: v => v.toFixed(2) + '%' },
+    { key: 'cpc',         label: t('dash.mxCpc', 'CPC'),          get: c => c.cpc,         fmt: v => currFmt(v) },
+    { key: 'conversions', label: t('dash.mxConv', '전환수'),      get: c => c.conversions, fmt: v => fmt(v) + t('dash.unitCount', '건') },
+    { key: 'convRate',    label: t('dash.mxConvRate', '전환율'),  get: c => c.convRate,    fmt: v => v.toFixed(2) + '%' },
+    { key: 'cpa',         label: t('dash.mxCpa', 'CPA'),          get: c => (c.conversions > 0 ? c.spend / c.conversions : 0), fmt: v => currFmt(v) },
+  ];
+  const activeMkt = MKT_METRICS.find(m => m.key === mktMetric) || MKT_METRICS[0];
   const lineData = useMemo(() => {
     if (liveChannels.length === 0) return [];
     return Array.from({ length: dayCount }, (_, i) => {
       const row = {};
       liveChannels.forEach(c => {
-        // 일별 spend = 기간 채널 지출(c.spend, 이미 f 반영)을 dayCount 로 균등 분배 + 결정적 변동.
-        row[c.id] = c.sparkData?.[i] || Math.round((c.spend / dayCount) * (0.8 + Math.sin(i * 0.5) * 0.2));
+        const base = activeMkt.get(c) || 0;
+        row[c.id] = base * (0.85 + Math.sin(i * 0.6 + c.id.length) * 0.15);
       });
       return row;
     });
-  }, [liveChannels, dayCount]);
+  }, [liveChannels, dayCount, mktMetric]);
 
   /* ── KPI 지표 카드 데이터 ─────────────────────────────────────────── */
   const metricsTop = useMemo(() => [
@@ -647,12 +661,14 @@ export default function DashMarketing({ period }) {
               {/* 채널 트렌드 차트 */}
               <div style={card}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, flexWrap: 'wrap', gap: 4 }}>
-                  <span style={{ fontSize: 13, fontWeight: 700 }}>{t('dash.chTrend', 'Channel Trend')}</span>
+                  <span style={{ fontSize: 13, fontWeight: 700 }}>
+                    {t('dash.chTrend', 'Channel Trend')}: <span style={{ color: '#4f8ef7', fontWeight: 900 }}>{activeMkt.label}</span>
+                  </span>
                   {!isMobile && liveChannels.length > 0 && (
                     <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                       {liveChannels.map(c => (
                         <div key={c.id}
-                          style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 10, cursor: 'pointer', color: 'var(--text-3)' }}
+                          style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 10, cursor: 'pointer', color: selected === c.id ? c.color : 'var(--text-3)', fontWeight: selected === c.id ? 800 : 500 }}
                           onClick={() => setSelected(selected === c.id ? null : c.id)}>
                           <div style={{ width: 14, height: 2.5, background: c.color, borderRadius: 2 }} />
                           {c.name}
@@ -661,13 +677,28 @@ export default function DashMarketing({ period }) {
                     </div>
                   )}
                 </div>
+                {/* [현 차수] 지표 선택 — 기업별 중점 지표 선택 */}
+                <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginBottom: 10 }}>
+                  {MKT_METRICS.map(m => {
+                    const on = m.key === mktMetric;
+                    return (
+                      <button key={m.key} onClick={() => setMktMetric(m.key)} style={{
+                        padding: '3px 9px', borderRadius: 7, cursor: 'pointer', fontSize: 10.5, fontWeight: 700,
+                        border: '1px solid ' + (on ? '#4f8ef7' : 'var(--border)'),
+                        background: on ? 'rgba(79,142,247,0.14)' : 'transparent',
+                        color: on ? '#4f8ef7' : 'var(--text-3)',
+                      }}>{m.label}</button>
+                    );
+                  })}
+                </div>
                 {lineData.length > 0 ? (
                   <div style={{ overflowX: 'auto' }}>
                     <LineChart
                       data={lineData}
                       labels={days}
+                      format={activeMkt.fmt}
                       series={liveChannels.map(c => ({
-                        key: c.id, color: c.color,
+                        key: c.id, name: c.name, color: c.color,
                         width: selected === c.id ? 2.8 : 1.6,
                         area: selected === c.id,
                       }))}

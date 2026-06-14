@@ -4859,6 +4859,18 @@ export default {
 
     "totalRev": "총 매출",
     "adAttributedRev": "광고 기여 매출",
+    "mxRoas": "ROAS",
+    "mxCtr": "CTR",
+    "mxCpc": "CPC",
+    "mxCpa": "CPA",
+    "mxRevenue": "매출",
+    "mxSpend": "광고비",
+    "mxReach": "도달수",
+    "mxImpr": "노출수",
+    "mxClicks": "클릭수",
+    "mxConv": "전환수",
+    "mxConvRate": "전환율",
+    "unitPeople": "명",
 
     "totalSpend": "총 지출",
 

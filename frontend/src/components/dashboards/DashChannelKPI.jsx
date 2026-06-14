@@ -129,6 +129,7 @@ export default function DashChannelKPI({ period }) {
   const { fmt: fmtC } = useCurrency();
     const { t } = useI18n();
     const [sel, setSel] = useState(null);
+    const [metric, setMetric] = useState('roas');   // [현 차수] 채널 성과 추이 기준 지표
 
     // ✅ Real-time GlobalDataContext connection
     const { channelBudgets, budgetStats, pnlStats, orderStats, orders, addAlert } = useGlobalData();
@@ -174,6 +175,17 @@ export default function DashChannelKPI({ period }) {
             ] : [];
             const funnel = demoMetric ? [orders * 50, orders * 5, orders * 3, orders * 1.5, orders] : [0,0,0,0,0];
 
+            // [현 차수] 지표 선택 그래프용 수치 필드(채널별 동일 지표 비교). 가산지표=기간계수 f 적용,
+            //   비율지표(CTR/전환율/CPC/CPA/ROAS)=분자·분모 동일 스케일이라 기간 불변.
+            const impressions = (live.impressions || 0) * (periodActive ? f : 1);
+            const clicks      = (live.clicks || 0) * (periodActive ? f : 1);
+            const reach       = (live.reach || 0) * (periodActive ? f : 1);
+            const conversions = rev > 0 ? Math.round(rev / 45000) : 0;   // 객단가 45k 가정(데모 단일소스 정합)
+            const ctrNum      = impressions > 0 ? (clicks / impressions) * 100 : 0;
+            const cpcNum      = clicks > 0 ? spend / clicks : 0;
+            const convRateNum = clicks > 0 ? (conversions / clicks) * 100 : 0;
+            const cpaNum      = conversions > 0 ? spend / conversions : 0;
+
             return {
                 id,
                 ...meta,
@@ -188,7 +200,10 @@ export default function DashChannelKPI({ period }) {
                 gender,
                 age,
                 regions,
-                funnel
+                funnel,
+                // 지표 선택 그래프용 수치
+                roasNum: roas, impressions, clicks, reach, conversions,
+                ctrNum, cpcNum, convRateNum, cpaNum,
             };
         });
     }, [channelBudgets, t, f, periodActive]);
@@ -201,10 +216,30 @@ export default function DashChannelKPI({ period }) {
         return `${d.getMonth() + 1}/${d.getDate()}`;
     });
     
-    // Dynamic chart data strictly bound to actual total revenue per channel across days (simulated trend from live value)
-    const lineData = DAYS.map((d, i) => ({ 
-        d, 
-        ...Object.fromEntries(liveList.map(c => [c.id, c.rev > 0 ? c.rev * (0.8 + Math.sin(i + c.id.length) * 0.2) : 0])) 
+    // [현 차수] 채널 성과 추이 — 사용자 선택 지표 기준(ROAS/매출/광고비/도달/노출/클릭/CTR/CPC/전환수/전환율/CPA).
+    //   지표마다 단위·포맷 다름 → LineChart 에 format 전달(Y축·툴팁 동일 단위). 일별 실시계열 부재라
+    //   누적 기준값에 안정적 오실레이션 적용(기존 동작 계승, 채널 시드 고정).
+    const METRICS = [
+        { key: 'roas',        label: t('dash.mxRoas', 'ROAS'),       get: c => c.roasNum,     fmt: v => v.toFixed(2) + 'x' },
+        { key: 'revenue',     label: t('dash.mxRevenue', '매출'),     get: c => c.rev,         fmt: v => fmtC(v) },
+        { key: 'spend',       label: t('dash.mxSpend', '광고비'),     get: c => c.spend,       fmt: v => fmtC(v) },
+        { key: 'reach',       label: t('dash.mxReach', '도달수'),     get: c => c.reach,       fmt: v => fmt(v) + t('dash.unitPeople', '명') },
+        { key: 'impressions', label: t('dash.mxImpr', '노출수'),      get: c => c.impressions, fmt: v => fmt(v) + t('dash.unitTimes', '회') },
+        { key: 'clicks',      label: t('dash.mxClicks', '클릭수'),    get: c => c.clicks,      fmt: v => fmt(v) + t('dash.unitCount', '건') },
+        { key: 'ctr',         label: t('dash.mxCtr', 'CTR'),          get: c => c.ctrNum,      fmt: v => v.toFixed(2) + '%' },
+        { key: 'cpc',         label: t('dash.mxCpc', 'CPC'),          get: c => c.cpcNum,      fmt: v => fmtC(v) },
+        { key: 'conversions', label: t('dash.mxConv', '전환수'),      get: c => c.conversions, fmt: v => fmt(v) + t('dash.unitCount', '건') },
+        { key: 'convRate',    label: t('dash.mxConvRate', '전환율'),  get: c => c.convRateNum, fmt: v => v.toFixed(2) + '%' },
+        { key: 'cpa',         label: t('dash.mxCpa', 'CPA'),          get: c => c.cpaNum,      fmt: v => fmtC(v) },
+    ];
+    const activeMetric = METRICS.find(m => m.key === metric) || METRICS[0];
+    const lineData = DAYS.map((d, i) => ({
+        d,
+        ...Object.fromEntries(liveList.map(c => {
+            const base = activeMetric.get(c) || 0;
+            const wave = 0.85 + Math.sin(i * 0.6 + c.id.length) * 0.15;
+            return [c.id, base * wave];
+        })),
     }));
 
     const G = 10;
@@ -261,18 +296,36 @@ export default function DashChannelKPI({ period }) {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: G }}>
                     {/* Trend Chart */}
                     <div style={P}>
-                        <div style={{ display:'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                            <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-1)' }}>{t('dash.chTrendKpi', 'Channel Performance Trend')}</span>
-                            <div style={{ display: 'flex', gap: 12 }}>
+                        <div style={{ display:'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, gap: 8, flexWrap: 'wrap' }}>
+                            <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-1)' }}>
+                                {t('dash.chTrendKpi', 'Channel Performance Trend')}: <span style={{ color: '#4f8ef7', fontWeight: 900 }}>{activeMetric.label}</span>
+                            </span>
+                            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
                                 {liveList.map(c => (
-                                    <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, color: 'var(--text-3)', cursor: 'pointer' }} onClick={() => setSel(sel === c.id ? null : c.id)}>
+                                    <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, color: sel === c.id ? c.color : 'var(--text-3)', fontWeight: sel === c.id ? 800 : 500, cursor: 'pointer' }} onClick={() => setSel(sel === c.id ? null : c.id)}>
                                         <div style={{ width: 12, height: 2.5, background: c.color, borderRadius: 2, boxShadow: `0 0 5px ${c.color}88` }} />
                                         {c.id === 'naver' ? t('dash.naverName', 'Naver') : c.name.split(' ')[0]}
                                     </div>
                                 ))}
                             </div>
                         </div>
-                        <LineChart data={lineData} labels={DAYS} series={liveList.map(c => ({ key: c.id, color: c.color, width: sel === c.id ? 2.8 : 1.6, area: sel === c.id }))} width={660} height={142} />
+                        {/* [현 차수] 지표 선택 — 기업별 중점 지표 선택(선택 지표 기준 채널 비교) */}
+                        <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginBottom: 10 }}>
+                            {METRICS.map(m => {
+                                const on = m.key === metric;
+                                return (
+                                    <button key={m.key} onClick={() => setMetric(m.key)} style={{
+                                        padding: '3px 9px', borderRadius: 7, cursor: 'pointer', fontSize: 10.5, fontWeight: 700,
+                                        border: '1px solid ' + (on ? '#4f8ef7' : 'var(--border)'),
+                                        background: on ? 'rgba(79,142,247,0.14)' : 'transparent',
+                                        color: on ? '#4f8ef7' : 'var(--text-3)',
+                                    }}>{m.label}</button>
+                                );
+                            })}
+                        </div>
+                        <LineChart data={lineData} labels={DAYS} format={activeMetric.fmt}
+                            series={liveList.map(c => ({ key: c.id, name: c.id === 'naver' ? t('dash.naverName', 'Naver') : c.name.split(' ')[0], color: c.color, width: sel === c.id ? 2.8 : 1.6, area: sel === c.id }))}
+                            width={660} height={142} />
                     </div>
                     {/* Detail Table */}
                     <div style={P}>

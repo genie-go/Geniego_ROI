@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef } from 'react';
 
 // ═══════════════════════════════════════════════════════════════════════
 //  ChartUtils.jsx — 통일된 차트 컴포넌트
@@ -22,8 +22,12 @@ export function fmt(n, { prefix = '', suffix = '', digits = 1 } = {}) {
 const FONT = { fontSize: 9, fontFamily: 'inherit', fontWeight: 500 };
 
 // ── LineChart ─────────────────────────────────────────────────────────────
-export function LineChart({ data, labels, series, width = 600, height = 180 }) {
+//  hover 크로스헤어 툴팁(채널명+수치) 지원. format(v)=축/툴팁 값 포맷(기본 fmt).
+export function LineChart({ data, labels, series, width = 600, height = 180, format }) {
+    const svgRef = useRef(null);
+    const [hover, setHover] = useState(null); // hovered data index
     if (!data?.length) return null;
+    const f = typeof format === 'function' ? format : (v) => fmt(v);
     const pad = { t: 16, r: 14, b: 34, l: 46 };
     const W = width - pad.l - pad.r;
     const H = height - pad.t - pad.b;
@@ -34,8 +38,31 @@ export function LineChart({ data, labels, series, width = 600, height = 180 }) {
     const yScale = v => H - ((v - minV) / (maxV - minV || 1)) * H;
     const gridLines = [0, 0.25, 0.5, 0.75, 1];
 
+    // 마우스 위치 → 최근접 데이터 인덱스(viewBox 스케일 보정).
+    const onMove = (e) => {
+        const svg = svgRef.current; if (!svg) return;
+        const rect = svg.getBoundingClientRect();
+        const ux = (e.clientX - rect.left) / rect.width * width;   // user-space x
+        const ratio = (ux - pad.l) / (W || 1);
+        const idx = Math.round(clamp(ratio, 0, 1) * (data.length - 1));
+        setHover(idx);
+    };
+
+    // 툴팁 행(선택 인덱스의 채널별 값) — 값 내림차순.
+    let rows = [];
+    if (hover != null && data[hover]) {
+        rows = series.map(s => ({ name: s.name || s.key, color: s.color, value: data[hover][s.key] ?? 0 }))
+            .sort((a, b) => b.value - a.value).slice(0, 8);
+    }
+    const tipW = Math.min(W - 8, Math.max(120, 30 + Math.max(...(rows.length ? rows.map(r => (r.name + f(r.value)).length) : [10])) * 5.4));
+    const tipH = rows.length ? (rows.length + 1) * 14 + 10 : 0;
+    let tipX = hover != null ? xScale(hover) + 12 : 0;
+    if (tipX + tipW > W) tipX = xScale(hover) - tipW - 12;
+    if (tipX < 0) tipX = 2;
+    const tipY = 2;
+
     return (
-        <svg width="100%" viewBox={`0 0 ${width} ${height}`} style={{ overflow: 'visible', display: 'block' }}>
+        <svg ref={svgRef} width="100%" viewBox={`0 0 ${width} ${height}`} style={{ overflow: 'visible', display: 'block' }}>
             <g transform={`translate(${pad.l},${pad.t})`}>
                 {/* 그리드 */}
                 {gridLines.map(t => {
@@ -44,7 +71,7 @@ export function LineChart({ data, labels, series, width = 600, height = 180 }) {
                     return (
                         <g key={t}>
                             <line x1={0} y1={y} x2={W} y2={y} stroke="rgba(0,0,0,0.06)" strokeWidth={1} />
-                            <text x={-8} y={y + 4} {...FONT} fill="rgba(0,0,0,0.38)" textAnchor="end">{fmt(val)}</text>
+                            <text x={-8} y={y + 4} {...FONT} fill="rgba(0,0,0,0.38)" textAnchor="end">{f(val)}</text>
                         </g>
                     );
                 })}
@@ -66,6 +93,37 @@ export function LineChart({ data, labels, series, width = 600, height = 180 }) {
                         </g>
                     );
                 })}
+                {/* hover 크로스헤어 + 포인트 */}
+                {hover != null && data[hover] && (
+                    <g pointerEvents="none">
+                        <line x1={xScale(hover)} y1={0} x2={xScale(hover)} y2={H} stroke="rgba(0,0,0,0.28)" strokeWidth={1} strokeDasharray="3,3" />
+                        {series.map(s => (
+                            <circle key={s.key} cx={xScale(hover)} cy={yScale(data[hover][s.key] ?? 0)} r={3} fill={s.color} stroke="#fff" strokeWidth={1} />
+                        ))}
+                    </g>
+                )}
+                {/* 툴팁 박스 */}
+                {rows.length > 0 && (
+                    <g pointerEvents="none" transform={`translate(${tipX},${tipY})`}>
+                        <rect x={0} y={0} width={tipW} height={tipH} rx={7} fill="rgba(15,23,42,0.95)" stroke="rgba(255,255,255,0.12)" strokeWidth={1} />
+                        {labels && labels[hover] != null && (
+                            <text x={9} y={13} fontSize={9} fontWeight={800} fill="#cbd5e1">{labels[hover]}</text>
+                        )}
+                        {rows.map((r, i) => {
+                            const ry = 14 + (i + 1) * 14 - 4;
+                            return (
+                                <g key={r.name + i}>
+                                    <circle cx={13} cy={ry - 3} r={3.2} fill={r.color} />
+                                    <text x={22} y={ry} fontSize={9} fontWeight={600} fill="#e2e8f0">{r.name}</text>
+                                    <text x={tipW - 9} y={ry} fontSize={9} fontWeight={800} fill="#fff" textAnchor="end">{f(r.value)}</text>
+                                </g>
+                            );
+                        })}
+                    </g>
+                )}
+                {/* 이벤트 캡처 오버레이(최상단) */}
+                <rect x={0} y={0} width={W} height={H} fill="transparent"
+                    onMouseMove={onMove} onMouseLeave={() => setHover(null)} style={{ cursor: 'crosshair' }} />
             </g>
         </svg>
     );
