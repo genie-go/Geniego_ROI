@@ -64,8 +64,18 @@ export function stageOf(objective, channel) {
   const key = String(objective || '').trim();
   if (key === '') return 'other';
   const up = key.toUpperCase();
-  // 동명 충돌 회피: TikTok TRAFFIC/VIDEO_VIEWS 는 공용 키로 흡수됨(traffic/engagement 동일 의미라 무해).
-  return OBJECTIVE_STAGE[up] || OBJECTIVE_STAGE[key] || 'other';
+  // ① 정확 매핑(등록된 objective).
+  const exact = OBJECTIVE_STAGE[up] || OBJECTIVE_STAGE[key];
+  if (exact) return exact;
+  // ② [현 차수] 키워드 폴백 — 추후 추가되는 채널/미등록 objective 도 자동 분류(영문+한글 키워드).
+  //   매핑표에 없어도 동작 → 신규 채널 무코드 분류. 순서: conversion(가장 구체) → traffic → awareness → engagement.
+  const hay = up + ' ' + key;
+  if (/CONVER|SALE|PURCHASE|\bLEAD|CATALOG|CHECKOUT|전환|구매|판매|주문|리드/.test(hay)) return 'conversion';
+  if (/SHOP/.test(hay)) return 'conversion';                                  // 쇼핑(커머스 전환) — SEARCH 보다 우선
+  if (/TRAFFIC|CLICK|VISIT|\bLINK|SEARCH|트래픽|방문|클릭|검색/.test(hay)) return 'traffic';
+  if (/REACH|AWARE|BRAND|IMPRESSION|도달|인지|브랜드/.test(hay)) return 'awareness';
+  if (/ENGAGE|VIDEO|VIEW|INTERACT|FOLLOW|MESSAGE|참여|조회|동영상|팔로우|메시지/.test(hay)) return 'engagement';
+  return 'other';
 }
 
 /** 캠페인 1건의 메트릭 안전 추출(필드명 편차 흡수). */

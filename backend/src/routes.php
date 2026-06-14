@@ -698,6 +698,9 @@ return function (App $app): void {
         // [현 차수] 채널×objective 퍼널 집계(목적별 분류 근거) — 세션 토큰 호출(AI게이트).
         'GET /v424/connectors/campaign-funnel'     => 'Genie\\Handlers\\Connectors::campaignFunnel',
         'GET /api/v424/connectors/campaign-funnel' => 'Genie\\Handlers\\Connectors::campaignFunnel',
+        // [현 차수] 범용 광고성과 ingest(추후 추가 채널 무코드 적재, api_key write) — objective 포함.
+        'POST /v424/connectors/ad-metrics'         => 'Genie\\Handlers\\Connectors::adMetricsIngest',
+        'POST /api/v424/connectors/ad-metrics'     => 'Genie\\Handlers\\Connectors::adMetricsIngest',
 
         // ── v424 admin plans (169차 사용자 발견 issue fix — 플랜별 구독요금 설정) ──
         'GET /v424/admin/plans'                         => 'Genie\\Handlers\\AdminPlans::list',
@@ -2398,6 +2401,8 @@ return function (App $app): void {
     $register('PUT', '/api/v424/marketing/benchmarks');
     $register('GET', '/v424/connectors/campaign-funnel');
     $register('GET', '/api/v424/connectors/campaign-funnel');
+    $register('POST', '/v424/connectors/ad-metrics');
+    $register('POST', '/api/v424/connectors/ad-metrics');
 
     // ── V424 admin plans (169차 사용자 발견 issue) ──
     $register('GET',    '/v424/admin/plans');

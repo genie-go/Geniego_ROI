@@ -221,8 +221,10 @@ function _distribute(total, weights) {
   out[out.length - 1] += t - out.reduce((a, b) => a + b, 0); // 잔차 흡수(Σ=total 보장)
   return out;
 }
+// [현 차수] 추후 추가되는 채널(템플릿 미정의)도 자동 분류되도록 generic 목적 3종 폴백.
+const _GENERIC_TEMPLATE = [{ name: '도달', objective: 'REACH' }, { name: '트래픽', objective: 'TRAFFIC' }, { name: '전환', objective: 'CONVERSIONS' }];
 function _buildCampaigns(ch, chId) {
-  const tpl = _AD_CAMPAIGN_TEMPLATES[chId];
+  const tpl = _AD_CAMPAIGN_TEMPLATES[chId] || _GENERIC_TEMPLATE;
   if (!tpl) return [];
   // DEMO_BUDGETS 필드 보정: spend=spent, conversions 부재→매출/객단가(45k) 파생.
   const totals = {

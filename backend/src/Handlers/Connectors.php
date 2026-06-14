@@ -746,6 +746,50 @@ final class Connectors
         } catch (\Throwable $e) { /* graceful: 빈 결과 → 프론트 폴백 */ }
         return TemplateResponder::respond($res, $out);
     }
+
+    /**
+     * [현 차수] POST /v424/connectors/ad-metrics — 범용 광고성과 ingest(추후 추가 채널 무코드 적재).
+     *   전용 fetcher 가 없는 신규 광고채널도 표준 포맷으로 objective 포함 성과를 push 하면 campaignFunnel 이
+     *   목적별 자동 분류(stageOf 키워드 폴백). api_key write 권한(미들웨어) + tenant 격리.
+     *   body: { channel, rows:[{date,objective,impressions,reach,clicks,spend,conversions,revenue,campaign_id,name}] }
+     */
+    public static function adMetricsIngest(Request $req, Response $res): Response
+    {
+        $tenant = self::tenantId($req);
+        if ($tenant === '' || $tenant === 'demo') return TemplateResponder::respond($res->withStatus(403), ['ok' => false, 'error' => 'tenant_required']);
+        $b = (array)($req->getParsedBody() ?? []);
+        $channel = strtolower(trim((string)($b['channel'] ?? '')));
+        $rows = (array)($b['rows'] ?? []);
+        if ($channel === '' || !$rows) return TemplateResponder::respond($res->withStatus(422), ['ok' => false, 'error' => 'channel and rows[] required']);
+        $norm = []; $dates = [];
+        foreach ($rows as $r) {
+            if (!is_array($r)) continue;
+            $d = substr((string)($r['date'] ?? ''), 0, 10);
+            if ($d === '') continue;
+            $dates[] = $d;
+            $norm[] = [
+                'team'            => (string)($r['team'] ?? ucfirst($channel)),
+                'account'         => (string)($r['name'] ?? $r['campaign_name'] ?? $channel),
+                'campaign_ext_id' => (string)($r['campaign_id'] ?? $r['campaign_ext_id'] ?? ''),
+                'objective'       => (string)($r['objective'] ?? ''),
+                'reach'           => (int)($r['reach'] ?? 0),
+                'date'            => $d,
+                'impressions'     => (int)($r['impressions'] ?? 0),
+                'clicks'          => (int)($r['clicks'] ?? 0),
+                'spend'           => (float)($r['spend'] ?? 0),
+                'conversions'     => (int)($r['conversions'] ?? 0),
+                'revenue'         => (float)($r['revenue'] ?? 0),
+            ];
+        }
+        if (!$norm) return TemplateResponder::respond($res->withStatus(422), ['ok' => false, 'error' => 'no valid rows']);
+        sort($dates); $start = $dates[0]; $end = $dates[count($dates) - 1];
+        try {
+            $n = self::persistMetricRows(Db::pdo(), $tenant, $channel, $norm, $start, $end);
+            return TemplateResponder::respond($res, ['ok' => true, 'channel' => $channel, 'persisted' => $n, 'window' => "{$start}~{$end}"]);
+        } catch (\Throwable $e) {
+            return TemplateResponder::respond($res->withStatus(500), ['ok' => false, 'error' => 'persist_failed']);
+        }
+    }
     public static function syncAdChannelOnSave(string $tenant, string $channelKey): array
     {
         $short = self::AD_SHORT[$channelKey] ?? '';
