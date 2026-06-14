@@ -71,14 +71,14 @@ export function LineChart({ data, labels, series, width = 600, height = 180, for
                     return (
                         <g key={t}>
                             <line x1={0} y1={y} x2={W} y2={y} stroke="var(--border)" strokeWidth={1} />
-                            <text x={-8} y={y + 4} {...FONT} fill="var(--text-3)" textAnchor="end">{f(val)}</text>
+                            <text x={-8} y={y + 4} {...FONT} fill="var(--text-2)" textAnchor="end">{f(val)}</text>
                         </g>
                     );
                 })}
                 {/* X 축 라벨 */}
                 {labels && data.map((_, i) => {
                     if (i % Math.ceil(data.length / 7) !== 0) return null;
-                    return <text key={i} x={xScale(i)} y={H + 22} {...FONT} fill="var(--text-3)" textAnchor="middle">{labels[i]}</text>;
+                    return <text key={i} x={xScale(i)} y={H + 22} {...FONT} fill="var(--text-2)" textAnchor="middle">{labels[i]}</text>;
                 })}
                 <line x1={0} y1={H} x2={W} y2={H} stroke="var(--border)" />
                 {/* 시리즈 */}
@@ -161,7 +161,7 @@ export function BarChart({ data, xKey, yKey, color = '#4f8ef7', width = 400, hei
                             {/* 값 라벨 */}
                             <text x={x + bw / 2} y={H - bh - 5} {...FONT} fill="var(--text-2)" textAnchor="middle">{fmt(v)}</text>
                             {/* X 라벨 */}
-                            <text x={x + bw / 2} y={H + 24} {...FONT} fill="var(--text-3)" textAnchor="middle">{d[xKey]}</text>
+                            <text x={x + bw / 2} y={H + 24} {...FONT} fill="var(--text-2)" textAnchor="middle">{d[xKey]}</text>
                         </g>
                     );
                 })}
