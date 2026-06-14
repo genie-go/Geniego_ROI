@@ -10,6 +10,36 @@ import { secureFetch } from '../security/SecurityGuard.js';
 const API = '/api';
 const GRADE_COL = { S: '#ffd700', A: '#4f8ef7', B: '#22c55e', C: '#f97316', D: '#f87171' };
 
+// [항목3·4] 패널 로컬 다국어 사전(ko/en 정본, 그 외 언어는 en 폴백 — 로케일 파일 미오염).
+const AIM_FB = {
+  ko: {
+    title: 'AI 광고 성과 분석',
+    syncedNote: '{ch}개 채널 × {camp}개 캠페인 실시간 동기화됨',
+    liveSpend: '실시간 광고비', liveRevenue: '실시간 광고매출', liveRoas: '실시간 ROAS',
+    guideToggle: '이 분석은 무엇인가요?',
+    guidePurpose: '목적 — 연동된 전체 광고 채널의 성과를 종합 채점하고, 채널·예산 개선 액션을 추천합니다.',
+    guideData: '분석 데이터 — 모든 광고 채널(Meta·Google·TikTok·Naver·Kakao 등)의 노출·클릭·전환·광고비·매출·ROAS 등 풀 퍼널 지표(선택 기간 기준).',
+    guideRubric: '채점 기준 — ROAS(35) + CTR(25) + 전환(25) + CPC효율(15) = 100점. ROAS 5x↑·CTR 3%↑·CPC ₩1,000↓·예산소진 70~90%를 우수로 평가.',
+    guideResult: '결과물 — 종합 점수·등급, 채널별 강점/약점, 예산 재배분 추천, 즉시 실행 액션.',
+    engineAi: '🤖 Genie AI 심층 분석', engineRule: '⚙ 규칙 기반 자동 분석',
+    runBtn: '🚀 마케팅 성과 AI 심층 분석 런칭', running: '⏳ AI가 마케팅 데이터를 분석 중입니다... (15~30s)',
+    historyBtn: '📜 분석 이력',
+  },
+  en: {
+    title: 'AI Ad Performance Analysis',
+    syncedNote: '{ch} channels × {camp} campaigns synced in real time',
+    liveSpend: 'Live Ad Spend', liveRevenue: 'Live Ad Revenue', liveRoas: 'Live ROAS',
+    guideToggle: 'What does this analyze?',
+    guidePurpose: 'Purpose — Scores the performance of all connected ad channels and recommends channel & budget actions.',
+    guideData: 'Data — Full-funnel metrics (impressions, clicks, conversions, spend, revenue, ROAS) of every ad channel (Meta, Google, TikTok, Naver, Kakao…) for the selected period.',
+    guideRubric: 'Scoring — ROAS(35) + CTR(25) + Conversion(25) + CPC efficiency(15) = 100. ROAS 5x+, CTR 3%+, CPC ₩1,000-, budget pacing 70–90% rated as strong.',
+    guideResult: 'Output — Overall score & grade, per-channel strengths/weaknesses, budget reallocation, immediate actions.',
+    engineAi: '🤖 Genie AI deep analysis', engineRule: '⚙ Rule-based automatic analysis',
+    runBtn: '🚀 Launch AI Marketing Deep Analysis', running: '⏳ AI is analyzing your marketing data... (15–30s)',
+    historyBtn: '📜 Analysis history',
+  },
+};
+
 const CARD = {
     background: 'linear-gradient(145deg, rgba(10,20,40,0.85), rgba(4,10,22,0.95))',
     border: '1px solid rgba(79,142,247,0.2)',
@@ -44,11 +74,17 @@ function ScoreBar({ label, v, max, col }) {
 
 // ══════════════════════════════════════════════════════════════════════
 export default function MarketingAIPanel({ channels = {}, campaigns = [], style = {} }) {
-    const { t } = useI18n();
+    const { t, lang } = useI18n();
+    const tx = useCallback((k, vars) => {
+        let s = (AIM_FB[lang] && AIM_FB[lang][k]) || AIM_FB.en[k] || AIM_FB.ko[k] || k;
+        if (vars) for (const vk of Object.keys(vars)) s = s.replace(`{${vk}}`, vars[vk]);
+        return s;
+    }, [lang]);
     const [status, setStatus] = useState('idle'); // idle|loading|done|error
     const [result, setResult] = useState(null);
     const [history, setHistory] = useState(null);
     const [meta, setMeta] = useState({ tokens: 0, model: '' });
+    const [showGuide, setShowGuide] = useState(false);
 
     // ─ 5섹션 데이터직렬화 ────────────────────────────────────────────────
     const buildPayload = useCallback(() => {
@@ -86,18 +122,24 @@ export default function MarketingAIPanel({ channels = {}, campaigns = [], style 
         const campArr = campaigns.map(c => ({
             id: c.id,
             name: c.name,
+            channel: c.channel ?? '',
+            objective: c.objective ?? '',
             status: c.status,
             type: c.type,
-            budget: c.budget,
-            spent: c.spent,
+            budget: c.budget ?? 0,
+            spent: c.spent ?? 0,
+            revenue: c.revenue ?? 0,
+            impressions: c.impressions ?? 0,
+            clicks: c.clicks ?? 0,
+            conversions: c.conversions ?? c.kpi?.actualConv ?? 0,
             burn_rate: c.budget > 0 ? +(c.spent / c.budget * 100).toFixed(1) : 0,
             target_roas: c.kpi?.targetRoas ?? 0,
-            actual_roas: c.kpi?.actualRoas ?? 0,
+            actual_roas: c.kpi?.actualRoas ?? (c.spent > 0 ? +((c.revenue ?? 0) / c.spent).toFixed(2) : 0),
             target_conv: c.kpi?.targetConv ?? 0,
-            actual_conv: c.kpi?.actualConv ?? 0,
+            actual_conv: c.kpi?.actualConv ?? c.conversions ?? 0,
             cpa: c.kpi?.actualCpa ?? 0,
             channels: Object.keys(c.channels || {}),
-            period: `${c.startDate} ~ ${c.endDate}`,
+            period: c.startDate ? `${c.startDate} ~ ${c.endDate}` : '',
         }));
 
         return { data: { channels: chArr, campaigns: campArr } };
@@ -157,14 +199,29 @@ export default function MarketingAIPanel({ channels = {}, campaigns = [], style 
                         <div style={{ fontSize: 16, fontWeight: 900, color: 'var(--text-1)', display: 'flex', alignItems: 'center', gap: 8 }}>
                             <span style={{ fontSize: 20 }}>🤖</span>
                             <span style={{ background: 'linear-gradient(90deg, #fff, #4f8ef7)' }}>
-                                AI Marketing Intelligence
+                                {tx('title')}
                             </span>
                         </div>
                         <div style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 4 }}>
-                            {chCount}개 채널 × {campCount}개 캠페인 동기화 됨 (실시간 라이브)
+                            {tx('syncedNote', { ch: chCount, camp: campCount })}
                         </div>
                     </div>
+                    <button onClick={() => setShowGuide(v => !v)}
+                        style={{ padding: '6px 12px', borderRadius: 20, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text-2)', cursor: 'pointer', fontSize: 11, fontWeight: 700, whiteSpace: 'nowrap' }}>
+                        ❓ {tx('guideToggle')}
+                    </button>
                 </div>
+
+                {/* [항목3] 분석 목적·데이터·기준·결과물 안내 */}
+                {showGuide && (
+                    <div style={{ padding: '14px 16px', borderRadius: 12, background: 'rgba(79,142,247,0.06)', border: '1px solid rgba(79,142,247,0.18)', marginBottom: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                        {[['🎯', tx('guidePurpose')], ['📊', tx('guideData')], ['📐', tx('guideRubric')], ['📋', tx('guideResult')]].map(([ic, txt]) => (
+                            <div key={txt} style={{ display: 'flex', gap: 8, fontSize: 11.5, color: 'var(--text-2)', lineHeight: 1.55 }}>
+                                <span style={{ flexShrink: 0 }}>{ic}</span><span>{txt}</span>
+                            </div>
+                        ))}
+                    </div>
+                )}
 
                 {/* 실시간 동기화 상태 프리뷰 */}
                 <div style={{
@@ -173,15 +230,15 @@ export default function MarketingAIPanel({ channels = {}, campaigns = [], style 
                     marginBottom: 16
                 }}>
                     <div>
-                        <div style={{ fontSize: 10, color: 'var(--text-3)', textTransform: 'uppercase' }}>Live Spend</div>
+                        <div style={{ fontSize: 10, color: 'var(--text-3)', textTransform: 'uppercase' }}>{tx('liveSpend')}</div>
                         <div style={{ fontSize: 14, fontWeight: 800, color: '#f87171' }}>{realTimeSnap.spend.toLocaleString()}</div>
                     </div>
                     <div>
-                        <div style={{ fontSize: 10, color: 'var(--text-3)', textTransform: 'uppercase' }}>Live Revenue</div>
+                        <div style={{ fontSize: 10, color: 'var(--text-3)', textTransform: 'uppercase' }}>{tx('liveRevenue')}</div>
                         <div style={{ fontSize: 14, fontWeight: 800, color: '#4ade80' }}>{realTimeSnap.rev.toLocaleString()}</div>
                     </div>
                     <div>
-                        <div style={{ fontSize: 10, color: 'var(--text-3)', textTransform: 'uppercase' }}>Live ROAS</div>
+                        <div style={{ fontSize: 10, color: 'var(--text-3)', textTransform: 'uppercase' }}>{tx('liveRoas')}</div>
                         <div style={{ fontSize: 14, fontWeight: 800, color: '#4f8ef7' }}>{realTimeSnap.roas}x</div>
                     </div>
                 </div>
@@ -194,14 +251,14 @@ export default function MarketingAIPanel({ channels = {}, campaigns = [], style 
                             color: 'var(--text-1)', fontWeight: 800, fontSize: 13, transition: 'all 0.3s ease',
                             boxShadow: status !== 'loading' ? '0 4px 20px rgba(79,142,247,0.5)' : undefined
                         }}>
-                        {status === 'loading' ? '⏳ AI가 마케팅 데이터를 분석 중입니다... (15~30s)' : '🚀 마케팅 성과 AI 심층 분석 런칭'}
+                        {status === 'loading' ? tx('running') : tx('runBtn')}
                     </button>
                     <button onClick={loadHistory}
                         style={{
                             padding: '12px 16px', borderRadius: 12, border: '1px solid var(--border)',
                             background: 'var(--surface)', color: 'var(--text-2)', cursor: 'pointer', fontSize: 13, fontWeight: 700, transition: 'all 0.2s'
                         }}>
-                        📜 분석 이력
+                        {tx('historyBtn')}
                     </button>
                 </div>
                 {meta.tokens > 0 && (
@@ -230,10 +287,17 @@ export default function MarketingAIPanel({ channels = {}, campaigns = [], style 
                 <>
                     {/* All 요약 */}
                     <div style={CARD}>
-                        <div style={{
-                            fontSize: 12, fontWeight: 800, color: 'var(--text-3)',
-                            textTransform: 'uppercase', letterSpacing: 1.2, marginBottom: 12
-                        }}>📋 마케팅 종합 AI 결론</div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, gap: 8, flexWrap: 'wrap' }}>
+                            <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: 1.2 }}>📋 마케팅 종합 AI 결론</div>
+                            <span style={{
+                                fontSize: 10, fontWeight: 800, padding: '4px 10px', borderRadius: 20,
+                                background: (result.engine === 'rule-based') ? 'rgba(148,163,184,0.15)' : 'rgba(79,142,247,0.15)',
+                                color: (result.engine === 'rule-based') ? '#94a3b8' : '#7eaefb',
+                                border: `1px solid ${(result.engine === 'rule-based') ? 'rgba(148,163,184,0.3)' : 'rgba(79,142,247,0.3)'}`
+                            }}>
+                                {result.engine === 'rule-based' ? tx('engineRule') : tx('engineAi')}
+                            </span>
+                        </div>
                         <div style={{ fontSize: 14, color: 'var(--text-1)', lineHeight: 1.8, fontWeight: 500 }}>{result.summary}</div>
                         {result.top_insight && (
                             <div style={{

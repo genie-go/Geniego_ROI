@@ -456,6 +456,128 @@ PROMPT;
 PROMPT;
     }
 
+    /* ── 규칙 기반 마케팅 평가 폴백 ──────────────────────────────
+       Claude API 키 미설정·호출 실패 시 500 대신 결정론적 분석 산출.
+       marketingEvalPrompt 과 동일 루브릭(ROAS35/CTR25/전환25/CPC15)을 코드로 재현.
+       ★실 AI 아님 → engine='rule-based' 로 정직 표기. 운영은 키 설정 시 실 AI 우선. */
+    private static function marketingEvalFallback(array $data): array {
+        $channels  = is_array($data['channels'] ?? null)  ? $data['channels']  : [];
+        $campaigns = is_array($data['campaigns'] ?? null) ? $data['campaigns'] : [];
+
+        $gradeOf = function (float $s): string {
+            if ($s >= 85) return 'S'; if ($s >= 70) return 'A';
+            if ($s >= 55) return 'B'; if ($s >= 40) return 'C'; return 'D';
+        };
+        // 단일 지표 → 구간 점수
+        $band = function (float $v, array $tiers, float $floor): float {
+            foreach ($tiers as [$th, $pt]) { if ($v >= $th) return (float)$pt; }
+            return $floor;
+        };
+
+        $chOut = [];
+        $totSpend = 0.0; $totRev = 0.0; $totConv = 0.0; $weightedScore = 0.0;
+        foreach ($channels as $c) {
+            $name  = (string)($c['channel'] ?? $c['name'] ?? '채널');
+            $spend = (float)($c['ad_spend'] ?? $c['spend'] ?? 0);
+            $rev   = (float)($c['revenue'] ?? 0);
+            $roas  = (float)($c['roas'] ?? ($spend > 0 ? $rev / $spend : 0));
+            $ctr   = (float)($c['ctr'] ?? 0);
+            $cpc   = (float)($c['cpc'] ?? 0);
+            $cvr   = (float)($c['conv_rate'] ?? 0);
+            $conv  = (float)($c['conversions'] ?? 0);
+
+            $roasS = $band($roas, [[5,35],[4,30],[3,23],[2,15],[1,8]], 3);
+            $ctrS  = $band($ctr,  [[3,25],[2,18],[1,10]], 4);
+            $convS = $band($cvr,  [[5,25],[3,18],[1.5,12],[0.5,7]], 3);
+            $cpcS  = $cpc <= 0 ? 8 : $band(-$cpc, [[-1000,15],[-2000,10],[-3000,5]], 2);
+            $score = round($roasS + $ctrS + $convS + $cpcS);
+
+            $strengths = []; $weak = [];
+            if ($roas >= 4) $strengths[] = "ROAS {$roas}x — 광고비 효율 우수"; elseif ($roas < 2 && $spend > 0) $weak[] = "ROAS {$roas}x — 수익 효율 저조";
+            if ($ctr >= 2)  $strengths[] = "CTR {$ctr}% — 소재 반응 양호"; elseif ($ctr > 0 && $ctr < 1) $weak[] = "CTR {$ctr}% — 소재/타겟 개선 필요";
+            if ($cpc > 0 && $cpc <= 1000) $strengths[] = "CPC ₩" . number_format($cpc) . " — 클릭 단가 저렴"; elseif ($cpc > 3000) $weak[] = "CPC ₩" . number_format($cpc) . " — 클릭 단가 과다";
+            if ($cvr >= 3)  $strengths[] = "전환율 {$cvr}% — 랜딩/오퍼 효과적"; elseif ($cvr > 0 && $cvr < 1) $weak[] = "전환율 {$cvr}% — 전환 동선 점검 필요";
+            if (!$strengths) $strengths[] = "데이터 수집 중 — 추세 관찰 권장";
+            if (!$weak)      $weak[]      = "큰 약점 없음 — 현 전략 유지";
+
+            $rec = $roas < 2 && $spend > 0
+                ? "{$name}: ROAS가 낮아 예산 축소 또는 타겟·소재 교체 검토"
+                : ($roas >= 4 ? "{$name}: 고효율 채널 — 예산 증액 여력 검토" : "{$name}: 전환 동선·소재 A/B로 점진 개선");
+
+            $chOut[] = [
+                'name' => $name, 'score' => (int)$score, 'grade' => $gradeOf($score),
+                'breakdown' => ['roas_score'=>(int)$roasS,'ctr_score'=>(int)$ctrS,'conversion_score'=>(int)$convS,'cpc_score'=>(int)$cpcS],
+                'strengths' => array_slice($strengths, 0, 2),
+                'weaknesses'=> array_slice($weak, 0, 2),
+                'ai_recommendation' => $rec,
+                '_spend' => $spend, '_roas' => $roas,
+            ];
+            $totSpend += $spend; $totRev += $rev; $totConv += $conv;
+            $weightedScore += $score * max($spend, 1);
+        }
+
+        $spendBase = array_sum(array_map(fn($c) => max($c['_spend'], 1), $chOut)) ?: 1;
+        $overall = $chOut ? (int)round($weightedScore / $spendBase) : 0;
+        $blendRoas = $totSpend > 0 ? round($totRev / $totSpend, 2) : 0;
+
+        // 예산 재배분: 평균 ROAS 대비 채널별 가감
+        $reallocation = [];
+        if ($chOut && $totSpend > 0) {
+            $avgRoas = $blendRoas ?: 1;
+            foreach ($chOut as $c) {
+                $cur = round($c['_spend'] / $totSpend * 100);
+                $delta = $c['_roas'] >= $avgRoas * 1.15 ? 5 : ($c['_roas'] <= $avgRoas * 0.85 ? -5 : 0);
+                $rec = max(0, min(100, $cur + $delta));
+                if ($delta !== 0) $reallocation[] = [
+                    'channel' => $c['name'], 'current_pct' => $cur, 'recommended_pct' => $rec,
+                    'rationale' => $delta > 0 ? "ROAS {$c['_roas']}x (평균 {$avgRoas}x 상회) — 비중 확대" : "ROAS {$c['_roas']}x (평균 {$avgRoas}x 하회) — 비중 축소",
+                ];
+            }
+        }
+
+        // 캠페인 점수(있을 때만)
+        $campOut = [];
+        foreach (array_slice($campaigns, 0, 20) as $cp) {
+            $cs = (float)($cp['spent'] ?? $cp['spend'] ?? 0);
+            $cr = (float)($cp['revenue'] ?? 0);
+            $cro = (float)($cp['actual_roas'] ?? ($cs > 0 ? $cr / $cs : 0));
+            $sc = round($band($cro, [[5,100],[4,85],[3,70],[2,55],[1,40]], 25));
+            $campOut[] = [
+                'name' => (string)($cp['name'] ?? '캠페인'), 'channel' => (string)($cp['channel'] ?? ''),
+                'score' => (int)$sc, 'grade' => $gradeOf($sc),
+                'ai_insight' => "ROAS " . round($cro, 2) . "x · 광고비 ₩" . number_format($cs),
+                'action' => $cro < 2 && $cs > 0 ? "저효율 — 예산 축소/중단 검토" : ($cro >= 4 ? "고효율 — 예산 증액 검토" : "유지하며 소재 최적화"),
+            ];
+        }
+
+        // 베스트/워스트
+        $best = null; $worst = null;
+        foreach ($chOut as $c) {
+            if ($best === null || $c['score'] > $best['score']) $best = $c;
+            if ($worst === null || $c['score'] < $worst['score']) $worst = $c;
+        }
+        $summary = $chOut
+            ? count($chOut) . "개 채널 통합 ROAS {$blendRoas}x, 총 광고비 ₩" . number_format($totSpend) . " · 총 광고매출 ₩" . number_format($totRev) . ". 종합 " . $overall . "점(" . $gradeOf($overall) . "등급)."
+            : "분석할 채널 데이터가 없습니다. 광고 채널을 연동해 주세요.";
+        $topInsight = ($best && $worst && $best['name'] !== $worst['name'])
+            ? "최고 효율 '{$best['name']}'({$best['score']}점) vs 최저 '{$worst['name']}'({$worst['score']}점) — 예산을 효율 채널로 이동 시 전체 ROAS 개선 여지."
+            : ($best ? "'{$best['name']}' 채널이 현재 성과를 주도하고 있습니다." : "데이터 수집 후 인사이트가 제공됩니다.");
+        $immediate = $worst && $worst['_roas'] < 2 && $worst['_spend'] > 0
+            ? "'{$worst['name']}' 채널 ROAS {$worst['_roas']}x — 소재 교체 또는 예산 축소를 우선 검토하세요."
+            : ($reallocation ? "예산 재배분 추천에 따라 효율 채널 비중을 단계적으로 높이세요." : "현 전략을 유지하며 주간 추세를 모니터링하세요.");
+
+        return [
+            'overall_score' => $overall, 'grade' => $gradeOf($overall),
+            'summary' => $summary,
+            'channels' => array_map(fn($c) => array_diff_key($c, ['_spend'=>1,'_roas'=>1]), $chOut),
+            'campaigns' => $campOut,
+            'budget_reallocation' => $reallocation,
+            'top_insight' => $topInsight,
+            'immediate_action' => $immediate,
+            'engine' => 'rule-based',
+        ];
+    }
+
     /* ── POST /v422/ai/marketing-eval ───────────────────────── */
     public static function marketingEval(Request $req, Response $res, array $args = []): Response {
         $pdo  = Db::pdo();
@@ -486,7 +608,17 @@ PROMPT;
                 $clean = preg_replace('/```(?:json)?\s*([\s\S]*?)```/', '$1', $result['text']);
                 $evalData = json_decode(trim($clean), true) ?: ['summary' => $result['text']];
             }
+            $evalData['engine'] = 'genie-ai';
+            $usedModel = self::MODEL;
 
+        } catch (\Throwable $e) {
+            // ★Claude 키 미설정·API 실패 → 500 대신 규칙 기반 결정론적 분석 폴백(항상 결과 제공).
+            $evalData  = self::marketingEvalFallback($data);
+            $tokens    = 0;
+            $usedModel = 'rule-based';
+        }
+
+        try {
             $stmt = $pdo->prepare("INSERT INTO ai_analyses
                 (tenant_id, context, question, data_snapshot, summary, bullets, recommendation, model, tokens_used, status, created_at)
                 VALUES (:tenant, :ctx, :q, :snap, :sum, :bul, :rec, :model, :tok, 'ok', :now)");
@@ -498,24 +630,23 @@ PROMPT;
                 ':sum'   => $evalData['overall_summary'] ?? ($evalData['summary'] ?? ''),
                 ':bul'   => json_encode($evalData['portfolio_insights'] ?? [], JSON_UNESCAPED_UNICODE),
                 ':rec'   => $evalData['immediate_action'] ?? ($evalData['recommendation'] ?? ''),
-                ':model' => self::MODEL,
+                ':model' => $usedModel,
                 ':tok'   => $tokens,
                 ':now'   => $now,
             ]);
-
-            return TemplateResponder::json($res, [
-                'ok'          => true,
-                'analysis_id' => (int)$pdo->lastInsertId(),
-                'result'      => $evalData,
-                'model'       => self::MODEL,
-                'tokens_used' => $tokens,
-                'created_at'  => $now,
-            ]);
-
-        } catch (\Throwable $e) {
-            $res->getBody()->write(json_encode(['ok' => false, 'error' => $e->getMessage()], JSON_UNESCAPED_UNICODE));
-            return $res->withHeader('Content-Type', 'application/json')->withStatus(500);
+            $analysisId = (int)$pdo->lastInsertId();
+        } catch (\Throwable $e2) {
+            $analysisId = 0;   // 저장 실패해도 분석 결과는 반환(체험 비차단).
         }
+
+        return TemplateResponder::json($res, [
+            'ok'          => true,
+            'analysis_id' => $analysisId,
+            'result'      => $evalData,
+            'model'       => $usedModel,
+            'tokens_used' => $tokens,
+            'created_at'  => $now,
+        ]);
     }
 
     /* ── POST /v422/ai/influencer-eval ──────────────────────── */

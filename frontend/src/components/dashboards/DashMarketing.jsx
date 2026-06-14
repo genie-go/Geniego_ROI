@@ -342,6 +342,24 @@ export default function DashMarketing({ period }) {
     });
   }, [channelBudgets, f]);
 
+  /* ── [항목2] AI 분석용 캠페인 평탄화 — 채널별 objective 캠페인을 캠페인 단위 분석 입력으로 변환 ── */
+  const aiCampaigns = useMemo(() => liveChannels.flatMap(ch =>
+    (ch.campaigns || []).map((cp, i) => {
+      const spent = cp.spend || 0, revenue = cp.revenue || 0, conv = cp.conversions || 0;
+      return {
+        id: `${ch.id}-${i}`, name: cp.name || `${ch.name} 캠페인`, channel: ch.name,
+        objective: cp.objective || '', status: 'ACTIVE',
+        spent, revenue, impressions: cp.impressions || 0, clicks: cp.clicks || 0, conversions: conv,
+        kpi: {
+          actualRoas: spent > 0 ? +(revenue / spent).toFixed(2) : 0,
+          actualConv: conv,
+          actualCpa: conv > 0 ? Math.round(spent / conv) : 0,
+        },
+        channels: { [ch.id]: true },
+      };
+    })
+  ), [liveChannels]);
+
   /* ── 종합 KPI (기간 스코프: 광고 누적집계=계수 f, 매출=채널 합산도 이미 f 반영) ──── */
   // 광고 매출/지출은 날짜 미보유 누적값 → 계수 f 적용. liveChannels 는 이미 f 반영됨.
   const totalRev = (budgetStats?.totalAdRevenue || pnlStats?.revenue) ? ((budgetStats?.totalAdRevenue || pnlStats?.revenue) * f) : liveChannels.reduce((s, c) => s + c.revenue, 0);
@@ -741,7 +759,7 @@ export default function DashMarketing({ period }) {
       {tab === 'ai' && (
         <MarketingAIPanel
           channels={liveChannels.reduce((acc, c) => { acc[c.id] = c; return acc; }, {})}
-          campaigns={[]}
+          campaigns={aiCampaigns}
         />
       )}
     </div>
