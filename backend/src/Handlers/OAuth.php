@@ -79,9 +79,18 @@ class OAuth
 
     private static function redirectUri(Request $req, string $provider): string
     {
+        // [현 차수] 219 검증: redirect_uri 호스트를 위조 가능한 raw Host 헤더로 그대로 쓰지 않는다.
+        //   ①OAUTH_BASE_URL env 우선 ②알려진 호스트 allowlist 만 허용 ③그 외 기본 도메인 폴백.
+        //   (OAuth provider 가 redirect_uri 를 검증하지만 open-redirect/토큰 표적화 표면을 선제 차단.)
+        $envBase = getenv('OAUTH_BASE_URL') ?: (string)($_ENV['OAUTH_BASE_URL'] ?? '');
+        if ($envBase !== '') {
+            return rtrim($envBase, '/') . '/api/v425/oauth/' . $provider . '/callback';
+        }
+        $allowHosts = ['roi.genie-go.com', 'roi.geniego.com', 'roidemo.genie-go.com', 'roidemo.geniego.com'];
         $uri = $req->getUri();
         $scheme = $uri->getScheme() ?: 'https';
-        $host = $uri->getHost() ?: 'roi.genie-go.com';
+        $host = $uri->getHost();
+        if (!in_array($host, $allowHosts, true)) $host = 'roi.genie-go.com'; // 미인가 호스트 → 기본 도메인
         return $scheme . '://' . $host . '/api/v425/oauth/' . $provider . '/callback';
     }
 

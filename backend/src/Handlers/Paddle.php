@@ -441,7 +441,11 @@ class Paddle
         // Determine app plan name
         $appPlan = self::resolveAppPlan($priceId, $prodId);
 
-        $db->prepare("
+        // [현 차수] 219 검증: ON DUPLICATE KEY 는 MySQL 전용 → SQLite 폴백 백엔드에서 webhook 적재 실패.
+        //   driver-aware upsert(SQLite=ON CONFLICT(paddle_subscription_id)). uq_subscription_id 정합.
+        $pdriver = $db->getAttribute(\PDO::ATTR_DRIVER_NAME);
+        if ($pdriver === 'mysql') {
+            $upsertSql = "
             INSERT INTO paddle_subscriptions
                 (user_email, paddle_subscription_id, paddle_customer_id, price_id, product_id,
                  plan_name, status, billing_cycle, current_period_end, currency, unit_price, last_event_at)
@@ -452,8 +456,22 @@ class Paddle
                 plan_name=VALUES(plan_name), status=VALUES(status),
                 billing_cycle=VALUES(billing_cycle), current_period_end=VALUES(current_period_end),
                 currency=VALUES(currency), unit_price=VALUES(unit_price),
-                last_event_at=VALUES(last_event_at), updated_at=NOW()
-        ")->execute([
+                last_event_at=VALUES(last_event_at), updated_at=CURRENT_TIMESTAMP";
+        } else {
+            $upsertSql = "
+            INSERT INTO paddle_subscriptions
+                (user_email, paddle_subscription_id, paddle_customer_id, price_id, product_id,
+                 plan_name, status, billing_cycle, current_period_end, currency, unit_price, last_event_at)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?)
+            ON CONFLICT(paddle_subscription_id) DO UPDATE SET
+                user_email=excluded.user_email, paddle_customer_id=excluded.paddle_customer_id,
+                price_id=excluded.price_id, product_id=excluded.product_id,
+                plan_name=excluded.plan_name, status=excluded.status,
+                billing_cycle=excluded.billing_cycle, current_period_end=excluded.current_period_end,
+                currency=excluded.currency, unit_price=excluded.unit_price,
+                last_event_at=excluded.last_event_at, updated_at=CURRENT_TIMESTAMP";
+        }
+        $db->prepare($upsertSql)->execute([
             $email, $subId, $custId, $priceId, $prodId,
             $planName, 'active',
             str_contains($cycle, 'year') ? 'annual' : 'monthly',

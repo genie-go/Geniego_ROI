@@ -45,11 +45,13 @@ final class AdminMenu
             if ($gate !== null) {
                 return ['error' => $gate];
             }
+            $pdo = Db::pdoFor(false);
+            self::ensureTables($pdo); // [현 차수] 219#신규: 데모/신규 백엔드 menu_tree 부재 500 해소(자동 생성)
             return [
                 'tenant'   => 'default',
                 'role'     => 'admin',
                 'scope'    => 'admin:*',
-                'pdo'      => Db::pdoFor(false),
+                'pdo'      => $pdo,
                 'user_id'  => 'admin',
                 'is_super' => true,
             ];
@@ -75,14 +77,67 @@ final class AdminMenu
             ], 403)];
         }
 
+        $pdo = Db::pdoFor(false);
+        self::ensureTables($pdo); // [현 차수] 219#신규: menu_tree 부재 시 자동 생성(viewer 경로도 500 방지)
         return [
             'tenant'   => $tenant,
             'role'     => $role,
             'scope'    => $scope,
-            'pdo'      => Db::pdoFor(false),
+            'pdo'      => $pdo,
             'user_id'  => $tenant,
             'is_super' => self::isSuper($role, $scope),
         ];
+    }
+
+    /**
+     * [현 차수] 219#신규: menu_tree/menu_defaults/menu_audit_log 자동 생성(driver-aware).
+     *   운영엔 수동 생성돼 있으나 데모/신규 백엔드엔 부재해 admin menu-tree 가 500 이었다(코드에 DDL 부재).
+     *   CREATE TABLE IF NOT EXISTS 라 기존 테이블 무영향. 빈 테이블=빈 트리(200, 운영 0행과 동일).
+     */
+    private static function ensureTables(\PDO $pdo): void
+    {
+        try {
+            $driver = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME);
+            if ($driver === 'mysql') {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS menu_tree (
+                    id VARCHAR(255) NOT NULL, parent_id VARCHAR(255) DEFAULT NULL,
+                    label_key VARCHAR(255) NOT NULL, icon VARCHAR(64) DEFAULT NULL,
+                    route VARCHAR(255) DEFAULT NULL, menu_key VARCHAR(255) DEFAULT NULL,
+                    display_order INT NOT NULL DEFAULT 0,
+                    visibility VARCHAR(16) NOT NULL DEFAULT 'visible',
+                    required_plan VARCHAR(32) DEFAULT NULL, required_role VARCHAR(32) DEFAULT NULL,
+                    is_admin_only TINYINT(1) NOT NULL DEFAULT 0,
+                    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    PRIMARY KEY (id), KEY idx_menu_tree_parent (parent_id)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+                $pdo->exec("CREATE TABLE IF NOT EXISTS menu_defaults (
+                    id VARCHAR(255) NOT NULL, snapshot_data JSON NOT NULL, version VARCHAR(32) NOT NULL,
+                    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY (id)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+                $pdo->exec("CREATE TABLE IF NOT EXISTS menu_audit_log (
+                    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, menu_id VARCHAR(255) NOT NULL,
+                    action VARCHAR(32) NOT NULL, old_value JSON DEFAULT NULL, new_value JSON DEFAULT NULL,
+                    changed_by VARCHAR(255) NOT NULL, changed_by_role VARCHAR(32) NOT NULL,
+                    reason TEXT, ip_address VARCHAR(45) DEFAULT NULL, user_agent VARCHAR(500) DEFAULT NULL,
+                    request_id VARCHAR(64) DEFAULT NULL, hash_chain CHAR(64) DEFAULT NULL,
+                    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    PRIMARY KEY (id), KEY idx_audit_menu (menu_id)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+            } else {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS menu_tree (
+                    id TEXT PRIMARY KEY, parent_id TEXT, label_key TEXT NOT NULL, icon TEXT,
+                    route TEXT, menu_key TEXT, display_order INTEGER NOT NULL DEFAULT 0,
+                    visibility TEXT NOT NULL DEFAULT 'visible', required_plan TEXT, required_role TEXT,
+                    is_admin_only INTEGER NOT NULL DEFAULT 0, created_at TEXT, updated_at TEXT)");
+                $pdo->exec("CREATE TABLE IF NOT EXISTS menu_defaults (
+                    id TEXT PRIMARY KEY, snapshot_data TEXT NOT NULL, version TEXT NOT NULL, created_at TEXT)");
+                $pdo->exec("CREATE TABLE IF NOT EXISTS menu_audit_log (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT, menu_id TEXT NOT NULL, action TEXT NOT NULL,
+                    old_value TEXT, new_value TEXT, changed_by TEXT NOT NULL, changed_by_role TEXT NOT NULL,
+                    reason TEXT, ip_address TEXT, user_agent TEXT, request_id TEXT, hash_chain TEXT, created_at TEXT)");
+            }
+        } catch (\Throwable $e) { error_log('[AdminMenu.ensureTables] ' . $e->getMessage()); }
     }
 
     private static function isSuper(string $role, string $scope): bool
