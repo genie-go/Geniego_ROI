@@ -3250,6 +3250,7 @@ export default {
   root_pageTitle_reconciliation: "Đối soát",
   dash: {
       totalRev: "Tổng doanh thu",
+      "adAttributedRev": "Doanh thu do quảng cáo",
       totalSpend: "Tổng chi tiêu",
       blendedRoas: "ROAS hỗn hợp",
       activeCh: "Kênh hoạt động",

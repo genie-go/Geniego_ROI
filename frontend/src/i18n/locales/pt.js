@@ -2975,6 +2975,7 @@ export default {
   root_pageTitle_dashboard: "Dashboard",
   dash: {
       totalRev: "Receita Total",
+      "adAttributedRev": "Receita atribuída a anúncios",
       totalSpend: "Gasto Total",
       blendedRoas: "ROAS Combinado",
       activeCh: "Canais Ativos",

@@ -2975,6 +2975,7 @@ export default {
   root_pageTitle_dashboard: "Dashboard",
   dash: {
       totalRev: "Общий доход",
+      "adAttributedRev": "Доход от рекламы",
       totalSpend: "Общий расход",
       blendedRoas: "Средний ROAS",
       activeCh: "Активные каналы",

@@ -5996,6 +5996,7 @@ export default {
       roleDev3Desc: "Tinjau perubahan skema",
       clickChannelHint: "Klik kartu channel → analisis 5 tahap",
       totalRev: "Total Pendapatan",
+      "adAttributedRev": "Pendapatan dari Iklan",
       totalSpend: "Total Pengeluaran",
       blendedRoas: "Blended ROAS",
       activeCh: "Channel Aktif",

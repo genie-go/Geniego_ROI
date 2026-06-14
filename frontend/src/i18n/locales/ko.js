@@ -4858,6 +4858,7 @@ export default {
     "clickChannelHint": "채널 카드 클릭 → 5단계 분석",
 
     "totalRev": "총 매출",
+    "adAttributedRev": "광고 기여 매출",
 
     "totalSpend": "총 지출",
 

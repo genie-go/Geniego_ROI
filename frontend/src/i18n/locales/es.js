@@ -3268,6 +3268,7 @@ export default {
   root_pageTitle_dashboard: "Dashboard",
   dash: {
       totalRev: "Ingresos Totales",
+      "adAttributedRev": "Ingresos atribuidos a anuncios",
       totalSpend: "Gasto Total",
       blendedRoas: "ROAS Combinado",
       activeCh: "Canales Activos",

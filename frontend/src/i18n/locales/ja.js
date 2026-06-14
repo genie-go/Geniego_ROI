@@ -1949,6 +1949,7 @@ export default {
     "roleDev3Desc": "スキーマ変更を確認",
     "clickChannelHint": "チャネルカードをクリック → 5段階分析",
     "totalRev": "総売上",
+    "adAttributedRev": "広告寄与売上",
     "totalSpend": "総支出",
     "blendedRoas": "ブレンドROAS",
     "activeCh": "アクティブチャネル",

@@ -3250,6 +3250,7 @@ export default {
   root_pageTitle_reconciliation: "Reconciliation",
   dash: {
       totalRev: "Gesamtumsatz",
+      "adAttributedRev": "Werbeattribuierter Umsatz",
       totalSpend: "Gesamtausgaben",
       blendedRoas: "Blended ROAS",
       activeCh: "Aktive Kanäle",

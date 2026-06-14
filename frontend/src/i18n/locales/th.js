@@ -6016,6 +6016,7 @@ export default {
       roleDev3Desc: "ตรวจสอบการเปลี่ยนแปลงสคีมา",
       clickChannelHint: "คลิกการ์ดช่องทาง → การวิเคราะห์ 5 ขั้นตอน",
       totalRev: "รายได้รวม",
+      "adAttributedRev": "รายได้จากโฆษณา",
       totalSpend: "ค่าใช้จ่ายรวม",
       blendedRoas: "Blended ROAS",
       activeCh: "ช่องทางที่ใช้งานอยู่",

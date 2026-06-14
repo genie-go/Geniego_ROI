@@ -6480,6 +6480,7 @@ export default {
       roleDev3Desc: "檢視結構變更",
       clickChannelHint: "點擊通路卡片 → 五階段分析",
       totalRev: "總營收",
+      "adAttributedRev": "廣告歸因營收",
       totalSpend: "總支出",
       blendedRoas: "綜合 ROAS",
       activeCh: "啟用通路",

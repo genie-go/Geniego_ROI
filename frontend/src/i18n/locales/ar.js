@@ -2975,6 +2975,7 @@ export default {
   root_pageTitle_dashboard: "Dashboard",
   dash: {
       totalRev: "إجمالي الإيرادات",
+      "adAttributedRev": "الإيرادات المنسوبة للإعلانات",
       totalSpend: "إجمالي الإنفاق",
       blendedRoas: "ROAS المدمج",
       activeCh: "القنوات النشطة",

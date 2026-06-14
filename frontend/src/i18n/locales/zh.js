@@ -3924,6 +3924,7 @@ export default {
     "roleDev3Desc": "审查架构变更",
     "clickChannelHint": "点击渠道卡片 → 5阶段分析",
     "totalRev": "总销售额",
+    "adAttributedRev": "广告归因营收",
     "totalSpend": "总支出",
     "blendedRoas": "综合ROAS",
     "activeCh": "活跃渠道",

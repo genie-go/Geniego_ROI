@@ -2975,6 +2975,7 @@ export default {
   root_pageTitle_dashboard: "Dashboard",
   dash: {
       totalRev: "कुल राजस्व",
+      "adAttributedRev": "विज्ञापन-आरोपित राजस्व",
       totalSpend: "कुल खर्च",
       blendedRoas: "मिश्रित ROAS",
       activeCh: "सक्रिय चैनल",

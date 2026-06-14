@@ -195,7 +195,7 @@ function SummaryPanel({ channels, totalRev, totalSpend, avgROAS, t, currFmt }) {
         <div style={sectionTitle}>{t('dash.allChSummary', 'All Channel Summary')}</div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
           {[
-            { l: t('dash.totalRev', 'Total Revenue'), v: currFmt(totalRev), col: '#22c55e' },
+            { l: t('dash.adAttributedRev', '광고 기여 매출'), v: currFmt(totalRev), col: '#22c55e' },
             { l: t('dash.totalSpend', 'Total Spend'), v: currFmt(totalSpend), col: '#f97316' },
             { l: t('dash.avgRoas', 'Blended ROAS'), v: avgROAS + 'x', col: '#4f8ef7' },
             { l: t('dash.chCount', 'Active Channels'), v: channels.length, col: '#a855f7' },
@@ -388,7 +388,7 @@ export default function DashMarketing({ period }) {
 
   /* ── KPI 지표 카드 데이터 ─────────────────────────────────────────── */
   const metricsTop = useMemo(() => [
-    { label: t('dash.totalRev', 'Total Revenue'), value: currFmt(totalRev), icon: '💰', color: '#22c55e', delta: pnlStats?.revenueChange || 0 },
+    { label: t('dash.adAttributedRev', '광고 기여 매출'), value: currFmt(totalRev), icon: '💰', color: '#22c55e', delta: pnlStats?.revenueChange || 0 },
     { label: t('dash.totalSpend', 'Total Spend'), value: currFmt(totalSpend), icon: '📤', color: '#f97316', delta: -(budgetStats?.spendChange || 0) },
     { label: t('dash.blendedRoas', 'Blended ROAS'), value: avgROAS + 'x', icon: '📈', color: '#4f8ef7', delta: budgetStats?.roasChange || 0 },
     { label: t('dash.activeCh', 'Active Channels'), value: liveChannels.length, icon: '📡', color: '#a855f7', delta: 0 },

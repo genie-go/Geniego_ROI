@@ -3282,6 +3282,7 @@ export default {
       roleDev3Desc: "Review Schema Changes",
       clickChannelHint: "Click a channel card → 5-section analysis",
       totalRev: "Total Revenue",
+      "adAttributedRev": "Ad-Attributed Revenue",
       totalSpend: "Total Spend",
       blendedRoas: "Blended ROAS",
       activeCh: "Active Channels",
