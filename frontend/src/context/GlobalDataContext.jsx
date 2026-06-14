@@ -1629,6 +1629,8 @@ export function GlobalDataProvider({ children }) {
             shipping: srv ? (Number(srv.shipping) || 0) : orders.filter(o => ['출고대기','배송중','preparing','shipping'].includes(o.status)).length,
             done: srv ? (Number(srv.done) || 0) : orders.filter(o => ['배송Done','delivered','confirmed','Done'].includes(o.status)).length,
             cancelled: srv ? (Number(srv.cancelled) || 0) : orders.filter(o => _isCancelled(o.status)).length,
+            // [현 차수] 반품 건수도 주문 원장에서 자동 파생(반품관리·반품률 정합). 운영=서버 returned 폴백.
+            returned: srv ? (Number(srv.returned) || 0) : orders.filter(o => _isReturn(o.status)).length,
             // Content KPI — only populated in demo mode
             contentViews: _isDemo ? 245000 + count * 120 : 0,
             contentVisitors: _isDemo ? 82000 + count * 45 : 0,

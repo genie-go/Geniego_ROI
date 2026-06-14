@@ -101,7 +101,14 @@ export const DEMO_ORDERS = Array.from({ length: 600 }, (_, i) => {
   const buyer = BUYERS[i % BUYERS.length];
   const qty = Math.max(6, Math.round((1 + (i % 4)) * 6 * 0.93)); // 207차 결정적화 + [현 차수] 캐논 매출(~376M) 정합
   const daysAgo = Math.floor(i / 6); // [현 차수] ~100일 분산(정산 월버킷 파생용)
-  const status = i < 5 ? 'paid' : i < 10 ? 'preparing' : i < 16 ? 'shipping' : i < 50 ? 'confirmed' : ORDER_STATUSES[i % ORDER_STATUSES.length];
+  // [현 차수] 단일소스 현실화(사용자 승인): 주문 원장에 취소/반품 이벤트 포함 → 반품률·취소·반품관리·정산
+  //   returnFee·코호트가 전부 "주문에서 자동 파생"(하드코딩 아님, 단일소스 데이터에 이벤트 산입).
+  //   취소(CancelDone)≈2.8%·반품(반품Done)≈2.2% 결정적. _isCancelled/_isReturn 캐논 토큰 정합.
+  //   취소=매출/주문수 제외, 반품=매출 포함·반품수 카운트(백엔드 rollupSettlementsCore 캐논 동일).
+  const status = i < 5 ? 'paid' : i < 10 ? 'preparing' : i < 16 ? 'shipping'
+    : (i >= 60 && i % 33 === 0) ? 'CancelDone'
+    : (i >= 60 && i % 41 === 0) ? '반품Done'
+    : i < 50 ? 'confirmed' : ORDER_STATUSES[i % ORDER_STATUSES.length];
   return {
     id: `ORD-${String(10000 + i).slice(1)}`,
     ch: ch.id,
