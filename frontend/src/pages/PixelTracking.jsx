@@ -7,11 +7,47 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useT, useI18n } from "../i18n/index.js";
 import { useAuth } from "../auth/AuthContext";
 import PlanGate from "../components/PlanGate";
+import { IS_DEMO } from "../utils/demoEnv";
+
+// 데모: 픽셀 수집은 실 사이트 스니펫 설치 의존이라 운영백엔드 비도달.
+// 체험자가 실 운영처럼 대시보드/설정을 볼 수 있도록 표준 합성 시드 제공(수집형 기능 특성상 독립 시드).
+const _DEMO_PIXEL_FUNNEL = { page_view: 18420, view_content: 9180, add_to_cart: 3120, initiate_checkout: 1840, purchase: 612 };
+const _DEMO_PIXEL_ANALYTICS = {
+  ok: true,
+  funnel: _DEMO_PIXEL_FUNNEL,
+  events: [
+    { event_name: "page_view", total: 18420, total_value: 0 },
+    { event_name: "view_content", total: 9180, total_value: 0 },
+    { event_name: "add_to_cart", total: 3120, total_value: 0 },
+    { event_name: "initiate_checkout", total: 1840, total_value: 0 },
+    { event_name: "purchase", total: 612, total_value: 48960000 },
+  ],
+  forwarding: { total_events: 33172, meta_forwarded: 31840, tiktok_forwarded: 29210 },
+  channels: [
+    { source: "meta", medium: "cpc", sessions: 6240, conversions: 248, revenue: 19840000 },
+    { source: "google", medium: "cpc", sessions: 4180, conversions: 162, revenue: 12960000 },
+    { source: "naver", medium: "organic", sessions: 3120, conversions: 94, revenue: 7520000 },
+    { source: "tiktok", medium: "cpc", sessions: 2410, conversions: 71, revenue: 5680000 },
+    { source: "direct", medium: "none", sessions: 1840, conversions: 37, revenue: 2960000 },
+  ],
+};
+const _DEMO_PIXEL_CONFIGS = [
+  { id: "px_demo1", name: "메인 쇼핑몰 픽셀", domain: "shop.demo-brand.com", meta_pixel_id: "1029384756", tiktok_pixel_id: "C9A1B2C3D4", created_at: "2026-05-18 09:30" },
+];
 
 /* 인증 API 헬퍼: /api 접두(상대 /pixel 은 nginx SPA 폴백) + Bearer 세션토큰 */
 function makeAPI(token) {
   return (path, opts = {}) => {
     if (/[<>'"\\]/.test(path)) return Promise.resolve({ ok: false, error: "Blocked" });
+    if (IS_DEMO) {
+      const m = (opts.method || "GET").toUpperCase();
+      if (m === "GET") {
+        if (path.startsWith("/pixel/analytics")) return Promise.resolve(_DEMO_PIXEL_ANALYTICS);
+        if (path.startsWith("/pixel/configs")) return Promise.resolve({ ok: true, configs: _DEMO_PIXEL_CONFIGS });
+        if (path.startsWith("/pixel/snippet")) return Promise.resolve({ ok: true, snippet: `<!-- GenieGo Pixel (demo) -->\n<script>(function(){window.gg=window.gg||function(){(gg.q=gg.q||[]).push(arguments)};gg('init','px_demo1');gg('track','PageView');})();</script>` });
+      }
+      return Promise.resolve({ ok: true, demo: true });
+    }
     const headers = { "Content-Type": "application/json", ...(opts.headers || {}) };
     if (token) headers["Authorization"] = `Bearer ${token}`;
     return fetch(`/api${path}`, { ...opts, headers }).then(r => r.json()).catch(() => ({ ok: false }));

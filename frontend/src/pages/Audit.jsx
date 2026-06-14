@@ -1,6 +1,27 @@
 import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { useT } from "../i18n";
 import useSecurityMonitor from "../hooks/useSecurityMonitor.js";
+import { IS_DEMO } from "../utils/demoEnv.js";
+
+// [현 차수] 데모 감사로그 샘플(운영=실 /api/auth/audit-logs). 감사로그는 활동 기록이라 데모용 결정적 시드.
+const _DEMO_AUDIT_LOGS = IS_DEMO ? (() => {
+  const acts = [
+    ['ACTION_EXECUTED','마케팅 자동집행 승인','analyst','low','campaign','CMP-001','Meta 도달 캠페인 예산 +15% 자동 집행'],
+    ['ACTION_APPROVED','쿠폰 발급 승인','admin','low','promo','PROMO-002','신규회원 5천원 쿠폰 발급 승인'],
+    ['SETTING_CHANGED','정산 수수료율 변경','admin','medium','settlement','coupang','쿠팡 수수료율 10.8%→11.0% 변경'],
+    ['LOGIN','관리자 로그인','admin','low','session','-','관리자 콘솔 로그인(MFA 통과)'],
+    ['ACTION_EXECUTED','반품 자동 입고','analyst','low','order','ORD-10245','반품 승인 → WMS 자동 입고'],
+    ['SETTING_CHANGED','채널 API 키 회전','admin','high','credential','meta_ads','Meta Ads 액세스 토큰 회전(90일 정책)'],
+    ['ACTION_REJECTED','예산 초과 집행 거부','analyst','medium','campaign','CMP-004','월 예산 한도 초과 집행 시도 자동 거부'],
+    ['EXPORT','정산 리포트 내보내기','analyst','low','report','settlement','6월 정산 리포트 CSV 다운로드'],
+  ];
+  const now = Date.now();
+  return acts.map((a, i) => ({
+    id: `AL-${1000 + i}`, action: a[0], detail: a[2] === 'admin' ? a[1] : a[1], actor: a[2] + '@demo.com',
+    role: a[2], risk: a[3], entity_type: a[4], entity_id: a[5], ip: `211.45.${10 + i}.${20 + i * 3}`,
+    at: new Date(now - i * 5400000).toISOString(),
+  })).map((l, i) => ({ ...l, detail: acts[i][6] }));
+})() : [];
 
 /* ── Constants ─────────────────────────────────────────────────────────── */
 const ACTION_COLORS = {
@@ -236,8 +257,9 @@ export default function Audit() {
   const [dateTo, setDateTo]             = useState("");
   const [viewMode, setViewMode]         = useState("table");
 
-  /* Fetch audit logs from API */
+  /* Fetch audit logs from API ([현 차수] 데모=샘플 시드로 즉시 표시, 운영=실 API) */
   useEffect(() => {
+    if (IS_DEMO) { setLogs(_DEMO_AUDIT_LOGS); setLoading(false); return; }
     setLoading(true);
     fetch("/api/auth/audit-logs", {
       headers: {

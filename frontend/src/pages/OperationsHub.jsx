@@ -1,10 +1,20 @@
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { useNotification } from "../context/NotificationContext.jsx";
 import { useT } from '../i18n/index.js';
 import useSecurityMonitor from "../hooks/useSecurityMonitor.js";
 import CreativeStudioTab from "./CreativeStudioTab.jsx";
+import { useGlobalData } from "../context/GlobalDataContext.jsx";
+import { IS_DEMO } from "../utils/demoEnv.js";
 
 const API = "/api";
+// [현 차수] 단일소스 자동파생: inventory(창고별 stock 객체) → 운영 상품 행. 임의 시드 아님, 재고 단일소스 매핑.
+const _stockSum = s => (s && typeof s === 'object') ? Object.values(s).reduce((a, b) => a + (Number(b) || 0), 0) : (Number(s) || 0);
+const _invToProduct = (inv) => ({
+  id: inv.sku, sku: inv.sku, name: inv.name, category: inv.category || '',
+  supplier: inv.supplier || inv.brand || '', cost: inv.cost || 0, supplyPrice: inv.supplyPrice || inv.cost || 0,
+  price: inv.price || 0, safeQty: inv.safeQty || 20, stock: _stockSum(inv.stock),
+  channels: inv.channels || [], status: inv.status || 'active', origin: inv.origin || '', weightKg: inv.weightKg || 0,
+});
 const fmtW = n => n >= 1_000_000 ? `\u20a9${(n/1_000_000).toFixed(1)}M` : n >= 1000 ? `\u20a9${(n/1000).toFixed(0)}K` : `\u20a9${n}`;
 const CH = [
   {id:"shopify",name:"Shopify",icon:"\ud83d\uded2",color:"#96bf48"},
@@ -46,7 +56,16 @@ function ProductTab() {
   const t = useT();
   const STATUS_CFG = {active:{label:t('operations.statusActive'),color:"#22c55e"},paused:{label:t('operations.statusPaused'),color:"#eab308"},soldout:{label:t('operations.statusSoldout'),color:"#ef4444"}};
   const {pushNotification} = useNotification();
+  // [현 차수] 단일소스 자동파생: inventory(진실원천)에서 상품 행을 1회 시드 → 운영 상품관리도 0이 아닌 실데이터.
+  //   이후 편집은 로컬 유지. 운영/데모 공통(inventory 가 채워지면 자동 표시).
+  const { inventory } = useGlobalData();
   const [products,setProducts] = useState([]);
+  const _seeded = useRef(false);
+  useEffect(() => {
+    if (!_seeded.current && Array.isArray(inventory) && inventory.length) {
+      setProducts(inventory.map(_invToProduct)); _seeded.current = true;
+    }
+  }, [inventory]);
   const [modal,setModal] = useState(null);
   const [editing,setEditing] = useState(null);
   const [search,setSearch] = useState('');
@@ -227,7 +246,22 @@ const PLATFORMS={meta:{name:"Meta Ads",icon:"\ud83d\udcd8",color:"#1877f2"},tikt
 
 function CampaignTab() {
   const t = useT();
+  // [현 차수] 단일소스 자동파생: 공유 캠페인(sharedCampaigns)에서 1회 시드 → 운영 캠페인관리도 실데이터.
+  const { campaigns: gdCampaigns } = useGlobalData();
   const [campaigns,setCampaigns] = useState([]);
+  const _seeded = useRef(false);
+  useEffect(() => {
+    if (!_seeded.current && Array.isArray(gdCampaigns) && gdCampaigns.length) {
+      setCampaigns(gdCampaigns.map(c => ({
+        id: c.id, name: c.name, platform: (Array.isArray(c.channels) && c.channels[0] && (c.channels[0].id || c.channels[0])) || c.platform || 'meta',
+        type: c.type || 'Conversion', budget: c.budget || 0, dailyBudget: Math.round((c.budget || 0) / 30),
+        spent: c.spent || 0, status: c.status || 'active', bidStrategy: 'lowest_cost',
+        targetRoas: c.estimatedRoas || c.roas || 3.0, roas: c.roas || 0,
+        impressions: c.impressions || 0, clicks: c.clicks || 0, conv: c.conv || 0,
+      })));
+      _seeded.current = true;
+    }
+  }, [gdCampaigns]);
   const [modal,setModal] = useState(null);
   const [form,setForm] = useState({});
   const [editing,setEditing] = useState(null);
@@ -308,9 +342,15 @@ function CampaignTab() {
 }
 
 /* ─── TAB 3: Coupon/Promo ─── */
+// [현 차수] 프로모션은 단일소스 파생 대상이 아닌 독립 생성물 → 데모 체험용 샘플 시드(운영=빈 시작).
+const _DEMO_PROMOS = IS_DEMO ? [
+  { id:'PROMO-001', name:'여름 시즌 20% 할인', type:'percent', value:20, code:'SUMMER20', maxUse:1000, used:432, channels:['shopify','naver'], startDate:'2026-06-01', endDate:'2026-06-30', budget:5000, status:'active' },
+  { id:'PROMO-002', name:'신규회원 5천원 쿠폰', type:'amount', value:5000, code:'WELCOME5K', maxUse:5000, used:1284, channels:['shopify','coupang'], startDate:'2026-05-15', endDate:'2026-07-15', budget:8000, status:'active' },
+  { id:'PROMO-003', name:'올영 기획전 1+1', type:'bogo', value:1, code:'OY1PLUS1', maxUse:500, used:97, channels:['11st'], startDate:'2026-06-10', endDate:'2026-06-20', budget:3000, status:'draft' },
+] : [];
 function PromoTab() {
   const t = useT();
-  const [promos,setPromos] = useState([]);
+  const [promos,setPromos] = useState(_DEMO_PROMOS);
   const [modal,setModal] = useState(false);
   const [form,setForm] = useState({});
   const upd=(k,v)=>setForm(f=>({...f,[k]:v}));

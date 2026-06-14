@@ -18,8 +18,32 @@ import {useNavigate} from "react-router-dom";
 const _isDemo = IS_DEMO; // 180차: 자가가드(startsWith demo — roidemo.* 미매칭) → demoEnv 정본 격리
 
 const API=import.meta.env.VITE_API_BASE||'';
+// 데모: SMS 는 외부 발송 인프라(NHN/네이버 SENS) 의존이라 운영백엔드 호출 차단.
+// 단, 데모 체험자가 실 운영처럼 템플릿/캠페인을 보고 다룰 수 있도록 표준 시드 응답 제공(독립 합성 시드 — 발송형 기능 특성상 단일소스 파생 불가).
+const _DEMO_SMS_TEMPLATES=[
+  {id:'t1',name:'주문 완료 안내',category:'transaction',body:'[지니고] #{name}님, 주문(#{orderNo})이 정상 접수되었습니다. 빠르게 준비해 배송하겠습니다.',variables:['name','orderNo'],created_at:'2026-05-21 10:12'},
+  {id:'t2',name:'배송 출발 알림',category:'notification',body:'[지니고] #{name}님의 상품이 출고되었습니다. 운송장 #{tracking} 로 배송 조회가 가능합니다.',variables:['name','tracking'],created_at:'2026-05-24 09:03'},
+  {id:'t3',name:'단골 고객 쿠폰',category:'promotion',body:'[지니고] #{name}님께 감사 쿠폰 15% 가 도착했어요! 오늘부터 7일간 사용 가능합니다 👉 #{link}',variables:['name','link'],created_at:'2026-05-28 14:40'},
+  {id:'t4',name:'인증번호 발송',category:'authentication',body:'[지니고] 인증번호 [#{code}] 를 입력해 주세요. 타인에게 절대 알리지 마세요.',variables:['code'],created_at:'2026-06-02 11:25'},
+  {id:'t5',name:'재입고 알림',category:'promotion',body:'[지니고] #{name}님이 찜한 #{product} 이 재입고 되었습니다! 품절 전 서둘러 주문하세요.',variables:['name','product'],created_at:'2026-06-07 16:18'},
+];
+const _DEMO_SMS_CAMPAIGNS=[
+  {id:'c1',name:'6월 단골 리텐션',status:'sent',template_id:'t3',template_name:'단골 고객 쿠폰',segment_name:'VIP 재구매 고객',scheduled_at:'2026-06-05 10:00',sent_count:1840,delivered:1796,clicked:412,created_at:'2026-06-04 17:30'},
+  {id:'c2',name:'재입고 알림 — 베스트셀러',status:'sent',template_id:'t5',template_name:'재입고 알림',segment_name:'관심상품 등록 고객',scheduled_at:'2026-06-09 11:00',sent_count:920,delivered:905,clicked:268,created_at:'2026-06-08 18:02'},
+  {id:'c3',name:'주말 한정 프로모션',status:'scheduled',template_id:'t3',template_name:'단골 고객 쿠폰',segment_name:'최근 30일 미구매',scheduled_at:'2026-06-21 09:30',sent_count:0,delivered:0,clicked:0,created_at:'2026-06-12 13:44'},
+  {id:'c4',name:'신규 가입 환영 시리즈',status:'draft',template_id:'t1',template_name:'주문 완료 안내',segment_name:'신규 가입 7일',scheduled_at:'',sent_count:0,delivered:0,clicked:0,created_at:'2026-06-13 10:11'},
+];
 const apiFetch = async (path,opts={}) => {
-  if (_isDemo) { console.warn('[DEMO] API call blocked:', path,opts={}.toString ? '' : ''); return {}; }const tk=localStorage.getItem('genie_token')||"";const r=await fetch(API+path,{...opts,headers:{'Content-Type':'application/json','Authorization':'Bearer '+tk,...(opts.headers||{})}});return r.json().catch(()=>({}));};
+  if (_isDemo) {
+    const m=(opts.method||'GET').toUpperCase();
+    if(m==='GET'){
+      if(path.startsWith('/api/sms/templates')) return {ok:true,templates:_DEMO_SMS_TEMPLATES};
+      if(path.startsWith('/api/sms/campaigns')) return {ok:true,campaigns:_DEMO_SMS_CAMPAIGNS};
+      if(path.startsWith('/api/sms/settings')) return {ok:true,provider:'nhn',sender_no:'1588-0000',configured:true};
+    }
+    console.warn('[DEMO] API write blocked:', path); return {ok:true,demo:true};
+  }
+  const tk=localStorage.getItem('genie_token')||"";const r=await fetch(API+path,{...opts,headers:{'Content-Type':'application/json','Authorization':'Bearer '+tk,...(opts.headers||{})}});return r.json().catch(()=>({}));};
 
 const C={accent:"#4f8ef7",green:"#22c55e",red:"#ef4444",yellow:"#eab308",purple:"#a855f7",cyan:"#06b6d4"};
 const INPUT={width:"100%",padding:"10px 14px",borderRadius:10,background:"rgba(255,255,255,0.9)",border:"1px solid rgba(0,0,0,0.1)",color:"#1e293b",boxSizing:"border-box",fontSize:13,outline:"none"};
