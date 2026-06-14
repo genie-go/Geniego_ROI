@@ -36,15 +36,19 @@ const OBJECTIVE_STAGE = {
   OUTCOME_AWARENESS: 'awareness', OUTCOME_ENGAGEMENT: 'engagement', OUTCOME_TRAFFIC: 'traffic',
   OUTCOME_LEADS: 'conversion', OUTCOME_SALES: 'conversion', OUTCOME_APP_PROMOTION: 'conversion',
   SALES: 'conversion', AWARENESS: 'awareness', ENGAGEMENT: 'engagement', LEADS: 'conversion',
-  // ── Google Ads ──
+  // ── Google Ads (advertising_channel_type) ──
   DISPLAY: 'awareness', VIDEO: 'awareness', DEMAND_GEN: 'awareness', DISCOVERY: 'awareness',
-  SEARCH: 'traffic', WEBSITE_TRAFFIC: 'traffic',
+  SEARCH: 'traffic', WEBSITE_TRAFFIC: 'traffic', LOCAL: 'traffic', LOCAL_SERVICES: 'traffic',
   PERFORMANCE_MAX: 'conversion', PMAX: 'conversion', SHOPPING: 'conversion', SALES_GOOGLE: 'conversion',
-  // ── TikTok Ads ──
+  MULTI_CHANNEL: 'conversion', SMART: 'conversion', HOTEL: 'conversion', TRAVEL: 'conversion',
+  // ── TikTok Ads (objective_type) ──
   TRAFFIC_TIKTOK: 'traffic', VIDEO_VIEWS_TIKTOK: 'engagement', PRODUCT_SALES: 'conversion',
-  RF_REACH: 'awareness', COMMUNITY_INTERACTION: 'engagement', WEB_CONVERSIONS: 'conversion',
+  RF_REACH: 'awareness', COMMUNITY_INTERACTION: 'engagement', WEB_CONVERSIONS: 'conversion', APP_PROMOTION: 'conversion',
   // ── Naver ──
   POWER_LINK: 'traffic', SHOPPING_SEARCH: 'conversion', BRAND_SEARCH: 'awareness', NAVER_DISPLAY: 'awareness',
+  // ── Kakao Moment (objective) ──
+  VISITING: 'traffic', VISIT: 'traffic', VIEW: 'engagement', BRANDING: 'awareness',
+  REACH_AND_FREQUENCY: 'awareness', CONVERSION: 'conversion',
   // ── 한글 목적 라벨(데모/국내 매체 폴백) ──
   '도달': 'awareness', '인지': 'awareness', '브랜드인지': 'awareness', '브랜드검색': 'awareness', '디스플레이': 'awareness',
   '조회': 'engagement', '참여': 'engagement', '동영상조회': 'engagement',

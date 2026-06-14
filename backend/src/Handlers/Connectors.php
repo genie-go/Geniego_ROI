@@ -1455,7 +1455,10 @@ final class Connectors
             return ['hasCreds' => false, 'live' => false, 'rows' => []];
         }
 
-        $gaql = "SELECT campaign.name, campaign.resource_name, metrics.impressions, metrics.clicks, metrics.cost_micros,
+        // [현 차수] campaign.advertising_channel_type(SEARCH/DISPLAY/VIDEO/SHOPPING/PERFORMANCE_MAX/DEMAND_GEN…)
+        //   = Google 의 목적 분류 근거 → objective 로 적재(adFunnel 매핑). Google 표준 metrics 엔 reach 없음(=0).
+        $gaql = "SELECT campaign.name, campaign.resource_name, campaign.advertising_channel_type,
+                        metrics.impressions, metrics.clicks, metrics.cost_micros,
                         metrics.conversions, metrics.conversions_value, segments.date
                  FROM campaign
                  WHERE segments.date BETWEEN '$start' AND '$end' AND campaign.status != 'REMOVED'
@@ -1478,6 +1481,7 @@ final class Connectors
                 'team'        => 'Google Ads',
                 'account'     => (string)($r['campaign']['name'] ?? 'Google Campaign'),
                 'campaign_ext_id' => (string)($r['campaign']['resourceName'] ?? ''),
+                'objective'   => (string)($r['campaign']['advertisingChannelType'] ?? ''),
                 'date'        => (string)($r['segments']['date'] ?? ''),
                 'impressions' => (int)($r['metrics']['impressions'] ?? 0),
                 'clicks'      => (int)($r['metrics']['clicks'] ?? 0),
@@ -1514,7 +1518,8 @@ final class Connectors
             'advertiser_id' => $advertiserId,
             'report_type'   => 'BASIC',
             'dimensions'    => ['campaign_id', 'stat_time_day'],
-            'metrics'       => ['campaign_name', 'spend', 'clicks', 'impressions', 'conversion', 'total_purchase_value'],
+            // [현 차수] objective_type(REACH/TRAFFIC/VIDEO_VIEWS/CONVERSIONS/PRODUCT_SALES…)·reach 수집(목적 분류·빈도).
+            'metrics'       => ['campaign_name', 'objective_type', 'spend', 'clicks', 'impressions', 'reach', 'conversion', 'total_purchase_value'],
             'data_level'    => 'AUCTION_CAMPAIGN',
             'start_date'    => $start,
             'end_date'      => $end,
@@ -1539,6 +1544,8 @@ final class Connectors
                 'team'        => 'TikTok',
                 'account'     => (string)($m['campaign_name'] ?? $dim['campaign_id'] ?? 'TikTok Campaign'),
                 'campaign_ext_id' => (string)($dim['campaign_id'] ?? ''),
+                'objective'   => (string)($m['objective_type'] ?? ''),
+                'reach'       => (int)($m['reach'] ?? 0),
                 'date'        => substr((string)($dim['stat_time_day'] ?? ''), 0, 10),
                 'impressions' => (int)($m['impressions'] ?? 0),
                 'clicks'      => (int)($m['clicks'] ?? 0),
@@ -1567,11 +1574,18 @@ final class Connectors
             return ['X-Timestamp' => $sg[0], 'X-API-KEY' => $apiKey, 'X-Customer' => $customerId, 'X-Signature' => $sg[1], 'Content-Type' => 'application/json; charset=UTF-8'];
         };
 
-        // 1) 캠페인 id 목록
+        // 1) 캠페인 id 목록 + [현 차수] campaignTp(목적 분류 근거) 매핑.
+        //   Naver campaignTp → objective: WEB_SITE/PLACE=파워링크(트래픽), SHOPPING=쇼핑검색(전환),
+        //   BRAND_SEARCH=브랜드검색(인지), POWER_CONTENTS=디스플레이(인지).
         [$cCode, $cBody, $cErr] = self::httpGet('https://api.naver.com/ncc/campaigns', $hdr($sign('GET', '/ncc/campaigns')));
         if ($cErr || $cCode >= 400) return ['hasCreds' => true, 'live' => false, 'error' => $cErr ?? "naver campaigns http {$cCode}"];
-        $ids = [];
-        foreach ((is_array($cBody) ? $cBody : []) as $c) { if (!empty($c['nccCampaignId'])) $ids[] = (string)$c['nccCampaignId']; }
+        $tpMap = ['WEB_SITE' => 'POWER_LINK', 'PLACE' => 'POWER_LINK', 'SHOPPING' => 'SHOPPING_SEARCH', 'BRAND_SEARCH' => 'BRAND_SEARCH', 'POWER_CONTENTS' => 'NAVER_DISPLAY'];
+        $ids = []; $objById = [];
+        foreach ((is_array($cBody) ? $cBody : []) as $c) {
+            if (empty($c['nccCampaignId'])) continue;
+            $id = (string)$c['nccCampaignId']; $ids[] = $id;
+            $objById[$id] = $tpMap[(string)($c['campaignTp'] ?? '')] ?? '';
+        }
         if (empty($ids)) return ['hasCreds' => true, 'live' => true, 'rows' => []]; // 캠페인 없음 = 빈 적재(정직)
 
         // 2) /stats 일별 성과(최대 100 id)
@@ -1585,8 +1599,9 @@ final class Connectors
         [$sCode, $sBody, $sErr] = self::httpGet('https://api.naver.com/stats?' . $query, $hdr($sign('GET', '/stats')));
         if ($sErr || $sCode >= 400) return ['hasCreds' => true, 'live' => false, 'error' => $sErr ?? "naver stats http {$sCode}"];
 
-        // 일별 집계(응답 포맷 방어적 파싱)
-        $byDay = [];
+        // [현 차수] 캠페인×일별 집계 — 캠페인 id 별 objective(campaignTp) 보존(목적별 분류). id 미식별 행은
+        //   id=''(objective '' → other)로 집계(기존 일자 합산과 동등, 무손실).
+        $byKey = [];
         $data = $sBody['data'] ?? (is_array($sBody) ? $sBody : []);
         foreach ((array)$data as $row) {
             if (!is_array($row)) continue;
@@ -1595,16 +1610,19 @@ final class Connectors
             if ($day === '') $day = (string)($row['day'] ?? $row['statDt'] ?? (is_string($row['dimension'] ?? null) ? $row['dimension'] : ''));
             $day = substr(str_replace(['.', '/'], '-', $day), 0, 10);
             if ($day === '' || $day < $start || $day > $end) continue;
-            if (!isset($byDay[$day])) $byDay[$day] = ['imp' => 0, 'clk' => 0, 'spend' => 0.0, 'conv' => 0, 'rev' => 0.0];
-            $byDay[$day]['imp']   += (int)($row['impCnt'] ?? 0);
-            $byDay[$day]['clk']   += (int)($row['clkCnt'] ?? 0);
-            $byDay[$day]['spend'] += (float)($row['salesAmt'] ?? 0);
-            $byDay[$day]['conv']  += (int)round((float)($row['ccnt'] ?? 0));
-            $byDay[$day]['rev']   += (float)($row['convAmt'] ?? 0);
+            $cid = (string)($row['id'] ?? ($row['dimension']['id'] ?? ''));
+            $k = $cid . '|' . $day;
+            if (!isset($byKey[$k])) $byKey[$k] = ['id' => $cid, 'day' => $day, 'imp' => 0, 'clk' => 0, 'spend' => 0.0, 'conv' => 0, 'rev' => 0.0];
+            $byKey[$k]['imp']   += (int)($row['impCnt'] ?? 0);
+            $byKey[$k]['clk']   += (int)($row['clkCnt'] ?? 0);
+            $byKey[$k]['spend'] += (float)($row['salesAmt'] ?? 0);
+            $byKey[$k]['conv']  += (int)round((float)($row['ccnt'] ?? 0));
+            $byKey[$k]['rev']   += (float)($row['convAmt'] ?? 0);
         }
         $rows = [];
-        foreach ($byDay as $day => $v) {
-            $rows[] = ['team' => 'Naver', 'account' => 'Naver SA', 'date' => $day,
+        foreach ($byKey as $v) {
+            $rows[] = ['team' => 'Naver', 'account' => 'Naver SA',
+                'campaign_ext_id' => $v['id'], 'objective' => $objById[$v['id']] ?? '', 'date' => $v['day'],
                 'impressions' => $v['imp'], 'clicks' => $v['clk'], 'spend' => $v['spend'],
                 'conversions' => $v['conv'], 'revenue' => $v['rev']];
         }
@@ -1650,6 +1668,9 @@ final class Connectors
                 'team'            => 'Kakao',
                 'account'         => (string)($dim['campaignName'] ?? $dim['campaign'] ?? 'Kakao Moment'),
                 'campaign_ext_id' => (string)($dim['campaignId'] ?? $dim['campaign_id'] ?? ''),
+                // [현 차수] Kakao Moment 캠페인 목적(REACH/VISITING/CONVERSION/VIEW…)·reach 수집(방어 필드명).
+                'objective'       => (string)($dim['objective'] ?? $dim['campaignObjective'] ?? $dim['goal'] ?? $r['objective'] ?? ''),
+                'reach'           => (int)($m['reach'] ?? $m['reach_cnt'] ?? 0),
                 'date'            => $date,
                 'impressions'     => (int)($m['imp'] ?? $m['impression'] ?? $m['impressions'] ?? 0),
                 'clicks'          => (int)($m['click'] ?? $m['clicks'] ?? 0),
