@@ -70,17 +70,17 @@ export function LineChart({ data, labels, series, width = 600, height = 180, for
                     const val = minV + t * (maxV - minV);
                     return (
                         <g key={t}>
-                            <line x1={0} y1={y} x2={W} y2={y} stroke="rgba(0,0,0,0.06)" strokeWidth={1} />
-                            <text x={-8} y={y + 4} {...FONT} fill="rgba(0,0,0,0.38)" textAnchor="end">{f(val)}</text>
+                            <line x1={0} y1={y} x2={W} y2={y} stroke="var(--border)" strokeWidth={1} />
+                            <text x={-8} y={y + 4} {...FONT} fill="var(--text-3)" textAnchor="end">{f(val)}</text>
                         </g>
                     );
                 })}
                 {/* X 축 라벨 */}
                 {labels && data.map((_, i) => {
                     if (i % Math.ceil(data.length / 7) !== 0) return null;
-                    return <text key={i} x={xScale(i)} y={H + 22} {...FONT} fill="rgba(0,0,0,0.38)" textAnchor="middle">{labels[i]}</text>;
+                    return <text key={i} x={xScale(i)} y={H + 22} {...FONT} fill="var(--text-3)" textAnchor="middle">{labels[i]}</text>;
                 })}
-                <line x1={0} y1={H} x2={W} y2={H} stroke="rgba(0,0,0,0.1)" />
+                <line x1={0} y1={H} x2={W} y2={H} stroke="var(--border)" />
                 {/* 시리즈 */}
                 {series.map(s => {
                     const pts = data.map((d, i) => `${xScale(i)},${yScale(d[s.key] ?? 0)}`);
@@ -96,7 +96,7 @@ export function LineChart({ data, labels, series, width = 600, height = 180, for
                 {/* hover 크로스헤어 + 포인트 */}
                 {hover != null && data[hover] && (
                     <g pointerEvents="none">
-                        <line x1={xScale(hover)} y1={0} x2={xScale(hover)} y2={H} stroke="rgba(0,0,0,0.28)" strokeWidth={1} strokeDasharray="3,3" />
+                        <line x1={xScale(hover)} y1={0} x2={xScale(hover)} y2={H} stroke="var(--text-3)" strokeWidth={1} strokeDasharray="3,3" opacity={0.7} />
                         {series.map(s => (
                             <circle key={s.key} cx={xScale(hover)} cy={yScale(data[hover][s.key] ?? 0)} r={3} fill={s.color} stroke="#fff" strokeWidth={1} />
                         ))}
@@ -105,17 +105,17 @@ export function LineChart({ data, labels, series, width = 600, height = 180, for
                 {/* 툴팁 박스 */}
                 {rows.length > 0 && (
                     <g pointerEvents="none" transform={`translate(${tipX},${tipY})`}>
-                        <rect x={0} y={0} width={tipW} height={tipH} rx={7} fill="rgba(15,23,42,0.95)" stroke="rgba(255,255,255,0.12)" strokeWidth={1} />
+                        <rect x={0} y={0} width={tipW} height={tipH} rx={7} fill="rgba(17,24,39,0.97)" stroke="rgba(255,255,255,0.22)" strokeWidth={1} />
                         {labels && labels[hover] != null && (
-                            <text x={9} y={13} fontSize={9} fontWeight={800} fill="#cbd5e1">{labels[hover]}</text>
+                            <text x={9} y={13} fontSize={9.5} fontWeight={800} fill="#f8fafc">{labels[hover]}</text>
                         )}
                         {rows.map((r, i) => {
                             const ry = 14 + (i + 1) * 14 - 4;
                             return (
                                 <g key={r.name + i}>
                                     <circle cx={13} cy={ry - 3} r={3.2} fill={r.color} />
-                                    <text x={22} y={ry} fontSize={9} fontWeight={600} fill="#e2e8f0">{r.name}</text>
-                                    <text x={tipW - 9} y={ry} fontSize={9} fontWeight={800} fill="#fff" textAnchor="end">{f(r.value)}</text>
+                                    <text x={22} y={ry} fontSize={9.5} fontWeight={700} fill="#f1f5f9">{r.name}</text>
+                                    <text x={tipW - 9} y={ry} fontSize={9.5} fontWeight={900} fill="#ffffff" textAnchor="end">{f(r.value)}</text>
                                 </g>
                             );
                         })}
@@ -144,7 +144,7 @@ export function BarChart({ data, xKey, yKey, color = '#4f8ef7', width = 400, hei
             <g transform={`translate(${pad.l},${pad.t})`}>
                 {[0.25, 0.5, 0.75, 1].map(t => (
                     <line key={t} x1={0} y1={H * (1 - t)} x2={W} y2={H * (1 - t)}
-                        stroke="rgba(0,0,0,0.05)" strokeWidth={1} strokeDasharray="3,4" />
+                        stroke="var(--border)" strokeWidth={1} strokeDasharray="3,4" />
                 ))}
                 {data.map((d, i) => {
                     const v = d[yKey] ?? 0;
@@ -159,13 +159,13 @@ export function BarChart({ data, xKey, yKey, color = '#4f8ef7', width = 400, hei
                             <rect x={x} y={H - bh} width={bw} height={Math.min(12, bh)} rx={4}
                                 fill={fc} opacity={0.3} />
                             {/* 값 라벨 */}
-                            <text x={x + bw / 2} y={H - bh - 5} {...FONT} fill="rgba(0,0,0,0.5)" textAnchor="middle">{fmt(v)}</text>
+                            <text x={x + bw / 2} y={H - bh - 5} {...FONT} fill="var(--text-2)" textAnchor="middle">{fmt(v)}</text>
                             {/* X 라벨 */}
-                            <text x={x + bw / 2} y={H + 24} {...FONT} fill="rgba(0,0,0,0.42)" textAnchor="middle">{d[xKey]}</text>
+                            <text x={x + bw / 2} y={H + 24} {...FONT} fill="var(--text-3)" textAnchor="middle">{d[xKey]}</text>
                         </g>
                     );
                 })}
-                <line x1={0} y1={H} x2={W} y2={H} stroke="rgba(0,0,0,0.12)" />
+                <line x1={0} y1={H} x2={W} y2={H} stroke="var(--border)" />
             </g>
         </svg>
     );
