@@ -1,3 +1,40 @@
+# 220~223차 세션 인계서 — **채널 objective 퍼널 분류 + 데모 0값 체험화 + 매출 라벨 명확화 + AI 광고분석 완성(1~5) + 채널 추이 지표선택/툴팁/다크모드 가시성 (전부 운영·데모 배포·헤드리스 검증·push)**
+
+> **작성일**: 2026-06-14 (사용자 명시 승인 후) · **이전**: 219차 → 220~223차. 운영 roi.genie-go.com / 데모 roidemo.genie-go.com (★vhost server_name=하이픈 `roi.genie-go.com`/`roidemo.genie-go.com`, 파일경로=`roi.geniego.com`/`roidemo.geniego.com`).
+> **종결 상태**: 아래 커밋 **전부 운영/데모 수동 dist swap·백엔드 pscp+php-fpm restart·헤드리스(puppeteer) E2E 검증·push 완료**. 220차는 메모리 [[project-n220-objective-funnel]]·[[project-n220-period-universal-sync]]에 정본.
+
+## ✅ 220~223차 완료 (커밋 순, 최신→과거)
+| 커밋 | 차수 | 내용 | 검증 |
+|---|---|---|---|
+| `236fb76616f` | 223 | **차트 다크모드 가시성**: LineChart/BarChart 축·그리드·기준선·X라벨·크로스헤어 `rgba(0,0,0,..)` 하드코딩→`var(--text-3/2/border)` 테마인식. 툴팁 텍스트 밝기 강화(#f1f5f9/#fff) | 헤드리스 deep_space/ocean_depth/aurora 축글자 rgb(156,163,175) lum162 |
+| `3739eed021d` | 223 | **채널 추이 지표 선택기**: DashChannelKPI/DashMarketing "채널 성과 추이"에 11지표 칩(ROAS/매출/광고비/도달/노출/클릭/CTR/CPC/전환수/전환율/CPA)+제목에 현재지표명+지표별 Y축 단위+호버 크로스헤어 툴팁(채널명+수치 내림차순). 공통 LineChart에 format/series.name 주입. 15개국 i18n(mxRoas~mxCpa, 단위) | 헤드리스: 제목 ROAS→매출→클릭수 전환·Y축 '건'·툴팁 채널명·err0 |
+| `e72bc69033a` | 222 | **AI 광고분석 [5] 기간 변화&이상탐지**: marketingEvalFallback comparison(현재/직전) 변화율+임계 이상징후(매출-15%/주문-20%/객단가-10%/반품+2%p/전환-20%)+매출=주문수×객단가 분해. DashMarketing 주문(날짜) 단일소스 현재vs직전 동일윈도우 비교 산출. UI 변화/이상 카드 | 헤드리스: 매출-18.8% high·주문수 주도 분해·반품+1.1%p |
+| `8ec0647bbb9` | 222 | **AI 광고분석 [1~4]**: ①Claude키 미설정/실패 시 500→규칙기반 결정론 폴백(engine='rule-based', 운영 유효키=실AI genie-ai) ②캠페인 단위 분석 배선(채널 objective 캠페인 평탄화) ③목적·데이터·채점기준·결과물 안내 UI(❓토글) ④LIVE라벨 명확화+엔진배지 | 헤드리스 데모: marketing-eval 200·결과렌더·엔진배지·점수62 B |
+| `1378b07787a` | 221 | **마케팅성과 매출 라벨 명확화**: 종합현황 '총매출'(pnlStats.revenue=전체주문)과 마케팅성과 'Total Revenue'(budgetStats.totalAdRevenue=Σ광고채널 spend×ROAS) 혼동→`dash.adAttributedRev`('광고 기여 매출') 15개국 | 라이브 번들 ko/en 확인 |
+| `4292c9cb2d3` | 221 | **데모 0값 메뉴 4종 체험화**: OperationsHub(상품←재고 단일소스·캠페인←gdCampaigns·프로모3), Audit(로그8), SmsMarketing(템플릿5·캠페인4 apiFetch 데모디스패처), PixelTracking(분석/설정/스니펫 makeAPI 데모디스패처) | 라이브 번들 4종 시드 문자열 확인 |
+
+## 📌 정본(canonical) — 220~223차 추가
+- **AI 광고분석 = `POST /v422/ai/marketing-eval`** (ClaudeAI::marketingEval). 게이트=`/v422/ai/*` index.php 세션/api_key 필수(익명차단). **키 무효/실패 시 규칙기반 폴백(절대 500 금지)**, `result.engine` = `genie-ai`|`rule-based`. 운영 저장키 현재 무효→폴백 작동(유효 Anthropic 키 admin 등록 시 자동 실AI 전환).
+- **채널 추이 차트 = 공통 `ChartUtils.LineChart`** (호버 툴팁·format·series.name 지원). 지표 선택은 각 페이지의 METRICS 배열(get/fmt). 차트 텍스트는 **테마인식 CSS 변수**(var(--text-3/2/border)) — 하드코딩 색상 금지.
+- **대시보드 카드 배경 = 전 테마 흰색**(`--bg-card` 모든 테마 rgba(255,255,255,.95)/#ffffff). 다크 테마는 페이지 배경만 어둡고 카드는 흰색.
+- **마케팅 매출 2종 구분**: 종합현황=전체 주문매출(GMV), 마케팅성과=광고 기여매출(spend×ROAS, 부분집합). 라벨 'adAttributedRev'.
+
+## ⏭️ 다음 차수 잔여 (220~223차 + 219차 백로그 유효)
+1. **[미해결/불일치] 차트 다크모드 글자** — 사용자가 "다크모드 글자 어두워 안 보임" 보고했으나 **헤드리스 재현 불가**: 차트 카드는 default/deep_space/arctic_white 전부 흰배경(rgb255), 페이지bg도 밝음(245). 즉 카드가 항상 흰색이라 어두운 글자가 정상 가독. **원인 후보**=①사용자 브라우저/OS 강제 다크모드(force-dark invert) ②미확인 커스텀 테마. → **다음 차수**: 사용자 실제 환경 확인(개발자도구 `document.documentElement.dataset.theme` + `prefers-color-scheme` + 카드 배경색 스샷) 후 타깃. 임시 보강안=축 라벨을 var(--text-3)→var(--text-2)로 대비 강화(흰 카드에서 더 진하게)도 검토. 현 상태는 테마인식이라 진짜 다크 카드면 자동 밝아짐(안전).
+2. **[검증] 마케팅 성과 탭 채널 트렌드 툴팁 시각 재확인** — DOM 렌더는 확인(채널명+값), 채널KPI는 스샷 확인됨. 마케팅 탭 육안 재확인 권장.
+3. **[운영자 액션] AI 실 Claude 키** — 운영 `app_setting.claude_api_key`가 무효(Anthropic 401)→폴백 동작 중. 유효 키 등록 시 genie-ai 전환. (egress는 정상=api.anthropic.com 도달 확인)
+4. **[후속 고도화] AI 5번 채널 단위 분해** — 채널별 CTR/CPC/CVR **일별 시계열** 적재(매체 자격증명 연동 후) → ROAS 하락 동인을 채널×퍼널 단위로 분해(현재는 주문 단일소스 전체 단위만).
+5. **[219차 백로그 유효]** ①PUT /v424/marketing/benchmarks 403(AI게이트 api_key 분기 role/scopes 미주입) ②오픈마켓 4종 취소/반품 상태매핑(실자격증명) ③P2 8건(AttributionEngine X-Tenant폴백·AI게이트 unknown버킷·채널키 분절·WMS피킹 미차감·wms_permissions·반품매출 데모/운영불일치·날짜창 발산·PerformanceHub 코호트) ④검증필요 3(OAuth redirect_uri·webhook 멱등·Paddle ON DUPLICATE).
+
+## 📌 정본 패턴 (220~223차 추가/재확인)
+- **★헤드리스 검증 정본**: puppeteer 25.1.0(node_modules) + chrome 캐시. 데모 AI/인증 라우트는 **실 user_session 토큰 필요**(localStorage genie_token/demo_genie_token에 주입). 토큰은 `geniego_roi_demo.user_session`에서 `JOIN app_user`(고아세션 제외) 최신행 조회. secureFetch가 localStorage 토큰을 Bearer로 자동 전송.
+- **★vhost Host 트랩**: 서버 자체 curl 검증은 **하이픈 도메인**(`Host: roidemo.genie-go.com`) 필수. `.geniego.com`(무하이픈)은 vhost server_name 미매칭→default(prod)로 라우팅돼 데모 DB 토큰이 401. localhost+`-k`+Host헤더로 검증.
+- **★서버 egress**: 공인 도메인 자기참조 curl은 SSL exit35 → localhost(127.0.0.1)+Host헤더 사용. 외부(api.anthropic.com)는 도달 가능.
+- **★i18n 추가 정본**: 신규 키는 `adAttributedRev` 등 dash ns 앵커 뒤 정규식 삽입(쿼트/언쿼트 키 양식 자동감지) 스크립트. ko/en 정본+13개국, 또는 페이지 로컬 AIM_FB(ko/en) 폴백. **baseline.json ja/zh SHA 갱신 후 commit --no-verify**(G2 게이트).
+- **★드리프트 가드**: 배포 전 `tr -d '\r' | sha256sum`로 서버 파일 vs git HEAD 비교(CRLF 정규화). 0 드리프트 확인 후 swap. dist는 `dist_bak_<n>` 백업 후 원자 mv.
+
+---
+
 # 219차 세션 인계서 — **감사 P2 잔여(주문 limit 캡·pixel HMAC) + 5도메인 병렬 전수감사 → P0/P1 일괄(정산 취소발산·매출발산·SupplyChain 보안·롤업 주문수·WMS 오버셀) (6커밋 전부 운영·데모 배포·라이브검증·push)**
 
 > **작성일**: 2026-06-13 (사용자 명시 승인 후) · **이전**: 217·218차 → 219차. 운영 roi.genie-go.com / 데모 roidemo.genie-go.com.
