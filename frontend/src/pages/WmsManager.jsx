@@ -2067,6 +2067,7 @@ const SupplierTab = memo(function SupplierTab() {
 const InventoryAuditTab = memo(function InventoryAuditTab({ inventory }) {
 
     const { t } = useI18n();
+    const { adjustStock } = useGlobalData(); // [현 차수] P1: 재고실사 일괄조정 단일소스
     const allItems = (inventory || initInventory).map(p => ({
         sku: p.sku, name: p.name,
         bookQty: Object.values(p.stock).reduce((s,v)=>s+v,0),
@@ -2083,6 +2084,23 @@ const InventoryAuditTab = memo(function InventoryAuditTab({ inventory }) {
         const diff = val === '' ? null : counted - i.bookQty;
         return { ...i, countedQty: val, diff };
     }));
+
+    // [현 차수] P1: 재고실사 일괄조정 — 실사 차이를 실제 재고로 반영(기존 alert 무동작 dead 버튼 해소).
+    //   adjustStock(절대값=실사 실제수량) 단일소스 즉시반영 + 운영은 wmsApi.createMovement 감사 영속(CSV import 패턴).
+    const handleBulkAdjust = () => {
+        const diffs = auditItems.filter(i => i.diff !== null && i.diff !== 0);
+        if (!diffs.length) return;
+        diffs.forEach(i => {
+            const wh = i.wh || 'W001';
+            const counted = Number(i.countedQty) || 0;
+            adjustStock(i.sku, wh, counted);
+            if (!IS_DEMO) {
+                try { wmsApi.createMovement({ sku: i.sku, name: i.name, qty: Math.abs(i.diff), wh_id: wh, type: i.diff > 0 ? 'audit_in' : 'audit_out', reason: '재고실사 조정' }); } catch {}
+            }
+        });
+        setStatus('adjusted');
+        alert(t('wms.auditAdjDone', diffs.length + '건 재고 조정 완료'));
+    };
 
     const filtered = auditItems.filter(i => !search || i.sku.toLowerCase().includes(search.toLowerCase()) || i.name.includes(search));
     const countedCount = auditItems.filter(i => i.countedQty !== '').length;
@@ -2196,7 +2214,7 @@ const InventoryAuditTab = memo(function InventoryAuditTab({ inventory }) {
                         ))}
                     </div>
                     <div style={{ marginTop:12, display:'flex', gap:8 }}>
-                        <Btn onClick={() => alert(t('wms.auditAdjAlert'))} color="#ef4444">{t("wms.auditBulkAdj")}</Btn>
+                        <Btn onClick={handleBulkAdjust} color="#ef4444">{t("wms.auditBulkAdj")}</Btn>
                         <Btn onClick={printAuditSheet} color="#6366f1" small>{t("wms.auditDiffReport")}</Btn>
                     </div>
                 </div>
