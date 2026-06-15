@@ -411,9 +411,12 @@ final class UserAdmin
         )->fetchAll(\PDO::FETCH_ASSOC);
 
         // New users (last 30 days)
-        $newUsers = (int)$pdo->query(
-            "SELECT COUNT(*) FROM app_user WHERE created_at >= date('now', '-30 days') OR created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)"
-        )->fetchColumn();
+        // [225차 P1-12] 기존 쿼리는 date('now',...)(SQLite) 와 DATE_SUB(NOW())(MySQL) 를 OR 로 섞어
+        //   양 드라이버 모두에서 미지원 함수로 에러였다. 컷오프를 PHP 에서 산출해 바인딩(드라이버 무관).
+        $cutoff30 = gmdate('Y-m-d H:i:s', time() - 30 * 86400);
+        $nu = $pdo->prepare("SELECT COUNT(*) FROM app_user WHERE created_at >= ?");
+        $nu->execute([$cutoff30]);
+        $newUsers = (int)$nu->fetchColumn();
 
         // Active sessions
         $sessions = (int)$pdo->query(

@@ -236,8 +236,94 @@ final class ClaudeAI {
         return $t !== '' ? $t : 'unknown';
     }
 
+    /* ── [225차 P1-4] AI 공용키 비용남용 방지: 테넌트별 일일 호출/토큰 quota ──────────
+     *   인증게이트(index.php)는 viewer/free/demo 세션도 통과시키고 테넌트별 호출·토큰 캡이
+     *   전무 → 인증된 저권한 1명이 서버 공용 Claude/DALL·E/Replicate 키 비용을 무제한 소진
+     *   가능했다. provider 호출 前 quotaGate 로 캡을 강제하고 성공 後 quotaConsume 로 누적.
+     *   캡 초과: 텍스트=throw(핸들러가 내장 템플릿으로 폴백, 무비용) / 이미지·영상=429.
+     *   가용성 우선: quota 인프라 실패(테이블/DB) 시 통과(기존 동작 보존). 테넌트별 격리. */
+    private const Q_CALL_CAP  = 600;      // 텍스트 분석 호출/일/테넌트
+    private const Q_TOKEN_CAP = 3000000;  // 토큰/일/테넌트
+    private const Q_IMG_CAP   = 100;      // 이미지+영상 생성/일/테넌트
+
+    private static function quotaCap(string $envKey, int $def): int {
+        $v = getenv($envKey);
+        if ($v !== false && is_numeric($v) && (int)$v > 0) return (int)$v;
+        return $def;
+    }
+
+    private static function ensureQuotaTable(PDO $pdo): void {
+        static $done = false; if ($done) return; $done = true;
+        try {
+            $isSqlite = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite';
+            if ($isSqlite) {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS ai_usage_quota (tenant_id TEXT NOT NULL, usage_date TEXT NOT NULL, calls INTEGER DEFAULT 0, tokens INTEGER DEFAULT 0, img_calls INTEGER DEFAULT 0, updated_at TEXT, PRIMARY KEY(tenant_id, usage_date))");
+            } else {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS ai_usage_quota (tenant_id VARCHAR(100) NOT NULL, usage_date VARCHAR(10) NOT NULL, calls INT DEFAULT 0, tokens BIGINT DEFAULT 0, img_calls INT DEFAULT 0, updated_at VARCHAR(32), PRIMARY KEY(tenant_id, usage_date))");
+            }
+        } catch (\Throwable $e) {}
+    }
+
+    /** provider 호출 前. 캡 초과 시 사람이 읽는 사유 문자열, 통과 시 null. */
+    private static function quotaGate(string $tenant, string $kind = 'text'): ?string {
+        $tenant = trim($tenant) !== '' ? trim($tenant) : 'unknown';
+        try {
+            $pdo = Db::pdo();
+            self::ensureQuotaTable($pdo);
+            $day = gmdate('Y-m-d');
+            $s = $pdo->prepare("SELECT calls, tokens, img_calls FROM ai_usage_quota WHERE tenant_id=? AND usage_date=? LIMIT 1");
+            $s->execute([$tenant, $day]);
+            $r = $s->fetch(\PDO::FETCH_ASSOC) ?: ['calls' => 0, 'tokens' => 0, 'img_calls' => 0];
+            if ($kind === 'image') {
+                if ((int)$r['img_calls'] >= self::quotaCap('AI_DAILY_IMG_CAP', self::Q_IMG_CAP))
+                    return '일일 AI 이미지/영상 생성 한도를 초과했습니다. 내일 다시 시도하거나 [API 연동]에서 본인 생성 API 키를 등록하세요.';
+            } else {
+                if ((int)$r['calls']  >= self::quotaCap('AI_DAILY_CALL_CAP',  self::Q_CALL_CAP)
+                 || (int)$r['tokens'] >= self::quotaCap('AI_DAILY_TOKEN_CAP', self::Q_TOKEN_CAP))
+                    return '일일 AI 분석 한도를 초과했습니다. 잠시 후 다시 시도하세요.';
+            }
+        } catch (\Throwable $e) { /* quota 인프라 실패 → 통과(가용성 우선) */ }
+        return null;
+    }
+
+    /** 성공한 provider 호출 後. 사용량 누적(driver-aware upsert). */
+    private static function quotaConsume(string $tenant, string $kind = 'text', int $tokens = 0): void {
+        $tenant = trim($tenant) !== '' ? trim($tenant) : 'unknown';
+        try {
+            $pdo = Db::pdo();
+            self::ensureQuotaTable($pdo);
+            $day = gmdate('Y-m-d');
+            $now = gmdate('c');
+            $dCalls = $kind === 'image' ? 0 : 1;
+            $dImg   = $kind === 'image' ? 1 : 0;
+            $isSqlite = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite';
+            if ($isSqlite) {
+                $pdo->prepare(
+                    "INSERT INTO ai_usage_quota(tenant_id, usage_date, calls, tokens, img_calls, updated_at)
+                     VALUES(?,?,?,?,?,?)
+                     ON CONFLICT(tenant_id, usage_date) DO UPDATE SET
+                       calls = calls + ?, tokens = tokens + ?, img_calls = img_calls + ?, updated_at = ?"
+                )->execute([$tenant, $day, $dCalls, $tokens, $dImg, $now,  $dCalls, $tokens, $dImg, $now]);
+            } else {
+                $pdo->prepare(
+                    "INSERT INTO ai_usage_quota(tenant_id, usage_date, calls, tokens, img_calls, updated_at)
+                     VALUES(?,?,?,?,?,?)
+                     ON DUPLICATE KEY UPDATE calls = calls + ?, tokens = tokens + ?, img_calls = img_calls + ?, updated_at = ?"
+                )->execute([$tenant, $day, $dCalls, $tokens, $dImg, $now,  $dCalls, $tokens, $dImg, $now]);
+            }
+        } catch (\Throwable $e) {}
+    }
+
+    /** 이미지/영상 핸들러: 사용 키가 전역 공용 키인지(BYO 아님) 판정 — BYO 사용자는 quota 비대상. */
+    private static function usingGlobalKey(string $byoKey, array $globalCfg): bool {
+        return ($globalCfg['key'] ?? '') !== '' && $byoKey === ($globalCfg['key'] ?? '');
+    }
+
     /* ── Claude API 호출 ─────────────────────────────────────── */
-    private static function callClaude(string $systemPrompt, string $userMsg, int $timeout = 8): array {
+    private static function callClaude(string $systemPrompt, string $userMsg, int $timeout = 8, string $tenant = ''): array {
+        // [225차 P1-4] 공용 Claude 키 비용남용 방지: provider 호출 前 테넌트 일일 quota 강제.
+        $qErr = self::quotaGate($tenant, 'text');
+        if ($qErr !== null) throw new \RuntimeException('AI_QUOTA: ' . $qErr);
         $apiKey = self::apiKey();
         $payload = json_encode([
             'model'      => self::MODEL,
@@ -272,10 +358,13 @@ final class ClaudeAI {
             $msg = $resp['error']['message'] ?? $raw;
             throw new \RuntimeException("Claude API error ({$status}): {$msg}");
         }
+        $tIn  = (int)($resp['usage']['input_tokens']  ?? 0);
+        $tOut = (int)($resp['usage']['output_tokens'] ?? 0);
+        self::quotaConsume($tenant, 'text', $tIn + $tOut);  // [225차 P1-4] 성공 호출 누적
         return [
             'text'         => $resp['content'][0]['text'],
-            'tokens_input' => $resp['usage']['input_tokens']  ?? 0,
-            'tokens_output'=> $resp['usage']['output_tokens'] ?? 0,
+            'tokens_input' => $tIn,
+            'tokens_output'=> $tOut,
         ];
     }
 
@@ -658,7 +747,7 @@ PROMPT;
         $now      = gmdate('c');
 
         try {
-            $result = self::callClaude(self::marketingEvalPrompt(), $userMsg);
+            $result = self::callClaude(self::marketingEvalPrompt(), $userMsg, 8, self::tenant($req));
             $parsed = self::parseAnalysis($result['text']);
             $tokens = $result['tokens_input'] + $result['tokens_output'];
 
@@ -729,7 +818,7 @@ PROMPT;
         $now      = gmdate('c');
 
         try {
-            $result = self::callClaude(self::influencerEvalPrompt(), $userMsg);
+            $result = self::callClaude(self::influencerEvalPrompt(), $userMsg, 8, self::tenant($req));
             $tokens = $result['tokens_input'] + $result['tokens_output'];
 
             $evalData = json_decode($result['text'], true);
@@ -798,7 +887,7 @@ PROMPT;
         $analysisId = null;
 
         try {
-            $result  = self::callClaude(self::systemPrompt($context), $userMsg);
+            $result  = self::callClaude(self::systemPrompt($context), $userMsg, 8, self::tenant($req));
             $parsed  = self::parseAnalysis($result['text']);
             $tokens  = $result['tokens_input'] + $result['tokens_output'];
 
@@ -1016,7 +1105,7 @@ PROMPT;
         $now     = gmdate('c');
 
         try {
-            $result = self::callClaude(self::channelKpiPrompt(), $userMsg);
+            $result = self::callClaude(self::channelKpiPrompt(), $userMsg, 8, self::tenant($req));
             $tokens = $result['tokens_input'] + $result['tokens_output'];
 
             $evalData = json_decode($result['text'], true);
@@ -1117,7 +1206,7 @@ PROMPT;
             . "채널 우선순위, 예산 배분, 광고 집행 계획, 예상 성과, 타임라인을 제공해주세요.";
         $now = gmdate('c');
         try {
-            $result = self::callClaude(self::campaignRecommendPrompt(), $userMsg);
+            $result = self::callClaude(self::campaignRecommendPrompt(), $userMsg, 8, self::tenant($req));
             $tokens = $result['tokens_input'] + $result['tokens_output'];
             $evalData = json_decode($result['text'], true);
             if (!$evalData) {
@@ -1296,7 +1385,7 @@ PROMPT;
             [$sys, $user] = self::livePrompt($task, $text, $lang, $product);
             if (trim($user) === '') return self::liveJson($res, ['ok' => false, 'error' => '입력 내용이 필요합니다.'], 422);
             $timeout = in_array($task, ['describe', 'showhost'], true) ? 24 : 12; // 멘트 생성은 길게, 번역/자막/FAQ는 12초
-            $r = self::callClaude($sys, $user, $timeout);
+            $r = self::callClaude($sys, $user, $timeout, self::tenant($req));
             return self::liveJson($res, ['ok' => true, 'ai' => true, 'task' => $task, 'text' => trim((string)$r['text']), 'tokens' => (int)($r['tokens_output'] ?? 0)]);
         } catch (\Throwable $e) {
             return self::liveJson($res, ['ok' => false, 'error' => $e->getMessage()], 200);
@@ -1467,7 +1556,7 @@ PROMPT;
             $tokens      = 0;
             $dataSource  = 'ai';
             try {
-                $claude = self::callClaude($systemPrompt, $userMsg);
+                $claude = self::callClaude($systemPrompt, $userMsg, 8, self::tenant($req));
                 $text   = $claude['text'];
                 $tokens = ($claude['tokens_input'] ?? 0) + ($claude['tokens_output'] ?? 0);
 
@@ -1592,7 +1681,7 @@ PROMPT;
             $result     = null;
             $dataSource = 'ai';
             try {
-                $claude = self::callClaude($systemPrompt, $userMsg);
+                $claude = self::callClaude($systemPrompt, $userMsg, 8, self::tenant($req));
                 $text   = $claude['text'];
                 $clean  = preg_replace('/```(?:json)?\s*([\s\S]*?)```/', '$1', $text);
                 $clean  = trim($clean ?? $text);
@@ -1683,7 +1772,7 @@ PROMPT;
 
             $result = null; $dataSource = 'ai';
             try {
-                $claude = self::callClaudeLong($systemPrompt, $userMsg); // 다채널 디자인 생성 → 여유 타임아웃
+                $claude = self::callClaudeLong($systemPrompt, $userMsg, 22, [], self::tenant($req)); // 다채널 디자인 생성 → 여유 타임아웃
                 $clean  = preg_replace('/```(?:json)?\s*([\s\S]*?)```/', '$1', $claude['text']);
                 $parsed = json_decode(trim($clean ?? $claude['text']), true);
                 if (is_array($parsed) && !empty($parsed['designs']) && is_array($parsed['designs'])) {
@@ -1781,7 +1870,7 @@ PROMPT;
             $hasExtra = !empty($refImages) || $urlCtx !== '' || $cuts > 1;
             $reply = null; $design = null; $frames = null; $dataSource = 'ai';
             try {
-                $claude = self::callClaudeLong($systemPrompt, $userMsg, $hasExtra ? 50 : 30, $refImages);
+                $claude = self::callClaudeLong($systemPrompt, $userMsg, $hasExtra ? 50 : 30, $refImages, self::tenant($req));
                 $clean = preg_replace('/```(?:json)?\s*([\s\S]*?)```/', '$1', $claude['text']);
                 $parsed = json_decode(trim($clean ?? $claude['text']), true);
                 if (is_array($parsed)) {
@@ -1915,7 +2004,7 @@ PROMPT;
 
             $svg = null; $dataSource = 'ai';
             try {
-                $claude = self::callClaudeLong($systemPrompt, $userMsg, 50); // 프리미엄 SVG 생성 → 50초
+                $claude = self::callClaudeLong($systemPrompt, $userMsg, 50, [], self::tenant($req)); // 프리미엄 SVG 생성 → 50초
                 $svg = self::extractSvg($claude['text']);
             } catch (\Throwable $e) { $dataSource = 'fallback'; }
             if (!$svg) { $svg = self::fallbackSvg($design, $w, $h); $dataSource = 'fallback'; }
@@ -1991,7 +2080,10 @@ PROMPT;
 
     /** SVG 생성은 토큰·시간이 더 필요 → max_tokens 상향 + 타임아웃 여유.
      *  $images: data URI(예: "data:image/png;base64,....") 배열 → Claude 비전 멀티모달 입력(참고 이미지). */
-    private static function callClaudeLong(string $systemPrompt, string $userMsg, int $timeout = 22, array $images = []): array {
+    private static function callClaudeLong(string $systemPrompt, string $userMsg, int $timeout = 22, array $images = [], string $tenant = ''): array {
+        // [225차 P1-4] 공용 Claude 키 비용남용 방지: provider 호출 前 테넌트 일일 quota 강제.
+        $qErr = self::quotaGate($tenant, 'text');
+        if ($qErr !== null) throw new \RuntimeException('AI_QUOTA: ' . $qErr);
         $apiKey = self::apiKey();
         $content = $userMsg;
         if (!empty($images)) {
@@ -2012,6 +2104,7 @@ PROMPT;
         if ($err) throw new \RuntimeException('curl error: '.$err);
         $resp = json_decode($raw, true);
         if ($status !== 200 || !isset($resp['content'][0]['text'])) throw new \RuntimeException('Claude error '.$status);
+        self::quotaConsume($tenant, 'text', (int)($resp['usage']['input_tokens'] ?? 0) + (int)($resp['usage']['output_tokens'] ?? 0)); // [225차 P1-4]
         return ['text'=>$resp['content'][0]['text']];
     }
 
@@ -2069,10 +2162,17 @@ PROMPT;
                 $res->getBody()->write(json_encode(['ok'=>false,'error'=>'이미지 생성 프롬프트가 필요합니다.'], JSON_UNESCAPED_UNICODE));
                 return $res->withHeader('Content-Type','application/json')->withStatus(422);
             }
-            $cfg = self::imgGenConfig(self::tenant($req));
+            $tenant = self::tenant($req);
+            $cfg = self::imgGenConfig($tenant);
             if (strlen($cfg['key']) < 10) {
                 $res->getBody()->write(json_encode(['ok'=>false,'configured'=>false,'error'=>'실사 이미지 생성 API가 설정되지 않았습니다. [AI 광고 디자인 > API 연동]에서 본인 이미지 생성 API 키를 등록하세요(관리자 전역 설정도 가능).'], JSON_UNESCAPED_UNICODE));
                 return $res->withHeader('Content-Type','application/json')->withStatus(200);
+            }
+            // [225차 P1-4] 전역 공용 키 사용 시(BYO 아님)만 일일 quota 강제 — 공용 DALL·E/Stability 비용남용 차단.
+            $usingGlobal = self::usingGlobalKey($cfg['key'], self::imgGenConfig(''));
+            if ($usingGlobal && ($qErr = self::quotaGate($tenant, 'image')) !== null) {
+                $res->getBody()->write(json_encode(['ok'=>false,'error'=>$qErr,'quota'=>true], JSON_UNESCAPED_UNICODE));
+                return $res->withHeader('Content-Type','application/json')->withStatus(429);
             }
             // 텍스트 없는 광고 배경/비주얼로 유도(텍스트는 디자인에서 오버레이)
             $fullPrompt = $prompt . ". Premium advertising background visual, high-end commercial photography, cinematic lighting, no text, no words, no letters, clean composition with empty space for overlay.";
@@ -2087,6 +2187,7 @@ PROMPT;
                 $res->getBody()->write(json_encode(['ok'=>false,'error'=>'이미지 생성 실패: '.$e->getMessage()], JSON_UNESCAPED_UNICODE));
                 return $res->withHeader('Content-Type','application/json')->withStatus(502);
             }
+            if ($usingGlobal) self::quotaConsume($tenant, 'image'); // [225차 P1-4] 공용 키 생성 1건 누적
             $res->getBody()->write(json_encode(['ok'=>true,'image'=>$img,'provider'=>$cfg['provider']], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
             return $res->withHeader('Content-Type','application/json');
         } catch (\Throwable $e) {
@@ -2149,10 +2250,17 @@ PROMPT;
                 $res->getBody()->write(json_encode(['ok'=>false,'error'=>'동영상 생성 프롬프트가 필요합니다.'], JSON_UNESCAPED_UNICODE));
                 return $res->withHeader('Content-Type','application/json')->withStatus(422);
             }
-            $cfg = self::videoGenConfig(self::tenant($req));
+            $tenant = self::tenant($req);
+            $cfg = self::videoGenConfig($tenant);
             if (strlen($cfg['key']) < 10) {
                 $res->getBody()->write(json_encode(['ok'=>false,'configured'=>false,'error'=>'AI 동영상 생성 API가 설정되지 않았습니다. 관리자 설정에서 동영상 생성 API 키를 등록하세요.'], JSON_UNESCAPED_UNICODE));
                 return $res->withHeader('Content-Type','application/json')->withStatus(200);
+            }
+            // [225차 P1-4] 전역 공용 키 사용 시(BYO 아님)만 일일 quota 강제 — 공용 Replicate 비용남용 차단.
+            $usingGlobal = self::usingGlobalKey($cfg['key'], self::videoGenConfig(''));
+            if ($usingGlobal && ($qErr = self::quotaGate($tenant, 'image')) !== null) {
+                $res->getBody()->write(json_encode(['ok'=>false,'error'=>$qErr,'quota'=>true], JSON_UNESCAPED_UNICODE));
+                return $res->withHeader('Content-Type','application/json')->withStatus(429);
             }
             $fullPrompt = $prompt . ", cinematic advertising video, premium commercial, smooth camera motion, high quality";
             // Replicate prediction 생성
@@ -2173,6 +2281,7 @@ PROMPT;
                 $res->getBody()->write(json_encode(['ok'=>false,'error'=>'동영상 생성 실패: '.$msg], JSON_UNESCAPED_UNICODE));
                 return $res->withHeader('Content-Type','application/json')->withStatus(502);
             }
+            if ($usingGlobal) self::quotaConsume($tenant, 'image'); // [225차 P1-4] 공용 키 영상 1건 누적
             $res->getBody()->write(json_encode(['ok'=>true,'job_id'=>$j['id'],'status'=>($j['status']??'processing')], JSON_UNESCAPED_UNICODE));
             return $res->withHeader('Content-Type','application/json');
         } catch (\Throwable $e) {
@@ -2764,7 +2873,7 @@ PROMPT;
         $system = '당신은 시니어 퍼포먼스 마케팅 애널리스트입니다. 주어진 실측 데이터만 근거로 한국어로 간결하고 실행가능한 인사이트를 작성합니다. 과장·추정·허위수치 금지. 반드시 JSON {"summary":"3-4문장","bullets":["핵심포인트", "..."],"recommendation":"우선 액션 1-2개","risks":["리스크", "..."]} 형식으로만 응답하세요.';
         $userMsg = "광고주의 최근 " . (int)$facts['window_days'] . "일 실측 마케팅 데이터입니다:\n" . json_encode($facts, JSON_UNESCAPED_UNICODE) . "\n채널 효율·예산 배분·이상 신호를 종합해 경영진용 요약을 작성하세요.";
         try {
-            $r = self::callClaude($system, $userMsg, 14);
+            $r = self::callClaude($system, $userMsg, 14, self::tenant($req));
             $parsed = self::parseAnalysis($r['text']);
             return TemplateResponder::respond($res, ['ok' => true, 'ai' => true, 'insight' => $parsed, 'facts' => $facts]);
         } catch (\Throwable $e) {

@@ -117,6 +117,23 @@ class PixelTracking
         // [현 차수] 감사 P2: HMAC 서명 검증 — 위조/열거된 pixel_id 를 DB 조회 전에 거부(오염·부하 차단).
         if (!self::verifyPixelId($pixelId)) return self::json($res, ['ok' => false, 'error' => 'invalid pixel signature'], 403);
 
+        // [225차 P1-5] 클라이언트 IP 해시 선계산(rate-limit + 저장 공용). 프록시 뒤에서는 X-Forwarded-For
+        //   첫 토큰(실 클라이언트)을 우선, 없으면 REMOTE_ADDR. (XFF 는 위조 가능하나 단순 봇 대량주입은 차단.)
+        $xff = trim(explode(',', $req->getHeaderLine('X-Forwarded-For'))[0] ?? '');
+        $ipRaw = $xff !== '' ? $xff : (string)($_SERVER['REMOTE_ADDR'] ?? '');
+        $ipHash = $ipRaw !== '' ? hash('sha256', $ipRaw) : null;
+        // [225차 P1-5] rate-limit: 공개 비콘 대량 위조 주입 차단(pixel_id+ip 분당 캡). 구매는 더 엄격.
+        //   created_at='Y-m-d H:i:s'(UTC) 고정포맷이라 문자열 사전비교가 시간비교와 동치.
+        if ($ipHash !== null) {
+            try {
+                $rl = $pdo->prepare("SELECT COUNT(*) FROM pixel_events WHERE pixel_id=:pid AND ip_hash=:iph AND created_at > :since");
+                $rl->execute([':pid' => $pixelId, ':iph' => $ipHash, ':since' => gmdate('Y-m-d H:i:s', time() - 60)]);
+                $recent = (int)$rl->fetchColumn();
+                $cap = ($eventName === 'purchase') ? 20 : 120; // 분당
+                if ($recent >= $cap) return self::json($res, ['ok' => false, 'error' => 'rate_limited'], 429);
+            } catch (\Throwable $e) { /* rate-limit 인프라 실패 시 통과(가용성 우선) */ }
+        }
+
         // ★테넌트 = pixel_id 의 소유 config. 미등록 픽셀=unknown(어느 테넌트 analytics 에도 미노출).
         $cfgStmt = $pdo->prepare("SELECT * FROM pixel_configs WHERE pixel_id=:pid LIMIT 1");
         $cfgStmt->execute([':pid' => $pixelId]);
@@ -147,11 +164,13 @@ class PixelTracking
         $effEvent = $trusted ? $eventName : 'custom';
         $effValue = $trusted ? $value : 0.0;
 
-        $eventId = 'evt_' . bin2hex(random_bytes(12));
+        // [225차 P1-5] dedup: 클라이언트 제공 event_id(Meta/TikTok CAPI 표준 eventID) 수용 → UNIQUE 키로
+        //   동일 이벤트 재전송(브라우저 픽셀+서버 CAPI 중복, 악의적 replay)을 INSERT IGNORE 로 1회만 적재.
+        //   미제공·비정상 형식이면 서버 난수(기존 동작). 안전 문자셋만 허용(주입/충돌 방지).
+        $cid = (string)($b['event_id'] ?? '');
+        $eventId = (preg_match('/^[A-Za-z0-9._-]{8,64}$/', $cid)) ? ('cid_' . $cid) : ('evt_' . bin2hex(random_bytes(12)));
         $emailHash = !empty($b['email']) ? hash('sha256', strtolower(trim($b['email']))) : null;
         $phoneHash = !empty($b['phone']) ? hash('sha256', preg_replace('/[^0-9]/', '', $b['phone'])) : null;
-        $ip = $_SERVER['REMOTE_ADDR'] ?? ($req->getHeaderLine('X-Forwarded-For') ?: '');
-        $ipHash = $ip ? hash('sha256', $ip) : null;
         $ua = $req->getHeaderLine('User-Agent');
         $deviceType = 'desktop';
         if (preg_match('/Mobile|Android|iPhone|iPad/i', $ua)) { $deviceType = preg_match('/iPad/i', $ua) ? 'tablet' : 'mobile'; }
@@ -166,12 +185,13 @@ class PixelTracking
             return $s === '' ? null : mb_substr($s, 0, $max);
         };
         $ignore = self::isMysql($pdo) ? 'IGNORE' : 'OR IGNORE';
-        $pdo->prepare("INSERT {$ignore} INTO pixel_events
+        $insStmt = $pdo->prepare("INSERT {$ignore} INTO pixel_events
             (tenant_id, event_id, pixel_id, event_name, session_id, user_id, email_hash, phone_hash,
              page_url, referrer, utm_source, utm_medium, utm_campaign, utm_content, utm_term,
              value, currency, product_ids, custom_data, ip_hash, user_agent, device_type, created_at)
             VALUES (:t,:eid,:pid,:en,:sid,:uid,:eh,:ph,:url,:ref,:us,:um,:uc,:uco,:ut,:val,:cur,:prod,:cdata,:iph,:ua,:dev,:ca)
-        ")->execute([
+        ");
+        $insStmt->execute([
             ':t'=>$tenant, ':eid'=>$eventId, ':pid'=>$pixelId, ':en'=>$effEvent, ':sid'=>$sessionId ?: null,
             ':uid'=>$clean($b['user_id'] ?? null, 120), ':eh'=>$emailHash, ':ph'=>$phoneHash, ':url'=>$clean($b['page_url'] ?? null, 500),
             ':ref'=>$clean($b['referrer'] ?? null, 500), ':us'=>$clean($b['utm_source'] ?? null, 120), ':um'=>$clean($b['utm_medium'] ?? null, 120),
@@ -180,18 +200,31 @@ class PixelTracking
             ':cdata'=>json_encode($b['custom_data'] ?? []), ':iph'=>$ipHash, ':ua'=>substr($ua, 0, 500), ':dev'=>$deviceType, ':ca'=>self::now(),
         ]);
 
-        if ($sessionId) { self::updateSession($pdo, $tenant, $sessionId, $pixelId, $effEvent, $effValue, $b); }
-        if ($trusted && $eventName === 'purchase' && $emailHash) { self::syncToCRM($pdo, $tenant, $eventName, $effValue, $eventId); }
+        // [225차 P1-5] dedup 가드: 실제 신규 적재(IGNORE 로 스킵 안 됨) 시에만 부수효과 실행.
+        //   기존엔 event_id 가 항상 서버난수라 무조건 적재됐으나, 클라 event_id 재전송 replay 시
+        //   세션 매출 증분·CRM 구매기록·CAPI 포워딩이 중복 실행돼 매출/전환이 이중 계상될 수 있었다.
+        $inserted = $insStmt->rowCount() > 0;
+        if ($inserted) {
+            if ($sessionId) { self::updateSession($pdo, $tenant, $sessionId, $pixelId, $effEvent, $effValue, $b); }
+            if ($trusted && $eventName === 'purchase' && $emailHash) { self::syncToCRM($pdo, $tenant, $eventName, $effValue, $eventId); }
 
-        if ($trusted && $config && (int)($config['enabled'] ?? 0) === 1) {
-            self::forwardToMeta($pdo, $config, $eventId, $eventName, $emailHash, $phoneHash, $b, $deviceType);
-            self::forwardToTikTok($pdo, $config, $eventId, $eventName, $emailHash, $b);
+            if ($trusted && $config && (int)($config['enabled'] ?? 0) === 1) {
+                self::forwardToMeta($pdo, $config, $eventId, $eventName, $emailHash, $phoneHash, $b, $deviceType);
+                self::forwardToTikTok($pdo, $config, $eventId, $eventName, $emailHash, $b);
+            }
         }
-        return self::json($res, ['ok' => true, 'event_id' => $eventId]);
+        return self::json($res, ['ok' => true, 'event_id' => $eventId, 'deduped' => !$inserted]);
     }
 
     private static function updateSession(\PDO $pdo, string $tenant, string $sid, string $pixelId, string $eventName, float $value, array $b): void
     {
+        // [225차 P1-5] $clean 은 collect() 지역 클로저라 이 메서드 스코프엔 없었다(선재 버그: 신규 세션
+        //   INSERT 분기에서 null() 호출 → TypeError fatal → 모든 첫 세션 적재 500). 동일 sanitizer 를 지역 정의.
+        $clean = static function ($v, int $max): ?string {
+            if ($v === null) return null;
+            $s = trim(preg_replace('/[\x00-\x1F\x7F]/u', '', strip_tags((string)$v)));
+            return $s === '' ? null : mb_substr($s, 0, $max);
+        };
         // 204차 P2: 세션 집계도 tenant_id 로 스코프(공개 비콘이라 session_id 추측 시 타 테넌트 카운터 오염 차단).
         $exists = $pdo->prepare("SELECT session_id FROM pixel_sessions WHERE session_id=:sid AND tenant_id=:t");
         $exists->execute([':sid' => $sid, ':t' => $tenant]);

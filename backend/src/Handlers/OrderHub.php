@@ -239,16 +239,77 @@ final class OrderHub
             return self::json($resp, ['ok' => false, 'error' => 'db_error', 'message' => $e->getMessage()], 500);
         }
 
+        // [225차 P1-11] 서버측 COGS 집계(전체 행) — 기존 프론트는 매출만 서버집계로 고치고 COGS 는
+        //   activeOrders(1000캡 배열) 계산이라 1000건 초과 테넌트의 총이익/영업이익이 과대(219 비대칭)였다.
+        //   channel_orders 엔 cost 컬럼이 없어 channel_inventory.cost(sku별, GROUP 으로 dedup)와 조인 집계.
+        //   취소 제외(cancelExpr SSOT). 인벤토리 테이블 부재 등 실패 시 cogs=null(프론트 폴백=배열 COGS).
+        $cogs = null;
+        try {
+            $stCogs = $pdo->prepare(
+                "SELECT COALESCE(SUM(o.qty * ic.cost),0) AS cogs
+                   FROM channel_orders o
+                   LEFT JOIN (SELECT tenant_id, sku, MAX(cost) AS cost FROM channel_inventory WHERE tenant_id=? GROUP BY tenant_id, sku) ic
+                     ON ic.tenant_id = o.tenant_id AND ic.sku = o.sku
+                  WHERE o.$baseSql AND NOT $cancelExpr"
+            );
+            $stCogs->execute(array_merge([$tenant], $baseArgs, $cancelTokens));
+            $cogs = (float)$stCogs->fetchColumn();
+        } catch (\Throwable $e) { $cogs = null; /* 프론트가 클라 배열 COGS 로 폴백 */ }
+
         return self::json($resp, [
             'ok'        => true,
             'count'     => (int)$active['cnt'],
             'totalOrders' => (int)$active['cnt'],
             'revenue'   => (float)$active['rev'],
+            'cogs'      => $cogs,
             'pending'   => $pending,
             'shipping'  => $shipping,
             'done'      => $done,
             'cancelled' => $cancelled,
             'returned'  => $returned,
+            '_env'      => Db::env(),
+            '_isDemo'   => $isDemo,
+        ]);
+    }
+
+    /**
+     * [225차 P1-16] 클레임(반품) 통계 서버집계 — 전체 행(limit 캡 무관) 상태별 카운트 + 반품액 합계.
+     *   ReturnsPortal 은 claims?limit=200 배열로 KPI 를 세어 200건 초과 테넌트가 과소 집계됐다.
+     *   상태별 카운트와 총 반품액을 DB 에서 집계해 정확한 반품 KPI 를 제공.
+     */
+    public static function claimsStats(Request $req, Response $resp): Response
+    {
+        $g = self::gate($req, $resp);
+        if (isset($g['error'])) return $g['error'];
+        [$tenant, $isDemo, $pdo] = [$g['tenant'], $g['isDemo'], $g['pdo']];
+
+        $byStatus = [];
+        $total = 0; $amount = 0.0;
+        try {
+            $st = $pdo->prepare("SELECT COALESCE(status,'pending') AS status, COUNT(*) AS cnt, COALESCE(SUM(amount),0) AS amt
+                FROM orderhub_claims WHERE tenant_id=? GROUP BY COALESCE(status,'pending')");
+            $st->execute([$tenant]);
+            foreach ($st->fetchAll(\PDO::FETCH_ASSOC) as $r) {
+                $s = (string)$r['status'];
+                $byStatus[$s] = (int)$r['cnt'];
+                $total  += (int)$r['cnt'];
+                $amount += (float)$r['amt'];
+            }
+        } catch (\Throwable $e) {
+            return self::json($resp, ['ok' => false, 'error' => 'db_error', 'message' => $e->getMessage()], 500);
+        }
+
+        return self::json($resp, [
+            'ok'        => true,
+            'total'     => $total,
+            'byStatus'  => $byStatus,
+            'pending'   => (int)($byStatus['pending'] ?? 0),
+            'approved'  => (int)($byStatus['approved'] ?? 0),
+            'refunded'  => (int)($byStatus['refunded'] ?? 0),
+            'rejected'  => (int)($byStatus['rejected'] ?? 0),
+            'restocked' => (int)($byStatus['restocked'] ?? 0),
+            'disposed'  => (int)($byStatus['disposed'] ?? 0),
+            'amount'    => round($amount, 2),
             '_env'      => Db::env(),
             '_isDemo'   => $isDemo,
         ]);
@@ -365,6 +426,74 @@ final class OrderHub
         ]);
     }
 
+    /**
+     * [225차 P0-1] 정산 통계 서버집계 — 전체 행 SQL 집계(limit 캡 무관).
+     *   기존 프론트 settlementStats 는 settlements?limit=200 배열을 재집계해
+     *   정산행 200건 초과 테넌트의 매출/수수료/순지급/반품이 과소되었다(P&L 정본 오염).
+     *   ordersStats 와 동일하게 전체 행을 DB에서 SUM 하여 정확한 정산 머니경로를 제공.
+     *   반환 키는 프론트 settlementStats 객체와 1:1 매핑(totalGross 등).
+     */
+    public static function settlementsStats(Request $req, Response $resp): Response
+    {
+        $g = self::gate($req, $resp);
+        if (isset($g['error'])) return $g['error'];
+        [$tenant, $isDemo, $pdo] = [$g['tenant'], $g['isDemo'], $g['pdo']];
+
+        $q = $req->getQueryParams();
+        $period  = isset($q['period'])  ? (string)$q['period']  : null;
+        $channel = isset($q['channel']) ? (string)$q['channel'] : null;
+
+        $where = ['tenant_id = ?'];
+        $args  = [$tenant];
+        if ($period  !== null) { $where[] = 'period = ?';  $args[] = $period;  }
+        if ($channel !== null) { $where[] = 'channel = ?'; $args[] = $channel; }
+        $whereSql = implode(' AND ', $where);
+
+        try {
+            // status NULL/빈값은 프론트 filter(s => s.status !== 'settled')와 동일하게 pending 으로 분류
+            //   → COALESCE(status,'') 로 settled/pending 을 빠짐없이 양분(NULL 3-value 함정 차단).
+            $st = $pdo->prepare(
+                "SELECT COUNT(*) AS rows_count,
+                        COALESCE(SUM(gross_sales),0)     AS gross,
+                        COALESCE(SUM(net_payout),0)      AS net,
+                        COALESCE(SUM(platform_fee),0)    AS pfee,
+                        COALESCE(SUM(ad_fee),0)          AS adfee,
+                        COALESCE(SUM(coupon_discount),0) AS coupon,
+                        COALESCE(SUM(return_fee),0)      AS rfee,
+                        COALESCE(SUM(CASE WHEN COALESCE(status,'')='settled'  THEN net_payout ELSE 0 END),0) AS settled_amt,
+                        COALESCE(SUM(CASE WHEN COALESCE(status,'')<>'settled' THEN net_payout ELSE 0 END),0) AS pending_amt,
+                        COALESCE(SUM(orders_count),0)    AS ord,
+                        COALESCE(SUM(returns_count),0)   AS ret
+                 FROM orderhub_settlements WHERE $whereSql"
+            );
+            $st->execute($args);
+            $r = $st->fetch(\PDO::FETCH_ASSOC) ?: [];
+        } catch (\Throwable $e) {
+            return self::json($resp, ['ok' => false, 'error' => 'db_error', 'message' => $e->getMessage()], 500);
+        }
+
+        $orders  = (int)($r['ord'] ?? 0);
+        $returns = (int)($r['ret'] ?? 0);
+
+        return self::json($resp, [
+            'ok'                  => true,
+            'rowsCount'           => (int)($r['rows_count'] ?? 0),
+            'totalGross'          => (float)($r['gross'] ?? 0),
+            'totalNetPayout'      => (float)($r['net'] ?? 0),
+            'totalPlatformFee'    => (float)($r['pfee'] ?? 0),
+            'totalAdFee'          => (float)($r['adfee'] ?? 0),
+            'totalCouponDiscount' => (float)($r['coupon'] ?? 0),
+            'totalReturnFee'      => (float)($r['rfee'] ?? 0),
+            'settledAmount'       => (float)($r['settled_amt'] ?? 0),
+            'pendingAmount'       => (float)($r['pending_amt'] ?? 0),
+            'totalOrders'         => $orders,
+            'totalReturns'        => $returns,
+            'returnRate'          => $orders > 0 ? $returns / $orders : 0,
+            '_env'                => Db::env(),
+            '_isDemo'             => $isDemo,
+        ]);
+    }
+
     /* ════════════════════════════════════════════════════════════════════
      * 206차 #3 — claims/settlements 인제스트 라이터 (CSV/API)
      *   기존엔 읽기 전용(빈 테이블). 채널 정산 데이터를 적재한다.
@@ -425,6 +554,7 @@ final class OrderHub
         $now = gmdate('Y-m-d H:i:s');
         $ingested = 0; $skipped = 0;
         try {
+            $chk = $pdo->prepare("SELECT 1 FROM orderhub_claims WHERE id=? AND tenant_id=? LIMIT 1");
             $upd = $pdo->prepare("UPDATE orderhub_claims SET buyer=?,channel=?,type=?,reason=?,status=?,amount=?,updated_at=? WHERE id=? AND tenant_id=?");
             $ins = $pdo->prepare("INSERT INTO orderhub_claims (id,tenant_id,order_id,buyer,channel,type,reason,status,amount,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)");
             foreach ($items as $it) {
@@ -438,11 +568,18 @@ final class OrderHub
                 $status  = (string)($it['status'] ?? 'pending');
                 $amount  = (float)($it['amount'] ?? 0);
                 $id = (string)($it['id'] ?? '');
-                if ($id !== '' && $upd->execute([$buyer,$channel,$type,$reason,$status,$amount,$now,$id,$tenant]) && $upd->rowCount() > 0) {
-                    $ingested++; continue;
+                // [225차 P1-9] id 미제공 시 자연키(tenant|channel|order_id|type) 결정적 id 로 멱등화.
+                //   기존엔 항상 신규 INSERT → 동일 반품 재업로드(CSV/API)가 중복 적재되어 rollupSettlementsCore
+                //   의 반품·반품비가 이중집계되던 결함 차단. 존재확인 기반 upsert 로 rowCount=0(무변경) 함정도 회피.
+                if ($id === '') {
+                    $id = 'clm_' . substr(hash('sha256', $tenant . '|' . (string)$channel . '|' . $orderId . '|' . $type), 0, 24);
                 }
-                if ($id === '') $id = self::genId('clm', $tenant);
-                $ins->execute([$id,$tenant,$orderId,$buyer,$channel,$type,$reason,$status,$amount,$now,$now]);
+                $chk->execute([$id, $tenant]);
+                if ($chk->fetchColumn()) {
+                    $upd->execute([$buyer,$channel,$type,$reason,$status,$amount,$now,$id,$tenant]);
+                } else {
+                    $ins->execute([$id,$tenant,$orderId,$buyer,$channel,$type,$reason,$status,$amount,$now,$now]);
+                }
                 $ingested++;
             }
         } catch (\Throwable $e) {

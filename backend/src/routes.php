@@ -644,11 +644,15 @@ return function (App $app): void {
         // ── v424 OrderHub Aggregator (PM Phase 2, spec: docs/spec/backend_orderhub_aggregator_165.md) ─
         'GET /v424/orderhub/orders'      => 'Genie\\Handlers\\OrderHub::orders',
         'GET /v424/orderhub/orders/stats' => 'Genie\\Handlers\\OrderHub::ordersStats',
+        'GET /v424/orderhub/claims/stats' => 'Genie\\Handlers\\OrderHub::claimsStats',
         'GET /v424/orderhub/claims'      => 'Genie\\Handlers\\OrderHub::claims',
+        'GET /v424/orderhub/settlements/stats' => 'Genie\\Handlers\\OrderHub::settlementsStats',
         'GET /v424/orderhub/settlements' => 'Genie\\Handlers\\OrderHub::settlements',
         'GET /api/v424/orderhub/orders'      => 'Genie\\Handlers\\OrderHub::orders',
         'GET /api/v424/orderhub/orders/stats' => 'Genie\\Handlers\\OrderHub::ordersStats',
+        'GET /api/v424/orderhub/claims/stats' => 'Genie\\Handlers\\OrderHub::claimsStats',
         'GET /api/v424/orderhub/claims'      => 'Genie\\Handlers\\OrderHub::claims',
+        'GET /api/v424/orderhub/settlements/stats' => 'Genie\\Handlers\\OrderHub::settlementsStats',
         'GET /api/v424/orderhub/settlements' => 'Genie\\Handlers\\OrderHub::settlements',
         // 206차 #3: claims/settlements 인제스트 라이터(CSV/API) + 정산 롤업
         'POST /v424/orderhub/claims'             => 'Genie\\Handlers\\OrderHub::ingestClaims',
@@ -2352,11 +2356,15 @@ return function (App $app): void {
     // ── V424 OrderHub Aggregator (165차 deploy + 167차 register 매핑 보강) ──
     $register('GET', '/v424/orderhub/orders');
     $register('GET', '/v424/orderhub/orders/stats');
+    $register('GET', '/v424/orderhub/claims/stats');
     $register('GET', '/v424/orderhub/claims');
+    $register('GET', '/v424/orderhub/settlements/stats');
     $register('GET', '/v424/orderhub/settlements');
     $register('GET', '/api/v424/orderhub/orders');
     $register('GET', '/api/v424/orderhub/orders/stats');
+    $register('GET', '/api/v424/orderhub/claims/stats');
     $register('GET', '/api/v424/orderhub/claims');
+    $register('GET', '/api/v424/orderhub/settlements/stats');
     $register('GET', '/api/v424/orderhub/settlements');
     // 206차 #3: OrderHub writer (claims/settlements ingest + rollup)
     $register('POST', '/v424/orderhub/claims');

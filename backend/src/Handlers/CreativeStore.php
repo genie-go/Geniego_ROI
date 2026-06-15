@@ -81,6 +81,8 @@ final class CreativeStore
     {
         $pdo = Db::pdo();
         $userId = self::userId($req);
+        // [225차 P1-18] 익명('default' 공유 풀) 쓰기 차단 — 미인증자가 공유 버킷에 무제한 blob 적재/오염 방지.
+        if ($userId === 'default') return self::json($res, ['error' => 'Unauthorized'], 401);
         $body = (array)$req->getParsedBody();
 
         // 필수 필드 검증
@@ -136,6 +138,8 @@ final class CreativeStore
     {
         $pdo = Db::pdo();
         $userId = self::userId($req);
+        // [225차 P1-18] 익명('default') 수정 차단.
+        if ($userId === 'default') return self::json($res, ['error' => 'Unauthorized'], 401);
         $id = (int)$args['id'];
         $body = (array)$req->getParsedBody();
 
@@ -169,6 +173,8 @@ final class CreativeStore
     {
         $pdo = Db::pdo();
         $userId = self::userId($req);
+        // [225차 P1-18] 익명('default') 삭제 차단.
+        if ($userId === 'default') return self::json($res, ['error' => 'Unauthorized'], 401);
         $id = (int)$args['id'];
 
         $stmt = $pdo->prepare('DELETE FROM creative_asset WHERE id = ? AND user_id = ?');

@@ -301,6 +301,10 @@ export function GlobalDataProvider({ children }) {
     const [claimHistory, setClaimHistory] = useState(_isDemo ? loadDemoState('claimHistory', []) : []);  // 클레임/반품 이력
     // [현 차수] 운영 주문 통계 서버측 집계(limit 캡 과소집계 해소). 데모는 런타임 파생이라 null 유지.
     const [orderStatsServer, setOrderStatsServer] = useState(null);
+    // [225차 P0-1] 운영 정산 통계 서버측 집계(settlements?limit=200 재집계 과소 해소). 데모는 null 유지.
+    const [settlementStatsServer, setSettlementStatsServer] = useState(null);
+    // [225차 P1-16] 운영 클레임(반품) 통계 서버집계(claims?limit=200 재집계 과소 해소). 데모는 null 유지.
+    const [claimStatsServer, setClaimStatsServer] = useState(null);
     const [digitalShelfData, setDigitalShelfData] = useState({});     // DigitalShelf SoS 데이터
     const [campaignOrderMap, setCampaignOrderMap] = useState({});     // 캠페인 ID → Orders 매핑
     const [orderMemos, setOrderMemos] = useState({});                 // Orders별 메모
@@ -450,6 +454,10 @@ export function GlobalDataProvider({ children }) {
         getJsonAuth('/api/v424/orderhub/claims?limit=200')
             .then(res => { if (!cancelled && res?.ok && Array.isArray(res.items)) setClaimHistory(res.items); })
             .catch(() => { /* 빈 배열 유지 */ });
+        // [225차 P1-16] 클레임 통계 서버집계(전체 행) → ReturnsPortal 반품 KPI 캡 과소 해소.
+        getJsonAuth('/api/v424/orderhub/claims/stats')
+            .then(res => { if (!cancelled && res?.ok) setClaimStatsServer(res); })
+            .catch(() => { /* 클라 배열 폴백 */ });
         return () => { cancelled = true; };
     }, []);
 
@@ -459,6 +467,10 @@ export function GlobalDataProvider({ children }) {
         getJsonAuth('/api/v424/orderhub/settlements?limit=200')
             .then(res => { if (!cancelled && res?.ok && Array.isArray(res.items)) setSettlement(res.items); })
             .catch(() => { /* 빈 배열 유지 */ });
+        // [225차 P0-1] 정산 통계 서버집계(전체 행, limit 무관) → settlementStats 머니경로 과소 해소.
+        getJsonAuth('/api/v424/orderhub/settlements/stats')
+            .then(res => { if (!cancelled && res?.ok) setSettlementStatsServer(res); })
+            .catch(() => { /* 실패 시 클라(200캡) 집계 폴백 */ });
         return () => { cancelled = true; };
     }, []);
 
@@ -477,6 +489,8 @@ export function GlobalDataProvider({ children }) {
             // [현 차수] 주문 통계 서버집계 갱신(1000건 초과 테넌트 정확 집계).
             getJsonAuth('/api/v424/orderhub/orders/stats').then(r => { if (!cancelled && r?.ok) setOrderStatsServer(r); }).catch(() => {});
             getJsonAuth('/api/v424/orderhub/settlements?limit=200').then(r => { if (!cancelled && r?.ok && Array.isArray(r.items)) setSettlement(r.items); }).catch(() => {});
+            // [225차 P0-1] 정산 통계 서버집계 갱신(200건 초과 테넌트 정확 집계).
+            getJsonAuth('/api/v424/orderhub/settlements/stats').then(r => { if (!cancelled && r?.ok) setSettlementStatsServer(r); }).catch(() => {});
             fetch(`${BASE}/api/channel-sync/inventory`, { headers: { Authorization: `Bearer ${token}` } })
                 .then(r => r.ok ? r.json() : null).then(d => {
                     if (cancelled || !d) return;
@@ -1664,6 +1678,26 @@ export function GlobalDataProvider({ children }) {
         //   'confirmed'가 settled·pending 어디에도 안 잡혀 pendingAmount가 항상 0이었음 → 'settled' 외는 모두 정산대기.
         const settled = settlement.filter(s => s.status === 'settled');
         const pending = settlement.filter(s => s.status !== 'settled');
+        // [225차 P0-1] 운영 정산 머니경로 과소집계 해소: 서버집계(전체 행 SQL)가 있으면 money 합계를
+        //   그것으로 대체(정산행 200건 초과 테넌트 정확 집계). channels(목록 표시)는 200캡 배열 유지.
+        //   데모는 런타임 단일소스 파생이라 settlementStatsServer=null → 클라(배열) 집계 유지.
+        const srv = (!_isDemo && settlementStatsServer && settlementStatsServer.ok) ? settlementStatsServer : null;
+        if (srv) {
+            return {
+                totalGross: Number(srv.totalGross) || 0,
+                totalNetPayout: Number(srv.totalNetPayout) || 0,
+                totalPlatformFee: Number(srv.totalPlatformFee) || 0,
+                totalAdFee: Number(srv.totalAdFee) || 0,
+                totalCouponDiscount: Number(srv.totalCouponDiscount) || 0,
+                totalReturnFee: Number(srv.totalReturnFee) || 0,
+                settledAmount: Number(srv.settledAmount) || 0,
+                pendingAmount: Number(srv.pendingAmount) || 0,
+                totalOrders: Number(srv.totalOrders) || 0,
+                totalReturns: Number(srv.totalReturns) || 0,
+                returnRate: Number(srv.returnRate) || 0,
+                channels: settlement,
+            };
+        }
         return {
             totalGross: settlement.reduce((s, r) => s + (r.grossSales || 0), 0),
             totalNetPayout: settlement.reduce((s, r) => s + (r.netPayout || 0), 0),
@@ -1680,7 +1714,7 @@ export function GlobalDataProvider({ children }) {
                 : 0,
             channels: settlement,
         };
-    }, [settlement]);
+    }, [settlement, settlementStatsServer]);
 
     // [현 차수] ★런타임 자동산출 엔진(데모 전용): 주문 변동 → 정산·예산기여매출 즉시 재파생.
     //   체험자가 주문을 등록/수정하면 정산(글로벌/P&L 소스)·성과(예산기여매출)가 주문에 동기화되어
@@ -1710,10 +1744,18 @@ export function GlobalDataProvider({ children }) {
         const revenue = _isDemo ? orderRevenue : (settlementRevenue > 0 ? settlementRevenue : orderRevenue);
 
         // Revenue원가 (COGS): Orders된 SKU 원가 × 수량
-        const cogs = activeOrders.reduce((s, o) => {
-            const item = inventory.find(i => i.sku === o.sku);
-            return s + (item ? item.cost * o.qty : 0);
-        }, 0);
+        // [225차 P1-11] 운영 COGS 비대칭 해소: 매출은 서버집계인데 COGS 는 activeOrders(1000캡 배열)
+        //   계산이라 1000건 초과 테넌트의 총이익/영업이익이 과대였다. 서버 COGS(전체 행 channel_inventory
+        //   조인 집계)가 있으면 그것을 사용(null=인벤토리 미적재 등 → 클라 배열 폴백). 데모는 항상 배열.
+        const srvCogs = (!_isDemo && orderStatsServer && orderStatsServer.ok && orderStatsServer.cogs != null)
+            ? Number(orderStatsServer.cogs)
+            : null;
+        const cogs = (srvCogs != null && !Number.isNaN(srvCogs))
+            ? srvCogs
+            : activeOrders.reduce((s, o) => {
+                const item = inventory.find(i => i.sku === o.sku);
+                return s + (item ? item.cost * o.qty : 0);
+            }, 0);
 
         // Ad Spend: BudgetPlanner spent 합계 (Channel별 Ad Spend 집행액)
         const adSpend = budgetStats.totalSpent;
@@ -1876,7 +1918,7 @@ export function GlobalDataProvider({ children }) {
         supplyOrders, addSupplyOrder, updateSupplyOrderStatus,
         lotManagement, registerLot,
         priceCalendar, addPriceCalendarEvent,
-        claimHistory, registerClaimReturn, orderMemos, setOrderMemo, slaViolations,
+        claimHistory, claimStatsServer, registerClaimReturn, orderMemos, setOrderMemo, slaViolations,
         pickingLists, packingSlips,
         digitalShelfData, campaignOrderMap,
 

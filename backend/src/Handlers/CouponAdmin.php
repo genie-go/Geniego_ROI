@@ -175,12 +175,13 @@ final class CouponAdmin
         $pdo = Db::pdo();
         $issued = [];
         try {
+            // [225차 P1-12] NOW() 는 MySQL 전용 → SQLite 폴백서 쿠폰 발급 500. 양 드라이버 공통 CURRENT_TIMESTAMP.
             $ins = $pdo->prepare(
                 'INSERT INTO free_coupons
                    (code, plan, duration_days, max_uses, use_count,
                     issued_to_user_id, issued_to_email, note, issued_by,
                     is_revoked, created_at)
-                 VALUES (?, ?, ?, ?, 0, NULL, ?, ?, NULL, 0, NOW())'
+                 VALUES (?, ?, ?, ?, 0, NULL, ?, ?, NULL, 0, CURRENT_TIMESTAMP)'
             );
             for ($i = 0; $i < $quantity; $i++) {
                 $code = 'GENIE-' . strtoupper(bin2hex(random_bytes(5)));

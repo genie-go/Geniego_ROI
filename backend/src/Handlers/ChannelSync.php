@@ -1524,19 +1524,34 @@ final class ChannelSync
         $creds->execute([$tenant]);
         $rows = $creds->fetchAll(PDO::FETCH_ASSOC);
 
+        // [225차 P1-7] 채널키를 canonical 로 정규화해 누적(별칭 st11→11st, tiktok_shop→tiktok 등).
+        //   기존엔 raw 저장키로 집계해 supportedChannels.id(canonical) 와 불일치 → 11번가 카드가 정상연결·
+        //   동기화에도 미연동·0 으로 거짓표시되던 결함 해소.
         $productCounts = [];
         try {
             $stats = $pdo->prepare("SELECT channel, COUNT(*) as product_cnt FROM channel_products WHERE tenant_id=? GROUP BY channel");
             $stats->execute([$tenant]);
-            $productCounts = array_column($stats->fetchAll(PDO::FETCH_ASSOC), 'product_cnt', 'channel');
+            foreach ($stats->fetchAll(PDO::FETCH_ASSOC) as $r) {
+                $c = self::normalizeChannelKey((string)$r['channel']);
+                $productCounts[$c] = ($productCounts[$c] ?? 0) + (int)$r['product_cnt'];
+            }
         } catch (\Throwable $e) { $productCounts = []; }
 
         $orderStats = [];
         try {
-            $ostats = $pdo->prepare("SELECT channel, COUNT(*) as order_cnt, SUM(total_price) as total_revenue FROM channel_orders WHERE tenant_id=? GROUP BY channel");
-            $ostats->execute([$tenant]);
+            // [225차 P1-8] 취소주문 제외(OrderHub SSOT) — 채널별 매출·주문수가 ordersStats/Rollup 캐논과
+            //   발산(과대)하던 결함 해소. 반품은 매출 포함이라 제외 대상 아님.
+            $ph = implode(',', array_fill(0, count(OrderHub::CANCEL_TOKENS), '?'));
+            $ostats = $pdo->prepare("SELECT channel, COUNT(*) as order_cnt, SUM(total_price) as total_revenue
+                FROM channel_orders
+                WHERE tenant_id=? AND NOT (COALESCE(event_type,'order')='cancel' OR COALESCE(status,'') IN ($ph))
+                GROUP BY channel");
+            $ostats->execute(array_merge([$tenant], OrderHub::CANCEL_TOKENS));
             foreach ($ostats->fetchAll(PDO::FETCH_ASSOC) as $r) {
-                $orderStats[$r['channel']] = ['cnt' => (int)$r['order_cnt'], 'revenue' => (float)$r['total_revenue']];
+                $c = self::normalizeChannelKey((string)$r['channel']);
+                if (!isset($orderStats[$c])) $orderStats[$c] = ['cnt' => 0, 'revenue' => 0.0];
+                $orderStats[$c]['cnt']     += (int)$r['order_cnt'];
+                $orderStats[$c]['revenue'] += (float)$r['total_revenue'];
             }
         } catch (\Throwable $e) { $orderStats = []; }
 
@@ -1557,15 +1572,16 @@ final class ChannelSync
             ['id'=>'lotteon','name'=>'롯데온','icon'=>'L','color'=>'#ef4444','type'=>'국내'],
         ];
 
+        // [225차 P1-7] credMap 도 canonical 키로 정규화(저장키 st11 등 별칭 → supportedChannels.id 와 정합).
         $credMap = [];
         foreach ($rows as $r) {
-            $ch = $r['channel'];
+            $ch = self::normalizeChannelKey((string)$r['channel']);
             if (!isset($credMap[$ch])) $credMap[$ch] = [];
             $credMap[$ch][] = $r;
         }
 
         foreach ($supportedChannels as &$ch) {
-            $id = $ch['id'];
+            $id = self::normalizeChannelKey($ch['id']); // 조회는 canonical 키로(표시 id 는 보존)
             $ch['status']       = isset($credMap[$id]) ? ($credMap[$id][0]['test_status'] ?? 'untested') : 'not_configured';
             $ch['creds']        = $credMap[$id] ?? [];
             $ch['product_count']= (int)($productCounts[$id] ?? 0);
@@ -1574,6 +1590,7 @@ final class ChannelSync
             $ch['last_synced']  = $credMap[$id][0]['last_synced_at'] ?? null;
             $ch['sync_status']  = $credMap[$id][0]['sync_status'] ?? 'none';
         }
+        unset($ch);
 
         return TemplateResponder::respond($res, [
             'ok'       => true,

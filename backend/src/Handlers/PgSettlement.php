@@ -131,10 +131,13 @@ final class PgSettlement
         $st = $pdo->prepare("SELECT id,provider,txn_id,type,gross,fee,net,currency,status,txn_at FROM pg_settlement WHERE tenant_id=? ORDER BY txn_at DESC, id DESC LIMIT 300");
         $st->execute([$tenant]);
         $rows = $st->fetchAll(PDO::FETCH_ASSOC);
-        $gross = 0.0; $fee = 0.0; $net = 0.0;
-        foreach ($rows as $r) { $gross += (float)$r['gross']; $fee += (float)$r['fee']; $net += (float)$r['net']; }
+        // [225차 P1-15] summary 는 표시용 300행이 아닌 전체 행 SUM(거래 300건 초과 테넌트 과소집계 해소).
+        $sumSt = $pdo->prepare("SELECT COUNT(*) AS cnt, COALESCE(SUM(gross),0) AS g, COALESCE(SUM(fee),0) AS f, COALESCE(SUM(net),0) AS n FROM pg_settlement WHERE tenant_id=?");
+        $sumSt->execute([$tenant]);
+        $agg = $sumSt->fetch(PDO::FETCH_ASSOC) ?: ['cnt' => 0, 'g' => 0, 'f' => 0, 'n' => 0];
         return self::json($response, ['ok' => true, 'settlements' => $rows, 'summary' => [
-            'count' => count($rows), 'gross' => round($gross, 2), 'fee' => round($fee, 2), 'net' => round($net, 2),
+            'count' => (int)$agg['cnt'], 'gross' => round((float)$agg['g'], 2), 'fee' => round((float)$agg['f'], 2), 'net' => round((float)$agg['n'], 2),
+            'shown' => count($rows),
         ]]);
     }
 

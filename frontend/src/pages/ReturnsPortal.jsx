@@ -19,8 +19,13 @@ const Badge=({label,color})=><span style={{background:color+'22',color,border:'1
 // 204차: 전자제품 DEMO_RETURNS 하드코딩 제거 — 데모 반품은 단일소스 orders(L'Oréal)에서 파생(ReturnsPortal 본체).
 const STATUS_COLORS={pending:'#f59e0b',approved:'#22c55e',rejected:'#ef4444',refunded:'#6366f1',restocked:'#06b6d4',disposed:'#94a3b8'};
 
-function OverviewTab({data,tr,fmt,orderCount=0}){
-const kpis=useMemo(()=>{const t=data.length,p=data.filter(d=>d.status==='pending').length,a=data.filter(d=>d.status==='approved').length,r=data.filter(d=>d.status==='refunded').length;return{t,p,a,r};},[data]);
+function OverviewTab({data,tr,fmt,orderCount=0,claimStats=null}){
+// [225차 P1-16] 운영 KPI 카운트는 서버 클레임 통계(전체 행) 우선 — claims?limit=200 배열 집계 과소 해소.
+//   서버 통계 미가용(데모·실패) 시 표시용 data 배열 폴백.
+const kpis=useMemo(()=>{
+  if(claimStats&&claimStats.ok){return{t:Number(claimStats.total)||0,p:Number(claimStats.pending)||0,a:Number(claimStats.approved)||0,r:Number(claimStats.refunded)||0};}
+  const t=data.length,p=data.filter(d=>d.status==='pending').length,a=data.filter(d=>d.status==='approved').length,r=data.filter(d=>d.status==='refunded').length;return{t,p,a,r};
+},[data,claimStats]);
 // 204차 동기화: 반품률=반품수/전체주문수(단일소스 orderCount, 과거 /50 임의분모), 평균처리일=상태별 가중 파생(과거 "3.2" 하드코딩).
 const rate=useMemo(()=>orderCount>0?((kpis.t/orderCount)*100).toFixed(1):'0',[kpis.t,orderCount]);
 const avgDays=useMemo(()=>{if(!data.length)return'0';const D={refunded:4.2,approved:2.1,pending:1.0,restocked:3.5,disposed:5.0};return(data.reduce((s,d)=>s+(D[d.status]||2),0)/data.length).toFixed(1);},[data]);
@@ -230,7 +235,7 @@ const tr=useTr();
 const{fmt}=useCurrency();
 const{user}=useAuth();
 const isDemo=IS_DEMO; // 180차: email·host broad includes('demo') 제거 → demoEnv 정본 격리(운영 오염 0)
-const{orders=[],claimHistory=[]}=useGlobalData();
+const{orders=[],claimHistory=[],claimStatsServer=null,orderStats=null}=useGlobalData();
 const[tab,setTab]=useState('tabOverview');
 // 204차 동기화: 데모 반품을 단일소스(orders=L'Oréal 상품)에서 파생 — 과거 독립 하드코딩 DEMO_RETURNS(전자제품,
 //   타 메뉴 불일치)를 제거. 주문에서 결정적 선별 → 상품·채널·고객·금액이 주문/대시보드와 정합.
@@ -255,7 +260,9 @@ const data=useMemo(()=>{
     date:String(c.createdAt||'').slice(0,10), inspGrade:c.inspGrade??null, refundMethod:c.refundMethod??null,
   }));
 },[isDemo,orders,claimHistory]);
-const orderCount=isDemo?(Array.isArray(orders)?orders.length:0):(Array.isArray(claimHistory)?claimHistory.length:0);
+// [225차 P1-16] 반품률 분모 = 실주문수. 운영은 과거 claimHistory.length(=반품수, 분자와 동일 → 항상 ~100%)
+//   였던 치명 버그를 서버 주문집계(orderStats.totalOrders, 전체 행)로 교체. 데모는 단일소스 주문수.
+const orderCount=isDemo?(Array.isArray(orders)?orders.length:0):(Number(orderStats?.totalOrders||orderStats?.count)||(Array.isArray(claimHistory)?claimHistory.length:0));
 
 const titleStyle={fontSize:22,fontWeight:800,color:'#1e293b'};
 const subStyle={fontSize:13,color:'#64748b',marginTop:4};
@@ -280,7 +287,7 @@ return <div style={{display:'flex',flexDirection:'column',height:'100%',backgrou
 </div>
 {/* Content scroll */}
 <div style={{flex:1,overflowY:'auto',padding:'20px 28px 40px'}}>
-{tab==='tabOverview'&&<OverviewTab data={data} tr={tr} fmt={fmt} orderCount={orderCount}/>}
+{tab==='tabOverview'&&<OverviewTab data={data} tr={tr} fmt={fmt} orderCount={orderCount} claimStats={isDemo?null:claimStatsServer}/>}
 {tab==='tabRequests'&&<RequestsTab data={data} tr={tr} fmt={fmt}/>}
 {tab==='tabInspection'&&<InspectionTab data={data} tr={tr}/>}
 {tab==='tabRefunds'&&<RefundsTab data={data} tr={tr} fmt={fmt}/>}

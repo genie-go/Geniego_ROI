@@ -369,6 +369,11 @@ class LiveCommerce
             $om->execute([':t' => $t, ':ch' => 'live', ':oid' => 'LIVE-' . $sid . '-' . $orderId, ':buyer' => $buyer, ':sku' => $sku, ':name' => $name, ':qty' => $qty, ':price' => $price, ':total' => $total, ':oa' => $now, ':syn' => $now]);
         } catch (\Throwable $e) { error_log('[LiveCommerce.placeOrder] channel_orders mirror failed: ' . $e->getMessage()); }
 
+        // [225차 P1-14] WMS 물리재고 차감 — 기존엔 live_products(채널재고)만 줄이고 wms_stock 미차감이라
+        //   채널주문(ChannelSync)은 차감되는데 라이브주문만 누락돼 오버셀 위험이었다. reflectChannelSale 은
+        //   ref='LIVE-{sid}-{orderId}' 로 멱등(중복 출고 skip)·데모가드·미추적 SKU skip 내장(드롭인 안전).
+        try { \Genie\Handlers\Wms::reflectChannelSale($t, $sku, $name, (float)$qty, 'LIVE-' . $sid . '-' . $orderId); } catch (\Throwable $e) {}
+
         // [현 차수] 라이브 구매 → CRM/LTV/구매여정('purchase' 트리거) 자동 연결(ChannelSync 경로와 동등).
         //   email-less buyer 는 이름+채널 합성키로 CRM 매칭(ChannelSync.recordCrmPurchase). 데모는 내부에서 skip.
         try { \Genie\Handlers\ChannelSync::ingestPurchaseToCrm($pdo, $t, 'live', null, $buyer, $total, $sku, (int)$qty, 'LIVE-' . $sid . '-' . $orderId); } catch (\Throwable $e) {}

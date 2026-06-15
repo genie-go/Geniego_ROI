@@ -91,14 +91,10 @@ final class AdminPlans
 
         $pdo = Db::pdo();
         // [171차] is_recommended + discount_pct 컬럼 추가 — 추천 플랜 + 자동 산출 비율
-        $pdo->prepare(
-            'INSERT INTO plan_config
-               (plan_id, name, description, price_usd, price_annual_usd,
-                price_id_monthly, price_id_annual, features_json, limits_json,
-                display_order, is_active, is_custom_quote,
-                is_recommended, discount_pct, updated_by)
-             VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-             ON DUPLICATE KEY UPDATE
+        // [225차 P1-12] ON DUPLICATE KEY 는 MySQL 전용 → SQLite 폴백서 플랜 저장 500. 드라이버 분기(SQLite=ON CONFLICT).
+        $isMy = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql';
+        $onConflict = $isMy
+            ? 'ON DUPLICATE KEY UPDATE
                name=VALUES(name), description=VALUES(description),
                price_usd=VALUES(price_usd), price_annual_usd=VALUES(price_annual_usd),
                price_id_monthly=VALUES(price_id_monthly), price_id_annual=VALUES(price_id_annual),
@@ -107,6 +103,23 @@ final class AdminPlans
                is_custom_quote=VALUES(is_custom_quote),
                is_recommended=VALUES(is_recommended), discount_pct=VALUES(discount_pct),
                updated_by=VALUES(updated_by)'
+            : 'ON CONFLICT(plan_id) DO UPDATE SET
+               name=excluded.name, description=excluded.description,
+               price_usd=excluded.price_usd, price_annual_usd=excluded.price_annual_usd,
+               price_id_monthly=excluded.price_id_monthly, price_id_annual=excluded.price_id_annual,
+               features_json=excluded.features_json, limits_json=excluded.limits_json,
+               display_order=excluded.display_order, is_active=excluded.is_active,
+               is_custom_quote=excluded.is_custom_quote,
+               is_recommended=excluded.is_recommended, discount_pct=excluded.discount_pct,
+               updated_by=excluded.updated_by';
+        $pdo->prepare(
+            'INSERT INTO plan_config
+               (plan_id, name, description, price_usd, price_annual_usd,
+                price_id_monthly, price_id_annual, features_json, limits_json,
+                display_order, is_active, is_custom_quote,
+                is_recommended, discount_pct, updated_by)
+             VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+             ' . $onConflict
         )->execute([
             $planId,
             $name,

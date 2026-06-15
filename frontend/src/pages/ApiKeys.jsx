@@ -141,7 +141,7 @@ const CHANNEL_FIELDS = {
   google_ads: [{ k: 'developer_token', label: '개발자 토큰', secret: true }, { k: 'access_token', label: '액세스 토큰', secret: true }, { k: 'customer_id', label: '고객 ID (10자리)' }],
   tiktok_business: [{ k: 'access_token', label: '액세스 토큰', secret: true }, { k: 'advertiser_id', label: '광고주 ID' }],
   naver_sa:  [{ k: 'api_key', label: 'API 키', secret: true }, { k: 'api_secret', label: '비밀키', secret: true }, { k: 'customer_id', label: '고객 ID' }],
-  kakao_moment: [{ k: 'access_token', label: '액세스 토큰', secret: true }, { k: 'account_id', label: '광고계정 ID' }],
+  kakao_moment: [{ k: 'access_token', label: '액세스 토큰', secret: true }, { k: 'ad_account_id', label: '광고계정 ID' }],
   // 분석/기타
   google_analytics: [{ k: 'measurement_id', label: '측정 ID (G-)' }, { k: 'api_secret', label: 'API Secret', secret: true }],
   slack:     [{ k: 'webhook_url', label: 'Webhook URL', secret: true }],

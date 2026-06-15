@@ -139,17 +139,28 @@ final class MenuPricingSync
         $pdo = Db::pdo();
         $pdo->beginTransaction();
         try {
-            $up = $pdo->prepare(
-                'INSERT INTO menu_value_score
-                   (menu_key, weight_usd, category, ai_premium_pct, bundle_count, description, updated_by)
-                 VALUES (?,?,?,?,?,?,?)
-                 ON DUPLICATE KEY UPDATE
+            // [225차 P1-12] ON DUPLICATE KEY 는 MySQL 전용 → SQLite 폴백서 가격점수 저장 500. 드라이버 분기.
+            $isMy = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql';
+            $onConflict = $isMy
+                ? 'ON DUPLICATE KEY UPDATE
                    weight_usd=VALUES(weight_usd),
                    category=VALUES(category),
                    ai_premium_pct=VALUES(ai_premium_pct),
                    bundle_count=VALUES(bundle_count),
                    description=VALUES(description),
                    updated_by=VALUES(updated_by)'
+                : 'ON CONFLICT(menu_key) DO UPDATE SET
+                   weight_usd=excluded.weight_usd,
+                   category=excluded.category,
+                   ai_premium_pct=excluded.ai_premium_pct,
+                   bundle_count=excluded.bundle_count,
+                   description=excluded.description,
+                   updated_by=excluded.updated_by';
+            $up = $pdo->prepare(
+                'INSERT INTO menu_value_score
+                   (menu_key, weight_usd, category, ai_premium_pct, bundle_count, description, updated_by)
+                 VALUES (?,?,?,?,?,?,?)
+                 ' . $onConflict
             );
             $count = 0;
             foreach ($scores as $s) {
@@ -213,10 +224,16 @@ final class MenuPricingSync
 
         $pdo->beginTransaction();
         try {
+            // [225차 P1-12] ON DUPLICATE KEY + "" (MySQL 빈문자열, SQLite 는 빈 식별자로 오인) 둘 다 MySQL 전용.
+            //   드라이버 분기 + 빈 문자열은 양 DB 공통 ''(단일따옴표)로 교체.
+            $isMy = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql';
+            $ppConflict = $isMy
+                ? 'ON DUPLICATE KEY UPDATE price_usd = VALUES(price_usd), updated_by = VALUES(updated_by)'
+                : 'ON CONFLICT(plan_id, period_months) DO UPDATE SET price_usd = excluded.price_usd, updated_by = excluded.updated_by';
             $pdo->prepare(
-                'INSERT INTO plan_period_pricing (plan_id, period_months, price_usd, discount_pct, paddle_price_id, is_active, display_order, updated_by)
-                 VALUES (?, 1, ?, 0, "", 1, 11, ?)
-                 ON DUPLICATE KEY UPDATE price_usd = VALUES(price_usd), updated_by = VALUES(updated_by)'
+                "INSERT INTO plan_period_pricing (plan_id, period_months, price_usd, discount_pct, paddle_price_id, is_active, display_order, updated_by)
+                 VALUES (?, 1, ?, 0, '', 1, 11, ?)
+                 " . $ppConflict
             )->execute([$planId, $applied, $actor]);
 
             // 다른 기간 자동 산출 (할인율 유지)

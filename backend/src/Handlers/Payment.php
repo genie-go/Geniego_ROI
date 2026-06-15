@@ -955,18 +955,35 @@ final class Payment
 
     private static function ensureMenuTierPricingTable(\PDO $pdo): void
     {
-        $pdo->exec("CREATE TABLE IF NOT EXISTS menu_tier_pricing (
-            id INTEGER PRIMARY KEY AUTO_INCREMENT,
-            menu_key VARCHAR(100) NOT NULL,
-            menu_path VARCHAR(500),
-            plan VARCHAR(50) NOT NULL,
-            cycle VARCHAR(20) NOT NULL,
-            price_krw BIGINT NOT NULL DEFAULT 0,
-            discount_pct DECIMAL(5,2) NOT NULL DEFAULT 0,
-            is_active TINYINT(1) NOT NULL DEFAULT 1,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-        )");
+        // [225차 P1-12] INTEGER PRIMARY KEY AUTO_INCREMENT + ON UPDATE CURRENT_TIMESTAMP 는 SQLite 비호환
+        //   → 폴백서 테이블 생성 자체가 실패. 드라이버별 정본 DDL 분기.
+        if ($pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql') {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS menu_tier_pricing (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                menu_key VARCHAR(100) NOT NULL,
+                menu_path VARCHAR(500),
+                plan VARCHAR(50) NOT NULL,
+                cycle VARCHAR(20) NOT NULL,
+                price_krw BIGINT NOT NULL DEFAULT 0,
+                discount_pct DECIMAL(5,2) NOT NULL DEFAULT 0,
+                is_active TINYINT(1) NOT NULL DEFAULT 1,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+            )");
+        } else {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS menu_tier_pricing (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                menu_key TEXT NOT NULL,
+                menu_path TEXT,
+                plan TEXT NOT NULL,
+                cycle TEXT NOT NULL,
+                price_krw INTEGER NOT NULL DEFAULT 0,
+                discount_pct REAL NOT NULL DEFAULT 0,
+                is_active INTEGER NOT NULL DEFAULT 1,
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+            )");
+        }
         // 기존 테이블에 is_active 없으면 추가
         try { $pdo->exec('ALTER TABLE menu_tier_pricing ADD COLUMN is_active TINYINT(1) NOT NULL DEFAULT 1'); } catch (\Throwable $e) {}
         // UNIQUE KEY 제거 (이력 보존을 위해) - MySQL만
@@ -1299,16 +1316,16 @@ final class Payment
         return json_decode($raw, true) ?? ['_raw' => $raw, '_status' => $status];
     }
 
-    // ── 구독 패키지 조회 ──────────────────────────────────────────────
-    public static function getSubscriptionPackages(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
+    /**
+     * [225차 P1-12] subscription_packages DDL 드라이버 분기 — INTEGER PRIMARY KEY AUTO_INCREMENT +
+     *   ON UPDATE CURRENT_TIMESTAMP 는 SQLite 비호환이라 폴백서 생성 실패(구독 패키지 조회/저장 500).
+     *   조회·저장 두 곳에서 중복되던 인라인 DDL 을 공통 헬퍼로 통합.
+     */
+    private static function ensureSubscriptionPackagesTable(\PDO $pdo): void
     {
-        if (!self::checkAdmin($req)) {
-            return self::json($res->withStatus(403), ['ok' => false, 'error' => 'Admin only']);
-        }
-        try {
-            $pdo = Db::pdo();
-            $createSql = "CREATE TABLE IF NOT EXISTS subscription_packages (
-                id INTEGER PRIMARY KEY AUTO_INCREMENT,
+        if ($pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql') {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS subscription_packages (
+                id INT AUTO_INCREMENT PRIMARY KEY,
                 name VARCHAR(200) NOT NULL,
                 menu_keys TEXT NOT NULL,
                 price_monthly BIGINT NOT NULL DEFAULT 0,
@@ -1326,8 +1343,40 @@ final class Payment
                 is_active TINYINT(1) NOT NULL DEFAULT 1,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-            )";
-            $pdo->exec($createSql);
+            )");
+        } else {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS subscription_packages (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                menu_keys TEXT NOT NULL,
+                price_monthly INTEGER NOT NULL DEFAULT 0,
+                price_quarterly INTEGER NOT NULL DEFAULT 0,
+                price_yearly INTEGER NOT NULL DEFAULT 0,
+                discount_monthly REAL NOT NULL DEFAULT 0,
+                discount_quarterly REAL NOT NULL DEFAULT 0,
+                discount_yearly REAL NOT NULL DEFAULT 0,
+                usage_unlimited_monthly INTEGER NOT NULL DEFAULT 1,
+                usage_unlimited_quarterly INTEGER NOT NULL DEFAULT 1,
+                usage_unlimited_yearly INTEGER NOT NULL DEFAULT 1,
+                usage_limit_monthly INTEGER NOT NULL DEFAULT 0,
+                usage_limit_quarterly INTEGER NOT NULL DEFAULT 0,
+                usage_limit_yearly INTEGER NOT NULL DEFAULT 0,
+                is_active INTEGER NOT NULL DEFAULT 1,
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+            )");
+        }
+    }
+
+    // ── 구독 패키지 조회 ──────────────────────────────────────────────
+    public static function getSubscriptionPackages(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
+    {
+        if (!self::checkAdmin($req)) {
+            return self::json($res->withStatus(403), ['ok' => false, 'error' => 'Admin only']);
+        }
+        try {
+            $pdo = Db::pdo();
+            self::ensureSubscriptionPackagesTable($pdo);
             // 기존 테이블에 usage 컬럼 없을 경우 ADD
             foreach (['usage_unlimited_monthly','usage_unlimited_quarterly','usage_unlimited_yearly'] as $col) {
                 try { $pdo->exec("ALTER TABLE subscription_packages ADD COLUMN {$col} TINYINT(1) NOT NULL DEFAULT 1"); } catch (\Throwable $e) {}
@@ -1360,27 +1409,7 @@ final class Payment
 
         try {
             $pdo = Db::pdo();
-            $createSql = "CREATE TABLE IF NOT EXISTS subscription_packages (
-                id INTEGER PRIMARY KEY AUTO_INCREMENT,
-                name VARCHAR(200) NOT NULL,
-                menu_keys TEXT NOT NULL,
-                price_monthly BIGINT NOT NULL DEFAULT 0,
-                price_quarterly BIGINT NOT NULL DEFAULT 0,
-                price_yearly BIGINT NOT NULL DEFAULT 0,
-                discount_monthly DECIMAL(5,2) NOT NULL DEFAULT 0,
-                discount_quarterly DECIMAL(5,2) NOT NULL DEFAULT 0,
-                discount_yearly DECIMAL(5,2) NOT NULL DEFAULT 0,
-                usage_unlimited_monthly TINYINT(1) NOT NULL DEFAULT 1,
-                usage_unlimited_quarterly TINYINT(1) NOT NULL DEFAULT 1,
-                usage_unlimited_yearly TINYINT(1) NOT NULL DEFAULT 1,
-                usage_limit_monthly INT NOT NULL DEFAULT 0,
-                usage_limit_quarterly INT NOT NULL DEFAULT 0,
-                usage_limit_yearly INT NOT NULL DEFAULT 0,
-                is_active TINYINT(1) NOT NULL DEFAULT 1,
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-            )";
-            $pdo->exec($createSql);
+            self::ensureSubscriptionPackagesTable($pdo);
             foreach (['usage_unlimited_monthly','usage_unlimited_quarterly','usage_unlimited_yearly'] as $col) {
                 try { $pdo->exec("ALTER TABLE subscription_packages ADD COLUMN {$col} TINYINT(1) NOT NULL DEFAULT 1"); } catch (\Throwable $e) {}
             }

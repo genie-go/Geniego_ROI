@@ -433,6 +433,16 @@ class Wms
         $type = (string)($d['type'] ?? 'Inbound'); $wh = (string)($d['wh_id'] ?? '');
         $dwh = (string)($d['dest_wh_id'] ?? ''); $sku = (string)($d['sku'] ?? '');
         $name = (string)($d['name'] ?? ''); $qty = (float)($d['qty'] ?? 0);
+        // [225차 P1-17] ref 멱등 가드 — ref 가 있는 행위(채널판매/PO입고/반품입고 등)는 (tenant,ref,type)
+        //   중복이면 재적용 skip. 직접 호출자(PartnerPortal 입고/반품입고)가 재시도 시 재고가 이중 반영되던
+        //   결함 차단. ref 가 빈 행위(수동 조정/이동)는 매번 distinct → 가드 미적용(오탐 방지).
+        $ref = (string)($d['ref'] ?? '');
+        if ($ref !== '') {
+            $dup = $pdo->prepare("SELECT id FROM wms_movements WHERE tenant_id=? AND ref=? AND type=? LIMIT 1");
+            $dup->execute([$t, $ref, $type]);
+            $existing = $dup->fetchColumn();
+            if ($existing !== false) return (int)$existing; // 이미 반영됨 → 멱등 반환
+        }
         // [현 차수] 감사 P1: 이력 INSERT + 물리재고 적용을 트랜잭션으로 원자화. 출고 재고부족(strict) 시
         //   adjustStock 예외 → 롤백 → 이력만 남고 재고 미차감되는 불일치/오버셀 은폐 차단.
         $ownTxn = !$pdo->inTransaction();

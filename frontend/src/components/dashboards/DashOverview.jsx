@@ -503,7 +503,9 @@ export default function DashOverview({ ticker, period }) {
     return {
       grossRev: gross,
       adSpend: spend,
-      roas: spend > 0 ? (gross / spend) : (pnlStats?.roas || budgetStats?.blendedRoas || 0),
+      // [225차 P1-10] ROAS 과대 수정: 기존 gross/spend(총매출/광고비)는 광고기여매출이 아닌 전체매출을
+      //   분자로 써 ROAS 가 대폭 과대표시됐다(라벨은 'Net ROAS'). 정본 blendedRoas(분자=광고기여매출)로 통일.
+      roas: (pnlStats?.roas || budgetStats?.blendedRoas || 0),
       orders: ord,
       // 207차 운영오염 수정: 기존 count/(count*4.5) = 항상 22.22% 자기상쇄 가짜값.
       //   방문수/세션 단일소스가 없어 운영에선 전환율을 정직 산출 불가 → null('—' 표시).

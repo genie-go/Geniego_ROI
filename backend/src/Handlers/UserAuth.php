@@ -292,10 +292,13 @@ final class UserAuth
             return self::json($res, ['ok' => false, 'error' => '세션이 만료되었습니다.', 'code' => 'SESSION_EXPIRED'], 401);
         }
 
-        // 플랜 계층: demo=0, pro=1, enterprise=2, admin=3
-        $rank = ['demo' => 0, 'pro' => 1, 'enterprise' => 2, 'admin' => 3];
-        $userRank = $rank[$user['plan']] ?? 0;
-        $minRank  = $rank[$minPlan] ?? 1;
+        // 플랜 계층: free/demo=0, starter/growth/pro=1, enterprise=2, admin=3
+        // [225차 P1-3] starter/growth/free 누락 → rank 0 폴백으로 유료 Starter/Growth 가입자가
+        //   requirePro 전체(WMS·LiveCommerce 등) 403 받던 게이트 붕괴. Paddle resolveAppPlan 은
+        //   'starter'/'growth' 를 정식 유료로 반환하므로 pro 동급(rank 1)으로 인정.
+        $rank = ['free' => 0, 'demo' => 0, 'starter' => 1, 'growth' => 1, 'pro' => 1, 'enterprise' => 2, 'admin' => 3];
+        $userRank = $rank[strtolower(trim((string)($user['plan'] ?? '')))] ?? 0;
+        $minRank  = $rank[strtolower(trim($minPlan))] ?? 1;
 
         if ($userRank < $minRank) {
             return self::json($res, [

@@ -112,10 +112,12 @@ final class CouponRedeem
             $newExpiry = date('Y-m-d H:i:s', strtotime("$base +$duration days"));
 
             // free_coupons update
+            // [225차 P0-2] NOW() 는 MySQL 전용 → SQLite 폴백서 throw/500. 양 드라이버 공통
+            //   CURRENT_TIMESTAMP 로 교체(MySQL·SQLite 모두 표준 지원).
             $pdo->prepare(
                 'UPDATE free_coupons
                     SET use_count = use_count + 1,
-                        redeemed_at = NOW(),
+                        redeemed_at = CURRENT_TIMESTAMP,
                         redeemed_by_user_id = ?
                   WHERE id = ?'
             )->execute([$userId, $coupon['id']]);
@@ -123,7 +125,7 @@ final class CouponRedeem
             // coupon_redemptions insert
             $pdo->prepare(
                 'INSERT INTO coupon_redemptions (coupon_id, user_id, plan, expires_at, created_at)
-                 VALUES (?, ?, ?, ?, NOW())'
+                 VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)'
             )->execute([$coupon['id'], $userId, $plan, $newExpiry]);
 
             // app_user plan + expiry update
@@ -197,15 +199,21 @@ final class CouponRedeem
         if (!preg_match('/Bearer\s+([a-f0-9]{64})/i', $auth, $m)) return null;
         $token = $m[1];
         $pdo = Db::pdo();
+        // [225차 P0-2] STR_TO_DATE/NOW() 는 MySQL 전용 → SQLite 폴백서 resolveUser 전면 throw/500.
+        //   만료 판정을 SQL 에서 제거하고 expires_at 을 PHP 에서 strtotime 비교(양 드라이버 공통 동작).
         $stmt = $pdo->prepare(
-            'SELECT s.user_id, u.email FROM user_session s
+            'SELECT s.user_id, s.expires_at, u.email FROM user_session s
               JOIN app_user u ON u.id = s.user_id
-              WHERE s.token = ? AND STR_TO_DATE(SUBSTRING(s.expires_at,1,19), "%Y-%m-%dT%H:%i:%s") > NOW()
+              WHERE s.token = ?
               LIMIT 1'
         );
         $stmt->execute([$token]);
         $row = $stmt->fetch(\PDO::FETCH_ASSOC);
-        return $row ?: null;
+        if (!$row) return null;
+        $exp = (string)($row['expires_at'] ?? '');
+        if ($exp !== '' && strtotime($exp) <= time()) return null;  // 만료 세션 거부
+        unset($row['expires_at']);
+        return $row;
     }
 
     private static function json(Response $res, array $body, int $code = 200): Response

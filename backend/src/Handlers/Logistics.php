@@ -139,6 +139,11 @@ final class Logistics
     public static function track(Request $request, Response $response, array $args): Response
     {
         $pdo = Db::pdo(); self::ensureTables($pdo);
+        // [225차 P1-18] 익명(무세션) 쓰기 차단 — 과거 익명 호출이 tenant='demo' 폴백으로 공유 데모 버킷에
+        //   임의 송장을 적재해 오염시켰다. 인증 세션(데모 사용자는 tenant='demo' 세션 보유)만 허용.
+        if (UserAuth::authedTenant($request) === null) {
+            return self::json($response, ['ok' => false, 'error' => '인증이 필요합니다.'], 401);
+        }
         $tenant = self::tenant($request);
         $b = self::body($request);
         $carrier = strtolower(trim((string)($b['carrier'] ?? '')));

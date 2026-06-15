@@ -103,6 +103,13 @@ final class Connectors
         $stmt = $pdo->prepare('SELECT * FROM connector_token WHERE tenant_id=? AND provider=? LIMIT 1');
         $stmt->execute([$tenant, $provider]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+        // [225차 P1-13] at-rest 복호화(AES-256-GCM). 레거시 평문 행은 passthrough → 무중단 전환.
+        //   client_secret 등 민감값은 meta_json 블롭에 들어가므로 meta_json 도 통째 복호화한다.
+        if ($row) {
+            $row['access_token']  = \Genie\Crypto::decrypt((string)($row['access_token']  ?? ''));
+            $row['refresh_token'] = \Genie\Crypto::decrypt((string)($row['refresh_token'] ?? ''));
+            $row['meta_json']     = \Genie\Crypto::decrypt((string)($row['meta_json']     ?? ''));
+        }
         return $row;
     }
 
@@ -116,16 +123,22 @@ final class Connectors
         $sel = $pdo->prepare('SELECT id FROM connector_token WHERE tenant_id=? AND provider=? LIMIT 1');
         $sel->execute([$tenant, $provider]);
         $id = $sel->fetchColumn();
+        // [225차 P1-13] at-rest 암호화(AES-256-GCM): access_token/refresh_token 및 client_secret 을 품은
+        //   meta_json 블롭을 평문 저장하던 결함 차단. 빈값은 null 보존, meta_json 은 항상 암호화.
+        $enc = fn($v) => ($v === null || $v === '') ? $v : \Genie\Crypto::encrypt((string)$v);
+        $encAccess  = $enc($data['access_token']  ?? null);
+        $encRefresh = $enc($data['refresh_token'] ?? null);
+        $encMeta    = \Genie\Crypto::encrypt(json_encode($data['meta'] ?? []));
         if ($id) {
             $pdo->prepare(
                 'UPDATE connector_token SET access_token=?, refresh_token=?, token_type=?, expires_at=?, scopes=?, meta_json=?, updated_at=? WHERE id=?'
             )->execute([
-                $data['access_token']  ?? null,
-                $data['refresh_token'] ?? null,
+                $encAccess,
+                $encRefresh,
                 $data['token_type']    ?? 'Bearer',
                 $data['expires_at']    ?? null,
                 $data['scopes']        ?? null,
-                json_encode($data['meta'] ?? []),
+                $encMeta,
                 $now, $id,
             ]);
         } else {
@@ -134,12 +147,12 @@ final class Connectors
                  VALUES(?,?,?,?,?,?,?,?,?,?)'
             )->execute([
                 $tenant, $provider,
-                $data['access_token']  ?? null,
-                $data['refresh_token'] ?? null,
+                $encAccess,
+                $encRefresh,
                 $data['token_type']    ?? 'Bearer',
                 $data['expires_at']    ?? null,
                 $data['scopes']        ?? null,
-                json_encode($data['meta'] ?? []),
+                $encMeta,
                 $now, $now,
             ]);
         }
@@ -1682,7 +1695,10 @@ final class Connectors
     private static function fetchKakaoRows(string $tenant, string $start, string $end): array
     {
         $accessToken = (string)(getenv('KAKAO_MOMENT_ACCESS_TOKEN')  ?: self::loadCred($tenant, 'kakao_moment', 'access_token'));
+        // [225차 P1-6] UI 키명 통일(account_id→ad_account_id). 레거시로 저장된 account_id 도 폴백 조회해
+        //   정상 연결인데 hasCreds=false(거짓양성·광고성과 영구 미적재)가 되던 갭 해소.
         $adAccountId = (string)(getenv('KAKAO_MOMENT_AD_ACCOUNT_ID') ?: self::loadCred($tenant, 'kakao_moment', 'ad_account_id'));
+        if ($adAccountId === '') $adAccountId = (string)self::loadCred($tenant, 'kakao_moment', 'account_id');
         if ($accessToken === '' || $adAccountId === '') {
             return ['hasCreds' => false, 'live' => false, 'rows' => []];
         }

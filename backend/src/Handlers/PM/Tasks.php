@@ -140,7 +140,8 @@ final class Tasks extends Shared
         if (isset($g['error'])) return $g['error'];
         $id = (string)($args['id'] ?? '');
         if (!self::validId($id)) return self::json($resp, ['error' => 'invalid_id'], 422);
-        $g['pdo']->prepare('UPDATE pm_tasks SET archived_at = NOW() WHERE id = ? AND tenant_id = ?')
+        // [225차 P1-12] NOW() 는 MySQL 전용 → SQLite 폴백서 태스크 보관(삭제) 500. 공통 CURRENT_TIMESTAMP.
+        $g['pdo']->prepare('UPDATE pm_tasks SET archived_at = CURRENT_TIMESTAMP WHERE id = ? AND tenant_id = ?')
                  ->execute([$id, $g['tenant']]);
         self::auditLog($g['pdo'], [
             'tenant_id' => $g['tenant'], 'actor_user_id' => $g['user_id'],
