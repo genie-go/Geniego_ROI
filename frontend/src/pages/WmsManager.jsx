@@ -2251,24 +2251,26 @@ const TrackingTab = memo(function TrackingTab() {
             }
             const token = localStorage.getItem('genie_token');
             const BASE = import.meta.env?.VITE_API_BASE ?? '';
-            const r = await fetch(`${BASE}/api/carrier-track`, {
+            // [현 차수] Tier0: 실제 추적 엔드포인트(/v427/logistics/track)로 재배선 + 운영 가짜 폴백 제거.
+            //   기존엔 미존재 /api/carrier-track 호출 실패 시 _RESULT(데모 시뮬 타임라인)을 운영에 노출(목데이터 오염).
+            const r = await fetch(`${BASE}/api/v427/logistics/track`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     ...(token ? { Authorization: `Bearer ${token}` } : {}),
                 },
-                body: JSON.stringify({ type: 'track', carrierId, trackingNum: num }),
+                body: JSON.stringify({ carrier: carrierId, tracking_no: num }),
             });
             if (r.ok) {
                 const d = await r.json();
-                setResult(d.data || d);
+                if (d && d.ok !== false) setResult(d.data || d);
+                else setError((d && d.error) || t('wms.trackError', '추적 정보를 가져올 수 없습니다. 운송장/택배사를 확인하세요.'));
             } else {
-                // API not implemented → demo fallback
-                setResult(_RESULT(num));
+                // [현 차수] 운영 가짜 폴백 제거 — 실패 시 데모 시뮬 노출 금지, 정직한 에러 표시
+                setError(t('wms.trackError', '추적 정보를 가져올 수 없습니다. 운송장/택배사를 확인하세요.'));
             }
         } catch {
-            // Network error → demo fallback
-            setResult(_RESULT(num));
+            setError(t('wms.trackError', '추적 정보를 가져올 수 없습니다. 운송장/택배사를 확인하세요.'));
         } finally {
             setLoading(false);
         }

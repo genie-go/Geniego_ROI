@@ -537,6 +537,27 @@ export function GlobalDataProvider({ children }) {
 
     // ── [DEMO v15] 데모 모드: 시드 데이터가 풍부하므로 Rollup API는 완전 삭제 처리 (운영 환경 오염 방지) ──
 
+    /* ── [현 차수] P1-① 탭간 실시간 동기화: 송신부 없던 11개 도메인 broadcast 추가 ──
+       echo 방지: 수신값(_bcRecv) 참조 동일 시 skip. 초기 마운트 broadcast 방지: _bcReady 가드.
+       (ORDERS/INVENTORY/SETTLEMENT/ALERTS/BUDGETS 는 기존 명시 송신부 보유 → 제외, 중복 방지) */
+    const _bcRecv = useRef({});
+    const _bcReady = useRef(false);
+    useEffect(() => { const id = setTimeout(() => { _bcReady.current = true; }, 0); return () => clearTimeout(id); }, []);
+    const _bc = useCallback((type, val) => {
+        if (_bcReady.current && _bcRecv.current[type] !== val) broadcastUpdate(type, val);
+    }, []);
+    useEffect(() => { _bc('CREATORS_UPDATE', creators); }, [creators, _bc]);
+    useEffect(() => { _bc('CRM_UPDATE', crmSegments); }, [crmSegments, _bc]);
+    useEffect(() => { _bc('CAMPAIGNS_UPDATE', sharedCampaigns); }, [sharedCampaigns, _bc]);
+    useEffect(() => { _bc('PLAN_UPDATE', planPricing); }, [planPricing, _bc]);
+    useEffect(() => { _bc('POPUPS_UPDATE', webPopupCampaigns); }, [webPopupCampaigns, _bc]);
+    useEffect(() => { _bc('SNS_CAMPAIGNS_UPDATE', snsCampaigns); }, [snsCampaigns, _bc]);
+    useEffect(() => { _bc('EMAIL_CAMPAIGNS_UPDATE', emailCampaignsLinked); }, [emailCampaignsLinked, _bc]);
+    useEffect(() => { _bc('KAKAO_CAMPAIGNS_UPDATE', kakaoCampaignsLinked); }, [kakaoCampaignsLinked, _bc]);
+    useEffect(() => { _bc('CHANNEL_PRICES_UPDATE', channelProductPrices); }, [channelProductPrices, _bc]);
+    useEffect(() => { _bc('CONNECTED_CHANNELS_UPDATE', connectedChannels); }, [connectedChannels, _bc]);
+    useEffect(() => { _bc('PAYMENT_CARDS_UPDATE', paymentCards); }, [paymentCards, _bc]);
+
     /* ── 🔄 BroadcastChannel Cross-Tab Listener ─────────────────── */
     useEffect(() => {
         const handleSync = (msg) => {
@@ -544,6 +565,7 @@ export function GlobalDataProvider({ children }) {
             // 180차 회원 격리: 다른 tenant(다른 회원 탭)의 브로드캐스트는 무시 → 데이터 유입 차단
             if (data && data.tenant && data.tenant !== currentTenant()) return;
             const { type, payload } = data;
+            _bcRecv.current[type] = payload; // [현 차수] P1-① echo 방지: 수신 직후 값 추적
             switch (type) {
                 case 'INVENTORY_UPDATE':  setInventory(payload); break;
                 case 'ORDERS_UPDATE':     setOrders(payload); break;
