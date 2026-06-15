@@ -97,7 +97,9 @@ const CORE_CHART_METRICS = ['spend', 'impressions', 'clicks', 'ctr', 'roas'];
 const generateTrendData = (campaigns, startDate, endDate, metric1, metric2, isDemoMode, prodTrends) => {
     const data = [];
     const sTime = new Date(startDate).getTime();
-    const eTime = new Date(endDate).getTime();
+    // [227차] 도래하지 않은 미래 날짜 합성 차단 — eTime 을 오늘로 캡(미래 종료일 캠페인이 있어도 트렌드는 오늘까지).
+    const _todayTime = new Date(new Date().toISOString().slice(0, 10)).getTime();
+    const eTime = Math.min(new Date(endDate).getTime(), _todayTime);
     const days = Math.max(1, Math.round((eTime - sTime) / 86400000) + 1);
 
     // Pre-compute totals for all core metrics from campaign data
@@ -174,8 +176,12 @@ function AmazonOverviewTab() {
         return ds[0] || new Date(Date.now() - 75 * 86400000).toISOString().slice(0, 10);
     });
     const [endDate, setEndDate] = useState(() => {
+        const today = new Date().toISOString().slice(0, 10);
         const de = (sharedCampaigns || []).map(c => c.endDate).filter(Boolean).sort();
-        return de[de.length - 1] || new Date().toISOString().slice(0, 10);
+        const maxEnd = de[de.length - 1] || today;
+        // [227차] 미래 종료일 캠페인(예: draft, 진행중)이 있어도 기본 조회 종료일은 오늘까지.
+        //   도래하지 않은 날짜를 미리 조회/합성하던 버그 해소(당일 초과 데이터 부정합).
+        return maxEnd > today ? today : maxEnd;
     });
     
     // Multi-slots for KPI cards
@@ -186,14 +192,17 @@ function AmazonOverviewTab() {
     // 1. Strict Date Filtering
     const allValidCampaigns = useMemo(() => {
         const sTime = new Date(startDate).getTime();
-        const eTime = new Date(endDate).getTime();
+        // [227차] 미래 구간 제외: 종료일·캠페인 유효기간을 오늘로 캡. 캠페인 유효일수도 경과분 기준이라
+        //   기본 범위(전 기간)에서 ratio=1 유지 → Σspent = Dashboard 광고비 불변식 보존(미래 spent 과대집계 차단).
+        const _todayTime = new Date(new Date().toISOString().slice(0, 10)).getTime();
+        const eTime = Math.min(new Date(endDate).getTime(), _todayTime);
         const valid = sharedCampaigns.filter(c => {
             const cStart = new Date(c.startDate).getTime();
-            const cEnd = new Date(c.endDate).getTime();
+            const cEnd = Math.min(new Date(c.endDate).getTime(), _todayTime);
             return cStart <= eTime && cEnd >= sTime;
         }).map(c => {
             const cStart = new Date(c.startDate).getTime();
-            const cEnd = new Date(c.endDate).getTime();
+            const cEnd = Math.min(new Date(c.endDate).getTime(), _todayTime);
             const campDays = Math.max(1, (cEnd - cStart) / 86400000);
             const oStart = Math.max(sTime, cStart);
             const oEnd = Math.min(eTime, cEnd);
@@ -253,10 +262,10 @@ function AmazonOverviewTab() {
                         </div>
                     </div>
                     <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-                        <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)}
+                        <input type="date" value={startDate} max={new Date().toISOString().slice(0, 10)} onChange={e => setStartDate(e.target.value)}
                                style={{ background: "#f0f4ff", border: "2px solid #4f8ef7", borderRadius: 8, padding: "7px 12px", color: "#1a1a2e", outline: "none", fontWeight: 700, fontSize: 12, cursor: "pointer" }} />
                         <span style={{ color: "#94a3b8", fontWeight: 700 }}>~</span>
-                        <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)}
+                        <input type="date" value={endDate} max={new Date().toISOString().slice(0, 10)} onChange={e => setEndDate(e.target.value)}
                                style={{ background: "#f0f4ff", border: "2px solid #4f8ef7", borderRadius: 8, padding: "7px 12px", color: "#1a1a2e", outline: "none", fontWeight: 700, fontSize: 12, cursor: "pointer" }} />
                     </div>
                 </div>
@@ -308,6 +317,13 @@ function AmazonOverviewTab() {
                                 </div>
                             );
                         })}
+                        {/* [227차] #8 투명성: 운영에서 실시간 채널 데이터(backend daily-trends) 미공급 시 트렌드는 캠페인 집계 기반 근사치 → "추정" 라벨. */}
+                        {!isDemoMode && (!prodTrends || prodTrends.length === 0) && (
+                            <span title={t('marketing.estimatedTrendHint', '실시간 채널 데이터 연동 전 — 캠페인 집계 기반 추정치입니다. 광고 매체를 연동하면 실측 일별 추세로 대체됩니다.')}
+                                  style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, fontWeight: 800, color: '#b45309', background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.32)', borderRadius: 6, padding: '3px 9px', cursor: 'help' }}>
+                                ≈ {t('marketing.estimatedBadge', '추정')}
+                            </span>
+                        )}
                     </div>
                     <div style={{ width: '100%', height: 480 }}>
                         <ResponsiveContainer width="100%" height="100%">
