@@ -664,6 +664,9 @@ return function (App $app): void {
         // [현 차수] 주문 수동 귀속 태깅(인플루언서) — creator_id/coupon_code/utm_source 영속
         'POST /v424/orderhub/orders/attribution'     => 'Genie\\Handlers\\OrderHub::setAttribution',
         'POST /api/v424/orderhub/orders/attribution' => 'Genie\\Handlers\\OrderHub::setAttribution',
+        // [현 차수] 주문 상태 수동 변경
+        'POST /v424/orderhub/orders/status'          => 'Genie\\Handlers\\OrderHub::setOrderStatus',
+        'POST /api/v424/orderhub/orders/status'      => 'Genie\\Handlers\\OrderHub::setOrderStatus',
 
         // ── v424 enterprise health endpoint (167차 5순위, U-166-E) ──
         'GET /v424/health'      => 'Genie\\Handlers\\Health::check',
@@ -2379,6 +2382,9 @@ return function (App $app): void {
     // [현 차수] 주문 수동 귀속 태깅(인플루언서)
     $register('POST', '/v424/orderhub/orders/attribution');
     $register('POST', '/api/v424/orderhub/orders/attribution');
+    // [현 차수] 주문 상태 수동 변경
+    $register('POST', '/v424/orderhub/orders/status');
+    $register('POST', '/api/v424/orderhub/orders/status');
 
     // ── V424 enterprise health (167차 5순위) ──
     $register('GET', '/v424/health');

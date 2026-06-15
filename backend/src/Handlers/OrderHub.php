@@ -259,6 +259,33 @@ final class OrderHub
     }
 
     /**
+     * [현 차수] P1: 주문 상태 수동 변경 — 운영자가 내부 처리 상태(준비/출고/완료/취소 등)를 전이.
+     *   POST /v424/orderhub/orders/status  { id, status }
+     *   ★채널이 주문의 진실원천이므로 이후 채널 폴링이 채널 status 로 덮어쓸 수 있음(채널 동기 주문).
+     *     채널이 제공하지 않는 내부 처리 상태는 수동 값이 유지된다.
+     */
+    public static function setOrderStatus(Request $req, Response $resp): Response
+    {
+        $g = self::gate($req, $resp);
+        if (isset($g['error'])) return $g['error'];
+        [$tenant, $isDemo, $pdo] = [$g['tenant'], $g['isDemo'], $g['pdo']];
+
+        $body = (array)($req->getParsedBody() ?? []);
+        $id = (string)($body['id'] ?? '');
+        $status = trim((string)($body['status'] ?? ''));
+        if ($id === '' || $status === '') return self::json($resp, ['ok' => false, 'error' => 'id_and_status_required'], 400);
+        if (mb_strlen($status) > 40) return self::json($resp, ['ok' => false, 'error' => 'status_too_long'], 400);
+
+        try {
+            $stmt = $pdo->prepare("UPDATE channel_orders SET status = ? WHERE tenant_id = ? AND (id = ? OR channel_order_id = ? OR order_no = ?)");
+            $stmt->execute([$status, $tenant, $id, $id, $id]);
+            return self::json($resp, ['ok' => true, 'updated' => $stmt->rowCount(), 'status' => $status]);
+        } catch (\Throwable $e) {
+            return self::json($resp, ['ok' => false, 'error' => 'db_error', 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
      * [현 차수] 주문 통계 서버측 집계 — limit 캡 과소집계 근본해소(감사 P2).
      *
      * 기존 프론트(GlobalDataContext.orderStats)는 /orderhub/orders?limit=1000 으로 받은

@@ -299,7 +299,17 @@ function OrderHubOverviewTab() {
 function OrderTab() {
     const { t } = useI18n();
     const { fmt } = useCurrency();
-    const { orders, claimHistory, settlement, orderMemos, slaViolations, addAlert } = useGlobalData();
+    const { orders, claimHistory, settlement, orderMemos, slaViolations, addAlert, updateOrderStatus, isDemo } = useGlobalData();
+    // [현 차수] P1: 주문 상태 수동 변경 — 운영자가 내부 처리 상태를 전이. 낙관적 즉시반영 + 운영은 백엔드 영속.
+    const STATUS_VALUES = ['paid', 'preparing', 'shipping', 'delivered', 'confirmed', 'CancelDone', '반품Done'];
+    const handleStatusChange = async (o, ns) => {
+        if (!ns || ns === o.status) return;
+        if (typeof updateOrderStatus === 'function') updateOrderStatus(o.id, ns);
+        if (!isDemo) {
+            try { await apiClient.postJson('/api/v424/orderhub/orders/status', { id: o.id, status: ns }); }
+            catch { addAlert?.({ type: 'warn', message: t('orderHub.statusSaveFail', '주문 상태 저장 실패 — 재시도하세요') }); }
+        }
+    };
     const [search, setSearch] = useState("");
     const [selCh, setSelCh] = useState("all");
     const [selSt, setSelSt] = useState("all");
@@ -547,7 +557,15 @@ function OrderTab() {
                             <td style={{ textAlign: 'center' }}>{o.qty}</td>
                             <td style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: 11 }}>{fmt(o.total)}</td>
                             <td style={{ fontSize: 11 }}>{o.buyer}</td>
-                            <td><StatusBadge label={statusLabels[o.status] || o.status} cls={STATUS_CLS[o.status]} /></td>
+                            <td>
+                                <select value={STATUS_VALUES.includes(o.status) ? o.status : '__cur'}
+                                    onChange={e => { const v = e.target.value; if (v && v !== '__cur') handleStatusChange(o, v); }}
+                                    title={t('orderHub.statusChangeHint', '주문 상태 수동 변경')}
+                                    style={{ fontSize: 10, padding: '2px 6px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text-1)', maxWidth: 120, cursor: 'pointer' }}>
+                                    {!STATUS_VALUES.includes(o.status) && <option value="__cur">{statusLabels[o.status] || o.status}</option>}
+                                    {STATUS_VALUES.map(v => <option key={v} value={v}>{statusLabels[v] || v}</option>)}
+                                </select>
+                            </td>
                             <td>
                                 <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
                                     {o.hasClaim && <span className="badge badge-red" style={{ fontSize: 9 }}>{t('orderHub.badgeClaim')}</span>}
