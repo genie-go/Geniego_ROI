@@ -60,6 +60,16 @@ class SupplyChain
         return ($t !== null && $t !== '') ? $t : 'demo';
     }
 
+    /**
+     * [227차] 감사 P2 #5: /v420/supply/* 는 공개(bypass) 라우트라 익명 요청이 'demo' 버킷을 읽었다.
+     *   읽기에도 인증 게이트 — 미인증(세션 토큰 없음)이면 true → 호출부가 빈 결과 반환(demo 데이터 미노출).
+     *   쓰기는 이미 requirePro 로 차단됨. 인증된 데모/운영 사용자는 토큰 보유 → 정상 조회.
+     */
+    private static function isAnon(Request $request): bool
+    {
+        return UserAuth::authedTenant($request) === null;
+    }
+
     private static function json(Response $response, mixed $data, int $status = 200): Response
     {
         $response->getBody()->write(json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
@@ -80,6 +90,7 @@ class SupplyChain
 
     public static function listLines(Request $request, Response $response, array $args): Response
     {
+        if (self::isAnon($request)) return self::json($response, ['ok'=>true,'lines'=>[]]); // [227차] 익명 demo 버킷 미노출
         $db = self::db(); $t = self::tenant($request);
         $ls = $db->prepare("SELECT * FROM sc_lines WHERE tenant_id=? ORDER BY created_at DESC");
         $ls->execute([$t]); $lines = $ls->fetchAll(\PDO::FETCH_ASSOC);
@@ -152,6 +163,7 @@ class SupplyChain
 
     public static function listSuppliers(Request $request, Response $response, array $args): Response
     {
+        if (self::isAnon($request)) return self::json($response, ['ok'=>true,'suppliers'=>[]]); // [227차] 익명 demo 버킷 미노출
         $t = self::tenant($request);
         $stmt = self::db()->prepare("SELECT * FROM sc_suppliers WHERE tenant_id=? ORDER BY name");
         $stmt->execute([$t]);
@@ -192,6 +204,7 @@ class SupplyChain
 
     public static function listRiskRules(Request $request, Response $response, array $args): Response
     {
+        if (self::isAnon($request)) return self::json($response, ['ok'=>true,'rules'=>[]]); // [227차] 익명 demo 버킷 미노출
         $t = self::tenant($request);
         $stmt = self::db()->prepare("SELECT * FROM sc_risk_rules WHERE tenant_id=? ORDER BY id");
         $stmt->execute([$t]);
@@ -219,6 +232,7 @@ class SupplyChain
 
     public static function summary(Request $request, Response $response, array $args): Response
     {
+        if (self::isAnon($request)) return self::json($response, ['ok'=>true,'lines'=>0,'suppliers'=>0,'highRisk'=>0,'avgLeadTime'=>0,'totalCost'=>0]); // [227차] 익명 demo 버킷 미노출
         $db = self::db(); $t = self::tenant($request);
         $cnt = function(string $sql) use ($db, $t) { $s = $db->prepare($sql); $s->execute([$t]); return $s->fetchColumn(); };
         $lines = (int)$cnt("SELECT COUNT(*) FROM sc_lines WHERE tenant_id=?");

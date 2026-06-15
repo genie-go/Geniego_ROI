@@ -230,8 +230,9 @@ final class AttributionMetrics
     /** 인증 미들웨어가 주입한 tenant. 미해결 시 '' → 호출부에서 빈 결과(유출 차단). */
     private static function tenant(Request $request): string
     {
+        // [227차] 보안 하드닝: auth_tenant(api_key 미들웨어 주입)만 신뢰. raw X-Tenant-Id 헤더
+        //   폴백 제거 — 향후 bypass 추가 시 헤더 위조로 타 테넌트 메트릭 열람 차단(fail-closed).
         $t = $request->getAttribute('auth_tenant');
-        if (!is_string($t) || $t === '') $t = $request->getHeaderLine('X-Tenant-Id');
         $t = trim((string)$t);
         return ($t === '' || strtolower($t) === 'unknown') ? '' : $t;
     }

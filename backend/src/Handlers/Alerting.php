@@ -35,11 +35,9 @@ final class Alerting {
         return $a !== '' ? $a : (string)($request->getQueryParams()['actor'] ?? 'unknown');
     }
 
-    /** 요청에서 테넌트 식별 (auth 미들웨어 속성 > 헤더 > 기본). */
+    /** 요청에서 테넌트 식별 (auth 미들웨어 속성 > 기본 demo). [227차] raw X-Tenant-Id 폴백 제거 — 헤더 위조 차단. */
     private static function tenantOf(Request $request): string {
         $t = (string)($request->getAttribute('auth_tenant') ?? '');
-        if ($t === '') $t = $request->getHeaderLine('X-Tenant-Id');
-        if ($t === '') $t = $request->getHeaderLine('X-Tenant-ID');
         return $t !== '' ? $t : 'demo';
     }
 

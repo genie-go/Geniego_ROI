@@ -39,8 +39,8 @@ final class KrChannel {
         // [현 차수] 보안 하드닝: api_key 미들웨어가 키→테넌트로 주입한 auth_tenant 를 우선 신뢰.
         //   raw X-Tenant-Id 헤더를 적재 테넌트로 직접 신뢰하면, 이 라우트가 향후 bypass 에 추가될 경우
         //   유효 키 보유자가 헤더 위조로 타 테넌트 정산행을 주입(P&L/대사 오염)할 수 있어 fail-secure 로 전환.
+        //   [227차] raw X-Tenant-Id 폴백 제거로 하드닝 완결(auth_tenant 만 신뢰).
         $t = (string)($request->getAttribute('auth_tenant') ?? '');
-        if ($t === '') $t = $request->getHeaderLine('X-Tenant-Id');
         return $t !== '' ? $t : 'demo';
     }
 
