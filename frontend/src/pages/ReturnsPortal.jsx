@@ -5,6 +5,7 @@ import{useAuth}from'../auth/AuthContext';
 import{useGlobalData}from'../context/GlobalDataContext.jsx';
 import RP from'./rpI18n.js';
 import { IS_DEMO } from '../utils/demoEnv';
+import * as apiClient from '../services/apiClient';
 
 function useI18n(){const c=_useI18n();const lang=c.lang||'en';const ot=c.t;
 const t=(k,fb)=>{if(k&&k.startsWith('rp.')){const x=k.slice(3);const d=RP[lang]||RP.en||{};if(d[x]!==undefined)return d[x];}return ot(k,fb);};
@@ -235,8 +236,20 @@ const tr=useTr();
 const{fmt}=useCurrency();
 const{user}=useAuth();
 const isDemo=IS_DEMO; // 180차: email·host broad includes('demo') 제거 → demoEnv 정본 격리(운영 오염 0)
-const{orders=[],claimHistory=[],claimStatsServer=null,orderStats=null}=useGlobalData();
+const{orders=[],claimHistory=[],claimStatsServer=null,orderStats=null,registerClaimReturn}=useGlobalData();
 const[tab,setTab]=useState('tabOverview');
+// [현 차수] P1: 수동 반품 등록 — registerClaimReturn(낙관적 claimHistory 추가 + sku/qty 시 반품입고=재고복원)
+//   + 운영은 백엔드 ingestClaims 영속(POST /v424/orderhub/claims). 등록 후 화면 즉시 반영.
+const[showAdd,setShowAdd]=useState(false);
+const[af,setAf]=useState({orderNo:'',product:'',buyer:'',channel:'',reason:'',amount:'',sku:'',qty:''});
+const handleAddReturn=async()=>{
+  if(!af.orderNo&&!af.sku){alert('주문번호 또는 SKU를 입력하세요');return;}
+  const id='RT-'+Date.now();
+  const claim={id,orderId:af.orderNo,buyer:af.buyer,channel:af.channel,type:'return',reason:af.reason,status:'pending',amount:Number(af.amount)||0,sku:af.sku,qty:Number(af.qty)||0,name:af.product};
+  if(typeof registerClaimReturn==='function')registerClaimReturn(claim);
+  if(!isDemo){try{await apiClient.postJson('/api/v424/orderhub/claims',{items:[{id,order_id:af.orderNo,buyer:af.buyer,channel:af.channel,type:'return',reason:af.reason,status:'pending',amount:Number(af.amount)||0}]});}catch{}}
+  setShowAdd(false);setAf({orderNo:'',product:'',buyer:'',channel:'',reason:'',amount:'',sku:'',qty:''});
+};
 // 204차 동기화: 데모 반품을 단일소스(orders=L'Oréal 상품)에서 파생 — 과거 독립 하드코딩 DEMO_RETURNS(전자제품,
 //   타 메뉴 불일치)를 제거. 주문에서 결정적 선별 → 상품·채널·고객·금액이 주문/대시보드와 정합.
 const _RREASON=['defective','wrongItem','damaged','notAsDesc','changeOfMind','lateDelivery'];
@@ -279,6 +292,7 @@ return <div style={{display:'flex',flexDirection:'column',height:'100%',backgrou
 <Badge label={tr('badgeLive')} color="#22c55e"/>
 <Badge label={tr('badgeSync')} color="#06b6d4"/>
 <Badge label={tr('badgeSecurity')} color="#6366f1"/>
+<button onClick={()=>setShowAdd(true)} style={{marginLeft:8,padding:'5px 14px',borderRadius:8,background:'#6366f1',color:'#fff',border:'none',fontSize:12,fontWeight:700,cursor:'pointer'}}>+ {tr('register')}</button>
 </div>
 </div>
 {/* Sub-tabs fixed */}
@@ -296,5 +310,20 @@ return <div style={{display:'flex',flexDirection:'column',height:'100%',backgrou
 {tab==='tabPolicies'&&<PoliciesTab tr={tr}/>}
 {tab==='tabGuide'&&<GuideTab tr={tr}/>}
 </div>
+{showAdd && (<>
+<div onClick={()=>setShowAdd(false)} style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.55)',zIndex:300}}/>
+<div style={{position:'fixed',top:'50%',left:'50%',transform:'translate(-50%,-50%)',width:'min(460px,95vw)',maxHeight:'90vh',overflowY:'auto',background:'#fff',borderRadius:16,padding:24,zIndex:301,boxShadow:'0 24px 64px rgba(0,0,0,0.4)'}}>
+<div style={{fontWeight:800,fontSize:16,marginBottom:14}}>📦 {tr('register')}</div>
+{[['orderNo',tr('orderNo')],['product',tr('product')],['buyer',tr('customer')],['channel',tr('channel')],['reason',tr('reason')],['amount',tr('amount')],['sku','SKU'],['qty','수량']].map(([k,label])=>(
+<div key={k} style={{marginBottom:10}}>
+<label style={{fontSize:11,fontWeight:600,color:'#374151'}}>{label}</label>
+<input value={af[k]} onChange={e=>setAf(p=>({...p,[k]:e.target.value}))} style={{display:'block',width:'100%',padding:'7px 10px',borderRadius:8,border:'1px solid #e5e7eb',fontSize:12,marginTop:3,boxSizing:'border-box'}}/>
+</div>))}
+<div style={{display:'flex',justifyContent:'flex-end',gap:8,marginTop:8}}>
+<button onClick={()=>setShowAdd(false)} style={{padding:'8px 16px',borderRadius:8,background:'#f1f5f9',border:'1px solid #e5e7eb',cursor:'pointer',fontSize:12}}>닫기</button>
+<button onClick={handleAddReturn} style={{padding:'8px 16px',borderRadius:8,background:'#6366f1',color:'#fff',border:'none',cursor:'pointer',fontSize:12,fontWeight:700}}>{tr('register')}</button>
+</div>
+</div>
+</>)}
 </div>;
 }

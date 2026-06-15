@@ -286,6 +286,32 @@ final class OrderHub
     }
 
     /**
+     * [현 차수] P1: 반품/클레임 상태 수동 변경 — 운영자가 반품 처리 상태(접수/검수/승인/환불/입고완료)를 전이.
+     *   POST /v424/orderhub/claims/status  { id, status }
+     *   반품 등록은 기존 ingestClaims(POST /v424/orderhub/claims, items:[1건]) 재사용.
+     */
+    public static function setClaimStatus(Request $req, Response $resp): Response
+    {
+        $g = self::gate($req, $resp);
+        if (isset($g['error'])) return $g['error'];
+        [$tenant, $isDemo, $pdo] = [$g['tenant'], $g['isDemo'], $g['pdo']];
+
+        $body = (array)($req->getParsedBody() ?? []);
+        $id = (string)($body['id'] ?? '');
+        $status = trim((string)($body['status'] ?? ''));
+        if ($id === '' || $status === '') return self::json($resp, ['ok' => false, 'error' => 'id_and_status_required'], 400);
+        if (mb_strlen($status) > 40) return self::json($resp, ['ok' => false, 'error' => 'status_too_long'], 400);
+
+        try {
+            $stmt = $pdo->prepare("UPDATE orderhub_claims SET status = ?, updated_at = ? WHERE id = ? AND tenant_id = ?");
+            $stmt->execute([$status, gmdate('Y-m-d H:i:s'), $id, $tenant]);
+            return self::json($resp, ['ok' => true, 'updated' => $stmt->rowCount(), 'status' => $status]);
+        } catch (\Throwable $e) {
+            return self::json($resp, ['ok' => false, 'error' => 'db_error', 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
      * [현 차수] 주문 통계 서버측 집계 — limit 캡 과소집계 근본해소(감사 P2).
      *
      * 기존 프론트(GlobalDataContext.orderStats)는 /orderhub/orders?limit=1000 으로 받은

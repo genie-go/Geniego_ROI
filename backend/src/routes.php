@@ -667,6 +667,9 @@ return function (App $app): void {
         // [현 차수] 주문 상태 수동 변경
         'POST /v424/orderhub/orders/status'          => 'Genie\\Handlers\\OrderHub::setOrderStatus',
         'POST /api/v424/orderhub/orders/status'      => 'Genie\\Handlers\\OrderHub::setOrderStatus',
+        // [현 차수] 반품/클레임 상태 수동 변경
+        'POST /v424/orderhub/claims/status'          => 'Genie\\Handlers\\OrderHub::setClaimStatus',
+        'POST /api/v424/orderhub/claims/status'      => 'Genie\\Handlers\\OrderHub::setClaimStatus',
 
         // ── v424 enterprise health endpoint (167차 5순위, U-166-E) ──
         'GET /v424/health'      => 'Genie\\Handlers\\Health::check',
@@ -2385,6 +2388,9 @@ return function (App $app): void {
     // [현 차수] 주문 상태 수동 변경
     $register('POST', '/v424/orderhub/orders/status');
     $register('POST', '/api/v424/orderhub/orders/status');
+    // [현 차수] 반품/클레임 상태 수동 변경
+    $register('POST', '/v424/orderhub/claims/status');
+    $register('POST', '/api/v424/orderhub/claims/status');
 
     // ── V424 enterprise health (167차 5순위) ──
     $register('GET', '/v424/health');
