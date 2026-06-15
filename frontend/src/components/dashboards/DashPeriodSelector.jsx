@@ -60,6 +60,17 @@ export default function DashPeriodSelector({ value, onChange, compact = false })
   const popRef = useRef(null);
   const presets = getPresets(t);
 
+  // [현 차수] 부모 value(period) 변경 시 내부 표시 state 동기화(controlled prop 정합).
+  //   기존엔 useState 초기값으로만 사용해 외부에서 기간이 바뀌거나 리마운트/커스텀 재오픈 시
+  //   버튼 하이라이트·날짜 입력이 실제 선택과 어긋나 "기간이 제대로 설정 안 된 것처럼" 보였다.
+  useEffect(() => {
+    if (!value) return;
+    if (value.preset && value.preset !== activePreset) setActivePreset(value.preset);
+    if (value.start) setCustomStart(fmtDate(value.start));
+    if (value.end) setCustomEnd(fmtDate(value.end));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value]);
+
   // Close custom picker on outside click
   useEffect(() => {
     if (!showCustom) return;
