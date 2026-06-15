@@ -395,6 +395,186 @@ class Catalog
         } catch (\Throwable $e) { /* best-effort */ }
     }
 
+    /* ═══════════════════════════════════════════════════════════════════
+       [227차] Writeback 채널 push — 큐 소비 워커 + 채널 쓰기 어댑터.
+         배경: writeback() 가 자격증명 존재 시 status='queued' 로 catalog_writeback_job 에 적재하나
+           소비 워커가 없어 영원히 queued(로컬 catalog_listing 만 갱신, 실 채널 push 0).
+         설계: ①큐 소비 워커 ②채널별 쓰기 어댑터(Shopify 실연동, 나머지 honest-pending)
+           ③자격증명 등록 시 자동 실행(ChannelCreds::upsert 훅) ④cron(writeback_cron.php).
+         ★자격증명 미등록 시 안전: 'awaiting_credentials' 보류, 등록되면 자동 재개(현 0-cred 운영=무영향).
+       ═══════════════════════════════════════════════════════════════════ */
+
+    /** 채널 활성 자격증명을 key_name→key_value 맵으로 로드(테넌트 격리). 없으면 빈 배열. */
+    private static function loadChannelCreds(\PDO $pdo, string $tenant, string $channel): array
+    {
+        try {
+            $st = $pdo->prepare("SELECT key_name, key_value FROM channel_credential WHERE tenant_id=? AND channel=? AND is_active=1");
+            $st->execute([$tenant, $channel]);
+            $creds = [];
+            foreach ($st->fetchAll(\PDO::FETCH_ASSOC) as $r) { $creds[(string)$r['key_name']] = (string)$r['key_value']; }
+            return $creds;
+        } catch (\Throwable $e) { return []; }
+    }
+
+    /** curl HTTP 요청(쓰기 어댑터용). 반환 [httpCode, body]. */
+    private static function httpReq(string $method, string $url, array $headers, ?string $body): array
+    {
+        $ch = curl_init($url);
+        $hdr = [];
+        foreach ($headers as $k => $v) { $hdr[] = $k . ': ' . $v; }
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true, CURLOPT_CUSTOMREQUEST => $method,
+            CURLOPT_HTTPHEADER => $hdr, CURLOPT_TIMEOUT => 20, CURLOPT_CONNECTTIMEOUT => 10,
+        ]);
+        if ($body !== null) curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
+        $resp = curl_exec($ch);
+        $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $err  = curl_error($ch);
+        curl_close($ch);
+        if ($resp === false) return [0, json_encode(['error' => $err])];
+        return [$code, (string)$resp];
+    }
+
+    /** Shopify Admin API 상품 등록/수정/해제(실연동). creds: shop_domain + access_token. */
+    private static function shopifyWrite(array $creds, array $p, string $operation, ?string $channelProductId): array
+    {
+        $token = $creds['access_token'] ?? $creds['api_password'] ?? '';
+        $shop  = rtrim((string)($creds['shop_domain'] ?? ''), '/');
+        if ($shop === '' || $token === '') return ['ok' => false, 'error' => 'shop_domain/access_token 미설정'];
+        if (!str_contains($shop, '.')) $shop .= '.myshopify.com';
+        $headers = ['X-Shopify-Access-Token' => $token, 'Content-Type' => 'application/json'];
+
+        if ($operation === 'unregister' || ($p['action'] ?? '') === 'unregister') {
+            if ($channelProductId === null) return ['ok' => true, 'note' => '미등록 상품 — 해제 불요'];
+            [$code] = self::httpReq('DELETE', "https://{$shop}/admin/api/2024-01/products/{$channelProductId}.json", $headers, null);
+            return ($code >= 200 && $code < 300) ? ['ok' => true, 'deleted' => $channelProductId] : ['ok' => false, 'error' => "Shopify DELETE HTTP {$code}"];
+        }
+
+        $product = [
+            'title'        => (string)($p['name'] ?? $p['sku'] ?? ''),
+            'body_html'    => (string)($p['spec'] ?? ''),
+            'product_type' => (string)($p['category'] ?? ''),
+            'status'       => 'active',
+            'variants'     => [[
+                'price'                => (string)(float)($p['price'] ?? 0),
+                'sku'                  => (string)($p['sku'] ?? ''),
+                'inventory_quantity'   => (int)($p['inventory'] ?? 0),
+                'inventory_management' => 'shopify',
+            ]],
+        ];
+        if ($channelProductId !== null) {
+            $body = json_encode(['product' => array_merge(['id' => (int)$channelProductId], $product)], JSON_UNESCAPED_UNICODE);
+            [$code, $resp] = self::httpReq('PUT', "https://{$shop}/admin/api/2024-01/products/{$channelProductId}.json", $headers, $body);
+        } else {
+            [$code, $resp] = self::httpReq('POST', "https://{$shop}/admin/api/2024-01/products.json", $headers, json_encode(['product' => $product], JSON_UNESCAPED_UNICODE));
+        }
+        if ($code >= 200 && $code < 300) {
+            $d = json_decode((string)$resp, true);
+            $pid = isset($d['product']['id']) ? (string)$d['product']['id'] : $channelProductId;
+            return ['ok' => true, 'channel_product_id' => $pid];
+        }
+        return ['ok' => false, 'error' => "Shopify HTTP {$code}", 'body' => mb_substr((string)$resp, 0, 300)];
+    }
+
+    /** 채널 쓰기 어댑터 디스패치. 미구현 채널은 pending(큐 유지 → 어댑터 추가 시 자동 처리). */
+    private static function pushToChannel(string $channel, array $creds, array $product, string $operation, ?string $channelProductId): array
+    {
+        switch (strtolower($channel)) {
+            case 'shopify':
+                return self::shopifyWrite($creds, $product, $operation, $channelProductId);
+            // [확장지점] cafe24/coupang/naver 등 쓰기 어댑터 추가 시 큐가 자동 소비됨.
+            default:
+                return ['ok' => false, 'pending' => true, 'error' => 'write_adapter_pending:' . strtolower($channel)];
+        }
+    }
+
+    /** 현재 catalog_listing 한 행을 product 배열로 로드(부분 payload 손실 방지). */
+    private static function currentListing(\PDO $pdo, string $tenant, string $channel, string $sku): ?array
+    {
+        try {
+            $st = $pdo->prepare("SELECT name,category,price,inventory,spec,action FROM catalog_listing WHERE tenant_id=? AND channel=? AND sku=? LIMIT 1");
+            $st->execute([$tenant, $channel, $sku]);
+            $r = $st->fetch(\PDO::FETCH_ASSOC);
+            return $r ?: null;
+        } catch (\Throwable $e) { return null; }
+    }
+
+    /** 이전 성공 job 의 channel_product_id(업데이트 vs 신규 판정용). */
+    private static function priorChannelProductId(\PDO $pdo, string $tenant, string $channel, string $sku): ?string
+    {
+        try {
+            $st = $pdo->prepare("SELECT result FROM catalog_writeback_job WHERE tenant_id=? AND channel=? AND sku=? AND status='done' ORDER BY id DESC LIMIT 1");
+            $st->execute([$tenant, $channel, $sku]);
+            $r = $st->fetchColumn();
+            if ($r === false) return null;
+            $d = json_decode((string)$r, true);
+            $pid = $d['channel_product_id'] ?? null;
+            return ($pid !== null && $pid !== '') ? (string)$pid : null;
+        } catch (\Throwable $e) { return null; }
+    }
+
+    /**
+     * Writeback 큐 소비 — status IN ('queued','awaiting_credentials') 작업을 채널로 push.
+     *   자격증명 없으면 'awaiting_credentials' 보류(등록 시 자동 재개). 어댑터 미구현이면 'queued' 유지.
+     *   반환: ['processed','done','awaiting','pending','failed'].
+     */
+    public static function processWritebackQueue(\PDO $pdo, ?string $tenant = null, ?string $channel = null, int $limit = 50): array
+    {
+        self::ensureTables();
+        $where = "status IN ('queued','awaiting_credentials')";
+        $params = [];
+        if ($tenant !== null)  { $where .= " AND tenant_id=?"; $params[] = $tenant; }
+        if ($channel !== null) { $where .= " AND channel=?";   $params[] = $channel; }
+        $sum = ['processed' => 0, 'done' => 0, 'awaiting' => 0, 'pending' => 0, 'failed' => 0];
+        try {
+            $st = $pdo->prepare("SELECT id,tenant_id,channel,sku,operation,payload,attempt FROM catalog_writeback_job WHERE $where ORDER BY id ASC LIMIT " . (int)$limit);
+            $st->execute($params);
+            $jobs = $st->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Throwable $e) { return $sum; }
+
+        $now = self::now();
+        $upd = $pdo->prepare("UPDATE catalog_writeback_job SET status=?, result=?, attempt=?, updated_at=? WHERE id=?");
+        foreach ($jobs as $j) {
+            $sum['processed']++;
+            $t = (string)$j['tenant_id']; $ch = (string)$j['channel']; $sku = (string)$j['sku'];
+            $op = (string)($j['operation'] ?? 'publish'); $attempt = (int)($j['attempt'] ?? 1);
+            $creds = self::loadChannelCreds($pdo, $t, $ch);
+            if (!$creds) {
+                $upd->execute(['awaiting_credentials', json_encode(['reason' => 'no_active_credentials'], JSON_UNESCAPED_UNICODE), $attempt, $now, $j['id']]);
+                $sum['awaiting']++; continue;
+            }
+            $product = self::currentListing($pdo, $t, $ch, $sku) ?: (json_decode((string)$j['payload'], true) ?: []);
+            $product['sku'] = $sku;
+            $priorId = self::priorChannelProductId($pdo, $t, $ch, $sku);
+            $res = self::pushToChannel($ch, $creds, $product, $op, $priorId);
+            if (!empty($res['ok'])) {
+                $upd->execute(['done', json_encode($res, JSON_UNESCAPED_UNICODE), $attempt, $now, $j['id']]);
+                try { $pdo->prepare("UPDATE catalog_listing SET status='synced', updated_at=? WHERE tenant_id=? AND channel=? AND sku=?")->execute([$now, $t, $ch, $sku]); } catch (\Throwable $e) {}
+                $sum['done']++;
+            } elseif (!empty($res['pending'])) {
+                $upd->execute(['queued', json_encode($res, JSON_UNESCAPED_UNICODE), $attempt, $now, $j['id']]);
+                $sum['pending']++;
+            } else {
+                $failed = $attempt >= 3;
+                $upd->execute([$failed ? 'failed' : 'queued', json_encode($res, JSON_UNESCAPED_UNICODE), $attempt + 1, $now, $j['id']]);
+                $sum[$failed ? 'failed' : 'pending']++;
+            }
+        }
+        return $sum;
+    }
+
+    /* POST /catalog/writeback/process — 큐 수동 플러시(analyst+). body:{channel?} */
+    public static function processQueue(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $pdo = self::db(); $tenant = self::tenant($req);
+        $body = (array)($req->getParsedBody() ?? []);
+        $channel = (isset($body['channel']) && $body['channel'] !== '') ? (string)$body['channel'] : null;
+        $sum = self::processWritebackQueue($pdo, $tenant, $channel, 100);
+        return self::jsonRes($res, ['ok' => true, 'summary' => $sum]);
+    }
+
     /* POST /catalog/writeback/policy — body:{channel,product} 정책 검증 */
     public static function policyValidate(Request $req, Response $res): Response
     {

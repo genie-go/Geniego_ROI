@@ -72,6 +72,7 @@ return function (App $app): void {
         'POST /catalog/writeback/category'               => 'Genie\\Handlers\\Catalog::categorySuggest',
         'POST /catalog/writeback/preview'                => 'Genie\\Handlers\\Catalog::preview',
         'GET /catalog/writeback/jobs'                     => 'Genie\\Handlers\\Catalog::jobs',
+        'POST /catalog/writeback/process'                 => 'Genie\\Handlers\\Catalog::processQueue', // [227차] 큐 소비(채널 push)
         'POST /catalog/writeback/{channel}/{sku}/prepare' => 'Genie\\Handlers\\Catalog::prepare',
         'POST /catalog/approvals'                        => 'Genie\\Handlers\\Catalog::approvalCreate',
 
@@ -2079,6 +2080,7 @@ return function (App $app): void {
     $register('POST',   '/catalog/writeback/category');
     $register('POST',   '/catalog/writeback/preview');
     $register('GET',    '/catalog/writeback/jobs');
+    $register('POST',   '/catalog/writeback/process'); // [227차] 큐 소비(채널 push)
     $register('POST',   '/catalog/writeback/{channel}/{sku}/prepare');
     $register('POST',   '/catalog/approvals');
     // Email Marketing

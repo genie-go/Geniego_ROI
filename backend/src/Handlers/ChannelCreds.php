@@ -348,6 +348,13 @@ final class ChannelCreds
             } catch (\Throwable $e) {
                 error_log('[ChannelCreds::upsert] auto-sync failed: ' . $e->getMessage());
             }
+            // ── [227차] 자격증명 등록 시 writeback 큐 자동 push ──────────────
+            //   상품 일괄등록/가격수정이 자격증명 미등록으로 'awaiting_credentials'/'queued' 보류돼 있던 것을
+            //   해당 채널 자격증명 등록 즉시 채널로 push(영원히 queued 갭 해소). best-effort·커머스 채널만.
+            if (ChannelSync::isCommerceChannel($channel)) {
+                try { Catalog::processWritebackQueue($pdo, $tenant, $channel, 100); }
+                catch (\Throwable $e) { error_log('[ChannelCreds::upsert] writeback auto-push failed: ' . $e->getMessage()); }
+            }
         }
 
         // ── 데모 사용자: API 키 등록 시 plan=pro 자동 업그레이드(실사용 체험 전환) ──
