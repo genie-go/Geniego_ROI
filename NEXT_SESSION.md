@@ -1,3 +1,49 @@
+# 226차 세션 인계서 — **인플루언서 5-Phase 실현화 + 운영 실데이터 귀속 + 8영역 전수감사 + P1 6사이클 수정 (전부 운영·데모 배포·헤드리스 검증·push)**
+
+> **작성일**: 2026-06-15 (사용자 명시 승인 후) · 운영 roi.genie-go.com / 데모 roidemo.genie-go.com (★vhost server_name=하이픈, 파일경로=`.geniego.com` 무하이픈). 하네스 primary=E:\project\GeniegoROI(절대경로 명시 필요). 정본 메모리 [[project_influencer_attribution]].
+> **종결 상태**: 아래 모든 커밋 운영/데모 dist swap·백엔드 pscp+php-fpm restart·헤드리스 검증·push 완료.
+
+## ✅ 226차 완료 (커밋 순, 과거→최신)
+| 커밋 | 내용 |
+|---|---|
+| `5fbff51d2e4` | **인플루언서 성과 실현화 5-Phase**: 신규 `utils/influencerAttribution.js`(쿠폰/UTM 주문매칭 실측 귀속·활용유형·목표가변성과·채널롤업)+`services/influencerIngest.js`(메타/틱톡/유튜브 OAuth 스캐폴드). 데모시드 쿠폰/UTM/주문240건 식별자. GlobalDataContext applyAttribution effect(데모/운영 공통). DashInfluencer 보완. i18n 22키×15개국. (225차 위 rebase) |
+| `820c5a5b0ad` | **운영 실데이터 귀속 구조**: OrderHub extractAttribution(주문 쿠폰/UTM 추출, 컬럼+raw_json 6키)·setAttribution 수동태깅·ensureAttributionColumns. InfluencerUGC AttributionEditor 모달(쿠폰/UTM/활용유형/목표 발급→디바운스 POST 영속). i18n 8키×15개국 |
+| `e54166ff3e7` | **기간 셀렉터 controlled prop 동기화**(DashPeriodSelector useEffect[value]). ★기간 데이터필터 자체는 정상(재현 확인), 버튼하이라이트/날짜입력 어긋남만 수정 |
+| `8836aa7a0ba` | **P1①** 탭간 broadcast 송신부 11개(creators/crm/campaigns/plan/popups/sns/email/kakao/channel_prices/connected_channels/payment_cards, echo+마운트 가드) + **WMS 배송탭 운영 목데이터 제거**(미존재 /api/carrier-track→실제 /v427/logistics/track 재배선) |
+| `662c48246ac` | **P1②** 발주 입고확정(status=received)→WMS 재고 입고(Inbound, picking 패턴 미러, SUPPLY-{id} 멱등) |
+| `0e112cd230c` | **P1③** 주문 상태 수동변경 OrderHub::setOrderStatus(/v424/orderhub/orders/status) + 프론트 OrderTab status 드롭다운(낙관적+운영 영속) |
+| `5ff248cc31e` | **P1④** 배송추적 cron 러너 신설 `backend/bin/logistics_track_cron.php`(Logistics::refreshTenant) + crontab 등록(운영*/15·데모*/18, base64 우회). ★commerce_sync_cron은 이미 등록·작동중이었음(감사 오판 정정) |
+| `dc9e86b986d` | **P1⑤** WMS 재고실사 일괄조정 dead 버튼(alert만)→실구현(adjustStock 절대값+운영 createMovement audit) |
+| `ec63cbc2a33` | **P1⑥** 수동 반품 CRUD: OrderHub::setClaimStatus(/v424/orderhub/claims/status)+ReturnsPortal 등록모달(registerClaimReturn 낙관적+sku/qty시 반품입고=재고복원, 운영 ingestClaims 영속) |
+
+## 📌 226차 정본/발견
+- **인플루언서 귀속 SSOT = `utils/influencerAttribution.js`**: applyAttribution(creators, orders, {isCancelled})가 운영/데모 공통. 운영 주문에 attribution{couponCode/utmSource/influencerId} 채워지면 자동 매칭(취소제외·반품포함·대소문자무시). 운영=OrderHub extractAttribution 노출, 데모=시드.
+- **8영역 전수감사 결과(중요)**: ★운영 가상/목데이터 노출 **0건**(데모시드 3중격리: demoEnv 빌드플래그+roidemo allowlist+ContaminationGuard, 단 WMS배송탭 1건=사이클1 제거). 타계정/외부위조 유입 차단 견고(X-Tenant-Id 미들웨어 강제덮어쓰기 index.php:344·운영/데모 DB물리분리·Pixel/Paddle HMAC). 판매채널 12개 실연동(쿠팡/네이버/11번가/G마켓/옥션/롯데온/Cafe24/Shopify/Amazon/eBay/TikTokShop/Rakuten) 자격증명등록→즉시동기화+주문→재고/CRM/귀속/WMS 자동파생 충실.
+- **헤드리스 데모 검증법**: 데모 회원가입(버튼 BUTTON한정→폼 email/password/text/checkbox→가입버튼)→register201→자동로그인 enterprise. PWA팝업(×/확인) 먼저 닫기. (localStorage토큰주입 무효·admin계정은 데모 사용자로그인서 403)
+- **crontab 등록 트랩**: PowerShell→plink 인자의 따옴표 소실로 `*/15`의 `*` 글로빙→base64 우회 필수([Convert]::ToBase64String→서버 base64 -d). 임시파일+`crontab /tmp/ct2`.
+
+## ⏭️ 다음 차수 잔여 (226차 미완 — 이어서 진행)
+**남은 P1 = 독립 프로젝트 규모(단일 사이클 불가, 요구사항 구체화 후 착수):**
+1. **[P1-⑤ Writeback 채널 push — 최대형]** `catalog_writeback_job` queued 소비 워커 + **채널별 상품등록 쓰기 API(OAuth)** 신규. 현재 ChannelSync는 fetch(읽기)만 존재 → 쿠팡/네이버/Shopify 등 채널마다 쓰기 어댑터 독립 구현 필요. 상품 일괄등록/가격수정이 로컬 catalog_listing만 갱신되고 실 채널 push 0(영원히 queued). **가장 큰 "UI는 되는데 채널에 안 올라가는" 갭.**
+2. **[SupplyChain 운영 배선 — 대형]** Timeline/LeadTime/Risk 라이브 페이지가 운영에서 빈 화면(`isDemo?DEMO_LINES:[]`). sc_lines 백엔드(createLine/updateStage 완비) 미호출. Risk Rules 토글 onClick 없음(백엔드 sc_risk_rules CRUD 완비). 발주 sc_lines '입고' 단계도 wms_stock 미연동(wms_supply_orders는 226 P1②로 해소됨, sc_lines는 별개).
+3. **[쿠폰→정산 P&L — 중]** rollupSettlementsCore가 coupon_discount=0 하드코딩(OrderHub). 쿠폰 사용 주문(channel_orders.coupon_code 226차 추가)의 할인액을 정산 반영하려면 **할인액 소스**(coupon_redemptions↔order_id 연결고리 부재) 스키마 보강 선행.
+
+**감사 P2(하드닝/스텁 — 정직표기됨, 실데이터 위험 없음):**
+4. raw X-Tenant-Id 헤더 폴백(AttributionMetrics:234·Alerting:41·KrChannel:43) → 미들웨어로 현재 안전하나 auth_tenant만 신뢰하도록 폴백 제거 권장(향후 bypass목록 추가 시 크로스테넌트 위험).
+5. 익명 공유 'demo' 버킷 읽기(SupplyChain read requirePro 미적용) → read에도 requirePro/익명 빈결과.
+6. 채널별 정산 API 자동풀 stub(ChannelSync::fetchSettlements 전채널 pending) — 정산은 주문기반 estimated 롤업/수동CSV 의존.
+7. PG정산 이니시스/KCP/카카오페이/네이버페이 honest pending(Stripe/Toss/PayPal 실연동) + PG cron 부재.
+8. MarketingDashboard 채널분배%/가정 CTR/CVR 폴백상수 운영 표시(근사치 — UI "추정" 라벨링 권장).
+9. ML 재학습/드리프트(ModelMonitor) 운영 큐잉만(소비 파이프라인 부재) · OAuth 원클릭(admin OAuth앱 등록 전 inert) · FedEx/UPS/TNT 추적 stub(TRACK_CARRIERS DHL만 노출).
+
+**226 후속검증:** ①발주 received→재고증가 라이브 e2e(운영 인증) ②수동반품 등록/상태변경 라이브 e2e ③신규 i18n 폴백키(귀속설정 attrSetup 등 일부는 ko/en만, 12개국 폴백) 정식화.
+
+## 📌 배포 백업/cron (226차)
+- dist 백업: 운영/데모 `dist.bak_p1a`(사이클1)·`dist.bak_c5`(5)·`dist.bak_c6`(6)·`dist.bak_attr`·`dist.bak_period`·`dist.bak_infl`. 백엔드: OrderHub/routes/Wms `.bak` 류.
+- 신규 cron: `logistics_track_cron.php`(운영*/15·데모*/18). 기존 commerce_sync(*/5,*/7)·connectors·journey·oauth·optimize·reports·alerts 등록 확인됨.
+
+---
+
 # 225차 세션 인계서 — **C:드라이브 전환 + 224 감사백로그 P0/P1/P2 전건(24건) 적용 + 채널추이 툴팁(가시성·선식별·겹침) + seed 보안제거 + 관리자 로그인 운영/데모 선택 (전부 운영·데모 배포·헤드리스 검증·push)**
 
 > **작성일**: 2026-06-15 (사용자 명시 승인 후) · **이전**: 220~223차 → 225차(224차는 commit만 있고 별도 인계서 없음). 운영 roi.genie-go.com / 데모 roidemo.genie-go.com (★vhost server_name=하이픈, 파일경로=`.geniego.com` 무하이픈).
