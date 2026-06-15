@@ -33,6 +33,7 @@ const GlobalDataContext = createContext(null);
 ════════════════════════════════════════════════ */
 // 데모 판별은 정본(utils/demoEnv) 단일 소스 사용 — 운영 오염 방지 엄격 격리
 import { IS_DEMO as _isDemo } from '../utils/demoEnv.js';
+import { applyAttribution } from '../utils/influencerAttribution.js'; // 인플루언서 귀속 자동 산출
 
 const DEMO_LS_PREFIX = 'geniego_demo_';
 const DEMO_SEED_VERSION = 'v18.0';  // ★ v18: 단일소스 자동산출(주문→정산/채널매출/예산기여/캠페인) 일체화 + 런타임 변동 재파생 + 로그인시점 상대날짜 — 재방문 체험자 캐시 무효화
@@ -1721,6 +1722,16 @@ export function GlobalDataProvider({ children }) {
         setChannelBudgets(prev => deriveBudgetRevenue(prev, orders));
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [orders]);
+
+    // [현 차수] ★인플루언서 귀속(Attribution) 자동 산출: 주문 원장 변동 시, 전용 쿠폰/UTM 으로
+    //   유입된 주문을 매칭해 tracked 크리에이터의 stats.orders/revenue 를 실측값으로 재산출한다.
+    //   manual(추적 식별자 없음=단순 협찬) 크리에이터는 저장 추정치를 그대로 보존(method='manual' 명시).
+    //   데모/운영 공통: 운영 creator 에 attribution 이 없으면 전부 manual 로 간주돼 무변경(안전).
+    //   dep 에 creators.length 포함 → 운영 creators 비동기 로드(0→N) 직후 1회 적용. length 불변이라 무한루프 없음.
+    useEffect(() => {
+        setCreators(prev => applyAttribution(prev, orders, { isCancelled: _isCancelled }));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [orders, creators.length]);
 
     // 📊 통합 P&L (Orders+Ad Spend+정산+재고원가 자동집계) ✅ 모든 데이터 소스 통합
     const pnlStats = useMemo(() => {

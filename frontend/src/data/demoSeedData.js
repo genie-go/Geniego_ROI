@@ -95,6 +95,32 @@ const BUYERS = ['김서연','이지우','박민준','최수아','정하윤','강
 //   600건·수량 (1+i%4)*6*0.93(정수) → 총매출 ~375.7M·blended ROAS 3.5x(광고비 107.4M 기준).
 //   기간 ~100일 분산(daysAgo=i/6) → 정산 월별 버킷(3~6월) 자동 파생 가능. 결정적(Math.random 미사용).
 //   ※재고는 독립 시드(DEMO_INVENTORY)라 영향 없음.
+// ── 인플루언서 귀속(Attribution) 시드 ────────────────────────────────────
+//   tracked 크리에이터별 전용 쿠폰/UTM 을 주문 원장에 결정적으로 심는다(직접 추적 시뮬레이션).
+//   ★주문 total 은 변경하지 않음 → 총매출 캐논(~376M) 보존. attribution 은 메타필드만 추가.
+//   ★귀속 엔진(applyAttribution)이 이 식별자로 매칭해 creator.stats.orders/revenue 를 자동 산출.
+//   신호 다양화: 짝/홀 슬롯을 쿠폰/UTM 으로 번갈아 부여 → coupon·utm 신호가 섞이도록.
+const _INF_TRACKED = [
+  { id: 'CR-001', coupon: 'HANA10',  utm: 'cr-001', n: 55 },
+  { id: 'CR-004', coupon: 'SUJIN',   utm: 'cr-004', n: 48 },
+  { id: 'CR-007', coupon: 'PHARM10', utm: 'cr-007', n: 35 },
+  { id: 'CR-002', coupon: 'MINJI10', utm: 'cr-002', n: 30 },
+  { id: 'CR-005', coupon: 'YENA10',  utm: 'cr-005', n: 28 },
+  { id: 'CR-003', coupon: 'SKIN15',  utm: 'cr-003', n: 22 },
+  { id: 'CR-008', coupon: 'JISOO10', utm: 'cr-008', n: 22 },
+];
+const _INF_ATTR_BY_ORDER = (() => {
+  const slots = [];
+  _INF_TRACKED.forEach(t => { for (let k = 0; k < t.n; k++) slots.push(t); });
+  const map = {};
+  const step = 600 / (slots.length || 1);
+  slots.forEach((t, k) => {
+    let p = Math.floor(k * step);
+    while (map[p] !== undefined) p = (p + 1) % 600;  // 충돌 시 다음 빈 슬롯(결정적)
+    map[p] = { t, useUtm: (k % 2 === 1) };
+  });
+  return map;
+})();
 export const DEMO_ORDERS = Array.from({ length: 600 }, (_, i) => {
   const p = DEMO_PRODUCTS[i % DEMO_PRODUCTS.length];
   const ch = DEMO_CHANNELS[i % DEMO_CHANNELS.length];
@@ -109,6 +135,7 @@ export const DEMO_ORDERS = Array.from({ length: 600 }, (_, i) => {
     : (i >= 60 && i % 33 === 0) ? 'CancelDone'
     : (i >= 60 && i % 41 === 0) ? '반품Done'
     : i < 50 ? 'confirmed' : ORDER_STATUSES[i % ORDER_STATUSES.length];
+  const _attr = _INF_ATTR_BY_ORDER[i]; // 인플루언서 귀속 식별자(쿠폰/UTM) — 일부 주문에만
   return {
     id: `ORD-${String(10000 + i).slice(1)}`,
     ch: ch.id,
@@ -128,6 +155,8 @@ export const DEMO_ORDERS = Array.from({ length: 600 }, (_, i) => {
     adFee: Math.round(qty * p.price * 0.02),
     carrier: status === 'shipping' ? (i % 2 === 0 ? 'CJ대한통운' : '한진택배') : (status === 'delivered' || status === 'confirmed') ? (i % 3 === 0 ? '로젠택배' : 'CJ대한통운') : undefined,
     trackingNo: (status === 'shipping' || status === 'delivered' || status === 'confirmed') ? `TRK${String(900000 + i * 17)}` : undefined,
+    // 인플루언서 귀속: 전용 쿠폰 또는 UTM 으로 유입된 주문임을 표시(귀속 엔진이 이 신호로 매칭)
+    attribution: _attr ? (_attr.useUtm ? { utmSource: _attr.t.utm } : { couponCode: _attr.t.coupon }) : undefined,
   };
 });
 
@@ -753,6 +782,20 @@ const DEMO_CREATORS_RAW = [
 //   중첩 필드는 보존(관리 페이지 InfluencerUGC용)하고 평탄 필드를 파생 주입해 둘 다 동작.
 const _PLAT_LABEL = { youtube: 'YouTube', instagram: 'Instagram', tiktok: 'TikTok' };
 const _TIER_FOLLOWERS = { Macro: 1850000, Mid: 540000, Micro: 185000, Nano: 47000 };
+// 크리에이터별 귀속(Attribution) 설정 — 전용 쿠폰/UTM 발급(tracked) 또는 추적 불가(manual).
+//   tracked: 어필리에잇·화이트리스트 광고·전용쿠폰 협찬 → 주문 매칭으로 실측.
+//   manual : 단순 협찬/홍보로 추적 식별자가 없음 → 저장된 추정치 사용(출처 명시).
+//   activationType: 활용 유형(원본영상광고/어필리에잇/협찬/단순홍보), adSpend: 미디어 집행비(원본영상 광고).
+const _CREATOR_ATTR = {
+  'CR-001': { method: 'tracked', couponCode: 'HANA10',  utmSource: 'cr-001', activationType: 'paid_amplification', adSpend: 15000000, objective: 'conversion' },
+  'CR-002': { method: 'tracked', couponCode: 'MINJI10', utmSource: 'cr-002', activationType: 'paid_amplification', adSpend: 5000000,  objective: 'conversion' },
+  'CR-003': { method: 'tracked', couponCode: 'SKIN15',  utmSource: 'cr-003', activationType: 'affiliate',          adSpend: 0,        objective: 'conversion' },
+  'CR-004': { method: 'tracked', couponCode: 'SUJIN',   utmSource: 'cr-004', activationType: 'paid_amplification', adSpend: 20000000, objective: 'awareness' }, // 럭셔리=브랜드 인지 목표
+  'CR-005': { method: 'tracked', couponCode: 'YENA10',  utmSource: 'cr-005', activationType: 'paid_amplification', adSpend: 4000000,  objective: 'engagement' }, // 틱톡=바이럴 참여 목표
+  'CR-006': { method: 'manual',                                              activationType: 'sponsored',          adSpend: 0,        objective: 'awareness' }, // 단순 협찬(Nano) — 추적 식별자 없음, 추정값 사용
+  'CR-007': { method: 'tracked', couponCode: 'PHARM10', utmSource: 'cr-007', activationType: 'paid_amplification', adSpend: 6000000,  objective: 'conversion' },
+  'CR-008': { method: 'tracked', couponCode: 'JISOO10', utmSource: 'cr-008', activationType: 'sponsored',          adSpend: 0,        objective: 'engagement' }, // 협찬 + 전용쿠폰 발급(측정 가능)
+};
 function _enrichCreator(c) {
   const primary = (c.identities && c.identities[0]) || {};
   const platform = _PLAT_LABEL[primary.type] || 'Instagram';
@@ -768,9 +811,21 @@ function _enrichCreator(c) {
   const tierW = { Macro: 30, Mid: 22, Micro: 16, Nano: 10 }[c.tier] || 14;
   const score = Math.min(99, Math.max(40, Math.round(tierW + eng * 580 + Math.log10(revenue + 1) * 4)));
   const grade = score >= 85 ? 'S' : score >= 72 ? 'A' : score >= 58 ? 'B' : 'C';
+  const _at = _CREATOR_ATTR[c.id] || { method: 'manual' };
+  const attribution = {
+    method: _at.method || 'manual',
+    couponCode: _at.couponCode || null,
+    utmSource: _at.utmSource || null,
+    measured: _at.method === 'tracked',
+    trackingUrl: _at.utmSource ? `https://roi.genie-go.com/r/${_at.utmSource}` : null,
+  };
   return {
     ...c, platform, handle: primary.handle || '', followers, revenue, purchases,
     engRate: +(eng * 100).toFixed(1), likes, comments, saves, shares, score, grade,
+    activationType: _at.activationType || null,
+    objective: _at.objective || null,
+    stats: { ...(c.stats || {}), adSpend: _at.adSpend || (c.stats && c.stats.adSpend) || 0 },
+    attribution,
   };
 }
 export const DEMO_CREATORS = DEMO_CREATORS_RAW.map(_enrichCreator);

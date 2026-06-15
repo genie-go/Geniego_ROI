@@ -20642,6 +20642,28 @@ export default {
   },
 
   "influencer": {
+      attrTracked: "실측",
+      attrManual: "추정",
+      measPrecise: "정밀측정",
+      measIndirect: "간접추정",
+      actPaidAmp: "원본영상 광고",
+      actAffiliate: "어필리에이트",
+      actSponsored: "협찬",
+      actOrganic: "단순 홍보",
+      objAwareness: "인지도",
+      objEngagement: "참여",
+      objTraffic: "유입",
+      objConversion: "전환·매출",
+      objScore: "목표성과",
+      scoreUnit: "점",
+      objHint: "캠페인 목표(인지도/참여/유입/전환)에 따라 성공 기준이 다르게 평가됩니다. 목표성과점수는 해당 목표의 가중치 기준이며, 활용 유형·측정 방식(실측/추정)·계약비/광고집행비를 분리해 표시합니다.",
+      contractCost: "계약비",
+      mediaSpend: "광고집행비",
+      channelPerfTitle: "채널별 성과 (메타·틱톡·유튜브)",
+      channelPerfSub: "콘텐츠가 게시된 채널 기준으로 성과를 분리 집계합니다. 조회·참여·전환은 채널 고유 신호입니다.",
+      unitItems: "개",
+      syncConnected: "인사이트 동기화됨",
+      syncPending: "인사이트 연동 대기",
 
     "title": "인플루언서 & UGC",
 

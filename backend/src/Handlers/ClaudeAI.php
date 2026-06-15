@@ -556,10 +556,17 @@ PROMPT;
 }
 
 평가 기준:
-- ROI 100x 이상: S등급, 50x: A, 20x: B, 10x: C, 10x 미만: D
-- 전환율(주문/조회) 0.1% 이상: 우수
-- 참여율 7% 이상: 우수, 5%: 보통, 3% 미만: 개선 필요
-- 수수료 추천: ROI와 tier 기반으로 공정한 성과 연동 구조 권장
+- ★각 크리에이터의 objective(캠페인 목표)에 따라 '성공'의 정의와 점수 가중치를 다르게 적용하세요. 기업마다 목표가 다르므로 같은 수치도 목표에 따라 성공/실패 판정이 달라집니다:
+  · awareness(인지도): 도달·노출·참여·콘텐츠 품질을 성공으로 봅니다. ROI가 낮아도 도달/인지가 크면 우수입니다.
+  · engagement(참여): 좋아요·댓글·공유·저장 등 참여율을 핵심 성공 지표로 봅니다.
+  · traffic(유입): 클릭·방문·조회 트래픽 창출을 성공으로 봅니다.
+  · conversion(전환·매출): 실제 주문·매출·ROI를 성공으로 봅니다(아래 ROI 등급 적용).
+  입력 데이터의 objective_weights(roi/conversion/engagement/quality/reliability 가중치, 합 100)를 breakdown 점수 배분의 기준으로 삼으세요.
+- conversion 목표일 때만 ROI 등급 적용: 100x 이상 S, 50x A, 20x B, 10x C, 10x 미만 D. conversion이 아닌 목표(awareness/engagement/traffic)는 ROI가 낮다는 이유만으로 등급을 낮추지 마세요.
+- 전환율(주문/조회) 0.1% 이상 우수 / 참여율 7% 이상 우수, 5% 보통, 3% 미만 개선 필요.
+- ★attribution_method가 'manual'인 크리에이터(전용 쿠폰/링크 없는 단순 협찬·홍보)는 매출/전환이 실측이 아닌 추정치입니다. ROI를 과신하지 말고 측정 가능한 지표(인지도·참여) 위주로 평가하고, weaknesses에 '전용 쿠폰/링크 미발급으로 주문 직접 귀속 불가 — 측정 정밀화 필요'를 명시하세요.
+- activation_type(paid_amplification=원본영상 광고 / affiliate=어필리에잇 / sponsored=협찬 / organic=단순홍보)별 특성을 반영하세요. paid_amplification은 ad_spend(미디어 집행비)를 비용에 포함해 ROI를 계산합니다.
+- 수수료 추천: 목표·ROI·tier 기반으로 공정한 성과 연동 구조를 권장하세요.
 - 반드시 한국어로 응답하세요
 PROMPT;
     }

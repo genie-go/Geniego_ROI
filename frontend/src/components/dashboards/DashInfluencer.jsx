@@ -5,6 +5,7 @@ import { fmt } from './ChartUtils.jsx';
 import { useCurrency } from '../../contexts/CurrencyContext.jsx';
 import { useSecurityGuard, getSecurityAlerts } from '../../security/SecurityGuard.js';
 import { buildPeriodScope, deriveOrderKpis } from './dashPeriod.js';
+import { attributionBadge } from '../../utils/influencerAttribution.js';
 
 // ══════════════════════════════════════════════════════════════════════
 //  🤝 DashInfluencer —AI·Influencer Super-Premium Enterprise Dashboard
@@ -24,6 +25,7 @@ const LOC = {
     totalFollowers:'총 팔로워', avgEngRate:'평균 참여율', creatorRevenue:'크리에이터 수익',
     totalPurchases:'총 구매전환',
     orders:'주문수', opProfit:'P&L 영업이익', adSpent:'광고비 누적',
+    ordersAll:'전체 주문', attributedOrders:'인플루언서 귀속(실측)', adSpentAll:'전체 광고비', measLabel:'측정', attrTracked:'실측', attrManual:'추정',
     reach:'📡 도달성과', engage:'❤️ 참여율', convert:'💳 전환', brand:'🏷️브랜드영향',
     quality:'📐품질지수', report:'📊 성과리포트', ai:'🧠 AI분석',
     aiEngineTitle:'Claude AI 인플루언서 분석 엔진',
@@ -72,6 +74,7 @@ const LOC = {
     totalFollowers:'Total Followers', avgEngRate:'Avg Engagement', creatorRevenue:'Creator Revenue',
     totalPurchases:'Total Purchases',
     orders:'Orders', opProfit:'Op. Profit', adSpent:'Ad Spend Total',
+    ordersAll:'All Orders', attributedOrders:'Influencer Attributed', adSpentAll:'Total Ad Spend', measLabel:'Measure', attrTracked:'Tracked', attrManual:'Est.',
     reach:'📡 Reach', engage:'❤️ Engage', convert:'💳 Convert', brand:'🏷️ Brand Impact',
     quality:'📐 Quality', report:'📊 Report', ai:'🧠 AI Analysis',
     aiEngineTitle:'Claude AI Influencer Analysis Engine',
@@ -578,11 +581,16 @@ export default function DashInfluencer({ period }) {
   const INFLUENCER_SHARE = 0.22;
   const creatorList = useMemo(() => {
     const base = (creators && creators.length > 0) ? creators : [];
-    const seedRev = base.reduce((s, c) => s + (c.revenue || 0), 0);
-    const rev = baseRev || 0;   // [현 차수] 기간 선택 시 기간 실주문 매출 기준
-    const sc = (seedRev > 0 && rev > 0) ? (rev * INFLUENCER_SHARE / seedRev) : 1;
+    // [현 차수] Phase1 귀속 존중: tracked(쿠폰/UTM 실측)는 실제 귀속 주문·매출을 그대로 보존하고,
+    //   manual(추적 식별자 없는 추정)만 기간 매출에 비례 스케일(기존 데모 일관성 보존).
+    //   → 대시보드 숫자가 "실측은 실측대로, 추정은 추정대로" 정직하게 표시됨.
+    const manualSeedRev = base.filter(c => c.attribution?.method !== 'tracked').reduce((s, c) => s + (c.revenue || 0), 0);
+    const rev = baseRev || 0;
+    const sc = (manualSeedRev > 0 && rev > 0) ? (rev * INFLUENCER_SHARE / manualSeedRev) : 1;
     if (sc === 1) return base;
-    return base.map(c => ({ ...c, revenue: Math.round((c.revenue || 0) * sc), purchases: Math.round((c.purchases || 0) * sc) }));
+    return base.map(c => (c.attribution?.method === 'tracked')
+      ? c
+      : { ...c, revenue: Math.round((c.revenue || 0) * sc), purchases: Math.round((c.purchases || 0) * sc) });
   }, [creators, baseRev]);
 
   // Real-time KPI aggregation (memoized)
@@ -590,6 +598,12 @@ export default function DashInfluencer({ period }) {
     const totalFol = creatorList.reduce((s, c) => s + (c.followers || 0), 0);
     const totalRev = creatorList.reduce((s, c) => s + (c.revenue || 0), 0);
     const totalPurch = creatorList.reduce((s, c) => s + (c.purchases || 0), 0);
+    // [현 차수] 귀속 출처 통계: 실측(tracked) 크리에이터의 귀속 주문·매출과 실측/추정 인원수.
+    const trackedList = creatorList.filter(c => c.attribution?.method === 'tracked');
+    const attributedOrders = trackedList.reduce((s, c) => s + (c.purchases || 0), 0);
+    const attributedRev = trackedList.reduce((s, c) => s + (c.revenue || 0), 0);
+    const trackedCount = trackedList.length;
+    const manualCount = creatorList.length - trackedCount;
     let avgEng = '0.0';
     if (creatorList.length > 0) {
       avgEng = (creatorList.reduce((s, c) => {
@@ -597,7 +611,7 @@ export default function DashInfluencer({ period }) {
         return s + ((c.likes||0)+(c.comments||0)+(c.saves||0)+(c.shares||0))/f*100;
       }, 0) / creatorList.length).toFixed(1);
     }
-    return { totalFol, totalRev, totalPurch, avgEng };
+    return { totalFol, totalRev, totalPurch, avgEng, attributedOrders, attributedRev, trackedCount, manualCount };
   }, [creatorList]);
 
   // Tab definitions (localized, memoized)
@@ -616,9 +630,11 @@ export default function DashInfluencer({ period }) {
       {/* ── Real-time Status Badges ── */}
       <div style={{ display:'flex', gap:8, flexWrap:'wrap', padding:'4px 0' }}>
         <StatusBadge text={txt('liveInfluencer')} col="#a855f7" />
-        <StatusBadge ico="📦" text={`${txt('orders')} ${(orderStats?.totalOrders||0).toLocaleString()}`} col="#22c55e" />
+        <StatusBadge ico="📦" text={`${txt('ordersAll')} ${(orderStats?.totalOrders||0).toLocaleString()}`} col="#64748b" />
+        <StatusBadge ico="🎯" text={`${txt('attributedOrders')} ${kpis.attributedOrders.toLocaleString()}`} col="#22c55e" />
         <StatusBadge ico="💰" text={`${txt('opProfit')} ${fmtC(pnlStats?.operatingProfit||0)}`} col="#eab308" />
-        <StatusBadge ico="📢" text={`${txt('adSpent')} ${fmtC(budgetStats?.totalSpent||0)}`} col="#f97316" />
+        <StatusBadge ico="📢" text={`${txt('adSpentAll')} ${fmtC(budgetStats?.totalSpent||0)}`} col="#f97316" />
+        <StatusBadge ico="📐" text={`${txt('measLabel')} ${txt('attrTracked')} ${kpis.trackedCount} · ${txt('attrManual')} ${kpis.manualCount}`} col="#4f8ef7" />
         <StatusBadge ico="🛡️" text={secAlerts.length > 0 ? `${txt('threatsBlocked')} ${secAlerts.length}` : txt('secureConnection')} col={secAlerts.length > 0 ? '#f87171' : '#22c55e'} />
       </div>
 
@@ -659,6 +675,7 @@ export default function DashInfluencer({ period }) {
                     <div style={{ display:'flex', alignItems:'center', gap:6 }}>
                       <span style={{ fontSize:12, fontWeight:800, color: 'var(--text-1)' }}>{cr.name}</span>
                       <span style={{ fontSize:9, padding:'1px 6px', borderRadius:4, background:`${platCol}22`, color:platCol, fontWeight:700, border:`1px solid ${platCol}33` }}>{cr.platform}</span>
+                      {(() => { const b = attributionBadge(cr); return <span title={b.method === 'tracked' ? txt('attrTracked') : txt('attrManual')} style={{ fontSize:9, padding:'1px 5px', borderRadius:4, background:`${b.color}22`, color:b.color, fontWeight:700, border:`1px solid ${b.color}33` }}>{b.icon}{b.method === 'tracked' && b.signal ? ` ${(cr.attribution?.couponCode || cr.attribution?.utmSource || '')}` : ''}</span>; })()}
                     </div>
                     <div style={{ fontSize:10, color: 'var(--text-3)', marginTop:1 }}>{cr.handle}</div>
                   </div>

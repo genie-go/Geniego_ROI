@@ -7,6 +7,8 @@ import { useGlobalData } from '../context/GlobalDataContext.jsx';
 import { useSecurityGuard as useEnterpriseSecurity } from '../security/SecurityGuard.js';
 import { postJson, getJsonAuth } from '../services/apiClient.js';
 import { IS_DEMO } from '../utils/demoEnv';
+import { attributionBadge, deriveActivationType, ACTIVATION_META, measurability, costBreakdown, deriveObjective, OBJECTIVE_META, OBJECTIVE_WEIGHTS, computePerformanceScore, channelBreakdown } from '../utils/influencerAttribution.js';
+import { ingestStatus } from '../services/influencerIngest.js';
 
 
 // currency formatting via useCurrency fmt()
@@ -24,6 +26,21 @@ const daysLeft = d => Math.ceil((new Date(d) - today) / (864e5));
    런타임 크래시(흰화면)를 일으킨다. 유입 직후 안전 기본값으로 정규화한다.
    가짜데이터는 주입하지 않음 — 누락 필드만 빈/0 기본값으로 채운다.
 ══════════════════════════════════════════════════════════════════ */
+function _normAttr(a) {
+    const at = a || {};
+    const method = at.method || (at.couponCode || at.utmSource ? 'tracked' : 'manual');
+    return {
+        method,
+        couponCode: at.couponCode ?? null,
+        utmSource: at.utmSource ?? null,
+        trackingUrl: at.trackingUrl ?? null,
+        measured: at.measured ?? (method === 'tracked'),
+        signal: at.signal ?? null,
+        matchedOrders: Number(at.matchedOrders) || 0,
+        matchedRevenue: Number(at.matchedRevenue) || 0,
+    };
+}
+
 function normalizeCreator(c) {
     const o = c || {};
     const ct = o.contract || {};
@@ -61,6 +78,9 @@ function normalizeCreator(c) {
             adSpend: Number(stat.adSpend) || 0,
             engagement: Number(stat.engagement) || 0,
         },
+        attribution: _normAttr(o.attribution),
+        activationType: o.activationType || null,
+        objective: o.objective || null,
     };
 }
 
@@ -174,6 +194,15 @@ const IdentityTab = memo(function IdentityTab() {
                                     <div style={{ fontSize: 11, color: "#4f8ef7", fontWeight: 700 }}>{id.handle}</div>
                                     <div style={{ fontSize: 10, color:"#6b7280", marginTop: 2 }}>ID: {id.id}</div>
                                     <div style={{ fontSize: 10, color:"#6b7280" }}>{id.email}</div>
+                                    <div style={{ marginTop: 5 }}>
+                                        {(() => {
+                                            const s = ingestStatus(id);
+                                            return <Tag color={s.status === 'connected' ? '#22c55e' : '#94a3b8'}
+                                                label={s.status === 'connected'
+                                                    ? `🔄 ${t('influencer.syncConnected', '인사이트 동기화됨')}`
+                                                    : `⏳ ${t('influencer.syncPending', '인사이트 연동 대기')}`} />;
+                                        })()}
+                                    </div>
                                 </div>
                             ))}
                         </div>
@@ -602,7 +631,10 @@ const ROITab = memo(function ROITab() {
     return (
         <div style={{ display: "grid", gap: 16 }}>
             <div className="card card-glass" style={{ padding: 20 }}>
-                <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 14 }}>🏆 {t('influencer.roiRanking')}</div>
+                <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 6 }}>🏆 {t('influencer.roiRanking')}</div>
+                <div style={{ fontSize: 11, color: "#6b7280", marginBottom: 14, lineHeight: 1.6 }}>
+                    {t('influencer.objHint', '캠페인 목표(인지도/참여/유입/전환)에 따라 성공 기준이 다르게 평가됩니다. 목표성과점수는 해당 목표의 가중치 기준이며, 활용 유형·측정 방식(실측/추정)·계약비/광고집행비를 분리해 표시합니다.')}
+                </div>
                 <div style={{ display: "grid", gap: 10 }}>
                     {creatorROI.map((c, rank) => {
                         const color = TIER_COLOR[c.tier];
@@ -611,20 +643,42 @@ const ROITab = memo(function ROITab() {
                             <div key={c.id} style={{ padding: "12px 16px", borderRadius: 12, background:"rgba(0,0,0,0.03)", border: `1px solid ${color}22`, display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
                                 <div style={{ width: 36, height: 36, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: 18, background: `${color}18`, color }}>{`#${rank + 1}`}</div>
                                 <div style={{ flex: 1, minWidth: 140 }}>
-                                    <div style={{ fontWeight: 800, fontSize: 13 }}>{c.name}</div>
-                                    <div style={{ display: "flex", gap: 6, marginTop: 3 }}>
+                                    <div style={{ fontWeight: 800, fontSize: 13, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                                        {c.name}
+                                        {(() => {
+                                            const o = deriveObjective(c); const om = OBJECTIVE_META[o];
+                                            return <span style={{ fontSize: 9, fontWeight: 700, padding: '1px 6px', borderRadius: 99, background: om.color + '18', color: om.color, border: `1px solid ${om.color}33` }}>{om.icon} {t('influencer.' + om.key, om.label)}</span>;
+                                        })()}
+                                    </div>
+                                    <div style={{ display: "flex", gap: 6, marginTop: 3, flexWrap: "wrap" }}>
                                         <Tag label={c.tier} color={color} />
                                         {hvls && <Tag label={`\ud83d\udc41 ${t("influencerUGC.w_305", "High Views/Low Sales")}`} color="#eab308" />}
+                                        {(() => {
+                                            const b = attributionBadge(c);
+                                            const code = c.attribution?.couponCode || c.attribution?.utmSource;
+                                            const at = deriveActivationType(c);
+                                            const m = ACTIVATION_META[at];
+                                            const ms = measurability(c);
+                                            return <>
+                                                <Tag color={m.color} label={`${m.icon} ${t('influencer.' + m.key, m.label)}`} />
+                                                <Tag color={b.color} label={b.method === 'tracked'
+                                                    ? `${b.icon} ${t('influencer.attrTracked', '\uc2e4\uce21')}${code ? ' \u00b7 ' + code : ''}`
+                                                    : `${b.icon} ${t('influencer.attrManual', '\ucd94\uc815')}`} />
+                                                <Tag color={ms.level === 'precise' ? '#22c55e' : '#f59e0b'}
+                                                    label={ms.level === 'precise' ? `\u2713 ${t('influencer.measPrecise', '\uc815\ubc00\uce21\uc815')}` : `~ ${t('influencer.measIndirect', '\uac04\uc811\ucd94\uc815')}`} />
+                                            </>;
+                                        })()}
                                     </div>
                                 </div>
-                                {[
+                                {(() => { const cb = costBreakdown(c); return [
                                     [t("influencerUGC.u_73", "Total Views"), fmtM(c.stats?.views || 0), "var(--text-2)"],
                                     [t("influencerUGC.u_74", "Attributed Orders"), (c.stats?.orders || 0) + t("influencer.unitCases","건"), "#4f8ef7"],
                                     [t("influencerUGC.u_75", "Attributed Revenue"), fmt(c.stats?.revenue || 0), "#f97316"],
-                                    [t("influencerUGC.u_76", "Contract Cost"), fmt(calcCreatorCost(c)), "#ef4444"],
-                                    [t("influencerUGC.u_111", "ROI"), (c.roi || 0).toFixed(1) + "x", (c.roi || 0) >= 50 ? "#22c55e" : (c.roi || 0) >= 20 ? "#eab308" : "#ef4444"],
-                                    [t("influencerUGC.u_77", "View→Order"), ((c.stats?.views || 0) / (c.stats?.orders || 1)).toFixed(0) + " " + t("influencer.viewsPerOrder","views/order"), "var(--text-3)"],
-                                ].map(([l, v, col]) => (
+                                    [t("influencer.contractCost", "계약비"), fmt(cb.contractCost), "#ef4444"],
+                                    [t("influencer.mediaSpend", "광고집행비"), cb.mediaSpend > 0 ? fmt(cb.mediaSpend) : "—", "#f59e0b"],
+                                    [t("influencerUGC.u_111", "ROI"), cb.roi != null ? cb.roi.toFixed(1) + "x" : "—", (cb.roi || 0) >= 5 ? "#22c55e" : (cb.roi || 0) >= 3 ? "#eab308" : "#ef4444"],
+                                    (() => { const ps = computePerformanceScore(c).score; return [t('influencer.objScore', '목표성과'), ps + t('influencer.scoreUnit', '점'), ps >= 75 ? "#22c55e" : ps >= 50 ? "#eab308" : "#ef4444"]; })(),
+                                ]; })().map(([l, v, col]) => (
                                     <div key={l} style={{ textAlign: "center", minWidth: 80 }}>
                                         <div style={{ fontSize: 9, color:"#6b7280" }}>{l}</div>
                                         <div style={{ fontWeight: 700, fontSize: 12, color: col }}>{v}</div>
@@ -707,6 +761,37 @@ const ROITab = memo(function ROITab() {
                             </div>
                         );
                     })}
+                </div>
+            </div>
+
+            {/* Phase 4: 채널별(메타·틱톡·유튜브) 성과 비교 */}
+            <div className="card card-glass" style={{ padding: 20 }}>
+                <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 6 }}>📡 {t('influencer.channelPerfTitle', '채널별 성과 (메타·틱톡·유튜브)')}</div>
+                <div style={{ fontSize: 11, color: "#6b7280", marginBottom: 14 }}>{t('influencer.channelPerfSub', '콘텐츠가 게시된 채널 기준으로 성과를 분리 집계합니다. 조회·참여·전환은 채널 고유 신호입니다.')}</div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(220px,1fr))", gap: 12 }}>
+                    {channelBreakdown(CREATORS).map(ch => (
+                        <div key={ch.platform} style={{ padding: "14px 16px", borderRadius: 12, background: `${ch.color}0a`, border: `1px solid ${ch.color}30` }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                                <span style={{ fontSize: 18 }}>{ch.icon}</span>
+                                <span style={{ fontWeight: 800, fontSize: 14, color: ch.color }}>{ch.label}</span>
+                                <span style={{ marginLeft: "auto", fontSize: 10, color: "#6b7280" }}>{ch.creators}{t('influencer.unitPersons', '명')} · {ch.contents}{t('influencer.unitItems', '개')}</span>
+                            </div>
+                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                                {[
+                                    [t("influencerUGC.u_73", "Views"), fmtM(ch.views)],
+                                    [t("influencer.engagement", "Engagement"), pct(ch.avgEng)],
+                                    [t("influencerUGC.u_74", "Orders"), ch.orders + t("influencer.unitCases", "건")],
+                                    [t("influencerUGC.u_91", "Conv. Rate"), pct(ch.convRate)],
+                                    [t("influencerUGC.u_75", "Revenue"), fmt(ch.revenue)],
+                                ].map(([l, v]) => (
+                                    <div key={l} style={{ padding: "6px 0" }}>
+                                        <div style={{ fontSize: 9, color: "#6b7280" }}>{l}</div>
+                                        <div style={{ fontWeight: 800, fontSize: 13, color: ch.color }}>{v}</div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    ))}
                 </div>
             </div>
         </div>
@@ -925,6 +1010,13 @@ async function fetchInfluencerEval(CREATORS) {
             settle_status: c.settle.status,
             esign_status: c.contract.esign,
             content_count: c.content.length,
+            // Phase 2~3: 활용 유형·측정 방식·캠페인 목표를 전달 → AI가 목표에 맞는 성공 기준으로 평가
+            activation_type: deriveActivationType(c),
+            attribution_method: c.attribution?.method || 'manual',
+            ad_spend: c.stats.adSpend,
+            objective: deriveObjective(c),
+            objective_weights: OBJECTIVE_WEIGHTS[deriveObjective(c)],
+            performance_score: computePerformanceScore(c).score,
         })),
     };
     const json = await postJson('/v422/ai/influencer-eval', { data });
