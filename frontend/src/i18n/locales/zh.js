@@ -8583,6 +8583,14 @@ export default {
     "fbaStockRate": "FBA库存率"
   },
   "influencer": {
+      attrSetup: "归因设置",
+      couponCode: "专属优惠码",
+      activationLabel: "活用类型",
+      objectiveLabel: "活动目标",
+      attrSave: "保存",
+      attrSetupDesc: "发放专属优惠码/UTM后,通过该码产生的订单将以实测方式归因到该创作者。",
+      attrTrackedHint: "优惠码/UTM订单自动归因",
+      attrManualHint: "无追踪标识(使用存储估算值)",
       attrTracked: "实测",
       attrManual: "估算",
       measPrecise: "精准测量",

@@ -8267,6 +8267,14 @@ export default {
       fbaStockRate: "Доля запасов FBA"
     },
   influencer: {
+      attrSetup: "Атрибуция",
+      couponCode: "Промокод",
+      activationLabel: "Тип активации",
+      objectiveLabel: "Цель кампании",
+      attrSave: "Сохранить",
+      attrSetupDesc: "Выпустите персональный промокод/UTM — заказы по нему засчитываются этому креатору по фактическому измерению.",
+      attrTrackedHint: "Заказы по купону/UTM засчитываются автоматически",
+      attrManualHint: "Нет идентификатора отслеживания (используется сохранённая оценка)",
       attrTracked: "Измерено",
       attrManual: "Оценка",
       measPrecise: "Точно",

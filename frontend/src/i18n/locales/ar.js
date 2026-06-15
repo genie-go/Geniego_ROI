@@ -8267,6 +8267,14 @@ export default {
       fbaStockRate: "معدل مخزون FBA"
     },
   influencer: {
+      attrSetup: "إعداد الإسناد",
+      couponCode: "رمز قسيمة مخصص",
+      activationLabel: "نوع التفعيل",
+      objectiveLabel: "هدف الحملة",
+      attrSave: "حفظ",
+      attrSetupDesc: "أصدر رمز قسيمة/UTM مخصصًا، وستُنسب الطلبات الواردة عبره إلى هذا المبدع بقياس فعلي.",
+      attrTrackedHint: "إسناد تلقائي للطلبات عبر القسيمة/UTM",
+      attrManualHint: "لا يوجد معرّف تتبع (يستخدم التقدير المخزن)",
       attrTracked: "مُقاس",
       attrManual: "تقديري",
       measPrecise: "دقيق",

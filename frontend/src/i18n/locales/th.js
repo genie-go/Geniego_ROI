@@ -6249,6 +6249,14 @@ export default {
       incrementality: "การวัดเพิ่มเติม"
     },
     influencer: {
+      attrSetup: "ตั้งค่าการระบุที่มา",
+      couponCode: "รหัสคูปองเฉพาะ",
+      activationLabel: "ประเภทการใช้งาน",
+      objectiveLabel: "เป้าหมายแคมเปญ",
+      attrSave: "บันทึก",
+      attrSetupDesc: "ออกรหัสคูปอง/UTM เฉพาะ แล้วคำสั่งซื้อที่มาจากรหัสนั้นจะถูกระบุที่มาให้ครีเอเตอร์นี้แบบวัดจริง",
+      attrTrackedHint: "ระบุที่มาคำสั่งซื้อจากคูปอง/UTM อัตโนมัติ",
+      attrManualHint: "ไม่มีตัวระบุติดตาม (ใช้ค่าประมาณที่บันทึกไว้)",
       attrTracked: "วัดได้",
       attrManual: "ประมาณ",
       measPrecise: "แม่นยำ",

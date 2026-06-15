@@ -10522,6 +10522,14 @@ export default {
       incrementality: "Đo lường gia tăng"
     },
     influencer: {
+      attrSetup: "Thiết lập phân bổ",
+      couponCode: "Mã giảm giá riêng",
+      activationLabel: "Loại hình",
+      objectiveLabel: "Mục tiêu chiến dịch",
+      attrSave: "Lưu",
+      attrSetupDesc: "Cấp mã giảm giá/UTM riêng, đơn hàng đến từ mã đó sẽ được phân bổ thực đo cho creator này.",
+      attrTrackedHint: "Tự động phân bổ đơn qua coupon/UTM",
+      attrManualHint: "Không có mã theo dõi (dùng ước tính đã lưu)",
       attrTracked: "Đo lường",
       attrManual: "Ước tính",
       measPrecise: "Chính xác",

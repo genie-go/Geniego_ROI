@@ -6817,6 +6817,14 @@ export default {
       topMarket: "最大市場"
     },
   influencer: {
+      attrSetup: "歸因設定",
+      couponCode: "專屬優惠碼",
+      activationLabel: "運用類型",
+      objectiveLabel: "活動目標",
+      attrSave: "儲存",
+      attrSetupDesc: "發放專屬優惠碼/UTM後,透過該碼產生的訂單將以實測方式歸因到該創作者。",
+      attrTrackedHint: "優惠碼/UTM訂單自動歸因",
+      attrManualHint: "無追蹤識別碼(使用儲存估算值)",
       attrTracked: "實測",
       attrManual: "估算",
       measPrecise: "精準測量",

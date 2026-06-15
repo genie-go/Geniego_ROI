@@ -8185,6 +8185,14 @@ export default {
       fbaStockRate: "Tasa de stock FBA"
     },
   influencer: {
+      attrSetup: "Atribución",
+      couponCode: "Código de cupón",
+      activationLabel: "Tipo de activación",
+      objectiveLabel: "Objetivo de campaña",
+      attrSave: "Guardar",
+      attrSetupDesc: "Emita un código de cupón/UTM dedicado y los pedidos que lleguen por ese código se atribuyen a este creator con medición real.",
+      attrTrackedHint: "Pedidos atribuidos auto. por cupón/UTM",
+      attrManualHint: "Sin identificador de seguimiento (usa estimación guardada)",
       attrTracked: "Medido",
       attrManual: "Estimado",
       measPrecise: "Preciso",

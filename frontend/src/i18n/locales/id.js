@@ -6227,6 +6227,14 @@ export default {
       incrementality: "Pengukuran Inkremental"
     },
     influencer: {
+      attrSetup: "Pengaturan Atribusi",
+      couponCode: "Kode Kupon Khusus",
+      activationLabel: "Tipe Aktivasi",
+      objectiveLabel: "Tujuan Kampanye",
+      attrSave: "Simpan",
+      attrSetupDesc: "Terbitkan kode kupon/UTM khusus, dan pesanan yang masuk lewat kode itu diatribusikan ke creator ini secara terukur.",
+      attrTrackedHint: "Pesanan via kupon/UTM otomatis diatribusi",
+      attrManualHint: "Tanpa pengenal pelacakan (pakai estimasi tersimpan)",
       attrTracked: "Terukur",
       attrManual: "Estimasi",
       measPrecise: "Presisi",

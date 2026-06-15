@@ -8046,6 +8046,14 @@ export default {
       fbaStockRate: "FBA Stock Rate"
     },
   influencer: {
+      attrSetup: "Attribution",
+      couponCode: "Coupon Code",
+      activationLabel: "Activation Type",
+      objectiveLabel: "Campaign Objective",
+      attrSave: "Save",
+      attrSetupDesc: "Issue a dedicated coupon code/UTM, and orders coming through that code are attributed to this creator with real measurement.",
+      attrTrackedHint: "Orders auto-attributed via coupon/UTM",
+      attrManualHint: "No tracking identifier (uses stored estimate)",
       attrTracked: "Tracked",
       attrManual: "Estimated",
       measPrecise: "Precise",

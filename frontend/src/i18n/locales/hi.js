@@ -8267,6 +8267,14 @@ export default {
       fbaStockRate: "FBA स्टॉक दर"
     },
   influencer: {
+      attrSetup: "एट्रिब्यूशन",
+      couponCode: "समर्पित कूपन कोड",
+      activationLabel: "उपयोग प्रकार",
+      objectiveLabel: "अभियान लक्ष्य",
+      attrSave: "सहेजें",
+      attrSetupDesc: "समर्पित कूपन कोड/UTM जारी करें, और उस कोड से आने वाले ऑर्डर इस क्रिएटर को वास्तविक माप के साथ एट्रिब्यूट होते हैं।",
+      attrTrackedHint: "कूपन/UTM से ऑर्डर स्वतः एट्रिब्यूट",
+      attrManualHint: "कोई ट्रैकिंग पहचानकर्ता नहीं (संग्रहीत अनुमान का उपयोग)",
       attrTracked: "मापा गया",
       attrManual: "अनुमानित",
       measPrecise: "सटीक",

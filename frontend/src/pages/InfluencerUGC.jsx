@@ -132,12 +132,78 @@ const Stars = memo(function Stars({ n }) {
 /* ══════════════════════════════════════════════════════════════════
    TAB 1: Creator Identity Integration
 ══════════════════════════════════════════════════════════════════ */
+/* 인플루언서 귀속 설정 에디터 — 전용 쿠폰/UTM 발급 + 활용유형·목표 지정.
+   저장 시 updateCreator → (운영) 디바운스 POST /v423/influencer/creators 영속 → 주문 매칭 실측 귀속. */
+const AttributionEditor = memo(function AttributionEditor({ creator, onClose, onSave, t }) {
+    const a = creator.attribution || {};
+    const [coupon, setCoupon] = useState(a.couponCode || '');
+    const [utm, setUtm] = useState(a.utmSource || ('cr-' + String(creator.id || '').toLowerCase().replace(/[^a-z0-9-]/g, '')));
+    const [act, setAct] = useState(creator.activationType || deriveActivationType(creator));
+    const [obj, setObj] = useState(creator.objective || deriveObjective(creator));
+    const save = () => {
+        const couponT = coupon.trim().toUpperCase();
+        const utmT = utm.trim().toLowerCase();
+        const method = (couponT || utmT) ? 'tracked' : 'manual';
+        onSave({
+            attribution: { method, couponCode: couponT || null, utmSource: utmT || null, measured: method === 'tracked', trackingUrl: utmT ? `https://roi.genie-go.com/r/${utmT}` : null },
+            activationType: act, objective: obj,
+        });
+    };
+    const fld = { display: 'block', width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid rgba(99,140,255,0.2)', background: 'rgba(255,255,255,0.98)', fontSize: 12, marginTop: 4, boxSizing: 'border-box' };
+    const lbl = { fontSize: 11, fontWeight: 700, color: '#374151' };
+    const tracked = !!(coupon.trim() || utm.trim());
+    return (
+        <>
+            <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(6px)', zIndex: 400 }} />
+            <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: 'min(460px,95vw)', background: 'rgba(255,255,255,0.99)', border: '1px solid rgba(34,197,94,0.25)', borderRadius: 18, padding: 24, zIndex: 401, boxShadow: '0 24px 64px rgba(0,0,0,0.6)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+                    <div style={{ fontWeight: 800, fontSize: 15 }}>🎯 {t('influencer.attrSetup', '귀속 설정')} — {creator.name}</div>
+                    <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280', fontSize: 20 }}>✕</button>
+                </div>
+                <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 14, lineHeight: 1.6 }}>
+                    {t('influencer.attrSetupDesc', '전용 쿠폰코드/UTM을 발급하면 해당 코드로 유입된 주문이 이 크리에이터에 실측 귀속됩니다.')}
+                </div>
+                <div style={{ marginBottom: 12 }}>
+                    <label style={lbl}>{t('influencer.couponCode', '전용 쿠폰코드')}</label>
+                    <input value={coupon} onChange={e => setCoupon(e.target.value)} placeholder="HANA10" style={fld} />
+                </div>
+                <div style={{ marginBottom: 12 }}>
+                    <label style={lbl}>UTM Source</label>
+                    <input value={utm} onChange={e => setUtm(e.target.value)} placeholder="cr-001" style={fld} />
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
+                    <div>
+                        <label style={lbl}>{t('influencer.activationLabel', '활용 유형')}</label>
+                        <select value={act} onChange={e => setAct(e.target.value)} style={fld}>
+                            {Object.keys(ACTIVATION_META).map(k => <option key={k} value={k}>{ACTIVATION_META[k].icon} {t('influencer.' + ACTIVATION_META[k].key, ACTIVATION_META[k].label)}</option>)}
+                        </select>
+                    </div>
+                    <div>
+                        <label style={lbl}>{t('influencer.objectiveLabel', '캠페인 목표')}</label>
+                        <select value={obj} onChange={e => setObj(e.target.value)} style={fld}>
+                            {Object.keys(OBJECTIVE_META).map(k => <option key={k} value={k}>{OBJECTIVE_META[k].icon} {t('influencer.' + OBJECTIVE_META[k].key, OBJECTIVE_META[k].label)}</option>)}
+                        </select>
+                    </div>
+                </div>
+                <div style={{ fontSize: 10, color: tracked ? '#22c55e' : '#94a3b8', marginBottom: 14, fontWeight: 700 }}>
+                    {tracked ? `🎯 ${t('influencer.attrTracked', '실측')} — ${t('influencer.attrTrackedHint', '쿠폰/UTM 주문 자동 귀속')}` : `✍️ ${t('influencer.attrManual', '추정')} — ${t('influencer.attrManualHint', '추적 식별자 없음(저장 추정치 사용)')}`}
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+                    <button className="btn-ghost" onClick={onClose}>{t('influencerUGC.u_34', '닫기')}</button>
+                    <button className="btn-primary" onClick={save} style={{ background: 'linear-gradient(135deg,#22c55e,#4f8ef7)' }}>{t('influencer.attrSave', '저장')}</button>
+                </div>
+            </div>
+        </>
+    );
+});
+
 const IdentityTab = memo(function IdentityTab() {
     const CREATORS = useSafeCreators();
     const { t } = useI18n();
     const { updateCreator } = useGlobalData(); // [현차수] 병합 액션 영속화
     const [sel, setSel] = useState(null);
     const [merge, setMerge] = useState([]);
+    const [attrModal, setAttrModal] = useState(null); // [현차수] 귀속 설정(쿠폰/UTM) 에디터 대상
 
     // [현차수] 병합 — 중복 플래그를 해제하고 검토완료로 전이(영속·전탭 동기화). KPI(중복 의심)에 즉시 반영.
     const mergeCreator = (c) => updateCreator(c.id, { duplicateFlag: false, mergedAt: new Date().toISOString() });
@@ -171,6 +237,8 @@ const IdentityTab = memo(function IdentityTab() {
                                 {c.duplicateFlag && <Tag label={t("influencer.tagDup", '⚠ 제재 필요')} color="#eab308" />}
                             </div>
                             <div style={{ display: "flex", gap: 6 }}>
+                                <button className="btn-ghost" style={{ fontSize: 10, padding: "3px 10px", color: '#22c55e', borderColor: 'rgba(34,197,94,0.3)' }}
+                                    onClick={() => setAttrModal(c)}>🎯 {t('influencer.attrSetup', '귀속 설정')}</button>
                                 <button className="btn-ghost" style={{ fontSize: 10, padding: "3px 10px" }}
                                     onClick={() => setSel(sel === c.id ? null : c.id)}>
                                     {sel === c.id ? t("influencer.btnCollapse", "▲ 접기") : t("influencer.btnChannelDetails", "▼ 채널 정보")}
@@ -223,6 +291,10 @@ const IdentityTab = memo(function IdentityTab() {
                     </div>
                 ))}
             </div>
+            {attrModal && (
+                <AttributionEditor creator={attrModal} t={t} onClose={() => setAttrModal(null)}
+                    onSave={(patch) => { updateCreator(attrModal.id, patch); setAttrModal(null); }} />
+            )}
         </div>
     );
 });

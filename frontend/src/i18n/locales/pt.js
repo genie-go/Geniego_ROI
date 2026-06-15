@@ -8267,6 +8267,14 @@ export default {
       fbaStockRate: "Taxa de estoque FBA"
     },
   influencer: {
+      attrSetup: "Atribuição",
+      couponCode: "Código de cupom",
+      activationLabel: "Tipo de ativação",
+      objectiveLabel: "Objetivo da campanha",
+      attrSave: "Salvar",
+      attrSetupDesc: "Emita um código de cupom/UTM dedicado e os pedidos vindos por esse código são atribuídos a este creator com medição real.",
+      attrTrackedHint: "Pedidos atribuídos auto. via cupom/UTM",
+      attrManualHint: "Sem identificador de rastreamento (usa estimativa salva)",
       attrTracked: "Medido",
       attrManual: "Estimado",
       measPrecise: "Preciso",

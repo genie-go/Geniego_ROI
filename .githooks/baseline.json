@@ -1,11 +1,11 @@
 {
-  "version": "210",
+  "version": "211",
   "updated": "2026-06-15",
   "sacred_sha": {
-    "ja.js": "3136a40ae8507707590f44d44d2d3481fe670f2b8eb9c12aca434add091522e0",
-    "zh.js": "733e6016ccca573a3a1355afb5dcc039f275959fd9d31433feb7549d67f892da"
+    "ja.js": "c79691a1102a96836cebcf29b5f218cf2b1fc2d24eb63625122154416ff66322",
+    "zh.js": "ef40b76e4fc8098ce8d9b4b7a1e2108966b72e216b4a1ec9939bce1617dcc913"
   },
-  "ko_leaf_count": 16522,
+  "ko_leaf_count": 16530,
   "leaf_tolerance_pct": 5,
   "_note": "190차 Sprint5 — PM page raw키 i18n: pm 네임스페이스에 board/detail/status/common + kpi.{done,overdue,completionPct} 15개국 주입(+20 ko leaf, 23292→23312). t(key)||fb 안티패턴(엔진이 key반환=truthy라 폴백 미발동)→t(key,fb) 2번째 인자 전환. ja/zh SHA 동반 갱신. │ 186차 Phase2 — dead/shadow ns purge: 27개 top-level ns 삭제(ko 9,646 leaf, 전 파일 누계 79,192). ko 32759→23103(-9646). 삭제 ns=nav(3933,sidebarI18n.js 내장사전 대체)·ruleEnginePage(2262,AIRuleEngine.jsx 하드코딩스텁)·aiPredict(삭제페이지)·auto(AutoMarketing=marketing ns사용)·pricing(PlanPricing 로컬/하드코딩)·_marketing_1·marketingIntel·cmpVal·pricingDetail·super·campaignMgr·dt·channelKpi(ChannelKPI=channelKpiPage)·workspace·returnsPortal(rpI18n 로컬)·aiPolicy·menu·writeback(Writeback=writebackPage)·alertAuto·dashGuide·approvals(Approvals=approvalsPage)·sc·conn·gBudget·pxl·commerce·reconciliation. ★검증=정적 2검출기 일치(경로인식,pages_backup제외)+소유페이지 교차검증+런타임 16라우트 헤드리스(pageerror0·미해결키0). 잔여 dead 롱테일(<50 leaf,506ns/546leaf)은 간접접근 잔여리스크로 보류. i18n-locales 17.5MB→14.7MB(-16%). Phase1(186차 전반): live ns 13개국 1453건 현지화."
 }

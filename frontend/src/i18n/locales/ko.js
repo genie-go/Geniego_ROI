@@ -20642,6 +20642,14 @@ export default {
   },
 
   "influencer": {
+      attrSetup: "귀속 설정",
+      couponCode: "전용 쿠폰코드",
+      activationLabel: "활용 유형",
+      objectiveLabel: "캠페인 목표",
+      attrSave: "저장",
+      attrSetupDesc: "전용 쿠폰코드/UTM을 발급하면 해당 코드로 유입된 주문이 이 크리에이터에 실측 귀속됩니다.",
+      attrTrackedHint: "쿠폰/UTM 주문 자동 귀속",
+      attrManualHint: "추적 식별자 없음(저장 추정치 사용)",
       attrTracked: "실측",
       attrManual: "추정",
       measPrecise: "정밀측정",

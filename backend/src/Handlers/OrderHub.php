@@ -161,6 +161,9 @@ final class OrderHub
             'trackingNo' => (string)($r['tracking_no'] ?? $r['trackingNo'] ?? ''),
             'at'         => (string)($r['ordered_at'] ?? $r['created_at'] ?? $r['at'] ?? ''),
             'wh'         => (string)($r['warehouse'] ?? $r['wh'] ?? ''),
+            // [현 차수] 인플루언서 귀속: 주문에 박힌 쿠폰코드/UTM/크리에이터ID 를 노출 →
+            //   프론트 applyAttribution 이 크리에이터별 실측 주문/매출을 자동 산출(운영 실데이터).
+            'attribution' => self::extractAttribution($r),
         ], $rows);
 
         return self::json($resp, [
@@ -172,6 +175,87 @@ final class OrderHub
             '_env' => Db::env(),
             '_isDemo' => $isDemo,
         ]);
+    }
+
+    /**
+     * [현 차수] 주문 행에서 인플루언서 귀속 식별자 추출(쿠폰코드/UTM source/크리에이터ID).
+     *   우선순위: 전용 컬럼(coupon_code/utm_source/creator_id) → raw_json 내 채널 제공 값.
+     *   채널 API 마다 쿠폰/할인 필드명이 달라 best-effort 로 여러 키를 탐색한다.
+     *   하나도 없으면 null(귀속 미발생 주문) → 프론트가 무시.
+     */
+    private static function extractAttribution(array $r): ?array
+    {
+        $raw = [];
+        if (!empty($r['raw_json'])) {
+            $d = json_decode((string)$r['raw_json'], true);
+            if (is_array($d)) $raw = $d;
+        }
+        $pick = function (array $keys) use ($r, $raw) {
+            foreach ($keys as $k) {
+                if (isset($r[$k]) && $r[$k] !== '' && $r[$k] !== null) return (string)$r[$k];
+            }
+            foreach ($keys as $k) {
+                if (isset($raw[$k]) && $raw[$k] !== '' && $raw[$k] !== null && !is_array($raw[$k])) return (string)$raw[$k];
+            }
+            return null;
+        };
+        $coupon = $pick(['coupon_code', 'couponCode', 'coupon', 'discount_code', 'promo_code', 'promotion_code']);
+        if ($coupon === null && isset($raw['discount']['code'])) $coupon = (string)$raw['discount']['code'];
+        $utm = $pick(['utm_source', 'utmSource']);
+        if ($utm === null && isset($raw['utm']['source'])) $utm = (string)$raw['utm']['source'];
+        $cid = $pick(['creator_id', 'creatorId', 'influencer_id', 'influencerId']);
+
+        $out = [];
+        if ($coupon !== null) $out['couponCode'] = $coupon;
+        if ($utm !== null) $out['utmSource'] = $utm;
+        if ($cid !== null) $out['influencerId'] = $cid;
+        return $out ?: null;
+    }
+
+    /**
+     * [현 차수] 주문 수동 귀속 태깅 — 채널이 쿠폰/UTM 을 제공하지 않는 주문을 운영자가
+     *   특정 크리에이터에 직접 연결한다. creator_id/coupon_code/utm_source 를 영속.
+     *   POST /v424/orderhub/orders/attribution  body: { id, creatorId?, couponCode?, utmSource? }
+     */
+    public static function setAttribution(Request $req, Response $resp): Response
+    {
+        $g = self::gate($req, $resp);
+        if (isset($g['error'])) return $g['error'];
+        [$tenant, $isDemo, $pdo] = [$g['tenant'], $g['isDemo'], $g['pdo']];
+
+        $body = (array)($req->getParsedBody() ?? []);
+        $id = (string)($body['id'] ?? '');
+        if ($id === '') return self::json($resp, ['ok' => false, 'error' => 'id_required'], 400);
+
+        $map = [['creatorId', 'creator_id'], ['couponCode', 'coupon_code'], ['utmSource', 'utm_source']];
+        $sets = [];
+        $vals = [];
+        foreach ($map as [$k, $col]) {
+            if (array_key_exists($k, $body)) { $sets[] = "$col = ?"; $vals[] = $body[$k] === null ? null : (string)$body[$k]; }
+        }
+        if (!$sets) return self::json($resp, ['ok' => false, 'error' => 'no_fields'], 400);
+
+        try {
+            self::ensureAttributionColumns($pdo);
+            $sql = "UPDATE channel_orders SET " . implode(', ', $sets)
+                . " WHERE tenant_id = ? AND (id = ? OR channel_order_id = ? OR order_no = ?)";
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute(array_merge($vals, [$tenant, $id, $id, $id]));
+            return self::json($resp, ['ok' => true, 'updated' => $stmt->rowCount()]);
+        } catch (\Throwable $e) {
+            return self::json($resp, ['ok' => false, 'error' => 'db_error', 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /** channel_orders 에 귀속 컬럼(coupon_code/utm_source/utm_campaign/creator_id)을 idempotent 보강. */
+    private static function ensureAttributionColumns(\PDO $pdo): void
+    {
+        $isMy = false;
+        try { $isMy = strtolower((string)$pdo->getAttribute(\PDO::ATTR_DRIVER_NAME)) === 'mysql'; } catch (\Throwable $e) {}
+        foreach (['coupon_code', 'utm_source', 'utm_campaign', 'creator_id'] as $c) {
+            try { $pdo->exec("ALTER TABLE channel_orders ADD COLUMN {$c} " . ($isMy ? 'VARCHAR(190)' : 'TEXT')); }
+            catch (\Throwable $e) { /* 이미 존재 */ }
+        }
     }
 
     /**

@@ -8165,6 +8165,14 @@ export default {
     "fbaStockRate": "FBA在庫率"
   },
   "influencer": {
+      attrSetup: "アトリビューション設定",
+      couponCode: "専用クーポンコード",
+      activationLabel: "活用タイプ",
+      objectiveLabel: "キャンペーン目標",
+      attrSave: "保存",
+      attrSetupDesc: "専用クーポンコード/UTMを発行すると、そのコードで流入した注文がこのクリエイターに実測帰属されます。",
+      attrTrackedHint: "クーポン/UTM注文を自動帰属",
+      attrManualHint: "追跡識別子なし(保存推定値を使用)",
       attrTracked: "実測",
       attrManual: "推定",
       measPrecise: "精密測定",
