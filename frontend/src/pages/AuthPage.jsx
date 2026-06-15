@@ -1456,6 +1456,21 @@ function AdminLoginForm({ onBack }) {
   const [error, setError] = useState(null);
   const ADMIN_GATE = "GENIEGO-ADMIN";
 
+  // [225차] 관리 대상 시스템(운영/데모) 선택 — 데모/운영은 별도 빌드·백엔드(도메인 분리)이므로
+  //   다른 시스템 선택 시 해당 도메인 관리자 로그인으로 전환(매칭된 빌드+백엔드에서 인증). ?mode=admin 로
+  //   대상 도메인의 관리자 패널이 자동 오픈된다. 같은 시스템이면 그대로 진행.
+  const _host = typeof window !== 'undefined' ? window.location.hostname : '';
+  const _isLocal = _host === 'localhost' || _host === '127.0.0.1';
+  const curEnv = IS_DEMO ? 'demo' : 'ops';
+  const switchEnv = (env) => {
+    if (env === curEnv) return;
+    const toDemo = (h) => h.startsWith('roidemo') ? h : h.replace(/^roi(?=\.)/, 'roidemo');
+    const toOps  = (h) => h.startsWith('roidemo') ? h.replace(/^roidemo/, 'roi') : h;
+    const target = env === 'demo' ? toDemo(_host) : toOps(_host);
+    if (!target || target === _host) return; // 로컬/미인식 도메인 → 전환 불가(no-op)
+    window.location.href = `${window.location.protocol}//${target}${window.location.pathname}?mode=admin`;
+  };
+
   const verifyKey = async (e) => {
     e.preventDefault();
     setError(null); setLoading(true);
@@ -1507,6 +1522,35 @@ function AdminLoginForm({ onBack }) {
           <div style={{ fontSize: 10, color: "#64748b", marginTop: 2 }}>접속 코드 인증 후 관리자 계정으로 로그인합니다</div>
         </div>
       </div>
+
+      {/* [225차] 관리 대상 시스템 선택(운영/데모) — 선택 시 해당 시스템 도메인 관리자 로그인으로 전환 */}
+      <div style={{ display: "grid", gap: 6 }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: "#475569" }}>관리 대상 시스템 선택</div>
+        <div style={{ display: "flex", gap: 8 }}>
+          {[
+            { k: "ops",  icon: "🏢", label: "운영 시스템",  c: "#4f8ef7" },
+            { k: "demo", icon: "🎪", label: "데모 시스템",  c: "#fb923c" },
+          ].map(o => {
+            const on = curEnv === o.k;
+            return (
+              <button key={o.k} type="button" onClick={() => switchEnv(o.k)} disabled={on || _isLocal}
+                title={on ? "현재 접속 중인 시스템" : `${o.label}으로 전환`}
+                style={{ flex: 1, padding: "10px 8px", borderRadius: 10, textAlign: "center",
+                  cursor: (on || _isLocal) ? "default" : "pointer",
+                  border: `1px solid ${on ? o.c : "#e2e8f0"}`, background: on ? `${o.c}14` : "#fff",
+                  color: on ? o.c : "#64748b", fontWeight: on ? 800 : 600, fontSize: 12,
+                  opacity: (_isLocal && !on) ? 0.5 : 1, transition: "all 0.15s" }}>
+                <div>{o.icon} {o.label}</div>
+                <div style={{ fontSize: 9, marginTop: 2, opacity: 0.85 }}>
+                  {on ? "현재 접속 중" : "선택 시 전환"}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+        {_isLocal && <div style={{ fontSize: 10, color: "#94a3b8" }}>로컬 개발 환경에서는 시스템 전환이 비활성화됩니다.</div>}
+      </div>
+
       {step === 1 ? (
         <form onSubmit={verifyKey} style={{ display: "grid", gap: 12 }}>
           <div>
