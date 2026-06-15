@@ -60,6 +60,7 @@ addRule:['supplyChain.addRule','Add Rule'],
 ruleName:['supplyChain.ruleName','Rule Name'],
 ruleAction:['supplyChain.ruleAction','Action'],
 noRisk:['supplyChain.noRisk','No risks detected.'],
+noRiskRules:['supplyChain.noRiskRules','No risk rules yet. Add one to automate alerts.'],
 invTotal:['supplyChain.invTotal','Total Inventory'],
 invTransit:['supplyChain.invTransit','In Transit'],
 invWarehouse:['supplyChain.invWarehouse','Warehouse'],
@@ -153,15 +154,84 @@ const PO_CLR={draft:'#94a3b8',pending:'#f59e0b',approved:'#22c55e',shipped:'#4f8
 
 
 /* ══════════════════════════════════════════════════════════════
+   227차: 운영 공급라인/공급업체 백엔드 영속(/v420/supply/*) 조회 + 데모 시드 폴백.
+     기존엔 lines=isDemoMode?DEMO_LINES:[] 로 운영 Timeline/LeadTime/Risk 가 영구 빈 화면이었음
+     (백엔드 SupplyChain.php 완비·미배선). 백엔드 stage{done:0/1} → 프론트 pct[0|100] 매핑.
+   ══════════════════════════════════════════════════════════════ */
+const _mapLine=(r,supByName)=>{
+  const st=Array.isArray(r.stages)?r.stages:[];
+  const pct=[];for(let i=0;i<STAGES.length;i++){pct.push(st[i]&&Number(st[i].done)?100:0);}
+  const sup=supByName?supByName[r.supplier]:null;
+  return{id:r.id??r.line_id,lineDbId:r.id,product:r.name||r.sku||r.line_id||'',sku:r.sku||'',supplier:r.supplier||'',leadTime:Number(r.leadTime)||0,risk:r.risk==='high'?'high':'normal',stages:pct,country:sup?sup.country:''};
+};
+function useSupplyLines(){
+const{isDemoMode}=useAuth();
+const[lines,setLines]=useState(isDemoMode?DEMO_LINES:[]);
+const[suppliers,setSuppliers]=useState(isDemoMode?DEMO_SUPPLIERS:[]);
+const[loading,setLoading]=useState(!isDemoMode);
+const reload=useCallback(async()=>{
+  if(isDemoMode){setLines(DEMO_LINES);setSuppliers(DEMO_SUPPLIERS);setLoading(false);return;}
+  setLoading(true);
+  try{
+    const[lr,sr]=await Promise.all([getJsonAuth('/v420/supply/lines').catch(()=>({})),getJsonAuth('/v420/supply/suppliers').catch(()=>({}))]);
+    const sups=((sr&&sr.suppliers)||[]).map(_mapSup);
+    const byName={};sups.forEach(s=>{byName[s.name]=s;});
+    setSuppliers(sups);
+    setLines(((lr&&lr.lines)||[]).map(r=>_mapLine(r,byName)));
+  }catch(e){setLines([]);setSuppliers([]);}
+  finally{setLoading(false);}
+},[isDemoMode]);
+useEffect(()=>{reload();},[reload]);
+return{lines,suppliers,loading,reload,isDemoMode};
+}
+
+/* ══════════════════════════════════════════════════════════════
    Tab 1: Supply Timeline
    ══════════════════════════════════════════════════════════════ */
+const _emptyLine=()=>({sku:'',name:'',supplier:'',leadTime:14,risk:'normal'});
 function TimelineTab({tr,fmt}){
-const{isDemoMode}=useAuth();
-const lines=isDemoMode?DEMO_LINES:[];
+const{lines,suppliers,loading,reload,isDemoMode}=useSupplyLines();
 const[showAdd,setShowAdd]=useState(false);
-if(lines.length===0)return(<div className="card card-glass" style={{padding:60,textAlign:'center',color:'#1e293b'}}><div style={{fontSize:48,marginBottom:16}}>📦</div><div style={{fontSize:14,fontWeight:700,color:'#1e293b'}}>{tr('noData')}</div></div>);
+const[form,setForm]=useState(_emptyLine());
+const[saving,setSaving]=useState(false);
+const fld=(k,v)=>setForm(f=>({...f,[k]:v}));
+const submit=async()=>{
+  if((!form.name.trim()&&!form.sku.trim())||saving)return;
+  setSaving(true);
+  try{await requestJsonAuth('/v420/supply/lines','POST',{sku:form.sku,name:form.name||form.sku,supplier:form.supplier,leadTime:Number(form.leadTime)||0,risk:form.risk,stages:STAGES.map(s=>({stage:s,done:0}))});
+    setShowAdd(false);setForm(_emptyLine());await reload();}
+  catch(e){}finally{setSaving(false);}
+};
+// 단계 클릭 → 운영 백엔드 done 토글(updateStage), 데모는 무변경.
+const toggleStage=async(ln,si)=>{
+  if(isDemoMode||!ln.lineDbId)return;
+  const done=(ln.stages[si]>=100)?0:1;
+  try{await requestJsonAuth(`/v420/supply/lines/${ln.lineDbId}/stage`,'POST',{stage:STAGES[si],done});await reload();}catch(e){}
+};
+const inputSt={width:'100%',padding:'8px 10px',borderRadius:8,border:'1px solid #cbd5e1',fontSize:13,color:'#1e293b',background:'#fff'};
+const addBtn=!isDemoMode&&(<div style={{display:'flex',justifyContent:'flex-end'}}><button onClick={()=>setShowAdd(true)} style={{padding:'8px 16px',borderRadius:8,border:'none',background:'#4f8ef7',color:'#fff',fontWeight:700,fontSize:12,cursor:'pointer'}}>+ {tr('addLine')}</button></div>);
+const addModal=showAdd&&(
+<div onClick={()=>setShowAdd(false)} style={{position:'fixed',inset:0,background:'rgba(15,23,42,0.45)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:1000,padding:20}}>
+<div onClick={e=>e.stopPropagation()} className="card" style={{background:'#fff',borderRadius:14,padding:24,width:'100%',maxWidth:460,color:'#1e293b',boxShadow:'0 12px 40px rgba(0,0,0,0.25)'}}>
+<div style={{fontWeight:800,fontSize:16,marginBottom:18}}>📦 {tr('addLine')}</div>
+<div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
+<div><label style={{fontSize:11,fontWeight:700,color:'#64748b'}}>SKU</label><input value={form.sku} onChange={e=>fld('sku',e.target.value)} style={inputSt}/></div>
+<div><label style={{fontSize:11,fontWeight:700,color:'#64748b'}}>{tr('productName')}</label><input value={form.name} onChange={e=>fld('name',e.target.value)} style={inputSt}/></div>
+<div><label style={{fontSize:11,fontWeight:700,color:'#64748b'}}>{tr('supplier')}</label><input list="sc-sup-list" value={form.supplier} onChange={e=>fld('supplier',e.target.value)} style={inputSt}/><datalist id="sc-sup-list">{suppliers.map(s=>(<option key={s.id} value={s.name}/>))}</datalist></div>
+<div><label style={{fontSize:11,fontWeight:700,color:'#64748b'}}>{tr('leadTime')} ({tr('days')})</label><input type="number" value={form.leadTime} onChange={e=>fld('leadTime',e.target.value)} style={inputSt}/></div>
+<div style={{gridColumn:'1 / -1'}}><label style={{fontSize:11,fontWeight:700,color:'#64748b'}}>{tr('tabRisk')}</label><select value={form.risk} onChange={e=>fld('risk',e.target.value)} style={inputSt}><option value="normal">{tr('normal')}</option><option value="high">{tr('highRisk')}</option></select></div>
+</div>
+<div style={{display:'flex',gap:10,justifyContent:'flex-end',marginTop:20}}>
+<button onClick={()=>setShowAdd(false)} style={{padding:'9px 16px',borderRadius:8,border:'1px solid #cbd5e1',background:'#fff',color:'#475569',fontWeight:700,fontSize:13,cursor:'pointer'}}>{tr('cancel')}</button>
+<button onClick={submit} disabled={saving||(!form.name.trim()&&!form.sku.trim())} style={{padding:'9px 18px',borderRadius:8,border:'none',background:saving?'#94a3b8':'#4f8ef7',color:'#fff',fontWeight:700,fontSize:13,cursor:'pointer'}}>{tr('register')}</button>
+</div>
+</div>
+</div>);
+if(loading)return(<div className="card card-glass" style={{padding:60,textAlign:'center',color:'#1e293b'}}><div style={{fontSize:48,marginBottom:16}}>📦</div><div style={{fontSize:14,fontWeight:700,color:'#1e293b'}}>{tr('loading')}</div></div>);
+if(lines.length===0)return(<div style={{display:'flex',flexDirection:'column',gap:14}}>{addBtn}<div className="card card-glass" style={{padding:60,textAlign:'center',color:'#1e293b'}}><div style={{fontSize:48,marginBottom:16}}>📦</div><div style={{fontSize:14,fontWeight:700,color:'#1e293b'}}>{tr('noData')}</div></div>{addModal}</div>);
 return(
 <div style={{display:'flex',flexDirection:'column',gap:16,animation:'fadeIn 0.4s'}}>
+{addBtn}
 {/* KPI Cards */}
 <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(180px,1fr))',gap:12}}>
 {[{l:tr('kpiLines'),v:lines.length,c:'#4f8ef7',i:'📦'},{l:tr('kpiSuppliers'),v:new Set(lines.map(x=>x.supplier)).size,c:'#22c55e',i:'🏭'},{l:tr('kpiHighRisk'),v:lines.filter(x=>x.risk==='high').length,c:'#ef4444',i:'⚠️'},{l:tr('kpiAvgLead'),v:Math.round(lines.reduce((s,x)=>s+x.leadTime,0)/lines.length)+' '+tr('days'),c:'#a855f7',i:'⏱'},{l:tr('kpiOnTime'),v:Math.round(lines.filter(x=>x.risk!=='high').length/lines.length*100)+'%',c:'#14b8a6',i:'✅'}].map((k,i)=>(
@@ -186,7 +256,7 @@ return(
 {/* Stage Progress Bar */}
 <div style={{display:'flex',gap:4,alignItems:'center'}}>
 {STAGES.map((st,si)=>{const pct=ln.stages[si];return(
-<div key={si} style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:4}}>
+<div key={si} onClick={()=>toggleStage(ln,si)} title={!isDemoMode?st:''} style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:4,cursor:!isDemoMode?'pointer':'default'}}>
 <div style={{width:'100%',height:8,borderRadius:4,background:'rgba(0,0,0,0.06)',overflow:'hidden'}}>
 <div style={{width:pct+'%',height:'100%',borderRadius:4,background:pct>=100?'#22c55e':pct>0?'#4f8ef7':'transparent',transition:'width 0.6s'}}/>
 </div>
@@ -195,6 +265,7 @@ return(
 </div>
 </div>);})}
 </div>
+{addModal}
 </div>);
 }
 
@@ -446,8 +517,8 @@ return(
    Tab 5: Lead Time Analysis
    ══════════════════════════════════════════════════════════════ */
 function LeadTimeTab({tr,fmt}){
-const{isDemoMode}=useAuth();
-const lines=isDemoMode?DEMO_LINES:[];
+const{lines,loading}=useSupplyLines();
+if(loading)return(<div className="card card-glass" style={{padding:60,textAlign:'center',color:'#1e293b'}}><div style={{fontSize:48,marginBottom:16}}>⏱</div><div style={{fontSize:14,fontWeight:700,color:'#1e293b'}}>{tr('loading')}</div></div>);
 if(lines.length===0)return(<div className="card card-glass" style={{padding:60,textAlign:'center',color:'#1e293b'}}><div style={{fontSize:48,marginBottom:16}}>⏱</div><div style={{fontSize:14,fontWeight:700,color:'#1e293b'}}>{tr('noData')}</div></div>);
 const chartData=lines.map(l=>({name:l.product.split(' ').slice(0,2).join(' '),leadTime:l.leadTime,country:l.country}));
 const avgLead=Math.round(lines.reduce((s,l)=>s+l.leadTime,0)/lines.length);
@@ -502,10 +573,8 @@ return(
    Tab 6: Risk Detection
    ══════════════════════════════════════════════════════════════ */
 function RiskTab({tr}){
-const{isDemoMode}=useAuth();
-const lines=isDemoMode?DEMO_LINES:[];
+const{lines,suppliers,isDemoMode}=useSupplyLines();
 const highRisk=lines.filter(l=>l.risk==='high');
-const suppliers=isDemoMode?DEMO_SUPPLIERS:[];
 const lowRel=suppliers.filter(s=>s.reliability<85);
 return(
 <div style={{display:'flex',flexDirection:'column',gap:16,animation:'fadeIn 0.4s'}}>
@@ -550,17 +619,65 @@ return(
 </div>)}
 </>
 )}
-{/* Auto Risk Rules */}
+{/* Auto Risk Rules — 227차: 백엔드 영속(sc_risk_rules) 배선 */}
+<RiskRulesPanel tr={tr} isDemoMode={isDemoMode}/>
+</div>);
+}
+
+/* 227차: 자동 리스크 규칙 — 데모=정적 시드(표시 전용), 운영=백엔드 CRUD(list/create/toggle). */
+const _DEMO_RULES=[{id:'d1',rule:'Lead Time > 21 days',action:'Slack Alert + Email',active:1},{id:'d2',rule:'Reliability < 85%',action:'Flag for Review',active:1},{id:'d3',rule:'Delay Rate > 15%',action:'Auto Search Alt Supplier',active:0}];
+function RiskRulesPanel({tr,isDemoMode}){
+const[rules,setRules]=useState(isDemoMode?_DEMO_RULES:[]);
+const[showAdd,setShowAdd]=useState(false);
+const[form,setForm]=useState({rule:'',action:''});
+const[saving,setSaving]=useState(false);
+const reload=useCallback(async()=>{
+  if(isDemoMode){setRules(_DEMO_RULES);return;}
+  try{const r=await getJsonAuth('/v420/supply/risk-rules');setRules((r&&r.rules)||[]);}catch(e){setRules([]);}
+},[isDemoMode]);
+useEffect(()=>{reload();},[reload]);
+const toggle=async(id)=>{
+  if(isDemoMode)return;
+  try{await requestJsonAuth(`/v420/supply/risk-rules/${id}/toggle`,'POST',{});await reload();}catch(e){}
+};
+const submit=async()=>{
+  if(!form.rule.trim()||saving)return;
+  setSaving(true);
+  try{await requestJsonAuth('/v420/supply/risk-rules','POST',{rule:form.rule,action:form.action});setShowAdd(false);setForm({rule:'',action:''});await reload();}
+  catch(e){}finally{setSaving(false);}
+};
+const inputSt={width:'100%',padding:'8px 10px',borderRadius:8,border:'1px solid #cbd5e1',fontSize:13,color:'#1e293b',background:'#fff'};
+return(
 <div className="card card-glass" style={{padding:20,color:'#1e293b'}}>
-<div style={{fontWeight:800,fontSize:15,marginBottom:14,color:'#1e293b'}}>⚙️ {tr('autoRiskRules')}</div>
+<div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:14}}>
+<div style={{fontWeight:800,fontSize:15,color:'#1e293b'}}>⚙️ {tr('autoRiskRules')}</div>
+{!isDemoMode&&(<button onClick={()=>setShowAdd(true)} style={{padding:'6px 12px',borderRadius:8,border:'none',background:'#4f8ef7',color:'#fff',fontWeight:700,fontSize:12,cursor:'pointer'}}>+ {tr('addRule')}</button>)}
+</div>
+{rules.length===0?(
+<div style={{padding:30,textAlign:'center',color:'#94a3b8',fontSize:13,fontWeight:600}}>{tr('noRiskRules')}</div>
+):(
 <div style={{display:'flex',flexDirection:'column',gap:8}}>
-{[{rule:'Lead Time > 21 days',action:'Slack Alert + Email',active:true},{rule:'Reliability < 85%',action:'Flag for Review',active:true},{rule:'Delay Rate > 15%',action:'Auto Search Alt Supplier',active:false}].map((r,i)=>(
-<div key={i} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 14px',borderRadius:8,background:'rgba(241,245,249,0.7)',border:'1px solid rgba(0,0,0,0.04)'}}>
-<div><span style={{fontWeight:700,fontSize:13,color:'#1e293b'}}>{r.rule}</span><span style={{fontSize:11,color:'#94a3b8',marginLeft:8}}>→ {r.action}</span></div>
-<div style={{width:36,height:20,borderRadius:10,background:r.active?'#22c55e':'#cbd5e1',position:'relative',cursor:'pointer',transition:'background 0.2s'}}><div style={{width:16,height:16,borderRadius:'50%',background:'#fff',position:'absolute',top:2,left:r.active?18:2,transition:'left 0.2s',boxShadow:'0 1px 3px rgba(0,0,0,0.2)'}}/></div>
-</div>))}
+{rules.map(r=>{const active=Number(r.active)===1;return(
+<div key={r.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 14px',borderRadius:8,background:'rgba(241,245,249,0.7)',border:'1px solid rgba(0,0,0,0.04)'}}>
+<div><span style={{fontWeight:700,fontSize:13,color:'#1e293b'}}>{r.rule}</span>{r.action&&(<span style={{fontSize:11,color:'#94a3b8',marginLeft:8}}>→ {r.action}</span>)}</div>
+<div onClick={()=>toggle(r.id)} style={{width:36,height:20,borderRadius:10,background:active?'#22c55e':'#cbd5e1',position:'relative',cursor:isDemoMode?'default':'pointer',transition:'background 0.2s'}}><div style={{width:16,height:16,borderRadius:'50%',background:'#fff',position:'absolute',top:2,left:active?18:2,transition:'left 0.2s',boxShadow:'0 1px 3px rgba(0,0,0,0.2)'}}/></div>
+</div>);})}
+</div>
+)}
+{showAdd&&(
+<div onClick={()=>setShowAdd(false)} style={{position:'fixed',inset:0,background:'rgba(15,23,42,0.45)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:1000,padding:20}}>
+<div onClick={e=>e.stopPropagation()} className="card" style={{background:'#fff',borderRadius:14,padding:24,width:'100%',maxWidth:440,color:'#1e293b',boxShadow:'0 12px 40px rgba(0,0,0,0.25)'}}>
+<div style={{fontWeight:800,fontSize:16,marginBottom:18}}>⚙️ {tr('addRule')}</div>
+<div style={{display:'flex',flexDirection:'column',gap:12}}>
+<div><label style={{fontSize:11,fontWeight:700,color:'#64748b'}}>{tr('ruleName')}</label><input value={form.rule} onChange={e=>setForm(f=>({...f,rule:e.target.value}))} placeholder="Lead Time > 21 days" style={inputSt}/></div>
+<div><label style={{fontSize:11,fontWeight:700,color:'#64748b'}}>{tr('ruleAction')}</label><input value={form.action} onChange={e=>setForm(f=>({...f,action:e.target.value}))} placeholder="Slack Alert + Email" style={inputSt}/></div>
+</div>
+<div style={{display:'flex',gap:10,justifyContent:'flex-end',marginTop:20}}>
+<button onClick={()=>setShowAdd(false)} style={{padding:'9px 16px',borderRadius:8,border:'1px solid #cbd5e1',background:'#fff',color:'#475569',fontWeight:700,fontSize:13,cursor:'pointer'}}>{tr('cancel')}</button>
+<button onClick={submit} disabled={saving||!form.rule.trim()} style={{padding:'9px 18px',borderRadius:8,border:'none',background:saving||!form.rule.trim()?'#94a3b8':'#4f8ef7',color:'#fff',fontWeight:700,fontSize:13,cursor:'pointer'}}>{tr('register')}</button>
 </div>
 </div>
+</div>)}
 </div>);
 }
 
