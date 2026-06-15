@@ -1,3 +1,40 @@
+# 225차 세션 인계서 — **C:드라이브 전환 + 224 감사백로그 P0/P1/P2 전건(24건) 적용 + 채널추이 툴팁(가시성·선식별·겹침) + seed 보안제거 + 관리자 로그인 운영/데모 선택 (전부 운영·데모 배포·헤드리스 검증·push)**
+
+> **작성일**: 2026-06-15 (사용자 명시 승인 후) · **이전**: 220~223차 → 225차(224차는 commit만 있고 별도 인계서 없음). 운영 roi.genie-go.com / 데모 roidemo.genie-go.com (★vhost server_name=하이픈, 파일경로=`.geniego.com` 무하이픈).
+> **종결 상태**: 아래 4커밋 **전부 운영/데모 수동 dist swap·백엔드 pscp+php-fpm restart·검증·push 완료**. 정본 메모리 [[project-n225-audit-p0p1-applied]]·[[project-workdir-migration-cdrive]].
+
+## ⚠️ 작업 디렉터리 전환 (최우선 인지)
+- **E:\project\GeniegoROI 디스크 I/O 장애 → C:\project\GeniegoROI 로 복사·전수검증(파일48428·git HEAD·집계MD5 동일)** 후 전환. 작업기준=**C: 절대경로**. 이 세션 하네스 primary는 아직 E: → 절대경로 명시 필요. 다음 세션은 C:에서 cc 실행 권장.
+- **로컬=운영 최신성 검증 완료**: 운영 backend 101파일 비교 → 60 동일·39 CRLF만차이·PM/Tasks 로컬앞섬·운영전용 seed 1개(제거함). 로컬 작업트리가 정본.
+
+## ✅ 225차 완료 (커밋 순, 최신→과거)
+| 커밋 | 내용 | 검증 |
+|---|---|---|
+| `720c730085c` | **관리자 로그인 운영/데모 시스템 선택**: AdminLoginForm(로고→GENIEGO-ADMIN)에 '관리 대상 시스템 선택'(🏢운영/🎪데모). 데모·운영은 별도빌드(VITE_DEMO_MODE)·백엔드(도메인분리)라 다른 시스템 선택 시 해당도메인 `/login?mode=admin` 전환(매칭빌드+백엔드 인증). 현재시스템 강조·로컬 비활성 | 헤드리스(puppeteer+chrome): 데모=데모'현재접속중'/운영'선택시전환', 운영=반대, err0, 스샷 |
+| `7b5c4115060` | **224 감사 P2 6건**: ①Rollup campaign MAX(channel) 무-GROUP BY 제거(ONLY_FULL_GROUP_BY→빈롤업)+summary avg_roas 분자 ad_rev ②ChannelSync::recordCrmPurchase order_id 멱등(LTV이중·여정중복 차단) ③**orderStatusCanon.js SSOT 신설**(dashPeriod가 refunded를 취소 오분류→기간매출 발산, GDC와 통합) ④Keys.create scopes 화이트리스트+역할상한 ⑤Paddle addslashes→파라미터화(SQLi) ⑥AdminMenu is_super 하드코딩true→owner한정 | rollup/summary 200·keys 401·빌드OK |
+| `814055cf862` | **224 P0/P1 18건 + 채널추이 툴팁**: P0(정산매출 서버집계 settlementsStats·쿠폰SQLite폴백) P1(플랜게이트rank·AI테넌트quota·Pixel rate+dedup·Kakao/11번가키·claims멱등·DashROAS·서버COGS·DB드라이버분기·토큰AES·LiveWMS·PG/반품 전행집계·반품률분모실주문수·WMS멱등·익명401)+툴팁 가시성(chart-tip-text)·최근접선강조·겹침수정 | 신규엔드포인트 401·fpm restart·헤드리스 툴팁 |
+
+## 📌 정본(canonical) — 225차 추가
+- **취소/반품 캐논 = `frontend/src/components/dashboards/orderStatusCanon.js`** (CANCEL_TOKENS/RETURN_TOKENS, isCancelledStatus/isReturnStatus). dashPeriod·GlobalDataContext 둘 다 여기서 import(독립복사본 금지). 백엔드 OrderHub::CANCEL_TOKENS/RETURN_TOKENS 정합. **refunded=반품(매출포함)**, 취소만 매출제외.
+- **정산/COGS/PG/반품 서버집계**: OrderHub `settlementsStats`·`claimsStats`·ordersStats에 `cogs`(channel_inventory 조인) 추가. PgSettlement summary=전행 SUM. 프론트 GlobalDataContext가 `settlementStatsServer`/`claimStatsServer`/`orderStatsServer.cogs` 우선소비(데모=null→클라폴백). limit캡 재집계 금지.
+- **AI 공용키 quota = `ai_usage_quota`**(테넌트×일, calls/tokens/img_calls). ClaudeAI callClaude/callClaudeLong에 $tenant 인자+quotaGate/quotaConsume. 이미지·영상은 전역키 사용시만 게이트. 캡 env `AI_DAILY_CALL_CAP/TOKEN_CAP/IMG_CAP`(기본600/3M/100).
+- **DB 드라이버 분기 필수**: ON DUPLICATE→SQLite ON CONFLICT, NOW()→CURRENT_TIMESTAMP, INTEGER PK AUTO_INCREMENT/ON UPDATE→SQLite DDL 분기, date('now')+DATE_SUB혼용→PHP 컷오프 바인딩. (AdminPlans/MenuPricingSync/Payment/CouponAdmin/UserAdmin/PM Tasks/CouponRedeem 적용)
+- **관리자 로그인 시스템 선택**: `?mode=admin` 으로 관리자 패널 자동오픈. 환경전환=`{대상도메인}/login?mode=admin` 리다이렉트(교차-origin 로그인 안함=빌드 불일치 회피). CORS는 양도메인 이미 허용.
+
+## ⏭️ 다음 차수 잔여
+1. **[보안 권장-미실행] 운영 MySQL root 비번 회전** — 제거한 seed_ad_performance.php(/root/_removed_225 백업)에 평문노출돼 있었음. `ALTER USER` + `.env`/`.my.cnf.bak` 동반갱신 + 라이브검증 필요(무중단 순서: 새비번 준비→파일갱신→ALTER→검증). [[reference-session-credentials]] 보관본도 동일.
+2. **[219 백로그 유효]** ①PUT /v424/marketing/benchmarks 403(AI게이트 role/scopes) ②오픈마켓 4종 취소/반품 상태매핑(실자격증명) ③검증필요(OAuth redirect_uri·webhook 멱등).
+3. **[220~223 잔여]** ①사용자보고 차트 다크모드 글자(헤드리스 재현불가, 실환경 확인 필요—225 text-2 대비강화·chart-tip-text로 일부 보강됨) ②AI 5번 채널단위 분해(매체 일별 시계열 적재) ③운영 실 Claude 키 등록.
+4. **[225 후속검증]** 마케팅성과 탭 툴팁 겹침수정 육안 재확인(데모 관리자 셀렉터는 스샷 검증 완료). 일반 회원 로그인에는 시스템 선택 미표시(의도) — 노출 원하면 추가작업.
+
+## 📌 정본 패턴 (225차 재확인)
+- **★헤드리스 검증**: 이 환경 Bash curl은 외부 TLS exit35(egress제한). **로컬 puppeteer-core + `C:\Program Files\Google\Chrome\Application\chrome.exe`** 로 OS네트워크 경유 실렌더 검증(스샷). 서버측 검증은 plink로 서버 자체 curl(localhost+Host헤더 또는 공인도메인 자기참조 OK).
+- **★배포**: backend = tar→pscp→서버 추출(.bak_<n> 백업)→chown www:www→**php8.1-fpm restart(공유풀, 신규메서드 opcache)**. frontend = 이중빌드(VITE_DEMO_MODE) dist swap(.bak_<n>). 신규 라우트=routes.php $custom맵+$register 둘다 필수.
+- **★커밋**: 변경파일만 명시 git add(루트 잡파일 多). pre-commit G2(ja/zh baseline SHA) 통과. master push=CI(시크릿無 inert, 빌드만)·실배포는 수동 완료.
+- **★CRLF**: git autocrlf 경고는 정상(레포=LF). 운영 39파일 CRLF는 과거 Windows 배포흔적(내용 동일).
+
+---
+
 # 220~223차 세션 인계서 — **채널 objective 퍼널 분류 + 데모 0값 체험화 + 매출 라벨 명확화 + AI 광고분석 완성(1~5) + 채널 추이 지표선택/툴팁/다크모드 가시성 (전부 운영·데모 배포·헤드리스 검증·push)**
 
 > **작성일**: 2026-06-14 (사용자 명시 승인 후) · **이전**: 219차 → 220~223차. 운영 roi.genie-go.com / 데모 roidemo.genie-go.com (★vhost server_name=하이픈 `roi.genie-go.com`/`roidemo.genie-go.com`, 파일경로=`roi.geniego.com`/`roidemo.geniego.com`).
