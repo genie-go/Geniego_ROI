@@ -240,8 +240,10 @@ final class Rollup {
         try {
             $pdo = Db::pdo();
             $start = self::rangeStart($dates);
+            // [225차 P2-1] MAX(channel) 집계를 GROUP BY 없이 비집계 컬럼과 혼용 → MySQL ONLY_FULL_GROUP_BY
+            //   throw → catch → 빈 롤업이었다. 집계는 아래 PHP 버킷에서 하므로 raw 행만 조회(집계 제거).
             $stmt = $pdo->prepare(
-                "SELECT COALESCE(NULLIF(campaign_ext_id,''), channel) AS cid, MAX(channel) AS channel, date, spend, impressions, clicks, conversions, revenue
+                "SELECT COALESCE(NULLIF(campaign_ext_id,''), channel) AS cid, channel, date, spend, impressions, clicks, conversions, revenue
                    FROM performance_metrics WHERE tenant_id = ? AND date >= ?"
             );
             $stmt->execute([$tenant, substr($start, 0, 10)]);
@@ -399,6 +401,9 @@ final class Rollup {
 
         $totalRev = array_sum(array_column($platformRows, 'total_revenue'));
         $totalSpend = array_sum(array_column($platformRows, 'total_spend'));
+        // [225차 P2-1] avg_roas 정본화: 광고기여매출(total_ad_rev) 분자 사용(per-platform ROAS 와 일관).
+        //   기존 totalRev(총매출)/spend 는 광고 외 매출까지 포함해 ROAS 과대 발산이었다.
+        $totalAdRev = array_sum(array_column($platformRows, 'total_ad_rev'));
         $totalOrders = array_sum(array_column($platformRows, 'total_orders'));
         if ($totalOrders === 0) $totalOrders = (int)array_sum(array_column($skuRows, 'total_orders'));
         if ($totalRev == 0) $totalRev = array_sum(array_column($skuRows, 'total_revenue'));
@@ -421,7 +426,7 @@ final class Rollup {
                 'total_revenue'   => $totalRev,
                 'total_spend'     => $totalSpend,
                 'total_orders'    => $totalOrders,
-                'avg_roas'        => $totalSpend > 0 ? round($totalRev / $totalSpend, 2) : 0,
+                'avg_roas'        => $totalSpend > 0 ? round($totalAdRev / $totalSpend, 2) : 0,
                 'revenue_per_order' => $totalOrders > 0 ? round($totalRev / $totalOrders) : 0,
             ],
             'by_platform' => $byPlatform,

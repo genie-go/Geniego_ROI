@@ -1475,6 +1475,13 @@ final class ChannelSync
         }
         $now = gmdate('Y-m-d H:i:s');
         try {
+            // [225차 P2-2] order_id 멱등 — 재폴링/중복 호출 시 동일 주문이 LTV 이중가산 + 구매활동·여정
+            //   중복 진입하던 결함 차단. crm_activities.data(JSON)의 order_id 로 기존 구매 활동 존재 시 skip.
+            if ($orderId !== '') {
+                $dupChk = $pdo->prepare("SELECT 1 FROM crm_activities WHERE tenant_id=? AND type='purchase' AND channel=? AND data LIKE ? LIMIT 1");
+                $dupChk->execute([$tenant, $channel, '%"order_id":"' . $orderId . '"%']);
+                if ($dupChk->fetchColumn()) return;
+            }
             $sel = $pdo->prepare("SELECT id FROM crm_customers WHERE tenant_id=? AND email=? LIMIT 1");
             $sel->execute([$tenant, $matchEmail]);
             $cid = $sel->fetchColumn();

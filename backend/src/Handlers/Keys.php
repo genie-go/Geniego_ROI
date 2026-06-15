@@ -89,7 +89,6 @@ final class Keys
         $role       = trim((string)($body['role'] ?? 'viewer'));
         $prefix     = trim((string)($body['prefix'] ?? 'genie_key_'));
         $expiresAt  = $body['expires_at'] ?? null;
-        $scopesJson = json_encode($body['scopes'] ?? self::defaultScopes($role));
 
         if ($name === '') {
             return TemplateResponder::respond($response->withStatus(422), ['error' => 'name required']);
@@ -97,6 +96,22 @@ final class Keys
         $validRoles = ['viewer', 'connector', 'analyst', 'admin'];
         if (!in_array($role, $validRoles, true)) {
             return TemplateResponder::respond($response->withStatus(422), ['error' => 'invalid role', 'valid' => $validRoles]);
+        }
+        // [225차 P2-4] 클라 제공 scopes 무검증 수용 차단(권한상승 통로): 화이트리스트 + 역할 상한 검증.
+        //   요청 scope 가 미지 토큰이거나 해당 role 이 가질 수 없는 권한이면 422(예: viewer 키에 write:*/admin:keys).
+        if (array_key_exists('scopes', $body)) {
+            $reqScopes = is_array($body['scopes']) ? array_values(array_unique(array_map('strval', $body['scopes']))) : null;
+            if ($reqScopes === null) {
+                return TemplateResponder::respond($response->withStatus(422), ['error' => 'scopes must be an array']);
+            }
+            $allowed = self::allowedScopesForRole($role);
+            $bad = array_values(array_diff($reqScopes, $allowed));
+            if (!empty($bad)) {
+                return TemplateResponder::respond($response->withStatus(422), ['error' => 'invalid or over-privileged scopes', 'rejected' => $bad, 'allowed' => $allowed]);
+            }
+            $scopesJson = json_encode($reqScopes);
+        } else {
+            $scopesJson = json_encode(self::defaultScopes($role));
         }
 
         ['raw' => $raw, 'prefix' => $pfx, 'hash' => $hash] = self::generateKey($prefix);
@@ -178,6 +193,21 @@ final class Keys
         if ($role === 'analyst')   return ['read:*', 'write:attribution', 'write:mta'];
         if ($role === 'connector') return ['read:*', 'write:ingest'];
         return ['read:*'];
+    }
+
+    /**
+     * [225차 P2-4] 역할별 부여 가능한 scope 상한(화이트리스트). 발급 요청 scope 는 이 집합의 부분집합이어야 한다.
+     *   상위 역할일수록 더 넓은 권한 부여 가능. 미지 토큰/상위권한 요청은 발급 거부(권한상승 차단).
+     */
+    private static function allowedScopesForRole(string $role): array
+    {
+        $base    = ['read:*'];
+        $write   = ['write:*', 'write:ingest', 'write:attribution', 'write:mta'];
+        $adminSc = ['admin:keys', 'admin:*'];
+        if ($role === 'admin')     return array_merge($base, $write, $adminSc);
+        if ($role === 'analyst')   return array_merge($base, $write);
+        if ($role === 'connector') return array_merge($base, ['write:ingest']);
+        return $base; // viewer
     }
 }
 

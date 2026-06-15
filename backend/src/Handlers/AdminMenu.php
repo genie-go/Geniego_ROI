@@ -47,13 +47,18 @@ final class AdminMenu
             }
             $pdo = Db::pdoFor(false);
             self::ensureTables($pdo); // [현 차수] 219#신규: 데모/신규 백엔드 menu_tree 부재 500 해소(자동 생성)
+            // [225차 P2-6] is_super 하드코딩 true 제거 — plan='admin' 테넌트의 팀원(member/manager)도
+            //   슈퍼 전용 작업(메뉴트리 reset·required_role 변경=전역 메뉴 영향)을 수행할 수 있었다.
+            //   테넌트 owner 만 super 로 인정(fail-open: team_role 미설정=레거시 단독회원=owner).
+            $au = UserAuth::authedUser($req);
+            $teamRole = strtolower((string)($au['team_role'] ?? 'owner'));
             return [
                 'tenant'   => 'default',
                 'role'     => 'admin',
                 'scope'    => 'admin:*',
                 'pdo'      => $pdo,
-                'user_id'  => 'admin',
-                'is_super' => true,
+                'user_id'  => (string)($au['id'] ?? 'admin'),
+                'is_super' => $teamRole === 'owner',
             ];
         }
 

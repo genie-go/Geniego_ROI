@@ -12,6 +12,8 @@
 import React, { createContext, useContext, useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { guardProductionState } from '../security/ContaminationGuard.js';
 import { getJsonAuth } from '../services/apiClient.js';
+// [225차 P2-3] 취소/반품 판정 공용 캐논(dashPeriod 와 단일 소스 공유, 백엔드 OrderHub 토큰 정합).
+import { isCancelledStatus as _isCancelledCanon, isReturnStatus as _isReturnCanon } from '../components/dashboards/orderStatusCanon.js';
 import { tGet, tSet, currentTenant } from '../utils/tenantStorage.js'; // 180차: 회원(테넌트) 격리 영속
 import {
   DEMO_INVENTORY, DEMO_ORDERS, DEMO_INOUT, DEMO_BUDGETS,
@@ -70,19 +72,13 @@ function saveDemoState(key, data) {
    체험자가 주문을 추가/수정하면 정산(채널×월)·예산 기여매출이 즉시 재파생되어
    전 메뉴(대시보드/글로벌/커머스/롤업/정산/성과/P&L)가 동일 매출로 일체화 유지.
 ════════════════════════════════════════════════ */
-// [현 차수] ★취소상태 캐논 통일: 그동안 orderStats(=cancelled 포함)·정산/예산/pnlStats(=cancelled 미포함)·
-//   롤업(=별도 집합)이 취소 판정이 제각각이라, 런타임 주문취소 시 대시보드↔롤업 매출이 발산했다.
-//   단일 집합으로 모든 파생지점이 동일하게 취소주문을 매출에서 제외하도록 통일.
-// [현 차수] ★취소 캐논 통일(백엔드 Rollup CANCEL_TOKENS와 동일): 어댑터별 한글/영문 상태 전부 포함.
-//   기존엔 영문/CancelDone 토큰만이라 운영 채널주문의 한글상태('취소완료'/'취소요청')가 매출에서 미제외였음.
-const CANCELLED_STATUSES = new Set(['CancelDone', 'Cancel요청', 'cancelled', 'canceled', '취소완료', '취소요청', '취소접수', '취소', '주문취소']);
-function _isCancelled(s) { return CANCELLED_STATUSES.has(String(s || '')); }
-// [현 차수] 반품 상태 판정(반품률·정산 returnFee 정확 집계용). 반품은 매출 포함·반품수만 카운트(백엔드 캐논 정합).
-const RETURN_STATUSES = new Set(['반품접수', '반품Done', '반품입고', '반품완료', 'returned', 'return', 'return_requested']);
-function _isReturn(s) { return RETURN_STATUSES.has(String(s || '')); }
-// [현 차수] 감사 P1: 취소 판정 SSOT export — 페이지가 raw orders 를 재집계할 때 동일 캐논으로 취소를 제외해
-//   매출 발산을 막는다(OmniChannel 등). 내부 _isCancelled 와 동일.
-export function isCancelledStatus(s) { return _isCancelled(s); }
+// [225차 P2-3] 취소/반품 캐논을 공용 SSOT(orderStatusCanon)로 통합 — dashPeriod 와의 독립 복사본
+//   드리프트(특히 refunded 분류 충돌) 제거. 내부 _isCancelled/_isReturn 은 공용 함수 별칭(동작 동일,
+//   취소셋은 기존과 일치·반품셋은 백엔드 캐논으로 정합=refunded/환불완료 반품 인식). OmniChannel 등
+//   페이지가 import 하던 isCancelledStatus 는 공용 함수를 재노출해 보존.
+const _isCancelled = _isCancelledCanon;
+const _isReturn = _isReturnCanon;
+export const isCancelledStatus = _isCancelledCanon;
 
 function _monthOf(o) {
   return o.month || (o.atISO ? String(o.atISO).slice(0, 7) : (o.at ? (() => { try { return new Date(o.at).toISOString().slice(0, 7); } catch { return ''; } })() : ''));

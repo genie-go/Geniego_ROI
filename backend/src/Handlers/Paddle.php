@@ -493,7 +493,10 @@ class Paddle
 
             // ─── 유료 전환 자동 쿠폰 발급 (trigger=upgrade) ──────────────────
             try {
-                $userRow = $db->query("SELECT id FROM app_user WHERE email = '" . addslashes($email) . "' LIMIT 1")->fetch(\PDO::FETCH_ASSOC);
+                // [225차 P2-5] addslashes SQL 조립(SQLi 잠복, HMAC 게이트로만 차단되던 통로) → 파라미터화.
+                $uStmt = $db->prepare("SELECT id FROM app_user WHERE email = ? LIMIT 1");
+                $uStmt->execute([$email]);
+                $userRow = $uStmt->fetch(\PDO::FETCH_ASSOC);
                 if ($userRow) {
                     \Genie\CouponEngine::fire($db, (int)$userRow['id'], $email, 'upgrade', $prevPlan);
                 }
@@ -593,7 +596,10 @@ class Paddle
 
                 // ─── 갱신/연장 자동 쿠폰 발급 (trigger=renewal) ────────────────
                 try {
-                    $userRow = $db->query("SELECT id FROM app_user WHERE email = '" . addslashes($email) . "' LIMIT 1")->fetch(\PDO::FETCH_ASSOC);
+                    // [225차 P2-5] addslashes SQL 조립(SQLi 잠복) → 파라미터화.
+                    $uStmt = $db->prepare("SELECT id FROM app_user WHERE email = ? LIMIT 1");
+                    $uStmt->execute([$email]);
+                    $userRow = $uStmt->fetch(\PDO::FETCH_ASSOC);
                     if ($userRow) {
                         \Genie\CouponEngine::fire($db, (int)$userRow['id'], $email, 'renewal', $appPlan);
                     }

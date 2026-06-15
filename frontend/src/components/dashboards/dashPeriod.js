@@ -16,6 +16,9 @@
    period 형태: { preset, start: Date(00:00:00), end: Date(23:59:59) }
    ───────────────────────────────────────────────────────────────────────── */
 
+// [225차 P2-3] 취소/반품 판정 공용 캐논(내부 deriveOrderKpis 사용 + 아래 re-export 로 외부 노출).
+import { isCancelledStatus, isReturnStatus } from './orderStatusCanon.js';
+
 const DAY = 86400000;
 
 /** 주문 1건의 날짜를 폭넓게 추출(데모/운영 필드 모두 지원). 실패 시 null. */
@@ -96,21 +99,11 @@ export function buildPeriodScope(orders, period) {
   };
 }
 
-/** 취소 판정(프론트 캐논과 동일 토큰셋, GlobalDataContext._isCancelled 미러). */
-const CANCEL_TOKENS = ['cancel', 'cancelled', 'canceled', 'Cancel요청', 'CancelDone', '취소', '취소요청', '취소완료', 'refunded', 'refund'];
-export function isCancelledStatus(status) {
-  if (!status) return false;
-  const s = String(status).toLowerCase();
-  return CANCEL_TOKENS.some(tk => s === tk.toLowerCase() || s.includes(tk.toLowerCase()));
-}
-
-/** 반품 판정(반품률용). */
-const RETURN_TOKENS = ['return', 'returned', '반품', '반품요청', '반품완료'];
-export function isReturnStatus(status) {
-  if (!status) return false;
-  const s = String(status).toLowerCase();
-  return RETURN_TOKENS.some(tk => s === tk.toLowerCase() || s.includes(tk.toLowerCase()));
-}
+// [225차 P2-3] 취소/반품 판정은 공용 캐논(orderStatusCanon)으로 통합 — 독립 복사본 드리프트 제거.
+//   기존 dashPeriod 자체 토큰셋은 'refunded'/'refund' 를 취소로 오분류해(매출 제외) 기간필터 매출이
+//   전체 매출(반품=매출포함)과 발산했다. 백엔드 OrderHub 캐논과 정합되는 단일 소스로 통일.
+//   (상단에서 import 한 로컬 바인딩을 재노출 — 기존 importer 들의 dashPeriod 경유 import 보존.)
+export { isCancelledStatus, isReturnStatus };
 
 /** 주문 1건의 매출액 추출(데모 total, 운영 total/total_price). */
 export function orderRevenue(o) {
