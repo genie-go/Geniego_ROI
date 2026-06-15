@@ -233,6 +233,8 @@ final class OrderHub
         foreach ($map as [$k, $col]) {
             if (array_key_exists($k, $body)) { $sets[] = "$col = ?"; $vals[] = $body[$k] === null ? null : (string)$body[$k]; }
         }
+        // [227차] 쿠폰 할인액 수동 태깅(정산 반영) — 채널 미제공 주문을 운영자가 직접 입력.
+        if (array_key_exists('couponDiscount', $body)) { $sets[] = "coupon_discount = ?"; $vals[] = (float)($body['couponDiscount'] ?? 0); }
         if (!$sets) return self::json($resp, ['ok' => false, 'error' => 'no_fields'], 400);
 
         try {
@@ -256,6 +258,56 @@ final class OrderHub
             try { $pdo->exec("ALTER TABLE channel_orders ADD COLUMN {$c} " . ($isMy ? 'VARCHAR(190)' : 'TEXT')); }
             catch (\Throwable $e) { /* 이미 존재 */ }
         }
+        // [227차] 쿠폰 할인액(정산 반영용) 숫자 컬럼. 채널 제공값 또는 운영자 수동 태깅.
+        try { $pdo->exec("ALTER TABLE channel_orders ADD COLUMN coupon_discount " . ($isMy ? 'DOUBLE NOT NULL DEFAULT 0' : 'REAL DEFAULT 0')); }
+        catch (\Throwable $e) { /* 이미 존재 */ }
+    }
+
+    /**
+     * [227차] 주문 raw_json 에서 채널 제공 쿠폰/할인액 best-effort 추출(정산 coupon_discount 소급 집계용).
+     *   채널마다 필드명이 달라 여러 키를 탐색한다. 발견 못하면 0.
+     */
+    private static function extractOrderDiscount(?string $rawJson): float
+    {
+        if ($rawJson === null || $rawJson === '') return 0.0;
+        $d = json_decode($rawJson, true);
+        if (!is_array($d)) return 0.0;
+        foreach (['coupon_discount', 'couponDiscount', 'discount_amount', 'discountAmount',
+                  'seller_discount', 'sellerDiscount', 'promotion_discount', 'promotionDiscount'] as $k) {
+            if (isset($d[$k]) && is_numeric($d[$k]) && (float)$d[$k] > 0) return (float)$d[$k];
+        }
+        if (isset($d['discount']) && is_array($d['discount'])) {
+            foreach (['amount', 'value', 'coupon'] as $k) {
+                if (isset($d['discount'][$k]) && is_numeric($d['discount'][$k]) && (float)$d['discount'][$k] > 0) return (float)$d['discount'][$k];
+            }
+        }
+        return 0.0;
+    }
+
+    /**
+     * [227차] 기간·취소제외 채널별 쿠폰 할인액 집계. 명시 컬럼(coupon_discount>0) 우선, 없으면 raw_json 추출.
+     *   기존 rollup 의 coupon_discount=0 하드코딩을 대체 — 쿠폰 할인이 정산/영업이익(P&L)에 반영된다.
+     */
+    private static function couponDiscountByChannel(\PDO $pdo, string $tenant, string $period, string $cancelExpr, array $cancelTokens): array
+    {
+        $hasCol = false;
+        try { $hasCol = ($pdo->query("SELECT coupon_discount FROM channel_orders LIMIT 0") !== false); }
+        catch (\Throwable $e) { $hasCol = false; }
+        $cols = "channel, raw_json" . ($hasCol ? ", coupon_discount" : "");
+        try {
+            $stmt = $pdo->prepare("SELECT $cols FROM channel_orders WHERE tenant_id=? AND SUBSTR(ordered_at,1,7)=? AND NOT $cancelExpr");
+            $stmt->execute(array_merge([$tenant, $period], $cancelTokens));
+        } catch (\Throwable $e) { return []; }
+        $map = [];
+        foreach ($stmt->fetchAll(\PDO::FETCH_ASSOC) as $r) {
+            $ch = (string)($r['channel'] ?? '');
+            if ($ch === '') continue;
+            $amt = ($hasCol && isset($r['coupon_discount']) && (float)$r['coupon_discount'] > 0)
+                ? (float)$r['coupon_discount']
+                : self::extractOrderDiscount($r['raw_json'] ?? null);
+            if ($amt > 0) $map[$ch] = ($map[$ch] ?? 0.0) + $amt;
+        }
+        return $map;
     }
 
     /**
@@ -867,6 +919,8 @@ final class OrderHub
             FROM channel_orders WHERE tenant_id=? AND SUBSTR(ordered_at,1,7)=? AND NOT $cancelExpr GROUP BY channel");
         $os->execute(array_merge([$tenant, $period], $cancelTokens));
         $orders = $os->fetchAll(\PDO::FETCH_ASSOC);
+        // [227차] 채널별 쿠폰 할인액 집계(취소제외) — 기존 coupon_discount=0 하드코딩 대체.
+        $couponBy = self::couponDiscountByChannel($pdo, $tenant, $period, $cancelExpr, $cancelTokens);
 
         $cs = $pdo->prepare("SELECT channel, COUNT(*) AS rcnt, COALESCE(SUM(amount),0) AS rfee
             FROM orderhub_claims WHERE tenant_id=? AND SUBSTR(created_at,1,7)=? AND type IN ('return','cancel') GROUP BY channel");
@@ -905,7 +959,7 @@ final class OrderHub
                 'net_payout'      => $net,
                 'platform_fee'    => $platform,
                 'ad_fee'          => 0.0,
-                'coupon_discount' => 0.0,
+                'coupon_discount' => round($couponBy[$channel] ?? 0.0, 2),
                 'return_fee'      => $returnFee,
                 'orders_count'    => $cnt,
                 'returns_count'   => $returns,
