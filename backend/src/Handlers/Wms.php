@@ -705,8 +705,27 @@ class Wms
         $t = self::tenant($req); $b = self::body($req); $now = self::now(); $pdo = self::db();
         $id = (int)($args['id'] ?? $b['id'] ?? 0);
         if ($id > 0) {
+            $newStatus = (string)($b['status'] ?? 'pending');
+            // [현 차수] P1: 발주 status→received(입고확정) 전이 시 물리 재고 입고(Inbound).
+            //   기존엔 status만 갱신하고 재고 미반영 결함 → 발주가 재고로 이어지지 않음.
+            //   savePicking shipped 출고 패턴 미러. 멱등(SUPPLY-{id} ref)·창고 권한 가드.
+            $sel = $pdo->prepare("SELECT sku, name, qty, wh_id, status FROM wms_supply_orders WHERE id=? AND tenant_id=? LIMIT 1");
+            $sel->execute([$id, $t]);
+            $old = $sel->fetch(\PDO::FETCH_ASSOC);
+            if ($old && ($err = self::guardWarehouse($req, $res, (string)($old['wh_id'] ?? '')))) return $err;
+            if ($old && (string)($old['status'] ?? '') !== 'received' && $newStatus === 'received') {
+                $ssku = (string)($old['sku'] ?? ''); $sqty = (float)($old['qty'] ?? 0); $swh = (string)($old['wh_id'] ?? '');
+                if ($ssku !== '' && $sqty > 0 && $swh !== '') {
+                    $ref = 'SUPPLY-' . $id;
+                    $dup = $pdo->prepare("SELECT 1 FROM wms_movements WHERE tenant_id=? AND ref=? AND type='Inbound' LIMIT 1");
+                    $dup->execute([$t, $ref]);
+                    if (!$dup->fetchColumn()) {
+                        self::recordMovement($t, ['type' => 'Inbound', 'wh_id' => $swh, 'sku' => $ssku, 'name' => (string)($old['name'] ?? ''), 'qty' => $sqty, 'ref' => $ref, 'reason' => '발주입고']);
+                    }
+                }
+            }
             $st = $pdo->prepare("UPDATE wms_supply_orders SET status=:s,eta=:eta,updated_at=:ua WHERE id=:id AND tenant_id=:t");
-            $st->execute([':s' => (string)($b['status'] ?? 'pending'), ':eta' => (string)($b['eta'] ?? ''), ':ua' => $now, ':id' => $id, ':t' => $t]);
+            $st->execute([':s' => $newStatus, ':eta' => (string)($b['eta'] ?? ''), ':ua' => $now, ':id' => $id, ':t' => $t]);
             if ($st->rowCount() === 0 && !self::exists('wms_supply_orders', $id, $t)) return self::json($res, ['ok' => false, 'error' => '없음'], 404);
             return self::json($res, ['ok' => true, 'id' => $id]);
         }
