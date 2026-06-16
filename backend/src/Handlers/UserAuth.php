@@ -2149,6 +2149,77 @@ final class UserAuth
     }
 
     // ═════════════════════════════════════════════════════════════
+    // [227차] 채널 OAuth 앱(플랫폼 전역) — 런칭 시 관리자 1회 등록 → 전 구독회원 즉시 원클릭 연결.
+    //   OAuth.php::config() 가 읽는 동일 app_setting 키(oauth_{provider}_client_id/secret, AES 암호화)에 저장.
+    //   회원 플로우(authorize→callback→테넌트별 토큰)는 이미 완비 → 본 등록만 하면 전 회원 즉시 활성.
+    // ═════════════════════════════════════════════════════════════
+    private const OAUTH_APP_PROVIDERS = ['google', 'meta', 'facebook', 'tiktok', 'kakao', 'naver'];
+
+    /** OAuth callback 베이스 URL(provider 앱에 등록할 redirect_uri 안내용). */
+    private static function oauthBaseUrl(ServerRequestInterface $req): string
+    {
+        $base = trim((string)(getenv('OAUTH_BASE_URL') ?: ($_ENV['OAUTH_BASE_URL'] ?? '')));
+        if ($base === '') {
+            $uri = $req->getUri();
+            $host = $uri->getHost();
+            $allow = ['roi.genie-go.com', 'roi.geniego.com', 'roidemo.genie-go.com', 'roidemo.geniego.com'];
+            if (!in_array($host, $allow, true)) $host = 'roi.genie-go.com';
+            $base = ($uri->getScheme() ?: 'https') . '://' . $host;
+        }
+        return rtrim($base, '/');
+    }
+
+    /** GET /auth/admin/oauth-apps — provider별 {configured, client_id_mask, redirect_uri}. */
+    public static function oauthAppsGet(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
+    {
+        [$user, $err] = self::requireAdminUser($req);
+        if ($err) return self::json($res, ['ok' => false, 'error' => $err[0]], $err[1]);
+        $pdo = Db::pdo(); self::ensureAppSetting($pdo);
+        $base = self::oauthBaseUrl($req);
+        $out = [];
+        foreach (self::OAUTH_APP_PROVIDERS as $p) {
+            $cidEnc = self::getAppSetting($pdo, 'oauth_' . $p . '_client_id');
+            $cid = ''; if ($cidEnc !== '') { try { $cid = \Genie\Crypto::decrypt($cidEnc); } catch (\Throwable $e) {} }
+            $secSet = self::getAppSetting($pdo, 'oauth_' . $p . '_client_secret') !== '';
+            $mask = $cid !== '' ? (substr($cid, 0, 4) . '••••••' . substr($cid, -2)) : '';
+            $out[$p] = [
+                'configured'    => ($cid !== '' && $secSet),
+                'client_id_set' => ($cid !== ''),
+                'client_id_mask'=> $mask,
+                'redirect_uri'  => $base . '/api/v425/oauth/' . $p . '/callback',
+            ];
+        }
+        return self::json($res, ['ok' => true, 'providers' => $out, 'base' => $base]);
+    }
+
+    /** POST /auth/admin/oauth-apps {provider, client_id, client_secret | clear} — OAuth 앱 등록(암호화). */
+    public static function oauthAppsSave(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
+    {
+        [$user, $err] = self::requireAdminUser($req);
+        if ($err) return self::json($res, ['ok' => false, 'error' => $err[0]], $err[1]);
+        $pdo = Db::pdo(); self::ensureAppSetting($pdo);
+        $b = self::readBody($req);
+        $provider = strtolower(trim((string)($b['provider'] ?? '')));
+        if (!in_array($provider, self::OAUTH_APP_PROVIDERS, true)) return self::json($res, ['ok' => false, 'error' => '지원하지 않는 provider'], 422);
+        if (!empty($b['clear'])) {
+            self::setAppSetting($pdo, 'oauth_' . $provider . '_client_id', '');
+            self::setAppSetting($pdo, 'oauth_' . $provider . '_client_secret', '');
+            self::audit($req, 'oauth_app_config', "OAuth 앱 해제: {$provider}", 'high', $user);
+            return self::json($res, ['ok' => true, 'provider' => $provider, 'configured' => false]);
+        }
+        $cid = trim((string)($b['client_id'] ?? ''));
+        $sec = trim((string)($b['client_secret'] ?? ''));
+        // 마스킹(•) 재전송·빈값은 무시 → 기존 값 보존(부분 수정 지원).
+        if ($cid !== '' && strpos($cid, '•') === false) self::setAppSetting($pdo, 'oauth_' . $provider . '_client_id', \Genie\Crypto::encrypt($cid));
+        if ($sec !== '' && strpos($sec, '•') === false) self::setAppSetting($pdo, 'oauth_' . $provider . '_client_secret', \Genie\Crypto::encrypt($sec));
+        $cidNow = self::getAppSetting($pdo, 'oauth_' . $provider . '_client_id') !== '';
+        $secNow = self::getAppSetting($pdo, 'oauth_' . $provider . '_client_secret') !== '';
+        self::audit($req, 'oauth_app_config', "OAuth 앱 등록: {$provider}", 'high', $user);
+        return self::json($res, ['ok' => true, 'provider' => $provider, 'configured' => ($cidNow && $secNow),
+            'message' => "{$provider} OAuth 앱이 저장되었습니다. 전 구독회원이 즉시 원클릭 연결을 사용할 수 있습니다."]);
+    }
+
+    // ═════════════════════════════════════════════════════════════
     // 189차 보안 하드닝 — 비밀번호 정책 / 로그인 rate-limit / MFA(TOTP)
     // ═════════════════════════════════════════════════════════════
 

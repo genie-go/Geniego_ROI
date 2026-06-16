@@ -35,7 +35,7 @@ function Admin() {
 
   useEffect(() => { fetchHealth(); }, [fetchHealth]);
 
-  const tabs = ["개요", "🤖 AI 엔진", "운영 정책", "보안 정책", "백업 / 복구"];
+  const tabs = ["개요", "🤖 AI 엔진", "운영 정책", "보안 정책", "백업 / 복구", "🔗 채널 OAuth"];
 
   const kpis = [
     { emoji: "👥", label: "총 사용자", val: health?.users?.total ?? "—" },
@@ -187,6 +187,7 @@ function Admin() {
         {activeTab === 2 && <TabOperationsPolicy />}
         {activeTab === 3 && <TabSecurityPolicy />}
         {activeTab === 4 && <TabBackupRestore />}
+        {activeTab === 5 && <TabChannelOauth />}
       </div>
     </div>
   );
@@ -436,6 +437,107 @@ function TabAiEngine() {
             cursor: smtpBusy ? "not-allowed" : "pointer", background: smtpBusy ? "rgba(79,142,247,0.2)" : "linear-gradient(135deg,#4f8ef7,#06b6d4)", color: "#fff", fontSize: 14, fontWeight: 800 }}>
           {smtpBusy ? "저장 중..." : "📧 SMTP 저장"}
         </button>
+      </div>
+    </>
+  );
+}
+
+/* [227차] 채널 OAuth 앱 등록 — 런칭 시 관리자 1회 등록 → 전 구독회원 즉시 원클릭 연결.
+   회원 플로우(authorize→callback→테넌트별 토큰)는 완비. 여기서 플랫폼 client_id/secret만 등록하면 활성화. */
+function TabChannelOauth() {
+  const PROVIDERS = [
+    { key: 'google',   name: 'Google (Ads · Analytics)',            icon: '🔵', console: 'https://console.cloud.google.com/apis/credentials' },
+    { key: 'meta',     name: 'Meta (Facebook · Instagram 광고)',     icon: '📘', console: 'https://developers.facebook.com/apps' },
+    { key: 'facebook', name: 'Facebook · Instagram (페이지/라이브)', icon: '👍', console: 'https://developers.facebook.com/apps' },
+    { key: 'tiktok',   name: 'TikTok',                              icon: '🎶', console: 'https://developers.tiktok.com/apps' },
+    { key: 'kakao',    name: 'Kakao',                               icon: '💛', console: 'https://developers.kakao.com/console/app' },
+    { key: 'naver',    name: 'Naver (검색광고 · 스마트스토어 · 페이)', icon: '🟢', console: 'https://developers.naver.com/apps' },
+  ];
+  const [cfg, setCfg] = useState({});
+  const [form, setForm] = useState({});
+  const [busy, setBusy] = useState('');
+  const [msg, setMsg] = useState(null);
+
+  const load = async () => {
+    try {
+      const r = await fetch('/api/auth/admin/oauth-apps', { headers: { Authorization: `Bearer ${ADMIN_TOKEN()}` } });
+      const d = await r.json().catch(() => ({}));
+      if (r.ok && d.ok) setCfg(d.providers || {});
+    } catch {}
+  };
+  useEffect(() => { load(); }, []);
+
+  const fld = (p, k, v) => setForm(s => ({ ...s, [p]: { ...(s[p] || {}), [k]: v } }));
+  const save = async (p) => {
+    const f = form[p] || {};
+    if (!(f.client_id || '').trim() && !(f.client_secret || '').trim()) { setMsg({ t: 'err', m: 'client_id / client_secret을 입력하세요.' }); return; }
+    setBusy(p); setMsg(null);
+    try {
+      const r = await fetch('/api/auth/admin/oauth-apps', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${ADMIN_TOKEN()}` }, body: JSON.stringify({ provider: p, client_id: (f.client_id || '').trim(), client_secret: (f.client_secret || '').trim() }) });
+      const d = await r.json().catch(() => ({}));
+      if (r.ok && d.ok) { setMsg({ t: 'ok', m: d.message || '저장되었습니다.' }); setForm(s => ({ ...s, [p]: { client_id: '', client_secret: '' } })); load(); }
+      else setMsg({ t: 'err', m: d.error || '저장 실패' });
+    } catch { setMsg({ t: 'err', m: '서버 오류' }); }
+    setBusy('');
+  };
+  const clearP = async (p) => {
+    if (!window.confirm(`${p} OAuth 앱 설정을 해제할까요? 해당 채널 원클릭 연결이 비활성화됩니다.`)) return;
+    setBusy(p);
+    try { await fetch('/api/auth/admin/oauth-apps', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${ADMIN_TOKEN()}` }, body: JSON.stringify({ provider: p, clear: true }) }); setMsg({ t: 'ok', m: `${p} 설정을 해제했습니다.` }); load(); } catch {}
+    setBusy('');
+  };
+  const copy = (v) => { try { navigator.clipboard?.writeText(v); setMsg({ t: 'ok', m: 'Redirect URI를 복사했습니다.' }); } catch {} };
+
+  const inp = { width: '100%', boxSizing: 'border-box', padding: '10px 12px', borderRadius: 9, border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.05)', color: 'var(--text-1)', fontSize: 12.5, outline: 'none' };
+  const lbl = { fontSize: 11.5, fontWeight: 700, color: 'var(--text-2)', display: 'block', marginBottom: 5, marginTop: 10 };
+  const cfgCount = PROVIDERS.filter(p => cfg[p.key]?.configured).length;
+
+  return (
+    <>
+      {msg && (
+        <div style={{ marginBottom: 16, padding: '11px 15px', borderRadius: 10, fontSize: 13, fontWeight: 600,
+          background: msg.t === 'ok' ? 'rgba(34,197,94,0.1)' : 'rgba(248,113,113,0.08)',
+          border: `1px solid ${msg.t === 'ok' ? 'rgba(34,197,94,0.25)' : 'rgba(248,113,113,0.25)'}`,
+          color: msg.t === 'ok' ? '#4ade80' : '#f87171' }}>{msg.m}</div>
+      )}
+      <div style={{ borderRadius: 14, padding: '18px 20px', marginBottom: 18, background: 'linear-gradient(135deg, rgba(34,197,94,0.10), rgba(79,142,247,0.07))', border: '1px solid rgba(34,197,94,0.25)' }}>
+        <div style={{ fontSize: 16, fontWeight: 900, marginBottom: 6 }}>🔗 채널 OAuth 앱 — 플랫폼 전역 등록 ({cfgCount}/{PROVIDERS.length})</div>
+        <div style={{ fontSize: 12.5, lineHeight: 1.7, color: 'var(--text-2)' }}>
+          각 provider 개발자 콘솔에서 OAuth 앱을 만들고 <b>아래 Redirect URI를 등록</b>한 뒤, 발급된 <b>client_id / client_secret</b>을 여기 한 번만 등록하세요.
+          <br/>등록 즉시 <b>모든 구독회원</b>이 연동허브에서 <b>원클릭 연결</b>(자기 계정 인가→자기 테넌트에 토큰 자동 저장)을 사용할 수 있습니다. (회원별 토큰 격리·암호화 저장)
+        </div>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(330px,1fr))', gap: 14 }}>
+        {PROVIDERS.map(p => {
+          const c = cfg[p.key] || {};
+          const on = !!c.configured;
+          const f = form[p.key] || {};
+          return (
+            <div key={p.key} style={{ borderRadius: 14, padding: 16, background: on ? 'rgba(34,197,94,0.06)' : 'rgba(255,255,255,0.03)', border: `1px solid ${on ? 'rgba(34,197,94,0.3)' : 'rgba(255,255,255,0.1)'}` }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                <span style={{ fontSize: 20 }}>{p.icon}</span>
+                <span style={{ fontWeight: 800, fontSize: 13.5, flex: 1 }}>{p.name}</span>
+                <span style={{ fontSize: 10, fontWeight: 800, padding: '2px 9px', borderRadius: 20, background: on ? 'rgba(34,197,94,0.15)' : 'rgba(148,163,184,0.12)', color: on ? '#4ade80' : '#94a3b8' }}>{on ? '✅ 활성' : '미설정'}</span>
+              </div>
+              {/* Redirect URI 안내 */}
+              <div style={{ fontSize: 10.5, color: 'var(--text-3)', marginBottom: 4 }}>① provider 콘솔에 등록할 Redirect URI</div>
+              <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 4 }}>
+                <code style={{ flex: 1, fontSize: 10.5, padding: '7px 9px', borderRadius: 8, background: 'rgba(0,0,0,0.25)', color: '#a5b4fc', wordBreak: 'break-all', lineHeight: 1.4 }}>{c.redirect_uri || '—'}</code>
+                <button onClick={() => copy(c.redirect_uri || '')} title="복사" style={{ flexShrink: 0, padding: '7px 10px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.05)', color: 'var(--text-2)', cursor: 'pointer', fontSize: 12 }}>📋</button>
+              </div>
+              <a href={p.console} target="_blank" rel="noopener noreferrer" style={{ fontSize: 10.5, color: '#60a5fa', textDecoration: 'none' }}>🔗 {p.key} 개발자 콘솔에서 앱 만들기 →</a>
+              {/* client_id / secret */}
+              <label style={lbl}>② Client ID {c.client_id_mask && <span style={{ color: 'var(--text-3)', fontWeight: 500 }}>(현재: {c.client_id_mask})</span>}</label>
+              <input value={f.client_id || ''} onChange={e => fld(p.key, 'client_id', e.target.value)} autoComplete="off" placeholder={on ? '변경 시에만 입력' : 'client_id'} style={inp} />
+              <label style={lbl}>Client Secret {c.configured && <span style={{ color: 'var(--text-3)', fontWeight: 500 }}>(등록됨)</span>}</label>
+              <input type="password" value={f.client_secret || ''} onChange={e => fld(p.key, 'client_secret', e.target.value)} autoComplete="new-password" placeholder={on ? '변경 시에만 입력' : 'client_secret'} style={inp} />
+              <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+                <button onClick={() => save(p.key)} disabled={busy === p.key} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: 'none', cursor: busy === p.key ? 'not-allowed' : 'pointer', background: busy === p.key ? 'rgba(34,197,94,0.25)' : 'linear-gradient(135deg,#22c55e,#4f8ef7)', color: '#fff', fontSize: 13, fontWeight: 800 }}>{busy === p.key ? '저장 중...' : (on ? '💾 업데이트' : '💾 등록 (전체 적용)')}</button>
+                {on && <button onClick={() => clearP(p.key)} disabled={busy === p.key} style={{ padding: '10px 14px', borderRadius: 10, border: '1px solid rgba(248,113,113,0.3)', cursor: 'pointer', background: 'rgba(248,113,113,0.08)', color: '#f87171', fontSize: 12, fontWeight: 700 }}>해제</button>}
+              </div>
+            </div>
+          );
+        })}
       </div>
     </>
   );
