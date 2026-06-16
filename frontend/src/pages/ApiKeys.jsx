@@ -166,6 +166,9 @@ const OAUTH_PROVIDER = {
   kakao_moment: 'kakao',
   naver_sa: 'naver', naver_smartstore: 'naver', naverpay: 'naver',
 };
+/* [227차] OAuth 인가로 자동 발급·저장되는 토큰성 필드 — OAuth 직후 ConnectModal에서 "자동 등록됨"으로 표시.
+   회원은 계정 ID 등 잔여 필드만 입력하면 즉시 연동 완료(OAuth 토큰은 백엔드 loadCred 별칭 폴백으로 어댑터가 자동 사용). */
+const OAUTH_COVERED_KEYS = new Set(['access_token', 'oauth_access_token', 'refresh_token']);
 /* [현 차수] 실 동기화 어댑터(라이브 fetch/ingest)가 구현된 채널 — 백엔드 ChannelCreds.hasRealAdapter 미러.
    이 집합에 없는 채널은 자격증명 저장은 되나 전용 어댑터 미연동(데이터 동기화 X) → 카드에 "연동 예정" 정직 표기. */
 const REAL_ADAPTER = new Set([
@@ -306,6 +309,7 @@ export default function ApiKeys() {
   const [showApplyModal, setShowApplyModal] = useState(null); // channel object or null
   const [applyRefresh, setApplyRefresh] = useState(0); // [현 차수] ③ 발급 신청 현황 새로고침 키
   const [showConnectModal, setShowConnectModal] = useState(null); // 208차: 채널 구조화 등록 모달
+  const [connectPostOauth, setConnectPostOauth] = useState(false); // [227차] OAuth 직후 잔여 계정정보 입력 모드
   const [testingId, setTestingId] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
 
@@ -541,13 +545,14 @@ export default function ApiKeys() {
   /* ── [현 차수] 요청2: OAuth 원클릭 연결(자동 발급·자동 등록) ──────────────────
      OAuth 가능 채널은 사용자가 키를 수기 입력할 필요 없이 인가만 하면 백엔드가 토큰을
      자동 발급·암호화 저장하고 ?oauth=success 로 복귀 → 즉시 동기화. (관리자 OAuth 앱 설정 필요) */
-  const connectOAuth = useCallback(async (provider) => {
+  const connectOAuth = useCallback(async (provider, channelKey) => {
     if (_IS_DEMO_ENV) { show('info', t('ak.demoLocked', 'Demo mode — saving disabled')); return; }
     try {
       const tok = localStorage.getItem('genie_token') || localStorage.getItem('demo_genie_token') || '';
       const r = await fetch(`/api/v425/oauth/${provider}/authorize`, { headers: { Authorization: `Bearer ${tok}` } });
       const d = await r.json().catch(() => ({}));
-      if (d.ok && d.authorize_url) { window.location.href = d.authorize_url; return; }
+      // [227차] OAuth 복귀 후 잔여 계정정보 입력을 자동 안내하기 위해 클릭한 채널을 보관.
+      if (d.ok && d.authorize_url) { try { sessionStorage.setItem('gg_oauth_ch', channelKey || ''); } catch {} window.location.href = d.authorize_url; return; }
       // configured=false → 관리자 OAuth 앱 미설정. 수동 등록을 안내(info).
       show(d.configured === false ? 'info' : 'error',
         d.error || t('ak.oauthNotConfigured', '이 채널의 OAuth 자동연결이 아직 설정되지 않았습니다. [등록]으로 키를 직접 입력하세요.'));
@@ -563,6 +568,15 @@ export default function ApiKeys() {
     if (o === 'success') {
       show('success', `${prov ? prov + ' ' : ''}${t('ak.oauthSuccess', 'OAuth 연결 완료 — 자격증명이 자동 등록되고 동기화가 시작됩니다.')}`);
       reload(); refreshConnectorSync();
+      // [227차] 발급(OAuth)→자격등록(잔여 계정정보)→즉시 진행: 토큰은 자동 저장됐고, 동기화에 필요한
+      //   계정 ID(ad_account_id/customer_id/advertiser_id 등)만 남았으면 입력 모달을 자동으로 띄운다.
+      let pendingCh = '';
+      try { pendingCh = sessionStorage.getItem('gg_oauth_ch') || ''; sessionStorage.removeItem('gg_oauth_ch'); } catch {}
+      const chObj = CHANNELS.find(c => c.key === pendingCh);
+      if (chObj) {
+        const need = (CHANNEL_FIELDS[chObj.key] || []).some(f => !OAUTH_COVERED_KEYS.has(f.k));
+        if (need) { setConnectPostOauth(true); setShowConnectModal(chObj); }
+      }
     } else {
       show('error', t('ak.oauthFail', 'OAuth 연결 실패 — 다시 시도하거나 키를 직접 등록하세요.'));
     }
@@ -791,7 +805,7 @@ export default function ApiKeys() {
         <ApplyModal channel={showApplyModal} onClose={() => setShowApplyModal(null)} onSubmit={handleApplySubmit} t={t} />
       )}
       {showConnectModal && (
-        <ConnectModal channel={showConnectModal} onClose={() => setShowConnectModal(null)} onSubmit={handleConnectSave} t={t} extraFields={regFields} />
+        <ConnectModal channel={showConnectModal} postOauth={connectPostOauth} onClose={() => { setShowConnectModal(null); setConnectPostOauth(false); }} onSubmit={handleConnectSave} t={t} extraFields={regFields} />
       )}
       {showRegAdd && (
         <RegistryAddModal onClose={() => setShowRegAdd(false)} onSubmit={submitRegistryChannel} />
@@ -1319,7 +1333,7 @@ function OverviewTab({ channels, summary, creds, loading, onChannelTest, onConne
         {/* [현 차수] 요청2: OAuth 가능=원클릭 자동발급, 그 외 개별발급 채널=발급 신청하기(양식+콘솔 바로가기) */}
         <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
           {oauthProv ? (
-            <button onClick={() => onOAuth(oauthProv)} title={t('ak.oauthHint','OAuth 인가만 하면 키가 자동 발급·등록되고 즉시 동기화됩니다.')} style={{
+            <button onClick={() => onOAuth(oauthProv, ch.key)} title={t('ak.oauthHint','OAuth 인가만 하면 키가 자동 발급·등록되고 즉시 동기화됩니다.')} style={{
               flex: 1, padding: '7px 10px', borderRadius: 8, border: '1px solid rgba(34,197,94,0.35)', cursor: 'pointer',
               background: 'rgba(34,197,94,0.08)', color: '#16a34a', fontSize: 10.5, fontWeight: 800,
             }}>⚡ {t('ak.oauthConnect','원클릭 연결')}</button>
@@ -1618,10 +1632,13 @@ function RegistryAddModal({ onClose, onSubmit }) {
 /* ═══════════════════════════════════════════════════════════════════
    Modal: Connect — 채널별 구조화 자격증명 등록 (208차)
    ═══════════════════════════════════════════════════════════════════ */
-function ConnectModal({ channel, onClose, onSubmit, t, extraFields = {} }) {
+function ConnectModal({ channel, onClose, onSubmit, t, extraFields = {}, postOauth = false }) {
   const fields = CHANNEL_FIELDS[channel.key] || extraFields[channel.key] || DEFAULT_FIELDS;
   const [vals, setVals] = useState({});
   const [busy, setBusy] = useState(false);
+  // [227차] OAuth 직후 모드: 토큰성 필드는 "자동 등록됨"으로 표시, 회원은 계정 ID 등 잔여 필드만 입력.
+  const remainFields = postOauth ? fields.filter(f => !OAUTH_COVERED_KEYS.has(f.k)) : fields;
+  const coveredFields = postOauth ? fields.filter(f => OAUTH_COVERED_KEYS.has(f.k)) : [];
 
   const submit = async () => {
     setBusy(true);
@@ -1643,10 +1660,25 @@ function ConnectModal({ channel, onClose, onSubmit, t, extraFields = {} }) {
           <span style={{ fontSize: 28 }} aria-hidden>{channel.icon}</span>
           <div style={{ fontSize: 18, fontWeight: 800 }}>{channel.name} {t('ak.connectTitle','연동 등록')}</div>
         </div>
+        {postOauth && (
+          <div style={{ marginBottom: 16, padding: '12px 14px', borderRadius: 12, background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.28)' }}>
+            <div style={{ fontSize: 12.5, fontWeight: 800, color: '#16a34a', marginBottom: 4 }}>✅ {t('ak.oauthDoneTitle', { ch: channel.name, defaultValue: `${channel.name} OAuth 인증 완료!` })}</div>
+            <div style={{ fontSize: 11, color: 'var(--text-2)', lineHeight: 1.6 }}>{t('ak.oauthDoneDesc', '토큰은 자동 등록되었습니다. 동기화를 위해 아래 계정 정보만 입력하면 바로 연동·실행됩니다.')}</div>
+            {coveredFields.length > 0 && (
+              <div style={{ marginTop: 8, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                {coveredFields.map(f => (
+                  <span key={f.k} style={{ fontSize: 10.5, fontWeight: 700, padding: '3px 9px', borderRadius: 20, background: 'rgba(34,197,94,0.14)', color: '#16a34a' }}>✓ {f.label} {t('ak.autoRegistered','자동 등록됨')}</span>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
         <div style={{ fontSize: 11, color: 'var(--text-3)', marginBottom: 18 }}>
-          {t('ak.connectSub','필요한 자격증명을 입력하세요. 값은 AES-256-GCM으로 암호화 저장되며 조회 시 마스킹됩니다. 입력한 항목만 저장됩니다.')}
+          {postOauth
+            ? t('ak.connectSubOauth','아래 계정 식별 정보를 입력하세요. 값은 AES-256-GCM으로 암호화 저장됩니다.')
+            : t('ak.connectSub','필요한 자격증명을 입력하세요. 값은 AES-256-GCM으로 암호화 저장되며 조회 시 마스킹됩니다. 입력한 항목만 저장됩니다.')}
         </div>
-        {fields.map(f => (
+        {remainFields.map(f => (
           <Field key={f.k} label={`${f.label}${f.secret ? ' 🔒' : ''}`}>
             <input type={f.secret ? 'password' : 'text'} value={vals[f.k] || ''} autoComplete="new-password"
               onChange={e => setVals(v => ({ ...v, [f.k]: e.target.value }))} style={fieldStyle}
