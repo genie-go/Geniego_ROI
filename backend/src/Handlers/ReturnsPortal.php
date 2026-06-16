@@ -247,7 +247,9 @@ class ReturnsPortal
         $total = (int)$one("SELECT COUNT(*) FROM returns WHERE tenant_id=?");
         $pending = (int)$one("SELECT COUNT(*) FROM returns WHERE tenant_id=? AND status='pending'");
         $defective = (int)$one("SELECT COUNT(*) FROM returns WHERE tenant_id=? AND defective=1");
-        $totalRefund = (float)$one("SELECT COALESCE(SUM(refund_amt),0) FROM returns WHERE tenant_id=?");
+        // [227차 감사 P2] 실현 환불만 합산 — 기존엔 pending/rejected 까지 모든 status 의 refund_amt 를 더해
+        //   미실현·반려 환불이 총환불액을 부풀렸다. 결정·진행된 상태(승인/환불/입고)만 합산.
+        $totalRefund = (float)$one("SELECT COALESCE(SUM(refund_amt),0) FROM returns WHERE tenant_id=? AND status IN ('approved','refunded','restocked')");
         $wmsLinked = (int)$one("SELECT COUNT(*) FROM returns WHERE tenant_id=? AND wms_linked=1");
         $processed = (int)$one("SELECT COUNT(*) FROM returns WHERE tenant_id=? AND status IN ('refunded','restocked')");
         $refundRate = $total > 0 ? round($processed / $total * 100) : 0;

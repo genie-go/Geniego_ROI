@@ -263,8 +263,10 @@ export default function AccountPerformance() {
     /* ─ Objective Aggregates ─ */
     const objAggregates = useMemo(() => {
         const agg = { Awareness: { spend: 0, roas: 0, count: 0 }, Consideration: { spend: 0, roas: 0, count: 0 }, Conversion: { spend: 0, roas: 0, count: 0 } };
-        ACTIVE_META_DATA.forEach(c => { if (agg[c.objective]) { agg[c.objective].spend += c.spend; agg[c.objective].roas += c.roas; agg[c.objective].count++; } });
-        Object.keys(agg).forEach(k => { if (agg[k].count > 0) agg[k].roas /= agg[k].count; });
+        // [227차 감사 P2] objective별 ROAS = 지출가중(Σroas×spend/Σspend) — 단순평균은 소액·고ROAS 캠페인이
+        //   과대반영돼 왜곡(191차 AdStatusAnalysis blendedRoas 패턴 정합).
+        ACTIVE_META_DATA.forEach(c => { if (agg[c.objective]) { agg[c.objective].spend += c.spend; agg[c.objective].roas += c.roas * c.spend; agg[c.objective].count++; } });
+        Object.keys(agg).forEach(k => { agg[k].roas = agg[k].spend > 0 ? agg[k].roas / agg[k].spend : 0; });
         return agg;
     }, [ACTIVE_META_DATA]);
 

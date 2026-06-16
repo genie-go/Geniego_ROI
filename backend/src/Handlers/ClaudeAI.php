@@ -1001,6 +1001,10 @@ PROMPT;
         if (!$data) {
             return TemplateResponder::json($res, ['ok'=>false,'error'=>'data required'], 400);
         }
+        // [227차 감사 P2] AI 키 선검사 — 기존엔 미설정/마스킹 키로 직접 호출해 타임아웃·502 낭비(callClaude 정합).
+        if (!self::aiKeyConfigured()) {
+            return TemplateResponder::json($res, ['ok'=>false,'error'=>'AI 키 미설정 — 관리자 설정 필요','configured'=>false], 200);
+        }
 
         $channels    = json_encode($data['channels']     ?? [], JSON_UNESCAPED_UNICODE);
         $influencers = json_encode($data['influencers']  ?? [], JSON_UNESCAPED_UNICODE);
