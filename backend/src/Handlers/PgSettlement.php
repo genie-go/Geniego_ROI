@@ -144,6 +144,10 @@ final class PgSettlement
     // ── POST /v427/pg/sync ──────────────────────────────────────────────────
     public static function sync(Request $request, Response $response, array $args): Response
     {
+        // [227차 감사 P0] 익명 쓰기 차단 — 공개 bypass 라우트라 익명이 demo 버킷 PG정산을 주입할 수 있었음(Logistics 정합).
+        if (UserAuth::authedTenant($request) === null) {
+            return self::json($response, ['ok' => false, 'error' => '인증이 필요합니다.'], 401);
+        }
         $pdo = Db::pdo(); self::ensureTables($pdo);
         $tenant = self::tenant($request);
         $provider = strtolower(trim((string)(self::body($request)['provider'] ?? '')));

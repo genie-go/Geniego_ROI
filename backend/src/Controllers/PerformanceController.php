@@ -39,9 +39,8 @@ class PerformanceController {
         \Psr\Http\Message\ServerRequestInterface $req,
         \Psr\Http\Message\ResponseInterface $res
     ): \Psr\Http\Message\ResponseInterface {
-        $tenant = $req->getAttribute('auth_tenant')
-                  ?: $req->getHeaderLine('X-Tenant-Id')
-                  ?: 'demo';
+        // [227차 감사] raw X-Tenant-Id 폴백 제거 — auth_tenant(미들웨어 주입)만 신뢰.
+        $tenant = $req->getAttribute('auth_tenant') ?: 'demo';
         $rows = [];
         try {
             $pdo = Db::pdo();

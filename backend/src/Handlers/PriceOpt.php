@@ -174,6 +174,7 @@ class PriceOpt
     /** POST /v420/price/products */
     public static function createProduct(Request $request, Response $response, array $args): Response
     {
+        if ($err = UserAuth::requirePro($request, $response)) return $err; // [227차 감사 P0] 익명 쓰기 차단
         $db   = self::db();
         $t    = self::tenant($request);
         $body = self::body($request);
@@ -210,6 +211,7 @@ class PriceOpt
     /** PUT /v420/price/products/{sku} */
     public static function updateProduct(Request $request, Response $response, array $args): Response
     {
+        if ($err = UserAuth::requirePro($request, $response)) return $err; // [227차 감사 P0] 익명 쓰기 차단
         $db   = self::db();
         $t    = self::tenant($request);
         $body = self::body($request);
@@ -227,6 +229,7 @@ class PriceOpt
     /** DELETE /v420/price/products/{sku} */
     public static function deleteProduct(Request $request, Response $response, array $args): Response
     {
+        if ($err = UserAuth::requirePro($request, $response)) return $err; // [227차 감사 P0] 익명 쓰기 차단
         $db  = self::db();
         $t   = self::tenant($request);
         $sku = $args['sku'] ?? '';
@@ -246,6 +249,7 @@ class PriceOpt
     /** POST /v420/price/elasticity */
     public static function addElasticity(Request $request, Response $response, array $args): Response
     {
+        if ($err = UserAuth::requirePro($request, $response)) return $err; // [227차 감사 P0] 익명 쓰기 차단
         $db   = self::db();
         $t    = self::tenant($request);
         $body = self::body($request);
@@ -273,6 +277,7 @@ class PriceOpt
     /** POST /v420/price/elasticity/bulk — CSV-style bulk import */
     public static function bulkElasticity(Request $request, Response $response, array $args): Response
     {
+        if ($err = UserAuth::requirePro($request, $response)) return $err; // [227차 감사 P0] 익명 쓰기 차단
         $db   = self::db();
         $t    = self::tenant($request);
         $body = self::body($request);
@@ -290,6 +295,7 @@ class PriceOpt
     /** POST /v420/price/optimize */
     public static function optimize(Request $request, Response $response, array $args): Response
     {
+        if ($err = UserAuth::requirePro($request, $response)) return $err; // [227차 감사 P0] 익명 쓰기 차단
         $db   = self::db();
         $t    = self::tenant($request);
         $body = self::body($request);
@@ -339,6 +345,7 @@ class PriceOpt
     /** POST /v420/price/optimize/batch */
     public static function optimizeBatch(Request $request, Response $response, array $args): Response
     {
+        if ($err = UserAuth::requirePro($request, $response)) return $err; // [227차 감사 P0] 익명 쓰기 차단
         $db = self::db(); $t = self::tenant($request); $body = self::body($request);
         $skus = $body['skus'] ?? [];
         $results = [];
@@ -380,6 +387,7 @@ class PriceOpt
     /** POST /v420/price/simulate */
     public static function simulate(Request $request, Response $response, array $args): Response
     {
+        if ($err = UserAuth::requirePro($request, $response)) return $err; // [227차 감사 P0] 익명 쓰기 차단
         $db = self::db(); $t = self::tenant($request); $body = self::body($request);
         $sku = trim($body['sku'] ?? ''); $prices = array_map('floatval', $body['prices'] ?? []);
         if (!$sku || !count($prices)) return self::json($response, ['ok'=>false,'error'=>'sku and prices[] required'], 400);
@@ -423,6 +431,7 @@ class PriceOpt
     /** POST /v420/channel-mix/simulate */
     public static function channelMixSimulate(Request $request, Response $response, array $args): Response
     {
+        if ($err = UserAuth::requirePro($request, $response)) return $err; // [227차 감사 P0] 익명 쓰기 차단
         $db = self::db(); $t = self::tenant($request); $body = self::body($request);
         $budget = (float)($body['total_budget'] ?? 1000000);
         $channels = $body['channels'] ?? [];
@@ -468,6 +477,7 @@ class PriceOpt
     /** POST /v420/price/competitor */
     public static function upsertCompetitor(Request $request, Response $response, array $args): Response
     {
+        if ($err = UserAuth::requirePro($request, $response)) return $err; // [227차 감사 P0] 익명 쓰기 차단
         $db = self::db(); $t = self::tenant($request); $body = self::body($request);
         $sku = trim($body['sku'] ?? '');
         if (!$sku) return self::json($response, ['ok'=>false,'error'=>'sku required'], 400);
@@ -493,6 +503,7 @@ class PriceOpt
     /** POST /v420/price/repricer/rules */
     public static function createRepricerRule(Request $request, Response $response, array $args): Response
     {
+        if ($err = UserAuth::requirePro($request, $response)) return $err; // [227차 감사 P0] 익명 쓰기 차단
         $db = self::db(); $t = self::tenant($request); $body = self::body($request);
         $name = trim($body['name'] ?? '');
         if (!$name) return self::json($response, ['ok'=>false,'error'=>'name required'], 400);
@@ -513,6 +524,7 @@ class PriceOpt
     /** POST /v420/price/repricer/rules/{id}/toggle */
     public static function toggleRepricerRule(Request $request, Response $response, array $args): Response
     {
+        if ($err = UserAuth::requirePro($request, $response)) return $err; // [227차 감사 P0] 익명 쓰기 차단
         $db = self::db(); $t = self::tenant($request); $id = (int)($args['id'] ?? 0);
         $db->prepare("UPDATE po_repricer_rules SET active = CASE WHEN active=1 THEN 0 ELSE 1 END WHERE id=? AND tenant_id=?")->execute([$id, $t]);
         return self::json($response, ['ok'=>true,'toggled'=>$id]);
@@ -532,6 +544,7 @@ class PriceOpt
     /** POST /v420/price/calendar */
     public static function createCalendarEvent(Request $request, Response $response, array $args): Response
     {
+        if ($err = UserAuth::requirePro($request, $response)) return $err; // [227차 감사 P0] 익명 쓰기 차단
         $db = self::db(); $t = self::tenant($request); $body = self::body($request);
         $db->prepare("INSERT INTO po_calendar (tenant_id,sku,name,channel,startDate,endDate,promoPrice,discountRate,reason,status,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)")
             ->execute([$t,$body['sku']??'',$body['name']??'',$body['channel']??'all',$body['startDate']??'',$body['endDate']??'',(float)($body['promoPrice']??0),(float)($body['discountRate']??0),$body['reason']??'','초안',gmdate('c')]);
@@ -541,6 +554,7 @@ class PriceOpt
     /** DELETE /v420/price/calendar/{id} */
     public static function deleteCalendarEvent(Request $request, Response $response, array $args): Response
     {
+        if ($err = UserAuth::requirePro($request, $response)) return $err; // [227차 감사 P0] 익명 쓰기 차단
         $db = self::db(); $t = self::tenant($request);
         $db->prepare("DELETE FROM po_calendar WHERE id=? AND tenant_id=?")->execute([(int)($args['id']??0), $t]);
         return self::json($response, ['ok'=>true]);
