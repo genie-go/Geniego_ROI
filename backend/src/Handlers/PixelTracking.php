@@ -207,6 +207,12 @@ class PixelTracking
         if ($inserted) {
             if ($sessionId) { self::updateSession($pdo, $tenant, $sessionId, $pixelId, $effEvent, $effValue, $b); }
             if ($trusted && $eventName === 'purchase' && $emailHash) { self::syncToCRM($pdo, $tenant, $eventName, $effValue, $eventId); }
+            // [227차 Tier3] Pixel → attribution_touch 브릿지: 1st-party 멀티터치 데이터로 markov 엔진 활성화.
+            //   기존엔 픽셀 이벤트가 attribution_touch 에 안 들어가 AttributionEngine(markov-removal-effect)이
+            //   실 전환 여정 0 → 항상 빈 결과였다. 이제 마케팅 터치(utm_source 보유)와 구매 전환을 적재한다.
+            //   ★오염차단: $trusted(등록 도메인 Origin 일치) 비콘만 적재 — 위조 비콘의 가짜 채널/전환이
+            //     attribution 에 주입되는 것을 차단(syncToCRM/매출집계와 동일한 fail-closed 신뢰 모델).
+            if ($trusted && $sessionId) { self::bridgeToAttribution($pdo, $tenant, $sessionId, $eventName, $b, $eventId, $effValue); }
 
             if ($trusted && $config && (int)($config['enabled'] ?? 0) === 1) {
                 self::forwardToMeta($pdo, $config, $eventId, $eventName, $emailHash, $phoneHash, $b, $deviceType);
@@ -263,6 +269,81 @@ class PixelTracking
                 ':amt' => $value, ':data' => json_encode(['source' => 'pixel', 'event_id' => $eventId]), ':ca' => self::now(), ':t' => $tenant,
             ]);
         } catch (\Exception $e) { /* CRM 테이블 없으면 무시 */ }
+    }
+
+    /**
+     * [227차 Tier3] Pixel 이벤트 → attribution_touch / attribution_result 브릿지.
+     *   AttributionEngine(markov-removal-effect)은 attribution_touch(터치 여정) + attribution_result(전환)을
+     *   결합해 채널 기여도를 산출한다. 픽셀이 이 두 테이블에 안 들어가면 markov 는 늘 빈 결과였다.
+     *
+     *   ① 마케팅 터치(utm_source 보유) → attribution_touch 1행(session_id 기준 비전환 여정 = markov null 경로).
+     *   ② 구매(purchase) → 같은 세션의 미귀속 터치에 order_id 백필(멀티터치 전환 여정 완성) + attribution_result
+     *      1행 기록(마지막 터치 채널을 attributed_channel 로, 모델=pixel). 이로써 전환 여정이 markov 에 노출된다.
+     *
+     *   best-effort: 테이블 미존재/오류는 무음(픽셀 수집 성공이 우선). 데모 테넌트도 자기 버킷에만 적재(격리 유지).
+     */
+    private static function bridgeToAttribution(\PDO $pdo, string $tenant, string $sessionId, string $eventName, array $b, string $eventId, float $value): void
+    {
+        $cut = static function ($v, int $max = 160): ?string {
+            if ($v === null) return null;
+            $s = trim(preg_replace('/[\x00-\x1F\x7F]/u', '', strip_tags((string)$v)));
+            return $s === '' ? null : mb_substr($s, 0, $max);
+        };
+        $utmSource   = $cut($b['utm_source']   ?? null, 120);
+        $utmMedium   = $cut($b['utm_medium']   ?? null, 120);
+        $utmCampaign = $cut($b['utm_campaign'] ?? null, 160);
+        $utmContent  = $cut($b['utm_content']  ?? null, 160);
+        $utmTerm     = $cut($b['utm_term']     ?? null, 160);
+        // 채널 = utm_source(없으면 referrer host). 마케팅 터치가 아니면(direct) 채널 비움 → markov 가 스킵.
+        $channel = $utmSource;
+        if ($channel === null && !empty($b['referrer'])) {
+            $host = parse_url((string)$b['referrer'], PHP_URL_HOST);
+            if (is_string($host) && $host !== '') $channel = mb_substr(preg_replace('/^www\./', '', strtolower($host)), 0, 120);
+        }
+        $isPurchase = ($eventName === 'purchase');
+        // 마케팅 터치도 전환도 아니면 적재 불요(잡음 차단).
+        if ($channel === null && !$isPurchase) return;
+
+        $now = self::now();
+        try {
+            // ① 터치 1행 적재(전환이면 order_id 즉시 부여 — 백필 대상에서 자기 자신 포함).
+            $orderId = null;
+            if ($isPurchase) {
+                $cd = is_array($b['custom_data'] ?? null) ? $b['custom_data'] : [];
+                $orderId = $cut($b['order_id'] ?? ($cd['order_id'] ?? null), 120) ?: ('PX-' . $eventId);
+            }
+            $extra = json_encode(['source' => 'pixel', 'event' => $eventName, 'value' => $value], JSON_UNESCAPED_UNICODE);
+            $pdo->prepare(
+                'INSERT INTO attribution_touch
+                 (tenant_id,session_id,order_id,channel,utm_source,utm_medium,utm_campaign,
+                  utm_content,utm_term,coupon_code,deeplink,touched_at,extra_json)
+                 VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)'
+            )->execute([$tenant, $sessionId, $orderId, $channel, $utmSource, $utmMedium, $utmCampaign,
+                        $utmContent, $utmTerm, null, null, $now, $extra]);
+
+            // ② 구매: 같은 세션의 미귀속 터치에 order_id 백필 + 전환 결과 기록.
+            if ($isPurchase) {
+                $pdo->prepare(
+                    "UPDATE attribution_touch SET order_id=? WHERE tenant_id=? AND session_id=? AND (order_id IS NULL OR order_id='')"
+                )->execute([$orderId, $tenant, $sessionId]);
+                // attributed_channel = 마지막 마케팅 터치 채널(없으면 현재 채널/direct).
+                $attrCh = $channel ?? 'direct';
+                try {
+                    $lt = $pdo->prepare(
+                        "SELECT channel FROM attribution_touch WHERE tenant_id=? AND order_id=? AND channel IS NOT NULL AND channel<>'' ORDER BY touched_at DESC, id DESC LIMIT 1"
+                    );
+                    $lt->execute([$tenant, $orderId]);
+                    $lc = $lt->fetchColumn();
+                    if ($lc) $attrCh = (string)$lc;
+                } catch (\Throwable $e) {}
+                $evidence = json_encode(['source' => 'pixel', 'session_id' => $sessionId, 'value' => $value], JSON_UNESCAPED_UNICODE);
+                $ignore = self::isMysql($pdo) ? 'IGNORE' : 'OR IGNORE';
+                $pdo->prepare(
+                    "INSERT {$ignore} INTO attribution_result(tenant_id,order_id,attributed_channel,confidence_score,evidence_json,model,created_at)
+                     VALUES(?,?,?,?,?,?,?)"
+                )->execute([$tenant, $orderId, $attrCh, 1.0, $evidence, 'pixel', $now]);
+            }
+        } catch (\Throwable $e) { /* attribution_touch/result 미존재 등 — best-effort */ }
     }
 
     private static function forwardToMeta(\PDO $pdo, array $cfg, string $eventId, string $eventName, ?string $emailHash, ?string $phoneHash, array $b, string $deviceType): void

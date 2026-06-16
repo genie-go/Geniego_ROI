@@ -165,6 +165,41 @@ final class PgSettlement
         return self::json($response, ['ok' => true, 'provider' => $provider, 'synced' => count($res['rows'])]);
     }
 
+    /**
+     * [227차 Tier2] 자격증명 채널 키 → PG provider 역매핑.
+     *   사용자가 'toss'/'tosspayments'/'stripe' 등 어느 별칭으로 자격증명을 저장하든 canonical provider 로 해석.
+     *   PG provider 가 아니면 null.
+     */
+    public static function providerForChannel(string $channel): ?string
+    {
+        $c = strtolower(trim($channel));
+        if ($c === '') return null;
+        if (isset(self::PROVIDERS[$c])) return $c; // canonical provider 키 그대로
+        foreach (self::PROVIDERS as $prov => $meta) {
+            if (in_array($c, $meta['creds'], true)) return $prov; // 별칭(toss→tosspayments 등)
+        }
+        return null;
+    }
+
+    /**
+     * [227차 Tier2] 자격증명 저장 직후 백엔드 자동 정산 수집(ChannelCreds::upsert 에서 호출).
+     *   광고/커머스 채널처럼 PG 채널도 "자격증명 등록 → 즉시 자동 연동"이 되도록 한다.
+     *   live=true provider(stripe/tosspayments/paypal)만 실제 fetch, 그 외(미구현)는 no-op.
+     *   데모/익명 테넌트는 호출부에서 이미 차단. 반환=['ok','synced'|'note'].
+     */
+    public static function syncForTenant(PDO $pdo, string $tenant, string $provider): array
+    {
+        $provider = strtolower(trim($provider));
+        if (!isset(self::PROVIDERS[$provider]) || empty(self::PROVIDERS[$provider]['live'])) {
+            return ['ok' => false, 'note' => 'no-live-adapter'];
+        }
+        self::ensureTables($pdo);
+        $res = self::fetchLive($pdo, $tenant, $provider);
+        if (empty($res['ok'])) return ['ok' => false, 'configured' => $res['configured'] ?? false, 'note' => $res['note'] ?? '연동 실패'];
+        foreach ($res['rows'] as $r) self::upsert($pdo, $tenant, $provider, $r);
+        return ['ok' => true, 'provider' => $provider, 'synced' => count($res['rows'])];
+    }
+
     // ── 실 수집 디스패치 ─────────────────────────────────────────────────────
     private static function fetchLive(PDO $pdo, string $tenant, string $provider): array
     {

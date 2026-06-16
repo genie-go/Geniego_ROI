@@ -344,6 +344,10 @@ final class ChannelCreds
                     $autoSync = ['kind' => 'ad', 'result' => Connectors::syncAdChannelOnSave($tenant, $channel)];
                 } elseif (ChannelSync::isCommerceChannel($channel)) { // [현 차수] 별칭 인식(silent break 방지)
                     $autoSync = ['kind' => 'commerce', 'result' => ChannelSync::syncTenantChannel($tenant, $channel, $userPlan !== '' ? $userPlan : 'pro')];
+                } elseif (($pgProv = PgSettlement::providerForChannel($channel)) !== null) {
+                    // [227차 Tier2] PG 정산 채널(stripe/tosspayments/toss/paypal…)도 자격증명 등록 즉시 자동 수집.
+                    //   기존엔 PG만 자동 트리거 누락 → 사용자가 /v427/pg/sync 를 수동 호출해야 정산이 들어왔다.
+                    $autoSync = ['kind' => 'pg', 'result' => PgSettlement::syncForTenant($pdo, $tenant, $pgProv)];
                 }
             } catch (\Throwable $e) {
                 error_log('[ChannelCreds::upsert] auto-sync failed: ' . $e->getMessage());
