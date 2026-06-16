@@ -2189,7 +2189,26 @@ final class UserAuth
                 'redirect_uri'  => $base . '/api/v425/oauth/' . $p . '/callback',
             ];
         }
-        return self::json($res, ['ok' => true, 'providers' => $out, 'base' => $base]);
+        $notify = self::getAppSetting($pdo, 'apply_notify_email');
+        if ($notify === '' && getenv('APPLY_NOTIFY_EMAIL')) $notify = (string)getenv('APPLY_NOTIFY_EMAIL');
+        return self::json($res, ['ok' => true, 'providers' => $out, 'base' => $base, 'apply_notify_email' => $notify]);
+    }
+
+    /** POST /auth/admin/apply-notify {email} — 발급신청 알림 수신 이메일(운영팀) 설정. */
+    public static function applyNotifySave(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
+    {
+        [$user, $err] = self::requireAdminUser($req);
+        if ($err) return self::json($res, ['ok' => false, 'error' => $err[0]], $err[1]);
+        $pdo = Db::pdo(); self::ensureAppSetting($pdo);
+        $b = self::readBody($req);
+        $email = trim((string)($b['email'] ?? ''));
+        if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return self::json($res, ['ok' => false, 'error' => '이메일 형식이 올바르지 않습니다.'], 422);
+        }
+        self::setAppSetting($pdo, 'apply_notify_email', $email);
+        self::audit($req, 'apply_notify_config', '발급신청 알림 이메일 설정', 'medium', $user);
+        return self::json($res, ['ok' => true, 'apply_notify_email' => $email,
+            'message' => $email !== '' ? '발급신청 알림 수신 이메일이 저장되었습니다.' : '발급신청 알림 수신 이메일을 해제했습니다.']);
     }
 
     /** POST /auth/admin/oauth-apps {provider, client_id, client_secret | clear} — OAuth 앱 등록(암호화). */

@@ -880,6 +880,7 @@ return function (App $app): void {
         'POST /auth/admin/video-key'         => 'Genie\\Handlers\\UserAuth::vidKeySave',
         'GET /auth/admin/oauth-apps'         => 'Genie\\Handlers\\UserAuth::oauthAppsGet',  // [227차] 채널 OAuth 앱 등록(플랫폼)
         'POST /auth/admin/oauth-apps'        => 'Genie\\Handlers\\UserAuth::oauthAppsSave',
+        'POST /auth/admin/apply-notify'      => 'Genie\\Handlers\\UserAuth::applyNotifySave', // [227차] 발급신청 알림 이메일
         // 189차+ 인증 감사로그
         'GET /auth/audit-logs'   => 'Genie\\Handlers\\UserAuth::auditLogs',
         // 189차+ 세션/기기 관리
@@ -1728,6 +1729,7 @@ return function (App $app): void {
     $register('POST', '/auth/admin/video-key');
     $register('GET',  '/auth/admin/oauth-apps'); // [227차] 채널 OAuth 앱 등록(플랫폼)
     $register('POST', '/auth/admin/oauth-apps');
+    $register('POST', '/auth/admin/apply-notify'); // [227차] 발급신청 알림 이메일
     // 189차+ 인증 감사로그
     $register('GET',  '/auth/audit-logs');
     // 189차+ 세션/기기 관리

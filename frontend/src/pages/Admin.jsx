@@ -457,15 +457,28 @@ function TabChannelOauth() {
   const [form, setForm] = useState({});
   const [busy, setBusy] = useState('');
   const [msg, setMsg] = useState(null);
+  const [notifyEmail, setNotifyEmail] = useState('');
+  const [notifyBusy, setNotifyBusy] = useState(false);
 
   const load = async () => {
     try {
       const r = await fetch('/api/auth/admin/oauth-apps', { headers: { Authorization: `Bearer ${ADMIN_TOKEN()}` } });
       const d = await r.json().catch(() => ({}));
-      if (r.ok && d.ok) setCfg(d.providers || {});
+      if (r.ok && d.ok) { setCfg(d.providers || {}); setNotifyEmail(d.apply_notify_email || ''); }
     } catch {}
   };
   useEffect(() => { load(); }, []);
+
+  const saveNotify = async () => {
+    setNotifyBusy(true); setMsg(null);
+    try {
+      const r = await fetch('/api/auth/admin/apply-notify', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${ADMIN_TOKEN()}` }, body: JSON.stringify({ email: notifyEmail.trim() }) });
+      const d = await r.json().catch(() => ({}));
+      if (r.ok && d.ok) setMsg({ t: 'ok', m: d.message || '저장되었습니다.' });
+      else setMsg({ t: 'err', m: d.error || '저장 실패' });
+    } catch { setMsg({ t: 'err', m: '서버 오류' }); }
+    setNotifyBusy(false);
+  };
 
   const fld = (p, k, v) => setForm(s => ({ ...s, [p]: { ...(s[p] || {}), [k]: v } }));
   const save = async (p) => {
@@ -505,6 +518,18 @@ function TabChannelOauth() {
         <div style={{ fontSize: 12.5, lineHeight: 1.7, color: 'var(--text-2)' }}>
           각 provider 개발자 콘솔에서 OAuth 앱을 만들고 <b>아래 Redirect URI를 등록</b>한 뒤, 발급된 <b>client_id / client_secret</b>을 여기 한 번만 등록하세요.
           <br/>등록 즉시 <b>모든 구독회원</b>이 연동허브에서 <b>원클릭 연결</b>(자기 계정 인가→자기 테넌트에 토큰 자동 저장)을 사용할 수 있습니다. (회원별 토큰 격리·암호화 저장)
+        </div>
+      </div>
+      {/* 발급신청 알림 수신 이메일 — 콘솔/계약형 채널의 발급 대행 신청 통지처(운영팀) */}
+      <div style={{ borderRadius: 14, padding: '16px 18px', marginBottom: 18, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)' }}>
+        <div style={{ fontSize: 13.5, fontWeight: 800, marginBottom: 4 }}>📨 발급신청 알림 수신 이메일</div>
+        <div style={{ fontSize: 11.5, color: 'var(--text-2)', lineHeight: 1.6, marginBottom: 10 }}>
+          회원이 콘솔 발급이 어려운 채널의 <b>발급 대행을 신청</b>하면, 신청 정보가 이 이메일로 통지됩니다(미설정 시 신청자 확인 메일만 발송).
+        </div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <input type="email" value={notifyEmail} onChange={e => setNotifyEmail(e.target.value)} autoComplete="off" placeholder="ops@your-company.com"
+            style={{ flex: 1, boxSizing: 'border-box', padding: '10px 12px', borderRadius: 9, border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.05)', color: 'var(--text-1)', fontSize: 12.5, outline: 'none' }} />
+          <button onClick={saveNotify} disabled={notifyBusy} style={{ padding: '10px 18px', borderRadius: 9, border: 'none', cursor: notifyBusy ? 'not-allowed' : 'pointer', background: notifyBusy ? 'rgba(79,142,247,0.25)' : 'linear-gradient(135deg,#4f8ef7,#6366f1)', color: '#fff', fontSize: 12.5, fontWeight: 800 }}>{notifyBusy ? '저장 중...' : '저장'}</button>
         </div>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(330px,1fr))', gap: 14 }}>
