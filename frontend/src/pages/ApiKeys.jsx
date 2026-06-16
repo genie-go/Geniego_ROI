@@ -476,6 +476,14 @@ export default function ApiKeys() {
             reload();
           } catch { /* 저장 성공, ingest 는 cron 폴링이 백업 */ }
         }
+        // [227차] 동기화가 없는 채널(PG·물류·국제특송 등)도 등록 직후 즉시 검증 피드백 — "바로 진행" 확신.
+        //   커머스/광고는 위 동기화가 검증을 겸하므로 제외. test 가 stub/미지원이면 조용히 넘어감.
+        if (!(ch && COMMERCE_SYNC_GROUPS.includes(ch.group)) && !AD_SYNC[channelKey]) {
+          try {
+            const vr = await postJson(`/v423/connectors/${encodeURIComponent(channelKey)}/test`, {});
+            if (vr?.ok) show('success', `${channelName} ${t('ak.verifyOk','연결 검증 완료 — 바로 사용할 수 있습니다')}`);
+          } catch { /* 저장 성공 우선 — 검증 실패는 무음 */ }
+        }
         // 저장+동기화 후 전역 연결상태 즉시 재조회(타 페이지 stale 윈도우 제거).
         refreshConnectorSync();
       }
