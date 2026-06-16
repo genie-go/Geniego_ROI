@@ -328,10 +328,32 @@ final class OrderHub
         if ($id === '' || $status === '') return self::json($resp, ['ok' => false, 'error' => 'id_and_status_required'], 400);
         if (mb_strlen($status) > 40) return self::json($resp, ['ok' => false, 'error' => 'status_too_long'], 400);
 
+        $force = !empty($body['force']);
+        // [227차 감사 P0] id 매칭 strict-safe — id 는 INT 컬럼이라 비숫자 id(channel_order_id)를 비교하면
+        //   MySQL strict 모드에서 1292 에러. 숫자일 때만 id 포함(잠재 결함 동시 해소).
+        $idNum = ctype_digit($id);
+        $idClause = $idNum ? "(id = ? OR channel_order_id = ? OR order_no = ?)" : "(channel_order_id = ? OR order_no = ?)";
+        $idParams = $idNum ? [$id, $id, $id] : [$id, $id];
         try {
-            $stmt = $pdo->prepare("UPDATE channel_orders SET status = ? WHERE tenant_id = ? AND (id = ? OR channel_order_id = ? OR order_no = ?)");
-            $stmt->execute([$status, $tenant, $id, $id, $id]);
-            return self::json($resp, ['ok' => true, 'updated' => $stmt->rowCount(), 'status' => $status]);
+            // [227차 감사 P0] 상태전이 가드 — 기존엔 status 만 UPDATE 해, 수동취소(status='cancelled')된 주문을
+            //   'delivered' 로 바꾸면 event_type='order'+status비취소 → 매출 재진입(cancelExclusion 무력화)됐다.
+            //   ① 취소/반품 status 전이 시 event_type 도 sticky 분류(채널폴링 saveOrders 정규화와 정합).
+            //   ② 취소/반품(event_type) 주문을 활성으로 되돌리는 역전이는 차단(force=true 로만 강제, un-cancel).
+            $sel = $pdo->prepare("SELECT event_type FROM channel_orders WHERE tenant_id=? AND $idClause LIMIT 1");
+            $sel->execute(array_merge([$tenant], $idParams));
+            $curEvt = (string)($sel->fetchColumn() ?: 'order');
+            $wasCR = in_array($curEvt, ['cancel', 'return'], true);
+            $newEvt = (in_array($status, self::CANCEL_TOKENS, true) || preg_match('/cancel|취소|void/iu', $status)) ? 'cancel'
+                    : (preg_match('/return|refund|반품|환불/iu', $status) ? 'return' : null);
+            if ($newEvt === null && $wasCR && !$force) {
+                return self::json($resp, ['ok' => false, 'error' => 'cancelled_or_returned_cannot_reactivate',
+                    'message' => '취소/반품된 주문은 활성 상태로 되돌릴 수 없습니다. (force=true 로 강제)'], 409);
+            }
+            // event_type: 취소/반품 status→sticky 분류 / force 활성복구→'order' / 그 외 기존 유지.
+            $setEvt = $newEvt ?? (($force && $wasCR) ? 'order' : $curEvt);
+            $stmt = $pdo->prepare("UPDATE channel_orders SET status = ?, event_type = ? WHERE tenant_id = ? AND $idClause");
+            $stmt->execute(array_merge([$status, $setEvt, $tenant], $idParams));
+            return self::json($resp, ['ok' => true, 'updated' => $stmt->rowCount(), 'status' => $status, 'event_type' => $setEvt]);
         } catch (\Throwable $e) {
             return self::json($resp, ['ok' => false, 'error' => 'db_error', 'message' => $e->getMessage()], 500);
         }
