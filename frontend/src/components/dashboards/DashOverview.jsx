@@ -547,7 +547,8 @@ export default function DashOverview({ ticker, period }) {
       {/* ── Row 1: 6-column KPIs — 173차 fix: auto-fit 으로 viewport 좁아질 시 자동 wrap ─ */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(165px, 1fr))', gap: G }}>
         <KpiCard icon="💰" label={t('dashboard.grossRevenue', '총 매출')} value={fmtCurrency(base.grossRev, { compact: true })} sub={t('dashboard.grossRevSub', '전체 채널 합산')} change={0} color="#4f8ef7" spark={sparks.gross} />
-        <KpiCard icon="📢" label={t('dashboard.adSpend', '광고비')} value={fmtCurrency(base.adSpend, { compact: true })} sub={t('dashboard.adSpendSub', '전체 채널 합산')} change={0} color="#f97316" spark={sparks.spend} />
+        {/* [227차 감사 P0-2] 기간 선택 시 광고비는 일별 미세분 부재로 비례 추정(매출은 정확 기간필터) → 정직 표기. */}
+        <KpiCard icon="📢" label={t('dashboard.adSpend', '광고비')} value={fmtCurrency(base.adSpend, { compact: true })} sub={periodActive ? t('dashboard.adSpendSubEst', '기간 비례 추정') : t('dashboard.adSpendSub', '전체 채널 합산')} change={0} color="#f97316" spark={sparks.spend} />
         <KpiCard icon="📈" label={t('dashboard.netROAS', 'Net ROAS')} value={base.roas.toFixed(2) + 'x'} sub={t('dashboard.netROASSub', '순수익 기준')} change={0} color="#22c55e" spark={sparks.roas} />
         <KpiCard icon="📦" label={t('dashboard.totalOrders', '총 주문')} value={base.orders.toLocaleString()} sub={t('dashboard.totalOrderSub', '오늘 기준')} change={0} color="#a855f7" spark={sparks.orders} />
         <KpiCard icon="🎯" label={t('dashboard.convRateLbl', '전환율')} value={base.convRate == null ? '—' : base.convRate.toFixed(2) + '%'} sub={base.convRate == null ? t('dashboard.convRateNeedData', '방문 데이터 연동 필요') : t('dashboard.convRateSub', '평균 전환율')} change={0} color="#ec4899" spark={sparks.conv} />
