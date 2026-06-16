@@ -106,6 +106,9 @@ const CHANNEL_FIELDS = {
   lazada:    [{ k: 'app_key', label: 'App Key' }, { k: 'app_secret', label: 'App Secret', secret: true }],
   rakuten:   [{ k: 'service_secret', label: 'Service Secret', secret: true }, { k: 'license_key', label: 'License Key', secret: true }, { k: 'shop_url', label: 'Shop URL' }],
   qoo10:     [{ k: 'api_key', label: 'QSM API 키', secret: true }, { k: 'seller_id', label: '셀러 ID' }],
+  // [227차] tiktok_shop — 실 어댑터(ChannelSync tiktokFetch v202309 HMAC+shop_cipher)가 요구하는 자격증명.
+  //   기존엔 CHANNEL_FIELDS 누락으로 일반 api_key 폴백만 입력돼 등록이 불완전(app_key/app_secret/access_token 미입력)했음.
+  tiktok_shop: [{ k: 'app_key', label: 'App Key' }, { k: 'app_secret', label: 'App Secret', secret: true }, { k: 'access_token', label: '액세스 토큰', secret: true }, { k: 'shop_cipher', label: 'Shop Cipher (선택)' }],
   // 자사몰 D2C
   shopify:   [{ k: 'shop_domain', label: 'Shop 도메인 (xxx.myshopify.com)' }, { k: 'access_token', label: 'Admin API 액세스 토큰', secret: true }],
   woocommerce: [{ k: 'site_url', label: '사이트 URL' }, { k: 'consumer_key', label: 'Consumer Key', secret: true }, { k: 'consumer_secret', label: 'Consumer Secret', secret: true }],
@@ -180,6 +183,7 @@ const ISSUANCE_URL = {
   coupang: 'https://wing.coupang.com', st11: 'https://soffice.11st.co.kr', gmarket: 'https://www.esmplus.com', auction: 'https://www.esmplus.com',
   // 글로벌 마켓
   amazon_spapi: 'https://sellercentral.amazon.com/sellingpartner/developerconsole', ebay: 'https://developer.ebay.com/my/keys',
+  tiktok_shop: 'https://partner.tiktokshop.com', // [227차] TikTok Shop Partner Center(앱 생성→app_key/secret/token 발급)
   etsy: 'https://www.etsy.com/developers/your-apps', walmart: 'https://developer.walmart.com', shopee: 'https://open.shopee.com',
   lazada: 'https://open.lazada.com', rakuten: 'https://webservice.rakuten.co.jp', qoo10: 'https://qsm.qoo10.jp',
   // 자사몰 D2C
@@ -192,6 +196,9 @@ const ISSUANCE_URL = {
   // 결제 게이트웨이(PG)
   inicis: 'https://www.inicis.com', toss: 'https://dashboard.tosspayments.com', kcp: 'https://admin8.kcp.co.kr',
   kakaopay: 'https://developers.kakaopay.com', paypal: 'https://developer.paypal.com', stripe: 'https://dashboard.stripe.com/apikeys',
+  // SNS 라이브 — self-serve 개발자 콘솔(youtube=Google Cloud, twitch=Twitch Dev)
+  youtube: 'https://console.cloud.google.com/apis/credentials', // [227차] YouTube Data API 키 발급(Google Cloud Console)
+  twitch: 'https://dev.twitch.tv/console/apps',                 // [227차] Twitch 앱 등록→client_id/secret 발급
   // 분석/기타
   slack: 'https://api.slack.com/apps',
 };
@@ -211,7 +218,7 @@ const CHANNEL_APPLY_FIELDS = {
   // 국내/글로벌 마켓플레이스 — 판매자 계정 식별
   coupang: ['account_id'], naver_smartstore: ['account_id'], naver_sa: ['account_id'],
   st11: ['account_id'], gmarket: ['account_id'], auction: ['account_id'],
-  amazon_spapi: ['account_id', 'marketplace'], ebay: ['account_id'], qoo10: ['account_id'],
+  amazon_spapi: ['account_id', 'marketplace'], ebay: ['account_id'], qoo10: ['account_id'], tiktok_shop: ['account_id'],
   etsy: ['account_id'], walmart: ['account_id'], shopee: ['account_id'], lazada: ['account_id'], rakuten: ['account_id'],
   // 자사몰 D2C — 스토어 식별
   shopify: ['shop_domain'], cafe24: ['shop_domain'], godomall: ['site_url'], woocommerce: ['site_url'], magento: ['site_url'],
