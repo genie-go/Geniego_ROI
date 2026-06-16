@@ -802,7 +802,8 @@ export default function ApiKeys() {
         <AddCredModal channels={allChannels} onClose={() => setShowAddModal(false)} onSubmit={handleSaveCred} t={t} />
       )}
       {showApplyModal && (
-        <ApplyModal channel={showApplyModal} onClose={() => setShowApplyModal(null)} onSubmit={handleApplySubmit} t={t} />
+        <ApplyModal channel={showApplyModal} onClose={() => setShowApplyModal(null)} onSubmit={handleApplySubmit}
+          onRegister={(ch) => { setShowApplyModal(null); setConnectPostOauth(false); setShowConnectModal(ch); }} t={t} />
       )}
       {showConnectModal && (
         <ConnectModal channel={showConnectModal} postOauth={connectPostOauth} onClose={() => { setShowConnectModal(null); setConnectPostOauth(false); }} onSubmit={handleConnectSave} t={t} extraFields={regFields} />
@@ -1699,7 +1700,7 @@ function ConnectModal({ channel, onClose, onSubmit, t, extraFields = {}, postOau
 /* ═══════════════════════════════════════════════════════════════════
    Modal: Apply for new key
    ═══════════════════════════════════════════════════════════════════ */
-function ApplyModal({ channel, onClose, onSubmit, t }) {
+function ApplyModal({ channel, onClose, onSubmit, onRegister, t }) {
   const [info, setInfo] = useState({ name: '', email: '', businessNumber: '', phone: '', company: '' });
   // [현 차수] 채널별 발급 필요 정보(계정/식별) — 발급 신청 시 함께 접수.
   const applyFieldKeys = CHANNEL_APPLY_FIELDS[channel.key] || ['account_id'];
@@ -1754,7 +1755,18 @@ function ApplyModal({ channel, onClose, onSubmit, t }) {
             <div style={{ fontSize: 10.5, color: 'var(--text-3)', marginTop: 7, lineHeight: 1.6 }}>
               {t('ak.applyConsoleHint','콘솔에서 발급한 키를 복사해 [등록] 버튼으로 입력하면 즉시 연동·실행됩니다.')}
             </div>
+            {onRegister && (
+              <button onClick={() => onRegister(channel)} style={{ width: '100%', marginTop: 9, padding: '9px 12px', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#22c55e,#4f8ef7)', color: '#fff', fontSize: 12, fontWeight: 800 }}>
+                ✅ {t('ak.alreadyIssued', '발급받았어요 — 키 바로 등록하기')}
+              </button>
+            )}
           </div>
+        )}
+        {/* [227차] ISSUANCE_URL 없는 채널(계약형 등)도 이미 키가 있으면 바로 등록 가능 */}
+        {!ISSUANCE_URL[channel.key] && onRegister && (
+          <button onClick={() => onRegister(channel)} style={{ width: '100%', marginBottom: 14, padding: '9px 12px', borderRadius: 8, border: '1px solid rgba(34,197,94,0.35)', cursor: 'pointer', background: 'rgba(34,197,94,0.08)', color: '#16a34a', fontSize: 12, fontWeight: 800 }}>
+            ✅ {t('ak.alreadyHaveKey', '이미 발급받은 키가 있으면 — 바로 등록하기')}
+          </button>
         )}
 
         <div style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--text-2)', marginBottom: 10 }}>
