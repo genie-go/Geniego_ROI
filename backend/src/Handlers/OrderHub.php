@@ -355,9 +355,32 @@ final class OrderHub
         if (mb_strlen($status) > 40) return self::json($resp, ['ok' => false, 'error' => 'status_too_long'], 400);
 
         try {
+            // [227차 감사 P0] 반품 클레임 복원-status 전이 시 물리재고 복원 — claim 은 sku/qty 미보유라 원주문(channel_orders) 조인.
+            //   ReturnsPortal 과 동일 restockRef(CHR-{channel}-{order_id}) → 양 경로 전역 dedup. reflectChannelRestock
+            //   대칭가드(원판매 Outbound 있을 때만·차감분 초과/이중복원 방지)로 order_id 불일치/중복 시 안전 no-op.
+            $row = null;
+            try {
+                $cs = $pdo->prepare("SELECT c.order_id, c.channel, c.type, o.sku, o.product_name AS name, o.qty
+                    FROM orderhub_claims c LEFT JOIN channel_orders o
+                      ON o.tenant_id=c.tenant_id AND (o.channel_order_id=c.order_id OR o.order_no=c.order_id)
+                    WHERE c.id=? AND c.tenant_id=? LIMIT 1");
+                $cs->execute([$id, $tenant]);
+                $row = $cs->fetch(\PDO::FETCH_ASSOC) ?: null;
+            } catch (\Throwable $e) {}
+
             $stmt = $pdo->prepare("UPDATE orderhub_claims SET status = ?, updated_at = ? WHERE id = ? AND tenant_id = ?");
             $stmt->execute([$status, gmdate('Y-m-d H:i:s'), $id, $tenant]);
-            return self::json($resp, ['ok' => true, 'updated' => $stmt->rowCount(), 'status' => $status]);
+
+            $restored = false;
+            if (!$isDemo && $row && (string)($row['sku'] ?? '') !== ''
+                && in_array((string)($row['type'] ?? ''), ['return', 'cancel'], true)
+                && preg_match('/restock|입고/iu', $status)) {
+                try {
+                    $ref = (string)($row['channel'] ?? '') . '-' . (string)($row['order_id'] ?? '');
+                    $restored = Wms::reflectChannelRestock($tenant, (string)$row['sku'], (string)($row['name'] ?? ''), (float)($row['qty'] ?? 0), 'CHS-' . $ref, 'CHR-' . $ref);
+                } catch (\Throwable $e) {}
+            }
+            return self::json($resp, ['ok' => true, 'updated' => $stmt->rowCount(), 'status' => $status, 'restored' => $restored]);
         } catch (\Throwable $e) {
             return self::json($resp, ['ok' => false, 'error' => 'db_error', 'message' => $e->getMessage()], 500);
         }

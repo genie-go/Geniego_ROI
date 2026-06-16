@@ -198,8 +198,21 @@ class ReturnsPortal
         $status = $b['status'] ?? 'pending';
         $allowed = ['pending','inspecting','approved','rejected','refunded','restocked'];
         if (!in_array($status, $allowed, true)) return self::json($response, ['ok' => false, 'error' => 'Invalid status'], 400);
+        // [227차 감사 P0] restocked 진입 시 물리재고 복원 — 기존엔 status 만 바뀌고 WMS 무영향(반품 승인이 재고 미복원).
+        //   전이 전 현재 상태/품목 조회 → reflectChannelRestock(원판매 Outbound 있을 때만·차감분 초과/이중복원 방지,
+        //   채널 자동경로와 동일 restockRef=CHR-{channel}-{order_id} 로 전역 dedup). order_id 불일치 시 대칭가드로 안전 no-op.
+        $cur = null;
+        try { $q = $db->prepare("SELECT status, sku, name, qty, order_id, channel, COALESCE(wms_linked,0) AS wl FROM returns WHERE id=? AND tenant_id=?"); $q->execute([$id, $t]); $cur = $q->fetch(\PDO::FETCH_ASSOC) ?: null; } catch (\Throwable $e) {}
         $db->prepare("UPDATE returns SET status=? WHERE id=? AND tenant_id=?")->execute([$status, $id, $t]);
-        return self::json($response, ['ok' => true]);
+        $restored = false;
+        if ($status === 'restocked' && $cur && (int)($cur['wl'] ?? 0) !== 1 && (string)($cur['sku'] ?? '') !== '') {
+            try {
+                $ref = (string)($cur['channel'] ?? '') . '-' . (string)($cur['order_id'] ?? '');
+                $restored = \Genie\Handlers\Wms::reflectChannelRestock($t, (string)$cur['sku'], (string)($cur['name'] ?? ''), (float)($cur['qty'] ?? 0), 'CHS-' . $ref, 'CHR-' . $ref);
+                $db->prepare("UPDATE returns SET wms_linked=1 WHERE id=? AND tenant_id=?")->execute([$id, $t]);
+            } catch (\Throwable $e) {}
+        }
+        return self::json($response, ['ok' => true, 'restored' => $restored]);
     }
 
     /** POST /v420/returns/{id}/wms-link */
