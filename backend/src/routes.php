@@ -611,6 +611,7 @@ return function (App $app): void {
         'GET /v421/connectors/amazon/reports'    => 'Genie\\Handlers\\Connectors::amazonReports',
         'POST /v421/connectors/amazon/orders'    => 'Genie\\Handlers\\Connectors::amazonOrders',
         'POST /v421/connectors/amazon/token'     => 'Genie\\Handlers\\Connectors::amazonStoreToken',
+        'POST /v421/connectors/audience/sync'    => 'Genie\\Handlers\\Connectors::audienceSync',
 
         // ── v422 Trends + AI Insight ───────────────────────────────────────────
         'GET /v422/trends/pnl'     => 'Genie\\Handlers\\Trends::pnl',
@@ -1639,6 +1640,7 @@ return function (App $app): void {
     $register('GET',  '/v421/connectors/amazon/reports');
     $register('POST', '/v421/connectors/amazon/orders');
     $register('POST', '/v421/connectors/amazon/token');
+    $register('POST', '/v421/connectors/audience/sync');
 
     // ── v422 Trends + AI Insight ───────────────────────────────────────────
     $register('GET',  '/v422/trends/pnl');

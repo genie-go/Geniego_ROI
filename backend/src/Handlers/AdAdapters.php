@@ -543,6 +543,127 @@ final class AdAdapters
             'note' => 'TikTok 광고그룹 생성(DISABLE). 광고(ad)는 영상 소재(video_id)+identity 업로드 필요 — 영상 소재 등록 후 완성.'];
     }
 
+    /* ════════════════════════ 오디언스/리타겟팅 (Custom Audience · Customer Match) ════════════════════════ */
+
+    /**
+     * [227차] 테넌트 고객 이메일을 sha256 해시 목록으로 수집(매체 오디언스 업로드용).
+     *   ★PII 안전: 원문 미저장·미전송. 정규화(소문자·trim) 후 sha256 해시만 사용(Meta/Google 표준).
+     *   소스: crm_customers(고객) + channel_orders(구매자) distinct. 데모/익명은 빈 배열.
+     */
+    private static function collectHashedEmails(PDO $pdo, string $tenant, int $limit = 10000): array
+    {
+        if ($tenant === '' || $tenant === 'demo' || strncmp($tenant, 'demo', 4) === 0) return [];
+        $emails = [];
+        foreach ([
+            "SELECT DISTINCT email FROM crm_customers WHERE tenant_id=? AND email IS NOT NULL AND email<>''",
+            "SELECT DISTINCT buyer_email AS email FROM channel_orders WHERE tenant_id=? AND buyer_email IS NOT NULL AND buyer_email<>''",
+        ] as $sql) {
+            try {
+                $st = $pdo->prepare($sql . ' LIMIT ' . (int)$limit);
+                $st->execute([$tenant]);
+                foreach ($st->fetchAll(PDO::FETCH_COLUMN) ?: [] as $e) {
+                    $norm = strtolower(trim((string)$e));
+                    if ($norm !== '' && filter_var($norm, FILTER_VALIDATE_EMAIL)) $emails[hash('sha256', $norm)] = true;
+                }
+            } catch (Throwable $e) { /* 테이블 부재 등 무시 */ }
+            if (count($emails) >= $limit) break;
+        }
+        return array_slice(array_keys($emails), 0, $limit);
+    }
+
+    /**
+     * [227차] 오디언스/리타겟팅 매체 push 디스패치. 고객 해시 이메일을 매체 오디언스로 업로드한다.
+     *   $opts: ['lookalike'=>bool, 'country'=>'KR', 'name'=>string]. 반환=honest 결과.
+     */
+    public static function syncAudience(PDO $pdo, string $tenant, string $channel, array $opts = []): array
+    {
+        if (!self::executionEnabled()) return ['ok' => false, 'status' => 'execution_disabled'];
+        $hashes = self::collectHashedEmails($pdo, $tenant);
+        if (empty($hashes)) return ['ok' => false, 'status' => 'no_audience', 'note' => '업로드할 고객 데이터가 없습니다(CRM 고객/구매자 이메일 필요).'];
+        try {
+            switch ($channel) {
+                case 'meta_ads': case 'meta':   return self::metaSyncAudience($pdo, $tenant, $hashes, $opts);
+                case 'google_ads': case 'google': return self::googleSyncAudience($pdo, $tenant, $hashes, $opts);
+                default: return ['ok' => false, 'status' => 'unsupported', 'note' => '오디언스 push 미지원 채널: ' . $channel];
+            }
+        } catch (Throwable $e) { return self::fail($e->getMessage()); }
+    }
+
+    /** Meta Custom Audience 생성 + 해시 이메일 업로드(+선택 Lookalike). */
+    private static function metaSyncAudience(PDO $pdo, string $tenant, array $hashes, array $opts): array
+    {
+        $token = self::cred($pdo, $tenant, 'meta_ads', 'access_token');
+        $acct  = self::cred($pdo, $tenant, 'meta_ads', 'ad_account_id');
+        if ($token === '' || $acct === '') return ['ok' => false, 'status' => 'no_credentials', 'error' => 'Meta 자격증명(access_token/ad_account_id) 미등록'];
+        if (strncmp($acct, 'act_', 4) !== 0) $acct = 'act_' . $acct;
+        $api  = "https://graph.facebook.com/" . self::META_VER;
+        $name = mb_substr((string)($opts['name'] ?? 'GenieGo 고객 오디언스'), 0, 80);
+        // 1) 커스텀 오디언스 생성
+        [$cc, $cr] = self::http('POST', "{$api}/{$acct}/customaudiences", ['Content-Type: application/x-www-form-urlencoded'], [
+            'name' => $name, 'subtype' => 'CUSTOM', 'description' => 'GenieGo CRM 고객(해시)',
+            'customer_file_source' => 'USER_PROVIDED_ONLY', 'access_token' => $token,
+        ]);
+        $audId = $cr['id'] ?? '';
+        if ($audId === '') return ['ok' => false, 'error' => 'Meta 오디언스 생성 실패: ' . (self::errMsg($cr) ?: ('HTTP ' . $cc))];
+        // 2) 해시 이메일 업로드(배치 1만, payload schema=EMAIL_SHA256)
+        $added = 0; $batches = array_chunk($hashes, 5000);
+        foreach ($batches as $b) {
+            $payload = json_encode(['schema' => 'EMAIL_SHA256', 'data' => array_map(fn($h) => [$h], $b)]);
+            [$uc, $ur] = self::http('POST', "{$api}/{$audId}/users", ['Content-Type: application/x-www-form-urlencoded'], ['payload' => $payload, 'access_token' => $token]);
+            if (isset($ur['num_received'])) $added += (int)$ur['num_received'];
+            elseif ($uc >= 200 && $uc < 300) $added += count($b);
+        }
+        $out = ['ok' => true, 'channel' => 'meta', 'audience_id' => $audId, 'uploaded' => $added, 'note' => "Meta 커스텀 오디언스 생성·{$added}건 업로드(해시)"];
+        // 3) 선택: 룩어라이크(유사 타깃 확장)
+        if (!empty($opts['lookalike'])) {
+            $country = (string)($opts['country'] ?? 'KR');
+            [$lc, $lr] = self::http('POST', "{$api}/{$acct}/customaudiences", ['Content-Type: application/x-www-form-urlencoded'], [
+                'name' => $name . ' Lookalike', 'subtype' => 'LOOKALIKE', 'origin_audience_id' => $audId,
+                'lookalike_spec' => json_encode(['type' => 'similarity', 'country' => $country, 'ratio' => 0.01]),
+                'access_token' => $token,
+            ]);
+            $out['lookalike_id'] = $lr['id'] ?? '';
+            if (($lr['id'] ?? '') === '') $out['lookalike_note'] = '룩어라이크 생성 보류: ' . (self::errMsg($lr) ?: ('HTTP ' . $lc));
+        }
+        return $out;
+    }
+
+    /** Google Customer Match — CRM 기반 user list 생성 + OfflineUserDataJob 으로 해시 이메일 적재. */
+    private static function googleSyncAudience(PDO $pdo, string $tenant, array $hashes, array $opts): array
+    {
+        $dev   = self::cred($pdo, $tenant, 'google_ads', 'developer_token');
+        $token = self::cred($pdo, $tenant, 'google_ads', 'access_token');
+        $cid   = preg_replace('/\D/', '', self::cred($pdo, $tenant, 'google_ads', 'customer_id'));
+        if ($dev === '' || $token === '' || $cid === '') return ['ok' => false, 'status' => 'no_credentials', 'error' => 'Google 자격증명 미등록'];
+        $hdr = ['Authorization: Bearer ' . $token, 'developer-token: ' . $dev, 'Content-Type: application/json', 'login-customer-id: ' . $cid];
+        $base = "https://googleads.googleapis.com/" . self::GOOGLE_VER . "/customers/{$cid}";
+        // 1) CRM 기반 user list 생성
+        $name = mb_substr((string)($opts['name'] ?? 'GenieGo 고객 매치'), 0, 80);
+        $ulBody = json_encode(['operations' => [['create' => [
+            'name' => $name . ' ' . substr(md5($name . count($hashes)), 0, 6), 'membershipLifeSpan' => 540,
+            'crmBasedUserList' => ['uploadKeyType' => 'CONTACT_INFO', 'dataSourceType' => 'FIRST_PARTY'],
+        ]]]]);
+        [$lc, $lr] = self::http('POST', "{$base}/userLists:mutate", $hdr, $ulBody);
+        $listRes = $lr['results'][0]['resourceName'] ?? '';
+        if ($listRes === '') return ['ok' => false, 'error' => 'Google user list 생성 실패: ' . (self::errMsg($lr) ?: ('HTTP ' . $lc))];
+        // 2) OfflineUserDataJob 생성(CUSTOMER_MATCH_USER_LIST)
+        $jobBody = json_encode(['job' => ['type' => 'CUSTOMER_MATCH_USER_LIST', 'customerMatchUserListMetadata' => ['userList' => $listRes]]]);
+        [$jc, $jr] = self::http('POST', "{$base}/offlineUserDataJobs:create", $hdr, $jobBody);
+        $jobRes = $jr['resourceName'] ?? '';
+        if ($jobRes === '') return ['ok' => true, 'channel' => 'google', 'user_list' => $listRes, 'uploaded' => 0, 'note' => 'user list 생성됨. 적재 job 생성 보류: ' . (self::errMsg($jr) ?: ('HTTP ' . $jc))];
+        // 3) addOperations(해시 이메일) — 배치
+        $added = 0;
+        foreach (array_chunk($hashes, 5000) as $b) {
+            $ops = array_map(fn($h) => ['create' => ['userIdentifiers' => [['hashedEmail' => $h]]]], $b);
+            [$ac, $ar] = self::http('POST', "https://googleads.googleapis.com/" . self::GOOGLE_VER . "/{$jobRes}:addOperations",
+                $hdr, json_encode(['operations' => $ops, 'enablePartialFailure' => true]));
+            if ($ac >= 200 && $ac < 300) $added += count($b);
+        }
+        // 4) run job
+        self::http('POST', "https://googleads.googleapis.com/" . self::GOOGLE_VER . "/{$jobRes}:run", $hdr, json_encode([]));
+        return ['ok' => true, 'channel' => 'google', 'user_list' => $listRes, 'job' => $jobRes, 'uploaded' => $added, 'note' => "Google Customer Match user list 생성·{$added}건 적재(job 실행)"];
+    }
+
     private static function errMsg($res): string
     {
         if (is_array($res)) {

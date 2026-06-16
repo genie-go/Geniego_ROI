@@ -312,6 +312,35 @@ final class Connectors
         ]);
     }
 
+    /**
+     * [227차] POST /v421/connectors/audience/sync — 오디언스/리타겟팅 매체 push.
+     *   Body: { channel: meta|google, lookalike?: bool, country?: 'KR', name?: string }
+     *   본 테넌트 CRM 고객/구매자 이메일을 sha256 해시로 매체 오디언스(Meta Custom Audience·Lookalike /
+     *   Google Customer Match)에 업로드한다. ★PII 안전: 해시만 전송·신규저장 없음. 데모/익명 차단.
+     */
+    public static function audienceSync(Request $request, Response $response, array $args): Response
+    {
+        $tenant = self::tenantId($request);
+        if ($tenant === '' || $tenant === 'demo' || strncmp($tenant, 'demo', 4) === 0) {
+            return TemplateResponder::respond($response, ['ok' => false, 'demo' => true, 'note' => '체험 데모에서는 오디언스 업로드를 하지 않습니다.']);
+        }
+        $body = (array)($request->getParsedBody() ?? []);
+        if (empty($body)) { $d = json_decode((string)$request->getBody(), true); if (is_array($d)) $body = $d; }
+        $channel = strtolower(trim((string)($body['channel'] ?? 'meta')));
+        $opts = [
+            'lookalike' => !empty($body['lookalike']),
+            'country'   => mb_substr((string)($body['country'] ?? 'KR'), 0, 4),
+            'name'      => mb_substr((string)($body['name'] ?? 'GenieGo 고객 오디언스'), 0, 80),
+        ];
+        try {
+            $res = AdAdapters::syncAudience(\Genie\Db::pdo(), $tenant, $channel === 'meta' ? 'meta_ads' : ($channel === 'google' ? 'google_ads' : $channel), $opts);
+            $status = !empty($res['ok']) ? 200 : (($res['status'] ?? '') === 'no_credentials' ? 200 : 200);
+            return TemplateResponder::respond($response->withStatus($status), $res);
+        } catch (\Throwable $e) {
+            return TemplateResponder::respond($response->withStatus(500), ['ok' => false, 'error' => $e->getMessage()]);
+        }
+    }
+
     // ════════════════════════════════════════════════════════════════════════════
     //  Amazon SP-API
     // ════════════════════════════════════════════════════════════════════════════
