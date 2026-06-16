@@ -325,7 +325,8 @@ function AmazonOverviewTab() {
                             </span>
                         )}
                     </div>
-                    <div style={{ width: '100%', height: 480 }}>
+                    {/* [227차] 종합현황 트렌드 차트 높이 축소(480→360) — 컨테이너 과대높이로 상하 잘림 현상 해소 */}
+                    <div style={{ width: '100%', height: 360 }}>
                         <ResponsiveContainer width="100%" height="100%">
                             <ComposedChart data={chartData} margin={{ top: 10, right: 60, left: 10, bottom: 20 }}>
                                 <defs>
