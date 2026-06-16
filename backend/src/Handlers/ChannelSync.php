@@ -1317,8 +1317,8 @@ final class ChannelSync
     {
         $accessKey = trim((string)($creds['access_key'] ?? '')); $secretKey = trim((string)($creds['secret_key'] ?? '')); $vendorId = trim((string)($creds['vendor_id'] ?? ''));
         if ($accessKey === '' || $secretKey === '' || $vendorId === '') return ['ok' => false, 'error' => 'Coupang: access_key·secret_key·vendor_id 필요'];
-        $catCode = (int)preg_replace('/\D/', '', (string)($p['category'] ?? ''));
-        if ($catCode <= 0) return ['ok' => false, 'error' => 'Coupang 상품등록은 노출카테고리코드(displayCategoryCode)가 필요합니다 — 상품 category 에 쿠팡 카테고리코드(숫자)를 지정하세요'];
+        $catCode = (int)preg_replace('/\D/', '', (string)($p['category_code'] ?? $p['category'] ?? ''));
+        if ($catCode <= 0) return ['ok' => false, 'error' => 'Coupang 상품등록은 노출카테고리코드(displayCategoryCode)가 필요합니다 — 채널 카테고리 매핑에서 쿠팡 코드를 지정하세요'];
         $host = 'https://api-gateway.coupang.com';
         $method = 'POST'; $path = "/v2/providers/seller_api/apis/api/v1/marketplace/seller-products";
         $datetime = gmdate('ymd\THis\Z');
@@ -1346,8 +1346,8 @@ final class ChannelSync
     {
         $clientId = trim((string)($creds['client_id'] ?? '')); $clientSecret = trim((string)($creds['client_secret'] ?? ''));
         if ($clientId === '' || $clientSecret === '') return ['ok' => false, 'error' => 'Naver: client_id·client_secret 필요'];
-        $leaf = (string)($p['category'] ?? '');
-        if ($leaf === '') return ['ok' => false, 'error' => 'Naver 상품등록은 leafCategoryId 가 필요합니다 — 상품 category 에 네이버 리프카테고리ID를 지정하세요'];
+        $leaf = (string)($p['category_code'] ?? $p['category'] ?? '');
+        if ($leaf === '') return ['ok' => false, 'error' => 'Naver 상품등록은 leafCategoryId 가 필요합니다 — 채널 카테고리 매핑에서 네이버 리프카테고리ID를 지정하세요'];
         $ts = (int)(microtime(true) * 1000);
         $sign = base64_encode(hash_hmac('sha256', "{$clientId}_{$ts}", $clientSecret, true));
         [$tc, $tb] = self::httpPost('https://api.commerce.naver.com/external/v1/oauth2/token', ['Content-Type' => 'application/x-www-form-urlencoded'],

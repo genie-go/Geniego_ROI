@@ -6,7 +6,7 @@ import { useCurrency } from '../contexts/CurrencyContext.jsx';
 import { useAuth } from '../auth/AuthContext.jsx';
 import { useGlobalData } from '../context/GlobalDataContext.jsx';
 import { useConnectorSync } from '../context/ConnectorSyncContext.jsx';
-import { getJsonAuth, postJson, postJsonAuth } from '../services/apiClient.js';
+import { getJsonAuth, postJson, postJsonAuth, requestJsonAuth } from '../services/apiClient.js';
 
 /* ─── Channel Detection ─── */
 function useConnectedChannels() {
@@ -287,6 +287,89 @@ function ConsoleTab({ t, isDemo }) {
             <span style={{ fontSize: 10, color: 'var(--text-3)' }}>{t('writebackPage.findings', 'Findings')}: {preview.validation?.findings?.length || 0}</span>
           </div>
           <pre style={{ margin: 0, fontSize: 11, color: 'var(--text-2)', whiteSpace: 'pre-wrap', maxHeight: 300, overflow: 'auto' }}>{JSON.stringify(preview, null, 2)}</pre>
+        </div>
+      )}
+
+      {/* [227차] 채널 카테고리 매핑 — 마켓플레이스 상품등록 필수 카테고리코드를 내 카테고리에 1회 매핑→재사용 */}
+      <CategoryMapPanel t={t} />
+    </div>
+  );
+}
+
+/* [227차] 채널 카테고리 매핑 관리 — 쿠팡 displayCategoryCode·네이버 leafCategoryId 등을 내 카테고리에 매핑.
+   Writeback 워커가 상품 category → 채널 코드로 해석해 어댑터에 전달(미매핑 시 등록 거부·명확안내). */
+const MAP_CHANNELS = [
+  { id: 'coupang', label: 'Coupang (displayCategoryCode)' },
+  { id: 'naver', label: 'Naver (leafCategoryId)' },
+  { id: 'cafe24', label: 'Cafe24 (category_no)' },
+  { id: 'gmarket', label: 'G마켓/옥션 (ESM)' },
+  { id: '11st', label: '11번가 (dispCtgrNo)' },
+];
+function CategoryMapPanel({ t }) {
+  const [channel, setChannel] = useState('coupang');
+  const [rows, setRows] = useState([]);
+  const [form, setForm] = useState({ src_category: '', channel_code: '', channel_label: '' });
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState('');
+
+  const load = async (ch) => {
+    try { const r = await getJsonAuth(`/api/catalog/category-map?channel=${encodeURIComponent(ch)}`); setRows((r && r.mappings) || []); } catch { setRows([]); }
+  };
+  useEffect(() => { load(channel); }, [channel]);
+
+  const save = async () => {
+    if (!form.src_category.trim() || !form.channel_code.trim()) { setMsg('내 카테고리와 채널 코드는 필수입니다'); return; }
+    setBusy(true); setMsg('');
+    try {
+      const r = await postJson('/api/catalog/category-map', { channel, src_category: form.src_category.trim(), channel_code: form.channel_code.trim(), channel_label: form.channel_label.trim() });
+      if (r && r.ok) { setForm({ src_category: '', channel_code: '', channel_label: '' }); await load(channel); setMsg('저장됨'); }
+      else setMsg((r && r.error) || '저장 실패');
+    } catch (e) { setMsg(String(e?.message || e)); }
+    setBusy(false);
+  };
+  const del = async (id) => {
+    try { await requestJsonAuth(`/api/catalog/category-map/${id}`, 'DELETE'); await load(channel); } catch {}
+  };
+
+  const inp = { padding: '8px 10px', borderRadius: 8, border: '1px solid rgba(99,140,255,0.15)', background: 'var(--surface-2)', color: 'var(--text-1)', fontSize: 12, outline: 'none' };
+  return (
+    <div className="card card-glass" style={{ padding: '14px 16px', borderLeft: '3px solid #a855f7' }}>
+      <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 4 }}>🗂 {t('writebackPage.catMapTitle', '채널 카테고리 매핑')}</div>
+      <div style={{ fontSize: 11, color: 'var(--text-3)', lineHeight: 1.6, marginBottom: 10 }}>
+        {t('writebackPage.catMapDesc', '마켓플레이스(쿠팡·네이버 등) 상품등록은 채널별 카테고리코드가 필수입니다. 내 상품 카테고리를 채널 코드에 한 번 매핑하면, 상품 송출 시 자동으로 해당 코드가 적용됩니다.')}
+      </div>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'flex-end', marginBottom: 10 }}>
+        <select value={channel} onChange={e => setChannel(e.target.value)} style={{ ...inp, minWidth: 200 }}>
+          {MAP_CHANNELS.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
+        </select>
+        <input value={form.src_category} onChange={e => setForm(f => ({ ...f, src_category: e.target.value }))} placeholder={t('writebackPage.catMapSrc', '내 카테고리 (예: Beauty/Skincare)')} style={{ ...inp, minWidth: 180 }} />
+        <input value={form.channel_code} onChange={e => setForm(f => ({ ...f, channel_code: e.target.value }))} placeholder={t('writebackPage.catMapCode', '채널 카테고리코드')} style={{ ...inp, minWidth: 140 }} />
+        <input value={form.channel_label} onChange={e => setForm(f => ({ ...f, channel_label: e.target.value }))} placeholder={t('writebackPage.catMapLabel', '코드 설명(선택)')} style={{ ...inp, minWidth: 140 }} />
+        <button onClick={save} disabled={busy} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#a855f7,#6366f1)', color: '#fff', fontWeight: 700, fontSize: 12 }}>{busy ? '...' : t('writebackPage.catMapAdd', '매핑 추가')}</button>
+        {msg && <span style={{ fontSize: 11, color: msg === '저장됨' ? '#22c55e' : '#ef4444' }}>{msg}</span>}
+      </div>
+      {rows.length === 0 ? (
+        <div style={{ fontSize: 12, color: 'var(--text-3)', padding: '8px 0' }}>{t('writebackPage.catMapEmpty', '이 채널의 매핑이 없습니다. 위에서 추가하세요.')}</div>
+      ) : (
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+            <thead><tr style={{ color: 'var(--text-3)', textAlign: 'left' }}>
+              <th style={{ padding: '6px 8px' }}>{t('writebackPage.catMapSrcCol', '내 카테고리')}</th>
+              <th style={{ padding: '6px 8px' }}>{t('writebackPage.catMapCodeCol', '채널 코드')}</th>
+              <th style={{ padding: '6px 8px' }}>{t('writebackPage.catMapLabelCol', '설명')}</th>
+              <th style={{ padding: '6px 8px' }}></th>
+            </tr></thead>
+            <tbody>
+              {rows.map(r => (
+                <tr key={r.id} style={{ borderTop: '1px solid rgba(99,140,255,0.08)' }}>
+                  <td style={{ padding: '6px 8px', color: 'var(--text-1)', fontWeight: 600 }}>{r.src_category}</td>
+                  <td style={{ padding: '6px 8px', fontFamily: 'monospace', color: '#a855f7' }}>{r.channel_code}</td>
+                  <td style={{ padding: '6px 8px', color: 'var(--text-2)' }}>{r.channel_label || '—'}</td>
+                  <td style={{ padding: '6px 8px', textAlign: 'right' }}><button onClick={() => del(r.id)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: '#ef4444', fontSize: 13 }}>🗑</button></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
     </div>

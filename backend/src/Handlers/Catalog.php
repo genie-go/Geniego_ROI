@@ -86,6 +86,16 @@ class Catalog
                 created_at VARCHAR(32), updated_at VARCHAR(32),
                 KEY idx_wbappr_tenant (tenant_id)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+            // [227차] 채널 카테고리 매핑 — 내 카테고리(src_category) → 채널 카테고리코드(channel_code).
+            //   마켓플레이스(쿠팡 displayCategoryCode·네이버 leafCategoryId 등) 상품등록 필수 코드를 1회 매핑→재사용.
+            $pdo->exec("CREATE TABLE IF NOT EXISTS channel_category_map (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                tenant_id VARCHAR(100) NOT NULL DEFAULT 'demo',
+                channel VARCHAR(100) NOT NULL, src_category VARCHAR(255) NOT NULL,
+                channel_code VARCHAR(120) NOT NULL, channel_label VARCHAR(255),
+                created_at VARCHAR(32), updated_at VARCHAR(32),
+                UNIQUE KEY uq_ccm (tenant_id, channel, src_category)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
         } else {
             $pdo->exec("CREATE TABLE IF NOT EXISTS catalog_listing (
                 id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo',
@@ -111,6 +121,12 @@ class Catalog
                 id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo',
                 type TEXT NOT NULL DEFAULT 'writeback', channel TEXT, sku TEXT, payload TEXT,
                 status TEXT NOT NULL DEFAULT 'pending', created_at TEXT, updated_at TEXT
+            )");
+            $pdo->exec("CREATE TABLE IF NOT EXISTS channel_category_map (
+                id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo',
+                channel TEXT NOT NULL, src_category TEXT NOT NULL,
+                channel_code TEXT NOT NULL, channel_label TEXT, created_at TEXT, updated_at TEXT,
+                UNIQUE (tenant_id, channel, src_category)
             )");
         }
     }
@@ -546,6 +562,8 @@ class Catalog
             }
             $product = self::currentListing($pdo, $t, $ch, $sku) ?: (json_decode((string)$j['payload'], true) ?: []);
             $product['sku'] = $sku;
+            // [227차] 채널 카테고리 매핑 해석 — 내 카테고리→채널 카테고리코드(쿠팡/네이버 등 필수). 어댑터가 category_code 우선 사용.
+            $product['category_code'] = self::resolveChannelCategory($pdo, $t, $ch, $product);
             $priorId = self::priorChannelProductId($pdo, $t, $ch, $sku);
             $res = self::pushToChannel($ch, $creds, $product, $op, $priorId);
             if (!empty($res['ok'])) {
@@ -574,6 +592,62 @@ class Catalog
         $channel = (isset($body['channel']) && $body['channel'] !== '') ? (string)$body['channel'] : null;
         $sum = self::processWritebackQueue($pdo, $tenant, $channel, 100);
         return self::jsonRes($res, ['ok' => true, 'summary' => $sum]);
+    }
+
+    /** [227차] 채널 카테고리코드 해석: ①상품 명시 category_code ②채널 매핑(channel_category_map[category]) ③빈값. */
+    private static function resolveChannelCategory(\PDO $pdo, string $tenant, string $channel, array $product): string
+    {
+        $explicit = trim((string)($product['category_code'] ?? ''));
+        if ($explicit !== '') return $explicit;
+        $cat = trim((string)($product['category'] ?? ''));
+        if ($cat === '') return '';
+        try {
+            $st = $pdo->prepare("SELECT channel_code FROM channel_category_map WHERE tenant_id=? AND channel=? AND src_category=? LIMIT 1");
+            $st->execute([$tenant, $channel, $cat]);
+            $code = $st->fetchColumn();
+            return $code !== false ? (string)$code : '';
+        } catch (\Throwable $e) { return ''; }
+    }
+
+    /* GET /catalog/category-map[?channel=] — 채널 카테고리 매핑 목록. */
+    public static function categoryMapList(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $pdo = self::db(); $tenant = self::tenant($req);
+        $ch = (string)($req->getQueryParams()['channel'] ?? '');
+        try {
+            if ($ch !== '') { $st = $pdo->prepare("SELECT id,channel,src_category,channel_code,channel_label,updated_at FROM channel_category_map WHERE tenant_id=? AND channel=? ORDER BY channel,src_category"); $st->execute([$tenant, $ch]); }
+            else { $st = $pdo->prepare("SELECT id,channel,src_category,channel_code,channel_label,updated_at FROM channel_category_map WHERE tenant_id=? ORDER BY channel,src_category"); $st->execute([$tenant]); }
+            return self::jsonRes($res, ['ok' => true, 'mappings' => $st->fetchAll(\PDO::FETCH_ASSOC)]);
+        } catch (\Throwable $e) { return self::jsonRes($res, ['ok' => true, 'mappings' => []]); }
+    }
+
+    /* POST /catalog/category-map — body:{channel,src_category,channel_code,channel_label?} upsert. */
+    public static function categoryMapSave(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $pdo = self::db(); $tenant = self::tenant($req); $b = (array)($req->getParsedBody() ?? []);
+        $ch = trim((string)($b['channel'] ?? '')); $src = trim((string)($b['src_category'] ?? ''));
+        $code = trim((string)($b['channel_code'] ?? '')); $label = trim((string)($b['channel_label'] ?? ''));
+        if ($ch === '' || $src === '' || $code === '') return self::jsonRes($res, ['ok' => false, 'error' => 'channel·src_category·channel_code 필수'], 400);
+        $now = self::now();
+        $sql = self::isMysql($pdo)
+            ? "INSERT INTO channel_category_map (tenant_id,channel,src_category,channel_code,channel_label,created_at,updated_at) VALUES (?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE channel_code=VALUES(channel_code),channel_label=VALUES(channel_label),updated_at=VALUES(updated_at)"
+            : "INSERT INTO channel_category_map (tenant_id,channel,src_category,channel_code,channel_label,created_at,updated_at) VALUES (?,?,?,?,?,?,?) ON CONFLICT(tenant_id,channel,src_category) DO UPDATE SET channel_code=excluded.channel_code,channel_label=excluded.channel_label,updated_at=excluded.updated_at";
+        try { $pdo->prepare($sql)->execute([$tenant, $ch, $src, $code, $label, $now, $now]); return self::jsonRes($res, ['ok' => true]); }
+        catch (\Throwable $e) { return self::jsonRes($res, ['ok' => false, 'error' => 'db_error'], 500); }
+    }
+
+    /* DELETE /catalog/category-map/{id} — 매핑 삭제. */
+    public static function categoryMapDelete(Request $req, Response $res, array $args): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $pdo = self::db(); $tenant = self::tenant($req); $id = (int)($args['id'] ?? 0);
+        try { $pdo->prepare("DELETE FROM channel_category_map WHERE id=? AND tenant_id=?")->execute([$id, $tenant]); } catch (\Throwable $e) {}
+        return self::jsonRes($res, ['ok' => true]);
     }
 
     /* POST /catalog/writeback/policy — body:{channel,product} 정책 검증 */

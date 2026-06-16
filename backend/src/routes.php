@@ -73,6 +73,9 @@ return function (App $app): void {
         'POST /catalog/writeback/preview'                => 'Genie\\Handlers\\Catalog::preview',
         'GET /catalog/writeback/jobs'                     => 'Genie\\Handlers\\Catalog::jobs',
         'POST /catalog/writeback/process'                 => 'Genie\\Handlers\\Catalog::processQueue', // [227차] 큐 소비(채널 push)
+        'GET /catalog/category-map'                       => 'Genie\\Handlers\\Catalog::categoryMapList',   // [227차] 채널 카테고리 매핑
+        'POST /catalog/category-map'                      => 'Genie\\Handlers\\Catalog::categoryMapSave',
+        'DELETE /catalog/category-map/{id}'               => 'Genie\\Handlers\\Catalog::categoryMapDelete',
         'POST /catalog/writeback/{channel}/{sku}/prepare' => 'Genie\\Handlers\\Catalog::prepare',
         'POST /catalog/approvals'                        => 'Genie\\Handlers\\Catalog::approvalCreate',
 
@@ -2087,6 +2090,9 @@ return function (App $app): void {
     $register('POST',   '/catalog/writeback/preview');
     $register('GET',    '/catalog/writeback/jobs');
     $register('POST',   '/catalog/writeback/process'); // [227차] 큐 소비(채널 push)
+    $register('GET',    '/catalog/category-map');       // [227차] 채널 카테고리 매핑
+    $register('POST',   '/catalog/category-map');
+    $register('DELETE', '/catalog/category-map/{id}');
     $register('POST',   '/catalog/writeback/{channel}/{sku}/prepare');
     $register('POST',   '/catalog/approvals');
     // Email Marketing
