@@ -227,6 +227,7 @@ class Catalog
         if (!is_array($items) || !$items) return self::jsonRes($res, ['ok' => false, 'error' => 'items required'], 400);
         $now = self::now();
         $updated = 0;
+        $changed = []; // [227차 Tier2] 실제 갱신된 (channel,sku,price) — 커밋 후 채널 writeback enqueue 용.
         $pdo->beginTransaction();
         try {
             $upd = $pdo->prepare("UPDATE catalog_listing SET price=:p, updated_at=:now WHERE tenant_id=:t AND channel=:c AND sku=:s");
@@ -240,14 +241,35 @@ class Catalog
                 $upd->execute([':p' => $newP, ':now' => $now, ':t' => $tenant, ':c' => $ch, ':s' => $sk]);
                 $n = $upd->rowCount();
                 $updated += $n;
-                if ($n > 0 && $oldP !== null) self::recordPriceChange($pdo, $tenant, $ch, $sk, $oldP, $newP, 'bulk');
+                if ($n > 0) {
+                    if ($oldP !== null) self::recordPriceChange($pdo, $tenant, $ch, $sk, $oldP, $newP, 'bulk');
+                    $changed[] = ['channel' => $ch, 'sku' => $sk, 'price' => $newP];
+                }
             }
             $pdo->commit();
         } catch (\Throwable $e) {
             if ($pdo->inTransaction()) $pdo->rollBack();
             return self::jsonRes($res, ['ok' => false, 'error' => $e->getMessage()], 500);
         }
-        return self::jsonRes($res, ['ok' => true, 'updated' => $updated]);
+
+        // ── [227차 Tier2] 일괄 가격변경 → 채널 writeback 큐 적재 + 즉시 push ──────────────
+        //   기존엔 bulkPrice 가 catalog_listing.price 만 갱신하고 writeback 큐에 안 넣어,
+        //   변경된 가격이 실제 채널(쿠팡/네이버/카페24 등)로 영원히 push 되지 않았다(단일 writeback() 만 enqueue).
+        //   이제 자격증명 활성 채널 항목을 'price' 작업으로 enqueue 하고 즉시 큐를 플러시한다.
+        //   자격증명 미등록 채널은 enqueue 제외(saved 상태로 catalog_listing 만 갱신 — 등록 시 자동 재개).
+        $enqueued = 0;
+        foreach ($changed as $c) {
+            if (self::channelStatus($pdo, $tenant, $c['channel'], 'register') === 'queued') {
+                self::logJob($pdo, $tenant, $c['channel'], $c['sku'], 'price', 'queued', ['sku' => $c['sku'], 'price' => $c['price']]);
+                $enqueued++;
+            }
+        }
+        $pushed = null;
+        if ($enqueued > 0) {
+            try { $pushed = self::processWritebackQueue($pdo, $tenant, null, 200); }
+            catch (\Throwable $e) { /* 큐는 남아 cron/재호출로 재개 */ }
+        }
+        return self::jsonRes($res, ['ok' => true, 'updated' => $updated, 'enqueued' => $enqueued, 'pushed' => $pushed]);
     }
 
     /* GET /catalog/listings — 테넌트 등록 리스팅 조회 */
