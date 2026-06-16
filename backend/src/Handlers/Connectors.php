@@ -1402,6 +1402,90 @@ final class Connectors
         return $cached;
     }
 
+    /** [227차] performance_metrics.currency 컬럼 존재 여부(멱등 감지). */
+    private static function perfHasCurrencyCol(PDO $pdo): bool
+    {
+        static $cached = null;
+        if ($cached !== null) return $cached;
+        try {
+            if ($pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql') {
+                $q = $pdo->query("SHOW COLUMNS FROM performance_metrics LIKE 'currency'");
+                $cached = ($q && $q->fetch() !== false);
+                if (!$cached) { try { $pdo->exec("ALTER TABLE performance_metrics ADD COLUMN currency VARCHAR(8) DEFAULT 'KRW'"); $cached = true; } catch (\Throwable $e) {} }
+            } else {
+                $cached = false;
+                foreach ($pdo->query("PRAGMA table_info(performance_metrics)")->fetchAll(PDO::FETCH_ASSOC) as $c) {
+                    if (($c['name'] ?? '') === 'currency') { $cached = true; break; }
+                }
+                if (!$cached) { try { $pdo->exec("ALTER TABLE performance_metrics ADD COLUMN currency TEXT DEFAULT 'KRW'"); $cached = true; } catch (\Throwable $e) {} }
+            }
+        } catch (\Throwable $e) { $cached = false; }
+        return $cached;
+    }
+
+    /**
+     * [227차] 통화→KRW 정규화. 광고계정 통화(USD 등)로 표기된 spend/revenue 를 KRW 로 환산해 저장한다.
+     *   기존엔 통화 무관하게 원값 저장 → 다통화 계정 합산 시 ROAS/지출 왜곡. KRW/빈값/미상통화는 무변환(정직).
+     */
+    private static function fxToKrw(float $amount, string $currency): float
+    {
+        $currency = strtoupper(trim($currency));
+        if ($currency === '' || $currency === 'KRW' || $amount == 0.0) return $amount;
+        $rates = self::fxRates();
+        $rate = $rates[$currency] ?? 0.0;
+        return $rate > 0 ? $amount * $rate : $amount; // 미상 통화 → 무변환
+    }
+
+    /** 통화별 KRW 환율(1단위당 KRW). 캐시(app_setting fx_rates_krw, 24h) → 무료 API → 폴백 기본값. */
+    private static function fxRates(): array
+    {
+        static $cache = null;
+        if ($cache !== null) return $cache;
+        $defaults = ['KRW'=>1.0,'USD'=>1350.0,'EUR'=>1450.0,'JPY'=>9.0,'CNY'=>185.0,'GBP'=>1700.0,'HKD'=>173.0,'SGD'=>1000.0,'AUD'=>890.0,'CAD'=>985.0,'TWD'=>42.0,'THB'=>37.0,'VND'=>0.053];
+        try {
+            $pdo = Db::pdo();
+            $st = $pdo->prepare("SELECT svalue, updated_at FROM app_setting WHERE skey='fx_rates_krw' LIMIT 1");
+            $st->execute();
+            $row = $st->fetch(PDO::FETCH_ASSOC) ?: null;
+            if ($row && !empty($row['svalue'])) {
+                $age = time() - (int)strtotime((string)($row['updated_at'] ?? '1970-01-01'));
+                $data = json_decode((string)$row['svalue'], true);
+                if (is_array($data) && $age < 86400 && !empty($data['USD'])) { $cache = $data + $defaults; return $cache; }
+            }
+            $live = self::fxFetchLive();
+            if (!empty($live['USD'])) {
+                try {
+                    $now = gmdate('c'); $json = json_encode($live);
+                    $isMy = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql';
+                    $sql = $isMy
+                        ? "INSERT INTO app_setting(skey,svalue,updated_at) VALUES('fx_rates_krw',?,?) ON DUPLICATE KEY UPDATE svalue=VALUES(svalue),updated_at=VALUES(updated_at)"
+                        : "INSERT INTO app_setting(skey,svalue,updated_at) VALUES('fx_rates_krw',?,?) ON CONFLICT(skey) DO UPDATE SET svalue=excluded.svalue,updated_at=excluded.updated_at";
+                    $pdo->prepare($sql)->execute([$json, $now]);
+                } catch (\Throwable $e) {}
+                $cache = $live + $defaults; return $cache;
+            }
+            if ($row && !empty($row['svalue'])) { $data = json_decode((string)$row['svalue'], true); if (is_array($data) && !empty($data['USD'])) { $cache = $data + $defaults; return $cache; } }
+        } catch (\Throwable $e) {}
+        $cache = $defaults; return $cache;
+    }
+
+    /** 무료 FX API(open.er-api.com, 무키, USD base) → 통화별 KRW 환율. 실패 시 빈 배열. */
+    private static function fxFetchLive(): array
+    {
+        try {
+            [$code, $body] = self::httpGet('https://open.er-api.com/v6/latest/USD');
+            if ($code === 200 && !empty($body['rates']['KRW']) && (float)$body['rates']['KRW'] > 0) {
+                $usdKrw = (float)$body['rates']['KRW']; $rates = $body['rates'];
+                $out = ['KRW'=>1.0,'USD'=>$usdKrw];
+                foreach (['EUR','JPY','CNY','GBP','HKD','SGD','AUD','CAD','TWD','THB','VND'] as $c) {
+                    if (!empty($rates[$c]) && (float)$rates[$c] > 0) $out[$c] = $usdKrw / (float)$rates[$c]; // 1 unit C → KRW
+                }
+                return $out;
+            }
+        } catch (\Throwable $e) {}
+        return [];
+    }
+
     /**
      * performance_metrics 멱등 적재: (tenant,channel,date∈[start,end]) 기존 행 삭제 후 신규 삽입.
      * 재동기화 시 중복 누적 없이 최신 스냅샷 유지. 테넌트 스코핑 강제.
@@ -1424,9 +1508,11 @@ final class Connectors
             //   존재하는 선택 컬럼만 동적으로 INSERT(구 스키마 폴백 + 신규 컬럼 동시 지원).
             $hasCampCol = self::perfHasCampaignCol($pdo);
             $hasAdCol   = self::perfHasAdCol($pdo);
+            $hasCurCol  = self::perfHasCurrencyCol($pdo); // [227차] 다통화 정규화
             $cols = ['tenant_id', 'team', 'channel', 'account', 'date', 'impressions', 'clicks', 'spend', 'conversions', 'revenue'];
             if ($hasCampCol) $cols[] = 'campaign_ext_id';
             if ($hasAdCol)   $cols[] = 'ad_ext_id';
+            if ($hasCurCol)  $cols[] = 'currency';
             $cols[] = 'extra_json';
             $ins = $pdo->prepare('INSERT INTO performance_metrics (' . implode(',', $cols) . ') VALUES (' . implode(',', array_fill(0, count($cols), '?')) . ')');
             $n = 0;
@@ -1435,6 +1521,11 @@ final class Connectors
                 if ($date === '') continue;
                 // 적재는 동기화 구간으로 제한(API 가 범위 밖 날짜를 돌려줘도 격리).
                 if ($date < $start || $date > $end) continue;
+                // [227차] 다통화 정규화: 광고계정 통화(currency)로 표기된 spend/revenue 를 KRW 로 환산 저장.
+                //   다운스트림(Rollup/aggMetrics/DashOverview)은 통화무관 SUM 이라, 저장 시점에 KRW 통일해야 정합.
+                $curr = strtoupper((string)($r['currency'] ?? 'KRW'));
+                $spendKrw = self::fxToKrw((float)($r['spend'] ?? 0), $curr);
+                $revKrw   = self::fxToKrw((float)($r['revenue'] ?? 0), $curr);
                 $base = [
                     $tenant,
                     (string)($r['team'] ?? ''),
@@ -1443,9 +1534,9 @@ final class Connectors
                     $date,
                     (int)($r['impressions'] ?? 0),
                     (int)($r['clicks'] ?? 0),
-                    (float)($r['spend'] ?? 0),
+                    $spendKrw,
                     (int)($r['conversions'] ?? 0),
-                    (float)($r['revenue'] ?? 0),
+                    $revKrw,
                 ];
                 // [현 차수] objective(캠페인 목적)·reach(도달)를 extra_json 에 적재(스키마 변경 없이) →
                 //   campaign-funnel 엔드포인트가 JSON 추출로 목적별 그룹·도달 합산.
@@ -1455,6 +1546,7 @@ final class Connectors
                 $extra = $extraData ? json_encode($extraData, JSON_UNESCAPED_UNICODE) : null;
                 if ($hasCampCol) $base[] = ($r['campaign_ext_id'] ?? '') !== '' ? (string)$r['campaign_ext_id'] : null;
                 if ($hasAdCol)   $base[] = ($r['ad_ext_id'] ?? '') !== '' ? (string)$r['ad_ext_id'] : null;
+                if ($hasCurCol)  $base[] = $curr; // 원 통화 보존(감사·재환산용); spend/revenue 는 KRW
                 $base[] = $extra;
                 $ins->execute($base);
                 $n++;
@@ -1495,6 +1587,12 @@ final class Connectors
             return ['hasCreds' => true, 'live' => false, 'error' => $err ?? ($body['error']['message'] ?? "meta http $code")];
         }
 
+        // [227차] 광고계정 통화 — Meta insights 의 spend/action_values 는 이 통화로 표기(USD/KRW 등 혼재).
+        //   다통화 정규화 위해 1회 조회해 행에 stamp(persist 에서 KRW 환산). 실패 시 KRW 가정(국내 기본).
+        $acctCur = 'KRW';
+        [$cc, $cb] = self::httpGet("https://graph.facebook.com/v19.0/act_{$adAccountId}?fields=currency&access_token=" . urlencode($accessToken));
+        if ($cc === 200 && !empty($cb['currency'])) $acctCur = strtoupper((string)$cb['currency']);
+
         $rows = [];
         foreach (($body['data'] ?? []) as $r) {
             [$conv, $rev] = self::metaConvValue($r['actions'] ?? [], $r['action_values'] ?? []);
@@ -1511,6 +1609,7 @@ final class Connectors
                 'spend'       => (float)($r['spend'] ?? 0),
                 'conversions' => $conv,
                 'revenue'     => $rev,
+                'currency'    => $acctCur,
             ];
         }
         return ['hasCreds' => true, 'live' => true, 'rows' => $rows];
@@ -1542,7 +1641,9 @@ final class Connectors
 
         // [현 차수] campaign.advertising_channel_type(SEARCH/DISPLAY/VIDEO/SHOPPING/PERFORMANCE_MAX/DEMAND_GEN…)
         //   = Google 의 목적 분류 근거 → objective 로 적재(adFunnel 매핑). Google 표준 metrics 엔 reach 없음(=0).
+        // [227차] customer.currency_code 추가 — cost_micros 는 계정 통화의 마이크로 단위. 다통화 정규화 위해 통화 캡처.
         $gaql = "SELECT campaign.name, campaign.resource_name, campaign.advertising_channel_type,
+                        customer.currency_code,
                         metrics.impressions, metrics.clicks, metrics.cost_micros,
                         metrics.conversions, metrics.conversions_value, segments.date
                  FROM campaign
@@ -1573,6 +1674,7 @@ final class Connectors
                 'spend'       => round((int)($r['metrics']['costMicros'] ?? 0) / 1_000_000, 2),
                 'conversions' => (int)round((float)($r['metrics']['conversions'] ?? 0)),
                 'revenue'     => round((float)($r['metrics']['conversionsValue'] ?? 0), 2),
+                'currency'    => strtoupper((string)($r['customer']['currencyCode'] ?? 'KRW')),
             ];
         }
         return ['hasCreds' => true, 'live' => true, 'rows' => $rows];
