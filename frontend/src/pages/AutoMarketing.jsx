@@ -1280,6 +1280,8 @@ export default function AutoMarketing() {
                                     category={PRODUCT_CATEGORIES.find(c => selCats[0] === c.id)?.label || ''}
                                     campaignName={campaignName}
                                     period={period}
+                                    minRoas={minRoas}
+                                    maxShare={maxShare}
                                 />
                             </>
                         )}

@@ -591,6 +591,7 @@ return function (App $app): void {
         'POST /v423/auto-campaign/launch'     => 'Genie\\Handlers\\AutoCampaign::launch',
         'GET /v423/auto-campaign/list'        => 'Genie\\Handlers\\AutoCampaign::list',
         'POST /v423/auto-campaign/status'     => 'Genie\\Handlers\\AutoCampaign::setStatus',
+        'POST /v423/auto-campaign/pause-all'  => 'Genie\\Handlers\\AutoCampaign::pauseAll',
         'POST /v423/auto-campaign/optimize'   => 'Genie\\Handlers\\AutoCampaign::optimize',
         'GET /v423/auto-campaign/optimize-history' => 'Genie\\Handlers\\AutoCampaign::optimizeHistory',
         'GET /v423/auto-campaign/ab-status'   => 'Genie\\Handlers\\AbTesting::status',
@@ -1702,6 +1703,7 @@ return function (App $app): void {
     $register('POST', '/v423/auto-campaign/launch');
     $register('GET',  '/v423/auto-campaign/list');
     $register('POST', '/v423/auto-campaign/status');
+    $register('POST', '/v423/auto-campaign/pause-all');
     $register('POST', '/v423/auto-campaign/optimize');
     $register('GET',  '/v423/auto-campaign/optimize-history');
     $register('GET',  '/v423/auto-campaign/ab-status');

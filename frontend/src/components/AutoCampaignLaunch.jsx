@@ -36,12 +36,13 @@ function DesignThumb({ d, selected, onToggle }) {
   );
 }
 
-export default function AutoCampaignLaunch({ draft, category, campaignName, period }) {
+export default function AutoCampaignLaunch({ draft, category, campaignName, period, minRoas = 0, maxShare = 60 }) {
   const { t } = useI18n();
   const [designs, setDesigns] = useState([]);
   const [selDesigns, setSelDesigns] = useState([]);
   const [campaigns, setCampaigns] = useState([]);
   const [busy, setBusy] = useState(false);
+  const [killBusy, setKillBusy] = useState(false);
   const [msg, setMsg] = useState(null);
   const [optResult, setOptResult] = useState({}); // campaignId -> { optimized, decisions, metrics, reason }
   const [optBusy, setOptBusy] = useState(null);    // campaignId being optimized
@@ -98,7 +99,9 @@ export default function AutoCampaignLaunch({ draft, category, campaignName, peri
       const allocations = draft.allocations.map(a => ({ channel: a.ch?.id, label: a.ch?.label, alloc: a.alloc, roas: a.roas }));
       const r = await fetch(`${API}/v423/auto-campaign/launch`, {
         method: 'POST', headers: auth(),
-        body: JSON.stringify({ name: campaignName || `${category || '통합'} ${t('autoCamp.autoSuffix', '자동 캠페인')}`, category: category || '', budget: draft.budget, period: period || 'monthly', channels, allocations, est_roas: draft.estimatedRoas, design_ids: selDesigns, ab_mode: abMode && selDesigns.length >= 2 }),
+        body: JSON.stringify({ name: campaignName || `${category || '통합'} ${t('autoCamp.autoSuffix', '자동 캠페인')}`, category: category || '', budget: draft.budget, period: period || 'monthly', channels, allocations, est_roas: draft.estimatedRoas, design_ids: selDesigns, ab_mode: abMode && selDesigns.length >= 2,
+          // [227차 P1] 사용자 가드레일 배선 — 옵티마이저가 실제 적용(min_roas/max_share).
+          guardrails: { min_roas: Number(minRoas) || 0, max_share: (Number(maxShare) || 60) / 100 } }),
       });
       const d = await r.json();
       if (d.ok) { setMsg({ t: 'ok', m: d.message }); loadCampaigns(); loadAbStatus(); }
@@ -109,7 +112,39 @@ export default function AutoCampaignLaunch({ draft, category, campaignName, peri
 
   const toggleStatus = async (c) => {
     const ns = c.status === 'active' ? 'paused' : 'active';
-    try { await fetch(`${API}/v423/auto-campaign/status`, { method: 'POST', headers: auth(), body: JSON.stringify({ id: c.id, status: ns }) }); loadCampaigns(); } catch {}
+    // [227차 P0] 활성화=실 광고 게재 시작 → 백엔드 하드게이트(결제수단/킬스위치) 및 매체 push 결과를 표기.
+    try {
+      const r = await fetch(`${API}/v423/auto-campaign/status`, { method: 'POST', headers: auth(), body: JSON.stringify({ id: c.id, status: ns }) });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok || !d.ok) {
+        if (d.error === 'billing_required') setMsg({ t: 'err', m: d.message || t('autoCamp.billingRequired', '광고를 활성화하려면 광고비 결제수단(카드)을 먼저 등록하세요. [재무·정산 > 결제수단]') });
+        else if (d.error === 'execution_disabled') setMsg({ t: 'err', m: d.message || t('autoCamp.execDisabled', '집행이 비활성화되어 있습니다(관리자에게 문의).') });
+        else setMsg({ t: 'err', m: d.message || d.error || t('autoCamp.statusFail', '상태 변경에 실패했습니다.') });
+      } else if (ns === 'active') {
+        const pushed = Array.isArray(d.pushed) ? d.pushed : [];
+        const okN = pushed.filter(p => p.ok).length;
+        setMsg({ t: 'ok', m: okN > 0
+          ? `🚀 광고를 활성화했습니다 — ${okN}개 채널 게재 시작(실 광고비 집행).`
+          : (pushed.length ? '활성화했습니다. 매체 반영은 자격증명/캠페인 상태를 확인하세요.' : '활성화했습니다(연결된 매체 캠페인이 없습니다).') });
+      } else {
+        setMsg({ t: 'ok', m: '광고를 일시정지했습니다(매체 게재 중단).' });
+      }
+      loadCampaigns();
+    } catch { setMsg({ t: 'err', m: t('autoCamp.serverErr', '서버 오류. 다시 시도하세요.') }); }
+  };
+
+  // [227차] 긴급 킬스위치 — 본 테넌트 전 active 캠페인 즉시 일시정지(매체 게재 중단).
+  const pauseAllNow = async () => {
+    if (!window.confirm(t('autoCamp.killConfirm', '실행중인 모든 광고를 즉시 일시정지할까요? 매체 게재가 중단되어 광고비 집행이 멈춥니다.'))) return;
+    setKillBusy(true); setMsg(null);
+    try {
+      const r = await fetch(`${API}/v423/auto-campaign/pause-all`, { method: 'POST', headers: auth() });
+      const d = await r.json().catch(() => ({}));
+      if (d.ok) setMsg({ t: 'ok', m: `🛑 ${d.paused || 0}개 캠페인을 긴급 정지했습니다(매체 ${d.pushed || 0}건 게재 중단).` });
+      else setMsg({ t: 'err', m: d.error || t('autoCamp.killFail', '긴급 정지에 실패했습니다.') });
+      loadCampaigns();
+    } catch { setMsg({ t: 'err', m: t('autoCamp.serverErr', '서버 오류. 다시 시도하세요.') }); }
+    setKillBusy(false);
   };
 
   const optimize = async (c) => {
@@ -183,7 +218,15 @@ export default function AutoCampaignLaunch({ draft, category, campaignName, peri
       {/* 실행중 캠페인 */}
       {campaigns.length > 0 && (
         <div style={card}>
-          <div style={{ fontSize: 15, fontWeight: 900, color: '#1e293b', marginBottom: 12 }}>📡 {t('autoCamp.runningTitle', '실행중 자동 캠페인')} ({campaigns.length})</div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
+            <div style={{ fontSize: 15, fontWeight: 900, color: '#1e293b' }}>📡 {t('autoCamp.runningTitle', '실행중 자동 캠페인')} ({campaigns.length})</div>
+            {campaigns.some(c => c.status === 'active') && (
+              <button onClick={pauseAllNow} disabled={killBusy}
+                style={{ padding: '7px 14px', borderRadius: 9, border: '1px solid rgba(239,68,68,0.3)', cursor: killBusy ? 'wait' : 'pointer', fontSize: 11.5, fontWeight: 800, background: killBusy ? 'rgba(239,68,68,0.35)' : 'rgba(239,68,68,0.1)', color: '#dc2626' }}>
+                {killBusy ? `⏳ ${t('autoCamp.killing', '정지 중…')}` : `🛑 ${t('autoCamp.killAll', '전체 긴급정지')}`}
+              </button>
+            )}
+          </div>
           <div style={{ display: 'grid', gap: 10 }}>
             {campaigns.map(c => {
               const exec = c.exec_status || {};
@@ -207,6 +250,16 @@ export default function AutoCampaignLaunch({ draft, category, campaignName, peri
                       </span>
                     ))}
                   </div>
+
+                  {/* [227차] 라이브 실시간 성과 — 매체 집행 결과(performance_metrics, 매시 ingest·30초 폴링) */}
+                  {c.live && (c.live.spend > 0 || c.live.impressions > 0) && (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 10, padding: '9px 12px', borderRadius: 9, background: 'rgba(34,197,94,0.05)', border: '1px solid rgba(34,197,94,0.15)' }}>
+                      <span style={{ fontSize: 10.5, fontWeight: 800, color: '#16a34a', alignSelf: 'center' }}>📊 {t('autoCamp.liveTitle', '실시간 성과')}</span>
+                      {[[t('autoCamp.liveSpend', '집행'), fmt(c.live.spend)], [t('autoCamp.liveRevenue', '매출'), fmt(c.live.revenue)], ['ROAS', `${c.live.roas}x`], [t('autoCamp.liveConv', '전환'), c.live.conversions], ['CTR', `${c.live.clicks > 0 && c.live.impressions > 0 ? (c.live.clicks / c.live.impressions * 100).toFixed(1) : '0.0'}%`]].map(([lb, v], i) => (
+                        <span key={i} style={{ fontSize: 11 }}><span style={{ color: '#94a3b8', fontWeight: 600 }}>{lb} </span><span style={{ fontWeight: 800, color: lb === 'ROAS' ? (c.live.roas >= 1 ? '#16a34a' : '#dc2626') : '#1e293b' }}>{v}</span></span>
+                      ))}
+                    </div>
+                  )}
 
                   {/* Phase3 — 실시간 최적화 */}
                   <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px dashed rgba(0,0,0,0.08)' }}>

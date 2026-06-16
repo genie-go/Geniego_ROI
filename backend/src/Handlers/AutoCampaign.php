@@ -256,12 +256,70 @@ class AutoCampaign
                     $r['allocations'] = json_decode((string)($r['allocations'] ?? '[]'), true) ?: [];
                     $r['design_ids']  = json_decode((string)($r['design_ids'] ?? '[]'), true) ?: [];
                     $r['exec_status'] = json_decode((string)($r['exec_status'] ?? '{}'), true) ?: new \stdClass();
+                    // [227차] 라이브 모니터링: 캠페인별 실 성과(performance_metrics, campaign_ext_id 입도) 집계.
+                    $r['live'] = self::liveMetrics($pdo, $tenant, is_array($r['allocations']) ? $r['allocations'] : []);
                     $rows[] = $r;
                 }
             }
-            return self::json($res, ['ok' => true, 'campaigns' => $rows]);
+            // 전역 킬스위치 상태 동봉(UI 토글 동기화).
+            return self::json($res, ['ok' => true, 'campaigns' => $rows, 'execution_enabled' => AdAdapters::executionEnabled()]);
         } catch (\Throwable $e) {
             return self::json($res, ['ok' => false, 'error' => $e->getMessage(), 'campaigns' => []]);
+        }
+    }
+
+    /** [227차] 캠페인 allocations(채널×external_id) → 실 성과 합산(performance_metrics). 라이브 모니터링용. */
+    private static function liveMetrics(PDO $pdo, string $tenant, array $allocations): array
+    {
+        $agg = ['spend' => 0.0, 'revenue' => 0.0, 'conversions' => 0, 'impressions' => 0, 'clicks' => 0];
+        if ($tenant === 'unknown' || empty($allocations)) { $agg['roas'] = 0; return $agg; }
+        foreach ($allocations as $a) {
+            if (!is_array($a)) continue;
+            $ch = (string)($a['channel'] ?? '');
+            if ($ch === '') continue;
+            $m = self::aggMetrics($pdo, $tenant, $ch, (string)($a['external_id'] ?? ''));
+            $agg['spend']       += (float)($m['spend'] ?? 0);
+            $agg['revenue']     += (float)($m['revenue'] ?? 0);
+            $agg['conversions'] += (int)($m['conversions'] ?? 0);
+            $agg['impressions'] += (int)($m['impressions'] ?? 0);
+            $agg['clicks']      += (int)($m['clicks'] ?? 0);
+        }
+        $agg['spend']   = round($agg['spend'], 2);
+        $agg['revenue'] = round($agg['revenue'], 2);
+        $agg['roas']    = $agg['spend'] > 0 ? round($agg['revenue'] / $agg['spend'], 2) : 0;
+        return $agg;
+    }
+
+    /** POST /v423/auto-campaign/pause-all — 본 테넌트 전 active 캠페인 긴급 일시정지(매체 push 포함). 사용자 킬스위치. */
+    public static function pauseAll(Request $req, Response $res): Response
+    {
+        try {
+            $tenant = self::tenant($req);
+            if ($tenant === 'unknown') return self::json($res, ['ok' => false, 'error' => '로그인이 필요합니다.'], 401);
+            $pdo = Db::pdo();
+            self::migrate($pdo);
+            $isReal = ($tenant !== 'demo' && strncmp($tenant, 'demo', 4) !== 0);
+            $st = $pdo->prepare("SELECT id, allocations FROM auto_campaign WHERE tenant_id=? AND status='active'");
+            $st->execute([$tenant]);
+            $camps = $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
+            $paused = 0; $pushed = 0;
+            $upd = $pdo->prepare("UPDATE auto_campaign SET status='paused', updated_at=? WHERE id=? AND tenant_id=?");
+            $now = gmdate('Y-m-d\TH:i:s\Z');
+            foreach ($camps as $c) {
+                if ($isReal) {
+                    foreach (json_decode((string)($c['allocations'] ?? '[]'), true) ?: [] as $a) {
+                        $ch = (string)($a['channel'] ?? ''); $ext = (string)($a['external_id'] ?? '');
+                        if ($ch === '' || $ext === '') continue;
+                        $r = AdAdapters::pause($pdo, $tenant, $ch, $ext);
+                        if (!empty($r['ok'])) $pushed++;
+                    }
+                }
+                $upd->execute([$now, (int)$c['id'], $tenant]);
+                $paused++;
+            }
+            return self::json($res, ['ok' => true, 'paused' => $paused, 'pushed' => $pushed]);
+        } catch (\Throwable $e) {
+            return self::json($res, ['ok' => false, 'error' => $e->getMessage()], 500);
         }
     }
 
