@@ -28,7 +28,10 @@ class OAuth
         'google'   => ['auth' => 'https://accounts.google.com/o/oauth2/v2/auth', 'token' => 'https://oauth2.googleapis.com/token', 'scope' => 'https://www.googleapis.com/auth/adwords', 'extra' => ['access_type' => 'offline', 'prompt' => 'consent']],
         'meta'     => ['auth' => 'https://www.facebook.com/v19.0/dialog/oauth', 'token' => 'https://graph.facebook.com/v19.0/oauth/access_token', 'scope' => 'ads_management,business_management', 'extra' => []],
         'facebook' => ['auth' => 'https://www.facebook.com/v19.0/dialog/oauth', 'token' => 'https://graph.facebook.com/v19.0/oauth/access_token', 'scope' => 'pages_show_list,instagram_basic', 'extra' => []],
-        'tiktok'   => ['auth' => 'https://www.tiktok.com/v2/auth/authorize/', 'token' => 'https://open.tiktokapis.com/v2/oauth/token/', 'scope' => 'user.info.basic', 'extra' => []],
+        // [227차] TikTok 광고 집행용 Marketing API OAuth(소비자 Login Kit 아님).
+        //   portal/auth(app_id 파라미터) → oauth2/access_token(JSON {app_id,secret,auth_code} → data.access_token).
+        //   표준 OAuth2 와 파라미터/응답이 달라 dialect='tiktok_marketing' 로 authorize/callback 에서 분기 처리.
+        'tiktok'   => ['auth' => 'https://business-api.tiktok.com/portal/auth', 'token' => 'https://business-api.tiktok.com/open_api/v1.3/oauth2/access_token/', 'scope' => '', 'extra' => [], 'dialect' => 'tiktok_marketing'],
         'kakao'    => ['auth' => 'https://kauth.kakao.com/oauth/authorize', 'token' => 'https://kauth.kakao.com/oauth/token', 'scope' => 'talk_message', 'extra' => []],
         'naver'    => ['auth' => 'https://nid.naver.com/oauth2.0/authorize', 'token' => 'https://nid.naver.com/oauth2.0/token', 'scope' => '', 'extra' => []],
     ];
@@ -112,6 +115,15 @@ class OAuth
                 ->execute([$state, $tenant, $provider, self::now()]);
         } catch (\Throwable $e) {}
         $p = self::PROVIDERS[$provider];
+        // [227차] TikTok Marketing API: app_id 파라미터·response_type/scope 없음(권한은 앱 설정에서 부여).
+        if (($p['dialect'] ?? '') === 'tiktok_marketing') {
+            $url = $p['auth'] . '?' . http_build_query([
+                'app_id'       => $cfg['client_id'], // client_id 슬롯에 TikTok app_id 저장
+                'redirect_uri' => self::redirectUri($req, $provider),
+                'state'        => $state,
+            ]);
+            return self::json($res, ['ok' => true, 'configured' => true, 'authorize_url' => $url]);
+        }
         $params = array_merge([
             'client_id' => $cfg['client_id'],
             'redirect_uri' => self::redirectUri($req, $provider),
@@ -128,7 +140,8 @@ class OAuth
         self::ensureTables();
         $provider = strtolower((string)($args['provider'] ?? ''));
         $q = $req->getQueryParams();
-        $code = (string)($q['code'] ?? '');
+        // [227차] TikTok Marketing API 는 인가코드를 'auth_code' 로 반환(표준 'code' 아님).
+        $code = (string)($q['code'] ?? $q['auth_code'] ?? '');
         $state = (string)($q['state'] ?? '');
         $front = '/integration-hub';
         if (!isset(self::PROVIDERS[$provider]) || $code === '' || $state === '') {
@@ -147,6 +160,30 @@ class OAuth
 
         $cfg = self::config($provider);
         $p = self::PROVIDERS[$provider];
+
+        // ── [227차] TikTok Marketing API 토큰 교환(JSON {app_id,secret,auth_code} → data.access_token) ──
+        if (($p['dialect'] ?? '') === 'tiktok_marketing') {
+            $tok = self::httpPostJson($p['token'], [
+                'app_id'    => $cfg['client_id'],
+                'secret'    => $cfg['client_secret'],
+                'auth_code' => $code,
+            ]);
+            $data   = is_array($tok['data'] ?? null) ? $tok['data'] : [];
+            $access = (string)($data['access_token'] ?? '');
+            if ($access === '') {
+                error_log('[OAuth.callback] TikTok token exchange failed: ' . json_encode($tok));
+                return $res->withHeader('Location', $front . '?oauth=token_failed')->withStatus(302);
+            }
+            try {
+                self::saveCred($tenant, $provider, 'oauth_access_token', $access);
+                // 광고계정 ID(첫번째) 저장 → AdAdapters/Connectors 가 집행·리포팅에 사용(채널 별칭 tiktok_business→tiktok).
+                $advs = (array)($data['advertiser_ids'] ?? []);
+                if (!empty($advs)) self::saveCred($tenant, $provider, 'advertiser_id', (string)$advs[0]);
+                if (Connectors::isAdChannel($provider)) { Connectors::syncAdChannelOnSave($tenant, $provider); }
+            } catch (\Throwable $e) {}
+            return $res->withHeader('Location', $front . '?oauth=success&provider=' . $provider)->withStatus(302);
+        }
+
         $body = http_build_query([
             'grant_type' => 'authorization_code',
             'code' => $code,
@@ -244,6 +281,21 @@ class OAuth
         // 일부 provider(naver/legacy facebook)는 querystring 응답
         parse_str((string)$raw, $parsed);
         return is_array($parsed) ? $parsed : [];
+    }
+
+    /** [227차] JSON 바디 POST(TikTok Marketing API 등 application/json 요구 provider 용). */
+    private static function httpPostJson(string $url, array $payload): array
+    {
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true, CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => json_encode($payload, JSON_UNESCAPED_UNICODE),
+            CURLOPT_TIMEOUT => 10, CURLOPT_CONNECTTIMEOUT => 5,
+            CURLOPT_HTTPHEADER => ['Content-Type: application/json', 'Accept: application/json'],
+        ]);
+        $raw = curl_exec($ch); curl_close($ch);
+        $j = json_decode((string)$raw, true);
+        return is_array($j) ? $j : [];
     }
 
     // ── [현 차수] OAuth 토큰 갱신(refresh) ──────────────────────────────────
