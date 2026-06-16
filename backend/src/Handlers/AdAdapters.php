@@ -363,7 +363,7 @@ final class AdAdapters
     /** ad_design(AI 디자인) spec_json → 광고 카피 추출. svg 는 래스터화 필요(이미지 매체용). */
     private static function loadDesign(PDO $pdo, string $tenant, int $designId): array
     {
-        $out = ['headline' => 'GenieGo', 'copy' => '', 'subheadline' => '', 'cta' => 'LEARN_MORE', 'has_svg' => false];
+        $out = ['headline' => 'GenieGo', 'copy' => '', 'subheadline' => '', 'cta' => 'LEARN_MORE', 'has_svg' => false, 'image_b64' => ''];
         if ($designId <= 0) return $out;
         try {
             $st = $pdo->prepare('SELECT spec_json, svg FROM ad_design WHERE tenant_id=? AND id=? LIMIT 1');
@@ -375,7 +375,14 @@ final class AdAdapters
             $out['copy']        = mb_substr((string)($spec['copy'] ?? $spec['body'] ?? ''), 0, 90);
             $out['subheadline'] = mb_substr((string)($spec['subheadline'] ?? ''), 0, 30);
             $out['cta']         = (string)($spec['cta'] ?? 'LEARN_MORE');
-            $out['has_svg']     = !empty($row['svg']);
+            $svg = (string)($row['svg'] ?? '');
+            $out['has_svg']     = $svg !== '';
+            // [227차 P0] 래스터 이미지 감지 — AI 이미지생성(DALL-E/Stability) 결과는 data:image/*;base64 로
+            //   svg 컬럼에 저장된다(adDesignSave: image→svg). 서버 래스터화(Imagick/GD) 없이 그대로 매체
+            //   업로드 가능. SVG 마크업(<svg…)은 래스터화 불가라 이미지 광고 미사용(텍스트 크리에이티브 폴백).
+            if (preg_match('#^data:image/(png|jpe?g|webp);base64,#i', $svg)) {
+                $out['image_b64'] = substr($svg, strpos($svg, ',') + 1);
+            }
         } catch (Throwable $e) {}
         return $out;
     }
@@ -478,18 +485,43 @@ final class AdAdapters
         $asId = $ar['id'] ?? '';
         if ($asId === '') return ['ok' => false, 'error' => 'adset: ' . (self::errMsg($ar) ?: ('HTTP ' . $ac))];
         if ($page === '') return ['ok' => true, 'adset_id' => $asId, 'ad_id' => '', 'status' => 'partial',
-            'note' => 'Meta 광고세트 생성(PAUSED). 광고(ad) 생성은 page_id + 래스터 이미지(SVG 래스터화) 필요 — 자격증명에 page_id 추가 후 완성.'];
-        // 2) 크리에이티브 + 광고 (이미지 없이 링크 크리에이티브 — 이미지 래스터화는 후속)
-        $creative = json_encode(['object_story_spec' => ['page_id' => $page, 'link_data' => [
-            'message' => $d['copy'] ?: $d['headline'], 'link' => $landing, 'name' => $d['headline'], 'description' => $d['subheadline'],
-        ]]]);
+            'note' => 'Meta 광고세트 생성(PAUSED). 광고(ad) 생성은 page_id + 이미지 소재 필요 — 자격증명에 page_id 추가 후 완성.'];
+        // [227차 P0] 2) 이미지 소재 업로드 — AI 생성 래스터(data:image base64)를 Meta /adimages 에 올려 image_hash 획득.
+        //   이미지가 있으면 image 광고(link_data.image_hash), 없으면 링크 크리에이티브(Meta 가 OG 이미지 자동수집).
+        $imageHash = '';
+        if (!empty($d['image_b64'])) {
+            $imageHash = self::metaUploadImage($api, $acct, $token, (string)$d['image_b64']);
+        }
+        // 3) 크리에이티브 + 광고
+        $linkData = ['message' => $d['copy'] ?: $d['headline'], 'link' => $landing, 'name' => $d['headline'], 'description' => $d['subheadline']];
+        if ($imageHash !== '') $linkData['image_hash'] = $imageHash; // 이미지 광고
+        $creative = json_encode(['object_story_spec' => ['page_id' => $page, 'link_data' => $linkData]]);
         [$cc, $cr] = self::http('POST', "{$api}/{$acct}/adcreatives", ['Content-Type: application/x-www-form-urlencoded'], ['name' => $d['headline'] . ' Creative', 'object_story_spec' => $creative, 'access_token' => $token]);
         $crId = $cr['id'] ?? '';
         if ($crId === '') return ['ok' => true, 'adset_id' => $asId, 'ad_id' => '', 'status' => 'partial', 'note' => 'Meta 광고세트 생성. 크리에이티브 실패(이미지 필요): ' . self::errMsg($cr)];
         [$adc, $adr] = self::http('POST', "{$api}/{$acct}/ads", ['Content-Type: application/x-www-form-urlencoded'], ['name' => $d['headline'] . ' Ad', 'adset_id' => $asId, 'creative' => json_encode(['creative_id' => $crId]), 'status' => 'PAUSED', 'access_token' => $token]);
         $adId = $adr['id'] ?? '';
         if ($adId === '') return ['ok' => true, 'adset_id' => $asId, 'ad_id' => '', 'status' => 'partial', 'note' => 'Meta 광고세트+크리에이티브 생성. 광고 실패: ' . self::errMsg($adr)];
-        return ['ok' => true, 'adset_id' => $asId, 'ad_id' => $adId, 'note' => 'Meta 광고세트+광고 생성(PAUSED)'];
+        return ['ok' => true, 'adset_id' => $asId, 'ad_id' => $adId, 'image_hash' => $imageHash,
+            'note' => 'Meta 광고세트+광고 생성(PAUSED)' . ($imageHash !== '' ? ' — 이미지 소재 포함' : ' — 링크 크리에이티브(이미지 없음)')];
+    }
+
+    /**
+     * [227차 P0] Meta /adimages 업로드 — base64 래스터 이미지 → image_hash.
+     *   서버 래스터화(Imagick/GD) 없이 AI 생성 PNG(base64)를 그대로 bytes 파라미터로 전송한다.
+     *   반환=image_hash(실패 시 '' → 호출부가 링크 크리에이티브로 폴백).
+     */
+    private static function metaUploadImage(string $api, string $acct, string $token, string $b64): string
+    {
+        [$code, $res] = self::http('POST', "{$api}/{$acct}/adimages",
+            ['Content-Type: application/x-www-form-urlencoded'],
+            ['bytes' => $b64, 'access_token' => $token]);
+        if (is_array($res) && !empty($res['images'])) {
+            foreach ($res['images'] as $img) {
+                if (!empty($img['hash'])) return (string)$img['hash'];
+            }
+        }
+        return '';
     }
 
     /* ── TikTok: 광고그룹 + 광고. 영상(video_id)·identity 필요. ── */
