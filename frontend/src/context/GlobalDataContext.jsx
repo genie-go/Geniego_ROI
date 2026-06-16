@@ -782,11 +782,29 @@ export function GlobalDataProvider({ children }) {
             const newItem = { sku, name, stock: { W001: 0, W002: 0, W003: 0 }, safeQty, cost: Number(cost || 0), price: Number(price || 0) };
             return [...prev, newItem];
         });
+        // ── [227차 Tier2] COGS 영속: 셀러 원가/판매가를 백엔드 channel_inventory 에 저장 ──
+        //   채널 동기화는 원가를 제공하지 않으므로, 카탈로그 동기화 시점의 cost 가 유일한 COGS 소스다.
+        //   기존엔 로컬 state 만 갱신 → 서버측 P&L COGS(OrderHub::ordersStats 의 qty×cost 조인)가 0 이었다.
+        //   이제 카탈로그→재고 동기화 SSOT 인 여기서 백엔드에 cost 를 영속한다(saveInventory 는 conflict 시
+        //   available 을 건드리지 않아 재고 보존). 데모/토큰없음은 skip(가상 데이터 운영 유입 0).
+        if (!_isDemo && (cost != null || price != null)) {
+            try {
+                const token = localStorage.getItem('genie_token') || localStorage.getItem('demo_genie_token') || '';
+                if (token) {
+                    const BASE = import.meta.env.VITE_API_BASE || '';
+                    fetch(`${BASE}/api/channel-sync/inventory`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                        body: JSON.stringify([{ sku, name, cost: Number(cost || 0), price: Number(price || 0) }]),
+                    }).catch(() => { /* 로컬 state 는 이미 갱신됨 */ });
+                }
+            } catch { /* ignore */ }
+        }
         setAlerts(prev => [
             { id: mkId('AL'), type: 'success', msg: `📂 카탈로그 동기화: [${name}] inventory Integration Done`, time: '방금', read: false },
             ...prev.slice(0, 49)
         ]);
-    }, []);
+    }, [_isDemo]);
 
     /* ════════════════════════════════════════════════
        Orders Actions  (판매 → 재고차감 → P&L)

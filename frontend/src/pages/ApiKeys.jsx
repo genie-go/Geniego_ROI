@@ -98,7 +98,7 @@ const CHANNEL_FIELDS = {
   gmarket:   [{ k: 'api_key', label: 'API 키', secret: true }, { k: 'seller_id', label: '셀러 ID' }],
   auction:   [{ k: 'api_key', label: 'API 키', secret: true }, { k: 'seller_id', label: '셀러 ID' }],
   // 글로벌 마켓
-  amazon_spapi: [{ k: 'refresh_token', label: 'LWA Refresh Token', secret: true }, { k: 'client_id', label: 'Client ID' }, { k: 'client_secret', label: 'Client Secret', secret: true }, { k: 'seller_id', label: 'Seller ID' }],
+  amazon_spapi: [{ k: 'refresh_token', label: 'LWA Refresh Token', secret: true }, { k: 'client_id', label: 'Client ID' }, { k: 'client_secret', label: 'Client Secret', secret: true }, { k: 'marketplace_id', label: 'Marketplace ID (예: ATVPDKIKX0DER=US · A1VC38T7YXB528=JP · A1PA6795UKMFR9=DE)' }, { k: 'seller_id', label: 'Seller ID' }],
   ebay:      [{ k: 'access_token', label: 'OAuth 액세스 토큰', secret: true }],
   etsy:      [{ k: 'api_key', label: 'API 키', secret: true }, { k: 'shop_id', label: 'Shop ID' }],
   walmart:   [{ k: 'client_id', label: 'Client ID' }, { k: 'client_secret', label: 'Client Secret', secret: true }],
