@@ -195,6 +195,10 @@ final class Logistics
     public static function remove(Request $request, Response $response, array $args): Response
     {
         $pdo = Db::pdo(); self::ensureTables($pdo);
+        // [227차 감사] 익명 쓰기(삭제) 차단 — track() 과 동일 가드(remove 에 누락). 공유 데모 버킷 임의삭제 방지.
+        if (UserAuth::authedTenant($request) === null) {
+            return self::json($response, ['ok' => false, 'error' => '인증이 필요합니다.'], 401);
+        }
         $tenant = self::tenant($request);
         $id = (int)($args['id'] ?? 0);
         $st = $pdo->prepare("DELETE FROM shipment_tracking WHERE id=? AND tenant_id=?");

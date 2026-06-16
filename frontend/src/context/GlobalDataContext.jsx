@@ -1806,8 +1806,10 @@ export function GlobalDataProvider({ children }) {
         // 손익 계산
         const grossProfit = revenue - cogs;                              // Revenue총이익 = Revenue - 원가
         const operatingProfit = grossProfit - adSpend - platformFee - couponDiscount - returnFee; // 영업이익
+        // [227차 감사 P1] 순이익에 쿠폰할인 반영 — netPayout(=gross-platform-returnFee)은 쿠폰 미차감이라
+        //   기존엔 영업이익엔 쿠폰 차감/순이익엔 누락되어 netProfit>operatingProfit 역전 가능했음(데모/운영 공통).
         const netProfit = netPayout > 0
-            ? netPayout - cogs - adSpend                                // 정산 기준 순이익
+            ? netPayout - cogs - adSpend - couponDiscount               // 정산 기준 순이익(쿠폰 반영)
             : operatingProfit;
 
         return {

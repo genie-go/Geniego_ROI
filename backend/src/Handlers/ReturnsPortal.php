@@ -130,8 +130,8 @@ class ReturnsPortal
     /** 인증 미들웨어 주입 tenant. 미해결 시 '' → 호출부가 빈 결과/거부. */
     private static function tenant(Request $request): string
     {
+        // [227차 감사] raw X-Tenant-Id 폴백 제거(auth_tenant만 신뢰) — 향후 bypass 추가 시 헤더 위조 차단(227 #4 패턴 정합).
         $t = $request->getAttribute('auth_tenant');
-        if (!is_string($t) || $t === '') $t = $request->getHeaderLine('X-Tenant-Id');
         $t = trim((string)$t);
         return ($t === '' || strtolower($t) === 'unknown') ? '' : $t;
     }
