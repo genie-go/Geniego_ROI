@@ -43,6 +43,9 @@ export default function AutoCampaignLaunch({ draft, category, campaignName, peri
   const [campaigns, setCampaigns] = useState([]);
   const [busy, setBusy] = useState(false);
   const [killBusy, setKillBusy] = useState(false);
+  const [audBusy, setAudBusy] = useState('');     // 오디언스 동기화 중인 채널
+  const [audLookalike, setAudLookalike] = useState(true);
+  const [audMsg, setAudMsg] = useState(null);
   const [msg, setMsg] = useState(null);
   const [optResult, setOptResult] = useState({}); // campaignId -> { optimized, decisions, metrics, reason }
   const [optBusy, setOptBusy] = useState(null);    // campaignId being optimized
@@ -147,6 +150,25 @@ export default function AutoCampaignLaunch({ draft, category, campaignName, peri
     setKillBusy(false);
   };
 
+  // [227차] 오디언스/리타겟팅 매체 push — CRM 고객 해시 이메일을 Meta Custom Audience / Google Customer
+  //   Match 로 업로드(+Meta Lookalike 확장). PII 안전(해시만 전송). 광고 타깃 정밀화·CAC 절감 레버.
+  const syncAudience = async (channel) => {
+    setAudBusy(channel); setAudMsg(null);
+    try {
+      const r = await fetch(`${API}/v421/connectors/audience/sync`, {
+        method: 'POST', headers: auth(),
+        body: JSON.stringify({ channel, lookalike: channel === 'meta' ? audLookalike : false, country: 'KR' }),
+      });
+      const d = await r.json().catch(() => ({}));
+      if (d.ok) setAudMsg({ t: 'ok', m: `🎯 ${CHLABEL[channel] || channel}: ${d.note || '오디언스 업로드 완료'}${d.uploaded != null ? ` (${d.uploaded}건)` : ''}${d.lookalike_id ? ' · 룩어라이크 생성' : ''}` });
+      else if (d.demo) setAudMsg({ t: 'err', m: d.note || '데모에서는 사용할 수 없습니다.' });
+      else if (d.status === 'no_audience') setAudMsg({ t: 'err', m: d.note || '업로드할 고객 데이터가 없습니다(CRM 고객/구매 이메일 필요).' });
+      else if (d.status === 'no_credentials') setAudMsg({ t: 'err', m: `${CHLABEL[channel] || channel} 광고 자격증명을 먼저 등록하세요.` });
+      else setAudMsg({ t: 'err', m: d.error || d.note || '오디언스 업로드에 실패했습니다.' });
+    } catch { setAudMsg({ t: 'err', m: t('autoCamp.serverErr', '서버 오류. 다시 시도하세요.') }); }
+    setAudBusy('');
+  };
+
   const optimize = async (c) => {
     setOptBusy(c.id);
     try {
@@ -184,6 +206,29 @@ export default function AutoCampaignLaunch({ draft, category, campaignName, peri
             {designs.map(d => <DesignThumb key={d.id} d={d} selected={selDesigns.includes(d.id)} onToggle={() => toggleDesign(d.id)} />)}
           </div>
         )}
+      </div>
+
+      {/* [227차] 오디언스/리타겟팅 — CRM 고객을 매체 맞춤 오디언스로 업로드(해시) */}
+      <div style={card}>
+        <div style={{ fontSize: 15, fontWeight: 900, color: '#1e293b', marginBottom: 4 }}>🎯 {t('autoCamp.audTitle', '리타겟팅 오디언스')}</div>
+        <div style={{ fontSize: 12, color: '#64748b', marginBottom: 12, lineHeight: 1.6 }}>
+          {t('autoCamp.audDesc', '내 CRM 고객·구매자를 매체 맞춤 오디언스로 업로드해 정밀 리타겟팅합니다. 이메일은 sha256 해시로만 전송되어 안전합니다(원문 미저장).')}
+        </div>
+        <label style={{ display: 'inline-flex', alignItems: 'center', gap: 7, marginBottom: 10, fontSize: 12, color: '#0369a1', cursor: 'pointer' }}>
+          <input type="checkbox" checked={audLookalike} onChange={e => setAudLookalike(e.target.checked)} />
+          <span style={{ fontWeight: 700 }}>{t('autoCamp.audLookalike', 'Meta 룩어라이크(유사 타깃) 자동 확장')}</span>
+        </label>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <button onClick={() => syncAudience('meta')} disabled={!!audBusy}
+            style={{ padding: '9px 16px', borderRadius: 9, border: 'none', cursor: audBusy ? 'wait' : 'pointer', fontSize: 12, fontWeight: 800, background: audBusy === 'meta' ? 'rgba(24,119,242,0.4)' : 'rgba(24,119,242,0.1)', color: '#1877f2' }}>
+            {audBusy === 'meta' ? `⏳ ${t('autoCamp.audUploading', '업로드 중…')}` : `📘 ${t('autoCamp.audMeta', 'Meta 오디언스 동기화')}`}
+          </button>
+          <button onClick={() => syncAudience('google')} disabled={!!audBusy}
+            style={{ padding: '9px 16px', borderRadius: 9, border: 'none', cursor: audBusy ? 'wait' : 'pointer', fontSize: 12, fontWeight: 800, background: audBusy === 'google' ? 'rgba(66,133,244,0.4)' : 'rgba(66,133,244,0.1)', color: '#4285f4' }}>
+            {audBusy === 'google' ? `⏳ ${t('autoCamp.audUploading', '업로드 중…')}` : `🔵 ${t('autoCamp.audGoogle', 'Google Customer Match')}`}
+          </button>
+        </div>
+        {audMsg && <div style={{ marginTop: 10, padding: '9px 12px', borderRadius: 9, fontSize: 11.5, fontWeight: 600, lineHeight: 1.5, background: audMsg.t === 'ok' ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.08)', color: audMsg.t === 'ok' ? '#16a34a' : '#dc2626' }}>{audMsg.m}</div>}
       </div>
 
       {/* 실행 요약 + 실행 버튼 */}
