@@ -167,6 +167,26 @@ final class AdAdapters
         } catch (Throwable $e) { return ['ok' => false, 'error' => $e->getMessage()]; }
     }
 
+    /**
+     * [227차 P0] 활성화(PAUSED→실집행). pause() 의 대칭 — 실제 광고를 매체에서 ON.
+     *   ★호출부(AutoCampaign::setStatus)에서 결제수단 게이트 + 명시적 사용자 승인(인앱 버튼) 후에만 호출.
+     *   PAUSED 기본생성 안전정책은 유지하고, 옵티마이저는 절대 자동 활성화하지 않는다(사람-인-루프).
+     *   여기서 비로소 실 광고비가 집행되기 시작하므로 매체별 status=ACTIVE/ENABLED/ENABLE/unlock 으로 전환.
+     */
+    public static function activate(PDO $pdo, string $tenant, string $channel, string $externalId): array
+    {
+        if (!self::executionEnabled() || $externalId === '') return ['ok' => false, 'status' => 'skipped'];
+        try {
+            switch ($channel) {
+                case 'meta_ads':        return self::metaSetStatus($pdo, $tenant, $externalId, 'ACTIVE');
+                case 'google_ads':      return self::googleSetStatus($pdo, $tenant, $externalId, 'ENABLED');
+                case 'tiktok_business': return self::tiktokSetStatus($pdo, $tenant, $externalId, 'ENABLE');
+                case 'naver_sa':        return self::naverSetLock($pdo, $tenant, $externalId, false);
+                default:                return ['ok' => false, 'status' => 'unsupported'];
+            }
+        } catch (Throwable $e) { return ['ok' => false, 'error' => $e->getMessage()]; }
+    }
+
     /* ════════════════════════ Meta ════════════════════════ */
     private static function metaCreate(PDO $pdo, string $tenant, string $name, int $daily): array
     {

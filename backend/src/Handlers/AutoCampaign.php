@@ -265,7 +265,12 @@ class AutoCampaign
         }
     }
 
-    /** POST /v423/auto-campaign/status — {id, status: active|paused} 일시정지/재개. */
+    /** POST /v423/auto-campaign/status — {id, status: active|paused} 일시정지/재개.
+     *  [227차 P0] 기존엔 내부 DB status 만 토글하고 매체엔 push 하지 않아 "재개"가 광고를 실제로 켜지
+     *    못했다(자동 집행 SaaS 의 최종 1cm 단절). 이제 status 변경을 매체 캠페인에 실제 반영한다.
+     *    ★활성화(active)는 실 광고비 지출 시작 → 인앱 버튼(명시적 사용자 승인)+결제수단 하드 게이트 후에만
+     *      매체 ACTIVE 로 전환. 일시정지(paused)는 매체에도 즉시 정지 push(지출 즉시 차단). PAUSED 기본
+     *      생성 안전정책·옵티마이저 자동 비활성화 유지(사람-인-루프). 데모는 매체 호출 skip(오염차단). */
     public static function setStatus(Request $req, Response $res): Response
     {
         try {
@@ -279,9 +284,43 @@ class AutoCampaign
             }
             $pdo = Db::pdo();
             self::migrate($pdo);
+            // 캠페인 로드(allocations 의 매체 external_id 필요).
+            $cs = $pdo->prepare("SELECT id, allocations FROM auto_campaign WHERE id=? AND tenant_id=? LIMIT 1");
+            $cs->execute([$id, $tenant]);
+            $camp = $cs->fetch(PDO::FETCH_ASSOC);
+            if (!$camp) return self::json($res, ['ok' => false, 'error' => '캠페인을 찾을 수 없습니다.'], 404);
+            $allocs = json_decode((string)($camp['allocations'] ?? '[]'), true) ?: [];
+            $isRealTenant = ($tenant !== 'demo' && strncmp($tenant, 'demo', 4) !== 0);
+
+            // ★활성화 하드 게이트(운영 테넌트) — 실 광고비 지출 시작 직전.
+            if ($status === 'active' && $isRealTenant) {
+                if (!AdAdapters::executionEnabled()) {
+                    return self::json($res, ['ok' => false, 'error' => 'execution_disabled',
+                        'message' => '집행이 비활성화되어 있습니다(긴급 킬스위치). 관리자에게 문의하세요.'], 409);
+                }
+                if (!BillingMethod::hasActiveMethod($pdo, $tenant)) {
+                    return self::json($res, ['ok' => false, 'error' => 'billing_required',
+                        'message' => '광고를 활성화하려면 광고비 결제수단(카드)을 먼저 등록해야 합니다. [재무·정산 > 결제수단]에서 등록 후 다시 시도하세요.'], 402);
+                }
+            }
+
+            // 매체 push(데모는 실 매체 호출 금지 — 가상/오염 차단). 캠페인이 매체에 생성돼 external_id 가 있을 때만.
+            $pushed = [];
+            if ($isRealTenant) {
+                foreach ($allocs as $a) {
+                    $ch  = (string)($a['channel'] ?? '');
+                    $ext = (string)($a['external_id'] ?? '');
+                    if ($ch === '' || $ext === '') continue;
+                    $r = ($status === 'active')
+                        ? AdAdapters::activate($pdo, $tenant, $ch, $ext)
+                        : AdAdapters::pause($pdo, $tenant, $ch, $ext);
+                    $pushed[] = ['channel' => $ch, 'external_id' => $ext, 'ok' => !empty($r['ok']), 'detail' => (string)($r['error'] ?? $r['status'] ?? '')];
+                }
+            }
+
             $st = $pdo->prepare("UPDATE auto_campaign SET status=?, updated_at=? WHERE id=? AND tenant_id=?");
             $st->execute([$status, gmdate('Y-m-d\TH:i:s\Z'), $id, $tenant]);
-            return self::json($res, ['ok' => true, 'id' => $id, 'status' => $status]);
+            return self::json($res, ['ok' => true, 'id' => $id, 'status' => $status, 'pushed' => $pushed]);
         } catch (\Throwable $e) {
             return self::json($res, ['ok' => false, 'error' => $e->getMessage()], 500);
         }
