@@ -1281,12 +1281,21 @@ final class ChannelSync
     /** 채널 쓰기 디스패처(Catalog 위임 진입점). */
     public static function pushProduct(string $channel, array $creds, array $product, string $operation, ?string $channelProductId): array
     {
-        switch (strtolower($channel)) {
+        $ch = strtolower($channel);
+        switch ($ch) {
             case 'cafe24':                 return self::cafe24Write($creds, $product, $operation, $channelProductId);
             case 'coupang':                return self::coupangWrite($creds, $product, $operation, $channelProductId);
             case 'naver': case 'naver_smartstore': return self::naverWrite($creds, $product, $operation, $channelProductId);
             case 'ebay':                   return self::ebayWrite($creds, $product, $operation, $channelProductId);
-            default:                       return ['ok' => false, 'pending' => true, 'error' => 'write_adapter_pending:' . strtolower($channel)];
+            // [228차] 잔여 7채널 쓰기 어댑터 — 각 fetch 어댑터의 검증된 인증을 재사용(인증=비투기, write 엔드포인트=문서기준 best-effort).
+            //   카테고리 등 필수필드는 honest 게이트(에러 반환). 자격증명 미등록 시 상위에서 awaiting_credentials 보류.
+            case 'amazon': case 'amazon_spapi':  return self::amazonWrite($creds, $product, $operation, $channelProductId);
+            case 'tiktok': case 'tiktok_shop':   return self::tiktokWrite($creds, $product, $operation, $channelProductId);
+            case 'rakuten':                return self::rakutenWrite($creds, $product, $operation, $channelProductId);
+            case '11st': case 'st11':      return self::elevenStWrite($creds, $product, $operation, $channelProductId);
+            case 'gmarket': case 'auction': return self::esmWrite($ch, $creds, $product, $operation, $channelProductId);
+            case 'lotteon':                return self::lotteonWrite($creds, $product, $operation, $channelProductId);
+            default:                       return ['ok' => false, 'pending' => true, 'error' => 'write_adapter_pending:' . $ch];
         }
     }
 
@@ -1390,6 +1399,207 @@ final class ChannelSync
         [$c, $b] = self::httpReq('PUT', $url, $hdr, $body);
         if ($c >= 200 && $c < 300) return ['ok' => true, 'channel_product_id' => $sku, 'note' => 'inventory_item 등록 완료 — 판매 노출(offer)은 카테고리·정책 ID 필요'];
         return ['ok' => false, 'error' => "eBay HTTP {$c}", 'detail' => mb_substr(json_encode($b['errors'] ?? $b, JSON_UNESCAPED_UNICODE), 0, 200)];
+    }
+
+    /** [228차] Amazon SP-API Listings Items 등록/수정 — LWA access_token, SKU 키 멱등 PUT. ★productType(category_code)·seller_id 필요.
+     *   인증=amazonFetch 와 동일(LWA). 풀 노출(이미지·요건 속성)은 productType 스키마별 추가 — 본 어댑터는 기본 속성까지. 라이브 검증=실 판매자 계정. */
+    private static function amazonWrite(array $creds, array $p, string $op, ?string $cpid): array
+    {
+        $clientId = trim((string)($creds['client_id'] ?? '')); $clientSecret = trim((string)($creds['client_secret'] ?? ''));
+        $refreshToken = trim((string)($creds['refresh_token'] ?? $creds['key_value'] ?? ''));
+        $marketplaceId = trim((string)($creds['marketplace_id'] ?? 'ATVPDKIKX0DER'));
+        $sellerId = trim((string)($creds['seller_id'] ?? $creds['merchant_id'] ?? ''));
+        if ($clientId === '' || $clientSecret === '' || $refreshToken === '') return ['ok' => false, 'error' => 'Amazon: client_id·client_secret·refresh_token 필요'];
+        if ($sellerId === '') return ['ok' => false, 'error' => 'Amazon 상품등록은 seller_id(merchant token)가 필요합니다'];
+        $sku = (string)($p['sku'] ?? '');
+        if ($sku === '') return ['ok' => false, 'error' => 'Amazon Listings 등록은 SKU 가 필요합니다'];
+        [$tc, $tb] = self::httpPost('https://api.amazon.com/auth/o2/token', ['Content-Type' => 'application/x-www-form-urlencoded'],
+            http_build_query(['grant_type' => 'refresh_token', 'refresh_token' => $refreshToken, 'client_id' => $clientId, 'client_secret' => $clientSecret]));
+        $token = (string)($tb['access_token'] ?? '');
+        if ($token === '') return ['ok' => false, 'error' => "Amazon LWA 토큰 발급 실패(code={$tc})"];
+        $host = self::amazonEndpoint($marketplaceId);
+        $hdr = ['x-amz-access-token' => $token, 'Content-Type' => 'application/json', 'Accept' => 'application/json'];
+        $url = "https://{$host}/listings/2021-08-01/items/" . rawurlencode($sellerId) . '/' . rawurlencode($sku) . '?marketplaceIds=' . rawurlencode($marketplaceId);
+        if ($op === 'unregister' || ($p['action'] ?? '') === 'unregister') {
+            [$c] = self::httpReq('DELETE', $url, $hdr, null);
+            return ($c >= 200 && $c < 300) ? ['ok' => true, 'deleted' => $sku] : ['ok' => false, 'error' => "Amazon DELETE HTTP {$c}"];
+        }
+        $productType = (string)($p['category_code'] ?? '');
+        if ($productType === '') return ['ok' => false, 'error' => 'Amazon 상품등록은 productType 이 필요합니다 — 채널 카테고리 매핑에서 Amazon productType(예: LUGGAGE)을 지정하세요'];
+        $price = (float)($p['price'] ?? 0); $name = (string)($p['name'] ?? $sku); $cur = self::amazonCurrency($marketplaceId);
+        $body = json_encode([
+            'productType'  => $productType,
+            'requirements' => 'LISTING',
+            'attributes'   => [
+                'item_name'              => [['value' => $name, 'marketplace_id' => $marketplaceId]],
+                'purchasable_offer'      => [['marketplace_id' => $marketplaceId, 'currency' => $cur, 'our_price' => [['schedule' => [['value_with_tax' => $price]]]]]],
+                'fulfillment_availability' => [['fulfillment_channel_code' => 'DEFAULT', 'quantity' => (int)($p['inventory'] ?? 0)]],
+            ],
+        ], JSON_UNESCAPED_UNICODE);
+        [$c, $b] = self::httpReq('PUT', $url, $hdr, $body);
+        if ($c >= 200 && $c < 300 && (($b['status'] ?? '') === 'ACCEPTED' || isset($b['sku']))) return ['ok' => true, 'channel_product_id' => $sku];
+        return ['ok' => false, 'error' => "Amazon HTTP {$c}", 'detail' => mb_substr(json_encode($b['issues'] ?? $b, JSON_UNESCAPED_UNICODE), 0, 250)];
+    }
+
+    /** Amazon 마켓플레이스 ID → 통화코드(purchasable_offer.currency). 미상=USD. */
+    private static function amazonCurrency(string $mp): string
+    {
+        $map = ['A1VC38T7YXB528' => 'JPY', 'A1F83G8C2ARO7P' => 'GBP', 'A1PA6795UKMFR9' => 'EUR', 'A13V1IB3VIYZZH' => 'EUR',
+                'APJ6JRA9NG5V4' => 'EUR', 'A1RKKUPIHCS9HS' => 'EUR', 'A1805IZSGTT6HS' => 'EUR', 'A39IBJ37TRP1C6' => 'AUD',
+                'A2EUQ1WTGCTBG2' => 'CAD', 'A1AM78C64UM0Y8' => 'MXN', 'A2Q3Y263D00KWC' => 'BRL'];
+        return $map[$mp] ?? 'USD';
+    }
+
+    /** [228차] TikTok Shop 상품 등록/수정 — HMAC 서명(tiktokSign)+shop_cipher 재사용. ★category_id(category_code) 필수. 라이브 검증=실 판매자 계정. */
+    private static function tiktokWrite(array $creds, array $p, string $op, ?string $cpid): array
+    {
+        $appKey = trim((string)($creds['app_key'] ?? '')); $appSecret = trim((string)($creds['app_secret'] ?? $creds['secret_key'] ?? ''));
+        $accessToken = trim((string)($creds['access_token'] ?? $creds['key_value'] ?? '')); $shopCipher = trim((string)($creds['shop_cipher'] ?? ''));
+        if ($appKey === '' || $appSecret === '' || $accessToken === '') return ['ok' => false, 'error' => 'TikTok Shop: app_key·app_secret·access_token 필요'];
+        $base = 'https://open-api.tiktokglobalshop.com';
+        if ($shopCipher === '') $shopCipher = self::tiktokResolveShopCipher($base, $appKey, $appSecret, $accessToken);
+        if ($shopCipher === '') return ['ok' => false, 'error' => 'TikTok Shop: shop_cipher 도출 실패 — 인가된 샵 확인'];
+        $hdr = ['x-tts-access-token' => $accessToken, 'Content-Type' => 'application/json'];
+        if ($op === 'unregister' || ($p['action'] ?? '') === 'unregister') {
+            if ($cpid === null) return ['ok' => false, 'error' => 'TikTok Shop 미등록 상품 — 내릴 대상 없음'];
+            $path = '/product/202309/products/' . rawurlencode($cpid) . '/deactivate';
+            $q = ['app_key' => $appKey, 'timestamp' => (string)time(), 'shop_cipher' => $shopCipher]; $bj = '{}';
+            $q['sign'] = self::tiktokSign($appSecret, $path, $q, $bj);
+            [$c, $b] = self::httpPost($base . $path . '?' . http_build_query($q), $hdr, $bj);
+            return ($c < 400 && (int)($b['code'] ?? -1) === 0) ? ['ok' => true, 'channel_product_id' => $cpid]
+                : ['ok' => false, 'error' => "TikTok deactivate HTTP {$c}", 'detail' => mb_substr(json_encode($b['message'] ?? $b, JSON_UNESCAPED_UNICODE), 0, 200)];
+        }
+        $catId = (string)($p['category_code'] ?? '');
+        if ($catId === '') return ['ok' => false, 'error' => 'TikTok Shop 등록은 category_id 가 필요합니다 — 채널 카테고리 매핑에서 TikTok 카테고리ID를 지정하세요'];
+        $price = (float)($p['price'] ?? 0); $name = (string)($p['name'] ?? $p['sku'] ?? '');
+        $payload = ['title' => $name, 'category_id' => $catId, 'description' => ((string)($p['spec'] ?? '') ?: $name),
+            'skus' => [['seller_sku' => (string)($p['sku'] ?? ''),
+                'price' => ['amount' => (string)$price, 'currency' => (string)($creds['currency'] ?? 'USD')],
+                'inventory' => [['quantity' => (int)($p['inventory'] ?? 0)]]]]];
+        $isUpdate = $cpid !== null;
+        $path = $isUpdate ? ('/product/202309/products/' . rawurlencode($cpid)) : '/product/202309/products';
+        $bj = json_encode($payload, JSON_UNESCAPED_UNICODE);
+        $q = ['app_key' => $appKey, 'timestamp' => (string)time(), 'shop_cipher' => $shopCipher];
+        $q['sign'] = self::tiktokSign($appSecret, $path, $q, (string)$bj);
+        $url = $base . $path . '?' . http_build_query($q);
+        [$c, $b] = $isUpdate ? self::httpReq('PUT', $url, $hdr, (string)$bj) : self::httpPost($url, $hdr, (string)$bj);
+        if ($c < 400 && (int)($b['code'] ?? -1) === 0) { $pid = $b['data']['product_id'] ?? $cpid; return ['ok' => true, 'channel_product_id' => $pid !== null ? (string)$pid : null]; }
+        return ['ok' => false, 'error' => "TikTok Shop HTTP {$c}", 'detail' => mb_substr(json_encode($b['message'] ?? $b, JSON_UNESCAPED_UNICODE), 0, 200)];
+    }
+
+    /** TikTok Shop 인가된 샵에서 shop_cipher 도출(쓰기 어댑터 보조 — tiktokFetch 와 동일 로직). 실패 시 ''. */
+    private static function tiktokResolveShopCipher(string $base, string $appKey, string $appSecret, string $accessToken): string
+    {
+        $path = '/authorization/202309/shops';
+        $q = ['app_key' => $appKey, 'timestamp' => (string)time()];
+        $q['sign'] = self::tiktokSign($appSecret, $path, $q, '');
+        [$c, $b] = self::httpGet($base . $path . '?' . http_build_query($q), ['x-tts-access-token' => $accessToken, 'Content-Type' => 'application/json']);
+        if ($c >= 400 || (int)($b['code'] ?? -1) !== 0) return '';
+        return (string)(($b['data']['shops'] ?? [])[0]['cipher'] ?? '');
+    }
+
+    /** [228차] Rakuten RMS Item API 2.0 상품 upsert — ESA 인증(rakutenFetch 동일), manageNumber(=SKU) 키 멱등 PUT. 라이브 검증=실 점포 계정. */
+    private static function rakutenWrite(array $creds, array $p, string $op, ?string $cpid): array
+    {
+        $serviceSecret = trim((string)($creds['service_secret'] ?? '')); $licenseKey = trim((string)($creds['license_key'] ?? ''));
+        if ($serviceSecret === '' || $licenseKey === '') return ['ok' => false, 'error' => 'Rakuten: service_secret·license_key 필요'];
+        $sku = (string)($p['sku'] ?? '');
+        if ($sku === '') return ['ok' => false, 'error' => 'Rakuten 등록은 SKU(manageNumber)가 필요합니다'];
+        $hdr = ['Authorization' => 'ESA ' . base64_encode($serviceSecret . ':' . $licenseKey), 'Content-Type' => 'application/json; charset=utf-8'];
+        $url = 'https://api.rms.rakuten.co.jp/es/2.0/items/manage-numbers/' . rawurlencode($sku);
+        $unreg = ($op === 'unregister' || ($p['action'] ?? '') === 'unregister');
+        $body = json_encode([
+            'title'              => (string)($p['name'] ?? $sku),
+            'productDescription' => ['pc' => (string)($p['spec'] ?? $p['name'] ?? $sku)],
+            'standardPrice'      => (int)round((float)($p['price'] ?? 0)),
+            'hideItem'           => $unreg,
+            'itemType'           => 'NORMAL',
+            'inventory'          => ['inventoryType' => 'NORMAL', 'quantity' => (int)($p['inventory'] ?? 0)],
+        ], JSON_UNESCAPED_UNICODE);
+        [$c, $b] = self::httpReq('PUT', $url, $hdr, $body);
+        if ($c >= 200 && $c < 300) return ['ok' => true, 'channel_product_id' => $sku];
+        return ['ok' => false, 'error' => "Rakuten HTTP {$c}", 'detail' => mb_substr(json_encode($b['errors'] ?? $b, JSON_UNESCAPED_UNICODE), 0, 200)];
+    }
+
+    /** [228차] 11번가 셀러 Open API 상품 등록/수정 — openapikey 헤더, XML(elevenStFetch 동일 인증). ★dispCtgrNo(category_code) 필수. */
+    private static function elevenStWrite(array $creds, array $p, string $op, ?string $cpid): array
+    {
+        $apiKey = trim((string)($creds['api_key'] ?? $creds['openapikey'] ?? $creds['key_value'] ?? ''));
+        if ($apiKey === '') return ['ok' => false, 'error' => '11번가: 오픈API 키(api_key) 필요'];
+        $hdr = ['openapikey' => $apiKey, 'Content-Type' => 'text/xml; charset=euc-kr'];
+        if ($op === 'unregister' || ($p['action'] ?? '') === 'unregister') {
+            if ($cpid === null) return ['ok' => false, 'error' => '11번가 미등록 상품 — 내릴 대상 없음'];
+            [$c] = self::httpReq('PUT', "http://api.11st.co.kr/rest/prodservices/product/sellingStop/" . rawurlencode($cpid), $hdr, '');
+            return ($c >= 200 && $c < 300) ? ['ok' => true, 'channel_product_id' => $cpid] : ['ok' => false, 'error' => "11번가 판매중지 HTTP {$c}"];
+        }
+        $cat = (string)($p['category_code'] ?? '');
+        if ($cat === '') return ['ok' => false, 'error' => '11번가 상품등록은 표시카테고리(dispCtgrNo)가 필요합니다 — 채널 카테고리 매핑에서 11번가 카테고리번호를 지정하세요'];
+        $name = htmlspecialchars((string)($p['name'] ?? $p['sku'] ?? ''), ENT_XML1); $sku = htmlspecialchars((string)($p['sku'] ?? ''), ENT_XML1);
+        $price = (int)round((float)($p['price'] ?? 0)); $qty = (int)($p['inventory'] ?? 0);
+        $xml = '<?xml version="1.0" encoding="EUC-KR"?>'
+             . '<Product><dispCtgrNo>' . htmlspecialchars($cat, ENT_XML1) . '</dispCtgrNo>'
+             . '<prdNm>' . $name . '</prdNm><sellPrc>' . $price . '</sellPrc>'
+             . '<prdStockQty>' . $qty . '</prdStockQty><sellerPrdCd>' . $sku . '</sellerPrdCd>'
+             . '<dispCtgrStatCd>1</dispCtgrStatCd></Product>';
+        $method = $cpid !== null ? 'PUT' : 'POST';
+        $url = $cpid !== null ? "http://api.11st.co.kr/rest/prodservices/product/" . rawurlencode($cpid) : 'http://api.11st.co.kr/rest/prodservices/product';
+        [$c, $ignore, $err, $raw] = self::httpReq($method, $url, $hdr, $xml);
+        if ($c >= 200 && $c < 300) {
+            $pid = $cpid; $rx = @simplexml_load_string((string)$raw);
+            if ($rx !== false) { $pno = (string)($rx->prdNo ?? $rx->ProductNo ?? ''); if ($pno !== '') $pid = $pno; }
+            return ['ok' => true, 'channel_product_id' => $pid !== null ? (string)$pid : null];
+        }
+        return ['ok' => false, 'error' => "11번가 HTTP {$c}", 'detail' => mb_substr((string)$raw, 0, 200)];
+    }
+
+    /** [228차] ESM 2.0(G마켓/옥션) 상품 등록/수정 — Bearer+siteGubun(esmFetch 동일 인증). ★카테고리코드(category_code) 필수. */
+    private static function esmWrite(string $channel, array $creds, array $p, string $op, ?string $cpid): array
+    {
+        $apiKey = trim((string)($creds['api_key'] ?? $creds['key_value'] ?? '')); $sellerId = trim((string)($creds['seller_id'] ?? ''));
+        $label = $channel === 'auction' ? '옥션' : 'G마켓';
+        if ($apiKey === '' || $sellerId === '') return ['ok' => false, 'error' => "{$label}: ESM api_key·seller_id 필요"];
+        $site = $channel === 'auction' ? 'IAC' : 'GMKT';
+        $hdr = ['Authorization' => "Bearer {$apiKey}", 'Content-Type' => 'application/json'];
+        if ($op === 'unregister' || ($p['action'] ?? '') === 'unregister') {
+            if ($cpid === null) return ['ok' => false, 'error' => "{$label} 미등록 상품 — 내릴 대상 없음"];
+            [$c] = self::httpReq('POST', "https://api.esmplus.com/product/v1/products/" . rawurlencode($cpid) . "/stop", $hdr, json_encode(['siteGubun' => $site, 'sellerId' => $sellerId], JSON_UNESCAPED_UNICODE));
+            return ($c >= 200 && $c < 300) ? ['ok' => true, 'channel_product_id' => $cpid] : ['ok' => false, 'error' => "{$label} 판매중지 HTTP {$c}"];
+        }
+        $cat = (string)($p['category_code'] ?? '');
+        if ($cat === '') return ['ok' => false, 'error' => "{$label} 상품등록은 카테고리코드가 필요합니다 — 채널 카테고리 매핑에서 ESM 카테고리코드를 지정하세요"];
+        $payload = json_encode([
+            'siteGubun' => $site, 'sellerId' => $sellerId, 'categoryCode' => $cat,
+            'itemName' => (string)($p['name'] ?? $p['sku'] ?? ''), 'price' => (int)round((float)($p['price'] ?? 0)),
+            'quantity' => (int)($p['inventory'] ?? 0), 'sellerItemCode' => (string)($p['sku'] ?? ''),
+            'detailContent' => (string)($p['spec'] ?? $p['name'] ?? ''),
+        ], JSON_UNESCAPED_UNICODE);
+        $method = $cpid !== null ? 'PUT' : 'POST';
+        $url = $cpid !== null ? "https://api.esmplus.com/product/v1/products/" . rawurlencode($cpid) : 'https://api.esmplus.com/product/v1/products';
+        [$c, $b] = self::httpReq($method, $url, $hdr, $payload);
+        if ($c >= 200 && $c < 300) { $pid = $b['itemNo'] ?? $b['productNo'] ?? ($b['data']['itemNo'] ?? null) ?? $cpid; return ['ok' => true, 'channel_product_id' => $pid !== null ? (string)$pid : null]; }
+        return ['ok' => false, 'error' => "{$label} HTTP {$c}", 'detail' => mb_substr(json_encode($b, JSON_UNESCAPED_UNICODE), 0, 200)];
+    }
+
+    /** [228차] 롯데온 셀러 API 상품 등록/수정 — Bearer+X-Seller-Id(lotteonFetch 동일 인증). ★카테고리코드(category_code) 필수. */
+    private static function lotteonWrite(array $creds, array $p, string $op, ?string $cpid): array
+    {
+        $apiKey = trim((string)($creds['api_key'] ?? $creds['key_value'] ?? '')); $sellerId = trim((string)($creds['seller_id'] ?? ''));
+        if ($apiKey === '' || $sellerId === '') return ['ok' => false, 'error' => '롯데온: api_key·seller_id 필요'];
+        $hdr = ['Authorization' => "Bearer {$apiKey}", 'X-Seller-Id' => $sellerId, 'Content-Type' => 'application/json'];
+        $unreg = ($op === 'unregister' || ($p['action'] ?? '') === 'unregister');
+        $cat = (string)($p['category_code'] ?? '');
+        if (!$unreg && $cat === '') return ['ok' => false, 'error' => '롯데온 상품등록은 카테고리코드가 필요합니다 — 채널 카테고리 매핑에서 롯데온 카테고리코드를 지정하세요'];
+        $payload = json_encode([
+            'sellerProductCode' => (string)($p['sku'] ?? ''), 'categoryCode' => $cat,
+            'productName' => (string)($p['name'] ?? $p['sku'] ?? ''), 'salePrice' => (int)round((float)($p['price'] ?? 0)),
+            'stockQty' => (int)($p['inventory'] ?? 0), 'saleStatus' => $unreg ? 'STOP' : 'SALE',
+            'detailContent' => (string)($p['spec'] ?? $p['name'] ?? ''),
+        ], JSON_UNESCAPED_UNICODE);
+        $method = $cpid !== null ? 'PUT' : 'POST';
+        $url = $cpid !== null ? "https://openapi.lotteon.com/seller/v1/products/" . rawurlencode($cpid) : 'https://openapi.lotteon.com/seller/v1/products';
+        [$c, $b] = self::httpReq($method, $url, $hdr, $payload);
+        if ($c >= 200 && $c < 300) { $pid = $b['productNo'] ?? ($b['data']['productNo'] ?? null) ?? $cpid; return ['ok' => true, 'channel_product_id' => $pid !== null ? (string)$pid : null]; }
+        return ['ok' => false, 'error' => "롯데온 HTTP {$c}", 'detail' => mb_substr(json_encode($b, JSON_UNESCAPED_UNICODE), 0, 200)];
     }
 
     // ── DB 저장 ──────────────────────────────────────────────────────────
