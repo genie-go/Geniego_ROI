@@ -482,9 +482,10 @@ class Catalog
         switch (strtolower($channel)) {
             case 'shopify':
                 return self::shopifyWrite($creds, $product, $operation, $channelProductId);
-            // [확장지점] cafe24/coupang/naver 등 쓰기 어댑터 추가 시 큐가 자동 소비됨.
+            // [227차] cafe24/coupang/naver 등은 ChannelSync 쓰기 어댑터로 위임(검증된 인증 재사용).
+            //   ChannelSync 미지원 채널은 pending 반환 → 큐 유지(어댑터 추가 시 자동 소비).
             default:
-                return ['ok' => false, 'pending' => true, 'error' => 'write_adapter_pending:' . strtolower($channel)];
+                return ChannelSync::pushProduct($channel, $creds, $product, $operation, $channelProductId);
         }
     }
 

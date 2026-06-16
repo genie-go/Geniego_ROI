@@ -1255,6 +1255,117 @@ final class ChannelSync
         };
     }
 
+    // ══════════════════════════════════════════════════════════════════════
+    //  [227차] Writeback 쓰기 어댑터 — 상품 등록/수정을 실 채널로 push.
+    //    Catalog::pushToChannel 이 shopify 외 채널을 본 메서드로 위임. fetch 어댑터의
+    //    검증된 인증(쿠팡 HMAC / 네이버·카페24 OAuth)을 미러. 자격증명 0이면 dormant(무영향).
+    //    ★상품 CREATE 는 채널별 필수필드(카테고리코드 등)가 catalog 보유분보다 많을 수 있어
+    //      best-effort — 채널이 추가필드를 요구하면 그 오류를 그대로 반환(정직). 미구현 채널=pending.
+    // ══════════════════════════════════════════════════════════════════════
+
+    /** PUT/DELETE 등 커스텀 메서드 HTTP(쓰기 update/해제용). 반환 [code, parsedBody, err]. */
+    private static function httpReq(string $method, string $url, array $headers, ?string $body): array
+    {
+        $ch = curl_init($url);
+        $hdrs = array_map(fn($k, $v) => "$k: $v", array_keys($headers), array_values($headers));
+        $opt = [CURLOPT_RETURNTRANSFER => true, CURLOPT_CUSTOMREQUEST => $method, CURLOPT_TIMEOUT => 20,
+                CURLOPT_HTTPHEADER => $hdrs, CURLOPT_SSL_VERIFYPEER => true, CURLOPT_USERAGENT => 'GeniegoROI/v427'];
+        if ($body !== null) $opt[CURLOPT_POSTFIELDS] = $body;
+        curl_setopt_array($ch, $opt);
+        $raw = curl_exec($ch); $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE); $err = curl_error($ch) ?: null;
+        curl_close($ch);
+        $b = ($err === null && $raw) ? (json_decode((string)$raw, true) ?? []) : [];
+        return [$code, $b, $err, (string)$raw];
+    }
+
+    /** 채널 쓰기 디스패처(Catalog 위임 진입점). */
+    public static function pushProduct(string $channel, array $creds, array $product, string $operation, ?string $channelProductId): array
+    {
+        switch (strtolower($channel)) {
+            case 'cafe24':                 return self::cafe24Write($creds, $product, $operation, $channelProductId);
+            case 'coupang':                return self::coupangWrite($creds, $product, $operation, $channelProductId);
+            case 'naver': case 'naver_smartstore': return self::naverWrite($creds, $product, $operation, $channelProductId);
+            default:                       return ['ok' => false, 'pending' => true, 'error' => 'write_adapter_pending:' . strtolower($channel)];
+        }
+    }
+
+    /** Cafe24 Admin API 상품 등록/수정 — refresh_token grant → access_token → /admin/products. */
+    private static function cafe24Write(array $creds, array $p, string $op, ?string $cpid): array
+    {
+        $mallId = trim((string)($creds['mall_id'] ?? '')); $clientId = trim((string)($creds['client_id'] ?? ''));
+        $clientSecret = trim((string)($creds['client_secret'] ?? '')); $refreshToken = trim((string)($creds['refresh_token'] ?? ''));
+        if ($mallId === '' || $clientId === '' || $clientSecret === '' || $refreshToken === '') return ['ok' => false, 'error' => 'Cafe24: mall_id·client_id·client_secret·refresh_token 필요'];
+        $apiBase = "https://{$mallId}.cafe24api.com/api/v2";
+        [$tc, $tb] = self::httpPost("{$apiBase}/oauth/token", ['Authorization' => 'Basic ' . base64_encode($clientId . ':' . $clientSecret), 'Content-Type' => 'application/x-www-form-urlencoded'], http_build_query(['grant_type' => 'refresh_token', 'refresh_token' => $refreshToken]));
+        $token = (string)($tb['access_token'] ?? '');
+        if ($token === '') return ['ok' => false, 'error' => "Cafe24 토큰 발급 실패(code={$tc}) — refresh_token 만료 가능"];
+        $hdr = ['Authorization' => "Bearer {$token}", 'Content-Type' => 'application/json', 'X-Cafe24-Api-Version' => '2024-06-01'];
+        $unreg = ($op === 'unregister' || ($p['action'] ?? '') === 'unregister');
+        $prod = ['product_name' => (string)($p['name'] ?? $p['sku'] ?? ''), 'price' => (string)(float)($p['price'] ?? 0),
+                 'supply_price' => (string)(float)($p['price'] ?? 0), 'display' => $unreg ? 'F' : 'T', 'selling' => $unreg ? 'F' : 'T',
+                 'description' => (string)($p['spec'] ?? ''), 'custom_product_code' => (string)($p['sku'] ?? '')];
+        $body = json_encode(['shop_no' => 1, 'request' => ['product' => $prod]], JSON_UNESCAPED_UNICODE);
+        if ($cpid !== null) { [$c, $b] = self::httpReq('PUT', "{$apiBase}/admin/products/{$cpid}", $hdr, $body); }
+        else { [$c, $b] = self::httpPost("{$apiBase}/admin/products", $hdr, $body); }
+        if ($c >= 200 && $c < 300) { $pid = $b['product']['product_no'] ?? $cpid; return ['ok' => true, 'channel_product_id' => $pid !== null ? (string)$pid : null]; }
+        return ['ok' => false, 'error' => "Cafe24 HTTP {$c}", 'detail' => mb_substr(json_encode($b['error'] ?? $b, JSON_UNESCAPED_UNICODE), 0, 200)];
+    }
+
+    /** Coupang Wing 상품 등록 — CEA HMAC-SHA256 서명. ★displayCategoryCode 등 필수필드는 catalog category(숫자) 사용. */
+    private static function coupangWrite(array $creds, array $p, string $op, ?string $cpid): array
+    {
+        $accessKey = trim((string)($creds['access_key'] ?? '')); $secretKey = trim((string)($creds['secret_key'] ?? '')); $vendorId = trim((string)($creds['vendor_id'] ?? ''));
+        if ($accessKey === '' || $secretKey === '' || $vendorId === '') return ['ok' => false, 'error' => 'Coupang: access_key·secret_key·vendor_id 필요'];
+        $catCode = (int)preg_replace('/\D/', '', (string)($p['category'] ?? ''));
+        if ($catCode <= 0) return ['ok' => false, 'error' => 'Coupang 상품등록은 노출카테고리코드(displayCategoryCode)가 필요합니다 — 상품 category 에 쿠팡 카테고리코드(숫자)를 지정하세요'];
+        $host = 'https://api-gateway.coupang.com';
+        $method = 'POST'; $path = "/v2/providers/seller_api/apis/api/v1/marketplace/seller-products";
+        $datetime = gmdate('ymd\THis\Z');
+        $sig = hash_hmac('sha256', $datetime . $method . $path, $secretKey);
+        $auth = "CEA algorithm=HmacSHA256, access-key={$accessKey}, signed-date={$datetime}, signature={$sig}";
+        $price = (float)($p['price'] ?? 0); $name = (string)($p['name'] ?? $p['sku'] ?? ''); $sku = (string)($p['sku'] ?? '');
+        $payload = json_encode([
+            'sellerProductName' => $name, 'vendorId' => $vendorId, 'displayCategoryCode' => $catCode,
+            'saleStartedAt' => gmdate('Y-m-d\TH:i:s'), 'saleEndedAt' => '2099-12-31T23:59:59',
+            'displayProductName' => $name, 'sellerProductCode' => $sku,
+            'items' => [[
+                'itemName' => $name, 'originalPrice' => $price, 'salePrice' => $price,
+                'maximumBuyCount' => (int)($p['inventory'] ?? 0), 'sellerProductItemCode' => $sku,
+            ]],
+        ], JSON_UNESCAPED_UNICODE);
+        [$c, $b] = self::httpReq($method, $host . $path, ['Authorization' => $auth, 'Content-Type' => 'application/json;charset=UTF-8'], $payload);
+        if ($c >= 200 && $c < 300 && (($b['code'] ?? '') === 'SUCCESS' || isset($b['data']))) {
+            $pid = $b['data'] ?? null; return ['ok' => true, 'channel_product_id' => $pid !== null ? (string)$pid : null];
+        }
+        return ['ok' => false, 'error' => "Coupang HTTP {$c}", 'detail' => mb_substr(json_encode($b['message'] ?? $b, JSON_UNESCAPED_UNICODE), 0, 200)];
+    }
+
+    /** Naver Commerce 상품 등록 — HMAC 서명 OAuth2 → Bearer → /external/v2/products. ★leafCategoryId 필수. */
+    private static function naverWrite(array $creds, array $p, string $op, ?string $cpid): array
+    {
+        $clientId = trim((string)($creds['client_id'] ?? '')); $clientSecret = trim((string)($creds['client_secret'] ?? ''));
+        if ($clientId === '' || $clientSecret === '') return ['ok' => false, 'error' => 'Naver: client_id·client_secret 필요'];
+        $leaf = (string)($p['category'] ?? '');
+        if ($leaf === '') return ['ok' => false, 'error' => 'Naver 상품등록은 leafCategoryId 가 필요합니다 — 상품 category 에 네이버 리프카테고리ID를 지정하세요'];
+        $ts = (int)(microtime(true) * 1000);
+        $sign = base64_encode(hash_hmac('sha256', "{$clientId}_{$ts}", $clientSecret, true));
+        [$tc, $tb] = self::httpPost('https://api.commerce.naver.com/external/v1/oauth2/token', ['Content-Type' => 'application/x-www-form-urlencoded'],
+            "client_id={$clientId}&timestamp={$ts}&client_secret_sign={$sign}&grant_type=client_credentials&type=SELF");
+        $token = (string)($tb['access_token'] ?? '');
+        if ($token === '') return ['ok' => false, 'error' => "Naver 토큰 발급 실패(code={$tc})"];
+        $price = (int)round((float)($p['price'] ?? 0)); $name = (string)($p['name'] ?? $p['sku'] ?? '');
+        $payload = json_encode(['originProduct' => [
+            'statusType' => ($op === 'unregister' ? 'SUSPENSION' : 'SALE'), 'saleType' => 'NEW', 'leafCategoryId' => $leaf,
+            'name' => $name, 'detailContent' => (string)($p['spec'] ?? $name), 'salePrice' => $price,
+            'stockQuantity' => (int)($p['inventory'] ?? 0), 'sellerCodeInfo' => ['sellerManagementCode' => (string)($p['sku'] ?? '')],
+        ]], JSON_UNESCAPED_UNICODE);
+        $hdr = ['Authorization' => "Bearer {$token}", 'Content-Type' => 'application/json'];
+        if ($cpid !== null) { [$c, $b] = self::httpReq('PUT', "https://api.commerce.naver.com/external/v2/products/origin-products/{$cpid}", $hdr, $payload); }
+        else { [$c, $b] = self::httpPost('https://api.commerce.naver.com/external/v2/products', $hdr, $payload); }
+        if ($c >= 200 && $c < 300) { $pid = $b['originProductNo'] ?? $b['smartstoreChannelProductNo'] ?? $cpid; return ['ok' => true, 'channel_product_id' => $pid !== null ? (string)$pid : null]; }
+        return ['ok' => false, 'error' => "Naver HTTP {$c}", 'detail' => mb_substr(json_encode($b['message'] ?? $b, JSON_UNESCAPED_UNICODE), 0, 200)];
+    }
+
     // ── DB 저장 ──────────────────────────────────────────────────────────
     private static function saveProducts(PDO $pdo, string $tenant, string $channel, array $products): int
     {
