@@ -791,6 +791,8 @@ final class OrderHub
             $chk = $pdo->prepare("SELECT 1 FROM orderhub_claims WHERE id=? AND tenant_id=? LIMIT 1");
             $upd = $pdo->prepare("UPDATE orderhub_claims SET buyer=?,channel=?,type=?,reason=?,status=?,amount=?,updated_at=? WHERE id=? AND tenant_id=?");
             $ins = $pdo->prepare("INSERT INTO orderhub_claims (id,tenant_id,order_id,buyer,channel,type,reason,status,amount,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)");
+            $po = $pdo->prepare("SELECT SUBSTR(ordered_at,1,7) FROM channel_orders WHERE tenant_id=? AND (channel_order_id=? OR order_no=?) LIMIT 1");
+            $affected = [];
             foreach ($items as $it) {
                 $orderId = (string)($it['order_id'] ?? $it['orderId'] ?? '');
                 if ($orderId === '') { $skipped++; continue; }
@@ -815,11 +817,21 @@ final class OrderHub
                     $ins->execute([$id,$tenant,$orderId,$buyer,$channel,$type,$reason,$status,$amount,$now,$now]);
                 }
                 $ingested++;
+                // [227차 감사 P1] 반품 ordered_at 귀속 정합 — 원주문 월을 재롤업 대상으로 수집(cron 당월 한정 보완).
+                try {
+                    $po->execute([$tenant, $orderId, $orderId]);
+                    $pm = (string)($po->fetchColumn() ?: '');
+                    if (preg_match('/^\d{4}-\d{2}$/', $pm)) $affected[$pm] = true;
+                } catch (\Throwable $e) {}
             }
         } catch (\Throwable $e) {
             return self::json($resp, ['ok' => false, 'error' => 'db_error', 'message' => $e->getMessage()], 500);
         }
-        return self::json($resp, ['ok' => true, 'ingested' => $ingested, 'skipped' => $skipped, '_env' => Db::env(), '_isDemo' => $isDemo]);
+        // 영향받은 원주문 월 재롤업 — 늦은 반품이 판매월 정산(returnFee/net_payout)에 정확히 반영.
+        foreach (array_keys($affected) as $pm) {
+            try { self::rollupSettlementsCore($pdo, $tenant, $pm, null, $now); } catch (\Throwable $e) {}
+        }
+        return self::json($resp, ['ok' => true, 'ingested' => $ingested, 'skipped' => $skipped, 'rerolled' => array_keys($affected), '_env' => Db::env(), '_isDemo' => $isDemo]);
     }
 
     public static function ingestSettlements(Request $req, Response $resp): Response
@@ -967,8 +979,14 @@ final class OrderHub
         // [227차] 채널별 쿠폰 할인액 집계(취소제외) — 기존 coupon_discount=0 하드코딩 대체.
         $couponBy = self::couponDiscountByChannel($pdo, $tenant, $period, $cancelExpr, $cancelTokens);
 
-        $cs = $pdo->prepare("SELECT channel, COUNT(*) AS rcnt, COALESCE(SUM(amount),0) AS rfee
-            FROM orderhub_claims WHERE tenant_id=? AND SUBSTR(created_at,1,7)=? AND type IN ('return','cancel') GROUP BY channel");
+        // [227차 감사 P1] 반품 기간귀속 = 원주문 ordered_at 월(기존 created_at=반품접수월은 월경계 부정합:
+        //   5월주문 6월반품이 6월정산에 잡혀 5월엔 미반영·6월엔 주문없는 반품 발생). 원주문 없으면 created_at 폴백.
+        //   ★늦은 반품도 판매월에 포착되도록 ingestClaims 가 원주문 월을 재롤업 트리거(cron은 당월만 롤업이라).
+        $cs = $pdo->prepare("SELECT c.channel, COUNT(*) AS rcnt, COALESCE(SUM(c.amount),0) AS rfee
+            FROM orderhub_claims c
+            LEFT JOIN channel_orders o ON o.tenant_id=c.tenant_id AND (o.channel_order_id=c.order_id OR o.order_no=c.order_id)
+            WHERE c.tenant_id=? AND c.type IN ('return','cancel') AND SUBSTR(COALESCE(o.ordered_at, c.created_at),1,7)=?
+            GROUP BY c.channel");
         $cs->execute([$tenant, $period]);
         $claimsBy = [];
         foreach ($cs->fetchAll(\PDO::FETCH_ASSOC) as $r) {

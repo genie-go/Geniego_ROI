@@ -1522,14 +1522,16 @@ final class ChannelSync
     {
         if ($sku === '' || $qty <= 0) return;
         try {
-            $sel = $pdo->prepare("SELECT id, available FROM channel_inventory WHERE tenant_id=? AND channel=? AND sku=? ORDER BY (warehouse='default') DESC, id ASC LIMIT 1");
+            $sel = $pdo->prepare("SELECT id FROM channel_inventory WHERE tenant_id=? AND channel=? AND sku=? ORDER BY (warehouse='default') DESC, id ASC LIMIT 1");
             $sel->execute([$tenant, $channel, $sku]);
-            $row = $sel->fetch(PDO::FETCH_ASSOC);
-            if (!$row) return; // 미동기화 SKU → 차감 대상 없음
-            $avail = (int)$row['available'];
-            $newAvail = $avail >= $qty ? $avail - $qty : 0;
-            $pdo->prepare("UPDATE channel_inventory SET available=?, synced_at=? WHERE id=?")
-                ->execute([$newAvail, gmdate('c'), (int)$row['id']]);
+            $id = $sel->fetchColumn();
+            if ($id === false || $id === null) return; // 미동기화 SKU → 차감 대상 없음
+            // [227차 감사 P1] 원자 차감 — 기존 SELECT available→앱계산→UPDATE 는 동시 주문 시 동일 available 을
+            //   읽어 lost decrement/오버셀이 났다. 단일 UPDATE 로 available-qty(0 클램프)를 원자 적용(incInventory 대칭).
+            $isMy = strtolower((string)$pdo->getAttribute(\PDO::ATTR_DRIVER_NAME)) === 'mysql';
+            $clamp = $isMy ? 'GREATEST(0, available - ?)' : 'MAX(0, available - ?)';
+            $pdo->prepare("UPDATE channel_inventory SET available = {$clamp}, synced_at=? WHERE id=?")
+                ->execute([$qty, gmdate('c'), (int)$id]);
         } catch (\Throwable $e) { error_log('[ChannelSync.decInventory] ' . $e->getMessage()); }
     }
 
