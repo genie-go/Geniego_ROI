@@ -100,6 +100,8 @@ class PixelTracking
         foreach (['pixel_events','pixel_configs','pixel_sessions'] as $tbl) {
             try { $pdo->exec("ALTER TABLE {$tbl} ADD COLUMN tenant_id VARCHAR(100) NOT NULL DEFAULT 'demo'"); } catch (\Throwable $e) {}
         }
+        // [227차 P0] GA4 포워딩 추적 컬럼(idempotent — 이미 있으면 catch).
+        try { $pdo->exec("ALTER TABLE pixel_events ADD COLUMN forwarded_ga4 " . (self::isMysql($pdo) ? "INT DEFAULT 0" : "INTEGER DEFAULT 0")); } catch (\Throwable $e) {}
     }
 
     /* ─── POST /pixel/collect ─── 픽셀 이벤트 수집 (공개 비콘) ─────────── */
@@ -217,6 +219,7 @@ class PixelTracking
             if ($trusted && $config && (int)($config['enabled'] ?? 0) === 1) {
                 self::forwardToMeta($pdo, $config, $eventId, $eventName, $emailHash, $phoneHash, $b, $deviceType);
                 self::forwardToTikTok($pdo, $config, $eventId, $eventName, $emailHash, $b);
+                self::forwardToGA4($pdo, $config, $eventId, $eventName, (string)$sessionId, $b); // [227차 P0] GA4 Measurement Protocol
             }
         }
         return self::json($res, ['ok' => true, 'event_id' => $eventId, 'deduped' => !$inserted]);
@@ -377,6 +380,38 @@ class PixelTracking
             curl_setopt_array($ch, [CURLOPT_POST=>true, CURLOPT_POSTFIELDS=>json_encode($payload), CURLOPT_RETURNTRANSFER=>true, CURLOPT_TIMEOUT=>5, CURLOPT_HTTPHEADER=>['Content-Type: application/json', 'Access-Token: '.$cfg['tiktok_access_token']]]);
             curl_exec($ch); curl_close($ch);
             $u = $pdo->prepare("UPDATE pixel_events SET forwarded_tiktok=1 WHERE event_id=:eid"); $u->execute([':eid'=>$eventId]);
+        } catch (\Exception $e) {}
+    }
+
+    /**
+     * [227차 P0] GA4 Measurement Protocol 서버측 포워딩. 기존엔 ga4_measurement_id/ga4_api_secret 를
+     *   수집·저장만 하고 실제 전송 메서드가 없어 GA4 측정이 단절됐다(거짓 기능). 이제 trusted 구매/이벤트를
+     *   GA4 로 server-to-server 전송한다. client_id 는 픽셀 session_id(세션 일관성), 표준 GA4 이벤트로 매핑.
+     */
+    private static function forwardToGA4(\PDO $pdo, array $cfg, string $eventId, string $eventName, string $sessionId, array $b): void
+    {
+        if (empty($cfg['ga4_measurement_id']) || empty($cfg['ga4_api_secret'])) return;
+        $map = ['page_view'=>'page_view', 'view_content'=>'view_item', 'product_view'=>'view_item', 'add_to_cart'=>'add_to_cart',
+                'initiate_checkout'=>'begin_checkout', 'add_payment_info'=>'add_payment_info', 'purchase'=>'purchase',
+                'lead'=>'generate_lead', 'subscribe'=>'sign_up', 'complete_registration'=>'sign_up'];
+        $ev = $map[$eventName] ?? $eventName;
+        $clientId = $sessionId !== '' ? $sessionId : ('px.' . substr($eventId, 0, 16));
+        $params = array_filter([
+            'currency'             => $b['currency'] ?? 'KRW',
+            'value'                => (float)($b['value'] ?? 0) ?: null,
+            'transaction_id'       => $ev === 'purchase' ? $eventId : null,
+            'page_location'        => $b['page_url'] ?? null,
+            'session_id'           => $sessionId !== '' ? $sessionId : null,
+            'engagement_time_msec' => 1,
+        ], static fn($v) => $v !== null);
+        $payload = ['client_id' => $clientId, 'events' => [['name' => $ev, 'params' => $params]]];
+        try {
+            $url = 'https://www.google-analytics.com/mp/collect?measurement_id=' . urlencode((string)$cfg['ga4_measurement_id'])
+                 . '&api_secret=' . urlencode((string)$cfg['ga4_api_secret']);
+            $ch = curl_init($url);
+            curl_setopt_array($ch, [CURLOPT_POST=>true, CURLOPT_POSTFIELDS=>json_encode($payload), CURLOPT_RETURNTRANSFER=>true, CURLOPT_TIMEOUT=>5, CURLOPT_HTTPHEADER=>['Content-Type: application/json']]);
+            curl_exec($ch); curl_close($ch);
+            try { $pdo->prepare("UPDATE pixel_events SET forwarded_ga4=1 WHERE event_id=:eid")->execute([':eid'=>$eventId]); } catch (\Throwable $e) { /* 컬럼 부재 무시 */ }
         } catch (\Exception $e) {}
     }
 
