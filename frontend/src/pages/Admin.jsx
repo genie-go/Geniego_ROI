@@ -449,7 +449,7 @@ function TabChannelOauth() {
     { key: 'google',   name: 'Google (Ads · Analytics)',            icon: '🔵', console: 'https://console.cloud.google.com/apis/credentials' },
     { key: 'meta',     name: 'Meta (Facebook · Instagram 광고)',     icon: '📘', console: 'https://developers.facebook.com/apps' },
     { key: 'facebook', name: 'Facebook · Instagram (페이지/라이브)', icon: '👍', console: 'https://developers.facebook.com/apps' },
-    { key: 'tiktok',   name: 'TikTok',                              icon: '🎶', console: 'https://developers.tiktok.com/apps' },
+    { key: 'tiktok',   name: 'TikTok (광고 · Marketing API)',         icon: '🎶', console: 'https://business-api.tiktok.com/', idLabel: 'App ID', secretLabel: 'App Secret', note: '광고 집행용 TikTok Marketing API 앱의 App ID / Secret을 입력하세요(소비자 Login Kit 키 아님). 비즈니스센터 앱에 광고 관리 권한을 부여해야 합니다.' },
     { key: 'kakao',    name: 'Kakao',                               icon: '💛', console: 'https://developers.kakao.com/console/app' },
     { key: 'naver',    name: 'Naver (검색광고 · 스마트스토어 · 페이)', icon: '🟢', console: 'https://developers.naver.com/apps' },
   ];
@@ -551,11 +551,12 @@ function TabChannelOauth() {
                 <button onClick={() => copy(c.redirect_uri || '')} title="복사" style={{ flexShrink: 0, padding: '7px 10px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.05)', color: 'var(--text-2)', cursor: 'pointer', fontSize: 12 }}>📋</button>
               </div>
               <a href={p.console} target="_blank" rel="noopener noreferrer" style={{ fontSize: 10.5, color: '#60a5fa', textDecoration: 'none' }}>🔗 {p.key} 개발자 콘솔에서 앱 만들기 →</a>
+              {p.note && <div style={{ fontSize: 10, color: '#fbbf24', marginTop: 5, lineHeight: 1.5, padding: '6px 8px', borderRadius: 7, background: 'rgba(251,191,36,0.08)', border: '1px solid rgba(251,191,36,0.2)' }}>ⓘ {p.note}</div>}
               {/* client_id / secret */}
-              <label style={lbl}>② Client ID {c.client_id_mask && <span style={{ color: 'var(--text-3)', fontWeight: 500 }}>(현재: {c.client_id_mask})</span>}</label>
-              <input value={f.client_id || ''} onChange={e => fld(p.key, 'client_id', e.target.value)} autoComplete="off" placeholder={on ? '변경 시에만 입력' : 'client_id'} style={inp} />
-              <label style={lbl}>Client Secret {c.configured && <span style={{ color: 'var(--text-3)', fontWeight: 500 }}>(등록됨)</span>}</label>
-              <input type="password" value={f.client_secret || ''} onChange={e => fld(p.key, 'client_secret', e.target.value)} autoComplete="new-password" placeholder={on ? '변경 시에만 입력' : 'client_secret'} style={inp} />
+              <label style={lbl}>② {p.idLabel || 'Client ID'} {c.client_id_mask && <span style={{ color: 'var(--text-3)', fontWeight: 500 }}>(현재: {c.client_id_mask})</span>}</label>
+              <input value={f.client_id || ''} onChange={e => fld(p.key, 'client_id', e.target.value)} autoComplete="off" placeholder={on ? '변경 시에만 입력' : (p.idLabel || 'client_id')} style={inp} />
+              <label style={lbl}>{p.secretLabel || 'Client Secret'} {c.configured && <span style={{ color: 'var(--text-3)', fontWeight: 500 }}>(등록됨)</span>}</label>
+              <input type="password" value={f.client_secret || ''} onChange={e => fld(p.key, 'client_secret', e.target.value)} autoComplete="new-password" placeholder={on ? '변경 시에만 입력' : (p.secretLabel || 'client_secret')} style={inp} />
               <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
                 <button onClick={() => save(p.key)} disabled={busy === p.key} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: 'none', cursor: busy === p.key ? 'not-allowed' : 'pointer', background: busy === p.key ? 'rgba(34,197,94,0.25)' : 'linear-gradient(135deg,#22c55e,#4f8ef7)', color: '#fff', fontSize: 13, fontWeight: 800 }}>{busy === p.key ? '저장 중...' : (on ? '💾 업데이트' : '💾 등록 (전체 적용)')}</button>
                 {on && <button onClick={() => clearP(p.key)} disabled={busy === p.key} style={{ padding: '10px 14px', borderRadius: 10, border: '1px solid rgba(248,113,113,0.3)', cursor: 'pointer', background: 'rgba(248,113,113,0.08)', color: '#f87171', fontSize: 12, fontWeight: 700 }}>해제</button>}
