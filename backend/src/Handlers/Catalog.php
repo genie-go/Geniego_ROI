@@ -762,7 +762,7 @@ class Catalog
         if ($err = UserAuth::requirePro($req, $res)) return $err;
         self::ensureTables();
         $pdo = self::db(); $tenant = self::tenant($req);
-        $st = $pdo->prepare("SELECT id,channel,sku,operation,status,attempt,updated_at FROM catalog_writeback_job WHERE tenant_id=:t ORDER BY id DESC LIMIT 200");
+        $st = $pdo->prepare("SELECT id,channel,sku,operation,status,attempt,result,updated_at FROM catalog_writeback_job WHERE tenant_id=:t ORDER BY id DESC LIMIT 200");
         $st->execute([':t' => $tenant]);
         return self::jsonRes($res, $st->fetchAll(\PDO::FETCH_ASSOC));
     }

@@ -385,6 +385,8 @@ function JobsTab({ t, isDemo }) {
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState(null);
 
+  const [pushing, setPushing] = useState(false);
+
   async function loadJobs() {
     if (isDemo) return;
     setLoading(true); setErr(null);
@@ -394,16 +396,48 @@ function JobsTab({ t, isDemo }) {
     } catch (e) { setErr(String(e)); }
     setLoading(false);
   }
+  useEffect(() => { loadJobs(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const statusColors = { completed: '#22c55e', running: '#4f8ef7', failed: '#ef4444', pending: '#eab308', queued: '#a855f7' };
+  // [227차] 지금 Push — 큐 소비 워커 즉시 실행(자격증명 있는 채널로 push). 결과 요약 후 새로고침.
+  async function pushQueue() {
+    if (isDemo) { addAlert?.({ type: 'info', msg: '데모에서는 실제 push가 되지 않습니다.' }); return; }
+    setPushing(true); setErr(null);
+    try {
+      const r = await postJson('/api/catalog/writeback/process', {});
+      const s = (r && r.summary) || {};
+      addAlert?.({ type: 'success', msg: `[Writeback] 처리 ${s.processed || 0} · 완료 ${s.done || 0} · 대기(자격증명) ${s.awaiting || 0} · 보류 ${s.pending || 0} · 실패 ${s.failed || 0}` });
+      await loadJobs();
+    } catch (e) { setErr(String(e?.message || e)); }
+    setPushing(false);
+  }
+
+  // 워커 상태(done/awaiting_credentials/queued/pending/failed) + 레거시(completed/running) 색.
+  const statusColors = { done: '#22c55e', completed: '#22c55e', running: '#4f8ef7', failed: '#ef4444', pending: '#eab308', queued: '#a855f7', awaiting_credentials: '#f97316' };
+  const statusLabel = (s) => ({ done: '완료', awaiting_credentials: '자격증명 대기', queued: '대기열', pending: '보류', failed: '실패' }[s] || s);
+  // result(JSON)에서 회원이 볼 actionable 메시지 추출.
+  const resultMsg = (raw) => {
+    if (!raw) return '';
+    try { const d = JSON.parse(raw); return d.error || d.reason || d.note || (d.ok ? '성공' : '') || ''; } catch { return String(raw).slice(0, 80); }
+  };
+  const summary = jobs.reduce((a, j) => { a[j.status] = (a[j.status] || 0) + 1; return a; }, {});
 
   return (
     <div style={{ display: 'grid', gap: 14 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ fontWeight: 700, fontSize: 14 }}>📊 {t('writebackPage.jobHistory', 'Job History')}</div>
-        <button onClick={loadJobs} disabled={loading} style={{ padding: '7px 16px', borderRadius: 8, border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 11, background: 'linear-gradient(135deg,#4f8ef7,#6366f1)', color: '#fff' }}>
-          🔄 {t('writebackPage.btnRefreshJobs', 'Refresh Jobs')}
-        </button>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+          <div style={{ fontWeight: 700, fontSize: 14 }}>📊 {t('writebackPage.jobHistory', 'Job History')}</div>
+          {['queued', 'awaiting_credentials', 'done', 'failed', 'pending'].filter(s => summary[s]).map(s => (
+            <span key={s} style={{ fontSize: 10.5, fontWeight: 700, padding: '2px 9px', borderRadius: 20, background: (statusColors[s] || '#4f8ef7') + '22', color: statusColors[s] || '#4f8ef7' }}>{statusLabel(s)} {summary[s]}</span>
+          ))}
+        </div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button onClick={pushQueue} disabled={pushing} title={t('writebackPage.btnPushHint', '자격증명이 등록된 채널의 대기 작업을 지금 채널로 push합니다')} style={{ padding: '7px 16px', borderRadius: 8, border: 'none', cursor: pushing ? 'default' : 'pointer', fontWeight: 700, fontSize: 11, background: 'linear-gradient(135deg,#22c55e,#14d9b0)', color: '#fff', opacity: pushing ? 0.6 : 1 }}>
+            ⚡ {pushing ? t('writebackPage.pushing', '처리 중...') : t('writebackPage.btnPushNow', '지금 Push')}
+          </button>
+          <button onClick={loadJobs} disabled={loading} style={{ padding: '7px 16px', borderRadius: 8, border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 11, background: 'linear-gradient(135deg,#4f8ef7,#6366f1)', color: '#fff' }}>
+            🔄 {t('writebackPage.btnRefreshJobs', 'Refresh Jobs')}
+          </button>
+        </div>
       </div>
 
       {err && <div style={{ padding: '10px 14px', borderRadius: 10, background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', fontSize: 12, color: '#ef4444' }}>⚠ {err}</div>}
@@ -420,7 +454,7 @@ function JobsTab({ t, isDemo }) {
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid rgba(99,140,255,0.12)' }}>
-                  {['ID', t('writebackPage.colChannel', 'Channel'), 'SKU', t('writebackPage.colOp', 'Operation'), t('writebackPage.colStatus', 'Status'), t('writebackPage.colAttempt', 'Attempt'), t('writebackPage.colUpdated', 'Updated')].map(h => (
+                  {['ID', t('writebackPage.colChannel', 'Channel'), 'SKU', t('writebackPage.colOp', 'Operation'), t('writebackPage.colStatus', 'Status'), t('writebackPage.colResult', '결과 / 안내'), t('writebackPage.colAttempt', 'Attempt'), t('writebackPage.colUpdated', 'Updated')].map(h => (
                     <th key={h} style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 700, color: 'var(--text-3)', fontSize: 10 }}>{h}</th>
                   ))}
                 </tr>
@@ -432,7 +466,8 @@ function JobsTab({ t, isDemo }) {
                     <td style={{ padding: '10px 12px' }}><Tag label={j.channel} /></td>
                     <td style={{ padding: '10px 12px', fontFamily: 'monospace', color: '#fff' }}>{j.sku}</td>
                     <td style={{ padding: '10px 12px', color: 'var(--text-2)' }}>{j.operation}</td>
-                    <td style={{ padding: '10px 12px' }}><Tag label={j.status} color={statusColors[j.status] || '#4f8ef7'} /></td>
+                    <td style={{ padding: '10px 12px' }}><Tag label={statusLabel(j.status)} color={statusColors[j.status] || '#4f8ef7'} /></td>
+                    <td style={{ padding: '10px 12px', fontSize: 11, color: j.status === 'failed' ? '#ef4444' : j.status === 'awaiting_credentials' ? '#f97316' : 'var(--text-2)', maxWidth: 320, whiteSpace: 'normal', lineHeight: 1.5 }}>{resultMsg(j.result)}</td>
                     <td style={{ padding: '10px 12px', color: 'var(--text-2)' }}>{j.attempt}</td>
                     <td style={{ padding: '10px 12px', fontSize: 10, color: 'var(--text-3)' }}>{j.updated_at}</td>
                   </tr>
