@@ -1285,6 +1285,7 @@ final class ChannelSync
             case 'cafe24':                 return self::cafe24Write($creds, $product, $operation, $channelProductId);
             case 'coupang':                return self::coupangWrite($creds, $product, $operation, $channelProductId);
             case 'naver': case 'naver_smartstore': return self::naverWrite($creds, $product, $operation, $channelProductId);
+            case 'ebay':                   return self::ebayWrite($creds, $product, $operation, $channelProductId);
             default:                       return ['ok' => false, 'pending' => true, 'error' => 'write_adapter_pending:' . strtolower($channel)];
         }
     }
@@ -1364,6 +1365,31 @@ final class ChannelSync
         else { [$c, $b] = self::httpPost('https://api.commerce.naver.com/external/v2/products', $hdr, $payload); }
         if ($c >= 200 && $c < 300) { $pid = $b['originProductNo'] ?? $b['smartstoreChannelProductNo'] ?? $cpid; return ['ok' => true, 'channel_product_id' => $pid !== null ? (string)$pid : null]; }
         return ['ok' => false, 'error' => "Naver HTTP {$c}", 'detail' => mb_substr(json_encode($b['message'] ?? $b, JSON_UNESCAPED_UNICODE), 0, 200)];
+    }
+
+    /** eBay Sell Inventory API 상품(inventory_item) 등록/수정 — Bearer OAuth, SKU 키 멱등 PUT.
+     *   ★판매 노출(offer 생성·가격·카테고리·정책)은 별도 단계(카테고리/정책 ID 필요) — 본 어댑터는
+     *     inventory_item(상품 카탈로그 엔트리+재고) 까지. 가격은 offer 영역이라 inventory_item 미포함. */
+    private static function ebayWrite(array $creds, array $p, string $op, ?string $cpid): array
+    {
+        $token = trim((string)($creds['oauth_token'] ?? $creds['access_token'] ?? ''));
+        if ($token === '') return ['ok' => false, 'error' => 'eBay: access_token(OAuth) 필요'];
+        $sku = (string)($p['sku'] ?? '');
+        if ($sku === '') return ['ok' => false, 'error' => 'eBay 등록은 SKU 가 필요합니다(inventory_item 키)'];
+        $hdr = ['Authorization' => "Bearer {$token}", 'Content-Type' => 'application/json', 'Content-Language' => 'en-US'];
+        $url = 'https://api.ebay.com/sell/inventory/v1/inventory_item/' . rawurlencode($sku);
+        if ($op === 'unregister' || ($p['action'] ?? '') === 'unregister') {
+            [$c] = self::httpReq('DELETE', $url, $hdr, null);
+            return ($c >= 200 && $c < 300) ? ['ok' => true, 'deleted' => $sku] : ['ok' => false, 'error' => "eBay DELETE HTTP {$c}"];
+        }
+        $body = json_encode([
+            'availability' => ['shipToLocationAvailability' => ['quantity' => (int)($p['inventory'] ?? 0)]],
+            'condition' => 'NEW',
+            'product' => ['title' => (string)($p['name'] ?? $sku), 'description' => (string)($p['spec'] ?? $p['name'] ?? '')],
+        ], JSON_UNESCAPED_UNICODE);
+        [$c, $b] = self::httpReq('PUT', $url, $hdr, $body);
+        if ($c >= 200 && $c < 300) return ['ok' => true, 'channel_product_id' => $sku, 'note' => 'inventory_item 등록 완료 — 판매 노출(offer)은 카테고리·정책 ID 필요'];
+        return ['ok' => false, 'error' => "eBay HTTP {$c}", 'detail' => mb_substr(json_encode($b['errors'] ?? $b, JSON_UNESCAPED_UNICODE), 0, 200)];
     }
 
     // ── DB 저장 ──────────────────────────────────────────────────────────
