@@ -512,6 +512,8 @@ export function GlobalDataProvider({ children }) {
                         name: p.platform, spent, revenue: Number(p.total_ad_rev != null ? p.total_ad_rev : p.total_revenue) || 0,
                         roas: Number(p.avg_roas) || 0, budget: spent,
                         impressions: Number(p.total_impressions) || 0, clicks: Number(p.total_clicks) || 0,
+                        // [227차 P0] 운영 conversions/CVR 배선(기존 미매핑→DashMarketing 운영 CVR stub-zero).
+                        conversions: Number(p.total_conversions) || 0, convRate: Number(p.avg_cvr) || 0,
                         color: p.color || '#4f8ef7',
                     };
                 });

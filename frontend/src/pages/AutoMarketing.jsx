@@ -550,6 +550,10 @@ export default function AutoMarketing() {
                             channels: selAds,
                             allocations: (strategy.allocations || []).map(a => ({ channel: a.ch?.id, alloc: a.alloc, roas: a.roas })),
                             est_roas: String(strategy.estimatedRoas || ''),
+                            // [227차 P1] 사용자 가드레일 배선 — 옵티마이저가 실제 사용(min_roas/max_share).
+                            //   기존엔 recommend 에만 보내고 launch 에 누락돼, 영속 캠페인이 기본정책(min_roas=1·max_share 미적용)
+                            //   으로만 최적화되어 사용자 안전설정이 매번 유실됐다.
+                            guardrails: { min_roas: Number(minRoas) || 0, max_share: (Number(maxShare) || 60) / 100 },
                         }),
                     }).catch(() => {});
                 } catch (_) {}

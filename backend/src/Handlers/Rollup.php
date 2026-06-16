@@ -322,7 +322,9 @@ final class Rollup {
             $by = [];
             $mk = function(&$by, $pf, $bucket) { if (!isset($by[$pf])) $by[$pf]=[]; if (!isset($by[$pf][$bucket])) $by[$pf][$bucket]=['spend'=>0.0,'rev'=>0.0,'ord'=>0,'imp'=>0,'clk'=>0]; };
             // 광고 메트릭
-            $pm = $pdo->prepare("SELECT channel, date, spend, revenue, impressions, clicks FROM performance_metrics WHERE tenant_id = ? AND date >= ?");
+            // [227차 P0] conversions 추가 — 운영 CVR/전환수가 channelBudgets 에 미배선되어 DashMarketing 운영
+            //   CVR 이 stub-zero 였다. performance_metrics 의 conversions 를 플랫폼 series 에 배선.
+            $pm = $pdo->prepare("SELECT channel, date, spend, revenue, impressions, clicks, conversions FROM performance_metrics WHERE tenant_id = ? AND date >= ?");
             $pm->execute([$tenant, substr($start,0,10)]);
             while ($r = $pm->fetch(\PDO::FETCH_ASSOC)) {
                 $bucket = self::bucketLabel((string)$r['date'], $period); if ($bucket==='' || !in_array($bucket,$dates,true)) continue;
@@ -332,6 +334,7 @@ final class Rollup {
                 $pf = strtolower((string)($r['channel'] ?? 'unknown')); $mk($by,$pf,$bucket);
                 $by[$pf][$bucket]['spend'] += (float)($r['spend'] ?? 0); $by[$pf][$bucket]['ad_rev'] = ($by[$pf][$bucket]['ad_rev'] ?? 0) + (float)($r['revenue'] ?? 0);
                 $by[$pf][$bucket]['imp'] += (int)($r['impressions'] ?? 0); $by[$pf][$bucket]['clk'] += (int)($r['clicks'] ?? 0);
+                $by[$pf][$bucket]['conv'] = ($by[$pf][$bucket]['conv'] ?? 0) + (int)($r['conversions'] ?? 0);
             }
             // 채널 주문(판매 매출·주문수) — 광고매출과 별개. 매출은 주문 기준으로 보정.
             $co = $pdo->prepare("SELECT channel, ordered_at, qty, total_price, status, event_type FROM channel_orders WHERE tenant_id = ? AND ordered_at >= ?");
@@ -351,8 +354,8 @@ final class Rollup {
             foreach ($by as $pf => $buckets) {
                 $series = [];
                 foreach ($dates as $d) {
-                    $b = $buckets[$d] ?? ['spend'=>0,'rev'=>0,'ord'=>0,'imp'=>0,'clk'=>0];
-                    $series[] = self::platformSeriesPoint($d, round($b['spend'],2), round($b['rev'],2), $b['ord'], $b['imp'], $b['clk'], round($b['ad_rev'] ?? 0, 2));
+                    $b = $buckets[$d] ?? ['spend'=>0,'rev'=>0,'ord'=>0,'imp'=>0,'clk'=>0,'conv'=>0];
+                    $series[] = self::platformSeriesPoint($d, round($b['spend'],2), round($b['rev'],2), $b['ord'], $b['imp'], $b['clk'], round($b['ad_rev'] ?? 0, 2), (int)($b['conv'] ?? 0));
                 }
                 $rows[] = self::platformRowFromSeries($pf, $palette[$ci++ % count($palette)], $series);
             }
@@ -360,19 +363,23 @@ final class Rollup {
         } catch (\Throwable $e) { return []; }
     }
 
-    private static function platformSeriesPoint(string $d, $s, $r, $o, $i, $c, $ar = 0): array {
+    private static function platformSeriesPoint(string $d, $s, $r, $o, $i, $c, $ar = 0, $v = 0): array {
         // [현 차수] ★ROAS 채널키 미스매치 수정: ROAS 분자=광고기여 전환매출(ad_rev=performance_metrics.revenue),
         //   주문매출($r)이 아니다. 기존엔 광고비(meta/google)와 주문매출(coupang/naver)을 채널명으로 조인해
         //   광고채널은 주문 0→ROAS 0, 판매채널은 광고비 0→ROAS 0 이었다. 진짜 ROAS = 광고기여매출/광고비.
-        return ['date'=>$d, 'spend'=>$s, 'revenue'=>$r, 'ad_rev'=>$ar, 'orders'=>$o, 'impressions'=>$i, 'clicks'=>$c,
-            'roas'=>$s > 0 ? round($ar/$s,2) : 0, 'ctr'=>$i > 0 ? round($c/$i*100,2) : 0, 'cpc'=>$c > 0 ? round($s/$c) : 0];
+        // [227차 P0] conversions($v) 배선 + cvr(전환/클릭). 운영 CVR stub-zero 해소.
+        return ['date'=>$d, 'spend'=>$s, 'revenue'=>$r, 'ad_rev'=>$ar, 'orders'=>$o, 'impressions'=>$i, 'clicks'=>$c, 'conversions'=>$v,
+            'roas'=>$s > 0 ? round($ar/$s,2) : 0, 'ctr'=>$i > 0 ? round($c/$i*100,2) : 0, 'cpc'=>$c > 0 ? round($s/$c) : 0,
+            'cvr'=>$c > 0 ? round($v/$c*100,2) : 0];
     }
     private static function platformRowFromSeries(string $pf, string $color, array $series): array {
         $totS = array_sum(array_column($series, 'spend')); $totR = array_sum(array_column($series, 'revenue'));
         $totAr = array_sum(array_column($series, 'ad_rev'));
+        $totC = array_sum(array_column($series, 'clicks')); $totV = array_sum(array_column($series, 'conversions'));
         return ['platform'=>ucfirst($pf), 'color'=>$color, 'total_spend'=>$totS, 'total_revenue'=>$totR, 'total_ad_rev'=>$totAr,
             'total_orders'=>array_sum(array_column($series, 'orders')), 'total_impressions'=>array_sum(array_column($series, 'impressions')),
-            'total_clicks'=>array_sum(array_column($series, 'clicks')), 'avg_roas'=>$totS > 0 ? round($totAr/$totS,2) : 0, 'series'=>$series];
+            'total_clicks'=>$totC, 'total_conversions'=>$totV, 'avg_roas'=>$totS > 0 ? round($totAr/$totS,2) : 0,
+            'avg_cvr'=>$totC > 0 ? round($totV/$totC*100,2) : 0, 'series'=>$series];
     }
 
     /** dates 라벨의 가장 이른 시점 → 'YYYY-MM-DD…' 시작 경계. */

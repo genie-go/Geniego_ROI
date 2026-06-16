@@ -393,11 +393,15 @@ export default function DashMarketing({ period }) {
     ? (budgetStats?.blendedRoas || totalRev / totalSpend).toFixed(2)   // ROAS=비율→기간 불변
     : '0.00';
   const totalClicks = liveChannels.reduce((s, c) => s + c.clicks, 0);
-  const avgCTR = liveChannels.length > 0
-    ? (liveChannels.reduce((s, c) => s + c.ctr, 0) / liveChannels.length).toFixed(1)
+  // [227차 P0] 헤드라인 CTR/CVR 볼륨 가중(Σclicks/Σimpr·Σconv/Σclicks). 기존 채널 단순평균은
+  //   노출/클릭 볼륨이 천차만별인 채널을 동일 가중해 저볼륨 실험채널이 재배분 지표를 왜곡했다(adFunnel 패턴).
+  const totalImpressions = liveChannels.reduce((s, c) => s + c.impressions, 0);
+  const totalConversions = liveChannels.reduce((s, c) => s + c.conversions, 0);
+  const avgCTR = totalImpressions > 0
+    ? (totalClicks / totalImpressions * 100).toFixed(1)
     : '0.0';
-  const avgConvRate = liveChannels.length > 0
-    ? (liveChannels.reduce((s, c) => s + c.convRate, 0) / liveChannels.length).toFixed(1)
+  const avgConvRate = totalClicks > 0
+    ? (totalConversions / totalClicks * 100).toFixed(1)
     : '0.0';
   // [현 차수] 주문수=기간 필터된 실주문 건수(취소 제외). 기간 미선택 시 누적 orderStats 폴백.
   const totalOrders = periodActive ? periodKpis.orders : (orderStats?.count || 0);
