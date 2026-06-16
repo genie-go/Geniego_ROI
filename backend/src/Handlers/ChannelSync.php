@@ -1477,6 +1477,10 @@ final class ChannelSync
                     }
                     self::recordCrmPurchase($pdo, $tenant, $channel, $o['buyer_email'] ?? '', $o['buyer_name'] ?? '', (float)($o['total_price'] ?? 0), (string)($o['sku'] ?? ''), (int)($o['qty'] ?? 1), (string)$o['channel_order_id']);
                     self::recordAttributionTouch($pdo, $tenant, $channel, (string)$o['channel_order_id'], (float)($o['total_price'] ?? 0));
+                    // [227차 P0] 커머스 주문 → 광고 채널 귀속 보강(외부몰 매출을 광고 ROAS 에 연결).
+                    //   클릭ID(gclid/fbclid/ttclid) 또는 구매자 이메일↔픽셀 마케팅터치 매칭으로 광고 채널을 식별해
+                    //   attribution_touch/result 에 적재 → markov 가 이 주문 매출을 광고에 귀속(커머스플랫폼명 귀속 한계 해소).
+                    self::enrichOrderAttribution($pdo, $tenant, $channel, (string)$o['channel_order_id'], $o['buyer_email'] ?? null, (float)($o['total_price'] ?? 0), $o);
                 } else {
                     // 최초 수집부터 취소/반품 → 재고차감/구매기록 없이 claim 만 적재(정산 정합, 미판매분 재고 미차감).
                     self::recordClaim($pdo, $tenant, $channel, (string)$o['channel_order_id'], $incCR, (float)($o['total_price'] ?? 0), (string)($o['reason'] ?? ''), (string)($o['buyer_name'] ?? ''), $now);
@@ -1599,6 +1603,58 @@ final class ChannelSync
             $pdo->prepare("INSERT INTO attribution_touch (tenant_id,order_id,channel,touched_at,extra_json) VALUES(?,?,?,?,?)")
                 ->execute([$tenant, $orderId, $channel, gmdate('c'), json_encode(['revenue' => $total, 'source' => 'order'], JSON_UNESCAPED_UNICODE)]);
         } catch (\Throwable $e) { /* attribution_touch 미존재 시 best-effort */ }
+    }
+
+    /**
+     * [227차 P0] 커머스 주문 → 광고 채널 귀속 보강. 외부 커머스몰(쿠팡/네이버 등)에서 결제가 일어나면
+     *   픽셀이 그 몰에 없어 "어느 광고가 이 매출을 냈나"가 단절된다. 두 신호로 광고 채널을 식별한다:
+     *     ① 클릭ID 패스스루(gclid→google, fbclid→meta, ttclid→tiktok) — 주문 raw 에 전달된 경우 최강 신호.
+     *     ② 구매자 이메일 ↔ 픽셀 마케팅 터치 매칭 — 같은 이메일의 최근 utm_source(광고 채널) 사용.
+     *   광고 신호가 있으면 attribution_touch(광고 채널)+attribution_result(전환) 적재 → markov 가 이 주문
+     *   매출을 광고에 귀속한다(기존 커머스-채널 터치는 보존, 추가만 함 = 안전). 신호 없으면 무동작.
+     *   데모/PII미저장(이메일은 sha256 해시만 사용)·멱등·테넌트 격리.
+     */
+    private static function enrichOrderAttribution(PDO $pdo, string $tenant, string $channel, string $orderId, ?string $buyerEmail, float $total, array $raw): void
+    {
+        if ($tenant === 'demo' || $orderId === '') return;
+        $adChannel = '';
+        // ① 클릭ID 패스스루
+        $blob = strtolower((string)json_encode($raw, JSON_UNESCAPED_UNICODE));
+        if (strpos($blob, 'gclid') !== false)        $adChannel = 'google';
+        elseif (strpos($blob, 'fbclid') !== false)   $adChannel = 'meta';
+        elseif (strpos($blob, 'ttclid') !== false)   $adChannel = 'tiktok';
+        // ② 이메일 ↔ 픽셀 마케팅 터치 매칭(클릭ID 없을 때)
+        if ($adChannel === '' && $buyerEmail !== null && trim($buyerEmail) !== '') {
+            $eh = hash('sha256', strtolower(trim($buyerEmail)));
+            try {
+                $st = $pdo->prepare("SELECT utm_source FROM pixel_events WHERE tenant_id=? AND email_hash=? AND utm_source IS NOT NULL AND utm_source<>'' ORDER BY created_at DESC LIMIT 1");
+                $st->execute([$tenant, $eh]);
+                $u = trim((string)($st->fetchColumn() ?: ''));
+                if ($u !== '') $adChannel = $u;
+            } catch (\Throwable $e) { /* pixel_events 부재 등 무시 */ }
+        }
+        if ($adChannel === '') return; // 광고 신호 없음 — 커머스 채널 터치만(기존 동작 유지)
+
+        $now = gmdate('c');
+        // 광고 채널 터치 적재(멱등) — markov 멀티터치 여정에 광고 채널 포함.
+        try {
+            $chk = $pdo->prepare("SELECT 1 FROM attribution_touch WHERE tenant_id=? AND order_id=? AND channel=? LIMIT 1");
+            $chk->execute([$tenant, $orderId, $adChannel]);
+            if (!$chk->fetchColumn()) {
+                $pdo->prepare("INSERT INTO attribution_touch (tenant_id,order_id,channel,utm_source,touched_at,extra_json) VALUES(?,?,?,?,?,?)")
+                    ->execute([$tenant, $orderId, $adChannel, $adChannel, $now, json_encode(['revenue' => $total, 'source' => 'order_ad_match', 'commerce_channel' => $channel], JSON_UNESCAPED_UNICODE)]);
+            }
+        } catch (\Throwable $e) { return; }
+        // 전환 등록 — markov 의 전환 order 집합(attribution_result)에 포함되어야 여정이 노출됨.
+        try {
+            $ig = ($pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql') ? 'IGNORE' : 'OR IGNORE';
+            $chk2 = $pdo->prepare("SELECT 1 FROM attribution_result WHERE tenant_id=? AND order_id=? LIMIT 1");
+            $chk2->execute([$tenant, $orderId]);
+            if (!$chk2->fetchColumn()) {
+                $pdo->prepare("INSERT {$ig} INTO attribution_result(tenant_id,order_id,attributed_channel,confidence_score,evidence_json,model,created_at) VALUES(?,?,?,?,?,?,?)")
+                    ->execute([$tenant, $orderId, $adChannel, 0.8, json_encode(['source' => 'order_match', 'revenue' => $total, 'commerce_channel' => $channel], JSON_UNESCAPED_UNICODE), 'order-match', $now]);
+            }
+        } catch (\Throwable $e) { /* attribution_result 미존재 등 best-effort */ }
     }
 
     private static function recordCrmPurchase(PDO $pdo, string $tenant, string $channel, ?string $email, ?string $name, float $total, string $sku, int $qty, string $orderId): void
