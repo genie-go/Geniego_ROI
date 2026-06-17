@@ -147,7 +147,8 @@ const CHANNEL_FIELDS = {
   inicis:    [{ k: 'mid', label: '상점 ID(MID)' }, { k: 'sign_key', label: '사인키(SignKey)', secret: true }, { k: 'api_key', label: 'API 키', secret: true }],
   toss:      [{ k: 'client_key', label: '클라이언트 키' }, { k: 'secret_key', label: '시크릿 키', secret: true }],
   kcp:       [{ k: 'site_cd', label: '사이트 코드' }, { k: 'site_key', label: '사이트 키', secret: true }],
-  kakaopay:  [{ k: 'cid', label: '가맹점 코드(CID)' }, { k: 'admin_key', label: 'Admin 키', secret: true }],
+  // [229차] 신 카카오페이 개발자센터(developers.kakaopay.com)는 Secret Key(Authorization: SECRET_KEY)+CID 방식. 구 admin_key(KakaoAK) 폐기.
+  kakaopay:  [{ k: 'cid', label: '가맹점 코드(CID)' }, { k: 'secret_key', label: 'Secret Key (Authorization: SECRET_KEY)', secret: true }],
   naverpay:  [{ k: 'client_id', label: 'Client ID' }, { k: 'client_secret', label: 'Client Secret', secret: true }, { k: 'chain_id', label: 'Chain ID' }],
   paypal:    [{ k: 'client_id', label: 'Client ID' }, { k: 'client_secret', label: 'Secret', secret: true }],
   stripe:    [{ k: 'publishable_key', label: 'Publishable Key' }, { k: 'secret_key', label: 'Secret Key', secret: true }],
@@ -345,7 +346,7 @@ const CHANNEL_APPLY_NOTE = {
   inicis:   { hard: false, note: '이니시스 상점관리자 > 상점정보 > 계약정보 > 부가정보에서 INIAPI Key·웹표준 사인키를 발급합니다. (가맹점 계약 필요)' },
   toss:     { hard: false, note: '토스페이먼츠 상점관리자 > 개발자센터에서 클라이언트 키·시크릿 키를 확인합니다. (가맹점 계약 필요)' },
   kcp:      { hard: false, note: 'NHN KCP 가맹점 관리자에서 사이트코드·사이트키를 발급합니다. (가맹점 계약 필요)' },
-  kakaopay: { hard: false, note: '카카오페이 가맹점(개발자) 콘솔에서 CID·Admin 키를 발급합니다. (가맹점 계약 필요)' },
+  kakaopay: { hard: false, note: '카카오페이 개발자센터(developers.kakaopay.com)에서 애플리케이션 생성 → Client ID·Secret Key·CID를 발급합니다(인증 헤더 Authorization: SECRET_KEY). 가맹점 계약 필요.' },
   naverpay: { hard: true,  note: '네이버페이 가맹점 가입(계약) 완료 후 파트너ID·Client ID/Secret이 전달됩니다. 일반 자가 발급이 아닙니다.' },
   paypal:   { hard: false, note: 'developer.paypal.com에서 앱 생성 → client_id/secret을 발급합니다.' },
   stripe:   { hard: false, note: 'dashboard.stripe.com > 개발자 > API 키에서 발급합니다.' },
