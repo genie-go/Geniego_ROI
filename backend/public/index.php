@@ -188,6 +188,8 @@ $app->add(function (Request $request, $handler) {
         || strpos($path, '/v424/marketing/benchmarks') === 0 || strpos($path, '/api/v424/marketing/benchmarks') === 0
         // [현 차수] 채널×objective 퍼널 집계 — 프론트 세션 토큰 호출(익명만 차단, tenant 주입).
         || strpos($path, '/v424/connectors/campaign-funnel') === 0 || strpos($path, '/api/v424/connectors/campaign-funnel') === 0
+        // [228차 S1] 매체보고 vs 실주문귀속 ROAS 정합 — 세션 토큰 호출(익명 차단, auth_tenant 주입·격리).
+        || strpos($path, '/v423/connectors/roas-reconciliation') === 0 || strpos($path, '/api/v423/connectors/roas-reconciliation') === 0
         // [현 차수] ② MMM(마케팅 믹스 모델)·예산 최적화 — 프론트 세션 토큰 호출(익명만 차단, 핸들러가 세션 테넌트 해석)
         || strpos($path, '/v424/mmm/') === 0 || strpos($path, '/api/v424/mmm/') === 0
         || strpos($path, '/v424/anomaly/') === 0 || strpos($path, '/api/v424/anomaly/') === 0
