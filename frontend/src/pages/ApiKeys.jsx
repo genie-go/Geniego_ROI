@@ -753,6 +753,22 @@ export default function ApiKeys() {
 
   const reload = useCallback(() => setReloadTick(x => x + 1), []);
 
+  /* [228차] 발급 신청 현황 — 개요 카드 표기 + 자동 폴링(실시간 발급상태 반영).
+     Google 등은 발급을 플랫폼에 통보하지 않으므로, 사용자가 키를 등록→실검증→자동 완료되는
+     상태변화를 수동 새로고침 없이 즉시 반영하기 위해 25초 폴링한다. */
+  const [applies, setApplies] = useState([]);
+  const loadApplies = useCallback(() => {
+    if (_IS_DEMO_ENV) { setApplies([]); return; }
+    getJsonAuth('/v423/connectors/apply/list')
+      .then(d => setApplies(Array.isArray(d?.applies) ? d.applies : []))
+      .catch(() => {});
+  }, []);
+  useEffect(() => {
+    loadApplies();
+    const iv = setInterval(loadApplies, 25000);
+    return () => clearInterval(iv);
+  }, [loadApplies, applyRefresh, reloadTick]);
+
   /* KPI 집계 — 실 데이터 기반 */
   const kpis = useMemo(() => {
     const total   = creds.length;
@@ -1073,6 +1089,7 @@ export default function ApiKeys() {
           channels={allChannels}
           summary={summary}
           creds={creds}
+          applies={applies}
           loading={loading}
           onChannelTest={handleChannelTest}
           onConnect={(ch) => setShowConnectModal(ch)}
@@ -1082,7 +1099,7 @@ export default function ApiKeys() {
           t={t}
         />
       )}
-      {(activeTab === 0 || activeTab === 1) && !_IS_DEMO_ENV && <ApplyStatusPanel refreshKey={applyRefresh} t={t} />}
+      {(activeTab === 0 || activeTab === 1) && !_IS_DEMO_ENV && <ApplyStatusPanel applies={applies} onRefresh={loadApplies} t={t} />}
       {activeTab === 1 && (
         <ActiveKeysTab
           creds={creds}
@@ -1601,16 +1618,10 @@ function TrackingTab({ t, show }) {
 /* [현 차수] ③ 발급 신청 현황 — 신청한 API 키 발급 진행 상태(접수→처리중→완료/반려) 추적·표시.
    발급 완료 시 '발급 완료' 배지 + 안내가 떠 "발급완료 정보를 받아올 수 있는지"를 충족한다.
    자격증명 등록 시 백엔드가 해당 채널 신청을 자동 '완료' 처리한다. */
-function ApplyStatusPanel({ refreshKey, t }) {
-  const [applies, setApplies] = useState([]);
-  const [loaded, setLoaded] = useState(false);
-  const load = useCallback(() => {
-    getJsonAuth('/v423/connectors/apply/list')
-      .then(d => { setApplies(Array.isArray(d?.applies) ? d.applies : []); setLoaded(true); })
-      .catch(() => setLoaded(true));
-  }, []);
-  useEffect(() => { load(); }, [load, refreshKey]);
-  if (!loaded || applies.length === 0) return null;
+function ApplyStatusPanel({ applies = [], onRefresh, t }) {
+  // [228차] 데이터는 부모(자동 폴링 25초)에서 prop 으로 수신 — 단일 소스. 수동 새로고침은 onRefresh.
+  const load = onRefresh || (() => {});
+  if (!applies || applies.length === 0) return null;
   const STAT = {
     pending:    { label: t('ak.stPending', '접수 대기'),  c: '#f59e0b', bg: 'rgba(245,158,11,0.12)' },
     processing: { label: t('ak.stProcessing', '처리 중'), c: '#3b82f6', bg: 'rgba(59,130,246,0.12)' },
@@ -1620,7 +1631,9 @@ function ApplyStatusPanel({ refreshKey, t }) {
   return (
     <div style={{ marginTop: 18, borderRadius: 14, border: '1px solid rgba(99,140,255,0.18)', background: 'rgba(255,255,255,0.6)', padding: '16px 18px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-        <div style={{ fontWeight: 800, fontSize: 14 }}>📨 {t('ak.applyStatusTitle', 'API 키 발급 신청 현황')}</div>
+        <div style={{ fontWeight: 800, fontSize: 14 }}>📨 {t('ak.applyStatusTitle', 'API 키 발급 신청 현황')}
+          <span style={{ marginLeft: 8, fontSize: 10, fontWeight: 700, color: '#16a34a', background: 'rgba(34,197,94,0.1)', padding: '2px 8px', borderRadius: 20 }}>⟳ {t('ak.autoRefresh', '실시간 자동 갱신')}</span>
+        </div>
         <button onClick={load} style={{ padding: '5px 12px', borderRadius: 8, border: '1px solid #e2e8f0', background: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>🔄 {t('ak.refresh', '새로고침')}</button>
       </div>
       <div style={{ display: 'grid', gap: 8 }}>
@@ -1644,10 +1657,19 @@ function ApplyStatusPanel({ refreshKey, t }) {
 /* ═══════════════════════════════════════════════════════════════════
    Tab: Overview — 채널별 등록 현황 + Quick actions
    ═══════════════════════════════════════════════════════════════════ */
-function OverviewTab({ channels, summary, creds, loading, onChannelTest, onConnect, onApply, onOAuth, testingId, t }) {
+function OverviewTab({ channels, summary, creds, applies = [], loading, onChannelTest, onConnect, onApply, onOAuth, testingId, t }) {
   if (loading) {
     return <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-3)' }}>{t('ak.loading','Loading…')}</div>;
   }
+  // [228차] 채널별 발급 신청 현황 맵 — 개요 카드에 신청 상태 표기(list는 id DESC라 첫 항목=최신).
+  const applyByChannel = {};
+  (applies || []).forEach(a => { if (a && a.channel && !applyByChannel[a.channel]) applyByChannel[a.channel] = a; });
+  const APPLY_STAT = {
+    pending:    { label: t('ak.stPending', '접수 대기'),     c: '#d97706', bg: 'rgba(245,158,11,0.12)', bd: 'rgba(245,158,11,0.35)' },
+    processing: { label: t('ak.stProcessing', '발급 확인 대기'), c: '#2563eb', bg: 'rgba(37,99,235,0.10)',  bd: 'rgba(37,99,235,0.3)' },
+    completed:  { label: t('ak.stCompleted', '발급 완료'),   c: '#16a34a', bg: 'rgba(34,197,94,0.12)',  bd: 'rgba(34,197,94,0.4)' },
+    rejected:   { label: t('ak.stRejected', '반려'),         c: '#dc2626', bg: 'rgba(239,68,68,0.10)',  bd: 'rgba(239,68,68,0.3)' },
+  };
   // 208차: 자격증명 0건이어도 채널 등록 그리드를 항상 노출(운영에서 등록 화면이 안 보이던 버그 수정).
   const totalKeys = creds.length;
   // 그룹 정렬 — GROUP_ORDER 순, 미정의 그룹은 뒤로
@@ -1695,6 +1717,10 @@ function OverviewTab({ channels, summary, creds, loading, onChannelTest, onConne
     const canLiveVerify = LIVE_VERIFY_CHANNELS.has(ch.key);
     const isVerified = canLiveVerify && !!verifiedCh[ch.key];
     const needsVerify = live && canLiveVerify && !isVerified;
+    // [228차] 이 채널의 발급 신청 현황(개요 카드 표기). pending/processing 이면 다음단계(발급→등록) 안내.
+    const apply = applyByChannel[ch.key];
+    const applySt = apply ? (APPLY_STAT[apply.status] || APPLY_STAT.pending) : null;
+    const applyOpen = apply && (apply.status === 'pending' || apply.status === 'processing');
     return (
       <div key={ch.key} style={{
         borderRadius: 14, padding: 16,
@@ -1738,6 +1764,23 @@ function OverviewTab({ channels, summary, creds, loading, onChannelTest, onConne
                 : (pending ? `✅ ${t('ak.registeredPending','등록·준비중')}` : `✅ ${t('ak.registered','등록됨')}`)}</span>
           )}
         </div>
+        {/* [228차] ★발급 신청 현황 — 개요 카드에 신청 상태 표기(자동 폴링으로 실시간 갱신). pending/처리중이면 다음단계 안내. */}
+        {apply && (
+          <div style={{ marginBottom: 8, padding: '7px 10px', borderRadius: 8, background: applySt.bg, border: `1px solid ${applySt.bd}`, fontSize: 10, lineHeight: 1.5 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+              <span style={{ fontWeight: 800, color: applySt.c }}>📨 {t('ak.applyBadge','발급 신청')}: {applySt.label}</span>
+              {apply.ticket_id && <span style={{ fontFamily: 'monospace', color: 'var(--text-3)', fontSize: 9 }}>{apply.ticket_id}</span>}
+            </div>
+            {applyOpen && (
+              <div style={{ marginTop: 4, color: 'var(--text-2)' }}>
+                {ISSUANCE_URL[ch.key]
+                  ? <>👉 {t('ak.applyNextSelf','콘솔에서 키를 발급한 뒤 아래 [등록]에 입력하면 실시간 검증·자동 연동됩니다.')} {' '}
+                      <a href={ISSUANCE_URL[ch.key]} target="_blank" rel="noopener noreferrer" style={{ color: applySt.c, fontWeight: 800 }}>{t('ak.openConsole','발급 콘솔 열기')} ↗</a></>
+                  : <>👉 {t('ak.applyNextAgent','발급 완료 시 [등록]에 키를 입력하면 실시간 검증·자동 연동됩니다.')}</>}
+              </div>
+            )}
+          </div>
+        )}
         <div style={{ display: 'flex', gap: 6 }}>
           <button onClick={() => onConnect(ch)} aria-label={t('ak.connectBtn','Register credentials')} style={{
             flex: 1.4, padding: '8px 12px', borderRadius: 8, border: 'none', cursor: 'pointer',
