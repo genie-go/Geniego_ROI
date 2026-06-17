@@ -240,16 +240,21 @@ final class Attribution {
 
         $score = round(min(1.0, $score), 4);
 
-        // Persist result
-        $rStmt = $pdo->prepare(
-            'INSERT INTO attribution_result(tenant_id,order_id,attributed_channel,confidence_score,evidence_json,model,created_at)
-             VALUES(?,?,?,?,?,?,?)'
-        );
-        $rStmt->execute([
-            $tenant, $orderId, $attributedChannel, $score,
-            json_encode($evidence, JSON_UNESCAPED_UNICODE),
-            'semi_rule_v1', gmdate('c'),
-        ]);
+        // Persist result — [228차 일관성 P0] ★order당 전환 1행 멱등(UNIQUE 키 부재 + 무가드 append 였음).
+        //   이미 적재된 전환이 있으면 skip(중복전환·markov/ROAS 이중계산 방지, first-writer-wins).
+        $arChk = $pdo->prepare("SELECT 1 FROM attribution_result WHERE tenant_id=? AND order_id=? LIMIT 1");
+        $arChk->execute([$tenant, $orderId]);
+        if (!$arChk->fetchColumn()) {
+            $rStmt = $pdo->prepare(
+                'INSERT INTO attribution_result(tenant_id,order_id,attributed_channel,confidence_score,evidence_json,model,created_at)
+                 VALUES(?,?,?,?,?,?,?)'
+            );
+            $rStmt->execute([
+                $tenant, $orderId, $attributedChannel, $score,
+                json_encode($evidence, JSON_UNESCAPED_UNICODE),
+                'semi_rule_v1', gmdate('c'),
+            ]);
+        }
 
         return TemplateResponder::respond($response, [
             'ok'                 => true,

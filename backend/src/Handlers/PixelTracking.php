@@ -341,10 +341,16 @@ class PixelTracking
                 } catch (\Throwable $e) {}
                 $evidence = json_encode(['source' => 'pixel', 'session_id' => $sessionId, 'value' => $value], JSON_UNESCAPED_UNICODE);
                 $ignore = self::isMysql($pdo) ? 'IGNORE' : 'OR IGNORE';
-                $pdo->prepare(
-                    "INSERT {$ignore} INTO attribution_result(tenant_id,order_id,attributed_channel,confidence_score,evidence_json,model,created_at)
-                     VALUES(?,?,?,?,?,?,?)"
-                )->execute([$tenant, $orderId, $attrCh, 1.0, $evidence, 'pixel', $now]);
+                // [228차 일관성 P0] ★order당 전환 1행 멱등 — attribution_result 에 UNIQUE 키가 없어 INSERT IGNORE 만으론
+                //   중복 방지 불가. 이미 적재된 전환이 있으면 skip(전환 이중계산·markov/ROAS 왜곡 방지, first-writer-wins).
+                $arChk = $pdo->prepare("SELECT 1 FROM attribution_result WHERE tenant_id=? AND order_id=? LIMIT 1");
+                $arChk->execute([$tenant, $orderId]);
+                if (!$arChk->fetchColumn()) {
+                    $pdo->prepare(
+                        "INSERT {$ignore} INTO attribution_result(tenant_id,order_id,attributed_channel,confidence_score,evidence_json,model,created_at)
+                         VALUES(?,?,?,?,?,?,?)"
+                    )->execute([$tenant, $orderId, $attrCh, 1.0, $evidence, 'pixel', $now]);
+                }
             }
         } catch (\Throwable $e) { /* attribution_touch/result 미존재 등 — best-effort */ }
     }

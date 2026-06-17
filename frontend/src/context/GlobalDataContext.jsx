@@ -86,7 +86,7 @@ function _monthOf(o) {
 }
 /** 주문 → 정산 재집계(채널×월). 기존 행의 status(정산완료 등)는 보존. */
 function deriveSettlementFromOrders(orders, prev) {
-  const active = (orders || []).filter(o => o && !_isCancelled(o.status));
+  const active = (orders || []).filter(o => o && !_isCancelled(o.status, o.event_type));
   if (!active.length) return [];
   const months = [...new Set(active.map(_monthOf).filter(Boolean))].sort();
   const recent = months[months.length - 1];
@@ -109,7 +109,7 @@ function deriveSettlementFromOrders(orders, prev) {
         : (chId === 'oliveyoung' ? 0.30 : chId === 'coupang' ? 0.108 : 0.055);
       const pfee = Math.round(gross * feeRate);
       // 반품: 실제 반품 상태 주문 건수(가짜 0.02 추정 제거). returnFee=반품 주문 매출의 2% 처리비.
-      const returnedOrders = co.filter(o => _isReturn(o.status));
+      const returnedOrders = co.filter(o => _isReturn(o.status, o.event_type));
       const returnCnt = returnedOrders.length;
       const returnGross = returnedOrders.reduce((s, o) => s + (Number(o.total) || 0), 0);
       const adFee = Math.round(gross * 0.02), returnFee = Math.round(returnGross * 0.02);
@@ -128,7 +128,7 @@ function deriveSettlementFromOrders(orders, prev) {
 function deriveBudgetRevenue(channelBudgets, orders) {
   const keys = Object.keys(channelBudgets || {});
   if (!keys.length) return channelBudgets;
-  const active = (orders || []).filter(o => o && !_isCancelled(o.status));
+  const active = (orders || []).filter(o => o && !_isCancelled(o.status, o.event_type));
   const totalRev = active.reduce((s, o) => s + (Number(o.total) || 0), 0);
   const rawSum = keys.reduce((s, k) => s + (channelBudgets[k].revenue || 0), 0) || 1;
   const next = {};
@@ -1664,7 +1664,7 @@ export function GlobalDataProvider({ children }) {
 
     // 📋 Orders 집계
     const orderStats = useMemo(() => {
-        const activeOrders = orders.filter(o => !_isCancelled(o.status));
+        const activeOrders = orders.filter(o => !_isCancelled(o.status, o.event_type));
         const totalFees = activeOrders.reduce((s, o) => s + (o.fee || 0), 0);
         const totalPlatformFees = activeOrders.reduce((s, o) => s + (o.total * (o.platformFeeRate || 0)), 0);
         // [현 차수] 운영 limit 캡 과소집계 해소: 서버 집계값(전체 행 SQL)이 있으면 count/revenue/버킷을 그것으로
@@ -1681,9 +1681,9 @@ export function GlobalDataProvider({ children }) {
             pending: srv ? (Number(srv.pending) || 0) : orders.filter(o => o.status === '발주Confirm' || o.status === 'paid').length,
             shipping: srv ? (Number(srv.shipping) || 0) : orders.filter(o => ['출고대기','배송중','preparing','shipping'].includes(o.status)).length,
             done: srv ? (Number(srv.done) || 0) : orders.filter(o => ['배송Done','delivered','confirmed','Done'].includes(o.status)).length,
-            cancelled: srv ? (Number(srv.cancelled) || 0) : orders.filter(o => _isCancelled(o.status)).length,
+            cancelled: srv ? (Number(srv.cancelled) || 0) : orders.filter(o => _isCancelled(o.status, o.event_type)).length,
             // [현 차수] 반품 건수도 주문 원장에서 자동 파생(반품관리·반품률 정합). 운영=서버 returned 폴백.
-            returned: srv ? (Number(srv.returned) || 0) : orders.filter(o => _isReturn(o.status)).length,
+            returned: srv ? (Number(srv.returned) || 0) : orders.filter(o => _isReturn(o.status, o.event_type)).length,
             // Content KPI — only populated in demo mode
             contentViews: _isDemo ? 245000 + count * 120 : 0,
             contentVisitors: _isDemo ? 82000 + count * 45 : 0,
@@ -1777,7 +1777,7 @@ export function GlobalDataProvider({ children }) {
 
     // 📊 통합 P&L (Orders+Ad Spend+정산+재고원가 자동집계) ✅ 모든 데이터 소스 통합
     const pnlStats = useMemo(() => {
-        const activeOrders = orders.filter(o => !_isCancelled(o.status));
+        const activeOrders = orders.filter(o => !_isCancelled(o.status, o.event_type));
 
         // [현 차수] ★매출 단일소스 분기:
         //   - 데모: 주문(거래원장)이 유일 소스. 런타임 엔진이 정산을 주문에서 재파생하므로 글로벌/정산/P&L 이

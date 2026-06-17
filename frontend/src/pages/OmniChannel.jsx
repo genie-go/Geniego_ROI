@@ -19,7 +19,7 @@ function buildDemoOmniStatus(gd) {
     // [현 차수] 감사 P1: 취소주문 제외(정본 캐논)로 채널/총 매출 발산 차단. 기존 raw 전수 합산은 취소분 포함이라
     //   데모 체험자가 주문 취소 시 OmniChannel 매출만 대시보드/P&L/롤업 대비 과대(런타임 단일소스 동기화 위반).
     const allOrders = Array.isArray(gd?.orders) ? gd.orders : [];
-    const orders = allOrders.filter(o => !isCancelledStatus(o.status));
+    const orders = allOrders.filter(o => !isCancelledStatus(o.status, o.event_type)); // [228차 P1-2] event_type 정합
     const inventory = Array.isArray(gd?.inventory) ? gd.inventory : [];
     const byCh = {};
     orders.forEach(o => { const c = o.ch || o.channel || 'etc'; if (!byCh[c]) byCh[c] = { n: 0, rev: 0 }; byCh[c].n++; byCh[c].rev += Number(o.total || o.total_price || 0); });

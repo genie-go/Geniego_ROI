@@ -17,12 +17,16 @@ export const RETURN_TOKENS = ['returned', 'refunded', 'return', 'return_requeste
 const _cancelLc = new Set(CANCEL_TOKENS.map(t => t.toLowerCase()));
 const _returnLc = new Set(RETURN_TOKENS.map(t => t.toLowerCase()));
 
-/** 취소 판정(대소문자 무시 정확 매칭 — 과거 dashPeriod 의 substring 과매칭 제거). */
-export function isCancelledStatus(status) {
+/** 취소 판정(대소문자 무시 정확 매칭 — 과거 dashPeriod 의 substring 과매칭 제거).
+ *  [228차 일관성 P1-2] event_type 까지 고려 — 백엔드 cancelExclusion(event_type='cancel' OR status IN tokens)과 정합.
+ *  status 가 CANCEL_TOKENS 에 없어도 event_type==='cancel'(전이 정규화값)이면 취소 판정(클라 fallback 산출값 정합). */
+export function isCancelledStatus(status, eventType) {
+  if (String(eventType ?? '').toLowerCase() === 'cancel') return true;
   return _cancelLc.has(String(status ?? '').toLowerCase());
 }
 
-/** 반품 판정(반품률·returnFee 집계용). 반품은 매출 포함. */
-export function isReturnStatus(status) {
+/** 반품 판정(반품률·returnFee 집계용). 반품은 매출 포함. event_type==='return'도 반품 판정(백엔드 정합). */
+export function isReturnStatus(status, eventType) {
+  if (String(eventType ?? '').toLowerCase() === 'return') return true;
   return _returnLc.has(String(status ?? '').toLowerCase());
 }

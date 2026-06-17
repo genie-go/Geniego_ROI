@@ -126,10 +126,10 @@ export function deriveOrderKpis(scopedOrders) {
   const byChannel = {};
   for (const o of (scopedOrders || [])) {
     const st = o.status;
-    if (isCancelledStatus(st)) { cancelled++; continue; }
+    if (isCancelledStatus(st, o.event_type)) { cancelled++; continue; } // [228차 P1-2] event_type 정합
     const rev = orderRevenue(o);
     revenue += rev; count++;
-    if (isReturnStatus(st)) returns++;
+    if (isReturnStatus(st, o.event_type)) returns++;
     const ch = orderChannel(o);
     if (ch) {
       if (!byChannel[ch]) byChannel[ch] = { revenue: 0, orders: 0 };

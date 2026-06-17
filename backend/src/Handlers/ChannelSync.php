@@ -2573,17 +2573,32 @@ final class ChannelSync
                     }
                 }
             } else {
+                // [228차 일관성 P1] ★웹훅 신규주문을 폴링(saveOrders)과 동등 처리 — event_type 정규화 + 첫 수신 취소/반품
+                //   claim·반품포탈 기록 + 정상주문 어트리뷰션 귀속(기존엔 신규 취소/반품이 claim 없이 적재돼 정산 returnFee 누락,
+                //   신규주문이 enrichOrderAttribution 미호출로 광고귀속 누락 = 폴링/웹훅 산출값 불일치).
+                $incCRw = self::classifyCancelReturn((string)($body['status'] ?? ''), (string)$eventType);
+                $evtNormW = $incCRw ?? $eventType;
+                $oidW = (string)$body['order_id']; $skuW = (string)($body['sku'] ?? '');
+                $qtyW = (int)($body['qty'] ?? 1); $totalW = (float)($body['total'] ?? 0);
                 $pdo->prepare("INSERT INTO channel_orders(tenant_id,channel,channel_order_id,buyer_name,product_name,sku,qty,unit_price,total_price,status,ordered_at,event_type,synced_at)
                     VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)")
-                    ->execute([$tenant,$channel,$body['order_id'],$body['buyer_name']??'',$body['product_name']??'',$body['sku']??null,(int)($body['qty']??1),(float)($body['price']??0),(float)($body['total']??0),$body['status']??'pending',$body['ordered_at']??$now,$eventType,$now]);
-                // 208차 동기화 P0/P1: 신규 주문 webhook → 실재고 차감 + CRM 구매이력 기록.
-                if (in_array($eventType, ['order','order_update'], true)) {
-                    if (!empty($body['sku'])) {
-                        self::decInventory($pdo, $tenant, $channel, (string)$body['sku'], (int)($body['qty'] ?? 1));
-                        // [현 차수] 단방향 자동진입: 채널 판매를 물리 창고 재고에도 출고 반영(추적 SKU 한정·멱등·non-throw).
-                        Wms::reflectChannelSale($tenant, (string)$body['sku'], (string)($body['product_name'] ?? ''), (float)($body['qty'] ?? 1), 'CHS-' . $channel . '-' . (string)$body['order_id']);
+                    ->execute([$tenant,$channel,$oidW,$body['buyer_name']??'',$body['product_name']??'',$skuW?:null,$qtyW,(float)($body['price']??0),$totalW,$body['status']??'pending',$body['ordered_at']??$now,$evtNormW,$now]);
+                if ($incCRw === null) {
+                    // 정상 신규 주문 → 실재고 차감 + CRM + 어트리뷰션(폴링 정합).
+                    if ($skuW !== '') {
+                        self::decInventory($pdo, $tenant, $channel, $skuW, $qtyW);
+                        Wms::reflectChannelSale($tenant, $skuW, (string)($body['product_name'] ?? ''), (float)$qtyW, 'CHS-' . $channel . '-' . $oidW);
                     }
-                    self::recordCrmPurchase($pdo, $tenant, $channel, $body['buyer_email'] ?? '', $body['buyer_name'] ?? '', (float)($body['total'] ?? 0), (string)($body['sku'] ?? ''), (int)($body['qty'] ?? 1), (string)$body['order_id']);
+                    self::recordCrmPurchase($pdo, $tenant, $channel, $body['buyer_email'] ?? '', $body['buyer_name'] ?? '', $totalW, $skuW, $qtyW, $oidW);
+                    self::recordAttributionTouch($pdo, $tenant, $channel, $oidW, $totalW);
+                    self::enrichOrderAttribution($pdo, $tenant, $channel, $oidW, $body['buyer_email'] ?? null, $totalW, $body);
+                } else {
+                    // 첫 수신 취소/반품 → claim 기록(+반품이면 물리재고 복원·반품포탈) — 폴링과 동등(정산 returnFee 정합).
+                    self::recordClaim($pdo, $tenant, $channel, $oidW, $evtNormW, $totalW, (string)($body['reason'] ?? ''), (string)($body['buyer_name'] ?? ''), $now);
+                    if ($incCRw === 'return' && $skuW !== '' && $qtyW > 0) {
+                        Wms::reflectChannelRestock($tenant, $skuW, (string)($body['product_name'] ?? ''), (float)$qtyW, 'CHS-' . $channel . '-' . $oidW, 'CHR-' . $channel . '-' . $oidW);
+                        ReturnsPortal::ingestChannelReturn($tenant, ['order_id'=>$oidW,'channel'=>$channel,'sku'=>$skuW,'name'=>(string)($body['product_name']??''),'qty'=>$qtyW,'reason'=>(string)($body['reason']??''),'refund_amt'=>$totalW]);
+                    }
                 }
             }
         }
