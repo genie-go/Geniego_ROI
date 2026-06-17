@@ -1283,6 +1283,125 @@ final class ChannelSync
     }
 
     /** 채널 쓰기 디스패처(Catalog 위임 진입점). */
+    /* ══════════════════ [228차] 채널별 리뷰 API 실수집기 — fetch 인증 재사용 ══════════════════
+     *   반환 ['reviews'=>[{external_review_id,product,rating,title,body,author,reviewed_at}], 'note'=>'', 'mode'=>''].
+     *   자격증명 미설정/파트너 게이트는 정직한 note + 빈 reviews(가짜 수집 금지). Reviews::collect 가 호출.
+     */
+    public static function collectReviews(string $channel, array $creds, string $tenant = ''): array
+    {
+        switch (strtolower($channel)) {
+            case 'cafe24':                          return self::cafe24Reviews($creds);
+            case 'shopify':                         return self::shopifyReviews($creds);
+            case 'naver': case 'naver_smartstore':  return self::naverReviews($creds);
+            case 'coupang':                         return self::coupangReviews($creds);
+            default:                                return ['reviews' => [], 'mode' => 'unsupported', 'note' => "리뷰 수집 어댑터 미지원 채널: {$channel}"];
+        }
+    }
+
+    /** HTML 태그 제거 + 공백 정리(리뷰 본문 정규화). */
+    private static function stripHtml(string $s): string
+    {
+        $s = preg_replace('/<br\s*\/?>(?=)/i', "\n", $s) ?? $s;
+        return trim(preg_replace('/\s+/u', ' ', strip_tags($s)) ?? $s);
+    }
+
+    /** Cafe24 상품후기 게시판 수집(실연동). refresh_token grant → /admin/boards/{board_no}/articles. */
+    private static function cafe24Reviews(array $creds): array
+    {
+        $mallId = trim((string)($creds['mall_id'] ?? '')); $clientId = trim((string)($creds['client_id'] ?? ''));
+        $clientSecret = trim((string)($creds['client_secret'] ?? '')); $refreshToken = trim((string)($creds['refresh_token'] ?? ''));
+        $boardNo = (int)($creds['review_board_no'] ?? 4); // Cafe24 기본 상품후기 게시판=4(몰별 상이 시 cred 로 지정).
+        if ($mallId === '' || $clientId === '' || $clientSecret === '' || $refreshToken === '') {
+            return ['reviews' => [], 'mode' => 'no_credentials', 'note' => 'Cafe24: mall_id·client_id·client_secret·refresh_token 필요'];
+        }
+        $apiBase = "https://{$mallId}.cafe24api.com/api/v2";
+        [$tc, $tb] = self::httpPost("{$apiBase}/oauth/token", ['Authorization' => 'Basic ' . base64_encode($clientId . ':' . $clientSecret), 'Content-Type' => 'application/x-www-form-urlencoded'], http_build_query(['grant_type' => 'refresh_token', 'refresh_token' => $refreshToken]));
+        $token = (string)($tb['access_token'] ?? '');
+        if ($token === '') return ['reviews' => [], 'mode' => 'auth_failed', 'note' => "Cafe24 토큰 발급 실패(code={$tc}) — refresh_token 확인"];
+        $hdr = ['Authorization' => "Bearer {$token}", 'Content-Type' => 'application/json', 'X-Cafe24-Api-Version' => '2024-06-01'];
+        [$code, $body] = self::httpGet("{$apiBase}/admin/boards/{$boardNo}/articles?limit=100&embed=comments", $hdr);
+        if ($code >= 400 || !isset($body['articles'])) {
+            return ['reviews' => [], 'mode' => 'api_error', 'note' => "Cafe24 게시판 조회 실패(code={$code}) — board_no={$boardNo}/mall.read_community 권한 확인"];
+        }
+        $reviews = [];
+        foreach ((array)($body['articles'] ?? []) as $a) {
+            $no = (string)($a['article_no'] ?? '');
+            if ($no === '') continue;
+            $reviews[] = [
+                'external_review_id' => 'cafe24_' . $no,
+                'product'     => (string)($a['product_name'] ?? ($a['product_no'] ?? '')),
+                'product_id'  => (string)($a['product_no'] ?? ''),
+                'rating'      => (float)($a['rating'] ?? 0),          // 상품후기 게시판은 rating 제공(미설정 시 0→감성 neutral).
+                'title'       => self::stripHtml((string)($a['title'] ?? '')),
+                'body'        => self::stripHtml((string)($a['content'] ?? '')),
+                'author'      => (string)($a['writer'] ?? $a['member_id'] ?? ''),
+                'reviewed_at' => (string)($a['created_date'] ?? gmdate('c')),
+            ];
+        }
+        return ['reviews' => $reviews, 'mode' => 'live', 'note' => count($reviews) . '건 Cafe24 상품후기 수집(board_no=' . $boardNo . ')'];
+    }
+
+    /** Shopify 리뷰 수집 — Admin API는 리뷰 네이티브 미제공. Product Reviews 앱 메타필드(spr.reviews) 시도. */
+    private static function shopifyReviews(array $creds): array
+    {
+        $token = $creds['access_token'] ?? $creds['api_password'] ?? '';
+        $shop  = rtrim((string)($creds['shop_domain'] ?? ''), '/');
+        if ($shop === '' || $token === '') return ['reviews' => [], 'mode' => 'no_credentials', 'note' => 'Shopify: shop_domain·access_token 필요'];
+        if (!str_contains($shop, '.')) $shop .= '.myshopify.com';
+        $hdr = ['X-Shopify-Access-Token' => $token, 'Content-Type' => 'application/json'];
+        // Shopify 리뷰는 앱(Judge.me/Loox/Product Reviews) 영역. 레거시 Product Reviews 앱은 상품 메타필드(spr.reviews)에 적재.
+        [$code, $body] = self::httpGet("https://{$shop}/admin/api/2024-01/metafields.json?namespace=spr&limit=100", $hdr);
+        if ($code >= 400) return ['reviews' => [], 'mode' => 'requires_app', 'note' => "Shopify 리뷰는 리뷰 앱(Judge.me/Loox/Shopify Product Reviews) 연동이 필요합니다(메타필드 조회 code={$code})."];
+        $mf = (array)($body['metafields'] ?? []);
+        if (!$mf) return ['reviews' => [], 'mode' => 'requires_app', 'note' => 'Shopify: 리뷰 앱(spr 네임스페이스 메타필드) 미설치 — Judge.me 등 연동 후 수집 가능.'];
+        // spr.reviews 메타필드는 집계 HTML — 개별 리뷰 분해는 앱별 포맷 상이. 정직하게 앱 연동 안내(가짜 분해 금지).
+        return ['reviews' => [], 'mode' => 'requires_app_parse', 'note' => 'Shopify 리뷰 앱 메타필드 감지됨 — 개별 리뷰 추출은 앱별 포맷(Judge.me API 등) 연동이 필요합니다.'];
+    }
+
+    /** 네이버 커머스 리뷰 수집 — OAuth 토큰(실)+리뷰 API. 리뷰 엔드포인트는 판매자 스코프 승인 필요(정직 게이트). */
+    private static function naverReviews(array $creds): array
+    {
+        $clientId = (string)($creds['client_id'] ?? ''); $clientSecret = (string)($creds['client_secret'] ?? '');
+        if ($clientId === '' || $clientSecret === '') return ['reviews' => [], 'mode' => 'no_credentials', 'note' => '네이버 커머스: client_id·client_secret 필요'];
+        $timestamp = (int)(microtime(true) * 1000);
+        $sign = base64_encode(hash_hmac('sha256', "{$clientId}_{$timestamp}", $clientSecret, true));
+        [$code, $body] = self::httpPost('https://api.commerce.naver.com/external/v1/oauth2/token',
+            ['Content-Type' => 'application/x-www-form-urlencoded'],
+            "client_id={$clientId}&timestamp={$timestamp}&client_secret_sign={$sign}&grant_type=client_credentials&type=SELF");
+        if ($code !== 200 || empty($body['access_token'])) return ['reviews' => [], 'mode' => 'auth_failed', 'note' => "네이버 토큰 발급 실패(code={$code}) — client_id/secret 확인"];
+        $token = (string)$body['access_token'];
+        // 네이버 커머스 리뷰 조회 API — 판매자 리뷰 스코프(상품 리뷰 조회 권한) 승인 필요. 미승인 시 정직 게이트.
+        [$rc, $rb] = self::httpGet('https://api.commerce.naver.com/external/v1/products/origin-products/reviews?page=1&size=50', ['Authorization' => "Bearer {$token}"]);
+        if ($rc >= 400 || !is_array($rb)) {
+            return ['reviews' => [], 'mode' => 'scope_pending', 'note' => "네이버 토큰 정상·리뷰 API 응답 code={$rc} — 판매자 리뷰 조회 스코프 승인 후 수집됩니다."];
+        }
+        $reviews = [];
+        foreach ((array)($rb['contents'] ?? $rb['data'] ?? []) as $rv) {
+            $id = (string)($rv['reviewId'] ?? $rv['id'] ?? '');
+            if ($id === '') continue;
+            $reviews[] = [
+                'external_review_id' => 'naver_' . $id,
+                'product'     => (string)($rv['productName'] ?? ''),
+                'rating'      => (float)($rv['reviewScore'] ?? $rv['score'] ?? 0),
+                'body'        => self::stripHtml((string)($rv['reviewContent'] ?? $rv['content'] ?? '')),
+                'author'      => (string)($rv['writerId'] ?? $rv['memberId'] ?? ''),
+                'reviewed_at' => (string)($rv['createDate'] ?? gmdate('c')),
+            ];
+        }
+        return ['reviews' => $reviews, 'mode' => 'live', 'note' => count($reviews) . '건 네이버 커머스 리뷰 수집'];
+    }
+
+    /** 쿠팡 리뷰 수집 — WING OpenAPI HMAC(실 인증). 구매자 리뷰 조회 API는 파트너 게이트(정직 안내). */
+    private static function coupangReviews(array $creds): array
+    {
+        $accessKey = (string)($creds['access_key'] ?? ''); $secretKey = (string)($creds['secret_key'] ?? '');
+        $vendorId  = (string)($creds['vendor_id'] ?? '');
+        if ($accessKey === '' || $secretKey === '' || $vendorId === '') return ['reviews' => [], 'mode' => 'no_credentials', 'note' => '쿠팡: access_key·secret_key·vendor_id 필요'];
+        // 쿠팡 WING OpenAPI 는 주문/상품/정산 중심 — 구매자 상품평(리뷰) 조회는 일반 공개 미제공(WING UI/파트너 한정).
+        //   HMAC 인증 자체는 검증되어 있으므로(주문 수집과 동일), 리뷰 API 가 파트너 승인되면 동일 패턴으로 즉시 배선 가능.
+        return ['reviews' => [], 'mode' => 'partner_gated', 'note' => '쿠팡 구매자 리뷰 조회 API는 파트너 승인 한정 — 승인 시 동일 HMAC 인증으로 수집 배선됩니다.'];
+    }
+
     public static function pushProduct(string $channel, array $creds, array $product, string $operation, ?string $channelProductId): array
     {
         $ch = strtolower($channel);

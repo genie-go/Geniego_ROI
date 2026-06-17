@@ -98,7 +98,13 @@ function Toast({ message, onClose }) {
 /* ══════════════════════════════════════════════
    TAB 1: Dashboard (KPI + Channel + Keywords)
    ══════════════════════════════════════════════ */
-function DashboardTab({ t, channelStats, negKeywords, ugcReviews, totalReviews, avgRating, negCount, repliedCount, escalatedCount, onBulkEscalate, onBulkReply, onAnalyze, analyzing }) {
+function DashboardTab({ t, channelStats, negKeywords, ugcReviews, totalReviews, avgRating, negCount, repliedCount, escalatedCount, onBulkEscalate, onBulkReply, onAnalyze, analyzing, onCollect, collecting }) {
+    const COLLECT_CHANNELS = [
+        { key: "cafe24", label: "Cafe24" },
+        { key: "naver", label: "네이버" },
+        { key: "coupang", label: "쿠팡" },
+        { key: "shopify", label: "Shopify" },
+    ];
     return (
         <div style={{ display: "grid", gap: 16 }}>
             {/* Action Buttons */}
@@ -113,6 +119,18 @@ function DashboardTab({ t, channelStats, negKeywords, ugcReviews, totalReviews, 
                     🤖 {t("reviews.bulkGenReply")}
                 </button>
             </div>
+            {/* [228차] 채널 리뷰 API 수집 — 등록된 자격증명으로 채널 리뷰를 직접 수집 */}
+            {onCollect && (
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", padding: "8px 12px", borderRadius: 10, background: "rgba(99,102,241,0.05)", border: "1px solid rgba(99,102,241,0.15)" }}>
+                    <span style={{ fontSize: 11, fontWeight: 800, color: "#4f46e5" }}>🔄 {t("reviews.collectTitle", "채널 리뷰 수집")}</span>
+                    {COLLECT_CHANNELS.map(c => (
+                        <button key={c.key} onClick={() => onCollect(c.key)} disabled={!!collecting} style={{ fontSize: 11, fontWeight: 700, padding: "5px 12px", borderRadius: 7, border: "1px solid #cbd5e1", cursor: collecting ? "wait" : "pointer", background: collecting === c.key ? "#e0e7ff" : "#fff", color: "#4f46e5", opacity: collecting && collecting !== c.key ? 0.5 : 1 }}>
+                            {collecting === c.key ? "⏳" : "↓"} {c.label}
+                        </button>
+                    ))}
+                    <span style={{ fontSize: 10, color: "#9ca3af" }}>{t("reviews.collectHint", "연동허브에 자격증명을 등록한 채널만 수집됩니다")}</span>
+                </div>
+            )}
 
             {/* KPIs */}
             <div className="grid4 fade-up">
@@ -496,6 +514,7 @@ export default function ReviewsUGC() {
     const [escalateState, setEscalateState] = useState({});
     const [toast, setToast] = useState(null);
     const [analyzing, setAnalyzing] = useState(false);
+    const [collecting, setCollecting] = useState("");
 
     const totalReviews = channelStats.reduce((s, c) => s + (c.total || 0), 0);
     const avgRating = totalReviews > 0 ? (channelStats.reduce((s, c) => s + (c.avg || 0) * (c.total || 0), 0) / totalReviews).toFixed(2) : "0.00";
@@ -533,6 +552,32 @@ export default function ReviewsUGC() {
             }
         } catch (e) { setToast(t("reviews.aiAnalyzeErr", "AI 분석 실패")); }
         setAnalyzing(false);
+    }, [isDemo, t, syncProductReviews, syncReviewChannelStats, syncReviewNegKeywords]);
+
+    // [228차] 채널 리뷰 API 실수집 — 등록된 자격증명으로 채널 리뷰 API 호출 → 적재 → 재동기화.
+    const onCollect = useCallback(async (channel) => {
+        if (isDemo) { setToast(t("reviews.aiAnalyzeDemo", "데모 모드에서는 시드 데이터가 사용됩니다")); return; }
+        if (!channel) return;
+        setCollecting(channel);
+        try {
+            const BASE = import.meta.env.VITE_API_BASE || "";
+            const token = localStorage.getItem("genie_token") || localStorage.getItem("demo_genie_token") || "";
+            const res = await fetch(`${BASE}/api/v428/reviews/collect`, {
+                method: "POST",
+                headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+                body: JSON.stringify({ channel }),
+            }).then(r => r.ok ? r.json() : null);
+            if (res && res.ok) {
+                const saved = res.saved || 0;
+                setToast(saved > 0
+                    ? t("reviews.collectDone", "리뷰 수집 완료") + ` ${channel} (${saved})`
+                    : (res.note || t("reviews.collectNone", "수집된 신규 리뷰가 없습니다")));
+                if (saved > 0) await loadReviewData({ syncProductReviews, syncReviewChannelStats, syncReviewNegKeywords });
+            } else {
+                setToast(t("reviews.collectErr", "리뷰 수집 실패"));
+            }
+        } catch (e) { setToast(t("reviews.collectErr", "리뷰 수집 실패")); }
+        setCollecting("");
     }, [isDemo, t, syncProductReviews, syncReviewChannelStats, syncReviewNegKeywords]);
 
     const TABS = useMemo(() => [
@@ -580,7 +625,7 @@ export default function ReviewsUGC() {
             {/* Tab Content */}
             <div style={{ flex:1, overflowY:"auto", paddingBottom:20 }}>
             <div style={{ background:"rgba(255,255,255,0.95)", border:"1px solid rgba(0,0,0,0.08)", borderRadius:14, padding:20 }}>
-                {tab === "dashboard" && <DashboardTab t={t} channelStats={channelStats} negKeywords={negKeywords} ugcReviews={ugcReviews} totalReviews={totalReviews} avgRating={avgRating} negCount={negCount} repliedCount={repliedCount} escalatedCount={escalatedCount} onBulkEscalate={onBulkEscalate} onBulkReply={onBulkReply} onAnalyze={onAnalyze} analyzing={analyzing} />}
+                {tab === "dashboard" && <DashboardTab t={t} channelStats={channelStats} negKeywords={negKeywords} ugcReviews={ugcReviews} totalReviews={totalReviews} avgRating={avgRating} negCount={negCount} repliedCount={repliedCount} escalatedCount={escalatedCount} onBulkEscalate={onBulkEscalate} onBulkReply={onBulkReply} onAnalyze={onAnalyze} analyzing={analyzing} onCollect={onCollect} collecting={collecting} />}
                 {tab === "feed" && <ReviewFeedTab t={t} ugcReviews={ugcReviews} channelStats={channelStats} replyState={replyState} escalateState={escalateState} onGenReply={handleGenReply} onCopyReply={handleCopyReply} onEscalate={handleEscalate} />}
                 {tab === "trend" && <TrendTab t={t} channelStats={channelStats} ugcReviews={ugcReviews} />}
                 {tab === "widget" && <WidgetTab t={t} isDemo={isDemo} setToast={setToast} />}

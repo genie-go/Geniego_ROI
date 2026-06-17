@@ -731,6 +731,8 @@ return function (App $app): void {
         'POST /api/v428/reviews/ingest'      => 'Genie\\Handlers\\Reviews::ingest',
         'POST /v428/reviews/analyze'         => 'Genie\\Handlers\\Reviews::analyze',
         'POST /api/v428/reviews/analyze'     => 'Genie\\Handlers\\Reviews::analyze',
+        'POST /v428/reviews/collect'         => 'Genie\\Handlers\\Reviews::collect',
+        'POST /api/v428/reviews/collect'     => 'Genie\\Handlers\\Reviews::collect',
         'GET /v428/reviews/requests'         => 'Genie\\Handlers\\Reviews::requests',
         'GET /api/v428/reviews/requests'     => 'Genie\\Handlers\\Reviews::requests',
         'POST /v428/reviews/request-campaign'     => 'Genie\\Handlers\\Reviews::requestCampaign',
@@ -2481,6 +2483,7 @@ return function (App $app): void {
     $register('GET',    '/v428/reviews/neg-keywords');   $register('GET',    '/api/v428/reviews/neg-keywords');
     $register('POST',   '/v428/reviews/ingest');         $register('POST',   '/api/v428/reviews/ingest');
     $register('POST',   '/v428/reviews/analyze');        $register('POST',   '/api/v428/reviews/analyze');
+    $register('POST',   '/v428/reviews/collect');        $register('POST',   '/api/v428/reviews/collect');
     $register('GET',    '/v428/reviews/requests');       $register('GET',    '/api/v428/reviews/requests');
     $register('POST',   '/v428/reviews/request-campaign'); $register('POST', '/api/v428/reviews/request-campaign');
     $register('GET',    '/v428/reviews/widget-config');   $register('GET',    '/api/v428/reviews/widget-config');

@@ -96,7 +96,18 @@ final class Reviews
         $reviews = is_array($b['reviews'] ?? null) ? $b['reviews'] : [];
         if ($channel === '' || !$reviews) return self::json($res, ['ok' => false, 'error' => 'channel and reviews[] required'], 422);
 
-        $pdo = Db::pdo(); self::ensureTable($pdo);
+        $pdo = Db::pdo();
+        $r = self::persistReviews($pdo, $tenant, $channel, $reviews);
+        return self::json($res, ['ok' => true, 'channel' => $channel, 'saved' => $r['saved'], 'converted' => $r['converted']]);
+    }
+
+    /**
+     * 리뷰 배열을 product_review 에 멱등 upsert + 주문ID 매칭 전환표기.
+     *   ingest(웹훅/푸시)와 collect(채널 API 수집기)가 공용으로 사용. 반환 ['saved'=>n,'converted'=>n].
+     */
+    private static function persistReviews(\PDO $pdo, string $tenant, string $channel, array $reviews): array
+    {
+        self::ensureTable($pdo);
         $isMy = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql';
         $now = gmdate('c'); $saved = 0;
         $sql = $isMy
@@ -132,7 +143,51 @@ final class Reviews
         }
         // [R3] 수집된 리뷰가 주문ID 동반 시, 해당 주문의 대기중 리뷰요청을 '전환'으로 표기(실 전환신호, 과대계상 없음).
         $converted = $matchedOrderIds ? self::markRequestsReviewed($pdo, $tenant, $channel, $matchedOrderIds) : 0;
-        return self::json($res, ['ok' => true, 'channel' => $channel, 'saved' => $saved, 'converted' => $converted]);
+        return ['saved' => $saved, 'converted' => $converted];
+    }
+
+    /** 채널 자격증명 로드(channel_credential, key_name=>복호화값). Catalog 패턴 재사용(쓰기 인증과 동일 소스). */
+    private static function loadChannelCreds(\PDO $pdo, string $tenant, string $channel): array
+    {
+        try {
+            $st = $pdo->prepare("SELECT key_name, key_value FROM channel_credential WHERE tenant_id=? AND channel=? AND is_active=1");
+            $st->execute([$tenant, $channel]);
+            $creds = [];
+            foreach ($st->fetchAll(\PDO::FETCH_ASSOC) as $r) {
+                $kn = (string)$r['key_name'];
+                if ($kn === '' || isset($creds[$kn])) continue;
+                $creds[$kn] = \Genie\Crypto::decrypt((string)$r['key_value']);
+            }
+            return $creds;
+        } catch (\Throwable $e) { return []; }
+    }
+
+    /**
+     * POST /v428/reviews/collect — [228차] 채널별 리뷰 API 실수집기 진입점.
+     *   body: { channel }. 테넌트의 channel_credential(쓰기 인증과 동일 소스)로 채널 리뷰 API를 실호출,
+     *   정규화 후 product_review 에 멱등 적재. 자격증명 미설정/파트너 게이트는 정직한 note 반환(가짜수집 없음).
+     *   ChannelSync 의 검증된 채널 인증(OAuth/HMAC) 재사용.
+     */
+    public static function collect(Request $req, Response $res): Response
+    {
+        $tenant = self::tenant($req);
+        if ($tenant === '' || self::isDemo($tenant)) return self::json($res, ['ok' => false, 'error' => 'tenant_required'], 403);
+        $b = (array)($req->getParsedBody() ?? []);
+        if (empty($b)) { $d = json_decode((string)$req->getBody(), true); if (is_array($d)) $b = $d; }
+        $channel = strtolower(trim((string)($b['channel'] ?? '')));
+        if ($channel === '') return self::json($res, ['ok' => false, 'error' => 'channel required'], 422);
+
+        $pdo = Db::pdo();
+        $creds = self::loadChannelCreds($pdo, $tenant, $channel);
+        if (!$creds) return self::json($res, ['ok' => true, 'channel' => $channel, 'fetched' => 0, 'saved' => 0, 'mode' => 'no_credentials', 'note' => '채널 자격증명 미등록 — 연동허브에서 등록 후 수집하세요.']);
+
+        $result = ChannelSync::collectReviews($channel, $creds, $tenant);
+        $reviews = is_array($result['reviews'] ?? null) ? $result['reviews'] : [];
+        $note = (string)($result['note'] ?? '');
+        $mode = (string)($result['mode'] ?? (count($reviews) ? 'live' : 'empty'));
+        $saved = 0; $converted = 0;
+        if ($reviews) { $p = self::persistReviews($pdo, $tenant, $channel, $reviews); $saved = $p['saved']; $converted = $p['converted']; }
+        return self::json($res, ['ok' => true, 'channel' => $channel, 'fetched' => count($reviews), 'saved' => $saved, 'converted' => $converted, 'mode' => $mode, 'note' => $note]);
     }
 
     /** [R3] 주문ID 일치하는 대기 리뷰요청을 reviewed 로 플립(전환 측정). 반환=전환 건수. */
