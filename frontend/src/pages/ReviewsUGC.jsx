@@ -34,26 +34,29 @@ function useReviewsSecurity() {
    AUTO-LOAD: API → GlobalDataContext real-time sync
 ══════════════════════════════════════════════════════════════════ */
 function useReviewsDataSync() {
-    const { syncUgcReviews, syncChannelStats, syncNegKeywords } = useGlobalData();
+    const { syncUgcReviews, syncChannelStats, syncNegKeywords, isDemo } = useGlobalData();
     const loaded = useRef(false);
     useEffect(() => {
         if (loaded.current) return;
         loaded.current = true;
+        // [228차 R1] 데모는 시드 사용(GlobalDataContext)·운영만 실 리뷰 엔드포인트 호출(빈 응답으로 시드 덮어쓰기 방지).
+        if (isDemo) return;
         const BASE = import.meta.env.VITE_API_BASE || "";
         const token = localStorage.getItem("genie_token") || localStorage.getItem("demo_genie_token") || "";
         const headers = token ? { Authorization: `Bearer ${token}` } : {};
         Promise.allSettled([
-            /* [현 차수] 죽은 라우트 정정: /v423/reviews/* 는 미등록(404) → 실제 등록된 /v423/influencer/* 로 교정.
-               (Influencer::read 가 bare 배열 반환 → 아래 Array.isArray 체크와 정합) 운영 리뷰/UGC 무데이터 해소. */
-            fetch(`${BASE}/api/v423/influencer/ugc-reviews`, { headers }).then(r => r.ok ? r.json() : null),
-            fetch(`${BASE}/api/v423/influencer/channel-stats`, { headers }).then(r => r.ok ? r.json() : null),
-            fetch(`${BASE}/api/v423/influencer/neg-keywords`, { headers }).then(r => r.ok ? r.json() : null),
+            /* [228차 R1] 실 리뷰 데이터 계층(product_review) 엔드포인트로 배선 — 기존 influencer 블롭 stopgap 폐기.
+               응답 {ok,reviews|stats|keywords:[...]} 래핑 → 배열 추출. */
+            fetch(`${BASE}/api/v428/reviews?limit=300`, { headers }).then(r => r.ok ? r.json() : null),
+            fetch(`${BASE}/api/v428/reviews/channel-stats`, { headers }).then(r => r.ok ? r.json() : null),
+            fetch(`${BASE}/api/v428/reviews/neg-keywords`, { headers }).then(r => r.ok ? r.json() : null),
         ]).then(([reviewsRes, statsRes, kwRes]) => {
-            if (reviewsRes.status === "fulfilled" && Array.isArray(reviewsRes.value)) syncUgcReviews(reviewsRes.value);
-            if (statsRes.status === "fulfilled" && Array.isArray(statsRes.value)) syncChannelStats(statsRes.value);
-            if (kwRes.status === "fulfilled" && Array.isArray(kwRes.value)) syncNegKeywords(kwRes.value);
+            const arr = (res, key) => (res.status === "fulfilled" && res.value && Array.isArray(res.value[key])) ? res.value[key] : null;
+            const rv = arr(reviewsRes, "reviews"); if (rv) syncUgcReviews(rv);
+            const st = arr(statsRes, "stats"); if (st) syncChannelStats(st);
+            const kw = arr(kwRes, "keywords"); if (kw) syncNegKeywords(kw);
         }).catch(() => {});
-    }, [syncUgcReviews, syncChannelStats, syncNegKeywords]);
+    }, [syncUgcReviews, syncChannelStats, syncNegKeywords, isDemo]);
 }
 
 /* ══════════════════════════════════════════════════════════════════

@@ -720,6 +720,17 @@ return function (App $app): void {
         // [228차 S1] 매체보고 vs 실주문귀속 ROAS 정합
         'GET /v423/connectors/roas-reconciliation'     => 'Genie\\Handlers\\Connectors::roasReconciliation',
         'GET /api/v423/connectors/roas-reconciliation' => 'Genie\\Handlers\\Connectors::roasReconciliation',
+        // [228차 R1] 고객 리뷰/UGC 수집·집계
+        'GET /v428/reviews'                  => 'Genie\\Handlers\\Reviews::list',
+        'GET /api/v428/reviews'              => 'Genie\\Handlers\\Reviews::list',
+        'GET /v428/reviews/channel-stats'    => 'Genie\\Handlers\\Reviews::channelStats',
+        'GET /api/v428/reviews/channel-stats'=> 'Genie\\Handlers\\Reviews::channelStats',
+        'GET /v428/reviews/neg-keywords'     => 'Genie\\Handlers\\Reviews::negKeywords',
+        'GET /api/v428/reviews/neg-keywords' => 'Genie\\Handlers\\Reviews::negKeywords',
+        'POST /v428/reviews/ingest'          => 'Genie\\Handlers\\Reviews::ingest',
+        'POST /api/v428/reviews/ingest'      => 'Genie\\Handlers\\Reviews::ingest',
+        'DELETE /v428/reviews/{id}'          => 'Genie\\Handlers\\Reviews::remove',
+        'DELETE /api/v428/reviews/{id}'      => 'Genie\\Handlers\\Reviews::remove',
         // [현 차수] 범용 광고성과 ingest(추후 추가 채널 무코드 적재, api_key write) — objective 포함.
         'POST /v424/connectors/ad-metrics'         => 'Genie\\Handlers\\Connectors::adMetricsIngest',
         'POST /api/v424/connectors/ad-metrics'     => 'Genie\\Handlers\\Connectors::adMetricsIngest',
@@ -2450,6 +2461,12 @@ return function (App $app): void {
     $register('GET', '/api/v424/connectors/campaign-funnel');
     $register('GET', '/v423/connectors/roas-reconciliation');
     $register('GET', '/api/v423/connectors/roas-reconciliation');
+    // [228차 R1] 리뷰/UGC
+    $register('GET',    '/v428/reviews');                $register('GET',    '/api/v428/reviews');
+    $register('GET',    '/v428/reviews/channel-stats');  $register('GET',    '/api/v428/reviews/channel-stats');
+    $register('GET',    '/v428/reviews/neg-keywords');   $register('GET',    '/api/v428/reviews/neg-keywords');
+    $register('POST',   '/v428/reviews/ingest');         $register('POST',   '/api/v428/reviews/ingest');
+    $register('DELETE', '/v428/reviews/{id}');           $register('DELETE', '/api/v428/reviews/{id}');
     $register('POST', '/v424/connectors/ad-metrics');
     $register('POST', '/api/v424/connectors/ad-metrics');
 
