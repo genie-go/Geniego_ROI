@@ -2016,6 +2016,69 @@ final class ChannelSync
         } catch (\Throwable $e) { /* attribution_result 미존재 등 best-effort */ }
     }
 
+    /**
+     * [229차 S3 backfill, 228 잔여 #4] 과거 주문 어트리뷰션 소급 적용.
+     *   S3(228차 bcc89c6) 이전 적재된 주문은 enrichOrderAttribution 의 early-return 으로
+     *   attribution_result 가 생성되지 않아, AttributionEngine::loadJourneys 가 이를 비전환으로
+     *   로드(전환 과소·markov 크레딧 퇴화)했다. 본 메서드는 attribution_result 누락 주문을 찾아
+     *   라이브 신규주문과 동일 시퀀스(recordAttributionTouch → enrichOrderAttribution)를 멱등 재생한다.
+     *
+     *   ★attribution 전용 소급: 재고차감(decInventory)·WMS·CRM(recordCrmPurchase)는 재생하지 않는다
+     *     (그 부수효과는 최초 수집 시 이미 적용·일부는 멱등 보장 약함 → 이중반영 위험). 귀속 신호만 보강.
+     *   ★라이브 정합: 취소/반품 주문은 라이브 경로($incCR===null 일 때만 enrich)와 동일하게 제외.
+     *   ★멱등: 두 헬퍼 모두 존재체크 후 INSERT → 재실행 안전. 데모 테넌트는 무동작.
+     *
+     *   @return ['scanned'=>n, 'enriched'=>n, 'skipped_cr'=>n] 처리 통계.
+     */
+    public static function backfillAttribution(PDO $pdo, string $tenant, int $limit = 50000): array
+    {
+        $agg = ['scanned' => 0, 'enriched' => 0, 'skipped_cr' => 0];
+        if ($tenant === 'demo' || $tenant === '') return $agg;
+        $batch   = 1000;
+        $hardCap = max(0, $limit);
+        // ★단조 증가 PK(id) 커서로 전진 — 취소/반품 skip 주문은 attribution_result 가 안 생겨
+        //   NOT EXISTS 단독 페이지네이션이면 매 배치 재반환→무한루프. id>lastId 로 반드시 전진한다.
+        //   NOT EXISTS 는 이미 귀속된 주문을 건너뛰는 효율 필터(헬퍼 멱등이라 정확성은 무관).
+        $lastId = 0;
+        while ($hardCap === 0 || $agg['scanned'] < $hardCap) {
+            try {
+                $sql = "SELECT id, channel, channel_order_id, buyer_email, total_price, raw_json, status, event_type "
+                     . "FROM channel_orders co "
+                     . "WHERE co.tenant_id = ? AND co.id > ? AND co.channel_order_id IS NOT NULL AND co.channel_order_id <> '' "
+                     . "AND NOT EXISTS (SELECT 1 FROM attribution_result ar WHERE ar.tenant_id = co.tenant_id AND ar.order_id = co.channel_order_id) "
+                     . "ORDER BY co.id ASC LIMIT " . (int)$batch; // [225차 트랩] MySQL LIMIT 바인딩 회피 — 정수 인라인.
+                $st = $pdo->prepare($sql);
+                $st->execute([$tenant, $lastId]);
+                $rows = $st->fetchAll(PDO::FETCH_ASSOC);
+            } catch (\Throwable $e) {
+                break; // channel_orders/attribution_result 부재 등 — 처리할 것 없음.
+            }
+            if (!$rows) break;
+            foreach ($rows as $o) {
+                $lastId = max($lastId, (int)($o['id'] ?? 0)); // 커서 전진(skip 여부 무관).
+                $agg['scanned']++;
+                $orderId = (string)($o['channel_order_id'] ?? '');
+                if ($orderId === '') continue;
+                // 라이브와 동일: 취소/반품 주문은 전환 귀속 제외.
+                if (self::classifyCancelReturn((string)($o['status'] ?? ''), (string)($o['event_type'] ?? '')) !== null) {
+                    $agg['skipped_cr']++;
+                    continue;
+                }
+                $channel = (string)($o['channel'] ?? '');
+                $total   = (float)($o['total_price'] ?? 0);
+                $email   = trim((string)($o['buyer_email'] ?? ''));
+                $raw     = [];
+                if (!empty($o['raw_json'])) { $d = json_decode((string)$o['raw_json'], true); if (is_array($d)) $raw = $d; }
+                // 라이브 시퀀스 재생(귀속만) — 둘 다 멱등.
+                self::recordAttributionTouch($pdo, $tenant, $channel, $orderId, $total);
+                self::enrichOrderAttribution($pdo, $tenant, $channel, $orderId, $email !== '' ? $email : null, $total, $raw);
+                $agg['enriched']++;
+            }
+            if (count($rows) < $batch) break; // 마지막 배치.
+        }
+        return $agg;
+    }
+
     private static function recordCrmPurchase(PDO $pdo, string $tenant, string $channel, ?string $email, ?string $name, float $total, string $sku, int $qty, string $orderId): void
     {
         $email = trim((string)$email);
