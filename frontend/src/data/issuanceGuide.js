@@ -65,11 +65,11 @@ export const ISSUANCE_GUIDE_KO = {
   ],
   youtube: [
     '준비물: Google 계정이 필요합니다. (운영팀이 대신 발급할 수 없는 자가 발급 채널입니다.)',
-    'console.cloud.google.com 에 로그인 → 상단 프로젝트 선택 > [새 프로젝트]로 프로젝트를 만듭니다.',
+    'console.cloud.google.com 에 로그인 → 상단에서 프로젝트 선택 또는 [새 프로젝트]를 만듭니다.',
     '[API 및 서비스] > [라이브러리]에서 "YouTube Data API v3"를 검색해 [사용 설정]을 누릅니다.',
-    '채널/라이브 데이터에 접근하려면 [사용자 인증 정보] > [OAuth 동의 화면]을 먼저 구성합니다(앱 이름·범위).',
-    '[사용자 인증 정보] > [사용자 인증 정보 만들기]에서 OAuth 클라이언트 ID를 만들어 client_id/secret을 받거나, 공개 데이터만 쓰면 API 키를 만듭니다.',
-    'GenieGo [등록]에 API 키(또는 OAuth 토큰)와 채널 ID를 입력해 저장합니다.',
+    '[사용자 인증 정보] > [사용자 인증 정보 만들기] → ★[API 키]를 선택해 생성된 API 키를 복사합니다. (공개 라이브/채널 데이터는 API 키면 충분 — OAuth 클라이언트 ID는 만들 필요가 없습니다.)',
+    '채널 ID 확보: YouTube Studio > 설정 > 채널 > 고급 설정에서 채널 ID(UC…로 시작)를 복사합니다.',
+    'GenieGo [등록]의 ① API 키 칸에 복사한 API 키, ② 채널 ID 칸에 채널 ID를 입력해 저장합니다. (★OAuth 클라이언트 ID·비밀번호 client_id/secret 은 이 칸에 넣는 값이 아닙니다.)',
   ],
   twitch: [
     '준비물: Twitch 계정이 필요합니다.',

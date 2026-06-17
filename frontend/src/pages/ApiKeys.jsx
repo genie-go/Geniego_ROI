@@ -98,7 +98,7 @@ const COMMERCE_SYNC_GROUPS = ['domestic', 'global_commerce', 'd2c'];
 /* 채널별 구조화 자격증명 필드 — 208차: 채널마다 필요한 키(액세스토큰/광고계정/고객ID/광고주ID/Shop도메인 등) 안내 입력 */
 const CHANNEL_FIELDS = {
   // SNS 라이브
-  youtube:   [{ k: 'api_key', label: 'API 키 / OAuth 토큰', secret: true }, { k: 'channel_id', label: '채널 ID' }],
+  youtube:   [{ k: 'api_key', label: 'API 키 (YouTube Data API · client_id/secret 아님)', secret: true }, { k: 'channel_id', label: '채널 ID (UC…)' }],
   instagram: [{ k: 'access_token', label: '액세스 토큰', secret: true }, { k: 'ig_user_id', label: 'IG 비즈니스 계정 ID' }],
   facebook:  [{ k: 'access_token', label: '페이지 액세스 토큰', secret: true }, { k: 'page_id', label: '페이지 ID' }],
   twitch:    [{ k: 'client_id', label: 'Client ID' }, { k: 'client_secret', label: 'Client Secret', secret: true }],
@@ -303,12 +303,12 @@ const DEFAULT_APPLY_FIELDS = ['account_id', 'account_email'];
 const CHANNEL_APPLY_NOTE = {
   // ── 광고 매체
   meta_ads:        { hard: false, note: 'Meta 비즈니스 앱 생성 후 시스템 사용자 토큰 발급. 본인 비즈니스 외 데이터 접근 시 앱 심사(App Review)가 필요합니다.' },
-  google_ads:      { hard: false, note: 'Google Ads 관리자(MCC) 계정의 API 센터에서 개발자 토큰 발급(기본 액세스는 Google 심사) + Google Cloud OAuth 클라이언트가 필요합니다.' },
+  google_ads:      { hard: false, note: 'Google Ads 관리자(MCC) 계정의 API 센터에서 개발자 토큰 발급(기본 액세스는 Google 심사) + Google Cloud에서 OAuth 클라이언트(client_id·secret) 생성·인증 후 refresh_token 을 획득해 [액세스 토큰] 칸에 입력합니다.' },
   tiktok_business: { hard: false, note: 'developers.tiktok.com에서 앱 생성(app_id/secret). 신규 앱은 샌드박스→운영 전환 시 심사가 필요합니다.' },
   naver_sa:        { hard: false, note: '검색광고 관리도구 > 도구 > [API 사용 관리]에서 신청 → CUSTOMER_ID·액세스라이선스·비밀키가 발급됩니다.' },
   kakao_moment:    { hard: true,  note: '카카오모먼트 오픈API 권한은 카카오 공식 광고대행사에 한해 부여됩니다. 앱을 비즈 앱으로 전환 후 [추가기능 신청]이 필요합니다.' },
   // ── SNS 라이브
-  youtube:   { hard: false, note: 'Google Cloud Console에서 YouTube Data API v3 사용 설정 후 OAuth 클라이언트(또는 API 키)를 발급합니다. 운영팀 대행 발급은 불가(자가 발급)합니다.' },
+  youtube:   { hard: false, note: 'Google Cloud Console에서 YouTube Data API v3 사용 설정 후 [API 키]를 발급해 채널 ID와 함께 등록하세요(공개 라이브/채널 데이터는 API 키로 충분). ★OAuth 클라이언트 ID/비밀번호(client_id·secret)는 이 등록 칸에 넣는 값이 아닙니다 — 라이브 제어 등 쓰기 작업 시에만 사용합니다. 운영팀 대행 발급 불가(자가 발급).' },
   instagram: { hard: false, note: 'Meta 앱 + IG 비즈니스 계정 연결 + 앱 심사가 필요합니다. (자가 발급)' },
   facebook:  { hard: false, note: 'Meta 앱 + 페이지 액세스 토큰 + 앱 심사가 필요합니다. (자가 발급)' },
   twitch:    { hard: false, note: 'dev.twitch.tv 콘솔에서 앱 등록 → client_id/secret을 발급합니다. (자가 발급)' },
@@ -355,8 +355,8 @@ const CHANNEL_APPLY_NOTE = {
   cj:          { hard: true,  note: 'CJ대한통운 계약(고객) 코드가 필요합니다. 국내 통합 배송추적은 스마트택배(스윗트래커) 통합 키로도 가능합니다.' },
   lotte:       { hard: true,  note: '롯데글로벌로지스 계약(고객) 코드가 필요합니다. 통합 추적은 스마트택배 키로도 가능합니다.' },
   hanjin:      { hard: true,  note: '한진택배 계약(고객) 코드가 필요합니다. 통합 추적은 스마트택배 키로도 가능합니다.' },
-  logen:       { hard: false, note: '로젠택배는 스마트택배(스윗트래커) 통합 추적 키로 연동합니다.' },
-  epost:       { hard: false, note: '우체국택배는 스마트택배(스윗트래커) 통합 추적 키로 연동합니다.' },
+  logen:       { hard: false, note: '로젠택배는 스마트택배(스윗트래커) 통합 추적 키로 연동됩니다. 이 채널 대신 [스마트택배(통합 추적)] 채널에 t_key 를 등록하세요.' },
+  epost:       { hard: false, note: '우체국택배는 스마트택배(스윗트래커) 통합 추적 키로 연동됩니다. 이 채널 대신 [스마트택배(통합 추적)] 채널에 t_key 를 등록하세요.' },
   smarttracker:{ hard: false, note: '스윗트래커(tracking.sweettracker.co.kr)에 가입 후 t_key(전 택배사 통합 추적 키)를 발급합니다.' },
   ocl_sameday: { hard: true,  note: '지니고 당일배송 계약 후 머천트 ID·API 키가 발급됩니다. (운영팀 계약 필요)' },
   fulfillment: { hard: true,  note: '3PL 풀필먼트 계약 후 창고 ID·API 키가 발급됩니다. (운영팀 계약 필요)' },
@@ -403,11 +403,11 @@ const CHANNEL_APPLY_STEPS = {
     '[등록]에 api_key(액세스라이선스)·api_secret(비밀키)·customer_id 입력',
   ],
   youtube: [
-    'console.cloud.google.com에서 프로젝트 생성',
+    'console.cloud.google.com에서 프로젝트 생성(또는 선택)',
     'API 및 서비스 > 라이브러리 → "YouTube Data API v3" 사용 설정',
-    '사용자 인증 정보 > [사용자 인증 정보 만들기] → OAuth 클라이언트 ID(채널/라이브 데이터) 또는 API 키(공개 데이터)',
-    'OAuth 동의화면 구성 후 client_id/secret(또는 API 키) 발급',
-    '[등록]에 API 키 또는 OAuth 토큰·채널 ID 입력',
+    '사용자 인증 정보 > [사용자 인증 정보 만들기] → ★[API 키] 선택 → API 키 복사 (공개 라이브/채널 데이터는 API 키면 충분 — OAuth 클라이언트 ID 불필요)',
+    '채널 ID 확보: YouTube Studio > 설정 > 채널 > 고급 설정 → 채널 ID(UC…로 시작) 복사',
+    '[등록]에 ① API 키 ② 채널 ID 입력 후 저장 (★client_id/secret 아님)',
   ],
   twitch: [
     'dev.twitch.tv/console 로그인 > Applications > [Register Your Application]',

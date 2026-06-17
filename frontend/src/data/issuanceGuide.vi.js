@@ -44,11 +44,11 @@ export default {
   ],
   youtube: [
     'Chuẩn bị: cần tài khoản Google. (Đây là kênh tự phát hành; đội vận hành không thể phát hành thay bạn.)',
-    'Đăng nhập console.cloud.google.com → chọn dự án ở trên > [Dự án mới] để tạo dự án.',
+    'Đăng nhập console.cloud.google.com → chọn một dự án ở trên, hoặc tạo dự án mới bằng [Dự án mới].',
     'Trong [API và Dịch vụ] > [Thư viện], tìm "YouTube Data API v3" rồi nhấn [Bật].',
-    'Để truy cập dữ liệu kênh/phát trực tiếp, hãy cấu hình trước [Thông tin xác thực] > [Màn hình đồng ý OAuth] (tên ứng dụng & scope).',
-    'Trong [Thông tin xác thực] > [Tạo thông tin xác thực], tạo ID ứng dụng khách OAuth để nhận client_id/secret, hoặc tạo API key nếu chỉ dùng dữ liệu công khai.',
-    'Nhập API key (hoặc token OAuth) và ID kênh vào [Đăng ký] của GenieGo rồi lưu.',
+    'Trong [Thông tin xác thực] > [Tạo thông tin xác thực], chọn ★[Khóa API] và sao chép khóa được tạo. (Khóa API là đủ cho dữ liệu kênh/phát trực tiếp công khai — bạn KHÔNG cần ID ứng dụng khách OAuth.)',
+    'Lấy ID kênh: YouTube Studio > [Cài đặt] > [Kênh] > [Cài đặt nâng cao] → sao chép ID kênh (bắt đầu bằng UC…).',
+    'Trong [Đăng ký] của GenieGo, nhập khóa API vào ô ① và ID kênh vào ô ②, rồi lưu. (★ID ứng dụng khách/secret OAuth KHÔNG phải là thứ nhập vào ô này.)',
   ],
   twitch: [
     'Chuẩn bị: cần tài khoản Twitch.',

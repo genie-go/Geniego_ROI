@@ -42,11 +42,11 @@ export default {
   ],
   youtube: [
     '準備事項：您需要一個 Google 帳號。（這是須自行發行的頻道，營運團隊無法代為發行。）',
-    '登入 console.cloud.google.com → 上方選擇專案 >〔新增專案〕來建立專案。',
+    '登入 console.cloud.google.com → 在上方選擇專案，或以〔新增專案〕建立一個專案。',
     '在〔API 和服務〕>〔程式庫〕中搜尋「YouTube Data API v3」並點選〔啟用〕。',
-    '若要存取頻道／直播資料，請先設定〔憑證〕>〔OAuth 同意畫面〕（應用程式名稱、範圍）。',
-    '在〔憑證〕>〔建立憑證〕中建立 OAuth 用戶端 ID 以取得 client_id/secret；若只使用公開資料則建立 API 金鑰。',
-    '在 GenieGo〔註冊〕中輸入 API 金鑰（或 OAuth 權杖）與頻道 ID 並儲存。',
+    '在〔憑證〕>〔建立憑證〕中選擇 ★〔API 金鑰〕並複製產生的金鑰。（公開的直播／頻道資料只需 API 金鑰即可，不需要 OAuth 用戶端 ID。）',
+    '取得頻道 ID：YouTube Studio >〔設定〕>〔頻道〕>〔進階設定〕→ 複製頻道 ID（以 UC… 開頭）。',
+    '在 GenieGo〔註冊〕中，將 API 金鑰填入①欄、頻道 ID 填入②欄後儲存。（★OAuth 用戶端 ID/secret 不是填入此欄的內容。）',
   ],
   twitch: [
     '準備事項：您需要一個 Twitch 帳號。',

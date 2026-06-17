@@ -44,11 +44,11 @@ export default {
   ],
   youtube: [
     'Yang dibutuhkan: akun Google. (Ini channel penerbitan mandiri; tim operasional tidak bisa menerbitkannya untuk Anda.)',
-    'Masuk ke console.cloud.google.com → pilih project di atas > [Project Baru] untuk membuat project.',
+    'Masuk ke console.cloud.google.com → pilih project di atas, atau buat satu dengan [Project Baru].',
     'Di [API & Layanan] > [Library], cari "YouTube Data API v3" lalu klik [Aktifkan].',
-    'Untuk mengakses data channel/live, konfigurasikan dahulu [Kredensial] > [Layar Persetujuan OAuth] (nama aplikasi & scope).',
-    'Di [Kredensial] > [Buat Kredensial], buat ID Klien OAuth untuk memperoleh client_id/secret, atau buat API key jika hanya memakai data publik.',
-    'Masukkan API key (atau token OAuth) dan ID channel pada [Daftar] GenieGo lalu simpan.',
+    'Di [Kredensial] > [Buat Kredensial], pilih ★[API key] lalu salin kunci yang dihasilkan. (API key sudah cukup untuk data channel/live publik — Anda TIDAK perlu ID Klien OAuth.)',
+    'Dapatkan ID channel: YouTube Studio > [Setelan] > [Channel] > [Setelan lanjutan] → salin ID channel (diawali UC…).',
+    'Di [Daftar] GenieGo, masukkan API key ke kolom ① dan ID channel ke kolom ②, lalu simpan. (★ID Klien/secret OAuth BUKAN yang dimasukkan ke kolom ini.)',
   ],
   twitch: [
     'Yang dibutuhkan: akun Twitch.',

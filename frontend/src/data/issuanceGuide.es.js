@@ -40,11 +40,11 @@ export default {
   ],
   youtube: [
     "Requisitos: necesitas una cuenta de Google. (Es un canal de autoemisión; el equipo de operaciones no puede emitirlo en tu lugar.)",
-    "Inicia sesión en console.cloud.google.com → selector de proyecto en la parte superior > [Nuevo proyecto] para crear un proyecto.",
+    "Inicia sesión en console.cloud.google.com → selecciona un proyecto en la parte superior o crea uno con [Nuevo proyecto].",
     "En [API y servicios] > [Biblioteca] busca \"YouTube Data API v3\" y pulsa [Habilitar].",
-    "Para acceder a los datos del canal o de las emisiones en directo, configura primero [Credenciales] > [Pantalla de consentimiento de OAuth] (nombre de la app y permisos).",
-    "En [Credenciales] > [Crear credenciales] crea un ID de cliente de OAuth para obtener el client_id/secret, o crea una clave de API si solo usas datos públicos.",
-    "En GenieGo [Registrar], introduce la clave de API (o el token de OAuth) y el ID del canal, y guarda.",
+    "En [Credenciales] > [Crear credenciales], elige ★[Clave de API] y copia la clave generada. (Una clave de API es suficiente para los datos públicos de canal/emisiones en directo: NO necesitas un ID de cliente de OAuth.)",
+    "Obtén tu ID de canal: YouTube Studio > [Configuración] > [Canal] > [Configuración avanzada] → copia el ID de canal (empieza por UC…).",
+    "En GenieGo [Registrar], introduce la clave de API en el campo ① y el ID del canal en el campo ②, y guarda. (★El ID de cliente/secret de OAuth NO es lo que va en este campo.)",
   ],
   twitch: [
     "Requisitos: necesitas una cuenta de Twitch.",

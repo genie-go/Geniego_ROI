@@ -42,11 +42,11 @@ export default {
   ],
   youtube: [
     'Voraussetzung: Sie benötigen ein Google-Konto. (Dieser Kanal muss selbst ausgestellt werden; das Betriebsteam kann ihn nicht stellvertretend ausstellen.)',
-    'Melden Sie sich bei console.cloud.google.com an → wählen Sie oben das Projekt > [Neues Projekt], um ein Projekt zu erstellen.',
+    'Melden Sie sich bei console.cloud.google.com an → wählen Sie oben ein Projekt aus oder erstellen Sie eines mit [Neues Projekt].',
     'Suchen Sie unter [APIs und Dienste] > [Bibliothek] nach „YouTube Data API v3“ und klicken Sie auf [Aktivieren].',
-    'Um auf Kanal-/Live-Daten zuzugreifen, konfigurieren Sie zuerst [Anmeldedaten] > [OAuth-Zustimmungsbildschirm] (App-Name, Bereiche).',
-    'Erstellen Sie unter [Anmeldedaten] > [Anmeldedaten erstellen] eine OAuth-Client-ID, um client_id/secret zu erhalten; bei ausschließlich öffentlichen Daten erstellen Sie einen API-Schlüssel.',
-    'Geben Sie bei GenieGo unter [Registrieren] den API-Schlüssel (oder das OAuth-Token) und die Kanal-ID ein und speichern Sie.',
+    'Wählen Sie unter [Anmeldedaten] > [Anmeldedaten erstellen] ★[API-Schlüssel] und kopieren Sie den generierten Schlüssel. (Für öffentliche Live-/Kanaldaten genügt ein API-Schlüssel — eine OAuth-Client-ID ist NICHT erforderlich.)',
+    'Kanal-ID abrufen: YouTube Studio > [Einstellungen] > [Kanal] > [Erweiterte Einstellungen] → kopieren Sie die Kanal-ID (beginnt mit UC…).',
+    'Geben Sie bei GenieGo unter [Registrieren] den API-Schlüssel in Feld ① und die Kanal-ID in Feld ② ein und speichern Sie. (★Die OAuth-Client-ID/secret gehört NICHT in dieses Feld.)',
   ],
   twitch: [
     'Voraussetzung: Sie benötigen ein Twitch-Konto.',

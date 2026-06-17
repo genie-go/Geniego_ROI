@@ -42,11 +42,11 @@ export default {
   ],
   youtube: [
     'Prérequis : vous avez besoin d’un compte Google. (Ce canal doit être émis par vous-même ; l’équipe d’exploitation ne peut pas l’émettre à votre place.)',
-    'Connectez-vous à console.cloud.google.com → sélectionnez le projet en haut > [Nouveau projet] pour créer un projet.',
+    'Connectez-vous à console.cloud.google.com → sélectionnez un projet en haut, ou créez-en un avec [Nouveau projet].',
     'Dans [API et services] > [Bibliothèque], recherchez « YouTube Data API v3 » et cliquez sur [Activer].',
-    'Pour accéder aux données de chaîne/diffusion en direct, configurez d’abord [Identifiants] > [Écran de consentement OAuth] (nom de l’application, portées).',
-    'Dans [Identifiants] > [Créer des identifiants], créez un ID client OAuth pour obtenir client_id/secret ; si vous n’utilisez que des données publiques, créez une clé API.',
-    'Dans GenieGo [Enregistrer], saisissez la clé API (ou le jeton OAuth) et l’ID de la chaîne, puis enregistrez.',
+    'Dans [Identifiants] > [Créer des identifiants], choisissez ★[Clé API] et copiez la clé générée. (Une clé API suffit pour les données publiques de chaîne/diffusion en direct — vous n’avez PAS besoin d’un ID client OAuth.)',
+    'Obtenez votre ID de chaîne : YouTube Studio > [Paramètres] > [Chaîne] > [Paramètres avancés] → copiez l’ID de chaîne (commence par UC…).',
+    'Dans GenieGo [Enregistrer], saisissez la clé API dans le champ ① et l’ID de la chaîne dans le champ ②, puis enregistrez. (★L’ID client/secret OAuth n’est PAS ce qui va dans ce champ.)',
   ],
   twitch: [
     'Prérequis : vous avez besoin d’un compte Twitch.',

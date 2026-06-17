@@ -41,11 +41,11 @@ export default {
   ],
   youtube: [
     "What you need: a Google account. (This is a self-service channel — our team cannot issue it for you.)",
-    "Sign in to console.cloud.google.com → select a project at the top > [New Project] to create one.",
+    "Sign in to console.cloud.google.com → select a project at the top, or create one with [New Project].",
     "In [APIs & Services] > [Library], search for \"YouTube Data API v3\" and click [Enable].",
-    "To access channel/live data, first configure [Credentials] > [OAuth consent screen] (app name, scopes).",
-    "Under [Credentials] > [Create Credentials], create an OAuth client ID to get a client_id/secret, or create an API key if you only use public data.",
-    "In GenieGo [Register], enter your API key (or OAuth token) and channel ID, then save.",
+    "Under [Credentials] > [Create Credentials], choose ★[API key] and copy the generated key. (An API key is enough for public live/channel data — you do NOT need an OAuth client ID.)",
+    "Get your Channel ID: YouTube Studio > Settings > Channel > Advanced settings → copy the Channel ID (starts with UC…).",
+    "In GenieGo [Register], enter the API key in field ① and the Channel ID in field ②, then save. (★The OAuth client ID/secret is NOT what goes in this field.)",
   ],
   twitch: [
     "What you need: a Twitch account.",

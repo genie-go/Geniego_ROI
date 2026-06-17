@@ -41,11 +41,11 @@ export default {
   ],
   youtube: [
     "所需准备：一个 Google 账号。（这是需要您自行申请的渠道，运营团队无法代为申请。）",
-    "登录 console.cloud.google.com → 在顶部选择项目 > [新建项目] 创建一个项目。",
+    "登录 console.cloud.google.com → 在顶部选择一个项目，或通过 [新建项目] 创建一个项目。",
     "在 [API 和服务] > [库] 中搜索“YouTube Data API v3”并点击 [启用]。",
-    "若要访问频道/直播数据，请先配置 [凭据] > [OAuth 权限请求页面]（应用名称、范围）。",
-    "在 [凭据] > [创建凭据] 中创建 OAuth 客户端 ID 以获取 client_id/secret；若仅使用公开数据，则创建 API 密钥。",
-    "在 GenieGo 的 [注册] 中输入 API 密钥（或 OAuth 令牌）和频道 ID 并保存。",
+    "在 [凭据] > [创建凭据] 中选择 ★[API 密钥]，并复制生成的密钥。（公开的直播/频道数据只需 API 密钥即可，无需 OAuth 客户端 ID。）",
+    "获取频道 ID：YouTube Studio > [设置] > [频道] > [高级设置] → 复制频道 ID（以 UC… 开头）。",
+    "在 GenieGo 的 [注册] 中，将 API 密钥填入①栏、频道 ID 填入②栏，然后保存。（★OAuth 客户端 ID/secret 不是填入此栏的内容。）",
   ],
   twitch: [
     "所需准备：一个 Twitch 账号。",
