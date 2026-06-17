@@ -56,7 +56,14 @@ const SERVICE_STEPS = [
     done: (g) => (g.sharedCampaigns || []).length > 0 },
 ];
 
-const STEP_SETS = { commerce: COMMERCE_STEPS, service: SERVICE_STEPS };
+/* [현 차수] 둘 다(실물+서비스): 두 단계셋 병합(공통 단계 채널/결제/마케팅 id 중복 제거).
+   사용자가 실물 상품과 서비스·구독을 함께 운영하는 경우 — 하나 선택 시 다른 하나가 사라지던 문제 해소. */
+const BOTH_STEPS = (() => {
+  const seen = new Set(); const out = [];
+  [COMMERCE_STEPS[0], SERVICE_STEPS[0], ...COMMERCE_STEPS.slice(1)].forEach((s) => { if (!seen.has(s.id)) { seen.add(s.id); out.push(s); } });
+  return out;
+})();
+const STEP_SETS = { commerce: COMMERCE_STEPS, service: SERVICE_STEPS, both: BOTH_STEPS };
 
 const isDone = (s, g) => { try { return !!s.done(g); } catch { return false; } };
 
@@ -75,7 +82,7 @@ export default function OnboardingGuide() {
   const bizModelKey = 'genie_onb_bizmodel_' + tenantKey();
   const [welcomed, setWelcomed] = useState(() => { try { return localStorage.getItem(welcomedKey) === '1'; } catch { return true; } });
   // [현 차수] ★비즈니스 모델: 'commerce'(실물 커머스) | 'service'(서비스·구독·디지털). 미선택 시 null → 선택 유도.
-  const [bizModel, setBizModel] = useState(() => { try { const v = localStorage.getItem(bizModelKey); return v === 'commerce' || v === 'service' ? v : null; } catch { return null; } });
+  const [bizModel, setBizModel] = useState(() => { try { const v = localStorage.getItem(bizModelKey); return (v === 'commerce' || v === 'service' || v === 'both') ? v : null; } catch { return null; } });
   const chooseModel = (m) => { try { localStorage.setItem(bizModelKey, m); } catch {} setBizModel(m); };
   // [현 차수] ★항상 기본 접힘(단일 1줄) — 안내 배너가 페이지 콘텐츠 높이를 잠식하지 않도록.
   //   펼침은 사용자가 명시적으로 [펼치기]를 눌렀을 때만(absolute 오버레이로 표시 → 페이지 안 밀림).
@@ -117,6 +124,7 @@ export default function OnboardingGuide() {
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
             {card('commerce', '📦', t('onboard.bizModel.commerce', '실물 커머스'), t('onboard.bizModel.commerceDesc', '실물 상품 판매 · 재고/창고/주문 관리(상품→창고→입고→채널→주문 동기화).'))}
             {card('service', '🧩', t('onboard.bizModel.service', '서비스·구독·디지털'), t('onboard.bizModel.serviceDesc', '서비스/구독/플랫폼 자체가 상품 · 물류 없음(서비스 등록→채널→결제→마케팅 자동화).'))}
+            {card('both', '📦🧩', t('onboard.bizModel.both', '실물 + 서비스 둘 다'), t('onboard.bizModel.bothDesc', '실물 상품과 서비스·구독을 함께 운영 · 두 등록 단계를 모두 진행합니다.'))}
           </div>
         </div>
       </div>
@@ -217,9 +225,18 @@ export default function OnboardingGuide() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, marginTop: 6, padding: '4px 6px', flexWrap: 'wrap' }}>
           <div style={{ fontSize: 11, color: '#64748b' }}>
             {t('onboard.freeMove', '원하는 단계를 눌러 자유롭게 이동할 수 있습니다.')}
-            <button onClick={(e) => { e.stopPropagation(); chooseModel(bizModel === 'service' ? 'commerce' : 'service'); }} style={{ marginLeft: 8, padding: '2px 8px', borderRadius: 7, border: '1px solid #cbd5e1', cursor: 'pointer', background: '#fff', color: '#4f46e5', fontSize: 10.5, fontWeight: 800 }}>
-              {bizModel === 'service' ? t('onboard.bizModel.toCommerce', '실물 커머스로 전환') : t('onboard.bizModel.toService', '서비스·구독으로 전환')}
-            </button>
+            {/* [현 차수] 모델 순환 전환(실물→서비스→둘 다→…) — 하나만 선택 후에도 '둘 다' 로 이동 가능. */}
+            {(() => {
+              const next = bizModel === 'commerce' ? 'both' : bizModel === 'both' ? 'service' : 'commerce';
+              const label = next === 'both' ? t('onboard.bizModel.toBoth', '실물+서비스 둘 다로 전환')
+                : next === 'service' ? t('onboard.bizModel.toService', '서비스·구독으로 전환')
+                : t('onboard.bizModel.toCommerce', '실물 커머스로 전환');
+              return (
+                <button onClick={(e) => { e.stopPropagation(); chooseModel(next); }} style={{ marginLeft: 8, padding: '2px 8px', borderRadius: 7, border: '1px solid #cbd5e1', cursor: 'pointer', background: '#fff', color: '#4f46e5', fontSize: 10.5, fontWeight: 800 }}>
+                  {label}
+                </button>
+              );
+            })()}
           </div>
           {firstVisit
             ? <button onClick={() => { markWelcomed(); if (step) nav(step.route); }} style={{ padding: '9px 20px', borderRadius: 10, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#4f46e5,#7c3aed)', color: '#fff', fontWeight: 800, fontSize: 12.5 }}>{allDone ? t('onboard.start', '시작하기') : t('onboard.startFirst', '첫 단계부터 시작')} →</button>

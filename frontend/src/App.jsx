@@ -276,6 +276,22 @@ function HomeRoute() {
 }
 
 /*
+ * [현 차수] 로그아웃 착시 수정(뒤로가기 연속 시 로그아웃 현상): "/login" 은 그동안 인증 여부와
+ * 무관하게 AuthPage(로그인 폼)를 무조건 렌더했다. 이미 로그인한 사용자가 뒤로가기로 /login 에
+ * 도달하면 로그인 폼이 떠 "로그아웃된 것처럼" 보였다(192차 HomeRoute 가 "/" 만 처리하고 "/login"
+ * 은 누락). HomeRoute 와 동일하게 인증 사용자는 대시보드로 리다이렉트한다.
+ * 단, 비밀번호 재설정 링크(?reset=)·자동로그아웃 안내(?reason=idle)는 폼 노출이 필요하므로 예외.
+ */
+function LoginRoute() {
+  const { user } = useAuth();
+  let q = null;
+  try { q = new URLSearchParams(window.location.search); } catch { q = null; }
+  const needsForm = q && (q.get('reset') || q.get('reason') === 'idle');
+  if (user && !needsForm) return <Navigate to="/dashboard" replace />;
+  return <AuthPage />;
+}
+
+/*
  * 181차 플랜별 메뉴접근 라우트 가드 — URL 직접 접근(딥링크) 차단.
  * 사이드바 숨김만으로는 우회 가능하던 허점을 보완: 현재 경로의 menuKey 를
  * hasMenuAccess 로 판정해, 권한 미달이면 PlanGate 업그레이드 화면을 표시한다.
@@ -563,7 +579,7 @@ export default function App() {
                 <Route path="/privacy" element={<Privacy />} />
                 <Route path="/refund" element={<Refund />} />
                 <Route path="/pg-test" element={<PgTest />} />
-                <Route path="/login" element={<AuthPage />} />
+                <Route path="/login" element={<LoginRoute />} />
                 {/* 212차 #3-B: 파트너(매입처/물류처/창고처) 전용 포털 — 본사 인증과 분리된 독립 페이지 */}
                 <Route path="/partner" element={<PartnerPortal />} />
                 <Route path="/*" element={

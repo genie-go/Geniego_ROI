@@ -107,10 +107,13 @@ final class Reviews
                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
                ON CONFLICT(tenant_id,channel,external_review_id) DO UPDATE SET product_name=excluded.product_name,rating=excluded.rating,title=excluded.title,body=excluded.body,media_json=excluded.media_json,sentiment=excluded.sentiment,helpful=excluded.helpful,reviewed_at=excluded.reviewed_at";
         $st = $pdo->prepare($sql);
+        $matchedOrderIds = []; // [R3] 리뷰가 주문 식별자를 동반하면 review_request 전환 매칭에 사용.
         foreach ($reviews as $r) {
             if (!is_array($r)) continue;
             $ext = trim((string)($r['external_review_id'] ?? $r['id'] ?? ''));
             if ($ext === '') continue;
+            $oid = trim((string)($r['order_id'] ?? ''));
+            if ($oid !== '') $matchedOrderIds[] = $oid;
             $rating = (float)($r['rating'] ?? 0);
             $sentiment = (string)($r['sentiment'] ?? '') ?: self::sentimentFromRating($rating);
             $author = trim((string)($r['author'] ?? ''));
@@ -127,7 +130,23 @@ final class Reviews
                 $saved++;
             } catch (\Throwable $e) { /* skip bad row */ }
         }
-        return self::json($res, ['ok' => true, 'channel' => $channel, 'saved' => $saved]);
+        // [R3] 수집된 리뷰가 주문ID 동반 시, 해당 주문의 대기중 리뷰요청을 '전환'으로 표기(실 전환신호, 과대계상 없음).
+        $converted = $matchedOrderIds ? self::markRequestsReviewed($pdo, $tenant, $channel, $matchedOrderIds) : 0;
+        return self::json($res, ['ok' => true, 'channel' => $channel, 'saved' => $saved, 'converted' => $converted]);
+    }
+
+    /** [R3] 주문ID 일치하는 대기 리뷰요청을 reviewed 로 플립(전환 측정). 반환=전환 건수. */
+    private static function markRequestsReviewed(\PDO $pdo, string $tenant, string $channel, array $orderIds): int
+    {
+        $ids = array_values(array_unique(array_filter(array_map('strval', $orderIds), fn($v) => $v !== '')));
+        if (!$ids) return 0;
+        try {
+            self::ensureRequestTable($pdo);
+            $now = gmdate('c'); $n = 0;
+            $up = $pdo->prepare("UPDATE review_request SET status='reviewed', reviewed_at=? WHERE tenant_id=? AND channel=? AND order_id=? AND status='sent'");
+            foreach ($ids as $oid) { $up->execute([$now, $tenant, $channel, $oid]); $n += $up->rowCount(); }
+            return $n;
+        } catch (\Throwable $e) { return 0; }
     }
 
     /** GET /v428/reviews?channel=&sentiment=&limit= — 리뷰 목록(프론트 ugcReviews 형태). */
@@ -288,6 +307,157 @@ final class Reviews
             }
         }
         return self::json($res, ['ok' => true, 'analyzed' => $analyzed, 'mode' => 'ai']);
+    }
+
+    /* ══════════════════ R3: 리뷰요청·활성화 캠페인 (이메일/SMS + 인센티브 쿠폰) ══════════════════ */
+
+    private static function ensureRequestTable(\PDO $pdo): void
+    {
+        $isMy = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql';
+        try {
+            if ($isMy) {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS review_request (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    tenant_id VARCHAR(190), channel VARCHAR(190), order_id VARCHAR(190),
+                    product_name VARCHAR(500), contact_type VARCHAR(20), contact_hash VARCHAR(80),
+                    incentive_code VARCHAR(60), incentive_label VARCHAR(190), review_url VARCHAR(700),
+                    status VARCHAR(20) DEFAULT 'sent', email_status VARCHAR(30), sms_status VARCHAR(30),
+                    sent_at VARCHAR(40), reviewed_at VARCHAR(40),
+                    UNIQUE KEY uq_rr (tenant_id, channel, order_id),
+                    KEY idx_rr_ts (tenant_id, status)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+            } else {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS review_request (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    tenant_id TEXT, channel TEXT, order_id TEXT,
+                    product_name TEXT, contact_type TEXT, contact_hash TEXT,
+                    incentive_code TEXT, incentive_label TEXT, review_url TEXT,
+                    status TEXT DEFAULT 'sent', email_status TEXT, sms_status TEXT,
+                    sent_at TEXT, reviewed_at TEXT)");
+                try { $pdo->exec("CREATE UNIQUE INDEX IF NOT EXISTS uq_rr ON review_request(tenant_id,channel,order_id)"); } catch (\Throwable $e) {}
+            }
+        } catch (\Throwable $e) { /* graceful */ }
+    }
+
+    /**
+     * POST /v428/reviews/request-campaign — [R3] 리뷰요청 캠페인 실행(구매고객 활성화).
+     *   대상 주문별로 ① 인센티브 쿠폰코드 발급(옵션) ② 이메일(Mailer)·SMS(NaverSms) 실발송(미설정 시 정직한 미발송)
+     *   ③ review_request 적재(주문당 멱등·연락처 sha256 PII안전). 전환은 ingest 의 주문ID 매칭으로 측정.
+     *   body: { targets:[{order_id,channel,product,email?,phone?,review_url?}],
+     *           incentive:{enabled:bool,label?,duration_days?}, message:{subject?,body?} }
+     */
+    public static function requestCampaign(Request $req, Response $res): Response
+    {
+        $tenant = self::tenant($req);
+        if ($tenant === '' || self::isDemo($tenant)) return self::json($res, ['ok' => false, 'error' => 'tenant_required'], 403);
+        $b = (array)($req->getParsedBody() ?? []);
+        if (empty($b)) { $d = json_decode((string)$req->getBody(), true); if (is_array($d)) $b = $d; }
+        $targets = is_array($b['targets'] ?? null) ? $b['targets'] : [];
+        if (!$targets) return self::json($res, ['ok' => false, 'error' => 'targets[] required'], 422);
+        $incentive = is_array($b['incentive'] ?? null) ? $b['incentive'] : [];
+        $incEnabled = !empty($incentive['enabled']);
+        $incLabel = trim((string)($incentive['label'] ?? '리뷰 작성 감사 쿠폰'));
+        $msg = is_array($b['message'] ?? null) ? $b['message'] : [];
+        $subject = trim((string)($msg['subject'] ?? '')) ?: '소중한 리뷰를 남겨주세요 ⭐';
+
+        $pdo = Db::pdo(); self::ensureRequestTable($pdo);
+        $smsConfigured = \Genie\NaverSms::isConfigured($pdo);
+        $mailConfigured = \Genie\Mailer::isConfigured($pdo);
+        $now = gmdate('c');
+        $ins = $pdo->prepare("INSERT INTO review_request (tenant_id,channel,order_id,product_name,contact_type,contact_hash,incentive_code,incentive_label,review_url,status,email_status,sms_status,sent_at)
+            VALUES (?,?,?,?,?,?,?,?,?, 'sent', ?, ?, ?)");
+
+        $sent = 0; $emailed = 0; $smsed = 0; $skipped = 0; $results = [];
+        foreach ($targets as $tg) {
+            if (!is_array($tg)) { $skipped++; continue; }
+            $orderId = trim((string)($tg['order_id'] ?? ''));
+            $channel = trim((string)($tg['channel'] ?? ''));
+            $product = trim((string)($tg['product'] ?? $tg['product_name'] ?? ''));
+            $email = trim((string)($tg['email'] ?? ''));
+            $phone = preg_replace('/[^0-9]/', '', (string)($tg['phone'] ?? ''));
+            $reviewUrl = trim((string)($tg['review_url'] ?? ''));
+            if ($orderId === '' || $channel === '') { $skipped++; continue; }
+            // 멱등: 이미 요청한 주문이면 skip(중복 발송·중복 쿠폰 방지).
+            try {
+                $chk = $pdo->prepare("SELECT 1 FROM review_request WHERE tenant_id=? AND channel=? AND order_id=? LIMIT 1");
+                $chk->execute([$tenant, $channel, $orderId]);
+                if ($chk->fetchColumn()) { $skipped++; $results[] = ['order_id' => $orderId, 'status' => 'duplicate']; continue; }
+            } catch (\Throwable $e) {}
+
+            $code = $incEnabled ? ('RV-' . strtoupper(bin2hex(random_bytes(4)))) : '';
+            $contactType = ($email !== '' ? 'email' : '') . ($phone !== '' ? ($email !== '' ? '+sms' : 'sms') : '');
+            if ($contactType === '') $contactType = 'none';
+            $contactHash = hash('sha256', ($email ?: '') . '|' . ($phone ?: ''));
+
+            // 메시지 본문
+            $incLine = $incEnabled && $code !== '' ? "리뷰를 남겨주시면 <b>{$incLabel}</b>(코드: <b>{$code}</b>)을 드립니다." : '';
+            $smsIncLine = $incEnabled && $code !== '' ? " 리뷰 작성 시 {$incLabel} 쿠폰({$code}) 증정." : '';
+            $bodyHtml = htmlspecialchars($product !== '' ? "{$product} 구매 감사합니다." : '구매해 주셔서 감사합니다.', ENT_QUOTES, 'UTF-8')
+                      . "<br><br>고객님의 한 줄 리뷰가 다른 분께 큰 도움이 됩니다." . ($incLine ? "<br><br>{$incLine}" : '');
+            $cta = $reviewUrl !== '' ? '리뷰 작성하기' : '';
+
+            $emailStatus = 'skipped'; $smsStatus = 'skipped';
+            if ($email !== '' && filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                if ($mailConfigured) {
+                    $html = \Genie\Mailer::wrapHtml($subject, $bodyHtml, $cta, $reviewUrl);
+                    $r = \Genie\Mailer::send($email, $subject, $html, ['pdo' => $pdo, 'tenant' => $tenant]);
+                    // 테넌트 캠페인 SMTP 미설정 시 플랫폼 트랜잭션 SMTP 로 폴백(리뷰요청이 실제 발송되도록).
+                    if (empty($r['ok'])) { $r = \Genie\Mailer::send($email, $subject, $html, ['pdo' => $pdo]); }
+                    $emailStatus = !empty($r['ok']) ? 'sent' : ('fail:' . substr((string)($r['mode'] ?? 'err'), 0, 20));
+                    if (!empty($r['ok'])) $emailed++;
+                } else { $emailStatus = 'unconfigured'; }
+            }
+            if ($phone !== '') {
+                if ($smsConfigured) {
+                    $smsText = ($product !== '' ? "[{$product}] " : '') . "구매 감사합니다. 리뷰를 남겨주세요." . $smsIncLine . ($reviewUrl !== '' ? " {$reviewUrl}" : '');
+                    $r = \Genie\NaverSms::sendPlatform($pdo, $phone, mb_substr($smsText, 0, 300));
+                    $smsStatus = !empty($r['ok']) ? 'sent' : ('fail:' . substr((string)($r['mode'] ?? 'err'), 0, 20));
+                    if (!empty($r['ok'])) $smsed++;
+                } else { $smsStatus = 'unconfigured'; }
+            }
+
+            try {
+                $ins->execute([$tenant, $channel, $orderId, $product, $contactType, $contactHash, $code, $incEnabled ? $incLabel : '', $reviewUrl, $emailStatus, $smsStatus, $now]);
+                $sent++;
+                $results[] = ['order_id' => $orderId, 'status' => 'sent', 'email' => $emailStatus, 'sms' => $smsStatus, 'incentive_code' => $code];
+            } catch (\Throwable $e) { $skipped++; }
+        }
+        return self::json($res, [
+            'ok' => true, 'sent' => $sent, 'emailed' => $emailed, 'smsed' => $smsed, 'skipped' => $skipped,
+            'mail_configured' => $mailConfigured, 'sms_configured' => $smsConfigured, 'results' => $results,
+        ]);
+    }
+
+    /** GET /v428/reviews/requests — [R3] 리뷰요청 목록 + 전환 퍼널(발송/전환/전환율). */
+    public static function requests(Request $req, Response $res): Response
+    {
+        $tenant = self::tenant($req);
+        if ($tenant === '' || self::isDemo($tenant)) return self::json($res, ['ok' => true, 'requests' => [], 'funnel' => ['sent' => 0, 'reviewed' => 0, 'rate' => 0]]);
+        try {
+            $pdo = Db::pdo(); self::ensureRequestTable($pdo);
+            $q = $req->getQueryParams();
+            $limit = max(1, min(500, (int)($q['limit'] ?? 200)));
+            $st = $pdo->prepare("SELECT id,channel,order_id,product_name,contact_type,incentive_code,incentive_label,status,email_status,sms_status,sent_at,reviewed_at
+                FROM review_request WHERE tenant_id=? ORDER BY id DESC LIMIT $limit");
+            $st->execute([$tenant]);
+            $out = [];
+            foreach ($st->fetchAll(\PDO::FETCH_ASSOC) as $r) {
+                $out[] = [
+                    'id' => (string)$r['id'], 'channel' => (string)$r['channel'], 'order_id' => (string)$r['order_id'],
+                    'product' => (string)$r['product_name'], 'contact' => (string)$r['contact_type'],
+                    'incentive' => (string)$r['incentive_code'], 'incentiveLabel' => (string)$r['incentive_label'],
+                    'status' => (string)$r['status'], 'email' => (string)$r['email_status'], 'sms' => (string)$r['sms_status'],
+                    'sentAt' => (string)$r['sent_at'], 'reviewedAt' => (string)$r['reviewed_at'],
+                ];
+            }
+            $cnt = $pdo->prepare("SELECT COUNT(*) total, SUM(CASE WHEN status='reviewed' THEN 1 ELSE 0 END) reviewed FROM review_request WHERE tenant_id=?");
+            $cnt->execute([$tenant]);
+            $row = $cnt->fetch(\PDO::FETCH_ASSOC) ?: [];
+            $totReq = (int)($row['total'] ?? 0); $rev = (int)($row['reviewed'] ?? 0);
+            return self::json($res, ['ok' => true, 'requests' => $out, 'funnel' => [
+                'sent' => $totReq, 'reviewed' => $rev, 'rate' => $totReq > 0 ? round($rev * 100 / $totReq, 1) : 0,
+            ]]);
+        } catch (\Throwable $e) { return self::json($res, ['ok' => true, 'requests' => [], 'funnel' => ['sent' => 0, 'reviewed' => 0, 'rate' => 0]]); }
     }
 
     /** DELETE /v428/reviews/{id} — 테넌트 격리 삭제. */
