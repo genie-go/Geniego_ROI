@@ -1,3 +1,43 @@
+# 229차 세션 인계서 — **연동허브 발급경로/자격증명 정밀감사 + 롯데온/Yahoo!Japan/카카오알림톡/LINE 신규채널 + API 발급 매뉴얼(레이어팝업·15개국·63채널) + 등록완료 강조 + PG정산 cron + 어트리뷰션 backfill (전부 운영·데모 배포·라이브 검증·push 완료)**
+
+> **작성일**: 2026-06-17 (사용자 명시 승인) · 운영 roi.genie-go.com / 데모 roidemo.genie-go.com (★vhost server_name=하이픈, 파일경로 `.geniego.com` 무하이픈). 하네스 primary=**E:\project\GeniegoROI**. **★작업트리=E: 기준**(C:는 미러+큐레이트 매뉴얼 원본 보관소).
+> **종결 상태**: 아래 모든 커밋 운영/데모 dist swap·백엔드 pscp·라이브 검증·**push 완료**(origin/master=27125ff…). SSH/MySQL/admin 자격증명 = 메모리 [[reference-session-credentials]].
+
+## ✅ 229차 완료 (배포·검증·push)
+| 영역 | 내용 |
+|---|---|
+| **PG 정산 cron** | `backend/bin/pg_settlement_cron.php` 신설(Stripe/토스/PayPal/Adyen `syncForTenant` 주기수집). crontab 운영 `17 */2`·데모 `23 */2`. ★현재 실 PG 자격증명 0건이라 no-op(실데이터 유입 시 작동). e2e=더미 stripe cred→실 fetch HTTP401→정직 skip→삭제 |
+| **어트리뷰션 backfill** | `ChannelSync::backfillAttribution`+`backend/bin/attribution_backfill.php`(과거주문 commerce-last-touch 멱등 소급·취소제외·PK커서 무한루프방지·재고/CRM 부수효과 미재생). ★운영 실주문 0건이라 현재 no-op. (228 잔여 #4) |
+| **발급경로/자격증명 정밀감사(전 59→63채널)** | tnt→`developer.fedex.com`(+api_secret)·paddle Classic→Billing v2(api_key)·rakuten→`glogin.rms.rakuten.co.jp`·inicis→`iniweb.inicis.com`·godomall→`devcenter.nhn-commerce.com`·kakaopay admin_key→secret_key(신 플랫폼). 백엔드 어댑터 cred키 전수 대조=일치 |
+| **롯데온 채널 추가** | 백엔드 `lotteonFetch/Write` 실어댑터 있었으나 UI 채널 부재 → CHANNELS·FIELDS(api_key+seller_id)·URL·매뉴얼 추가 |
+| **신규 채널 3종** | Yahoo!Japan(client_id/secret/access_token)·카카오 알림톡(sender_key/api_key/api_secret)·LINE(channel_secret/channel_access_token) — CHANNELS·FIELDS·URL·APPLY·MANUAL_KEYS·issuanceGuide(KO) 추가 |
+| **API 발급 매뉴얼 레이어팝업** | `ManualModal`(iframe) + 채널카드 '📖 발급 매뉴얼 보기' + ConnectModal 링크. `public/api_manuals/<lang>/<key>.html` = **15개국 × 63채널 = 945파일**. `manualUrl(key,lang)` 언어분기(미지원→en 폴백) |
+| **매뉴얼 15개국 현지화** | issuanceGuide 단계+템플릿 크롬(제목/체크리스트/보안안내) 전부 현지어. ar=RTL. 버튼 라벨 8종 ak 네임스페이스 15개국(manualBtn·issueConnectBtn·banner*) |
+| **사용자 큐레이트 매뉴얼(ko)** | youtube·instagram·facebook·amazon_spapi·kakao_alimtalk·line·yahoo_japan = 사용자 제공 HTML. Instagram/Facebook 합본→채널별 분리. amazon_spapi=등록 5필드(marketplace_id·seller_id+GenieGo 등록단계) 정합. adyen batch_start 정합 |
+| **등록완료 강조** | 개요 카드 상단 풀폭 배너(🎉발급확인완료=노랑바탕+찐한청색+깜빡임 / ✅발급·등록완료=녹 / 준비중=노랑)+2px 테두리+글로우 |
+| **YouTube/Google 발급링크** | bare `/apis/credentials`→`projectselector2/apis/credentials`(프로젝트 자동선택 오류 방지) |
+| **계정별 격리 분석** | ChannelCreds 자격증명 등록=구독회원(테넌트) 완전격리 검증(auth_tenant→session→demo·raw헤더 미신뢰·CRUD WHERE tenant_id·UNIQUE(tenant_id,channel,key_name)·AES-256-GCM·denyAnon·팀원=owner tenant 상속) |
+
+## 📌 229차 정본/발견
+- **매뉴얼 SSOT** = `frontend/src/data/issuanceGuide.js`(ISSUANCE_GUIDE_KO + 14개 lang 파일) → 제너레이터(getIssuanceGuide·UI크롬맵) → `public/api_manuals/<lang>/<key>.html`(945). **★재생성 시 큐레이트 ko 7종 덮어쓰기 필수**(원본=`C:\project\GeniegoROI\api_manuals\*.html`: youtube/instagram_live/facebook_live/amazon_sp_api/kakao_alimtalk/line/yahoo_japan). 제너레이터는 매 차수 임시작성(`_tmp_gen*.mjs`)했음 — 영구화 권장.
+- **MANUAL_KEYS**(ApiKeys.jsx) = 매뉴얼 버튼 노출 채널 집합(63). 신규 채널 추가 시 CHANNELS+CHANNEL_FIELDS+ISSUANCE_URL+CHANNEL_APPLY_FIELDS+CHANNEL_APPLY_NOTE+MANUAL_KEYS+issuanceGuide(KO) 7곳 갱신.
+- **baseline.json**(.githooks): ja/zh `sacred_sha` 편집 시 갱신 필수(pre-commit G2). 229=ja `9843313e…`·zh `8f65f88f…`. 로케일 편집 후 `sha256sum` 재계산.
+- **배포**: 운영/데모 dist swap(`dist.bak_229*` 백업)+nginx reload. 945 매뉴얼 public→dist 자동복사. 빌드=`npm run build`(운영)+`npx vite build --mode demo`(데모).
+- **자격증명 격리 = 구독회원 단위**(팀 하위계정은 owner tenant 상속). 서로 다른 구독회원 간 완전 격리.
+
+## ⏭️ 다음 차수 잔여 (미작업 — 이어서 진행)
+1. **신규 3채널 매뉴얼 14개국 현지화**: yahoo_japan·kakao_alimtalk·line은 KO만 작성 → 비-ko는 한국어 폴백 중. issuanceGuide 14개 lang에 3채널 추가(에이전트 번역) → adyen-only 제너레이터 패턴으로 해당 채널만 재생성.
+2. **제너레이터 영구화**: `_tmp_gen*.mjs`를 `tools/gen_api_manuals.mjs`로 정착(UI크롬맵·CSS·큐레이트 ko 덮어쓰기 매핑 포함) → 재생성 1커맨드화.
+3. **생성형 매뉴얼 심화**: 단계 위주 기본형 채널(40+)을 youtube/amazon처럼 'API Key vs OAuth·옵션표·문제해결' 섹션 보강(핵심 채널 우선).
+4. **외부 의존 라이브 검증**(코드 완비): 매체 OAuth앱 client_id/secret·Google developer_token·PG 가맹키·서버 crontab 추가(optimize/oauth-refresh/commerce-sync)·매체자산. 실 자격증명 등록 시 PG cron·attribution backfill 자동 작동. 소액 라이브 1회 테스트.
+5. **226 carry-over P2 잔여**(외부 명세 필요): 채널별 정산 API 어댑터(전채널 honest pending)·미구현 PG 정산 어댑터(이니시스/KCP/카카오페이/네이버페이)·ML재학습 소비 파이프라인·OAuth 원클릭 앱등록·FedEx/UPS/TNT 추적 stub.
+6. **S3 backfill 소급**: 실주문 유입 후 `attribution_backfill.php` 1회 실행 → attribution_cron 재계산.
+
+## 📌 배포 백업 (229차)
+- dist 백업: 운영/데모 `dist.bak_229cred`·`dist.bak_229e`~`dist.bak_229m` 류. 백엔드: `ChannelSync.php.bak_229s3`. 신규 cron: `pg_settlement_cron.php`(crontab 등록됨). 일회성: `attribution_backfill.php`.
+
+---
+
 # 228차 세션 인계서 — **연동허브 발급·Writeback 완성 + 글로벌 PG 8종 + 측정정확도 S1~S5 + 일관성 감사 + 리뷰/UGC 풀스택 R1~R5 + 채널 리뷰수집기 + 라이브 UI 수정 (전부 운영·데모 배포·라이브 e2e·대부분 push)**
 
 > **작성일**: 2026-06-17 (사용자 명시 승인 후) · 운영 roi.genie-go.com / 데모 roidemo.genie-go.com (★vhost server_name=하이픈, 파일경로=`.geniego.com` 무하이픈). 하네스 primary=**E:\project\GeniegoROI**(절대경로 명시 필요). 정본 메모리 [[project-n228-full-audit-sprint]]·[[project-n228-issuance-verify]]·[[project-n228-writeback-adapters]].
