@@ -548,9 +548,9 @@ const CHANNEL_APPLY_STEPS = {
     '[등록]에 site_cd·site_key 입력',
   ],
   kakaopay: [
-    '카카오페이 가맹점 계약',
-    '가맹점/개발자 콘솔에서 CID·Admin 키 발급',
-    '[등록]에 cid·admin_key 입력',
+    '카카오페이 가맹점 계약 + developers.kakaopay.com 개발자센터 가입',
+    '애플리케이션 생성 → Client ID·Secret Key·CID 발급(인증 헤더 Authorization: SECRET_KEY)',
+    '[등록]에 cid·secret_key 입력',
   ],
   paypal: [
     'developer.paypal.com 로그인 > Apps & Credentials',
