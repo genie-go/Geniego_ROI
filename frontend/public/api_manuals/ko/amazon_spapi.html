@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Amazon SP-API 발급 매뉴얼</title>
 <style>
-
 :root{--dark:#111827;--muted:#6b7280;--line:#e5e7eb;--bg:#f8fafc;--green:#16a34a;--red:#ef4444;--amber:#f59e0b;--blue:#2563eb;--violet:#7c3aed}
 *{box-sizing:border-box}
 body{margin:0;font-family:"Pretendard","Noto Sans KR","Apple SD Gothic Neo",Arial,sans-serif;background:linear-gradient(135deg,#f8fafc,#eef2ff,#fff7ed);color:var(--dark);line-height:1.68}
@@ -32,7 +31,6 @@ table{width:100%;border-collapse:collapse;border:1px solid var(--line);border-ra
 .checklist{list-style:none;padding:0;margin:0;display:grid;gap:10px}.checklist li{padding:13px 15px;border:1px solid var(--line);border-radius:14px;background:#f9fafb}.checklist li:before{content:"✓";color:var(--green);font-weight:900;margin-right:8px}
 .footer{text-align:center;color:var(--muted);font-size:14px;margin-top:28px}
 @media(max-width:860px){.hero{padding:34px 24px}.quick,.grid2{grid-template-columns:1fr}.step{grid-template-columns:1fr}.section{padding:24px}}
-
 body{--hero:linear-gradient(135deg,#111827,#232f3e,#ff9900);}
 </style>
 </head>
@@ -41,31 +39,45 @@ body{--hero:linear-gradient(135deg,#111827,#232f3e,#ff9900);}
 <section class="hero">
 <span class="badge"><span class="logo">AZ</span> API 발급 초보자 매뉴얼</span>
 <h1>Amazon SP-API 발급 매뉴얼</h1>
-<p>Amazon 판매자 데이터를 주문·재고·상품·배송 시스템과 연동하기 위한 SP-API 개발자 등록, 앱 생성, OAuth·LWA·IAM 설정 흐름을 정리했습니다.</p>
-<div class="quick"><div><strong>인증 구조</strong><span>LWA + OAuth + AWS SigV4</span></div>
-<div><strong>필요 계정</strong><span>Seller/Vendor Central</span></div>
-<div><strong>주요 결과물</strong><span>Client ID, Secret, Token</span></div>
+<p>Amazon 판매자 데이터를 주문·재고·상품·배송 시스템과 연동하기 위한 SP-API 개발자 등록, 앱 생성, OAuth·LWA 설정 흐름을 정리했습니다.</p>
+<div class="quick"><div><strong>인증 구조</strong><span>LWA(OAuth) — 5개 자격증명</span></div>
+<div><strong>필요 계정</strong><span>Seller/Vendor Central(프로)</span></div>
+<div><strong>GenieGo 등록값</strong><span>refresh_token·client_id·secret·marketplace_id·seller_id</span></div>
 <div><strong>난이도</strong><span>중급 이상</span></div></div>
 </section>
-<section class="section"><h2>1. Amazon SP-API란?</h2><p class="desc">Amazon Selling Partner API는 주문, 재고, 상품, 배송, 정산 등 판매자 데이터를 프로그램에서 연동하기 위한 API입니다.</p><div class="notice danger"><strong>중요:</strong> SP-API는 단순 API Key 방식이 아닙니다. 일반적으로 <strong>Amazon Developer 등록, 앱 등록, Login with Amazon, IAM, OAuth 승인</strong>이 함께 필요합니다.</div></section>
-<section class="section"><h2>2. 준비물</h2><ul class="checklist"><li>Amazon Seller Central 또는 Vendor Central 계정</li><li>개발자 등록에 사용할 회사/담당자 정보</li><li>앱 이름, 앱 설명, 사용 목적</li><li>개인정보처리방침 URL</li><li>AWS 계정 및 IAM 설정 권한</li><li>OAuth Redirect URL</li></ul></section>
+<section class="section"><h2>1. Amazon SP-API란?</h2><p class="desc">Amazon Selling Partner API는 주문, 재고, 상품, 배송, 정산 등 판매자 데이터를 프로그램에서 연동하기 위한 API입니다.</p><div class="notice danger"><strong>중요:</strong> SP-API는 단순 API Key 방식이 아닙니다. 일반적으로 <strong>Amazon Developer 등록, 앱 등록, Login with Amazon(LWA), OAuth 승인</strong>이 함께 필요합니다.</div>
+<div class="notice info"><strong>★GenieGo 연동에 필요한 값은 5개입니다:</strong> <strong>refresh_token, client_id, client_secret, marketplace_id, seller_id</strong>. (현 SP-API는 LWA 토큰만으로 호출되며, AWS IAM/SigV4 서명은 GenieGo가 내부 처리하므로 등록 칸에 입력하지 않습니다.)</div></section>
+<section class="section"><h2>2. 준비물</h2><ul class="checklist"><li>Amazon Seller Central 또는 Vendor Central <strong>프로페셔널 셀러</strong> 계정</li><li>개발자 등록에 사용할 회사/담당자 정보</li><li>앱 이름, 앱 설명, 사용 목적</li><li>개인정보처리방침 URL</li><li>OAuth Redirect URL</li></ul></section>
 <section class="section"><h2>3. 개발자 등록</h2><p class="desc">먼저 Seller Central에서 SP-API 개발자 프로필을 등록합니다.</p><div class="steps"><div class="step"><div class="num">1</div><div><h3>Seller Central 로그인</h3><p>Amazon 판매자 계정으로 Seller Central에 로그인합니다.</p><span class="path">Seller Central → Apps & Services</span></div></div>
 <div class="step"><div class="num">2</div><div><h3>Develop Apps 메뉴 이동</h3><p>앱 및 서비스 메뉴에서 개발자 또는 앱 개발 메뉴로 이동합니다.</p><span class="path">Apps & Services → Develop Apps</span></div></div>
 <div class="step"><div class="num">3</div><div><h3>Developer Profile 작성</h3><p>회사 정보, 담당자 정보, API 사용 목적, 데이터 보호 계획을 입력합니다.</p><span class="path">Developer Profile</span></div></div>
 <div class="step"><div class="num">4</div><div><h3>검토 제출</h3><p>Amazon 검토를 위해 개발자 등록 정보를 제출합니다.</p><span class="path">Submit for review</span></div></div></div><div class="notice good">승인이 완료되어야 실제 운영용 SP-API 앱 등록과 권한 사용이 가능합니다.</div></section>
-<section class="section"><h2>4. SP-API 앱 등록</h2><div class="steps"><div class="step"><div class="num">1</div><div><h3>새 애플리케이션 생성</h3><p>Develop Apps에서 새 앱을 생성합니다.</p><span class="path">Add new app</span></div></div>
+<section class="section"><h2>4. SP-API 앱 등록 → Client ID / Client Secret</h2><div class="steps"><div class="step"><div class="num">1</div><div><h3>새 애플리케이션 생성</h3><p>Develop Apps에서 새 앱을 생성합니다.</p><span class="path">Add new app</span></div></div>
 <div class="step"><div class="num">2</div><div><h3>앱 유형 선택</h3><p>자사 계정만 연동하면 Private App, 외부 판매자에게 제공하면 Public App 성격입니다.</p><span class="path">Private / Public App</span></div></div>
 <div class="step"><div class="num">3</div><div><h3>API 역할 선택</h3><p>Orders, Catalog, Inventory 등 필요한 역할을 선택합니다.</p><span class="path">API Roles</span></div></div>
 <div class="step"><div class="num">4</div><div><h3>OAuth Redirect URL 입력</h3><p>승인 완료 후 돌아올 서버 URL을 입력합니다.</p><span class="path">Redirect URI</span></div></div>
-<div class="step"><div class="num">5</div><div><h3>저장 후 Client 정보 확인</h3><p>앱 생성 후 Client ID, Client Secret 또는 관련 자격 정보를 확인합니다.</p><span class="path">Client ID / Client Secret</span></div></div></div></section>
-<section class="section"><h2>5. AWS IAM 및 LWA 설정</h2><table><thead><tr><th>항목</th><th>의미</th><th>주의사항</th></tr></thead><tbody><tr><td>Login with Amazon Client ID</td><td>판매자 OAuth 승인에 사용하는 클라이언트 ID</td><td>프론트에 노출해도 되지만 Secret은 서버에 보관</td></tr><tr><td>Client Secret</td><td>토큰 교환에 필요한 비밀값</td><td>절대 공개 저장소에 올리지 않음</td></tr><tr><td>AWS IAM Role/User</td><td>SP-API 요청 서명에 필요한 AWS 권한</td><td>최소 권한 원칙 적용</td></tr><tr><td>Refresh Token</td><td>판매자 승인 후 장기 호출에 사용</td><td>암호화 저장 필요</td></tr></tbody></table></section>
-<section class="section"><h2>6. 토큰 발급 흐름</h2><pre class="code">1) 판매자 OAuth 승인 URL 접속
+<div class="step"><div class="num">5</div><div><h3>저장 후 Client 정보 확인</h3><p>앱 생성 후 <strong>client_id</strong>(LWA Client ID), <strong>client_secret</strong>(Client Secret)을 확인합니다.</p><span class="path">client_id / client_secret</span></div></div></div></section>
+<section class="section"><h2>5. OAuth 승인 → Refresh Token 발급</h2><pre class="code">1) 판매자 OAuth 승인 URL 접속
 2) Redirect URL로 authorization code 수신
 3) authorization code를 LWA Token Endpoint에 전달
-4) Refresh Token / Access Token 수신
-5) Access Token + AWS SigV4 서명으로 SP-API 호출</pre><div class="notice info">실제 운영에서는 Access Token 만료, Refresh Token 보관, 요청 서명 실패 로그를 반드시 관리해야 합니다.</div></section>
-<section class="section"><h2>7. 최종 체크리스트</h2><ul class="checklist"><li>Developer Profile을 제출하고 승인받았다.</li><li>SP-API 앱을 생성했다.</li><li>필요 API Role을 선택했다.</li><li>LWA Client ID와 Client Secret을 확인했다.</li><li>OAuth Redirect URL을 등록했다.</li><li>AWS IAM 권한과 SigV4 서명 구조를 준비했다.</li><li>Refresh Token을 안전하게 저장한다.</li></ul></section>
-<p class="footer">Amazon SP-API 발급 매뉴얼 · 실무 연동 초보자용 가이드</p>
+4) refresh_token / access_token 수신</pre><div class="notice info"><strong>refresh_token</strong>은 판매자 승인 후 장기 호출에 사용됩니다. GenieGo는 이 refresh_token으로 access_token을 자동 갱신해 SP-API를 호출하므로, 별도의 AWS 서명 설정 없이 refresh_token만 등록하면 됩니다.</div></section>
+<section class="section"><h2>6. Marketplace ID · Seller ID 확인</h2><p class="desc">GenieGo 등록에 필요한 나머지 두 식별자를 확인합니다.</p><div class="grid2">
+<div class="card"><span class="tag">marketplace_id</span><h3>판매 대상 마켓플레이스 ID</h3><p>연동할 국가의 Marketplace ID입니다.</p><span class="path">US: ATVPDKIKX0DER · JP: A1VC38T7YXB528 · DE: A1PA6795UKMFR9</span></div>
+<div class="card"><span class="tag">seller_id</span><h3>판매자 ID / Merchant Token</h3><p>상품 등록·주문 조회에 필요합니다. Seller Central 계정정보에서 확인합니다.</p><span class="path">Seller Central → 설정 → 계정 정보 → Merchant Token</span></div>
+</div></section>
+<section class="section"><h2>7. GenieGo 연동허브에 등록</h2><div class="steps">
+<div class="step"><div class="num">1</div><div><h3>5개 값 준비</h3><p>refresh_token · client_id · client_secret · marketplace_id · seller_id를 준비합니다.</p><span class="path">5개 자격증명</span></div></div>
+<div class="step"><div class="num">2</div><div><h3>연동허브 → Amazon SP-API → [등록]</h3><p>각 칸에 해당 값을 입력하고 저장합니다(빈 칸은 기존 값 유지).</p><span class="path">refresh_token · client_id · client_secret · marketplace_id · seller_id</span></div></div>
+</div><div class="notice good">등록한 값은 <strong>AES-256-GCM으로 암호화 저장</strong>되며 조회 시 마스킹됩니다. 저장 직후 자동 동기화가 시작됩니다.</div>
+<div class="notice danger">client_secret·refresh_token은 절대 프론트엔드 코드, HTML, 공개 저장소에 노출하면 안 됩니다.</div></section>
+<section class="section"><h2>8. 최종 체크리스트</h2><ul class="checklist"><li>Developer Profile을 제출하고 승인받았다.</li><li>SP-API 앱을 생성하고 client_id·client_secret을 확인했다.</li><li>OAuth 승인으로 refresh_token을 발급받았다.</li><li>연동 대상 marketplace_id를 확인했다.</li><li>Seller Central에서 seller_id(Merchant Token)를 확인했다.</li><li>GenieGo [등록]에 5개 값(refresh_token·client_id·client_secret·marketplace_id·seller_id)을 입력해 저장했다.</li></ul></section>
+<section class="section"><h2>9. 자주 발생하는 문제</h2><table><thead><tr><th>문제</th><th>원인</th><th>해결 방법</th></tr></thead><tbody>
+<tr><td>API Key 메뉴가 없음</td><td>SP-API는 단일 API Key 구조가 아님</td><td>LWA(client_id·client_secret·refresh_token) 구조로 진행합니다.</td></tr>
+<tr><td>상품 등록 실패</td><td>seller_id(Merchant Token) 미등록</td><td>Seller Central 계정정보의 Merchant Token을 등록합니다.</td></tr>
+<tr><td>잘못된 국가 데이터</td><td>marketplace_id 불일치</td><td>연동 국가의 정확한 Marketplace ID를 등록합니다.</td></tr>
+<tr><td>권한 오류</td><td>앱 API Role 부족 또는 토큰 만료</td><td>API Role을 확인하고 refresh_token으로 토큰을 갱신합니다.</td></tr>
+</tbody></table></section>
+<p class="footer">Amazon SP-API 발급 매뉴얼 · GenieGo 연동허브 · 실무 연동 초보자용 가이드</p>
 </main>
 </body>
 </html>
