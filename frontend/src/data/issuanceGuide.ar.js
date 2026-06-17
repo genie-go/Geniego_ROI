@@ -221,8 +221,8 @@ export default {
   ],
   kakaopay: [
     'المتطلبات: تحتاج إلى عقد متجر KakaoPay.',
-    'سجّل الدخول إلى وحدة تحكم متجر/مطوّر KakaoPay.',
-    'أصدِر/تحقّق من رمز المتجر (CID) ومفتاح Admin.',
+    'سجّل الدخول إلى مركز مطوّري KakaoPay (developers.kakaopay.com) وأنشئ تطبيقًا.',
+    'أصدِر/تحقّق من رمز المتجر (CID) ومفتاح Secret Key (ترويسة المصادقة: Authorization: SECRET_KEY).',
     'في GenieGo [تسجيل]، أدخل cid و secret_key ثم احفظ.',
   ],
   paypal: [

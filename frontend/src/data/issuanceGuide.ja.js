@@ -218,8 +218,8 @@ export default {
   ],
   kakaopay: [
     "ご用意いただくもの: KakaoPay の加盟店契約が必要です。",
-    "KakaoPay の加盟店/開発者コンソールにログインします。",
-    "加盟店コード（CID）と Admin キーを発行/確認します。",
+    "KakaoPay デベロッパーセンター（developers.kakaopay.com）にログインし、アプリケーションを作成します。",
+    "加盟店コード（CID）と Secret Key を発行/確認します（認証ヘッダー: Authorization: SECRET_KEY）。",
     "GenieGo の [登録] に cid、secret_key を入力して保存します。",
   ],
   paypal: [

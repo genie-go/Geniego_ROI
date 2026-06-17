@@ -221,8 +221,8 @@ export default {
   ],
   kakaopay: [
     'Chuẩn bị: cần hợp đồng đại lý KakaoPay.',
-    'Đăng nhập console đại lý/nhà phát triển KakaoPay.',
-    'Phát hành/kiểm tra mã đại lý (CID) và Admin key.',
+    'Đăng nhập KakaoPay Developer Center (developers.kakaopay.com) và tạo ứng dụng.',
+    'Phát hành/kiểm tra mã đại lý (CID) và Secret Key (header xác thực: Authorization: SECRET_KEY).',
     'Nhập cid, secret_key vào [Đăng ký] của GenieGo rồi lưu.',
   ],
   paypal: [

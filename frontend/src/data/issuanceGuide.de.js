@@ -219,8 +219,8 @@ export default {
   ],
   kakaopay: [
     'Voraussetzung: Sie benötigen einen KakaoPay-Händlervertrag.',
-    'Melden Sie sich bei der KakaoPay-Händler-/Entwicklerkonsole an.',
-    'Stellen Sie den Händlercode (CID) und den Admin-Schlüssel aus bzw. ermitteln Sie sie.',
+    'Melden Sie sich beim KakaoPay Developer Center (developers.kakaopay.com) an und erstellen Sie eine Anwendung.',
+    'Stellen Sie den Händlercode (CID) und den Secret Key aus bzw. ermitteln Sie sie (Auth-Header: Authorization: SECRET_KEY).',
     'Geben Sie bei GenieGo unter [Registrieren] cid und secret_key ein und speichern Sie.',
   ],
   paypal: [

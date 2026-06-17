@@ -111,6 +111,13 @@ export const ISSUANCE_GUIDE_KO = {
     '승인되면 API 키가 발급됩니다. (문의: etapihelp@gmail.com)',
     'GenieGo [등록]에 발급받은 api_key와 seller_id를 입력해 저장합니다.',
   ],
+  lotteon: [
+    '준비물: 롯데온 입점(사업자 인증 완료) 셀러 계정이 필요합니다.',
+    '롯데온 셀러 스토어센터(store.lotteon.com)에 로그인합니다.',
+    '[판매자정보] > [OpenAPI관리] > [정보설정]에서 호출 서버 IP를 등록합니다.',
+    '[키발급] 버튼을 눌러 OpenAPI 인증키를 발급하고 판매자(셀러) ID를 확인합니다.',
+    'GenieGo [등록]에 api_key(OpenAPI 인증키)와 seller_id를 입력해 저장합니다.',
+  ],
   auction: [
     '준비물: 옥션·G마켓 각각의 판매자 계정과 ESM Plus 마스터 ID가 필요합니다.',
     '옥션과 G마켓에 각각 판매자로 가입한 뒤, ESM Plus(esmplus.com)에 로그인해 마스터 ID를 생성합니다.',

@@ -218,8 +218,8 @@ export default {
   ],
   kakaopay: [
     "What you need: a KakaoPay merchant contract.",
-    "Sign in to the KakaoPay merchant/developer console.",
-    "Issue/find your merchant code (CID) and Admin key.",
+    "Sign in to the KakaoPay Developer Center (developers.kakaopay.com) and create an application.",
+    "Issue/find your merchant code (CID) and Secret Key (auth header: Authorization: SECRET_KEY).",
     "In GenieGo [Register], enter your cid and secret_key, then save.",
   ],
   paypal: [

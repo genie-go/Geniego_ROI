@@ -221,8 +221,8 @@ export default {
   ],
   kakaopay: [
     'สิ่งที่ต้องเตรียม: สัญญาร้านค้า KakaoPay',
-    'เข้าสู่ระบบคอนโซลร้านค้า/นักพัฒนา KakaoPay',
-    'ออก/ตรวจสอบรหัสร้านค้า (CID) และ Admin key',
+    'เข้าสู่ระบบ KakaoPay Developer Center (developers.kakaopay.com) และสร้างแอปพลิเคชัน',
+    'ออก/ตรวจสอบรหัสร้านค้า (CID) และ Secret Key (เฮดเดอร์ยืนยันตัวตน: Authorization: SECRET_KEY)',
     'กรอก cid, secret_key ที่ [ลงทะเบียน] ของ GenieGo แล้วบันทึก',
   ],
   paypal: [

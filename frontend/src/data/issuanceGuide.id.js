@@ -221,8 +221,8 @@ export default {
   ],
   kakaopay: [
     'Yang dibutuhkan: kontrak merchant KakaoPay.',
-    'Masuk ke konsol merchant/developer KakaoPay.',
-    'Terbitkan/periksa kode merchant (CID) dan Admin key.',
+    'Masuk ke KakaoPay Developer Center (developers.kakaopay.com) dan buat aplikasi.',
+    'Terbitkan/periksa kode merchant (CID) dan Secret Key (header autentikasi: Authorization: SECRET_KEY).',
     'Masukkan cid, secret_key pada [Daftar] GenieGo lalu simpan.',
   ],
   paypal: [

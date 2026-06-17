@@ -217,8 +217,8 @@ export default {
   ],
   kakaopay: [
     "Requisitos: necesitas un contrato de comercio afiliado de Kakao Pay.",
-    "Inicia sesión en la consola de comercio afiliado/desarrollador de Kakao Pay.",
-    "Emite/consulta el código de comercio afiliado (CID) y la clave Admin.",
+    "Inicia sesión en el Centro de Desarrolladores de Kakao Pay (developers.kakaopay.com) y crea una aplicación.",
+    "Emite/consulta el código de comercio afiliado (CID) y la Secret Key (encabezado de autenticación: Authorization: SECRET_KEY).",
     "En GenieGo [Registrar], introduce cid y secret_key, y guarda.",
   ],
   paypal: [

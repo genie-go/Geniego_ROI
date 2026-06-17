@@ -221,8 +221,8 @@ export default {
   ],
   kakaopay: [
     'आवश्यकताएँ: आपको KakaoPay मर्चेंट अनुबंध चाहिए।',
-    'KakaoPay मर्चेंट/डेवलपर कंसोल पर लॉग इन करें।',
-    'मर्चेंट कोड (CID) और Admin कुंजी जारी करें/जाँचें।',
+    'KakaoPay डेवलपर सेंटर (developers.kakaopay.com) पर लॉग इन करें और एप्लिकेशन बनाएँ।',
+    'मर्चेंट कोड (CID) और Secret Key जारी करें/जाँचें (प्रमाणीकरण हेडर: Authorization: SECRET_KEY)।',
     'GenieGo [पंजीकरण] में cid, secret_key दर्ज करके सहेजें।',
   ],
   paypal: [

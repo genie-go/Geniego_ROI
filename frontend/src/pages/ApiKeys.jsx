@@ -48,6 +48,8 @@ const CHANNELS = [
   { key: 'st11',             name: '11Street (11번가)',  icon: '🔶', color: '#FA3E2C', group: 'domestic' },
   { key: 'gmarket',          name: 'Gmarket (G마켓)',    icon: '🟡', color: '#0099CC', group: 'domestic' },
   { key: 'auction',          name: 'Auction (옥션)',     icon: '🅰️', color: '#CC0000', group: 'domestic' },
+  // [229차] 롯데온 — 백엔드 lotteonFetch/lotteonWrite 실어댑터(api_key+seller_id) 존재하나 등록 UI 부재였음 → 추가
+  { key: 'lotteon',          name: '롯데온 (LOTTE ON)',  icon: '🛒', color: '#ED1C24', group: 'domestic' },
   // ── 물류 및 배송(지니고 당일배송) ──
   { key: 'cj',               name: 'CJ대한통운',         icon: '🚛', color: '#7A3A96', group: 'logistics' },
   { key: 'lotte',            name: '롯데글로벌로지스',   icon: '🚚', color: '#DA291C', group: 'logistics' },
@@ -108,6 +110,7 @@ const CHANNEL_FIELDS = {
   st11:      [{ k: 'api_key', label: '오픈API 키', secret: true }, { k: 'seller_id', label: '셀러 ID' }],
   gmarket:   [{ k: 'api_key', label: 'API 키', secret: true }, { k: 'seller_id', label: '셀러 ID' }],
   auction:   [{ k: 'api_key', label: 'API 키', secret: true }, { k: 'seller_id', label: '셀러 ID' }],
+  lotteon:   [{ k: 'api_key', label: 'OpenAPI 인증키', secret: true }, { k: 'seller_id', label: '판매자(셀러) ID' }],
   // 글로벌 마켓
   amazon_spapi: [{ k: 'refresh_token', label: 'LWA Refresh Token', secret: true }, { k: 'client_id', label: 'Client ID' }, { k: 'client_secret', label: 'Client Secret', secret: true }, { k: 'marketplace_id', label: 'Marketplace ID (예: ATVPDKIKX0DER=US · A1VC38T7YXB528=JP · A1PA6795UKMFR9=DE)' }, { k: 'seller_id', label: 'Seller ID / Merchant Token (상품등록 필수 · Seller Central > 계정정보)' }],
   ebay:      [{ k: 'access_token', label: 'OAuth 액세스 토큰', secret: true }],
@@ -217,6 +220,7 @@ const ISSUANCE_URL = {
   coupang: 'https://wing.coupang.com', st11: 'https://openapi.11st.co.kr/openapi/OpenApiFrontMain.tmall',
   gmarket: 'https://etapi.gmarket.com', auction: 'https://etapi.gmarket.com',
   naver_smartstore: 'https://apicenter.commerce.naver.com', naver_sa: 'https://manage.searchad.naver.com',
+  lotteon: 'https://store.lotteon.com', // [229차] 롯데온 셀러 스토어센터(판매자정보>OpenAPI관리>정보설정>키발급)
   // 글로벌 마켓
   amazon_spapi: 'https://sellercentral.amazon.com/sellingpartner/developerconsole', ebay: 'https://developer.ebay.com/my/keys',
   tiktok_shop: 'https://partner.tiktokshop.com', // [227차] TikTok Shop Partner Center(앱 생성→app_key/secret/token 발급)
@@ -277,6 +281,7 @@ const CHANNEL_APPLY_FIELDS = {
   // ── 국내 오픈마켓 — 판매자 계정 식별
   coupang: ['account_id', 'account_email'], naver_smartstore: ['account_id', 'account_email', 'store_name'],
   st11: ['account_id', 'account_email'], gmarket: ['account_id', 'account_email'], auction: ['account_id', 'account_email'],
+  lotteon: ['account_id', 'account_email'],
   // ── 글로벌 마켓플레이스 — 판매자/마켓 식별
   amazon_spapi: ['account_id', 'marketplace', 'account_email'], ebay: ['account_id', 'account_email'], qoo10: ['account_id', 'account_email'],
   tiktok_shop: ['account_id', 'store_name', 'account_email'], etsy: ['store_name', 'account_email'], walmart: ['account_id', 'account_email'],
@@ -326,6 +331,7 @@ const CHANNEL_APPLY_NOTE = {
   st11:    { hard: false, note: '11번가 오픈API센터에 셀러 로그인 → 서비스 등록 → 접근 IP 등록 후 API Key가 발급됩니다.' },
   gmarket: { hard: true,  note: 'ESM Trading API는 승인제(거절 가능)입니다. 옥션 판매자ID·G마켓 판매자ID·ESM 마스터ID가 필요합니다.' },
   auction: { hard: true,  note: 'ESM Trading API는 승인제(거절 가능)입니다. 옥션 판매자ID·G마켓 판매자ID·ESM 마스터ID가 필요합니다.' },
+  lotteon: { hard: true,  note: '롯데온 입점(사업자 인증) 후 셀러 스토어센터(store.lotteon.com) > 판매자정보 > [OpenAPI관리] > [정보설정]에서 서버 IP를 등록하고 [키발급]으로 OpenAPI 인증키를 발급합니다. 사업자 인증 미완료 시 발급 불가.' },
   // ── 글로벌 마켓플레이스
   amazon_spapi: { hard: true,  note: '프로페셔널 셀러 계정이 필수입니다. Seller Central > 앱 개발에서 개발자 프로필 등록 후 앱을 생성합니다.' },
   ebay:    { hard: false, note: 'developer.ebay.com에서 keyset(DevID/AppID/CertID)을 생성합니다. 운영 keyset은 계정 삭제 알림 구독/거부 절차가 필요합니다.' },
