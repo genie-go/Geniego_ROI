@@ -242,9 +242,9 @@ export const ISSUANCE_GUIDE_KO = {
   ],
   kakaopay: [
     '준비물: 카카오페이 가맹점 계약이 필요합니다.',
-    '카카오페이 가맹점/개발자 콘솔에 로그인합니다.',
-    '가맹점 코드(CID)와 Admin 키를 발급/확인합니다.',
-    'GenieGo [등록]에 cid, admin_key를 입력해 저장합니다.',
+    '카카오페이 개발자센터(developers.kakaopay.com)에 가입·로그인합니다.',
+    '애플리케이션을 생성해 가맹점 코드(CID)와 Secret Key를 발급/확인합니다(인증 헤더 Authorization: SECRET_KEY).',
+    'GenieGo [등록]에 cid, secret_key를 입력해 저장합니다.',
   ],
   paypal: [
     '준비물: PayPal 비즈니스 계정이 필요합니다.',
@@ -261,10 +261,10 @@ export const ISSUANCE_GUIDE_KO = {
     'GenieGo [등록]에 publishable_key, secret_key를 입력해 저장합니다.',
   ],
   paddle: [
-    '준비물: Paddle 셀러(벤더) 계정이 필요합니다(SaaS·디지털 상품 Merchant of Record).',
-    'vendors.paddle.com 에 로그인합니다.',
-    '[Developer Tools] > [Authentication]에서 Seller ID와 API 키(Auth Code)를 확인·발급합니다.',
-    'GenieGo [등록]에 seller_id, api_key를 입력해 저장합니다.',
+    '준비물: Paddle 계정이 필요합니다(SaaS·디지털 상품 Merchant of Record · Billing v2).',
+    'Paddle 대시보드에 로그인합니다.',
+    '[Developer Tools] > [Authentication] > [API keys]에서 Billing API 키(Bearer, pdl_live_…)를 생성합니다(구 Classic vendor_id/auth_code 아님).',
+    'GenieGo [등록]에 api_key를 입력해 저장합니다.',
   ],
   adyen: [
     '준비물: Adyen 가맹 계약·심사 승인이 필요합니다(엔터프라이즈 글로벌 PG).',

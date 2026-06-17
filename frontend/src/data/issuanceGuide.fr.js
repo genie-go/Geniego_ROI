@@ -221,7 +221,7 @@ export default {
     'Prérequis : vous avez besoin d’un contrat marchand KakaoPay.',
     'Connectez-vous à la console marchand/développeur KakaoPay.',
     'Émettez/vérifiez le code marchand (CID) et la clé Admin.',
-    'Dans GenieGo [Enregistrer], saisissez cid et admin_key, puis enregistrez.',
+    'Dans GenieGo [Enregistrer], saisissez cid et secret_key, puis enregistrez.',
   ],
   paypal: [
     'Prérequis : vous avez besoin d’un compte professionnel PayPal.',

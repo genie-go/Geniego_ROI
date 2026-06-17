@@ -221,7 +221,7 @@ export default {
     '準備事項：您需要 KakaoPay 特約商店合約。',
     '登入 KakaoPay 特約商店／開發者主控台。',
     '發行／確認特約商店代碼（CID）與 Admin 金鑰。',
-    '在 GenieGo〔註冊〕中輸入 cid、admin_key 並儲存。',
+    '在 GenieGo〔註冊〕中輸入 cid、secret_key 並儲存。',
   ],
   paypal: [
     '準備事項：您需要一個 PayPal 商業帳號。',

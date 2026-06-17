@@ -220,7 +220,7 @@ export default {
     "What you need: a KakaoPay merchant contract.",
     "Sign in to the KakaoPay merchant/developer console.",
     "Issue/find your merchant code (CID) and Admin key.",
-    "In GenieGo [Register], enter your cid and admin_key, then save.",
+    "In GenieGo [Register], enter your cid and secret_key, then save.",
   ],
   paypal: [
     "What you need: a PayPal Business account.",

@@ -223,7 +223,7 @@ export default {
     'Chuẩn bị: cần hợp đồng đại lý KakaoPay.',
     'Đăng nhập console đại lý/nhà phát triển KakaoPay.',
     'Phát hành/kiểm tra mã đại lý (CID) và Admin key.',
-    'Nhập cid, admin_key vào [Đăng ký] của GenieGo rồi lưu.',
+    'Nhập cid, secret_key vào [Đăng ký] của GenieGo rồi lưu.',
   ],
   paypal: [
     'Chuẩn bị: cần tài khoản doanh nghiệp PayPal.',

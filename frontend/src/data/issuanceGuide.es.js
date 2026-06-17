@@ -219,7 +219,7 @@ export default {
     "Requisitos: necesitas un contrato de comercio afiliado de Kakao Pay.",
     "Inicia sesión en la consola de comercio afiliado/desarrollador de Kakao Pay.",
     "Emite/consulta el código de comercio afiliado (CID) y la clave Admin.",
-    "En GenieGo [Registrar], introduce cid y admin_key, y guarda.",
+    "En GenieGo [Registrar], introduce cid y secret_key, y guarda.",
   ],
   paypal: [
     "Requisitos: necesitas una cuenta de empresa de PayPal.",

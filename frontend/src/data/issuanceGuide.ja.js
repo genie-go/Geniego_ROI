@@ -220,7 +220,7 @@ export default {
     "ご用意いただくもの: KakaoPay の加盟店契約が必要です。",
     "KakaoPay の加盟店/開発者コンソールにログインします。",
     "加盟店コード（CID）と Admin キーを発行/確認します。",
-    "GenieGo の [登録] に cid、admin_key を入力して保存します。",
+    "GenieGo の [登録] に cid、secret_key を入力して保存します。",
   ],
   paypal: [
     "ご用意いただくもの: PayPal のビジネスアカウントが必要です。",

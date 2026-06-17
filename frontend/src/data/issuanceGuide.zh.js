@@ -220,7 +220,7 @@ export default {
     "所需准备：KakaoPay 的特约商户合同。",
     "登录 KakaoPay 特约商户/开发者控制台。",
     "签发/查看特约商户代码（CID）和 Admin 密钥。",
-    "在 GenieGo 的 [注册] 中输入 cid、admin_key 并保存。",
+    "在 GenieGo 的 [注册] 中输入 cid、secret_key 并保存。",
   ],
   paypal: [
     "所需准备：一个 PayPal 商业账号。",

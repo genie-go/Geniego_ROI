@@ -219,7 +219,7 @@ export default {
     "Pré-requisitos: você precisa de um contrato de estabelecimento credenciado da Kakao Pay.",
     "Faça login no console de estabelecimento credenciado/desenvolvedor da Kakao Pay.",
     "Emita/verifique o código do estabelecimento credenciado (CID) e a chave Admin.",
-    "No GenieGo [Registrar], insira cid e admin_key, e salve.",
+    "No GenieGo [Registrar], insira cid e secret_key, e salve.",
   ],
   paypal: [
     "Pré-requisitos: você precisa de uma conta empresarial do PayPal.",
