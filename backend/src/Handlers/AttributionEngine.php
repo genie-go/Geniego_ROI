@@ -66,23 +66,15 @@ final class AttributionEngine
             $halflife = max(0.5, min(90.0, (float)($q['halflife'] ?? self::DEFAULT_HALFLIFE)));
 
             $pdo = Db::pdo();
-            [$convJourneys, $nullJourneys] = self::loadJourneys($pdo, $t, $window);
-
-            if (empty($convJourneys)) {
-                return self::ok($response, $empty + [
-                    'window_days' => $window,
-                    'journeys' => count($nullJourneys),
-                    'note' => '전환(attribution_result)에 연결된 터치 여정이 아직 없습니다. 전환 스코어링 후 자동 반영됩니다.',
-                    'response_time_ms' => self::elapsed($start),
-                ]);
+            // [228차 S2] ★캐시 우선 — attribution_cron 선계산 결과가 신선(30분)하면 즉시 반환.
+            //   기존엔 대시보드 히트마다 동기 재계산(대용량 테넌트 MAX_ORDERS=20000 스캔 지연). 캐시 미스 시 라이브 계산+저장.
+            $cached = self::cacheGet($pdo, $t, $window, $halflife, 1800);
+            if ($cached !== null) {
+                $cached['cached'] = true;
+                $cached['response_time_ms'] = self::elapsed($start);
+                return self::ok($response, $cached);
             }
-
-            $result = self::computeModels($convJourneys, $nullJourneys, $halflife);
-            $result['window_days'] = $window;
-            $result['halflife_days'] = $halflife;
-            $result['journeys'] = count($convJourneys) + count($nullJourneys);
-            $result['converted'] = count($convJourneys);
-            $result['data_driven'] = 'markov';
+            $result = self::precompute($pdo, $t, $window, $halflife);
             $result['response_time_ms'] = self::elapsed($start);
             return self::ok($response, $result);
         } catch (Throwable $e) {
@@ -442,6 +434,71 @@ final class AttributionEngine
     private static function elapsed(float $start): float
     {
         return round((microtime(true) - $start) * 1000, 2);
+    }
+
+    // ── [228차 S2] markov 모델 선계산 + 캐시 ──────────────────────────────
+    /**
+     * markov 모델 계산 + 캐시 저장(attribution_cron·models 공용). 전환 여정이 없으면 빈 결과도 캐시한다.
+     *   (cron 이 주기 선계산 → models 는 캐시 신선 시 즉시 반환. 캐시 미스 시 본 메서드가 라이브 계산+저장.)
+     */
+    public static function precompute(PDO $pdo, string $t, int $window = self::DEFAULT_WINDOW, float $halflife = self::DEFAULT_HALFLIFE): array
+    {
+        [$convJourneys, $nullJourneys] = self::loadJourneys($pdo, $t, $window);
+        if (empty($convJourneys)) {
+            $r = ['models' => new \stdClass(), 'channels' => [], 'data_driven' => 'markov',
+                  'window_days' => $window, 'journeys' => count($nullJourneys), 'converted' => 0,
+                  'note' => '전환(attribution_result)에 연결된 터치 여정이 아직 없습니다. 전환 스코어링 후 자동 반영됩니다.'];
+        } else {
+            $r = self::computeModels($convJourneys, $nullJourneys, $halflife);
+            $r['window_days'] = $window; $r['halflife_days'] = $halflife;
+            $r['journeys'] = count($convJourneys) + count($nullJourneys);
+            $r['converted'] = count($convJourneys); $r['data_driven'] = 'markov';
+        }
+        self::cachePut($pdo, $t, $window, $halflife, $r);
+        return $r;
+    }
+
+    private static function ckey(string $t, int $w, float $hl): string
+    {
+        return $t . ':' . $w . ':' . number_format($hl, 1, '.', '');
+    }
+
+    private static function ensureCacheTable(PDO $pdo): void
+    {
+        $isMy = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql';
+        try {
+            $pdo->exec($isMy
+                ? "CREATE TABLE IF NOT EXISTS attribution_model_cache (ckey VARCHAR(220) PRIMARY KEY, tenant_id VARCHAR(190), result_json LONGTEXT, computed_at VARCHAR(40)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
+                : "CREATE TABLE IF NOT EXISTS attribution_model_cache (ckey TEXT PRIMARY KEY, tenant_id TEXT, result_json TEXT, computed_at TEXT)");
+        } catch (\Throwable $e) { /* 미존재/권한 — graceful(캐시 없이 라이브 계산) */ }
+    }
+
+    /** 신선한 캐시(ttl초 이내)면 디코드 결과 반환, 아니면 null. */
+    private static function cacheGet(PDO $pdo, string $t, int $w, float $hl, int $ttl): ?array
+    {
+        try {
+            self::ensureCacheTable($pdo);
+            $st = $pdo->prepare("SELECT result_json, computed_at FROM attribution_model_cache WHERE ckey=? LIMIT 1");
+            $st->execute([self::ckey($t, $w, $hl)]);
+            $r = $st->fetch(PDO::FETCH_ASSOC);
+            if (!$r) return null;
+            if (strtotime((string)($r['computed_at'] ?? '')) < time() - $ttl) return null; // 만료
+            $d = json_decode((string)($r['result_json'] ?? ''), true);
+            return is_array($d) ? $d : null;
+        } catch (\Throwable $e) { return null; }
+    }
+
+    private static function cachePut(PDO $pdo, string $t, int $w, float $hl, array $r): void
+    {
+        try {
+            self::ensureCacheTable($pdo);
+            $json = json_encode($r, JSON_UNESCAPED_UNICODE); $now = gmdate('c'); $ck = self::ckey($t, $w, $hl);
+            $u = $pdo->prepare("UPDATE attribution_model_cache SET result_json=?, computed_at=?, tenant_id=? WHERE ckey=?");
+            $u->execute([$json, $now, $t, $ck]);
+            if ($u->rowCount() === 0) {
+                $pdo->prepare("INSERT INTO attribution_model_cache(ckey,tenant_id,result_json,computed_at) VALUES(?,?,?,?)")->execute([$ck, $t, $json, $now]);
+            }
+        } catch (\Throwable $e) { /* graceful */ }
     }
 
     private static function ok(Response $response, array $payload): Response

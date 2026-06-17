@@ -2233,6 +2233,11 @@ final class ChannelSync
         $oCount = self::saveOrders($pdo, $tenant, $channel, $result['orders'] ?? []);
         // [현 차수] 정산 자동 풀(graceful) — 실 정산 API 어댑터 보유 채널은 confirmed 적재, 미구현은 무동작(pending).
         try { self::syncSettlementsForTenant($pdo, $tenant, $channel, $creds, gmdate('Y-m')); } catch (\Throwable $e) {}
+        // [228차 S2] ★주문기반 정산/순매출 추정 롤업을 on-demand 동기화 직후에도 즉시 재계산(기존엔 cron 전용 → 정산·P&L
+        //   순액이 사용자 채널동기화 후 cron(최대 5분)까지 지연). orderhub_settlements 갱신(취소제외·COGS·쿠폰 반영, 멱등).
+        if ($tenant !== '' && $tenant !== 'demo' && !str_starts_with($tenant, 'demo')) {
+            try { \Genie\Handlers\OrderHub::rollupSettlementsCore($pdo, $tenant, gmdate('Y-m'), null, gmdate('Y-m-d H:i:s')); } catch (\Throwable $e) {}
+        }
 
         $pending = !empty($result['pending']); // [현 차수] H1: stub 채널 연동 대기 표기
         $newStatus = !($result['ok'] ?? false) ? 'error' : ($pending ? 'pending' : 'ok');
