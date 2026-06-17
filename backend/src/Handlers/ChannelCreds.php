@@ -517,6 +517,7 @@ final class ChannelCreds
             in_array($channel, ['shopify'], true) => self::pingShopify($keyValue),
             in_array($channel, ['naver', 'naver_smartstore'], true) => [true, 'Naver: 자격증명 저장됨 — 동기화 시 실연동 검증(OAuth+HMAC)'],
             in_array($channel, ['coupang'], true) => [true, 'Coupang: 자격증명 저장됨 — 동기화 시 실연동 검증(HMAC)'],
+            in_array($channel, ['adyen'], true) => [true, 'Adyen: 자격증명 저장됨 — 정산 수집 시 실 리포트(Settlement Detail Report)로 검증됩니다.'],
             in_array($channel, ['kakao', 'kakao_moment'], true) => self::pingKakao($keyValue),
             // [현 차수] YouTube Data API 키 실 검증 — 임의 발급확인 금지, 실제 API 호출로 키 유효성 확인.
             in_array($channel, ['youtube'], true) => self::pingYouTube($keyName, $keyValue),
@@ -544,6 +545,7 @@ final class ChannelCreds
             'shopify', 'amazon', 'amazon_spapi', 'coupang', 'naver', 'naver_smartstore',
             'ebay', 'rakuten', 'cafe24',
             '11st', 'st11', 'gmarket', 'auction', 'lotteon', // 국내 오픈마켓 4종 실어댑터
+            'stripe', 'tosspayments', 'toss', 'paypal', 'adyen', // PG 정산 실 수집 어댑터(228차 Adyen 추가)
         ];
         if (in_array($channel, $list, true)) return true;
         $c = ChannelSync::normalizeChannelKey($channel);

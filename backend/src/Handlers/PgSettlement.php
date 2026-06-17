@@ -41,7 +41,8 @@ final class PgSettlement
         'naverpay'     => ['label' => '네이버페이', 'creds' => ['naverpay'], 'live' => false],
         // [228차] 글로벌 결제 전문 PG — 자격증명 등록·인식(정산 실수집 어댑터는 추후, 현재 honest pending).
         'paddle'       => ['label' => 'Paddle', 'creds' => ['paddle'], 'live' => false],
-        'adyen'        => ['label' => 'Adyen', 'creds' => ['adyen'], 'live' => false],
+        // [228차] Adyen 실 정산 수집 어댑터 구현(Settlement Detail Report CSV).
+        'adyen'        => ['label' => 'Adyen', 'creds' => ['adyen'], 'live' => true],
         'square'       => ['label' => 'Square', 'creds' => ['square'], 'live' => false],
         'braintree'    => ['label' => 'Braintree', 'creds' => ['braintree'], 'live' => false],
         'checkout'     => ['label' => 'Checkout.com', 'creds' => ['checkout'], 'live' => false],
@@ -229,7 +230,116 @@ final class PgSettlement
             if ($cid === '' || $sec === '') return ['ok' => false, 'configured' => false, 'note' => 'PayPal Client ID/Secret 미등록 — 등록 후 자동 수집됩니다.'];
             return self::fetchPaypal($cid, $sec);
         }
+        if ($provider === 'adyen') {
+            $ak = self::loadCred($pdo, $tenant, $creds, 'api_key');
+            $ma = self::loadCred($pdo, $tenant, $creds, 'merchant_account');
+            if ($ak === '' || $ma === '') return ['ok' => false, 'configured' => false, 'note' => 'Adyen API 키/Merchant Account 미등록 — 등록 후 자동 수집됩니다.'];
+            $bs = self::loadCred($pdo, $tenant, $creds, 'batch_start');
+            return self::fetchAdyen($pdo, $tenant, $ak, $ma, $bs);
+        }
         return ['ok' => false, 'configured' => false, 'note' => "[{$provider}] 정산 API 연동 예정입니다."];
+    }
+
+    /**
+     * [228차] Adyen 정산 실 수집 — Settlement Detail Report(CSV)를 X-API-Key로 다운로드·파싱.
+     *   Adyen 은 Stripe 류의 'recent transactions' JSON 리스트가 없고, 정산은 배치별 상세 리포트(CSV)가 정본이다.
+     *   배치번호 커서(app_setting pg_adyen_batch_<tenant>)부터 전진 스캔 → 신규 배치 누적 수집.
+     *   ★시작 배치는 cred batch_start(미설정 시 커서). 첫 수집은 batch_start 필요(Customer Area에서 최근 배치번호 확인).
+     *   라이브 검증은 실 Adyen 가맹·API 키(Merchant report download role) 필요.
+     */
+    private static function fetchAdyen(PDO $pdo, string $tenant, string $apiKey, string $merchantAccount, string $batchStart): array
+    {
+        $skey   = 'pg_adyen_batch_' . $tenant;
+        $cursor = (int)(self::settingGet($pdo, $skey) ?? 0);
+        $start  = $cursor > 0 ? $cursor + 1 : ((int)$batchStart > 0 ? (int)$batchStart : 0);
+        if ($start <= 0) {
+            return ['ok' => false, 'configured' => true,
+                'note' => 'Adyen 정산 첫 수집에는 시작 배치번호가 필요합니다 — Customer Area > Reports/Settlement details의 최근 settlement batch 번호를 [등록]의 batch_start 에 입력하세요.'];
+        }
+        $rows = [];
+        $lastOk = $cursor;
+        $maxScan = 30; // 런당 배치 상한(따라잡기 bound)
+        $miss = 0;
+        for ($b = $start; $b < $start + $maxScan; $b++) {
+            $url = 'https://ca-live.adyen.com/reports/download/MerchantAccount/' . rawurlencode($merchantAccount)
+                 . '/settlement_detail_report_batch_' . $b . '.csv';
+            [$code, $csv, $err] = self::httpGetRaw($url, ['X-API-Key' => $apiKey]);
+            if ($code === 200 && trim((string)$csv) !== '') {
+                foreach (self::parseAdyenSettlementCsv((string)$csv, $b) as $r) $rows[] = $r;
+                $lastOk = $b; $miss = 0;
+            } elseif ($code === 404 || $code === 422) {
+                if (++$miss >= 2) break; // 연속 2회 미존재 → 따라잡기 완료
+            } elseif ($code === 401 || $code === 403) {
+                return ['ok' => false, 'configured' => true, 'note' => "Adyen 인증/권한 오류(HTTP {$code}) — API 키의 Merchant report download role 을 확인하세요."];
+            } else {
+                if ($b === $start) return ['ok' => false, 'configured' => true, 'note' => "Adyen 리포트 다운로드 실패(HTTP {$code})" . ($err ? " {$err}" : '')];
+                break; // 일시적 오류 — 다음 cron 재시도
+            }
+        }
+        if ($lastOk > $cursor) self::settingSet($pdo, $skey, (string)$lastOk);
+        return ['ok' => true, 'rows' => $rows, 'note' => "Adyen 정산 배치 {$start}~{$lastOk} 수집(" . count($rows) . "행)"];
+    }
+
+    /** [228차] Adyen Settlement Detail Report CSV → 정규화 행. 컬럼명 헤더 매핑(버전별 컬럼 차이 흡수). */
+    private static function parseAdyenSettlementCsv(string $csv, int $batch): array
+    {
+        $lines = preg_split('/\r\n|\n|\r/', trim($csv));
+        if (!is_array($lines) || count($lines) < 2) return [];
+        $head = str_getcsv((string)array_shift($lines));
+        $idx  = array_flip($head);
+        $col  = function (array $r, string $name) use ($idx) { return isset($idx[$name]) && isset($r[$idx[$name]]) ? (string)$r[$idx[$name]] : ''; };
+        $num  = fn($v) => (float)str_replace([',', ' '], '', (string)$v);
+        $rows = [];
+        foreach ($lines as $ln) {
+            if (trim((string)$ln) === '') continue;
+            $r = str_getcsv((string)$ln);
+            $psp  = $col($r, 'Psp Reference');
+            $mod  = $col($r, 'Modification Reference');
+            $type = $col($r, 'Type');
+            $netCur   = strtoupper($col($r, 'Net Currency') ?: $col($r, 'Gross Currency'));
+            $gross    = $num($col($r, 'Gross Credit (GC)')) - $num($col($r, 'Gross Debit (GC)'));
+            $net      = $num($col($r, 'Net Credit (NC)')) - $num($col($r, 'Net Debit (NC)'));
+            $fee      = $num($col($r, 'Commission (NC)')) + $num($col($r, 'Markup (NC)')) + $num($col($r, 'Scheme Fees (NC)')) + $num($col($r, 'Interchange (NC)'));
+            $id = ($psp !== '' ? $psp : 'adyen') . '-' . ($mod !== '' ? $mod : ($type !== '' ? $type : 'row')) . '-b' . $batch;
+            $rows[] = [
+                'txn_id'   => $id,
+                'type'     => $type !== '' ? $type : 'Settled',
+                'gross'    => round($gross, 2),
+                'fee'      => round($fee, 2),
+                'net'      => round($net, 2),
+                'currency' => $netCur,
+                'status'   => $type !== '' ? $type : 'settled',
+                'txn_at'   => $col($r, 'Creation Date'),
+            ];
+        }
+        return $rows;
+    }
+
+    /** app_setting(skey/svalue) 단순 get. */
+    private static function settingGet(PDO $pdo, string $key): ?string
+    {
+        try { $s = $pdo->prepare("SELECT svalue FROM app_setting WHERE skey=? LIMIT 1"); $s->execute([$key]); $v = $s->fetchColumn(); return $v === false ? null : (string)$v; }
+        catch (\Throwable $e) { return null; }
+    }
+
+    /** app_setting set — UPDATE 후 미적중 시 INSERT(유니크 제약 가정 없이 안전). */
+    private static function settingSet(PDO $pdo, string $key, string $val): void
+    {
+        try {
+            $u = $pdo->prepare("UPDATE app_setting SET svalue=? WHERE skey=?");
+            $u->execute([$val, $key]);
+            if ($u->rowCount() === 0) { $pdo->prepare("INSERT INTO app_setting(skey,svalue) VALUES(?,?)")->execute([$key, $val]); }
+        } catch (\Throwable $e) { /* app_setting 미존재 등 무시 */ }
+    }
+
+    /** CSV 등 raw 본문 다운로드(JSON 디코드 안 함). 반환 [code, raw, err]. */
+    private static function httpGetRaw(string $url, array $headers = []): array
+    {
+        $ch = curl_init($url);
+        $hdr = []; foreach ($headers as $k => $v) $hdr[] = "{$k}: {$v}";
+        curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 30, CURLOPT_CONNECTTIMEOUT => 8, CURLOPT_HTTPHEADER => $hdr ?: ['Accept: text/csv'], CURLOPT_SSL_VERIFYPEER => true, CURLOPT_USERAGENT => 'Geniego-ROI/v427']);
+        $raw = curl_exec($ch); $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE); $err = curl_error($ch) ?: null; curl_close($ch);
+        return [$code, $err === null ? (string)$raw : '', $err];
     }
 
     /** Stripe Balance Transactions(Bearer secret_key). 금액은 최소단위(cents) → 주단위 변환. */

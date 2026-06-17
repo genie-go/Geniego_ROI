@@ -152,7 +152,7 @@ const CHANNEL_FIELDS = {
   stripe:    [{ k: 'publishable_key', label: 'Publishable Key' }, { k: 'secret_key', label: 'Secret Key', secret: true }],
   // [228차] 글로벌 결제 전문 PG 자격증명
   paddle:    [{ k: 'seller_id', label: 'Seller(Vendor) ID' }, { k: 'api_key', label: 'API 키 (Auth Code)', secret: true }],
-  adyen:     [{ k: 'api_key', label: 'API 키 (X-API-Key)', secret: true }, { k: 'merchant_account', label: 'Merchant Account' }],
+  adyen:     [{ k: 'api_key', label: 'API 키 (X-API-Key)', secret: true }, { k: 'merchant_account', label: 'Merchant Account' }, { k: 'batch_start', label: '시작 정산배치 번호 (정산 첫 수집용 · CA의 최근 settlement batch 번호)' }],
   square:    [{ k: 'access_token', label: 'Access Token', secret: true }, { k: 'location_id', label: 'Location ID' }],
   braintree: [{ k: 'merchant_id', label: 'Merchant ID' }, { k: 'public_key', label: 'Public Key' }, { k: 'private_key', label: 'Private Key', secret: true }],
   checkout:  [{ k: 'secret_key', label: 'Secret Key (sk_)', secret: true }, { k: 'public_key', label: 'Public Key (pk_)' }],
@@ -200,6 +200,8 @@ const REAL_ADAPTER = new Set([
   'epost', 'cj', 'lotte', 'hanjin', 'logen', 'smarttracker', 'dhl',
   // [현 차수] v427 PG 정산 실어댑터(PgSettlement.php): Stripe·토스페이먼츠·PayPal.
   'stripe', 'toss', 'paypal',
+  // [228차] Adyen 정산 실 수집 어댑터(Settlement Detail Report CSV).
+  'adyen',
 ]);
 /* [현 차수] ★연결 테스트가 '실제 발급 검증'(라이브 채널 API 호출로 키 유효성 확인)인 채널 — 백엔드 hasLiveVerify 정합.
    '발급 확인됨' 배지는 이 채널들의 test_status==='ok'(실검증 통과)에만 표기한다(임의 표기 금지).
