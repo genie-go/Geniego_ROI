@@ -30,6 +30,8 @@ const CHANNELS = [
   { key: 'lazada',           name: 'Lazada',            icon: '🛒', color: '#0F146D', group: 'global_commerce' },
   { key: 'rakuten',          name: 'Rakuten',           icon: '🛒', color: '#BF0000', group: 'global_commerce' },
   { key: 'qoo10',            name: 'Qoo10',             icon: '🟡', color: '#FF6B00', group: 'global_commerce' },
+  // [229차] Yahoo! Japan(JP 마켓/오픈API) — 신규
+  { key: 'yahoo_japan',      name: 'Yahoo! Japan',      icon: '🟣', color: '#FF0033', group: 'global_commerce' },
   // ── 자사몰 플랫폼(D2C) ──
   { key: 'shopify',          name: 'Shopify',           icon: '🛍', color: '#96BF48', group: 'd2c' },
   { key: 'woocommerce',      name: 'WooCommerce',       icon: '🟣', color: '#96588A', group: 'd2c' },
@@ -85,6 +87,9 @@ const CHANNELS = [
   { key: 'klarna',           name: 'Klarna',             icon: '🛍️', color: '#FFB3C7', group: 'payment' },
   { key: 'google_analytics', name: 'Google Analytics 4',icon: '📊', color: '#E37400', group: 'own_etc' },
   { key: 'slack',            name: 'Slack Webhook',     icon: '💬', color: '#4A154B', group: 'own_etc' },
+  // [229차] 메시징 채널(알림/메시지) — 신규
+  { key: 'kakao_alimtalk',   name: '카카오 알림톡',      icon: '💛', color: '#FEE500', group: 'own_etc' },
+  { key: 'line',             name: 'LINE',              icon: '💬', color: '#06C755', group: 'own_etc' },
 ];
 
 /* 그룹 라벨/정렬 — 208차: 카테고리별 헤더로 가독성 초고도화 */
@@ -174,6 +179,10 @@ const CHANNEL_FIELDS = {
   // 분석/기타
   google_analytics: [{ k: 'measurement_id', label: '측정 ID (G-)' }, { k: 'api_secret', label: 'API Secret', secret: true }],
   slack:     [{ k: 'webhook_url', label: 'Webhook URL', secret: true }],
+  // [229차] 신규 채널
+  yahoo_japan: [{ k: 'client_id', label: 'Client ID' }, { k: 'client_secret', label: 'Client Secret', secret: true }, { k: 'access_token', label: 'OAuth Access Token', secret: true }],
+  kakao_alimtalk: [{ k: 'sender_key', label: '발신 프로필 키 (sender_key)' }, { k: 'api_key', label: 'API Key', secret: true }, { k: 'api_secret', label: 'API Secret', secret: true }],
+  line:      [{ k: 'channel_secret', label: 'Channel Secret', secret: true }, { k: 'channel_access_token', label: 'Channel Access Token', secret: true }],
 };
 const DEFAULT_FIELDS = [{ k: 'api_key', label: 'API 키 / 액세스 토큰', secret: true }];
 
@@ -181,7 +190,9 @@ const DEFAULT_FIELDS = [{ k: 'api_key', label: 'API 키 / 액세스 토큰', sec
    youtube=큐레이트, 나머지=issuanceGuide 단계 기반 생성. 이 집합의 채널만 '📖 발급 매뉴얼' 버튼 노출. */
 const MANUAL_KEYS = new Set(['adyen','amazon_spapi','auction','braintree','cafe24','checkout','coupang','dhl','ebay','etsy','fedex','gmarket','godomall','google_ads','google_analytics','inicis','kakaopay','kcp','klarna','lazada','lotteon','magento','meta_ads','mollie','naver_sa','naver_smartstore','paddle','paypal','qoo10','rakuten','razorpay','shopee','shopify','slack','smarttracker','square','st11','stripe','tiktok_business','tiktok_shop','toss','twitch','ups','walmart','woocommerce','youtube',
   // [229차] Instagram/Facebook(자가발급·큐레이트본 ko) + 안내형(대행사/계약형) 채널 매뉴얼 추가
-  'instagram','facebook','kakao_moment','naverpay','cj','lotte','hanjin','logen','epost','ocl_sameday','fulfillment','ems','cj_intl','tnt']);
+  'instagram','facebook','kakao_moment','naverpay','cj','lotte','hanjin','logen','epost','ocl_sameday','fulfillment','ems','cj_intl','tnt',
+  // [229차] 신규 채널(사용자 큐레이트 매뉴얼)
+  'amazon_spapi','yahoo_japan','kakao_alimtalk','line']);
 // [229차] 15개국 현지 자연어 매뉴얼 — public/api_manuals/<lang>/<key>.html. 미지원 언어는 en 폴백.
 const MANUAL_LANGS = new Set(['ko','en','ja','zh','zh-TW','de','th','vi','id','ar','es','fr','hi','pt','ru']);
 const manualUrl = (key, lang) => `/api_manuals/${MANUAL_LANGS.has(lang) ? lang : 'en'}/${key}.html`;
@@ -259,6 +270,8 @@ const ISSUANCE_URL = {
   twitch: 'https://dev.twitch.tv/console/apps',                 // [227차] Twitch 앱 등록→client_id/secret 발급
   // 분석/기타
   slack: 'https://api.slack.com/apps',
+  // [229차] 신규 채널 콘솔
+  yahoo_japan: 'https://e.developer.yahoo.co.jp/', kakao_alimtalk: 'https://business.kakao.com/', line: 'https://developers.line.biz/console/',
 };
 
 /* [현 차수] 요청2: 채널별 "API 키 발급에 필요한 정보" 입력 필드 — 발급 신청 시 해당 채널이 요구하는
@@ -316,6 +329,8 @@ const CHANNEL_APPLY_FIELDS = {
   ems: ['contract_code', 'account_email'], tnt: ['account_number', 'account_email'], cj_intl: ['contract_code', 'account_email'],
   // ── 분석/기타
   google_analytics: ['account_id', 'account_email'], slack: ['site_url', 'account_email'],
+  // [229차] 신규 채널
+  yahoo_japan: ['account_id', 'account_email'], kakao_alimtalk: ['channel_url', 'account_email'], line: ['channel_url', 'account_email'],
 };
 /* 하드코딩에 없는(향후 추가) 채널 기본 발급 정보 — 계정 식별자 + 콘솔 이메일. */
 const DEFAULT_APPLY_FIELDS = ['account_id', 'account_email'];
@@ -393,6 +408,10 @@ const CHANNEL_APPLY_NOTE = {
   // ── 분석/기타
   google_analytics: { hard: false, note: 'GA4 > 관리 > 데이터 스트림에서 측정 ID(G-)·Measurement Protocol API Secret을 발급합니다.' },
   slack:            { hard: false, note: 'api.slack.com/apps에서 앱 생성 → Incoming Webhook URL을 발급합니다.' },
+  // [229차] 신규 채널
+  yahoo_japan:      { hard: false, note: 'Yahoo!デベロッパー(e.developer.yahoo.co.jp)에서 애플리케이션을 등록해 Client ID·Client Secret을 발급하고, OAuth 2.0 인가로 Access Token을 발급합니다.' },
+  kakao_alimtalk:   { hard: true,  note: '카카오톡 채널 비즈니스 인증 + 발신 프로필 검수 + 알림톡 템플릿 승인이 선행되어야 합니다. 발송 대행사/플랫폼(비즈메시지)에서 발신 프로필 키(sender_key)·API Key/Secret을 발급합니다.' },
+  line:             { hard: false, note: 'developers.line.biz 콘솔에서 Messaging API 채널 생성 → Channel Secret·Channel Access Token을 발급합니다.' },
 };
 
 /* [현 차수] ★발급 "따라하기" — 그대로 따라하면 키를 발급받을 수 있는 단계별 핵심 가이드(2026-06 웹 검증 반영).

@@ -435,6 +435,25 @@ export const ISSUANCE_GUIDE_KO = {
     'API Key/Secret 을 발급하고 FedEx 계정번호를 확인합니다.',
     'GenieGo [등록]에 api_key, api_secret, account_number 를 입력해 저장합니다.',
   ],
+  yahoo_japan: [
+    '준비물: Yahoo! JAPAN 비즈니스 ID + Yahoo!デベロッパー 애플리케이션이 필요합니다.',
+    'e.developer.yahoo.co.jp 에서 애플리케이션을 등록해 Client ID·Client Secret을 발급합니다.',
+    'OAuth 2.0 인가 절차로 Access Token(OAuth Token)을 발급받습니다.',
+    'GenieGo [등록]에 client_id, client_secret, access_token 을 입력해 저장합니다.',
+  ],
+  kakao_alimtalk: [
+    '준비물: 카카오톡 채널(비즈니스 인증) + 발송 대행사/플랫폼 계정. ★채널 비즈니스 인증·발신 프로필 검수·알림톡 템플릿 승인이 선행되어야 합니다.',
+    '카카오톡 채널을 개설하고 비즈니스 인증을 완료합니다.',
+    '발송 대행사/플랫폼(비즈메시지)에 발신 프로필(sender_key)을 등록하고 알림톡 템플릿 승인을 받습니다.',
+    '발송 플랫폼에서 API Key·Secret을 확인합니다.',
+    'GenieGo [등록]에 sender_key, api_key, api_secret 을 입력해 저장합니다.',
+  ],
+  line: [
+    '준비물: LINE Developers 계정 + LINE 공식 계정(Messaging API 채널)이 필요합니다.',
+    'developers.line.biz 콘솔에서 프로바이더와 Messaging API 채널을 생성합니다.',
+    '[Basic settings]에서 Channel Secret을, [Messaging API]에서 Channel Access Token을 발급합니다.',
+    'GenieGo [등록]에 channel_secret, channel_access_token 을 입력해 저장합니다.',
+  ],
   slack: [
     '준비물: Slack 워크스페이스 관리 권한이 필요합니다.',
     'api.slack.com/apps 에서 [Create New App]을 누릅니다.',

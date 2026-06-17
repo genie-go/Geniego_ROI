@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kakao 알림톡 API 발급 매뉴얼</title>
+<style>
+
+:root{--dark:#111827;--muted:#6b7280;--line:#e5e7eb;--bg:#f8fafc;--green:#16a34a;--red:#ef4444;--amber:#f59e0b;--blue:#2563eb;--violet:#7c3aed}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Pretendard","Noto Sans KR","Apple SD Gothic Neo",Arial,sans-serif;background:linear-gradient(135deg,#f8fafc,#eef2ff,#fff7ed);color:var(--dark);line-height:1.68}
+.wrap{max-width:1120px;margin:auto;padding:42px 22px 80px}
+.hero{border-radius:30px;padding:50px;color:white;background:var(--hero);box-shadow:0 30px 80px rgba(15,23,42,.25)}
+.badge{display:inline-flex;align-items:center;gap:10px;padding:9px 15px;border-radius:999px;border:1px solid rgba(255,255,255,.24);background:rgba(255,255,255,.12);font-weight:900}
+.logo{width:34px;height:34px;border-radius:11px;display:inline-grid;place-items:center;background:rgba(255,255,255,.18);font-weight:900}
+h1{font-size:clamp(34px,5vw,58px);line-height:1.12;margin:24px 0 16px;letter-spacing:-1.8px}
+.hero p{max-width:790px;color:#e5e7eb;font-size:18px;margin:0}
+.quick{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:26px}
+.quick div{padding:18px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.1);border-radius:18px}
+.quick strong{display:block;color:#fff}.quick span{color:#d1d5db;font-size:13px}
+.section{margin-top:32px;background:#fff;border:1px solid var(--line);border-radius:26px;padding:34px;box-shadow:0 18px 45px rgba(15,23,42,.07)}
+h2{margin:0 0 12px;font-size:28px;letter-spacing:-.8px}h3{margin:0 0 8px;font-size:20px}
+.desc{color:var(--muted);margin:0 0 24px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}.card{border:1px solid var(--line);border-radius:20px;padding:22px;background:#fff}
+.tag{display:inline-block;font-size:13px;font-weight:900;padding:5px 10px;border-radius:999px;margin-bottom:10px;background:#eff6ff;color:var(--blue)}
+.notice{border-left:5px solid var(--amber);background:#fffbeb;padding:17px 20px;border-radius:16px;margin:18px 0}.good{border-color:var(--green);background:#f0fdf4}.danger{border-color:var(--red);background:#fff1f2}.info{border-color:var(--blue);background:#eff6ff}
+.steps{display:grid;gap:18px}.step{display:grid;grid-template-columns:56px 1fr;gap:18px;padding:22px;border:1px solid var(--line);border-radius:20px;background:#fff}
+.num{width:48px;height:48px;border-radius:16px;background:linear-gradient(135deg,var(--blue),var(--violet));color:#fff;display:grid;place-items:center;font-weight:900;font-size:18px}
+.path{display:inline-block;margin-top:5px;padding:8px 12px;border-radius:10px;background:#f3f4f6;border:1px solid #e5e7eb;font-family:Consolas,monospace;font-size:14px}
+table{width:100%;border-collapse:collapse;border:1px solid var(--line);border-radius:16px;overflow:hidden;background:#fff}th,td{padding:15px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{background:#f9fafb;font-weight:900}tr:last-child td{border-bottom:0}
+.code{background:#0f172a;color:#e5e7eb;padding:18px;border-radius:16px;overflow:auto;font-family:Consolas,monospace;font-size:14px}
+.checklist{list-style:none;padding:0;margin:0;display:grid;gap:10px}.checklist li{padding:13px 15px;border:1px solid var(--line);border-radius:14px;background:#f9fafb}.checklist li:before{content:"✓";color:var(--green);font-weight:900;margin-right:8px}
+.footer{text-align:center;color:var(--muted);font-size:14px;margin-top:28px}
+@media(max-width:860px){.hero{padding:34px 24px}.quick,.grid2{grid-template-columns:1fr}.step{grid-template-columns:1fr}.section{padding:24px}}
+
+body{--hero:linear-gradient(135deg,#111827,#3f3f46,#facc15);}
+</style>
+</head>
+<body>
+<main class="wrap">
+<section class="hero">
+<span class="badge"><span class="logo">K</span> API 발급 초보자 매뉴얼</span>
+<h1>Kakao 알림톡 API 발급 매뉴얼</h1>
+<p>카카오톡 채널 비즈니스 인증, 발송 프로필 등록, 알림톡 템플릿 승인, API 인증 정보 확인까지의 실무 절차를 정리했습니다.</p>
+<div class="quick"><div><strong>핵심 구조</strong><span>채널 인증 + 템플릿 승인</span></div>
+<div><strong>필요 계정</strong><span>카카오비즈니스</span></div>
+<div><strong>주요 결과물</strong><span>Sender Profile / API Key</span></div>
+<div><strong>용도</strong><span>정보성 메시지</span></div></div>
+</section>
+<section class="section"><h2>1. Kakao 알림톡 발급 개념</h2><p class="desc">알림톡은 주문, 예약, 배송, 결제 등 정보성 메시지를 카카오톡으로 발송하는 비즈메시지 서비스입니다. 일반 카카오 개발자 앱 키만으로 바로 발송하는 구조가 아니라, 비즈니스 채널 인증과 발송 대행사/플랫폼 설정이 필요합니다.</p><div class="notice danger"><strong>중요:</strong> 알림톡은 광고성 메시지가 아니라 정보성 메시지 중심이며, 템플릿 사전 심사가 필요합니다.</div></section>
+<section class="section"><h2>2. 준비물</h2><ul class="checklist"><li>카카오 비즈니스 계정</li><li>카카오톡 채널</li><li>사업자등록증 등 비즈니스 인증 자료</li><li>발송할 알림톡 템플릿 문구</li><li>발송 대행사 또는 클라우드 메시징 서비스 계정</li><li>수신자 전화번호 수집 및 동의 관리 정책</li></ul></section>
+<section class="section"><h2>3. 카카오톡 채널 준비</h2><div class="steps"><div class="step"><div class="num">1</div><div><h3>카카오비즈니스 접속</h3><p>카카오비즈니스 관리자센터에 로그인합니다.</p><span class="path">business.kakao.com</span></div></div>
+<div class="step"><div class="num">2</div><div><h3>카카오톡 채널 생성</h3><p>브랜드 또는 서비스 이름으로 채널을 생성합니다.</p><span class="path">카카오톡 채널 관리자센터</span></div></div>
+<div class="step"><div class="num">3</div><div><h3>비즈니스 인증 진행</h3><p>사업자 정보와 증빙 자료를 제출해 비즈니스 채널 인증을 진행합니다.</p><span class="path">비즈니스 인증</span></div></div>
+<div class="step"><div class="num">4</div><div><h3>채널 검색용 ID 확인</h3><p>알림톡 발송 설정에 필요한 채널 ID 또는 검색용 ID를 확인합니다.</p><span class="path">채널 프로필 → 검색용 ID</span></div></div></div><div class="notice good">비즈니스 인증이 완료되어야 알림톡 발송 프로필 등록을 진행할 수 있습니다.</div></section>
+<section class="section"><h2>4. 발송 프로필 / Sender Profile 등록</h2><div class="steps"><div class="step"><div class="num">1</div><div><h3>발송 플랫폼 선택</h3><p>NHN Cloud, Naver Cloud SENS, Infobank, Bizgo 등 알림톡 제공사를 선택합니다.</p><span class="path">Messaging Provider</span></div></div>
+<div class="step"><div class="num">2</div><div><h3>프로젝트 생성</h3><p>선택한 플랫폼에서 알림톡 프로젝트를 생성합니다.</p><span class="path">Project / Service</span></div></div>
+<div class="step"><div class="num">3</div><div><h3>카카오톡 채널 연결</h3><p>비즈니스 인증된 카카오톡 채널 정보를 등록합니다.</p><span class="path">Sender Profile</span></div></div>
+<div class="step"><div class="num">4</div><div><h3>발신 프로필 검수</h3><p>채널 소유 확인과 발신 프로필 검수를 진행합니다.</p><span class="path">Profile Review</span></div></div>
+<div class="step"><div class="num">5</div><div><h3>API 인증 정보 확인</h3><p>플랫폼에서 제공하는 App Key, Secret Key, API Key 등을 확인합니다.</p><span class="path">API Key / Secret</span></div></div></div></section>
+<section class="section"><h2>5. 템플릿 등록 및 승인</h2><div class="steps"><div class="step"><div class="num">1</div><div><h3>템플릿 작성</h3><p>주문 확인, 배송 안내 등 정보성 문구를 작성합니다.</p><span class="path">Template Message</span></div></div>
+<div class="step"><div class="num">2</div><div><h3>변수 설정</h3><p>이름, 주문번호, 배송번호 등 동적으로 바뀌는 값을 변수로 설정합니다.</p><span class="path">#{'{'}변수{'}'}</span></div></div>
+<div class="step"><div class="num">3</div><div><h3>검수 요청</h3><p>템플릿을 저장하고 카카오 검수 요청을 진행합니다.</p><span class="path">Request Approval</span></div></div>
+<div class="step"><div class="num">4</div><div><h3>승인 확인</h3><p>승인된 템플릿 코드 또는 ID를 확인합니다.</p><span class="path">Template Code</span></div></div></div><div class="notice danger">검수 전 문구와 실제 발송 문구가 다르면 발송 실패 또는 제재가 발생할 수 있습니다.</div></section>
+<section class="section"><h2>6. API 발송 흐름 예시</h2><pre class="code">1) 서버에서 알림톡 API Endpoint 호출
+2) API Key 또는 Secret으로 인증
+3) 수신자 전화번호, 템플릿 코드, 변수값 전달
+4) 발송 결과 수신
+5) 실패 시 SMS 대체 발송 여부 처리</pre></section>
+<section class="section"><h2>7. 최종 체크리스트</h2><ul class="checklist"><li>카카오톡 채널을 생성했다.</li><li>비즈니스 인증을 완료했다.</li><li>알림톡 발송 플랫폼을 선택했다.</li><li>Sender Profile을 등록했다.</li><li>API Key 또는 Secret을 확인했다.</li><li>템플릿을 등록하고 승인받았다.</li><li>발송 실패 및 대체문자 정책을 준비했다.</li></ul></section>
+<p class="footer">Kakao 알림톡 API 발급 매뉴얼 · 실무 연동 초보자용 가이드</p>
+</main>
+</body>
+</html>

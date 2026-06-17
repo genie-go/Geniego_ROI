@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Yahoo! Japan API 발급 매뉴얼</title>
+<style>
+
+:root{--dark:#111827;--muted:#6b7280;--line:#e5e7eb;--bg:#f8fafc;--green:#16a34a;--red:#ef4444;--amber:#f59e0b;--blue:#2563eb;--violet:#7c3aed}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Pretendard","Noto Sans KR","Apple SD Gothic Neo",Arial,sans-serif;background:linear-gradient(135deg,#f8fafc,#eef2ff,#fff7ed);color:var(--dark);line-height:1.68}
+.wrap{max-width:1120px;margin:auto;padding:42px 22px 80px}
+.hero{border-radius:30px;padding:50px;color:white;background:var(--hero);box-shadow:0 30px 80px rgba(15,23,42,.25)}
+.badge{display:inline-flex;align-items:center;gap:10px;padding:9px 15px;border-radius:999px;border:1px solid rgba(255,255,255,.24);background:rgba(255,255,255,.12);font-weight:900}
+.logo{width:34px;height:34px;border-radius:11px;display:inline-grid;place-items:center;background:rgba(255,255,255,.18);font-weight:900}
+h1{font-size:clamp(34px,5vw,58px);line-height:1.12;margin:24px 0 16px;letter-spacing:-1.8px}
+.hero p{max-width:790px;color:#e5e7eb;font-size:18px;margin:0}
+.quick{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:26px}
+.quick div{padding:18px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.1);border-radius:18px}
+.quick strong{display:block;color:#fff}.quick span{color:#d1d5db;font-size:13px}
+.section{margin-top:32px;background:#fff;border:1px solid var(--line);border-radius:26px;padding:34px;box-shadow:0 18px 45px rgba(15,23,42,.07)}
+h2{margin:0 0 12px;font-size:28px;letter-spacing:-.8px}h3{margin:0 0 8px;font-size:20px}
+.desc{color:var(--muted);margin:0 0 24px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}.card{border:1px solid var(--line);border-radius:20px;padding:22px;background:#fff}
+.tag{display:inline-block;font-size:13px;font-weight:900;padding:5px 10px;border-radius:999px;margin-bottom:10px;background:#eff6ff;color:var(--blue)}
+.notice{border-left:5px solid var(--amber);background:#fffbeb;padding:17px 20px;border-radius:16px;margin:18px 0}.good{border-color:var(--green);background:#f0fdf4}.danger{border-color:var(--red);background:#fff1f2}.info{border-color:var(--blue);background:#eff6ff}
+.steps{display:grid;gap:18px}.step{display:grid;grid-template-columns:56px 1fr;gap:18px;padding:22px;border:1px solid var(--line);border-radius:20px;background:#fff}
+.num{width:48px;height:48px;border-radius:16px;background:linear-gradient(135deg,var(--blue),var(--violet));color:#fff;display:grid;place-items:center;font-weight:900;font-size:18px}
+.path{display:inline-block;margin-top:5px;padding:8px 12px;border-radius:10px;background:#f3f4f6;border:1px solid #e5e7eb;font-family:Consolas,monospace;font-size:14px}
+table{width:100%;border-collapse:collapse;border:1px solid var(--line);border-radius:16px;overflow:hidden;background:#fff}th,td{padding:15px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{background:#f9fafb;font-weight:900}tr:last-child td{border-bottom:0}
+.code{background:#0f172a;color:#e5e7eb;padding:18px;border-radius:16px;overflow:auto;font-family:Consolas,monospace;font-size:14px}
+.checklist{list-style:none;padding:0;margin:0;display:grid;gap:10px}.checklist li{padding:13px 15px;border:1px solid var(--line);border-radius:14px;background:#f9fafb}.checklist li:before{content:"✓";color:var(--green);font-weight:900;margin-right:8px}
+.footer{text-align:center;color:var(--muted);font-size:14px;margin-top:28px}
+@media(max-width:860px){.hero{padding:34px 24px}.quick,.grid2{grid-template-columns:1fr}.step{grid-template-columns:1fr}.section{padding:24px}}
+
+body{--hero:linear-gradient(135deg,#111827,#3b0764,#ef4444);}
+</style>
+</head>
+<body>
+<main class="wrap">
+<section class="hero">
+<span class="badge"><span class="logo">Y!</span> API 발급 초보자 매뉴얼</span>
+<h1>Yahoo! Japan API 발급 매뉴얼</h1>
+<p>Yahoo! Japan 계열 서비스 연동을 위해 개발자 콘솔에서 애플리케이션을 등록하고 Client ID, Client Secret, OAuth Token을 준비하는 절차입니다.</p>
+<div class="quick"><div><strong>인증 구조</strong><span>OAuth 2.0 중심</span></div>
+<div><strong>필요 계정</strong><span>Yahoo! JAPAN ID</span></div>
+<div><strong>주요 결과물</strong><span>Client ID / Secret</span></div>
+<div><strong>주의</strong><span>API별 콘솔 상이</span></div></div>
+</section>
+<section class="section"><h2>1. Yahoo! Japan API 발급 개념</h2><p class="desc">Yahoo! Japan 계열 API는 서비스 종류에 따라 Yahoo! JAPAN Developers 또는 LY/Yahoo!広告 Developer Center에서 Client ID, Client Secret, OAuth 인증 정보를 발급받습니다.</p><div class="notice danger"><strong>중요:</strong> “Yahoo! Japan”은 사용하려는 API가 무엇인지에 따라 발급 사이트와 심사 절차가 달라집니다. 쇼핑, 광고, 로그인, 검색 API를 구분해야 합니다.</div></section>
+<section class="section"><h2>2. 준비물</h2><ul class="checklist"><li>Yahoo! JAPAN ID 또는 비즈니스 계정</li><li>사용하려는 API 종류 결정</li><li>앱 이름과 서비스 설명</li><li>Redirect URI</li><li>개인정보처리방침 URL</li><li>운영 도메인 또는 테스트 도메인</li></ul></section>
+<section class="section"><h2>3. 애플리케이션 등록 기본 순서</h2><div class="steps"><div class="step"><div class="num">1</div><div><h3>개발자 사이트 접속</h3><p>Yahoo! JAPAN Developers 또는 해당 API의 Developer Center에 로그인합니다.</p><span class="path">developer.yahoo.co.jp / ads-developers.yahoo.co.jp</span></div></div>
+<div class="step"><div class="num">2</div><div><h3>애플리케이션 생성</h3><p>새 애플리케이션 추가 메뉴를 클릭합니다.</p><span class="path">Create Application / Add Application</span></div></div>
+<div class="step"><div class="num">3</div><div><h3>앱 정보 입력</h3><p>앱 이름, 설명, 담당자 정보, 웹사이트 URL을 입력합니다.</p><span class="path">Application Information</span></div></div>
+<div class="step"><div class="num">4</div><div><h3>Redirect URI 입력</h3><p>OAuth 인증 후 돌아올 URL을 정확히 입력합니다.</p><span class="path">Redirect URI</span></div></div>
+<div class="step"><div class="num">5</div><div><h3>권한 또는 API 선택</h3><p>사용하려는 API 권한과 스코프를 선택합니다.</p><span class="path">Scope / API Permission</span></div></div>
+<div class="step"><div class="num">6</div><div><h3>등록 완료</h3><p>등록 후 Client ID와 Client Secret을 확인합니다.</p><span class="path">Client ID / Client Secret</span></div></div></div></section>
+<section class="section"><h2>4. 서비스별 발급 위치</h2><table><thead><tr><th>목적</th><th>발급/관리 위치</th><th>결과물</th></tr></thead><tbody><tr><td>Yahoo! Japan 로그인 / OAuth</td><td>Yahoo! JAPAN Developers</td><td>Client ID, Client Secret</td></tr><tr><td>Yahoo!広告 API</td><td>Yahoo!広告 Developer Center</td><td>Client ID, Client Secret, OAuth Token</td></tr><tr><td>Yahoo! Shopping API</td><td>Yahoo! JAPAN Developers 또는 Commerce 관련 콘솔</td><td>Application ID 또는 OAuth 정보</td></tr><tr><td>사내 테스트</td><td>각 서비스의 Sandbox/테스트 환경</td><td>테스트용 인증 정보</td></tr></tbody></table></section>
+<section class="section"><h2>5. OAuth 토큰 발급 흐름</h2><pre class="code">1) Client ID로 사용자 인증 URL 생성
+2) 사용자가 Yahoo! 계정으로 로그인
+3) Redirect URI로 authorization code 수신
+4) authorization code + Client Secret으로 Access Token 요청
+5) Access Token으로 API 호출
+6) 필요 시 Refresh Token으로 갱신</pre></section>
+<section class="section"><h2>6. 자주 발생하는 문제</h2><table><thead><tr><th>문제</th><th>원인</th><th>해결 방법</th></tr></thead><tbody><tr><td>Redirect URI 오류</td><td>등록한 URL과 호출 URL이 다름</td><td>프로토콜, 도메인, 경로까지 동일하게 입력</td></tr><tr><td>Client Secret 확인 불가</td><td>보안상 숨김 처리</td><td>관리 화면의 View 또는 재발급 기능 확인</td></tr><tr><td>권한 부족</td><td>필요 Scope 미선택</td><td>앱 설정에서 Scope 추가 후 다시 인증</td></tr><tr><td>API 호출 실패</td><td>사용 API와 발급받은 앱 유형 불일치</td><td>API별 개발자 문서를 확인</td></tr></tbody></table></section>
+<section class="section"><h2>7. 최종 체크리스트</h2><ul class="checklist"><li>사용할 Yahoo! Japan API 종류를 확정했다.</li><li>올바른 개발자 콘솔에 로그인했다.</li><li>애플리케이션을 등록했다.</li><li>Client ID와 Client Secret을 확인했다.</li><li>Redirect URI를 정확히 등록했다.</li><li>필요 Scope를 선택했다.</li><li>Access Token 발급 테스트를 완료했다.</li></ul></section>
+<p class="footer">Yahoo! Japan API 발급 매뉴얼 · 실무 연동 초보자용 가이드</p>
+</main>
+</body>
+</html>

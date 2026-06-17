@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LINE API 발급 매뉴얼</title>
+<style>
+
+:root{--dark:#111827;--muted:#6b7280;--line:#e5e7eb;--bg:#f8fafc;--green:#16a34a;--red:#ef4444;--amber:#f59e0b;--blue:#2563eb;--violet:#7c3aed}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Pretendard","Noto Sans KR","Apple SD Gothic Neo",Arial,sans-serif;background:linear-gradient(135deg,#f8fafc,#eef2ff,#fff7ed);color:var(--dark);line-height:1.68}
+.wrap{max-width:1120px;margin:auto;padding:42px 22px 80px}
+.hero{border-radius:30px;padding:50px;color:white;background:var(--hero);box-shadow:0 30px 80px rgba(15,23,42,.25)}
+.badge{display:inline-flex;align-items:center;gap:10px;padding:9px 15px;border-radius:999px;border:1px solid rgba(255,255,255,.24);background:rgba(255,255,255,.12);font-weight:900}
+.logo{width:34px;height:34px;border-radius:11px;display:inline-grid;place-items:center;background:rgba(255,255,255,.18);font-weight:900}
+h1{font-size:clamp(34px,5vw,58px);line-height:1.12;margin:24px 0 16px;letter-spacing:-1.8px}
+.hero p{max-width:790px;color:#e5e7eb;font-size:18px;margin:0}
+.quick{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:26px}
+.quick div{padding:18px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.1);border-radius:18px}
+.quick strong{display:block;color:#fff}.quick span{color:#d1d5db;font-size:13px}
+.section{margin-top:32px;background:#fff;border:1px solid var(--line);border-radius:26px;padding:34px;box-shadow:0 18px 45px rgba(15,23,42,.07)}
+h2{margin:0 0 12px;font-size:28px;letter-spacing:-.8px}h3{margin:0 0 8px;font-size:20px}
+.desc{color:var(--muted);margin:0 0 24px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}.card{border:1px solid var(--line);border-radius:20px;padding:22px;background:#fff}
+.tag{display:inline-block;font-size:13px;font-weight:900;padding:5px 10px;border-radius:999px;margin-bottom:10px;background:#eff6ff;color:var(--blue)}
+.notice{border-left:5px solid var(--amber);background:#fffbeb;padding:17px 20px;border-radius:16px;margin:18px 0}.good{border-color:var(--green);background:#f0fdf4}.danger{border-color:var(--red);background:#fff1f2}.info{border-color:var(--blue);background:#eff6ff}
+.steps{display:grid;gap:18px}.step{display:grid;grid-template-columns:56px 1fr;gap:18px;padding:22px;border:1px solid var(--line);border-radius:20px;background:#fff}
+.num{width:48px;height:48px;border-radius:16px;background:linear-gradient(135deg,var(--blue),var(--violet));color:#fff;display:grid;place-items:center;font-weight:900;font-size:18px}
+.path{display:inline-block;margin-top:5px;padding:8px 12px;border-radius:10px;background:#f3f4f6;border:1px solid #e5e7eb;font-family:Consolas,monospace;font-size:14px}
+table{width:100%;border-collapse:collapse;border:1px solid var(--line);border-radius:16px;overflow:hidden;background:#fff}th,td{padding:15px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{background:#f9fafb;font-weight:900}tr:last-child td{border-bottom:0}
+.code{background:#0f172a;color:#e5e7eb;padding:18px;border-radius:16px;overflow:auto;font-family:Consolas,monospace;font-size:14px}
+.checklist{list-style:none;padding:0;margin:0;display:grid;gap:10px}.checklist li{padding:13px 15px;border:1px solid var(--line);border-radius:14px;background:#f9fafb}.checklist li:before{content:"✓";color:var(--green);font-weight:900;margin-right:8px}
+.footer{text-align:center;color:var(--muted);font-size:14px;margin-top:28px}
+@media(max-width:860px){.hero{padding:34px 24px}.quick,.grid2{grid-template-columns:1fr}.step{grid-template-columns:1fr}.section{padding:24px}}
+
+body{--hero:linear-gradient(135deg,#052e16,#16a34a,#22c55e);}
+</style>
+</head>
+<body>
+<main class="wrap">
+<section class="hero">
+<span class="badge"><span class="logo">L</span> API 발급 초보자 매뉴얼</span>
+<h1>LINE API 발급 매뉴얼</h1>
+<p>LINE Developers Console에서 Provider와 Messaging API Channel을 만들고 Channel Access Token, Webhook URL을 설정하는 과정을 정리했습니다.</p>
+<div class="quick"><div><strong>인증 구조</strong><span>Channel Access Token</span></div>
+<div><strong>필요 계정</strong><span>LINE 계정</span></div>
+<div><strong>주요 결과물</strong><span>Channel ID / Secret / Token</span></div>
+<div><strong>용도</strong><span>메시징·챗봇</span></div></div>
+</section>
+<section class="section"><h2>1. LINE API 발급 개념</h2><p class="desc">LINE 연동은 LINE Developers Console에서 Provider와 Channel을 만들고, Messaging API 또는 LINE Login용 Channel ID, Channel Secret, Channel Access Token을 발급받는 방식입니다.</p><div class="notice info"><strong>구분:</strong> 메시지 발송은 Messaging API 채널, 로그인 연동은 LINE Login 채널을 사용합니다.</div></section>
+<section class="section"><h2>2. 준비물</h2><ul class="checklist"><li>LINE 계정 또는 비즈니스 계정</li><li>LINE Developers Console 접속 권한</li><li>LINE Official Account</li><li>서비스 이름과 설명</li><li>Webhook URL</li><li>개인정보처리방침 URL 및 약관 URL</li></ul></section>
+<section class="section"><h2>3. Provider 생성</h2><div class="steps"><div class="step"><div class="num">1</div><div><h3>LINE Developers 접속</h3><p>LINE Developers Console에 로그인합니다.</p><span class="path">developers.line.biz</span></div></div>
+<div class="step"><div class="num">2</div><div><h3>Provider 생성</h3><p>회사명 또는 서비스명으로 Provider를 만듭니다.</p><span class="path">Create Provider</span></div></div>
+<div class="step"><div class="num">3</div><div><h3>기본 정보 입력</h3><p>서비스 운영 주체, 연락처, 약관 정보를 입력합니다.</p><span class="path">Provider Settings</span></div></div></div></section>
+<section class="section"><h2>4. Messaging API 채널 만들기</h2><div class="steps"><div class="step"><div class="num">1</div><div><h3>새 채널 생성</h3><p>Provider 안에서 Create a new channel을 클릭합니다.</p><span class="path">Create a new channel</span></div></div>
+<div class="step"><div class="num">2</div><div><h3>Messaging API 선택</h3><p>채널 유형에서 Messaging API를 선택합니다.</p><span class="path">Messaging API</span></div></div>
+<div class="step"><div class="num">3</div><div><h3>채널 정보 입력</h3><p>채널 이름, 설명, 카테고리, 이메일 등을 입력합니다.</p><span class="path">Channel Information</span></div></div>
+<div class="step"><div class="num">4</div><div><h3>LINE Official Account 연결</h3><p>메시지를 보낼 공식 계정을 연결하거나 새로 생성합니다.</p><span class="path">LINE Official Account</span></div></div>
+<div class="step"><div class="num">5</div><div><h3>채널 생성 완료</h3><p>생성 후 Channel ID와 Channel Secret을 확인합니다.</p><span class="path">Channel ID / Channel Secret</span></div></div></div></section>
+<section class="section"><h2>5. Channel Access Token 발급</h2><div class="steps"><div class="step"><div class="num">1</div><div><h3>Messaging API 탭 이동</h3><p>생성한 채널 화면에서 Messaging API 탭으로 이동합니다.</p><span class="path">Messaging API tab</span></div></div>
+<div class="step"><div class="num">2</div><div><h3>Channel access token 항목 찾기</h3><p>하단의 Channel access token 영역을 확인합니다.</p><span class="path">Channel access token</span></div></div>
+<div class="step"><div class="num">3</div><div><h3>Issue 클릭</h3><p>Issue 또는 Reissue 버튼을 눌러 토큰을 발급합니다.</p><span class="path">Issue</span></div></div>
+<div class="step"><div class="num">4</div><div><h3>서버에 안전하게 저장</h3><p>발급된 토큰은 서버 환경변수나 Secret Manager에 저장합니다.</p><span class="path">LINE_CHANNEL_ACCESS_TOKEN</span></div></div></div><div class="notice danger">Channel Access Token은 메시지 발송 권한을 가진 비밀키입니다. HTML, 프론트엔드, 공개 저장소에 노출하면 안 됩니다.</div></section>
+<section class="section"><h2>6. Webhook 설정</h2><div class="steps"><div class="step"><div class="num">1</div><div><h3>Webhook URL 입력</h3><p>사용자 메시지 이벤트를 받을 서버 URL을 입력합니다.</p><span class="path">Webhook URL</span></div></div>
+<div class="step"><div class="num">2</div><div><h3>Use webhook 활성화</h3><p>Webhook 사용 옵션을 Enabled로 변경합니다.</p><span class="path">Use webhook: Enabled</span></div></div>
+<div class="step"><div class="num">3</div><div><h3>Verify 테스트</h3><p>LINE에서 서버로 테스트 요청을 보내 연결을 확인합니다.</p><span class="path">Verify</span></div></div>
+<div class="step"><div class="num">4</div><div><h3>응답 코드 확인</h3><p>서버가 200 OK를 반환하는지 확인합니다.</p><span class="path">HTTP 200 OK</span></div></div></div></section>
+<section class="section"><h2>7. 메시지 발송 예시</h2><pre class="code">POST https://api.line.me/v2/bot/message/push
+Authorization: Bearer {CHANNEL_ACCESS_TOKEN}
+Content-Type: application/json
+
+{
+  "to": "USER_ID",
+  "messages": [
+    {"type": "text", "text": "안녕하세요. LINE 메시지 테스트입니다."}
+  ]
+}</pre></section>
+<section class="section"><h2>8. 최종 체크리스트</h2><ul class="checklist"><li>Provider를 생성했다.</li><li>Messaging API 채널을 생성했다.</li><li>LINE Official Account를 연결했다.</li><li>Channel ID와 Channel Secret을 확인했다.</li><li>Channel Access Token을 발급했다.</li><li>Webhook URL을 등록하고 Verify를 통과했다.</li><li>토큰을 서버 환경변수에 안전하게 저장했다.</li></ul></section>
+<p class="footer">LINE API 발급 매뉴얼 · 실무 연동 초보자용 가이드</p>
+</main>
+</body>
+</html>
