@@ -927,7 +927,8 @@ export default function ApiKeys() {
     if (_IS_DEMO_ENV) { show('info', t('ak.demoLocked', 'Demo mode — saving disabled')); return; }
     try {
       const tok = localStorage.getItem('genie_token') || localStorage.getItem('demo_genie_token') || '';
-      const r = await fetch(`/api/v425/oauth/${provider}/authorize`, { headers: { Authorization: `Bearer ${tok}` } });
+      // [228차] 인가를 시작한 레지스트리 채널키를 백엔드로 전달 → 콜백이 registry 채널 반영·발급신청 완료.
+      const r = await fetch(`/api/v425/oauth/${provider}/authorize?channel=${encodeURIComponent(channelKey || '')}`, { headers: { Authorization: `Bearer ${tok}` } });
       const d = await r.json().catch(() => ({}));
       // [227차] OAuth 복귀 후 잔여 계정정보 입력을 자동 안내하기 위해 클릭한 채널을 보관.
       if (d.ok && d.authorize_url) { try { sessionStorage.setItem('gg_oauth_ch', channelKey || ''); } catch {} window.location.href = d.authorize_url; return; }

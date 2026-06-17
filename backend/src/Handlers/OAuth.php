@@ -58,6 +58,9 @@ class OAuth
                 try { $pdo->exec("CREATE UNIQUE INDEX IF NOT EXISTS uq_oauth_state ON oauth_state(state)"); } catch (\Throwable $e) {}
                 $pdo->exec("CREATE TABLE IF NOT EXISTS app_setting (skey TEXT PRIMARY KEY, svalue TEXT, updated_at TEXT)");
             }
+            // [228차] 채널키 불일치 수정: 인가를 시작한 '레지스트리 채널키'(예: meta_ads)를 state 에 함께 보관 →
+            //   콜백이 provider('meta')뿐 아니라 registry 채널에도 토큰을 반영하고 발급신청을 완료 처리한다.
+            try { $pdo->exec("ALTER TABLE oauth_state ADD COLUMN channel " . ($isMy ? "VARCHAR(60)" : "TEXT")); } catch (\Throwable $e) {}
         } catch (\Throwable $e) {}
     }
 
@@ -109,11 +112,16 @@ class OAuth
             return self::json($res, ['ok' => false, 'configured' => false, 'error' => $provider . ' OAuth 앱이 미설정입니다. 관리자가 client_id/secret을 등록하면 활성화됩니다.'], 200);
         }
         $tenant = UserAuth::authedTenant($req) ?: 'demo';
+        // [228차] 인가를 시작한 레지스트리 채널키(예: meta_ads) — 콜백에서 registry 반영·발급신청 완료에 사용.
+        $channel = strtolower(trim((string)($req->getQueryParams()['channel'] ?? '')));
         $state = bin2hex(random_bytes(16));
         try {
-            self::db()->prepare("INSERT INTO oauth_state(state,tenant_id,provider,created_at) VALUES(?,?,?,?)")
-                ->execute([$state, $tenant, $provider, self::now()]);
-        } catch (\Throwable $e) {}
+            self::db()->prepare("INSERT INTO oauth_state(state,tenant_id,provider,channel,created_at) VALUES(?,?,?,?,?)")
+                ->execute([$state, $tenant, $provider, $channel, self::now()]);
+        } catch (\Throwable $e) {
+            // channel 컬럼 미존재 등 폴백 — 기존 4컬럼 INSERT.
+            try { self::db()->prepare("INSERT INTO oauth_state(state,tenant_id,provider,created_at) VALUES(?,?,?,?)")->execute([$state, $tenant, $provider, self::now()]); } catch (\Throwable $e2) {}
+        }
         $p = self::PROVIDERS[$provider];
         // [227차] TikTok Marketing API: app_id 파라미터·response_type/scope 없음(권한은 앱 설정에서 부여).
         if (($p['dialect'] ?? '') === 'tiktok_marketing') {
@@ -147,13 +155,22 @@ class OAuth
         if (!isset(self::PROVIDERS[$provider]) || $code === '' || $state === '') {
             return $res->withHeader('Location', $front . '?oauth=error')->withStatus(302);
         }
-        // state 검증 → tenant 도출(CSRF 방어·격리)
-        $tenant = '';
+        // state 검증 → tenant·channel 도출(CSRF 방어·격리)
+        $tenant = ''; $regChannel = '';
         try {
             $pdo = self::db();
-            $sel = $pdo->prepare("SELECT tenant_id FROM oauth_state WHERE state=? AND provider=? LIMIT 1");
-            $sel->execute([$state, $provider]);
-            $tenant = (string)($sel->fetchColumn() ?: '');
+            try {
+                $sel = $pdo->prepare("SELECT tenant_id, channel FROM oauth_state WHERE state=? AND provider=? LIMIT 1");
+                $sel->execute([$state, $provider]);
+                $row = $sel->fetch(\PDO::FETCH_ASSOC) ?: [];
+                $tenant = (string)($row['tenant_id'] ?? '');
+                $regChannel = strtolower(trim((string)($row['channel'] ?? '')));
+            } catch (\Throwable $e) {
+                // channel 컬럼 미존재 폴백.
+                $sel = $pdo->prepare("SELECT tenant_id FROM oauth_state WHERE state=? AND provider=? LIMIT 1");
+                $sel->execute([$state, $provider]);
+                $tenant = (string)($sel->fetchColumn() ?: '');
+            }
             if ($tenant !== '') $pdo->prepare("DELETE FROM oauth_state WHERE state=?")->execute([$state]);
         } catch (\Throwable $e) {}
         if ($tenant === '') return $res->withHeader('Location', $front . '?oauth=invalid_state')->withStatus(302);
@@ -179,6 +196,9 @@ class OAuth
                 // 광고계정 ID(첫번째) 저장 → AdAdapters/Connectors 가 집행·리포팅에 사용(채널 별칭 tiktok_business→tiktok).
                 $advs = (array)($data['advertiser_ids'] ?? []);
                 if (!empty($advs)) self::saveCred($tenant, $provider, 'advertiser_id', (string)$advs[0]);
+                // [228차] ★registry 채널키 반영(tiktok_business 등)+발급신청 완료. 광고주ID도 registry 에 함께 반영.
+                self::reflectRegistryChannel($tenant, $provider, $regChannel, $access, '');
+                if (!empty($advs) && $regChannel !== '' && $regChannel !== $provider) { self::saveCred($tenant, $regChannel, 'advertiser_id', (string)$advs[0]); }
                 if (Connectors::isAdChannel($provider)) { Connectors::syncAdChannelOnSave($tenant, $provider); }
             } catch (\Throwable $e) {}
             return $res->withHeader('Location', $front . '?oauth=success&provider=' . $provider)->withStatus(302);
@@ -201,6 +221,9 @@ class OAuth
         try {
             self::saveCred($tenant, $provider, 'oauth_access_token', $access);
             if (!empty($token['refresh_token'])) self::saveCred($tenant, $provider, 'oauth_refresh_token', (string)$token['refresh_token']);
+            // [228차] ★registry 채널키 반영 — 카드/ConnectModal/발급신청이 registry키(meta_ads 등)를 기준하므로
+            //   registry 채널에도 표준 key_name(access_token/refresh_token)으로 토큰을 반영하고 발급신청을 완료 처리.
+            self::reflectRegistryChannel($tenant, $provider, $regChannel, $access, (string)($token['refresh_token'] ?? ''));
             // [현 차수] H2: OAuth 연결 직후 성과 ingest 1회 트리거(저장→sync 대칭). 광고채널만.
             //   광고계정 ID 등 잔여 자격증명이 폼으로 입력돼 있으면 즉시 적재, 아니면 cron/후속 폼저장 시 적재.
             if (Connectors::isAdChannel($provider)) { Connectors::syncAdChannelOnSave($tenant, $provider); }
@@ -250,6 +273,30 @@ class OAuth
         $set('oauth_' . $provider . '_client_id', $cid);
         $set('oauth_' . $provider . '_client_secret', $sec);
         return self::json($res, ['ok' => true, 'provider' => $provider, 'configured' => self::config($provider)['client_id'] !== '']);
+    }
+
+    /**
+     * [228차] OAuth 토큰을 '레지스트리 채널키'(예: meta_ads)에도 표준 key_name 으로 반영 + 발급신청 완료 처리.
+     *   provider 키 저장(기존 리더 호환)은 그대로 두고, 카드/ConnectModal/발급신청이 기준하는 registry 채널에
+     *   access_token/refresh_token 을 추가 저장한다. regChannel 이 비었거나 provider 와 같으면 no-op.
+     *   OAuth 토큰 취득 = 발급 검증(provider 가 실제 토큰을 발급) → markApplyCompleted(verified=true).
+     */
+    private static function reflectRegistryChannel(string $tenant, string $provider, string $regChannel, string $access, string $refresh): void
+    {
+        $rc = strtolower(trim($regChannel));
+        if ($rc === '' || $rc === strtolower($provider) || $access === '') {
+            // registry 채널 미지정(구 프론트 등) — provider 만 저장된 상태. 그래도 provider 기준 발급신청은 완료 처리.
+            try { \Genie\Handlers\ChannelCreds::markApplyCompleted(self::db(), $tenant, strtolower($provider), true); } catch (\Throwable $e) {}
+            return;
+        }
+        try {
+            self::saveCred($tenant, $rc, 'access_token', $access);
+            if ($refresh !== '') self::saveCred($tenant, $rc, 'refresh_token', $refresh);
+            // OAuth 토큰 취득 = provider 가 실제 발급·인증한 결과 → 카드 '발급 확인됨'과 정합되게 test_status=ok.
+            try { self::db()->prepare("UPDATE channel_credential SET test_status='ok', last_tested_at=? WHERE tenant_id=? AND channel=? AND key_name='access_token'")->execute([gmdate('c'), $tenant, $rc]); } catch (\Throwable $e) {}
+        } catch (\Throwable $e) {}
+        // 발급신청(연동허브 카드/현황) 완료 처리 — OAuth 토큰 취득은 실 발급 검증.
+        try { \Genie\Handlers\ChannelCreds::markApplyCompleted(self::db(), $tenant, $rc, true); } catch (\Throwable $e) {}
     }
 
     private static function saveCred(string $tenant, string $channel, string $keyName, string $value): void
