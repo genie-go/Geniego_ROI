@@ -702,7 +702,7 @@ export default function ApiKeys() {
     const fields = String(form.fields || 'api_key').split(',').map(s => s.trim()).filter(Boolean).map(k => ({ k, label: k, secret: true }));
     try {
       const r = await postJson('/api/v426/admin/channels', { channel_key: key, name, group_type: group, icon: form.icon || '🔗', color: form.color || '#6366f1', fields, sync_kind, is_active: 1 });
-      if (r?.ok) { show('success', `채널 추가됨: ${name} → ${GROUP_LABELS[group] || group}`); setShowRegAdd(false); loadRegistry(); }
+      if (r?.ok) { show('success', `채널 추가됨: ${name} → ${GROUP_LABELS[group] || group} · 자격증명 저장 가능(자동 수집은 전용 어댑터 연동 후 — ${sync_kind === 'ad' ? 'ad-metrics push' : sync_kind === 'commerce' ? 'webhook push' : '보관 전용'})`); setShowRegAdd(false); loadRegistry(); }
       else show('error', r?.error || '추가 실패(관리자 권한 필요)');
     } catch (e) { show('error', String(e?.message || e)); }
   }, [show, loadRegistry]);
@@ -2107,6 +2107,18 @@ function RegistryAddModal({ onClose, onSubmit }) {
       <div onClick={e => e.stopPropagation()} style={{ width: 'min(480px,92vw)', maxHeight: '88vh', overflowY: 'auto', background: '#fff', borderRadius: 16, padding: 22, boxShadow: '0 20px 60px rgba(0,0,0,0.4)' }}>
         <div style={{ fontWeight: 900, fontSize: 16, color: '#1e293b', marginBottom: 4 }}>+ 채널 추가 (관리자)</div>
         <div style={{ fontSize: 11.5, color: '#64748b', marginBottom: 8 }}>선택한 카테고리 섹션에 자동 분류되어 즉시 등록 UI 에 노출됩니다.</div>
+        {/* [228차 S4] ★정직 안내 — 신규 채널은 자격증명 저장은 되나 전용 fetch 어댑터가 없어 '자동 수집'은 안 됨(push 경로만). */}
+        {(() => {
+          const sk = ['domestic', 'global_commerce', 'd2c'].includes(form.group) ? 'commerce' : (form.group === 'global_ad' ? 'ad' : 'none');
+          return (
+            <div style={{ margin: '4px 0 8px', padding: '10px 12px', borderRadius: 10, background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.3)', fontSize: 11, lineHeight: 1.65, color: '#92400e' }}>
+              ⚠️ <b>정직 안내</b>: 추가된 채널은 <b>자격증명 저장·카드 노출</b>은 되지만, 전용 동기화 어댑터가 구현되기 전까지 <b>자동 데이터 수집은 되지 않습니다</b>(카드에 "🔌 연동 예정" 표기).
+              {sk === 'ad' && <><br />· 광고 성과는 <code style={{ fontFamily: 'monospace' }}>POST /v424/connectors/ad-metrics</code> 로 push 하면 즉시 적재됩니다.</>}
+              {sk === 'commerce' && <><br />· 주문/상품은 채널 웹훅(<code style={{ fontFamily: 'monospace' }}>/api/channel-sync/webhooks/{form.key || '{channel}'}</code>)으로 push 하면 적재됩니다.</>}
+              {sk === 'none' && <><br />· 이 카테고리는 자격증명 보관 전용입니다(동기화 어댑터 별도 구현 필요).</>}
+            </div>
+          );
+        })()}
         <label style={lbl}>채널 키 (영문소문자/숫자/_)</label>
         <input style={inp} value={form.key} onChange={e => set('key', e.target.value)} placeholder="예: cafe24_global" />
         <label style={lbl}>표시명</label>
