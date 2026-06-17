@@ -1843,9 +1843,25 @@ final class ChannelSync
                 if ($u !== '') $adChannel = $u;
             } catch (\Throwable $e) { /* pixel_events 부재 등 무시 */ }
         }
-        if ($adChannel === '') return; // 광고 신호 없음 — 커머스 채널 터치만(기존 동작 유지)
-
         $now = gmdate('c');
+        if ($adChannel === '') {
+            // [228차 S3] ★광고 신호 없는 주문도 '전환'으로 집계 — 커머스 채널 last-touch 귀속.
+            //   기존엔 early-return → attribution_result 미생성 → AttributionEngine::loadJourneys 가 이 주문을
+            //   null(비전환) 여정으로 로드(전환 과소 + markov 크레딧 균등분할 퇴화)했다. 이제 커머스 채널을
+            //   last-touch 로 전환 등록(커머스 터치는 recordAttributionTouch 가 이미 적재 → 여정 [커머스]→전환).
+            //   ★model='commerce-last-touch' 로 분리 — S1 ROAS 정합(model='order-match'=광고귀속만)은 불변(광고 ROAS 과대 없음).
+            try {
+                $ig = ($pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql') ? 'IGNORE' : 'OR IGNORE';
+                $chk0 = $pdo->prepare("SELECT 1 FROM attribution_result WHERE tenant_id=? AND order_id=? LIMIT 1");
+                $chk0->execute([$tenant, $orderId]);
+                if (!$chk0->fetchColumn()) {
+                    $pdo->prepare("INSERT {$ig} INTO attribution_result(tenant_id,order_id,attributed_channel,confidence_score,evidence_json,model,created_at) VALUES(?,?,?,?,?,?,?)")
+                        ->execute([$tenant, $orderId, strtolower($channel), 1.0, json_encode(['source' => 'commerce_organic', 'revenue' => $total, 'commerce_channel' => $channel], JSON_UNESCAPED_UNICODE), 'commerce-last-touch', $now]);
+                }
+            } catch (\Throwable $e) { /* attribution_result 미존재 등 best-effort */ }
+            return;
+        }
+
         // 광고 채널 터치 적재(멱등) — markov 멀티터치 여정에 광고 채널 포함.
         try {
             $chk = $pdo->prepare("SELECT 1 FROM attribution_touch WHERE tenant_id=? AND order_id=? AND channel=? LIMIT 1");
