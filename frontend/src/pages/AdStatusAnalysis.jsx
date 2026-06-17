@@ -3,6 +3,7 @@ import { useI18n } from '../i18n';
 import { useAuth } from '../auth/AuthContext.jsx';
 import { useGlobalData } from '../context/GlobalDataContext.jsx';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from "recharts";
+import { getJsonAuth } from '../services/apiClient.js';
 
 import { useT } from '../i18n/index.js';
 
@@ -37,6 +38,68 @@ function ErrorFallback({ error, onRetry }) {
       </button>
     </div>
   );
+}
+
+/* [228차 S1] 실 ROAS 정합 카드 — 매체보고 ROAS vs 실주문귀속 ROAS(GET /v423/connectors/roas-reconciliation). */
+function _RoasKpi({ label, val, color }) {
+    return (
+        <div style={{ padding: '8px 14px', borderRadius: 10, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+            <div style={{ fontSize: 10, color: 'var(--text-3)' }}>{label}</div>
+            <div style={{ fontSize: 20, fontWeight: 800, color }}>{val}</div>
+        </div>
+    );
+}
+function RoasTruthCard({ isDemo, t }) {
+    const [data, setData] = useState(null);
+    useEffect(() => {
+        if (isDemo) { setData({ demo: true }); return; }
+        getJsonAuth('/v423/connectors/roas-reconciliation').then(d => setData(d || {})).catch(() => setData({}));
+    }, [isDemo]);
+    if (!data) return null;
+    const chs = Array.isArray(data.channels) ? data.channels.filter(c => (c.spend || 0) > 0) : [];
+    const T = data.totals || {};
+    return (
+        <div className="card card-glass" style={{ padding: '16px 20px', borderLeft: '4px solid #22c55e' }}>
+            <div style={{ fontSize: 13, fontWeight: 800, color: '#fff', marginBottom: 4 }}>
+                🎯 {t('marketing.roasTruthTitle', '실 ROAS 정합 (매체보고 vs 실주문 귀속)')}
+            </div>
+            <div style={{ fontSize: 11, color: 'var(--text-3)', marginBottom: 12, lineHeight: 1.6 }}>
+                {t('marketing.roasTruthDesc', '매체 보고 ROAS는 뷰스루·중복으로 과대 평가됩니다. 광고 클릭ID·픽셀로 실제 주문에 귀속된 매출 기준 ROAS를 병기해 진짜 성과를 보여줍니다.')}
+            </div>
+            {(isDemo || chs.length === 0) ? (
+                <div style={{ fontSize: 12, color: 'var(--text-3)', padding: '8px 0' }}>
+                    {isDemo ? t('marketing.roasTruthDemo', '체험 데모에서는 실 광고 데이터가 없습니다.')
+                        : t('marketing.roasTruthEmpty', '광고 채널 자격증명 등록·동기화 후, 광고 클릭ID·픽셀로 실 주문에 귀속된 데이터가 쌓이면 표시됩니다.')}
+                </div>
+            ) : (
+                <>
+                    <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 12 }}>
+                        <_RoasKpi label={t('marketing.platformRoas', '매체보고 ROAS')} val={(T.platformRoas || 0).toFixed(2)} color="#f59e0b" />
+                        <_RoasKpi label={t('marketing.realRoas', '실주문 귀속 ROAS')} val={(T.realRoas || 0).toFixed(2)} color="#22c55e" />
+                        <_RoasKpi label={t('marketing.truthGap', '진실 비율(실/보고)')} val={T.platformRevenue > 0 ? Math.round(T.realRevenue / T.platformRevenue * 100) + '%' : '—'} color="#a855f7" />
+                    </div>
+                    <div style={{ overflowX: 'auto' }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+                            <thead><tr style={{ color: 'var(--text-3)', textAlign: 'left' }}>
+                                {[t('marketing.colChannel', '채널'), t('marketing.colSpend', '지출'), t('marketing.platformRoas', '매체보고 ROAS'), t('marketing.realRoas', '실 ROAS'), t('marketing.truthGap', '실/보고')].map((h, i) => <th key={i} style={{ padding: '6px 10px' }}>{h}</th>)}
+                            </tr></thead>
+                            <tbody>
+                                {chs.map((c, i) => (
+                                    <tr key={i} style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                                        <td style={{ padding: '6px 10px', fontWeight: 700, color: '#fff' }}>{c.channel}</td>
+                                        <td style={{ padding: '6px 10px' }}>{Math.round(c.spend || 0).toLocaleString()}</td>
+                                        <td style={{ padding: '6px 10px', color: '#f59e0b', fontWeight: 700 }}>{(c.platformRoas || 0).toFixed(2)}</td>
+                                        <td style={{ padding: '6px 10px', color: '#22c55e', fontWeight: 800 }}>{(c.realRoas || 0).toFixed(2)}</td>
+                                        <td style={{ padding: '6px 10px', color: (c.truthRatio != null && c.truthRatio < 0.7) ? '#ef4444' : 'var(--text-2)' }}>{c.truthRatio != null ? Math.round(c.truthRatio * 100) + '%' : '—'}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </>
+            )}
+        </div>
+    );
 }
 
 export default function AdStatusAnalysis() {
@@ -215,6 +278,9 @@ export default function AdStatusAnalysis() {
                            style={{ background: '#f0f4ff', border: '2px solid #a855f7', borderRadius: 8, padding: '8px 12px', color: '#1a1a2e', outline: 'none', fontWeight: 700, fontSize: 13, cursor: 'pointer' }} />
                 </div>
             </div>
+
+            {/* [228차 S1] 실 ROAS 정합 — 매체보고 vs 실주문 귀속 */}
+            <RoasTruthCard isDemo={isDemo} t={t} />
 
             {/* Chart Section */}
             <div className="card card-glass fade-up" style={{ padding: 24, animationDelay: "100ms" }}>
