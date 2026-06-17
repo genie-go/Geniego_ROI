@@ -140,7 +140,8 @@ const CHANNEL_FIELDS = {
   fedex:     [{ k: 'api_key', label: 'API 키', secret: true }, { k: 'api_secret', label: 'API Secret', secret: true }, { k: 'account_number', label: '계정 번호' }],
   ups:       [{ k: 'client_id', label: 'Client ID' }, { k: 'client_secret', label: 'Client Secret', secret: true }, { k: 'account_number', label: '계정 번호' }],
   ems:       [{ k: 'api_key', label: '우체국 API 키', secret: true }, { k: 'cust_code', label: '고객(계약) 코드' }],
-  tnt:       [{ k: 'api_key', label: 'API 키', secret: true }, { k: 'account_number', label: '계정 번호' }],
+  // [229차] TNT는 FedEx에 인수(2016)되어 FedEx Developer Portal/스킴 사용 → fedex와 동일 자격증명.
+  tnt:       [{ k: 'api_key', label: 'API Key (Client ID)', secret: true }, { k: 'api_secret', label: 'API Secret (Client Secret)', secret: true }, { k: 'account_number', label: '계정 번호' }],
   cj_intl:   [{ k: 'api_key', label: 'API 키', secret: true }, { k: 'cust_code', label: '고객(계약) 코드' }],
   // 결제 게이트웨이(PG)
   inicis:    [{ k: 'mid', label: '상점 ID(MID)' }, { k: 'sign_key', label: '사인키(SignKey)', secret: true }, { k: 'api_key', label: 'API 키', secret: true }],
@@ -151,7 +152,8 @@ const CHANNEL_FIELDS = {
   paypal:    [{ k: 'client_id', label: 'Client ID' }, { k: 'client_secret', label: 'Secret', secret: true }],
   stripe:    [{ k: 'publishable_key', label: 'Publishable Key' }, { k: 'secret_key', label: 'Secret Key', secret: true }],
   // [228차] 글로벌 결제 전문 PG 자격증명
-  paddle:    [{ k: 'seller_id', label: 'Seller(Vendor) ID' }, { k: 'api_key', label: 'API 키 (Auth Code)', secret: true }],
+  // [229차] 백엔드 Paddle.php는 Billing v2(api.paddle.com·Bearer) → 단일 API 키(pdl_live_…). 구 Classic(vendor_id+auth_code) 폐기.
+  paddle:    [{ k: 'api_key', label: 'API 키 (Billing v2 · Bearer pdl_live_…)', secret: true }],
   adyen:     [{ k: 'api_key', label: 'API 키 (X-API-Key)', secret: true }, { k: 'merchant_account', label: 'Merchant Account' }, { k: 'batch_start', label: '시작 정산배치 번호 (정산 첫 수집용 · CA의 최근 settlement batch 번호)' }],
   square:    [{ k: 'access_token', label: 'Access Token', secret: true }, { k: 'location_id', label: 'Location ID' }],
   braintree: [{ k: 'merchant_id', label: 'Merchant ID' }, { k: 'public_key', label: 'Public Key' }, { k: 'private_key', label: 'Private Key', secret: true }],
@@ -218,16 +220,18 @@ const ISSUANCE_URL = {
   amazon_spapi: 'https://sellercentral.amazon.com/sellingpartner/developerconsole', ebay: 'https://developer.ebay.com/my/keys',
   tiktok_shop: 'https://partner.tiktokshop.com', // [227차] TikTok Shop Partner Center(앱 생성→app_key/secret/token 발급)
   etsy: 'https://www.etsy.com/developers/your-apps', walmart: 'https://developer.walmart.com', shopee: 'https://open.shopee.com',
-  lazada: 'https://open.lazada.com', rakuten: 'https://webservice.rakuten.co.jp', qoo10: 'https://qsm.qoo10.jp',
+  // [229차] rakuten: webservice.rakuten.co.jp는 제휴/상품검색 API 포털 — 판매자 RMS 키 발급처가 아님.
+  //   어댑터가 api.rms.rakuten.co.jp(ESA 인증) 사용 → RMS(R-Login) 포털로 정정.
+  lazada: 'https://open.lazada.com', rakuten: 'https://glogin.rms.rakuten.co.jp', qoo10: 'https://qsm.qoo10.jp',
   // 자사몰 D2C
-  shopify: 'https://www.shopify.com/admin/settings/apps', cafe24: 'https://developers.cafe24.com', godomall: 'https://www.godo.co.kr/service/api_form.php',
+  shopify: 'https://www.shopify.com/admin/settings/apps', cafe24: 'https://developers.cafe24.com', godomall: 'https://devcenter.nhn-commerce.com', // [229차] godomall: NHN커머스 개발자센터(구 godo.co.kr/api_form.php 폐기)
   woocommerce: 'https://woocommerce.com/document/woocommerce-rest-api/', magento: 'https://developer.adobe.com/commerce/webapi/rest/',
   // 물류 배송추적 — 통합 추적 키(스마트택배) / 우체국
   smarttracker: 'https://tracking.sweettracker.co.kr', epost: 'https://service.epost.go.kr',
   // 국제특송 (개발자 포털 self-serve)
   dhl: 'https://developer.dhl.com', fedex: 'https://developer.fedex.com', ups: 'https://developer.ups.com', tnt: 'https://developer.dhl.com',
   // 결제 게이트웨이(PG)
-  inicis: 'https://www.inicis.com', toss: 'https://dashboard.tosspayments.com', kcp: 'https://admin8.kcp.co.kr',
+  inicis: 'https://iniweb.inicis.com', toss: 'https://dashboard.tosspayments.com', kcp: 'https://admin8.kcp.co.kr', // [229차] inicis: 마케팅사이트(www)→상점관리자(iniweb)
   kakaopay: 'https://developers.kakaopay.com', paypal: 'https://developer.paypal.com', stripe: 'https://dashboard.stripe.com/apikeys',
   // [228차] 글로벌 결제 전문 PG 콘솔
   paddle: 'https://vendors.paddle.com', adyen: 'https://ca-live.adyen.com', square: 'https://developer.squareup.com/apps',
@@ -328,7 +332,7 @@ const CHANNEL_APPLY_NOTE = {
   walmart: { hard: false, note: 'Walmart 마켓플레이스 셀러센터(개발자)에서 client_id/secret을 발급합니다.' },
   shopee:  { hard: false, note: 'Shopee Open Platform 개발자 등록·승인 후 앱 생성 → partner_id/partner_key. 샵 인가가 필요합니다.' },
   lazada:  { hard: false, note: 'Lazada Open Platform에서 앱 등록 → app_key/secret을 발급합니다.' },
-  rakuten: { hard: false, note: 'Rakuten 개발자(RMS/Webservice) 포털에서 키를 발급합니다.' },
+  rakuten: { hard: false, note: '판매자(이치바) 키는 RMS R-Login(glogin.rms.rakuten.co.jp) > RMS Web Service에서 serviceSecret·licenseKey를 발급합니다(90일 만료·재발급). ★제휴/상품검색용 webservice.rakuten.co.jp와 다릅니다.' },
   qoo10:   { hard: false, note: 'Qoo10 QSM에서 API 키를 발급합니다.' },
   tiktok_shop: { hard: false, note: 'partner.tiktokshop.com에서 앱 생성(app_key/secret/service_id) → 샵 인가. 운영 전환 시 심사가 필요합니다.' },
   // ── 자사몰 D2C
@@ -336,7 +340,7 @@ const CHANNEL_APPLY_NOTE = {
   woocommerce: { hard: false, note: 'WooCommerce > 설정 > 고급 > REST API에서 Consumer Key/Secret을 발급합니다.' },
   magento:     { hard: false, note: 'Magento 관리자 > 시스템 > 통합(Integration)에서 액세스 토큰을 발급합니다.' },
   cafe24:      { hard: false, note: '카페24 개발자센터에서 개발자 등록 → 앱 등록 → client_id/secret(OAuth 2.0)을 발급합니다.' },
-  godomall:    { hard: false, note: '고도몰(NHN커머스) 개발자 등록·승인 후 [오픈API > 키발급 신청]에서 신청합니다.' },
+  godomall:    { hard: false, note: 'NHN커머스 개발자센터(devcenter.nhn-commerce.com)에 회원·개발자 등록 후 [오픈API > 키발급 신청]에서 신청합니다.' },
   // ── 결제 게이트웨이(PG) — 가맹점 계약 후 발급
   inicis:   { hard: false, note: '이니시스 상점관리자 > 상점정보 > 계약정보 > 부가정보에서 INIAPI Key·웹표준 사인키를 발급합니다. (가맹점 계약 필요)' },
   toss:     { hard: false, note: '토스페이먼츠 상점관리자 > 개발자센터에서 클라이언트 키·시크릿 키를 확인합니다. (가맹점 계약 필요)' },
@@ -346,7 +350,7 @@ const CHANNEL_APPLY_NOTE = {
   paypal:   { hard: false, note: 'developer.paypal.com에서 앱 생성 → client_id/secret을 발급합니다.' },
   stripe:   { hard: false, note: 'dashboard.stripe.com > 개발자 > API 키에서 발급합니다.' },
   // [228차] 글로벌 결제 전문 PG
-  paddle:   { hard: false, note: 'Paddle은 SaaS·디지털 상품용 Merchant of Record형 결제 플랫폼입니다. vendors.paddle.com > Developer Tools > Authentication에서 Seller ID·API 키를 발급합니다.' },
+  paddle:   { hard: false, note: 'Paddle은 SaaS·디지털 상품용 Merchant of Record형 결제 플랫폼입니다. Paddle 대시보드 > Developer Tools > Authentication > API keys에서 Billing(v2) API 키(Bearer, pdl_live_…)를 발급합니다(구 Classic vendor_id/auth_code 아님).' },
   adyen:    { hard: true,  note: 'Adyen은 엔터프라이즈 글로벌 PG로 가맹 계약·심사가 필요합니다. 승인 후 Customer Area > Developers > API credentials에서 API 키와 Merchant Account를 발급합니다.' },
   square:   { hard: false, note: 'Square 계정 생성 후 developer.squareup.com > Apps에서 앱 생성 → Access Token·Location ID를 발급합니다. (Production 토큰 사용)' },
   braintree:{ hard: true,  note: 'Braintree(PayPal)는 가맹 계정 승인이 필요합니다. Control Panel > Settings > API Keys에서 Merchant ID·Public/Private Key를 발급합니다.' },
@@ -368,7 +372,7 @@ const CHANNEL_APPLY_NOTE = {
   fedex:  { hard: false, note: 'developer.fedex.com에서 프로젝트 생성 → API Key/Secret + 계정번호를 등록합니다.' },
   ups:    { hard: false, note: 'developer.ups.com에서 앱 생성 → client_id/secret + 계정번호를 등록합니다.' },
   ems:    { hard: true,  note: '우체국 국제특송(EMS)은 계약(고객) 코드 기반입니다. (계약 필요)' },
-  tnt:    { hard: false, note: 'TNT(DHL 통합) 개발자 포털에서 자격증명을 발급합니다. 계정번호가 필요합니다.' },
+  tnt:    { hard: false, note: 'TNT는 FedEx에 인수되어 FedEx Developer Portal(developer.fedex.com)에서 자격증명(API Key/Secret)을 발급합니다. 별도 TNT 개발자 포털은 없으며 FedEx 계정번호가 필요합니다.' },
   cj_intl:{ hard: true,  note: 'CJ대한통운 국제특송 계약(고객) 코드가 필요합니다. (계약 필요)' },
   // ── 분석/기타
   google_analytics: { hard: false, note: 'GA4 > 관리 > 데이터 스트림에서 측정 ID(G-)·Measurement Protocol API Secret을 발급합니다.' },
