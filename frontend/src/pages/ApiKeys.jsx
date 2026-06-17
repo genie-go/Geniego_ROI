@@ -1775,25 +1775,28 @@ function OverviewTab({ channels, summary, creds, applies = [], loading, onChanne
         // [현 차수] 요청: 등록 상태별 카드 배경 틴트(녹=전체등록, 주황=일부등록, 노랑=등록·준비중, 흰=미등록).
         background: status === 'none' ? 'rgba(255,255,255,0.85)'
           : status === 'partial' ? 'rgba(245,158,11,0.06)'
-          : (pending ? 'rgba(250,204,21,0.07)' : 'rgba(34,197,94,0.07)'),
-        // [229차] 등록 완료 채널 강조 — 2px 녹색(준비중=노랑) 테두리 + 글로우로 시각적 부각.
+          : (isVerified ? 'rgba(255,224,0,0.12)' : pending ? 'rgba(250,204,21,0.07)' : 'rgba(34,197,94,0.07)'),
+        // [229차] 발급 확인 완료=노랑 강조 / 등록완료=녹 / 준비중=노랑 테두리+글로우.
         border: status === 'full'
-          ? `2px solid ${pending ? 'rgba(202,138,4,0.55)' : 'rgba(22,163,74,0.6)'}`
+          ? `2px solid ${isVerified ? '#ffcf00' : pending ? 'rgba(202,138,4,0.55)' : 'rgba(22,163,74,0.6)'}`
           : `1px solid ${status === 'none' ? 'rgba(0,0,0,0.06)' : sc.border}`,
         borderLeft: `4px solid ${ch.color}`,
-        boxShadow: status === 'full' ? (pending ? '0 0 0 3px rgba(234,179,8,0.10)' : '0 0 0 3px rgba(34,197,94,0.12)') : 'none',
+        boxShadow: status === 'full' ? (isVerified ? '0 0 0 3px rgba(255,207,0,0.28)' : pending ? '0 0 0 3px rgba(234,179,8,0.10)' : '0 0 0 3px rgba(34,197,94,0.12)') : 'none',
       }}>
         {/* [229차] ★등록 완료 강조 배너 — 개요에서 발급·등록된 채널을 한눈에 뚜렷하게 표시. */}
         {status === 'full' && (
           <div style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-            marginBottom: 11, padding: '7px 10px', borderRadius: 9, fontSize: 11.5, fontWeight: 900, letterSpacing: 0.2,
-            color: '#fff', boxShadow: '0 4px 12px rgba(22,163,74,0.26)',
-            background: isVerified ? 'linear-gradient(135deg,#22c55e,#15803d)'
+            marginBottom: 11, padding: '8px 10px', borderRadius: 9, fontSize: 12, fontWeight: 900, letterSpacing: 0.2,
+            // [229차] ★발급 확인 완료 = 노랑 바탕 + 찐한 청색 글자(눈에 확 띄게). 등록/준비중은 녹/노랑 유지.
+            color: isVerified ? '#0b2e8a' : '#fff',
+            boxShadow: isVerified ? '0 4px 14px rgba(250,204,21,0.55)' : '0 4px 12px rgba(22,163,74,0.26)',
+            border: isVerified ? '1.5px solid #0b2e8a' : 'none',
+            background: isVerified ? 'linear-gradient(135deg,#ffe600,#ffd400)'
               : pending ? 'linear-gradient(135deg,#facc15,#ca8a04)'
               : 'linear-gradient(135deg,#34d399,#16a34a)',
           }}>
-            {isVerified ? `🎉 ${t('ak.bannerVerified','발급 확인 완료')}`
+            {isVerified ? <span style={{ animation: 'akVerifiedBlink 1s ease-in-out infinite' }}>🎉 {t('ak.bannerVerified','발급 확인 완료')}</span>
               : pending ? `✅ ${t('ak.bannerPending','등록 완료 · 연동 준비 중')}`
               : `✅ ${t('ak.bannerRegistered','발급·등록 완료')}`}
           </div>
@@ -1817,7 +1820,7 @@ function OverviewTab({ channels, summary, creds, applies = [], loading, onChanne
           </div>
           {/* [현 차수] ★발급 확인 배지 — 실검증 통과 시에만 '발급 확인됨'(녹), 등록·미검증은 '발급 확인 대기'(주황). */}
           {isVerified ? (
-            <span style={{ fontSize: 9, padding: '2px 8px', borderRadius: 20, background: 'rgba(34,197,94,0.16)', color: '#16a34a', border: '1px solid rgba(34,197,94,0.4)', fontWeight: 800, whiteSpace: 'nowrap' }}
+            <span style={{ fontSize: 9, padding: '2px 8px', borderRadius: 20, background: '#ffe000', color: '#0b2e8a', border: '1px solid #0b2e8a', fontWeight: 900, whiteSpace: 'nowrap' }}
               title={t('ak.verifiedHint','연동허브가 실제 채널 API로 키 발급을 검증했습니다(임의 표기 아님).')}>🎉 {t('ak.issuanceVerified','발급 확인됨')}</span>
           ) : needsVerify ? (
             <span style={{ fontSize: 9, padding: '2px 8px', borderRadius: 20, background: 'rgba(245,158,11,0.14)', color: '#d97706', border: '1px solid rgba(245,158,11,0.4)', fontWeight: 800, whiteSpace: 'nowrap' }}
@@ -1928,7 +1931,7 @@ function OverviewTab({ channels, summary, creds, applies = [], loading, onChanne
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
       {/* [현 차수] ★발급 확인 유도 펄스 애니메이션(키프레임 1회 주입). */}
-      <style>{`@keyframes akVerifyPulse{0%,100%{box-shadow:0 0 0 0 rgba(245,158,11,0.0);transform:translateY(0)}50%{box-shadow:0 0 0 4px rgba(245,158,11,0.18);transform:translateY(-1px)}}`}</style>
+      <style>{`@keyframes akVerifyPulse{0%,100%{box-shadow:0 0 0 0 rgba(245,158,11,0.0);transform:translateY(0)}50%{box-shadow:0 0 0 4px rgba(245,158,11,0.18);transform:translateY(-1px)}}@keyframes akVerifiedBlink{0%,100%{opacity:1}50%{opacity:0.35}}`}</style>
       {totalKeys === 0 && (
         <div style={{ padding: '14px 18px', borderRadius: 12, background: 'rgba(79,142,247,0.06)', border: '1px solid rgba(79,142,247,0.18)', fontSize: 12, color: 'var(--text-2)' }}>
           🔑 {t('ak.registerHint','아래 채널 카드의 [등록] 버튼으로 판매·광고·물류 채널의 자격증명(액세스 토큰/광고계정/고객ID/광고주ID 등)을 등록하세요. 등록 즉시 연동 현황·라이브 커머스에 반영됩니다.')}
