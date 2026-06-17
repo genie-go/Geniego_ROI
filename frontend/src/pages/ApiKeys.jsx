@@ -177,6 +177,11 @@ const CHANNEL_FIELDS = {
 };
 const DEFAULT_FIELDS = [{ k: 'api_key', label: 'API 키 / 액세스 토큰', secret: true }];
 
+/* [229차] 채널별 발급 매뉴얼(레이어 팝업·iframe). public/api_manuals/<key>.html 정적 서빙.
+   youtube=큐레이트, 나머지=issuanceGuide 단계 기반 생성. 이 집합의 채널만 '📖 발급 매뉴얼' 버튼 노출. */
+const MANUAL_KEYS = new Set(['adyen','amazon_spapi','auction','braintree','cafe24','checkout','coupang','dhl','ebay','etsy','fedex','gmarket','godomall','google_ads','google_analytics','inicis','kakaopay','kcp','klarna','lazada','lotteon','magento','meta_ads','mollie','naver_sa','naver_smartstore','paddle','paypal','qoo10','rakuten','razorpay','shopee','shopify','slack','smarttracker','square','st11','stripe','tiktok_business','tiktok_shop','toss','twitch','ups','walmart','woocommerce','youtube']);
+const manualUrl = (key) => `/api_manuals/${key}.html`;
+
 /* ─── [현 차수] 채널별 자격증명 발급 메타 ─────────────────────────────────
    요청2: "자동 등록 가능한 것은 시스템이 발급·등록, 아이디/비번은 사용자가 직접 저장 → 즉시 연동".
    ① OAUTH_PROVIDER: OAuth 2.0 으로 토큰을 자동 발급·자동 저장 가능한 채널(원클릭 연결).
@@ -674,6 +679,7 @@ export default function ApiKeys() {
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [showApplyModal, setShowApplyModal] = useState(null); // channel object or null
+  const [showManual, setShowManual] = useState(null); // [229차] 발급 매뉴얼 레이어 팝업 채널 or null
   const [applyRefresh, setApplyRefresh] = useState(0); // [현 차수] ③ 발급 신청 현황 새로고침 키
   const [applyDone, setApplyDone] = useState(null);    // [현 차수] 발급 신청 완료 확인(영구 모달 — 토스트 놓침 방지)
   const [showConnectModal, setShowConnectModal] = useState(null); // 208차: 채널 구조화 등록 모달
@@ -1110,6 +1116,7 @@ export default function ApiKeys() {
           onConnect={(ch) => setShowConnectModal(ch)}
           onApply={(ch) => setShowApplyModal(ch)}
           onOAuth={connectOAuth}
+          onManual={(ch) => setShowManual(ch)}
           testingId={testingId}
           t={t}
         />
@@ -1211,6 +1218,9 @@ export default function ApiKeys() {
       )}
       {showRegAdd && (
         <RegistryAddModal onClose={() => setShowRegAdd(false)} onSubmit={submitRegistryChannel} />
+      )}
+      {showManual && (
+        <ManualModal channel={showManual} onClose={() => setShowManual(null)} t={t} />
       )}
 
       {/* [현 차수] 발급 신청 완료/실패 확인 모달 — 사용자가 결과(성공·실패·티켓·다음 절차)를 확실히 인지. */}
@@ -1672,7 +1682,7 @@ function ApplyStatusPanel({ applies = [], onRefresh, t }) {
 /* ═══════════════════════════════════════════════════════════════════
    Tab: Overview — 채널별 등록 현황 + Quick actions
    ═══════════════════════════════════════════════════════════════════ */
-function OverviewTab({ channels, summary, creds, applies = [], loading, onChannelTest, onConnect, onApply, onOAuth, testingId, t }) {
+function OverviewTab({ channels, summary, creds, applies = [], loading, onChannelTest, onConnect, onApply, onOAuth, onManual, testingId, t }) {
   if (loading) {
     return <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-3)' }}>{t('ak.loading','Loading…')}</div>;
   }
@@ -1823,6 +1833,14 @@ function OverviewTab({ channels, summary, creds, applies = [], loading, onChanne
             animation: (needsVerify && !busy) ? 'akVerifyPulse 1.4s ease-in-out infinite' : 'none',
           }}>{busy ? `⏳` : (needsVerify ? `🔎 ${t('ak.verifyBtn','발급 확인')}` : `🔌 ${t('ak.testBtn','Test')}`)}</button>
         </div>
+        {/* [229차] 발급 매뉴얼 — 키 발급 과정을 초보자도 따라할 수 있게 레이어 팝업으로 안내. */}
+        {MANUAL_KEYS.has(ch.key) && (
+          <button onClick={() => onManual(ch)} title={t('ak.manualHint','API 키 발급 과정을 단계별로 안내합니다(레이어 팝업).')} style={{
+            marginTop: 6, width: '100%', padding: '7px 10px', borderRadius: 8,
+            border: '1px solid rgba(99,102,241,0.3)', cursor: 'pointer',
+            background: 'rgba(99,102,241,0.06)', color: '#6366f1', fontSize: 10.5, fontWeight: 800,
+          }}>📖 {t('ak.manualBtn','발급 매뉴얼 보기')}</button>
+        )}
         {/* [현 차수] ★발급 확인 유도 — 등록됐으나 미검증인 라이브검증 채널: 실 발급 검증을 권유(임의 완료 표기 X). */}
         {needsVerify && !busy && (
           <div style={{ marginTop: 7, fontSize: 9.5, color: '#b45309', textAlign: 'center', fontWeight: 700, lineHeight: 1.45 }}>
@@ -2190,7 +2208,10 @@ function ConnectModal({ channel, onClose, onSubmit, t, extraFields = {}, postOau
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
           <span style={{ fontSize: 28 }} aria-hidden>{channel.icon}</span>
-          <div style={{ fontSize: 18, fontWeight: 800 }}>{channel.name} {t('ak.connectTitle','연동 등록')}</div>
+          <div style={{ fontSize: 18, fontWeight: 800, flex: 1 }}>{channel.name} {t('ak.connectTitle','연동 등록')}</div>
+          {MANUAL_KEYS.has(channel.key) && (
+            <a href={manualUrl(channel.key)} target="_blank" rel="noopener noreferrer" title={t('ak.manualHint','API 키 발급 과정을 단계별로 안내합니다.')} style={{ fontSize: 11.5, fontWeight: 800, color: '#6366f1', textDecoration: 'none', padding: '5px 9px', border: '1px solid rgba(99,102,241,0.3)', borderRadius: 8, whiteSpace: 'nowrap' }}>📖 {t('ak.manualBtn','발급 매뉴얼')}</a>
+          )}
         </div>
         {postOauth && (
           <div style={{ marginBottom: 16, padding: '12px 14px', borderRadius: 12, background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.28)' }}>
@@ -2254,6 +2275,33 @@ function ConnectModal({ channel, onClose, onSubmit, t, extraFields = {}, postOau
             {busy ? `⏳ ${t('ak.saving','Saving…')}` : `💾 ${t('ak.save','Save')}`}
           </button>
         </div>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   [229차] Modal: 발급 매뉴얼 (레이어 팝업) — public/api_manuals/<key>.html 을 iframe 로 표시.
+   매뉴얼은 자체 완결 HTML(전역 CSS 포함)이라 iframe 격리로 앱 스타일 충돌을 방지한다.
+   ═══════════════════════════════════════════════════════════════════ */
+function ManualModal({ channel, onClose, t }) {
+  const url = manualUrl(channel.key);
+  return (
+    <div role="dialog" aria-modal="true" onClick={onClose} style={{
+      position: 'fixed', inset: 0, zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center',
+      background: 'rgba(9,5,20,0.86)', backdropFilter: 'blur(10px)', padding: 20,
+    }}>
+      <div onClick={e => e.stopPropagation()} style={{
+        width: '100%', maxWidth: 980, height: '92vh', display: 'flex', flexDirection: 'column',
+        background: '#fff', borderRadius: 16, overflow: 'hidden', boxShadow: '0 24px 70px rgba(0,0,0,0.5)',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', borderBottom: '1px solid #e5e7eb', background: '#0f172a' }}>
+          <span style={{ fontSize: 20 }} aria-hidden>{channel.icon || '📖'}</span>
+          <div style={{ fontSize: 15, fontWeight: 800, color: '#fff', flex: 1 }}>{channel.name} {t('ak.manualTitle','발급 매뉴얼')}</div>
+          <a href={url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, fontWeight: 700, color: '#a5b4fc', textDecoration: 'none', padding: '6px 10px' }}>{t('ak.openNewTab','새 탭에서 열기')} ↗</a>
+          <button onClick={onClose} aria-label={t('ak.close','닫기')} style={{ fontSize: 18, fontWeight: 900, color: '#fff', background: 'rgba(255,255,255,0.12)', border: 'none', borderRadius: 8, width: 34, height: 34, cursor: 'pointer' }}>×</button>
+        </div>
+        <iframe src={url} title={`${channel.name} manual`} style={{ flex: 1, width: '100%', border: 'none', background: '#fff' }} />
       </div>
     </div>
   );
