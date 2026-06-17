@@ -363,7 +363,7 @@ final class ChannelSync
         // Products
         [$pCode, $pBody] = self::httpGet("https://{$shop}/admin/api/2024-01/products.json?limit=50&fields=id,title,variants,images,product_type,status", $headers);
         // Orders
-        [$oCode, $oBody] = self::httpGet("https://{$shop}/admin/api/2024-01/orders.json?limit=50&status=any&fields=id,name,email,customer,line_items,financial_status,fulfillment_status,created_at,shipping_address,total_price", $headers);
+        [$oCode, $oBody] = self::httpGet("https://{$shop}/admin/api/2024-01/orders.json?limit=50&status=any&fields=id,name,email,customer,line_items,financial_status,fulfillment_status,created_at,shipping_address,total_price,currency", $headers);
 
         if ($pCode !== 200) return ['ok'=>false, 'error'=>"Shopify HTTP {$pCode}", 'products'=>[], 'orders'=>[]];
 
@@ -396,6 +396,8 @@ final class ChannelSync
                 'qty'         => (int)($item['quantity'] ?? 1),
                 'unit_price'  => (float)($item['price'] ?? 0),
                 'total_price' => (float)($o['total_price'] ?? 0),
+                'currency'    => strtoupper((string)($o['currency'] ?? '')), // [228차 S5] 다통화 정규화
+
                 'status'      => self::shopifyOrderStatus($o['financial_status'] ?? '', $o['fulfillment_status'] ?? ''),
                 'addr'        => ($o['shipping_address']['address1'] ?? '') . ' ' . ($o['shipping_address']['city'] ?? ''),
                 'ordered_at'  => $o['created_at'] ?? '',
@@ -465,6 +467,7 @@ final class ChannelSync
                 'qty'         => (int)($o['NumberOfItemsShipped'] ?? 0) + (int)($o['NumberOfItemsUnshipped'] ?? 0),
                 'unit_price'  => 0,
                 'total_price' => (float)($o['OrderTotal']['Amount'] ?? 0),
+                'currency'    => strtoupper((string)($o['OrderTotal']['CurrencyCode'] ?? '')), // [228차 S5] 다통화 정규화
                 'status'      => strtolower((string)($o['OrderStatus'] ?? 'pending')),
                 'ordered_at'  => (string)($o['PurchaseDate'] ?? gmdate('c')),
                 'source'      => 'spapi',
@@ -898,6 +901,7 @@ final class ChannelSync
                 'qty'         => $qty ?: count($items),
                 'unit_price'  => (float)($first['price'] ?? 0),
                 'total_price' => (float)($o['totalPrice'] ?? 0),
+                'currency'    => 'JPY', // [228차 S5] Rakuten(일본)=엔화 → KRW 정규화
                 'status'      => 'rakuten-' . (string)($o['orderProgress'] ?? '100'),
                 'ordered_at'  => (string)($o['orderDatetime'] ?? gmdate('c')),
                 'source'      => 'rakuten_api',
@@ -1648,6 +1652,16 @@ final class ChannelSync
                 ['status','event_type','carrier','tracking_no','synced_at']));
         foreach ($orders as $o) {
             if (!($o['channel_order_id'] ?? null)) continue;
+            // [228차 S5] ★주문 매출 다통화 → KRW 정규화. 글로벌 채널(USD/JPY/EUR 등) 주문의 total_price/unit_price 를
+            //   KRW 로 환산해 일관 저장(기존엔 원시 통화 합산 → 다통화 테넌트 GMV/COGS/귀속 산술 오류, KRW 단일은 무영향).
+            //   원 통화·원금은 raw_json(아래 json_encode($o))에 보존. fxToKrw(KRW/빈/미상통화=무변환).
+            $ocur = strtoupper(trim((string)($o['currency'] ?? '')));
+            if ($ocur !== '' && $ocur !== 'KRW') {
+                $o['orig_currency'] = $ocur;
+                $o['orig_total_price'] = (float)($o['total_price'] ?? 0);
+                $o['total_price'] = \Genie\Handlers\Connectors::fxToKrw((float)($o['total_price'] ?? 0), $ocur);
+                $o['unit_price']  = \Genie\Handlers\Connectors::fxToKrw((float)($o['unit_price'] ?? 0), $ocur);
+            }
             // 188차 P0 보안: 데모 데이터의 운영 DB 유입 차단(전 채널 단일 chokepoint).
             // 204차 P0: source='structured'(amazon 등) 도 차단(우회 방어 강화).
             if ($tenant !== 'demo' && (in_array(($o['source'] ?? ''), ['demo','structured'], true) || str_starts_with((string)$o['channel_order_id'], 'DEMO-'))) continue;

@@ -26,10 +26,10 @@ final class ChannelCreds
 {
     /**
      * Resolve tenant_id from (in order):
-     *  1. auth_tenant request attribute set by Auth middleware
-     *  2. X-Tenant-Id header
-     *  3. genie_session cookie → user_session table look-up
-     *  4. fallback 'demo'
+     *  1. auth_tenant request attribute (api_key 미들웨어가 주입, 위조불가)
+     *  2. 인증 세션(Bearer user_session 토큰 / genie_session 쿠키) → user_session ⨝ app_user.tenant_id
+     *  3. fallback 'demo'
+     * ★[228차 S5 정리] raw X-Tenant-Id 헤더는 신뢰하지 않는다(184차 P0 보안수정으로 제거됨 — 과거 docstring 오기).
      */
     private static function tenantId(Request $request): string
     {
@@ -366,6 +366,10 @@ final class ChannelCreds
                     // [227차 Tier2] PG 정산 채널(stripe/tosspayments/toss/paypal…)도 자격증명 등록 즉시 자동 수집.
                     //   기존엔 PG만 자동 트리거 누락 → 사용자가 /v427/pg/sync 를 수동 호출해야 정산이 들어왔다.
                     $autoSync = ['kind' => 'pg', 'result' => PgSettlement::syncForTenant($pdo, $tenant, $pgProv)];
+                } elseif (in_array(strtolower($channel), ['cj', 'lotte', 'hanjin', 'logen', 'epost', 'smarttracker', 'dhl', 'fedex', 'ups', 'ems', 'tnt', 'cj_intl'], true)) {
+                    // [228차 S5] 물류 추적 채널도 자격증명 등록 즉시 자동 갱신(광고/커머스/PG 와 대칭). 미배송 송장 보유 시 추적
+                    //   갱신(없으면 no-op). 주문 동기화로 적재된 송장이 있으면 즉시 최신 배송상태 반영, cron(*/15) 백업.
+                    $autoSync = ['kind' => 'logistics', 'result' => ['refreshed' => Logistics::refreshTenant($pdo, $tenant)]];
                 }
             } catch (\Throwable $e) {
                 error_log('[ChannelCreds::upsert] auto-sync failed: ' . $e->getMessage());

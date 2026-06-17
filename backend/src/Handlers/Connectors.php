@@ -1496,7 +1496,7 @@ final class Connectors
      * [227차] 통화→KRW 정규화. 광고계정 통화(USD 등)로 표기된 spend/revenue 를 KRW 로 환산해 저장한다.
      *   기존엔 통화 무관하게 원값 저장 → 다통화 계정 합산 시 ROAS/지출 왜곡. KRW/빈값/미상통화는 무변환(정직).
      */
-    private static function fxToKrw(float $amount, string $currency): float
+    public static function fxToKrw(float $amount, string $currency): float
     {
         $currency = strtoupper(trim($currency));
         if ($currency === '' || $currency === 'KRW' || $amount == 0.0) return $amount;
