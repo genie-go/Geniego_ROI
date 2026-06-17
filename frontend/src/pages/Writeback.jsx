@@ -298,12 +298,18 @@ function ConsoleTab({ t, isDemo }) {
 
 /* [227차] 채널 카테고리 매핑 관리 — 쿠팡 displayCategoryCode·네이버 leafCategoryId 등을 내 카테고리에 매핑.
    Writeback 워커가 상품 category → 채널 코드로 해석해 어댑터에 전달(미매핑 시 등록 거부·명확안내). */
+/* [228차] Writeback 쓰기 어댑터가 상품등록 시 '필수'로 요구하는 채널별 카테고리코드.
+   field=채널 API 필드명, example=형식 예시, help=어디서 받는지. 미매핑 시 해당 채널 송출이 거부된다. */
 const MAP_CHANNELS = [
-  { id: 'coupang', label: 'Coupang (displayCategoryCode)' },
-  { id: 'naver', label: 'Naver (leafCategoryId)' },
-  { id: 'cafe24', label: 'Cafe24 (category_no)' },
-  { id: 'gmarket', label: 'G마켓/옥션 (ESM)' },
-  { id: '11st', label: '11번가 (dispCtgrNo)' },
+  { id: 'coupang',      label: '쿠팡 Coupang',          field: 'displayCategoryCode', example: '63718',     help: 'Wing > 상품관리 > 카테고리 검색/추천에서 노출카테고리코드(숫자)' },
+  { id: 'naver',        label: '네이버 스마트스토어',    field: 'leafCategoryId',      example: '50000204',  help: '커머스API 카테고리 조회 또는 스마트스토어센터의 리프(말단) 카테고리ID' },
+  { id: 'st11',         label: '11번가',                field: 'dispCtgrNo',          example: '1001763',   help: '셀러오피스 > 상품 카테고리의 전시카테고리번호' },
+  { id: 'gmarket',      label: 'G마켓 (ESM)',           field: 'categoryCode',        example: '200001805', help: 'ESM Plus 상품등록 카테고리의 G마켓 코드' },
+  { id: 'auction',      label: '옥션 (ESM)',            field: 'categoryCode',        example: '0001234',   help: 'ESM Plus 상품등록 카테고리의 옥션 코드 (G마켓과 별도)' },
+  { id: 'lotteon',      label: '롯데온 Lotte ON',       field: 'categoryCode',        example: 'C00012345', help: '롯데온 셀러센터 카테고리의 카테고리코드' },
+  { id: 'amazon_spapi', label: 'Amazon',                field: 'productType',         example: 'LUGGAGE',   help: 'Amazon Product Type(영문 대문자 타입명). 숫자 카테고리가 아닌 productType 문자열' },
+  { id: 'tiktok_shop',  label: 'TikTok Shop',           field: 'category_id',         example: '601152',    help: 'Partner Center 카테고리 API / Seller Center의 말단 카테고리ID' },
+  { id: 'cafe24',       label: 'Cafe24 (선택)',         field: 'category_no',         example: '24',        help: '관리자 > 상품 > 분류 관리의 분류번호 (선택 — 미지정 시 미분류 등록)' },
 ];
 function CategoryMapPanel({ t }) {
   const [channel, setChannel] = useState('coupang');
@@ -332,22 +338,34 @@ function CategoryMapPanel({ t }) {
   };
 
   const inp = { padding: '8px 10px', borderRadius: 8, border: '1px solid rgba(99,140,255,0.15)', background: 'var(--surface-2)', color: 'var(--text-1)', fontSize: 12, outline: 'none' };
+  const meta = MAP_CHANNELS.find(c => c.id === channel) || {};
   return (
     <div className="card card-glass" style={{ padding: '14px 16px', borderLeft: '3px solid #a855f7' }}>
       <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 4 }}>🗂 {t('writebackPage.catMapTitle', '채널 카테고리 매핑')}</div>
       <div style={{ fontSize: 11, color: 'var(--text-3)', lineHeight: 1.6, marginBottom: 10 }}>
         {t('writebackPage.catMapDesc', '마켓플레이스(쿠팡·네이버 등) 상품등록은 채널별 카테고리코드가 필수입니다. 내 상품 카테고리를 채널 코드에 한 번 매핑하면, 상품 송출 시 자동으로 해당 코드가 적용됩니다.')}
+        <br />{t('writebackPage.catMapReq', '※ 미매핑 시 해당 채널의 상품 송출이 거부됩니다(어댑터가 카테고리코드를 필수로 요구).')}
       </div>
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'flex-end', marginBottom: 10 }}>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'flex-end', marginBottom: 8 }}>
         <select value={channel} onChange={e => setChannel(e.target.value)} style={{ ...inp, minWidth: 200 }}>
           {MAP_CHANNELS.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
         </select>
         <input value={form.src_category} onChange={e => setForm(f => ({ ...f, src_category: e.target.value }))} placeholder={t('writebackPage.catMapSrc', '내 카테고리 (예: Beauty/Skincare)')} style={{ ...inp, minWidth: 180 }} />
-        <input value={form.channel_code} onChange={e => setForm(f => ({ ...f, channel_code: e.target.value }))} placeholder={t('writebackPage.catMapCode', '채널 카테고리코드')} style={{ ...inp, minWidth: 140 }} />
+        <input value={form.channel_code} onChange={e => setForm(f => ({ ...f, channel_code: e.target.value }))} placeholder={meta.field ? `${meta.field} (예: ${meta.example})` : t('writebackPage.catMapCode', '채널 카테고리코드')} style={{ ...inp, minWidth: 180 }} />
         <input value={form.channel_label} onChange={e => setForm(f => ({ ...f, channel_label: e.target.value }))} placeholder={t('writebackPage.catMapLabel', '코드 설명(선택)')} style={{ ...inp, minWidth: 140 }} />
         <button onClick={save} disabled={busy} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#a855f7,#6366f1)', color: '#fff', fontWeight: 700, fontSize: 12 }}>{busy ? '...' : t('writebackPage.catMapAdd', '매핑 추가')}</button>
         {msg && <span style={{ fontSize: 11, color: msg === '저장됨' ? '#22c55e' : '#ef4444' }}>{msg}</span>}
       </div>
+      {/* [228차] 선택 채널별 안내 — 어떤 코드를, 어디서 받아 넣는지. */}
+      {meta.field && (
+        <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', padding: '9px 12px', marginBottom: 10, borderRadius: 8, background: 'rgba(168,85,247,0.06)', border: '1px solid rgba(168,85,247,0.18)', fontSize: 11, lineHeight: 1.6 }}>
+          <span aria-hidden>💡</span>
+          <span style={{ color: 'var(--text-2)' }}>
+            <b style={{ color: '#a855f7' }}>{meta.label}</b> {t('writebackPage.catMapNeeds', '필수 코드')}: <code style={{ fontFamily: 'monospace', color: '#a855f7' }}>{meta.field}</code> ({t('writebackPage.catMapEg', '예')}: <code style={{ fontFamily: 'monospace' }}>{meta.example}</code>)<br />
+            {t('writebackPage.catMapHelp_' + channel, meta.help)}
+          </span>
+        </div>
+      )}
       {rows.length === 0 ? (
         <div style={{ fontSize: 12, color: 'var(--text-3)', padding: '8px 0' }}>{t('writebackPage.catMapEmpty', '이 채널의 매핑이 없습니다. 위에서 추가하세요.')}</div>
       ) : (
