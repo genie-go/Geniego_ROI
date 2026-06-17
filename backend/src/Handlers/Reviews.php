@@ -176,18 +176,25 @@ final class Reviews
         if (empty($b)) { $d = json_decode((string)$req->getBody(), true); if (is_array($d)) $b = $d; }
         $channel = strtolower(trim((string)($b['channel'] ?? '')));
         if ($channel === '') return self::json($res, ['ok' => false, 'error' => 'channel required'], 422);
+        return self::json($res, ['ok' => true] + self::collectForTenant(Db::pdo(), $tenant, $channel));
+    }
 
-        $pdo = Db::pdo();
+    /**
+     * 채널 리뷰 수집 코어(비-HTTP) — HTTP collect 핸들러와 cron(review_collect_cron.php) 공용.
+     *   반환 ['channel','fetched','saved','converted','mode','note']. 자격증명/게이트는 정직 mode.
+     */
+    public static function collectForTenant(\PDO $pdo, string $tenant, string $channel): array
+    {
+        $channel = strtolower(trim($channel));
         $creds = self::loadChannelCreds($pdo, $tenant, $channel);
-        if (!$creds) return self::json($res, ['ok' => true, 'channel' => $channel, 'fetched' => 0, 'saved' => 0, 'mode' => 'no_credentials', 'note' => '채널 자격증명 미등록 — 연동허브에서 등록 후 수집하세요.']);
-
+        if (!$creds) return ['channel' => $channel, 'fetched' => 0, 'saved' => 0, 'converted' => 0, 'mode' => 'no_credentials', 'note' => '채널 자격증명 미등록 — 연동허브에서 등록 후 수집하세요.'];
         $result = ChannelSync::collectReviews($channel, $creds, $tenant);
         $reviews = is_array($result['reviews'] ?? null) ? $result['reviews'] : [];
         $note = (string)($result['note'] ?? '');
         $mode = (string)($result['mode'] ?? (count($reviews) ? 'live' : 'empty'));
         $saved = 0; $converted = 0;
         if ($reviews) { $p = self::persistReviews($pdo, $tenant, $channel, $reviews); $saved = $p['saved']; $converted = $p['converted']; }
-        return self::json($res, ['ok' => true, 'channel' => $channel, 'fetched' => count($reviews), 'saved' => $saved, 'converted' => $converted, 'mode' => $mode, 'note' => $note]);
+        return ['channel' => $channel, 'fetched' => count($reviews), 'saved' => $saved, 'converted' => $converted, 'mode' => $mode, 'note' => $note];
     }
 
     /** [R3] 주문ID 일치하는 대기 리뷰요청을 reviewed 로 플립(전환 측정). 반환=전환 건수. */
