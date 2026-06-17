@@ -680,7 +680,7 @@ const ProfileEditModal = memo(function ProfileEditModal({ user, token, onClose }
   const [smtpTestTo, setSmtpTestTo] = useState('');
   // 208차 #2 OAuth 앱 설정 (admin) — 각 사 client_id/secret 등록 시 OAuth 인가 연결 활성화
   const OAUTH_PROVIDERS = [
-    { id: 'google', label: 'Google Ads', console: 'https://console.cloud.google.com/apis/credentials' },
+    { id: 'google', label: 'Google Ads', console: 'https://console.cloud.google.com/projectselector2/apis/credentials' }, // [229차] 프로젝트 선택기 강제(임의 프로젝트 자동선택 방지)
     { id: 'meta', label: 'Meta (Facebook/IG)', console: 'https://developers.facebook.com/apps' },
     { id: 'tiktok', label: 'TikTok', console: 'https://business-api.tiktok.com/portal' },
     { id: 'kakao', label: 'Kakao', console: 'https://developers.kakao.com/console/app' },

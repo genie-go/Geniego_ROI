@@ -446,7 +446,7 @@ function TabAiEngine() {
    회원 플로우(authorize→callback→테넌트별 토큰)는 완비. 여기서 플랫폼 client_id/secret만 등록하면 활성화. */
 function TabChannelOauth() {
   const PROVIDERS = [
-    { key: 'google',   name: 'Google (Ads · Analytics)',            icon: '🔵', console: 'https://console.cloud.google.com/apis/credentials' },
+    { key: 'google',   name: 'Google (Ads · Analytics)',            icon: '🔵', console: 'https://console.cloud.google.com/projectselector2/apis/credentials' }, // [229차] 프로젝트 선택기 강제
     { key: 'meta',     name: 'Meta (Facebook · Instagram 광고)',     icon: '📘', console: 'https://developers.facebook.com/apps' },
     { key: 'facebook', name: 'Facebook · Instagram (페이지/라이브)', icon: '👍', console: 'https://developers.facebook.com/apps' },
     { key: 'tiktok',   name: 'TikTok (광고 · Marketing API)',         icon: '🎶', console: 'https://business-api.tiktok.com/', idLabel: 'App ID', secretLabel: 'App Secret', note: '광고 집행용 TikTok Marketing API 앱의 App ID / Secret을 입력하세요(소비자 Login Kit 키 아님). 비즈니스센터 앱에 광고 관리 권한을 부여해야 합니다.' },

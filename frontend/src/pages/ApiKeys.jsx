@@ -234,7 +234,10 @@ const ISSUANCE_URL = {
   braintree: 'https://www.braintreegateway.com', checkout: 'https://dashboard.checkout.com', mollie: 'https://my.mollie.com/dashboard/developers/api-keys',
   razorpay: 'https://dashboard.razorpay.com/app/keys', klarna: 'https://portal.klarna.com',
   // SNS 라이브 — self-serve 개발자 콘솔(youtube=Google Cloud, twitch=Twitch Dev)
-  youtube: 'https://console.cloud.google.com/apis/credentials', // [227차] YouTube Data API 키 발급(Google Cloud Console)
+  // [229차] bare /apis/credentials 는 Google 이 브라우저 활성 프로젝트를 임의 자동선택(예: 다른 사용자 프로젝트)
+  //   → projectselector2 로 변경해 사용자가 본인 GCP 프로젝트를 직접 선택/생성하도록 강제(잘못된 프로젝트 부착 방지).
+  //   여기 발급할 자격증명 = YouTube Data API '키'(api_key) + 채널 ID. client_id/secret(OAuth) 아님.
+  youtube: 'https://console.cloud.google.com/projectselector2/apis/credentials',
   twitch: 'https://dev.twitch.tv/console/apps',                 // [227차] Twitch 앱 등록→client_id/secret 발급
   // 분석/기타
   slack: 'https://api.slack.com/apps',
