@@ -1773,10 +1773,23 @@ function OverviewTab({ channels, summary, creds, applies = [], loading, onChanne
             </div>
             {applyOpen && (
               <div style={{ marginTop: 4, color: 'var(--text-2)' }}>
-                {ISSUANCE_URL[ch.key]
-                  ? <>👉 {t('ak.applyNextSelf','콘솔에서 키를 발급한 뒤 아래 [등록]에 입력하면 실시간 검증·자동 연동됩니다.')} {' '}
-                      <a href={ISSUANCE_URL[ch.key]} target="_blank" rel="noopener noreferrer" style={{ color: applySt.c, fontWeight: 800 }}>{t('ak.openConsole','발급 콘솔 열기')} ↗</a></>
-                  : <>👉 {t('ak.applyNextAgent','발급 완료 시 [등록]에 키를 입력하면 실시간 검증·자동 연동됩니다.')}</>}
+                {oauthProv ? (
+                  /* OAuth 채널 — 인가만 하면 발급된 토큰을 플랫폼이 '자동 가져오기'(수취·암호화 저장). 진짜 자동 가져오기. */
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                    <span>🔑 {t('ak.applyNextOauth','발급되면 아래 버튼으로 키(토큰)를 자동으로 가져옵니다 — 인가만 하면 즉시 수취·검증·연동됩니다.')}</span>
+                    <button onClick={() => onOAuth(oauthProv, ch.key)} style={{
+                      padding: '6px 10px', borderRadius: 7, border: 'none', cursor: 'pointer',
+                      background: 'linear-gradient(135deg,#22c55e,#16a34a)', color: '#fff', fontSize: 10.5, fontWeight: 800,
+                      animation: 'akVerifyPulse 1.6s ease-in-out infinite',
+                    }}>⚡ {t('ak.fetchIssuedKey','발급된 키 자동 가져오기')}</button>
+                  </div>
+                ) : ISSUANCE_URL[ch.key] ? (
+                  <>👉 {t('ak.applyNextSelf','콘솔에서 키를 발급한 뒤 아래 [등록]에 입력하면 실시간 검증·자동 연동됩니다.')} {' '}
+                    <a href={ISSUANCE_URL[ch.key]} target="_blank" rel="noopener noreferrer" style={{ color: applySt.c, fontWeight: 800 }}>{t('ak.openConsole','발급 콘솔 열기')} ↗</a>
+                    <div style={{ marginTop: 3, color: 'var(--text-3)', fontSize: 9.5 }}>🔒 {t('ak.noAutoFetch','보안상 발급된 키는 자동으로 가져올 수 없습니다(사용자 콘솔 내부에만 존재) — 직접 등록해야 합니다.')}</div></>
+                ) : (
+                  <>👉 {t('ak.applyNextAgent','발급 완료 시 [등록]에 키를 입력하면 실시간 검증·자동 연동됩니다.')}</>
+                )}
               </div>
             )}
           </div>
