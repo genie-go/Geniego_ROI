@@ -1,3 +1,59 @@
+# 228차 세션 인계서 — **연동허브 발급·Writeback 완성 + 글로벌 PG 8종 + 측정정확도 S1~S5 + 일관성 감사 + 리뷰/UGC 풀스택 R1~R5 + 채널 리뷰수집기 + 라이브 UI 수정 (전부 운영·데모 배포·라이브 e2e·대부분 push)**
+
+> **작성일**: 2026-06-17 (사용자 명시 승인 후) · 운영 roi.genie-go.com / 데모 roidemo.genie-go.com (★vhost server_name=하이픈, 파일경로=`.geniego.com` 무하이픈). 하네스 primary=**E:\project\GeniegoROI**(절대경로 명시 필요). 정본 메모리 [[project-n228-full-audit-sprint]]·[[project-n228-issuance-verify]]·[[project-n228-writeback-adapters]].
+> **종결 상태**: 아래 26커밋 전부 운영/데모 수동 dist swap·백엔드 pscp+php-fpm restart·라이브 e2e 검증 완료. **push: `e19e3e4`~`5b42d861`까지 push 완료, 최종 `94c0f2139f7`(온보딩 추가선택)만 미push** + 초반 발급/Writeback/PG/S1~S5/일관성 커밋도 push 완료(origin/master=5b42d861).
+
+## ✅ 228차 완료 (트랙별, 커밋 과거→최신)
+| 트랙 | 커밋 | 내용 |
+|---|---|---|
+| **연동허브·발급·Writeback** | `e40f91d` | Writeback 채널 쓰기 어댑터 7종 완성(amazon/tiktok_shop/rakuten/11번가/G마켓·옥션/롯데온 pushProduct, 큐 영구잔존 5/12→12/12 해소·fetch인증 재사용·멱등·카테고리 honest게이트) |
+| | `85b857d` | 발급확인 정직화(등록만으로 발급완료 표기 제거→실검증 ping에만)+필드별 ✓등록/✗미등록+회사정보 재사용 발급신청 |
+| | `7aa3ccf` | 채널 카테고리 매핑 UI 어댑터 정합(Writeback 실사용 완성) |
+| | `be94afb` | Writeback cred 복호화+채널별칭 정합 + Amazon seller_id 라벨 |
+| **글로벌 PG** | `2a11cc7` | 글로벌 결제 전문 PG 8종 추가(Paddle/Adyen/Square/Braintree/Checkout/Mollie/Razorpay/Klarna) |
+| | `f5e9834` | Adyen 실 정산 수집 어댑터(Settlement Detail Report CSV, Stripe/Toss/PayPal 패턴) |
+| **발급 상태추적·자동수집·OAuth** | `cf968bb` | **P0** 활성키 탭 System Error 크래시(test_status='untested' STATUS_COLORS 미처리→guard) |
+| | `e8e8c73` | 발급 신청 실시간 상태추적 + 개요 서브탭 카드 표기 |
+| | `9b28430` | 발급된 키 자동 가져오기 CTA(채널 능력별 분기:OAuth원클릭/콘솔딥링크/발급대행)+정직 안내 |
+| | `6795acd` | OAuth 콜백 채널키 불일치(provider→registry) 구조적 한계 수정(oauth_state.channel+reflectRegistryChannel) |
+| **측정정확도 S1~S5** | `7e0f239`·`96646eb`·`44d7ad8` | **S1** 광고 측정정확도: TikTok 통화 정규화 + ROAS 실주문귀속 정합(GET /v423/connectors/roas-reconciliation: 매체보고 vs attribution order-match 실매출)+AI-gate bypass+RoasTruthCard |
+| | `248f64c`·`63beffa` | **S2** 정산 롤업 on-demand(syncTenantChannel 직후 rollupSettlementsCore)+markov 선계산(attribution_model_cache·attribution_cron.php */30)+/v424/attribution/* AI-gate bypass(세션토큰 막힘 해소) |
+| | `bcc89c6` | **S3** 태그없는 외부몰 주문도 markov 전환 집계(commerce last-touch, enrichOrderAttribution early-return 수정·S1 ROAS 불변) |
+| | `bae5fea` | **S4** 채널 추가 정직화(RegistryAddModal 자동수집X·push경로 안내) |
+| | `0fc9408` | **S5** 물류 자동연동 분기(upsert→Logistics::refreshTenant)+주문 통화정규화(saveOrders KRW환산·fxToKrw public·원본보존)+docstring |
+| **일관성 감사** | `ce5f51f` | **P0** attribution_result 이중계산(UNIQUE부재→pre-check first-writer+roasReconciliation dedup) **P1** 웹훅 신규주문↔폴링 정합·프론트 isCancelled/isReturn event_type 인지 |
+| **리뷰/UGC 풀스택** | `e19e3e4` | **R1** 신규 Reviews.php product_review(테넌트격리·UNIQUE멱등·media_json·author sha256)+ingest/list/channel-stats/neg-keywords/DELETE(/v428)+AI-gate bypass+ReviewsUGC 실배선(influencer 블롭 폐기) |
+| | `8e1f74d` | **R2** ClaudeAI 감성·키워드 분석(POST /analyze 배치15·sentiment AI우선·ai_topics·ClaudeAI::complete 래퍼·neg-keywords AI우선)+i18n 5키 15개국+AI분석 버튼 |
+| | `ba3601e` | **R3** 리뷰요청 캠페인(POST /request-campaign 인센티브쿠폰+이메일Mailer 플랫폼폴백·SMS NaverSms·review_request 멱등·전환퍼널)+**UI수정**(온보딩 모델선택·로그인 가드) |
+| | `4200986` | **R4** 노출/신디케이션(review_widget 공개토큰·widget-config authed·공개 widget/view HTML·widget/data JSON·badge SVG·index.php 공개bypass)+'🔗 노출/위젯' 탭 |
+| | `33780e2` | **R5** 리뷰/인플루언서 상태 분리(GlobalData reviewItems 전용·교차오염 차단·Influencer.php docstring 재사용금지) |
+| | `5b42d86` | 채널별 리뷰 API 실수집기(POST /collect·ChannelSync::collectReviews: cafe24 board 실수집·naver OAuth·coupang HMAC·shopify 리뷰앱·정직 degradation)+'🔄 채널 수집' 버튼 |
+| | `94c0f21` | (★미push) 온보딩 비즈모델 선택 후 메인 바 '+서비스/실물상품 추가'(both 병합 추가등록) |
+
+## 📌 228차 정본/발견
+- **리뷰/UGC 데이터계층 = `Reviews.php`(product_review)·`/v428/reviews/*`**. 과거 ReviewsUGC가 InfluencerUGC와 `influencer_store` 블롭(ugc/channel_stats/neg_keywords kind) **공유→교차오염**이던 것을 R1(백엔드 테이블분리)+R5(프론트 GlobalData `reviewItems`/`reviewChannelStats`/`reviewNegKeywords` 전용상태 분리)로 완전 분리. **Influencer.php=인플루언서 전용(삭제금지·리뷰 재사용금지)**.
+- **공개 임베드 위젯 보안 = 공개토큰 `rw_*`→tenant 격리**. `/v428/reviews/widget/`·`/badge`는 index.php **공개 bypass**(무인증), `widget-config`는 인증(AI-gate). 잘못된 토큰→빈응답(누출0). 임베드 절대경로는 **`/api` 프리픽스**(nginx 베어 `/v428` 미프록시·v427까지만 정규식 등록).
+- **AI-gate(index.php:184~) 신규 bypass**: roas-reconciliation·/v424/attribution/*·/v428/reviews(세션토큰→user_session JOIN app_user.tenant_id 권위주입·격리). `/v428/reviews/widget/`·`/badge`만 완전 공개.
+- **채널 리뷰 수집기 = `ChannelSync::collectReviews`**(fetch 인증 재사용). cafe24=즉시 실동작(refresh_token→/admin/boards/{board_no=4}/articles), naver=리뷰스코프 승인 후, coupang=파트너 승인 후, shopify=리뷰앱(Judge.me/spr). **정직 degradation**(no_credentials/auth_failed/scope_pending/partner_gated/requires_app, 가짜수집0).
+- **로그아웃 착시 근본 = `/login` 무가드**. 192차가 `/`(HomeRoute)만 처리, `/login`은 인증무관 AuthPage 렌더→뒤로가기로 도달 시 로그인폼 노출. **App.jsx LoginRoute 가드**(인증→/dashboard, ?reset=/?reason=idle 예외).
+- **온보딩 비즈모델(OnboardingGuide.jsx)**: 단일값 bizModel('commerce'|'service'|'both'). STEP_SETS.both=두 단계셋 병합(dedup). 선택화면 3카드 + 컴팩트바 '+추가' 버튼 + 펼침 푸터 순환전환 3경로로 '둘 다' 진입.
+- **연결링크 생성(사용자 질의 답변·완비)**: OAuth 원클릭(/v425/oauth/{prov}/authorize→authorize_url→매체로그인→콜백 토큰자동저장, 10종)+콘솔 발급 딥링크(ISSUANCE_URL ~40종 키 API미노출 채널)+계약형 발급대행. 갭 없음.
+
+## ⏭️ 다음 차수 잔여
+1. **[★최종 1건 미push]** `94c0f2139f7`(온보딩 추가선택) push 필요(사용자 승인 시). 나머지 25커밋 push 완료.
+2. **리뷰 실수집 외부조건**: Cafe24=자격증명 등록 시 즉시 / 네이버=판매자 리뷰조회 스코프 승인 / 쿠팡=파트너 승인 / Shopify=리뷰앱 연동. 승인 시 동일 패턴 즉시 배선.
+3. **마케팅 자동화 실집행 외부설정**(코드완비): 매체 OAuth앱 client_id/secret·Google developer_token·Toss키·서버 crontab(optimize/connector/oauth-refresh/commerce-sync/attribution)·매체자산(page_id/channel_id/video_id). 소액 라이브 1회 테스트.
+4. **S3 backfill**: 기존 주문 markov 전환은 신규주문부터 적용(과거주문 commerce-last-touch 소급 미적용).
+5. **채널 정산 자동수집**: fetchSettlements 전채널 pending(주문기반 estimated 롤업 의존). Adyen/Stripe/Toss/PayPal PG 실연동분 외 PG cron 부재.
+6. **226차 잔여 이월**(아래 226 인계서 참조): Writeback 워커 cron 소비·SupplyChain 운영배선·쿠폰→정산 P&L·P2 하드닝 6건.
+
+## 📌 228차 배포 백업/검증
+- dist 백업: 운영/데모 `dist.bak_r1`~`dist.bak_r5`·`dist.bak_col`·`dist.bak_onb`·`dist.bak_fix`. 백엔드: Reviews/ChannelSync/routes/index/ClaudeAI/Influencer `.bak_228*` 류.
+- **e2e 검증 패턴**(curl/localhost→nginx fastcgi): 로그인 토큰→/api/v428/* 호출. 리뷰 cleanup=app DB(`php -r` + `\Genie\Db::pdo()`/`Crypto`, mysql CLI -p 인증 불가). 공개 위젯은 무인증 curl. 채널수집 e2e=더미 cafe24 cred 주입(Crypto::encrypt)→auth_failed(실 OAuth 경로 증명)→삭제.
+- ★ceo@ociell.com tenant=**acct_1**. 신규 핸들러/라우트=php-fpm **restart**(reload 무효·opcache).
+
+---
+
 # 226차 세션 인계서 — **인플루언서 5-Phase 실현화 + 운영 실데이터 귀속 + 8영역 전수감사 + P1 6사이클 수정 (전부 운영·데모 배포·헤드리스 검증·push)**
 
 > **작성일**: 2026-06-15 (사용자 명시 승인 후) · 운영 roi.genie-go.com / 데모 roidemo.genie-go.com (★vhost server_name=하이픈, 파일경로=`.geniego.com` 무하이픈). 하네스 primary=E:\project\GeniegoROI(절대경로 명시 필요). 정본 메모리 [[project_influencer_attribution]].
