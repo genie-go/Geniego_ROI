@@ -180,7 +180,9 @@ const DEFAULT_FIELDS = [{ k: 'api_key', label: 'API 키 / 액세스 토큰', sec
 /* [229차] 채널별 발급 매뉴얼(레이어 팝업·iframe). public/api_manuals/<key>.html 정적 서빙.
    youtube=큐레이트, 나머지=issuanceGuide 단계 기반 생성. 이 집합의 채널만 '📖 발급 매뉴얼' 버튼 노출. */
 const MANUAL_KEYS = new Set(['adyen','amazon_spapi','auction','braintree','cafe24','checkout','coupang','dhl','ebay','etsy','fedex','gmarket','godomall','google_ads','google_analytics','inicis','kakaopay','kcp','klarna','lazada','lotteon','magento','meta_ads','mollie','naver_sa','naver_smartstore','paddle','paypal','qoo10','rakuten','razorpay','shopee','shopify','slack','smarttracker','square','st11','stripe','tiktok_business','tiktok_shop','toss','twitch','ups','walmart','woocommerce','youtube']);
-const manualUrl = (key) => `/api_manuals/${key}.html`;
+// [229차] 15개국 현지 자연어 매뉴얼 — public/api_manuals/<lang>/<key>.html. 미지원 언어는 en 폴백.
+const MANUAL_LANGS = new Set(['ko','en','ja','zh','zh-TW','de','th','vi','id','ar','es','fr','hi','pt','ru']);
+const manualUrl = (key, lang) => `/api_manuals/${MANUAL_LANGS.has(lang) ? lang : 'en'}/${key}.html`;
 
 /* ─── [현 차수] 채널별 자격증명 발급 메타 ─────────────────────────────────
    요청2: "자동 등록 가능한 것은 시스템이 발급·등록, 아이디/비번은 사용자가 직접 저장 → 즉시 연동".
@@ -1753,9 +1755,28 @@ function OverviewTab({ channels, summary, creds, applies = [], loading, onChanne
         background: status === 'none' ? 'rgba(255,255,255,0.85)'
           : status === 'partial' ? 'rgba(245,158,11,0.06)'
           : (pending ? 'rgba(250,204,21,0.07)' : 'rgba(34,197,94,0.07)'),
-        border: `1px solid ${status === 'none' ? 'rgba(0,0,0,0.06)' : sc.border}`,
-        borderLeft: `3px solid ${ch.color}`,
+        // [229차] 등록 완료 채널 강조 — 2px 녹색(준비중=노랑) 테두리 + 글로우로 시각적 부각.
+        border: status === 'full'
+          ? `2px solid ${pending ? 'rgba(202,138,4,0.55)' : 'rgba(22,163,74,0.6)'}`
+          : `1px solid ${status === 'none' ? 'rgba(0,0,0,0.06)' : sc.border}`,
+        borderLeft: `4px solid ${ch.color}`,
+        boxShadow: status === 'full' ? (pending ? '0 0 0 3px rgba(234,179,8,0.10)' : '0 0 0 3px rgba(34,197,94,0.12)') : 'none',
       }}>
+        {/* [229차] ★등록 완료 강조 배너 — 개요에서 발급·등록된 채널을 한눈에 뚜렷하게 표시. */}
+        {status === 'full' && (
+          <div style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+            marginBottom: 11, padding: '7px 10px', borderRadius: 9, fontSize: 11.5, fontWeight: 900, letterSpacing: 0.2,
+            color: '#fff', boxShadow: '0 4px 12px rgba(22,163,74,0.26)',
+            background: isVerified ? 'linear-gradient(135deg,#22c55e,#15803d)'
+              : pending ? 'linear-gradient(135deg,#facc15,#ca8a04)'
+              : 'linear-gradient(135deg,#34d399,#16a34a)',
+          }}>
+            {isVerified ? `🎉 ${t('ak.bannerVerified','발급 확인 완료')}`
+              : pending ? `✅ ${t('ak.bannerPending','등록 완료 · 연동 준비 중')}`
+              : `✅ ${t('ak.bannerRegistered','발급·등록 완료')}`}
+          </div>
+        )}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
           <span style={{ fontSize: 22 }} aria-hidden>{ch.icon}</span>
           <div style={{ flex: 1, minWidth: 0 }}>
@@ -2179,6 +2200,7 @@ function RegistryAddModal({ onClose, onSubmit }) {
    ═══════════════════════════════════════════════════════════════════ */
 function ConnectModal({ channel, onClose, onSubmit, t, extraFields = {}, postOauth = false, registeredKeys, verifiedKeys }) {
   const fields = CHANNEL_FIELDS[channel.key] || extraFields[channel.key] || DEFAULT_FIELDS;
+  const { lang: uiLang } = useI18n();
   const [vals, setVals] = useState({});
   const [busy, setBusy] = useState(false);
   // [227차] OAuth 직후 모드: 토큰성 필드는 "자동 등록됨"으로 표시, 회원은 계정 ID 등 잔여 필드만 입력.
@@ -2210,7 +2232,7 @@ function ConnectModal({ channel, onClose, onSubmit, t, extraFields = {}, postOau
           <span style={{ fontSize: 28 }} aria-hidden>{channel.icon}</span>
           <div style={{ fontSize: 18, fontWeight: 800, flex: 1 }}>{channel.name} {t('ak.connectTitle','연동 등록')}</div>
           {MANUAL_KEYS.has(channel.key) && (
-            <a href={manualUrl(channel.key)} target="_blank" rel="noopener noreferrer" title={t('ak.manualHint','API 키 발급 과정을 단계별로 안내합니다.')} style={{ fontSize: 11.5, fontWeight: 800, color: '#6366f1', textDecoration: 'none', padding: '5px 9px', border: '1px solid rgba(99,102,241,0.3)', borderRadius: 8, whiteSpace: 'nowrap' }}>📖 {t('ak.manualBtn','발급 매뉴얼')}</a>
+            <a href={manualUrl(channel.key, uiLang)} target="_blank" rel="noopener noreferrer" title={t('ak.manualHint','API 키 발급 과정을 단계별로 안내합니다.')} style={{ fontSize: 11.5, fontWeight: 800, color: '#6366f1', textDecoration: 'none', padding: '5px 9px', border: '1px solid rgba(99,102,241,0.3)', borderRadius: 8, whiteSpace: 'nowrap' }}>📖 {t('ak.manualBtn','발급 매뉴얼')}</a>
           )}
         </div>
         {postOauth && (
@@ -2285,7 +2307,8 @@ function ConnectModal({ channel, onClose, onSubmit, t, extraFields = {}, postOau
    매뉴얼은 자체 완결 HTML(전역 CSS 포함)이라 iframe 격리로 앱 스타일 충돌을 방지한다.
    ═══════════════════════════════════════════════════════════════════ */
 function ManualModal({ channel, onClose, t }) {
-  const url = manualUrl(channel.key);
+  const { lang } = useI18n();
+  const url = manualUrl(channel.key, lang);
   return (
     <div role="dialog" aria-modal="true" onClick={onClose} style={{
       position: 'fixed', inset: 0, zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center',
