@@ -443,13 +443,42 @@ class Catalog
        ═══════════════════════════════════════════════════════════════════ */
 
     /** 채널 활성 자격증명을 key_name→key_value 맵으로 로드(테넌트 격리). 없으면 빈 배열. */
+    /** [228차] 채널 별칭 그룹 — registry(amazon_spapi)·job·매핑의 채널키 표기차를 흡수.
+     *   cred/카테고리 조회가 정확매칭만 하면 별칭 채널(예: job=amazon, cred=amazon_spapi)에서 영영 못 찾는다. */
+    private static function channelAliases(string $channel): array
+    {
+        $ch = strtolower(trim($channel));
+        $groups = [
+            ['amazon', 'amazon_spapi'],
+            ['tiktok_shop', 'tiktok'],
+            ['naver', 'naver_smartstore'],
+            ['11st', 'st11'],
+        ];
+        foreach ($groups as $g) { if (in_array($ch, $g, true)) return $g; }
+        return [$ch];
+    }
+
     private static function loadChannelCreds(\PDO $pdo, string $tenant, string $channel): array
     {
+        $exact   = strtolower(trim($channel));
+        $aliases = self::channelAliases($channel);
         try {
-            $st = $pdo->prepare("SELECT key_name, key_value FROM channel_credential WHERE tenant_id=? AND channel=? AND is_active=1");
-            $st->execute([$tenant, $channel]);
+            $ph = implode(',', array_fill(0, count($aliases), '?'));
+            $st = $pdo->prepare("SELECT channel, key_name, key_value FROM channel_credential WHERE tenant_id=? AND channel IN ($ph) AND is_active=1");
+            $st->execute(array_merge([$tenant], $aliases));
+            $rows = $st->fetchAll(\PDO::FETCH_ASSOC);
+            // [228차] ★key_value 는 AES 암호화 저장본 → 복호화 필수(평문 passthrough 안전). 정확채널 우선, 없으면 별칭.
+            //   기존엔 raw(암호화) 반환 + 정확매칭 → seller_id 등 모든 쓰기 자격증명이 어댑터에 미도달(잠복 버그).
             $creds = [];
-            foreach ($st->fetchAll(\PDO::FETCH_ASSOC) as $r) { $creds[(string)$r['key_name']] = (string)$r['key_value']; }
+            foreach ([true, false] as $exactFirst) {
+                foreach ($rows as $r) {
+                    $isExact = strtolower((string)$r['channel']) === $exact;
+                    if ($exactFirst !== $isExact) continue;
+                    $kn = (string)$r['key_name'];
+                    if ($kn === '' || isset($creds[$kn])) continue;
+                    $creds[$kn] = \Genie\Crypto::decrypt((string)$r['key_value']);
+                }
+            }
             return $creds;
         } catch (\Throwable $e) { return []; }
     }
@@ -624,8 +653,11 @@ class Catalog
         $cat = trim((string)($product['category'] ?? ''));
         if ($cat === '') return '';
         try {
-            $st = $pdo->prepare("SELECT channel_code FROM channel_category_map WHERE tenant_id=? AND channel=? AND src_category=? LIMIT 1");
-            $st->execute([$tenant, $channel, $cat]);
+            // [228차] 별칭 정합 — 카테고리맵이 registry키(amazon_spapi)로 저장돼도 job채널(amazon)에서 찾도록.
+            $aliases = self::channelAliases($channel);
+            $ph = implode(',', array_fill(0, count($aliases), '?'));
+            $st = $pdo->prepare("SELECT channel_code FROM channel_category_map WHERE tenant_id=? AND channel IN ($ph) AND src_category=? LIMIT 1");
+            $st->execute(array_merge([$tenant], $aliases, [$cat]));
             $code = $st->fetchColumn();
             return $code !== false ? (string)$code : '';
         } catch (\Throwable $e) { return ''; }
