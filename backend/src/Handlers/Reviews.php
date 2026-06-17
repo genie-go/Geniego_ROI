@@ -49,7 +49,8 @@ final class Reviews
                     tenant_id VARCHAR(190), channel VARCHAR(190), external_review_id VARCHAR(190),
                     product_name VARCHAR(500), product_id VARCHAR(190), sku VARCHAR(190), category VARCHAR(120),
                     rating DOUBLE DEFAULT 0, title VARCHAR(500), body TEXT, media_json TEXT,
-                    author_hash VARCHAR(80), sentiment VARCHAR(20), lang VARCHAR(10), helpful INT DEFAULT 0,
+                    author_hash VARCHAR(80), sentiment VARCHAR(20), sentiment_src VARCHAR(10) DEFAULT 'rule',
+                    ai_topics TEXT, lang VARCHAR(10), helpful INT DEFAULT 0,
                     reviewed_at VARCHAR(40), collected_at VARCHAR(40),
                     UNIQUE KEY uq_review (tenant_id, channel, external_review_id),
                     KEY idx_rev_tc (tenant_id, channel)
@@ -60,9 +61,14 @@ final class Reviews
                     tenant_id TEXT, channel TEXT, external_review_id TEXT,
                     product_name TEXT, product_id TEXT, sku TEXT, category TEXT,
                     rating REAL DEFAULT 0, title TEXT, body TEXT, media_json TEXT,
-                    author_hash TEXT, sentiment TEXT, lang TEXT, helpful INTEGER DEFAULT 0,
+                    author_hash TEXT, sentiment TEXT, sentiment_src TEXT DEFAULT 'rule',
+                    ai_topics TEXT, lang TEXT, helpful INTEGER DEFAULT 0,
                     reviewed_at TEXT, collected_at TEXT)");
                 try { $pdo->exec("CREATE UNIQUE INDEX IF NOT EXISTS uq_review ON product_review(tenant_id,channel,external_review_id)"); } catch (\Throwable $e) {}
+            }
+            // R2 컬럼 best-effort ALTER(기존 R1 테이블 보강) — 이미 존재 시 예외 무시(멱등).
+            foreach (["sentiment_src " . ($isMy ? "VARCHAR(10) DEFAULT 'rule'" : "TEXT DEFAULT 'rule'"), 'ai_topics TEXT'] as $col) {
+                try { $pdo->exec("ALTER TABLE product_review ADD COLUMN $col"); } catch (\Throwable $e) {}
             }
         } catch (\Throwable $e) { /* graceful */ }
     }
@@ -178,13 +184,34 @@ final class Reviews
         } catch (\Throwable $e) { return self::json($res, ['ok' => true, 'stats' => []]); }
     }
 
-    /** GET /v428/reviews/neg-keywords — 부정 리뷰 본문에서 사전 매칭 빈도 추출(실 데이터 기반, R2 AI 대체). */
+    /**
+     * GET /v428/reviews/neg-keywords — 부정 리뷰 키워드 빈도.
+     *   R2: AI 추출 키워드(ai_topics)가 있으면 우선 집계(실 텍스트 의미 기반), 없으면 R1 사전 매칭 폴백.
+     */
     public static function negKeywords(Request $req, Response $res): Response
     {
         $tenant = self::tenant($req);
         if ($tenant === '' || self::isDemo($tenant)) return self::json($res, ['ok' => true, 'keywords' => []]);
         try {
             $pdo = Db::pdo(); self::ensureTable($pdo);
+            // R2 우선: AI 추출 키워드 집계(부정·중립 리뷰의 ai_topics.keywords).
+            $aiCounts = [];
+            try {
+                $sa = $pdo->prepare("SELECT ai_topics FROM product_review WHERE tenant_id=? AND sentiment IN('negative','neutral') AND ai_topics IS NOT NULL AND ai_topics<>'' ORDER BY id DESC LIMIT 3000");
+                $sa->execute([$tenant]);
+                foreach ($sa->fetchAll(\PDO::FETCH_COLUMN) as $tj) {
+                    $d = json_decode((string)$tj, true);
+                    $kws = is_array($d['keywords'] ?? null) ? $d['keywords'] : [];
+                    foreach ($kws as $kw) { $kw = trim((string)$kw); if ($kw !== '') $aiCounts[$kw] = ($aiCounts[$kw] ?? 0) + 1; }
+                }
+            } catch (\Throwable $e) {}
+            if ($aiCounts) {
+                arsort($aiCounts);
+                $out = [];
+                foreach ($aiCounts as $word => $c) { $out[] = ['word' => $word, 'count' => $c, 'change' => 0, 'src' => 'ai']; }
+                return self::json($res, ['ok' => true, 'mode' => 'ai', 'keywords' => array_slice($out, 0, 15)]);
+            }
+            // R1 폴백: 사전 매칭 빈도.
             $st = $pdo->prepare("SELECT body FROM product_review WHERE tenant_id=? AND sentiment='negative' ORDER BY id DESC LIMIT 2000");
             $st->execute([$tenant]);
             $counts = array_fill_keys(self::NEG_DICT, 0);
@@ -194,9 +221,73 @@ final class Reviews
             }
             arsort($counts);
             $out = [];
-            foreach ($counts as $word => $c) { if ($c > 0) $out[] = ['word' => $word, 'count' => $c, 'change' => 0]; }
-            return self::json($res, ['ok' => true, 'keywords' => array_slice($out, 0, 15)]);
+            foreach ($counts as $word => $c) { if ($c > 0) $out[] = ['word' => $word, 'count' => $c, 'change' => 0, 'src' => 'dict']; }
+            return self::json($res, ['ok' => true, 'mode' => 'dict', 'keywords' => array_slice($out, 0, 15)]);
         } catch (\Throwable $e) { return self::json($res, ['ok' => true, 'keywords' => []]); }
+    }
+
+    /**
+     * POST /v428/reviews/analyze — [R2] ClaudeAI 텍스트 분석 엔진.
+     *   AI 미분석 리뷰(ai_topics 빈값)를 배치로 Claude 에 전달 → 리뷰별 감성(positive/neutral/negative) +
+     *   부정/품질 키워드(최대 5) + 1줄 핵심 측면(aspect) 추출 → sentiment(AI 우선)·sentiment_src='ai'·ai_topics 갱신.
+     *   AI 키 미설정 시 R1 규칙기반 유지(analyzed:0, mode:'rule'). 테넌트 격리·데모 차단·quota 게이트(callClaude).
+     *   body(optional): { limit?:int(기본 60, 최대 200), channel? }
+     */
+    public static function analyze(Request $req, Response $res): Response
+    {
+        $tenant = self::tenant($req);
+        if ($tenant === '' || self::isDemo($tenant)) return self::json($res, ['ok' => false, 'error' => 'tenant_required'], 403);
+        if (!ClaudeAI::aiKeyConfigured()) return self::json($res, ['ok' => true, 'analyzed' => 0, 'mode' => 'rule', 'detail' => 'AI key not configured — rule-based sentiment in effect']);
+
+        $b = (array)($req->getParsedBody() ?? []);
+        if (empty($b)) { $d = json_decode((string)$req->getBody(), true); if (is_array($d)) $b = $d; }
+        $limit = max(1, min(200, (int)($b['limit'] ?? 60)));
+        $channel = trim((string)($b['channel'] ?? ''));
+
+        $pdo = Db::pdo(); self::ensureTable($pdo);
+        $where = "tenant_id=? AND (ai_topics IS NULL OR ai_topics='')"; $params = [$tenant];
+        if ($channel !== '') { $where .= " AND channel=?"; $params[] = $channel; }
+        $st = $pdo->prepare("SELECT id,rating,title,body FROM product_review WHERE $where ORDER BY id DESC LIMIT $limit");
+        $st->execute($params);
+        $rows = $st->fetchAll(\PDO::FETCH_ASSOC);
+        if (!$rows) return self::json($res, ['ok' => true, 'analyzed' => 0, 'mode' => 'ai', 'detail' => 'no pending reviews']);
+
+        $upd = $pdo->prepare("UPDATE product_review SET sentiment=?, sentiment_src='ai', ai_topics=? WHERE id=? AND tenant_id=?");
+        $sys = "당신은 커머스 고객 리뷰 분석 엔진입니다. 입력은 리뷰 배열(JSON)입니다. "
+             . "각 리뷰에 대해 감성(sentiment: positive|neutral|negative), 부정·품질 관련 핵심 키워드(keywords: 한국어 명사구 최대 5개, 긍정 리뷰면 빈 배열), "
+             . "한 줄 핵심 측면 요약(aspect: 30자 이내)을 판단하세요. "
+             . "반드시 코드블록 없이 순수 JSON 배열만 출력: [{\"id\":<원본 id>,\"sentiment\":\"...\",\"keywords\":[...],\"aspect\":\"...\"}]. 다른 텍스트 금지.";
+        $analyzed = 0;
+        foreach (array_chunk($rows, 15) as $chunk) {
+            $payload = [];
+            foreach ($chunk as $r) {
+                $payload[] = ['id' => (int)$r['id'], 'rating' => (float)$r['rating'],
+                    'text' => mb_substr(trim((string)($r['title'] ?? '') . ' ' . (string)($r['body'] ?? '')), 0, 600)];
+            }
+            $text = ClaudeAI::complete($sys, json_encode($payload, JSON_UNESCAPED_UNICODE), 15, $tenant);
+            if ($text === null) break; // quota/에러 → 남은 배치 중단(이미 처리분 보존)
+            $clean = preg_replace('/```(?:json)?\s*([\s\S]*?)```/', '$1', $text);
+            $arr = json_decode(trim((string)($clean ?? $text)), true);
+            if (!is_array($arr)) continue;
+            $byId = [];
+            foreach ($chunk as $r) { $byId[(int)$r['id']] = $r; }
+            foreach ($arr as $a) {
+                if (!is_array($a)) continue;
+                $id = (int)($a['id'] ?? 0);
+                if (!isset($byId[$id])) continue;
+                $sent = (string)($a['sentiment'] ?? '');
+                if (!in_array($sent, ['positive', 'neutral', 'negative'], true)) {
+                    $sent = self::sentimentFromRating((float)$byId[$id]['rating']);
+                }
+                $kws = [];
+                foreach ((is_array($a['keywords'] ?? null) ? $a['keywords'] : []) as $kw) {
+                    $kw = trim((string)$kw); if ($kw !== '') $kws[] = mb_substr($kw, 0, 40);
+                }
+                $topics = json_encode(['keywords' => array_slice($kws, 0, 5), 'aspect' => mb_substr(trim((string)($a['aspect'] ?? '')), 0, 60)], JSON_UNESCAPED_UNICODE);
+                try { $upd->execute([$sent, $topics, $id, $tenant]); $analyzed++; } catch (\Throwable $e) {}
+            }
+        }
+        return self::json($res, ['ok' => true, 'analyzed' => $analyzed, 'mode' => 'ai']);
     }
 
     /** DELETE /v428/reviews/{id} — 테넌트 격리 삭제. */

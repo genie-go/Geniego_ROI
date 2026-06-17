@@ -729,6 +729,8 @@ return function (App $app): void {
         'GET /api/v428/reviews/neg-keywords' => 'Genie\\Handlers\\Reviews::negKeywords',
         'POST /v428/reviews/ingest'          => 'Genie\\Handlers\\Reviews::ingest',
         'POST /api/v428/reviews/ingest'      => 'Genie\\Handlers\\Reviews::ingest',
+        'POST /v428/reviews/analyze'         => 'Genie\\Handlers\\Reviews::analyze',
+        'POST /api/v428/reviews/analyze'     => 'Genie\\Handlers\\Reviews::analyze',
         'DELETE /v428/reviews/{id}'          => 'Genie\\Handlers\\Reviews::remove',
         'DELETE /api/v428/reviews/{id}'      => 'Genie\\Handlers\\Reviews::remove',
         // [현 차수] 범용 광고성과 ingest(추후 추가 채널 무코드 적재, api_key write) — objective 포함.
@@ -2466,6 +2468,7 @@ return function (App $app): void {
     $register('GET',    '/v428/reviews/channel-stats');  $register('GET',    '/api/v428/reviews/channel-stats');
     $register('GET',    '/v428/reviews/neg-keywords');   $register('GET',    '/api/v428/reviews/neg-keywords');
     $register('POST',   '/v428/reviews/ingest');         $register('POST',   '/api/v428/reviews/ingest');
+    $register('POST',   '/v428/reviews/analyze');        $register('POST',   '/api/v428/reviews/analyze');
     $register('DELETE', '/v428/reviews/{id}');           $register('DELETE', '/api/v428/reviews/{id}');
     $register('POST', '/v424/connectors/ad-metrics');
     $register('POST', '/api/v424/connectors/ad-metrics');

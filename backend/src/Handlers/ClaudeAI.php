@@ -42,6 +42,20 @@ final class ClaudeAI {
         return strpos($k, 'MASKED_FOR_GITHUB') === false && strlen($k) > 10;
     }
 
+    /**
+     * [228차 R2] 공용 텍스트 완성 헬퍼 — 타 핸들러(Reviews 등)가 중앙화된 키 해석 + quota 게이트로
+     *   Claude 를 호출하기 위한 얇은 public 래퍼. 키 미설정/에러/quota 시 null 반환(호출측 graceful 폴백).
+     */
+    public static function complete(string $systemPrompt, string $userMsg, int $timeout = 12, string $tenant = ''): ?string {
+        if (!self::aiKeyConfigured()) return null;
+        try {
+            $r = self::callClaude($systemPrompt, $userMsg, $timeout, $tenant);
+            return (string)($r['text'] ?? '');
+        } catch (\Throwable $e) {
+            return null;
+        }
+    }
+
     /** 196차: 실사 이미지 생성 API 설정(provider + key). [현 차수] 구독회원별 BYO 우선 + app_setting 전역 폴백. */
     private static function imgGenConfig(string $tenant = ''): array {
         // [현 차수] ★구독회원별 BYO: ai_settings 테넌트 행에 imggen_* 가 있으면 그 키 사용(없으면 전역 폴백=기존동작, 무위험).

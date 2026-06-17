@@ -33,6 +33,23 @@ function useReviewsSecurity() {
 /* ══════════════════════════════════════════════════════════════════
    AUTO-LOAD: API → GlobalDataContext real-time sync
 ══════════════════════════════════════════════════════════════════ */
+/* [228차 R1/R2] 실 리뷰 데이터 계층(product_review) 로드 — 마운트·AI분석 후 재동기화 공용.
+   응답 {ok,reviews|stats|keywords:[...]} 래핑 → 배열 추출. */
+async function loadReviewData({ syncUgcReviews, syncChannelStats, syncNegKeywords }) {
+    const BASE = import.meta.env.VITE_API_BASE || "";
+    const token = localStorage.getItem("genie_token") || localStorage.getItem("demo_genie_token") || "";
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+    const [reviewsRes, statsRes, kwRes] = await Promise.allSettled([
+        fetch(`${BASE}/api/v428/reviews?limit=300`, { headers }).then(r => r.ok ? r.json() : null),
+        fetch(`${BASE}/api/v428/reviews/channel-stats`, { headers }).then(r => r.ok ? r.json() : null),
+        fetch(`${BASE}/api/v428/reviews/neg-keywords`, { headers }).then(r => r.ok ? r.json() : null),
+    ]);
+    const arr = (res, key) => (res.status === "fulfilled" && res.value && Array.isArray(res.value[key])) ? res.value[key] : null;
+    const rv = arr(reviewsRes, "reviews"); if (rv) syncUgcReviews(rv);
+    const st = arr(statsRes, "stats"); if (st) syncChannelStats(st);
+    const kw = arr(kwRes, "keywords"); if (kw) syncNegKeywords(kw);
+}
+
 function useReviewsDataSync() {
     const { syncUgcReviews, syncChannelStats, syncNegKeywords, isDemo } = useGlobalData();
     const loaded = useRef(false);
@@ -41,21 +58,7 @@ function useReviewsDataSync() {
         loaded.current = true;
         // [228차 R1] 데모는 시드 사용(GlobalDataContext)·운영만 실 리뷰 엔드포인트 호출(빈 응답으로 시드 덮어쓰기 방지).
         if (isDemo) return;
-        const BASE = import.meta.env.VITE_API_BASE || "";
-        const token = localStorage.getItem("genie_token") || localStorage.getItem("demo_genie_token") || "";
-        const headers = token ? { Authorization: `Bearer ${token}` } : {};
-        Promise.allSettled([
-            /* [228차 R1] 실 리뷰 데이터 계층(product_review) 엔드포인트로 배선 — 기존 influencer 블롭 stopgap 폐기.
-               응답 {ok,reviews|stats|keywords:[...]} 래핑 → 배열 추출. */
-            fetch(`${BASE}/api/v428/reviews?limit=300`, { headers }).then(r => r.ok ? r.json() : null),
-            fetch(`${BASE}/api/v428/reviews/channel-stats`, { headers }).then(r => r.ok ? r.json() : null),
-            fetch(`${BASE}/api/v428/reviews/neg-keywords`, { headers }).then(r => r.ok ? r.json() : null),
-        ]).then(([reviewsRes, statsRes, kwRes]) => {
-            const arr = (res, key) => (res.status === "fulfilled" && res.value && Array.isArray(res.value[key])) ? res.value[key] : null;
-            const rv = arr(reviewsRes, "reviews"); if (rv) syncUgcReviews(rv);
-            const st = arr(statsRes, "stats"); if (st) syncChannelStats(st);
-            const kw = arr(kwRes, "keywords"); if (kw) syncNegKeywords(kw);
-        }).catch(() => {});
+        loadReviewData({ syncUgcReviews, syncChannelStats, syncNegKeywords }).catch(() => {});
     }, [syncUgcReviews, syncChannelStats, syncNegKeywords, isDemo]);
 }
 
@@ -94,11 +97,14 @@ function Toast({ message, onClose }) {
 /* ══════════════════════════════════════════════
    TAB 1: Dashboard (KPI + Channel + Keywords)
    ══════════════════════════════════════════════ */
-function DashboardTab({ t, channelStats, negKeywords, ugcReviews, totalReviews, avgRating, negCount, repliedCount, escalatedCount, onBulkEscalate, onBulkReply }) {
+function DashboardTab({ t, channelStats, negKeywords, ugcReviews, totalReviews, avgRating, negCount, repliedCount, escalatedCount, onBulkEscalate, onBulkReply, onAnalyze, analyzing }) {
     return (
         <div style={{ display: "grid", gap: 16 }}>
             {/* Action Buttons */}
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                <button className="btn-primary" style={{ fontSize: 11, padding: "6px 14px", background: "linear-gradient(135deg,#6366f1,#8b5cf6)", opacity: analyzing ? 0.6 : 1, cursor: analyzing ? "wait" : "pointer" }} onClick={onAnalyze} disabled={analyzing}>
+                    {analyzing ? `⏳ ${t("reviews.aiAnalyzing", "AI 분석 중…")}` : `✨ ${t("reviews.aiAnalyze", "AI 리뷰 분석")}`}
+                </button>
                 <button className="btn-primary" style={{ fontSize: 11, padding: "6px 14px", background: "linear-gradient(135deg,#ef4444,#f97316)" }} onClick={onBulkEscalate}>
                     🚨 {t("reviews.bulkEscalate")}
                 </button>
@@ -413,7 +419,7 @@ function ReviewsGuideTab() {
 ══════════════════════════════════════════════════════════════════ */
 export default function ReviewsUGC() {
     const { pushNotification } = useNotification();
-    const { ugcReviews = [], channelStats = [], negKeywords = [], addAlert } = useGlobalData();
+    const { ugcReviews = [], channelStats = [], negKeywords = [], addAlert, isDemo, syncUgcReviews, syncChannelStats, syncNegKeywords } = useGlobalData();
     const { t } = useI18n();
     const { alert: hackAlert, clearAlert: clearHack } = useReviewsSecurity();
     useReviewsDataSync();
@@ -422,6 +428,7 @@ export default function ReviewsUGC() {
     const [replyState, setReplyState] = useState({});
     const [escalateState, setEscalateState] = useState({});
     const [toast, setToast] = useState(null);
+    const [analyzing, setAnalyzing] = useState(false);
 
     const totalReviews = channelStats.reduce((s, c) => s + (c.total || 0), 0);
     const avgRating = totalReviews > 0 ? (channelStats.reduce((s, c) => s + (c.avg || 0) * (c.total || 0), 0) / totalReviews).toFixed(2) : "0.00";
@@ -438,6 +445,28 @@ export default function ReviewsUGC() {
     }, [t, pushNotification]);
     const onBulkEscalate = useCallback(() => { ugcReviews.filter(r => r.sentiment === "negative").forEach(r => handleEscalate(r.id)); }, [ugcReviews, handleEscalate]);
     const onBulkReply = useCallback(() => { ugcReviews.forEach(r => handleGenReply(r)); }, [ugcReviews, handleGenReply]);
+    // [228차 R2] ClaudeAI 리뷰 분석 트리거 — 미분석 리뷰 감성·키워드 추출 후 재동기화(데모는 시드 유지).
+    const onAnalyze = useCallback(async () => {
+        if (isDemo) { setToast(t("reviews.aiAnalyzeDemo", "데모 모드에서는 시드 데이터가 사용됩니다")); return; }
+        setAnalyzing(true);
+        try {
+            const BASE = import.meta.env.VITE_API_BASE || "";
+            const token = localStorage.getItem("genie_token") || localStorage.getItem("demo_genie_token") || "";
+            const res = await fetch(`${BASE}/api/v428/reviews/analyze`, {
+                method: "POST",
+                headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+                body: JSON.stringify({ limit: 60 }),
+            }).then(r => r.ok ? r.json() : null);
+            if (res && res.mode === "rule") {
+                setToast(t("reviews.aiAnalyzeNoKey", "AI 키 미설정 — 평점 기반 감성 분석이 적용됩니다"));
+            } else {
+                const n = res ? (res.analyzed || 0) : 0;
+                setToast(t("reviews.aiAnalyzeDone", "AI 리뷰 분석 완료") + (n ? ` (${n})` : ""));
+                await loadReviewData({ syncUgcReviews, syncChannelStats, syncNegKeywords });
+            }
+        } catch (e) { setToast(t("reviews.aiAnalyzeErr", "AI 분석 실패")); }
+        setAnalyzing(false);
+    }, [isDemo, t, syncUgcReviews, syncChannelStats, syncNegKeywords]);
 
     const TABS = useMemo(() => [
         { id: "dashboard", label: `📊 ${t('reviews.tabDashboard')}` },
@@ -483,7 +512,7 @@ export default function ReviewsUGC() {
             {/* Tab Content */}
             <div style={{ flex:1, overflowY:"auto", paddingBottom:20 }}>
             <div style={{ background:"rgba(255,255,255,0.95)", border:"1px solid rgba(0,0,0,0.08)", borderRadius:14, padding:20 }}>
-                {tab === "dashboard" && <DashboardTab t={t} channelStats={channelStats} negKeywords={negKeywords} ugcReviews={ugcReviews} totalReviews={totalReviews} avgRating={avgRating} negCount={negCount} repliedCount={repliedCount} escalatedCount={escalatedCount} onBulkEscalate={onBulkEscalate} onBulkReply={onBulkReply} />}
+                {tab === "dashboard" && <DashboardTab t={t} channelStats={channelStats} negKeywords={negKeywords} ugcReviews={ugcReviews} totalReviews={totalReviews} avgRating={avgRating} negCount={negCount} repliedCount={repliedCount} escalatedCount={escalatedCount} onBulkEscalate={onBulkEscalate} onBulkReply={onBulkReply} onAnalyze={onAnalyze} analyzing={analyzing} />}
                 {tab === "feed" && <ReviewFeedTab t={t} ugcReviews={ugcReviews} channelStats={channelStats} replyState={replyState} escalateState={escalateState} onGenReply={handleGenReply} onCopyReply={handleCopyReply} onEscalate={handleEscalate} />}
                 {tab === "trend" && <TrendTab t={t} channelStats={channelStats} ugcReviews={ugcReviews} />}
                 {tab === "settings" && <SettingsTab t={t} />}

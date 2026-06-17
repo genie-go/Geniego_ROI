@@ -15624,6 +15624,16 @@ export default {
 
     "bulkGenReply": "일괄 AI 답변 생성",
 
+    "aiAnalyze": "AI 리뷰 분석",
+
+    "aiAnalyzeDone": "AI 리뷰 분석 완료",
+
+    "aiAnalyzeNoKey": "AI 키 미설정 — 평점 기반 감성 분석이 적용됩니다",
+
+    "aiAnalyzeDemo": "데모 모드에서는 시드 데이터가 사용됩니다",
+
+    "aiAnalyzeErr": "AI 분석 실패",
+
     "kpiTotal": "전체 리뷰",
 
     "kpiTotalSub": "4채널 합산",
