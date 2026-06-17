@@ -4,6 +4,8 @@ import { getJsonAuth, postJson, delJson } from '../services/apiClient.js';
 import { IS_DEMO } from '../utils/demoEnv';
 import { handlePlanLimit } from '../utils/planLimit.js';
 import { useConnectorSync } from '../context/ConnectorSyncContext.jsx';
+import { useAuth } from '../auth/AuthContext.jsx';
+import { getIssuanceGuide } from '../data/issuanceGuide.js';
 
 /* ═══════════════════════════════════════════════════════════════════
    177차 §4.E TOP 1 본체 + U-177-A: ApiKeys.jsx 실제 ChannelCreds 관리 UI
@@ -181,16 +183,24 @@ const REAL_ADAPTER = new Set([
   // [현 차수] v427 PG 정산 실어댑터(PgSettlement.php): Stripe·토스페이먼츠·PayPal.
   'stripe', 'toss', 'paypal',
 ]);
+/* [현 차수] ★연결 테스트가 '실제 발급 검증'(라이브 채널 API 호출로 키 유효성 확인)인 채널 — 백엔드 hasLiveVerify 정합.
+   '발급 확인됨' 배지는 이 채널들의 test_status==='ok'(실검증 통과)에만 표기한다(임의 표기 금지).
+   저장만 확인하는 soft-ok 채널(amazon/naver/coupang 등)은 '등록됨'으로만 표기. */
+const LIVE_VERIFY_CHANNELS = new Set([
+  'meta_ads', 'meta', 'tiktok', 'tiktok_business', 'google_ads', 'google', 'kakao', 'kakao_moment', 'youtube',
+]);
 const ISSUANCE_URL = {
-  // 국내 오픈마켓
-  coupang: 'https://wing.coupang.com', st11: 'https://soffice.11st.co.kr', gmarket: 'https://www.esmplus.com', auction: 'https://www.esmplus.com',
+  // 국내 오픈마켓 — [현 차수] 웹 검증(2026-06) 반영: 11번가 오픈API센터/ESM Trading API/네이버 커머스·검색광고 콘솔로 정정
+  coupang: 'https://wing.coupang.com', st11: 'https://openapi.11st.co.kr/openapi/OpenApiFrontMain.tmall',
+  gmarket: 'https://etapi.gmarket.com', auction: 'https://etapi.gmarket.com',
+  naver_smartstore: 'https://apicenter.commerce.naver.com', naver_sa: 'https://manage.searchad.naver.com',
   // 글로벌 마켓
   amazon_spapi: 'https://sellercentral.amazon.com/sellingpartner/developerconsole', ebay: 'https://developer.ebay.com/my/keys',
   tiktok_shop: 'https://partner.tiktokshop.com', // [227차] TikTok Shop Partner Center(앱 생성→app_key/secret/token 발급)
   etsy: 'https://www.etsy.com/developers/your-apps', walmart: 'https://developer.walmart.com', shopee: 'https://open.shopee.com',
   lazada: 'https://open.lazada.com', rakuten: 'https://webservice.rakuten.co.jp', qoo10: 'https://qsm.qoo10.jp',
   // 자사몰 D2C
-  shopify: 'https://www.shopify.com/admin/settings/apps', cafe24: 'https://developers.cafe24.com', godomall: 'https://www.godo.co.kr',
+  shopify: 'https://www.shopify.com/admin/settings/apps', cafe24: 'https://developers.cafe24.com', godomall: 'https://www.godo.co.kr/service/api_form.php',
   woocommerce: 'https://woocommerce.com/document/woocommerce-rest-api/', magento: 'https://developer.adobe.com/commerce/webapi/rest/',
   // 물류 배송추적 — 통합 추적 키(스마트택배) / 우체국
   smarttracker: 'https://tracking.sweettracker.co.kr', epost: 'https://service.epost.go.kr',
@@ -209,30 +219,336 @@ const ISSUANCE_URL = {
 /* [현 차수] 요청2: 채널별 "API 키 발급에 필요한 정보" 입력 필드 — 발급 신청 시 해당 채널이 요구하는
    계정/식별 정보를 전부 등록하도록 한다(신청 접수의 완결성). 재사용 라벨로 정의해 15개국 i18n 부담 최소화. */
 const APPLY_FIELD_DEFS = {
-  account_id:     { i18n: 'ak.afAccountId',     def: '채널 계정 / 판매자 ID' },
-  merchant_id:    { i18n: 'ak.afMerchantId',    def: '가맹점 ID (MID)' },
-  contract_code:  { i18n: 'ak.afContractCode',  def: '계약 고객 코드' },
-  account_number: { i18n: 'ak.afAccountNumber', def: '계정 번호 (Account)' },
-  site_url:       { i18n: 'ak.afSiteUrl',       def: '스토어 / 사이트 URL' },
-  marketplace:    { i18n: 'ak.afMarketplace',   def: '마켓플레이스 (국가/지역)' },
-  shop_domain:    { i18n: 'ak.afShopDomain',    def: '스토어 도메인' },
+  account_id:        { i18n: 'ak.afAccountId',        def: '채널 계정 / 판매자 ID' },
+  account_email:     { i18n: 'ak.afAccountEmail',     def: '콘솔 로그인 이메일 (해당 채널 계정)' },
+  merchant_id:       { i18n: 'ak.afMerchantId',       def: '가맹점 ID (MID)' },
+  contract_code:     { i18n: 'ak.afContractCode',     def: '계약 고객 코드' },
+  account_number:    { i18n: 'ak.afAccountNumber',    def: '계정 번호 (Account)' },
+  site_url:          { i18n: 'ak.afSiteUrl',          def: '스토어 / 사이트 URL' },
+  marketplace:       { i18n: 'ak.afMarketplace',      def: '마켓플레이스 (국가/지역)' },
+  shop_domain:       { i18n: 'ak.afShopDomain',       def: '스토어 도메인' },
+  channel_url:       { i18n: 'ak.afChannelUrl',       def: '채널 / 페이지 URL' },
+  store_name:        { i18n: 'ak.afStoreName',        def: '상점명 / 브랜드명' },
+  vendor_id:         { i18n: 'ak.afVendorId',         def: '판매자(벤더) 코드' },
+  ad_account_id:     { i18n: 'ak.afAdAccountId',      def: '광고 계정 ID' },
+  partner_id:        { i18n: 'ak.afPartnerId',        def: '파트너 / 제휴 ID' },
+  app_name:          { i18n: 'ak.afAppName',          def: '생성할 앱 이름 (개발자 콘솔)' },
+  developer_account: { i18n: 'ak.afDeveloperAccount', def: '개발자 콘솔 계정 (이메일/ID)' },
 };
+/* [현 차수] ★채널별 "API 키 발급에 필요한 정보"를 전부 등록 — 각 채널이 실제로 발급/연동에 요구하는
+   계정·식별 정보를 빠짐없이 입력받아 정상적으로 발급 신청이 되도록 한다(채널별 완결성).
+   ※ 여기 항목은 '키를 받기 위해 필요한 식별 정보'(키 자체 X). 결과 키/토큰은 발급 후 [등록]에서 입력. */
 const CHANNEL_APPLY_FIELDS = {
-  // 국내/글로벌 마켓플레이스 — 판매자 계정 식별
-  coupang: ['account_id'], naver_smartstore: ['account_id'], naver_sa: ['account_id'],
-  st11: ['account_id'], gmarket: ['account_id'], auction: ['account_id'],
-  amazon_spapi: ['account_id', 'marketplace'], ebay: ['account_id'], qoo10: ['account_id'], tiktok_shop: ['account_id'],
-  etsy: ['account_id'], walmart: ['account_id'], shopee: ['account_id'], lazada: ['account_id'], rakuten: ['account_id'],
-  // 자사몰 D2C — 스토어 식별
-  shopify: ['shop_domain'], cafe24: ['shop_domain'], godomall: ['site_url'], woocommerce: ['site_url'], magento: ['site_url'],
-  // 결제 게이트웨이(PG) — 가맹점 식별
-  inicis: ['merchant_id'], toss: ['merchant_id'], kcp: ['merchant_id'], kakaopay: ['merchant_id'], naverpay: ['merchant_id'], paypal: ['merchant_id'], stripe: ['merchant_id'],
-  // 물류/배송 — 계약 식별
-  cj: ['contract_code'], lotte: ['contract_code'], hanjin: ['contract_code'], logen: ['contract_code'], ocl_sameday: ['contract_code'], fulfillment: ['contract_code'],
-  // 국제특송 — 계정번호
-  dhl: ['account_number'], fedex: ['account_number'], ups: ['account_number'], ems: ['contract_code'], tnt: ['account_number'], cj_intl: ['contract_code'],
-  // 분석/기타
-  google_analytics: ['account_id'], slack: ['site_url'],
+  // ── 광고 매체 — 광고계정/콘솔 계정 식별
+  meta_ads: ['account_email', 'ad_account_id'], google_ads: ['account_email', 'ad_account_id'], tiktok_business: ['account_email', 'ad_account_id'],
+  naver_sa: ['account_id', 'account_email'], kakao_moment: ['account_id', 'ad_account_id'],
+  // ── 국내 오픈마켓 — 판매자 계정 식별
+  coupang: ['account_id', 'account_email'], naver_smartstore: ['account_id', 'account_email', 'store_name'],
+  st11: ['account_id', 'account_email'], gmarket: ['account_id', 'account_email'], auction: ['account_id', 'account_email'],
+  // ── 글로벌 마켓플레이스 — 판매자/마켓 식별
+  amazon_spapi: ['account_id', 'marketplace', 'account_email'], ebay: ['account_id', 'account_email'], qoo10: ['account_id', 'account_email'],
+  tiktok_shop: ['account_id', 'store_name', 'account_email'], etsy: ['store_name', 'account_email'], walmart: ['account_id', 'account_email'],
+  shopee: ['account_id', 'marketplace', 'account_email'], lazada: ['account_id', 'marketplace', 'account_email'], rakuten: ['account_id', 'site_url'],
+  // ── 자사몰 D2C — 스토어 식별 + 개발자 계정
+  shopify: ['shop_domain', 'account_email'], cafe24: ['shop_domain', 'account_email'], godomall: ['site_url', 'account_email'],
+  woocommerce: ['site_url', 'account_email'], magento: ['site_url', 'account_email'],
+  // ── SNS 라이브 — 채널 URL + 콘솔(구글/개발자) 계정
+  youtube: ['channel_url', 'developer_account'], instagram: ['channel_url', 'account_email'],
+  facebook: ['channel_url', 'account_email'], twitch: ['channel_url', 'developer_account'],
+  // ── 결제 게이트웨이(PG) — 가맹점 식별
+  inicis: ['merchant_id', 'account_email'], toss: ['merchant_id', 'account_email'], kcp: ['merchant_id', 'account_email'],
+  kakaopay: ['merchant_id', 'account_email'], naverpay: ['merchant_id', 'account_email'], paypal: ['merchant_id', 'account_email'], stripe: ['merchant_id', 'account_email'],
+  // ── 물류/배송 — 계약 식별
+  cj: ['contract_code', 'account_email'], lotte: ['contract_code', 'account_email'], hanjin: ['contract_code', 'account_email'],
+  logen: ['contract_code', 'account_email'], epost: ['contract_code', 'account_email'], smarttracker: ['account_email'],
+  ocl_sameday: ['contract_code', 'merchant_id'], fulfillment: ['contract_code', 'account_email'],
+  // ── 국제특송 — 계정번호/계약
+  dhl: ['account_number', 'account_email'], fedex: ['account_number', 'account_email'], ups: ['account_number', 'account_email'],
+  ems: ['contract_code', 'account_email'], tnt: ['account_number', 'account_email'], cj_intl: ['contract_code', 'account_email'],
+  // ── 분석/기타
+  google_analytics: ['account_id', 'account_email'], slack: ['site_url', 'account_email'],
+};
+/* 하드코딩에 없는(향후 추가) 채널 기본 발급 정보 — 계정 식별자 + 콘솔 이메일. */
+const DEFAULT_APPLY_FIELDS = ['account_id', 'account_email'];
+
+/* [현 차수] ★채널별 발급 제약·안내문 (2026-06 웹 검증 반영) — 신청 모달에 표기해 발급 실패/지연을 사전 예방.
+   hard:true = 일반 사용자가 직접 발급 불가하거나 승인/요건이 까다로운 채널(경고 강조). */
+const CHANNEL_APPLY_NOTE = {
+  // ── 광고 매체
+  meta_ads:        { hard: false, note: 'Meta 비즈니스 앱 생성 후 시스템 사용자 토큰 발급. 본인 비즈니스 외 데이터 접근 시 앱 심사(App Review)가 필요합니다.' },
+  google_ads:      { hard: false, note: 'Google Ads 관리자(MCC) 계정의 API 센터에서 개발자 토큰 발급(기본 액세스는 Google 심사) + Google Cloud OAuth 클라이언트가 필요합니다.' },
+  tiktok_business: { hard: false, note: 'developers.tiktok.com에서 앱 생성(app_id/secret). 신규 앱은 샌드박스→운영 전환 시 심사가 필요합니다.' },
+  naver_sa:        { hard: false, note: '검색광고 관리도구 > 도구 > [API 사용 관리]에서 신청 → CUSTOMER_ID·액세스라이선스·비밀키가 발급됩니다.' },
+  kakao_moment:    { hard: true,  note: '카카오모먼트 오픈API 권한은 카카오 공식 광고대행사에 한해 부여됩니다. 앱을 비즈 앱으로 전환 후 [추가기능 신청]이 필요합니다.' },
+  // ── SNS 라이브
+  youtube:   { hard: false, note: 'Google Cloud Console에서 YouTube Data API v3 사용 설정 후 OAuth 클라이언트(또는 API 키)를 발급합니다. 운영팀 대행 발급은 불가(자가 발급)합니다.' },
+  instagram: { hard: false, note: 'Meta 앱 + IG 비즈니스 계정 연결 + 앱 심사가 필요합니다. (자가 발급)' },
+  facebook:  { hard: false, note: 'Meta 앱 + 페이지 액세스 토큰 + 앱 심사가 필요합니다. (자가 발급)' },
+  twitch:    { hard: false, note: 'dev.twitch.tv 콘솔에서 앱 등록 → client_id/secret을 발급합니다. (자가 발급)' },
+  // ── 국내 오픈마켓
+  coupang:          { hard: false, note: 'WING 판매자(사업자 인증) 계정에서 즉시 발급됩니다. 발급 시 회사명·홈페이지 URL·접근 IP(최대 10개)를 입력합니다.' },
+  naver_smartstore: { hard: true,  note: '커머스API센터에서 애플리케이션을 등록합니다. 발급은 통합매니저 계정만 가능하며 호출 IP 등록·주기적 인증이 필수입니다.' },
+  st11:    { hard: false, note: '11번가 오픈API센터에 셀러 로그인 → 서비스 등록 → 접근 IP 등록 후 API Key가 발급됩니다.' },
+  gmarket: { hard: true,  note: 'ESM Trading API는 승인제(거절 가능)입니다. 옥션 판매자ID·G마켓 판매자ID·ESM 마스터ID가 필요합니다.' },
+  auction: { hard: true,  note: 'ESM Trading API는 승인제(거절 가능)입니다. 옥션 판매자ID·G마켓 판매자ID·ESM 마스터ID가 필요합니다.' },
+  // ── 글로벌 마켓플레이스
+  amazon_spapi: { hard: true,  note: '프로페셔널 셀러 계정이 필수입니다. Seller Central > 앱 개발에서 개발자 프로필 등록 후 앱을 생성합니다.' },
+  ebay:    { hard: false, note: 'developer.ebay.com에서 keyset(DevID/AppID/CertID)을 생성합니다. 운영 keyset은 계정 삭제 알림 구독/거부 절차가 필요합니다.' },
+  etsy:    { hard: false, note: 'Etsy 개발자 포털에서 앱 등록 → API 키를 발급합니다.' },
+  walmart: { hard: false, note: 'Walmart 마켓플레이스 셀러센터(개발자)에서 client_id/secret을 발급합니다.' },
+  shopee:  { hard: false, note: 'Shopee Open Platform 개발자 등록·승인 후 앱 생성 → partner_id/partner_key. 샵 인가가 필요합니다.' },
+  lazada:  { hard: false, note: 'Lazada Open Platform에서 앱 등록 → app_key/secret을 발급합니다.' },
+  rakuten: { hard: false, note: 'Rakuten 개발자(RMS/Webservice) 포털에서 키를 발급합니다.' },
+  qoo10:   { hard: false, note: 'Qoo10 QSM에서 API 키를 발급합니다.' },
+  tiktok_shop: { hard: false, note: 'partner.tiktokshop.com에서 앱 생성(app_key/secret/service_id) → 샵 인가. 운영 전환 시 심사가 필요합니다.' },
+  // ── 자사몰 D2C
+  shopify:     { hard: false, note: 'Shopify Admin > 설정 > 앱 및 판매채널 > 앱 개발에서 커스텀 앱 생성 → Admin API 토큰을 발급합니다.' },
+  woocommerce: { hard: false, note: 'WooCommerce > 설정 > 고급 > REST API에서 Consumer Key/Secret을 발급합니다.' },
+  magento:     { hard: false, note: 'Magento 관리자 > 시스템 > 통합(Integration)에서 액세스 토큰을 발급합니다.' },
+  cafe24:      { hard: false, note: '카페24 개발자센터에서 개발자 등록 → 앱 등록 → client_id/secret(OAuth 2.0)을 발급합니다.' },
+  godomall:    { hard: false, note: '고도몰(NHN커머스) 개발자 등록·승인 후 [오픈API > 키발급 신청]에서 신청합니다.' },
+  // ── 결제 게이트웨이(PG) — 가맹점 계약 후 발급
+  inicis:   { hard: false, note: '이니시스 상점관리자 > 상점정보 > 계약정보 > 부가정보에서 INIAPI Key·웹표준 사인키를 발급합니다. (가맹점 계약 필요)' },
+  toss:     { hard: false, note: '토스페이먼츠 상점관리자 > 개발자센터에서 클라이언트 키·시크릿 키를 확인합니다. (가맹점 계약 필요)' },
+  kcp:      { hard: false, note: 'NHN KCP 가맹점 관리자에서 사이트코드·사이트키를 발급합니다. (가맹점 계약 필요)' },
+  kakaopay: { hard: false, note: '카카오페이 가맹점(개발자) 콘솔에서 CID·Admin 키를 발급합니다. (가맹점 계약 필요)' },
+  naverpay: { hard: true,  note: '네이버페이 가맹점 가입(계약) 완료 후 파트너ID·Client ID/Secret이 전달됩니다. 일반 자가 발급이 아닙니다.' },
+  paypal:   { hard: false, note: 'developer.paypal.com에서 앱 생성 → client_id/secret을 발급합니다.' },
+  stripe:   { hard: false, note: 'dashboard.stripe.com > 개발자 > API 키에서 발급합니다.' },
+  // ── 물류/배송
+  cj:          { hard: true,  note: 'CJ대한통운 계약(고객) 코드가 필요합니다. 국내 통합 배송추적은 스마트택배(스윗트래커) 통합 키로도 가능합니다.' },
+  lotte:       { hard: true,  note: '롯데글로벌로지스 계약(고객) 코드가 필요합니다. 통합 추적은 스마트택배 키로도 가능합니다.' },
+  hanjin:      { hard: true,  note: '한진택배 계약(고객) 코드가 필요합니다. 통합 추적은 스마트택배 키로도 가능합니다.' },
+  logen:       { hard: false, note: '로젠택배는 스마트택배(스윗트래커) 통합 추적 키로 연동합니다.' },
+  epost:       { hard: false, note: '우체국택배는 스마트택배(스윗트래커) 통합 추적 키로 연동합니다.' },
+  smarttracker:{ hard: false, note: '스윗트래커(tracking.sweettracker.co.kr)에 가입 후 t_key(전 택배사 통합 추적 키)를 발급합니다.' },
+  ocl_sameday: { hard: true,  note: '지니고 당일배송 계약 후 머천트 ID·API 키가 발급됩니다. (운영팀 계약 필요)' },
+  fulfillment: { hard: true,  note: '3PL 풀필먼트 계약 후 창고 ID·API 키가 발급됩니다. (운영팀 계약 필요)' },
+  // ── 국제특송
+  dhl:    { hard: false, note: 'developer.dhl.com에서 가입 → [Get Access]로 고객정보 등록·자격증명 신청(영업일 익일 승인). 계정번호가 필요합니다.' },
+  fedex:  { hard: false, note: 'developer.fedex.com에서 프로젝트 생성 → API Key/Secret + 계정번호를 등록합니다.' },
+  ups:    { hard: false, note: 'developer.ups.com에서 앱 생성 → client_id/secret + 계정번호를 등록합니다.' },
+  ems:    { hard: true,  note: '우체국 국제특송(EMS)은 계약(고객) 코드 기반입니다. (계약 필요)' },
+  tnt:    { hard: false, note: 'TNT(DHL 통합) 개발자 포털에서 자격증명을 발급합니다. 계정번호가 필요합니다.' },
+  cj_intl:{ hard: true,  note: 'CJ대한통운 국제특송 계약(고객) 코드가 필요합니다. (계약 필요)' },
+  // ── 분석/기타
+  google_analytics: { hard: false, note: 'GA4 > 관리 > 데이터 스트림에서 측정 ID(G-)·Measurement Protocol API Secret을 발급합니다.' },
+  slack:            { hard: false, note: 'api.slack.com/apps에서 앱 생성 → Incoming Webhook URL을 발급합니다.' },
+};
+
+/* [현 차수] ★발급 "따라하기" — 그대로 따라하면 키를 발급받을 수 있는 단계별 핵심 가이드(2026-06 웹 검증 반영).
+   ※ 카카오모먼트는 공식 광고대행사 전용이라 자가 발급 단계를 제공하지 않음(CHANNEL_APPLY_NOTE 안내로 대체). */
+const CHANNEL_APPLY_STEPS = {
+  meta_ads: [
+    'business.facebook.com에서 비즈니스 계정 생성·인증',
+    'developers.facebook.com > 내 앱 > [앱 만들기](비즈니스 유형) → Marketing API 추가',
+    '비즈니스 설정 > 시스템 사용자 생성 → 광고계정 권한 할당',
+    '시스템 사용자 액세스 토큰 생성(ads_read/ads_management) → 토큰 복사',
+    '광고계정 ID(act_) 확인 → [등록]에 토큰·ad_account_id 입력',
+  ],
+  google_ads: [
+    'Google Ads 관리자(MCC) 계정 준비',
+    'MCC > 도구 > API 센터에서 개발자 토큰 신청(기본 액세스는 Google 심사)',
+    'console.cloud.google.com에서 OAuth 동의화면 + OAuth 클라이언트 ID/Secret 생성(scope: adwords)',
+    'OAuth 인증으로 refresh token 발급',
+    '대상 계정 10자리 customer_id 확인 → [등록]에 개발자토큰·client_id/secret·refresh_token·customer_id 입력',
+  ],
+  tiktok_business: [
+    'developers.tiktok.com 개발자 등록(조직 인증)',
+    'My Apps > Create an App → 용도 설명 입력',
+    '앱 상세에서 App ID·Secret 확인',
+    '광고주 인가 → auth_code로 access_token 교환',
+    'advertiser_id 확인 → [등록]에 access_token·advertiser_id 입력',
+  ],
+  naver_sa: [
+    'searchad.naver.com 광고계정 로그인',
+    '도구 > [API 사용 관리] → [네이버 검색광고 API 서비스 신청]',
+    'CUSTOMER_ID·액세스라이선스·비밀키 확인',
+    '[등록]에 api_key(액세스라이선스)·api_secret(비밀키)·customer_id 입력',
+  ],
+  youtube: [
+    'console.cloud.google.com에서 프로젝트 생성',
+    'API 및 서비스 > 라이브러리 → "YouTube Data API v3" 사용 설정',
+    '사용자 인증 정보 > [사용자 인증 정보 만들기] → OAuth 클라이언트 ID(채널/라이브 데이터) 또는 API 키(공개 데이터)',
+    'OAuth 동의화면 구성 후 client_id/secret(또는 API 키) 발급',
+    '[등록]에 API 키 또는 OAuth 토큰·채널 ID 입력',
+  ],
+  twitch: [
+    'dev.twitch.tv/console 로그인 > Applications > [Register Your Application]',
+    'OAuth Redirect URL 입력 → 생성',
+    'Client ID·Client Secret 확인 → [등록]에 입력',
+  ],
+  coupang: [
+    'WING(wing.coupang.com)에 판매자(사업자 인증) 로그인',
+    'OPEN API 메뉴 → Open API Key 발급',
+    '회사명·홈페이지 URL·접근 IP(최대 10개) 입력',
+    'Access Key·Secret Key·Vendor ID 확인 → [등록]에 입력',
+  ],
+  naver_smartstore: [
+    '통합매니저 계정으로 apicenter.commerce.naver.com 접속',
+    '[계정생성] → 개발업체 정보·장애대응 연락처 입력·약관 동의',
+    '[내 스토어 애플리케이션] 등록 → 애플리케이션 ID/Secret 발급',
+    '호출 IP 등록 + 주기적 애플리케이션 인증',
+    '[등록]에 client_id·client_secret 입력',
+  ],
+  st11: [
+    'openapi.11st.co.kr에 셀러 아이디 로그인',
+    '[서비스 등록·확인] → 셀러 정보 입력·약관 동의',
+    'Seller API 정보 > 접근 가능 서버 IP 등록',
+    '발급된 API Key 복사 → [등록]에 api_key·seller_id 입력',
+  ],
+  gmarket: [
+    '옥션·G마켓 각 판매자 회원가입 + ESM Plus 로그인하여 ESM 마스터 ID 생성',
+    'etapi.gmarket.com(ESM Trading API)에서 API 사용 신청(승인제)',
+    '옥션 판매자ID·G마켓 판매자ID·ESM 마스터ID 제출',
+    '승인 후 키 발급 → [등록]에 입력 (거절 가능 시 etapihelp@gmail.com 문의)',
+  ],
+  auction: [
+    '옥션·G마켓 각 판매자 회원가입 + ESM Plus 로그인하여 ESM 마스터 ID 생성',
+    'etapi.gmarket.com(ESM Trading API)에서 API 사용 신청(승인제)',
+    '옥션 판매자ID·G마켓 판매자ID·ESM 마스터ID 제출',
+    '승인 후 키 발급 → [등록]에 입력 (거절 가능 시 etapihelp@gmail.com 문의)',
+  ],
+  amazon_spapi: [
+    '프로페셔널 셀러 계정 준비(개인 계정 불가)',
+    'Seller Central > 앱 및 서비스 > 앱 개발(Develop Apps)',
+    '개발자 프로필 등록(조직·데이터 사용 정보 제출)',
+    '앱 생성 → LWA client_id/secret + refresh token 발급',
+    'Marketplace ID·Seller ID 확인 → [등록]에 입력',
+  ],
+  ebay: [
+    'developer.ebay.com 개발자 가입',
+    'Application Keys → Production [Create a keyset]',
+    '마켓플레이스 계정 삭제 알림 구독/거부 절차 완료(비활성 시)',
+    'DevID·AppID·CertID + OAuth 토큰 확인 → [등록]에 입력',
+  ],
+  shopee: [
+    'Shopee Open Platform 개발자 등록·승인',
+    'App Management > App List → 앱 생성 → partner_id·partner_key',
+    '샵 인가 링크 생성 → 인가 → access_token',
+    '[등록]에 partner_id·partner_key·shop_id 입력',
+  ],
+  lazada: [
+    'Lazada Open Platform 개발자 등록',
+    '앱 생성 → app_key·app_secret 발급',
+    '샵 인가 → access_token → [등록]에 입력',
+  ],
+  tiktok_shop: [
+    'partner.tiktokshop.com 개발자 등록',
+    'App & Service > Create App → app_key·app_secret·service_id 확인',
+    '필요한 API 권한 활성화(Shop/Product/Order)',
+    'Get shop authorization → 샵 인가 → access_token',
+    '[등록]에 app_key·app_secret·access_token 입력',
+  ],
+  etsy: [
+    'etsy.com/developers > [Create a New App]',
+    '앱 정보 입력 → API Key(keystring) 발급',
+    'OAuth 인가 → access token → [등록]에 입력',
+  ],
+  walmart: [
+    'Walmart 마켓플레이스 셀러센터 > Developer Portal',
+    'API Key(client_id)·Secret 생성',
+    '[등록]에 client_id·client_secret 입력',
+  ],
+  qoo10: [
+    'Qoo10 QSM 로그인 > API 관리',
+    'API 인증키 발급 → [등록]에 api_key·seller_id 입력',
+  ],
+  rakuten: [
+    'Rakuten 개발자 포털(RMS/Webservice) 로그인',
+    'Service Secret·License Key 발급',
+    '[등록]에 service_secret·license_key·shop_url 입력',
+  ],
+  shopify: [
+    'Shopify Admin > 설정 > 앱 및 판매채널 > 앱 개발 > [앱 만들기]',
+    'Admin API 범위(scope) 선택 → 앱 설치',
+    'Admin API 액세스 토큰 발급(1회 노출 — 즉시 복사)',
+    '[등록]에 shop_domain·access_token 입력',
+  ],
+  woocommerce: [
+    'WooCommerce > 설정 > 고급 > REST API > [키 추가]',
+    '권한(읽기/쓰기) 선택 → Consumer Key/Secret 발급',
+    '[등록]에 site_url·consumer_key·consumer_secret 입력',
+  ],
+  magento: [
+    'Magento 관리자 > 시스템 > 통합(Integration) > Add New Integration',
+    '리소스 권한 설정 → Activate → 액세스 토큰 발급',
+    '[등록]에 base_url·access_token 입력',
+  ],
+  cafe24: [
+    'developer.cafe24.com 개발자 등록',
+    '앱 > 앱 등록 → client_id/secret 발급',
+    'OAuth 2.0 인가 → access/refresh token',
+    '[등록]에 mall_id·client_id·client_secret·refresh_token 입력',
+  ],
+  godomall: [
+    'NHN커머스 개발자센터(devcenter.nhn-commerce.com) 개발자 등록·승인',
+    '오픈API > [키발급 신청] → 신청폼 작성',
+    '발급된 오픈API 키 → [등록]에 입력',
+  ],
+  inicis: [
+    '이니시스 가맹점 계약·상점관리자 로그인',
+    '상점정보 > 계약정보 > 부가정보',
+    'INIAPI Key 생성 + 웹표준 사인키(SignKey) 생성',
+    '[등록]에 MID·sign_key·api_key 입력',
+  ],
+  toss: [
+    '토스페이먼츠 가맹점 계약·로그인',
+    '상점관리자 좌측 하단 [개발자센터]',
+    '클라이언트 키·시크릿 키 확인(테스트/라이브 구분)',
+    '[등록]에 client_key·secret_key 입력',
+  ],
+  kcp: [
+    'NHN KCP 가맹점 계약·관리자 로그인',
+    '사이트코드(site_cd)·사이트키 발급',
+    '[등록]에 site_cd·site_key 입력',
+  ],
+  kakaopay: [
+    '카카오페이 가맹점 계약',
+    '가맹점/개발자 콘솔에서 CID·Admin 키 발급',
+    '[등록]에 cid·admin_key 입력',
+  ],
+  paypal: [
+    'developer.paypal.com 로그인 > Apps & Credentials',
+    'Live 앱 생성 → client_id/secret 발급',
+    '[등록]에 client_id·client_secret 입력',
+  ],
+  stripe: [
+    'dashboard.stripe.com 로그인',
+    '개발자 > API 키',
+    'Publishable/Secret 키 확인 → [등록]에 입력',
+  ],
+  smarttracker: [
+    'tracking.sweettracker.co.kr 가입·로그인',
+    't_key(전 택배사 통합 추적 키) 발급 신청',
+    '[등록]에 t_key 입력',
+  ],
+  dhl: [
+    'developer.dhl.com 가입(이메일 인증)',
+    '[Get Access] → 고객정보 등록·자격증명 신청',
+    '영업일 익일 Test/Production 승인 메일 수신',
+    '포털에서 API Key·Secret 확인 → [등록]에 api_key·account_number 입력',
+  ],
+  fedex: [
+    'developer.fedex.com 가입 → 프로젝트 생성',
+    'API Key·Secret Key 발급',
+    '계정번호 등록 → [등록]에 api_key·api_secret·account_number 입력',
+  ],
+  ups: [
+    'developer.ups.com 가입 → 앱 생성',
+    'client_id/secret 발급',
+    '계정번호 등록 → [등록]에 client_id·client_secret·account_number 입력',
+  ],
+  google_analytics: [
+    'GA4 > 관리 > 데이터 스트림 선택',
+    '측정 ID(G-) 확인',
+    'Measurement Protocol API secret 생성 → [등록]에 measurement_id·api_secret 입력',
+  ],
+  slack: [
+    'api.slack.com/apps > [Create New App]',
+    'Incoming Webhooks 활성화 → [Add New Webhook]',
+    'Webhook URL 복사 → [등록]에 입력',
+  ],
 };
 
 const STATUS_COLORS = {
@@ -281,6 +597,7 @@ function ErrorFallback({ error, onRetry, t }) {
    ═══════════════════════════════════════════════════════════════════ */
 export default function ApiKeys() {
   const { t } = useI18n();
+  const { user } = useAuth(); // [현 차수] 발급 신청 폼 자동완성용 로그인(구독 회원) 정보
   const { toast, show } = useToast();
   // 자격증명 저장/삭제 직후 전역 연결상태(connectedChannels)를 즉시 재조회 →
   //   Dashboard/PriceOpt/OmniChannel 등이 5분 폴링을 기다리지 않고 바로 반영(stale 윈도우 제거).
@@ -308,6 +625,7 @@ export default function ApiKeys() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showApplyModal, setShowApplyModal] = useState(null); // channel object or null
   const [applyRefresh, setApplyRefresh] = useState(0); // [현 차수] ③ 발급 신청 현황 새로고침 키
+  const [applyDone, setApplyDone] = useState(null);    // [현 차수] 발급 신청 완료 확인(영구 모달 — 토스트 놓침 방지)
   const [showConnectModal, setShowConnectModal] = useState(null); // 208차: 채널 구조화 등록 모달
   const [connectPostOauth, setConnectPostOauth] = useState(false); // [227차] OAuth 직후 잔여 계정정보 입력 모드
   const [testingId, setTestingId] = useState(null);
@@ -614,9 +932,14 @@ export default function ApiKeys() {
       show('success', r?.message || t('ak.applied', { ticket: r?.ticket_id || r?.ticketId || '', defaultValue: `발급 신청 접수됨 (티켓 ${r?.ticket_id || r?.ticketId || ''})` }));
       setShowApplyModal(null);
       setApplyRefresh(k => k + 1); // ③ 발급 신청 현황 즉시 갱신
+      // [현 차수] 영구 확인 모달(성공) — 토스트 자동소멸 보완. 티켓·통지여부·다음 절차를 확실히 인지.
+      setApplyDone({ ok: true, ticket: r?.ticket_id || r?.ticketId || '', channel: channelKey, notified: !!r?.notified, message: r?.message || '' });
       return true;
     } catch (e) {
-      show('error', String(e?.message || e));
+      const msg = String(e?.message || e);
+      show('error', msg);
+      // [현 차수] 영구 확인 모달(실패) — 실패 사실/원인/재시도 안내를 확실히 인지(토스트 자동소멸 보완).
+      setApplyDone({ ok: false, channel: channelKey, error: msg });
       return false;
     }
   }, [show, t]);
@@ -723,7 +1046,7 @@ export default function ApiKeys() {
           t={t}
         />
       )}
-      {activeTab === 0 && !_IS_DEMO_ENV && <ApplyStatusPanel refreshKey={applyRefresh} t={t} />}
+      {(activeTab === 0 || activeTab === 1) && !_IS_DEMO_ENV && <ApplyStatusPanel refreshKey={applyRefresh} t={t} />}
       {activeTab === 1 && (
         <ActiveKeysTab
           creds={creds}
@@ -810,14 +1133,47 @@ export default function ApiKeys() {
         <AddCredModal channels={allChannels} onClose={() => setShowAddModal(false)} onSubmit={handleSaveCred} t={t} />
       )}
       {showApplyModal && (
-        <ApplyModal channel={showApplyModal} onClose={() => setShowApplyModal(null)} onSubmit={handleApplySubmit}
+        <ApplyModal channel={showApplyModal} currentUser={user} onClose={() => setShowApplyModal(null)} onSubmit={handleApplySubmit}
           onRegister={(ch) => { setShowApplyModal(null); setConnectPostOauth(false); setShowConnectModal(ch); }} t={t} />
       )}
       {showConnectModal && (
-        <ConnectModal channel={showConnectModal} postOauth={connectPostOauth} onClose={() => { setShowConnectModal(null); setConnectPostOauth(false); }} onSubmit={handleConnectSave} t={t} extraFields={regFields} />
+        <ConnectModal channel={showConnectModal} postOauth={connectPostOauth} onClose={() => { setShowConnectModal(null); setConnectPostOauth(false); }} onSubmit={handleConnectSave} t={t} extraFields={regFields}
+          registeredKeys={new Set((creds || []).filter(c => c && Number(c.is_active) !== 0 && c.channel === showConnectModal.key && c.key_name && !String(c.key_name).startsWith('__')).map(c => String(c.key_name)))}
+          verifiedKeys={new Set((creds || []).filter(c => c && Number(c.is_active) !== 0 && c.channel === showConnectModal.key && c.test_status === 'ok' && c.key_name && !String(c.key_name).startsWith('__')).map(c => String(c.key_name)))} />
       )}
       {showRegAdd && (
         <RegistryAddModal onClose={() => setShowRegAdd(false)} onSubmit={submitRegistryChannel} />
+      )}
+
+      {/* [현 차수] 발급 신청 완료/실패 확인 모달 — 사용자가 결과(성공·실패·티켓·다음 절차)를 확실히 인지. */}
+      {applyDone && (
+        <div role="dialog" aria-modal="true" onClick={() => setApplyDone(null)} style={{
+          position: 'fixed', inset: 0, zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: 'rgba(9,5,20,0.85)', backdropFilter: 'blur(10px)'
+        }}>
+          <div onClick={e => e.stopPropagation()} style={{ maxWidth: 440, width: '90%', padding: 28, borderRadius: 16, background: 'var(--card-bg,#fff)', border: '1px solid rgba(0,0,0,0.1)', textAlign: 'center' }}>
+            <div style={{ fontSize: 44, marginBottom: 10 }} aria-hidden>{applyDone.ok ? '✅' : '⚠️'}</div>
+            <div style={{ fontSize: 17, fontWeight: 800, marginBottom: 8, color: applyDone.ok ? '#16a34a' : '#dc2626' }}>
+              {applyDone.ok ? t('ak.applyDoneTitle', '발급 신청이 접수되었습니다') : t('ak.applyFailTitle', '발급 신청에 실패했습니다')}
+            </div>
+            {applyDone.ok ? (
+              <div style={{ fontSize: 12.5, color: 'var(--text-2)', lineHeight: 1.7, textAlign: 'left', background: 'rgba(34,197,94,0.06)', border: '1px solid rgba(34,197,94,0.2)', borderRadius: 10, padding: '12px 14px', marginBottom: 16 }}>
+                {applyDone.ticket && <div>· {t('ak.ticketNo','티켓 번호')}: <b style={{ fontFamily: 'monospace' }}>{applyDone.ticket}</b></div>}
+                <div>· {t('ak.statusLabel','상태')}: <b style={{ color: '#ca8a04' }}>{t('ak.statusPending','접수(처리 대기)')}</b></div>
+                <div>· {t('ak.mailNotice','확인 메일')}: {applyDone.notified ? t('ak.mailSent','신청자 이메일로 발송됨') : t('ak.mailSkip','메일 미발송 — 진행상황은 아래 [발급 신청 현황]에서 확인')}</div>
+                <div style={{ marginTop: 8, color: 'var(--text-3)' }}>{t('ak.applyNext','운영팀 발급 후 등록 즉시 자동 연동됩니다. 진행 상황은 화면 하단의 「API 키 발급 신청 현황」에서 언제든 확인할 수 있습니다.')}</div>
+              </div>
+            ) : (
+              <div style={{ fontSize: 12.5, color: 'var(--text-2)', lineHeight: 1.7, textAlign: 'left', background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 10, padding: '12px 14px', marginBottom: 16 }}>
+                <div>{t('ak.applyFailDesc','신청이 접수되지 않았습니다. 네트워크 또는 로그인 상태를 확인한 뒤 다시 시도해 주세요.')}</div>
+                {applyDone.error && <div style={{ marginTop: 8, fontSize: 10.5, color: '#dc2626', fontFamily: 'monospace', wordBreak: 'break-all' }}>{applyDone.error}</div>}
+              </div>
+            )}
+            <button onClick={() => setApplyDone(null)} style={{ width: '100%', padding: '10px 16px', borderRadius: 10, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#4f8ef7,#6366f1)', color: '#fff', fontWeight: 800, fontSize: 13 }}>
+              {t('ak.confirm','확인')}
+            </button>
+          </div>
+        </div>
       )}
 
       {/* Toast */}
@@ -1266,11 +1622,14 @@ function OverviewTab({ channels, summary, creds, loading, onChannelTest, onConne
   // [현 차수] 요청: 채널별로 "실제 등록된 자격증명 키명" 집합 — 일부만 등록(예: API키만, 계정ID 미등록) 판정용.
   //   apply 티켓(__apply__)·비활성 행 제외. 데모(키명 미상)는 summary.hasRequired 로만 판정(부분판정 불가).
   const regKeys = {};
+  // [현 차수] ★item 3: 채널별 '실검증 통과(test_status==='ok')' 여부 — 발급 확인됨 배지의 유일 근거(임의 표기 금지).
+  const verifiedCh = {};
   creds.forEach(c => {
     if (!c || Number(c.is_active) === 0) return;
     const kn = c.key_name;
     if (!kn || String(kn).startsWith('__')) return;
     (regKeys[c.channel] = regKeys[c.channel] || new Set()).add(kn);
+    if (c.test_status === 'ok') verifiedCh[c.channel] = true;
   });
 
   const renderCard = (ch) => {
@@ -1295,6 +1654,11 @@ function OverviewTab({ channels, summary, creds, loading, onChannelTest, onConne
     const busy = testingId === `ch_${ch.key}`;
     // [현 차수] 요청2: 발급 방식 분기 — OAuth 가능=원클릭 자동발급 / 그 외=발급 신청하기(폼+콘솔 바로가기).
     const oauthProv = OAUTH_PROVIDER[ch.key];
+    // [현 차수] ★item 3: '발급 확인됨'은 연동허브 라이브 실검증(test_status==='ok') 통과에만 표기(임의 조작 금지).
+    //   라이브 검증 가능 채널(LIVE_VERIFY) + 실 검증 통과 → isVerified. 등록됐으나 미검증 → needsVerify(애니메이션 유도).
+    const canLiveVerify = LIVE_VERIFY_CHANNELS.has(ch.key);
+    const isVerified = canLiveVerify && !!verifiedCh[ch.key];
+    const needsVerify = live && canLiveVerify && !isVerified;
     return (
       <div key={ch.key} style={{
         borderRadius: 14, padding: 16,
@@ -1322,35 +1686,66 @@ function OverviewTab({ channels, summary, creds, loading, onChannelTest, onConne
                   : `🔑 ${t('ak.keyRegistered', { count: shownCount, defaultValue: `${shownCount}개 키 등록됨` })}`}
             </div>
           </div>
-          <span style={{
-            fontSize: 9, padding: '2px 8px', borderRadius: 20,
-            background: sc.bg, color: sc.fg, border: `1px solid ${sc.border}`, fontWeight: 700, whiteSpace: 'nowrap',
-          }}>{status === 'none' ? t('ak.notRegistered','미등록')
-              : status === 'partial' ? `⚠️ ${t('ak.partialRegistered','일부 등록')}`
-              : (pending ? `✅ ${t('ak.registeredPending','등록·준비중')}` : `✅ ${t('ak.registered','등록됨')}`)}</span>
+          {/* [현 차수] ★발급 확인 배지 — 실검증 통과 시에만 '발급 확인됨'(녹), 등록·미검증은 '발급 확인 대기'(주황). */}
+          {isVerified ? (
+            <span style={{ fontSize: 9, padding: '2px 8px', borderRadius: 20, background: 'rgba(34,197,94,0.16)', color: '#16a34a', border: '1px solid rgba(34,197,94,0.4)', fontWeight: 800, whiteSpace: 'nowrap' }}
+              title={t('ak.verifiedHint','연동허브가 실제 채널 API로 키 발급을 검증했습니다(임의 표기 아님).')}>🎉 {t('ak.issuanceVerified','발급 확인됨')}</span>
+          ) : needsVerify ? (
+            <span style={{ fontSize: 9, padding: '2px 8px', borderRadius: 20, background: 'rgba(245,158,11,0.14)', color: '#d97706', border: '1px solid rgba(245,158,11,0.4)', fontWeight: 800, whiteSpace: 'nowrap' }}
+              title={t('ak.needVerifyHint','등록됨 — [발급 확인]을 눌러 실제 발급 여부를 검증하세요.')}>🔎 {t('ak.issuanceWait','발급 확인 대기')}</span>
+          ) : (
+            <span style={{
+              fontSize: 9, padding: '2px 8px', borderRadius: 20,
+              background: sc.bg, color: sc.fg, border: `1px solid ${sc.border}`, fontWeight: 700, whiteSpace: 'nowrap',
+            }}>{status === 'none' ? t('ak.notRegistered','미등록')
+                : status === 'partial' ? `⚠️ ${t('ak.partialRegistered','일부 등록')}`
+                : (pending ? `✅ ${t('ak.registeredPending','등록·준비중')}` : `✅ ${t('ak.registered','등록됨')}`)}</span>
+          )}
         </div>
         <div style={{ display: 'flex', gap: 6 }}>
           <button onClick={() => onConnect(ch)} aria-label={t('ak.connectBtn','Register credentials')} style={{
             flex: 1.4, padding: '8px 12px', borderRadius: 8, border: 'none', cursor: 'pointer',
             background: 'linear-gradient(135deg,#4f8ef7,#6366f1)', color: '#fff', fontSize: 11, fontWeight: 700,
           }}>🔑 {live ? t('ak.manageBtn','관리') : t('ak.connectBtn','등록')}</button>
-          <button onClick={() => onChannelTest(ch.key)} disabled={busy || !live} aria-label={t('ak.testBtn','Ping test')} style={{
-            flex: 1, padding: '8px 10px', borderRadius: 8, border: '1px solid rgba(79,142,247,0.25)', cursor: (busy || !live) ? 'not-allowed' : 'pointer',
-            background: 'rgba(79,142,247,0.05)', color: 'var(--text-2)', fontSize: 11, fontWeight: 700, opacity: (busy || !live) ? 0.55 : 1,
-          }}>{busy ? `⏳` : `🔌 ${t('ak.testBtn','Test')}`}</button>
+          <button onClick={() => onChannelTest(ch.key)} disabled={busy || !live} aria-label={needsVerify ? t('ak.verifyBtn','발급 확인') : t('ak.testBtn','Ping test')} style={{
+            flex: 1, padding: '8px 10px', borderRadius: 8,
+            border: `1px solid ${needsVerify ? 'rgba(245,158,11,0.55)' : 'rgba(79,142,247,0.25)'}`,
+            cursor: (busy || !live) ? 'not-allowed' : 'pointer',
+            background: needsVerify ? 'rgba(245,158,11,0.12)' : 'rgba(79,142,247,0.05)',
+            color: needsVerify ? '#b45309' : 'var(--text-2)', fontSize: 11, fontWeight: 800, opacity: (busy || !live) ? 0.55 : 1,
+            animation: (needsVerify && !busy) ? 'akVerifyPulse 1.4s ease-in-out infinite' : 'none',
+          }}>{busy ? `⏳` : (needsVerify ? `🔎 ${t('ak.verifyBtn','발급 확인')}` : `🔌 ${t('ak.testBtn','Test')}`)}</button>
         </div>
-        {/* [현 차수] 요청2: OAuth 가능=원클릭 자동발급, 그 외 개별발급 채널=발급 신청하기(양식+콘솔 바로가기) */}
+        {/* [현 차수] ★발급 확인 유도 — 등록됐으나 미검증인 라이브검증 채널: 실 발급 검증을 권유(임의 완료 표기 X). */}
+        {needsVerify && !busy && (
+          <div style={{ marginTop: 7, fontSize: 9.5, color: '#b45309', textAlign: 'center', fontWeight: 700, lineHeight: 1.45 }}>
+            🔎 {t('ak.verifyNudge','등록됨 — [발급 확인]을 눌러 발급된 키가 실제 동작하는지 검증하세요. 확인되면 자동으로 발급 확인됨 표시됩니다.')}
+          </div>
+        )}
+        {isVerified && (
+          <div style={{ marginTop: 7, fontSize: 9.5, color: '#16a34a', textAlign: 'center', fontWeight: 800, lineHeight: 1.4 }}>
+            🎉 {t('ak.verifiedNudge','발급 확인됨 — 연동허브가 실제 채널 API로 검증했습니다.')}
+          </div>
+        )}
+        {/* [현 차수] 발급 방식 3분기 — OAuth 원클릭 / 콘솔 자가발급(대행 불가 채널) / 진짜 계약형 발급 대행.
+           ★YouTube·Twitch 등 ISSUANCE_URL 채널은 운영팀 대행 발급이 불가(자가 콘솔 발급만 가능) →
+             "발급 대행 신청"(연락처 폼)으로 빠지지 않도록 "직접 발급·연결"로 분기. */}
         <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
           {oauthProv ? (
             <button onClick={() => onOAuth(oauthProv, ch.key)} title={t('ak.oauthHint','OAuth 인가만 하면 키가 자동 발급·등록되고 즉시 동기화됩니다.')} style={{
               flex: 1, padding: '7px 10px', borderRadius: 8, border: '1px solid rgba(34,197,94,0.35)', cursor: 'pointer',
               background: 'rgba(34,197,94,0.08)', color: '#16a34a', fontSize: 10.5, fontWeight: 800,
             }}>⚡ {t('ak.oauthConnect','원클릭 연결')}</button>
+          ) : ISSUANCE_URL[ch.key] ? (
+            <button onClick={() => onApply(ch)} title={t('ak.issueHint','이 채널은 운영팀 대행 발급이 불가합니다. 개발자 콘솔에서 직접 키를 발급한 뒤 [등록]으로 입력하면 즉시 연동됩니다.')} style={{
+              flex: 1, padding: '7px 10px', borderRadius: 8, border: '1px solid rgba(99,102,241,0.35)', cursor: 'pointer',
+              background: 'rgba(99,102,241,0.08)', color: '#6366f1', fontSize: 10.5, fontWeight: 800,
+            }}>🔗 {t('ak.issueConnectBtn','직접 발급·연결')}</button>
           ) : (
-            <button onClick={() => onApply(ch)} title={t('ak.applyHint','API 키 발급을 신청하거나 발급 콘솔로 바로 이동해 직접 발급할 수 있습니다. 발급 후 자동 연동됩니다.')} style={{
+            <button onClick={() => onApply(ch)} title={t('ak.applyHint','운영팀에 발급 대행을 신청합니다. 발급 후 자동 연동됩니다.')} style={{
               flex: 1, padding: '7px 10px', borderRadius: 8, border: '1px solid rgba(245,158,11,0.35)', cursor: 'pointer',
               background: 'rgba(245,158,11,0.08)', color: '#d97706', fontSize: 10.5, fontWeight: 800,
-            }}>📝 {t('ak.applyBtn','발급 신청하기')}</button>
+            }}>📝 {t('ak.applyBtn','발급 대행 신청')}</button>
           )}
         </div>
         {/* [현 차수] 정직성: 전용 동기화 어댑터가 아직 없는 채널은 "연동 예정" 명시(자격증명 저장은 가능, 데이터 동기화는 추후). */}
@@ -1365,6 +1760,8 @@ function OverviewTab({ channels, summary, creds, loading, onChannelTest, onConne
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
+      {/* [현 차수] ★발급 확인 유도 펄스 애니메이션(키프레임 1회 주입). */}
+      <style>{`@keyframes akVerifyPulse{0%,100%{box-shadow:0 0 0 0 rgba(245,158,11,0.0);transform:translateY(0)}50%{box-shadow:0 0 0 4px rgba(245,158,11,0.18);transform:translateY(-1px)}}`}</style>
       {totalKeys === 0 && (
         <div style={{ padding: '14px 18px', borderRadius: 12, background: 'rgba(79,142,247,0.06)', border: '1px solid rgba(79,142,247,0.18)', fontSize: 12, color: 'var(--text-2)' }}>
           🔑 {t('ak.registerHint','아래 채널 카드의 [등록] 버튼으로 판매·광고·물류 채널의 자격증명(액세스 토큰/광고계정/고객ID/광고주ID 등)을 등록하세요. 등록 즉시 연동 현황·라이브 커머스에 반영됩니다.')}
@@ -1641,13 +2038,18 @@ function RegistryAddModal({ onClose, onSubmit }) {
 /* ═══════════════════════════════════════════════════════════════════
    Modal: Connect — 채널별 구조화 자격증명 등록 (208차)
    ═══════════════════════════════════════════════════════════════════ */
-function ConnectModal({ channel, onClose, onSubmit, t, extraFields = {}, postOauth = false }) {
+function ConnectModal({ channel, onClose, onSubmit, t, extraFields = {}, postOauth = false, registeredKeys, verifiedKeys }) {
   const fields = CHANNEL_FIELDS[channel.key] || extraFields[channel.key] || DEFAULT_FIELDS;
   const [vals, setVals] = useState({});
   const [busy, setBusy] = useState(false);
   // [227차] OAuth 직후 모드: 토큰성 필드는 "자동 등록됨"으로 표시, 회원은 계정 ID 등 잔여 필드만 입력.
   const remainFields = postOauth ? fields.filter(f => !OAUTH_COVERED_KEYS.has(f.k)) : fields;
   const coveredFields = postOauth ? fields.filter(f => OAUTH_COVERED_KEYS.has(f.k)) : [];
+  // [현 차수] ★item 2: 어떤 자격증명이 등록/미등록인지 필드별 표기. registeredKeys=실제 저장된 key_name 집합.
+  const reg = registeredKeys instanceof Set ? registeredKeys : new Set();
+  const verified = verifiedKeys instanceof Set ? verifiedKeys : new Set();
+  const regN = remainFields.filter(f => reg.has(f.k)).length;
+  const missList = remainFields.filter(f => !reg.has(f.k));
 
   const submit = async () => {
     setBusy(true);
@@ -1682,18 +2084,49 @@ function ConnectModal({ channel, onClose, onSubmit, t, extraFields = {}, postOau
             )}
           </div>
         )}
-        <div style={{ fontSize: 11, color: 'var(--text-3)', marginBottom: 18 }}>
+        <div style={{ fontSize: 11, color: 'var(--text-3)', marginBottom: 14 }}>
           {postOauth
             ? t('ak.connectSubOauth','아래 계정 식별 정보를 입력하세요. 값은 AES-256-GCM으로 암호화 저장됩니다.')
             : t('ak.connectSub','필요한 자격증명을 입력하세요. 값은 AES-256-GCM으로 암호화 저장되며 조회 시 마스킹됩니다. 입력한 항목만 저장됩니다.')}
         </div>
-        {remainFields.map(f => (
-          <Field key={f.k} label={`${f.label}${f.secret ? ' 🔒' : ''}`}>
-            <input type={f.secret ? 'password' : 'text'} value={vals[f.k] || ''} autoComplete="new-password"
-              onChange={e => setVals(v => ({ ...v, [f.k]: e.target.value }))} style={fieldStyle}
-              placeholder={f.k} />
-          </Field>
-        ))}
+        {/* [현 차수] ★item 2: 등록/미등록 요약 — 일부만 등록한 경우 어느 항목이 등록·미등록인지 명시. */}
+        {!postOauth && regN > 0 && (
+          <div style={{ marginBottom: 16, padding: '11px 13px', borderRadius: 12,
+            background: regN >= remainFields.length ? 'rgba(34,197,94,0.07)' : 'rgba(245,158,11,0.08)',
+            border: `1px solid ${regN >= remainFields.length ? 'rgba(34,197,94,0.28)' : 'rgba(245,158,11,0.3)'}` }}>
+            <div style={{ fontSize: 12, fontWeight: 800, color: regN >= remainFields.length ? '#16a34a' : '#b45309', marginBottom: missList.length ? 5 : 0 }}>
+              {regN >= remainFields.length
+                ? `✓ ${t('ak.allFieldsRegistered','모든 자격증명 항목이 등록되어 있습니다')}`
+                : `🔑 ${regN}/${remainFields.length} ${t('ak.registered','등록')} — ${t('ak.someMissing','일부 미등록')}`}
+            </div>
+            {missList.length > 0 && (
+              <div style={{ fontSize: 11, color: 'var(--text-2)', lineHeight: 1.6 }}>
+                {t('ak.missingLabel','미등록')}: <b>{missList.map(f => f.label).join(', ')}</b><br/>
+                {t('ak.fillMissingHint','아래에서 미등록(✗) 항목을 입력해 저장하면 연동이 완성됩니다. 이미 등록된 항목은 비워두면 유지됩니다.')}
+              </div>
+            )}
+          </div>
+        )}
+        {remainFields.map(f => {
+          const isReg = reg.has(f.k);
+          const isVerified = verified.has(f.k);
+          return (
+            <Field key={f.k} label={(
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                <span>{f.label}{f.secret ? ' 🔒' : ''}</span>
+                {isReg
+                  ? <span style={{ fontSize: 10, fontWeight: 800, color: '#16a34a', background: 'rgba(34,197,94,0.12)', padding: '1px 8px', borderRadius: 20 }}>✓ {isVerified ? t('ak.fieldVerified','등록·확인됨') : t('ak.fieldRegistered','등록됨')}</span>
+                  : <span style={{ fontSize: 10, fontWeight: 800, color: '#d97706', background: 'rgba(245,158,11,0.12)', padding: '1px 8px', borderRadius: 20 }}>✗ {t('ak.fieldMissing','미등록')}</span>}
+              </span>
+            )}>
+              <input type={f.secret ? 'password' : 'text'} value={vals[f.k] || ''} autoComplete="new-password"
+                onChange={e => setVals(v => ({ ...v, [f.k]: e.target.value }))} style={fieldStyle}
+                placeholder={isReg
+                  ? (f.secret ? t('ak.regKeepHint','등록됨 — 변경하려면 새 값 입력(비우면 유지)') : t('ak.regKeepHintPlain','등록됨 — 변경 시에만 입력(비우면 유지)'))
+                  : f.k} />
+            </Field>
+          );
+        })}
         <div style={{ display: 'flex', gap: 8, marginTop: 18 }}>
           <button onClick={onClose} style={{ flex: 1, ...btnGhost }}>{t('ak.cancel','Cancel')}</button>
           <button onClick={submit} disabled={busy} style={{ flex: 1, ...btnPrimary, opacity: busy ? 0.6 : 1, cursor: busy ? 'not-allowed' : 'pointer' }}>
@@ -1708,15 +2141,40 @@ function ConnectModal({ channel, onClose, onSubmit, t, extraFields = {}, postOau
 /* ═══════════════════════════════════════════════════════════════════
    Modal: Apply for new key
    ═══════════════════════════════════════════════════════════════════ */
-function ApplyModal({ channel, onClose, onSubmit, onRegister, t }) {
-  const [info, setInfo] = useState({ name: '', email: '', businessNumber: '', phone: '', company: '' });
-  // [현 차수] 채널별 발급 필요 정보(계정/식별) — 발급 신청 시 함께 접수.
-  const applyFieldKeys = CHANNEL_APPLY_FIELDS[channel.key] || ['account_id'];
+function ApplyModal({ channel, currentUser, onClose, onSubmit, onRegister, t }) {
+  // [현 차수] ★발급 따라하기 가이드 — 현재 UI 언어(15개국)로 표시. lang 미존재 시 en→ko 폴백.
+  const { lang } = useI18n();
+  const guideSteps = getIssuanceGuide(channel.key, lang);
+  // [현 차수] ★발급 신청자(구독 회원) 정보 자동 불러오기 — 로그인 프로필에서 선채움 + 수정 가능.
+  const fromUser = useCallback((u) => {
+    const p = (u && u.profile) || {};
+    return {
+      name: u?.name || '',
+      email: u?.email || '',
+      businessNumber: p.business_number || u?.business_number || u?.businessNumber || '',
+      phone: p.phone || u?.phone || u?.contact || '',
+      company: p.company || u?.company || '',
+    };
+  }, []);
+  const [info, setInfo] = useState(() => fromUser(currentUser));
+  // 모달이 다른 채널로 다시 열리거나 로그인 정보가 늦게 로드되면 자동완성 동기화(사용자가 직접 입력하기 전까지).
+  useEffect(() => { setInfo(prev => (prev.name || prev.email || prev.company) ? prev : fromUser(currentUser)); }, [currentUser, fromUser]);
+  // [현 차수] 채널별 발급 필요 정보(계정/식별) — 발급 신청 시 함께 접수. 미정의/향후 채널은 기본 세트.
+  const applyFieldKeys = CHANNEL_APPLY_FIELDS[channel.key] || DEFAULT_APPLY_FIELDS;
   const [extra, setExtra] = useState({});
   const [busy, setBusy] = useState(false);
 
   const submit = async () => {
-    if (!info.email) { alert(t('ak.emailRequired','Email is required')); return; }
+    // [현 차수] ★정보 누락으로 발급 실패가 절대 없도록 — 채널별 필수 발급정보 + 필수 회원정보 전수 검증.
+    if (!info.email) { alert(t('ak.emailRequired','이메일은 필수입니다')); return; }
+    if (!info.name)  { alert(t('ak.nameRequired','담당자 이름은 필수입니다')); return; }
+    if (!info.company) { alert(t('ak.companyRequired','회사명은 필수입니다')); return; }
+    const missing = applyFieldKeys.filter(fk => !String(extra[fk] || '').trim());
+    if (missing.length) {
+      const labels = missing.map(fk => { const d = APPLY_FIELD_DEFS[fk] || { def: fk }; return d.i18n ? t(d.i18n, d.def) : d.def; });
+      alert(t('ak.applyMissingFields', { fields: labels.join(', '), defaultValue: `다음 발급 필수 정보를 입력하세요: ${labels.join(', ')}` }));
+      return;
+    }
     setBusy(true);
     // 채널별 발급 필요 정보를 extra 로 함께 전달.
     await onSubmit(channel.key, { ...info, extra });
@@ -1736,7 +2194,9 @@ function ApplyModal({ channel, onClose, onSubmit, onRegister, t }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
           <span style={{ fontSize: 28 }} aria-hidden>{channel.icon}</span>
           <div>
-            <div style={{ fontSize: 16, fontWeight: 800 }}>{t('ak.applyModalTitle',{ ch: channel.name, defaultValue: `${channel.name} API 키 발급 신청` })}</div>
+            <div style={{ fontSize: 16, fontWeight: 800 }}>{ISSUANCE_URL[channel.key]
+              ? t('ak.issueModalTitle', { ch: channel.name, defaultValue: `${channel.name} API 키 발급·연결` })
+              : t('ak.applyModalTitle', { ch: channel.name, defaultValue: `${channel.name} API 키 발급 신청` })}</div>
             <div style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 2 }}>
               {t('ak.applyModalSub','발급 후 자동 연동됩니다. 이미 키가 있으면 [등록]에서 바로 입력하세요.')}
             </div>
@@ -1747,6 +2207,43 @@ function ApplyModal({ channel, onClose, onSubmit, onRegister, t }) {
         {_IS_DEMO_ENV && (
           <div role="status" style={{ marginBottom: 14, padding: '10px 14px', borderRadius: 10, background: 'rgba(250,204,21,0.1)', border: '1px solid rgba(250,204,21,0.3)', fontSize: 11.5, color: '#ca8a04', fontWeight: 700 }}>
             ⚠️ {t('ak.applyDemoBlocked','체험 데모 모드에서는 API 키 발급 신청이 되지 않습니다. 실제 계정으로 로그인 후 신청해 주세요.')}
+          </div>
+        )}
+
+        {/* [현 차수] ★채널별 발급 제약·안내문 (웹 검증 반영) — 발급 실패/지연 사전 예방. hard=경고 강조. */}
+        {CHANNEL_APPLY_NOTE[channel.key] && (() => {
+          const n = CHANNEL_APPLY_NOTE[channel.key];
+          const hard = n.hard;
+          return (
+            <div role="note" style={{
+              marginBottom: 16, padding: '11px 13px', borderRadius: 10, lineHeight: 1.65, fontSize: 11.5,
+              background: hard ? 'rgba(239,68,68,0.07)' : 'rgba(245,158,11,0.07)',
+              border: `1px solid ${hard ? 'rgba(239,68,68,0.3)' : 'rgba(245,158,11,0.3)'}`,
+              color: hard ? '#b91c1c' : '#b45309', fontWeight: 600,
+            }}>
+              {hard ? '🚫' : 'ℹ️'} <b>{hard ? t('ak.noteRestrict', '발급 제약 안내') : t('ak.noteGuide', '발급 안내')}</b><br />
+              {t('ak.note.' + channel.key, n.note)}
+            </div>
+          );
+        })()}
+
+        {/* [현 차수] ★발급 따라하기 — 초보자가 그대로 따라하면 발급되는 상세 단계(현재 UI 언어로 표시). */}
+        {guideSteps && guideSteps.length > 0 && (
+          <div style={{ marginBottom: 16, padding: '12px 14px', borderRadius: 12, background: 'rgba(34,197,94,0.06)', border: '1px solid rgba(34,197,94,0.22)' }}>
+            <div style={{ fontSize: 12, fontWeight: 800, color: '#16a34a', marginBottom: 8 }}>
+              ✅ {t('ak.howToTitle', { ch: channel.name, defaultValue: `${channel.name} 발급 따라하기 (이대로만 따라하면 발급됩니다)` })}
+            </div>
+            <ol style={{ margin: 0, paddingLeft: 18, display: 'grid', gap: 7 }}>
+              {guideSteps.map((s, i) => (
+                <li key={i} style={{ fontSize: 11.5, color: 'var(--text-2)', lineHeight: 1.65 }}>{s}</li>
+              ))}
+            </ol>
+            {ISSUANCE_URL[channel.key] && (
+              <button onClick={() => { try { window.open(ISSUANCE_URL[channel.key], '_blank', 'noopener,noreferrer'); } catch { /* popup 차단 무시 */ } }}
+                style={{ width: '100%', marginTop: 10, padding: '9px 12px', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#22c55e,#16a34a)', color: '#fff', fontSize: 12, fontWeight: 800 }}>
+                🔗 {t('ak.openConsoleNow', '발급 콘솔 바로 열기')}
+              </button>
+            )}
           </div>
         )}
 
@@ -1777,13 +2274,15 @@ function ApplyModal({ channel, onClose, onSubmit, onRegister, t }) {
           </button>
         )}
 
+        {/* [현 차수] ★발급 신청 폼 — 모든 채널 공통 노출(요청). 신청자(구독 회원) 정보 자동완성 + 수정 가능.
+           ISSUANCE_URL 채널은 위 ① 콘솔 자가발급도 병행 가능. 계정 ID/비밀번호가 아닌 발급받은 키/식별정보를 입력. */}
         <div style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--text-2)', marginBottom: 10 }}>
           {ISSUANCE_URL[channel.key]
-            ? t('ak.applyOrRequest','② 또는 발급 대행을 신청하세요 (영업일 1~3일, 발급 후 자동 연동)')
+            ? t('ak.applyOrRequest','② 또는 아래 정보로 발급 대행을 신청하세요 (발급 후 자동 연동)')
             : t('ak.applyRequest','발급 신청 정보를 입력하세요 (발급 후 자동 연동)')}
         </div>
 
-        {/* [현 차수] 요청2: 해당 채널 API 키 발급에 필요한 정보 입력 */}
+        {/* 해당 채널 API 키 발급에 필요한 정보 입력 */}
         <div style={{ marginBottom: 12, padding: '12px 14px', borderRadius: 10, background: 'rgba(79,142,247,0.05)', border: '1px solid rgba(79,142,247,0.15)' }}>
           <div style={{ fontSize: 11, fontWeight: 800, color: '#4f8ef7', marginBottom: 8 }}>
             🔑 {t('ak.applyChannelInfo', { ch: channel.name, defaultValue: `${channel.name} 발급에 필요한 정보` })}
@@ -1791,34 +2290,44 @@ function ApplyModal({ channel, onClose, onSubmit, onRegister, t }) {
           {applyFieldKeys.map(fk => {
             const def = APPLY_FIELD_DEFS[fk] || { i18n: '', def: fk };
             return (
-              <Field key={fk} label={def.i18n ? t(def.i18n, def.def) : def.def}>
+              <Field key={fk} label={(def.i18n ? t(def.i18n, def.def) : def.def) + ' *'}>
                 <input type="text" value={extra[fk] || ''} onChange={e => setExtra(v => ({ ...v, [fk]: e.target.value }))} style={fieldStyle} />
               </Field>
             );
           })}
+          <div style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 2, lineHeight: 1.5 }}>
+            ⚠️ {t('ak.applyAllRequired','* 표시는 모두 필수입니다. 누락 시 발급이 지연·실패할 수 있어 전부 입력해야 신청됩니다.')}
+          </div>
         </div>
 
-        <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', marginBottom: 8 }}>{t('ak.applyContactInfo','신청자 연락 정보')}</div>
-        <Field label={t('ak.applyName','Name')}>
+        {/* [현 차수] ★신청자(구독 회원) 정보 — 로그인 프로필 자동완성 + 수정 가능 + [내 정보 불러오기] */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)' }}>{t('ak.applyContactInfo','신청자(회원) 정보')}</div>
+          <button type="button" onClick={() => setInfo(fromUser(currentUser))} title={t('ak.loadMyInfoHint','로그인한 회원 정보를 다시 불러옵니다')}
+            style={{ padding: '3px 9px', borderRadius: 7, border: '1px solid rgba(79,142,247,0.35)', cursor: 'pointer', background: 'rgba(79,142,247,0.08)', color: '#4f8ef7', fontSize: 10.5, fontWeight: 800 }}>
+            👤 {t('ak.loadMyInfo','내 정보 불러오기')}
+          </button>
+        </div>
+        <Field label={t('ak.applyName','담당자 이름') + ' *'}>
           <input type="text" value={info.name} onChange={e => setInfo({ ...info, name: e.target.value })} style={fieldStyle} />
         </Field>
-        <Field label={t('ak.applyEmail','Email *')}>
+        <Field label={t('ak.applyEmail','이메일 *')}>
           <input type="email" value={info.email} onChange={e => setInfo({ ...info, email: e.target.value })} style={fieldStyle} />
         </Field>
-        <Field label={t('ak.applyCompany','Company')}>
+        <Field label={t('ak.applyCompany','회사명') + ' *'}>
           <input type="text" value={info.company} onChange={e => setInfo({ ...info, company: e.target.value })} style={fieldStyle} />
         </Field>
-        <Field label={t('ak.applyBiznum','Business Number')}>
+        <Field label={t('ak.applyBiznum','사업자 번호')}>
           <input type="text" value={info.businessNumber} onChange={e => setInfo({ ...info, businessNumber: e.target.value })} style={fieldStyle} />
         </Field>
-        <Field label={t('ak.applyPhone','Phone')}>
+        <Field label={t('ak.applyPhone','연락처')}>
           <input type="tel" value={info.phone} onChange={e => setInfo({ ...info, phone: e.target.value })} style={fieldStyle} />
         </Field>
 
         <div style={{ display: 'flex', gap: 8, marginTop: 18 }}>
           <button onClick={onClose} style={{ flex: 1, ...btnGhost }}>{t('ak.cancel','Cancel')}</button>
           <button onClick={submit} disabled={busy} style={{ flex: 1, ...btnPrimary, opacity: busy ? 0.6 : 1, cursor: busy ? 'not-allowed' : 'pointer' }}>
-            {busy ? `⏳ ${t('ak.applying','Submitting…')}` : `📝 ${t('ak.applySubmit','Submit')}`}
+            {busy ? `⏳ ${t('ak.applying','Submitting…')}` : `📝 ${t('ak.applySubmit','발급 신청')}`}
           </button>
         </div>
       </div>

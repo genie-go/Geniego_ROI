@@ -647,8 +647,17 @@ const ProfileEditModal = memo(function ProfileEditModal({ user, token, onClose }
   const { t } = useI18n();
   const [tab, setTab] = useState('info'); // 'info' | 'password'
   const [name, setName] = useState(user.name || '');
-  const [phone, setPhone] = useState(user.phone || '');
-  const [company, setCompany] = useState(user.company || '');
+  const [phone, setPhone] = useState(user.phone || (user.profile && user.profile.phone) || '');
+  const [company, setCompany] = useState(user.company || (user.profile && user.profile.company) || '');
+  // [현 차수] ★회사 상세정보 — API 키 발급신청 등에서 '회사 정보 가져오기'로 재사용(중복입력 제거). user.profile에서 초기화.
+  const _pf = user.profile || {};
+  const [bizNumber, setBizNumber] = useState(_pf.business_number || '');
+  const [ceoName, setCeoName]     = useState(_pf.ceo_name || '');
+  const [bizType, setBizType]     = useState(_pf.business_type || '');
+  const [country, setCountry]     = useState(_pf.country || '');
+  const [zipCode, setZipCode]     = useState(_pf.zip_code || '');
+  const [address, setAddress]     = useState(_pf.address || '');
+  const [website, setWebsite]     = useState(_pf.website || '');
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState({ text: '', type: '' });
 
@@ -746,7 +755,9 @@ const ProfileEditModal = memo(function ProfileEditModal({ user, token, onClose }
       const r = await fetch('/api/auth/profile', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ name: name.trim(), phone: phone.trim(), company: company.trim() }),
+        body: JSON.stringify({ name: name.trim(), phone: phone.trim(), company: company.trim(),
+          business_number: bizNumber.trim(), ceo_name: ceoName.trim(), business_type: bizType.trim(),
+          country: country.trim(), zip_code: zipCode.trim(), address: address.trim(), website: website.trim() }),
       });
       const d = await r.json().catch(() => null);
 
@@ -1158,6 +1169,42 @@ const ProfileEditModal = memo(function ProfileEditModal({ user, token, onClose }
                 onFocus={e => e.target.style.border = '1px solid rgba(79,142,247,0.5)'}
                 onBlur={e => e.target.style.border = '1px solid var(--border, rgba(99,140,255,0.2))'}
               />
+            </div>
+
+            {/* [현 차수] ★회사 상세정보 — API 키 발급신청 등에서 [회사 정보 가져오기]로 재사용(중복입력 제거) */}
+            <div style={{ borderTop: '1px solid var(--border, rgba(99,140,255,0.1))', paddingTop: 12 }}>
+              <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--text-2,#475569)', marginBottom: 4 }}>🏢 {t('profile.companyDetailTitle', '회사 상세정보')}</div>
+              <div style={{ fontSize: 10.5, color: 'var(--text-3,#94a3b8)', marginBottom: 10, lineHeight: 1.5 }}>{t('profile.companyDetailHint', '여기 등록해두면 API 키 발급신청 등에서 [내 정보 불러오기]로 자동 입력됩니다 (중복 입력 불필요).')}</div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div>
+                <label style={labelStyle}>{t('profile.bizNumberLabel', '사업자등록번호')}</label>
+                <input value={bizNumber} onChange={e => setBizNumber(e.target.value)} placeholder="000-00-00000" style={inputStyle} />
+              </div>
+              <div>
+                <label style={labelStyle}>{t('profile.ceoNameLabel', '대표자명')}</label>
+                <input value={ceoName} onChange={e => setCeoName(e.target.value)} style={inputStyle} />
+              </div>
+              <div>
+                <label style={labelStyle}>{t('profile.bizTypeLabel', '업종 / 사업 유형')}</label>
+                <input value={bizType} onChange={e => setBizType(e.target.value)} style={inputStyle} />
+              </div>
+              <div>
+                <label style={labelStyle}>{t('profile.countryLabel', '국가')}</label>
+                <input value={country} onChange={e => setCountry(e.target.value)} placeholder="KR" style={inputStyle} />
+              </div>
+              <div>
+                <label style={labelStyle}>{t('profile.zipLabel', '우편번호')}</label>
+                <input value={zipCode} onChange={e => setZipCode(e.target.value)} style={inputStyle} />
+              </div>
+              <div>
+                <label style={labelStyle}>{t('profile.websiteLabel', '웹사이트')}</label>
+                <input value={website} onChange={e => setWebsite(e.target.value)} placeholder="https://" style={inputStyle} />
+              </div>
+            </div>
+            <div>
+              <label style={labelStyle}>{t('profile.addressLabel', '주소')}</label>
+              <input value={address} onChange={e => setAddress(e.target.value)} style={inputStyle} />
             </div>
 
             {/* 가입일 */}

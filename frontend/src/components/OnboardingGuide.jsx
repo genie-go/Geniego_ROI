@@ -9,10 +9,14 @@ import { useI18n } from '../i18n';
  *  - 완료 여부는 실데이터(GlobalData)에서 파생 → 이미 끝낸 선행작업은 ✓로 표시(다시 시키지 않음).
  *  - 해당 메뉴에서 저장하면 데이터가 바뀌어 자동으로 다음 단계로 진행. 전부 완료 시 사라짐. */
 
-/* [현 차수] ★순서 정정: GeniegoROI는 WMS·카탈로그 보유 → 내부 기반(상품→창고→입고)을 먼저 갖춘 뒤
-   채널 연동·주문 동기화로 진행하는 정방향(사방넷형). 완료신호는 GlobalData(inventory.stock 등)에서 파생. */
+/* [현 차수] ★비즈니스 모델 분기:
+   - commerce(실물 커머스, 사방넷형): GeniegoROI는 WMS·카탈로그 보유 → 내부 기반(상품→창고→입고)을
+     먼저 갖춘 뒤 채널 연동·주문 동기화로 진행하는 정방향. 완료신호는 GlobalData(inventory.stock 등)에서 파생.
+   - service(서비스·구독·디지털): 플랫폼/서비스 자체가 상품인 무형 비즈니스. 물류(창고·입고·주문동기화)가
+     없으므로 해당 단계를 제거하고 '서비스·플랜 등록 → 채널 → 결제 → 마케팅 자동화'로 진행. */
 const _stockSum = (i) => Object.values((i && i.stock) || {}).reduce((s, v) => s + (Number(v) || 0), 0);
-const STEPS = [
+
+const COMMERCE_STEPS = [
   { id: 'product', route: '/catalog-sync', icon: '📦', title: '상품 등록',
     action: '판매할 상품을 카탈로그에 등록하세요(직접 등록 또는 이후 채널에서 수집). 모든 운영의 기준 데이터입니다.',
     done: (g) => (g.inventory || []).length > 0 },
@@ -36,6 +40,24 @@ const STEPS = [
     done: (g) => (g.sharedCampaigns || []).length > 0 },
 ];
 
+/* 서비스·구독·디지털(무형 상품): 창고·입고·주문동기화 단계 제거. '상품 등록'은 '서비스·플랜(오퍼) 등록'으로 재구성. */
+const SERVICE_STEPS = [
+  { id: 'service', route: '/catalog-sync', icon: '🧩', title: '서비스·플랜 등록',
+    action: '광고·마케팅으로 알릴 서비스/구독 플랜(오퍼)을 등록하세요. 가격·플랜·랜딩이 모든 캠페인의 기준이 됩니다.',
+    done: (g) => (g.inventory || []).length > 0 },
+  { id: 'channels', route: '/integration-hub', icon: '🔌', title: '광고·마케팅 채널 연동',
+    action: '광고 매체(Meta·Google 등)와 마케팅 채널의 API 키/자격증명을 등록하고 [연결]을 누르세요.',
+    done: (g) => Object.keys(g.channelBudgets || {}).length > 0 || (g.connectedChannels || []).length > 0 },
+  { id: 'payment', route: '/payment-methods', icon: '💳', title: '광고비 결제수단 등록',
+    action: '광고 자동집행용 결제 카드를 등록하세요. 광고비는 설정한 월 예산 한도 내에서만 청구됩니다.',
+    done: (g) => (g.paymentCards || []).length > 0 },
+  { id: 'marketing', route: '/auto-marketing', icon: '🚀', title: '마케팅 자동화 · 전환 목표 설정',
+    action: '월 예산과 전환 목표(리드/가입/구독)를 설정하면 AI가 캠페인을 자동 집행·최적화합니다.',
+    done: (g) => (g.sharedCampaigns || []).length > 0 },
+];
+
+const STEP_SETS = { commerce: COMMERCE_STEPS, service: SERVICE_STEPS };
+
 const isDone = (s, g) => { try { return !!s.done(g); } catch { return false; } };
 
 function tenantKey() {
@@ -50,7 +72,11 @@ export default function OnboardingGuide() {
 
   const welcomedKey = 'genie_onb_welcomed_' + tenantKey();
   const expandKey = 'genie_onb_expanded_' + tenantKey();
+  const bizModelKey = 'genie_onb_bizmodel_' + tenantKey();
   const [welcomed, setWelcomed] = useState(() => { try { return localStorage.getItem(welcomedKey) === '1'; } catch { return true; } });
+  // [현 차수] ★비즈니스 모델: 'commerce'(실물 커머스) | 'service'(서비스·구독·디지털). 미선택 시 null → 선택 유도.
+  const [bizModel, setBizModel] = useState(() => { try { const v = localStorage.getItem(bizModelKey); return v === 'commerce' || v === 'service' ? v : null; } catch { return null; } });
+  const chooseModel = (m) => { try { localStorage.setItem(bizModelKey, m); } catch {} setBizModel(m); };
   // [현 차수] ★항상 기본 접힘(단일 1줄) — 안내 배너가 페이지 콘텐츠 높이를 잠식하지 않도록.
   //   펼침은 사용자가 명시적으로 [펼치기]를 눌렀을 때만(absolute 오버레이로 표시 → 페이지 안 밀림).
   //   (218차 '첫 방문 자동 펼침'이 전 페이지 컨테이너 높이를 압축하는 회귀를 유발해 제거.)
@@ -58,6 +84,8 @@ export default function OnboardingGuide() {
     try { return localStorage.getItem(expandKey) === '1'; } catch { return false; }
   });
 
+  // 모델 미선택 시 commerce 기준으로 완료 여부 판단(기존 사용자 회귀 방지) → 단, 선택 유도 배너 노출.
+  const STEPS = STEP_SETS[bizModel] || COMMERCE_STEPS;
   const doneFlags = STEPS.map((s) => isDone(s, gd));
   const doneCount = doneFlags.filter(Boolean).length;
   const allDone = doneCount === STEPS.length;
@@ -68,6 +96,32 @@ export default function OnboardingGuide() {
 
   // 전부 완료 + 이미 환영을 봤으면 숨김.
   if (allDone && welcomed) return null;
+
+  // [현 차수] ★비즈니스 모델 미선택 + 아직 온보딩 진행 중이면 모델 선택을 먼저 유도.
+  //   (이미 모든 단계를 끝낸 기존 사용자는 위에서 return 되어 여기 도달하지 않음 → 불필요한 재질문 없음.)
+  if (!bizModel && !allDone) {
+    const card = (m, icon, title, desc) => (
+      <button onClick={() => chooseModel(m)} style={{
+        flex: '1 1 220px', textAlign: 'left', cursor: 'pointer', padding: '14px 16px', borderRadius: 12,
+        border: '1px solid rgba(124,58,237,0.4)', background: 'rgba(255,255,255,0.08)', color: '#fff',
+      }}>
+        <div style={{ fontSize: 15, fontWeight: 900, marginBottom: 4 }}>{icon} {title}</div>
+        <div style={{ fontSize: 12, color: '#c7d2fe', lineHeight: 1.5 }}>{desc}</div>
+      </button>
+    );
+    return (
+      <div style={{ position: 'relative', margin: '8px 16px 0', zIndex: 40 }}>
+        <div style={{ borderRadius: 12, padding: '12px 14px', background: 'linear-gradient(135deg,#0b1224,#1e1b4b)', color: '#fff', border: '1px solid rgba(124,58,237,0.4)' }}>
+          <div style={{ fontSize: 13.5, fontWeight: 900, marginBottom: 2 }}>🧭 {t('onboard.bizModel.prompt', '먼저 비즈니스 모델을 선택하세요 — 시작 단계가 여기에 맞춰집니다.')}</div>
+          <div style={{ fontSize: 11.5, color: '#c7d2fe', marginBottom: 10 }}>{t('onboard.bizModel.sub', '실물 상품을 파는지, 서비스·구독·플랫폼 자체를 알리는지에 따라 안내가 달라집니다.')}</div>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            {card('commerce', '📦', t('onboard.bizModel.commerce', '실물 커머스'), t('onboard.bizModel.commerceDesc', '실물 상품 판매 · 재고/창고/주문 관리(상품→창고→입고→채널→주문 동기화).'))}
+            {card('service', '🧩', t('onboard.bizModel.service', '서비스·구독·디지털'), t('onboard.bizModel.serviceDesc', '서비스/구독/플랫폼 자체가 상품 · 물류 없음(서비스 등록→채널→결제→마케팅 자동화).'))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const toggle = () => { const v = !expanded; setExpanded(v); try { localStorage.setItem(expandKey, v ? '1' : '0'); } catch {} };
   const markWelcomed = () => { try { localStorage.setItem(welcomedKey, '1'); } catch {} setWelcomed(true); };
@@ -161,7 +215,12 @@ export default function OnboardingGuide() {
         })}
         {/* 액션 푸터 */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, marginTop: 6, padding: '4px 6px', flexWrap: 'wrap' }}>
-          <div style={{ fontSize: 11, color: '#64748b' }}>{t('onboard.freeMove', '원하는 단계를 눌러 자유롭게 이동할 수 있습니다.')}</div>
+          <div style={{ fontSize: 11, color: '#64748b' }}>
+            {t('onboard.freeMove', '원하는 단계를 눌러 자유롭게 이동할 수 있습니다.')}
+            <button onClick={(e) => { e.stopPropagation(); chooseModel(bizModel === 'service' ? 'commerce' : 'service'); }} style={{ marginLeft: 8, padding: '2px 8px', borderRadius: 7, border: '1px solid #cbd5e1', cursor: 'pointer', background: '#fff', color: '#4f46e5', fontSize: 10.5, fontWeight: 800 }}>
+              {bizModel === 'service' ? t('onboard.bizModel.toCommerce', '실물 커머스로 전환') : t('onboard.bizModel.toService', '서비스·구독으로 전환')}
+            </button>
+          </div>
           {firstVisit
             ? <button onClick={() => { markWelcomed(); if (step) nav(step.route); }} style={{ padding: '9px 20px', borderRadius: 10, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#4f46e5,#7c3aed)', color: '#fff', fontWeight: 800, fontSize: 12.5 }}>{allDone ? t('onboard.start', '시작하기') : t('onboard.startFirst', '첫 단계부터 시작')} →</button>
             : (allDone ? <button onClick={markWelcomed} style={{ padding: '8px 18px', borderRadius: 10, border: '1px solid #cbd5e1', cursor: 'pointer', background: '#fff', color: '#334155', fontWeight: 800, fontSize: 12 }}>{t('onboard.dismissDone', '확인 · 닫기')}</button> : null)}

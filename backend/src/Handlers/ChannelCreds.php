@@ -245,6 +245,9 @@ final class ChannelCreds
         $keyValue = trim((string)($body['key_value'] ?? ''));
         $note     = trim((string)($body['note']      ?? ''));
 
+        // [현 차수] ★발급 확인 실검증용 평문 보존(암호화 전). 저장은 암호화본, 검증 ping 은 평문 사용.
+        $plainValue = $keyValue;
+
         // ★ 202차 은행급: 비밀값은 AES-256-GCM 암호화 저장. 빈 값은 "미덮어씀"이므로 그대로 둠.
         if ($keyValue !== '') $keyValue = \Genie\Crypto::encrypt($keyValue);
 
@@ -326,9 +329,24 @@ final class ChannelCreds
 
         $newId = (int)$pdo->lastInsertId();
 
-        // [현 차수] ③ 발급완료 신호: 이 채널의 발급 신청(pending/processing)이 있으면 자동 완료 처리.
-        //   사용자가 발급받은 키를 등록 = 발급 완료 → 신청 현황이 '완료'로 갱신된다.
-        self::markApplyCompleted($pdo, $tenant, $channel);
+        // [현 차수] ★발급 확인은 '실제 검증'으로만 표기(임의 조작 금지) — 등록만으로 완료 처리하지 않는다.
+        //   방금 저장한 토큰/키 필드를 실 채널 API로 즉시 검증(ping)해 test_status 기록 →
+        //   라이브 실검증을 genuine 하게 통과한 경우에만 발급 신청을 '완료(발급 확인됨)'로 갱신한다.
+        //   미검증(토큰 아님/저장만/검증실패) → 신청은 '처리중(발급 확인 대기)'로만 둔다.
+        $verifiableField = in_array($keyName, ['api_key', 'access_token', 'oauth_token', 'oauth_access_token'], true);
+        $verified = false;
+        if ($tenant !== '' && $tenant !== 'demo' && !str_starts_with($tenant, 'demo') && $verifiableField && $plainValue !== '') {
+            try {
+                [$vok] = self::pingChannel($channel, $keyName, $plainValue);
+                try {
+                    $pdo->prepare('UPDATE channel_credential SET last_tested_at=?, test_status=? WHERE tenant_id=? AND channel=? AND key_name=?')
+                        ->execute([$now, $vok ? 'ok' : 'error', $tenant, $channel, $keyName]);
+                } catch (\Throwable $e) {}
+                // soft-ok(저장만 확인) 채널은 발급확인 아님 — 라이브 실검증 채널만 genuine.
+                $verified = $vok && self::hasLiveVerify($channel);
+            } catch (\Throwable $e) { /* 검증 실패는 무음 — 저장 성공 우선 */ }
+        }
+        self::markApplyCompleted($pdo, $tenant, $channel, $verified);
 
         // ── [현 차수 P0] 자격증명 저장 직후 백엔드 자동 동기화 트리거 ───────────────
         //   기존엔 프론트(ApiKeys.handleConnectSave)가 별도 POST 로만 sync 를 호출해,
@@ -466,12 +484,19 @@ final class ChannelCreds
             'UPDATE channel_credential SET last_tested_at=?, test_status=? WHERE id=?'
         )->execute([$now, $status, $id]);
 
+        // [현 차수] ★수동 연결 테스트가 라이브 실검증을 통과하면 발급 신청을 '발급 확인됨(완료)'로 갱신.
+        //   임의 조작이 아니라 실 채널 API 검증 결과 → 신청자에게 발급 확인 이메일 발송(markApplyCompleted 내부).
+        if ($success && self::hasLiveVerify($channel)) {
+            self::markApplyCompleted($pdo, $tenant, $channel, true);
+        }
+
         return TemplateResponder::respond($response, [
             'ok'       => $success,
             'channel'  => $channel,
             'status'   => $status,
             'message'  => $message,
             'tested_at'=> $now,
+            'verified' => $success && self::hasLiveVerify($channel),
         ]);
     }
 
@@ -493,6 +518,8 @@ final class ChannelCreds
             in_array($channel, ['naver', 'naver_smartstore'], true) => [true, 'Naver: 자격증명 저장됨 — 동기화 시 실연동 검증(OAuth+HMAC)'],
             in_array($channel, ['coupang'], true) => [true, 'Coupang: 자격증명 저장됨 — 동기화 시 실연동 검증(HMAC)'],
             in_array($channel, ['kakao', 'kakao_moment'], true) => self::pingKakao($keyValue),
+            // [현 차수] YouTube Data API 키 실 검증 — 임의 발급확인 금지, 실제 API 호출로 키 유효성 확인.
+            in_array($channel, ['youtube'], true) => self::pingYouTube($keyName, $keyValue),
             // ★[현 차수 P0] 거짓양성 차단: 실 어댑터가 있는 채널만 'stored=ok', 미구현 stub 은 정직하게 not-connected.
             //   과거 default=[true,...] 라 PG/물류/국제특송/genericFetch stub 채널이 "테스트 성공"으로 오표시됐다.
             default => self::hasRealAdapter($channel)
@@ -521,6 +548,35 @@ final class ChannelCreds
         if (in_array($channel, $list, true)) return true;
         $c = ChannelSync::normalizeChannelKey($channel);
         return $c !== $channel && in_array($c, $list, true);
+    }
+
+    /**
+     * [현 차수] ★연결 테스트가 '실제 발급 검증'(라이브 API 호출로 키 유효성 확인)인 채널 판정.
+     *   '발급 확인됨' 배지/신청완료는 이 채널들의 실 검증 통과에만 근거한다(임의 조작 금지).
+     *   저장만 확인하는 soft-ok 채널(amazon/naver/coupang 등 — ping 이 'stored'만 반환)은 제외.
+     */
+    private static function hasLiveVerify(string $channel): bool
+    {
+        $live = ['meta_ads', 'meta', 'tiktok', 'tiktok_business', 'google_ads', 'google', 'kakao', 'kakao_moment', 'youtube'];
+        if (in_array($channel, $live, true)) return true;
+        $c = ChannelSync::normalizeChannelKey($channel);
+        return $c !== $channel && in_array($c, $live, true);
+    }
+
+    /** YouTube Data API v3 키 실 검증 — 가벼운 공개 엔드포인트(i18nLanguages) 호출로 키 발급·유효성 확인. */
+    private static function pingYouTube(string $keyName, string $apiKey): array
+    {
+        // 발급 확인은 'API 키'로만 — 채널 ID 등 비-키 필드는 키 행에서 검증하도록 안내.
+        if (!in_array($keyName, ['api_key', 'access_token', 'oauth_token', 'key_value'], true)) {
+            return [false, 'YouTube 발급 확인은 API 키로 검증됩니다 — API 키 항목을 등록·테스트하세요.'];
+        }
+        $key = trim($apiKey);
+        if ($key === '') return [false, 'YouTube: API 키 미입력'];
+        [$code, $body, $err] = self::httpGet('https://www.googleapis.com/youtube/v3/i18nLanguages?part=snippet&hl=ko&key=' . urlencode($key));
+        if ($err) return [false, "YouTube 연결 오류: $err"];
+        if ($code === 200 && isset($body['items'])) return [true, 'YouTube Data API 키 발급·검증 확인됨'];
+        $msg = $body['error']['message'] ?? "HTTP $code";
+        return [false, "YouTube 키 검증 실패: $msg"];
     }
 
     private static function httpGet(string $url, array $headers = []): array
@@ -786,7 +842,9 @@ final class ChannelCreds
 
         // connector_apply_log 테이블에 저장 (없으면 channel_credential의 note에 기록)
         try {
-            // [현 차수] 채널별 발급 정보 보관 컬럼 보장(idempotent — 이미 있으면 catch).
+            // [현 차수] ★테이블·컬럼 보장(idempotent) — 최초 신청이 fallback(note)으로 새어나가
+            //   신청현황(applyList)에 안 보이던 문제 차단. 신청은 항상 connector_apply_log에 기록 → 항상 현황 확인 가능.
+            self::ensureApplyTable($pdo);
             try { $pdo->exec("ALTER TABLE connector_apply_log ADD COLUMN extra_json TEXT"); } catch (\Throwable $e) {}
             $pdo->prepare(
                 'INSERT INTO connector_apply_log(tenant_id, channel, ticket_id, member_name, member_email,
@@ -835,8 +893,11 @@ final class ChannelCreds
                         . "<p>· 티켓 번호: <b>" . htmlspecialchars($ticketId, ENT_QUOTES) . "</b><br>· 처리 상태: 접수(pending)</p>"
                         . "<p>발급이 완료되면 등록 즉시 자동으로 연동·동기화됩니다. 추가 정보가 필요하면 회신드리겠습니다.</p>"
                     );
-                    \Genie\Mailer::send($memberEmail, "[GenieGo ROI] {$chName} API 키 발급 신청 접수 ({$ticketId})", $html, ['pdo' => $pdo, 'tenant' => $tenant]);
-                    $notified = true;
+                    // [현 차수] ★신청 접수 확인은 플랫폼 시스템 알림 → 플랫폼 SMTP(app_setting) 사용(tenant 미지정).
+                    //   기존엔 tenant 지정으로 미설정 테넌트 캠페인 SMTP를 타 발송 실패 → 사용자가 확인 메일을 못 받던 원인.
+                    //   ★실제 발송 결과로 notified 판정(메일 실패 시 false positive 방지 — 접수 성공/메일 실패 정직 구분).
+                    $sendRes = \Genie\Mailer::send($memberEmail, "[GenieGo ROI] {$chName} API 키 발급 신청 접수 ({$ticketId})", $html, ['pdo' => $pdo]);
+                    $notified = !empty($sendRes['ok']);
                 }
                 // (2) 운영팀 알림 메일 — APPLY_NOTIFY_EMAIL(env) 또는 app_setting(apply_notify_email)
                 $opsTo = (string)(getenv('APPLY_NOTIFY_EMAIL') ?: '');
@@ -966,13 +1027,39 @@ final class ChannelCreds
         }
     }
 
-    /** 자격증명 등록 시 해당 채널의 pending/processing 발급 신청을 자동 완료(발급완료 신호). upsert 에서 호출. */
-    public static function markApplyCompleted(\PDO $pdo, string $tenant, string $channel): void
+    /**
+     * [현 차수] ★발급 신청 현황 갱신 — 발급 '확인(완료)'은 연동허브 실검증 통과($verified=true)에만 표기한다.
+     *   임의 조작 금지: 등록만으로는 완료로 뒤집지 않고 '처리중(발급 확인 대기)'로만 둔다.
+     *   실검증 통과 시에만 'completed(발급 확인됨)'로 갱신 + 신청자에게 발급 확인 이메일 별도 발송.
+     */
+    public static function markApplyCompleted(\PDO $pdo, string $tenant, string $channel, bool $verified): void
     {
-        if ($tenant === '' || $tenant === 'demo' || str_starts_with($tenant, 'demo') || $channel === '') return;
+        if ($tenant === '' || str_starts_with($tenant, 'demo') || $channel === '') return;
         try {
-            $st = $pdo->prepare("UPDATE connector_apply_log SET status='completed', completed_at=?, completed_note=? WHERE tenant_id=? AND channel=? AND status IN('pending','processing')");
-            $st->execute([gmdate('c'), '자격증명 등록으로 자동 완료', $tenant, $channel]);
+            if (!$verified) {
+                // 등록됐으나 미검증 → '처리중'(발급 확인 대기). 완료로 표기하지 않음.
+                $pdo->prepare("UPDATE connector_apply_log SET status='processing', completed_note=? WHERE tenant_id=? AND channel=? AND status='pending'")
+                    ->execute(['자격증명 등록됨 — 연동허브 발급 확인(실검증) 대기', $tenant, $channel]);
+                return;
+            }
+            // 실 검증 통과 → 발급 확인(완료). 통지 대상(아직 미완료) 행 먼저 조회.
+            $sel = $pdo->prepare("SELECT ticket_id, member_email FROM connector_apply_log WHERE tenant_id=? AND channel=? AND status IN('pending','processing') ORDER BY id DESC");
+            $sel->execute([$tenant, $channel]);
+            $open = $sel->fetchAll(\PDO::FETCH_ASSOC);
+            $pdo->prepare("UPDATE connector_apply_log SET status='completed', completed_at=?, completed_note=? WHERE tenant_id=? AND channel=? AND status IN('pending','processing')")
+                ->execute([gmdate('c'), '연동허브 실검증 통과 — 발급 확인됨', $tenant, $channel]);
+            // 발급 확인 통지(신청자 이메일) — 실검증으로 확인된 경우에만(조작 없음).
+            foreach ($open as $r) {
+                $em = (string)($r['member_email'] ?? '');
+                if ($em === '' || !filter_var($em, FILTER_VALIDATE_EMAIL)) continue;
+                try {
+                    $tk = (string)$r['ticket_id'];
+                    $subj = "[GenieGo ROI] {$channel} 발급 확인됨 — 연동 완료 ({$tk})";
+                    $bodyHtml = "<p>{$channel} 채널의 API 키/토큰이 <b>GenieGo ROI 연동허브에서 실제 발급·검증 확인</b>되었습니다 (티켓 {$tk}).</p>"
+                        . "<p>이 확인은 플랫폼이 실 채널 API로 직접 검증한 결과이며 임의 표기가 아닙니다. 이제 자동으로 연동·동기화됩니다.</p>";
+                    \Genie\Mailer::send($em, $subj, \Genie\Mailer::wrapHtml($subj, $bodyHtml), ['pdo' => $pdo]);
+                } catch (\Throwable $e) {}
+            }
         } catch (\Throwable $e) { /* 테이블 미존재 등 — 무시 */ }
     }
 }

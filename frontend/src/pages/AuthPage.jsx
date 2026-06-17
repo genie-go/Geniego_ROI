@@ -799,6 +799,11 @@ function FreeRegisterForm({ onSwitch, onBack, variant = "demo" }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
+  // [현 차수] ★회원가입 시 회사정보 필수 — 이후 API 키 발급신청 등에서 재사용(중복입력 제거).
+  const [company, setCompany] = useState("");
+  const [ceoName, setCeoName] = useState("");
+  const [businessNumber, setBusinessNumber] = useState("");
+  const [phone, setPhone] = useState("");
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [agreePrivacy, setAgreePrivacy] = useState(false);
   const [agreeMarketing, setAgreeMarketing] = useState(false);
@@ -812,10 +817,17 @@ function FreeRegisterForm({ onSwitch, onBack, variant = "demo" }) {
     e.preventDefault();
     setError(null);
     if (password !== confirm) { setError(t("auth.passwordMismatch")); return; }
+    // [현 차수] ★회사정보 필수 검증 — 누락 시 가입 불가.
+    if (!company.trim() || !ceoName.trim() || !businessNumber.trim() || !phone.trim()) {
+      setError(t('auth.companyInfoRequired', '회사명·대표자명·사업자등록번호·연락처를 모두 입력해 주세요.')); return;
+    }
     if (!agreeTerms || !agreePrivacy || !agreeEcommerce) { setError(t('auth.agreeTermsRequired')); return; }
     setLoading(true);
     try {
-      const result = await register(email, password, name, "", { plan: "" });
+      const result = await register(email, password, name, company.trim(), {
+        plan: "",
+        company: company.trim(), ceo_name: ceoName.trim(), business_number: businessNumber.trim(), phone: phone.trim(),
+      });
       navigate("/dashboard", {
         replace: true,
         state: result?.coupon ? { couponAlert: result.coupon } : undefined,
@@ -847,6 +859,15 @@ function FreeRegisterForm({ onSwitch, onBack, variant = "demo" }) {
         <PasswordStrengthMeter password={password} />
       </div>
       <Field label={t("auth.passwordConfirm")} type="password" value={confirm} onChange={setConfirm} placeholder="••••••••" required autoComplete="new-password" />
+
+      {/* [현 차수] ★회사정보(필수) — 가입 시 1회 등록 → 이후 API 키 발급신청 등에서 자동 재사용 */}
+      <div style={{ padding: "8px 12px", borderRadius: 8, background: "rgba(99,102,241,0.05)", border: "1px solid rgba(99,102,241,0.18)", fontSize: 10.5, color: "var(--text-2)", fontWeight: 700 }}>
+        🏢 {t('auth.companyInfoNote', '회사 정보를 등록하면 이후 API 키 발급신청·연동에서 자동으로 불러와 중복 입력이 필요 없습니다.')}
+      </div>
+      <Field label={t("auth.companyLabel", '회사명')} value={company} onChange={setCompany} placeholder={t('auth.companyPh', '(주)회사명')} required autoComplete="organization" />
+      <Field label={t("auth.ceoNameLabel", '대표자명')} value={ceoName} onChange={setCeoName} placeholder={t('auth.ceoNamePh', '홍길동')} required />
+      <Field label={t("auth.bizNumberLabel", '사업자등록번호')} value={businessNumber} onChange={setBusinessNumber} placeholder="000-00-00000" required />
+      <Field label={t("auth.phoneLabel", '연락처')} type="tel" value={phone} onChange={setPhone} placeholder="02-0000-0000" required autoComplete="tel" />
 
       {/* Terms — 4개 개별 동의 + 전체동의 + 모달 보기 */}
       <TermsAgreementSection

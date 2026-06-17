@@ -562,6 +562,28 @@ export function AuthProvider({ children }) {
         return null;
     }, [token, user]);
 
+    /* ── [현 차수] 프로필(회사 상세정보) 수정 — PATCH /auth/profile → 로컬 user 즉시 갱신 ──
+     *  회원가입/프로필관리에서 등록한 회사정보를 한 곳에 영속화하고, 발급신청 등에서 재사용(중복입력 제거). */
+    const updateProfile = useCallback(async (fields = {}) => {
+        if (!token) return { ok: false, error: 'not_authenticated' };
+        try {
+            const r = await fetch(`${API}/auth/profile`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify(fields),
+            });
+            const d = await r.json().catch(() => ({}));
+            if (!r.ok || !d.ok) return { ok: false, error: d.error || `http_${r.status}` };
+            if (d.user) {
+                setUser(d.user);
+                localStorage.setItem(USER_KEY, JSON.stringify(d.user));
+            }
+            return { ok: true, user: d.user || null };
+        } catch (e) {
+            return { ok: false, error: String(e?.message || e) };
+        }
+    }, [token]);
+
     /* ── 파생 상태 ── */
     const subscriptionExpiresAt = user?.subscription_expires_at ?? null;
     const subscriptionDaysLeft = subscriptionExpiresAt
@@ -683,7 +705,7 @@ export function AuthProvider({ children }) {
         <AuthContext.Provider value={{
             user, token, loading,
             login, register, logout, upgrade, upgradeToPro,
-            onPaymentSuccess, refreshPlan, canAccess, hasMenuAccess,
+            onPaymentSuccess, refreshPlan, updateProfile, canAccess, hasMenuAccess,
             autoLogoutMin, setAutoLogoutMin,
             isDemoMode: IS_DEMO_MODE,
             isPro, isPaid, isDemo, isFreeUser, isAdmin,
