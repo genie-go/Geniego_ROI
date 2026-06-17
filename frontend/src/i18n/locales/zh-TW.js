@@ -15529,7 +15529,7 @@ export default {
     "afAccountNumber": "帳戶編號",
     "afSiteUrl": "商店 / 網站 URL",
     "afMarketplace": "市集平台（國家/地區）",
-    "afShopDomain": "商店網域","noInput":"未輸入任何值","savedSuffix":"個項目已儲存","syncing":"同步中...","syncDone":"同步完成","products":"商品","orders":"訂單","syncQueued":"已儲存 — 同步將透過自動輪詢生效","manageBtn":"管理","connectBtn":"註冊","registerHint":"透過下方通路卡片的[註冊]按鈕，註冊銷售、廣告、物流通路的憑證(存取權杖/廣告帳戶/客戶ID/廣告主ID等)。註冊後立即反映至整合狀態與直播電商。","groupOther":"其他","connectTitle":"整合註冊","connectSub":"請輸入所需憑證。值將以AES-256-GCM加密儲存，檢視時會被遮罩。僅儲存您輸入的項目。",
+    "afShopDomain": "商店網域","noInput":"未輸入任何值","savedSuffix":"個項目已儲存","syncing":"同步中...","syncDone":"同步完成","products":"商品","orders":"訂單","syncQueued":"已儲存 — 同步將透過自動輪詢生效","manageBtn":"管理","connectBtn":"註冊","manualBtn":"查看簽發手冊","manualHint":"逐步說明 API 金鑰的簽發流程。","manualTitle":"簽發手冊","openNewTab":"在新分頁開啟","issueConnectBtn":"自助簽發·連接","bannerVerified":"簽發已驗證","bannerRegistered":"已簽發·已註冊","bannerPending":"已註冊 · 即將連接","registerHint":"透過下方通路卡片的[註冊]按鈕，註冊銷售、廣告、物流通路的憑證(存取權杖/廣告帳戶/客戶ID/廣告主ID等)。註冊後立即反映至整合狀態與直播電商。","groupOther":"其他","connectTitle":"整合註冊","connectSub":"請輸入所需憑證。值將以AES-256-GCM加密儲存，檢視時會被遮罩。僅儲存您輸入的項目。",
     "tabGuide": "使用指南",
     "guideTitle": "整合中心使用指南",
     "guideSub": "學習如何安全地註冊、驗證、測試與管理外部渠道及平台的 API 憑證，並透過同步監控、金鑰輪替與企業級安全政策，建立穩定且高效的整合環境。",

@@ -23498,7 +23498,7 @@ export default {
     "afAccountNumber": "계정 번호 (Account)",
     "afSiteUrl": "스토어 / 사이트 URL",
     "afMarketplace": "마켓플레이스 (국가/지역)",
-    "afShopDomain": "스토어 도메인","noInput":"입력된 값이 없습니다","savedSuffix":"개 항목 저장됨","syncing":"동기화 중...","syncDone":"동기화 완료","products":"상품","orders":"주문","syncQueued":"저장됨 — 동기화는 자동 폴링으로 반영됩니다","manageBtn":"관리","connectBtn":"등록","registerHint":"아래 채널 카드의 [등록] 버튼으로 판매·광고·물류 채널의 자격증명(액세스 토큰/광고계정/고객ID/광고주ID 등)을 등록하세요. 등록 즉시 연동 현황·라이브 커머스에 반영됩니다.","groupOther":"기타","connectTitle":"연동 등록","connectSub":"필요한 자격증명을 입력하세요. 값은 AES-256-GCM으로 암호화 저장되며 조회 시 마스킹됩니다. 입력한 항목만 저장됩니다.",
+    "afShopDomain": "스토어 도메인","noInput":"입력된 값이 없습니다","savedSuffix":"개 항목 저장됨","syncing":"동기화 중...","syncDone":"동기화 완료","products":"상품","orders":"주문","syncQueued":"저장됨 — 동기화는 자동 폴링으로 반영됩니다","manageBtn":"관리","connectBtn":"등록","manualBtn":"발급 매뉴얼 보기","manualHint":"API 키 발급 과정을 단계별로 안내합니다.","manualTitle":"발급 매뉴얼","openNewTab":"새 탭에서 열기","issueConnectBtn":"직접 발급·연결","bannerVerified":"발급 확인 완료","bannerRegistered":"발급·등록 완료","bannerPending":"등록 완료 · 연동 준비 중","registerHint":"아래 채널 카드의 [등록] 버튼으로 판매·광고·물류 채널의 자격증명(액세스 토큰/광고계정/고객ID/광고주ID 등)을 등록하세요. 등록 즉시 연동 현황·라이브 커머스에 반영됩니다.","groupOther":"기타","connectTitle":"연동 등록","connectSub":"필요한 자격증명을 입력하세요. 값은 AES-256-GCM으로 암호화 저장되며 조회 시 마스킹됩니다. 입력한 항목만 저장됩니다.",
     "tabGuide": "이용 가이드",
     "guideTitle": "연동 허브 이용 가이드",
     "guideSub": "외부 채널 및 마켓플레이스의 API 자격증명을 안전하게 등록·인증·테스트하고, 동기화 상태를 모니터링하며 정기적인 키 회전과 보안 정책을 운영하는 전 과정을 안내합니다.",

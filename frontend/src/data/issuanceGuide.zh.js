@@ -246,7 +246,7 @@ export default {
     "要求：已获批准的 Adyen 商户合同（企业级全球 PG）。",
     "在 ca-live.adyen.com 登录 Customer Area。",
     "在 [Developers] > [API credentials] 中生成 API 密钥（X-API-Key），并记录您的 Merchant Account 名称。",
-    "在 GenieGo [注册] 中输入 api_key 和 merchant_account，然后保存。",
+    "在 GenieGo [注册] 中输入 api_key 和 merchant_account, batch_start，然后保存。",
   ],
   square: [
     "要求：拥有 Square 账户。",

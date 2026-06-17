@@ -245,7 +245,7 @@ export default {
     "Требования: одобренный торговый договор Adyen (корпоративный глобальный PG).",
     "Войдите в Customer Area по адресу ca-live.adyen.com.",
     "В разделе [Developers] > [API credentials] сгенерируйте API key (X-API-Key) и запишите имя своего Merchant Account.",
-    "В GenieGo нажмите [Register], введите api_key и merchant_account, затем сохраните.",
+    "В GenieGo нажмите [Register], введите api_key и merchant_account, batch_start, затем сохраните.",
   ],
   square: [
     "Требования: учётная запись Square.",

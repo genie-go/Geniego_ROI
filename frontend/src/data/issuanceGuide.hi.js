@@ -249,7 +249,7 @@ export default {
     "आवश्यकताएँ: एक स्वीकृत Adyen मर्चेंट अनुबंध (एंटरप्राइज़ ग्लोबल PG)।",
     "ca-live.adyen.com पर Customer Area में साइन इन करें।",
     "[Developers] > [API credentials] के अंतर्गत एक API key (X-API-Key) जनरेट करें और अपना Merchant Account नाम नोट करें।",
-    "GenieGo [पंजीकरण] में api_key और merchant_account दर्ज करें, फिर सहेजें।",
+    "GenieGo [पंजीकरण] में api_key और merchant_account, batch_start दर्ज करें, फिर सहेजें।",
   ],
   square: [
     "आवश्यकताएँ: एक Square खाता।",

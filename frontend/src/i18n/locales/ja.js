@@ -15012,7 +15012,7 @@ export default {
     "afAccountNumber": "アカウント番号",
     "afSiteUrl": "ストア / サイト URL",
     "afMarketplace": "マーケットプレイス（国/地域）",
-    "afShopDomain": "ストアドメイン","noInput":"入力された値がありません","savedSuffix":"件保存されました","syncing":"同期中...","syncDone":"同期完了","products":"商品","orders":"注文","syncQueued":"保存しました — 同期は自動ポーリングで反映されます","manageBtn":"管理","connectBtn":"登録","registerHint":"下のチャネルカードの[登録]ボタンから、販売・広告・物流チャネルの認証情報(アクセストークン/広告アカウント/顧客ID/広告主IDなど)を登録してください。登録後すぐに連携状況・ライブコマースに反映されます。","groupOther":"その他","connectTitle":"連携登録","connectSub":"必要な認証情報を入力してください。値はAES-256-GCMで暗号化保存され、表示時はマスクされます。入力した項目のみ保存されます。",
+    "afShopDomain": "ストアドメイン","noInput":"入力された値がありません","savedSuffix":"件保存されました","syncing":"同期中...","syncDone":"同期完了","products":"商品","orders":"注文","syncQueued":"保存しました — 同期は自動ポーリングで反映されます","manageBtn":"管理","connectBtn":"登録","manualBtn":"発行マニュアル","manualHint":"API キーの発行手順を段階的に案内します。","manualTitle":"発行マニュアル","openNewTab":"新しいタブで開く","issueConnectBtn":"発行・連携","bannerVerified":"発行確認 完了","bannerRegistered":"発行・登録 完了","bannerPending":"登録完了 · 連携準備中","registerHint":"下のチャネルカードの[登録]ボタンから、販売・広告・物流チャネルの認証情報(アクセストークン/広告アカウント/顧客ID/広告主IDなど)を登録してください。登録後すぐに連携状況・ライブコマースに反映されます。","groupOther":"その他","connectTitle":"連携登録","connectSub":"必要な認証情報を入力してください。値はAES-256-GCMで暗号化保存され、表示時はマスクされます。入力した項目のみ保存されます。",
     "tabGuide": "利用ガイド",
     "guideTitle": "連携ハブ利用ガイド",
     "guideSub": "外部チャネルやマーケットプレイスのAPI認証情報を安全に登録・認証・テストし、同期状態の監視や定期的なキー更新、セキュリティポリシーの運用までを包括的にご案内します。",

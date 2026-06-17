@@ -246,7 +246,7 @@ export default {
     "要件：承認済みのAdyen加盟店契約（エンタープライズ向けグローバルPG）。",
     "ca-live.adyen.com の Customer Area にサインインします。",
     "[Developers] > [API credentials] で API キー（X-API-Key）を生成し、Merchant Account 名を控えます。",
-    "GenieGo [登録] で api_key と merchant_account を入力して保存します。",
+    "GenieGo [登録] で api_key と merchant_account, batch_start を入力して保存します。",
   ],
   square: [
     "要件：Squareアカウント。",

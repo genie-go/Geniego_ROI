@@ -14861,7 +14861,7 @@ export default {
     "afAccountNumber": "账户编号",
     "afSiteUrl": "店铺 / 网站 URL",
     "afMarketplace": "市场平台（国家/地区）",
-    "afShopDomain": "店铺域名","noInput":"未输入任何值","savedSuffix":"个项目已保存","syncing":"同步中...","syncDone":"同步完成","products":"商品","orders":"订单","syncQueued":"已保存 — 同步将通过自动轮询生效","manageBtn":"管理","connectBtn":"注册","registerHint":"通过下方渠道卡片的[注册]按钮，注册销售、广告、物流渠道的凭证(访问令牌/广告账户/客户ID/广告主ID等)。注册后立即反映到集成状态和直播电商。","groupOther":"其他","connectTitle":"集成注册","connectSub":"请输入所需凭证。值将使用AES-256-GCM加密存储，查看时会被掩码。仅保存您输入的项目。",
+    "afShopDomain": "店铺域名","noInput":"未输入任何值","savedSuffix":"个项目已保存","syncing":"同步中...","syncDone":"同步完成","products":"商品","orders":"订单","syncQueued":"已保存 — 同步将通过自动轮询生效","manageBtn":"管理","connectBtn":"注册","manualBtn":"查看签发手册","manualHint":"分步说明 API 密钥的签发过程。","manualTitle":"签发手册","openNewTab":"在新标签页打开","issueConnectBtn":"自助签发·连接","bannerVerified":"签发已验证","bannerRegistered":"已签发·已注册","bannerPending":"已注册 · 即将连接","registerHint":"通过下方渠道卡片的[注册]按钮，注册销售、广告、物流渠道的凭证(访问令牌/广告账户/客户ID/广告主ID等)。注册后立即反映到集成状态和直播电商。","groupOther":"其他","connectTitle":"集成注册","connectSub":"请输入所需凭证。值将使用AES-256-GCM加密存储，查看时会被掩码。仅保存您输入的项目。",
     "tabGuide": "使用指南",
     "guideTitle": "集成中心使用指南",
     "guideSub": "学习如何安全地注册、验证、测试和管理外部渠道及平台的 API 凭证，并通过同步监控、密钥轮换和企业级安全策略实现稳定高效的集成运营。",

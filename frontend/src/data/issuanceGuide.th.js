@@ -249,7 +249,7 @@ export default {
     "ข้อกำหนด: สัญญาร้านค้า Adyen ที่ได้รับอนุมัติ (PG ระดับองค์กรทั่วโลก)",
     "ลงชื่อเข้าใช้ Customer Area ที่ ca-live.adyen.com",
     "ที่ [Developers] > [API credentials] ให้สร้าง API key (X-API-Key) และจดชื่อ Merchant Account ของคุณ",
-    "ใน GenieGo กด [Register] กรอก api_key และ merchant_account แล้วบันทึก",
+    "ใน GenieGo กด [Register] กรอก api_key และ merchant_account, batch_start แล้วบันทึก",
   ],
   square: [
     "ข้อกำหนด: บัญชี Square",

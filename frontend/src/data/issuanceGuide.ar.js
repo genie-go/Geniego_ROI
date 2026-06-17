@@ -249,7 +249,7 @@ export default {
     "المتطلبات: عقد تاجر معتمد من Adyen (بوابة دفع عالمية للمؤسسات).",
     "سجّل الدخول إلى Customer Area على ca-live.adyen.com.",
     "ضمن [Developers] > [API credentials]، أنشئ مفتاح API key (X-API-Key) ودوِّن اسم Merchant Account الخاص بك.",
-    "في GenieGo اضغط [Register]، أدخِل api_key و merchant_account ثم احفظ.",
+    "في GenieGo اضغط [Register]، أدخِل api_key و merchant_account, batch_start ثم احفظ.",
   ],
   square: [
     "المتطلبات: حساب Square.",

@@ -249,7 +249,7 @@ export default {
     "Yêu cầu: hợp đồng người bán Adyen đã được phê duyệt (PG toàn cầu cấp doanh nghiệp).",
     "Đăng nhập vào Customer Area tại ca-live.adyen.com.",
     "Tại [Developers] > [API credentials], tạo một API key (X-API-Key) và ghi lại tên Merchant Account của bạn.",
-    "Trong GenieGo, nhấn [Register], nhập api_key và merchant_account rồi lưu.",
+    "Trong GenieGo, nhấn [Register], nhập api_key và merchant_account, batch_start rồi lưu.",
   ],
   square: [
     "Yêu cầu: tài khoản Square.",

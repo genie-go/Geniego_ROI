@@ -277,7 +277,7 @@ export const ISSUANCE_GUIDE_KO = {
     '준비물: Adyen 가맹 계약·심사 승인이 필요합니다(엔터프라이즈 글로벌 PG).',
     'ca-live.adyen.com (Customer Area)에 로그인합니다.',
     '[Developers] > [API credentials]에서 API 키(X-API-Key)를 생성하고 Merchant Account명을 확인합니다.',
-    'GenieGo [등록]에 api_key, merchant_account를 입력해 저장합니다.',
+    'GenieGo [등록]에 api_key, merchant_account, batch_start를 입력해 저장합니다.',
   ],
   square: [
     '준비물: Square 계정이 필요합니다.',

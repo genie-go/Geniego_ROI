@@ -247,7 +247,7 @@ export default {
     "Prérequis : un contrat marchand Adyen approuvé (PG global d'entreprise).",
     "Connectez-vous au Customer Area sur ca-live.adyen.com.",
     "Dans [Developers] > [API credentials], générez une clé d'API (X-API-Key) et notez le nom de votre Merchant Account.",
-    "Dans GenieGo [Register], saisissez le api_key et merchant_account, puis enregistrez.",
+    "Dans GenieGo [Register], saisissez le api_key et merchant_account, batch_start, puis enregistrez.",
   ],
   square: [
     "Prérequis : un compte Square.",

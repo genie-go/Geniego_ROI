@@ -249,7 +249,7 @@ export default {
     "Persyaratan: kontrak merchant Adyen yang telah disetujui (PG global tingkat enterprise).",
     "Masuk ke Customer Area di ca-live.adyen.com.",
     "Di [Developers] > [API credentials], buat sebuah API key (X-API-Key) dan catat nama Merchant Account Anda.",
-    "Di GenieGo, klik [Register], masukkan api_key dan merchant_account lalu simpan.",
+    "Di GenieGo, klik [Register], masukkan api_key dan merchant_account, batch_start lalu simpan.",
   ],
   square: [
     "Persyaratan: akun Square.",
