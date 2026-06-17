@@ -179,6 +179,14 @@ export default function OnboardingGuide() {
           <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 800, overflow: 'hidden', textOverflow: 'ellipsis' }}>{allDone ? t('onboard.allDoneTitle', '모든 시작 단계를 완료했습니다!') : t('onboard.guideTitle', 'GeniegoROI 시작 가이드')}</span>
         )}
         <span style={{ flexShrink: 0, fontSize: 11, fontWeight: 900, color: '#c7d2fe' }}>{doneCount}/{STEPS.length}</span>
+        {/* [현 차수] 하나(실물/서비스)를 고른 뒤에도 메인 바에서 '추가 선택' → 둘 다 등록 가능(both 병합). */}
+        {(bizModel === 'commerce' || bizModel === 'service') && (
+          <button onClick={() => chooseModel('both')}
+            title={t('onboard.bizModel.addBothHint', '다른 유형도 함께 등록합니다')}
+            style={{ ...hBtn, flexShrink: 0, background: 'linear-gradient(135deg,#22c55e,#16a34a)', border: 'none', color: '#fff' }}>
+            + {bizModel === 'commerce' ? t('onboard.bizModel.addService', '서비스 추가') : t('onboard.bizModel.addCommerce', '실물상품 추가')}
+          </button>
+        )}
         <button onClick={toggle} style={hBtn}>{expanded ? t('onboard.collapse', '접기') + ' ▴' : t('onboard.expand', '펼치기') + ' ▾'}</button>
         <button onClick={markWelcomed} title={t('onboard.dismiss', '닫기')} style={{ ...hBtn, padding: '4px 8px' }}>×</button>
       </div>
