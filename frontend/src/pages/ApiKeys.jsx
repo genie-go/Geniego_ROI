@@ -1853,7 +1853,9 @@ function ActiveKeysTab({ creds, channels, loading, onTest, onDelete, onAddClick,
         <tbody>
           {creds.map(c => {
             const ch = chMap[c.channel] || { name: c.channel, icon: '❓', color: '#94a3b8' };
-            const sc = STATUS_COLORS[c.test_status || 'none'];
+            // [228차 hotfix] test_status 가 'untested'(DB 디폴트) 등 STATUS_COLORS 미정의 값이면 undefined→sc.bg 크래시.
+            //   알 수 없는 상태는 'none' 스타일로 폴백(활성키 탭 System Error 근본수정).
+            const sc = STATUS_COLORS[c.test_status] || STATUS_COLORS.none;
             const busyT = testingId === c.id;
             const busyD = deletingId === c.id;
             return (
@@ -1927,8 +1929,8 @@ function HistoryTab({ creds, loading, t }) {
             <span style={{ fontFamily: 'monospace', color: 'var(--text-3)' }}>{c.key_name}</span>
             <span style={{
               fontSize: 10, padding: '2px 6px', borderRadius: 6,
-              background: STATUS_COLORS[c.test_status || 'none'].bg,
-              color:      STATUS_COLORS[c.test_status || 'none'].fg, fontWeight: 700
+              background: (STATUS_COLORS[c.test_status] || STATUS_COLORS.none).bg,
+              color:      (STATUS_COLORS[c.test_status] || STATUS_COLORS.none).fg, fontWeight: 700
             }}>{(c.test_status || 'untested').toUpperCase()}</span>
           </div>
         ))}
