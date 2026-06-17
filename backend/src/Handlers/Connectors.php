@@ -788,6 +788,75 @@ final class Connectors
         return TemplateResponder::respond($res, $out);
     }
 
+    /** 광고 채널 별칭 → 정규 키(매체보고 channel 과 attribution attributed_channel 정합). */
+    private static function normAdCh(string $ch): string
+    {
+        $m = ['meta_ads' => 'meta', 'google_ads' => 'google', 'tiktok_business' => 'tiktok', 'tiktok_shop' => 'tiktok', 'naver_sa' => 'naver', 'kakao_moment' => 'kakao'];
+        $c = strtolower(trim($ch));
+        return $m[$c] ?? $c;
+    }
+
+    /**
+     * [228차 S1] GET /v423/connectors/roas-reconciliation — 매체보고 ROAS vs 실주문귀속 ROAS 정합.
+     *   매체보고 매출(performance_metrics.revenue)은 매체 자체 기여전환(뷰스루·중복·모델링)으로 체계적 과대.
+     *   진실 = 광고 클릭ID(gclid/fbclid/ttclid)·픽셀 이메일매칭으로 실주문에 귀속된 매출(attribution_result
+     *   model='order-match' ⨝ channel_orders). 두 ROAS를 채널별 병기 → 최적화 신호 정직화(자동화 두뇌 보정 근거).
+     *   ★실주문 귀속만 = 광고에 진짜 귀속된 매출(과대 없음). truthRatio<1 이면 매체보고가 부풀려진 정도.
+     */
+    public static function roasReconciliation(Request $req, Response $res): Response
+    {
+        $tenant = self::tenantId($req);
+        $out = ['ok' => true, 'channels' => [], 'totals' => ['spend' => 0, 'platformRevenue' => 0, 'realRevenue' => 0]];
+        if ($tenant === '' || $tenant === 'demo' || str_starts_with($tenant, 'demo')) return TemplateResponder::respond($res, $out);
+        try {
+            $pdo = Db::pdo();
+            // ① 매체보고(performance_metrics) — 광고 채널만 집계
+            $adChs = ['meta', 'meta_ads', 'google', 'google_ads', 'tiktok', 'tiktok_business', 'naver', 'naver_sa', 'kakao', 'kakao_moment'];
+            $ph = implode(',', array_fill(0, count($adChs), '?'));
+            $plat = [];
+            try {
+                $st = $pdo->prepare("SELECT LOWER(channel) ch, COALESCE(SUM(spend),0) spend, COALESCE(SUM(revenue),0) rev, COALESCE(SUM(conversions),0) conv
+                    FROM performance_metrics WHERE tenant_id=? AND LOWER(channel) IN ($ph) GROUP BY LOWER(channel)");
+                $st->execute(array_merge([$tenant], $adChs));
+                foreach ($st->fetchAll(\PDO::FETCH_ASSOC) as $r) {
+                    $ch = self::normAdCh((string)$r['ch']);
+                    if (!isset($plat[$ch])) $plat[$ch] = ['spend' => 0, 'rev' => 0, 'conv' => 0];
+                    $plat[$ch]['spend'] += (float)$r['spend']; $plat[$ch]['rev'] += (float)$r['rev']; $plat[$ch]['conv'] += (int)$r['conv'];
+                }
+            } catch (\Throwable $e) {}
+            // ② 실주문 귀속 — attribution_result(order-match) ⨝ channel_orders(실 매출)
+            $real = [];
+            try {
+                $rs = $pdo->prepare("SELECT LOWER(ar.attributed_channel) ch, COALESCE(SUM(co.total_price),0) rev, COUNT(*) conv
+                    FROM attribution_result ar JOIN channel_orders co ON co.tenant_id=ar.tenant_id AND co.channel_order_id=ar.order_id
+                    WHERE ar.tenant_id=? AND ar.model='order-match' GROUP BY LOWER(ar.attributed_channel)");
+                $rs->execute([$tenant]);
+                foreach ($rs->fetchAll(\PDO::FETCH_ASSOC) as $r) {
+                    $ch = self::normAdCh((string)$r['ch']);
+                    if (!isset($real[$ch])) $real[$ch] = ['rev' => 0, 'conv' => 0];
+                    $real[$ch]['rev'] += (float)$r['rev']; $real[$ch]['conv'] += (int)$r['conv'];
+                }
+            } catch (\Throwable $e) {}
+            foreach (array_unique(array_merge(array_keys($plat), array_keys($real))) as $ch) {
+                $sp = $plat[$ch]['spend'] ?? 0; $pr = $plat[$ch]['rev'] ?? 0; $rr = $real[$ch]['rev'] ?? 0;
+                $out['channels'][] = [
+                    'channel' => $ch, 'spend' => round($sp, 2),
+                    'platformRevenue' => round($pr, 2), 'realRevenue' => round($rr, 2),
+                    'platformRoas' => $sp > 0 ? round($pr / $sp, 2) : 0,
+                    'realRoas' => $sp > 0 ? round($rr / $sp, 2) : 0,
+                    'platformConv' => $plat[$ch]['conv'] ?? 0, 'realConv' => $real[$ch]['conv'] ?? 0,
+                    'truthRatio' => $pr > 0 ? round($rr / $pr, 3) : null,
+                ];
+                $out['totals']['spend'] += $sp; $out['totals']['platformRevenue'] += $pr; $out['totals']['realRevenue'] += $rr;
+            }
+            $T = $out['totals'];
+            $out['totals']['platformRoas'] = $T['spend'] > 0 ? round($T['platformRevenue'] / $T['spend'], 2) : 0;
+            $out['totals']['realRoas'] = $T['spend'] > 0 ? round($T['realRevenue'] / $T['spend'], 2) : 0;
+            $out['note'] = '실주문 귀속 ROAS = 광고 클릭ID/픽셀 매칭된 실 주문 매출 기준. 매체보고는 뷰스루·중복 포함으로 과대. truthRatio<1 = 매체보고 부풀림 정도.';
+        } catch (\Throwable $e) { /* graceful */ }
+        return TemplateResponder::respond($res, $out);
+    }
+
     /**
      * [현 차수] POST /v424/connectors/ad-metrics — 범용 광고성과 ingest(추후 추가 채널 무코드 적재).
      *   전용 fetcher 가 없는 신규 광고채널도 표준 포맷으로 objective 포함 성과를 push 하면 campaignFunnel 이
@@ -1701,6 +1770,16 @@ final class Connectors
             return ['hasCreds' => false, 'live' => false, 'rows' => []];
         }
 
+        // [228차 S1] ★광고주 통화 — TikTok spend/total_purchase_value 는 광고계정 통화(USD 등) 표기.
+        //   기존엔 통화 미stamp → persist 가 KRW 기본값 적용 → USD 빌링 광고주 spend/ROAS 왜곡.
+        //   advertiser/info 1회 조회로 통화 캡처(실패 시 KRW 가정). persist 에서 KRW 환산 저장.
+        $ttCur = 'KRW';
+        [$ic, $ib] = self::httpGet('https://business-api.tiktok.com/open_api/v1.3/advertiser/info/?'
+            . http_build_query(['advertiser_ids' => json_encode([$advertiserId])]), ['Access-Token' => $accessToken]);
+        if (($ic ?? 0) < 400 && (int)($ib['code'] ?? -1) === 0) {
+            $ttCur = strtoupper((string)((($ib['data']['list'][0]['currency'] ?? '')) ?: 'KRW'));
+        }
+
         $payload = [
             'advertiser_id' => $advertiserId,
             'report_type'   => 'BASIC',
@@ -1739,6 +1818,7 @@ final class Connectors
                 'spend'       => (float)($m['spend'] ?? 0),
                 'conversions' => (int)round((float)($m['conversion'] ?? 0)),
                 'revenue'     => (float)($m['total_purchase_value'] ?? 0),
+                'currency'    => $ttCur, // [228차 S1] 다통화 정규화 — persist 에서 KRW 환산
             ];
         }
         return ['hasCreds' => true, 'live' => true, 'rows' => $rows];

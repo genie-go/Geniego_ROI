@@ -717,6 +717,9 @@ return function (App $app): void {
         // [현 차수] 채널×objective 퍼널 집계(목적별 분류 근거) — 세션 토큰 호출(AI게이트).
         'GET /v424/connectors/campaign-funnel'     => 'Genie\\Handlers\\Connectors::campaignFunnel',
         'GET /api/v424/connectors/campaign-funnel' => 'Genie\\Handlers\\Connectors::campaignFunnel',
+        // [228차 S1] 매체보고 vs 실주문귀속 ROAS 정합
+        'GET /v423/connectors/roas-reconciliation'     => 'Genie\\Handlers\\Connectors::roasReconciliation',
+        'GET /api/v423/connectors/roas-reconciliation' => 'Genie\\Handlers\\Connectors::roasReconciliation',
         // [현 차수] 범용 광고성과 ingest(추후 추가 채널 무코드 적재, api_key write) — objective 포함.
         'POST /v424/connectors/ad-metrics'         => 'Genie\\Handlers\\Connectors::adMetricsIngest',
         'POST /api/v424/connectors/ad-metrics'     => 'Genie\\Handlers\\Connectors::adMetricsIngest',
@@ -2445,6 +2448,8 @@ return function (App $app): void {
     $register('PUT', '/api/v424/marketing/benchmarks');
     $register('GET', '/v424/connectors/campaign-funnel');
     $register('GET', '/api/v424/connectors/campaign-funnel');
+    $register('GET', '/v423/connectors/roas-reconciliation');
+    $register('GET', '/api/v423/connectors/roas-reconciliation');
     $register('POST', '/v424/connectors/ad-metrics');
     $register('POST', '/api/v424/connectors/ad-metrics');
 
