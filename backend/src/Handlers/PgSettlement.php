@@ -39,6 +39,15 @@ final class PgSettlement
         'kcp'          => ['label' => 'NHN KCP', 'creds' => ['kcp'], 'live' => false],
         'kakaopay'     => ['label' => '카카오페이', 'creds' => ['kakaopay'], 'live' => false],
         'naverpay'     => ['label' => '네이버페이', 'creds' => ['naverpay'], 'live' => false],
+        // [228차] 글로벌 결제 전문 PG — 자격증명 등록·인식(정산 실수집 어댑터는 추후, 현재 honest pending).
+        'paddle'       => ['label' => 'Paddle', 'creds' => ['paddle'], 'live' => false],
+        'adyen'        => ['label' => 'Adyen', 'creds' => ['adyen'], 'live' => false],
+        'square'       => ['label' => 'Square', 'creds' => ['square'], 'live' => false],
+        'braintree'    => ['label' => 'Braintree', 'creds' => ['braintree'], 'live' => false],
+        'checkout'     => ['label' => 'Checkout.com', 'creds' => ['checkout'], 'live' => false],
+        'mollie'       => ['label' => 'Mollie', 'creds' => ['mollie'], 'live' => false],
+        'razorpay'     => ['label' => 'Razorpay', 'creds' => ['razorpay'], 'live' => false],
+        'klarna'       => ['label' => 'Klarna', 'creds' => ['klarna'], 'live' => false],
     ];
 
     private static function tenant(Request $request): string

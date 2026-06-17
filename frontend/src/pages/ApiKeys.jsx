@@ -72,6 +72,15 @@ const CHANNELS = [
   { key: 'naverpay',         name: '네이버페이',         icon: '🟢', color: '#03C75A', group: 'payment' },
   { key: 'paypal',           name: 'PayPal',             icon: '🅿️', color: '#003087', group: 'payment' },
   { key: 'stripe',           name: 'Stripe',             icon: '💜', color: '#635BFF', group: 'payment' },
+  // [228차] 글로벌 결제 전문 PG — 가장 많이 쓰이는 플랫폼(SaaS·엔터프라이즈·BNPL·신흥시장)
+  { key: 'paddle',           name: 'Paddle',             icon: '🏓', color: '#0E0E2C', group: 'payment' },
+  { key: 'adyen',            name: 'Adyen',              icon: '💚', color: '#0ABF53', group: 'payment' },
+  { key: 'square',           name: 'Square',             icon: '⬛', color: '#1A1A1A', group: 'payment' },
+  { key: 'braintree',        name: 'Braintree',          icon: '🌳', color: '#1B6CFF', group: 'payment' },
+  { key: 'checkout',         name: 'Checkout.com',       icon: '✳️', color: '#0B7AFF', group: 'payment' },
+  { key: 'mollie',           name: 'Mollie',             icon: '💙', color: '#0077FF', group: 'payment' },
+  { key: 'razorpay',         name: 'Razorpay',           icon: '🔷', color: '#3395FF', group: 'payment' },
+  { key: 'klarna',           name: 'Klarna',             icon: '🛍️', color: '#FFB3C7', group: 'payment' },
   { key: 'google_analytics', name: 'Google Analytics 4',icon: '📊', color: '#E37400', group: 'own_etc' },
   { key: 'slack',            name: 'Slack Webhook',     icon: '💬', color: '#4A154B', group: 'own_etc' },
 ];
@@ -141,6 +150,15 @@ const CHANNEL_FIELDS = {
   naverpay:  [{ k: 'client_id', label: 'Client ID' }, { k: 'client_secret', label: 'Client Secret', secret: true }, { k: 'chain_id', label: 'Chain ID' }],
   paypal:    [{ k: 'client_id', label: 'Client ID' }, { k: 'client_secret', label: 'Secret', secret: true }],
   stripe:    [{ k: 'publishable_key', label: 'Publishable Key' }, { k: 'secret_key', label: 'Secret Key', secret: true }],
+  // [228차] 글로벌 결제 전문 PG 자격증명
+  paddle:    [{ k: 'seller_id', label: 'Seller(Vendor) ID' }, { k: 'api_key', label: 'API 키 (Auth Code)', secret: true }],
+  adyen:     [{ k: 'api_key', label: 'API 키 (X-API-Key)', secret: true }, { k: 'merchant_account', label: 'Merchant Account' }],
+  square:    [{ k: 'access_token', label: 'Access Token', secret: true }, { k: 'location_id', label: 'Location ID' }],
+  braintree: [{ k: 'merchant_id', label: 'Merchant ID' }, { k: 'public_key', label: 'Public Key' }, { k: 'private_key', label: 'Private Key', secret: true }],
+  checkout:  [{ k: 'secret_key', label: 'Secret Key (sk_)', secret: true }, { k: 'public_key', label: 'Public Key (pk_)' }],
+  mollie:    [{ k: 'api_key', label: 'Live API 키 (live_)', secret: true }],
+  razorpay:  [{ k: 'key_id', label: 'Key ID (rzp_live_)' }, { k: 'key_secret', label: 'Key Secret', secret: true }],
+  klarna:    [{ k: 'username', label: 'API Username (MID/PID)' }, { k: 'password', label: 'API Password', secret: true }, { k: 'region', label: '리전 (eu / na / oc)' }],
   // 광고 매체
   meta_ads:  [{ k: 'access_token', label: '액세스 토큰', secret: true }, { k: 'ad_account_id', label: '광고 계정 ID (act_)' }],
   google_ads: [{ k: 'developer_token', label: '개발자 토큰', secret: true }, { k: 'access_token', label: '액세스 토큰', secret: true }, { k: 'customer_id', label: '고객 ID (10자리)' }],
@@ -209,6 +227,10 @@ const ISSUANCE_URL = {
   // 결제 게이트웨이(PG)
   inicis: 'https://www.inicis.com', toss: 'https://dashboard.tosspayments.com', kcp: 'https://admin8.kcp.co.kr',
   kakaopay: 'https://developers.kakaopay.com', paypal: 'https://developer.paypal.com', stripe: 'https://dashboard.stripe.com/apikeys',
+  // [228차] 글로벌 결제 전문 PG 콘솔
+  paddle: 'https://vendors.paddle.com', adyen: 'https://ca-live.adyen.com', square: 'https://developer.squareup.com/apps',
+  braintree: 'https://www.braintreegateway.com', checkout: 'https://dashboard.checkout.com', mollie: 'https://my.mollie.com/dashboard/developers/api-keys',
+  razorpay: 'https://dashboard.razorpay.com/app/keys', klarna: 'https://portal.klarna.com',
   // SNS 라이브 — self-serve 개발자 콘솔(youtube=Google Cloud, twitch=Twitch Dev)
   youtube: 'https://console.cloud.google.com/apis/credentials', // [227차] YouTube Data API 키 발급(Google Cloud Console)
   twitch: 'https://dev.twitch.tv/console/apps',                 // [227차] Twitch 앱 등록→client_id/secret 발급
@@ -258,6 +280,9 @@ const CHANNEL_APPLY_FIELDS = {
   // ── 결제 게이트웨이(PG) — 가맹점 식별
   inicis: ['merchant_id', 'account_email'], toss: ['merchant_id', 'account_email'], kcp: ['merchant_id', 'account_email'],
   kakaopay: ['merchant_id', 'account_email'], naverpay: ['merchant_id', 'account_email'], paypal: ['merchant_id', 'account_email'], stripe: ['merchant_id', 'account_email'],
+  // [228차] 글로벌 결제 전문 PG
+  paddle: ['merchant_id', 'account_email'], adyen: ['merchant_id', 'account_email'], square: ['merchant_id', 'account_email'], braintree: ['merchant_id', 'account_email'],
+  checkout: ['merchant_id', 'account_email'], mollie: ['merchant_id', 'account_email'], razorpay: ['merchant_id', 'account_email'], klarna: ['merchant_id', 'account_email'],
   // ── 물류/배송 — 계약 식별
   cj: ['contract_code', 'account_email'], lotte: ['contract_code', 'account_email'], hanjin: ['contract_code', 'account_email'],
   logen: ['contract_code', 'account_email'], epost: ['contract_code', 'account_email'], smarttracker: ['account_email'],
@@ -315,6 +340,15 @@ const CHANNEL_APPLY_NOTE = {
   naverpay: { hard: true,  note: '네이버페이 가맹점 가입(계약) 완료 후 파트너ID·Client ID/Secret이 전달됩니다. 일반 자가 발급이 아닙니다.' },
   paypal:   { hard: false, note: 'developer.paypal.com에서 앱 생성 → client_id/secret을 발급합니다.' },
   stripe:   { hard: false, note: 'dashboard.stripe.com > 개발자 > API 키에서 발급합니다.' },
+  // [228차] 글로벌 결제 전문 PG
+  paddle:   { hard: false, note: 'Paddle은 SaaS·디지털 상품용 Merchant of Record형 결제 플랫폼입니다. vendors.paddle.com > Developer Tools > Authentication에서 Seller ID·API 키를 발급합니다.' },
+  adyen:    { hard: true,  note: 'Adyen은 엔터프라이즈 글로벌 PG로 가맹 계약·심사가 필요합니다. 승인 후 Customer Area > Developers > API credentials에서 API 키와 Merchant Account를 발급합니다.' },
+  square:   { hard: false, note: 'Square 계정 생성 후 developer.squareup.com > Apps에서 앱 생성 → Access Token·Location ID를 발급합니다. (Production 토큰 사용)' },
+  braintree:{ hard: true,  note: 'Braintree(PayPal)는 가맹 계정 승인이 필요합니다. Control Panel > Settings > API Keys에서 Merchant ID·Public/Private Key를 발급합니다.' },
+  checkout: { hard: true,  note: 'Checkout.com은 가맹 계약·심사가 필요합니다. 승인 후 Dashboard > Developers > Keys에서 Secret/Public Key(sk_/pk_)를 발급합니다.' },
+  mollie:   { hard: false, note: 'Mollie 계정(유럽 중심)에서 Dashboard > Developers > API keys의 Live API 키(live_)를 발급합니다.' },
+  razorpay: { hard: false, note: 'Razorpay(인도 중심) Dashboard > Settings > API Keys에서 Key ID·Key Secret을 발급합니다. (Live 모드)' },
+  klarna:   { hard: true,  note: 'Klarna(BNPL)는 가맹 계약이 필요합니다. Merchant Portal > Settings > Klarna API credentials에서 API username·password를 발급하고, 리전(eu/na/oc)을 확인합니다.' },
   // ── 물류/배송
   cj:          { hard: true,  note: 'CJ대한통운 계약(고객) 코드가 필요합니다. 국내 통합 배송추적은 스마트택배(스윗트래커) 통합 키로도 가능합니다.' },
   lotte:       { hard: true,  note: '롯데글로벌로지스 계약(고객) 코드가 필요합니다. 통합 추적은 스마트택배 키로도 가능합니다.' },
