@@ -364,6 +364,71 @@ function SettingsTab({ t }) {
 }
 
 /* ══════════════════════════════════════════════
+   TAB: 노출/위젯 (R4 — 임베드 위젯 + 신뢰배지 신디케이션)
+   ══════════════════════════════════════════════ */
+function WidgetTab({ t, isDemo, setToast }) {
+    const [cfg, setCfg] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const load = useCallback(async (rotate) => {
+        if (isDemo) return;
+        setLoading(true);
+        try {
+            const BASE = import.meta.env.VITE_API_BASE || "";
+            const token = localStorage.getItem("genie_token") || localStorage.getItem("demo_genie_token") || "";
+            const r = await fetch(`${BASE}/api/v428/reviews/widget-config${rotate ? "?rotate=1" : ""}`, { headers: { Authorization: `Bearer ${token}` } }).then(x => x.ok ? x.json() : null);
+            if (r && r.ok) setCfg(r);
+        } catch { /* ignore */ }
+        setLoading(false);
+    }, [isDemo]);
+    useEffect(() => { load(false); }, [load]);
+    const copy = (text, msg) => { navigator.clipboard.writeText(text || "").catch(() => {}); setToast(msg); };
+
+    const codeBox = { width: "100%", boxSizing: "border-box", fontFamily: "monospace", fontSize: 11, padding: "10px 12px", borderRadius: 8, border: "1px solid #e5e7eb", background: "#f8fafc", color: "#0f172a", resize: "vertical" };
+    const lbl = { fontSize: 12, fontWeight: 800, color: "#374151", marginBottom: 6, display: "flex", alignItems: "center", gap: 6, justifyContent: "space-between" };
+    const copyBtn = { fontSize: 10, fontWeight: 800, padding: "3px 10px", borderRadius: 6, border: "none", cursor: "pointer", background: "linear-gradient(135deg,#6366f1,#8b5cf6)", color: "#fff" };
+
+    return (
+        <div style={{ display: "grid", gap: 18, maxWidth: 720 }}>
+            <div style={{ fontSize: 16, fontWeight: 800, color: "#1f2937" }}>🔗 {t("reviews.widgetTitle", "리뷰 노출 · 임베드 위젯")}</div>
+            <div style={{ fontSize: 12, color: "#6b7280", lineHeight: 1.6 }}>{t("reviews.widgetDesc", "수집·검증된 리뷰를 자사몰·랜딩페이지·블로그 어디에나 임베드하세요. 아래 코드를 복사해 붙여넣으면 됩니다(별도 로그인 불필요·자동 갱신).")}</div>
+
+            {isDemo ? (
+                <div style={{ padding: 16, borderRadius: 10, background: "rgba(249,115,22,0.06)", border: "1px solid rgba(249,115,22,0.18)", fontSize: 12, color: "#9a3412" }}>
+                    {t("reviews.widgetDemo", "데모 모드에서는 임베드 코드가 생성되지 않습니다. 실제 계정에서 실 리뷰를 수집하면 전용 위젯 코드가 발급됩니다.")}
+                </div>
+            ) : loading && !cfg ? (
+                <div style={{ fontSize: 12, color: "#6b7280" }}>{t("reviews.widgetLoading", "위젯 코드를 불러오는 중…")}</div>
+            ) : cfg ? (
+                <>
+                    {/* 임베드 위젯(iframe) */}
+                    <div>
+                        <div style={lbl}><span>📦 {t("reviews.widgetEmbedLabel", "리뷰 위젯 (iframe)")}</span>
+                            <button style={copyBtn} onClick={() => copy(cfg.embedIframe, t("reviews.copied", "복사되었습니다"))}>{t("reviews.copyCode", "코드 복사")}</button></div>
+                        <textarea readOnly rows={2} style={codeBox} value={cfg.embedIframe || ""} onClick={e => e.target.select()} />
+                    </div>
+                    {/* 신뢰 배지 */}
+                    <div>
+                        <div style={lbl}><span>🏅 {t("reviews.badgeLabel", "신뢰 배지 (평균 별점)")}</span>
+                            <button style={copyBtn} onClick={() => copy(cfg.embedBadge, t("reviews.copied", "복사되었습니다"))}>{t("reviews.copyCode", "코드 복사")}</button></div>
+                        <textarea readOnly rows={2} style={codeBox} value={cfg.embedBadge || ""} onClick={e => e.target.select()} />
+                        <div style={{ marginTop: 8 }}><img src={cfg.badgeUrl} alt="review badge" height={28} style={{ verticalAlign: "middle" }} /></div>
+                    </div>
+                    {/* 라이브 미리보기 */}
+                    <div>
+                        <div style={lbl}><span>👁 {t("reviews.widgetPreview", "라이브 미리보기")}</span>
+                            <button style={{ ...copyBtn, background: "#fff", color: "#6366f1", border: "1px solid #cbd5e1" }} onClick={() => load(true)}>🔄 {t("reviews.widgetRotate", "토큰 재발급")}</button></div>
+                        <iframe title="review-widget-preview" src={cfg.viewUrl} style={{ width: "100%", height: 360, border: "1px solid #e5e7eb", borderRadius: 10 }} />
+                        <div style={{ fontSize: 10.5, color: "#9ca3af", marginTop: 4 }}>{t("reviews.widgetRotateHint", "토큰을 재발급하면 기존에 삽입한 코드는 동작을 멈춥니다(보안 회전용).")}</div>
+                    </div>
+                </>
+            ) : (
+                <div style={{ fontSize: 12, color: "#ef4444" }}>{t("reviews.widgetErr", "위젯 코드를 불러오지 못했습니다. 잠시 후 다시 시도하세요.")}</div>
+            )}
+        </div>
+    );
+}
+
+/* ══════════════════════════════════════════════
    TAB 5: Guide (i18n 9-Language)
    ══════════════════════════════════════════════ */
 function ReviewsGuideTab() {
@@ -472,6 +537,7 @@ export default function ReviewsUGC() {
         { id: "dashboard", label: `📊 ${t('reviews.tabDashboard')}` },
         { id: "feed", label: `💬 ${t('reviews.tabFeed')}` },
         { id: "trend", label: `📈 ${t('reviews.tabTrend')}` },
+        { id: "widget", label: `🔗 ${t('reviews.tabWidget', '노출/위젯')}` },
         { id: "settings", label: `⚙️ ${t('reviews.tabSettings')}` },
         { id: "guide", label: `📖 ${t('reviews.tabGuide')}` },
     ], [t]);
@@ -515,6 +581,7 @@ export default function ReviewsUGC() {
                 {tab === "dashboard" && <DashboardTab t={t} channelStats={channelStats} negKeywords={negKeywords} ugcReviews={ugcReviews} totalReviews={totalReviews} avgRating={avgRating} negCount={negCount} repliedCount={repliedCount} escalatedCount={escalatedCount} onBulkEscalate={onBulkEscalate} onBulkReply={onBulkReply} onAnalyze={onAnalyze} analyzing={analyzing} />}
                 {tab === "feed" && <ReviewFeedTab t={t} ugcReviews={ugcReviews} channelStats={channelStats} replyState={replyState} escalateState={escalateState} onGenReply={handleGenReply} onCopyReply={handleCopyReply} onEscalate={handleEscalate} />}
                 {tab === "trend" && <TrendTab t={t} channelStats={channelStats} ugcReviews={ugcReviews} />}
+                {tab === "widget" && <WidgetTab t={t} isDemo={isDemo} setToast={setToast} />}
                 {tab === "settings" && <SettingsTab t={t} />}
                 {tab === "guide" && <ReviewsGuideTab t={t} />}
             </div>

@@ -735,6 +735,14 @@ return function (App $app): void {
         'GET /api/v428/reviews/requests'     => 'Genie\\Handlers\\Reviews::requests',
         'POST /v428/reviews/request-campaign'     => 'Genie\\Handlers\\Reviews::requestCampaign',
         'POST /api/v428/reviews/request-campaign' => 'Genie\\Handlers\\Reviews::requestCampaign',
+        'GET /v428/reviews/widget-config'    => 'Genie\\Handlers\\Reviews::widgetConfig',
+        'GET /api/v428/reviews/widget-config'=> 'Genie\\Handlers\\Reviews::widgetConfig',
+        'GET /v428/reviews/widget/view'      => 'Genie\\Handlers\\Reviews::widgetView',
+        'GET /api/v428/reviews/widget/view'  => 'Genie\\Handlers\\Reviews::widgetView',
+        'GET /v428/reviews/widget/data'      => 'Genie\\Handlers\\Reviews::widgetData',
+        'GET /api/v428/reviews/widget/data'  => 'Genie\\Handlers\\Reviews::widgetData',
+        'GET /v428/reviews/badge'            => 'Genie\\Handlers\\Reviews::badge',
+        'GET /api/v428/reviews/badge'        => 'Genie\\Handlers\\Reviews::badge',
         'DELETE /v428/reviews/{id}'          => 'Genie\\Handlers\\Reviews::remove',
         'DELETE /api/v428/reviews/{id}'      => 'Genie\\Handlers\\Reviews::remove',
         // [현 차수] 범용 광고성과 ingest(추후 추가 채널 무코드 적재, api_key write) — objective 포함.
@@ -2475,6 +2483,10 @@ return function (App $app): void {
     $register('POST',   '/v428/reviews/analyze');        $register('POST',   '/api/v428/reviews/analyze');
     $register('GET',    '/v428/reviews/requests');       $register('GET',    '/api/v428/reviews/requests');
     $register('POST',   '/v428/reviews/request-campaign'); $register('POST', '/api/v428/reviews/request-campaign');
+    $register('GET',    '/v428/reviews/widget-config');   $register('GET',    '/api/v428/reviews/widget-config');
+    $register('GET',    '/v428/reviews/widget/view');     $register('GET',    '/api/v428/reviews/widget/view');
+    $register('GET',    '/v428/reviews/widget/data');     $register('GET',    '/api/v428/reviews/widget/data');
+    $register('GET',    '/v428/reviews/badge');           $register('GET',    '/api/v428/reviews/badge');
     $register('DELETE', '/v428/reviews/{id}');           $register('DELETE', '/api/v428/reviews/{id}');
     $register('POST', '/v424/connectors/ad-metrics');
     $register('POST', '/api/v424/connectors/ad-metrics');

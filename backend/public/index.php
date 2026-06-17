@@ -171,6 +171,10 @@ $app->add(function (Request $request, $handler) {
         // [현 차수] H4: InfluencerUGC 라이브 데이터(/v423/influencer/*) — 세션 self-auth(Influencer::requirePro
         //   + authedTenant 격리). 프론트가 세션 토큰으로 호출하므로 api_key 미들웨어 bypass(미설정 시 401).
         || strpos($path, '/v423/influencer/') === 0 || strpos($path, '/api/v423/influencer/') === 0
+        // [228차 R4] 리뷰 임베드 위젯·신뢰배지 — 외부 사이트 삽입용 공개 노출(token→tenant 격리, 인증 불요).
+        //   widget/view(iframe HTML)·widget/data(JSON)·badge(SVG). ★widget-config 는 제외(인증 필요=AI-gate).
+        || strpos($path, '/v428/reviews/widget/') === 0 || strpos($path, '/api/v428/reviews/widget/') === 0
+        || strpos($path, '/v428/reviews/badge') === 0   || strpos($path, '/api/v428/reviews/badge') === 0
     ) {
         return $handler->handle($request);
     }

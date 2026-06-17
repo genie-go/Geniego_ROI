@@ -460,6 +460,208 @@ final class Reviews
         } catch (\Throwable $e) { return self::json($res, ['ok' => true, 'requests' => [], 'funnel' => ['sent' => 0, 'reviewed' => 0, 'rate' => 0]]); }
     }
 
+    /* ══════════════════ R4: 리뷰 노출·신디케이션 (임베드 위젯 + 신뢰배지) ══════════════════ */
+
+    private static function ensureWidgetTable(\PDO $pdo): void
+    {
+        $isMy = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql';
+        try {
+            if ($isMy) {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS review_widget (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    tenant_id VARCHAR(190) UNIQUE, public_token VARCHAR(80) UNIQUE,
+                    theme VARCHAR(20) DEFAULT 'light', created_at VARCHAR(40)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+            } else {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS review_widget (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    tenant_id TEXT UNIQUE, public_token TEXT UNIQUE, theme TEXT DEFAULT 'light', created_at TEXT)");
+            }
+        } catch (\Throwable $e) { /* graceful */ }
+    }
+
+    /** 위젯 공개 토큰 조회/발급(테넌트당 1개·멱등). */
+    private static function widgetTokenFor(\PDO $pdo, string $tenant, bool $rotate = false): string
+    {
+        self::ensureWidgetTable($pdo);
+        try {
+            if (!$rotate) {
+                $st = $pdo->prepare("SELECT public_token FROM review_widget WHERE tenant_id=? LIMIT 1");
+                $st->execute([$tenant]);
+                $tok = (string)($st->fetchColumn() ?: '');
+                if ($tok !== '') return $tok;
+            }
+            $tok = 'rw_' . bin2hex(random_bytes(12));
+            $now = gmdate('c');
+            $isMy = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql';
+            $sql = $isMy
+                ? "INSERT INTO review_widget (tenant_id,public_token,created_at) VALUES (?,?,?) ON DUPLICATE KEY UPDATE public_token=VALUES(public_token)"
+                : "INSERT INTO review_widget (tenant_id,public_token,created_at) VALUES (?,?,?) ON CONFLICT(tenant_id) DO UPDATE SET public_token=excluded.public_token";
+            $pdo->prepare($sql)->execute([$tenant, $tok, $now]);
+            return $tok;
+        } catch (\Throwable $e) { return ''; }
+    }
+
+    private static function tenantFromWidgetToken(\PDO $pdo, string $token): string
+    {
+        if ($token === '' || strncmp($token, 'rw_', 3) !== 0) return '';
+        try {
+            self::ensureWidgetTable($pdo);
+            $st = $pdo->prepare("SELECT tenant_id FROM review_widget WHERE public_token=? LIMIT 1");
+            $st->execute([$token]);
+            return (string)($st->fetchColumn() ?: '');
+        } catch (\Throwable $e) { return ''; }
+    }
+
+    /** 위젯용 집계(평균/건수/별점분포) + 최근 리뷰 — token→tenant 격리. */
+    private static function widgetPayload(\PDO $pdo, string $tenant, string $product, int $limit): array
+    {
+        self::ensureTable($pdo);
+        $where = "tenant_id=?"; $params = [$tenant];
+        if ($product !== '') { $where .= " AND product_name=?"; $params[] = $product; }
+        $agg = ['count' => 0, 'avg' => 0.0, 'dist' => [1 => 0, 2 => 0, 3 => 0, 4 => 0, 5 => 0]];
+        $reviews = [];
+        try {
+            $a = $pdo->prepare("SELECT COUNT(*) c, AVG(rating) a FROM product_review WHERE $where");
+            $a->execute($params);
+            $r = $a->fetch(\PDO::FETCH_ASSOC) ?: [];
+            $agg['count'] = (int)($r['c'] ?? 0); $agg['avg'] = round((float)($r['a'] ?? 0), 1);
+            $d = $pdo->prepare("SELECT ROUND(rating) rr, COUNT(*) c FROM product_review WHERE $where GROUP BY ROUND(rating)");
+            $d->execute($params);
+            foreach ($d->fetchAll(\PDO::FETCH_ASSOC) as $row) { $k = max(1, min(5, (int)$row['rr'])); $agg['dist'][$k] = (int)$row['c']; }
+            $ls = $pdo->prepare("SELECT product_name,rating,title,body,sentiment,reviewed_at FROM product_review WHERE $where ORDER BY (rating>=4) DESC, helpful DESC, id DESC LIMIT $limit");
+            $ls->execute($params);
+            foreach ($ls->fetchAll(\PDO::FETCH_ASSOC) as $row) {
+                $reviews[] = [
+                    'product' => (string)$row['product_name'], 'rating' => (float)$row['rating'],
+                    'title' => (string)$row['title'], 'text' => (string)$row['body'],
+                    'sentiment' => (string)$row['sentiment'], 'date' => substr((string)$row['reviewed_at'], 0, 10),
+                ];
+            }
+        } catch (\Throwable $e) {}
+        return ['agg' => $agg, 'reviews' => $reviews];
+    }
+
+    /** GET /v428/reviews/widget-config — [R4·authed] 테넌트 위젯 공개토큰 + 임베드 코드. ?rotate=1 로 토큰 회전. */
+    public static function widgetConfig(Request $req, Response $res): Response
+    {
+        $tenant = self::tenant($req);
+        if ($tenant === '' || self::isDemo($tenant)) return self::json($res, ['ok' => false, 'error' => 'tenant_required'], 403);
+        $q = $req->getQueryParams();
+        $rotate = !empty($q['rotate']);
+        $pdo = Db::pdo();
+        $tok = self::widgetTokenFor($pdo, $tenant, $rotate);
+        if ($tok === '') return self::json($res, ['ok' => false, 'error' => 'token_failed'], 500);
+        // 외부 임베드 절대경로는 /api 프리픽스 사용(nginx 가 /api/* 만 백엔드로 프록시, 베어 /v428 미프록시).
+        $base = self::publicBase($req) . '/api';
+        $iframe = "<iframe src=\"{$base}/v428/reviews/widget/view?token={$tok}\" width=\"100%\" height=\"520\" style=\"border:0;max-width:680px\" loading=\"lazy\" title=\"Customer Reviews\"></iframe>";
+        $badge  = "<a href=\"{$base}/v428/reviews/widget/view?token={$tok}\" target=\"_blank\" rel=\"noopener\"><img src=\"{$base}/v428/reviews/badge?token={$tok}\" alt=\"Customer Reviews\" height=\"28\"></a>";
+        return self::json($res, [
+            'ok' => true, 'token' => $tok,
+            'viewUrl'  => "{$base}/v428/reviews/widget/view?token={$tok}",
+            'dataUrl'  => "{$base}/v428/reviews/widget/data?token={$tok}",
+            'badgeUrl' => "{$base}/v428/reviews/badge?token={$tok}",
+            'embedIframe' => $iframe, 'embedBadge' => $badge,
+        ]);
+    }
+
+    /** 요청 호스트 기반 공개 베이스 URL(임베드 절대경로용). */
+    private static function publicBase(Request $req): string
+    {
+        $uri = $req->getUri();
+        $host = $uri->getHost() ?: 'roi.genie-go.com';
+        $scheme = $uri->getScheme() ?: 'https';
+        // 내부 localhost 호출은 운영 도메인으로 정규화(임베드 코드가 외부에서 동작하도록).
+        if ($host === 'localhost' || $host === '127.0.0.1') { $host = 'roi.genie-go.com'; $scheme = 'https'; }
+        return $scheme . '://' . $host;
+    }
+
+    /** GET /v428/reviews/widget/data — [R4·public] token 기반 위젯 데이터(JSON). 외부 임베드용 CORS *. */
+    public static function widgetData(Request $req, Response $res): Response
+    {
+        $pdo = Db::pdo();
+        $q = $req->getQueryParams();
+        $tenant = self::tenantFromWidgetToken($pdo, (string)($q['token'] ?? ''));
+        $out = ['ok' => true, 'agg' => ['count' => 0, 'avg' => 0, 'dist' => []], 'reviews' => []];
+        if ($tenant !== '') {
+            $limit = max(1, min(50, (int)($q['limit'] ?? 12)));
+            $out = ['ok' => true] + self::widgetPayload($pdo, $tenant, trim((string)($q['product'] ?? '')), $limit);
+        }
+        $res->getBody()->write(json_encode($out, JSON_UNESCAPED_UNICODE));
+        return $res->withHeader('Content-Type', 'application/json')->withHeader('Access-Control-Allow-Origin', '*')->withHeader('Cache-Control', 'public, max-age=300');
+    }
+
+    /** GET /v428/reviews/widget/view — [R4·public] 자체완결 임베드 HTML(iframe 삽입용, 서버 렌더·XSS 이스케이프). */
+    public static function widgetView(Request $req, Response $res): Response
+    {
+        $pdo = Db::pdo();
+        $q = $req->getQueryParams();
+        $tenant = self::tenantFromWidgetToken($pdo, (string)($q['token'] ?? ''));
+        $dark = ((string)($q['theme'] ?? '') === 'dark');
+        $esc = fn($s) => htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8');
+        $bg = $dark ? '#0f172a' : '#ffffff'; $fg = $dark ? '#e2e8f0' : '#1f2937'; $sub = $dark ? '#94a3b8' : '#6b7280'; $card = $dark ? '#1e293b' : '#f8fafc'; $bd = $dark ? '#334155' : '#e5e7eb';
+        if ($tenant === '') {
+            $html = "<!doctype html><html><body style=\"font-family:sans-serif;color:{$sub};padding:20px\">위젯 토큰이 유효하지 않습니다.</body></html>";
+            $res->getBody()->write($html);
+            return $res->withHeader('Content-Type', 'text/html; charset=utf-8');
+        }
+        $limit = max(1, min(50, (int)($q['limit'] ?? 10)));
+        $p = self::widgetPayload($pdo, $tenant, trim((string)($q['product'] ?? '')), $limit);
+        $agg = $p['agg'];
+        $stars = fn($n) => str_repeat('★', max(0, min(5, (int)round($n)))) . str_repeat('☆', 5 - max(0, min(5, (int)round($n))));
+        $items = '';
+        foreach ($p['reviews'] as $rv) {
+            $col = $rv['sentiment'] === 'negative' ? '#ef4444' : ($rv['sentiment'] === 'positive' ? '#22c55e' : '#f59e0b');
+            $items .= "<div style=\"background:{$card};border:1px solid {$bd};border-radius:10px;padding:12px 14px;margin-bottom:10px\">"
+                . "<div style=\"display:flex;justify-content:space-between;align-items:center;gap:8px\">"
+                . "<span style=\"color:#fbbf24;font-size:13px\">{$stars($rv['rating'])}</span>"
+                . "<span style=\"font-size:11px;color:{$sub}\">" . $esc($rv['date']) . "</span></div>"
+                . ($rv['product'] !== '' ? "<div style=\"font-size:11px;color:{$sub};margin-top:3px\">" . $esc($rv['product']) . "</div>" : '')
+                . ($rv['title'] !== '' ? "<div style=\"font-weight:700;font-size:13px;margin-top:5px;color:{$fg}\">" . $esc($rv['title']) . "</div>" : '')
+                . "<div style=\"font-size:12.5px;line-height:1.55;margin-top:4px;color:{$fg}\">" . $esc(mb_substr($rv['text'], 0, 400)) . "</div>"
+                . "<span style=\"display:inline-block;margin-top:6px;width:6px;height:6px;border-radius:50%;background:{$col}\"></span>"
+                . "</div>";
+        }
+        if ($items === '') $items = "<div style=\"color:{$sub};font-size:13px;padding:14px 0\">아직 등록된 리뷰가 없습니다.</div>";
+        $avg = number_format((float)$agg['avg'], 1);
+        $html = "<!doctype html><html lang=\"ko\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">"
+            . "<title>고객 리뷰</title></head><body style=\"margin:0;background:{$bg};font-family:-apple-system,'Apple SD Gothic Neo',sans-serif;padding:14px\">"
+            . "<div style=\"max-width:660px;margin:0 auto\">"
+            . "<div style=\"display:flex;align-items:center;gap:12px;padding:6px 2px 14px;border-bottom:1px solid {$bd};margin-bottom:14px\">"
+            . "<div style=\"font-size:30px;font-weight:900;color:{$fg}\">{$avg}</div>"
+            . "<div><div style=\"color:#fbbf24;font-size:16px\">{$stars($agg['avg'])}</div>"
+            . "<div style=\"font-size:12px;color:{$sub}\">" . (int)$agg['count'] . "개 리뷰</div></div></div>"
+            . $items
+            . "<div style=\"text-align:center;font-size:10px;color:{$sub};margin-top:8px\">powered by Geniego-ROI</div>"
+            . "</div></body></html>";
+        $res->getBody()->write($html);
+        return $res->withHeader('Content-Type', 'text/html; charset=utf-8')->withHeader('Cache-Control', 'public, max-age=300');
+    }
+
+    /** GET /v428/reviews/badge — [R4·public] 신뢰 배지 SVG(평균 별점+건수). <img> 임베드용. */
+    public static function badge(Request $req, Response $res): Response
+    {
+        $pdo = Db::pdo();
+        $q = $req->getQueryParams();
+        $tenant = self::tenantFromWidgetToken($pdo, (string)($q['token'] ?? ''));
+        $avg = '0.0'; $count = 0;
+        if ($tenant !== '') {
+            $p = self::widgetPayload($pdo, $tenant, trim((string)($q['product'] ?? '')), 1);
+            $avg = number_format((float)$p['agg']['avg'], 1); $count = (int)$p['agg']['count'];
+        }
+        $label = '리뷰'; $val = "★ {$avg} ({$count})";
+        $lw = 46; $vw = 9 * mb_strlen($val) + 22; $w = $lw + $vw;
+        $svg = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"{$w}\" height=\"28\" role=\"img\" aria-label=\"{$label}: {$val}\">"
+            . "<rect width=\"{$lw}\" height=\"28\" fill=\"#374151\" rx=\"4\"/>"
+            . "<rect x=\"{$lw}\" width=\"{$vw}\" height=\"28\" fill=\"#f59e0b\" rx=\"4\"/>"
+            . "<rect x=\"{$lw}\" width=\"6\" height=\"28\" fill=\"#f59e0b\"/>"
+            . "<g font-family=\"-apple-system,'Apple SD Gothic Neo',sans-serif\" font-size=\"12\" font-weight=\"700\">"
+            . "<text x=\"8\" y=\"19\" fill=\"#fff\">{$label}</text>"
+            . "<text x=\"" . ($lw + 9) . "\" y=\"19\" fill=\"#fff\">{$val}</text></g></svg>";
+        $res->getBody()->write($svg);
+        return $res->withHeader('Content-Type', 'image/svg+xml; charset=utf-8')->withHeader('Cache-Control', 'public, max-age=300')->withHeader('Access-Control-Allow-Origin', '*');
+    }
+
     /** DELETE /v428/reviews/{id} — 테넌트 격리 삭제. */
     public static function remove(Request $req, Response $res, array $args): Response
     {
