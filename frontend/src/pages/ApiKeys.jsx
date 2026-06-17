@@ -179,7 +179,9 @@ const DEFAULT_FIELDS = [{ k: 'api_key', label: 'API 키 / 액세스 토큰', sec
 
 /* [229차] 채널별 발급 매뉴얼(레이어 팝업·iframe). public/api_manuals/<key>.html 정적 서빙.
    youtube=큐레이트, 나머지=issuanceGuide 단계 기반 생성. 이 집합의 채널만 '📖 발급 매뉴얼' 버튼 노출. */
-const MANUAL_KEYS = new Set(['adyen','amazon_spapi','auction','braintree','cafe24','checkout','coupang','dhl','ebay','etsy','fedex','gmarket','godomall','google_ads','google_analytics','inicis','kakaopay','kcp','klarna','lazada','lotteon','magento','meta_ads','mollie','naver_sa','naver_smartstore','paddle','paypal','qoo10','rakuten','razorpay','shopee','shopify','slack','smarttracker','square','st11','stripe','tiktok_business','tiktok_shop','toss','twitch','ups','walmart','woocommerce','youtube']);
+const MANUAL_KEYS = new Set(['adyen','amazon_spapi','auction','braintree','cafe24','checkout','coupang','dhl','ebay','etsy','fedex','gmarket','godomall','google_ads','google_analytics','inicis','kakaopay','kcp','klarna','lazada','lotteon','magento','meta_ads','mollie','naver_sa','naver_smartstore','paddle','paypal','qoo10','rakuten','razorpay','shopee','shopify','slack','smarttracker','square','st11','stripe','tiktok_business','tiktok_shop','toss','twitch','ups','walmart','woocommerce','youtube',
+  // [229차] Instagram/Facebook(자가발급·큐레이트본 ko) + 안내형(대행사/계약형) 채널 매뉴얼 추가
+  'instagram','facebook','kakao_moment','naverpay','cj','lotte','hanjin','logen','epost','ocl_sameday','fulfillment','ems','cj_intl','tnt']);
 // [229차] 15개국 현지 자연어 매뉴얼 — public/api_manuals/<lang>/<key>.html. 미지원 언어는 en 폴백.
 const MANUAL_LANGS = new Set(['ko','en','ja','zh','zh-TW','de','th','vi','id','ar','es','fr','hi','pt','ru']);
 const manualUrl = (key, lang) => `/api_manuals/${MANUAL_LANGS.has(lang) ? lang : 'en'}/${key}.html`;

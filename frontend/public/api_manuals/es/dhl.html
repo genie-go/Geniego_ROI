@@ -1,81 +1,23 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DHL Express Manual de emisión de API</title>
-  <style>
-:root{--accent:#D40511;--dark:#111827;--gray:#6b7280;--light:#f8fafc;--line:#e5e7eb;--blue:#2563eb;--green:#16a34a;--yellow:#f59e0b;--card:#fff;}
-*{box-sizing:border-box;}
-body{margin:0;font-family:"Pretendard","Noto Sans KR","Apple SD Gothic Neo",Arial,sans-serif;background:linear-gradient(135deg,#f8fafc 0%,#eef2ff 100%);color:var(--dark);line-height:1.65;}
-.page{max-width:1120px;margin:0 auto;padding:44px 22px 80px;}
-.hero{background:linear-gradient(135deg,#111827 0%,#1f2937 60%,#3b0764 100%);color:#fff;border-radius:28px;padding:48px;position:relative;overflow:hidden;box-shadow:0 25px 70px rgba(17,24,39,.25);}
-.hero::after{content:"";position:absolute;inset-inline-end:-80px;top:-80px;width:260px;height:260px;background:var(--accent);opacity:.28;border-radius:50%;filter:blur(8px);}
-.badge{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);font-size:14px;font-weight:700;}
-.hero .ic{font-size:22px;}
-h1{font-size:clamp(30px,5vw,52px);line-height:1.14;margin:24px 0 16px;letter-spacing:-1.2px;}
-.hero p{max-width:760px;color:#d1d5db;font-size:18px;margin:0;}
-.quick{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:24px;}
-.quick-card{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.16);border-radius:18px;padding:18px;backdrop-filter:blur(8px);}
-.quick-card strong{display:block;font-size:15px;color:#fff;}
-.quick-card span{font-size:13px;color:#d1d5db;}
-.section{margin-top:34px;background:var(--card);border:1px solid var(--line);border-radius:24px;padding:34px;box-shadow:0 14px 40px rgba(15,23,42,.06);}
-.section h2{margin:0 0 16px;font-size:26px;letter-spacing:-0.4px;}
-.section-desc{color:var(--gray);margin-top:-4px;margin-bottom:24px;}
-.steps{display:grid;gap:18px;}
-.step{display:grid;grid-template-columns:56px 1fr;gap:18px;padding:22px;border:1px solid var(--line);border-radius:20px;background:#fff;}
-.num{width:48px;height:48px;border-radius:16px;background:linear-gradient(135deg,var(--accent),#ef4444);color:#fff;display:grid;place-items:center;font-weight:900;font-size:18px;}
-.step p{margin:0;color:#374151;}
-.notice{border-inline-start:5px solid var(--yellow);background:#fffbeb;padding:18px 20px;border-radius:16px;margin-top:18px;}
-.notice.success{border-inline-start-color:var(--green);background:#f0fdf4;}
-.notice.danger{border-inline-start-color:#ff0033;background:#fff1f2;}
-.checklist{display:grid;gap:10px;padding:0;list-style:none;margin:0;}
-.checklist li{padding:13px 15px;background:#f9fafb;border:1px solid var(--line);border-radius:14px;}
-.checklist li::before{content:"\2713";color:var(--green);font-weight:900;margin-inline-end:8px;}
-.footer{margin-top:28px;text-align:center;color:var(--gray);font-size:14px;}
-@media(max-width:820px){.hero{padding:34px 24px;}.quick{grid-template-columns:1fr 1fr;}.step{grid-template-columns:1fr;}.section{padding:24px;}}
-@media print{body{background:#fff;}.page{padding:0;max-width:none;}.hero,.section{box-shadow:none;break-inside:avoid;}}
-</style>
-</head>
-<body>
-  <main class="page">
-    <section class="hero">
-      <span class="badge"><span class="ic">✈️</span> Guía para principiantes</span>
-      <h1>DHL Express<br />Manual de emisión de API</h1>
-      <p>Una guía paso a paso que cualquiera puede seguir para emitir credenciales de DHL Express (clave/token de API) y registrarlas en el GenieGo Integration Hub.</p>
-      <div class="quick">
-        <div class="quick-card"><strong>Tiempo estimado</strong><span>Unos 5–15 min</span></div>
-        <div class="quick-card"><strong>Cuenta necesaria</strong><span>Cuenta de DHL Express</span></div>
-        <div class="quick-card"><strong>Pasos</strong><span>6 pasos</span></div>
-        <div class="quick-card"><strong>Resultado</strong><span>Credenciales de API</span></div>
-      </div>
-    </section>
-    <section class="section">
-      <h2>Pasos de emisión</h2>
-      <p class="section-desc">Siga los pasos siguientes para emitir y registrar sus credenciales.</p>
-      <div class="steps">
+<head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>DHL Express Manual de emisión de API</title><style>:root{--accent:#D40511;--dark:#111827;--gray:#6b7280;--line:#e5e7eb;--green:#16a34a;--yellow:#f59e0b;--card:#fff;}*{box-sizing:border-box;}body{margin:0;font-family:"Pretendard","Noto Sans KR","Apple SD Gothic Neo",Arial,sans-serif;background:linear-gradient(135deg,#f8fafc 0%,#eef2ff 100%);color:var(--dark);line-height:1.65;}.page{max-width:1120px;margin:0 auto;padding:44px 22px 80px;}.hero{background:linear-gradient(135deg,#111827 0%,#1f2937 60%,#3b0764 100%);color:#fff;border-radius:28px;padding:48px;position:relative;overflow:hidden;box-shadow:0 25px 70px rgba(17,24,39,.25);}.hero::after{content:"";position:absolute;inset-inline-end:-80px;top:-80px;width:260px;height:260px;background:var(--accent);opacity:.28;border-radius:50%;filter:blur(8px);}.badge{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);font-size:14px;font-weight:700;}.hero .ic{font-size:22px;}h1{font-size:clamp(30px,5vw,52px);line-height:1.14;margin:24px 0 16px;letter-spacing:-1.2px;}.hero p{max-width:760px;color:#d1d5db;font-size:18px;margin:0;}.quick{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:24px;}.quick-card{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.16);border-radius:18px;padding:18px;}.quick-card strong{display:block;font-size:15px;color:#fff;}.quick-card span{font-size:13px;color:#d1d5db;}.section{margin-top:34px;background:var(--card);border:1px solid var(--line);border-radius:24px;padding:34px;box-shadow:0 14px 40px rgba(15,23,42,.06);}.section h2{margin:0 0 16px;font-size:26px;}.section-desc{color:var(--gray);margin-top:-4px;margin-bottom:24px;}.steps{display:grid;gap:18px;}.step{display:grid;grid-template-columns:56px 1fr;gap:18px;padding:22px;border:1px solid var(--line);border-radius:20px;background:#fff;}.num{width:48px;height:48px;border-radius:16px;background:linear-gradient(135deg,var(--accent),#ef4444);color:#fff;display:grid;place-items:center;font-weight:900;font-size:18px;}.step p{margin:0;color:#374151;}.notice{border-inline-start:5px solid var(--yellow);background:#fffbeb;padding:18px 20px;border-radius:16px;margin-top:18px;}.notice.success{border-inline-start-color:var(--green);background:#f0fdf4;}.notice.danger{border-inline-start-color:#ff0033;background:#fff1f2;}.checklist{display:grid;gap:10px;padding:0;list-style:none;margin:0;}.checklist li{padding:13px 15px;background:#f9fafb;border:1px solid var(--line);border-radius:14px;}.checklist li::before{content:"\2713";color:var(--green);font-weight:900;margin-inline-end:8px;}.footer{margin-top:28px;text-align:center;color:var(--gray);font-size:14px;}@media(max-width:820px){.hero{padding:34px 24px;}.quick{grid-template-columns:1fr 1fr;}.step{grid-template-columns:1fr;}.section{padding:24px;}}@media print{body{background:#fff;}.page{padding:0;max-width:none;}.hero,.section{box-shadow:none;}}</style></head>
+<body><main class="page">
+<section class="hero"><span class="badge"><span class="ic">✈️</span> Guía para principiantes</span><h1>DHL Express<br />Manual de emisión de API</h1><p>Una guía paso a paso que cualquiera puede seguir para emitir credenciales de DHL Express (clave/token de API) y registrarlas en el GenieGo Integration Hub.</p>
+<div class="quick"><div class="quick-card"><strong>Tiempo estimado</strong><span>Unos 5–15 min</span></div><div class="quick-card"><strong>Cuenta necesaria</strong><span>Cuenta de DHL Express</span></div><div class="quick-card"><strong>Pasos</strong><span>6 pasos</span></div><div class="quick-card"><strong>Resultado</strong><span>Credenciales de API</span></div></div></section>
+<section class="section"><h2>Pasos de emisión</h2><p class="section-desc">Siga los pasos siguientes para emitir y registrar sus credenciales.</p><div class="steps">
         <div class="step"><div class="num">1</div><div><p>Requisitos: es recomendable disponer de un número de cuenta de cliente de DHL Express.</p></div></div>
         <div class="step"><div class="num">2</div><div><p>Accede a developer.dhl.com, regístrate con tu correo electrónico y verifícalo.</p></div></div>
         <div class="step"><div class="num">3</div><div><p>Tras iniciar sesión, en la sección [Get Access] registra los datos del cliente y solicita las credenciales.</p></div></div>
         <div class="step"><div class="num">4</div><div><p>Normalmente recibirás el correo de aprobación de Test/Production al día hábil siguiente.</p></div></div>
         <div class="step"><div class="num">5</div><div><p>En el portal, en tu app (nombre de la empresa) &gt; [Show Key], consulta la API Key y el Secret.</p></div></div>
         <div class="step"><div class="num">6</div><div><p>En GenieGo [Registrar], introduce api_key y account_number (número de cuenta), y guarda.</p></div></div>
-      </div>
-    </section>
-    <section class="section">
-      <h2>Lista de verificación final</h2>
-      <ul class="checklist">
+</div></section>
+<section class="section"><h2>Lista de verificación final</h2><ul class="checklist">
         <li>Requisitos: es recomendable disponer de un número de cuenta de cliente de DHL Express.</li>
         <li>Accede a developer.dhl.com, regístrate con tu correo electrónico y verifícalo.</li>
         <li>Tras iniciar sesión, en la sección [Get Access] registra los datos del cliente y solicita las credenciales.</li>
         <li>Normalmente recibirás el correo de aprobación de Test/Production al día hábil siguiente.</li>
         <li>En el portal, en tu app (nombre de la empresa) &gt; [Show Key], consulta la API Key y el Secret.</li>
         <li>En GenieGo [Registrar], introduce api_key y account_number (número de cuenta), y guarda.</li>
-      </ul>
-      <div class="notice success">Las claves introducidas en GenieGo Integration Hub [Register] se <strong>almacenan cifradas con AES-256-GCM</strong> y se enmascaran al consultarlas.</div>
-      <div class="notice danger">Guarde sus claves/secretos de forma segura y nunca los exponga públicamente. Si sospecha una filtración, vuelva a emitirlas (rotar) de inmediato.</div>
-    </section>
-    <p class="footer">Manual de emisión de API de DHL Express · GenieGo Integration Hub · Guía práctica para principiantes</p>
-  </main>
-</body>
-</html>
+</ul><div class="notice success">Las claves introducidas en GenieGo Integration Hub [Register] se <strong>almacenan cifradas con AES-256-GCM</strong> y se enmascaran al consultarlas.</div><div class="notice danger">Guarde sus claves/secretos de forma segura y nunca los exponga públicamente. Si sospecha una filtración, vuelva a emitirlas (rotar) de inmediato.</div></section>
+<p class="footer">Manual de emisión de API de DHL Express · GenieGo Integration Hub · Guía práctica para principiantes</p></main></body></html>
