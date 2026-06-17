@@ -318,6 +318,12 @@ export function GlobalDataProvider({ children }) {
     const [ugcReviews, setUgcReviews] = useState(INIT_UGC_REVIEWS);
     const [channelStats, setChannelStats] = useState(INIT_CHANNEL_STATS);
     const [negKeywords, setNegKeywords] = useState(INIT_NEG_KEYWORDS);
+    // [228차 R5] 제품 리뷰(ReviewsUGC)는 인플루언서(InfluencerUGC)의 ugcReviews/channelStats/negKeywords 와
+    //   분리된 전용 상태를 사용한다 — 두 페이지가 같은 키를 공유하면 마지막 로드가 서로의 데이터를 덮어써
+    //   교차 오염되던 문제 해소(R1~R4 백엔드 분리에 이어 프론트 상태도 분리). 시드는 동일(데모 일관성).
+    const [reviewItems, setReviewItems] = useState(INIT_UGC_REVIEWS);
+    const [reviewChannelStats, setReviewChannelStats] = useState(INIT_CHANNEL_STATS);
+    const [reviewNegKeywords, setReviewNegKeywords] = useState(INIT_NEG_KEYWORDS);
 
     // 📱 [v16 NEW] SNS 마케팅 캠페인 통합 상태
     const [snsCampaigns, setSnsCampaigns] = useState(INIT_SNS_CAMPAIGNS);
@@ -1644,6 +1650,17 @@ export function GlobalDataProvider({ children }) {
         if (Array.isArray(list) && guardProductionState('negKeywords', list, setNegKeywords)) setNegKeywords(list);
     }, []);
 
+    /* [228차 R5] 제품 리뷰 전용 동기화 — 인플루언서 상태와 분리(교차 오염 방지). */
+    const syncProductReviews = useCallback((list) => {
+        if (Array.isArray(list) && guardProductionState('reviewItems', list, setReviewItems)) setReviewItems(list);
+    }, []);
+    const syncReviewChannelStats = useCallback((list) => {
+        if (Array.isArray(list) && guardProductionState('reviewChannelStats', list, setReviewChannelStats)) setReviewChannelStats(list);
+    }, []);
+    const syncReviewNegKeywords = useCallback((list) => {
+        if (Array.isArray(list) && guardProductionState('reviewNegKeywords', list, setReviewNegKeywords)) setReviewNegKeywords(list);
+    }, []);
+
     /* ════════════════════════════════════════════════
        파생 집계값 (useMemo — 자동반응형)
     ════════════════════════════════════════════════ */
@@ -1986,6 +2003,10 @@ export function GlobalDataProvider({ children }) {
         ugcReviews, syncUgcReviews,
         channelStats, syncChannelStats,
         negKeywords, syncNegKeywords,
+        // [228차 R5] 제품 리뷰 전용(인플루언서와 분리)
+        reviewItems, syncProductReviews,
+        reviewChannelStats, syncReviewChannelStats,
+        reviewNegKeywords, syncReviewNegKeywords,
 
         // ── [v14 NEW] 콘텐츠 캘린더 동기화
         sharedCalendarEvents, setSharedCalendarEvents,

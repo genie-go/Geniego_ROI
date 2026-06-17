@@ -35,7 +35,7 @@ function useReviewsSecurity() {
 ══════════════════════════════════════════════════════════════════ */
 /* [228차 R1/R2] 실 리뷰 데이터 계층(product_review) 로드 — 마운트·AI분석 후 재동기화 공용.
    응답 {ok,reviews|stats|keywords:[...]} 래핑 → 배열 추출. */
-async function loadReviewData({ syncUgcReviews, syncChannelStats, syncNegKeywords }) {
+async function loadReviewData({ syncProductReviews, syncReviewChannelStats, syncReviewNegKeywords }) {
     const BASE = import.meta.env.VITE_API_BASE || "";
     const token = localStorage.getItem("genie_token") || localStorage.getItem("demo_genie_token") || "";
     const headers = token ? { Authorization: `Bearer ${token}` } : {};
@@ -45,21 +45,22 @@ async function loadReviewData({ syncUgcReviews, syncChannelStats, syncNegKeyword
         fetch(`${BASE}/api/v428/reviews/neg-keywords`, { headers }).then(r => r.ok ? r.json() : null),
     ]);
     const arr = (res, key) => (res.status === "fulfilled" && res.value && Array.isArray(res.value[key])) ? res.value[key] : null;
-    const rv = arr(reviewsRes, "reviews"); if (rv) syncUgcReviews(rv);
-    const st = arr(statsRes, "stats"); if (st) syncChannelStats(st);
-    const kw = arr(kwRes, "keywords"); if (kw) syncNegKeywords(kw);
+    const rv = arr(reviewsRes, "reviews"); if (rv) syncProductReviews(rv);
+    const st = arr(statsRes, "stats"); if (st) syncReviewChannelStats(st);
+    const kw = arr(kwRes, "keywords"); if (kw) syncReviewNegKeywords(kw);
 }
 
 function useReviewsDataSync() {
-    const { syncUgcReviews, syncChannelStats, syncNegKeywords, isDemo } = useGlobalData();
+    // [228차 R5] 제품 리뷰 전용 상태 동기화(인플루언서 상태와 분리 — 교차 오염 방지).
+    const { syncProductReviews, syncReviewChannelStats, syncReviewNegKeywords, isDemo } = useGlobalData();
     const loaded = useRef(false);
     useEffect(() => {
         if (loaded.current) return;
         loaded.current = true;
         // [228차 R1] 데모는 시드 사용(GlobalDataContext)·운영만 실 리뷰 엔드포인트 호출(빈 응답으로 시드 덮어쓰기 방지).
         if (isDemo) return;
-        loadReviewData({ syncUgcReviews, syncChannelStats, syncNegKeywords }).catch(() => {});
-    }, [syncUgcReviews, syncChannelStats, syncNegKeywords, isDemo]);
+        loadReviewData({ syncProductReviews, syncReviewChannelStats, syncReviewNegKeywords }).catch(() => {});
+    }, [syncProductReviews, syncReviewChannelStats, syncReviewNegKeywords, isDemo]);
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -484,7 +485,8 @@ function ReviewsGuideTab() {
 ══════════════════════════════════════════════════════════════════ */
 export default function ReviewsUGC() {
     const { pushNotification } = useNotification();
-    const { ugcReviews = [], channelStats = [], negKeywords = [], addAlert, isDemo, syncUgcReviews, syncChannelStats, syncNegKeywords } = useGlobalData();
+    // [228차 R5] 제품 리뷰 전용 상태 사용(인플루언서 ugcReviews/channelStats/negKeywords 와 분리 — 교차 오염 차단).
+    const { reviewItems: ugcReviews = [], reviewChannelStats: channelStats = [], reviewNegKeywords: negKeywords = [], addAlert, isDemo, syncProductReviews, syncReviewChannelStats, syncReviewNegKeywords } = useGlobalData();
     const { t } = useI18n();
     const { alert: hackAlert, clearAlert: clearHack } = useReviewsSecurity();
     useReviewsDataSync();
@@ -527,11 +529,11 @@ export default function ReviewsUGC() {
             } else {
                 const n = res ? (res.analyzed || 0) : 0;
                 setToast(t("reviews.aiAnalyzeDone", "AI 리뷰 분석 완료") + (n ? ` (${n})` : ""));
-                await loadReviewData({ syncUgcReviews, syncChannelStats, syncNegKeywords });
+                await loadReviewData({ syncProductReviews, syncReviewChannelStats, syncReviewNegKeywords });
             }
         } catch (e) { setToast(t("reviews.aiAnalyzeErr", "AI 분석 실패")); }
         setAnalyzing(false);
-    }, [isDemo, t, syncUgcReviews, syncChannelStats, syncNegKeywords]);
+    }, [isDemo, t, syncProductReviews, syncReviewChannelStats, syncReviewNegKeywords]);
 
     const TABS = useMemo(() => [
         { id: "dashboard", label: `📊 ${t('reviews.tabDashboard')}` },
