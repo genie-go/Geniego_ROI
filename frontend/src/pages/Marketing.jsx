@@ -13,6 +13,7 @@ import { useSecurityGuard } from '../security/SecurityGuard.js';
 import { useConnectorSync } from '../context/ConnectorSyncContext.jsx';
 import { getJsonAuth } from '../services/apiClient.js';
 const AiDesignEngine = React.lazy(() => import('../components/AiDesignEngine.jsx'));
+const CreativeStudioTab = React.lazy(() => import('./CreativeStudioTab.jsx')); // [현 차수] 저장 광고물 보관함(채널별·기간)
 
 /* ─── BroadcastChannel Cross-Tab Sync ─── */
 const MKT_SYNC_CH = 'geniego-marketing-sync';
@@ -698,17 +699,37 @@ function MarketingGuideTab() {
 /* ─── AI Design Generator Tab ─── */
 function AiDesignTab() {
     const { t } = useI18n();
+    // [현 차수] 단일 토글 한 줄 통합: 대화형 / 디자인 엔진 / 저장 광고물 보관함(채널별·기간)
+    const [view, setView] = useState('chat'); // 'chat' | 'engine' | 'library'
+    const VIEWS = [
+        { id: 'chat', label: '💬 ' + t('marketing.aiViewChat', '대화형 AI 디자인') },
+        { id: 'engine', label: '🎨 ' + t('marketing.aiViewEngine', '디자인 엔진') },
+        { id: 'library', label: '🗂 ' + t('marketing.aiViewLibrary', '저장 광고물 보관함') },
+    ];
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            <div className="card card-glass" style={{ background: 'linear-gradient(135deg,rgba(168,85,247,0.10),rgba(79,142,247,0.06))', textAlign: 'center', padding: 28 }}>
-                <div style={{ fontSize: 40 }}>🤖</div>
-                <div style={{ fontWeight: 900, fontSize: 20, marginTop: 6 }}>{t('marketing.tabAiDesign')}</div>
-                <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 4 }}>
+            {/* [현 차수] 단색 배경(그라데이션 흰글자 트랩 회피)+컴팩트(아이콘·제목 한 줄)+서브타이틀 정상 줄바꿈 → 높이 균형·잘림 해소 */}
+            <div className="card card-glass" style={{ background: 'rgba(168,85,247,0.06)', textAlign: 'center', padding: '14px 20px', overflow: 'visible' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: 26, lineHeight: 1 }}>🤖</span>
+                    <span style={{ fontWeight: 900, fontSize: 18, color: '#7c3aed' }}>{t('marketing.tabAiDesign')}</span>
+                </div>
+                <div style={{ fontSize: 12, color: '#64748b', marginTop: 6, lineHeight: 1.55, whiteSpace: 'normal' }}>
                     {t('marketing.aiDesignSub', 'Enterprise AI Creative Engine · 14 Platforms · Multi-Channel Ads · Interactive Popups')}
                 </div>
             </div>
+            {/* [현 차수] 단일 토글 한 줄(생성 모드 2종 + 보관함) — 세로 2줄 중복 제거·페이지 균형 */}
+            <div style={{ display: 'inline-flex', gap: 4, padding: 4, borderRadius: 12, background: 'rgba(99,102,241,0.06)', border: '1px solid rgba(99,102,241,0.15)', width: 'fit-content', flexWrap: 'wrap' }}>
+                {VIEWS.map(v => (
+                    <button key={v.id} onClick={() => setView(v.id)} style={{ padding: '8px 16px', borderRadius: 9, border: 'none', cursor: 'pointer', fontSize: 12.5, fontWeight: 800, background: view === v.id ? 'linear-gradient(135deg,#a855f7,#4f8ef7)' : 'transparent', color: view === v.id ? '#fff' : '#64748b' }}>
+                        {v.label}
+                    </button>
+                ))}
+            </div>
             <React.Suspense fallback={<div className="card card-glass" style={{ padding:40, textAlign:'center', color:'#94a3b8' }}>{ t('marketing.aiDesignLoading', 'Loading AI Engine...') }</div>}>
-                <AiDesignEngine defaultPlatform="popup" />
+                {view === 'library'
+                    ? <CreativeStudioTab sourcePage="marketing-ai-design" />
+                    : <AiDesignEngine defaultPlatform="popup" mode={view} hideModeToggle />}
             </React.Suspense>
         </div>
     );

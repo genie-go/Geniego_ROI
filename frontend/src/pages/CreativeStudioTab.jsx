@@ -11,12 +11,12 @@ import AIDesignStudio from '../components/AIDesignStudio.jsx'; // 196차 — AI 
 
 /* ── Demo 전용 가상 데이터 (운영 미노출) ─────────────── */
 const DEMO_GALLERY = [
-  { id:'G1', name:'Summer UV Campaign', format:'carousel', platform:'Meta', status:'approved', ctr:4.2, conv:312, date:'2026-04-15' },
-  { id:'G2', name:'Spring Lookbook', format:'video', platform:'Instagram', status:'approved', ctr:5.1, conv:287, date:'2026-04-12' },
-  { id:'G3', name:'Flash Sale Banner', format:'banner', platform:'Google', status:'review', ctr:3.8, conv:198, date:'2026-04-10' },
-  { id:'G4', name:'TikTok Challenge', format:'short', platform:'TikTok', status:'approved', ctr:6.3, conv:456, date:'2026-04-08' },
-  { id:'G5', name:'Retargeting DPA', format:'DPA', platform:'Meta', status:'active', ctr:2.9, conv:523, date:'2026-04-05' },
-  { id:'G6', name:'Naver Brand Search', format:'banner', platform:'Naver', status:'approved', ctr:4.7, conv:341, date:'2026-04-02' },
+  { id:'G1', name:'Summer UV Campaign', format:'carousel', platform:'Meta', status:'approved', ctr:4.2, conv:312, date:'2026-04-15', periodStart:'2026-05-01', periodEnd:'2026-05-31' },
+  { id:'G2', name:'Spring Lookbook', format:'video', platform:'Instagram', status:'approved', ctr:5.1, conv:287, date:'2026-04-12', periodStart:'2026-04-20', periodEnd:'2026-05-20' },
+  { id:'G3', name:'Flash Sale Banner', format:'banner', platform:'Google', status:'review', ctr:3.8, conv:198, date:'2026-04-10', periodStart:'2026-04-25', periodEnd:'2026-04-27' },
+  { id:'G4', name:'TikTok Challenge', format:'short', platform:'TikTok', status:'approved', ctr:6.3, conv:456, date:'2026-04-08', periodStart:'2026-05-01', periodEnd:'2026-06-30' },
+  { id:'G5', name:'Retargeting DPA', format:'DPA', platform:'Meta', status:'active', ctr:2.9, conv:523, date:'2026-04-05', periodStart:'2026-04-10', periodEnd:'2026-07-10' },
+  { id:'G6', name:'YouTube Bumper Promo', format:'short', platform:'YouTube', status:'approved', ctr:4.7, conv:341, date:'2026-04-02', periodStart:'2026-05-05', periodEnd:'2026-05-19' },
 ];
 const DEMO_ASSETS = [
   { id:'BA1', name:'Primary Logo', type:'SVG', size:'24KB', updated:'2026-04-20' },
@@ -28,12 +28,30 @@ const DEMO_ASSETS = [
 
 const card = { background:"rgba(255,255,255,0.85)", border:"1px solid rgba(0,0,0,0.08)", borderRadius:16, padding:24, backdropFilter:"blur(16px)", boxShadow:"0 4px 24px rgba(0,0,0,0.06)" };
 
+/* [현 차수] 채널별 광고물 구분 — AI디자인 플랫폼 id/표시명을 매체 패밀리로 묶어 필터링.
+ *  저장된 ad_design.channel(플랫폼 id) 또는 데모 platform 표시명 모두 매칭. */
+const CHANNEL_FAMILIES = [
+  { id:'youtube',   label:'YouTube',   icon:'▶️', match:/youtube|유튜브/i },
+  { id:'meta',      label:'Meta/FB',   icon:'📘', match:/meta|facebook|(^|[^a-z])fb([^a-z]|$)/i },
+  { id:'instagram', label:'Instagram', icon:'📸', match:/instagram|insta|(^|[^a-z])ig([^a-z]|$)/i },
+  { id:'tiktok',    label:'TikTok',    icon:'🎵', match:/tiktok|틱톡/i },
+  { id:'kakao',     label:'Kakao',     icon:'💬', match:/kakao|카카오/i },
+  { id:'naver',     label:'Naver',     icon:'🟢', match:/naver|네이버/i },
+  { id:'google',    label:'Google/Display', icon:'🌐', match:/google|gdn|display|landing|popup|banner/i },
+];
+const familyOf = (platform) => {
+  const p = String(platform || '');
+  const f = CHANNEL_FAMILIES.find(x => x.match.test(p));
+  return f ? f.id : 'etc';
+};
+
 export default function CreativeStudioTab({ sourcePage, onUseCampaign }) {
   const { t } = useI18n();
   const [activeTab, setActiveTab] = useState(0);
   const [selectedCat, setSelectedCat] = useState(null);
   const [selectedChannels, setSelectedChannels] = useState([]);
   const [galleryFilter, setGalleryFilter] = useState('all');
+  const [channelFilter, setChannelFilter] = useState('all'); // [현 차수] 채널별 광고물 필터
   // 운영: 실제 저장 소재. null=로딩전, []=없음
   const [realDesigns, setRealDesigns] = useState(IS_DEMO ? [] : null);
 
@@ -72,6 +90,8 @@ export default function CreativeStudioTab({ sourcePage, onUseCampaign }) {
             status: r.status === 'approved' ? 'approved' : (r.status === 'draft' ? 'draft' : 'review'),
             ctr: null, conv: null,                 // 성과는 광고 채널 연동 후 (가짜 수치 금지)
             date: String(r.created_at || '').slice(0, 10),
+            periodStart: r.period_start || null,   // [현 차수] 채널별 광고물 노출 기간
+            periodEnd: r.period_end || null,
             svg: typeof r.svg === 'string' && r.svg.indexOf('<svg') === 0 ? r.svg : '',
           };
         }));
@@ -120,9 +140,17 @@ export default function CreativeStudioTab({ sourcePage, onUseCampaign }) {
   }, [gallery, loadingReal, t]);
 
   const filteredGallery = useMemo(() => {
-    if (galleryFilter === 'all') return gallery;
-    return gallery.filter(g => g.status === galleryFilter);
-  }, [gallery, galleryFilter]);
+    let g = gallery;
+    if (galleryFilter !== 'all') g = g.filter(x => x.status === galleryFilter);
+    if (channelFilter !== 'all') g = g.filter(x => familyOf(x.platform) === channelFilter);
+    return g;
+  }, [gallery, galleryFilter, channelFilter]);
+
+  // [현 차수] 갤러리에 실제 존재하는 채널 패밀리만 필터 칩으로 노출
+  const presentFamilies = useMemo(() => {
+    const ids = new Set(gallery.map(g => familyOf(g.platform)));
+    return CHANNEL_FAMILIES.filter(f => ids.has(f.id));
+  }, [gallery]);
 
   const handleUseCampaign = (catId, chIds) => {
     if (typeof onUseCampaign === 'function') {
@@ -169,6 +197,20 @@ export default function CreativeStudioTab({ sourcePage, onUseCampaign }) {
           }}>{f === 'all' ? t('marketing.csFilterAll','전체') : f === 'approved' ? t('marketing.csStatusApproved','승인') : f === 'review' ? t('marketing.csStatusReview','검토중') : t('marketing.csStatusDraft','임시저장')}</button>
         ))}
       </div>
+      {/* [현 차수] 채널별(유튜브/메타/인스타/틱톡 등) 광고물 필터 */}
+      {presentFamilies.length > 0 && (
+        <div style={{ display:'flex', gap:6, flexWrap:'wrap', alignItems:'center' }}>
+          <span style={{ fontSize:11, fontWeight:700, color:'#64748b' }}>📡 {t('marketing.csChannelFilter','채널별')}:</span>
+          {[{ id:'all', label:t('marketing.csFilterAll','전체'), icon:'🗂' }, ...presentFamilies].map(f => (
+            <button key={f.id} onClick={() => setChannelFilter(f.id)} style={{
+              padding:'6px 12px', borderRadius:8, border:'none', cursor:'pointer', fontSize:11, fontWeight:700,
+              display:'flex', alignItems:'center', gap:4,
+              background: channelFilter===f.id ? '#a855f7' : 'rgba(0,0,0,0.04)',
+              color: channelFilter===f.id ? '#fff' : '#64748b',
+            }}>{f.icon ? <span>{f.icon}</span> : null} {f.label}</button>
+          ))}
+        </div>
+      )}
       <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(300px,1fr))', gap:14 }}>
         {filteredGallery.map(item => (
           <div key={item.id} style={{ ...card, padding:18, position:'relative' }}>
@@ -194,6 +236,11 @@ export default function CreativeStudioTab({ sourcePage, onUseCampaign }) {
                 <div style={{ fontSize:9, color:'#64748b' }}>{fmtLabel(item.format)}</div>
               </div>
             </div>
+            {(item.periodStart || item.periodEnd) && (
+              <div style={{ fontSize:10, fontWeight:700, color:'#4f8ef7', marginBottom:8, display:'flex', alignItems:'center', gap:4, padding:'5px 8px', borderRadius:7, background:'rgba(79,142,247,0.07)' }}>
+                📅 {t('marketing.csPeriod','노출 기간')}: {item.periodStart || '—'} ~ {item.periodEnd || '—'}
+              </div>
+            )}
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
               <span style={{ fontSize:10, color:'#94a3b8' }}>{item.date}</span>
               <button onClick={() => handleUseCampaign('beauty', ['meta'])} style={{

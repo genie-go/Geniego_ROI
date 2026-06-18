@@ -94,7 +94,7 @@ function renderCanvas(canvas, prompt, theme, platform) {
 /* CTA copy suggestions */
 const CTA_OPTIONS = ["Shop Now","Get 20% Off","Try Free","Learn More","Subscribe","Claim Reward","Buy Now","Start Today","Join Us","Explore"];
 
-export default function AiDesignEngine({ defaultPlatform="popup" }) {
+export default function AiDesignEngine({ defaultPlatform="popup", mode=null, hideModeToggle=false }) {
   const { t } = useI18n();
   const canvasRef = useRef(null);
 
@@ -113,7 +113,8 @@ export default function AiDesignEngine({ defaultPlatform="popup" }) {
   const [dragOver, setDragOver] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState(null); // { ok, text }
-  const [designMode, setDesignMode] = useState("chat"); // 'chat' 대화형(기본) | 'engine' 디자인엔진
+  const [innerMode, setInnerMode] = useState("chat"); // 'chat' 대화형(기본) | 'engine' 디자인엔진
+  const designMode = mode || innerMode; // [현 차수] 부모가 mode 제어 시 그 값 사용(외부 단일 토글 통합)
   const fileRef = useRef(null);
   /* Event Period / Schedule */
   const today = new Date().toISOString().slice(0,10);
@@ -210,12 +211,14 @@ export default function AiDesignEngine({ defaultPlatform="popup" }) {
     <div style={{display:"flex",flexDirection:"column",gap:14}}>
       <canvas ref={canvasRef} style={{display:"none"}} />
 
-      {/* 196차 — 대화형 / 디자인엔진 모드 토글 */}
+      {/* 196차 — 대화형 / 디자인엔진 모드 토글. [현 차수] 부모 단일 토글 통합 시 hideModeToggle로 숨김 */}
+      {!hideModeToggle && (
       <div style={{display:"inline-flex",gap:4,padding:4,borderRadius:12,background:"rgba(99,102,241,0.06)",border:"1px solid rgba(99,102,241,0.15)",width:"fit-content"}}>
         {[["chat","💬 대화형 AI 디자인"],["engine","🎨 디자인 엔진"]].map(([id,label])=>(
-          <button key={id} onClick={()=>setDesignMode(id)} style={{padding:"8px 16px",borderRadius:9,border:"none",cursor:"pointer",fontSize:12.5,fontWeight:800,background:designMode===id?"linear-gradient(135deg,#a855f7,#4f8ef7)":"transparent",color:designMode===id?"#fff":"#64748b"}}>{label}</button>
+          <button key={id} onClick={()=>setInnerMode(id)} style={{padding:"8px 16px",borderRadius:9,border:"none",cursor:"pointer",fontSize:12.5,fontWeight:800,background:designMode===id?"linear-gradient(135deg,#a855f7,#4f8ef7)":"transparent",color:designMode===id?"#fff":"#64748b"}}>{label}</button>
         ))}
       </div>
+      )}
 
       {designMode==="chat" && <AIDesignChat />}
 
