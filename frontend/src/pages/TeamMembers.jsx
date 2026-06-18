@@ -295,6 +295,8 @@ const TYPE_LABEL = {
   logistics: '물류팀', finance: '재무팀',
   partner_agency: '외부 대행사', partner_live: '라이브커머스 파트너', partner_supplier: '공급 파트너', partner_distribution: '유통 파트너', custom: '사용자 정의',
 };
+// 팀 유형 라벨 15개국 현지화(teamPartner.type_* — TYPE_LABEL=한글 폴백).
+const typeLabel = (t, k) => t('teamPartner.type_' + k, TYPE_LABEL[k] || k);
 function TeamsPanel({ t, canManage, flash }) {
   const [teams, setTeams] = useState([]);
   const [members, setMembers] = useState([]);
@@ -366,7 +368,7 @@ function TeamsPanel({ t, canManage, flash }) {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: 10 }}>
             <input style={input} placeholder={t('teamMembers.phTeamName', '팀 이름')} value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
             <select style={input} value={form.team_type} onChange={e => setForm(f => ({ ...f, team_type: e.target.value }))}>
-              {TEAM_TYPES.map(tp => <option key={tp} value={tp}>{TYPE_LABEL[tp] || tp}</option>)}
+              {TEAM_TYPES.map(tp => <option key={tp} value={tp}>{typeLabel(t, tp)}</option>)}
             </select>
             <select style={input} value={form.manager_user_id} onChange={e => setForm(f => ({ ...f, manager_user_id: e.target.value }))}>
               <option value="">{t('teamMembers.phManager', '팀관리자 지정 (선택)')}</option>
@@ -396,7 +398,7 @@ function TeamsPanel({ t, canManage, flash }) {
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <span style={{ fontWeight: 800, fontSize: 14 }}>{tm.name}</span>
-                    <span style={{ fontSize: 10.5, fontWeight: 700, padding: '2px 8px', borderRadius: 10, background: '#6366f118', color: '#6366f1' }}>{TYPE_LABEL[tm.team_type] || tm.team_type}</span>
+                    <span style={{ fontSize: 10.5, fontWeight: 700, padding: '2px 8px', borderRadius: 10, background: '#6366f118', color: '#6366f1' }}>{typeLabel(t, tm.team_type)}</span>
                     <span style={{ fontSize: 10.5, fontWeight: 700, padding: '2px 8px', borderRadius: 10, background: (STATUS_COLOR[tm.status] || '#94a3b8') + '1a', color: STATUS_COLOR[tm.status] || '#94a3b8' }}>{statusLabel(tm.status)}</span>
                   </div>
                   <div style={{ fontSize: 12, color: 'var(--text-3,#64748b)', marginTop: 4 }}>
@@ -646,6 +648,7 @@ function AuditPanel({ t, flash }) {
 
 /* 212차 #5: 파트너(매입처/물류처/창고처) 계정 — 멤버 구성원과 동일 화면에서 등록·관리. */
 const PT_LABEL = { supplier: '매입처', logistics: '물류처', warehouse: '창고처' };
+const ptLabel = (t, k) => t('teamPartner.pt' + (k ? k.charAt(0).toUpperCase() + k.slice(1) : ''), PT_LABEL[k] || k);
 function PartnerSection({ t, flash, input }) {
   const [list, setList] = useState([]);
   const [form, setForm] = useState({ partner_type: 'supplier', partner_name: '', login_id: '', password: '', photo: '' });
@@ -656,52 +659,52 @@ function PartnerSection({ t, flash, input }) {
   const filtered = list.filter(p => { const q = pq.trim().toLowerCase(); return !q || [p.partner_name, p.login_id, p.partner_type].some(v => String(v || '').toLowerCase().includes(q)); });
   const setPhoto = async (p, url) => { try { await wmsApi.updatePartner(p.id, { photo: url }); load(); } catch (e) { flash(String(e?.message || e)); } };
   const create = async () => {
-    if (!form.partner_name || !form.login_id || form.password.length < 8) { flash('대상명·로그인 ID·8자 이상 비밀번호를 입력하세요.'); return; }
+    if (!form.partner_name || !form.login_id || form.password.length < 8) { flash(t('teamPartner.errRequired', '대상명·로그인 ID·8자 이상 비밀번호를 입력하세요.')); return; }
     setBusy(true);
-    try { const r = await wmsApi.createPartner(form); if (r?.ok) { flash('파트너 계정이 발급되었습니다.'); setForm({ partner_type: 'supplier', partner_name: '', login_id: '', password: '', photo: '' }); load(); } else flash(r?.error || '발급 실패'); }
+    try { const r = await wmsApi.createPartner(form); if (r?.ok) { flash(t('teamPartner.okIssued', '파트너 계정이 발급되었습니다.')); setForm({ partner_type: 'supplier', partner_name: '', login_id: '', password: '', photo: '' }); load(); } else flash(r?.error || t('teamPartner.errIssue', '발급 실패')); }
     catch (e) { if (!handlePlanLimit(e)) flash(String(e?.message || e)); }
     setBusy(false);
   };
   const toggle = async (p) => { try { await wmsApi.updatePartner(p.id, { active: p.active ? 0 : 1 }); load(); } catch (e) { flash(String(e?.message || e)); } };
-  const resetPw = async (p) => { const pw = window.prompt('새 비밀번호(8자 이상)'); if (!pw || pw.length < 8) return; try { await wmsApi.updatePartner(p.id, { password: pw }); flash('비밀번호 재설정 완료'); } catch (e) { flash(String(e?.message || e)); } };
-  const del = async (p) => { if (!window.confirm(`'${p.partner_name}' 파트너 계정을 삭제하시겠습니까?`)) return; try { await wmsApi.deletePartner(p.id); load(); } catch (e) { flash(String(e?.message || e)); } };
+  const resetPw = async (p) => { const pw = window.prompt(t('teamPartner.promptNewPw', '새 비밀번호(8자 이상)')); if (!pw || pw.length < 8) return; try { await wmsApi.updatePartner(p.id, { password: pw }); flash(t('teamPartner.okPwReset', '비밀번호 재설정 완료')); } catch (e) { flash(String(e?.message || e)); } };
+  const del = async (p) => { if (!window.confirm(t('teamPartner.confirmDelete', "'{name}' 파트너 계정을 삭제하시겠습니까?", { name: p.partner_name }).replace('{name}', p.partner_name))) return; try { await wmsApi.deletePartner(p.id); load(); } catch (e) { flash(String(e?.message || e)); } };
   const inp = input || { padding: '9px 11px', borderRadius: 9, border: '1px solid #cbd5e1', fontSize: 13, outline: 'none' };
   return (
     <div style={{ marginTop: 28, background: 'var(--card,#fff)', border: '1px solid var(--border,#e2e8f0)', borderRadius: 14, padding: 20 }}>
-      <div style={{ fontSize: 16, fontWeight: 900, color: 'var(--text-1,#0f172a)', marginBottom: 4 }}>🤝 파트너 계정 (매입처 · 물류처 · 창고처)</div>
-      <div style={{ fontSize: 12, color: 'var(--text-3,#64748b)', marginBottom: 14 }}>파트너에게 별도 로그인 ID를 발급합니다. 파트너는 <b>/partner</b> 포털로 접속해 공유된 본인 데이터(발주/출고/재고)만 등록·열람합니다. 발급 수는 구독 플랜 한도를 따릅니다.</div>
+      <div style={{ fontSize: 16, fontWeight: 900, color: 'var(--text-1,#0f172a)', marginBottom: 4 }}>🤝 {t('teamPartner.sectionTitle', '파트너 계정 (매입처 · 물류처 · 창고처)')}</div>
+      <div style={{ fontSize: 12, color: 'var(--text-3,#64748b)', marginBottom: 14 }}>{t('teamPartner.sectionDesc', '파트너에게 별도 로그인 ID를 발급합니다. 파트너는 /partner 포털로 접속해 공유된 본인 데이터(발주/출고/재고)만 등록·열람합니다. 발급 수는 구독 플랜 한도를 따릅니다.')}</div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
         <AvatarField value={form.photo} name={form.partner_name} size={50} editable onChange={(url) => setForm(f => ({ ...f, photo: url }))} />
-        <span style={{ fontSize: 12, color: 'var(--text-3,#94a3b8)' }}>파트너 사진/로고 (선택) — 클릭하여 등록</span>
+        <span style={{ fontSize: 12, color: 'var(--text-3,#94a3b8)' }}>{t('teamPartner.photoHint', '파트너 사진/로고 (선택) — 클릭하여 등록')}</span>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(140px,1fr)) auto', gap: 8, alignItems: 'end', marginBottom: 16 }}>
-        <div><label style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3,#64748b)' }}>유형</label>
+        <div><label style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3,#64748b)' }}>{t('teamPartner.fieldType', '유형')}</label>
           <select value={form.partner_type} onChange={e => setForm(f => ({ ...f, partner_type: e.target.value }))} style={{ ...inp, width: '100%', boxSizing: 'border-box' }}>
-            <option value="supplier">매입처</option><option value="logistics">물류처</option><option value="warehouse">창고처</option>
+            <option value="supplier">{ptLabel(t, 'supplier')}</option><option value="logistics">{ptLabel(t, 'logistics')}</option><option value="warehouse">{ptLabel(t, 'warehouse')}</option>
           </select></div>
-        <div><label style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3,#64748b)' }}>{form.partner_type === 'warehouse' ? '창고 ID(번호)' : '대상명'}</label>
-          <input value={form.partner_name} onChange={e => setForm(f => ({ ...f, partner_name: e.target.value }))} style={{ ...inp, width: '100%', boxSizing: 'border-box' }} placeholder={form.partner_type === 'supplier' ? '발주 매입처명' : form.partner_type === 'logistics' ? '택배사명' : '창고 ID'} /></div>
-        <div><label style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3,#64748b)' }}>로그인 ID</label><input value={form.login_id} onChange={e => setForm(f => ({ ...f, login_id: e.target.value }))} style={{ ...inp, width: '100%', boxSizing: 'border-box' }} placeholder="partner_id" /></div>
-        <div><label style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3,#64748b)' }}>비밀번호(8자+)</label><input type="password" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} style={{ ...inp, width: '100%', boxSizing: 'border-box' }} /></div>
-        <button onClick={create} disabled={busy} style={{ padding: '9px 16px', borderRadius: 9, border: 'none', background: '#22c55e', color: '#fff', fontWeight: 800, fontSize: 13, cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.6 : 1 }}>발급</button>
+        <div><label style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3,#64748b)' }}>{form.partner_type === 'warehouse' ? t('teamPartner.fieldWarehouseId', '창고 ID(번호)') : t('teamPartner.fieldTargetName', '대상명')}</label>
+          <input value={form.partner_name} onChange={e => setForm(f => ({ ...f, partner_name: e.target.value }))} style={{ ...inp, width: '100%', boxSizing: 'border-box' }} placeholder={form.partner_type === 'supplier' ? t('teamPartner.phSupplier', '발주 매입처명') : form.partner_type === 'logistics' ? t('teamPartner.phLogistics', '택배사명') : t('teamPartner.phWarehouse', '창고 ID')} /></div>
+        <div><label style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3,#64748b)' }}>{t('teamPartner.fieldLoginId', '로그인 ID')}</label><input value={form.login_id} onChange={e => setForm(f => ({ ...f, login_id: e.target.value }))} style={{ ...inp, width: '100%', boxSizing: 'border-box' }} placeholder="partner_id" /></div>
+        <div><label style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3,#64748b)' }}>{t('teamPartner.fieldPassword', '비밀번호(8자+)')}</label><input type="password" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} style={{ ...inp, width: '100%', boxSizing: 'border-box' }} /></div>
+        <button onClick={create} disabled={busy} style={{ padding: '9px 16px', borderRadius: 9, border: 'none', background: '#22c55e', color: '#fff', fontWeight: 800, fontSize: 13, cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.6 : 1 }}>{t('teamPartner.issue', '발급')}</button>
       </div>
-      {list.length > 0 && <input value={pq} onChange={e => setPq(e.target.value)} placeholder="🔍 파트너명·ID·유형 검색" style={{ ...inp, width: '100%', boxSizing: 'border-box', marginBottom: 8 }} />}
+      {list.length > 0 && <input value={pq} onChange={e => setPq(e.target.value)} placeholder={'🔍 ' + t('teamPartner.searchPh', '파트너명·ID·유형 검색')} style={{ ...inp, width: '100%', boxSizing: 'border-box', marginBottom: 8 }} />}
       <div style={{ display: 'grid', gap: 7 }}>
-        {list.length === 0 && <div style={{ fontSize: 12, color: '#94a3b8' }}>발급된 파트너 계정이 없습니다.</div>}
-        {list.length > 0 && filtered.length === 0 && <div style={{ fontSize: 12, color: '#94a3b8' }}>검색 결과가 없습니다.</div>}
+        {list.length === 0 && <div style={{ fontSize: 12, color: '#94a3b8' }}>{t('teamPartner.emptyList', '발급된 파트너 계정이 없습니다.')}</div>}
+        {list.length > 0 && filtered.length === 0 && <div style={{ fontSize: 12, color: '#94a3b8' }}>{t('teamPartner.noMatch', '검색 결과가 없습니다.')}</div>}
         {filtered.map(p => (
           <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8, padding: '9px 13px', borderRadius: 10, border: '1px solid var(--border,#e5e7eb)', opacity: p.active ? 1 : 0.55 }}>
             <div style={{ fontSize: 12.5, display: 'flex', alignItems: 'center', gap: 10 }}>
               <AvatarField value={p.photo} name={p.partner_name} size={34} editable onChange={(url) => setPhoto(p, url)} />
               <span>
-              <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 12, background: '#6366f118', color: '#6366f1' }}>{PT_LABEL[p.partner_type] || p.partner_type}</span>
+              <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 12, background: '#6366f118', color: '#6366f1' }}>{ptLabel(t, p.partner_type)}</span>
               <b style={{ marginLeft: 8 }}>{p.partner_name}</b><span style={{ color: '#64748b', marginLeft: 8 }}>ID: {p.login_id}</span>
               </span>
             </div>
             <div style={{ display: 'flex', gap: 6 }}>
-              <button onClick={() => toggle(p)} style={{ fontSize: 11, padding: '4px 9px', borderRadius: 7, border: '1px solid #cbd5e1', background: 'transparent', cursor: 'pointer', color: p.active ? '#ef4444' : '#16a34a' }}>{p.active ? '비활성' : '활성'}</button>
-              <button onClick={() => resetPw(p)} style={{ fontSize: 11, padding: '4px 9px', borderRadius: 7, border: '1px solid #cbd5e1', background: 'transparent', cursor: 'pointer', color: '#6366f1' }}>비번재설정</button>
-              <button onClick={() => del(p)} style={{ fontSize: 11, padding: '4px 9px', borderRadius: 7, border: '1px solid #fecaca', background: 'transparent', cursor: 'pointer', color: '#ef4444' }}>삭제</button>
+              <button onClick={() => toggle(p)} style={{ fontSize: 11, padding: '4px 9px', borderRadius: 7, border: '1px solid #cbd5e1', background: 'transparent', cursor: 'pointer', color: p.active ? '#ef4444' : '#16a34a' }}>{p.active ? t('teamPartner.deactivate', '비활성') : t('teamPartner.activate', '활성')}</button>
+              <button onClick={() => resetPw(p)} style={{ fontSize: 11, padding: '4px 9px', borderRadius: 7, border: '1px solid #cbd5e1', background: 'transparent', cursor: 'pointer', color: '#6366f1' }}>{t('teamPartner.resetPw', '비번재설정')}</button>
+              <button onClick={() => del(p)} style={{ fontSize: 11, padding: '4px 9px', borderRadius: 7, border: '1px solid #fecaca', background: 'transparent', cursor: 'pointer', color: '#ef4444' }}>{t('teamPartner.del', '삭제')}</button>
             </div>
           </div>
         ))}

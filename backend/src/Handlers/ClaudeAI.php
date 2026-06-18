@@ -2896,28 +2896,40 @@ PROMPT;
     /* ───────────── [현 차수] ② 자연어 인사이트(AI 리포트) — MMM·성과 종합 ───────────── */
 
     /** POST /v422/ai/marketing-insight — 광고·채널 분석 자연어 종합. 실데이터 기반, AI 미가용 시 결정적 폴백. */
+    /** 리포트 생성 언어(15개국). 알 수 없으면 ko. */
+    private const REPORT_LANGS = ['ko' => 'Korean', 'en' => 'English', 'ja' => 'Japanese', 'zh' => 'Simplified Chinese', 'zh-TW' => 'Traditional Chinese', 'de' => 'German', 'th' => 'Thai', 'vi' => 'Vietnamese', 'id' => 'Indonesian', 'ar' => 'Arabic', 'es' => 'Spanish', 'fr' => 'French', 'hi' => 'Hindi', 'pt' => 'Portuguese', 'ru' => 'Russian'];
+    private static function normReportLang($l): string { $l = (string)$l; return isset(self::REPORT_LANGS[$l]) ? $l : 'ko'; }
+    /** 결정론적 폴백 템플릿 1건 조회(MmmReportI18n, 누락 시 ko). */
+    private static function rtpl(string $lang, string $key): string { return \Genie\Handlers\MmmReportI18n::tpl($lang, $key); }
+
     public static function marketingInsight(Request $req, Response $res, array $args = []): Response {
         $tenant = self::tenant($req);
         if ($tenant === 'unknown') {
             return TemplateResponder::respond($res->withStatus(401), ['ok' => false, 'error' => '로그인이 필요합니다.']);
         }
+        $body = (array)($req->getParsedBody() ?? []);
+        if (empty($body)) { $d = json_decode((string)$req->getBody(), true); if (is_array($d)) $body = $d; }
+        $lang = self::normReportLang($body['lang'] ?? ($req->getQueryParams()['lang'] ?? 'ko'));
+        $langName = self::REPORT_LANGS[$lang];
+
         try { $facts = self::gatherMarketingFacts(Db::pdo(), $tenant); }
         catch (\Throwable $e) { $facts = ['window_days' => 60, 'channels' => [], 'totals' => ['spend' => 0, 'revenue' => 0, 'roas' => 0]]; }
 
         if (empty($facts['channels'])) {
-            return TemplateResponder::respond($res, ['ok' => true, 'ai' => false, 'insight' => [
-                'summary' => '아직 분석할 성과 데이터가 충분하지 않습니다. 채널을 연동·집행하면 자동으로 인사이트가 생성됩니다.',
-                'bullets' => [], 'recommendation' => '광고 채널 연동 및 데이터 수집을 먼저 진행하세요.', 'risks' => [],
+            return TemplateResponder::respond($res, ['ok' => true, 'ai' => false, 'lang' => $lang, 'insight' => [
+                'summary' => self::rtpl($lang, 'emptySummary'),
+                'bullets' => [], 'recommendation' => self::rtpl($lang, 'emptyRecommendation'), 'risks' => [],
             ], 'facts' => $facts]);
         }
-        $system = '당신은 시니어 퍼포먼스 마케팅 애널리스트입니다. 주어진 실측 데이터만 근거로 한국어로 간결하고 실행가능한 인사이트를 작성합니다. 과장·추정·허위수치 금지. 반드시 JSON {"summary":"3-4문장","bullets":["핵심포인트", "..."],"recommendation":"우선 액션 1-2개","risks":["리스크", "..."]} 형식으로만 응답하세요.';
-        $userMsg = "광고주의 최근 " . (int)$facts['window_days'] . "일 실측 마케팅 데이터입니다:\n" . json_encode($facts, JSON_UNESCAPED_UNICODE) . "\n채널 효율·예산 배분·이상 신호를 종합해 경영진용 요약을 작성하세요.";
+        // 시스템 프롬프트: 출력 언어를 사용자 로케일로 지정(Claude가 해당 언어로 작성).
+        $system = "You are a senior performance-marketing analyst. Based ONLY on the given measured data, write a concise, actionable executive insight in {$langName}. No exaggeration, speculation, or fabricated numbers. Respond ONLY as JSON {\"summary\":\"3-4 sentences\",\"bullets\":[\"key point\",\"...\"],\"recommendation\":\"1-2 priority actions\",\"risks\":[\"risk\",\"...\"]}. All field values MUST be written in {$langName}.";
+        $userMsg = "Advertiser's measured marketing data for the last " . (int)$facts['window_days'] . " days:\n" . json_encode($facts, JSON_UNESCAPED_UNICODE) . "\nSynthesize channel efficiency, budget allocation, and anomaly signals into an executive summary. Write every value in {$langName}.";
         try {
             $r = self::callClaude($system, $userMsg, 14, self::tenant($req));
             $parsed = self::parseAnalysis($r['text']);
-            return TemplateResponder::respond($res, ['ok' => true, 'ai' => true, 'insight' => $parsed, 'facts' => $facts]);
+            return TemplateResponder::respond($res, ['ok' => true, 'ai' => true, 'lang' => $lang, 'insight' => $parsed, 'facts' => $facts]);
         } catch (\Throwable $e) {
-            return TemplateResponder::respond($res, ['ok' => true, 'ai' => false, 'insight' => self::deterministicInsight($facts), 'facts' => $facts, 'note' => 'AI 미가용 — 규칙 기반 요약(관리자 Claude 키 설정 시 서술형 AI 활성)']);
+            return TemplateResponder::respond($res, ['ok' => true, 'ai' => false, 'lang' => $lang, 'insight' => self::deterministicInsight($facts, $lang), 'facts' => $facts, 'note' => self::rtpl($lang, 'aiUnavailableNote')]);
         }
     }
 
@@ -2959,17 +2971,22 @@ PROMPT;
         return ['window_days' => $window, 'totals' => ['spend' => $ts, 'revenue' => $tr, 'roas' => round($tr / $ts, 2), 'conversions' => $tc], 'channels' => $channels, 'best_roas' => $channels[0], 'worst_roas' => $channels[4], 'anomaly_hint' => 'meta_ads ROAS 최근 급락(−3.6σ) 신호'];
     }
 
-    private static function deterministicInsight(array $f): array {
+    private static function deterministicInsight(array $f, string $lang = 'ko'): array {
         $fmt = fn($n) => '₩' . number_format((int)$n);
+        $rep = fn($key, $vars) => strtr(self::rtpl($lang, $key), $vars);
         $t = $f['totals']; $best = $f['best_roas'] ?? null; $worst = $f['worst_roas'] ?? null;
-        $summary = "최근 {$f['window_days']}일 총 광고비 {$fmt($t['spend'])}, 매출 {$fmt($t['revenue'])}, 종합 ROAS {$t['roas']}x. ";
-        if ($best) $summary .= "최고 효율은 {$best['channel']}(ROAS {$best['roas']}x), ";
-        if ($worst) $summary .= "최저는 {$worst['channel']}(ROAS {$worst['roas']}x) 입니다.";
+        $summary = $rep('summaryHead', ['{days}' => (int)$f['window_days'], '{spend}' => $fmt($t['spend']), '{revenue}' => $fmt($t['revenue']), '{roas}' => $t['roas']]);
+        if ($best) $summary .= $rep('summaryBest', ['{ch}' => $best['channel'], '{roas}' => $best['roas']]);
+        if ($worst) $summary .= $rep('summaryWorst', ['{ch}' => $worst['channel'], '{roas}' => $worst['roas']]);
         $bullets = [];
-        foreach (array_slice($f['channels'], 0, 4) as $c) { $bullets[] = "{$c['channel']}: 광고비 {$fmt($c['spend'])} · ROAS {$c['roas']}x" . (!empty($c['cpa']) ? " · CPA {$fmt($c['cpa'])}" : ""); }
+        foreach (array_slice($f['channels'], 0, 4) as $c) {
+            $b = $rep('bullet', ['{ch}' => $c['channel'], '{spend}' => $fmt($c['spend']), '{roas}' => $c['roas']]);
+            if (!empty($c['cpa'])) $b .= $rep('bulletCpa', ['{cpa}' => $fmt($c['cpa'])]);
+            $bullets[] = $b;
+        }
         if (!empty($f['anomaly_hint'])) $bullets[] = "⚠ " . $f['anomaly_hint'];
-        $rec = $worst ? "{$worst['channel']} 등 저효율 채널 예산을 " . ($best ? $best['channel'] : '고효율 채널') . " 로 재배분 검토(MMM 최적화 참고)." : "고효율 채널 증액 여지를 MMM 최적화로 확인하세요.";
-        $risks = ($worst && $worst['roas'] < 1.5) ? ["{$worst['channel']} ROAS 1.5x 미만 — 손실 위험, 점검 필요"] : [];
+        $rec = $worst ? $rep('recommendation', ['{worst}' => $worst['channel'], '{best}' => ($best ? $best['channel'] : '')]) : self::rtpl($lang, 'recommendationNoBest');
+        $risks = ($worst && (float)$worst['roas'] < 1.5) ? [$rep('risk', ['{worst}' => $worst['channel']])] : [];
         return ['summary' => $summary, 'bullets' => $bullets, 'recommendation' => $rec, 'risks' => $risks];
     }
 

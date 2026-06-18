@@ -10,10 +10,11 @@ import { getJsonAuth, postJsonAuth } from '../services/apiClient.js';
 
 const fmtKRW = (n) => '₩' + Math.round(Number(n) || 0).toLocaleString('ko-KR');
 const CH_COLOR = ['#4f46e5', '#7c3aed', '#06b6d4', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#14b8a6'];
-const chName = (c) => ({ meta_ads: 'Meta', google_ads: 'Google', tiktok_business: 'TikTok', naver_sa: '네이버 SA', kakao_moment: '카카오', coupang: '쿠팡' }[c] || c);
+// 채널명은 라틴/브랜드 표기로 언어 중립화(전 언어 공통).
+const chName = (c) => ({ meta_ads: 'Meta', google_ads: 'Google', tiktok_business: 'TikTok', naver_sa: 'Naver SA', kakao_moment: 'Kakao', coupang: 'Coupang' }[c] || c);
 
 /* 반응곡선 SVG — revenue = beta*(1-exp(-x/kappa)), 현재 지점 마커 */
-function ResponseCurve({ ch, color, w = 260, h = 110 }) {
+function ResponseCurve({ ch, color, w = 260, h = 110, nowLabel = 'now' }) {
   const beta = Number(ch.beta) || 0, kappa = Number(ch.kappa) || 1;
   const cur = Number(ch.current_daily_spend) || 0;
   const xMax = Math.max(cur * 2.6, kappa * 3, 1);
@@ -34,13 +35,13 @@ function ResponseCurve({ ch, color, w = 260, h = 110 }) {
       <polyline points={pts.join(' ')} fill="none" stroke={color} strokeWidth="2.5" />
       <line x1={curPx} y1={pad} x2={curPx} y2={h - pad} stroke="#94a3b8" strokeWidth="1" strokeDasharray="3 3" />
       <circle cx={curPx} cy={curPy} r="4.5" fill={color} stroke="#fff" strokeWidth="1.5" />
-      <text x={curPx + 6} y={curPy - 6} fontSize="9" fill="#64748b">현재</text>
+      <text x={curPx + 6} y={curPy - 6} fontSize="9" fill="#64748b">{nowLabel}</text>
     </svg>
   );
 }
 
 export default function MarketingMix() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [model, setModel] = useState(null);
   const [loading, setLoading] = useState(true);
   const [window, setWin] = useState(90);
@@ -53,7 +54,7 @@ export default function MarketingMix() {
 
   const runInsight = async () => {
     setInsightBusy(true); setInsight(null);
-    try { setInsight(await postJsonAuth('/v422/ai/marketing-insight', {})); }
+    try { setInsight(await postJsonAuth('/v422/ai/marketing-insight', { lang })); }
     catch (e) { setInsight({ ok: false, error: String(e?.message || e) }); }
     finally { setInsightBusy(false); }
   };
@@ -87,7 +88,7 @@ export default function MarketingMix() {
         <h1 style={{ fontSize: 23, fontWeight: 900, letterSpacing: -0.5, margin: 0 }}>📐 {t('mmm.title', '마케팅 믹스 모델 (MMM) · 예산 최적화')}</h1>
         <div style={{ display: 'flex', gap: 6 }}>
           {[30, 60, 90, 180].map(d => (
-            <button key={d} onClick={() => setWin(d)} style={{ padding: '6px 12px', borderRadius: 8, border: window === d ? '2px solid #4f46e5' : '1px solid #e2e8f0', background: window === d ? 'rgba(79,70,229,0.1)' : '#fff', color: window === d ? '#4f46e5' : '#64748b', fontSize: 12, fontWeight: 800, cursor: 'pointer' }}>{d}일</button>
+            <button key={d} onClick={() => setWin(d)} style={{ padding: '6px 12px', borderRadius: 8, border: window === d ? '2px solid #4f46e5' : '1px solid #e2e8f0', background: window === d ? 'rgba(79,70,229,0.1)' : '#fff', color: window === d ? '#4f46e5' : '#64748b', fontSize: 12, fontWeight: 800, cursor: 'pointer' }}>{d}{t('mmm.daysUnit', '일')}</button>
           ))}
         </div>
       </div>
@@ -107,8 +108,8 @@ export default function MarketingMix() {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, flexWrap: 'wrap', gap: 8 }}>
             <div style={{ fontWeight: 900, fontSize: 15 }}>🚨 {t('mmm.anomTitle', '이상 감지 (SPC) · 실시간 경보')}</div>
             <div style={{ display: 'flex', gap: 8 }}>
-              <span style={{ fontSize: 11, fontWeight: 800, color: '#dc2626', background: 'rgba(239,68,68,0.12)', padding: '3px 10px', borderRadius: 99 }}>심각 {anom.summary?.critical || 0}</span>
-              <span style={{ fontSize: 11, fontWeight: 800, color: '#d97706', background: 'rgba(245,158,11,0.12)', padding: '3px 10px', borderRadius: 99 }}>경고 {anom.summary?.warning || 0}</span>
+              <span style={{ fontSize: 11, fontWeight: 800, color: '#dc2626', background: 'rgba(239,68,68,0.12)', padding: '3px 10px', borderRadius: 99 }}>{t('mmm.sevCritical', '심각')} {anom.summary?.critical || 0}</span>
+              <span style={{ fontSize: 11, fontWeight: 800, color: '#d97706', background: 'rgba(245,158,11,0.12)', padding: '3px 10px', borderRadius: 99 }}>{t('mmm.sevWarning', '경고')} {anom.summary?.warning || 0}</span>
             </div>
           </div>
           <div style={{ display: 'grid', gap: 8 }}>
@@ -116,7 +117,7 @@ export default function MarketingMix() {
               const sev = a.severity === 'critical';
               return (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', padding: '10px 14px', borderRadius: 10, background: '#fff', border: '1px solid ' + (sev ? '#fecaca' : '#fed7aa') }}>
-                  <span style={{ fontSize: 10.5, fontWeight: 900, color: '#fff', background: sev ? '#dc2626' : '#f59e0b', padding: '3px 8px', borderRadius: 6, whiteSpace: 'nowrap' }}>{sev ? '심각' : '경고'}</span>
+                  <span style={{ fontSize: 10.5, fontWeight: 900, color: '#fff', background: sev ? '#dc2626' : '#f59e0b', padding: '3px 8px', borderRadius: 6, whiteSpace: 'nowrap' }}>{sev ? t('mmm.sevCritical', '심각') : t('mmm.sevWarning', '경고')}</span>
                   <span style={{ fontSize: 13, fontWeight: 800, minWidth: 70 }}>{chName(a.channel)}</span>
                   <span style={{ fontSize: 12.5, color: '#334155' }}>
                     <b>{a.metric_label}</b> {a.direction} — {a.value}{a.unit} <span style={{ color: '#94a3b8' }}>(기준 {a.expected}{a.unit}, {a.sigma}σ)</span>
@@ -152,7 +153,7 @@ export default function MarketingMix() {
             )}
             {insight.insight.recommendation && (
               <div style={{ marginTop: 12, padding: '10px 14px', borderRadius: 10, background: '#f0fdf4', border: '1px solid #bbf7d0', fontSize: 12.5, color: '#166534' }}>
-                <b>✅ 권장 액션:</b> {insight.insight.recommendation}
+                <b>✅ {t('mmm.recActionLabel', '권장 액션')}:</b> {insight.insight.recommendation}
               </div>
             )}
             {Array.isArray(insight.insight.risks) && insight.insight.risks.length > 0 && (
@@ -160,7 +161,7 @@ export default function MarketingMix() {
                 {insight.insight.risks.map((r, i) => <div key={i} style={{ fontSize: 12, color: '#b91c1c' }}>⚠ {r}</div>)}
               </div>
             )}
-            <div style={{ fontSize: 10.5, color: '#94a3b8', marginTop: 10 }}>{insight.ai ? '🤖 Claude AI 생성' : 'ℹ ' + (insight.note || '규칙 기반 요약')}</div>
+            <div style={{ fontSize: 10.5, color: '#94a3b8', marginTop: 10 }}>{insight.ai ? '🤖 ' + t('mmm.aiByClaude', 'Claude AI 생성') : 'ℹ ' + (insight.note || t('mmm.aiRuleBased', '규칙 기반 요약'))}</div>
           </div>
         )}
         {insight && !insight.ok && <div style={{ marginTop: 12, color: '#dc2626', fontSize: 12.5 }}>⚠ {insight.error}</div>}
@@ -246,7 +247,7 @@ export default function MarketingMix() {
                     <div style={{ fontWeight: 900, fontSize: 15 }}><span style={{ color }}>●</span> {chName(c.channel)}</div>
                     <div style={{ fontSize: 10.5, color: '#94a3b8', fontWeight: 700 }}>{t('mmm.fit', '적합도')} R²={c.r2}</div>
                   </div>
-                  <ResponseCurve ch={c} color={color} />
+                  <ResponseCurve ch={c} color={color} nowLabel={t('mmm.nowMarker', '현재')} />
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 8, marginTop: 10 }}>
                     {[
                       { l: t('mmm.contribShare', '기여 비중'), v: Math.round((c.contribution_share || 0) * 100) + '%' },
