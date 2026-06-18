@@ -51,3 +51,10 @@ GeniegoROI 보안/컴플라이언스/엔터프라이즈 준비도 점검 — 기
 - **#9 OAuth Token 암호화: ✅ 이미 적용**(오탐 정정). `Connectors.php:127-130` 쓰기 시 `Crypto::encrypt`(AES-256-GCM)로 access_token/refresh_token/meta_json 암호화(225차 P1-13), 읽기 `Crypto::decrypt` passthrough(레거시 평문 호환). connector_token 평문 아님.
 - **#14 CSRF / #21 세션쿠키: 사실상 무관(정정)**. 인증=Bearer 토큰(localStorage)+`Authorization` 헤더 방식(쿠키 세션 아님). 브라우저가 교차출처에 Authorization 헤더를 자동 전송하지 않으므로 CSRF 비취약. SameSite/HttpOnly 쿠키 항목 비해당. → CORS whitelist(기존)로 충분.
 - **결론**: 보안 '높음' 갭 중 OAuth암호화=완료·CSRF/쿠키=무관 → 실제 잔여=일반 API rate-limit(핫패스·신중), ABAC/SSO(대규모 조직·전향적), 응답 표준봉투(점진). 보안 posture는 검증 결과 **강건**.
+
+## 보강 적용 (231차 — nginx 레벨 일반 API rate-limit)
+- **#15 일반 API rate-limit: ✅ 적용**. nginx.conf 에 이미 정의돼 있던(미적용 상태) `limit_req_zone ... zone=api_limit:10m rate=30r/s` 를 운영/데모 vhost 의 API location 2곳(`^/api(/|$)`, `^/(auth|v3..v427)`)에 `limit_req zone=api_limit burst=120 nodelay; limit_req_status 429;` 로 적용.
+  - 키=`$binary_remote_addr`(IP별). 30r/s + burst120 → SPA 대량호출·동시사용 무영향, 지속 남용/DDoS만 429.
+  - 기존 방어 병행: `limit_conn perip 50`(IP당 동시연결), 로그인 `login_limit`(30r/m·burst10).
+  - 검증: login_limit 45동시→38×429(기구 작동 확인) · api_limit 220동시 정상요청→0차단(무후퇴) · nginx -t 통과·reload·실패시 자동복원(.bak_20260618_ratelimit).
+- **실 잔여 보안(전향적)**: ABAC·SSO(SAML/OIDC)·응답 표준봉투 전면적용. (CSP 헤더는 security_headers.conf 기존 적용.)

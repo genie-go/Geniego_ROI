@@ -30,5 +30,7 @@
 
 - ✅ **#17 하위관리자 열람(view) 읽기전용 강제(인프라+적용)**: useAdminReadOnly 훅(master=편집·sub는 경로별 view→읽기전용)+ReadOnlyBanner 컴포넌트. PlanPricing(요금관리)에 적용=5개 save 핸들러 readOnly early-return+배너(전 admin 페이지 점진 채택용 인프라). 231차 #4(admin_menus view/edit) 완성. 무위험. 배포·검증.
 
+- ✅ **#15 일반 API rate-limit(nginx)**: 기정의·미적용 api_limit zone(30r/s)을 운영/데모 vhost API location 2곳에 burst=120 nodelay·429로 적용. limit_conn perip 50 병행. 검증=login_limit 45동시 38×429(작동확인)·api_limit 220동시 0차단(무후퇴). 서버 config(.bak_20260618_ratelimit).
+
 ## OS 디렉티브 잔여(REMAINING_GAPS 순서)
 Profit Health Score → Root Cause 처방 → What-if Scenario → Agent 권한모드 → Executive Copilot → 거버넌스 → 보안보강 → 역할별 View. 전부 기존 확장.
