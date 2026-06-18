@@ -1,7 +1,7 @@
 # 230차 세션 인계서 — **발급 매뉴얼 제너레이터 영구화(#2) + 리치 데이터모델화·en 핵심 12채널 심화(#3) + 비-ko 13개국 리치 확장(에이전트 진행중) + 작업트리 정리**
 
 > **작성일**: 2026-06-18 (사용자 명시 승인) · 운영 roi.genie-go.com / 데모 roidemo.genie-go.com (★vhost server_name=하이픈, 파일경로 `.geniego.com` 무하이픈). 하네스 primary=**E:\project\GeniegoROI**. 정본 메모리 [[project-n230-manual-generator]].
-> **종결 상태**: #2·정리·#3-en 커밋 전부 운영/데모 배포·라이브 검증·**push 완료**(origin/master=`86187a85236`). #3 13개국 확장은 **백그라운드 에이전트 진행중**(미커밋·미배포 — 아래 잔여 #1). SSH/MySQL/admin 자격증명 = 메모리 [[reference-session-credentials]].
+> **종결 상태**: #2·정리·#3(en+13개국 핵심12채널) 커밋 전부 운영/데모 배포·라이브 검증·**push 완료**(origin/master=`57f27b250c4`). SSH/MySQL/admin 자격증명 = 메모리 [[reference-session-credentials]].
 
 ## ✅ 230차 완료 (배포·검증·push)
 | 영역 | 커밋 | 내용 |
@@ -10,6 +10,7 @@
 | **#2 단순 제너레이터 영구화** | `57232298f8d` | `tools/gen_api_manuals.mjs` — 비-ko 14개국×63채널=882파일 1커맨드 재생성. CHANNELS·MANUAL_KEYS(ApiKeys.jsx 파싱)+ISSUANCE_GUIDE_I18N+`tools/manual_templates/<lang>.tpl.html`(14). 검증 868/882 byte-identical, adyen 14개만 표준 CSS 정규화·배포. idempotent. |
 | **정리 chore** | `c03dbcbaa1f` | `tools/resolver_consumer_manifest_v2.json` 자동 재생성 반영. `_tmp_229_*` 임시헬퍼 5개 삭제(untracked). |
 | **#3 리치 데이터모델 + en 12채널** | `86187a85236` | `tools/gen_rich_manuals.mjs`(블록모델 cards/steps/table/checklist/notice) + `frontend/src/data/manual_rich/<ch>.json` ×12(meta/google/tiktok ads·amazon_spapi·shopify·naver_smartstore·coupang·stripe·paypal·kakao_moment·naver_sa·youtube). ko=기존 리치 HTML 충실추출(재생성 콘텐츠 동일 12/12), en=번역(한글잔여0). **en 12채널 단순→리치 적용·운영/데모 배포·라이브 200·rich 검증**. |
+| **#3 비-ko 13개국 리치 확장** | `57f27b250c4` | 핵심 12채널 manual_rich JSON에 13개국(ja·zh·zh-TW·de·th·vi·id·ar·es·fr·hi·pt·ru) langs 추가(en 번역·구조동일·ko/en 무변경). 156파일 단순→리치. QA 12×15 ko무드리프트·en h2 parity·한글잔여0·well-formed 전수 PASS. **운영/데모 배포 156×2=312 무실패·md5 일치·라이브 200 검증**. ★핵심 12채널 15개국 리치 완결. |
 
 ## 📌 230차 정본/발견 (★매뉴얼 아키텍처)
 - **ko vs 비-ko 구조 상이**: ko 매뉴얼 63채널=**리치 다중섹션 HTML**(시작전/발급단계/등록정보/문제해결/체크리스트·테이블, 손수작성/큐레이트, 커밋 44437294e2a). 비-ko 14개국=**단순 스텝 템플릿**. **리치 콘텐츠의 재사용 데이터소스는 원래 없었음**(ko HTML에만 존재) → 230차에 `manual_rich/*.json` 데이터모델로 추출·정착.
@@ -21,20 +22,17 @@
 - **amazon_spapi**=큐레이트 변형(#ef4444·AZ로고·코드박스)이라 ko 미덮어씀(en만 리치).
 
 ## ⏭️ 다음 차수 잔여 (이어서 진행)
-1. **#3 비-ko 13개국 리치 확장 마무리** (★230차 백그라운드 에이전트 진행분 — 미배포): 12채널 `manual_rich/<ch>.json`에 13개국(ja·zh·zh-TW·de·th·vi·id·ar·es·fr·hi·pt·ru) langs 블록을 en에서 번역 추가(에이전트가 자체 검증 PASS=h2 parity·한글잔여0·well-formed). **세션 종료 시점 일부 JSON 미반영 가능 → 먼저 각 JSON langs 개수(15=ko+en+13) 확인.**
-   - 검증: 채널별 `node tools/gen_rich_manuals.mjs --only <ch> --out DIR` → 13개국 h2=en·한글잔여0·well-formed. ko/en 블록 무변경 확인.
-   - 적용: `node tools/gen_rich_manuals.mjs`(ko 제외, en+13개국 생성, 12채널×13=156파일) → `npm run build` → pscp 운영/데모(156×2사이트) → `chown www:www` → 라이브 200·rich·無한글 샘플검증 → **commit+push**.
-   - ★메모리 [[feedback-178-i18n-translation-workflow]]: CC 번역 초안이므로 핵심 언어 표본 사용자 검수 후 확정 권장.
-2. **#3 핵심 외 채널 심화**: 나머지 ~51채널(ko 리치 보유)을 `manual_rich/<ch>.json`으로 추출(ko)+번역(en→13개국). 패턴=230차 핵심12 동일(에이전트 채널별 분담).
-3. **#4 외부 의존 라이브 검증(코드 완비)**: 매체 OAuth client_id/secret·Google developer_token·PG 가맹키·서버 crontab(optimize/oauth-refresh/commerce-sync)·매체자산. 실 자격증명 등록 시 PG cron·attribution backfill 자동 작동. 소액 라이브 1회.
-4. **#5 226 carry-over P2**(외부 명세 필요): 채널별 정산 API 어댑터(전채널 honest pending)·미구현 PG 어댑터(이니시스/KCP/카카오페이/네이버페이)·ML재학습 소비 파이프라인·OAuth 원클릭 앱등록·FedEx/UPS/TNT 추적 stub.
-5. **#6 S3 backfill 소급**: 실주문 유입 후 `backend/bin/attribution_backfill.php` 1회 실행 → attribution_cron 재계산.
+0. **#3 번역 사용자 검수**(권장): 핵심 12채널 13개국 리치는 **CC 번역 초안** 배포 상태. 메모리 [[feedback-178-i18n-translation-workflow]] 따라 핵심 언어(ja/zh/de 등) 표본 검수 후 확정. 수정 시 `manual_rich/<ch>.json` langs 편집→`node tools/gen_rich_manuals.mjs`→재배포.
+1. **#3 핵심 외 채널 심화**: 나머지 ~51채널(ko 리치 보유)을 `manual_rich/<ch>.json`으로 추출(ko)+번역(en+13개국). 패턴=230차 핵심12 동일(채널별 에이전트 분담→QA→gen→배포).
+2. **#4 외부 의존 라이브 검증(코드 완비)**: 매체 OAuth client_id/secret·Google developer_token·PG 가맹키·서버 crontab(optimize/oauth-refresh/commerce-sync)·매체자산. 실 자격증명 등록 시 PG cron·attribution backfill 자동 작동. 소액 라이브 1회.
+3. **#5 226 carry-over P2**(외부 명세 필요): 채널별 정산 API 어댑터(전채널 honest pending)·미구현 PG 어댑터(이니시스/KCP/카카오페이/네이버페이)·ML재학습 소비 파이프라인·OAuth 원클릭 앱등록·FedEx/UPS/TNT 추적 stub.
+4. **#6 S3 backfill 소급**: 실주문 유입 후 `backend/bin/attribution_backfill.php` 1회 실행 → attribution_cron 재계산.
 
 ## 📌 배포/도구 레퍼런스 (230차)
 - **배포**(Windows): pscp/plink(`C:\Program Files\PuTTY`). `frontend/dist/api_manuals/<lang>/<ch>.html` → `root@1.201.177.46:/home/wwwroot/{roi,roidemo}.geniego.com/frontend/dist/api_manuals/<lang>/` → `chown www:www`. ★라이브 HTTPS 검증은 Bash tool curl 불가(외부망 HTTP000) → PowerShell `Invoke-WebRequest` 사용.
 - 빌드=`npm run build`(루트, vite root=frontend). 매뉴얼 public→dist 자동복사.
 - baseline.json(.githooks) G2: 로케일 ja/zh sacred_sha 편집 시만 갱신(230차 매뉴얼 작업 미해당).
-- ★작업트리 미커밋 잔여(세션 종료 시): 에이전트 산출 13개국 `manual_rich/*.json` 변경분(잔여 #1에서 검증·배포·커밋).
+- 작업트리 클린(전 작업 커밋·push 완료). 핵심 12채널 매뉴얼=15개국 리치 완결.
 
 ---
 
