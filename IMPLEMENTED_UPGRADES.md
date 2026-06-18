@@ -28,5 +28,7 @@
 
 - ✅ **#6#7 거버넌스&신뢰(지표 사전+ROI 공식 버전)**(DataTrustDashboard 5번째 탭): 매출·COGS·매출총이익·영업이익·순지급액·ROAS·ROI·CAC·배송비율·반품률 10지표의 계산식/정의/목표를 단일 사전으로 노출 + ROI 공식 버전(v2026.06). 전 역할·대시보드 동일 정의(SSOT·설명가능·신뢰). 무위험(문서/뷰). 배포·검증.
 
+- ✅ **#17 하위관리자 열람(view) 읽기전용 강제(인프라+적용)**: useAdminReadOnly 훅(master=편집·sub는 경로별 view→읽기전용)+ReadOnlyBanner 컴포넌트. PlanPricing(요금관리)에 적용=5개 save 핸들러 readOnly early-return+배너(전 admin 페이지 점진 채택용 인프라). 231차 #4(admin_menus view/edit) 완성. 무위험. 배포·검증.
+
 ## OS 디렉티브 잔여(REMAINING_GAPS 순서)
 Profit Health Score → Root Cause 처방 → What-if Scenario → Agent 권한모드 → Executive Copilot → 거버넌스 → 보안보강 → 역할별 View. 전부 기존 확장.

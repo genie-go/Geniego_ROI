@@ -7,6 +7,8 @@ import { MENU_KEY_LABEL, SUB_TABS_BY_PATH } from "../layout/sidebarMenuLabels.js
 import SIDEBAR_DICT from "../layout/sidebarI18n.js"; // 186차: gNav.* 라벨 한글 해석 (하위메뉴 라벨)
 import PlanServiceGuide from "../components/PlanServiceGuide.jsx"; // 186차: 플랜 제공서비스 상세 안내(초고도화)
 import { recommendMenuAccess as recommendMenuAccessRealistic } from "../auth/planMenuPolicy.js"; // 202차 전 플랜(Free포함) 경쟁사 벤치마크 추천
+import { useAdminReadOnly } from "../auth/useAdminReadOnly.js"; // [231차 #17] 하위관리자 열람 전용 강제
+import ReadOnlyBanner from "../components/ReadOnlyBanner.jsx";
 /** gNav.* labelKey → 한글 라벨 (sidebarI18n 우선) */
 function gNavLabel(labelKey) {
   if (labelKey && labelKey.startsWith('gNav.')) { const d = SIDEBAR_DICT.ko || {}; const v = d[labelKey.slice(5)]; if (v) return v; }
@@ -218,8 +220,13 @@ function PlanPricing() {
     }
   }, []);
 
+  // [231차 #17] 하위관리자 '열람' 권한이면 읽기전용(쓰기 핸들러 early-return + 버튼 disable + 배너)
+  const readOnly = useAdminReadOnly();
+  const blockRO = () => { if (readOnly) { try { alert('열람 전용 권한입니다. 수정 권한은 최고관리자에게 요청하세요.'); } catch {} return true; } return false; };
+
   /** 권장가 1m 적용 → 모든 기간 자동 산출 + plan_config sync (백엔드 transaction) */
   const applyRecommendedPrice = async (planId, roundTo = 'nearest-9') => {
+    if (blockRO()) return;
     setPricingSyncApplying(planId);
     try {
       const result = await requestJsonAuth(`/v424/admin/plans/${encodeURIComponent(planId)}/apply-recommended`, 'PUT', { roundTo });
@@ -447,6 +454,7 @@ function PlanPricing() {
   };
 
   const saveAllAccess = async () => {
+    if (blockRO()) return;
     setSaving('access');
     try {
       for (const p of plans) {
@@ -615,6 +623,7 @@ function PlanPricing() {
   };
 
   const savePlan = async (plan) => {
+    if (blockRO()) return;
     if (!plan.plan_id) return;
     setSaving(plan.plan_id);
     try {
@@ -632,6 +641,7 @@ function PlanPricing() {
 
   /** 단일 플랜 메뉴 접근 저장 (플랜 중심 통합 워크스페이스 STEP3 전용) */
   const saveOnePlanAccess = async (planId) => {
+    if (blockRO()) return;
     // 186차 sync 버그 수정: 빈 menu_tree 대신 실제 선택 상태(access)를 저장
     const acc = access[planId] || {};
     const menusForPlan = {};
@@ -645,6 +655,7 @@ function PlanPricing() {
    * 모든 user sidebar 가 즉시 갱신되도록 동기화 이벤트 발행(게이팅 누락 방지 — item5).
    */
   const savePlanFull = async (plan) => {
+    if (blockRO()) return;
     if (!plan?.plan_id) return;
     setSaving(plan.plan_id);
     try {
@@ -751,6 +762,7 @@ function PlanPricing() {
 
   return (
     <div style={{ padding: '18px 24px', minHeight: '100%', color: 'var(--text-1)' }}>
+      {readOnly && <ReadOnlyBanner />}
       <div style={{
         borderRadius: 14, padding: '16px 20px', marginBottom: 14,
         background: 'rgba(34,197,94,0.10)',
