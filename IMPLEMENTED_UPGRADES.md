@@ -22,5 +22,7 @@
 
 - ✅ **#4 Agent 권한모드**: app_user.agent_mode(ALTER·양DB·기본 approval) + 로그인페이로드·AuthContext 노출 + PATCH /auth/profile(owner/master-admin 게이트·감사) + AdAdapters.agentMode/agentAutoAllowed(owner행·기본 approval=자율차단) + AgentModeCard UI(recommend/approval/auto·auto 경고확인·소유자전용). 기본 approval=현행 안전동작(무후퇴). 배포·검증.
 
+- ✅ **#5 Executive AI Copilot**(AIInsights 확장): Executive Briefing 카드(순이익·마진·매출·ROAS 근거 KPI + 최대 잠식비용 Root Cause + 개선페이지 딥링크) + 경영진 프리셋(CEO/CFO/CMO/COO 5문항) + ClaudeAI analyze에 실 pnlStats grounding(기존 빈data→실 워터폴 전달). 신규 AI메뉴 X. 무위험(live 파생+기존 ClaudeAI). 배포·검증.
+
 ## OS 디렉티브 잔여(REMAINING_GAPS 순서)
 Profit Health Score → Root Cause 처방 → What-if Scenario → Agent 권한모드 → Executive Copilot → 거버넌스 → 보안보강 → 역할별 View. 전부 기존 확장.

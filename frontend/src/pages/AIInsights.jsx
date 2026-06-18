@@ -6,6 +6,7 @@ import { useCurrency } from '../contexts/CurrencyContext.jsx';
 import { useGlobalData } from '../context/GlobalDataContext.jsx';
 import { useConnectorSync } from '../context/ConnectorSyncContext.jsx';
 import { postJson } from '../services/apiClient.js';
+import { useNavigate } from 'react-router-dom'; // [231차 OS#5] Copilot 추천 액션 딥링크
 import { AreaChart, Area, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from "recharts";
 import { sanitizeHtml } from '../utils/xssSanitizer.js';
 
@@ -223,7 +224,19 @@ const TrendsTab = memo(function TrendsTab({ live, t, fmt }) {
 });
 
 /* ═══════ TAB 3: Enhanced AI Chat ═══════ */
-const AIAssistantTab = memo(function AIAssistantTab({ t, safeguard }) {
+const AIAssistantTab = memo(function AIAssistantTab({ t, safeguard, live = {}, navigate }) {
+    // [231차 OS#5] 근거 grounding — 현재 순이익 워터폴 + 최대 잠식 비용(Root Cause 정합)
+    const krw = (n) => '₩' + Math.round(Number(n) || 0).toLocaleString('ko-KR');
+    const rev = live.grossRevenue || 0;
+    const DRIVERS = [
+        { k: 'cogs', label: t('aiInsights.cpCogs', '원가'), amt: live.cogs || 0, to: '/price-opt' },
+        { k: 'ad', label: t('aiInsights.cpAd', '광고비'), amt: live.adSpend || 0, to: '/auto-marketing' },
+        { k: 'fee', label: t('aiInsights.cpFee', '수수료'), amt: live.platformFee || 0, to: '/settlements' },
+        { k: 'ship', label: t('aiInsights.cpShip', '배송비'), amt: live.shippingCost || 0, to: '/integration-hub' },
+        { k: 'ret', label: t('aiInsights.cpRet', '반품비'), amt: live.returnFee || 0, to: '/returns-portal' },
+        { k: 'coupon', label: t('aiInsights.cpCoupon', '쿠폰'), amt: live.couponDiscount || 0, to: '/my-coupons' },
+    ].filter(d => d.amt > 0).sort((a, b) => b.amt - a.amt);
+    const topDriver = DRIVERS[0];
     const [messages, setMessages] = useState([]);
     useEffect(() => { setMessages([{ role: 'ai', text: t('aiInsights.chatWelcome', "**Welcome to Geniego AI Agency.**\nWhat would you like to optimize?\ne.g. 'Analyze why Meta ad efficiency dropped yesterday'") }]); }, [t]);
     const [input, setInput] = useState('');
@@ -241,7 +254,13 @@ const AIAssistantTab = memo(function AIAssistantTab({ t, safeguard }) {
         setLoading(true);
         setMessages(prev => [...prev, { role: 'ai', text: '', loading: true }]);
         try {
-            const d = await postJson('/api/v422/ai/analyze', { context: c, question: q, data: { platforms: [], total_spend: 0, blended_roas: 0, total_conv: 0 } });
+            const d = await postJson('/api/v422/ai/analyze', { context: c, question: q, data: {
+                platforms: [], total_spend: live.adSpend || 0, blended_roas: live.roas || 0, total_conv: 0,
+                gross_revenue: rev, operating_profit: live.operatingProfit || 0, margin_pct: live.margin || 0,
+                cogs: live.cogs || 0, platform_fee: live.platformFee || 0, shipping_cost: live.shippingCost || 0,
+                return_fee: live.returnFee || 0, coupon_discount: live.couponDiscount || 0,
+                top_cost_driver: topDriver ? topDriver.label : null,
+            } });
             if (d.ok) { setMessages(prev => { const n = [...prev]; n[n.length - 1] = { role: 'ai', text: d.summary, insight: { bullets: d.bullets || [], recommendation: d.recommendation }, loading: false }; return n; }); }
             else { throw new Error(d.error || t('aiInsights.analysisFailed', 'Analysis failed. Reverting to local heuristic mode...')); }
         } catch (e) {
@@ -259,13 +278,35 @@ const AIAssistantTab = memo(function AIAssistantTab({ t, safeguard }) {
         } finally { setTimeout(() => setLoading(false), 1500); }
     };
 
+    // [231차 OS#5] 경영진(CEO/CFO/CMO/COO) 프리셋 질문
     const quickQ = [
-        { ctx: 'roas', q: t('aiInsights.quickQ1', "🔍 Identify revenue-driving channels") }, { ctx: 'pnl', q: t('aiInsights.quickQ2', "📉 Diagnose loss-making factors") },
-        { ctx: 'returns', q: t('aiInsights.quickQ3', "↩ Return-rate time-series analysis") }, { ctx: 'pnl', q: t('aiInsights.quickQ4', "💰 Optimal allocation of surplus budget") },
+        { ctx: 'pnl', q: t('aiInsights.exqProfit', '💰 이번 달 순이익이 왜 줄었나?') },
+        { ctx: 'roas', q: t('aiInsights.exqCampaign', '📉 어떤 캠페인/채널을 줄여야 하나?') },
+        { ctx: 'pnl', q: t('aiInsights.exqMargin', '📦 실제 이익률이 가장 낮은 비용 항목은?') },
+        { ctx: 'returns', q: t('aiInsights.exqShip', '🚚 배송비·반품이 순이익에 미친 영향은?') },
+        { ctx: 'pnl', q: t('aiInsights.exqNext', '🎯 다음 달 순이익을 높이려면 무엇을 해야 하나?') },
     ];
 
     return (
         <div style={{ display: 'grid', gap: 16, height: '100%' }}>
+            {/* [231차 OS#5] Executive Briefing — 근거 KPI + 최대 잠식 비용 + 추천 액션(딥링크). 항상 실데이터 기반. */}
+            <div style={{ ...CARD, background: 'linear-gradient(135deg,rgba(124,58,237,0.06),rgba(79,142,247,0.04))', borderColor: 'rgba(124,58,237,0.25)' }}>
+                <div style={{ fontSize: 12, fontWeight: 800, color: '#7c3aed', marginBottom: 8 }}>🧭 {t('aiInsights.briefTitle', '경영 브리핑 (근거 데이터)')}</div>
+                <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap', marginBottom: topDriver ? 10 : 0 }}>
+                    <div><div style={{ fontSize: 10, color: TXT3 }}>{t('aiInsights.briefProfit', '순이익')}</div><div style={{ fontSize: 17, fontWeight: 900, color: (live.operatingProfit || 0) >= 0 ? '#16a34a' : '#ef4444' }}>{krw(live.operatingProfit)}</div></div>
+                    <div><div style={{ fontSize: 10, color: TXT3 }}>{t('aiInsights.briefMargin', '영업이익률')}</div><div style={{ fontSize: 17, fontWeight: 900, color: TXT1 }}>{(live.margin || 0).toFixed ? live.margin.toFixed(1) : live.margin}%</div></div>
+                    <div><div style={{ fontSize: 10, color: TXT3 }}>{t('aiInsights.briefRev', '매출')}</div><div style={{ fontSize: 17, fontWeight: 900, color: TXT1 }}>{krw(rev)}</div></div>
+                    <div><div style={{ fontSize: 10, color: TXT3 }}>ROAS</div><div style={{ fontSize: 17, fontWeight: 900, color: TXT1 }}>{(live.roas || 0).toFixed ? live.roas.toFixed(2) : live.roas}x</div></div>
+                </div>
+                {topDriver && (
+                    <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', fontSize: 12.5, paddingTop: 8, borderTop: `1px solid ${BORDER}` }}>
+                        <span style={{ color: TXT2 }}>{t('aiInsights.briefCause', '최대 순이익 잠식')}:</span>
+                        <b style={{ color: '#ec4899' }}>{topDriver.label}</b>
+                        <span style={{ color: TXT3 }}>{krw(topDriver.amt)} ({rev > 0 ? (topDriver.amt / rev * 100).toFixed(1) : '0'}% {t('aiInsights.briefOfRev', '매출대비')})</span>
+                        {navigate && <button onClick={() => navigate(topDriver.to)} style={{ marginLeft: 'auto', fontSize: 11, fontWeight: 700, padding: '5px 13px', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#a855f7,#4f8ef7)', color: '#fff' }}>{t('aiInsights.briefAct', '개선 페이지 열기')} →</button>}
+                    </div>
+                )}
+            </div>
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
                 <span style={{ fontSize: 11, color: TXT3, fontWeight: 700, background: SURFACE2, padding: '6px 12px', borderRadius: 8, border: `1px solid ${BORDER}` }}>{t('aiInsights.targetContext', 'Target Context')}:</span>
                 {[['pnl', t('aiInsights.ctxPnl', 'Finance P&L')], ['roas', t('aiInsights.ctxRoas', 'ROAS Optimization')], ['returns', t('aiInsights.ctxReturns', 'Risk / Returns')]].map(([k, l]) => (
@@ -373,6 +414,7 @@ const GuideTab = memo(function GuideTab({ t }) {
 /* ═══════════ MAIN ═══════════ */
 export default function AIInsights() {
     const { t } = useI18n();
+    const navigate = useNavigate(); // [231차 OS#5] Copilot 추천 액션 딥링크
     const { fmt } = useCurrency();
     const { pnlStats, settlementStats, budgetStats, orderStats, addAlert, isDemo } = useGlobalData();
     const [tab, setTab] = useState('trends');
@@ -409,6 +451,10 @@ export default function AIInsights() {
         totalOrders: (orderStats.count || 0) + (settlementStats.totalOrders || (IS_DEMO ? 1245 : 0)),
         totalReturns: settlementStats.totalReturns || (IS_DEMO ? 45 : 0),
         returnRate: settlementStats.returnRate || (IS_DEMO ? 0.036 : 0),
+        // [231차 OS#5] Copilot 근거 grounding — 전체 워터폴
+        cogs: pnlStats.cogs || 0, shippingCost: pnlStats.shippingCost || 0,
+        returnFee: pnlStats.returnFee || 0, couponDiscount: pnlStats.couponDiscount || 0,
+        grossProfit: pnlStats.grossProfit || 0, margin: Number(pnlStats.margin || 0),
     };
 
     const TABS = [
@@ -480,7 +526,7 @@ export default function AIInsights() {
             <div className="aii-strong-fix" style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '24px 32px', paddingBottom: 100 }}>
                 {tab === 'cards' && <InsightCardsTab live={live} t={t} connectedChannels={connectedChannels} />}
                 {tab === 'trends' && <TrendsTab live={live} t={t} fmt={fmt} />}
-                {tab === 'chat' && <AIAssistantTab t={t} safeguard={safeguard} />}
+                {tab === 'chat' && <AIAssistantTab t={t} safeguard={safeguard} live={live} navigate={navigate} />}
                 {tab === 'history' && <HistoryTab t={t} />}
                 {tab === 'guide' && <GuideTab t={t} />}
             </div>
