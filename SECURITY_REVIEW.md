@@ -44,3 +44,10 @@ GeniegoROI 보안/컴플라이언스/엔터프라이즈 준비도 점검 — 기
 
 ## DB/마이그레이션 안전(준수 확인)
 - 본 세션 모든 변경 = backward-compatible ALTER ADD COLUMN(멱등 try/catch) 또는 SSOT 헬퍼. **DROP TABLE/컬럼삭제 0**. 락게이트 우회 방어 ALTER. → `DB_MIGRATION_NOTES.md`.
+
+---
+
+## 정정 (231차 OS 디렉티브 재검증 — 오탐 수정)
+- **#9 OAuth Token 암호화: ✅ 이미 적용**(오탐 정정). `Connectors.php:127-130` 쓰기 시 `Crypto::encrypt`(AES-256-GCM)로 access_token/refresh_token/meta_json 암호화(225차 P1-13), 읽기 `Crypto::decrypt` passthrough(레거시 평문 호환). connector_token 평문 아님.
+- **#14 CSRF / #21 세션쿠키: 사실상 무관(정정)**. 인증=Bearer 토큰(localStorage)+`Authorization` 헤더 방식(쿠키 세션 아님). 브라우저가 교차출처에 Authorization 헤더를 자동 전송하지 않으므로 CSRF 비취약. SameSite/HttpOnly 쿠키 항목 비해당. → CORS whitelist(기존)로 충분.
+- **결론**: 보안 '높음' 갭 중 OAuth암호화=완료·CSRF/쿠키=무관 → 실제 잔여=일반 API rate-limit(핫패스·신중), ABAC/SSO(대규모 조직·전향적), 응답 표준봉투(점진). 보안 posture는 검증 결과 **강건**.
