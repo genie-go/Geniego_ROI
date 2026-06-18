@@ -30,6 +30,8 @@ function defaultHeaders() {
   const h = {
     "Content-Type": "application/json",
     "X-Tenant-ID": IS_DEMO ? "demo" : (localStorage.getItem("tenantId") || ""),
+    // [231차] 사용자 로케일 전달 → 백엔드 AI/리포트 생성기가 해당 언어로 출력(ClaudeAI::reqLang).
+    "X-Lang": localStorage.getItem("genie_roi_lang") || "ko",
   };
   if (token) h["Authorization"] = `Bearer ${token}`;
   return h;

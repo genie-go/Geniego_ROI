@@ -49,7 +49,7 @@ $app->add(function (Request $request, $handler) use ($GENIE_ALLOWED_ORIGINS) {
         return $resp
             ->withHeader('Access-Control-Allow-Origin', $allow)
             ->withHeader('Vary', 'Origin')
-            ->withHeader('Access-Control-Allow-Headers', 'Content-Type, X-Tenant-Id, Authorization')
+            ->withHeader('Access-Control-Allow-Headers', 'Content-Type, X-Tenant-Id, Authorization, X-Lang')
             ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
     };
     if ($request->getMethod() === 'OPTIONS') {

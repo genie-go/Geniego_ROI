@@ -337,7 +337,8 @@ final class Reviews
         $sys = "당신은 커머스 고객 리뷰 분석 엔진입니다. 입력은 리뷰 배열(JSON)입니다. "
              . "각 리뷰에 대해 감성(sentiment: positive|neutral|negative), 부정·품질 관련 핵심 키워드(keywords: 한국어 명사구 최대 5개, 긍정 리뷰면 빈 배열), "
              . "한 줄 핵심 측면 요약(aspect: 30자 이내)을 판단하세요. "
-             . "반드시 코드블록 없이 순수 JSON 배열만 출력: [{\"id\":<원본 id>,\"sentiment\":\"...\",\"keywords\":[...],\"aspect\":\"...\"}]. 다른 텍스트 금지.";
+             . "반드시 코드블록 없이 순수 JSON 배열만 출력: [{\"id\":<원본 id>,\"sentiment\":\"...\",\"keywords\":[...],\"aspect\":\"...\"}]. 다른 텍스트 금지."
+             . ClaudeAI::langDirective(ClaudeAI::reqLang($req)); // [231차] keywords/aspect 를 사용자 언어로(sentiment enum·id 불변)
         $analyzed = 0;
         foreach (array_chunk($rows, 15) as $chunk) {
             $payload = [];

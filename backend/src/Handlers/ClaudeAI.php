@@ -764,7 +764,7 @@ PROMPT;
         $now      = gmdate('c');
 
         try {
-            $result = self::callClaude(self::marketingEvalPrompt(), $userMsg, 8, self::tenant($req));
+            $result = self::callClaude(self::marketingEvalPrompt() . self::langDirective(self::reqLang($req)), $userMsg, 8, self::tenant($req));
             $parsed = self::parseAnalysis($result['text']);
             $tokens = $result['tokens_input'] + $result['tokens_output'];
 
@@ -835,7 +835,7 @@ PROMPT;
         $now      = gmdate('c');
 
         try {
-            $result = self::callClaude(self::influencerEvalPrompt(), $userMsg, 8, self::tenant($req));
+            $result = self::callClaude(self::influencerEvalPrompt() . self::langDirective(self::reqLang($req)), $userMsg, 8, self::tenant($req));
             $tokens = $result['tokens_input'] + $result['tokens_output'];
 
             $evalData = json_decode($result['text'], true);
@@ -904,7 +904,7 @@ PROMPT;
         $analysisId = null;
 
         try {
-            $result  = self::callClaude(self::systemPrompt($context), $userMsg, 8, self::tenant($req));
+            $result  = self::callClaude(self::systemPrompt($context) . self::langDirective(self::reqLang($req)), $userMsg, 8, self::tenant($req));
             $parsed  = self::parseAnalysis($result['text']);
             $tokens  = $result['tokens_input'] + $result['tokens_output'];
 
@@ -1126,7 +1126,7 @@ PROMPT;
         $now     = gmdate('c');
 
         try {
-            $result = self::callClaude(self::channelKpiPrompt(), $userMsg, 8, self::tenant($req));
+            $result = self::callClaude(self::channelKpiPrompt() . self::langDirective(self::reqLang($req)), $userMsg, 8, self::tenant($req));
             $tokens = $result['tokens_input'] + $result['tokens_output'];
 
             $evalData = json_decode($result['text'], true);
@@ -1227,7 +1227,7 @@ PROMPT;
             . "채널 우선순위, 예산 배분, 광고 집행 계획, 예상 성과, 타임라인을 제공해주세요.";
         $now = gmdate('c');
         try {
-            $result = self::callClaude(self::campaignRecommendPrompt(), $userMsg, 8, self::tenant($req));
+            $result = self::callClaude(self::campaignRecommendPrompt() . self::langDirective(self::reqLang($req)), $userMsg, 8, self::tenant($req));
             $tokens = $result['tokens_input'] + $result['tokens_output'];
             $evalData = json_decode($result['text'], true);
             if (!$evalData) {
@@ -1404,6 +1404,7 @@ PROMPT;
                 return self::liveJson($res, ['ok' => false, 'ai' => false, 'error' => 'AI 키가 설정되지 않았습니다. [연동 허브]에서 OpenAI/Gemini/Claude 키를 등록하면 활성화됩니다.'], 200);
             }
             [$sys, $user] = self::livePrompt($task, $text, $lang, $product);
+            if ($task !== 'translate') $sys .= self::langDirective(self::reqLang($req, $body)); // FAQ/멘트/설명도 사용자 언어로(번역 task는 자체 타깃언어 유지)
             if (trim($user) === '') return self::liveJson($res, ['ok' => false, 'error' => '입력 내용이 필요합니다.'], 422);
             $timeout = in_array($task, ['describe', 'showhost'], true) ? 24 : 12; // 멘트 생성은 길게, 번역/자막/FAQ는 12초
             $r = self::callClaude($sys, $user, $timeout, self::tenant($req));
@@ -1577,7 +1578,7 @@ PROMPT;
             $tokens      = 0;
             $dataSource  = 'ai';
             try {
-                $claude = self::callClaude($systemPrompt, $userMsg, 8, self::tenant($req));
+                $claude = self::callClaude($systemPrompt . self::langDirective(self::reqLang($req)), $userMsg, 8, self::tenant($req));
                 $text   = $claude['text'];
                 $tokens = ($claude['tokens_input'] ?? 0) + ($claude['tokens_output'] ?? 0);
 
@@ -1702,7 +1703,7 @@ PROMPT;
             $result     = null;
             $dataSource = 'ai';
             try {
-                $claude = self::callClaude($systemPrompt, $userMsg, 8, self::tenant($req));
+                $claude = self::callClaude($systemPrompt . self::langDirective(self::reqLang($req)), $userMsg, 8, self::tenant($req));
                 $text   = $claude['text'];
                 $clean  = preg_replace('/```(?:json)?\s*([\s\S]*?)```/', '$1', $text);
                 $clean  = trim($clean ?? $text);
@@ -1793,7 +1794,7 @@ PROMPT;
 
             $result = null; $dataSource = 'ai';
             try {
-                $claude = self::callClaudeLong($systemPrompt, $userMsg, 22, [], self::tenant($req)); // 다채널 디자인 생성 → 여유 타임아웃
+                $claude = self::callClaudeLong($systemPrompt . self::langDirective(self::reqLang($req)), $userMsg, 22, [], self::tenant($req)); // 다채널 디자인 생성 → 여유 타임아웃
                 $clean  = preg_replace('/```(?:json)?\s*([\s\S]*?)```/', '$1', $claude['text']);
                 $parsed = json_decode(trim($clean ?? $claude['text']), true);
                 if (is_array($parsed) && !empty($parsed['designs']) && is_array($parsed['designs'])) {
@@ -1891,7 +1892,7 @@ PROMPT;
             $hasExtra = !empty($refImages) || $urlCtx !== '' || $cuts > 1;
             $reply = null; $design = null; $frames = null; $dataSource = 'ai';
             try {
-                $claude = self::callClaudeLong($systemPrompt, $userMsg, $hasExtra ? 50 : 30, $refImages, self::tenant($req));
+                $claude = self::callClaudeLong($systemPrompt . self::langDirective(self::reqLang($req)), $userMsg, $hasExtra ? 50 : 30, $refImages, self::tenant($req));
                 $clean = preg_replace('/```(?:json)?\s*([\s\S]*?)```/', '$1', $claude['text']);
                 $parsed = json_decode(trim($clean ?? $claude['text']), true);
                 if (is_array($parsed)) {
@@ -2899,6 +2900,19 @@ PROMPT;
     /** 리포트 생성 언어(15개국). 알 수 없으면 ko. */
     private const REPORT_LANGS = ['ko' => 'Korean', 'en' => 'English', 'ja' => 'Japanese', 'zh' => 'Simplified Chinese', 'zh-TW' => 'Traditional Chinese', 'de' => 'German', 'th' => 'Thai', 'vi' => 'Vietnamese', 'id' => 'Indonesian', 'ar' => 'Arabic', 'es' => 'Spanish', 'fr' => 'French', 'hi' => 'Hindi', 'pt' => 'Portuguese', 'ru' => 'Russian'];
     private static function normReportLang($l): string { $l = (string)$l; return isset(self::REPORT_LANGS[$l]) ? $l : 'ko'; }
+    /** 요청에서 출력 언어 해석: body.lang → X-Lang 헤더 → ?lang → ko. */
+    public static function reqLang(Request $req, array $body = []): string {
+        $l = $body['lang'] ?? '';
+        if ($l === '') $l = $req->getHeaderLine('X-Lang');
+        if ($l === '') $l = (string)($req->getQueryParams()['lang'] ?? 'ko');
+        return self::normReportLang($l);
+    }
+    /** 시스템 프롬프트 뒤에 붙이는 출력 언어 강제 지시(ko=무변경). 모든 생성기 공용. */
+    public static function langDirective(string $lang): string {
+        if ($lang === 'ko') return '';
+        $name = self::REPORT_LANGS[$lang] ?? 'Korean';
+        return "\n\n[OUTPUT LANGUAGE — HIGHEST PRIORITY] Ignore ALL earlier language rules (including any Korean-only/'한국어로' instruction). Write EVERY output value — all JSON string fields, summaries, bullet points, ad copy, replies, recommendations — in {$name}. Keep JSON keys, numeric values, currency symbols, units, and provided proper nouns/brand names unchanged.";
+    }
     /** 결정론적 폴백 템플릿 1건 조회(MmmReportI18n, 누락 시 ko). */
     private static function rtpl(string $lang, string $key): string { return \Genie\Handlers\MmmReportI18n::tpl($lang, $key); }
 
@@ -2909,7 +2923,7 @@ PROMPT;
         }
         $body = (array)($req->getParsedBody() ?? []);
         if (empty($body)) { $d = json_decode((string)$req->getBody(), true); if (is_array($d)) $body = $d; }
-        $lang = self::normReportLang($body['lang'] ?? ($req->getQueryParams()['lang'] ?? 'ko'));
+        $lang = self::reqLang($req, $body);
         $langName = self::REPORT_LANGS[$lang];
 
         try { $facts = self::gatherMarketingFacts(Db::pdo(), $tenant); }
