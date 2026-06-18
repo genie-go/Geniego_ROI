@@ -166,3 +166,25 @@ GeniegoROI 중복 감사 보고서 — 단일 통합 구조 전환을 위한 사
 
 - 직접 grep 교차검증한 항목: App.jsx import 부재(AIMarketingHub/AdChannelConnect), Commerce.jsx 실내용, app_setting 6중 정의, PerformanceController 4 라우트 연결.
 - **미검증·추정 항목**(추가 검증 후 조치): Phantom 버전 v382/v386, Connectors 미사용 메서드 범위, `event_popup` 라우트 사망 여부, `data/*.sqlite` 실제 테이블 목록(sqlite3 미설치로 미확인).
+
+---
+
+## 부록 C. AI Profit OS 12영역 중복 점검 (231차 OS 디렉티브)
+
+3개 병렬 에이전트 전수 매핑 결과 — OS 12영역에서 **신규 생성이 필요한 중복은 없음**. 모두 기존 확장으로 해결.
+
+| OS 영역 | 기존 담당 | 중복 위험 | 판정 |
+|---------|----------|-----------|------|
+| Profit OS | Rollup·OrderHub·RoiService·Mmm·PnLDashboard | ROI 정의 3곳 의미 혼재(Gross/판매채널/광고기여) | 문서화로 해소(중복 아님) |
+| Digital Twin/What-if | PriceOpt·Mmm·DemandForecast·MarketingMix | 시뮬 분산 | **통합**(신규 페이지 금지) |
+| Knowledge Graph | GraphScore·AttributionEngine·Attribution | v419 Attribution vs v424 Engine | 프론트=v424만, v419 디프리케이트(폐기 아님) |
+| Root Cause | AnomalyDetection·Decisioning | — | 탐지 확장 |
+| Dashboard | Dashboard·PnL·Rollup·PerformanceHub·OperationsHub·DataTrust·SystemMonitor·MarketingMix | 8개 대시보드 | **역할별 View 통합**(신규 대시보드 금지) |
+| Closed Loop | Alerting·AutoRecommend·action_request·AdAdapters·Approvals | action_request vs optimization_log(이력) | 역할분리(중복 아님) |
+| AI Copilot | ClaudeAI·CustomerAI·Decisioning·AIInsights·AiGenerate | ClaudeAI분석 vs AutoRecommend최적화 경계 | 경계 문서화 |
+| Autonomous Agent | AnomalyDetection→Alerting→AutoRecommend→action_request→AdAdapters | Alerting정책 vs AutoRecommend권장 | 역할분리·권한모드 추가 |
+| Governance | DataTrustDashboard·audit_log·ModelMonitor·Audit | — | 거버넌스 갭(중복 아님) |
+| Benchmark | AutoRecommend·channel_benchmark·MarketingDataHub | — | 차원 확장 |
+| Security | index.php·UserAuth·Crypto·Db | 응답봉투 비표준 | 표준화(봉투 래퍼 추가) |
+
+**결론**: 신규 메뉴 0·신규 대시보드 0·신규 ROI/AI/Agent 핸들러 0. 작업은 전부 **기존 확장**. → `EXISTING_FEATURE_MAP.md`·`AI_PROFIT_OS_ARCHITECTURE.md`·`REMAINING_GAPS.md`.
