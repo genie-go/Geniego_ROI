@@ -59,7 +59,21 @@ export default function DataTrustDashboard() {
     { key: 'audit', label: tr('compAudit', '감사 로그 활성'), ok: true },
   ];
 
-  const tabs = [tr('tabScore', '신뢰도 개요'), tr('tabLineage', '데이터 계보'), tr('tabRules', '품질 규칙'), tr('tabCompliance', '컴플라이언스')];
+  const tabs = [tr('tabScore', '신뢰도 개요'), tr('tabLineage', '데이터 계보'), tr('tabRules', '품질 규칙'), tr('tabCompliance', '컴플라이언스'), tr('tabMetrics', '지표 사전·공식')];
+  // [231차 거버넌스 #6#7] 메트릭 사전 + ROI 공식 버전 — 전 역할이 '같은 정의/숫자'로 의사결정(SSOT·설명가능).
+  const ROI_FORMULA_VERSION = 'v2026.06 (231차)';
+  const METRIC_DICT = [
+    { k: '매출 (Revenue)', f: '확정 주문 매출 합계 (취소·반품 제외)', t: '—' },
+    { k: '원가 (COGS)', f: 'Σ(주문수량 × 매입원가) — channel_inventory.cost', t: '≤60% 매출' },
+    { k: '매출총이익', f: '매출 − COGS', t: '≥30% 마진' },
+    { k: '영업이익', f: '매출총이익 − 광고비 − 플랫폼수수료 − 쿠폰 − 반품비 − 배송비', t: '≥15% 마진' },
+    { k: '순지급액 (Net Payout)', f: '채널 정산 실수령액 (배송비·수수료 이미 차감)', t: '—' },
+    { k: 'ROAS', f: '광고매출 ÷ 광고비', t: '≥3.0x' },
+    { k: 'ROI / Net ROI', f: '(순이익 ÷ 광고비) × 100', t: '>0%' },
+    { k: 'CAC', f: '광고비 ÷ 신규 전환수', t: '< LTV' },
+    { k: '배송비율', f: '배송비 ÷ 매출 (무료배송 기준금액 적용·주문별 산정)', t: '≤5%' },
+    { k: '반품률', f: '반품 건수 ÷ 주문 건수', t: '≤5%' },
+  ];
   const kpis = [
     { emoji: '🎯', label: tr('kpiScore', '신뢰도 점수'), val: sources.length ? score + '%' : '—' },
     { emoji: '📊', label: tr('kpiSources', '데이터 소스'), val: sources.length },
@@ -131,7 +145,7 @@ export default function DataTrustDashboard() {
               </div>
             ))}
           </div>
-        ) : (
+        ) : activeTab === 3 ? (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
             {COMPLIANCE.map(c => (
               <div key={c.key} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '14px 16px', borderRadius: 12, background: 'rgba(34,197,94,0.06)', border: '1px solid rgba(34,197,94,0.18)' }}>
@@ -139,6 +153,31 @@ export default function DataTrustDashboard() {
                 <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-1)' }}>{c.label}</span>
               </div>
             ))}
+          </div>
+        ) : (
+          /* [231차 거버넌스 #6#7] 지표 사전·ROI 공식 버전 — 전 역할 동일 정의(설명가능·신뢰) */
+          <div style={{ display: 'grid', gap: 10 }}>
+            <div style={{ fontSize: 11.5, color: 'var(--text-2)', padding: '8px 12px', borderRadius: 8, background: 'rgba(99,140,255,0.06)', border: '1px solid rgba(99,140,255,0.15)' }}>
+              📐 {tr('metricLead', '모든 대시보드·역할이 동일하게 사용하는 지표 정의와 계산식입니다')} · {tr('metricFormulaVer', 'ROI 공식 버전')}: <b>{ROI_FORMULA_VERSION}</b>
+            </div>
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12.5 }}>
+                <thead><tr style={{ textAlign: 'left', color: 'var(--text-3)', borderBottom: '1px solid var(--border)' }}>
+                  <th style={{ padding: '8px 10px' }}>{tr('metricCol', '지표')}</th>
+                  <th style={{ padding: '8px 10px' }}>{tr('metricColF', '계산식 / 정의')}</th>
+                  <th style={{ padding: '8px 10px' }}>{tr('metricColT', '목표')}</th>
+                </tr></thead>
+                <tbody>
+                  {METRIC_DICT.map((m, i) => (
+                    <tr key={i} style={{ borderBottom: '1px solid var(--border)' }}>
+                      <td style={{ padding: '8px 10px', fontWeight: 700, color: 'var(--text-1)', whiteSpace: 'nowrap' }}>{m.k}</td>
+                      <td style={{ padding: '8px 10px', color: 'var(--text-2)', fontFamily: 'monospace', fontSize: 11.5 }}>{m.f}</td>
+                      <td style={{ padding: '8px 10px', color: 'var(--text-3)', whiteSpace: 'nowrap' }}>{m.t}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </div>
