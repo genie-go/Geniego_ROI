@@ -13,5 +13,8 @@
 
 ★감사 오탐 5건 정정(tenant_id격리·응답포맷·알림디스패처·COGS·배송비). 전부 무후퇴.
 
-## OS 디렉티브 예정(REMAINING_GAPS 순서)
+## AI Profit OS 구현(진행)
+- ✅ **#1 Profit Health Score**(PnLDashboard 신규 🩺 탭): 순이익 건강점수(0-100)+Green/Yellow/Red 판정 7지표(매출총이익률·영업이익률·원가율·광고비율·배송비율·반품비율·수수료율)+개선 우선순위 힌트. 순수 pnlStats 파생(스키마변경0·무위험). 운영/데모 배포·헤드리스 검증.
+
+## OS 디렉티브 잔여(REMAINING_GAPS 순서)
 Profit Health Score → Root Cause 처방 → What-if Scenario → Agent 권한모드 → Executive Copilot → 거버넌스 → 보안보강 → 역할별 View. 전부 기존 확장.

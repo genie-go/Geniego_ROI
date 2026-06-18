@@ -92,6 +92,87 @@ const MiniBar = ({ v, max, color = ACCENT, h = 4 }) => (
     </div>
 );
 
+/* ═══════ TAB 0: Profit Health Score (231차 AI Profit OS — 측정→분석) ═══════ */
+/* 순수 pnlStats 파생(스키마변경 0·무위험). 순이익 건강도를 Green/Yellow/Red 로 판정 + 개선 힌트. */
+function HealthTab({ live, t, fmt }) {
+    const rev = live.grossRevenue || 0;
+    const pct = (n, d) => d > 0 ? (n / d * 100) : 0;
+    // 각 지표: value(%) · 목표/경계 · status('good'|'warn'|'bad') · 가중치 · 개선 힌트
+    const grossMargin = pct(live.grossProfit, rev);
+    const opMargin = pct(live.operatingProfit, rev);
+    const cogsRatio = pct(live.cogs, rev);
+    const adRatio = pct(live.adSpend, rev);
+    const shipRatio = pct(live.shippingCost, rev);
+    const returnRatio = pct(live.returnFee, rev);
+    const feeRatio = pct(live.platformFee, rev);
+    const band = (v, good, warn, invert) => {
+        // invert=false: 높을수록 좋음(마진). invert=true: 낮을수록 좋음(비용비율)
+        if (!invert) return v >= good ? 'good' : v >= warn ? 'warn' : 'bad';
+        return v <= good ? 'good' : v <= warn ? 'warn' : 'bad';
+    };
+    const METRICS = [
+        { key: 'grossMargin', label: t('pnl.hsGrossMargin', '매출총이익률'), v: grossMargin, fmt: 'pct', target: '≥30%', status: band(grossMargin, 30, 18, false), w: 0.22, tip: t('pnl.hsTipGross', '원가(COGS)·플랫폼 수수료를 점검하세요.') },
+        { key: 'opMargin', label: t('pnl.hsOpMargin', '영업이익률(배송비 포함)'), v: opMargin, fmt: 'pct', target: '≥15%', status: band(opMargin, 15, 7, false), w: 0.28, tip: t('pnl.hsTipOp', '광고비·배송비·반품비 중 과대 항목을 줄이세요.') },
+        { key: 'cogs', label: t('pnl.hsCogs', '원가율(COGS)'), v: cogsRatio, fmt: 'pct', target: '≤60%', status: band(cogsRatio, 60, 72, true), w: 0.12, tip: t('pnl.hsTipCogs', '매입가 인하·고마진 SKU 비중 확대를 검토하세요.') },
+        { key: 'ad', label: t('pnl.hsAd', '광고비율'), v: adRatio, fmt: 'pct', target: '≤30%', status: band(adRatio, 30, 45, true), w: 0.16, tip: t('pnl.hsTipAd', 'ROAS 낮은 채널 예산을 회수하세요(자동 마케팅).') },
+        { key: 'ship', label: t('pnl.hsShip', '배송비율'), v: shipRatio, fmt: 'pct', target: '≤5%', status: band(shipRatio, 5, 9, true), w: 0.1, tip: t('pnl.hsTipShip', '무료배송 기준금액·택배사 단가를 조정하세요(연동허브).') },
+        { key: 'ret', label: t('pnl.hsRet', '반품비율'), v: returnRatio, fmt: 'pct', target: '≤5%', status: band(returnRatio, 5, 10, true), w: 0.07, tip: t('pnl.hsTipRet', '반품 사유 상위 SKU를 점검하세요(반품 포털).') },
+        { key: 'fee', label: t('pnl.hsFee', '플랫폼 수수료율'), v: feeRatio, fmt: 'pct', target: '≤12%', status: band(feeRatio, 12, 18, true), w: 0.05, tip: t('pnl.hsTipFee', '저수수료 채널 비중·정산 수수료 규칙을 점검하세요.') },
+    ];
+    const sc = { good: 100, warn: 60, bad: 20 };
+    const score = Math.round(METRICS.reduce((s, m) => s + sc[m.status] * m.w, 0));
+    const verdict = score >= 75 ? { c: '#22c55e', l: t('pnl.hsHealthy', '건강 (Healthy)'), e: '🟢' }
+        : score >= 50 ? { c: '#eab308', l: t('pnl.hsCaution', '주의 (Caution)'), e: '🟡' }
+        : { c: '#ef4444', l: t('pnl.hsCritical', '긴급 (Critical)'), e: '🔴' };
+    const COL = { good: '#22c55e', warn: '#eab308', bad: '#ef4444' };
+    const STL = { good: t('pnl.hsGood', '정상'), warn: t('pnl.hsWarn', '경계'), bad: t('pnl.hsBad', '위험') };
+    const worst = METRICS.filter(m => m.status !== 'good').sort((a, b) => sc[a.status] - sc[b.status]);
+    return (
+        <div style={{ display: 'grid', gap: 16 }}>
+            <div style={{ ...CARD, display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap', borderColor: verdict.c + '55', background: verdict.c + '0d' }}>
+                <div style={{ width: 96, height: 96, borderRadius: '50%', flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', border: `4px solid ${verdict.c}`, background: 'var(--card)' }}>
+                    <div style={{ fontSize: 26, fontWeight: 900, color: verdict.c, lineHeight: 1 }}>{score}</div>
+                    <div style={{ fontSize: 9, color: 'var(--text-3)' }}>/ 100</div>
+                </div>
+                <div style={{ flex: 1, minWidth: 200 }}>
+                    <div style={{ fontSize: 12, color: 'var(--text-3)', fontWeight: 700 }}>{t('pnl.hsTitle', '순이익 건강 점수')}</div>
+                    <div style={{ fontSize: 22, fontWeight: 900, color: verdict.c }}>{verdict.e} {verdict.l}</div>
+                    <div style={{ fontSize: 12, color: 'var(--text-2)', marginTop: 4 }}>
+                        {t('pnl.hsSummary', '영업이익률')} <b style={{ color: verdict.c }}>{opMargin.toFixed(1)}%</b> · {t('pnl.hsSummaryOp', '순이익')} <b>{fmt(live.operatingProfit)}</b>
+                    </div>
+                </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(200px,1fr))', gap: 10 }}>
+                {METRICS.map(m => (
+                    <div key={m.key} style={{ ...CARD, padding: 14, borderLeft: `3px solid ${COL[m.status]}` }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ fontSize: 11.5, color: 'var(--text-2)', fontWeight: 700 }}>{m.label}</span>
+                            <span style={{ fontSize: 9.5, fontWeight: 800, padding: '2px 7px', borderRadius: 10, background: COL[m.status] + '22', color: COL[m.status] }}>{STL[m.status]}</span>
+                        </div>
+                        <div style={{ fontSize: 22, fontWeight: 900, color: COL[m.status], marginTop: 4 }}>{m.v.toFixed(1)}%</div>
+                        <div style={{ fontSize: 10, color: 'var(--text-3)' }}>{t('pnl.hsTarget', '목표')} {m.target}</div>
+                    </div>
+                ))}
+            </div>
+
+            {worst.length > 0 && (
+                <div style={{ ...CARD }}>
+                    <div style={{ fontSize: 13, fontWeight: 800, marginBottom: 10 }}>💡 {t('pnl.hsActions', '순이익 개선 우선순위')}</div>
+                    <div style={{ display: 'grid', gap: 8 }}>
+                        {worst.map((m, i) => (
+                            <div key={m.key} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', fontSize: 12.5 }}>
+                                <span style={{ flexShrink: 0, width: 22, height: 22, borderRadius: '50%', background: COL[m.status], color: '#fff', fontWeight: 800, fontSize: 11, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{i + 1}</span>
+                                <div><b style={{ color: COL[m.status] }}>{m.label}</b> ({m.v.toFixed(1)}%) — <span style={{ color: 'var(--text-2)' }}>{m.tip}</span></div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}
+
 /* ═══════ TAB 1: Overview ═══════ */
 function OverviewTab({ live, t, fmt, dateRange }) {
     const max = live.grossRevenue || 1;
@@ -544,6 +625,7 @@ export default function PnLDashboard() {
     };
 
     const TABS = [
+        { id: 'health', icon: '🩺', labelKey: 'pnl.tabHealth', descKey: 'pnl.descHealth' },
         { id: 'overview', icon: '🌊', labelKey: 'pnl.tabOverview', descKey: 'pnl.descOverview' },
         { id: 'pnl', icon: '📊', labelKey: 'pnl.tabUnitPnl', descKey: 'pnl.descUnitPnl' },
         { id: 'anomaly', icon: '🚨', labelKey: 'pnl.tabAnomaly', descKey: 'pnl.descAnomaly' },
@@ -635,6 +717,7 @@ export default function PnLDashboard() {
 
             {/* Content */}
             <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '16px', paddingBottom: 80 }}>
+                {tab === 'health' && <HealthTab live={live} t={t} fmt={fmt} />}
                 {tab === 'overview' && <OverviewTab live={live} t={t} fmt={fmt} dateRange={dateRange} />}
                 {tab === 'pnl' && <PnlUnitTab live={live} t={t} fmt={fmt} connectedChannels={connectedChannels} />}
                 {tab === 'anomaly' && <AnomalyTab t={t} />}
