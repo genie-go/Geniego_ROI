@@ -14,6 +14,7 @@ import { useConnectorSync } from '../context/ConnectorSyncContext.jsx';
 import { getJsonAuth } from '../services/apiClient.js';
 const AiDesignEngine = React.lazy(() => import('../components/AiDesignEngine.jsx'));
 const CreativeStudioTab = React.lazy(() => import('./CreativeStudioTab.jsx')); // [현 차수] 저장 광고물 보관함(채널별·기간)
+const AiDesignManual = React.lazy(() => import('./AiDesignManual.jsx')); // [231차] AI 디자인 상세 매뉴얼(초보자 순서형·15개국)
 
 /* ─── BroadcastChannel Cross-Tab Sync ─── */
 const MKT_SYNC_CH = 'geniego-marketing-sync';
@@ -705,6 +706,7 @@ function AiDesignTab() {
         { id: 'chat', label: '💬 ' + t('marketing.aiViewChat', '대화형 AI 디자인') },
         { id: 'engine', label: '🎨 ' + t('marketing.aiViewEngine', '디자인 엔진') },
         { id: 'library', label: '🗂 ' + t('marketing.aiViewLibrary', '저장 광고물 보관함') },
+        { id: 'manual', label: '🤖 ' + t('marketing.aiViewManual', 'AI 디자인 상세 매뉴얼') },
     ];
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -727,7 +729,9 @@ function AiDesignTab() {
                 ))}
             </div>
             <React.Suspense fallback={<div className="card card-glass" style={{ padding:40, textAlign:'center', color:'#94a3b8' }}>{ t('marketing.aiDesignLoading', 'Loading AI Engine...') }</div>}>
-                {view === 'library'
+                {view === 'manual'
+                    ? <AiDesignManual />
+                    : view === 'library'
                     ? <CreativeStudioTab sourcePage="marketing-ai-design" />
                     : <AiDesignEngine defaultPlatform="popup" mode={view} hideModeToggle />}
             </React.Suspense>
